@@ -6,6 +6,22 @@
 #include <QFile>
 #include <QMenu>
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#include <QRegExp>
+static bool cmdMatch(const QString& pattern, const QString& cmd)
+{
+    QRegExp re(pattern, Qt::CaseInsensitive);
+    return re.exactMatch(cmd);
+}
+#else
+#include <QRegularExpression>
+static bool cmdMatch(const QString& pattern, const QString& cmd)
+{
+    QRegularExpression re(QRegularExpression::anchoredPattern(pattern),QRegularExpression::CaseInsensitiveOption);
+    return re.match(cmd).hasMatch();
+}
+#endif
+
 
 CmdSelectWidget::CmdSelectWidget(const MMVIISpecs &allSpecs, QWidget *parent)
     : QWidget(parent),allSpecs(allSpecs)
@@ -16,9 +32,9 @@ CmdSelectWidget::CmdSelectWidget(const MMVIISpecs &allSpecs, QWidget *parent)
     for (const auto& spec : allSpecs.commands) {
         if (contains(spec.features,"NoGui"))
             continue;
-        if (!allSpecs.allowed.empty() && !anyMatch(allSpecs.allowed,[&spec](const auto &e){return QRegExp(e,Qt::CaseInsensitive).exactMatch(spec.name); }))
+        if (!allSpecs.allowed.empty() && !anyMatch(allSpecs.allowed,[&spec](const auto &e){return cmdMatch(e,spec.name); }))
             continue;
-        if (anyMatch(allSpecs.denied,[&spec](const auto &e){return QRegExp(e,Qt::CaseInsensitive).exactMatch(spec.name); }))
+        if (anyMatch(allSpecs.denied,[&spec](const auto &e){return cmdMatch(e, spec.name); }))
             continue;
         QListWidgetItem *lwi = new QListWidgetItem(spec.name, cmdSelectUi->commandList);
         if (showDebug)

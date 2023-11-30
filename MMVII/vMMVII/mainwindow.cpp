@@ -15,6 +15,7 @@
 #include <QCloseEvent>
 
 
+
 MainWindow::MainWindow(const QString &mmviiPath, const QString &specPath, const QStringList &command, QWidget *parent)
     : QWidget(parent)
     , initCompleted(false)
@@ -156,7 +157,9 @@ void MainWindow::readSpecs(const QString& mmviiPath, const QString& specPath)
 
 void MainWindow::readCmdFilters(const QString& type, StrList& filter)
 {
-    auto vmmviiFilePath = QCoreApplication::applicationFilePath().remove(QRegExp("\\.exe$",Qt::CaseInsensitive));
+    auto vmmviiFilePath = QCoreApplication::applicationFilePath();
+    if (vmmviiFilePath.endsWith(".exe", Qt::CaseInsensitive))
+        vmmviiFilePath.remove(vmmviiFilePath.length() - 4, 4);
     auto allowFile = vmmviiFilePath + "." + type;
     filter.clear();
     QFile file(allowFile);
