@@ -448,22 +448,22 @@ void cCCDecode::ComputeCode()
        tREAL8  aMoy = Avg(KBeginInterv(mIPhase0,aKBit), KEndInterv(mIPhase0,aKBit+1));
 
        if (mSpec.BitIs1(aMoy>mBWAvg))
-           aFlag |= (1<<aKBit);
+            aFlag |= (size_t(1)<<aKBit);
     }
 
     //  flag for coding must be eventually inverted, depending of orientation convention
     {
         size_t aFlagCode = aFlag;
         if (! mSpec.AntiClockWiseBit())
-           aFlagCode = BitMirror(aFlag,1<<mSpec.NbBits());
+            aFlagCode = BitMirror(aFlag,size_t(1)<<mSpec.NbBits());
 
         mEnCode = mSpec.EncodingFromCode(aFlagCode);
 
         if (! mEnCode) return;
     }
 
-     // Make supplementary test 
-    MaxRunLength(aFlag,1<<mNbB,mVInt0,mVInt1);
+     // Make supplementary test
+    MaxRunLength(aFlag,size_t(1)<<mNbB,mVInt0,mVInt1);
 
     // Test were made to compute the global deviation on black/white part, but not concluding as
     // on some scene there is a bias that creat smooth variation;  if want to use it modelize the bias ?
@@ -602,8 +602,8 @@ void  cCCDecode::Show(const std::string & aPrefix)
     if (mEnCode) 
     {
        StdOut() << " Name=" << mEnCode->Name()  
-                << " Code=" <<  mEnCode->Code() 
-                << " BF=" << StrOfBitFlag(mEnCode->Code(), 1<<mNbB);
+                << " Code=" <<  mEnCode->Code()
+                << " BF=" << StrOfBitFlag(mEnCode->Code(), size_t(1)<<mNbB);
     }
     StdOut() << std::endl;
 }
@@ -954,7 +954,7 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
    mExtrEll->ExtractAllSeed();
    if (mZoomVisuSeed!=0)
    {
-	   StdOut()  << "\%seed-selec=" << (100.0 * mExtrEll->VSeeds().size()) / double(APBI_DIm().NbElem()) << std::endl;
+       StdOut()  << "%seed-selec=" << (100.0 * mExtrEll->VSeeds().size()) / double(APBI_DIm().NbElem()) << std::endl;
    }
    double aT2 = SecFromT0();
    mExtrEll->AnalyseAllConnectedComponents(mNameIm);

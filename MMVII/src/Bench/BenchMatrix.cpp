@@ -345,7 +345,7 @@ template <class Type>  void TplBenchDenseMatr(int aSzX,int aSzY)
         }
   
 
-        double aDTest = 1e-4 * pow(10,-(4-sizeof(Type))/2.0) * pow(aNb,1.0) ;  // Accuracy expectbale vary with tREAL4, tREAL8 ...
+        double aDTest = 1e-4 * pow(10,-double(4-sizeof(Type))/2.0) * pow(aNb,1.0) ;  // Accuracy expectbale vary with tREAL4, tREAL8 ...
     
         // Singular value decomposition
         {

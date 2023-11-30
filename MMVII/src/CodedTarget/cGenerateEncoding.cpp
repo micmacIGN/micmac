@@ -93,7 +93,7 @@ void cOneEncoding::AddData(const  cAuxAr2007 & anAux)
    AddTabData(cAuxAr2007("NumCode",anAux),mNC,2);
    MMVII::AddData(cAuxAr2007("Name",anAux),mName);
    if ((! anAux.Input()) && (mNC[2]!=0))
-       anAux.Ar().AddComment(StrOfBitFlag(Code(),1<<mNC[2]));
+       anAux.Ar().AddComment(StrOfBitFlag(Code(),size_t(1)<<mNC[2]));
 }
 
 size_t cOneEncoding::Num()  const {return mNC[0];}
@@ -478,7 +478,7 @@ int  cAppliGenerateEncoding::Exe()
         // 5.1   initialize :   priority queue in mPrioCC
    for (auto aCC : mVOC)
    {
-        tREAL8 aScore = - MaxRun2Length(aCC->mLowCode,mP2);
+       tREAL8 aScore = - double(MaxRun2Length(aCC->mLowCode,mP2));
         mPrioCC.push_back(cPrioCC(aCC,aScore));
    }
 

@@ -325,7 +325,7 @@ cResLex  cSerialFileParser::GetNextLex()
     {
          return GetNextLex_NOEOF();
     }
-    catch (cEOF_Exception anE)
+    catch (cEOF_Exception)
     {
          return cResLex("",eLexP::eEnd,eTAAr::eUndef);
     }

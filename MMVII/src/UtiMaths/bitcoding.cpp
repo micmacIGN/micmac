@@ -1,5 +1,4 @@
 #include "MMVII_SetITpl.h"
-#include "MMVII_Sys.h"
 #include "cMMVII_Appli.h"
 
 #include <fstream>
@@ -148,7 +147,7 @@ size_t  Str2BitFlag(const std::string & aStr)
   size_t aRes=0;
   for ( size_t aK=0 ; aStr[aK] ; aK++)
       if (aStr[aK]!='0')
-         aRes |= (1<<aK);
+          aRes |= (size_t(1)<<aK);
   return aRes;
 }
 
@@ -258,7 +257,7 @@ size_t cCelCC::HammingDist(const cCelCC & aC2) const
 cCompEquiCodes::cCompEquiCodes(size_t aNbBits,size_t aPer,bool WithMirror) :
      mNbBits       (aNbBits),
      mPeriod       (aPer),
-     mNbCodeUC     (1<<mNbBits),
+    mNbCodeUC     (size_t(1)<<mNbBits),
      mVCodes2Cell  (mNbCodeUC,nullptr)
 {
      MMVII_INTERNAL_ASSERT_strong((aNbBits%aPer)==0,"NbBit not multiple of period in cCompEquiCodes");
@@ -399,7 +398,7 @@ void  ReadCodesTarget(std::vector<cPt2di> & aVCode,const std::string & aNameFile
 
 /** show some static of run lenght on certain codinf scheme */
 
-void  TestComputeCoding(size_t aNBBCoding,int aParity,size_t aPer)
+void  TestComputeCoding(size_t aNBBCoding,int aParity,size_t)
 {
    std::vector<std::list<cCelCC*>>  aVCodeByRun(aNBBCoding+1);
 
@@ -412,7 +411,7 @@ void  TestComputeCoding(size_t aNBBCoding,int aParity,size_t aPer)
 
 	if (takeIt)
 	{
-             size_t aLenRun = MaxRun2Length(aCode,1<<aNBBCoding);
+         size_t aLenRun = MaxRun2Length(aCode,size_t(1)<<aNBBCoding);
 	     aVCodeByRun.at(aLenRun).push_back(aPCel);
 	}
    }
@@ -630,7 +629,7 @@ cHamingCoder::cHamingCoder(int aNbBitsIn) :
     mNumO2I   = std::vector<int> (mNbBitsOut+1,-1);
 
     for (int aK=0 ; aK<mNbBitsRed ; aK++)
-        mIsBitRed.at(1<<aK) = true;
+        mIsBitRed.at(size_t(1)<<aK) = true;
 
     int aKIn=1;
     for (int aKOut=1 ; aKOut<=mNbBitsOut ; aKOut++)
@@ -664,7 +663,7 @@ void BenchHammingCode(int aNbB)
    cHamingCoder aHC(aNbB);
 
    std::vector<int>  aVC;
-   std::vector<bool>  aVIsCorrect(1<<aHC.NbBitsOut(),false);
+   std::vector<bool>  aVIsCorrect(size_t(1)<<aHC.NbBitsOut(),false);
    for (int aK=0 ; aK<(1<<aNbB) ; aK++)
    {
       int aC = aHC.Coding(aK);
