@@ -2480,7 +2480,7 @@ int  cAppliMatchMultipleOrtho::GotoEpipolar()
 
    // load Original images
    bool WithFile = ExistFile(NameORIG(0,0));
-   bool WithEpipolar=ExistFile(NameORIGMASTERGEOX(0,1,0));
+   bool WithEpipolar=ExistFile(NameORIGMASTEREpImGEOX(0,1,0));
    if (WithFile)
        {
            for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
@@ -2494,8 +2494,10 @@ int  cAppliMatchMultipleOrtho::GotoEpipolar()
         }
 
    // load image to epipolar maps and back
-    std::vector<tVecOrtho> mORIG_GEOX, mORIG_GEOY, mORIG_EpIm_GEOX, mORIG_EpIm_GEOY, mEPIPS;
-    std::vector<tVecMasq>  mORIG_MASQs, mORIG_EpIm_MASQs;
+    //std::vector<tVecOrtho> mORIG_GEOX, mORIG_GEOY;
+    std::vector<tVecOrtho>    mORIG_EpIm_GEOX, mORIG_EpIm_GEOY, mEPIPS;
+    //std::vector<tVecMasq>  mORIG_MASQs;
+    std::vector<tVecMasq> mORIG_EpIm_MASQs;
 
     if (WithEpipolar)
       {
@@ -2505,9 +2507,9 @@ int  cAppliMatchMultipleOrtho::GotoEpipolar()
             // for each secondary image fille containers twice : one for master eipolar + one for secondary
 
             // 1. master epipolar
-            mORIG_GEOX.push_back(tVecOrtho());
-            mORIG_GEOY.push_back(tVecOrtho());
-            mORIG_MASQs.push_back(tVecMasq());
+            //mORIG_GEOX.push_back(tVecOrtho());
+            //mORIG_GEOY.push_back(tVecOrtho());
+            //mORIG_MASQs.push_back(tVecMasq());
 
             mORIG_EpIm_GEOX.push_back(tVecOrtho());
             mORIG_EpIm_GEOY.push_back(tVecOrtho());
@@ -2517,9 +2519,9 @@ int  cAppliMatchMultipleOrtho::GotoEpipolar()
             // 2. second epipolar
 
             aInd+=1;
-            mORIG_GEOX.push_back(tVecOrtho());
-            mORIG_GEOY.push_back(tVecOrtho());
-            mORIG_MASQs.push_back(tVecMasq());
+            //mORIG_GEOX.push_back(tVecOrtho());
+            //mORIG_GEOY.push_back(tVecOrtho());
+            //mORIG_MASQs.push_back(tVecMasq());
             mEPIPS.push_back(tVecOrtho());
             mORIG_EpIm_GEOX.push_back(tVecOrtho());
             mORIG_EpIm_GEOY.push_back(tVecOrtho());
@@ -2528,17 +2530,17 @@ int  cAppliMatchMultipleOrtho::GotoEpipolar()
             for (int aKScale=0; aKScale<mNbScale; aKScale++)
               {
                 // Master
-                mORIG_GEOX.at(aInd-1).push_back(tImOrtho::FromFile(NameORIGMASTERGEOX(0,akIm,aKScale)));
-                mORIG_GEOY.at(aInd-1).push_back(tImOrtho::FromFile(NameORIGMASTERGEOY(0,akIm,aKScale)));
-                mORIG_MASQs.at(aInd-1).push_back(tImMasq::FromFile(NameORIGMASTERMASQ(0,akIm,aKScale)));
+                //mORIG_GEOX.at(aInd-1).push_back(tImOrtho::FromFile(NameORIGMASTERGEOX(0,akIm,aKScale)));
+                //mORIG_GEOY.at(aInd-1).push_back(tImOrtho::FromFile(NameORIGMASTERGEOY(0,akIm,aKScale)));
+                //mORIG_MASQs.at(aInd-1).push_back(tImMasq::FromFile(NameORIGMASTERMASQ(0,akIm,aKScale)));
 
                 mORIG_EpIm_GEOX.at(aInd-1).push_back(tImOrtho::FromFile(NameORIGMASTEREpImGEOX(0,akIm,aKScale)));
                 mORIG_EpIm_GEOY.at(aInd-1).push_back(tImOrtho::FromFile(NameORIGMASTEREpImGEOY(0,akIm,aKScale)));
                 mORIG_EpIm_MASQs.at(aInd-1).push_back(tImMasq::FromFile(NameORIGMASTEREpImMASQ(0,akIm,aKScale)));
                 // Secondary
-                mORIG_GEOX.at(aInd).push_back(tImOrtho::FromFile(NameORIGSECGEOX(akIm,aKScale)));
-                mORIG_GEOY.at(aInd).push_back(tImOrtho::FromFile(NameORIGSECGEOY(akIm,aKScale)));
-                mORIG_MASQs.at(aInd).push_back(tImMasq::FromFile(NameORIGSECMASQ(akIm,aKScale)));
+                //mORIG_GEOX.at(aInd).push_back(tImOrtho::FromFile(NameORIGSECGEOX(akIm,aKScale)));
+                //mORIG_GEOY.at(aInd).push_back(tImOrtho::FromFile(NameORIGSECGEOY(akIm,aKScale)));
+                //mORIG_MASQs.at(aInd).push_back(tImMasq::FromFile(NameORIGSECMASQ(akIm,aKScale)));
 
                 mORIG_EpIm_GEOX.at(aInd).push_back(tImOrtho::FromFile(NameORIGSECEpImGEOX(akIm,aKScale)));
                 mORIG_EpIm_GEOY.at(aInd).push_back(tImOrtho::FromFile(NameORIGSECEpImGEOY(akIm,aKScale)));
@@ -2585,7 +2587,7 @@ int  cAppliMatchMultipleOrtho::GotoEpipolar()
               F::GridSampleFuncOptions().mode(torch::kBilinear).padding_mode(torch::kZeros).align_corners(true)).squeeze());
 
 
-               if (TEST)
+               if (0)
                  {
                    // Save some images rectified back to the original image
                    if (anInd==0)
@@ -2614,12 +2616,12 @@ int  cAppliMatchMultipleOrtho::GotoEpipolar()
         mPrefixZ =  mPrefixGlob + "_Z" + ToStr(aZ);
 
         bool NoFile = ExistFile(mPrefixZ+ "_NoData");  // If no data in masq thie file exist
-        WithFile = ExistFile(NameOrtho(0,0));
+        WithFile = ExistFile(NameMasq(0,0));
         // A little check
         MMVII_INTERNAL_ASSERT_strong(NoFile!=WithFile,"DM4MatchMultipleOrtho, incoherence file");
         if ((aZ==0)  && (true))
         {
-             cDataFileIm2D aDF = cDataFileIm2D::Create(NameOrtho(0,0),false);
+             cDataFileIm2D aDF = cDataFileIm2D::Create(NameMasq(0,0),false);
              StdOut() << " * NbI=" << mNbIm << " NbS=" <<  mNbScale << " NbZ=" <<  mNbZ << " Sz=" << aDF.Sz() << " SzW=" << mSzW << "\n";
         }
          if (WithFile)
@@ -2628,13 +2630,13 @@ int  cAppliMatchMultipleOrtho::GotoEpipolar()
                 mSzIms = cPt2di(-1234,6789);
                 for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
                 {
-                     mVOrtho.push_back(tVecOrtho());
+                     //mVOrtho.push_back(tVecOrtho());
                      mVMasq.push_back(tVecMasq());
                      mVGEOX.push_back(tVecOrtho());
                      mVGEOY.push_back(tVecOrtho());
                      for (int aKScale=0 ; aKScale<mNbScale ; aKScale++)
                         {
-                            mVOrtho.at(aKIm).push_back(tImOrtho::FromFile(NameOrtho(aKIm,aKScale)));
+                            //mVOrtho.at(aKIm).push_back(tImOrtho::FromFile(NameOrtho(aKIm,aKScale)));
                             /*if (aKIm==2)
                               {
                                 std::cout<<"NAME GEOX :"<<NameGeoX(aKIm,aKScale)<<std::endl;
@@ -2642,14 +2644,14 @@ int  cAppliMatchMultipleOrtho::GotoEpipolar()
                               }*/
                             mVGEOX.at(aKIm).push_back(tImOrtho::FromFile(NameGeoX(aKIm,aKScale)));
                             mVGEOY.at(aKIm).push_back(tImOrtho::FromFile(NameGeoY(aKIm,aKScale)));
-                            if ((aKIm==0) && (aKScale==0))
-                                mSzIms = mVOrtho[0][0].DIm().Sz();  // Compute the size at level
-
                             mVMasq.at(aKIm).push_back(tImMasq::FromFile(NameMasq(aKIm,aKScale)));
+                            if ((aKIm==0) && (aKScale==0))
+                                mSzIms = mVMasq[0][0].DIm().Sz();  // Compute the size at level
+
 
                             // check all images have the same at a given level
-                            MMVII_INTERNAL_ASSERT_strong(mVOrtho[aKIm][aKScale].DIm().Sz()==mSzIms,"DM4O : variable size(ortho)");
-                            MMVII_INTERNAL_ASSERT_strong(mVMasq [aKIm][aKScale].DIm().Sz()==mSzIms,"DM4O : variable size(masq)");
+                            //MMVII_INTERNAL_ASSERT_strong(mVOrtho[aKIm][aKScale].DIm().Sz()==mSzIms,"DM4O : variable size(ortho)");
+                            MMVII_INTERNAL_ASSERT_strong(mVMasq[aKIm][aKScale].DIm().Sz()==mSzIms,"DM4O : variable size(masq)");
                         }
                 }
                 // Create similarity image with good size
@@ -2683,7 +2685,6 @@ int  cAppliMatchMultipleOrtho::GotoEpipolar()
                                   ProjectEmbeddings->push_back(FFunc::grid_sample(OrigEmbeddings->at(i+1).unsqueeze(0),
                                                                                   ToTensorGeo(mVGEOX[id_im][0],mVGEOY[id_im][0],aSzImSec-cPt2di(1,1)).to(device),
                                     F::GridSampleFuncOptions().mode(torch::kBilinear).padding_mode(torch::kZeros).align_corners(true)).squeeze());
-
                                 }
                               ComputeSimilByLearnedCorrelMasterEnhancedMVS(ProjectEmbeddings);
                          }
@@ -2691,8 +2692,6 @@ int  cAppliMatchMultipleOrtho::GotoEpipolar()
                         {
                           MMVII_INTERNAL_ASSERT_strong(false, "TheUnetMlpCubeMatcher is the only option for Now");
                         }
-
-
                   }
                 else
                   {
@@ -2705,17 +2704,17 @@ int  cAppliMatchMultipleOrtho::GotoEpipolar()
             }
 
                 mImSimil.DIm().ToFile(mPrefixZ+ "_Sim.tif"); // Save similarities
-                mVOrtho.clear();
+                //mVOrtho.clear();
                 mVGEOX.clear();
                 mVGEOY.clear();
                 mVMasq.clear();
         }
-   mORIG_GEOX.clear();
-   mORIG_GEOY.clear();
+   //mORIG_GEOX.clear();
+   //mORIG_GEOY.clear();
    mORIG_EpIm_GEOX.clear();
    mORIG_EpIm_GEOY.clear();
    mEPIPS.clear();
-   mORIG_MASQs.clear();
+   //mORIG_MASQs.clear();
    mORIG_EpIm_MASQs.clear();
    //std::cout<<"Get Similarity maps "<<std::getchar();
    return EXIT_SUCCESS;
@@ -2733,7 +2732,7 @@ int  cAppliMatchMultipleOrtho::GotoHomography()
 
    // load Original images
    bool WithFile = ExistFile(NameORIG(0,0));
-   bool WithHomography=ExistFile(NameORIGSECGEOX(1,0));
+   bool WithHomography=ExistFile(NameORIGSECEpImGEOX(1,0));
    if (WithFile)
      {
          for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
@@ -2747,8 +2746,10 @@ int  cAppliMatchMultipleOrtho::GotoHomography()
       }
 
    // load image to HOMOGRAPHY maps and back
-    std::vector<tVecOrtho> mORIG_GEOX, mORIG_GEOY, mORIG_EpIm_GEOX, mORIG_EpIm_GEOY, mEPIPS;
-    std::vector<tVecMasq>  mORIG_MASQs, mORIG_EpIm_MASQs;
+    //std::vector<tVecOrtho> mORIG_GEOX, mORIG_GEOY;
+    std::vector<tVecOrtho> mORIG_EpIm_GEOX, mORIG_EpIm_GEOY, mEPIPS;
+    //std::vector<tVecMasq>  mORIG_MASQs;
+    std::vector<tVecMasq> mORIG_EpIm_MASQs;
 
     if (WithHomography)
       {
@@ -2756,9 +2757,9 @@ int  cAppliMatchMultipleOrtho::GotoHomography()
           {
             // for each secondary image fille containers twice : one for master eipolar + one for secondary
             // 1. secondary images to homography homography
-            mORIG_GEOX.push_back(tVecOrtho());
-            mORIG_GEOY.push_back(tVecOrtho());
-            mORIG_MASQs.push_back(tVecMasq());
+            //mORIG_GEOX.push_back(tVecOrtho());
+            //mORIG_GEOY.push_back(tVecOrtho());
+            //mORIG_MASQs.push_back(tVecMasq());
             mEPIPS.push_back(tVecOrtho());
             mORIG_EpIm_GEOX.push_back(tVecOrtho());
             mORIG_EpIm_GEOY.push_back(tVecOrtho());
@@ -2767,9 +2768,9 @@ int  cAppliMatchMultipleOrtho::GotoHomography()
             for (int aKScale=0; aKScale<mNbScale; aKScale++)
               {
                 // Secondary
-                mORIG_GEOX.at(akIm-1).push_back(tImOrtho::FromFile(NameORIGSECGEOX(akIm,aKScale)));
-                mORIG_GEOY.at(akIm-1).push_back(tImOrtho::FromFile(NameORIGSECGEOY(akIm,aKScale)));
-                mORIG_MASQs.at(akIm-1).push_back(tImMasq::FromFile(NameORIGSECMASQ(akIm,aKScale)));
+                //mORIG_GEOX.at(akIm-1).push_back(tImOrtho::FromFile(NameORIGSECGEOX(akIm,aKScale)));
+                //mORIG_GEOY.at(akIm-1).push_back(tImOrtho::FromFile(NameORIGSECGEOY(akIm,aKScale)));
+                //mORIG_MASQs.at(akIm-1).push_back(tImMasq::FromFile(NameORIGSECMASQ(akIm,aKScale)));
 
                 mORIG_EpIm_GEOX.at(akIm-1).push_back(tImOrtho::FromFile(NameORIGSECEpImGEOX(akIm,aKScale)));
                 mORIG_EpIm_GEOY.at(akIm-1).push_back(tImOrtho::FromFile(NameORIGSECEpImGEOY(akIm,aKScale)));
@@ -2797,7 +2798,7 @@ int  cAppliMatchMultipleOrtho::GotoHomography()
                OrigEmbeddings->push_back(FFunc::grid_sample(SecFeat.unsqueeze(0),
                                                             ToTensorGeo(mORIG_EpIm_GEOX[anInd][0],mORIG_EpIm_GEOY[anInd][0]).to(device),
               F::GridSampleFuncOptions().mode(torch::kBilinear).padding_mode(torch::kZeros).align_corners(true)).squeeze());
-               if (1)
+               if (0)
                  {
                    // Save some images rectified back to the original image
                    if (anInd==0)
@@ -2824,27 +2825,28 @@ int  cAppliMatchMultipleOrtho::GotoHomography()
         mPrefixZ =  mPrefixGlob + "_Z" + ToStr(aZ);
 
         bool NoFile = ExistFile(mPrefixZ+ "_NoData");  // If no data in masq thie file exist
-        WithFile = ExistFile(NameOrtho(0,0));
+        WithFile = ExistFile(NameMasq(0,0));
         // A little check
         MMVII_INTERNAL_ASSERT_strong(NoFile!=WithFile,"DM4MatchMultipleOrtho, incoherence file");
         if ((aZ==0)  && (true))
         {
-             cDataFileIm2D aDF = cDataFileIm2D::Create(NameOrtho(0,0),false);
+             cDataFileIm2D aDF = cDataFileIm2D::Create(NameMasq(0,0),false);
              StdOut() << " * NbI=" << mNbIm << " NbS=" <<  mNbScale << " NbZ=" <<  mNbZ << " Sz=" << aDF.Sz() << " SzW=" << mSzW << "\n";
         }
-         if (WithFile)
-            {
+
+        if (WithFile)
+          {
                 // Read  orthos and masq in  vectors of images
                 mSzIms = cPt2di(-1234,6789);
                 for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
                 {
-                     mVOrtho.push_back(tVecOrtho());
+                     //mVOrtho.push_back(tVecOrtho());
                      mVMasq.push_back(tVecMasq());
                      mVGEOX.push_back(tVecOrtho());
                      mVGEOY.push_back(tVecOrtho());
                      for (int aKScale=0 ; aKScale<mNbScale ; aKScale++)
                         {
-                            mVOrtho.at(aKIm).push_back(tImOrtho::FromFile(NameOrtho(aKIm,aKScale)));
+                            //mVOrtho.at(aKIm).push_back(tImOrtho::FromFile(NameOrtho(aKIm,aKScale)));
                             /*if (aKIm==2)
                               {
                                 std::cout<<"NAME GEOX :"<<NameGeoX(aKIm,aKScale)<<std::endl;
@@ -2852,18 +2854,18 @@ int  cAppliMatchMultipleOrtho::GotoHomography()
                               }*/
                             mVGEOX.at(aKIm).push_back(tImOrtho::FromFile(NameGeoX(aKIm,aKScale)));
                             mVGEOY.at(aKIm).push_back(tImOrtho::FromFile(NameGeoY(aKIm,aKScale)));
-                            if ((aKIm==0) && (aKScale==0))
-                                mSzIms = mVOrtho[0][0].DIm().Sz();  // Compute the size at level
-
                             mVMasq.at(aKIm).push_back(tImMasq::FromFile(NameMasq(aKIm,aKScale)));
+                            if ((aKIm==0) && (aKScale==0))
+                                mSzIms = mVMasq[0][0].DIm().Sz();  // Compute the size at level
 
-                            // check all images have the same at a given level
-                            MMVII_INTERNAL_ASSERT_strong(mVOrtho[aKIm][aKScale].DIm().Sz()==mSzIms,"DM4O : variable size(ortho)");
-                            MMVII_INTERNAL_ASSERT_strong(mVMasq [aKIm][aKScale].DIm().Sz()==mSzIms,"DM4O : variable size(masq)");
+                            // check all images have the same size at a given level
+                            //MMVII_INTERNAL_ASSERT_strong(mVOrtho[aKIm][aKScale].DIm().Sz()==mSzIms,"DM4O : variable size(ortho)");
+                            MMVII_INTERNAL_ASSERT_strong(mVMasq[aKIm][aKScale].DIm().Sz()==mSzIms,"DM4O : variable size(masq)");
                         }
                 }
                 // Create similarity image with good size
                 mImSimil = tImSimil(mSzIms);
+                //std::cout<<"mSzIms   ::::::  "<<mSzIms<<std::endl;
 
                 mImSimil.DIm().InitCste(1.0);
 
@@ -2917,17 +2919,17 @@ int  cAppliMatchMultipleOrtho::GotoHomography()
             }
 
                 mImSimil.DIm().ToFile(mPrefixZ+ "_Sim.tif"); // Save similarities
-                mVOrtho.clear();
+                //mVOrtho.clear();
                 mVGEOX.clear();
                 mVGEOY.clear();
                 mVMasq.clear();
         }
-   mORIG_GEOX.clear();
-   mORIG_GEOY.clear();
+   //mORIG_GEOX.clear();
+   //mORIG_GEOY.clear();
    mORIG_EpIm_GEOX.clear();
    mORIG_EpIm_GEOY.clear();
    mEPIPS.clear();
-   mORIG_MASQs.clear();
+   //mORIG_MASQs.clear();
    mORIG_EpIm_MASQs.clear();
    return EXIT_SUCCESS;
 }
@@ -2937,14 +2939,14 @@ int cAppliMatchMultipleOrtho::Exe()
   int aResol=std::atoi(mResol.c_str());
   if (aResol==1)
     {
-      //return GotoEpipolar();
-      return GotoHomography();
+      return GotoEpipolar();
+      //return GotoHomography();
       //return ExeProjectOrigEmbeddings();
     }
   else
     {
-      return GotoHomography();
-      //return GotoEpipolar();
+      //return GotoHomography();
+      return GotoEpipolar();
       //return ExeProjectOrigEmbeddings();
     }
 }

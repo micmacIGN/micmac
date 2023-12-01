@@ -166,7 +166,9 @@ void cAppliMICMAC::OneEtapeSetCur(cEtapeMecComp & anEtape)
 {
      mPrecEtape = mCurEtape;
      mCurEtape = & anEtape;
-     
+     mZoomChanged=true;
+
+
      if (anEtape.EtapeMEC().GenCubeCorrel().ValWithDef(false))
      {
         ELISE_fp::MkDirSvp(DirCube());
@@ -386,7 +388,16 @@ void cAppliMICMAC::DoOneEtapeMEC(cEtapeMecComp & anEtape)
           ||(mNbBoitesToDo <=0)
         )
         return;
-
+     if (mCorrelAdHoc)
+       {
+         // Homography or Epipolar warping for multi view Deep similarity matching
+         const cTypeCAH & aTC  = mCorrelAdHoc->TypeCAH();
+         if (aTC.MutiCorrelOrthoExt().IsInit())
+           {
+            //DoEstimHomWarpers();
+             DoEstimWarpersPDVs();
+           }
+       }
     std::list<std::string> aLStrProcess;
     if (mShowMes)
     {

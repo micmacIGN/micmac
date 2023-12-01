@@ -850,10 +850,10 @@ void cAppliFusion::DoAll()
 	
 	 	if (EAMIsInit(&mOri))
 		{	
-		//aNI1 = mCAS3D.mICNM->NameImEpip(mOri,itP.N1(),itP.N2());
-		//aNI2 = mCAS3D.mICNM->NameImEpip(mOri,itP.N2(),itP.N1());
-		aNI1 = mCAS3D.NameOfEpiIm1(aCpt,mOri);
-		aNI2 = mCAS3D.NameOfEpiIm2(aCpt,mOri);
+		aNI1 = mCAS3D.mICNM->NameImEpip(mOri,itP.N1(),itP.N2());
+		aNI2 = mCAS3D.mICNM->NameImEpip(mOri,itP.N2(),itP.N1());
+		//aNI1 = mCAS3D.NameOfEpiIm1(aCpt,mOri);
+		//aNI2 = mCAS3D.NameOfEpiIm2(aCpt,mOri);
 		}
 		else
 		{

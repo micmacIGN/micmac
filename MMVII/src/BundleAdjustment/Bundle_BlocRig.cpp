@@ -64,11 +64,19 @@ void cBA_BlocRig::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet)
     //
     //  For each bloc, the unkowns are the "cPoseWithUK" contained in "mMapPoseUKInBloc"
     //
+    for (const auto & aBloc:mBlocs)
+        {
+            for(auto & aPair:aBloc->MapStrPoseUK())
+                {
+                    aSet.AddOneObj(&aPair.second);
+                }
+        }
 
      //  .....
      // map all bloc
      //   map all pair of MapStrPoseUK
      //        add cPoseWithUK
+
 }
 
 /**  In a bundle adjusment its current that some variable are "hard" frozen, i.e they are
@@ -81,15 +89,16 @@ void cBA_BlocRig::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet)
  */
 void cBA_BlocRig::SetFrozenVar(cResolSysNonLinear<tREAL8> & aSys)  
 {
-     // ... parse all bloc
+     for (const auto & aBloc : mBlocs)
      {
-	   
          //  ... extract the master
 
+        cPoseWithUK & aMasterPose=aBloc->MasterPoseInBl();
 	 // The system handle the unknwon as integers,  the "object" (here aPose)
 	 // "knows" the association between its member and local integers, that's why
 	 // we pass object and members to do the job
-	 //
+         aSys.SetFrozenVarCurVal(aMasterPose,aMasterPose.Center());
+         aSys.SetFrozenVarCurVal(aMasterPose,aMasterPose.Omega());
 	 //  ...  freeze the center
 	 //  ... freez omega
      }
@@ -123,12 +132,19 @@ cPt3dr cBA_BlocRig::OnePairAddRigidityEquation(size_t aKS,size_t aKBl1,size_t aK
 
     //   for the 4 pose use PushObs to  add it context in aVObs
     // ...
+    aCam1->Pose_WU().PushObs(aVObs,false);
+    aCam2->Pose_WU().PushObs(aVObs,false);
+    aPBl1.PushObs(aVObs,false);
+    aPBl2.PushObs(aVObs,false);
 
     // We must create a vector that contains all the global num of unknowns
     //
     // ...
     std::vector<int>  aVInd;
-
+    aCam1->PushIndexes(aVInd);
+    aCam2->PushIndexes(aVInd);
+    aPBl1.PushIndexes(aVInd);
+    aPBl2.PushIndexes(aVInd);
     // now we are ready to add the equation
     aSys.R_CalcAndAddObs
     (
@@ -138,15 +154,22 @@ cPt3dr cBA_BlocRig::OnePairAddRigidityEquation(size_t aKS,size_t aKBl1,size_t aK
 	  cResidualWeighterExplicit<tREAL8>(false,mWeight)
     );
 
-
     //  Now compute the residual  in Tr and Rot,
     //  ie agregate   (Rx,Ry,Rz, m00 , m01 ...)
     //
     //          ....
     //
-    //  mEqBlUK->ValComp(0,aKU)
+    cPt3dr aRes(0,0,1);
+    for (size_t aKU=0; aKU<12;aKU++)
+        {
+            aRes[aKU>=3]+=Square(mEqBlUK->ValComp(0,aKU));
 
-    return cPt3dr(0,0,1);
+        }
+
+
+    //mEqBlUK->ValComp(0,aKU)
+
+    return cPt3dr(aRes.x()/3,aRes.y()/9,1);
 }
 
 
@@ -180,7 +203,7 @@ void cBA_BlocRig::OneBlAddRigidityEquation(cBlocOfCamera& aBloc,cResolSysNonLine
 
      aRes = aRes/aRes.z();
 
-     StdOut() << "  Residual for Bloc : "  <<  aBloc.Name() << ", Tr=" << aRes.x() << ", Rot=" << aRes.y() << std::endl;
+     StdOut() << "  Residual for Bloc : "  <<  aBloc.Name() << ", Tr=" << std::sqrt(aRes.x()) << ", Rot=" << std::sqrt(aRes.y()) << std::endl;
 }
 
 void cBA_BlocRig::AddRigidityEquation(cResolSysNonLinear<tREAL8> & aSys)

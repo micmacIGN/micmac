@@ -3582,6 +3582,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
 
   // Permet entre autre d'optimiser pour geom image maitresse
            bool mFirstZIsInit;
+           bool mZoomChanged=false;
 
            Pt2di mSzGlobTer;
            int  mX0Ter;

@@ -648,7 +648,6 @@ int cAppliGenCode::Exe()
    for (const auto WithDer : {true,false})
    {
        GenCodesFormula((tREAL8*)nullptr,cFormulaBlocRigid(),WithDer); // RIGIDBLOC
-
        // cDist2DConservation aD2C;
        GenCodesFormula((tREAL8*)nullptr,cDist2DConservation(),WithDer);
        GenCodesFormula((tREAL8*)nullptr,cRatioDist2DConservation(),WithDer);
