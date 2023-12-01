@@ -41,11 +41,13 @@ class cAppli_CreateRTL : public cMMVII_Appli
 	// Optionall Arg
 	cPt3dr           mOrigin;
 	tREAL8           mZ0;
+        tREAL8           mEpsDer ;
 };
 
 cAppli_CreateRTL::cAppli_CreateRTL(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli  (aVArgs,aSpec),
-   mPhProj       (*this)
+   mPhProj       (*this),
+   mEpsDer       (200.0)
 {
 }
 
@@ -67,6 +69,7 @@ cCollecSpecArg2007 & cAppli_CreateRTL::ArgOpt(cCollecSpecArg2007 & anArgObl)
             <<  mPhProj.DPPointsMeasures().ArgDirInOpt()
             << AOpt2007(mOrigin,"Origin","Force origin of RTL Measures",{{eTA2007::HDV}})
             << AOpt2007(mZ0,"Z0","Force altitute of RTL Measures",{{eTA2007::HDV}})
+            << AOpt2007(mEpsDer,"EpsDer","Epislon 4 computing derivative",{{eTA2007::HDV}})
             // << AOpt2007(mNameBloc,"NameBloc","Set the name of the bloc ",{{eTA2007::HDV}})
     ;
 }
@@ -122,7 +125,7 @@ int cAppli_CreateRTL::Exe()
 
 
     tPtrSysCo aSysIn = mPhProj.ReadSysCo(mNameSysIn);
-    cChangSysCoordV2  aChSys(aSysIn,aSysRTL);
+    cChangSysCoordV2  aChSys(aSysIn,aSysRTL,mEpsDer);
 
     if (mPhProj.DPOrient().DirOutIsInit())
     {
@@ -131,7 +134,7 @@ int cAppli_CreateRTL::Exe()
         {
 	    aCpt++;
 	    cSensorImage* aSIn  = mPhProj.LoadSensor(aNameIm);
-	    cSensorImage* aSOut = aSIn->ChangSys(aChSys);
+	    cSensorImage* aSOut = aSIn->SensorChangSys(aChSys);
 
 	    mPhProj.SaveSensor(*aSOut);
 
@@ -140,6 +143,7 @@ int cAppli_CreateRTL::Exe()
 	       StdOut () << " Remain  " << VectMainSet(0).size() - aCpt  << "\n";
 	    delete aSOut;
 	}
+        mPhProj.SaveCurSysCoOri(aSysRTL);
     }
 
     return EXIT_SUCCESS;
@@ -148,7 +152,7 @@ int cAppli_CreateRTL::Exe()
 
 std::vector<std::string>  cAppli_CreateRTL::Samples() const
 {
-   return {"MMVII SysCoCreateRTL "};
+   return {"MMVII SysCoCreateRTL VolAllIm.xml Lambert93 RTLProj InOri=InitUPCalVol OutOri=RTLInitUPCalVol Z0=0 EpsDer=200"};
 }
 
 

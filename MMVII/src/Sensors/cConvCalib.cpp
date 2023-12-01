@@ -382,7 +382,7 @@ int cAppli_OriConvV1V2::Exe()
 	if (mUseStdNameCalib)
            aNameCalib = mPhProj.StdNameCalibOfImage(aNameIm);
 
-        cSensorCamPC * aPC =  cV1PCConverter::AllocSensorPCV1(aNameIm,mDirMMV1+aNameOri,aNameCalib,mDownScale,mDegree,mFileInterne);
+        cSensorCamPC * aPC =  cV1PCConverter::AllocSensorPCV1(aNameIm,mDirMMV1+StringDirSeparator()+aNameOri,aNameCalib,mDownScale,mDegree,mFileInterne);
 
 	mPhProj.SaveCamPC(*aPC);
 

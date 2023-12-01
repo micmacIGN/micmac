@@ -62,7 +62,7 @@ class cBA_BlocRig
 {
      public :
 
-        cBA_BlocRig(const cPhotogrammetricProject &,const std::vector<double> & mW);
+        cBA_BlocRig(const cPhotogrammetricProject &,const std::vector<double> & aSigma,const std::vector<double> & aSigmRat);
 	~cBA_BlocRig();
         void    AddCam(cSensorCamPC * aCam);
 
@@ -89,6 +89,9 @@ class cBA_BlocRig
         std::vector<double>          mWeight;
         bool                         mAllPair;  // Do we use all pair or only pair with master
         cCalculator<double> *        mEqBlUK;
+        std::vector<double>          mSigmaRat;
+        std::vector<double>          mWeightRat;
+        cCalculator<double> *        mEqRatt;
 
 };
 
@@ -106,8 +109,9 @@ class cMMVII_BundleAdj
           void  AddCalib(cPerspCamIntrCalib *);  /// add  if not exist
           void  AddCamPC(cSensorCamPC *);  /// add, error id already exist
           void  AddCam(const std::string & aNameIm);  /// add from name, require PhP exist
+	  void  AddReferencePoses(const std::vector<std::string> &);  ///  [Fofder,SigmGCP,SigmaRot ?]
 
-	  void AddBlocRig(const std::vector<double>& aWeight); // RIGIDBLOC
+	  void AddBlocRig(const std::vector<double>& aSigma,const std::vector<double>&  aSigmRat ); // RIGIDBLOC
 	  void AddCamBlocRig(const std::string & aCam); // RIGIDBLOC
 
           ///  =======  Add GCP, can be measure or measure & object
@@ -130,6 +134,9 @@ class cMMVII_BundleAdj
 	  void SetFrozenCenters(const std::string & aPattern);
 
 	  void AddPoseViscosity();
+	  void AddConstrainteRefPose();
+          void AddConstrainteRefPose(cSensorCamPC & aCam,cSensorCamPC & aCamRef);
+
 
 	  void SaveBlocRigid();
 
@@ -189,6 +196,13 @@ class cMMVII_BundleAdj
                  // - - - - - - -   Bloc Rigid - - - - - - - -
 	  cBA_BlocRig*              mBlRig;  // RIGIDBLOC
 	  
+	         // - - - - - - -   Reference poses- - - - - - - -
+          std::vector<cSensorCamPC *>        mVCamRefPoses;      ///< vector of reference  poses if they exist
+	  std::string                        mFolderRefCam;
+	  tREAL8                             mSigmaTrRefCam;
+	  tREAL8                             mSigmaRotRefCam;
+	  bool                               mDoRefCam;
+          cDirsPhProj*                       mDirRefCam;
           // ===================  "Viscosity"  ==================
 
 	  tREAL8   mSigmaViscAngles;  ///< "viscosity"  for angles

@@ -6,7 +6,7 @@
       "SysCoGeo" :
       {
          "Type" :"Lambert93" ,
-         "Attrbutes" :[]
+         "Attributes" :[]
       }
    }
 }

@@ -195,6 +195,12 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
           void   AddEqFixCurVar(const tObjWUk & anObj,const  Type * aVal,size_t aNb,const Type& aWeight);
           void   AddEqFixCurVar(const tObjWUk & anObj,const  cPtxd<Type,3> &,const Type& aWeight);
 
+
+          void   AddEqFixNewVal(const tObjWUk & anObj,const  Type & aV2Fix,const  Type & aNewVal,const Type& aWeight);
+          void   AddEqFixNewVal(const tObjWUk & anObj,const  Type * aVal,const  Type * aNewVal,size_t aNb,const Type& aWeight);
+          void   AddEqFixNewVal(const tObjWUk & anObj,const  cPtxd<Type,3> &,const  cPtxd<Type,3> &,const Type& aWeight);
+
+
           /// Basic Add 1 equation , no bufferistion, no schur complement
           void   CalcAndAddObs(tCalc *,const tVectInd &,const tStdVect& aVObs,const tResidualW & = tResidualW());
           void   R_CalcAndAddObs(tCalc *,const tVectInd &,const  tR_Up::tStdVect& aVObs,const tR_Up::tResidualW & ) override;

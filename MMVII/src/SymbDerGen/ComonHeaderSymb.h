@@ -300,16 +300,20 @@ template <class Type> class cPoseF
         }
 
 
-        cPoseF(const std::vector<Type> &  aVecUk,size_t aK0Uk,const std::vector<Type> &  aVecObs,size_t aK0Obs) :
+        cPoseF(const std::vector<Type> &  aVecUk,size_t aK0Uk,const std::vector<Type> &  aVecObs,size_t aK0Obs,bool WithAxiator) :
             cPoseF<Type>
             (
                  VtoP3(aVecUk,aK0Uk),
              //  The matrix is Current matrix *  Axiator(-W) , the "-" in omega comming from initial convention
              //  See  cPoseWithUK::OnUpdate()  &&  cEqColinearityCamPPC::formula
-                 cMatF<Type>(3,3,aVecObs,aK0Obs)  *  cMatF<Type>::MatAxiator(-VtoP3(aVecUk,aK0Uk+3))
+                 (WithAxiator                                                                              ?  
+                      cMatF<Type>(3,3,aVecObs,aK0Obs)  *  cMatF<Type>::MatAxiator(-VtoP3(aVecUk,aK0Uk+3))  :
+                      cMatF<Type>(3,3,aVecObs,aK0Obs)
+                 )
             )
         {
         }
+
 
         /// A pose being considered a the, isometric, mapinc X->Tr+R*X, return pose corresponding to inverse mapping
         cPoseF<Type> Inverse() const
@@ -318,6 +322,13 @@ template <class Type> class cPoseF
              cMatF<Type> aMatInv = mIJK.Transpose();
              return cPoseF<Type>(- (aMatInv* mCenter),aMatInv);
         }
+
+        //   MatA = M0A * WA                   MatB = M0B * WB
+        //   MatA-1 =  tWA * tM0A
+        //   trA-1  =  - tWA * tM0A *CA
+        //
+        //    MatAB =  tWA * tM0A * M0B * WB
+        //    CAB   =   - tWA * tM0A *CA +   tWA * tM0A * CB = tWA tM0A * (CB-CA)
 
 
         /// A pose being considered as mapping, return their composition

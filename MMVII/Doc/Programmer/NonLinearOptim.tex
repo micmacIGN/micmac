@@ -950,21 +950,21 @@ add an obsevation corresponding to equation~\ref{EqDefImInv}.
 
 \subsection{General principle}
 
-This section present a mecanism for automatizing the mecanism of variable numbering in 
+This section presents a mecanism to automate variable numbering in 
 equation solver; this mecanism can be especially interesting when the same objects 
-appears in different kind of problem.
+appears in different kinds of problems.
 
-The general priniciple is :
+The general priniciple is:
 
 \begin{itemize}
-     \item all the object that have unknowns must inherit from the class {\tt cObjWithUnkowns};
+     \item all the objects that have unknowns must inherit from the class {\tt cObjWithUnkowns};
 
-     \item this object must describe their unknown as interval of {\tt double*};
+     \item this object must describe its unknowns as interval of {\tt double*};
 
-     \item  all the object of a same solver must be accumulated in an object of the class
+     \item  all the objects of a same solver must be accumulated in an object of the class
             {\tt cSetInterUK\_MultipeObj};
 
-      \item once this is done, the class offer many facility for communicating with a solver.
+      \item once this is done, the class offers many simplifications to communicate with a solver.
      
 \end{itemize}
 
@@ -972,8 +972,8 @@ The general priniciple is :
 
 \subsection{Class {\tt cSetInterUK\_MultipeObj}}
 
-This class organizes the "coordination" between all object that will participate to the same solver.
-The main method usable are :
+This class organizes the "coordination" between all objects that will participate to the same solver.
+Its main methods are:
 
 \label{cSetIUK}
 
@@ -1015,20 +1015,20 @@ The other useful methods defined in the classe are :
 
 \begin{itemize}
    \item    {\tt void PushIndexes(std::vector<int> \& VI);}  add the indexe of unknowns in  {\tt VI}
-            for used to add an equation in the solver (as with {\tt CalcAndAddObs}));
+            to be used in equations in the solver (as with {\tt CalcAndAddObs}));
 
-   \item    {\tt OnUpdate()}, this virtual call back, will be used after the  object has been
+   \item    {\tt OnUpdate()}, this virtual callback will be used after the object has been
             modified by   {\tt SetVUnKnowns} .
 
 \end{itemize}
 
-There is different method to access to the underlying numerotation of variables
-({\tt IndOfVal, IndUk0} \dots) but the method are to be use by solver and their
-use directly by the "end-programmer" is not recommanded.
+There is different methods to access to the underlying numerotation of variables
+({\tt IndOfVal, IndUk0} \dots) but these methods are to be used by the solver and their
+direct use by the "end programmer" is not recommanded.
 
 Instead of accessing directly to the numerotaion, the class {\tt cResolSysNonLinear}
- offers different facility freezing  variable , they  take an object and the adress to freeze.
-See {\tt void  SetFrozenVar(tObjWUk \& anObj,const  Type \& aVal)} and after.
+ offers different facility freezing variable, they  take an object and the address to freeze.
+See {\tt void SetFrozenVar(tObjWUk \& anObj, const Type \& aVal)} and after.
 
 %---------------------------------------------
 %---------------------------------------------

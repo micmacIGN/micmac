@@ -220,7 +220,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_PoseCmpReport);
         TheVecAll.push_back(&TheSpec_CGPReport);
         TheVecAll.push_back(&TheSpec_TiePReport);
-        // TheVecAll.push_back(&TheSpec_BlockCamInit);  // RIGIDBLOC    RB_0_0
+        TheVecAll.push_back(&TheSpec_BlockCamInit);  // RIGIDBLOC    RB_0_0
         TheVecAll.push_back(&TheSpec_ClinoInit);
         TheVecAll.push_back(&TheSpecRename);
         TheVecAll.push_back(&TheSpec_V2ImportCalib);
@@ -228,6 +228,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecDicoRename);
         TheVecAll.push_back(&TheSpec_SimulDispl);
         TheVecAll.push_back(&TheSpec_CreateRTL);
+        TheVecAll.push_back(&TheSpec_ChSysCo);
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }

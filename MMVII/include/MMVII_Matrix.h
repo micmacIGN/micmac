@@ -687,6 +687,7 @@ template <class TypeWeight,class TypeVal=TypeWeight> class cWeightAv
         void Add(const TypeWeight & aWeight,const TypeVal & aVal);
         TypeVal Average() const;
         const TypeVal & SVW() const;  /// Accessor to sum weighted vals
+        const TypeWeight & SW() const;  /// Accessor to sum weighted vals
     private :
         TypeWeight  mSW;   ///< Som of    W
         TypeVal     mSVW;   ///< Som of    VW

@@ -140,6 +140,7 @@ class cSetMesGCP : public cMemCheck
     public :
           cSetMesGCP();
           cSetMesGCP(const std::string &aNameSet);
+          cSetMesGCP  Filter(const std::string &aFilter) const;
 	  static cSetMesGCP  FromFile(const std::string & aNameFile);
 	  void    ToFile(const std::string & aNameFile);
 
@@ -393,11 +394,14 @@ class cComputeMergeMulTieP : public cMemCheck
 
 	const std::vector<std::list<std::pair<size_t,tPairTiePMult*>>> & IndexeOfImages()  const;
 	void SetImageIndexe();
+	/// compute the Ground coordinates 
 	void SetPGround();
      private  :
-        std::vector<std::string>               mVNames;
+        std::vector<std::string>               mVNames;    /// Vector of names of images
         std::vector<cSensorImage *>            mVSensors;  ///< optionnal, when point are used in 3D
-        std::map<tConfigIm,cVal1ConfTPM>       mPts;
+        std::map<tConfigIm,cVal1ConfTPM>       mPts;       /// Map VectInd ->  points in raw format
+        /** Usefull if we need to recover for one image the configuration it belongs to, for image K
+	 *  mImageIndexes[K] will contain all its configuration + the number it has in this config*/							 
 	std::vector<std::list<std::pair<size_t,tPairTiePMult*>>> mImageIndexes;
 };
 

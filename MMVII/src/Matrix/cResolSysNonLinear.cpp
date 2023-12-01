@@ -520,6 +520,11 @@ template <class Type> void   cResolSysNonLinear<Type>::AddEqFixCurVar(const tObj
      size_t aNumV = anObj.IndOfVal(&aVal);
      AddEqFixVar(aNumV,mCurGlobSol(aNumV),aWeight);
 }
+template <class Type> void   cResolSysNonLinear<Type>::AddEqFixNewVal(const tObjWUk & anObj,const  Type & aVal,const Type & aNewVal,const Type& aWeight)
+{
+     size_t aNumV = anObj.IndOfVal(&aVal);
+     AddEqFixVar(aNumV,aNewVal,aWeight);
+}
 
 
 template <class Type> void   cResolSysNonLinear<Type>::AddEqFixCurVar(const tObjWUk & anObj,const  Type * aVal,size_t aNb,const Type& aWeight)
@@ -528,12 +533,24 @@ template <class Type> void   cResolSysNonLinear<Type>::AddEqFixCurVar(const tObj
          AddEqFixCurVar(anObj,*(aVal+aK),aWeight);
 }
 
+template <class Type> void   cResolSysNonLinear<Type>::AddEqFixNewVal(const tObjWUk & anObj,const  Type * aVal,const  Type * aNewVal,size_t aNb,const Type& aWeight)
+{
+     for (size_t aK=0 ; aK<aNb ; aK++)
+         AddEqFixNewVal(anObj,*(aVal+aK),*(aNewVal+aK),aWeight);
+}
+
+
+
 template <class Type> void   cResolSysNonLinear<Type>::AddEqFixCurVar(const tObjWUk & anObj,const  cPtxd<Type,3> & aPt,const Type& aWeight)
 {
      AddEqFixCurVar(anObj,aPt.PtRawData(),3,aWeight);
 }
 
 
+template <class Type> void   cResolSysNonLinear<Type>::AddEqFixNewVal(const tObjWUk & anObj,const  cPtxd<Type,3> & aPt,const  cPtxd<Type,3> & aNewPt,const Type& aWeight)
+{
+     AddEqFixNewVal(anObj,aPt.PtRawData(),aNewPt.PtRawData(),3,aWeight);
+}
 
 
 template <class Type> void  cResolSysNonLinear<Type>::ModifyFrozenVar (tIO_RSNL& aIO)

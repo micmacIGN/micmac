@@ -413,6 +413,7 @@ template <class TypeWeight,class TypeVal> TypeVal cWeightAv<TypeWeight,TypeVal>:
 }
 
 template <class TypeWeight,class TypeVal> const TypeVal & cWeightAv<TypeWeight,TypeVal>::SVW () const {return mSVW;}
+template <class TypeWeight,class TypeVal> const TypeWeight & cWeightAv<TypeWeight,TypeVal>::SW () const {return mSW;}
 
 /* *************************************** */
 /*                                         */

@@ -995,12 +995,12 @@ void cIMakeTreeAr::OnTag(const cAuxAr2007& aTag,bool IsUp)
 
    if (aRL.mLexP != (IsUp ? eLexP::eUp  : eLexP::eDown))
    {
-        StdOut() <<  "LEX " << int(aRL.mLexP)  << "VALS ,got " << aRL.mVal  << " Exp=" <<  aTag.Name() << " F=" << mNameFile << std::endl;
+        StdOut() <<  "Error on lex " << int(aRL.mLexP)  << ", got '" << aRL.mVal  << "' when expecting '" <<  aTag.Name() << "' in file " << mNameFile << std::endl;
         MMVII_INTERNAL_ASSERT_tiny(false ,"Bad token cIMakeTreeAr::RawBegin-EndName");
    }
    if (aRL.mVal  != aTag.Name())
    {
-      StdOut() <<  "LEX " << int(aRL.mLexP)  << "VALS ,got " << aRL.mVal  << " Exp=" <<  aTag.Name() << " F=" << mNameFile << std::endl;
+      StdOut() <<  "Error on lex " << int(aRL.mLexP)  << ", got '" << aRL.mVal  << "' when expecting '" <<  aTag.Name() << "' in file " << mNameFile << std::endl;
       MMVII_INTERNAL_ASSERT_tiny(false,"Bad tag cIMakeTreeAr::RawBegin-EndName");
    }
 }
@@ -1012,7 +1012,7 @@ void cIMakeTreeAr::RawBeginName(const cAuxAr2007& anIT)
 	/*
    cResLex aRL = GetNextLexNotSizeCont();
 
-   StdOut() <<  "LEX " << int(aRL.mLexP)  << "VALS ,got " << aRL.mVal  << " Exp=" <<  anIT.Name() << std::endl;
+   StdOut() <<  "Error on lex " << int(aRL.mLexP)  << ", got '" << aRL.mVal  << "' when expecting '" <<  anIT.Name() << "'" <<´ std::endl;
 
    MMVII_INTERNAL_ASSERT_tiny(aRL.mLexP == eLexP::eUp  ,"Bad token cIMakeTreeAr::RawBeginName");
    MMVII_INTERNAL_ASSERT_tiny(aRL.mVal  == anIT.Name() ,"Bad tag cIMakeTreeAr::RawBeginName");
