@@ -343,9 +343,9 @@ template <class Type>  void TplBenchDenseMatr(int aSzX,int aSzY)
            MMVII_INTERNAL_ASSERT_bench(aCheckEV.DIm().L2Dist(aSim.DIm())<1e-5,"Bench unitarity EigenValue");
 
         }
-  
 
-        double aDTest = 1e-4 * pow(10,-double(4-sizeof(Type))/2.0) * pow(aNb,1.0) ;  // Accuracy expectbale vary with tREAL4, tREAL8 ...
+        // CM: sizeof is unsigned. This can lead to unexpected result in calculus when mixing with double, so convert it to double
+        double aDTest = 1e-4 * pow(10,-(4-(double)sizeof(Type))/2.0) * pow(aNb,1.0) ;  // Accuracy expectbale vary with tREAL4, tREAL8 ...
     
         // Singular value decomposition
         {

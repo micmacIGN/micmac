@@ -478,6 +478,7 @@ int  cAppliGenerateEncoding::Exe()
         // 5.1   initialize :   priority queue in mPrioCC
    for (auto aCC : mVOC)
    {
+       // CM: MaxRun2Length return an unsigned size_t. We must convert it to double before applying unary '-' operator !
        tREAL8 aScore = - double(MaxRun2Length(aCC->mLowCode,mP2));
         mPrioCC.push_back(cPrioCC(aCC,aScore));
    }
