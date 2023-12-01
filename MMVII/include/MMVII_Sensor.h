@@ -70,7 +70,7 @@ class cSensorImage  :   public cObj2DelAtEnd,
           cSensorImage(const std::string & aNameImage);
 
 	  /// create a sensor in a new coordinate system
-	  virtual cSensorImage * ChangSys(cDataInvertibleMapping<tREAL8,3> &) const = 0;
+	  virtual cSensorImage * SensorChangSys(cDataInvertibleMapping<tREAL8,3> &) const = 0;
 
           virtual const cPixelDomain & PixelDomain() const = 0;
           const cPt2di & Sz() const;
@@ -410,7 +410,7 @@ class cPhotogrammetricProject
 	  void SaveMeasureIm(const cSetMesPtOf1Im & aSetM) const;
           /// return from Std Dir, can be out in case of reload
 	  cSetMesPtOf1Im LoadMeasureIm(const std::string &,bool InDir=true) const;
-	  void LoadGCP(cSetMesImGCP&,const std::string & aPatFiltr="") const;
+	  void LoadGCP(cSetMesImGCP&,const std::string & aPatFiltrFile="",const std::string & aFiltrNameGCP="") const;
 	  // if SVP && file doesnt exist, do nothing
 	  void LoadIm(cSetMesImGCP&,const std::string & aNameIm,cSensorImage * =nullptr,bool SVP=false) const;
 	  void LoadIm(cSetMesImGCP&,cSensorImage & ) const;
@@ -476,13 +476,23 @@ class cPhotogrammetricProject
          //==================    Coord Sys           =========================
 	 //===================================================================
 
+                  //  ======== [1]  Sysco saved in "MMVII-PhgrProj/SysCo" 
 	 void  SaveSysCo(tPtrSysCo,const std::string&,bool OnlyIfNew=false) const;
 	 tPtrSysCo ReadSysCo(const std::string &aName,bool SVP=false) const;
 	 tPtrSysCo CreateSysCoRTL(const cPt3dr & aOrig,const std::string &aName,bool SVP=false) const;
 	 std::string  FullNameSysCo(const std::string &aName,bool SVP=false) const;
-
 	 // return  identity if Vec not init
 	 cChangSysCoordV2  ChangSys(const std::vector<std::string> &,tREAL8 aEpsDif=0.1);
+
+                  //  ======== [1]  Sysco saved in "MMVII-PhgrProj/Ori/"  or "MMVII-PhgrProj/PointsMeasure//"
+         std::string  NameCurSysCo(const cDirsPhProj &,bool IsIn) const;
+         tPtrSysCo  CurSysCo(const cDirsPhProj &,bool SVP=false) const;
+         tPtrSysCo  CurSysCoOri(bool SVP=false) const;
+         tPtrSysCo  CurSysCoGCP(bool SVP=false) const;
+         void SaveCurSysCo(const cDirsPhProj &,tPtrSysCo) const ;
+         void SaveCurSysCoOri(tPtrSysCo) const ;
+         void SaveCurSysCoGCP(tPtrSysCo) const ;
+         void CpSysIn2Out(bool OriIn,bool OriOut) const;  // bool : Ori/GCP   do it only if exist, else no error
 
 	 //===================================================================
          //==================   Rigid Bloc           =========================

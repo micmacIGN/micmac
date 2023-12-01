@@ -5,7 +5,7 @@
    <Data>
       <SysCoGeo>
          <Type>"RTL"</Type>
-         <Attrbutes>
+         <Attributes>
             <Pair>
                <K>"Sys_RTL"</K>
                <V>"Lambert93"</V>
@@ -22,7 +22,7 @@
                <K>"z0_RTL"</K>
                <V>"35.600000000000001"</V>
             </Pair>
-         </Attrbutes>
+         </Attributes>
       </SysCoGeo>
    </Data>
 </Root>

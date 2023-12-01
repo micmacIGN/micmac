@@ -963,6 +963,8 @@ class cChangSysCoordV2  : public cDataInvertibleMapping<tREAL8,3>
 {
         public :
             cChangSysCoordV2(tPtrSysCo  aSysInit,tPtrSysCo  aSysTarget,tREAL8  aEpsDeriv = 0.1);
+            // Sometime it can be usefull to consider the same system as identit change to itself
+            cChangSysCoordV2(tPtrSysCo  aSysInitOut);
 	    // return identity  
 	    cChangSysCoordV2 ();
 
@@ -970,6 +972,8 @@ class cChangSysCoordV2  : public cDataInvertibleMapping<tREAL8,3>
             tPt Inverse(const tPt &) const override; /// compute  Point from SysTarget 2 SysInit
 
 	    virtual ~cChangSysCoordV2();
+            tPtrSysCo  SysInit();     ///< Accessor
+            tPtrSysCo  SysTarget();   ///< Accessor
         private :
 
 	    bool       mIdent;

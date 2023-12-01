@@ -6,7 +6,7 @@
       "SysCoGeo" :
       {
          "Type" :"RTL" ,
-         "Attrbutes" :
+         "Attributes" :
          [
             {
                "K" :"Sys_RTL" ,

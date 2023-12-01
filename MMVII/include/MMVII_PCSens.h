@@ -420,7 +420,7 @@ class cSensorCamPC : public cSensorImage
 	 /// specialize chang sys 
          cSensorCamPC * PCChangSys(cDataInvertibleMapping<tREAL8,3> &) const ;
 	 /// generic chang sys  (just call specialized)
-         cSensorImage * ChangSys(cDataInvertibleMapping<tREAL8,3> &) const override ;
+         cSensorImage * SensorChangSys(cDataInvertibleMapping<tREAL8,3> &) const override ;
 
          /// Create form  Un-Calibrated-Space-Resection
          static cSensorCamPC * CreateUCSR(const cSet2D3D&,const cPt2di & aSzCam,const std::string&,bool Real16=true);

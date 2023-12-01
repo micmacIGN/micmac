@@ -89,7 +89,7 @@ cMMVII_BundleAdj::cMMVII_BundleAdj(cPhotogrammetricProject * aPhp) :
     mFolderRefCam     (""),
     mSigmaTrRefCam    (-1.0),
     mSigmaRotRefCam   (-1.0),
-    mDoRefCam         (false),
+    mDirRefCam        (nullptr),
     mSigmaViscAngles  (-1.0),
     mSigmaViscCenter  (-1.0)
     
@@ -181,6 +181,9 @@ void cMMVII_BundleAdj::OneIteration()
     // if necessary, add some "viscosity" on poses 
     AddPoseViscosity();
 
+    // Add constriant betweenn reference and pose
+    AddConstrainteRefPose();
+
 
     // ================================================
     //  [3]   Add compensation measures
@@ -236,10 +239,11 @@ void cMMVII_BundleAdj::AddReferencePoses(const std::vector<std::string> & aVec)
      MMVII_INTERNAL_ASSERT_tiny(mVSCPC.empty(),"Must Add Ref Pose before any cam");
      AssertPhpAndPhaseAdd();
 
-     mDoRefCam = true;
      mFolderRefCam = aVec.at(0);
+     mDirRefCam  = mPhProj->NewDPIn(eTA2007::Orient,mFolderRefCam);
+
      mSigmaTrRefCam = cStrIO<tREAL8>::FromStr(aVec.at(1));
-     if (aVec.size() >= 2)
+     if (aVec.size() > 2)
         mSigmaRotRefCam = cStrIO<tREAL8>::FromStr(aVec.at(2));
 }
 
@@ -257,17 +261,20 @@ void  cMMVII_BundleAdj::AddCam(const std::string & aNameIm)
     mVSCPC.push_back(aSPC);  // eventually nullptr, for example with push-broom
     if (aSPC)
        AddCamPC(aSPC);
+
     //  process the reference cameras
-    if (mDoRefCam)
+    if (mDirRefCam)
     {
+        // if PC Cam dont exist push 0 to be coherent between "mVCamRefPose" and   "mVSCPC"
         if (aSPC==nullptr)
 	{
             mVCamRefPoses.push_back(aSPC);
 	}
 	else
 	{
-            const std::string & aNameIm = aSPC->NameImage();
-FakeUseIt(aNameIm);
+            const std::string & aNameImage = aSPC->NameImage();
+            cSensorCamPC * aCamRef  = mPhProj->ReadCamPC(*mDirRefCam,aNameImage,true);
+            mVCamRefPoses.push_back(aCamRef);
 	}
     }
 }
@@ -315,6 +322,30 @@ void cMMVII_BundleAdj::SetViscosity(const tREAL8& aViscTr,const tREAL8& aViscAng
     mSigmaViscAngles = aViscAngle;
 }
 
+    /* ---------------------------------------- */
+    /*             Reference Pose               */
+    /* ---------------------------------------- */
+
+void cMMVII_BundleAdj::AddConstrainteRefPose()
+{
+   if (!mDirRefCam)
+      return;
+
+   for (size_t aKC=0 ; aKC<mVSCPC.size() ; aKC++)
+   {
+        cSensorCamPC * aCam = mVSCPC[aKC];
+        cSensorCamPC * aCamRef =  mVCamRefPoses[aKC];
+        if ((aCam!=nullptr) && (aCamRef!=nullptr))
+           AddConstrainteRefPose(*aCam,*aCamRef);
+   }
+}
+
+void cMMVII_BundleAdj::AddConstrainteRefPose(cSensorCamPC & aCam,cSensorCamPC & aCamRef)
+{
+     // mR8_Sys
+     mR8_Sys->AddEqFixNewVal(aCam,aCam.Center(),aCamRef.Center(),Square(1/mSigmaTrRefCam));
+
+}
 
     /* ---------------------------------------- */
     /*            Rigid Bloc                    */

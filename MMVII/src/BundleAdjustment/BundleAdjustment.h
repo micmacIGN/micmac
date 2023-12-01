@@ -134,6 +134,9 @@ class cMMVII_BundleAdj
 	  void SetFrozenCenters(const std::string & aPattern);
 
 	  void AddPoseViscosity();
+	  void AddConstrainteRefPose();
+          void AddConstrainteRefPose(cSensorCamPC & aCam,cSensorCamPC & aCamRef);
+
 
 	  void SaveBlocRigid();
 
@@ -199,6 +202,7 @@ class cMMVII_BundleAdj
 	  tREAL8                             mSigmaTrRefCam;
 	  tREAL8                             mSigmaRotRefCam;
 	  bool                               mDoRefCam;
+          cDirsPhProj*                       mDirRefCam;
           // ===================  "Viscosity"  ==================
 
 	  tREAL8   mSigmaViscAngles;  ///< "viscosity"  for angles

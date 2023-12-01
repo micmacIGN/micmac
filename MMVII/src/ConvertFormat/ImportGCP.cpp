@@ -73,7 +73,7 @@ cCollecSpecArg2007 & cAppli_ImportGCP::ArgOpt(cCollecSpecArg2007 & anArgObl)
        << AOpt2007(mL0,"NumL0","Num of first line to read",{eTA2007::HDV})
        << AOpt2007(mLLast,"NumLast","Num of last line to read (-1 if at end of file)",{eTA2007::HDV})
        << AOpt2007(mPatternTransfo,"PatName","Pattern for transforming name (first sub-expr)")
-       << AOpt2007(mNameChSys,"ChSys","Change coordinate system",{{eTA2007::ISizeV,"[2,2]"}})
+       << AOpt2007(mNameChSys,"ChSys","Change coordinate system, if 1 Sys In=Out",{{eTA2007::ISizeV,"[1,2]"}})
     ;
 }
 
@@ -120,6 +120,11 @@ int cAppli_ImportGCP::Exe()
     }
 
     mPhProj.SaveGCP(aSetM);
+
+    if (IsInit(&mNameChSys))
+    {
+         mPhProj.SaveCurSysCoGCP(aChSys.SysTarget());
+    }
 
     // delete aChSys;
 

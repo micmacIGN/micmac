@@ -32,9 +32,11 @@ class cAppliBundlAdj : public cMMVII_Appli
 	cMMVII_BundleAdj          mBA;
 
 	std::vector<double>       mGCPW;
+        std::string               mGCPFilter;  // pattern to filter names of GCP
 	std::vector<double>       mTiePWeight;
 	std::vector<double>       mBRSigma; // RIGIDBLOC
 	std::vector<double>       mBRSigma_Rat; // RIGIDBLOC
+        std::vector<std::string>  mParamRefOri;
 
 	int                       mNbIter;
 
@@ -49,6 +51,7 @@ cAppliBundlAdj::cAppliBundlAdj(const std::vector<std::string> & aVArgs,const cSp
    mDataDir      ("Std"),
    mPhProj       (*this),
    mBA           (&mPhProj),
+   mGCPFilter    (""),
    mNbIter       (10)
 {
 }
@@ -81,12 +84,14 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
             "Weith GCP [SigG,SigI,SigAt?=-1,Thrs?=-1,Exp?=1], SG=0 fix, SG<0 schurr elim, SG>0",
             {{eTA2007::ISizeV,"[2,5]"}}
          )
+      << AOpt2007(mGCPFilter,"GCPFilter","Pattern to filter GCP from their name")
       << AOpt2007(mTiePWeight,"TiePWeight","Tie point weighting [Sig0,SigAtt?=-1,Thrs?=-1,Exp?=1]",{{eTA2007::ISizeV,"[1,4]"}})
       << AOpt2007(mPatParamFrozCalib,"PPFzCal","Pattern for freezing internal calibration parameters")
       << AOpt2007(mPatFrosenCenters,"PatFzCenters","Pattern of images for freezing center of poses")
       << AOpt2007(mViscPose,"PoseVisc","Sigma viscosity on pose [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})
       << AOpt2007(mBRSigma,"BRW","Bloc Rigid Weighting [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})  // RIGIDBLOC
       << AOpt2007(mBRSigma_Rat,"BRW_Rat","Rattachment fo Bloc Rigid Weighting [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})  // RIGIDBLOC
+      << AOpt2007(mParamRefOri,"RefOri","Reference orientation [Ori,SimgaTr,SigmaRot?]",{{eTA2007::ISizeV,"[2,3]"}})  // RIGIDBLOC
     ;
 }
 
@@ -99,6 +104,9 @@ int cAppliBundlAdj::Exe()
     mPhProj.DPRigBloc().SetDirInIfNoInit(mDataDir); //  RIGIDBLOC
 
     mPhProj.FinishInit();
+
+    if (IsInit(&mParamRefOri))
+         mBA.AddReferencePoses(mParamRefOri);
 
     for (const auto &  aNameIm : VectMainSet(0))
     {
@@ -123,16 +131,19 @@ int cAppliBundlAdj::Exe()
 
     if (IsInit(&mGCPW))
     {
+        //  load the GCP
         MeasureAdded = true;
-        cSetMesImGCP * aFullMesGCP = new cSetMesImGCP;
-	mPhProj.LoadGCP(*aFullMesGCP);
+        cSetMesImGCP  aFullMesGCP; 
+	mPhProj.LoadGCP(aFullMesGCP,"",mGCPFilter);
+
+        //if (IsInit(&mGCPFilter))
+        //    aFullMesGCP = aFullMesGCP.Filter(mGCPFilter);
 
         for (const auto  & aSens : mBA.VSIm())
         {
-             mPhProj.LoadIm(*aFullMesGCP,aSens->NameImage(),aSens,true);
+             mPhProj.LoadIm(aFullMesGCP,aSens->NameImage(),aSens,true);
         }
-	cSetMesImGCP * aMesGCP = aFullMesGCP->FilterNonEmptyMeasure();
-	delete aFullMesGCP;
+	cSetMesImGCP * aMesGCP = aFullMesGCP.FilterNonEmptyMeasure();
 
 	cStdWeighterResidual aWeighter(mGCPW,1);
 	mBA.AddGCP(mGCPW.at(0),aWeighter,aMesGCP);
@@ -161,6 +172,8 @@ int cAppliBundlAdj::Exe()
 
     for (auto & aCamPC : mBA.VSCPC())
         mPhProj.SaveCamPC(*aCamPC);
+
+    mPhProj.CpSysIn2Out(true,true);
 
     mBA.SaveBlocRigid();  // RIGIDBLOC
 

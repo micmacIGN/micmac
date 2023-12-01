@@ -606,15 +606,17 @@ std::vector<std::string>  cPhotogrammetricProject::ListFileGCP(const std::string
    return aRes;
 }
 
-void cPhotogrammetricProject::LoadGCP(cSetMesImGCP& aSetMes,const std::string & aArgPatFiltr) const
+void cPhotogrammetricProject::LoadGCP(cSetMesImGCP& aSetMes,const std::string & aArgPatFiltr,const std::string & aFiltrNameGCP) const
 {
    std::vector<std::string> aListFileGCP = ListFileGCP(aArgPatFiltr);
    MMVII_INTERNAL_ASSERT_User(!aListFileGCP.empty(),eTyUEr::eUnClassedError,"No file found in LoadGCP");
 
    for (const auto  & aNameFile : aListFileGCP)
    {
-       cSetMesGCP aMesGGP = cSetMesGCP::FromFile(aNameFile);
-       aSetMes.AddMes3D(aMesGGP);
+       cSetMesGCP aMesGCP = cSetMesGCP::FromFile(aNameFile);
+       if (aFiltrNameGCP!="")
+          aMesGCP = aMesGCP.Filter(aFiltrNameGCP);
+       aSetMes.AddMes3D(aMesGCP);
    }
 }
 
@@ -764,10 +766,12 @@ void cPhotogrammetricProject::SaveSysCo(tPtrSysCo aSys,const std::string& aName,
 
 std::string  cPhotogrammetricProject::FullNameSysCo(const std::string &aName,bool SVP) const
 {
+     //  try to get the file in local folder
      std::string aNameGlob = mDirSysCo + aName + "." + GlobTaggedNameDefSerial();
      if (ExistFile(aNameGlob))
-	     return aNameGlob;
+        return aNameGlob;
 
+     //  try the name 
      aNameGlob = cMMVII_Appli::DirRessourcesMMVII() + "SysCo/" + aName + "." + GlobTaggedNameDefSerial();
      if (ExistFile(aNameGlob))
         return aNameGlob;
@@ -780,8 +784,9 @@ std::string  cPhotogrammetricProject::FullNameSysCo(const std::string &aName,boo
 
 tPtrSysCo cPhotogrammetricProject::ReadSysCo(const std::string &aName,bool SVP) const
 {
+     // compute name
      std::string aNameGlob = FullNameSysCo(aName,SVP);
-     if (aNameGlob=="") 
+     if (aNameGlob=="") // if we are here, SVP=true and we can return nullptr
          return tPtrSysCo(nullptr);
      return  cSysCoordV2::FromFile(aNameGlob);
 }
@@ -797,13 +802,57 @@ tPtrSysCo cPhotogrammetricProject::CreateSysCoRTL(const cPt3dr & aOrig,const std
 
 cChangSysCoordV2  cPhotogrammetricProject::ChangSys(const std::vector<std::string> & aVec,tREAL8 aEpsDif) 
 {
-	if (! mAppli.IsInit(&aVec))  return cChangSysCoordV2{};
+    if (! mAppli.IsInit(&aVec))  return cChangSysCoordV2{};
 
-	return cChangSysCoordV2
-               (
-		     ReadSysCo(aVec.at(0)),
-		     ReadSysCo(aVec.at(1))
-               );
+    if (aVec.size() == 1)
+       return cChangSysCoordV2(ReadSysCo(aVec.at(0)));
+
+    return cChangSysCoordV2(   ReadSysCo(aVec.at(0))  ,  ReadSysCo(aVec.at(1))  );
+}
+
+             //==================   SysCo saved in standard folder ============
+
+std::string  cPhotogrammetricProject::NameCurSysCo(const cDirsPhProj & aDP,bool IsIn) const
+{
+   return aDP.FullDirInOut(IsIn)   +  "CurSysCo." +  GlobTaggedNameDefSerial();
+
+}
+tPtrSysCo  cPhotogrammetricProject::CurSysCo(const cDirsPhProj & aDP,bool SVP) const
+{
+    std::string aName = NameCurSysCo(aDP,true);
+    if (! ExistFile(aName))
+    {
+       if (! SVP)
+           MMVII_UnclasseUsEr("CurSysCo dont exist : " + aName);
+       return tPtrSysCo(nullptr);
+    }
+
+    return cSysCoordV2::FromFile(NameCurSysCo(aDP,true));
+}
+
+tPtrSysCo  cPhotogrammetricProject::CurSysCoOri(bool SVP) const {return CurSysCo(mDPOrient,SVP);}
+tPtrSysCo  cPhotogrammetricProject::CurSysCoGCP(bool SVP) const {return CurSysCo(mDPPointsMeasures,SVP);}
+
+void cPhotogrammetricProject::SaveCurSysCo(const cDirsPhProj & aDP,tPtrSysCo aSysCo) const 
+{
+    aSysCo->ToFile(NameCurSysCo(aDP,false));
+}
+
+void cPhotogrammetricProject::SaveCurSysCoOri(tPtrSysCo aSysCo) const { SaveCurSysCo(mDPOrient,aSysCo); }
+void cPhotogrammetricProject::SaveCurSysCoGCP(tPtrSysCo aSysCo) const { SaveCurSysCo(mDPPointsMeasures,aSysCo); }
+
+
+void cPhotogrammetricProject::CpSysIn2Out(bool  OriIn,bool OriOut) const
+{
+   tPtrSysCo aSysIn = OriIn ?  CurSysCoOri(true) : CurSysCoGCP(true);
+
+   if (aSysIn.get() == nullptr)
+      return;
+
+   if (OriOut)
+      SaveCurSysCoOri(aSysIn);
+   else
+      SaveCurSysCoGCP(aSysIn);
 }
 
 

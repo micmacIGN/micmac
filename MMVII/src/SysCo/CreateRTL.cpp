@@ -47,7 +47,7 @@ class cAppli_CreateRTL : public cMMVII_Appli
 cAppli_CreateRTL::cAppli_CreateRTL(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli  (aVArgs,aSpec),
    mPhProj       (*this),
-   mEpsDer       (50.0)
+   mEpsDer       (200.0)
 {
 }
 
@@ -134,7 +134,7 @@ int cAppli_CreateRTL::Exe()
         {
 	    aCpt++;
 	    cSensorImage* aSIn  = mPhProj.LoadSensor(aNameIm);
-	    cSensorImage* aSOut = aSIn->ChangSys(aChSys);
+	    cSensorImage* aSOut = aSIn->SensorChangSys(aChSys);
 
 	    mPhProj.SaveSensor(*aSOut);
 
@@ -143,6 +143,7 @@ int cAppli_CreateRTL::Exe()
 	       StdOut () << " Remain  " << VectMainSet(0).size() - aCpt  << "\n";
 	    delete aSOut;
 	}
+        mPhProj.SaveCurSysCoOri(aSysRTL);
     }
 
     return EXIT_SUCCESS;
@@ -151,7 +152,7 @@ int cAppli_CreateRTL::Exe()
 
 std::vector<std::string>  cAppli_CreateRTL::Samples() const
 {
-   return {"MMVII SysCoCreateRTL "};
+   return {"MMVII SysCoCreateRTL VolAllIm.xml Lambert93 RTLProj InOri=InitUPCalVol OutOri=RTLInitUPCalVol Z0=0 EpsDer=200"};
 }
 
 

@@ -516,6 +516,7 @@ enum class eSysCoGeo
      eLambert93,
      eRTL,
      eGeoC,
+     eUndefined,
      eNbVals
 };
 

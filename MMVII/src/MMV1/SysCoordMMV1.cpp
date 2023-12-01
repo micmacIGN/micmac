@@ -111,7 +111,7 @@ void cSysCoordV1::AddData(const  cAuxAr2007 & anAuxInit)
      cAuxAr2007 anAux("SysCoGeo",anAuxInit);
 
      MMVII::EnumAddData(anAux,mType,"Type");
-     MMVII::AddData(cAuxAr2007("Attrbutes",anAux),mAttribs);
+     MMVII::AddData(cAuxAr2007("Attributes",anAux),mAttribs);
 }
 
 void AddData(const  cAuxAr2007 & anAux,cSysCoordV1 & aSysC)
@@ -274,6 +274,17 @@ cChangSysCoordV2::cChangSysCoordV2 () :
      mSysTarget (nullptr)
 {
 }
+
+cChangSysCoordV2::cChangSysCoordV2 (tPtrSysCo aSysInOut) :
+    cDataInvertibleMapping<tREAL8,3> (cPt3dr::PCste(1.0)),  // normally no influence
+    mIdent        (true),
+    mSysInit      (aSysInOut),
+    mSysTarget    (aSysInOut)
+{
+}
+
+tPtrSysCo cChangSysCoordV2::SysInit()   {return mSysInit;}
+tPtrSysCo cChangSysCoordV2::SysTarget() {return mSysTarget;}
 
 
 cChangSysCoordV2::~cChangSysCoordV2() {}

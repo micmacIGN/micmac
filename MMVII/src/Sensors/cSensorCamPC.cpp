@@ -278,7 +278,7 @@ cSensorCamPC * cSensorCamPC::PCChangSys(cDataInvertibleMapping<tREAL8,3> & aMap)
         tREAL8 aNorm = std::abs(Norm2(aIJac)-Norm2(aJJac));
         aCpt++;
         aSNorm += aNorm;
-	StdOut()  <<   "DNorm=" <<  aNorm << " Avg=" << aSNorm / aCpt << std::endl;
+	// StdOut()  <<   "DNorm=" <<  aNorm << " Avg=" << aSNorm / aCpt << std::endl;
         aJac = M3x3FromCol(VUnit(aIJac),VUnit(aJJac),VUnit(aKJac));
     }
     cDenseMatrix<tREAL8>  aNewMatNonR  = aJac *  Pose().Rot().Mat();
@@ -371,7 +371,7 @@ cSensorCamPC * cSensorCamPC::PCChangSys(cDataInvertibleMapping<tREAL8,3> & aMap)
     return new cSensorCamPC(NameImage(),aNewPose,InternalCalib());
 }
 
-cSensorImage * cSensorCamPC::ChangSys(cDataInvertibleMapping<tREAL8,3> & aMap) const
+cSensorImage * cSensorCamPC::SensorChangSys(cDataInvertibleMapping<tREAL8,3> & aMap) const
 {
 	return PCChangSys(aMap);
 }

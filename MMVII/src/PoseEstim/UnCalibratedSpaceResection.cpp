@@ -815,6 +815,8 @@ int cAppli_UncalibSpaceResection::Exe()
 	{
             DoMedianCalib();
 	}
+        mPhProj.CpSysIn2Out(false,true);
+
         return EXIT_SUCCESS;
     }
 

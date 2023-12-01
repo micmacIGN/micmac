@@ -646,6 +646,7 @@ int cAppli_CalibratedSpaceResection::Exe()
 	{
            mPhProj.CpGCP(); // Save GCP from StdIn to StdOut
         }
+        mPhProj.CpSysIn2Out(false,true);
 
         return EXIT_SUCCESS;
     }
