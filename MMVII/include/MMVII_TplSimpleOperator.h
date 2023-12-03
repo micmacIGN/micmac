@@ -183,7 +183,7 @@ template <class TypeF1,class TypeF2,class TypeOp> class cFoncBinaryOp
     public :
        typedef double  tBase; /// To Change
 
-       cFoncBinaryOp (const TypeF1 & aF1,const TypeF2 & aF2,const TypeOp & aOp) :
+       cFoncBinaryOp (const TypeF1 & aF1,const TypeF2 & aF2,TypeOp& aOp) :
           mF1(aF1),
           mF2(aF2),
           mOp (aOp)
@@ -193,7 +193,7 @@ template <class TypeF1,class TypeF2,class TypeOp> class cFoncBinaryOp
     private :
        const TypeF1 & mF1;
        const TypeF2 & mF2;
-       const TypeOp & mOp;
+       TypeOp& mOp;
 };
 
 template <class TypeF1,class TypeF2,class TypeOp> 

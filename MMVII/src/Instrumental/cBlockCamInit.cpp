@@ -250,12 +250,12 @@ void  cBlocOfCamera::Set4Compute()
 {
     mForInit  = false;
 
-    for (const auto  & aPair : mData.mMapPoseUKInBloc)
+    for (const auto  & [aName, aPoseUk] : mData.mMapPoseUKInBloc)
     {
-        MMVII_INTERNAL_ASSERT_tiny(IsNull(aPair.second.Omega()),"cBlocOfCamera::TransfertFromUK Omega not null");
-        mMapPoseInit[aPair.first] = aPair.second.Pose();
+        MMVII_INTERNAL_ASSERT_tiny(IsNull(aPoseUk.Omega()),"cBlocOfCamera::TransfertFromUK Omega not null");
+        mMapPoseInit[aName] = aPoseUk.Pose();
 	//  we force the creation a new Id in the bloc because later we will not accept new bloc in compute mode
-	mMatBlocSync.NumStringCreate(aPair.first);
+	mMatBlocSync.NumStringCreate(aName);
     }
 }
 
@@ -298,8 +298,8 @@ size_t cBlocOfCamera::IndexMaster() const {return NumInBloc(NameMaster());}
 
 
 
-void cBlocOfCamera::ShowByBloc() const {mMatSyncBloc.ShowMatrix();}
-void cBlocOfCamera::ShowBySync() const {mMatBlocSync.ShowMatrix();}
+void cBlocOfCamera::ShowByBloc() const {mMatBlocSync.ShowMatrix();}
+void cBlocOfCamera::ShowBySync() const {mMatSyncBloc.ShowMatrix();}
 
 
 
@@ -633,7 +633,6 @@ cCollecSpecArg2007 & cAppli_BlockCamInit::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 int cAppli_BlockCamInit::Exe()
 {
     mPhProj.FinishInit();  // the final construction of  photogrammetric project manager can only be done now
-
 
     // creat the bloc, for now no cam,just the info to insert them
     cBlocOfCamera aBloc(mPattern,mNumSub.x(),mNumSub.y(),mNameBloc);

@@ -162,6 +162,7 @@ void ProcessWidget::procFinished(int exitCode, QProcess::ExitStatus exitStatus)
         addInfo(tr("%1 terminated with code %2").arg(MMVII_EXE_FILE).arg(exitCode));
         break;
     case QProcess::CrashExit:
+#if !defined WIN32 && !defined __WIN32__
         switch (exitCode) {
         case SIGABRT:
             addError(tr("%1 exited with an error.").arg(MMVII_EXE_FILE));
@@ -173,6 +174,9 @@ void ProcessWidget::procFinished(int exitCode, QProcess::ExitStatus exitStatus)
             addError(tr("%1 crashed with code %2").arg(MMVII_EXE_FILE).arg(exitCode));
             break;
         }
+#else
+        addError(tr("%1 terminated unexpectedly").arg(MMVII_EXE_FILE));
+#endif
         break;
     }
     delete proc;

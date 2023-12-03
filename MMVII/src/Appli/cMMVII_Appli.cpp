@@ -251,6 +251,7 @@ cMMVII_Appli::cMMVII_Appli
    mSpecs         (aSpec),
    mForExe        (true),
    mDirProject    (DirCur()),
+   mFileLogTop    (""),
    mModeHelp      (false),
    mDoGlobHelp    (false),
    mDoInternalHelp(false),
@@ -402,7 +403,6 @@ void cMMVII_Appli::SetNot4Exe()
 
 void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
 {	
-  mFileLogTop =""; // MPD->CM quick&dirty solve for MMVII-Log not init
   mSeedRand = DefSeedRand();
   cCollecSpecArg2007 & anArgObl = ArgObl(mArgObl); // Call virtual method
   cCollecSpecArg2007 & anArgFac = ArgOpt(mArgFac); // Call virtual method
@@ -643,8 +643,6 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
          }
      }
   }
-  mFileLogTop = mDirProject + MMVII_LogFile;
-
   // Add a "/" at end  if necessary
   MakeNameDir(mDirProject);
 
@@ -849,6 +847,8 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
      mForExe = false;   // Don't do special cleaning in cMMVII_Appli destructor
      return;
   }
+
+  mFileLogTop = mDirProject + MMVII_LogFile;
 
   if (mGlobalMainAppli)
   {
@@ -1101,6 +1101,8 @@ void cMMVII_Appli::InitProject()
 
 void cMMVII_Appli::LogCommandIn(const std::string & aName,bool MainLogFile)
 {
+    if (aName == "")
+      return;
    cMMVII_Ofs  aOfs(aName,eFileModeOut::AppendText);
    aOfs.Ofs() << "========================================================================\n";
    aOfs.Ofs() << "  Id : " <<  mPrefixNameAppli << "\n";
@@ -1111,6 +1113,8 @@ void cMMVII_Appli::LogCommandIn(const std::string & aName,bool MainLogFile)
 
 void cMMVII_Appli::LogCommandOut(const std::string & aName,bool MainLogFile)
 {
+   if (aName == "")
+      return;
    cMMVII_Ofs  aOfs(aName,eFileModeOut::AppendText);
    // Add id, if several process were throw in // there is a mix and we no longer know which was closed
    aOfs.Ofs() << "  ending correctly at : " <<  StrDateCur()  << " (Id=" << mPrefixNameAppli << ")\n\n";
@@ -1120,12 +1124,10 @@ void cMMVII_Appli::LogCommandOut(const std::string & aName,bool MainLogFile)
 
 void cMMVII_Appli::LogCommandAbortOnError(std::string& aMessage)
 {
+   if (mFileLogTop == "")
+      return;
    for (const auto& aLogName : {mFileLogTop, NameFileLog(false)})
    {
-      // MPD->CM quick&dirty solve for MMVII-Log not init
-      if (aLogName=="") 
-         return;
-
       cMMVII_Ofs  aOfs(aLogName,eFileModeOut::AppendText);
       aOfs.Ofs() << "  ABORT on error at : " <<  StrDateCur()  << " (Id=" << mPrefixNameAppli << ")\n";
       bool nl = true;
@@ -1194,25 +1196,27 @@ void cMMVII_Appli::GenerateOneArgSpec(cCollecSpecArg2007& aSpecArgs, const std::
         num++;
 
         std::string fileType,dirType;
+        bool hasMPF = false;
         for (const auto& a : Arg->SemPL()) {
-            if (a.Type() >= aArgsSpec->firstFileType && a.Type() <= aArgsSpec->lastFileType) {
+            if (aArgsSpec->fileTypes.find(a.Type()) != aArgsSpec->fileTypes.end()) {
                 if (fileType.length() != 0)
                    aArgsSpec->errors += "WARNING: " + aSpecName + ": " + argName + ": has " + fileType + " and " + E2Str(a.Type()) + " file semantic.\n";
                 fileType = E2Str(a.Type());
             }
-            if (a.Type() >= aArgsSpec->firstDirType && a.Type() <= aArgsSpec->lastDirType) {
+            if (std::find(aArgsSpec->prjSubDirList.begin(), aArgsSpec->prjSubDirList.end(),a.Type()) != aArgsSpec->prjSubDirList.end()) {
                 if (dirType.length() != 0)
                     aArgsSpec->errors += "WARNING: " + aSpecName + ": " + argName + ": has " + dirType + " and " + E2Str(a.Type()) + " dir semantic.\n";
                 dirType = E2Str(a.Type());
-                break;
             }
+            if (a.Type() == eTA2007::MPatFile)
+            hasMPF = true;
         }
         if (fileType.length() != 0 && dirType.length() != 0)
             aArgsSpec->errors += "WARNING: " + aSpecName + ": " + argName + ": has " + dirType + " and " + fileType + " semantics.\n";
 
         if (Arg->IsVector()  && !Arg->HasType(eTA2007::ISizeV))
             aArgsSpec->errors += "WARNING: " + aSpecName + ": " + argName + ": is a vector with no ISizeV semantic.\n";
-        if (Arg->HasType(eTA2007::FileDirProj)  && fileType.length() == 0)
+        if (Arg->HasType(eTA2007::FileDirProj) && fileType.length() == 0 && !hasMPF)
             aArgsSpec->errors += "WARNING: " + aSpecName + ": " + argName + ": has FileDirProj semantic with no File type semantic.\n";
 #if 0
 // if no Input/Output/OptionalExist, assume Input

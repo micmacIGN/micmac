@@ -91,8 +91,7 @@ public:
 class InputFile: public InputWidget
 {
 public:
-    enum Type {DP, IM, CLOUD, REG3D, ORIENT, OTHER};
-    InputFile(QWidget *parent, QGridLayout *layout, ArgSpec &as, Type type, const MMVIISpecs &allSpecs);
+    InputFile(QWidget *parent, QGridLayout *layout, ArgSpec &as, const MMVIISpecs &allSpecs);
 protected:
     virtual void doReset() override;
     virtual void setInitialValue() override;
@@ -104,7 +103,7 @@ private:
 
     QString filter,caption;
     QString subdir;
-    enum Mode {OPEN_FILE, OPEN_FILES, OPEN_DIR};
+    enum Mode {FILE_MODE, DIR_MODE};
     Mode mode;
 };
 

@@ -451,7 +451,7 @@ cSensorCamPC * cPhotogrammetricProject::ReadCamPC(const cDirsPhProj & aDP,const 
     {
        return nullptr;
     }
-    // Modif MPD : if we want to delete it ourseff (ToDeleteAuto=false) it must not be a remanent object
+    // Modif MPD : if we want to delete it ourself (ToDeleteAuto=false) it must not be a remanent object
     // cSensorCamPC * aCamPC =  cSensorCamPC::FromFile(aNameCam,!ToDelete);
     cSensorCamPC * aCamPC =  cSensorCamPC::FromFile(aNameCam,ToDeleteAutom);
 

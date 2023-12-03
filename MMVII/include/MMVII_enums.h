@@ -24,16 +24,15 @@ enum class eSYS;
 /// Type for Semantic of Arg 2007
 enum class eTA2007
            {
+            // If adding/removing eTA20007, update MMVII:GenArgsInternal (cf: Appli/cMMVII_GenArgsSpec.cpp)
             // ---------- Printed --------------
                 DirProject,    ///< Exact Dir of Proj
                 FileDirProj,   ///< File that define the  Dir Proj
-            // !!!!! File types must all be here. If changes check cMMVIIGenArgsSpec.cpp
                 FileImage,     ///< File containing an image
                 FileCloud,     ///< File containing a cloud file (ply ?)
                 File3DRegion,  ///< File containing a 3D region
                 MPatFile,      ///< Major PaternIm => "" or "0" in sem for set1, "1" or other for set2
                 FFI,           ///< File Filter Interval
-            // !!!!! Dir types must all be here. If change, check cMMVIIGenArgsSpec.cpp
                 Orient,        ///< Orientation
                 RadiomData,    ///< Data for Radiometry
                 RadiomModel,   ///< Model for Radiometry

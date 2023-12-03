@@ -6,6 +6,31 @@
 namespace MMVII
 {
 
+namespace GenArgsInternal
+{
+static const std::vector<eTA2007> prjSubDirList =                           // clazy:exclude=non-pod-global-static
+{
+    eTA2007::Orient,
+    eTA2007::RadiomData,
+    eTA2007::RadiomModel,
+    eTA2007::MeshDev,
+    eTA2007::Mask,
+    eTA2007::MetaData,
+    eTA2007::PointsMeasure,
+    eTA2007::TieP,
+    eTA2007::MulTieP,
+    eTA2007::RigBlock,
+    eTA2007::SysCo,
+};
+
+static const std::map<eTA2007,std::vector<std::string>> fileList =          // clazy:exclude=non-pod-global-static
+{
+    {eTA2007::FileImage,{".tif",".tiff",".jpg",".jpeg",".png",".cr2",".crw",".nef"}},
+    {eTA2007::FileCloud,{".ply"}},
+    {eTA2007::File3DRegion,{".*"}},
+};
+
+} // namespace GenArgsInternal
 
 /* ==================================================== */
 /*                                                      */
@@ -31,8 +56,8 @@ class cAppli_GenArgsSpec : public cMMVII_Appli
 
 // !!! Modify mArgsSpecs if eTA2007 changes !!
 cAppli_GenArgsSpec::cAppli_GenArgsSpec(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-  cMMVII_Appli (aVArgs,aSpec),
-  mArgsSpecs(eTA2007::FileImage,eTA2007::File3DRegion,eTA2007::Orient,eTA2007::MulTieP),
+    cMMVII_Appli (aVArgs,aSpec),
+    mArgsSpecs(GenArgsInternal::prjSubDirList, GenArgsInternal::fileList),
     mQuiet(false),mNoInfo(false)
 {
 }
@@ -55,8 +80,6 @@ cCollecSpecArg2007 & cAppli_GenArgsSpec::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
 int cAppli_GenArgsSpec::Exe()
 {
-    cGenArgsSpecContext aArgsSpecs(eTA2007::FileImage,eTA2007::File3DRegion,eTA2007::Orient,eTA2007::MulTieP);
-
     std::vector<std::string> appletsWithGUI;
     std::vector<std::string> appletsWithoutGUI;
 
@@ -77,56 +100,56 @@ int cAppli_GenArgsSpec::Exe()
     if (! (mQuiet || mNoInfo))
         aEfs << "Generating command line specifications ...\n\n";
 
-    aArgsSpecs.jsonSpec = "{\n";
-    aArgsSpecs.jsonSpec += "  \"config\": {\n";
-    aArgsSpecs.jsonSpec += "    \"DirBin2007\":\"" + DirBinMMVII() + "\",\n";
-    aArgsSpecs.jsonSpec += "    \"Bin2007\":\"" + FullBin() + "\",\n";
+    mArgsSpecs.jsonSpec = "{\n";
+    mArgsSpecs.jsonSpec += "  \"config\": {\n";
+    mArgsSpecs.jsonSpec += "    \"DirBin2007\":\"" + DirBinMMVII() + "\",\n";
+    mArgsSpecs.jsonSpec += "    \"Bin2007\":\"" + FullBin() + "\",\n";
 
-    aArgsSpecs.jsonSpec += "    \"MMVIIDirPhp\":\"" + MMVII_DirPhp + "\",\n";
-    aArgsSpecs.jsonSpec += "    \"MMVIITestDir\":\"" + MMVIITestDir + "\",\n";
+    mArgsSpecs.jsonSpec += "    \"MMVIIDirPhp\":\"" + MMVII_DirPhp + "\",\n";
+    mArgsSpecs.jsonSpec += "    \"MMVIITestDir\":\"" + MMVIITestDir + "\",\n";
 
-    aArgsSpecs.jsonSpec += "    \"eTa2007FileTypes\": [";
-    for (eTA2007 aTA2007 = aArgsSpecs.firstFileType; aTA2007 <= aArgsSpecs.lastFileType;) {
-        if (aTA2007 != aArgsSpecs.firstFileType)
-            aArgsSpecs.jsonSpec += ",";
-        aArgsSpecs.jsonSpec += "\"" + E2Str(aTA2007) + "\"";
-        aTA2007 = static_cast<eTA2007>(static_cast<int>(aTA2007) + 1);
+    mArgsSpecs.jsonSpec += "    \"eTa2007FileTypes\": [";
+    bool first = true;
+    for (const auto& [aTA2007,anExtList]  : mArgsSpecs.fileTypes) {
+        if (! first)
+            mArgsSpecs.jsonSpec += ",";
+        first = false;
+        mArgsSpecs.jsonSpec += "\"" + E2Str(aTA2007) + "\"";
     }
-    aArgsSpecs.jsonSpec += "],\n";
+    mArgsSpecs.jsonSpec += "],\n";
 
-    aArgsSpecs.jsonSpec += "    \"eTa2007DirTypes\": [";
-    for (eTA2007 aTA2007 = aArgsSpecs.firstDirType; aTA2007 <= aArgsSpecs.lastDirType;) {
-        if (aTA2007 != aArgsSpecs.firstDirType)
-            aArgsSpecs.jsonSpec += ",";
-        aArgsSpecs.jsonSpec += "\"" + E2Str(aTA2007) + "\"";
-        aTA2007 = static_cast<eTA2007>(static_cast<int>(aTA2007) + 1);
+    mArgsSpecs.jsonSpec += "    \"eTa2007DirTypes\": [";
+    first = true;
+    for (const auto &aTA2007 : mArgsSpecs.prjSubDirList) {
+        if (! first)
+            mArgsSpecs.jsonSpec += ",";
+        first = false;
+        mArgsSpecs.jsonSpec += "\"" + E2Str(aTA2007) + "\"";
     }
-    aArgsSpecs.jsonSpec += "],\n";
+    mArgsSpecs.jsonSpec += "],\n";
 
-    aArgsSpecs.jsonSpec += "    \"extensions\": {" ;
-    bool firstEta = true;
-    for (const auto& [aTA2007,anExtList] : MMVIISupportedFilesExt) {
-        if (!firstEta)
-            aArgsSpecs.jsonSpec += ",";
-        aArgsSpecs.jsonSpec += "\n";
-        firstEta = false;
-        aArgsSpecs.jsonSpec += "      \"" + E2Str(aTA2007) + "\": [" ;
+    mArgsSpecs.jsonSpec += "    \"extensions\": {" ;
+    first = true;
+    for (const auto& [aTA2007,anExtList]  : mArgsSpecs.fileTypes) {
+        if (! first)
+            mArgsSpecs.jsonSpec += ",";
+        first = false;
+        mArgsSpecs.jsonSpec += "\n      \"" + E2Str(aTA2007) + "\": [" ;
         bool firstExt = true;
         for (const auto& anExt : anExtList) {
             if (!firstExt)
-                aArgsSpecs.jsonSpec += ",";
-            aArgsSpecs.jsonSpec += "\n";
+                mArgsSpecs.jsonSpec += ",";
             firstExt = false;
-            aArgsSpecs.jsonSpec += "        \"" + anExt + "\"" ;
+            mArgsSpecs.jsonSpec += "\n        \"" + anExt + "\"" ;
         }
-        aArgsSpecs.jsonSpec += "\n      ]" ;
+        mArgsSpecs.jsonSpec += "\n      ]" ;
     }
-    aArgsSpecs.jsonSpec += "\n    }\n" ;  // Extensions
-    aArgsSpecs.jsonSpec += "  },\n" ;     // Config
+    mArgsSpecs.jsonSpec += "\n    }\n" ;  // Extensions
+    mArgsSpecs.jsonSpec += "  },\n" ;     // Config
 
-    aArgsSpecs.jsonSpec += "  \"applets\": [\n";
+    mArgsSpecs.jsonSpec += "  \"applets\": [\n";
 
-    bool first = true;
+    first = true;
     for (const auto & aSpec : cSpecMMVII_Appli::VecAll())
     {
         bool gui = true;
@@ -142,20 +165,20 @@ int cAppli_GenArgsSpec::Exe()
             appletsWithoutGUI.push_back(aSpec->Name());
 
         if (!first)
-            aArgsSpecs.jsonSpec += ",\n";
+            mArgsSpecs.jsonSpec += ",\n";
         first = false;
         aVArgs[1] = aSpec->Name();
         tMMVII_UnikPApli anAppli = aSpec->Alloc()(aVArgs,*aSpec);
         anAppli->SetNot4Exe();
-        anAppli->InitParam(&aArgsSpecs);
+        anAppli->InitParam(&mArgsSpecs);
     }
-    aArgsSpecs.jsonSpec += "\n  ]\n";
-    aArgsSpecs.jsonSpec += "}\n";
+    mArgsSpecs.jsonSpec += "\n  ]\n";
+    mArgsSpecs.jsonSpec += "}\n";
 
-    aOfs << aArgsSpecs.jsonSpec;
+    aOfs << mArgsSpecs.jsonSpec;
 
     if (!mQuiet)
-        aEfs << aArgsSpecs.errors;
+        aEfs << mArgsSpecs.errors;
 
     if (! (mQuiet || mNoInfo)) {
         aEfs << "\nSpecifications with GUI generated for:\n";

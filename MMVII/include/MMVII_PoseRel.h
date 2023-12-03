@@ -81,6 +81,9 @@ class cMatEssential
         /// No more than
         tREAL8  KthCost(const  cSetHomogCpleDir &,tREAL8 aProp) const;
 
+	/// Return the essential matrix
+	const tMat& Mat() const {return mMat;}
+
         void Show(const cSetHomogCpleDir &) const;
 
         cMatEssential(const  tMat & aMat);

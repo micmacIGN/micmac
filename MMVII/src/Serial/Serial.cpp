@@ -418,7 +418,7 @@ bool cStreamIXml_Ar2007::IsFileOfFirstTag(bool Is2007,const std::string  & aName
     try {
         aRes = ((!Is2007) || GetTag(false,TagMMVIISerial)) && GetTag(false,aNameTag);
     }
-    catch (cEOF_Exception anE)
+    catch (cEOF_Exception)
     {
         return false;
     }

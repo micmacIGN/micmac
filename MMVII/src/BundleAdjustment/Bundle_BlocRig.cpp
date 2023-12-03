@@ -69,7 +69,7 @@ void cBA_BlocRig::AddCam (cSensorCamPC * aCam)
 void cBA_BlocRig::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet)
 {
     //  "cSetInterUK_MultipeObj" is a structure that contains a set of
-    //  unknowns, here we "declarate" all the unknwon, the object
+    //  unknowns, here we "declare" all the unknowns, the object
     //  declared must derive from "cObjWithUnkowns". The "declaration" is
     //  made by calling "AddOneObj" in aSet
     //
@@ -80,9 +80,9 @@ void cBA_BlocRig::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet)
      // map all bloc
      for (const auto & aBloc : mBlocs)
      {
-          for (auto & aPair : aBloc->MapStrPoseUK())
+          for (auto & [aName, aPoseUk] : aBloc->MapStrPoseUK())
           {
-              aSet.AddOneObj(&aPair.second);
+              aSet.AddOneObj(&aPoseUk);
           }
      }
      //   map all pair of MapStrPoseUK

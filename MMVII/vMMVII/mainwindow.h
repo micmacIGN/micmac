@@ -26,7 +26,8 @@ public:
 
 private:
     [[noreturn]] void doError(const QString& msg1, const QString &msg2="");
-
+    
+    void readCmdFilters(const QString &type, StrList &filter);
     void readSpecs(const QString &mmviiPath, const QString &specPath);
     void buildUI(bool hasCommand);
     bool getSpecsFromMMVII(const QString mmviiPath, QByteArray& specsText, bool haltOnError);
@@ -52,7 +53,7 @@ private:
     CmdSelectWidget *cmdSelectWidget;
     CmdConfigureWidget *cmdConfigureWidget;
     ProcessWidget *procWidget;
-
+    
     QVBoxLayout *mainVBoxLayout;
 };
 #endif // MAINWINDOW_H

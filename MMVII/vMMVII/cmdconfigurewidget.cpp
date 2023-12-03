@@ -79,6 +79,8 @@ InputWidget *CmdConfigureWidget::createInput(QWidget *widget, QGridLayout *layou
         return new InputIntN(widget, layout, as, 3);
     case ArgSpec::T_PTXD2_DOUBLE:
         return new InputDoubleN(widget, layout, as, 2);
+    case ArgSpec::T_PTXD3_DOUBLE:
+        return new InputDoubleN(widget, layout, as, 3);
     case ArgSpec::T_BOX2_INT:
         return new InputIntN(widget, layout, as, 4);
     case ArgSpec::T_VEC_INT:
@@ -94,20 +96,8 @@ InputWidget *CmdConfigureWidget::createInput(QWidget *widget, QGridLayout *layou
     case ArgSpec::T_STRING:
         if (contains(as.semantic,eTA2007::FFI))
             return new InputFFI(widget, layout, as);
-        if (contains(as.semantic,eTA2007::FileImage))
-            return new InputFile(widget, layout, as, InputFile::IM, allSpecs);
-        if (contains(as.semantic,eTA2007::DirProject))
-            return new InputFile(widget, layout, as, InputFile::DP, allSpecs);
-        if (contains(as.semantic,eTA2007::FileCloud))
-            return new InputFile(widget, layout, as, InputFile::CLOUD, allSpecs);
-        if (contains(as.semantic,eTA2007::File3DRegion))
-            return new InputFile(widget, layout, as, InputFile::REG3D, allSpecs);
-        if (contains(as.semantic,{eTA2007::FileDirProj,eTA2007::MPatFile}))
-            return new InputFile(widget, layout, as, InputFile::OTHER, allSpecs);
-        for (const auto& t: as.semantic) {
-            if (contains(allSpecs.dirTypes,t))
-                return new InputFile(widget, layout, as, InputFile::OTHER, allSpecs);
-        }
+        if (contains(as.semantic,{eTA2007::DirProject, eTA2007::FileDirProj,eTA2007::MPatFile, eTA2007::vMMVII_PhpPrjDir,eTA2007::vMMVII_FilesType}))
+            return new InputFile(widget, layout, as, allSpecs);
         return new InputString(widget, layout, as);
     case ArgSpec::T_VEC_STRING:
         return new InputStrings(widget,layout,as,0);
@@ -128,7 +118,7 @@ QWidget *CmdConfigureWidget::createPage(std::vector<ArgSpec>& argSpecs, const QS
     widget->setFixedWidth(600);
 //    scroll->setMinimumHeight(400);
     layout->setSizeConstraint(QLayout::SetMinAndMaxSize);
-    layout->setContentsMargins(5,25,5,5);   // FIXME: 25 needed to have tooltip working in the first element ...
+    layout->setContentsMargins(5,25,5,5);   // FIXME CM: 25 needed to have tooltip working in the first element ...
 
     for (auto& as : argSpecs) {
         if (level != as.level)
