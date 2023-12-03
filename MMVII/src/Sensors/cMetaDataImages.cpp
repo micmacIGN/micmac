@@ -15,6 +15,7 @@
 namespace MMVII
 {
 
+
 //  =========  These class are used to indicate information missing (or wrong) on metadata or other stuff
 
 class cOneTryCAI;                 ///< contains a pair Pattern => Transformation
@@ -353,27 +354,35 @@ cCalculMetaDataProject * cGlobCalculMetaDataProject::CMDPOfName(const std::strin
 /*                                             */
 /* ******************************************* */
 
-tREAL8  cMetaDataImage::Aperture() const
+tREAL8  cMetaDataImage::Aperture(bool SVP) const
 {
-   MMVII_INTERNAL_ASSERT_User(mAperture>0,eTyUEr::eNoAperture,"Aperture is not init for " + mNameImage);
+   MMVII_INTERNAL_ASSERT_User((mAperture>0) || SVP ,eTyUEr::eNoAperture,"Aperture is not init for " + mNameImage);
    return mAperture;
 }
 
-tREAL8  cMetaDataImage::FocalMM() const
+tREAL8  cMetaDataImage::FocalMM(bool SVP) const
 {
-   MMVII_INTERNAL_ASSERT_User(mFocalMM>0,eTyUEr::eNoFocale,"Focale is not init for " + mNameImage);
+   MMVII_INTERNAL_ASSERT_User((mFocalMM>0) || SVP ,eTyUEr::eNoFocale,"Focale is not init for " + mNameImage);
    return mFocalMM;
 }
 
-tREAL8  cMetaDataImage::FocalMMEqui35() const
+tREAL8  cMetaDataImage::FocalMMEqui35(bool SVP) const
 {
-    MMVII_INTERNAL_ASSERT_User(mFocalMMEqui35>0,eTyUEr::eNoFocaleEqui35,"FocaleEqui35 is not init for " + mNameImage);
+    MMVII_INTERNAL_ASSERT_User((mFocalMMEqui35>0) || SVP ,eTyUEr::eNoFocaleEqui35,"FocaleEqui35 is not init for " + mNameImage);
    return mFocalMMEqui35;
 }
 
-const std::string&  cMetaDataImage::CameraName() const
+cPt2di  cMetaDataImage::NbPixels(bool SVP) const
 {
-    MMVII_INTERNAL_ASSERT_User(mCameraName!="",eTyUEr::eNoCameraName,"Camera Name is not init for " + mNameImage);
+    MMVII_INTERNAL_ASSERT_User((mNbPixel.x()>0) || SVP ,eTyUEr::eNoNumberPixel,"Number pixel is not init for " + mNameImage);
+
+    return mNbPixel;
+}
+
+
+const std::string&  cMetaDataImage::CameraName(bool SVP) const
+{
+    MMVII_INTERNAL_ASSERT_User((mCameraName!="") || SVP ,eTyUEr::eNoCameraName,"Camera Name is not init for " + mNameImage);
     return mCameraName;
 }
 
@@ -397,7 +406,8 @@ cMetaDataImage::cMetaDataImage() :
     mAdditionalName   (""),
     mAperture         (-1),
     mFocalMM          (-1),
-    mFocalMMEqui35    (-1)
+    mFocalMMEqui35    (-1),
+    mNbPixel          (-1,-1)
 {
 }
 
@@ -409,7 +419,7 @@ std::string  cMetaDataImage::InternalCalibGeomIdent() const
     {
         aRes = aRes + "_Add"+ mAdditionalName;  // replace " " by "_" , refuse special characters
     }
-    aRes = aRes + "_Foc"+ToStr(FocalMM());
+    aRes = aRes + "_Foc"+ToStr(round_ni(FocalMM()*1000));
 
     return aRes;
 }
@@ -481,6 +491,8 @@ class cAppli_EditCalcMetaDataImage : public cMMVII_Appli
 	
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
+        virtual std::vector<std::string>  Samples() const; ///< For help, gives samples of "good" use
+
 
         cPhotogrammetricProject     mPhProj;
 	eMTDIm                      mTypeMTDIM;
@@ -528,6 +540,16 @@ cCollecSpecArg2007 & cAppli_EditCalcMetaDataImage::ArgOpt(cCollecSpecArg2007 & a
 	   */
     ;
 }
+
+std::vector<std::string>  cAppli_EditCalcMetaDataImage::Samples() const
+{
+    return {
+               "MMVII EditCalcMTDI Std ModelCam ImTest=043_0136.JPG  Modif=[.*.JPG,\"NIKON D5600\",0] Save=1",
+               "MMVII EditCalcMTDI Std Focalmm ImTest=043_0136.JPG  Modif=[.*.JPG,24,0] Save=1",
+               "MMVII EditCalcMTDI Std AdditionalName ImTest=043_0136.JPG  Modif=[\"(.*)_.*\",\"\\$1\",0] Save=1"
+           };
+}
+
 
 int cAppli_EditCalcMetaDataImage::Exe() 
 {

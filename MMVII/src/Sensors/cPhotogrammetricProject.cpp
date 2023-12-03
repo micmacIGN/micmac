@@ -294,6 +294,8 @@ void cPhotogrammetricProject::FinishInit()
     // Create an example file  if none exist
     GenerateSampleCalcMTD();
 
+    // read the data base of existing cameras
+    MakeCamDataBase();
 }
 
 cDirsPhProj * cPhotogrammetricProject::NewDPIn(eTA2007 aType,const std::string & aDirIn)

@@ -251,6 +251,9 @@ class  cPhotogrammetricProject;
 class  cSIMap_Ground2ImageAndProf ;
 class  cPerspCamIntrCalib;
 class  cMetaDataImage;
+class  cElemCamDataBase;
+class  cCamDataBase;
+
 
 // MMVII_MeasuresIm.h
 

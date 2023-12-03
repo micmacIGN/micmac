@@ -144,7 +144,8 @@ class cDataPerspCamIntrCalib
             const cPt3di & aDegPseudoInv,       ///< degree of inverse approx by least square
             int aSzBuf                         ///< sz of buffers in computation
       )  ;
-      cDataPerspCamIntrCalib(const std::string & aName, eProjPC, const cPt3di &, double aFoc, const cPt2di &aNbPix, int aSzBuf=-1);
+      cDataPerspCamIntrCalib(const std::string & aName, eProjPC, const cPt3di &, double aFoc, const cPt2di &aNbPix,
+                             const cPt2dr & aPPRel = cPt2dr(0.5,0.5), int aSzBuf=-1);
 
       void PushInformation(const std::string &);
       std::vector<std::string> & VecInfo() ;

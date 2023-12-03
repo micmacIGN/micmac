@@ -232,6 +232,7 @@ enum class eTyUEr
               eNoAperture,
               eNoFocale,
               eNoFocaleEqui35,
+              eNoNumberPixel,
               eNoCameraName,
               eUnClassedError,
               eNbVals
@@ -535,6 +536,7 @@ enum class eMTDIm
               eFocalmm,
               eAperture,
               eModelCam,
+              eNbPixel,  // in MTD 4 case where no image &&  camera data base cannot be used (downscale ?)
               eAdditionalName,
               eNbVals
            };

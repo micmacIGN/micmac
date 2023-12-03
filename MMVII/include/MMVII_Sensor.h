@@ -197,10 +197,12 @@ class cSetVisibility : public cDataBoundedSet<tREAL8,3>
 class cMetaDataImage
 {
       public :
-          tREAL8  Aperture() const;
-          tREAL8  FocalMM() const;
-          tREAL8  FocalMMEqui35() const;
-	  const std::string&  CameraName() const;
+          tREAL8  Aperture(bool SVP=false) const;
+          tREAL8  FocalMM(bool SVP=false) const;
+          tREAL8  FocalMMEqui35(bool SVP=false) const;
+          cPt2di  NbPixels(bool SVP=false) const;
+	  const std::string&  CameraName(bool SVP=false) const;  // return NONE if 
+          //  generate an identifier specific to data 
 	  std::string InternalCalibGeomIdent() const;
 
           cMetaDataImage(const std::string & aDir,const std::string & aNameIm,const cGlobCalculMetaDataProject * aCalc);
@@ -212,8 +214,35 @@ class cMetaDataImage
           tREAL8         mAperture;
           tREAL8         mFocalMM;
           tREAL8         mFocalMMEqui35;
+          cPt2di         mNbPixel;
           std::string    mNameImage;
 };
+
+class cElemCamDataBase
+{
+     public :
+        void AddData(const cAuxAr2007 & anAux);
+        std::string  mName;
+        cPt2dr       mSzPixel_Micron;   /// May be not square
+        cPt2dr       mSzSensor_Mm;  /// Physical size
+        cPt2di       mNbPixels;  /// Number of Pixels
+
+        // As it is redundant check and complete
+        void  Finish();
+};
+void AddData(const cAuxAr2007 & anAux,cElemCamDataBase &);
+
+class cCamDataBase
+{
+   public :
+        void AddData(const cAuxAr2007 & anAux);
+        const std::map<std::string,cElemCamDataBase>  & Map() const;
+        std::map<std::string,cElemCamDataBase>  & Map() ;
+   private :
+       std::map<std::string,cElemCamDataBase>  mMap;
+};
+void AddData(const cAuxAr2007 & anAux,cCamDataBase &);
+
 
 
 /**   Class for sharind code related to management the folder for one kind (=Ori,Homol,Radiom...) of "objects"
@@ -289,6 +318,7 @@ class cDirsPhProj : public cMemCheck
 class cPhotogrammetricProject
 {
       public :
+
 	      
 	 //===================================================================
          //==============   CONSTRUCTION & DESTRUCTION   =====================
@@ -444,6 +474,14 @@ class cPhotogrammetricProject
 	  /// Internal,  to document later ...
 	  cCalculMetaDataProject * CMDPOfName(const std::string &);
 
+          /// Create calib w/o distorsion from paramameters
+          cPerspCamIntrCalib * GetCalibInit(const std::string& aName,eProjPC aTypeProj,const cPt3di & aDeg,
+                                            const cPt2dr &  aPosPPRel=cPt2dr(0.5,0.5), bool SVP=false);
+
+          ///  Extract Camera specif from data base, given name of camera
+          const cElemCamDataBase * GetCamFromNameCam(const std::string& aNameCam,bool SVP=false) const;
+
+
 	 //===================================================================
          //==================   HOMOLOGOUS Points  ===========================
 	 //===================================================================
@@ -502,6 +540,10 @@ class cPhotogrammetricProject
 	 std::list<cBlocOfCamera *> ReadBlocCams() const;
 	 void   SaveBlocCamera(const cBlocOfCamera &) const;
 
+         //==================   Camera Data Base     =========================
+
+         void MakeCamDataBase();
+         bool OneTestMakeCamDataBase(const std::string & aDir,cCamDataBase &,bool ForceNew);
 
       private :
           cPhotogrammetricProject(const cPhotogrammetricProject &) = delete;
@@ -531,6 +573,8 @@ class cPhotogrammetricProject
 
 	  std::vector<cDirsPhProj*> mDirAdded;
 	  mutable cGlobCalculMetaDataProject *  mGlobCalcMTD;
+
+          cCamDataBase   mCamDataBase;
 
 };
 void SaveAndFilterAttrEll(const cPhotogrammetricProject & aPhp,const cSetMesPtOf1Im &  aSetM,const std::set<std::string> & ToRem);

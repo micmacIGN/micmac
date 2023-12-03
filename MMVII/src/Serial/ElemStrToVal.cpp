@@ -306,6 +306,7 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eNoAperture,"NoAperture"},
                 {eTyUEr::eNoFocale,"NoFocale"},
                 {eTyUEr::eNoFocaleEqui35,"NoFocaleEqui35"},
+                {eTyUEr::eNoNumberPixel,"NoNumberPixel"},
                 {eTyUEr::eNoCameraName,"NoCameraName"},
                 {eTyUEr::eUnClassedError,"UnClassedError"}
            };
@@ -381,6 +382,7 @@ template<> cE2Str<eMTDIm>::tMapE2Str cE2Str<eMTDIm>::mE2S
                 {eMTDIm::eFocalmm,"Focalmm"},
                 {eMTDIm::eAperture,"Aperture"},
                 {eMTDIm::eModelCam,"ModelCam"},
+                {eMTDIm::eNbPixel,"NbPix"},
                 {eMTDIm::eAdditionalName,"AdditionalName"}
            };
 
@@ -551,6 +553,7 @@ void BenchEnum(cParamExeBench & aParam)
     TplBenchEnum<eTyCodeTarget>();
     TplBenchEnum<eTypeSerial>();
     TplBenchEnum<eTAAr>();
+    TplBenchEnum<eMTDIm>();
 
     aParam.EndBench();
 }
