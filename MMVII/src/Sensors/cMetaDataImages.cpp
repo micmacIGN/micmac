@@ -95,6 +95,8 @@ class cGlobCalculMetaDataProject
          void   AddDir(const std::string& aDir);
          void   SetReal(tREAL8 & aVal,const std::string &,eMTDIm ) const;
          void   SetName(std::string & aVal,const std::string &,eMTDIm ) const;
+         void   SetPt2dr(cPt2dr & aVal,const std::string &,eMTDIm ) const;
+         void   SetPt2di(cPt2di & aVal,const std::string &,eMTDIm ) const;
 
 	 cCalculMetaDataProject * CMDPOfName(const std::string &);
 
@@ -339,6 +341,21 @@ void  cGlobCalculMetaDataProject::SetName(std::string & aVal,const std::string &
         aVal =  aTr;
 }
 
+void  cGlobCalculMetaDataProject::SetPt2dr(cPt2dr & aVal,const std::string & aNameIm,eMTDIm aMode) const
+{
+    // already set by a more important rule
+    if (aVal.x() >=0) return;
+
+    std::string aTr = Translate(aNameIm,aMode);
+
+
+    if (aTr !=MMVII_NONE)  
+        aVal =  cStrIO<cPt2dr>::FromStr(aTr);
+}
+
+
+
+
 cCalculMetaDataProject * cGlobCalculMetaDataProject::CMDPOfName(const std::string & aName)
 {
    const cCalculMetaDataProject * aRes = mMapDir2T[aName];
@@ -366,11 +383,28 @@ tREAL8  cMetaDataImage::FocalMM(bool SVP) const
    return mFocalMM;
 }
 
+
 tREAL8  cMetaDataImage::FocalMMEqui35(bool SVP) const
 {
     MMVII_INTERNAL_ASSERT_User((mFocalMMEqui35>0) || SVP ,eTyUEr::eNoFocaleEqui35,"FocaleEqui35 is not init for " + mNameImage);
    return mFocalMMEqui35;
 }
+
+
+tREAL8  cMetaDataImage::FocalPixel(bool SVP) const
+{
+   MMVII_INTERNAL_ASSERT_User((mFocalPixel>0) || SVP ,eTyUEr::eUnClassedError,"Focal Pixel is not init for " + mNameImage);
+   return mFocalPixel;
+}
+
+cPt2dr  cMetaDataImage::PPPixel(bool SVP) const
+{
+   MMVII_INTERNAL_ASSERT_User((mPPPixel.x()>0) || SVP ,eTyUEr::eUnClassedError,"Principal Point Pixel is not init for " + mNameImage);
+   return mPPPixel;
+}
+
+
+
 
 cPt2di  cMetaDataImage::NbPixels(bool SVP) const
 {
@@ -393,6 +427,9 @@ cMetaDataImage::cMetaDataImage(const std::string & aDir,const std::string & aNam
 {
     mNameImage    = aNameIm;
 
+    aGlobCalc->SetPt2dr(mPPPixel,aNameIm,eMTDIm::ePPPix);
+    aGlobCalc->SetReal(mFocalPixel,aNameIm,eMTDIm::eFocalPix);
+
     aGlobCalc->SetReal(mAperture,aNameIm,eMTDIm::eAperture);
     aGlobCalc->SetReal(mFocalMM,aNameIm,eMTDIm::eFocalmm);
     aGlobCalc->SetName(mCameraName,aNameIm,eMTDIm::eModelCam);
@@ -407,6 +444,8 @@ cMetaDataImage::cMetaDataImage() :
     mAperture         (-1),
     mFocalMM          (-1),
     mFocalMMEqui35    (-1),
+    mFocalPixel       (-1),
+    mPPPixel          (-1,-1),
     mNbPixel          (-1,-1)
 {
 }

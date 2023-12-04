@@ -202,6 +202,11 @@ class cMetaDataImage
           tREAL8  FocalMMEqui35(bool SVP=false) const;
           cPt2di  NbPixels(bool SVP=false) const;
 	  const std::string&  CameraName(bool SVP=false) const;  // return NONE if 
+
+          /// case where it was fixed directly by user to import accurately an existing cal
+          tREAL8  FocalPixel(bool SVP=false) const;
+          /// idem, FocalPixel
+          cPt2dr  PPPixel(bool SVP=false) const;
           //  generate an identifier specific to data 
 	  std::string InternalCalibGeomIdent() const;
 
@@ -214,6 +219,8 @@ class cMetaDataImage
           tREAL8         mAperture;
           tREAL8         mFocalMM;
           tREAL8         mFocalMMEqui35;
+          tREAL8         mFocalPixel;
+          cPt2dr         mPPPixel;
           cPt2di         mNbPixel;
           std::string    mNameImage;
 };

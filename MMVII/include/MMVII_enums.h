@@ -532,11 +532,13 @@ enum class eTyCodeTarget
 
 enum class eMTDIm
            {
-              eFocalmm,
-              eAperture,
-              eModelCam,
-              eNbPixel,  // in MTD 4 case where no image &&  camera data base cannot be used (downscale ?)
-              eAdditionalName,
+              eFocalmm,   //< if we fix the focal in mm
+              eFocalPix,  //< if we fix directly the focal in pixel
+              ePPPix,     //< if we fix firectly the principal point in pixel
+              eAperture,  //< aperture, used for radiometric model
+              eModelCam,  //< model of camera like "Nikon D600"
+              eNbPixel,      //< put  in MTD for case where no image &&  camera data base cannot be used (downscale ?)
+              eAdditionalName,  //< addition to separate camera != but with same model & focal
               eNbVals
            };
 

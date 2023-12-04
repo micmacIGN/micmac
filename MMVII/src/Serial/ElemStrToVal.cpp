@@ -380,6 +380,8 @@ template<> cE2Str<eTyCodeTarget>::tMapE2Str cE2Str<eTyCodeTarget>::mE2S
 template<> cE2Str<eMTDIm>::tMapE2Str cE2Str<eMTDIm>::mE2S
            {
                 {eMTDIm::eFocalmm,"Focalmm"},
+                {eMTDIm::eFocalPix,"FocalPix"},
+                {eMTDIm::ePPPix,"PPPix"},
                 {eMTDIm::eAperture,"Aperture"},
                 {eMTDIm::eModelCam,"ModelCam"},
                 {eMTDIm::eNbPixel,"NbPix"},
@@ -894,6 +896,38 @@ template <class Type>  std::string Vect2Str(const std::vector<Type>  & aV)
    return aRes;
 }
 
+/*
+template <class Type>  std::vector<Type> Str2Vec(const std::string & aStrGlob)
+{
+   std::vector<Type> aRes;
+   const char * aC=aStrGlob.c_str();
+   if (*aC!='[')
+       MMVII_UsersErrror(eTyUEr::eParseError,"expected [ at beging of vect");
+   aC++;
+   int aLevel = 1;
+   while((*aC) && *aC!=']')
+   {
+       std::string aStrV;
+       while ((*aC) && (*aC!=',') && ((*aC!=']') ||(aLevel!=0)))
+       {
+          if (*aC=='[') aLevel++;
+          if (*aC==']') aLevel--;
+          aStrV += *(aC++);
+       }
+       if (!(*aC))
+          MMVII_UsersErrror(eTyUEr::eParseError,"unexpected end of string while expecting \",\"");
+       aRes.push_back(cStrIO<Type>::FromStr(aStrV)); 
+       if (*aC==',')
+          aC++;
+   }
+   if (*aC!=']')
+      MMVII_UsersErrror(eTyUEr::eParseError,"unexpected end of string while expecting \"]\"");
+   aC++;
+
+   return  aRes;
+}
+*/
+
 template <class Type>  std::vector<Type> Str2Vec(const std::string & aStrGlob)
 {
    std::vector<Type> aRes;
@@ -918,6 +952,11 @@ template <class Type>  std::vector<Type> Str2Vec(const std::string & aStrGlob)
 
    return  aRes;
 }
+/*
+*/
+
+
+
 
                           //   - - std::vector<Type>  - -
 
