@@ -68,7 +68,8 @@ cDataPerspCamIntrCalib::cDataPerspCamIntrCalib
     const cPt3di & aDeg,
     double aFoc,
     const cPt2di & aNbPix,
-    const cPt2dr & aPPRel,
+    bool           PPIsRel,
+    const cPt2dr & aPP,
     int aSzBuf
 ) :
     cDataPerspCamIntrCalib
@@ -77,7 +78,7 @@ cDataPerspCamIntrCalib::cDataPerspCamIntrCalib
 	         aTypeProj, 
 	         aDeg,
 	         std::vector<double>(),
-                 cMapPProj2Im(aFoc,MulCByC(ToR(aNbPix), aPPRel)),
+                 cMapPProj2Im(aFoc, PPIsRel ? MulCByC(ToR(aNbPix), aPP) : aPP),
                  cDataPixelDomain(aNbPix),
 	         aDeg,
 	         aSzBuf

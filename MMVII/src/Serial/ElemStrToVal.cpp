@@ -896,7 +896,8 @@ template <class Type>  std::string Vect2Str(const std::vector<Type>  & aV)
    return aRes;
 }
 
-/*
+//  4/12/2023 : "Big" modif by MPD to be abble to parse nested stuff like "[1,[2,3],4]" correctly
+
 template <class Type>  std::vector<Type> Str2Vec(const std::string & aStrGlob)
 {
    std::vector<Type> aRes;
@@ -904,30 +905,60 @@ template <class Type>  std::vector<Type> Str2Vec(const std::string & aStrGlob)
    if (*aC!='[')
        MMVII_UsersErrror(eTyUEr::eParseError,"expected [ at beging of vect");
    aC++;
-   int aLevel = 1;
-   while((*aC) && *aC!=']')
+   int aLevel = 1;  // level in the parenthesis language, if Lev>1 we dont consider [,] as poncutation
+   std::string aStrV;
+   while((*aC) && (aLevel!=0))
    {
-       std::string aStrV;
-       while ((*aC) && (*aC!=',') && ((*aC!=']') ||(aLevel!=0)))
+       if (*aC==0)
        {
-          if (*aC=='[') aLevel++;
-          if (*aC==']') aLevel--;
-          aStrV += *(aC++);
+          MMVII_UsersErrror(eTyUEr::eParseError,"unexpected end of string while parsing " + aStrGlob);
        }
-       if (!(*aC))
-          MMVII_UsersErrror(eTyUEr::eParseError,"unexpected end of string while expecting \",\"");
-       aRes.push_back(cStrIO<Type>::FromStr(aStrV)); 
-       if (*aC==',')
-          aC++;
+       // only level 1 "," are considered as separators
+       else if ((*aC==',') && (aLevel==1))
+       {
+           aRes.push_back(cStrIO<Type>::FromStr(aStrV)); 
+	   aStrV="";
+       }
+       //  a "[" is an ordinary carater, just increase the level
+       else if (*aC=='[')
+       {
+	    aStrV.push_back(*aC);
+	    aLevel++;
+       }
+       //  a "]" may be or not an ordinary carater
+       else if (*aC==']')
+       {
+	    aLevel--; // always decrease the leve
+	    if (aLevel!=0) // if we are not closing the tab, its an ordinary car
+	        aStrV.push_back(*aC);
+	    else
+	    {
+                // else it's the final ponctuation
+		if (aStrV!="")
+                    aRes.push_back(cStrIO<Type>::FromStr(aStrV)); 
+		else
+		{
+                    // if last string  is "", we dont add it
+		    // this allow [] -> {} instead of {""}
+		    // [,] => {""}  ... see examples in Bench 
+		}
+	    }
+       }
+       else
+       {
+	  aStrV.push_back(*aC);
+       }
+	       
+       aC++;
    }
-   if (*aC!=']')
-      MMVII_UsersErrror(eTyUEr::eParseError,"unexpected end of string while expecting \"]\"");
-   aC++;
+
+   if (aLevel!=0)
+      MMVII_UsersErrror(eTyUEr::eParseError,"unexpected end of string , bad match in []");
 
    return  aRes;
 }
-*/
 
+/*
 template <class Type>  std::vector<Type> Str2Vec(const std::string & aStrGlob)
 {
    std::vector<Type> aRes;
@@ -952,7 +983,6 @@ template <class Type>  std::vector<Type> Str2Vec(const std::string & aStrGlob)
 
    return  aRes;
 }
-/*
 */
 
 
@@ -1051,6 +1081,12 @@ void OneBenchStrIO(std::string aStr,const  std::vector<std::string> & aV)
 void BenchStrIO(cParamExeBench & aParam)
 {
    if (! aParam.NewBench("StrIO")) return;
+   OneBenchStrIO("[1,[2],3]",{"1","[2]","3"});
+   OneBenchStrIO("[1,[2,4],3]",{"1","[2,4]","3"});
+   OneBenchStrIO("[1,[2,4],[]]",{"1","[2,4]","[]"});
+
+   OneBenchStrIO("[[[1]],[[2],4],[]]",{"[[1]]","[[2],4]","[]"});
+
    OneBenchStrIO("[1,2,3]",{"1","2","3"});
    OneBenchStrIO("[1]",{"1"});
    OneBenchStrIO("[]",{});

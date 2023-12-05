@@ -145,7 +145,7 @@ class cDataPerspCamIntrCalib
             int aSzBuf                         ///< sz of buffers in computation
       )  ;
       cDataPerspCamIntrCalib(const std::string & aName, eProjPC, const cPt3di &, double aFoc, const cPt2di &aNbPix,
-                             const cPt2dr & aPPRel = cPt2dr(0.5,0.5), int aSzBuf=-1);
+                             bool PPIsRel=true,const cPt2dr & aPP = cPt2dr(0.5,0.5), int aSzBuf=-1);
 
       void PushInformation(const std::string &);
       std::vector<std::string> & VecInfo() ;

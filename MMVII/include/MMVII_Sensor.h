@@ -483,7 +483,7 @@ class cPhotogrammetricProject
 
           /// Create calib w/o distorsion from paramameters
           cPerspCamIntrCalib * GetCalibInit(const std::string& aName,eProjPC aTypeProj,const cPt3di & aDeg,
-                                            const cPt2dr &  aPosPPRel=cPt2dr(0.5,0.5), bool SVP=false);
+                                            cPt2dr   aPP=cPt2dr(0.5,0.5), bool SVP=false);
 
           ///  Extract Camera specif from data base, given name of camera
           const cElemCamDataBase * GetCamFromNameCam(const std::string& aNameCam,bool SVP=false) const;

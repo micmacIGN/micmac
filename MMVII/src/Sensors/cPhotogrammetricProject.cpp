@@ -83,7 +83,7 @@ void cDirsPhProj::Finish()
     mFullDirOut = mAppli.DirProject() + mDirLocOfMode + mDirOut + StringDirSeparator();
 
     // Create output directory if needed
-    if ((mAppli.IsInSpec(&mDirOut)) || (mAppli.IsInit(&mDirOut)))
+    if ( ((mAppli.IsInSpec(&mDirOut)) || (mAppli.IsInit(&mDirOut)))  && (mDirOut!=MMVII_NONE))
     {
         CreateDirectories(mFullDirOut,true);
 	if (mPurgeOut)
@@ -161,11 +161,11 @@ void cDirsPhProj::AssertDirOutIsInit()    const
 
 bool cDirsPhProj::DirInIsInit() const   
 {
-    return mAppli.IsInit(&mDirIn);
+    return (mDirIn!= MMVII_NONE)  && mAppli.IsInit(&mDirIn);
 }
 bool cDirsPhProj::DirOutIsInit() const  
 {
-    return mAppli.IsInit(&mDirOut);
+    return (mDirOut!= MMVII_NONE) && mAppli.IsInit(&mDirOut);
 }
 
         //   ======================  Accessor/Modifier =======================================

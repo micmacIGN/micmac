@@ -434,8 +434,6 @@ cMetaDataImage::cMetaDataImage(const std::string & aDir,const std::string & aNam
     aGlobCalc->SetReal(mFocalMM,aNameIm,eMTDIm::eFocalmm);
     aGlobCalc->SetName(mCameraName,aNameIm,eMTDIm::eModelCam);
     aGlobCalc->SetName(mAdditionalName,aNameIm,eMTDIm::eAdditionalName);
-
-    /// StdOut()  <<  "cMetaDataImagecMetaDataImage " << mNameImage << " " << mAdditionalName << "\n" ; 
 }
 
 cMetaDataImage::cMetaDataImage() :

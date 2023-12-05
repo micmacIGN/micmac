@@ -49,6 +49,7 @@ class cAppli_ImportOri : public cMMVII_Appli
 	bool                     mRepIJDir;
 	std::vector<std::string> mChgName;
 	std::string              mNameDicoName;
+	std::string              mFileSaveIm;
 };
 
 cAppli_ImportOri::cAppli_ImportOri(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -85,6 +86,7 @@ cCollecSpecArg2007 & cAppli_ImportOri::ArgOpt(cCollecSpecArg2007 & anArgObl)
        << AOpt2007(mRepIJDir,"KIsUp","Corespond to repair \"i-j-k\" ",{{eTA2007::HDV}})
        << AOpt2007(mChgName,"ChgN","Change name [Pat,Name], for ex \"[(.*),IMU_\\$0]\"  add prefix \"IMU_\" ",{{eTA2007::ISizeV,"[2,2]"}})
        << AOpt2007(mNameDicoName,"DicName","Dictionnary for changing names of images ")
+       << AOpt2007(mFileSaveIm,"FileSaveIm","File for saving all names of images ")
 
     ;
 }
@@ -134,6 +136,8 @@ int cAppli_ImportOri::Exe()
 	ReadFromFile(aDicoChName,mNameDicoName);
     }
 
+    tNameSet aSetIm;
+
     for (size_t aK=0 ; aK<aVXYZ.size() ; aK++)
     {
          std::string aNameIm = aVNames.at(aK).at(0);
@@ -152,23 +156,32 @@ int cAppli_ImportOri::Exe()
 	    aNameIm = anIt->second;
          }
 
+	 // StdOut() << "aNameImaNameIm=" << aNameIm << "\n";
+	 aSetIm.Add(aNameIm);
 
-	 cPt3dr aCenter = aVXYZ.at(aK);
-	 cPt3dr aWPK = aVWKP.at(aK) / aAngDiv ;
+	 // Orient may be non init, by passing NONE, if we want to generate only the name
 
-	 cPerspCamIntrCalib *  aCalib = mPhProj.InternalCalibFromStdName(aNameIm);
+	 if (mPhProj.DPOrient().DirInIsInit())
+	 {
+	     cPt3dr aCenter = aVXYZ.at(aK);
+	     cPt3dr aWPK = aVWKP.at(aK) / aAngDiv ;
+
+	     cPerspCamIntrCalib *  aCalib = mPhProj.InternalCalibFromStdName(aNameIm);
 
 	 
-	 cRotation3D<tREAL8>  aRot =  cRotation3D<tREAL8>::RotFromWPK(aWPK);
-	 aRot = aRot * aRotAfter;
+	     cRotation3D<tREAL8>  aRot =  cRotation3D<tREAL8>::RotFromWPK(aWPK);
+	     aRot = aRot * aRotAfter;
 
-	 cIsometry3D aPose(aCenter,aRot);
-	 cSensorCamPC  aCam(aNameIm,aPose,aCalib);
+	     cIsometry3D aPose(aCenter,aRot);
+	     cSensorCamPC  aCam(aNameIm,aPose,aCalib);
 
-	 mPhProj.SaveCamPC(aCam);
+	     mPhProj.SaveCamPC(aCam);
+	 }
 
     }
 
+    if (IsInit(&mFileSaveIm))
+       SaveInFile(aSetIm,mFileSaveIm);
 
     return EXIT_SUCCESS;
 }

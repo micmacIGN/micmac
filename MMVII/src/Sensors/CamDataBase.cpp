@@ -115,7 +115,7 @@ cPerspCamIntrCalib * cPhotogrammetricProject::GetCalibInit
                           const std::string& aNameIm,
                           eProjPC aProj,
                           const cPt3di & aDeg, 
-                          const cPt2dr &  aPPRel,
+                          cPt2dr  aPP,
                           bool SVP
                      )
 {
@@ -156,27 +156,37 @@ cPerspCamIntrCalib * cPhotogrammetricProject::GetCalibInit
     }
 
     // [2] extract the focal length in pixel
-    tREAL8 aFocPix = -1;
-
-    tREAL8 aFoc35 = aMTD.FocalMMEqui35(true);
-    if (aFoc35>0)
+    tREAL8 aFocPix = aMTD.FocalPixel(true); // if it was explicitely set, it's the rule that applies
+    if (aFocPix<0)
     {
-       // in fact I am not sure of foc equi 35, but I think it is suited for a 24x36 ..
-       aFocPix =  NormInf(aNbPix) * (aFoc35 / 35.0);
-    }
-    else
-    {
-       if ((aCam==nullptr) || (aCam->mSzPixel_Micron.x()<=0))
-          MMVII_UnclasseUsEr("Cannot compute focal in pixel for : " + aNameIm);
-       cPt2dr aSzPMicron = aCam->mSzPixel_Micron;
-       if (aSzPMicron.x() != aSzPMicron.y())
-          MMVII_UnclasseUsEr("Non squared pixel non handled for now");
+        tREAL8 aFoc35 = aMTD.FocalMMEqui35(true);
+        if (aFoc35>0)
+        {
+           // in fact I am not sure of foc equi 35, but I think it is suited for a 24x36 ..
+           aFocPix =  NormInf(aNbPix) * (aFoc35 / 35.0);
+        }
+        else
+        {
+           if ((aCam==nullptr) || (aCam->mSzPixel_Micron.x()<=0))
+              MMVII_UnclasseUsEr("Cannot compute focal in pixel for : " + aNameIm);
+           cPt2dr aSzPMicron = aCam->mSzPixel_Micron;
+           if (aSzPMicron.x() != aSzPMicron.y())
+              MMVII_UnclasseUsEr("Non squared pixel non handled for now");
     
-       aFocPix = (aMTD.FocalMM() / aSzPMicron.x()) * 1000.0;
+           aFocPix = (aMTD.FocalMM() / aSzPMicron.x()) * 1000.0;
+        }
     }
 
+    // If a PP in pixel was set, it must be used
+    bool PPIsRel = true;
+    cPt2dr aPPPix =  aMTD.PPPixel(true); // if it was explicitely set, it's the rule that applies
+    if (aPPPix.x() > 0)
+    {
+       PPIsRel = false;
+       aPP = aPPPix;
+    }
 
-    cDataPerspCamIntrCalib  aDataPCIC(anIdent, aProj, aDeg,aFocPix,aNbPix,aPPRel);
+    cDataPerspCamIntrCalib  aDataPCIC(anIdent, aProj, aDeg,aFocPix,aNbPix,PPIsRel,aPP);
     aRes = new cPerspCamIntrCalib(aDataPCIC);
 
     cMMVII_Appli::AddObj2DelAtEnd(aRes);
