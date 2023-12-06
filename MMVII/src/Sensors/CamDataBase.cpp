@@ -138,6 +138,10 @@ cPerspCamIntrCalib * cPhotogrammetricProject::GetCalibInit
 
     // [1] extract number of pixel
     cPt2di aNbPix  =   aMTD.NbPixels(true);  // if number of pixel was set by user or is in meta-data it has the prioriy
+    cPt2di aNbPixCam(-1,-1);  // if number of pixel was set by user or is in meta-data it has the prioriy
+    if ((aCam!=nullptr) && (aCam->mNbPixels.x()>0))
+        aNbPixCam = aCam->mNbPixels;
+
     if (aNbPix.x() <=0)
     {
         // if the file exist  read the pixel from image
@@ -149,11 +153,13 @@ cPerspCamIntrCalib * cPhotogrammetricProject::GetCalibInit
         else
         {
             // else try to get the number of pixel from the camera
-            if ((aCam==nullptr) || (aCam->mNbPixels.x()<=0))
+            if (aNbPixCam.x() <=0)
                 MMVII_UnclasseUsEr("Cannot compute number of pixel for " + aNameIm);
-             aNbPix = aCam->mNbPixels;
+             aNbPix = aNbPixCam;
         }
     }
+
+    tREAL8 aDownScaleIm = Norm2(aNbPixCam) / Norm2(aNbPix);
 
     // [2] extract the focal length in pixel
     tREAL8 aFocPix = aMTD.FocalPixel(true); // if it was explicitely set, it's the rule that applies
@@ -173,7 +179,7 @@ cPerspCamIntrCalib * cPhotogrammetricProject::GetCalibInit
            if (aSzPMicron.x() != aSzPMicron.y())
               MMVII_UnclasseUsEr("Non squared pixel non handled for now");
     
-           aFocPix = (aMTD.FocalMM() / aSzPMicron.x()) * 1000.0;
+           aFocPix = (aMTD.FocalMM() / (aDownScaleIm*aSzPMicron.x())) * 1000.0;
         }
     }
 
