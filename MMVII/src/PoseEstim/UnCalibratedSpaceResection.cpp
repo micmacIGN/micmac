@@ -751,7 +751,6 @@ void cAppli_UncalibSpaceResection::DoMedianCalib()
 
 	     cMetaDataImage  aMDI = mPhProj.GetMetaData(DirProject()+aNameIm);
 	     aMapCal[aMDI.InternalCalibGeomIdent()].push_back(aCalib);
-	     StdOut() << "NIIII  " << aNameIm << " F=" << aCalib->F()   << std::endl;
          }
          else
          {
@@ -838,6 +837,8 @@ int cAppli_UncalibSpaceResection::Exe()
 
     mPhProj.SaveCamPC(*aCam0);
 
+    if (LevelCall()==0)
+        mPhProj.CpSysIn2Out(false,true);
     delete aCam0;
     return EXIT_SUCCESS;
 };

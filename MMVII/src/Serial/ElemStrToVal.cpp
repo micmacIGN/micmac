@@ -167,7 +167,7 @@ template<> cE2Str<eSysCoGeo>::tMapE2Str cE2Str<eSysCoGeo>::mE2S
                {eSysCoGeo::eLambert93,"Lambert93"},
                {eSysCoGeo::eRTL,"RTL"},
                {eSysCoGeo::eGeoC,"GeoC"},
-               {eSysCoGeo::eUndefined,"Undefined"}
+               {eSysCoGeo::eLocalSys,"Local"}
            };
 
 

@@ -40,7 +40,6 @@ class cSysCoordV1 : public cSysCoordV2
 
 	   static cSysCoordV1*   RTL(const cPt3dr & aPt,const std::string & aSysRef);
 
-        private :
 
 	   /// Conventional value for string that has been consumed
 	   static const std::string SConsumed;
@@ -49,7 +48,9 @@ class cSysCoordV1 : public cSysCoordV2
 	   static const std::string KeyRTL_x0;
 	   static const std::string KeyRTL_y0;
 	   static const std::string KeyRTL_z0;
+	   static const std::string KeyNameLocal;
 
+        private :
 	   static std::string  GetAttr(std::map<std::string,std::string> & aMap,const std::string & aKey);
 	   static void  SetAttr(std::map<std::string,std::string> & aMap,const std::string & aKey,const std::string & aVal);
 
@@ -66,6 +67,7 @@ const std::string cSysCoordV1::KeyRTLSys = "Sys_RTL";
 const std::string cSysCoordV1::KeyRTL_x0 = "x0_RTL";
 const std::string cSysCoordV1::KeyRTL_y0 = "y0_RTL";
 const std::string cSysCoordV1::KeyRTL_z0 = "z0_RTL";
+const std::string cSysCoordV1::KeyNameLocal = "NameLocalSys";
 
 std::string  cSysCoordV1::GetAttr(std::map<std::string,std::string> & aMap,const std::string & aKey)
 {
@@ -130,6 +132,9 @@ void cSysCoordV1::Init(eSysCoGeo aType,std::map<std::string,std::string> & aMap)
          mSV1 = cProj4::Lambert93();
      else if  (aType == eSysCoGeo::eGeoC)
          mSV1 = cSysCoord::GeoC();
+     else if  (aType == eSysCoGeo::eLocalSys)
+     {
+     }
      else
      {
          MMVII_UnclasseUsEr("Unhandled sys-co in read");
@@ -193,10 +198,12 @@ cSysCoordV1*   cSysCoordV1::RTL(const cPt3dr & aPt,const std::string & aSysRef)
 
 cPt3dr cSysCoordV1::ToGeoC(const cPt3dr & aP) const
 {
+    MMVII_INTERNAL_ASSERT_strong(mSV1!=nullptr,"No cSysCoordV1::ToGeoC");
     return ToMMVII(mSV1->ToGeoC(ToMMV1(aP)));
 }
 cPt3dr cSysCoordV1::FromGeoC(const cPt3dr & aP) const
 {
+    MMVII_INTERNAL_ASSERT_strong(mSV1!=nullptr,"No cSysCoordV1::FromGeoC");
     return ToMMVII(mSV1->FromGeoC(ToMMV1(aP)));
 }
 
@@ -205,7 +212,36 @@ cSysCoordV1::~cSysCoordV1()
     // delete mSV1;
 }
 
+/*********************************************/
+/*                                           */
+/*             cSysCoordLocal                */
+/*                                           */
+/*********************************************/
 
+/*
+class cSysCoordLocal : public cSysCoordV2
+{
+    public :
+           //void ToFile(const std::string &) const override;
+	   //static cSysCoordV1 * FromFile(const std::string &);
+
+           tPt ToGeoC(const tPt &) const override;
+           tPt FromGeoC(const tPt &) const  override;
+    private :
+};
+
+tPt cSysCoordLocal::ToGeoC(const tPt &) const
+{
+    MMVII_INTERNAL_ERROR("No cSysCoordLocal::ToGeoC");
+    return tPt::PCste(0.0);
+}
+
+tPt cSysCoordLocal::FromGeoC(const tPt &) const
+{
+    MMVII_INTERNAL_ERROR("No cSysCoordLocal::ToGeoC");
+    return tPt::PCste(0.0);
+}
+*/
 
 
 /*********************************************/
@@ -240,6 +276,13 @@ tPtrSysCo cSysCoordV2::GeoC()
    return tPtrSysCo(new cSysCoordV1(eSysCoGeo::eGeoC,{}));
 }
 
+tPtrSysCo cSysCoordV2::LocalSystem(const  std::string & aName)
+{
+   std::map<std::string,std::string> aMap;
+   aMap[cSysCoordV1::KeyNameLocal] = aName;
+   return tPtrSysCo(new cSysCoordV1(eSysCoGeo::eLocalSys,aMap));
+}
+
 tPtrSysCo cSysCoordV2::FromFile(const std::string & aName)
 {
     return tPtrSysCo(cSysCoordV1::FromFile(aName));
@@ -249,7 +292,6 @@ tPtrSysCo cSysCoordV2::RTL(const cPt3dr & anOriInit,const std::string & aName)
 {
      return tPtrSysCo(cSysCoordV1::RTL(anOriInit,aName));
 }
-
 
 
 /*********************************************/

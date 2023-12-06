@@ -87,7 +87,6 @@ cCollecSpecArg2007 & cAppli_ImportOri::ArgOpt(cCollecSpecArg2007 & anArgObl)
        << AOpt2007(mChgName,"ChgN","Change name [Pat,Name], for ex \"[(.*),IMU_\\$0]\"  add prefix \"IMU_\" ",{{eTA2007::ISizeV,"[2,2]"}})
        << AOpt2007(mNameDicoName,"DicName","Dictionnary for changing names of images ")
        << AOpt2007(mFileSaveIm,"FileSaveIm","File for saving all names of images ")
-
     ;
 }
 

@@ -93,6 +93,7 @@ const std::string MMVIIBin2007 = "MMVII.exe";
 #endif
 
 // User/Command
+const   std::string MMVII_LocalSys = "Local";
 const   std::string MMVII_NONE = "NONE";
 const   std::string MMVII_StdDest = "STD";
 const   std::string MMVII_PrefRefBench = "RefBench-";

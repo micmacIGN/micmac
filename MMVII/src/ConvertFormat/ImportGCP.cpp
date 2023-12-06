@@ -44,7 +44,6 @@ class cAppli_ImportGCP : public cMMVII_Appli
 	int                      mComment;
 	int                      mNbDigName;
 	std::string              mPatternTransfo;        
-	std::vector<std::string>   mNameChSys;
 };
 
 cAppli_ImportGCP::cAppli_ImportGCP(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -73,7 +72,7 @@ cCollecSpecArg2007 & cAppli_ImportGCP::ArgOpt(cCollecSpecArg2007 & anArgObl)
        << AOpt2007(mL0,"NumL0","Num of first line to read",{eTA2007::HDV})
        << AOpt2007(mLLast,"NumLast","Num of last line to read (-1 if at end of file)",{eTA2007::HDV})
        << AOpt2007(mPatternTransfo,"PatName","Pattern for transforming name (first sub-expr)")
-       << AOpt2007(mNameChSys,"ChSys","Change coordinate system, if 1 Sys In=Out",{{eTA2007::ISizeV,"[1,2]"}})
+       << mPhProj.ArgChSys(true)  // true =>  default init with None
     ;
 }
 
@@ -103,9 +102,7 @@ int cAppli_ImportGCP::Exe()
          mNameGCP = LastPrefix(mNameGCP);
     }
 
-
-   cChangSysCoordV2 aChSys = mPhProj.ChangSys(mNameChSys);
-
+   cChangSysCoordV2 & aChSys = mPhProj.ChSys();
 
     cSetMesGCP aSetM(mNameGCP);
     for (size_t aK=0 ; aK<aVXYZ.size() ; aK++)
@@ -120,11 +117,8 @@ int cAppli_ImportGCP::Exe()
     }
 
     mPhProj.SaveGCP(aSetM);
-
-    if (IsInit(&mNameChSys))
-    {
-         mPhProj.SaveCurSysCoGCP(aChSys.SysTarget());
-    }
+    mPhProj.SaveCurSysCoGCP(aChSys.SysTarget());
+   
 
     // delete aChSys;
 
@@ -134,7 +128,11 @@ int cAppli_ImportGCP::Exe()
 
 std::vector<std::string>  cAppli_ImportGCP::Samples() const
 {
-   return {"MMVII ImportGCP  2023-10-06_15h31PolarModule.coo  NXYZ Std  NumL0=14 NumLast=34  PatName=\"P\\.(.*)\" NbDigName=4"};
+   return 
+   {
+       "MMVII ImportGCP  2023-10-06_15h31PolarModule.coo  NXYZ Std  NumL0=14 NumLast=34  PatName=\"P\\.(.*)\" NbDigName=4",
+       "MMVII ImportGCP  Pannel5mm.obc  NXYZ Std NbDigName=4 ChSys=[LocalPannel]"
+   };
 }
 
 

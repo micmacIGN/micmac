@@ -372,6 +372,7 @@ class cPhotogrammetricProject
 	  const std::string &   DirPhp() const;   ///< Accessor
 	  const std::string &   DirVisu() const;   ///< Accessor
 	  const std::string &   DirSysCo() const;   ///< Accessor
+          tPtrArg2007           ArgChSys(bool DefaultUndefined=false);
 
 	 //===================================================================
          //==================   ORIENTATION      =============================
@@ -539,6 +540,11 @@ class cPhotogrammetricProject
          void SaveCurSysCoGCP(tPtrSysCo) const ;
          void CpSysIn2Out(bool OriIn,bool OriOut) const;  // bool : Ori/GCP   do it only if exist, else no error
 
+         const cChangSysCoordV2 & ChSys() const;
+         cChangSysCoordV2 & ChSys() ;
+         bool  ChSysIsInit() const;
+         void  AssertChSysIsInit() const;
+
 	 //===================================================================
          //==================   Rigid Bloc           =========================
 	 //===================================================================
@@ -564,7 +570,10 @@ class cPhotogrammetricProject
 
 	  std::string     mDirPhp;
 	  std::string     mDirVisu;
+
 	  std::string     mDirSysCo;
+          std::vector<std::string>   mNameChSys;
+          cChangSysCoordV2          mChSys;
 
 	  cDirsPhProj     mDPOrient;
 	  cDirsPhProj     mDPRadiomData;

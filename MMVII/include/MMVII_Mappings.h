@@ -957,6 +957,7 @@ class cSysCoordV2  : public cDataInvertibleMapping<tREAL8,3>
          static tPtrSysCo Lambert93();
          static tPtrSysCo GeoC();
          static tPtrSysCo RTL(const cPt3dr & Ori,const std::string & aSys);
+         static tPtrSysCo LocalSystem(const  std::string & aName);
 };
 
 class cChangSysCoordV2  : public cDataInvertibleMapping<tREAL8,3>

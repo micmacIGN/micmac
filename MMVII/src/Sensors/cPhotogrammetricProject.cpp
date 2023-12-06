@@ -5,6 +5,7 @@
 #include "MMVII_Radiom.h"
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_BlocRig.h"
+#include "MMVII_DeclareCste.h"
 
 
 /**
@@ -110,6 +111,7 @@ tPtrArg2007    cDirsPhProj::ArgDirInOpt(const std::string & aNameVar,const std::
                aVOpt
             ); 
 }
+
 
 tPtrArg2007    cDirsPhProj::ArgDirInputOptWithDef(const std::string & aDef,const std::string & aNameVar,const std::string & aMsg)
 { 
@@ -234,6 +236,7 @@ void cDirsPhProj::SetDirOutInIfNotInit()
 
 cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
     mAppli            (anAppli),
+    mChSys            (),
     mDPOrient         (eTA2007::Orient,*this),
     mDPRadiomData     (eTA2007::RadiomData,*this),
     mDPRadiomModel    (eTA2007::RadiomModel,*this),
@@ -296,6 +299,11 @@ void cPhotogrammetricProject::FinishInit()
 
     // read the data base of existing cameras
     MakeCamDataBase();
+
+    if (mAppli.IsInit(&mNameChSys))
+    {
+       mChSys = ChangSys(mNameChSys);
+    }
 }
 
 cDirsPhProj * cPhotogrammetricProject::NewDPIn(eTA2007 aType,const std::string & aDirIn)
@@ -757,6 +765,40 @@ void  cPhotogrammetricProject::ReadHomol
 }
         //  =============  coord system  =================
 
+const cChangSysCoordV2 & cPhotogrammetricProject::ChSys() const 
+{
+   AssertChSysIsInit();
+   return mChSys;
+}
+cChangSysCoordV2 & cPhotogrammetricProject::ChSys() 
+{
+   AssertChSysIsInit();
+   return mChSys;
+}
+
+bool  cPhotogrammetricProject::ChSysIsInit() const
+{
+    return mAppli.IsInit(&mNameChSys);
+}
+void  cPhotogrammetricProject::AssertChSysIsInit() const
+{
+     MMVII_INTERNAL_ASSERT_strong(ChSysIsInit(),"Chang coord system is not init");
+}
+
+
+tPtrArg2007 cPhotogrammetricProject::ArgChSys(bool DefaultUndefined)
+{
+    std::vector<tSemA2007>   aVOpt{{eTA2007::ISizeV,"[1,2]"}};
+
+    if (DefaultUndefined)
+    {
+        aVOpt.push_back(eTA2007::HDV);
+        mAppli.SetVarInit(&mNameChSys);
+        mNameChSys = {"Local"+MMVII_NONE};
+    }
+    return AOpt2007(mNameChSys,"ChSys","Change coordinate system, if 1 Sys In=Out",aVOpt);
+}
+
 void cPhotogrammetricProject::SaveSysCo(tPtrSysCo aSys,const std::string& aName,bool OnlyIfNew) const
 {
      std::string aFullName = mDirSysCo + aName + "."+  GlobTaggedNameDefSerial();
@@ -784,8 +826,16 @@ std::string  cPhotogrammetricProject::FullNameSysCo(const std::string &aName,boo
      return "";
 }
 
+
 tPtrSysCo cPhotogrammetricProject::ReadSysCo(const std::string &aName,bool SVP) const
 {
+     if (starts_with(aName,MMVII_LocalSys))
+     {
+         std::string aSubstr = aName.substr(MMVII_LocalSys.size(),std::string::npos);
+         return cSysCoordV2::LocalSystem(aSubstr);
+     }
+
+
      // compute name
      std::string aNameGlob = FullNameSysCo(aName,SVP);
      if (aNameGlob=="") // if we are here, SVP=true and we can return nullptr
@@ -832,6 +882,7 @@ tPtrSysCo  cPhotogrammetricProject::CurSysCo(const cDirsPhProj & aDP,bool SVP) c
     return cSysCoordV2::FromFile(NameCurSysCo(aDP,true));
 }
 
+
 tPtrSysCo  cPhotogrammetricProject::CurSysCoOri(bool SVP) const {return CurSysCo(mDPOrient,SVP);}
 tPtrSysCo  cPhotogrammetricProject::CurSysCoGCP(bool SVP) const {return CurSysCo(mDPPointsMeasures,SVP);}
 
@@ -847,6 +898,8 @@ void cPhotogrammetricProject::SaveCurSysCoGCP(tPtrSysCo aSysCo) const { SaveCurS
 void cPhotogrammetricProject::CpSysIn2Out(bool  OriIn,bool OriOut) const
 {
    tPtrSysCo aSysIn = OriIn ?  CurSysCoOri(true) : CurSysCoGCP(true);
+
+   // StdOut() << "CpSysIn2OutCpSysIn2Out " << OriIn " " << OriOut << " PTR=" << aSysIn.get() << "\n";
 
    if (aSysIn.get() == nullptr)
       return;
