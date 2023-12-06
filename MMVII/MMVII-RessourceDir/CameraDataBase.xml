@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="ISO8859-1" standalone="yes" ?>
+<Root>
+   <Type>"MMVII_Serialization"</Type>
+   <Version>"0.0.0"</Version>
+   <Data>
+      <CamDataBase>
+         <Pair>
+            <K>"UltraCam Eagle Mark 3"</K>
+            <V>
+               <Name>"UltraCam Eagle Mark 3"</Name>
+               <SzPix_micron>4 4</SzPix_micron>
+               <SzSensor_mm>105.84  68.016 </SzSensor_mm>
+               <NbPixels>26460 17004</NbPixels>
+            </V>
+         </Pair>
+         <Pair>
+            <K>"NIKON D5600"</K>
+            <V>
+               <Name>"NIKON D5600"</Name>
+               <SzPix_micron>3.90 3.90 </SzPix_micron> 
+               <SzSensor_mm> 23.4  15.6</SzSensor_mm>  <!-- 23.5 15.6 in spec => non square pixel -->
+               <NbPixels>6000  4000</NbPixels>
+            </V>
+         </Pair>
+      </CamDataBase>
+   </Data>
+</Root>
