@@ -162,7 +162,13 @@ template<> cE2Str<eProjPC>::tMapE2Str cE2Str<eProjPC>::mE2S
                {eProjPC::eEquiRect,"eEquiRect"}
            };
 
-
+template<> cE2Str<eSysCoGeo>::tMapE2Str cE2Str<eSysCoGeo>::mE2S
+           {
+               {eSysCoGeo::eLambert93,"Lambert93"},
+               {eSysCoGeo::eRTL,"RTL"},
+               {eSysCoGeo::eGeoC,"GeoC"},
+               {eSysCoGeo::eLocalSys,"Local"}
+           };
 
 
 template<> cE2Str<eTySC>::tMapE2Str cE2Str<eTySC>::mE2S
@@ -190,6 +196,7 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::TieP,"TieP"},
                 {eTA2007::MulTieP,"MulTieP"},
                 {eTA2007::RigBlock,"RigBlock"},
+                {eTA2007::SysCo,"SysCo"},
                 {eTA2007::Input,"In"},
                 {eTA2007::Output,"Out"},
                 {eTA2007::OptionalExist,"OptEx"},
@@ -215,6 +222,7 @@ template<> cE2Str<eApF>::tMapE2Str cE2Str<eApF>::mE2S
                 {eApF::ImProc,"ImProc"},
                 {eApF::Radiometry,"Radiometry"},
                 {eApF::Ori,"Ori"},
+                {eApF::SysCo,"SysCo"},
                 {eApF::Match,"Match"},
                 {eApF::GCP,"GCP"},
                 {eApF::TieP,"TieP"},
@@ -235,6 +243,7 @@ template<> cE2Str<eApDT>::tMapE2Str cE2Str<eApDT>::mE2S
                 {eApDT::GCP,"GCP"},
                 {eApDT::Image,"Image"},
                 {eApDT::Orient,"Orient"},
+                {eApDT::SysCo,"SysCo"},
                 {eApDT::Radiom,"Radiom"},
                 {eApDT::Ply,"Ply"},
                 {eApDT::None,"None"},
@@ -297,6 +306,7 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eNoAperture,"NoAperture"},
                 {eTyUEr::eNoFocale,"NoFocale"},
                 {eTyUEr::eNoFocaleEqui35,"NoFocaleEqui35"},
+                {eTyUEr::eNoNumberPixel,"NoNumberPixel"},
                 {eTyUEr::eNoCameraName,"NoCameraName"},
                 {eTyUEr::eUnClassedError,"UnClassedError"}
            };
@@ -370,8 +380,11 @@ template<> cE2Str<eTyCodeTarget>::tMapE2Str cE2Str<eTyCodeTarget>::mE2S
 template<> cE2Str<eMTDIm>::tMapE2Str cE2Str<eMTDIm>::mE2S
            {
                 {eMTDIm::eFocalmm,"Focalmm"},
+                {eMTDIm::eFocalPix,"FocalPix"},
+                {eMTDIm::ePPPix,"PPPix"},
                 {eMTDIm::eAperture,"Aperture"},
                 {eMTDIm::eModelCam,"ModelCam"},
+                {eMTDIm::eNbPixel,"NbPix"},
                 {eMTDIm::eAdditionalName,"AdditionalName"}
            };
 
@@ -526,6 +539,7 @@ void BenchEnum(cParamExeBench & aParam)
     if (! aParam.NewBench("Enum")) return;
 
     TplBenchEnum<eProjPC>();
+    TplBenchEnum<eSysCoGeo>();
     TplBenchEnum<eOpAff>();
     TplBenchEnum<eTySC>();
     TplBenchEnum<eTA2007>();
@@ -541,6 +555,7 @@ void BenchEnum(cParamExeBench & aParam)
     TplBenchEnum<eTyCodeTarget>();
     TplBenchEnum<eTypeSerial>();
     TplBenchEnum<eTAAr>();
+    TplBenchEnum<eMTDIm>();
 
     aParam.EndBench();
 }
@@ -881,6 +896,69 @@ template <class Type>  std::string Vect2Str(const std::vector<Type>  & aV)
    return aRes;
 }
 
+//  4/12/2023 : "Big" modif by MPD to be abble to parse nested stuff like "[1,[2,3],4]" correctly
+
+template <class Type>  std::vector<Type> Str2Vec(const std::string & aStrGlob)
+{
+   std::vector<Type> aRes;
+   const char * aC=aStrGlob.c_str();
+   if (*aC!='[')
+       MMVII_UsersErrror(eTyUEr::eParseError,"expected [ at beging of vect");
+   aC++;
+   int aLevel = 1;  // level in the parenthesis language, if Lev>1 we dont consider [,] as poncutation
+   std::string aStrV;
+   while((*aC) && (aLevel!=0))
+   {
+       if (*aC==0)
+       {
+          MMVII_UsersErrror(eTyUEr::eParseError,"unexpected end of string while parsing " + aStrGlob);
+       }
+       // only level 1 "," are considered as separators
+       else if ((*aC==',') && (aLevel==1))
+       {
+           aRes.push_back(cStrIO<Type>::FromStr(aStrV)); 
+	   aStrV="";
+       }
+       //  a "[" is an ordinary carater, just increase the level
+       else if (*aC=='[')
+       {
+	    aStrV.push_back(*aC);
+	    aLevel++;
+       }
+       //  a "]" may be or not an ordinary carater
+       else if (*aC==']')
+       {
+	    aLevel--; // always decrease the leve
+	    if (aLevel!=0) // if we are not closing the tab, its an ordinary car
+	        aStrV.push_back(*aC);
+	    else
+	    {
+                // else it's the final ponctuation
+		if (aStrV!="")
+                    aRes.push_back(cStrIO<Type>::FromStr(aStrV)); 
+		else
+		{
+                    // if last string  is "", we dont add it
+		    // this allow [] -> {} instead of {""}
+		    // [,] => {""}  ... see examples in Bench 
+		}
+	    }
+       }
+       else
+       {
+	  aStrV.push_back(*aC);
+       }
+	       
+       aC++;
+   }
+
+   if (aLevel!=0)
+      MMVII_UsersErrror(eTyUEr::eParseError,"unexpected end of string , bad match in []");
+
+   return  aRes;
+}
+
+/*
 template <class Type>  std::vector<Type> Str2Vec(const std::string & aStrGlob)
 {
    std::vector<Type> aRes;
@@ -905,6 +983,10 @@ template <class Type>  std::vector<Type> Str2Vec(const std::string & aStrGlob)
 
    return  aRes;
 }
+*/
+
+
+
 
                           //   - - std::vector<Type>  - -
 
@@ -999,6 +1081,12 @@ void OneBenchStrIO(std::string aStr,const  std::vector<std::string> & aV)
 void BenchStrIO(cParamExeBench & aParam)
 {
    if (! aParam.NewBench("StrIO")) return;
+   OneBenchStrIO("[1,[2],3]",{"1","[2]","3"});
+   OneBenchStrIO("[1,[2,4],3]",{"1","[2,4]","3"});
+   OneBenchStrIO("[1,[2,4],[]]",{"1","[2,4]","[]"});
+
+   OneBenchStrIO("[[[1]],[[2],4],[]]",{"[[1]]","[[2],4]","[]"});
+
    OneBenchStrIO("[1,2,3]",{"1","2","3"});
    OneBenchStrIO("[1]",{"1"});
    OneBenchStrIO("[]",{});
@@ -1038,6 +1126,7 @@ MACRO_INSTANTITATE_STRIO_ENUM(eTyUEr,"TyUEr")
 MACRO_INSTANTITATE_STRIO_ENUM(eTyInvRad,"TyInvRad")
 MACRO_INSTANTITATE_STRIO_ENUM(eTyPyrTieP,"TyPyrTieP")
 MACRO_INSTANTITATE_STRIO_ENUM(eProjPC,"ProjPC")
+MACRO_INSTANTITATE_STRIO_ENUM(eSysCoGeo,"SysCoGeo")
 MACRO_INSTANTITATE_STRIO_ENUM(eOpAff,"OpAff")
 MACRO_INSTANTITATE_STRIO_ENUM(eModeEpipMatch,"ModeEpiMatch")
 MACRO_INSTANTITATE_STRIO_ENUM(eModePaddingEpip,"ModePadEpip")

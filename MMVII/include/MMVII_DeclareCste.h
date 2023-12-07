@@ -66,8 +66,6 @@ extern const std::string TmpMMVIIProcSubDir;
 
 extern const std::string MMVII_DirPhp;
 
-// File extensions for some supported files type declared en eTA2007
-extern const std::map<eTA2007,std::vector<std::string>> MMVIISupportedFilesExt;
 
 //  String 
 extern const std::string BLANK;  // just std::string(" ") to avoid char * + char *
@@ -97,6 +95,7 @@ extern const std::string  PrefixSpecifXML;  // file that are specification of XM
 
 // Users Value
 
+extern const   std::string MMVII_LocalSys;  ///< For command, each time a "no value" can be used
 extern const   std::string MMVII_NONE;  ///< For command, each time a "no value" can be used
 extern const   std::string MMVII_StdDest;  ///< For destination parameter (TieP ...) , def value
 extern const   std::string MMVII_PrefRefBench; ///< Prefix for file used as reference in bench

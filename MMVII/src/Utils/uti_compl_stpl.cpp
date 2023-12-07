@@ -52,7 +52,13 @@ template <class Type>
 template <class Type>
    Type * cBijectiveMapI2O<Type>::I2Obj(int anInd,bool SVP) 
 {
-    return const_cast<Type *>(I2Obj(anInd,SVP));
+   if ( (anInd<0) || (anInd>=int(mObj2I.size())) )
+   {
+      MMVII_INTERNAL_ASSERT_tiny(SVP,"I2Obj : object dont exist");
+      return nullptr;
+   }
+
+   return & mI2Obj.at(anInd);
 }
 
 template <class Type>

@@ -76,11 +76,9 @@ int cAppli_PoseCmp::Exe()
 
    mSetNames = VectMainSet(0);
 
-   cDirsPhProj aDirOri2(eTA2007::Orient,mPhProj);
-   aDirOri2.SetDirIn(mOri2);
-   aDirOri2.Finish();
+   cDirsPhProj &  aDirOri2 = *mPhProj.NewDPIn(eTA2007::Orient,mOri2);
 
-   StdOut() << "JJJ " << aDirOri2.FullDirIn() << std::endl;
+
 
    std::vector<cSensorCamPC*> aVCam1;
    std::vector<cSensorCamPC*> aVCam2;
@@ -128,7 +126,8 @@ int cAppli_PoseCmp::Exe()
    //
    StdOut() << "AVG DIFF=" << aAvgDif.Average() << std::endl;
    StdOut() << "AVG REL DIFF=" << aAvgRelDif.Average() << std::endl;
-   StdOut() << "AVG BAND REL DIFF=" << aAvgBandRelDif.Average() << std::endl;
+   if (aAvgBandRelDif.SW() > 0)
+      StdOut() << "AVG BAND REL DIFF=" << aAvgBandRelDif.Average() << std::endl;
 
    return EXIT_SUCCESS;
 }

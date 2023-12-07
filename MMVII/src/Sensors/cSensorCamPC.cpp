@@ -214,7 +214,7 @@ tSeg3dr  cSensorCamPC::Image2Bundle(const cPt2dr & aPIm) const
 }
 
 
-const cPt3dr * cSensorCamPC::CenterOfPC() { return  & Center(); }
+const cPt3dr * cSensorCamPC::CenterOfPC() const { return  & Center(); }
          /// Return the calculator, adapted to the type, for computing colinearity equation
 cCalculator<double> * cSensorCamPC::EqColinearity(bool WithDerives,int aSzBuf,bool ReUse) 
 {
@@ -233,12 +233,13 @@ const cPixelDomain & cSensorCamPC::PixelDomain() const
 
 
 
-cPerspCamIntrCalib * cSensorCamPC::InternalCalib() {return mInternalCalib;}
+cPerspCamIntrCalib * cSensorCamPC::InternalCalib() const {return mInternalCalib;}
 
 const cPt3dr & cSensorCamPC::Center() const {return mPose_WU.Tr();}
 const cPt3dr & cSensorCamPC::Omega()  const {return mPose_WU.Omega();}
 cPt3dr & cSensorCamPC::Center() {return mPose_WU.Tr();}
 cPt3dr & cSensorCamPC::Omega()  {return mPose_WU.Omega();}
+cPt3dr  cSensorCamPC::PseudoCenterOfProj() const {return Center();}
 
 cPt3dr cSensorCamPC::AxeI()   const {return mPose_WU.AxeI();}
 cPt3dr cSensorCamPC::AxeJ()   const {return mPose_WU.AxeJ();}
@@ -258,6 +259,123 @@ void cSensorCamPC::OnUpdate()
 {
      mPose_WU.OnUpdate();
 }
+
+
+cSensorCamPC * cSensorCamPC::PCChangSys(cDataInvertibleMapping<tREAL8,3> & aMap) const 
+{
+    cDataNxNMapping<tREAL8,3>::tResJac aCJac = aMap.Jacobian(Center());
+
+    cPt3dr aNewC = aCJac.first;
+    cDenseMatrix<tREAL8>  aJac  = aCJac.second ;
+
+    if (1)
+    {
+        cPt3dr  aIJac ; GetCol(aIJac,aJac,0);
+        cPt3dr  aJJac ; GetCol(aJJac,aJac,1);
+        cPt3dr  aKJac ; GetCol(aKJac,aJac,2);
+        static int aCpt=0;
+        static tREAL8 aSNorm=0;
+        tREAL8 aNorm = std::abs(Norm2(aIJac)-Norm2(aJJac));
+        aCpt++;
+        aSNorm += aNorm;
+	// StdOut()  <<   "DNorm=" <<  aNorm << " Avg=" << aSNorm / aCpt << std::endl;
+        aJac = M3x3FromCol(VUnit(aIJac),VUnit(aJJac),VUnit(aKJac));
+    }
+    cDenseMatrix<tREAL8>  aNewMatNonR  = aJac *  Pose().Rot().Mat();
+    cDenseMatrix<tREAL8>  aNewMatR     =  aNewMatNonR.ClosestOrthog();
+
+    tPoseR aNewPose(aNewC,cRotation3D<tREAL8>(aNewMatR,false));
+
+    // return new cSensorCamPC
+    //  M(aC+I)-M(C) = GradM * I
+    //
+
+
+    if (0)
+    {
+
+        cPt3dr aC = Center(); 
+        tREAL8 aEps = 0.2;
+        cPt3dr  aDx(aEps/2,0,0);
+        cPt3dr  aDy(0,aEps/2,0);
+        cPt3dr  aDz(0,0,aEps/2);
+
+        cPt3dr aI = (aMap.Value(aC+aDx) - aMap.Value(aC-aDx)) / aEps;
+        cPt3dr aJ = (aMap.Value(aC+aDy) - aMap.Value(aC-aDy)) / aEps;
+        cPt3dr aK = (aMap.Value(aC+aDz) - aMap.Value(aC-aDz)) / aEps;
+
+
+        StdOut()  << " CIJ "  << Cos(aI,aJ) << " CIK="  << Cos(aI,aK)  << " CJK=" << Cos(aJ,aK)  << "\n";
+        if (std::abs( Cos(aI,aJ)) > 1e-2)
+        {
+               for (tREAL8 aEpsK : {0.001,0.01,0.1,1.0,10.0})
+               {
+                   cPt3dr  aDxK(aEpsK/2,0,0);
+                   cPt3dr  aDyK(0,aEpsK/2,0);
+
+                   cPt3dr aIK = (aMap.Value(aC+aDxK) - aMap.Value(aC-aDxK)) / aEpsK;
+                   cPt3dr aJK = (aMap.Value(aC+aDyK) - aMap.Value(aC-aDyK)) / aEpsK;
+                   StdOut()  << aIK << aJK << "\n";
+                   StdOut()  << " CIJ "  << Cos(aIK,aJK) << "\n";
+               }
+
+              getchar();
+        }
+/*
+        StdOut()  << " NI "  << Norm2(aI) << " NJ="  << Norm2(aJ)  << " NK=" << Norm2(aK)  << "\n";
+        StdOut()  << " NI-NJ "  << std::abs(Norm2(aI) - Norm2(aJ) )   << "\n";
+
+        cPt3dr  aIJac ; GetCol(aIJac,aJac,0);
+        cPt3dr  aJJac ; GetCol(aJJac,aJac,1);
+        cPt3dr  aKJac ; GetCol(aKJac,aJac,2);
+        StdOut() << aI  - aIJac  << "\n";
+        StdOut() << aJ  - aJJac  << "\n";
+        StdOut() << aK  - aKJac  << "\n";
+
+        StdOut()  <<  "CCC  " << aNewC <<  " DRot=" << aNewMatR.L2Dist(aNewMatNonR) <<  std::endl;
+
+	cPt3dr aI,aJ;
+        GetCol(aI,aNewMatNonR,0);
+        GetCol(aJ,aNewMatNonR,1);
+
+        cDenseMatrix<tREAL8>  aM0 =  Pose().Rot().Mat();
+
+	StdOut()  <<   "UUU  M0=" <<  Pose().Rot().Mat().Unitarity() << "\n";
+	StdOut()  <<  " Glob   Dij  "  << Norm2(aI)- Norm2(aJ) << " D1="  << Norm2(aI)-1.0 << " Cos=" << Cos(aI,aJ) << "\n";
+
+
+        GetCol(aI,aJac.second.Transpose(),0);
+        GetCol(aJ,aJac.second.Transpose(),1);
+	StdOut()  <<  " TTT Jac   Dij  "  << Norm2(aI)- Norm2(aJ) << " D1="  << Norm2(aI)-1.0 << " Cos=" << Cos(aI,aJ) << "\n";
+
+        GetCol(aI,aJac.second,0);
+        GetCol(aJ,aJac.second,1);
+	StdOut()  <<  " Jac   Dij  "  << Norm2(aI)- Norm2(aJ) << " D1="  << Norm2(aI)-1.0 << " Cos=" << Cos(aI,aJ) << "\n";
+
+        aI = aMap.Value(Center()+cPt3dr(0.5,0,0)) - aMap.Value(Center()+cPt3dr(-0.5,0,0));
+        aJ = aMap.Value(Center()+cPt3dr(0,0.5,0)) - aMap.Value(Center()+cPt3dr(0,-0.5,0));
+
+
+	StdOut()  <<  "  MMM  "  << Norm2(aI)- Norm2(aJ) << " D1="  << Norm2(aI)-1.0 << " Cos=" << Cos(aI,aJ) << "\n";
+	StdOut()  <<  "  IJ  "  << aI << " " << aJ << "\n";
+
+	for (int aK=0 ; aK<3 ; aK++)
+	{
+		cPt3dr aP1,aP2;
+		GetCol(aP1,aNewMatNonR,aK);
+		GetCol(aP2,aNewMatR,aK);
+                StdOut()  <<  "    DP  " << aP1 - aP2 <<  std::endl;
+	}
+*/
+    }
+    return new cSensorCamPC(NameImage(),aNewPose,InternalCalib());
+}
+
+cSensorImage * cSensorCamPC::SensorChangSys(cDataInvertibleMapping<tREAL8,3> & aMap) const
+{
+	return PCChangSys(aMap);
+}
+
 
 
 

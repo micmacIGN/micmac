@@ -1,0 +1,12 @@
+{
+   "Type" :"MMVII_Serialization" ,
+   "Version" :"0.0.0" ,
+   "Data" :
+   {
+      "SysCoGeo" :
+      {
+         "Type" :"Lambert93" ,
+         "Attributes" :[]
+      }
+   }
+}

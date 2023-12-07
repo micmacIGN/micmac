@@ -300,6 +300,11 @@ cCalculator<double> * EqBlocRig(bool WithDerive,int aSzBuf,bool ReUse)  // RIGID
     return StdAllocCalc(NameFormula(cFormulaBlocRigid(),WithDerive),aSzBuf,false,ReUse);
 }
 
+cCalculator<double> * EqBlocRig_RatE(bool WithDerive,int aSzBuf,bool ReUse)  // RIGIDBLOC
+{
+    return StdAllocCalc(NameFormula(cFormulaRattBRExist(),WithDerive),aSzBuf,false,ReUse);
+}
+
 // topo subframe with dist parameter
 template <class Type> cCalculator<Type> * TplEqTopoSubFrame(bool WithDerive,int aSzBuf)
 {
@@ -647,7 +652,8 @@ int cAppliGenCode::Exe()
 
    for (const auto WithDer : {true,false})
    {
-       GenCodesFormula((tREAL8*)nullptr,cFormulaBlocRigid(),WithDer); // RIGIDBLOC
+       GenCodesFormula((tREAL8*)nullptr,cFormulaRattBRExist(),WithDer); // RIGIDBLOC
+
        // cDist2DConservation aD2C;
        GenCodesFormula((tREAL8*)nullptr,cDist2DConservation(),WithDer);
        GenCodesFormula((tREAL8*)nullptr,cRatioDist2DConservation(),WithDer);

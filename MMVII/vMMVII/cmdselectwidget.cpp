@@ -6,21 +6,44 @@
 #include <QFile>
 #include <QMenu>
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#include <QRegExp>
+static bool cmdMatch(const QString& pattern, const QString& cmd)
+{
+    QRegExp re(pattern, Qt::CaseInsensitive);
+    return re.exactMatch(cmd);
+}
+#else
+#include <QRegularExpression>
+static bool cmdMatch(const QString& pattern, const QString& cmd)
+{
+    QRegularExpression re(QRegularExpression::anchoredPattern(pattern),QRegularExpression::CaseInsensitiveOption);
+    return re.match(cmd).hasMatch();
+}
+#endif
+
 
 CmdSelectWidget::CmdSelectWidget(const MMVIISpecs &allSpecs, QWidget *parent)
     : QWidget(parent),allSpecs(allSpecs)
 {
     cmdSelectUi = new Ui::CmdSelectUI();
     cmdSelectUi->setupUi(this);
-    for (const auto& specs : allSpecs.commands) {
-        QListWidgetItem *lwi = new QListWidgetItem(specs.name, cmdSelectUi->commandList);
-        lwi->setToolTip(specs.comment);
+    
+    for (const auto& spec : allSpecs.commands) {
+        if (contains(spec.features,"NoGui"))
+            continue;
+        if (!allSpecs.allowed.empty() && !anyMatch(allSpecs.allowed,[&spec](const auto &e){return cmdMatch(e,spec.name); }))
+            continue;
+        if (anyMatch(allSpecs.denied,[&spec](const auto &e){return cmdMatch(e, spec.name); }))
+            continue;
+        QListWidgetItem *lwi = new QListWidgetItem(spec.name, cmdSelectUi->commandList);
+        if (showDebug)
+            lwi->setToolTip(spec.comment + "<pre>" + spec.json.toHtmlEscaped() + "</pre>");
+        else
+            lwi->setToolTip(spec.comment);
+        
     }
 
-    for (const auto& specs : allSpecs.commands) {
-        QListWidgetItem *lwi = new QListWidgetItem(specs.name, cmdSelectUi->historyList);
-        lwi->setToolTip(specs.comment);
-    }
     connect(cmdSelectUi->commandList,&QListWidget::itemSelectionChanged,this,&CmdSelectWidget::commandListSelChanged);
     connect(cmdSelectUi->commandList,&QListWidget::itemDoubleClicked,this,&CmdSelectWidget::doConfigure);
     connect(cmdSelectUi->historyList,&QListWidget::itemSelectionChanged,this,&CmdSelectWidget::historyListSelChanged);

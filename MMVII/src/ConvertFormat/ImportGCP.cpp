@@ -38,12 +38,12 @@ class cAppli_ImportGCP : public cMMVII_Appli
 
 
 	// Optionall Arg
-	std::string      mNameGCP;
-	int              mL0;
-	int              mLLast;
-	int              mComment;
-	int              mNbDigName;
-	std::string      mPatternTransfo;        
+	std::string              mNameGCP;
+	int                      mL0;
+	int                      mLLast;
+	int                      mComment;
+	int                      mNbDigName;
+	std::string              mPatternTransfo;        
 };
 
 cAppli_ImportGCP::cAppli_ImportGCP(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -66,13 +66,13 @@ cCollecSpecArg2007 & cAppli_ImportGCP::ArgObl(cCollecSpecArg2007 & anArgObl)
 
 cCollecSpecArg2007 & cAppli_ImportGCP::ArgOpt(cCollecSpecArg2007 & anArgObl) 
 {
-    
     return anArgObl
        << AOpt2007(mNameGCP,"NameGCP","Name of GCP set")
        << AOpt2007(mNbDigName,"NbDigName","Number of digit for name, if fixed size required (only if int)")
        << AOpt2007(mL0,"NumL0","Num of first line to read",{eTA2007::HDV})
        << AOpt2007(mLLast,"NumLast","Num of last line to read (-1 if at end of file)",{eTA2007::HDV})
        << AOpt2007(mPatternTransfo,"PatName","Pattern for transforming name (first sub-expr)")
+       << mPhProj.ArgChSys(true)  // true =>  default init with None
     ;
 }
 
@@ -102,7 +102,7 @@ int cAppli_ImportGCP::Exe()
          mNameGCP = LastPrefix(mNameGCP);
     }
 
-
+   cChangSysCoordV2 & aChSys = mPhProj.ChSys();
 
     cSetMesGCP aSetM(mNameGCP);
     for (size_t aK=0 ; aK<aVXYZ.size() ; aK++)
@@ -113,10 +113,14 @@ int cAppli_ImportGCP::Exe()
 	 if (IsInit(&mNbDigName))
             aName =   ToStr(cStrIO<int>::FromStr(aName),mNbDigName);
 
-         aSetM.AddMeasure(cMes1GCP(aVXYZ[aK],aName,1.0));
+         aSetM.AddMeasure(cMes1GCP(aChSys.Value(aVXYZ[aK]),aName,1.0));
     }
 
     mPhProj.SaveGCP(aSetM);
+    mPhProj.SaveCurSysCoGCP(aChSys.SysTarget());
+   
+
+    // delete aChSys;
 
     return EXIT_SUCCESS;
 }
@@ -124,7 +128,11 @@ int cAppli_ImportGCP::Exe()
 
 std::vector<std::string>  cAppli_ImportGCP::Samples() const
 {
-   return {"MMVII ImportGCP  2023-10-06_15h31PolarModule.coo  NXYZ Std  NumL0=14 NumLast=34  PatName=\"P\\.(.*)\" NbDigName=4"};
+   return 
+   {
+       "MMVII ImportGCP  2023-10-06_15h31PolarModule.coo  NXYZ Std  NumL0=14 NumLast=34  PatName=\"P\\.(.*)\" NbDigName=4",
+       "MMVII ImportGCP  Pannel5mm.obc  NXYZ Std NbDigName=4 ChSys=[LocalPannel]"
+   };
 }
 
 

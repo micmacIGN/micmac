@@ -816,8 +816,6 @@ void cAppliMICMAC::DoOneBloc
 
        InitCostCalcCorrel();
 
-
-
        if (mCorrelAdHoc)
        {
           GlobDoCorrelAdHoc(aBoxOut,aBoxIn);

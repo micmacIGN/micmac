@@ -46,7 +46,7 @@ class cConfigCyclGP
 cConfigCyclGP::cConfigCyclGP(size_t aFlagBit)
 {
      for (size_t aB=0 ; aB<3 ; aB++)
-	In[aB]  =   ((aFlagBit & (1<<aB)) != 0) ;
+        In[aB]  =   ((aFlagBit & (size_t(1)<<aB)) != 0) ;
 
      mOk = (NbBits(aFlagBit) != 2);
 

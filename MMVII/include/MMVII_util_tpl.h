@@ -298,6 +298,17 @@ template <class Type> Type GetDef(const std::vector<Type> & aVec,int aSz,const T
    return aDef;
 }
 
+template <class Type> const Type & GetProj(const std::vector<Type> & aVect,int aSz)
+{
+   MMVII_INTERNAL_ASSERT_tiny(! aVect.empty(),"Get proj on empty vector");
+
+   if (aSz<0) 
+      return aVect.at(0);
+   if (aSz>= int(aVect.size()))
+      return aVect.back();
+
+   return aVect.at(aSz);
+}
 
 template <class T1,class T2> std::vector<T1> &  Convert(std::vector<T1> & aV1,const std::vector<T2> & aV2)
 {

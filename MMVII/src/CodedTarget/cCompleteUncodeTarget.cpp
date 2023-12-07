@@ -162,6 +162,7 @@ void cAppliCompletUncodedTarget::CompleteOneGCP(const cMes1GCP & aGCP)
 
    AddOneReportCSV(mNameReportEllipse,{mNameIm,aGCP.mNamePt,ToStr(aRMoy),ToStr(aRatio)});
 
+
     if (  IsInit(&mThreshRay) &&
 	  (
                  (aRatio > mThreshRay[0])

@@ -48,13 +48,6 @@ const std::string MMVIIRessourcesDir       = "MMVII-RessourceDir" +StringDirSepa
 const std::string MMVIILocalParametersDir       = "MMVII-LocalParameters" +StringDirSeparator();
 
 
-const std::map<eTA2007,std::vector<std::string>> MMVIISupportedFilesExt = {
-    {eTA2007::FileImage,{".tif",".tiff",".jpg",".jpeg",".png",".cr2",".crw",".nef"}},
-    {eTA2007::FileCloud,{".ply"}},
-    {eTA2007::Orient,{".xml",".json"}},
-    {eTA2007::File3DRegion,{".*"}}
-};
-
 const std::string BLANK = " ";
 const std::vector<std::string>  EMPTY_VSTR;
 // Files
@@ -100,6 +93,7 @@ const std::string MMVIIBin2007 = "MMVII.exe";
 #endif
 
 // User/Command
+const   std::string MMVII_LocalSys = "Local";
 const   std::string MMVII_NONE = "NONE";
 const   std::string MMVII_StdDest = "STD";
 const   std::string MMVII_PrefRefBench = "RefBench-";

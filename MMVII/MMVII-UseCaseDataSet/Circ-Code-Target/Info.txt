@@ -36,7 +36,8 @@ MMVII  CodedTargetCircExtract ".*_Scaled.tif" CERN_Nbb14_Freq14_Hamm1_Run1000_10
 
 
 # make a copy a GCP at write placecp Data-Aux/MesGCP-AICON-CERN-Pannel.xml MMVII-PhgrProj/PointsMeasure/Test/
-MMVII  ImportGCP  Data-Aux/Positions-3D-14bit_lookup.txt NXYZ Test NbDigName=3
+#  MMVII  ImportGCP  Data-Aux/Positions-3D-14bit_lookup.txt NXYZ Test NbDigName=3
+MMVII  ImportGCP  Data-Aux/Positions-3D-14bit_lookup.txt NXYZ Test NbDigName=3 ChSys=LocalPannel
 
 
 #  Now it works

@@ -26,7 +26,6 @@ void pyb_init_MatEssential(py::module_ &m) {
                  [](const cHomogCpleIm &m) {
                    std::ostringstream ss;
                    ss.precision(8);
-                   ss << "HomogCpleIm " << "\n" ;
                    ss << "P1=[" << m.mP1.x() << " " << m.mP1.y() << "], P2=[" << m.mP2.x() << " " << m.mP2.y() << "]\n";
                        return ss.str();
                  });
@@ -76,6 +75,7 @@ void pyb_init_MatEssential(py::module_ &m) {
         .def("cost",&cMatEssential::Cost,"pt3dr1"_a,"pt3dr2"_a,"sigma"_a,DOC(MMVII_cMatEssential,Cost))
         .def("avgCost",&cMatEssential::AvgCost,"homs"_a,"sigma"_a,DOC(MMVII_cMatEssential,AvgCost))
         .def("kthCost",&cMatEssential::KthCost,"homs"_a,"prop"_a,DOC(MMVII_cMatEssential,KthCost))
+        .def("mat",&cMatEssential::Mat,DOC(MMVII_cMatEssential,Mat))
         .def("show",&cMatEssential::Show,"homs"_a,DOC(MMVII_cMatEssential,Show))
         .def("computePose",[](const cMatEssential& aMat, const cSetHomogCpleDir & aHoms){return aMat.ComputePose(aHoms);},DOC(MMVII_cMatEssential,ComputePose))     // remove (defaulted) 2nd args of ComputePos
         ;

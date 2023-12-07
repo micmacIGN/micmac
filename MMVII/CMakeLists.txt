@@ -63,7 +63,7 @@ set(gnu_cxx  "$<COMPILE_LANG_AND_ID:CXX,GNU>")
 add_library(MMVII_compiler_flags INTERFACE)
 target_compile_options(MMVII_compiler_flags INTERFACE
     "$<${gcc_like_cxx}:$<BUILD_INTERFACE:-Wall;-Werror>>"
-    "$<${msvc_cxx}:$<BUILD_INTERFACE:/W3;/D_USE_MATH_DEFINES;/D_HAS_STD_BYTE=0;/wd4244;/wd4267;/wd4305;/D_CRT_SECURE_NO_WARNINGS>>"
+    "$<${msvc_cxx}:$<BUILD_INTERFACE:/W3;/D_USE_MATH_DEFINES;/D_HAS_STD_BYTE=0;/wd4244;/wd4267;/wd4305;/wd4661;/D_CRT_SECURE_NO_WARNINGS>>"
     "$<$<CONFIG:Debug>:$<$<CXX_COMPILER_ID:MSVC>:/bigobj>>"
     "$<$<CONFIG:RelWithDebInfo>:$<$<CXX_COMPILER_ID:MSVC>:/bigobj>>"
 )
@@ -141,16 +141,26 @@ endif()
 #######################################################
 ##        Compile vMMVII if Qt is found
 #######################################################
-find_package(QT NAMES Qt5 Qt6 QUIET OPTIONAL_COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} QUIET OPTIONAL_COMPONENTS Widgets)
 
-if(Qt${QT_VERSION_MAJOR}Widgets_FOUND)
-  message(STATUS "Qt${QT_VERSION_MAJOR} found. Will compile vMMVII")
-  add_subdirectory(vMMVII)
+option(vMMVII_BUILD "Build vMMVII application (require Qt5)" ON)
+
+if (vMMVII_BUILD)
+  find_package(QT NAMES Qt5 Qt6 QUIET OPTIONAL_COMPONENTS Widgets)
+  find_package(Qt${QT_VERSION_MAJOR} QUIET OPTIONAL_COMPONENTS Widgets)
+
+  if(Qt${QT_VERSION_MAJOR}Widgets_FOUND)
+    if (Qt${QT_VERSION_MAJOR}Widgets_VERSION VERSION_LESS 5.12.8)
+      message(STATUS "QT version too old (<5.12.8), vMMVII will not be compiled")
+    else()
+      message(STATUS "Qt${QT_VERSION_MAJOR} found. Will compile vMMVII")
+      add_subdirectory(vMMVII)
+    endif()
+  else()
+    message(WARNING "Qt not found. vMMVII will not be compiled")
+  endif()
 else()
-  message(STATUS "Qt not found. vMMVII will not be compiled")
+  message(STATUS "vMMVII will not be compiled (config option)")
 endif()
-
 
 #######################################################
 ##        target distclean : remove generated code

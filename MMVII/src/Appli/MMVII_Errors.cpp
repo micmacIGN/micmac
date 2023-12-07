@@ -29,6 +29,7 @@ void Default_MMVII_Error(const std::string & aType,const std::string &  aMes,con
         cMMVII_Appli::CurrentAppli().LogCommandAbortOnError(errorMsg);
     }
 
+// StdOut() << "GETCHARRR " << std::endl; getchar();
     abort();
 }
 

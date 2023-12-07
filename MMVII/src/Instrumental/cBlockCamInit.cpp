@@ -118,19 +118,19 @@ void cBlocMatrixSensor::ShowMatrix() const
 {
     //  ...
     //  Parse matrix id (0 to mMatrix.size())
-    for (size_t aKSet=0; aKSet<mMatrix.size();aKSet++)
+        for (size_t aKSet=0 ; aKSet<mMatrix.size() ; aKSet++)
         {
             //    print the Id
-            StdOut()<<"==================  "<<mMatrix.at(aKSet).mId<<"  ==================   "<<std::endl;
-            for (const auto & aPtrCam: mMatrix[aKSet].mVCams)
-                {
-
-                        StdOut()<<"CAM NAME IMAGE "<<aPtrCam->NameImage()<<std::endl;
-                }
+            StdOut() <<  "========   "  << mMatrix[aKSet].mId <<  " ======= " << std::endl;
+            for (const auto & aPtrCam : mMatrix[aKSet].mVCams)
+            {
+                 if (aPtrCam!=nullptr)
+                    StdOut ()  <<  "  * " << aPtrCam->NameImage()   << std::endl;
+                 else
+                    StdOut ()  <<  "  * xxxxxxxxxxxxxxxxxxxxxxxx" << std::endl;
+            }
         }
     //
-
-
     //
     //    parse  the cams in a set
     //
@@ -203,7 +203,8 @@ std::string  cCalibBlocCam::CalculIdSync(cSensorCamPC * aCam) const
 
 void cCalibBlocCam::AddData(const  cAuxAr2007 & anAuxInit)
 {
-    cAuxAr2007 auAux("CalibBlocCam",anAuxInit);
+
+     cAuxAr2007 anAux("CalibBlocCam",anAuxInit);
      // ...
      // Put the data in  tag "RigidBlocCam"
 
@@ -214,12 +215,16 @@ void cCalibBlocCam::AddData(const  cAuxAr2007 & anAuxInit)
      //    mKPatSync
      //    mKPatSync
      //    mMapPoseInBloc
-     MMVII::AddData(cAuxAr2007("Name",auAux),mName);
-     MMVII::AddData(cAuxAr2007("Pattern",auAux),mPattern);
-     MMVII::AddData(cAuxAr2007("kbloc",auAux),mKPatBloc);
-     MMVII::AddData(cAuxAr2007("kSync",auAux),mKPatSync);
-     MMVII::AddData(cAuxAr2007("PoseRel",auAux),mMapPoseUKInBloc);
-     MMVII::AddData(cAuxAr2007("Master",auAux),mMaster);
+     // MMVII::AddData(cAuxAr2007("Name",anAuxInit) ,mName);
+     MMVII::AddData(cAuxAr2007("Name",anAux),mName);
+     MMVII::AddData(cAuxAr2007("Master",anAux),mMaster);
+     MMVII::AddData(cAuxAr2007("Pattern",anAux),mPattern);
+     MMVII::AddData(cAuxAr2007("KBloc",anAux),mKPatBloc);
+     MMVII::AddData(cAuxAr2007("KSync",anAux),mKPatSync);
+     MMVII::AddData(cAuxAr2007("PoseRel",anAux),mMapPoseUKInBloc);
+
+     //  cAuxAr2007(const std::string& ,const  cAuxAr2007 &)
+     //   MMVII::AddData(cAuxAr2007("Name",anAux)    ,mName);
 }
 
 void AddData(const  cAuxAr2007 & anAux,cCalibBlocCam & aBloc)
@@ -246,12 +251,13 @@ void  cBlocOfCamera::Set4Compute()
 {
     mForInit  = false;
 
-    for (const auto  & aPair : mData.mMapPoseUKInBloc)
+    for (const auto  & [aName, aPoseUk] : mData.mMapPoseUKInBloc)
     {
-        MMVII_INTERNAL_ASSERT_tiny(IsNull(aPair.second.Omega()),"cBlocOfCamera::TransfertFromUK Omega not null");
-        mMapPoseInit[aPair.first] = aPair.second.Pose();
-        //  we force the creation a new Id in the bloc because later we will not accept new bloc in compute mode
-        mMatBlocSync.NumStringCreate(aPair.first);
+        MMVII_INTERNAL_ASSERT_tiny(IsNull(aPoseUk.Omega()),"cBlocOfCamera::TransfertFromUK Omega not null");
+        mMapPoseInit[aName] = aPoseUk.Pose();
+	//  we force the creation a new Id in the bloc because later we will not accept new bloc in compute mode
+	mMatBlocSync.NumStringCreate(aName);
+
     }
 }
 
@@ -294,8 +300,8 @@ size_t cBlocOfCamera::IndexMaster() const {return NumInBloc(NameMaster());}
 
 
 
-void cBlocOfCamera::ShowByBloc() const {mMatSyncBloc.ShowMatrix();}
-void cBlocOfCamera::ShowBySync() const {mMatBlocSync.ShowMatrix();}
+void cBlocOfCamera::ShowByBloc() const {mMatBlocSync.ShowMatrix();}
+void cBlocOfCamera::ShowBySync() const {mMatSyncBloc.ShowMatrix();}
 
 
 
@@ -317,6 +323,13 @@ cPoseWithUK &  cBlocOfCamera::PoseUKOfNumBloc(size_t aKBl)
      return PoseUKOfIdBloc(NameKthInBloc(aKBl));
 }
 
+const tPoseR &  cBlocOfCamera::PoseInitOfNumBloc(size_t aKBl)  const
+{
+    auto anIter = mMapPoseInit.find(NameKthInBloc(aKBl));
+
+    MMVII_INTERNAL_ASSERT_tiny(anIter!=mMapPoseInit.end(),"PoseInitOfNumBloc cannot find ");
+    return anIter->second;
+}
 
 
 cSensorCamPC *   cBlocOfCamera::CamKSyncKInBl(size_t aKSync,size_t aKInBloc) const
@@ -394,19 +407,18 @@ tPoseR  cBlocOfCamera::EstimatePoseRel1Cple(size_t aKB1,size_t aKB2,cMMVII_Appli
              aNbOk++;
              aAvgMat = aAvgMat + aPose.Rot().Mat();
             // eventually make a report
-             // StdOut() << " Tr=" << aPose.Tr()  << " WPK=" <<  aPose.Rot().ToWPK() << "\n";
-
+             // StdOut() << " Tr=" << aPose.Tr()  << " WPK=" <<  aPose.Rot().ToWPK() << "\n"; 
              if (anAppli)
-                 {
-                      anAppli->AddOneReportCSV
-                      (
-                             anIdReport,
-                             {    NameKthSync(aKSync),
-                                  ToStr(aTr.x()),ToStr(aTr.y()),ToStr(aTr.z()),
-                                  ToStr(aWPK.x()),ToStr(aWPK.y()),ToStr(aWPK.z())
-                             }
-                      );
-                 }
+             {
+                anAppli->AddOneReportCSV
+                (
+                     anIdReport,
+                     {    NameKthSync(aKSync),
+                          ToStr(aTr.x()),ToStr(aTr.y()),ToStr(aTr.z()),
+                          ToStr(aWPK.x()),ToStr(aWPK.y()),ToStr(aWPK.z())
+                     }
+                );
+             }
         }
      }
 
@@ -470,20 +482,19 @@ void  cBlocOfCamera::StatAllCples(cMMVII_Appli * anAppli)
 
 void cBlocOfCamera::EstimateBlocInit(size_t aKMaster)
 {
+    mData.mMaster = NameKthInBloc(aKMaster);
+    // for all num bloc
+    for (size_t aKB=0 ; aKB<NbInBloc() ; aKB++)
+    {
+          //    * get name
+         std::string  aName = NameKthInBloc(aKB);
+          //    * estimate  relative pose with KMaster
+         tPoseR  aPoseR =  EstimatePoseRel1Cple(aKMaster,aKB,nullptr,"");
+          //    * update mMapPoseUKInBloc
+         mData.mMapPoseUKInBloc[aName]  = cPoseWithUK(aPoseR);
+    }
 
-        mData.mMaster = NameKthInBloc(aKMaster);
-        // for all num bloc
-        for (size_t aKB=0 ; aKB<NbInBloc() ; aKB++)
-        {
-        //    * get name
-             std::string  aName = NameKthInBloc(aKB);
-        //    * estimate  relative pose with KMaster
-             tPoseR  aPoseR =  EstimatePoseRel1Cple(aKMaster,aKB,nullptr,"");
-        //    * update mMapPoseUKInBloc
-             mData.mMapPoseUKInBloc[aName]  = cPoseWithUK(aPoseR);
-        }
-
-        Set4Compute(); //  now can be used in computation
+    Set4Compute(); //  now can be used in computation
 }
 
 void cBlocOfCamera::TestReadWrite(bool OmitDel) const
@@ -600,13 +611,12 @@ cCollecSpecArg2007 & cAppli_BlockCamInit::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
       return anArgObl
 
-
-              <<   Arg2007(mSpecImIn,"Spec xml file or pattern of images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
-              <<   mPhProj.DPOrient().ArgDirInMand()
-              <<   Arg2007(mPattern,"Pattern for images specifing sup expr ")
-              <<   Arg2007(mNumSub,"NUm of sub expr for x:block and y:mage")
-               <<  mPhProj.DPRigBloc().ArgDirOutMand()
-       ;
+             <<  Arg2007(mSpecImIn,"Pattern/file for images", {{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}}  )
+             <<  mPhProj.DPOrient().ArgDirInMand()
+             <<  Arg2007(mPattern,"Pattern for images specifing sup expr")
+             <<  Arg2007(mNumSub,"Num of sub expr for x:block and  y:image")
+             <<  mPhProj.DPRigBloc().ArgDirOutMand()
+           ;
 }
 
 
@@ -615,26 +625,18 @@ cCollecSpecArg2007 & cAppli_BlockCamInit::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
     return    anArgOpt
 
-            << AOpt2007(mNameBloc, "NameBloc","Bloc Name",{eTA2007::HDV})  // HAVE DEFAULT VALUE== HDV
-            << AOpt2007(mMaster, "Master","The name of the master bloc",{eTA2007::HDV})  // HAVE DEFAULT VALUE== HDV
-            << AOpt2007(mShowByBloc, "ShowByBloc","Show matricial orga by bloc ",{eTA2007::HDV})
-            << AOpt2007(mShowBySync, "ShowBySync","Show synchro orga by bloc ",{eTA2007::HDV})
-            << AOpt2007(mTestRW, "TestRW","Call Test Read and WRITE",{eTA2007::HDV})
-            << AOpt2007(mTestNoDel, "TestNoDel","Test check memory leak",{eTA2007::HDV})
-            //  ...
-            //  fill mNameBloc
-            //  fill mMaster
-            //  fill mShowByBloc
-            //  fill mShowBySync
-            //  fill mTestRW
-            //  fill mTestNoDel
+             << AOpt2007(mNameBloc,"NameBloc","Set the name of the bloc ",{{eTA2007::HDV}})
+             << AOpt2007(mMaster,"Master","Set the name of the master bloc, is user wants to enforce it ")
+             << AOpt2007(mShowByBloc,"ShowByBloc","Show matricial organization by bloc ",{{eTA2007::HDV}})
+             << AOpt2007(mShowBySync,"ShowBySync","Show matricial organization by sync ",{{eTA2007::HDV}})
+             << AOpt2007(mTestRW,"TestRW","Call test en Read-Write ",{{eTA2007::HDV}})
+             << AOpt2007(mTestNoDel,"TestNoDel","Force a memory leak error ",{{eTA2007::HDV}})
     ;
 }
 
 int cAppli_BlockCamInit::Exe()
 {
     mPhProj.FinishInit();  // the final construction of  photogrammetric project manager can only be done now
-
 
     // creat the bloc, for now no cam,just the info to insert them
     cBlocOfCamera aBloc(mPattern,mNumSub.x(),mNumSub.y(),mNameBloc);
@@ -674,15 +676,16 @@ int cAppli_BlockCamInit::Exe()
     }
     StdOut()  << " NumMaster " <<  aNumMaster  << std::endl;
 
-    // Do the estimation of calibration
+    //  Do the estimation of calibration
     aBloc.EstimateBlocInit(aNumMaster);
 
     //  Save the bloc of camera
-     mPhProj.SaveBlocCamera(aBloc);
+    mPhProj.SaveBlocCamera(aBloc);
+
 
     if (mTestRW)
     {
-       aBloc.TestReadWrite(mTestNoDel);
+        aBloc.TestReadWrite(mTestNoDel);
     }
 
     return EXIT_SUCCESS;
@@ -702,15 +705,16 @@ tMMVII_UnikPApli Alloc_BlockCamInit(const std::vector<std::string> & aVArgs,cons
 
 cSpecMMVII_Appli  TheSpec_BlockCamInit
 (
-      "BlocCamInit",
+      "BlockCamInit",
       Alloc_BlockCamInit,
-      "Compute Initial Calibration of a bloc",
+      "Compute initial calibration of rigid bloc cam",
       {eApF::Ori},
-      {eApDT::Orient},
-      {eApDT::Xml},
-       __FILE__
+      {eApDT::Orient}, 
+      {eApDT::Xml}, 
+      __FILE__
 );
-
+/*
+*/
 
 
 

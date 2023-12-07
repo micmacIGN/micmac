@@ -1345,7 +1345,6 @@ std::cout << "SUUUUUUUUUUUPPPPRESS\n";
         aNappe.mPxRes.out()| aNappe.mPxInit.out()
     );
 
-
 }
 
 

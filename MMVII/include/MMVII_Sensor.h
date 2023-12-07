@@ -67,7 +67,10 @@ class cSensorImage  :   public cObj2DelAtEnd,
 {
      public :
 
-         cSensorImage(const std::string & aNameImage);
+          cSensorImage(const std::string & aNameImage);
+
+	  /// create a sensor in a new coordinate system
+	  virtual cSensorImage * SensorChangSys(cDataInvertibleMapping<tREAL8,3> &) const = 0;
 
           virtual const cPixelDomain & PixelDomain() const = 0;
           const cPt2di & Sz() const;
@@ -148,11 +151,15 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	 std::string NameOriStd() const ;
 	 ///  Prefix of the subtype
 	 virtual std::string  V_PrefixName() const = 0  ;
+	 /// method for saving oblet
+	 virtual void ToFile(const std::string &) const = 0;
 
 	 // --------------------   methods used in bundle adjustment  --------------------
 	
+	 ///  For stenope camera return center, for other best approx
+	 virtual cPt3dr  PseudoCenterOfProj() const = 0;
 	 ///  For stenope camera return center, for other nullptr
-	 virtual const cPt3dr * CenterOfPC() = 0;
+	 virtual const cPt3dr * CenterOfPC() const = 0;
 	 /// Return the calculator, adapted to the type, for computing colinearity equation
          virtual cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf,bool ReUse) = 0;
 	 /// If the camera has its own "obs/cste" (like curent rot for PC-Cam) that's the place to say it
@@ -190,10 +197,17 @@ class cSetVisibility : public cDataBoundedSet<tREAL8,3>
 class cMetaDataImage
 {
       public :
-          tREAL8  Aperture() const;
-          tREAL8  FocalMM() const;
-          tREAL8  FocalMMEqui35() const;
-	  const std::string&  CameraName() const;
+          tREAL8  Aperture(bool SVP=false) const;
+          tREAL8  FocalMM(bool SVP=false) const;
+          tREAL8  FocalMMEqui35(bool SVP=false) const;
+          cPt2di  NbPixels(bool SVP=false) const;
+	  const std::string&  CameraName(bool SVP=false) const;  // return NONE if 
+
+          /// case where it was fixed directly by user to import accurately an existing cal
+          tREAL8  FocalPixel(bool SVP=false) const;
+          /// idem, FocalPixel
+          cPt2dr  PPPixel(bool SVP=false) const;
+          //  generate an identifier specific to data 
 	  std::string InternalCalibGeomIdent() const;
 
           cMetaDataImage(const std::string & aDir,const std::string & aNameIm,const cGlobCalculMetaDataProject * aCalc);
@@ -205,17 +219,47 @@ class cMetaDataImage
           tREAL8         mAperture;
           tREAL8         mFocalMM;
           tREAL8         mFocalMMEqui35;
+          tREAL8         mFocalPixel;
+          cPt2dr         mPPPixel;
+          cPt2di         mNbPixel;
           std::string    mNameImage;
 };
+
+class cElemCamDataBase
+{
+     public :
+        void AddData(const cAuxAr2007 & anAux);
+        std::string  mName;
+        cPt2dr       mSzPixel_Micron;   /// May be not square
+        cPt2dr       mSzSensor_Mm;  /// Physical size
+        cPt2di       mNbPixels;  /// Number of Pixels
+
+        // As it is redundant check and complete
+        void  Finish();
+};
+void AddData(const cAuxAr2007 & anAux,cElemCamDataBase &);
+
+class cCamDataBase
+{
+   public :
+        void AddData(const cAuxAr2007 & anAux);
+        const std::map<std::string,cElemCamDataBase>  & Map() const;
+        std::map<std::string,cElemCamDataBase>  & Map() ;
+   private :
+       std::map<std::string,cElemCamDataBase>  mMap;
+};
+void AddData(const cAuxAr2007 & anAux,cCamDataBase &);
+
 
 
 /**   Class for sharind code related to management the folder for one kind (=Ori,Homol,Radiom...) of "objects"
  *    Used by cPhotogrammetricProject
  */
 
-class cDirsPhProj
+class cDirsPhProj : public cMemCheck
 {
      public :
+
           cDirsPhProj(eTA2007 aMode,cPhotogrammetricProject & aPhp);
           void Finish();
 
@@ -281,6 +325,7 @@ class cDirsPhProj
 class cPhotogrammetricProject
 {
       public :
+
 	      
 	 //===================================================================
          //==============   CONSTRUCTION & DESTRUCTION   =====================
@@ -320,14 +365,21 @@ class cPhotogrammetricProject
 	  const cDirsPhProj &   DPMulTieP() const;    ///<  Accessor
 	  const cDirsPhProj &   DPRigBloc() const;    ///<  Accessor  // RIGIDBLOC
 
+
+	  // Sometime we need several dir of the same type, like "ReportPoseCmp", or RefPose in bundle
+	  cDirsPhProj * NewDPIn(eTA2007 aType,const std::string & aDirIn);
+
 	  const std::string &   DirPhp() const;   ///< Accessor
 	  const std::string &   DirVisu() const;   ///< Accessor
+	  const std::string &   DirSysCo() const;   ///< Accessor
+          tPtrArg2007           ArgChSys(bool DefaultUndefined=false);
 
 	 //===================================================================
          //==================   ORIENTATION      =============================
 	 //===================================================================
 	 
                //  Read/Write
+          void SaveSensor(const cSensorImage &) const; ///< Save camera using OutPut-orientation
           void SaveCamPC(const cSensorCamPC &) const; ///< Save camera using OutPut-orientation
 	  void SaveCalibPC(const  cPerspCamIntrCalib & aCalib) const;  ///< Save calibration using  OutPut-orientation
 
@@ -396,7 +448,7 @@ class cPhotogrammetricProject
 	  void SaveMeasureIm(const cSetMesPtOf1Im & aSetM) const;
           /// return from Std Dir, can be out in case of reload
 	  cSetMesPtOf1Im LoadMeasureIm(const std::string &,bool InDir=true) const;
-	  void LoadGCP(cSetMesImGCP&,const std::string & aPatFiltr="") const;
+	  void LoadGCP(cSetMesImGCP&,const std::string & aPatFiltrFile="",const std::string & aFiltrNameGCP="") const;
 	  // if SVP && file doesnt exist, do nothing
 	  void LoadIm(cSetMesImGCP&,const std::string & aNameIm,cSensorImage * =nullptr,bool SVP=false) const;
 	  void LoadIm(cSetMesImGCP&,cSensorImage & ) const;
@@ -430,6 +482,14 @@ class cPhotogrammetricProject
 	  /// Internal,  to document later ...
 	  cCalculMetaDataProject * CMDPOfName(const std::string &);
 
+          /// Create calib w/o distorsion from paramameters
+          cPerspCamIntrCalib * GetCalibInit(const std::string& aName,eProjPC aTypeProj,const cPt3di & aDeg,
+                                            cPt2dr   aPP=cPt2dr(0.5,0.5), bool SVP=false);
+
+          ///  Extract Camera specif from data base, given name of camera
+          const cElemCamDataBase * GetCamFromNameCam(const std::string& aNameCam,bool SVP=false) const;
+
+
 	 //===================================================================
          //==================   HOMOLOGOUS Points  ===========================
 	 //===================================================================
@@ -459,6 +519,33 @@ class cPhotogrammetricProject
 	 void  ReadMultipleTieP(cVecTiePMul&,const std::string & ) const;
 
 	 //===================================================================
+         //==================    Coord Sys           =========================
+	 //===================================================================
+
+                  //  ======== [1]  Sysco saved in "MMVII-PhgrProj/SysCo" 
+	 void  SaveSysCo(tPtrSysCo,const std::string&,bool OnlyIfNew=false) const;
+	 tPtrSysCo ReadSysCo(const std::string &aName,bool SVP=false) const;
+	 tPtrSysCo CreateSysCoRTL(const cPt3dr & aOrig,const std::string &aName,bool SVP=false) const;
+	 std::string  FullNameSysCo(const std::string &aName,bool SVP=false) const;
+	 // return  identity if Vec not init
+	 cChangSysCoordV2  ChangSys(const std::vector<std::string> &,tREAL8 aEpsDif=0.1);
+
+                  //  ======== [1]  Sysco saved in "MMVII-PhgrProj/Ori/"  or "MMVII-PhgrProj/PointsMeasure//"
+         std::string  NameCurSysCo(const cDirsPhProj &,bool IsIn) const;
+         tPtrSysCo  CurSysCo(const cDirsPhProj &,bool SVP=false) const;
+         tPtrSysCo  CurSysCoOri(bool SVP=false) const;
+         tPtrSysCo  CurSysCoGCP(bool SVP=false) const;
+         void SaveCurSysCo(const cDirsPhProj &,tPtrSysCo) const ;
+         void SaveCurSysCoOri(tPtrSysCo) const ;
+         void SaveCurSysCoGCP(tPtrSysCo) const ;
+         void CpSysIn2Out(bool OriIn,bool OriOut) const;  // bool : Ori/GCP   do it only if exist, else no error
+
+         const cChangSysCoordV2 & ChSys() const;
+         cChangSysCoordV2 & ChSys() ;
+         bool  ChSysIsInit() const;
+         void  AssertChSysIsInit() const;
+
+	 //===================================================================
          //==================   Rigid Bloc           =========================
 	 //===================================================================
 	 
@@ -466,6 +553,10 @@ class cPhotogrammetricProject
 	 std::list<cBlocOfCamera *> ReadBlocCams() const;
 	 void   SaveBlocCamera(const cBlocOfCamera &) const;
 
+         //==================   Camera Data Base     =========================
+
+         void MakeCamDataBase();
+         bool OneTestMakeCamDataBase(const std::string & aDir,cCamDataBase &,bool ForceNew);
 
       private :
           cPhotogrammetricProject(const cPhotogrammetricProject &) = delete;
@@ -479,6 +570,11 @@ class cPhotogrammetricProject
 
 	  std::string     mDirPhp;
 	  std::string     mDirVisu;
+
+	  std::string     mDirSysCo;
+          std::vector<std::string>   mNameChSys;
+          cChangSysCoordV2          mChSys;
+
 	  cDirsPhProj     mDPOrient;
 	  cDirsPhProj     mDPRadiomData;
 	  cDirsPhProj     mDPRadiomModel;
@@ -489,8 +585,12 @@ class cPhotogrammetricProject
 	  cDirsPhProj     mDPMulTieP;         ///<  For multiple Homologous point
 	  cDirsPhProj     mDPMetaData;
 	  cDirsPhProj     mDPRigBloc;         // RIGIDBLOC
+					      //
 
+	  std::vector<cDirsPhProj*> mDirAdded;
 	  mutable cGlobCalculMetaDataProject *  mGlobCalcMTD;
+
+          cCamDataBase   mCamDataBase;
 
 };
 void SaveAndFilterAttrEll(const cPhotogrammetricProject & aPhp,const cSetMesPtOf1Im &  aSetM,const std::set<std::string> & ToRem);

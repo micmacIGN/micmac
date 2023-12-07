@@ -962,7 +962,7 @@ template <class Type,const int Dim> cPtxd<Type,Dim>  cTplBox<Type,Dim>::CornerOf
    tPt aRes;
    for (size_t aD=0 ; aD<Dim ; aD++)
    {
-       aRes[aD] = (aFlag & (1<<aD)) ? aP0[aD] : aP1[aD];
+        aRes[aD] = (aFlag & (size_t(1)<<aD)) ? aP0[aD] : aP1[aD];
    }
    return aRes;
 }

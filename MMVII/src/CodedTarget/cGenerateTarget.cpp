@@ -683,7 +683,7 @@ cCodedTargetPatternIm::tIm cCodedTargetPatternIm::MakeOneImTarget(const cOneEnco
            }
            else if (aLab>=eLPT::eNumB0)
            {
-                bool BitIs_1 =  (aCode & (1<<(int(aLab)-int(eLPT::eNumB0)))) != 0;
+               bool BitIs_1 =  (aCode & (size_t(1)<<(int(aLab)-int(eLPT::eNumB0)))) != 0;
                 isBG = BitIs_1 !=  BGIs_0;
            }
 

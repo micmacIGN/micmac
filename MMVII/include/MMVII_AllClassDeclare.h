@@ -219,6 +219,9 @@ template <class Type,const int DimIn,const int DimOut> class cLeastSqCompMapCalc
 
 template <class Type,const int Dim> class cBijAffMapElem;
 
+class cSysCoordV2;
+class cChangSysCoordV2 ;
+
 // MMVII_Geom3D.h
 template <class Type> class cRotation3D;
 template <class Type> class cIsometrie3D;
@@ -248,6 +251,9 @@ class  cPhotogrammetricProject;
 class  cSIMap_Ground2ImageAndProf ;
 class  cPerspCamIntrCalib;
 class  cMetaDataImage;
+class  cElemCamDataBase;
+class  cCamDataBase;
+
 
 // MMVII_MeasuresIm.h
 
@@ -302,6 +308,13 @@ class cSetSensSameId;
 class cBlocMatrixSensor;  
 class cDataBlocCam;      
 class cBlocOfCamera;
+
+//   sys co
+
+class cSysCoordV2;
+class cChangSysCoordV2;
+typedef std::shared_ptr<cSysCoordV2>      tPtrSysCo;
+typedef std::shared_ptr<cChangSysCoordV2> tPtrChSys;
 
 
 

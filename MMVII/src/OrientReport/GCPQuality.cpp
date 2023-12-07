@@ -199,6 +199,7 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
        mNameReportIm,aNameIm,aStat,mPropStat, 
        {ToStr(aAvg2d.Average().x()),ToStr(aAvg2d.Average().y())}
     );
+
 }
 
 
@@ -234,11 +235,16 @@ void cAppli_CGPReport::ReportsByGCP()
             aStat.Add(Norm2( aMesIm.VMeasures()[aKIm]  - aVSens[aVIndI[aKIm]]->Ground2Image(aGCP.mPt)));
 	}
 	AddStdStatCSV(mNameReportGCP,aGCP.mNamePt,aStat,mPropStat);
-	cPt3dr aDelta = aGCP.mPt -  aSetMes.BundleInter(aMesIm);
+    if (aVIndI.size()>1)
+    {
+    	cPt3dr aDelta = aGCP.mPt -  aSetMes.BundleInter(aMesIm);
         AddOneReportCSV(mNameReportGCP_Ground,{aGCP.mNamePt,ToStr(aDelta.x()),ToStr(aDelta.y()),ToStr(aDelta.z())});
 
-	for (int aKC=0 ; aKC<3 ; aKC++)
-           aVStatXYZ[aKC].Add(aDelta[aKC]);
+        for (int aKC=0 ; aKC<3 ; aKC++)
+            aVStatXYZ[aKC].Add(aDelta[aKC]);
+    }
+    else
+       AddOneReportCSV(mNameReportGCP_Ground,{aGCP.mNamePt,"xxx","yyy","zzz"});
    }
 
    InitReport(mNameReportGCP_Ground_Glob,"csv",false);

@@ -29,7 +29,8 @@ const char * TheXMLBeginCom  = "<!--";
 const char * TheXMLEndCom    = "-->";
 const char * TheXMLBeginCom2 = "<?";
 const char * TheXMLEndCom2   = "?>";
-const char * TheXMLHeader = "<?xml version=\"1.0\" encoding=\"ISO8859-1\" standalone=\"yes\" ?>";
+// const char * TheXMLHeader = "<?xml version=\"1.0\" encoding=\"ISO8859-1\" standalone=\"yes\" ?>";
+const char * TheXMLHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>";
 
 static const char *  FakeTopSerialTree = "FakeTopSerialTree";
 // static const std::string  JSonComment =  "<!--comment-->" ;
@@ -325,7 +326,7 @@ cResLex  cSerialFileParser::GetNextLex()
     {
          return GetNextLex_NOEOF();
     }
-    catch (cEOF_Exception anE)
+    catch (cEOF_Exception)
     {
          return cResLex("",eLexP::eEnd,eTAAr::eUndef);
     }
@@ -995,12 +996,12 @@ void cIMakeTreeAr::OnTag(const cAuxAr2007& aTag,bool IsUp)
 
    if (aRL.mLexP != (IsUp ? eLexP::eUp  : eLexP::eDown))
    {
-        StdOut() <<  "LEX " << int(aRL.mLexP)  << "VALS ,got " << aRL.mVal  << " Exp=" <<  aTag.Name() << " F=" << mNameFile << std::endl;
+        StdOut() <<  "Error on lex " << int(aRL.mLexP)  << ", got '" << aRL.mVal  << "' when expecting '" <<  aTag.Name() << "' in file " << mNameFile << std::endl;
         MMVII_INTERNAL_ASSERT_tiny(false ,"Bad token cIMakeTreeAr::RawBegin-EndName");
    }
    if (aRL.mVal  != aTag.Name())
    {
-      StdOut() <<  "LEX " << int(aRL.mLexP)  << "VALS ,got " << aRL.mVal  << " Exp=" <<  aTag.Name() << " F=" << mNameFile << std::endl;
+      StdOut() <<  "Error on lex " << int(aRL.mLexP)  << ", got '" << aRL.mVal  << "' when expecting '" <<  aTag.Name() << "' in file " << mNameFile << std::endl;
       MMVII_INTERNAL_ASSERT_tiny(false,"Bad tag cIMakeTreeAr::RawBegin-EndName");
    }
 }
@@ -1012,7 +1013,7 @@ void cIMakeTreeAr::RawBeginName(const cAuxAr2007& anIT)
 	/*
    cResLex aRL = GetNextLexNotSizeCont();
 
-   StdOut() <<  "LEX " << int(aRL.mLexP)  << "VALS ,got " << aRL.mVal  << " Exp=" <<  anIT.Name() << std::endl;
+   StdOut() <<  "Error on lex " << int(aRL.mLexP)  << ", got '" << aRL.mVal  << "' when expecting '" <<  anIT.Name() << "'" <<´ std::endl;
 
    MMVII_INTERNAL_ASSERT_tiny(aRL.mLexP == eLexP::eUp  ,"Bad token cIMakeTreeAr::RawBeginName");
    MMVII_INTERNAL_ASSERT_tiny(aRL.mVal  == anIT.Name() ,"Bad tag cIMakeTreeAr::RawBeginName");
