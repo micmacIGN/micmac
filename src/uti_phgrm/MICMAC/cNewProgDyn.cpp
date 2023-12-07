@@ -618,7 +618,8 @@ void CombleTrouPrgDyn
     TIm2DBits<1>    aTMaskCalc(aMaskCalc);
        // filtrage des composantes connexes
     FiltrageCardCC(true,aTMaskCalc,1,0,aArgMaskAuto->SeuilZC().Val());
-    // MPD 7/12/2023 supress this filter for PhD Mohamed Ali Chebbi because
+    //  DEBUG4MAC
+    // MPD 7/12/2023 supress this filter for PhD Mohamed Ali Chebbi because   
     //    - for strange reason in the corner we have small CC with 
     // FiltrageCardCC(true,aTMaskCalc,0,1,aArgMaskAuto->SeuilZC().Val());
 
