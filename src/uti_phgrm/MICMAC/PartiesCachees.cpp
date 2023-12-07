@@ -1318,7 +1318,7 @@ void cAppliMICMAC::MakePartiesCachees()
 
   const cFilePx & aFP = mCurEtape->KPx(0);
   Tiff_Im     aTFP =   aFP.FileIm() ;
-  std::cout<<" NAME OF PAX FOR PC ====>>>>> "<<aFP.NameFile()<<std::endl;
+  //std::cout<<" NAME OF PAX FOR PC ====>>>>> "<<aFP.NameFile()<<std::endl;
   double aZMin,aZMax,aZMoy;
 
   if (aGPC.ZMoy().IsInit())

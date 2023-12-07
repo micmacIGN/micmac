@@ -757,7 +757,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               aRSRT = true;
           }
       }
-      std::cout << "Iiiiiiiiiiiiinbc = Moy2=" <<  mZMoy << " Inc=" << mZincCalc << "\n";
+      //std::cout << "Iiiiiiiiiiiiinbc = Moy2=" <<  mZMoy << " Inc=" << mZincCalc << "\n";
 
       bool IsOrthoXCSte = false;
       bool IsAnamXCsteOfCart = false;

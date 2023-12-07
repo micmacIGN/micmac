@@ -1920,6 +1920,7 @@ void cAppliMICMAC::DoEstimWarpersPDVs()
                                           "XCorrecOri=1"              + BLANK +
                                          "Scale=" + ToString(aCurDeZoom) + BLANK +
                                           "InParal=1"                 + BLANK +
+                                          "DoEpiAbs=0"                + BLANK+
                                           "Export12WayGeoxy=1";
                      aLCom.push_back(aComEpip);
                      std::cout<<"COMMANDE EPIP "<<aComEpip<<std::endl;
@@ -2009,7 +2010,7 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 
         //std::cout<<"mStepPlani   "<<mStepPlani<<"  mStepZ "<<mStepZ<<std::endl;
 
-        std::cout<<"ZZZZZZMINNNN   "<<mLTer->PxMin() <<"   ZZZZZMMMMMAX   "<<mLTer->PxMax()<<std::endl;
+        //std::cout<<"ZZZZZZMINNNN   "<<mLTer->PxMin() <<"   ZZZZZMMMMMAX   "<<mLTer->PxMax()<<std::endl;
         mFirstZIsInit = false;
 
         // mVLI.clear();
