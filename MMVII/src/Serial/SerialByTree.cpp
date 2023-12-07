@@ -29,7 +29,8 @@ const char * TheXMLBeginCom  = "<!--";
 const char * TheXMLEndCom    = "-->";
 const char * TheXMLBeginCom2 = "<?";
 const char * TheXMLEndCom2   = "?>";
-const char * TheXMLHeader = "<?xml version=\"1.0\" encoding=\"ISO8859-1\" standalone=\"yes\" ?>";
+// const char * TheXMLHeader = "<?xml version=\"1.0\" encoding=\"ISO8859-1\" standalone=\"yes\" ?>";
+const char * TheXMLHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>";
 
 static const char *  FakeTopSerialTree = "FakeTopSerialTree";
 // static const std::string  JSonComment =  "<!--comment-->" ;

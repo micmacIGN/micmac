@@ -300,7 +300,6 @@ cEtapeMecComp::cEtapeMecComp
   mUseWAdapt         (false),
   mNameXMLNuage      ("")
 {
-// std::cout << "XPPOOOOOORRT ZZZZzzz Aaabs  " << mIsExportZAbs << "\n"; getchar();
 
      if (mIsExportZAbs)
      {
@@ -1462,7 +1461,8 @@ void cEtapeMecComp::SauvNappes
       }
 
 
-      ::t(aIResult,mIsLast,mFilesPx[0]->DilatAltiPlus()+mFilesPx[0]->DilatAltiMoins());
+
+      //  ::t(aIResult,mIsLast,mFilesPx[0]->DilatAltiPlus()+mFilesPx[0]->DilatAltiMoins());
 
       mFilesPx[aK]->SauvResulPx
       (
@@ -1563,7 +1563,6 @@ getchar() ;
           FileMaskAuto().out()
       );
    }
-
 
 }
 

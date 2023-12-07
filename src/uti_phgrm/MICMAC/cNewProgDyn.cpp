@@ -306,11 +306,11 @@ template <class TypeArg> class cMMNewPrg2D : public cSurfaceOptimiseur
         //  void GlobalInitialisation(cProg2DOptimiser<cMMNewPrg2D> &);
 
       // Pre-requis (interface virtuelle) pour cSurfaceOptimiseur
-        void Local_SetCout(Pt2di aPTer,int * aPX,REAL aCost,int aLabel);
-        void Local_SolveOpt(Im2D_U_INT1);
+        void Local_SetCout(Pt2di aPTer,int * aPX,REAL aCost,int aLabel) override;
+        void Local_SolveOpt(Im2D_U_INT1) override;
 
-        void Local_SetCpleRadiom(Pt2di aPTer,int * aPX,tCRVal aR1,tCRVal aR2);
-        void Local_VecMCP(Pt2di aPTer,int * aPX,const  std::vector<tMCPVal> &);
+        void Local_SetCpleRadiom(Pt2di aPTer,int * aPX,tCRVal aR1,tCRVal aR2) override;
+        void Local_VecMCP(Pt2di aPTer,int * aPX,const  std::vector<tMCPVal> &) override;
 
      //====================  End Pre Requis =================
 
@@ -598,9 +598,12 @@ void CombleTrouPrgDyn
          Im2D_INT2     aImZ
      )
 {
+
+
     const cArgMaskAuto *  aArgMaskAuto = aPrgD.ArgMaskAuto().PtrVal();
     if (! aArgMaskAuto) return;
     int aNbOpen = aArgMaskAuto->SzOpen32().Val();
+
     if (aNbOpen!=0)
     {
        ELISE_COPY
@@ -611,10 +614,13 @@ void CombleTrouPrgDyn
        );
     }
 
+
     TIm2DBits<1>    aTMaskCalc(aMaskCalc);
        // filtrage des composantes connexes
     FiltrageCardCC(true,aTMaskCalc,1,0,aArgMaskAuto->SeuilZC().Val());
-    FiltrageCardCC(true,aTMaskCalc,0,1,aArgMaskAuto->SeuilZC().Val());
+    // MPD 7/12/2023 supress this filter for PhD Mohamed Ali Chebbi because
+    //    - for strange reason in the corner we have small CC with 
+    // FiltrageCardCC(true,aTMaskCalc,0,1,aArgMaskAuto->SeuilZC().Val());
 
     // TIm2D<INT2,INT>   aTImRes(mImRes[mNumNap]);
     TIm2DBits<1>    aTMaskTer(aMaskTer);
@@ -623,6 +629,7 @@ void CombleTrouPrgDyn
        // aTMaskTer --> masque terrain
        //ComplKLipsParLBas(aTMaskTer.Im(),aTMask.Im(),mImRes[mNumNap],1.0);
     ComplKLipsParLBas(aTMaskCalc.Im(),aTMaskTer.Im(),aImZ,1.0);
+
 /*
 */
 }
@@ -718,7 +725,6 @@ template <class Type>  void cMMNewPrg2D<Type>::Local_SolveOpt(Im2D_U_INT1 aImCor
    }
 
 
-// std::cout << "AAAAAAAAAAAAAAAAAaa " << AmplifKL << "\n"; getchar();
 
    //  Filtrage du masque
    if (mHasMask)
@@ -741,6 +747,7 @@ template <class Type>  void cMMNewPrg2D<Type>::Local_SolveOpt(Im2D_U_INT1 aImCor
            {
                  int aVRes = aRes[aP.y][aP.x];
                  bool NoVal = (aTZMax.get(aP) == aVRes);
+
                  aTMask.oset
                  (
                        aP,
@@ -758,7 +765,6 @@ template <class Type>  void cMMNewPrg2D<Type>::Local_SolveOpt(Im2D_U_INT1 aImCor
            }
        }
        CombleTrouPrgDyn(mMod,mMaskCalc,mLTCur->ImMasqTer(),mImRes[mNumNap]);
-
 
 
        if (0)
@@ -783,6 +789,7 @@ template <class Type>  void cMMNewPrg2D<Type>::Local_SolveOpt(Im2D_U_INT1 aImCor
 
         mAppli.SauvFileChantier(aImEtiq.in(),aTifEt);
    }
+
 }
 
 
