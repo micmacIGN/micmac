@@ -313,7 +313,7 @@ void AddData(const cAuxAr2007 & anAux,cTiePMul & aPMul);
 class   cVecTiePMul
 {
       public :
-          cVecTiePMul(const std::string & anIm);
+          cVecTiePMul(const std::string & );
 
           std::string           mNameIm;
           std::vector<cTiePMul> mVecTPM;
