@@ -1,3 +1,8 @@
+// CM: g++ reports  "result: may be used uninitialized" with Eigen 3.4.0
+#if defined(__GNUC__) && !defined(__clang__)
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
 
 #include "MMVII_Tpl_Images.h"
 #include "MMVII_SysSurR.h"
@@ -7,6 +12,9 @@
 #include "Eigen/Householder"  // HouseholderQR.h"
 // #include "Eigen/Cholesky"  // HouseholderQR.h"
 
+#if defined(__GNUC__) && !defined(__clang__)
+#  pragma GCC diagnostic pop
+#endif
 using namespace Eigen;
 
 namespace MMVII

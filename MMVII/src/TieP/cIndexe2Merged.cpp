@@ -191,6 +191,8 @@ class cReadMTP_Std
               );
 
 	      cComputeMergeMulTieP *      CompMerge();
+	      bool WithSensor() const { return mWithSensor;}
+
       private :
               bool GetNextConfig();
 	      bool                        mWithIndex;

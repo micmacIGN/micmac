@@ -528,7 +528,7 @@ class cAppli_EditCalcMetaDataImage : public cMMVII_Appli
 	
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
-        virtual std::vector<std::string>  Samples() const; ///< For help, gives samples of "good" use
+        std::vector<std::string>  Samples() const override; ///< For help, gives samples of "good" use
 
 
         cPhotogrammetricProject     mPhProj;

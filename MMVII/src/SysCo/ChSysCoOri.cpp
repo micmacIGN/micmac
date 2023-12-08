@@ -40,7 +40,7 @@ class cAppli_ChSysCoOri : public cMMVII_Appli
 
 	// Optionall Arg
 	cPt3dr           mOrigin;
-	tREAL8           mZ0;
+	//CM: unused:  tREAL8           mZ0;
         tREAL8           mEpsDer ;
 };
 
