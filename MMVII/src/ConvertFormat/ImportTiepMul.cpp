@@ -2,6 +2,8 @@
 #include "MMVII_MMV1Compat.h"
 #include "MMVII_DeclareCste.h"
 #include "MMVII_BundleAdj.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+
 
 /**
    \file cConvCalib.cpp  testgit
@@ -41,7 +43,11 @@ class cAppli_ImportTiePMul : public cMMVII_Appli
 	int                        mL0;
 	int                        mLLast;
 	int                        mComment;
-	std::vector<std::string>   mPatternTransfo;        
+	std::vector<std::string>   mPatTrIm;
+    std::vector<std::string>   mPatTrPt;
+    std::string                mNameFileWithPts; // name of fil for saving data with points
+    size_t                        mNbPtsInFWP;      // theshold on number of points
+
 };
 
 cAppli_ImportTiePMul::cAppli_ImportTiePMul(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -49,7 +55,9 @@ cAppli_ImportTiePMul::cAppli_ImportTiePMul(const std::vector<std::string> & aVAr
    mPhProj       (*this),
    mL0           (0),
    mLLast        (-1),
-   mComment      (-1)
+   mComment      (-1),
+   mNameFileWithPts ("ImagesWithTieP"),
+   mNbPtsInFWP      (0)
 {
 }
 
@@ -67,7 +75,9 @@ cCollecSpecArg2007 & cAppli_ImportTiePMul::ArgOpt(cCollecSpecArg2007 & anArgObl)
     return anArgObl
        << AOpt2007(mL0,"NumL0","Num of first line to read",{eTA2007::HDV})
        << AOpt2007(mLLast,"NumLast","Num of last line to read (-1 if at end of file)",{eTA2007::HDV})
-       << AOpt2007(mPatternTransfo,"PatName","Pattern for transforming name (first sub-expr)",{{eTA2007::ISizeV,"[2,2]"}})
+       << AOpt2007(mPatTrIm,"PatIm","Pattern for transforming image [Pat,Repl]",{{eTA2007::ISizeV,"[2,2]"}})
+       << AOpt2007(mPatTrPt,"PatPt","Pattern for transforming/selectin pt [Pat,Repl]",{{eTA2007::ISizeV,"[2,2]"}})
+
 /*
        << AOpt2007(mNameGCP,"NameGCP","Name of GCP set")
        << AOpt2007(mNbDigName,"NbDigName","Number of digit for name, if fixed size required (only if int)")
@@ -85,7 +95,7 @@ int cAppli_ImportTiePMul::Exe()
     std::vector<cPt3dr> aVXYZ,aVWKP;
 
 
-    MMVII_INTERNAL_ASSERT_tiny(CptSameOccur(mFormat,"XYNF")==1,"Bad format vs NXY");
+    MMVII_INTERNAL_ASSERT_tiny(CptSameOccur(mFormat,"XYNI")==1,"Bad format vs NXY");
 
     ReadFilesStruct
     (
@@ -95,32 +105,53 @@ int cAppli_ImportTiePMul::Exe()
         false
     );
 
-    std::map<std::string,cVecTiePMul*>  mMapRes;
+    // VNames will contains NameIm and NamePt, we need to know which is first
+    size_t aIndImInFormat = mFormat.find('I');
+    size_t aIndPtInFormat = mFormat.find('N');
+    size_t aIndPt = (aIndPtInFormat<aIndImInFormat) ? 0 : 1;
+    size_t aIndIm = 1-aIndPt;
 
+    std::map<std::string,cVecTiePMul*>  mMapRes;
     for (size_t aK=0 ; aK<aVXYZ.size() ; aK++)
     {
-         std::string aNameI   = aVNames.at(aK).at(0);
-         if (IsInit(&mPatternTransfo))
-            aNameI = ReplacePattern(mPatternTransfo.at(0),mPatternTransfo.at(1),aNameI);
+         // All the point may not be included, and also they may be transormed
+         std::string aNamePt   = aVNames.at(aK).at(aIndPt);
+          bool SelectPt = true;
+          if (IsInit(&mPatTrPt))
+          {
+              SelectPt = MatchRegex(aNamePt,mPatTrPt.at(0));
+              if (SelectPt)
+                  aNamePt = ReplacePattern(mPatTrPt.at(0),mPatTrPt.at(1),aNamePt);
+          }
+          //StdOut() << "Pppp= " << aNamePt << "  " << SelectPt << "\n";
+          if (SelectPt)
+          {
+             std::string aNameI   = aVNames.at(aK).at(aIndIm);
+             if (IsInit(&mPatTrIm))
+                aNameI = ReplacePattern(mPatTrIm.at(0),mPatTrIm.at(1),aNameI);
 
-         if (mMapRes.find(aNameI) == mMapRes.end())
-         {
-             mMapRes[aNameI] = new cVecTiePMul(aNameI);
-             StdOut() << "III = " << aNameI << "\n";
-         }
-         cPt2dr aP2 = Proj(aVXYZ.at(aK));
-         int aInd = round_ni(aVNums.at(aK).at(0));
-         mMapRes[aNameI]->mVecTPM.push_back(cTiePMul(aP2,aInd));
-StdOut() << aNameI << " " << aInd << "\n";
+             if (mMapRes.find(aNameI) == mMapRes.end())
+             {
+                mMapRes[aNameI] = new cVecTiePMul(aNameI);
+                //StdOut() << "III = " << aNameI << "\n";
+             }
+             cPt2dr aP2 = Proj(aVXYZ.at(aK));
+             int aIndPt = cStrIO<int>::FromStr(aNamePt);
+              mMapRes[aNameI]->mVecTPM.push_back(cTiePMul(aP2,aIndPt));
+// StdOut() << aNameI << " " << aIndPt << "\n";
+          }
     }
-/*
 
-    mPhProj.SaveGCP(aSetM);
-    mPhProj.SaveCurSysCoGCP(aChSys.SysTarget());
-*/
-   
+    tNameSet aSetWithTiep;
+    for ( const auto &[aName, aVecMTP]: mMapRes )
+    {
+        mPhProj.SaveMultipleTieP(*aVecMTP,aName);
+        if (aVecMTP->mVecTPM.size()>=mNbPtsInFWP)
+            aSetWithTiep.Add(aName);
 
-
+        delete aVecMTP;
+    }
+    SaveInFile(aSetWithTiep,mNameFileWithPts + "."+GlobTaggedNameDefSerial());
     return EXIT_SUCCESS;
 }
 
@@ -129,7 +160,8 @@ std::vector<std::string>  cAppli_ImportTiePMul::Samples() const
 {
    return 
    {
-          "MMVII ImportTiePMul External-Data/Liaisons.MES NIXY toto NumL0=1 PatName=[\".*\",\"\\$0.tif\"]"
+          "MMVII ImportTiePMul External-Data/Liaisons.MES NIXY toto NumL0=1 PatIm=[\".*\",\"\\$0.tif\"]"
+          " PatPt=[\"(MES_)(.*)\",\"\\$2\"]"
    };
 }
 

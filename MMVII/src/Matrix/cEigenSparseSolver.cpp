@@ -104,6 +104,7 @@ template<class Type> cDenseVect<Type> EigenSolveCholeskyarseFromV3
       if (aChol.info()!=Eigen::Success)
       {
           ON_EIGEN_NO_SUCC("SimplicialCholesky::solve");
+          // for (int aK=0 ; aK<100 ; aK++) StdOut() << "SimplicialCholesky::solve" << std::endl;
       }
    }
 
