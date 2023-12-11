@@ -286,7 +286,7 @@ cCollecSpecArg2007 & cAppliExtractCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgO
                     << AOpt2007(mDiamMinD, "DMD","Diam min for detect",{eTA2007::HDV})
                     << AOpt2007(mConstrainCenter, "CC","Constrain centers for ellipse fit",{eTA2007::HDV})
                     << AOpt2007(mRaysTF, "RayTF","Rays Min/Max for testing filter",{eTA2007::HDV,eTA2007::Tuning})
-                    << AOpt2007(mTestCenter, "TestCenter","Test program only on a center +/- 2 px",{eTA2007::HDV,eTA2007::HDV})
+                    << AOpt2007(mTestCenter, "TestCenter","Test program only on a center +/- 10 px",{eTA2007::HDV,eTA2007::HDV})
                     << AOpt2007(mPatExportF, "PatExpF","Pattern export filters" ,{AC_ListVal<eDCTFilters>(),eTA2007::HDV})
                     << AOpt2007(mTest, "Test", "Test for Ellipse Fit", {eTA2007::HDV})
                     << AOpt2007(mParamBin, "BinF", "Param for binary filter", {eTA2007::HDV})
@@ -611,8 +611,8 @@ void  cAppliExtractCodeTarget::DoExtract(){
         // TEST CENTRAGE SUR UNE CIBLE
         // -------------------------------------------
         if (mTestCenter.x() != -1){
-            if (abs(aPtrDCT->Pix().x() - mTestCenter.x()) > 2) continue;
-            if (abs(aPtrDCT->Pix().y() - mTestCenter.y()) > 2) continue;
+            if (abs(aPtrDCT->Pix().x() - mTestCenter.x()) > 10) continue;
+            if (abs(aPtrDCT->Pix().y() - mTestCenter.y()) > 10) continue;
         }
 
         if (aPtrDCT->mState == eResDCT::Ok){
@@ -1166,7 +1166,7 @@ std::vector<cPt2dr> cAppliExtractCodeTarget::extractButterflyEdge(const cDataIm2
         for (int sign=-1; sign<=1; sign+=2){
             z_prec = 0; cPt2dr pf_prec = cPt2dr(0,0);
             z_curr = 0; cPt2dr pf_curr = cPt2dr(0,0);
-            for (int i=mDiamMinD/10; i<=300; i++){
+            for (int i=mDiamMinD/2; i<=300; i++){
                 x = center.x()+sign*vx*i;
                 y = center.y()+sign*vy*i;
                 pf_prec = pf_curr;
