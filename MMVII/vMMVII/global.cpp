@@ -38,7 +38,7 @@ QString quotedArg(const QString& aParam)
 #else
 QString quotedArg(const QString& aParam)
 {
-    constexpr const char* DoubleQuoting=" \t&|()<>^\"";
+    constexpr const char* DoubleQuoting=" \t*?&|()<>^\"";
 
     if (aParam.size() == 0)
         return "\"\"";

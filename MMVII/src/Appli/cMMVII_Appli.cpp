@@ -116,7 +116,7 @@ static std::string QuoteCmdLine(const std::string& aParam)
 #elif (THE_MACRO_MMVII_SYS==MMVII_SYS_W)
 static std::string QuoteCmdLine(const std::string& aParam)
 {
-    constexpr const char* DoubleQuoting=" \t&|()<>^\"";
+    constexpr const char* DoubleQuoting=" \t*?&|()<>^\"";
 
     if (aParam.size() == 0)
         return "\"\"";
