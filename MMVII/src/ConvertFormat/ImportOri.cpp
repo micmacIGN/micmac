@@ -48,6 +48,7 @@ class cAppli_ImportOri : public cMMVII_Appli
 	std::string              mRepIJK;
 	bool                     mRepIJDir;
 	std::vector<std::string> mChgName;
+	std::vector<std::string> mChgName2;  // for ex, with IMU, we want to export as image init & imu measure
 	std::string              mNameDicoName;
 	std::string              mFileSaveIm;
 };
@@ -84,7 +85,8 @@ cCollecSpecArg2007 & cAppli_ImportOri::ArgOpt(cCollecSpecArg2007 & anArgObl)
        << AOpt2007(mAngleUnit,"AngU","Unity for angles",{{eTA2007::HDV},{AC_ListVal<eTyUnitAngle>()}})
        << AOpt2007(mRepIJK,"Rep","Repair coded (relative  to MMVII convention)  ",{{eTA2007::HDV}})
        << AOpt2007(mRepIJDir,"KIsUp","Corespond to repair \"i-j-k\" ",{{eTA2007::HDV}})
-       << AOpt2007(mChgName,"ChgN","Change name [Pat,Name], for ex \"[(.*),IMU_\\$0]\"  add prefix \"IMU_\" ",{{eTA2007::ISizeV,"[2,2]"}})
+       << AOpt2007(mChgName,"ChgN","Change name [Pat,Name], for ex \"[(.*),\\$0.tif]\"  add postfix \"tif\" ",{{eTA2007::ISizeV,"[2,2]"}})
+       << AOpt2007(mChgName2,"ChgN2","Change name [Pat,Name], for ex \"[(.*),\\$0.IMU]\"  add postfix \"IMU\" ",{{eTA2007::ISizeV,"[2,2]"}})
        << AOpt2007(mNameDicoName,"DicName","Dictionnary for changing names of images ")
        << AOpt2007(mFileSaveIm,"FileSaveIm","File for saving all names of images ")
     ;
@@ -136,6 +138,7 @@ int cAppli_ImportOri::Exe()
     }
 
     tNameSet aSetIm;
+    bool  WithName2 = IsInit(&mChgName2);
 
     for (size_t aK=0 ; aK<aVXYZ.size() ; aK++)
     {
@@ -154,9 +157,14 @@ int cAppli_ImportOri::Exe()
             }
 	    aNameIm = anIt->second;
          }
+         std::string aNameIm2 = aNameIm;
+         ChgName(mChgName2,aNameIm2);
 
 	 // StdOut() << "aNameImaNameIm=" << aNameIm << "\n";
 	 aSetIm.Add(aNameIm);
+         if (WithName2)
+	    aSetIm.Add(aNameIm2);
+            
 
 	 // Orient may be non init, by passing NONE, if we want to generate only the name
 
@@ -173,10 +181,13 @@ int cAppli_ImportOri::Exe()
 
 	     cIsometry3D aPose(aCenter,aRot);
 	     cSensorCamPC  aCam(aNameIm,aPose,aCalib);
-
 	     mPhProj.SaveCamPC(aCam);
+             if (WithName2)
+             {
+                 cSensorCamPC aCam2(aNameIm2,aPose,nullptr);
+                 mPhProj.SaveCamPC(aCam2);  
+             }
 	 }
-
     }
 
     if (IsInit(&mFileSaveIm))

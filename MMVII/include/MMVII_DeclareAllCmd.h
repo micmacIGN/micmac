@@ -72,6 +72,7 @@ extern cSpecMMVII_Appli  TheSpecDistCorrectCirgTarget;
 extern cSpecMMVII_Appli  TheSpecGenArgsSpec;
 extern cSpecMMVII_Appli  TheSpec_ImportGCP;
 extern cSpecMMVII_Appli  TheSpec_ImportTiePMul;
+extern cSpecMMVII_Appli  TheSpec_ImportMesImGCP;
 extern cSpecMMVII_Appli  TheSpec_ConvertV1V2_GCPIM;
 extern cSpecMMVII_Appli  TheSpec_SpecSerial;
 extern cSpecMMVII_Appli  TheSpec_CGPReport;

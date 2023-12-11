@@ -89,6 +89,7 @@ cMMVII_BundleAdj::cMMVII_BundleAdj(cPhotogrammetricProject * aPhp) :
     mFolderRefCam     (""),
     mSigmaTrRefCam    (-1.0),
     mSigmaRotRefCam   (-1.0),
+    mPatternRef       (".*"),
     mDirRefCam        (nullptr),
     mSigmaViscAngles  (-1.0),
     mSigmaViscCenter  (-1.0)
@@ -210,6 +211,7 @@ void cMMVII_BundleAdj::OneIteration()
 void cMMVII_BundleAdj::AddCalib(cPerspCamIntrCalib * aCalib)  
 {
     AssertPhaseAdd();
+    if (aCalib==nullptr)  return;
     if (! aCalib->UkIsInit())
     {
 	  mVPCIC.push_back(aCalib);
@@ -245,6 +247,9 @@ void cMMVII_BundleAdj::AddReferencePoses(const std::vector<std::string> & aVec)
      mSigmaTrRefCam = cStrIO<tREAL8>::FromStr(aVec.at(1));
      if (aVec.size() > 2)
         mSigmaRotRefCam = cStrIO<tREAL8>::FromStr(aVec.at(2));
+
+     if (aVec.size() > 3)
+        mPatternRef =  aVec.at(3);
 }
 
 
@@ -342,8 +347,19 @@ void cMMVII_BundleAdj::AddConstrainteRefPose()
 
 void cMMVII_BundleAdj::AddConstrainteRefPose(cSensorCamPC & aCam,cSensorCamPC & aCamRef)
 {
+     if (! MatchRegex(aCam.NameImage(),mPatternRef))
+        return;
      // mR8_Sys
-     mR8_Sys->AddEqFixNewVal(aCam,aCam.Center(),aCamRef.Center(),Square(1/mSigmaTrRefCam));
+     if (mSigmaTrRefCam > 0)
+     {
+        mR8_Sys->AddEqFixNewVal(aCam,aCam.Center(),aCamRef.Center(),Square(1/mSigmaTrRefCam));
+     }
+     
+     if (mSigmaRotRefCam>0)
+     {
+         cPt3dr aWTarget = aCam.Pose_WU().ValAxiatorFixRot(aCamRef.Pose().Rot());
+         mR8_Sys->AddEqFixNewVal(aCam,aCam.Omega(),aWTarget,Square(1/mSigmaRotRefCam));
+     }
 
 }
 

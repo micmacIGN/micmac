@@ -398,6 +398,10 @@ class cPoseWithUK :  public cObjWithUnkowns<tREAL8>
 	 void  GetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
 	 // std::vector<tPtrOUK>  GetAllUK() override;
 
+         // Val axiator should have to "equal" fix rot
+         cPt3dr ValAxiatorFixRot(const cRotation3D<tREAL8> & aRotFix) const;
+
+
      private :
          void PutUknowsInSetInterval() override ;  // add the interval on udpate
 

@@ -516,7 +516,7 @@ class cPhotogrammetricProject
 
 	 std::string NameMultipleTieP(const std::string &) const;
 	 void  SaveMultipleTieP(const cVecTiePMul&,const std::string &) const;
-	 void  ReadMultipleTieP(cVecTiePMul&,const std::string & ) const;
+	 void  ReadMultipleTieP(cVecTiePMul&,const std::string &,bool SVP =false ) const;
 
 	 //===================================================================
          //==================    Coord Sys           =========================

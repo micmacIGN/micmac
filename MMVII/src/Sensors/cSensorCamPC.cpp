@@ -45,7 +45,7 @@ cPt3dr &  cPoseWithUK::Omega()  {return mOmega;}
 const cPt3dr &  cPoseWithUK::Omega() const {return mOmega;}
 
 
-/*   Let R be the rotation of pose  P=(C,P= : Cam-> Word, what is optimized in colinearity for a ground point G
+/*   Let R be the rotation of pose  P=(C,R) = : Cam-> Word, what is optimized in colinearity for a ground point G
  *   is Word->Cam  :
  *
  *          tR(G-C)
@@ -63,6 +63,26 @@ const cPt3dr &  cPoseWithUK::Omega() const {return mOmega;}
  *       t Axiator(W) = Axiator(-W)
  *
  */
+
+
+/*  aRF  =  R0 * Ax(-W)   
+*   Ax(-W) =  tR0  * aRF
+*  cPtxd<T,3>(  0    , -W.z() ,  W.y() ),
+*  cPtxd<T,3>( W.z() ,   0    , -W.x() ),
+*  cPtxd<T,3>(-W.y() ,  W.x() ,   0    )
+*
+*  aMat(1,0) = -aW.z(); aMat(2,0) =  aW.y(); aMat(2,1) = -aW.x(); 
+*/  
+
+cPt3dr cPoseWithUK::ValAxiatorFixRot(const cRotation3D<tREAL8> & aRotFix) const
+{
+     cDenseMatrix<tREAL8>  aM = mPose.Rot().Mat().Transpose() * aRotFix.Mat();
+     tREAL8 aZ = ( aM(1,0) - aM(0,1)) / 2.0;
+     tREAL8 aY = (-aM(2,0) + aM(0,2)) / 2.0;
+     tREAL8 aX = ( aM(2,1) - aM(1,2)) / 2.0;
+
+     return cPt3dr(aX,aY,aZ);
+}
 
 void cPoseWithUK::OnUpdate()
 {
@@ -145,7 +165,9 @@ std::vector<cObjWithUnkowns<tREAL8> *>  cSensorCamPC::GetAllUK()
     // Dont work because unknown are added twice
     // return std::vector<cObjWithUnkowns<tREAL8> *> {this,mInternalCalib,&mPose_WU};
     
-    return std::vector<cObjWithUnkowns<tREAL8> *> {this,mInternalCalib};
+    if (mInternalCalib)
+       return std::vector<cObjWithUnkowns<tREAL8> *> {this,mInternalCalib};
+   return std::vector<cObjWithUnkowns<tREAL8> *> {this};
 }
 void cSensorCamPC::PutUknowsInSetInterval()
 {
@@ -154,6 +176,7 @@ void cSensorCamPC::PutUknowsInSetInterval()
 #else
 std::vector<cObjWithUnkowns<tREAL8> *>  cSensorCamPC::GetAllUK() 
 {
+    mInternalCalib ?
     return std::vector<cObjWithUnkowns<tREAL8> *> {this,mInternalCalib,&mPose_WU};
 }
 void cSensorCamPC::PutUknowsInSetInterval()
@@ -218,6 +241,8 @@ const cPt3dr * cSensorCamPC::CenterOfPC() const { return  & Center(); }
          /// Return the calculator, adapted to the type, for computing colinearity equation
 cCalculator<double> * cSensorCamPC::EqColinearity(bool WithDerives,int aSzBuf,bool ReUse) 
 {
+   if (mInternalCalib==nullptr) 
+      return nullptr;
    return mInternalCalib->EqColinearity(WithDerives,aSzBuf,ReUse);
 }
 
@@ -412,7 +437,7 @@ void cSensorCamPC::AddData(const cAuxAr2007 & anAux0)
     cAuxAr2007 anAux("CameraPose",anAux0);
     std::string aNameImage = NameImage();
     cPtxd<tREAL8,4>  aQuat =  MatrRot2Quat(Pose().Rot().Mat());
-    std::string      aNameCalib = (anAux.Input() ? "" : mInternalCalib->Name());
+    std::string      aNameCalib = (anAux.Input() ? "" : (mInternalCalib?  mInternalCalib->Name() : MMVII_NONE ));
 
 
     MMVII::AddData(cAuxAr2007("NameImage",anAux),aNameImage);
@@ -447,8 +472,11 @@ void AddData(const cAuxAr2007 & anAux,cSensorCamPC & aPC)
 void cSensorCamPC::ToFile(const std::string & aNameFile) const
 {
     SaveInFile(const_cast<cSensorCamPC &>(*this),aNameFile);
-    std::string aNameCalib = DirOfPath(aNameFile) + mInternalCalib->Name() + "." + GlobTaggedNameDefSerial();
-    mInternalCalib->ToFileIfFirstime(aNameCalib);
+    if (mInternalCalib)
+    {
+        std::string aNameCalib = DirOfPath(aNameFile) + mInternalCalib->Name() + "." + GlobTaggedNameDefSerial();
+        mInternalCalib->ToFileIfFirstime(aNameCalib);
+    }
 }
 
 cSensorCamPC * cSensorCamPC::FromFile(const std::string & aFile,bool Remanent)
@@ -464,7 +492,10 @@ cSensorCamPC * cSensorCamPC::FromFile(const std::string & aFile,bool Remanent)
    cSensorCamPC * aPC = new cSensorCamPC("NONE",tPose::Identity(),nullptr);
    ReadFromFile(*aPC,aFile);
 
-   aPC->mInternalCalib =  cPerspCamIntrCalib::FromFile(DirOfPath(aFile) + aPC->mTmpNameCalib + "." + GlobTaggedNameDefSerial());
+   if (aPC->mTmpNameCalib != MMVII_NONE)
+       aPC->mInternalCalib =  cPerspCamIntrCalib::FromFile(DirOfPath(aFile) + aPC->mTmpNameCalib + "." + GlobTaggedNameDefSerial());
+   else 
+       aPC->mInternalCalib = nullptr;
    aPC->mTmpNameCalib = "";
 
    anExistingCam = aPC;

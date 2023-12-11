@@ -89,6 +89,7 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(const cSetMesImGCP * aSet)
                int aIndIm = aVIndIm.at(aKIm);
                cSensorImage * aSens = aVSens.at(aIndIm);
                const cPt2dr & aPIm = aVPIm.at(aKIm);
+//StdOut() << "aSensaSensaSens " << aSens->NameImage() << " " << aVIndIm << "\n";
 
 	       // compute indexe of unknown, if GCp are !UK we have fix index for temporary
                std::vector<int> aVIndGlob = aGcpUk ? (std::vector<int>()) : aVIndGround;
@@ -106,6 +107,7 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(const cSetMesImGCP * aSet)
 	             cPt2dr aResidual = aPIm - aSens->Ground2Image(aPGr);
                      tREAL8 aWeightImage =   mGCPIm_Weighter.SingleWOfResidual(aResidual);
 	             cCalculator<double> * anEqColin =  mVEqCol.at(aIndIm);
+// StdOut() << "anEqColinanEqColinanEqColin " << anEqColin << "\n";
                      // the "obs" are made of 2 point and, possibily, current rotation (for PC cams)
                      std::vector<double> aVObs = aPIm.ToStdVector();
 		     aSens->PushOwnObsColinearity(aVObs);

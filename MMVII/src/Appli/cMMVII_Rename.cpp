@@ -27,34 +27,37 @@ class cAppli_DicoRename   : public cMMVII_Appli
      protected :
      private :
         cPhotogrammetricProject  mPhProj;
-	std::string              mNameFile;
+	std::string              mNameFileTxtIn;
         std::string              mFormat;
-	std::vector<std::string> mPatSubst;
+	std::vector<std::string> mPatIm;
 	std::string              mNameDico;
-	std::vector<std::string> mNameFiles;
         int                      mL0;
         int                      mLLast;
         char                     mComment;
 	std::string              mSeparator;
+        int                      mNbMinTieP;
+	std::vector<std::string> mNameFilesListIm;
 
 };
 
 cAppli_DicoRename::cAppli_DicoRename(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-    cMMVII_Appli (aVArgs,aSpec),
-    mPhProj      (*this),
-    mL0          (0),
-    mLLast       (-1),
-    mComment     ('#'),
-    mSeparator   ("@")
+    cMMVII_Appli      (aVArgs,aSpec),
+    mPhProj           (*this),
+    mL0               (0),
+    mLLast            (-1),
+    mComment          ('#'),
+    mSeparator        ("@"),
+    mNbMinTieP        (0),
+    mNameFilesListIm  {"AllImDicoIn.xml","AllImDicoOut.xml"}
 {
 }
 
 cCollecSpecArg2007 & cAppli_DicoRename::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
     return anArgObl
-              <<  Arg2007(mNameFile ,"Name of Input File")
+              <<  Arg2007(mNameFileTxtIn ,"Name of Input File")
               <<  Arg2007(mFormat   ,"Format of file as for ex \"SNSXYZSS\" ")
-              <<  Arg2007(mPatSubst ,"Substitution pattern [Pattern,SubstIn,SubstOut]",{{eTA2007::ISizeV,"[3,3]"}})
+              <<  Arg2007(mPatIm ,"Substitution pattern [Pattern,SubstIn,SubstOut]",{{eTA2007::ISizeV,"[3,3]"}})
               <<  Arg2007(mNameDico ,"Name for output dictionnary")
            ;
 }
@@ -66,7 +69,8 @@ cCollecSpecArg2007 & cAppli_DicoRename::ArgOpt(cCollecSpecArg2007 & anArgObl)
        << AOpt2007(mL0,"NumL0","Num of first line to read",{eTA2007::HDV})
        << AOpt2007(mLLast,"NumLast","Num of last line to read (-1 if at end of file)",{eTA2007::HDV})
        << AOpt2007(mComment,"Com","Carac for commentary",{eTA2007::HDV})
-       << AOpt2007(mNameFiles,"Files","Name file to transform [Input,Output)",{{eTA2007::ISizeV,"[2,2]"}})
+       << AOpt2007(mNameFilesListIm,"Files","Name file to transform [Input,Output]",{{eTA2007::ISizeV,"[2,2]"},eTA2007::HDV})
+       << AOpt2007(mNbMinTieP,"NbMinTiep","Number minimal of tie point for save, set -1 if save w/o tiep",{eTA2007::HDV})
 
        <<   mPhProj.DPMulTieP().ArgDirInOpt()
        <<   mPhProj.DPMulTieP().ArgDirOutOpt()
@@ -87,7 +91,7 @@ int cAppli_DicoRename::Exe()
 
     ReadFilesStruct
     (
-        mNameFile, mFormat,
+        mNameFileTxtIn, mFormat,
         mL0, mLLast, mComment,
         aVVNames,aVXYZ,aVWKP,aVNums,
         false
@@ -100,8 +104,8 @@ int cAppli_DicoRename::Exe()
          for (size_t aKName=1 ; aKName<aVNames.size() ; aKName++)
              aCatName = aCatName + mSeparator + aVNames.at(aKName);
 
-	 std::string  aNameIn  = ReplacePattern(mPatSubst.at(0),mPatSubst.at(1),aCatName);
-	 std::string  aNameOut = ReplacePattern(mPatSubst.at(0),mPatSubst.at(2),aCatName);
+	 std::string  aNameIn  = ReplacePattern(mPatIm.at(0),mPatIm.at(1),aCatName);
+	 std::string  aNameOut = ReplacePattern(mPatIm.at(0),mPatIm.at(2),aCatName);
 
 	 aDico[aNameIn] = aNameOut;
 
@@ -110,9 +114,11 @@ int cAppli_DicoRename::Exe()
 
     SaveInFile(aDico,mNameDico);
 
+/*
     if (IsInit(&mNameFiles))
     {
         auto aSetIn = ToVect(SetNameFromString(mNameFiles.at(0),true));
+        tNameSet aSetIn;
         tNameSet aSetOut;
 
         for (const auto & aNameIn : aSetIn)
@@ -123,25 +129,43 @@ int cAppli_DicoRename::Exe()
                aSetOut.Add(anIter->second);
             }
         }
+        SaveInFile(aSetIn,mNameFiles.at(0));
         SaveInFile(aSetOut,mNameFiles.at(1));
     }
+*/
 
-    if (mPhProj.DPMulTieP().DirInIsInit())
+    bool  isInitMTP = mPhProj.DPMulTieP().DirInIsInit();
+    if (isInitMTP)
     {
        MMVII_INTERNAL_ASSERT_User(mPhProj.DPMulTieP().DirOutIsInit(),eTyUEr::eUnClassedError,"MulTieP In w/o Out");
-       for (const auto & aPair :  aDico)
+    }
+    tNameSet aSetIn;
+    tNameSet aSetOut;
+    for (const auto & [aNameIn,aNameOut] :  aDico)
+    {
+       bool  hasTieP =    isInitMTP
+                       && ExistFile(mPhProj.DPMulTieP().FullDirIn()+ mPhProj.NameMultipleTieP(aNameIn));
+       int aNbTieP = isInitMTP ? -1 : 0;
+       if (hasTieP)
        {
-           if (ExistFile(mPhProj.DPMulTieP().FullDirIn()+ mPhProj.NameMultipleTieP(aPair.first)))
-           {
-               cVecTiePMul  aVTPM("toto");
-               mPhProj.ReadMultipleTieP(aVTPM,aPair.first);
-               mPhProj.SaveMultipleTieP(aVTPM,aPair.second);
-           }
-           else
-           {
-           }
+           cVecTiePMul  aVTPM("toto");
+           mPhProj.ReadMultipleTieP(aVTPM,aNameIn);
+           aVTPM.mNameIm = aNameOut;
+           aNbTieP = aVTPM.mVecTPM.size();
+           mPhProj.SaveMultipleTieP(aVTPM,aNameOut);
+       }
+       else
+       {
+       }
+
+       if (aNbTieP >= mNbMinTieP)
+       {
+           aSetIn.Add(aNameIn);
+           aSetOut.Add(aNameOut);
        }
     }
+    SaveInFile(aSetIn ,mNameFilesListIm.at(0));
+    SaveInFile(aSetOut,mNameFilesListIm.at(1));
 
     if (mPhProj.DPPointsMeasures().DirInIsInit())
     {
