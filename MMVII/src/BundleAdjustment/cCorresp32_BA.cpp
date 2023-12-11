@@ -31,7 +31,7 @@ cCorresp32_BA::cCorresp32_BA
     mCFix          (false), // By default we use fix point for GCP (contrary only interesting 4 bench)
     mSetCorresp    (aSetCorresp),
     mSzBuf         (100),
-    mEqColinearity (mSensor->EqColinearity(true,mSzBuf,false))
+    mEqColinearity (mSensor->SetAndGetEqColinearity(true,mSzBuf,false))
 {
 
     for (auto & anObj : mSensor->GetAllUK())

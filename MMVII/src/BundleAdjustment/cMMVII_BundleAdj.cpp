@@ -226,8 +226,7 @@ void cMMVII_BundleAdj::AddSensor(cSensorImage* aSI)
     mSetIntervUK.AddOneObj(aSI);
     mVSIm.push_back(aSI);
 
-    auto anEq = aSI->EqColinearity(true,10,true);  // WithDer, SzBuf, ReUse
-    mVEqCol.push_back(anEq);
+    aSI->SetAndGetEqColinearity(true,10,true);  // WithDer, SzBuf, ReUse
 }
 
 

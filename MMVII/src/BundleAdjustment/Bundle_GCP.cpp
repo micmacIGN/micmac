@@ -106,7 +106,7 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(const cSetMesImGCP * aSet)
                {
 	             cPt2dr aResidual = aPIm - aSens->Ground2Image(aPGr);
                      tREAL8 aWeightImage =   mGCPIm_Weighter.SingleWOfResidual(aResidual);
-	             cCalculator<double> * anEqColin =  mVEqCol.at(aIndIm);
+	             cCalculator<double> * anEqColin =  aSens->GetEqColinearity();
 // StdOut() << "anEqColinanEqColinanEqColin " << anEqColin << "\n";
                      // the "obs" are made of 2 point and, possibily, current rotation (for PC cams)
                      std::vector<double> aVObs = aPIm.ToStdVector();

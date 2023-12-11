@@ -50,9 +50,32 @@ const cPt2di & cPixelDomain::Sz() const {return mDPD->Sz();}
 /* ******************************************************* */
 
 cSensorImage::cSensorImage(const std::string & aNameImage) :
-     mNameImage (aNameImage)
+     mNameImage      (aNameImage),
+     mEqColinearity  (nullptr),
+     mEqCIsInit      (false)
 {
 }
+
+cCalculator<double> * cSensorImage::SetAndGetEqColinearity(bool WithDerives,int aSzBuf,bool ReUse)
+{
+    if (! mEqCIsInit)
+    {
+       MMVII_INTERNAL_ASSERT_tiny(WithDerives,"SetAndGetEqColinearity  w/o derivate to implement");
+       mEqCIsInit = true;
+       mEqColinearity  = CreateEqColinearity(WithDerives,aSzBuf,ReUse);
+    }
+
+    return mEqColinearity;
+}
+
+cCalculator<double> * cSensorImage::GetEqColinearity()
+{
+    MMVII_INTERNAL_ASSERT_tiny(mEqCIsInit,"GetEqColinearity Eq not init");
+
+    return mEqColinearity;
+}
+
+
 
 void cSensorImage::SetNameImage(const std::string & aNameImage)
 {

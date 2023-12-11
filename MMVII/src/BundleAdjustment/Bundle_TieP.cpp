@@ -36,7 +36,7 @@ void cMMVII_BundleAdj::OneItere_TieP()
        for (size_t aKIm : aConfig)
        {
            aVS.push_back(mVSIm.at(aKIm));
-	   aVEqCol.push_back(mVEqCol.at(aKIm));
+	   aVEqCol.push_back(mVSIm.at(aKIm)->GetEqColinearity());
        }
 
        const auto & aVals  = aPair.second;

@@ -160,13 +160,22 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	 virtual cPt3dr  PseudoCenterOfProj() const = 0;
 	 ///  For stenope camera return center, for other nullptr
 	 virtual const cPt3dr * CenterOfPC() const = 0;
-	 /// Return the calculator, adapted to the type, for computing colinearity equation
-         virtual cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf,bool ReUse) = 0;
+	 // Create if new, and memorize the colinearity equation
+         cCalculator<double> * SetAndGetEqColinearity(bool WithDerives,int aSzBuf,bool ReUse);
+
+	 // suppose it was init (and assert it)
+         cCalculator<double> * GetEqColinearity();
+
 	 /// If the camera has its own "obs/cste" (like curent rot for PC-Cam) that's the place to say it
 	 virtual  void PushOwnObsColinearity( std::vector<double> &) = 0;
 
      private :
-	 std::string                                    mNameImage;
+	 /// Return the calculator, adapted to the type, for computing colinearity equation
+         virtual cCalculator<double> * CreateEqColinearity(bool WithDerives,int aSzBuf,bool ReUse) = 0;
+
+	 std::string                                   mNameImage;
+         cCalculator<double> *                         mEqColinearity;  // memo equation, can be nullptr (for pure pose)
+	 bool                                          mEqCIsInit;      // memo if init of "mEqColinearity" was done
 	 // static std::map<std::string,cSensorImage*>  mDicoSensor;
 	 // static int                                  mNum;
 };
