@@ -44,19 +44,11 @@ class cAppli_ImportTiePMul : public cMMVII_Appli
 	int                        mL0;
 	int                        mLLast;
 	int                        mComment;
-<<<<<<< HEAD
 	std::vector<std::string>   mPatIm;        
 	std::vector<std::string>   mPatPt;        
         size_t                     mNbMinPt;
         std::string                mFileSelIm;
         bool                       mNumByConseq;
-=======
-	std::vector<std::string>   mPatTrIm;
-    std::vector<std::string>   mPatTrPt;
-    std::string                mNameFileWithPts; // name of fil for saving data with points
-    size_t                        mNbPtsInFWP;      // theshold on number of points
-
->>>>>>> f36fa6e4de1b3c96e5cc4f1365d385e71d21da7d
 };
 
 cAppli_ImportTiePMul::cAppli_ImportTiePMul(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec,bool ModeTieP) :
@@ -66,14 +58,9 @@ cAppli_ImportTiePMul::cAppli_ImportTiePMul(const std::vector<std::string> & aVAr
    mL0           (0),
    mLLast        (-1),
    mComment      (-1),
-<<<<<<< HEAD
    mNbMinPt      (0),
    mFileSelIm    ("ImagesWithTieP"),
    mNumByConseq  (false)
-=======
-   mNameFileWithPts ("ImagesWithTieP"),
-   mNbPtsInFWP      (0)
->>>>>>> f36fa6e4de1b3c96e5cc4f1365d385e71d21da7d
 {
 }
 
@@ -95,7 +82,6 @@ cCollecSpecArg2007 & cAppli_ImportTiePMul::ArgObl(cCollecSpecArg2007 & anArgObl)
 
 cCollecSpecArg2007 & cAppli_ImportTiePMul::ArgOpt(cCollecSpecArg2007 & anArgObl) 
 {
-<<<<<<< HEAD
     cCollecSpecArg2007 &
       aRes =   anArgObl
             << AOpt2007(mL0,"NumL0","Num of first line to read",{eTA2007::HDV})
@@ -112,20 +98,6 @@ cCollecSpecArg2007 & cAppli_ImportTiePMul::ArgOpt(cCollecSpecArg2007 & anArgObl)
    else
       return      aRes
            ;
-=======
-    return anArgObl
-       << AOpt2007(mL0,"NumL0","Num of first line to read",{eTA2007::HDV})
-       << AOpt2007(mLLast,"NumLast","Num of last line to read (-1 if at end of file)",{eTA2007::HDV})
-       << AOpt2007(mPatTrIm,"PatIm","Pattern for transforming image [Pat,Repl]",{{eTA2007::ISizeV,"[2,2]"}})
-       << AOpt2007(mPatTrPt,"PatPt","Pattern for transforming/selectin pt [Pat,Repl]",{{eTA2007::ISizeV,"[2,2]"}})
-
-/*
-       << AOpt2007(mNameGCP,"NameGCP","Name of GCP set")
-       << AOpt2007(mNbDigName,"NbDigName","Number of digit for name, if fixed size required (only if int)")
-       << mPhProj.ArgChSys(true)  // true =>  default init with None
-*/
-    ;
->>>>>>> f36fa6e4de1b3c96e5cc4f1365d385e71d21da7d
 }
 
 
@@ -137,11 +109,7 @@ int cAppli_ImportTiePMul::Exe()
     std::vector<cPt3dr> aVXYZ,aVWKP;
 
 
-<<<<<<< HEAD
     MMVII_INTERNAL_ASSERT_tiny(CptSameOccur(mFormat,"XYNI")==1,"Bad format vs NIXY");
-=======
-    MMVII_INTERNAL_ASSERT_tiny(CptSameOccur(mFormat,"XYNI")==1,"Bad format vs NXY");
->>>>>>> f36fa6e4de1b3c96e5cc4f1365d385e71d21da7d
 
     ReadFilesStruct
     (
@@ -151,7 +119,6 @@ int cAppli_ImportTiePMul::Exe()
         false
     );
 
-<<<<<<< HEAD
     size_t  aRankI_InF = mFormat.find('I');
     size_t  aRankP_InF = mFormat.find('N');
     size_t  aRankP = (aRankP_InF<aRankI_InF) ? 0 : 1;
@@ -241,75 +208,16 @@ int cAppli_ImportTiePMul::Exe()
 
 
       return EXIT_SUCCESS;
-=======
-    // VNames will contains NameIm and NamePt, we need to know which is first
-    size_t aIndImInFormat = mFormat.find('I');
-    size_t aIndPtInFormat = mFormat.find('N');
-    size_t aIndPt = (aIndPtInFormat<aIndImInFormat) ? 0 : 1;
-    size_t aIndIm = 1-aIndPt;
-
-    std::map<std::string,cVecTiePMul*>  mMapRes;
-    for (size_t aK=0 ; aK<aVXYZ.size() ; aK++)
-    {
-         // All the point may not be included, and also they may be transormed
-         std::string aNamePt   = aVNames.at(aK).at(aIndPt);
-          bool SelectPt = true;
-          if (IsInit(&mPatTrPt))
-          {
-              SelectPt = MatchRegex(aNamePt,mPatTrPt.at(0));
-              if (SelectPt)
-                  aNamePt = ReplacePattern(mPatTrPt.at(0),mPatTrPt.at(1),aNamePt);
-          }
-          //StdOut() << "Pppp= " << aNamePt << "  " << SelectPt << "\n";
-          if (SelectPt)
-          {
-             std::string aNameI   = aVNames.at(aK).at(aIndIm);
-             if (IsInit(&mPatTrIm))
-                aNameI = ReplacePattern(mPatTrIm.at(0),mPatTrIm.at(1),aNameI);
-
-             if (mMapRes.find(aNameI) == mMapRes.end())
-             {
-                mMapRes[aNameI] = new cVecTiePMul(aNameI);
-                //StdOut() << "III = " << aNameI << "\n";
-             }
-             cPt2dr aP2 = Proj(aVXYZ.at(aK));
-             int aIndPt = cStrIO<int>::FromStr(aNamePt);
-              mMapRes[aNameI]->mVecTPM.push_back(cTiePMul(aP2,aIndPt));
-// StdOut() << aNameI << " " << aIndPt << "\n";
-          }
-    }
-
-    tNameSet aSetWithTiep;
-    for ( const auto &[aName, aVecMTP]: mMapRes )
-    {
-        mPhProj.SaveMultipleTieP(*aVecMTP,aName);
-        if (aVecMTP->mVecTPM.size()>=mNbPtsInFWP)
-            aSetWithTiep.Add(aName);
-
-        delete aVecMTP;
-    }
-    SaveInFile(aSetWithTiep,mNameFileWithPts + "."+GlobTaggedNameDefSerial());
-    return EXIT_SUCCESS;
->>>>>>> f36fa6e4de1b3c96e5cc4f1365d385e71d21da7d
 }
 
 
 std::vector<std::string>  cAppli_ImportTiePMul::Samples() const
 {
-<<<<<<< HEAD
    if (mModeTieP)
       return 
       {
           "MMVII ImportTiePMul External-Data/Liaisons.MES NIXY Vexcell NumL0=1 PatIm=[\".*\",\"\\$0.tif\"] PatPt=[\"(MES_)(.*)\",\"\\$2\"]"
       };
-=======
-   return 
-   {
-          "MMVII ImportTiePMul External-Data/Liaisons.MES NIXY toto NumL0=1 PatIm=[\".*\",\"\\$0.tif\"]"
-          " PatPt=[\"(MES_)(.*)\",\"\\$2\"]"
-   };
-}
->>>>>>> f36fa6e4de1b3c96e5cc4f1365d385e71d21da7d
 
     return {};
 }
