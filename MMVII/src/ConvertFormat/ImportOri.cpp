@@ -51,6 +51,7 @@ class cAppli_ImportOri : public cMMVII_Appli
 	std::vector<std::string> mChgName2;  // for ex, with IMU, we want to export as image init & imu measure
 	std::string              mNameDicoName;
 	std::string              mFileSaveIm;
+	size_t                   mNbMinTieP;
 };
 
 cAppli_ImportOri::cAppli_ImportOri(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -61,7 +62,8 @@ cAppli_ImportOri::cAppli_ImportOri(const std::vector<std::string> & aVArgs,const
    mComment      ('#'),
    mAngleUnit    (eTyUnitAngle::eUA_radian),
    mRepIJK       ("ijk"),
-   mRepIJDir     (false)
+   mRepIJDir     (false),
+   mNbMinTieP    (1)
 {
 }
 
@@ -89,6 +91,8 @@ cCollecSpecArg2007 & cAppli_ImportOri::ArgOpt(cCollecSpecArg2007 & anArgObl)
        << AOpt2007(mChgName2,"ChgN2","Change name [Pat,Name], for ex \"[(.*),\\$0.IMU]\"  add postfix \"IMU\" ",{{eTA2007::ISizeV,"[2,2]"}})
        << AOpt2007(mNameDicoName,"DicName","Dictionnary for changing names of images ")
        << AOpt2007(mFileSaveIm,"FileSaveIm","File for saving all names of images ")
+       << mPhProj.DPMulTieP().ArgDirInOpt("TiePF","TieP for filtering on number")
+       << AOpt2007(mNbMinTieP,"NbMinTieP","Number mininmal of tie point (when TiePF is init)",{eTA2007::HDV} )
     ;
 }
 
@@ -161,9 +165,22 @@ int cAppli_ImportOri::Exe()
          ChgName(mChgName2,aNameIm2);
 
 	 // StdOut() << "aNameImaNameIm=" << aNameIm << "\n";
-	 aSetIm.Add(aNameIm);
-         if (WithName2)
-	    aSetIm.Add(aNameIm2);
+	 /*
+	 bool Add2Set = mPhProj.HasNbMinMultiTiePoints(aNameIm,mNbMinTieP,true);
+	 if ( mPhProj.DPMulTieP().DirInIsInit())
+	 {
+              cVecTiePMul aVPM(aNameIm);
+	      mPhProj.ReadMultipleTieP(aVPM,aNameIm,true);
+	      Add2Set = (aVPM.mVecTPM.size() >= mNbMinTieP);
+	 }
+	 */
+
+	 if (mPhProj.HasNbMinMultiTiePoints(aNameIm,mNbMinTieP,true))
+	 {
+	    aSetIm.Add(aNameIm);
+            if (WithName2)
+	       aSetIm.Add(aNameIm2);
+	 }
             
 
 	 // Orient may be non init, by passing NONE, if we want to generate only the name

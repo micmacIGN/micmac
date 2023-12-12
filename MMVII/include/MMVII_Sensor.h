@@ -526,6 +526,7 @@ class cPhotogrammetricProject
 	 std::string NameMultipleTieP(const std::string &) const;
 	 void  SaveMultipleTieP(const cVecTiePMul&,const std::string &) const;
 	 void  ReadMultipleTieP(cVecTiePMul&,const std::string &,bool SVP =false ) const;
+	 bool HasNbMinMultiTiePoints(const std::string & aNameIm,size_t aNbMin,bool AcceptNoDirIn =false) const;
 
 	 //===================================================================
          //==================    Coord Sys           =========================

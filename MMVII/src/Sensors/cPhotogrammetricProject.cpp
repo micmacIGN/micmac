@@ -718,6 +718,20 @@ void  cPhotogrammetricProject::ReadMultipleTieP(cVecTiePMul& aVPm,const std::str
    aVPm.mNameIm = aNameIm;
 }
 
+bool cPhotogrammetricProject::HasNbMinMultiTiePoints(const std::string & aNameIm,size_t aNbMinTieP,bool AcceptNoDirIn ) const
+{
+    if (!DPMulTieP().DirInIsInit())
+    {
+        MMVII_INTERNAL_ASSERT_strong(AcceptNoDirIn,"No DirInIsInit in HasNbMinMultiTiePoints");
+        return true;
+    }
+
+    cVecTiePMul aVPM(aNameIm);
+    ReadMultipleTieP(aVPM,aNameIm,true);
+    return aVPM.mVecTPM.size() >= aNbMinTieP;
+}
+
+
 
 std::string cPhotogrammetricProject::NameConfigMTP(const std::string &  anExt)
 {

@@ -1,6 +1,6 @@
-
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_DeclareAllCmd.h"
+#include "MMVII_Sensor.h"
 
 
 /** \file cMMVII_CalcSet.cpp
@@ -56,12 +56,15 @@ class cAppli_EditSet : public cMMVII_Appli
      protected :
         bool AcceptEmptySet(int aK) const override;
      private :
+	 cPhotogrammetricProject  mPhProj;
          std::string mNameXmlIn;  ///< Save Input file, generally in-out
          std::string mNameXmlOut; ///< Output file, when != Input
          std::string mPat;    ///< Pattern (or File) to modify
          eOpAff      mOp;     ///<  operator
          int         mShow;   ///< Level of message
          std::vector<std::string>  mChgName;
+	 std::string               mPatFilter;
+         size_t                    mNbMinTieP;
 };
 
 cAppliBenchAnswer cAppli_EditSet::BenchAnswer() const
@@ -215,17 +218,23 @@ cCollecSpecArg2007 & cAppli_EditSet::ArgOpt(cCollecSpecArg2007 & anArgOpt)
          << AOpt2007(mShow,"Show","Show detail of set before/after, 0->none, (1) modif, (2) all",{{eTA2007::HDV}})
          << AOpt2007(mNameXmlOut,"Out","Destination, def=Input, no save for " + MMVII_NONE,{})
          << AOpt2007(mChgName,"ChgN","Change name [Pat,Name], for ex \"[(.*),IMU_\\$0]\"  add prefix \"IMU_\" ",{{eTA2007::ISizeV,"[2,2]"}})
+	 << mPhProj.DPMulTieP().ArgDirInOpt("TiePF","TieP for filtering on number")
+         << AOpt2007(mNbMinTieP,"NbMinTieP","Number min of tie points, if TiePF",{{eTA2007::HDV}})
+         << AOpt2007(mPatFilter,"PatF","Pattern to filter on name")
       ;
 }
 
 cAppli_EditSet::cAppli_EditSet(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
   cMMVII_Appli (aVArgs,aSpec),
-  mShow        (0)
+  mPhProj      (*this),
+  mShow        (0),
+  mNbMinTieP   (1)
 {
 }
 
 int cAppli_EditSet::Exe()
 {
+    mPhProj.FinishInit();
 
    InitOutFromIn(mNameXmlOut,mNameXmlIn);
 
@@ -244,10 +253,32 @@ int cAppli_EditSet::Exe()
    }
 
    // StdOut()  << "aNewaNewaNew " <<  aNew.size() << std::endl;
-
    tNameSet aRes = aInput.Dupl();
-
    aRes.OpAff(mOp,aNew);
+
+   if (IsInit(&mPatFilter))
+   {
+       tNameSelector  aSel = AllocRegex(mPatFilter);
+       tNameSet aNewRes;
+       for (const auto & aName : ToVect(aRes))
+       {
+          if (aSel.Match(aName))
+             aNewRes.Add(aName);
+       }
+       aRes = aNewRes;
+   }
+
+   if (mPhProj.DPMulTieP().DirInIsInit())
+   {
+      tNameSet aNewRes;
+      for (const auto & aName : ToVect(aRes))
+      {
+          if (mPhProj.HasNbMinMultiTiePoints(aName,mNbMinTieP,true))
+             aNewRes.Add(aName);
+      }
+      aRes = aNewRes;
+   }
+
 
    if (mShow)
    {
