@@ -197,6 +197,11 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM)
         mBlRig->SetFrozenVar(*mR8_Sys);
     }
 
+    if (mTopo) // TOPO
+    {
+        mTopo->SetFrozenVar(*mR8_Sys);
+    }
+
     // ================================================
     //  [2]   Add "Soft" constraint 
     // ================================================
@@ -222,6 +227,12 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM)
         mBlRig->AddRigidityEquation(*mR8_Sys);
     }
     // StdOut() << "SYS=" << mR8_Sys->GetNbObs() << " " <<  mR8_Sys->NbVar() << std::endl;
+
+
+    if (mTopo) // TOPO
+    {
+        mTopo->AddTopoEquations(*mR8_Sys);
+    }
 
     const auto & aVectSol = mSys->R_SolveUpdateReset(aLVM);
     mSetIntervUK.SetVUnKnowns(aVectSol);
@@ -521,10 +532,14 @@ void cMMVII_BundleAdj::SaveBlocRigid()
     }
 }
 
+/* ---------------------------------------- */
+/*                 Topo                     */
+/* ---------------------------------------- */
+
 bool cMMVII_BundleAdj::AddTopo(const std::string & aTopoFilePath) // TOPO
 {
     mTopo = new cBA_Topo(*mPhProj, aTopoFilePath);
-
+    mTopo->AddToSys(mSetIntervUK);
     return mTopo->isOk();
 }
 

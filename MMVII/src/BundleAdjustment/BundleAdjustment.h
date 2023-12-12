@@ -164,6 +164,7 @@ class cMMVII_BundleAdj
           void AssertPhpAndPhaseAdd() ;  /// Assert both
           void InitIteration();          /// Called at first iteration -> Init things and set we are non longer in Phase Add
           void InitItereGCP();           /// GCP Init => create UK
+          void InitItereTopo();           /// Topo Init => create UK
           void OneItere_GCP();           /// One iteraion of adding GCP measures
 
 	  void OneItere_TieP();   /// Iteration on tie points

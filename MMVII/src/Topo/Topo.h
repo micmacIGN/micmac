@@ -8,6 +8,7 @@ namespace MMVII
 
 class cPhotogrammetricProject;
 class cSensorCamPC;
+class cPt3dr_UK;
 
 /**   Class to represent Topo constraints for bundle adjustment
  */
@@ -39,13 +40,15 @@ public :
     bool isOk() const {return mOk;}
 private :
 
-    void AddEquation_Dist3d(cResolSysNonLinear<tREAL8> &);
+    double AddEquation_Dist3d(cResolSysNonLinear<tREAL8> &);
 
     const cPhotogrammetricProject &mPhProj;
-    std::vector<double>          mSigma;
-    std::vector<double>          mWeight;
+
     std::map<TopoObsType, cCalculator<double>*> mTopoObsType2equation;
     bool                         mOk;
+
+    // tmp: obs here, TODO: use cTopoObsSet
+    std::vector<cPt3dr_UK*>      mPts_UK;
 
 };
 
