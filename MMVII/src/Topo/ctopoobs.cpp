@@ -2,12 +2,14 @@
 #include "MMVII_PhgrDist.h"
 #include <memory>
 #include "ctopoobsset.h"
-#include "ctopocomp.h"
+#include "ctopopoint.h"
+#include "MMVII_SysSurR.h"
+
 namespace MMVII
 {
 
 cTopoObs::cTopoObs(cTopoObsSet* set, TopoObsType type, const std::vector<cTopoPoint*> & pts, const std::vector<tREAL8> & vals, const cResidualWeighterExplicit<tREAL8> &aWeights):
-    mSet(set), mType(type), mPts(pts), mVals(vals), mWeights(aWeights)
+    mSet(set), mType(type), mPts(pts), mVals(vals)//, mWeights(aWeights)
 {
     MMVII_INTERNAL_ASSERT_strong(mSet, "Obs: no set given")
     switch (mType) {
@@ -109,12 +111,12 @@ std::vector<tREAL8> cTopoObs::getVals() const
     return vals;
 }
 
-cResidualWeighterExplicit<tREAL8> &cTopoObs::getWeights()
+/*cResidualWeighterExplicit<tREAL8> &cTopoObs::getWeights()
 {
     return mWeights;
-}
+}*/
 
-std::vector<tREAL8> cTopoObs::getResiduals(const cTopoComp *comp) const
+/*std::vector<tREAL8> cTopoObs::getResiduals(const cTopoComp *comp) const
 {
     auto eq = comp->getEquation(getType());
     std::vector<int> indices = getIndices();
@@ -128,6 +130,6 @@ std::vector<tREAL8> cTopoObs::getResiduals(const cTopoComp *comp) const
     for (unsigned int i = 0; i < eval.size(); i += valPerSubObs)
         residuals.push_back(eval[i]);
     return residuals;
-}
+}*/
 
 };

@@ -2,12 +2,12 @@
 #define CTOPOOBS_H
 
 #include "MMVII_AllClassDeclare.h"
-#include "ctopopoint.h"
 
 namespace MMVII
 {
 class cTopoObsSet;
-class cTopoComp;
+class cTopoPoint;
+template <class Type> class cResidualWeighterExplicit;
 
 enum class TopoObsType
 {
@@ -29,15 +29,15 @@ public:
     TopoObsType getType() const {return mType;}
     std::vector<int> getIndices() const;
     std::vector<tREAL8> getVals() const;
-    cResidualWeighterExplicit<tREAL8>& getWeights();
-    std::vector<tREAL8> getResiduals(const cTopoComp *comp) const;
+    //cResidualWeighterExplicit<tREAL8>& getWeights();
+    //std::vector<tREAL8> getResiduals(const cTopoComp *comp) const;
     std::string type2string() const;
 protected:
     cTopoObsSet* mSet;//the set containing the shared parameters
     TopoObsType mType;
     std::vector<cTopoPoint*> mPts;
     std::vector<tREAL8> mVals;
-    cResidualWeighterExplicit<tREAL8> mWeights;
+    //cResidualWeighterExplicit<tREAL8> mWeights;
 };
 
 

@@ -3,6 +3,7 @@
 
 #include "ctopoobs.h"
 #include "MMVII_Geom3D.h"
+#include "MMVII_SysSurR.h"
 
 namespace MMVII
 {

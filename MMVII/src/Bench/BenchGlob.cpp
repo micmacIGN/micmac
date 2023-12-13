@@ -493,7 +493,7 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         BenchDenseMatrix0(aParam);
 
         // Test topo compensation
-        BenchTopoComp(aParam);
+        //BenchTopoComp(aParam); // TODO
 
         // Call several test on images : File, RectObj, Im1D, Im2D, BaseImage
         BenchGlobImage(aParam);

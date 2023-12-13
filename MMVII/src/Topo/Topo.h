@@ -1,5 +1,7 @@
 #include "MMVII_SysSurR.h"
 #include "MMVII_Sensor.h"
+#include "ctopodata.h"
+
 
 using namespace NS_SymbolicDerivative;
 
@@ -9,16 +11,6 @@ namespace MMVII
 class cPhotogrammetricProject;
 class cSensorCamPC;
 class cPt3dr_UK;
-
-/**   Class to represent Topo constraints for bundle adjustment
- */
-enum class TopoObsType
-{
-    dist=3,
-    subFrame=11,
-    distParam=22,
-};
-
 
 class cBA_Topo
 {
