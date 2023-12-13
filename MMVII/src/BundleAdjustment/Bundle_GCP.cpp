@@ -200,10 +200,11 @@ class cCenterPose_UK : public cBasePt3dr_UK,
          tPoseR * mPose;
 };
 
+void * GeyVoidPtr();
 void TestCompile_cCenterPose_UK()
 {
-    tPoseR * aPose = nullptr;
-    cResolSysNonLinear<tREAL8> *  aR8_Sys = nullptr;
+    tPoseR * aPose = (tPoseR * ) GeyVoidPtr();
+    cResolSysNonLinear<tREAL8> *  aR8_Sys = (cResolSysNonLinear<tREAL8> *) GeyVoidPtr();
     std::vector<int> aVIndGlob;
 
     cCenterPose_UK aCPUK(*aPose);
@@ -215,6 +216,7 @@ void TestCompile_cCenterPose_UK()
     aR8_Sys->AddEqFixCurVar(cCenterPose_UK(*aPose),aPose->Tr(),1.0);
 }
 
+void * GeyVoidPtr() {return nullptr;}
 
 
 };
