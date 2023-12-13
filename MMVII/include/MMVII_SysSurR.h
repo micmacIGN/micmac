@@ -756,7 +756,13 @@ template <class Type> class cObjWithUnkowns //  : public cObjOfMultipleObjUk<Typ
           virtual void OnUpdate();
 
 	  ///  Push in vector all the number of unknowns
-          void PushIndexes(std::vector<int> &);
+          void PushIndexes(std::vector<int> &) const;
+	  ///  Push in vector a single value    
+          void PushIndexes(std::vector<int> &,const Type &) const;
+	  ///  Push in vector aNbVal single value    
+          void PushIndexes(std::vector<int> &,const Type *,size_t aNbVal) const;
+	  ///  Push in vector the index of 3 coords
+          void PushIndexes(std::vector<int> &,const cPtxd<Type,3> & ) const;
 
 	  ///  indicate if the object has been initialized
           bool  UkIsInit() const;
