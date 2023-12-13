@@ -1,6 +1,7 @@
 #include "ctopodata.h"
 #include "MMVII_PhgrDist.h"
 #include "ctopopoint.h"
+#include "MMVII_2Include_Serial_Tpl.h"
 
 #include <memory>
 namespace MMVII
@@ -23,6 +24,20 @@ cTopoData::~cTopoData()
     delete mSys;
     delete mSetIntervMultObj;
     std::for_each(allPts.begin(), allPts.end(), [](auto p){ delete p; });
+}
+
+
+void cTopoData::AddData(const  cAuxAr2007 & anAuxInit)
+{
+     cAuxAr2007 anAux("TopoData",anAuxInit);
+
+     MMVII::AddData(cAuxAr2007("AllPts",anAux),allPts);
+     // MMVII::AddData(cAuxAr2007("AllObsSets",anAux),allObsSets); // TODO
+}
+
+void AddData(const cAuxAr2007 & anAux, cTopoData & aTopoData)
+{
+     aTopoData.AddData(anAux);
 }
 
 

@@ -20,6 +20,7 @@ class cTopoData
 public:
     cTopoData();
     ~cTopoData();
+    void AddData(const  cAuxAr2007 & anAuxInit);
     void print();
     void createEx1();
     cCalculator<double>* getEquation(TopoObsType tot) const;
@@ -30,6 +31,10 @@ private:
     cResolSysNonLinear<double>*  mSys;
     std::map<TopoObsType, cCalculator<double>*> mTopoObsType2equation;
 };
+
+
+///  Global function with standard interface required for serialization => just call member
+void AddData(const cAuxAr2007 & anAux, cTopoData & aTopoData) ;
 
 
 };
