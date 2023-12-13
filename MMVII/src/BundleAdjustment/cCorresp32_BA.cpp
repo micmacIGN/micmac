@@ -77,6 +77,7 @@ void cCorresp32_BA::OneIteration()
      std::vector<int> aVIndGlob = aVIndGround;
      // m CamPC->PushIndexes(aVIndGlob); // #DOC-PushIndex
      // m Calib->PushIndexes(aVIndGlob); // #DOC-PushIndex
+
      for (auto & anObj : mSensor->GetAllUK())
         anObj->PushIndexes(aVIndGlob); // #DOC-PushIndex
 

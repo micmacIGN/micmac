@@ -153,7 +153,17 @@ cPt3dr cBA_BlocRig::OnePairAddRigidityEquation(size_t aKS,size_t aKBl1,size_t aK
     aCam1->PushIndexes(aVInd);
     aCam2->PushIndexes(aVInd);
     aPBl1.PushIndexes(aVInd);
-    aPBl2.PushIndexes(aVInd);
+    // Set ForJeanMimi  to check the equiv between global push indexe & in 2 piece
+    bool  ForJeanMimi = false;
+    if (ForJeanMimi)
+    {
+        aPBl2.PushIndexes(aVInd,aPBl2.Center());
+        aPBl2.PushIndexes(aVInd,aPBl2.Omega());
+    }
+    else
+    {
+        aPBl2.PushIndexes(aVInd);
+    }
 
     // now we are ready to add the equation
     aSys.R_CalcAndAddObs
