@@ -1,0 +1,125 @@
+name: Build MMVII Linux/Windows
+
+on:
+  push:
+    branches:
+      - 'master'
+
+jobs:
+  build_linux:
+    if: true
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Qt and clang
+      run: sudo apt install qtbase5-dev clang-14
+
+    - name: Configure CMake for mm3d
+      run: cmake -B build -DWITH_CCACHE=OFF -DCMAKE_BUILD_TYPE=Release -DWITH_QT5=ON
+
+    - name: Cache mm3d build
+      id: cache-mm3d-linux
+      uses: actions/cache@v3
+      with:
+        path: |
+          lib/libelise.a
+          lib/libANN.a
+          bin/mm3d
+        key: ${{ runner.os }}-build-mm3d-${{ hashFiles('src/**/*.cpp','src/**/*.h','include/**/*.h','!src/util/GIT_defines.cpp') }}
+
+    - if: ${{ steps.cache-mm3d-linux.outputs.cache-hit != 'true' }}
+      name: Build elise.lib and mm3d
+      run: make -C build install -j 4
+
+    - name: Configure CMake for MMVII
+      run: cmake -S MMVII -B MMVII/build -DCMAKE_BUILD_TYPE=Release
+      env:
+        CXX: clang++-14
+        CC: clang-14
+
+    - name: Build MMVII first stage, build base code
+      run: cmake --build MMVII/build -j 4 -- -k
+
+    - name: Generate codes for Symbolic Derivatives
+      run: MMVII/bin/MMVII GenCodeSymDer
+
+    - name: Build MMVII second stage, build generated code
+      run: cmake --build MMVII/build -j 4 -- -k
+
+    - name: Run MMVII Tests
+      working-directory: ./MMVII/bin
+      run: ./MMVII Bench 1
+
+
+  build_win:
+    if: true
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v3
+      with: 
+        cache: true
+
+    - name: Configure CMake
+      run: cmake -B build -DWITH_CCACHE=OFF -DCMAKE_BUILD_TYPE=Release -DWITH_QT5=ON -DCMAKE_INSTALL_PREFIX=${{github.workspace}}
+
+    - name: Cache mm3d build
+      id: cache-mm3d-windows
+      uses: actions/cache@v3
+      with:
+        path: |
+          lib/elise.lib
+          lib/ANN.lib
+          bin/mm3d.exe
+        key: ${{ runner.os }}-build-mm3d-${{ hashFiles('src/**/*.cpp','src/**/*.h','include/**/*.h','!src/util/GIT_defines.cpp') }}
+
+    - if: ${{ steps.cache-mm3d-windows.outputs.cache-hit != 'true' }}
+      name: Build elise.lib and mm3d
+      run: cmake --build build --config Release --target INSTALL -j 4
+    
+    - name: Configure CMake for MMVII
+      run: cmake -S MMVII -B MMVII/build 
+
+    - name: Build MMVII first stage, build base code
+      run: cmake --build MMVII/build --config Release -j 4
+
+    - name: Generate codes for Symbolic Derivatives
+      run: MMVII/bin/MMVII GenCodeSymDer
+
+    - name: Build MMVII second stage, build generated code
+      run: cmake --build MMVII/build  --config Release -j 4
+
+    - name: Run MMVII Tests
+      working-directory: ./MMVII/bin
+      run: ./MMVII Bench 1
+
+    - name: Package
+      shell: bash
+      run: |
+        env
+        mkdir -p bin/platforms bin/imageformats MMVII/bin/platforms
+        cp ${Qt5_Dir}/plugins/platforms/qwindows.dll MMVII/bin/platforms/
+        DEST=$(pwd)/bin
+        cd $Qt5_Dir/bin
+        cp Qt5Core.dll Qt5Gui.dll Qt5Xml.dll Qt5OpenGL.dll Qt5Widgets.dll $DEST/
+        cd $Qt5_Dir/plugins
+        cp platforms/qwindows.dll $DEST/platforms/
+        cp imageformats/*.dll $DEST/imageformats/
+        cd $GITHUB_WORKSPACE
+        ls -lrt bin MMVII/bin
+
+    - name: Create Zip
+      run: 7z a mmvii_windows.zip bin\ binaire-aux\ include\XML_MicMac\ include\XML_GEN\ include\qt MMVII\MMVII-LocalParameters\ MMVII\MMVII-RessourceDir\ MMVII\bin\MMVII.exe MMVII\bin\vMMVII.exe MMVII\bin\platforms
+ 
+    - name: Upload binaries to release
+      uses: softprops/action-gh-release@v1
+      with:
+          draft: true
+          name: cm-test
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: mmvii_windows.zip
