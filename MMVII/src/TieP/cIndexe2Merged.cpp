@@ -267,7 +267,7 @@ cReadMTP_Std::cReadMTP_Std
 {
      for (size_t aKIm=0 ; aKIm<aVNames.size() ; aKIm++)
      {
-	  aPhProj.ReadMultipleTieP(mVTpm[aKIm],aVNames[aKIm]);
+	  aPhProj.ReadMultipleTieP(mVTpm[aKIm],aVNames[aKIm],true);  // true=SVP , ok if no file
 	  const auto & aVec = mVTpm[aKIm].mVecTPM;
 	  if (! aVec.empty())
 	  {

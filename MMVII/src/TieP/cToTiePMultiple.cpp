@@ -35,6 +35,9 @@ cPt3dr BundleInter(const tPairTiePMult & aPair,size_t aKPts,const std::vector<cS
     const cVal1ConfTPM & aVal =  Val(aPair);
     size_t aMult = aConfig.size();
 
+    if (aMult<2) 
+       return cPt3dr(0,0,0);
+
     size_t aKP0 = aKPts*aMult;
     std::vector<tSeg3dr>  aVSeg;
     for (size_t aK= 0 ; aK<aMult ; aK++)

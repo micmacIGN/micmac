@@ -89,6 +89,7 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(const cSetMesImGCP * aSet)
                int aIndIm = aVIndIm.at(aKIm);
                cSensorImage * aSens = aVSens.at(aIndIm);
                const cPt2dr & aPIm = aVPIm.at(aKIm);
+//StdOut() << "aSensaSensaSens " << aSens->NameImage() << " " << aVIndIm << "\n";
 
 	       // compute indexe of unknown, if GCp are !UK we have fix index for temporary
                std::vector<int> aVIndGlob = aGcpUk ? (std::vector<int>()) : aVIndGround;
@@ -105,7 +106,8 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(const cSetMesImGCP * aSet)
                {
 	             cPt2dr aResidual = aPIm - aSens->Ground2Image(aPGr);
                      tREAL8 aWeightImage =   mGCPIm_Weighter.SingleWOfResidual(aResidual);
-	             cCalculator<double> * anEqColin =  mVEqCol.at(aIndIm);
+	             cCalculator<double> * anEqColin =  aSens->GetEqColinearity();
+// StdOut() << "anEqColinanEqColinanEqColin " << anEqColin << "\n";
                      // the "obs" are made of 2 point and, possibily, current rotation (for PC cams)
                      std::vector<double> aVObs = aPIm.ToStdVector();
 		     aSens->PushOwnObsColinearity(aVObs);
@@ -156,17 +158,63 @@ cPt3dr_UK::cPt3dr_UK(const cPt3dr & aPt) :
 {
 }
 
-void cPt3dr_UK::PutUknowsInSetInterval()
-{
-    mSetInterv->AddOneInterv(mPt);
-}
-
-const cPt3dr & cPt3dr_UK::Pt() const {return mPt;}
-
 cPt3dr_UK::~cPt3dr_UK()
 {
         OUK_Reset();
 }
+
+cPt3dr * cPt3dr_UK::AdrPt() { return & mPt; }
+
+    /* ---------------------------------------- */
+    /*            cBasePt3dr_UK                 */
+    /* ---------------------------------------- */
+
+void cBasePt3dr_UK::PutUknowsInSetInterval()
+{
+    mSetInterv->AddOneInterv(*AdrPt());
+}
+
+const cPt3dr & cBasePt3dr_UK::Pt() const 
+{
+    return *const_cast<cBasePt3dr_UK*>(this)->AdrPt(); 
+}
+
+cBasePt3dr_UK::cBasePt3dr_UK() {}
+
+
+/*
+void cPt3dr_UK::PutUknowsInSetInterval()
+{
+    mSetInterv->AddOneInterv(mPt);
+}
+const cPt3dr & cPt3dr_UK::Pt() const {return mPt;}
+*/
+
+class cCenterPose_UK : public cBasePt3dr_UK,
+                       public cMemCheck
+{
+    public :
+         cCenterPose_UK(tPoseR & aPose) : mPose (&aPose) {}
+         cPt3dr * AdrPt() override {return &(mPose->Tr());}
+    private :
+         tPoseR * mPose;
+};
+
+void TestCompile_cCenterPose_UK()
+{
+    tPoseR * aPose = nullptr;
+    cResolSysNonLinear<tREAL8> *  aR8_Sys = nullptr;
+    std::vector<int> aVIndGlob;
+
+    cCenterPose_UK aCPUK(*aPose);
+    aCPUK.PushIndexes(aVIndGlob);
+    aR8_Sys->AddEqFixCurVar(aCPUK,aCPUK.Pt(),1.0);
+
+   //  Can also use temporary 
+    cCenterPose_UK(*aPose).PushIndexes(aVIndGlob);
+    aR8_Sys->AddEqFixCurVar(cCenterPose_UK(*aPose),aPose->Tr(),1.0);
+}
+
 
 
 };

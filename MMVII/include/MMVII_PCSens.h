@@ -398,6 +398,10 @@ class cPoseWithUK :  public cObjWithUnkowns<tREAL8>
 	 void  GetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
 	 // std::vector<tPtrOUK>  GetAllUK() override;
 
+         // Val axiator should have to "equal" fix rot
+         cPt3dr ValAxiatorFixRot(const cRotation3D<tREAL8> & aRotFix) const;
+
+
      private :
          void PutUknowsInSetInterval() override ;  // add the interval on udpate
 
@@ -452,7 +456,7 @@ class cSensorCamPC : public cSensorImage
 
 	 const cPt3dr * CenterOfPC() const override;
          /// Return the calculator, adapted to the type, for computing colinearity equation
-         cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf,bool ReUse) override;
+         cCalculator<double> * CreateEqColinearity(bool WithDerives,int aSzBuf,bool ReUse) override;
 	 /// Push the current rotation, as equation are fixed using delta-rot
 	 void PushOwnObsColinearity( std::vector<double> &) override;
 

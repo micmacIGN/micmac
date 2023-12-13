@@ -1,6 +1,7 @@
 #include "MMVII_Geom2D.h"
 #include "MMVII_Geom3D.h"
 #include "MMVII_Tpl_Images.h"
+#include "MMVII_PCSens.h"
 
 namespace MMVII
 {
@@ -177,8 +178,30 @@ template<class Type> void TplBenchRotation3D(cParamExeBench & aParam)
    // StdOut() << "============================" << std::endl;
 }
 
+void BenchRotation3DReal8()
+{
+    tREAL8 aEps = 0.2;
+    for (int aKT=0 ; aKT<100 ; aKT++)
+    {
+         cRotation3D<tREAL8>  aR0 = cRotation3D<tREAL8>::RandomRot();
+         cRotation3D<tREAL8>  aRTarget = aR0*cRotation3D<tREAL8>::RandomRot(aEps);
+
+         cPoseWithUK  aPUK(tPoseR(cPt3dr(0,0,0),aR0));
+
+         for (int aKIter=0 ; aKIter<5; aKIter++)
+         {
+             cPt3dr  W = aPUK.ValAxiatorFixRot(aRTarget);
+             aPUK.Omega() = W;
+             aPUK.OnUpdate();
+         }
+         tREAL8 aD =  aRTarget.Mat().L2Dist(aPUK.Pose().Rot().Mat()) ;
+	 MMVII_INTERNAL_ASSERT_bench(aD <1e-10,"FromTriInAndOut p1 !!");
+    }
+}
+
 void BenchRotation3D(cParamExeBench & aParam)
 {
+    BenchRotation3DReal8();
     TplBenchRotation3D<tREAL4 >(aParam);
     TplBenchRotation3D<tREAL8 >(aParam);
     TplBenchRotation3D<tREAL16>(aParam);

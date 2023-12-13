@@ -292,6 +292,7 @@ line += " ";
                          case 'K' : aWKP.z() = GetV<tREAL8>(iss); break;
 
 			 case 'N' : aLNames.push_back(GetV<std::string>(iss)); break;
+			 case 'I' : aLNames.push_back(GetV<std::string>(iss)); break;
 			 case 'S' : GetV<std::string>(iss); break;
 
 		         default :

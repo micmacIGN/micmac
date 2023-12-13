@@ -13,6 +13,31 @@ namespace MMVII
  *      -  it add (potentially many)  unknowns and then  it take more place in  memory & time
  */
 
+class cBasePt3dr_UK : public cObjWithUnkowns<tREAL8>
+{
+     public :
+              void PutUknowsInSetInterval() override;
+              const cPt3dr & Pt() const ;
+              cBasePt3dr_UK();
+      private :
+              cBasePt3dr_UK(const cBasePt3dr_UK&) = delete;
+              virtual cPt3dr * AdrPt() = 0;
+};
+
+class cPt3dr_UK :  public cBasePt3dr_UK,
+                   public cMemCheck
+{
+      public :
+              cPt3dr_UK(const cPt3dr &);
+              ~cPt3dr_UK();
+      private :
+              cPt3dr * AdrPt() override;
+              cPt3dr_UK(const cPt3dr_UK&) = delete;
+              cPt3dr mPt;
+};
+
+
+/*
 class cPt3dr_UK :  public cObjWithUnkowns<tREAL8>,
                    public cMemCheck
 {
@@ -25,6 +50,7 @@ class cPt3dr_UK :  public cObjWithUnkowns<tREAL8>,
               cPt3dr_UK(const cPt3dr_UK&) = delete;
               cPt3dr mPt;
 };
+*/
 
 /**  "Standard" weighting classes, used the following formula
  *
@@ -171,7 +197,7 @@ class cMMVII_BundleAdj
           std::vector<cPerspCamIntrCalib *>  mVPCIC;     ///< vector of all internal calibration 4 easy parse
           std::vector<cSensorCamPC *>        mVSCPC;      ///< vector of perspectiv  cameras
           std::vector<cSensorImage *>        mVSIm;       ///< vector of sensor image (PC+RPC ...)
-          std::vector<cCalculator<double> *> mVEqCol;     ///< vector of co-linearity equation
+          //  std::vector<cCalculator<double> *> mVEqCol;     ///< vector of co-linearity equation -> replace by direct access
 
           cSetInterUK_MultipeObj<tREAL8>    mSetIntervUK;
 
@@ -201,6 +227,7 @@ class cMMVII_BundleAdj
 	  std::string                        mFolderRefCam;
 	  tREAL8                             mSigmaTrRefCam;
 	  tREAL8                             mSigmaRotRefCam;
+          std::string                        mPatternRef;
 	  bool                               mDoRefCam;
           cDirsPhProj*                       mDirRefCam;
           // ===================  "Viscosity"  ==================

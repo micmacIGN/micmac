@@ -647,7 +647,11 @@ void cPhotogrammetricProject::LoadIm(cSetMesImGCP& aSetMes,const std::string & a
 //    std::string aDir = mDPPointsMeasures.FullDirIn();
    //cSetMesPtOf1Im  aSetIm = cSetMesPtOf1Im::FromFile(aDir+cSetMesPtOf1Im::StdNameFileOfIm(aNameIm));
    if (SVP && (! ExistFile(NameMeasureGCPIm(aNameIm,true))))
+   {
+      // StdOut() << "LoadImLoadIm " << aNameIm << "\n";
       return;
+   }
+      //  StdOut() << "LoadImLoadIm " << aNameIm << "\n";
    cSetMesPtOf1Im  aSetIm = LoadMeasureIm(aNameIm);
    aSetMes.AddMes2D(aSetIm,aSIm);
 }
@@ -702,11 +706,31 @@ void  cPhotogrammetricProject::SaveMultipleTieP(const cVecTiePMul& aVPm,const st
    PopPrecTxtSerial();
 }
 
-void  cPhotogrammetricProject::ReadMultipleTieP(cVecTiePMul& aVPm,const std::string & aNameIm) const
+void  cPhotogrammetricProject::ReadMultipleTieP(cVecTiePMul& aVPm,const std::string & aNameIm,bool SVP) const
 {
-   ReadFromFile(aVPm.mVecTPM,mDPMulTieP.FullDirIn()+NameMultipleTieP(aNameIm));
+   std::string aNameFile = mDPMulTieP.FullDirIn()+NameMultipleTieP(aNameIm);
+   if (! ExistFile(aNameFile))
+   {
+     MMVII_INTERNAL_ASSERT_User(SVP,eTyUEr::eUnClassedError,"Cannot find Multi Tie Points for " + aNameIm);
+   }
+   else
+       ReadFromFile(aVPm.mVecTPM,mDPMulTieP.FullDirIn()+NameMultipleTieP(aNameIm));
    aVPm.mNameIm = aNameIm;
 }
+
+bool cPhotogrammetricProject::HasNbMinMultiTiePoints(const std::string & aNameIm,size_t aNbMinTieP,bool AcceptNoDirIn ) const
+{
+    if (!DPMulTieP().DirInIsInit())
+    {
+        MMVII_INTERNAL_ASSERT_strong(AcceptNoDirIn,"No DirInIsInit in HasNbMinMultiTiePoints");
+        return true;
+    }
+
+    cVecTiePMul aVPM(aNameIm);
+    ReadMultipleTieP(aVPM,aNameIm,true);
+    return aVPM.mVecTPM.size() >= aNbMinTieP;
+}
+
 
 
 std::string cPhotogrammetricProject::NameConfigMTP(const std::string &  anExt)

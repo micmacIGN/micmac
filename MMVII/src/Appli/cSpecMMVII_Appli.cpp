@@ -230,6 +230,8 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_CreateRTL);
         TheVecAll.push_back(&TheSpec_ChSysCo);
         TheVecAll.push_back(&TheSpec_CreateCalib);
+        TheVecAll.push_back(&TheSpec_ImportTiePMul);
+        TheVecAll.push_back(&TheSpec_ImportMesImGCP);
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }

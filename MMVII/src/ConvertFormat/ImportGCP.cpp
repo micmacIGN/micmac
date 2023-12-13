@@ -38,12 +38,12 @@ class cAppli_ImportGCP : public cMMVII_Appli
 
 
 	// Optionall Arg
-	std::string              mNameGCP;
-	int                      mL0;
-	int                      mLLast;
-	int                      mComment;
-	int                      mNbDigName;
-	std::string              mPatternTransfo;        
+	std::string                mNameGCP;
+	int                        mL0;
+	int                        mLLast;
+	int                        mComment;
+	int                        mNbDigName;
+	std::vector<std::string>   mPatternTransfo;        
 };
 
 cAppli_ImportGCP::cAppli_ImportGCP(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -71,7 +71,7 @@ cCollecSpecArg2007 & cAppli_ImportGCP::ArgOpt(cCollecSpecArg2007 & anArgObl)
        << AOpt2007(mNbDigName,"NbDigName","Number of digit for name, if fixed size required (only if int)")
        << AOpt2007(mL0,"NumL0","Num of first line to read",{eTA2007::HDV})
        << AOpt2007(mLLast,"NumLast","Num of last line to read (-1 if at end of file)",{eTA2007::HDV})
-       << AOpt2007(mPatternTransfo,"PatName","Pattern for transforming name (first sub-expr)")
+       << AOpt2007(mPatternTransfo,"PatName","Pattern for transforming name (first sub-expr)",{{eTA2007::ISizeV,"[2,2]"}})
        << mPhProj.ArgChSys(true)  // true =>  default init with None
     ;
 }
@@ -109,7 +109,10 @@ int cAppli_ImportGCP::Exe()
     {
          std::string aName = aVNames.at(aK).at(0);
 	 if (IsInit(&mPatternTransfo))
-		 aName = PatternKthSubExpr(mPatternTransfo,1,aName);
+         {
+	//	 aName = PatternKthSubExpr(mPatternTransfo,1,aName);
+             aName = ReplacePattern(mPatternTransfo.at(0),mPatternTransfo.at(1),aName);
+          }
 	 if (IsInit(&mNbDigName))
             aName =   ToStr(cStrIO<int>::FromStr(aName),mNbDigName);
 

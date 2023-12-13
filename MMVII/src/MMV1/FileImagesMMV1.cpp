@@ -177,6 +177,8 @@ template <class Type> void cMMV1_Conv<Type>::ReadWrite
                                const cRect2& aR2Init
                            )
 {
+
+// StdOut() <<  "aP0File,aP0File, " << aP0File << "\n";
    Init_mm3d_In_MMVII();
    // C'est une image en originie (0,0) necessairement en MMV1
    const tImMMVII & aImV2 = *(aVecImV2.at(0));
