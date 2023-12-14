@@ -31,9 +31,9 @@ cBA_Topo::cBA_Topo
     auto from_name = "DSCF3297_L.jpg";
     auto to_name = "DSCF3298_L.jpg";
     cSensorCamPC * aCamFrom = aPhProj.ReadCamPC(from_name,true,false);
-    mPts_UK.push_back(new cPt3dr_UK(aCamFrom->Center()));
+    mPts_UK.push_back({aCamFrom, &aCamFrom->Center()});
     cSensorCamPC * aCamTo = aPhProj.ReadCamPC(to_name,true,false);
-    mPts_UK.push_back(new cPt3dr_UK(aCamTo->Center()));
+    mPts_UK.push_back({aCamTo, &aCamTo->Center()});
 
 
     //...
@@ -44,7 +44,6 @@ cBA_Topo::~cBA_Topo()
 {
     for (auto& [_, aEq] : mTopoObsType2equation)
                   delete aEq;
-    DeleteAllAndClear(mPts_UK);
 }
 
 void cBA_Topo::Save()
@@ -55,8 +54,9 @@ void cBA_Topo::Save()
 
 void cBA_Topo::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet)
 {
-    for (const auto& p: mPts_UK)
-        aSet.AddOneObj(p);
+    //for (const auto& [p_uk, p_3d]: mPts_UK)
+    //    aSet.AddOneObj(p_uk);
+    // add only unknowns not handled by anything else?
 }
 
 /**  In a bundle adjusment its current that some variable are "hard" frozen, i.e they are
@@ -78,17 +78,15 @@ void cBA_Topo::SetFrozenVar(cResolSysNonLinear<tREAL8> & aSys)
 
 double cBA_Topo::AddEquation_Dist3d(cResolSysNonLinear<tREAL8> & aSys)
 {
-    return 0;
     // returns residual
 
     //obs: 3 DSCF3297_L.jpg DSCF3298_L.jpg 0.3170 0.001
     double val = 0.3170;
-    double sigma = 0.001;
-    auto & ptFrom = mPts_UK.at(0);
-    auto & ptTo = mPts_UK.at(1);
-    double dist = sqrt(SqN2(ptFrom->Pt()-ptTo->Pt()));
-    double residual = val-dist;
-    std::cout<<"Obs: "<<&ptFrom<<" "<<&ptTo<<" "<<residual<<" "<<sigma<<"\n";
+    double sigma = 0.0001;
+    auto & [ptFromUK, ptFrom3d] = mPts_UK.at(0);
+    auto & [ptToUK, ptTo3d] = mPts_UK.at(1);
+    //double dist = sqrt(SqN2(*ptFrom3d-*ptTo3d));
+    std::cout<<"Obs: "<<ptFrom3d<<" "<<ptTo3d<<" "<<val<<" "<<sigma<<"\n";
 
     // We must create the observation/context of the equation; here we will push the coeef of matrix
     // for linearization
@@ -97,8 +95,8 @@ double cBA_Topo::AddEquation_Dist3d(cResolSysNonLinear<tREAL8> & aSys)
 
     // We must create a vector that contains all the global num of unknowns
     std::vector<int>  aVInd;
-    ptFrom->PushIndexes(aVInd);
-    ptTo->PushIndexes(aVInd);
+    ptFromUK->PushIndexes(aVInd, *ptFrom3d);
+    ptToUK->PushIndexes(aVInd, *ptTo3d);
 
 
     // now we are ready to add the equation
@@ -108,12 +106,12 @@ double cBA_Topo::AddEquation_Dist3d(cResolSysNonLinear<tREAL8> & aSys)
           equation,  // the equation itself
           aVInd,
           aVObs,
-          cResidualWeighterExplicit<tREAL8>(false,{sigma})
+          cResidualWeighterExplicit<tREAL8>(true,{sigma})
     );
 
 
-    double residual2 = equation->ValComp(0,0);
-    StdOut() << "  topo resid: " << residual << " " << residual2 << std::endl;
+    double residual = equation->ValComp(0,0);
+    StdOut() << "  topo resid: " << residual << std::endl;
 
     return residual;
 }

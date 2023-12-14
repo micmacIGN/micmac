@@ -15,6 +15,7 @@ class cPt3dr_UK;
 class cBA_Topo
 {
 public :
+    typedef std::pair<cObjWithUnkowns<tREAL8>*, cPt3dr*> tTopoPtUK;
 
     cBA_Topo(const cPhotogrammetricProject &, const std::string &aTopoFilePath);
     ~cBA_Topo();
@@ -40,7 +41,7 @@ private :
     bool                         mOk;
 
     // tmp: obs here, TODO: use cTopoObsSet
-    std::vector<cPt3dr_UK*>      mPts_UK;
+    std::vector<tTopoPtUK>      mPts_UK;
 
 };
 
