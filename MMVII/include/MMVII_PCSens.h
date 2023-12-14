@@ -154,6 +154,7 @@ class cDataPerspCamIntrCalib
 
    protected :
       std::string                    mName;
+      bool                           mIsFraserMode;  ///< Separation between standard Fraser  Mode and special SIA case
       eProjPC                        mTypeProj;           ///< type of projection
       cPt3di                         mDir_Degr;             ///< degrees of distorstion  Rad/Dec/Univ
       std::vector<cDescOneFuncDist>  mDir_VDesc;

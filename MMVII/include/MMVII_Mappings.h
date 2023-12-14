@@ -661,7 +661,7 @@ template <class Type,const int Dim> class  cComputeMapInverse : public cMemCheck
 {
     public :
             //  aCMaxRel => define the zone relatively to the rho max
-        friend void OneBench_CMI(double aCMaxRel);
+        friend void OneBench_CMI(double aCMaxRel,bool);
         // using enum eLabelIm_CMI;
         typedef cLeastSqComputeMaps<Type,Dim,Dim> tLSQ;
         typedef cDataBoundedSet<Type,Dim>         tSet;

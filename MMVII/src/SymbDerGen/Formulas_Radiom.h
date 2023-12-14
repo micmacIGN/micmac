@@ -53,7 +53,7 @@ class cRadiomCalibPolIma  : public cRadiomFormulas
                        //int aDTot = aDx+aDy;
 		       // we avoid  1 X2 X4 ... if they are redundant with radial
 		       if (   ((aDx+aDy)>mDegRadElim) || (aDy!=0) || (aDx%2!=0))
-                           aRes.push_back(cDescOneFuncDist(eTypeFuncDist::eMonom, cPt2di(aDx,aDy)));
+                           aRes.push_back(cDescOneFuncDist(eTypeFuncDist::eMonom, cPt2di(aDx,aDy),true));
 		  }
 	      }
 	      return aRes;

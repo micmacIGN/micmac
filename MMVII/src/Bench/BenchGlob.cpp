@@ -986,11 +986,15 @@ int cAppli_MPDTest::Exe()
    }
    if (IsInit(&mDegDistTest))
    {
-      std::vector<cDescOneFuncDist>  aVD =  DescDist(mDegDistTest);
+      for (auto isFraserMode : {true,false})
+      {
+          std::vector<cDescOneFuncDist>  aVD =  DescDist(mDegDistTest,isFraserMode);
 
-      for (const auto & aDesc : aVD)
+	  StdOut() << "============== FraserMode : " << isFraserMode << " ==================\n";
+          for (const auto & aDesc : aVD)
 	      StdOut() << " "  << aDesc.mName <<  " " << aDesc.mLongName << std::endl;
 
+      }
       return EXIT_SUCCESS;
    }
    TTT ();

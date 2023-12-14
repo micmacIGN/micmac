@@ -264,6 +264,8 @@ class cMMVIIUnivDist
                    + std::string("_Rad") + std::to_string(DegRad())
                    + std::string("_Dec") + std::to_string(DegDec())
                    + std::string("_XY") + std::to_string(DegUniv())
+		   // if not mIsModelFraser, it's special cas for systematism cylindric : Dx=Ax Dy=Bx
+		   + (mIsModelFraser ?  std::string("") :  std::string("_D1aXbX"))
            ;
 
        }
@@ -288,7 +290,8 @@ class cMMVIIUnivDist
                    (
                        bool isX,  // Is it x component of distorsion
                        int aDegX, // Degree in x
-                       int aDegY  // Degree in y
+                       int aDegY,  // Degree in y
+                       bool IsFraserConv  // Fraser Conv Dx=b1x+b2y,  else Dx = aX  , Dy = by
                    ) const
        {
             // degre 0 : avoid, it's already modelized by PP
@@ -300,10 +303,25 @@ class cMMVIIUnivDist
             // (because its coherent with most current  convention on "fraser" model :
             //  dx = b1 x + b2 y ...
 
-            if ((!isX) && ((aDegX + aDegY) ==1))    
+            if ((aDegX + aDegY) ==1)
             {
-               ShowElim("Aff",isX,aDegX,aDegY);
-               return false; 
+	       if (IsFraserConv)
+	       {
+                  if (! isX)
+		  {
+                      ShowElim("Aff",isX,aDegX,aDegY);
+                      return false; 
+		  }
+	       }
+	       else
+	       {
+                  if (aDegY!=0)
+		  {
+                      ShowElim("Aff",isX,aDegX,aDegY);
+                      return false; 
+		  }
+	       }
+               return true;
             }
 
             // because of redundaucy with non plane rotation, we supress 2 degree 2 function
@@ -365,14 +383,14 @@ class cMMVIIUnivDist
               // Generate description of radial parameters, x used for num, y not used => -1
               for (int aDR=1 ; aDR<=DegRad() ; aDR++)
               {
-                  VDesc.push_back(cDescOneFuncDist(eTypeFuncDist::eRad,cPt2di(aDR,-1)));
+                  VDesc.push_back(cDescOneFuncDist(eTypeFuncDist::eRad,cPt2di(aDR,-1),mIsModelFraser));
               }
 
               // Generate description of decentrik parameter, x used for num, y not used => -1
               for (int aDC=1 ; aDC<=DegDec() ; aDC++)
               {
-                  VDesc.push_back(cDescOneFuncDist(eTypeFuncDist::eDecX,cPt2di(aDC,-1)));
-                  VDesc.push_back(cDescOneFuncDist(eTypeFuncDist::eDecY,cPt2di(aDC,-1)));
+                  VDesc.push_back(cDescOneFuncDist(eTypeFuncDist::eDecX,cPt2di(aDC,-1),mIsModelFraser));
+                  VDesc.push_back(cDescOneFuncDist(eTypeFuncDist::eDecY,cPt2di(aDC,-1),mIsModelFraser));
               }
 
               // Generate description of monomes in X and Y that are to maintain
@@ -381,14 +399,14 @@ class cMMVIIUnivDist
                   for (int aDx=0 ; (aDx+aDy)<=DegUniv() ; aDx++)
                   {
                       cPt2di aDXY(aDx,aDy);
-                      if (OkMonome(true,aDx,aDy))
+                      if (OkMonome(true,aDx,aDy,mIsModelFraser))
                       {
-                         VDesc.push_back(cDescOneFuncDist(eTypeFuncDist::eMonX,aDXY));
+                         VDesc.push_back(cDescOneFuncDist(eTypeFuncDist::eMonX,aDXY,mIsModelFraser));
                       }
 
-                      if (OkMonome(false,aDx,aDy))
+                      if (OkMonome(false,aDx,aDy,mIsModelFraser))
                       {
-                         VDesc.push_back(cDescOneFuncDist(eTypeFuncDist::eMonY,aDXY));
+                         VDesc.push_back(cDescOneFuncDist(eTypeFuncDist::eMonY,aDXY,mIsModelFraser));
                       }
                   }
               }
@@ -522,11 +540,12 @@ class cMMVIIUnivDist
            return        {xDist,yDist}  ;
        }
 
-       cMMVIIUnivDist(const int & aDegRad,const int & aDegDec,const int & aDegUniv,bool ForBase) :
-          mTheDegRad  (aDegRad),
-          mTheDegDec  (aDegDec),
-          mTheDegUniv (aDegUniv),
-          mForBase    (ForBase)
+       cMMVIIUnivDist(const int & aDegRad,const int & aDegDec,const int & aDegUniv,bool ForBase,bool isModelFraser) :
+          mTheDegRad     (aDegRad),
+          mTheDegDec     (aDegDec),
+          mTheDegUniv    (aDegUniv),
+          mForBase       (ForBase),
+	  mIsModelFraser (isModelFraser)
        {
        }
 
@@ -537,6 +556,7 @@ class cMMVIIUnivDist
        int    mTheDegDec;
        int    mTheDegUniv;
        bool   mForBase;   // If true, generate the base of function and not the sum
+       bool   mIsModelFraser;
 };
 
 /**  Class to generate formula for distorsion with x,y unknown and paramaters as observations */

@@ -192,12 +192,12 @@ template <class Type,int Dim>
 template class cDataNxNMapCalcSymbDer<tREAL8,2> ;
 
 
-cDataNxNMapCalcSymbDer<double,2> * NewMapOfDist(const cPt3di & aDeg,const std::vector<double> &aVObs,int aSzBuf)
+cDataNxNMapCalcSymbDer<double,2> * NewMapOfDist(const cPt3di & aDeg,const std::vector<double> &aVObs,int aSzBuf,bool isFraserMode)
 {
    return new cDataNxNMapCalcSymbDer<double,2>
               (
-                   EqDist(aDeg,false,aSzBuf),
-                   EqDist(aDeg, true,aSzBuf),
+                   EqDist(aDeg,false,aSzBuf,isFraserMode),
+                   EqDist(aDeg, true,aSzBuf,isFraserMode),
                    aVObs,
                    true
               );
@@ -214,14 +214,15 @@ cRandInvertibleDist::~cRandInvertibleDist()
    delete mEqDer;
 }
 
-cRandInvertibleDist::cRandInvertibleDist(const cPt3di & aDeg,double aRhoMax,double aProbaNotNul,double aTargetSomJac) :
-   mRhoMax  (aRhoMax),
-   mDeg     (aDeg),
-   mVecDesc (DescDist(mDeg)),
-   mEqVal   (nullptr), 
-   mEqDer   (nullptr), 
-   mNbParam (mVecDesc.size()),
-   mVParam  (mNbParam,0.0)
+cRandInvertibleDist::cRandInvertibleDist(const cPt3di & aDeg,double aRhoMax,double aProbaNotNul,double aTargetSomJac,bool isFraserMode) :
+   mRhoMax        (aRhoMax),
+   mDeg           (aDeg),
+   mVecDesc       (DescDist(mDeg,true)),
+   mEqVal         (nullptr), 
+   mEqDer         (nullptr), 
+   mNbParam       (mVecDesc.size()),
+   mVParam        (mNbParam,0.0),
+   mIsFraserMode  (isFraserMode)
 {
    // 1- Initialize, without precautions
 
@@ -262,12 +263,12 @@ const std::vector<double> & cRandInvertibleDist::VParam() const
 
 cCalculator<double> &  cRandInvertibleDist::EqVal() 
 {
-   if (mEqVal==nullptr) mEqVal= EqDist(mDeg,false,1+RandUnif_N(50));
+   if (mEqVal==nullptr) mEqVal= EqDist(mDeg,false,1+RandUnif_N(50),mIsFraserMode);
    return *mEqVal;
 }
 cCalculator<double> &  cRandInvertibleDist::EqDer() 
 {
-   if (mEqDer==nullptr) mEqDer= EqDist(mDeg,true,1+RandUnif_N(50));
+   if (mEqDer==nullptr) mEqDer= EqDist(mDeg,true,1+RandUnif_N(50),mIsFraserMode);
    return *mEqDer;
 }
 
@@ -297,6 +298,7 @@ StdOut() << " GX: " << (aPPx-aPmx)/(2*aEps)
 
 void BenchSymDerMap(cParamExeBench & aParam)
 {
+   bool isFraserMode = true;
    cPt3di aDeg(3,1,1);
    // const std::vector<cDescOneFuncDist>  & aVecD =  DescDist(aDeg);
 
@@ -305,7 +307,7 @@ void BenchSymDerMap(cParamExeBench & aParam)
        double aRhoMax = 5 * (0.01 +  RandUnif_0_1());
        double aProbaNotNul = 0.1 + (0.4 *RandUnif_0_1());
        double aTargetSomJac = 0.2;
-       cRandInvertibleDist aRID(aDeg,aRhoMax,aProbaNotNul,aTargetSomJac) ;
+       cRandInvertibleDist aRID(aDeg,aRhoMax,aProbaNotNul,aTargetSomJac,isFraserMode) ;
        cDataNxNMapCalcSymbDer<double,2> * aMCS = aRID.MapDerSymb();
        //cMapping<double,2,2>            aMapCS(aMCS);
 

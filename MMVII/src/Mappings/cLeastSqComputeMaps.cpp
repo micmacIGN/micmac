@@ -127,8 +127,9 @@ template <class Type,const int  DimIn,const int DimOut>
 /*
 */
 
-void BenchLeastSqMap(cParamExeBench & aParam)
+void BenchLeastSqMap(cParamExeBench & aParam,bool isFraserMode)
 {
+
     cPt3di aDeg(3,1,1);
    // const std::vector<cDescOneFuncDist>  & aVecD =  DescDist(aDeg);
 
@@ -139,7 +140,7 @@ void BenchLeastSqMap(cParamExeBench & aParam)
        double aRhoMax = 5 * (0.01 +  RandUnif_0_1());
        double aProbaNotNul = 0.1 + (0.9 *RandUnif_0_1());  // No special added value to have many 0
        double aTargetSomJac = 2.0 * RandUnif_0_1();  // No problem if not invertible, but not to chaotic either
-       cRandInvertibleDist aRID(aDeg,aRhoMax,aProbaNotNul,aTargetSomJac) ;
+       cRandInvertibleDist aRID(aDeg,aRhoMax,aProbaNotNul,aTargetSomJac,isFraserMode) ;
        
            //1-2 Make a Map of it
        int aNbParam = aRID.EqVal().NbObs();
@@ -149,7 +150,7 @@ void BenchLeastSqMap(cParamExeBench & aParam)
            // 2-1  initialise data for compunting
 
        int aNbPts = aNbParam * 10; // Over fit
-       cCalculator<double> * anEqBase = EqBaseFuncDist(aDeg,aNbPts);  // Calculator for base of func
+       cCalculator<double> * anEqBase = EqBaseFuncDist(aDeg,aNbPts,isFraserMode);  // Calculator for base of func
        cLeastSqCompMapCalcSymb<double,2,2> aLsqSymb(anEqBase);
        
 
@@ -165,8 +166,8 @@ void BenchLeastSqMap(cParamExeBench & aParam)
            // 2-3  compute solution
        std::vector<double> aParamCalc;
        aLsqSymb.ComputeSol(aParamCalc);
-       cCalculator<double> * aCalcEqVal = EqDist(aDeg,false,aNbPts);  // Calculator for Vals  
-       cCalculator<double> * aCalcEqDer = EqDist(aDeg,true ,aNbPts);   // Calculator for Der
+       cCalculator<double> * aCalcEqVal = EqDist(aDeg,false,aNbPts,isFraserMode);  // Calculator for Vals  
+       cCalculator<double> * aCalcEqDer = EqDist(aDeg,true ,aNbPts,isFraserMode);   // Calculator for Der
        cDataMapCalcSymbDer<double,2,2> aMapCalc(aCalcEqVal,aCalcEqDer,aParamCalc,false);  // Map from computed vals
 
           // 3 Test solution
@@ -185,6 +186,12 @@ void BenchLeastSqMap(cParamExeBench & aParam)
        delete aCalcEqDer;
        delete anEqBase;
     }
+}
+
+void BenchLeastSqMap(cParamExeBench & aParam)
+{
+   BenchLeastSqMap(aParam,true);
+   BenchLeastSqMap(aParam,false);
 }
 
 /* ===================================================== */

@@ -884,8 +884,11 @@ template <class Type,const int Dim>   std::vector<cPtxd<Type,Dim> >   cComputeMa
 	return Append(mOut_VPtsInt,mOut_VPtsFr);
 }
 
-void  OneBench_CMI(double aCMaxRel)
+void  OneBench_CMI(double aCMaxRel,bool IsFraserMode)
 {
+// bool IsFraserMode = true;
+
+
     cPt3di aDegMapDir(2,0,0);
     cPt3di aDegMapInv(5,1,1);
 
@@ -897,10 +900,10 @@ void  OneBench_CMI(double aCMaxRel)
 
     cSphereBoundedSet  aSBS(aBox,cPt2dr(0,0),aRho);
 
-    cRandInvertibleDist aRIDBasique(aDegMapDir,std::min(aRho,aCMax*sqrt(2.0)),1.0,0.2);
+    cRandInvertibleDist aRIDBasique(aDegMapDir,std::min(aRho,aCMax*sqrt(2.0)),1.0,0.2,IsFraserMode);
     cDataNxNMapCalcSymbDer<double,2> *  aTargetFunc = aRIDBasique.MapDerSymb();
 
-    cCalculator<double> * anEqBase = EqBaseFuncDist(aDegMapInv,10+ RandUnif_0_1()*25);  // Calculator for base of func
+    cCalculator<double> * anEqBase = EqBaseFuncDist(aDegMapInv,10+ RandUnif_0_1()*25,IsFraserMode);  // Calculator for base of func
     cLeastSqCompMapCalcSymb<double,2,2> aLsqSymb(anEqBase);
 
     cComputeMapInverse<double,2> aCMI
@@ -918,7 +921,7 @@ void  OneBench_CMI(double aCMaxRel)
     aCMI.mStepFrontLim = 1e-3;
     std::vector<double> aVParam;
     aCMI.DoAll(aVParam);
-    cDataNxNMapCalcSymbDer<double,2> *  aMapInv = NewMapOfDist(aDegMapInv,aVParam,100);
+    cDataNxNMapCalcSymbDer<double,2> *  aMapInv = NewMapOfDist(aDegMapInv,aVParam,100,IsFraserMode);
 
     bool CaseDiskInclude = (aCMaxRel>1.0);
     bool CaseDiskExclude = (aCMaxRel<sqrt(0.5));
@@ -1077,10 +1080,11 @@ class cTestMapInv : public cDataIterInvertMapping<tREAL8,3>
 void BenchInvertMapping(cParamExeBench & aParam)
 {
     {
-       OneBench_CMI(1.1);
-       OneBench_CMI(0.7);
+       OneBench_CMI(1.1,false);
+       OneBench_CMI(1.1,true);
+       OneBench_CMI(0.7,true);
        for (int aK=0 ; aK<10 ; aK++)
-           OneBench_CMI((1.0 + 0.5 *RandUnif_C()));
+           OneBench_CMI((1.0 + 0.5 *RandUnif_C()),true);
 /*
        OneBenchMapInv(1.1);
        OneBenchMapInv(0.7);

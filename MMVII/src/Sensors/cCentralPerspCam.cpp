@@ -44,9 +44,10 @@ cDataPerspCamIntrCalib:: cDataPerspCamIntrCalib
      int aSzBuf                          ///< sz of buffers in computation
 )  :
     mName            (aName),
+    mIsFraserMode    (true),
     mTypeProj        (aTypeProj),
     mDir_Degr        (aDegDir),
-    mDir_VDesc       (DescDist(aDegDir)),
+    mDir_VDesc       (DescDist(aDegDir,mIsFraserMode)),
     mVTmpCopyParams  (aVParams),
     mMapPProj2Im       (aCSP),
     mDataPixDomain   (aDataPixDomain),
@@ -107,10 +108,11 @@ void cDataPerspCamIntrCalib::AddData(const cAuxAr2007 & anAux0)
            MMVII::AddData(cAuxAr2007("SzBuffer",aAuxAux),mSzBuf);
            MMVII::AddData(cAuxAr2007("Degree",aAuxAux),mDir_Degr);
            MMVII::AddData(cAuxAr2007("DegreeApproxInv",aAuxAux),mInv_Degr);
+           MMVII::AddData(cAuxAr2007("IsFraserMode",aAuxAux),mIsFraserMode);
     }
     if (anAux.Input())
     {
-       mDir_VDesc = DescDist(mDir_Degr);
+       mDir_VDesc = DescDist(mDir_Degr,mIsFraserMode);
        mVTmpCopyParams.resize(mDir_VDesc.size());
     }
 
@@ -182,14 +184,14 @@ cPerspCamIntrCalib::cPerspCamIntrCalib(const cDataPerspCamIntrCalib & aData) :
 			            true                                   // equations are "adopted" (i.e will be deleted in destuctor)
                                )
                         ),
-    mDir_Dist           (NewMapOfDist(mDir_Degr,mVTmpCopyParams,mSzBuf)),
+    mDir_Dist           (NewMapOfDist(mDir_Degr,mVTmpCopyParams,mSzBuf,mIsFraserMode)),
 	// ------------ inverse -------------
     mMapIm2PProj            (mMapPProj2Im.MapInverse()),
     mPhgrDomain         (new cDataMappedBoundedSet<tREAL8,2>(&mPixDomain,&mMapIm2PProj,false,false)),
-    mInv_VDesc          (DescDist(mInv_Degr)),
+    mInv_VDesc          (DescDist(mInv_Degr,mIsFraserMode)),
     mInv_Params         (mInv_VDesc.size(),0.0),
-    mInvApproxLSQ_Dist  (NewMapOfDist(mInv_Degr,mInv_Params,mSzBuf)),
-    mInv_BaseFDist      (EqBaseFuncDist(mInv_Degr,mSzBuf)),
+    mInvApproxLSQ_Dist  (NewMapOfDist(mInv_Degr,mInv_Params,mSzBuf,mIsFraserMode)),
+    mInv_BaseFDist      (EqBaseFuncDist(mInv_Degr,mSzBuf,mIsFraserMode)),
     mInv_CalcLSQ        (mVoidDist ? nullptr : new cLeastSqCompMapCalcSymb<tREAL8,2,2>(mInv_BaseFDist)),
     mThresholdPhgrAccInv (1e-9),
     mThresholdPixAccInv  (mThresholdPhgrAccInv * F()),
@@ -554,7 +556,7 @@ void  cPerspCamIntrCalib::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 
 cCalculator<double> * cPerspCamIntrCalib::EqColinearity(bool WithDerives,int aSzBuf,bool ReUse)
 {
-    return EqColinearityCamPPC(mTypeProj,mDir_Degr,WithDerives,aSzBuf,ReUse);
+    return EqColinearityCamPPC(mTypeProj,mDir_Degr,WithDerives,aSzBuf,ReUse,mIsFraserMode);
 }
       //   ----  Accessor  to distorsion ----------------
 
@@ -780,9 +782,10 @@ void cPerspCamIntrCalib::TestInvInit(double aTolApprox,double aTolAccurate)
 
 void cPerspCamIntrCalib::InitRandom(double aAmpl)
 {
+     bool isFraserMode = true;
      double aRhoMax =  mPhgrDomain->Box().DistMax2Corners(cPt2dr(0,0));
 
-     cRandInvertibleDist  aParamRID ( mDir_Degr, aRhoMax, RandUnif_0_1(), aAmpl);
+     cRandInvertibleDist  aParamRID ( mDir_Degr, aRhoMax, RandUnif_0_1(), aAmpl,isFraserMode);
      mDir_Dist->SetObs(aParamRID.VParam());
      UpdateLSQDistInv ();
 }
