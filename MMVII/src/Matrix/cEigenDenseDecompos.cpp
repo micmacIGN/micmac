@@ -591,7 +591,7 @@ template <class Type> cLeasSqtAA<Type> cDecSumSqLinear<Type>::OriSys() const
     cLeasSqtAA<Type> aResult(mNbVar);
 
     for (const auto & anEl : mVElems)
-        aResult.AddObservation(anEl.mW,anEl.mCoeff,anEl.mCste);
+        aResult.PublicAddObservation(anEl.mW,anEl.mCoeff,anEl.mCste);
 
     return aResult;
 }

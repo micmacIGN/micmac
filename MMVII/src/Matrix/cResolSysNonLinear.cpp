@@ -487,7 +487,7 @@ template <class Type> void   cResolSysNonLinear<Type>::AddEqFixVar(const int & a
      tSVect aSV;
      aSV.AddIV(aNumV,1.0);
      // Dont forget that the linear system compute the difference with current solution ...
-     mSysLinear->AddObservation(aWeight,aSV,aVal-CurSol(aNumV));
+     mSysLinear->PublicAddObservation(aWeight,aSV,aVal-CurSol(aNumV));
 }
 
 template <class Type> void   cResolSysNonLinear<Type>::R_AddEqFixVar(const int & aNumV,const tREAL8 & aVal,const tREAL8& aWeight)
@@ -598,7 +598,7 @@ template <class Type> void  cResolSysNonLinear<Type>::AddObservationLinear
           }
      }
      currNbObs++;  ///  Check JMM
-     mSysLinear->AddObservation(aWeight,aNewCoeff,aNewRHS);
+     mSysLinear->PublicAddObservation(aWeight,aNewCoeff,aNewRHS);
 }
 
      
@@ -626,7 +626,7 @@ template <class Type> void  cResolSysNonLinear<Type>::AddObservationLinear
           }
      }
      currNbObs++;  ///  Check JMM
-     mSysLinear->AddObservation(aWeight,aNewCoeff,aNewRHS);
+     mSysLinear->PublicAddObservation(aWeight,aNewCoeff,aNewRHS);
 }
 
 
@@ -840,7 +840,7 @@ template <class Type> void cResolSysNonLinear<Type>::AddObs(const std::vector<tI
                      aSV.AddIV(aIO.mGlobVInd[aKUk],aVDer[aKUk]);
 	         }
 		 // Note the minus sign :  F(X0+dx) = F(X0) + Gx.dx   =>   Gx.dx = -F(X0)
-	         mSysLinear->AddObservation(aW,aSV,-aIO.mVals[aKVal]);
+	         mSysLinear->PublicAddObservation(aW,aSV,-aIO.mVals[aKVal]);
 	      }
 	  }
 

@@ -52,7 +52,7 @@ template <class Type,const int  DimIn,const int DimOut>
        {
            aDIm.SetV(aKFunc,mBufPOut.at(aKFunc)[aD]);
        }
-       mLSQ.AddObservation(aPds[aD],mCoeffs,aValue[aD]);
+       mLSQ.PublicAddObservation(aPds[aD],mCoeffs,aValue[aD]);
     }
 }
 

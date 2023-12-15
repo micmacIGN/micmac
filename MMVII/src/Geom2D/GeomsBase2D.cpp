@@ -130,8 +130,8 @@ template <class TypeMap>
         tPt aRHS;
         TypeMap::ToEqParam(aRHS,aVX,aVY,aVIn[aK],aVOut[aK]);
         tTypeElem aWeight = aVW ? (aVW->at(aK)) : 1.0;
-        aSys.AddObservation(aWeight,aVX,aRHS.x());
-        aSys.AddObservation(aWeight,aVY,aRHS.y());
+        aSys.PublicAddObservation(aWeight,aVX,aRHS.x());
+        aSys.PublicAddObservation(aWeight,aVY,aRHS.y());
    }
    cDenseVect<tTypeElem> aSol =  aSys.Solve();
    TypeMap aMap =  TypeMap::FromParam(aSol);
@@ -1008,13 +1008,13 @@ template <class Type>   cHomogr2D<Type>  cHomogr2D<Type>::LeastSqParalPlaneShift
        aVec(0) = 1;
        aVec(1) = 0;
        aVec(2) = -xo;
-       aSys.AddObservation(1.0,aVec,xo*aHz-aHx);
+       aSys.PublicAddObservation(1.0,aVec,xo*aHz-aHx);
 
  // *    yo Hz(P) - Hy(P)  = kz - yi gz
        aVec(0) = 0;
        aVec(1) = 1;
        aVec(2) = -yo;
-       aSys.AddObservation(1.0,aVec,yo*aHz-aHy);
+       aSys.PublicAddObservation(1.0,aVec,yo*aHz-aHy);
    }
 
    cDenseVect<Type>  aSol = aSys.Solve();

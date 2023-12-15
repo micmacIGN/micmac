@@ -96,7 +96,7 @@ template <class Type> cPt2dr cAffineExtremum<Type>::OneIter(const cPt2dr & aP0)
             mVectPol(3) = Square(aDP.x());
             mVectPol(4) = 2* aDP.x() * aDP.y();
             mVectPol(5) = Square(aDP.y());
-            mSysPol.AddObservation(aWeight,mVectPol,mIm.GetV(aPix));
+            mSysPol.PublicAddObservation(aWeight,mVectPol,mIm.GetV(aPix));
          }
       }
       else 

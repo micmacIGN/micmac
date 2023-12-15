@@ -349,7 +349,7 @@ template <class Type>  void  cUncalibSpaceRessection<Type>::AddOneEquation(const
        cDenseVect<Type>  aVect (TheNbVar, eModeInitImage::eMIA_Null);
        SetOneAffineForm( aVect , (IsX ? 0 : 4) , aP3 ,  1.0                                   );
        SetOneAffineForm( aVect ,             8 , aP3 , - (IsX ?aPair.mP2.x() : aPair.mP2.y()) );
-       mSys0.AddObservation(aW,aVect,0.0);
+       mSys0.PublicAddObservation(aW,aVect,0.0);
 
        // update weigthings
        mSumW += aW;
