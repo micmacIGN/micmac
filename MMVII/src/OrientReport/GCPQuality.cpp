@@ -48,7 +48,6 @@ class cAppli_CGPReport : public cMMVII_Appli
 	std::vector<double>      mGeomFiedlVec;
 	std::vector<int>         mPropStat;
 
-	std::string              mPostfixReport;
 	std::string              mPrefixReport;
 
 	std::string              mNameReportDetail;
@@ -328,16 +327,17 @@ int cAppli_CGPReport::Exe()
 {
    mPhProj.FinishInit();
 
-   mPostfixReport  =  "_Ori-"+  mPhProj.DPOrient().DirIn() +  "_Mes-"+  mPhProj.DPPointsMeasures().DirIn() ;
-   mNameReportIm   =  "ByImage" + mPostfixReport;
-   mNameReportDetail   =  "Detail" + mPostfixReport;
-   mNameReportGCP  =  "ByGCP"   + mPostfixReport;
-   mNameReportCam   =  "ByCam"   + mPostfixReport;
+   SetReportSubDir(mPhProj.DPOrient().DirIn() +  "_Mes-"+  mPhProj.DPPointsMeasures().DirIn());
 
-   mNameReportGCP_Ground   =  "ByGCP_3D_"   + mPostfixReport;
-   mNameReportGCP_Ground_Glob   =  "ByGCP_3D_Stat_"   + mPostfixReport;
+   mNameReportIm   =  "ByImage" ;
+   mNameReportDetail   =  "Detail" ;
+   mNameReportGCP  =  "ByGCP"   ;
+   mNameReportCam   =  "ByCam"   ;
 
-   mNameReportMissed   =  "MissedPoint"   + mPostfixReport;
+   mNameReportGCP_Ground   =  "ByGCP_3D"   ;
+   mNameReportGCP_Ground_Glob   =  "ByGCP_3D_Stat"   ;
+
+   mNameReportMissed   =  "MissedPoint"   ;
 
    InitReport(mNameReportIm,"csv",true);
    InitReport(mNameReportDetail,"csv",true);

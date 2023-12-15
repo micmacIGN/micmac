@@ -142,10 +142,11 @@ class cDataPerspCamIntrCalib
             const cMapPProj2Im & aMapP2I,           ///< Calib w/o dist
             const  cDataPixelDomain  & aPixDomain,              ///< sz, domaine of validity in pixel
             const cPt3di & aDegPseudoInv,       ///< degree of inverse approx by least square
-            int aSzBuf                         ///< sz of buffers in computation
+            int aSzBuf,                         ///< sz of buffers in computation
+            bool IsFraserModel = true
       )  ;
       cDataPerspCamIntrCalib(const std::string & aName, eProjPC, const cPt3di &, double aFoc, const cPt2di &aNbPix,
-                             bool PPIsRel=true,const cPt2dr & aPP = cPt2dr(0.5,0.5), int aSzBuf=-1);
+                             bool PPIsRel=true,const cPt2dr & aPP = cPt2dr(0.5,0.5), int aSzBuf=-1,bool IsFraserModel=true);
 
       void PushInformation(const std::string &);
       std::vector<std::string> & VecInfo() ;

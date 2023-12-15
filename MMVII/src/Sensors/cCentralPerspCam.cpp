@@ -41,10 +41,11 @@ cDataPerspCamIntrCalib:: cDataPerspCamIntrCalib
      const cMapPProj2Im & aCSP,           ///< Calib w/o dist
      const  cDataPixelDomain  & aDataPixDomain,              ///< sz, domaine of validity in pixel
      const cPt3di & aDegPseudoInv,       ///< degree of inverse approx by least square
-     int aSzBuf                          ///< sz of buffers in computation
+     int aSzBuf,                          ///< sz of buffers in computation
+     bool  isFraserModel
 )  :
     mName            (aName),
-    mIsFraserMode    (true),
+    mIsFraserMode    (isFraserModel),
     mTypeProj        (aTypeProj),
     mDir_Degr        (aDegDir),
     mDir_VDesc       (DescDist(aDegDir,mIsFraserMode)),
@@ -71,7 +72,8 @@ cDataPerspCamIntrCalib::cDataPerspCamIntrCalib
     const cPt2di & aNbPix,
     bool           PPIsRel,
     const cPt2dr & aPP,
-    int aSzBuf
+    int aSzBuf,
+    bool isFraserModel
 ) :
     cDataPerspCamIntrCalib
     (
@@ -82,9 +84,11 @@ cDataPerspCamIntrCalib::cDataPerspCamIntrCalib
                  cMapPProj2Im(aFoc, PPIsRel ? MulCByC(ToR(aNbPix), aPP) : aPP),
                  cDataPixelDomain(aNbPix),
 	         aDeg,
-	         aSzBuf
+	         aSzBuf,
+                 isFraserModel
     )
 {
+
 }
 
     

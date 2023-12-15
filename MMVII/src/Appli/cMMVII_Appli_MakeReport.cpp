@@ -10,10 +10,19 @@ std::string  cMMVII_Appli::DirReport()
 {
      std::string aRes =    DirProject() + MMVII_DirPhp 
 	                + "Reports" + StringDirSeparator()
-	                + mSpecs.Name() + StringDirSeparator();
+	                + mSpecs.Name() + StringDirSeparator()
+                  ;
+
+     if (mReportSubDir!="")
+        aRes = aRes + mReportSubDir + StringDirSeparator();
 
      mCSVSep = ',';
      return aRes;
+}
+
+void cMMVII_Appli::SetReportSubDir(const std::string & aSubDir)
+{
+   mReportSubDir = aSubDir;
 }
 
 std::string  cMMVII_Appli::DirSubPReport(const std::string &anId)
@@ -25,7 +34,9 @@ std::string  cMMVII_Appli::DirSubPReport(const std::string &anId)
 void  cMMVII_Appli::InitReport(const std::string &anId,const std::string &aPost,bool IsMul)
 {
     if (IsMul && (LevelCall()==0))
+    {
        mReport2Merge.insert(anId);
+     }
 
     if (LevelCall()==0)
     {
