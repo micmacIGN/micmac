@@ -117,6 +117,8 @@ class cSetMesPtOf1Im : public cMemCheck
           std::string             mNameIm;
           std::vector<cMesIm1Pt>  mMeasures;
 };
+void AddData(const  cAuxAr2007 & anAux,cSetMesPtOf1Im & aGCPMI);
+
 
 /**  class for representing  the measure of a 3D point (Ground Control Point) */
 class cMes1GCP
@@ -158,6 +160,7 @@ class cSetMesGCP : public cMemCheck
 	  std::string              mNameSet;
           std::vector<cMes1GCP>    mMeasures;
 };
+void AddData(const  cAuxAr2007 & anAux,cSetMesGCP & aSet);
 
 /**  Class for reprenting the same point in different image, maybe same class
  * used for GCP and tie points */
@@ -182,6 +185,7 @@ class cMultipleImPt
               std::vector<tREAL4>             mVSigma;  // optionnal
               std::vector<int>                mVImages;
 };
+
 
 /**  Class for storing a data base of GCP :  3D measures + 2D image measure
  *   The link between different measures is done using name of points.

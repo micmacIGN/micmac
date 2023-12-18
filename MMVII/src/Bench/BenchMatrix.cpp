@@ -569,8 +569,8 @@ template <class Type> void BenchSysSur(cLinearOverCstrSys<Type>& aSys,bool Exact
           aLVec.push_back(aDV);
           aLVal.push_back(aVal);
           aLWeight.push_back(aWeight);
-          aSys.AddObservation(aWeight,aDV,aVal);
-          aSpSys.AddObservation(aWeight,aSV,aVal);
+          aSys.PublicAddObservation(aWeight,aDV,aVal);
+          aSpSys.PublicAddObservation(aWeight,aSV,aVal);
       }
       cDenseVect<Type> aSol = aSys.Solve();
       cDenseVect<Type> aSpSol = aSpSys.Solve();
@@ -715,7 +715,7 @@ template <class Type,class TypeSys> void TplBenchLsq()
                   Type  aCste =  RandUnif_C();
                   Type  aW    =   0.5 + RandUnif_0_1();
 	          for (auto & aSys : aVSys)
-		      aSys->AddObservation(aW,aVCoeff,aCste);
+		      aSys->PublicAddObservation(aW,aVCoeff,aCste);
 		  // Add sparse or dense
 		  if (aK%2)  
 		      aSysLin.AddObservationLinear(aW,aVCoeff,aCste);
@@ -833,7 +833,7 @@ void BenchLsqDegenerate()
         double aVal = RandUnif_C();
 
         for (const auto & aPtrSys : aVSys)
-            aPtrSys->AddObservation(1.0,aV,aVal);
+            aPtrSys->PublicAddObservation(1.0,aV,aVal);
     }
     
     cDenseMatrix<tREAL8>  atAA = aVSys[2]->V_tAA();

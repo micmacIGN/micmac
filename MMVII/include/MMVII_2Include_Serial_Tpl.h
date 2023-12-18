@@ -42,7 +42,9 @@ template <class Type> void EnumAddData(const cAuxAr2007 & anAux,Type & anEnum,co
    if (anAux.Tagged())
    {
        // modif MPD , if input enum is not init
-       std::string aName = anAux.Input() ? std::string("") :E2Str(anEnum);
+       std::string aName =   (anAux.Ar().IsSpecif())  ?
+	                       ("enum_"+ cStrIO<Type>::msNameType)                   :  // Not sure what to put in case of specification file
+	                       (anAux.Input() ? std::string("") :E2Str(anEnum) ) ;
        AddData(cAuxAr2007(aTag,anAux),aName);
        if (anAux.Input())
           anEnum = Str2E<Type>(aName);

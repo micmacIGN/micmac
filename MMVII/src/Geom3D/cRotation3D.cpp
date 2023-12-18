@@ -484,7 +484,7 @@ template <class Type> cPtxd<Type,3>  cRotation3D<Type>::ToWPK() const
              cDenseVect<Type> aVCoef(3);
 	     for (int aKCoord =0 ; aKCoord<3 ; aKCoord++)
                 aVCoef(aKCoord) = aVecDer[aKCoord].GetElem(aPix);
-	     aSys.AddObservation(1.0,aVCoef ,mMat.GetElem(aPix));
+	     aSys.PublicAddObservation(1.0,aVCoef ,mMat.GetElem(aPix));
 
 	}
 

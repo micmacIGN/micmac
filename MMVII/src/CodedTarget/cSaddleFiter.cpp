@@ -82,7 +82,7 @@ cDenseVect<tREAL8>   cCompiledNeighBasisFunc::SlowCalc(const std::vector<tREAL8>
 
     for (size_t aK=0 ; aK<mNbNeigh ; aK++)
     {
-         mSys.AddObservation(mVWeight[aK],mVFuncs[aK],aVV[aK]);
+         mSys.PublicAddObservation(mVWeight[aK],mVFuncs[aK],aVV[aK]);
     }
 
     return mSys.Solve();

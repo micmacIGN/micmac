@@ -106,7 +106,7 @@ class cREAL8_RSNL
           /// Set value, usefull for ex in dev-mesh because variable are activated stepby step
           virtual void R_SetCurSol(int aNumV,const tREAL8&) =0 ;
 	  /// 
-          virtual  tDVect    R_SolveUpdateReset() = 0 ;
+          virtual  tDVect    R_SolveUpdateReset(const tREAL8 & aLVM=0.0) = 0 ;  // Levenberg markard
 
           virtual void   R_AddEqFixVar(const int & aNumV,const tREAL8 & aVal,const tREAL8& aWeight) =0;
           virtual void   R_AddEqFixCurVar(const int & aNumV,const tREAL8 & aWeight) =0;
@@ -181,8 +181,8 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
           tLinearSysSR *  SysLinear() ;
 
           /// Solve solution,  update the current solution, Reset the least square system
-          const tDVect  &    SolveUpdateReset() ;
-	  cREAL8_RSNL::tDVect      R_SolveUpdateReset() override ;
+          const tDVect  &    SolveUpdateReset(const Type & aLVM =0.0) ;
+	  cREAL8_RSNL::tDVect      R_SolveUpdateReset(const tREAL8& = 0.0) override ;
 
           /// Add 1 equation fixing variable
           void   AddEqFixVar(const int & aNumV,const Type & aVal,const Type& aWeight);
@@ -379,14 +379,18 @@ template <class Type> class cLinearOverCstrSys  : public cMemCheck
        ///  static allocator
        static cLinearOverCstrSys<Type> * AllocSSR(eModeSSR,int aNbVar);
 
+       //  This two method are the public methods , they may add some auxiliary  processing like levenberg markard stuff
+       //  before calling the specific "SpecificAddObservation" 
+       //
+       /// Add  aPds (  aCoeff .X = aRHS) 
+       void PublicAddObservation(const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) ;
+       /// Add  aPds (  aCoeff .X = aRHS) , version sparse
+       void PublicAddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) ;
 
 
        /// Virtual methods => virtaul ~X()
        virtual ~cLinearOverCstrSys();
-       /// Add  aPds (  aCoeff .X = aRHS) 
-       virtual void AddObservation(const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) = 0;
-       /// Add  aPds (  aCoeff .X = aRHS) , version sparse
-       virtual void AddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) = 0;
+       
 
        /**  This the method for adding observation with temporaray unknown, the class can have various answer
 	     -  eliminate the temporay via schur complement
@@ -429,9 +433,18 @@ template <class Type> class cLinearOverCstrSys  : public cMemCheck
 
 
       virtual void   AddCov(const cDenseMatrix<Type> &,const cDenseVect<Type>& ,const std::vector<int> &aVInd);
+      //
+       /// Add  aPds (  aCoeff .X = aRHS) 
+       virtual void SpecificAddObservation(const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) = 0;
+       /// Add  aPds (  aCoeff .X = aRHS) , version sparse
+       virtual void SpecificAddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) = 0;
+
+       Type LVMW(int aK) const;
 
     protected :
        int mNbVar;
+       cDenseVect<Type>  mLVMW;  // The Levenberg markad weigthing
+    // private :
 };
 
 template <class Type>  cLinearOverCstrSys<Type> *  AllocL1_Barrodale(size_t aNbVar);
@@ -493,8 +506,6 @@ template <class Type> class  cLeasSqtAA  :  public cLeasSq<Type>
        cLeasSqtAA<Type> Dup() const;
 
        virtual ~cLeasSqtAA();
-       void AddObservation(const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) override;
-       void AddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) override;
        void Reset() override;
        /// Compute a solution
        cDenseVect<Type>  Solve() override;
@@ -519,6 +530,9 @@ template <class Type> class  cLeasSqtAA  :  public cLeasSq<Type>
 
       void   AddCov(const cDenseMatrix<Type> &,const cDenseVect<Type>& ,const std::vector<int> &aVInd) override;
     private :
+       void SpecificAddObservation(const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) override;
+       void SpecificAddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) override;
+
        cDenseMatrix<Type>  mtAA;    /// Som(W tA A)
        cDenseVect<Type>    mtARhs;  /// Som(W tA Rhs)
        cBufSchurSubst<Type> * mBSC;

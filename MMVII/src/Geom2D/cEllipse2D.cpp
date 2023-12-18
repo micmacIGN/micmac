@@ -452,7 +452,7 @@ void cEllipse_Estimate::AddPt(cPt2dr aP)
      aDV(3) = aP.x();
      aDV(4) = aP.y();
 
-     mSys->AddObservation(1.0,aDV,1.0);
+     mSys->PublicAddObservation(1.0,aDV,1.0);
 
      mVObs.push_back(aP);
 }

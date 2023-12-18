@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding="ISO8859-1" standalone="yes" ?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <Root>
-   <Type>std::string</Type>
-   <Version>std::string</Version>
+   <Type>"MMVII_Serialization"</Type>
+   <Version>"0.0.0"</Version>
    <Data>
       <TS1>
          <TS0>

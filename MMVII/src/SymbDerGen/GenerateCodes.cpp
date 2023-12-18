@@ -495,6 +495,7 @@ class cAppliGenCode : public cMMVII_Appli
         template <typename tProj> void GenerateCodeProjCentralPersp();
         template <typename tProj> void GenerateCodeCamPerpCentrale(const cPt3di &,bool IsFraserMode);
 
+
 	eProjPC  mTypeProj;
 };
 

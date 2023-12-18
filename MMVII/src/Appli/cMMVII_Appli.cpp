@@ -279,7 +279,8 @@ cMMVII_Appli::cMMVII_Appli
    mTiePPrefOut   (MMVII_StdDest),
    mTiePPrefIn    (MMVII_StdDest),
    mIsInBenchMode (false),
-   mPatternInitGMA (MMVII_NONE) 
+   mReportSubDir   (""),
+   mPatternInitGMA (MMVII_NONE)
 {
    mNumCallInsideP = TheNbCallInsideP;
    TheNbCallInsideP++;

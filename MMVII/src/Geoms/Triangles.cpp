@@ -210,7 +210,7 @@ template <class Type,const int Dim>  cPtxd<Type,Dim> GlobCenterInscribedCircle(c
        cPtxd<Type,Dim> aMil = (aP0+aP1)/Type(2.0);
        cPtxd<Type,Dim> aV01 = aP1-aP0;
 
-       aSys.AddObservation(Type(1.0),aV01.ToVect(),Scal(aMil,aV01));
+       aSys.PublicAddObservation(Type(1.0),aV01.ToVect(),Scal(aMil,aV01));
    }
 
    // For Dim=3 we have computed inter of 3 plane mediator that co-intersect in a line
@@ -238,7 +238,7 @@ template <class Type,const int Dim>  cPtxd<Type,Dim> cTriangle<Type,Dim>::Center
        tPt aMil = (aP0+aP1)/Type(2.0);
        tPt aV01 = aP1-aP0;
 
-       aSys.AddObservation(Type(1.0),aV01.ToVect(),Scal(aMil,aV01));
+       aSys.PublicAddObservation(Type(1.0),aV01.ToVect(),Scal(aMil,aV01));
    }
 
    // For Dim=3 we have computed inter of 3 plane mediator that co-intersect in a line

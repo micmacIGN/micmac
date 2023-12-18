@@ -36,9 +36,9 @@ template <class Type>  class cLinearMemoEq  : public cLinearOverCstrSys<Type>
 	public :
              typedef cMemo1LinearEq<Type> tMemEq;
              /// 
-	     void AddObservation(const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) override;
+	     void SpecificAddObservation(const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) override;
              /// Add  aPds (  aCoeff .X = aRHS) , version sparse
-             void AddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) override;
+             void SpecificAddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) override;
 
 	     ///  Virtual method , specify the parameters (coeff ...)
              Type Residual(const cDenseVect<Type> & aVect,const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) const override;
@@ -119,15 +119,15 @@ template <class Type> Type cLinearMemoEq<Type>::Residual(const cDenseVect<Type> 
 }
 
 template <class Type>  
-    void cLinearMemoEq<Type>::AddObservation(const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS)
+    void cLinearMemoEq<Type>::SpecificAddObservation(const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS)
 {
     mLEq.push_back(tMemEq(aWeight,aCoeff,aRHS));
 }
 
 template <class Type>  
-    void cLinearMemoEq<Type>::AddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS)
+    void cLinearMemoEq<Type>::SpecificAddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS)
 {
-     AddObservation(aWeight,cDenseVect<Type>(this->mNbVar,aCoeff),aRHS);
+     SpecificAddObservation(aWeight,cDenseVect<Type>(this->mNbVar,aCoeff),aRHS);
 }
 
 template <class Type>  
@@ -226,7 +226,7 @@ template <class Type> void cCraig_Barrodale_Roberts_l1<Type>::Bench()
             cCraig_Barrodale_Roberts_l1 aSys(aDim);
 	    for (int aKEq = 0 ; aKEq<aNbEq ; aKEq++)
 	    {
-                aSys.AddObservation(RandInInterval(0.1,1.0),cDenseVect<Type>::RanGenerate(aDim),RandInInterval(-10.0,10.0));
+                aSys.PublicAddObservation(RandInInterval(0.1,1.0),cDenseVect<Type>::RanGenerate(aDim),RandInInterval(-10.0,10.0));
 	    }
 	    cDenseVect<Type>  aVec = aSys.Solve();
 	    aSys.Bench1Sol(aVec);

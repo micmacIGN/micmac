@@ -529,6 +529,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 	std::string  DirReport();
 	std::string  DirSubPReport(const std::string &anId);
 	std::string  NameTmpReport(const std::string &anId,const std::string &anImg);
+        void SetReportSubDir(const std::string &);
 
 	void  InitReport(const std::string &anId,const std::string & aPost,bool IsMul);
 	//  void  AddTopReport(const std::string &anId,const std::string & VecMsg);
@@ -711,10 +712,11 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         static std::set<cObj2DelAtEnd *>       mVectObj2DelAtEnd; 
         bool                                      mIsInBenchMode;   ///< is the command executed for bench (will probably make specific test)
 
-	char                               mCSVSep;
-	std::map<std::string,std::string>  mMapIdFilesReport;
-	std::map<std::string,std::string>  mMapIdPostReport;
-	std::set<std::string>              mReport2Merge;
+	char                               mCSVSep;    ///< separator in csv file, for now hard coded to ","
+	std::map<std::string,std::string>  mMapIdFilesReport; ///< For a given id memorize the post fix, as "csv"
+	std::map<std::string,std::string>  mMapIdPostReport; ///< For a given id , memorize the file (Global of Tmp in sub process)
+	std::set<std::string>              mReport2Merge;  ///< Memorize all the report identifier that must be merged
+        std::string                        mReportSubDir;  ///< In case we want to write in separate subdir (like with GCP)
 
 	std::string                        mPatternInitGMA;
 };

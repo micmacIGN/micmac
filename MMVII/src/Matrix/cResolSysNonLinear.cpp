@@ -487,7 +487,7 @@ template <class Type> void   cResolSysNonLinear<Type>::AddEqFixVar(const int & a
      tSVect aSV;
      aSV.AddIV(aNumV,1.0);
      // Dont forget that the linear system compute the difference with current solution ...
-     mSysLinear->AddObservation(aWeight,aSV,aVal-CurSol(aNumV));
+     mSysLinear->PublicAddObservation(aWeight,aSV,aVal-CurSol(aNumV));
 }
 
 template <class Type> void   cResolSysNonLinear<Type>::R_AddEqFixVar(const int & aNumV,const tREAL8 & aVal,const tREAL8& aWeight)
@@ -598,7 +598,7 @@ template <class Type> void  cResolSysNonLinear<Type>::AddObservationLinear
           }
      }
      currNbObs++;  ///  Check JMM
-     mSysLinear->AddObservation(aWeight,aNewCoeff,aNewRHS);
+     mSysLinear->PublicAddObservation(aWeight,aNewCoeff,aNewRHS);
 }
 
      
@@ -626,7 +626,7 @@ template <class Type> void  cResolSysNonLinear<Type>::AddObservationLinear
           }
      }
      currNbObs++;  ///  Check JMM
-     mSysLinear->AddObservation(aWeight,aNewCoeff,aNewRHS);
+     mSysLinear->PublicAddObservation(aWeight,aNewCoeff,aNewRHS);
 }
 
 
@@ -840,7 +840,7 @@ template <class Type> void cResolSysNonLinear<Type>::AddObs(const std::vector<tI
                      aSV.AddIV(aIO.mGlobVInd[aKUk],aVDer[aKUk]);
 	         }
 		 // Note the minus sign :  F(X0+dx) = F(X0) + Gx.dx   =>   Gx.dx = -F(X0)
-	         mSysLinear->AddObservation(aW,aSV,-aIO.mVals[aKVal]);
+	         mSysLinear->PublicAddObservation(aW,aSV,-aIO.mVals[aKVal]);
 	      }
 	  }
 
@@ -910,8 +910,9 @@ template <> void cResolSysNonLinear<tREAL8>::R_AddObsWithTmpUK (const tR_Up::tSe
 
             //  =========    resolving ==========================
 
-template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUpdateReset() 
+template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUpdateReset(const Type & aLVM) 
 {
+//StdOut() <<  "KKKKKKKKKKKKKKKkkk "  << aLVM << "\n";
     if (mNbVar>currNbObs)
     {
            //StdOut()  << "currNbObscurrNbObs " << currNbObs  << " RRRRR=" << currNbObs - mNbVar << std::endl;
@@ -921,8 +922,15 @@ template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUp
     mInPhaseAddEq = false;
     // for var frozen, they are not involved in any equation, we must fix their value other way
     for (int aK=0 ; aK<mNbVar ; aK++)
+    {
         if (mVarIsFrozen[aK])
            AddEqFixVar(aK,mValueFrozenVar[aK],1.0);
+
+        if (aLVM>0)
+        {
+           AddEqFixVar(aK,CurSol(aK),mSysLinear->LVMW(aK)*aLVM);
+        }
+    }
 
     mCurGlobSol += mSysLinear->Solve();     //  mCurGlobSol += mSysLinear->SparseSolve();
     mSysLinear->Reset();
@@ -931,9 +939,9 @@ template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUp
     return mCurGlobSol;
 }
 
-template <class Type> cDenseVect<tREAL8>  cResolSysNonLinear<Type>::R_SolveUpdateReset() 
+template <class Type> cDenseVect<tREAL8>  cResolSysNonLinear<Type>::R_SolveUpdateReset(const tREAL8 & aLVM) 
 {
-	return Convert((tREAL8*)nullptr,SolveUpdateReset());
+	return Convert((tREAL8*)nullptr,SolveUpdateReset(aLVM));
 }
 
 
