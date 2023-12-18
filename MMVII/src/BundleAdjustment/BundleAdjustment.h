@@ -122,7 +122,7 @@ class cMMVII_BundleAdj
 	  void AddMTieP(cComputeMergeMulTieP  * aMTP,const cStdWeighterResidual & aWIm);
 
           /// One iteration : add all measure + constraint + Least Square Solve/Udpate/Init
-          void OneIteration();
+          void OneIteration(tREAL8 aLVM=0.0);
 
           const std::vector<cSensorImage *> &  VSIm() const ;  ///< Accessor
           const std::vector<cSensorCamPC *> &  VSCPC() const;   ///< Accessor

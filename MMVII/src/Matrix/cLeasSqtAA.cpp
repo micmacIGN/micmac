@@ -324,7 +324,8 @@ template<class Type> cLeasSq<Type> * cLeasSq<Type>::AllocDenseLstSq(int aNbVar)
 /* *********************************** */
 
 template<class Type> cLinearOverCstrSys<Type>::cLinearOverCstrSys(int aNbVar) :
-   mNbVar (aNbVar)
+   mNbVar (aNbVar),
+   mLVMW  (aNbVar,eModeInitImage::eMIA_Null)
 {
 }
 
@@ -335,6 +336,11 @@ template<class Type> cLinearOverCstrSys<Type>::~cLinearOverCstrSys()
 template<class Type> int cLinearOverCstrSys<Type>::NbVar() const
 {
    return mNbVar;
+}
+
+template<class Type> Type cLinearOverCstrSys<Type>::LVMW(int aK) const
+{
+   return mLVMW(aK);
 }
 
 template<class Type> void cLinearOverCstrSys<Type>::AddObsFixVar(const Type& aWeight,int aIndVal,const Type & aVal)
@@ -351,10 +357,14 @@ template<class Type> void cLinearOverCstrSys<Type>::AddObsFixVar(const Type& aWe
 template<class Type> void cLinearOverCstrSys<Type>::PublicAddObservation (const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS)
 {
      SpecificAddObservation(aWeight,aCoeff,aRHS);
+     for (int aKV=0 ; aKV<mNbVar ; aKV++)
+        mLVMW(aKV) += aWeight * Square(aCoeff(aKV));
 }
 template<class Type> void cLinearOverCstrSys<Type>::PublicAddObservation (const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS)
 {
      SpecificAddObservation(aWeight,aCoeff,aRHS);
+     for (const auto & aPair : aCoeff)
+        mLVMW(aPair.mInd) += aWeight * Square(aPair.mVal);
 }
 
 template<class Type> void cLinearOverCstrSys<Type>::AddObsFixVar(const Type& aWeight,const cSparseVect<Type> & aVVarVals)

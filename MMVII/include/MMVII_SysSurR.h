@@ -106,7 +106,7 @@ class cREAL8_RSNL
           /// Set value, usefull for ex in dev-mesh because variable are activated stepby step
           virtual void R_SetCurSol(int aNumV,const tREAL8&) =0 ;
 	  /// 
-          virtual  tDVect    R_SolveUpdateReset() = 0 ;
+          virtual  tDVect    R_SolveUpdateReset(const tREAL8 & aLVM=0.0) = 0 ;  // Levenberg markard
 
           virtual void   R_AddEqFixVar(const int & aNumV,const tREAL8 & aVal,const tREAL8& aWeight) =0;
           virtual void   R_AddEqFixCurVar(const int & aNumV,const tREAL8 & aWeight) =0;
@@ -181,8 +181,8 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
           tLinearSysSR *  SysLinear() ;
 
           /// Solve solution,  update the current solution, Reset the least square system
-          const tDVect  &    SolveUpdateReset() ;
-	  cREAL8_RSNL::tDVect      R_SolveUpdateReset() override ;
+          const tDVect  &    SolveUpdateReset(const Type & aLVM =0.0) ;
+	  cREAL8_RSNL::tDVect      R_SolveUpdateReset(const tREAL8& = 0.0) override ;
 
           /// Add 1 equation fixing variable
           void   AddEqFixVar(const int & aNumV,const Type & aVal,const Type& aWeight);
@@ -439,8 +439,11 @@ template <class Type> class cLinearOverCstrSys  : public cMemCheck
        /// Add  aPds (  aCoeff .X = aRHS) , version sparse
        virtual void SpecificAddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) = 0;
 
+       Type LVMW(int aK) const;
+
     protected :
        int mNbVar;
+       cDenseVect<Type>  mLVMW;  // The Levenberg markad weigthing
     // private :
 };
 

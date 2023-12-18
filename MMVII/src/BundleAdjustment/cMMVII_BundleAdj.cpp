@@ -135,7 +135,7 @@ void cMMVII_BundleAdj::InitIteration()
 }
 
 
-void cMMVII_BundleAdj::OneIteration()
+void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM)
 {
     // if it's first step, alloc ressources
     if (mPhaseAdd)
@@ -201,7 +201,7 @@ void cMMVII_BundleAdj::OneIteration()
     }
     // StdOut() << "SYS=" << mR8_Sys->GetNbObs() << " " <<  mR8_Sys->NbVar() << std::endl;
 
-    const auto & aVectSol = mSys->R_SolveUpdateReset();
+    const auto & aVectSol = mSys->R_SolveUpdateReset(aLVM);
     mSetIntervUK.SetVUnKnowns(aVectSol);
 
     StdOut() << "---------------------------" << std::endl;
