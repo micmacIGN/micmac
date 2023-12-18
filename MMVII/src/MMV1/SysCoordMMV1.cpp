@@ -212,6 +212,11 @@ cSysCoordV1::~cSysCoordV1()
     // delete mSV1;
 }
 
+void GenSpec_SysCoordV1(const std::string & aDir)
+{
+    SpecificationSaveInFile<cSysCoordV1>(aDir+"SysCoordV1.xml");
+}
+
 /*********************************************/
 /*                                           */
 /*             cSysCoordLocal                */

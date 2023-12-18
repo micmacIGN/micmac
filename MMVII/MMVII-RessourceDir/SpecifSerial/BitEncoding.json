@@ -1,13 +1,13 @@
 {
-   "Type" :"std::string" ,
-   "Version" :"std::string" ,
+   "Type" :"MMVII_Serialization" ,
+   "Version" :"0.0.0" ,
    "Data" :
    {
       "BitEncoding" :
       {
          "Specifs" :
          {
-            "Type" :"std::string" ,
+            "Type" :"enum_TypeCodedTarget" ,
             "NbBits" :"size_t" ,
             "FreqCircEq" :"size_t" ,
             "MinHammingD" :"size_t" ,

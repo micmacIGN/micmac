@@ -1242,7 +1242,9 @@ void cOMakeTreeAr::RawAddDataTerm(std::string &    anS)
     if (mIsSpecif)
     {
        int aLevHeader = (mTypeS== eTypeSerial::exml) ? 2 : 1;
-       if ((mLevel != aLevHeader) || ((mLastTag!=TagMMVIIType) && (mLastTag!=TagMMVIIVersion)) )
+       if  (  ((mLevel != aLevHeader) || ((mLastTag!=TagMMVIIType) && (mLastTag!=TagMMVIIVersion)) )
+             && (!starts_with(anS,"enum_"))
+	   )
 	       aStr = JSonQuote("std::string");
     }
 
