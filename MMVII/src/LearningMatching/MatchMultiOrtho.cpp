@@ -809,7 +809,7 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
     aCnnModelPredictor *  mCNNPredictor=nullptr;
     bool                  mWithIntCorr=true;  // initialized in the begining 
     bool                  mWithExtCorr=false;  // initialized in the begining 
-    bool                  mWithDecisionNet=false;
+    bool                  mWithDecisionNet=true;
     bool                  mWithMatcher3D=false;
     std::string           mArchitecture;
     std::string           mResol;

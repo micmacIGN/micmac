@@ -166,7 +166,7 @@ void cAppliMICMAC::OneEtapeSetCur(cEtapeMecComp & anEtape)
 {
      mPrecEtape = mCurEtape;
      mCurEtape = & anEtape;
-     mZoomChanged=true;
+     mZoomChanged=false;
 
 
      if (anEtape.EtapeMEC().GenCubeCorrel().ValWithDef(false))
@@ -388,16 +388,6 @@ void cAppliMICMAC::DoOneEtapeMEC(cEtapeMecComp & anEtape)
           ||(mNbBoitesToDo <=0)
         )
         return;
-     if (mCorrelAdHoc)
-       {
-         // Homography or Epipolar warping for multi view Deep similarity matching
-         const cTypeCAH & aTC  = mCorrelAdHoc->TypeCAH();
-         if (aTC.MutiCorrelOrthoExt().IsInit())
-           {
-            //DoEstimHomWarpers();
-             DoEstimWarpersPDVs();
-           }
-       }
     std::list<std::string> aLStrProcess;
     if (mShowMes)
     {
@@ -502,6 +492,23 @@ std::cout << "CCMMM = " << aBoxClip._p0 << " " << aBoxClip._p1 << "\n"; getchar(
                }
                else
                {
+                   // at first bloc run homography or epipolar warping for MVS deep learning pipeline
+                   if ((mKBox==0) && (ByProcess().Val()!=0))
+                     {
+                       std::cout<<"MKBBBBBOOXXXXX  "<<mKBox<<"  aDecInterv.NbInterv() "<<aDecInterv.NbInterv()<<" PROCCC: "<<
+                               ByProcess().Val()<<std::endl;
+                         if (mCorrelAdHoc)
+                           {
+                             mZoomChanged=true;
+                             // Homography or Epipolar warping for multi view Deep similarity matching
+                             const cTypeCAH & aTC  = mCorrelAdHoc->TypeCAH();
+                             if (aTC.MutiCorrelOrthoExt().IsInit())
+                               {
+                                //DoEstimHomWarpers();
+                                 DoEstimWarpersPDVs();
+                               }
+                           }
+                     }
 /*
                    int aNumEt = anEtape.Num();
                    //mNameExe + std::string(" ")
@@ -526,6 +533,7 @@ std::cout << "CCMMM = " << aBoxClip._p0 << " " << aBoxClip._p1 << "\n"; getchar(
                                + std::string(" FirstBoiteMEC=") + ToString(mKBox)
                                + std::string(" NbBoitesMEC=1") ;
 
+                   std::cout<<"PROCESS  =====>>>>  "<<aNameProcess<<std::endl;
                    aLStrProcess.push_back(aNameProcess);
                }
           }

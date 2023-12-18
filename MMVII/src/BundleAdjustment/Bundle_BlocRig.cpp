@@ -89,6 +89,7 @@ void cBA_BlocRig::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet)
      {
           for (auto & [aName, aPoseUk] : aBloc->MapStrPoseUK())
           {
+              if (0) std::cout<<"aName "<<aName<<std::endl;
               aSet.AddOneObj(&aPoseUk);
           }
      }

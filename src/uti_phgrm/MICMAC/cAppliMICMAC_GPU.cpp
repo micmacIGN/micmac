@@ -1660,6 +1660,8 @@ void cAppliMICMAC::GenerateGeoPassage_Homography_BBox_Stenope(std::vector<cGPU_L
 
 void cAppliMICMAC::DoEstimHomWarpers()
 {
+  std::cout<<"HAS ZOOM CHANGED "<<mZoomChanged<<std::endl;
+
   if (mZoomChanged)
     {
         int NbVues=mPrisesDeVue.size();
@@ -1800,6 +1802,7 @@ void cAppliMICMAC::DoEstimHomWarpers()
 
           }
         mZoomChanged=false;
+        std::cout<<"put  ZOOM CHANGED "<<mZoomChanged<<std::endl;
   }
 }
 void cAppliMICMAC::DoEstimWarpersPDVs()
@@ -1961,6 +1964,7 @@ void cAppliMICMAC::DoEstimWarpersPDVs()
            {
             cEl_GPAO::DoComInSerie(aLCom);
            }
+
          mZoomChanged=false;
     }
 }

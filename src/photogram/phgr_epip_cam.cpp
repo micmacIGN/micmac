@@ -830,7 +830,18 @@ template <class Type,class TypeBase>
         Tiff_Im  aTifEpMRedY(aNameEpRedY.c_str());
         Tiff_Im  aTifEpM(aNameEpMasq.c_str());
 
-        Box2di aBoxInGeoI=Box2di(Pt2di(aBoxInGeo._p0),Pt2di(aBoxInGeo._p1));
+        //Box2di aBoxInGeoI=Box2di(Pt2di(aBoxInGeo._p0),Pt2di(aBoxInGeo._p1));
+        Box2di aBoxInGeoI=Box2di(round_ni(aBoxInGeo._p0),round_ni(aBoxInGeo._p1));
+        if(round_ni(aBoxInGeo._p1.x-aBoxInGeo._p0.x)!=aBoxInGeoI._p1.x-aBoxInGeoI._p0.x)
+          {
+            int D_=round_ni(aBoxInGeo._p1.x-aBoxInGeo._p0.x)-(aBoxInGeoI._p1.x-aBoxInGeoI._p0.x);
+            aBoxInGeoI._p1.x=aBoxInGeoI._p1.x+D_;
+          }
+        if(round_ni(aBoxInGeo._p1.y-aBoxInGeo._p0.y)!=aBoxInGeoI._p1.y-aBoxInGeoI._p0.y)
+          {
+            int D_=round_ni(aBoxInGeo._p1.y-aBoxInGeo._p0.y)-(aBoxInGeoI._p1.y-aBoxInGeoI._p0.y);
+            aBoxInGeoI._p1.y=aBoxInGeoI._p1.y+D_;
+          }
         Pt2dr Orig_x0y0=Pt2dr(aBoxInGeo._p0);
         Pt2dr OrigEp_x0y0=Pt2dr(aBoxOut._p0);
 
@@ -882,6 +893,8 @@ template <class Type,class TypeBase>
         );
 
        // Epipolar --> Image Masq
+       // std::cout<<"   "<<aBoxInGeo<<"    "<<aBoxInGeoI<<"   "<<aTifEpM.sz()<<"   "<<aTifEpMRedY.sz()<<std::endl;
+
         ELISE_COPY
         (
              rectangle(aBoxInGeoI._p0,aBoxInGeoI._p1),

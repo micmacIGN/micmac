@@ -114,6 +114,10 @@ int cAppli_GenArgsSpec::Exe()
         if (! first)
             mArgsSpecs.jsonSpec += ",";
         first = false;
+        if (0)
+        {
+            std::cout<<"aExtList "<< anExtList.at(0) <<std::endl;
+        }
         mArgsSpecs.jsonSpec += "\"" + E2Str(aTA2007) + "\"";
     }
     mArgsSpecs.jsonSpec += "],\n";
