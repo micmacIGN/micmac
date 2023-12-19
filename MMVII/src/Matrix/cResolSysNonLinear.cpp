@@ -9,6 +9,9 @@ using namespace MMVII;
 namespace MMVII
 {
 
+
+
+
 template <class Type> class cREAL8_RWAdapt : public cResidualWeighter<Type>
 {
        public :
@@ -362,9 +365,124 @@ int cREAL8_RSNL::CountFreeVariables() const
 
 /* ************************************************************ */
 /*                                                              */
+/*                cOneLinearConstraint                          */
+/*                                                              */
+/* ************************************************************ */
+
+/*    Class for handling linear constraint in non linear optimization system.
+ *    Note the constraint on a vector X as :
+ *
+ *         mL . X = mC      where mL is a non null vector
+ *
+ *    The way it is done :
+ *
+ *       (1) We select an arbitray non null coord of L  Li!=0; (something like the biggest one)
+ *       (2) We suppose Li=1.0  (in fact we have it by  mL = mL/Li  , mC = mC/Li)
+ *       (3) Let not X' the vector X without Xi
+ *       (4) we have Xi =  mC- mL X'
+ *       (5) Each time we add a new obs in sytem :
+ *            A.X = B
+ *            A.x-B =  A' X' -B + Ai Xi =  A' X' -B + Ai (mC-mL X')  
+ *
+ *            (A'-Ai mL) = B
+ *
+ */
+
+template <class Type>  class cOneLinearConstraint
+{
+     public :
+       typedef cSparseVect<Type> tSV;
+       /**  In Cstr we can fix the index of subst, if it value -1 let the system select the best , fixing can be usefull in case
+	* of equivalence
+	*/
+        cOneLinearConstraint(const tSV&aLP,const Type& aCste,cSetIntDyn & aSetSubst,int aInd =-1);
+
+	void ModifDenseEqLinear(cDenseVect<Type> & aCoeff,Type &  aRHS, const cDenseVect<Type> &  aCurSol);
+     private :
+        tSV       mLP;     /// Linear part
+        int       mISubst; /// Indexe which is substituted
+	Type      mCste;   /// Constant of the constrainte   
+};
+
+template <class Type> cOneLinearConstraint<Type>::cOneLinearConstraint(const tSV&aLP,const Type& aCste,cSetIntDyn & aSetSubst,int aKPair) :
+	mLP  {}
+{
+    const typename tSV::tCont & aVPair = aLP.IV();
+    // if indexe was not forced or is already, get the "best" one
+    if ((aKPair<0) || aSetSubst.mOccupied.at(aVPair.at(aKPair).mInd))
+    {
+       cWhichMax<int,Type> aMaxInd(-1,0);
+       // extract the index, not occupied
+       for (size_t aKP=0 ; aKP<aVPair.size() ; aKP++)
+       {
+           if (!aSetSubst.mOccupied.at(aVPair.at(aKP).mInd))
+	   {
+               aMaxInd.Add(aKP,std::abs(aVPair.at(aKP).mVal));
+	   }
+       }
+       MMVII_INTERNAL_ASSERT_tiny(aMaxInd.IsInit(),"Cannot get index in cOneLinearConstraint");
+       aKPair = aMaxInd.IndexExtre();
+    }
+
+    // now store the result
+    mISubst = aVPair.at(aKPair).mInd;  // The indexe that will be susbstitued
+    Type aV0 = aVPair.at(aKPair).mVal; // Value we divide all
+    mCste = aCste / aV0;  // normalized constant
+
+    for (const auto & aPair : aVPair)
+    {
+        if (aPair.mInd != mISubst)
+        {
+             mLP.AddIV(aPair.mInd,aPair.mVal/aV0);
+        }
+    }
+}
+
+
+template <class Type> void cOneLinearConstraint<Type>::ModifDenseEqLinear(cDenseVect<Type> & aCoeff,Type &  aRHS, const cDenseVect<Type> & )
+{
+}
+
+/*
+template <class Type> void  cResolSysNonLinear<Type>::AddObservationLinear
+                            (
+                                 const Type& aWeight,
+                                 const cDenseVect<Type> & aCoeff,
+                                 const Type &  aRHS
+                            )
+{
+     mInPhaseAddEq = true;
+     Type  aNewRHS    = aRHS;
+     cDenseVect<Type> aNewCoeff = aCoeff.Dup();
+
+     for (int aK=0 ; aK<mNbVar ; aK++)
+     {
+          if (mVarIsFrozen.at(aK))
+          {
+              aNewRHS -= mValueFrozenVar.at(aK) * aCoeff(aK);
+              aNewCoeff(aK)=0;
+          }
+          else
+          {
+              aNewRHS -=  mCurGlobSol(aK) * aCoeff(aK);
+          }
+     }
+     currNbObs++;  ///  Check JMM
+     mSysLinear->PublicAddObservation(aWeight,aNewCoeff,aNewRHS);
+}
+*/
+
+template class  cOneLinearConstraint<tREAL16>;
+template class  cOneLinearConstraint<tREAL8>;
+template class  cOneLinearConstraint<tREAL4>;
+
+/* ************************************************************ */
+/*                                                              */
 /*                cResolSysNonLinear                            */
 /*                                                              */
 /* ************************************************************ */
+
+
 
       // =====    constructors / destructors ================
 
