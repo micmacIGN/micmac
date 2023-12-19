@@ -34,7 +34,7 @@ template <class TypeEnum> class cE2Str
          typename tMapE2Str::iterator anIt = mE2S.find(anE);
          // Enum to string is not user error (user do not create enum)
          if (anIt == mE2S.end())
-            MMVII_INTERNAL_ASSERT_always(false,"E2Str for enum : " + ToStr(int(anE) + ", for type: " + cStrIO<TypeEnum>::msNameType));
+            MMVII_INTERNAL_ASSERT_always(false,"E2Str for enum : " + ToStr(int(anE)) + ", for type: " + cStrIO<TypeEnum>::msNameType);
          return anIt->second;
      }
 

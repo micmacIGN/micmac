@@ -114,6 +114,11 @@ template <>  const std::string cStrIO<eModeCaracMatch>::msNameType;
 template <>  const std::string cStrIO<eProjPC>::msNameType;
 template <>  const std::string cStrIO<eModeTestPropCov>::msNameType;
 template <>  const std::string cStrIO<eDCTFilters>::msNameType;
+
+template <>  const std::string cStrIO<eTypeSerial>::msNameType;
+template <>  const std::string cStrIO<eTyCodeTarget>::msNameType;
+template <>  const std::string cStrIO<eSysCoGeo>::msNameType;
+template <>  const std::string cStrIO<eMTDIm>::msNameType;
 #endif
 
 /** These functions offer an"easy" interface to cStrIO, however I think
