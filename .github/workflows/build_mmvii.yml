@@ -120,6 +120,6 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
           draft: true
-          name: cm-test
+          name: MMVII-build
           token: ${{ secrets.GITHUB_TOKEN }}
           files: mmvii_windows.zip
