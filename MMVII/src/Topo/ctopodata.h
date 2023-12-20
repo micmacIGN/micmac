@@ -10,10 +10,7 @@ using namespace NS_SymbolicDerivative;
 namespace MMVII
 {
 class cTopoObsSet;
-class cTopoData;
 
-///  Global function with standard interface required for serialization => just call member
-void AddData(const cAuxAr2007 & anAux, cTopoData & aTopoData) ;
 
 /**
  * @brief The cTopoData class represents topometric data
@@ -28,16 +25,20 @@ public:
     static cTopoData * FromFile(const std::string &) ;
     void print();
     void createEx1();
-    cCalculator<double>* getEquation(TopoObsType tot) const;
+    cCalculator<double>* getEquation(eTopoObsType tot) const;
 private:
+    cTopoData(cTopoData const&) = delete;
+    cTopoData& operator=(cTopoData const&) = delete;
     std::vector<cTopoPoint*> allPts;
     std::vector<std::unique_ptr<cTopoObsSet>> allObsSets;
     cSetInterUK_MultipeObj<double> *mSetIntervMultObj; ///< pointer to be able to delete it before allPts
     cResolSysNonLinear<double>*  mSys;
-    std::map<TopoObsType, cCalculator<double>*> mTopoObsType2equation;
+    std::map<eTopoObsType, cCalculator<double>*> mTopoObsType2equation;
 };
 
 
+///  Global function with standard interface required for serialization => just call member
+void AddData(const cAuxAr2007 & anAux, cTopoData & aTopoData) ;
 
 
 };

@@ -171,6 +171,21 @@ template<> cE2Str<eSysCoGeo>::tMapE2Str cE2Str<eSysCoGeo>::mE2S
            };
 
 
+template<> cE2Str<eTopoObsSetType>::tMapE2Str cE2Str<eTopoObsSetType>::mE2S
+           {
+                {eTopoObsSetType::eSimple,"Simple"},
+                {eTopoObsSetType::eDistParam,"DistParam"},
+                {eTopoObsSetType::eSubFrame,"SubFrame"},
+           };
+
+template<> cE2Str<eTopoObsType>::tMapE2Str cE2Str<eTopoObsType>::mE2S
+           {
+                {eTopoObsType::eDist,"Dist"},
+                {eTopoObsType::eSubFrame,"SubFrame"},
+                {eTopoObsType::eDistParam,"DistParam"},
+           };
+
+
 template<> cE2Str<eTySC>::tMapE2Str cE2Str<eTySC>::mE2S
            {
                            {eTySC::NonInit,MMVII_NONE},
@@ -540,6 +555,8 @@ void BenchEnum(cParamExeBench & aParam)
 
     TplBenchEnum<eProjPC>();
     TplBenchEnum<eSysCoGeo>();
+    TplBenchEnum<eTopoObsSetType>();
+    TplBenchEnum<eTopoObsType>();
     TplBenchEnum<eOpAff>();
     TplBenchEnum<eTySC>();
     TplBenchEnum<eTA2007>();
@@ -1127,6 +1144,8 @@ MACRO_INSTANTITATE_STRIO_ENUM(eTyInvRad,"TyInvRad")
 MACRO_INSTANTITATE_STRIO_ENUM(eTyPyrTieP,"TyPyrTieP")
 MACRO_INSTANTITATE_STRIO_ENUM(eProjPC,"ProjPC")
 MACRO_INSTANTITATE_STRIO_ENUM(eSysCoGeo,"SysCoGeo")
+MACRO_INSTANTITATE_STRIO_ENUM(eTopoObsSetType,"TopoObsSetType")
+MACRO_INSTANTITATE_STRIO_ENUM(eTopoObsType,"TopoObsType")
 MACRO_INSTANTITATE_STRIO_ENUM(eOpAff,"OpAff")
 MACRO_INSTANTITATE_STRIO_ENUM(eModeEpipMatch,"ModeEpiMatch")
 MACRO_INSTANTITATE_STRIO_ENUM(eModePaddingEpip,"ModePadEpip")

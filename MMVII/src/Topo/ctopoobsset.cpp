@@ -1,12 +1,28 @@
 #include "ctopoobsset.h"
 #include "MMVII_PhgrDist.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+#include "ctopoobs.h"
 #include <memory>
 namespace MMVII
 {
 
-cTopoObsSet::cTopoObsSet(TopoObsSetType type):
+cTopoObsSet::cTopoObsSet(eTopoObsSetType type):
     mType(type)
 {
+}
+
+void cTopoObsSet::AddData(const  cAuxAr2007 & anAuxInit)
+{
+    std::cout<<"Add data obs set '"<<toString()<<"'"<<std::endl;
+    cAuxAr2007 anAux("TopoObsSet",anAuxInit);
+
+    MMVII::EnumAddData(anAux,mType,"Type");
+    MMVII::AddData(cAuxAr2007("AllObs",anAux),mObs);
+}
+
+void AddData(const cAuxAr2007 & anAux, std::unique_ptr<cTopoObsSet> &aObsSet)
+{
+     aObsSet->AddData(anAux);
 }
 
 void cTopoObsSet::init()
@@ -20,9 +36,9 @@ void cTopoObsSet::PutUknowsInSetInterval()
     mSetInterv->AddOneInterv(mParams);
 }
 
-bool cTopoObsSet::addObs(cTopoObs obs)
+bool cTopoObsSet::addObs(cTopoObs * obs)
 {
-    if (std::find(mAllowedObsTypes.begin(), mAllowedObsTypes.end(), obs.getType()) == mAllowedObsTypes.end())
+    if (std::find(mAllowedObsTypes.begin(), mAllowedObsTypes.end(), obs->getType()) == mAllowedObsTypes.end())
     {
         ErrOut() << "Error, " << obs.type2string()
                  << " obs type is not allowed in "
@@ -38,7 +54,7 @@ std::string cTopoObsSet::toString() const
     std::ostringstream oss;
     oss<<"TopoObsSet "<<type2string()<<":\n";
     for (auto & obs: mObs)
-        oss<<"    - "<<obs.toString()<<"\n";
+        oss<<"    - "<<obs->toString()<<"\n";
     if (!mParams.empty())
     {
         oss<<"    params: ";
@@ -62,13 +78,13 @@ std::vector<int> cTopoObsSet::getParamIndices() const
 
 //----------------------------------------------------------------
 cTopoObsSetSimple::cTopoObsSetSimple() :
-    cTopoObsSet(TopoObsSetType::simple)
+    cTopoObsSet(eTopoObsSetType::eSimple)
 {
 }
 
 void cTopoObsSetSimple::createAllowedObsTypes()
 {
-    mAllowedObsTypes = {TopoObsType::dist};
+    mAllowedObsTypes = {eTopoObsType::eDist};
 }
 
 void cTopoObsSetSimple::createParams()
@@ -88,13 +104,13 @@ std::string cTopoObsSetSimple::type2string() const
 
 //----------------------------------------------------------------
 cTopoObsSetDistParam::cTopoObsSetDistParam() :
-    cTopoObsSet(TopoObsSetType::distParam)
+    cTopoObsSet(eTopoObsSetType::eDistParam)
 {
 }
 
 void cTopoObsSetDistParam::createAllowedObsTypes()
 {
-    mAllowedObsTypes = {TopoObsType::distParam};
+    mAllowedObsTypes = {eTopoObsType::eDistParam};
 }
 
 void cTopoObsSetDistParam::createParams()
@@ -114,13 +130,13 @@ std::string cTopoObsSetDistParam::type2string() const
 
 //----------------------------------------------------------------
 cTopoObsSetSubFrame::cTopoObsSetSubFrame() :
-    cTopoObsSet(TopoObsSetType::subFrame), mRot(cRotation3D<tREAL8>::RotFromAxiator({0.,0.,0.}))
+    cTopoObsSet(eTopoObsSetType::eSubFrame), mRot(cRotation3D<tREAL8>::RotFromAxiator({0.,0.,0.}))
 {
 }
 
 void cTopoObsSetSubFrame::createAllowedObsTypes()
 {
-    mAllowedObsTypes = {TopoObsType::subFrame};
+    mAllowedObsTypes = {eTopoObsType::eSubFrame};
 }
 
 void cTopoObsSetSubFrame::createParams()

@@ -1,5 +1,6 @@
 #include "ctopoobs.h"
 #include "MMVII_PhgrDist.h"
+#include "MMVII_2Include_Serial_Tpl.h"
 #include <memory>
 #include "ctopoobsset.h"
 #include "ctopopoint.h"
@@ -8,25 +9,25 @@
 namespace MMVII
 {
 
-cTopoObs::cTopoObs(cTopoObsSet* set, TopoObsType type, const std::vector<cTopoPoint*> & pts, const std::vector<tREAL8> & vals, const cResidualWeighterExplicit<tREAL8> &aWeights):
+cTopoObs::cTopoObs(cTopoObsSet* set, eTopoObsType type, const std::vector<cTopoPoint*> & pts, const std::vector<tREAL8> & vals, const cResidualWeighterExplicit<tREAL8> &aWeights):
     mSet(set), mType(type), mPts(pts), mVals(vals)//, mWeights(aWeights)
 {
     MMVII_INTERNAL_ASSERT_strong(mSet, "Obs: no set given")
     switch (mType) {
-    case TopoObsType::dist:
-        MMVII_INTERNAL_ASSERT_strong(mSet->getType()==TopoObsSetType::simple, "Obs: incorrect set type")
+    case eTopoObsType::eDist:
+        MMVII_INTERNAL_ASSERT_strong(mSet->getType()==eTopoObsSetType::eSimple, "Obs: incorrect set type")
         MMVII_INTERNAL_ASSERT_strong(pts.size()==2, "Obs: incorrect number of points")
         MMVII_INTERNAL_ASSERT_strong(vals.size()==1, "Obs: 1 value should be given")
         MMVII_INTERNAL_ASSERT_strong(aWeights.size()==1, "Obs: 1 weight should be given")
         break;
-    case TopoObsType::subFrame:
-        MMVII_INTERNAL_ASSERT_strong(mSet->getType()==TopoObsSetType::subFrame, "Obs: incorrect set type")
+    case eTopoObsType::eSubFrame:
+        MMVII_INTERNAL_ASSERT_strong(mSet->getType()==eTopoObsSetType::eSubFrame, "Obs: incorrect set type")
         MMVII_INTERNAL_ASSERT_strong(pts.size()==2, "Obs: incorrect number of points")
         MMVII_INTERNAL_ASSERT_strong(vals.size()==3, "Obs: 3 values should be given")
         MMVII_INTERNAL_ASSERT_strong(aWeights.size()==3, "Obs: 3 weights should be given")
         break;
-    case TopoObsType::distParam:
-        MMVII_INTERNAL_ASSERT_strong(mSet->getType()==TopoObsSetType::distParam, "Obs: incorrect set type")
+    case eTopoObsType::eDistParam:
+        MMVII_INTERNAL_ASSERT_strong(mSet->getType()==eTopoObsSetType::eDistParam, "Obs: incorrect set type")
         MMVII_INTERNAL_ASSERT_strong(pts.size()==2, "Obs: incorrect number of points")
         MMVII_INTERNAL_ASSERT_strong(vals.empty(), "Obs: value should not be given")
         MMVII_INTERNAL_ASSERT_strong(aWeights.size()==1, "Obs: 1 weight should be given")
@@ -34,19 +35,37 @@ cTopoObs::cTopoObs(cTopoObsSet* set, TopoObsType type, const std::vector<cTopoPo
     default:
         MMVII_INTERNAL_ERROR("unknown obs set type")
     }
-    set->addObs(*this);
+    set->addObs(this);
+    std::cout<<"DEBUG: create cTopoObs "<<toString();
+
+}
+
+void cTopoObs::AddData(const  cAuxAr2007 & anAuxInit)
+{
+    std::cout<<"Add data obs '"<<toString()<<"'"<<std::endl;
+    cAuxAr2007 anAux("TopoObs",anAuxInit);
+
+    MMVII::EnumAddData(anAux,mType,"Type");
+    MMVII::AddData(cAuxAr2007("Pts",anAux),mPts);
+    MMVII::AddData(cAuxAr2007("Vals",anAux),mVals);
+}
+
+void AddData(const cAuxAr2007 & anAux, cTopoObs *aTopoObs)
+{
+     aTopoObs->AddData(anAux);
 }
 
 std::string cTopoObs::type2string() const
 {
     switch (mType) {
-    case TopoObsType::dist:
+    case eTopoObsType::eDist:
         return "dist";
-    case TopoObsType::distParam:
+    case eTopoObsType::eDistParam:
         return "distParam";
-    case TopoObsType::subFrame:
+    case eTopoObsType::eSubFrame:
         return "subFrame";
     default:
+        std::cout<<"unknown obs type: "<<(int)mType<<std::endl;
         MMVII_INTERNAL_ERROR("unknown obs type")
         return "?";
     }
@@ -91,12 +110,12 @@ std::vector<tREAL8> cTopoObs::getVals() const
 {
     std::vector<tREAL8> vals;
     switch (mType) {
-    case TopoObsType::dist:
-    case TopoObsType::distParam:
+    case eTopoObsType::eDist:
+    case eTopoObsType::eDistParam:
         //just send measurments
         vals = mVals;
         break;
-    case TopoObsType::subFrame:
+    case eTopoObsType::eSubFrame:
     {
         //add rotations to measurments
         cTopoObsSetSubFrame* set = dynamic_cast<cTopoObsSetSubFrame*>(mSet);

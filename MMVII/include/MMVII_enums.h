@@ -120,7 +120,6 @@ enum class eTAAr
 };
 
 
-
 /// Type of external format that are potentially imported/exported in MicMac
 enum class eFormatExtern
            {
@@ -520,6 +519,24 @@ enum class eSysCoGeo
      eNbVals
 };
 
+// topometric observation sets types
+enum class eTopoObsSetType
+{
+    eSimple,
+    eDistParam,
+    eSubFrame,
+    eNbVals        ///< Tag for number of value
+};
+
+// topometric observations types
+enum class eTopoObsType
+{
+        eDist=3,
+        eSubFrame=11,
+        eDistParam=22,
+        eNbVals        ///< Tag for number of value
+};
+
 
 enum class eTyCodeTarget
 {
@@ -548,9 +565,11 @@ const std::string & E2Str(const eMTDIm &);
 const std::string & E2Str(const eFormatExtern &);
 const std::string & E2Str(const eTypeSerial &);
 const std::string & E2Str(const eTAAr &);
-const std::string & E2Str(const eProjPC &);         
+const std::string & E2Str(const eProjPC &);
 const std::string & E2Str(const eSysCoGeo &);         
-const std::string & E2Str(const eDCTFilters &);         
+const std::string & E2Str(const eTopoObsSetType &);
+const std::string & E2Str(const eTopoObsType &);
+const std::string & E2Str(const eDCTFilters &);
 const std::string & E2Str(const eTyCodeTarget &);         
 const std::string & E2Str(const eTySC &);         
 const std::string & E2Str(const eOpAff &);         

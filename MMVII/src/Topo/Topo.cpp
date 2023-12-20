@@ -19,9 +19,9 @@ cBA_Topo::cBA_Topo
     mPhProj  (aPhProj),
     mTopoObsType2equation
     {
-        {TopoObsType::dist, EqDist3D(true,1)},
-        {TopoObsType::subFrame, EqTopoSubFrame(true,1)},
-        {TopoObsType::distParam, EqDist3DParam(true,1)},
+        {eTopoObsType::eDist, EqDist3D(true,1)},
+        {eTopoObsType::eSubFrame, EqTopoSubFrame(true,1)},
+        {eTopoObsType::eDistParam, EqDist3DParam(true,1)},
     },
     mTopoData(),
     mOk(true), mInFile(aTopoFilePath)
@@ -100,7 +100,7 @@ double cBA_Topo::AddEquation_Dist3d(cResolSysNonLinear<tREAL8> & aSys)
 
 
     // now we are ready to add the equation
-    auto& equation = mTopoObsType2equation.at(TopoObsType::dist);
+    auto& equation = mTopoObsType2equation.at(eTopoObsType::eDist);
     aSys.R_CalcAndAddObs
     (
           equation,  // the equation itself

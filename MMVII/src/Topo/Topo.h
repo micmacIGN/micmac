@@ -37,7 +37,7 @@ private :
 
     const cPhotogrammetricProject &mPhProj;
 
-    std::map<TopoObsType, cCalculator<double>*> mTopoObsType2equation;
+    std::map<eTopoObsType, cCalculator<double>*> mTopoObsType2equation;
     cTopoData                    mTopoData;
     bool                         mOk;
     std::string                  mInFile;
