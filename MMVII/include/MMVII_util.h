@@ -356,7 +356,7 @@ class cSetIntDyn
           void Clear();
           void AddIndFixe(size_t aK)  ///< Add an element, assume sizeof vector of
           {
-               if (!mOccupied[aK])
+               if (!mOccupied.at(aK))
                {
                    mOccupied[aK] = true;
                    mVIndOcc.push_back(aK);

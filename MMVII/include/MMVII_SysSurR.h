@@ -54,6 +54,18 @@ template <class Type> class cResidualWeighterExplicit: public cResidualWeighter<
             tStdVect mWeights;
 };
 
+
+template <class Type> class cREAL8_RWAdapt : public cResidualWeighter<Type>
+{
+       public :
+            typedef std::vector<Type>     tStdVect;
+            cREAL8_RWAdapt(const cResidualWeighter<tREAL8> * aRW) ;
+            tStdVect WeightOfResidual(const tStdVect & aVIn) const override;
+       private :
+            const cResidualWeighter<tREAL8>* mRW;
+};
+
+
 /// Index to use in vector of index indicating a variable to substituate
 static constexpr int RSL_INDEX_SUBST_TMP = -1;
 
@@ -800,6 +812,9 @@ template <class Type> class cObjWithUnkowns //  : public cObjOfMultipleObjUk<Typ
           int   mIndUk0;
           int   mIndUk1;
 };
+
+template <class T1,class T2> void ConvertVWD(cInputOutputRSNL<T1> & aIO1 , const cInputOutputRSNL<T2> & aIO2);
+
 
 };
 
