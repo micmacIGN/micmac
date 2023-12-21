@@ -23,17 +23,17 @@ cBA_Topo::cBA_Topo
         {eTopoObsType::eSubFrame, EqTopoSubFrame(true,1)},
         {eTopoObsType::eDistParam, EqDist3DParam(true,1)},
     },
-    mTopoData(aTopoFilePath),
+    mTopoData(aTopoFilePath, this),
     mOk(true), mInFile(aTopoFilePath)
 {
     StdOut()<<"Read topo file "<<aTopoFilePath<<"\n";
     // TODO
-    auto from_name = "DSCF3297_L.jpg";
+    /*auto from_name = "DSCF3297_L.jpg";
     auto to_name = "DSCF3298_L.jpg";
     cSensorCamPC * aCamFrom = aPhProj.ReadCamPC(from_name,true,false);
     mPts_UK.push_back({aCamFrom, &aCamFrom->Center()});
     cSensorCamPC * aCamTo = aPhProj.ReadCamPC(to_name,true,false);
-    mPts_UK.push_back({aCamTo, &aCamTo->Center()});
+    mPts_UK.push_back({aCamTo, &aCamTo->Center()});*/
 
 
     //...
@@ -51,6 +51,20 @@ void cBA_Topo::Save()
     mTopoData.ToFile(mInFile+"-out.json");
 }
 
+tTopoPtUK& cBA_Topo::getPointWithUK(const std::string & aName)
+{
+    // search if already in map
+    if (auto search = mPts_UK.find(aName); search != mPts_UK.end())
+            return search->second;
+
+    // search among cameras
+    cSensorCamPC * aCam = mPhProj.ReadCamPC(aName,true,false); //TODO : crash if not found for now
+    return mPts_UK.at(aName) = {aCam, &aCam->Center()};
+
+    // search among gcp
+
+    // add new pure topo point
+}
 
 void cBA_Topo::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet)
 {

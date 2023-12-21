@@ -10,7 +10,7 @@ using namespace NS_SymbolicDerivative;
 namespace MMVII
 {
 class cTopoObsSet;
-
+class cBA_Topo;
 
 /**
  * @brief The cTopoData class represents topometric data
@@ -18,7 +18,7 @@ class cTopoObsSet;
 class cTopoData : public cMemCheck
 {
 public:
-    cTopoData(const std::string &aName);
+    cTopoData(const std::string &aName, cBA_Topo* aBA_Topo);
     ~cTopoData();
     void AddData(const  cAuxAr2007 & anAuxInit);
     void ToFile(const std::string & aName) const;
@@ -26,11 +26,14 @@ public:
     bool FromCompFile(const std::string & aName);
     void print();
     void createEx1();
+    void createEx2();
     cCalculator<double>* getEquation(eTopoObsType tot) const;
 private:
     cTopoData(cTopoData const&) = delete;
     cTopoData& operator=(cTopoData const&) = delete;
     bool addObs(int code, const std::string & nameFrom, const std::string & nameTo, double val, double sigma);
+
+    cBA_Topo* mBA_Topo;
     std::vector<cTopoPoint*> allPts;
     std::vector<std::unique_ptr<cTopoObsSet>> allObsSets;
     cSetInterUK_MultipeObj<double> *mSetIntervMultObj; ///< pointer to be able to delete it before allPts

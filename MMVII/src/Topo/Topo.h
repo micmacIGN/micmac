@@ -12,10 +12,11 @@ class cPhotogrammetricProject;
 class cSensorCamPC;
 class cPt3dr_UK;
 
+typedef std::pair<cObjWithUnkowns<tREAL8>*, cPt3dr*> tTopoPtUK;
+
 class cBA_Topo
 {
 public :
-    typedef std::pair<cObjWithUnkowns<tREAL8>*, cPt3dr*> tTopoPtUK;
 
     cBA_Topo(const cPhotogrammetricProject &, const std::string &aTopoFilePath);
     ~cBA_Topo();
@@ -31,6 +32,7 @@ public :
 
     void Save();
     bool isOk() const {return mOk;}
+    tTopoPtUK& getPointWithUK(const std::string &aName); // fill mPts_UK map
 private :
 
     double AddEquation_Dist3d(cResolSysNonLinear<tREAL8> &);
@@ -43,7 +45,7 @@ private :
     std::string                  mInFile;
 
     // tmp: obs here, TODO: use cTopoObsSet
-    std::vector<tTopoPtUK>      mPts_UK;
+    std::map<std::string, tTopoPtUK>      mPts_UK;
 
 };
 

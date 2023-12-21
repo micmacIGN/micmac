@@ -2,6 +2,7 @@
 #include "MMVII_PhgrDist.h"
 #include "ctopopoint.h"
 #include "MMVII_2Include_Serial_Tpl.h"
+#include "Topo.h"
 #include <memory>
 #include <fstream>
 #include <sstream>
@@ -9,7 +10,8 @@
 namespace MMVII
 {
 
-cTopoData::cTopoData(const std::string & aName):
+cTopoData::cTopoData(const std::string & aName, cBA_Topo *aBA_Topo):
+    mBA_Topo(aBA_Topo),
     mSetIntervMultObj(new cSetInterUK_MultipeObj<double>()), mSys(nullptr),
     mTopoObsType2equation
     {
@@ -20,6 +22,7 @@ cTopoData::cTopoData(const std::string & aName):
 {
     bool ok = FromCompFile(aName);
     MMVII_INTERNAL_ASSERT_strong(ok, "Topo: error reading file "+aName);
+    createEx2();
     print();
 }
 
@@ -119,7 +122,7 @@ void cTopoData::createEx1()
     //verbose = true;
 
     //create fixed points
-    allPts.push_back(new cTopoPoint("ptA", cPt3dr(10,10,10), false));
+    /*allPts.push_back(new cTopoPoint("ptA", cPt3dr(10,10,10), false));
     allPts.push_back(new cTopoPoint("ptB", cPt3dr(20,10,10), false));
     allPts.push_back(new cTopoPoint("ptC", cPt3dr(15,20,10), false));
     auto ptA = allPts[0];
@@ -152,11 +155,23 @@ void cTopoData::createEx1()
     obsSet3->addObs(eTopoObsType::eSubFrame, std::vector{ptE, ptA}, {-5., -3.75, -1.4}, {true, {WW,WW,WW}});
     obsSet3->addObs(eTopoObsType::eSubFrame, std::vector{ptE, ptA}, { 5., -3.75, -1.4}, {true, {WW,WW,WW}});
     obsSet3->addObs(eTopoObsType::eSubFrame, std::vector{ptE, ptA}, { 0.,  6.25, -1.4}, {true, {WW,WW,WW}});
-    obsSet3->addObs(eTopoObsType::eSubFrame, std::vector{ptE, ptA}, { 0.,  0.,    6.4}, {true, {WW,WW,WW}});
+    obsSet3->addObs(eTopoObsType::eSubFrame, std::vector{ptE, ptA}, { 0.,  0.,    6.4}, {true, {WW,WW,WW}});*/
 }
 
+void cTopoData::createEx2()
+{
+    auto from_name = "DSCF3297_L.jpg";
+    auto to_name = "DSCF3298_L.jpg";
+    auto ptFrom = mBA_Topo->getPointWithUK(from_name);
+    auto ptTo = mBA_Topo->getPointWithUK(to_name);
 
-//-------------------------------------------------------------------
+    allObsSets.push_back(make_TopoObsSet<cTopoObsSetSimple>());
+    auto obsSet1 = allObsSets[0].get();
+    /*
+#define WW 0.01
+    obsSet1->addObs(eTopoObsType::eDist, std::vector{ptA, ptD}, {10.0}, {true, {WW}});
+    obsSet1->addObs(eTopoObsType::eDist, std::vector{ptB, ptD}, {10.0}, {true, {WW}});*/
+}
 
 
 };
