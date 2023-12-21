@@ -3,6 +3,9 @@
 #include "ctopopoint.h"
 #include "MMVII_2Include_Serial_Tpl.h"
 #include <memory>
+#include <fstream>
+#include <sstream>
+
 namespace MMVII
 {
 
@@ -15,7 +18,8 @@ cTopoData::cTopoData(const std::string & aName):
         {eTopoObsType::eDistParam, EqDist3DParam(true,1)},
     }
 {
-    FromFile(aName);
+    bool ok = FromCompFile(aName);
+    MMVII_INTERNAL_ASSERT_strong(ok, "Topo: error reading file "+aName);
     print();
 }
 
@@ -45,9 +49,48 @@ void cTopoData::ToFile(const std::string & aName) const
     SaveInFile(*this,aName);
 }
 
-void cTopoData::FromFile(const std::string & aName)
+//void cTopoData::FromFile(const std::string & aName)
+//{
+//    ReadFromFile(*this, aName);
+//}
+
+
+bool cTopoData::FromCompFile(const std::string & aName)
 {
-    ReadFromFile(*this, aName);
+    std::ifstream infile(aName);
+    if (infile.bad())
+    {
+        StdOut() << "Error: can't open file \""<<aName<<"\""<<std::endl;
+        return false;
+    }
+    StdOut() << "Reading file \""<<aName<<"\"..."<<std::endl;
+    std::string line;
+    int line_num = 0;
+    while (std::getline(infile, line))
+    {
+        ++line_num;
+        std::istringstream iss(line);
+        int code;
+        if (!(iss >> code)) break; // line ignored
+        std::string nameFrom, nameTo;
+        double val, sigma;
+        if (!(iss >> nameFrom >> nameTo >> val >> sigma))
+        {
+            StdOut() << "Error reading line " << line_num << ": \""<<aName<<"\"";
+            continue;
+        }
+        if (!addObs(code, nameFrom, nameTo, val, sigma))
+            StdOut() << "Error interpreting line " << line_num << ": \""<<aName<<"\"";
+
+    }
+    StdOut() << "Reading file finished."<<std::endl;
+    return true;
+}
+
+bool cTopoData::addObs(int code, const std::string & nameFrom, const std::string & nameTo, double val, double sigma)
+{
+    // TODO
+    return true;
 }
 
 cCalculator<double>*  cTopoData::getEquation(eTopoObsType tot) const {

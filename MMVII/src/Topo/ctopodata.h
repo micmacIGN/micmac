@@ -22,13 +22,15 @@ public:
     ~cTopoData();
     void AddData(const  cAuxAr2007 & anAuxInit);
     void ToFile(const std::string & aName) const;
-    void FromFile(const std::string & aName);
+    //void FromFile(const std::string & aName);
+    bool FromCompFile(const std::string & aName);
     void print();
     void createEx1();
     cCalculator<double>* getEquation(eTopoObsType tot) const;
 private:
     cTopoData(cTopoData const&) = delete;
     cTopoData& operator=(cTopoData const&) = delete;
+    bool addObs(int code, const std::string & nameFrom, const std::string & nameTo, double val, double sigma);
     std::vector<cTopoPoint*> allPts;
     std::vector<std::unique_ptr<cTopoObsSet>> allObsSets;
     cSetInterUK_MultipeObj<double> *mSetIntervMultObj; ///< pointer to be able to delete it before allPts
