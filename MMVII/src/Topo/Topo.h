@@ -33,6 +33,7 @@ public :
     void Save();
     bool isOk() const {return mOk;}
     tTopoPtUK& getPointWithUK(const std::string &aName); // fill mPts_UK map
+    cCalculator<double>* getEquation(eTopoObsType tot) const;
 private :
 
     double AddEquation_Dist3d(cResolSysNonLinear<tREAL8> &);

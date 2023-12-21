@@ -58,8 +58,9 @@ tTopoPtUK& cBA_Topo::getPointWithUK(const std::string & aName)
             return search->second;
 
     // search among cameras
-    cSensorCamPC * aCam = mPhProj.ReadCamPC(aName,true,false); //TODO : crash if not found for now
-    return mPts_UK.at(aName) = {aCam, &aCam->Center()};
+    cSensorCamPC * aCam = mPhProj.ReadCamPC(aName, true, false);
+    std::cout<<"cSensorCamPC: "<<aCam<<std::endl;  //TODO : crash if not found for now
+    return mPts_UK[aName] = {aCam, &aCam->Center()};
 
     // search among gcp
 
@@ -92,8 +93,9 @@ void cBA_Topo::SetFrozenVar(cResolSysNonLinear<tREAL8> & aSys)
 
 double cBA_Topo::AddEquation_Dist3d(cResolSysNonLinear<tREAL8> & aSys)
 {
+    return 0.0;
     // returns residual
-
+/*
     //obs: 3 DSCF3297_L.jpg DSCF3298_L.jpg 0.3170 0.001
     double val = 0.3170;
     double sigma = 0.0001;
@@ -127,14 +129,29 @@ double cBA_Topo::AddEquation_Dist3d(cResolSysNonLinear<tREAL8> & aSys)
     double residual = equation->ValComp(0,0);
     StdOut() << "  topo resid: " << residual << std::endl;
 
-    return residual;
+    return residual;*/
 }
 
-
+cCalculator<double>*  cBA_Topo::getEquation(eTopoObsType tot) const {
+    auto eq = mTopoObsType2equation.find(tot);
+    if (eq != mTopoObsType2equation.end())
+        return mTopoObsType2equation.at(tot);
+    else
+    {
+        MMVII_INTERNAL_ERROR("unknown equation for obs type")
+        return nullptr;
+    }
+}
 
 void cBA_Topo::AddTopoEquations(cResolSysNonLinear<tREAL8> & aSys)
 {
-    AddEquation_Dist3d(aSys);
+    //AddEquation_Dist3d(aSys);
+    for (auto &obsSet: mTopoData.allObsSets)
+        for (size_t i=0;i<obsSet->nbObs();++i)
+        {
+            cTopoObs* obs = obsSet->getObs(i);
+            aSys.CalcAndAddObs(getEquation(obs->getType()), obs->getIndices(this), obs->getVals(), obs->getWeights());
+        }
 }
 
 };

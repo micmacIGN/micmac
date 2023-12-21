@@ -36,7 +36,7 @@ void cTopoObsSet::PutUknowsInSetInterval()
     mSetInterv->AddOneInterv(mParams);
 }
 
-bool cTopoObsSet::addObs(eTopoObsType type, const std::vector<cTopoPoint *> &pts, const std::vector<tREAL8> &vals, const cResidualWeighterExplicit<tREAL8> &aWeights)
+bool cTopoObsSet::addObs(eTopoObsType type, const std::vector<std::string> &pts, const std::vector<tREAL8> &vals, const cResidualWeighterExplicit<tREAL8> &aWeights)
 {
     if (std::find(mAllowedObsTypes.begin(), mAllowedObsTypes.end(), type) == mAllowedObsTypes.end())
     {

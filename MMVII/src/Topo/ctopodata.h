@@ -2,8 +2,8 @@
 #define CTOPODATA_H
 
 #include "ctopoobsset.h"
-#include "cMMVII_Appli.h"
-#include "SymbDer/SymbDer_Common.h"
+//#include "cMMVII_Appli.h"
+//#include "SymbDer/SymbDer_Common.h"
 
 using namespace NS_SymbolicDerivative;
 
@@ -17,6 +17,7 @@ class cBA_Topo;
  */
 class cTopoData : public cMemCheck
 {
+    friend class cBA_Topo;
 public:
     cTopoData(const std::string &aName, cBA_Topo* aBA_Topo);
     ~cTopoData();
@@ -27,18 +28,18 @@ public:
     void print();
     void createEx1();
     void createEx2();
-    cCalculator<double>* getEquation(eTopoObsType tot) const;
+    //cCalculator<double>* getEquation(eTopoObsType tot) const;
 private:
     cTopoData(cTopoData const&) = delete;
     cTopoData& operator=(cTopoData const&) = delete;
     bool addObs(int code, const std::string & nameFrom, const std::string & nameTo, double val, double sigma);
 
     cBA_Topo* mBA_Topo;
-    std::vector<cTopoPoint*> allPts;
+    //std::vector<cTopoPoint*> allPts;
     std::vector<std::unique_ptr<cTopoObsSet>> allObsSets;
     cSetInterUK_MultipeObj<double> *mSetIntervMultObj; ///< pointer to be able to delete it before allPts
-    cResolSysNonLinear<double>*  mSys;
-    std::map<eTopoObsType, cCalculator<double>*> mTopoObsType2equation;
+    //cResolSysNonLinear<double>*  mSys;
+    //std::map<eTopoObsType, cCalculator<double>*> mTopoObsType2equation;
 };
 
 

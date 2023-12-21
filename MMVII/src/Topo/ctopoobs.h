@@ -3,11 +3,13 @@
 
 #include "MMVII_AllClassDeclare.h"
 #include "MMVII_enums.h"
+#include "MMVII_SysSurR.h"
 
 namespace MMVII
 {
 class cTopoObsSet;
 class cTopoPoint;
+class cBA_Topo;
 template <class Type> class cResidualWeighterExplicit;
 
 
@@ -22,19 +24,20 @@ public:
     void AddData(const  cAuxAr2007 & anAuxInit);
     std::string toString() const;
     eTopoObsType getType() const {return mType;}
-    //std::vector<int> getIndices() const;
+    std::vector<int> getIndices(cBA_Topo *aBA_Topo) const;
     std::vector<tREAL8> getVals() const;
-    //cResidualWeighterExplicit<tREAL8>& getWeights();
+    cResidualWeighterExplicit<tREAL8>& getWeights();
     //std::vector<tREAL8> getResiduals(const cTopoComp *comp) const;
 protected:
-    cTopoObs(cTopoObsSet* set, eTopoObsType type, const std::vector<cTopoPoint*> & pts, const std::vector<tREAL8> & vals,  const cResidualWeighterExplicit<tREAL8> & aWeights);
+    cTopoObs(cTopoObsSet* set, eTopoObsType type, const std::vector<std::string> & pts, const std::vector<tREAL8> & vals,  const cResidualWeighterExplicit<tREAL8> & aWeights);
     cTopoObs(const cTopoObs &) = delete;
     cTopoObs& operator=(const cTopoObs &) = delete;
     cTopoObsSet* mSet;//the set containing the shared parameters
     eTopoObsType mType;
-    std::vector<cTopoPoint*> mPts;
+    //std::vector<cTopoPoint*> mPts;
+    std::vector<std::string> mPts;
     std::vector<tREAL8> mVals;
-    //cResidualWeighterExplicit<tREAL8> mWeights;
+    cResidualWeighterExplicit<tREAL8> mWeights;
 };
 
 void AddData(const cAuxAr2007 & anAux, cTopoObs * aTopoObs);

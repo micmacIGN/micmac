@@ -11,14 +11,14 @@ namespace MMVII
 {
 
 cTopoData::cTopoData(const std::string & aName, cBA_Topo *aBA_Topo):
-    mBA_Topo(aBA_Topo),
-    mSetIntervMultObj(new cSetInterUK_MultipeObj<double>()), mSys(nullptr),
+    mBA_Topo(aBA_Topo)
+   /* mSetIntervMultObj(new cSetInterUK_MultipeObj<double>()), mSys(nullptr),
     mTopoObsType2equation
     {
         {eTopoObsType::eDist, EqDist3D(true,1)},
         {eTopoObsType::eSubFrame, EqTopoSubFrame(true,1)},
         {eTopoObsType::eDistParam, EqDist3DParam(true,1)},
-    }
+    }*/
 {
     bool ok = FromCompFile(aName);
     MMVII_INTERNAL_ASSERT_strong(ok, "Topo: error reading file "+aName);
@@ -28,17 +28,17 @@ cTopoData::cTopoData(const std::string & aName, cBA_Topo *aBA_Topo):
 
 cTopoData::~cTopoData()
 {
-    std::for_each(mTopoObsType2equation.begin(), mTopoObsType2equation.end(), [](auto &e){ delete e.second; });
+    /*std::for_each(mTopoObsType2equation.begin(), mTopoObsType2equation.end(), [](auto &e){ delete e.second; });
     delete mSys;
     delete mSetIntervMultObj;
-    std::for_each(allPts.begin(), allPts.end(), [](auto p){ delete p; });
+    std::for_each(allPts.begin(), allPts.end(), [](auto p){ delete p; });*/
 }
 
 void cTopoData::AddData(const  cAuxAr2007 & anAuxInit)
 {
      cAuxAr2007 anAux("TopoData",anAuxInit);
 
-     MMVII::AddData(cAuxAr2007("AllPts",anAux),allPts);
+     //MMVII::AddData(cAuxAr2007("AllPts",anAux),allPts);
      MMVII::AddData(cAuxAr2007("AllObsSets",anAux),allObsSets);
 }
 
@@ -96,7 +96,7 @@ bool cTopoData::addObs(int code, const std::string & nameFrom, const std::string
     return true;
 }
 
-cCalculator<double>*  cTopoData::getEquation(eTopoObsType tot) const {
+/*cCalculator<double>*  cTopoData::getEquation(eTopoObsType tot) const {
     auto eq = mTopoObsType2equation.find(tot);
     if (eq != mTopoObsType2equation.end())
         return mTopoObsType2equation.at(tot);
@@ -105,17 +105,18 @@ cCalculator<double>*  cTopoData::getEquation(eTopoObsType tot) const {
         MMVII_INTERNAL_ERROR("unknown equation for obs type")
         return nullptr;
     }
-}
+}*/
 
 void cTopoData::print()
 {
     std::cout<<"Points:\n";
-    for (auto& pt: allPts)
-        std::cout<<" - "<<pt->toString()<<"\n";
+    //for (auto& pt: allPts)
+    //    std::cout<<" - "<<pt->toString()<<"\n";
     std::cout<<"ObsSets:\n";
     for (auto &obsSet: allObsSets)
         std::cout<<" - "<<obsSet.get()->toString()<<"\n";
 }
+
 
 void cTopoData::createEx1()
 {
@@ -162,15 +163,13 @@ void cTopoData::createEx2()
 {
     auto from_name = "DSCF3297_L.jpg";
     auto to_name = "DSCF3298_L.jpg";
-    auto ptFrom = mBA_Topo->getPointWithUK(from_name);
-    auto ptTo = mBA_Topo->getPointWithUK(to_name);
+    // auto ptFrom = mBA_Topo->getPointWithUK(from_name);
+    // auto ptTo = mBA_Topo->getPointWithUK(to_name);
 
     allObsSets.push_back(make_TopoObsSet<cTopoObsSetSimple>());
     auto obsSet1 = allObsSets[0].get();
-    /*
-#define WW 0.01
-    obsSet1->addObs(eTopoObsType::eDist, std::vector{ptA, ptD}, {10.0}, {true, {WW}});
-    obsSet1->addObs(eTopoObsType::eDist, std::vector{ptB, ptD}, {10.0}, {true, {WW}});*/
+    obsSet1->addObs(eTopoObsType::eDist, {from_name, to_name}, {0.3170}, {true, {0.001} });
+
 }
 
 

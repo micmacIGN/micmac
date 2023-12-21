@@ -5,12 +5,13 @@
 #include "ctopoobsset.h"
 #include "ctopopoint.h"
 #include "MMVII_SysSurR.h"
+#include "Topo.h"
 
 namespace MMVII
 {
 
-cTopoObs::cTopoObs(cTopoObsSet* set, eTopoObsType type, const std::vector<cTopoPoint*> & pts, const std::vector<tREAL8> & vals, const cResidualWeighterExplicit<tREAL8> &aWeights):
-    mSet(set), mType(type), mPts(pts), mVals(vals)//, mWeights(aWeights)
+cTopoObs::cTopoObs(cTopoObsSet* set, eTopoObsType type, const std::vector<std::string> &pts, const std::vector<tREAL8> & vals, const cResidualWeighterExplicit<tREAL8> &aWeights):
+    mSet(set), mType(type), mPts(pts), mVals(vals), mWeights(aWeights)
 {
     MMVII_INTERNAL_ASSERT_strong(mSet, "Obs: no set given")
     switch (mType) {
@@ -59,35 +60,37 @@ std::string cTopoObs::toString() const
     std::ostringstream oss;
     oss<<"TopoObs "<<E2Str(mType)<<" ";
     for (auto & pt: mPts)
-        oss<<pt->getName()<<" ";
+        oss<<pt<<" ";
     oss<<"values: ";
     for (auto & val: mVals)
         oss<<val<<" ";
     return oss.str();
 }
 
-/*std::vector<int> cTopoObs::getIndices() const
+std::vector<int> cTopoObs::getIndices(cBA_Topo *aBA_Topo) const
 {
     std::vector<int> indices;
     switch (mType) {
-    case TopoObsType::dist:
-    case TopoObsType::distParam:
-    case TopoObsType::subFrame:
+    case eTopoObsType::eDist:
+    case eTopoObsType::eDistParam:
+    case eTopoObsType::eSubFrame:
         {
         // 2 points
+            std::string nameFrom = mPts[0];
+            std::string nameTo = mPts[1];
+            auto & [ptFromUK, ptFrom3d] = aBA_Topo->getPointWithUK(nameFrom);
+            auto & [ptToUK, ptTo3d] = aBA_Topo->getPointWithUK(nameTo);
             auto paramsIndices = mSet->getParamIndices();
-            indices.insert(std::end(indices), std::begin(paramsIndices), std::end(paramsIndices));
-            auto fromIndices = mPts[0]->getIndices();
-            indices.insert(std::end(indices), std::begin(fromIndices), std::end(fromIndices));
-            auto toIndices = mPts[1]->getIndices();
-            indices.insert(std::end(indices), std::begin(toIndices), std::end(toIndices));
+            indices.insert(std::end(indices), std::begin(paramsIndices), std::end(paramsIndices)); // TODO: use PushIndexes
+            ptFromUK->PushIndexes(indices, *ptFrom3d);
+            ptToUK->PushIndexes(indices, *ptTo3d);
         }
         break;
     default:
         MMVII_INTERNAL_ERROR("unknown obs type")
     }
     return indices;
-}*/
+}
 
 std::vector<tREAL8> cTopoObs::getVals() const
 {
@@ -113,10 +116,10 @@ std::vector<tREAL8> cTopoObs::getVals() const
     return vals;
 }
 
-/*cResidualWeighterExplicit<tREAL8> &cTopoObs::getWeights()
+cResidualWeighterExplicit<tREAL8> &cTopoObs::getWeights()
 {
     return mWeights;
-}*/
+}
 
 /*std::vector<tREAL8> cTopoObs::getResiduals(const cTopoComp *comp) const
 {
