@@ -18,11 +18,11 @@ class cTopoObsSet;
 class cTopoData : public cMemCheck
 {
 public:
-    cTopoData();
+    cTopoData(const std::string &aName);
     ~cTopoData();
     void AddData(const  cAuxAr2007 & anAuxInit);
     void ToFile(const std::string & aName) const;
-    static cTopoData * FromFile(const std::string &) ;
+    void FromFile(const std::string & aName);
     void print();
     void createEx1();
     cCalculator<double>* getEquation(eTopoObsType tot) const;

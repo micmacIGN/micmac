@@ -36,16 +36,16 @@ void cTopoObsSet::PutUknowsInSetInterval()
     mSetInterv->AddOneInterv(mParams);
 }
 
-bool cTopoObsSet::addObs(cTopoObs * obs)
+bool cTopoObsSet::addObs(eTopoObsType type, const std::vector<cTopoPoint *> &pts, const std::vector<tREAL8> &vals, const cResidualWeighterExplicit<tREAL8> &aWeights)
 {
-    if (std::find(mAllowedObsTypes.begin(), mAllowedObsTypes.end(), obs->getType()) == mAllowedObsTypes.end())
+    if (std::find(mAllowedObsTypes.begin(), mAllowedObsTypes.end(), type) == mAllowedObsTypes.end())
     {
-        ErrOut() << "Error, " << obs.type2string()
+        ErrOut() << "Error, " << E2Str(type)
                  << " obs type is not allowed in "
                  << type2string()<<" obs set!\n";
         return false;
     }
-    mObs.push_back(obs);
+    mObs.push_back(new cTopoObs(this, type, pts, vals, aWeights));
     return true;
 }
 

@@ -23,7 +23,7 @@ cBA_Topo::cBA_Topo
         {eTopoObsType::eSubFrame, EqTopoSubFrame(true,1)},
         {eTopoObsType::eDistParam, EqDist3DParam(true,1)},
     },
-    mTopoData(),
+    mTopoData(aTopoFilePath),
     mOk(true), mInFile(aTopoFilePath)
 {
     StdOut()<<"Read topo file "<<aTopoFilePath<<"\n";

@@ -27,6 +27,7 @@ public:
     size_t nbObs() const {return mObs.size();}
     cTopoObs* getObs(size_t i) {return mObs.at(i);}
     virtual std::string type2string() const = 0;
+    bool addObs(eTopoObsType type, const std::vector<cTopoPoint*> & pts, const std::vector<tREAL8> & vals,  const cResidualWeighterExplicit<tREAL8> & aWeights);
 protected:
     cTopoObsSet(eTopoObsSetType type);
     cTopoObsSet(cTopoObsSet const&) = delete;
@@ -34,7 +35,6 @@ protected:
     virtual void createAllowedObsTypes() = 0;
     virtual void createParams() = 0;
     void init(); ///< will be called automatically by make_TopoObsSet()
-    bool addObs(cTopoObs *obs);
     eTopoObsSetType mType;
     std::vector<cTopoObs*> mObs;
     std::vector<tREAL8> mParams; //the only copy of the parameters

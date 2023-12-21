@@ -6,7 +6,7 @@
 namespace MMVII
 {
 
-cTopoData::cTopoData():
+cTopoData::cTopoData(const std::string & aName):
     mSetIntervMultObj(new cSetInterUK_MultipeObj<double>()), mSys(nullptr),
     mTopoObsType2equation
     {
@@ -15,7 +15,7 @@ cTopoData::cTopoData():
         {eTopoObsType::eDistParam, EqDist3DParam(true,1)},
     }
 {
-    createEx1();
+    FromFile(aName);
     print();
 }
 
@@ -25,13 +25,6 @@ cTopoData::~cTopoData()
     delete mSys;
     delete mSetIntervMultObj;
     std::for_each(allPts.begin(), allPts.end(), [](auto p){ delete p; });
-}
-
-cTopoData * cTopoData::FromFile(const std::string & aNameFile)
-{
-    cTopoData * aRes = new cTopoData;
-    // ReadFromFile(aRes,aNameFile); // TODO
-    return aRes;
 }
 
 void cTopoData::AddData(const  cAuxAr2007 & anAuxInit)
@@ -52,6 +45,10 @@ void cTopoData::ToFile(const std::string & aName) const
     SaveInFile(*this,aName);
 }
 
+void cTopoData::FromFile(const std::string & aName)
+{
+    ReadFromFile(*this, aName);
+}
 
 cCalculator<double>*  cTopoData::getEquation(eTopoObsType tot) const {
     auto eq = mTopoObsType2equation.find(tot);
@@ -92,27 +89,27 @@ void cTopoData::createEx1()
     allPts.push_back(new cTopoPoint("ptD", cPt3dr(14,14,14), true));
     auto ptD = allPts[3];
 #define WW 0.01
-    cTopoObs(obsSet1, eTopoObsType::eDist, std::vector{ptA, ptD}, {10.0}, {true, {WW}});
-    cTopoObs(obsSet1, eTopoObsType::eDist, std::vector{ptB, ptD}, {10.0}, {true, {WW}});
-    cTopoObs(obsSet1, eTopoObsType::eDist, std::vector{ptC, ptD}, {10.0}, {true, {WW}});
-    cTopoObs(obsSet1, eTopoObsType::eDist, std::vector{ptC, ptD}, {10.1}, {true, {0.1}});
+    obsSet1->addObs(eTopoObsType::eDist, std::vector{ptA, ptD}, {10.0}, {true, {WW}});
+    obsSet1->addObs(eTopoObsType::eDist, std::vector{ptB, ptD}, {10.0}, {true, {WW}});
+    obsSet1->addObs(eTopoObsType::eDist, std::vector{ptC, ptD}, {10.0}, {true, {WW}});
+    obsSet1->addObs(eTopoObsType::eDist, std::vector{ptC, ptD}, {10.1}, {true, {0.1}});
     //add point E to an unknown common dist
     allObsSets.push_back(make_TopoObsSet<cTopoObsSetDistParam>());
     auto obsSet2 = allObsSets[1].get();
     allPts.push_back(new cTopoPoint("ptE", cPt3dr(11,11,11), true));
     auto ptE = allPts[4];
-    cTopoObs(obsSet2, eTopoObsType::eDistParam, std::vector{ptE, ptA}, {}, {true, {WW}});
-    cTopoObs(obsSet2, eTopoObsType::eDistParam, std::vector{ptE, ptB}, {}, {true, {WW}});
-    cTopoObs(obsSet2, eTopoObsType::eDistParam, std::vector{ptE, ptC}, {}, {true, {WW}});
-    cTopoObs(obsSet2, eTopoObsType::eDistParam, std::vector{ptE, ptD}, {}, {true, {WW}});
+    obsSet2->addObs(eTopoObsType::eDistParam, std::vector{ptE, ptA}, {}, {true, {WW}});
+    obsSet2->addObs(eTopoObsType::eDistParam, std::vector{ptE, ptB}, {}, {true, {WW}});
+    obsSet2->addObs(eTopoObsType::eDistParam, std::vector{ptE, ptC}, {}, {true, {WW}});
+    obsSet2->addObs(eTopoObsType::eDistParam, std::vector{ptE, ptD}, {}, {true, {WW}});
 
     //add subframe obs
     allObsSets.push_back(make_TopoObsSet<cTopoObsSetSubFrame>());
     auto obsSet3 = allObsSets[2].get();
-    cTopoObs(obsSet3, eTopoObsType::eSubFrame, std::vector{ptE, ptA}, {-5., -3.75, -1.4}, {true, {WW,WW,WW}});
-    cTopoObs(obsSet3, eTopoObsType::eSubFrame, std::vector{ptE, ptB}, { 5., -3.75, -1.4}, {true, {WW,WW,WW}});
-    cTopoObs(obsSet3, eTopoObsType::eSubFrame, std::vector{ptE, ptC}, { 0.,  6.25, -1.4}, {true, {WW,WW,WW}});
-    cTopoObs(obsSet3, eTopoObsType::eSubFrame, std::vector{ptE, ptD}, { 0.,  0.,    6.4}, {true, {WW,WW,WW}});
+    obsSet3->addObs(eTopoObsType::eSubFrame, std::vector{ptE, ptA}, {-5., -3.75, -1.4}, {true, {WW,WW,WW}});
+    obsSet3->addObs(eTopoObsType::eSubFrame, std::vector{ptE, ptA}, { 5., -3.75, -1.4}, {true, {WW,WW,WW}});
+    obsSet3->addObs(eTopoObsType::eSubFrame, std::vector{ptE, ptA}, { 0.,  6.25, -1.4}, {true, {WW,WW,WW}});
+    obsSet3->addObs(eTopoObsType::eSubFrame, std::vector{ptE, ptA}, { 0.,  0.,    6.4}, {true, {WW,WW,WW}});
 }
 
 

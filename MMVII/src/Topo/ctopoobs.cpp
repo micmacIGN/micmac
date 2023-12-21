@@ -35,7 +35,6 @@ cTopoObs::cTopoObs(cTopoObsSet* set, eTopoObsType type, const std::vector<cTopoP
     default:
         MMVII_INTERNAL_ERROR("unknown obs set type")
     }
-    set->addObs(this);
     std::cout<<"DEBUG: create cTopoObs "<<toString();
 
 }
@@ -55,26 +54,10 @@ void AddData(const cAuxAr2007 & anAux, cTopoObs *aTopoObs)
      aTopoObs->AddData(anAux);
 }
 
-std::string cTopoObs::type2string() const
-{
-    switch (mType) {
-    case eTopoObsType::eDist:
-        return "dist";
-    case eTopoObsType::eDistParam:
-        return "distParam";
-    case eTopoObsType::eSubFrame:
-        return "subFrame";
-    default:
-        std::cout<<"unknown obs type: "<<(int)mType<<std::endl;
-        MMVII_INTERNAL_ERROR("unknown obs type")
-        return "?";
-    }
-}
-
 std::string cTopoObs::toString() const
 {
     std::ostringstream oss;
-    oss<<"TopoObs "<<type2string()<<" ";
+    oss<<"TopoObs "<<E2Str(mType)<<" ";
     for (auto & pt: mPts)
         oss<<pt->getName()<<" ";
     oss<<"values: ";
