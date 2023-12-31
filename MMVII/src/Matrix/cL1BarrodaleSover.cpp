@@ -127,7 +127,7 @@ template <class Type>
 template <class Type>  
     void cLinearMemoEq<Type>::SpecificAddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS)
 {
-     SpecificAddObservation(aWeight,cDenseVect<Type>(this->mNbVar,aCoeff),aRHS);
+     SpecificAddObservation(aWeight,cDenseVect<Type>(aCoeff,this->mNbVar),aRHS);
 }
 
 template <class Type>  

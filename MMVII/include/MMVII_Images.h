@@ -363,14 +363,16 @@ template <class Type,const int Dim> class cDataTypedIm : public cDataGenUnTypedI
         cDataTypedIm (const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,
                       Type * DataLin=nullptr,eModeInitImage=eModeInitImage::eMIA_NoInit);  ///< Only cstr
         virtual ~cDataTypedIm(); ///<   Big obj, do it virtual
-        // All distance-norm are  normalized/averaged , so that const image has a norm equal to the constante
-        double L1Dist(const cDataTypedIm<Type,Dim> & aV) const;  ///< Distance som abs
-        double L2Dist(const cDataTypedIm<Type,Dim> & aV) const;  ///< Dist som square
-        double SqL2Dist(const cDataTypedIm<Type,Dim> & aV) const;  ///< Square L2Dist
+        // If Avg=true, All distance-norm are  normalized/averaged , so that const image has a norm equal to the constante
+        // This is default for image, but not for matrix/vector
+        double L1Dist(const cDataTypedIm<Type,Dim> & aV,bool Avg=true) const;  ///< Distance som abs
+        double L2Dist(const cDataTypedIm<Type,Dim> & aV,bool Avg=true) const;  ///< Dist som square
+        double SqL2Dist(const cDataTypedIm<Type,Dim> & aV,bool Avg=true) const;  ///< Square L2Dist
         double LInfDist(const cDataTypedIm<Type,Dim> & aV) const; ///< Dist max
-        double L1Norm() const;   ///< Norm som abs
-        double L2Norm() const;   ///< Norm square
+        double L1Norm(bool Avg=true) const;   ///< Norm som abs
+        double L2Norm(bool Avg=true) const;   ///< Norm square
         double LInfNorm() const; ///< Nomr max
+        double SqL2Norm(bool Avg=true) const;   ///< Norm square
 
         Type     MinVal() const;
         Type     MaxVal() const;

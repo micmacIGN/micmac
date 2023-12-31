@@ -304,6 +304,7 @@ template <class Type> class cInputOutputRSNL
           std::vector<tStdVect>   mDers;     ///< derivate of fctr
 	  size_t                  mNbTmpUk;
 
+          // use a s converter from tREAL8, "Fake" is used to separate from copy construtcor when Type == tREAL8
 	  cInputOutputRSNL(bool Fake,const cInputOutputRSNL<tREAL8> &);
      private :
 	  // cInputOutputRSNL(const cInputOutputRSNL<Type> &) = delete;

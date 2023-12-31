@@ -555,7 +555,6 @@ template <class Type> void   cResolSysNonLinear<Type>::AddEq2Subst
     std::vector<tIO_RSNL> aVIO(1,tIO_RSNL(aVInd,aVObs));
     CalcVal(aCalc,aVIO,aSetIO.ValTmpUk(),true,aWeighter);
 
-
     aSetIO.AddOneEq(aVIO.at(0));
 }
 
@@ -650,9 +649,10 @@ template <class Type> cDenseVect<tREAL8>  cResolSysNonLinear<Type>::R_SolveUpdat
 /*                                                              */
 /* ************************************************************ */
 
+// template class  cInputOutputRSNL<TYPE>;
+// template class  cSetIORSNL_SameTmp<TYPE>;
+
 #define INSTANTIATE_RESOLSYSNL(TYPE)\
-template class  cInputOutputRSNL<TYPE>;\
-template class  cSetIORSNL_SameTmp<TYPE>;\
 template class  cResolSysNonLinear<TYPE>;
 
 INSTANTIATE_RESOLSYSNL(tREAL4)

@@ -145,6 +145,9 @@ void Bench_ToHomMult(cParamExeBench & aParam); // Test conversion set pair Hom =
 
 void Bench_SpatialIndex(cParamExeBench & aParam); /// test spatial index
 
+void  BenchLinearConstr(cParamExeBench & aParam);  /// elementary test on linear constr
+
+
 
 
 /* Called by BenchGlobImage */
