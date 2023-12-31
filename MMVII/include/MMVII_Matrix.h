@@ -77,6 +77,8 @@ template <class Type> class  cSparseVect  : public cMemCheck
 
         // Maximum index, aDef is used if empty, if aDef<=-2  & empty erreur
         int MaxIndex(int aDef=-1) const;
+
+        void EraseIndex(int anInd);
     private :
 	/*
          inline void MakeSort(){if (!mIsSorted) Sort();}

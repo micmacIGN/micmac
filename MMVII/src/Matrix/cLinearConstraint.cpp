@@ -8,7 +8,7 @@ using namespace MMVII;
 
 namespace MMVII
 {
-//static bool DEBUG=false;
+static bool DEBUG=false;
 //static bool DEBUG2=false;
 
 template <class Type>  class  cDSVec;   // Sparse/Dense vect
@@ -101,6 +101,9 @@ template <class Type>  class cOneLinearConstraint
         /// One the Index of substitution is chosen, transformat by divide all equation by Li and supress Li tha implicitely=1
         void InitSubst();
 
+        /// 4 Debug purpose
+        void Show() const;
+
      private :
 
 	void  AddBuf(cDSVec<Type>  & aBuf,const Type & aMul,int aI2Avoid) const;
@@ -112,7 +115,6 @@ template <class Type>  class cOneLinearConstraint
         int       mOrder;    /// Order of reduction, used to sort the constraint
         bool      mSelected; /// a marker to know if a constraint has already been reduced
 };
-
 
 template <class Type>  class  cSetLinearConstraint
 {
@@ -127,6 +129,8 @@ template <class Type>  class  cSetLinearConstraint
           void  Compile();
           cSetLinearConstraint(int aNbVar);
           void Add1Constr(const t1Constr &);
+
+          void Show(const std::string & aMsg) const;
     private :
           std::vector<t1Constr>   mVCstrInit;     // Initial constraint, 
           std::vector<t1Constr>   mVCstrReduced;  // Constraint after reduction
@@ -154,6 +158,8 @@ template <class Type> void cSetLinearConstraint<Type>::Compile()
 {
     mVCstrReduced  = mVCstrInit;
 
+    if (DEBUG) Show("Init");
+
     //  Set no selected for all
     for (auto &  aCstr : mVCstrReduced)
         aCstr.mSelected = false;
@@ -177,14 +183,19 @@ template <class Type> void cSetLinearConstraint<Type>::Compile()
           {
                if (! aCstr.mSelected)
                {
-                    //if (DEBUG)
-                        //StdOut()  <<  "SIOC, ISUBS " << aBest.mISubst << " N=" << aBest.mNum << " => " << aCstr.mNum << "\n";
+                    if (DEBUG)
+                        StdOut()  <<  "SIOC, ISUBS " << aBest.mISubst << " N=" << aBest.mNum << " => " << aCstr.mNum << "\n";
                     aBest.SubstituteInOtherConstraint(aCstr,mBuf);
                }
           }
-          //if (DEBUG)  StdOut()  <<  "=======================================\n";
+          if (DEBUG) 
+          {
+                if (DEBUG) Show("Reduc:" + ToStr(aNbReduced));
+          }
           aNbReduced++;
     }
+    if (DEBUG) 
+       StdOut()  <<  "=======================================\n";
     std::sort
     (
          mVCstrReduced.begin(),
@@ -193,9 +204,17 @@ template <class Type> void cSetLinearConstraint<Type>::Compile()
      );
 }
 
+template <class Type> void cSetLinearConstraint<Type>::Show(const std::string & aMsg) const
+{
+     StdOut()  << "========  SHOWTSELC " << aMsg << " =====================" << std::endl;
+
+     for (const auto & aCstr: mVCstrReduced)
+        aCstr.Show();
+}
+
 /* ************************************************************ */
 /*                                                              */
-/*                cOneLinearConstraint                          */
+/*                     cDSVect                                  */
 /*                                                              */
 /* ************************************************************ */
 
@@ -224,6 +243,10 @@ template <class Type> void cDSVec<Type>::Reset()
 
 template <class Type> void cDSVec<Type>::TestEmpty()
 {
+     static bool First = true;
+     if (First)
+        StdOut() << "TestEmptyTestEmptyTestEmptyTestEmptyTestEmptyTestEmptyTestEmptyTestEmpty\n";
+     First = false;
      for (const auto & aV : mVec.ToStdVect()) 
         MMVII_INTERNAL_ASSERT_tiny(aV==0.0,"Vec Test Empty");
      MMVII_INTERNAL_ASSERT_tiny(mSet.mVIndOcc.empty(),"Occ Test Empty");
@@ -236,7 +259,7 @@ template <class Type> void cDSVec<Type>::Show()
      StdOut() << "cDSVeccDSVec ";
      for (const auto & aV : mSet.mOccupied)
          StdOut()  << " " << aV ;
-     StdOut() << "\n";
+     StdOut() << std::endl;
 }
 
 /* ************************************************************** */
@@ -246,12 +269,15 @@ template <class Type> void cDSVec<Type>::Show()
 /* ************************************************************** */
 
 template <class Type> cOneLinearConstraint<Type>::cOneLinearConstraint(const tSV&aLP,const Type& aCste,int aNum) :
-	mLP     (aLP),
-	mISubst (-1),
-	mCste   (aCste),
-        mNum    (aNum)
+	mLP       (aLP),
+	mISubst   (-1),
+	mCste     (aCste),
+        mNum      (aNum),
+        mOrder    (-1),
+        mSelected (false)
 {
 }
+
 
 template <class Type> void cOneLinearConstraint<Type>::InitSubst()
 {
@@ -259,7 +285,7 @@ template <class Type> void cOneLinearConstraint<Type>::InitSubst()
     const tCplIV *  aCple =  LinearMax() ;
     mISubst  = aCple->mInd;
 
-    erase_if(mLP.IV(),[this](const auto & aPair){return aPair.mInd==mISubst;});
+    mLP.EraseIndex(mISubst);
 
     for (auto & aPair : mLP.IV())
         aPair.mVal /= aCple->mVal;
@@ -322,21 +348,23 @@ template <class Type> void cOneLinearConstraint<Type>::SubstituteInDenseLinearEq
 template <class Type> void cOneLinearConstraint<Type>::SubstituteInSparseLinearEquation(tSV & aA,Type &  aB,cDSVec<Type>  & aBuf) const
 {
     //      (A'-Ai mL) X = B - Ai mC
-    const tCplIV * aPair = aA.Find(mISubst) ;
+    const tCplIV * aPairInA = aA.Find(mISubst) ;
 
+    aBuf.TestEmpty();
     /*if (DEBUG2)
     {
-         aBuf.TestEmpty();
          StdOut()  << "PAIR " << aPair << " SZ=" << mLP.size() << "\n";
     }*/
 
 
    // current case, if the index is not present in equation nothing to do (in this case Ai=0 and A'=A)
-     if (aPair == nullptr) return;
+    if (aPairInA == nullptr) return;
+    Type aValAi = aPairInA->mVal;  // Save value because erase will supress the ref ...
 
     // substract constant
-    aB -=  mCste * aPair->mVal;
-
+    aB -=  mCste * aValAi;
+    // Substract 
+    aA.EraseIndex(mISubst);
     // other current case, if the equation is a single substition (like frozen var) no more things to do
     if (mLP.size()==0) return;
 
@@ -344,7 +372,7 @@ template <class Type> void cOneLinearConstraint<Type>::SubstituteInSparseLinearE
     // mIsSubst is send as  parameter because it must disapear in the buf
     GlobAddBuf(aBuf,aA, (Type)1.0,mISubst);
 //if (DEBUG2) aBuf.Show();
-    this ->AddBuf(aBuf,-aPair->mVal,mISubst);
+    this ->AddBuf(aBuf,-aValAi,mISubst);
 //if (DEBUG2) aBuf.Show();
 
     aA.Reset();
@@ -353,7 +381,7 @@ template <class Type> void cOneLinearConstraint<Type>::SubstituteInSparseLinearE
          aA.AddIV(aInd,aBuf.mVec(aInd));
     }
     aBuf.Reset();
-    //if (DEBUG2) aBuf.TestEmpty();
+    aBuf.TestEmpty();
 }
 
 
@@ -435,6 +463,21 @@ template <class Type> void  cOneLinearConstraint<Type>::SubstituteInOutRSNL(tIO_
     }
 }
 
+template <class Type> void cOneLinearConstraint<Type>::Show() const
+{
+    StdOut()  << "   * N=" << mNum << " O="<< mOrder << " S=" << mSelected  <<  " I=" << mISubst ;
+
+    for (const auto & aPair:mLP.IV())
+        StdOut() <<  " [" << aPair.mInd << " : " << aPair.mVal << "]";
+
+    StdOut()  << std::endl;
+}
+
+/* ************************************************************** */
+/*                                                                */
+/*                         cBenchLinearConstr                     */
+/*                                                                */
+/* ************************************************************** */
 
 class cBenchLinearConstr
 {
@@ -459,7 +502,7 @@ cBenchLinearConstr::cBenchLinearConstr(int aNbVar,int aNbCstr) :
     mSetC   (aNbVar)
 {
 static int aCpt=0; aCpt++;
-//DEBUG=  (aCpt==4);
+// DEBUG=  (aCpt==6);
 
     for (int aK=0 ; aK< mNbCstr ; aK++)
     {
@@ -478,7 +521,8 @@ static int aCpt=0; aCpt++;
                }
           }
     }
-    //if (!DEBUG) return; 
+    // if (!DEBUG) return; 
+    StdOut() << "NNNNnBvar " << mNbVar << " NbC=" << mNbCstr << "\n";
     mSetC.Compile();
 
     for (int aK1=0 ; aK1< mNbCstr ; aK1++)
@@ -492,7 +536,10 @@ static int aCpt=0; aCpt++;
 
               if (aK1<=aK2)
               {
-                 StdOut()  << "PPP " << aPair << "  N1=" << aC1.mNum << " N2=" << aC2.mNum << "\n";
+                 StdOut()  << "PPP " << aPair 
+                           << " N1=" << aC1.mNum  << "," << aC1.mOrder
+                           << " N2=" << aC2.mNum  << "," << aC2.mOrder
+                           << " Cpt=" << aCpt << "\n";
                  MMVII_INTERNAL_ASSERT_bench(aPair==0,"Reduce in LinearCstr");
               }
         }
@@ -501,14 +548,16 @@ static int aCpt=0; aCpt++;
 
 void  BenchLinearConstr(cParamExeBench & aParam)
 {
-   return;
+return;
    if (! aParam.NewBench("LinearConstr")) return;
 
    StdOut()  << "BenchLinearConstrBenchLinearConstr\n";
    // std::vector<cPt2di>  aV{{2,3},{3,2}};
 
-   for (int aK=0 ; aK<100 ; aK++)
+   for (int aK=0 ; aK<100000 ; aK++)
    {
+       cBenchLinearConstr(4,2);
+       cBenchLinearConstr(10,2);
        cBenchLinearConstr(10,3);
        cBenchLinearConstr(20,5);
    }

@@ -90,6 +90,15 @@ template <class Type>  int cSparseVect<Type>::MaxIndex(int aDef) const
     return aDef;
 }
 
+template <class Type>  void cSparseVect<Type>::EraseIndex(int anInd)
+{
+    erase_if(*mIV,[anInd](const auto & aPair){return aPair.mInd==anInd;});
+}
+/*
+*/
+
+
+
 /* ========================== */
 /*          cDenseVect        */
 /* ========================== */

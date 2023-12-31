@@ -587,8 +587,6 @@ template <class Type> void BenchSysSur(cLinearOverCstrSys<Type>& aSys,bool Exact
          for (int aK=0 ; aK<aNbVar ; aK++)
          {
              Type aDif = std::abs( aLVal[aK] - aSol.DotProduct(aLVec[aK]));
-             /* StdOut() << "ddDddDDDD " << aDif << " " << E2Str(tElemNumTrait<Type>::TyNum()) 
-                   << " Eps: " << std::numeric_limits<Type>::epsilon() << " " <<  aDTest << "\n"; */
              MMVII_INTERNAL_ASSERT_bench(aDif<aDTest,"Bench Op Im");
              // StdOut() << "ScaAal " <<  aLVal[aK] - aSol.DotProduct(aLVec[aK]) << std::endl;
          }
@@ -1066,7 +1064,6 @@ template <class Type> void  BenchProj()
                   for (size_t aK2 = 0 ; aK2<aBase.size() ; aK2++)
                   {
                        tREAL8 aDP = aBaseCompl.at(aK1).DotProduct(aBase.at(aK2));
-                       StdOut() << "DDDD " << aDP << "\n";
                        MMVII_INTERNAL_ASSERT_bench(std::abs(aDP)<1e-5,"Base compl : not orthog");
                   }
 
