@@ -52,11 +52,9 @@ template <class Type> class  cSparseVect  : public cMemCheck
         const tCont & IV() const { return *(mIV.get());}
         tCont & IV() { return *(mIV.get());}
 
-        void AddIV(const int & anInd,const Type & aV) 
-	{
-             IV().push_back(tCplIV(anInd,aV));
-	}
-        void AddIV(const tCplIV & aCpl) { IV().push_back(aCpl); }
+        void AddIV(const int & anInd,const Type & aV) ;   /// "Raw" add, dont check if ind exist
+        void AddIV(const tCplIV & aCpl) ; /// "Raw" add, dont check if ind exist
+        void CumulIV(const tCplIV & aCpl) ; /// Create only if not exist, else add in place
 
 	/// Random sparse vector
         static cSparseVect<Type>  RanGenerate(int aNbVar,double aProba,tREAL8 aMinVal= 1e-2,int aMinSize=1);
@@ -74,11 +72,14 @@ template <class Type> class  cSparseVect  : public cMemCheck
 	void Reset();
 
         const tCplIV  * Find(int anInd) const;  /// return the pair of a given index
+        tCplIV  * Find(int anInd) ;  /// return the pair of a given index
 
         // Maximum index, aDef is used if empty, if aDef<=-2  & empty erreur
         int MaxIndex(int aDef=-1) const;
 
         void EraseIndex(int anInd);
+        /// Create a real duplicata, as copy-constructor return the same shared ptr
+        tSV  Dup() const;
     private :
 	/*
          inline void MakeSort(){if (!mIsSorted) Sort();}

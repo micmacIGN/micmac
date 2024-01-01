@@ -31,6 +31,15 @@ template <class Type> cSparseVect<Type>::cSparseVect(int aSzReserve) :
      IV().reserve(aSzReserve);
 }
 
+template <class Type> cSparseVect<Type> cSparseVect<Type>::Dup() const
+{
+    tSV aRes(size());
+
+   *(aRes.mIV) = *mIV;
+ 
+   return aRes;
+}
+
 template <class Type> cSparseVect<Type>::cSparseVect(const cDenseVect<Type> & aDV) :
     cSparseVect<Type>  (aDV.Sz())
 {
@@ -52,6 +61,29 @@ template <class Type>  bool cSparseVect<Type>::IsInside(int aNb) const
 template <class Type> void cSparseVect<Type>::Reset()
 {
     mIV->clear();
+}
+
+template <class Type>  void cSparseVect<Type>::AddIV(const int & anInd,const Type & aV)
+{
+   AddIV(tCplIV(anInd,aV));
+}
+template <class Type>  void cSparseVect<Type>::AddIV(const tCplIV & aCpl) 
+{ 
+   IV().push_back(aCpl); 
+}
+
+
+template <class Type> void cSparseVect<Type>::CumulIV(const tCplIV & aCpl)
+{
+   tCplIV * aPairExist = Find(aCpl.mInd);
+   if (aPairExist != nullptr)
+   {
+       aPairExist->mVal += aCpl.mVal;
+   }
+   else
+   {
+        AddIV(aCpl);
+   }
 }
 
 
@@ -76,6 +108,13 @@ template <class Type> cSparseVect<Type>  cSparseVect<Type>::RanGenerate(int aNbV
 template <class Type> const typename cSparseVect<Type>::tCplIV *  cSparseVect<Type>::Find(int anInd) const
 {
     for (const auto & aPair : *mIV)
+        if (aPair.mInd==anInd)
+           return & aPair;
+    return nullptr;
+}
+template <class Type> typename cSparseVect<Type>::tCplIV *  cSparseVect<Type>::Find(int anInd) 
+{
+    for (auto & aPair : *mIV)
         if (aPair.mInd==anInd)
            return & aPair;
     return nullptr;

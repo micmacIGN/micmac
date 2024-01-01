@@ -158,7 +158,8 @@ template <class Type> void cSetLinearConstraint<Type>::Compile()
 {
     mVCstrReduced  = mVCstrInit;
 
-    if (DEBUG) Show("Init");
+    if (DEBUG) 
+       Show("Init");
 
     //  Set no selected for all
     for (auto &  aCstr : mVCstrReduced)
@@ -323,13 +324,13 @@ template <class Type> void  cOneLinearConstraint<Type>::AddBuf(cDSVec<Type>  & a
 
 template <class Type> void cOneLinearConstraint<Type>::SubstituteInOtherConstraint(cOneLinearConstraint<Type> & aToSub,cDSVec<Type>  & aBuf)
 {
-static int aCpt=0; aCpt++;
-//DEBUG2 = (aCpt==3);
- //if (DEBUG) StdOut() << "INNNN " << aToSub.mLP.Find(mISubst) << " Cpt=" << aCpt << " B2 "<< DEBUG2 << "\n";
+  static int aCpt=0; aCpt++;
+  //DEBUG2 = (aCpt==3);
+  //if (DEBUG) StdOut() << "INNNN " << aToSub.mLP.Find(mISubst) << " Cpt=" << aCpt << " B2 "<< DEBUG2 << "\n";
 
     SubstituteInSparseLinearEquation(aToSub.mLP,aToSub.mCste,aBuf);
 
- //if (DEBUG) StdOut() << "OUUT " << aToSub.mLP.Find(mISubst) << "\n";
+  //if (DEBUG) StdOut() << "OUUT " << aToSub.mLP.Find(mISubst) << "\n";
 }
 
 template <class Type> void cOneLinearConstraint<Type>::SubstituteInDenseLinearEquation(cDenseVect<Type> & aA,Type &  aB) const
@@ -501,8 +502,9 @@ cBenchLinearConstr::cBenchLinearConstr(int aNbVar,int aNbCstr) :
     mV0     (aNbVar,eModeInitImage::eMIA_RandCenter),
     mSetC   (aNbVar)
 {
-static int aCpt=0; aCpt++;
+    static int aCpt=0; aCpt++;
 // DEBUG=  (aCpt==6);
+    StdOut() << "0-NNNNnBvar " << mNbVar << " NbC=" << mNbCstr   << " Cpt " << aCpt << "\n";
 
     for (int aK=0 ; aK< mNbCstr ; aK++)
     {
@@ -521,9 +523,10 @@ static int aCpt=0; aCpt++;
                }
           }
     }
+    StdOut() << "A-NNNNnBvar " << mNbVar << " NbC=" << mNbCstr   << " Cpt " << aCpt << "\n";
     // if (!DEBUG) return; 
-    StdOut() << "NNNNnBvar " << mNbVar << " NbC=" << mNbCstr << "\n";
     mSetC.Compile();
+    StdOut() << "B-NNNNnBvar " << mNbVar << " NbC=" << mNbCstr   << " Cpt " << aCpt << "\n";
 
     for (int aK1=0 ; aK1< mNbCstr ; aK1++)
     {
@@ -536,14 +539,18 @@ static int aCpt=0; aCpt++;
 
               if (aK1<=aK2)
               {
-                 StdOut()  << "PPP " << aPair 
-                           << " N1=" << aC1.mNum  << "," << aC1.mOrder
-                           << " N2=" << aC2.mNum  << "," << aC2.mOrder
-                           << " Cpt=" << aCpt << "\n";
+                 if (DEBUG)
+                 {
+                      StdOut()  << "PPP " << aPair 
+                                << " N1=" << aC1.mNum  << "," << aC1.mOrder
+                                << " N2=" << aC2.mNum  << "," << aC2.mOrder
+                                << " Cpt=" << aCpt << "\n";
+                 }
                  MMVII_INTERNAL_ASSERT_bench(aPair==0,"Reduce in LinearCstr");
               }
         }
     }
+    StdOut() << "C-NNNNnBvar " << mNbVar << " NbC=" << mNbCstr   << " Cpt " << aCpt << "\n";
 }
 
 void  BenchLinearConstr(cParamExeBench & aParam)
@@ -554,12 +561,20 @@ return;
    StdOut()  << "BenchLinearConstrBenchLinearConstr\n";
    // std::vector<cPt2di>  aV{{2,3},{3,2}};
 
-   for (int aK=0 ; aK<100000 ; aK++)
+   for (int aK=0 ; aK<100 ; aK++)
    {
        cBenchLinearConstr(4,2);
        cBenchLinearConstr(10,2);
        cBenchLinearConstr(10,3);
        cBenchLinearConstr(20,5);
+   }
+
+   for (int aK=0 ; aK<5000 ; aK++)
+   {
+       int aNbVar  = 1 + 100 * RandUnif_0_1();
+       int aNbCstr =  (aNbVar>1) ? RandUnif_N(aNbVar-1) : 0 ;
+       // int aNbCstr=4;
+       cBenchLinearConstr(aNbVar,aNbCstr);
    }
 
    aParam.EndBench();
