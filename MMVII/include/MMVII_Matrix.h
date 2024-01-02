@@ -163,6 +163,10 @@ template <class Type> class  cDenseVect
         /// return distance to subspace (i.e distance to proj)
         Type   DistToSubspace(const std::vector<tDV>  &) const;
 
+	///  Theoretically max min distance, but before I find an exact algorithm, just the max on all vect , compute 2 way
+	static  Type ApproxDistBetweenSubspace(const std::vector<tDV>  &,const std::vector<tDV>  &);
+
+
                        // --------------  Gram schmitd method for orthogonalization -------------------
         /**  Elementary step of Gram-Schmit orthogonalization method ;  return a vector orthogonal
              to all VV and that belong to the space "this+aVV", assumme aVV are already orthogonal */
@@ -178,6 +182,7 @@ template <class Type> class  cDenseVect
 
     private :
 
+	static  Type ASymApproxDistBetweenSubspace(const std::vector<tDV>  &,const std::vector<tDV>  &);
         tIM mIm;
 };
 /* To come, sparse vector, will be vect<int> + vect<double> */

@@ -394,7 +394,20 @@ template <class Type> std::vector<cDenseVect<Type>>  cDenseVect<Type>::BaseCompl
     return std::vector<cDenseVect<Type>>(aRes.begin()+aVV.size(),aRes.end());
 }
 
+template <class Type> Type cDenseVect<Type>::ASymApproxDistBetweenSubspace(const std::vector<tDV>  & aVV1,const std::vector<tDV>  & aVV2)
+{
+   Type aRes=0.0;
 
+   for (const auto & aV1 : aVV1)
+       UpdateMax(aRes,aV1.DistToSubspace(aVV2));
+
+   return aRes;
+}
+
+template <class Type> Type cDenseVect<Type>::ApproxDistBetweenSubspace(const std::vector<tDV>  & aVV1,const std::vector<tDV>  & aVV2)
+{
+	return std::max(ASymApproxDistBetweenSubspace(aVV1,aVV2),ASymApproxDistBetweenSubspace(aVV2,aVV1));
+}
 
 /*
 template <class Type> void AddData(const  cAuxAr2007 & anAux, cDenseVect<Type> & aDV)
