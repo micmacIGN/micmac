@@ -253,6 +253,7 @@ template <class Type> void   cResolSysNonLinear<Type>::AddEqFixNewVal(const tObj
 
 template <class Type> void  cResolSysNonLinear<Type>::ModifyFrozenVar (tIO_RSNL& aIO)
 {
+          // CHANGE HERE
     for (size_t aKVar=0 ; aKVar<aIO.mGlobVInd.size() ; aKVar++)
     {
          int aIndGlob = aIO.mGlobVInd[aKVar];
@@ -283,6 +284,7 @@ template <class Type> void  cResolSysNonLinear<Type>::AddObservationLinear
 
      for (const auto & aPair :aCoeff)
      {
+          // CHANGE HERE
           if (mVarIsFrozen.at(aPair.mInd))
           {
               // if freeze => transfert value in contant
@@ -313,6 +315,7 @@ template <class Type> void  cResolSysNonLinear<Type>::AddObservationLinear
 
      for (int aK=0 ; aK<mNbVar ; aK++)
      {
+          // CHANGE HERE
           if (mVarIsFrozen.at(aK))
           {
               aNewRHS -= mValueFrozenVar.at(aK) * aCoeff(aK);
@@ -620,6 +623,7 @@ template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUp
     // for var frozen, they are not involved in any equation, we must fix their value other way
     for (int aK=0 ; aK<mNbVar ; aK++)
     {
+        // CHANGE HERE
         if (mVarIsFrozen[aK])
            AddEqFixVar(aK,mValueFrozenVar[aK],1.0);
 
