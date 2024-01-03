@@ -18,7 +18,7 @@ template <class Type> cSetLinearConstraint<Type>::cSetLinearConstraint(int aNbVa
 {
 }
 
-template <class Type> void cSetLinearConstraint<Type>::Add1Constr(const t1Constr & aConstr)
+template <class Type> void cSetLinearConstraint<Type>::Add1Constr(const t1Constr & aConstr,const  tDV *)
 {
       mVCstrInit.push_back(aConstr.Dup());
 }
@@ -30,13 +30,13 @@ template <class Type> void cSetLinearConstraint<Type>::Reset()
     mVCstrReduced.clear();
 }
 
-template <class Type> void cSetLinearConstraint<Type>::Add1ConstrFrozenVar(int aKVar,const Type & aVal)
+template <class Type> void cSetLinearConstraint<Type>::Add1ConstrFrozenVar(int aKVar,const Type & aVal,const  tDV * aCurSol)
 {
     cSparseVect<Type> aSV;
     aSV.AddIV(aKVar,1.0);
     cOneLinearConstraint aCstr(aSV,aVal, mVCstrInit.size());
 
-    Add1Constr(aCstr);
+    Add1Constr(aCstr,aCurSol);
 }
 
 
@@ -101,10 +101,10 @@ template <class Type> void cSetLinearConstraint<Type>::SubstituteInDenseLinearEq
        aCstr.SubstituteInDenseLinearEquation(aA,aB);
 }
 
-template <class Type> void cSetLinearConstraint<Type>::SubstituteInOutRSNL(tIO_RSNL& aIO,const tDV & aCurSol) const
+template <class Type> void cSetLinearConstraint<Type>::SubstituteInOutRSNL(tIO_RSNL& aIO) const
 {
     for (const auto & aCstr : mVCstrReduced)
-       aCstr.SubstituteInOutRSNL(aIO,mBuf,aCurSol);
+       aCstr.SubstituteInOutRSNL(aIO,mBuf);
 }
 
 
@@ -266,6 +266,9 @@ template <class Type> void cOneLinearConstraint<Type>::SubstituteInOtherConstrai
 
 template <class Type> void cOneLinearConstraint<Type>::SubstituteInDenseLinearEquation(cDenseVect<Type> & aA,Type &  aB) const
 {
+	//  ?????????????
+    //  A X -B =  A' X' + AiXi -B = A'(X-X0' + X0') +Ai(C -mLX0) - B
+	
     //      (A'-Ai mL) X = B - Ai mC
     Type & aAi =  aA(mISubst);
     aB -= aAi *  mCste;
@@ -308,7 +311,7 @@ template <class Type> void cOneLinearConstraint<Type>::SubstituteInSparseLinearE
 }
 
 
-template <class Type> void  cOneLinearConstraint<Type>::SubstituteInOutRSNL(tIO_RSNL& aIO,cDSVec<Type>  & aBuf,const tDV & aCurSol) const
+template <class Type> void  cOneLinearConstraint<Type>::SubstituteInOutRSNL(tIO_RSNL& aIO,cDSVec<Type>  & aBuf) const
 {
     // [1]  Find the index of mISubst
     int aKSubst = -1;  // Indexe where mGlobVIn potentially equals mISubst
@@ -322,14 +325,76 @@ template <class Type> void  cOneLinearConstraint<Type>::SubstituteInOutRSNL(tIO_
 
     //  if index subst is not involved, nothing to do
     if (aKSubst<0)  return;
+
+/*   Case everybody in diff (or abs)
+ *
+ *     F(X) =  F(X0) +  D (X-X0) =  D (X-X0)  + V0
+ *            =   D' (X'-X0') +Di (Xi-X0i) + V0
+ *  But constraint is writen :
+ *      mLp.(X'-X0') + (Xi-Xi0) = C
+ *
+ *  Then :
+ *     F(X) = D' (X'-X0')  + V0 + Di(C - mLp .(X'-X0')) = ( D'- Di mLp ) (X'-X0') + V0 +Di C
+ */
+
+    bool  FirstDerNN = true;  // Used to check that we  do only once the extension of indexe
+    for (size_t aKEq=0 ; aKEq<aIO.mVals.size() ; aKEq++)
+    {
+        Type & aDerI = aIO.mDers.at(aKEq).at(aKSubst);
+        if (aDerI !=0 )
+        {
+             aIO.mVals[aKEq]  +=  aDerI * mCste;
+             if (mLP.size() != 1)
+             {
+                  // [A]  Compute the constant and put the linear part in buf (to be indexable)
+                  for (const auto & aPair : mLP.IV())
+                  {
+                       MMVII_INTERNAL_ASSERT_tiny(aPair.mInd != mISubst,"Index error");
+                       aBuf.AddValInd(aPair.mVal,aPair.mInd);  // We memorize indexe
+                  }
+                  // [B] modify the derivate using the index, also purge partially the buffer,
+		  // after this only the update will be partial (only variable present in mGlobVInd will be incremented)
+                  for (size_t aKVar=0 ; aKVar<aIO.mGlobVInd.size() ; aKVar++)
+                  {
+                      int aInd = aIO.mGlobVInd[aKVar];
+		      // if it's not a temporay and it has been put in Buf, then update
+                      if ( (! cSetIORSNL_SameTmp<Type>::IsIndTmp(aInd))  && aBuf.mSet.mOccupied.at(aInd) )
+                      {
+                         aIO.mDers.at(aKEq).at(aKVar) -= aBuf.mVec(aInd) * aDerI;  // -Di mL
+                         aBuf.mSet.mOccupied.at(aInd) = false;  // purge occuo
+                         aBuf.mVec(aInd) = 0;  // purge vector
+                      }
+                  }
+                  // [C]  modify the derivate for the index, present in constraint but not in equation
+                  for (const auto & aPair : mLP.IV())
+                  {
+                      if (aBuf.mSet.mOccupied.at(aPair.mInd)) // if 
+                      {
+                         aIO.mDers.at(aKEq).push_back(-aPair.mVal * aDerI); // - Di mL
+                         if (FirstDerNN) //  (aKEq==0)
+                            aIO.mGlobVInd.push_back(aPair.mInd);
+                         aBuf.mSet.mOccupied.at(aPair.mInd) =false;  // purge occupied
+                         aBuf.mVec(aPair.mInd) = 0.0;                // purge vector
+                      }   
+                  }
+          
+                  // [D]  finish purge
+                  aBuf.mSet.mVIndOcc.clear();
+             }
+             aDerI = 0;      // now supress the derivate of substituted variable
+             FirstDerNN= false;  // No longer first Non Null derivate
+        }
+    }
  
- /*  F(X) =  F(X0) +  D (X-X0)   = D (X-X0)  + V0
+ /*  Case contraint in abs, F in diff
+     F(X) =  F(X0) +  D (X-X0)   = D (X-X0)  + V0
           =   D' (X'-X0') +Di (Xi-X0i) + V0
           =   D' (X'-X0') + Di (mC- mL X' -X0i) + V0
           =   D' (X'-X0') -  Di mL (X' -X0' + X0') -  Di X0i     +  V0  +  Di mC
           =   (D' -Di mL) (X'-X0')  +  V0  +  Di (mC -X0i - mL X0' )
 */
     
+    /*
     Type  aDelta = (mCste-aCurSol(mISubst));  // mC-X0i
     bool  FirstDerNN = true;  // Used to check that we  do only once the extension of indexe
     for (size_t aKEq=0 ; aKEq<aIO.mVals.size() ; aKEq++)
@@ -381,6 +446,7 @@ template <class Type> void  cOneLinearConstraint<Type>::SubstituteInOutRSNL(tIO_
              FirstDerNN= false;  // No longer first Non Null derivate
         }
     }
+*/
 }
 
 template <class Type> void cOneLinearConstraint<Type>::Show() const
@@ -435,7 +501,7 @@ cBenchLinearConstr::cBenchLinearConstr(int aNbVar,int aNbCstr) :
                     mLDV.push_back(aDV);  // add new sparse V
                     mLSV.push_back(aSV);  // add new dense V
                     cOneLinearConstraint<tREAL8>  aLC(aSV,mV0.DotProduct(aDV),aK);
-                    mSetC.Add1Constr(aLC);
+                    mSetC.Add1Constr(aLC,nullptr);
                }
           }
     }

@@ -94,7 +94,7 @@ template <class Type>  class cOneLinearConstraint : public cMemCheck
         void SubstituteInOtherConstraint(cOneLinearConstraint<Type> & aToSub,cDSVec<Type>  & aBuf);
         void SubstituteInDenseLinearEquation (tDV & aA,Type &  aB) const;
         void SubstituteInSparseLinearEquation(tSV & aA,Type &  aB,cDSVec<Type>  & aBuf) const;
-        void SubstituteInOutRSNL(tIO_RSNL& aIO,cDSVec<Type>  & aBuf,const tDV & aCurSol) const;
+        void SubstituteInOutRSNL(tIO_RSNL& aIO,cDSVec<Type>  & aBuf) const;
 
 	///  Extract pair with maximal amplitude (in abs)
         const tCplIV *  LinearMax() const;
@@ -136,14 +136,14 @@ template <class Type>  class  cSetLinearConstraint : public cMemCheck
 	  /// Transformate the set of constraint to allow a cascade os substitution
           void  Compile(bool ForBench);
 	  /// Add a new constraint (just debug)
-          void Add1Constr(const t1Constr &);
+          void Add1Constr(const t1Constr &,const tDV *);
 
 	  void Reset();
-	  void Add1ConstrFrozenVar(int aKVar,const Type & aVal);
+	  void Add1ConstrFrozenVar(int aKVar,const Type & aVal,const tDV *);
 
           void SubstituteInSparseLinearEquation(tSV & aA,Type &  aB) const;
           void SubstituteInDenseLinearEquation (tDV & aA,Type &  aB) const;
-          void SubstituteInOutRSNL(tIO_RSNL& aIO,const tDV & aCurSol) const;
+          void SubstituteInOutRSNL(tIO_RSNL& aIO) const;
     private :
 	  /// Show all the detail
           void Show(const std::string & aMsg) const;

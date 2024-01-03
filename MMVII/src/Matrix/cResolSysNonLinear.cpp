@@ -76,7 +76,7 @@ template <class Type>  void  cResolSysNonLinear<Type>::InitConstraint()
     {
         if (mVarIsFrozen.at(aKV))
 	{
-           mLinearConstr->Add1ConstrFrozenVar(aKV,mValueFrozenVar.at(aKV));
+           mLinearConstr->Add1ConstrFrozenVar(aKV,mValueFrozenVar.at(aKV),&mCurGlobSol);
 	}
     }
     mLinearConstr->Compile(false);
@@ -333,17 +333,19 @@ template <class Type> void  cResolSysNonLinear<Type>::AddObservationLinear
      Type  aNewRHS    = aRHS;
      cDenseVect<Type> aNewCoeff = aCoeff.Dup();
 
+     //   AX-B =  (A' X' + AiXi-B) = A' (X'-X0')  + A' X0' +AiXi -B
+     //   B=> B -AiXi -A' X0'
      for (int aK=0 ; aK<mNbVar ; aK++)
      {
           // CHANGE HERE
           if (mVarIsFrozen.at(aK))
           {
-              aNewRHS -= mValueFrozenVar.at(aK) * aCoeff(aK);
+              aNewRHS -= mValueFrozenVar.at(aK) * aCoeff(aK); //  -AiXi
               aNewCoeff(aK)=0;
           }
           else
           {
-              aNewRHS -=  mCurGlobSol(aK) * aCoeff(aK);
+              aNewRHS -=  mCurGlobSol(aK) * aCoeff(aK);  // -A' X0'
           }
      }
      currNbObs++;  ///  Check JMM
