@@ -21,6 +21,8 @@ template <class Type> class cResidualWeighter;
 // template <class Type> class cObjOfMultipleObjUk;
 template <class Type> class cObjWithUnkowns;
 template <class Type> class cSetInterUK_MultipeObj;
+template <class Type>  class  cSetLinearConstraint; // defined in "src/Matrix"
+
 
 /**  Class for weighting residuals : compute the vector of weight from a 
      vector of residual; default return {1.0,1.0,...}
@@ -138,6 +140,7 @@ class cREAL8_RSNL
 	  void  AssertNotInEquation() const;         ///< verify that we are notin equation step (to allow froze modification)
 	  int   CountFreeVariables() const;          ///< number of free variables
 	protected :
+          void SetPhaseEq();
 
 	  int                  mNbVar;
 	  bool                 mInPhaseAddEq;      ///< check that dont modify val fixed after adding  equations
@@ -273,6 +276,9 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
 	  std::vector<Type>    mValueFrozenVar;    ///< indicate for each var the possible value where it is frozen
 	  int lastNbObs;                           ///< number of observations of last solving
 	  int currNbObs;                           ///< number of observations currently added
+
+          /// handle the linear constraint : fix var, shared var, gauge ...
+          cSetLinearConstraint<Type>* mLinearConstr;  
 };
 
 

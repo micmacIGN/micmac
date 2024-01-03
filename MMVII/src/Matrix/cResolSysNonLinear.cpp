@@ -1,7 +1,7 @@
-
 #include "MMVII_Tpl_Images.h"
-
 #include "MMVII_SysSurR.h"
+#include "LinearConstraint.h"
+
 
 using namespace NS_SymbolicDerivative;
 using namespace MMVII;
@@ -54,6 +54,14 @@ int cREAL8_RSNL::CountFreeVariables() const
      return std::count(mVarIsFrozen.begin(), mVarIsFrozen.end(), false);
 }
 
+void cREAL8_RSNL::SetPhaseEq()
+{
+    if (! mInPhaseAddEq)
+    {
+         //  Compile constraint
+         mInPhaseAddEq = true;
+    }
+}
 
 
 /* ************************************************************ */
@@ -71,11 +79,11 @@ template <class Type> cResolSysNonLinear<Type>::cResolSysNonLinear(tLinearSysSR 
     // mNbVar          (aInitSol.Sz()),
     mCurGlobSol     (aInitSol.Dup()),
     mSysLinear      (aSys),
-    // mInPhaseAddEq   (false),
     // mVarIsFrozen    (mNbVar,false),
     mValueFrozenVar (mNbVar,-1),
     lastNbObs       (0),
-    currNbObs       (0)
+    currNbObs       (0),
+    mLinearConstr   (new cSetLinearConstraint<Type>(mNbVar))
 {
 }
 
@@ -87,13 +95,14 @@ template <class Type> cResolSysNonLinear<Type>::cResolSysNonLinear(eModeSSR aMod
 template <class Type> cResolSysNonLinear<Type>::~cResolSysNonLinear()
 {
     delete mSysLinear;
+    delete mLinearConstr;
 }
 
       // =============  miscelaneous accessors    ================
      
 template <class Type> cLinearOverCstrSys<Type> * cResolSysNonLinear<Type>::SysLinear() 
 {
-    mInPhaseAddEq = true;  // cautious, if user requires this access he may modify
+    SetPhaseEq(); // cautious, if user requires this access he may modify
     return mSysLinear;
 }
 
@@ -278,7 +287,7 @@ template <class Type> void  cResolSysNonLinear<Type>::AddObservationLinear
                                  const Type &  aRHS
                             )
 {
-     mInPhaseAddEq = true;
+     SetPhaseEq(); 
      Type  aNewRHS    = aRHS;
      cSparseVect<Type> aNewCoeff;
 
@@ -309,7 +318,7 @@ template <class Type> void  cResolSysNonLinear<Type>::AddObservationLinear
                                  const Type &  aRHS
                             )
 {
-     mInPhaseAddEq = true;
+     SetPhaseEq(); 
      Type  aNewRHS    = aRHS;
      cDenseVect<Type> aNewCoeff = aCoeff.Dup();
 
@@ -412,7 +421,7 @@ template <class Type> void   cResolSysNonLinear<Type>::CalcVal
       //  The possibility of having several comes from potential paralellization
       //  MMVII_INTERNAL_ASSERT_tiny(aVIO.size()==1,"CalcValCalcVal");
      
-      mInPhaseAddEq = true;
+      SetPhaseEq(); 
       MMVII_INTERNAL_ASSERT_tiny(aCalcVal->NbInBuf()==0,"Buff not empty");
 
       // Usefull only to test correcness of DoOneEval
@@ -521,7 +530,7 @@ template <>  void   cResolSysNonLinear<tREAL8>::R_CalcAndAddObs
 
 template <class Type> void cResolSysNonLinear<Type>::AddObs(const std::vector<tIO_RSNL>& aVIO)
 {
-      mInPhaseAddEq = true;
+      SetPhaseEq(); 
       // Parse all the linearized equation
       for (const auto & aIO : aVIO)
       {
