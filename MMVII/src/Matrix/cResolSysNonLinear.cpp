@@ -1,7 +1,7 @@
-
 #include "MMVII_Tpl_Images.h"
-
 #include "MMVII_SysSurR.h"
+#include "LinearConstraint.h"
+
 
 using namespace NS_SymbolicDerivative;
 using namespace MMVII;
@@ -9,314 +9,9 @@ using namespace MMVII;
 namespace MMVII
 {
 
-template <class Type> class cREAL8_RWAdapt : public cResidualWeighter<Type>
-{
-       public :
-            typedef std::vector<Type>     tStdVect;
-
-            cREAL8_RWAdapt(const cResidualWeighter<tREAL8> * aRW) :
-		    mRW (aRW)
-            {
-            }
-            tStdVect WeightOfResidual(const tStdVect & aVIn) const override
-	    {
-		    std::vector<tREAL8> aRV;
-		    Convert(aRV,aVIn);
-
-		    aRV = mRW->WeightOfResidual(aRV);
-		    tStdVect aVOut;
-
-		    return Convert(aVOut,aRV);
-	    }
-       private :
-
-	    const cResidualWeighter<tREAL8>* mRW;
-
-};
-
-template <class T1,class T2> void ConvertVWD(cInputOutputRSNL<T1> & aIO1 , const cInputOutputRSNL<T2> & aIO2)
-{
-     Convert(aIO1.mWeights,aIO2.mWeights);
-     Convert(aIO1.mVals,aIO2.mVals);
-
-     aIO1.mDers.resize(aIO2.mDers.size());
-     for (size_t aKDer=0 ; aKDer<aIO1.mDers.size() ; aKDer++)
-         Convert(aIO1.mDers.at(aKDer),aIO2.mDers.at(aKDer));
-         
-     // mGlobVInd  mVObs and mNbTmpUk are initialized
-     //
-     //
-}
-
 /* ************************************************************ */
 /*                                                              */
-/*                cInputOutputRSNL                              */
-/*                                                              */
-/* ************************************************************ */
-
-
-template <class Type>  cInputOutputRSNL<Type>::cInputOutputRSNL(const tVectInd& aVInd,const tStdVect & aVObs):
-     mGlobVInd  (aVInd),
-     mVObs      (aVObs),
-     mNbTmpUk   (0)
-{
-
-    //  Check consistency on temporary indexes
-    for (const auto & anInd : aVInd)
-    {
-        if (cSetIORSNL_SameTmp<Type>::IsIndTmp(anInd))
-        {
-	    mNbTmpUk++;
-        }
-    }
-    // MMVII_INTERNAL_ASSERT_tiny(mNbTmpUk==mVTmpUk.size(),"Size Tmp/subst in  cInputOutputRSNL");
-}
-
-
-template <class Type>  cInputOutputRSNL<Type>::cInputOutputRSNL(bool Fake,const cInputOutputRSNL<tREAL8> & aR_IO) :
-	cInputOutputRSNL<Type>
-	(
-	     aR_IO.mGlobVInd,
-	     VecConvert<Type,tREAL8>(aR_IO.mVObs)
-	)
-{
-	ConvertVWD(*this,aR_IO);
-}
-
-
-template <class Type> Type cInputOutputRSNL<Type>::WeightOfKthResisual(int aK) const
-{
-   switch (mWeights.size())
-   {
-	   case 0 :  return 1.0;
-	   case 1 :  return mWeights[0];
-	   default  : return mWeights.at(aK);
-   }
-}
-template <class Type> size_t cInputOutputRSNL<Type>::NbUkTot() const
-{
-	return mGlobVInd.size() ;
-}
-
-template <class Type> bool cInputOutputRSNL<Type>::IsOk() const
-{
-     if (mVals.size() !=mDers.size()) 
-        return false;
-
-     if (mVals.empty())
-        return false;
-
-     {
-         size_t aNbUk = NbUkTot();
-         for (const auto & aDer : mDers)
-             if (aDer.size() != aNbUk)
-                return false;
-     }
-
-     {
-         size_t aSzW =  mWeights.size();
-         if ((aSzW>1) && (aSzW!= mVals.size()))
-            return false;
-     }
-     return true;
-}
-
-
-
-
-
-/* ************************************************************ */
-/*                                                              */
-/*                cSetIORSNL_SameTmp                            */
-/*                                                              */
-/* ************************************************************ */
-
-template <class Type> cSetIORSNL_SameTmp<Type>::cSetIORSNL_SameTmp
-                      (
-		           const tStdVect & aValTmpUk,
-                           const tVectInd & aVFix,
-		           const tStdVect & aValFix
-                      ) :
-        mVFix              (aVFix),
-	mValFix            (aValFix),
-	mOk                (false),
-	mNbTmpUk           (aValTmpUk.size()),
-	mValTmpUk          (aValTmpUk),
-	mVarTmpIsFrozen    (mNbTmpUk,false),
-	mValueFrozenVarTmp (mNbTmpUk,-283971), // random val
-	mNbEq              (0),
-	mSetIndTmpUk       (mNbTmpUk)
-{
-    MMVII_INTERNAL_ASSERT_tiny((aVFix.size()==aValFix.size()) || aValFix.empty(),"Bad size for fix var tmp");
-
-    for (size_t aKInd=0 ; aKInd<aVFix.size() ; aKInd++)
-    {
-        int anIndFix = aVFix[aKInd];
-	Type aVal = aValFix.empty() ? Val1TmpUk(anIndFix)  : aValFix.at(aKInd);
-
-	// Need to fix the var that will be elimined, need to do it now because line after will change
-        AddFixVarTmp(anIndFix,aVal,1.0); 
-        mVarTmpIsFrozen.at(ToIndTmp(anIndFix)) = true;
-        mValueFrozenVarTmp.at(ToIndTmp(anIndFix)) = aVal;
-    }
-}
-
-template <class Type> int cSetIORSNL_SameTmp<Type>::NbRedundacy() const
-{
-   return mNbEq -mNbTmpUk;
-}
-
-template <class Type> cSetIORSNL_SameTmp<Type>::cSetIORSNL_SameTmp(bool Fake,const cSetIORSNL_SameTmp<tREAL8> & aR_Set)  :
-	cSetIORSNL_SameTmp<Type> 
-	(
-	     VecConvert<Type,tREAL8>(aR_Set.mValTmpUk),
-	     aR_Set.mVFix,
-	     VecConvert<Type,tREAL8>(aR_Set.mValFix)
-	)
-{
-    for (const auto & anIO : aR_Set.mVEq)
-         AddOneEq(cInputOutputRSNL<Type>(false,anIO));
-}
-
-
-
-
-template <class Type> size_t cSetIORSNL_SameTmp<Type>::ToIndTmp(int anInd) { return -(anInd+1); }
-template <class Type> bool   cSetIORSNL_SameTmp<Type>::IsIndTmp(int anInd) 
-{ 
-    return anInd<0; 
-}
-template <class Type> size_t cSetIORSNL_SameTmp<Type>::NbTmpUk() const { return mNbTmpUk; }
-template <class Type> const std::vector<Type> & cSetIORSNL_SameTmp<Type>::ValTmpUk() const { return mValTmpUk; }
-template <class Type> Type  cSetIORSNL_SameTmp<Type>::Val1TmpUk(int aInd) const { return mValTmpUk.at(ToIndTmp(aInd));}
-
-
-
-template <class Type> void cSetIORSNL_SameTmp<Type>::AddOneEq(const tIO_OneEq & anIO_In)
-{
-    mVEq.push_back(anIO_In);
-    tIO_OneEq & anIO = mVEq.back();
-
-    MMVII_INTERNAL_ASSERT_tiny(anIO.IsOk(),"Bad size for cInputOutputRSNL");
-
-    // for (const auto & anInd : anIO.mGlobVInd)
-    for (size_t aKInd=0 ; aKInd<anIO.mGlobVInd.size() ;aKInd++)
-    {
-        int anIndSigned = anIO.mGlobVInd[aKInd];
-        if (IsIndTmp(anIndSigned))
-	{
-           size_t aIndPos = ToIndTmp(anIndSigned);
-           mSetIndTmpUk.AddInd(aIndPos); // add it to the computed list of indexes
-           if (mVarTmpIsFrozen.at(aIndPos))
-           {
-              Type aDeltaVar = mValueFrozenVarTmp.at(aIndPos) - mValTmpUk.at(aIndPos);
-              for (size_t aKEq=0 ; aKEq<anIO.mVals.size() ; aKEq++)
-              {
-                   Type & aVDer = anIO.mDers.at(aKEq).at(aKInd);
-		   anIO.mVals[aKEq]  +=  aVDer * aDeltaVar;
-		   aVDer = 0;
-              }
-           }
-	}
-    }
-
-    mNbEq += anIO.mVals.size();
-    if 
-    (
-            (mNbEq > mNbTmpUk)  // A priori there is no use to less or equal equation, this doesnt give any constraint
-	 && ( mSetIndTmpUk.NbElem()== mNbTmpUk)  // we are sure to have good index, because we cannot add oustide
-    )
-    {
-        mOk = true; 
-    }
-}
-
-template <class Type> void   cSetIORSNL_SameTmp<Type>::AddFixVarTmp (int aInd,const Type& aVal,const Type& aWeight)
-{
-     MMVII_INTERNAL_ASSERT_tiny
-     (
-	 cSetIORSNL_SameTmp<Type>::IsIndTmp(aInd),
-	 "Non tempo index in AddFixVarTmp"
-     );
-
-     // tVectInd aVInd{anInd};
-
-     cInputOutputRSNL<Type> aIO({aInd},{});
-     aIO.mWeights.push_back(aWeight);
-     aIO.mDers.push_back({1.0});
-     Type aDVal = Val1TmpUk(aInd)-aVal;
-     aIO.mVals.push_back({aDVal});
-
-     AddOneEq(aIO);
-}
-
-template <class Type> void   cSetIORSNL_SameTmp<Type>::AddFixCurVarTmp (int aInd,const Type& aWeight)
-{
-     AddFixVarTmp(aInd,Val1TmpUk(aInd),aWeight); 
-}
-
-template <class Type> 
-    const std::vector<cInputOutputRSNL<Type> >& 
-          cSetIORSNL_SameTmp<Type>::AllEq() const
-{
-     return mVEq;
-}
-
-template <class Type> void cSetIORSNL_SameTmp<Type>::AssertOk() const
-{
-      MMVII_INTERNAL_ASSERT_tiny(mOk,"Not enough eq to use tmp unknowns");
-}
-
-
-/* ************************************************************ */
-/*                                                              */
-/*                cResidualWeighter                             */
-/*                                                              */
-/* ************************************************************ */
-
-template <class Type>  cResidualWeighter<Type>::cResidualWeighter(const Type & aVal) :
-    mVal (aVal)
-{
-}
-
-template <class Type>  std::vector<Type>  cResidualWeighter<Type>::WeightOfResidual(const tStdVect & aVResidual) const
-{
-	return tStdVect(aVResidual.size(),mVal);
-}
-
-/* ************************************************************ */
-/*                                                              */
-/*                cExplicitWeighter                             */
-/*                                                              */
-/* ************************************************************ */
-
-template <class Type>
-cResidualWeighterExplicit<Type>::cResidualWeighterExplicit(bool isSigmas, const tStdVect & aData) :
-    mSigmas{}, mWeights{}
-{
-    tStdVect aDataInv {};
-    std::for_each(aData.begin(), aData.end(), [&](Type s) { aDataInv.push_back(1/(s*s)); });
-    if (isSigmas)
-    {
-        mSigmas = aData;
-        mWeights = aDataInv;
-    } else {
-        mSigmas = aDataInv;  // MPD->JMM  : should be rather mSigmas = 1/sqrt(W) ??
-        mWeights = aData;
-    }
-}
-
-template <class Type>
-std::vector<Type> cResidualWeighterExplicit<Type>::WeightOfResidual(const std::vector<Type> &aVResidual) const
-{
-    MMVII_INTERNAL_ASSERT_tiny(mWeights.size() == aVResidual.size(), "Number of weights does not correpond to number of residuals");
-    return mWeights;
-}
-
-
-/* ************************************************************ */
-/*                                                              */
-/*                cResolSysNonLinear                            */
+/*                cREAL8_RSNL                                   */
 /*                                                              */
 /* ************************************************************ */
 
@@ -359,12 +54,34 @@ int cREAL8_RSNL::CountFreeVariables() const
      return std::count(mVarIsFrozen.begin(), mVarIsFrozen.end(), false);
 }
 
+void cREAL8_RSNL::SetPhaseEq()
+{
+    if (mInPhaseAddEq) return;
+
+    InitConstraint();
+    mInPhaseAddEq = true;
+}
+
 
 /* ************************************************************ */
 /*                                                              */
 /*                cResolSysNonLinear                            */
 /*                                                              */
 /* ************************************************************ */
+
+template <class Type>  void  cResolSysNonLinear<Type>::InitConstraint()
+{
+    mLinearConstr->Reset();
+    for (int aKV=0 ; aKV<mNbVar ; aKV++)
+    {
+        if (mVarIsFrozen.at(aKV))
+	{
+           mLinearConstr->Add1ConstrFrozenVar(aKV,mValueFrozenVar.at(aKV));
+	}
+    }
+    mLinearConstr->Compile(false);
+}
+
 
       // =====    constructors / destructors ================
 
@@ -373,11 +90,11 @@ template <class Type> cResolSysNonLinear<Type>::cResolSysNonLinear(tLinearSysSR 
     // mNbVar          (aInitSol.Sz()),
     mCurGlobSol     (aInitSol.Dup()),
     mSysLinear      (aSys),
-    // mInPhaseAddEq   (false),
     // mVarIsFrozen    (mNbVar,false),
     mValueFrozenVar (mNbVar,-1),
     lastNbObs       (0),
-    currNbObs       (0)
+    currNbObs       (0),
+    mLinearConstr   (new cSetLinearConstraint<Type>(mNbVar))
 {
 }
 
@@ -389,13 +106,14 @@ template <class Type> cResolSysNonLinear<Type>::cResolSysNonLinear(eModeSSR aMod
 template <class Type> cResolSysNonLinear<Type>::~cResolSysNonLinear()
 {
     delete mSysLinear;
+    delete mLinearConstr;
 }
 
       // =============  miscelaneous accessors    ================
      
 template <class Type> cLinearOverCstrSys<Type> * cResolSysNonLinear<Type>::SysLinear() 
 {
-    mInPhaseAddEq = true;  // cautious, if user requires this access he may modify
+    SetPhaseEq(); // cautious, if user requires this access he may modify
     return mSysLinear;
 }
 
@@ -555,6 +273,7 @@ template <class Type> void   cResolSysNonLinear<Type>::AddEqFixNewVal(const tObj
 
 template <class Type> void  cResolSysNonLinear<Type>::ModifyFrozenVar (tIO_RSNL& aIO)
 {
+          // CHANGE HERE
     for (size_t aKVar=0 ; aKVar<aIO.mGlobVInd.size() ; aKVar++)
     {
          int aIndGlob = aIO.mGlobVInd[aKVar];
@@ -579,12 +298,13 @@ template <class Type> void  cResolSysNonLinear<Type>::AddObservationLinear
                                  const Type &  aRHS
                             )
 {
-     mInPhaseAddEq = true;
+     SetPhaseEq(); 
      Type  aNewRHS    = aRHS;
      cSparseVect<Type> aNewCoeff;
 
      for (const auto & aPair :aCoeff)
      {
+          // CHANGE HERE
           if (mVarIsFrozen.at(aPair.mInd))
           {
               // if freeze => transfert value in contant
@@ -609,12 +329,13 @@ template <class Type> void  cResolSysNonLinear<Type>::AddObservationLinear
                                  const Type &  aRHS
                             )
 {
-     mInPhaseAddEq = true;
+     SetPhaseEq(); 
      Type  aNewRHS    = aRHS;
      cDenseVect<Type> aNewCoeff = aCoeff.Dup();
 
      for (int aK=0 ; aK<mNbVar ; aK++)
      {
+          // CHANGE HERE
           if (mVarIsFrozen.at(aK))
           {
               aNewRHS -= mValueFrozenVar.at(aK) * aCoeff(aK);
@@ -711,7 +432,7 @@ template <class Type> void   cResolSysNonLinear<Type>::CalcVal
       //  The possibility of having several comes from potential paralellization
       //  MMVII_INTERNAL_ASSERT_tiny(aVIO.size()==1,"CalcValCalcVal");
      
-      mInPhaseAddEq = true;
+      SetPhaseEq(); 
       MMVII_INTERNAL_ASSERT_tiny(aCalcVal->NbInBuf()==0,"Buff not empty");
 
       // Usefull only to test correcness of DoOneEval
@@ -820,7 +541,7 @@ template <>  void   cResolSysNonLinear<tREAL8>::R_CalcAndAddObs
 
 template <class Type> void cResolSysNonLinear<Type>::AddObs(const std::vector<tIO_RSNL>& aVIO)
 {
-      mInPhaseAddEq = true;
+      SetPhaseEq(); 
       // Parse all the linearized equation
       for (const auto & aIO : aVIO)
       {
@@ -856,7 +577,6 @@ template <class Type> void   cResolSysNonLinear<Type>::AddEq2Subst
 {
     std::vector<tIO_RSNL> aVIO(1,tIO_RSNL(aVInd,aVObs));
     CalcVal(aCalc,aVIO,aSetIO.ValTmpUk(),true,aWeighter);
-
 
     aSetIO.AddOneEq(aVIO.at(0));
 }
@@ -923,6 +643,7 @@ template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUp
     // for var frozen, they are not involved in any equation, we must fix their value other way
     for (int aK=0 ; aK<mNbVar ; aK++)
     {
+        // CHANGE HERE
         if (mVarIsFrozen[aK])
            AddEqFixVar(aK,mValueFrozenVar[aK],1.0);
 
@@ -952,11 +673,10 @@ template <class Type> cDenseVect<tREAL8>  cResolSysNonLinear<Type>::R_SolveUpdat
 /*                                                              */
 /* ************************************************************ */
 
+// template class  cInputOutputRSNL<TYPE>;
+// template class  cSetIORSNL_SameTmp<TYPE>;
+
 #define INSTANTIATE_RESOLSYSNL(TYPE)\
-template class  cInputOutputRSNL<TYPE>;\
-template class  cSetIORSNL_SameTmp<TYPE>;\
-template class  cResidualWeighter<TYPE>;\
-template class  cResidualWeighterExplicit<TYPE>;\
 template class  cResolSysNonLinear<TYPE>;
 
 INSTANTIATE_RESOLSYSNL(tREAL4)

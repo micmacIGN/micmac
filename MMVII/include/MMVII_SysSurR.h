@@ -21,6 +21,8 @@ template <class Type> class cResidualWeighter;
 // template <class Type> class cObjOfMultipleObjUk;
 template <class Type> class cObjWithUnkowns;
 template <class Type> class cSetInterUK_MultipeObj;
+template <class Type>  class  cSetLinearConstraint; // defined in "src/Matrix"
+
 
 /**  Class for weighting residuals : compute the vector of weight from a 
      vector of residual; default return {1.0,1.0,...}
@@ -53,6 +55,18 @@ template <class Type> class cResidualWeighterExplicit: public cResidualWeighter<
             tStdVect mSigmas;
             tStdVect mWeights;
 };
+
+
+template <class Type> class cREAL8_RWAdapt : public cResidualWeighter<Type>
+{
+       public :
+            typedef std::vector<Type>     tStdVect;
+            cREAL8_RWAdapt(const cResidualWeighter<tREAL8> * aRW) ;
+            tStdVect WeightOfResidual(const tStdVect & aVIn) const override;
+       private :
+            const cResidualWeighter<tREAL8>* mRW;
+};
+
 
 /// Index to use in vector of index indicating a variable to substituate
 static constexpr int RSL_INDEX_SUBST_TMP = -1;
@@ -126,6 +140,9 @@ class cREAL8_RSNL
 	  void  AssertNotInEquation() const;         ///< verify that we are notin equation step (to allow froze modification)
 	  int   CountFreeVariables() const;          ///< number of free variables
 	protected :
+          void SetPhaseEq();
+	  /// Mut be defined in inherited class because maniupulate mLinearConstr which depend of type
+	  virtual void InitConstraint() = 0;
 
 	  int                  mNbVar;
 	  bool                 mInPhaseAddEq;      ///< check that dont modify val fixed after adding  equations
@@ -251,6 +268,7 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
           /// Add observations as computed by CalcVal
           void   AddObs(const std::vector<tIO_RSNL>&);
 
+	  void InitConstraint() override;
           /** Bases function of calculating derivatives, dont modify the system as is
               to avoid in case  of schur complement */
           void   CalcVal(tCalc *,std::vector<tIO_RSNL>&,const tStdVect & aVTmp,bool WithDer,const tResidualW & );
@@ -261,6 +279,9 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
 	  std::vector<Type>    mValueFrozenVar;    ///< indicate for each var the possible value where it is frozen
 	  int lastNbObs;                           ///< number of observations of last solving
 	  int currNbObs;                           ///< number of observations currently added
+
+          /// handle the linear constraint : fix var, shared var, gauge ...
+          cSetLinearConstraint<Type>* mLinearConstr;  
 };
 
 
@@ -292,6 +313,7 @@ template <class Type> class cInputOutputRSNL
           std::vector<tStdVect>   mDers;     ///< derivate of fctr
 	  size_t                  mNbTmpUk;
 
+          // use a s converter from tREAL8, "Fake" is used to separate from copy construtcor when Type == tREAL8
 	  cInputOutputRSNL(bool Fake,const cInputOutputRSNL<tREAL8> &);
      private :
 	  // cInputOutputRSNL(const cInputOutputRSNL<Type> &) = delete;
@@ -800,6 +822,9 @@ template <class Type> class cObjWithUnkowns //  : public cObjOfMultipleObjUk<Typ
           int   mIndUk0;
           int   mIndUk1;
 };
+
+template <class T1,class T2> void ConvertVWD(cInputOutputRSNL<T1> & aIO1 , const cInputOutputRSNL<T2> & aIO2);
+
 
 };
 
