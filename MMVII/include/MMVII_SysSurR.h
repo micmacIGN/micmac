@@ -141,6 +141,8 @@ class cREAL8_RSNL
 	  int   CountFreeVariables() const;          ///< number of free variables
 	protected :
           void SetPhaseEq();
+	  /// Mut be defined in inherited class because maniupulate mLinearConstr which depend of type
+	  virtual void InitConstraint() = 0;
 
 	  int                  mNbVar;
 	  bool                 mInPhaseAddEq;      ///< check that dont modify val fixed after adding  equations
@@ -266,6 +268,7 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
           /// Add observations as computed by CalcVal
           void   AddObs(const std::vector<tIO_RSNL>&);
 
+	  void InitConstraint() override;
           /** Bases function of calculating derivatives, dont modify the system as is
               to avoid in case  of schur complement */
           void   CalcVal(tCalc *,std::vector<tIO_RSNL>&,const tStdVect & aVTmp,bool WithDer,const tResidualW & );

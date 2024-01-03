@@ -20,7 +20,7 @@ class cBenchLinearConstr;
 /**  Class for a "sparse" dense vector,  i.e a vector that is represented by a dense vector
  */
 
-template <class Type> class cDSVec
+template <class Type> class cDSVec : public cMemCheck
 {
     public :
        cDSVec(size_t aNbVar);
@@ -73,7 +73,7 @@ template <class Type> class cDSVec
  */
 
 
-template <class Type>  class cOneLinearConstraint
+template <class Type>  class cOneLinearConstraint : public cMemCheck
 {
      public :
        friend class cSetLinearConstraint<Type>;
@@ -83,7 +83,6 @@ template <class Type>  class cOneLinearConstraint
        typedef cDenseVect<Type>           tDV;
        typedef typename tSV::tCplIV       tCplIV;
        typedef cInputOutputRSNL<Type>     tIO_RSNL;
-       typedef cSetIORSNL_SameTmp<Type>   tSetIO_ST;
 
        /**  In Cstr we can fix the index of subst, if it value -1 let the system select the best , fixing can be usefull in case
 	* of equivalence
@@ -121,15 +120,16 @@ template <class Type>  class cOneLinearConstraint
         bool      mReduced; /// a marker to know if a constraint has already been reduced
 };
 
-template <class Type>  class  cSetLinearConstraint
+template <class Type>  class  cSetLinearConstraint : public cMemCheck
 {
     public :
           friend class cBenchLinearConstr;
 
+          typedef cInputOutputRSNL<Type>     tIO_RSNL;
           typedef cSparseVect<Type>          tSV;
           typedef cDenseVect<Type>           tDV;
           typedef typename tSV::tCplIV       tCplIV;
-          typedef cOneLinearConstraint<Type>  t1Constr;
+          typedef cOneLinearConstraint<Type> t1Constr;
 
 	  /// Cstr : allow the buffer for computatio,
           cSetLinearConstraint(int aNbVar);
@@ -138,17 +138,22 @@ template <class Type>  class  cSetLinearConstraint
 	  /// Add a new constraint (just debug)
           void Add1Constr(const t1Constr &);
 
+	  void Reset();
+	  void Add1ConstrFrozenVar(int aKVar,const Type & aVal);
+
+          void SubstituteInSparseLinearEquation(tSV & aA,Type &  aB) const;
+          void SubstituteInDenseLinearEquation (tDV & aA,Type &  aB) const;
+          void SubstituteInOutRSNL(tIO_RSNL& aIO,const tDV & aCurSol) const;
+    private :
 	  /// Show all the detail
           void Show(const std::string & aMsg) const;
-
           ///  Test that the reduced contsraint define the same space than initial (a bit slow ...)
           void TestSameSpace();
 
-    private :
           std::vector<t1Constr>   mVCstrInit;     // Initial constraint, 
           std::vector<t1Constr>   mVCstrReduced;  // Constraint after reduction
 	  int                     mNbVar;
-          cDSVec<Type>            mBuf;           // Buffer for computation
+          mutable cDSVec<Type>            mBuf;           // Buffer for computation
 };
 
 };

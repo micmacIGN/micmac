@@ -56,11 +56,10 @@ int cREAL8_RSNL::CountFreeVariables() const
 
 void cREAL8_RSNL::SetPhaseEq()
 {
-    if (! mInPhaseAddEq)
-    {
-         //  Compile constraint
-         mInPhaseAddEq = true;
-    }
+    if (mInPhaseAddEq) return;
+
+    InitConstraint();
+    mInPhaseAddEq = true;
 }
 
 
@@ -70,6 +69,18 @@ void cREAL8_RSNL::SetPhaseEq()
 /*                                                              */
 /* ************************************************************ */
 
+template <class Type>  void  cResolSysNonLinear<Type>::InitConstraint()
+{
+    mLinearConstr->Reset();
+    for (int aKV=0 ; aKV<mNbVar ; aKV++)
+    {
+        if (mVarIsFrozen.at(aKV))
+	{
+           mLinearConstr->Add1ConstrFrozenVar(aKV,mValueFrozenVar.at(aKV));
+	}
+    }
+    mLinearConstr->Compile(false);
+}
 
 
       // =====    constructors / destructors ================

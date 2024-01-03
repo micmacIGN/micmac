@@ -20,7 +20,23 @@ template <class Type> cSetLinearConstraint<Type>::cSetLinearConstraint(int aNbVa
 
 template <class Type> void cSetLinearConstraint<Type>::Add1Constr(const t1Constr & aConstr)
 {
-      mVCstrInit.push_back(aConstr);
+      mVCstrInit.push_back(aConstr.Dup());
+}
+
+
+template <class Type> void cSetLinearConstraint<Type>::Reset()
+{
+    mVCstrInit.clear();
+    mVCstrReduced.clear();
+}
+
+template <class Type> void cSetLinearConstraint<Type>::Add1ConstrFrozenVar(int aKVar,const Type & aVal)
+{
+    cSparseVect<Type> aSV;
+    aSV.AddIV(aKVar,1.0);
+    cOneLinearConstraint aCstr(aSV,aVal, mVCstrInit.size());
+
+    Add1Constr(aCstr);
 }
 
 
@@ -72,6 +88,26 @@ template <class Type> void cSetLinearConstraint<Type>::Compile(bool ForBench)
          [](const auto & aC1,const auto & aC2){return aC1.mOrder<aC2.mOrder;}
      );
 }
+
+template <class Type> void cSetLinearConstraint<Type>::SubstituteInSparseLinearEquation(tSV & aA,Type &  aB) const
+{
+    for (const auto & aCstr : mVCstrReduced)
+       aCstr.SubstituteInSparseLinearEquation(aA,aB,mBuf);
+}
+
+template <class Type> void cSetLinearConstraint<Type>::SubstituteInDenseLinearEquation(tDV & aA,Type &  aB) const
+{
+    for (const auto & aCstr : mVCstrReduced)
+       aCstr.SubstituteInDenseLinearEquation(aA,aB);
+}
+
+template <class Type> void cSetLinearConstraint<Type>::SubstituteInOutRSNL(tIO_RSNL& aIO,const tDV & aCurSol) const
+{
+    for (const auto & aCstr : mVCstrReduced)
+       aCstr.SubstituteInOutRSNL(aIO,mBuf,aCurSol);
+}
+
+
 
 template <class Type> void cSetLinearConstraint<Type>::Show(const std::string & aMsg) const
 {
