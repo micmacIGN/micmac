@@ -10,7 +10,14 @@ void cMMVII_BundleAdj::InitItereTopo()
 {
     if (mTopo)
     {
-        //... TODO
+        // list all gcp names, add uk to mPts_UK
+        for (unsigned int i=0; i<mMesGCP->MesGCP().size(); ++i )
+        {
+            auto & aGCP = mMesGCP->MesGCP()[i];
+            mTopo->addPointWithUK(aGCP.mNamePt, mGCP_UK.at(i), &aGCP.mPt);
+            StdOut()<<" add gcp for topo: "<<aGCP.mNamePt<<" "<<
+                       mGCP_UK.at(i)<<" "<<&aGCP.mPt<<"\n";
+        }
     }
 }
 
@@ -40,18 +47,27 @@ void cBA_Topo::Save()
     mTopoData.ToFile(mInFile+"-out.json");
 }
 
+void cBA_Topo::addPointWithUK(const std::string &aName, cObjWithUnkowns<tREAL8>* aUK, cPt3dr* aPt)
+{
+    mPts_UK[aName] = {aUK, aPt};
+}
+
 tTopoPtUK& cBA_Topo::getPointWithUK(const std::string & aName)
 {
-    // search if already in map
+    StdOut()<<"getPointWithUK "<<aName<<"\n";
+    // search if already in map (filled with GCP on InitItereTopo())
     if (auto search = mPts_UK.find(aName); search != mPts_UK.end())
-            return search->second;
+    {
+        StdOut()<<"UK already in dict: "<<search->second.first<<" "<<search->second.second<<"\n";
+        return search->second;
+    }
 
     // search among cameras
     cSensorCamPC * aCam = mPhProj.ReadCamPC(aName, true, false);
-    std::cout<<"cSensorCamPC: "<<aCam<<std::endl;  //TODO : crash if not found for now
+    StdOut()<<"UK cSensorCamPC: "<<aCam<<std::endl;  //TODO : crash if not found for now
     return mPts_UK[aName] = {aCam, &aCam->Center()};
 
-    // search among gcp
+
 
     // add new pure topo point
 }

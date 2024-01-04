@@ -137,6 +137,7 @@ void cMMVII_BundleAdj::InitIteration()
     mPhaseAdd = false;
 
     InitItereGCP();
+    InitItereTopo();
     mR8_Sys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqNormSparse,mSetIntervUK.GetVUnKnowns());
 
     mSys =  mR8_Sys;

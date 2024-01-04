@@ -8,6 +8,7 @@ using namespace NS_SymbolicDerivative;
 namespace MMVII
 {
 
+class cMMVII_BundleAdj;
 class cPhotogrammetricProject;
 class cSensorCamPC;
 class cPt3dr_UK;
@@ -18,7 +19,7 @@ class cBA_Topo
 {
 public :
 
-    cBA_Topo(const cPhotogrammetricProject &, const std::string &aTopoFilePath);
+    cBA_Topo(const cPhotogrammetricProject &aPhProj, const std::string &aTopoFilePath);
     ~cBA_Topo();
 
     // The system must be aware of all the unknowns
@@ -31,6 +32,7 @@ public :
     void AddTopoEquations(cResolSysNonLinear<tREAL8> &);
 
     void Save();
+    void addPointWithUK(const std::string &aName, cObjWithUnkowns<tREAL8>* aUK, cPt3dr* aPt);
     tTopoPtUK& getPointWithUK(const std::string &aName); // fill mPts_UK map
     cCalculator<double>* getEquation(eTopoObsType tot) const;
 private :
