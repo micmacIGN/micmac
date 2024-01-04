@@ -11,7 +11,7 @@ namespace MMVII
 {
 
 cTopoData::cTopoData(const std::string & aName, cBA_Topo *aBA_Topo):
-    mBA_Topo(aBA_Topo)
+    mBA_Topo(aBA_Topo), mUniqueObsSetSimple(nullptr)
    /* mSetIntervMultObj(new cSetInterUK_MultipeObj<double>()), mSys(nullptr),
     mTopoObsType2equation
     {
@@ -20,9 +20,13 @@ cTopoData::cTopoData(const std::string & aName, cBA_Topo *aBA_Topo):
         {eTopoObsType::eDistParam, EqDist3DParam(true,1)},
     }*/
 {
+    // create the unique ObsSetSimple
+    allObsSets.push_back(make_TopoObsSet<cTopoObsSetSimple>());
+    mUniqueObsSetSimple = allObsSets.at(0).get();
+
     bool ok = FromCompFile(aName);
     MMVII_INTERNAL_ASSERT_strong(ok, "Topo: error reading file "+aName);
-    createEx2();
+    //createEx2();
     print();
 }
 
@@ -66,6 +70,7 @@ bool cTopoData::FromCompFile(const std::string & aName)
         StdOut() << "Error: can't open file \""<<aName<<"\""<<std::endl;
         return false;
     }
+
     StdOut() << "Reading file \""<<aName<<"\"..."<<std::endl;
     std::string line;
     int line_num = 0;
@@ -74,7 +79,7 @@ bool cTopoData::FromCompFile(const std::string & aName)
         ++line_num;
         std::istringstream iss(line);
         int code;
-        if (!(iss >> code)) break; // line ignored
+        if (!(iss >> code)) continue; // line ignored
         std::string nameFrom, nameTo;
         double val, sigma;
         if (!(iss >> nameFrom >> nameTo >> val >> sigma))
@@ -84,16 +89,28 @@ bool cTopoData::FromCompFile(const std::string & aName)
         }
         if (!addObs(code, nameFrom, nameTo, val, sigma))
             StdOut() << "Error interpreting line " << line_num << ": \""<<aName<<"\"";
-
     }
-    StdOut() << "Reading file finished."<<std::endl;
+    long nb_obs = 0;
+    for (const auto & set : allObsSets)
+        for (const auto & obs : set->getAllObs())
+            nb_obs += obs->getVals().size();
+    StdOut() << "Reading file finished. " << nb_obs << " obs found." << std::endl;
     return true;
 }
 
 bool cTopoData::addObs(int code, const std::string & nameFrom, const std::string & nameTo, double val, double sigma)
 {
     // TODO
-    return true;
+
+    //tmp
+    switch (code) {
+    case 3:
+        mUniqueObsSetSimple->addObs(eTopoObsType::eDist, {nameFrom, nameTo}, {val}, {true, {sigma} });
+        return true;
+    default:
+        StdOut() << "Error, unknown obs code " << code <<".\n";
+    }
+    return false;
 }
 
 /*cCalculator<double>*  cTopoData::getEquation(eTopoObsType tot) const {
@@ -118,12 +135,12 @@ void cTopoData::print()
 }
 
 
-void cTopoData::createEx1()
+/*void cTopoData::createEx1()
 {
     //verbose = true;
 
     //create fixed points
-    /*allPts.push_back(new cTopoPoint("ptA", cPt3dr(10,10,10), false));
+    allPts.push_back(new cTopoPoint("ptA", cPt3dr(10,10,10), false));
     allPts.push_back(new cTopoPoint("ptB", cPt3dr(20,10,10), false));
     allPts.push_back(new cTopoPoint("ptC", cPt3dr(15,20,10), false));
     auto ptA = allPts[0];
@@ -156,7 +173,7 @@ void cTopoData::createEx1()
     obsSet3->addObs(eTopoObsType::eSubFrame, std::vector{ptE, ptA}, {-5., -3.75, -1.4}, {true, {WW,WW,WW}});
     obsSet3->addObs(eTopoObsType::eSubFrame, std::vector{ptE, ptA}, { 5., -3.75, -1.4}, {true, {WW,WW,WW}});
     obsSet3->addObs(eTopoObsType::eSubFrame, std::vector{ptE, ptA}, { 0.,  6.25, -1.4}, {true, {WW,WW,WW}});
-    obsSet3->addObs(eTopoObsType::eSubFrame, std::vector{ptE, ptA}, { 0.,  0.,    6.4}, {true, {WW,WW,WW}});*/
+    obsSet3->addObs(eTopoObsType::eSubFrame, std::vector{ptE, ptA}, { 0.,  0.,    6.4}, {true, {WW,WW,WW}});
 }
 
 void cTopoData::createEx2()
@@ -170,7 +187,7 @@ void cTopoData::createEx2()
     auto obsSet1 = allObsSets[0].get();
     obsSet1->addObs(eTopoObsType::eDist, {from_name, to_name}, {0.3170}, {true, {0.001} });
 
-}
+}*/
 
 
 };

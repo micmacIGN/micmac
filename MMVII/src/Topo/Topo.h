@@ -31,18 +31,16 @@ public :
     void AddTopoEquations(cResolSysNonLinear<tREAL8> &);
 
     void Save();
-    bool isOk() const {return mOk;}
     tTopoPtUK& getPointWithUK(const std::string &aName); // fill mPts_UK map
     cCalculator<double>* getEquation(eTopoObsType tot) const;
 private :
 
-    double AddEquation_Dist3d(cResolSysNonLinear<tREAL8> &);
+    //double AddEquation_Dist3d(cResolSysNonLinear<tREAL8> &);
 
     const cPhotogrammetricProject &mPhProj;
 
     std::map<eTopoObsType, cCalculator<double>*> mTopoObsType2equation;
     cTopoData                    mTopoData;
-    bool                         mOk;
     std::string                  mInFile;
 
     // tmp: obs here, TODO: use cTopoObsSet

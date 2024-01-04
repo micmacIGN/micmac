@@ -547,7 +547,7 @@ bool cMMVII_BundleAdj::AddTopo(const std::string & aTopoFilePath) // TOPO
 {
     mTopo = new cBA_Topo(*mPhProj, aTopoFilePath);
     mTopo->AddToSys(mSetIntervUK);
-    return mTopo->isOk();
+    return true;
 }
 
 

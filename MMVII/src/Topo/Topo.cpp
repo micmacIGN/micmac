@@ -24,20 +24,9 @@ cBA_Topo::cBA_Topo
         {eTopoObsType::eDistParam, EqDist3DParam(true,1)},
     },
     mTopoData(aTopoFilePath, this),
-    mOk(true), mInFile(aTopoFilePath)
+    mInFile(aTopoFilePath)
 {
-    StdOut()<<"Read topo file "<<aTopoFilePath<<"\n";
-    // TODO
-    /*auto from_name = "DSCF3297_L.jpg";
-    auto to_name = "DSCF3298_L.jpg";
-    cSensorCamPC * aCamFrom = aPhProj.ReadCamPC(from_name,true,false);
-    mPts_UK.push_back({aCamFrom, &aCamFrom->Center()});
-    cSensorCamPC * aCamTo = aPhProj.ReadCamPC(to_name,true,false);
-    mPts_UK.push_back({aCamTo, &aCamTo->Center()});*/
 
-
-    //...
-    mOk = true;
 }
 
 cBA_Topo::~cBA_Topo()
@@ -91,11 +80,11 @@ void cBA_Topo::SetFrozenVar(cResolSysNonLinear<tREAL8> & aSys)
     //       The Equation itself
     // =========================================================
 
-double cBA_Topo::AddEquation_Dist3d(cResolSysNonLinear<tREAL8> & aSys)
+/*double cBA_Topo::AddEquation_Dist3d(cResolSysNonLinear<tREAL8> & aSys)
 {
     return 0.0;
     // returns residual
-/*
+
     //obs: 3 DSCF3297_L.jpg DSCF3298_L.jpg 0.3170 0.001
     double val = 0.3170;
     double sigma = 0.0001;
@@ -129,8 +118,8 @@ double cBA_Topo::AddEquation_Dist3d(cResolSysNonLinear<tREAL8> & aSys)
     double residual = equation->ValComp(0,0);
     StdOut() << "  topo resid: " << residual << std::endl;
 
-    return residual;*/
-}
+    return residual;
+}*/
 
 cCalculator<double>*  cBA_Topo::getEquation(eTopoObsType tot) const {
     auto eq = mTopoObsType2equation.find(tot);
@@ -145,12 +134,14 @@ cCalculator<double>*  cBA_Topo::getEquation(eTopoObsType tot) const {
 
 void cBA_Topo::AddTopoEquations(cResolSysNonLinear<tREAL8> & aSys)
 {
-    //AddEquation_Dist3d(aSys);
     for (auto &obsSet: mTopoData.allObsSets)
         for (size_t i=0;i<obsSet->nbObs();++i)
         {
             cTopoObs* obs = obsSet->getObs(i);
-            aSys.CalcAndAddObs(getEquation(obs->getType()), obs->getIndices(this), obs->getVals(), obs->getWeights());
+            auto equation = getEquation(obs->getType());
+            aSys.CalcAndAddObs(equation, obs->getIndices(this), obs->getVals(), obs->getWeights());
+            double residual = equation->ValComp(0,0);
+            StdOut() << "  topo resid: " << residual << std::endl;
         }
 }
 

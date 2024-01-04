@@ -26,6 +26,7 @@ public:
     std::vector<int> getParamIndices() const;
     size_t nbObs() const {return mObs.size();}
     cTopoObs* getObs(size_t i) {return mObs.at(i);}
+    std::vector<cTopoObs*> & getAllObs() {return mObs;}
     virtual std::string type2string() const = 0;
     bool addObs(eTopoObsType type, const std::vector<std::string> &pts, const std::vector<tREAL8> & vals,  const cResidualWeighterExplicit<tREAL8> & aWeights);
 protected:

@@ -26,8 +26,8 @@ public:
     //void FromFile(const std::string & aName);
     bool FromCompFile(const std::string & aName);
     void print();
-    void createEx1();
-    void createEx2();
+    //void createEx1();
+    //void createEx2();
     //cCalculator<double>* getEquation(eTopoObsType tot) const;
 private:
     cTopoData(cTopoData const&) = delete;
@@ -37,6 +37,7 @@ private:
     cBA_Topo* mBA_Topo;
     //std::vector<cTopoPoint*> allPts;
     std::vector<std::unique_ptr<cTopoObsSet>> allObsSets;
+    cTopoObsSet* mUniqueObsSetSimple; //< there is only one of them in any computation
     cSetInterUK_MultipeObj<double> *mSetIntervMultObj; ///< pointer to be able to delete it before allPts
     //cResolSysNonLinear<double>*  mSys;
     //std::map<eTopoObsType, cCalculator<double>*> mTopoObsType2equation;

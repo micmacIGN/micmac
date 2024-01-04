@@ -13,7 +13,11 @@ namespace MMVII
 cTopoObs::cTopoObs(cTopoObsSet* set, eTopoObsType type, const std::vector<std::string> &pts, const std::vector<tREAL8> & vals, const cResidualWeighterExplicit<tREAL8> &aWeights):
     mSet(set), mType(type), mPts(pts), mVals(vals), mWeights(aWeights)
 {
-    MMVII_INTERNAL_ASSERT_strong(mSet, "Obs: no set given")
+    if (!mSet)
+    {
+        MMVII_INTERNAL_ERROR("Obs: no set given")
+        return; //just to please the compiler
+    }
     switch (mType) {
     case eTopoObsType::eDist:
         MMVII_INTERNAL_ASSERT_strong(mSet->getType()==eTopoObsSetType::eSimple, "Obs: incorrect set type")
@@ -36,7 +40,7 @@ cTopoObs::cTopoObs(cTopoObsSet* set, eTopoObsType type, const std::vector<std::s
     default:
         MMVII_INTERNAL_ERROR("unknown obs set type")
     }
-    std::cout<<"DEBUG: create cTopoObs "<<toString();
+    std::cout<<"DEBUG: create cTopoObs "<<toString()<<"\n";
 
 }
 
@@ -75,7 +79,7 @@ std::vector<int> cTopoObs::getIndices(cBA_Topo *aBA_Topo) const
     case eTopoObsType::eDistParam:
     case eTopoObsType::eSubFrame:
         {
-        // 2 points
+            // 2 points
             std::string nameFrom = mPts[0];
             std::string nameTo = mPts[1];
             auto & [ptFromUK, ptFrom3d] = aBA_Topo->getPointWithUK(nameFrom);
@@ -105,7 +109,11 @@ std::vector<tREAL8> cTopoObs::getVals() const
     {
         //add rotations to measurments
         cTopoObsSetSubFrame* set = dynamic_cast<cTopoObsSetSubFrame*>(mSet);
-        if (!set) MMVII_INTERNAL_ERROR("error set type")
+        if (!set)
+        {
+            MMVII_INTERNAL_ERROR("error set type")
+            return {}; //just to please the compiler
+        }
         vals = set->getRot();
         vals.insert(std::end(vals), std::begin(mVals), std::end(mVals));
         break;
