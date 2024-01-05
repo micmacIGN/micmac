@@ -11,7 +11,6 @@ namespace MMVII
 class cMMVII_BundleAdj;
 class cPhotogrammetricProject;
 class cSensorCamPC;
-class cPt3dr_UK;
 
 typedef std::pair<cObjWithUnkowns<tREAL8>*, cPt3dr*> tTopoPtUK;
 

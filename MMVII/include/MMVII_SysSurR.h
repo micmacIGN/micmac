@@ -865,6 +865,7 @@ template <const int Dim>  class cPtxdr_UK :  public cObjWithUnkowns<tREAL8>,
       ~cPtxdr_UK();
       void PutUknowsInSetInterval() override;
       const tPt & Pt() const ;
+      tPt & Pt() ;
    private :
       cPtxdr_UK(const cPtxdr_UK&) = delete;
       tPt mPt;
