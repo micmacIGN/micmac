@@ -147,6 +147,7 @@ class cREAL8_RSNL
 	  int                  mNbVar;
 	  bool                 mInPhaseAddEq;      ///< check that dont modify val fixed after adding  equations
 	  std::vector<bool>    mVarIsFrozen;       ///< indicate for each var is it is frozen
+          int                  mNbIter;            ///< Number of iteration made
 };
 
 
@@ -180,6 +181,7 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
 	  /// destructor 
           ~cResolSysNonLinear();
 
+
           /// Accessor
           const tDVect  &    CurGlobSol() const;
 	  cREAL8_RSNL::tDVect    R_CurGlobSol() const override;  ///<  tREAL8 Equivalent
@@ -195,7 +197,7 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
           void SetCurSol(int aNumV,const Type&) ;
           void R_SetCurSol(int aNumV,const tREAL8&) override; ///< tREAL8 Equivalent
 
-          tLinearSysSR *  SysLinear() ;
+          tLinearSysSR *  SysLinear() ; ///< Accessor
 
           /// Solve solution,  update the current solution, Reset the least square system
           const tDVect  &    SolveUpdateReset(const Type & aLVM =0.0) ;
@@ -217,6 +219,8 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
           void   AddEqFixNewVal(const tObjWUk & anObj,const  Type * aVal,const  Type * aNewVal,size_t aNb,const Type& aWeight);
           void   AddEqFixNewVal(const tObjWUk & anObj,const  cPtxd<Type,3> &,const  cPtxd<Type,3> &,const Type& aWeight);
 
+
+          void AddNonLinearConstr(tCalc * aCalcVal,const tVectInd & aVInd,const tStdVect& aVObs,bool  OnlyIfFirst);
 
           /// Basic Add 1 equation , no bufferistion, no schur complement
           void   CalcAndAddObs(tCalc *,const tVectInd &,const tStdVect& aVObs,const tResidualW & = tResidualW());
@@ -259,6 +263,8 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
 
 	   int   GetNbObs() const;                    ///< get number of observations (last iteration if after reset, or current number if after AddObs)
 
+          void  AddConstr(const tSVect & aVect,const Type & aCste,bool OnlyIfFirstIter=true);
+          void SupressAllConstr();
      private :
           cResolSysNonLinear(const tRSNL & ) = delete;
 
@@ -270,8 +276,8 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
 
 	  void InitConstraint() override;
           /** Bases function of calculating derivatives, dont modify the system as is
-              to avoid in case  of schur complement */
-          void   CalcVal(tCalc *,std::vector<tIO_RSNL>&,const tStdVect & aVTmp,bool WithDer,const tResidualW & );
+              to avoid in case  of schur complement , if it is used for linearizeing constraint "ForConstr" the process is slightly diff*/
+          void   CalcVal(tCalc *,std::vector<tIO_RSNL>&,const tStdVect & aVTmp,bool WithDer,const tResidualW &,bool ForConstr );
 
           tDVect     mCurGlobSol;  ///< Curent solution
           tLinearSysSR*    mSysLinear;         ///< Sys to solve equations, equation are concerning the differences with current solution
@@ -282,6 +288,9 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
 
           /// handle the linear constraint : fix var, shared var, gauge ...
           cSetLinearConstraint<Type>* mLinearConstr;  
+
+          std::vector<Type>     mVCstrCstePart;    /// Cste part of linear constraint that dont have specific struct (i.e vs Froze/Share)
+          std::vector<tSVect>   mVCstrLinearPart;  /// Linerar Part of 
 };
 
 

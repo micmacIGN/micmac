@@ -14,6 +14,45 @@ using namespace NS_SymbolicDerivative;
 
 namespace MMVII
 {
+/**  Class used in Bench of non linear constraint, it returns the some of square of 8 unknosnw, it is used
+     in the 8 neighbors;  purely articicial ...
+    */
+
+class cFormulaSumSquares
+{
+  public :
+    cFormulaSumSquares(int aNb) :
+       mNb   (aNb)
+    {
+    }
+
+    std::vector<std::string> VNamesUnknowns()  const
+    { 
+         std::vector<std::string> aRes;
+         for (int aK=0 ; aK<mNb; aK++)
+             aRes.push_back("X"+ToStr(aK));
+         return aRes;
+    }
+    static const std::vector<std::string> VNamesObs()      { return {"SXX"}; }
+
+    std::string FormulaName() const { return "SumSquare_"+ToStr(mNb);}
+
+    template <typename tUk,typename tObs> 
+             std::vector<tUk> formula
+                  (
+                      const std::vector<tUk> & aVUk,
+                      const std::vector<tObs> & aVObs
+                  )  const
+    {
+	  auto aSum = aVObs.at(0);
+          for (int aK=0 ; aK<mNb ; aK++)
+              aSum = aSum - Square(aVUk.at(aK));
+          return { aSum};
+     }
+
+     int mNb;
+};
+
 
 /**  Class for generating code relative to 2D-distance conservation for triangalution simulation */
 
@@ -114,6 +153,10 @@ class cBaseNetCDPC
        int    mNbCoord;
 };
 
+/**   This class is used for the covoriance propagation itself, in  fact its a purely affine constraint as
+      the covariance has been formulated as sum of square linear 
+*/
+
 class cNetworConsDistProgCov : public  cBaseNetCDPC
 {
       public :
@@ -179,7 +222,15 @@ class cNetworConsDistProgCov : public  cBaseNetCDPC
       public :
 };
 
-/** XXXXXX ag*/
+/** This class is used to generate conservation of distance/ratio using unknown isometric/conformal
+    mapping.  Let be Pref(k) some ref points, PUk some unknown point and Phi somme (possibly unknown) mapping,
+    the equation is
+ 
+            Pref(k)  =  Phi (PUk(k))
+
+     PS : to see if it is necessary to have multiple points ? Same result could probably be obtained with
+     only one pair of point Ref/Uk ....
+*/
 
 class cNetWConsDistSetPts : public  cBaseNetCDPC
 {

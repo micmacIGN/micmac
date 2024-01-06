@@ -55,7 +55,7 @@ template<class Type> void  TplOneBenchSSRNL
      for (int aK=0 ; aK < THE_NB_ITER ; aK++)
      {
          double aWGauge = (aCpt%2) ? -1 : 100; // alternate "hard" constraint and soft, to test more ..
-         anEc = aBN.DoOneIterationCompensation(aWGauge,true);
+         anEc = aBN.DoOneIterationCompensation(aWGauge,true,true);
      }
      if (anEc>aPrec)
      {

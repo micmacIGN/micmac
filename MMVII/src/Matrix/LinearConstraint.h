@@ -7,6 +7,9 @@
 using namespace NS_SymbolicDerivative;
 using namespace MMVII;
 
+// for some time we maintain a possibility to go to the "old" fix var system
+#define WithNewLinearCstr true
+
 namespace MMVII
 {
 //  static bool DEBUG=false;
@@ -84,11 +87,9 @@ template <class Type>  class cOneLinearConstraint : public cMemCheck
        typedef typename tSV::tCplIV       tCplIV;
        typedef cInputOutputRSNL<Type>     tIO_RSNL;
 
-       /**  In Cstr we can fix the index of subst, if it value -1 let the system select the best , fixing can be usefull in case
-	* of equivalence
-	*/
         cOneLinearConstraint(const tSV&aLP,const Type& aCste,int aNum);
-        cOneLinearConstraint Dup() const;
+        ///  If aCurSol != 0  constraint is exprimed relatively to current sol
+        cOneLinearConstraint Dup(const tDV* aCurSol) const;
 
         // Subsract into "aToSub" so as to annulate the coeff with mISubst
         void SubstituteInOtherConstraint(cOneLinearConstraint<Type> & aToSub,cDSVec<Type>  & aBuf);
@@ -130,20 +131,29 @@ template <class Type>  class  cSetLinearConstraint : public cMemCheck
           typedef cDenseVect<Type>           tDV;
           typedef typename tSV::tCplIV       tCplIV;
           typedef cOneLinearConstraint<Type> t1Constr;
+          typedef cLinearOverCstrSys<Type>   tLinearSysSR;
 
 	  /// Cstr : allow the buffer for computatio,
           cSetLinearConstraint(int aNbVar);
 	  /// Transformate the set of constraint to allow a cascade os substitution
           void  Compile(bool ForBench);
-	  /// Add a new constraint (just debug)
-          void Add1Constr(const t1Constr &,const tDV *);
-
-	  void Reset();
+	  /// Add a new constraint 
+          void Add1Constr(const t1Constr &,const tDV * aCurSol);
+	  /// Add a new constraint 
+          void Add1Constr(const tSV&,const Type & aCste,const tDV * aCurSol);
+          ///  Add a constraint of type Fix Var to a solution
 	  void Add1ConstrFrozenVar(int aKVar,const Type & aVal,const tDV *);
 
+	  void Reset();
+
+          //  ============  These 3 method modify equation to take into account substition ===========
           void SubstituteInSparseLinearEquation(tSV & aA,Type &  aB) const;
           void SubstituteInDenseLinearEquation (tDV & aA,Type &  aB) const;
           void SubstituteInOutRSNL(tIO_RSNL& aIO) const;
+
+          /// This add the constraint to the system, required because all the subst-var having been elimitated 
+          void AddConstraint2Sys(tLinearSysSR &);
+
     private :
 	  /// Show all the detail
           void Show(const std::string & aMsg) const;

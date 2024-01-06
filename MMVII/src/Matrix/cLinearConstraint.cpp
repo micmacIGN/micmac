@@ -18,9 +18,15 @@ template <class Type> cSetLinearConstraint<Type>::cSetLinearConstraint(int aNbVa
 {
 }
 
-template <class Type> void cSetLinearConstraint<Type>::Add1Constr(const t1Constr & aConstr,const  tDV *)
+template <class Type> void cSetLinearConstraint<Type>::Add1Constr(const t1Constr & aConstr,const  tDV * aCurSol)
 {
-      mVCstrInit.push_back(aConstr.Dup());
+      mVCstrInit.push_back(aConstr.Dup(aCurSol));
+}
+
+template <class Type> void cSetLinearConstraint<Type>::Add1Constr(const tSV& aSV,const Type & aCste,const tDV * aCurSol)
+{
+   cOneLinearConstraint aCstr(aSV,aCste, mVCstrInit.size());
+   Add1Constr(aCstr,aCurSol);
 }
 
 
@@ -34,9 +40,7 @@ template <class Type> void cSetLinearConstraint<Type>::Add1ConstrFrozenVar(int a
 {
     cSparseVect<Type> aSV;
     aSV.AddIV(aKVar,1.0);
-    cOneLinearConstraint aCstr(aSV,aVal, mVCstrInit.size());
-
-    Add1Constr(aCstr,aCurSol);
+    Add1Constr(aSV,aVal,aCurSol);
 }
 
 
@@ -45,7 +49,7 @@ template <class Type> void cSetLinearConstraint<Type>::Compile(bool ForBench)
     // make a copy of initial cstr : use dup because shared pointer on mLP ....
     mVCstrReduced.clear();
     for (const auto & aCstr : mVCstrInit)
-        mVCstrReduced.push_back(aCstr.Dup());
+        mVCstrReduced.push_back(aCstr.Dup(nullptr));
 
     size_t aNbReduced = 0;
     while (aNbReduced != mVCstrInit.size())
@@ -136,6 +140,15 @@ template <class Type>  void cSetLinearConstraint<Type>::TestSameSpace()
     MMVII_INTERNAL_ASSERT_bench(aD<1e-5,"cSetLinearConstraint<Type>:: TestSameSpace");
 }
 
+template <class Type> void cSetLinearConstraint<Type>::AddConstraint2Sys(tLinearSysSR & aSys)
+{
+    // A priori identic to use init or reduced, simpler with init as there is no reconstruction
+    for (const auto & aCstr : mVCstrInit)
+    {
+        aSys.PublicAddObservation(1.0,aCstr.mLP,aCstr.mCste);
+    }
+}
+
 
 
 /* ************************************************************ */
@@ -200,10 +213,18 @@ template <class Type> cOneLinearConstraint<Type>::cOneLinearConstraint(const tSV
 {
 }
 
-template <class Type>  cOneLinearConstraint<Type> cOneLinearConstraint<Type>::Dup() const
+//  If aCUR SOL to exprimate the constraint
+//  0=   A . X -C  = A. (X-X0) + A .X0 -C   :  C -= A .X0
+template <class Type>  cOneLinearConstraint<Type> cOneLinearConstraint<Type>::Dup(const tDV * aCurSol) const
 {
     cOneLinearConstraint<Type> aRes = *this;
     aRes.mLP = mLP.Dup();
+
+    if (aCurSol)
+    {
+        for (const auto & aPair : aRes.mLP.IV())
+            aRes.mCste -=  aPair.mVal * (*aCurSol)(aPair.mInd);
+    }
 
     return aRes;
 }
@@ -539,11 +560,9 @@ cBenchLinearConstr::cBenchLinearConstr(int aNbVar,int aNbCstr) :
 
 void  BenchLinearConstr(cParamExeBench & aParam)
 {
-   int aMul = std::min(4,1+aParam.Level());
    //return;
    if (! aParam.NewBench("LinearConstr")) return;
 
-   StdOut()  << "BenchLinearConstrBenchLinearConstr\n";
    // std::vector<cPt2di>  aV{{2,3},{3,2}};
 
    for (int aK=0 ; aK<50 ; aK++)
@@ -553,6 +572,7 @@ void  BenchLinearConstr(cParamExeBench & aParam)
        cBenchLinearConstr(10,3);
        cBenchLinearConstr(20,5);
    }
+   int aMul = std::min(4,1+aParam.Level());
 
    int aNb = std::max(1,int(100.0/pow(aMul,4)) );
    for (int aK=0 ; aK<aNb ; aK++)

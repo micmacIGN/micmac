@@ -22,7 +22,8 @@ cREAL8_RSNL::~cREAL8_RSNL()
 cREAL8_RSNL::cREAL8_RSNL(int aNbVar) :
     mNbVar          (aNbVar),
     mInPhaseAddEq   (false),
-    mVarIsFrozen    (mNbVar,false)
+    mVarIsFrozen    (mNbVar,false),
+    mNbIter         (0)
 {
 }
 
@@ -72,6 +73,7 @@ void cREAL8_RSNL::SetPhaseEq()
 template <class Type>  void  cResolSysNonLinear<Type>::InitConstraint()
 {
     mLinearConstr->Reset();
+    //  Add the constraint specific to Frozen-Var
     for (int aKV=0 ; aKV<mNbVar ; aKV++)
     {
         if (mVarIsFrozen.at(aKV))
@@ -79,9 +81,26 @@ template <class Type>  void  cResolSysNonLinear<Type>::InitConstraint()
            mLinearConstr->Add1ConstrFrozenVar(aKV,mValueFrozenVar.at(aKV),&mCurGlobSol);
 	}
     }
+
+    // Add the general constraint 
+    for (size_t aKC=0 ; aKC<mVCstrCstePart.size() ; aKC++)
+    {
+        mLinearConstr->Add1Constr(mVCstrLinearPart.at(aKC),mVCstrCstePart.at(aKC),&mCurGlobSol);
+    }
     mLinearConstr->Compile(false);
 }
 
+template <class Type>  void   cResolSysNonLinear<Type>::AddConstr(const tSVect & aVect,const Type & aCste,bool OnlyIfFirstIter)
+{
+    if (OnlyIfFirstIter && (mNbIter!=0)) return;
+
+    mVCstrLinearPart.push_back(aVect.Dup());
+    mVCstrCstePart.push_back(aCste);
+}
+
+
+
+// template <class Type>  void  cResolSysNonLinear<Type>::I
 
       // =====    constructors / destructors ================
 
@@ -274,6 +293,9 @@ template <class Type> void   cResolSysNonLinear<Type>::AddEqFixNewVal(const tObj
 template <class Type> void  cResolSysNonLinear<Type>::ModifyFrozenVar (tIO_RSNL& aIO)
 {
           // CHANGE HERE
+#if (WithNewLinearCstr)
+    mLinearConstr->SubstituteInOutRSNL(aIO);
+#else
     for (size_t aKVar=0 ; aKVar<aIO.mGlobVInd.size() ; aKVar++)
     {
          int aIndGlob = aIO.mGlobVInd[aKVar];
@@ -289,6 +311,7 @@ template <class Type> void  cResolSysNonLinear<Type>::ModifyFrozenVar (tIO_RSNL&
 	      }
 	 }
     }
+#endif
 }
 
 template <class Type> void  cResolSysNonLinear<Type>::AddObservationLinear
@@ -302,6 +325,14 @@ template <class Type> void  cResolSysNonLinear<Type>::AddObservationLinear
      Type  aNewRHS    = aRHS;
      cSparseVect<Type> aNewCoeff;
 
+#if (WithNewLinearCstr)
+      for (const auto & aPair :aCoeff)
+      {
+          aNewRHS -=  mCurGlobSol(aPair.mInd) * aPair.mVal;
+          aNewCoeff.AddIV(aPair);
+      }
+      mLinearConstr->SubstituteInSparseLinearEquation(aNewCoeff,aNewRHS);
+#else
      for (const auto & aPair :aCoeff)
      {
           // CHANGE HERE
@@ -317,6 +348,7 @@ template <class Type> void  cResolSysNonLinear<Type>::AddObservationLinear
               aNewCoeff.AddIV(aPair);
           }
      }
+#endif
      currNbObs++;  ///  Check JMM
      mSysLinear->PublicAddObservation(aWeight,aNewCoeff,aNewRHS);
 }
@@ -332,6 +364,11 @@ template <class Type> void  cResolSysNonLinear<Type>::AddObservationLinear
      SetPhaseEq(); 
      Type  aNewRHS    = aRHS;
      cDenseVect<Type> aNewCoeff = aCoeff.Dup();
+#if (WithNewLinearCstr)
+     for (int aK=0 ; aK<mNbVar ; aK++)
+         aNewRHS -=  mCurGlobSol(aK) * aCoeff(aK);  // -A' X0'
+      mLinearConstr->SubstituteInDenseLinearEquation(aNewCoeff,aNewRHS);
+#else
 
      //   AX-B =  (A' X' + AiXi-B) = A' (X'-X0')  + A' X0' +AiXi -B
      //   B=> B -AiXi -A' X0'
@@ -348,6 +385,7 @@ template <class Type> void  cResolSysNonLinear<Type>::AddObservationLinear
               aNewRHS -=  mCurGlobSol(aK) * aCoeff(aK);  // -A' X0'
           }
      }
+#endif
      currNbObs++;  ///  Check JMM
      mSysLinear->PublicAddObservation(aWeight,aNewCoeff,aNewRHS);
 }
@@ -427,14 +465,16 @@ template <class Type> void   cResolSysNonLinear<Type>::CalcVal
 				  std::vector<tIO_RSNL>& aVIO,
 				  const tStdVect & aValTmpUk,
 				  bool WithDer,
-				  const tResidualW & aWeighter
+				  const tResidualW & aWeighter,
+                                  bool  ForConstraint
                               )
 {
       // This test is always true 4 now, which I(MPD)  was not sure
       //  The possibility of having several comes from potential paralellization
       //  MMVII_INTERNAL_ASSERT_tiny(aVIO.size()==1,"CalcValCalcVal");
      
-      SetPhaseEq(); 
+      if (!ForConstraint)
+          SetPhaseEq(); 
       MMVII_INTERNAL_ASSERT_tiny(aCalcVal->NbInBuf()==0,"Buff not empty");
 
       // Usefull only to test correcness of DoOneEval
@@ -496,8 +536,39 @@ template <class Type> void   cResolSysNonLinear<Type>::CalcVal
 	   }
            aIO.mWeights = aWeighter.WeightOfResidual(aIO.mVals);
 	   //  StdOut() << "HHHhUuHH  " << aIO.mVals  << " " << aIO.mWeights << std::endl;
-	   ModifyFrozenVar(aIO);
+           if (! ForConstraint)
+	      ModifyFrozenVar(aIO);
       }
+}
+
+template <class Type> void cResolSysNonLinear<Type>::AddNonLinearConstr
+                           (
+                                  tCalc * aCalcVal,
+			          const tVectInd & aVInd,
+				  const tStdVect& aVObs,
+                                  bool  OnlyIfFirst
+                           )
+{
+    std::vector<tIO_RSNL> aVIO(1,tIO_RSNL(aVInd,aVObs));
+    CalcVal(aCalcVal,aVIO,{},true,tResidualW(),true);
+
+    // Parse all the linearized equation
+    for (const auto & aIO : aVIO)
+    {
+	// check we dont use temporary value
+        MMVII_INTERNAL_ASSERT_tiny(aIO.mNbTmpUk==0,"Cannot use tmp uk w/o Schur complement");
+	// parse all values
+	for (size_t aKVal=0 ; aKVal<aIO.mVals.size() ; aKVal++)
+	{
+	    tSVect aSV;
+            const tStdVect & aVDer = aIO.mDers[aKVal];
+	    for (size_t aKUk=0 ; aKUk<aIO.mGlobVInd.size() ; aKUk++)
+            {
+                aSV.AddIV(aIO.mGlobVInd[aKUk],aVDer[aKUk]);
+	    }
+            AddConstr(aSV,-aIO.mVals[aKVal],OnlyIfFirst);
+	}
+    }
 }
 
 
@@ -510,7 +581,7 @@ template <class Type> void cResolSysNonLinear<Type>::CalcAndAddObs
                             )
 {
     std::vector<tIO_RSNL> aVIO(1,tIO_RSNL(aVInd,aVObs));
-    CalcVal(aCalcVal,aVIO,{},true,aWeigther);
+    CalcVal(aCalcVal,aVIO,{},true,aWeigther,false);
     AddObs(aVIO);
 }
 
@@ -578,7 +649,7 @@ template <class Type> void   cResolSysNonLinear<Type>::AddEq2Subst
 			     )
 {
     std::vector<tIO_RSNL> aVIO(1,tIO_RSNL(aVInd,aVObs));
-    CalcVal(aCalc,aVIO,aSetIO.ValTmpUk(),true,aWeighter);
+    CalcVal(aCalc,aVIO,aSetIO.ValTmpUk(),true,aWeighter,false);
 
     aSetIO.AddOneEq(aVIO.at(0));
 }
@@ -592,7 +663,7 @@ template <class Type> void   cResolSysNonLinear<Type>::R_AddEq2Subst
 {
     
     std::vector<tIO_RSNL> aVIO(1,tIO_RSNL(aVInd,VecConvert<Type,tREAL8>(aR_VObs)));
-    CalcVal(aCalc,aVIO,VecConvert<Type,tREAL8>(aSetIO.ValTmpUk()),true,cREAL8_RWAdapt<Type>(&aWeighter));
+    CalcVal(aCalc,aVIO,VecConvert<Type,tREAL8>(aSetIO.ValTmpUk()),true,cREAL8_RWAdapt<Type>(&aWeighter),false);
 
     cInputOutputRSNL<tREAL8>  aRIO (aVInd,aR_VObs);
     ConvertVWD(aRIO,aVIO.at(0));
@@ -634,7 +705,6 @@ template <> void cResolSysNonLinear<tREAL8>::R_AddObsWithTmpUK (const tR_Up::tSe
 
 template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUpdateReset(const Type & aLVM) 
 {
-//StdOut() <<  "KKKKKKKKKKKKKKKkkk "  << aLVM << "\n";
     if (mNbVar>currNbObs)
     {
            //StdOut()  << "currNbObscurrNbObs " << currNbObs  << " RRRRR=" << currNbObs - mNbVar << std::endl;
@@ -643,12 +713,20 @@ template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUp
     lastNbObs = currNbObs;
     mInPhaseAddEq = false;
     // for var frozen, they are not involved in any equation, we must fix their value other way
+
+#if (WithNewLinearCstr)
+    mLinearConstr->AddConstraint2Sys(*mSysLinear);
+#else
     for (int aK=0 ; aK<mNbVar ; aK++)
     {
         // CHANGE HERE
         if (mVarIsFrozen[aK])
            AddEqFixVar(aK,mValueFrozenVar[aK],1.0);
+    }
+#endif
 
+    for (int aK=0 ; aK<mNbVar ; aK++)
+    {
         if (aLVM>0)
         {
            AddEqFixVar(aK,CurSol(aK),mSysLinear->LVMW(aK)*aLVM);
@@ -659,6 +737,7 @@ template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUp
     mSysLinear->Reset();
     currNbObs = 0;
 
+    mNbIter++;
     return mCurGlobSol;
 }
 
