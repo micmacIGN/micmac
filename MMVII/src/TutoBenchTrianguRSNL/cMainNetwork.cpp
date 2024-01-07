@@ -300,7 +300,8 @@ template <class Type> void cMainNetwork<Type>::AddGaugeConstraint(Type aWeightFi
                      
                      // use for Non Linear constraint
                      std::vector<int> aVInd;
-                     Type             aSumSq = 0.0;
+                     Type             aSumSqRef = 0.0;
+                     Type             aSumSqCur = 0.0;
 
                      for (const auto & aDelta : AllocNeighbourhood<2>(2))  // Parse all 8 neighbors
                      {
@@ -315,16 +316,18 @@ template <class Type> void cMainNetwork<Type>::AddGaugeConstraint(Type aWeightFi
                                  aLC.AddIV(aPN.mNumX,aCoeff);
                                  aCste += aCoeff * aPN.mTheorPt.x();
                                  // Non linear constraint
-                                 aSumSq +=  Square(aPN.mTheorPt.x());
+                                 aSumSqRef +=  Square(aPN.mTheorPt.x());
+                                 aSumSqCur +=  Square(aPN.PCur().x());
                                  aVInd.push_back(aPN.mNumX);
                              }
                          }
                      }
-                     // we can do constraint only if we have the good number of unknowns
+                     // we can use generated code only if we have the good number of unknowns
                      if (aVInd.size()==8)
                      {
                         auto aCalc = EqSumSquare(8,true,1,true);
-                        mSys->AddNonLinearConstr(aCalc,aVInd,{aSumSq},true);
+                        mSys->AddNonLinearConstr(aCalc,aVInd,{aSumSqRef},true);
+                        //  StdOut() << "SssQdDif=" << aSumSqCur - aSumSqRef << "\n";
                      }
                      else
                         mSys->AddConstr(aLC,aCste);
@@ -338,7 +341,7 @@ template <class Type> void cMainNetwork<Type>::AddGaugeConstraint(Type aWeightFi
      }
      if (doMangleCstr)
      {
-         StdOut() << "doMangleCstrdoMangleCstr "  << mWithSchur << "\n";
+         // StdOut() << "doMangleCstrdoMangleCstr "  << mWithSchur << "\n";
      }
 }
 

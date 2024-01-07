@@ -126,12 +126,14 @@ void cMMVII_BundleAdj::AssertPhpAndPhaseAdd()
 
 void cMMVII_BundleAdj::InitIteration()
 {
+    CompileSharedIntrinsicParams(true);
     mPhaseAdd = false;
 
     InitItereGCP();
     mR8_Sys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqNormSparse,mSetIntervUK.GetVUnKnowns());
 
     mSys =  mR8_Sys;
+    CompileSharedIntrinsicParams(false);
 }
 
 
@@ -285,6 +287,9 @@ void  cMMVII_BundleAdj::AddCam(const std::string & aNameIm)
 const std::vector<cSensorImage *> &  cMMVII_BundleAdj::VSIm() const  {return mVSIm;}
 const std::vector<cSensorCamPC *> &  cMMVII_BundleAdj::VSCPC() const {return mVSCPC;}
 
+    /* ---------------------------------------- */
+    /*            Frozen/Shared                 */
+    /* ---------------------------------------- */
 
 void cMMVII_BundleAdj::SetParamFrozenCalib(const std::string & aPattern)
 {    
@@ -294,6 +299,106 @@ void cMMVII_BundleAdj::SetParamFrozenCalib(const std::string & aPattern)
 void cMMVII_BundleAdj::SetFrozenCenters(const std::string & aPattern)
 {    
     mPatFrozenCenter = aPattern;
+}
+
+void cMMVII_BundleAdj::SetSharedIntrinsicParams(const std::vector<std::string> & aVParams)
+{
+    mVPatShared = aVParams;
+}
+
+typedef std::tuple<int,std::string,tREAL8 *> tISRP;
+
+void cMMVII_BundleAdj::CompileSharedIntrinsicParams(bool ForAvg)
+{
+    MMVII_INTERNAL_ASSERT_tiny((mVPatShared.size()%2)==0,"Expected even size for shared intrinsic params");
+    bool  Show = ForAvg;
+
+    // Parse the pair Pattern Name Cam / Pattern Name Params
+    for (size_t aKPat=0 ; aKPat<mVPatShared.size() ; aKPat+=2)
+    {
+        std::map<std::string,std::vector<int>> aMapSharedIndexes; // store the shared index of a given param name
+        std::map<std::string,std::vector<std::string>> aMapNames; // store the sharing as name, for show
+        std::map<std::string,std::vector<tISRP>> aMapValues; // store the sharing of adress for averaging
+        // Parse the calib and select those which name match the pattern name cam
+        for (auto  aPtrCal : mVPCIC)
+        {
+            if (MatchRegex(aPtrCal->Name(),mVPatShared[aKPat]))
+            {
+                // Extract information on parameter macthing the pattern of params
+                cGetAdrInfoParam<tREAL8>  aGIP(mVPatShared[aKPat+1],*aPtrCal);  
+                for (size_t aKParam=0 ; aKParam<aGIP.VAdrs().size() ; aKParam++)
+                {
+                    tREAL8 * aAdr                 = aGIP.VAdrs().at(aKParam);
+                    const std::string & aNameP    = aGIP.VNames().at(aKParam);
+                    cObjWithUnkowns<tREAL8>* aObj = aGIP.VObjs().at(aKParam);
+
+                    size_t  aNum = aObj->IndOfVal(aAdr);
+                    aMapSharedIndexes[aNameP].push_back(aNum);
+                    aMapNames[aNameP].push_back(aPtrCal->Name());
+
+                    aMapValues[aNameP].push_back(tISRP(aNum,aPtrCal->Name(),aAdr));
+                }
+            }
+        }
+        if (Show)
+        {
+                StdOut()  << "=========== Shared params for" 
+                          << " PatName ={" << mVPatShared[aKPat] << "}" 
+                          << " PatCal={" << mVPatShared[aKPat+1] << "}"
+                          << " ============ " << std::endl;
+        }
+        for (const auto & [aNamePar,aVTuple] : aMapValues)
+        {
+            std::vector<int>  aVIndEqui;
+            tREAL8  aSum = 0.0;
+            for (const auto & [aNum,aNameCam,anAdr] : aVTuple)
+            {
+                aSum += *anAdr;
+                aVIndEqui.push_back(aNum);
+            }
+            aSum /= aVTuple.size();
+            if (Show)
+               StdOut()  <<  "   * "  << aNamePar  << " : " << aSum << std::endl;
+            if (ForAvg)
+            {
+                for (const auto & [aNum,aNameCam,anAdr] : aVTuple)
+                {
+                    //*anAdr = aSum;  => dont undertand why it apparently slow down the convergence ??
+                    StdOut()  <<  "      - "  << aNameCam <<  " : " << *anAdr << std::endl;
+                }
+            }
+            else
+            {
+               mSys->SetShared(aVIndEqui);
+            }
+        }
+/*
+        if (ForAvg)
+        {
+           if (Show)
+           {
+                StdOut()  << "=========== Shared params for" 
+                          << " PatName ={" << mVPatShared[aKPat] << "}" 
+                          << " PatCal={" << mVPatShared[aKPat+1] << "}"
+                          << " ============ " << std::endl;
+                for (const auto & [aNamePar,aVNameCam] : aMapNames)
+                {
+                      StdOut()  <<  "   * "  << aNamePar << std::endl;
+                      for (const auto &  aNameCam : aVNameCam )
+                          StdOut()  <<  "      - "  << aNameCam << std::endl;
+                }
+                StdOut()  << "==========================================================" << std::endl;
+           }
+        }
+        else
+        {
+             for (const auto & [aNamePar,aVIndexes] : aMapSharedIndexes)
+             {
+                 mSys->SetShared(aVIndexes);
+             }
+        }
+*/
+    }
 }
 
     /* ---------------------------------------- */

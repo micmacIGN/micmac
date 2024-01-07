@@ -138,16 +138,30 @@ class cREAL8_RSNL
 	  void  UnfrozeAll() ;                       ///< indicate it var must be frozen /unfrozen
 	  bool  VarIsFrozen(int aK) const;           ///< indicate it var must be frozen /unfrozen
 	  void  AssertNotInEquation() const;         ///< verify that we are notin equation step (to allow froze modification)
+          // To update with Shared
 	  int   CountFreeVariables() const;          ///< number of free variables
+
+          // ------------------ Handling shared unknowns --------------------
+          void   SetShared(const std::vector<int> &  aVUk);
+          void   SetUnShared(const std::vector<int> &  aVUk);
+          void   SetAllUnShared();
+
+          //  ===
 	protected :
+          static constexpr int  TheLabelFrozen  =-1;
+          static constexpr int  TheLabelNoEquiv =-2;
+
           void SetPhaseEq();
 	  /// Mut be defined in inherited class because maniupulate mLinearConstr which depend of type
 	  virtual void InitConstraint() = 0;
 
 	  int                  mNbVar;
-	  bool                 mInPhaseAddEq;      ///< check that dont modify val fixed after adding  equations
-	  std::vector<bool>    mVarIsFrozen;       ///< indicate for each var is it is frozen
-          int                  mNbIter;            ///< Number of iteration made
+	  bool                 mInPhaseAddEq;   ///< check that dont modify val fixed after adding  equations
+	  std::vector<bool>    mVarIsFrozen;    ///< indicate for each var is it is frozen
+          int                  mNbIter;         ///< Number of iteration made
+          // int                  mNbUnkown;
+          int                  mCurMaxEquiv;       ///< Used to label the 
+	  std::vector<int>     mEquivNum;       ///< Equivalence numerotation, used for shared unknowns
 };
 
 

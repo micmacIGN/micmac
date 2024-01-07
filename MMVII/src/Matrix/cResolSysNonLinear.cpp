@@ -23,7 +23,9 @@ cREAL8_RSNL::cREAL8_RSNL(int aNbVar) :
     mNbVar          (aNbVar),
     mInPhaseAddEq   (false),
     mVarIsFrozen    (mNbVar,false),
-    mNbIter         (0)
+    mNbIter         (0),
+    mCurMaxEquiv    (0),
+    mEquivNum       (aNbVar,TheLabelNoEquiv)
 {
 }
 
@@ -63,6 +65,27 @@ void cREAL8_RSNL::SetPhaseEq()
     mInPhaseAddEq = true;
 }
 
+void cREAL8_RSNL::SetShared(const std::vector<int> &  aVUk)
+{
+// StdOut() << "cREAL8_RSNL::SetShared " << mEquivNum.size() << " " << 
+     for (const auto & aIUK : aVUk)
+        mEquivNum.at(aIUK) = mCurMaxEquiv;
+     mCurMaxEquiv++;
+}
+
+void   cREAL8_RSNL::SetUnShared(const std::vector<int>  & aVUk)
+{
+     for (const auto & aIUK : aVUk)
+        mEquivNum.at(aIUK) = TheLabelNoEquiv;
+}
+
+void cREAL8_RSNL::SetAllUnShared()
+{
+     for (auto & anEq : mEquivNum)
+         anEq = TheLabelNoEquiv;
+     mCurMaxEquiv = 0;
+}
+
 
 /* ************************************************************ */
 /*                                                              */
@@ -80,6 +103,41 @@ template <class Type>  void  cResolSysNonLinear<Type>::InitConstraint()
 	{
            mLinearConstr->Add1ConstrFrozenVar(aKV,mValueFrozenVar.at(aKV),&mCurGlobSol);
 	}
+    }
+
+    // Add the constraint specific to shared unknowns
+    {
+         std::map<int,std::vector<int>> aMapEq;
+         for (int aKV=0 ; aKV<mNbVar ; aKV++)
+         {
+              if (mEquivNum.at(aKV)>=0)
+                 aMapEq[mEquivNum.at(aKV)].push_back(aKV);
+         }
+         // For X1,X2, ..., Xk shared, we add the constraint X1=X2, X1=X3, ... X1=Xk
+         // And fix  the value to average
+         for (const auto & [anEqui,aVInd] : aMapEq)
+         {
+             Type aSumV = 0 ;
+             for (size_t aKInd=0 ; aKInd<aVInd.size() ; aKInd++)
+             {
+                 aSumV += mCurGlobSol(aVInd.at(aKInd));
+                 if (aKInd)
+                 {
+                     cSparseVect<Type>  aLinC;
+                     aLinC.AddIV(aVInd.at(0),1.0);
+                     aLinC.AddIV(aVInd.at(aKInd),-1.0);
+                     mLinearConstr->Add1Constr(aLinC,0.0,&mCurGlobSol);
+                 }
+             }
+             // setting to the average is "better" at the first iteration,  after it's useless, but no harm ...
+             aSumV /= aVInd.size();
+/*   DONT UNDERSTAND WHY  !!!! But this does not work 
+             for (size_t aKInd=0 ; aKInd<aVInd.size() ; aKInd++)
+             {
+                 mCurGlobSol(aVInd.at(aKInd)) = aSumV;
+             }
+*/
+         }
     }
 
     // Add the general constraint 
