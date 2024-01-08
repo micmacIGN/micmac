@@ -1364,8 +1364,108 @@ What we call "soft" constraint is the method consiting to add
 the constraint as a penalization, with a certain weigthing $w$  in optimization  :
 
 \begin{equation}
-    F_w(X) = F(X) + w  \sum_k (L_k-c_x)^2
+    F_w(X) = F(X) + w  \sum_k (L_k-c_x)^2 \label{SoftConstraint}
 \end{equation}
+
+Soft constraints are just observations like others and dont require
+to add supplementary method. If what we want is hard constraints, an
+easy way could be to use equation~\ref{SoftConstraint} with a "very high"
+value for $w$.   Mathematically speaking, except pathological cases,
+generally when $w \rightarrow \infty$, the solution of ~\ref{SoftConstraint}
+will converge to the solution of the hard constraint.
+
+Also it can work, this cannot be a general method , because
+it is difficult, if not impossible to define generally what is a very high $w$.
+If it is not high enough, the solution will not be close enough to the hard
+constraint.  It it is too high, it can create numerical inacuracy.
+
+%  -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  -
+
+\subsubsection{Lagrangian method}
+
+Mention that it can be equivalent to solve the system with :
+
+\begin{equation}
+  \begin{pmatrix}
+   A & L \\
+   ^t L & 0 
+  \end{pmatrix}
+\end{equation}
+
+But the system being no longer definite-positive, the resolution is not obvious.
+
+%  -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  -
+
+\subsubsection{Substituion methods, case 1 constraint}
+
+The method used in MMVII is a substitution method. First, examine the case with $1$ variable, suppose :
+
+\begin{itemize}
+    \item we have a constraint $L \cdot X = c$;
+    \item with $L= (l_0,l_1 \dots)$ and $l_0 \neq 0$,  note $L'=(l_1,l_2, \dots)$ and $X'=(x_1,x_2\dots)$;
+\end{itemize}
+
+
+The constraint can be written :
+\begin{equation}
+    x_0 = \frac{c-L' \cdot X'}{l_0} \label{LSQ:SUBST}
+\end{equation}
+
+Now  each time we add a new observation we will substitute $x_0$ :
+
+\begin{itemize}
+      \item let note the observation  $O(X) = A \cdot X - C$
+      \item with $A= (a_0,a_1 \dots)  $  , note  $A' = (a_1,a_2 \dots) $
+       \item then   $O(x) = a_0 x_0 + A' X'-C= a_0\frac{c-L' \cdot X'}{l_0} + A'X' -C$
+\end{itemize}
+
+And finaly :
+
+\begin{equation}
+    O(x) = (A'- \frac{a_0}{l_0} L') X'  - (C -c\frac{a_0}{l_0})
+\end{equation}
+
+So by doing the substition for each new observation we obtain a system with $N-1$ variable,
+where $x_0$ has been eliminated, and without constraint. We can solve it, to find $x_1, x_2 \dots $,
+and at the end, use equation~\ref{LSQ:SUBST} to find $x_0$.
+
+
+%  -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  -
+
+\subsubsection{Substituion methods, case N constraint}
+
+We study the case with $2$ constraints, the generalization to $N$ constraint being obvious.
+Suppose we have two constraints $C_a$ and $C_b$ :
+
+\begin{itemize}
+    \item $C_a : L^a_0 x_0 +  L^a_1 x_1 \dots    = c^a$;
+    \item $C_b : L^b_0 x_0 +  L^b_1 x_1 \dots    = c^b$;
+\end{itemize}
+
+Once we have make a substition with $C_a$ , we  want to use $C_b$ to eliminate $x_1$,
+but for this we need to have $ L^b_0=0$, else it will "re inject" $x_0$.  How can
+have $L^b_0=0$ ?  We can see that for any $\lambda$ :
+
+\begin{equation}
+    C_a(X)=0  , C_b(X)=0   \Leftrightarrow  C_a(X)=0  , C_b(X)+\lambda C_a(X) =0
+\end{equation}
+
+So if set $C'_b = C_b - \frac{L^b_0}{L^a_0} C_b$, we can use now $C_a$ to eliminate $x_0$,
+then $C'_b$ to eliminate $x_1$. 
+
+The idea is to make a "pre-processing" of constraint to allow a substitution in cascade.
+If we have $3$ constraint $C_a,C_b,C_c$ , we subract $C_a$ in $C_b$ and $C_c$, to have $C_a,C'_b,C'_c$
+where $x_0$ is absent of $C'_b$ and $C'_c$. Then we substract  $C'_b$ to $C'_c$ to have new constraint 
+$C''_c$ without eliminate $x_0$ and $x_1$.  Substituting consecutively wth $C_a,C'_b,C''_c$, we can eliminate
+$x_0$, $x_1$ and $x_2$.
+
+This pre-processing of constraint is exactly the same than a gaussian elimination in linear resolution.
+It requires some precaution to be stable, practically we make some "pivoting" to select the biggest coefficient
+to eliminate.
+
+%---------------------------------------------
+
+\subsection{Using it in MMVII}
 
 
 
