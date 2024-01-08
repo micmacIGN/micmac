@@ -193,10 +193,12 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
         aImaFieldRes.ToJpgFileDeZoom(mPhProj.DirVisu() + "FieldRes-"+aNameIm+".tif",aDeZoom);
     }
 
+    auto aMesX = (aAvg2d.SW()>0.) ? ToStr(aAvg2d.Average().x()) : "XXX";
+    auto aMesY = (aAvg2d.SW()>0.) ? ToStr(aAvg2d.Average().y()) : "XXX";
     AddStdStatCSV
     (
-       mNameReportIm,aNameIm,aStat,mPropStat, 
-       {ToStr(aAvg2d.Average().x()),ToStr(aAvg2d.Average().y())}
+       mNameReportIm,aNameIm,aStat,mPropStat,
+       {aMesX, aMesY}
     );
 
 }
