@@ -1314,3 +1314,62 @@ the automatic derivation system.
 After \texttt{cTopoComp} object creation and filling (see \ref{subsec:topoBench}),
 the method \texttt{OneIteration()} is called to improve parameters estimation.
 
+%---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+
+\section{Handling constrained optimization}
+
+%---------------------------------------------
+
+\subsection{Theoreticall aspect}
+
+%  -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  -
+
+\subsubsection{Introduction}
+
+We consider the problem minimize $F(X)$ as in equation~\ref{EqNLOInit} under
+the $n$ constraint :
+
+\begin{equation}
+	C_1(X) =0, \; C_2(X)=0 \dots \;  C_n(X)=0
+\end{equation}
+
+In  equation~\ref{EqNLOInit} we consider that the current solution is
+close to optimal solution and the equation can be linearized.
+Similarly we consider that the current solution is close to the 
+optimum under constraint, and so that the constraint are almost satisfied.
+Consequently we consider that the constraint can be linearized 
+
+\begin{equation} 
+C_k(X) \approx L_1 \cdot X  - c_k
+\end{equation} 
+
+Then :
+
+\begin{equation} 
+\begin{split}
+  L_1 \cdot X = c_1 \\
+  L_2 \cdot X = c_2 \\
+    \dots \\
+  L_n \cdot X = c_n 
+\end{split}
+\end{equation}
+
+%  -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  -
+
+\subsubsection{"Hard" vs "Soft" constraint}
+
+What we call "soft" constraint is the method consiting to add
+the constraint as a penalization, with a certain weigthing $w$  in optimization  :
+
+\begin{equation}
+    F_w(X) = F(X) + w  \sum_k (L_k-c_x)^2
+\end{equation}
+
+
+
+
+
+
+
