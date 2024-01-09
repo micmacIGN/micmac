@@ -261,9 +261,9 @@ template <class Type> const typename cOneLinearConstraint<Type>::tCplIV * cOneLi
      const tCplIV  * aRes = aMax.IndexExtre();
 
      // Some check,if no pair is found, probably the system was degenerated
-     MMVII_INTERNAL_ASSERT_tiny(aRes!=nullptr,"cOneLinearConstraint<Type>::LinearMax probably bad formed cosntrained");
+     MMVII_INTERNAL_ASSERT_tiny(aRes!=nullptr,"cOneLinearConstraint<Type>::LinearMax probably bad formed constrained");
      // to see later if we replace by |aRes->mVal| > Epsilon ?
-     MMVII_INTERNAL_ASSERT_tiny(aRes->mVal!=0,"cOneLinearConstraint<Type>::LinearMax probably bad formed cosntrained");
+     MMVII_INTERNAL_ASSERT_tiny(aRes->mVal!=0,"cOneLinearConstraint<Type>::LinearMax probably bad formed constrained");
      return aRes ;
 }
 
