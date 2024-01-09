@@ -1394,7 +1394,7 @@ Mention that it can be equivalent to solve the system with :
 
 But the system being no longer definite-positive, the resolution require some attention.
 
-%  -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  -
+%  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  -
 
 \subsubsection{Substituion methods, case 1 constraint}
 
@@ -1466,6 +1466,85 @@ to eliminate.
 %---------------------------------------------
 
 \subsection{Using it in MMVII}
+
+%  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  -
+
+\subsubsection{Restrictions/Potential Errors}
+
+Also we think that this approach has globally benefit, its use require some precaution.  
+If not respcted, it can rise several error at the execution.
+
+Firt and most important, the method require that we know all the constraint between
+any observation can be added.  This is handled by MMVII using a boolean flag {\tt mInPhaseAddEq},
+this flag is set to {\tt false}  at the end of each iteration, and set to {\tt true} when
+the first observation is added.  Once this flag is set to {\tt true}, no adding of constraint
+will be allowed, see the method {\tt AssertNotInEquation}.
+
+Another kind of error that can occurs it to add too much constraint so that it become
+impossible to comply with all of them. Of course this is not due to the way it is handled,
+but intrinsic to the notion of hard constraints. If this happens, an error
+will be raised :
+
+\begin{itemize}
+     \item  see the method {\tt LinearMax} in class  {\tt cOneLinearConstraint};
+     \item  a error with  message like {\tt LinearMax probably bad formed constrained";} will be raised.
+\end{itemize}
+
+Note that this redundancy is detected from the structural point, not from the numerical point. For example
+if we add $3$ constraint involvling only the $2$ same unknown an error will be detected even if it is
+$3$ times the same constraint.  Conversely , for
+example if $x$ and $y$ are unknowns, if we add the $2$ constraint $x+y=1$ and $\lambda(x+y)=0$, it is
+probable that due to numerical unaccuracy, no contradiction will be detected.
+
+%  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  -
+
+\subsubsection{Handling "frozen" variables}
+
+The most current use of constraint is the case where we want to impose that a given unknown
+has a given value, it can be its current value or a new value. The constraint is simply
+$X_i=C$.   There is several methods to facilitate this manipulation in class {\tt cResolSysNonLinear} , for
+the frozing part we have:
+
+
+\begin{itemize}
+     \item   {\tt SetFrozenVarCurVal(int aK);} freeze the value of an unknown to its current value,
+              knowing the number of the unknown in the system;
+     \item   {\tt SetFrozenVarCurVal(tObjWUk \& anObj,const  Type \& aVal);} idem, but specify the object {\tt anObj}
+             and the adress of the value {\tt aVal};
+     \item  several variant frozing several unkown of an object (using points or adresses + a number) or all the
+            object;
+      \item  {\tt SetFrozenVar(int aK,const  Type \&);}  for forcing an unknown to have a given value 
+             (i.e. \emph{a priori} different from it current value).
+
+\end{itemize}
+
+For the un-frozing part we have some similar methods ;
+
+\begin{itemize}
+     \item   {\tt SetUnFrozen(\dots) ;} supress  the constraint of an unknown,  method knowing its number
+             and method with an object and one adress;
+      \item  {\tt UnfrozeAll()} supress all the constraint on freezing any variable.
+\end{itemize}
+
+%  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  -
+
+\subsubsection{Handling "shared" unknown}
+
+Sometime it occurs  that we have a set of unknwons, theoretically different, but that we want to force
+temporarilly to have the same value, what we call shared unknowns. A possible example, if we have several
+camera, we want each camera to have it own focal but want to have the same distorsion, and this distorsion
+has to be adjusted;  \emph{unknown sharing} will allow to do that without requiring to add specific model of camera.
+
+From the theoreticall point of view, it's quite easy to do with constrained optimization.  To force to
+have $n$ unknows to have a shared value : $X0=X1=X2\dots=X_{n-1}$, we simply add $n-1$ equations selecting
+an arbitrary reference variable $X_0$ : $X_0-X_1=0$, $X_0=X_2$, \dots , $X_0=X_{n-1}$.
+
+\begin{itemize}
+    \item   {\tt SetShared(const std::vector<int> \&  aVUk);}  given a vector of unknowns numbering,
+            make them a set of unkowns  shared;
+    \item   {\tt    void   SetUnShared(const std::vector<int> \&  aVUk);}
+\end{itemize}
+%   void   SetAllUnShared();
 
 
 
