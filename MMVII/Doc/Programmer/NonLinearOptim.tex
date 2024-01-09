@@ -526,6 +526,8 @@ from the user.  \UNCLEAR
 
 \subsection{Adding a basic equation}
 
+\label{AddBasicEq}
+
 The tag  {\tt  BASIC:CALC} in {\tt BenchResolSysNonLinear.cpp} contain an example of such use.
 The method for adding an observation is named {\tt CalcAndAddObs} :
 
@@ -1433,6 +1435,7 @@ and at the end, use equation~\ref{LSQ:SUBST} to find $x_0$.
 %  -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  -
 
 \subsubsection{Substituion methods, case N constraint}
+\label{CSTR:NSUBST}
 
 We study the case with $2$ constraints, the generalization to $N$ constraint being obvious.
 Suppose we have two constraints $C_a$ and $C_b$ :
@@ -1535,16 +1538,97 @@ temporarilly to have the same value, what we call shared unknowns. A possible ex
 camera, we want each camera to have it own focal but want to have the same distorsion, and this distorsion
 has to be adjusted;  \emph{unknown sharing} will allow to do that without requiring to add specific model of camera.
 
-From the theoreticall point of view, it's quite easy to do with constrained optimization.  To force to
-have $n$ unknows to have a shared value : $X0=X1=X2\dots=X_{n-1}$, we simply add $n-1$ equations selecting
+From the theoreticall point of view, it's quite easy to do that with constrained optimization.  For forcing
+$n$ unknows to have a shared value : $X0=X1=X2\dots=X_{n-1}$, we simply add $n-1$ equations selecting
 an arbitrary reference variable $X_0$ : $X_0-X_1=0$, $X_0=X_2$, \dots , $X_0=X_{n-1}$.
 
 \begin{itemize}
     \item   {\tt SetShared(const std::vector<int> \&  aVUk);}  given a vector of unknowns numbering,
             make them a set of unkowns  shared;
-    \item   {\tt    void   SetUnShared(const std::vector<int> \&  aVUk);}
+    \item   {\tt    void   SetUnShared(const std::vector<int> \&  aVUk);} make the invert operation;
+    \item   {\tt  void   SetAllUnShared();} 
 \end{itemize}
-%   void   SetAllUnShared();
+
+
+%  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  -
+
+\subsubsection{Handling general case, linear and non linear}
+
+Apart the special case   of unknown freezing or sharing, there are method for handing general constraints.
+For the linear case we have the method {\tt AddConstr} :
+
+\begin{itemize}
+    \item {\tt AddConstr(const tSVect \& V,const Type \& C,bool OnlyIfFirstIter=true);}
+    \item  {\tt V} is the linear part , {\tt C} is the constant, it correspond to the equation $ V \cdot X = C$ ;
+    \item  the parameter {\tt  OnlyIfFirstIter} indicate that the constraint must be added only if we are at the
+           first iteration of the non linear system.
+\end{itemize}
+
+For non linear constraint we have the method {\tt AddNonLinearConstr}.  It's very similar to {\tt CalcAndAddObs}
+(see \ref{AddBasicEq}), it takes a calculator corresponding to a funcion $F$ to compute the value and its derivatives and a linerized
+version of the constraint $F(X)=0$  :
+
+\begin{itemize}
+    \item {\tt  void AddNonLinearConstr(tCalc * aCalcVal,const tVectInd \& aVInd,const tStdVect\& aVObs,bool  OnlyIfFirst=true);}
+
+    \item  {\tt aCalcVal,aVInd, aVObs} play the same role than  in {\tt CalcAndAddObs};
+
+    \item  the parameter {\tt  OnlyIfFirstIter} play the same role than in {\tt AddConstr}. 
+\end{itemize}
+
+The method {\tt SupressAllConstr()}, supress all the constraint 
+added by {\tt AddConstr}  or {\tt AddNonLinearConstr}.
+
+%  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  -
+
+\subsubsection{Example in bench}
+
+In the network bench the method {\tt AddGaugeConstraint} give examples of using 
+the constraint to fix the arbitrary rotation that cannot be fixed by distance conservation.
+It also serve of unitary test of correctnes.  The "natural" way, already described is to fix
+$3$ coordinates $X_{0,0},Y_{0,0},X_{1,0}$ with soft of hard constraints (using  {\tt AddEqFixVar} or  {\tt SetFrozenVar}).
+
+The other testing are completely artificial and activated with the flag {\tt doMangleCstr},
+this test is done using constraint involving the neighboorhoud of a point.
+Let $X_k$ be the unknowns of the neighbouring points, and $R_k$  be the 
+ground truth value of the $X_k$.
+
+For testing the linear constraint, with {\tt AddConstr} we generate a random weighting $W_k$
+and we add the linear constraint :
+
+\begin{equation}
+    \sum_k W_k  X_k = \sum_k  W_k  R_k  
+\end{equation}
+
+For the non linear constraint, we use the following equation :
+
+\begin{equation}
+    \sum_k  X_k^2 = \sum_k   R_k^2
+\end{equation}
+
+%---------------------------------------------
+
+\subsection{Implementation details}
+
+%  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  -
+
+\subsubsection{Classes presentation }
+
+The code relative is located in the files {\tt Matrix/LinearConstraint.h}
+and  {\tt Matrix/cLinearConstraint.cpp}. The class involved are :
+
+\begin{itemize}
+    \item  {\tt cOneLinearConstraint}  for representing a single constraint;
+    \item  {\tt cSetLinearConstraint}  for representing a set of constraint  : initial value and value after
+           pre-processing described in~\ref{CSTR:NSUBST};
+    \item  {\tt cDSVec}   helper class allowing easy manipulation of sparse vector;
+    \item  {\tt cBenchLinearConstr}   class for doing some unitary test on {\tt cSetLinearConstraint}.
+\end{itemize}
+
+%  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  -
+
+\subsubsection{Class {\tt cDSVec} }
+
 
 
 

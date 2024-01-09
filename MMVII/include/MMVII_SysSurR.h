@@ -234,7 +234,7 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
           void   AddEqFixNewVal(const tObjWUk & anObj,const  cPtxd<Type,3> &,const  cPtxd<Type,3> &,const Type& aWeight);
 
 
-          void AddNonLinearConstr(tCalc * aCalcVal,const tVectInd & aVInd,const tStdVect& aVObs,bool  OnlyIfFirst);
+          void AddNonLinearConstr(tCalc * aCalcVal,const tVectInd & aVInd,const tStdVect& aVObs,bool  OnlyIfFirst=true);
 
           /// Basic Add 1 equation , no bufferistion, no schur complement
           void   CalcAndAddObs(tCalc *,const tVectInd &,const tStdVect& aVObs,const tResidualW & = tResidualW());
