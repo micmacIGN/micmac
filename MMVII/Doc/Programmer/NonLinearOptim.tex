@@ -1496,7 +1496,7 @@ will be raised :
 Note that this redundancy is detected from the structural point, not from the numerical point. For example
 if we add $3$ constraint involvling only the $2$ same unknown an error will be detected even if it is
 $3$ times the same constraint.  Conversely , for
-example if $x$ and $y$ are unknowns, if we add the $2$ constraint $x+y=1$ and $\lambda(x+y)=0$, it is
+example if $x$ and $y$ are unknowns, if we add the $2$ constraint $x+y=1$ and $\frac{x}{3}+ \frac{y}{3}=0$, it is
 probable that due to numerical unaccuracy, no contradiction will be detected.
 
 %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  -
@@ -1612,7 +1612,7 @@ For the non linear constraint, we use the following equation :
 
 %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  -
 
-\subsubsection{Classes presentation }
+\subsubsection{Global presentation }
 
 The code relative is located in the files {\tt Matrix/LinearConstraint.h}
 and  {\tt Matrix/cLinearConstraint.cpp}. The class involved are :
@@ -1628,6 +1628,36 @@ and  {\tt Matrix/cLinearConstraint.cpp}. The class involved are :
 %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  -
 
 \subsubsection{Class {\tt cDSVec} }
+
+By itself the method of subsitution is relatively simple. But there is some complexity added 
+for efficient implementation :
+
+\begin{itemize}
+    \item  in many context where non linear optimization is used, including photogrammetry,  each observation
+           imply few (says $\approx 10-50$)  among many (say $\approx 500-100000$);
+
+    \item  for efficient representation we use sparse vector for constraint and observation, 
+           a sparse vector beging a collection of pair index/value;
+
+     \item let name $m$  the number of pair of sparse vector and $N$ the number of unknown;
+
+    \item  many operation on sparse vector, like substitution described in~\ref{CSTR:NSUBST}, require some
+           precaution if we want that the cost to be in $\mathcal{O}(m)$  rather than $\mathcal{O}(N)$.
+\end{itemize}
+
+
+This here where  {\tt cDSVec}  can help, it's a class for dense representaion of sparse vector. Typically a  {\tt cDSVec}  :
+
+\begin{itemize}
+    \item  contains a dense real vector $V$ (initialy full of $0$) , a list of used index $L$ (initially empty), a dense boolean
+           $B$ (initially full of false) vector indicating if the index is used
+    \item  each time an element is added-supress on the {\tt cDSVec} at index $i$ , the dense vector is updated 
+           at $V[i]$ and if $B[i]$ is false, $B$ and $L$ are also updated;
+    \item  a dense vector can be quickly reset to $0$ with the use of $L$.
+\end{itemize}
+
+Typically, as the allocation of a dense vector can take some time (in  $\mathcal{O}(N)$) the idea is to allocate
+a dense vector in class {\tt cSetLinearConstraint} and to reuse it many time, typically it's a buffer.
 
 
 
