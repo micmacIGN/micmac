@@ -91,10 +91,13 @@ template <class Type>  class cOneLinearConstraint : public cMemCheck
         ///  If aCurSol != 0  constraint is exprimed relatively to current sol
         cOneLinearConstraint Dup(const tDV* aCurSol) const;
 
-        // Subsract into "aToSub" so as to annulate the coeff with mISubst
+        /// Substitute into "aToSub" so as to annulate the coeff with mISubst
         void SubstituteInOtherConstraint(cOneLinearConstraint<Type> & aToSub,cDSVec<Type>  & aBuf);
+        /// Substitute into a the dense constraint AX=B 
         void SubstituteInDenseLinearEquation (tDV & aA,Type &  aB) const;
+        /// Substitute into a the sparse constraint AX=B 
         void SubstituteInSparseLinearEquation(tSV & aA,Type &  aB,cDSVec<Type>  & aBuf) const;
+        /// Substitute into the result of functor (contains Func+Derivates)
         void SubstituteInOutRSNL(tIO_RSNL& aIO,cDSVec<Type>  & aBuf) const;
 
 	///  Extract pair with maximal amplitude (in abs)
@@ -145,14 +148,15 @@ template <class Type>  class  cSetLinearConstraint : public cMemCheck
 	  void Add1ConstrFrozenVar(int aKVar,const Type & aVal,const tDV *);
 
 	  void Reset();
+	  
+          /// This add the constraint to the system , thi allow to determinate the value of subsituted variables
+          void AddConstraint2Sys(tLinearSysSR &);
 
           //  ============  These 3 method modify equation to take into account substition ===========
           void SubstituteInSparseLinearEquation(tSV & aA,Type &  aB) const;
           void SubstituteInDenseLinearEquation (tDV & aA,Type &  aB) const;
           void SubstituteInOutRSNL(tIO_RSNL& aIO) const;
 
-          /// This add the constraint to the system, required because all the subst-var having been elimitated 
-          void AddConstraint2Sys(tLinearSysSR &);
 
     private :
 	  /// Show all the detail

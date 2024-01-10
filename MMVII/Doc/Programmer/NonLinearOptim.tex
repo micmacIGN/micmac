@@ -1330,7 +1330,7 @@ the method \texttt{OneIteration()} is called to improve parameters estimation.
 
 \subsubsection{Introduction}
 
-We consider the problem minimize $F(X)$ as in equation~\ref{EqNLOInit} under
+We consider the problem of minimizing $F(X)$ as in equation~\ref{EqNLOInit} under
 the $n$ constraint :
 
 \begin{equation}
@@ -1340,14 +1340,14 @@ the $n$ constraint :
 In  equation~\ref{EqNLOInit} we consider that the current solution is
 close to optimal solution and the equation can be linearized.
 Similarly we consider that the current solution is close to the 
-optimum under constraint, and so that the constraint are almost satisfied.
-Consequently we consider that the constraint can be linearized 
+optimum under constraint, and consequently that the constraints are almost satisfied.
+We consider then that the constraint can be linearized :
 
 \begin{equation} 
 C_k(X) \approx L_1 \cdot X  - c_k
 \end{equation} 
 
-Then :
+So we can write :
 
 \begin{equation} 
 \begin{split}
@@ -1366,18 +1366,18 @@ What we call "soft" constraint is the method consiting to add
 the constraint as a penalization, with a certain weigthing $w$  in optimization  :
 
 \begin{equation}
-    F_w(X) = F(X) + w  \sum_k (L_k-c_x)^2 \label{SoftConstraint}
+    F_w(X) = F(X) + w  \sum_k (L_k-c_k)^2 \label{SoftConstraint}
 \end{equation}
 
 Soft constraints are just observations like others and dont require
-to add supplementary method. If what we want is hard constraints, an
+to add any supplementary method. If what we want is hard constraints, an
 easy way could be to use equation~\ref{SoftConstraint} with a "very high"
 value for $w$.   Mathematically speaking, except pathological cases,
 generally when $w \rightarrow \infty$, the solution of ~\ref{SoftConstraint}
 will converge to the solution of the hard constraint.
 
-Also it can work, this cannot be a general method , because
-it is difficult, if not impossible to define generally what is a very high $w$.
+Also it can work, this cannot be a general method , because generally
+it is difficult, if not impossible to define a \emph{"good very high $w$"}.
 If it is not high enough, the solution will not be close enough to the hard
 constraint.  It it is too high, it can create numerical inacuracy.
 
@@ -1385,7 +1385,7 @@ constraint.  It it is too high, it can create numerical inacuracy.
 
 \subsubsection{Lagrangian method}
 
-Mention that it can be equivalent to solve the system with :
+To detail later : mention that it can be equivalent to solve the system with :
 
 \begin{equation}
   \begin{pmatrix}
@@ -1394,17 +1394,18 @@ Mention that it can be equivalent to solve the system with :
   \end{pmatrix}
 \end{equation}
 
-But the system being no longer definite-positive, the resolution require some attention.
+But the system being no longer definite-positive, the resolution can be tricky.
 
 %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  -
 
-\subsubsection{Substituion methods, case 1 constraint}
+\subsubsection{Substitution methods, case $1$ constraint}
+\label{CSTR:SUBST}
 
-The method used in MMVII is a substitution method. First, examine the case with $1$ variable, suppose :
+The method used in MMVII is a substitution method. First, let examine the case with $1$ variable, suppose :
 
 \begin{itemize}
     \item we have a constraint $L \cdot X = c$;
-    \item with $L= (l_0,l_1 \dots)$ and $l_0 \neq 0$,  note $L'=(l_1,l_2, \dots)$ and $X'=(x_1,x_2\dots)$;
+    \item noting $L= (l_0,l_1 \dots)$ and suposing $l_0 \neq 0$,  note $L'=(l_1,l_2, \dots)$ and $X'=(x_1,x_2\dots)$;
 \end{itemize}
 
 
@@ -1416,28 +1417,28 @@ The constraint can be written :
 Now  each time we add a new observation we will substitute $x_0$ :
 
 \begin{itemize}
-      \item let note the observation  $O(X) = A \cdot X - C$
+      \item let note the observation  $Obs(X) = A \cdot X - C$
       \item with $A= (a_0,a_1 \dots)  $  , note  $A' = (a_1,a_2 \dots) $
-       \item then   $O(x) = a_0 x_0 + A' X'-C= a_0\frac{c-L' \cdot X'}{l_0} + A'X' -C$
+       \item then   $Obs(x) = a_0 x_0 + A' X'-C= a_0\frac{c-L' \cdot X'}{l_0} + A'X' -C$
 \end{itemize}
 
 And finaly :
 
 \begin{equation}
-    O(x) = (A'- \frac{a_0}{l_0} L') X'  - (C -c\frac{a_0}{l_0})
+    Obs(x) = (A'- \frac{a_0}{l_0} L') X'  - (C -c\frac{a_0}{l_0})
 \end{equation}
 
-So by doing the substition for each new observation we obtain a system with $N-1$ variable,
+So by doing the substitution for each observation we obtain a system with $N-1$ variables,
 where $x_0$ has been eliminated, and without constraint. We can solve it, to find $x_1, x_2 \dots $,
 and at the end, use equation~\ref{LSQ:SUBST} to find $x_0$.
 
 
 %  -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  -
 
-\subsubsection{Substituion methods, case N constraint}
+\subsubsection{Substitution methods, case N constraints.}
 \label{CSTR:NSUBST}
 
-We study the case with $2$ constraints, the generalization to $N$ constraint being obvious.
+We study the case with $2-3$ constraints, the generalization to $N$ constraints being straightforward.
 Suppose we have two constraints $C_a$ and $C_b$ :
 
 \begin{itemize}
@@ -1445,21 +1446,22 @@ Suppose we have two constraints $C_a$ and $C_b$ :
     \item $C_b : L^b_0 x_0 +  L^b_1 x_1 \dots    = c^b$;
 \end{itemize}
 
-Once we have make a substition with $C_a$ , we  want to use $C_b$ to eliminate $x_1$,
-but for this we need to have $ L^b_0=0$, else it will "re inject" $x_0$.  How can
-have $L^b_0=0$ ?  We can see that for any $\lambda$ :
+For each observation, once we have make a substition with $C_a$ to eliminate $x_0$,
+ we  want to use $C_b$ to eliminate $x_1$.
+But for this we need to have $ L^b_0=0$, else it will "re inject" $x_0$.  To
+force $L^b_0=0$, we remark  that for any $\lambda$ :
 
 \begin{equation}
     C_a(X)=0  , C_b(X)=0   \Leftrightarrow  C_a(X)=0  , C_b(X)+\lambda C_a(X) =0
 \end{equation}
 
-So if set $C'_b = C_b - \frac{L^b_0}{L^a_0} C_b$, we can use now $C_a$ to eliminate $x_0$,
-then $C'_b$ to eliminate $x_1$. 
+So if we set $C'_b = C_b - \frac{L^b_0}{L^a_0} C_b$, we can now : use $C_a$ to eliminate $x_0$,
+then use $C'_b$ to eliminate $x_1$. 
 
-The idea is to make a "pre-processing" of constraint to allow a substitution in cascade.
-If we have $3$ constraint $C_a,C_b,C_c$ , we subract $C_a$ in $C_b$ and $C_c$, to have $C_a,C'_b,C'_c$
-where $x_0$ is absent of $C'_b$ and $C'_c$. Then we substract  $C'_b$ to $C'_c$ to have new constraint 
-$C''_c$ without eliminate $x_0$ and $x_1$.  Substituting consecutively wth $C_a,C'_b,C''_c$, we can eliminate
+The idea is to make a "pre-processing" of constraints to allow a substitution in cascade.
+If we have $3$ constraints $C_a,C_b,C_c$ , we subract $C_a$ in $C_b$ and $C_c$, to have $C_a,C'_b,C'_c$
+where $x_0$ is absent of $C'_b$ and $C'_c$. Then we substract  $C'_b$ to $C'_c$ to have a new constraint 
+$C''_c$ where  $x_0$ and $x_1$ are eliminated.  For each observation, by substituting consecutively $C_a,C'_b,C''_c$, we can eliminate
 $x_0$, $x_1$ and $x_2$.
 
 This pre-processing of constraint is exactly the same than a gaussian elimination in linear resolution.
@@ -1470,20 +1472,22 @@ to eliminate.
 
 \subsection{Using it in MMVII}
 
+\label{Cstr:Use:MMVII}
+
 %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  -
 
 \subsubsection{Restrictions/Potential Errors}
 
 Also we think that this approach has globally benefit, its use require some precaution.  
-If not respcted, it can rise several error at the execution.
+If not respected, it can rise several error at execution of the programm.
 
-Firt and most important, the method require that we know all the constraint between
-any observation can be added.  This is handled by MMVII using a boolean flag {\tt mInPhaseAddEq},
+Firt and most important, the method require that we know all the constraints between
+before any observation can be added.  This is handled by {\tt MMVII} using a boolean flag {\tt mInPhaseAddEq},
 this flag is set to {\tt false}  at the end of each iteration, and set to {\tt true} when
 the first observation is added.  Once this flag is set to {\tt true}, no adding of constraint
-will be allowed, see the method {\tt AssertNotInEquation}.
+will be allowed (see the method {\tt AssertNotInEquation}).
 
-Another kind of error that can occurs it to add too much constraint so that it become
+Another kind of error that can occurs is to add too much constraint so that it become
 impossible to comply with all of them. Of course this is not due to the way it is handled,
 but intrinsic to the notion of hard constraints. If this happens, an error
 will be raised :
@@ -1494,9 +1498,9 @@ will be raised :
 \end{itemize}
 
 Note that this redundancy is detected from the structural point, not from the numerical point. For example
-if we add $3$ constraint involvling only the $2$ same unknown an error will be detected even if it is
+if we add $3$ constraint involving only the $2$ same unknown an error will be detected even if it is
 $3$ times the same constraint.  Conversely , for
-example if $x$ and $y$ are unknowns, if we add the $2$ constraint $x+y=1$ and $\frac{x}{3}+ \frac{y}{3}=0$, it is
+example if $x$ and $y$ are unknowns, if we add the $2$ constraint $x+5y=1$ and $\frac{x}{3}+ \frac{5y}{3}=0$, it is
 probable that due to numerical unaccuracy, no contradiction will be detected.
 
 %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  -
@@ -1512,11 +1516,11 @@ the frozing part we have:
 \begin{itemize}
      \item   {\tt SetFrozenVarCurVal(int aK);} freeze the value of an unknown to its current value,
               knowing the number of the unknown in the system;
-     \item   {\tt SetFrozenVarCurVal(tObjWUk \& anObj,const  Type \& aVal);} idem, but specify the object {\tt anObj}
-             and the adress of the value {\tt aVal};
+     \item   {\tt SetFrozenVarCurVal(tObjWUk \& anObj,const  Type \& aVal)}, idem, but specify the object {\tt anObj}
+	     and the adress of the value {\tt aVal} that must be \emph{"inside"} the object;
      \item  several variant frozing several unkown of an object (using points or adresses + a number) or all the
             object;
-      \item  {\tt SetFrozenVar(int aK,const  Type \&);}  for forcing an unknown to have a given value 
+      \item  {\tt SetFrozenVar(int aK,const  Type \&)},  for forcing an unknown to have a given value 
              (i.e. \emph{a priori} different from it current value).
 
 \end{itemize}
@@ -1524,8 +1528,8 @@ the frozing part we have:
 For the un-frozing part we have some similar methods ;
 
 \begin{itemize}
-     \item   {\tt SetUnFrozen(\dots) ;} supress  the constraint of an unknown,  method knowing its number
-             and method with an object and one adress;
+	\item   {\tt SetUnFrozen(\dots) ;} supress  the constraint of an unknown (idem, with method knowing its number
+		and method with an object and one adress);
       \item  {\tt UnfrozeAll()} supress all the constraint on freezing any variable.
 \end{itemize}
 
@@ -1614,6 +1618,11 @@ For the non linear constraint, we use the following equation :
 
 \subsubsection{Global presentation }
 
+This part is for the programmer that will need to maintain the core system.
+For the programmer that "only" want to use it in optimisation in {\tt MMVII}
+the interaction with {\tt cResolSysNonLinear}, described 
+in \ref{Cstr:Use:MMVII}, is sufficient.
+
 The code relative is located in the files {\tt Matrix/LinearConstraint.h}
 and  {\tt Matrix/cLinearConstraint.cpp}. The class involved are :
 
@@ -1660,7 +1669,49 @@ Typically, as the allocation of a dense vector can take some time (in  $\mathcal
 a dense vector in class {\tt cSetLinearConstraint} and to reuse it many time, typically it's a buffer.
 
 
+%  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  -
 
+\subsubsection{Class {\tt cOneLinearConstraint} }
+
+
+The class {\tt cOneLinearConstraint} is used to represent one linear constraint (!! \dots  :-;) .
+It contains a sparse vector {\tt mLP}$=V$ and a constant {\tt mCste}$)C$, at its creation it
+represent directly the constraint  $V \cdot X = C$.
+
+One it has been "reduced" (i.e. the substitution described in  \ref{CSTR:SUBST} has been applied),
+the {\tt mISubst}$=i$ contain the number of the unknown to substitute, and {\tt mLP}$=V'$ no longer the
+pair containing $I$, the constraint is then $V' \cdot X + X_i = C$.  The boolean {\tt mReduced}
+indicate if the constraint was reduced.
+
+%  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  -
+
+\subsubsection{Class {\tt cSetLinearConstraint} }
+
+The class {\tt cSetLinearConstraint} is the  main class, i.e the only class the
+"rest of the word" needs to interact with. It contains essentially the following data :
+
+\begin{itemize}
+    \item  a copy of the initial version  of constraint;
+    \item  a copy of reduced version ;
+    \item  a bufffer of type {\tt cDSVec} to accelerate the computation;
+\end{itemize}
+
+A typical sequence of use will be :
+
+
+\begin{itemize}
+    \item   create the object, indicating the number of unknown (to allocate the buffer);
+    \item   add a number of $M$ constraints (using {\tt Add1Constr} or {\tt Add1ConstrFrozenVar});
+    \item   "compile" the object , this is apply processing of~\ref{CSTR:NSUBST} to create the
+	    reduced constraint in {\tt mVCstrReduced};
+    \item   each time an observation is added, use one of the $3$ following methods to eliminate the $M$ variables 
+	    selected in {\tt Compile} :
+	    \begin{itemize}
+                 \item {\tt SubstituteInSparseLinearEquation}; 
+                 \item {\tt SubstituteInDenseLinearEquation} 
+                 \item {\tt SubstituteInOutRSNL}
+	    \end{itemize}
+\end{itemize}
 
 
 
