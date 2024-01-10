@@ -163,6 +163,9 @@ NS_SymbolicDerivative::cCalculator<double> * EqDist3DParam(bool WithDerive,int a
 /// let pk=(xk,yk,zk), R=(r00..r22)  Residual :  R(p2-p2) - {dx,dy,dz}
 NS_SymbolicDerivative::cCalculator<double> * EqTopoSubFrame(bool WithDerive,int aSzBuf);
 
+/// Sum of square of unknown, to test non linear constraints
+NS_SymbolicDerivative::cCalculator<double> * EqSumSquare(int aNb,bool WithDerive,int aSzBuf,bool ReUse);
+
 
 
            // .............   Equation implying 2D distance conservation .............

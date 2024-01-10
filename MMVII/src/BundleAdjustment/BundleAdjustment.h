@@ -133,6 +133,8 @@ class cMMVII_BundleAdj
 	  void SetParamFrozenCalib(const std::string & aPattern);
 	  void SetViscosity(const tREAL8& aViscTr,const tREAL8& aViscAngle);
 	  void SetFrozenCenters(const std::string & aPattern);
+          void SetSharedIntrinsicParams(const std::vector<std::string> &);
+           
 
 	  void AddPoseViscosity();
 	  void AddConstrainteRefPose();
@@ -159,6 +161,8 @@ class cMMVII_BundleAdj
           ///  One It for 1 pack of GCP (4 now 1 pack allowed, but this may change)
           void OneItere_OnePackGCP(const cSetMesImGCP *);
 
+          void CompileSharedIntrinsicParams(bool ForAvg);
+
 
           //============== Data =============================
           cPhotogrammetricProject * mPhProj;
@@ -180,6 +184,8 @@ class cMMVII_BundleAdj
 
 	  std::string  mPatParamFrozenCalib;  /// Pattern for name of paramater of internal calibration
 	  std::string  mPatFrozenCenter;      /// Pattern for name of pose with frozen centers
+
+          std::vector<std::string>  mVPatShared;
 
           // ===================  Information to use ==================
 	     

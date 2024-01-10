@@ -72,6 +72,35 @@ template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::Diag(const cDenseVe
     return aRes;
 }
 
+template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::FromLines(const std::vector<tDV> & aVV)
+{
+    cDenseMatrix<Type>  aRes(aVV.at(0).Sz(),aVV.size());
+    for (int aY=0 ; aY<int(aVV.size()) ; aY++)
+       aRes.WriteLine(aY,aVV.at(aY));
+
+    return aRes;
+}
+
+//tDM SubMatrix(const cPt2di & aSz) const
+
+template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::SubMatrix(const cPt2di & aP0,const cPt2di & aP1) const
+{
+    cPt2di aSz = aP1 -aP0;
+    cDenseMatrix<Type>   aRes(aSz.x(),aSz.y());
+
+    for (const auto & aPix : aRes.DIm())
+        aRes.SetElem(aPix.x(),aPix.y(),GetElem(aPix+aP0));
+
+    return aRes;
+}
+
+template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::SubMatrix(const cPt2di & aSz) const
+{
+    return SubMatrix(cPt2di(0,0),aSz);
+}
+
+
+
 template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::ClosestOrthog() const
 {
     this->CheckSquare(*this);
@@ -91,15 +120,15 @@ template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::ClosestOrthog() co
     return aSVD.MatU() * cDenseMatrix<Type>::Diag(aVP) * aSVD.MatV().Transpose();
 }
 
-template <class Type> Type  cDenseMatrix<Type>::L2Dist(const cDenseMatrix<Type> & aV) const
+template <class Type> Type  cDenseMatrix<Type>::L2Dist(const cDenseMatrix<Type> & aV,bool isAvg) const
 {
-   return DIm().L2Dist(aV.DIm());
+   return DIm().L2Dist(aV.DIm(),isAvg);
 }
 
 
-template <class Type> Type  cDenseMatrix<Type>::SqL2Dist(const cDenseMatrix<Type> & aV) const
+template <class Type> Type  cDenseMatrix<Type>::SqL2Dist(const cDenseMatrix<Type> & aV,bool isAvg) const
 {
-   return DIm().SqL2Dist(aV.DIm());
+   return DIm().SqL2Dist(aV.DIm(),isAvg);
 }
 
 
@@ -232,6 +261,15 @@ template<class Type> cDenseMatrix<Type>
     cResulSVDDecomp<Type>  aSVDD = RandomSquareRankDefSVD(aSz,aSzK);
     return aSVDD.OriMatr();
 }
+
+template<class Type> cDenseMatrix<Type> cDenseMatrix<Type>::RandomOrthogMatrix(const int aSz)
+{
+    tDM  aMat(aSz,eModeInitImage::eMIA_RandCenter);
+    aMat.SelfSymetrize();
+    cResulSymEigenValue<Type>   aSE = aMat.SymEigenValue();
+    return aSE.EigenVectors();
+}
+
 
 
 template<class Type> cDenseVect<Type> cDenseMatrix<Type>::Kernel(Type * aVp) const
@@ -446,6 +484,10 @@ template <class Type> void cDenseMatrix<Type>::Weighted_Add_tAA(Type aWeight,con
         void  Weighted_Add_tAA(const tDV & aColLine,bool OnlySup=true) override;
 */
 
+template <class Type> cDenseVect<Type>   cDenseMatrix<Type>::Random1LineCombination() const
+{
+     return (cDenseMatrix<Type>(Sz().y(),1,eModeInitImage::eMIA_RandCenter) * (*this)).ReadLine(0);
+}
 
 template <class Type>  void  cDenseMatrix<Type>::Weighted_Add_tAA(Type aWeight,const tSpV & aSparseV,bool OnlySup)
 {  
@@ -555,6 +597,8 @@ template <class Type> void cUnOptDenseMatrix<Type>::Resize(const cPt2di & aSz)
      static_cast<cRect2 &>(*this) = cRect2(aSz);
      DIm().Resize(aSz);
 }
+
+
 
 /* ===================================================== */
 /* =====              INSTANTIATION                ===== */

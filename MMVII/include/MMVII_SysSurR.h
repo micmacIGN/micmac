@@ -21,6 +21,8 @@ template <class Type> class cResidualWeighter;
 // template <class Type> class cObjOfMultipleObjUk;
 template <class Type> class cObjWithUnkowns;
 template <class Type> class cSetInterUK_MultipeObj;
+template <class Type>  class  cSetLinearConstraint; // defined in "src/Matrix"
+
 
 /**  Class for weighting residuals : compute the vector of weight from a 
      vector of residual; default return {1.0,1.0,...}
@@ -53,6 +55,18 @@ template <class Type> class cResidualWeighterExplicit: public cResidualWeighter<
             tStdVect mSigmas;
             tStdVect mWeights;
 };
+
+
+template <class Type> class cREAL8_RWAdapt : public cResidualWeighter<Type>
+{
+       public :
+            typedef std::vector<Type>     tStdVect;
+            cREAL8_RWAdapt(const cResidualWeighter<tREAL8> * aRW) ;
+            tStdVect WeightOfResidual(const tStdVect & aVIn) const override;
+       private :
+            const cResidualWeighter<tREAL8>* mRW;
+};
+
 
 /// Index to use in vector of index indicating a variable to substituate
 static constexpr int RSL_INDEX_SUBST_TMP = -1;
@@ -124,12 +138,30 @@ class cREAL8_RSNL
 	  void  UnfrozeAll() ;                       ///< indicate it var must be frozen /unfrozen
 	  bool  VarIsFrozen(int aK) const;           ///< indicate it var must be frozen /unfrozen
 	  void  AssertNotInEquation() const;         ///< verify that we are notin equation step (to allow froze modification)
+          // To update with Shared
 	  int   CountFreeVariables() const;          ///< number of free variables
+
+          // ------------------ Handling shared unknowns --------------------
+          void   SetShared(const std::vector<int> &  aVUk);
+          void   SetUnShared(const std::vector<int> &  aVUk);
+          void   SetAllUnShared();
+
+          //  ===
 	protected :
+          static constexpr int  TheLabelFrozen  =-1;
+          static constexpr int  TheLabelNoEquiv =-2;
+
+          void SetPhaseEq();
+	  /// Mut be defined in inherited class because maniupulate mLinearConstr which depend of type
+	  virtual void InitConstraint() = 0;
 
 	  int                  mNbVar;
-	  bool                 mInPhaseAddEq;      ///< check that dont modify val fixed after adding  equations
-	  std::vector<bool>    mVarIsFrozen;       ///< indicate for each var is it is frozen
+	  bool                 mInPhaseAddEq;   ///< check that dont modify val fixed after adding  equations
+	  std::vector<bool>    mVarIsFrozen;    ///< indicate for each var is it is frozen
+          int                  mNbIter;         ///< Number of iteration made
+          // int                  mNbUnkown;
+          int                  mCurMaxEquiv;       ///< Used to label the 
+	  std::vector<int>     mEquivNum;       ///< Equivalence numerotation, used for shared unknowns
 };
 
 
@@ -163,6 +195,7 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
 	  /// destructor 
           ~cResolSysNonLinear();
 
+
           /// Accessor
           const tDVect  &    CurGlobSol() const;
 	  cREAL8_RSNL::tDVect    R_CurGlobSol() const override;  ///<  tREAL8 Equivalent
@@ -178,7 +211,7 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
           void SetCurSol(int aNumV,const Type&) ;
           void R_SetCurSol(int aNumV,const tREAL8&) override; ///< tREAL8 Equivalent
 
-          tLinearSysSR *  SysLinear() ;
+          tLinearSysSR *  SysLinear() ; ///< Accessor
 
           /// Solve solution,  update the current solution, Reset the least square system
           const tDVect  &    SolveUpdateReset(const Type & aLVM =0.0) ;
@@ -200,6 +233,8 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
           void   AddEqFixNewVal(const tObjWUk & anObj,const  Type * aVal,const  Type * aNewVal,size_t aNb,const Type& aWeight);
           void   AddEqFixNewVal(const tObjWUk & anObj,const  cPtxd<Type,3> &,const  cPtxd<Type,3> &,const Type& aWeight);
 
+
+          void AddNonLinearConstr(tCalc * aCalcVal,const tVectInd & aVInd,const tStdVect& aVObs,bool  OnlyIfFirst=true);
 
           /// Basic Add 1 equation , no bufferistion, no schur complement
           void   CalcAndAddObs(tCalc *,const tVectInd &,const tStdVect& aVObs,const tResidualW & = tResidualW());
@@ -242,6 +277,8 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
 
 	   int   GetNbObs() const;                    ///< get number of observations (last iteration if after reset, or current number if after AddObs)
 
+          void  AddConstr(const tSVect & aVect,const Type & aCste,bool OnlyIfFirstIter=true);
+          void SupressAllConstr();
      private :
           cResolSysNonLinear(const tRSNL & ) = delete;
 
@@ -251,9 +288,10 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
           /// Add observations as computed by CalcVal
           void   AddObs(const std::vector<tIO_RSNL>&);
 
+	  void InitConstraint() override;
           /** Bases function of calculating derivatives, dont modify the system as is
-              to avoid in case  of schur complement */
-          void   CalcVal(tCalc *,std::vector<tIO_RSNL>&,const tStdVect & aVTmp,bool WithDer,const tResidualW & );
+              to avoid in case  of schur complement , if it is used for linearizeing constraint "ForConstr" the process is slightly diff*/
+          void   CalcVal(tCalc *,std::vector<tIO_RSNL>&,const tStdVect & aVTmp,bool WithDer,const tResidualW &,bool ForConstr );
 
           tDVect     mCurGlobSol;  ///< Curent solution
           tLinearSysSR*    mSysLinear;         ///< Sys to solve equations, equation are concerning the differences with current solution
@@ -261,6 +299,12 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
 	  std::vector<Type>    mValueFrozenVar;    ///< indicate for each var the possible value where it is frozen
 	  int lastNbObs;                           ///< number of observations of last solving
 	  int currNbObs;                           ///< number of observations currently added
+
+          /// handle the linear constraint : fix var, shared var, gauge ...
+          cSetLinearConstraint<Type>* mLinearConstr;  
+
+          std::vector<Type>     mVCstrCstePart;    /// Cste part of linear constraint that dont have specific struct (i.e vs Froze/Share)
+          std::vector<tSVect>   mVCstrLinearPart;  /// Linerar Part of 
 };
 
 
@@ -292,6 +336,7 @@ template <class Type> class cInputOutputRSNL
           std::vector<tStdVect>   mDers;     ///< derivate of fctr
 	  size_t                  mNbTmpUk;
 
+          // use a s converter from tREAL8, "Fake" is used to separate from copy construtcor when Type == tREAL8
 	  cInputOutputRSNL(bool Fake,const cInputOutputRSNL<tREAL8> &);
      private :
 	  // cInputOutputRSNL(const cInputOutputRSNL<Type> &) = delete;
@@ -800,6 +845,9 @@ template <class Type> class cObjWithUnkowns //  : public cObjOfMultipleObjUk<Typ
           int   mIndUk0;
           int   mIndUk1;
 };
+
+template <class T1,class T2> void ConvertVWD(cInputOutputRSNL<T1> & aIO1 , const cInputOutputRSNL<T2> & aIO2);
+
 
 };
 

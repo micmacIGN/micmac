@@ -39,12 +39,11 @@ class cAppliBundlAdj : public cMMVII_Appli
         std::vector<std::string>  mParamRefOri;
 
 	int                       mNbIter;
-
-
 	std::string               mPatParamFrozCalib;
 	std::string               mPatFrosenCenters;
 	std::vector<tREAL8>       mViscPose;
         tREAL8                    mLVM;  // Levenberk Markard
+        std::vector<std::string>  mVSharedIP;  // Vector for shared intrinsic param
 };
 
 cAppliBundlAdj::cAppliBundlAdj(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -94,7 +93,8 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mLVM,"LVM","Levenberg–Marquardt parameter (to have better conditionning of least squares)",{eTA2007::HDV})
       << AOpt2007(mBRSigma,"BRW","Bloc Rigid Weighting [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})  // RIGIDBLOC
       << AOpt2007(mBRSigma_Rat,"BRW_Rat","Rattachment fo Bloc Rigid Weighting [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})  // RIGIDBLOC
-      << AOpt2007(mParamRefOri,"RefOri","Reference orientation [Ori,SimgaTr,SigmaRot?,PatApply?]",{{eTA2007::ISizeV,"[2,4]"}})  // RIGIDBLOC
+      << AOpt2007(mParamRefOri,"RefOri","Reference orientation [Ori,SimgaTr,SigmaRot?,PatApply?]",{{eTA2007::ISizeV,"[2,4]"}})  
+      << AOpt2007(mVSharedIP,"SharedIP","Shared intrinc parmaters [Pat1Cam,Pat1Par,Pat2Cam...] ",{{eTA2007::ISizeV,"[2,20]"}})    // ]]
     ;
 }
 
@@ -107,6 +107,7 @@ int cAppliBundlAdj::Exe()
     mPhProj.DPRigBloc().SetDirInIfNoInit(mDataDir); //  RIGIDBLOC
 
     mPhProj.FinishInit();
+
 
     if (IsInit(&mParamRefOri))
          mBA.AddReferencePoses(mParamRefOri);
@@ -129,6 +130,11 @@ int cAppliBundlAdj::Exe()
     if (IsInit(&mViscPose))
     {
         mBA.SetViscosity(mViscPose.at(0),mViscPose.at(1));
+    }
+
+    if (IsInit(&mVSharedIP))
+    {
+        mBA.SetSharedIntrinsicParams(mVSharedIP);
     }
 	   
 

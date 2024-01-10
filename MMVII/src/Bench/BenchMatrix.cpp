@@ -587,8 +587,6 @@ template <class Type> void BenchSysSur(cLinearOverCstrSys<Type>& aSys,bool Exact
          for (int aK=0 ; aK<aNbVar ; aK++)
          {
              Type aDif = std::abs( aLVal[aK] - aSol.DotProduct(aLVec[aK]));
-             /* StdOut() << "ddDddDDDD " << aDif << " " << E2Str(tElemNumTrait<Type>::TyNum()) 
-                   << " Eps: " << std::numeric_limits<Type>::epsilon() << " " <<  aDTest << "\n"; */
              MMVII_INTERNAL_ASSERT_bench(aDif<aDTest,"Bench Op Im");
              // StdOut() << "ScaAal " <<  aLVal[aK] - aSol.DotProduct(aLVec[aK]) << std::endl;
          }
@@ -700,17 +698,16 @@ template <class Type,class TypeSys> void TplBenchLsq()
 
 	 cDenseVect<Type> aRandSol(aNbVar,eModeInitImage::eMIA_RandCenter);
 	 // use to test NonLinear in mode AddObservationLinear
-	 cResolSysNonLinear<Type> aSysLin(eModeSSR::eSSR_LsqDense,aRandSol);
+	 cResolSysNonLinear<Type> aSysNonLin(eModeSSR::eSSR_LsqDense,aRandSol);
 
          // juste make several time the test , becaude chek also reseting
 	 for (int aNbTest=0 ; aNbTest<3 ; aNbTest++)
 	 {
-
               std::vector< cSparseVect<Type> > aVSV;
 	      for (int aK=0 ; aK<= 3*aNbEq ; aK++)
 	      {
                   // sparse vector with density K/aNbEq
-                  cSparseVect<Type> aVCoeff = cSparseVect<Type>::RanGenerate(aNbVar,double(aK)/aNbEq);
+                  cSparseVect<Type> aVCoeff = cSparseVect<Type>::RanGenerate(aNbVar,double(aK+1)/aNbEq);
                   aVSV.push_back(aVCoeff);
                   Type  aCste =  RandUnif_C();
                   Type  aW    =   0.5 + RandUnif_0_1();
@@ -718,9 +715,9 @@ template <class Type,class TypeSys> void TplBenchLsq()
 		      aSys->PublicAddObservation(aW,aVCoeff,aCste);
 		  // Add sparse or dense
 		  if (aK%2)  
-		      aSysLin.AddObservationLinear(aW,aVCoeff,aCste);
+		      aSysNonLin.AddObservationLinear(aW,aVCoeff,aCste);
 		  else
-		      aSysLin.AddObservationLinear(aW,cDenseVect<Type>(aNbVar,aVCoeff),aCste);
+		      aSysNonLin.AddObservationLinear(aW,cDenseVect<Type>(aVCoeff,aNbVar),aCste);
 	      }
 
               static int aCpt = 0; aCpt++;
@@ -781,7 +778,7 @@ template <class Type,class TypeSys> void TplBenchLsq()
                   }
 
 	      }
-	      cDenseVect<Type> aSolLin = aSysLin.SolveUpdateReset() - aVSol[0];
+	      cDenseVect<Type> aSolLin = aSysNonLin.SolveUpdateReset() - aVSol[0];
 	      MMVII_INTERNAL_ASSERT_bench(aSolLin.L2Norm()<1e-5,"Cmp Least Square");
 
 	      for (int aKSys=0 ; aKSys<int(aVSys.size()) ;  aKSys++)
@@ -993,9 +990,92 @@ template <class Type,const int DimX,const int DimY> void BenchMatPt()
      // std::cout << "DLLLLCC " << aDL << " " << aDC << "\n";
 }
 
+template <class Type> void  BenchProj()
+{
+
+
+    for (int aK=0 ; aK<100 ; aK++)
+    {
+         int aDimTot  = 2 + (aK%10);
+         int aDimProj = std::min(aDimTot-1,1+(aK%3));
+
+         //  --- [0]  Generate "ground truth"  two complemantary matri   aMatProj & aMatCompl, orthognal to each other
+         //    MatProj being a non orthognal 
+         cDenseMatrix<Type>  aMatOrth = cDenseMatrix<Type>::RandomOrthogMatrix(aDimTot);  // Generate N Orhog vector
+         // Generate a non orthog base of [0,DimProj] and a vector inside
+         cDenseMatrix<Type>  aMatProj = aMatOrth.SubMatrix(cPt2di(aDimTot,aDimProj));     // Extract a orthog base of proj space
+         // Make a base non orthog but no degenerate
+         aMatProj =   cDenseMatrix<Type>::RandomSquareRegMatrix(cPt2di(aDimProj,aDimProj),false,0.1,0.1) * aMatProj;  
+         std::vector<cDenseVect<Type>> aBase = aMatProj.MakeLines();
+
+         // Generate a orthog matrix of complementary space
+         cDenseMatrix<Type>  aMatCompl = aMatOrth.SubMatrix(cPt2di(0,aDimProj),cPt2di(aDimTot,aDimTot));     // Extract a orthog base of compl space
+
+         // -----------  [1]   Test Projection --------------------------------------------
+         {
+             cDenseVect<Type> aV =   aMatProj.Random1LineCombination();
+             MMVII_INTERNAL_ASSERT_bench(aV.DistToSubspace(aBase)<1e-5,"Dist Proj");
+
+             cDenseVect<Type> aVCompl = aMatCompl.Random1LineCombination();
+
+             cDenseVect<Type> aV2Proj = aV+ aVCompl;
+             MMVII_INTERNAL_ASSERT_bench(aV.L2Dist(aV2Proj.ProjOnSubspace(aBase))<1e-5,"ProjOnSubspace");
+         }
+         //  ---------- [2]  Test Gram-Schmidt ----------------------
+         {
+              std::vector<cDenseVect<Type>>  aGS = cDenseVect<Type>::GramSchmidtOrthogonalization(aBase);
+
+              // test that all vector are orthogonal to each other
+              for (size_t aK1 = 0 ; aK1<aGS.size() ; aK1++)
+              {
+                  for (size_t aK2 = aK1+1 ; aK2<aGS.size() ; aK2++)
+                  {
+                       tREAL8 aDP = aGS.at(aK1).DotProduct(aGS.at(aK2));
+                       //  StdOut() << "DOOOOOP= " << aDP << " " << aGS.at(aK1) << "\n";
+                       MMVII_INTERNAL_ASSERT_bench(std::abs(aDP)<1e-5,"Gram-Schmidt orthogonalization");
+                  }
+              }
+              // Test that all growing subspace are equals,
+              for (size_t aK = 0 ; aK<aGS.size() ; aK++)
+              {
+                   std::vector<cDenseVect<Type>> aSubBase(aBase.begin(),aBase.begin()+aK +1);
+                   tREAL8 aD1 = aGS.at(aK).DistToSubspace(aSubBase);
+
+                   std::vector<cDenseVect<Type>> aSubGS(aGS.begin(),aGS.begin()+aK +1);
+                   tREAL8 aD2 = aBase.at(aK).DistToSubspace(aSubGS);
+                   MMVII_INTERNAL_ASSERT_bench(aD1+aD2<1e-5,"Gram-Schmidt subspace");
+              }
+         }
+         {
+             //   Test the vector added are orthonormal
+             std::vector<cDenseVect<Type>> aBaseCompl =   cDenseVect<Type>::BaseComplem(aBase,false);
+             for (size_t aK1 = 0 ; aK1<aBaseCompl.size() ; aK1++)
+             {
+                  MMVII_INTERNAL_ASSERT_bench(std::abs(1-aBaseCompl.at(aK1).L2Norm())<1e-5,"Base compl : not normal");
+                  for (size_t aK2 = aK1+1 ; aK2<aBaseCompl.size() ; aK2++)
+                  {
+                       tREAL8 aDP = aBaseCompl.at(aK1).DotProduct(aBaseCompl.at(aK2));
+                       MMVII_INTERNAL_ASSERT_bench(std::abs(aDP)<1e-5,"Base compl : not orthog");
+                  }
+              }
+             //   Test the vector added are orthogonal to initial
+             for (size_t aK1 = 0 ; aK1<aBaseCompl.size() ; aK1++)
+                  for (size_t aK2 = 0 ; aK2<aBase.size() ; aK2++)
+                  {
+                       tREAL8 aDP = aBaseCompl.at(aK1).DotProduct(aBase.at(aK2));
+                       MMVII_INTERNAL_ASSERT_bench(std::abs(aDP)<1e-5,"Base compl : not orthog");
+                  }
+
+         }
+
+    }
+}
+
 void BenchDenseMatrix0(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("Matrix0")) return;
+
+    BenchProj<tREAL8>();
 
     Bench_EigenDecompos(aParam);
 
@@ -1037,8 +1117,8 @@ void BenchDenseMatrix0(cParamExeBench & aParam)
     cDenseVect<double> aV1(2);
     aV0(0) = 10; aV0(1) = 20;
     aV1(0) = 13; aV1(1) = 24;
-    MMVII_INTERNAL_ASSERT_bench(std::abs(aV0.L1Dist(aV1)-3.5)<1e-5,"Bench Matrixes");
-    MMVII_INTERNAL_ASSERT_bench(std::abs(aV0.L2Dist(aV1)-5.0/sqrt(2))<1e-5,"Bench Matrixes");
+    MMVII_INTERNAL_ASSERT_bench(std::abs(aV0.L1Dist(aV1,true)-3.5)<1e-5,"Bench Matrixes");
+    MMVII_INTERNAL_ASSERT_bench(std::abs(aV0.L2Dist(aV1,true)-5.0/sqrt(2))<1e-5,"Bench Matrixes");
    
 
 
@@ -1076,7 +1156,6 @@ void BenchDenseMatrix0(cParamExeBench & aParam)
         int aNb = std::min(60,20+aParam.Level()*5);
         for (int aK=1 ; aK<aNb ; aK++)
         {
-// StdOut() << "KKKKKK " << aK << std::endl;
            TplBenchDenseMatr<tREAL4>(aK,aK);
            TplBenchDenseMatr<tREAL8>(aK,aK);
         }
