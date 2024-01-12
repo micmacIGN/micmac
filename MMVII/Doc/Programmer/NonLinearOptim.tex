@@ -1498,10 +1498,14 @@ will be raised:
 \end{itemize}
 
 Note that this redundancy is detected from the structural point, not from the numerical point. For example
-if we add $3$ constraints involving only the $2$ same unknowns an error will be detected even if it is
-$3$ times the same constraint.  Conversely, for
-example if $x$ and $y$ are unknown, if we add the $2$ constraint $x+5y=1$ and $\frac{x}{3}+ \frac{5y}{3}=0$, it is
-probable that due to numerical unaccuracy, no contradiction will be detected.
+if we add $3$ constraints involving only the $2$ same unknowns an error will be detected; even if it is
+$3$ times the same constraint (numerically it can be satisfied because if it's $3$ time the same, it is in
+fact a constraint $1$ constraint, but "structurally" \emph{too many constraint for unknowns} will be detected).
+
+
+Conversely, for example if $x$ and $y$ are unknown, if we add the $2$ constraint $x+5y=1$ and $\frac{x}{3}+ \frac{5y}{3}=0$,
+in exact arthimetic it's is impossible to comply with these two constraint; but due to rounding error, it's likely
+that no contradiction will be detected by the programm (but we will have a very unstable elimination).
 
 %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  -
 
@@ -1644,7 +1648,7 @@ for efficient implementation :
 
 \begin{itemize}
     \item  in many context where non linear optimization is used, including photogrammetry,  each observation
-           imply few (says $\approx 10-50$)  among many (say $\approx 500-100000$);
+           imply few unknowns (says $\approx 10-50$)  among many (say $\approx 500-100000$);
 
     \item  for efficient representation we use sparse vector for constraint and observation, 
            a sparse vector being a collection of pair index/value;
@@ -1662,13 +1666,15 @@ This is here that  {\tt cDSVec}  can help. It is a class for dense representaion
     \item  contains a dense real vector $V$ (initialy full of $0$), a list of used indexes $L$ (initially empty), a dense boolean
            vector indicating if the index is used $B$ (initially full of false) 
     \item  each time an element is added-suppressed on the {\tt cDSVec} at index $i$, the dense vector is updated 
-           at $V[i]$ and if $B[i]$ is false, $B$ and $L$ are also updated;
-    \item  a {\tt cDSVec} can be quickly reset by resetting $L$.
+           at $V[i]$ and if $B[i]$ is false (meaning it has not been used) then $B$ and $L$ are also updated;
+    \item  a {\tt cDSVec} can be quickly reset to its initialvalue, by parsing $L$ to : set $V$ to $0.0$, set $B$ to false,
+            and finally clearing $L$.
     
 \end{itemize}
 
 Typically, as the allocation of a dense vector can take some time (in  $\mathcal{O}(N)$) the idea is to allocate
-a dense vector in class {\tt cSetLinearConstraint} and to reuse it many times, that's a buffer.
+a dense vector in class {\tt cSetLinearConstraint} and to reuse it many times and reset it at the end of each use
+(that's a buffer).
 
 
 %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  - -  -  -  -  -  -  -  -  -
@@ -1713,6 +1719,10 @@ A typical sequence of use will be:
                  \item {\tt SubstituteInDenseLinearEquation} 
                  \item {\tt SubstituteInOutRSNL}
 	    \end{itemize}
+    \item    use the method {\tt void AddConstraint2Sys(tLinearSysSR &)}, this method simply add all the constraint
+             as linear observation, this is necessary to fix the value of the substituted unknowns (because by 
+             construction they have been eliminated).
+
 \end{itemize}
 
 
