@@ -124,6 +124,7 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
             {{eTA2007::ISizeV,"[2,5]"}}
          )
       << AOpt2007(mGCPFilter,"GCPFilter","Pattern to filter GCP from their name")
+      << mPhProj.DPPointsMeasures().ArgDirOutOpt()
       << AOpt2007(mTiePWeight,"TiePWeight","Tie point weighting [Sig0,SigAtt?=-1,Thrs?=-1,Exp?=1]",{{eTA2007::ISizeV,"[1,4]"}})
       << AOpt2007(mPatParamFrozCalib,"PPFzCal","Pattern for freezing internal calibration parameters")
       << AOpt2007(mPatFrosenCenters,"PatFzCenters","Pattern of images for freezing center of poses")
@@ -229,6 +230,7 @@ int cAppliBundlAdj::Exe()
     mPhProj.CpSysIn2Out(true,true);
 
     mBA.SaveBlocRigid();  // RIGIDBLOC
+    mBA.Save_newGCP();
 
     return EXIT_SUCCESS;
 }
