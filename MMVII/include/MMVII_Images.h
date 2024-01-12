@@ -521,6 +521,7 @@ template <class Type>  class cDataIm1D  : public cDataTypedIm<Type,1>
         Type * RawData1D() {return mRawData1D;}  ///< Used by matrix/vector interface
 
         cDataIm1D(const cDataIm1D<Type> &) = delete;  ///< No copy constructor for big obj, will add a dup()
+        void operator = (const cDataIm1D<Type> &) = delete;  ///< No copy constructor for big obj, will add a dup()
         cDataIm1D(const cPt1di & aP0,const cPt1di & aP1,
                       Type * DataLin=nullptr,eModeInitImage=eModeInitImage::eMIA_NoInit); ///< Called by shared ptr (cIm2D)
 
@@ -620,6 +621,7 @@ template <class Type>  class cDataIm3D  : public cDataTypedIm<Type,3>
 
     private :
         cDataIm3D(const cDataIm3D &) = delete;
+        void operator = (const cDataIm3D &) = delete;
         Type & Value(const cPt3di & aP)               {return mRawData3D[aP.z()][aP.y()][aP.x()];} ///< Data Access
         const Type & Value(const cPt3di & aP) const   {return mRawData3D[aP.z()][aP.y()][aP.x()];} /// Const Data Access
 

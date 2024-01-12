@@ -237,6 +237,7 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
     private :
         void PostInit();
         cDataIm2D(const cDataIm2D<Type> &) = delete;  ///< No copy constructor for big obj, will add a dup()
+        void operator = (const cDataIm2D<Type> &) = delete;  ///< No affectation for big obj, will add a dup()
         cDataIm2D(const cPt2di & aP0,const cPt2di & aP1,
                  Type * DataLin=nullptr,eModeInitImage=eModeInitImage::eMIA_NoInit); ///< Called by shared ptr (cIm2D)
 
