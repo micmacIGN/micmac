@@ -13,19 +13,24 @@ namespace MMVII
  *      -  it add (potentially many)  unknowns and then  it take more place in  memory & time
  */
 
-class cPt3dr_UK :  public cObjWithUnkowns<tREAL8>,
-                   public cMemCheck
+/*
+template <const int Dim>  class cPtxdr_UK :  public cObjWithUnkowns<tREAL8>,
+                                             public cMemCheck
 {
-      public :
-              cPt3dr_UK(const cPt3dr &);
-              ~cPt3dr_UK();
-              void PutUknowsInSetInterval() override;
-              const cPt3dr & Pt() const ;
-      private :
-              cPt3dr_UK(const cPt3dr_UK&) = delete;
-              cPt3dr mPt;
+   public :
+      typedef cPtxd<tREAL8,Dim>  tPt;
+
+      cPtxdr_UK(const tPt &);
+      ~cPtxdr_UK();
+      void PutUknowsInSetInterval() override;
+      const tPt & Pt() const ;
+   private :
+      cPtxdr_UK(const cPtxdr_UK&) = delete;
+      tPt mPt;
 };
 
+typedef cPtxdr_UK<3> cPt3dr_UK ;
+*/
 
 /**  "Standard" weighting classes, used the following formula
  *

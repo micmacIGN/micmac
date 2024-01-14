@@ -153,21 +153,26 @@ void cMMVII_BundleAdj::OneItere_GCP()
     /*            cPt3dr_UK                     */
     /* ---------------------------------------- */
 
-cPt3dr_UK::cPt3dr_UK(const cPt3dr & aPt) :
+template <const int Dim> cPtxdr_UK<Dim>::cPtxdr_UK(const tPt & aPt) :
     mPt  (aPt)
 {
 }
 
-cPt3dr_UK::~cPt3dr_UK()
+
+template <const int Dim>  cPtxdr_UK<Dim>::~cPtxdr_UK()
 {
         OUK_Reset();
 }
 
-void cPt3dr_UK::PutUknowsInSetInterval()
+template <const int Dim> void cPtxdr_UK<Dim>::PutUknowsInSetInterval()
 {
     mSetInterv->AddOneInterv(mPt);
 }
-const cPt3dr & cPt3dr_UK::Pt() const {return mPt;}
+template <const int Dim>  const cPtxd<tREAL8,Dim> & cPtxdr_UK<Dim>::Pt() const {return mPt;}
+
+
+template class cPtxdr_UK<2>;
+template class cPtxdr_UK<3>;
 
 
 };

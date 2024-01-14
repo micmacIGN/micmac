@@ -848,6 +848,32 @@ template <class Type> class cObjWithUnkowns //  : public cObjOfMultipleObjUk<Typ
 
 template <class T1,class T2> void ConvertVWD(cInputOutputRSNL<T1> & aIO1 , const cInputOutputRSNL<T2> & aIO2);
 
+/**   Class for representing a Pt of R3 in bundle adj, when it is considered as
+ *   unknown.
+ *      +  we have the exact value and uncertainty of the point is covariance is used
+ *      -  it add (potentially many)  unknowns and then  it take more place in  memory & time
+ */
+
+template <const int Dim>  class cPtxdr_UK :  public cObjWithUnkowns<tREAL8>,
+                                             public cMemCheck
+{
+   public :
+      typedef cPtxd<tREAL8,Dim>  tPt;
+
+      cPtxdr_UK(const tPt &);
+      ~cPtxdr_UK();
+      void PutUknowsInSetInterval() override;
+      const tPt & Pt() const ;
+   private :
+      cPtxdr_UK(const cPtxdr_UK&) = delete;
+      tPt mPt;
+};
+
+typedef cPtxdr_UK<2> cPt2dr_UK ;
+typedef cPtxdr_UK<3> cPt3dr_UK ;
+
+
+
 
 };
 

@@ -5,6 +5,43 @@
 
 */
 
+/*
+    Track info on bundle adj/push broom in V1 :
+
+  * mm3d Campari
+
+       * [Name=PdsGBRot] REAL :: {Weighting of the global rotation constraint (Generic bundle Def=0.002)}
+       * [Name=PdsGBId] REAL :: {Weighting of the global deformation constraint (Generic bundle Def=0.0)}
+       * [Name=PdsGBIter] REAL :: {Weighting of the change of the global rotation constraint between iterations (Generic bundle Def=1e-6)}
+
+  *  micmac/src/uti_phgrm/CPP_Campari.cpp [POS=0486,0016] 
+    
+          Apero ... "Apero-Compense.xml" ...
+             +  std::string(" +PdsGBRot=") + ToString(aPdsGBRot) + " "
+
+  * micmac/include/XML_MicMac/Apero-Compense.xml 
+
+       <ContrCamGenInc>
+             <PatternApply> .*  </PatternApply>
+             <PdsAttachToId>   ${PdsGBId}     </PdsAttachToId>
+             <PdsAttachToLast> ${PdsGBIter}    </PdsAttachToLast>
+             <PdsAttachRGLob>  ${PdsGBRot}    </PdsAttachRGLob>
+        </ContrCamGenInc>
+
+
+  *  micmac/src/uti_phgrm/Apero/cPosePolynGenCam.cpp 
+
+       cPolynBGC3M2D_Formelle * aPF = aGPC->PolyF();
+
+       if (aCCIG.PdsAttachRGLob().IsInit())
+          aPF->AddEqRotGlob(aCCIG.PdsAttachRGLob().Val()*aGPC->SomPM());
+
+
+   * micmac/src/uti_phgrm/Apero/cGenPoseCam.cpp
+   * micmac/src/uti_phgrm/Apero/BundleGen.h       
+
+*/
+
 
 namespace MMVII
 {
