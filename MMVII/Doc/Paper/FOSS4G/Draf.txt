@@ -1,0 +1,7 @@
+Cette communication présentera l'état d'avancement et la feuille de
+route du locigiciel de photogrammétrie open source MicMac-V2.
+
+
+MicMac est un logiciel de photogrammétrie libre open-source développé
+à l'IGN depuis 2007. 
+
