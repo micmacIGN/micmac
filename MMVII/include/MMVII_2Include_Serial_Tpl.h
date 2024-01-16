@@ -443,15 +443,27 @@ template<class Type> void  ReadFromFileWithDef(Type & aVal,const std::string & a
 }
 
 ///  Save in file if it's the first times it occurs inside the process
-template<class Type> void  ToFileIfFirstime(const Type & anObj,const std::string & aNameFile)
+template<class Type> void  ToFileIfFirstime(const Type * anObj,const std::string & aNameFile,bool ForReset=false)
 {
    static std::set<std::string> aSetFilesAlreadySaved;
+   if (ForReset)
+   {
+       aSetFilesAlreadySaved.clear();
+       return;
+   }
+
    if (!BoolFind(aSetFilesAlreadySaved,aNameFile))
    {
         aSetFilesAlreadySaved.insert(aNameFile);
-        anObj.ToFile(aNameFile);
+        anObj->ToFile(aNameFile);
    }
 }
+template<class Type> void  ResetToFileIfFirstime()
+{
+    ToFileIfFirstime((Type*)nullptr,"",true);
+}
+
+
 
 template<class Type,class TypeTmp> Type * ObjectFromFile(const std::string & aName)
 {

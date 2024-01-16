@@ -578,6 +578,11 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
    RemoveRecurs(TmpDirTestMMVII(),true,false);
 
 
+   ResetToFileIfFirstime<cPerspCamIntrCalib>();
+
+
+
+
    //NS_MMVII_FastTreeDist::AllBenchFastTreeDist(true);
 /*
 

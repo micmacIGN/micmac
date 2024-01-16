@@ -19,7 +19,7 @@ cCalibRadiomSensor::cCalibRadiomSensor()
 
 void  cCalibRadiomSensor::ToFileIfFirstime(const std::string & aNameFile) const
 {
-    MMVII::ToFileIfFirstime(*this,aNameFile);
+    MMVII::ToFileIfFirstime(this,aNameFile);
 }
 
 cCalibRadiomSensor * cCalibRadiomSensor::FromFile(const std::string & aNameFile)

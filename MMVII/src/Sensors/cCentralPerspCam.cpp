@@ -239,7 +239,7 @@ void  cPerspCamIntrCalib::ToFile(const std::string & aNameFile ) const
 
 void  cPerspCamIntrCalib::ToFileIfFirstime(const std::string & aNameFile ) const
 {
-     MMVII::ToFileIfFirstime(*this,aNameFile);
+     MMVII::ToFileIfFirstime(this,aNameFile);
 }
 
 
