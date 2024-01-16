@@ -78,6 +78,7 @@ class cAppliBundlAdj : public cMMVII_Appli
 	int                       mNbIter;
 	std::string               mPatParamFrozCalib;
 	std::string               mPatFrosenCenters;
+	std::string               mPatFrosenOrient;
 	std::vector<tREAL8>       mViscPose;
         tREAL8                    mLVM;  // Levenberk Markard
         std::vector<std::string>  mVSharedIP;  // Vector for shared intrinsic param
@@ -126,6 +127,7 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mTiePWeight,"TiePWeight","Tie point weighting [Sig0,SigAtt?=-1,Thrs?=-1,Exp?=1]",{{eTA2007::ISizeV,"[1,4]"}})
       << AOpt2007(mPatParamFrozCalib,"PPFzCal","Pattern for freezing internal calibration parameters")
       << AOpt2007(mPatFrosenCenters,"PatFzCenters","Pattern of images for freezing center of poses")
+      << AOpt2007(mPatFrosenOrient,"PatFzOrient","Pattern of images for freezing orientation of poses")
       << AOpt2007(mViscPose,"PoseVisc","Sigma viscosity on pose [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})
       << AOpt2007(mLVM,"LVM","Levenberg–Marquardt parameter (to have better conditionning of least squares)",{eTA2007::HDV})
       << AOpt2007(mBRSigma,"BRW","Bloc Rigid Weighting [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})  // RIGIDBLOC
@@ -162,6 +164,11 @@ int cAppliBundlAdj::Exe()
     if (IsInit(&mPatFrosenCenters))
     {
         mBA.SetFrozenCenters(mPatFrosenCenters);
+    }
+
+    if (IsInit(&mPatFrosenOrient))
+    {
+        mBA.SetFrozenOrients(mPatFrosenOrient);
     }
 
     if (IsInit(&mViscPose))
