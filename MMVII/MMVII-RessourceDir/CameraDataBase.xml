@@ -22,6 +22,15 @@
                <NbPixels>6000  4000</NbPixels>
             </V>
          </Pair>
+         <Pair>
+            <K>"NIKON D3X"</K>
+            <V>
+               <Name>"NIKON D3X"</Name>
+               <SzPix_micron>5.95 5.95 </SzPix_micron>
+               <SzSensor_mm>36  24</SzSensor_mm>  <!-- 35.9 24.0 in spec => non square pixel -->
+               <NbPixels>6048  4032</NbPixels>
+            </V>
+         </Pair>
       </CamDataBase>
    </Data>
 </Root>
