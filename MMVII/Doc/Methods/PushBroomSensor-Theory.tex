@@ -9,10 +9,7 @@
 
 %  9 0157  0002 2184 5
 %  90157000221845
-\section{Introduction }
-
-%-----------------------------------------------------------------------
-\subsection{Notice to the reader}
+\section{Notice to the reader}
 
 This chapter present how pushbroom sensors are handled in {\tt MMVII}.
 It is written before a programmation session scheduled in mars $2024$
@@ -27,17 +24,27 @@ from the other chapter in two points :
                before the actual implementation;
 \end{itemize}
 
+
+%-----------------------------------------------------------------------
+%-----------------------------------------------------------------------
 %-----------------------------------------------------------------------
 
-\subsection{Physicall and mathematical modelisation}
+\section{Physicall and mathematical modelisation}
 
-  %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-\subsubsection{Physicall model}
+%-----------------------------------------------------------------------
+\subsection{Physicall model}
+
+\begin{figure}
+\centering
+\includegraphics[width=6cm]{Methods/Images/PushB1.jpg}\caption{Notation for pushbroom sensor}
+        \label{fig:PushB1}
+\end{figure}
+
 
 A pushbroom sensor is made a monodimensional line sensor which has deplacement during the time.
 This is the deplacement that create the second dimension. We suppose in the following  that in the
 formed  image the coordinte $j$ correspond to a line og the monodimensionnal sensor while the coordinate
-$i$ correspond to the "time". We note :
+$i$ correspond to the "time". We note as in figure~\ref{fig:PushB1}:
 
 \begin{itemize}
 	\item  $C(t)=C(i)$ the position of the sensor at time $t$;
@@ -58,6 +65,58 @@ and computing $\lambda$  to have the right $z$ we get :
 \begin{equation}
 	\pi^{-1}(i,j,z) = C(i) + \frac{z-C_z(i)}{U_z(i)} \vec{U}(i,j)
 \end{equation}
+
+The localisation is completely caracterised by :
+
+\begin{itemize}
+	\item  the functions $C(i)$ and $R(i)$;
+	\item  the calibration of the sensor, i.e. the maping $j \rightarrow \vec{u}(j)$;
+\end{itemize}
+
+%-----------------------------------------------------------------------
+
+\subsection{Satellite model}
+
+Pushbroom sensor are not $100\%$ reserved to satelitte model, they can be used for example for some
+aerial camera (see ADS40 frome Leica).
+In this chapter we  focuss on satelitte system, this has two consequences :
+
+\begin{itemize}
+    \item we assume that $C(i)$  and $R(i)$  are very smooth functions;
+    \item we assume that $C(i)$  is known  "perfectly" and that the innaccuracy
+          on the model comes only from $R(i)$, and eventualy from the sensor calibration;  this assumption is generally admited
+          by the community, as a justification we can give :
+    \begin{itemize}
+         \item  position comes from GNSS which has a very high accuracy and robustness without obstruction (say a few centimeters);
+         \item  orientation comes for stellar sensor, for a saletlite flying at $600km$ at a resolution of $1m$,
+                an accuracy of $1$ pixel requires an angular accuracy of $\frac{1}{600000}$ radian or $\frac{1}{10000}$ degree;
+     \end{itemize}
+\end{itemize}
+
+%-----------------------------------------------------------------------
+
+\subsection{Satellite error model}
+
+Let $R_0(i)$ be the initial orientation , and $R(i)$ be the "real orientation"
+we admit that there exist a rotation $\Omega(i)$, very close to identity and
+very smooth so that :
+
+\begin{equation}
+    R(i) = \Omega(i) R_0(i)
+\end{equation}
+
+
+$\Omega(i)$ will be the unknown we want to compute, but for now
+we suppose we know it. 
+Let $\pi_0$ be the initial projection we want to compute the modify
+projectio $\pi$.
+For the invert projection, it's quite easy, we have :
+
+\begin{equation}
+	\pi^{-1}(i,j,z) = C(i) + \frac{z-C_z(i)}{U_z(i)} \vec{U}(i,j)
+\end{equation}
+
+
 
 
 
