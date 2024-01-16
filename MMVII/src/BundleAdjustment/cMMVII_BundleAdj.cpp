@@ -82,6 +82,9 @@ cMMVII_BundleAdj::cMMVII_BundleAdj(cPhotogrammetricProject * aPhp) :
     mPhaseAdd         (true),
     mSys              (nullptr),
     mR8_Sys           (nullptr),
+    mPatParamFrozenCalib (""),
+    mPatFrozenCenter (""),
+    mPatFrozenOrient (""),
     mMesGCP           (nullptr),
     mSigmaGCP         (-1),
     mMTP              (nullptr),
@@ -168,6 +171,19 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM)
             if ((aPtrCam != nullptr)  && aSel.Match(aPtrCam->NameImage()))
 	    {
                  mR8_Sys->SetFrozenVarCurVal(*aPtrCam,aPtrCam->Center());
+	    }
+        }
+    }
+   
+    // if necessary, fix frozen orientation of external calibration
+    if (mPatFrozenOrient !="")
+    {
+        tNameSelector aSel =   AllocRegex(mPatFrozenOrient);
+        for (const auto & aPtrCam : mVSCPC)
+        {
+            if ((aPtrCam != nullptr)  && aSel.Match(aPtrCam->NameImage()))
+	    {
+                 mR8_Sys->SetFrozenVarCurVal(*aPtrCam,aPtrCam->Omega());
 	    }
         }
     }
@@ -299,6 +315,11 @@ void cMMVII_BundleAdj::SetParamFrozenCalib(const std::string & aPattern)
 void cMMVII_BundleAdj::SetFrozenCenters(const std::string & aPattern)
 {    
     mPatFrozenCenter = aPattern;
+}
+
+void cMMVII_BundleAdj::SetFrozenOrients(const std::string & aPattern)
+{    
+    mPatFrozenOrient = aPattern;
 }
 
 void cMMVII_BundleAdj::SetSharedIntrinsicParams(const std::vector<std::string> & aVParams)
