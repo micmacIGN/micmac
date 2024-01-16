@@ -838,6 +838,7 @@ template <class Type> class cObjWithUnkowns //  : public cObjOfMultipleObjUk<Typ
 	  /// defautl constructor, put non init in all vars
           void OUK_Reset();
           cObjWithUnkowns(const cObjWithUnkowns<Type> &) = delete;
+          void operator = (const cObjWithUnkowns<Type> &) = delete;
 
 
           cSetInterUK_MultipeObj<Type> *  mSetInterv;

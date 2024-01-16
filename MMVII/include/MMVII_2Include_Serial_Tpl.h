@@ -233,7 +233,8 @@ template <class TypeKey,class TypeVal> void AddData(const cAuxAr2007 & anAux,std
         if (anAux.Ar().IsSpecif())
         {
             aMap.clear();
-            aMap[TypeKey{}] = TypeVal{};
+            // aMap[TypeKey{}] = TypeVal{};
+            aMap.try_emplace(TypeKey{}); // TypeVal{};
         }
        // when write parse the map,
         for (auto & aPair : aMap)

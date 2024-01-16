@@ -489,7 +489,8 @@ void cBlocOfCamera::EstimateBlocInit(size_t aKMaster)
           //    * estimate  relative pose with KMaster
          tPoseR  aPoseR =  EstimatePoseRel1Cple(aKMaster,aKB,nullptr,"");
           //    * update mMapPoseUKInBloc
-         mData.mMapPoseUKInBloc[aName]  = cPoseWithUK(aPoseR);
+         // mData.mMapPoseUKInBloc[aName]  = cPoseWithUK(aPoseR);
+         mData.mMapPoseUKInBloc.try_emplace(aName,aPoseR);
     }
 
     Set4Compute(); //  now can be used in computation
@@ -515,7 +516,7 @@ void cBlocOfCamera::TestReadWrite(bool OmitDel) const
 
      StdOut() << "Test Hash code" << std::endl;
      StdOut() <<  "HX==HJ= " << HashValue(aBRXml,true) << " " <<  HashValue(aBRJson,true) << std::endl;
-     aBRXml.mMapPoseUKInBloc["toto"]  = tPoseR();
+     aBRXml.mMapPoseUKInBloc.try_emplace("toto"); // , tPoseR();
      StdOut() <<  "HJ!=HX " << HashValue(aBRXml,true) << " " << HashValue(aBRJson,true) << std::endl;
      getchar();
 

@@ -114,7 +114,7 @@ template <class Type,const int Dim> class cTriangulation
           typedef Type                  tCoord;
           typedef cPtxd<tCoord,Dim>     tPt;
           typedef cTriangle<tCoord,Dim> tTri;
-          typedef cPt3di                tFace;
+          typedef cPt3di                tFace; /// triplet of indexes 
           typedef std::vector<tPt>      tVPt;
           typedef std::vector<tFace>    tVFace;
 

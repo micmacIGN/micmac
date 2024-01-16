@@ -36,17 +36,28 @@ from the other chapter in two points :
 
 A pushbroom sensor is made a monodimensional line sensor which has deplacement during the time.
 This is the deplacement that create the second dimension. We suppose in the following  that in the
-formed  image the coordinte $y$ correspond to a line og the monodimensionnal sensor while the coordinate
-$x$ correspond to the "time". We note :
+formed  image the coordinte $j$ correspond to a line og the monodimensionnal sensor while the coordinate
+$i$ correspond to the "time". We note :
 
 \begin{itemize}
-	\item  mmm
+	\item  $C(t)=C(i)$ the position of the sensor at time $t$;
+	\item  $R(t)=R(i)=[\vec{I},\vec{J},\vec{K}]$ the orientation of the sensor at time $t$;
+	\item  $\vec{u}(j)$ the direction of bundle in the repair of the sensor;
+	\item  $\vec{U}(i,j) = R(i)\vec{u}(j)$ the direction of bundle in the global repair;
+	\item  $B(i,j)= (C(i),\vec{U}(i,j))$ the bundle issued of pixel $i,j$;
 \end{itemize}
 
+The localisation function is completly caracterized by the mapping $(i,j) \rightarrow B(i,j)$.
+By the way, practically we prefer to use the projection $\pi$ that  compute the 
+image $i,j$ of given ground point, $\pi : (x,y,z) \rightarrow (i,j)$.  To make
+$\pi$ and invertible function we change slightly to $\pi : (x,y,z) \rightarrow (i,j,z)$.
+The function "easy" to compute from the previous notation is $\pi^{-1}$,
+we have the parametric equation of $B(i,j)(\lambda) = C(i) + \lambda \vec{U}(i,j)$,
+and computing $\lambda$  to have the right $z$ we get :
 
-\begin{itemize}
-    \item aaaaa
-\end{itemize}
+\begin{equation}
+	\pi^{-1}(i,j,z) = C(i) + \frac{z-C_z(i)}{U_z(i)} \vec{U}(i,j)
+\end{equation}
 
 
 
