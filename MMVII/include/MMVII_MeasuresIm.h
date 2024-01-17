@@ -212,6 +212,7 @@ class cSetMesImGCP : public cMemCheck
             std::vector<cMes1GCP> &        MesGCP() ; ///< Accessor
             const std::vector<cMultipleImPt> &   MesImOfPt() const ;  ///< Accessor
 	    const std::vector<cSensorImage*> &   VSens() const ;  ///< Accessor
+            const std::vector<cSetMesPtOf1Im> &  MesImInit() const;  ///< Accessor
 								
 	    tREAL8 AvgSqResidual() const;
 								  

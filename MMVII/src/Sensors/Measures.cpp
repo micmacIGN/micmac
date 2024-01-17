@@ -254,6 +254,7 @@ void cSetMesImGCP::AddMes2D(const cSetMesPtOf1Im & aSetMesIm,cSensorImage* aSens
 const std::vector<cMes1GCP> &        cSetMesImGCP::MesGCP()    const  {return mMesGCP; }
 const std::vector<cMultipleImPt> &   cSetMesImGCP::MesImOfPt() const  {return mMesImOfPt;  }
 const std::vector<cSensorImage*> &   cSetMesImGCP::VSens()     const  {return mVSens;}
+const std::vector<cSetMesPtOf1Im> &  cSetMesImGCP::MesImInit() const  {return mMesImInit;}
 
 std::vector<cMes1GCP> &        cSetMesImGCP::MesGCP()   {return mMesGCP; }
 

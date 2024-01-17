@@ -156,6 +156,8 @@ void cMMVII_BundleAdj::Save_newGCP()
     if (mMesGCP  && mPhProj->DPPointsMeasures().DirOutIsInit())
     {
         mPhProj->SaveGCP(mNewGCP.ExtractSetGCP("NewGCP"));
+        for (const auto & aMes1Im : mMesGCP->MesImInit())
+             mPhProj->SaveMeasureIm(aMes1Im);
     }
 }
 
