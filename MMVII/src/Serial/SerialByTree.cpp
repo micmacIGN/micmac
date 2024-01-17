@@ -346,8 +346,25 @@ cXmlSerialTokenParser::cXmlSerialTokenParser(const std::string & aName) :
 
 bool  cXmlSerialTokenParser::BeginPonctuation(char aC) const { return aC=='<'; }
 
+
+bool  IsCarOkRestrictedTag(char aC)
+{
+   return    std::isalpha(aC)
+          || std::isdigit(aC)
+          || (aC==':')    // not XML !!  for micmac opt => to change ???
+          || (aC=='_')
+          || (aC=='.')
+          || (aC=='-');
+}
 cResLex cXmlSerialTokenParser::AnalysePonctuation(char aC)
 {
+    // This rule ar used to parse correctly, for example, <Tag "V=3.03"> and return "Tag" 
+    bool endTag = false;  // once we get a "bad car , we no longer accumulate tag
+    bool mRestrictedTag = true;  // do we accept only standard carac for tags,
+
+    if (mRestrictedTag)  // if restricted, supress white at begin
+        SkeepWhite();
+
     aC =  GetNotEOF();
     eLexP aLex= eLexP::eDown;
     std::string aRes ;
@@ -361,7 +378,10 @@ cResLex cXmlSerialTokenParser::AnalysePonctuation(char aC)
     while (aC!='>')
     {
          aC =  GetNotEOF();
-         if (aC!='>')
+         if (mRestrictedTag && !IsCarOkRestrictedTag(aC))
+            endTag = true;
+
+         if ((aC!='>') && (!endTag))
             aRes += aC;
     }
 
