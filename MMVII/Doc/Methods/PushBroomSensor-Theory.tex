@@ -97,26 +97,66 @@ In this chapter we  focuss on satelitte system, this has two consequences :
 
 \subsection{Satellite error model}
 
-Let $R_0(i)$ be the initial orientation , and $R(i)$ be the "real orientation"
-we admit that there exist a rotation $\Omega(i)$, very close to identity and
+Let $R(i)$ be the initial orientation , and $R'(i)$ be the "real orientation"
+we want to estimate by adjsument.
+We admit that there exist a rotation $R_\Theta(i)$, very close to identity and
 very smooth so that :
 
 \begin{equation}
-    R(i) = \Omega(i) R_0(i)
+    R'(i) = R_\Theta(i) R(i)
 \end{equation}
 
+Noting $\Theta=(\omega,\phi,\kappa)$ and as  $R_\Theta$ is close to identity we will have :
 
-$\Omega(i)$ will be the unknown we want to compute, but for now
-we suppose we know it. 
-Let $\pi_0$ be the initial projection we want to compute the modify
-projectio $\pi$.
-For the invert projection, it's quite easy, we have :
+%
+%
+%
 
 \begin{equation}
-	\pi^{-1}(i,j,z) = C(i) + \frac{z-C_z(i)}{U_z(i)} \vec{U}(i,j)
+    R_\Theta(i) = 
+\begin{bmatrix}
+1 &  - \kappa & \phi\\
+\kappa & 1 & -\omega\\
+-\phi & \omega & 1
+\end{bmatrix} 	
 \end{equation}
 
 
+$\Theta(i)$ will be the unknown we want to compute, but for now
+we suppose we know it. 
+Let $\pi$ be the initial projection, we want to compute the modify
+projection $\pi'$.
+For the invert projection, it's quite easy, let's note  :
+
+\begin{equation}
+    \vec{U'} =  R_\Theta \vec{U}
+\end{equation}
+
+Then we have :
+
+\begin{equation}
+	\pi'^{-1}(i,j,z) = C(i) + \frac{z-C_z(i)}{U'_z(i)} \vec{U'}(i,j)
+\end{equation}
+
+
+Now for computing $\pi'(P)$ we must compute $q'=(i',j',z)$ such that :
+
+\begin{equation}
+        \pi'^{-1}(q') = P
+\end{equation}
+
+Considering $\pi'$ as a function of both $q$ and $\Omega$,  we can make a taylor expansion :
+
+
+\begin{equation}
+        \pi'^{-1}(q')
+      =      \pi^{-1}(q) 
+      +  \frac{\partial \pi^{-1}}{\partial i }  \delta_i
+      +  \frac{\partial \pi^{-1}}{\partial j }  \delta_j
+\end{equation}
+         %+   \frac{\part \pi^{-1}}{\part i} \delta_i
+
+Considering $\pi'$ as a function of both $q$ and $\Omega$,  we can make a taylor expansion :
 
 
 
