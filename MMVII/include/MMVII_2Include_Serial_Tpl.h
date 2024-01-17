@@ -117,7 +117,7 @@ template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string
     }
 }
 
-template <class Type, size_t size> void AddOptTabData(const cAuxAr2007 & anAux,const std::string & aTag0,std::optional<std::array<Type, size>> & aL)
+template <class Type, size_t size> void AddOptTabData(const cAuxAr2007 & anAux,const std::string & aTag0,std::optional<cArray<Type, size>> & aL)
 {
     // put the tag as <Opt::Tag0>,
     //  Not mandatory, but optionality being an important feature I thought usefull to see it in XML file
@@ -137,7 +137,7 @@ template <class Type, size_t size> void AddOptTabData(const cAuxAr2007 & anAux,c
         if (anAux.NbNextOptionnal(*anAdrTag))
         {
            // If yes read it and initialize optional value
-           std::array<Type, size> aV;
+           cArray<Type, size> aV;
            AddTabData(cAuxAr2007(*anAdrTag,anAux),aV.data(), size);
            aL = aV;
         }
