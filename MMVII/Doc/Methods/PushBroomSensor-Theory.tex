@@ -123,10 +123,26 @@ Noting $\Theta=(\omega,\phi,\kappa)$ and as  $R_\Theta$ is close to identity we 
 
 
 $\Theta(i)$ will be the unknown we want to compute, but for now
-we suppose we know it. 
+we suppose we know it.  Eventually, later we will add intrinsic calibration
+unknown, for example if we add a scaling to modelize the focal, we will 
+have $\Theta=(\omega,\phi,\kappa, \lambda)$
+
+%-----------------------------------------------------------------------
+
+\subsection{Compute projection function with perturbation}
+
+\begin{figure}
+\centering
+\includegraphics[width=6cm]{Methods/Images/PushB2.jpg}\caption{Notation for perturbated model}
+        \label{fig:PushB2}
+\end{figure}
+
+We now study how the pertubation model can be integrated in a
+computable projection.
+
 Let $\pi$ be the initial projection, we want to compute the modify
 projection $\pi'$.
-For the invert projection, it's quite easy, let's note  :
+For the invert projection, it's quite obvious, let's note  :
 
 \begin{equation}
     \vec{U'} =  R_\Theta \vec{U}
@@ -145,14 +161,30 @@ Now for computing $\pi'(P)$ we must compute $q'=(i',j',z)$ such that :
         \pi'^{-1}(q') = P
 \end{equation}
 
-Considering $\pi'$ as a function of both $q$ and $\Omega$,  we can make a taylor expansion :
+Considering $\pi'$ as a function of both $q$ and $\Omega$,  we will make a taylor expansion 
+of $\pi'^{-1}$. Noting  the jacobians :
 
+\begin{equation}
+      \mathbb{J}(\pi)_q =
+\begin{bmatrix}
+       \frac{\partial \pi'^{-1}}{\partial i } &
+       \frac{\partial \pi'^{-1}}{\partial j } &
+       \frac{\partial \pi'^{-1}}{\partial z } &
+\end{bmatrix}
+      \mathbb{J}(\pi)_\Theta =
+\begin{bmatrix}
+       \frac{\partial \pi'^{-1}}{\partial \omega } &
+       \frac{\partial \pi'^{-1}}{\partial \phi } &
+       \frac{\partial \pi'^{-1}}{\partial \kappa } &
+\end{bmatrix}
+\end{equation}
+
+We now have :
 
 \begin{equation}
         \pi'^{-1}(q')
       =      \pi^{-1}(q) 
-      +  \frac{\partial \pi^{-1}}{\partial i }  \delta_i
-      +  \frac{\partial \pi^{-1}}{\partial j }  \delta_j
+          +   \mathbb{J}(\pi'^{-1})_q  \begin{bmatrix} \delta_i \\ \delta_j \\ \delta_z  \end{bmatrix}
 \end{equation}
          %+   \frac{\part \pi^{-1}}{\part i} \delta_i
 
