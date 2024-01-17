@@ -153,7 +153,7 @@ void cMMVII_BundleAdj::OneItere_GCP()
 
 void cMMVII_BundleAdj::Save_newGCP()
 {
-    if (mMesGCP  && mPhProj->DPPointsMeasures().DirOutIsInit())  // RIGIDBLOC
+    if (mMesGCP  && mPhProj->DPPointsMeasures().DirOutIsInit())
     {
         mPhProj->SaveGCP(mNewGCP.ExtractSetGCP("NewGCP"));
     }
