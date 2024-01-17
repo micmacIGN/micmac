@@ -150,7 +150,6 @@ void AddData(const  cAuxAr2007 & anAux, double  &  aVal) {anAux.Ar().RawAddDataT
 void AddData(const  cAuxAr2007 & anAux, std::string  &  aVal) {anAux.Ar().RawAddDataTerm(aVal); }
 void AddData(const  cAuxAr2007 & anAux, cRawData4Serial  &  aVal) {anAux.Ar().RawAddDataTerm(aVal); }
 
-
 void AddData(const  cAuxAr2007 & anAux, tREAL4  &  aVal) { anAux.Ar().TplAddDataTermByCast(anAux,aVal,(double*)nullptr); }
 
 void AddData(const  cAuxAr2007 & anAux, tINT1  &  aVal) 
@@ -167,7 +166,7 @@ void AddData(const  cAuxAr2007 & anAux, bool     &  aVal) { anAux.Ar().TplAddDat
 
 // void AddData(const  cAuxAr2007 & anAux, bool  &  aVal) {anAux.Ar().RawAddDataTerm(aVal); }
 
-template <class Type> void AddTabData(const  cAuxAr2007 & anAux, Type *  aVD,int aNbVal,eTAAr aTAAr)
+template <class Type> void AddTabData(const  cAuxAr2007 & anAux, Type *  aVD,size_t aNbVal,eTAAr aTAAr)
 {
     // A precaution, probably it work but need to test
     MMVII_INTERNAL_ASSERT_always(aNbVal,"Not Sur AddTabData work for NbVal=0, check....");
@@ -179,7 +178,7 @@ template <class Type> void AddTabData(const  cAuxAr2007 & anAux, Type *  aVD,int
 
     if (aNbVal)
        AddData(anAux,aVD[0]);
-    for (int aK=1 ; aK<aNbVal ; aK++)
+    for (size_t aK=1 ; aK<aNbVal ; aK++)
     {
         anAux.Ar().Separator();
         AddData(anAux,aVD[aK]);
@@ -187,11 +186,10 @@ template <class Type> void AddTabData(const  cAuxAr2007 & anAux, Type *  aVD,int
     anAux.Ar().OnEndTab();
 }
 
-template void AddTabData(const  cAuxAr2007 & anAux, int *  aVD,int aNbVal,eTAAr);
-template void AddTabData(const  cAuxAr2007 & anAux, size_t *  aVD,int aNbVal,eTAAr);
-template void AddTabData(const  cAuxAr2007 & anAux, tREAL8 *  aVD,int aNbVal,eTAAr);
-template void AddTabData(const  cAuxAr2007 & anAux, tREAL4 *  aVD,int aNbVal,eTAAr);
-
+template void AddTabData(const  cAuxAr2007 & anAux, int *  aVD,size_t aNbVal,eTAAr);
+template void AddTabData(const  cAuxAr2007 & anAux, size_t *  aVD,size_t aNbVal,eTAAr);
+template void AddTabData(const  cAuxAr2007 & anAux, tREAL8 *  aVD,size_t aNbVal,eTAAr);
+template void AddTabData(const  cAuxAr2007 & anAux, tREAL4 *  aVD,size_t aNbVal,eTAAr);
 
 
 template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cPtxd<Type,Dim>  &  aPt) 
