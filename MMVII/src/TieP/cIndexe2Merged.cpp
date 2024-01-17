@@ -265,6 +265,7 @@ cReadMTP_Std::cReadMTP_Std
      mHeap        (The_cParamHeap_MTP),
      mCompMerge   (new cComputeMergeMulTieP(aVNames,nullptr,(WithSensor ? &aPhProj : nullptr)))
 {
+     bool GotSomething = false;
      for (size_t aKIm=0 ; aKIm<aVNames.size() ; aKIm++)
      {
 	  aPhProj.ReadMultipleTieP(mVTpm[aKIm],aVNames[aKIm],true);  // true=SVP , ok if no file
@@ -277,7 +278,13 @@ cReadMTP_Std::cReadMTP_Std
 	     aPt.mIdIm = aKIm;
 	     aPt.mHeapIndex = HEAP_NO_INDEX;   // probably not necessary, but no harm
 	     mHeap.Push(aPt);
+	     GotSomething = true;
 	  }
+     }
+
+     if (!GotSomething)
+     {
+         MMVII_UnclasseUsEr("Could not got any tie points for DirIn=[" + aPhProj.DPMulTieP().DirIn() + "]");
      }
 
      while ( GetNextConfig()) ;

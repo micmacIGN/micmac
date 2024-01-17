@@ -43,7 +43,7 @@ from the other chapter in two points :
 
 A pushbroom sensor is made a monodimensional line sensor which has deplacement during the time.
 This is the deplacement that create the second dimension. We suppose in the following  that in the
-formed  image the coordinte $j$ correspond to a line og the monodimensionnal sensor while the coordinate
+formed  image the coordinte $j \in [0,n] $ correspond to a line of the monodimensionnal sensor while the coordinate
 $i$ correspond to the "time". We note as in figure~\ref{fig:PushB1}:
 
 \begin{itemize}
@@ -57,21 +57,53 @@ $i$ correspond to the "time". We note as in figure~\ref{fig:PushB1}:
 The localisation function is completly caracterized by the mapping $(i,j) \rightarrow B(i,j)$.
 By the way, practically we prefer to use the projection $\pi$ that  compute the 
 image $i,j$ of given ground point, $\pi : (x,y,z) \rightarrow (i,j)$.  To make
-$\pi$ and invertible function we change slightly to $\pi : (x,y,z) \rightarrow (i,j,z)$.
+$\pi$ an invertible function we change slightly to $\pi : (x,y,z) \rightarrow (i,j,z)$.
 The function "easy" to compute from the previous notation is $\pi^{-1}$,
 we have the parametric equation of $B(i,j)(\lambda) = C(i) + \lambda \vec{U}(i,j)$,
-and computing $\lambda$  to have the right $z$ we get :
+and after computing $\lambda$  to have the right $z$ we get :
 
 \begin{equation}
-	\pi^{-1}(i,j,z) = C(i) + \frac{z-C_z(i)}{U_z(i)} \vec{U}(i,j)
+	\pi^{-1}(i,j,z) = C(i) + \frac{z-C_z(i)}{U_z(i)} \vec{U}(i,j)  \label{PushB:EqPiM1}
 \end{equation}
 
 The localisation is completely caracterised by :
 
 \begin{itemize}
 	\item  the functions $C(i)$ and $R(i)$;
-	\item  the calibration of the sensor, i.e. the maping $j \rightarrow \vec{u}(j)$;
+	\item  the calibration of the sensor, i.e. the maping $\mathbb{C}_{al} : j \rightarrow \vec{u}(j)$;
 \end{itemize}
+
+%-----------------------------------------------------------------------
+
+\subsection{Non physicall model and reverse engenering}
+
+
+The equation~\ref{PushB:EqPiM1}, and the devlopment deduced in the following sections,
+assume that we have an explicit representation of the physicall parameters
+$\mathbb{P}=\{C(i),R(i),\mathbb{C}_{al}\}$.
+
+However , as there is many format that can be fairly complex, it's very
+common that the localisation are provided as non physicall model that
+give directly access to $\pi$ and $\pi^{-1}$. This the case 
+for example with the well known \emph{RPC} format that code
+the two function as ratio of polymoms or with the grid-format
+(used at \emph{IGN}) that tabulates the values of $\pi$ and $\pi^{-1}$ on grids.
+
+By the way we suppose that we have access, one way or the other,
+to the required physicall format because, with a bit of reverse
+engeneering, if $\pi$ and $\pi^{-1}$ are accurate enough, it is
+still possible to recover them, for example :
+
+
+\begin{itemize}
+	\item the bundle in $B(i,j)$  can be computed as the line $ (\pi^{-1}(i,j,z_1),\pi^{-1}(i,j,z_2)) $
+	\item the center $C(i)$ can be computed as the intersection of several bundles $B(i,j_1),(i,j_2) \dots,(i,j_n)$
+	\item the axe $\vec{K}$ can be defined as  $B(i,\frac{n}{2})$
+        \item the plane containing $\vec{K}$ and $\vec{J}$ can be computed from the set of bundles;
+	\item the axe $\vec{I}$ can be computed as $\vec{J} \wedge vec{K}$.
+\end{itemize}
+
+
 
 %-----------------------------------------------------------------------
 
@@ -155,23 +187,24 @@ Then we have :
 \end{equation}
 
 
-Now for computing $\pi'(P)$ we must compute $q'=(i',j',z)$ such that :
+Now for computing $\pi'(P)$ we must compute $q'=(i',j',z)=(i,j,z)+(\delta_i,\delta_j,\delta_z)$ such that :
 
 \begin{equation}
         \pi'^{-1}(q') = P
 \end{equation}
 
-Considering $\pi'$ as a function of both $q$ and $\Omega$,  we will make a taylor expansion 
-of $\pi'^{-1}$. Noting  the jacobians :
+Considering $\pi'/\pi'^{-1}$ as a functions of both $q$ and $\Theta$,  we will make a taylor expansion 
+of $\pi'^{-1}$. Noting  the jacobians of $\pi'^{-1}$ relatively to $q$ and $\Theta$ :
 
 \begin{equation}
-      \mathbb{J}(\pi)_q =
+	\mathbb{J}_q(\pi'^{-1}) =
 \begin{bmatrix}
        \frac{\partial \pi'^{-1}}{\partial i } &
        \frac{\partial \pi'^{-1}}{\partial j } &
        \frac{\partial \pi'^{-1}}{\partial z } &
 \end{bmatrix}
-      \mathbb{J}(\pi)_\Theta =
+   \; ; \;
+      \mathbb{J}_\Theta(\pi'^{-1}) =
 \begin{bmatrix}
        \frac{\partial \pi'^{-1}}{\partial \omega } &
        \frac{\partial \pi'^{-1}}{\partial \phi } &
@@ -179,19 +212,28 @@ of $\pi'^{-1}$. Noting  the jacobians :
 \end{bmatrix}
 \end{equation}
 
-We now have :
+We can then write the taylor expansion:
 
 \begin{equation}
         \pi'^{-1}(q')
-      =      \pi^{-1}(q) 
-          +   \mathbb{J}(\pi'^{-1})_q  \begin{bmatrix} \delta_i \\ \delta_j \\ \delta_z  \end{bmatrix}
+      \approx      \pi^{-1}(q) 
+          +   \mathbb{J}_q(\pi'^{-1}) \begin{bmatrix} \delta_i \\ \delta_j \\ \delta_z  \end{bmatrix}
+          +   \mathbb{J}_\Theta(\pi'^{-1}) \begin{bmatrix} \omega \\ \phi \\ \kappa  \end{bmatrix}
 \end{equation}
-         %+   \frac{\part \pi^{-1}}{\part i} \delta_i
 
-Considering $\pi'$ as a function of both $q$ and $\Omega$,  we can make a taylor expansion :
-
+But, by definition we have $ \pi'^{-1}(q') =  \pi^{-1}(q) $ so we have :
 
 
+\begin{equation}
+	 \begin{bmatrix} \delta_i \\ \delta_j \\ \delta_z  \end{bmatrix} 
+    =  - \mathbb{J}_q ^{-1} \mathbb{J}_\Theta \begin{bmatrix} \omega \\ \phi \\ \kappa  \end{bmatrix}
+\end{equation}
+
+We now have a way to compute $\pi'$ (to first order) : 
+
+\begin{equation}
+	 \pi'(P) =  \pi(P)  - \mathbb{J}_q ^{-1} \mathbb{J}_\Theta \begin{bmatrix} \omega \\ \phi \\ \kappa  \end{bmatrix}
+\end{equation}
 %-----------------------------------------------------------------------
 \section{Vrac}
 

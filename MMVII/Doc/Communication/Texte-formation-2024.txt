@@ -1,0 +1,14 @@
+Session de programmation sous MicMac version 2 (MMVII)
+
+
+Date : 3 jours pleins du 12 au 14 mars
+Sujet : implanter dans MMVII un ajustement de faisceau sur image satelitte
+Objectif : apprendre l'architecture de MMVII, notamment vis à vis de l'otimisation non linéaire
+Public : développeurs ayant de bonnes connaissances en photogrammétrie à l'aise en C++ 
+Contact : marc.pierrot-deseilligny@ign.fr
+
+
+
+Contexte : MicMac est une solution de photogrammétrie open source complète développée à l'IGN depuis 2003.  Comme beaucoup de logiciel de recherche il s'est construit pas empilement successif 
+
+
