@@ -197,7 +197,7 @@ int cAppliBundlAdj::Exe()
         {
              mPhProj.LoadIm(aFullMesGCP,aSens->NameImage(),aSens,true);
         }
-	cSetMesImGCP * aMesGCP = aFullMesGCP.FilterNonEmptyMeasure();
+	cSetMesImGCP * aMesGCP = aFullMesGCP.FilterNonEmptyMeasure(0);
 
 	cStdWeighterResidual aWeighter(mGCPW,1);
 	mBA.AddGCP(mGCPW.at(0),aWeighter,aMesGCP);

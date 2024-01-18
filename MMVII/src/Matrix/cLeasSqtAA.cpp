@@ -69,6 +69,8 @@ template <class Type>
      mSetInd.MakeInvertIndex();
 
      mNbUk = mSetInd.mVIndOcc.size();
+     if (mNbUk==0) return; // nothing to substitute
+
      mNbUkTot = mNbUk + mNbTmp;
 
      // Adjust size, initialize of mSysRed
