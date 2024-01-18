@@ -11,11 +11,14 @@ void cMMVII_BundleAdj::InitItereTopo()
     if (mTopo)
     {
         // list all gcp names, add uk to mPts_UK
-        for (unsigned int i=0; i<mMesGCP->MesGCP().size(); ++i )
+        if (mGCP_UK.size() == mMesGCP->MesGCP().size()) // do nothing if gcp unknowns are substitued
         {
-            mTopo->addPointWithUK(mMesGCP->MesGCP()[i].mNamePt, mGCP_UK.at(i), &mGCP_UK.at(i)->Pt());
-            StdOut()<<" add gcp for topo: "<<mMesGCP->MesGCP()[i].mNamePt<<" "<<
-                       mGCP_UK.at(i)<<" "<<&mGCP_UK.at(i)->Pt()<<"\n";
+            for (unsigned int i=0; i<mMesGCP->MesGCP().size(); ++i )
+            {
+                mTopo->addPointWithUK(mMesGCP->MesGCP()[i].mNamePt, mGCP_UK.at(i), &mGCP_UK.at(i)->Pt());
+                StdOut()<<" add gcp for topo: "<<mMesGCP->MesGCP()[i].mNamePt<<" "<<
+                           mGCP_UK.at(i)<<" "<<&mGCP_UK.at(i)->Pt()<<"\n";
+            }
         }
     }
 }
