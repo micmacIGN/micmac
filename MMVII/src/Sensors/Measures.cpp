@@ -254,6 +254,7 @@ void cSetMesImGCP::AddMes2D(const cSetMesPtOf1Im & aSetMesIm,cSensorImage* aSens
 const std::vector<cMes1GCP> &        cSetMesImGCP::MesGCP()    const  {return mMesGCP; }
 const std::vector<cMultipleImPt> &   cSetMesImGCP::MesImOfPt() const  {return mMesImOfPt;  }
 const std::vector<cSensorImage*> &   cSetMesImGCP::VSens()     const  {return mVSens;}
+const std::vector<cSetMesPtOf1Im> &  cSetMesImGCP::MesImInit() const  {return mMesImInit;}
 
 std::vector<cMes1GCP> &        cSetMesImGCP::MesGCP()   {return mMesGCP; }
 
@@ -464,11 +465,11 @@ bool cSetMesPtOf1Im::NameHasMeasure(const std::string & aN) const {return Privat
 cMes1GCP::cMes1GCP(const cPt3dr & aPt,const std::string & aNamePt,tREAL4 aSigma) :
     mPt       (aPt),
     mNamePt   (aNamePt),
-    mSigma2   {0,0,0,0,0,0}
+    mOptSigma2   { {0,0,0,0,0,0} }
 {
-    mSigma2[IndXX] = aSigma;
-    mSigma2[IndYY] = aSigma;
-    mSigma2[IndZZ] = aSigma;
+    (*mOptSigma2)[IndXX] = aSigma;
+    (*mOptSigma2)[IndYY] = aSigma;
+    (*mOptSigma2)[IndZZ] = aSigma;
 }
 
 cMes1GCP::cMes1GCP() :
@@ -480,7 +481,7 @@ void AddData(const  cAuxAr2007 & anAux,cMes1GCP & aMes)
 {
    MMVII::AddData(cAuxAr2007("Name",anAux),aMes.mNamePt);
    MMVII::AddData(cAuxAr2007("Pt",anAux),aMes.mPt);
-   AddTabData(cAuxAr2007("Sigma2",anAux),aMes.mSigma2,6);
+   AddOptTabData(anAux,"Sigma2",aMes.mOptSigma2);
 }
 
 /* ********************************************* */

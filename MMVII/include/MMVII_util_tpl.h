@@ -2,6 +2,7 @@
 #define  _MMVII_Util_TPL_H_
 
 #include <algorithm>
+#include <array>
 #include "MMVII_enums.h"
 #include "MMVII_Error.h"
 #include "MMVII_nums.h"
@@ -18,6 +19,15 @@ template <class Type> class cExtSet ;
 template <class Type> class cDataExtSet ;
 template <class Type> class cSelector ;
 template <class Type> class cDataSelector ;
+
+
+/// just a std::array that is Destructible for use with std::optional
+template <class T, size_t Dim> class cArray : public std::array<T,Dim>
+{
+public:
+    ~cArray() {}
+};
+
 
 
 /* ============================================= */

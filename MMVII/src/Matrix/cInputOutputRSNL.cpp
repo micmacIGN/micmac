@@ -196,8 +196,9 @@ template <class Type> void cSetIORSNL_SameTmp<Type>::AddOneEq(const tIO_OneEq & 
     mNbEq += anIO.mVals.size();
     if 
     (
-            (mNbEq > mNbTmpUk)  // A priori there is no use to less or equal equation, this doesnt give any constraint
-	 && ( mSetIndTmpUk.NbElem()== mNbTmpUk)  // we are sure to have good index, because we cannot add oustide
+            (mNbEq >= mNbTmpUk)  // A priori there is no use to less or equal equation, this doesnt give any constraint
+                                 // but useful for GCP with 3d constraints and no 2d obs
+            && ( mSetIndTmpUk.NbElem()== mNbTmpUk)  // we are sure to have good index, because we cannot add oustide
     )
     {
         mOk = true; 

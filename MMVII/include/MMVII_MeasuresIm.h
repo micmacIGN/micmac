@@ -126,14 +126,14 @@ class cMes1GCP
      public :
         cMes1GCP(const cPt3dr & aPt,const std::string & aNamePt,tREAL4 aSigma);
         cMes1GCP();
-
+        bool isFree() const {return !mOptSigma2;}
         cPt3dr         mPt;
         std::string    mNamePt;
         static constexpr int IndXX = 0;
         static constexpr int IndYY = 3;
         static constexpr int IndZZ = 5;
 
-        tREAL4         mSigma2[6];  //  xx xy xz yy yz zz
+        std::optional<cArray<tREAL4,6> >  mOptSigma2;  //  xx xy xz yy yz zz
 };
 
 /**  A set of cMes1GCP */
@@ -212,6 +212,7 @@ class cSetMesImGCP : public cMemCheck
             std::vector<cMes1GCP> &        MesGCP() ; ///< Accessor
             const std::vector<cMultipleImPt> &   MesImOfPt() const ;  ///< Accessor
 	    const std::vector<cSensorImage*> &   VSens() const ;  ///< Accessor
+            const std::vector<cSetMesPtOf1Im> &  MesImInit() const;  ///< Accessor
 								
 	    tREAL8 AvgSqResidual() const;
 								  
