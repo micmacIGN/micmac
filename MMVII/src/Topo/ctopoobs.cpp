@@ -64,7 +64,7 @@ std::string cTopoObs::toString() const
     return oss.str();
 }
 
-std::vector<int> cTopoObs::getIndices() const
+/*std::vector<int> cTopoObs::getIndices() const
 {
     std::vector<int> indices;
     switch (mType) {
@@ -85,7 +85,7 @@ std::vector<int> cTopoObs::getIndices() const
         MMVII_INTERNAL_ERROR("unknown obs type")
     }
     return indices;
-}
+}*/
 
 std::vector<tREAL8> cTopoObs::getVals() const
 {

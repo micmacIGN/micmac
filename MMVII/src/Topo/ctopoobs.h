@@ -27,7 +27,7 @@ public:
     cTopoObs(cTopoObsSet* set, TopoObsType type, const std::vector<cTopoPoint*> & pts, const std::vector<tREAL8> & vals,  const cResidualWeighterExplicit<tREAL8> & aWeights);
     std::string toString() const;
     TopoObsType getType() const {return mType;}
-    std::vector<int> getIndices() const;
+    //std::vector<int> getIndices() const;
     std::vector<tREAL8> getVals() const;
     //cResidualWeighterExplicit<tREAL8>& getWeights();
     //std::vector<tREAL8> getResiduals(const cTopoComp *comp) const;

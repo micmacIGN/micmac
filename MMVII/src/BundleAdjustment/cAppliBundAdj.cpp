@@ -228,6 +228,9 @@ int cAppliBundlAdj::Exe()
     {
         bool aTopoOk = mBA.AddTopo(mTopoFilePath);
         MMVII_INTERNAL_ASSERT_tiny(aTopoOk,"Error reading topo obs file "+mTopoFilePath);
+        auto tmp = cTopoData::FromFile(mTopoFilePath);
+        std::cout<<"Topodata: "<<tmp<<"!"<<std::endl;
+        delete tmp;
     }
 
     MMVII_INTERNAL_ASSERT_User(MeasureAdded,eTyUEr::eUnClassedError,"Not any measure added");
@@ -244,6 +247,7 @@ int cAppliBundlAdj::Exe()
 
     mBA.SaveBlocRigid();  // RIGIDBLOC
     mBA.Save_newGCP();
+    mBA.SaveTopo(); // just for debug for now
 
     return EXIT_SUCCESS;
 }

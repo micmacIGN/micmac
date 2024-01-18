@@ -23,10 +23,10 @@ cBA_Topo::cBA_Topo
         {TopoObsType::subFrame, EqTopoSubFrame(true,1)},
         {TopoObsType::distParam, EqDist3DParam(true,1)},
     },
-    mOk(true)
+    mTopoData(),
+    mOk(true), mInFile(aTopoFilePath)
 {
     StdOut()<<"Read topo file "<<aTopoFilePath<<"\n";
-
     // TODO
     auto from_name = "DSCF3297_L.jpg";
     auto to_name = "DSCF3298_L.jpg";
@@ -48,7 +48,7 @@ cBA_Topo::~cBA_Topo()
 
 void cBA_Topo::Save()
 {
-
+    mTopoData.ToFile(mInFile+"-out.json");
 }
 
 

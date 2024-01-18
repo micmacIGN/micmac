@@ -10,17 +10,22 @@ using namespace NS_SymbolicDerivative;
 namespace MMVII
 {
 class cTopoObsSet;
-class cTopoComp;
+class cTopoData;
+
+///  Global function with standard interface required for serialization => just call member
+void AddData(const cAuxAr2007 & anAux, cTopoData & aTopoData) ;
 
 /**
  * @brief The cTopoData class represents topometric data
  */
-class cTopoData
+class cTopoData : public cMemCheck
 {
 public:
     cTopoData();
     ~cTopoData();
     void AddData(const  cAuxAr2007 & anAuxInit);
+    void ToFile(const std::string & aName) const;
+    static cTopoData * FromFile(const std::string &) ;
     void print();
     void createEx1();
     cCalculator<double>* getEquation(TopoObsType tot) const;
@@ -33,8 +38,6 @@ private:
 };
 
 
-///  Global function with standard interface required for serialization => just call member
-void AddData(const cAuxAr2007 & anAux, cTopoData & aTopoData) ;
 
 
 };

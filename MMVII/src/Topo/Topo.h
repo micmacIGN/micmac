@@ -38,7 +38,9 @@ private :
     const cPhotogrammetricProject &mPhProj;
 
     std::map<TopoObsType, cCalculator<double>*> mTopoObsType2equation;
+    cTopoData                    mTopoData;
     bool                         mOk;
+    std::string                  mInFile;
 
     // tmp: obs here, TODO: use cTopoObsSet
     std::vector<tTopoPtUK>      mPts_UK;

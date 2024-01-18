@@ -152,6 +152,7 @@ class cMMVII_BundleAdj
 
 	  void SaveBlocRigid();
           void Save_newGCP();
+          void SaveTopo();
 
      private :
 

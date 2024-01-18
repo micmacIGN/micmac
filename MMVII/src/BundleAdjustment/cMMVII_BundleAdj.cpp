@@ -531,6 +531,13 @@ void cMMVII_BundleAdj::SaveBlocRigid()
        mBlRig->Save();
     }
 }
+void cMMVII_BundleAdj::SaveTopo()
+{
+    if (mTopo)
+    {
+       mTopo->Save();
+    }
+}
 
 /* ---------------------------------------- */
 /*                 Topo                     */

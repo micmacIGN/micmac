@@ -16,6 +16,7 @@ cTopoData::cTopoData():
         {TopoObsType::distParam, EqDist3DParam(true,1)},
     }
 {
+    allPts.push_back(new cTopoPoint("Toto", {1.,2.,3.}, true));
 }
 
 cTopoData::~cTopoData()
@@ -26,6 +27,12 @@ cTopoData::~cTopoData()
     std::for_each(allPts.begin(), allPts.end(), [](auto p){ delete p; });
 }
 
+cTopoData * cTopoData::FromFile(const std::string & aNameFile)
+{
+    cTopoData * aRes = new cTopoData;
+    // ReadFromFile(aRes,aNameFile); // TODO
+    return aRes;
+}
 
 void cTopoData::AddData(const  cAuxAr2007 & anAuxInit)
 {
@@ -38,6 +45,11 @@ void cTopoData::AddData(const  cAuxAr2007 & anAuxInit)
 void AddData(const cAuxAr2007 & anAux, cTopoData & aTopoData)
 {
      aTopoData.AddData(anAux);
+}
+
+void cTopoData::ToFile(const std::string & aName) const
+{
+    SaveInFile(*this,aName);
 }
 
 
