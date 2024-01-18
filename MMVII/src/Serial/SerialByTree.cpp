@@ -390,7 +390,12 @@ cResLex cXmlSerialTokenParser::AnalysePonctuation(char aC)
 
 void cXmlSerialTokenParser::CheckOnClose(const cSerialTree & aTree,const std::string & aStr)  const
 {
-     MMVII_INTERNAL_ASSERT_tiny(aTree.Value() == aStr,"Close tag unexpected");
+     if (aTree.Value() != aStr)
+     {
+         StdOut()<< "Expected : [" << aStr << "], Got : [" << aTree.Value()<< "] " << std::endl;
+         MMVII_INTERNAL_ASSERT_tiny(false,"Close tag unexpected");
+     }
+
 }
 
 /*============================================================*/
@@ -512,6 +517,31 @@ cSerialTree* cSerialTree::AllocSimplify(const std::string & aNameFile)
 
 
     return aRes;
+}
+
+void cSerialTree::RecGetAllDescFromName(std::vector<const cSerialTree *>& aRes,const std::string & aTag) const
+{
+   if (!IsTerminalNode() && (aTag==mValue))
+       aRes.push_back(this);
+
+   for (const auto & aSon : mSons)
+     aSon.RecGetAllDescFromName(aRes,aTag);
+}
+
+/// Extract a descendant from its name
+std::vector<const cSerialTree *> cSerialTree::GetAllDescFromName(const std::string & aTag) const
+{
+    std::vector<const cSerialTree *> aRes;
+    RecGetAllDescFromName(aRes,aTag);
+    return aRes;
+}
+/// Test if there is a one and only one descendant
+const cSerialTree * cSerialTree::GetUniqueDescFromName(const std::string & aTag) const
+{
+    std::vector<const cSerialTree *> aRes = GetAllDescFromName(aTag);
+    MMVII_INTERNAL_ASSERT_tiny(aRes.size()==1,"cSerialTree::GetUniqueDescFromName, size="+ToStr(aRes.size()));
+
+    return aRes.at(0);
 }
 
 
@@ -1426,6 +1456,27 @@ void PutLineCSV(cMMVII_Ofs & anOfs,const std::vector<std::string>  & aVS)
    anOfs.Ofs() << "\n";
 }
 
+/* ==================================================================== */
+/*                                                                      */
+/*                      ::                                              */
+/*                                                                      */
+/* ==================================================================== */
+
+void TestReadXML(const std::string& aNameFile)
+{
+    cSerialFileParser * aSFP = cSerialFileParser::Alloc(aNameFile,eTypeSerial::exml);
+    cSerialTree  aTree(*aSFP);
+    const cSerialTree * aDirect = aTree.GetUniqueDescFromName("Direct_Model");
+    const cSerialTree * aSNC6 = aDirect->GetUniqueDescFromName("SAMP_NUM_COEFF_6");
+
+
+    StdOut() <<  "TEST COEFF" << aSNC6->UniqueSon().Value() << "\n";
+
+    delete aSFP;
+
+
+    StdOut() << "Bonjour World!" << std::endl;
+}
 
 };
 

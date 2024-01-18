@@ -214,6 +214,11 @@ class cSerialTree : public cMemCheck
 	  void  Raw_PrettyPrint(cMMVII_Ofs& anOfs) const;  /// Tagt-pretty print
 	  void  CSV_PrettyPrint(std::vector<std::string>& aRes,bool IsSpecif) const;  /// print 
 
+      /// Extract a descendant from its name
+      std::vector<const cSerialTree *> GetAllDescFromName(const std::string &) const;
+      /// Test if there is a one and only one descendant
+      const cSerialTree * GetUniqueDescFromName(const std::string &) const;
+
 
 	  /// Assert that there is only 1 son and return it
 	  const cSerialTree & UniqueSon() const; 
@@ -226,7 +231,9 @@ class cSerialTree : public cMemCheck
 	  const std::vector<cSerialTree>&  Sons() const; /// acessor
           const std::string & Value() const ;            /// accessor
      private :
-          void RecursSetFather(cSerialTree *);
+      void RecGetAllDescFromName(std::vector<const cSerialTree *>&,const std::string &) const;
+
+      void RecursSetFather(cSerialTree *);
 	  // cSerialTree(const cSerialTree &) ;
 	  /// Implement using exception
 	  void Rec_AnalyseDiffTree(const cSerialTree &,const std::string & aSkeep) const;
