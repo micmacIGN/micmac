@@ -10,7 +10,10 @@ Contact : marc.pierrot-deseilligny@ign.fr, ewelina.rupnik@ign.fr
 
 
 
-Contexte : MicMac est une solution de photogrammétrie open source complète développée à l'IGN depuis 2003. Une version 2 visant à être plus maintenable sur le long terme est en développement depuis 2020. L'équipe de développement comporte actuellement 6 chercheurs et ingénieurs IGN (pour environs 2 ETP), le projet est actuellement soutenu par l'IGN et le CERN. Afin de promouvoir  des contributions externes, l'IGN organise des séances de programmation interactive (live-coding); après une session en novembre 2023,  centrée sur la prise de compte de la contrainte de bloc rigide, une session est prévue en mars 2024 sur l'ajustement de faisceaux sur des capteurs satelittes.
+Contexte : MicMac est une solution de photogrammétrie open source complète développée à l'IGN depuis 2003. Une version 2 visant à être à faciliter les contributions externes et à être plus maintenable sur le long terme est en développement depuis 2020. L'équipe de développement comporte actuellement 6 chercheurs et ingénieurs IGN (pour environs 2 ETP), le projet est actuellement soutenu par l'IGN et le CERN. Afin de promouvoir  des contributions externes, l'IGN organise des séances de programmation interactive (live-coding); après une session en novembre 2023,  centrée sur la prise de compte de la contrainte de bloc rigide, une session est prévue en mars 2024 sur l'ajustement de faisceaux sur des capteurs satelittes.
+
+
+
 
 
  Après une séance organisée 

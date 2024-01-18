@@ -236,10 +236,10 @@ void cMemCheck::operator delete   (void * aPtr)
     cMemManager::Free(aPtr);
 }
 
-int     cMemCheck::NbObjLive() {return TheNbObjLive;}
+int     cMemCountable::NbObjLive() {return TheNbObjLive;}
 
-int     cMemCheck::TheNbObjLive=0;
-int     cMemCheck::TheCptObj = 0;
+int     cMemCountable::TheNbObjLive=0;
+int     cMemCountable::TheCptObj = 0;
 
 
 
