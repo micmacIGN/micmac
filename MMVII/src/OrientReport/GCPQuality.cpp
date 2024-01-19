@@ -59,6 +59,7 @@ class cAppli_CGPReport : public cMMVII_Appli
         std::string              mNameReportMissed;
 
 	double                   mMarginMiss;  ///  Margin for counting missing targets
+        std::string              mSuffixReportSubDir; // additional name for report subdir
 };
 
 cAppli_CGPReport::cAppli_CGPReport
@@ -71,7 +72,8 @@ cAppli_CGPReport::cAppli_CGPReport
      mPhProj       (*this),
      mIsGCP        (isGCP),
      mPropStat     ({50,75}),
-     mMarginMiss   (50.0)
+     mMarginMiss   (50.0),
+     mSuffixReportSubDir ("")
 {
 }
 
@@ -96,6 +98,7 @@ cCollecSpecArg2007 & cAppli_CGPReport::ArgOpt(cCollecSpecArg2007 & anArgOpt)
     if (mIsGCP)
        return aRes << AOpt2007(mGeomFiedlVec,"GFV","Geom Fiel Vect for visu [Mul,Witdh,Ray,Zoom?=2]",{{eTA2007::ISizeV,"[3,4]"}})
 	           << AOpt2007(mMarginMiss,"MargMiss","Margin to border for counting missed target",{eTA2007::HDV})
+                   << AOpt2007(mSuffixReportSubDir, "Suffix", "Suffix to report subdirectory name", {eTA2007::HDV})
        ;
 
     return aRes;
@@ -329,7 +332,10 @@ int cAppli_CGPReport::Exe()
 {
    mPhProj.FinishInit();
 
-   SetReportSubDir(mPhProj.DPOrient().DirIn() +  "_Mes-"+  mPhProj.DPPointsMeasures().DirIn());
+   auto nameSubDir = mPhProj.DPOrient().DirIn() +  "_Mes-"+  mPhProj.DPPointsMeasures().DirIn();
+   if (IsInit(&mSuffixReportSubDir))
+       nameSubDir += "_" + mSuffixReportSubDir;
+   SetReportSubDir(nameSubDir);
 
    mNameReportIm   =  "ByImage" ;
    mNameReportDetail   =  "Detail" ;
