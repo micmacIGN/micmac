@@ -123,7 +123,7 @@ void cParamCodedTarget::AddData(const cAuxAr2007 & anAuxParam)
     MMVII::AddData(cAuxAr2007("WithChessBoard",anAux),mWithChessboard);
     MMVII::AddData(cAuxAr2007("WhiteBackGround",anAux),mWhiteBackGround);
     MMVII::AddData(cAuxAr2007("ZeroIsBackGround",anAux),mZeroIsBackGround);
-    MMVII::AddData(cAuxAr2007("AntiClockWiseBit,",anAux),mAntiClockWiseBit);
+    MMVII::AddData(cAuxAr2007("AntiClockWiseBit",anAux),mAntiClockWiseBit);
 
     MMVII::AddData(cAuxAr2007("RayOrientTablet",anAux),mRayOrientTablet);
     MMVII::AddData(cAuxAr2007("CenterOrientTablet",anAux),mCenterOrientTablet);
