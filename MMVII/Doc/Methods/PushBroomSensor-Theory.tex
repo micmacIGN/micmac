@@ -129,6 +129,8 @@ In this chapter we  focuss on satelitte system, this has two consequences :
 
 \subsection{Satellite error model}
 
+\label{PB:SatErMOd}
+
 Let $R(i)$ be the initial orientation , and $R'(i)$ be the "real orientation"
 we want to estimate by adjsument.
 We admit that there exist a rotation $R_\Theta(i)$, very close to identity and
@@ -156,7 +158,7 @@ Noting $\Theta=(\omega,\phi,\kappa)$ and as  $R_\Theta$ is close to identity we 
 
 $\Theta(i)$ will be the unknown we want to compute, but for now
 we suppose we know it.  Eventually, later we will add intrinsic calibration
-unknown, for example if we add a scaling to modelize the focal, we will 
+unknown, for example if we add an unknown scaling $\lambda$ to modelize the focal, we will 
 have $\Theta=(\omega,\phi,\kappa, \lambda)$
 
 %-----------------------------------------------------------------------
@@ -229,10 +231,43 @@ But, by definition we have $ \pi'^{-1}(q') =  \pi^{-1}(q) $ so we have :
     =  - \mathbb{J}_q ^{-1} \mathbb{J}_\Theta \begin{bmatrix} \omega \\ \phi \\ \kappa  \end{bmatrix}
 \end{equation}
 
+
+We note :
+\begin{equation}
+	\mathcal{J}(i,j,z) = - \mathbb{J}_q ^{-1} \mathbb{J}_\Theta
+\end{equation}
+
 We now have a way to compute $\pi'$ (to first order) : 
 
 \begin{equation}
-	 \pi'(P) =  \pi(P)  - \mathbb{J}_q ^{-1} \mathbb{J}_\Theta \begin{bmatrix} \omega \\ \phi \\ \kappa  \end{bmatrix}
+	 \pi'(P) =  \pi(P)  + \mathcal{J} \begin{bmatrix} \omega \\ \phi \\ \kappa  \end{bmatrix}
+\end{equation}
+
+%-----------------------------------------------------------------------
+
+\subsection{Correction model}
+
+As decribed in~\ref{PB:SatErMOd}, we assume that the corrective term between
+initial localisation and \emph{real} localisation :
+
+\begin{enumerate}
+        \item  is a rotation arround current centers, 
+	\item  that this rotation depends only of $i$,
+	\item  that it  is very close to identity 
+	\item  that it  has very smooth variation.
+\end{enumerate}
+
+The small rotation being coded by $\omega,\phi,\kappa$, the classical solution
+is to  select a  familly of smooth function and to express them as a linear combinaison
+of these smooth function.  Classically we select the polynoms as basis (also other
+alternative may be studied later).  So let $N$ be the degree of polynoms,
+and $a_i,b_i,c_i$  the coefficient, the projection fonction is :
+
+All these consideration  drive to select for $R(i)$ a pa
+
+\begin{equation}
+	 \pi'(i,j,z) =  \pi(i,j,z)  + \sum _{k=0}^{N}  \mathcal{J}(i,j,z)  
+                                                \begin{bmatrix} a_k \omega^k \\ b_k \phi^k  \\ c_k \kappa^k  \end{bmatrix}
 \end{equation}
 %-----------------------------------------------------------------------
 \section{Vrac}
@@ -241,5 +276,8 @@ We now have a way to compute $\pi'$ (to first order) :
     \item begin by example with polynomial image
     \item method with some reverse engenering,  $\pi$ and $\pi^{-1}$ being "black box"
 \end{itemize}
+
+
+
 
 

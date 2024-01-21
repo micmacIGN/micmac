@@ -268,7 +268,23 @@ cPt3dr cSensorImage::PInterBundle(const cHomogCpleIm & aCple,const cSensorImage 
      return BundleInters(aSeg1,aSeg2);
 }
 
+cPt3dr cSensorImage::Ground2ImageAndZ(const cPt3dr & aPGround) const 
+{
+    cPt2dr aPIm = Ground2Image(aPGround);
 
+    return cPt3dr(aPIm.x(),aPIm.y(),aPGround.z());
+}
+
+
+cPt3dr cSensorImage::ImageAndZ2Ground(const cPt3dr & aPImZ) const 
+{
+    tSeg3dr  aBundle =  Image2Bundle(cPt2dr(aPImZ.x(),aPImZ.y()));
+    
+    const cPt3dr & aP1 = aBundle.P1();
+    cPt3dr aV12 = aBundle.V12();
+    return  aP1 +  aV12 *  ((aPImZ.z() - aP1.z()) /aV12.z());
+
+}
 
 
 /* ******************************************************* */

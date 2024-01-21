@@ -146,20 +146,13 @@ class cMemManager
 };
 
 
+/** cMemCountable to check that all object allocated are destroyed */
 
-
-/**
-    This classe redefine operators new and delate to check alloc / desalloc and (some) bad access.
-    Allocation and desallocation is delegated to  cMemManager
-*/
-
-class  cMemCheck
+class cMemCountable
 {
-      public :
-         void * operator new    (size_t sz);
-         void operator delete   (void * ptr) ;
+     public :
 #if (The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_tiny)
-         cMemCheck()  
+         cMemCountable()  
          {
               mCpt = TheCptObj;
               mActiveNbObj=   cMemManager::IsActiveMemoryCount();
@@ -169,8 +162,8 @@ class  cMemCheck
               }
 	      TheCptObj++;
          }
-         cMemCheck(const cMemCheck &)  : cMemCheck () {}
-         ~cMemCheck()
+         cMemCountable(const cMemCountable &)  : cMemCountable () {}
+         ~cMemCountable()
          {
             if (mActiveNbObj)
             {
@@ -184,13 +177,28 @@ class  cMemCheck
       private :
          static int    TheNbObjLive;
          static int    TheCptObj;
+};
+
+
+/**
+    This classe redefine operators new and delate to check alloc / desalloc and (some) bad access.
+    Allocation and desallocation is delegated to  cMemManager
+*/
+
+class  cMemCheck : public cMemCountable
+{
+      public :
+         void * operator new    (size_t sz);
+         void operator delete   (void * ptr) ;
+         cMemCheck () : cMemCountable() {}
+         cMemCheck(const cMemCheck &)  : cMemCheck () {}
        // to avoid use 
 };
 
 /**  some object have to live untill the end of the process, just before the verif is done in main
  *   appli destructor.
  */
-class cObj2DelAtEnd
+class cObj2DelAtEnd  : public cMemCountable
 {
         public :
                 virtual ~cObj2DelAtEnd();

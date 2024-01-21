@@ -132,9 +132,20 @@ template <class Type> class cRotation3D
        // Extract Axes of a rotation and compute its angle 
        void ExtractAxe(tPt & anAxe,Type & aTeta);
 
-       // conversion to Omega Phi Kapa
+       /// conversion to Omega Phi Kapa
        static cRotation3D<Type>  RotFromWPK(const tPt & aWPK);
+       /// extrecat Omega Phi Kapa from rotation
        tPt                       ToWPK() const;
+
+       /// Rotation arround X
+       static cDenseMatrix<Type> RotOmega(const tREAL8 & aOmega);
+       /// Rotation arround Y
+       static cDenseMatrix<Type> RotPhi(const tREAL8 & aPhi);
+       /// Rotation arround Z
+       static cDenseMatrix<Type> RotKappa(const tREAL8 & aKappa);
+
+       ///  0-> Omega   1->Phi  2-> Kappa
+       static cDenseMatrix<Type> Rot1WPK(int aK,const tREAL8 & aOmega);
 
        // conversion to Yaw Pitch Roll
        static cRotation3D<Type>  RotFromYPR(const tPt & aWPK);
@@ -144,6 +155,7 @@ template <class Type> class cRotation3D
        cDenseMatrix<Type>  mMat;
 };
 
+typedef cRotation3D<tREAL8> tRotR; 
 
 /**  Class for 3D "affine" rotation of vector
 

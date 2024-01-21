@@ -373,7 +373,7 @@ void BenchSerial_PerspCamIntrCalib(const std::string & aDirOut,eTypeSerial aType
 
      for (int aKM=0 ; aKM<int(eProjPC::eNbVals) ; aKM++)
      {
-         for (int aKDeg=0 ; aKDeg<3 ; aKDeg++)
+         for (int aKDeg=0 ; aKDeg<4 ; aKDeg++)
          {
 	     eProjPC aProj =  (eProjPC) aKM;
 	     cPerspCamIntrCalib *  aCal = cPerspCamIntrCalib::RandomCalib(aProj,aKDeg);
@@ -383,8 +383,6 @@ void BenchSerial_PerspCamIntrCalib(const std::string & aDirOut,eTypeSerial aType
          }
      }
 }
-// void  ToFile(const std::string & ) const ; ///< export in xml/dmp ...
-//  static cPerspCamIntrCalib * RandomCalib(eProjPC aTypeProj,int aKDeg);
 
 
 /* ===================================================== */

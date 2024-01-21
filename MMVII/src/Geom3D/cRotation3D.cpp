@@ -386,19 +386,45 @@ template <class Type> cPtxd<Type,3>  cRotation3D<Type>::ToYPR() const
 	return tPt(-aWPK.z(),-aWPK.y(),-aWPK.x());
 }
 
+template <class Type> cDenseMatrix<Type>  cRotation3D<Type>::RotOmega(const tREAL8 & aOmega)
+{
+   Type aCx = std::cos(aOmega);
+   Type aSx = std::sin(aOmega);
+   return M3x3FromLines(tPt(1,0,0),tPt(0,aCx,-aSx),tPt(0,aSx,aCx));
+}
+
+template <class Type> cDenseMatrix<Type>  cRotation3D<Type>::RotPhi(const tREAL8 & aPhi)
+{
+   Type aCy = std::cos(aPhi);
+   Type aSy = std::sin(aPhi);
+   return M3x3FromLines(tPt(aCy,0,aSy),tPt(0,1,0),tPt(-aSy,0,aCy));
+}
+
+template <class Type> cDenseMatrix<Type>  cRotation3D<Type>::RotKappa(const tREAL8 & aKappa)
+{
+   Type aCz = std::cos(aKappa);
+   Type aSz = std::sin(aKappa);
+   return M3x3FromLines(tPt(aCz,-aSz,0),tPt(aSz,aCz,0),tPt(0,0,1));
+}
+
+template <class Type> cDenseMatrix<Type>  cRotation3D<Type>::Rot1WPK(int aK,const tREAL8 & aTeta)
+{
+    switch (aK)
+    {
+        case 0 : return RotOmega(aTeta);
+        case 1 : return RotPhi(aTeta);
+        case 2 : return RotKappa(aTeta);
+    }
+    MMVII_INTERNAL_ERROR("Bad value of K in Rot1WPK : " + ToStr(aK));
+    return  cDenseMatrix<Type>(3);
+}
+
+
 template <class Type> cRotation3D<Type>  cRotation3D<Type>::RotFromWPK(const tPt & aWPK)
 {
-   Type aCx = std::cos(aWPK.x());
-   Type aSx = std::sin(aWPK.x());
-   auto aRx = M3x3FromLines(tPt(1,0,0),tPt(0,aCx,-aSx),tPt(0,aSx,aCx));
-
-   Type aCy = std::cos(aWPK.y());
-   Type aSy = std::sin(aWPK.y());
-   auto aRy = M3x3FromLines(tPt(aCy,0,aSy),tPt(0,1,0),tPt(-aSy,0,aCy));
-
-   Type aCz = std::cos(aWPK.z());
-   Type aSz = std::sin(aWPK.z());
-   auto aRz = M3x3FromLines(tPt(aCz,-aSz,0),tPt(aSz,aCz,0),tPt(0,0,1));
+   auto aRx = RotOmega(aWPK.x());
+   auto aRy = RotPhi(aWPK.y());
+   auto aRz = RotKappa(aWPK.z());
 
    return cRotation3D<Type>(aRx*aRy*aRz,false);
 /*

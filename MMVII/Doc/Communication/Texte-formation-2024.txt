@@ -1,14 +1,22 @@
 Session de programmation sous MicMac version 2 (MMVII)
 
 
-Date : 3 jours pleins du 12 au 14 mars
+Date : 3 jours pleins du 12 au 14 mars, 
 Sujet : implanter dans MMVII un ajustement de faisceau sur image satelitte
 Objectif : apprendre l'architecture de MMVII, notamment vis à vis de l'otimisation non linéaire
-Public : développeurs ayant de bonnes connaissances en photogrammétrie à l'aise en C++ 
-Contact : marc.pierrot-deseilligny@ign.fr
+Public : développeurs ayant de bonnes connaissances en photogrammétrie et à l'aise en C++.
+organisation : en présentiel (IGN) et en visio (IGN et extérieur).
+Contact : marc.pierrot-deseilligny@ign.fr, ewelina.rupnik@ign.fr
 
 
 
-Contexte : MicMac est une solution de photogrammétrie open source complète développée à l'IGN depuis 2003.  Comme beaucoup de logiciel de recherche il s'est construit pas empilement successif 
+Contexte : MicMac est une solution de photogrammétrie open source complète développée à l'IGN depuis 2003. Une version 2 visant à être à faciliter les contributions externes et à être plus maintenable sur le long terme est en développement depuis 2020. L'équipe de développement comporte actuellement 6 chercheurs et ingénieurs IGN (pour environs 2 ETP), le projet est actuellement soutenu par l'IGN et le CERN. Afin de promouvoir  des contributions externes, l'IGN organise des séances de programmation interactive (live-coding); après une session en novembre 2023,  centrée sur la prise de compte de la contrainte de bloc rigide, une session est prévue en mars 2024 sur l'ajustement de faisceaux sur des capteurs satelittes.
 
+
+
+
+
+ Après une séance organisée 
+
+  Comme beaucoup de logiciel de recherche il s'est construit pas empilement successif de couches et
 

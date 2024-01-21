@@ -86,12 +86,12 @@ int cSpecMMVII_Appli::AllocExecuteDestruct(const std::vector<std::string> & aVAr
         }
     }
     cMemManager::CheckRestoration(aMemoState);
-    MMVII_INTERNAL_ASSERT_always(cMemCheck::NbObjLive()==aNbObjLive,"Mem check obj not killed");
+    MMVII_INTERNAL_ASSERT_always(cMemCountable::NbObjLive()==aNbObjLive,"Mem check obj not killed");
     aCptCallIntern--;
     // This was the initial test, stricter, maintain it when call by main
     if (aCptCallIntern==0)
     {
-         MMVII_INTERNAL_ASSERT_always(cMemCheck::NbObjLive()==0,"Mem check obj not killed");
+         MMVII_INTERNAL_ASSERT_always(cMemCountable::NbObjLive()==0,"Mem check obj not killed");
     }
     return aRes;
 }

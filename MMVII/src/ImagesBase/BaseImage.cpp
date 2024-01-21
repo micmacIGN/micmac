@@ -338,6 +338,19 @@ template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::VD_SetV(const 
     mRawDataLin[tPB::IndexeLinear(aP)] = tNumTrait<Type>::RoundNearestToType(aV);
 }
 
+template<class Type,const int Dim> void  cDataTypedIm<Type,Dim>::ChSignIn(cDataTypedIm<Type,Dim> & aRes) const
+{
+   this->AssertSameArea(aRes);
+   auto  aOut =  aRes.mRawDataLin;
+   auto  aIn =   mRawDataLin;
+   auto aNbElem = NbElem();
+
+   for (int aX=0 ; aX<aNbElem ; aX++)
+       aOut[aX] = -aIn[aX];
+
+}
+
+
 /*
 template class cDataTypedIm<tREAL4,1>;
 template class cDataTypedIm<tREAL4,2>;

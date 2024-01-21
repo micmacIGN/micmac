@@ -806,8 +806,8 @@ cPerspCamIntrCalib * cPerspCamIntrCalib::RandomCalib(eProjPC aTypeProj,int aKDeg
 
     UpdateMax(aFoc,2* Norm2(aPP-aMidle));
 
-    std::vector<cPt3di>  aDegDir{{0,0,0},{2,0,0},{3,1,1}};
-    std::vector<cPt3di>  aDegInv{{0,0,0},{5,1,1},{7,2,5}};
+    std::vector<cPt3di>  aDegDir{{0,0,0},{2,0,0},{3,1,1},{0,0,1}};
+    std::vector<cPt3di>  aDegInv{{0,0,0},{5,1,1},{7,2,5},{0,0,1}};
 
     cPerspCamIntrCalib* aCam = cPerspCamIntrCalib::Alloc
                                 (
@@ -838,9 +838,10 @@ cPerspCamIntrCalib * cPerspCamIntrCalib::RandomCalib(eProjPC aTypeProj,int aKDeg
 }
 
 
+
 void BenchCentralePerspective(cParamExeBench & aParam,eProjPC aTypeProj)
 {
-    for (size_t aK=0 ; aK<3 ; aK++)
+    for (size_t aK=0 ; aK<4 ; aK++)
     {
        cPerspCamIntrCalib * aCam = cPerspCamIntrCalib::RandomCalib(aTypeProj,aK);
        aCam->TestInvInit((aK==0) ? 1e-3 : 1e-2, 1e-4);
@@ -851,12 +852,38 @@ void BenchCentralePerspective(cParamExeBench & aParam,eProjPC aTypeProj)
     }
 }
 
+void BenchImAndZ()
+{
+    for (int aK= 0 ; aK < 40 ; aK++)
+    {
+         cPerspCamIntrCalib * aCalib  = cPerspCamIntrCalib::RandomCalib(eProjPC::eStenope,(aK%4));
+         cSensorCamPC aCamPC("TestStenopeSat",tPoseR(cPt3dr::PRandC(),tRotR::RandomRot(0.1)),aCalib);
+
+         for (int aK=0 ; aK< 10 ; aK++)
+         {
+              cPt2dr aPIm = aCamPC.RandomVisiblePIm();
+              tREAL8 aZ = aCamPC.Center().z() + RandUnif_C_NotNull(0.1) * 10;
+
+              cPt3dr aPImZ(aPIm.x(),aPIm.y(),aZ);
+              cPt3dr aPGround = aCamPC.ImageAndZ2Ground(aPImZ);
+              cPt3dr aPImZ2  = aCamPC.Ground2ImageAndZ(aPGround);
+
+              MMVII_INTERNAL_ASSERT_bench(std::abs(aPGround.z()-aZ)<1e-5,"Z in BenchImAndZ");
+              MMVII_INTERNAL_ASSERT_bench(Norm2(aPImZ-aPImZ2)<1e-3,"Norm2 in BenchImAndZ");
+          }
+          delete aCalib;
+     }
+}
+
 
 void BenchCentralePerspective(cParamExeBench & aParam)
 {
     BenchCentralePerspective(aParam,eProjPC::eOrthoGraphik);
 
     if (! aParam.NewBench("CentralPersp")) return;
+
+    BenchStenopeSat();
+    BenchImAndZ();
 
     cMapPProj2Im aCS(1,cPt2dr(0,0));
     // in fact this is not necessary , btw maintain just in case and see if the test fail
