@@ -63,6 +63,31 @@ void cPolyn::Initialise(const cSerialTree & aData,const std::string& aPrefix)
     }
 }
 
+double cPolyn::Val(const cPt3dr& aP) const
+{
+    return    mCoeffs[0]
+            + mCoeffs[5]  * aP.y() * aP.z()
+            + mCoeffs[10] * aP.x() * aP.y() * aP.z()
+            + mCoeffs[15] * aP.x() * aP.x() * aP.x()
+            + mCoeffs[1]  * aP.y()
+            + mCoeffs[6]  * aP.x() * aP.z()
+            + mCoeffs[11] * aP.y() * aP.y() * aP.y()
+            + mCoeffs[16] * aP.x() * aP.z() * aP.z()
+            + mCoeffs[2]  * aP.x()
+            + mCoeffs[7]  * aP.y() * aP.y()
+            + mCoeffs[12] * aP.y() * aP.x() * aP.x()
+            + mCoeffs[17] * aP.y() * aP.y() * aP.z()
+            + mCoeffs[3]  * aP.z()
+            + mCoeffs[8]  * aP.x() * aP.x()
+            + mCoeffs[13] * aP.y() * aP.z() * aP.z()
+            + mCoeffs[18] * aP.x() * aP.x() * aP.z()
+            + mCoeffs[4]  * aP.y() * aP.x()
+            + mCoeffs[9]  * aP.z() * aP.z()
+            + mCoeffs[14] * aP.y() * aP.y() * aP.x()
+            + mCoeffs[19] * aP.z() * aP.z() * aP.z();
+
+}
+
 void cPolyn::Show()
 {
     for (int aK=0; aK<20; aK++)
@@ -106,6 +131,11 @@ class cRatioPolyn//1
 
 };
 
+double cRatioPolyn::Val(const cPt3dr &aP) const
+{
+    return mNumPoly.Val(aP) / mDenPoly.Val(aP);
+}
+
 void cRatioPolyn::Show()
 {
     StdOut() << "Numerator:" << std::endl;
@@ -115,8 +145,18 @@ void cRatioPolyn::Show()
     mDenPoly.Show();
 }
 
-//  class cRatioPolynXY   cRatioPolyn1 mX;  cRatioPolyn  mY;
-//  cPt2dr Val(const cPtd3r &) const;
+/* =============================================== */
+/*                                                 */
+/*                 cRatioPolynXY                   */
+/*                                                 */
+/* =============================================== */
+
+/**  A class containing two rational polynomials,
+     each to predict one coordinate :
+     mX(lat,lon) = j,     mY(lat,lon) = i or
+     mX(j,i)     = lat,   mY(j,i)     = lon
+*/
+
 class cRatioPolynXY
 {
     public:
@@ -136,6 +176,16 @@ class cRatioPolynXY
         cRatioPolyn mY;
 
 };
+
+cPt2dr cRatioPolynXY::Val(const cPt3dr &aP) const
+{
+    cPt2dr aRes;
+
+    aRes.x() = mX.Val(aP);
+    aRes.y() = mY.Val(aP);
+
+    return aRes;
+}
 
 void cRatioPolynXY::Show()
 {
@@ -158,11 +208,14 @@ void cRatioPolynXY::Show()
 class cDataRPC
 {
     public:
-        cDataRPC();
+        cDataRPC(const std::string&);
         void ReadXML(const std::string&);
-        double ReadXMLItem(const cSerialTree&,const std::string&);
-        void   ReadXMLModel(const cSerialTree&,const std::string&,cRatioPolynXY *);
-        void   ReadXMLNorms(const cSerialTree&);
+        void Exe();
+
+        cPt2dr GroundToImage(const cPt3dr&);
+        cPt3dr ImageZToGround(const cPt2dr&,const double);
+
+
 
         void Show();
 
@@ -182,31 +235,85 @@ class cDataRPC
         cPt3dr & GroundScale() {return mGroundScale;}
 
     private:
-        cRatioPolynXY * mDirectRPC; // rational polynomial for ground to image projection
-        cRatioPolynXY * mInverseRPC; // rational polynomial for image to ground projection
+        cPt2dr NormIm(const cPt2dr &aP,bool);
+        cPt3dr NormGround(const cPt3dr &aP,bool);
+        double NormZ(const double,bool);
 
-        /// coordinate normalisation:  coord_norm = coord * coord_scale + coord_offset
-        cPt2dr mImOffset; // sample and line offsets
-        cPt2dr mImScale;  // sample and line scales
+        double ReadXMLItem(const cSerialTree&,const std::string&);
+        void   ReadXMLModel(const cSerialTree&,const std::string&,cRatioPolynXY *);
+        void   ReadXMLNorms(const cSerialTree&);
+
+        cRatioPolynXY * mDirectRPC; // rational polynomial for image to ground projection
+        cRatioPolynXY * mInverseRPC; // rational polynomial for ground to image projection
+
+        /// coordinate normalisation:  coord_norm = (coord - coord_offset) / coord_scale
+        cPt2dr mImOffset; // line and sample offsets
+        cPt2dr mImScale;  // line and sample scales
 
         cPt3dr mGroundOffset; // ground coordinate (e.g., lambda, phi, h) offets
         cPt3dr mGroundScale;  // ground coordinate (e.g., lambda, phi, h) scales
+
+        std::string mNameRPC;
 };
 
-cDataRPC::cDataRPC() :
+cDataRPC::cDataRPC(const std::string& aNameRPC) :
     mDirectRPC(nullptr),
-    mInverseRPC(nullptr)
+    mInverseRPC(nullptr),
+    mNameRPC(aNameRPC)
 {}
+
+cPt2dr cDataRPC::NormIm(const cPt2dr &aP,bool Direct)
+{
+    return  Direct ?
+            DivCByC(aP - mImOffset,mImScale) : MulCByC(aP,mImScale) + mImOffset;
+}
+
+cPt3dr cDataRPC::NormGround(const cPt3dr &aP,bool Direct)
+{
+    return  Direct ?
+            DivCByC(aP - mGroundOffset,mGroundScale) : MulCByC(aP,mGroundScale) + mGroundOffset;
+}
+
+double cDataRPC::NormZ(const double aZ,bool Direct)
+{
+    return Direct ?
+           (aZ - mGroundOffset.z())/mGroundScale.z() : aZ*mGroundScale.z() + mGroundOffset.z();
+}
+
+cPt2dr cDataRPC::GroundToImage(const cPt3dr& aP)
+{
+
+    cPt3dr aPN  = NormGround(aP,true); // ground normalised
+    cPt2dr aRes = NormIm(mInverseRPC->Val(aPN),false); // image unnormalised
+
+    return aRes;
+}
+
+cPt3dr cDataRPC::ImageZToGround(const cPt2dr& aPIm,const double aZ)
+{
+
+    cPt2dr aPImN = NormIm(aPIm,true); // image normalised
+    double aZN = NormZ(aZ,true); // norm Z
+    cPt2dr aPGrN = mDirectRPC->Val(cPt3dr(aPImN.x(),aPImN.y(),aZN)); // ground normalised
+    cPt3dr aRes = NormGround( cPt3dr(aPGrN.x(),aPGrN.y(),aZN) ,false); // ground unnormalised
+
+    return aRes;
+}
+
+void cDataRPC::Exe()
+{
+    ReadXML(mNameRPC);
+}
 
 void cDataRPC::ReadXMLModel(const cSerialTree& aTree,const std::string& aPrefix,cRatioPolynXY * aModel)
 {
     const cSerialTree * aDirect = aTree.GetUniqueDescFromName(aPrefix);
 
-    aModel->X().NumPoly().Initialise(*aDirect,"LINE_NUM_COEFF_");
-    aModel->X().DenPoly().Initialise(*aDirect,"LINE_DEN_COEFF_");
-
     aModel->Y().NumPoly().Initialise(*aDirect,"SAMP_NUM_COEFF_");
     aModel->Y().DenPoly().Initialise(*aDirect,"SAMP_DEN_COEFF_");
+
+    aModel->X().NumPoly().Initialise(*aDirect,"LINE_NUM_COEFF_");
+    aModel->X().DenPoly().Initialise(*aDirect,"LINE_DEN_COEFF_");
 
 }
 
@@ -255,8 +362,6 @@ void cDataRPC::ReadXML(const std::string& aNameFile)
 
 
     delete aSFP;
-
-
 }
 
 void cDataRPC::Show()
@@ -278,22 +383,41 @@ void cDataRPC::Show()
 
 }
 
+/** Bench the reprojection functions */
+
+void TestRPCProjections(const std::string& aNameRPC1)
+{
+    // read
+    cDataRPC aCam1(aNameRPC1);
+    aCam1.Exe();
+
+    // (latitude,longtitude,h)
+    double aZ = 1188.1484901208684;
+    cPt3dr aPtGround(20.7369382477,16.6170106276,aZ);
+
+    // (j,i) ~ (Y, X) ~ (LINE,SAMPLE)
+    cPt2dr aPtIm(5769.51863767362192,6188.93377727110783);
+
+    StdOut() << "===== Ground to image" << std::endl;
+    cPt2dr aPtImPred = aCam1.GroundToImage(aPtGround);
+    StdOut() << aPtIm << " =? " << aPtImPred << ", " << std::endl;
+
+
+    StdOut() << "===== Image to ground" << std::endl;
+    cPt3dr aPtGroundPred = aCam1.ImageZToGround(aPtIm,aZ);
+
+    StdOut() << aPtGround << " =? " << aPtGroundPred << std::endl;
+
+}
+
 void TestDataRPCReasXML(const std::string& aNameFile)
 {
-    cDataRPC aRPC;
-    aRPC.ReadXML(aNameFile);
+    cDataRPC aRPC(aNameFile);
+    aRPC.Exe();
     aRPC.Show();
 }
 
 
-/*
- *
-
-    DataRPC contains 2 obj of RatioPolyn, as well as validity
-
-        constructor par def qui fait rien
-        function ReadXML qui lit
-*/
 
 /* =============================================== */
 /*                                                 */
@@ -347,8 +471,8 @@ int cAppliImportPushbroom::Exe()
 {
 
     //TestReadXML(mNameSensorIn);
-    TestDataRPCReasXML(mNameSensorIn);
-
+    //TestDataRPCReasXML(mNameSensorIn);
+    TestRPCProjections(mNameSensorIn);
 
     return EXIT_SUCCESS;
 }
