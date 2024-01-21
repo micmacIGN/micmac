@@ -90,14 +90,24 @@ class cSensorImage  :   public cObj2DelAtEnd,
 
 	 // =================   Image <-->  Ground  mappings  ===========================
 	 
-         ///  The most fundamental method, theoretically should be sufficient
+         /*  The most fundamental method, theoretically should be sufficient, when meaning full (ie non orthocentric) 
+            orientation must go from sensor to the scene */
+        
          virtual tSeg3dr  Image2Bundle(const cPt2dr &) const =0;
 	 /// Basic method  GroundCoordinate ->  image coordinate of projection
          virtual cPt2dr Ground2Image(const cPt3dr &) const = 0;
+
 	 ///  add the the depth (to see if have a default with bundle+Gr2Ima)
          virtual cPt3dr Ground2ImageAndDepth(const cPt3dr &) const = 0;
          /// Invert of Ground2ImageAndDepth
          virtual cPt3dr ImageAndDepth2Ground(const cPt3dr &) const = 0;
+
+	 ///  add the the Z
+         virtual cPt3dr Ground2ImageAndZ(const cPt3dr &) const ;
+         /// Invert of Ground2ImageAndZ
+         virtual cPt3dr ImageAndZ2Ground(const cPt3dr &) const ;
+
+
 	 /// Facility for calling ImageeAndDepth2Ground(const cPt3dr &)
          cPt3dr ImageAndDepth2Ground(const cPt2dr &,const double & ) const;
 
@@ -168,6 +178,14 @@ class cSensorImage  :   public cObj2DelAtEnd,
 
 	 /// If the camera has its own "obs/cste" (like curent rot for PC-Cam) that's the place to say it
 	 virtual  void PushOwnObsColinearity( std::vector<double> &) = 0;
+
+         //  method used in push-broom perturbation model
+
+          /// Extract the pose a line of sensor, meaningfull for push-broom , but can be used in other  context
+          tPoseR   GetPoseLineSensor(tREAL8 aXorY,bool LineIsX,int aNbSample,bool*IsOk=0,std::vector<double>*aResCD=0) const;
+          /**  Once computed the Orientation of line, compute the differential of proj relatively to WPK
+               EpsXYZ and EpsWPK are used for computing derivative with relative differences */
+           cDenseMatrix<tREAL8> CalcDiffProjRot(const cPt3dr & aPt,const tPoseR &,const cPt3dr & aEpsXYZ,const tREAL8 & aEpsWPK) const;
 
      private :
 	 /// Return the calculator, adapted to the type, for computing colinearity equation

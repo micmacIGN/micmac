@@ -127,6 +127,7 @@ void BenchHamming(cParamExeBench & aParam);
 void BenchPolynome(cParamExeBench & aParam);
 
 
+void BenchStenopeSat();
 void BenchUnCalibResection();
 void BenchPoseEstim(cParamExeBench & aParam);
 

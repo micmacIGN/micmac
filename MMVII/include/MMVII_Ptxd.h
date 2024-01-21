@@ -80,6 +80,8 @@ template <class Type,const int Dim> class cPtxd
                 aRes.mCoords[aK]= aVal;
            return aRes;
        }
+       /// All coord 0 exect aCoord that values aVal
+       static cPtxd<Type,Dim>  P1Coord(size_t aCoord,const Type & aVal) ;
        /// Initialisation with nan value (to detect error asap)
        static cPtxd<Type,Dim>  Dummy();
        /// Initialisation from name "i..."  "-j..."    valide are "ijkl" 
@@ -832,8 +834,12 @@ template <class Type,const int Dim> class cSegmentCompiled : public cSegment<Typ
     public :
        typedef cPtxd<Type,Dim> tPt;
        cSegmentCompiled(const tPt& aP1,const tPt& aP2);
+       cSegmentCompiled(const cSegment<Type,Dim>&);
        tPt  Proj(const tPt &) const;
        Type Dist(const tPt &) const;
+
+       const Type & N2 () const;
+       const tPt  & Tgt() const;
     protected :
        Type    mN2;
        tPt     mTgt;

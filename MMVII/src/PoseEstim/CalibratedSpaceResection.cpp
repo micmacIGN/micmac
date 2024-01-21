@@ -505,14 +505,14 @@ void BenchCalibResection(cParamExeBench & aParam)
 	                  new cTimerSegm  (&(cMMVII_Appli::CurrentAppli()))   :
 	  		  nullptr                                             ;
 
-   for (int aK=0 ; aK<3 ; aK++)  // Test different degree
+   for (int aKCal=0 ; aKCal<4 ; aKCal++)  // Test different degree
    {
        for (int aKEnum=0 ; aKEnum<int(eProjPC::eNbVals) ; aKEnum++)  // Test all projections
        {
             cAutoTimerSegm * anATS = new cAutoTimerSegm(aTimeSeg,"CreateCalib");
             eProjPC aTypeProj = eProjPC(aKEnum);
 	    //  K%3  =>  3 option for degree of dist in random calib
-            cPerspCamIntrCalib *  aCalib = cPerspCamIntrCalib::RandomCalib(aTypeProj,aK%3);
+            cPerspCamIntrCalib *  aCalib = cPerspCamIntrCalib::RandomCalib(aTypeProj,aKCal%4);
 
 	    delete anATS;
 

@@ -380,6 +380,7 @@ template <class Type,const int Dim> class cDataTypedIm : public cDataGenUnTypedI
         tREAL16  MoyVal() const;
 
         void DupIn(cDataTypedIm<Type,Dim> &) const;  ///< Duplicate raw data
+        void ChSignIn(cDataTypedIm<Type,Dim> &) const;  ///< Duplicate with sign change in raw data
         void DupInVect(std::vector<Type> &) const;  ///< Duplicate raw data in a vect
 
         // Defaults values quitt slow but may be usefull

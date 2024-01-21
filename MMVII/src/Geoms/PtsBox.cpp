@@ -124,6 +124,11 @@ template <class Type,const int Dim> cSegmentCompiled<Type,Dim>::cSegmentCompiled
 {
 }
 
+template <class Type,const int Dim> cSegmentCompiled<Type,Dim>::cSegmentCompiled(const  cSegment<Type,Dim> & aSeg) :
+    cSegmentCompiled<Type,Dim>(aSeg.P1(),aSeg.P2())
+{
+}
+
 template <class Type,const int Dim> cPtxd<Type,Dim>  cSegmentCompiled<Type,Dim>::Proj(const tPt & aPt) const
 {
      return this->mP1 + mTgt * Type(Scal(mTgt,aPt-this->mP1)) ;
@@ -133,6 +138,10 @@ template <class Type,const int Dim> Type  cSegmentCompiled<Type,Dim>::Dist(const
 {
 	return Norm2(aPt-Proj(aPt));
 }
+
+template <class Type,const int Dim> const Type &   cSegmentCompiled<Type,Dim>::N2 () const {return mN2;}
+template <class Type,const int Dim> const cPtxd<Type,Dim> &   cSegmentCompiled<Type,Dim>::Tgt () const {return mTgt;}
+
 /* ========================== */
 /*          ::                */
 /* ========================== */
@@ -293,15 +302,6 @@ template <const int Dim> int NbPixVign(const cPtxd<int,Dim> & aVign)
 
 cPt2di  TAB4Corner[4] = {{1,1},{-1,1},{-1,-1},{1,-1}};
 
-/*
-template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::PCste(const Type & aVal)
-{
-   cPtxd<Type,Dim> aRes;
-   for (int aK=0 ; aK<Dim; aK++)
-       aRes.mCoords[aK]= aVal;
-   return aRes;
-}
-*/
 
 
 template <class Type,const int Dim>  cPtxd<Type,Dim>  cPtxd<Type,Dim>::PFromCanonicalName(const std::string & aName,size_t & anIndex)
@@ -320,7 +320,12 @@ template <class Type,const int Dim>  cPtxd<Type,Dim>  cPtxd<Type,Dim>::PFromCano
     return aRes;
 }
 
-
+template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::P1Coord(size_t aKCoord,const Type & aVal)
+{
+   cPtxd<Type,Dim> aRes = PCste(0);
+   aRes.mCoords[aKCoord]= aVal;
+   return aRes;
+}
 
 template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::Dummy()
 {
@@ -1303,6 +1308,7 @@ template  cPtxd<TYPE,DIM> Centroid(TYPE aW0,const cPtxd<TYPE,DIM> & aP0,const cP
 template  std::ostream & operator << (std::ostream & OS,const cPtxd<TYPE,DIM> &aP);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PFromCanonicalName(const std::string & aName,size_t & anIndex);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::Dummy();\
+template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::P1Coord(size_t,const TYPE &);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::FromStdVector(const std::vector<TYPE>&);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRand();\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandC();\
