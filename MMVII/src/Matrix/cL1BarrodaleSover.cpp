@@ -225,12 +225,15 @@ template <class Type> void cCraig_Barrodale_Roberts_l1<Type>::Bench()
         {
             int aNbEq = 3 + aDim * 3;
             cCraig_Barrodale_Roberts_l1 aSys(aDim);
-	    for (int aKEq = 0 ; aKEq<aNbEq ; aKEq++)
-	    {
-                aSys.PublicAddObservation(RandInInterval(0.1,1.0),cDenseVect<Type>::RanGenerate(aDim),RandInInterval(-10.0,10.0));
-	    }
-	    cDenseVect<Type>  aVec = aSys.Solve();
-	    aSys.Bench1Sol(aVec);
+            for (int aKEq = 0 ; aKEq<aNbEq ; aKEq++)
+            {
+                auto v1 = RandInInterval(0.1,1.0);
+                auto v2 = cDenseVect<Type>::RanGenerate(aDim);
+                auto v3 = RandInInterval(-10.0,10.0);
+                aSys.PublicAddObservation(v1,v2,v3); // use variable to force evaluation order
+            }
+            cDenseVect<Type>  aVec = aSys.Solve();
+            aSys.Bench1Sol(aVec);
         }
     }
 }
