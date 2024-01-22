@@ -39,14 +39,8 @@ jobs:
         CXX: clang++-14
         CC: clang-14
 
-    - name: Build MMVII first stage, build base code
-      run: cmake --build MMVII/build -j 4 -- -k
-
-    - name: Generate codes for Symbolic Derivatives
-      run: MMVII/bin/MMVII GenCodeSymDer
-
-    - name: Build MMVII second stage, build generated code
-      run: cmake --build MMVII/build -j 4 -- -k
+    - name: Build MMVII
+      run: cmake --build MMVII/build -j 4 --target full -- -k
 
     - name: Run MMVII Tests
       working-directory: ./MMVII/bin
@@ -83,16 +77,10 @@ jobs:
       run: cmake --build build --config Release --target INSTALL -j 4
     
     - name: Configure CMake for MMVII
-      run: cmake -S MMVII -B MMVII/build 
+      run: cmake -S MMVII -B MMVII/build
 
-    - name: Build MMVII first stage, build base code
-      run: cmake --build MMVII/build --config Release -j 4
-
-    - name: Generate codes for Symbolic Derivatives
-      run: MMVII/bin/MMVII GenCodeSymDer
-
-    - name: Build MMVII second stage, build generated code
-      run: cmake --build MMVII/build  --config Release -j 4
+    - name: Build MMVII
+      run: cmake --build MMVII/build --config Release -j 4 --target full
 
     - name: Run MMVII Tests
       working-directory: ./MMVII/bin

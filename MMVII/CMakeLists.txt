@@ -163,10 +163,28 @@ else()
 endif()
 
 #######################################################
-##        target distclean : remove generated code
+##        Custom targets
 #######################################################
+
+##  distclean : clean + remove generated source files for symbolic calculus
 add_custom_target(distclean
-  ${CMAKE_COMMAND} --build . --target clean
-  COMMAND   ${CMAKE_COMMAND} -E rm -rf ${mmv2_gencode_dir}
+  COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --config $<CONFIG> --target clean
+  COMMAND ${CMAKE_COMMAND} -E rm -rf ${mmv2_gencode_dir}
   VERBATIM)
-  
+
+##  full : generate source files for symbolic calculus and recompile
+add_custom_target(full
+  COMMAND ${CMAKE_COMMAND} -E rm -rf ${mmv2_gencode_dir}
+  COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --config $<CONFIG>
+  COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/MMVII GenCodeSymDer
+  COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --config $<CONFIG>
+  VERBATIM USES_TERMINAL)
+
+## rebuild : distclean + full
+add_custom_target(rebuild
+  COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target distclean
+  COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --config $<CONFIG>
+  COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/MMVII GenCodeSymDer
+  COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --config $<CONFIG>
+  VERBATIM USES_TERMINAL)
+
