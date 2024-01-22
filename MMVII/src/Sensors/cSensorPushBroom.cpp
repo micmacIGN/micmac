@@ -97,29 +97,47 @@ cDenseMatrix<tREAL8>   cSensorImage::CalcDiffProjRot
    cDenseMatrix<tREAL8> aJacWPK(3,3);
    cPt3dr aPtIJZ = Ground2ImageAndZ(aPXYZ);
    cPt3dr aPLoc = aPose.Inverse(aPXYZ);
+   tREAL8 aZ = aPXYZ.z();
+   const cPt3dr & aCenter = aPose.Tr();
+
+// StdOut() << "PLL = " << aPLoc << "\n";
 
    for (size_t aK=0 ; aK<3 ; aK++)
    {
        tREAL8 aEpsXYZ = aPtEpsIJZ[aK];  // extract the good epsilon
-       cPt3dr aEpsK = cPt3dr::P1Coord(aK,aEpsXYZ); // point in given direction
+       cPt3dr aEpsK = cPt3dr::P1Coord(aK,aEpsXYZ); // epsilon point in given direction
        cPt3dr  aDerXYZ = (ImageAndZ2Ground(aPtIJZ+aEpsK) - ImageAndZ2Ground(aPtIJZ-aEpsK)) /(2*aEpsXYZ);  // 
        SetCol(aJacXYZ,aK,aDerXYZ);
+       // SetLine(aK,aJacXYZ,aDerXYZ);
 
        cDenseMatrix<tREAL8>  aMat =  cRotation3D<tREAL8>::Rot1WPK(aK,aEpsWPK);
-       //  PlocPert = aMat*aPLoc  ,  PGroundPert = aPose.Value(PlocPert) ,  PImPert = ImageAndZ2Ground(PGroundPert)
-       cPt3dr aPLocPlus  =   ImageAndZ2Ground(aPose.Value(aMat*aPLoc));
+       //  PlocPert = aMat*aPLoc  ,  PGroundPert = aPose.Value(PlocPert) 
+       cPt3dr aPLocPlus  =   BundleFixZ(tSeg3dr(aCenter,aPose.Value(aMat*aPLoc)),aZ);
        // As aMat is rotation, transpose is inverse, and v*M is in fact t(tV*M) = tM *v
-       cPt3dr aPLocMoins =   ImageAndZ2Ground(aPose.Value(aPLoc*aMat));
-       cPt3dr  aDerWPK  =  (aPLocPlus-aPLocMoins) / aEpsWPK;
+       cPt3dr aPLocMoins =    BundleFixZ(tSeg3dr(aCenter,aPose.Value(aPLoc*aMat)),aZ);
+ //ImageAndZ2Ground(aPose.Value(aPLoc*aMat));
+
+   // aPLocPlus = aPose.Value(aMat*aPLoc);
+   // aPLocMoins = aPose.Value(aPLoc*aMat);
+//StdOut() << "D=" <<  aDerXYZ   <<  "PTS=" << aPLocPlus <<  aPXYZ <<  aPLocMoins<< "\n";
+       cPt3dr  aDerWPK  =  (aPLocPlus-aPLocMoins) / (2*aEpsWPK);
        SetCol(aJacWPK,aK,aDerWPK);
+       // SetLine(aK,aJacWPK,aDerWPK);
    }
 
    return -aJacXYZ.Inverse() * aJacWPK;
 }
 
-void BenchStenopeSat(int aNum)
+class cBenchStenopeSat
 {
-    cPerspCamIntrCalib * aCalib  = cPerspCamIntrCalib::RandomCalib(eProjPC::eStenope,aNum);
+    public :
+};
+
+void BenchStenopeSat(int aNum,bool isX)
+{
+   // cPerspCamIntrCalib * aCalib  = cPerspCamIntrCalib::RandomCalib(eProjPC::eStenope,aNum);
+    cDataPerspCamIntrCalib aDPCIC("BStenSat",eProjPC::eStenope,cPt3di(0,0,1),1000, cPt2di(1000,1000));
+    cPerspCamIntrCalib * aCalib  = new cPerspCamIntrCalib(aDPCIC);
 
     cPt3dr aC  = cPt3dr::PRandC();
     tRotR aRot =  tRotR::RandomRot(0.1);
@@ -127,34 +145,81 @@ void BenchStenopeSat(int aNum)
     cSensorCamPC aCamPC("TestStenopeSat",tPoseR(aC,aRot),aCalib);
     tREAL8 aFoc =  aCalib->F();
 
-    cPt3dr aWPK =  cPt3dr::PRandC() / aFoc;
+    cPt3dr aWPK =  cPt3dr::PRandC() / (aFoc*1);
     tRotR aRotPert = tRotR::RotFromWPK(aWPK);
-    cSensorCamPC aCamPCPert("TestStenopeSat",tPoseR(aC,aRot*aRotPert),aCalib);
 
-FakeUseIt(aCamPCPert);
-StdOut() <<  "BenchStenopeSatBenchStenopeSat " << aFoc << "\n";
+/*
+cDenseMatrix<tREAL8>  aMatP =     tRotR::RotOmega(aWPK.x())
+                               +  tRotR::RotPhi(aWPK.y())
+                               +  tRotR::RotKappa(aWPK.z()) ;
+     aMatP = aMatP - cDenseMatrix<tREAL8>::Identity(3)*2.0;
+     StdOut() << "aWPKaWPK " << aWPK  << tRotR(aMatP,true).ToWPK() -aWPK << "\n";
+     aRotPert = tRotR(aMatP,true);
+*/
 
-    tREAL8 aMargin = 2.0;
-    for (int aX = aMargin ; aX < aCalib->SzPix().x() - aMargin ; aX+=20)
+    cSensorCamPC aCamPCPertPlus("TestStenopeSat",tPoseR(aC,aRot*aRotPert),aCalib);
+    cSensorCamPC aCamPCPertMinus("TestStenopeSat",tPoseR(aC,aRot*aRotPert.MapInverse()),aCalib);
+
+    // tREAL8 aMargin = 2.0;
+    int aSz0 = isX ?  aCalib->SzPix().x() :  aCalib->SzPix().y();
+    int aSz1 = isX ?  aCalib->SzPix().y() :  aCalib->SzPix().x();
+
+    int aNb0 = 3;
+    int aNb1 = 3;
+    //for (tREAL8 aCoord0=aMargin ; aCoord0<aSz0-aMargin ; aCoord0+=20)
+    for (int aK0= 0 ; aK0< aNb0 ; aK0++)
     {
         bool Ok;
+        tREAL8 aCoord0 =  aSz0 * ( aK0+0.5) / aNb0;
         std::vector<double> aRes;
-        tPoseR  aPose=  aCamPC.GetPoseLineSensor(aX,true,30,&Ok,&aRes);
+        tPoseR  aPose=  aCamPC.GetPoseLineSensor(aCoord0,isX,30,&Ok,&aRes);
 
         MMVII_INTERNAL_ASSERT_bench(Norm2(aPose.Tr() - aC)<1e-5,"bundle ref in BenchStenopeSat");
         MMVII_INTERNAL_ASSERT_bench(aRes.at(0)<1e-5,"Residual bunles in BenchStenopeSat");
         MMVII_INTERNAL_ASSERT_bench(aRes.at(1)<1e-5,"Residual plane in BenchStenopeSat");
 
+        // tREAL8 aCoord1 = RandInInterval(aMargin,aSz1-aMargin);
+
+        for (int aK1= 0 ; aK1< aNb1 ; aK1++)
+        {
+             tREAL8 aCoord1 =  aSz1 * ( aK1+0.5) / aNb1;
+             cPt2dr aPtIJ = isX ? cPt2dr(aCoord0,aCoord1)  : cPt2dr(aCoord1,aCoord0);
+             tREAL8 aDepth = RandInInterval(1,10.0);
+             cPt3dr aPXYZ = aCamPC.ImageAndDepth2Ground(TP3z(aPtIJ,aDepth));
+
+             cPt3dr   aEpsPt (1,1,aDepth/(aSz0+aSz1));
+
+             auto aMat = aCamPC.CalcDiffProjRot(aPXYZ,aPose,aEpsPt, 1/aFoc);
+
+             //cPt2dr aGTDif = aCamPCPertPlus.Ground2Image(aPXYZ)-aPtIJ;
+             cPt2dr aGTDif = ( aCamPCPertPlus.Ground2Image(aPXYZ)-aCamPCPertMinus.Ground2Image(aPXYZ) ) /2.0;
+             cPt3dr aDerDif = aMat*aWPK ;
+
+             StdOut() << "GT=" <<    aGTDif   << " DerDif" << aDerDif <<  " Delta="  <<  Proj(aDerDif) + aGTDif << "\n"; 
+         }
+         StdOut() << "===============  ENDLINE ============\n"; // getchar();
     }
+    StdOut() << "ENDCAM \n"; getchar();
 
     delete aCalib;
 }
+
+// WPPkkk:: [-0.089067,0.0490246,-1.81514e-17]  [0.0884715,-0.0497044]     WPPkkk:: [-0.000595493,-0.00067973]
+// WPPkkk:: [-0.89067,0.490246,-1.81514e-16]    [0.884704,-0.497031]       WPPkkk:: [-0.00596524,-0.0067843]
+
+//  WPK sym :   WPPkkk:: [-0.00596756,-0.00678868] [0.884702,-0.497035]
+
+// WPPkkk:: [-8.9067,4.90246,-1.81514e-15]      [8.84601,-4.96901]                  [-0.0606832,-0.0665438]
+
+
 void BenchStenopeSat()
 {
     for (int aK=0 ; aK<10 ; aK++)
     {
-        BenchStenopeSat(0);
-        BenchStenopeSat(3);
+        BenchStenopeSat(0,true);
+        BenchStenopeSat(3,true);
+        // BenchStenopeSat(0,false);
+        // BenchStenopeSat(3,false);
     }
 }
 

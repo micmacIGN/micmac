@@ -37,6 +37,7 @@ template <class T>   T operator ^ (const cPtxd<T,2> & aP1,const cPtxd<T,2> & aP2
     return aP1.x()*aP2.y()-aP1.y()*aP2.x();
 }
 
+template <class T>   cPtxd<T,3> TP3z  (const cPtxd<T,2> & aPt,const T&);
 template <class T>   cPtxd<T,3> TP3z0  (const cPtxd<T,2> & aPt);
 template <class T>   cPtxd<T,2> Proj   (const cPtxd<T,3> & aPt);
 template <class T>   cTriangle<T,3> TP3z0  (const cTriangle<T,2> & aPt);

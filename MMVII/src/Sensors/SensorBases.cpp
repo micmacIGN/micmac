@@ -275,15 +275,11 @@ cPt3dr cSensorImage::Ground2ImageAndZ(const cPt3dr & aPGround) const
     return cPt3dr(aPIm.x(),aPIm.y(),aPGround.z());
 }
 
-
 cPt3dr cSensorImage::ImageAndZ2Ground(const cPt3dr & aPImZ) const 
 {
     tSeg3dr  aBundle =  Image2Bundle(cPt2dr(aPImZ.x(),aPImZ.y()));
     
-    const cPt3dr & aP1 = aBundle.P1();
-    cPt3dr aV12 = aBundle.V12();
-    return  aP1 +  aV12 *  ((aPImZ.z() - aP1.z()) /aV12.z());
-
+    return BundleFixZ(aBundle,aPImZ.z());
 }
 
 
