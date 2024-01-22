@@ -42,6 +42,16 @@ class cJsonSerialTokenParser ; // instantiation of cSerialFileParser to json fil
 class cSerialTree;             //  class for representing in a tree the "grammatical" parsing of a token generator
 
 
+// From boost:: ...
+template <class T>
+static inline void hash_combine(std::size_t& seed, T const& v)
+{
+   std::hash<T> hasher;
+   seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+}
+
+// template <class T> void HashCombine(std::size_t& seed, T const& v);
+
 
 
 ///  Use to handle End Of File using exception

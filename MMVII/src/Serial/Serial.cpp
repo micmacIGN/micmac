@@ -571,17 +571,6 @@ void cHashValue_Ar2007::RawAddDataTerm(cRawData4Serial  &    aRDS)
    }
 }
 
-// From boost:: ...
-template <class T>
-static inline void hash_combine(std::size_t& seed, T const& v)
-{
-   std::hash<T> hasher;
-   seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
-}
-
-// template <class T> void HashCombine(std::size_t& seed, T const& v);
-
-
 
 void cHashValue_Ar2007::RawAddDataTerm(size_t &  aSz) 
 {
