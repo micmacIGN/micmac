@@ -199,8 +199,7 @@ template <class Type> void cCraig_Barrodale_Roberts_l1<Type>::Bench1Sol(const cD
 
      //StdOut() <<  "RESS " << aVRes.at(this->mNbVar-1) << " " << aVRes.at(this->mNbVar) << std::endl;
      // A first condition is that at least NB VAR are out
-     MMVII_DEV_WARNING("Replace assert 'aVRes.at(this->mNbVar-1)<1e-5' with '1e-4' because of clang");
-     MMVII_INTERNAL_ASSERT_bench(aVRes.at(this->mNbVar-1)<1e-4,"Bench1Sol");
+     MMVII_INTERNAL_ASSERT_bench(aVRes.at(this->mNbVar-1)<1e-5,"Bench1Sol"); // TODO: is not always true
 
      tREAL8 aScoreS = this->Residual(aSol);
 
