@@ -362,9 +362,14 @@ void cEllipse::BenchEllispe()
 
          for (int aKp=0 ; aKp<10 ; aKp++)
 	 {
-             cPt2dr aP1 =  anEl.PtOfTeta(RandInInterval(-M_PI,M_PI),RandInInterval(0.99,0.999));
-             cPt2dr aP2 =  anEl.PtOfTeta(RandInInterval(-M_PI,M_PI),RandInInterval(1.001,1.01));
-             cPt2dr aP3 =  anEl.PtOfTeta(RandInInterval(-M_PI,M_PI),1.0);
+             auto v1 = RandInInterval(-M_PI,M_PI);
+             auto v2 = RandInInterval(0.99,0.999);
+             auto v3 = RandInInterval(-M_PI,M_PI);
+             auto v4 = RandInInterval(1.001,1.01);
+             auto v5 = RandInInterval(-M_PI,M_PI);
+             cPt2dr aP1 =  anEl.PtOfTeta(v1,v2);
+             cPt2dr aP2 =  anEl.PtOfTeta(v3,v4);
+             cPt2dr aP3 =  anEl.PtOfTeta(v5,1.0);
 
 	     MMVII_INTERNAL_ASSERT_bench(anEl.SignedQF_D2(aP1)<0,"BenchEllispe");
 	     MMVII_INTERNAL_ASSERT_bench(anEl.SignedQF_D2(aP2)>0,"BenchEllispe");
@@ -402,7 +407,9 @@ void cEllipse::BenchEllispe()
 	 cWeightAv<tREAL8>  aWAvg;
          for (int aKp=0 ; aKp<100 ; aKp++)
 	 {
-             cPt2dr aP1 =  anEl.PtOfTeta(RandInInterval(0.9,1.1),RandInInterval(-M_PI,M_PI));
+             auto v1 = RandInInterval(0.9,1.1);
+             auto v2 = RandInInterval(-M_PI,M_PI);
+             cPt2dr aP1 =  anEl.PtOfTeta(v1,v2);
              tREAL8  aRatio= anEl.ApproxDist(aP1) / anEl.EuclidDist(aP1) ;
 	     UpdateMax(aMaxRatio,aRatio);
 	     aWAvg.Add(1.0,aRatio);

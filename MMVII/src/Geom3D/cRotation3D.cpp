@@ -192,7 +192,9 @@ template <class Type> cIsometry3D<Type> cIsometry3D<Type>::FromTriInAndOut
 template <class Type> 
    cIsometry3D<Type> cIsometry3D<Type>::RandomIsom3D(const Type & AmplPt)
 {
-    return  cIsometry3D<Type> (tPt::PRandC()*AmplPt,cRotation3D<Type>::RandomRot());
+    auto aTr = tPt::PRandC()*AmplPt;
+    auto aRot = cRotation3D<Type>::RandomRot();
+    return  cIsometry3D<Type> (aTr, aRot);
 }
 
 template <class Type> cIsometry3D<tREAL8>  ToReal8(const cIsometry3D<Type>  & anIsom)

@@ -683,11 +683,13 @@ template <class Type,class TypeSys> void TplBenchLsq()
             StdOut()  << "NBVARR=" << aNbVar << " NbE="<<aNbEq << std::endl;
 
          // random param for sparse normal syst
+         auto v1 = round_ni(aNbVar*pow(RandUnif_0_1(), 4.0));
+         auto v2 = round_ni(0.5*aNbVar*pow(RandUnif_0_1(), 2.0));
 	 cParamSparseNormalLstSq aParam
 		                 (
 				       8.0*RandUnif_0_1(), 
-                                       round_ni(aNbVar*pow(RandUnif_0_1(), 4.0)),      // Max range Dense fix
-                                       round_ni(0.5*aNbVar*pow(RandUnif_0_1(), 2.0))   // tempo
+                                       v1,      // Max range Dense fix
+                                       v2   // tempo
                                  );
          // the different type of solver, that should return the same result
 	 std::vector<cLeasSq<Type>*> aVSys = {

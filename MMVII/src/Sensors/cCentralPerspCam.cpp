@@ -799,9 +799,13 @@ cPerspCamIntrCalib * cPerspCamIntrCalib::RandomCalib(eProjPC aTypeProj,int aKDeg
 {
 
     tREAL8 aDiag = 1000 * (1+10*RandUnif_0_1());
-    cPt2di aSz (aDiag*(1+RandUnif_0_1()),aDiag*(1+RandUnif_0_1()));
+    auto aS1 = aDiag*(1+RandUnif_0_1());
+    auto aS2 = aDiag*(1+RandUnif_0_1());
+    cPt2di aSz (aS1,aS2);
     cPt2dr aMidle = ToR(aSz)/2.0;
-    cPt2dr aPP(   aSz.x()*(0.5+0.1*RandUnif_C())  , aSz.y()*(0.5+0.1*RandUnif_C())  );
+    auto v1 = aSz.x()*(0.5+0.1*RandUnif_C());
+    auto v2 = aSz.y()*(0.5+0.1*RandUnif_C());
+    cPt2dr aPP(v1,v2);
     tREAL8  aFoc =  aDiag * (0.2 + 3.0*RandUnif_0_1());
 
     UpdateMax(aFoc,2* Norm2(aPP-aMidle));
@@ -857,7 +861,9 @@ void BenchImAndZ()
     for (int aK= 0 ; aK < 40 ; aK++)
     {
          cPerspCamIntrCalib * aCalib  = cPerspCamIntrCalib::RandomCalib(eProjPC::eStenope,(aK%4));
-         cSensorCamPC aCamPC("TestStenopeSat",tPoseR(cPt3dr::PRandC(),tRotR::RandomRot(0.1)),aCalib);
+         auto v1 = cPt3dr::PRandC();
+         auto v2 = tRotR::RandomRot(0.1);
+         cSensorCamPC aCamPC("TestStenopeSat",tPoseR(v1,v2),aCalib);
 
          for (int aK=0 ; aK< 10 ; aK++)
          {

@@ -234,7 +234,8 @@ cRandInvertibleDist::cRandInvertibleDist(const cPt3di & aDeg,double aRhoMax,doub
          for (int aKPar=0 ; aKPar<mNbParam ;aKPar++)
          {
             double aMajNorm =  mVecDesc.at(aKPar).MajNormJacOfRho(mRhoMax);
-            double aV = RandUnif_C() * (RandUnif_0_1() < aProbaNotNul) /aMajNorm;
+            auto aV0 = RandUnif_C();
+            double aV = aV0 * (RandUnif_0_1() < aProbaNotNul) /aMajNorm;
             mVParam[aKPar] = aV;
             aSomJac += std::abs(aV) * aMajNorm;
          }

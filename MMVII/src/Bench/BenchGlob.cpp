@@ -444,6 +444,8 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
    {
         //==== Bench_0000 bench on very basic support functionnalities
 
+        Bench_Random(aParam);  // Bench random generator, check they are acceptably unbiased
+
         // Test on split Dir/File, string op,
         Bench_0000_SysDepString(aParam);
         Bench_0000_String(aParam);
@@ -472,8 +474,6 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         BenchSelector(aParam,DirTestMMVII());  // Set (in comprehension)
 
         Bench_Heap(aParam); // Basic numericall services
-
-        Bench_Random(aParam);  // Bench random generator, check they are acceptably unbiased
 
 	Bench_SetI(aParam); // Bench manip on set of integers
 

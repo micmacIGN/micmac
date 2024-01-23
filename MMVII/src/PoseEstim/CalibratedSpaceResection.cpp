@@ -268,11 +268,10 @@ template <class Type> void  cElemSpaceResection<Type>::OneTestCorrectness()
        cPtxd<Type,3> C = VUnit(aTriBund.Pt(2))*c;
 
        //  put them anywhere and with any ratio using a random similitud
-       cSimilitud3D<Type> aSim(
-		               static_cast<Type>(RandUnif_C_NotNull(1e-2)*10.0),
-			       cPtxd<Type,3>::PRandC()*static_cast<Type>(100.0),
-			       cRotation3D<Type>::RandomRot()
-                         );
+       auto v1 = static_cast<Type>(RandUnif_C_NotNull(1e-2)*10.0);
+       auto v2 = cPtxd<Type,3>::PRandC()*static_cast<Type>(100.0);
+       auto v3 = cRotation3D<Type>::RandomRot();
+       cSimilitud3D<Type> aSim( v1, v2, v3 );
        cTriangle<Type,3> aTriG(aSim.Value(A),aSim.Value(B),aSim.Value(C));
 
        //  Now see that we can recover b & c

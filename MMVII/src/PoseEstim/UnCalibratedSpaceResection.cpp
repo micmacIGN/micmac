@@ -533,8 +533,9 @@ void OneBenchUnCalibResection(int aKTest)
 {
 
      // StdOut() << "KKK=" << aKTest << std::endl;
-
-     cPt2di  aSz(2000+RandUnif_0_1()*2000,2000+RandUnif_0_1()*2000);
+     auto v1 = 2000+RandUnif_0_1()*2000;
+     auto v2 = 2000+RandUnif_0_1()*2000;
+     cPt2di  aSz(v1,v2);
      tREAL8  aFoc = 1000 + RandUnif_0_1() * 10000;
      //cPt2dr  aPP(1250.0,1100.0);
      cPt2dr  aPP =  ToR(aSz/2) + cPt2dr::PRandC() * 4000.0;

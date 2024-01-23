@@ -1854,7 +1854,9 @@ void cAppliExtractCodeTarget::benchEllipse(){
 
         // Generate data
         int nb = (int)(RandInInterval(m, M)); double flat = (param[2]-param[3])/param[2];
-        double noise = RandInInterval(0, noise_max)*param[3]*(RandInInterval(0,1) > 1e-1);
+        auto v1 = RandInInterval(0, noise_max);
+        auto v2 = RandInInterval(0,1);
+        double noise = v1*param[3]*(v2 > 1e-1);
         std::vector<cPt2dr> POINTS = generatePointsOnEllipse(param, nb, noise);
         StdOut() << "Generating " << nb << " pts:  FLAT. = " << flat;
         StdOut() << " ANG = " << param[4]*180/PI << " NOISE = " << noise << " ";

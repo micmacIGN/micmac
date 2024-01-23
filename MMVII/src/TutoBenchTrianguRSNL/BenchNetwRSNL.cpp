@@ -138,7 +138,9 @@ void BenchSSRNL(cParamExeBench & aParam)
      {
         int aNb = 3+ RandUnif_N(3);
 	int aNbVar = 2 * Square(2*aNb+1);
-        cParamSparseNormalLstSq aParamSq(3.0,RandUnif_N(3),RandUnif_N(10));
+        auto v1 = RandUnif_N(3);
+        auto v2 = RandUnif_N(10);
+        cParamSparseNormalLstSq aParamSq(3.0,v1,v2);
 
 	// add random subset of dense variable
 	for (const auto & aI:  RandSet(aNbVar/10,aNbVar))

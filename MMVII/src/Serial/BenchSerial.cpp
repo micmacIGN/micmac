@@ -230,8 +230,9 @@ template <class Type> void BenchSerialIm2D(const std::string & aDirOut)
 	if (aK%4==2) aTypeS= eTypeSerial::edmp;
 	if (aK%4==3) aTypeS= eTypeSerial::etxt;
 
-
-        cPt2di aSz(1+RandUnif_N(10),1+RandUnif_N(10));
+        auto v1 = 1+RandUnif_N(10);
+        auto v2 = 1+RandUnif_N(10);
+        cPt2di aSz(v1,v2);
         cIm2D<Type>  anIm1(aSz,nullptr,eModeInitImage::eMIA_RandCenter);
 
         std::string aNameFile = aDirOut + "Image." + E2Str(aTypeS);

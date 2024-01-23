@@ -340,7 +340,10 @@ int cAppli_ClinoInit::Exe()
     {
         if (IsInit(&mASim))
         {
-            cPt3dr aWPK(RandUnif_C()*mASim[0],RandUnif_C()*mASim[1],RandUnif_C()*mASim[2]);
+            auto v1 = RandUnif_C()*mASim[0];
+            auto v2 = RandUnif_C()*mASim[1];
+            auto v3 = RandUnif_C()*mASim[2];
+            cPt3dr aWPK(v1,v2,v3);
             cRotation3D<tREAL8>  aRPose =  cRotation3D<tREAL8>::RotFromWPK(aWPK);
 
             cSensorCamPC * aCam = new cSensorCamPC("",cIsometry3D<tREAL8>::Identity(),nullptr);

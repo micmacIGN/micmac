@@ -278,11 +278,9 @@ static constexpr int HomIndScale = 2;
 
 template <class Type>  cHomot2D<Type> cHomot2D<Type>::RandomHomotInv(const Type & AmplTr,const Type & AmplSc,const Type & AmplMinSc)
 {
-    return cHomot2D<Type>
-	   (
-	       tPt::PRandC() * AmplTr,
-	       RandUnif_C_NotNull(AmplMinSc/AmplSc)*AmplSc
-	   );
+    auto v1 = tPt::PRandC() * AmplTr;
+    auto v2 = RandUnif_C_NotNull(AmplMinSc/AmplSc)*AmplSc;
+    return cHomot2D<Type> ( v1, v2 );
 }
 
 template <class Type>  cHomot2D<Type> cHomot2D<Type>::FromParam(const cDenseVect<Type> & aVec) 
@@ -382,11 +380,9 @@ template <class Type>  cSim2D<Type> cSim2D<Type>::FromMinimalSamples(const tTabM
 
 template <class Type>  cSim2D<Type> cSim2D<Type>::RandomSimInv(const Type & AmplTr,const Type & AmplSc,const Type & AmplMinSc)
 {
-    return cSim2D<Type>
-	   (
-	       tPt::PRandC() * AmplTr,
-	       tPt::PRandUnitDiff(tPt(0,0),AmplMinSc/AmplSc)*AmplSc
-	   );
+    auto v1 = tPt::PRandC() * AmplTr;
+    auto v2 = tPt::PRandUnitDiff(tPt(0,0),AmplMinSc/AmplSc)*AmplSc;
+    return cSim2D<Type> ( v1, v2 );
 }
 
 
@@ -466,11 +462,9 @@ template <class Type>  Type cSim2D<Type>::Divisor(const tPt & aPIn) const {retur
 
 template <class Type>  cRot2D<Type> cRot2D<Type>::RandomRot(const Type & AmplTr)
 {
-    return cRot2D<Type>
-	   (
-	       tPt::PRandC() * AmplTr,
-	       RandUnif_C() * 10 * M_PI
-	   );
+    auto v1 = tPt::PRandC() * AmplTr;
+    auto v2 = RandUnif_C() * 10 * M_PI;
+    return cRot2D<Type>( v1, v2 );
 }
 
 
@@ -639,7 +633,12 @@ template <class Type>  cAffin2D<Type> cAffin2D<Type>::AllocRandom(const Type & a
    tPt aP0(0,0);
    tTypeMap aRes(aP0,aP0,aP0);
    while (std::abs(aRes.mDelta)<aDeltaMin)
-	   aRes =tTypeMap(tPt::PRandC()*Type(10.0),tPt::PRandC()*Type(2.0),tPt::PRandC()*Type(2.0));
+   {
+       auto v1 = tPt::PRandC()*Type(10.0);
+       auto v2 = tPt::PRandC()*Type(2.0);
+       auto v3 = tPt::PRandC()*Type(2.0);
+	   aRes =tTypeMap(v1,v2,v3);
+   }
    return aRes;
 }
 

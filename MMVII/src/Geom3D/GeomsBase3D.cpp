@@ -306,7 +306,9 @@ std::vector<cPt3dr>  cPlane3D::RandParam()
     cPt3dr  aI =  cPt3dr::PRandUnit() ;
     cPt3dr  aJ =  cPt3dr::PRandUnitDiff(aI) ;
 
-    return std::vector<cPt3dr>{aP0,aI*RandInInterval(0.1,2.0),aJ*RandInInterval(0.1,2.0)};
+    auto v1 = aI*RandInInterval(0.1,2.0);
+    auto v2 = aJ*RandInInterval(0.1,2.0);
+    return std::vector<cPt3dr>{aP0,v1,v2};
 }
 
 void BenchPlane3D()
@@ -320,7 +322,10 @@ void BenchPlane3D()
 	 MMVII_INTERNAL_ASSERT_bench(std::abs(aPlane.ToLocCoord(aVP[0]+aVP[2]).z())<1e-5,"BenchPlane3D");
 
          cPt3dr aP0 = cPt3dr::PRandC() * 100.0;
-         cPt3dr aP1 = aP0 +  aPlane.AxeI() * RandUnif_C() + aPlane.AxeJ() * RandUnif_C() +  aPlane.AxeK()  * RandUnif_C_NotNull(0.1);
+         auto v1 = RandUnif_C();
+         auto v2 = RandUnif_C();
+         auto v3 = RandUnif_C_NotNull(0.1);
+         cPt3dr aP1 = aP0 +  aPlane.AxeI() * v1 + aPlane.AxeJ() * v2 +  aPlane.AxeK()  * v3;
 
 	 cPt3dr aPI = aPlane.Inter(aP0,aP1);
 	 cPt3dr aPI2 = aPlane.Inter(tSeg3dr(aP0,aP1));
@@ -494,7 +499,10 @@ template <class T>  T  Determinant (const cPtxd<T,3> & aP1,const cPtxd<T,3> & aP
 
 template<class Type>  cTriangle<Type,3> RandomTriang(Type aAmpl)
 {
-      return cTriangle<Type,3>(cPtxd<Type,3>::PRandC()*aAmpl,cPtxd<Type,3>::PRandC()*aAmpl,cPtxd<Type,3>::PRandC()*aAmpl);
+      auto v1 = cPtxd<Type,3>::PRandC()*aAmpl;
+      auto v2 = cPtxd<Type,3>::PRandC()*aAmpl;
+      auto v3 = cPtxd<Type,3>::PRandC()*aAmpl;
+      return cTriangle<Type,3>(v1,v2,v3);
 }
 
 template<class Type>  cTriangle<Type,3> RandomTriangRegul(Type aRegulMin,Type aAmpl)

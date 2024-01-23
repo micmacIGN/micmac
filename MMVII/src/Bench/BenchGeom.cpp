@@ -151,7 +151,10 @@ template<class Type> void TplBenchRotation3D(cParamExeBench & aParam)
    for (int aKTest=0 ; aKTest<20 ; aKTest++)
    {
 	// generate WPK, with caution to have cos phi not to close to 0
-        cPtxd<Type,3>  aWPK(RandUnif_C()*20,RandUnif_C()*1.5,RandUnif_C()*20);
+       auto v1 = RandUnif_C()*20;
+       auto v2 = RandUnif_C()*1.5;
+       auto v3 = RandUnif_C()*20;
+        cPtxd<Type,3>  aWPK(v1,v2,v3);
 
 	// now force to PI/2 and -PI/2 sometime
 	if (aKTest%3!=1)
@@ -528,10 +531,13 @@ template <class tMap,class TypeEl> void TplBenchMap2D_NonLinear(const tMap & aMa
 
 template <class Type> void TplElBenchMap2D()
 {
+   auto v1 = cRot2D<Type>::RandomRot(5);
+   auto v2 = cPtxd<Type,2>::PRandC()*Type(0.3);
+   auto v3 = Type(RandUnif_C()*0.2);
    TplBenchMap2D_NonLinear
    (
-         cRot2D<Type>::RandomRot(5) ,
-         cRot2D<Type>(cPtxd<Type,2>::PRandC()*Type(0.3), Type(RandUnif_C()*0.2)),
+         v1,
+         cRot2D<Type>(v2, v3),
          (Type*)nullptr
    );
 
@@ -542,10 +548,18 @@ template <class Type> void TplElBenchMap2D()
    TplBenchMap2D_LSQ<cHomot2D<Type>>((Type*)nullptr);
 
 
-   TplBenchMap2D(cAffin2D<Type>::AllocRandom(1e-1),cAffin2D<Type>::AllocRandom(1e-1),(Type*)nullptr);
-   TplBenchMap2D(cSim2D<Type>::RandomSimInv(5,2,1e-1),cSim2D<Type>::RandomSimInv(3,4,1e-1),(Type*)nullptr);
-   TplBenchMap2D(cHomot2D<Type>::RandomHomotInv(5,2,1e-1),cHomot2D<Type>::RandomHomotInv(3,4,1e-1),(Type*)nullptr);
-   TplBenchMap2D(cRot2D<Type>::RandomRot(5),cRot2D<Type>::RandomRot(3),(Type*)nullptr);
+   auto v4 = cAffin2D<Type>::AllocRandom(1e-1);
+   auto v5 = cAffin2D<Type>::AllocRandom(1e-1);
+   TplBenchMap2D(v4,v5,(Type*)nullptr);
+   auto v6 = cSim2D<Type>::RandomSimInv(5,2,1e-1);
+   auto v7 = cSim2D<Type>::RandomSimInv(3,4,1e-1);
+   TplBenchMap2D(v6,v7,(Type*)nullptr);
+   auto v8 = cHomot2D<Type>::RandomHomotInv(5,2,1e-1);
+   auto v9 = cHomot2D<Type>::RandomHomotInv(3,4,1e-1);
+   TplBenchMap2D(v8,v9,(Type*)nullptr);
+   auto v10 = cRot2D<Type>::RandomRot(5);
+   auto v11 = cRot2D<Type>::RandomRot(3);
+   TplBenchMap2D(v10,v11,(Type*)nullptr);
 
    cHomogr2D<Type> aHgrId =  RandomMapId<cHomogr2D<Type>>(0.1);
    cHomogr2D<Type> aHgGlob =  cHomogr2D<Type>::AllocRandom(2.0);

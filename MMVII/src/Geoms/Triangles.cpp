@@ -270,7 +270,10 @@ template<class Type> cPtxd<Type,3> Normal(const cTriangle<Type,3> & aTri)
 template <class Type,const int Dim>  
          cTriangle<Type,Dim>  cTriangle<Type,Dim>::RandomTri(const Type & aSz,const Type & aRegulMin )
 {
-	cTriangle<Type,Dim> aRes(tPt::PRandC()*aSz,tPt::PRandC()*aSz,tPt::PRandC()*aSz);
+        auto v1 = tPt::PRandC()*aSz;
+        auto v2 = tPt::PRandC()*aSz;
+        auto v3 = tPt::PRandC()*aSz;
+	cTriangle<Type,Dim> aRes(v1,v2,v3);
 
 	if (aRes.Regularity() > aRegulMin) return aRes;
 

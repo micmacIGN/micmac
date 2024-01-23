@@ -697,8 +697,9 @@ void OneBenchAffineExtre()
     aVB = aMatReg(0,1);
     aVC = aMatReg(1,1);
 
-
-    cPt2dr aCenter (aSz.x()/2.0+RandUnif_C()*3,aSz.y()/2.0+RandUnif_C()*3);
+    auto v1 = aSz.x()/2.0+RandUnif_C()*3;
+    auto v2 = aSz.y()/2.0+RandUnif_C()*3;
+    cPt2dr aCenter (v1,v2);
 
     // Generate image 
     cIm2D<tREAL4> aIm(aSz);
@@ -716,7 +717,9 @@ void OneBenchAffineExtre()
     for (int aK=0 ; aK<10 ; aK++)
     {
          // Initialize at a random distance of 2 pixel 
-         cPt2dr  aP0 = aCenter + cPt2dr(RandUnif_C(),RandUnif_C())*2.0;
+         auto v3 = RandUnif_C();
+         auto v4 = RandUnif_C();
+         cPt2dr  aP0 = aCenter + cPt2dr(v3,v4)*2.0;
          cPt2dr  aCurC = aP0;
          for (int aNbIter=0 ; aNbIter< 6 ;aNbIter ++)
          {
