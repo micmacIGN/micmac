@@ -4,7 +4,9 @@
 #include "MMVII_PhgrDist.h"
 #include "MMVII_Geom3D.h"
 #include "MMVII_Radiom.h"
+#include "MMVII_Random.h"
 #include <cmath>
+#include <functional>
 #ifdef _WIN32
     #include <windows.h>
 #else
@@ -93,6 +95,11 @@ bool  cParamExeBench::NewBench(const std::string & aName,bool ExactMatch)
        mNbExe++;
        mInsideFunc = true;
        StdOut() << "  Bench : " << aName << std::endl;
+
+       std::string aSeedStr = aName + "/" + std::to_string(mCurLev);
+       std::size_t aSeedVal = std::hash<std::string>{}(aSeedStr);
+       // StdOut() << "     reinit seed to: " << aSeedStr << " / " << aSeedVal << "\n";
+       cRandGenerator::TheOne()->setSeed(aSeedVal);
    }
    return  mInsideFunc;
 }
