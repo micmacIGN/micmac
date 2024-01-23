@@ -128,25 +128,26 @@ cDenseMatrix<tREAL8>   cSensorImage::CalcDiffProjRot
    return -aJacXYZ.Inverse() * aJacWPK;
 }
 
-class cBenchStenopeSat
-{
-    public :
-};
 
-void BenchStenopeSat(int aNum,bool isX)
+typedef cWeightAv<tREAL8,cPt2dr>  tAvgSS;
+static std::map<std::string ,tAvgSS>  TheMapStat;
+
+void BenchStenopeSat(int aNum,bool isX,tREAL8  aFocale,tREAL8 aOri0,const std::string & aNameTest,bool Show)
 {
    // cPerspCamIntrCalib * aCalib  = cPerspCamIntrCalib::RandomCalib(eProjPC::eStenope,aNum);
-    cDataPerspCamIntrCalib aDPCIC("BStenSat",eProjPC::eStenope,cPt3di(0,0,1),1000, cPt2di(1000,1000));
+    cDataPerspCamIntrCalib aDPCIC("BStenSat",eProjPC::eStenope,cPt3di(0,0,1),aFocale, cPt2di(1000,1000));
     cPerspCamIntrCalib * aCalib  = new cPerspCamIntrCalib(aDPCIC);
 
     cPt3dr aC  = cPt3dr::PRandC();
-    tRotR aRot =  tRotR::RandomRot(0.1);
+    tRotR aRot =  tRotR::RandomRot(aOri0);
 
     cSensorCamPC aCamPC("TestStenopeSat",tPoseR(aC,aRot),aCalib);
     tREAL8 aFoc =  aCalib->F();
 
     cPt3dr aWPK =  cPt3dr::PRandC() / (aFoc*1);
     tRotR aRotPert = tRotR::RotFromWPK(aWPK);
+
+    tAvgSS & anAvg = TheMapStat[aNameTest];
 
 /*
 cDenseMatrix<tREAL8>  aMatP =     tRotR::RotOmega(aWPK.x())
@@ -164,8 +165,8 @@ cDenseMatrix<tREAL8>  aMatP =     tRotR::RotOmega(aWPK.x())
     int aSz0 = isX ?  aCalib->SzPix().x() :  aCalib->SzPix().y();
     int aSz1 = isX ?  aCalib->SzPix().y() :  aCalib->SzPix().x();
 
-    int aNb0 = 3;
-    int aNb1 = 3;
+    int aNb0 = 1;
+    int aNb1 = 1;
     //for (tREAL8 aCoord0=aMargin ; aCoord0<aSz0-aMargin ; aCoord0+=20)
     for (int aK0= 0 ; aK0< aNb0 ; aK0++)
     {
@@ -191,17 +192,29 @@ cDenseMatrix<tREAL8>  aMatP =     tRotR::RotOmega(aWPK.x())
 
              auto aMat = aCamPC.CalcDiffProjRot(aPXYZ,aPose,aEpsPt, 1/aFoc);
 
-             //cPt2dr aGTDif = aCamPCPertPlus.Ground2Image(aPXYZ)-aPtIJ;
-             cPt2dr aGTDif = ( aCamPCPertPlus.Ground2Image(aPXYZ)-aCamPCPertMinus.Ground2Image(aPXYZ) ) /2.0;
+             cPt2dr aGTDif = aCamPCPertPlus.Ground2Image(aPXYZ)-aPtIJ;
+             // cPt2dr aGTDif = ( aCamPCPertPlus.Ground2Image(aPXYZ)-aCamPCPertMinus.Ground2Image(aPXYZ) ) /2.0;
              cPt3dr aDerDif = aMat*aWPK ;
 
-             StdOut() << "GT=" <<    aGTDif   << " DerDif" << aDerDif <<  " Delta="  <<  Proj(aDerDif) + aGTDif << "\n"; 
+	     cPt2dr anEcart =  Proj(aDerDif) + aGTDif;
+	     if (Show)
+	     {
+                StdOut() << "GT=" <<    aGTDif   << " DerDif" << aDerDif <<  " Delta="  <<  anEcart ;
+                if ((2*aK0+1== aNb0) && (2*aK1+1== aNb1))
+                   StdOut() << "##########################";
+                StdOut()  << "\n"; 
+             }
+
+	     anAvg.Add(1.0,cPt2dr(Norm2(aGTDif),Norm2(anEcart)));
          }
-         StdOut() << "===============  ENDLINE ============\n"; // getchar();
+         if (Show)
+            StdOut() << "===============  ENDLINE ============\n"; // getchar();
     }
-    StdOut() << "ENDCAM \n"; getchar();
+    if (Show)
+       StdOut() << "ENDCAM \n\n"; // getchar();
 
     delete aCalib;
+
 }
 
 // WPPkkk:: [-0.089067,0.0490246,-1.81514e-17]  [0.0884715,-0.0497044]     WPPkkk:: [-0.000595493,-0.00067973]
@@ -214,16 +227,26 @@ cDenseMatrix<tREAL8>  aMatP =     tRotR::RotOmega(aWPK.x())
 
 void BenchStenopeSat()
 {
-    for (int aK=0 ; aK<10 ; aK++)
+    for (int aK=0 ; aK<1000 ; aK++)
     {
-        BenchStenopeSat(0,true);
-        BenchStenopeSat(3,true);
+        BenchStenopeSat(0,true,1000,0.0,"XOri_0.00",false);
+        BenchStenopeSat(0,true,1000,0.05,"XOri_0.05",false);
+        BenchStenopeSat(0,true,1000,0.1,"XOri_0.10",false);
+        BenchStenopeSat(0,true,1000,0.2,"XOri_0.20",false);
+        BenchStenopeSat(0,true,1000,0.3,"XOri_0.2",false);
+        // BenchStenopeSat(0,false,1000,0.0,"YOri_0.0",false);
+        //  BenchStenopeSat(3,true);
         // BenchStenopeSat(0,false);
         // BenchStenopeSat(3,false);
     }
+
+    for (const auto & [aName,anAvg] : TheMapStat)
+    {
+        StdOut() << aName  << " " << anAvg.Average() << "\n";
+    }
+
+    StdOut() << "ENDCAM \n"; getchar();
 }
-
-
 
 
 }; // MMVII
