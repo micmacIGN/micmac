@@ -380,19 +380,21 @@ void cEllipse::BenchEllispe()
 	 }
 
          for (int aKp=0 ; aKp<10 ; aKp++)
-	 {
-             cPt2dr aP1 =  anEl.PtOfTeta(RandInInterval(0.1,10),RandInInterval(-M_PI,M_PI));
-	     cPt2dr aPP = anEl.ProjOnEllipse(aP1);
-	     if (Bug)
-	     {
-		     StdOut() << anEl.ToRhoTeta(aP1) << " " <<   Scal(anEl.Tgt(aPP),aP1-aPP)  << aP1-aPP  << std::endl;
-		     StdOut() <<  "Ratiooo=" << aLSa/aLGa   << std::endl;
-	     }
+         {
+             auto v1 = RandInInterval(0.1,10);
+             auto v2 = RandInInterval(-M_PI,M_PI) ;
+             cPt2dr aP1 =  anEl.PtOfTeta(v1,v2);
+             cPt2dr aPP = anEl.ProjOnEllipse(aP1);
+             if (Bug)
+             {
+                 StdOut() << anEl.ToRhoTeta(aP1) << " " <<   Scal(anEl.Tgt(aPP),aP1-aPP)  << aP1-aPP  << std::endl;
+                 StdOut() <<  "Ratiooo=" << aLSa/aLGa   << std::endl;
+             }
 
-	     MMVII_INTERNAL_ASSERT_bench(std::abs(anEl.ToRhoTeta(aPP).x()-1.0)<1e-5,"BenchEllispe");
-	     MMVII_INTERNAL_ASSERT_bench(std::abs(Scal(anEl.Tgt(aPP),aP1-aPP))<1e-3,"BenchEllispe");
-	     // getchar();
-	 }
+             MMVII_INTERNAL_ASSERT_bench(std::abs(anEl.ToRhoTeta(aPP).x()-1.0)<1e-5,"BenchEllispe");
+             MMVII_INTERNAL_ASSERT_bench(std::abs(Scal(anEl.Tgt(aPP),aP1-aPP))<1e-3,"BenchEllispe");
+             // getchar();
+         }
 
 	 /* Check experimentaly that ApproxDist ~ EuclidDist and that the approximation can be bounded as a fonction
 	  * of ellipse excentricity*/
