@@ -132,7 +132,7 @@ cDenseMatrix<tREAL8>   cSensorImage::CalcDiffProjRot
 typedef cWeightAv<tREAL8,cPt2dr>  tAvgSS;
 static std::map<std::string ,tAvgSS>  TheMapStat;
 
-void BenchStenopeSat(int aNum,bool isX,tREAL8 aFocale,tREAL8 aFactPP,tREAL8 aMFoc,tREAL8 aOri0,const std::string & aNameTest,bool Show)
+void OneBenchStenopeSat(tAvgSS & anAvg,int aNum,bool isX,tREAL8 aFocale,tREAL8 aFactPP,tREAL8 aMFoc,tREAL8 aOri0,bool Show)
 {
    // cPerspCamIntrCalib * aCalib  = cPerspCamIntrCalib::RandomCalib(eProjPC::eStenope,aNum);
     cPt2dr aPPRel = cPt2dr(0.5,0.5) + cPt2dr::PRandC() *  aFactPP;
@@ -148,9 +148,6 @@ void BenchStenopeSat(int aNum,bool isX,tREAL8 aFocale,tREAL8 aFactPP,tREAL8 aMFo
 
     cPt3dr aWPK =  cPt3dr::PRandC() / (aFoc*aMFoc);
     tRotR aRotPert = tRotR::RotFromWPK(aWPK);
-
-    tAvgSS & anAvg = TheMapStat[aNameTest];
-
 /*
 cDenseMatrix<tREAL8>  aMatP =     tRotR::RotOmega(aWPK.x())
                                +  tRotR::RotPhi(aWPK.y())
@@ -167,8 +164,8 @@ cDenseMatrix<tREAL8>  aMatP =     tRotR::RotOmega(aWPK.x())
     int aSz0 = isX ?  aCalib->SzPix().x() :  aCalib->SzPix().y();
     int aSz1 = isX ?  aCalib->SzPix().y() :  aCalib->SzPix().x();
 
-    int aNb0 = 1;
-    int aNb1 = 1;
+    int aNb0 = 5;
+    int aNb1 = 5;
     //for (tREAL8 aCoord0=aMargin ; aCoord0<aSz0-aMargin ; aCoord0+=20)
     for (int aK0= 0 ; aK0< aNb0 ; aK0++)
     {
@@ -187,6 +184,12 @@ cDenseMatrix<tREAL8>  aMatP =     tRotR::RotOmega(aWPK.x())
         {
              tREAL8 aCoord1 =  aSz1 * ( aK1+0.5) / aNb1;
              cPt2dr aPtIJ = isX ? cPt2dr(aCoord0,aCoord1)  : cPt2dr(aCoord1,aCoord0);
+
+             tSeg3dr   aSeg = aCamPC.Image2Bundle(aPtIJ);
+	     tREAL8 aCos = Cos(aSeg.V12(),aPose.Rot().AxeI());
+             MMVII_INTERNAL_ASSERT_bench(std::abs(aCos)<1e-5,"Orthognality in pose estim BenchStenopeSat");
+
+
              tREAL8 aDepth = RandInInterval(1,10.0);
              cPt3dr aPXYZ = aCamPC.ImageAndDepth2Ground(TP3z(aPtIJ,aDepth));
 
@@ -228,10 +231,36 @@ cDenseMatrix<tREAL8>  aMatP =     tRotR::RotOmega(aWPK.x())
 // WPPkkk:: [-8.9067,4.90246,-1.81514e-15]      [8.84601,-4.96901]                  [-0.0606832,-0.0665438]
 
 
-void BenchStenopeSat()
+void BenchStenopeSat(tAvgSS & aStat ,bool isX,tREAL8 aFactPP,tREAL8 aMFoc,tREAL8 aOri0,bool Show)
 {
     for (int aK=0 ; aK<1000 ; aK++)
     {
+        OneBenchStenopeSat(aStat,0,isX,1000,aFactPP,aMFoc,aOri0,Show);
+    }
+
+}
+
+
+void BenchStenopeSat()
+{
+    // for (const tREAL8  aMulFoc : std::list<tREAL8> {0.3,1,3.0,10.0} )
+    StdOut() << " ============= TEST AMPL WPK ======= \n";
+    for (const tREAL8  aMulFoc : {0.3,1.0,3.0,10.0} )
+    {
+        tAvgSS aStat ;
+        BenchStenopeSat(aStat,true,0.1 ,aMulFoc,0.0,false);
+        cPt2dr anAvg = aStat.Average();
+	tREAL8 aRatio = anAvg.y() /  anAvg.x();
+        StdOut() 
+            << "   MulFoc=" << aMulFoc
+	    << "   RATIO=" <<   aRatio
+	    << "   RMF=" <<   aRatio * aMulFoc
+	    << "\n";
+    }
+
+
+
+	    /*
         BenchStenopeSat(0,true,1000,0.0 ,10.0,0.00,"XOri_M10.0_0.00",false);
         BenchStenopeSat(0,true,1000,0.0 , 3.0,0.00,"XOri_M03.0_0.00",false);
         BenchStenopeSat(0,true,1000,0.0 , 0.3,0.00,"XOri_M0.30_0.00",false);
@@ -243,20 +272,15 @@ void BenchStenopeSat()
 
         BenchStenopeSat(0,true,1000,0.02, 1.0,0.00,"XOri_PP02_M1.0_0.00",false);
         BenchStenopeSat(0,true,1000,0.04, 1.0,0.00,"XOri_PP04_M1.0_0.00",false);
+	*/
 
         // BenchStenopeSat(0,false,1000,0.0,"YOri_0.0",false);
         //  BenchStenopeSat(3,true);
         // BenchStenopeSat(0,false);
         // BenchStenopeSat(3,false);
-    }
 
-    for (const auto & [aName,anAvg] : TheMapStat)
-    {
-        cPt2dr aP = anAvg.Average();
-        StdOut() << aName  << " R=" <<  aP.y() / aP.x()  << " D=" << aP.x() << "\n";
-    }
 
-    StdOut() << "ENDCAM \n"; getchar();
+    StdOut() << "ENDCAM \n";// getchar();
 }
 
 
