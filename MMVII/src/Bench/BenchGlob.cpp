@@ -95,11 +95,7 @@ bool  cParamExeBench::NewBench(const std::string & aName,bool ExactMatch)
        mNbExe++;
        mInsideFunc = true;
        StdOut() << "  Bench : " << aName << std::endl;
-
-       std::string aSeedStr = aName + "/" + std::to_string(mCurLev);
-       std::size_t aSeedVal = std::hash<std::string>{}(aSeedStr);
-       // StdOut() << "     reinit seed to: " << aSeedStr << " / " << aSeedVal << "\n";
-       cRandGenerator::TheOne()->setSeed(aSeedVal);
+       cRandGenerator::TheOne()->setSeed(mCurLev);
    }
    return  mInsideFunc;
 }

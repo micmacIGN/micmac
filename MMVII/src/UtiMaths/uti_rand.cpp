@@ -65,10 +65,6 @@ void OneBench_Random_Generator(cParamExeBench & aParam)
     for (auto &v: aRefSequenceRawSeed0)
         MMVII_INTERNAL_ASSERT_bench(cRandGenerator::TheOne()->next()==v,"Random Seq Raw Seed 0");
 
-    // test hashing function used for seed reset on each bench
-    std::size_t aHashVal = std::hash<std::string>{}("Toto");
-    MMVII_INTERNAL_ASSERT_bench(aHashVal==4574758675877946257,"Hash of string");
-
     already_done = true;
 }
 
