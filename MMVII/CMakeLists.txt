@@ -165,6 +165,12 @@ endif()
 #######################################################
 ##        Custom targets
 #######################################################
+if (CMAKE_GENERATOR STREQUAL "Unix Makefiles")
+  set(make_parallel_prefix "+")
+else()
+  unset(make_parallel_prefix)
+endif()
+
 
 ##  distclean : clean + remove generated source files for symbolic calculus
 add_custom_target(distclean
@@ -173,18 +179,19 @@ add_custom_target(distclean
   VERBATIM)
 
 ##  full : generate source files for symbolic calculus and recompile
+set(JOE )
 add_custom_target(full
   COMMAND ${CMAKE_COMMAND} -E rm -rf ${mmv2_gencode_dir}
-  COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --config $<CONFIG>
+  COMMAND ${make_parallel_prefix} ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --config $<CONFIG>
   COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/MMVII GenCodeSymDer
-  COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --config $<CONFIG>
+  COMMAND ${make_parallel_prefix} ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --config $<CONFIG>
   VERBATIM USES_TERMINAL)
 
 ## rebuild : distclean + full
 add_custom_target(rebuild
   COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target distclean
-  COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --config $<CONFIG>
+  COMMAND ${make_parallel_prefix} ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --config $<CONFIG>
   COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/MMVII GenCodeSymDer
-  COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --config $<CONFIG>
+  COMMAND ${make_parallel_prefix} ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --config $<CONFIG>
   VERBATIM USES_TERMINAL)
 
