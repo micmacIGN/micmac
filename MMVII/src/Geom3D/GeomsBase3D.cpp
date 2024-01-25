@@ -161,6 +161,15 @@ cPt3dr  RobustBundleInters(const std::vector<tSeg3dr> & aVSeg)
      return aWMin.IndexExtre();
 }
 
+cPt3dr  BundleFixZ(const tSeg3dr & aSeg,const tREAL8 & aZ)
+{
+    const cPt3dr & aP1 = aSeg.P1();
+    cPt3dr aV12 = aSeg.V12();
+    return  aP1 +  aV12 *  ((aZ - aP1.z()) /aV12.z());
+}
+
+
+
 /*  *********************************************************** */
 /*                                                              */
 /*                  cPlan3D                                     */

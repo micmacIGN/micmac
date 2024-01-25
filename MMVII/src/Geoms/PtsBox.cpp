@@ -248,6 +248,10 @@ template <class T>   cPtxd<T,3> TP3z0  (const cPtxd<T,2> & aPt)
 {
     return cPtxd<T,3>(aPt.x(),aPt.y(),0);
 }
+template <class T>   cPtxd<T,3> TP3z  (const cPtxd<T,2> & aPt,const T& aZ)
+{
+    return cPtxd<T,3>(aPt.x(),aPt.y(),aZ);
+}
 template <class T>   cPtxd<T,2> Proj  (const cPtxd<T,3> & aPt)
 {
     return cPtxd<T,2>(aPt.x(),aPt.y());
@@ -1264,6 +1268,7 @@ template   cTplBox<int,3> ToI(const  cTplBox<tREAL8,3> & aBox);
 
 #define INSTANTIATE_ABS_SURF(TYPE)\
 template  cPtxd<TYPE,3> TP3z0  (const cPtxd<TYPE,2> & aPt);\
+template  cPtxd<TYPE,3> TP3z  (const cPtxd<TYPE,2> & aPt,const TYPE &);\
 template  cPtxd<TYPE,2> Proj  (const cPtxd<TYPE,3> & aPt);\
 template  TYPE AbsSurfParalogram(const cPtxd<TYPE,2>& aP1,const cPtxd<TYPE,2>& aP2);\
 template  TYPE AbsSurfParalogram(const cPtxd<TYPE,3>& aP1,const cPtxd<TYPE,3>& aP2);

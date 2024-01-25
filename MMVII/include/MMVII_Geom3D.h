@@ -359,6 +359,8 @@ cPt3dr  BundleInters(const std::vector<tSeg3dr> & aVSeg,const std::vector<tREAL8
 cPt3dr  BundleInters(const tSeg3dr & aSeg1,const tSeg3dr & aSeg2,tREAL8 aW12=0.5);
 ///  If we want to have the coeff of intersection
 cPt3dr  BundleInters(cPt3dr & aCoeff,const tSeg3dr & aSeg1,const tSeg3dr & aSeg2,tREAL8 aW12=0.5);
+///   Return point on bundle having given Z Value
+cPt3dr  BundleFixZ(const tSeg3dr & aSeg1,const tREAL8 &);
 
 
 /**  Class for sampling the space of quaternion/quaternion.  Method :
