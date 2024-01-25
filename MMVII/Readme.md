@@ -7,6 +7,16 @@ Dependencies
     - `sudo apt install ccache cmake`
     - If using CLang version XX and want OpenMP: `sudo apt install libomp-XX-dev`
 
+  - MacOs:
+    - Install/check XCode is installed (xcode-select --version)
+    - Install brew : `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
+    - Install libX11,qt :
+       - `brew install libX11`
+       - `brew install qt`
+     - Set environment variables:
+       -  `export PATH="/usr/local/opt/llvm/bin:$PATH"`
+       -  `export LDFLAGS="-L/usr/local/opt/llvm/lib -L/usr/local/lib -Wl,-rpath,/usr/local/opt/llvm/lib"`
+       -  `export CPPFLAGS="-I/usr/local/opt/llvm/include"`
 
 Compilation (short) :
 --------------------
