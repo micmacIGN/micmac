@@ -2448,14 +2448,14 @@ static int basculepy(std::string ori0, std::string ori1, std::string oriOut, std
     return err;
 }
 
-static int campari(const std::set<tSomNSI*>& result, std::string ori0name, std::string mPrefHom, int nbIter = 2) {
+static int campari(const std::set<tSomNSI*>& result, std::string ori0name, std::string mPrefHom, int nbIter = 1) {
 
     int err = 0;
 std::cout << exec("mm3d Campari \"" + Pattern(result) + "\" Ori-" + ori0name + " " + ori0name +" SauvAutom=NONE NbIterEnd=" + std::to_string(nbIter) + " SH=" + mPrefHom);
     return err;
 }
 
-static int campari(const finalScene& result, std::string ori0name, std::string mPrefHom, int nbIter = 2) {
+static int campari(const finalScene& result, std::string ori0name, std::string mPrefHom, int nbIter = 1) {
 
     int err = 0;
 std::cout << exec("mm3d Campari \"" + Pattern(result) + "\" Ori-" + ori0name + " " + ori0name +" SauvAutom=NONE NbIterEnd=" + std::to_string(nbIter) + " SH=" + mPrefHom);
@@ -3080,8 +3080,8 @@ void RandomForest::BestSolAllCC(Dataset& data) {
     // Get  solution for each CC
     for (int aKC = 0; aKC < int(data.mVCC.size()); aKC++) {
         ffinalTree tree;
-        //BestSolOneCC(data, data.mVCC[aKC], tree);
-        BestSolOneCCDjikstra(data, data.mVCC[aKC], tree);
+        BestSolOneCC(data, data.mVCC[aKC], tree);
+        //BestSolOneCCDjikstra(data, data.mVCC[aKC], tree);
         //BestSolOneCCFloydWarshall(data, data.mVCC[aKC], tree);
         std::cout << "Finish MSP" << std::endl;
         // Save
