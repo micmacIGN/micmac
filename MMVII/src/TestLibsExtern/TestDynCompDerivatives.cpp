@@ -112,8 +112,6 @@ std::vector<Type> RatkoswkyResidual
     const Type & x  = aVObs[1];  // Warn the data I got were in order y,x ..
     const Type & y  = aVObs[0];
 
-    pow(b1,2.7);
-
     // Model :  y = b1 / (1+exp(b2-b3*x)) ^ 1/b4 + Error()  [Ratko]
     return { b1 / pow(1.0+exp(b2-b3*x),1.0/b4) - y } ;
 }
