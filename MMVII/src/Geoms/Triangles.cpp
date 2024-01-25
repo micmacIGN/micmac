@@ -764,6 +764,8 @@ INSTANTIATE_TRI(tREAL4)
 INSTANTIATE_TRI(tREAL8)
 INSTANTIATE_TRI(tREAL16)
 
+template class cTriangle<tREAL8,1>;
+
 /*
 template class cTriangulation<tREAL8,2>;
 template class cTriangulation<tREAL8,3>;

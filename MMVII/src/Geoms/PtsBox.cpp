@@ -230,6 +230,11 @@ template <const int Dim>  void cBorderPixBox<Dim>::IncrPt(tPt & aP)
 /*          cPtxd             */
 /* ========================== */
 
+template <class Type> double  SpecAbsSurfParalogram(const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2)
+{
+    MMVII_INTERNAL_ERROR("SpecAbsSurfParalogram for dim 1");
+    return 0.0;
+}
 template <class Type> double  SpecAbsSurfParalogram(const cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2)
 {
     return std::abs(aP1 ^ aP2) ;
@@ -1270,6 +1275,7 @@ template   cTplBox<int,3> ToI(const  cTplBox<tREAL8,3> & aBox);
 template  cPtxd<TYPE,3> TP3z0  (const cPtxd<TYPE,2> & aPt);\
 template  cPtxd<TYPE,3> TP3z  (const cPtxd<TYPE,2> & aPt,const TYPE &);\
 template  cPtxd<TYPE,2> Proj  (const cPtxd<TYPE,3> & aPt);\
+template  TYPE AbsSurfParalogram(const cPtxd<TYPE,1>& aP1,const cPtxd<TYPE,1>& aP2);\
 template  TYPE AbsSurfParalogram(const cPtxd<TYPE,2>& aP1,const cPtxd<TYPE,2>& aP2);\
 template  TYPE AbsSurfParalogram(const cPtxd<TYPE,3>& aP1,const cPtxd<TYPE,3>& aP2);
 

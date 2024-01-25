@@ -132,7 +132,7 @@ cDenseMatrix<tREAL8>   cSensorImage::CalcDiffProjRot
 typedef cWeightAv<tREAL8,cPt2dr>  tAvgSS;
 static std::map<std::string ,tAvgSS>  TheMapStat;
 
-void OneBenchStenopeSat(tAvgSS & anAvg,int aNum,bool isX,tREAL8 aFocale,tREAL8 aFactPP,tREAL8 aMFoc,tREAL8 aOri0,bool Show)
+void OneBenchStenopeSat(tAvgSS & anAvg,int aNum,bool isX,tREAL8 aFocale,tREAL8 aFactPP,cPt3dr aMFoc,tREAL8 aOri0,bool Show)
 {
    // cPerspCamIntrCalib * aCalib  = cPerspCamIntrCalib::RandomCalib(eProjPC::eStenope,aNum);
     cPt2dr aPPRel = cPt2dr(0.5,0.5) + cPt2dr::PRandC() *  aFactPP;
@@ -146,7 +146,7 @@ void OneBenchStenopeSat(tAvgSS & anAvg,int aNum,bool isX,tREAL8 aFocale,tREAL8 a
     cSensorCamPC aCamPC("TestStenopeSat",tPoseR(aC,aRot),aCalib);
     tREAL8 aFoc =  aCalib->F();
 
-    cPt3dr aWPK =  cPt3dr::PRandC() / (aFoc*aMFoc);
+    cPt3dr aWPK =  DivCByC(cPt3dr::PRandC(),aFoc*aMFoc);
     tRotR aRotPert = tRotR::RotFromWPK(aWPK);
 /*
 cDenseMatrix<tREAL8>  aMatP =     tRotR::RotOmega(aWPK.x())
@@ -164,8 +164,8 @@ cDenseMatrix<tREAL8>  aMatP =     tRotR::RotOmega(aWPK.x())
     int aSz0 = isX ?  aCalib->SzPix().x() :  aCalib->SzPix().y();
     int aSz1 = isX ?  aCalib->SzPix().y() :  aCalib->SzPix().x();
 
-    int aNb0 = 5;
-    int aNb1 = 5;
+    int aNb0 = 1;
+    int aNb1 = 1;
     //for (tREAL8 aCoord0=aMargin ; aCoord0<aSz0-aMargin ; aCoord0+=20)
     for (int aK0= 0 ; aK0< aNb0 ; aK0++)
     {
@@ -231,7 +231,7 @@ cDenseMatrix<tREAL8>  aMatP =     tRotR::RotOmega(aWPK.x())
 // WPPkkk:: [-8.9067,4.90246,-1.81514e-15]      [8.84601,-4.96901]                  [-0.0606832,-0.0665438]
 
 
-void BenchStenopeSat(tAvgSS & aStat ,bool isX,tREAL8 aFactPP,tREAL8 aMFoc,tREAL8 aOri0,bool Show)
+void BenchStenopeSat(tAvgSS & aStat ,bool isX,tREAL8 aFactPP,cPt3dr aMFoc,tREAL8 aOri0,bool Show)
 {
     for (int aK=0 ; aK<1000 ; aK++)
     {
@@ -248,7 +248,8 @@ void BenchStenopeSat()
     for (const tREAL8  aMulFoc : {0.3,1.0,3.0,10.0} )
     {
         tAvgSS aStat ;
-        BenchStenopeSat(aStat,true,0.1 ,aMulFoc,0.0,false);
+	cPt3dr aPtMulFoc = cPt3dr::PCste(aMulFoc);
+        BenchStenopeSat(aStat,true,0.1 ,aPtMulFoc,0.0,false);
         cPt2dr anAvg = aStat.Average();
 	tREAL8 aRatio = anAvg.y() /  anAvg.x();
         StdOut() 

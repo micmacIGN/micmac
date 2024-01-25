@@ -477,7 +477,7 @@ INSTANCE_TWO_DIM_MAPPING(DIM,3);
 
 INSTANCE_ONE_DIM_MAPPING(2)
 INSTANCE_ONE_DIM_MAPPING(3)
-
+INSTANCE_TWO_DIM_MAPPING(3,1)
 
 /* ============================================= */
 /* ============================================= */

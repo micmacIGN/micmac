@@ -62,7 +62,7 @@ int cAppli_ConvertV1V2_GCPIM::Exe()
     bool  useGCP=false;
     if (mNameGCP != MMVII_NONE)
     {
-        aMesGCP = ImportMesGCPV1(mNameGCP,"FromV1-"+Prefix(mNameGCP));
+        aMesGCP = ImportMesGCPV1(mNameGCP,"FromV1-"+LastPrefix(mNameGCP));
         useGCP = true;
 	mPhProj.SaveGCP(aMesGCP);
         // std::string aNameOut = mPhProj.DPPointsMeasures().FullDirOut() + cSetMesGCP::ThePrefixFiles + "_" + mNameGCP;

@@ -31,16 +31,16 @@ class cPushbroomSensor : public cSensorImage
 
 /* =============================================== */
 /*                                                 */
-/*                 cPolyn                          */
+/*                 cRPC_Polyn                      */
 /*                                                 */
 /* =============================================== */
 
-/**  A class containing a polynomial   */
+/**  A class containing a polynomial with RPC convention    */
 
-class cPolyn
+class cRPC_Polyn : public cDataMapping<tREAL8,3,1>
 {
     public:
-        cPolyn(){};
+        cRPC_Polyn(){};
 
         void Initialise(const cSerialTree &,const std::string&);
         void Show();
@@ -49,13 +49,18 @@ class cPolyn
         double * Coeffs() {return mCoeffs;}
         double Val(const cPt3dr &) const;
 
+
+	// cPt1dr Value(const cPt3dr &) const override; // Make the object a mapping, in case it is usefull
+
+
     private:
         double mCoeffs[20];
 
 };
 
-void cPolyn::Initialise(const cSerialTree & aData,const std::string& aPrefix)
+void cRPC_Polyn::Initialise(const cSerialTree & aData,const std::string& aPrefix)
 {
+	// StdOut() << "cRPC_Polyn::InitialisecRPC_Polyn::Initialise  \n"; getchar();
     for (int aK=1; aK<21; aK++)
     {
         const cSerialTree * aItem = aData.GetUniqueDescFromName(aPrefix+ToString(aK));
@@ -63,7 +68,7 @@ void cPolyn::Initialise(const cSerialTree & aData,const std::string& aPrefix)
     }
 }
 
-double cPolyn::Val(const cPt3dr& aP) const
+double cRPC_Polyn::Val(const cPt3dr& aP) const
 {
     return    mCoeffs[0]
             + mCoeffs[5]  * aP.y() * aP.z()
@@ -88,7 +93,9 @@ double cPolyn::Val(const cPt3dr& aP) const
 
 }
 
-void cPolyn::Show()
+	// cPt1dr Value(const cPt3dr &) const override;
+
+void cRPC_Polyn::Show()
 {
     for (int aK=0; aK<20; aK++)
     {
@@ -113,11 +120,11 @@ class cRatioPolyn//1
     public:
         cRatioPolyn(){};
 
-        const cPolyn & NumPoly() const {return mNumPoly;} // read access
-        cPolyn & NumPoly() {return mNumPoly;}             // write access
+        const cRPC_Polyn & NumPoly() const {return mNumPoly;} // read access
+        cRPC_Polyn & NumPoly() {return mNumPoly;}             // write access
 
-        const cPolyn & DenPoly() const {return mDenPoly;} // read access
-        cPolyn & DenPoly() {return mDenPoly;}             // write access
+        const cRPC_Polyn & DenPoly() const {return mDenPoly;} // read access
+        cRPC_Polyn & DenPoly() {return mDenPoly;}             // write access
 
         void Show();
         double Val(const cPt3dr &) const;
@@ -125,8 +132,8 @@ class cRatioPolyn//1
 
 
     private:
-        cPolyn mNumPoly; // numerator polynomial
-        cPolyn mDenPoly; // denominator polynomial
+        cRPC_Polyn mNumPoly; // numerator polynomial
+        cRPC_Polyn mDenPoly; // denominator polynomial
 
 
 };
@@ -215,7 +222,7 @@ class cDataRPC
         cPt2dr GroundToImage(const cPt3dr&);
         cPt3dr ImageZToGround(const cPt2dr&,const double);
 
-
+        ~cDataRPC();
 
         void Show();
 
@@ -235,6 +242,10 @@ class cDataRPC
         cPt3dr & GroundScale() {return mGroundScale;}
 
     private:
+        cDataRPC(const cDataRPC&) = delete;
+        void operator = (const cDataRPC&) = delete;
+
+
         cPt2dr NormIm(const cPt2dr &aP,bool);
         cPt3dr NormGround(const cPt3dr &aP,bool);
         double NormZ(const double,bool);
@@ -260,7 +271,9 @@ cDataRPC::cDataRPC(const std::string& aNameRPC) :
     mDirectRPC(nullptr),
     mInverseRPC(nullptr),
     mNameRPC(aNameRPC)
-{}
+{
+    ReadXML(aNameRPC);
+}
 
 cPt2dr cDataRPC::NormIm(const cPt2dr &aP,bool Direct)
 {
@@ -383,6 +396,20 @@ void cDataRPC::Show()
 
 }
 
+cDataRPC::~cDataRPC()
+{
+    delete mDirectRPC;
+    delete mInverseRPC;
+}
+
+void Test2RPCProjections(const std::string& aNameIm)
+{
+    // cPhotogrammetricProject(cMMVII_Appli &);
+    // int InitStandAloneAppli(const cSpecMMVII_Appli & aSpec, int argc, char*argv[]);
+
+
+}
+
 /** Bench the reprojection functions */
 
 void TestRPCProjections(const std::string& aNameRPC1)
@@ -417,6 +444,84 @@ void TestDataRPCReasXML(const std::string& aNameFile)
     aRPC.Show();
 }
 
+/* =============================================== */
+/*                                                 */
+/*                 cAppliTestImportSensors         */
+/*                                                 */
+/* =============================================== */
+
+/**  A basic application for  */
+
+class cAppliTestImportSensors : public cMMVII_Appli
+{
+     public :
+
+        cAppliTestImportSensors(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
+
+     private :
+        int Exe() override;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+
+        cPhotogrammetricProject  mPhProj;
+        std::string              mNameImage;
+        std::string              mNameRPC;
+
+};
+
+
+cAppliTestImportSensors::cAppliTestImportSensors(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
+    cMMVII_Appli(aVArgs,aSpec),
+    mPhProj     (*this)
+{
+}
+
+cCollecSpecArg2007 & cAppliTestImportSensors::ArgObl(cCollecSpecArg2007 & anArgObl) 
+{
+      return    anArgObl
+             << Arg2007(mNameImage,"Name of input RPC", {eTA2007::FileDirProj})
+             << Arg2007(mNameRPC,"Name of input RPC", {eTA2007::Orient})
+             << mPhProj.DPPointsMeasures().ArgDirInMand()
+      ;
+}
+
+cCollecSpecArg2007 & cAppliTestImportSensors::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+    return anArgOpt
+            ;
+}
+
+int cAppliTestImportSensors::Exe()
+{
+    mPhProj.FinishInit();
+
+    cSetMesImGCP aSetMes;
+    mPhProj.LoadGCP(aSetMes);
+    mPhProj.LoadIm(aSetMes,mNameImage);
+
+    cDataRPC aDataRPC(mNameRPC);
+
+
+    return EXIT_SUCCESS;
+}
+
+
+tMMVII_UnikPApli Alloc_TestImportSensors(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
+{
+      return tMMVII_UnikPApli(new cAppliTestImportSensors(aVArgs,aSpec));
+}
+
+
+cSpecMMVII_Appli  TheSpecTestImportSensors
+(
+     "TestImportSensor",
+      Alloc_TestImportSensors,
+      "Test orientation functions with ground truth 2D/3D correspondance",
+      {eApF::Ori},
+      {eApDT::Ori,eApDT::GCP},
+      {eApDT::Console},
+      __FILE__
+);
 
 
 /* =============================================== */
