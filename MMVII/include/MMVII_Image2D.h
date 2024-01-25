@@ -47,6 +47,7 @@ class cDataFileIm2D : public cRect2
 	static bool IsNameWith_PostFixImage(const std::string & aPost);
      private :
         cDataFileIm2D(const std::string &,eTyNums,const cPt2di & aSz,int aNbChannel) ;
+        cDataFileIm2D(const std::string & aName, const cPt2di & aSz) ;
 
         cMemCheck    mMemCheck;  ///< Inheritage may be multiple, member will have the same effect
         std::string  mName;      ///< Name on the disk
