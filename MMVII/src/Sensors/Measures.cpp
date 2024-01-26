@@ -462,9 +462,11 @@ bool cSetMesPtOf1Im::NameHasMeasure(const std::string & aN) const {return Privat
 /*                                               */
 /* ********************************************* */
 
-cMes1GCP::cMes1GCP(const cPt3dr & aPt,const std::string & aNamePt,tREAL4 aSigma) :
+cMes1GCP::cMes1GCP(const cPt3dr & aPt, const std::string & aNamePt, tREAL4 aSigma,
+                   const std::string &aAdditionalInfo) :
     mPt       (aPt),
     mNamePt   (aNamePt),
+    mAdditionalInfo(aAdditionalInfo),
     mOptSigma2   { {0,0,0,0,0,0} }
 {
     (*mOptSigma2)[IndXX] = aSigma;
@@ -481,6 +483,7 @@ void AddData(const  cAuxAr2007 & anAux,cMes1GCP & aMes)
 {
    MMVII::AddData(cAuxAr2007("Name",anAux),aMes.mNamePt);
    MMVII::AddData(cAuxAr2007("Pt",anAux),aMes.mPt);
+   MMVII::AddData(cAuxAr2007("AdditionalInfo",anAux),aMes.mAdditionalInfo);
    AddOptTabData(anAux,"Sigma2",aMes.mOptSigma2);
 }
 

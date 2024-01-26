@@ -59,7 +59,7 @@ cCollecSpecArg2007 & cAppli_ImportGCP::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
     return anArgObl
 	      <<  Arg2007(mNameFile ,"Name of Input File")
-	      <<  Arg2007(mFormat   ,"Format of file as for ex \"SNSXYZSS\" ")
+              <<  Arg2007(mFormat,"Format of file as for ex \"SNASXYZSS\" ")
               << mPhProj.DPPointsMeasures().ArgDirOutMand()
            ;
 }
@@ -105,9 +105,17 @@ int cAppli_ImportGCP::Exe()
    cChangSysCoordV2 & aChSys = mPhProj.ChSys();
 
     cSetMesGCP aSetM(mNameGCP);
+
+    size_t  aRankP_InF = mFormat.find('N');
+    size_t  aRankA_InF = mFormat.find('A');
+    bool aHasAdditionalInfo = aRankA_InF != mFormat.npos;
+    size_t  aRankP = (aRankP_InF<aRankA_InF) ? 0 : 1;
+    size_t  aRankA = 1 - aRankP;
+
     for (size_t aK=0 ; aK<aVXYZ.size() ; aK++)
     {
-         std::string aName = aVNames.at(aK).at(0);
+         std::string aName = aVNames.at(aK).at(aRankP);
+
 	 if (IsInit(&mPatternTransfo))
          {
 	//	 aName = PatternKthSubExpr(mPatternTransfo,1,aName);
@@ -116,7 +124,10 @@ int cAppli_ImportGCP::Exe()
 	 if (IsInit(&mNbDigName))
             aName =   ToStr(cStrIO<int>::FromStr(aName),mNbDigName);
 
-         aSetM.AddMeasure(cMes1GCP(aChSys.Value(aVXYZ[aK]),aName,1.0));
+         std::string aAdditionalInfo = "";
+         if (aHasAdditionalInfo)
+             aAdditionalInfo = aVNames.at(aK).at(aRankA);
+         aSetM.AddMeasure(cMes1GCP(aChSys.Value(aVXYZ[aK]),aName,1.0,aAdditionalInfo));
     }
 
     mPhProj.SaveGCP(aSetM);

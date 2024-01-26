@@ -124,7 +124,8 @@ void AddData(const  cAuxAr2007 & anAux,cSetMesPtOf1Im & aGCPMI);
 class cMes1GCP
 {
      public :
-        cMes1GCP(const cPt3dr & aPt,const std::string & aNamePt,tREAL4 aSigma);
+        cMes1GCP(const cPt3dr & aPt,const std::string & aNamePt,tREAL4 aSigma,
+                 const std::string &aAdditionalInfo="");
         cMes1GCP();
         bool isFree() const {return !mOptSigma2;}
         cPt3dr         mPt;
@@ -132,6 +133,7 @@ class cMes1GCP
         static constexpr int IndXX = 0;
         static constexpr int IndYY = 3;
         static constexpr int IndZZ = 5;
+        std::string mAdditionalInfo;
 
         std::optional<cArray<tREAL4,6> >  mOptSigma2;  //  xx xy xz yy yz zz
 };

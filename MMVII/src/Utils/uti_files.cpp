@@ -293,6 +293,7 @@ line += " ";
 
 			 case 'N' : aLNames.push_back(GetV<std::string>(iss)); break;
 			 case 'I' : aLNames.push_back(GetV<std::string>(iss)); break;
+                        case 'A' : aLNames.push_back(GetV<std::string>(iss)); break;
 			 case 'S' : GetV<std::string>(iss); break;
 
 		         default :
