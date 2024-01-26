@@ -616,7 +616,8 @@ std::vector<std::string>  cPhotogrammetricProject::ListFileGCP(const std::string
    return aRes;
 }
 
-void cPhotogrammetricProject::LoadGCP(cSetMesImGCP& aSetMes,const std::string & aArgPatFiltr,const std::string & aFiltrNameGCP) const
+void cPhotogrammetricProject::LoadGCP(cSetMesImGCP& aSetMes,const std::string & aArgPatFiltr,const std::string & aFiltrNameGCP,
+                                      const std::string & aFiltrAdditionalInfoGCP) const
 {
    std::vector<std::string> aListFileGCP = ListFileGCP(aArgPatFiltr);
    MMVII_INTERNAL_ASSERT_User(!aListFileGCP.empty(),eTyUEr::eUnClassedError,"No file found in LoadGCP");
@@ -624,8 +625,8 @@ void cPhotogrammetricProject::LoadGCP(cSetMesImGCP& aSetMes,const std::string & 
    for (const auto  & aNameFile : aListFileGCP)
    {
        cSetMesGCP aMesGCP = cSetMesGCP::FromFile(aNameFile);
-       if (aFiltrNameGCP!="")
-          aMesGCP = aMesGCP.Filter(aFiltrNameGCP);
+       if ( (!aFiltrNameGCP.empty()) || (!aFiltrAdditionalInfoGCP.empty()) )
+          aMesGCP = aMesGCP.Filter(aFiltrNameGCP, aFiltrAdditionalInfoGCP);
        aSetMes.AddMes3D(aMesGCP);
    }
 }

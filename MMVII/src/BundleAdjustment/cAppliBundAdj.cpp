@@ -70,6 +70,7 @@ class cAppliBundlAdj : public cMMVII_Appli
 
 	std::vector<double>       mGCPW;
         std::string               mGCPFilter;  // pattern to filter names of GCP
+        std::string               mGCPFilterAdd;  // pattern to filter GCP by additional info
 	std::vector<double>       mTiePWeight;
 	std::vector<double>       mBRSigma; // RIGIDBLOC
 	std::vector<double>       mBRSigma_Rat; // RIGIDBLOC
@@ -90,6 +91,7 @@ cAppliBundlAdj::cAppliBundlAdj(const std::vector<std::string> & aVArgs,const cSp
    mPhProj       (*this),
    mBA           (&mPhProj),
    mGCPFilter    (""),
+   mGCPFilterAdd (""),
    mNbIter       (10),
    mLVM          (0.0)
 {
@@ -123,7 +125,8 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
             "GCP Weight [SigG,SigI,SigAt?=-1,Thrs?=-1,Exp?=1], SG=0 fix, SG<0 schurr elim, SG>0",
             {{eTA2007::ISizeV,"[2,5]"}}
          )
-      << AOpt2007(mGCPFilter,"GCPFilter","Pattern to filter GCP from their name")
+      << AOpt2007(mGCPFilter,"GCPFilter","Pattern to filter GCP by name")
+      << AOpt2007(mGCPFilterAdd,"GCPFilterAdd","Pattern to filter GCP by additional info")
       << mPhProj.DPPointsMeasures().ArgDirOutOpt("GCPDirOut","Dir for output GCP")
       << AOpt2007(mTiePWeight,"TiePWeight","Tie point weighting [Sig0,SigAtt?=-1,Thrs?=-1,Exp?=1]",{{eTA2007::ISizeV,"[1,4]"}})
       << AOpt2007(mPatParamFrozCalib,"PPFzCal","Pattern for freezing internal calibration parameters")
@@ -188,7 +191,7 @@ int cAppliBundlAdj::Exe()
         //  load the GCP
         MeasureAdded = true;
         cSetMesImGCP  aFullMesGCP; 
-	mPhProj.LoadGCP(aFullMesGCP,"",mGCPFilter);
+        mPhProj.LoadGCP(aFullMesGCP,"",mGCPFilter,mGCPFilterAdd);
 
         //if (IsInit(&mGCPFilter))
         //    aFullMesGCP = aFullMesGCP.Filter(mGCPFilter);

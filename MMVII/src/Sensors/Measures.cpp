@@ -558,15 +558,16 @@ void cSetMesGCP::ToFile(const std::string & aNameFile) const
 
 const std::vector<cMes1GCP> &   cSetMesGCP::Measures() const {return mMeasures;}
 
-cSetMesGCP  cSetMesGCP::Filter(const std::string &aFilter) const
+cSetMesGCP  cSetMesGCP::Filter(const std::string &aFilter, const std::string &aFiltrAdditionalInfo) const
 {
     cSetMesGCP  aRes(mNameSet);
 
-    tNameSelector  aSelect =  AllocRegex(aFilter);
+    tNameSelector  aSelectName =  AllocRegex(aFilter);
+    tNameSelector  aSelectInfo =  AllocRegex(aFiltrAdditionalInfo);
 
     for (const auto & aPt : mMeasures)
     {
-         if (aSelect.Match(aPt.mNamePt))
+        if ( aSelectName.Match(aPt.mNamePt) && aSelectInfo.Match(aPt.mAdditionalInfo) )
             aRes.AddMeasure(aPt);
     }
 

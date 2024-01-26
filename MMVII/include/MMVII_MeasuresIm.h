@@ -144,7 +144,7 @@ class cSetMesGCP : public cMemCheck
     public :
           cSetMesGCP();
           cSetMesGCP(const std::string &aNameSet);
-          cSetMesGCP  Filter(const std::string &aFilter) const;
+          cSetMesGCP  Filter(const std::string &aFilter, const std::string &aFiltrAdditionalInfo) const;
 	  static cSetMesGCP  FromFile(const std::string & aNameFile);
 	  void    ToFile(const std::string & aNameFile);
 
