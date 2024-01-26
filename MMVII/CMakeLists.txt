@@ -111,6 +111,10 @@ add_library(P2007 "${mmv2_libsrcs}" "${mmv2_headers}")
 target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH}")
 target_link_libraries(P2007 PRIVATE MMVII_compiler_flags Threads::Threads)
 
+# Force parallel compilation with MSVC
+if(MSVC)
+ target_compile_options(P2007 PRIVATE "/MP")
+endif()
 
 #######################################################
 ##        MMVII build (executable)
