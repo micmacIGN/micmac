@@ -1,7 +1,7 @@
 #######################################################
 ##        Global configuration
 #######################################################
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.17)
 project(MMVII VERSION 1.0)
 
 # strict C++17 required
@@ -94,14 +94,14 @@ set(mmv2_gencode_dir "${mmv2_src_dir}/GeneratedCodes")
 set(mmv2_gencode_main_src "${mmv2_gencode_dir}/cName2CalcRegisterAll.cpp")
 set(EIGEN3_INCLUDE_PATH  "${mmv2_external_include_dir}/eigen-3.4.0")
 
+# Here we initialize the generated code with en empty template if working dir is clean (first checkout or after make distclean)
+if (NOT EXISTS "${mmv2_gencode_main_src}")
+	execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${mmv2_include_dir}/SymbDer/cName2CalcRegisterAll.cpp.tmpl "${mmv2_gencode_main_src}" )
+endif()
+
 # MMVII sources: Auto generate. Not recommended, but let's try it ...
 file(GLOB mmv2_libsrcs CONFIGURE_DEPENDS "${mmv2_src_dir}/*/*.cpp")
-file(GLOB mmv2_headers "${mmv2_include_dir}/*.h" "${mmv2_include_dir}/*.h" "${mmv2_src_dir}/*/*.h")
-
-# Here we initialize the generated code with en empty template if working dir is clean (first checkout or after make distclean)
-list(APPEND mmv2_libsrcs "${mmv2_gencode_main_src}")   # This file may not be present (deleted after clean all), force dependance on it
-list(REMOVE_DUPLICATES mmv2_libsrcs)				   # Avoid the file above being build twice
-add_custom_command(OUTPUT "${mmv2_gencode_main_src}" COMMAND ${CMAKE_COMMAND} -E copy ${mmv2_include_dir}/SymbDer/cName2CalcRegisterAll.cpp.tmpl "${mmv2_gencode_main_src}" VERBATIM)
+file(GLOB mmv2_headers "${mmv2_include_dir}/*.h" "${mmv2_include_dir}/*/*.h" "${mmv2_src_dir}/*/*.h")
 
 
 #######################################################
@@ -179,7 +179,6 @@ add_custom_target(distclean
   VERBATIM)
 
 ##  full : generate source files for symbolic calculus and recompile
-set(JOE )
 add_custom_target(full
   COMMAND ${CMAKE_COMMAND} -E rm -rf ${mmv2_gencode_dir}
   COMMAND ${make_parallel_prefix} ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --config $<CONFIG>
