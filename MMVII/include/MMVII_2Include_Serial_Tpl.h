@@ -70,14 +70,14 @@ template <class Type> void EnumAddData(const cAuxAr2007 & anAux,Type & anEnum,co
 
 template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string & aTag0,std::optional<Type> & aL)
 {
-    // put the tag as <Opt::Tag0>,
+    // put the tag as <__Opt__Tag0>,
     //  Not mandatory, but optionality being an important feature I thought usefull to see it in XML file
     //  put it
     std::string aTagOpt;
     const std::string * anAdrTag = & aTag0;
     if (anAux.Tagged())
     {
-        aTagOpt = "Opt:" + aTag0;
+        aTagOpt = "__Opt__" + aTag0;
         anAdrTag = & aTagOpt;
     }
 
@@ -119,14 +119,14 @@ template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string
 
 template <class Type, size_t size> void AddOptTabData(const cAuxAr2007 & anAux,const std::string & aTag0,std::optional<cArray<Type, size>> & aL)
 {
-    // put the tag as <Opt::Tag0>,
+    // put the tag as <__Opt__Tag0>,
     //  Not mandatory, but optionality being an important feature I thought usefull to see it in XML file
     //  put it
     std::string aTagOpt;
     const std::string * anAdrTag = & aTag0;
     if (anAux.Tagged())
     {
-        aTagOpt = "Opt:" + aTag0;
+        aTagOpt = "__Opt__" + aTag0;
         anAdrTag = & aTagOpt;
     }
 
