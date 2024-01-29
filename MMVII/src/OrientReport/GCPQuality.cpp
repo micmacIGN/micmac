@@ -60,6 +60,8 @@ class cAppli_CGPReport : public cMMVII_Appli
 
 	double                   mMarginMiss;  ///  Margin for counting missing targets
         std::string              mSuffixReportSubDir; // additional name for report subdir
+        std::string               mFilterName;  // pattern to filter names of GCP
+        std::string               mFilterAdd;  // pattern to filter GCP by additional info
 };
 
 cAppli_CGPReport::cAppli_CGPReport
@@ -73,7 +75,9 @@ cAppli_CGPReport::cAppli_CGPReport
      mIsGCP        (isGCP),
      mPropStat     ({50,75}),
      mMarginMiss   (50.0),
-     mSuffixReportSubDir ("")
+     mSuffixReportSubDir (""),
+     mFilterName         (""),
+     mFilterAdd          ("")
 {
 }
 
@@ -98,7 +102,9 @@ cCollecSpecArg2007 & cAppli_CGPReport::ArgOpt(cCollecSpecArg2007 & anArgOpt)
     if (mIsGCP)
        return aRes << AOpt2007(mGeomFiedlVec,"GFV","Geom Fiel Vect for visu [Mul,Witdh,Ray,Zoom?=2]",{{eTA2007::ISizeV,"[3,4]"}})
 	           << AOpt2007(mMarginMiss,"MargMiss","Margin to border for counting missed target",{eTA2007::HDV})
-                   << AOpt2007(mSuffixReportSubDir, "Suffix", "Suffix to report subdirectory name", {eTA2007::HDV})
+                   << AOpt2007(mSuffixReportSubDir, "Suffix", "Suffix to report subdirectory name")
+                   << AOpt2007(mFilterName, "Filter", "Pattern to filter GCP by name")
+                   << AOpt2007(mFilterAdd, "FilterAdd", "Pattern to filter GCP by additional info")
        ;
 
     return aRes;
@@ -114,7 +120,7 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
        return ;
 
     cSetMesImGCP             aSetMes;
-    mPhProj.LoadGCP(aSetMes);
+    mPhProj.LoadGCP(aSetMes,"",mFilterName,mFilterAdd);
     mPhProj.LoadIm(aSetMes,aNameIm);
     const cSetMesPtOf1Im  &  aSetMesIm = aSetMes.MesImInitOfName(aNameIm);
 
@@ -211,7 +217,7 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
 void cAppli_CGPReport::ReportsByGCP()
 {
    cSetMesImGCP             aSetMes;
-   mPhProj.LoadGCP(aSetMes);
+   mPhProj.LoadGCP(aSetMes,"",mFilterName,mFilterAdd);
 
    for (const auto & aNameIm : VectMainSet(0))
    {
@@ -262,7 +268,7 @@ void cAppli_CGPReport::ReportsByCam()
 {
    std::map<cPerspCamIntrCalib*,std::vector<cSensorCamPC*>>  aMapCam;
    cSetMesImGCP             aSetMes;
-   mPhProj.LoadGCP(aSetMes);
+   mPhProj.LoadGCP(aSetMes,"",mFilterName,mFilterAdd);
 
    for (const auto & aNameIm : VectMainSet(0))
    {
