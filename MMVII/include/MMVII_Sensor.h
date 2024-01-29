@@ -102,9 +102,9 @@ class cSensorImage  :   public cObj2DelAtEnd,
          /// Invert of Ground2ImageAndDepth
          virtual cPt3dr ImageAndDepth2Ground(const cPt3dr &) const = 0;
 
-	 ///  add the the Z
-         virtual cPt3dr Ground2ImageAndZ(const cPt3dr &) const ;
-         /// Invert of Ground2ImageAndZ
+	 ///  add the the Z, not virtual just a facility using Ground2Image
+         cPt3dr Ground2ImageAndZ(const cPt3dr &) const ;
+         /// Invert of Ground2ImageAndZ, default use bundle, RPC for ex have a specialize method
          virtual cPt3dr ImageAndZ2Ground(const cPt3dr &) const ;
 
 

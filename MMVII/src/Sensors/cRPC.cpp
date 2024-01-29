@@ -92,32 +92,36 @@ class cRatioPolynXY
 
 /**  A class containing RPCs  */
 
-class cDataRPC
+class cDataRPC // : public cSensorImage
 {
     public:
 
-/*
-         ///  
          tSeg3dr  Image2Bundle(const cPt2dr &) const ;
          /// Basic method  GroundCoordinate ->  image coordinate of projection
          cPt2dr Ground2Image(const cPt3dr &) const ;
+         ///    Method specialized, more efficent than using bundles
+         cPt3dr ImageAndZ2Ground(const cPt3dr &) const ;
 
-         ///  add the the depth (to see if have a default with bundle+Gr2Ima)
+         /// Will be implemanted later, for example using Genrate point 3D/2D -> Recompute RPC by least square
+         cSensorImage * SensorChangSys(cDataInvertibleMapping<tREAL8,3> &) const ;
+         ///  
+         const cPixelDomain & PixelDomain() const ;
+
+         // These 2 method are not meaningfull for RPC,  probably will have to redesign
+         // the base class cSensorImage, waiting for that define fake functions
+         ///  not implemented, error
          cPt3dr Ground2ImageAndDepth(const cPt3dr &) const ;
-         /// Invert of Ground2ImageAndDepth
+         /// not implemented, error
          cPt3dr ImageAndDepth2Ground(const cPt3dr &) const ;
-        ///  add the the Z
-         virtual cPt3dr Ground2ImageAndZ(const cPt3dr &) const ;
-         /// Invert of Ground2ImageAndZ
-         virtual cPt3dr ImageAndZ2Ground(const cPt3dr &) const ;
-*/
+
+
+
 
 
         cDataRPC(const std::string&);
         void Dimap_ReadXML_Glob(const cSerialTree&);
 
-        cPt2dr GroundToImage(const cPt3dr&);
-        cPt3dr ImageZToGround(const cPt2dr&,const double);
+        cPt3dr ImageZToGround(const cPt2dr&,const double) const;
 
         ~cDataRPC();
 
@@ -146,9 +150,9 @@ class cDataRPC
         void operator = (const cDataRPC&) = delete;
 
 
-        cPt2dr NormIm(const cPt2dr &aP,bool);
-        cPt3dr NormGround(const cPt3dr &aP,bool);
-        double NormZ(const double,bool);
+        cPt2dr NormIm(const cPt2dr &aP,bool) const;
+        cPt3dr NormGround(const cPt3dr &aP,bool) const;
+        double NormZ(const double,bool) const;
 
         double ReadXMLItem(const cSerialTree&,const std::string&);
         void   Dimap_ReadXMLModel(const cSerialTree&,const std::string&,cRatioPolynXY *);
@@ -174,7 +178,13 @@ class cDataRPC
         //  Not sur what we will do in the future, so we 
         bool  mSwapXYGround;
         bool  mSwapIJImage;
+        //  For Image 2 Bundle, we need to know how we generate 
+        tREAL8 mAmplZB;
+        //  cPixelDomain
+        cDataPixelDomain  mDataPixDomain;
 };
+
+
 
 /* =============================================== */
 /*                                                 */
@@ -347,11 +357,13 @@ void cRatioPolynXY::Show()
      // ====================================================
 
 cDataRPC::cDataRPC(const std::string& aNameRPC) :
-    mDirectRPC(nullptr),
-    mInverseRPC(nullptr),
-    mNameRPC(aNameRPC),
-    mSwapXYGround (true),
-    mSwapIJImage (true)
+    mDirectRPC       (nullptr),
+    mInverseRPC      (nullptr),
+    mNameRPC         (aNameRPC),
+    mSwapXYGround    (true),
+    mSwapIJImage     (true),
+    mAmplZB          (1.0),
+    mDataPixDomain   (cPt2di(1,1))
 {
     //  Is it a xml file ?
     if (UCaseEqual(LastPostfix(aNameRPC),"xml"))
@@ -429,6 +441,10 @@ void cDataRPC::Dimap_ReadXMLNorms(const cSerialTree& aTree)
 
     mImOffset.x() = ReadXMLItem(*aData,"LINE_OFF");
     mImOffset.y() = ReadXMLItem(*aData,"SAMP_OFF");
+
+    int anX = round_ni(ReadXMLItem(*aData,"LAST_COL"));
+    int anY = round_ni(ReadXMLItem(*aData,"LAST_ROW"));
+    mDataPixDomain =  cDataPixelDomain(cPt2di(anX,anY));
 }
 
 double cDataRPC::ReadXMLItem(const cSerialTree & aData,const std::string& aPrefix)
@@ -456,19 +472,19 @@ void cDataRPC::Dimap_ReadXML_Glob(const cSerialTree & aTree)
      //     Normalisation 
      // ====================================================
 
-cPt2dr cDataRPC::NormIm(const cPt2dr &aP,bool Direct)
+cPt2dr cDataRPC::NormIm(const cPt2dr &aP,bool Direct) const
 {
     return  Direct ?
             DivCByC(aP - mImOffset,mImScale) : MulCByC(aP,mImScale) + mImOffset;
 }
 
-cPt3dr cDataRPC::NormGround(const cPt3dr &aP,bool Direct)
+cPt3dr cDataRPC::NormGround(const cPt3dr &aP,bool Direct) const
 {
     return  Direct ?
             DivCByC(aP - mGroundOffset,mGroundScale) : MulCByC(aP,mGroundScale) + mGroundOffset;
 }
 
-double cDataRPC::NormZ(const double aZ,bool Direct)
+double cDataRPC::NormZ(const double aZ,bool Direct) const
 {
     return Direct ?
            (aZ - mGroundOffset.z())/mGroundScale.z() : aZ*mGroundScale.z() + mGroundOffset.z();
@@ -481,7 +497,7 @@ double cDataRPC::NormZ(const double aZ,bool Direct)
 cPt2dr cDataRPC::IO_PtIm(const cPt2dr&aPt) const {return mSwapIJImage?cPt2dr(aPt.y(),aPt.x()):aPt;}  
 cPt3dr cDataRPC::IO_PtGr(const cPt3dr&aPt) const {return mSwapXYGround?cPt3dr(aPt.y(),aPt.x(),aPt.z()):aPt;} 
 
-cPt2dr cDataRPC::GroundToImage(const cPt3dr& aP)
+cPt2dr cDataRPC::Ground2Image(const cPt3dr& aP) const
 {
     cPt3dr aPN  = NormGround(IO_PtGr(aP),true); // ground normalised
     cPt2dr aRes = NormIm(mInverseRPC->Val(aPN),false); // image unnormalised
@@ -489,7 +505,7 @@ cPt2dr cDataRPC::GroundToImage(const cPt3dr& aP)
     return IO_PtIm(aRes);
 }
 
-cPt3dr cDataRPC::ImageZToGround(const cPt2dr& aPIm,const double aZ)
+cPt3dr cDataRPC::ImageZToGround(const cPt2dr& aPIm,const double aZ) const
 {
 
     cPt2dr aPImN = NormIm(IO_PtIm(aPIm),true); // image normalised
@@ -499,6 +515,51 @@ cPt3dr cDataRPC::ImageZToGround(const cPt2dr& aPIm,const double aZ)
 
     return IO_PtGr(aRes);
 }
+
+cPt3dr cDataRPC::ImageAndZ2Ground(const cPt3dr& aP) const
+{
+    return ImageZToGround(cPt2dr(aP.x(),aP.y()),aP.z());
+}
+
+tSeg3dr  cDataRPC::Image2Bundle(const cPt2dr & aPtIm) const 
+{
+     tREAL8  aZ0 = mGroundOffset.z() - mAmplZB;
+     tREAL8  aZ1 = mGroundOffset.z() + mAmplZB;
+      
+     cPt3dr  aPGr0 = ImageZToGround(aPtIm,aZ0);
+     cPt3dr  aPGr1 = ImageZToGround(aPtIm,aZ1);
+
+     return tSeg3dr(aPGr0,aPGr1);
+}
+
+     // ====================================================
+     //     Not implemanted (not yet or never)
+     // ====================================================
+
+cPt3dr cDataRPC::Ground2ImageAndDepth(const cPt3dr &) const 
+{
+    MMVII_INTERNAL_ERROR("No cDataRPC::Ground2ImageAndDepth");
+    return cPt3dr::Dummy();
+}
+
+cPt3dr cDataRPC::ImageAndDepth2Ground(const cPt3dr &) const 
+{
+    MMVII_INTERNAL_ERROR("No cDataRPC::ImageAndDepth2Ground");
+    return cPt3dr::Dummy();
+}
+
+cSensorImage * cDataRPC::SensorChangSys(cDataInvertibleMapping<tREAL8,3> &) const 
+{
+    MMVII_INTERNAL_ERROR("cDataRPC::SensorChangSys not yet implemanted");
+    return nullptr;
+}
+
+/* =============================================== */
+/*                                                 */
+/*                 cDataRPC                        */
+/*                                                 */
+/* =============================================== */
+
 
 
 
@@ -526,7 +587,7 @@ void TestRPCProjections(const std::string& aNameRPC1)
     cPt2dr aPtIm(5769.51863767362192,6188.93377727110783);
 
     StdOut() << "===== Ground to image" << std::endl;
-    cPt2dr aPtImPred = aCam1.GroundToImage(aPtGround);
+    cPt2dr aPtImPred = aCam1.Ground2Image(aPtGround);
     StdOut() << aPtIm << " =? " << aPtImPred << ", " << std::endl;
 
 
@@ -615,10 +676,10 @@ int cAppliTestImportSensors::Exe()
     {
          cPt3dr  aPGr = aPair.mP3;
          tREAL8  aZ   = aPGr.z();
-         cPt2dr  aPIm = aDataRPC.GroundToImage(aPGr);
+         cPt2dr  aPIm = aDataRPC.Ground2Image(aPGr);
 
          cPt3dr  aPGr2 =  aDataRPC.ImageZToGround(aPIm,aZ);
-         cPt2dr  aPIm2 = aDataRPC.GroundToImage(aPGr2);
+         cPt2dr  aPIm2 = aDataRPC.Ground2Image(aPGr2);
 
          aSomCheckIm +=  Norm2(aPIm  - aPair.mP2);
          aSomConsistIm +=  Norm2(aPIm-aPIm2);
@@ -633,7 +694,7 @@ int cAppliTestImportSensors::Exe()
          }
 /*
          cPt3dr aPtGr3 = aDataRPC.ImageZToGround(aPIm2,aPtGr1.z());
-         cPt2dr aPIm3  = aDataRPC.GroundToImage(aPtGr3);
+         cPt2dr aPIm3  = aDataRPC.Ground2Image(aPtGr3);
          StdOut() << "  -- PGR =" <<  aPtGr3  << " DeltaGr=" <<   aPtGr3-aPtGr2 << " DeltaIm=" << aPIm2-aPIm3<< "\n";
 */
 
