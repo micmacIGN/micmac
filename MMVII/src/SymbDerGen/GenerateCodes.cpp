@@ -2,6 +2,7 @@
 #include "SymbDer/SymbolicDerivatives.h"
 #include "SymbDer/SymbDer_GenNameAlloc.h"
 #include "Formulas_ImagesDeform.h"
+#include "Formulas_TrianglesDeform.h"
 #include "Formulas_CamStenope.h"
 #include "Formulas_Geom2D.h"
 #include "Formulas_Radiom.h"
@@ -301,6 +302,26 @@ cCalculator<double> * EqDeformImHomotethy(bool WithDerive,int aSzBuf)
 cCalculator<double> * EqDeformImAffinity(bool WithDerive,int aSzBuf)
 {
      return StdAllocCalc(NameFormula(cDeformImAffinity(),WithDerive),aSzBuf);
+}
+
+cCalculator<double> *EqDeformTri(bool WithDerive, int aSzBuf)
+{
+    return StdAllocCalc(NameFormula(cTriangleDeformation(), WithDerive), aSzBuf);
+}
+
+cCalculator<double> *EqDeformTriTrRad(bool WithDerive, int aSzBuf)
+{
+    return StdAllocCalc(NameFormula(cTriangleDeformationTrRad(), WithDerive), aSzBuf);
+}
+
+cCalculator<double> *EqDeformTriTranslation(bool WithDerive, int aSzBuf)
+{
+    return StdAllocCalc(NameFormula(cTriangleDeformationTranslation(), WithDerive), aSzBuf);
+}
+
+cCalculator<double> *EqDeformTriRadiometry(bool WithDerive, int aSzBuf)
+{
+    return StdAllocCalc(NameFormula(cTriangleDeformationRadiometry(), WithDerive), aSzBuf);
 }
 
 // dist3d
@@ -807,6 +828,11 @@ int cAppliGenCode::Exe()
        GenCodesFormula((tREAL8*)nullptr,cFormulaTopoDZ(),WithDer);
 
        GenCodesFormula((tREAL8*)nullptr,cDeformImHomotethy()       ,WithDer);
+
+       GenCodesFormula((tREAL8 *)nullptr, cTriangleDeformation(), WithDer);
+       GenCodesFormula((tREAL8 *)nullptr, cTriangleDeformationTrRad(), WithDer);
+       GenCodesFormula((tREAL8 *)nullptr, cTriangleDeformationTranslation(), WithDer);
+       GenCodesFormula((tREAL8 *)nullptr, cTriangleDeformationRadiometry(), WithDer);
 
 
        //  ===============   CODE FOR RADIOMETRY =========================================

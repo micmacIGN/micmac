@@ -196,6 +196,14 @@ NS_SymbolicDerivative::cCalculator<double> * EqTopoDZ(bool WithDerive,int aSzBuf
 	   
 /// Equation used to optimize homothetic transform between model and image (used as a tutorial for deformable model)
 NS_SymbolicDerivative::cCalculator<double> * EqDeformImHomotethy(bool WithDerive,int aSzBuf);
+/// Equation used to optimize translation and radiometry transformation between two images.
+NS_SymbolicDerivative::cCalculator<double> *EqDeformTri(bool WithDerive, int aSzBuf);
+/// Equation used to optimize translation and radiometry transformation between two images with alternative equation
+NS_SymbolicDerivative::cCalculator<double> *EqDeformTriTrRad(bool WithDerive, int aSzBuf);
+/// Equation used to optimize translation transformation between two images.
+NS_SymbolicDerivative::cCalculator<double> *EqDeformTriTranslation(bool WithDerive, int aSzBuf);
+/// Equation used to optimize radiometric transformation between two images.
+NS_SymbolicDerivative::cCalculator<double> *EqDeformTriRadiometry(bool WithDerive, int aSzBuf);
 
            // .............   Covariance propagation  .............
 
