@@ -101,25 +101,13 @@ class cDataRPC // : public cSensorImage
          cPt2dr Ground2Image(const cPt3dr &) const ;
          ///    Method specialized, more efficent than using bundles
          cPt3dr ImageAndZ2Ground(const cPt3dr &) const ;
-
-         /// Will be implemanted later, for example using Genrate point 3D/2D -> Recompute RPC by least square
-         cSensorImage * SensorChangSys(cDataInvertibleMapping<tREAL8,3> &) const ;
          ///  
          const cPixelDomain & PixelDomain() const ;
 
-         // These 2 method are not meaningfull for RPC,  probably will have to redesign
-         // the base class cSensorImage, waiting for that define fake functions
-         ///  not implemented, error
-         cPt3dr Ground2ImageAndDepth(const cPt3dr &) const ;
-         /// not implemented, error
-         cPt3dr ImageAndDepth2Ground(const cPt3dr &) const ;
+         std::string  V_PrefixName() const  ;
 
-
-
-
-
-        cDataRPC(const std::string&);
-        void Dimap_ReadXML_Glob(const cSerialTree&);
+         cDataRPC(const std::string&);
+         void Dimap_ReadXML_Glob(const cSerialTree&);
 
         cPt3dr ImageZToGround(const cPt2dr&,const double) const;
 
@@ -145,9 +133,24 @@ class cDataRPC // : public cSensorImage
 
     private:
 
+         //  --------------- BEGIN NOT IMPLEMANTED -----------------------------------------------
+ 
+         // standard declaration to forbid copy 
+         cDataRPC(const cDataRPC&) = delete;
+         void operator = (const cDataRPC&) = delete;
 
-        cDataRPC(const cDataRPC&) = delete;
-        void operator = (const cDataRPC&) = delete;
+         // These  method are not meaningfull for RPC,  probably will have to redesign
+         // the base class cSensorImage, waiting for that define fake functions
+         ///  not implemented, error
+
+         cPt3dr Ground2ImageAndDepth(const cPt3dr &) const ;
+         /// not implemented, error
+         cPt3dr ImageAndDepth2Ground(const cPt3dr &) const ;
+         cCalculator<double> * CreateEqColinearity(bool WithDerives,int aSzBuf,bool ReUse);
+         /// Will be implemanted later, for example using Genrate point 3D/2D -> Recompute RPC by least square
+         cSensorImage * SensorChangSys(cDataInvertibleMapping<tREAL8,3> &) const ;
+
+         //  --------------- END  NOT IMPLEMANTED -----------------------------------------------
 
 
         cPt2dr NormIm(const cPt2dr &aP,bool) const;
@@ -181,7 +184,8 @@ class cDataRPC // : public cSensorImage
         //  For Image 2 Bundle, we need to know how we generate 
         tREAL8 mAmplZB;
         //  cPixelDomain
-        cDataPixelDomain  mDataPixDomain;
+        cDataPixelDomain  mDataPixelDomain;
+        cPixelDomain      mPixelDomain;
 };
 
 
@@ -357,13 +361,14 @@ void cRatioPolynXY::Show()
      // ====================================================
 
 cDataRPC::cDataRPC(const std::string& aNameRPC) :
-    mDirectRPC       (nullptr),
-    mInverseRPC      (nullptr),
-    mNameRPC         (aNameRPC),
-    mSwapXYGround    (true),
-    mSwapIJImage     (true),
-    mAmplZB          (1.0),
-    mDataPixDomain   (cPt2di(1,1))
+    mDirectRPC         (nullptr),
+    mInverseRPC        (nullptr),
+    mNameRPC           (aNameRPC),
+    mSwapXYGround      (true),
+    mSwapIJImage       (true),
+    mAmplZB            (1.0),
+    mDataPixelDomain   (cPt2di(1,1)),
+    mPixelDomain       (&mDataPixelDomain)
 {
     //  Is it a xml file ?
     if (UCaseEqual(LastPostfix(aNameRPC),"xml"))
@@ -444,7 +449,7 @@ void cDataRPC::Dimap_ReadXMLNorms(const cSerialTree& aTree)
 
     int anX = round_ni(ReadXMLItem(*aData,"LAST_COL"));
     int anY = round_ni(ReadXMLItem(*aData,"LAST_ROW"));
-    mDataPixDomain =  cDataPixelDomain(cPt2di(anX,anY));
+    mDataPixelDomain =  cDataPixelDomain(cPt2di(anX,anY));
 }
 
 double cDataRPC::ReadXMLItem(const cSerialTree & aData,const std::string& aPrefix)
@@ -553,6 +558,8 @@ cSensorImage * cDataRPC::SensorChangSys(cDataInvertibleMapping<tREAL8,3> &) cons
     MMVII_INTERNAL_ERROR("cDataRPC::SensorChangSys not yet implemanted");
     return nullptr;
 }
+
+const cPixelDomain & cDataRPC::PixelDomain() const  {return mPixelDomain;}
 
 /* =============================================== */
 /*                                                 */
