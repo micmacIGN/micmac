@@ -611,7 +611,18 @@ std::cout << "Ppppppppppp= " << aCamIn->GetVeryRoughInterProf()
                    aMult =  pow(2.0, 0.3 * (aKP-aNbP1/2.0) / aNbP1);
                }
                double aProf = aProfGlob * aMult;
-               Pt3dr aPGround = aCamIn->ImEtProf2Terrain(aPIm,aProf);
+               Pt3dr aPGround ;
+               if (aCS)
+                  aPGround = aCamIn->ImEtProf2Terrain(aPIm,aProf);
+               else
+               {
+                    Pt2dr aIntZ = aCamIn->GetAltiSolMinMax();
+                    double aZ = (aIntZ.x * aKP +  aIntZ.y *(aNbProf-1-aKP)) / (aNbProf-1);
+                    aPGround = aCamIn->ImEtZ2Terrain(aPIm,aZ);
+                    Pt2dr aPBis = aCamIn->Ter2Capteur(aPGround);
+                    std::cout << "AlerRetour: " << aPIm - aPBis << "\n";
+               }
+//  std::cout << "PRRRoof="  << aProf << " " << aPGround << "\n";
                anAp.Pt() = aPGround;
                anAp.Incertitude() = Pt3dr(anInc,anInc,anInc);
                anAp.NamePt() = aNamePt;

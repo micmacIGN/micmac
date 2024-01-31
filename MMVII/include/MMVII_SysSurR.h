@@ -653,7 +653,7 @@ template <class Type> class cSetIntervUK_OneObj;
 template <class Type> class cSetInterUK_MultipeObj;
 template <class Type> class cObjWithUnkowns;
 
-/*  Typical scenario
+/* cObjWithUnkowns::TypicalScenario
  
      //  for object having unknowns, make them inherit of cObjWithUnkowns, describe behaviour with P-utUknowsInSetInterval
      class  cObj: public cObjWithUnkowns
@@ -664,26 +664,32 @@ template <class Type> class cObjWithUnkowns;
        
 	   ...  do stuff specific to cObj ...
 
-          void P-utUknowsInSetInterval() override 
-	  {
+      void PutUknowsInSetInterval() override
+      {
+           // the object communicate, to the set it belongs to, all its unknowns
 	       mSetInterv->AddOneInterv(mUK1,4);
 	       mSetInterv->AddOneInterv(mUK2,7);
 	  }
      };
 
+     void SomeFunctionSomeWhere()
      {
         cObj aO1,aO2;
         cSetInterUK_MultipeObj<Type>  aSet;    //  create the object
-        aSet.AddOneObj(aO1); // in this call aSet will call O1->P-utUknowsInSetInterval()
+        aSet.AddOneObj(aO1); // in this call aSet will call aO1->PutUknowsInSetInterval()
         aSet.AddOneObj(aO2);
 
-	// create a sys with the vector of all unkwnon
-	cResolSysNonLinear<double> * aSys = new cResolSysNonLinear<double>(eModeSSR::eSSR_LsqDense,mSetInterv.GetVUnKnowns());
+        // create a sys with the vector of all unkwnon
+       cResolSysNonLinear<double> * aSys = new cResolSysNonLinear<double>(eModeSSR::eSSR_LsqDense,mSetInterv.GetVUnKnowns());
 
 
-	const auto & aVectSol = mSys->SolveUpdateReset();
-	// modify all unkowns with new solution, call the method OnUpdate in case object have something to do
-        mSetInterv.SetVUnKnowns(aVectSol);
+        for ( ...)
+        {
+             ....
+             const auto & aVectSol = mSys->SolveUpdateReset();
+             // modify all unkowns with new solution, call the method OnUpdate in case object have something to do
+             mSetInterv.SetVUnKnowns(aVectSol);
+        }
      }
 
 */
