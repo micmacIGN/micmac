@@ -7,7 +7,7 @@ git branch mpd
 git checkout mpd 
 
 
- git config --global credential.helper 'store --file ~/.git-credential' 
+git config --global credential.helper 'store --file ~/.git-credential' 
 
 
 git config --global credential.useHttpPath true
