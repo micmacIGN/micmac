@@ -1,4 +1,4 @@
-Dependencies :
+Dependencies
 ------------
   - Required: cmake.
   - Optional: OpenMP, ccache
