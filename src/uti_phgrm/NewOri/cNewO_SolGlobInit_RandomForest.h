@@ -194,6 +194,9 @@ double sd(const Container& v) {
     return sqrt(standardDeviation / v.size());
 }
 
+static constexpr int indexSum = 2;
+static constexpr bool smallest = false;
+
 class cNOSolIn_Triplet {
    public:
     cNOSolIn_Triplet(RandomForest*, tSomNSI* aS1, tSomNSI* aS2, tSomNSI* aS3,
@@ -262,9 +265,10 @@ class cNOSolIn_Triplet {
      * 1: Distance
      *
      * 2: Score
+     *
+     * 3: better counter
      */
-    std::array<std::vector<double>, 3>& Data() { return mData; };
-    static constexpr int indexSum = 3;
+    std::array<std::vector<double>, 4>& Data() { return mData; };
     /*
      * 0: Mean
      *
@@ -309,7 +313,7 @@ class cNOSolIn_Triplet {
 
     //End Stats
 
-    std::array<std::vector<double>, 3> mData;
+    std::array<std::vector<double>, 4> mData;
     /*
      * sum of Pds for the computation of the weighted mean
      * sum of cost times pds for the computation of the
@@ -392,14 +396,22 @@ struct cNO_HeapIndTri_NSI {
 struct cNO_CmpTriByCost {
     bool operator()(cLinkTripl* aL1, cLinkTripl* aL2) {
         //return (aL1->m3)->Sum()[(aL1->m3)->indexSum] < (aL2->m3)->Sum()[(aL2->m3)->indexSum];
-        return (aL1->m3)->Sum()[(aL1->m3)->indexSum] < (aL2->m3)->Sum()[(aL2->m3)->indexSum];
+        //return (aL1->m3)->Sum()[(aL1->m3)->indexSum] < (aL2->m3)->Sum()[(aL2->m3)->indexSum];
+        if (smallest)
+            return (aL1->m3)->Sum()[indexSum] < (aL2->m3)->Sum()[indexSum];
+        else
+            return (aL1->m3)->Sum()[indexSum] > (aL2->m3)->Sum()[indexSum];
         //return (aL1->m3)->CostArc() < (aL2->m3)->CostArc();
     }
 };
 struct cNO_CmpTriByCostR {
     bool operator()(cLinkTripl& aL1, cLinkTripl& aL2) {
         //return (aL1->m3)->Sum()[(aL1->m3)->indexSum] < (aL2->m3)->Sum()[(aL2->m3)->indexSum];
-        return (aL1.m3)->Sum()[(aL1.m3)->indexSum] < (aL2.m3)->Sum()[(aL2.m3)->indexSum];
+
+        if (smallest)
+            return (aL1.m3)->Sum()[indexSum] < (aL2.m3)->Sum()[indexSum];
+        else
+            return (aL1.m3)->Sum()[indexSum] > (aL2.m3)->Sum()[indexSum];
         //return (aL1->m3)->CostArc() < (aL2->m3)->CostArc();
     }
 };
@@ -449,14 +461,21 @@ class cNO_CmpTriSolByCost {
    public:
     bool operator()(cNOSolIn_Triplet* aL1, cNOSolIn_Triplet* aL2) {
         //return aL1->Sum()[aL1->indexSum] < aL2->Sum()[aL2->indexSum];
-        size_t n1 = 0;
+        if (smallest)
+            return aL1->Sum()[indexSum] < aL2->Sum()[indexSum];
+        else
+            return aL1->Sum()[indexSum] > aL2->Sum()[indexSum];
+        //
+        /*size_t n1 = 0;
         size_t n2 = 0;
         for (int i = 0; i < 3; i++) {
             n1 += aL1->KSom(i)->attr().Lnk3().size();
             n2 += aL2->KSom(i)->attr().Lnk3().size();
-        }
-        return n1 > n2 || aL1->Sum()[aL1->indexSum] < aL2->Sum()[aL2->indexSum];
-        //return aL1->Sum()[] < aL2->Sum()[aL2->indexSum];
+        }*/
+
+        //return n1 > n2 || aL1->Sum()[] < aL2->Sum()[aL2->indexSum];
+
+        //return aL1->Sum()[aL1->indexSum] < aL2->Sum()[aL2->indexSum];
         //return (aL1->pondSum / aL1->pondN) < (aL2->pondSum / aL2->pondN);
         //return (aL1->Pds()) < (T2->Pds());
     }
@@ -881,7 +900,7 @@ class GraphViz {
         (void)te;
 
         for (int i = 0; i < 3; i++) {
-            agsafeset(e[i], (char*)"weight", (char*)std::to_string(node.Sum()[node.indexSum]).c_str(), "");
+            agsafeset(e[i], (char*)"weight", (char*)std::to_string(node.Sum()[indexSum]).c_str(), "");
         }
     }
 
