@@ -698,6 +698,8 @@ int cAppliTestImportSensors::Exe()
                        << "  GroundConsist=" << aPGr2-aPGr
                        << "  ImConsist=" << aPIm-aPIm2
                        << "\n";
+
+             getchar();
          }
 /*
          cPt3dr aPtGr3 = aDataRPC.ImageZToGround(aPIm2,aPtGr1.z());

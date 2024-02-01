@@ -99,7 +99,7 @@ In MMVII directory:
 To generate pdf doc
 -------------------
 
-Require latex: `sudo apt install texalive`
+Require latex: `sudo apt install texlive`
 
 In MMVII/Doc directory:
 

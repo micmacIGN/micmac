@@ -14,23 +14,22 @@
 
 namespace MMVII
 {
-#if (0)
 
    /* ********************************************************** */
    /*                                                            */
-   /*                 cAppli_ImportGCP                           */
+   /*                 cAppli_ImportM32                           */
    /*                                                            */
    /* ********************************************************** */
 
-class cAppli_ImportMesImGCP : public cMMVII_Appli
+class cAppli_ImportM32 : public cMMVII_Appli
 {
      public :
-        cAppli_ImportMesImGCP(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
+        cAppli_ImportM32(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
-        std::vector<std::string>  Samples() const override;
+        // std::vector<std::string>  Samples() const override;
      private :
 
 	cPhotogrammetricProject  mPhProj;
@@ -46,7 +45,7 @@ class cAppli_ImportMesImGCP : public cMMVII_Appli
 	int                        mComment;
 };
 
-cAppli_ImportMesImGCP::cAppli_ImportMesImGCP(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
+cAppli_ImportM32::cAppli_ImportM32(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli  (aVArgs,aSpec),
    mPhProj       (*this),
    mL0           (0),
@@ -55,16 +54,16 @@ cAppli_ImportMesImGCP::cAppli_ImportMesImGCP(const std::vector<std::string> & aV
 {
 }
 
-cCollecSpecArg2007 & cAppli_ImportMesImGCP::ArgObl(cCollecSpecArg2007 & anArgObl) 
+cCollecSpecArg2007 & cAppli_ImportM32::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
     return anArgObl
 	      <<  Arg2007(mNameFile ,"Name of Input File")
-	      <<  Arg2007(mFormat   ,"Format of file as for ex \"SNSXYZSS\" ")
+	      <<  Arg2007(mFormat   ,"Format of file as for ex \"SijXYZS\" ")
               <<  mPhProj.DPPointsMeasures().ArgDirOutMand()
            ;
 }
 
-cCollecSpecArg2007 & cAppli_ImportMesImGCP::ArgOpt(cCollecSpecArg2007 & anArgObl) 
+cCollecSpecArg2007 & cAppli_ImportM32::ArgOpt(cCollecSpecArg2007 & anArgObl) 
 {
     return anArgObl
        << AOpt2007(mL0,"NumL0","Num of first line to read",{eTA2007::HDV})
@@ -73,7 +72,7 @@ cCollecSpecArg2007 & cAppli_ImportMesImGCP::ArgOpt(cCollecSpecArg2007 & anArgObl
 }
 
 
-int cAppli_ImportTiePMul::Exe()
+int cAppli_ImportM32::Exe()
 {
     mPhProj.FinishInit();
     std::vector<std::vector<std::string>> aVNames;
@@ -81,7 +80,7 @@ int cAppli_ImportTiePMul::Exe()
     std::vector<cPt3dr> aVXYZ,aVWKP;
 
 
-    MMVII_INTERNAL_ASSERT_tiny(CptSameOccur(mFormat,"XYNI")==1,"Bad format vs NIXY");
+    MMVII_INTERNAL_ASSERT_tiny(CptSameOccur(mFormat,"XYZij")==1,"Bad format vs NIXY");
 
     ReadFilesStruct
     (
@@ -90,6 +89,7 @@ int cAppli_ImportTiePMul::Exe()
         aVNames,aVXYZ,aVWKP,aVNums,
         false
     );
+#if (0)
 
     size_t  aRankI_InF = mFormat.find('I');
     size_t  aRankP_InF = mFormat.find('N');
@@ -138,10 +138,12 @@ int cAppli_ImportTiePMul::Exe()
         delete aVecMTp;
     }
     SaveInFile(aSetSave,mFileSelIm+"."+GlobTaggedNameDefSerial());
+#endif
 
     return EXIT_SUCCESS;
 }
 
+#if (0)
 
 std::vector<std::string>  cAppli_ImportTiePMul::Samples() const
 {
