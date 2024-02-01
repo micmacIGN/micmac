@@ -224,6 +224,171 @@ int CptSameOccur(const std::string & aStr,const std::string & aStr0)
     return aRes;
 }
 
+class cReadFilesStruct
+{
+     public :
+
+       cReadFilesStruct( const std::string &  aNameFile,const std::string & aFormat,
+                         int aL0,int aLastL, int  aComment);
+
+       void Read();
+
+       const std::vector<std::string>         & VNameIm () const; ///< Accessor + Check init
+       const std::vector<std::string>         & VNamePt () const; ///< Accessor + Check init
+       const std::vector<cPt3dr>              & VXYZ () const; ///< Accessor + Check init
+       const std::vector<cPt2dr>              & Vij () const; ///< Accessor + Check init
+       const std::vector<cPt3dr>              & VWPK () const; ///< Accessor + Check init
+       const std::vector<std::vector<double>> & VNums () const; ///< Accessor + Check init
+
+     private :
+         template <class Type> inline const std::vector<Type> & GetVect(const std::vector<Type> & aV) const
+	 {
+		 MMVII_INTERNAL_ASSERT_tiny((int)aV.size()==mNbLineRead,"cReadFilesStruct::GetV");
+		 return aV;
+	 }
+         // ============== copy of  constructor parameters ===================
+
+	 std::string     mNameFile; /// name of file
+         std::string     mFormat;   /// format of each line
+         int             mL0;       /// num of first line
+         int             mLastL;    /// num of last line
+         int             mComment;  /// carac used for comment if any
+
+	 int             mNbLineRead;  /// count number of line
+
+         std::vector<std::string>               mVNameIm;
+         std::vector<std::string>               mVNamePt;
+         std::vector<cPt3dr>                    mVXYZ;
+         std::vector<cPt2dr>                    mVij;
+         std::vector<cPt3dr>                    mVWPK;
+         std::vector<std::vector<double>>       mVNums;
+};
+
+cReadFilesStruct::cReadFilesStruct
+( 
+      const std::string &  aNameFile,
+      const std::string & aFormat,
+      int aL0,
+      int aLastL, 
+      int  aComment
+)  :
+      mNameFile  (aNameFile),
+      mFormat    (aFormat),
+      mL0        (aL0),
+      mLastL     ((aLastL<0) ? 1000000 : mLastL),
+      mComment   (aComment)
+{
+}
+
+
+
+// const std::vector<std::vector<std::string>>& cReadFilesStruct::VNames () const { return GetVect(mVNames); }
+const std::vector<cPt3dr>& cReadFilesStruct::VXYZ () const { return GetVect(mVXYZ); }
+const std::vector<cPt3dr>& cReadFilesStruct::VWPK () const { return GetVect(mVWPK); }
+const std::vector<cPt2dr>& cReadFilesStruct::Vij  () const { return GetVect(mVij);  }
+const std::vector<std::vector<double>> & cReadFilesStruct::VNums () const {return  GetVect(mVNums);}
+
+
+void cReadFilesStruct::Read()
+{
+    CurFile = mNameFile;
+
+    /*
+    if (CheckFormat)
+    {
+       CptSameOccur(aFormat,"NXYZ");
+    }
+    */
+
+
+    mVNameIm.clear();
+    mVNamePt.clear();
+    mVXYZ.clear();
+    mVij.clear();
+    mVWPK.clear();
+    mVNums.clear();
+
+    if (! ExistFile(mNameFile))
+    {
+       MMVII_UsersErrror(eTyUEr::eOpenFile,std::string("For file ") + mNameFile);
+    }
+    std::ifstream infile(mNameFile);
+
+    std::string line;
+    mNbLineRead = 0;
+    int aNumL = 0;
+    while (std::getline(infile, line))
+    {
+	// JOE
+        MMVII_DEV_WARNING("Dont understand why must add \" \" at end of line ReadFilesStruct");
+        line += " ";
+        CurLine = aNumL+1;  // editor begin at line 1, non 0
+        if ((aNumL>=mL0) && (aNumL<mLastL))
+	{
+            std::istringstream iss(line);
+	    int aC0 = iss.get();
+            if (aC0 != mComment)
+	    {
+	        mNbLineRead++;
+                iss.unget();  // as C0 is not  a comment it will have to be parsed (!!=> Ok because there is only one)
+			   
+                std::vector<double> aLNum;
+	        cPt3dr aXYZ = cPt3dr::Dummy();
+	        cPt3dr aWPK = cPt3dr::Dummy();
+	        cPt2dr aij =  cPt2dr::Dummy();
+                std::string aNameIm;
+                std::string aNamePt;
+                // std::string aNamePt;
+
+		int  initXYZ=0;
+		int  initWPK=0;
+		int  initF=0;
+		int  initij=0;
+		int  initIm=0;
+		int  initPt=0;
+
+
+                for (const auto & aCar : mFormat)
+                {
+                    switch (aCar) 
+                    {
+                         case 'F' : aLNum.push_back(GetV<tREAL8>(iss));   initF++; break;
+                         case 'X' : aXYZ.x() = GetV<tREAL8>(iss);         initXYZ++; break;
+                         case 'Y' : aXYZ.y() = GetV<tREAL8>(iss);         initXYZ++;  break;
+                         case 'Z' : aXYZ.z() = GetV<tREAL8>(iss);         initXYZ++; break;
+
+                         case 'W' : aWPK.x() = GetV<tREAL8>(iss);         initWPK++; break;
+                         case 'P' : aWPK.y() = GetV<tREAL8>(iss);         initWPK++; break;
+                         case 'K' : aWPK.z() = GetV<tREAL8>(iss);         initWPK++; break;
+
+			 case 'i' : aij.x() = GetV<tREAL8>(iss);          initij++;  break;
+                         case 'j' : aij.y() = GetV<tREAL8>(iss);          initij++;  break;
+
+			 case 'N' : aNamePt = GetV<std::string>(iss);  initPt++; break;
+			 case 'I' : aNameIm = GetV<std::string>(iss);  initIm++; break;
+			 case 'S' : GetV<std::string>(iss); break;
+
+		         default :
+                              MMVII_INTERNAL_ERROR(std::string(("Unhandled car in cReadFilesStruct::Read=") + aCar)+"]");
+		         break;
+                    }
+	        }
+		if (initXYZ) mVXYZ.push_back(aXYZ);
+		if (initWPK) mVWPK.push_back(aWPK);
+		if (initij) mVij.push_back(aij);
+		if (initF) mVNums.push_back(aLNum);
+		if (initIm) mVNameIm.push_back(aNameIm);
+		if (initPt) mVNamePt.push_back(aNamePt);
+            }
+	}
+	aNumL++;
+    }
+}
+
+
+
+
+
 void  ReadFilesStruct 
       (
 	    const std::string &                     aNameFile,
@@ -287,9 +452,13 @@ line += " ";
                          case 'X' : aXYZ.x() = GetV<tREAL8>(iss); break;
                          case 'Y' : aXYZ.y() = GetV<tREAL8>(iss); break;
                          case 'Z' : aXYZ.z() = GetV<tREAL8>(iss); break;
+
                          case 'W' : aWKP.x() = GetV<tREAL8>(iss); break;
                          case 'P' : aWKP.y() = GetV<tREAL8>(iss); break;
                          case 'K' : aWKP.z() = GetV<tREAL8>(iss); break;
+
+                         // case 'i' : aWKP.x() = GetV<tREAL8>(iss); break;
+                         // case 'j' : aWKP.y() = GetV<tREAL8>(iss); break;
 
 			 case 'N' : aLNames.push_back(GetV<std::string>(iss)); break;
 			 case 'I' : aLNames.push_back(GetV<std::string>(iss)); break;
@@ -309,6 +478,10 @@ line += " ";
 	aNumL++;
     }
 }
+
+
+
+
 
 void  ReadFilesNum (const std::string & aNameFile,const std::string & aFormat,std::vector<std::vector<double>> & aVRes,int aComment)
 {

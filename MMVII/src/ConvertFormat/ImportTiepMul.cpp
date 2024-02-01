@@ -32,7 +32,7 @@ class cAppli_ImportTiePMul : public cMMVII_Appli
         std::vector<std::string>  Samples() const override;
      private :
 
-        bool                     mModeTieP;
+        bool                     mModeTieP;  // Mode TieP vs Mode XY
 	cPhotogrammetricProject  mPhProj;
 
 	// Mandatory Arg
@@ -69,7 +69,7 @@ cCollecSpecArg2007 & cAppli_ImportTiePMul::ArgObl(cCollecSpecArg2007 & anArgObl)
     cCollecSpecArg2007 &
           aRes  =  anArgObl
 	      <<  Arg2007(mNameFile ,"Name of Input File")
-	      <<  Arg2007(mFormat   ,"Format of file as for ex \"SNSXYZSS\" ")
+	      <<  Arg2007(mFormat   ,"Format of file as for ex \"SINSXYSS\" ")
            ;
  
    if (mModeTieP)
@@ -246,7 +246,7 @@ cSpecMMVII_Appli  TheSpec_ImportTiePMul
 
 /*********************************************************************/
 /*                                                                   */
-/*                       ImportTiePMul                               */
+/*                       ImportMesImGCP                              */
 /*                                                                   */
 /*********************************************************************/
 
