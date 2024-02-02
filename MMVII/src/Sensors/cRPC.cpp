@@ -685,6 +685,11 @@ int cAppliTestImportSensors::Exe()
          tREAL8  aZ   = aPGr.z();
          cPt2dr  aPIm = aDataRPC.Ground2Image(aPGr);
 
+	 //           @G2I           @I2G                   @G2I
+	 //  Pgr=mP3   --->   PIm     --->   aPGr2?=Pgr     ---> aPIm2
+	 //                   ?=mP2          ?=Pgr          ?= PIm
+	 //                   "GTTest"       "GrCons"       "GrCons"
+
          cPt3dr  aPGr2 =  aDataRPC.ImageZToGround(aPIm,aZ);
          cPt2dr  aPIm2 = aDataRPC.Ground2Image(aPGr2);
 
@@ -699,20 +704,14 @@ int cAppliTestImportSensors::Exe()
                        << "  ImConsist=" << aPIm-aPIm2
                        << "\n";
 
-             getchar();
          }
-/*
-         cPt3dr aPtGr3 = aDataRPC.ImageZToGround(aPIm2,aPtGr1.z());
-         cPt2dr aPIm3  = aDataRPC.Ground2Image(aPtGr3);
-         StdOut() << "  -- PGR =" <<  aPtGr3  << " DeltaGr=" <<   aPtGr3-aPtGr2 << " DeltaIm=" << aPIm2-aPIm3<< "\n";
-*/
 
     }
     aSomCheckIm /= aSetM23.NbPair();
     aSomConsistIm  /= aSetM23.NbPair();
     aSomConsistGr  /= aSetM23.NbPair();
 
-    StdOut()  << "  CheckIm=" <<  aSomCheckIm << "\n";
+    StdOut()  << "  CheckGTIm=" <<  aSomCheckIm << "\n";
     StdOut()  << "  ConsistIm=" <<  aSomConsistIm << "\n";
     StdOut()  << "  ConsistGr=" <<  aSomConsistGr << "\n";
 

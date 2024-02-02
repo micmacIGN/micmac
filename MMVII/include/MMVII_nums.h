@@ -1015,6 +1015,48 @@ void  ReadFilesStruct
           bool CheckFormat= true  // if true check :  XYZN have same count ... and more 2 com
       );
 
+class cReadFilesStruct
+{
+     public :
+
+       cReadFilesStruct( const std::string &  aNameFile,const std::string & aFormat,
+                         int aL0,int aLastL, int  aComment);
+
+       void Read();
+
+       const std::vector<std::string>         & VNameIm () const; ///< Accessor + Check init
+       const std::vector<std::string>         & VNamePt () const; ///< Accessor + Check init
+       const std::vector<cPt3dr>              & VXYZ () const; ///< Accessor + Check init
+       const std::vector<cPt2dr>              & Vij () const; ///< Accessor + Check init
+       const std::vector<cPt3dr>              & VWPK () const; ///< Accessor + Check init
+       const std::vector<std::vector<double>> & VNums () const; ///< Accessor + Check init
+       int NbRead() const;  ///< Number of line read
+
+
+     private :
+         template <class Type> inline const std::vector<Type> & GetVect(const std::vector<Type> & aV) const
+         {
+                 MMVII_INTERNAL_ASSERT_tiny((int)aV.size()==mNbLineRead,"cReadFilesStruct::GetV");
+                 return aV;
+         }
+         // ============== copy of  constructor parameters ===================
+
+         std::string     mNameFile; /// name of file
+         std::string     mFormat;   /// format of each line
+         int             mL0;       /// num of first line
+         int             mLastL;    /// num of last line
+         int             mComment;  /// carac used for comment if any
+
+         int             mNbLineRead;  /// count number of line
+
+         std::vector<std::string>               mVNameIm;
+         std::vector<std::string>               mVNamePt;
+         std::vector<cPt3dr>                    mVXYZ;
+         std::vector<cPt2dr>                    mVij;
+         std::vector<cPt3dr>                    mVWPK;
+         std::vector<std::vector<double>>       mVNums;
+};
+
 /// nuber of occurence of aC0 in aStr
 int CptOccur(const std::string & aStr,char aC0);
 /// Check same number of occurence of Str0 in aStr, and return it, Str0 cannot be empty

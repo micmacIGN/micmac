@@ -224,45 +224,12 @@ int CptSameOccur(const std::string & aStr,const std::string & aStr0)
     return aRes;
 }
 
-class cReadFilesStruct
-{
-     public :
 
-       cReadFilesStruct( const std::string &  aNameFile,const std::string & aFormat,
-                         int aL0,int aLastL, int  aComment);
-
-       void Read();
-
-       const std::vector<std::string>         & VNameIm () const; ///< Accessor + Check init
-       const std::vector<std::string>         & VNamePt () const; ///< Accessor + Check init
-       const std::vector<cPt3dr>              & VXYZ () const; ///< Accessor + Check init
-       const std::vector<cPt2dr>              & Vij () const; ///< Accessor + Check init
-       const std::vector<cPt3dr>              & VWPK () const; ///< Accessor + Check init
-       const std::vector<std::vector<double>> & VNums () const; ///< Accessor + Check init
-
-     private :
-         template <class Type> inline const std::vector<Type> & GetVect(const std::vector<Type> & aV) const
-	 {
-		 MMVII_INTERNAL_ASSERT_tiny((int)aV.size()==mNbLineRead,"cReadFilesStruct::GetV");
-		 return aV;
-	 }
-         // ============== copy of  constructor parameters ===================
-
-	 std::string     mNameFile; /// name of file
-         std::string     mFormat;   /// format of each line
-         int             mL0;       /// num of first line
-         int             mLastL;    /// num of last line
-         int             mComment;  /// carac used for comment if any
-
-	 int             mNbLineRead;  /// count number of line
-
-         std::vector<std::string>               mVNameIm;
-         std::vector<std::string>               mVNamePt;
-         std::vector<cPt3dr>                    mVXYZ;
-         std::vector<cPt2dr>                    mVij;
-         std::vector<cPt3dr>                    mVWPK;
-         std::vector<std::vector<double>>       mVNums;
-};
+/* *************************************************** */
+/*                                                     */
+/*                 cReadFilesStruct                    */
+/*                                                     */
+/* *************************************************** */
 
 cReadFilesStruct::cReadFilesStruct
 ( 
@@ -275,7 +242,7 @@ cReadFilesStruct::cReadFilesStruct
       mNameFile  (aNameFile),
       mFormat    (aFormat),
       mL0        (aL0),
-      mLastL     ((aLastL<0) ? 1000000 : mLastL),
+      mLastL     ((aLastL<0) ? 1000000 : aLastL),
       mComment   (aComment)
 {
 }
@@ -287,6 +254,7 @@ const std::vector<cPt3dr>& cReadFilesStruct::VXYZ () const { return GetVect(mVXY
 const std::vector<cPt3dr>& cReadFilesStruct::VWPK () const { return GetVect(mVWPK); }
 const std::vector<cPt2dr>& cReadFilesStruct::Vij  () const { return GetVect(mVij);  }
 const std::vector<std::vector<double>> & cReadFilesStruct::VNums () const {return  GetVect(mVNums);}
+int cReadFilesStruct::NbRead() const { return mNbLineRead; }
 
 
 void cReadFilesStruct::Read()
