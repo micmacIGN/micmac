@@ -92,6 +92,7 @@ int cAppli_ImportM32::Exe()
     cSetMesGCP aSetGCP(mNameGCP);
     cSetMesPtOf1Im aSetIm(mNameImage);
 
+       // parse all object to push them in low MVVII
     for (int aKObj=0 ; aKObj<aRFS.NbRead() ; aKObj++)
     {
          const cPt2dr & aP2 = aRFS.Vij().at(aKObj);
@@ -103,9 +104,9 @@ int cAppli_ImportM32::Exe()
 
 	 aSetGCP.AddMeasure(aMesGCP);
          aSetIm.AddMeasure(aMesIm);
-
     }
 
+       // save object
     mPhProj.SaveGCP(aSetGCP);
     mPhProj.SaveMeasureIm(aSetIm);
 
@@ -116,7 +117,7 @@ std::vector<std::string>  cAppli_ImportM32::Samples() const
 {
    return 
    {
-          "MMVII toto"
+          "MMVII ImportM32 verif_1B.txt SjiXYZ XingB NumL0=13 NumLast=30 NameIm=SPOT_1B.tif"
    };
 }
 

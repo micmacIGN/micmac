@@ -89,24 +89,25 @@ class cRatioPolynXY
 
 };
 
-
 /**  A class containing RPCs  */
-
-class cDataRPC // : public cSensorImage
+class cDataRPC : public cSensorImage
 {
     public:
 
-         tSeg3dr  Image2Bundle(const cPt2dr &) const ;
+         tSeg3dr  Image2Bundle(const cPt2dr &) const override;
          /// Basic method  GroundCoordinate ->  image coordinate of projection
-         cPt2dr Ground2Image(const cPt3dr &) const ;
+         cPt2dr Ground2Image(const cPt3dr &) const override;
          ///    Method specialized, more efficent than using bundles
-         cPt3dr ImageAndZ2Ground(const cPt3dr &) const ;
+         cPt3dr ImageAndZ2Ground(const cPt3dr &) const override;
+
+	/// Indicate how much a point belongs to sensor visibilty domain
+         double DegreeVisibility(const cPt3dr &) const  override;
+
          ///  
-         const cPixelDomain & PixelDomain() const ;
+         const cPixelDomain & PixelDomain() const override;
+         std::string  V_PrefixName() const  override;
 
-         std::string  V_PrefixName() const  ;
-
-         cDataRPC(const std::string&);
+         cDataRPC(const std::string& aNameRPC,const std::string& aNameImage);
          void Dimap_ReadXML_Glob(const cSerialTree&);
 
         cPt3dr ImageZToGround(const cPt2dr&,const double) const;
@@ -117,6 +118,8 @@ class cDataRPC // : public cSensorImage
 
         const cRatioPolynXY& DirectRPC() {return *mDirectRPC;}
         const cRatioPolynXY& InverseRPC() {return *mInverseRPC;}
+
+	cPt3dr  PseudoCenterOfProj() const override;
 
     private:
         const cPt2dr & ImOffset() const {return mImOffset;}
@@ -142,13 +145,6 @@ class cDataRPC // : public cSensorImage
          // These  method are not meaningfull for RPC,  probably will have to redesign
          // the base class cSensorImage, waiting for that define fake functions
          ///  not implemented, error
-
-         cPt3dr Ground2ImageAndDepth(const cPt3dr &) const ;
-         /// not implemented, error
-         cPt3dr ImageAndDepth2Ground(const cPt3dr &) const ;
-         cCalculator<double> * CreateEqColinearity(bool WithDerives,int aSzBuf,bool ReUse);
-         /// Will be implemanted later, for example using Genrate point 3D/2D -> Recompute RPC by least square
-         cSensorImage * SensorChangSys(cDataInvertibleMapping<tREAL8,3> &) const ;
 
          //  --------------- END  NOT IMPLEMANTED -----------------------------------------------
 
@@ -186,6 +182,7 @@ class cDataRPC // : public cSensorImage
         //  cPixelDomain
         cDataPixelDomain  mDataPixelDomain;
         cPixelDomain      mPixelDomain;
+	cBox3dr           mBoxGround;
 };
 
 
@@ -360,15 +357,17 @@ void cRatioPolynXY::Show()
      //     Construction & Destruction  & Show
      // ====================================================
 
-cDataRPC::cDataRPC(const std::string& aNameRPC) :
+cDataRPC::cDataRPC(const std::string& aNameRPC,const std::string& aNameImage) :
+    cSensorImage       (aNameImage),
     mDirectRPC         (nullptr),
     mInverseRPC        (nullptr),
     mNameRPC           (aNameRPC),
     mSwapXYGround      (true),
     mSwapIJImage       (true),
     mAmplZB            (1.0),
-    mDataPixelDomain   (cPt2di(1,1)),
-    mPixelDomain       (&mDataPixelDomain)
+    mDataPixelDomain   (cPt2di(1,1)),  // No default constructor
+    mPixelDomain       (&mDataPixelDomain),
+    mBoxGround         (cBox3dr::Empty())  // Empty box because no default init
 {
     //  Is it a xml file ?
     if (UCaseEqual(LastPostfix(aNameRPC),"xml"))
@@ -415,6 +414,11 @@ void cDataRPC::Show()
 
 }
 
+std::string  cDataRPC::V_PrefixName() const  
+{
+	return "RPC";
+}
+
      // ======================  Dimap creation ===========================
 
 void cDataRPC::Dimap_ReadXMLModel(const cSerialTree& aTree,const std::string& aPrefix,cRatioPolynXY * aModel)
@@ -450,6 +454,19 @@ void cDataRPC::Dimap_ReadXMLNorms(const cSerialTree& aTree)
     int anX = round_ni(ReadXMLItem(*aData,"LAST_COL"));
     int anY = round_ni(ReadXMLItem(*aData,"LAST_ROW"));
     mDataPixelDomain =  cDataPixelDomain(cPt2di(anX,anY));
+
+    // compute the validity of bounding box
+    cPt3dr aP0Gr;
+    aP0Gr.x() = ReadXMLItem(*aData,"FIRST_LAT");
+    aP0Gr.y() = ReadXMLItem(*aData,"FIRST_LON");
+    aP0Gr.z() =   mGroundOffset.z() -  mGroundScale.z();
+
+    cPt3dr aP1Gr;
+    aP1Gr.x() = ReadXMLItem(*aData,"LAST_LAT");
+    aP1Gr.y() = ReadXMLItem(*aData,"LAST_LON");
+    aP1Gr.z() =   mGroundOffset.z() +  mGroundScale.z();
+
+    mBoxGround = cBox3dr(aP0Gr,aP1Gr);
 }
 
 double cDataRPC::ReadXMLItem(const cSerialTree & aData,const std::string& aPrefix)
@@ -537,29 +554,32 @@ tSeg3dr  cDataRPC::Image2Bundle(const cPt2dr & aPtIm) const
      return tSeg3dr(aPGr0,aPGr1);
 }
 
+
+const cPixelDomain & cDataRPC::PixelDomain() const  {return mPixelDomain;}
+
+
+double cDataRPC::DegreeVisibility(const cPt3dr & aP) const
+{
+     // To see, but there is probably a unity problem, maybe to it with normalized coordinat theb
+     // multiply by "pseudo" focal to have convention similar to central perspective
+     return mBoxGround.Insideness(aP);
+}
+
      // ====================================================
      //     Not implemanted (not yet or never)
      // ====================================================
-
-cPt3dr cDataRPC::Ground2ImageAndDepth(const cPt3dr &) const 
+cPt3dr  cDataRPC::PseudoCenterOfProj() const
 {
-    MMVII_INTERNAL_ERROR("No cDataRPC::Ground2ImageAndDepth");
+    MMVII_INTERNAL_ERROR("cDataRPC::PseudoCenterOfProj =>  2 Implement");
+
     return cPt3dr::Dummy();
 }
 
-cPt3dr cDataRPC::ImageAndDepth2Ground(const cPt3dr &) const 
-{
-    MMVII_INTERNAL_ERROR("No cDataRPC::ImageAndDepth2Ground");
-    return cPt3dr::Dummy();
-}
 
-cSensorImage * cDataRPC::SensorChangSys(cDataInvertibleMapping<tREAL8,3> &) const 
-{
-    MMVII_INTERNAL_ERROR("cDataRPC::SensorChangSys not yet implemanted");
-    return nullptr;
-}
+         // double DegreeVisibility(const cPt3dr &) const  ;
+         /// Indicacte how much a 2 D points belongs to definition of image frame
+         // double DegreeVisibilityOnImFrame(const cPt2dr &) const  ;
 
-const cPixelDomain & cDataRPC::PixelDomain() const  {return mPixelDomain;}
 
 /* =============================================== */
 /*                                                 */
@@ -580,6 +600,7 @@ void Test2RPCProjections(const std::string& aNameIm)
 
 /** Bench the reprojection functions */
 
+/*
 void TestRPCProjections(const std::string& aNameRPC1)
 {
     // read
@@ -611,6 +632,7 @@ void TestDataRPCReasXML(const std::string& aNameFile)
     // aRPC.Exe();
     aRPC.Show();
 }
+*/
 
 /* =============================================== */
 /*                                                 */
@@ -649,7 +671,7 @@ cAppliTestImportSensors::cAppliTestImportSensors(const std::vector<std::string> 
 cCollecSpecArg2007 & cAppliTestImportSensors::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
       return    anArgObl
-             << Arg2007(mNameImage,"Name of input RPC", {eTA2007::FileDirProj})
+             << Arg2007(mNameImage,"Name of input Image", {eTA2007::FileDirProj})
              << Arg2007(mNameRPC,"Name of input RPC", {eTA2007::Orient})
              << mPhProj.DPPointsMeasures().ArgDirInMand()
       ;
@@ -662,6 +684,8 @@ cCollecSpecArg2007 & cAppliTestImportSensors::ArgOpt(cCollecSpecArg2007 & anArgO
             ;
 }
 
+
+
 int cAppliTestImportSensors::Exe()
 {
     mPhProj.FinishInit();
@@ -670,7 +694,7 @@ int cAppliTestImportSensors::Exe()
     mPhProj.LoadGCP(aSetMes);
     mPhProj.LoadIm(aSetMes,mNameImage);
 
-    cDataRPC aDataRPC(mNameRPC);
+    cDataRPC aDataRPC(mNameRPC,mNameImage);
 
     cSet2D3D aSetM23;
     aSetMes.ExtractMes1Im(aSetM23,mNameImage);
@@ -788,7 +812,7 @@ cCollecSpecArg2007 & cAppliImportPushbroom::ArgOpt(cCollecSpecArg2007 & anArgOpt
 int cAppliImportPushbroom::Exe()
 {
 
-    TestRPCProjections(mNameSensorIn);
+    // TestRPCProjections(mNameSensorIn);
 
     return EXIT_SUCCESS;
 }

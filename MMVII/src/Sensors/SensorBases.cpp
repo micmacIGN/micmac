@@ -43,6 +43,13 @@ cPixelDomain::cPixelDomain(cDataPixelDomain * aDPD) :
 
 const cPt2di & cPixelDomain::Sz() const {return mDPD->Sz();}
 
+tREAL8 cPixelDomain::DegreeVisibility(const cPt2dr & aP) const
+{
+   cBox2dr aBox(cPt2dr(0,0),ToR(Sz()));
+   return aBox.Insideness(aP);
+}
+
+
 /* ******************************************************* */
 /*                                                         */
 /*                   cSensorImage                          */
@@ -56,6 +63,8 @@ cSensorImage::cSensorImage(const std::string & aNameImage) :
 {
 }
 
+const cPt3dr * cSensorImage::CenterOfPC() const  {return nullptr;} // By default, we are not a central perpective
+								    //
 cCalculator<double> * cSensorImage::SetAndGetEqColinearity(bool WithDerives,int aSzBuf,bool ReUse)
 {
     if (! mEqCIsInit)
@@ -98,6 +107,73 @@ double  cSensorImage::AvgSqResidual(const cSet2D3D & aSet) const
      }
      return std::sqrt(aSum/aSet.Pairs().size());
 }
+
+double cSensorImage::DegreeVisibilityOnImFrame(const cPt2dr & aP) const 
+{
+     return PixelDomain().DegreeVisibility(aP);
+}
+
+std::vector<cPt2dr>  cSensorImage::PtsSampledOnSensor(int aNbByDim)  const 
+{
+    std::vector<cPt2dr> aRes;
+    tREAL8 aEps =  aNbByDim/20.0;
+
+    for (int aKx=0 ; aKx<=aNbByDim ; aKx++)
+    {
+        for (int aKy=0 ; aKy<=aNbByDim ; aKy++)
+	{
+            aRes.push_back(  MulCByC(ToR(Sz()) , cPt2dr(aKx+aEps,aKy+aEps)/tREAL8(aNbByDim+2*aEps)) );
+	}
+    }
+
+    return aRes;
+}
+
+
+     // method that by default generate errors, 
+
+cPt3dr cSensorImage::Ground2ImageAndDepth(const cPt3dr &) const
+{
+    MMVII_INTERNAL_ERROR("No cSensorImage::Ground2ImageAndDepth");
+    return cPt3dr::Dummy();
+}
+
+cPt3dr cSensorImage::ImageAndDepth2Ground(const cPt3dr &) const
+{
+    MMVII_INTERNAL_ERROR("No cSensorImage::ImageAndDepth2Ground");
+    return cPt3dr::Dummy();
+}
+
+cSensorImage * cSensorImage::SensorChangSys(cDataInvertibleMapping<tREAL8,3> &) const
+{
+    MMVII_INTERNAL_ERROR("cSensorImage::SensorChangSys not implemanted");
+    return nullptr;
+}
+
+cCalculator<double> * cSensorImage::CreateEqColinearity(bool WithDerives,int aSzBuf,bool ReUse)
+{
+    MMVII_INTERNAL_ERROR("cSensorImage::CreateEqColinearity not implemanted");
+    return nullptr;
+}
+
+void cSensorImage::PutUknowsInSetInterval()
+{
+    MMVII_INTERNAL_ERROR("cSensorImage::PutUknowsInSetInterval not implemanted");
+}
+
+void cSensorImage::PushOwnObsColinearity( std::vector<double> &) 
+{
+    MMVII_INTERNAL_ERROR("cSensorImage::PushOwnObsColinearity not implemanted");
+}
+
+void cSensorImage::ToFile(const std::string &) const 
+{
+    MMVII_INTERNAL_ERROR("cSensorImage::ToFile not implemanted");
+}
+
+
+
+
 
 /*
 double cSensorImage::RobustAvResidualOfProp(const cSet2D3D &,double aProp) const

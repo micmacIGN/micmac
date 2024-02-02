@@ -55,6 +55,8 @@ class cPixelDomain :  public cDataBoundedSet<tREAL8,2>
 	public :
 		cPixelDomain(cDataPixelDomain *);
                 const cPt2di & Sz() const;
+		// probably to virtualize later
+		tREAL8 DegreeVisibility(const cPt2dr & aP) const;
 	private :
 		cDataPixelDomain * mDPD;
 };
@@ -69,8 +71,8 @@ class cSensorImage  :   public cObj2DelAtEnd,
 
           cSensorImage(const std::string & aNameImage);
 
-	  /// create a sensor in a new coordinate system
-	  virtual cSensorImage * SensorChangSys(cDataInvertibleMapping<tREAL8,3> &) const = 0;
+	  /// create a sensor in a new coordinate system, default error
+	  virtual cSensorImage * SensorChangSys(cDataInvertibleMapping<tREAL8,3> &) const ;
 
           virtual const cPixelDomain & PixelDomain() const = 0;
           const cPt2di & Sz() const;
@@ -83,7 +85,6 @@ class cSensorImage  :   public cObj2DelAtEnd,
 
 	  /// Generate a random point visible on 2 image , algo : generate 2 random point and comppute bundle inter
 	  cPt3dr RandomVisiblePGround(const cSensorImage &,int aNbTestMax=10000,bool * OK =nullptr ) const;
-
 	  /// reproject RandomVisiblePGround
 	  cHomogCpleIm RandomVisibleCple(const cSensorImage &,int aNbTestMax=10000,bool * OK =nullptr ) const;
 
@@ -97,19 +98,17 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	 /// Basic method  GroundCoordinate ->  image coordinate of projection
          virtual cPt2dr Ground2Image(const cPt3dr &) const = 0;
 
-	 ///  add the the depth (to see if have a default with bundle+Gr2Ima)
-         virtual cPt3dr Ground2ImageAndDepth(const cPt3dr &) const = 0;
-         /// Invert of Ground2ImageAndDepth
-         virtual cPt3dr ImageAndDepth2Ground(const cPt3dr &) const = 0;
+	 ///  add the the depth (to see if have a default with bundle+Gr2Ima), default error
+         virtual cPt3dr Ground2ImageAndDepth(const cPt3dr &) const ;
+         /// Invert of Ground2ImageAndDepth, default error
+         virtual cPt3dr ImageAndDepth2Ground(const cPt3dr &) const ;
+	 /// Facility for calling ImageeAndDepth2Ground(const cPt3dr &)
+         cPt3dr ImageAndDepth2Ground(const cPt2dr &,const double & ) const;
 
 	 ///  add the the Z, not virtual just a facility using Ground2Image
          cPt3dr Ground2ImageAndZ(const cPt3dr &) const ;
          /// Invert of Ground2ImageAndZ, default use bundle, RPC for ex have a specialize method
          virtual cPt3dr ImageAndZ2Ground(const cPt3dr &) const ;
-
-
-	 /// Facility for calling ImageeAndDepth2Ground(const cPt3dr &)
-         cPt3dr ImageAndDepth2Ground(const cPt2dr &,const double & ) const;
 
 
 	 /// Compute 3D point by bundle intersection
@@ -119,8 +118,8 @@ class cSensorImage  :   public cObj2DelAtEnd,
 
 	 /// Indicate how much a point belongs to sensor visibilty domain
          virtual double DegreeVisibility(const cPt3dr &) const =0 ;
-	 /// Indicacte how much a 2 D points belongs to definition of image frame
-         virtual double DegreeVisibilityOnImFrame(const cPt2dr &) const =0 ;
+	 /// Indicacte how much a 2 D points belongs to definition of image frame, defautlt use PixelDomain
+         virtual double DegreeVisibilityOnImFrame(const cPt2dr &) const ;
 	 /// Indicate if a point belongs to sensor visibilty domain (threshold DegreeVisibility)
          bool IsVisible(const cPt3dr &) const  ;
 	 /// Indicacte how a 2 D points belongs to definition of image frame (threshold DegreeVisibilityOnImFrame)
@@ -130,8 +129,8 @@ class cSensorImage  :   public cObj2DelAtEnd,
 
 	 // =================   Generation of points & correspondance   ===========================
 
-	 /// return a set point regulary sampled (+/-) on sensor, take care of frontier
-         virtual std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim)  const = 0;
+	 /// return a set point regulary sampled (+/-) on sensor, take care of frontier, default is as simple grid
+         virtual std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim)  const ;
 	 ///  return artificial/synthetic correspondance , with vector of depth
 	 cSet2D3D  SyntheticsCorresp3D2D (int aNbByDim,std::vector<double> & aVecDepth) const;
 	 ///  call variant with vector, depth regularly spaced
@@ -161,23 +160,16 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	 std::string NameOriStd() const ;
 	 ///  Prefix of the subtype
 	 virtual std::string  V_PrefixName() const = 0  ;
-	 /// method for saving oblet
-	 virtual void ToFile(const std::string &) const = 0;
+	 /// method for saving oblet, def error
+	 virtual void ToFile(const std::string &) const ;
 
 	 // --------------------   methods used in bundle adjustment  --------------------
 	
 	 ///  For stenope camera return center, for other best approx
 	 virtual cPt3dr  PseudoCenterOfProj() const = 0;
-	 ///  For stenope camera return center, for other nullptr
-	 virtual const cPt3dr * CenterOfPC() const = 0;
-	 // Create if new, and memorize the colinearity equation
-         cCalculator<double> * SetAndGetEqColinearity(bool WithDerives,int aSzBuf,bool ReUse);
+	 ///  For stenope camera return center, for other nullptr, default retunr null ptr, its not a stenoppe
+	 virtual const cPt3dr * CenterOfPC() const ;
 
-	 // suppose it was init (and assert it)
-         cCalculator<double> * GetEqColinearity();
-
-	 /// If the camera has its own "obs/cste" (like curent rot for PC-Cam) that's the place to say it
-	 virtual  void PushOwnObsColinearity( std::vector<double> &) = 0;
 
          //  method used in push-broom perturbation model
 
@@ -187,9 +179,20 @@ class cSensorImage  :   public cObj2DelAtEnd,
                EpsXYZ and EpsWPK are used for computing derivative with relative differences */
            cDenseMatrix<tREAL8> CalcDiffProjRot(const cPt3dr & aPt,const tPoseR &,const cPt3dr & aEpsXYZ,const tREAL8 & aEpsWPK) const;
 
+	       //  =============   Method used in bundle adjsutment , default error for 3 virtual =============
+
+	 /// Return the calculator, adapted to the type, for computing colinearity equation, def=error
+         virtual cCalculator<double> * CreateEqColinearity(bool WithDerives,int aSzBuf,bool ReUse);
+	 ///  cObjWithUnkowns , default error
+	 void PutUknowsInSetInterval() override;
+	 /// If the camera has its own "obs/cste" (like curent rot for PC-Cam) that's the place to say it
+	 virtual  void PushOwnObsColinearity( std::vector<double> &) ;
+	 
+	 // Create if new, and memorize the colinearity equation
+         cCalculator<double> * SetAndGetEqColinearity(bool WithDerives,int aSzBuf,bool ReUse);
+	 // suppose it was init (and assert it)
+         cCalculator<double> * GetEqColinearity();
      private :
-	 /// Return the calculator, adapted to the type, for computing colinearity equation
-         virtual cCalculator<double> * CreateEqColinearity(bool WithDerives,int aSzBuf,bool ReUse) = 0;
 
 	 std::string                                   mNameImage;
          cCalculator<double> *                         mEqColinearity;  // memo equation, can be nullptr (for pure pose)
