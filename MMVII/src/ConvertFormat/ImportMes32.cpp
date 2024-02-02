@@ -81,15 +81,14 @@ cCollecSpecArg2007 & cAppli_ImportM32::ArgOpt(cCollecSpecArg2007 & anArgObl)
 
 int cAppli_ImportM32::Exe()
 {
-
+	// end init & check
     mPhProj.FinishInit();
-    std::vector<cPt3dr> aVXYZ;
-    std::vector<cPt2dr> aVij;
-
     MMVII_INTERNAL_ASSERT_tiny(CptSameOccur(mFormat,"XYZij")==1,"Bad format vs NIXY");
+
+       //  read file
     cReadFilesStruct aRFS(mNameFile, mFormat, mL0, mLLast, mComment);
     aRFS.Read();
-
+       // create structur to import in MMVII representation
     cSetMesGCP aSetGCP(mNameGCP);
     cSetMesPtOf1Im aSetIm(mNameImage);
 
@@ -102,16 +101,11 @@ int cAppli_ImportM32::Exe()
 	 cMes1GCP aMesGCP(aP3,aNamePt,1.0);
 	 cMesIm1Pt aMesIm(aP2,aNamePt,1.0);
 
-
 	 aSetGCP.AddMeasure(aMesGCP);
          aSetIm.AddMeasure(aMesIm);
 
-	 StdOut() << aP2 << aP3 << "\n";
     }
 
-    /*cSetMesImGCP aSetMesImGCP;
-    aSetMesImGCP.AddMes3D(aSetGCP);
-    aSetMesImGCP.AddMes2D(aSetIm);*/
     mPhProj.SaveGCP(aSetGCP);
     mPhProj.SaveMeasureIm(aSetIm);
 
