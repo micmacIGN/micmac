@@ -103,6 +103,10 @@ class cDataRPC : public cSensorImage
 	/// Indicate how much a point belongs to sensor visibilty domain
          double DegreeVisibility(const cPt3dr &) const  override;
 
+
+	 bool  HasIntervalZ()  const override;
+         cPt2dr GetIntervalZ() const override;
+
          ///  
          const cPixelDomain & PixelDomain() const override;
          std::string  V_PrefixName() const  override;
@@ -469,6 +473,12 @@ void cDataRPC::Dimap_ReadXMLNorms(const cSerialTree& aTree)
     mBoxGround = cBox3dr(aP0Gr,aP1Gr);
 }
 
+bool  cDataRPC::HasIntervalZ()  const {return true;}
+cPt2dr cDataRPC::GetIntervalZ() const 
+{
+	return cPt2dr(mBoxGround.P0().z(),mBoxGround.P1().z());
+}
+
 double cDataRPC::ReadXMLItem(const cSerialTree & aData,const std::string& aPrefix)
 {
     return std::stod(aData.GetUniqueDescFromName(aPrefix)->UniqueSon().Value());
@@ -653,6 +663,11 @@ class cAppliTestImportSensors : public cMMVII_Appli
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
+	///  Test that the accuracy of ground truth, i.e Proj(P3) = P2
+        void TestGroundTruth(const  cSensorImage & aSI) const;
+	///  Test coherence of Direct/Inverse model, i.e Id = Dir o Inv = Inv o Dir
+        void TestCoherenceDirInv(const  cSensorImage & aSI) const;
+
         cPhotogrammetricProject  mPhProj;
         std::string              mNameImage;
         std::string              mNameRPC;
@@ -673,15 +688,102 @@ cCollecSpecArg2007 & cAppliTestImportSensors::ArgObl(cCollecSpecArg2007 & anArgO
       return    anArgObl
              << Arg2007(mNameImage,"Name of input Image", {eTA2007::FileDirProj})
              << Arg2007(mNameRPC,"Name of input RPC", {eTA2007::Orient})
-             << mPhProj.DPPointsMeasures().ArgDirInMand()
       ;
 }
 
 cCollecSpecArg2007 & cAppliTestImportSensors::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
     return anArgOpt
+               << mPhProj.DPPointsMeasures().ArgDirInOpt()
                << AOpt2007(mShowDetail,"ShowD","Show detail",{eTA2007::HDV})
             ;
+}
+
+void cAppliTestImportSensors::TestGroundTruth(const  cSensorImage & aSI) const
+{
+    // Load mesure from standard MMVII project
+    cSetMesImGCP aSetMes;
+    mPhProj.LoadGCP(aSetMes);
+    mPhProj.LoadIm(aSetMes,mNameImage);
+    cSet2D3D aSetM23;
+    aSetMes.ExtractMes1Im(aSetM23,mNameImage);
+
+    cStdStatRes  aStCheckIm;  //  Statistic of reproj errorr
+
+    for (const auto & aPair : aSetM23.Pairs()) // parse all pair to accumulate stat of errors
+    {
+         cPt3dr  aPGr = aPair.mP3;
+         cPt2dr  aPIm = aSI.Ground2Image(aPGr);
+	 tREAL8 aDifIm = Norm2(aPIm-aPair.mP2);
+	 aStCheckIm.Add(aDifIm);
+
+         if (mShowDetail) 
+         {
+             StdOut()  << "ImGT=" <<  aDifIm << std::endl;
+
+         }
+    }
+    StdOut() << "  ==============  Accuracy / Ground trurh =============== " << std::endl;
+    StdOut()  << "    Avg=" <<  aStCheckIm.Avg() << ",  Worst=" << aStCheckIm.Max() << "\n";
+}
+
+void cAppliTestImportSensors::TestCoherenceDirInv(const  cSensorImage & aSI) const
+{
+     bool  InDepth = ! aSI.HasIntervalZ();  // do we use Im&Depth or Image&Z
+
+     cPt2dr aIntZD = cPt2dr(1,2);
+     if (InDepth)
+     {  // if depth probably doent matter which one is used
+     }
+     else
+     {
+        aIntZD = aSI.GetIntervalZ(); // at least with RPC, need to get validity interval
+     }
+
+     int mNbByDim = 10;
+     int mNbDepth = 5;
+     cSet2D3D  aS32 = aSI.SyntheticsCorresp3D2D(mNbByDim,mNbDepth,aIntZD.x(),aIntZD.y(),InDepth);
+
+     cStdStatRes  aStConsistIm;  // stat for image consit  Proj( Proj-1(PIm)) ?= PIm
+     cStdStatRes  aStConsistGr;  // stat for ground consist  Proj-1 (Proj(Ground)) ?= Ground
+
+     for (const auto & aPair : aS32.Pairs())
+     {
+         cPt3dr  aPGr = aPair.mP3;
+         cPt3dr  aPIm (aPair.mP2.x(),aPair.mP2.y(),aPGr.z());
+
+         cPt3dr  aPIm2 ;
+         cPt3dr  aPGr2 ;
+	
+	 if (InDepth)
+	 {
+	    aPIm2 = aSI.Ground2ImageAndDepth(aSI.ImageAndDepth2Ground(aPIm));
+	    aPGr2 = aSI.ImageAndDepth2Ground(aSI.Ground2ImageAndDepth(aPGr));
+	 }
+	 else
+	 {
+	    aPIm2 = aSI.Ground2ImageAndZ(aSI.ImageAndZ2Ground(aPIm));
+	    aPGr2 = aSI.ImageAndZ2Ground(aSI.Ground2ImageAndZ(aPGr));
+	 }
+	 tREAL8 aDifIm = Norm2(aPIm-aPIm2);
+	 aStConsistIm.Add(aDifIm);
+
+	 tREAL8 aDifGr = Norm2(aPGr-aPGr2);
+	 aStConsistGr.Add(aDifGr);
+	
+     }
+
+     StdOut() << "  ==============  Consistencies Direct/Inverse =============== " << std::endl;
+     StdOut() << "     * Image :  Avg=" <<   aStConsistIm.Avg() 
+	                 <<  ", Worst=" << aStConsistIm.Max()  
+	                 <<  ", Med=" << aStConsistIm.ErrAtProp(0.5)  
+                         << std::endl;
+
+     StdOut() << "     * Ground:  Avg=" <<   aStConsistGr.Avg() 
+	                 <<  ", Worst=" << aStConsistGr.Max()  
+	                 <<  ", Med=" << aStConsistGr.ErrAtProp(0.5)  
+			 << std::endl;
+
 }
 
 
@@ -689,12 +791,18 @@ cCollecSpecArg2007 & cAppliTestImportSensors::ArgOpt(cCollecSpecArg2007 & anArgO
 int cAppliTestImportSensors::Exe()
 {
     mPhProj.FinishInit();
+    cDataRPC aDataRPC(mNameRPC,mNameImage);
+
+    if (mPhProj.DPPointsMeasures().DirInIsInit())
+       TestGroundTruth(aDataRPC);
+
+    TestCoherenceDirInv(aDataRPC);
+    /*
 
     cSetMesImGCP aSetMes;
     mPhProj.LoadGCP(aSetMes);
     mPhProj.LoadIm(aSetMes,mNameImage);
 
-    cDataRPC aDataRPC(mNameRPC,mNameImage);
 
     cSet2D3D aSetM23;
     aSetMes.ExtractMes1Im(aSetM23,mNameImage);
@@ -702,20 +810,21 @@ int cAppliTestImportSensors::Exe()
     tREAL8 aSomCheckIm = 0.0;
     tREAL8 aSomConsistIm = 0.0;
     tREAL8 aSomConsistGr = 0.0;
+    const  cSensorImage & aSI (aDataRPC);
 
     for (const auto & aPair : aSetM23.Pairs())
     {
          cPt3dr  aPGr = aPair.mP3;
          tREAL8  aZ   = aPGr.z();
-         cPt2dr  aPIm = aDataRPC.Ground2Image(aPGr);
+         cPt2dr  aPIm = aSI.Ground2Image(aPGr);
 
 	 //           @G2I           @I2G                   @G2I
 	 //  Pgr=mP3   --->   PIm     --->   aPGr2?=Pgr     ---> aPIm2
 	 //                   ?=mP2          ?=Pgr          ?= PIm
 	 //                   "GTTest"       "GrCons"       "GrCons"
 
-         cPt3dr  aPGr2 =  aDataRPC.ImageZToGround(aPIm,aZ);
-         cPt2dr  aPIm2 = aDataRPC.Ground2Image(aPGr2);
+         cPt3dr  aPGr2 =  aSI.ImageAndZ2Ground(cPt3dr(aPIm.x(),aPIm.y(),aZ));
+         cPt2dr  aPIm2 = aSI.Ground2Image(aPGr2);
 
          aSomCheckIm +=  Norm2(aPIm  - aPair.mP2);
          aSomConsistIm +=  Norm2(aPIm-aPIm2);
@@ -738,6 +847,7 @@ int cAppliTestImportSensors::Exe()
     StdOut()  << "  CheckGTIm=" <<  aSomCheckIm << "\n";
     StdOut()  << "  ConsistIm=" <<  aSomConsistIm << "\n";
     StdOut()  << "  ConsistGr=" <<  aSomConsistGr << "\n";
+    */
 
     return EXIT_SUCCESS;
 }

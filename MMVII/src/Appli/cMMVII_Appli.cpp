@@ -367,7 +367,7 @@ cMultipleOfs& ErrOut()  {return StdOut();}
 
 
 
-cMultipleOfs &  cMMVII_Appli::StdOut()
+cMultipleOfs &  cMMVII_Appli::NC_StdOut()
 {
    /// Maybe mStdCout not correctly initialized if we are in constructor or in destructor ?
    if ((!cMMVII_Appli::ExistAppli()) || msInDstructor)
@@ -377,6 +377,10 @@ cMultipleOfs &  cMMVII_Appli::StdOut()
 cMultipleOfs &  cMMVII_Appli::HelpOut() {return StdOut();}
 cMultipleOfs &  cMMVII_Appli::ErrOut() {return StdOut();}
 
+cMultipleOfs &  cMMVII_Appli::StdOut() const
+{
+	return const_cast<cMMVII_Appli *>(this)->NC_StdOut();
+}
 
 void TestMainSet(const cCollecSpecArg2007 & aVSpec,bool &aMain0,bool & aMain1)
 {

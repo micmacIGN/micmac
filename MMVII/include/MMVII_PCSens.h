@@ -441,6 +441,7 @@ class cSensorCamPC : public cSensorImage
 
          void SetPose(const tPose & aPose);
 
+	 bool  HasImageAndDepth() const override;  // true
          cPt3dr Ground2ImageAndDepth(const cPt3dr &) const override;
          cPt3dr ImageAndDepth2Ground(const cPt3dr & ) const override;
          tSeg3dr  Image2Bundle(const cPt2dr &) const override;

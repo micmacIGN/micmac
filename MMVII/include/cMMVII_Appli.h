@@ -406,7 +406,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         void MMVII_WARNING(const std::string &);
 
         /// According to StdOut param can be std::cout, a File, both or none
-        cMultipleOfs & StdOut();
+        cMultipleOfs & StdOut() const;
         cMultipleOfs & HelpOut();
         cMultipleOfs & ErrOut();
 
@@ -573,6 +573,9 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         static const std::string & FullBin();            ///< Protected accessor to full pathname of MMVII executable
         static const std::string & DirTestMMVII();       ///< Protected accessor to dir to read/write test bench
     private :
+	// not very clean, but mutable dont seem enough
+        cMultipleOfs & NC_StdOut();
+
         cMMVII_Appli(const cMMVII_Appli&) = delete ; ///< New C++11 feature , forbid copy 
         cMMVII_Appli & operator = (const cMMVII_Appli&) = delete ; ///< New C++11 feature , forbid copy 
         // Subst  (aNameOpt,aVal)

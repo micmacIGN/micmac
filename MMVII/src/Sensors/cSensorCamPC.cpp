@@ -213,6 +213,9 @@ double cSensorCamPC::DegreeVisibilityOnImFrame(const cPt2dr & aP) const
      return mInternalCalib->DegreeVisibilityOnImFrame(aP);
 }
 
+bool   cSensorCamPC::HasImageAndDepth() const {return true;}
+
+
 cPt3dr cSensorCamPC::Ground2ImageAndDepth(const cPt3dr & aP) const
 {
     cPt3dr aPCam = Pose().Inverse(aP);  // P in camera coordinate
@@ -524,7 +527,7 @@ void  cSensorCamPC::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 
 void cSensorCamPC::Bench()
 {
-   cSet2D3D  aSet32 =  SyntheticsCorresp3D2D(20,3,1.0,10.0) ;
+   cSet2D3D  aSet32 =  SyntheticsCorresp3D2D(20,3,1.0,10.0,true) ;
    tREAL8 aRes = AvgAngularProjResiudal(aSet32);
 
    MMVII_INTERNAL_ASSERT_bench(aRes<1e-8,"Avg res ang");

@@ -172,6 +172,11 @@ void cSensorImage::ToFile(const std::string &) const
 }
 
 
+cPt2dr cSensorImage::GetIntervalZ() const
+{
+    MMVII_INTERNAL_ERROR("cSensorImage::GetIntervalZ not implemanted");
+    return cPt2dr::Dummy();
+}
 
 
 
@@ -209,6 +214,11 @@ cPt3dr cSensorImage::ImageAndDepth2Ground(const cPt2dr & aP2,const double & aDep
 {
     return ImageAndDepth2Ground(cPt3dr(aP2.x(),aP2.y(),aDepth));
 }
+
+bool   cSensorImage::HasImageAndDepth() const {return false;}
+bool   cSensorImage::HasIntervalZ() const {return false;}
+
+
 
 
 
@@ -276,7 +286,7 @@ cPt3dr cSensorImage::RandomVisiblePGround(tREAL8 aDepMin,tREAL8 aDepMax)
 
 
 
-cSet2D3D  cSensorImage::SyntheticsCorresp3D2D (int aNbByDim,std::vector<double> & aVecDepth) const
+cSet2D3D  cSensorImage::SyntheticsCorresp3D2D (int aNbByDim,std::vector<double> & aVecDepth,bool IsDepthOrZ) const
 {
     cSet2D3D aResult;
 
@@ -286,14 +296,17 @@ cSet2D3D  cSensorImage::SyntheticsCorresp3D2D (int aNbByDim,std::vector<double> 
     {
         for (const auto & aDepth : aVecDepth)
         {
-	     aResult.AddPair(aPIm,ImageAndDepth2Ground(aPIm,aDepth));
+             cPt3dr aP = IsDepthOrZ                                           ? 
+		           ImageAndDepth2Ground(aPIm,aDepth)                  :
+		           ImageAndZ2Ground(cPt3dr(aPIm.x(),aPIm.y(),aDepth)) ;
+	     aResult.AddPair(aPIm,aP);
 	}
     }
 
     return aResult;
 }
          ///  call variant with vector, depth regularly spaced
-cSet2D3D  cSensorImage::SyntheticsCorresp3D2D (int aNbByDim,int aNbDepts,double aD0,double aD1) const
+cSet2D3D  cSensorImage::SyntheticsCorresp3D2D (int aNbByDim,int aNbDepts,double aD0,double aD1,bool IsDepthOrZ) const
 {
    std::vector<tREAL8> aVDepth;
 
@@ -303,7 +316,7 @@ cSet2D3D  cSensorImage::SyntheticsCorresp3D2D (int aNbByDim,int aNbDepts,double 
         aVDepth.push_back(aD0 * pow(aD1/aD0,aW));
    }
 
-   return SyntheticsCorresp3D2D(aNbByDim,aVDepth);
+   return SyntheticsCorresp3D2D(aNbByDim,aVDepth,IsDepthOrZ);
 }
 
 bool cSensorImage::IsVisible(const cPt3dr & aP3) const  { return DegreeVisibility(aP3) > 0; }

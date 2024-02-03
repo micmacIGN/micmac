@@ -585,7 +585,7 @@ void OneBenchUnCalibResection(int aKTest)
           cSensorCamPC aCam("Camera_BenchUncalibResection",cIsometry3D<tREAL8>::RandomIsom3D(100.0),aCalib);
 
           std::vector<double> aVDepts({1,2});
-          cSet2D3D  aSetCorresp  =  aCam.SyntheticsCorresp3D2D(10,aVDepts) ;
+          cSet2D3D  aSetCorresp  =  aCam.SyntheticsCorresp3D2D(10,aVDepts,true) ;
 
           cUncalibSpaceRessection<tREAL8>  aResec8(aSz,aSetCorresp,&aCam);
           cSensorCamPC * aCamCalc = aResec8.ComputeParameters("NoIm_UCSR");

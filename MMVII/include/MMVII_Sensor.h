@@ -98,6 +98,9 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	 /// Basic method  GroundCoordinate ->  image coordinate of projection
          virtual cPt2dr Ground2Image(const cPt3dr &) const = 0;
 
+
+	 /// Can we manipulate  Image & Depth -> 3d, default false, true for Central Persp
+	 virtual bool  HasImageAndDepth() const;
 	 ///  add the the depth (to see if have a default with bundle+Gr2Ima), default error
          virtual cPt3dr Ground2ImageAndDepth(const cPt3dr &) const ;
          /// Invert of Ground2ImageAndDepth, default error
@@ -109,6 +112,10 @@ class cSensorImage  :   public cObj2DelAtEnd,
          cPt3dr Ground2ImageAndZ(const cPt3dr &) const ;
          /// Invert of Ground2ImageAndZ, default use bundle, RPC for ex have a specialize method
          virtual cPt3dr ImageAndZ2Ground(const cPt3dr &) const ;
+	 ///  Does it know its Z-validity interval
+	 virtual bool  HasIntervalZ() const;
+	 /// Default error
+	 virtual cPt2dr GetIntervalZ() const;
 
 
 	 /// Compute 3D point by bundle intersection
@@ -131,10 +138,10 @@ class cSensorImage  :   public cObj2DelAtEnd,
 
 	 /// return a set point regulary sampled (+/-) on sensor, take care of frontier, default is as simple grid
          virtual std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim)  const ;
-	 ///  return artificial/synthetic correspondance , with vector of depth
-	 cSet2D3D  SyntheticsCorresp3D2D (int aNbByDim,std::vector<double> & aVecDepth) const;
-	 ///  call variant with vector, depth regularly spaced
-	 cSet2D3D  SyntheticsCorresp3D2D (int aNbByDim,int aNbDepts,double aD0,double aD1) const;
+	 ///  return artificial/synthetic correspondance , with vector of depth / Z
+	 cSet2D3D  SyntheticsCorresp3D2D (int aNbByDim,std::vector<double> & aVecDepth,bool IsDepthOrZ) const;
+	 ///  call variant with vector, depth regularly spaced  depth / Z
+	 cSet2D3D  SyntheticsCorresp3D2D (int aNbByDim,int aNbDepts,double aD0,double aD1,bool IsDepthOrZ) const;
 
 
 	 // =================   Residual   ===========================
