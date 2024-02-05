@@ -26,11 +26,11 @@ namespace{ // Private
          case  GDT_Float32 :  return eTyNums::eTN_REAL4 ;
          case  GDT_Float64 :  return eTyNums::eTN_REAL8 ;
 
-         case  GDT_CInt16 :  MMVII_INTERNAL_ASSERT_bench(false,"GdalToMMVII : case GDT_CInt16") ;
-         case  GDT_CInt32 :  MMVII_INTERNAL_ASSERT_bench(false,"GdalToMMVII : case GDT_CInt32") ;
-         case  GDT_CFloat32 :  MMVII_INTERNAL_ASSERT_bench(false,"GdalToMMVII : case GDT_CFloat32") ;
-         case  GDT_CFloat64 :  MMVII_INTERNAL_ASSERT_bench(false,"GdalToMMVII : case GDT_CFloat64") ;
-         case  GDT_TypeCount :  MMVII_INTERNAL_ASSERT_bench(false,"GdalToMMVII : case GDT_TypeCount") ;
+         case  GDT_CInt16 :  MMVII_INTERNAL_ERROR("GdalToMMVII : case GDT_CInt16") ;
+         case  GDT_CInt32 :  MMVII_INTERNAL_ERROR("GdalToMMVII : case GDT_CInt32") ;
+         case  GDT_CFloat32 :  MMVII_INTERNAL_ERROR("GdalToMMVII : case GDT_CFloat32") ;
+         case  GDT_CFloat64 :  MMVII_INTERNAL_ERROR("GdalToMMVII : case GDT_CFloat64") ;
+         case  GDT_TypeCount :  MMVII_INTERNAL_ERROR("GdalToMMVII : case GDT_TypeCount") ;
       }
       return eTyNums::eTN_UnKnown ;
    }
@@ -41,18 +41,18 @@ namespace{ // Private
       switch (aType)
       {
 
-         case  eTyNums::eTN_INT1 :  MMVII_INTERNAL_ASSERT_bench(false,"MMVIIToGdal : case eTyNums::eTN_INT1") ;
+         case  eTyNums::eTN_INT1 :  MMVII_INTERNAL_ERROR("MMVIIToGdal : case eTyNums::eTN_INT1") ;
          case  eTyNums::eTN_U_INT1 :  return GDT_Byte ;
          case  eTyNums::eTN_INT2 :  return GDT_Int16 ;
          case  eTyNums::eTN_U_INT2 :  return GDT_UInt16 ;
          case  eTyNums::eTN_INT4 :  return GDT_Int32 ;
          case  eTyNums::eTN_U_INT4 :  return GDT_UInt32 ;
-         case  eTyNums::eTN_INT8 :  MMVII_INTERNAL_ASSERT_bench(false,"MMVIIToGdal : case eTyNums::eTN_INT8") ;
+         case  eTyNums::eTN_INT8 :  MMVII_INTERNAL_ERROR("MMVIIToGdal : case eTyNums::eTN_INT8") ;
          case  eTyNums::eTN_REAL4 :  return GDT_Float32 ;
          case  eTyNums::eTN_REAL8 :  return GDT_Float64 ;
-         case  eTyNums::eTN_REAL16 :  MMVII_INTERNAL_ASSERT_bench(false,"MMVIIToGdal : case eTyNums::eTN_REAL16") ;
-         case  eTyNums::eTN_UnKnown :  MMVII_INTERNAL_ASSERT_bench(false,"MMVIIToGdal : case eTyNums::eTN_UnKnown") ;
-         case  eTyNums::eNbVals :  MMVII_INTERNAL_ASSERT_bench(false,"MMVIIToGdal : case eTyNums::eNbVals") ;
+         case  eTyNums::eTN_REAL16 :  MMVII_INTERNAL_ERROR("MMVIIToGdal : case eTyNums::eTN_REAL16") ;
+         case  eTyNums::eTN_UnKnown :  MMVII_INTERNAL_ERROR("MMVIIToGdal : case eTyNums::eTN_UnKnown") ;
+         case  eTyNums::eNbVals :  MMVII_INTERNAL_ERROR("MMVIIToGdal : case eTyNums::eNbVals") ;
       }
       return GDT_Unknown ;
    }
@@ -171,18 +171,18 @@ namespace{ // Private
       {
                switch (aDF.Type())
                {
-                  case eTyNums::eTN_INT1 : MMVII_INTERNAL_ASSERT_bench(false,"cDataIm2D<Type>::Read : case eTyNums::eTN_INT1") ; break ;
+                  case eTyNums::eTN_INT1 : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Read : case eTyNums::eTN_INT1") ; break ;
                   case eTyNums::eTN_U_INT1 : GdalReadData<Type, tU_INT1>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, MMVIIToGdal(aDF.Type()))  ; break ;
                   case eTyNums::eTN_INT2 : GdalReadData<Type, tINT2>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, MMVIIToGdal(aDF.Type())) ; break ;
                   case eTyNums::eTN_U_INT2 : GdalReadData<Type, tU_INT2>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, MMVIIToGdal(aDF.Type()))  ; break ;
                   case eTyNums::eTN_INT4 : GdalReadData<Type, tINT4>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, MMVIIToGdal(aDF.Type()))  ;  break ;
                   case eTyNums::eTN_U_INT4 : GdalReadData<Type, tU_INT4>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, MMVIIToGdal(aDF.Type()))  ; break ;
-                  case eTyNums::eTN_INT8 : MMVII_INTERNAL_ASSERT_bench(false,"cDataIm2D<Type>::Read : case eTyNums::eTN_INT8") ; break ;
+                  case eTyNums::eTN_INT8 : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Read : case eTyNums::eTN_INT8") ; break ;
                   case eTyNums::eTN_REAL4 : GdalReadData<Type, tREAL4>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, MMVIIToGdal(aDF.Type()))  ; break ;
                   case eTyNums::eTN_REAL8 : GdalReadData<Type, tREAL8>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, MMVIIToGdal(aDF.Type()))  ; break ;
-                  case eTyNums::eTN_REAL16 : MMVII_INTERNAL_ASSERT_bench(false,"cDataIm2D<Type>::Read : case eTyNums::eTN_REAL16") ; break ;
-                  case eTyNums::eTN_UnKnown : MMVII_INTERNAL_ASSERT_bench(false,"cDataIm2D<Type>::Read : case eTyNums::eTN_UnKnown") ; break ;
-                  case eTyNums::eNbVals : MMVII_INTERNAL_ASSERT_bench(false,"cDataIm2D<Type>::Read : case eTyNums::eNbVals") ; break ;
+                  case eTyNums::eTN_REAL16 : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Read : case eTyNums::eTN_REAL16") ; break ;
+                  case eTyNums::eTN_UnKnown : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Read : case eTyNums::eTN_UnKnown") ; break ;
+                  case eTyNums::eNbVals : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Read : case eTyNums::eNbVals") ; break ;
                }
          i++;
       }
@@ -205,18 +205,18 @@ namespace{ // Private
       {
             switch (aDF.Type())
             {
-               case eTyNums::eTN_INT1 : MMVII_INTERNAL_ASSERT_bench(false,"cDataIm2D<Type>::Write : case eTyNums::eTN_INT1") ; break ;
+               case eTyNums::eTN_INT1 : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Write : case eTyNums::eTN_INT1") ; break ;
                case eTyNums::eTN_U_INT1 : GdalWriteData<Type, tU_INT1>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, MMVIIToGdal(aDF.Type()))  ; break ;
                case eTyNums::eTN_INT2 : GdalWriteData<Type, tINT2>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, MMVIIToGdal(aDF.Type())) ; break ;
                case eTyNums::eTN_U_INT2 : GdalWriteData<Type, tU_INT2>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, MMVIIToGdal(aDF.Type()))  ; break ;
                case eTyNums::eTN_INT4 : GdalWriteData<Type, tINT4>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, MMVIIToGdal(aDF.Type()))  ; break ;
                case eTyNums::eTN_U_INT4 : GdalWriteData<Type, tU_INT4>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, MMVIIToGdal(aDF.Type()))  ; break ;
-               case eTyNums::eTN_INT8 : MMVII_INTERNAL_ASSERT_bench(false,"cDataIm2D<Type>::Write : case eTyNums::eTN_INT8") ; break ;
+               case eTyNums::eTN_INT8 : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Write : case eTyNums::eTN_INT8") ; break ;
                case eTyNums::eTN_REAL4 : GdalWriteData<Type, tREAL4>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, MMVIIToGdal(aDF.Type()))  ; break ;
                case eTyNums::eTN_REAL8 : GdalWriteData<Type, tREAL8>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, MMVIIToGdal(aDF.Type()))  ; break ;
-               case eTyNums::eTN_REAL16 : MMVII_INTERNAL_ASSERT_bench(false,"cDataIm2D<Type>::Write : case eTyNums::eTN_REAL16") ; break ;
-               case eTyNums::eTN_UnKnown : MMVII_INTERNAL_ASSERT_bench(false,"cDataIm2D<Type>::Write : case eTyNums::eTN_UnKnown") ; break ;
-               case eTyNums::eNbVals : MMVII_INTERNAL_ASSERT_bench(false,"cDataIm2D<Type>::Write : case eTyNums::eNbVals") ; break ;
+               case eTyNums::eTN_REAL16 : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Write : case eTyNums::eTN_REAL16") ; break ;
+               case eTyNums::eTN_UnKnown : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Write : case eTyNums::eTN_UnKnown") ; break ;
+               case eTyNums::eNbVals : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Write : case eTyNums::eNbVals") ; break ;
             }
          i++;
       }    
@@ -423,7 +423,7 @@ GenIm::type_el ToMMV1(eTyNums aV2)
         case eTyNums::eTN_REAL8 : return GenIm::real8  ;
         default: ;
     }
-    MMVII_INTERNAL_ASSERT_bench(false,"GenIm::type_el ToMMV1(eTyNums)");
+    MMVII_INTERNAL_ERROR("GenIm::type_el ToMMV1(eTyNums)");
     return GenIm::int1;
 }
 
