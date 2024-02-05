@@ -233,8 +233,7 @@ static double computeResiduFromPos(const cNOSolIn_Triplet* triplet) {
             std::cout << ISOK << std::endl;
         }
         //
-        double residu_pts = 0;
-        uint n_residu = 0;
+        std::vector<double> residuls;
         for (int i = 0; i < 3; i++) {
             if (!pts[i].x && !pts[i].y) continue;
 
@@ -251,13 +250,12 @@ static double computeResiduFromPos(const cNOSolIn_Triplet* triplet) {
             //if (triplet->KSom(i)->attr().Im()->CS()->PIsVisibleInImage(aInt)) {
             //} else {
             //}
-            residu_pts += a;
-            n_residu++;
+            residuls.push_back(a);
         }
 
         double m = MaxDiag;
-        if (n_residu) {
-            m = residu_pts / n_residu;
+        if (residuls.size()) {
+            m = mean(residuls);
             res.push_back(m);
         }
         if (m > MaxDiag) {
@@ -277,7 +275,7 @@ static double computeResiduFromPos(const cNOSolIn_Triplet* triplet) {
     //cout.precision(12);
     //std::cout << "Residu for triplet: " << value  << "  " << triplet->residue << std::endl;
     if (res.size() > 0)
-        return median(res);
+        return mean(res);
     return MaxDiag;
 }
 
@@ -3229,10 +3227,11 @@ void RandomForest::CoherTripletsGraphBasedV2(
         center2 = center2 + currentTriplet->KSom(2)->attr().CurRot().tr();
         center2 = center2 / 3.;
 
-        double resMean = (currentTriplet->KSom(0)->attr().residue +
-                          currentTriplet->KSom(1)->attr().residue +
-                          currentTriplet->KSom(2)->attr().residue) /
-                         3.;
+        std::vector<double> ores;
+        ores.push_back(currentTriplet->KSom(0)->attr().residue);
+        ores.push_back(currentTriplet->KSom(1)->attr().residue);
+        ores.push_back(currentTriplet->KSom(2)->attr().residue);
+        double resMean = mean(ores);
 
         //double aDistAl = square_euclid(center2, center);
         //std::cout << "Distance euclid: " << aDistAl << std::endl;
@@ -3288,8 +3287,7 @@ static double computeAsymResidue(const tTriPointList& pts,
         const std::vector<int>& index,
         const std::array<ElRotation3D, 3>& oriB) {
     const double MaxDiag = 6400;
-    double value = 0;
-    double number = 0;
+    std::vector<double> res;
     for (auto p : pts) {
         //Generate 3D point from first triplet A
         std::vector<ElSeg3D> aVSeg;
@@ -3306,8 +3304,7 @@ static double computeAsymResidue(const tTriPointList& pts,
         Pt3dr aPts = ElSeg3D::L2InterFaisceaux(0, aVSeg, &ISOK);
 
         //Compute reprojection error on triplet B
-        double residu_pts = 0;
-        uint n_residu = 0;
+        std::vector<double> residuls;
         for (int i = 0; i < 3; i++) {
             if (!p[i].x && !p[i].y) continue;
 
@@ -3321,19 +3318,18 @@ static double computeAsymResidue(const tTriPointList& pts,
             if (!v->attr().Im()->CS()->PIsVisibleInImage(aPts)) {
                 a = min(a, MaxDiag);
             }
-            residu_pts += a;
-            n_residu++;
+            residuls.push_back(a);
         }
 
         double m = MaxDiag;
-        if (n_residu) {
-            m = residu_pts / n_residu;
+        if (residuls.size()) {
+            m = mean(residuls);
         }
-        value += m;
-        number += 1;
+        res.push_back(m);
     }
-    if (number)
-        value /= number;
+    double value = MaxDiag;
+    if (res.size())
+        value = mean(res);
 
     return value;
 }
