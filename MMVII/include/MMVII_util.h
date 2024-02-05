@@ -89,7 +89,7 @@ std::string Postfix(const std::string & aStr,char aSep='.',bool SVP=false,bool P
 std::string LastPostfix(const std::string & aStr,char aSep='.'); ///< No error:  a=> ""  a.b.c => "c"
 
 bool starts_with(const std::string & aFullStr,const std::string & aBegining); /// as c++20  std::string.starts_with
-bool ends_with(const std::string & aFullStr,const std::string & aEnding); /// as c++20  std::string.starts_with TO IMPLEMENT
+bool ends_with(const std::string & aFullStr,const std::string & aEnding); /// as c++20  std::string.ends_with
 bool contains(const std::string & aFullStr,const std::string & aEnding); /// as c++23  std::string.contains TO IMPLEMENT
 
 // Direcytory and files names, Rely on std::filesystem

@@ -60,25 +60,15 @@ namespace{ // Private
 
    std::string ExtToGdalDriver( std::string aName )
    {
-         // Return gdal driver in function of extension of aName
-
-         std::vector<string> strings;
-         std::string s;  
-         char delimiter = '.';
-         std::istringstream iss(aName);
-         
-         while (std::getline(iss, s, delimiter)) {
-            strings.push_back(s);
-         }
-
-         // Add other gdal driver here
-         std::string aDriver ;
-         if (strings.back() == "tif")
-         {
-            aDriver = "GTiff";
-         }
-
-         return aDriver;
+        auto aLowerName = ToLower(aName);
+        if (ends_with(aLowerName,".tif") || ends_with(aLowerName,".tiff"))
+            return "GTiff";
+        if (ends_with(aLowerName,".jpg") || ends_with(aLowerName,".jpeg"))
+            return "JPEG";
+        if (ends_with(aLowerName,".png"))
+            return "PNG";
+        MMVII_INTERNAL_ERROR("MMVIITOGDal: Unsupported image format for " + aName);
+         return "";
    }
 
 
