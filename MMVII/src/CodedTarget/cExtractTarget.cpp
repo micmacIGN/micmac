@@ -107,6 +107,7 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         std::vector<cPt2dr> getEncodingPositions(tDataImT &, cDCT*);
         double ellipseResidual(std::vector<cPt2dr>, cDCT*);        ///< Computes pixel residual of ellipse fit
 		bool decodeBit(tDataImT &, cPt2dr, double);
+		bool verticalize(cDCT*);
 
 
         // ---------------------------------------------------------------------------------
@@ -175,6 +176,10 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         int mDebugPlot;           ///< Debug plot code (binary)
         double mMaxEcc;           ///< Max. eccentricity of detected ellispes
         double mLinedUpPx;        ///< Max. alignment error on axes detection
+        double mAffRes;			  ///< Max. rmse error on affinity estimation
+        bool mVerticalize;        ///< True if axes if targets are set vertical
+        double mBinarity;         ///< Min. threshold on binarity
+        double mBurnt;            ///< Ratio of burnt image ("surexp")
         bool mSaddle;             ///< Prefiletring with Saddle test
         double mMargin;           ///< Percent margin of butterfly edge used for fit
 
@@ -241,6 +246,10 @@ cAppliExtractCodeTarget::cAppliExtractCodeTarget(const std::vector<std::string> 
    mXml             (""),
    mMaxEcc          (1e9),
    mLinedUpPx       (1.5),
+   mAffRes          (2.0),
+   mVerticalize     (false),
+   mBinarity        (25),
+   mBurnt           (0.0),
    mSaddle          (false),
    mMargin          (0.20),
    mToRestrict      ({}),
@@ -295,6 +304,10 @@ cCollecSpecArg2007 & cAppliExtractCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgO
                     << AOpt2007(mDebugPlot, "Debug", "Options mask for debug image", {eTA2007::HDV})
                     << AOpt2007(mMaxEcc, "MaxEcc", "Max. eccentricity of targets", {eTA2007::HDV})
                     << AOpt2007(mLinedUpPx, "LinedUpPx", "Max. alignment error on axes detection", {eTA2007::HDV})
+                    << AOpt2007(mAffRes, "AffinResidu", "Max. rmse error on affinity estimation", {eTA2007::HDV})
+                    << AOpt2007(mVerticalize, "Vertical", "Verticalize target axes", {eTA2007::HDV})
+                    << AOpt2007(mBinarity, "Binarity", "Min. threshold on binarity", {eTA2007::HDV})
+                    << AOpt2007(mBurnt, "Burnt", "Ratio of burnt image", {eTA2007::HDV})
                     << AOpt2007(mSaddle, "Saddle", "Prefiltering with saddle test", {eTA2007::HDV})
                     << AOpt2007(mMargin, "Margin", "Margin on butterfly edge for fit", {eTA2007::HDV})
                     << AOpt2007(mToRestrict, "Restrict", "List of codes to restrict on", {eTA2007::HDV})
@@ -339,6 +352,17 @@ void cAppliExtractCodeTarget::ShowStats(const std::string & aMes)
    }
 
    StdOut()   << "\n";
+}
+
+bool cAppliExtractCodeTarget::verticalize(cDCT* aDCT){
+	
+		aDCT->mDirC1.x() = (aDCT->mDirC1.x()<-0.5)*(-1) +  (aDCT->mDirC1.x()>0.5)*(1);
+		aDCT->mDirC2.x() = (aDCT->mDirC2.x()<-0.5)*(-1) +  (aDCT->mDirC2.x()>0.5)*(1);
+		aDCT->mDirC1.y() = (aDCT->mDirC1.y()<-0.5)*(-1) +  (aDCT->mDirC1.y()>0.5)*(1);
+		aDCT->mDirC2.y() = (aDCT->mDirC2.y()<-0.5)*(-1) +  (aDCT->mDirC2.y()>0.5)*(1);
+		
+		return true;
+	
 }
 
 
@@ -622,6 +646,7 @@ void  cAppliExtractCodeTarget::DoExtract(){
                 mVDCTOk.push_back(aPtrDCT);
             }
         }
+        
     }
 
 
@@ -709,8 +734,7 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     // ---------------------------------------------------------------------------
     // Functions parameters (to tune)
     // ---------------------------------------------------------------------------
-    int px_binarity = 25;      // Threshold on binarity
-    int limit_border = 30;     // Target not considered if that close to border
+    int limit_border = 30;        // Target not considered if that close to border
     // ---------------------------------------------------------------------------
 
     // --------------------------------------------------------------------------------------------------------
@@ -726,7 +750,7 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     // Test on binarity of target
     // -------------------------------------------
     double binarity = aDCT->mVWhite - aDCT->mVBlack;
-    if (!printDebug("Binarity test", binarity, px_binarity)) return false;
+    if (!printDebug("Binarity test", binarity, mBinarity)) return false;
 
     // ----------------------------------------------------------------------------------------------
     // [001] 0000000001 plot only candidates after filtering operations (magenta pixels)
@@ -796,7 +820,8 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
 		double max_ray_adjust = 0.8*aDCT->mSizeTargetEllipseB;
        
         bool ok = TestDirDCT(*aDCT, APBI_Im(), min_ray_adjust, max_ray_adjust, aDCT->mDetectedVectors, mLinedUpPx);
-	
+		if (mVerticalize) verticalize(aDCT);	
+
         // Recomputing intersections
         aDCT->mDetectedCorners = solveIntersections(aDCT, param);
 
@@ -807,9 +832,10 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
 		}
     }
 
-    // Affinity estimation test
+    // Affinity estimation tests
     bool validAff = isValidAffinity(mTransfo);
-    if (!printDebug("Affinity estimation", validAff)) return false;    
+    if (!printDebug("Affinity estimation", validAff)) return false;
+    if (!printDebug("Affinity fit residual", mAffRes, mTransfo[6])) return false;    
 
     // Control on center position
     double x_centre_moy = (ellipse[0] + aDCT->mPt.x())/2.0;
@@ -833,8 +859,12 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     // Decoding
     // ======================================================================
     
-    std::string chaine = decodeTarget(aImT.DIm(), aDCT);;
-
+    std::string chaine = decodeTarget(aImT.DIm(), aDCT);
+    
+    // ---------------------------------------------------------------
+    // Changement noms cibles
+    // ---------------------------------------------------------------
+    
     if (mToRestrict.size() > 0){
 		if (std::find(mToRestrict.begin(), mToRestrict.end(), chaine) == mToRestrict.end()){
 			return false;
@@ -852,7 +882,7 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
         if (!mFailure)  return false;
     }
 
-
+	
     // --------------------------------------------------------------------------------
     // Begin print console
     // --------------------------------------------------------------------------------
@@ -1179,7 +1209,13 @@ std::vector<cPt2dr> cAppliExtractCodeTarget::extractButterflyEdge(const cDataIm2
                     w1 = +(z_prec-threshold)/(z_prec-z_curr);
                     w2 = -(z_curr-threshold)/(z_prec-z_curr);
                     cPt2dr pf = cPt2dr(w1*pf_curr.x() + w2*pf_prec.x(), w1*pf_curr.y() + w2*pf_prec.y());
+                    
+                    // Special case for "surexposition"
+                    pf.x() = pf.x() + (pf.x()-center.x())*mBurnt;
+                    pf.y() = pf.y() + (pf.y()-center.y())*mBurnt;
+                    
                     POINTS.push_back(pf);
+                    
                    // plotSafeRectangle(mImVisu, cPt2di(pf.x(), pf.y()), 0.0, cRGBImage::Cyan, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
                     break;
                 }
@@ -1532,7 +1568,7 @@ std::vector<double> cAppliExtractCodeTarget::estimateAffinity(std::vector<cPt2dr
     cDenseMatrix<double> x = (A.Transpose()*A).Inverse()*A.Transpose()*B;
 
     for (unsigned i=0; i<6; i++) transfo[i] = x.GetElem(0,i);
-    cDenseMatrix<double> V = A*x-B;
+    cDenseMatrix<double> V = A*x-B; transfo[6] = sqrt((V.Transpose()*V).GetElem(0,0)/(2*N));
 
     return transfo;
 
