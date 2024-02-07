@@ -8,6 +8,60 @@
 
 namespace MMVII
 {
+/* =============================================== */
+/*                                                 */
+/*                 cAnalyseTSOF                    */
+/*                                                 */
+/* =============================================== */
+
+
+struct cAnalyseTSOF
+{
+     cAnalyseTSOF(const std::string& aNameFile,bool SVP=false);
+
+     void Free();
+
+     std::string    mNameFile;
+     eFormatSensor  mFormat;
+     eTypeSensor    mType;
+     cSerialTree *  mSTree;
+};
+
+// cSensorImage;
+
+cAnalyseTSOF::cAnalyseTSOF(const std::string& aNameFile,bool SVP) :
+   mNameFile (aNameFile),
+   mFormat   (eFormatSensor::eNbVals),
+   mType     (eTypeSensor::eNbVals),
+   mSTree    (nullptr)
+{
+    std::string aPost = LastPostfix(aNameFile);
+    eTypeSerial aTypeS = Str2E<eTypeSerial>(ToLower(aPost),true);
+    
+    if (aTypeS != eTypeSerial::eNbVals)
+    {
+        cSerialFileParser * aSFP = cSerialFileParser::Alloc(aNameFile,aTypeS);
+	mSTree = new cSerialTree(*aSFP);
+        delete aSFP;
+        // Is it a dimap tree
+        if (!mSTree->GetAllDescFromName("Dimap_Document").empty())
+        {
+           mFormat =  eFormatSensor::eDimap_RPC;
+           mType   =  eTypeSensor::eRPC;
+	   return ;
+        }
+    }
+    if (! SVP)
+       MMVII_UnclasseUsEr("AnalyseFileSensor dont recognize : " + aNameFile);
+    return ;
+}
+
+void cAnalyseTSOF::Free()
+{
+     delete mSTree;
+}
+
+/* =============================================== */
 
 typedef double  tRPCCoeff[20];
 class cDataRPC;
@@ -102,8 +156,6 @@ class cDataRPC : public cSensorImage
 
 	/// Indicate how much a point belongs to sensor visibilty domain
          double DegreeVisibility(const cPt3dr &) const  override;
-
-
 	 bool  HasIntervalZ()  const override;
          cPt2dr GetIntervalZ() const override;
 
@@ -112,6 +164,8 @@ class cDataRPC : public cSensorImage
          std::string  V_PrefixName() const  override;
 
          cDataRPC(const std::string& aNameRPC,const std::string& aNameImage);
+	 void InitFromFile(const cAnalyseTSOF &);
+
          void Dimap_ReadXML_Glob(const cSerialTree&);
 
         cPt3dr ImageZToGround(const cPt2dr&,const double) const;
@@ -274,7 +328,6 @@ void  cRPC_Polyn::FillCubicCoeff(tRPCCoeff & aVCoeffs,const cPt3dr & aP)
      aVCoeffs[19] = aP.z() * aP.z() * aP.z();
 }
 
-	// cPt1dr Value(const cPt3dr &) const override;
 
 void cRPC_Polyn::Show()
 {
@@ -351,12 +404,6 @@ void cRatioPolynXY::Show()
 }
 
 
-/* =============================================== */
-/*                                                 */
-/*                 cDataRPC                        */
-/*                                                 */
-/* =============================================== */
-
      // ====================================================
      //     Construction & Destruction  & Show
      // ====================================================
@@ -373,25 +420,22 @@ cDataRPC::cDataRPC(const std::string& aNameRPC,const std::string& aNameImage) :
     mPixelDomain       (&mDataPixelDomain),
     mBoxGround         (cBox3dr::Empty())  // Empty box because no default init
 {
-    //  Is it a xml file ?
-    if (UCaseEqual(LastPostfix(aNameRPC),"xml"))
-    {
-        cSerialFileParser * aSFP = cSerialFileParser::Alloc(aNameRPC,eTypeSerial::exml);
-        cSerialTree  aTree(*aSFP);
-        // Is it a dimap tree
-        if (!aTree.GetAllDescFromName("Dimap_Document").empty())
-        {
-           // if yes read the dimap-xml-tree and return
-           Dimap_ReadXML_Glob(aTree);
-           delete aSFP;
-           return;
-        }
-        MMVII_UnclasseUsEr("RPC : Dont handle this xml file, for " + aNameRPC);
-    }
-    else
-    {
-        MMVII_UnclasseUsEr("RPC : Dont handle postfix for "+aNameRPC);
-    }
+}
+     /*
+     if (anAnalyse.mFormat== eFormatSensor::eDimap_RPC)
+     {
+        Dimap_ReadXML_Glob(*anAnalyse.mSTree);
+        delete anAnalyse.mSTree;
+     }
+     */
+
+void cDataRPC::InitFromFile(const cAnalyseTSOF & anAnalyse)
+{
+   MMVII_INTERNAL_ASSERT_strong(anAnalyse.mType==eTypeSensor::eRPC,"Sensor is not RPC in cDataRPC"); 
+   if (anAnalyse.mFormat== eFormatSensor::eDimap_RPC)
+   {
+        Dimap_ReadXML_Glob(*anAnalyse.mSTree);
+   }
 }
 
 cDataRPC::~cDataRPC()
@@ -725,6 +769,7 @@ void cAppliTestImportSensors::TestGroundTruth(const  cSensorImage & aSI) const
     }
     StdOut() << "  ==============  Accuracy / Ground trurh =============== " << std::endl;
     StdOut()  << "    Avg=" <<  aStCheckIm.Avg() << ",  Worst=" << aStCheckIm.Max() << "\n";
+
 }
 
 void cAppliTestImportSensors::TestCoherenceDirInv(const  cSensorImage & aSI) const
@@ -793,10 +838,17 @@ int cAppliTestImportSensors::Exe()
     mPhProj.FinishInit();
     cDataRPC aDataRPC(mNameRPC,mNameImage);
 
+    cAnalyseTSOF   anAnalyse(mNameRPC,false);
+    aDataRPC.InitFromFile(anAnalyse);
+    anAnalyse.Free();
+
     if (mPhProj.DPPointsMeasures().DirInIsInit())
        TestGroundTruth(aDataRPC);
 
     TestCoherenceDirInv(aDataRPC);
+
+
+    StdOut() << "NAMEORI=[" << aDataRPC.NameOriStd()  << "]\n";
     /*
 
     cSetMesImGCP aSetMes;
@@ -877,6 +929,89 @@ cSpecMMVII_Appli  TheSpecTestImportSensors
 /*                                                 */
 /* =============================================== */
 
+class  cDataExternalSensor
+{
+     public :
+          
+          eTypeSensor    mType;
+          eFormatSensor  mFormat;
+          std::string    mNameSensorInit;
+          std::string    mNameImage;
+};
+
+
+class cExternalSensorMod2D : public cSensorImage
+{
+      public :
+      private :
+         
+         tSeg3dr  Image2Bundle(const cPt2dr &) const override;
+         /// Basic method  GroundCoordinate ->  image coordinate of projection
+         cPt2dr Ground2Image(const cPt3dr &) const override;
+         ///    Method specialized, more efficent than using bundles
+         cPt3dr ImageAndZ2Ground(const cPt3dr &) const override;
+	/// Indicate how much a point belongs to sensor visibilty domain
+         double DegreeVisibility(const cPt3dr &) const  override;
+	 bool  HasIntervalZ()  const override;
+         cPt2dr GetIntervalZ() const override;
+
+         const cPixelDomain & PixelDomain() const ;
+         std::string  V_PrefixName() const  override;
+
+         cDataExternalSensor     mData;
+	 cSensorImage *          mSensorInit;
+
+	 virtual cPt2dr  Init2End (const cPt2dr & aP0) const ;
+	 virtual cPt2dr  End2Init (const cPt2dr & aP0) const ;
+	 virtual  std::string NameModif2D() const;
+};
+
+
+cPt2dr  cExternalSensorMod2D::Init2End (const cPt2dr & aP0) const {return aP0; }
+
+/// Maybe to change with a basic fix point method
+cPt2dr  cExternalSensorMod2D::End2Init (const cPt2dr & aP0) const 
+{
+    return aP0; 
+}
+std::string cExternalSensorMod2D::NameModif2D() const {return "Ident";}
+
+tSeg3dr  cExternalSensorMod2D::Image2Bundle(const cPt2dr & aP) const 
+{
+	return mSensorInit->Image2Bundle(End2Init(aP));
+}
+
+cPt2dr cExternalSensorMod2D::Ground2Image(const cPt3dr & aPGround) const 
+{
+	return Init2End(mSensorInit->Ground2Image(aPGround));
+}
+
+cPt3dr cExternalSensorMod2D::ImageAndZ2Ground(const cPt3dr & aPE) const 
+{
+    cPt2dr aPI = End2Init(cPt2dr(aPE.x(),aPE.y()));
+
+    return mSensorInit->ImageAndZ2Ground(cPt3dr(aPI.x(),aPI.y(),aPE.z()));
+}
+
+double cExternalSensorMod2D::DegreeVisibility(const cPt3dr & aPGround) const
+{
+	return mSensorInit->DegreeVisibility(aPGround);
+}
+
+bool  cExternalSensorMod2D::HasIntervalZ()  const {return mSensorInit->HasIntervalZ();}
+cPt2dr cExternalSensorMod2D::GetIntervalZ() const {return mSensorInit->GetIntervalZ();}
+
+//  for small deformation , the pixel domain is the same than the init sensor
+const cPixelDomain & cExternalSensorMod2D::PixelDomain() const 
+{
+	return mSensorInit->PixelDomain();
+}
+
+std::string  cExternalSensorMod2D::V_PrefixName() const
+{
+	return mSensorInit->V_PrefixName() + "_Modif2D_" +  NameModif2D() ;
+}
+
 /**  A basic application for  */
 
 class cAppliImportPushbroom : public cMMVII_Appli
@@ -890,17 +1025,23 @@ class cAppliImportPushbroom : public cMMVII_Appli
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
-     // --- Mandatory ----
-    std::string mNameSensorIn;
+	void ImportOneImage(const std::string &);
 
-     // --- Optionnal ----
-    std::string mNameSensorOut;
+        cPhotogrammetricProject  mPhProj;
+
+        // --- Mandatory ----
+        std::string                 mNameImagesIn;
+	std::vector<std::string>    mPatChgName;
+
+        // --- Optionnal ----
+        std::string mNameSensorOut;
 
      // --- Internal ----
 };
 
 cAppliImportPushbroom::cAppliImportPushbroom(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-   cMMVII_Appli     (aVArgs,aSpec)
+   cMMVII_Appli     (aVArgs,aSpec),
+   mPhProj          (*this)
 {
 }
 
@@ -908,7 +1049,9 @@ cAppliImportPushbroom::cAppliImportPushbroom(const std::vector<std::string> & aV
 cCollecSpecArg2007 & cAppliImportPushbroom::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
  return anArgObl
-      <<   Arg2007(mNameSensorIn,"Name of input sensor gile", {eTA2007::FileDirProj,eTA2007::Orient})
+      <<   Arg2007(mNameImagesIn,"Name of input sensor gile", {eTA2007::FileDirProj,{eTA2007::MPatFile,"0"}})
+      <<   Arg2007(mPatChgName,"[PatNameIm,NameSens]", {{eTA2007::ISizeV,"[2,2]"}})
+
    ;
 }
 
@@ -919,8 +1062,30 @@ cCollecSpecArg2007 & cAppliImportPushbroom::ArgOpt(cCollecSpecArg2007 & anArgOpt
    ;
 }
 
+void  cAppliImportPushbroom::ImportOneImage(const std::string & aNameIm)
+{
+    std::string aFullNameSensor = ReplacePattern(mPatChgName.at(0),mPatChgName.at(1),aNameIm);
+    std::string aNameSensor = FileOfPath(aFullNameSensor,false);
+
+    
+    CopyFile(aNameSensor,mPhProj.DirImportInitOri()+aNameSensor);
+
+    StdOut() << "NameSensor=" << aNameIm << " => " << aNameSensor << "\n";
+    cAnalyseTSOF  anAnalyse (aNameSensor);
+
+
+    anAnalyse.Free();
+}
+
+
 int cAppliImportPushbroom::Exe()
 {
+    mPhProj.FinishInit();
+
+    for (const auto & aNameIm :  VectMainSet(0))
+    {
+         ImportOneImage(aNameIm);
+    }
 
     // TestRPCProjections(mNameSensorIn);
 

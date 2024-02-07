@@ -500,6 +500,23 @@ enum class eDCTFilters
    eNbVals
 };
 
+enum class eTypeSensor
+{
+      eCenP,   // Central Perpsective
+      eRPC,    // Rational  Polynomial Coeff
+      eNbVals
+};
+
+enum class eFormatSensor
+{
+      eMMVIICenP,   // Central Perpsective in MMVII Format
+      eDimap_RPC,   // Rational  Polynomial Coeff
+      eNbVals
+};
+
+
+
+
 enum class eProjPC
 {
      eStenope,

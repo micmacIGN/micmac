@@ -415,6 +415,7 @@ class cPhotogrammetricProject
          //==================   ORIENTATION      =============================
 	 //===================================================================
 	 
+	  const std::string &   DirImportInitOri() const;   ///< Accessor
                //  Read/Write
           void SaveSensor(const cSensorImage &) const; ///< Save camera using OutPut-orientation
           void SaveCamPC(const cSensorCamPC &) const; ///< Save camera using OutPut-orientation
@@ -610,7 +611,8 @@ class cPhotogrammetricProject
 	  std::string     mDirPhp;
 	  std::string     mDirVisu;
 
-	  std::string     mDirSysCo;
+	  std::string     mDirSysCo;        /// Folder where are stored System of coordinates
+	  std::string     mDirImportInitOri; /// Folder where are stored INIT-al  ORI-entation
           std::vector<std::string>   mNameChSys;
           cChangSysCoordV2          mChSys;
 

@@ -259,14 +259,16 @@ void cPhotogrammetricProject::FinishInit()
     mDirPhp   = mFolderProject + MMVII_DirPhp + StringDirSeparator();
     mDirVisu  = mDirPhp + "VISU" + StringDirSeparator();
     mDirSysCo = mDirPhp + E2Str(eTA2007::SysCo) + StringDirSeparator();
+    mDirImportInitOri =  mDirPhp + "InitialOrientations" + StringDirSeparator();
 
     if (mAppli.LevelCall()==0)
     {
         CreateDirectories(mDirVisu,false);
         CreateDirectories(mDirSysCo,false);
+        CreateDirectories(mDirImportInitOri,false);
 
-	 // cPt3dr  aZeroNDP(652215.52,6861681.77,35.6);
-	 // SaveSysCo(CreateSysCoRTL(aZeroNDP,"Lambert93"),"RTL_NotreDame");
+        // cPt3dr  aZeroNDP(652215.52,6861681.77,35.6);
+        // SaveSysCo(CreateSysCoRTL(aZeroNDP,"Lambert93"),"RTL_NotreDame");
 	// maintain it, who knows, but now replaced by 
 	// SaveSysCo(cSysCoordV2::Lambert93(),E2Str(eSysCoGeo::eLambert93),true);  
 	// SaveSysCo(cSysCoordV2::GeoC()     ,E2Str(eSysCoGeo::eGeoC)     ,true);
@@ -425,9 +427,16 @@ cRadialCRS * cPhotogrammetricProject::CreateNewRadialCRS(size_t aDegree,const st
       return aRes;
 }
 
+         
+        //  ============================================
+        //                   Orientation 
+        //  ============================================
+
+const std::string &   cPhotogrammetricProject::DirImportInitOri() const { return mDirImportInitOri; }
 
 
-        //  =============  Orientation =================
+
+         //  =============  Central Perspective camera =======================
 
 void cPhotogrammetricProject::SaveCamPC(const cSensorCamPC & aCamPC) const
 {

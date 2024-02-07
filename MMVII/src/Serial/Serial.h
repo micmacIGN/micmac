@@ -241,6 +241,8 @@ class cSerialTree : public cMemCheck
 	  const std::vector<cSerialTree>&  Sons() const; /// acessor
           const std::string & Value() const ;            /// accessor
      private :
+	  // cSerialTree (const cSerialTree &) = delete;
+
       void RecGetAllDescFromName(std::vector<const cSerialTree *>&,const std::string &) const;
 
       void RecursSetFather(cSerialTree *);
