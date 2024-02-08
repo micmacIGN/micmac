@@ -513,7 +513,7 @@ cLinkTripl* DataTravel::GetRandTri(bool Pond) {
     }
     const double a = 300;
     //const double b = 1;
-    double s = mSCur3Adj.size();
+    double s = mSCur3Adj.size()+1;
     std::vector<double> i{0,
         s * 1. / 4.,
         s * 2. / 4.,
@@ -3489,6 +3489,8 @@ void RandomForest::CoherTripletsAllSamples(Dataset& data) {
         data.mV3[aT]->Sum()[0] = mean(data.mV3[aT]->Data()[2]);
         data.mV3[aT]->Sum()[1] = median(data.mV3[aT]->Data()[2]);
         //data.mV3[aT]->Sum()[2] = calculateStandardDeviation(data.mV3[aT]->Data()[3], global_mean);
+        //auto it = std::remove(data.mV3[aT]->Data()[3].begin(), data.mV3[aT]->Data()[3].end(), 0);
+        //data.mV3[aT]->Data()[3].erase(it, data.mV3[aT]->Data()[3].end());
         data.mV3[aT]->Sum()[2] = mean(data.mV3[aT]->Data()[3]);
         data.mV3[aT]->Sum()[3] = better;
         //data.mV3[aT]->Sum()[3] = mean(data.mV3[aT]->Data()[3]);
@@ -3729,9 +3731,9 @@ void RandomForest::DoNRandomSol(Dataset& data) {
     std::cout << "GENERATED Trees" << std::endl;
 
     for (auto& t : data.mV3) {
-        DataLog<size_t, double, double, double> log({"Id", "Distance", "Residue", "Score"});
+        DataLog<size_t, double, double, double, double> log({"Id", "Distance", "Residue", "Score", "Ratio"});
         for (size_t i = 0; i < t->Data()[0].size(); i++) {
-            log.add({i, t->Data()[1][i], t->Data()[0][i], t->Data()[2][i]});
+            log.add({i, t->Data()[1][i], t->Data()[0][i], t->Data()[2][i], t->Data()[3][i]});
         }
         log.write(mOutName + "/graph/logs/triplets/", std::to_string(t->NumId()) + ".csv");
     }
