@@ -361,7 +361,9 @@ bool cAppliExtractCodeTarget::verticalize(cDCT* aDCT){
 		aDCT->mDirC1.y() = (aDCT->mDirC1.y()<-0.5)*(-1) +  (aDCT->mDirC1.y()>0.5)*(1);
 		aDCT->mDirC2.y() = (aDCT->mDirC2.y()<-0.5)*(-1) +  (aDCT->mDirC2.y()>0.5)*(1);
 		
-		return true;
+		int ctrl = std::abs(aDCT->mDirC1.x()) + std::abs(aDCT->mDirC1.y()) + std::abs(aDCT->mDirC2.x()) + std::abs(aDCT->mDirC2.y());
+		
+		return (ctrl==2);
 	
 }
 
@@ -774,7 +776,7 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     // -----------------------------------------------------------------
     // Ellipse fit
     // -----------------------------------------------------------------
-    double param[6]; double ellipse[5];
+    double param[6]; double ellipse[5];       
     bool ellipseOk = (fitEllipse(mPoints, aDCT->mPt, mConstrainCenter, param) >= 0);
 
     if (!printDebug("Ellipse fit", ellipseOk)) return false;
@@ -806,7 +808,7 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     
     // Ellipse fit residual test
     double rmse_px = ellipseResidual(mPoints, aDCT);
-    double th_res = 1 + 0.05*aDCT->mSizeTargetEllipseA;
+    double th_res = 1 + 0.05*aDCT->mSizeTargetEllipseA + 100;   // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if (!printDebug("Ellipse fit residual", th_res, rmse_px)) return false;
     
    
@@ -820,7 +822,9 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
 		double max_ray_adjust = 0.8*aDCT->mSizeTargetEllipseB;
        
         bool ok = TestDirDCT(*aDCT, APBI_Im(), min_ray_adjust, max_ray_adjust, aDCT->mDetectedVectors, mLinedUpPx);
-		if (mVerticalize) verticalize(aDCT);	
+		if (mVerticalize){
+			 if (!printDebug("Affinity estimation", verticalize(aDCT))) return false;
+		}
 
         // Recomputing intersections
         aDCT->mDetectedCorners = solveIntersections(aDCT, param);
@@ -854,6 +858,9 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     // ======================================================================
 
     tImTarget aImT = generateRectifiedImage(aDCT, aDIm);
+    
+    // Test on ellipse compared to frame
+    if (!printDebug("Ellipse fits in frame test", 1.1*aDCT->mSizeFrameDiagonal, 2*aDCT->mSizeTargetEllipseA)) return false;
 
     // ======================================================================
     // Decoding
@@ -979,6 +986,18 @@ tImTarget cAppliExtractCodeTarget::generateRectifiedImage(cDCT* aDCT, const cDat
             }
         }
     }
+    
+    // Corner of frame
+    cPt2dr p1 = applyAffinity(cPt2dr(0,   0-offset), mTransfo); 
+    cPt2dr p2 = applyAffinity(cPt2dr(0,  Nj-offset), mTransfo);
+    cPt2dr p3 = applyAffinity(cPt2dr(Ni,  1-offset), mTransfo);
+    cPt2dr p4 = applyAffinity(cPt2dr(Ni, Nj-offset), mTransfo);
+    
+    double diag1 = sqrt((p1.x()-p3.x())*(p1.x()-p3.x()) + (p1.y()-p3.y())*(p1.y()-p3.y()));
+    double diag2 = sqrt((p2.x()-p4.x())*(p2.x()-p4.x()) + (p2.y()-p4.y())*(p2.y()-p4.y()));
+    aDCT->mSizeFrameDiagonal = std::max(diag1, diag2);
+   
+    
 
     // Center
     markImage(aDImT, cPt2di(mPCT.mCenterF.x(), mPCT.mCenterF.y()+offset), 2, 0);
@@ -1016,6 +1035,7 @@ bool cAppliExtractCodeTarget::isValidAffinity(std::vector<double> param){
     }
     return true;
 }
+
 
 // ---------------------------------------------------------------------------
 // Function to plot debug image

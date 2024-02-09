@@ -338,7 +338,7 @@ int Bundles2Comp_main(int argc,char ** argv){
                     <<  EAM(mPrecisionPx, "PxAcc", 0, "Pixel accuracy [Default: 0.289]")
                     <<  EAM(mPrecisionPxRel, "PxAccRel", 0, "Pixel accuracy relative to normalized radius [Default: 0]")
                     <<  EAM(mCodeDistance, "Distance", 0, "Distance value [Default: XXXX]")
-                    <<  EAM(mMinObs, "MinObs", 3, "Min number of obs per image [Default: 3]")
+                    <<  EAM(mMinObs, "MinObs", 1, "Min number of obs per image [Default: 1]")
     );
     
     // ---------------------------------------------------------------
@@ -360,7 +360,7 @@ int Bundles2Comp_main(int argc,char ** argv){
         mCodeDistance = "XXXX";   
     }
     if (!EAMIsInit(&mMinObs)){
-        mMinObs = 3;   
+        mMinObs = 1;   
     }
     int n_images = -1;
     if (EAMIsInit(&ImPattern)){
@@ -462,8 +462,7 @@ int Bundles2Comp_main(int argc,char ** argv){
 
             double sigma_theta  = 1/sqrt(1-pow(delta_y/r,2));
             double sigma_phi    = 1/sqrt(1-pow(delta_x/(r*cos(phi)),2));
-            double radius2Drel = sqrt(del    !µ
-            4ta_x*delta_x+delta_y*delta_y)/img_half_diag;
+            double radius2Drel = sqrt(delta_x*delta_x+delta_y*delta_y)/img_half_diag;
             double sigma_factor = mPrecisionPx + mPrecisionPxRel * radius2Drel;
             double sigma_angles = max(sigma_theta, sigma_phi)*sigma_factor*200/PI/r;
             
