@@ -3098,7 +3098,7 @@ void RandomForest::BestSolAllCC(Dataset& data) {
         std::string aOutOri = mOutName + ToString(aKC);
         //std::string aOutOri = "DSF_BestInit_CC" + ToString(aKC);
         Save(data, aOutOri, true);
-        SaveTriplet(data, aOutOri);
+        //SaveTriplet(data, aOutOri);
 
         FreeAllFlag(data.mVCC[aKC]->mSoms, data.mFlagS);
 
