@@ -16,12 +16,28 @@ jobs:
     - name: Install Qt and clang
       run: sudo apt install qtbase5-dev clang-14
 
+    - name: Install pdflatex
+      run: sudo apt install texlive-latex-base texlive-latex-extra texlive-fonts-recommended texlive-fonts-extra
+
+    - name: Build MMVII documentation
+      run: make -C MMVII/Doc a4
+
+    - name: Upload MMVII documentaion
+      uses: softprops/action-gh-release@v1
+      with:
+          draft:  false
+          prerelease: true
+          name: 'MMVII Documentation - Latest'
+          tag_name: MMVII_Documentation
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: MMVII/Doc/Doc2007_a4.pdf
+
     - name: Configure CMake for mm3d
       run: cmake -B build -DWITH_CCACHE=OFF -DCMAKE_BUILD_TYPE=Release -DWITH_QT5=ON
 
     - name: Cache mm3d build
       id: cache-mm3d-linux
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           lib/libelise.a
@@ -64,7 +80,7 @@ jobs:
 
     - name: Cache mm3d build
       id: cache-mm3d-windows
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           lib/elise.lib
@@ -107,7 +123,9 @@ jobs:
     - name: Upload binaries to release
       uses: softprops/action-gh-release@v1
       with:
-          draft: true
-          name: MMVII-build
-          token: ${{ secrets.GITHUB_TOKEN }}
-          files: mmvii_windows.zip
+        draft: false
+        prerelease: true
+        name: 'Windows MMVII build - Latest'
+        tag_name: Windows_MMVII_build
+        token: ${{ secrets.GITHUB_TOKEN }}
+        files: mmvii_windows.zip
