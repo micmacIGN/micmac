@@ -14,25 +14,45 @@ namespace MMVII
 /*                                                 */
 /* =============================================== */
 
+class  cDataExternalSensor
+{
+     public :
+          cDataExternalSensor(const std::string& aNameFile);
+          
+          std::string    mNameFile;
+          eFormatSensor  mFormat;
+          eTypeSensor    mType;
+};
+
+
+cDataExternalSensor::cDataExternalSensor(const std::string& aNameFile) :
+   mNameFile (aNameFile),
+   mFormat   (eFormatSensor::eNbVals),
+   mType     (eTypeSensor::eNbVals)
+{
+}
+
+
 
 struct cAnalyseTSOF
 {
      cAnalyseTSOF(const std::string& aNameFile,bool SVP=false);
 
-     void Free();
+     void FreeAnalyse();
 
+     /*
      std::string    mNameFile;
      eFormatSensor  mFormat;
      eTypeSensor    mType;
-     cSerialTree *  mSTree;
+     */
+     cDataExternalSensor   mData;
+     cSerialTree *         mSTree;
 };
+cSensorImage *  AllocRPCDimap(const cAnalyseTSOF &,const std::string & aNameImage);
 
-// cSensorImage;
 
 cAnalyseTSOF::cAnalyseTSOF(const std::string& aNameFile,bool SVP) :
-   mNameFile (aNameFile),
-   mFormat   (eFormatSensor::eNbVals),
-   mType     (eTypeSensor::eNbVals),
+   mData     (aNameFile),
    mSTree    (nullptr)
 {
     std::string aPost = LastPostfix(aNameFile);
@@ -46,8 +66,8 @@ cAnalyseTSOF::cAnalyseTSOF(const std::string& aNameFile,bool SVP) :
         // Is it a dimap tree
         if (!mSTree->GetAllDescFromName("Dimap_Document").empty())
         {
-           mFormat =  eFormatSensor::eDimap_RPC;
-           mType   =  eTypeSensor::eRPC;
+           mData.mFormat =  eFormatSensor::eDimap_RPC;
+           mData.mType   =  eTypeSensor::eRPC;
 	   return ;
         }
     }
@@ -56,7 +76,32 @@ cAnalyseTSOF::cAnalyseTSOF(const std::string& aNameFile,bool SVP) :
     return ;
 }
 
-void cAnalyseTSOF::Free()
+cSensorImage *  AllocAutoSensorFromFile(const cAnalyseTSOF & anAnalyse ,const std::string & aNameImage,bool SVP=false)
+{
+    if (anAnalyse.mData.mFormat == eFormatSensor::eDimap_RPC)
+    {
+       return   AllocRPCDimap(anAnalyse,aNameImage);
+    }
+
+    if (!SVP)
+    {
+        MMVII_INTERNAL_ERROR("AllocAutoSensorFromFile dont handle for file :" + anAnalyse.mData.mNameFile);
+    }
+    return nullptr;
+}
+
+cSensorImage *  AllocAutoSensorFromFile(const std::string& aNameFile,const std::string & aNameImage,bool SVP=false)
+{
+    cAnalyseTSOF anAnalyse(aNameFile,SVP);
+    cSensorImage * aSI = AllocAutoSensorFromFile(anAnalyse,aNameImage);
+    anAnalyse.FreeAnalyse();
+    return aSI;
+}
+
+
+
+
+void cAnalyseTSOF::FreeAnalyse()
 {
      delete mSTree;
 }
@@ -431,8 +476,8 @@ cDataRPC::cDataRPC(const std::string& aNameRPC,const std::string& aNameImage) :
 
 void cDataRPC::InitFromFile(const cAnalyseTSOF & anAnalyse)
 {
-   MMVII_INTERNAL_ASSERT_strong(anAnalyse.mType==eTypeSensor::eRPC,"Sensor is not RPC in cDataRPC"); 
-   if (anAnalyse.mFormat== eFormatSensor::eDimap_RPC)
+   MMVII_INTERNAL_ASSERT_strong(anAnalyse.mData.mType==eTypeSensor::eRPC,"Sensor is not RPC in cDataRPC"); 
+   if (anAnalyse.mData.mFormat== eFormatSensor::eDimap_RPC)
    {
         Dimap_ReadXML_Glob(*anAnalyse.mSTree);
    }
@@ -629,6 +674,13 @@ cPt3dr  cDataRPC::PseudoCenterOfProj() const
     return cPt3dr::Dummy();
 }
 
+cSensorImage *  AllocRPCDimap(const cAnalyseTSOF & anAnalyse,const std::string & aNameImage)
+{
+    cDataRPC* aRes = new cDataRPC(anAnalyse.mData.mNameFile,aNameImage);
+    aRes->InitFromFile(anAnalyse);
+
+    return aRes;
+}
 
          // double DegreeVisibility(const cPt3dr &) const  ;
          /// Indicacte how much a 2 D points belongs to definition of image frame
@@ -644,68 +696,27 @@ cPt3dr  cDataRPC::PseudoCenterOfProj() const
 
 
 
-void Test2RPCProjections(const std::string& aNameIm)
-{
-    // cPhotogrammetricProject(cMMVII_Appli &);
-    // int InitStandAloneAppli(const cSpecMMVII_Appli & aSpec, int argc, char*argv[]);
 
-
-}
-
-/** Bench the reprojection functions */
-
-/*
-void TestRPCProjections(const std::string& aNameRPC1)
-{
-    // read
-    cDataRPC aCam1(aNameRPC1);
-    // aCam1.Exe();
-
-    // (latitude,longtitude,h)
-    double aZ = 1188.1484901208684;
-    cPt3dr aPtGround(20.7369382477,16.6170106276,aZ);
-
-    // (j,i) ~ (Y, X) ~ (LINE,SAMPLE)
-    cPt2dr aPtIm(5769.51863767362192,6188.93377727110783);
-
-    StdOut() << "===== Ground to image" << std::endl;
-    cPt2dr aPtImPred = aCam1.Ground2Image(aPtGround);
-    StdOut() << aPtIm << " =? " << aPtImPred << ", " << std::endl;
-
-
-    StdOut() << "===== Image to ground" << std::endl;
-    cPt3dr aPtGroundPred = aCam1.ImageZToGround(aPtIm,aZ);
-
-    StdOut() << aPtGround << " =? " << aPtGroundPred << std::endl;
-
-}
-
-void TestDataRPCReasXML(const std::string& aNameFile)
-{
-    cDataRPC aRPC(aNameFile);
-    // aRPC.Exe();
-    aRPC.Show();
-}
-*/
 
 /* =============================================== */
 /*                                                 */
-/*                 cAppliTestImportSensors         */
+/*                 cAppliTestSensor                */
 /*                                                 */
 /* =============================================== */
 
 /**  A basic application for  */
 
-class cAppliTestImportSensors : public cMMVII_Appli
+class cAppliTestSensor : public cMMVII_Appli
 {
      public :
 
-        cAppliTestImportSensors(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
+        cAppliTestSensor(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
 
      private :
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+	std::vector<std::string>  Samples() const override;
 
 	///  Test that the accuracy of ground truth, i.e Proj(P3) = P2
         void TestGroundTruth(const  cSensorImage & aSI) const;
@@ -719,15 +730,21 @@ class cAppliTestImportSensors : public cMMVII_Appli
 
 };
 
+std::vector<std::string>  cAppliTestSensor::Samples() const
+{
+   return {
+              "MMVII TestSensor SPOT_1B.tif RPC_1B.xml InPointsMeasure=XingB"
+	};
+}
 
-cAppliTestImportSensors::cAppliTestImportSensors(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
+cAppliTestSensor::cAppliTestSensor(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
     cMMVII_Appli (aVArgs,aSpec),
     mPhProj      (*this),
     mShowDetail  (false)
 {
 }
 
-cCollecSpecArg2007 & cAppliTestImportSensors::ArgObl(cCollecSpecArg2007 & anArgObl) 
+cCollecSpecArg2007 & cAppliTestSensor::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
       return    anArgObl
              << Arg2007(mNameImage,"Name of input Image", {eTA2007::FileDirProj})
@@ -735,7 +752,7 @@ cCollecSpecArg2007 & cAppliTestImportSensors::ArgObl(cCollecSpecArg2007 & anArgO
       ;
 }
 
-cCollecSpecArg2007 & cAppliTestImportSensors::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+cCollecSpecArg2007 & cAppliTestSensor::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
     return anArgOpt
                << mPhProj.DPPointsMeasures().ArgDirInOpt()
@@ -743,7 +760,7 @@ cCollecSpecArg2007 & cAppliTestImportSensors::ArgOpt(cCollecSpecArg2007 & anArgO
             ;
 }
 
-void cAppliTestImportSensors::TestGroundTruth(const  cSensorImage & aSI) const
+void cAppliTestSensor::TestGroundTruth(const  cSensorImage & aSI) const
 {
     // Load mesure from standard MMVII project
     cSetMesImGCP aSetMes;
@@ -772,7 +789,7 @@ void cAppliTestImportSensors::TestGroundTruth(const  cSensorImage & aSI) const
 
 }
 
-void cAppliTestImportSensors::TestCoherenceDirInv(const  cSensorImage & aSI) const
+void cAppliTestSensor::TestCoherenceDirInv(const  cSensorImage & aSI) const
 {
      bool  InDepth = ! aSI.HasIntervalZ();  // do we use Im&Depth or Image&Z
 
@@ -833,73 +850,19 @@ void cAppliTestImportSensors::TestCoherenceDirInv(const  cSensorImage & aSI) con
 
 
 
-int cAppliTestImportSensors::Exe()
+int cAppliTestSensor::Exe()
 {
     mPhProj.FinishInit();
-    cDataRPC aDataRPC(mNameRPC,mNameImage);
-
-    cAnalyseTSOF   anAnalyse(mNameRPC,false);
-    aDataRPC.InitFromFile(anAnalyse);
-    anAnalyse.Free();
+    cSensorImage *  aSI =  AllocAutoSensorFromFile(mNameRPC,mNameImage);
 
     if (mPhProj.DPPointsMeasures().DirInIsInit())
-       TestGroundTruth(aDataRPC);
+       TestGroundTruth(*aSI);
 
-    TestCoherenceDirInv(aDataRPC);
+    TestCoherenceDirInv(*aSI);
 
+    StdOut() << "NAMEORI=[" << aSI->NameOriStd()  << "]\n";
 
-    StdOut() << "NAMEORI=[" << aDataRPC.NameOriStd()  << "]\n";
-    /*
-
-    cSetMesImGCP aSetMes;
-    mPhProj.LoadGCP(aSetMes);
-    mPhProj.LoadIm(aSetMes,mNameImage);
-
-
-    cSet2D3D aSetM23;
-    aSetMes.ExtractMes1Im(aSetM23,mNameImage);
-
-    tREAL8 aSomCheckIm = 0.0;
-    tREAL8 aSomConsistIm = 0.0;
-    tREAL8 aSomConsistGr = 0.0;
-    const  cSensorImage & aSI (aDataRPC);
-
-    for (const auto & aPair : aSetM23.Pairs())
-    {
-         cPt3dr  aPGr = aPair.mP3;
-         tREAL8  aZ   = aPGr.z();
-         cPt2dr  aPIm = aSI.Ground2Image(aPGr);
-
-	 //           @G2I           @I2G                   @G2I
-	 //  Pgr=mP3   --->   PIm     --->   aPGr2?=Pgr     ---> aPIm2
-	 //                   ?=mP2          ?=Pgr          ?= PIm
-	 //                   "GTTest"       "GrCons"       "GrCons"
-
-         cPt3dr  aPGr2 =  aSI.ImageAndZ2Ground(cPt3dr(aPIm.x(),aPIm.y(),aZ));
-         cPt2dr  aPIm2 = aSI.Ground2Image(aPGr2);
-
-         aSomCheckIm +=  Norm2(aPIm  - aPair.mP2);
-         aSomConsistIm +=  Norm2(aPIm-aPIm2);
-         aSomConsistGr +=  Norm2(aPGr-aPGr2);
-
-         if (mShowDetail) 
-         {
-             StdOut()  << "ImGT=" <<  aPIm  - aPair.mP2
-                       << "  GroundConsist=" << aPGr2-aPGr
-                       << "  ImConsist=" << aPIm-aPIm2
-                       << "\n";
-
-         }
-
-    }
-    aSomCheckIm /= aSetM23.NbPair();
-    aSomConsistIm  /= aSetM23.NbPair();
-    aSomConsistGr  /= aSetM23.NbPair();
-
-    StdOut()  << "  CheckGTIm=" <<  aSomCheckIm << "\n";
-    StdOut()  << "  ConsistIm=" <<  aSomConsistIm << "\n";
-    StdOut()  << "  ConsistGr=" <<  aSomConsistGr << "\n";
-    */
+    delete aSI;
 
     return EXIT_SUCCESS;
 }
@@ -907,15 +870,15 @@ int cAppliTestImportSensors::Exe()
 
 tMMVII_UnikPApli Alloc_TestImportSensors(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-      return tMMVII_UnikPApli(new cAppliTestImportSensors(aVArgs,aSpec));
+      return tMMVII_UnikPApli(new cAppliTestSensor(aVArgs,aSpec));
 }
 
 
 cSpecMMVII_Appli  TheSpecTestImportSensors
 (
-     "TestImportSensor",
+     "TestSensor",
       Alloc_TestImportSensors,
-      "Test orientation functions with ground truth 2D/3D correspondance",
+      "Test orientation functions : coherence Direct/Inverse, ground truth 2D/3D correspondance",
       {eApF::Ori},
       {eApDT::Ori,eApDT::GCP},
       {eApDT::Console},
@@ -929,22 +892,16 @@ cSpecMMVII_Appli  TheSpecTestImportSensors
 /*                                                 */
 /* =============================================== */
 
-class  cDataExternalSensor
-{
-     public :
-          
-          eTypeSensor    mType;
-          eFormatSensor  mFormat;
-          std::string    mNameSensorInit;
-          std::string    mNameImage;
-};
-
 
 class cExternalSensorMod2D : public cSensorImage
 {
       public :
+         cExternalSensorMod2D(const cDataExternalSensor & aData,const std::string& aNameImage,cSensorImage * aSI);
+         virtual ~cExternalSensorMod2D();
       private :
          
+	 // ====  Methods overiiding for being a cSensorImage ===== 
+	
          tSeg3dr  Image2Bundle(const cPt2dr &) const override;
          /// Basic method  GroundCoordinate ->  image coordinate of projection
          cPt2dr Ground2Image(const cPt3dr &) const override;
@@ -955,17 +912,32 @@ class cExternalSensorMod2D : public cSensorImage
 	 bool  HasIntervalZ()  const override;
          cPt2dr GetIntervalZ() const override;
 
+	 cPt3dr  PseudoCenterOfProj() const override;
+
          const cPixelDomain & PixelDomain() const ;
          std::string  V_PrefixName() const  override;
 
          cDataExternalSensor     mData;
 	 cSensorImage *          mSensorInit;
 
+	 // ====  Method to override in derived classes  ===== 
 	 virtual cPt2dr  Init2End (const cPt2dr & aP0) const ;
 	 virtual cPt2dr  End2Init (const cPt2dr & aP0) const ;
 	 virtual  std::string NameModif2D() const;
 };
 
+cExternalSensorMod2D::cExternalSensorMod2D(const cDataExternalSensor & aData,const std::string& aNameImage,cSensorImage * aSI) :
+     cSensorImage  (aNameImage),
+     mData         (aData),
+     mSensorInit   (aSI)
+{
+}
+
+cExternalSensorMod2D::~cExternalSensorMod2D() 
+{
+    delete mSensorInit;
+}
+   
 
 cPt2dr  cExternalSensorMod2D::Init2End (const cPt2dr & aP0) const {return aP0; }
 
@@ -1007,6 +979,8 @@ const cPixelDomain & cExternalSensorMod2D::PixelDomain() const
 	return mSensorInit->PixelDomain();
 }
 
+cPt3dr  cExternalSensorMod2D::PseudoCenterOfProj() const {return mSensorInit->PseudoCenterOfProj();}
+
 std::string  cExternalSensorMod2D::V_PrefixName() const
 {
 	return mSensorInit->V_PrefixName() + "_Modif2D_" +  NameModif2D() ;
@@ -1024,6 +998,7 @@ class cAppliImportPushbroom : public cMMVII_Appli
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+	std::vector<std::string>  Samples() const override;
 
 	void ImportOneImage(const std::string &);
 
@@ -1062,6 +1037,13 @@ cCollecSpecArg2007 & cAppliImportPushbroom::ArgOpt(cCollecSpecArg2007 & anArgOpt
    ;
 }
 
+std::vector<std::string>  cAppliImportPushbroom::Samples() const
+{
+   return {
+              "MMVII ImportPushbroom 'SPOT_1.*tif' '[SPOT_(.*).tif,RPC_$1.xml]'"
+	};
+}
+
 void  cAppliImportPushbroom::ImportOneImage(const std::string & aNameIm)
 {
     std::string aFullNameSensor = ReplacePattern(mPatChgName.at(0),mPatChgName.at(1),aNameIm);
@@ -1071,10 +1053,15 @@ void  cAppliImportPushbroom::ImportOneImage(const std::string & aNameIm)
     CopyFile(aNameSensor,mPhProj.DirImportInitOri()+aNameSensor);
 
     StdOut() << "NameSensor=" << aNameIm << " => " << aNameSensor << "\n";
+
     cAnalyseTSOF  anAnalyse (aNameSensor);
+    cSensorImage *  aSensorInit =  AllocAutoSensorFromFile(anAnalyse ,aNameIm);
+    cSensorImage * aSensorEnd = new cExternalSensorMod2D(anAnalyse.mData,aNameIm,aSensorInit);
+    anAnalyse.FreeAnalyse();
 
+    StdOut() << "NAMEORI=[" << aSensorEnd->NameOriStd()  << "]\n";
 
-    anAnalyse.Free();
+    delete aSensorEnd;
 }
 
 
