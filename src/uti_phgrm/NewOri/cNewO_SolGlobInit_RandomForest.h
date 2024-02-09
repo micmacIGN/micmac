@@ -289,8 +289,9 @@ class cNOSolIn_Triplet {
 
     double confiance;
 
-    double pondSum;
-    double pondN;
+    double pond;
+    //double pondSum;
+    //double pondN;
 
     std::string print() {
         return mSoms[0]->attr().Im()->Name() + "/" +
@@ -346,7 +347,8 @@ class cLinkTripl {
         : m3(aTrip), mK1(aK1), mK2(aK2), mK3(aK3) {}
 
     int& HeapIndex() { return mHeapIndex; }
-    double& Pds() { return aPds; }
+    //double& Pds() { return aPds; }
+    double& Pds() { return m3->pond; }
 
     bool operator<(cLinkTripl& other) const {
         return m3->NumId() < other.m3->NumId();
@@ -520,7 +522,8 @@ struct CmpLnk {
     bool operator()(cLinkTripl* T1, cLinkTripl* T2) const {
         //return (T1->m3->NumId()) < (T2->m3->NumId());
         //std::cout << "Pds" << T1->Pds() << std::endl;
-        return (T1->m3->pondSum / T1->m3->pondN) < (T2->m3->pondSum / T2->m3->pondN);
+        //return (T1->m3->pondSum / T1->m3->pondN) < (T2->m3->pondSum / T2->m3->pondN);
+        return (T1->Pds() < T2->Pds());
     }
 };
 

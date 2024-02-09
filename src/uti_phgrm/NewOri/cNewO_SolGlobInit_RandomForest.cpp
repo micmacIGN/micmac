@@ -3365,65 +3365,78 @@ static double computeDoubleResidue(const cNOSolIn_Triplet* tA,
     //return residuB;
 }
 
+double computeDoubleResidue(const cNOSolIn_Triplet* tA, const cLinkTripl* lB) {
+    if (tA == lB->m3) {
+        return 0;
+    }
+    for (int aK = 0; aK < 3; aK++) {
+        // Set the current R,t of the origin
+        tA->KSom(aK)->attr().CurRot() = tA->RotOfSom(tA->KSom(aK));
+    }
 
+    auto oriB = EstimAllRt(lB);
+
+    std::array<ElRotation3D, 3> oriA{tA->KSom(0)->attr().CurRot(),
+                                     tA->KSom(1)->attr().CurRot(),
+                                     tA->KSom(2)->attr().CurRot()};
+
+    double aResidue = computeDoubleResidue(tA, oriA, lB->m3, oriB);
+
+    return aResidue;
+}
+
+void PreComputeTriplet(double* p, size_t index, const cNOSolIn_Triplet* t) {
+    //p[index] = computeDoubleResidue(t, lB);
+
+    std::vector<double> residu;
+    for (uint8_t i = 0; i < 3; i++) {
+        for (auto& tb : t->KArc(i)->attr().ASym()->Lnk3()) {
+            residu.push_back(computeDoubleResidue(t, &tb));
+        }
+    }
+    p[index] = median(residu);
+    //p[index] = computeDoubleResidue(t, lB);
+}
 
 //Complexity N * edge
 void RandomForest::PreComputeTriplets(Dataset& data) {
-
+    std::vector<std::tuple<size_t, cNOSolIn_Triplet*>> links;
+    size_t findex = 0;
     for (int aKC = 0; aKC < int(data.mVCC.size()); aKC++) {
         for (auto t : data.mVCC[aKC]->mTri) {
-            for (int aK = 0; aK < 3; aK++) {
-                // Set the current R,t of the origin
-                t->KSom(aK)->attr().CurRot() = t->RotOfSom(t->KSom(aK));
-            }
-            //auto aResidue = t->ProjTest();
-
-            for (uint8_t i = 0; i < 3; i++) {
-                auto* a = t->KArc(i)->attr().ASym();
-                double* p = (double*) mmap(
-                    NULL, sizeof(double) * (a->Lnk3().size()+1),
-                    PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-
-                size_t j = 0;
-                for (auto& t1 : a->Lnk3()) {
-                    if (t == t1.m3) {
-                        t1.Pds() = 0;
-                        j++;
-                        continue;
-                    }
-                    auto oriB = EstimAllRt(&t1);
-
-                    std::array<ElRotation3D, 3> oriA {
-                        t->KSom(0)->attr().CurRot(),
-                        t->KSom(1)->attr().CurRot(),
-                        t->KSom(2)->attr().CurRot()
-                    };
-
-                    //if (fork() == 0) {
-                        double aResidue = computeDoubleResidue(t, oriA, t1.m3, oriB);
-                        p[j] = aResidue;
-                        //std::cout << "in" << std::to_string(p[j]) << std::endl;
-
-                        //exit(0);
-                    //}
-                    j++;
-                }
-                for (size_t k = 0; k < a->Lnk3().size(); k++) {
-                    //wait(NULL);
-                }
-
-                for (size_t k = 0; k < a->Lnk3().size(); k++) {
-                    auto& t1 = a->Lnk3()[k];
-                    //std::cout << "out" << std::to_string(p[k]) << std::endl;
-                    t1.Pds() = p[k];
-                    t1.m3->pondSum += p[k];
-                    t1.m3->pondN += 1;
-                }
-                munmap(p, sizeof(double) * (a->Lnk3().size()+1));
-            }
-            //t->confiance = aResidue;
+            links.push_back({findex++, t});
         }
     }
+    std::cout << "Precompute N" << findex << std::endl;
+
+    double* p = (double*)mmap(NULL, sizeof(double) * findex,
+                                  PROT_READ | PROT_WRITE,
+                                  MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    const auto processor_count = std::thread::hardware_concurrency();
+
+    unsigned int executed = 0;
+    for (auto k : links) {
+        if (fork() == 0) {
+            PreComputeTriplet(p, std::get<0>(k), std::get<1>(k));
+            exit(0);
+        }
+        executed++;
+        if (executed > processor_count) {
+            wait(NULL);
+            executed--;
+        }
+    }
+    for (unsigned int k = 0; k < executed; k++) {
+        wait(NULL);
+    }
+
+    for (auto k : links) {
+        std::get<1>(k)->pond = p[std::get<0>(k)];
+    }
+
+    munmap(p, sizeof(double) * findex);
+    std::cout << "End Precompute" << std::endl;
+
 }
 
 /* Final mean and 80% quantile incoherence computed on all triplets in the graph
