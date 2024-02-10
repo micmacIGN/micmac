@@ -26,10 +26,18 @@ enum class eTypeFuncDist
      used of not according to the others, but as it internal/final classes, quick and dirty
      exceptionnaly allowed ...
 */
+enum class eModeDistMonom
+{
+     eModeFraser,  // dx = b1 x + b2 y
+     eModeSysCyl,  // dx = ax    dy = by
+     eModeStd      // no special case
+};
+
+
 class cDescOneFuncDist
 {
     public :
-      cDescOneFuncDist(eTypeFuncDist aType,const cPt2di aDeg,bool isFraserMode);
+      cDescOneFuncDist(eTypeFuncDist aType,const cPt2di aDeg,eModeDistMonom aModeMonom);
       /// Majorarion of norms of jacobian , used in simulation
       double MajNormJacOfRho(double aRho) const;
 

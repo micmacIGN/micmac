@@ -7,6 +7,7 @@
 #include "Formulas_Radiom.h"
 #include "Formulas_Geom3D.h"
 #include "Formulas_BlockRigid.h"
+#include "Formulas_PushBroom.h"
 #include "MMVII_Sys.h"
 #include "MMVII_Geom2D.h"
 

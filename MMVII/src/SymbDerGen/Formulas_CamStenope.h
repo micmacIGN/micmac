@@ -380,17 +380,18 @@ class cMMVIIUnivDist
        {
            // static_assert(DegRad>=DegDec(),"Too much decentrik");
               std::vector<cDescOneFuncDist>  VDesc;
+              eModeDistMonom aMode = mIsModelFraser ? eModeDistMonom::eModeFraser : eModeDistMonom::eModeSysCyl;
               // Generate description of radial parameters, x used for num, y not used => -1
               for (int aDR=1 ; aDR<=DegRad() ; aDR++)
               {
-                  VDesc.push_back(cDescOneFuncDist(eTypeFuncDist::eRad,cPt2di(aDR,-1),mIsModelFraser));
+                  VDesc.push_back(cDescOneFuncDist(eTypeFuncDist::eRad,cPt2di(aDR,-1),aMode));
               }
 
               // Generate description of decentrik parameter, x used for num, y not used => -1
               for (int aDC=1 ; aDC<=DegDec() ; aDC++)
               {
-                  VDesc.push_back(cDescOneFuncDist(eTypeFuncDist::eDecX,cPt2di(aDC,-1),mIsModelFraser));
-                  VDesc.push_back(cDescOneFuncDist(eTypeFuncDist::eDecY,cPt2di(aDC,-1),mIsModelFraser));
+                  VDesc.push_back(cDescOneFuncDist(eTypeFuncDist::eDecX,cPt2di(aDC,-1),aMode));
+                  VDesc.push_back(cDescOneFuncDist(eTypeFuncDist::eDecY,cPt2di(aDC,-1),aMode));
               }
 
               // Generate description of monomes in X and Y that are to maintain
@@ -401,12 +402,12 @@ class cMMVIIUnivDist
                       cPt2di aDXY(aDx,aDy);
                       if (OkMonome(true,aDx,aDy,mIsModelFraser))
                       {
-                         VDesc.push_back(cDescOneFuncDist(eTypeFuncDist::eMonX,aDXY,mIsModelFraser));
+                         VDesc.push_back(cDescOneFuncDist(eTypeFuncDist::eMonX,aDXY,aMode));
                       }
 
                       if (OkMonome(false,aDx,aDy,mIsModelFraser))
                       {
-                         VDesc.push_back(cDescOneFuncDist(eTypeFuncDist::eMonY,aDXY,mIsModelFraser));
+                         VDesc.push_back(cDescOneFuncDist(eTypeFuncDist::eMonY,aDXY,aMode));
                       }
                   }
               }

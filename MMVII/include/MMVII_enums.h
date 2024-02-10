@@ -509,8 +509,8 @@ enum class eTypeSensor
 
 enum class eFormatSensor
 {
-      eMMVIICenP,   // Central Perpsective in MMVII Format
-      eDimap_RPC,   // Rational  Polynomial Coeff
+      eMMVII_CenP,   // Central Perpsective in MMVII Format
+      eDimap_RPC,   // Rational  Polynomial Coeff in DIMAP Format
       eNbVals
 };
 
@@ -559,6 +559,8 @@ enum class eMTDIm
               eNbVals
            };
 
+const std::string & E2Str(const eFormatSensor &);
+const std::string & E2Str(const eTypeSensor &);
 
 const std::string & E2Str(const eTyUnitAngle &);
 const std::string & E2Str(const eMTDIm &);
