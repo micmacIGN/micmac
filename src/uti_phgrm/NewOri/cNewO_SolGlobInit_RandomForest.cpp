@@ -3417,7 +3417,7 @@ void RandomForest::PreComputeTriplets(Dataset& data) {
     size_t itemperprocess = findex / processor_count;
 
     unsigned int executed = 0;
-    for (size_t k = 0; k < findex; k += itemperprocess) {
+    for (size_t k = 0; k <= findex; k += itemperprocess) {
         if (fork() == 0) {
             for (size_t j = k; j < k + itemperprocess && j < findex; j++) {
                 PreComputeTriplet(p, std::get<0>(links[j]),
@@ -3430,6 +3430,12 @@ void RandomForest::PreComputeTriplets(Dataset& data) {
             wait(NULL);
             executed--;
         }
+    }
+
+    //Left over
+    for (size_t j = itemperprocess*processor_count; j < findex; j++) {
+                PreComputeTriplet(p, std::get<0>(links[j]),
+                                  std::get<1>(links[j]));
     }
     std::cout << "Precompute Wait Finish" << std::endl;
 
