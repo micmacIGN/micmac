@@ -3414,10 +3414,15 @@ void RandomForest::PreComputeTriplets(Dataset& data) {
                                   MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     const auto processor_count = std::thread::hardware_concurrency();
 
+    size_t itemperprocess = findex / processor_count;
+
     unsigned int executed = 0;
-    for (auto k : links) {
+    for (size_t k = 0; k < findex; k += itemperprocess) {
         if (fork() == 0) {
-            PreComputeTriplet(p, std::get<0>(k), std::get<1>(k));
+            for (size_t j = k; j < k + itemperprocess && j < findex; j++) {
+                PreComputeTriplet(p, std::get<0>(links[j]),
+                                  std::get<1>(links[j]));
+            }
             exit(0);
         }
         executed++;
@@ -3426,6 +3431,8 @@ void RandomForest::PreComputeTriplets(Dataset& data) {
             executed--;
         }
     }
+    std::cout << "Precompute Wait Finish" << std::endl;
+
     for (unsigned int k = 0; k < executed; k++) {
         wait(NULL);
     }
