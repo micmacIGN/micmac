@@ -3263,8 +3263,9 @@ void RandomForest::CoherTripletsGraphBasedV2(
                 output[aT * 4 + 1] = aDist;
                 output[aT * 4 + 2] = score;
 
-                //output[aT * 4 + 3] = (aResidue < resMean) ? aDist / (resMean - aResidue) : 0;
-                output[aT * 4 + 3] = (aResidue < resMean) ? resMean-aResidue : 0.;
+                //output[aT * 4 + 3] = (aResidue < resMean) ? resMean-aResidue : 0.;
+                output[aT * 4 + 3] = resMean / (aResidue+mR0);
+
                 //output[aT * 4 + 3] = (aResidue < resMean) ? 1 : 0;
                 //aV3[aT]->Data()[0].push_back(aResidue);
                 //aV3[aT]->2ata()[1].push_back(aDist);
