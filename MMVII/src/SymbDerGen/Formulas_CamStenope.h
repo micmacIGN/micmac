@@ -534,7 +534,9 @@ class cMMVIIUnivDist
 
            if (mForBase) 
 	   {
-		   // StdOut()  << "aVBaseXaVBaseX " << aVBaseX.size() <<  " " << aVBaseY.size() << std::endl;
+              // It would be incoherent to have a different size because implicitely if will be cut in
+              // two part   (A0 A1 A2 A3)  => X : (A0 A1)  , Y (A2 A3)
+              MMVII_INTERNAL_ASSERT_always(aVBaseX.size()== aVBaseY.size(),"Inconsistent base size in cMMVIIUnivDist");
               return Append(aVBaseX,aVBaseY) ;
 	   }
 

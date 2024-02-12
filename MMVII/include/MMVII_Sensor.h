@@ -170,7 +170,7 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	 /// method for saving oblet, def error
 	 virtual void ToFile(const std::string &) const ;
 
-	 // --------------------   methods used in bundle adjustment  --------------------
+	 // --------------------   Method for computing center of projection, or approximation  --------------------
 	
 	 ///  For stenope camera return center, for other best approx
 	 virtual cPt3dr  PseudoCenterOfProj() const = 0;
