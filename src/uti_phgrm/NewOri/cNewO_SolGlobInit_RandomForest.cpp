@@ -3716,19 +3716,25 @@ void RandomForest::DoNRandomSol(Dataset& data) {
 
     const auto processor_count = std::thread::hardware_concurrency();
 
+    size_t itemperprocess = mNbSamples / processor_count;
+    if (itemperprocess < 1)
+        itemperprocess = 1;
     unsigned int executed = 0;
 
     // Build random inital solutions default 1000 ?
-    for (int aIterCur = 0; aIterCur < mNbSamples; aIterCur++) {
+    for (size_t k = 0; k < (size_t)mNbSamples; k += itemperprocess) {
         if (fork() == 0) {
-            std::cout << "Iter=" << aIterCur << "\n";
-            clock_t start3 = clock();
-            RandomSolAllCC(data, p + (aIterCur * (data.mV3.size() * 4)),
-                           aIterCur);
-            clock_t end3 = clock();
-            std::cout << "Iter "
-                      << double(end3 - start3) / CLOCKS_PER_SEC * 1000
-                      << std::endl;
+            for (size_t aIterCur = k; aIterCur < k + itemperprocess;
+                 aIterCur++) {
+                std::cout << "Iter=" << aIterCur << "\n";
+                clock_t start3 = clock();
+                RandomSolAllCC(data, p + (aIterCur * (data.mV3.size() * 4)),
+                               aIterCur);
+                clock_t end3 = clock();
+                std::cout << "Iter "
+                          << double(end3 - start3) / CLOCKS_PER_SEC * 1000
+                          << std::endl;
+            }
             exit(0);
         }
         executed++;
@@ -3741,7 +3747,7 @@ void RandomForest::DoNRandomSol(Dataset& data) {
         wait(NULL);
     }
 
-    for (int aIterCur = 0; aIterCur < mNbSamples; aIterCur++) {
+    for (size_t aIterCur = 0; aIterCur < (size_t)mNbSamples; aIterCur++) {
         double* line = p + (aIterCur * (data.mV3.size() * 4));
         auto& aV3 = data.mV3;
         for (size_t aT = 0; aT < aV3.size(); aT++) {
