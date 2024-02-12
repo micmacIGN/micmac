@@ -71,6 +71,11 @@ class cSensorImage  :   public cObj2DelAtEnd,
 
           cSensorImage(const std::string & aNameImage);
 
+          //  Allocators  , return nulltr if dont exist
+
+          ///  return an external sensor (like RPC, Grids ...) 
+          static cSensorImage * AllocExternalSensor(const std::string & aDirInit,const std::string & aDirSens,const std::string aNameIm);
+
 	  /// create a sensor in a new coordinate system, default error
 	  virtual cSensorImage * SensorChangSys(cDataInvertibleMapping<tREAL8,3> &) const ;
 

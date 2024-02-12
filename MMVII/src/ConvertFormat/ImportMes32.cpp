@@ -45,16 +45,18 @@ class cAppli_ImportM32 : public cMMVII_Appli
 	int                        mComment;
 	std::string                mNameGCP;
 	std::string                mNameImage;
+        bool                       mAddIm2NamePt;
 };
 
 cAppli_ImportM32::cAppli_ImportM32(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-   cMMVII_Appli  (aVArgs,aSpec),
-   mPhProj       (*this),
-   mL0           (0),
-   mLLast        (-1),
-   mComment      (-1),
-   mNameGCP      ("Measure3D"),
-   mNameImage    (MMVII_NONE)
+   cMMVII_Appli    (aVArgs,aSpec),
+   mPhProj         (*this),
+   mL0             (0),
+   mLLast          (-1),
+   mComment        (-1),
+   mNameGCP        ("Measure3D"),
+   mNameImage      (MMVII_NONE),
+   mAddIm2NamePt   (true)
 {
 }
 
@@ -75,6 +77,7 @@ cCollecSpecArg2007 & cAppli_ImportM32::ArgOpt(cCollecSpecArg2007 & anArgObl)
        << AOpt2007(mComment,"Comment","Carac for comment")
        << AOpt2007(mNameGCP,"NameGCP","Name for set of GCP",{eTA2007::HDV})
        << AOpt2007(mNameImage,"NameIm","Name for Image",{eTA2007::HDV})
+       << AOpt2007(mAddIm2NamePt,"AddI2NameP","Add name of image to name of pt",{eTA2007::HDV})
     ;
 }
 
@@ -89,6 +92,8 @@ int cAppli_ImportM32::Exe()
     cReadFilesStruct aRFS(mNameFile, mFormat, mL0, mLLast, mComment);
     aRFS.Read();
        // create structur to import in MMVII representation
+    if (mAddIm2NamePt)
+        mNameGCP = mNameGCP + mNameImage;
     cSetMesGCP aSetGCP(mNameGCP);
     cSetMesPtOf1Im aSetIm(mNameImage);
 
@@ -99,6 +104,10 @@ int cAppli_ImportM32::Exe()
          const cPt3dr & aP3 = aRFS.VXYZ().at(aKObj);
 
 	 std::string aNamePt = std::string("Pt_") + ToStr(aKObj);
+         if (mAddIm2NamePt)
+         {
+            aNamePt = aNamePt + "_" + mNameImage;
+         }
 	 cMes1GCP aMesGCP(aP3,aNamePt,1.0);
 	 cMesIm1Pt aMesIm(aP2,aNamePt,1.0);
 

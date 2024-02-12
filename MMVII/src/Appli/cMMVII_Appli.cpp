@@ -273,6 +273,7 @@ cMMVII_Appli::cMMVII_Appli
    mHasInputV2    (false),
    mStdCout       (std::cout),
    mSeedRand      (msDefSeedRand), // In constructor, don't use virtual, wait ...
+   mExtandPattern (true),
    mVSPO          (aVSPO),
    mCarPPrefOut   (MMVII_StdDest),
    mCarPPrefIn    (MMVII_StdDest),
@@ -465,6 +466,8 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
       // <<  AOpt2007(mIntervFilterMS[1],GOP_Int1,"File Filter Interval, Second Set",{eTA2007::Common,{eTA2007::FFI,"1"}})
       <<  AOpt2007(mNumOutPut,GOP_NumVO,"Num version for output format (1 or 2)",{eTA2007::Global,{eTA2007::Range,"[1,2]"}})
       <<  AOpt2007(mSeedRand,GOP_SeedRand,"Seed for random,if <=0 init from time",aGlobHDV)
+      <<  AOpt2007(mExtandPattern,"ExtPatFile","Do we extang patterns for files (or interpret them literally)",aGlobHDV)
+
       <<  AOpt2007(msWithWarning,GOP_WW,"Do we print warnings",aGlobHDV)
       <<  AOpt2007(mNbProcAllowed,GOP_NbProc,"Number of process allowed in parallelisation",aGlobHDV)
       <<  AOpt2007(aDP ,GOP_DirProj,"Project Directory",{eTA2007::DirProject,eTA2007::Global})
@@ -768,7 +771,13 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
          if (!mVMainSets.at(aNum).IsInit())
          {
             // mVMainSets.at(aNum)= SetNameFromString(mDirProject+aVValues[aK],true);
-            mVMainSets.at(aNum)= SetNameFromString(mDirProject+FileOfPath(aVValues[aK],false),true);
+            if (mExtandPattern)
+                mVMainSets.at(aNum)= SetNameFromString(mDirProject+FileOfPath(aVValues[aK],false),true);
+            else
+            {
+                mVMainSets.at(aNum)=  tNameSet (eTySC::US);
+                mVMainSets.at(aNum).Add(aVValues[aK]);
+            }
 
             //  Filter with interval
             {

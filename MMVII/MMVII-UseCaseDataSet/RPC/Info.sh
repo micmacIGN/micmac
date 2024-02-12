@@ -18,12 +18,19 @@
 #=================  CURRENT PIPELINE, use data generated with XING =============
 
 # TO DO : Add Images 2 name pt  +  OK no pat 4 edit set
-MMVII ImportM32 verif_1A.txt SjiXYZ XingA NumL0=13 NumLast=30 NameIm=SPOT_1A.tif
-MMVII ImportM32 verif_1B.txt SjiXYZ XingB NumL0=13 NumLast=30 NameIm=SPOT_1B.tif
+MMVII ImportM32 verif_1A.txt SjiXYZ Xing NumL0=13 NumLast=30 NameIm=SPOT_1A.tif
+MMVII ImportM32 verif_1B.txt SjiXYZ Xing NumL0=13 NumLast=30 NameIm=SPOT_1B.tif
 
 
-MMVII ImportPushbroom AllIm.xml '[SPOT_(.*).tif,RPC_$1.xml]'
+MMVII EditSet AllIm.xml =  SPOT_1A.tif   ExtPatFile=false
+MMVII EditSet AllIm.xml +=  SPOT_1B.tif   ExtPatFile=false
 
-MMVII TestSensor SPOT_1B.tif RPC_1B.xml InPointsMeasure=XingB
+MMVII ImportPushbroom AllIm.xml '[SPOT_(.*).tif,RPC_$1.xml]' SPOT_Init
+
+MMVII TestSensor SPOT_1A.tif SPOT_Init InPointsMeasure=Xing
+MMVII TestSensor SPOT_1B.tif SPOT_Init InPointsMeasure=Xing
+
+
+
 
 

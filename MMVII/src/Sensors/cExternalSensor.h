@@ -18,7 +18,7 @@ namespace MMVII
 class  cDataExternalSensor
 {
      public :
-          cDataExternalSensor(const std::string& aNameFile);
+          cDataExternalSensor(const std::string& aNameFile="");
           
           std::string    mNameFile;
           eTypeSensor    mType;

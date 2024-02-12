@@ -499,12 +499,27 @@ void cPhotogrammetricProject::LoadSensor(const std::string  &aNameIm,cSensorImag
      aSI = nullptr;
      aSPC =nullptr;
 
+     // Try a stenope camera which has interesting properties
      aSPC = ReadCamPC(aNameIm,true,true);
      if (aSPC !=nullptr)
      {
         aSI = aSPC;
         return;
      }
+
+     // Else try an external sensor
+     aSI =  cSensorImage::AllocExternalSensor(DirImportInitOri(),mDPOrient.FullDirIn(),aNameIm);
+     if (aSI!=nullptr)
+        return;
+/*
+     if ()
+     {
+       // std::string aNameCam  =  aDP.FullDirIn() + cSensorCamPC::NameOri_From_Image(aNameIm);
+       cSensorImage::NameOri_From_PrefixAndImage(PrefixName(),aNameImage);
+     }
+*/
+
+
 
      if (!SVP)
      {
