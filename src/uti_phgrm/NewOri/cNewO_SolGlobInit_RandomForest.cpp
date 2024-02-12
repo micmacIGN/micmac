@@ -511,7 +511,7 @@ cLinkTripl* DataTravel::GetRandTri(bool Pond) {
     if (!mSCur3Adj.size()) {
         return 0;
     }
-    const double a = 100;
+    const double a = 300;
     //const double b = 1;
     double s = mSCur3Adj.size()+1;
     std::vector<double> i{0,
@@ -2569,7 +2569,7 @@ void RandomForest::processNode2(
     std::cout << "Output:" << ori0name << std::endl;
 
     //Output first child orientation
-    if (ss.at(node).size() < 2) {
+    if (ss.at(node).size() < 3) {
         //Save current all data
         for (auto e : ss.at(node)) { e->flag_set_kth_true(data.mFlagS); }
         Save(data, ori0name, false);
@@ -3098,11 +3098,11 @@ void RandomForest::BestSolAllCC(Dataset& data) {
         std::string aOutOri = mOutName + ToString(aKC);
         //std::string aOutOri = "DSF_BestInit_CC" + ToString(aKC);
         Save(data, aOutOri, true);
-        //SaveTriplet(data, aOutOri);
+        SaveTriplet(data, aOutOri);
 
         FreeAllFlag(data.mVCC[aKC]->mSoms, data.mFlagS);
 
-        //hierarchique(data, aKC, tree);
+        hierarchique(data, aKC, tree);
     }
 
     // Free triplets
@@ -3264,7 +3264,7 @@ void RandomForest::CoherTripletsGraphBasedV2(
                 output[aT * 4 + 2] = score;
 
                 //output[aT * 4 + 3] = (aResidue < resMean) ? resMean-aResidue : 0.;
-                output[aT * 4 + 3] = resMean / (aResidue+mR0);
+                output[aT * 4 + 3] = resMean / (aResidue);
 
                 //output[aT * 4 + 3] = (aResidue < resMean) ? 1 : 0;
                 //aV3[aT]->Data()[0].push_back(aResidue);
