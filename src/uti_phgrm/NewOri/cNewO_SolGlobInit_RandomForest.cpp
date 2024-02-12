@@ -650,6 +650,7 @@ RandomForest::RandomForest(int argc, char** argv)
                    eSAM_IsBool)
             << EAM(mR0, "R0", true, "The R0 for selection, def = 100")
             << EAM(aPond, "Pond", true, "If ponderate random, def = true", eSAM_IsBool)
+            << EAM(aOpti, "Opti", true, "If hierarchical optimization, def = true", eSAM_IsBool)
             /*<< EAM(mAlphaProb, "Alpha", true,
                    "Probability that a triplet at distance Dist is not an "
                    "outlier, Prob=Alpha^Dist; Def=0.5")*/
@@ -3102,7 +3103,8 @@ void RandomForest::BestSolAllCC(Dataset& data) {
 
         FreeAllFlag(data.mVCC[aKC]->mSoms, data.mFlagS);
 
-        hierarchique(data, aKC, tree);
+        if (aOpti)
+            hierarchique(data, aKC, tree);
     }
 
     // Free triplets

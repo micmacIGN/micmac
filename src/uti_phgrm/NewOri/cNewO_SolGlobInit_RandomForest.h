@@ -750,6 +750,7 @@ class RandomForest : public cCommonMartiniAppli {
 
     bool aModeBin = true;
     bool aPond = false;
+    bool aOpti = false;
 };
 
 template<typename... T>
