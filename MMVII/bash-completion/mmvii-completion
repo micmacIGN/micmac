@@ -5,7 +5,7 @@ _mmvii_completion()
   export COMP_LINE COLUMNS
   local cur cword
   _get_comp_words_by_ref -n = cur cword
-  local RESULT="$(python3 -  "$cur" "$cword" <<'EOT'
+  local RESULT="$(python -  "$cur" "$cword" <<'EOT'
 import sys
 import os
 import json
@@ -18,6 +18,9 @@ cur_word=sys.argv[1]
 comp_cword=int(sys.argv[2])
 comp_line=os.getenv('COMP_LINE')
 screen_columns=int(os.getenv('COLUMNS','80'))
+
+# For windows, force remove CR (^M) from output
+sys.stdout.reconfigure(newline="\n")
 
 helpArgPossible=True
 
@@ -297,5 +300,5 @@ EOT
   fi
 }
 
-complete -F _mmvii_completion MMVII
+complete -F _mmvii_completion MMVII MMVII.exe mmvii mmvii.exe
 
