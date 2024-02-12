@@ -511,7 +511,7 @@ cLinkTripl* DataTravel::GetRandTri(bool Pond) {
     if (!mSCur3Adj.size()) {
         return 0;
     }
-    const double a = 300;
+    const double a = 100;
     //const double b = 1;
     double s = mSCur3Adj.size()+1;
     std::vector<double> i{0,
@@ -3394,7 +3394,7 @@ void PreComputeTriplet(double* p, size_t index, const cNOSolIn_Triplet* t) {
             residu.push_back(computeDoubleResidue(t, &tb));
         }
     }
-    p[index] = median(residu);
+    p[index] = mean(residu);
     //p[index] = computeDoubleResidue(t, lB);
 }
 
