@@ -630,7 +630,7 @@ RandomForest::RandomForest(int argc, char** argv)
       mResidu(20),
       mApplyCostPds(false),
       mAlphaProb(0.5),
-      mR0(100) {
+      mR0(1.) {
     ElInitArgMain(
         argc, argv, LArgMain() << EAMC(mFullPat, "Pattern"),
         LArgMain()
@@ -3266,7 +3266,10 @@ void RandomForest::CoherTripletsGraphBasedV2(
                 output[aT * 4 + 2] = score;
 
                 //output[aT * 4 + 3] = (aResidue < resMean) ? resMean-aResidue : 0.;
-                output[aT * 4 + 3] = resMean / (aResidue);
+                //output[aT * 4 + 3] = (resMean+mR0) / (aResidue+mR0);
+                //output[aT * 4 + 3] = ((resMean - aResidue) * (resMean - aResidue))/mR0;
+                output[aT * 4 + 3] = mR0 * aResidue - (resMean - aResidue);
+
 
                 //output[aT * 4 + 3] = (aResidue < resMean) ? 1 : 0;
                 //aV3[aT]->Data()[0].push_back(aResidue);
