@@ -446,6 +446,12 @@ void cPhotogrammetricProject::SaveCamPC(const cSensorCamPC & aCamPC) const
 
 void cPhotogrammetricProject::SaveSensor(const cSensorImage & aSens) const
 {
+    // We dont want to have different variant of the same image in a given folder
+    std::string aPat2Sup = mDPOrient.FullDirOut() + "Ori-.*-" + aSens.NameImage() + "\\." + GlobTaggedNameDefSerial()  ;
+    StdOut() << "P2SUPP=" << aPat2Sup << std::endl ;
+    RemovePatternFile(aPat2Sup,false);
+
+
     aSens.ToFile(mDPOrient.FullDirOut() + aSens.NameOriStd());
 }
 

@@ -1,11 +1,5 @@
-#include "StdAfx.h"
-#include "V1VII.h"
-#include "cMMVII_Appli.h"
-#include "MMVII_DeclareCste.h"
 #include "MMVII_Geom3D.h"
 #include "MMVII_Sensor.h"
-#include "../Serial/Serial.h"
-#include "MMVII_2Include_Serial_Tpl.h"
 #include "cExternalSensor.h"
 
 namespace MMVII

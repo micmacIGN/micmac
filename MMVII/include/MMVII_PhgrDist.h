@@ -51,6 +51,8 @@ class cDescOneFuncDist
 
 std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg,bool isFraserMode);
 
+std::vector<cDescOneFuncDist>   Polyn2DDescDist(int aDegree);
+
 const std::vector<cDescOneFuncDist> & VDesc_RadiomCPI(int aDegree,int aDRadElim=-1);
 
 

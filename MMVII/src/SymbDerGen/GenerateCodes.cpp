@@ -50,6 +50,14 @@ std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg,bool isFraserMode)
    return aDist.VDescParams();
 }
 
+     //   PUSHB
+std::vector<cDescOneFuncDist>   Polyn2DDescDist(int aDegree)
+{
+   cDistPolyn2D aDist(aDegree,false,true) ;
+   return aDist.mVDesc;
+}
+
+
 std::string NameFormulaOfStr(const std::string & aName,bool WithDerive)
 {
    return  aName +  std::string(WithDerive ?"VDer":"Val");
@@ -144,13 +152,13 @@ void TestResDegree(cCalculator<double> * aCalc,const cPt3di & aDeg,const std::st
 NS_SymbolicDerivative::cCalculator<double> * EqColinearityCamGen(int  aDeg,bool WithDerive,int aSzBuf,bool ReUse)
 {
      bool SVP =  false; // we generate an error if dont exist
-     return StdAllocCalc(cEqColinSensGenPolyn2D(aDeg,false).FormulaName(),aSzBuf,SVP,ReUse);
+     return StdAllocCalc(NameFormula(cEqColinSensGenPolyn2D(aDeg,false),WithDerive),aSzBuf,SVP,ReUse);
 }
 
 NS_SymbolicDerivative::cCalculator<double> * EqDistPol2D(int  aDeg,bool WithDerive,int aSzBuf,bool ReUse) // PUSHB
 {
      bool SVP =  false; // we generate an error if dont exist
-     return StdAllocCalc(cEqDistPolyn2D(aDeg,false).FormulaName(),aSzBuf,SVP,ReUse);
+     return StdAllocCalc(NameFormula(cEqDistPolyn2D(aDeg,false),WithDerive),aSzBuf,SVP,ReUse);
 }
 
 
@@ -683,6 +691,7 @@ int cAppliGenCode::Exe()
        {
            GenCodesFormula((tREAL8*)nullptr,cEqColinSensGenPolyn2D(aDegree),WithDer);  
            GenCodesFormula((tREAL8*)nullptr,cEqDistPolyn2D(aDegree),WithDer);  
+           // StdOut() << "FffffffFFFF " << cEqDistPolyn2D(aDegree).FormulaName() << "\n";
        }
    }
 

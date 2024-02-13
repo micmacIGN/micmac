@@ -17,6 +17,11 @@ using namespace NS_SymbolicDerivative;
 
 namespace MMVII
 {
+
+class cDistPolyn2D;            // helper class for generating polynoms
+class cEqColinSensGenPolyn2D;  // class for handling colinearitry equation wit 2D polyn + 
+class cEqDistPolyn2D;          // class for handling 2d-distorsion
+
 /* 
 GLOBAL SCOPE and HYPOTHESIS, LIMITATION :
 
@@ -90,7 +95,7 @@ class cDistPolyn2D
       // create an identifier that will be used for naming code generation
       std::string  NamesDist() const
       {
-            return std::string(mForBase?"Dist":"Base") +  "_Polyn2D_Degree_" +ToStr(mDegree) ;
+            return std::string(mForBase?"Base" : "Dist") +  "_Polyn2D_Degree_" +ToStr(mDegree) ;
       }
       //  std::string  NamesDist() const {return NamesDist(mDegree,mForBase);}
 
