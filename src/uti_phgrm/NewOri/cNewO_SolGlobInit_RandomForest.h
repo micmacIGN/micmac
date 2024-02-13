@@ -195,7 +195,7 @@ double sd(const Container& v) {
 }
 
 static constexpr int indexSum = 2;
-static constexpr bool smallest = false;
+static constexpr bool smallest = true;
 
 class cNOSolIn_Triplet {
    public:
@@ -747,6 +747,7 @@ class RandomForest : public cCommonMartiniAppli {
     double mAlphaProb;
 
     double mR0;
+    double mR1;
 
     bool aModeBin = true;
     bool aPond = false;

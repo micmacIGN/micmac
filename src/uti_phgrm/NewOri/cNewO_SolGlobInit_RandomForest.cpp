@@ -630,7 +630,8 @@ RandomForest::RandomForest(int argc, char** argv)
       mResidu(20),
       mApplyCostPds(false),
       mAlphaProb(0.5),
-      mR0(1.) {
+      mR0(1.),
+      mR1(0.5) {
     ElInitArgMain(
         argc, argv, LArgMain() << EAMC(mFullPat, "Pattern"),
         LArgMain()
@@ -648,7 +649,8 @@ RandomForest::RandomForest(int argc, char** argv)
                    "Minimal residu considered as good. Def=20")
             << EAM(aModeBin, "Bin", true, "Binaries file, def = true",
                    eSAM_IsBool)
-            << EAM(mR0, "R0", true, "The R0 for selection, def = 100")
+            << EAM(mR0, "R0", true, "The R0 for triplet scoring, def = 1")
+            << EAM(mR1, "R1", true, "The R1 for triplet scoring, def = 1")
             << EAM(aPond, "Pond", true, "If ponderate random, def = true", eSAM_IsBool)
             << EAM(aOpti, "Opti", true, "If hierarchical optimization, def = true", eSAM_IsBool)
             /*<< EAM(mAlphaProb, "Alpha", true,
@@ -3268,7 +3270,7 @@ void RandomForest::CoherTripletsGraphBasedV2(
                 //output[aT * 4 + 3] = (aResidue < resMean) ? resMean-aResidue : 0.;
                 //output[aT * 4 + 3] = (resMean+mR0) / (aResidue+mR0);
                 //output[aT * 4 + 3] = ((resMean - aResidue) * (resMean - aResidue))/mR0;
-                output[aT * 4 + 3] = mR0 * aResidue - (resMean - aResidue);
+                output[aT * 4 + 3] = mR0 * aResidue - mR1 * (resMean - aResidue);
 
 
                 //output[aT * 4 + 3] = (aResidue < resMean) ? 1 : 0;
