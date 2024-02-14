@@ -190,11 +190,12 @@ class cExternalSensorModif2D : public cExternalSensor
          cExternalSensorModif2D(const cDataExternalSensor & aData,const std::string& aNameImage,cSensorImage * aSI,int aDegree) ;
          void AddData(const  cAuxAr2007 & anAux);
 
-	 void PerturbateRandom(tREAL8 anAmpl);
+	 void PerturbateRandom(tREAL8 anAmpl,bool Show);
 
 	 // NS_SymbolicDerivative::cCalculator<double> * EqDistPol2D(int  aDeg,bool WithDerive,int aSzBuf,bool ReUse); // PUSHB
 
      private :
+        void InitPol2D();
 
 	 // ====  Methods overiiding for being a cSensorImage =====
          tSeg3dr  Image2Bundle(const cPt2dr &) const override;
@@ -215,7 +216,7 @@ class cExternalSensorModif2D : public cExternalSensor
 
 	 int                     mDegree;
 	 std::vector<tREAL8>     mVParams;
-	 cCalculator<double> *   mEqIm2;
+	 cCalculator<double> *   mEqIma2End;  // Functor that gives the distorstion
 };
 
     //------------------------ Create/Read/Write   ----------------------------------
@@ -225,19 +226,35 @@ cExternalSensorModif2D::cExternalSensorModif2D
       const cDataExternalSensor & aData,
       const std::string& aNameImage,
       cSensorImage * aSI,
-      int            aDegree
+      int            aDegree=-1
 )  :
    cExternalSensor(aData,aNameImage,aSI),
    mDegree  (aDegree),
-   mEqIm2   (EqDistPol2D(mDegree,false/*W/O derive*/,1,true/*Recycling mode*/))
+   mEqIma2End   (nullptr)
 {
+    if (mDegree>=0)
+       InitPol2D();
+}
+
+void cExternalSensorModif2D::InitPol2D()
+{
+    mEqIma2End   =  EqDistPol2D(mDegree,false/*W/O derive*/,1,true/*Recycling mode*/) ;
     std::vector<cDescOneFuncDist>  aVDesc =  Polyn2DDescDist(mDegree);
     mVParams.resize(aVDesc.size(),0.0);
 }
 
+
+
+
 void cExternalSensorModif2D::AddData(const  cAuxAr2007 & anAux)
 {
      MMVII::AddData(cAuxAr2007("General",anAux),mData);
+     MMVII::AddData(cAuxAr2007("Degree",anAux),mDegree);
+     
+     if (anAux.Ar().Input())
+     {
+         InitPol2D();
+     }
 
      {
          cAuxAr2007  anAuxCoeff("Coeffs",anAux);
@@ -286,7 +303,7 @@ cPt3dr cExternalSensorModif2D::ImageAndZ2Ground(const cPt3dr & aPxyz) const
 cPt2dr  cExternalSensorModif2D::End2Init (const cPt2dr & aP0) const
 {
      std::vector<tREAL8>  aVXY = aP0.ToStdVector();
-     std::vector<tREAL8>  aDistXY =  mEqIm2->DoOneEval(aVXY,mVParams);
+     std::vector<tREAL8>  aDistXY =  mEqIma2End->DoOneEval(aVXY,mVParams);
      return cPt2dr::FromStdVector(aDistXY);
 }
 
@@ -312,7 +329,7 @@ cPt2dr  cExternalSensorModif2D::Init2End (const cPt2dr & aPInit) const
      return aPEnd;
 }
 
-void cExternalSensorModif2D::PerturbateRandom(tREAL8 anAmpl)
+void cExternalSensorModif2D::PerturbateRandom(tREAL8 anAmpl,bool Show)
 {
     anAmpl /= mVParams.size();
     tREAL8 aNorm = Norm2(Sz());
@@ -320,17 +337,20 @@ void cExternalSensorModif2D::PerturbateRandom(tREAL8 anAmpl)
     std::vector<cDescOneFuncDist>  aVDesc =  Polyn2DDescDist(mDegree);
     for (size_t aK=0 ; aK<mVParams.size() ; aK++)
     {
-        mVParams[aK] = (RandUnif_C() *anAmpl ) / std::pow(aNorm,aVDesc[aK].mDegTot-1);
+        mVParams[aK] = (RandUnif_C() * anAmpl ) / std::pow(aNorm,aVDesc[aK].mDegTot-1);
     }
 
-    for (int aK=0 ; aK<20 ; aK++)
+    if (Show)
     {
-       cPt2dr aP0 = MulCByC(ToR(Sz()) ,cPt2dr::PRand());
+       for (int aK=0 ; aK<20 ; aK++)
+       {
+          cPt2dr aP0 = MulCByC(ToR(Sz()) ,cPt2dr::PRand());
 
-       cPt2dr aP1 = End2Init(aP0);
-       cPt2dr aP2 = Init2End(aP1);
+          cPt2dr aP1 = End2Init(aP0);
+          cPt2dr aP2 = Init2End(aP1);
 
-       StdOut() << aP0 << aP1-aP0  << aP2 -aP0 << "\n";
+          StdOut() << aP0 << aP1-aP0  << aP2 -aP0 << "\n";
+       }
     }
 }
 
@@ -341,7 +361,7 @@ void cExternalSensorModif2D::PerturbateRandom(tREAL8 anAmpl)
 /* =============================================== */
 
 
-template <class TypeSens>  cSensorImage * GenAllocExternalSensor
+template <class TypeSens>  TypeSens * GenAllocExternalSensor
                                           (
                                                const std::string & aDirInit,
                                                const std::string & aDirSens,
@@ -353,7 +373,7 @@ template <class TypeSens>  cSensorImage * GenAllocExternalSensor
    if (ExistFile(aNameFile))
    {
         // -1-   Create the object
-        cExternalSensor *  aResult = new TypeSens (cDataExternalSensor(),aNameImage,nullptr);
+        TypeSens *  aResult = new TypeSens (cDataExternalSensor(),aNameImage,nullptr);
         // -2-   Read the data contained in the file
         ReadFromFile(*aResult,aNameFile);
         // -3-   Read the initial sensor
@@ -366,12 +386,15 @@ template <class TypeSens>  cSensorImage * GenAllocExternalSensor
     return nullptr;
 }
 
+
 cSensorImage * cSensorImage::AllocExternalSensor(const std::string & aDirInit,const std::string & aDirSens,const std::string aNameImage)
 {
     cSensorImage * aRes = nullptr;
 
+    // Try the existence  of different  
+
     if (aRes==nullptr) aRes =  GenAllocExternalSensor<cExternalSensor>(aDirInit,aDirSens,aNameImage);
-    //  if (aRes==nullptr) aRes =  GenAllocExternalSensor<cExternalSensorModif2D>(aDirInit,aDirSens,aNameImage);
+    if (aRes==nullptr) aRes =  GenAllocExternalSensor<cExternalSensorModif2D>(aDirInit,aDirSens,aNameImage);
 
 
     return aRes;
@@ -381,15 +404,15 @@ cSensorImage * cSensorImage::AllocExternalSensor(const std::string & aDirInit,co
 
 /* =============================================== */
 /*                                                 */
-/*                 cAppliImportPushbroom           */
+/*                 cAppliImportExternSensor        */
 /*                                                 */
 /* =============================================== */
 
-class cAppliImportPushbroom : public cMMVII_Appli
+class cAppliImportExternSensor : public cMMVII_Appli
 {
      public :
 
-        cAppliImportPushbroom(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
+        cAppliImportExternSensor(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
 
      private :
         int Exe() override;
@@ -412,14 +435,14 @@ class cAppliImportPushbroom : public cMMVII_Appli
      // --- Internal ----
 };
 
-cAppliImportPushbroom::cAppliImportPushbroom(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
+cAppliImportExternSensor::cAppliImportExternSensor(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli     (aVArgs,aSpec),
    mPhProj          (*this)
 {
 }
 
 
-cCollecSpecArg2007 & cAppliImportPushbroom::ArgObl(cCollecSpecArg2007 & anArgObl)
+cCollecSpecArg2007 & cAppliImportExternSensor::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
  return anArgObl
       <<   Arg2007(mNameImagesIn,"Name of input sensor gile", {eTA2007::FileDirProj,{eTA2007::MPatFile,"0"}})
@@ -428,7 +451,7 @@ cCollecSpecArg2007 & cAppliImportPushbroom::ArgObl(cCollecSpecArg2007 & anArgObl
    ;
 }
 
-cCollecSpecArg2007 & cAppliImportPushbroom::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+cCollecSpecArg2007 & cAppliImportExternSensor::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return anArgOpt
            << AOpt2007(mDegreeCorr,"DegCor","Degree of correction for sensors")
@@ -436,51 +459,55 @@ cCollecSpecArg2007 & cAppliImportPushbroom::ArgOpt(cCollecSpecArg2007 & anArgOpt
    ;
 }
 
-std::vector<std::string>  cAppliImportPushbroom::Samples() const
+std::vector<std::string>  cAppliImportExternSensor::Samples() const
 {
    return {
-              "MMVII ImportPushbroom 'SPOT_1.*tif' '[SPOT_(.*).tif,RPC_$1.xml]'"
+              "MMVII ImportPushbroom AllIm.xml '[SPOT_(.*).tif,RPC_$1.xml]' SPOT_Init",
+              "MMVII ImportPushbroom AllIm.xml '[SPOT_(.*).tif,RPC_$1.xml]' SPOT_Init"
 	};
 }
 
-void  cAppliImportPushbroom::ImportOneImage(const std::string & aNameIm)
+void  cAppliImportExternSensor::ImportOneImage(const std::string & aNameIm)
 {
+    // Compute the name of the sensor from the name of image using pat-subst
     std::string aFullNameSensor = ReplacePattern(mPatChgName.at(0),mPatChgName.at(1),aNameIm);
+    // supress the name of folder that may exist
     std::string aNameSensor = FileOfPath(aFullNameSensor,false);
-
-    
+    //  Make a local copy of the initial sensor (that maybe located anyway and may disapear later)
     CopyFile(aNameSensor,mPhProj.DirImportInitOri()+aNameSensor);
 
-    StdOut() << "NameSensor=" << aNameIm << " => " << aNameSensor << "\n";
-
+    // Make analyse to recognize automatically the kind of file
     cAnalyseTSOF  anAnalyse (aNameSensor);
+
+    // Now create the initial sensor
     cSensorImage *  aSensorInit =  AllocAutoSensorFromFile(anAnalyse ,aNameIm);
 
+    // Encapsulate this initial sensor with eventually coefficient
     cSensorImage * aSensorEnd = nullptr;
     if  (IsInit(&mDegreeCorr))
     {
         cExternalSensorModif2D * aSensor2D = new cExternalSensorModif2D(anAnalyse.mData,aNameIm,aSensorInit,mDegreeCorr);
 	if (IsInit(&mRanPert))
-	   aSensor2D->PerturbateRandom(mRanPert);
+	   aSensor2D->PerturbateRandom(mRanPert,false);
         aSensorEnd = aSensor2D;
     }
     else
     {
         aSensorEnd = new cExternalSensor(anAnalyse.mData,aNameIm,aSensorInit);
     }
+    // free the memory of Analyse (is not automatic, because can be copied) 
     anAnalyse.FreeAnalyse();
-
-    StdOut() << "NAMEORI=[" << aSensorEnd->NameOriStd()  << "]\n";
-
+    // Save the result
     mPhProj.SaveSensor(*aSensorEnd);
 
-    aSensorEnd->ToFile("toto_"+aSensorEnd->NameOriStd());
+    StdOut() << "NAMES    Ima: " << aNameIm << " SensInit : " << aNameSensor  << " SensSave : " << aSensorEnd->NameOriStd() << "\n";
 
+    //  Free the sensor (was not allocated by PhProj, will not be automatically deleted)
     delete aSensorEnd;
 }
 
 
-int cAppliImportPushbroom::Exe()
+int cAppliImportExternSensor::Exe()
 {
     mPhProj.FinishInit();
 
@@ -498,16 +525,16 @@ int cAppliImportPushbroom::Exe()
      /*                       ::                        */
      /* =============================================== */
 
-tMMVII_UnikPApli Alloc_ImportPushbroom(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
+tMMVII_UnikPApli Alloc_ImportExtSens(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppliImportPushbroom(aVArgs,aSpec));
+   return tMMVII_UnikPApli(new cAppliImportExternSensor(aVArgs,aSpec));
 }
 
-cSpecMMVII_Appli  TheSpecImportPushbroom
+cSpecMMVII_Appli  TheSpecImportExtSens
 (
-     "ImportPushbroom",
-      Alloc_ImportPushbroom,
-      "Import a pushbroom sensor",
+     "ImportExtSens",
+      Alloc_ImportExtSens,
+      "Import an External Sensor",
       {eApF::Ori},
       {eApDT::Ori},
       {eApDT::Ori},

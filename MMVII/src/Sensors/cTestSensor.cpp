@@ -26,14 +26,21 @@ class cAppliTestSensor : public cMMVII_Appli
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 	std::vector<std::string>  Samples() const override;
 
+
+        void  DoOneImage(const std::string & aNameIm);
+
 	///  Test that the accuracy of ground truth, i.e Proj(P3) = P2
         void TestGroundTruth(const  cSensorImage & aSI) const;
 	///  Test coherence of Direct/Inverse model, i.e Id = Dir o Inv = Inv o Dir
         void TestCoherenceDirInv(const  cSensorImage & aSI) const;
 
         cPhotogrammetricProject  mPhProj;
-        std::string              mNameImage;
+        std::string              mPatImage;
         bool                     mShowDetail;
+
+	std::vector<int>         mSzGenerate;
+	bool                     mTestCorDirInv;
+
 
 };
 
@@ -45,16 +52,18 @@ std::vector<std::string>  cAppliTestSensor::Samples() const
 }
 
 cAppliTestSensor::cAppliTestSensor(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-    cMMVII_Appli (aVArgs,aSpec),
-    mPhProj      (*this),
-    mShowDetail  (false)
+    cMMVII_Appli   (aVArgs,aSpec),
+    mPhProj        (*this),
+    mShowDetail    (false),
+    mSzGenerate    {15,3},
+    mTestCorDirInv (true)
 {
 }
 
 cCollecSpecArg2007 & cAppliTestSensor::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
       return    anArgObl
-             << Arg2007(mNameImage,"Name of input Image", {eTA2007::FileDirProj})
+             << Arg2007(mPatImage,"Name of input Image", {eTA2007::FileDirProj,{eTA2007::MPatFile,"0"}})
              << mPhProj.DPOrient().ArgDirInMand()
       ;
 }
@@ -64,6 +73,8 @@ cCollecSpecArg2007 & cAppliTestSensor::ArgOpt(cCollecSpecArg2007 & anArgOpt)
     return anArgOpt
                << mPhProj.DPPointsMeasures().ArgDirInOpt()
                << AOpt2007(mShowDetail,"ShowD","Show detail",{eTA2007::HDV})
+               << AOpt2007(mTestCorDirInv,"TestCDI","Test coherence of direct/invers model",{eTA2007::HDV})
+               << AOpt2007(mSzGenerate,"SzGen","Sz gen",{eTA2007::HDV})
             ;
 }
 
@@ -72,9 +83,9 @@ void cAppliTestSensor::TestGroundTruth(const  cSensorImage & aSI) const
     // Load mesure from standard MMVII project
     cSetMesImGCP aSetMes;
     mPhProj.LoadGCP(aSetMes);
-    mPhProj.LoadIm(aSetMes,mNameImage);
+    mPhProj.LoadIm(aSetMes,aSI.NameImage());
     cSet2D3D aSetM23;
-    aSetMes.ExtractMes1Im(aSetM23,mNameImage);
+    aSetMes.ExtractMes1Im(aSetM23,aSI.NameImage());
 
     cStdStatRes  aStCheckIm;  //  Statistic of reproj errorr
 
@@ -93,7 +104,6 @@ void cAppliTestSensor::TestGroundTruth(const  cSensorImage & aSI) const
     }
     StdOut() << "  ==============  Accuracy / Ground trurh =============== " << std::endl;
     StdOut()  << "    Avg=" <<  aStCheckIm.Avg() << ",  Worst=" << aStCheckIm.Max() << "\n";
-
 }
 
 void cAppliTestSensor::TestCoherenceDirInv(const  cSensorImage & aSI) const
@@ -113,46 +123,65 @@ void cAppliTestSensor::TestCoherenceDirInv(const  cSensorImage & aSI) const
      int mNbDepth = 5;
      cSet2D3D  aS32 = aSI.SyntheticsCorresp3D2D(mNbByDim,mNbDepth,aIntZD.x(),aIntZD.y(),InDepth);
 
-     cStdStatRes  aStConsistIm;  // stat for image consit  Proj( Proj-1(PIm)) ?= PIm
-     cStdStatRes  aStConsistGr;  // stat for ground consist  Proj-1 (Proj(Ground)) ?= Ground
-
-     for (const auto & aPair : aS32.Pairs())
+     if (mTestCorDirInv)
      {
-         cPt3dr  aPGr = aPair.mP3;
-         cPt3dr  aPIm (aPair.mP2.x(),aPair.mP2.y(),aPGr.z());
+         cStdStatRes  aStConsistIm;  // stat for image consit  Proj( Proj-1(PIm)) ?= PIm
+         cStdStatRes  aStConsistGr;  // stat for ground consist  Proj-1 (Proj(Ground)) ?= Ground
 
-         cPt3dr  aPIm2 ;
-         cPt3dr  aPGr2 ;
-	
-	 if (InDepth)
-	 {
-	    aPIm2 = aSI.Ground2ImageAndDepth(aSI.ImageAndDepth2Ground(aPIm));
-	    aPGr2 = aSI.ImageAndDepth2Ground(aSI.Ground2ImageAndDepth(aPGr));
-	 }
-	 else
-	 {
-	    aPIm2 = aSI.Ground2ImageAndZ(aSI.ImageAndZ2Ground(aPIm));
-	    aPGr2 = aSI.ImageAndZ2Ground(aSI.Ground2ImageAndZ(aPGr));
-	 }
-	 tREAL8 aDifIm = Norm2(aPIm-aPIm2);
-	 aStConsistIm.Add(aDifIm);
+         for (const auto & aPair : aS32.Pairs())
+         {
+             cPt3dr  aPGr = aPair.mP3;
+             cPt3dr  aPIm (aPair.mP2.x(),aPair.mP2.y(),aPGr.z());
 
-	 tREAL8 aDifGr = Norm2(aPGr-aPGr2);
-	 aStConsistGr.Add(aDifGr);
+             cPt3dr  aPIm2 ;
+             cPt3dr  aPGr2 ;
 	
+	     if (InDepth)
+	     {
+	        aPIm2 = aSI.Ground2ImageAndDepth(aSI.ImageAndDepth2Ground(aPIm));
+	        aPGr2 = aSI.ImageAndDepth2Ground(aSI.Ground2ImageAndDepth(aPGr));
+	     }
+	     else
+	     {
+	        aPIm2 = aSI.Ground2ImageAndZ(aSI.ImageAndZ2Ground(aPIm));
+	        aPGr2 = aSI.ImageAndZ2Ground(aSI.Ground2ImageAndZ(aPGr));
+	     }
+	     tREAL8 aDifIm = Norm2(aPIm-aPIm2);
+	     aStConsistIm.Add(aDifIm);
+
+	     tREAL8 aDifGr = Norm2(aPGr-aPGr2);
+	     aStConsistGr.Add(aDifGr);
+	    
+         }
+
+         StdOut() << "  ==============  Consistencies Direct/Inverse =============== " << std::endl;
+         StdOut() << "     * Image :  Avg=" <<   aStConsistIm.Avg() 
+	                     <<  ", Worst=" << aStConsistIm.Max()  
+	                     <<  ", Med=" << aStConsistIm.ErrAtProp(0.5)  
+                             << std::endl;
+
+         StdOut() << "     * Ground:  Avg=" <<   aStConsistGr.Avg() 
+	                     <<  ", Worst=" << aStConsistGr.Max()  
+	                     <<  ", Med=" << aStConsistGr.ErrAtProp(0.5)  
+			     << std::endl;
      }
 
-     StdOut() << "  ==============  Consistencies Direct/Inverse =============== " << std::endl;
-     StdOut() << "     * Image :  Avg=" <<   aStConsistIm.Avg() 
-	                 <<  ", Worst=" << aStConsistIm.Max()  
-	                 <<  ", Med=" << aStConsistIm.ErrAtProp(0.5)  
-                         << std::endl;
+}
 
-     StdOut() << "     * Ground:  Avg=" <<   aStConsistGr.Avg() 
-	                 <<  ", Worst=" << aStConsistGr.Max()  
-	                 <<  ", Med=" << aStConsistGr.ErrAtProp(0.5)  
-			 << std::endl;
+void  cAppliTestSensor::DoOneImage(const std::string & aNameIm)
+{
+    // cSensorImage *  aSI =  AllocAutoSensorFromFile(mNameRPC,mNameImage);
+    cSensorImage *  aSI =  mPhProj.LoadSensor(FileOfPath(aNameIm,false /* Ok Not Exist*/),false /* Not SVP*/);
 
+    if (mPhProj.DPPointsMeasures().DirInIsInit())
+       TestGroundTruth(*aSI);
+
+    if (mTestCorDirInv)
+       TestCoherenceDirInv(*aSI);
+
+    StdOut() << "NAMEORI=[" << aSI->NameOriStd()  << "]\n";
+
+    delete aSI;
 }
 
 
@@ -160,18 +189,18 @@ void cAppliTestSensor::TestCoherenceDirInv(const  cSensorImage & aSI) const
 int cAppliTestSensor::Exe()
 {
     mPhProj.FinishInit();
-    // cSensorImage *  aSI =  AllocAutoSensorFromFile(mNameRPC,mNameImage);
-    cSensorImage *  aSI =  mPhProj.LoadSensor(mNameImage,false);
+    /*  Version "à la main" on parcourt les explicitement les images
+    for (const auto & aNameIm :  VectMainSet(0))
+    {
+         DoOneImage(aNameIm);
+    }
+    */
 
-    if (mPhProj.DPPointsMeasures().DirInIsInit())
-       TestGroundTruth(*aSI);
-
-    TestCoherenceDirInv(*aSI);
-
-    StdOut() << "NAMEORI=[" << aSI->NameOriStd()  << "]\n";
-
-    delete aSI;
-
+    if (RunMultiSet(0,0))
+    {
+       return ResultMultiSet();
+    }
+    DoOneImage(mPatImage);
     return EXIT_SUCCESS;
 }
 
@@ -182,11 +211,11 @@ tMMVII_UnikPApli Alloc_TestImportSensors(const std::vector<std::string> &  aVArg
 }
 
 
-cSpecMMVII_Appli  TheSpecTestImportSensors
+cSpecMMVII_Appli  TheSpecTestSensor
 (
      "TestSensor",
       Alloc_TestImportSensors,
-      "Test orientation functions : coherence Direct/Inverse, ground truth 2D/3D correspondance",
+      "Test orientation functions of a sensor : coherence Direct/Inverse, ground truth 2D/3D correspondance, generate 3d-2d corresp",
       {eApF::Ori},
       {eApDT::Ori,eApDT::GCP},
       {eApDT::Console},
