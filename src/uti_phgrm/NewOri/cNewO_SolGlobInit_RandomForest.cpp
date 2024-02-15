@@ -3525,7 +3525,7 @@ void RandomForest::CoherTripletsAllSamples(Dataset& data) {
         //data.mV3[aT]->Sum()[2] = calculateStandardDeviation(data.mV3[aT]->Data()[3], global_mean);
         //auto it = std::remove(data.mV3[aT]->Data()[3].begin(), data.mV3[aT]->Data()[3].end(), 0);
         //data.mV3[aT]->Data()[3].erase(it, data.mV3[aT]->Data()[3].end());
-        data.mV3[aT]->Sum()[2] = mean(data.mV3[aT]->Data()[3]);
+        data.mV3[aT]->Sum()[2] = median(data.mV3[aT]->Data()[3]);
         data.mV3[aT]->Sum()[3] = better;
         //data.mV3[aT]->Sum()[3] = mean(data.mV3[aT]->Data()[3]);
     }
