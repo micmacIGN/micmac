@@ -62,12 +62,22 @@ class cPixelDomain :  public cDataBoundedSet<tREAL8,2>
 };
 
 
-/*  base-class  4 all image sensor */
 
+          // type to store the result of jacobian of proj R3->R2, stores P(G)  dP/dX  dP/dY dP/dZ
+class tProjImAndGrad
+{
+      public :
+          cPt2dr   mPIJ;
+          cPt3dr   mGradI;
+          cPt3dr   mGradJ;
+};
+
+/*  base-class  4 all image sensor */
 class cSensorImage  :   public cObj2DelAtEnd,
                         public cObjWithUnkowns<tREAL8>
 {
      public :
+
 
           cSensorImage(const std::string & aNameImage);
 
@@ -131,10 +141,10 @@ class cSensorImage  :   public cObj2DelAtEnd,
 		 
 	  /**  Compute the gradient of the projection function  R3->R2  Ground->Image, 
 	   * def use finite diff;  result component I and J of differential */
-	  virtual std::pair<cPt3dr,cPt3dr>  DiffGround2Im(const cPt3dr &) const;
+	  virtual tProjImAndGrad  DiffGround2Im(const cPt3dr &) const;
 
 	  /** For test purpose, we may wish to compute jacobian by finite difference even if DiffGround2Im was overloaded */
-	  std::pair<cPt3dr,cPt3dr>  DiffG2IByFiniteDiff(const cPt3dr &) const;
+	  tProjImAndGrad  DiffG2IByFiniteDiff(const cPt3dr &) const;
 
 	  /// Epislon-value for computing finite difference, def => ERROR
 	  virtual cPt3dr  EpsDiffGround2Im(const cPt3dr &) const ;
@@ -211,7 +221,7 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	 ///  cObjWithUnkowns , default error
 	 void PutUknowsInSetInterval() override;
 	 /// If the camera has its own "obs/cste" (like curent rot for PC-Cam) that's the place to say it
-	 virtual  void PushOwnObsColinearity( std::vector<double> &) ;
+	 virtual  void PushOwnObsColinearity(std::vector<double> &,const cPt3dr & aPGround) ;
 	 
 	 // Create if new, and memorize the colinearity equation
          cCalculator<double> * SetAndGetEqColinearity(bool WithDerives,int aSzBuf,bool ReUse);

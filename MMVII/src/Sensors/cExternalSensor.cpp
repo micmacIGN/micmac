@@ -97,8 +97,44 @@ void cAnalyseTSOF::FreeAnalyse()
 /*                                                 */
 /* =============================================== */
 
+class cExternalSensor : public cSensorImage
+{
+      public :
+         cExternalSensor(const cDataExternalSensor & aData,const std::string& aNameImage,cSensorImage * aSI);
+         virtual ~cExternalSensor();
+         void AddData(const  cAuxAr2007 & anAux);
+         static std::string  StaticPrefixName();
+
+         void SetSensorInit(cSensorImage *);
+         const cDataExternalSensor &  Data() const;
+
+      protected :
+         // ====  Methods overiiding for being a cSensorImage =====
+         tSeg3dr  Image2Bundle(const cPt2dr &) const override;
+         /// Basic method  GroundCoordinate ->  image coordinate of projection
+         cPt2dr Ground2Image(const cPt3dr &) const override;
+         ///    Method specialized, more efficent than using bundles
+         cPt3dr ImageAndZ2Ground(const cPt3dr &) const override;
+        /// Indicate how much a point belongs to sensor visibilty domain
+         double DegreeVisibility(const cPt3dr &) const  override;
 
 
+	 // ============   Differenciation =========================
+
+	  cPt3dr  EpsDiffGround2Im(const cPt3dr &) const override;
+          tProjImAndGrad  DiffGround2Im(const cPt3dr &) const override;
+
+         bool  HasIntervalZ()  const override;
+         cPt2dr GetIntervalZ() const override;
+         cPt3dr  PseudoCenterOfProj() const override;
+
+         const cPixelDomain & PixelDomain() const ;
+         std::string  V_PrefixName() const  override;
+         void ToFile(const std::string &) const override;
+
+         cDataExternalSensor     mData;
+         cSensorImage *          mSensorInit;
+};
 
 
    // ================  Constructor/Destructor ====================
@@ -165,6 +201,16 @@ double cExternalSensor::DegreeVisibility(const cPt3dr & aPGround) const
 	return mSensorInit->DegreeVisibility(aPGround);
 }
 
+cPt3dr  cExternalSensor::EpsDiffGround2Im(const cPt3dr & aPt) const
+{
+     return mSensorInit->EpsDiffGround2Im(aPt);
+}
+
+tProjImAndGrad  cExternalSensor::DiffGround2Im(const cPt3dr & aPt) const
+{
+     return mSensorInit->DiffGround2Im(aPt);
+}
+
 bool  cExternalSensor::HasIntervalZ()  const {return mSensorInit->HasIntervalZ();}
 cPt2dr cExternalSensor::GetIntervalZ() const {return mSensorInit->GetIntervalZ();}
 
@@ -182,6 +228,9 @@ cPt3dr  cExternalSensor::PseudoCenterOfProj() const {return mSensorInit->PseudoC
 /*                                                 */
 /* =============================================== */
 
+/*
+*/
+
 
 class cExternalSensorModif2D : public cExternalSensor
 {
@@ -197,6 +246,7 @@ class cExternalSensorModif2D : public cExternalSensor
      private :
         void InitPol2D();
 
+
 	 // ====  Methods overiiding for being a cSensorImage =====
          tSeg3dr  Image2Bundle(const cPt2dr &) const override;
          /// Basic method  GroundCoordinate ->  image coordinate of projection
@@ -206,6 +256,11 @@ class cExternalSensorModif2D : public cExternalSensor
 
          void ToFile(const std::string &) const override;
          std::string  V_PrefixName() const  override;
+
+	      // ------------------- Bundles Adjustment -----------------------
+         cCalculator<double> * CreateEqColinearity(bool WithDerives,int aSzBuf,bool ReUse) override;
+         void PutUknowsInSetInterval() override;
+         void PushOwnObsColinearity( std::vector<double> &,const cPt3dr &)  override;
 
 	 // ====  Method to override in derived classes  ===== 
 
@@ -245,7 +300,6 @@ void cExternalSensorModif2D::InitPol2D()
 
 
 
-
 void cExternalSensorModif2D::AddData(const  cAuxAr2007 & anAux)
 {
      MMVII::AddData(cAuxAr2007("General",anAux),mData);
@@ -278,6 +332,28 @@ void cExternalSensorModif2D::ToFile(const std::string & aNameFile) const
 std::string  cExternalSensorModif2D::StaticPrefixName() { return  "ExtSensModifPol2D";}
 std::string  cExternalSensorModif2D::V_PrefixName() const  {return StaticPrefixName();}
 
+
+      //------------------------  bundles ---------------------------
+cCalculator<double> * cExternalSensorModif2D::CreateEqColinearity(bool WithDerive,int aSzBuf,bool ReUse) 
+{
+    return EqColinearityCamGen(mDegree,WithDerive,aSzBuf,ReUse);
+}
+
+void cExternalSensorModif2D::PutUknowsInSetInterval() 
+{
+     mSetInterv->AddOneInterv(mVParams);
+}
+
+void cExternalSensorModif2D::PushOwnObsColinearity(std::vector<double> & aVParam,const cPt3dr & aPGround)
+{
+   // "IObs","JObs",  "P0x","P0y","P0z"    "IP0","JP0",    "dIdX","dIDY","dIdZ",   "dJdX","dJDY","dJdZ"
+
+    aPGround.PushInStdVector(aVParam);
+    tProjImAndGrad aProj = DiffGround2Im(aPGround);
+    aProj.mPIJ.PushInStdVector(aVParam);
+    aProj.mGradI.PushInStdVector(aVParam);
+    aProj.mGradJ.PushInStdVector(aVParam);
+}
 
       //------------------------  Fundemantal methods : 3D/2D correspondance ---------------------------
 

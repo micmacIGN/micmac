@@ -20,6 +20,7 @@ void cMMVII_BundleAdj::OneItere_TieP()
    if (!mMTP)
       return;
 
+
    // update the bundle point by 3D-intersection:
    // To see : maybe don't update each time; probably add some robust option
    mMTP->SetPGround();
@@ -56,24 +57,28 @@ void cMMVII_BundleAdj::OneItere_TieP()
                const cPt2dr & aPIm =  aVals.mVPIm.at(aKPts*aNbIm+aKIm);
 	       cSensorImage* aSens = aVS.at(aKIm);
 
-	       cPt2dr aResidual  = aPIm-aSens->Ground2Image(aPGr);
-               tREAL8 aWeightImage =  mTieP_Weighter.SingleWOfResidual(aResidual);
-
-	       cCalculator<double> * anEqColin =  aVEqCol.at(aKIm);
-
-               std::vector<double> aVObs = aPIm.ToStdVector();  // put Xim & Yim as observation
-               aSens->PushOwnObsColinearity(aVObs);  // add eventual observation of sensor (as rot with central persp)
-
-               std::vector<int> aVIndGlob = {-1,-2,-3};  // index of unknown, begins with temporay
-               for (auto & anObj : aSens->GetAllUK())  // now put sensor unknown
-                  anObj->PushIndexes(aVIndGlob);
-
-	       if (aWeightImage>0)
+	       if (aSens->IsVisibleOnImFrame(aPIm) && aSens->IsVisible(aPGr))
 	       {
-                   aWeigthedRes.Add(aWeightImage,Norm2(aResidual));
-                   mSys->R_AddEq2Subst(aStrSubst,anEqColin,aVIndGlob,aVObs,aWeightImage);
-		   aNbEqAdded++;
-               }
+
+	           cPt2dr aResidual  = aPIm-aSens->Ground2Image(aPGr);
+                   tREAL8 aWeightImage =  mTieP_Weighter.SingleWOfResidual(aResidual);
+
+	           cCalculator<double> * anEqColin =  aVEqCol.at(aKIm);
+
+                   std::vector<double> aVObs = aPIm.ToStdVector();  // put Xim & Yim as observation
+                   aSens->PushOwnObsColinearity(aVObs,aPGr);  // add eventual observation of sensor (as rot with central persp)
+
+                   std::vector<int> aVIndGlob = {-1,-2,-3};  // index of unknown, begins with temporay
+                   for (auto & anObj : aSens->GetAllUK())  // now put sensor unknown
+                      anObj->PushIndexes(aVIndGlob);
+
+	           if (aWeightImage>0)
+	           {
+                       aWeigthedRes.Add(aWeightImage,Norm2(aResidual));
+                       mSys->R_AddEq2Subst(aStrSubst,anEqColin,aVIndGlob,aVObs,aWeightImage);
+		       aNbEqAdded++;
+                   }
+	       }
            }
 
 	   // if at least 2 tie-point, we can add equation with schurr-complement

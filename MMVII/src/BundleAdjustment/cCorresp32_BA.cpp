@@ -102,7 +102,7 @@ void cCorresp32_BA::OneIteration()
             // "observation" of equation  : PTIm (real obs) + Cur-Rotation (Rot = Axiator*CurRot : to avoid guimbal-lock)
             std::vector<double> aVObs = aCorresp.mP2.ToStdVector(); //  Add X-Im, Y-Im in obs
 
-	    mSensor->PushOwnObsColinearity(aVObs); // For PC cam dd all matrix coeff og current rot
+	    mSensor->PushOwnObsColinearity(aVObs,aCorresp.mP3); // For PC cam dd all matrix coeff og current rot
 
             mSys->AddEq2Subst(aStrSubst,mEqColinearity,aVIndGlob,aVObs);
             mSys->AddObsWithTmpUK(aStrSubst);

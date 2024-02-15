@@ -33,6 +33,11 @@ class cAppliTestSensor : public cMMVII_Appli
         void TestGroundTruth(const  cSensorImage & aSI) const;
 	///  Test coherence of Direct/Inverse model, i.e Id = Dir o Inv = Inv o Dir
         void TestCoherenceDirInv(const  cSensorImage & aSI) const;
+	///  Export the synthetic 3d-2d measure
+        void ExportMeasures(const  cSensorImage & aSI) const;
+	///  Test coherence of Graddient  Grad/Dif finite ~ Grad analytic
+        void TestCoherenceGrad(const  cSensorImage & aSI) const;
+
 
         cPhotogrammetricProject  mPhProj;
         std::string              mPatImage;
@@ -40,9 +45,12 @@ class cAppliTestSensor : public cMMVII_Appli
 
 	std::vector<int>         mSzGenerate;
 	bool                     mTestCorDirInv;
-	bool                     mExportMeasures;
+        cPt2dr                   mDefIntDepth;  // Defautlt interval of depth if sensor has depth functs
+        bool                     mDoTestGrad;
 
-
+        cPt2dr                   mCurIntZD ;   // curent interval of Z or Depth
+	bool                     mCurWDepth;   // does current sensor use depth or Z
+        cSet2D3D                 mCurS23;      // current set of "3d-2d" correspondance
 };
 
 std::vector<std::string>  cAppliTestSensor::Samples() const
@@ -58,7 +66,8 @@ cAppliTestSensor::cAppliTestSensor(const std::vector<std::string> & aVArgs,const
     mShowDetail     (false),
     mSzGenerate     {15,3},
     mTestCorDirInv  (true),
-    mExportMeasures (false)
+    mDefIntDepth    (1.0,2.0),
+    mDoTestGrad     (false)
 {
 }
 
@@ -78,6 +87,7 @@ cCollecSpecArg2007 & cAppliTestSensor::ArgOpt(cCollecSpecArg2007 & anArgOpt)
                << AOpt2007(mShowDetail,"ShowD","Show detail",{eTA2007::HDV})
                << AOpt2007(mTestCorDirInv,"TestCDI","Test coherence of direct/invers model",{eTA2007::HDV})
                << AOpt2007(mSzGenerate,"SzGen","Sz gen",{eTA2007::HDV,{eTA2007::ISizeV,"[2,2]"}})
+               << AOpt2007(mDoTestGrad,"TestGrad","Test coherence anlytic grad/finit diff (if different)",{eTA2007::HDV})
             ;
 }
 
@@ -109,96 +119,111 @@ void cAppliTestSensor::TestGroundTruth(const  cSensorImage & aSI) const
     StdOut()  << "    Avg=" <<  aStCheckIm.Avg() << ",  Worst=" << aStCheckIm.Max() << "\n";
 }
 
+void cAppliTestSensor::ExportMeasures(const  cSensorImage & aSI) const
+{
+    cSetMesGCP      aSet3D(aSI.NameImage());
+    cSetMesPtOf1Im  aSet2D(aSI.NameImage());
+    int aNb=0;
+    for (const auto & aPair : mCurS23.Pairs())
+    {
+        std::string aName = "Pt_"+ ToStr(aNb) + "-" + aSI.NameImage();
+        aNb++;
+        aSet2D.AddMeasure(cMesIm1Pt(aSI.Ground2Image(aPair.mP3),aName,1.0));
+        aSet3D.AddMeasure(cMes1GCP(aPair.mP3,aName,1.0));
+    }
+    mPhProj.SaveGCP(aSet3D);
+    mPhProj.SaveMeasureIm(aSet2D);
+}
+
+void cAppliTestSensor::TestCoherenceGrad(const  cSensorImage & aSI) const
+{
+    for (const auto & aPair : mCurS23.Pairs())
+    {
+	tProjImAndGrad  aP1 = aSI.DiffGround2Im (aPair.mP3);
+	tProjImAndGrad  aP2 = aSI.DiffG2IByFiniteDiff (aPair.mP3);
+
+	StdOut() << "GGGG " <<  aP1.mPIJ - aP2.mPIJ << aP1.mGradI - aP2.mGradI << aP1.mGradJ - aP2.mGradJ << "\n";
+
+        // DiffGround2Im DiffG2IByFiniteDiff
+    }
+}
+
 void cAppliTestSensor::TestCoherenceDirInv(const  cSensorImage & aSI) const
 {
-     bool  InDepth = ! aSI.HasIntervalZ();  // do we use Im&Depth or Image&Z
-
-     cPt2dr aIntZD = cPt2dr(1,2);
-     if (InDepth)
-     {  // if depth probably doent matter which one is used
-     }
-     else
-     {
-        aIntZD = aSI.GetIntervalZ(); // at least with RPC, need to get validity interval
-     }
-
-     int mNbByDim = mSzGenerate.at(0);
-     int mNbDepth = mSzGenerate.at(1);
-     cSet2D3D  aS32 = aSI.SyntheticsCorresp3D2D(mNbByDim,mNbDepth,aIntZD.x(),aIntZD.y(),InDepth);
      
-     if (mExportMeasures)
+     cStdStatRes  aStConsistIm;  // stat for image consit  Proj( Proj-1(PIm)) ?= PIm
+     cStdStatRes  aStConsistGr;  // stat for ground consist  Proj-1 (Proj(Ground)) ?= Ground
+
+     for (const auto & aPair : mCurS23.Pairs())
      {
-         cSetMesGCP      aSet3D(aSI.NameImage());
-	 cSetMesPtOf1Im  aSet2D(aSI.NameImage());
-	 int aNb=0;
-	 for (const auto & aPair : aS32.Pairs())
-	 {
-             std::string aName = "Pt_"+ ToStr(aNb) + "-" + aSI.NameImage();
-             aNb++;
-	     // We put proj of 3D, rather than 2D, because of unaccuracy Dir*Inv
-	     aSet2D.AddMeasure(cMesIm1Pt(aSI.Ground2Image(aPair.mP3),aName,1.0));
-	     aSet3D.AddMeasure(cMes1GCP(aPair.mP3,aName,1.0));
-	 }
-	 mPhProj.SaveGCP(aSet3D);
-	 mPhProj.SaveMeasureIm(aSet2D);
+         cPt3dr  aPGr = aPair.mP3;
+         cPt3dr  aPIm (aPair.mP2.x(),aPair.mP2.y(),aPGr.z());
 
-     }
-
-     if (mTestCorDirInv)
-     {
-         cStdStatRes  aStConsistIm;  // stat for image consit  Proj( Proj-1(PIm)) ?= PIm
-         cStdStatRes  aStConsistGr;  // stat for ground consist  Proj-1 (Proj(Ground)) ?= Ground
-
-         for (const auto & aPair : aS32.Pairs())
-         {
-             cPt3dr  aPGr = aPair.mP3;
-             cPt3dr  aPIm (aPair.mP2.x(),aPair.mP2.y(),aPGr.z());
-
-             cPt3dr  aPIm2 ;
-             cPt3dr  aPGr2 ;
+         cPt3dr  aPIm2 ;
+         cPt3dr  aPGr2 ;
 	
-	     if (InDepth)
-	     {
-	        aPIm2 = aSI.Ground2ImageAndDepth(aSI.ImageAndDepth2Ground(aPIm));
-	        aPGr2 = aSI.ImageAndDepth2Ground(aSI.Ground2ImageAndDepth(aPGr));
-	     }
-	     else
-	     {
-	        aPIm2 = aSI.Ground2ImageAndZ(aSI.ImageAndZ2Ground(aPIm));
-	        aPGr2 = aSI.ImageAndZ2Ground(aSI.Ground2ImageAndZ(aPGr));
-	     }
-	     tREAL8 aDifIm = Norm2(aPIm-aPIm2);
-	     aStConsistIm.Add(aDifIm);
+	 if (mCurWDepth)
+	 {
+	    aPIm2 = aSI.Ground2ImageAndDepth(aSI.ImageAndDepth2Ground(aPIm));
+	    aPGr2 = aSI.ImageAndDepth2Ground(aSI.Ground2ImageAndDepth(aPGr));
+	 }
+	 else
+	 {
+	    aPIm2 = aSI.Ground2ImageAndZ(aSI.ImageAndZ2Ground(aPIm));
+	    aPGr2 = aSI.ImageAndZ2Ground(aSI.Ground2ImageAndZ(aPGr));
+	 }
+	 tREAL8 aDifIm = Norm2(aPIm-aPIm2);
+	 aStConsistIm.Add(aDifIm);
 
-	     tREAL8 aDifGr = Norm2(aPGr-aPGr2);
-	     aStConsistGr.Add(aDifGr);
+	 tREAL8 aDifGr = Norm2(aPGr-aPGr2);
+	 aStConsistGr.Add(aDifGr);
 	    
-         }
-
-         StdOut() << "  ==============  Consistencies Direct/Inverse =============== " << std::endl;
-         StdOut() << "     * Image :  Avg=" <<   aStConsistIm.Avg() 
-	                     <<  ", Worst=" << aStConsistIm.Max()  
-	                     <<  ", Med=" << aStConsistIm.ErrAtProp(0.5)  
-                             << std::endl;
-
-         StdOut() << "     * Ground:  Avg=" <<   aStConsistGr.Avg() 
-	                     <<  ", Worst=" << aStConsistGr.Max()  
-	                     <<  ", Med=" << aStConsistGr.ErrAtProp(0.5)  
-			     << std::endl;
      }
 
+     StdOut() << "  ==============  Consistencies Direct/Inverse =============== " << std::endl;
+
+     StdOut() << "     * Image :  Avg=" <<   aStConsistIm.Avg() 
+	      <<  ", Worst=" << aStConsistIm.Max()  
+	      <<  ", Med=" << aStConsistIm.ErrAtProp(0.5)  
+              << std::endl;
+
+     StdOut() << "     * Ground:  Avg=" <<   aStConsistGr.Avg() 
+	      <<  ", Worst=" << aStConsistGr.Max()  
+	      <<  ", Med=" << aStConsistGr.ErrAtProp(0.5)  
+              << std::endl;
 }
 
 void  cAppliTestSensor::DoOneImage(const std::string & aNameIm)
 {
+     cSensorImage *  aSI =  mPhProj.LoadSensor(FileOfPath(aNameIm,false /* Ok Not Exist*/),false /* Not SVP*/);
+
+     //  Compute a set of synthetic  correspondance 3d-2d
+     mCurWDepth = ! aSI->HasIntervalZ();  // do we use Im&Depth or Image&Z
+     mCurIntZD = mDefIntDepth;
+     if (mCurWDepth)
+     {  // if depth probably doent matter which one is used
+     }
+     else
+     {
+        mCurIntZD = aSI->GetIntervalZ(); // at least with RPC, need to get validity interval
+     }
+     int mNbByDim = mSzGenerate.at(0);
+     int mNbDepth = mSzGenerate.at(1);
+     mCurS23 = aSI->SyntheticsCorresp3D2D(mNbByDim,mNbDepth,mCurIntZD.x(),mCurIntZD.y(),mCurWDepth);
+
     // cSensorImage *  aSI =  AllocAutoSensorFromFile(mNameRPC,mNameImage);
-    cSensorImage *  aSI =  mPhProj.LoadSensor(FileOfPath(aNameIm,false /* Ok Not Exist*/),false /* Not SVP*/);
 
     if (mPhProj.DPPointsMeasures().DirInIsInit())
        TestGroundTruth(*aSI);
 
-    if (mTestCorDirInv || mExportMeasures)
+    if (mTestCorDirInv)
        TestCoherenceDirInv(*aSI);
+
+    if (mPhProj.DPPointsMeasures().DirOutIsInit())
+       ExportMeasures(*aSI);
+
+    if (mDoTestGrad)
+        TestCoherenceGrad(*aSI);
 
     StdOut() << "NAMEORI=[" << aSI->NameOriStd()  << "]\n";
 
@@ -217,7 +242,6 @@ int cAppliTestSensor::Exe()
     }
     */
 
-    mExportMeasures = mPhProj.DPPointsMeasures().DirOutIsInit();
     if (RunMultiSet(0,0))
     {
        return ResultMultiSet();

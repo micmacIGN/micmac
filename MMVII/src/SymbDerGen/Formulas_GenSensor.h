@@ -187,15 +187,15 @@ class cEqColinSensGenPolyn2D
     //  as data (observation/context) describing the "tangent" application,  more precicsely we must give :
     // 
     //      * the value of grounf point "P0x, P0y, P0z"
-    //      * the gradient of projection for I    "dIdX,dIDY,dIdZ"  and J "dJdX,dJDY,dJdZ"
     //      * the projection of ground point "IP0,JP0"
+    //      * the gradient of projection for I    "dIdX,dIDY,dIdZ"  and J "dJdX,dJDY,dJdZ"
     // 
     //    Also the vector of observation contains as usual the measure of the point in image "IObs","JObs"
 
     std::vector<std::string> VNamesObs() const      
     { 
-                // 0               2              4                    7                       10
-         return {"IObs","JObs",   "IP0","JP0",    "P0x","P0y","P0z",   "dIdX","dIDY","dIdZ",   "dJdX","dJDY","dJdZ"};
+                // 0              2                   5                7                      10
+         return {"IObs","JObs",  "P0x","P0y","P0z"    "IP0","JP0",    "dIdX","dIDY","dIdZ",   "dJdX","dJDY","dJdZ"};
     }
 
     std::string FormulaName() const { return  mDistPol2D.NamesDist() + "_EqColin";}
@@ -215,8 +215,8 @@ class cEqColinSensGenPolyn2D
 
           cPtxd<tObs,2>  aPixObs = VtoP2(aVObs,0);  // extract the measurement (like tie point)
 
-          cPtxd<tObs,2>   aPix0   = VtoP2(aVObs,2);  // extract projection of estimation
-          cPtxd<tObs,3>   aP0  = VtoP3(aVObs,4);     //  Estimation of point, where the linearisation was made
+          cPtxd<tObs,3>   aP0  = VtoP3(aVObs,2);     //  Estimation of point, where the linearisation was made
+          cPtxd<tObs,2>   aPix0   = VtoP2(aVObs,5);  // extract projection of estimation
           cPtxd<tUk,3>  aDP = aPUk-aP0;              //  differnce between unknonw and estimatio,
           cPtxd<tObs,3>   aGradI = VtoP3(aVObs,7);   //  extract gradient of "I"
           cPtxd<tObs,3>   aGradJ = VtoP3(aVObs,10);  //  extract gradient of "J"

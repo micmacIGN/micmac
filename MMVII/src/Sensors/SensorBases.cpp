@@ -161,7 +161,7 @@ void cSensorImage::PutUknowsInSetInterval()
     MMVII_INTERNAL_ERROR("cSensorImage::PutUknowsInSetInterval not implemanted");
 }
 
-void cSensorImage::PushOwnObsColinearity( std::vector<double> &) 
+void cSensorImage::PushOwnObsColinearity( std::vector<double> &,const cPt3dr&) 
 {
     MMVII_INTERNAL_ERROR("cSensorImage::PushOwnObsColinearity not implemanted");
 }
@@ -224,11 +224,12 @@ cPt3dr  cSensorImage::EpsDiffGround2Im(const cPt3dr &) const
     return cPt3dr::Dummy();
 }
 
-std::pair<cPt3dr,cPt3dr>  cSensorImage::DiffG2IByFiniteDiff(const cPt3dr & aPt) const
+tProjImAndGrad  cSensorImage::DiffG2IByFiniteDiff(const cPt3dr & aPt) const
 {
+     tProjImAndGrad aRes;
+     aRes.mPIJ = Ground2Image(aPt);
+
      cPt3dr aEpsXYZ = EpsDiffGround2Im(aPt);
-     cPt3dr aGradI;
-     cPt3dr aGradJ;
 
      for (size_t aKCoord=0 ; aKCoord<3 ; aKCoord++)
      {
@@ -238,13 +239,13 @@ std::pair<cPt3dr,cPt3dr>  cSensorImage::DiffG2IByFiniteDiff(const cPt3dr & aPt) 
 
 	  cPt2dr aGradK = (Ground2Image(aPPlus)-Ground2Image(aPMinus)) / (2*aEps);
 
-	  aGradI[aKCoord] = aGradK.x();
-	  aGradJ[aKCoord] = aGradK.y();
+	  aRes.mGradI[aKCoord] = aGradK.x();
+	  aRes.mGradJ[aKCoord] = aGradK.y();
      }
-     return std::pair<cPt3dr,cPt3dr>(aGradI,aGradJ);
+     return aRes;
 }
 
-std::pair<cPt3dr,cPt3dr>  cSensorImage::DiffGround2Im(const cPt3dr & aPt) const
+tProjImAndGrad  cSensorImage::DiffGround2Im(const cPt3dr & aPt) const
 {
 	return DiffG2IByFiniteDiff(aPt);
 }
