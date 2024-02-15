@@ -621,7 +621,7 @@ cSetMesPtOf1Im cPhotogrammetricProject::LoadMeasureIm(const std::string & aNameI
    return cSetMesPtOf1Im::FromFile(NameMeasureGCPIm(aNameIm,isIn));
 }
 
-void cPhotogrammetricProject::SaveGCP(const cSetMesGCP & aMGCP)
+void cPhotogrammetricProject::SaveGCP(const cSetMesGCP & aMGCP) const
 {
      aMGCP.ToFile(mDPPointsMeasures.FullDirOut() + aMGCP.StdNameFile());
      // aMGCP.ToFile(mDPPointsMeasures.FullDirOut() + cSetMesGCP::ThePrefixFiles + aMGCP.Name() + "." + TaggedNameDefSerial());

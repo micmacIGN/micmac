@@ -432,6 +432,9 @@ class cSensorCamPC : public cSensorImage
          /// Create form  Un-Calibrated-Space-Resection
          static cSensorCamPC * CreateUCSR(const cSet2D3D&,const cPt2di & aSzCam,const std::string&,bool Real16=true);
 
+
+	 cPt3dr  EpsDiffGround2Im(const cPt3dr &) const override ;
+
          cPt2dr Ground2Image(const cPt3dr &) const override;
 
 	 double DegreeVisibility(const cPt3dr &) const override;

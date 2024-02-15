@@ -218,6 +218,37 @@ cPt3dr cSensorImage::ImageAndDepth2Ground(const cPt2dr & aP2,const double & aDep
 bool   cSensorImage::HasImageAndDepth() const {return false;}
 bool   cSensorImage::HasIntervalZ() const {return false;}
 
+cPt3dr  cSensorImage::EpsDiffGround2Im(const cPt3dr &) const 
+{
+    MMVII_INTERNAL_ERROR("EspDiffGround2Im has not been defined for sensor class : " + V_PrefixName());
+    return cPt3dr::Dummy();
+}
+
+std::pair<cPt3dr,cPt3dr>  cSensorImage::DiffG2IByFiniteDiff(const cPt3dr & aPt) const
+{
+     cPt3dr aEpsXYZ = EpsDiffGround2Im(aPt);
+     cPt3dr aGradI;
+     cPt3dr aGradJ;
+
+     for (size_t aKCoord=0 ; aKCoord<3 ; aKCoord++)
+     {
+          tREAL8 aEps = aEpsXYZ[aKCoord];
+	  cPt3dr aPPlus =  aPt + cPt3dr::P1Coord(aKCoord,aEps);
+	  cPt3dr aPMinus = aPt + cPt3dr::P1Coord(aKCoord,-aEps);
+
+	  cPt2dr aGradK = (Ground2Image(aPPlus)-Ground2Image(aPMinus)) / (2*aEps);
+
+	  aGradI[aKCoord] = aGradK.x();
+	  aGradJ[aKCoord] = aGradK.y();
+     }
+     return std::pair<cPt3dr,cPt3dr>(aGradI,aGradJ);
+}
+
+std::pair<cPt3dr,cPt3dr>  cSensorImage::DiffGround2Im(const cPt3dr & aPt) const
+{
+	return DiffG2IByFiniteDiff(aPt);
+}
+
 
 
 

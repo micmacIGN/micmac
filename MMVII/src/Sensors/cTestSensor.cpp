@@ -40,6 +40,7 @@ class cAppliTestSensor : public cMMVII_Appli
 
 	std::vector<int>         mSzGenerate;
 	bool                     mTestCorDirInv;
+	bool                     mExportMeasures;
 
 
 };
@@ -52,11 +53,12 @@ std::vector<std::string>  cAppliTestSensor::Samples() const
 }
 
 cAppliTestSensor::cAppliTestSensor(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-    cMMVII_Appli   (aVArgs,aSpec),
-    mPhProj        (*this),
-    mShowDetail    (false),
-    mSzGenerate    {15,3},
-    mTestCorDirInv (true)
+    cMMVII_Appli    (aVArgs,aSpec),
+    mPhProj         (*this),
+    mShowDetail     (false),
+    mSzGenerate     {15,3},
+    mTestCorDirInv  (true),
+    mExportMeasures (false)
 {
 }
 
@@ -72,9 +74,10 @@ cCollecSpecArg2007 & cAppliTestSensor::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
     return anArgOpt
                << mPhProj.DPPointsMeasures().ArgDirInOpt()
+               << mPhProj.DPPointsMeasures().ArgDirOutOpt()
                << AOpt2007(mShowDetail,"ShowD","Show detail",{eTA2007::HDV})
                << AOpt2007(mTestCorDirInv,"TestCDI","Test coherence of direct/invers model",{eTA2007::HDV})
-               << AOpt2007(mSzGenerate,"SzGen","Sz gen",{eTA2007::HDV})
+               << AOpt2007(mSzGenerate,"SzGen","Sz gen",{eTA2007::HDV,{eTA2007::ISizeV,"[2,2]"}})
             ;
 }
 
@@ -119,9 +122,27 @@ void cAppliTestSensor::TestCoherenceDirInv(const  cSensorImage & aSI) const
         aIntZD = aSI.GetIntervalZ(); // at least with RPC, need to get validity interval
      }
 
-     int mNbByDim = 10;
-     int mNbDepth = 5;
+     int mNbByDim = mSzGenerate.at(0);
+     int mNbDepth = mSzGenerate.at(1);
      cSet2D3D  aS32 = aSI.SyntheticsCorresp3D2D(mNbByDim,mNbDepth,aIntZD.x(),aIntZD.y(),InDepth);
+     
+     if (mExportMeasures)
+     {
+         cSetMesGCP      aSet3D(aSI.NameImage());
+	 cSetMesPtOf1Im  aSet2D(aSI.NameImage());
+	 int aNb=0;
+	 for (const auto & aPair : aS32.Pairs())
+	 {
+             std::string aName = "Pt_"+ ToStr(aNb) + "-" + aSI.NameImage();
+             aNb++;
+	     // We put proj of 3D, rather than 2D, because of unaccuracy Dir*Inv
+	     aSet2D.AddMeasure(cMesIm1Pt(aSI.Ground2Image(aPair.mP3),aName,1.0));
+	     aSet3D.AddMeasure(cMes1GCP(aPair.mP3,aName,1.0));
+	 }
+	 mPhProj.SaveGCP(aSet3D);
+	 mPhProj.SaveMeasureIm(aSet2D);
+
+     }
 
      if (mTestCorDirInv)
      {
@@ -176,7 +197,7 @@ void  cAppliTestSensor::DoOneImage(const std::string & aNameIm)
     if (mPhProj.DPPointsMeasures().DirInIsInit())
        TestGroundTruth(*aSI);
 
-    if (mTestCorDirInv)
+    if (mTestCorDirInv || mExportMeasures)
        TestCoherenceDirInv(*aSI);
 
     StdOut() << "NAMEORI=[" << aSI->NameOriStd()  << "]\n";
@@ -196,6 +217,7 @@ int cAppliTestSensor::Exe()
     }
     */
 
+    mExportMeasures = mPhProj.DPPointsMeasures().DirOutIsInit();
     if (RunMultiSet(0,0))
     {
        return ResultMultiSet();

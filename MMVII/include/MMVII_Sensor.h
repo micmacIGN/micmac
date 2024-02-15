@@ -126,6 +126,19 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	 /// Compute 3D point by bundle intersection
 	  cPt3dr PInterBundle(const cHomogCpleIm & aCple,const cSensorImage &) const;
 
+
+	         //  -------------------  Jacobian ---------------------------------
+		 
+	  /**  Compute the gradient of the projection function  R3->R2  Ground->Image, 
+	   * def use finite diff;  result component I and J of differential */
+	  virtual std::pair<cPt3dr,cPt3dr>  DiffGround2Im(const cPt3dr &) const;
+
+	  /** For test purpose, we may wish to compute jacobian by finite difference even if DiffGround2Im was overloaded */
+	  std::pair<cPt3dr,cPt3dr>  DiffG2IByFiniteDiff(const cPt3dr &) const;
+
+	  /// Epislon-value for computing finite difference, def => ERROR
+	  virtual cPt3dr  EpsDiffGround2Im(const cPt3dr &) const ;
+
 	 // =================   Visibility/validity   ===========================
 
 	 /// Indicate how much a point belongs to sensor visibilty domain
@@ -496,7 +509,7 @@ class cPhotogrammetricProject
 	  // if SVP && file doesnt exist, do nothing
 	  void LoadIm(cSetMesImGCP&,const std::string & aNameIm,cSensorImage * =nullptr,bool SVP=false) const;
 	  void LoadIm(cSetMesImGCP&,cSensorImage & ) const;
-	  void SaveGCP(const cSetMesGCP&);
+	  void SaveGCP(const cSetMesGCP&) const;
 
 	  /// Name of the file, usefull if we need to test existence before doing anything
 	  std::string NameMeasureGCPIm(const std::string & aNameIm,bool isIn) const;
