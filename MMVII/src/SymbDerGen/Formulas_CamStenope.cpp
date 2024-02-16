@@ -76,7 +76,7 @@ std::string NameMon(const cPt2di& aDegMon)
 }
 
 
-cDescOneFuncDist::cDescOneFuncDist(eTypeFuncDist aType,const cPt2di aDegXY,bool isFraserMode) :
+cDescOneFuncDist::cDescOneFuncDist(eTypeFuncDist aType,const cPt2di aDegXY,eModeDistMonom aModeMonom) :
    mType    (aType),
    mDegMon  (-1,-1),
    mNum     (-1)
@@ -128,11 +128,11 @@ cDescOneFuncDist::cDescOneFuncDist(eTypeFuncDist aType,const cPt2di aDegXY,bool 
       mDegMon = aDegXY;
       mDegTot = mDegMon.x() + mDegMon.y();
       bool isX = (mType==eTypeFuncDist::eMonX);
-      if ((isX) && (mDegTot==1) && isFraserMode)
+      if ((isX) && (mDegTot==1) && (aModeMonom==eModeDistMonom::eModeFraser))
       {
           mName = ( mDegMon.x() == 1) ? "b1" : "b2";  // Usual convention
       }
-      else if ((!isFraserMode) && (mDegTot==1) && ( mDegMon.y()==0))
+      else if ((mDegTot==1) && ( mDegMon.y()==0) && (aModeMonom==eModeDistMonom::eModeSysCyl))
       {
           mName = isX  ? "a" : "b";  // Usual convention
       }

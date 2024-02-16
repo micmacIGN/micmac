@@ -213,7 +213,7 @@ int  cAppliCompletUncodedTarget::Exe()
    }
 
    mNameIm = FileOfPath(mSpecImIn);
-   mPhProj.LoadSensor(mNameIm,mSensor,mCamPC,false);
+   mPhProj.ReadSensor(mNameIm,mSensor,mCamPC,true,false);
 
    //   load CGP
    mPhProj.LoadGCP(mMesImGCP);

@@ -62,14 +62,29 @@ class cPixelDomain :  public cDataBoundedSet<tREAL8,2>
 };
 
 
-/*  base-class  4 all image sensor */
 
+          // type to store the result of jacobian of proj R3->R2, stores P(G)  dP/dX  dP/dY dP/dZ
+class tProjImAndGrad
+{
+      public :
+          cPt2dr   mPIJ;
+          cPt3dr   mGradI;
+          cPt3dr   mGradJ;
+};
+
+/*  base-class  4 all image sensor */
 class cSensorImage  :   public cObj2DelAtEnd,
                         public cObjWithUnkowns<tREAL8>
 {
      public :
 
+
           cSensorImage(const std::string & aNameImage);
+
+          //  Allocators  , return nulltr if dont exist
+
+          ///  return an external sensor (like RPC, Grids ...) 
+          static cSensorImage * AllocExternalSensor(const std::string & aDirInit,const std::string & aDirSens,const std::string aNameIm);
 
 	  /// create a sensor in a new coordinate system, default error
 	  virtual cSensorImage * SensorChangSys(cDataInvertibleMapping<tREAL8,3> &) const ;
@@ -121,6 +136,19 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	 /// Compute 3D point by bundle intersection
 	  cPt3dr PInterBundle(const cHomogCpleIm & aCple,const cSensorImage &) const;
 
+
+	         //  -------------------  Jacobian ---------------------------------
+		 
+	  /**  Compute the gradient of the projection function  R3->R2  Ground->Image, 
+	   * def use finite diff;  result component I and J of differential */
+	  virtual tProjImAndGrad  DiffGround2Im(const cPt3dr &) const;
+
+	  /** For test purpose, we may wish to compute jacobian by finite difference even if DiffGround2Im was overloaded */
+	  tProjImAndGrad  DiffG2IByFiniteDiff(const cPt3dr &) const;
+
+	  /// Epislon-value for computing finite difference, def => ERROR
+	  virtual cPt3dr  EpsDiffGround2Im(const cPt3dr &) const ;
+
 	 // =================   Visibility/validity   ===========================
 
 	 /// Indicate how much a point belongs to sensor visibilty domain
@@ -170,7 +198,7 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	 /// method for saving oblet, def error
 	 virtual void ToFile(const std::string &) const ;
 
-	 // --------------------   methods used in bundle adjustment  --------------------
+	 // --------------------   Method for computing center of projection, or approximation  --------------------
 	
 	 ///  For stenope camera return center, for other best approx
 	 virtual cPt3dr  PseudoCenterOfProj() const = 0;
@@ -193,7 +221,7 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	 ///  cObjWithUnkowns , default error
 	 void PutUknowsInSetInterval() override;
 	 /// If the camera has its own "obs/cste" (like curent rot for PC-Cam) that's the place to say it
-	 virtual  void PushOwnObsColinearity( std::vector<double> &) ;
+	 virtual  void PushOwnObsColinearity(std::vector<double> &,const cPt3dr & aPGround) ;
 	 
 	 // Create if new, and memorize the colinearity equation
          cCalculator<double> * SetAndGetEqColinearity(bool WithDerives,int aSzBuf,bool ReUse);
@@ -415,6 +443,7 @@ class cPhotogrammetricProject
          //==================   ORIENTATION      =============================
 	 //===================================================================
 	 
+	  const std::string &   DirImportInitOri() const;   ///< Accessor
                //  Read/Write
           void SaveSensor(const cSensorImage &) const; ///< Save camera using OutPut-orientation
           void SaveCamPC(const cSensorCamPC &) const; ///< Save camera using OutPut-orientation
@@ -425,10 +454,10 @@ class cPhotogrammetricProject
 
 
 	  /// Load a sensor, try different type (will add RPC , and others ?) use autom delete (dont need to delete it)
-	  void LoadSensor(const std::string &NameIm,cSensorImage* &,cSensorCamPC * &,bool SVP=false);
+	  void ReadSensor(const std::string &NameIm,cSensorImage* &,cSensorCamPC * &,bool ToDeleteAutom,bool SVP=false);
 
 	  /// return the generic sensor, use autom delete (dont need to delete it)
-	  cSensorImage* LoadSensor(const std::string  &aNameIm,bool SVP=false);
+	  cSensorImage* ReadSensor(const std::string  &aNameIm,bool ToDeleteAutom,bool SVP=false);
 
 
 	      // Internal Calibration  
@@ -490,7 +519,7 @@ class cPhotogrammetricProject
 	  // if SVP && file doesnt exist, do nothing
 	  void LoadIm(cSetMesImGCP&,const std::string & aNameIm,cSensorImage * =nullptr,bool SVP=false) const;
 	  void LoadIm(cSetMesImGCP&,cSensorImage & ) const;
-	  void SaveGCP(const cSetMesGCP&);
+	  void SaveGCP(const cSetMesGCP&) const;
 
 	  /// Name of the file, usefull if we need to test existence before doing anything
 	  std::string NameMeasureGCPIm(const std::string & aNameIm,bool isIn) const;
@@ -610,7 +639,8 @@ class cPhotogrammetricProject
 	  std::string     mDirPhp;
 	  std::string     mDirVisu;
 
-	  std::string     mDirSysCo;
+	  std::string     mDirSysCo;        /// Folder where are stored System of coordinates
+	  std::string     mDirImportInitOri; /// Folder where are stored INIT-al  ORI-entation
           std::vector<std::string>   mNameChSys;
           cChangSysCoordV2          mChSys;
 

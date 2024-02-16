@@ -765,7 +765,7 @@ template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUp
 {
     if (mNbVar>currNbObs)
     {
-           //StdOut()  << "currNbObscurrNbObs " << currNbObs  << " RRRRR=" << currNbObs - mNbVar << std::endl;
+           // StdOut()  << "currNbObscurrNbObs " << currNbObs  << " RRRRR=" << currNbObs - mNbVar << std::endl;
         MMVII_DEV_WARNING("Not enough obs for var ");
     }
     lastNbObs = currNbObs;

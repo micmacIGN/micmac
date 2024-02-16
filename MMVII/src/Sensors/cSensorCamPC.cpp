@@ -188,6 +188,14 @@ void cSensorCamPC::PutUknowsInSetInterval()
 
 
 
+cPt3dr  cSensorCamPC::EpsDiffGround2Im(const cPt3dr & aPt) const 
+{
+    tREAL8 aNbPixel = 5.0;
+
+    tREAL8 aEps = (Norm2(aPt-Center()) / mInternalCalib->F()) * aNbPixel;
+    return cPt3dr::PCste(aEps);
+}
+
 
 cPt2dr cSensorCamPC::Ground2Image(const cPt3dr & aP) const
 {
@@ -249,7 +257,7 @@ cCalculator<double> * cSensorCamPC::CreateEqColinearity(bool WithDerives,int aSz
    return mInternalCalib->EqColinearity(WithDerives,aSzBuf,ReUse);
 }
 
-void cSensorCamPC::PushOwnObsColinearity(std::vector<double> & aVObs)
+void cSensorCamPC::PushOwnObsColinearity(std::vector<double> & aVObs,const cPt3dr &)
 {
      mPose_WU.PushObs(aVObs,true);
 }

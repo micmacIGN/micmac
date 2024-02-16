@@ -432,6 +432,9 @@ class cSensorCamPC : public cSensorImage
          /// Create form  Un-Calibrated-Space-Resection
          static cSensorCamPC * CreateUCSR(const cSet2D3D&,const cPt2di & aSzCam,const std::string&,bool Real16=true);
 
+
+	 cPt3dr  EpsDiffGround2Im(const cPt3dr &) const override ;
+
          cPt2dr Ground2Image(const cPt3dr &) const override;
 
 	 double DegreeVisibility(const cPt3dr &) const override;
@@ -461,7 +464,7 @@ class cSensorCamPC : public cSensorImage
          /// Return the calculator, adapted to the type, for computing colinearity equation
          cCalculator<double> * CreateEqColinearity(bool WithDerives,int aSzBuf,bool ReUse) override;
 	 /// Push the current rotation, as equation are fixed using delta-rot
-	 void PushOwnObsColinearity( std::vector<double> &) override;
+	 void PushOwnObsColinearity(std::vector<double> &,const cPt3dr &) override;
 
 
 	 /// return the pose of aCam2 relatively to Cam1

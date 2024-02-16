@@ -26,10 +26,18 @@ enum class eTypeFuncDist
      used of not according to the others, but as it internal/final classes, quick and dirty
      exceptionnaly allowed ...
 */
+enum class eModeDistMonom
+{
+     eModeFraser,  // dx = b1 x + b2 y
+     eModeSysCyl,  // dx = ax    dy = by
+     eModeStd      // no special case
+};
+
+
 class cDescOneFuncDist
 {
     public :
-      cDescOneFuncDist(eTypeFuncDist aType,const cPt2di aDeg,bool isFraserMode);
+      cDescOneFuncDist(eTypeFuncDist aType,const cPt2di aDeg,eModeDistMonom aModeMonom);
       /// Majorarion of norms of jacobian , used in simulation
       double MajNormJacOfRho(double aRho) const;
 
@@ -42,6 +50,8 @@ class cDescOneFuncDist
 };
 
 std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg,bool isFraserMode);
+
+std::vector<cDescOneFuncDist>   Polyn2DDescDist(int aDegree);
 
 const std::vector<cDescOneFuncDist> & VDesc_RadiomCPI(int aDegree,int aDRadElim=-1);
 
@@ -121,9 +131,15 @@ NS_SymbolicDerivative::cCalculator<double> * EqCPProjDir(eProjPC  aType,bool Wit
 ///  For computing projections "inverse"   R2->R3 , return in fact direction of  bundle
 NS_SymbolicDerivative::cCalculator<double> * EqCPProjInv(eProjPC  aType,bool WithDerive,int aSzBuf);
 
+NS_SymbolicDerivative::cCalculator<double> * EqDistPol2D(int  aDeg,bool WithDerive,int aSzBuf,bool ReUse); // PUSHB
+NS_SymbolicDerivative::cCalculator<double> * EqColinearityCamGen(int  aDeg,bool WithDerive,int aSzBuf,bool ReUse); // PUSHB
+NS_SymbolicDerivative::cCalculator<double> * RPC_Proj(bool WithDerive,int aSzBuf,bool ReUse); // PUSHB
+
            // .............   Equation colinearity , imply external parameter, Projectiion, distorsion, foc+PP .............
 NS_SymbolicDerivative::cCalculator<double> * EqColinearityCamPPC(eProjPC  aType,const cPt3di & aDeg,bool WithDerive,int aSzBuf,bool ReUse,bool isFraserMode);
 
+
+          
            // .............   Equation radiometry .............
 NS_SymbolicDerivative::cCalculator<double> * EqRadiomVignettageLinear(int aNbDeg,bool WithDerive,int aSzBuf,bool WithCste,int aDegPolSens);
 NS_SymbolicDerivative::cCalculator<double> * EqRadiomCalibRadSensor(int aNbDeg,bool WithDerive,int aSzBuf,bool WithCste,int aDegPolSens);
@@ -181,7 +197,6 @@ NS_SymbolicDerivative::cCalculator<double> * EqNetworkConsDistProgCov(bool WithD
 NS_SymbolicDerivative::cCalculator<double> * EqNetworkConsDistFixPoints(bool WithDerive,int aSzBuf,const cPt2di& aSzN,bool WithSimUK);
 ///  idem, but more adapted to real case (as in surface devlopment)
 NS_SymbolicDerivative::cCalculator<double> * EqNetworkConsDistFixPoints(bool WithDerive,int aSzBuf,int aNbPts);
-
 
 
 

@@ -500,6 +500,23 @@ enum class eDCTFilters
    eNbVals
 };
 
+enum class eTypeSensor
+{
+      eCenP,   // Central Perpsective
+      eRPC,    // Rational  Polynomial Coeff
+      eNbVals
+};
+
+enum class eFormatSensor
+{
+      eMMVII_CenP,   // Central Perpsective in MMVII Format
+      eDimap_RPC,   // Rational  Polynomial Coeff in DIMAP Format
+      eNbVals
+};
+
+
+
+
 enum class eProjPC
 {
      eStenope,
@@ -542,6 +559,8 @@ enum class eMTDIm
               eNbVals
            };
 
+const std::string & E2Str(const eFormatSensor &);
+const std::string & E2Str(const eTypeSensor &);
 
 const std::string & E2Str(const eTyUnitAngle &);
 const std::string & E2Str(const eMTDIm &);

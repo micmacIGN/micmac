@@ -158,6 +158,7 @@ template <class Type,const int Dim> class cPtxd
 
         cDenseVect<Type> ToVect() const; ///< conversion
         std::vector<Type> ToStdVector() const; ///< conversion
+	void PushInStdVector(std::vector<Type> &) const;
 
         tBigNum  MinSqN2(const std::vector<tPt> &,bool SVP=false) const; ///< if SVP & empty return 0
 

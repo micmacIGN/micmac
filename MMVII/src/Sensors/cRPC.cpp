@@ -1,16 +1,17 @@
-#include "StdAfx.h"
-#include "V1VII.h"
-#include "cMMVII_Appli.h"
-#include "MMVII_DeclareCste.h"
 #include "MMVII_Geom3D.h"
 #include "MMVII_Sensor.h"
-#include "../Serial/Serial.h"
+#include "cExternalSensor.h"
+#include "MMVII_PhgrDist.h"
+#include "MMVII_util_tpl.h"
 
 namespace MMVII
 {
 
-typedef double  tRPCCoeff[20];
-class cDataRPC;
+/* =============================================== */
+
+static constexpr int TheNbRPCoeff = 20;
+typedef double  tRPCCoeff[TheNbRPCoeff];
+class cRPCSens;
 class cRatioPolynXY;
 class cRPC_RatioPolyn;
 class cRPC_Polyn ;
@@ -32,6 +33,8 @@ class cRPC_Polyn : public cDataMapping<tREAL8,3,1>
 
         static void  FillCubicCoeff(tRPCCoeff & aVCoeffs,const cPt3dr &) ;
 	// cPt1dr Value(const cPt3dr &) const override; // Make the object a mapping, in case it is usefull
+	//
+	void PushCoeffs(std::vector<tREAL8>&) const;
     private:
         double Val(const cPt3dr &) const;
 
@@ -55,6 +58,7 @@ class cRPC_RatioPolyn
         void Show();
         double Val(const tRPCCoeff &) const;
 
+	void PushCoeffs(std::vector<tREAL8>&) const;
     private:
         double Val(const cPt3dr &) const;
         cRPC_Polyn mNumPoly; // numerator polynomial
@@ -83,6 +87,7 @@ class cRatioPolynXY
         cPt2dr Val(const cPt3dr &) const;
         void   Show();
 
+	void PushCoeffs(std::vector<tREAL8>&) const;
     private:
         cRPC_RatioPolyn mX;
         cRPC_RatioPolyn mY;
@@ -90,7 +95,7 @@ class cRatioPolynXY
 };
 
 /**  A class containing RPCs  */
-class cDataRPC : public cSensorImage
+class cRPCSens : public cSensorImage
 {
     public:
 
@@ -99,11 +104,15 @@ class cDataRPC : public cSensorImage
          cPt2dr Ground2Image(const cPt3dr &) const override;
          ///    Method specialized, more efficent than using bundles
          cPt3dr ImageAndZ2Ground(const cPt3dr &) const override;
+        /// Epsilon-coordinate, taking into account the heterogeneity
+	cPt3dr  EpsDiffGround2Im(const cPt3dr & aPt) const override;
+
+	 /// Compute analytical differential using gen-code
+	 tProjImAndGrad  DiffGround2Im(const cPt3dr &) const override;
+
 
 	/// Indicate how much a point belongs to sensor visibilty domain
          double DegreeVisibility(const cPt3dr &) const  override;
-
-
 	 bool  HasIntervalZ()  const override;
          cPt2dr GetIntervalZ() const override;
 
@@ -111,12 +120,14 @@ class cDataRPC : public cSensorImage
          const cPixelDomain & PixelDomain() const override;
          std::string  V_PrefixName() const  override;
 
-         cDataRPC(const std::string& aNameRPC,const std::string& aNameImage);
+         cRPCSens(const std::string& aNameRPC,const std::string& aNameImage);
+	 void InitFromFile(const cAnalyseTSOF &);
+
          void Dimap_ReadXML_Glob(const cSerialTree&);
 
         cPt3dr ImageZToGround(const cPt2dr&,const double) const;
 
-        ~cDataRPC();
+        ~cRPCSens();
 
         void Show();
 
@@ -138,13 +149,14 @@ class cDataRPC : public cSensorImage
         const cPt3dr & GroundScale() const {return mGroundScale;}
         cPt3dr & GroundScale() {return mGroundScale;}
 
+
     private:
 
          //  --------------- BEGIN NOT IMPLEMANTED -----------------------------------------------
  
          // standard declaration to forbid copy 
-         cDataRPC(const cDataRPC&) = delete;
-         void operator = (const cDataRPC&) = delete;
+         cRPCSens(const cRPCSens&) = delete;
+         void operator = (const cRPCSens&) = delete;
 
          // These  method are not meaningfull for RPC,  probably will have to redesign
          // the base class cSensorImage, waiting for that define fake functions
@@ -170,13 +182,16 @@ class cDataRPC : public cSensorImage
         /// coordinate normalisation:  coord_norm = (coord - coord_offset) / coord_scale
         cPt2dr mImOffset; // line and sample offsets
         cPt2dr mImScale;  // line and sample scales
+        // Just Add Z to make it more homogeneaous with mGroundOffset/mGroundScale
+        cPt3dr m3DImOffset; // line and sample offsets
+        cPt3dr m3DImScale;  // line and sample scales
 
         cPt3dr mGroundOffset; // ground coordinate (e.g., lambda, phi, h) offets
         cPt3dr mGroundScale;  // ground coordinate (e.g., lambda, phi, h) scales
 
         std::string mNameRPC;
 
-        // Internally the cDataRPC use dimap convention "Lat,long,H" and  "Line,Col";
+        // Internally the cRPCSens use dimap convention "Lat,long,H" and  "Line,Col";
         //  while MM-V2/V1  use XYZ direct (i.e Long,Lat,H) and    col,line
         //  Not sur what we will do in the future, so we 
         bool  mSwapXYGround;
@@ -187,6 +202,8 @@ class cDataRPC : public cSensorImage
         cDataPixelDomain  mDataPixelDomain;
         cPixelDomain      mPixelDomain;
 	cBox3dr           mBoxGround;
+
+	cPt3dr            mEpsCoord; /// Pre-compute the "right" espislon value
 };
 
 
@@ -274,7 +291,11 @@ void  cRPC_Polyn::FillCubicCoeff(tRPCCoeff & aVCoeffs,const cPt3dr & aP)
      aVCoeffs[19] = aP.z() * aP.z() * aP.z();
 }
 
-	// cPt1dr Value(const cPt3dr &) const override;
+void cRPC_Polyn::PushCoeffs(std::vector<tREAL8>& aVObs) const
+{
+    for (size_t aK=0 ; aK<TheNbRPCoeff ; aK++)
+        aVObs.push_back(mCoeffs[aK]);
+}
 
 void cRPC_Polyn::Show()
 {
@@ -319,6 +340,12 @@ void cRPC_RatioPolyn::Show()
     mDenPoly.Show();
 }
 
+void cRPC_RatioPolyn::PushCoeffs(std::vector<tREAL8>& aVObs) const
+{
+    mNumPoly.PushCoeffs(aVObs);
+    mDenPoly.PushCoeffs(aVObs);
+}
+
 /* =============================================== */
 /*                                                 */
 /*                 cRatioPolynXY                   */
@@ -350,18 +377,17 @@ void cRatioPolynXY::Show()
     mY.Show();
 }
 
-
-/* =============================================== */
-/*                                                 */
-/*                 cDataRPC                        */
-/*                                                 */
-/* =============================================== */
+void cRatioPolynXY::PushCoeffs(std::vector<tREAL8>& aVObs) const
+{
+    mX.PushCoeffs(aVObs);
+    mY.PushCoeffs(aVObs);
+}
 
      // ====================================================
      //     Construction & Destruction  & Show
      // ====================================================
 
-cDataRPC::cDataRPC(const std::string& aNameRPC,const std::string& aNameImage) :
+cRPCSens::cRPCSens(const std::string& aNameRPC,const std::string& aNameImage) :
     cSensorImage       (aNameImage),
     mDirectRPC         (nullptr),
     mInverseRPC        (nullptr),
@@ -373,33 +399,43 @@ cDataRPC::cDataRPC(const std::string& aNameRPC,const std::string& aNameImage) :
     mPixelDomain       (&mDataPixelDomain),
     mBoxGround         (cBox3dr::Empty())  // Empty box because no default init
 {
-    //  Is it a xml file ?
-    if (UCaseEqual(LastPostfix(aNameRPC),"xml"))
-    {
-        cSerialFileParser * aSFP = cSerialFileParser::Alloc(aNameRPC,eTypeSerial::exml);
-        cSerialTree  aTree(*aSFP);
-        // Is it a dimap tree
-        if (!aTree.GetAllDescFromName("Dimap_Document").empty())
-        {
-           // if yes read the dimap-xml-tree and return
-           Dimap_ReadXML_Glob(aTree);
-           delete aSFP;
-           return;
-        }
-        MMVII_UnclasseUsEr("RPC : Dont handle this xml file, for " + aNameRPC);
-    }
-    else
-    {
-        MMVII_UnclasseUsEr("RPC : Dont handle postfix for "+aNameRPC);
-    }
+}
+     /*
+     if (anAnalyse.mFormat== eFormatSensor::eDimap_RPC)
+     {
+        Dimap_ReadXML_Glob(*anAnalyse.mSTree);
+        delete anAnalyse.mSTree;
+     }
+     */
+
+void cRPCSens::InitFromFile(const cAnalyseTSOF & anAnalyse)
+{
+   MMVII_INTERNAL_ASSERT_strong(anAnalyse.mData.mType==eTypeSensor::eRPC,"Sensor is not RPC in cRPCSens"); 
+   if (anAnalyse.mData.mFormat== eFormatSensor::eDimap_RPC)
+   {
+        Dimap_ReadXML_Glob(*anAnalyse.mSTree);
+   }
+
+   //  For now trust the scale
+   cPt3dr aScGrV2 = IO_PtGr(mGroundScale);
+   cPt2dr aScGrIm = IO_PtIm(mImScale);
+
+   tREAL8 aNbPixel = 5.0;
+   //  Make the Epsilon so that a dif of 1 Epislon correspond ~ to aNbPixel
+   mEpsCoord.x() = (aScGrV2.x() / aScGrIm.x()) * aNbPixel;
+   mEpsCoord.y() = (aScGrV2.y() / aScGrIm.y()) * aNbPixel;
+
+   mEpsCoord.z() =  1.0 * aNbPixel; // very rough
+				    //
+   // StdOut() << "EPSILON : " << mEpsCoord << "\n";
 }
 
-cDataRPC::~cDataRPC()
+cRPCSens::~cRPCSens()
 {
     delete mDirectRPC;
     delete mInverseRPC;
 }
-void cDataRPC::Show()
+void cRPCSens::Show()
 {
     StdOut() << "\t======= Direct model =======" << std::endl;
     mDirectRPC->Show();
@@ -418,14 +454,14 @@ void cDataRPC::Show()
 
 }
 
-std::string  cDataRPC::V_PrefixName() const  
+std::string  cRPCSens::V_PrefixName() const  
 {
 	return "RPC";
 }
 
      // ======================  Dimap creation ===========================
 
-void cDataRPC::Dimap_ReadXMLModel(const cSerialTree& aTree,const std::string& aPrefix,cRatioPolynXY * aModel)
+void cRPCSens::Dimap_ReadXMLModel(const cSerialTree& aTree,const std::string& aPrefix,cRatioPolynXY * aModel)
 {
     const cSerialTree * aDirect = aTree.GetUniqueDescFromName(aPrefix);
 
@@ -437,23 +473,23 @@ void cDataRPC::Dimap_ReadXMLModel(const cSerialTree& aTree,const std::string& aP
 
 }
 
-void cDataRPC::Dimap_ReadXMLNorms(const cSerialTree& aTree)
+void cRPCSens::Dimap_ReadXMLNorms(const cSerialTree& aTree)
 {
     const cSerialTree * aData = aTree.GetUniqueDescFromName("RFM_Validity");
 
     mGroundOffset.x() = ReadXMLItem(*aData,"LAT_OFF");
     mGroundOffset.y() = ReadXMLItem(*aData,"LONG_OFF");
-    mGroundOffset.z() = ReadXMLItem(*aData,"HEIGHT_OFF");
+    m3DImOffset.z() = mGroundOffset.z() = ReadXMLItem(*aData,"HEIGHT_OFF");
 
     mGroundScale.x() = ReadXMLItem(*aData,"LAT_SCALE");
     mGroundScale.y() = ReadXMLItem(*aData,"LONG_SCALE");
-    mGroundScale.z() = ReadXMLItem(*aData,"HEIGHT_SCALE");
+    m3DImScale.z() = mGroundScale.z() = ReadXMLItem(*aData,"HEIGHT_SCALE");
 
-    mImScale.x() = ReadXMLItem(*aData,"LINE_SCALE");
-    mImScale.y() = ReadXMLItem(*aData,"SAMP_SCALE");
+    m3DImScale.x() = mImScale.x() = ReadXMLItem(*aData,"LINE_SCALE");
+    m3DImScale.y() = mImScale.y() = ReadXMLItem(*aData,"SAMP_SCALE");
 
-    mImOffset.x() = ReadXMLItem(*aData,"LINE_OFF");
-    mImOffset.y() = ReadXMLItem(*aData,"SAMP_OFF");
+    m3DImOffset.x() = mImOffset.x() = ReadXMLItem(*aData,"LINE_OFF");
+    m3DImOffset.y() = mImOffset.y() = ReadXMLItem(*aData,"SAMP_OFF");
 
     int anX = round_ni(ReadXMLItem(*aData,"LAST_COL"));
     int anY = round_ni(ReadXMLItem(*aData,"LAST_ROW"));
@@ -470,21 +506,22 @@ void cDataRPC::Dimap_ReadXMLNorms(const cSerialTree& aTree)
     aP1Gr.y() = ReadXMLItem(*aData,"LAST_LON");
     aP1Gr.z() =   mGroundOffset.z() +  mGroundScale.z();
 
-    mBoxGround = cBox3dr(aP0Gr,aP1Gr);
+    // StdOut() << "BBBBBB " << aP0Gr << " " << aP1Gr << "\n";
+    mBoxGround = cBox3dr(IO_PtGr(aP0Gr),IO_PtGr(aP1Gr));
 }
 
-bool  cDataRPC::HasIntervalZ()  const {return true;}
-cPt2dr cDataRPC::GetIntervalZ() const 
+bool  cRPCSens::HasIntervalZ()  const {return true;}
+cPt2dr cRPCSens::GetIntervalZ() const 
 {
 	return cPt2dr(mBoxGround.P0().z(),mBoxGround.P1().z());
 }
 
-double cDataRPC::ReadXMLItem(const cSerialTree & aData,const std::string& aPrefix)
+double cRPCSens::ReadXMLItem(const cSerialTree & aData,const std::string& aPrefix)
 {
     return std::stod(aData.GetUniqueDescFromName(aPrefix)->UniqueSon().Value());
 }
 
-void cDataRPC::Dimap_ReadXML_Glob(const cSerialTree & aTree)
+void cRPCSens::Dimap_ReadXML_Glob(const cSerialTree & aTree)
 {
     // read the direct model
     mDirectRPC = new cRatioPolynXY();
@@ -504,19 +541,19 @@ void cDataRPC::Dimap_ReadXML_Glob(const cSerialTree & aTree)
      //     Normalisation 
      // ====================================================
 
-cPt2dr cDataRPC::NormIm(const cPt2dr &aP,bool Direct) const
+cPt2dr cRPCSens::NormIm(const cPt2dr &aP,bool Direct) const
 {
     return  Direct ?
             DivCByC(aP - mImOffset,mImScale) : MulCByC(aP,mImScale) + mImOffset;
 }
 
-cPt3dr cDataRPC::NormGround(const cPt3dr &aP,bool Direct) const
+cPt3dr cRPCSens::NormGround(const cPt3dr &aP,bool Direct) const
 {
     return  Direct ?
             DivCByC(aP - mGroundOffset,mGroundScale) : MulCByC(aP,mGroundScale) + mGroundOffset;
 }
 
-double cDataRPC::NormZ(const double aZ,bool Direct) const
+double cRPCSens::NormZ(const double aZ,bool Direct) const
 {
     return Direct ?
            (aZ - mGroundOffset.z())/mGroundScale.z() : aZ*mGroundScale.z() + mGroundOffset.z();
@@ -526,10 +563,10 @@ double cDataRPC::NormZ(const double aZ,bool Direct) const
      //     Image <-> Ground  transformation
      // ====================================================
 
-cPt2dr cDataRPC::IO_PtIm(const cPt2dr&aPt) const {return mSwapIJImage?cPt2dr(aPt.y(),aPt.x()):aPt;}  
-cPt3dr cDataRPC::IO_PtGr(const cPt3dr&aPt) const {return mSwapXYGround?cPt3dr(aPt.y(),aPt.x(),aPt.z()):aPt;} 
+cPt2dr cRPCSens::IO_PtIm(const cPt2dr&aPt) const {return mSwapIJImage?cPt2dr(aPt.y(),aPt.x()):aPt;}  
+cPt3dr cRPCSens::IO_PtGr(const cPt3dr&aPt) const {return mSwapXYGround?cPt3dr(aPt.y(),aPt.x(),aPt.z()):aPt;} 
 
-cPt2dr cDataRPC::Ground2Image(const cPt3dr& aP) const
+cPt2dr cRPCSens::Ground2Image(const cPt3dr& aP) const
 {
     cPt3dr aPN  = NormGround(IO_PtGr(aP),true); // ground normalised
     cPt2dr aRes = NormIm(mInverseRPC->Val(aPN),false); // image unnormalised
@@ -537,7 +574,46 @@ cPt2dr cDataRPC::Ground2Image(const cPt3dr& aP) const
     return IO_PtIm(aRes);
 }
 
-cPt3dr cDataRPC::ImageZToGround(const cPt2dr& aPIm,const double aZ) const
+tProjImAndGrad  cRPCSens::DiffGround2Im(const cPt3dr & aP) const 
+{
+    static cCalculator<double> * aCalc = RPC_Proj(true,1,true/*ReUse*/);
+    static std::vector<double> aVObs;
+    aVObs.clear();
+
+    mGroundOffset.PushInStdVector(aVObs);
+    mGroundScale.PushInStdVector(aVObs);
+    m3DImOffset.PushInStdVector(aVObs);
+    m3DImScale.PushInStdVector(aVObs);
+    mInverseRPC->PushCoeffs(aVObs);
+
+    aCalc->DoOneEval(IO_PtGr(aP).ToStdVector(),aVObs);
+
+    tProjImAndGrad aRes;
+    aRes.mPIJ = IO_PtIm(cPt2dr(aCalc->ValComp(0,0),aCalc->ValComp(0,1)));
+
+    // tProjImAndGrad aDifF = DiffG2IByFiniteDiff(aP);
+
+    aRes.mGradI = IO_PtGr(cPt3dr(aCalc->DerComp(0,0,0),aCalc->DerComp(0,0,1),aCalc->DerComp(0,0,2)));
+    aRes.mGradJ = IO_PtGr(cPt3dr(aCalc->DerComp(0,1,0),aCalc->DerComp(0,1,1),aCalc->DerComp(0,1,2)));
+
+    if (mSwapIJImage)  
+       std::swap(aRes.mGradI,aRes.mGradJ);
+
+    return aRes;
+    /*
+
+    StdOut() << "PGRound "<< aP << " PROJ " <<  aDifF.mPIJ << aRes.mPIJ << std::endl;
+    StdOut() << " GRADI "<<  aDifF.mGradI  << aRes.mGradI << std::endl;
+    StdOut() << " GRADJ "<<  aDifF.mGradJ  << aRes.mGradJ << std::endl;
+    getchar();
+
+    return aDifF;
+    */
+}
+
+cPt3dr  cRPCSens::EpsDiffGround2Im(const cPt3dr & ) const {return mEpsCoord;}
+
+cPt3dr cRPCSens::ImageZToGround(const cPt2dr& aPIm,const double aZ) const
 {
 
     cPt2dr aPImN = NormIm(IO_PtIm(aPIm),true); // image normalised
@@ -548,12 +624,12 @@ cPt3dr cDataRPC::ImageZToGround(const cPt2dr& aPIm,const double aZ) const
     return IO_PtGr(aRes);
 }
 
-cPt3dr cDataRPC::ImageAndZ2Ground(const cPt3dr& aP) const
+cPt3dr cRPCSens::ImageAndZ2Ground(const cPt3dr& aP) const
 {
     return ImageZToGround(cPt2dr(aP.x(),aP.y()),aP.z());
 }
 
-tSeg3dr  cDataRPC::Image2Bundle(const cPt2dr & aPtIm) const 
+tSeg3dr  cRPCSens::Image2Bundle(const cPt2dr & aPtIm) const 
 {
      tREAL8  aZ0 = mGroundOffset.z() - mAmplZB;
      tREAL8  aZ1 = mGroundOffset.z() + mAmplZB;
@@ -565,386 +641,33 @@ tSeg3dr  cDataRPC::Image2Bundle(const cPt2dr & aPtIm) const
 }
 
 
-const cPixelDomain & cDataRPC::PixelDomain() const  {return mPixelDomain;}
+const cPixelDomain & cRPCSens::PixelDomain() const  {return mPixelDomain;}
 
 
-double cDataRPC::DegreeVisibility(const cPt3dr & aP) const
+double cRPCSens::DegreeVisibility(const cPt3dr & aP) const
 {
      // To see, but there is probably a unity problem, maybe to it with normalized coordinat theb
      // multiply by "pseudo" focal to have convention similar to central perspective
+
      return mBoxGround.Insideness(aP);
 }
 
      // ====================================================
      //     Not implemanted (not yet or never)
      // ====================================================
-cPt3dr  cDataRPC::PseudoCenterOfProj() const
+cPt3dr  cRPCSens::PseudoCenterOfProj() const
 {
-    MMVII_INTERNAL_ERROR("cDataRPC::PseudoCenterOfProj =>  2 Implement");
+    MMVII_INTERNAL_ERROR("cRPCSens::PseudoCenterOfProj =>  2 Implement");
 
     return cPt3dr::Dummy();
 }
 
-
-         // double DegreeVisibility(const cPt3dr &) const  ;
-         /// Indicacte how much a 2 D points belongs to definition of image frame
-         // double DegreeVisibilityOnImFrame(const cPt2dr &) const  ;
-
-
-/* =============================================== */
-/*                                                 */
-/*                 cDataRPC                        */
-/*                                                 */
-/* =============================================== */
-
-
-
-
-void Test2RPCProjections(const std::string& aNameIm)
+cSensorImage *  AllocRPCDimap(const cAnalyseTSOF & anAnalyse,const std::string & aNameImage)
 {
-    // cPhotogrammetricProject(cMMVII_Appli &);
-    // int InitStandAloneAppli(const cSpecMMVII_Appli & aSpec, int argc, char*argv[]);
+    cRPCSens* aRes = new cRPCSens(anAnalyse.mData.mNameFile,aNameImage);
+    aRes->InitFromFile(anAnalyse);
 
-
+    return aRes;
 }
-
-/** Bench the reprojection functions */
-
-/*
-void TestRPCProjections(const std::string& aNameRPC1)
-{
-    // read
-    cDataRPC aCam1(aNameRPC1);
-    // aCam1.Exe();
-
-    // (latitude,longtitude,h)
-    double aZ = 1188.1484901208684;
-    cPt3dr aPtGround(20.7369382477,16.6170106276,aZ);
-
-    // (j,i) ~ (Y, X) ~ (LINE,SAMPLE)
-    cPt2dr aPtIm(5769.51863767362192,6188.93377727110783);
-
-    StdOut() << "===== Ground to image" << std::endl;
-    cPt2dr aPtImPred = aCam1.Ground2Image(aPtGround);
-    StdOut() << aPtIm << " =? " << aPtImPred << ", " << std::endl;
-
-
-    StdOut() << "===== Image to ground" << std::endl;
-    cPt3dr aPtGroundPred = aCam1.ImageZToGround(aPtIm,aZ);
-
-    StdOut() << aPtGround << " =? " << aPtGroundPred << std::endl;
-
-}
-
-void TestDataRPCReasXML(const std::string& aNameFile)
-{
-    cDataRPC aRPC(aNameFile);
-    // aRPC.Exe();
-    aRPC.Show();
-}
-*/
-
-/* =============================================== */
-/*                                                 */
-/*                 cAppliTestImportSensors         */
-/*                                                 */
-/* =============================================== */
-
-/**  A basic application for  */
-
-class cAppliTestImportSensors : public cMMVII_Appli
-{
-     public :
-
-        cAppliTestImportSensors(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
-
-     private :
-        int Exe() override;
-        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
-        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
-
-	///  Test that the accuracy of ground truth, i.e Proj(P3) = P2
-        void TestGroundTruth(const  cSensorImage & aSI) const;
-	///  Test coherence of Direct/Inverse model, i.e Id = Dir o Inv = Inv o Dir
-        void TestCoherenceDirInv(const  cSensorImage & aSI) const;
-
-        cPhotogrammetricProject  mPhProj;
-        std::string              mNameImage;
-        std::string              mNameRPC;
-        bool                     mShowDetail;
-
-};
-
-
-cAppliTestImportSensors::cAppliTestImportSensors(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-    cMMVII_Appli (aVArgs,aSpec),
-    mPhProj      (*this),
-    mShowDetail  (false)
-{
-}
-
-cCollecSpecArg2007 & cAppliTestImportSensors::ArgObl(cCollecSpecArg2007 & anArgObl) 
-{
-      return    anArgObl
-             << Arg2007(mNameImage,"Name of input Image", {eTA2007::FileDirProj})
-             << Arg2007(mNameRPC,"Name of input RPC", {eTA2007::Orient})
-      ;
-}
-
-cCollecSpecArg2007 & cAppliTestImportSensors::ArgOpt(cCollecSpecArg2007 & anArgOpt)
-{
-    return anArgOpt
-               << mPhProj.DPPointsMeasures().ArgDirInOpt()
-               << AOpt2007(mShowDetail,"ShowD","Show detail",{eTA2007::HDV})
-            ;
-}
-
-void cAppliTestImportSensors::TestGroundTruth(const  cSensorImage & aSI) const
-{
-    // Load mesure from standard MMVII project
-    cSetMesImGCP aSetMes;
-    mPhProj.LoadGCP(aSetMes);
-    mPhProj.LoadIm(aSetMes,mNameImage);
-    cSet2D3D aSetM23;
-    aSetMes.ExtractMes1Im(aSetM23,mNameImage);
-
-    cStdStatRes  aStCheckIm;  //  Statistic of reproj errorr
-
-    for (const auto & aPair : aSetM23.Pairs()) // parse all pair to accumulate stat of errors
-    {
-         cPt3dr  aPGr = aPair.mP3;
-         cPt2dr  aPIm = aSI.Ground2Image(aPGr);
-	 tREAL8 aDifIm = Norm2(aPIm-aPair.mP2);
-	 aStCheckIm.Add(aDifIm);
-
-         if (mShowDetail) 
-         {
-             StdOut()  << "ImGT=" <<  aDifIm << std::endl;
-
-         }
-    }
-    StdOut() << "  ==============  Accuracy / Ground trurh =============== " << std::endl;
-    StdOut()  << "    Avg=" <<  aStCheckIm.Avg() << ",  Worst=" << aStCheckIm.Max() << "\n";
-}
-
-void cAppliTestImportSensors::TestCoherenceDirInv(const  cSensorImage & aSI) const
-{
-     bool  InDepth = ! aSI.HasIntervalZ();  // do we use Im&Depth or Image&Z
-
-     cPt2dr aIntZD = cPt2dr(1,2);
-     if (InDepth)
-     {  // if depth probably doent matter which one is used
-     }
-     else
-     {
-        aIntZD = aSI.GetIntervalZ(); // at least with RPC, need to get validity interval
-     }
-
-     int mNbByDim = 10;
-     int mNbDepth = 5;
-     cSet2D3D  aS32 = aSI.SyntheticsCorresp3D2D(mNbByDim,mNbDepth,aIntZD.x(),aIntZD.y(),InDepth);
-
-     cStdStatRes  aStConsistIm;  // stat for image consit  Proj( Proj-1(PIm)) ?= PIm
-     cStdStatRes  aStConsistGr;  // stat for ground consist  Proj-1 (Proj(Ground)) ?= Ground
-
-     for (const auto & aPair : aS32.Pairs())
-     {
-         cPt3dr  aPGr = aPair.mP3;
-         cPt3dr  aPIm (aPair.mP2.x(),aPair.mP2.y(),aPGr.z());
-
-         cPt3dr  aPIm2 ;
-         cPt3dr  aPGr2 ;
-	
-	 if (InDepth)
-	 {
-	    aPIm2 = aSI.Ground2ImageAndDepth(aSI.ImageAndDepth2Ground(aPIm));
-	    aPGr2 = aSI.ImageAndDepth2Ground(aSI.Ground2ImageAndDepth(aPGr));
-	 }
-	 else
-	 {
-	    aPIm2 = aSI.Ground2ImageAndZ(aSI.ImageAndZ2Ground(aPIm));
-	    aPGr2 = aSI.ImageAndZ2Ground(aSI.Ground2ImageAndZ(aPGr));
-	 }
-	 tREAL8 aDifIm = Norm2(aPIm-aPIm2);
-	 aStConsistIm.Add(aDifIm);
-
-	 tREAL8 aDifGr = Norm2(aPGr-aPGr2);
-	 aStConsistGr.Add(aDifGr);
-	
-     }
-
-     StdOut() << "  ==============  Consistencies Direct/Inverse =============== " << std::endl;
-     StdOut() << "     * Image :  Avg=" <<   aStConsistIm.Avg() 
-	                 <<  ", Worst=" << aStConsistIm.Max()  
-	                 <<  ", Med=" << aStConsistIm.ErrAtProp(0.5)  
-                         << std::endl;
-
-     StdOut() << "     * Ground:  Avg=" <<   aStConsistGr.Avg() 
-	                 <<  ", Worst=" << aStConsistGr.Max()  
-	                 <<  ", Med=" << aStConsistGr.ErrAtProp(0.5)  
-			 << std::endl;
-
-}
-
-
-
-int cAppliTestImportSensors::Exe()
-{
-    mPhProj.FinishInit();
-    cDataRPC aDataRPC(mNameRPC,mNameImage);
-
-    if (mPhProj.DPPointsMeasures().DirInIsInit())
-       TestGroundTruth(aDataRPC);
-
-    TestCoherenceDirInv(aDataRPC);
-    /*
-
-    cSetMesImGCP aSetMes;
-    mPhProj.LoadGCP(aSetMes);
-    mPhProj.LoadIm(aSetMes,mNameImage);
-
-
-    cSet2D3D aSetM23;
-    aSetMes.ExtractMes1Im(aSetM23,mNameImage);
-
-    tREAL8 aSomCheckIm = 0.0;
-    tREAL8 aSomConsistIm = 0.0;
-    tREAL8 aSomConsistGr = 0.0;
-    const  cSensorImage & aSI (aDataRPC);
-
-    for (const auto & aPair : aSetM23.Pairs())
-    {
-         cPt3dr  aPGr = aPair.mP3;
-         tREAL8  aZ   = aPGr.z();
-         cPt2dr  aPIm = aSI.Ground2Image(aPGr);
-
-	 //           @G2I           @I2G                   @G2I
-	 //  Pgr=mP3   --->   PIm     --->   aPGr2?=Pgr     ---> aPIm2
-	 //                   ?=mP2          ?=Pgr          ?= PIm
-	 //                   "GTTest"       "GrCons"       "GrCons"
-
-         cPt3dr  aPGr2 =  aSI.ImageAndZ2Ground(cPt3dr(aPIm.x(),aPIm.y(),aZ));
-         cPt2dr  aPIm2 = aSI.Ground2Image(aPGr2);
-
-         aSomCheckIm +=  Norm2(aPIm  - aPair.mP2);
-         aSomConsistIm +=  Norm2(aPIm-aPIm2);
-         aSomConsistGr +=  Norm2(aPGr-aPGr2);
-
-         if (mShowDetail) 
-         {
-             StdOut()  << "ImGT=" <<  aPIm  - aPair.mP2
-                       << "  GroundConsist=" << aPGr2-aPGr
-                       << "  ImConsist=" << aPIm-aPIm2
-                       << "\n";
-
-         }
-
-    }
-    aSomCheckIm /= aSetM23.NbPair();
-    aSomConsistIm  /= aSetM23.NbPair();
-    aSomConsistGr  /= aSetM23.NbPair();
-
-    StdOut()  << "  CheckGTIm=" <<  aSomCheckIm << "\n";
-    StdOut()  << "  ConsistIm=" <<  aSomConsistIm << "\n";
-    StdOut()  << "  ConsistGr=" <<  aSomConsistGr << "\n";
-    */
-
-    return EXIT_SUCCESS;
-}
-
-
-tMMVII_UnikPApli Alloc_TestImportSensors(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
-{
-      return tMMVII_UnikPApli(new cAppliTestImportSensors(aVArgs,aSpec));
-}
-
-
-cSpecMMVII_Appli  TheSpecTestImportSensors
-(
-     "TestImportSensor",
-      Alloc_TestImportSensors,
-      "Test orientation functions with ground truth 2D/3D correspondance",
-      {eApF::Ori},
-      {eApDT::Ori,eApDT::GCP},
-      {eApDT::Console},
-      __FILE__
-);
-
-
-/* =============================================== */
-/*                                                 */
-/*                 cAppliImportPushbroom           */
-/*                                                 */
-/* =============================================== */
-
-/**  A basic application for  */
-
-class cAppliImportPushbroom : public cMMVII_Appli
-{
-     public :
-
-        cAppliImportPushbroom(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
-
-     private :
-        int Exe() override;
-        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
-        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
-
-     // --- Mandatory ----
-    std::string mNameSensorIn;
-
-     // --- Optionnal ----
-    std::string mNameSensorOut;
-
-     // --- Internal ----
-};
-
-cAppliImportPushbroom::cAppliImportPushbroom(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-   cMMVII_Appli     (aVArgs,aSpec)
-{
-}
-
-
-cCollecSpecArg2007 & cAppliImportPushbroom::ArgObl(cCollecSpecArg2007 & anArgObl)
-{
- return anArgObl
-      <<   Arg2007(mNameSensorIn,"Name of input sensor gile", {eTA2007::FileDirProj,eTA2007::Orient})
-   ;
-}
-
-cCollecSpecArg2007 & cAppliImportPushbroom::ArgOpt(cCollecSpecArg2007 & anArgOpt)
-{
-   return anArgOpt
-           << AOpt2007(mNameSensorOut,CurOP_Out,"Name of output file if correction are done")
-   ;
-}
-
-int cAppliImportPushbroom::Exe()
-{
-
-    // TestRPCProjections(mNameSensorIn);
-
-    return EXIT_SUCCESS;
-}
-
-     /* =============================================== */
-     /*                       ::                        */
-     /* =============================================== */
-
-tMMVII_UnikPApli Alloc_ImportPushbroom(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
-{
-   return tMMVII_UnikPApli(new cAppliImportPushbroom(aVArgs,aSpec));
-}
-
-cSpecMMVII_Appli  TheSpecImportPushbroom
-(
-     "ImportPushbroom",
-      Alloc_ImportPushbroom,
-      "Import a pushbroom sensor",
-      {eApF::Ori},
-      {eApDT::Ori},
-      {eApDT::Ori},
-      __FILE__
-);
 
 };

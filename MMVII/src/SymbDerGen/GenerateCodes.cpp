@@ -7,6 +7,8 @@
 #include "Formulas_Radiom.h"
 #include "Formulas_Geom3D.h"
 #include "Formulas_BlockRigid.h"
+#include "Formulas_GenSensor.h"
+#include "Formulas_RPC.h"
 #include "MMVII_Sys.h"
 #include "MMVII_Geom2D.h"
 
@@ -48,6 +50,14 @@ std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg,bool isFraserMode)
 
    return aDist.VDescParams();
 }
+
+     //   PUSHB
+std::vector<cDescOneFuncDist>   Polyn2DDescDist(int aDegree)
+{
+   cDistPolyn2D aDist(aDegree,false,true) ;
+   return aDist.mVDesc;
+}
+
 
 std::string NameFormulaOfStr(const std::string & aName,bool WithDerive)
 {
@@ -138,6 +148,27 @@ void TestResDegree(cCalculator<double> * aCalc,const cPt3di & aDeg,const std::st
          );
      }
 }
+
+     //   PUSHB
+NS_SymbolicDerivative::cCalculator<double> * EqColinearityCamGen(int  aDeg,bool WithDerive,int aSzBuf,bool ReUse)
+{
+     bool SVP =  false; // we generate an error if dont exist
+     return StdAllocCalc(NameFormula(cEqColinSensGenPolyn2D(aDeg,false),WithDerive),aSzBuf,SVP,ReUse);
+}
+
+NS_SymbolicDerivative::cCalculator<double> * EqDistPol2D(int  aDeg,bool WithDerive,int aSzBuf,bool ReUse) // PUSHB
+{
+     bool SVP =  false; // we generate an error if dont exist
+     return StdAllocCalc(NameFormula(cEqDistPolyn2D(aDeg,false),WithDerive),aSzBuf,SVP,ReUse);
+}
+
+NS_SymbolicDerivative::cCalculator<double> * RPC_Proj(bool WithDerive,int aSzBuf,bool ReUse) // PUSHB
+{
+     bool SVP =  false; // we generate an error if dont exist
+     return StdAllocCalc(NameFormula(cFormula_RPC_RatioPolyn(),WithDerive),aSzBuf,SVP,ReUse);
+}
+											     
+
 
      //  distorion
 cCalculator<double> * EqDist(const cPt3di & aDeg,bool WithDerive,int aSzBuf,bool isFraserMode)
@@ -641,13 +672,16 @@ int cAppliGenCode::Exe()
    cGenNameAlloc::Reset();
    mDirGenCode = TopDirMMVII() + "src/GeneratedCodes/";
 
+   // ================  CODE FOR PHOTOGRAMMETRY =====================
+
+        // ---   Colinearity for stantard camera -----------------
    for (const auto & aDeg :  TheVectDegree)
    {
        GenerateOneDist(aDeg,true);
        GenerateCodeCamPerpCentrale<cProjStenope>(aDeg,true);
    }
 
-   // Here we generate the degree for SIA-cylindric systematisms
+       //  ---  Here we generate the degree for SIA-cylindric systematisms -----------------
    
    for (const auto & aDegSIA :  TheVectDegreeNoFraser)
    {
@@ -659,7 +693,27 @@ int cAppliGenCode::Exe()
 
    for (const auto WithDer : {true,false})
    {
-       GenCodesFormula((tREAL8*)nullptr,cFormulaSumSquares(8),WithDer); // RIGIDBLOC
+           GenCodesFormula((tREAL8*)nullptr,cFormula_RPC_RatioPolyn(),WithDer);  
+   }
+
+
+   for (const auto WithDer : {true,false})
+   {
+       // PUSHB
+       std::vector<int>  aVDegEqCol   {0,1,2,3};
+       for (const auto & aDegree : aVDegEqCol)
+       {
+           GenCodesFormula((tREAL8*)nullptr,cEqColinSensGenPolyn2D(aDegree),WithDer);  
+           GenCodesFormula((tREAL8*)nullptr,cEqDistPolyn2D(aDegree),WithDer);  
+           // StdOut() << "FffffffFFFF " << cEqDistPolyn2D(aDegree).FormulaName() << "\n";
+       }
+   }
+
+   //=======================   Other code radiom/rigid ....
+
+   for (const auto WithDer : {true,false})
+   {
+       GenCodesFormula((tREAL8*)nullptr,cFormulaSumSquares(8),WithDer); // example for contraint
 
        GenCodesFormula((tREAL8*)nullptr,cFormulaBlocRigid(),WithDer); // RIGIDBLOC
        GenCodesFormula((tREAL8*)nullptr,cFormulaRattBRExist(),WithDer); // RIGIDBLOC
@@ -677,6 +731,9 @@ int cAppliGenCode::Exe()
        GenCodesFormula((tREAL8*)nullptr,cTopoSubFrame(),WithDer);
 
        GenCodesFormula((tREAL8*)nullptr,cDeformImHomotethy()       ,WithDer);
+
+
+       //  ===============   CODE FOR RADIOMETRY =========================================
 
        GenCodesFormula((tREAL8*)nullptr,cRadiomVignettageLinear(5)       ,WithDer);
        std::vector<int>  aVDegSens {5};

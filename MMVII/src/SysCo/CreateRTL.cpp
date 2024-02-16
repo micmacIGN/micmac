@@ -86,7 +86,7 @@ int cAppli_CreateRTL::Exe()
     {
         for (const auto & aNameIm : VectMainSet(0))
         {
-	    cSensorImage* aSI = mPhProj. LoadSensor(aNameIm);
+	    cSensorImage* aSI = mPhProj. ReadSensor(aNameIm,true,false);
 	    aAvgSens.Add(1.0,aSI->PseudoCenterOfProj());
 	    isInitSens = true;
 	}
@@ -133,7 +133,7 @@ int cAppli_CreateRTL::Exe()
         for (const auto & aNameIm : VectMainSet(0))
         {
 	    aCpt++;
-	    cSensorImage* aSIn  = mPhProj.LoadSensor(aNameIm);
+	    cSensorImage* aSIn  = mPhProj.ReadSensor(aNameIm,true,false);
 	    cSensorImage* aSOut = aSIn->SensorChangSys(aChSys);
 
 	    mPhProj.SaveSensor(*aSOut);

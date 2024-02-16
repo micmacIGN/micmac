@@ -240,7 +240,7 @@ cComputeMergeMulTieP::cComputeMergeMulTieP
    if (aPhP)
    {
       for (const auto & aName : mVNames)
-          mVSensors.push_back(aPhP->LoadSensor(aName,false));
+          mVSensors.push_back(aPhP->ReadSensor(aName,true,false));
    }
 
    if (WithImageIndexe)

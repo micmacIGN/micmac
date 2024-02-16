@@ -659,6 +659,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         cMultipleOfs                              mStdCout;     ///< Standard Ouput (File,Console, both or none)
         std::string                               mParamStdOut; ///< Users value
         int                                       mSeedRand;    ///< Seed for random generator
+        bool                                      mExtandPattern;  ///<  If false Interpret the pattern as single  , def=true !!
         // Control position/hierachy of call
         int                                       mNumCallInsideP; ///< Numero of Appli in the process of creation
         bool                                      mMainAppliInsideP; ///< Is the main/firsy Appli inside the process

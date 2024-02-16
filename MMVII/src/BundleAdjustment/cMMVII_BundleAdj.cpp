@@ -277,7 +277,7 @@ void  cMMVII_BundleAdj::AddCam(const std::string & aNameIm)
     cSensorImage * aNewS;
     cSensorCamPC * aSPC;
 
-    mPhProj->LoadSensor(aNameIm,aNewS,aSPC,false);  // false -> NoSVP
+    mPhProj->ReadSensor(aNameIm,aNewS,aSPC,true,false);  // false -> NoSVP
     AddSensor(aNewS);
 
     mVSCPC.push_back(aSPC);  // eventually nullptr, for example with push-broom

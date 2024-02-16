@@ -161,7 +161,7 @@ void cSensorImage::PutUknowsInSetInterval()
     MMVII_INTERNAL_ERROR("cSensorImage::PutUknowsInSetInterval not implemanted");
 }
 
-void cSensorImage::PushOwnObsColinearity( std::vector<double> &) 
+void cSensorImage::PushOwnObsColinearity( std::vector<double> &,const cPt3dr&) 
 {
     MMVII_INTERNAL_ERROR("cSensorImage::PushOwnObsColinearity not implemanted");
 }
@@ -217,6 +217,38 @@ cPt3dr cSensorImage::ImageAndDepth2Ground(const cPt2dr & aP2,const double & aDep
 
 bool   cSensorImage::HasImageAndDepth() const {return false;}
 bool   cSensorImage::HasIntervalZ() const {return false;}
+
+cPt3dr  cSensorImage::EpsDiffGround2Im(const cPt3dr &) const 
+{
+    MMVII_INTERNAL_ERROR("EspDiffGround2Im has not been defined for sensor class : " + V_PrefixName());
+    return cPt3dr::Dummy();
+}
+
+tProjImAndGrad  cSensorImage::DiffG2IByFiniteDiff(const cPt3dr & aPt) const
+{
+     tProjImAndGrad aRes;
+     aRes.mPIJ = Ground2Image(aPt);
+
+     cPt3dr aEpsXYZ = EpsDiffGround2Im(aPt);
+
+     for (size_t aKCoord=0 ; aKCoord<3 ; aKCoord++)
+     {
+          tREAL8 aEps = aEpsXYZ[aKCoord];
+	  cPt3dr aPPlus =  aPt + cPt3dr::P1Coord(aKCoord,aEps);
+	  cPt3dr aPMinus = aPt + cPt3dr::P1Coord(aKCoord,-aEps);
+
+	  cPt2dr aGradK = (Ground2Image(aPPlus)-Ground2Image(aPMinus)) / (2*aEps);
+
+	  aRes.mGradI[aKCoord] = aGradK.x();
+	  aRes.mGradJ[aKCoord] = aGradK.y();
+     }
+     return aRes;
+}
+
+tProjImAndGrad  cSensorImage::DiffGround2Im(const cPt3dr & aPt) const
+{
+	return DiffG2IByFiniteDiff(aPt);
+}
 
 
 
@@ -312,8 +344,17 @@ cSet2D3D  cSensorImage::SyntheticsCorresp3D2D (int aNbByDim,int aNbDepts,double 
 
    for (int aKD=0 ; aKD < aNbDepts; aKD++)
    {
-        tREAL8 aW = SafeDiv(aKD,aNbDepts);
-        aVDepth.push_back(aD0 * pow(aD1/aD0,aW));
+        tREAL8 aW = (aKD+0.5) / aNbDepts;
+        if (IsDepthOrZ)
+	{
+	     //  Case depth we make some log regular spacing
+            aVDepth.push_back(aD0 * pow(aD1/aD0,aW));
+	}
+	else
+	{
+	     //  Case z we make basic regular spacing
+             aVDepth.push_back(  (aD0* (1-aW)) + aD1 * aW);
+	}
    }
 
    return SyntheticsCorresp3D2D(aNbByDim,aVDepth,IsDepthOrZ);

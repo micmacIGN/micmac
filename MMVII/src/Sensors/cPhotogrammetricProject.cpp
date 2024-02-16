@@ -259,14 +259,16 @@ void cPhotogrammetricProject::FinishInit()
     mDirPhp   = mFolderProject + MMVII_DirPhp + StringDirSeparator();
     mDirVisu  = mDirPhp + "VISU" + StringDirSeparator();
     mDirSysCo = mDirPhp + E2Str(eTA2007::SysCo) + StringDirSeparator();
+    mDirImportInitOri =  mDirPhp + "InitialOrientations" + StringDirSeparator();
 
     if (mAppli.LevelCall()==0)
     {
         CreateDirectories(mDirVisu,false);
         CreateDirectories(mDirSysCo,false);
+        CreateDirectories(mDirImportInitOri,false);
 
-	 // cPt3dr  aZeroNDP(652215.52,6861681.77,35.6);
-	 // SaveSysCo(CreateSysCoRTL(aZeroNDP,"Lambert93"),"RTL_NotreDame");
+        // cPt3dr  aZeroNDP(652215.52,6861681.77,35.6);
+        // SaveSysCo(CreateSysCoRTL(aZeroNDP,"Lambert93"),"RTL_NotreDame");
 	// maintain it, who knows, but now replaced by 
 	// SaveSysCo(cSysCoordV2::Lambert93(),E2Str(eSysCoGeo::eLambert93),true);  
 	// SaveSysCo(cSysCoordV2::GeoC()     ,E2Str(eSysCoGeo::eGeoC)     ,true);
@@ -425,9 +427,16 @@ cRadialCRS * cPhotogrammetricProject::CreateNewRadialCRS(size_t aDegree,const st
       return aRes;
 }
 
+         
+        //  ============================================
+        //                   Orientation 
+        //  ============================================
+
+const std::string &   cPhotogrammetricProject::DirImportInitOri() const { return mDirImportInitOri; }
 
 
-        //  =============  Orientation =================
+
+         //  =============  Central Perspective camera =======================
 
 void cPhotogrammetricProject::SaveCamPC(const cSensorCamPC & aCamPC) const
 {
@@ -437,6 +446,12 @@ void cPhotogrammetricProject::SaveCamPC(const cSensorCamPC & aCamPC) const
 
 void cPhotogrammetricProject::SaveSensor(const cSensorImage & aSens) const
 {
+    // We dont want to have different variant of the same image in a given folder
+    // so supress potentiel existing orientation of the same image
+    std::string aPat2Sup = mDPOrient.FullDirOut() + "Ori-.*-" + aSens.NameImage() + "\\." + GlobTaggedNameDefSerial()  ;
+    RemovePatternFile(aPat2Sup,false);
+
+
     aSens.ToFile(mDPOrient.FullDirOut() + aSens.NameOriStd());
 }
 
@@ -475,27 +490,38 @@ cSensorCamPC * cPhotogrammetricProject::ReadCamPC(const std::string & aNameIm,bo
     return ReadCamPC(mDPOrient,aNameIm,ToDeleteAutom,SVP);
 }
 
-cSensorImage* cPhotogrammetricProject::LoadSensor(const std::string  &aNameIm,bool SVP)
+cSensorImage* cPhotogrammetricProject::ReadSensor(const std::string  &aNameIm,bool ToDeleteAutom,bool SVP)
 {
      cSensorImage*   aSI;
      cSensorCamPC *  aSPC;
 
-     LoadSensor(aNameIm,aSI,aSPC,SVP);
+     ReadSensor(aNameIm,aSI,aSPC,ToDeleteAutom,SVP);
 
      return aSI;
 }
 
-void cPhotogrammetricProject::LoadSensor(const std::string  &aNameIm,cSensorImage* & aSI,cSensorCamPC * & aSPC,bool SVP)
+void cPhotogrammetricProject::ReadSensor(const std::string  &aNameIm,cSensorImage* & aSI,cSensorCamPC * & aSPC,bool ToDeleteAutom,bool SVP)
 {
      aSI = nullptr;
      aSPC =nullptr;
 
-     aSPC = ReadCamPC(aNameIm,true,true);
+     // Try a stenope camera which has interesting properties
+     aSPC = ReadCamPC(aNameIm,ToDeleteAutom,true);
      if (aSPC !=nullptr)
      {
         aSI = aSPC;
         return;
      }
+
+     // Else try an external sensor
+     aSI =  cSensorImage::AllocExternalSensor(DirImportInitOri(),mDPOrient.FullDirIn(),aNameIm);
+     if (aSI!=nullptr)
+     {
+        if (ToDeleteAutom)
+           cMMVII_Appli::AddObj2DelAtEnd(aSI);
+        return;
+     }
+
 
      if (!SVP)
      {
@@ -591,7 +617,7 @@ cSetMesPtOf1Im cPhotogrammetricProject::LoadMeasureIm(const std::string & aNameI
    return cSetMesPtOf1Im::FromFile(NameMeasureGCPIm(aNameIm,isIn));
 }
 
-void cPhotogrammetricProject::SaveGCP(const cSetMesGCP & aMGCP)
+void cPhotogrammetricProject::SaveGCP(const cSetMesGCP & aMGCP) const
 {
      aMGCP.ToFile(mDPPointsMeasures.FullDirOut() + aMGCP.StdNameFile());
      // aMGCP.ToFile(mDPPointsMeasures.FullDirOut() + cSetMesGCP::ThePrefixFiles + aMGCP.Name() + "." + TaggedNameDefSerial());

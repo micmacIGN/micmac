@@ -101,16 +101,20 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(const cSetMesImGCP * aSet)
                for (auto & anObj : aSens->GetAllUK())
                   anObj->PushIndexes(aVIndGlob);
 
+	       /*StdOut() << "VISSSS " << aSens->IsVisibleOnImFrame(aPIm) 
+		        << " " << aPGr
+		        << " "<< aSens->IsVisible(aPGr) 
+			<< "\n";*/
+
 	       // Do something only if GCP is visible 
                if (aSens->IsVisibleOnImFrame(aPIm) && (aSens->IsVisible(aPGr)))
                {
 	             cPt2dr aResidual = aPIm - aSens->Ground2Image(aPGr);
                      tREAL8 aWeightImage =   mGCPIm_Weighter.SingleWOfResidual(aResidual);
 	             cCalculator<double> * anEqColin =  aSens->GetEqColinearity();
-// StdOut() << "anEqColinanEqColinanEqColin " << anEqColin << "\n";
                      // the "obs" are made of 2 point and, possibily, current rotation (for PC cams)
                      std::vector<double> aVObs = aPIm.ToStdVector();
-		     aSens->PushOwnObsColinearity(aVObs);
+		     aSens->PushOwnObsColinearity(aVObs,aPGr);
 
 		     if (aGcpUk)  // Case Uknown, we just add the equation
 		     {

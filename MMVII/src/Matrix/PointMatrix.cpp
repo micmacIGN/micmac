@@ -57,15 +57,18 @@ template <class Type,const int Dim> cDenseVect<Type> cPtxd<Type,Dim>::ToVect() c
    return aRes;
 }
 
+template <class Type,const int Dim> void cPtxd<Type,Dim>::PushInStdVector(std::vector<Type> & aVec) const
+{
+   for (int aK=0 ; aK<Dim ; aK++)
+        aVec.push_back(mCoords[aK]);
+}
+
 template <class Type,const int Dim> std::vector<Type> cPtxd<Type,Dim>::ToStdVector() const
 {
    std::vector<Type> aRes;
-   for (int aK=0 ; aK<Dim ; aK++)
-        aRes.push_back(mCoords[aK]);
-
+   PushInStdVector(aRes);
    return aRes;
 }
-
 
 
 // X => Col ;;   Y => Line
@@ -256,6 +259,7 @@ template cPtxd<TYPE,DIM> SolveCol(const cDenseMatrix<TYPE>&,const cPtxd<TYPE,DIM
 template cPtxd<TYPE,DIM> SolveLine(const cPtxd<TYPE,DIM>&,const cDenseMatrix<TYPE>&);\
 template  cDenseVect<TYPE> cPtxd<TYPE,DIM>::ToVect() const;\
 template  std::vector<TYPE> cPtxd<TYPE,DIM>::ToStdVector() const;\
+template  void cPtxd<TYPE,DIM>::PushInStdVector(std::vector<TYPE> &) const;\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::FromVect(const cDenseVect<TYPE>& aV);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::Col(const cDenseMatrix<TYPE> &,int);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::Line(int,const cDenseMatrix<TYPE> &);\
