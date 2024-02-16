@@ -490,23 +490,23 @@ cSensorCamPC * cPhotogrammetricProject::ReadCamPC(const std::string & aNameIm,bo
     return ReadCamPC(mDPOrient,aNameIm,ToDeleteAutom,SVP);
 }
 
-cSensorImage* cPhotogrammetricProject::LoadSensor(const std::string  &aNameIm,bool SVP)
+cSensorImage* cPhotogrammetricProject::ReadSensor(const std::string  &aNameIm,bool ToDeleteAutom,bool SVP)
 {
      cSensorImage*   aSI;
      cSensorCamPC *  aSPC;
 
-     LoadSensor(aNameIm,aSI,aSPC,SVP);
+     ReadSensor(aNameIm,aSI,aSPC,ToDeleteAutom,SVP);
 
      return aSI;
 }
 
-void cPhotogrammetricProject::LoadSensor(const std::string  &aNameIm,cSensorImage* & aSI,cSensorCamPC * & aSPC,bool SVP)
+void cPhotogrammetricProject::ReadSensor(const std::string  &aNameIm,cSensorImage* & aSI,cSensorCamPC * & aSPC,bool ToDeleteAutom,bool SVP)
 {
      aSI = nullptr;
      aSPC =nullptr;
 
      // Try a stenope camera which has interesting properties
-     aSPC = ReadCamPC(aNameIm,true,true);
+     aSPC = ReadCamPC(aNameIm,ToDeleteAutom,true);
      if (aSPC !=nullptr)
      {
         aSI = aSPC;
@@ -516,15 +516,11 @@ void cPhotogrammetricProject::LoadSensor(const std::string  &aNameIm,cSensorImag
      // Else try an external sensor
      aSI =  cSensorImage::AllocExternalSensor(DirImportInitOri(),mDPOrient.FullDirIn(),aNameIm);
      if (aSI!=nullptr)
-        return;
-/*
-     if ()
      {
-       // std::string aNameCam  =  aDP.FullDirIn() + cSensorCamPC::NameOri_From_Image(aNameIm);
-       cSensorImage::NameOri_From_PrefixAndImage(PrefixName(),aNameImage);
+        if (ToDeleteAutom)
+           cMMVII_Appli::AddObj2DelAtEnd(aSI);
+        return;
      }
-*/
-
 
 
      if (!SVP)

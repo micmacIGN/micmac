@@ -454,10 +454,10 @@ class cPhotogrammetricProject
 
 
 	  /// Load a sensor, try different type (will add RPC , and others ?) use autom delete (dont need to delete it)
-	  void LoadSensor(const std::string &NameIm,cSensorImage* &,cSensorCamPC * &,bool SVP=false);
+	  void ReadSensor(const std::string &NameIm,cSensorImage* &,cSensorCamPC * &,bool ToDeleteAutom,bool SVP=false);
 
 	  /// return the generic sensor, use autom delete (dont need to delete it)
-	  cSensorImage* LoadSensor(const std::string  &aNameIm,bool SVP=false);
+	  cSensorImage* ReadSensor(const std::string  &aNameIm,bool ToDeleteAutom,bool SVP=false);
 
 
 	      // Internal Calibration  

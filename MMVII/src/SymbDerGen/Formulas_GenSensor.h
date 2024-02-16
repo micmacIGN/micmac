@@ -195,7 +195,7 @@ class cEqColinSensGenPolyn2D
     std::vector<std::string> VNamesObs() const      
     { 
                 // 0              2                   5                7                      10
-         return {"IObs","JObs",  "P0x","P0y","P0z"    "IP0","JP0",    "dIdX","dIDY","dIdZ",   "dJdX","dJDY","dJdZ"};
+         return {"IObs","JObs",  "P0x","P0y","P0z" ,  "IP0","JP0",    "dIdX","dIDY","dIdZ",   "dJdX","dJDY","dJdZ"};
     }
 
     std::string FormulaName() const { return  mDistPol2D.NamesDist() + "_EqColin";}

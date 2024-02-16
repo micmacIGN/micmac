@@ -227,8 +227,12 @@ int cAppliBundlAdj::Exe()
         mBA.OneIteration(mLVM);
     }
 
+    for (auto & aSI : mBA.VSIm())
+        mPhProj.SaveSensor(*aSI);
+	    /*
     for (auto & aCamPC : mBA.VSCPC())
         mPhProj.SaveCamPC(*aCamPC);
+	*/
 
     mPhProj.CpSysIn2Out(true,true);
 

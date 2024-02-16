@@ -85,7 +85,7 @@ int cAppli_ChSysCoOri::Exe()
     int aNbRem = VectMainSet(0).size();
     for (const auto & aNameIm : VectMainSet(0))
     {
-        cSensorImage* aSI = mPhProj.LoadSensor(aNameIm);
+        cSensorImage* aSI = mPhProj.ReadSensor(aNameIm,true,false);
         cSensorImage* aSO =  aSI->SensorChangSys(aChSys);
         mPhProj.SaveSensor(*aSO);
         delete aSO;

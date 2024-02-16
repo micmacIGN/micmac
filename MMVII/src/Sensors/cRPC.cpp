@@ -1,13 +1,16 @@
 #include "MMVII_Geom3D.h"
 #include "MMVII_Sensor.h"
 #include "cExternalSensor.h"
+#include "MMVII_PhgrDist.h"
+#include "MMVII_util_tpl.h"
 
 namespace MMVII
 {
 
 /* =============================================== */
 
-typedef double  tRPCCoeff[20];
+static constexpr int TheNbRPCoeff = 20;
+typedef double  tRPCCoeff[TheNbRPCoeff];
 class cRPCSens;
 class cRatioPolynXY;
 class cRPC_RatioPolyn;
@@ -30,6 +33,8 @@ class cRPC_Polyn : public cDataMapping<tREAL8,3,1>
 
         static void  FillCubicCoeff(tRPCCoeff & aVCoeffs,const cPt3dr &) ;
 	// cPt1dr Value(const cPt3dr &) const override; // Make the object a mapping, in case it is usefull
+	//
+	void PushCoeffs(std::vector<tREAL8>&) const;
     private:
         double Val(const cPt3dr &) const;
 
@@ -53,6 +58,7 @@ class cRPC_RatioPolyn
         void Show();
         double Val(const tRPCCoeff &) const;
 
+	void PushCoeffs(std::vector<tREAL8>&) const;
     private:
         double Val(const cPt3dr &) const;
         cRPC_Polyn mNumPoly; // numerator polynomial
@@ -81,6 +87,7 @@ class cRatioPolynXY
         cPt2dr Val(const cPt3dr &) const;
         void   Show();
 
+	void PushCoeffs(std::vector<tREAL8>&) const;
     private:
         cRPC_RatioPolyn mX;
         cRPC_RatioPolyn mY;
@@ -99,6 +106,10 @@ class cRPCSens : public cSensorImage
          cPt3dr ImageAndZ2Ground(const cPt3dr &) const override;
         /// Epsilon-coordinate, taking into account the heterogeneity
 	cPt3dr  EpsDiffGround2Im(const cPt3dr & aPt) const override;
+
+	 /// Compute analytical differential using gen-code
+	 tProjImAndGrad  DiffGround2Im(const cPt3dr &) const override;
+
 
 	/// Indicate how much a point belongs to sensor visibilty domain
          double DegreeVisibility(const cPt3dr &) const  override;
@@ -171,6 +182,9 @@ class cRPCSens : public cSensorImage
         /// coordinate normalisation:  coord_norm = (coord - coord_offset) / coord_scale
         cPt2dr mImOffset; // line and sample offsets
         cPt2dr mImScale;  // line and sample scales
+        // Just Add Z to make it more homogeneaous with mGroundOffset/mGroundScale
+        cPt3dr m3DImOffset; // line and sample offsets
+        cPt3dr m3DImScale;  // line and sample scales
 
         cPt3dr mGroundOffset; // ground coordinate (e.g., lambda, phi, h) offets
         cPt3dr mGroundScale;  // ground coordinate (e.g., lambda, phi, h) scales
@@ -277,6 +291,11 @@ void  cRPC_Polyn::FillCubicCoeff(tRPCCoeff & aVCoeffs,const cPt3dr & aP)
      aVCoeffs[19] = aP.z() * aP.z() * aP.z();
 }
 
+void cRPC_Polyn::PushCoeffs(std::vector<tREAL8>& aVObs) const
+{
+    for (size_t aK=0 ; aK<TheNbRPCoeff ; aK++)
+        aVObs.push_back(mCoeffs[aK]);
+}
 
 void cRPC_Polyn::Show()
 {
@@ -321,6 +340,12 @@ void cRPC_RatioPolyn::Show()
     mDenPoly.Show();
 }
 
+void cRPC_RatioPolyn::PushCoeffs(std::vector<tREAL8>& aVObs) const
+{
+    mNumPoly.PushCoeffs(aVObs);
+    mDenPoly.PushCoeffs(aVObs);
+}
+
 /* =============================================== */
 /*                                                 */
 /*                 cRatioPolynXY                   */
@@ -352,6 +377,11 @@ void cRatioPolynXY::Show()
     mY.Show();
 }
 
+void cRatioPolynXY::PushCoeffs(std::vector<tREAL8>& aVObs) const
+{
+    mX.PushCoeffs(aVObs);
+    mY.PushCoeffs(aVObs);
+}
 
      // ====================================================
      //     Construction & Destruction  & Show
@@ -397,7 +427,7 @@ void cRPCSens::InitFromFile(const cAnalyseTSOF & anAnalyse)
 
    mEpsCoord.z() =  1.0 * aNbPixel; // very rough
 				    //
-   StdOut() << "EPSILON : " << mEpsCoord << "\n";
+   // StdOut() << "EPSILON : " << mEpsCoord << "\n";
 }
 
 cRPCSens::~cRPCSens()
@@ -449,17 +479,17 @@ void cRPCSens::Dimap_ReadXMLNorms(const cSerialTree& aTree)
 
     mGroundOffset.x() = ReadXMLItem(*aData,"LAT_OFF");
     mGroundOffset.y() = ReadXMLItem(*aData,"LONG_OFF");
-    mGroundOffset.z() = ReadXMLItem(*aData,"HEIGHT_OFF");
+    m3DImOffset.z() = mGroundOffset.z() = ReadXMLItem(*aData,"HEIGHT_OFF");
 
     mGroundScale.x() = ReadXMLItem(*aData,"LAT_SCALE");
     mGroundScale.y() = ReadXMLItem(*aData,"LONG_SCALE");
-    mGroundScale.z() = ReadXMLItem(*aData,"HEIGHT_SCALE");
+    m3DImScale.z() = mGroundScale.z() = ReadXMLItem(*aData,"HEIGHT_SCALE");
 
-    mImScale.x() = ReadXMLItem(*aData,"LINE_SCALE");
-    mImScale.y() = ReadXMLItem(*aData,"SAMP_SCALE");
+    m3DImScale.x() = mImScale.x() = ReadXMLItem(*aData,"LINE_SCALE");
+    m3DImScale.y() = mImScale.y() = ReadXMLItem(*aData,"SAMP_SCALE");
 
-    mImOffset.x() = ReadXMLItem(*aData,"LINE_OFF");
-    mImOffset.y() = ReadXMLItem(*aData,"SAMP_OFF");
+    m3DImOffset.x() = mImOffset.x() = ReadXMLItem(*aData,"LINE_OFF");
+    m3DImOffset.y() = mImOffset.y() = ReadXMLItem(*aData,"SAMP_OFF");
 
     int anX = round_ni(ReadXMLItem(*aData,"LAST_COL"));
     int anY = round_ni(ReadXMLItem(*aData,"LAST_ROW"));
@@ -476,7 +506,8 @@ void cRPCSens::Dimap_ReadXMLNorms(const cSerialTree& aTree)
     aP1Gr.y() = ReadXMLItem(*aData,"LAST_LON");
     aP1Gr.z() =   mGroundOffset.z() +  mGroundScale.z();
 
-    mBoxGround = cBox3dr(aP0Gr,aP1Gr);
+    // StdOut() << "BBBBBB " << aP0Gr << " " << aP1Gr << "\n";
+    mBoxGround = cBox3dr(IO_PtGr(aP0Gr),IO_PtGr(aP1Gr));
 }
 
 bool  cRPCSens::HasIntervalZ()  const {return true;}
@@ -543,6 +574,43 @@ cPt2dr cRPCSens::Ground2Image(const cPt3dr& aP) const
     return IO_PtIm(aRes);
 }
 
+tProjImAndGrad  cRPCSens::DiffGround2Im(const cPt3dr & aP) const 
+{
+    static cCalculator<double> * aCalc = RPC_Proj(true,1,true/*ReUse*/);
+    static std::vector<double> aVObs;
+    aVObs.clear();
+
+    mGroundOffset.PushInStdVector(aVObs);
+    mGroundScale.PushInStdVector(aVObs);
+    m3DImOffset.PushInStdVector(aVObs);
+    m3DImScale.PushInStdVector(aVObs);
+    mInverseRPC->PushCoeffs(aVObs);
+
+    aCalc->DoOneEval(IO_PtGr(aP).ToStdVector(),aVObs);
+
+    tProjImAndGrad aRes;
+    aRes.mPIJ = IO_PtIm(cPt2dr(aCalc->ValComp(0,0),aCalc->ValComp(0,1)));
+
+    // tProjImAndGrad aDifF = DiffG2IByFiniteDiff(aP);
+
+    aRes.mGradI = IO_PtGr(cPt3dr(aCalc->DerComp(0,0,0),aCalc->DerComp(0,0,1),aCalc->DerComp(0,0,2)));
+    aRes.mGradJ = IO_PtGr(cPt3dr(aCalc->DerComp(0,1,0),aCalc->DerComp(0,1,1),aCalc->DerComp(0,1,2)));
+
+    if (mSwapIJImage)  
+       std::swap(aRes.mGradI,aRes.mGradJ);
+
+    return aRes;
+    /*
+
+    StdOut() << "PGRound "<< aP << " PROJ " <<  aDifF.mPIJ << aRes.mPIJ << std::endl;
+    StdOut() << " GRADI "<<  aDifF.mGradI  << aRes.mGradI << std::endl;
+    StdOut() << " GRADJ "<<  aDifF.mGradJ  << aRes.mGradJ << std::endl;
+    getchar();
+
+    return aDifF;
+    */
+}
+
 cPt3dr  cRPCSens::EpsDiffGround2Im(const cPt3dr & ) const {return mEpsCoord;}
 
 cPt3dr cRPCSens::ImageZToGround(const cPt2dr& aPIm,const double aZ) const
@@ -580,6 +648,7 @@ double cRPCSens::DegreeVisibility(const cPt3dr & aP) const
 {
      // To see, but there is probably a unity problem, maybe to it with normalized coordinat theb
      // multiply by "pseudo" focal to have convention similar to central perspective
+
      return mBoxGround.Insideness(aP);
 }
 

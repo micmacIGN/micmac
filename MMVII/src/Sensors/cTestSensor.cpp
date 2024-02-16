@@ -130,6 +130,7 @@ void cAppliTestSensor::ExportMeasures(const  cSensorImage & aSI) const
         aNb++;
         aSet2D.AddMeasure(cMesIm1Pt(aSI.Ground2Image(aPair.mP3),aName,1.0));
         aSet3D.AddMeasure(cMes1GCP(aPair.mP3,aName,1.0));
+
     }
     mPhProj.SaveGCP(aSet3D);
     mPhProj.SaveMeasureIm(aSet2D);
@@ -137,15 +138,25 @@ void cAppliTestSensor::ExportMeasures(const  cSensorImage & aSI) const
 
 void cAppliTestSensor::TestCoherenceGrad(const  cSensorImage & aSI) const
 {
+    cStdStatRes aStatProj;
+    cStdStatRes aStatGradI;
+    cStdStatRes aStatGradJ;
     for (const auto & aPair : mCurS23.Pairs())
     {
 	tProjImAndGrad  aP1 = aSI.DiffGround2Im (aPair.mP3);
 	tProjImAndGrad  aP2 = aSI.DiffG2IByFiniteDiff (aPair.mP3);
 
-	StdOut() << "GGGG " <<  aP1.mPIJ - aP2.mPIJ << aP1.mGradI - aP2.mGradI << aP1.mGradJ - aP2.mGradJ << "\n";
+	aStatProj.Add(Norm2(aP1.mPIJ - aP2.mPIJ));
+	aStatGradI.Add(Norm2(aP1.mGradI - aP2.mGradI));
+	aStatGradJ.Add(Norm2(aP1.mGradJ - aP2.mGradJ));
+
 
         // DiffGround2Im DiffG2IByFiniteDiff
     }
+    StdOut() << "  ==============  Derivate Analytic/finite differnce =============== " << std::endl;
+    StdOut() << "  Proj=" << aStatProj.Avg() 
+	     << " GradI=" << aStatGradI.Avg() 
+	     << " GradJ=" << aStatGradJ.Avg() << "\n";
 }
 
 void cAppliTestSensor::TestCoherenceDirInv(const  cSensorImage & aSI) const
@@ -195,7 +206,7 @@ void cAppliTestSensor::TestCoherenceDirInv(const  cSensorImage & aSI) const
 
 void  cAppliTestSensor::DoOneImage(const std::string & aNameIm)
 {
-     cSensorImage *  aSI =  mPhProj.LoadSensor(FileOfPath(aNameIm,false /* Ok Not Exist*/),false /* Not SVP*/);
+     cSensorImage *  aSI =  mPhProj.ReadSensor(FileOfPath(aNameIm,false /* Ok Not Exist*/),true/*DelAuto*/,false /* Not SVP*/);
 
      //  Compute a set of synthetic  correspondance 3d-2d
      mCurWDepth = ! aSI->HasIntervalZ();  // do we use Im&Depth or Image&Z
@@ -227,7 +238,7 @@ void  cAppliTestSensor::DoOneImage(const std::string & aNameIm)
 
     StdOut() << "NAMEORI=[" << aSI->NameOriStd()  << "]\n";
 
-    delete aSI;
+    // delete aSI;
 }
 
 

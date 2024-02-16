@@ -240,6 +240,7 @@ class cExternalSensorModif2D : public cExternalSensor
          void AddData(const  cAuxAr2007 & anAux);
 
 	 void PerturbateRandom(tREAL8 anAmpl,bool Show);
+         ~cExternalSensorModif2D();
 
 	 // NS_SymbolicDerivative::cCalculator<double> * EqDistPol2D(int  aDeg,bool WithDerive,int aSzBuf,bool ReUse); // PUSHB
 
@@ -289,6 +290,9 @@ cExternalSensorModif2D::cExternalSensorModif2D
 {
     if (mDegree>=0)
        InitPol2D();
+}
+cExternalSensorModif2D::~cExternalSensorModif2D()
+{
 }
 
 void cExternalSensorModif2D::InitPol2D()

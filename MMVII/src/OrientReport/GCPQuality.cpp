@@ -126,7 +126,7 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
 
     // cSet2D3D aSet32;
     // mSetMes.ExtractMes1Im(aSet32,aNameIm);
-    cSensorImage*  aCam = mPhProj.LoadSensor(aNameIm,false);
+    cSensorImage*  aCam = mPhProj.ReadSensor(aNameIm,true,false);
 
     // StdOut() << " aNameImaNameIm " << aNameIm  << " " << aSetMesIm.Measures().size() << " Cam=" << aCam << std::endl;
 
@@ -221,7 +221,7 @@ void cAppli_CGPReport::ReportsByGCP()
 
    for (const auto & aNameIm : VectMainSet(0))
    {
-       mPhProj.LoadIm(aSetMes,aNameIm,mPhProj.LoadSensor(aNameIm,false),true);
+       mPhProj.LoadIm(aSetMes,aNameIm,mPhProj.ReadSensor(aNameIm,true,false),true);
    }
 
    const std::vector<cSensorImage*> &  aVSens =  aSetMes.VSens() ;

@@ -101,6 +101,11 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(const cSetMesImGCP * aSet)
                for (auto & anObj : aSens->GetAllUK())
                   anObj->PushIndexes(aVIndGlob);
 
+	       /*StdOut() << "VISSSS " << aSens->IsVisibleOnImFrame(aPIm) 
+		        << " " << aPGr
+		        << " "<< aSens->IsVisible(aPGr) 
+			<< "\n";*/
+
 	       // Do something only if GCP is visible 
                if (aSens->IsVisibleOnImFrame(aPIm) && (aSens->IsVisible(aPGr)))
                {

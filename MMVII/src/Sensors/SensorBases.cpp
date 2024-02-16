@@ -344,8 +344,17 @@ cSet2D3D  cSensorImage::SyntheticsCorresp3D2D (int aNbByDim,int aNbDepts,double 
 
    for (int aKD=0 ; aKD < aNbDepts; aKD++)
    {
-        tREAL8 aW = SafeDiv(aKD,aNbDepts);
-        aVDepth.push_back(aD0 * pow(aD1/aD0,aW));
+        tREAL8 aW = (aKD+0.5) / aNbDepts;
+        if (IsDepthOrZ)
+	{
+	     //  Case depth we make some log regular spacing
+            aVDepth.push_back(aD0 * pow(aD1/aD0,aW));
+	}
+	else
+	{
+	     //  Case z we make basic regular spacing
+             aVDepth.push_back(  (aD0* (1-aW)) + aD1 * aW);
+	}
    }
 
    return SyntheticsCorresp3D2D(aNbByDim,aVDepth,IsDepthOrZ);
