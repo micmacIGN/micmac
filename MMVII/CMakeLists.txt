@@ -2,7 +2,6 @@
 ##        Global configuration
 #######################################################
 cmake_minimum_required(VERSION 3.15)
-/bin/bash: q : commande introuvable
 
 # strict C++17 required
 set(CMAKE_CXX_STANDARD 17)
