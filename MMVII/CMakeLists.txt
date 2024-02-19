@@ -1,8 +1,7 @@
 #######################################################
 ##        Global configuration
 #######################################################
-cmake_minimum_required(VERSION 3.16)
-project(MMVII VERSION 1.0)
+cmake_minimum_required(VERSION 3.15)
 
 # strict C++17 required
 set(CMAKE_CXX_STANDARD 17)

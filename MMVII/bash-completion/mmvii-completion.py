@@ -11,6 +11,9 @@ comp_cword=int(sys.argv[2])
 comp_line=os.getenv('COMP_LINE')
 screen_columns=int(os.getenv('COLUMNS','80'))
 
+# For windows, force remove CR (^M) from output
+sys.stdout.reconfigure(newline="\n")
+
 helpArgPossible=True
 
 if debug>1:

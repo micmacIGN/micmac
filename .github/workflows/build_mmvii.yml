@@ -22,6 +22,11 @@ jobs:
     - name: Build MMVII documentation
       run: make -C MMVII/Doc a4
 
+    - name: Remove previous MMVII documentation release
+      env:
+         GH_TOKEN: ${{ github.token }}
+      run: gh release delete MMVII_Documentation -y --cleanup-tag
+
     - name: Upload MMVII documentaion
       uses: softprops/action-gh-release@v1
       with:
@@ -120,6 +125,11 @@ jobs:
     - name: Create Zip
       run: 7z a mmvii_windows.zip bin\ binaire-aux\ include\XML_MicMac\ include\XML_GEN\ include\qt MMVII\MMVII-LocalParameters\ MMVII\MMVII-RessourceDir\ MMVII\bin\MMVII.exe MMVII\bin\vMMVII.exe MMVII\bin\platforms
  
+    - name: Remove previous Windows MMVII build release
+      env:
+         GH_TOKEN: ${{ github.token }}
+      run: gh release delete Windows_MMVII_build -y --cleanup-tag
+
     - name: Upload binaries to release
       uses: softprops/action-gh-release@v1
       with:

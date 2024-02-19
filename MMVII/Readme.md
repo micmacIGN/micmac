@@ -111,7 +111,7 @@ Bash completion (beta)
 
 It is possible to have MMVII command completion for Linux bash
 
-- Requires: bash-completion python3
+- Requires: python3
 
    (Already installed by default on Ubuntu, just in case:  sudo apt install bash-completion python3)
 
@@ -120,9 +120,20 @@ It is possible to have MMVII command completion for Linux bash
   - MMVII executable must be in your $PATH
   - Add to your ${HOME}/.bashrc the following line:
 
-   `[ -f ${HOME}/@MICMAC_SOURCE_DIR@/micmac/MMVII/bash-completion/mmvii-completion ] && . ${HOME}/@MICMAC_SOURCE_DIR@/micmac/MMVII/bash-completion/mmvii-completion ]`
+   `[ -f ${HOME}/@MICMAC_SOURCE_DIR@/micmac/MMVII/bash-completion/mmvii-completion ] && . ${HOME}/@MICMAC_SOURCE_DIR@/micmac/MMVII/bash-completion/mmvii-completion`
   - Completion will be active in terminals opened after this modification.
 
+If you're using bash on Windows, it may also works:
+
+- You must have python >= 3.7 installed somewhere
+
+- Edit your ~/.bash_profile and add: (adapt first 2 lines to your case)
+    ```
+    MMVII_INSTALL_PATH=/c/micmac/MMVII
+    PYTHON_INSTALL_PATH=/c/Python/Python39/
+    PATH=${PYTHON_INSTALL_PATH}:${MMVII_INSTALL_PATH}/bin:$PATH
+    [ -f ${MMVII_INSTALL_PATH}/bash-completion/mmvii-completion ] && . ${MMVII_INSTALL_PATH}/bash-completion/mmvii-completion
+    ```
 
 vCommand (beta)
 ---------------

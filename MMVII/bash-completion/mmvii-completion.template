@@ -5,7 +5,7 @@ _mmvii_completion()
   export COMP_LINE COLUMNS
   local cur cword
   _get_comp_words_by_ref -n = cur cword
-  local RESULT="$(python3 -  "$cur" "$cword" < ${_MMVII_COMPLETION_PYTHON})"
+  local RESULT="$(python -  "$cur" "$cword" < ${_MMVII_COMPLETION_PYTHON})"
   readarray -t COMPREPLY < <(echo -n "$RESULT")
   if [ ${#COMPREPLY[@]} -eq 0 ]; then
     unset COMPREPLY
@@ -26,5 +26,5 @@ _mmvii_completion()
 }
 
 _MMVII_COMPLETION_PYTHON=$(dirname ${BASH_SOURCE[0]})/mmvii-completion.py
-complete -F _mmvii_completion MMVII
+complete -F _mmvii_completion MMVII MMVII.exe mmvii mmvii.exe
 
