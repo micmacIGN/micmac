@@ -345,9 +345,18 @@ template<class Type,const int Dim> void  cDataTypedIm<Type,Dim>::ChSignIn(cDataT
    auto  aIn =   mRawDataLin;
    auto aNbElem = NbElem();
 
+// msvc++ :  disable: warning C4146: unary minus operator applied to unsigned type, result still unsigned
+#ifdef _WIN32
+# pragma warning( push )
+# pragma warning( disable : 4146 )
+#endif
+
    for (int aX=0 ; aX<aNbElem ; aX++)
        aOut[aX] = -aIn[aX];
 
+#ifdef _WIN32
+# pragma warning( pop )
+#endif
 }
 
 
