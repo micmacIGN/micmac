@@ -514,7 +514,7 @@ void cPhotogrammetricProject::ReadSensor(const std::string  &aNameIm,cSensorImag
      }
 
      // Else try an external sensor
-     aSI =  cSensorImage::AllocExternalSensor(DirImportInitOri(),mDPOrient.FullDirIn(),aNameIm);
+     aSI =  AllocExternalSensor(aNameIm);
      if (aSI!=nullptr)
      {
         if (ToDeleteAutom)
@@ -901,6 +901,14 @@ tPtrSysCo cPhotogrammetricProject::CreateSysCoRTL(const cPt3dr & aOrig,const std
        return tPtrSysCo(nullptr);
 
     return cSysCoordV2::RTL(aOrig,aNameFull);
+}
+
+cChangSysCoordV2  cPhotogrammetricProject::ChangSys(const std::string aS1,const std::string aS2) const
+{
+   if (aS1==aS2)
+      return  cChangSysCoordV2{};	   
+
+    return cChangSysCoordV2(ReadSysCo(aS1),ReadSysCo(aS2));
 }
 
 cChangSysCoordV2  cPhotogrammetricProject::ChangSys(const std::vector<std::string> & aVec,tREAL8 aEpsDif) 

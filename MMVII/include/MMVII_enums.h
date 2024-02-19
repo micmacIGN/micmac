@@ -533,6 +533,9 @@ enum class eSysCoGeo
      eLambert93,
      eRTL,
      eGeoC,
+     eWGS84Degrees,
+     eWGS84Rads,
+     eWGS84Meters,
      eLocalSys,
      eNbVals
 };

@@ -83,8 +83,7 @@ class cSensorImage  :   public cObj2DelAtEnd,
 
           //  Allocators  , return nulltr if dont exist
 
-          ///  return an external sensor (like RPC, Grids ...) 
-          static cSensorImage * AllocExternalSensor(const std::string & aDirInit,const std::string & aDirSens,const std::string aNameIm);
+	  virtual ~cSensorImage();
 
 	  /// create a sensor in a new coordinate system, default error
 	  virtual cSensorImage * SensorChangSys(cDataInvertibleMapping<tREAL8,3> &) const ;
@@ -113,6 +112,8 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	 /// Basic method  GroundCoordinate ->  image coordinate of projection
          virtual cPt2dr Ground2Image(const cPt3dr &) const = 0;
 
+	 ///  Coordinate system, default is undef "LocalNONE"
+         virtual std::string  CoordinateSystem() const;
 
 	 /// Can we manipulate  Image & Depth -> 3d, default false, true for Central Persp
 	 virtual bool  HasImageAndDepth() const;
@@ -165,11 +166,11 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	 // =================   Generation of points & correspondance   ===========================
 
 	 /// return a set point regulary sampled (+/-) on sensor, take care of frontier, default is as simple grid
-         virtual std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim)  const ;
+         virtual std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim,tREAL8 aEpsMargRel=0.05)  const ;
 	 ///  return artificial/synthetic correspondance , with vector of depth / Z
-	 cSet2D3D  SyntheticsCorresp3D2D (int aNbByDim,std::vector<double> & aVecDepth,bool IsDepthOrZ) const;
+	 cSet2D3D  SyntheticsCorresp3D2D (int aNbByDim,std::vector<double> & aVecDepth,bool IsDepthOrZ,tREAL8 aEpsMargRel=0.05) const;
 	 ///  call variant with vector, depth regularly spaced  depth / Z
-	 cSet2D3D  SyntheticsCorresp3D2D (int aNbByDim,int aNbDepts,double aD0,double aD1,bool IsDepthOrZ) const;
+	 cSet2D3D  SyntheticsCorresp3D2D (int aNbByDim,int aNbDepts,double aD0,double aD1,bool IsDepthOrZ,tREAL8 aEpsMargRel=0.05) const;
 
 
 	 // =================   Residual   ===========================
@@ -204,6 +205,9 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	 virtual cPt3dr  PseudoCenterOfProj() const = 0;
 	 ///  For stenope camera return center, for other nullptr, default retunr null ptr, its not a stenoppe
 	 virtual const cPt3dr * CenterOfPC() const ;
+
+	 /// Return if any the center of footprint 
+	 virtual  const cPt3dr *  CenterOfFootPrint() const;
 
 
          //  method used in push-broom perturbation model
@@ -455,6 +459,11 @@ class cPhotogrammetricProject
 
 	  /// Load a sensor, try different type (will add RPC , and others ?) use autom delete (dont need to delete it)
 	  void ReadSensor(const std::string &NameIm,cSensorImage* &,cSensorCamPC * &,bool ToDeleteAutom,bool SVP=false);
+	 
+          ///  return an external sensor (like RPC, Grids ...) 
+          cSensorImage * AllocExternalSensor(const std::string aNameIm);
+	  cSensorImage * AllocExternalSensor(const std::string & aDirInit,const std::string & aDirSens,const std::string aNameImage);
+
 
 	  /// return the generic sensor, use autom delete (dont need to delete it)
 	  cSensorImage* ReadSensor(const std::string  &aNameIm,bool ToDeleteAutom,bool SVP=false);
@@ -597,6 +606,8 @@ class cPhotogrammetricProject
 	 std::string  FullNameSysCo(const std::string &aName,bool SVP=false) const;
 	 // return  identity if Vec not init
 	 cChangSysCoordV2  ChangSys(const std::vector<std::string> &,tREAL8 aEpsDif=0.1);
+	 // Return idenitity if aS1==aS2
+	 cChangSysCoordV2  ChangSys(const std::string aS1,const std::string aS2) const;
 
                   //  ======== [1]  Sysco saved in "MMVII-PhgrProj/Ori/"  or "MMVII-PhgrProj/PointsMeasure//"
          std::string  NameCurSysCo(const cDirsPhProj &,bool IsIn) const;

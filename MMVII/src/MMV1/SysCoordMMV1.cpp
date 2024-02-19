@@ -11,34 +11,36 @@
 #include "MMVII_Tpl_Images.h"
 #include "MMVII_2Include_Serial_Tpl.h"
 
+// WGS84Degre
+// WGS84
 
 namespace MMVII
 {
 
 /*********************************************/
 /*                                           */
-/*             cSysCoordV1                   */
+/*             cSysCoUsingV1                 */
 /*                                           */
 /*********************************************/
 
-class cSysCoordV1 : public cSysCoordV2
+class cSysCoUsingV1 : public cSysCoordV2
 {
 	public :
-           //cSysCoordV1(cSysCoord *,eSysCoGeo,const std::vector<double>& aVAttrD,const std::vector<std::string>& aVAttrS);
-	   cSysCoordV1(eSysCoGeo,const std::map<std::string,std::string> &);
+           //cSysCoUsingV1(cSysCoord *,eSysCoGeo,const std::vector<double>& aVAttrD,const std::vector<std::string>& aVAttrS);
+	   cSysCoUsingV1(eSysCoGeo,const std::map<std::string,std::string> &);
 
            void AddData(const  cAuxAr2007 & anAuxInit) ;
            void ToFile(const std::string &) const override;
-	   static cSysCoordV1 * FromFile(const std::string &);
+	   static cSysCoUsingV1 * FromFile(const std::string &);
 
            tPt ToGeoC(const tPt &) const override;
            tPt FromGeoC(const tPt &) const  override;
 
-	   cSysCoordV1();
-           ~cSysCoordV1();
+	   cSysCoUsingV1();
+           ~cSysCoUsingV1();
            void  InterpretAttr();
 
-	   static cSysCoordV1*   RTL(const cPt3dr & aPt,const std::string & aSysRef);
+	   static cSysCoUsingV1*   RTL(const cPt3dr & aPt,const std::string & aSysRef);
 
 
 	   /// Conventional value for string that has been consumed
@@ -62,21 +64,21 @@ class cSysCoordV1 : public cSysCoordV2
 };
 
 // Any value that will never be a valide value
-const std::string cSysCoordV1::SConsumed = "@#%Zy_!";
-const std::string cSysCoordV1::KeyRTLSys = "Sys_RTL";
-const std::string cSysCoordV1::KeyRTL_x0 = "x0_RTL";
-const std::string cSysCoordV1::KeyRTL_y0 = "y0_RTL";
-const std::string cSysCoordV1::KeyRTL_z0 = "z0_RTL";
-const std::string cSysCoordV1::KeyNameLocal = "NameLocalSys";
+const std::string cSysCoUsingV1::SConsumed = "@#%Zy_!";
+const std::string cSysCoUsingV1::KeyRTLSys = "Sys_RTL";
+const std::string cSysCoUsingV1::KeyRTL_x0 = "x0_RTL";
+const std::string cSysCoUsingV1::KeyRTL_y0 = "y0_RTL";
+const std::string cSysCoUsingV1::KeyRTL_z0 = "z0_RTL";
+const std::string cSysCoUsingV1::KeyNameLocal = "NameLocalSys";
 
-std::string  cSysCoordV1::GetAttr(std::map<std::string,std::string> & aMap,const std::string & aKey)
+std::string  cSysCoUsingV1::GetAttr(std::map<std::string,std::string> & aMap,const std::string & aKey)
 {
      auto anIter = aMap.find(aKey);
      if (anIter == aMap.end())
-         MMVII_UnclasseUsEr("Key not found in cSysCoordV1::GetAttr : " + aKey);
+         MMVII_UnclasseUsEr("Key not found in cSysCoUsingV1::GetAttr : " + aKey);
 
      if (anIter->second == SConsumed)
-         MMVII_UnclasseUsEr("Key multiple consumed in cSysCoordV1::GetAttr : " + aKey);
+         MMVII_UnclasseUsEr("Key multiple consumed in cSysCoUsingV1::GetAttr : " + aKey);
 
      std::string aRes = anIter->second;
      anIter->second = SConsumed;
@@ -84,23 +86,23 @@ std::string  cSysCoordV1::GetAttr(std::map<std::string,std::string> & aMap,const
      return aRes;
 }
 
-void  cSysCoordV1::SetAttr(std::map<std::string,std::string> & aMap,const std::string & aKey,const std::string & aVal)
+void  cSysCoUsingV1::SetAttr(std::map<std::string,std::string> & aMap,const std::string & aKey,const std::string & aVal)
 {
      auto anIter = aMap.find(aKey);
      if (anIter != aMap.end())
-         MMVII_UnclasseUsEr("Key multiple found in cSysCoordV1::GetAttr : " + aKey);
+         MMVII_UnclasseUsEr("Key multiple found in cSysCoUsingV1::GetAttr : " + aKey);
 
      aMap[aKey] = aVal;
 }
 
 
-cSysCoordV1::cSysCoordV1() :
+cSysCoUsingV1::cSysCoUsingV1() :
   mSV1   (nullptr),
   mType  (eSysCoGeo::eNbVals)
 {
 }
 
-cSysCoordV1::cSysCoordV1(eSysCoGeo aType,const std::map<std::string,std::string> & aAttribs) :
+cSysCoUsingV1::cSysCoUsingV1(eSysCoGeo aType,const std::map<std::string,std::string> & aAttribs) :
     mSV1      (nullptr),
     mType     (aType),
     mAttribs  (aAttribs)
@@ -108,7 +110,7 @@ cSysCoordV1::cSysCoordV1(eSysCoGeo aType,const std::map<std::string,std::string>
     InterpretAttr();
 }
 
-void cSysCoordV1::AddData(const  cAuxAr2007 & anAuxInit) 
+void cSysCoUsingV1::AddData(const  cAuxAr2007 & anAuxInit) 
 {
      cAuxAr2007 anAux("SysCoGeo",anAuxInit);
 
@@ -116,22 +118,41 @@ void cSysCoordV1::AddData(const  cAuxAr2007 & anAuxInit)
      MMVII::AddData(cAuxAr2007("Attributes",anAux),mAttribs);
 }
 
-void AddData(const  cAuxAr2007 & anAux,cSysCoordV1 & aSysC)
+void AddData(const  cAuxAr2007 & anAux,cSysCoUsingV1 & aSysC)
 {
     aSysC.AddData(anAux);
 }
 
-void cSysCoordV1::ToFile(const std::string & aNameFile) const 
+void cSysCoUsingV1::ToFile(const std::string & aNameFile) const 
 {
    SaveInFile(*this,aNameFile);
 }
 
-void cSysCoordV1::Init(eSysCoGeo aType,std::map<std::string,std::string> & aMap)
+void cSysCoUsingV1::Init(eSysCoGeo aType,std::map<std::string,std::string> & aMap)
 {
      if  (aType == eSysCoGeo::eLambert93)
+     {
+         mPtEpsDeriv = cPt3dr(1.0,1.0,1.0);
          mSV1 = cProj4::Lambert93();
+     }
      else if  (aType == eSysCoGeo::eGeoC)
+     {
+         mPtEpsDeriv = cPt3dr(1.0,1.0,1.0);
          mSV1 = cSysCoord::GeoC();
+     }
+     else if  (aType == eSysCoGeo::eWGS84Degrees)
+     {
+         // Rules 40000 Km for the earth perimeter
+         tREAL8 aEpsXYZ =  4e7 / 360.0;
+         mPtEpsDeriv = cPt3dr(aEpsXYZ,aEpsXYZ,1.0);
+         mSV1 = cSysCoord::WGS84Degre();
+     }
+     else if  (aType == eSysCoGeo::eWGS84Rads)
+     {
+         tREAL8 aEpsXYZ =  4e7 / 6.28;
+         mPtEpsDeriv = cPt3dr(aEpsXYZ,aEpsXYZ,1.0);
+         mSV1 = cSysCoord::WGS84();
+     }
      else if  (aType == eSysCoGeo::eLocalSys)
      {
      }
@@ -142,16 +163,16 @@ void cSysCoordV1::Init(eSysCoGeo aType,std::map<std::string,std::string> & aMap)
 }
 
 
-cSysCoordV1 * cSysCoordV1::FromFile(const std::string & aNameFile)
+cSysCoUsingV1 * cSysCoUsingV1::FromFile(const std::string & aNameFile)
 {
-     cSysCoordV1 * aRes = new cSysCoordV1;
+     cSysCoUsingV1 * aRes = new cSysCoUsingV1;
      ReadFromFile(*aRes,aNameFile);
      aRes->InterpretAttr();
 
      return aRes;
 }
 
-void  cSysCoordV1::InterpretAttr()
+void  cSysCoUsingV1::InterpretAttr()
 {
      std::map<std::string,std::string>  aCpAttr = mAttribs;
 
@@ -163,7 +184,7 @@ void  cSysCoordV1::InterpretAttr()
      {
           std::string aStrSysOri =  GetAttr(aCpAttr,KeyRTLSys);  // extract the string of system storing ori
 	  eSysCoGeo  aTypeSysOri = Str2E<eSysCoGeo>(aStrSysOri); // convert it to enum
-	  cSysCoordV1 aSysOri;
+	  cSysCoUsingV1 aSysOri;
 	  aSysOri.Init(aTypeSysOri,aCpAttr);  // initialize a system
 
 	  tREAL8 aXOri = cStrIO<tREAL8>::FromStr(GetAttr(aCpAttr,KeyRTL_x0));
@@ -178,9 +199,9 @@ void  cSysCoordV1::InterpretAttr()
 
 }
 
-cSysCoordV1*   cSysCoordV1::RTL(const cPt3dr & aPt,const std::string & aSysRef)
+cSysCoUsingV1*   cSysCoUsingV1::RTL(const cPt3dr & aPt,const std::string & aSysRef)
 {
-    cSysCoordV1 *  aSys = cSysCoordV1::FromFile(aSysRef);
+    cSysCoUsingV1 *  aSys = cSysCoUsingV1::FromFile(aSysRef);
 
     std::map<std::string,std::string> aAttr = aSys->mAttribs;
 
@@ -189,32 +210,32 @@ cSysCoordV1*   cSysCoordV1::RTL(const cPt3dr & aPt,const std::string & aSysRef)
     SetAttr(aAttr,KeyRTL_y0,ToStr(aPt.y()));
     SetAttr(aAttr,KeyRTL_z0,ToStr(aPt.z()));
 
-    cSysCoordV1* aRes = new cSysCoordV1(eSysCoGeo::eRTL,aAttr);
+    cSysCoUsingV1* aRes = new cSysCoUsingV1(eSysCoGeo::eRTL,aAttr);
 
     delete aSys;
 
     return aRes;
 }
 
-cPt3dr cSysCoordV1::ToGeoC(const cPt3dr & aP) const
+cPt3dr cSysCoUsingV1::ToGeoC(const cPt3dr & aP) const
 {
-    MMVII_INTERNAL_ASSERT_strong(mSV1!=nullptr,"No cSysCoordV1::ToGeoC");
+    MMVII_INTERNAL_ASSERT_strong(mSV1!=nullptr,"No cSysCoUsingV1::ToGeoC");
     return ToMMVII(mSV1->ToGeoC(ToMMV1(aP)));
 }
-cPt3dr cSysCoordV1::FromGeoC(const cPt3dr & aP) const
+cPt3dr cSysCoUsingV1::FromGeoC(const cPt3dr & aP) const
 {
-    MMVII_INTERNAL_ASSERT_strong(mSV1!=nullptr,"No cSysCoordV1::FromGeoC");
+    MMVII_INTERNAL_ASSERT_strong(mSV1!=nullptr,"No cSysCoUsingV1::FromGeoC");
     return ToMMVII(mSV1->FromGeoC(ToMMV1(aP)));
 }
 
-cSysCoordV1::~cSysCoordV1()
+cSysCoUsingV1::~cSysCoUsingV1()
 {
     // delete mSV1;
 }
 
 void GenSpec_SysCoordV1(const std::string & aDir)
 {
-    SpecificationSaveInFile<cSysCoordV1>(aDir+"SysCoordV1.xml");
+    SpecificationSaveInFile<cSysCoUsingV1>(aDir+"SysCoordV1.xml");
 }
 
 /*********************************************/
@@ -228,7 +249,7 @@ class cSysCoordLocal : public cSysCoordV2
 {
     public :
            //void ToFile(const std::string &) const override;
-	   //static cSysCoordV1 * FromFile(const std::string &);
+	   //static cSysCoUsingV1 * FromFile(const std::string &);
 
            tPt ToGeoC(const tPt &) const override;
            tPt FromGeoC(const tPt &) const  override;
@@ -256,7 +277,8 @@ tPt cSysCoordLocal::FromGeoC(const tPt &) const
 /*********************************************/
 
 cSysCoordV2::cSysCoordV2(tREAL8  aEpsDeriv) :
-    cDataInvertibleMapping<tREAL8,3>(tPt::PCste(aEpsDeriv))
+    cDataInvertibleMapping<tREAL8,3>(tPt::PCste(aEpsDeriv)),
+    mPtEpsDeriv  (tPt::PCste(aEpsDeriv))
 {
 }
 
@@ -273,29 +295,29 @@ cPt3dr  cSysCoordV2::Inverse(const cPt3dr &aP) const
 
 tPtrSysCo cSysCoordV2::Lambert93()
 {
-   return tPtrSysCo(new cSysCoordV1(eSysCoGeo::eLambert93,{}));
+   return tPtrSysCo(new cSysCoUsingV1(eSysCoGeo::eLambert93,{}));
 }
 
 tPtrSysCo cSysCoordV2::GeoC()
 {
-   return tPtrSysCo(new cSysCoordV1(eSysCoGeo::eGeoC,{}));
+   return tPtrSysCo(new cSysCoUsingV1(eSysCoGeo::eGeoC,{}));
 }
 
 tPtrSysCo cSysCoordV2::LocalSystem(const  std::string & aName)
 {
    std::map<std::string,std::string> aMap;
-   aMap[cSysCoordV1::KeyNameLocal] = aName;
-   return tPtrSysCo(new cSysCoordV1(eSysCoGeo::eLocalSys,aMap));
+   aMap[cSysCoUsingV1::KeyNameLocal] = aName;
+   return tPtrSysCo(new cSysCoUsingV1(eSysCoGeo::eLocalSys,aMap));
 }
 
 tPtrSysCo cSysCoordV2::FromFile(const std::string & aName)
 {
-    return tPtrSysCo(cSysCoordV1::FromFile(aName));
+    return tPtrSysCo(cSysCoUsingV1::FromFile(aName));
 }
 
 tPtrSysCo cSysCoordV2::RTL(const cPt3dr & anOriInit,const std::string & aName)
 {
-     return tPtrSysCo(cSysCoordV1::RTL(anOriInit,aName));
+     return tPtrSysCo(cSysCoUsingV1::RTL(anOriInit,aName));
 }
 
 
@@ -313,6 +335,9 @@ cChangSysCoordV2::cChangSysCoordV2(tPtrSysCo aSysInit,tPtrSysCo aSysTarget,tREAL
     mSysTarget    (aSysTarget)
 {
 }
+
+bool   cChangSysCoordV2::IsIdent() const {return mIdent;}
+
 
 cChangSysCoordV2::cChangSysCoordV2 () :
      cDataInvertibleMapping<tREAL8,3> (cPt3dr::PCste(1.0)),

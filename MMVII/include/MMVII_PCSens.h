@@ -450,7 +450,7 @@ class cSensorCamPC : public cSensorImage
          tSeg3dr  Image2Bundle(const cPt2dr &) const override;
 
 
-         std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim) const override;
+         std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim,tREAL8 aEpsRel=0.0) const override;
 
          ///  residual of projection as angle between directions, work with any lenses
          tREAL8  AngularProjResiudal(const cPair2D3D&) const;

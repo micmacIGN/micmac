@@ -167,6 +167,9 @@ template<> cE2Str<eSysCoGeo>::tMapE2Str cE2Str<eSysCoGeo>::mE2S
                {eSysCoGeo::eLambert93,"Lambert93"},
                {eSysCoGeo::eRTL,"RTL"},
                {eSysCoGeo::eGeoC,"GeoC"},
+               {eSysCoGeo::eWGS84Degrees,"WGS84Degrees"},
+               {eSysCoGeo::eWGS84Rads,"WGS84Rads"},
+               {eSysCoGeo::eWGS84Meters,"WGS84Meters"},
                {eSysCoGeo::eLocalSys,"Local"}
            };
 

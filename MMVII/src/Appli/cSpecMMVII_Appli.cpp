@@ -235,6 +235,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_ImportMesImGCP);
         TheVecAll.push_back(&TheSpecImportExtSens);
         TheVecAll.push_back(&TheSpecTestSensor);
+        TheVecAll.push_back(&TheSpecParametrizeSensor);
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }

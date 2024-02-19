@@ -38,6 +38,8 @@ void cMMVII_BundleAdj::InitItereGCP()
 
 void cMMVII_BundleAdj::OneItere_OnePackGCP(const cSetMesImGCP * aSet)
 {
+// MMVII_DEV_WARNING("std::cout.precision(15) JkUiiuoiu");
+// std::cout.precision(15);
     if (aSet==nullptr) return;
     //   W>0  obs is an unknown "like others"
     //   W=0 , obs is fix , use schurr subst and fix the variables
@@ -114,6 +116,7 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(const cSetMesImGCP * aSet)
 	             cCalculator<double> * anEqColin =  aSens->GetEqColinearity();
                      // the "obs" are made of 2 point and, possibily, current rotation (for PC cams)
                      std::vector<double> aVObs = aPIm.ToStdVector();
+
 		     aSens->PushOwnObsColinearity(aVObs,aPGr);
 
 		     if (aGcpUk)  // Case Uknown, we just add the equation
@@ -124,6 +127,7 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(const cSetMesImGCP * aSet)
 		     {
                         mSys->R_AddEq2Subst(aStrSubst,anEqColin,aVIndGlob,aVObs,aWeightImage);
 		     }
+ // StdOut() << "RRRRrr " << aResidual << " IImm=" << aPIm  << " Prroj" << aSens->Ground2Image(aPGr) << "\n"; getchar();
                }
 	    }
 

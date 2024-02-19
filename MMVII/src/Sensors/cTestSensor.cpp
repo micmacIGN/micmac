@@ -37,6 +37,8 @@ class cAppliTestSensor : public cMMVII_Appli
         void ExportMeasures(const  cSensorImage & aSI) const;
 	///  Test coherence of Graddient  Grad/Dif finite ~ Grad analytic
         void TestCoherenceGrad(const  cSensorImage & aSI) const;
+	///  Test coherence of Graddient  Grad/Dif finite ~ Grad analytic
+        void TestPoseLineSensor(const  cSensorImage & aSI) const;
 
 
         cPhotogrammetricProject  mPhProj;
@@ -47,6 +49,7 @@ class cAppliTestSensor : public cMMVII_Appli
 	bool                     mTestCorDirInv;
         cPt2dr                   mDefIntDepth;  // Defautlt interval of depth if sensor has depth functs
         bool                     mDoTestGrad;
+	std::vector<tREAL8>      mTestPLS;   // Test Pose Line Sensor
 
         cPt2dr                   mCurIntZD ;   // curent interval of Z or Depth
 	bool                     mCurWDepth;   // does current sensor use depth or Z
@@ -88,6 +91,7 @@ cCollecSpecArg2007 & cAppliTestSensor::ArgOpt(cCollecSpecArg2007 & anArgOpt)
                << AOpt2007(mTestCorDirInv,"TestCDI","Test coherence of direct/invers model",{eTA2007::HDV})
                << AOpt2007(mSzGenerate,"SzGen","Sz gen",{eTA2007::HDV,{eTA2007::ISizeV,"[2,2]"}})
                << AOpt2007(mDoTestGrad,"TestGrad","Test coherence anlytic grad/finit diff (if different)",{eTA2007::HDV})
+               << AOpt2007(mTestPLS,"TestPLS","Test Pose Line Sensor",{{eTA2007::ISizeV,"[2,2]"}})
             ;
 }
 
@@ -115,7 +119,7 @@ void cAppliTestSensor::TestGroundTruth(const  cSensorImage & aSI) const
 
          }
     }
-    StdOut() << "  ==============  Accuracy / Ground trurh =============== " << std::endl;
+    StdOut() << "     ==============  Accuracy / Ground trurh =============== " << std::endl;
     StdOut()  << "    Avg=" <<  aStCheckIm.Avg() << ",  Worst=" << aStCheckIm.Max() << "\n";
 }
 
@@ -159,16 +163,39 @@ void cAppliTestSensor::TestCoherenceGrad(const  cSensorImage & aSI) const
 	     << " GradJ=" << aStatGradJ.Avg() << "\n";
 }
 
+void cAppliTestSensor::TestPoseLineSensor(const  cSensorImage & aSI) const
+{
+    bool RowIsCol = false;
+    int  aNbRow =  mTestPLS.at(0);
+    int  aNbInRow =  mTestPLS.at(1);
+    int aNbTotRow =  RowIsCol ? aSI.Sz().x() : aSI.Sz().y() ;
+
+    for (int aKRow=0 ; aKRow< aNbRow ; aKRow++)
+    {
+        tREAL8 aCoord = ((aKRow +0.5) / double(aNbRow)) * aNbTotRow;
+	bool Ok;
+	std::vector<tREAL8> aResidual;
+
+	StdOut()  <<  "CCC="  << aCoord << aSI.Sz() << " " << aNbTotRow << std::endl;
+
+	tPoseR aPose = aSI.GetPoseLineSensor(aCoord,RowIsCol,aNbInRow,&Ok,&aResidual);
+
+	StdOut()  << " C="  << aPose.Tr() << " R=" << aResidual << " "   << aKRow << " " << aNbRow << "\n";
+    }
+}
+
 void cAppliTestSensor::TestCoherenceDirInv(const  cSensorImage & aSI) const
 {
      
      cStdStatRes  aStConsistIm;  // stat for image consit  Proj( Proj-1(PIm)) ?= PIm
      cStdStatRes  aStConsistGr;  // stat for ground consist  Proj-1 (Proj(Ground)) ?= Ground
+     // cStdStatRes  aStConsistGr;  // stat for ground consist  Proj-1 (Proj(Ground)) ?= Ground
 
      for (const auto & aPair : mCurS23.Pairs())
      {
          cPt3dr  aPGr = aPair.mP3;
          cPt3dr  aPIm (aPair.mP2.x(),aPair.mP2.y(),aPGr.z());
+
 
          cPt3dr  aPIm2 ;
          cPt3dr  aPGr2 ;
@@ -188,10 +215,11 @@ void cAppliTestSensor::TestCoherenceDirInv(const  cSensorImage & aSI) const
 
 	 tREAL8 aDifGr = Norm2(aPGr-aPGr2);
 	 aStConsistGr.Add(aDifGr);
-	    
+
+	 // StdOut() <<  "DiiFimm " << aDifIm << "\n"; getchar();
      }
 
-     StdOut() << "  ==============  Consistencies Direct/Inverse =============== " << std::endl;
+     StdOut() << "     ==============  Consistencies Direct/Inverse =============== " << std::endl;
 
      StdOut() << "     * Image :  Avg=" <<   aStConsistIm.Avg() 
 	      <<  ", Worst=" << aStConsistIm.Max()  
@@ -206,7 +234,13 @@ void cAppliTestSensor::TestCoherenceDirInv(const  cSensorImage & aSI) const
 
 void  cAppliTestSensor::DoOneImage(const std::string & aNameIm)
 {
-     cSensorImage *  aSI =  mPhProj.ReadSensor(FileOfPath(aNameIm,false /* Ok Not Exist*/),true/*DelAuto*/,false /* Not SVP*/);
+    cSensorImage *  aSI =  mPhProj.ReadSensor(FileOfPath(aNameIm,false /* Ok Not Exist*/),true/*DelAuto*/,false /* Not SVP*/);
+
+    
+    StdOut() << std::endl;
+    StdOut() << "******************************************************************" << std::endl;
+    StdOut() <<  "  Image=" <<  aNameIm  << "  NAMEORI=[" << aSI->NameOriStd()  << "]" << std::endl;
+
 
      //  Compute a set of synthetic  correspondance 3d-2d
      mCurWDepth = ! aSI->HasIntervalZ();  // do we use Im&Depth or Image&Z
@@ -236,7 +270,8 @@ void  cAppliTestSensor::DoOneImage(const std::string & aNameIm)
     if (mDoTestGrad)
         TestCoherenceGrad(*aSI);
 
-    StdOut() << "NAMEORI=[" << aSI->NameOriStd()  << "]\n";
+    if (IsInit(&mTestPLS))
+       TestPoseLineSensor(*aSI);
 
     // delete aSI;
 }

@@ -518,8 +518,9 @@ std::string  cSensorCamPC::NameOri_From_Image(const std::string & aNameImage)
    return cSensorImage::NameOri_From_PrefixAndImage(PrefixName(),aNameImage);
 }
 
-std::vector<cPt2dr>  cSensorCamPC::PtsSampledOnSensor(int aNbByDim) const 
+std::vector<cPt2dr>  cSensorCamPC::PtsSampledOnSensor(int aNbByDim,tREAL8 aEps) const 
 {
+// StdOut()<< "PtsSampledOnSensorPtsSampledOnSensor " << aEps << "\n";  => PB EPS NOT USED
      return  mInternalCalib->PtsSampledOnSensor(aNbByDim,true);
 }
 

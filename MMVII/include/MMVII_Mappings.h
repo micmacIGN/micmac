@@ -941,7 +941,7 @@ class cSysCoordV2  : public cDataInvertibleMapping<tREAL8,3>
 {
       public :
 
-         cSysCoordV2(tREAL8  aEpsDeriv = 0.1);
+         cSysCoordV2(tREAL8  aEpsDeriv = 1.0);
 	 virtual ~cSysCoordV2();
 
          tPt Value(const tPt &)   const override;  // Mapping interface to ToGeoC
@@ -958,6 +958,8 @@ class cSysCoordV2  : public cDataInvertibleMapping<tREAL8,3>
          static tPtrSysCo GeoC();
          static tPtrSysCo RTL(const cPt3dr & Ori,const std::string & aSys);
          static tPtrSysCo LocalSystem(const  std::string & aName);
+
+	 cPt3dr  mPtEpsDeriv;
 };
 
 class cChangSysCoordV2  : public cDataInvertibleMapping<tREAL8,3>
@@ -975,6 +977,7 @@ class cChangSysCoordV2  : public cDataInvertibleMapping<tREAL8,3>
 	    virtual ~cChangSysCoordV2();
             tPtrSysCo  SysInit();     ///< Accessor
             tPtrSysCo  SysTarget();   ///< Accessor
+	    bool       IsIdent() const;
         private :
 
 	    bool       mIdent;

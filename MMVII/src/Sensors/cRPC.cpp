@@ -35,6 +35,9 @@ class cRPC_Polyn : public cDataMapping<tREAL8,3,1>
 	// cPt1dr Value(const cPt3dr &) const override; // Make the object a mapping, in case it is usefull
 	//
 	void PushCoeffs(std::vector<tREAL8>&) const;
+	void SetCoeffs(const std::vector<tREAL8>&,size_t aK0);
+
+
     private:
         double Val(const cPt3dr &) const;
 
@@ -59,6 +62,7 @@ class cRPC_RatioPolyn
         double Val(const tRPCCoeff &) const;
 
 	void PushCoeffs(std::vector<tREAL8>&) const;
+	void SetCoeffs(const std::vector<tREAL8>&);
     private:
         double Val(const cPt3dr &) const;
         cRPC_Polyn mNumPoly; // numerator polynomial
@@ -88,11 +92,14 @@ class cRatioPolynXY
         void   Show();
 
 	void PushCoeffs(std::vector<tREAL8>&) const;
+
+	void  InitFromSamples(const std::vector<cPt3dr> & aVIn,const std::vector<cPt3dr> & aVOut);
     private:
         cRPC_RatioPolyn mX;
         cRPC_RatioPolyn mY;
 
 };
+
 
 /**  A class containing RPCs  */
 class cRPCSens : public cSensorImage
@@ -110,6 +117,8 @@ class cRPCSens : public cSensorImage
 	 /// Compute analytical differential using gen-code
 	 tProjImAndGrad  DiffGround2Im(const cPt3dr &) const override;
 
+	 ///  For now assume RPC is WGS84Degree always, see later if we change that
+	 std::string  CoordinateSystem() const override;
 
 	/// Indicate how much a point belongs to sensor visibilty domain
          double DegreeVisibility(const cPt3dr &) const  override;
@@ -120,7 +129,7 @@ class cRPCSens : public cSensorImage
          const cPixelDomain & PixelDomain() const override;
          std::string  V_PrefixName() const  override;
 
-         cRPCSens(const std::string& aNameRPC,const std::string& aNameImage);
+         cRPCSens(const std::string& aNameImage);
 	 void InitFromFile(const cAnalyseTSOF &);
 
          void Dimap_ReadXML_Glob(const cSerialTree&);
@@ -136,6 +145,9 @@ class cRPCSens : public cSensorImage
 
 	cPt3dr  PseudoCenterOfProj() const override;
 
+	// virtual cSensorImage * SensorChangSys(cDataInvertibleMapping<tREAL8,3> &) const ;
+	cRPCSens * RPCChangSys(cDataInvertibleMapping<tREAL8,3> &) const ;
+
     private:
         const cPt2dr & ImOffset() const {return mImOffset;}
         cPt2dr & ImOffset() {return mImOffset;}
@@ -149,6 +161,7 @@ class cRPCSens : public cSensorImage
         const cPt3dr & GroundScale() const {return mGroundScale;}
         cPt3dr & GroundScale() {return mGroundScale;}
 
+	const cPt3dr * CenterOfFootPrint() const override;
 
     private:
 
@@ -169,15 +182,18 @@ class cRPCSens : public cSensorImage
         cPt3dr NormGround(const cPt3dr &aP,bool) const;
         double NormZ(const double,bool) const;
 
-        double ReadXMLItem(const cSerialTree&,const std::string&);
+	std::string ReadXmlItem(const cSerialTree&,const std::string&);
+        double ReadRealXmlItem(const cSerialTree&,const std::string&);
+
         void   Dimap_ReadXMLModel(const cSerialTree&,const std::string&,cRatioPolynXY *);
         void   Dimap_ReadXMLNorms(const cSerialTree&);
+
+        cPt2dr  IO_PtIm(const cPt2dr &) const;  // Id or SwapXY, depending mSwapIJImage
+        cPt3dr  IO_PtGr(const cPt3dr &) const;  // Id or SwapXY, depending mSwapXYGround
 
         cRatioPolynXY * mDirectRPC; // rational polynomial for image to ground projection
         cRatioPolynXY * mInverseRPC; // rational polynomial for ground to image projection
 
-        cPt2dr  IO_PtIm(const cPt2dr &) const;  // Id or SwapXY, depending mSwapIJImage
-        cPt3dr  IO_PtGr(const cPt3dr &) const;  // Id or SwapXY, depending mSwapXYGround
 
         /// coordinate normalisation:  coord_norm = (coord - coord_offset) / coord_scale
         cPt2dr mImOffset; // line and sample offsets
@@ -188,6 +204,7 @@ class cRPCSens : public cSensorImage
 
         cPt3dr mGroundOffset; // ground coordinate (e.g., lambda, phi, h) offets
         cPt3dr mGroundScale;  // ground coordinate (e.g., lambda, phi, h) scales
+	cPt3dr mCenterOfFootPrint;  // +- mGroundOffset but in MM convention
 
         std::string mNameRPC;
 
@@ -297,6 +314,12 @@ void cRPC_Polyn::PushCoeffs(std::vector<tREAL8>& aVObs) const
         aVObs.push_back(mCoeffs[aK]);
 }
 
+void cRPC_Polyn::SetCoeffs(const std::vector<tREAL8>& aVC,size_t aK0)
+{
+    for (size_t aK=0 ; aK<TheNbRPCoeff ; aK++)
+        mCoeffs[aK] =  aVC[aK+aK0];
+}
+
 void cRPC_Polyn::Show()
 {
     for (int aK=0; aK<20; aK++)
@@ -346,6 +369,12 @@ void cRPC_RatioPolyn::PushCoeffs(std::vector<tREAL8>& aVObs) const
     mDenPoly.PushCoeffs(aVObs);
 }
 
+void cRPC_RatioPolyn::SetCoeffs(const std::vector<tREAL8>& aVC)
+{
+   mNumPoly.SetCoeffs(aVC,0);
+   mDenPoly.SetCoeffs(aVC,TheNbRPCoeff);
+}
+
 /* =============================================== */
 /*                                                 */
 /*                 cRatioPolynXY                   */
@@ -387,11 +416,11 @@ void cRatioPolynXY::PushCoeffs(std::vector<tREAL8>& aVObs) const
      //     Construction & Destruction  & Show
      // ====================================================
 
-cRPCSens::cRPCSens(const std::string& aNameRPC,const std::string& aNameImage) :
+cRPCSens::cRPCSens(const std::string& aNameImage) :
     cSensorImage       (aNameImage),
     mDirectRPC         (nullptr),
     mInverseRPC        (nullptr),
-    mNameRPC           (aNameRPC),
+    mNameRPC           (MMVII_NONE),
     mSwapXYGround      (true),
     mSwapIJImage       (true),
     mAmplZB            (1.0),
@@ -400,21 +429,17 @@ cRPCSens::cRPCSens(const std::string& aNameRPC,const std::string& aNameImage) :
     mBoxGround         (cBox3dr::Empty())  // Empty box because no default init
 {
 }
-     /*
-     if (anAnalyse.mFormat== eFormatSensor::eDimap_RPC)
-     {
-        Dimap_ReadXML_Glob(*anAnalyse.mSTree);
-        delete anAnalyse.mSTree;
-     }
-     */
 
 void cRPCSens::InitFromFile(const cAnalyseTSOF & anAnalyse)
 {
+   mNameRPC = anAnalyse.mData.mNameFile;
    MMVII_INTERNAL_ASSERT_strong(anAnalyse.mData.mType==eTypeSensor::eRPC,"Sensor is not RPC in cRPCSens"); 
    if (anAnalyse.mData.mFormat== eFormatSensor::eDimap_RPC)
    {
         Dimap_ReadXML_Glob(*anAnalyse.mSTree);
    }
+
+   mCenterOfFootPrint =  IO_PtGr(mGroundOffset);
 
    //  For now trust the scale
    cPt3dr aScGrV2 = IO_PtGr(mGroundScale);
@@ -434,7 +459,10 @@ cRPCSens::~cRPCSens()
 {
     delete mDirectRPC;
     delete mInverseRPC;
+    mDirectRPC = nullptr;
+    mInverseRPC = nullptr;
 }
+
 void cRPCSens::Show()
 {
     StdOut() << "\t======= Direct model =======" << std::endl;
@@ -459,6 +487,73 @@ std::string  cRPCSens::V_PrefixName() const
 	return "RPC";
 }
 
+void  cRatioPolynXY::InitFromSamples(const std::vector<cPt3dr> & aVIn,const std::vector<cPt3dr> & aVOut)
+{
+    cBox3dr aBoxIn = cTplBoxOfPts<tREAL8,3>::FromVect(aVIn).CurBox();
+    cBox3dr aBoxOut = cTplBoxOfPts<tREAL8,3>::FromVect(aVOut).CurBox();
+
+   // static void  FillCubicCoeff(tRPCCoeff & aVCoeffs,const cPt3dr &) ;
+    for (auto IsX : {true,false})
+    {
+        cLeasSqtAA<tREAL8>   aSys(2*TheNbRPCoeff);
+        std::vector<tREAL8>  aVCoeff(2*TheNbRPCoeff);
+
+        tRPCCoeff aVPolXYZ;	
+        tREAL8 aSomC2 = 0.0;
+	size_t IndNumCste = 0;
+        for (size_t aKPt=0; aKPt<aVIn.size() ; aKPt++)
+        {
+            cPt3dr aPNormIn  = aBoxIn.ToNormaliseCoord(aVIn.at(aKPt));
+	    cRPC_Polyn::FillCubicCoeff(aVPolXYZ,aPNormIn);
+
+            cPt3dr aPNormOut = aBoxOut.ToNormaliseCoord(aVOut.at(aKPt));
+            tREAL8 aCoord = IsX ? aPNormOut.x() : aPNormOut.y() ;
+         
+	    //   Num Coef - Den * Coef * I =0    , N [0] = 0
+	    for (int aKC=0 ; aKC<TheNbRPCoeff ; aKC++)
+	    {
+                 aSomC2 += Square(aVPolXYZ[aKC]);
+                 aVCoeff[aKC] = aVPolXYZ[aKC];
+                 aVCoeff[aKC+TheNbRPCoeff] = -aVPolXYZ[aKC] * aCoord;
+	    }
+	    tREAL8 aValCste = aVCoeff[IndNumCste];
+	    aVCoeff[IndNumCste] = 0;
+	    aSys.PublicAddObservation(1.0,aVCoeff,-aValCste);
+        }
+	aSys.AddObsFixVar(std::sqrt(aSomC2),IndNumCste,1.0);
+	std::vector<tREAL8> aSol = aSys.Solve().ToStdVect();
+
+        if (IsX)
+           mX.SetCoeffs(aSol);
+	else
+           mY.SetCoeffs(aSol);
+    }
+		   
+}
+
+cRPCSens * cRPCSens::RPCChangSys(cDataInvertibleMapping<tREAL8,3> & aMap) const 
+{
+    cRPCSens * aRes = new cRPCSens(NameImage());
+    cSet2D3D aSet = SyntheticsCorresp3D2D(30,5,mBoxGround.P0().z(),mBoxGround.P1().z(),false,0.0);
+
+    std::vector<cPt3dr> aVIm;
+    std::vector<cPt3dr> aVGr;
+
+    for (const auto & aPair : aSet.Pairs())
+    {
+	 cPt3dr  aPGr = aMap.Value(aPair.mP3); 
+	 cPt3dr  aPIm = TP3z(aPair.mP2,aPGr.z());
+
+	 aVIm.push_back(aPIm);
+	 aVGr.push_back(aPGr);
+    }
+
+    // InitFromSamples(aVIm,aVGr);
+    // InitFromSamples(aVGr,aVIm);
+
+    return aRes;
+}
+
      // ======================  Dimap creation ===========================
 
 void cRPCSens::Dimap_ReadXMLModel(const cSerialTree& aTree,const std::string& aPrefix,cRatioPolynXY * aModel)
@@ -475,36 +570,51 @@ void cRPCSens::Dimap_ReadXMLModel(const cSerialTree& aTree,const std::string& aP
 
 void cRPCSens::Dimap_ReadXMLNorms(const cSerialTree& aTree)
 {
+    // This multiplier was added to correct in quick&dirty way the problem of 
+    // different dimension in coordinates
+    tREAL8 aMul = 1;  // Someting like 1e5 to 
+    if (aMul!=1)
+    {
+       MMVII_DEV_WARNING("LAT_SCALELONG_SCALE");
+    }
+
     const cSerialTree * aData = aTree.GetUniqueDescFromName("RFM_Validity");
 
-    mGroundOffset.x() = ReadXMLItem(*aData,"LAT_OFF");
-    mGroundOffset.y() = ReadXMLItem(*aData,"LONG_OFF");
-    m3DImOffset.z() = mGroundOffset.z() = ReadXMLItem(*aData,"HEIGHT_OFF");
+    mGroundOffset.x() = ReadRealXmlItem(*aData,"LAT_OFF");
+    mGroundOffset.y() = ReadRealXmlItem(*aData,"LONG_OFF");
+    m3DImOffset.z() = mGroundOffset.z() = ReadRealXmlItem(*aData,"HEIGHT_OFF");
 
-    mGroundScale.x() = ReadXMLItem(*aData,"LAT_SCALE");
-    mGroundScale.y() = ReadXMLItem(*aData,"LONG_SCALE");
-    m3DImScale.z() = mGroundScale.z() = ReadXMLItem(*aData,"HEIGHT_SCALE");
+    mGroundScale.x() = ReadRealXmlItem(*aData,"LAT_SCALE") * aMul;   //  MULTIPLY
+    mGroundScale.y() = ReadRealXmlItem(*aData,"LONG_SCALE") * aMul;   //  MULTIPLY
+    m3DImScale.z() = mGroundScale.z() = ReadRealXmlItem(*aData,"HEIGHT_SCALE");
 
-    m3DImScale.x() = mImScale.x() = ReadXMLItem(*aData,"LINE_SCALE");
-    m3DImScale.y() = mImScale.y() = ReadXMLItem(*aData,"SAMP_SCALE");
+    m3DImScale.x() = mImScale.x() = ReadRealXmlItem(*aData,"LINE_SCALE");
+    m3DImScale.y() = mImScale.y() = ReadRealXmlItem(*aData,"SAMP_SCALE");
 
-    m3DImOffset.x() = mImOffset.x() = ReadXMLItem(*aData,"LINE_OFF");
-    m3DImOffset.y() = mImOffset.y() = ReadXMLItem(*aData,"SAMP_OFF");
+    m3DImOffset.x() = mImOffset.x() = ReadRealXmlItem(*aData,"LINE_OFF");
+    m3DImOffset.y() = mImOffset.y() = ReadRealXmlItem(*aData,"SAMP_OFF");
 
-    int anX = round_ni(ReadXMLItem(*aData,"LAST_COL"));
-    int anY = round_ni(ReadXMLItem(*aData,"LAST_ROW"));
+    int anX = round_ni(ReadRealXmlItem(*aData,"LAST_COL"));
+    int anY = round_ni(ReadRealXmlItem(*aData,"LAST_ROW"));
     mDataPixelDomain =  cDataPixelDomain(cPt2di(anX,anY));
 
     // compute the validity of bounding box
     cPt3dr aP0Gr;
-    aP0Gr.x() = ReadXMLItem(*aData,"FIRST_LAT");
-    aP0Gr.y() = ReadXMLItem(*aData,"FIRST_LON");
+    aP0Gr.x() = ReadRealXmlItem(*aData,"FIRST_LAT");
+    aP0Gr.y() = ReadRealXmlItem(*aData,"FIRST_LON");
     aP0Gr.z() =   mGroundOffset.z() -  mGroundScale.z();
 
     cPt3dr aP1Gr;
-    aP1Gr.x() = ReadXMLItem(*aData,"LAST_LAT");
-    aP1Gr.y() = ReadXMLItem(*aData,"LAST_LON");
+    aP1Gr.x() = ReadRealXmlItem(*aData,"LAST_LAT");
+    aP1Gr.y() = ReadRealXmlItem(*aData,"LAST_LON");
     aP1Gr.z() =   mGroundOffset.z() +  mGroundScale.z();
+
+    //  ===========   MULTIPLY  ============
+    cPt3dr aMil = (aP1Gr+aP0Gr)/2.0;
+    cPt3dr aAmpl = MulCByC((aP1Gr-aP0Gr),cPt3dr(aMul,aMul,1));
+    aP0Gr = aMil-aAmpl;
+    aP1Gr = aMil+aAmpl;
+
 
     // StdOut() << "BBBBBB " << aP0Gr << " " << aP1Gr << "\n";
     mBoxGround = cBox3dr(IO_PtGr(aP0Gr),IO_PtGr(aP1Gr));
@@ -516,13 +626,26 @@ cPt2dr cRPCSens::GetIntervalZ() const
 	return cPt2dr(mBoxGround.P0().z(),mBoxGround.P1().z());
 }
 
-double cRPCSens::ReadXMLItem(const cSerialTree & aData,const std::string& aPrefix)
+double cRPCSens::ReadRealXmlItem(const cSerialTree & aData,const std::string& aPrefix)
 {
-    return std::stod(aData.GetUniqueDescFromName(aPrefix)->UniqueSon().Value());
+    return std::stod(ReadXmlItem(aData,aPrefix));
+}
+
+std::string cRPCSens::ReadXmlItem(const cSerialTree & aData,const std::string& aPrefix)
+{
+    return aData.GetUniqueDescFromName(aPrefix)->UniqueSon().Value();
 }
 
 void cRPCSens::Dimap_ReadXML_Glob(const cSerialTree & aTree)
 {
+	/*
+{
+      MMVII_DEV_WARNING("Dimap_ReadXML_GlobDimap_ReadXML_Glob  Image2Bundle");
+      cMMVII_Ofs anOfs("toto.xml",eFileModeOut::CreateText);
+      aTree.Xml_PrettyPrint(anOfs);
+}
+*/
+
     // read the direct model
     mDirectRPC = new cRatioPolynXY();
     Dimap_ReadXMLModel(aTree,"Direct_Model",mDirectRPC);
@@ -536,6 +659,9 @@ void cRPCSens::Dimap_ReadXML_Glob(const cSerialTree & aTree)
     // read the normalisation data (offset, scales)
     Dimap_ReadXMLNorms(aTree);
 }
+
+
+std::string  cRPCSens::CoordinateSystem() const { return E2Str(eSysCoGeo::eWGS84Degrees); }
 
      // ====================================================
      //     Normalisation 
@@ -576,6 +702,8 @@ cPt2dr cRPCSens::Ground2Image(const cPt3dr& aP) const
 
 tProjImAndGrad  cRPCSens::DiffGround2Im(const cPt3dr & aP) const 
 {
+    // return     DiffG2IByFiniteDiff(aP);
+
     static cCalculator<double> * aCalc = RPC_Proj(true,1,true/*ReUse*/);
     static std::vector<double> aVObs;
     aVObs.clear();
@@ -640,6 +768,7 @@ tSeg3dr  cRPCSens::Image2Bundle(const cPt2dr & aPtIm) const
      return tSeg3dr(aPGr0,aPGr1);
 }
 
+const cPt3dr * cRPCSens::CenterOfFootPrint() const { return & mCenterOfFootPrint; }
 
 const cPixelDomain & cRPCSens::PixelDomain() const  {return mPixelDomain;}
 
@@ -664,7 +793,7 @@ cPt3dr  cRPCSens::PseudoCenterOfProj() const
 
 cSensorImage *  AllocRPCDimap(const cAnalyseTSOF & anAnalyse,const std::string & aNameImage)
 {
-    cRPCSens* aRes = new cRPCSens(anAnalyse.mData.mNameFile,aNameImage);
+    cRPCSens* aRes = new cRPCSens(aNameImage);
     aRes->InitFromFile(anAnalyse);
 
     return aRes;

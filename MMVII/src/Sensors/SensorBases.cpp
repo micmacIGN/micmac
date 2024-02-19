@@ -63,6 +63,11 @@ cSensorImage::cSensorImage(const std::string & aNameImage) :
 {
 }
 
+cSensorImage::~cSensorImage()
+{
+}
+
+
 const cPt3dr * cSensorImage::CenterOfPC() const  {return nullptr;} // By default, we are not a central perpective
 								    //
 cCalculator<double> * cSensorImage::SetAndGetEqColinearity(bool WithDerives,int aSzBuf,bool ReUse)
@@ -113,10 +118,10 @@ double cSensorImage::DegreeVisibilityOnImFrame(const cPt2dr & aP) const
      return PixelDomain().DegreeVisibility(aP);
 }
 
-std::vector<cPt2dr>  cSensorImage::PtsSampledOnSensor(int aNbByDim)  const 
+std::vector<cPt2dr>  cSensorImage::PtsSampledOnSensor(int aNbByDim,tREAL8 aEpsMarginRel)  const 
 {
     std::vector<cPt2dr> aRes;
-    tREAL8 aEps =  aNbByDim/20.0;
+    tREAL8 aEps =  aNbByDim * aEpsMarginRel;
 
     for (int aKx=0 ; aKx<=aNbByDim ; aKx++)
     {
@@ -197,6 +202,8 @@ double cSensorImage::RobustAvResidualOfProp(const cSet2D3D &,double aProp) const
 
 
 std::string cSensorImage::PrefixName() { return "Ori"; }
+
+std::string cSensorImage::CoordinateSystem() const { return MMVII_LocalSys + MMVII_NONE; }
 
 
 std::string  cSensorImage::NameOri_From_PrefixAndImage(const std::string & aPrefix,const std::string & aNameImage)
@@ -318,11 +325,11 @@ cPt3dr cSensorImage::RandomVisiblePGround(tREAL8 aDepMin,tREAL8 aDepMax)
 
 
 
-cSet2D3D  cSensorImage::SyntheticsCorresp3D2D (int aNbByDim,std::vector<double> & aVecDepth,bool IsDepthOrZ) const
+cSet2D3D  cSensorImage::SyntheticsCorresp3D2D (int aNbByDim,std::vector<double> & aVecDepth,bool IsDepthOrZ,tREAL8 aEpsMarginRel) const
 {
     cSet2D3D aResult;
 
-    std::vector<cPt2dr>  aVPts =  PtsSampledOnSensor(aNbByDim);
+    std::vector<cPt2dr>  aVPts =  PtsSampledOnSensor(aNbByDim,aEpsMarginRel);
 
     for (const auto & aPIm : aVPts)
     {
@@ -338,13 +345,14 @@ cSet2D3D  cSensorImage::SyntheticsCorresp3D2D (int aNbByDim,std::vector<double> 
     return aResult;
 }
          ///  call variant with vector, depth regularly spaced
-cSet2D3D  cSensorImage::SyntheticsCorresp3D2D (int aNbByDim,int aNbDepts,double aD0,double aD1,bool IsDepthOrZ) const
+cSet2D3D  cSensorImage::SyntheticsCorresp3D2D (int aNbByDim,int aNbDepts,double aD0,double aD1,bool IsDepthOrZ,tREAL8 aEpsMarginRel) const
 {
    std::vector<tREAL8> aVDepth;
 
+
    for (int aKD=0 ; aKD < aNbDepts; aKD++)
    {
-        tREAL8 aW = (aKD+0.5) / aNbDepts;
+        tREAL8 aW = (aKD+aEpsMarginRel) / (aNbDepts-1+2*aEpsMarginRel);
         if (IsDepthOrZ)
 	{
 	     //  Case depth we make some log regular spacing
@@ -357,7 +365,7 @@ cSet2D3D  cSensorImage::SyntheticsCorresp3D2D (int aNbByDim,int aNbDepts,double 
 	}
    }
 
-   return SyntheticsCorresp3D2D(aNbByDim,aVDepth,IsDepthOrZ);
+   return SyntheticsCorresp3D2D(aNbByDim,aVDepth,IsDepthOrZ,aEpsMarginRel);
 }
 
 bool cSensorImage::IsVisible(const cPt3dr & aP3) const  { return DegreeVisibility(aP3) > 0; }
@@ -389,6 +397,12 @@ cEllipse cSensorImage::EllipseIm2Plane(const cPlane3D & aPlane,const cEllipse & 
     }
     return aEEst.Compute() ;
 }
+
+const cPt3dr *  cSensorImage::CenterOfFootPrint() const
+{
+   return nullptr;
+}
+
 
 cPt3dr cSensorImage::PInterBundle(const cHomogCpleIm & aCple,const cSensorImage & other) const
 {

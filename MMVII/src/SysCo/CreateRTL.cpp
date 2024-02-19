@@ -87,7 +87,14 @@ int cAppli_CreateRTL::Exe()
         for (const auto & aNameIm : VectMainSet(0))
         {
 	    cSensorImage* aSI = mPhProj. ReadSensor(aNameIm,true,false);
-	    aAvgSens.Add(1.0,aSI->PseudoCenterOfProj());
+	    cPt3dr aCenter;
+	    const cPt3dr * aCOfFP = aSI->CenterOfFootPrint();
+	    if (aCOfFP)
+               aCenter = *aCOfFP;
+	    else 
+               aCenter = aSI->PseudoCenterOfProj();  // should always exist, but bot 100% implemanted 4 now
+
+	    aAvgSens.Add(1.0,aCenter);
 	    isInitSens = true;
 	}
     }

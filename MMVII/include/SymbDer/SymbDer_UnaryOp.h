@@ -393,6 +393,39 @@ template <class TypeElem> class cCosF : public cUnaryF<TypeElem>
             }
 };
 
+/**  Classe for cos */
+/*
+template <class TypeElem> class cPrint : public cUnaryF<TypeElem>
+{
+     public :
+            using cUnaryF<TypeElem>::mF;
+            using cUnaryF<TypeElem>::mDataF;
+            using cImplemF<TypeElem>::mDataBuf;
+
+            cPrint (cFormula<TypeElem> aF,const std::string & aName) :
+                cUnaryF <TypeElem> (aF,aName)
+            { }
+            static TypeElem Operation(const TypeElem & aV1) {return aV1;}
+            // const std::string &  NameOperator() const override {static std::string s("std::cos"); return s;}
+            static const std::string &  StaticNameOperator()  {static std::string s("std::cos"); return s;}
+      private :
+            const std::string &  NameOperator() const override {return StaticNameOperator();}
+
+            void ComputeBuf(int aK0,int aK1) override
+            {
+                for (int aK=aK0 ; aK<aK1 ; aK++)
+                    mDataBuf[aK] =  mDataF[aK];
+            }
+            ///  rule : (sin(F))' =   F' cos(F) 
+            cFormula<TypeElem> Derivate(int aK) const override
+            {
+                return   mF->Derivate(aK);
+            }
+};
+*/
+
+
+
 
 
       /* ---------------------------------------*/
