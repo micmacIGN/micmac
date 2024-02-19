@@ -1,5 +1,3 @@
-#include "StdAfx.h"
-#include "V1VII.h"
 #include "cMMVII_Appli.h"
 #include "MMVII_DeclareCste.h"
 #include "MMVII_Geom3D.h"

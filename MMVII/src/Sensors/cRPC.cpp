@@ -220,7 +220,7 @@ void cRPC_Polyn::Initialise(const cSerialTree & aData,const std::string& aPrefix
 	// StdOut() << "cRPC_Polyn::InitialisecRPC_Polyn::Initialise  \n"; getchar();
     for (int aK=1; aK<21; aK++)
     {
-        const cSerialTree * aItem = aData.GetUniqueDescFromName(aPrefix+ToString(aK));
+        const cSerialTree * aItem = aData.GetUniqueDescFromName(aPrefix+std::to_string(aK));
         mCoeffs[aK-1] =  std::stod(aItem->UniqueSon().Value()); // coeffs
     }
 }
