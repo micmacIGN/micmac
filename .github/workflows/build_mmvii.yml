@@ -14,7 +14,9 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Install Qt and clang
-      run: sudo apt install qtbase5-dev clang-14
+      run: |
+        sudo apt update
+        sudo apt install qtbase5-dev clang-14
 
     - name: Install pdflatex
       run: sudo apt install texlive-latex-base texlive-latex-extra texlive-fonts-recommended texlive-fonts-extra
@@ -30,7 +32,7 @@ jobs:
     - name: Upload MMVII documentaion
       uses: softprops/action-gh-release@v1
       with:
-          draft:  false
+          draft: false
           prerelease: true
           name: 'MMVII Documentation - Latest'
           tag_name: MMVII_Documentation
