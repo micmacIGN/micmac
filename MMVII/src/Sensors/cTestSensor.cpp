@@ -292,7 +292,7 @@ int cAppliTestSensor::Exe()
     {
        return ResultMultiSet();
     }
-    DoOneImage(mPatImage);
+    DoOneImage(UniqueStr(0));
     return EXIT_SUCCESS;
 }
 

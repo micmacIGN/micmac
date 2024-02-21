@@ -5,6 +5,8 @@
 
 namespace MMVII
 {
+extern bool     DEBUG_I2B;
+
 
 
 /** \file MMVII_Error.h

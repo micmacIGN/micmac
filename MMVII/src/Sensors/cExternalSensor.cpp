@@ -12,15 +12,17 @@ namespace MMVII
 {
 /* =============================================== */
 /*                                                 */
-/*                 cDataExternalSensor             */
+/*                 cDataEmbededSensor              */
 /*                                                 */
 /* =============================================== */
 
-cDataExternalSensor::cDataExternalSensor(const std::string& aNameFile) :
-   mNameFile (aNameFile),
-   mType     (eTypeSensor::eNbVals),
-   mFormat   (eFormatSensor::eNbVals),
-   mSysCo    (MMVII_NONE)
+cDataEmbededSensor::cDataEmbededSensor(const std::string& aNameFile,const std::string & aNameImage) :
+   mNameFileInit (aNameFile),
+   mNameImage    (aNameFile),
+   mType         (eTypeSensor::eNbVals),
+   mFormat       (eFormatSensor::eNbVals),
+   mSysCoOri     (MMVII_NONE),
+   mSysCoTarget  (MMVII_NONE)
 {
 }
 
@@ -30,12 +32,14 @@ cDataExternalSensor::cDataExternalSensor(const std::string& aNameFile) :
 /*                                                 */
 /* =============================================== */
 
-void AddData(const  cAuxAr2007 & anAux,cDataExternalSensor & aDES)
+void AddData(const  cAuxAr2007 & anAux,cDataEmbededSensor & aDES)
 {
-    AddData(cAuxAr2007("NameFileInit",anAux),aDES.mNameFile);
+    AddData(cAuxAr2007("NameFileInit",anAux),aDES.mNameFileInit);
+    AddData(cAuxAr2007("NameImage",anAux),aDES.mNameImage);
     EnumAddData(anAux,aDES.mType,"TypeSensor");
     EnumAddData(anAux,aDES.mFormat,"FileFormat");
-    AddData(cAuxAr2007("InitialCoordSys",anAux),aDES.mSysCo);
+    AddData(cAuxAr2007("InitialCoordSys",anAux),aDES.mSysCoOri);
+    AddData(cAuxAr2007("TargetCoordSys",anAux),aDES.mSysCoTarget);
 }
 
 
@@ -73,7 +77,7 @@ cSensorImage *  CreateAutoExternalSensor(const cAnalyseTSOF & anAnalyse ,const s
 
     if (!SVP)
     {
-        MMVII_INTERNAL_ERROR("CreateAutoExternalSensor dont handle for file :" + anAnalyse.mData.mNameFile);
+        MMVII_INTERNAL_ERROR("CreateAutoExternalSensor dont handle for file :" + anAnalyse.mData.mNameFileInit);
     }
     return nullptr;
 }
@@ -102,7 +106,7 @@ void cAnalyseTSOF::FreeAnalyse()
 
    // ================  Constructor/Destructor ====================
 
-cExternalSensor::cExternalSensor(const cDataExternalSensor & aData,const std::string& aNameImage,cSensorImage * aSI) :
+cExternalSensor::cExternalSensor(const cDataEmbededSensor & aData,const std::string& aNameImage,cSensorImage * aSI) :
      cSensorImage  (aNameImage),
      mData         (aData),
      mSensorInit   (aSI)
@@ -126,14 +130,17 @@ cExternalSensor * cExternalSensor::TryRead
    std::string aNameFile = aDirSens + cSensorImage::NameOri_From_PrefixAndImage(cExternalSensor::StaticPrefixName(),aNameImage);
 
    if (!ExistFile(aNameFile))
-    return nullptr;
+      return nullptr;
 
    // -1-   Create the object
-   cExternalSensor *  aResult = new cExternalSensor (cDataExternalSensor(),aNameImage);
+   cExternalSensor *  aResult = new cExternalSensor (cDataEmbededSensor(),aNameImage);
+
    // -2-   Read the data contained in the file
    ReadFromFile(*aResult,aNameFile);
+//-------------- TEMPO ---------------------------------
+MMVII_INTERNAL_ASSERT_strong(aResult->Data().mSysCoOri==aResult->Data().mSysCoTarget,"For Now dont handle diff coord sys");
    // -3-   Read the initial sensor
-   std::string aNameInit  = aDirInit + aResult->Data().mNameFile;
+   std::string aNameInit  = aDirInit + aResult->Data().mNameFileInit;
    cSensorImage *  aSI =  CreateAutoExternalSensor(aNameInit,aNameImage,false);
    aResult->SetSensorInit(aSI);
 
@@ -173,7 +180,7 @@ void cExternalSensor::ToFile(const std::string & aNameFile) const
      SaveInFile(const_cast<cExternalSensor &>(*this),aNameFile);
 }
 
-const cDataExternalSensor &  cExternalSensor::Data() const {return mData;}
+const cDataEmbededSensor &  cExternalSensor::Data() const {return mData;}
 
      // =============   METHOD FOR BEING a cSensorImage =====================
 
@@ -249,7 +256,8 @@ class cAppliImportInitialExternSensor : public cMMVII_Appli
         // --- Mandatory ----
         std::string                 mNameImagesIn;
 	std::vector<std::string>    mPatChgName;
-	std::string                 mSysCoord;
+	std::string                 mSysCoordOri;
+	std::string                 mSysCoordTarget;
 
         // --- Optionnal ----
 
@@ -275,7 +283,8 @@ cCollecSpecArg2007 & cAppliImportInitialExternSensor::ArgObl(cCollecSpecArg2007 
 cCollecSpecArg2007 & cAppliImportInitialExternSensor::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return anArgOpt
-           << AOpt2007(mSysCoord,"InitialSysCoord","Specify Coordinate System of  initial coordinate, in case false")
+           << AOpt2007(mSysCoordOri,"InitialSysCoord","Specify Coordinate System of  initial coordinate, in case default dont work")
+           << AOpt2007(mSysCoordTarget,"TargetSysCoord","Specify Target Coordinate System if != initial")
    ;
 }
 
@@ -302,11 +311,16 @@ void  cAppliImportInitialExternSensor::ImportOneImage(const std::string & aNameI
     // Now create the initial sensor
     cSensorImage *  aSensorInit =  CreateAutoExternalSensor(anAnalyse ,aNameIm);
 
-    // Set Sys coord and check  is valid
-    SetIfNotInit(mSysCoord,aSensorInit->CoordinateSystem());
-    mPhProj.ReadSysCo(mSysCoord);
+    // Set Ori Sys coord and check  is valid
+    SetIfNotInit(mSysCoordOri,aSensorInit->CoordinateSystem());
+    mPhProj.ReadSysCo(mSysCoordOri);
+    anAnalyse.mData.mSysCoOri = mSysCoordOri;
 
-    anAnalyse.mData.mSysCo = mSysCoord;
+    // Set Target Sys coord and check  is valid
+    SetIfNotInit(mSysCoordTarget,mSysCoordOri);
+    mPhProj.ReadSysCo(mSysCoordTarget);
+    anAnalyse.mData.mSysCoTarget = mSysCoordTarget;
+
     // Encapsulate this initial sensor with eventually coefficient
     cSensorImage * aSensorEnd =  new cExternalSensor(anAnalyse.mData,aNameIm,aSensorInit);
 

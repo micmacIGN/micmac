@@ -95,8 +95,8 @@ cMMVII_BundleAdj::cMMVII_BundleAdj(cPhotogrammetricProject * aPhp) :
     mPatternRef       (".*"),
     mDirRefCam        (nullptr),
     mSigmaViscAngles  (-1.0),
-    mSigmaViscCenter  (-1.0)
-    
+    mSigmaViscCenter  (-1.0),
+    mNbIter           (0)
 {
 }
 
@@ -223,6 +223,7 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM)
     mSetIntervUK.SetVUnKnowns(aVectSol);
 
     StdOut() << "---------------------------" << std::endl;
+    mNbIter++;
 }
 
 

@@ -2,6 +2,8 @@ set -e
 #=======================================================================================
 # CREATE RTL SYSTEM / Orient Init in RTL /  Ref Data in RTL
 #=======================================================================================
+
+#  ------------ Parameter WGS84Degrees is redundant (but required for now with central perspective)
 MMVII SysCoCreateRTL  AllIm.xml  WGS84Degrees RTL InOri=SPOT_Init Z0=0
 MMVII  OriParametrizeSensor AllIm.xml SPOT_Init SPOT_INIT_RTL  0   TargetSysCo=RTL
 MMVII TestSensor AllIm.xml SPOT_INIT_RTL    TestCDI=true   OutPointsMeasure=RefInit_RTL   NbProc=1

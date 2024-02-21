@@ -158,9 +158,9 @@ class cDistPolyn2D
        }
 
 
-      int                             mDegree;
-      std::vector<cDescOneFuncDist>   mVDesc;
-      bool                            mForBase;
+      int                             mDegree;   ///< Total degree max of monoms
+      std::vector<cDescOneFuncDist>   mVDesc;    ///< descripteur de tous les monoms
+      bool                            mForBase;  ///< is it for computing a base of functions
 };
 
 

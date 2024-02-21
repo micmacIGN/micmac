@@ -534,7 +534,6 @@ class cPhotogrammetricProject
 	  std::string NameMeasureGCPIm(const std::string & aNameIm,bool isIn) const;
 
 
-
 	  /// Pattern for GCP file, if "" return default  = "cSetMesGCP::ThePrefixFiles.*.xml"
 	  std::string GCPPattern(const std::string & aArgPatFiltr) const;
           std::vector<std::string>  ListFileGCP(const std::string & aArgPatFiltr) const;

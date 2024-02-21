@@ -38,6 +38,14 @@ MMVII TestSensor AllIm.xml   SPOT_Perturb_D2   TestCDI=true    InPointsMeasure=X
 MMVII OriBundleAdj AllIm.xml SPOT_Perturb_D2   Adj_SPOT_Deg2 GCPDir=RefInit  GCPW=[0,1]   NbIter=3
 MMVII TestSensor AllIm.xml   Adj_SPOT_Deg2   TestCDI=true    InPointsMeasure=XingWGS84 NbProc=1
 
+#----------------------  WITH DEGREE 0 + TieP -----------------------------------------------
+
+#------------------- [1]  Perfect data just to check TieP  -------------------------------------------
+MMVII  OriParametrizeSensor AllIm.xml SPOT_Init SPOT_D0  0  
+MMVII OriBundleAdj AllIm.xml SPOT_D0   Test   GCPDir=RefInit  GCPW=[0,1]  TPDir=V1  TiePWeight=[1] NbIter=1
+
+MMVII OriBundleAdj AllIm.xml SPOT_Perturb_D0   Test   GCPDir=RefInit  GCPW=[0,1]  TPDir=V1  TiePWeight=[1] NbIter=5
+
 
 
 

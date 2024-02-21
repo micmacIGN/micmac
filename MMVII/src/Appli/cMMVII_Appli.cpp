@@ -800,6 +800,7 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
                    MMVII_UsersErrror(eTyUEr::eEmptyPattern,"Specified set of files was empty");
                 }
             }
+            // StdOut() << "cAaaaPPlii  " <<  __LINE__ << ToVect(mVMainSets.at(aNum)) << "\n";
          }
          else
          {

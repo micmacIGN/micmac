@@ -29,8 +29,10 @@ size_t NbPtsMul(const tPairTiePMult & aPair)
 	return Val(aPair).mVPIm.size()  / Multiplicity(aPair);
 }
 
+
 cPt3dr BundleInter(const tPairTiePMult & aPair,size_t aKPts,const std::vector<cSensorImage *>&  aVSI)
 {
+
     const auto &  aConfig = Config(aPair);
     const cVal1ConfTPM & aVal =  Val(aPair);
     size_t aMult = aConfig.size();
@@ -45,10 +47,28 @@ cPt3dr BundleInter(const tPairTiePMult & aPair,size_t aKPts,const std::vector<cS
         const cPt2dr & aPIm = aVal.mVPIm.at(aKP0+aK);
 	cSensorImage * aSI  = aVSI.at(aConfig.at(aK));
 
+
 	aVSeg.push_back(aSI->Image2Bundle(aPIm));
+	if (DEBUG_I2B)
+	{
+		StdOut() << "I2BB " << aSI->NameImage() <<  " " << aPIm << "\n";
+	}
     }
 
-    return BundleInters(aVSeg);
+    cPt3dr aResInter = BundleInters(aVSeg);
+if (DEBUG_I2B)
+{
+    StdOut() <<  "I2DBB  PG=" << aResInter <<  "\n";
+    for (size_t aK= 0 ; aK<aMult ; aK++)
+    {
+        const cPt2dr & aPIm = aVal.mVPIm.at(aKP0+aK);
+	cSensorImage * aSI  = aVSI.at(aConfig.at(aK));
+        
+        StdOut() << "I2BB " << aSI->NameImage() <<  " RES=" << aPIm -aSI->Ground2Image(aResInter) << "\n";
+    }
+    DEBUG_I2B=false;
+}
+    return aResInter;
 }
 
 

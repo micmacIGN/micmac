@@ -11,75 +11,14 @@ using namespace NS_SymbolicDerivative;
 namespace MMVII
 {
 
-class cExternalSensorModif2D : public cExternalSensor
-{
-     public :
-	 static std::string  StaticPrefixName();
-         cExternalSensorModif2D
-         (
-                const cDataExternalSensor & aData,
-		const std::string& aNameImage,
-		cSensorImage * aSI = nullptr,
-		int aDegree = -1,
-		const std::string & aTargetSysCo = ""
-         ) ;
-         void AddData(const  cAuxAr2007 & anAux);
-
-	 void PerturbateRandom(tREAL8 anAmpl,bool Show);
-         ~cExternalSensorModif2D();
-
-	 void Finish(const cPhotogrammetricProject &);
-         static cExternalSensorModif2D * TryRead(const cPhotogrammetricProject &,const std::string&aNameImage);
-
-	 double DegreeVisibility(const cPt3dr & aPGround) const override;
-
-
-     private :
-	 cPt3dr  EpsDiffGround2Im(const cPt3dr &) const override;
-         tProjImAndGrad  DiffGround2Im(const cPt3dr & aP) const override;
-         void InitPol2D();
-
-	 // ====  Methods overiiding for being a cSensorImage =====
-         tSeg3dr  Image2Bundle(const cPt2dr &) const override;
-         /// Basic method  GroundCoordinate ->  image coordinate of projection
-         cPt2dr Ground2Image(const cPt3dr &) const override;
-         ///    Method specialized, more efficent than using bundles
-         cPt3dr ImageAndZ2Ground(const cPt3dr &) const override;
-
-         void ToFile(const std::string &) const override;
-         std::string  V_PrefixName() const  override;
-
-	      // ------------------- Bundles Adjustment -----------------------
-         cCalculator<double> * CreateEqColinearity(bool WithDerives,int aSzBuf,bool ReUse) override;
-         void PutUknowsInSetInterval() override;
-         void PushOwnObsColinearity( std::vector<double> &,const cPt3dr &)  override;
-
-	 // ====  Method to override in derived classes  ===== 
-
-	 /// For "initial" coordinat (pixel) to "final"
-	 cPt2dr  Init2End (const cPt2dr & aP0) const ;
-	 /// For "final" to "initial" coordinat (pixel)
-	 cPt2dr  End2Init (const cPt2dr & aP0) const ;
-
-	 int                     mDegree;
-	 bool                    mActiveDistG2I;  // for differenciation we need to inhibate temporarily 
-	 std::string             mTargetSysCo;
-	 std::vector<tREAL8>     mVParams;
-	 cCalculator<double> *   mEqIma2End;  // Functor that gives the distorstion
-	 cChangSysCoordV2        mSysI2F;  // Chang cood Init 2 Final
-	 cPt3dr                  mPtEpsDeriv;
-	 bool                    mIdChSys;
-
-};
-
-
+bool  DEBUG_I2B=false;
 
 
     //------------------------ Create/Read/Write   ----------------------------------
 
 cExternalSensorModif2D::cExternalSensorModif2D
 (
-      const cDataExternalSensor & aData,
+      const cDataEmbededSensor & aData,
       const std::string& aNameImage,
       cSensorImage * aSI,
       int            aDegree,
@@ -98,6 +37,19 @@ cExternalSensorModif2D::cExternalSensorModif2D
        InitPol2D();
 }
 
+/*
+template <class Type> Type * GetSetRemanentObj(const std::string & aName,Type * aVal=nullptr)
+{
+    static std::map<std::string > TheMap;
+    if (aVal!=nullptr) return aVal;
+
+    Type * & aRes = TheMap[aName];
+    if (aRes==nullptr)
+    {
+    }
+}
+*/
+
 
 cExternalSensorModif2D * cExternalSensorModif2D::TryRead
                   (
@@ -113,11 +65,11 @@ cExternalSensorModif2D * cExternalSensorModif2D::TryRead
 
    std::string  aDirInit = aPhProj.DirImportInitOri();
    // -1-   Create the object
-   cExternalSensorModif2D *  aResult = new cExternalSensorModif2D (cDataExternalSensor(),aNameImage);
+   cExternalSensorModif2D *  aResult = new cExternalSensorModif2D (cDataEmbededSensor(),aNameImage);
    // -2-   Read the data contained in the file
    ReadFromFile(*aResult,aNameFile);
    // -3-   Read the initial sensor
-   std::string aNameInit  = aDirInit + aResult->Data().mNameFile;
+   std::string aNameInit  = aDirInit + aResult->Data().mNameFileInit;
    cSensorImage *  aSI =  CreateAutoExternalSensor(aNameInit,aNameImage,false);
    aResult->SetSensorInit(aSI);
    aResult->Finish(aPhProj);
@@ -139,7 +91,7 @@ void cExternalSensorModif2D::InitPol2D()
 
 void cExternalSensorModif2D::Finish(const cPhotogrammetricProject & aPhP)
 {
-     mSysI2F = aPhP.ChangSys(mData.mSysCo,mTargetSysCo);
+     mSysI2F = aPhP.ChangSys(mData.mSysCoOri,mTargetSysCo);
      mIdChSys = mSysI2F.IsIdent();
 
      tPtrSysCo aSysTarget = aPhP.ReadSysCo(mTargetSysCo);
@@ -182,6 +134,7 @@ void cExternalSensorModif2D::AddData(const  cAuxAr2007 & anAux)
          {
              MMVII::AddData(cAuxAr2007(aVDesc[aK].mName,anAuxCoeff),mVParams[aK]);
          }
+StdOut() << "AdddDatatat " << mVParams <<  " XXXX=" << this << "\n";
      }
 }
 void AddData(const  cAuxAr2007 & anAux,cExternalSensorModif2D & aExtSM2d)
@@ -237,7 +190,11 @@ void cExternalSensorModif2D::PushOwnObsColinearity(std::vector<double> & aVParam
 
 tSeg3dr  cExternalSensorModif2D::Image2Bundle(const cPt2dr & aPixIm) const 
 {
-	tSeg3dr aSeg =   mSensorInit->Image2Bundle(Init2End(aPixIm));
+if (DEBUG_I2B)
+{
+	StdOut() << "I2BBB CORREC " << aPixIm - InitPix2Correc(aPixIm) << " P="  << mVParams << " XXXX=" << this << "\n";
+}
+	tSeg3dr aSeg =   mSensorInit->Image2Bundle(InitPix2Correc(aPixIm));
 
 	return tSeg3dr(mSysI2F.Value(aSeg.P1()), mSysI2F.Value(aSeg.P2()));
 }
@@ -247,7 +204,7 @@ cPt2dr cExternalSensorModif2D::Ground2Image(const cPt3dr & aPGround) const
       cPt2dr aP_WO_Corr = mSensorInit->Ground2Image(mSysI2F.Inverse(aPGround));
 
       if ( mActiveDistG2I)
-         return  End2Init(aP_WO_Corr);
+         return  Correc2InitPix(aP_WO_Corr);
 
       return aP_WO_Corr;
 }
@@ -258,13 +215,13 @@ cPt3dr cExternalSensorModif2D::ImageAndZ2Ground(const cPt3dr & aPxyz) const
      if (0)
      {
 	  cPt2dr aP0 (aPxyz.x(),aPxyz.y());
-	  cPt2dr aP1 = Init2End(aP0);
-	  cPt2dr aP2 = End2Init(aP1);
+	  cPt2dr aP1 = InitPix2Correc(aP0);
+	  cPt2dr aP2 = Correc2InitPix(aP1);
 
           StdOut() << "cExternalSensorModif2D::ImageAndZ2Ground " << aP0-aP1 << " " << aP0 - aP2 << "\n";
      }
 
-     cPt2dr aPCor = Init2End(cPt2dr(aPxyz.x(),aPxyz.y()));
+     cPt2dr aPCor = InitPix2Correc(cPt2dr(aPxyz.x(),aPxyz.y()));
 
      return cSensorImage::ImageAndZ2Ground(cPt3dr(aPCor.x(),aPCor.y(),aPxyz.z()));
 
@@ -280,14 +237,14 @@ double cExternalSensorModif2D::DegreeVisibility(const cPt3dr & aPGround) const
 
       //------------------------ 2D deformation -----------------------------------------
 
-cPt2dr  cExternalSensorModif2D::End2Init (const cPt2dr & aP0) const
+cPt2dr  cExternalSensorModif2D::Correc2InitPix (const cPt2dr & aP0) const
 {
      std::vector<tREAL8>  aVXY = aP0.ToStdVector();
      std::vector<tREAL8>  aDistXY =  mEqIma2End->DoOneEval(aVXY,mVParams);
      return cPt2dr::FromStdVector(aDistXY);
 }
 
-cPt2dr  cExternalSensorModif2D::Init2End (const cPt2dr & aPInit) const
+cPt2dr  cExternalSensorModif2D::InitPix2Correc (const cPt2dr & aPInit) const
 {
     // For now implement a very basic "fix point" method for inversion
      tREAL8 aThresh = 1e-3;
@@ -298,9 +255,9 @@ cPt2dr  cExternalSensorModif2D::Init2End (const cPt2dr & aPInit) const
      int aNbIter = 0;
      while (GoOn)
      {
-	  cPt2dr aNewPInit  = End2Init(aPEnd);
-	  // We make the taylor expansion assume End2Init ~Identity
-	  // End2Init (aPEnd + aPInit - aNewPInit) ~ End2Init (aPEnd) + aPInit - aNewPInit = aNewPInit +aPInit - aNewPInit
+	  cPt2dr aNewPInit  = Correc2InitPix(aPEnd);
+	  // We make the taylor expansion assume Correc2InitPix ~Identity
+	  // Correc2InitPix (aPEnd + aPInit - aNewPInit) ~ Correc2InitPix (aPEnd) + aPInit - aNewPInit = aNewPInit +aPInit - aNewPInit
 	  aPEnd += aPInit - aNewPInit;
           aNbIter++;
 	  GoOn = (aNbIter<aNbIterMax) && (Norm2(aNewPInit-aPInit)>aThresh);
@@ -326,8 +283,8 @@ void cExternalSensorModif2D::PerturbateRandom(tREAL8 anAmpl,bool Show)
        {
           cPt2dr aP0 = MulCByC(ToR(Sz()) ,cPt2dr::PRand());
 
-          cPt2dr aP1 = End2Init(aP0);
-          cPt2dr aP2 = Init2End(aP1);
+          cPt2dr aP1 = Correc2InitPix(aP0);
+          cPt2dr aP2 = InitPix2Correc(aP1);
 
           StdOut() << aP0 << aP1-aP0  << aP2 -aP0 << "\n";
        }
@@ -437,10 +394,10 @@ void  cAppliParametrizeSensor::ImportOneImage(const std::string & aNameIm)
     {
 	    MMVII_UnclasseUsEr("Sensor was not imported for " + aNameIm);
     }
-    cDataExternalSensor aData = anExtS->Data();
+    cDataEmbededSensor aData = anExtS->Data();
 
     // If a coordinate system was specified 
-    SetIfNotInit(mTargetSysCo,aData.mSysCo);
+    SetIfNotInit(mTargetSysCo,aData.mSysCoOri);
     // Test that coordinate system is valid
     mPhProj.ReadSysCo(mTargetSysCo);
 

@@ -365,7 +365,7 @@ template <class Type> void  cOneLinearConstraint<Type>::SubstituteInOutRSNL(tIO_
         if (aDerI !=0 )
         {
              aIO.mVals[aKEq]  +=  aDerI * mCste;
-             if (mLP.size() != 1)
+             if (mLP.size() != 0)
              {
                   // [A]  Compute the constant and put the linear part in buf (to be indexable)
                   for (const auto & aPair : mLP.IV())
@@ -472,7 +472,7 @@ template <class Type> void  cOneLinearConstraint<Type>::SubstituteInOutRSNL(tIO_
 
 template <class Type> void cOneLinearConstraint<Type>::Show() const
 {
-    StdOut()  << "   * N=" << mNum << " O="<< mOrder << " S=" << mReduced  <<  " I=" << mISubst ;
+    StdOut()  << "   * N=" << mNum << " O="<< mOrder << " S=" << mReduced  <<  " I=" << mISubst  << " C=" << mCste;
 
     for (const auto & aPair:mLP.IV())
         StdOut() <<  " [" << aPair.mInd << " : " << aPair.mVal << "]";

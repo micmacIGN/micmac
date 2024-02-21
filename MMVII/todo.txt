@@ -1,3 +1,10 @@
+Dans RunMultiSet => si  on utilise directement le nom du "pattern" image, cela plante si on a un xml a un seule image, 
+Il faut utiliser UniqueStr(0) qui fonctionne dans tous les cas, necessite sans doute de reparser toutes les commandes
+utilisant "RunMultiSet" ...
+
+
+
+
 importer a calib from another project :  scrypt python
 
 check data CERN : python or C++

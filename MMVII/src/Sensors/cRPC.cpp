@@ -93,6 +93,7 @@ class cRatioPolynXY
 
 	void PushCoeffs(std::vector<tREAL8>&) const;
 
+	//  Recompute a new RPC using correspondance
 	void  InitFromSamples(const std::vector<cPt3dr> & aVIn,const std::vector<cPt3dr> & aVOut);
     private:
         cRPC_RatioPolyn mX;
@@ -432,7 +433,7 @@ cRPCSens::cRPCSens(const std::string& aNameImage) :
 
 void cRPCSens::InitFromFile(const cAnalyseTSOF & anAnalyse)
 {
-   mNameRPC = anAnalyse.mData.mNameFile;
+   mNameRPC = anAnalyse.mData.mNameFileInit;
    MMVII_INTERNAL_ASSERT_strong(anAnalyse.mData.mType==eTypeSensor::eRPC,"Sensor is not RPC in cRPCSens"); 
    if (anAnalyse.mData.mFormat== eFormatSensor::eDimap_RPC)
    {
@@ -531,6 +532,7 @@ void  cRatioPolynXY::InitFromSamples(const std::vector<cPt3dr> & aVIn,const std:
 		   
 }
 
+//  Not finisehd
 cRPCSens * cRPCSens::RPCChangSys(cDataInvertibleMapping<tREAL8,3> & aMap) const 
 {
     cRPCSens * aRes = new cRPCSens(NameImage());
@@ -704,17 +706,32 @@ tProjImAndGrad  cRPCSens::DiffGround2Im(const cPt3dr & aP) const
 {
     // return     DiffG2IByFiniteDiff(aP);
 
-    static cCalculator<double> * aCalc = RPC_Proj(true,1,true/*ReUse*/);
+    // extract the object given access to generated code
+    static cCalculator<double> * aCalc = RPC_Proj(true /* With Derivative*/,1,true/*ReUse = its create only once*/);
+    //  Vector of observation, use static for recycling memory
     static std::vector<double> aVObs;
     aVObs.clear();
 
-    mGroundOffset.PushInStdVector(aVObs);
-    mGroundScale.PushInStdVector(aVObs);
+    //  Push all the normalisation data in the vector of observation
+    mGroundOffset.PushInStdVector(aVObs);   // Push mGroundOffset.x() mGroundOffset.y() ....
+    mGroundScale.PushInStdVector(aVObs);    // Puxh mGroundScale.x() ...
     m3DImOffset.PushInStdVector(aVObs);
     m3DImScale.PushInStdVector(aVObs);
-    mInverseRPC->PushCoeffs(aVObs);
 
+    mInverseRPC->PushCoeffs(aVObs);  // push the 80 coefficients of RPC
+
+    //  execute the computation of value & derivatives
     aCalc->DoOneEval(IO_PtGr(aP).ToStdVector(),aVObs);
+
+    // Un-mangle the data : 
+    // Theoretically,  it is possible to make several computation (for parallezation), the first indexe
+    // K0 indicate which computation is used, here K0=0 always
+    //     ValComp(K0,I)  => extract the  Ith value , here 0 or 1 for  I or J
+    //     DerComp(K0,I,V) => extract  the diffrential of I relatively to Vth value (here 0,1,2 for "x,y,z")
+    //
+    //  Also note IO_PtIm, IO_PtGr and mSwapIJImage due difference of convention between standard RPC and
+    //  MicMac
+    //
 
     tProjImAndGrad aRes;
     aRes.mPIJ = IO_PtIm(cPt2dr(aCalc->ValComp(0,0),aCalc->ValComp(0,1)));
