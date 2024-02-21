@@ -226,8 +226,8 @@ cTopoData cTopoData::createEx1()
     cTopoObsData aObs2 = {eTopoObsType::eDist, {"ptB", "ptD"},  {10.}, {WW}};
     cTopoObsData aObs3 = {eTopoObsType::eDist, {"ptC", "ptD"},  {10.}, {WW}};
     cTopoObsData aObs4 = {eTopoObsType::eDist, {"ptC", "ptD"},  {10+WW}, {WW}};*/
-    cTopoObsData aObs1 = {eTopoObsType::eDist, {"ptA", "ptD"},  {10.}, {WW}}; // can be inverted
-    cTopoObsData aObs2 = {eTopoObsType::eDist, {"ptD", "ptB"},  {10.}, {WW}}; // can't be inverted
+    cTopoObsData aObs1 = {eTopoObsType::eDist, {"ptA", "ptD"},  {10.}, {WW}};
+    cTopoObsData aObs2 = {eTopoObsType::eDist, {"ptD", "ptB"},  {10.}, {WW}}; // error when previous LinearConstraint bug
     cTopoObsData aObs3 = {eTopoObsType::eDist, {"ptC", "ptD"},  {10.}, {WW}};
     cTopoObsData aObs4 = {eTopoObsType::eDist, {"ptC", "ptD"},  {10+WW}, {WW}};
     /*cTopoObsData aObs1 = {eTopoObsType::eDist, {"ptD", "ptA"},  {10.}, {WW}};

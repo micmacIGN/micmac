@@ -72,6 +72,9 @@ enum class eCompObsTypes
         eCompDist=3,
         eCompHz=5,
         eCompZen=6,
+        eCompDX=14,
+        eCompDY=15,
+        eCompDZ=4,
         //eSubFrame=11,
         //eDistParam=22,
 };

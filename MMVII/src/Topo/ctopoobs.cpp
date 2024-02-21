@@ -24,6 +24,9 @@ cTopoObs::cTopoObs(cTopoObsSet* set, cBA_Topo *aBA_Topo, eTopoObsType type, cons
     case eTopoObsType::eHz:
     case eTopoObsType::eZen:
     case eTopoObsType::eDist:
+    case eTopoObsType::eDX:
+    case eTopoObsType::eDY:
+    case eTopoObsType::eDZ:
         MMVII_INTERNAL_ASSERT_strong(mSet->getType()==eTopoObsSetType::eStation, "Obs: incorrect set type")
         MMVII_INTERNAL_ASSERT_strong(ptsNames.size()==2, "Obs: incorrect number of points")
         MMVII_INTERNAL_ASSERT_strong(measures.size()==1, "Obs: 1 value should be given")

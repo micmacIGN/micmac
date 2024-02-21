@@ -381,6 +381,40 @@ cCalculator<double> * EqTopoDist(bool WithDerive,int aSzBuf)
     return TplEqTopoDist<double>(WithDerive,aSzBuf);
 }
 
+// topo dX
+template <class Type> cCalculator<Type> * TplEqTopoDX(bool WithDerive,int aSzBuf)
+{
+    return StdAllocCalc(NameFormula(cFormulaTopoDX(),WithDerive),aSzBuf);
+}
+
+cCalculator<double> * EqTopoDX(bool WithDerive,int aSzBuf)
+{
+    return TplEqTopoDX<double>(WithDerive,aSzBuf);
+}
+
+// topo dY
+template <class Type> cCalculator<Type> * TplEqTopoDY(bool WithDerive,int aSzBuf)
+{
+    return StdAllocCalc(NameFormula(cFormulaTopoDY(),WithDerive),aSzBuf);
+}
+
+cCalculator<double> * EqTopoDY(bool WithDerive,int aSzBuf)
+{
+    return TplEqTopoDY<double>(WithDerive,aSzBuf);
+}
+
+// topo dZ
+template <class Type> cCalculator<Type> * TplEqTopoDZ(bool WithDerive,int aSzBuf)
+{
+    return StdAllocCalc(NameFormula(cFormulaTopoDZ(),WithDerive),aSzBuf);
+}
+
+cCalculator<double> * EqTopoDZ(bool WithDerive,int aSzBuf)
+{
+    return TplEqTopoDZ<double>(WithDerive,aSzBuf);
+}
+
+
 
 cCalculator<double> * EqSumSquare(int aNb,bool WithDerive,int aSzBuf,bool ReUse)
 {
@@ -768,6 +802,9 @@ int cAppliGenCode::Exe()
        GenCodesFormula((tREAL8*)nullptr,cFormulaTopoHz(),WithDer);
        GenCodesFormula((tREAL8*)nullptr,cFormulaTopoZen(),WithDer);
        GenCodesFormula((tREAL8*)nullptr,cFormulaTopoDist(),WithDer);
+       GenCodesFormula((tREAL8*)nullptr,cFormulaTopoDX(),WithDer);
+       GenCodesFormula((tREAL8*)nullptr,cFormulaTopoDY(),WithDer);
+       GenCodesFormula((tREAL8*)nullptr,cFormulaTopoDZ(),WithDer);
 
        GenCodesFormula((tREAL8*)nullptr,cDeformImHomotethy()       ,WithDer);
 

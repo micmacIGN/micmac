@@ -183,6 +183,9 @@ template<> cE2Str<eTopoObsType>::tMapE2Str cE2Str<eTopoObsType>::mE2S
                 {eTopoObsType::eHz,"Hz"},
                 {eTopoObsType::eZen,"Zen"},
                 {eTopoObsType::eDist,"Dist"},
+                {eTopoObsType::eDX,"DX"},
+                {eTopoObsType::eDY,"DY"},
+                {eTopoObsType::eDZ,"DZ"},
                 //{eTopoObsType::eSubFrame,"SubFrame"},
                 //{eTopoObsType::eDistParam,"DistParam"},
            };

@@ -551,6 +551,9 @@ enum class eTopoObsType
         eDist,
         eHz,
         eZen,
+        eDX,
+        eDY,
+        eDZ,
         eNbVals        ///< Tag for number of value
 };
 

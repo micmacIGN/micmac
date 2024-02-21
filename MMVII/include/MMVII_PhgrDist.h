@@ -187,6 +187,9 @@ NS_SymbolicDerivative::cCalculator<double> * EqSumSquare(int aNb,bool WithDerive
 NS_SymbolicDerivative::cCalculator<double> * EqTopoHz(bool WithDerive,int aSzBuf);
 NS_SymbolicDerivative::cCalculator<double> * EqTopoZen(bool WithDerive,int aSzBuf);
 NS_SymbolicDerivative::cCalculator<double> * EqTopoDist(bool WithDerive,int aSzBuf);
+NS_SymbolicDerivative::cCalculator<double> * EqTopoDX(bool WithDerive,int aSzBuf);
+NS_SymbolicDerivative::cCalculator<double> * EqTopoDY(bool WithDerive,int aSzBuf);
+NS_SymbolicDerivative::cCalculator<double> * EqTopoDZ(bool WithDerive,int aSzBuf);
 
 
            // .............   Equation implying 2D distance conservation .............
