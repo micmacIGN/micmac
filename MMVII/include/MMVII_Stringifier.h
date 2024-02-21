@@ -123,6 +123,8 @@ template <>  const std::string cStrIO<eMTDIm>::msNameType;
 template <>  const std::string cStrIO<eTypeSensor>::msNameType;
 template <>  const std::string cStrIO<eFormatSensor>::msNameType;
 
+template <>  const std::string cStrIO<eTopoObsType>::msNameType;
+template <>  const std::string cStrIO<eTopoObsSetType>::msNameType;
 #endif
 
 /** These functions offer an"easy" interface to cStrIO, however I think

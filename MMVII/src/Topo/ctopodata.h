@@ -55,7 +55,7 @@ void AddData(const cAuxAr2007 & anAux, cTopoObsData & aObsSet);
 class cTopoObsSetData
 {
 public:
-    virtual void AddData(const  cAuxAr2007 & anAuxInit);
+    void AddData(const  cAuxAr2007 & anAuxInit);
     eTopoObsSetType mType;
     std::vector<cTopoObsData> mObs;
 };
