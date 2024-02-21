@@ -442,7 +442,8 @@ void AddData(const  cAuxAr2007 & anAux, tU_INT1  &  aVal); ///< for unsigned sho
 void AddData(const  cAuxAr2007 & anAux, tINT2  &  aVal); ///< for unsigned short
 void AddData(const  cAuxAr2007 & anAux, tU_INT2  &  aVal); ///< for unsigned short
 void AddData(const  cAuxAr2007 & anAux, tREAL4  &  aVal); ///< for unsigned short
-							   
+void AddData(const  cAuxAr2007 & anAux, tREAL16  &  aVal); ///< for long double
+
 void AddData(const  cAuxAr2007 & anAux, size_t  &  aVal); ///< for unsigned short
 void AddData(const  cAuxAr2007 & anAux, double  &  aVal) ; ///< for double
 void AddData(const  cAuxAr2007 & anAux, std::string  &  aVal) ; ///< for string

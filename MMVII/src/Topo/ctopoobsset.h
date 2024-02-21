@@ -3,16 +3,12 @@
 
 #include "ctopoobs.h"
 #include "MMVII_Geom3D.h"
+#include "MMVII_SysSurR.h"
+#include "MMVII_enums.h"
+#include "MMVII_PCSens.h"
 
 namespace MMVII
 {
-
-enum class TopoObsSetType
-{
-    simple,
-    distParam,
-    subFrame,
-};
 
 /**
  * @brief The cTopoObsSet class represents a set of observations sharing the same set of parameters.
@@ -20,35 +16,42 @@ enum class TopoObsSetType
 class cTopoObsSet : public cObjWithUnkowns<tREAL8>
 {
     friend class cTopoObs;
+    friend class cTopoData;
 public:
-    virtual ~cTopoObsSet() {}
-    void PutUknowsInSetInterval() override ;///< describes its unknowns
+    virtual ~cTopoObsSet();
+    virtual void AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet);
+    virtual void PutUknowsInSetInterval() override ; ///< describes its unknowns
     virtual void OnUpdate() override = 0;    ///< "reaction" after linear update, eventually update inversion
-    std::string toString() const;
-    TopoObsSetType getType() const {return mType;}
+    virtual std::string toString() const;
+    eTopoObsSetType getType() const {return mType;}
     std::vector<int> getParamIndices() const;
     size_t nbObs() const {return mObs.size();}
-    cTopoObs* getObs(size_t i) {return &mObs.at(i);}
-    virtual std::string type2string() const = 0;
+    cTopoObs* getObs(size_t i) {return mObs.at(i);}
+    std::vector<cTopoObs*> & getAllObs() {return mObs;}
+    bool addObs(eTopoObsType type, cBA_Topo * aBA_Topo, const std::vector<std::string> &pts, const std::vector<tREAL8> & vals,  const cResidualWeighterExplicit<tREAL8> & aWeights);
+    virtual void makeConstraints(cResolSysNonLinear<tREAL8> & aSys) = 0; // add constraints for current set
 protected:
-    cTopoObsSet(TopoObsSetType type);
+    cTopoObsSet(cBA_Topo *aBA_Topo, eTopoObsSetType type);
+    cTopoObsSet(cTopoObsSet const&) = delete;
+    cTopoObsSet& operator=(cTopoObsSet const&) = delete;
     virtual void createAllowedObsTypes() = 0;
     virtual void createParams() = 0;
     void init(); ///< will be called automatically by make_TopoObsSet()
-    bool addObs(cTopoObs obs);
-    TopoObsSetType mType;
-    std::vector<cTopoObs> mObs;
+    eTopoObsSetType mType;
+    std::vector<cTopoObs*> mObs;
+    //cObjWithUnkowns<tREAL8> * mUK;
     std::vector<tREAL8> mParams; //the only copy of the parameters
-    std::vector<TopoObsType> mAllowedObsTypes;//to check if new obs are allowed
+    std::vector<eTopoObsType> mAllowedObsTypes;//to check if new obs are allowed
+    cBA_Topo * mBA_Topo;
 };
 
 /**
  * Have to use make_TopoObsSet() to create cTopoObsSet with initialization
  */
 template <class T>
-std::unique_ptr<cTopoObsSet> make_TopoObsSet()
+cTopoObsSet * make_TopoObsSet(cBA_Topo *aBA_Topo)
 {
-    auto o = std::unique_ptr<T>(new T());
+    auto o = new T(aBA_Topo);
     o->init();
     return o;
 }
@@ -56,16 +59,31 @@ std::unique_ptr<cTopoObsSet> make_TopoObsSet()
 /**
  * @brief The cTopoObsSetSimple class represents a set of observation without parameters
  */
-class cTopoObsSetSimple : public cTopoObsSet
+class cTopoObsSetStation : public cTopoObsSet
 {
-    friend std::unique_ptr<cTopoObsSet> make_TopoObsSet<cTopoObsSetSimple>();
+    friend cTopoObsSet * make_TopoObsSet<cTopoObsSetStation>(cBA_Topo *aBA_Topo);
 public:
+    //virtual ~cTopoObsSetStation() override {std::cout<<"delete set station "<<mOriginName<<std::endl;}
+    virtual void PutUknowsInSetInterval() override ; ///< describes its unknowns
+    void AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet) override;
     void OnUpdate() override;    ///< "reaction" after linear update, eventually update inversion
-    std::string type2string() const override;
+    virtual std::string toString() const override;
+    void makeConstraints(cResolSysNonLinear<tREAL8> &aSys) override;
+
+    void setOrigin(std::string _OriginName, bool _IsVericalized);
+    bool mergeUnknowns(cResolSysNonLinear<tREAL8> &aSys);
+    cPoseWithUK & getPoseWithUK() { return mPoseWithUK; }
 protected:
-    cTopoObsSetSimple();
+    cTopoObsSetStation(cBA_Topo *aBA_Topo);
+    //cTopoObsSetStation(cTopoObsSetStation const&) = delete;
+    //cTopoObsSetStation& operator=(cTopoObsSetStation const&) = delete;
     void createAllowedObsTypes() override;
     void createParams() override;
+
+    bool mIsVericalized;
+    bool mIsOriented;
+    cPoseWithUK mPoseWithUK;
+    std::string mOriginName;
 };
 
 /**
@@ -73,34 +91,39 @@ protected:
  * where the distance between two points is the same for several pair of points
  *
  */
+/*
 class cTopoObsSetDistParam : public cTopoObsSet
 {
-    friend std::unique_ptr<cTopoObsSet> make_TopoObsSet<cTopoObsSetDistParam>();
+    friend std::unique_ptr<cTopoObsSet> make_TopoObsSet<cTopoObsSetDistParam>(cBA_Topo *aBA_Topo);
 public:
     void OnUpdate() override;    ///< "reaction" after linear update, eventually update inversion
-    std::string type2string() const override;
+    void makeConstraints(const cResolSysNonLinear<tREAL8> & aSys) override;
 protected:
-    cTopoObsSetDistParam();
+    cTopoObsSetDistParam(cTopoData& aTopoData);
+    cTopoObsSetDistParam(cTopoObsSetDistParam const&) = delete;
+    cTopoObsSetDistParam& operator=(cTopoObsSetDistParam const&) = delete;
     void createAllowedObsTypes() override;
     void createParams() override;
-};
+};*/
 
 /**
  * @brief The cTopoObsSubFrame class represents a sub frame, where observations
  */
-class cTopoObsSetSubFrame : public cTopoObsSet
+/*class cTopoObsSetSubFrame : public cTopoObsSet
 {
-    friend std::unique_ptr<cTopoObsSet> make_TopoObsSet<cTopoObsSetSubFrame>();
-    std::string type2string() const override;
+    friend std::unique_ptr<cTopoObsSet> make_TopoObsSet<cTopoObsSetSubFrame>(cBA_Topo *aBA_Topo);
 public:
     void OnUpdate() override;    ///< "reaction" after linear update, eventually update inversion
+    void makeConstraints(const cResolSysNonLinear<tREAL8> &aSys) override;
     std::vector<tREAL8> getRot() const;
 protected:
-    cTopoObsSetSubFrame();
+    cTopoObsSetSubFrame(cTopoData& aTopoData);
+    cTopoObsSetSubFrame(cTopoObsSetSubFrame const&) = delete;
+    cTopoObsSetSubFrame& operator=(cTopoObsSetSubFrame const&) = delete;
     void createAllowedObsTypes() override;
     void createParams() override;
     cRotation3D<tREAL8> mRot; ///< the roation matrix, its small changes are the params
 };
-
+*/
 };
 #endif // CTOPOOBSSET_H

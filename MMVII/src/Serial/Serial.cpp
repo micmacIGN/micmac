@@ -151,6 +151,7 @@ void AddData(const  cAuxAr2007 & anAux, std::string  &  aVal) {anAux.Ar().RawAdd
 void AddData(const  cAuxAr2007 & anAux, cRawData4Serial  &  aVal) {anAux.Ar().RawAddDataTerm(aVal); }
 
 void AddData(const  cAuxAr2007 & anAux, tREAL4  &  aVal) { anAux.Ar().TplAddDataTermByCast(anAux,aVal,(double*)nullptr); }
+void AddData(const  cAuxAr2007 & anAux, tREAL16  &  aVal) { anAux.Ar().TplAddDataTermByCast(anAux,aVal,(double*)nullptr); }
 
 void AddData(const  cAuxAr2007 & anAux, tINT1  &  aVal) 
 { 

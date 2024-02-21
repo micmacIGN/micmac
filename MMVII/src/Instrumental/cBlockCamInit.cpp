@@ -281,6 +281,7 @@ cPoseWithUK & cBlocOfCamera::MasterPoseInBl()
 {
      return PoseUKOfIdBloc(mData.mMaster);
 }
+
 cPoseWithUK &  cBlocOfCamera::PoseUKOfIdBloc(const std::string& anId) 
 {
      auto  anIter = mData.mMapPoseUKInBloc.find(anId);

@@ -184,12 +184,12 @@ template <const int Dim> void cPtxdr_UK<Dim>::PutUknowsInSetInterval()
 {
     mSetInterv->AddOneInterv(mPt);
 }
-template <const int Dim>  const cPtxd<tREAL8,Dim> & cPtxdr_UK<Dim>::Pt() const {return mPt;}
 
+template <const int Dim>  const cPtxd<tREAL8,Dim> & cPtxdr_UK<Dim>::Pt() const {return mPt;}
+template <const int Dim>  cPtxd<tREAL8,Dim> & cPtxdr_UK<Dim>::Pt() {return mPt;}
 
 template class cPtxdr_UK<2>;
 template class cPtxdr_UK<3>;
-
 
 };
 

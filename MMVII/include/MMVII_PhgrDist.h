@@ -182,6 +182,11 @@ NS_SymbolicDerivative::cCalculator<double> * EqTopoSubFrame(bool WithDerive,int 
 /// Sum of square of unknown, to test non linear constraints
 NS_SymbolicDerivative::cCalculator<double> * EqSumSquare(int aNb,bool WithDerive,int aSzBuf,bool ReUse);
 
+// .............   Equation for topo stations .............
+/// topo obs from a station: , Uk={pose_origin, pt_to} Obs={r00, r01, r02, r10, r11, r12, r20, r21, r22, val},
+NS_SymbolicDerivative::cCalculator<double> * EqTopoHz(bool WithDerive,int aSzBuf);
+NS_SymbolicDerivative::cCalculator<double> * EqTopoZen(bool WithDerive,int aSzBuf);
+NS_SymbolicDerivative::cCalculator<double> * EqTopoDist(bool WithDerive,int aSzBuf);
 
 
            // .............   Equation implying 2D distance conservation .............

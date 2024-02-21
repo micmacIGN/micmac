@@ -157,7 +157,7 @@ template <class Type>  class  cSetLinearConstraint : public cMemCheck
           void SubstituteInDenseLinearEquation (tDV & aA,Type &  aB) const;
           void SubstituteInOutRSNL(tIO_RSNL& aIO) const;
 
-
+          int getNbConstraints() const { return mVCstrReduced.size(); }
     private :
 	  /// Show all the detail
           void Show(const std::string & aMsg) const;

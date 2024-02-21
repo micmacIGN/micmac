@@ -156,7 +156,13 @@ template <class Type>  void   cResolSysNonLinear<Type>::AddConstr(const tSVect &
     mVCstrCstePart.push_back(aCste);
 }
 
-
+template <class Type>
+int cResolSysNonLinear<Type>::GetNbLinearConstraints() const
+{
+    if (mLinearConstr)
+        return mLinearConstr->getNbConstraints();
+    return 0;
+}
 
 // template <class Type>  void  cResolSysNonLinear<Type>::I
 
@@ -763,7 +769,7 @@ template <> void cResolSysNonLinear<tREAL8>::R_AddObsWithTmpUK (const tR_Up::tSe
 
 template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUpdateReset(const Type & aLVM) 
 {
-    if (mNbVar>currNbObs)
+    if (mNbVar-GetNbLinearConstraints()>currNbObs)
     {
            // StdOut()  << "currNbObscurrNbObs " << currNbObs  << " RRRRR=" << currNbObs - mNbVar << std::endl;
         MMVII_DEV_WARNING("Not enough obs for var ");

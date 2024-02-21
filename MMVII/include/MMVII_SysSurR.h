@@ -2,6 +2,7 @@
 #define  _MMVII_SysSurR_H_
 
 #include "SymbDer/SymbDer_Common.h"
+#include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_Matrix.h"
 
 namespace MMVII
@@ -51,10 +52,26 @@ template <class Type> class cResidualWeighterExplicit: public cResidualWeighter<
             tStdVect & getSigmas() { return mSigmas; }
             tStdVect & geWeights() { return mWeights; }
             int size() const { return mWeights.size(); }
+            void AddData(const  cAuxAr2007 & anAuxInit);
        private :
             tStdVect mSigmas;
             tStdVect mWeights;
 };
+
+template <class Type>
+void cResidualWeighterExplicit<Type>::AddData(const  cAuxAr2007 & anAuxInit)
+{
+    cAuxAr2007 anAux("ResidualWeighterExplicit",anAuxInit);
+
+    MMVII::AddData(cAuxAr2007("Sigmas",anAux),mSigmas);
+    MMVII::AddData(cAuxAr2007("Weights",anAux),mWeights);
+}
+
+template <class Type>
+void AddData(const cAuxAr2007 & anAux, cResidualWeighterExplicit<Type> &aWeighter)
+{
+    aWeighter.AddData(anAux);
+}
 
 
 template <class Type> class cREAL8_RWAdapt : public cResidualWeighter<Type>
@@ -279,6 +296,7 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
 
           void  AddConstr(const tSVect & aVect,const Type & aCste,bool OnlyIfFirstIter=true);
           void SupressAllConstr();
+          int GetNbLinearConstraints() const;
      private :
           cResolSysNonLinear(const tRSNL & ) = delete;
 
@@ -338,6 +356,9 @@ template <class Type> class cInputOutputRSNL
 
           // use a s converter from tREAL8, "Fake" is used to separate from copy construtcor when Type == tREAL8
 	  cInputOutputRSNL(bool Fake,const cInputOutputRSNL<tREAL8> &);
+
+      /// 4 Debug purpose
+      void Show() const;
      private :
 	  // cInputOutputRSNL(const cInputOutputRSNL<Type> &) = delete;
 
@@ -871,6 +892,7 @@ template <const int Dim>  class cPtxdr_UK :  public cObjWithUnkowns<tREAL8>,
       ~cPtxdr_UK();
       void PutUknowsInSetInterval() override;
       const tPt & Pt() const ;
+      tPt & Pt() ;
    private :
       cPtxdr_UK(const cPtxdr_UK&) = delete;
       tPt mPt;

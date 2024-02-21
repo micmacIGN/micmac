@@ -95,6 +95,20 @@ template <class Type> bool cInputOutputRSNL<Type>::IsOk() const
 }
 
 
+template <class Type> void cInputOutputRSNL<Type>::Show() const
+{
+    StdOut()  << "cInputOutputRSNL: ";
+    StdOut()  << "mGlobVInd: "<<mGlobVInd<<" ";
+    //StdOut()  << "mVObs: "<<mVObs<<" ";
+    //StdOut()  << "mWeights: "<<mWeights<<"\n";
+    StdOut()  << "mVals: "<<mVals<<" ";
+
+    StdOut()  << "mDers: ";
+    for (const auto & v:mDers)
+        StdOut() <<  v << "\n";
+
+    //StdOut()  << std::endl;
+}
 
 
 

@@ -1,12 +1,51 @@
 #include "ctopoobsset.h"
 #include "MMVII_PhgrDist.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+#include "ctopoobs.h"
+#include "ctopopoint.h"
+#include "ctopodata.h"
+#include "MMVII_PCSens.h"
+#include "Topo.h"
 #include <memory>
 namespace MMVII
 {
 
-cTopoObsSet::cTopoObsSet(TopoObsSetType type):
-    mType(type)
+void cTopoObsSetData::AddData(const  cAuxAr2007 & anAuxInit)
 {
+    cAuxAr2007 anAux("TopoObsSetData",anAuxInit);
+    //std::cout<<"Add data obs set '"<<toString()<<"'"<<std::endl;
+    MMVII::EnumAddData(anAux,mType,"Type");
+    MMVII::AddData(cAuxAr2007("AllObs",anAux),mObs);
+}
+
+
+void AddData(const cAuxAr2007 & anAux, cTopoObsSetData &aObsSet)
+{
+     aObsSet.AddData(anAux);
+}
+
+
+// ------------------------------------
+
+
+cTopoObsSet::cTopoObsSet(cBA_Topo * aBA_Topo, eTopoObsSetType type):
+    mType(type), mBA_Topo(aBA_Topo)
+{
+}
+
+cTopoObsSet::~cTopoObsSet()
+{
+    //std::cout<<"delete set"<<std::endl;
+    std::for_each(mObs.begin(), mObs.end(), [](auto o){ delete o; });
+}
+
+
+void cTopoObsSet::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet)
+{
+#ifdef VERBOSE_TOPO
+    std::cout<<"AddToSys set "<<this<<std::endl;
+#endif
+    PutUknowsInSetInterval();
 }
 
 void cTopoObsSet::init()
@@ -15,30 +54,36 @@ void cTopoObsSet::init()
     createParams();
 }
 
+
 void cTopoObsSet::PutUknowsInSetInterval()
 {
-    mSetInterv->AddOneInterv(mParams);
+#ifdef VERBOSE_TOPO
+    std::cout<<"PutUknowsInSetInterval set "<<this<<std::endl;
+#endif
+    if (!mParams.empty())
+        mSetInterv->AddOneInterv(mParams);
 }
 
-bool cTopoObsSet::addObs(cTopoObs obs)
+
+bool cTopoObsSet::addObs(eTopoObsType obsType, cBA_Topo *aBA_Topo, const std::vector<std::string> &pts, const std::vector<tREAL8> &vals, const cResidualWeighterExplicit<tREAL8> &aWeights)
 {
-    if (std::find(mAllowedObsTypes.begin(), mAllowedObsTypes.end(), obs.getType()) == mAllowedObsTypes.end())
+    if (std::find(mAllowedObsTypes.begin(), mAllowedObsTypes.end(), obsType) == mAllowedObsTypes.end())
     {
-        ErrOut() << "Error, " << obs.type2string()
+        ErrOut() << "Error, " << E2Str(obsType)
                  << " obs type is not allowed in "
-                 << type2string()<<" obs set!\n";
+                 << E2Str(mType)<<" obs set!\n";
         return false;
     }
-    mObs.push_back(obs);
+    mObs.push_back(new cTopoObs(this, aBA_Topo, obsType, pts, vals, aWeights));
     return true;
 }
 
 std::string cTopoObsSet::toString() const
 {
     std::ostringstream oss;
-    oss<<"TopoObsSet "<<type2string()<<":\n";
+    oss<<"TopoObsSet "<<E2Str(mType)<<":\n";
     for (auto & obs: mObs)
-        oss<<"    - "<<obs.toString()<<"\n";
+        oss<<"    - "<<obs->toString()<<"\n";
     if (!mParams.empty())
     {
         oss<<"    params: ";
@@ -51,7 +96,6 @@ std::string cTopoObsSet::toString() const
 
 std::vector<int> cTopoObsSet::getParamIndices() const
 {
-    //TODO: compute it in PutUknowsInSetInterval()?
     std::vector<int> indices;
     for (auto & param : mParams)
     {
@@ -61,40 +105,128 @@ std::vector<int> cTopoObsSet::getParamIndices() const
 }
 
 //----------------------------------------------------------------
-cTopoObsSetSimple::cTopoObsSetSimple() :
-    cTopoObsSet(TopoObsSetType::simple)
+cTopoObsSetStation::cTopoObsSetStation(cBA_Topo *aBA_Topo) :
+    cTopoObsSet(aBA_Topo, eTopoObsSetType::eStation), mIsVericalized(true), mIsOriented(true),
+    mPoseWithUK(), mOriginName("")
 {
 }
 
-void cTopoObsSetSimple::createAllowedObsTypes()
+void cTopoObsSetStation::PutUknowsInSetInterval()
 {
-    mAllowedObsTypes = {TopoObsType::dist};
+#ifdef VERBOSE_TOPO
+    std::cout<<"PutUknowsInSetInterval setStation "<<this<<std::endl;
+#endif
+    mSetInterv->AddOneInterv(mPoseWithUK.Omega());
+    mSetInterv->AddOneInterv(mPoseWithUK.Tr());
+
+    if (!mParams.empty())
+        mSetInterv->AddOneInterv(mParams);
 }
 
-void cTopoObsSetSimple::createParams()
+
+void cTopoObsSetStation::createAllowedObsTypes()
 {
-    //no params
+    mAllowedObsTypes = {eTopoObsType::eDist,eTopoObsType::eHz,eTopoObsType::eZen};
 }
 
-void cTopoObsSetSimple::OnUpdate()
+
+void cTopoObsSetStation::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet)
 {
-    //nothing to do
+    if (!mParams.empty())
+        aSet.AddOneInterv(mParams);
+#ifdef VERBOSE_TOPO
+    std::cout<<"AddToSys SetStation "<<&mPoseWithUK<<std::endl;
+#endif
+    aSet.AddOneObj(&mPoseWithUK);
 }
 
-std::string cTopoObsSetSimple::type2string() const
+void cTopoObsSetStation::createParams()
 {
-    return "simple";
+
 }
 
+void cTopoObsSetStation::OnUpdate()
+{
+    // TODO: use pose update
+}
+
+std::string cTopoObsSetStation::toString() const
+{
+    std::ostringstream oss;
+    oss<<"   origin: "<<mOriginName<<" "<<mPoseWithUK.Tr();
+    return  cTopoObsSet::toString() + oss.str();
+}
+
+
+void cTopoObsSetStation::makeConstraints(cResolSysNonLinear<tREAL8> & aSys)
+{
+    // TODO: depends on bubbling etc.
+    if (mIsVericalized && mIsOriented)
+    {
+        mPoseWithUK.Pose().SetRotation(cRotation3D<double>::Identity());
+#ifdef VERBOSE_TOPO
+        std::cout<<"Freeze rotation for "<<&mPoseWithUK<<" "<<&mPoseWithUK.Omega()<<std::endl;
+        std::cout<<"  PoseWithUK indices "<<mPoseWithUK.IndUk0()<<"-"<<mPoseWithUK.IndUk1()-1<<std::endl;
+#endif
+        aSys.SetFrozenVarCurVal(mPoseWithUK,mPoseWithUK.Omega());
+        //for (int i=mPoseWithUK.IndUk0()+3;i<mPoseWithUK.IndUk1();++i)
+        //    aSys.AddEqFixCurVar(i,0.001);
+    } else {
+        MMVII_INTERNAL_ASSERT_strong(false,"Not fixed orientation station is forbidden");
+    }
+}
+
+void cTopoObsSetStation::setOrigin(std::string _OriginName, bool _IsVericalized)
+{
+    mOriginName = _OriginName;
+    mIsVericalized = _IsVericalized;
+    //std::cout<<"setOrigin "<<_OriginName<<std::endl;
+    const cTopoPoint & ptOrigin = mBA_Topo->getAllPts().at(mOriginName);
+    mPoseWithUK.Tr() = *ptOrigin.getPt();
+    mPoseWithUK.Pose().SetRotation(cRotation3D<double>::Identity());
+#ifdef VERBOSE_TOPO
+    std::cout<<"create mPoseWithUK: "<<&mPoseWithUK<<", rot "<<&mPoseWithUK.Pose().Rot()
+            <<"  omega "<<&mPoseWithUK.Omega()<<std::endl;
+#endif
+}
+
+bool cTopoObsSetStation::mergeUnknowns(cResolSysNonLinear<tREAL8> &aSys)
+{
+    // TODO: share and update unknowns with SetShared
+    for (int aN=0; aN<3; aN++)
+    {
+        std::vector<int> indices;
+        const cTopoPoint & ptOrigin = mBA_Topo->getAllPts().at(mOriginName);
+        //tTopoPtUK& ptOrigin = mTopoData.getPointWithUK(mOriginName);
+        mPoseWithUK.Tr() = *ptOrigin.getPt(); // be sure values are the same USEFUL??
+
+        indices.push_back(ptOrigin.getUK()->IndUk0()+aN); // origin Uk index
+        indices.push_back(mPoseWithUK.IndUk0()+aN); // pose Tr Uk index
+#ifdef VERBOSE_TOPO
+        std::cout<<"Merge unknowns ";
+        for (auto &aI: indices)
+            std::cout<<aI<<" ";
+        std::cout<<std::endl;
+#endif
+        aSys.SetShared(indices);
+        //cSparseVect<tREAL8> aVectCoef;
+        //aVectCoef.AddIV(indices[0],1.);
+        //aVectCoef.AddIV(indices[1],-1.);
+        //aSys.AddObservationLinear(0.001, aVectCoef, 0.);
+    }
+    return true;
+}
+
+/*
 //----------------------------------------------------------------
-cTopoObsSetDistParam::cTopoObsSetDistParam() :
-    cTopoObsSet(TopoObsSetType::distParam)
+cTopoObsSetDistParam::cTopoObsSetDistParam(cTopoData& aTopoData) :
+    cTopoObsSet(aTopoData, eTopoObsSetType::eDistParam)
 {
 }
 
 void cTopoObsSetDistParam::createAllowedObsTypes()
 {
-    mAllowedObsTypes = {TopoObsType::distParam};
+    mAllowedObsTypes = {eTopoObsType::eDistParam};
 }
 
 void cTopoObsSetDistParam::createParams()
@@ -104,23 +236,24 @@ void cTopoObsSetDistParam::createParams()
 
 void cTopoObsSetDistParam::OnUpdate()
 {
-    //nothing to do
+    // nothing to do
 }
 
-std::string cTopoObsSetDistParam::type2string() const
+void cTopoObsSetDistParam::makeConstraints(const cResolSysNonLinear<tREAL8> &aSys)
 {
-    return "distParam";
+    // nothing to do
 }
+
 
 //----------------------------------------------------------------
-cTopoObsSetSubFrame::cTopoObsSetSubFrame() :
-    cTopoObsSet(TopoObsSetType::subFrame), mRot(cRotation3D<tREAL8>::RotFromAxiator({0.,0.,0.}))
+cTopoObsSetSubFrame::cTopoObsSetSubFrame(cTopoData& aTopoData) :
+    cTopoObsSet(aTopoData, eTopoObsSetType::eSubFrame), mRot(cRotation3D<tREAL8>::RotFromAxiator({0.,0.,0.}))
 {
 }
 
 void cTopoObsSetSubFrame::createAllowedObsTypes()
 {
-    mAllowedObsTypes = {TopoObsType::subFrame};
+    mAllowedObsTypes = {eTopoObsType::eSubFrame};
 }
 
 void cTopoObsSetSubFrame::createParams()
@@ -135,11 +268,6 @@ void cTopoObsSetSubFrame::OnUpdate()
     mParams={0.,0.,0.};
 }
 
-std::string cTopoObsSetSubFrame::type2string() const
-{
-    return "subFrame";
-}
-
 std::vector<tREAL8> cTopoObsSetSubFrame::getRot() const
 {
     return
@@ -150,4 +278,9 @@ std::vector<tREAL8> cTopoObsSetSubFrame::getRot() const
     };
 }
 
+void cTopoObsSetSubFrame::makeConstraints(const cResolSysNonLinear<tREAL8> & aSys)
+{
+    // ?
+}
+*/
 }

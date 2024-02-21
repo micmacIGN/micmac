@@ -1,6 +1,8 @@
 #include "BundleAdjustment.h"
 #include "MMVII_util_tpl.h"
 
+#include "../Topo/Topo.h"
+
 /**
    \file cAppliBundAdj.cpp
 
@@ -89,6 +91,7 @@ cMMVII_BundleAdj::cMMVII_BundleAdj(cPhotogrammetricProject * aPhp) :
     mSigmaGCP         (-1),
     mMTP              (nullptr),
     mBlRig            (nullptr),
+    mTopo             (nullptr),
     mFolderRefCam     (""),
     mSigmaTrRefCam    (-1.0),
     mSigmaRotRefCam   (-1.0),
@@ -107,6 +110,7 @@ cMMVII_BundleAdj::~cMMVII_BundleAdj()
     delete mMesGCP;
     delete mMTP;
     delete mBlRig;
+    delete mTopo;
     DeleteAllAndClear(mGCP_UK);
 }
 
@@ -133,6 +137,7 @@ void cMMVII_BundleAdj::InitIteration()
     mPhaseAdd = false;
 
     InitItereGCP();
+    InitItereTopo();
     mR8_Sys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqNormSparse,mSetIntervUK.GetVUnKnowns());
 
     mSys =  mR8_Sys;
@@ -193,6 +198,11 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM)
         mBlRig->SetFrozenVar(*mR8_Sys);
     }
 
+    if (mTopo) // TOPO
+    {
+        mTopo->SetFrozenAndSharedVars(*mR8_Sys);
+    }
+
     // ================================================
     //  [2]   Add "Soft" constraint 
     // ================================================
@@ -218,6 +228,12 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM)
         mBlRig->AddRigidityEquation(*mR8_Sys);
     }
     // StdOut() << "SYS=" << mR8_Sys->GetNbObs() << " " <<  mR8_Sys->NbVar() << std::endl;
+
+
+    if (mTopo) // TOPO
+    {
+        mTopo->AddTopoEquations(*mR8_Sys);
+    }
 
     const auto & aVectSol = mSys->R_SolveUpdateReset(aLVM);
     mSetIntervUK.SetVUnKnowns(aVectSol);
@@ -514,7 +530,23 @@ void cMMVII_BundleAdj::SaveBlocRigid()
        mBlRig->Save();
     }
 }
+void cMMVII_BundleAdj::SaveTopo()
+{
+    if (mTopo)
+    {
+       mTopo->ToFile(mTopo->getInFile() + "-out.json");
+    }
+}
 
+/* ---------------------------------------- */
+/*                 Topo                     */
+/* ---------------------------------------- */
+
+bool cMMVII_BundleAdj::AddTopo(const std::string & aTopoFilePath) // TOPO
+{
+    mTopo = new cBA_Topo(mPhProj, aTopoFilePath);
+    return true;
+}
 
 
 }; // MMVII

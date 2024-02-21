@@ -9,6 +9,7 @@
 #include "Formulas_BlockRigid.h"
 #include "Formulas_GenSensor.h"
 #include "Formulas_RPC.h"
+#include "Formulas_Topo.h"
 #include "MMVII_Sys.h"
 #include "MMVII_Geom2D.h"
 
@@ -346,6 +347,40 @@ cCalculator<double> * EqTopoSubFrame(bool WithDerive,int aSzBuf)
 {
     return TplEqTopoSubFrame<double>(WithDerive,aSzBuf);
 }
+
+// topo az
+template <class Type> cCalculator<Type> * TplEqTopoAz(bool WithDerive,int aSzBuf)
+{
+    return StdAllocCalc(NameFormula(cFormulaTopoHz(),WithDerive),aSzBuf);
+}
+
+cCalculator<double> * EqTopoHz(bool WithDerive,int aSzBuf)
+{
+    return TplEqTopoAz<double>(WithDerive,aSzBuf);
+}
+
+// topo zen
+template <class Type> cCalculator<Type> * TplEqTopoZen(bool WithDerive,int aSzBuf)
+{
+    return StdAllocCalc(NameFormula(cFormulaTopoZen(),WithDerive),aSzBuf);
+}
+
+cCalculator<double> * EqTopoZen(bool WithDerive,int aSzBuf)
+{
+    return TplEqTopoZen<double>(WithDerive,aSzBuf);
+}
+
+// topo dist
+template <class Type> cCalculator<Type> * TplEqTopoDist(bool WithDerive,int aSzBuf)
+{
+    return StdAllocCalc(NameFormula(cFormulaTopoDist(),WithDerive),aSzBuf);
+}
+
+cCalculator<double> * EqTopoDist(bool WithDerive,int aSzBuf)
+{
+    return TplEqTopoDist<double>(WithDerive,aSzBuf);
+}
+
 
 cCalculator<double> * EqSumSquare(int aNb,bool WithDerive,int aSzBuf,bool ReUse)
 {
@@ -729,6 +764,10 @@ int cAppliGenCode::Exe()
        GenCodesFormula((tREAL8*)nullptr,cDist3D(),WithDer);
        GenCodesFormula((tREAL8*)nullptr,cDist3DParam(),WithDer);
        GenCodesFormula((tREAL8*)nullptr,cTopoSubFrame(),WithDer);
+
+       GenCodesFormula((tREAL8*)nullptr,cFormulaTopoHz(),WithDer);
+       GenCodesFormula((tREAL8*)nullptr,cFormulaTopoZen(),WithDer);
+       GenCodesFormula((tREAL8*)nullptr,cFormulaTopoDist(),WithDer);
 
        GenCodesFormula((tREAL8*)nullptr,cDeformImHomotethy()       ,WithDer);
 

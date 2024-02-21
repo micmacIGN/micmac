@@ -1202,16 +1202,22 @@ and no Earth model.
 
 All points must be given approximative coordinates as there is no automatic initialization.
 
-For now it is only used in the Bench \texttt{TopoComp}.
+For now it is used in \texttt{OriBundleAdj} and in the Bench \texttt{TopoComp}.
+
 This Bench will be used to illustrate the topometric classes and their usage.
 
 
 \subsection{\texttt{TopoComp} Bench example}
 \label{subsec:topoBench}
 
-The example is created by the method \texttt{cTopoComp::createEx1()}.
+The example is created by the method \texttt{cTopoData::createEx1()}.
 
-\subsubsection{Step 1}
+The classes named \texttt{cTopo???Data} are used for data serialization and deserialization.
+They are a simplified version of the classes without the \texttt{Data} suffix, that are used in
+the actual computation.
+
+
+\subsubsection{Creating the fixed points}
 
 At first, there are 3 fixed points ($A$, $B$, $C$), forming an isosceles triangle
 on an horizontal plane (Fig. \ref{fig:topoEx1}).
@@ -1223,28 +1229,24 @@ on an horizontal plane (Fig. \ref{fig:topoEx1}).
 \label{fig:topoEx1}
 \end{figure}
 
-The points are instances of the \texttt{cTopoPoint} class that
-derives from \texttt{cObjWithUnkowns}, hence it has no copy constructor and
-the points have to be added as pointers to \texttt{cTopoComp::allPts()}.
+The points are instances of the \texttt{cTopoPoint} class.
+The false boolean in the constructor means that the points are not free.
 
 \begin{lstlisting}
-  //create fixed points
-  allPts.push_back(new cTopoPoint("ptA", cPt3dr(10,10,10), false));
-  allPts.push_back(new cTopoPoint("ptB", cPt3dr(20,10,10), false));
-  allPts.push_back(new cTopoPoint("ptC", cPt3dr(15,20,10), false));
-  auto ptA = allPts[0];
-  auto ptB = allPts[1];
-  auto ptC = allPts[2];
+    //create fixed points
+    cTopoPointData ptA = {"ptA",cPt3dr(10,10,10),false};
+    cTopoPointData ptB = {"ptB",cPt3dr(20,10,10),false};
+    cTopoPointData ptC = {"ptC",cPt3dr(15,20,10),false};
 \end{lstlisting}
 
 At this point, there are no unknowns and no observations.
 
 
-\subsubsection{Step 2}
+\subsubsection{Creating the observations}
 
 A fourth point ($D$), this time not fixed, is initialized above the $ABC$ triangle.
-Distances from $A$, $B$ and $C$ to $D$
-are measured. For redondancy and error evaluation, the distance from $C$ to $D$ is measured twice
+Distances from $D$ to $A$, $B$ and $C$
+are measured. For redondancy and error evaluation, the distance from $D$ to $C$ is measured twice
 with different values (Fig. \ref{fig:topoEx2}).
 
 \begin{figure}[!h]
@@ -1254,29 +1256,43 @@ with different values (Fig. \ref{fig:topoEx2}).
 \label{fig:topoEx2}
 \end{figure}
 
-Observations must refer to an observation set (deriving from class \texttt{cTopoObsSet})
-that is used to share parameters between observations.
-
-In the case of measured distances there is no parameter, therefore the observation set will be 
-a \texttt{cTopoObsSetSimple}. Observations sets must be created with \texttt{make\_TopoObsSet} template function.
-
-All topometric observations are instances of \texttt{cTopoObs} class.
-For distances observations, \texttt{TopoObsType::dist} is given to the constructor.
+Observations are represented with the \texttt{cTopoObs} class.
+The constructor needs a \texttt{eTopoObsType}, the list of affected points
+(in order : "from", "to"), and a list of measurements and their sigmas.
 
 \begin{lstlisting}
-  //add measured dist to point D
-  allObsSets.push_back(make_TopoObsSet<cTopoObsSetSimple>());
-  auto obsSet1 = allObsSets[0].get();
-  allPts.push_back(new cTopoPoint("ptD", cPt3dr(14,14,14), true));
-  auto ptD = allPts[3];
-  cTopoObs(obsSet1, TopoObsType::dist, std::vector{ptA, ptD}, {10.0});
-  cTopoObs(obsSet1, TopoObsType::dist, std::vector{ptB, ptD}, {10.0});
-  cTopoObs(obsSet1, TopoObsType::dist, std::vector{ptC, ptD}, {10.0});
-  cTopoObs(obsSet1, TopoObsType::dist, std::vector{ptC, ptD}, {11.0});
+    cTopoPointData ptD = {"ptD",cPt3dr(14,14,14),true};
+  #define WW 0.01
+    //add measured dist to point D
+    cTopoObsData aObs1 = {eTopoObsType::eDist, {"ptD", "ptA"},  {10.}, {WW}};
+    cTopoObsData aObs2 = {eTopoObsType::eDist, {"ptD", "ptB"},  {10.}, {WW}};
+    cTopoObsData aObs3 = {eTopoObsType::eDist, {"ptD", "ptC"},  {10.}, {WW}};
+    cTopoObsData aObs4 = {eTopoObsType::eDist, {"ptD", "ptC"},  {10+WW}, {WW}};
+\end{lstlisting}
+
+The observations must be recorded in a \texttt{cTopoObsSet}, which is used to
+record parameters common to several observations.
+Here we must use the set type \texttt{Station} because we have distances (more about that later).
+
+\begin{lstlisting}
+    cTopoObsSetData aSet1;
+    aSet1.mType = eTopoObsSetType::eStation;
+    aSet1.mObs = {aObs1, aObs2, aObs3, aObs4};
 \end{lstlisting}
 
 The system now contains 3 unknowns ($D$ coordinates) and 4 observations
-(measured distances $AD$, $BD$ and $CD$ two times).
+(measured distances $DA$, $DB$ and $DC$ two times).
+
+All these objects have to be added to a \texttt{aTopoData} object:
+
+\begin{lstlisting}
+    cTopoData aTopoData;
+    aTopoData.mAllPoints = {ptA, ptB, ptC, ptD};
+    aTopoData.mAllObsSets = {aSet1, aSet2, aSet3};
+\end{lstlisting}
+
+\begin{comment}
+
 
 \subsubsection{Step 3}
 
@@ -1311,6 +1327,18 @@ is used to create the parameter corresponding to the unknown $d$.
 This adds 4 unknowns ($E$ coordinates and the unknown distance $d$) and 4 observations
 ($EA = EB = EC = ED = d$).
 
+\end{comment}
+
+\subsubsection{Transform into computation objects}
+
+All these \texttt{Data} objects will be used to fill the actual computation
+objects.
+
+These clases are :
+
+\begin{lstlisting}
+
+\end{lstlisting}
 
 \subsection{Topometric computation}
 
