@@ -1,5 +1,7 @@
 #include "LinearConstraint.h"
 
+#include "MMVII_PhgrDist.h"
+
 using namespace NS_SymbolicDerivative;
 using namespace MMVII;
 
@@ -558,10 +560,87 @@ cBenchLinearConstr::cBenchLinearConstr(int aNbVar,int aNbCstr) :
     }
 }
 
+
+void BenchFrozenAndShare()
+{
+    cSetInterUK_MultipeObj<double> aSetIntervMultObj;
+
+    cPt3dr_UK pA( cPt3dr(100., 100.,100.) );
+    cPt3dr_UK pB( cPt3dr(110., 100.,100.) );
+    cPt3dr_UK pC( cPt3dr(110., 100.,100.) );
+    cPt3dr_UK rOmega( cPt3dr(0., 0.,0.) );
+
+    bool verbose = false;
+
+    aSetIntervMultObj.AddOneObj(&pA);
+    aSetIntervMultObj.AddOneObj(&pB);
+    aSetIntervMultObj.AddOneObj(&pC);
+    aSetIntervMultObj.AddOneObj(&rOmega);
+    if (verbose)
+    {
+        std::cout<<"pt A: "<<pA.IndUk0()<<"-"<<pA.IndUk1()-1<<"\n";
+        std::cout<<"pt B: "<<pB.IndUk0()<<"-"<<pB.IndUk1()-1<<"\n";
+        std::cout<<"pt C: "<<pC.IndUk0()<<"-"<<pC.IndUk1()-1<<"\n";
+        std::cout<<"rot: "<<rOmega.IndUk0()<<"-"<<rOmega.IndUk1()-1<<std::endl;
+    }
+
+    cDenseVect<double> aVUk = aSetIntervMultObj.GetVUnKnowns();
+    cResolSysNonLinear<double>  aSys = cResolSysNonLinear<double>(eModeSSR::eSSR_LsqNormSparse,aVUk);
+
+    // B and C are shared
+    for (int i=0;i<3;++i)
+    {
+        aSys.SetShared( {pB.IndUk0()+i, pC.IndUk0()+i} );
+        if (verbose)
+            std::cout<<"share B-C coord "<<i<<": "<<pB.IndUk0()+i<<" <=> "<<pC.IndUk0()+i<<"\n";
+    }
+
+    // A is frozen
+    aSys.SetFrozenVarCurVal(pA,pA.Pt());
+    if (verbose)
+        std::cout<<"Freeze A: "<<pA.IndUk0()<<"-"<<pA.IndUk1()-1<<"\n";
+
+    // rotation is frozen
+    aSys.SetFrozenVarCurVal(rOmega,rOmega.Pt());
+    if (verbose)
+        std::cout<<"Freeze r: "<<rOmega.IndUk0()<<"-"<<rOmega.IndUk1()-1<<"\n";
+
+    cCalculator<double> * eqX = EqTopoDX(true,1);
+    cCalculator<double> * eqY = EqTopoDY(true,1);
+    cCalculator<double> * eqZ = EqTopoDZ(true,1);
+
+    // observations: B-A = (11,11,11)
+
+    std::vector<int> indices;
+    pA.PushIndexes(indices);
+    rOmega.PushIndexes(indices);
+    pC.PushIndexes(indices);
+
+    std::vector<tREAL8> vals = {1,0,0, 0,1,0, 0,0,1, -11.};
+
+    cResidualWeighterExplicit<tREAL8> aWeights(true, {0.001});
+    if (verbose) std::cout<<"Obs X\n";
+    aSys.CalcAndAddObs(eqX, indices, vals, aWeights);
+    if (verbose) std::cout<<"Obs Y\n";
+    aSys.CalcAndAddObs(eqY, indices, vals, aWeights);
+    if (verbose) std::cout<<"Obs Z\n";
+    aSys.CalcAndAddObs(eqZ, indices, vals, aWeights);
+
+    const auto & aVectSol = aSys.R_SolveUpdateReset(0.);
+    if (verbose)
+        std::cout<<"aVectSol "<<aVectSol<<std::endl;
+    aSetIntervMultObj.SIUK_Reset();
+    delete eqX;
+    delete eqY;
+    delete eqZ;
+}
+
 void  BenchLinearConstr(cParamExeBench & aParam)
 {
    //return;
    if (! aParam.NewBench("LinearConstr")) return;
+
+   BenchFrozenAndShare();
 
    // std::vector<cPt2di>  aV{{2,3},{3,2}};
 
@@ -589,7 +668,6 @@ void  BenchLinearConstr(cParamExeBench & aParam)
        aNbCstr = std::min(10,aNbCstr);
        cBenchLinearConstr(aNbVar,aNbCstr);
    }
-
 
    aParam.EndBench();
 }
