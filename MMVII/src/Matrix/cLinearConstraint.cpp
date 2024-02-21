@@ -361,11 +361,11 @@ template <class Type> void  cOneLinearConstraint<Type>::SubstituteInOutRSNL(tIO_
     bool  FirstDerNN = true;  // Used to check that we  do only once the extension of indexe
     for (size_t aKEq=0 ; aKEq<aIO.mVals.size() ; aKEq++)
     {
-        Type & aDerI = aIO.mDers.at(aKEq).at(aKSubst);
+        Type aDerI = aIO.mDers.at(aKEq).at(aKSubst);
         if (aDerI !=0 )
         {
              aIO.mVals[aKEq]  +=  aDerI * mCste;
-             if (mLP.size() != 1)
+             if (mLP.size() != 0)
              {
                   // [A]  Compute the constant and put the linear part in buf (to be indexable)
                   for (const auto & aPair : mLP.IV())
@@ -402,7 +402,7 @@ template <class Type> void  cOneLinearConstraint<Type>::SubstituteInOutRSNL(tIO_
                   // [D]  finish purge
                   aBuf.mSet.mVIndOcc.clear();
              }
-             aDerI = 0;      // now supress the derivate of substituted variable
+             aIO.mDers.at(aKEq).at(aKSubst) = 0;      // now supress the derivate of substituted variable
              FirstDerNN= false;  // No longer first Non Null derivate
         }
     }
