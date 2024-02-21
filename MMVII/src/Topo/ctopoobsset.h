@@ -63,7 +63,7 @@ class cTopoObsSetStation : public cTopoObsSet
 {
     friend cTopoObsSet * make_TopoObsSet<cTopoObsSetStation>(cBA_Topo *aBA_Topo);
 public:
-    //virtual ~cTopoObsSetStation() override {std::cout<<"delete set station "<<mOriginName<<std::endl;}
+    virtual ~cTopoObsSetStation() override {}
     virtual void PutUknowsInSetInterval() override ; ///< describes its unknowns
     void AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet) override;
     void OnUpdate() override;    ///< "reaction" after linear update, eventually update inversion
