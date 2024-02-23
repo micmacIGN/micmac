@@ -82,7 +82,7 @@ std::vector<int> cTopoObs::getIndices(cBA_Topo *aBATopo) const
         }
         set->getPtOrigin()->getUK()->PushIndexes(indices);
         set->getRotOmega().PushIndexes(indices);
-        cObjWithUnkowns<tREAL8>* toUk = aBATopo->getAllPts().at(mPtsNames[1]).getUK();
+        cObjWithUnkowns<tREAL8>* toUk = aBATopo->getPoint(mPtsNames[1]).getUK();
         toUk->PushIndexes(indices);
         break;
     }

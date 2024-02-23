@@ -222,70 +222,19 @@ cTopoData cTopoData::createEx1()
     // unknown point
     cTopoPointData ptD = {"ptD",cPt3dr(14, 14, 14),true};// 14, 14, 14 // 15.000000, 13.744999, 17.80863
     // distances to fixed points
-    /*cTopoObsData aObs1 = {eTopoObsType::eDist, {"ptA", "ptD"},  {10.}, {WW}};
-    cTopoObsData aObs2 = {eTopoObsType::eDist, {"ptB", "ptD"},  {10.}, {WW}};
-    cTopoObsData aObs3 = {eTopoObsType::eDist, {"ptC", "ptD"},  {10.}, {WW}};
-    cTopoObsData aObs4 = {eTopoObsType::eDist, {"ptC", "ptD"},  {10+WW}, {WW}};*/
-    cTopoObsData aObs1 = {eTopoObsType::eDist, {"ptA", "ptD"},  {10.}, {WW}};
-    cTopoObsData aObs2 = {eTopoObsType::eDist, {"ptD", "ptB"},  {10.}, {WW}}; // error when previous LinearConstraint bug
-    cTopoObsData aObs3 = {eTopoObsType::eDist, {"ptC", "ptD"},  {10.}, {WW}};
-    cTopoObsData aObs4 = {eTopoObsType::eDist, {"ptC", "ptD"},  {10+WW}, {WW}};
-    /*cTopoObsData aObs1 = {eTopoObsType::eDist, {"ptD", "ptA"},  {10.}, {WW}};
+    cTopoObsData aObs1 = {eTopoObsType::eDist, {"ptD", "ptA"},  {10.}, {WW}};
     cTopoObsData aObs2 = {eTopoObsType::eDist, {"ptD", "ptB"},  {10.}, {WW}};
     cTopoObsData aObs3 = {eTopoObsType::eDist, {"ptD", "ptC"},  {10.}, {WW}};
-    cTopoObsData aObs4 = {eTopoObsType::eDist, {"ptD", "ptC"},  {10+WW}, {WW}};*/
+    cTopoObsData aObs4 = {eTopoObsType::eDist, {"ptD", "ptC"},  {10+WW}, {WW}};
 
     cTopoObsSetData aSet1;
     aSet1.mType = eTopoObsSetType::eStation;
-    aSet1.mObs = {aObs1};
-    cTopoObsSetData aSet2;
-    aSet2.mType = eTopoObsSetType::eStation;
-    aSet2.mObs = {aObs2};
-    cTopoObsSetData aSet3;
-    aSet3.mType = eTopoObsSetType::eStation;
-    aSet3.mObs = {aObs3, aObs4};
-
+    aSet1.mObs = {aObs1, aObs2, aObs3, aObs4};
 
     cTopoData aTopoData;
     aTopoData.mAllPoints = {ptA, ptB, ptC, ptD};
-    aTopoData.mAllObsSets = {aSet1, aSet2, aSet3};
+    aTopoData.mAllObsSets = {aSet1};
     return aTopoData;
-/*
-    allPts.push_back(new cTopoPoint("ptA", cPt3dr(10,10,10), false));
-    allPts.push_back(new cTopoPoint("ptB", cPt3dr(20,10,10), false));
-    allPts.push_back(new cTopoPoint("ptC", cPt3dr(15,20,10), false));
-    auto ptA = allPts[0];
-    auto ptB = allPts[1];
-    auto ptC = allPts[2];
-
-    //add measured dist to point D
-    allObsSets.push_back(make_TopoObsSet<cTopoObsSetSimple>());
-    auto obsSet1 = allObsSets[0].get();
-    allPts.push_back(new cTopoPoint("ptD", cPt3dr(14,14,14), true));
-    auto ptD = allPts[3];
-#define WW 0.01
-    obsSet1->addObs(eTopoObsType::eDist, std::vector{ptA, ptD}, {10.0}, {true, {WW}});
-    obsSet1->addObs(eTopoObsType::eDist, std::vector{ptB, ptD}, {10.0}, {true, {WW}});
-    obsSet1->addObs(eTopoObsType::eDist, std::vector{ptC, ptD}, {10.0}, {true, {WW}});
-    obsSet1->addObs(eTopoObsType::eDist, std::vector{ptC, ptD}, {10.1}, {true, {0.1}});
-    //add point E to an unknown common dist
-    allObsSets.push_back(make_TopoObsSet<cTopoObsSetDistParam>());
-    auto obsSet2 = allObsSets[1].get();
-    allPts.push_back(new cTopoPoint("ptE", cPt3dr(11,11,11), true));
-    auto ptE = allPts[4];
-    obsSet2->addObs(eTopoObsType::eDistParam, std::vector{ptE, ptA}, {}, {true, {WW}});
-    obsSet2->addObs(eTopoObsType::eDistParam, std::vector{ptE, ptB}, {}, {true, {WW}});
-    obsSet2->addObs(eTopoObsType::eDistParam, std::vector{ptE, ptC}, {}, {true, {WW}});
-    obsSet2->addObs(eTopoObsType::eDistParam, std::vector{ptE, ptD}, {}, {true, {WW}});
-
-    //add subframe obs
-    allObsSets.push_back(make_TopoObsSet<cTopoObsSetSubFrame>());
-    auto obsSet3 = allObsSets[2].get();
-    obsSet3->addObs(eTopoObsType::eSubFrame, std::vector{ptE, ptA}, {-5., -3.75, -1.4}, {true, {WW,WW,WW}});
-    obsSet3->addObs(eTopoObsType::eSubFrame, std::vector{ptE, ptA}, { 5., -3.75, -1.4}, {true, {WW,WW,WW}});
-    obsSet3->addObs(eTopoObsType::eSubFrame, std::vector{ptE, ptA}, { 0.,  6.25, -1.4}, {true, {WW,WW,WW}});
-    obsSet3->addObs(eTopoObsType::eSubFrame, std::vector{ptE, ptA}, { 0.,  0.,    6.4}, {true, {WW,WW,WW}});
-    */
 }
 
 /*

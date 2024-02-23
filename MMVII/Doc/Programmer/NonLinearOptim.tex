@@ -1270,6 +1270,9 @@ The constructor needs a \texttt{eTopoObsType}, the list of affected points
     cTopoObsData aObs4 = {eTopoObsType::eDist, {"ptD", "ptC"},  {10+WW}, {WW}};
 \end{lstlisting}
 
+The value \texttt{WW} is used for weighting and adding an error to the last measure
+compatible with the incertaincy.
+
 The observations must be recorded in a \texttt{cTopoObsSet}, which is used to
 record parameters common to several observations.
 Here we must use the set type \texttt{Station} because we have distances (more about that later).
@@ -1329,26 +1332,17 @@ This adds 4 unknowns ($E$ coordinates and the unknown distance $d$) and 4 observ
 
 \end{comment}
 
-\subsubsection{Transform into computation objects}
+\subsubsection{Topometric classes}
 
-All these \texttt{Data} objects will be used to fill the actual computation
-objects.
+The \texttt{Data} objects are used to fill the actual computation objects.
 
-These clases are :
-
-\begin{lstlisting}
-
-\end{lstlisting}
-
-\subsection{Topometric computation}
-
-Topometric computation system is managed by the \texttt{cTopoComp} class.
-This handles the list of points and observation sets, the non-linear system
-(\texttt{cResolSysNonLinear}), and a mechanism to link the observations to
-the automatic derivation system.
-
-After \texttt{cTopoComp} object creation and filling (see \ref{subsec:topoBench}),
-the method \texttt{OneIteration()} is called to improve parameters estimation.
+The topometric computation classes are :
+ \begin{itemize}
+    \item \texttt{cTopoPoint}: a point used with topometric measurements. If its name is already in the pictures or GCP lists, it uses the existing unknown. Otherwise it makes its own unknown. 
+    \item \texttt{cTopoObs}: an observation corresponding to a formula, between several points.
+    \item \texttt{cTopoObsSet}: a set of observations. The set is used to share common parameters between several observations. e.g., \texttt{cTopoObsSetStation} adds a rotation corresponding to an instrument setting.   
+    \item \texttt{cBA\_Topo}: the class that handles the least square part. It records all the points and sets.
+ \end{itemize}
 
 %---------------------------------------------
 %---------------------------------------------

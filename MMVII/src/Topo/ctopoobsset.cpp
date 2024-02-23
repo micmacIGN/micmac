@@ -185,15 +185,15 @@ void cTopoObsSetStation::makeConstraints(cResolSysNonLinear<tREAL8> & aSys)
 
 void cTopoObsSetStation::setOrigin(std::string _OriginName, bool _IsVericalized)
 {
+#ifdef VERBOSE_TOPO
+    std::cout<<"cTopoObsSetStation::setOrigin "<<_OriginName<<std::endl;
+#endif
+    mPtOrigin = &mBA_Topo->getPoint(_OriginName);
     mOriginName = _OriginName;
     mIsVericalized = _IsVericalized;
-    //std::cout<<"setOrigin "<<_OriginName<<std::endl;
-    mPtOrigin = &mBA_Topo->getAllPts().at(mOriginName);
     mRot = tRot::Identity();
     mRotOmega.Pt() = {0.,0.,0.};
-#ifdef VERBOSE_TOPO
-    std::cout<<"create mRotOmega: "<<&mRotOmega<<std::endl;
-#endif
+
 }
 
 /*

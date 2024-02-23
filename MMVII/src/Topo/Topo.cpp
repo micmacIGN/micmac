@@ -191,6 +191,14 @@ cCalculator<double>*  cBA_Topo::getEquation(eTopoObsType tot) const {
     }
 }
 
+cTopoPoint & cBA_Topo::getPoint(std::string name)
+{
+    if (mAllPts.count(name)==0)
+    {
+        MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eUnClassedError, "Error: unknown point "+name)
+    }
+    return mAllPts.at(name);
+}
 
 /**  In a bundle adjusment its current that some variable are "hard" frozen, i.e they are
  *   considered as constant.  We could write specific equation, but generally it's more

@@ -40,6 +40,7 @@ public :
     bool mergeUnknowns(cResolSysNonLinear<tREAL8> &aSys); //< if several stations share origin etc.
     void makeConstraints(cResolSysNonLinear<tREAL8> &aSys);
     std::map<std::string, cTopoPoint> & getAllPts() { return mAllPts; }
+    cTopoPoint & getPoint(std::string name);
     cCalculator<double>* getEquation(eTopoObsType tot) const;
 private :
     cPhotogrammetricProject * mPhProj;
