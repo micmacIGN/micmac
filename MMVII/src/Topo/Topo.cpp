@@ -164,9 +164,6 @@ bool cBA_Topo::mergeUnknowns(cResolSysNonLinear<tREAL8> &aSys)
     for (auto &set: mAllObsSets)
     {
         switch (set->getType()) {
-        case eTopoObsSetType::eStation:
-            ok &= (static_cast<cTopoObsSetStation*>(set))->mergeUnknowns(aSys);
-            break;
         default:
             break;
         }

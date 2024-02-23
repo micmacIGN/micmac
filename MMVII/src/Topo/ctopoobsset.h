@@ -61,6 +61,7 @@ cTopoObsSet * make_TopoObsSet(cBA_Topo *aBA_Topo)
  */
 class cTopoObsSetStation : public cTopoObsSet
 {
+    typedef cRotation3D<tREAL8> tRot;
     friend cTopoObsSet * make_TopoObsSet<cTopoObsSetStation>(cBA_Topo *aBA_Topo);
 public:
     virtual ~cTopoObsSetStation() override {}
@@ -71,8 +72,9 @@ public:
     void makeConstraints(cResolSysNonLinear<tREAL8> &aSys) override;
 
     void setOrigin(std::string _OriginName, bool _IsVericalized);
-    bool mergeUnknowns(cResolSysNonLinear<tREAL8> &aSys);
-    cPoseWithUK & getPoseWithUK() { return mPoseWithUK; }
+    void PushRotObs(std::vector<double> & aVObs) const;
+    cPt3dr_UK & getRotOmega() { return mRotOmega; }
+    cTopoPoint * getPtOrigin() const { return mPtOrigin; }
 protected:
     cTopoObsSetStation(cBA_Topo *aBA_Topo);
     //cTopoObsSetStation(cTopoObsSetStation const&) = delete;
@@ -82,8 +84,10 @@ protected:
 
     bool mIsVericalized;
     bool mIsOriented;
-    cPoseWithUK mPoseWithUK;
+    tRot mRot;        //< the station orientation
+    cPt3dr_UK mRotOmega; //< the station orientation unknown
     std::string mOriginName;
+    cTopoPoint *mPtOrigin;
 };
 
 /**

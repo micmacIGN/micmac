@@ -75,7 +75,13 @@ std::vector<int> cTopoObs::getIndices(cBA_Topo *aBATopo) const
             MMVII_INTERNAL_ERROR("error set type")
             return {}; //just to please the compiler
         }
-        set->getPoseWithUK().PushIndexes(indices);
+        if (!set->getPtOrigin())
+        {
+            MMVII_INTERNAL_ERROR("error set station has no origin")
+            return {}; //just to please the compiler
+        }
+        set->getPtOrigin()->getUK()->PushIndexes(indices);
+        set->getRotOmega().PushIndexes(indices);
         cObjWithUnkowns<tREAL8>* toUk = aBATopo->getAllPts().at(mPtsNames[1]).getUK();
         toUk->PushIndexes(indices);
         break;
@@ -123,7 +129,7 @@ std::vector<tREAL8> cTopoObs::getVals() const
             MMVII_INTERNAL_ERROR("error set type")
             return {}; //just to please the compiler
         }
-        set->getPoseWithUK().PushObs(vals, false);
+        set->PushRotObs(vals);
         vals.insert(std::end(vals), std::begin(mMeasures), std::end(mMeasures));
         break;
     }
