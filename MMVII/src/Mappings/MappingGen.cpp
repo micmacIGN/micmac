@@ -194,6 +194,17 @@ template <class Type,const int DimIn,const int DimOut>
 {
 }
 
+template <class Type,const int DimIn,const int DimOut> cPtxd<Type,DimIn>     
+    cDataMapping<Type,DimIn,DimOut>::EpsJac() const
+{
+	return mEpsJac;
+}
+
+template <class Type,const int DimIn,const int DimOut> 
+    void    cDataMapping<Type,DimIn,DimOut>::SetEpsJac(const tPtIn & aNewEps) 
+{
+    mEpsJac = aNewEps;
+}
 
 
      //  =========== Compute values =============

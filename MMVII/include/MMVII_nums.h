@@ -734,7 +734,8 @@ template <class TypeVal> class cBoundVals
 	public :
             cBoundVals() :
                    mVMin ( std::numeric_limits<TypeVal>::max()),
-		   mVMax (-std::numeric_limits<TypeVal>::max())
+		   //mVMax (-std::numeric_limits<TypeVal>::max())  MPD : strange why not min() ??
+		   mVMax (std::numeric_limits<TypeVal>::min())
 	    {
             }
             void Add(const TypeVal & aVal)

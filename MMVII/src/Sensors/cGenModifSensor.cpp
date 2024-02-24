@@ -11,45 +11,177 @@ using namespace NS_SymbolicDerivative;
 namespace MMVII
 {
 
-bool  DEBUG_I2B=false;
+
+/* *********************************************** */
+/*                                                 */
+/*             cExternalSensorModif2D              */
+/*                                                 */
+/* *********************************************** */
+
+class cExternalSensorModif2D  : public cSensorImage
+{
+   public :
+
+   // - - - - - - - Constructors and destructor - - - - - - - - 
+
+         cExternalSensorModif2D();
+         cExternalSensorModif2D
+         (
+                const std::string& aFolderOri ,
+                const std::string& aNameImage ,
+                cSensorImage * aSI ,
+                int aDegree 
+         ) ;
+         ~cExternalSensorModif2D();
 
 
+   // - - - - - - - Serialization (read/write)  - - - - - - - - 
+              
+         void InitSensor(const cPhotogrammetricProject &);  ///< once the data has been read, finish init by computing sensor
+         void InitEquation() ; ///< compute the euqation of distortion
+	 /// try to read a sensor of type "cExternalSensorModif2D" associated to an image						      
+         static cExternalSensorModif2D * TryRead(const cPhotogrammetricProject &,const std::string&aNameImage);
+
+	 ///  Method to describe the data
+         void AddData(const  cAuxAr2007 & anAux);
+
+         void ToFile(const std::string & aNameFile) const override;  ///< Save the object on ai file  "aNameFile"
+         std::string  V_PrefixName() const  override; ///< virtual name of the class
+         static std::string  StaticPrefixName();      ///< static name of the class
+
+   // - - - - - - - Simulation  - - - - - - - - 
+  
+         /// Create perturbation, used to check correctness in simulation
+         void PerturbateRandom(tREAL8 anAmpl,bool Show);
+
+    private :
+	
+    //  - - - - - - -  Methods for being a geometric sensor (or just a sensor in fact)   -  - - - - - - 
+         /// most fundamental method : 
+         tSeg3dr  Image2Bundle(const cPt2dr &) const override;
+         /// Basic method  GroundCoordinate ->  image coordinate of projection
+         cPt2dr Ground2Image(const cPt3dr &) const override;
+         ///    Method specialized, more efficent than using bundles
+         cPt3dr ImageAndZ2Ground(const cPt3dr &) const override;
+
+     //  - - - - - - -   Method for indicating the validity of the sensor -  - - - - - - 
+  
+	  /// What is the image domain
+	  virtual const cPixelDomain & PixelDomain() const override;
+	  ///  How much is a point inside the validity domain
+          double DegreeVisibility(const cPt3dr & aPGround) const override;
+	  /// Has the sensor a Z Interval of validity ?
+	  bool  HasIntervalZ()  const override;
+          /// return the Z validity interval (if exist , else error ...)
+          cPt2dr GetIntervalZ() const override;
+
+     //  - - - - - - -  Methods for being a Differentiable sensor -  - - - - - - 
+    
+         cPt3dr  EpsDiffGround2Im(const cPt3dr &) const override; ///< Default for use in finite difference
+         // tProjImAndGrad  DiffGround2Im(const cPt3dr & aP) const override;    TODO later for efficiency & accuracy
+         virtual cPt3dr  PseudoCenterOfProj() const  override;  /// required, not very usefull for now ...
+
+
+     //  - - - - - - -  Methods for being an adjustable sensor  = communication with bundle adjustment kernel  -  - - - - - - 
+
+	      /// return the calculator of residual in colinearity equation
+         cCalculator<double> * CreateEqColinearity(bool WithDerives,int aSzBuf,bool ReUse) override;
+	      /// add, when required, the unknowns in equation 
+         void PutUknowsInSetInterval() override;
+	      /// add, when required, the observation (rather context dependant constant) in colinearity equation 
+         void PushOwnObsColinearity( std::vector<double> &,const cPt3dr &)  override;
+          
+	  size_t  NbParam() const;  ///< Number of parameters, computed from degree
+				    
+                 // ====  Method to override in derived classes  =====
+
+         /// For "initial" coordinat (pixel) to "final"
+         cPt2dr  InitPix2Correc (const cPt2dr & aP0) const ;
+         /// For "final" to "initial" coordinat (pixel)
+         cPt2dr  Correc2InitPix (const cPt2dr & aP0) const ;
+
+
+     // - - - - - - - - - - - - -    DATA PART - - - - - - - - - - - - - - - - - - - - -
+
+         std::string             mDirSensInit; ///< Folder where is located the initial sensor
+         std::string             mNameImage;   ///< Name of the attached image
+	 int                     mDegree;      ///< Maxima total degree of monoms
+         std::vector<tREAL8>     mVParams;     ///< Coefficient of monoms in correction
+						       
+	 cSensorImage *                 mSensorInit;   ///< The initial sensor, for which we compute a correctio,
+         cCalculator<double> *          mEqIma2End;    ///< Functor that compute the distorstion
+};
+
+
+/* =============================================== */
+/*                                                 */
+/*                 cSensorImage                    */
+/*                                                 */
+/* =============================================== */
+
+    //-------------------------------------------------------------------------------
     //------------------------ Create/Read/Write   ----------------------------------
+    //-------------------------------------------------------------------------------
+
+
+               // -  -  -  -  -  - Creators and Destructor -  -  -  -  -  -
+
+cExternalSensorModif2D::cExternalSensorModif2D() :
+    cSensorImage (MMVII_NONE),
+    mSensorInit  (nullptr),
+    mEqIma2End   (nullptr)
+{
+}
 
 cExternalSensorModif2D::cExternalSensorModif2D
 (
-      const cDataEmbededSensor & aData,
+      const std::string& aFolderOri,
       const std::string& aNameImage,
       cSensorImage * aSI,
-      int            aDegree,
-      const std::string & aTargetSysCo
+      int            aDegree
 )  :
-   cExternalSensor  (aData,aNameImage,aSI),
-   mDegree          (aDegree),
-   mActiveDistG2I   (true),
-   mTargetSysCo     (aTargetSysCo),
-   mEqIma2End       (nullptr),
-   mSysI2F          {},
-   mPtEpsDeriv      (1,1,1),
-   mIdChSys         (true)
+    cSensorImage (aNameImage),
+    mDirSensInit (aFolderOri),
+    mNameImage   (aNameImage),
+    mDegree      (aDegree),
+    mVParams     (NbParam(),0.0),
+    mSensorInit  (aSI)
 {
-    if (mDegree>=0)
-       InitPol2D();
+    InitEquation();
+    if (mSensorInit)
+       TransferateCoordSys(*mSensorInit);
 }
 
-/*
-template <class Type> Type * GetSetRemanentObj(const std::string & aName,Type * aVal=nullptr)
+size_t  cExternalSensorModif2D::NbParam() const 
 {
-    static std::map<std::string > TheMap;
-    if (aVal!=nullptr) return aVal;
-
-    Type * & aRes = TheMap[aName];
-    if (aRes==nullptr)
-    {
-    }
+   if (mDegree<0) return 0;
+   return Polyn2DDescDist(mDegree).size();
 }
-*/
 
+void cExternalSensorModif2D::InitEquation() 
+{
+    mEqIma2End   =  (mDegree>=0)                                                       ?
+		    EqDistPol2D(mDegree,false/*W/O derive*/,1,true/*Recycling mode*/)  :
+		    nullptr
+		 ;    
+}
+
+cExternalSensorModif2D::~cExternalSensorModif2D()
+{
+}
+
+void cExternalSensorModif2D::InitSensor(const cPhotogrammetricProject & aPhP)
+{
+     mSensorInit = aPhP.ReadSensorFromFolder(mDirSensInit,mNameImage,true,false);
+     TransferateCoordSys(*mSensorInit);
+}
+
+               // -  -  -  -  -  - naming an object  -  -  -  -  -  -
+
+std::string  cExternalSensorModif2D::StaticPrefixName()    { return  "SensModifPol2D";}
+std::string  cExternalSensorModif2D::V_PrefixName() const  {return StaticPrefixName();}
+
+               // -  -  -  -  -  - read an object  -  -  -  -  -  -
 
 cExternalSensorModif2D * cExternalSensorModif2D::TryRead
                   (
@@ -57,192 +189,181 @@ cExternalSensorModif2D * cExternalSensorModif2D::TryRead
                         const std::string & aNameImage
                   )
 {
-   std::string  aDirSens = aPhProj.DPOrient().FullDirIn();
-   std::string aNameFile = aDirSens + cSensorImage::NameOri_From_PrefixAndImage(cExternalSensorModif2D::StaticPrefixName(),aNameImage);
+   // [1] Try read w
+   bool AlreadyExist = false;
+   cExternalSensorModif2D * aSensM2D = SimpleTplTryRead<cExternalSensorModif2D>(aPhProj,aNameImage,AlreadyExist);
 
-   if (!ExistFile(aNameFile))
-      return nullptr;
+   // [2] if fail (adequate name did not exist) stop heree
+   if ((aSensM2D==nullptr) || AlreadyExist) return aSensM2D;
 
-   std::string  aDirInit = aPhProj.DirImportInitOri();
-   // -1-   Create the object
-   cExternalSensorModif2D *  aResult = new cExternalSensorModif2D (cDataEmbededSensor(),aNameImage);
-   // -2-   Read the data contained in the file
-   ReadFromFile(*aResult,aNameFile);
-   // -3-   Read the initial sensor
-   std::string aNameInit  = aDirInit + aResult->Data().mNameFileInit;
-   cSensorImage *  aSI =  CreateAutoExternalSensor(aNameInit,aNameImage,false);
-   aResult->SetSensorInit(aSI);
-   aResult->Finish(aPhProj);
+   // [3] else, we have the "data part", we can finish the intializatio,
+   aSensM2D->InitSensor(aPhProj);
+   aSensM2D->InitEquation();
+   return aSensM2D;
 
-   return aResult;
 }
 
-cExternalSensorModif2D::~cExternalSensorModif2D()
+cSensorImage * SensorTryReadSensM2D (const cPhotogrammetricProject & aPhProj, const std::string & aNameImage)
 {
+    return cExternalSensorModif2D::TryRead(aPhProj,aNameImage);
 }
+               // -  -  -  -  -  - write an object  -  -  -  -  -  -
 
-void cExternalSensorModif2D::InitPol2D()
+void cExternalSensorModif2D::AddData(const  cAuxAr2007 & anAux0)
 {
-    mEqIma2End   =  EqDistPol2D(mDegree,false/*W/O derive*/,1,true/*Recycling mode*/) ;
-    std::vector<cDescOneFuncDist>  aVDesc =  Polyn2DDescDist(mDegree);
-    mVParams.resize(aVDesc.size(),0.0);
-}
+    cAuxAr2007 anAux("SensorCorrecPol2D",anAux0); // embeds the sensor in a global tag "SensorCorrecPol2D"
 
+        // read/write the 3 "easy" fields
+    MMVII::AddData(cAuxAr2007("FolderOri",anAux),mDirSensInit);
+    MMVII::AddData(cAuxAr2007("NameImage",anAux),mNameImage);
+    MMVII::AddData(cAuxAr2007("DegreeCorrection",anAux),mDegree);
 
-void cExternalSensorModif2D::Finish(const cPhotogrammetricProject & aPhP)
-{
-     mSysI2F = aPhP.ChangSys(mData.mSysCoOri,mTargetSysCo);
-     mIdChSys = mSysI2F.IsIdent();
+    // in read mode, we must fix the size before parsing all parameters
+    if (anAux.Ar().Input())
+    {
+       mVParams.resize(NbParam());
+    }
 
-     tPtrSysCo aSysTarget = aPhP.ReadSysCo(mTargetSysCo);
-     mPtEpsDeriv =  aSysTarget->mPtEpsDeriv;
-}
-
-cPt3dr  cExternalSensorModif2D::EpsDiffGround2Im(const cPt3dr &) const {return mPtEpsDeriv;}
-
-
-tProjImAndGrad  cExternalSensorModif2D::DiffGround2Im(const cPt3dr & aP) const
-{
-     // MMVII_DEV_WARNING("ExternalSensorModif2D::DiffGround2Im");
-     // return cExternalSensor::DiffGround2Im(aP);
-
-	/*
-     if (mIdChSys)  
-        return cExternalSensor::DiffGround2Im(aP);
-	*/
-
-     return DiffG2IByFiniteDiff(aP);
-}
-
-
-
-void cExternalSensorModif2D::AddData(const  cAuxAr2007 & anAux)
-{
-     MMVII::AddData(cAuxAr2007("InitialSensor",anAux),mData);
-     MMVII::AddData(cAuxAr2007("FinalCoordSys",anAux),mTargetSysCo);
-     MMVII::AddData(cAuxAr2007("DegreeCorrection",anAux),mDegree);
-     
-     if (anAux.Ar().Input())
-     {
-         InitPol2D();
-     }
-
-     {
-         cAuxAr2007  anAuxCoeff("CoeffsCorrection",anAux);
-         std::vector<cDescOneFuncDist>  aVDesc =  Polyn2DDescDist(mDegree);
-         for (size_t aK=0 ; aK<mVParams.size() ; aK++)
+    // now read/write the coefficients
+    {
+         cAuxAr2007  anAuxCoeff("CoeffsCorrection",anAux); // embeds the coeefss in a tag "CoeffsCorrection"
+	 // use aVDesc to attribuate name to coeff tag
+         auto aVDesc =  Polyn2DDescDist(mDegree);
+         for (size_t aK=0 ; aK<aVDesc.size() ; aK++)
          {
              MMVII::AddData(cAuxAr2007(aVDesc[aK].mName,anAuxCoeff),mVParams[aK]);
          }
-StdOut() << "AdddDatatat " << mVParams <<  " XXXX=" << this << "\n";
-     }
+    }
 }
+
 void AddData(const  cAuxAr2007 & anAux,cExternalSensorModif2D & aExtSM2d)
 {
-     aExtSM2d.AddData(anAux);
+    aExtSM2d.AddData(anAux);
 }
+
 
 void cExternalSensorModif2D::ToFile(const std::string & aNameFile) const 
 {
      SaveInFile(const_cast<cExternalSensorModif2D &>(*this),aNameFile);
 }
 
-std::string  cExternalSensorModif2D::StaticPrefixName() { return  "ExtSensModifPol2D";}
-std::string  cExternalSensorModif2D::V_PrefixName() const  {return StaticPrefixName();}
+cPt3dr  cExternalSensorModif2D::EpsDiffGround2Im(const cPt3dr & aP) const 
+{
+	return mSensorInit->EpsDiffGround2Im(aP);
+}
+cPt3dr  cExternalSensorModif2D::PseudoCenterOfProj() const  
+{
+      return mSensorInit->PseudoCenterOfProj();
+}
+					       
+/*
+tProjImAndGrad  cExternalSensorModif2D::DiffGround2Im(const cPt3dr & aP) const
+{
+     // TODO : this is an approximatin as we neglect correction, later add the derivate of correction an give the exact formula
+     return mSensorInit->DiffGround2Im (aP);
+}
 
+*/
 
-      //------------------------  bundles ---------------------------
+    //-------------------------------------------------------------------------------
+    //---------------------- FOR BUNDLE ADJUSTMENT  ---------------------------------
+    //-------------------------------------------------------------------------------
+    
 cCalculator<double> * cExternalSensorModif2D::CreateEqColinearity(bool WithDerive,int aSzBuf,bool ReUse) 
 {
+    // the sensor dont store its colinearity equation, it furnish it to the bundle adjusment when it is
+    // required
     return EqColinearityCamGen(mDegree,WithDerive,aSzBuf,ReUse);
 }
 
 void cExternalSensorModif2D::PutUknowsInSetInterval() 
 {
+     // the unknowns that the sensor want to estimate are the coefficient of the monom
      mSetInterv->AddOneInterv(mVParams);
 }
 
-void cExternalSensorModif2D::PushOwnObsColinearity(std::vector<double> & aVParam,const cPt3dr & aPGround)
+void cExternalSensorModif2D::PushOwnObsColinearity
+     (
+         std::vector<double> & aVObs, //  vector where must write our observation/context
+	 const cPt3dr & aPGround      //  3D ground point (current estimation of unknown point)
+     )
 {
-   // "IObs","JObs",  "P0x","P0y","P0z"    "IP0","JP0",    "dIdX","dIDY","dIdZ",   "dJdX","dJDY","dJdZ"
+   //  Copy the string extracted from file "SymbDerGen/Formulas_GenSensor.h"
+   //
+   // "IObs","JObs"  |,|      "P0x","P0y","P0z"   |,|     "IP0","JP0"  |,|      "dIdX","dIDY","dIdZ"  |,|  "dJdX","dJDY","dJdZ"
+  
 
-// cPt2dr aP000 = cPt2dr::FromStdVector(aVParam);
-// StdOut() << "VPPPP " << aP000 << aPGround << "\n"; 
+   // "IObs","JObs",  are the coordinate of the measured point, we dont add them, it is the job of BA-Kernel
 
+    aPGround.PushInStdVector(aVObs);  //  "P0x","P0y","P0z"  : estimation of 3D point
 
-    aPGround.PushInStdVector(aVParam);
-    //  inibate dist correction to compute diff
-    mActiveDistG2I=false;
-    tProjImAndGrad aProj = DiffGround2Im(aPGround);
-    mActiveDistG2I=true;
-    aProj.mPIJ.PushInStdVector(aVParam);
-    aProj.mGradI.PushInStdVector(aVParam);
-    aProj.mGradJ.PushInStdVector(aVParam);
+    // Now we compute the jacobian
+    tProjImAndGrad aProj = mSensorInit->DiffGround2Im(aPGround); 
 
-
-// StdOut() << "DIFFFF " << aProj.mPIJ  << aProj.mGradI << aProj.mGradJ << "\n";
-// getchar();
+    aProj.mPIJ.PushInStdVector(aVObs);      // "IP0","JP0"  :  projection of estimated point
+    aProj.mGradI.PushInStdVector(aVObs);    // "dIdX","dIDY","dIdZ" :  gradient of I-coordinate of  projection, in estimated point
+    aProj.mGradJ.PushInStdVector(aVObs);     //  "dJdX","dJDY","dJdZ" :  gradient of J-coordinate of  projection, in estimated point
 }
-         // cChangSysCoordV2  ChangSys(const std::vector<std::string> &,tREAL8 aEpsDif=0.1);
 
+    //-------------------------------------------------------------------------------
+    //---------------------- GEOMETRIC FUNCTIONS    ---------------------------------
+    //-------------------------------------------------------------------------------
 
-      //------------------------  Fundemantal methods : 3D/2D correspondance ---------------------------
-
+      //------------------------ 3D/2D correspondances ---------------------------
+  
 tSeg3dr  cExternalSensorModif2D::Image2Bundle(const cPt2dr & aPixIm) const 
 {
-if (DEBUG_I2B)
-{
-	StdOut() << "I2BBB CORREC " << aPixIm - InitPix2Correc(aPixIm) << " P="  << mVParams << " XXXX=" << this << "\n";
-}
+	// it just the bundle of initial sensor, taking into account corrected point
 	tSeg3dr aSeg =   mSensorInit->Image2Bundle(InitPix2Correc(aPixIm));
-
-	return tSeg3dr(mSysI2F.Value(aSeg.P1()), mSysI2F.Value(aSeg.P2()));
+	return aSeg;
 }
+
 cPt2dr cExternalSensorModif2D::Ground2Image(const cPt3dr & aPGround) const
 {
-      //StdOut()  << "GGGG " << aPGround << " " <<  mSysI2F.Value(aPGround) << mSysI2F.Inverse(aPGround) << "\n";
-      cPt2dr aP_WO_Corr = mSensorInit->Ground2Image(mSysI2F.Inverse(aPGround));
-
-      if ( mActiveDistG2I)
-         return  Correc2InitPix(aP_WO_Corr);
-
-      return aP_WO_Corr;
+	// it is just the projection of initial sensor + correction
+	return Correc2InitPix( mSensorInit->Ground2Image(aPGround));
 }
 
 cPt3dr cExternalSensorModif2D::ImageAndZ2Ground(const cPt3dr & aPxyz) const 
 {
-     return cSensorImage::ImageAndZ2Ground(aPxyz);
-     if (0)
-     {
-	  cPt2dr aP0 (aPxyz.x(),aPxyz.y());
-	  cPt2dr aP1 = InitPix2Correc(aP0);
-	  cPt2dr aP2 = Correc2InitPix(aP1);
-
-          StdOut() << "cExternalSensorModif2D::ImageAndZ2Ground " << aP0-aP1 << " " << aP0 - aP2 << "\n";
-     }
-
+     // its just the inverse projection taking into account correction
      cPt2dr aPCor = InitPix2Correc(cPt2dr(aPxyz.x(),aPxyz.y()));
-
-     return cSensorImage::ImageAndZ2Ground(cPt3dr(aPCor.x(),aPCor.y(),aPxyz.z()));
-
-     //  return  mSysI2F.Value(mSensorInit->ImageAndZ2Ground(cPt3dr(aPCor.x(),aPCor.y(),aPxyz.z())));
+     return mSensorInit->ImageAndZ2Ground(cPt3dr(aPCor.x(),aPCor.y(),aPxyz.z()));
 }
 
-double cExternalSensorModif2D::DegreeVisibility(const cPt3dr & aPGround) const
+      //------------------------ VALIDITY DOMAINS -----------------------------------------
+
+const cPixelDomain & cExternalSensorModif2D::PixelDomain() const
 {
-     return mSensorInit->DegreeVisibility(mSysI2F.Inverse(aPGround));
+     //  an approximation, but correction are supposed to be small
+      return mSensorInit->PixelDomain();
 }
 
-
+double cExternalSensorModif2D::DegreeVisibility(const cPt3dr & aPGround) const 
+{
+     // it has the same visibilit than the initial sensor
+	return mSensorInit->DegreeVisibility(aPGround);
+}
+bool  cExternalSensorModif2D::HasIntervalZ()  const
+{
+	return mSensorInit->HasIntervalZ();
+}
+cPt2dr cExternalSensorModif2D::GetIntervalZ() const 
+{
+	return mSensorInit->GetIntervalZ();
+}
 
       //------------------------ 2D deformation -----------------------------------------
 
 cPt2dr  cExternalSensorModif2D::Correc2InitPix (const cPt2dr & aP0) const
 {
+     // the equation compute directly the distorsion from vector to vector, we just
+     // make some interface to make it work on points
      std::vector<tREAL8>  aVXY = aP0.ToStdVector();
      std::vector<tREAL8>  aDistXY =  mEqIma2End->DoOneEval(aVXY,mVParams);
      return cPt2dr::FromStdVector(aDistXY);
 }
+
 
 cPt2dr  cExternalSensorModif2D::InitPix2Correc (const cPt2dr & aPInit) const
 {
@@ -265,6 +386,9 @@ cPt2dr  cExternalSensorModif2D::InitPix2Correc (const cPt2dr & aPInit) const
      // StdOut() << "NBITER=" << aNbIter << "\n";
      return aPEnd;
 }
+    //-------------------------------------------------------------------------------
+    //----------------------  FOR CHECK/SIMULATION  ---------------------------------
+    //-------------------------------------------------------------------------------
 
 void cExternalSensorModif2D::PerturbateRandom(tREAL8 anAmpl,bool Show)
 {
@@ -286,37 +410,9 @@ void cExternalSensorModif2D::PerturbateRandom(tREAL8 anAmpl,bool Show)
           cPt2dr aP1 = Correc2InitPix(aP0);
           cPt2dr aP2 = InitPix2Correc(aP1);
 
-          StdOut() << aP0 << aP1-aP0  << aP2 -aP0 << "\n";
+          StdOut() << " Pts=" << aP0  << " Dist=" << aP1-aP0  <<  " Dist/Inv" << (aP2 -aP0)*1e10 << "\n";
        }
     }
-}
-
-/* =============================================== */
-/*                                                 */
-/*                 cSensorImage                    */
-/*                                                 */
-/* =============================================== */
-
-
-
-cSensorImage * cPhotogrammetricProject::AllocExternalSensor
-               (
-	            const std::string & aDirInit,
-		    const std::string & aDirSens,
-		    const std::string aNameImage
-		    )
-{
-    cSensorImage * aRes = nullptr;
-
-    if (aRes==nullptr) aRes =  cExternalSensor::TryRead(aDirInit,aDirSens,aNameImage);
-    if (aRes==nullptr) aRes =  cExternalSensorModif2D::TryRead(*this,aNameImage);
-
-    return aRes;
-}
-
-cSensorImage * cPhotogrammetricProject::AllocExternalSensor(const std::string aNameImage)
-{
-     return AllocExternalSensor(DirImportInitOri(),mDPOrient.FullDirIn(),aNameImage);
 }
 
 
@@ -349,14 +445,15 @@ class cAppliParametrizeSensor : public cMMVII_Appli
         // --- Optionnal ----
 	int          mDegreeCorr;
 	tREAL8       mRanPert;
-	std::string  mTargetSysCo;
+	bool         mShowPert;
 
      // --- Internal ----
 };
 
 cAppliParametrizeSensor::cAppliParametrizeSensor(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli     (aVArgs,aSpec),
-   mPhProj          (*this)
+   mPhProj          (*this),
+   mShowPert        (false)
 {
 }
 
@@ -375,7 +472,7 @@ cCollecSpecArg2007 & cAppliParametrizeSensor::ArgOpt(cCollecSpecArg2007 & anArgO
 {
    return anArgOpt
            << AOpt2007(mRanPert,"RandomPerturb","Random perturbation of initial 2D-Poly",{eTA2007::Tuning})
-           << AOpt2007(mTargetSysCo,"TargetSysCo","Targeted system of coord when != init")
+           << AOpt2007(mShowPert,"ShowPert","Do we show the result of pert",{eTA2007::Tuning})
    ;
 }
 
@@ -386,37 +483,17 @@ std::vector<std::string>  cAppliParametrizeSensor::Samples() const
 	};
 }
 
+
 void  cAppliParametrizeSensor::ImportOneImage(const std::string & aNameIm)
 {
-    // read the external sensor
-    cExternalSensor * anExtS =  cExternalSensor::TryRead(mPhProj.DirImportInitOri(),mPhProj.DPOrient().FullDirIn(),aNameIm);
-    if (anExtS==nullptr)
-    {
-	    MMVII_UnclasseUsEr("Sensor was not imported for " + aNameIm);
-    }
-    cDataEmbededSensor aData = anExtS->Data();
+    cSensorImage * aSensInit = mPhProj.ReadSensor(aNameIm,DelAuto::Yes,SVP::No);
 
-    // If a coordinate system was specified 
-    SetIfNotInit(mTargetSysCo,aData.mSysCoOri);
-    // Test that coordinate system is valid
-    mPhProj.ReadSysCo(mTargetSysCo);
+    cExternalSensorModif2D aSensM2D(mPhProj.DPOrient().DirIn(),aNameIm,aSensInit,mDegreeCorr);
 
-    cExternalSensorModif2D * aSensor2D = new cExternalSensorModif2D(aData,aNameIm,anExtS->SensorInit(),mDegreeCorr,mTargetSysCo);
-    aSensor2D->Finish(mPhProj);
-    cMMVII_Appli::AddObj2DelAtEnd(aSensor2D); // dont destroy now, maybe it will be used in next versions
-
-
-    // Eventually add noise for simulation
     if (IsInit(&mRanPert))
-       aSensor2D->PerturbateRandom(mRanPert,false);
-
-    // Save the result
-    mPhProj.SaveSensor(*aSensor2D);
-    // StdOut() << "NAMES    Ima: " << aNameIm << " SensInit : " << aNameSensor  << " SensSave : " << aSensorEnd->NameOriStd() << "\n";
-   
-    // A bit touchy but the SensorInit() is now owned by aSensor2D, so we supress the ref in anExtS before deleting it
-    anExtS->SetSensorInit(nullptr);
-    delete anExtS;
+       aSensM2D.PerturbateRandom(mRanPert,mShowPert);
+    
+    mPhProj.SaveSensor(aSensM2D);
 }
 
 
@@ -453,8 +530,5 @@ cSpecMMVII_Appli  TheSpecParametrizeSensor
       {eApDT::Ori},
       __FILE__
 );
-
-#if (0)
-#endif
 
 };

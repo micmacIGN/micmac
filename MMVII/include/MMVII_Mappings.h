@@ -315,6 +315,9 @@ template <class Type,const int DimIn,const int DimOut> class cDataMapping : publ
       /** compute the triangle with submit image of mapping */
       cTriangle<Type,DimOut>  TriValue(const cTriangle<Type,DimIn> &) const;
 
+      tPtIn     EpsJac() const;
+      void SetEpsJac(const tPtIn&);
+
       /// compute diffenrentiable method , default = erreur
     protected :
        /// This one can compute jacobian
@@ -941,6 +944,7 @@ class cSysCoordV2  : public cDataInvertibleMapping<tREAL8,3>
 {
       public :
 
+
          cSysCoordV2(tREAL8  aEpsDeriv = 1.0);
 	 virtual ~cSysCoordV2();
 
@@ -949,6 +953,7 @@ class cSysCoordV2  : public cDataInvertibleMapping<tREAL8,3>
 
          virtual tPt ToGeoC  (const tPt &) const =0;
          virtual tPt FromGeoC(const tPt &) const =0;
+	 virtual const std::string & Name() const = 0; // As RTL Lambert93 ...
 
 	 virtual void ToFile(const std::string &) const = 0;
          static tPtrSysCo FromFile(const std::string &);
@@ -956,16 +961,18 @@ class cSysCoordV2  : public cDataInvertibleMapping<tREAL8,3>
 
          static tPtrSysCo Lambert93();
          static tPtrSysCo GeoC();
-         static tPtrSysCo RTL(const cPt3dr & Ori,const std::string & aSys);
+         static tPtrSysCo RTL(const std::string & aNameResult,const cPt3dr & Ori,const std::string & aSysRef);
          static tPtrSysCo LocalSystem(const  std::string & aName);
 
-	 cPt3dr  mPtEpsDeriv;
+
+
+	 // cPt3dr  mPtEpsDeriv;
 };
 
 class cChangSysCoordV2  : public cDataInvertibleMapping<tREAL8,3>
 {
         public :
-            cChangSysCoordV2(tPtrSysCo  aSysInit,tPtrSysCo  aSysTarget,tREAL8  aEpsDeriv = 0.1);
+            cChangSysCoordV2(tPtrSysCo  aSysInit,tPtrSysCo  aSysTarget);
             // Sometime it can be usefull to consider the same system as identit change to itself
             cChangSysCoordV2(tPtrSysCo  aSysInitOut);
 	    // return identity  
@@ -975,9 +982,11 @@ class cChangSysCoordV2  : public cDataInvertibleMapping<tREAL8,3>
             tPt Inverse(const tPt &) const override; /// compute  Point from SysTarget 2 SysInit
 
 	    virtual ~cChangSysCoordV2();
-            tPtrSysCo  SysInit();     ///< Accessor
-            tPtrSysCo  SysTarget();   ///< Accessor
+            tPtrSysCo  SysInit() const;     ///< Accessor
+            tPtrSysCo  SysTarget() const;   ///< Accessor
 	    bool       IsIdent() const;
+
+	    cChangSysCoordV2(const cChangSysCoordV2 &);
         private :
 
 	    bool       mIdent;

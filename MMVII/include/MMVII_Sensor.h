@@ -77,8 +77,6 @@ class cSensorImage  :   public cObj2DelAtEnd,
                         public cObjWithUnkowns<tREAL8>
 {
      public :
-
-
           cSensorImage(const std::string & aNameImage);
 
           //  Allocators  , return nulltr if dont exist
@@ -86,7 +84,7 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	  virtual ~cSensorImage();
 
 	  /// create a sensor in a new coordinate system, default error
-	  virtual cSensorImage * SensorChangSys(cDataInvertibleMapping<tREAL8,3> &) const ;
+	  virtual cSensorImage * SensorChangSys(const std::string & aDir,cChangSysCoordV2 &) const ;
 
           virtual const cPixelDomain & PixelDomain() const = 0;
           const cPt2di & Sz() const;
@@ -113,7 +111,7 @@ class cSensorImage  :   public cObj2DelAtEnd,
          virtual cPt2dr Ground2Image(const cPt3dr &) const = 0;
 
 	 ///  Coordinate system, default is undef "LocalNONE"
-         virtual std::string  CoordinateSystem() const;
+         // virtual std::string  CoordinateSystem() const;
 
 	 /// Can we manipulate  Image & Depth -> 3d, default false, true for Central Persp
 	 virtual bool  HasImageAndDepth() const;
@@ -231,11 +229,24 @@ class cSensorImage  :   public cObj2DelAtEnd,
          cCalculator<double> * SetAndGetEqColinearity(bool WithDerives,int aSzBuf,bool ReUse);
 	 // suppose it was init (and assert it)
          cCalculator<double> * GetEqColinearity();
+
+	 // Acces to coordinate system of the sensor if exist
+
+	 bool  HasCoordinateSystem() const ; ///<  Was the coordinate system provided ?
+	 const  std::string & GetCoordinateSystem() const ; ///< Get it if exist (and error else ...)
+	 void SetCoordinateSystem(const std::string&) ; ///< Fix the coordinate system
+         std::optional<std::string> &  OptCoordinateSystem() ; ///< redondant with 3 above, but usefull for serialization
+	 void TransferateCoordSys(const cSensorImage & aSI); ///< Transferat coordinate sys  aSI if it has any
+         static const std::string TagCoordSys;
+	 						   
      private :
 
 	 std::string                                   mNameImage;
          cCalculator<double> *                         mEqColinearity;  // memo equation, can be nullptr (for pure pose)
 	 bool                                          mEqCIsInit;      // memo if init of "mEqColinearity" was done
+	 /// coordinate system, use optionnal (instead of def value as NONE) as it is an opportunity to test back compatibility
+	 std::optional<std::string>                    mNameSysCo;  
+								
 	 // static std::map<std::string,cSensorImage*>  mDicoSensor;
 	 // static int                                  mNum;
 };
@@ -442,6 +453,8 @@ class cPhotogrammetricProject
 	  const std::string &   DirVisu() const;   ///< Accessor
 	  const std::string &   DirSysCo() const;   ///< Accessor
           tPtrArg2007           ArgChSys(bool DefaultUndefined=false);
+	  /// To fix the "cur" sys co, its In,Out, or InOut, if both and diff use ArgChSys
+          tPtrArg2007           ArgSysCo();
 
 	 //===================================================================
          //==================   ORIENTATION      =============================
@@ -458,15 +471,12 @@ class cPhotogrammetricProject
 
 
 	  /// Load a sensor, try different type (will add RPC , and others ?) use autom delete (dont need to delete it)
-	  void ReadSensor(const std::string &NameIm,cSensorImage* &,cSensorCamPC * &,bool ToDeleteAutom,bool SVP=false);
+	  void ReadSensor(const std::string &NameIm,cSensorImage* &,cSensorCamPC * &,bool ToDeleteAutom,bool SVP=false) const;
 	 
-          ///  return an external sensor (like RPC, Grids ...) 
-          cSensorImage * AllocExternalSensor(const std::string aNameIm);
-	  cSensorImage * AllocExternalSensor(const std::string & aDirInit,const std::string & aDirSens,const std::string aNameImage);
-
-
 	  /// return the generic sensor, use autom delete (dont need to delete it)
-	  cSensorImage* ReadSensor(const std::string  &aNameIm,bool ToDeleteAutom,bool SVP=false);
+	  cSensorImage* ReadSensor(const std::string  &aNameIm,bool ToDeleteAutom,bool SVP=false) const;
+	  /// same as "ReadSensor" but do it from another folder than the standard input one
+	  cSensorImage* ReadSensorFromFolder(const std::string  & aFolder,const std::string  &aNameIm,bool ToDeleteAutom,bool SVP=false) const;
 
 
 	      // Internal Calibration  
@@ -539,6 +549,7 @@ class cPhotogrammetricProject
           std::vector<std::string>  ListFileGCP(const std::string & aArgPatFiltr) const;
 	  void CpGCPPattern(const std::string& aDirIn,const std::string & aDirOut,const std::string & aArgPatFiltr="") const;
 	  void CpGCP() const;
+	  void CpMeasureIm() const;
 
 	  /// For a givgen image, return 3D-2D corresp, using LoadGCP&LoadIm
 	  cSet2D3D  LoadSet32(const std::string & aNameIm) const;
@@ -601,7 +612,7 @@ class cPhotogrammetricProject
                   //  ======== [1]  Sysco saved in "MMVII-PhgrProj/SysCo" 
 	 void  SaveSysCo(tPtrSysCo,const std::string&,bool OnlyIfNew=false) const;
 	 tPtrSysCo ReadSysCo(const std::string &aName,bool SVP=false) const;
-	 tPtrSysCo CreateSysCoRTL(const cPt3dr & aOrig,const std::string &aName,bool SVP=false) const;
+	 tPtrSysCo CreateSysCoRTL(const std::string & aNameResult,const cPt3dr & aOrig,const std::string &aNameRef,bool SVP=false) const;
 	 std::string  FullNameSysCo(const std::string &aName,bool SVP=false) const;
 	 // return  identity if Vec not init
 	 cChangSysCoordV2  ChangSys(const std::vector<std::string> &,tREAL8 aEpsDif=0.1);
@@ -616,12 +627,20 @@ class cPhotogrammetricProject
          void SaveCurSysCo(const cDirsPhProj &,tPtrSysCo) const ;
          void SaveCurSysCoOri(tPtrSysCo) const ;
          void SaveCurSysCoGCP(tPtrSysCo) const ;
+	 void SaveStdCurSysCo(bool IsOri) const; /// save the Cur Sysco in Orient/GCP
          void CpSysIn2Out(bool OriIn,bool OriOut) const;  // bool : Ori/GCP   do it only if exist, else no error
+							  
 
          const cChangSysCoordV2 & ChSys() const;
          cChangSysCoordV2 & ChSys() ;
          bool  ChSysIsInit() const;
          void  AssertChSysIsInit() const;
+
+
+	 cSysCoordV2 & SysCo() ;
+	 const cSysCoordV2 & SysCo() const ;
+         bool  SysCoIsInit() const;
+         void  AssertSysCoIsInit() const;
 
 	 //===================================================================
          //==================   Rigid Bloc           =========================
@@ -650,6 +669,8 @@ class cPhotogrammetricProject
 	  std::string     mDirVisu;
 
 	  std::string     mDirSysCo;        /// Folder where are stored System of coordinates
+          std::string     mNameCurSysCo;      /// Data where we store the system In Or Out if given in std args
+          tPtrSysCo       mCurSysCo;          /// Global coord sys
 	  std::string     mDirImportInitOri; /// Folder where are stored INIT-al  ORI-entation
           std::vector<std::string>   mNameChSys;
           cChangSysCoordV2          mChSys;

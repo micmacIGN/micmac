@@ -608,6 +608,22 @@ Serial/uti_e2string.cpp:TPL_ENUM_2_STRING
 =>  for creating the 2 dictionnaries enum <=> strings
 */
 
+// class used to make more explicit names of boolean parameters => To Replace by enum later which will be
+// safer (would detect swap) , but require more re-engenerin
+
+class DelAuto
+{
+   public :
+      static constexpr bool Yes = true;
+      static constexpr bool No  = false;
+};
+class SVP
+{
+   public :
+      static constexpr bool Yes = true;
+      static constexpr bool No  = false;
+};
+
 
 };
 

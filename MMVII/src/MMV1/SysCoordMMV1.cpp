@@ -27,7 +27,7 @@ class cSysCoUsingV1 : public cSysCoordV2
 {
 	public :
            //cSysCoUsingV1(cSysCoord *,eSysCoGeo,const std::vector<double>& aVAttrD,const std::vector<std::string>& aVAttrS);
-	   cSysCoUsingV1(eSysCoGeo,const std::map<std::string,std::string> &);
+	   cSysCoUsingV1(const std::string & aName,eSysCoGeo,const std::map<std::string,std::string> &);
 
            void AddData(const  cAuxAr2007 & anAuxInit) ;
            void ToFile(const std::string &) const override;
@@ -40,7 +40,7 @@ class cSysCoUsingV1 : public cSysCoordV2
            ~cSysCoUsingV1();
            void  InterpretAttr();
 
-	   static cSysCoUsingV1*   RTL(const cPt3dr & aPt,const std::string & aSysRef);
+	   static cSysCoUsingV1*   RTL(const std::string & aName,const cPt3dr & aPt,const std::string & aSysRef);
 
 
 	   /// Conventional value for string that has been consumed
@@ -52,12 +52,15 @@ class cSysCoUsingV1 : public cSysCoordV2
 	   static const std::string KeyRTL_z0;
 	   static const std::string KeyNameLocal;
 
+	   const std::string & Name() const override;
+
         private :
 	   static std::string  GetAttr(std::map<std::string,std::string> & aMap,const std::string & aKey);
 	   static void  SetAttr(std::map<std::string,std::string> & aMap,const std::string & aKey,const std::string & aVal);
 
 	   void Init(eSysCoGeo,std::map<std::string,std::string> &);
 
+	   std::string                        mName;
 	   cSysCoord *                        mSV1;
 	   eSysCoGeo                          mType;
 	   std::map<std::string,std::string>  mAttribs;
@@ -97,12 +100,14 @@ void  cSysCoUsingV1::SetAttr(std::map<std::string,std::string> & aMap,const std:
 
 
 cSysCoUsingV1::cSysCoUsingV1() :
+  mName  (MMVII_NONE),
   mSV1   (nullptr),
   mType  (eSysCoGeo::eNbVals)
 {
 }
 
-cSysCoUsingV1::cSysCoUsingV1(eSysCoGeo aType,const std::map<std::string,std::string> & aAttribs) :
+cSysCoUsingV1::cSysCoUsingV1(const std::string & aName,eSysCoGeo aType,const std::map<std::string,std::string> & aAttribs) :
+    mName     (aName),
     mSV1      (nullptr),
     mType     (aType),
     mAttribs  (aAttribs)
@@ -132,26 +137,26 @@ void cSysCoUsingV1::Init(eSysCoGeo aType,std::map<std::string,std::string> & aMa
 {
      if  (aType == eSysCoGeo::eLambert93)
      {
-         mPtEpsDeriv = cPt3dr(1.0,1.0,1.0);
          mSV1 = cProj4::Lambert93();
+         cDataInvertibleMapping<tREAL8,3>::SetEpsJac(cPt3dr(1.0,1.0,1.0));
      }
      else if  (aType == eSysCoGeo::eGeoC)
      {
-         mPtEpsDeriv = cPt3dr(1.0,1.0,1.0);
          mSV1 = cSysCoord::GeoC();
+         cDataInvertibleMapping<tREAL8,3>::SetEpsJac(cPt3dr(1.0,1.0,1.0));
      }
      else if  (aType == eSysCoGeo::eWGS84Degrees)
      {
          // Rules 40000 Km for the earth perimeter
          tREAL8 aEpsXYZ =  4e7 / 360.0;
-         mPtEpsDeriv = cPt3dr(aEpsXYZ,aEpsXYZ,1.0);
          mSV1 = cSysCoord::WGS84Degre();
+         cDataInvertibleMapping<tREAL8,3>::SetEpsJac(cPt3dr(aEpsXYZ,aEpsXYZ,1.0));
      }
      else if  (aType == eSysCoGeo::eWGS84Rads)
      {
          tREAL8 aEpsXYZ =  4e7 / 6.28;
-         mPtEpsDeriv = cPt3dr(aEpsXYZ,aEpsXYZ,1.0);
          mSV1 = cSysCoord::WGS84();
+         cDataInvertibleMapping<tREAL8,3>::SetEpsJac(cPt3dr(aEpsXYZ,aEpsXYZ,1.0));
      }
      else if  (aType == eSysCoGeo::eLocalSys)
      {
@@ -165,9 +170,13 @@ void cSysCoUsingV1::Init(eSysCoGeo aType,std::map<std::string,std::string> & aMa
 
 cSysCoUsingV1 * cSysCoUsingV1::FromFile(const std::string & aNameFile)
 {
+
      cSysCoUsingV1 * aRes = new cSysCoUsingV1;
      ReadFromFile(*aRes,aNameFile);
      aRes->InterpretAttr();
+
+     std::string aName = LastPrefix(FileOfPath(aNameFile));
+     aRes->mName = aName;
 
      return aRes;
 }
@@ -199,7 +208,7 @@ void  cSysCoUsingV1::InterpretAttr()
 
 }
 
-cSysCoUsingV1*   cSysCoUsingV1::RTL(const cPt3dr & aPt,const std::string & aSysRef)
+cSysCoUsingV1*   cSysCoUsingV1::RTL(const std::string & aName,const cPt3dr & aPt,const std::string & aSysRef)
 {
     cSysCoUsingV1 *  aSys = cSysCoUsingV1::FromFile(aSysRef);
 
@@ -210,7 +219,7 @@ cSysCoUsingV1*   cSysCoUsingV1::RTL(const cPt3dr & aPt,const std::string & aSysR
     SetAttr(aAttr,KeyRTL_y0,ToStr(aPt.y()));
     SetAttr(aAttr,KeyRTL_z0,ToStr(aPt.z()));
 
-    cSysCoUsingV1* aRes = new cSysCoUsingV1(eSysCoGeo::eRTL,aAttr);
+    cSysCoUsingV1* aRes = new cSysCoUsingV1(aName,eSysCoGeo::eRTL,aAttr);
 
     delete aSys;
 
@@ -237,6 +246,8 @@ void GenSpec_SysCoordV1(const std::string & aDir)
 {
     SpecificationSaveInFile<cSysCoUsingV1>(aDir+"SysCoordV1.xml");
 }
+
+const std::string & cSysCoUsingV1::Name() const { return mName; }
 
 /*********************************************/
 /*                                           */
@@ -277,8 +288,7 @@ tPt cSysCoordLocal::FromGeoC(const tPt &) const
 /*********************************************/
 
 cSysCoordV2::cSysCoordV2(tREAL8  aEpsDeriv) :
-    cDataInvertibleMapping<tREAL8,3>(tPt::PCste(aEpsDeriv)),
-    mPtEpsDeriv  (tPt::PCste(aEpsDeriv))
+    cDataInvertibleMapping<tREAL8,3>(tPt::PCste(aEpsDeriv))
 {
 }
 
@@ -295,29 +305,29 @@ cPt3dr  cSysCoordV2::Inverse(const cPt3dr &aP) const
 
 tPtrSysCo cSysCoordV2::Lambert93()
 {
-   return tPtrSysCo(new cSysCoUsingV1(eSysCoGeo::eLambert93,{}));
+   return tPtrSysCo(new cSysCoUsingV1(E2Str(eSysCoGeo::eLambert93),eSysCoGeo::eLambert93,{}));
 }
 
 tPtrSysCo cSysCoordV2::GeoC()
 {
-   return tPtrSysCo(new cSysCoUsingV1(eSysCoGeo::eGeoC,{}));
+   return tPtrSysCo(new cSysCoUsingV1(E2Str(eSysCoGeo::eLambert93),eSysCoGeo::eGeoC,{}));
 }
 
 tPtrSysCo cSysCoordV2::LocalSystem(const  std::string & aName)
 {
    std::map<std::string,std::string> aMap;
    aMap[cSysCoUsingV1::KeyNameLocal] = aName;
-   return tPtrSysCo(new cSysCoUsingV1(eSysCoGeo::eLocalSys,aMap));
+   return tPtrSysCo(new cSysCoUsingV1(aName,eSysCoGeo::eLocalSys,aMap));
 }
 
-tPtrSysCo cSysCoordV2::FromFile(const std::string & aName)
+tPtrSysCo cSysCoordV2::FromFile(const std::string & aNameFile)
 {
-    return tPtrSysCo(cSysCoUsingV1::FromFile(aName));
+    return tPtrSysCo(cSysCoUsingV1::FromFile(aNameFile));
 }
 
-tPtrSysCo cSysCoordV2::RTL(const cPt3dr & anOriInit,const std::string & aName)
+tPtrSysCo cSysCoordV2::RTL(const std::string & aNameResult,const cPt3dr & anOriInit,const std::string & aName)
 {
-     return tPtrSysCo(cSysCoUsingV1::RTL(anOriInit,aName));
+     return tPtrSysCo(cSysCoUsingV1::RTL(aNameResult,anOriInit,aName));
 }
 
 
@@ -328,11 +338,16 @@ tPtrSysCo cSysCoordV2::RTL(const cPt3dr & anOriInit,const std::string & aName)
 /*********************************************/
 
 
-cChangSysCoordV2::cChangSysCoordV2(tPtrSysCo aSysInit,tPtrSysCo aSysTarget,tREAL8  aEpsDeriv)  :
-    cDataInvertibleMapping<tREAL8,3> (cPt3dr::PCste(aEpsDeriv)),
+cChangSysCoordV2::cChangSysCoordV2(tPtrSysCo aSysInit,tPtrSysCo aSysTarget)  :
+    cDataInvertibleMapping<tREAL8,3> (aSysTarget->EpsJac()),
     mIdent        (false),
     mSysInit      (aSysInit),
     mSysTarget    (aSysTarget)
+{
+}
+
+cChangSysCoordV2::cChangSysCoordV2(const cChangSysCoordV2 & aCSC) :
+    cChangSysCoordV2(aCSC.mSysInit,aCSC.mSysTarget)
 {
 }
 
@@ -355,8 +370,8 @@ cChangSysCoordV2::cChangSysCoordV2 (tPtrSysCo aSysInOut) :
 {
 }
 
-tPtrSysCo cChangSysCoordV2::SysInit()   {return mSysInit;}
-tPtrSysCo cChangSysCoordV2::SysTarget() {return mSysTarget;}
+tPtrSysCo cChangSysCoordV2::SysInit()   const  {return mSysInit;}
+tPtrSysCo cChangSysCoordV2::SysTarget() const  {return mSysTarget;}
 
 
 cChangSysCoordV2::~cChangSysCoordV2() {}

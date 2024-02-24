@@ -149,12 +149,6 @@ cPt3dr cSensorImage::ImageAndDepth2Ground(const cPt3dr &) const
     return cPt3dr::Dummy();
 }
 
-cSensorImage * cSensorImage::SensorChangSys(cDataInvertibleMapping<tREAL8,3> &) const
-{
-    MMVII_INTERNAL_ERROR("cSensorImage::SensorChangSys not implemanted");
-    return nullptr;
-}
-
 cCalculator<double> * cSensorImage::CreateEqColinearity(bool WithDerives,int aSzBuf,bool ReUse)
 {
     MMVII_INTERNAL_ERROR("cSensorImage::CreateEqColinearity not implemanted");
@@ -203,7 +197,6 @@ double cSensorImage::RobustAvResidualOfProp(const cSet2D3D &,double aProp) const
 
 std::string cSensorImage::PrefixName() { return "Ori"; }
 
-std::string cSensorImage::CoordinateSystem() const { return MMVII_LocalSys + MMVII_NONE; }
 
 
 std::string  cSensorImage::NameOri_From_PrefixAndImage(const std::string & aPrefix,const std::string & aNameImage)
@@ -425,6 +418,34 @@ cPt3dr cSensorImage::ImageAndZ2Ground(const cPt3dr & aPImZ) const
     
     return BundleFixZ(aBundle,aPImZ.z());
 }
+
+            // ===========   coordinate systems  ==========================
+	  
+bool  cSensorImage::HasCoordinateSystem() const 
+{
+	return mNameSysCo.has_value();
+}
+
+const  std::string & cSensorImage::GetCoordinateSystem() const 
+{
+    MMVII_INTERNAL_ASSERT_tiny(HasCoordinateSystem(),"No coord system for" + NameImage());
+    return mNameSysCo.value();
+}
+
+void cSensorImage::SetCoordinateSystem(const std::string& aSysCo) 
+{
+    if (aSysCo != MMVII_NONE)
+       mNameSysCo = aSysCo;
+}
+std::optional<std::string> &  cSensorImage::OptCoordinateSystem() { return mNameSysCo; }
+
+void cSensorImage::TransferateCoordSys(const cSensorImage & aSI)
+{
+    if (aSI.HasCoordinateSystem())
+       SetCoordinateSystem(aSI.GetCoordinateSystem());
+}
+const std::string cSensorImage::TagCoordSys = "CoordinateSys";
+
 
 
 /* ******************************************************* */

@@ -487,6 +487,12 @@ void AddData(const  cAuxAr2007 & anAux,cMes1GCP & aMes)
    AddOptTabData(anAux,"Sigma2",aMes.mOptSigma2);
 }
 
+void cMes1GCP::ChangeCoord(const cDataMapping<tREAL8,3,3>& aMapping)
+{
+	// StdOut() << "PPPPP " << mPt << aMapping.Value(mPt) << aMapping.Inverse(mPt)<< "\n";
+    mPt = aMapping.Value(mPt);
+}
+
 /* ********************************************* */
 /*                                               */
 /*             cSetMesGCP                        */
@@ -504,6 +510,14 @@ cSetMesGCP::cSetMesGCP(const std::string &aNameSet) :
 cSetMesGCP::cSetMesGCP() :
     cSetMesGCP("???")
 {
+}
+
+
+
+void cSetMesGCP::ChangeCoord(const cDataMapping<tREAL8,3,3>& aMapping)
+{
+     for (auto & aGCP : mMeasures)
+          aGCP.ChangeCoord(aMapping);
 }
 
 void cSetMesGCP::AddMeasure(const cMes1GCP & aMeasure)

@@ -55,7 +55,6 @@ cCollecSpecArg2007 & cAppli_CreateRTL::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
     return anArgObl
 	      <<  Arg2007(mSpecIm ,"Name of Input File",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
-	      <<  Arg2007(mNameSysIn  ,"Input coordinate system")
 	      <<  Arg2007(mNameSysOut ,"Output coordinate system")
            ;
 }
@@ -65,12 +64,12 @@ cCollecSpecArg2007 & cAppli_CreateRTL::ArgOpt(cCollecSpecArg2007 & anArgObl)
     
     return      anArgObl
             <<  mPhProj.DPOrient().ArgDirInOpt()
-            <<  mPhProj.DPOrient().ArgDirOutOpt()
+            //  <<  mPhProj.DPOrient().ArgDirOutOpt()
             <<  mPhProj.DPPointsMeasures().ArgDirInOpt()
             << AOpt2007(mOrigin,"Origin","Force origin of RTL Measures",{{eTA2007::HDV}})
             << AOpt2007(mZ0,"Z0","Force altitute of RTL Measures",{{eTA2007::HDV}})
             << AOpt2007(mEpsDer,"EpsDer","Epislon 4 computing derivative",{{eTA2007::HDV}})
-            // << AOpt2007(mNameBloc,"NameBloc","Set the name of the bloc ",{{eTA2007::HDV}})
+	    << AOpt2007(mNameSysIn ,"SysIn" ,"Input coordinate system (default from GCP or Orient)")
     ;
 }
 
@@ -82,8 +81,15 @@ int cAppli_CreateRTL::Exe()
     cWeightAv<tREAL8,cPt3dr> aAvgSens;
     bool isInitSens  =false;
     bool isInitGCP  =false;
+
+    std::string aNameSyIn;
+StdOut() << "ALLIMMM " << VectMainSet(0) << "\n";
     if (mPhProj.DPOrient().DirInIsInit())
     {
+        auto aSysIn = mPhProj.CurSysCoOri(true);
+	if (aSysIn.get())
+           aNameSyIn = aSysIn->Name();
+
         for (const auto & aNameIm : VectMainSet(0))
         {
 	    cSensorImage* aSI = mPhProj. ReadSensor(aNameIm,true,false);
@@ -99,11 +105,14 @@ int cAppli_CreateRTL::Exe()
 	}
     }
 
-
     cSetMesImGCP aMesIm;
     cWeightAv<tREAL8,cPt3dr> aAvgGCP;
     if (mPhProj.DPPointsMeasures().DirInIsInit())
     {
+        auto aSysIn = mPhProj.CurSysCoGCP(true);
+	if (aSysIn.get())
+           aNameSyIn = aSysIn->Name();
+
 	mPhProj.LoadGCP(aMesIm);
 	for (const auto & aGCP : aMesIm.MesGCP())
         {
@@ -111,6 +120,7 @@ int cAppli_CreateRTL::Exe()
 	    isInitGCP = true;
 	}
     }
+    SetIfNotInit(mNameSysIn,aNameSyIn);
 
     if (! IsInit(&mOrigin))
     {
@@ -127,12 +137,17 @@ int cAppli_CreateRTL::Exe()
     if (IsInit(&mZ0))
        mOrigin.z() = mZ0;
 
-    tPtrSysCo aSysRTL = mPhProj.CreateSysCoRTL(mOrigin,mNameSysIn);
+
+    tPtrSysCo aSysRTL = mPhProj.CreateSysCoRTL(mNameSysOut,mOrigin,mNameSysIn);
+
     mPhProj.SaveSysCo(aSysRTL,mNameSysOut);
 
 
+
+    /*
     tPtrSysCo aSysIn = mPhProj.ReadSysCo(mNameSysIn);
-    cChangSysCoordV2  aChSys(aSysIn,aSysRTL,mEpsDer);
+    cChangSysCoordV2  aChSys(aSysIn,aSysRTL);
+    aChSys.SetEpsJac(cPt3dr::PCste(mEpsDer));
 
     if (mPhProj.DPOrient().DirOutIsInit())
     {
@@ -141,7 +156,7 @@ int cAppli_CreateRTL::Exe()
         {
 	    aCpt++;
 	    cSensorImage* aSIn  = mPhProj.ReadSensor(aNameIm,true,false);
-	    cSensorImage* aSOut = aSIn->SensorChangSys(aChSys);
+	    cSensorImage* aSOut = aSIn->SensorChangSys(mPhProj.DPOrient().DirIn(),aChSys);
 
 	    mPhProj.SaveSensor(*aSOut);
 
@@ -152,6 +167,7 @@ int cAppli_CreateRTL::Exe()
 	}
         mPhProj.SaveCurSysCoOri(aSysRTL);
     }
+    */
 
     return EXIT_SUCCESS;
 }

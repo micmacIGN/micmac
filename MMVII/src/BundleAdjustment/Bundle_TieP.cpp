@@ -20,8 +20,6 @@ void cMMVII_BundleAdj::OneItere_TieP()
    if (!mMTP)
       return;
 
-DEBUG_I2B = (mNbIter==0) || (mNbIter==4);
-
    // update the bundle point by 3D-intersection:
    // To see : maybe don't update each time; probably add some robust option
    mMTP->SetPGround();
@@ -49,10 +47,6 @@ DEBUG_I2B = (mNbIter==0) || (mNbIter==4);
        //  parse all the multiple tie points of a given config
        for (size_t aKPts=0; aKPts<aNbPts ; aKPts++)
        {
-if (DEBUG_I2B)
-{
-	StdOut() << "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-}
            const cPt3dr & aPGr = aVals.mVPGround.at(aKPts);
 	   cSetIORSNL_SameTmp<tREAL8>  aStrSubst(aPGr.ToStdVector());
 
@@ -92,12 +86,6 @@ if (DEBUG_I2B)
 	   // if at least 2 tie-point, we can add equation with schurr-complement
 	   if (aNbEqAdded>=2)
               mSys->R_AddObsWithTmpUK(aStrSubst);  // finnaly add obs accummulated
-if (DEBUG_I2B)
-{
-	StdOut() << "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n";
-DEBUG_I2B=false;
-getchar();
-}
        }
 
    }

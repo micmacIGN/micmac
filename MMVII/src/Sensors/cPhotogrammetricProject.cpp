@@ -6,6 +6,8 @@
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_BlocRig.h"
 #include "MMVII_DeclareCste.h"
+#include "cExternalSensor.h"
+
 
 
 /**
@@ -203,6 +205,9 @@ void cDirsPhProj::SetDirIn(const std::string & aDirIn)
 {
      mDirIn = aDirIn;
      mAppli.SetVarInit(&mDirIn); // required becaus of AssertOriInIsInit
+    //  StdOut() << "cDirsPhProj::SetDirI In cDirsPhProj::SetDirIn\n";
+    // MPD : may be dangerous, but seems required, dont understand why it was not made before
+    Finish();
 }
 
 void cDirsPhProj::SetDirInIfNoInit(const std::string & aDirIn)
@@ -236,6 +241,7 @@ void cDirsPhProj::SetDirOutInIfNotInit()
 
 cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
     mAppli            (anAppli),
+    mCurSysCo         (nullptr),
     mChSys            (),
     mDPOrient         (eTA2007::Orient,*this),
     mDPRadiomData     (eTA2007::RadiomData,*this),
@@ -305,6 +311,11 @@ void cPhotogrammetricProject::FinishInit()
     if (mAppli.IsInit(&mNameChSys))
     {
        mChSys = ChangSys(mNameChSys);
+    }
+
+    if (mAppli.IsInit(&mNameCurSysCo))
+    {
+       mCurSysCo = ReadSysCo(mNameCurSysCo);
     }
 }
 
@@ -451,8 +462,12 @@ void cPhotogrammetricProject::SaveSensor(const cSensorImage & aSens) const
     std::string aPat2Sup = mDPOrient.FullDirOut() + "Ori-.*-" + aSens.NameImage() + "\\." + GlobTaggedNameDefSerial()  ;
     RemovePatternFile(aPat2Sup,false);
 
-
     aSens.ToFile(mDPOrient.FullDirOut() + aSens.NameOriStd());
+
+    if (aSens.HasCoordinateSystem())
+    {
+        SaveCurSysCoOri(ReadSysCo(aSens.GetCoordinateSystem()));
+    }
 }
 
 
@@ -490,7 +505,7 @@ cSensorCamPC * cPhotogrammetricProject::ReadCamPC(const std::string & aNameIm,bo
     return ReadCamPC(mDPOrient,aNameIm,ToDeleteAutom,SVP);
 }
 
-cSensorImage* cPhotogrammetricProject::ReadSensor(const std::string  &aNameIm,bool ToDeleteAutom,bool SVP)
+cSensorImage* cPhotogrammetricProject::ReadSensor(const std::string  &aNameIm,bool ToDeleteAutom,bool SVP) const
 {
      cSensorImage*   aSI;
      cSensorCamPC *  aSPC;
@@ -500,7 +515,7 @@ cSensorImage* cPhotogrammetricProject::ReadSensor(const std::string  &aNameIm,bo
      return aSI;
 }
 
-void cPhotogrammetricProject::ReadSensor(const std::string  &aNameIm,cSensorImage* & aSI,cSensorCamPC * & aSPC,bool ToDeleteAutom,bool SVP)
+void cPhotogrammetricProject::ReadSensor(const std::string  &aNameIm,cSensorImage* & aSI,cSensorCamPC * & aSPC,bool ToDeleteAutom,bool SVP) const
 {
      aSI = nullptr;
      aSPC =nullptr;
@@ -514,7 +529,10 @@ void cPhotogrammetricProject::ReadSensor(const std::string  &aNameIm,cSensorImag
      }
 
      // Else try an external sensor
-     aSI =  AllocExternalSensor(aNameIm);
+     if (aSI==nullptr) aSI =  SensorTryReadImported(*this,aNameIm);
+     if (aSI==nullptr) aSI =  SensorTryReasChSys(*this,aNameIm);
+     if (aSI==nullptr) aSI =  SensorTryReadSensM2D(*this,aNameIm);
+
      if (aSI!=nullptr)
      {
         if (ToDeleteAutom)
@@ -532,6 +550,22 @@ void cPhotogrammetricProject::ReadSensor(const std::string  &aNameIm,cSensorImag
          );
      }
 }
+
+cSensorImage* cPhotogrammetricProject::ReadSensorFromFolder(const std::string  & aFolder,const std::string  &aNameIm,bool ToDeleteAutom,bool SVP) const
+{
+     cDirsPhProj& aDPO = const_cast<cPhotogrammetricProject *>(this)->DPOrient();
+
+     // Save current orientation and fix new
+     std::string aDirInit = aDPO.DirIn();
+     aDPO.SetDirIn(aFolder);
+
+     cSensorImage* aSensor = ReadSensor(aNameIm,true/*ToDelAutom*/);
+     // Restore initial current orientation
+     aDPO.SetDirIn(aDirInit);
+
+     return aSensor;
+}
+
 
 cPerspCamIntrCalib *  cPhotogrammetricProject::InternalCalibFromImage(const std::string & aNameIm) const
 {
@@ -666,6 +700,17 @@ void cPhotogrammetricProject::CpGCP() const
 {
 	CpGCPPattern(mDPPointsMeasures.FullDirIn(),mDPPointsMeasures.FullDirOut());
 }
+
+void cPhotogrammetricProject::CpMeasureIm() const
+{
+    CopyPatternFile
+    (
+        mDPPointsMeasures.FullDirIn(),
+	cSetMesPtOf1Im::ThePrefixFiles+ ".*"+ TaggedNameDefSerial(),
+        mDPPointsMeasures.FullDirOut()
+    );
+}
+
 
 
 
@@ -816,6 +861,8 @@ void  cPhotogrammetricProject::ReadHomol
 }
         //  =============  coord system  =================
 
+               // ----------------   ChSys ---------------------------
+
 const cChangSysCoordV2 & cPhotogrammetricProject::ChSys() const 
 {
    AssertChSysIsInit();
@@ -827,10 +874,7 @@ cChangSysCoordV2 & cPhotogrammetricProject::ChSys()
    return mChSys;
 }
 
-bool  cPhotogrammetricProject::ChSysIsInit() const
-{
-    return mAppli.IsInit(&mNameChSys);
-}
+bool  cPhotogrammetricProject::ChSysIsInit() const { return mAppli.IsInit(&mNameChSys); }
 void  cPhotogrammetricProject::AssertChSysIsInit() const
 {
      MMVII_INTERNAL_ASSERT_strong(ChSysIsInit(),"Chang coord system is not init");
@@ -849,6 +893,50 @@ tPtrArg2007 cPhotogrammetricProject::ArgChSys(bool DefaultUndefined)
     }
     return AOpt2007(mNameChSys,"ChSys","Change coordinate system, if 1 Sys In=Out",aVOpt);
 }
+
+               // ----------------   ChSys ---------------------------
+	       
+struct cRefSysCo
+{
+   public :
+	cRefSysCo() : mName (MMVII_NONE) {}
+	cRefSysCo(const cSysCoordV2 & aSys) : mName (aSys.Name()) {}
+	std::string mName;
+};
+
+void AddData (const cAuxAr2007 & anAux0,cRefSysCo & aRef)
+{
+     cAuxAr2007 anAux("Reference",anAux0);
+     AddData(cAuxAr2007("Name",anAux),aRef.mName);
+}
+
+
+void  cPhotogrammetricProject::AssertSysCoIsInit() const { MMVII_INTERNAL_ASSERT_strong(SysCoIsInit(),"Chang coord system is not init"); }
+bool cPhotogrammetricProject::SysCoIsInit () const { return IsInit(&mNameCurSysCo); }
+
+cSysCoordV2 & cPhotogrammetricProject::SysCo() 
+{
+	AssertSysCoIsInit();
+	return *mCurSysCo;
+}
+const cSysCoordV2 & cPhotogrammetricProject::SysCo()  const
+{
+	AssertSysCoIsInit();
+	return *mCurSysCo;
+}
+
+tPtrArg2007  cPhotogrammetricProject::ArgSysCo()
+{
+    return AOpt2007(mNameCurSysCo,"SysCo","Name of coordinate system");
+}
+
+
+/*
+         const cSysCoordV2 & SysCo() const ;
+         bool  SysCoIsInit() const;
+         void  AssertSysCoIsInit() const;
+	 */
+
 
 void cPhotogrammetricProject::SaveSysCo(tPtrSysCo aSys,const std::string& aName,bool OnlyIfNew) const
 {
@@ -894,13 +982,13 @@ tPtrSysCo cPhotogrammetricProject::ReadSysCo(const std::string &aName,bool SVP) 
      return  cSysCoordV2::FromFile(aNameGlob);
 }
 
-tPtrSysCo cPhotogrammetricProject::CreateSysCoRTL(const cPt3dr & aOrig,const std::string &aName,bool SVP) const
+tPtrSysCo cPhotogrammetricProject::CreateSysCoRTL(const std::string& aNameResult,const cPt3dr & aOrig,const std::string &aNameRef,bool SVP) const
 {
-    std::string  aNameFull = FullNameSysCo(aName,SVP);
+    std::string  aNameFull = FullNameSysCo(aNameRef,SVP);
     if (aNameFull=="")
        return tPtrSysCo(nullptr);
 
-    return cSysCoordV2::RTL(aOrig,aNameFull);
+    return cSysCoordV2::RTL(aNameResult,aOrig,aNameFull);
 }
 
 cChangSysCoordV2  cPhotogrammetricProject::ChangSys(const std::string aS1,const std::string aS2) const
@@ -937,8 +1025,10 @@ tPtrSysCo  cPhotogrammetricProject::CurSysCo(const cDirsPhProj & aDP,bool SVP) c
            MMVII_UnclasseUsEr("CurSysCo dont exist : " + aName);
        return tPtrSysCo(nullptr);
     }
+    cRefSysCo aRef;
+    ReadFromFile(aRef,aName);
 
-    return cSysCoordV2::FromFile(NameCurSysCo(aDP,true));
+    return  ReadSysCo(aRef.mName,false);
 }
 
 
@@ -947,11 +1037,17 @@ tPtrSysCo  cPhotogrammetricProject::CurSysCoGCP(bool SVP) const {return CurSysCo
 
 void cPhotogrammetricProject::SaveCurSysCo(const cDirsPhProj & aDP,tPtrSysCo aSysCo) const 
 {
-    aSysCo->ToFile(NameCurSysCo(aDP,false));
+    SaveInFile(cRefSysCo(*aSysCo),NameCurSysCo(aDP,false));
 }
 
 void cPhotogrammetricProject::SaveCurSysCoOri(tPtrSysCo aSysCo) const { SaveCurSysCo(mDPOrient,aSysCo); }
 void cPhotogrammetricProject::SaveCurSysCoGCP(tPtrSysCo aSysCo) const { SaveCurSysCo(mDPPointsMeasures,aSysCo); }
+
+void cPhotogrammetricProject::SaveStdCurSysCo(bool IsOri) const
+{
+     AssertSysCoIsInit();
+     SaveCurSysCo((IsOri ? mDPOrient : mDPPointsMeasures),mCurSysCo);
+}
 
 
 void cPhotogrammetricProject::CpSysIn2Out(bool  OriIn,bool OriOut) const
@@ -969,10 +1065,6 @@ void cPhotogrammetricProject::CpSysIn2Out(bool  OriIn,bool OriOut) const
       SaveCurSysCoGCP(aSysIn);
 }
 
-
-
-
-//  cMMVII_Appli DirRessourcesMMVII
 
         //  =============  Rigid bloc  =================
 

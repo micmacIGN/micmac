@@ -38,16 +38,11 @@ class cAppli_ChSysCoGCP : public cMMVII_Appli
 	std::string              mNameSysIn;
 	std::string              mNameSysOut;
 
-	// Optionall Arg
-	cPt3dr           mOrigin;
-	//CM: unused:  tREAL8           mZ0;
-        tREAL8           mEpsDer ;
 };
 
 cAppli_ChSysCoGCP::cAppli_ChSysCoGCP(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli  (aVArgs,aSpec),
-   mPhProj       (*this),
-   mEpsDer       (200.0)
+   mPhProj       (*this)
 {
 }
 
@@ -64,9 +59,7 @@ cCollecSpecArg2007 & cAppli_ChSysCoGCP::ArgOpt(cCollecSpecArg2007 & anArgObl)
 {
     
     return      anArgObl
-            << AOpt2007(mEpsDer,"EpsDer","Epislon 4 computing derivative",{{eTA2007::HDV}})
-            << AOpt2007(mNameSysIn,"SysIn","Input system coordindate (def Ori)")
-            // << AOpt2007(mNameBloc,"NameBloc","Set the name of the bloc ",{{eTA2007::HDV}})
+            << AOpt2007(mNameSysIn,"SysIn","Input system coord, def=found in CurSysCo.xml (if exist)")
     ;
 }
 
@@ -77,9 +70,33 @@ int cAppli_ChSysCoGCP::Exe()
 
     std::vector<std::string>  aListNameGCPIn = mPhProj.ListFileGCP("");
 
-    StdOut() << "LIST=" << aListNameGCPIn << "\n";
-    //          cChangSysCoordV2  ChangSys(const std::vector<std::string> &,tREAL8 aEpsDif=0.1);
+    tPtrSysCo aSysOut = mPhProj.ReadSysCo(mNameSysOut);
 
+    tPtrSysCo aSysIn (nullptr);
+    if (IsInit(&mNameSysIn))
+       aSysIn = mPhProj.ReadSysCo(mNameSysIn);
+    else
+       aSysIn = mPhProj.CurSysCoGCP();
+
+
+    // StdOut() << "HHHHHH " << mNameSysOut << " " << mNameSysIn << "\n";
+
+    cChangSysCoordV2 aChSys(aSysIn,aSysOut);
+
+
+    for (const auto & aNameGPCIN : aListNameGCPIn)
+    {
+    // StdOut() << "KKKKKKK " <<   aChSys.Value(cPt3dr(0,0,0)) << aChSys.Inverse(cPt3dr(0,0,0))  << "\n";
+        cSetMesGCP aMesGCP = cSetMesGCP::FromFile(aNameGPCIN);
+	aMesGCP.ChangeCoord(aChSys);
+	mPhProj.SaveGCP(aMesGCP);
+    }
+
+    // copy the System of coordinate in the GCP-folder
+    mPhProj.SaveCurSysCoGCP(aSysOut);
+
+    //  copy the image measure to be complete
+    mPhProj.CpMeasureIm();
 
     return EXIT_SUCCESS;
 }

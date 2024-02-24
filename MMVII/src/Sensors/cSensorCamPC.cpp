@@ -407,7 +407,7 @@ cSensorCamPC * cSensorCamPC::PCChangSys(cDataInvertibleMapping<tREAL8,3> & aMap)
     return new cSensorCamPC(NameImage(),aNewPose,InternalCalib());
 }
 
-cSensorImage * cSensorCamPC::SensorChangSys(cDataInvertibleMapping<tREAL8,3> & aMap) const
+cSensorImage * cSensorCamPC::SensorChangSys(const std::string &,cChangSysCoordV2 & aMap) const
 {
 	return PCChangSys(aMap);
 }

@@ -118,8 +118,6 @@ class cRPCSens : public cSensorImage
 	 /// Compute analytical differential using gen-code
 	 tProjImAndGrad  DiffGround2Im(const cPt3dr &) const override;
 
-	 ///  For now assume RPC is WGS84Degree always, see later if we change that
-	 std::string  CoordinateSystem() const override;
 
 	/// Indicate how much a point belongs to sensor visibilty domain
          double DegreeVisibility(const cPt3dr &) const  override;
@@ -146,7 +144,6 @@ class cRPCSens : public cSensorImage
 
 	cPt3dr  PseudoCenterOfProj() const override;
 
-	// virtual cSensorImage * SensorChangSys(cDataInvertibleMapping<tREAL8,3> &) const ;
 	cRPCSens * RPCChangSys(cDataInvertibleMapping<tREAL8,3> &) const ;
 
     private:
@@ -429,6 +426,8 @@ cRPCSens::cRPCSens(const std::string& aNameImage) :
     mPixelDomain       (&mDataPixelDomain),
     mBoxGround         (cBox3dr::Empty())  // Empty box because no default init
 {
+    ///  For now assume RPC is WGS84Degree always, see later if we change that
+    SetCoordinateSystem(E2Str(eSysCoGeo::eWGS84Degrees));
 }
 
 void cRPCSens::InitFromFile(const cAnalyseTSOF & anAnalyse)
@@ -663,7 +662,6 @@ void cRPCSens::Dimap_ReadXML_Glob(const cSerialTree & aTree)
 }
 
 
-std::string  cRPCSens::CoordinateSystem() const { return E2Str(eSysCoGeo::eWGS84Degrees); }
 
      // ====================================================
      //     Normalisation 

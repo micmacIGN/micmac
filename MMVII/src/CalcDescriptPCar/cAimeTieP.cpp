@@ -441,9 +441,7 @@ template<class Type> bool   cProtoAimeTieP<Type>::FillAPC(const cFilterPCar& aFP
              }
         }
         IndRhoLP++;
-// StdOut() << "RoohhhhK " << aRhok << " ABS=" << anIk.ScaleAbs()<< std::endl;
    }
-// StdOut() << "xxxxxRoohhhhK NBT=" << aNbTeta << " " << std::endl; getchar();
    // Now, in test mode, we know that all the circle will be inside, OK then ...
    if (ForTest)
    {

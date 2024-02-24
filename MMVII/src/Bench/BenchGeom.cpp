@@ -526,7 +526,6 @@ template <class tMap,class TypeEl> void TplBenchMap2D_NonLinear(const tMap & aMa
     MMVII_INTERNAL_ASSERT_bench(aResMin<1e-5,"Ransac  Estimat 4 Mapping");
     // Dont understand why sometimes it grows back after initial decrease, to see later ...
     MMVII_INTERNAL_ASSERT_Unresolved(aRes<1e-3,"Ransac  Estimat 4 Mapping");
-    // StdOut() << "Hhhhhhhhhhhhh " << std::endl; getchar();
 }
 
 template <class Type> void TplElBenchMap2D()

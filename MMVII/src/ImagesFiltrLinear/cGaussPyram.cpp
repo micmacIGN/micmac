@@ -367,7 +367,6 @@ void cFilterPCar::FinishAC(double aVal)
         if (int(mAutoC.size()) == aK)
            mAutoC.push_back(mAutoC.back()-aVal);
     }
-// StdOut() << "HhhhhhhHHhhhhhhh " << mAutoC.size() << " :: " << mAutoC << std::endl;
 }
 
 std::vector<double> &  cFilterPCar::AutoC() {return mAutoC;}

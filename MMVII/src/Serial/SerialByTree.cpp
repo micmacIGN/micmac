@@ -536,13 +536,50 @@ std::vector<const cSerialTree *> cSerialTree::GetAllDescFromName(const std::stri
     return aRes;
 }
 /// Test if there is a one and only one descendant
-const cSerialTree * cSerialTree::GetUniqueDescFromName(const std::string & aTag) const
+const cSerialTree * cSerialTree::GetUniqueDescFromName(const std::string & aTag,bool SVP) const
 {
     std::vector<const cSerialTree *> aRes = GetAllDescFromName(aTag);
-    MMVII_INTERNAL_ASSERT_tiny(aRes.size()==1,"cSerialTree::GetUniqueDescFromName, size="+ToStr(aRes.size()));
+    if (aRes.size()!=1)
+    {
+        if (! SVP)
+	{
+            MMVII_INTERNAL_ASSERT_tiny(false,"cSerialTree::GetUniqueDescFromName, size="+ToStr(aRes.size()));
+	}
+	return nullptr;
+    }
 
     return aRes.at(0);
 }
+
+const std::string * cSerialTree::ValueInside(bool SVP) const 
+{
+   if (Sons().size() != 1)
+      return nullptr;
+   const cSerialTree &  aSon = UniqueSon();
+   
+   if (aSon.Sons().size() != 0)
+      return nullptr;
+
+   return & aSon.Value() ;
+}
+
+const std::string * cSerialTree::GetUniqueValFromName(const std::string &aTag,bool SVP) const
+{
+     const cSerialTree * aTree=  cSerialTree::GetUniqueDescFromName(aTag,SVP);
+
+     if (aTree==nullptr)
+        return nullptr;
+
+     return aTree->ValueInside(SVP);
+}
+
+bool cSerialTree::HasValAtUniqueTag(const std::string &aTag,const std::string &aVal) const
+{
+    const std::string * aGetVal = GetUniqueValFromName(aTag,SVP::Yes);
+    return (aGetVal!=nullptr) && (*aGetVal==aVal);
+}
+
+
 
 
 bool cSerialTree::IsTerminalNode() const

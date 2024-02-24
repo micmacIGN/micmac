@@ -52,7 +52,6 @@ template <class Type> void TestFilterExp(cPt2di aP0,cPt2di aP1,const Type & aV0)
    }
    aDMaxX /=tREAL16(aV0) ;
    aDMaxXY /=tREAL16(aV0) ;
-   // StdOut() << " HHhhhh "<<  aDMaxX << " " << aDMaxXY << std::endl;
    MMVII_INTERNAL_ASSERT_bench(aDMaxX<1e-2*sqrt(aEps)  ,"Test Filtr Exp")
    MMVII_INTERNAL_ASSERT_bench(aDMaxXY<1e-2*sqrt(aEps) ,"Test Filtr Exp")
 
