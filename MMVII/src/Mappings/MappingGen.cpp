@@ -194,6 +194,17 @@ template <class Type,const int DimIn,const int DimOut>
 {
 }
 
+template <class Type,const int DimIn,const int DimOut> cPtxd<Type,DimIn>     
+    cDataMapping<Type,DimIn,DimOut>::EpsJac() const
+{
+	return mEpsJac;
+}
+
+template <class Type,const int DimIn,const int DimOut> 
+    void    cDataMapping<Type,DimIn,DimOut>::SetEpsJac(const tPtIn & aNewEps) 
+{
+    mEpsJac = aNewEps;
+}
 
 
      //  =========== Compute values =============
@@ -567,8 +578,8 @@ template <class TypeMap> void OneBenchMapping(cParamExeBench & aParam)
         }
         TypeMap aMap;
         cDataMapping<tREAL16,2,3> * aPM = &aMap; // use a pointer because virtuality
-        // compute vector of input
-        const auto & aVO2 = aPM->Values(aVIn);
+        // compute vector of input  !! not a "&" because static buffer will be modified
+        const auto   aVO2 = aPM->Values(aVIn);
         // check size
         MMVII_INTERNAL_ASSERT_bench(aVOut.size()==aSzV,"Sz in BenchMapping");
         MMVII_INTERNAL_ASSERT_bench(aVO2.size() ==aSzV,"Sz in BenchMapping");
@@ -576,8 +587,10 @@ template <class TypeMap> void OneBenchMapping(cParamExeBench & aParam)
         // check vector  of input with by buffer (VO2) and by Value elem
         for (tU_INT4 aKP=0 ; aKP<aSzV ; aKP++) 
         {
-            MMVII_INTERNAL_ASSERT_bench(Norm2(aVOut[aKP] - aVO2[aKP])<1e-5,"Buf/UnBuf in mapping");
-            MMVII_INTERNAL_ASSERT_bench(Norm2(aVOut[aKP] - aPM->Value(aVIn[aKP]) )<1e-5,"Buf/UnBuf in mapping");
+		// JOE => MPD
+            MMVII_INTERNAL_ASSERT_bench(Norm2(aVOut.at(aKP) - aVO2.at(aKP))<1e-5,"Buf/UnBuf in mapping");
+            // MMVII_INTERNAL_ASSERT_bench(Norm2(aVOut[aKP] - aVO2[aKP])<1e-5,"Buf/UnBuf in mapping");
+            MMVII_INTERNAL_ASSERT_bench(Norm2(aVOut.at(aKP) - aPM->Value(aVIn.at(aKP)) )<1e-5,"Buf/UnBuf in mapping");
         }
 
         // check jacobian

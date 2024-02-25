@@ -76,17 +76,18 @@ int cAppli_ChSysCoOri::Exe()
 {
     mPhProj.FinishInit();
 
-    tPtrSysCo aSysIn =  IsInit(&aSysIn) ? mPhProj.ReadSysCo(mNameSysIn) :  mPhProj.CurSysCoOri();
+    tPtrSysCo aSysIn =  IsInit(&mNameSysIn) ? mPhProj.ReadSysCo(mNameSysIn) :  mPhProj.CurSysCoOri();
     tPtrSysCo aSysOut = mPhProj.ReadSysCo(mNameSysOut);
 
-    cChangSysCoordV2  aChSys(aSysIn,aSysOut,mEpsDer);
+    cChangSysCoordV2  aChSys(aSysIn,aSysOut);
+    aChSys.SetEpsJac(cPt3dr::PCste(mEpsDer));
 
 
     int aNbRem = VectMainSet(0).size();
     for (const auto & aNameIm : VectMainSet(0))
     {
         cSensorImage* aSI = mPhProj.ReadSensor(aNameIm,true,false);
-        cSensorImage* aSO =  aSI->SensorChangSys(aChSys);
+        cSensorImage* aSO =  aSI->SensorChangSys(mPhProj.DPOrient().DirIn(),aChSys);
         mPhProj.SaveSensor(*aSO);
         delete aSO;
         aNbRem--;

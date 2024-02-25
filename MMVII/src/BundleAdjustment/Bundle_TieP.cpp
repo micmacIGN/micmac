@@ -20,7 +20,6 @@ void cMMVII_BundleAdj::OneItere_TieP()
    if (!mMTP)
       return;
 
-
    // update the bundle point by 3D-intersection:
    // To see : maybe don't update each time; probably add some robust option
    mMTP->SetPGround();
@@ -57,11 +56,14 @@ void cMMVII_BundleAdj::OneItere_TieP()
                const cPt2dr & aPIm =  aVals.mVPIm.at(aKPts*aNbIm+aKIm);
 	       cSensorImage* aSens = aVS.at(aKIm);
 
+// StdOut() << "VISSSS " << aSens->IsVisibleOnImFrame(aPIm) << " " <<  aSens->IsVisible(aPGr) << "\n";
+
 	       if (aSens->IsVisibleOnImFrame(aPIm) && aSens->IsVisible(aPGr))
 	       {
-
 	           cPt2dr aResidual  = aPIm-aSens->Ground2Image(aPGr);
                    tREAL8 aWeightImage =  mTieP_Weighter.SingleWOfResidual(aResidual);
+
+                   // StdOut() << "RRRR " << aResidual << " W=" << aWeightImage << "\n";
 
 	           cCalculator<double> * anEqColin =  aVEqCol.at(aKIm);
 
@@ -87,7 +89,7 @@ void cMMVII_BundleAdj::OneItere_TieP()
        }
 
    }
-   StdOut() << "Weighted Residual=" << aWeigthedRes.Average() << std::endl;
+   StdOut() << "Weighted Residual=" << aWeigthedRes.Average() << std::endl; 
 }
 
 

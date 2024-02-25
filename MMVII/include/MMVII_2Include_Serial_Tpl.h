@@ -526,11 +526,13 @@ template<class Type,class TypeTmp> Type * ObjectFromFile(const std::string & aNa
 /**  Read in the file if first time and memorize, other times return the same object ,
  *   at end, destruction will be handled using "AddObj2DelAtEnd"  (which is required for memory checking)
  */
-template<class Type,class TypeTmp> Type * RemanentObjectFromFile(const std::string & aName)
+template<class Type,class TypeTmp> Type * RemanentObjectFromFile(const std::string & aName,bool * AlreadyExist=nullptr)
 {
      static std::map<std::string,Type *> TheMap;
      Type * & anExistingRes = TheMap[aName];
 
+     if (AlreadyExist)
+        *AlreadyExist= true;
      if (anExistingRes == 0)
      {
         // TypeTmp aDataCreate;
@@ -538,9 +540,32 @@ template<class Type,class TypeTmp> Type * RemanentObjectFromFile(const std::stri
         // anExistingRes = new Type(aDataCreate);
         anExistingRes = ObjectFromFile<Type,TypeTmp>(aName);
         cMMVII_Appli::AddObj2DelAtEnd(anExistingRes);
+        if (AlreadyExist)
+           *AlreadyExist= false;
      }
      return anExistingRes;
 }
+
+/** Same than RemanentObjectFromFile, but note use the 2 time initialisation, require a default constructor */
+
+template<class Type> Type * SimpleRemanentObjectFromFile(const std::string & aName,bool * AlreadyExist=nullptr)
+{
+     static std::map<std::string,Type *> TheMap;
+     Type * & anExistingRes = TheMap[aName];
+
+     if (AlreadyExist)
+        *AlreadyExist= true;
+     if (anExistingRes == 0)
+     {
+        anExistingRes = new Type;
+        ReadFromFile(*anExistingRes,aName);
+        cMMVII_Appli::AddObj2DelAtEnd(anExistingRes);
+        if (AlreadyExist)
+           *AlreadyExist= false;
+     }
+     return anExistingRes;
+}
+
 
 };
 

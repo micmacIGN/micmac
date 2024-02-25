@@ -78,6 +78,7 @@ cCollecSpecArg2007 & cAppli_ImportM32::ArgOpt(cCollecSpecArg2007 & anArgObl)
        << AOpt2007(mNameGCP,"NameGCP","Name for set of GCP",{eTA2007::HDV})
        << AOpt2007(mNameImage,"NameIm","Name for Image",{eTA2007::HDV})
        << AOpt2007(mAddIm2NamePt,"AddI2NameP","Add name of image to name of pt",{eTA2007::HDV})
+       << mPhProj.ArgSysCo()
     ;
 }
 
@@ -118,6 +119,9 @@ int cAppli_ImportM32::Exe()
        // save object
     mPhProj.SaveGCP(aSetGCP);
     mPhProj.SaveMeasureIm(aSetIm);
+
+    if (mPhProj.SysCoIsInit())
+        mPhProj.SaveStdCurSysCo(false);
 
     return EXIT_SUCCESS;
 }

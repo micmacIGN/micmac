@@ -124,9 +124,12 @@ void AddData(const  cAuxAr2007 & anAux,cSetMesPtOf1Im & aGCPMI);
 class cMes1GCP
 {
      public :
+        
         cMes1GCP(const cPt3dr & aPt,const std::string & aNamePt,tREAL4 aSigma,
                  const std::string &aAdditionalInfo="");
         cMes1GCP();
+	/// change the coordinate with mapping ! For now dont update sigma using the jacobian, maybe later ...
+        void  ChangeCoord(const cDataMapping<tREAL8,3,3>&);
         bool isFree() const {return !mOptSigma2;}
         cPt3dr         mPt;
         std::string    mNamePt;
@@ -145,6 +148,8 @@ class cSetMesGCP : public cMemCheck
           cSetMesGCP();
           cSetMesGCP(const std::string &aNameSet);
           cSetMesGCP  Filter(const std::string &aFilter, const std::string &aFiltrAdditionalInfo) const;
+	 /// change the coordinate of all points
+          void  ChangeCoord(const cDataMapping<tREAL8,3,3>&);
 	  static cSetMesGCP  FromFile(const std::string & aNameFile);
 	  void    ToFile(const std::string & aNameFile);
 

@@ -6,7 +6,6 @@
 namespace MMVII
 {
 
-
 /** \file MMVII_Error.h
     \brief Error handling, basic for now
 

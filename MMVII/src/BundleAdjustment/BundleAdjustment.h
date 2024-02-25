@@ -232,6 +232,8 @@ class cMMVII_BundleAdj
 
 	  tREAL8   mSigmaViscAngles;  ///< "viscosity"  for angles
 	  tREAL8   mSigmaViscCenter;  ///< "viscosity"  for centers
+				      //
+	  int      mNbIter;    /// counter of iteration, at least for debug
 };
 
 

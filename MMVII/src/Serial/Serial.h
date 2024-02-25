@@ -226,8 +226,8 @@ class cSerialTree : public cMemCheck
 
       /// Extract a descendant from its name
       std::vector<const cSerialTree *> GetAllDescFromName(const std::string &) const;
-      /// Test if there is a one and only one descendant
-      const cSerialTree * GetUniqueDescFromName(const std::string &) const;
+      /// Test if there is a one and only one descendant, if not and SVP return nullptr
+      const cSerialTree * GetUniqueDescFromName(const std::string &,bool SVP=false) const;
 
 
 	  /// Assert that there is only 1 son and return it
@@ -239,7 +239,13 @@ class cSerialTree : public cMemCheck
 	  void Unfold(std::list<cResLex> &,eTypeSerial) const;
 
 	  const std::vector<cSerialTree>&  Sons() const; /// acessor
-          const std::string & Value() const ;            /// accessor
+          const std::string & Value() const ;            /// accessor !! it is the tag
+          const std::string * ValueInside(bool SVP=false) const ;   /// if tree has struct <A>"B" </A> => B , else null
+          const std::string * GetUniqueValFromName(const std::string &Tag,bool SVP=false) const;  /// if tree contain  <Tag>"B" </Tag> => B
+
+	  /// return true if there is a unique terminal tree we tag "Tag" containin "Val"
+          bool HasValAtUniqueTag(const std::string &Tag,const std::string &aVal) const; 
+						
      private :
 	  // cSerialTree (const cSerialTree &) = delete;
 

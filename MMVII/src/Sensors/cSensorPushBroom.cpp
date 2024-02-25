@@ -68,7 +68,7 @@ tPoseR   cSensorImage::GetPoseLineSensor(tREAL8 aXY,bool isLineX,int aNbSample,b
    // is user whish to have resiudual indicating how much the bundles where coplanar
    if (aResCenterLine)
    {
-      aResCenterLine->resize(2,0.0);
+      aResCenterLine->resize(3,0.0);
       for (const auto & aB : aVBundles)
       {
           cSegmentCompiled<tREAL8,3> aSC(aB);
@@ -79,6 +79,8 @@ tPoseR   cSensorImage::GetPoseLineSensor(tREAL8 aXY,bool isLineX,int aNbSample,b
       {
           aV /= aVBundles.size();
       }
+
+      aResCenterLine->at(2) = AbsAngleTrnk(aVBundles.front().V12(),aVBundles.back().V12());
    }
 
    return tPoseR(aCenter,tRotR(aAxeI,aAxeJ,aAxeK,false));

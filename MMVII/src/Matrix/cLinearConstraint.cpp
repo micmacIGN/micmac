@@ -474,7 +474,7 @@ template <class Type> void  cOneLinearConstraint<Type>::SubstituteInOutRSNL(tIO_
 
 template <class Type> void cOneLinearConstraint<Type>::Show() const
 {
-    StdOut()  << "   * N=" << mNum << " O="<< mOrder << " S=" << mReduced  <<  " I=" << mISubst ;
+    StdOut()  << "   * N=" << mNum << " O="<< mOrder << " S=" << mReduced  <<  " I=" << mISubst  << " C=" << mCste;
 
     for (const auto & aPair:mLP.IV())
         StdOut() <<  " [" << aPair.mInd << " : " << aPair.mVal << "]";

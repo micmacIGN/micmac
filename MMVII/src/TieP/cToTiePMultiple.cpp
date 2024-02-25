@@ -29,8 +29,10 @@ size_t NbPtsMul(const tPairTiePMult & aPair)
 	return Val(aPair).mVPIm.size()  / Multiplicity(aPair);
 }
 
+
 cPt3dr BundleInter(const tPairTiePMult & aPair,size_t aKPts,const std::vector<cSensorImage *>&  aVSI)
 {
+
     const auto &  aConfig = Config(aPair);
     const cVal1ConfTPM & aVal =  Val(aPair);
     size_t aMult = aConfig.size();
@@ -45,10 +47,12 @@ cPt3dr BundleInter(const tPairTiePMult & aPair,size_t aKPts,const std::vector<cS
         const cPt2dr & aPIm = aVal.mVPIm.at(aKP0+aK);
 	cSensorImage * aSI  = aVSI.at(aConfig.at(aK));
 
+
 	aVSeg.push_back(aSI->Image2Bundle(aPIm));
     }
 
-    return BundleInters(aVSeg);
+    cPt3dr aResInter = BundleInters(aVSeg);
+    return aResInter;
 }
 
 

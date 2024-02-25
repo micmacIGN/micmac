@@ -427,7 +427,7 @@ class cSensorCamPC : public cSensorImage
 	 /// specialize chang sys 
          cSensorCamPC * PCChangSys(cDataInvertibleMapping<tREAL8,3> &) const ;
 	 /// generic chang sys  (just call specialized)
-         cSensorImage * SensorChangSys(cDataInvertibleMapping<tREAL8,3> &) const override ;
+         cSensorImage * SensorChangSys(const std::string & aDir,cChangSysCoordV2 &) const override ;
 
          /// Create form  Un-Calibrated-Space-Resection
          static cSensorCamPC * CreateUCSR(const cSet2D3D&,const cPt2di & aSzCam,const std::string&,bool Real16=true);
@@ -450,7 +450,7 @@ class cSensorCamPC : public cSensorImage
          tSeg3dr  Image2Bundle(const cPt2dr &) const override;
 
 
-         std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim) const override;
+         std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim,tREAL8 aEpsRel=0.0) const override;
 
          ///  residual of projection as angle between directions, work with any lenses
          tREAL8  AngularProjResiudal(const cPair2D3D&) const;
