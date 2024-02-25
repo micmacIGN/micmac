@@ -83,7 +83,6 @@ int cAppli_CreateRTL::Exe()
     bool isInitGCP  =false;
 
     std::string aNameSyIn;
-StdOut() << "ALLIMMM " << VectMainSet(0) << "\n";
     if (mPhProj.DPOrient().DirInIsInit())
     {
         auto aSysIn = mPhProj.CurSysCoOri(true);

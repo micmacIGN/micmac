@@ -76,7 +76,7 @@ int cAppli_ChSysCoOri::Exe()
 {
     mPhProj.FinishInit();
 
-    tPtrSysCo aSysIn =  IsInit(&aSysIn) ? mPhProj.ReadSysCo(mNameSysIn) :  mPhProj.CurSysCoOri();
+    tPtrSysCo aSysIn =  IsInit(&mNameSysIn) ? mPhProj.ReadSysCo(mNameSysIn) :  mPhProj.CurSysCoOri();
     tPtrSysCo aSysOut = mPhProj.ReadSysCo(mNameSysOut);
 
     cChangSysCoordV2  aChSys(aSysIn,aSysOut);

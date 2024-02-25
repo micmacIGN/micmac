@@ -152,7 +152,8 @@ cPt2dr cChangCoordSensImage::GetIntervalZ() const {return mIntZ;}
 
 tProjImAndGrad  cChangCoordSensImage::DiffGround2Im(const cPt3dr & aPt) const
 {
-     return mSensorInit->DiffG2IByFiniteDiff(aPt);
+     // return mSensorInit->DiffG2IByFiniteDiff(aPt);
+     return DiffG2IByFiniteDiff(aPt);
 }
 
 const cPt3dr *  cChangCoordSensImage::CenterOfFootPrint() const

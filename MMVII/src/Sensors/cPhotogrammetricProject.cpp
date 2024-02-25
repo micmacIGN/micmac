@@ -537,6 +537,7 @@ void cPhotogrammetricProject::ReadSensor(const std::string  &aNameIm,cSensorImag
      {
         if (ToDeleteAutom)
            cMMVII_Appli::AddObj2DelAtEnd(aSI);
+
         return;
      }
 

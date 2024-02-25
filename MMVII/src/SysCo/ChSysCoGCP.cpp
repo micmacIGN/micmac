@@ -49,9 +49,9 @@ cAppli_ChSysCoGCP::cAppli_ChSysCoGCP(const std::vector<std::string> & aVArgs,con
 cCollecSpecArg2007 & cAppli_ChSysCoGCP::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
     return anArgObl
+	      <<  Arg2007(mNameSysOut ,"Output coordinate system")
               <<  mPhProj.DPPointsMeasures().ArgDirInMand()
               <<  mPhProj.DPPointsMeasures().ArgDirOutMand()
-	      <<  Arg2007(mNameSysOut ,"Output coordinate system")
            ;
 }
 

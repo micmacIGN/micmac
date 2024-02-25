@@ -156,6 +156,8 @@ cExternalSensor::cExternalSensor(const cDataImportSensor & aData,const std::stri
      mData         (aData),
      mSensorInit   (nullptr)
 {
+  // full name was usefull for analyse, but for write/re-read we need only the name without folder
+   mData.mNameFileInit = FileOfPath(mData.mNameFileInit,false);
    SetCoordinateSystem(aSysCo);
    SetSensorInit(aSI);
 }
