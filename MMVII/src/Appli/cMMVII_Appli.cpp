@@ -1788,7 +1788,7 @@ cParamCallSys  cMMVII_Appli::StrCallMMVII
 
    if (aPatInit !="")
    {
-        aRes.AddArgs(GIP_PatternGMA + "=" +  Quote(aPatInit));
+        aRes.AddArgs(GIP_PatternGMA + "=" +  aPatInit);
    }
 
    // If no substitution, it means it was to be added simply
