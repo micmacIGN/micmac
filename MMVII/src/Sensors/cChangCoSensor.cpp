@@ -44,7 +44,7 @@ class cChangCoordSensImage : public cSensorImage
          double DegreeVisibility(const cPt3dr &) const  override;
 
 	 ///  
-         const cPixelDomain & PixelDomain() const ;
+         const cPixelDomain & PixelDomain() const override;
 	 std::string  V_PrefixName() const override;
          cPt3dr  EpsDiffGround2Im(const cPt3dr &) const override;
 

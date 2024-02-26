@@ -51,7 +51,7 @@ class cExternalSensor : public cSensorImage
          cPt2dr GetIntervalZ() const override;
          cPt3dr  PseudoCenterOfProj() const override;
 
-         const cPixelDomain & PixelDomain() const ;
+         const cPixelDomain & PixelDomain() const override;
          std::string  V_PrefixName() const  override;
          void ToFile(const std::string &) const override;
 
