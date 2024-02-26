@@ -385,6 +385,12 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem> // 
         // Current (top) formulas
         const std::vector<tFormula>& VCurrent() const {return  mVCurF;}
 
+        inline void AddDebug(const tFormula& aPF, const std::string& aMesg)
+        {
+            mVDebugF.emplace_back(aPF,aMesg);
+        }
+        const std::vector<tFormula>& VDebug() const {return  mVDebugF;}
+
 
         size_t      NbCurFonc() const {return mVAllFormula.size();}
     private :
@@ -413,6 +419,7 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem> // 
         tFormula                       mCste2;       ///< Fonc constant 1
         std::vector<tFormula>          mVCurF;       ///< Current evaluted formulas
         std::vector<tFormula>          mVReachedF;   ///< Formula "reachable" i.e. necessary to comput mVCurF
+        std::vector<std::pair<tFormula,std::string>> mVDebugF;     ///< Formula whose value must be displayed
 
         std::string  mHeaderIncludeSymbDer;  ///< Compilation environment may want to change it
         std::string  mDirGenCode;   ///< Want to put generated code in a fixed folde ?
@@ -963,6 +970,10 @@ void cCoordinatorF<TypeElem>::SetCurFormulas(const std::vector<tFormula> & aVF0)
     {
         aF->CalcRecursiveDepth(mVReachedF);
     } 
+    for (auto & aDebugF : mVDebugF)
+    {
+        aDebugF.first->CalcRecursiveDepth(mVReachedF);
+    }
 
     // Use depth to have topological sort
     // In fact it is probably not necessary to make this sort, initial order of reaching order
@@ -1158,6 +1169,18 @@ std::pair<std::string,std::string> cCoordinatorF<TypeElem>::GenCodeCommon(const 
         if (!aForm->isAtomic())
             aOs << "    " << aTypeName << " " << aForm->GenCodeFormName() << " = " << aForm->GenCodeExpr() << ";\n";
     }
+    if (mVDebugF.size())
+        aOs << "    if (IsDebugEnabled()) {\n";
+    for (const auto & aDebugF: mVDebugF) {
+#ifdef SYMBDER_WITH_MMVII
+        aOs << "      MMVII::StdOut()";
+#else
+        aOs << "      std::cout";
+#endif
+        aOs << "<< \"[\" << aK << \"]  " << aDebugF.second << "=\" << " <<  aDebugF.first->GenCodeFormName() << " << std::endl;\n";
+    }
+    if (mVDebugF.size())
+        aOs << "    }\n";
     for (size_t i=0; i<mVCurF.size(); i++)
         aOs <<  "    this->mBufLineRes[aK][" << i << "] = " << mVCurF[i]->GenCodeFormName() << ";\n";
 
@@ -1188,6 +1211,50 @@ inline std::string cCoordinatorF<TypeElem>::TypeElemName() const
     static_assert( Detect_if_TypeElemName_is_defined<TypeElem>::value , "** You must define cCoordinatorF::TypeElemName() for you type **");
     return "";
 }
+
+
+
+// Tools to print debug informations on calculated formula
+// SymbPrint(aFormula, aMesg):
+//    print "(aMesg) = (value of aFormula)" during execution
+// SymbPrintDer(aFormula, aK, aMesg):
+//    print "(aMesg) = (value of derivative of aFormula with respect to aKth unknown)" during execution
+//
+// Debug output MUST be enabled at the level of the calculator which contains the formulas:
+// aCalc->SetDebugEnabled(true)
+//
+// Nota: SymbPrint(aF,aMesg) return aF. It can be used inside expressions. Not really recommended, may be usefull.
+//
+//   auto aDist = sqrt(SymbPrint(x*x,"x2") + SymbPrint(y*y,"y2"));
+//   SymbPrint(aDist,"dist");
+//   SymbPrintDer(aDist,0,"d(dist)/dx")
+//   SymbPrintDer(aDist,1,"d(dist)/dy")
+
+
+template <class T>
+inline const T SymbPrint(const T & t, const std::string& aMesg)
+{
+    return t;
+}
+
+template <class T>
+inline void SymbPrintDer(const T & t, int aK, const std::string& aMesg)
+{
+}
+
+template <class TypeElem>
+inline const cFormula<TypeElem> SymbPrint(const cFormula<TypeElem> & aF, const std::string& aMesg)
+{
+    aF->CoordF()->AddDebug(aF, aMesg);
+    return aF;
+}
+
+template <class TypeElem>
+inline void SymbPrintDer(const cFormula<TypeElem> & aF, int aK, const std::string& aMesg)
+{
+    aF->CoordF()->AddDebug(aF->Derivate(aK), aMesg);
+}
+
 
 } //  namespace NS_SymbolicDerivative
 
