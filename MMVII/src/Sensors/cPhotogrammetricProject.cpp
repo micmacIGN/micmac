@@ -464,10 +464,12 @@ void cPhotogrammetricProject::SaveSensor(const cSensorImage & aSens) const
 
     aSens.ToFile(mDPOrient.FullDirOut() + aSens.NameOriStd());
 
+    /*  PB : 1 bad reread + in // ?
     if (aSens.HasCoordinateSystem())
     {
         SaveCurSysCoOri(ReadSysCo(aSens.GetCoordinateSystem()));
     }
+    */
 }
 
 
@@ -1027,6 +1029,7 @@ tPtrSysCo  cPhotogrammetricProject::CurSysCo(const cDirsPhProj & aDP,bool SVP) c
        return tPtrSysCo(nullptr);
     }
     cRefSysCo aRef;
+
     ReadFromFile(aRef,aName);
 
     return  ReadSysCo(aRef.mName,false);
