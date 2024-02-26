@@ -297,7 +297,19 @@ is non dimensionnal variant of equation~\ref{EqConsDist}. Some comment :
          single value, because in general, when we want to compute several values (like
          $x$ and $y$ residual in BA)  its more efficient and convenient to group 
          a multiple residual in a single formula that generating different formulas;
-
+   \item the commented lines show how to use {\tt SymbPrint()} and
+         {\tt SymbPrintDer()} to display at run time computed value of
+         expressions or parts of expression in the formula.  
+   \begin{itemize}
+         \item {\tt SymbPrint(expr, mesg)} will display
+               "[i] mesg =  (value of expr)", i being the current iteration of the loop
+               when multiple values are calculated simultaneously.
+         \item {\tt SymbPrintDer(expr, k, mesg)} will display 
+               "[i] mesg = (value of derivative)", derivative being the derivative
+               of expr with respect to the kth Unknown.
+         \item to enable the output of this value, SetDebugEnabled(true) must be called
+                before on the calculator. See \ref{CreateCalc}
+   \end{itemize}
 \end{itemize}
 
 As a slightly more complex example, the reader can investigate example {\tt cRatioDist2DConservation}
@@ -414,6 +426,11 @@ correspond in file {\tt BenchResolSysNonLinear.cpp}  to line:
      mCalcD =  EqConsDist(true,1);
 \end{lstlisting}
 
+If we want to display values specified with {\tt SymbPrint()/SymbPrintDer()} during calculus of mCalcD, we have to enable it:
+
+\begin{lstlisting}
+     mCalcD->SetDebugEnabled(true);
+\end{lstlisting}
 
 %---------------------------------------------
 %---------------------------------------------
