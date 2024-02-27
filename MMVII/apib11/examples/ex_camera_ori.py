@@ -1,7 +1,9 @@
 from MMVII import *
 
+# Prepare data: see MMVII/MMVII-TestDir/Input/Saisies-MMV1/readme.md
+
 dirData = '../../MMVII-TestDir/Input/Saisies-MMV1/'
-cam = SensorCamPC.fromFile(dirData + 'Ori-Ground-MMVII/Ori-PerspCentral-IMGP4168.JPG.xml')
+cam = SensorCamPC.fromFile(dirData + 'MMVII-PhgrProj/Ori/toto/Ori-PerspCentral-IMGP4168.JPG.xml')
 
 pose = cam.pose
 icalib = cam.internalCalib
@@ -15,17 +17,17 @@ print("Point terrain: ",p)
 pi=pp2i.value(dist.value(proj.value(pose.inverse(p))))
 print("Point image 2D: ",cam.ground2Image(p), "=", pi)
 
-pid=Pt3dr(pi.x,pi.y,pose.inverse(p).z)
+pid=(pi[0],pi[1],pose.inverse(p)[2])
 print("Point image 3D: ",cam.ground2ImageAndDepth(p), "=", pid)
 
 i2pp=pp2i.mapInverse()
 inv_proj=icalib.inv_Proj()
 inv_dist=DataInvertOfMapping2D(icalib.dir_DistInvertible())
-pCam = inv_proj.value(inv_dist.value(i2pp.value((pid.x, pid.y))))
-pg = pose.value(pCam * (pid.z / pCam.z))
+pCam = inv_proj.value(inv_dist.value(i2pp.value((pid[0], pid[1]))))
+pg = pose.value(pCam * (pid[2] / pCam[2]))
 
-pCam2 = inv_proj.value(icalib.dir_DistInvertible().inverse(pp2i.inverse((pid.x, pid.y))))
-pg2 = pose.value(pCam2 * (pid.z / pCam2.z))
+pCam2 = inv_proj.value(icalib.dir_DistInvertible().inverse(pp2i.inverse((pid[0], pid[1]))))
+pg2 = pose.value(pCam2 * (pid[2] / pCam2[2]))
 
 print ("Point terrain 1: ",pg, "=", p)
 print ("Point terrain 2: ",pg2, "= ", p)
@@ -43,7 +45,7 @@ pgs = list(map(cam.imageAndDepth2Ground,pids))
 # points terrains  => retour en points images
 camPGs = list(map(cam.pose.inverse, pgs))
 pi_calcs = pp2i.values(dist.values(proj.values(camPGs)))
-pid_calcs = [ (p1.x,p1.y,p2.z) for p1,p2 in zip(pi_calcs,camPGs)]
+pid_calcs = [ (p1[0],p1[1],p2[2]) for p1,p2 in zip(pi_calcs,camPGs)]
 
 print (pids, "=>" )
 print (pid_calcs)

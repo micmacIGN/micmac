@@ -81,6 +81,10 @@ class cDist2DConservation
           const auto & ObsDist  = aVObs[0];  
 	  const auto aCst1 = CreateCste(1.0,p1.x());  // create a symbolic formula for constant 1
 
+          // SymbPrint(v,"v");
+          // SymbPrint(Norm2(v)/ObsDist - aCst1,"Dist2DConst");
+          // SymbPrintDer(Norm2(v)/ObsDist - aCst1,0,"d(Dist2DConst)/d(p1.x)");
+          // SymbPrintDer(Norm2(v)/ObsDist - aCst1,3,"d(Dist2DConst)/d(p2.y)");
 
           return { Norm2(v)/ObsDist - aCst1 } ;
           // return { sqrt(square(v.x())+square(v.y()))/ObsDist - aCst1 } ;

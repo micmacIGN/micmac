@@ -1,8 +1,10 @@
 from MMVII import *
 import numpy as np
 
+# Prepare data: see MMVII/MMVII-TestDir/Input/Saisies-MMV1/readme.md
+
 dirData = '../../MMVII-TestDir/Input/Saisies-MMV1/'
-calib=PerspCamIntrCalib.fromFile(dirData + 'Ori-Ground-MMVII/Calib-PerspCentral-Foc-28000_Cam-PENTAX_K5.xml')
+calib=PerspCamIntrCalib.fromFile(dirData + 'MMVII-PhgrProj/Ori/toto/Calib-PerspCentral-Foc-28000_Cam-PENTAX_K5.xml')
 print(calib.infoParam())
 
 pp0=(1,2,3)
@@ -23,7 +25,7 @@ a=np.array(m,copy=False)
 im=Im2Di.fromFile("../../MMVII-TestDir/Input/EPIP/Tiny/ImL.tif")
 im_np=np.array(im,copy=False)
 
-scpc=SensorCamPC.fromFile(dirData + 'Ori-Ground-MMVII/Ori-PerspCentral-IMGP4168.JPG.xml')
+scpc=SensorCamPC.fromFile(dirData + 'MMVII-PhgrProj/Ori/toto/Ori-PerspCentral-IMGP4168.JPG.xml')
 p=np.array([10,20,100])
 diff=scpc.ground2ImageAndDepth(scpc.imageAndDepth2Ground(p))-p
 print("diff = ",diff)

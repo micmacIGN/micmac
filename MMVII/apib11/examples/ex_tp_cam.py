@@ -5,6 +5,7 @@ import matplotlib.image as mpimg
 """
     TP photogra
     Data from MurSaintMartin
+    Prepare data: see MMVII/MMVII-TestDir/Input/Saisies-MMV1/readme.md
 """
 
 dirData = '../../MMVII-TestDir/Input/Saisies-MMV1/'
@@ -55,7 +56,7 @@ plt.scatter(allX, allY, 30)
 plt.show()
 
 # apply calibration
-calib = PerspCamIntrCalib.fromFile(dirData + 'Ori-Ground-MMVII/Calib-PerspCentral-Foc-28000_Cam-PENTAX_K5.xml')
+calib = PerspCamIntrCalib.fromFile(dirData + 'MMVII-PhgrProj/Ori/toto/Calib-PerspCentral-Foc-28000_Cam-PENTAX_K5.xml')
 
 dist = calib.dir_Dist()
 pp2i = calib.mapPProj2Im()
@@ -98,7 +99,7 @@ for name, pt in pts2d[imName1].items():
 #     2 - Read Ori, projection
 ########################################################
 
-cam1= SensorCamPC.fromFile(dirData + 'Ori-Ground-MMVII/Ori-PerspCentral-'+imName1+'.xml')
+cam1= SensorCamPC.fromFile(dirData + 'MMVII-PhgrProj/Ori/toto/Ori-PerspCentral-'+imName1+'.xml')
 
 # project ground points on image
 allX, allY,_ = zip(*map(cam1.ground2ImageAndDepth,pts3d.values()))
@@ -124,7 +125,7 @@ for name, pt in pts3d.items():
 
 # Second image
 imName2 = 'IMGP4169.JPG'
-cam2= SensorCamPC.fromFile(dirData + 'Ori-Ground-MMVII/Ori-PerspCentral-'+imName2+'.xml')
+cam2= SensorCamPC.fromFile(dirData + 'MMVII-PhgrProj/Ori/toto/Ori-PerspCentral-'+imName2+'.xml')
 
 # Compute 2d points without disortion
 pts2d_nodist = {}

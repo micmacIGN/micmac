@@ -54,15 +54,16 @@ void pyb_init_MeasuresIm(py::module_ &m) {
             .def(py::init<const cPt3dr &,const std::string &,tREAL4>(),DOC(MMVII_cMes1GCP,cMes1GCP))
             .def_readwrite("pt", &cMes1GCP::mPt,DOC(MMVII_cMes1GCP,mPt))
             .def_readwrite("namePt", &cMes1GCP::mNamePt,DOC(MMVII_cMes1GCP,mNamePt))
-            .def_property("sXX",[](const cMes1GCP& m){return m.mSigma2[m.IndXX];},[](cMes1GCP& m, tREAL8 sXX){ m.mSigma2[m.IndXX] = sXX;},"Sigma2 of x coordinate")
-            .def_property("sYY",[](const cMes1GCP& m){return m.mSigma2[m.IndYY];},[](cMes1GCP& m, tREAL8 sYY){ m.mSigma2[m.IndYY] = sYY;},"Sigma2 of y coordinate")
-            .def_property("sZZ",[](const cMes1GCP& m){return m.mSigma2[m.IndZZ];},[](cMes1GCP& m, tREAL8 sZZ){ m.mSigma2[m.IndZZ] = sZZ;},"Sigma2 of z coordinate")
+            .def_property("sXX",[](const cMes1GCP& m){return m.mOptSigma2->at(m.IndXX);},[](cMes1GCP& m, tREAL8 sXX){ m.mOptSigma2->at(m.IndXX) = sXX;},"Sigma2 of x coordinate")
+            .def_property("sYY",[](const cMes1GCP& m){return m.mOptSigma2->at(m.IndYY);},[](cMes1GCP& m, tREAL8 sYY){ m.mOptSigma2->at(m.IndYY) = sYY;},"Sigma2 of y coordinate")
+            .def_property("sZZ",[](const cMes1GCP& m){return m.mOptSigma2->at(m.IndZZ);},[](cMes1GCP& m, tREAL8 sZZ){ m.mOptSigma2->at(m.IndZZ) = sZZ;},"Sigma2 of z coordinate")
             .def("__repr__",
                  [](const cMes1GCP &m) {
                    std::ostringstream ss;
                    ss.precision(8);
-                   ss << "Mes1GCP " << m.mNamePt << " " << m.mPt << ", sigma2 (XX,YY,ZZ): ("
-                      << m.mSigma2[m.IndXX] << ", " << m.mSigma2[m.IndYY] << ", " << m.mSigma2[m.IndZZ] << ")";
+                   ss << "Mes1GCP " << m.mNamePt << " " << m.mPt;
+                   if (m.mOptSigma2.has_value())
+                      ss << ", sigma2 (XX,YY,ZZ): ("<< m.mOptSigma2->at(m.IndXX) << ", " << m.mOptSigma2->at(m.IndYY) << ", " << m.mOptSigma2->at(m.IndZZ) << ")";
                    return ss.str();
              })
             ;
