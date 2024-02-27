@@ -148,13 +148,14 @@ void cSysCoUsingV1::Init(eSysCoGeo aType,std::map<std::string,std::string> & aMa
      else if  (aType == eSysCoGeo::eWGS84Degrees)
      {
          // Rules 40000 Km for the earth perimeter
-         tREAL8 aEpsXYZ =  4e7 / 360.0;
+         tREAL8 aEpsXYZ =   360.0/ 4e7;
+         // StdOut() << "eWGS84DegreeseWGS84Degrees " << aEpsXYZ << "\n";
          mSV1 = cSysCoord::WGS84Degre();
          cDataInvertibleMapping<tREAL8,3>::SetEpsJac(cPt3dr(aEpsXYZ,aEpsXYZ,1.0));
      }
      else if  (aType == eSysCoGeo::eWGS84Rads)
      {
-         tREAL8 aEpsXYZ =  4e7 / 6.28;
+         tREAL8 aEpsXYZ =   6.28 / 4e7;
          mSV1 = cSysCoord::WGS84();
          cDataInvertibleMapping<tREAL8,3>::SetEpsJac(cPt3dr(aEpsXYZ,aEpsXYZ,1.0));
      }

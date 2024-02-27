@@ -91,7 +91,7 @@ class cExternalSensorModif2D  : public cSensorImage
 	      /// add, when required, the observation (rather context dependant constant) in colinearity equation 
          void PushOwnObsColinearity( std::vector<double> &,const cPt3dr &)  override;
           
-	  size_t  NbParam() const;  ///< Number of parameters, computed from degree
+         size_t  NbParam() const;  ///< Number of parameters, computed from degree
 				    
                  // ====  Method to override in derived classes  =====
 
@@ -99,7 +99,6 @@ class cExternalSensorModif2D  : public cSensorImage
          cPt2dr  InitPix2Correc (const cPt2dr & aP0) const ;
          /// For "final" to "initial" coordinat (pixel)
          cPt2dr  Correc2InitPix (const cPt2dr & aP0) const ;
-
 
      // - - - - - - - - - - - - -    DATA PART - - - - - - - - - - - - - - - - - - - - -
 
