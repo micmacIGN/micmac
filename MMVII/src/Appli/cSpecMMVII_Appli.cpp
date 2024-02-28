@@ -213,6 +213,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
 
         TheVecAll.push_back(&TheSpecDistCorrectCirgTarget);
         TheVecAll.push_back(&TheSpec_ImportGCP);
+        TheVecAll.push_back(&TheSpec_ImportORGI);
         TheVecAll.push_back(&TheSpec_ImportM32);
         //TheVecAll.push_back(&TheSpecTopoComp);
         TheVecAll.push_back(&TheSpecGenArgsSpec);

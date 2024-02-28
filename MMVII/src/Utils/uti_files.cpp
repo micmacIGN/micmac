@@ -254,19 +254,15 @@ const std::vector<cPt3dr>& cReadFilesStruct::VXYZ () const { return GetVect(mVXY
 const std::vector<cPt3dr>& cReadFilesStruct::VWPK () const { return GetVect(mVWPK); }
 const std::vector<cPt2dr>& cReadFilesStruct::Vij  () const { return GetVect(mVij);  }
 const std::vector<std::vector<double>> & cReadFilesStruct::VNums () const {return  GetVect(mVNums);}
+const std::vector<std::vector<int>> & cReadFilesStruct::VInts () const {return  GetVect(mVInts);}
+const std::vector<std::string>& cReadFilesStruct::VNameIm () const { return GetVect(mVNameIm); }
 int cReadFilesStruct::NbRead() const { return mNbLineRead; }
+const std::vector<std::string>& cReadFilesStruct::VNamePt () const { return GetVect(mVNamePt); }
 
 
 void cReadFilesStruct::Read()
 {
     CurFile = mNameFile;
-
-    /*
-    if (CheckFormat)
-    {
-       CptSameOccur(aFormat,"NXYZ");
-    }
-    */
 
 
     mVNameIm.clear();
@@ -287,6 +283,7 @@ void cReadFilesStruct::Read()
     int aNumL = 0;
     while (std::getline(infile, line))
     {
+StdOut() << "LLLllLl=[" << line << "]\n";
 	// JOE
         MMVII_DEV_WARNING("Dont understand why must add \" \" at end of line ReadFilesStruct");
         line += " ";
@@ -301,6 +298,7 @@ void cReadFilesStruct::Read()
                 iss.unget();  // as C0 is not  a comment it will have to be parsed (!!=> Ok because there is only one)
 			   
                 std::vector<double> aLNum;
+                std::vector<int>    aLInt;
 	        cPt3dr aXYZ = cPt3dr::Dummy();
 	        cPt3dr aWPK = cPt3dr::Dummy();
 	        cPt2dr aij =  cPt2dr::Dummy();
@@ -314,6 +312,7 @@ void cReadFilesStruct::Read()
 		int  initij=0;
 		int  initIm=0;
 		int  initPt=0;
+		int  initI=0;
 
 
                 for (const auto & aCar : mFormat)
@@ -321,6 +320,7 @@ void cReadFilesStruct::Read()
                     switch (aCar) 
                     {
                          case 'F' : aLNum.push_back(GetV<tREAL8>(iss));   initF++; break;
+                         case 'E' : aLInt.push_back(GetV<int>(iss));      initI++; break;
                          case 'X' : aXYZ.x() = GetV<tREAL8>(iss);         initXYZ++; break;
                          case 'Y' : aXYZ.y() = GetV<tREAL8>(iss);         initXYZ++;  break;
                          case 'Z' : aXYZ.z() = GetV<tREAL8>(iss);         initXYZ++; break;
@@ -345,6 +345,7 @@ void cReadFilesStruct::Read()
 		if (initWPK) mVWPK.push_back(aWPK);
 		if (initij) mVij.push_back(aij);
 		if (initF) mVNums.push_back(aLNum);
+		if (initI) mVInts.push_back(aLInt);
 		if (initIm) mVNameIm.push_back(aNameIm);
 		if (initPt) mVNamePt.push_back(aNamePt);
             }

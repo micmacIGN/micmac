@@ -1026,11 +1026,12 @@ class cReadFilesStruct
        void Read();
 
        const std::vector<std::string>         & VNameIm () const; ///< Accessor + Check init
-       const std::vector<std::string>         & VNamePt () const; ///< Accessor + Check init
-       const std::vector<cPt3dr>              & VXYZ () const; ///< Accessor + Check init
-       const std::vector<cPt2dr>              & Vij () const; ///< Accessor + Check init
-       const std::vector<cPt3dr>              & VWPK () const; ///< Accessor + Check init
-       const std::vector<std::vector<double>> & VNums () const; ///< Accessor + Check init
+       const std::vector<std::string>         & VNamePt () const; ///< Accessor + Check init  "N
+       const std::vector<cPt3dr>              & VXYZ () const; ///< Accessor + Check init    "XYZ"
+       const std::vector<cPt2dr>              & Vij () const; ///< Accessor + Check init      "ij"
+       const std::vector<cPt3dr>              & VWPK () const; ///< Accessor + Check init    "WPK"
+       const std::vector<std::vector<double>> & VNums () const; ///< Accessor + Check init   "FF*F"
+       const std::vector<std::vector<int>>    & VInts () const; ///< Accessor + Check init     "EE*E"
        int NbRead() const;  ///< Number of line read
 
 
@@ -1056,6 +1057,7 @@ class cReadFilesStruct
          std::vector<cPt2dr>                    mVij;
          std::vector<cPt3dr>                    mVWPK;
          std::vector<std::vector<double>>       mVNums;
+         std::vector<std::vector<int>>          mVInts;
 };
 
 /// nuber of occurence of aC0 in aStr

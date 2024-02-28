@@ -246,6 +246,7 @@ bool cRPC_Polyn::Initialise(const cSerialTree & aData,const std::string& aPrefix
 
 void cRPC_Polyn::VectInitialise(const cSerialTree & aData,const std::vector<std::string>& aVecPrefix)
 {
+    // Try diffent prefixes of tags
     for (const auto & aPrefix : aVecPrefix)
     {
         if (Initialise(aData,aPrefix))
@@ -576,12 +577,15 @@ cRPCSens * cRPCSens::RPCChangSys(cDataInvertibleMapping<tREAL8,3> & aMap) const
 
 void cRPCSens::Dimap_ReadXMLModel(const cSerialTree& aTreeGlob,const std::vector<std::string> & aVecPrefix,cRatioPolynXY * aModel)
 {
+    // Try possible tags 
     for (const auto & aPrefix : aVecPrefix)
     {
+         // try to get the tree of a given tag
          const cSerialTree * aTree = aTreeGlob.GetUniqueDescFromName(aPrefix,SVP::Yes);
 
-         if (aTree)
+         if (aTree) // it got it : go
          {
+            // Again try different tag
             aModel->Y().NumPoly().VectInitialise(*aTree,{"SAMP_NUM_COEFF_","LON_NUM_COEFF_"});  // LON_NUM_COEFF_
             aModel->Y().DenPoly().VectInitialise(*aTree,{"SAMP_DEN_COEFF_","LON_DEN_COEFF_"});  // LON_DEN_COEFF_
 
@@ -591,6 +595,7 @@ void cRPCSens::Dimap_ReadXMLModel(const cSerialTree& aTreeGlob,const std::vector
             return;
          }
     }
+    // if no tag was success, we have a problem ....
     MMVII_INTERNAL_ERROR("cRPCSens::Dimap_ReadXMLModel : could not get any tag for tags " + aVecPrefix.at(0));
 }
 
