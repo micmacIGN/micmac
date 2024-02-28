@@ -17,6 +17,9 @@ template<typename T> class cCompiledCalculator;
 #include "MMVII_Derivatives.h"
 #define SYMBDER_cMemCheck MMVII::cMemCheck
 #define SYMBDER_DelAtEnd  MMVII::cObj2DelAtEnd
+namespace MMVII {
+extern cMultipleOfs& StdOut();      // For debugging output of formula
+}
 #else             //========================================================== WITH_MMVI
 class SYMBDER_cMemCheck
 {
@@ -206,6 +209,10 @@ public:
     {return mConvNamesObs.RangeOfName(aName,SVP);}
     const std::vector<std::string> & NamesObs() const {return mConvNamesObs.Names();}
 
+    // Enable Debugging output for formula tagged as Debug
+    bool IsDebugEnabled() const { return mDebugEnabled;}
+    void SetDebugEnabled(bool on) { mDebugEnabled = on;}
+
 protected:
     cCalculator
     (
@@ -226,6 +233,7 @@ protected:
         mNbInBuf      (0),
         mWithDer      (aWithDer),
         mSzInterval   (aSzInterval),
+        mDebugEnabled (false),
         mBufLineRes   (mSzBuf),
         mBufRes       ()
     {
@@ -268,6 +276,7 @@ protected:
     size_t                         mNbInBuf;     ///< Number of Unknown/Obs vect currenlty loaded in buf
     bool                           mWithDer;     ///< Done With Derivate
     int                            mSzInterval;  ///< Size between two val, depends if computation done with deriv
+    bool                           mDebugEnabled;///< Enable printing of value for formula tagged as Debug
     std::vector<tOneRes>           mBufLineRes;  ///< Reserve memory for each line, make the allocation at init
     std::vector<tOneRes*>          mBufRes;      ///< Reserve memory for result itself, point on mBufLineRes to limit allocation
 

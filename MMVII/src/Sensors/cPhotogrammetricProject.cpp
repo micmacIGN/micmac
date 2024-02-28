@@ -459,7 +459,9 @@ void cPhotogrammetricProject::SaveSensor(const cSensorImage & aSens) const
 {
     // We dont want to have different variant of the same image in a given folder
     // so supress potentiel existing orientation of the same image
-    std::string aPat2Sup = mDPOrient.FullDirOut() + "Ori-.*-" + aSens.NameImage() + "\\." + GlobTaggedNameDefSerial()  ;
+    // CM: Should be ...Image() + "\\." + Glob..., but '\' is a directory separator on Windows
+    //     and SplitDirAndFile() called by RemovePatternFile() will do bad things in this case ...
+    std::string aPat2Sup = mDPOrient.FullDirOut() + "Ori-.*-" + aSens.NameImage() + "." + GlobTaggedNameDefSerial()  ;
     RemovePatternFile(aPat2Sup,false);
 
     aSens.ToFile(mDPOrient.FullDirOut() + aSens.NameOriStd());
