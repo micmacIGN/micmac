@@ -68,6 +68,7 @@ class cDist2DConservation
 
     std::string FormulaName() const { return "Dist2DCons";}
 
+/*
     template <typename tUk,typename tObs> 
              static std::vector<tUk> formula
                   (
@@ -78,18 +79,57 @@ class cDist2DConservation
           cPtxd<tUk,2>  p1 = VtoP2(aVUk,0);
           cPtxd<tUk,2>  p2 = VtoP2(aVUk,2);
           cPtxd<tUk,2>  v  = p2-p1;
-          const auto & ObsDist  = aVObs[0];  
-	  const auto aCst1 = CreateCste(1.0,p1.x());  // create a symbolic formula for constant 1
 
-          // SymbPrint(v,"v");
-          // SymbPrint(Norm2(v)/ObsDist - aCst1,"Dist2DConst");
-          // SymbPrintDer(Norm2(v)/ObsDist - aCst1,0,"d(Dist2DConst)/d(p1.x)");
-          // SymbPrintDer(Norm2(v)/ObsDist - aCst1,3,"d(Dist2DConst)/d(p2.y)");
+          const auto & ObsDist  = aVObs[0];
+          const auto aCst1 = CreateCste(1.0,p1.x());  // create a symbolic formula for constant 1
 
           return { Norm2(v)/ObsDist - aCst1 } ;
           // return { sqrt(square(v.x())+square(v.y()))/ObsDist - aCst1 } ;
      }
+*/
+
+ // Alternate version of the same formula, showing use case of SymbPrint and SymbComment
+  
+    template <typename tUk,typename tObs>
+             static std::vector<tUk> formula
+                  (
+                      const std::vector<tUk> & aVUk,
+                      const std::vector<tObs> & aVObs
+                  ) // const
+    {
+          cPtxd<tUk,2>  p1 = VtoP2(aVUk,0);
+          cPtxd<tUk,2>  p2 = VtoP2(aVUk,2);
+          cPtxd<tUk,2>  v  = p2-p1;
+          SymbComment(v.x(),"Vx");
+          SymbComment(v.y(),"Vy");
+          SymbComment(Norm2(v),"|v|");
+          SymbCommentDer(Norm2(v),0,"d(|v|)/d(p1.x)");
+          SymbCommentDer(Norm2(v),1,"d(|v|)/d(p1.y)");
+          SymbCommentDer(Norm2(v),2,"d(|v|)/d(p2.x)");
+          SymbCommentDer(Norm2(v),3,"d(|v|)/d(p2.y)");
+
+          const auto & ObsDist  = aVObs[0];
+          const auto aCst1 = CreateCste(1.0,p1.x());  // create a symbolic formula for constant 1
+
+          auto result = Norm2(v)/ObsDist - aCst1;
+
+          SymbComment(result,"f");
+          SymbCommentDer(result,0,"d(f)/d(p1.x)");
+          SymbCommentDer(result,1,"d(f)/d(p1.y)");
+          SymbCommentDer(result,2,"d(f)/d(p2.x)");
+          SymbCommentDer(result,3,"d(f)/d(p2.y)");
+
+          SymbPrint(v.x(),"Vx");
+          SymbPrint(v.y(),"Vy");
+          SymbPrint(result,"Dist2DConst");
+          SymbPrintDer(result,0,"d(dist2DConst)/d(p1.x)");
+          SymbPrintDer(result,3,"d(Dist2DConst)/d(p2.y)");
+
+          return { result } ;
+          // return { sqrt(square(v.x())+square(v.y()))/ObsDist - aCst1 } ;
+     }
 };
+
 
 /**  Class for generating code relative to 2D-"RATIO of distance"  */
 

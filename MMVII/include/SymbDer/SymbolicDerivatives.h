@@ -389,7 +389,10 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem> // 
         {
             mVDebugF.emplace_back(aPF,aMesg);
         }
-        const std::vector<tFormula>& VDebug() const {return  mVDebugF;}
+        inline void AddComment(const tFormula& aPF, const std::string& aComment)
+        {
+            mVCommentF.emplace_back(aPF,aComment);
+        }
 
 
         size_t      NbCurFonc() const {return mVAllFormula.size();}
@@ -420,6 +423,7 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem> // 
         std::vector<tFormula>          mVCurF;       ///< Current evaluted formulas
         std::vector<tFormula>          mVReachedF;   ///< Formula "reachable" i.e. necessary to comput mVCurF
         std::vector<std::pair<tFormula,std::string>> mVDebugF;     ///< Formula whose value must be displayed
+        std::vector<std::pair<tFormula,std::string>> mVCommentF;   ///< Formula which will be commented in generated code
 
         std::string  mHeaderIncludeSymbDer;  ///< Compilation environment may want to change it
         std::string  mDirGenCode;   ///< Want to put generated code in a fixed folde ?
@@ -1166,9 +1170,16 @@ std::pair<std::string,std::string> cCoordinatorF<TypeElem>::GenCodeCommon(const 
             aOs << "    " << aTypeName << " &" << aForm->GenCodeFormName() << " = " << aForm->GenCodeExpr() << ";\n";
     }
     for (const auto & aForm : mVReachedF) {
-        if (!aForm->isAtomic())
-            aOs << "    " << aTypeName << " " << aForm->GenCodeFormName() << " = " << aForm->GenCodeExpr() << ";\n";
+        if (!aForm->isAtomic()) {
+            aOs << "    " << aTypeName << " " << aForm->GenCodeFormName() << " = " << aForm->GenCodeExpr() << ";";
+            auto aCommentIt = std::find_if(mVCommentF.begin(),mVCommentF.end(),[&aForm](auto& aF) {return aF.first->GenCodeFormName() == aForm->GenCodeFormName();}) ;
+            if (aCommentIt != mVCommentF.end()) {
+                aOs << "  // " << aCommentIt->second;
+            }
+             aOs << "\n";
+        }
     }
+
     if (mVDebugF.size())
         aOs << "    if (IsDebugEnabled()) {\n";
     for (const auto & aDebugF: mVDebugF) {
@@ -1231,17 +1242,6 @@ inline std::string cCoordinatorF<TypeElem>::TypeElemName() const
 //   SymbPrintDer(aDist,1,"d(dist)/dy")
 
 
-template <class T>
-inline const T SymbPrint(const T & t, const std::string& aMesg)
-{
-    return t;
-}
-
-template <class T>
-inline void SymbPrintDer(const T & t, int aK, const std::string& aMesg)
-{
-}
-
 template <class TypeElem>
 inline const cFormula<TypeElem> SymbPrint(const cFormula<TypeElem> & aF, const std::string& aMesg)
 {
@@ -1253,6 +1253,21 @@ template <class TypeElem>
 inline void SymbPrintDer(const cFormula<TypeElem> & aF, int aK, const std::string& aMesg)
 {
     aF->CoordF()->AddDebug(aF->Derivate(aK), aMesg);
+}
+
+
+template <class TypeElem>
+inline const cFormula<TypeElem> SymbComment(const cFormula<TypeElem> & aF, const std::string& aComment)
+{
+    aF->CoordF()->AddComment(aF, aComment);
+    return aF;
+}
+
+template <class TypeElem>
+inline const cFormula<TypeElem> SymbCommentDer(const cFormula<TypeElem> & aF, int aK, const std::string& aComment)
+{
+    aF->CoordF()->AddComment(aF->Derivate(aK), aComment);
+    return aF;
 }
 
 
