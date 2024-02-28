@@ -24,7 +24,8 @@ class cRPC_Polyn : public cDataMapping<tREAL8,3,1>
     public:
         cRPC_Polyn(){};
 
-        void Initialise(const cSerialTree &,const std::string&);
+        bool Initialise(const cSerialTree &,const std::string&);
+        void VectInitialise(const cSerialTree &,const std::vector<std::string>&);
         void Show();
 
         const double * Coeffs() const {return mCoeffs;}
@@ -183,7 +184,7 @@ class cRPCSens : public cSensorImage
 	std::string ReadXmlItem(const cSerialTree&,const std::string&);
         double ReadRealXmlItem(const cSerialTree&,const std::string&);
 
-        void   Dimap_ReadXMLModel(const cSerialTree&,const std::string&,cRatioPolynXY *);
+        void   Dimap_ReadXMLModel(const cSerialTree&,const std::vector<std::string>&,cRatioPolynXY *);
         void   Dimap_ReadXMLNorms(const cSerialTree&);
 
         cPt2dr  IO_PtIm(const cPt2dr &) const;  // Id or SwapXY, depending mSwapIJImage
@@ -230,15 +231,31 @@ class cRPCSens : public cSensorImage
 /* =============================================== */
 
 
-void cRPC_Polyn::Initialise(const cSerialTree & aData,const std::string& aPrefix)
+bool cRPC_Polyn::Initialise(const cSerialTree & aData,const std::string& aPrefix)
 {
 	// StdOut() << "cRPC_Polyn::InitialisecRPC_Polyn::Initialise  \n"; getchar();
     for (int aK=1; aK<21; aK++)
     {
-        const cSerialTree * aItem = aData.GetUniqueDescFromName(aPrefix+std::to_string(aK));
+        const cSerialTree * aItem = aData.GetUniqueDescFromName(aPrefix+std::to_string(aK),true);
+        if (aItem==nullptr)
+           return false;
         mCoeffs[aK-1] =  std::stod(aItem->UniqueSon().Value()); // coeffs
     }
+    return true;
 }
+
+void cRPC_Polyn::VectInitialise(const cSerialTree & aData,const std::vector<std::string>& aVecPrefix)
+{
+    for (const auto & aPrefix : aVecPrefix)
+    {
+        if (Initialise(aData,aPrefix))
+           return;
+    }
+    MMVII_INTERNAL_ERROR("cRPCSens::VectInitialise : could not get any tag for tags " + aVecPrefix.at(0));
+}
+
+
+
 
 double cRPC_Polyn::Val(const cPt3dr& aP) const
 {
@@ -557,16 +574,24 @@ cRPCSens * cRPCSens::RPCChangSys(cDataInvertibleMapping<tREAL8,3> & aMap) const
 
      // ======================  Dimap creation ===========================
 
-void cRPCSens::Dimap_ReadXMLModel(const cSerialTree& aTree,const std::string& aPrefix,cRatioPolynXY * aModel)
+void cRPCSens::Dimap_ReadXMLModel(const cSerialTree& aTreeGlob,const std::vector<std::string> & aVecPrefix,cRatioPolynXY * aModel)
 {
-    const cSerialTree * aDirect = aTree.GetUniqueDescFromName(aPrefix);
+    for (const auto & aPrefix : aVecPrefix)
+    {
+         const cSerialTree * aTree = aTreeGlob.GetUniqueDescFromName(aPrefix,SVP::Yes);
 
-    aModel->Y().NumPoly().Initialise(*aDirect,"SAMP_NUM_COEFF_");
-    aModel->Y().DenPoly().Initialise(*aDirect,"SAMP_DEN_COEFF_");
+         if (aTree)
+         {
+            aModel->Y().NumPoly().VectInitialise(*aTree,{"SAMP_NUM_COEFF_","LON_NUM_COEFF_"});  // LON_NUM_COEFF_
+            aModel->Y().DenPoly().VectInitialise(*aTree,{"SAMP_DEN_COEFF_","LON_DEN_COEFF_"});  // LON_DEN_COEFF_
 
-    aModel->X().NumPoly().Initialise(*aDirect,"LINE_NUM_COEFF_");
-    aModel->X().DenPoly().Initialise(*aDirect,"LINE_DEN_COEFF_");
+            aModel->X().NumPoly().VectInitialise(*aTree,{"LINE_NUM_COEFF_","LAT_NUM_COEFF_"});
+            aModel->X().DenPoly().VectInitialise(*aTree,{"LINE_DEN_COEFF_","LAT_DEN_COEFF_"});
 
+            return;
+         }
+    }
+    MMVII_INTERNAL_ERROR("cRPCSens::Dimap_ReadXMLModel : could not get any tag for tags " + aVecPrefix.at(0));
 }
 
 void cRPCSens::Dimap_ReadXMLNorms(const cSerialTree& aTree)
@@ -649,12 +674,13 @@ void cRPCSens::Dimap_ReadXML_Glob(const cSerialTree & aTree)
 
     // read the direct model
     mDirectRPC = new cRatioPolynXY();
-    Dimap_ReadXMLModel(aTree,"Direct_Model",mDirectRPC);
+    Dimap_ReadXMLModel(aTree,{"Direct_Model","ImagetoGround_Values"},mDirectRPC);
+    // ImagetoGround_Values
 
 
     // read the inverse model
     mInverseRPC = new cRatioPolynXY();
-    Dimap_ReadXMLModel(aTree,"Inverse_Model",mInverseRPC);
+    Dimap_ReadXMLModel(aTree,{"Inverse_Model","GroundtoImage_Values"},mInverseRPC);
 
 
     // read the normalisation data (offset, scales)
