@@ -63,8 +63,12 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(const cSetMesImGCP * aSet)
         {
             mNewGCP = *aSet;
 	    for (size_t aK=0 ; aK< aNbGCP ; aK++)
+	    {
+                // cPt3dr aDif = mNewGCP.MesGCP()[aK].mPt -  mGCP_UK[aK]->Pt();
+                // StdOut() << " DIFF=" << aDif  << " DDD= "  << (aDif.x()==0)  <<" " << (aDif.y()==0)  <<" " << (aDif.z()==0)  <<" " << "\n";
                 mNewGCP.MesGCP()[aK].mPt = mGCP_UK[aK]->Pt();
-            StdOut() << "  GcpNew: " << mNewGCP.AvgSqResidual() ;
+	    }
+            StdOut() << "  GcpNew: " << mNewGCP.AvgSqResidual() ; // getchar();
         }
         StdOut() << std::endl;
      }

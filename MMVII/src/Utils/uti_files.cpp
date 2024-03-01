@@ -239,11 +239,12 @@ cReadFilesStruct::cReadFilesStruct
       int aLastL, 
       int  aComment
 )  :
-      mNameFile  (aNameFile),
-      mFormat    (aFormat),
-      mL0        (aL0),
-      mLastL     ((aLastL<0) ? 1000000 : aLastL),
-      mComment   (aComment)
+      mNameFile     (aNameFile),
+      mFormat       (aFormat),
+      mL0           (aL0),
+      mLastL        ((aLastL<0) ? 1000000 : aLastL),
+      mComment      (aComment),
+      mMemoLinesInt (false)
 {
 }
 
@@ -256,8 +257,16 @@ const std::vector<cPt2dr>& cReadFilesStruct::Vij  () const { return GetVect(mVij
 const std::vector<std::vector<double>> & cReadFilesStruct::VNums () const {return  GetVect(mVNums);}
 const std::vector<std::vector<int>> & cReadFilesStruct::VInts () const {return  GetVect(mVInts);}
 const std::vector<std::string>& cReadFilesStruct::VNameIm () const { return GetVect(mVNameIm); }
-int cReadFilesStruct::NbRead() const { return mNbLineRead; }
 const std::vector<std::string>& cReadFilesStruct::VNamePt () const { return GetVect(mVNamePt); }
+
+const std::vector<std::string>& cReadFilesStruct::VLinesInit () const { return GetVect(mVLinesInit); }
+
+int cReadFilesStruct::NbRead() const { return mNbLineRead; }
+
+void cReadFilesStruct::SetMemoLinesInit() 
+{
+    mMemoLinesInt = true; 
+}
 
 
 void cReadFilesStruct::Read()
@@ -271,6 +280,7 @@ void cReadFilesStruct::Read()
     mVij.clear();
     mVWPK.clear();
     mVNums.clear();
+    mVLinesInit.clear();
 
     if (! ExistFile(mNameFile))
     {
@@ -283,13 +293,16 @@ void cReadFilesStruct::Read()
     int aNumL = 0;
     while (std::getline(infile, line))
     {
-StdOut() << "LLLllLl=[" << line << "]\n";
 	// JOE
         MMVII_DEV_WARNING("Dont understand why must add \" \" at end of line ReadFilesStruct");
         line += " ";
         CurLine = aNumL+1;  // editor begin at line 1, non 0
         if ((aNumL>=mL0) && (aNumL<mLastL))
 	{
+            if (mMemoLinesInt)
+	    {
+	        mVLinesInit.push_back(line);
+            }
             std::istringstream iss(line);
 	    int aC0 = iss.get();
             if (aC0 != mComment)

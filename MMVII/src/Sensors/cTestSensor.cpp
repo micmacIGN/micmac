@@ -120,7 +120,7 @@ void cAppliTestSensor::TestGroundTruth(const  cSensorImage & aSI) const
          }
     }
     StdOut() << "     ==============  Accuracy / Ground trurh =============== " << std::endl;
-    StdOut()  << "    Avg=" <<  aStCheckIm.Avg() << ",  Worst=" << aStCheckIm.Max() << "\n";
+    StdOut()  << "    Avg=" <<  aStCheckIm.Avg() << ",  Worst=" << aStCheckIm.Max()  << " Med=" << aStCheckIm.ErrAtProp(0.5) << "\n";
 }
 
 void cAppliTestSensor::ExportMeasures(const  cSensorImage & aSI) const
