@@ -49,6 +49,12 @@ class cAppli_ImportTiePMul : public cMMVII_Appli
         size_t                     mNbMinPt;
         std::string                mFileSelIm;
         bool                       mNumByConseq;
+
+	std::string                mImFilter;
+        tNameSet                   mSetFilterIm;
+	bool                       mWithImFilter;
+	cMMVII_Ofs *               mFiltFile;
+
 };
 
 cAppli_ImportTiePMul::cAppli_ImportTiePMul(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec,bool ModeTieP) :
@@ -60,7 +66,9 @@ cAppli_ImportTiePMul::cAppli_ImportTiePMul(const std::vector<std::string> & aVAr
    mComment      (-1),
    mNbMinPt      (0),
    mFileSelIm    ("ImagesWithTieP"),
-   mNumByConseq  (false)
+   mNumByConseq  (false),
+   mWithImFilter (false),
+   mFiltFile     (nullptr)
 {
 }
 
@@ -88,6 +96,7 @@ cCollecSpecArg2007 & cAppli_ImportTiePMul::ArgOpt(cCollecSpecArg2007 & anArgObl)
             << AOpt2007(mLLast,"NumLast","Num of last line to read (-1 if at end of file)",{eTA2007::HDV})
             << AOpt2007(mPatIm,"PatIm","Pattern for transforming name [Pat,Replace]",{{eTA2007::ISizeV,"[2,2]"}})
             << AOpt2007(mPatPt,"PatPt","Pattern for transforming/select pt [Pat,Replace] ",{{eTA2007::ISizeV,"[2,2]"}})
+            << AOpt2007(mImFilter,"ImFilter","File/Pattern for selecting images")
    ;
    if (mModeTieP)
       return      aRes
@@ -103,42 +112,41 @@ cCollecSpecArg2007 & cAppli_ImportTiePMul::ArgOpt(cCollecSpecArg2007 & anArgObl)
 
 int cAppli_ImportTiePMul::Exe()
 {
-    mPhProj.FinishInit();
-    std::vector<std::vector<std::string>> aVNames;
-    std::vector<std::vector<double>> aVNums;
-    std::vector<cPt3dr> aVXYZ,aVWKP;
+   mPhProj.FinishInit();
+   MMVII_INTERNAL_ASSERT_tiny(CptSameOccur(mFormat,"XYNI")==1,"Bad format vs NIXY");
+
+   cReadFilesStruct aRFS(mNameFile,mFormat,mL0,mLLast, mComment);
+
+   if (IsInit(&mImFilter))
+   {
+       mWithImFilter = true;
+       mSetFilterIm = SetNameFromString(mImFilter,true);
+       mFiltFile = new cMMVII_Ofs("Toto.txt",eFileModeOut::CreateText);
+       aRFS.SetMemoLinesInit();
+   }
+
+   aRFS.Read();
+   const std::vector<std::string> & aVNIm = aRFS.VNameIm();
+   const std::vector<std::string> & aVNPt = aRFS.VNamePt();
+   const std::vector<cPt3dr> & aVXYZ = aRFS.VXYZ();
 
 
-    MMVII_INTERNAL_ASSERT_tiny(CptSameOccur(mFormat,"XYNI")==1,"Bad format vs NIXY");
-
-    ReadFilesStruct
-    (
-        mNameFile, mFormat,
-        mL0, mLLast, mComment,
-        aVNames,aVXYZ,aVWKP,aVNums,
-        false
-    );
-
-    size_t  aRankI_InF = mFormat.find('I');
-    size_t  aRankP_InF = mFormat.find('N');
-    size_t  aRankP = (aRankP_InF<aRankI_InF) ? 0 : 1;
-    size_t  aRankI = 1 - aRankP;
-
-    std::map<std::string,cVecTiePMul*>     mMapTieP;
-    std::map<std::string,cSetMesPtOf1Im*>  mMapGCP;
+   std::map<std::string,cVecTiePMul*>     mMapTieP;
+   std::map<std::string,cSetMesPtOf1Im*>  mMapGCP;
 
 
-    std::string  aLastNamePt = "";
-    int aInd = 0;
-    for (size_t aK=0 ; aK<aVXYZ.size() ; aK++)
-    {
+   std::string  aLastNamePt = "";
+   int aInd = 0;
+   for (size_t aK=0 ; aK<aVXYZ.size() ; aK++)
+   {
+	 // Read name point, and eventually select + transformate it
          bool PIsSel = true;
-         std::string aNamePt = aVNames.at(aK).at(aRankP);
+         std::string aNamePt = aVNPt.at(aK);
          if (IsInit(&mPatPt))
          {
              if (MatchRegex(aNamePt,mPatPt.at(0)))
              {
-                   aNamePt=ReplacePattern(mPatPt.at(0),mPatPt.at(1),aNamePt);
+                aNamePt=ReplacePattern(mPatPt.at(0),mPatPt.at(1),aNamePt);
              }
              else
                 PIsSel = false;
@@ -146,7 +154,7 @@ int cAppli_ImportTiePMul::Exe()
 
          if (PIsSel)
          {
-             std::string aNameI   = aVNames.at(aK).at(aRankI);
+             std::string aNameI   = aVNIm.at(aK);
              if (IsInit(&mPatIm))
                 aNameI = ReplacePattern(mPatIm.at(0),mPatIm.at(1),aNameI);
 
@@ -182,7 +190,7 @@ int cAppli_ImportTiePMul::Exe()
                  mMapGCP[aNameI]->AddMeasure(cMesIm1Pt(aP2,aNamePt,1.0));
              }
          }
-    }
+   }
 
     if (mModeTieP)
     {
@@ -196,18 +204,19 @@ int cAppli_ImportTiePMul::Exe()
           delete aVecMTp;
         }
         SaveInFile(aSetSave,mFileSelIm+"."+GlobTaggedNameDefSerial());
-     }
-     else
-     {
+    }
+    else
+    {
           for (const auto & [aName,aSetMesIm] : mMapGCP)
           {
               mPhProj.SaveMeasureIm(*aSetMesIm);
               delete aSetMesIm;
           }
-     }
+    }
 
+    delete mFiltFile;
 
-      return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
 
 

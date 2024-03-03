@@ -1026,12 +1026,15 @@ class cReadFilesStruct
        void Read();
 
        const std::vector<std::string>         & VNameIm () const; ///< Accessor + Check init
-       const std::vector<std::string>         & VNamePt () const; ///< Accessor + Check init
-       const std::vector<cPt3dr>              & VXYZ () const; ///< Accessor + Check init
-       const std::vector<cPt2dr>              & Vij () const; ///< Accessor + Check init
-       const std::vector<cPt3dr>              & VWPK () const; ///< Accessor + Check init
-       const std::vector<std::vector<double>> & VNums () const; ///< Accessor + Check init
+       const std::vector<std::string>         & VNamePt () const; ///< Accessor + Check init  "N
+       const std::vector<cPt3dr>              & VXYZ () const; ///< Accessor + Check init    "XYZ"
+       const std::vector<cPt2dr>              & Vij () const; ///< Accessor + Check init      "ij"
+       const std::vector<cPt3dr>              & VWPK () const; ///< Accessor + Check init    "WPK"
+       const std::vector<std::vector<double>> & VNums () const; ///< Accessor + Check init   "FF*F"
+       const std::vector<std::vector<int>>    & VInts () const; ///< Accessor + Check init     "EE*E"
+       const std::vector<std::string>         & VLinesInit () const; ///< Accessor + Check init
        int NbRead() const;  ///< Number of line read
+       void SetMemoLinesInit() ;  ///< Activate the memo of initial lines (false by default)
 
 
      private :
@@ -1042,13 +1045,14 @@ class cReadFilesStruct
          }
          // ============== copy of  constructor parameters ===================
 
-         std::string     mNameFile; /// name of file
-         std::string     mFormat;   /// format of each line
-         int             mL0;       /// num of first line
-         int             mLastL;    /// num of last line
-         int             mComment;  /// carac used for comment if any
+         std::string     mNameFile; ///< name of file
+         std::string     mFormat;   ///< format of each line
+         int             mL0;       ///< num of first line
+         int             mLastL;    ///< num of last line
+         int             mComment;  ///< carac used for comment if any
 
-         int             mNbLineRead;  /// count number of line
+         int             mNbLineRead;  ///< count number of line
+	 bool            mMemoLinesInt;   ///< Do we maintains a memory of initial line (w/o supressed one so that it match data)
 
          std::vector<std::string>               mVNameIm;
          std::vector<std::string>               mVNamePt;
@@ -1056,6 +1060,8 @@ class cReadFilesStruct
          std::vector<cPt2dr>                    mVij;
          std::vector<cPt3dr>                    mVWPK;
          std::vector<std::vector<double>>       mVNums;
+         std::vector<std::vector<int>>          mVInts;
+         std::vector<std::string>               mVLinesInit;
 };
 
 /// nuber of occurence of aC0 in aStr

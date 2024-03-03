@@ -625,7 +625,6 @@ cCollecSpecArg2007 & cAppli_CalibratedSpaceResection::ArgOpt(cCollecSpecArg2007 
 int cAppli_CalibratedSpaceResection::Exe()
 {
     mPhProj.FinishInit();
-
     mNameReport = "Rejected_Ori-" +   mPhProj.DPOrient().DirIn() + "_Mes-" + mPhProj.DPPointsMeasures().DirIn() ;
 
     InitReport(mNameReport,"csv",true);

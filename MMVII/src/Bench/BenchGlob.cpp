@@ -699,6 +699,7 @@ cAppli_MMRecall::cAppli_MMRecall(const std::vector<std::string> & aVArgs,const c
 
 int cAppli_MMRecall::Exe() 
 {
+
     std::string aDirT =  TmpDirTestMMVII() ;
     // Purge TMP
     if (mLevelCall == mLev0)
