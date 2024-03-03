@@ -242,7 +242,7 @@ cReadFilesStruct::cReadFilesStruct
       mNameFile     (aNameFile),
       mFormat       (aFormat),
       mL0           (aL0),
-      mLastL        ((aLastL<0) ? 1000000 : aLastL),
+      mLastL        ((aLastL<0) ? 1e9 : aLastL),
       mComment      (aComment),
       mMemoLinesInt (false)
 {
@@ -293,6 +293,7 @@ void cReadFilesStruct::Read()
     int aNumL = 0;
     while (std::getline(infile, line))
     {
+// StdOut() << "LllllInnneee=" << aNumL << "\n";
 	// JOE
         MMVII_DEV_WARNING("Dont understand why must add \" \" at end of line ReadFilesStruct");
         line += " ";
@@ -393,7 +394,7 @@ void  ReadFilesStruct
 
 
     if (aLastL<=0) 
-       aLastL = 100000000;
+       aLastL = 1e9;
 
     aVNames.clear();
     aVXYZ.clear();

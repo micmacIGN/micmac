@@ -107,6 +107,17 @@ class cBA_BlocRig
 
 };
 
+cBA_GCP
+{
+     public :
+	          // - - - - - - - - GCP  - - - - - - - - - - -
+          cSetMesImGCP *           mMesGCP;
+          cSetMesImGCP             mNewGCP; // set of gcp after adjust
+	  tREAL8                   mSigmaGCP;
+          cStdWeighterResidual     mGCPIm_Weighter;
+          std::vector<cPt3dr_UK*>  mGCP_UK;
+};
+
 
 /**  
  */

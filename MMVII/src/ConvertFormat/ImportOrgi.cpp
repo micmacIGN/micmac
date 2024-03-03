@@ -36,22 +36,23 @@ class cAppli_ImportOrgi : public cMMVII_Appli
 	std::string                 mNameFileModel;
 	std::string                 mNameFileAmer;
 	std::string                 mNameFileAppui;
+	std::string                 mNameFileLiaison;
 
 	std::map<int,std::string>   mMapNum2Im; //
 	std::vector<std::string>    mVecNum2Pt; //
 	std::string                 mNameOut;
-	cSetMesGCP                  mMesGCP;
 	std::vector<std::string>    mChgImageName;
+         
 };
 
 cAppli_ImportOrgi::cAppli_ImportOrgi(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-   cMMVII_Appli     (aVArgs,aSpec),
-   mPhProj          (*this),
-   mNameFileModel   ("MODELES.TXT"),
-   mNameFileAmer    ("AMERS.TXT"),
-   mNameFileAppui   ("APPUIS.TXT"),
-   mNameOut         ("ORGI"),
-   mMesGCP          (mNameOut)
+   cMMVII_Appli       (aVArgs,aSpec),
+   mPhProj            (*this),
+   mNameFileModel     ("MODELES.TXT"),
+   mNameFileAmer      ("AMERS.TXT"),
+   mNameFileAppui     ("APPUIS.TXT"),
+   mNameFileLiaison   ("LIAISONS.TXT"),
+   mNameOut           ("ORGI")
 {
 }
 
@@ -68,9 +69,9 @@ cCollecSpecArg2007 & cAppli_ImportOrgi::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
     
     return anArgOpt
-           << AOpt2007(mNameFileModel,"NameModel","Name for file of \"model\"",{eTA2007::HDV})
-           << AOpt2007(mNameFileAmer,"NameAmer","Name for file of 3D-GCP measure (AKA \"ORGI::amers\")",{eTA2007::HDV})
-           << AOpt2007(mNameFileAppui,"NameAppuis","Name for file of 2D-GCP measure in images (AKA \"ORGI::appuis\")",{eTA2007::HDV})
+           // << AOpt2007(mNameFileModel,"NameModel","Name for file of \"model\"",{eTA2007::HDV})
+           // << AOpt2007(mNameFileAmer,"NameAmer","Name for file of 3D-GCP measure (AKA \"ORGI::amers\")",{eTA2007::HDV})
+           // << AOpt2007(mNameFileAppui,"NameAppuis","Name for file of 2D-GCP measure in images (AKA \"ORGI::appuis\")",{eTA2007::HDV})
            << AOpt2007(mChgImageName,"ChImage","For changing name of images [Pat,Chg]",{{eTA2007::ISizeV,"[2,2]"}})
        //  << AOpt2007(mNbDigName,"NbDigName","Number of digit for name, if fixed size required (only if int)")
        //  << AOpt2007(mL0,"NumL0","Num of first line to read",{eTA2007::HDV})
@@ -83,9 +84,9 @@ cCollecSpecArg2007 & cAppli_ImportOrgi::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 int cAppli_ImportOrgi::Exe()
 {
     mPhProj.DPPointsMeasures().SetDirOut(mNameOut);
+    mPhProj.DPMulTieP().SetDirOut(mNameOut);
 
     mPhProj.FinishInit();
-
 
     //  Read the models and construct the map int -> Name
     {
@@ -100,42 +101,70 @@ int cAppli_ImportOrgi::Exe()
 	 }
     }
 
-    //  Read the 3D measures of GCP 
+    // Read the GCPs
     {
-         cReadFilesStruct aFileAmers(mOrgiFolder+mNameFileAmer,"NXYZ",0,-1,'#');
-	 aFileAmers.Read();
-	 for (int aK=0 ; aK<aFileAmers.NbRead() ; aK++)
-	 {
-             const std::string & aNamePt = aFileAmers.VNamePt().at(aK);
-             cPt3dr  aPt         =  aFileAmers.VXYZ().at(aK);
-	     mVecNum2Pt.push_back(aNamePt);
-	     mMesGCP.AddMeasure(cMes1GCP(aPt,aNamePt,1.0)); 
-	 }
+	cSetMesGCP   aMesGCP(mNameOut);
+        //  Read the 3D measures of GCP 
+        {
+             cReadFilesStruct aFileAmers(mOrgiFolder+mNameFileAmer,"NXYZ",0,-1,'#');
+	     aFileAmers.Read();
+	     for (int aK=0 ; aK<aFileAmers.NbRead() ; aK++)
+	     {
+                 const std::string & aNamePt = aFileAmers.VNamePt().at(aK);
+                 cPt3dr  aPt         =  aFileAmers.VXYZ().at(aK);
+	         mVecNum2Pt.push_back(aNamePt);
+	         aMesGCP.AddMeasure(cMes1GCP(aPt,aNamePt,1.0)); 
+	     }
+        }
+
+        //  Read the 2D measures of GCP
+        //  Fichier  APPUIS.TXT  (ORGI)
+        std::map<int,cSetMesPtOf1Im> aMapMesIm;
+        {
+             cReadFilesStruct aFileAppuis(mOrgiFolder+mNameFileAppui,"EEXY",0,-1,'#');
+	     aFileAppuis.Read();
+	     for (int aK=0 ; aK<aFileAppuis.NbRead() ; aK++)
+	     {
+                  int aNumPt = aFileAppuis.VInts().at(aK).at(0)-1;  // 1 (and not 0) is number of  fist Line in ORGI conv
+                  int aNumIm = aFileAppuis.VInts().at(aK).at(1);
+	          cPt2dr aPIm = PSymXY(Proj(aFileAppuis.VXYZ().at(aK)));
+    
+	          cSetMesPtOf1Im & aMesIm  = aMapMesIm[aNumIm];
+	          std::string aNameIm = mMapNum2Im[aNumIm];
+                  aMesIm.SetNameIm(aNameIm);
+
+	          aMesIm.AddMeasure(cMesIm1Pt(aPIm,mVecNum2Pt.at(aNumPt),1.0));
+	     }
+        }
+
+        mPhProj.SaveGCP(aMesGCP);
+        for (const auto & [aNum,aMesIm] : aMapMesIm)
+        {
+             mPhProj.SaveMeasureIm(aMesIm);
+        }
     }
 
-    //  Read the 2D measures of GCP
-    //  Fichier  APPUIS.TXT  (ORGI)
-    std::map<int,cSetMesPtOf1Im> aMapMesIm;
+    // Read the TieP
     {
-         cReadFilesStruct aFileAppuis(mOrgiFolder+mNameFileAppui,"EEXY",0,-1,'#');
-	 aFileAppuis.Read();
-	 for (int aK=0 ; aK<aFileAppuis.NbRead() ; aK++)
-	 {
-              int aNumPt = aFileAppuis.VInts().at(aK).at(0)-1;  // 1 (and not 0) is number of  fist Line in ORGI conv
-              int aNumIm = aFileAppuis.VInts().at(aK).at(1);
-	      cPt2dr aPIm = PSymXY(Proj(aFileAppuis.VXYZ().at(aK)));
+        std::map<std::string,cVecTiePMul>     aMapTieP;
+        cReadFilesStruct aFileLiason(mOrgiFolder+mNameFileLiaison,"EEXY",0,-1,'#');
+        aFileLiason.Read();
+	for (int aK=0 ; aK<aFileLiason.NbRead() ; aK++)
+	{
+            int aNumPt = aFileLiason.VInts().at(aK).at(0)-1;  // 1 (and not 0) is number of  fist Line in ORGI conv
+            int aNumIm = aFileLiason.VInts().at(aK).at(1);
+	    cPt2dr aPIm = PSymXY(Proj(aFileLiason.VXYZ().at(aK)));
+	    std::string aNameIm = mMapNum2Im[aNumIm];
+            auto & aVTMP = aMapTieP[aNameIm];
+            if (aVTMP.mNameIm =="")
+               aVTMP.mNameIm = aNameIm;
+            aVTMP.mVecTPM.push_back(cTiePMul(aPIm,aNumPt));
 
-	      cSetMesPtOf1Im & aMesIm  = aMapMesIm[aNumIm];
-	      std::string aNameIm = mMapNum2Im[aNumIm];
-              aMesIm.SetNameIm(aNameIm);
-
-	      aMesIm.AddMeasure(cMesIm1Pt(aPIm,mVecNum2Pt.at(aNumPt),1.0));
-	 }
-    }
-    mPhProj.SaveGCP(mMesGCP);
-    for (const auto & [aNum,aMesIm] : aMapMesIm)
-    {
-         mPhProj.SaveMeasureIm(aMesIm);
+        }
+        for (const auto & [aName,aVecMTp] : aMapTieP)
+        {
+            mPhProj.SaveMultipleTieP(aVecMTp,aName);
+        }
     }
 
     return EXIT_SUCCESS;

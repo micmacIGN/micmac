@@ -109,6 +109,8 @@ cCollecSpecArg2007 & cAppli_ImportTiePMul::ArgOpt(cCollecSpecArg2007 & anArgObl)
            ;
 }
 
+//          POS=5217769,0001
+//     Nbeellem=999999
 
 int cAppli_ImportTiePMul::Exe()
 {
@@ -121,7 +123,7 @@ int cAppli_ImportTiePMul::Exe()
    {
        mWithImFilter = true;
        mSetFilterIm = SetNameFromString(mImFilter,true);
-       mFiltFile = new cMMVII_Ofs("Toto.txt",eFileModeOut::CreateText);
+       mFiltFile = new cMMVII_Ofs("Filtered_" + mNameFile,eFileModeOut::CreateText);
        aRFS.SetMemoLinesInit();
    }
 
@@ -137,6 +139,7 @@ int cAppli_ImportTiePMul::Exe()
 
    std::string  aLastNamePt = "";
    int aInd = 0;
+   // StdOut()  << "Nbeellem=" << aVXYZ.size() << " " << aRFS.NbRead() << "\n";
    for (size_t aK=0 ; aK<aVXYZ.size() ; aK++)
    {
 	 // Read name point, and eventually select + transformate it
@@ -158,36 +161,46 @@ int cAppli_ImportTiePMul::Exe()
              if (IsInit(&mPatIm))
                 aNameI = ReplacePattern(mPatIm.at(0),mPatIm.at(1),aNameI);
 
+
              cPt2dr aP2 = Proj(aVXYZ.at(aK));
+             bool  ImIsSel = true;
+             if (mWithImFilter)
+                 ImIsSel =  mSetFilterIm.Match(aNameI);
 
-             if (mModeTieP)
-             {
-                 if (mNumByConseq)
-                 {
-                     if (aNamePt != aLastNamePt)
+            if (ImIsSel)
+            {
+                if (mFiltFile )
+                    mFiltFile->Ofs() <<  aRFS.VLinesInit().at(aK) << "\n";
+
+                if (mModeTieP)
+                {
+                     if (mNumByConseq)
                      {
-                          aInd++;
-                          aLastNamePt = aNamePt;
+                         if (aNamePt != aLastNamePt)
+                         {
+                              aInd++;
+                              aLastNamePt = aNamePt;
+                         }
                      }
-                 }
-                 else
-                 {
-                     aInd = cStrIO<int>::FromStr(aNamePt);
-                 }
+                     else
+                     {
+                         aInd = cStrIO<int>::FromStr(aNamePt);
+                     }
 
-                 if (mMapTieP.find(aNameI) == mMapTieP.end())
-                 {
-                     mMapTieP[aNameI] = new cVecTiePMul(aNameI);
-                 }
-                 mMapTieP[aNameI]->mVecTPM.push_back(cTiePMul(aP2,aInd));
-             }
-             else
-             {
-                 if (mMapGCP.find(aNameI) == mMapGCP.end())
-                 {
-                     mMapGCP[aNameI] = new cSetMesPtOf1Im(aNameI);
-                 }
-                 mMapGCP[aNameI]->AddMeasure(cMesIm1Pt(aP2,aNamePt,1.0));
+                     if (mMapTieP.find(aNameI) == mMapTieP.end())
+                     {
+                         mMapTieP[aNameI] = new cVecTiePMul(aNameI);
+                     }
+                     mMapTieP[aNameI]->mVecTPM.push_back(cTiePMul(aP2,aInd));
+                }
+                else
+                {
+                    if (mMapGCP.find(aNameI) == mMapGCP.end())
+                    {
+                        mMapGCP[aNameI] = new cSetMesPtOf1Im(aNameI);
+                    }
+                    mMapGCP[aNameI]->AddMeasure(cMesIm1Pt(aP2,aNamePt,1.0));
+                }
              }
          }
    }
