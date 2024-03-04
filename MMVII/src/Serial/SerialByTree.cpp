@@ -543,7 +543,11 @@ const cSerialTree * cSerialTree::GetUniqueDescFromName(const std::string & aTag,
     {
         if (! SVP)
 	{
-            MMVII_INTERNAL_ASSERT_tiny(false,"cSerialTree::GetUniqueDescFromName, size="+ToStr(aRes.size()));
+            MMVII_INTERNAL_ASSERT_tiny
+            (
+                  false,
+                  "cSerialTree::GetUniqueDescFromName, size="+ToStr(aRes.size()) + " Tag=" + aTag
+            );
 	}
 	return nullptr;
     }

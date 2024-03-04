@@ -184,6 +184,7 @@ class cReadMTP_Std
               typedef cIndexedHeap<cObjHeapMTP,cParamHeap_MTP,cParamHeap_MTP> tHeap;
 	      cReadMTP_Std
               (
+                     const std::string & aFolder,
                      const std::vector<std::string> &aVNames,
 		     cPhotogrammetricProject & aPhProj,
 		     bool WithInd,
@@ -254,6 +255,7 @@ bool cReadMTP_Std::GetNextConfig()
 
 cReadMTP_Std::cReadMTP_Std
 (
+    const std::string & aFolder,
     const std::vector<std::string> &aVNames,
     cPhotogrammetricProject & aPhProj,
     bool  WithIndex,
@@ -268,7 +270,7 @@ cReadMTP_Std::cReadMTP_Std
      bool GotSomething = false;
      for (size_t aKIm=0 ; aKIm<aVNames.size() ; aKIm++)
      {
-	  aPhProj.ReadMultipleTieP(mVTpm[aKIm],aVNames[aKIm],true);  // true=SVP , ok if no file
+	  aPhProj.ReadMultipleTiePFromFolder(aFolder,mVTpm[aKIm],aVNames[aKIm],true);  // true=SVP , ok if no file
 	  const auto & aVec = mVTpm[aKIm].mVecTPM;
 	  if (! aVec.empty())
 	  {
@@ -292,6 +294,24 @@ cReadMTP_Std::cReadMTP_Std
 
 cComputeMergeMulTieP * cReadMTP_Std::CompMerge() {return mCompMerge;}
 
+cComputeMergeMulTieP * AllocStdFromMTPFromFolder
+                      (
+                            const std::string & aFolder,
+                            const std::vector<std::string> &aVNames,
+                            cPhotogrammetricProject & aPhProj,
+                            bool  WithIndexPt,
+                            bool  WithSensor,
+                            bool  WithIndexImages
+                      )
+{
+    cReadMTP_Std aRStd(aFolder,aVNames,aPhProj,WithIndexPt,WithSensor);
+
+    if (WithIndexImages)
+        aRStd.CompMerge()->SetImageIndexe();
+
+    return aRStd.CompMerge();
+}
+
 cComputeMergeMulTieP * AllocStdFromMTP
                       (
                             const std::vector<std::string> &aVNames,
@@ -301,13 +321,18 @@ cComputeMergeMulTieP * AllocStdFromMTP
                             bool  WithIndexImages
                       )
 {
-    cReadMTP_Std aRStd(aVNames,aPhProj,WithIndexPt,WithSensor);
-
-    if (WithIndexImages)
-        aRStd.CompMerge()->SetImageIndexe();
-
-    return aRStd.CompMerge();
+   return AllocStdFromMTPFromFolder(aPhProj.DPMulTieP().DirIn(),aVNames,aPhProj,WithIndexPt,WithSensor,WithIndexImages);
 }
+
+
+
+   // cDirsPhProj     DPPointsMeasures;  ///<  For GCP measures  Image + Grounds
+   // cDirsPhProj     DPTieP;            ///<  For Homologous point
+   // cDirsPhProj     DPMulTieP;         //
+
+
+
+
 
 
 }; // MMVII

@@ -167,7 +167,7 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
 	aAvg2d.Add(1.0,aVec);
 	tREAL8 aDist = Norm2(aVec);
 	aStat.Add(aDist);
-        AddOneReportCSV(mNameReportDetail,{aNameIm,aMes.mNamePt,ToStr(aDist)});
+        AddOneReportCSV(mNameReportDetail,{aNameIm,aMes.mNamePt,ToStr(aDist),ToStr(aVec.x()),ToStr(aVec.y())});
     }
 
 
@@ -272,9 +272,12 @@ void cAppli_CGPReport::ReportsByCam()
 
    for (const auto & aNameIm : VectMainSet(0))
    {
-       cSensorCamPC *  aCam = mPhProj.ReadCamPC(aNameIm,true);
-       mPhProj.LoadIm(aSetMes,aNameIm,aCam,true);
-       aMapCam[aCam->InternalCalib()].push_back(aCam);
+       cSensorCamPC *  aCam = mPhProj.ReadCamPC(aNameIm,true,true);
+       if (aCam)
+       {
+            mPhProj.LoadIm(aSetMes,aNameIm,aCam,true);
+            aMapCam[aCam->InternalCalib()].push_back(aCam);
+       }
    }
 
    InitReport(mNameReportCam,"csv",false);
@@ -360,7 +363,7 @@ int cAppli_CGPReport::Exe()
    if (LevelCall()==0)
    {
        AddStdHeaderStatCSV(mNameReportIm,"Image",mPropStat,{"AvgX","AvgY"});
-       AddOneReportCSV(mNameReportDetail,{"Image","GCP","Err"});
+       AddOneReportCSV(mNameReportDetail,{"Image","GCP","Err","Dx","Dy"});
        AddOneReportCSV(mNameReportMissed,{"Image","GCP","XTh","YTh"});
    }
    if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set

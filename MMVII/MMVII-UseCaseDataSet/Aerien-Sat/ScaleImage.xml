@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<Root>
+   <Type>"MMVII_Serialization"</Type>
+   <Version>"0.0.0"</Version>
+   <Data>
+      <Tries>
+         <el>
+            <Pat> 21FD.*  </Pat>
+            <Val> 3.0 </Val>
+         </el>
+         <el>
+            <Pat> IMG_PNEO.*  </Pat>
+            <Val> 2.0         </Val>
+         </el>
+      </Tries>
+   </Data>
+</Root>

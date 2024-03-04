@@ -25,6 +25,12 @@ template <class T>  cPtxd<T,3> operator ^ (const cPtxd<T,3> & aP1,const cPtxd<T,
           );
 }
 
+template <class Type> inline cPtxd<Type,3> PSymXY (const cPtxd<Type,3> & aP)
+{
+    return cPtxd<Type,3>(aP.y(),aP.x(),aP.z());
+}
+
+
 ///< compute determinant  as A.(B ^ C)
 template <class T>  T  Determinant (const cPtxd<T,3> &,const cPtxd<T,3> & aP2,const cPtxd<T,3> & aP3);
 ///< compute regularity of tetraedr (including 0,0,0),  FactEps * limit is used for too small coords

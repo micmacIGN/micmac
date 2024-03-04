@@ -275,12 +275,22 @@ void cSetMesImGCP::ExtractMes1Im(cSet2D3D&  aS23,const std::string &aNameIm,bool
     }
 }
 
+void cSetMesImGCP::AsserGCPFinished() const
+{
+  if (! mPhaseGCPFinished)
+     MMVII_UnclasseUsEr("cSetMesImGCP : use with no image file");
+}
+
+
 cSetMesImGCP *  cSetMesImGCP::FilterNonEmptyMeasure(int aNbMeasureMin) const
 {
+   AsserGCPFinished();
+
   cSetMesImGCP * aRes = new cSetMesImGCP;
 
   for (size_t aKGCP=0 ; aKGCP<mMesGCP.size() ; aKGCP++)
   {
+
        if ( int(mMesImOfPt[aKGCP].VImages().size()) >= aNbMeasureMin)
        {
              aRes->Add1GCP(mMesGCP[aKGCP]);

@@ -14,7 +14,10 @@ void cMMVII_BundleAdj::InitItereTopo()
     if (mTopo)
     {
         std::cout<<"cMMVII_BundleAdj::InitItereTopo\n";
-        mTopo->FromFile(mMesGCP, &mGCP_UK, mPhProj);
+        //  MPD => JMM :  2 check with new way of handling GCP
+        MMVII_INTERNAL_ERROR(" MPD => JMM  : PLEASE CHECK at line " + ToStr(__LINE__+1) + " in file " +  __FILE__);
+        mTopo->FromFile(mVGCP.at(0)->mMesGCP, &mVGCP.at(0)->mGCP_UK, mPhProj);
+        // mTopo->FromFile(mMesGCP, &mGCP_UK, mPhProj);
         //mTopo->getTopoData().createEx4();
         mTopo->AddToSys(mSetIntervUK); //after all is created
     }

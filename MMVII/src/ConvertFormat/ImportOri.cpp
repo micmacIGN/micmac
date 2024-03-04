@@ -51,7 +51,10 @@ class cAppli_ImportOri : public cMMVII_Appli
 	std::vector<std::string> mChgName2;  // for ex, with IMU, we want to export as image init & imu measure
 	std::string              mNameDicoName;
 	std::string              mFileSaveIm;
+	std::string              mFilterFileImIn;
+	std::string              mSysCo;
 	size_t                   mNbMinTieP;
+        tNameSet                 mSetFilter;
 };
 
 cAppli_ImportOri::cAppli_ImportOri(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -93,6 +96,8 @@ cCollecSpecArg2007 & cAppli_ImportOri::ArgOpt(cCollecSpecArg2007 & anArgObl)
        << AOpt2007(mFileSaveIm,"FileSaveIm","File for saving all names of images ")
        << mPhProj.DPMulTieP().ArgDirInOpt("TiePF","TieP for filtering on number")
        << AOpt2007(mNbMinTieP,"NbMinTieP","Number mininmal of tie point (when TiePF is init)",{eTA2007::HDV} )
+       << AOpt2007(mFilterFileImIn,"FilterImIn","File/Pattern for filtering image in")
+       << AOpt2007(mSysCo,"SysCo","Coordinate system for saving in result folder")
     ;
 }
 
@@ -110,12 +115,20 @@ std::vector<std::string>  cAppli_ImportOri::Samples() const
 int cAppli_ImportOri::Exe()
 {
     mPhProj.FinishInit();
+    if (IsInit(&mSysCo))
+       mPhProj.SaveCurSysCoOri(mPhProj.ReadSysCo(mSysCo));
+
     std::vector<std::vector<std::string>> aVNames;
     std::vector<std::vector<double>> aVNums;
     std::vector<cPt3dr> aVXYZ,aVWKP;
 
     if (mRepIJDir)
        mRepIJK = "i-j-k";
+
+    if (IsInit(&mFilterFileImIn))
+    {
+        mSetFilter = SetNameFromString(mFilterFileImIn,true);
+    }
 
     cRotation3D<tREAL8>  aRotAfter = cRotation3D<tREAL8>::RotFromCanonicalAxes(mRepIJK);
 
@@ -146,6 +159,10 @@ int cAppli_ImportOri::Exe()
 
     for (size_t aK=0 ; aK<aVXYZ.size() ; aK++)
     {
+         if (aK%500==0)
+	 {
+             StdOut() << "Remains " << aVXYZ.size() -aK << "\n";
+	 }
          std::string aNameIm = aVNames.at(aK).at(0);
 	 for (size_t aKName=1 ; aKName<aVNames.at(aK).size() ; aKName++)
              aNameIm = aNameIm + mSeparator + aVNames.at(aK).at(aKName);
@@ -161,54 +178,51 @@ int cAppli_ImportOri::Exe()
             }
 	    aNameIm = anIt->second;
          }
-         std::string aNameIm2 = aNameIm;
-         ChgName(mChgName2,aNameIm2);
 
-	 // StdOut() << "aNameImaNameIm=" << aNameIm << "\n";
-	 /*
-	 bool Add2Set = mPhProj.HasNbMinMultiTiePoints(aNameIm,mNbMinTieP,true);
-	 if ( mPhProj.DPMulTieP().DirInIsInit())
+	 if ( (!IsInit(&mFilterFileImIn)) || (mSetFilter.Match(aNameIm)))
 	 {
-              cVecTiePMul aVPM(aNameIm);
-	      mPhProj.ReadMultipleTieP(aVPM,aNameIm,true);
-	      Add2Set = (aVPM.mVecTPM.size() >= mNbMinTieP);
-	 }
-	 */
+            std::string aNameIm2 = aNameIm;
+            ChgName(mChgName2,aNameIm2);
 
-	 if (mPhProj.HasNbMinMultiTiePoints(aNameIm,mNbMinTieP,true))
-	 {
-	    aSetIm.Add(aNameIm);
-            if (WithName2)
-	       aSetIm.Add(aNameIm2);
-	 }
+
+	    if (mPhProj.HasNbMinMultiTiePoints(aNameIm,mNbMinTieP,true))
+	    {
+	       aSetIm.Add(aNameIm);
+               if (WithName2)
+	          aSetIm.Add(aNameIm2);
+	    }
             
 
-	 // Orient may be non init, by passing NONE, if we want to generate only the name
+	    // Orient may be non init, by passing NONE, if we want to generate only the name
 
-	 if (mPhProj.DPOrient().DirInIsInit())
-	 {
-	     cPt3dr aCenter = aVXYZ.at(aK);
-	     cPt3dr aWPK = aVWKP.at(aK) / aAngDiv ;
+	    if (mPhProj.DPOrient().DirInIsInit())
+	    {
+	        cPt3dr aCenter = aVXYZ.at(aK);
+	        cPt3dr aWPK = aVWKP.at(aK) / aAngDiv ;
 
-	     cPerspCamIntrCalib *  aCalib = mPhProj.InternalCalibFromStdName(aNameIm);
+	        cPerspCamIntrCalib *  aCalib = mPhProj.InternalCalibFromStdName(aNameIm);
 
 	 
-	     cRotation3D<tREAL8>  aRot =  cRotation3D<tREAL8>::RotFromWPK(aWPK);
-	     aRot = aRot * aRotAfter;
+	        cRotation3D<tREAL8>  aRot =  cRotation3D<tREAL8>::RotFromWPK(aWPK);
+	        aRot = aRot * aRotAfter;
 
-	     cIsometry3D aPose(aCenter,aRot);
-	     cSensorCamPC  aCam(aNameIm,aPose,aCalib);
-	     mPhProj.SaveCamPC(aCam);
-             if (WithName2)
-             {
-                 cSensorCamPC aCam2(aNameIm2,aPose,nullptr);
-                 mPhProj.SaveCamPC(aCam2);  
-             }
+	        cIsometry3D aPose(aCenter,aRot);
+	        cSensorCamPC  aCam(aNameIm,aPose,aCalib);
+	        mPhProj.SaveCamPC(aCam);
+                if (WithName2)
+                {
+                    cSensorCamPC aCam2(aNameIm2,aPose,nullptr);
+                    mPhProj.SaveCamPC(aCam2);  
+                }
+	    }
 	 }
     }
 
     if (IsInit(&mFileSaveIm))
        SaveInFile(aSetIm,mFileSaveIm);
+
+
+
 
     return EXIT_SUCCESS;
 }

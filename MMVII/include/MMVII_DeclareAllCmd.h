@@ -71,6 +71,7 @@ extern cSpecMMVII_Appli  TheSpec_OriBundlAdj;
 extern cSpecMMVII_Appli  TheSpecDistCorrectCirgTarget;
 extern cSpecMMVII_Appli  TheSpecGenArgsSpec;
 extern cSpecMMVII_Appli  TheSpec_ImportGCP;
+extern cSpecMMVII_Appli  TheSpec_ImportORGI;
 extern cSpecMMVII_Appli  TheSpec_ImportTiePMul;
 extern cSpecMMVII_Appli  TheSpec_ImportMesImGCP;
 extern cSpecMMVII_Appli  TheSpec_ImportM32;
