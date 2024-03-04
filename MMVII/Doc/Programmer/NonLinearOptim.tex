@@ -297,19 +297,45 @@ is non dimensionnal variant of equation~\ref{EqConsDist}. Some comment :
          single value, because in general, when we want to compute several values (like
          $x$ and $y$ residual in BA)  its more efficient and convenient to group 
          a multiple residual in a single formula that generating different formulas;
-   \item the commented lines show how to use {\tt SymbPrint()} and
-         {\tt SymbPrintDer()} to display at run time computed value of
-         expressions or parts of expression in the formula.  
+   \item below this function, there is another version which is commented. It's showing
+         how to use {\tt SymbPrint()}, {\tt SymbPrintDer()}, {\tt SymbComment()} and 
+         {\tt SymbCommentDer()} to document the generated code or to output (print) 
+         values of expressions or parts of expression in the formula.
    \begin{itemize}
-         \item {\tt SymbPrint(expr, mesg)} will display
+         \item {\tt SymbComment(expr, comment)} will place {\tt comment} as a comment
+               on the line in the generated code where a tempory variable will be assigned
+               the value of expr.
+         \item {\tt SymbCommentDer(expr, k, comment)} will place {\tt comment} as a comment
+               on the line in the generated code where a tempory variable will be assigned 
+               the value of the derivative of expr with respect to the kth unknown.
+         \item {\tt SymbPrint(expr, mesg)} will generate code to display at runtime
                "[i] mesg =  (value of expr)", i being the current iteration of the loop
                when multiple values are calculated simultaneously.
-         \item {\tt SymbPrintDer(expr, k, mesg)} will display 
+         \item {\tt SymbPrintDer(expr, k, mesg)} will generate code to display at runtime
                "[i] mesg = (value of derivative)", derivative being the derivative
                of expr with respect to the kth Unknown.
          \item to enable the output of this value, SetDebugEnabled(true) must be called
                 before on the calculator. See \ref{CreateCalc}
    \end{itemize}
+        With this (commented) example formula, the generated code would look like this:
+        \begin{lstlisting}
+<...>
+double F31_ = (F30_ - 1);  // f
+double F28_ = (F27_ / F14_);  // d(|v|)/d(p2.y)
+double F18_ = (F17_ / F14_);  // d(|v|)/d(p1.x)
+double F33_ = (D * F18_);
+double F39_ = (D * F28_);
+double F34_ = (F33_ / F32_);  // d(f)/d(p1.x)
+double F40_ = (F39_ / F32_);  // d(f)/d(p2.y)
+if (IsDebugEnabled()) {
+  MMVII::StdOut()<< "[" << aK << "]  Vx=" << F9_ << std::endl;
+  MMVII::StdOut()<< "[" << aK << "]  Vy=" << F8_ << std::endl;
+  MMVII::StdOut()<< "[" << aK << "]  Dist2DConst=" << F31_ << std::endl;
+  MMVII::StdOut()<< "[" << aK << "]  d(dist2DConst)/d(p1.x)=" << F34_ << std::endl;
+  MMVII::StdOut()<< "[" << aK << "]  d(Dist2DConst)/d(p2.y)=" << F40_ << std::endl;
+}
+<...>
+        \end{lstlisting}
 \end{itemize}
 
 As a slightly more complex example, the reader can investigate example {\tt cRatioDist2DConservation}
