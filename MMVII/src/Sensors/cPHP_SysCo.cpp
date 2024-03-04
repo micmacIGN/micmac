@@ -134,7 +134,14 @@ tPtrSysCo cPhotogrammetricProject::ReadSysCo(const std::string &aName,bool SVP) 
      if (starts_with(aName,MMVII_LocalSys))
      {
          std::string aSubstr = aName.substr(MMVII_LocalSys.size(),std::string::npos);
-         return cSysCoordV2::LocalSystem(aSubstr);
+         tPtrSysCo aRes = cSysCoordV2::LocalSystem(aSubstr);
+         //  see if it already exist 
+         tPtrSysCo aReRead = ReadSysCo(aSubstr,SVP::Yes);
+         //  if not create it
+         if (aReRead.get() == nullptr)
+            SaveSysCo(aRes,aSubstr);
+
+         return aRes;
      }
 
 

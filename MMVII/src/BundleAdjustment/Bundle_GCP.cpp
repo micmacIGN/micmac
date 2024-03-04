@@ -108,7 +108,7 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(cBA_GCP & aBA)
 
      if (1)
      {
-        StdOut() << "  Res;  Gcp0: " << aSet->AvgSqResidual() ;
+        StdOut() << "  * " <<  aBA.mName << " : Gcp0=" << aSet->AvgSqResidual() ;
         if (aGcpUk)
         {
             aNewGCP = *aSet;
@@ -118,7 +118,7 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(cBA_GCP & aBA)
                 // StdOut() << " DIFF=" << aDif  << " DDD= "  << (aDif.x()==0)  <<" " << (aDif.y()==0)  <<" " << (aDif.z()==0)  <<" " << "\n";
                 aNewGCP.MesGCP()[aK].mPt = aGCP_UK[aK]->Pt();
 	    }
-            StdOut() << "  GcpNew: " << aNewGCP.AvgSqResidual() ; // getchar();
+            StdOut() << " , GcpNew=" << aNewGCP.AvgSqResidual() ; // getchar();
         }
         StdOut() << std::endl;
      }

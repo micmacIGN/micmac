@@ -214,7 +214,7 @@ void  cAppliBundlAdj::AddOneSetTieP(const std::vector<std::string> & aVParStd)
     std::string aFolder = aVParStd.at(0);  // folder
     std::vector<tREAL8>  aTiePW = ConvParamStandard(aVParStd,3,6);
     cStdWeighterResidual aWeighter(aTiePW,0);
-    mBA.AddMTieP(AllocStdFromMTPFromFolder(aFolder,VectMainSet(0),mPhProj,false,true,false),aWeighter);
+    mBA.AddMTieP(aFolder,AllocStdFromMTPFromFolder(aFolder,VectMainSet(0),mPhProj,false,true,false),aWeighter);
 }
 
 

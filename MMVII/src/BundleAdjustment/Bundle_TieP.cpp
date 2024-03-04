@@ -8,7 +8,8 @@ namespace MMVII
     /*            Tie Points                    */
     /* ---------------------------------------- */
 
-cBA_TieP::cBA_TieP(cComputeMergeMulTieP* aMTP,const cStdWeighterResidual &aResW):
+cBA_TieP::cBA_TieP(const std::string & aName,cComputeMergeMulTieP* aMTP,const cStdWeighterResidual &aResW):
+    mName           (aName),
     mMTP            (aMTP),
     mTieP_Weighter  (aResW)
 {
@@ -24,9 +25,9 @@ cBA_TieP::~cBA_TieP()
     /*            Tie Points                    */
     /* ---------------------------------------- */
 
-void cMMVII_BundleAdj::AddMTieP(cComputeMergeMulTieP  * aMTP,const cStdWeighterResidual & aWIm)
+void cMMVII_BundleAdj::AddMTieP(const std::string & aName,cComputeMergeMulTieP  * aMTP,const cStdWeighterResidual & aWIm)
 {
-    mVTieP.push_back(new cBA_TieP(aMTP,aWIm));
+    mVTieP.push_back(new cBA_TieP(aName,aMTP,aWIm));
 }
 
 
@@ -104,7 +105,7 @@ void cMMVII_BundleAdj::OneItere_TieP(const cBA_TieP& aBA_TieP)
        }
 
    }
-   StdOut() << "Weighted Residual=" << aWeigthedRes.Average() << std::endl; 
+   StdOut() <<  "  # " << aBA_TieP.mName << ": Weighted Residual=" << aWeigthedRes.Average() << std::endl; 
 }
 
 void cMMVII_BundleAdj::OneItere_TieP()

@@ -125,9 +125,10 @@ class cBA_GCP
 class cBA_TieP
 {
      public :
-       cBA_TieP(cComputeMergeMulTieP*,const cStdWeighterResidual &aRes);
+       cBA_TieP(const std::string & aName,cComputeMergeMulTieP*,const cStdWeighterResidual &aRes);
        ~cBA_TieP();
        
+       std::string              mName;   // Name of folder 
        cComputeMergeMulTieP *   mMTP;
        cStdWeighterResidual     mTieP_Weighter;
 };
@@ -155,7 +156,7 @@ class cMMVII_BundleAdj
           void AddGCP(const std::string & aName,tREAL8 aSigmaGCP,const  cStdWeighterResidual& aWeightIm, cSetMesImGCP *);
 
 	  ///  ============  Add multiple tie point ============
-	  void AddMTieP(cComputeMergeMulTieP  * aMTP,const cStdWeighterResidual & aWIm);
+	  void AddMTieP(const std::string & aName,cComputeMergeMulTieP  * aMTP,const cStdWeighterResidual & aWIm);
 
           /// One iteration : add all measure + constraint + Least Square Solve/Udpate/Init
           void OneIteration(tREAL8 aLVM=0.0);
