@@ -107,15 +107,29 @@ class cBA_BlocRig
 
 };
 
-cBA_GCP
+class cBA_GCP
 {
      public :
 	          // - - - - - - - - GCP  - - - - - - - - - - -
+          cBA_GCP();
+          ~cBA_GCP();
+
+          std::string              mName;   // Name of folder 
           cSetMesImGCP *           mMesGCP;
           cSetMesImGCP             mNewGCP; // set of gcp after adjust
 	  tREAL8                   mSigmaGCP;
           cStdWeighterResidual     mGCPIm_Weighter;
           std::vector<cPt3dr_UK*>  mGCP_UK;
+};
+
+class cBA_TieP
+{
+     public :
+       cBA_TieP(cComputeMergeMulTieP*,const cStdWeighterResidual &aRes);
+       ~cBA_TieP();
+       
+       cComputeMergeMulTieP *   mMTP;
+       cStdWeighterResidual     mTieP_Weighter;
 };
 
 
@@ -138,7 +152,7 @@ class cMMVII_BundleAdj
 	  void AddCamBlocRig(const std::string & aCam); // RIGIDBLOC
           bool AddTopo(const std::string & aTopoFilePath); // TOPO
           ///  =======  Add GCP, can be measure or measure & object
-          void AddGCP(tREAL8 aSigmaGCP,const  cStdWeighterResidual& aWeightIm, cSetMesImGCP *);
+          void AddGCP(const std::string & aName,tREAL8 aSigmaGCP,const  cStdWeighterResidual& aWeightIm, cSetMesImGCP *);
 
 	  ///  ============  Add multiple tie point ============
 	  void AddMTieP(cComputeMergeMulTieP  * aMTP,const cStdWeighterResidual & aWIm);
@@ -183,9 +197,10 @@ class cMMVII_BundleAdj
           void OneItere_GCP();           /// One iteraion of adding GCP measures
 
 	  void OneItere_TieP();   /// Iteration on tie points
+	  void OneItere_TieP(const cBA_TieP&);   /// Iteration on tie points
 
           ///  One It for 1 pack of GCP (4 now 1 pack allowed, but this may change)
-          void OneItere_OnePackGCP(const cSetMesImGCP *);
+          void OneItere_OnePackGCP(cBA_GCP &);
 
           void CompileSharedIntrinsicParams(bool ForAvg);
 
@@ -217,15 +232,17 @@ class cMMVII_BundleAdj
           // ===================  Information to use ==================
 	     
 	          // - - - - - - - - GCP  - - - - - - - - - - -
-          cSetMesImGCP *           mMesGCP;
-          cSetMesImGCP             mNewGCP; // set of gcp after adjust
-	  tREAL8                   mSigmaGCP;
-          cStdWeighterResidual     mGCPIm_Weighter;
-          std::vector<cPt3dr_UK*>  mGCP_UK;
+          std::vector<cBA_GCP*>        mVGCP;
+          //  cSetMesImGCP *           mMesGCP;
+          //  cSetMesImGCP             mNewGCP; // set of gcp after adjust
+	  //  tREAL8                   mSigmaGCP;
+          //  cStdWeighterResidual     mGCPIm_Weighter;
+          //  std::vector<cPt3dr_UK*>  mGCP_UK;
 
 	         // - - - - - - - - MTP  - - - - - - - - - - -
-	  cComputeMergeMulTieP *   mMTP;
-          cStdWeighterResidual     mTieP_Weighter;
+	  // cComputeMergeMulTieP *   mMTP;
+          // cStdWeighterResidual     mTieP_Weighter;
+          std::vector<cBA_TieP*>   mVTieP;
 
                  // - - - - - - -   Bloc Rigid - - - - - - - -
 	  cBA_BlocRig*              mBlRig;  // RIGIDBLOC

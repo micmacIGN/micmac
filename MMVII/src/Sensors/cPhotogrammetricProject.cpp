@@ -506,11 +506,10 @@ void cPhotogrammetricProject::SaveSensor(const cSensorImage & aSens) const
 
     aSens.ToFile(mDPOrient.FullDirOut() + aSens.NameOriStd());
 
-    if (UserIsMPD())
+    // if (UserIsMPD())
     {
         if (aSens.HasCoordinateSystem())
         {
-            StdOut() << "HHHHASSSS : " << aSens.GetCoordinateSystem() << "\n";
             SaveCurSysCoOri(ReadSysCo(aSens.GetCoordinateSystem()));
         }
     }
@@ -601,7 +600,6 @@ void cPhotogrammetricProject::ReadSensor(const std::string  &aNameIm,cSensorImag
 cSensorImage* cPhotogrammetricProject::ReadSensorFromFolder(const std::string  & aFolder,const std::string  &aNameIm,bool ToDeleteAutom,bool SVP) const
 {
      cDirsPhProj& aDPO = const_cast<cPhotogrammetricProject *>(this)->DPOrient();
-
      // Save current orientation and fix new
      std::string aDirInit = aDPO.DirIn();
      aDPO.SetDirIn(aFolder);
@@ -738,6 +736,25 @@ void cPhotogrammetricProject::LoadGCP(cSetMesImGCP& aSetMes,const std::string & 
    }
 }
 
+void cPhotogrammetricProject::LoadGCPFromFolder
+     (
+          const std::string & aFolder,
+          cSetMesImGCP& aSetMes,
+          const std::string & aArgPatFiltr,
+          const std::string & aFiltrNameGCP,
+          const std::string & aFiltrAdditionalInfoGCP
+     ) const
+{
+     cDirsPhProj& aDPPM = const_cast<cPhotogrammetricProject *>(this)->DPPointsMeasures();
+     // Save current orientation and fix new
+     std::string aDirInit = aDPPM.DirIn();
+     aDPPM.SetDirIn(aFolder);
+
+     LoadGCP(aSetMes,aArgPatFiltr,aFiltrNameGCP,aFiltrAdditionalInfoGCP);
+     // Restore initial current orientation
+     aDPPM.SetDirIn(aDirInit);
+}
+
 void cPhotogrammetricProject::CpGCPPattern(const std::string & aDirIn,const std::string & aDirOut,const std::string & aArgPatFiltr) const
 {
    CopyPatternFile(aDirIn,GCPPattern(aArgPatFiltr),aDirOut);
@@ -773,6 +790,24 @@ void cPhotogrammetricProject::LoadIm(cSetMesImGCP& aSetMes,const std::string & a
       //  StdOut() << "LoadImLoadIm " << aNameIm << "\n";
    cSetMesPtOf1Im  aSetIm = LoadMeasureIm(aNameIm);
    aSetMes.AddMes2D(aSetIm,aSIm);
+}
+
+void cPhotogrammetricProject::LoadImFromFolder
+     (
+           const std::string & aFolder,
+           cSetMesImGCP& aSetMes,
+           const std::string & aNameIm,
+           cSensorImage * aSIm,bool SVP
+     ) const
+{
+     cDirsPhProj& aDPPM = const_cast<cPhotogrammetricProject *>(this)->DPPointsMeasures();
+     // Save current orientation and fix new
+     std::string aDirInit = aDPPM.DirIn();
+     aDPPM.SetDirIn(aFolder);
+
+     LoadIm(aSetMes,aNameIm,aSIm,SVP);
+     // Restore initial current orientation
+     aDPPM.SetDirIn(aDirInit);
 }
 
 void cPhotogrammetricProject::LoadIm(cSetMesImGCP& aSetMes,cSensorImage & aSIm) const
@@ -836,6 +871,21 @@ void  cPhotogrammetricProject::ReadMultipleTieP(cVecTiePMul& aVPm,const std::str
        ReadFromFile(aVPm.mVecTPM,mDPMulTieP.FullDirIn()+NameMultipleTieP(aNameIm));
    aVPm.mNameIm = aNameIm;
 }
+
+void  cPhotogrammetricProject::ReadMultipleTiePFromFolder(const std::string &  aFolder,cVecTiePMul& aVPm,const std::string & aNameIm,bool SVP) const
+{
+     cDirsPhProj& aDPMTP = const_cast<cPhotogrammetricProject *>(this)->DPMulTieP();
+     // Save current orientation and fix new
+     std::string aDirInit = aDPMTP.DirIn();
+     aDPMTP.SetDirIn(aFolder);
+
+     ReadMultipleTieP(aVPm,aNameIm,SVP);
+     // Restore initial current orientation
+     aDPMTP.SetDirIn(aDirInit);
+}
+
+
+
 
 bool cPhotogrammetricProject::HasNbMinMultiTiePoints(const std::string & aNameIm,size_t aNbMinTieP,bool AcceptNoDirIn ) const
 {

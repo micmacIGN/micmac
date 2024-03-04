@@ -238,6 +238,7 @@ class cSetMesImGCP : public cMemCheck
 	    cPt3dr  BundleInter(const cMultipleImPt & aMPT) const;
 
     private :
+           void AsserGCPFinished() const;
 
             cSetMesImGCP(const  cSetMesImGCP & ) = delete;
 
@@ -444,6 +445,15 @@ class cInterfParsePMulGCP : public cMemCheck
 
 cComputeMergeMulTieP * AllocStdFromMTP
                       (
+                            const std::vector<std::string> & aVNames,
+                            cPhotogrammetricProject & aPhProj,
+                            bool  WithPtIndex,
+			    bool  WithSensor,
+			    bool  WithImageIndexe
+                      );
+cComputeMergeMulTieP * AllocStdFromMTPFromFolder
+                      (
+                            const std::string & aFolder,
                             const std::vector<std::string> & aVNames,
                             cPhotogrammetricProject & aPhProj,
                             bool  WithPtIndex,

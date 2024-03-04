@@ -62,6 +62,11 @@ class cAppliBundlAdj : public cMMVII_Appli
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
      private :
 
+        std::vector<tREAL8>  ConvParamStandard(const std::vector<std::string> &,size_t aSzMin,size_t aSzMax) ;
+        /// New Method for multiple GCP : each 
+        void  AddOneSetGCP(const std::vector<std::string> & aParam);
+        void  AddOneSetTieP(const std::vector<std::string> & aParam);
+
 	std::string               mSpecImIn;
 
 	std::string               mDataDir;  /// Default Data dir for all
@@ -69,10 +74,12 @@ class cAppliBundlAdj : public cMMVII_Appli
 	cPhotogrammetricProject   mPhProj;
 	cMMVII_BundleAdj          mBA;
 
-	std::vector<double>       mGCPW;
+	std::vector<std::string>  mGCPW;
+	std::vector<std::vector<std::string>>  mAddGCPW; // In case there is multiple GCP Set
         std::string               mGCPFilter;  // pattern to filter names of GCP
         std::string               mGCPFilterAdd;  // pattern to filter GCP by additional info
-	std::vector<double>       mTiePWeight;
+	std::vector<std::string>  mTiePWeight;
+	std::vector<std::vector<std::string>>  mAddTieP; // In case there is multiple GCP Set
 	std::vector<double>       mBRSigma; // RIGIDBLOC
 	std::vector<double>       mBRSigma_Rat; // RIGIDBLOC
         std::vector<std::string>  mParamRefOri;
@@ -85,19 +92,21 @@ class cAppliBundlAdj : public cMMVII_Appli
 	std::string               mPatFrosenCenters;
 	std::string               mPatFrosenOrient;
 	std::vector<tREAL8>       mViscPose;
-        tREAL8                    mLVM;  // Levenberk Markard
-        std::vector<std::string>  mVSharedIP;  // Vector for shared intrinsic param
+        tREAL8                    mLVM;  ///< Levenberk Markard
+        bool                      mMeasureAdded ;
+        std::vector<std::string>  mVSharedIP;  ///< Vector for shared intrinsic param
 };
 
 cAppliBundlAdj::cAppliBundlAdj(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-   cMMVII_Appli  (aVArgs,aSpec),
-   mDataDir      ("Std"),
-   mPhProj       (*this),
-   mBA           (&mPhProj),
-   mGCPFilter    (""),
-   mGCPFilterAdd (""),
-   mNbIter       (10),
-   mLVM          (0.0)
+   cMMVII_Appli    (aVArgs,aSpec),
+   mDataDir        ("Std"),
+   mPhProj         (*this),
+   mBA             (&mPhProj),
+   mGCPFilter      (""),
+   mGCPFilterAdd   (""),
+   mNbIter         (10),
+   mLVM            (0.0),
+   mMeasureAdded   (false)
 {
 }
 
@@ -129,10 +138,12 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
             "GCP Weight [SigG,SigI,SigAt?=-1,Thrs?=-1,Exp?=1], SG=0 fix, SG<0 schurr elim, SG>0",
             {{eTA2007::ISizeV,"[2,5]"}}
          )
+      << AOpt2007(mAddGCPW,"AddGCPW","For additional GPW, [[Folder,SigG...],[Folder,...]] ")
       << AOpt2007(mGCPFilter,"GCPFilter","Pattern to filter GCP by name")
       << AOpt2007(mGCPFilterAdd,"GCPFilterAdd","Pattern to filter GCP by additional info")
       << mPhProj.DPPointsMeasures().ArgDirOutOpt("GCPDirOut","Dir for output GCP")
       << AOpt2007(mTiePWeight,"TiePWeight","Tie point weighting [Sig0,SigAtt?=-1,Thrs?=-1,Exp?=1]",{{eTA2007::ISizeV,"[1,4]"}})
+      << AOpt2007(mAddTieP,"AddTieP","For additional TieP, [[Folder,SigG...],[Folder,...]] ")
       << AOpt2007(mPatParamFrozCalib,"PPFzCal","Pattern for freezing internal calibration parameters")
       << AOpt2007(mPatFrosenCenters,"PatFzCenters","Pattern of images for freezing center of poses")
       << AOpt2007(mPatFrosenOrient,"PatFzOrient","Pattern of images for freezing orientation of poses")
@@ -148,9 +159,79 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
     ;
 }
 
+
+
+std::vector<tREAL8>  cAppliBundlAdj::ConvParamStandard(const std::vector<std::string> & aVParStd,size_t aSzMin,size_t aSzMax)
+{
+    if ((aVParStd.size() <aSzMin) || (aVParStd.size() >aSzMax))
+    {
+        MMVII_UnclasseUsEr("Bad size of AddOneSetGCP, exp in [3,6] got : " + ToStr(aVParStd.size()));
+    }
+    mMeasureAdded = true;  // to avoid message corresponding to trivial error
+
+    std::vector<tREAL8>  aRes;  // then weight must be converted from string to double
+    for (size_t aK=1 ; aK<aVParStd.size() ; aK++)
+        aRes.push_back(cStrIO<double>::FromStr(aVParStd.at(aK)));
+
+    return aRes;
+}
+
+// VParam standar is done from  Folder +  weight of size [2,5]
+void  cAppliBundlAdj::AddOneSetGCP(const std::vector<std::string> & aVParStd)
+{
+    std::string aFolder = aVParStd.at(0);  // folder
+    std::vector<tREAL8>  aGCPW = ConvParamStandard(aVParStd,3,6);
+/*
+    if ((aVParStd.size() <3) || (aVParStd.size() >6))
+    {
+        MMVII_UnclasseUsEr("Bad size of AddOneSetGCP, exp in [3,6] got : " + ToStr(aVParStd.size()));
+    }
+    mMeasureAdded = true;  // to avoid message corresponding to trivial error
+
+    //  convert the lo level aVParStd in more structured 
+    std::vector<tREAL8>  aGCPW;  // then weight must be converted from string to double
+    for (size_t aK=1 ; aK<aVParStd.size() ; aK++)
+        aGCPW.push_back(cStrIO<double>::FromStr(aVParStd.at(aK)));
+*/
+    
+    //  load the GCP
+    cSetMesImGCP  aFullMesGCP; 
+    mPhProj.LoadGCPFromFolder(aFolder,aFullMesGCP,"",mGCPFilter,mGCPFilterAdd);
+
+    for (const auto  & aSens : mBA.VSIm())
+    {
+        // Load the images measure + init sens 
+        mPhProj.LoadImFromFolder(aFolder,aFullMesGCP,aSens->NameImage(),aSens,SVP::Yes);
+    }
+    cSetMesImGCP * aMesGCP = aFullMesGCP.FilterNonEmptyMeasure(0);
+
+    cStdWeighterResidual aWeighter(aGCPW,1);
+    mBA.AddGCP(aFolder,aGCPW.at(0),aWeighter,aMesGCP);
+}
+
+void  cAppliBundlAdj::AddOneSetTieP(const std::vector<std::string> & aVParStd)
+{
+    std::string aFolder = aVParStd.at(0);  // folder
+    std::vector<tREAL8>  aTiePW = ConvParamStandard(aVParStd,3,6);
+    cStdWeighterResidual aWeighter(aTiePW,0);
+    mBA.AddMTieP(AllocStdFromMTPFromFolder(aFolder,VectMainSet(0),mPhProj,false,true,false),aWeighter);
+}
+
+
 int cAppliBundlAdj::Exe()
 {
-    bool  MeasureAdded = false; 
+/*
+{
+    StdOut() << "TESTT  mAddGCPWmAddGCPW\n";
+    StdOut() << mAddGCPW  << mAddGCPW.size() << "\n";
+    for (const auto& aGCP : mAddGCPW)
+         StdOut() << " * " << aGCP  << aGCP.size() << "\n";
+        
+
+
+    getchar();
+}
+*/
 
     mPhProj.DPPointsMeasures().SetDirInIfNoInit(mDataDir);
     mPhProj.DPMulTieP().SetDirInIfNoInit(mDataDir);
@@ -193,32 +274,26 @@ int cAppliBundlAdj::Exe()
     }
 	   
 
-    if (IsInit(&mGCPW))
+    if (IsInit(&mGCPW))  // Add if any first the standadr GCP weighting 
     {
-        //  load the GCP
-        MeasureAdded = true;
-        cSetMesImGCP  aFullMesGCP; 
-        mPhProj.LoadGCP(aFullMesGCP,"",mGCPFilter,mGCPFilterAdd);
-
-        //if (IsInit(&mGCPFilter))
-        //    aFullMesGCP = aFullMesGCP.Filter(mGCPFilter);
-
-        for (const auto  & aSens : mBA.VSIm())
-        {
-             mPhProj.LoadIm(aFullMesGCP,aSens->NameImage(),aSens,true);
-        }
-	cSetMesImGCP * aMesGCP = aFullMesGCP.FilterNonEmptyMeasure(0);
-
-	cStdWeighterResidual aWeighter(mGCPW,1);
-	mBA.AddGCP(mGCPW.at(0),aWeighter,aMesGCP);
+        std::vector<std::string>  aVParamStdGCP{mPhProj.DPPointsMeasures().DirIn()};
+        AppendIn(aVParamStdGCP,mGCPW);
+        AddOneSetGCP(aVParamStdGCP);
     }
+    // Add  the potential suplementary GCP
+    for (const auto& aGCP : mAddGCPW)
+        AddOneSetGCP(aGCP);
 
     if (IsInit(&mTiePWeight))
     {
-        MeasureAdded = true;
-	cStdWeighterResidual aWeighter(mTiePWeight,0);
-	mBA.AddMTieP(AllocStdFromMTP(VectMainSet(0),mPhProj,false,true,false),aWeighter);
+        std::vector<std::string>  aVParamTieP{mPhProj.DPMulTieP().DirIn()};
+        AppendIn(aVParamTieP,mTiePWeight);
+        AddOneSetTieP(aVParamTieP);
     }
+    // Add  the potential suplementary TieP
+    for (const auto& aTieP : mAddTieP)
+        AddOneSetTieP(aTieP);
+
 
     if (IsInit(&mBRSigma)) // RIGIDBLOC
     { 
@@ -233,7 +308,7 @@ int cAppliBundlAdj::Exe()
         MMVII_INTERNAL_ASSERT_tiny(aTopoOk,"Error reading topo obs file "+mTopoFilePath);
     }
 
-    MMVII_INTERNAL_ASSERT_User(MeasureAdded,eTyUEr::eUnClassedError,"Not any measure added");
+    MMVII_INTERNAL_ASSERT_User(mMeasureAdded,eTyUEr::eUnClassedError,"Not any measure added");
 
     for (int aKIter=0 ; aKIter<mNbIter ; aKIter++)
     {

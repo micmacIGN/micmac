@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="ISO8859-1" standalone="yes" ?>
+<Root>
+   <Type>"MMVII_Serialization"</Type>
+   <Version>"0.0.0"</Version>
+   <Data>
+      <SysCoGeo>
+         <Type>"Local"</Type>
+         <Attributes>
+            <Pair>
+               <K>"Name"</K>
+               <V>"NONE"</V>
+            </Pair>
+         </Attributes>
+      </SysCoGeo>
+   </Data>
+</Root>
