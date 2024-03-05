@@ -4,6 +4,8 @@
 
 #include "TriangleDeformation.h"
 
+#include <filesystem>
+
 /**
    \file TriangleDeformation.cpp
 
@@ -48,12 +50,16 @@ namespace MMVII
                                                                                               mUseMultiScaleApproach(true),
                                                                                               mSigmaGaussFilterStep(1),
                                                                                               mGenerateDisplacementImage(true),
+                                                                                              mInitialiseWithPreviousIter(false),
+                                                                                              mFreezeTranslationX(false),
+                                                                                              mFreezeTranslationY(false),
                                                                                               mFreezeRadTranslation(false),
                                                                                               mFreezeRadScale(false),
                                                                                               mWeightRadTranslation(-1),
                                                                                               mWeightRadScale(-1),
                                                                                               mNumberOfIterGaussFilter(3),
                                                                                               mNumberOfEndIterations(2),
+                                                                                              mFolderSaveResult(""),
                                                                                               mDisplayLastTranslationValues(false),
                                                                                               mSzImPre(cPt2di(1, 1)),
                                                                                               mImPre(mSzImPre),
@@ -61,12 +67,9 @@ namespace MMVII
                                                                                               mSzImPost(cPt2di(1, 1)),
                                                                                               mImPost(mSzImPost),
                                                                                               mDImPost(nullptr),
-                                                                                              mSzImOutTr(cPt2di(1, 1)),
-                                                                                              mImOutTr(mSzImOutTr),
-                                                                                              mDImOutTr(nullptr),
-                                                                                              mSzImOutRad(cPt2di(1, 1)),
-                                                                                              mImOutRad(mSzImOutTr),
-                                                                                              mDImOutRad(nullptr),
+                                                                                              mSzImOut(cPt2di(1, 1)),
+                                                                                              mImOut(mSzImOut),
+                                                                                              mDImOut(nullptr),
                                                                                               mSzImDiff(cPt2di(1, 1)),
                                                                                               mImDiff(mSzImDiff),
                                                                                               mDImDiff(nullptr),
@@ -96,7 +99,7 @@ namespace MMVII
                << Arg2007(mNamePreImage, "Name of pre-image file.", {{eTA2007::FileImage}, {eTA2007::FileDirProj}})
                << Arg2007(mNamePostImage, "Name of post-image file.", {eTA2007::FileImage})
                << Arg2007(mNumberPointsToGenerate, "Number of points you want to generate for triangulation.")
-               << Arg2007(mNumberOfScales, "Total number of scales to run in multi-scale approach optimisation process.");
+               << Arg2007(mNumberOfScales, "Total number of scales to run in multi-scale approach or iterations if multi-scale approach is not applied in optimisation process.");
     }
 
     cCollecSpecArg2007 &cAppli_cTriangleDeformation::ArgOpt(cCollecSpecArg2007 &anArgOpt)
@@ -113,6 +116,12 @@ namespace MMVII
                << AOpt2007(mSigmaGaussFilterStep, "SigmaGaussFilterStep", "Sigma value to use for Gauss filter in multi-stage approach.", {eTA2007::HDV})
                << AOpt2007(mGenerateDisplacementImage, "GenerateDisplacementImage",
                            "Whether to generate and save an image having been translated.", {eTA2007::HDV})
+               << AOpt2007(mInitialiseWithPreviousIter, "InitialiseWithPreviousIteration",
+                           "Whether to initialise or not the solution with the values obtained at the previous iteration.", {eTA2007::HDV})
+               << AOpt2007(mFreezeTranslationX, "FreezeXTranslation",
+                           "Whether to freeze or not x-translation to certain value during computation.", {eTA2007::HDV})
+               << AOpt2007(mFreezeTranslationY, "FreezeYTranslation",
+                           "Whether to freeze or not y-translation to certain value during computation.", {eTA2007::HDV})
                << AOpt2007(mFreezeRadTranslation, "FreezeRadTranslation",
                            "Whether to freeze radiometry translation factor in computation or not.", {eTA2007::HDV})
                << AOpt2007(mFreezeRadScale, "FreezeRadScaling",
@@ -125,66 +134,99 @@ namespace MMVII
                            "Number of iterations to run in Gauss filter algorithm.", {eTA2007::HDV})
                << AOpt2007(mNumberOfEndIterations, "NumberOfEndIterations",
                            "Number of iterations to run on original images in multi-scale approach.", {eTA2007::HDV})
+               << AOpt2007(mFolderSaveResult, "FolderToSaveResults",
+                           "Folder name where to store produced results", {eTA2007::HDV})
                << AOpt2007(mDisplayLastTranslationValues, "DisplayLastTranslationsValues",
                            "Whether to display the final values of unknowns linked to point translation.", {eTA2007::HDV})
                << AOpt2007(mDisplayLastRadiometryValues, "DisplayLastRadiometryValues",
                            "Whether to display or not the last values of radiometry unknowns after optimisation process.", {eTA2007::HDV});
     }
 
-    void cAppli_cTriangleDeformation::ConstructUniformRandomVectorAndApplyDelaunay()
+    void cAppli_cTriangleDeformation::ConstructUniformRandomVectorAndApplyDelaunay(std::vector<cPt2dr> aVectorPts, const int aNumberOfPointsToGenerate,
+                                                                                   const int aRandomUniformLawUpperBoundLines, const int aRandomUniformLawUpperBoundCols,
+                                                                                   cTriangulation2D<tREAL8> &aDelaunayTri)
     {
-        // Use current time as seed for random generator
-        // srand(time(0));
-
-        mVectorPts.pop_back(); // eliminate initialisation values
+        aVectorPts.pop_back(); // eliminate initialisation values
         // Generate coordinates from drawing lines and columns of coordinates from a uniform distribution
-        for (int aNbPt = 0; aNbPt < mNumberPointsToGenerate; aNbPt++)
+        for (int aNbPt = 0; aNbPt < aNumberOfPointsToGenerate; aNbPt++)
         {
-            const tREAL8 aUniformRandomLine = RandUnif_N(mRandomUniformLawUpperBoundLines);
-            const tREAL8 aUniformRandomCol = RandUnif_N(mRandomUniformLawUpperBoundCols);
+            const tREAL8 aUniformRandomLine = RandUnif_N(aRandomUniformLawUpperBoundLines);
+            const tREAL8 aUniformRandomCol = RandUnif_N(aRandomUniformLawUpperBoundCols);
             const cPt2dr aUniformRandomPt(aUniformRandomCol, aUniformRandomLine); // cPt2dr format
-            mVectorPts.push_back(aUniformRandomPt);
+            aVectorPts.push_back(aUniformRandomPt);
         }
-        mDelTri = mVectorPts;
+        aDelaunayTri = aVectorPts;
 
-        mDelTri.MakeDelaunay(); // Delaunay triangulate randomly generated points.
+        aDelaunayTri.MakeDelaunay(); // Delaunay triangulate randomly generated points.
     }
 
-    void cAppli_cTriangleDeformation::GeneratePointsForDelaunay()
+    void cAppli_cTriangleDeformation::GeneratePointsForDelaunay(std::vector<cPt2dr> aVectorPts, const int aNumberOfPointsToGenerate,
+                                                                int aRandomUniformLawUpperBoundLines, int aRandomUniformLawUpperBoundCols,
+                                                                cTriangulation2D<tREAL8> &aDelaunayTri, const cPt2di &aSzImPre)
     {
         // If user hasn't defined another value than the default value, it is changed
-        if (mRandomUniformLawUpperBoundLines == 1 && mRandomUniformLawUpperBoundCols == 1)
+        if (aRandomUniformLawUpperBoundLines == 1 && aRandomUniformLawUpperBoundCols == 1)
         {
             // Maximum value of coordinates are drawn from [0, NumberOfImageLines[ for lines
-            mRandomUniformLawUpperBoundLines = mSzImPre.y();
+            aRandomUniformLawUpperBoundLines = aSzImPre.y();
             // Maximum value of coordinates are drawn from [0, NumberOfImageColumns[ for columns
-            mRandomUniformLawUpperBoundCols = mSzImPre.x();
+            aRandomUniformLawUpperBoundCols = aSzImPre.x();
         }
         else
         {
-            if (mRandomUniformLawUpperBoundLines != 1 && mRandomUniformLawUpperBoundCols == 1)
-                mRandomUniformLawUpperBoundCols = mSzImPre.x();
+            if (aRandomUniformLawUpperBoundLines != 1 && aRandomUniformLawUpperBoundCols == 1)
+                aRandomUniformLawUpperBoundCols = aSzImPre.x();
             else
             {
-                if (mRandomUniformLawUpperBoundLines == 1 && mRandomUniformLawUpperBoundCols != 1)
-                    mRandomUniformLawUpperBoundLines = mSzImPre.y();
+                if (aRandomUniformLawUpperBoundLines == 1 && aRandomUniformLawUpperBoundCols != 1)
+                    aRandomUniformLawUpperBoundLines = aSzImPre.y();
             }
         }
 
-        ConstructUniformRandomVectorAndApplyDelaunay();
+        ConstructUniformRandomVectorAndApplyDelaunay(aVectorPts, aNumberOfPointsToGenerate,
+                                                     aRandomUniformLawUpperBoundLines, aRandomUniformLawUpperBoundCols,
+                                                     aDelaunayTri);
     }
 
-    void cAppli_cTriangleDeformation::InitialisationAfterExe()
+    void cAppli_cTriangleDeformation::InitialisationAfterExe(cTriangulation2D<tREAL8> &aDelaunayTri,
+                                                             cResolSysNonLinear<tREAL8> *&aSys)
     {
-        tDenseVect aVInit(4 * mDelTri.NbPts(), eModeInitImage::eMIA_Null);
+        const size_t aStartNumberPts = 4 * aDelaunayTri.NbPts();
+        tDenseVect aVInit(aStartNumberPts, eModeInitImage::eMIA_Null);
 
-        for (size_t aKtNumber = 0; aKtNumber < 4 * mDelTri.NbPts(); aKtNumber++)
+        for (size_t aStartKtNumber = 0; aStartKtNumber < aStartNumberPts; aStartKtNumber++)
         {
-            if (aKtNumber % 4 == 3)
-                aVInit(aKtNumber) = 1;
+            if (aStartKtNumber % 4 == 3)
+                aVInit(aStartKtNumber) = 1;
         }
 
-        mSys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqDense, aVInit);
+        aSys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqDense, aVInit);
+    }
+
+    void cAppli_cTriangleDeformation::InitialisationBeforeIteration(cTriangulation2D<tREAL8> &aDelaunayTri,
+                                                                    cResolSysNonLinear<tREAL8> *&aSys)                                   
+    {
+        const size_t aINumberPts = 4 * aDelaunayTri.NbPts();
+        tDenseVect aVInitBeforeIteration(aINumberPts, eModeInitImage::eMIA_Null);
+
+        tDenseVect aIntermediateVCur = aSys->CurGlobSol(); // Get current solution.
+
+        for (size_t aITr = 0; aITr < aDelaunayTri.NbFace(); aITr++)
+        {
+            const cPt3di aIntermediateIndicesOfTriKnots = aDelaunayTri.KthFace(aITr);
+
+            const tIntVect aIntermediateVecInd = {4 * aIntermediateIndicesOfTriKnots.x(), 4 * aIntermediateIndicesOfTriKnots.x() + 1,
+                                                  4 * aIntermediateIndicesOfTriKnots.y(), 4 * aIntermediateIndicesOfTriKnots.y() + 1,
+                                                  4 * aIntermediateIndicesOfTriKnots.z(), 4 * aIntermediateIndicesOfTriKnots.z() + 1};
+
+            for (size_t aIKnotNumber=0; aIKnotNumber < aIntermediateVecInd.size(); aIKnotNumber += 2)
+            {
+                aVInitBeforeIteration(aIntermediateVecInd.at(aIKnotNumber)) = aIntermediateVCur(aIntermediateVecInd.at(aIKnotNumber));
+                aVInitBeforeIteration(aIntermediateVecInd.at(aIKnotNumber + 1)) = aIntermediateVCur(aIntermediateVecInd.at(aIKnotNumber + 1));
+            }
+        }
+
+        aSys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqDense, aVInitBeforeIteration);
     }
 
     void cAppli_cTriangleDeformation::SubtractPrePostImageAndComputeAvgAndMax()
@@ -248,54 +290,56 @@ namespace MMVII
         return aCurrentRadScaling;
     }
 
-    void cAppli_cTriangleDeformation::LoadImageAndData(tIm &aCurIm, tDIm *&aCurDIm, const std::string &aPreOrPostImage)
+    void cAppli_cTriangleDeformation::LoadImageAndData(tIm &aCurIm, tDIm *&aCurDIm, const std::string &aPreOrPostImage, tIm &aImPre, tIm &aImPost)
     {
-        (aPreOrPostImage == "pre") ? aCurIm = mImPre : aCurIm = mImPost;
+        (aPreOrPostImage == "pre") ? aCurIm = aImPre : aCurIm = aImPost;
         aCurDIm = &aCurIm.DIm();
     }
 
-    void cAppli_cTriangleDeformation::ManageDifferentCasesOfEndIterations(const int aIterNumber, tIm aCurPreIm, tDIm *aCurPreDIm,
+    bool cAppli_cTriangleDeformation::ManageDifferentCasesOfEndIterations(const int aIterNumber, const int aNumberOfScales, const int aNumberOfEndIterations,
+                                                                          bool aIsLastIters, tIm &aImPre, tIm &aImPost, tIm aCurPreIm, tDIm *aCurPreDIm,
                                                                           tIm aCurPostIm, tDIm *aCurPostDIm)
     {
-        switch (mNumberOfEndIterations)
+        switch (aNumberOfEndIterations)
         {
         case 1: // one last iteration
-            if (aIterNumber == mNumberOfScales)
+            if (aIterNumber == aNumberOfScales)
             {
-                mIsLastIters = true;
-                LoadImageAndData(aCurPreIm, aCurPreDIm, "pre");
-                LoadImageAndData(aCurPostIm, aCurPostDIm, "post");
+                aIsLastIters = true;
+                LoadImageAndData(aCurPreIm, aCurPreDIm, "pre", aImPre, aImPost);
+                LoadImageAndData(aCurPostIm, aCurPostDIm, "post", aImPre, aImPost);
             }
             break;
         case 2: // two last iterations
-            if ((aIterNumber == mNumberOfScales) || (aIterNumber == mNumberOfScales + mNumberOfEndIterations - 1))
+            if ((aIterNumber == aNumberOfScales) || (aIterNumber == aNumberOfScales + aNumberOfEndIterations - 1))
             {
-                mIsLastIters = true;
-                LoadImageAndData(aCurPreIm, aCurPreDIm, "pre");
-                LoadImageAndData(aCurPostIm, aCurPostDIm, "post");
+                aIsLastIters = true;
+                LoadImageAndData(aCurPreIm, aCurPreDIm, "pre", aImPre, aImPost);
+                LoadImageAndData(aCurPostIm, aCurPostDIm, "post", aImPre, aImPost);
             }
             break;
         case 3: //  three last iterations
-            if ((aIterNumber == mNumberOfScales) || (aIterNumber == mNumberOfScales + mNumberOfEndIterations - 2) ||
-                (aIterNumber == mNumberOfScales + mNumberOfEndIterations - 1))
+            if ((aIterNumber == aNumberOfScales) || (aIterNumber == mNumberOfScales + aNumberOfEndIterations - 2) ||
+                (aIterNumber == aNumberOfScales + aNumberOfEndIterations - 1))
             {
-                mIsLastIters = true;
-                LoadImageAndData(aCurPreIm, aCurPreDIm, "pre");
-                LoadImageAndData(aCurPostIm, aCurPostDIm, "post");
+                aIsLastIters = true;
+                LoadImageAndData(aCurPreIm, aCurPreDIm, "pre", aImPre, aImPost);
+                LoadImageAndData(aCurPostIm, aCurPostDIm, "post", aImPre, aImPost);
             }
             break;
         default: // default is two last iterations
-            if ((aIterNumber == mNumberOfScales) || (aIterNumber == mNumberOfScales + mNumberOfEndIterations - 1))
+            if ((aIterNumber == aNumberOfScales) || (aIterNumber == aNumberOfScales + aNumberOfEndIterations - 1))
             {
-                mIsLastIters = true;
-                LoadImageAndData(aCurPreIm, aCurPreDIm, "pre");
-                LoadImageAndData(aCurPostIm, aCurPostDIm, "post");
+                aIsLastIters = true;
+                LoadImageAndData(aCurPreIm, aCurPreDIm, "pre", aImPre, aImPost);
+                LoadImageAndData(aCurPostIm, aCurPostDIm, "post", aImPre, aImPost);
             }
             break;
         }
+        return aIsLastIters;
     }
 
-    void cAppli_cTriangleDeformation::LoopOverTrianglesAndUpdateParameters(const int aIterNumber)
+    void cAppli_cTriangleDeformation::LoopOverTrianglesAndUpdateParameters(const int aIterNumber, const bool aUserDefinedFolderName)
     {
         //----------- allocate vec of obs :
         tDoubleVect aVObs(12, 0.0); // 6 for ImagePre and 6 for ImagePost
@@ -308,6 +352,13 @@ namespace MMVII
             StdOut() << aVCur(aUnk) << " " ;
         StdOut() << std::endl;
         */
+        bool aUserDefinedDir = false;
+        if (!mFolderSaveResult.empty())
+        {
+            aUserDefinedDir = true;
+            if (!std::filesystem::exists(mFolderSaveResult))
+                std::filesystem::create_directory(mFolderSaveResult);
+        }
 
         tIm aCurPreIm = tIm(mSzImPre);
         tDIm *aCurPreDIm = nullptr;
@@ -317,12 +368,13 @@ namespace MMVII
         mIsLastIters = false;
 
         if (mUseMultiScaleApproach)
-            ManageDifferentCasesOfEndIterations(aIterNumber, aCurPreIm, aCurPreDIm,
-                                                aCurPostIm, aCurPostDIm);
+            mIsLastIters = ManageDifferentCasesOfEndIterations(aIterNumber, mNumberOfScales, mNumberOfEndIterations,
+                                                               mIsLastIters, mImPre, mImPost, aCurPreIm, aCurPreDIm,
+                                                               aCurPostIm, aCurPostDIm);
         else
         {
-            LoadImageAndData(aCurPreIm, aCurPreDIm, "pre");
-            LoadImageAndData(aCurPostIm, aCurPostDIm, "post");
+            LoadImageAndData(aCurPreIm, aCurPreDIm, "pre", mImPre, mImPost);
+            LoadImageAndData(aCurPostIm, aCurPostDIm, "post", mImPre, mImPost);
         }
 
         if (mUseMultiScaleApproach && !mIsLastIters)
@@ -335,12 +387,22 @@ namespace MMVII
 
             mSigmaGaussFilter -= 1;
 
-            const bool aSaveGaussImage = false;
+            const bool aSaveGaussImage = false; // if a save of image filtered by Gauss filter is wanted
             if (aSaveGaussImage)
-                aCurPreDIm->ToFile("GaussFilteredImPre_iter_" + std::to_string(aIterNumber) + ".tif");
+            {
+                if (aUserDefinedDir)
+                    aCurPreDIm->ToFile(mFolderSaveResult + "/GaussFilteredImPre_iter_" + std::to_string(aIterNumber) + ".tif");
+                else
+                    aCurPreDIm->ToFile("GaussFilteredImPre_iter_" + std::to_string(aIterNumber) + ".tif");
+            }
+        }
+        else if (mUseMultiScaleApproach && mIsLastIters)
+        {
+            LoadImageAndData(aCurPreIm, aCurPreDIm, "pre", mImPre, mImPost);
+            LoadImageAndData(aCurPostIm, aCurPostDIm, "post", mImPre, mImPost);
         }
 
-        //----------- declaration of indicator of convergence
+        //----------- declaration of indicators of convergence
         tREAL8 aSomDif = 0; // sum of difference between untranslated pixel and translated one.
         size_t aNbOut = 0;  // number of translated pixels out of image
 
@@ -348,7 +410,8 @@ namespace MMVII
         size_t aTotalNumberOfInsidePixels = 0;
 
         // hard constraint : freeze radiometric coefficients
-        if (mFreezeRadTranslation || mFreezeRadScale)
+        if (mFreezeRadTranslation || mFreezeRadScale ||
+            mFreezeTranslationX || mFreezeTranslationY)
         {
             for (size_t aTr = 0; aTr < mDelTri.NbFace(); aTr++)
             {
@@ -361,6 +424,18 @@ namespace MMVII
                                           4 * aIndicesOfTriKnots.z(), 4 * aIndicesOfTriKnots.z() + 1,
                                           4 * aIndicesOfTriKnots.z() + 2, 4 * aIndicesOfTriKnots.z() + 3};
 
+                if (mFreezeTranslationX)
+                {
+                    mSys->SetFrozenVar(aVecInd.at(2), aVCur(0));
+                    mSys->SetFrozenVar(aVecInd.at(6), aVCur(4));
+                    mSys->SetFrozenVar(aVecInd.at(10), aVCur(8));
+                }
+                if (mFreezeTranslationY)
+                {
+                    mSys->SetFrozenVar(aVecInd.at(2), aVCur(1));
+                    mSys->SetFrozenVar(aVecInd.at(6), aVCur(5));
+                    mSys->SetFrozenVar(aVecInd.at(10), aVCur(9));
+                }
                 if (mFreezeRadTranslation)
                 {
                     mSys->SetFrozenVar(aVecInd.at(2), aVCur(2));
@@ -486,9 +561,9 @@ namespace MMVII
 
         if (mUseMultiScaleApproach && !mIsLastIters && aIterNumber != 0)
         {
-            const bool aGenerateIntermediateMaps = false;
+            const bool aGenerateIntermediateMaps = false; // if a generating intermediate displacement maps is wanted
             if (aGenerateIntermediateMaps)
-                GenerateDisplacementMaps(aVCur, aIterNumber);
+                GenerateDisplacementMapsAndOutputImages(aVCur, aIterNumber, aUserDefinedDir);
         }
 
         // Update all parameter taking into account previous observation
@@ -518,44 +593,40 @@ namespace MMVII
 
         const tREAL8 aLastRadiometryValue = aLastRadiometryScaling * aLastPixelValue +
                                             aLastRadiometryTranslation;
-        mDImOutRad->SetV(aLastCoordinate, aLastRadiometryValue);
 
         // Build image with intensities displaced
         // deal with different cases of pixel being translated out of image
         if (aLastXTranslatedCoord < 0 && aLastYTranslatedCoord < 0)
-            mDImOutTr->SetV(aLastCoordinate, mDImOutTr->GetV(cPt2di(0, 0)));
-        else if (aLastXTranslatedCoord >= mSzImOutTr.x() && aLastYTranslatedCoord >= mSzImOutTr.y())
-            mDImOutTr->SetV(aLastCoordinate, mDImOutTr->GetV(cPt2di(mSzImOutTr.x() - 1, mSzImOutTr.y() - 1)));
-        else if (aLastXTranslatedCoord < 0 && aLastYTranslatedCoord >= mSzImOutTr.y())
-            mDImOutTr->SetV(aLastCoordinate, mDImOutTr->GetV(cPt2di(0, mSzImOutTr.y() - 1)));
-        else if (aLastXTranslatedCoord >= mSzImOutTr.x() && aLastYTranslatedCoord < 0)
-            mDImOutTr->SetV(aLastCoordinate, mDImOutTr->GetV(cPt2di(mSzImOutTr.x() - 1, 0)));
-        else if (aLastXTranslatedCoord >= 0 && aLastXTranslatedCoord < mSzImOutTr.x() &&
+            mDImOut->SetV(aLastCoordinate, mDImOut->GetV(cPt2di(0, 0)));
+        else if (aLastXTranslatedCoord >= mSzImOut.x() && aLastYTranslatedCoord >= mSzImOut.y())
+            mDImOut->SetV(aLastCoordinate, mDImOut->GetV(cPt2di(mSzImOut.x() - 1, mSzImOut.y() - 1)));
+        else if (aLastXTranslatedCoord < 0 && aLastYTranslatedCoord >= mSzImOut.y())
+            mDImOut->SetV(aLastCoordinate, mDImOut->GetV(cPt2di(0, mSzImOut.y() - 1)));
+        else if (aLastXTranslatedCoord >= mSzImOut.x() && aLastYTranslatedCoord < 0)
+            mDImOut->SetV(aLastCoordinate, mDImOut->GetV(cPt2di(mSzImOut.x() - 1, 0)));
+        else if (aLastXTranslatedCoord >= 0 && aLastXTranslatedCoord < mSzImOut.x() &&
                  aLastYTranslatedCoord < 0)
-            mDImOutTr->SetV(aLastCoordinate, mDImOutTr->GetV(cPt2di(aLastXTranslatedCoord, 0)));
-        else if (aLastXTranslatedCoord >= 0 && aLastXTranslatedCoord < mSzImOutTr.x() &&
-                 aLastYTranslatedCoord > mSzImOutTr.y())
-            mDImOutTr->SetV(aLastCoordinate, mDImOutTr->GetV(cPt2di(aLastXTranslatedCoord, mSzImOutTr.y() - 1)));
-        else if (aLastYTranslatedCoord >= 0 && aLastYTranslatedCoord < mSzImOutTr.y() &&
+            mDImOut->SetV(aLastCoordinate, mDImOut->GetV(cPt2di(aLastXTranslatedCoord, 0)));
+        else if (aLastXTranslatedCoord >= 0 && aLastXTranslatedCoord < mSzImOut.x() &&
+                 aLastYTranslatedCoord > mSzImOut.y())
+            mDImOut->SetV(aLastCoordinate, mDImOut->GetV(cPt2di(aLastXTranslatedCoord, mSzImOut.y() - 1)));
+        else if (aLastYTranslatedCoord >= 0 && aLastYTranslatedCoord < mSzImOut.y() &&
                  aLastXTranslatedCoord < 0)
-            mDImOutTr->SetV(aLastCoordinate, mDImOutTr->GetV(cPt2di(0, aLastYTranslatedCoord)));
-        else if (aLastYTranslatedCoord >= 0 && aLastYTranslatedCoord < mSzImOutTr.y() &&
-                 aLastXTranslatedCoord > mSzImOutTr.x())
-            mDImOutTr->SetV(aLastCoordinate, mDImOutTr->GetV(cPt2di(mSzImOutTr.x() - 1, aLastYTranslatedCoord)));
+            mDImOut->SetV(aLastCoordinate, mDImOut->GetV(cPt2di(0, aLastYTranslatedCoord)));
+        else if (aLastYTranslatedCoord >= 0 && aLastYTranslatedCoord < mSzImOut.y() &&
+                 aLastXTranslatedCoord > mSzImOut.x())
+            mDImOut->SetV(aLastCoordinate, mDImOut->GetV(cPt2di(mSzImOut.x() - 1, aLastYTranslatedCoord)));
         else
             // at the translated pixel the untranslated pixel value is given computed with the right radiometry values
-            mDImOutTr->SetV(cPt2di(aLastXTranslatedCoord, aLastYTranslatedCoord), aLastPixelValue);
+            mDImOut->SetV(cPt2di(aLastXTranslatedCoord, aLastYTranslatedCoord), aLastRadiometryValue);
     }
 
-    void cAppli_cTriangleDeformation::GenerateDisplacementMaps(const tDenseVect &aVFinalSol, const int aIterNumber)
+    void cAppli_cTriangleDeformation::GenerateDisplacementMapsAndOutputImages(const tDenseVect &aVFinalSol, const int aIterNumber,
+                                                                              const bool aUserDefinedFolderName)
     {
-        mImOutTr = tIm(mSzImPre);
-        mDImOutTr = &mImOutTr.DIm();
-        mSzImOutTr = cPt2di(mDImOutTr->Sz().x(), mDImOutTr->Sz().y());
-
-        mImOutRad = tIm(mSzImPre);
-        mDImOutRad = &mImOutRad.DIm();
-        mSzImOutRad = cPt2di(mDImOutRad->Sz().x(), mDImOutRad->Sz().y());
+        mImOut = tIm(mSzImPre);
+        mDImOut = &mImOut.DIm();
+        mSzImOut = cPt2di(mDImOut->Sz().x(), mDImOut->Sz().y());
 
         mImDepX = tIm(mSzImPre, 0, eModeInitImage::eMIA_Null);
         mDImDepX = &mImDepX.DIm();
@@ -565,7 +636,7 @@ namespace MMVII
 
         tIm aLastPreIm = tIm(mSzImPre);
         tDIm *aLastPreDIm = nullptr;
-        LoadImageAndData(aLastPreIm, aLastPreDIm, "pre");
+        LoadImageAndData(aLastPreIm, aLastPreDIm, "pre", mImPre, mImPost);
 
         if (mUseMultiScaleApproach && !mIsLastIters)
         {
@@ -575,11 +646,8 @@ namespace MMVII
 
         tDoubleVect aLastVObs(12, 0.0);
 
-        for (const cPt2di &aOutPix : *mDImOutTr) // Initialise output images
-        {
-            mDImOutTr->SetV(aOutPix, aLastPreDIm->GetV(aOutPix));
-            mDImOutRad->SetV(aOutPix, aLastPreDIm->GetV(aOutPix));
-        }
+        for (const cPt2di &aOutPix : *mDImOut) // Initialise output images
+            mDImOut->SetV(aOutPix, aLastPreDIm->GetV(aOutPix));
 
         for (size_t aLTr = 0; aLTr < mDelTri.NbFace(); aLTr++)
         {
@@ -643,51 +711,71 @@ namespace MMVII
                                                                                                             aLastRadScPointC,
                                                                                                             aLastVObs);
 
-                FillDisplacementMapsAndOutputImage(aLastPixInsideTriangle, aLastTranslatedFilledPoint, aLastRadiometryTranslation,
-                                                   aLastRadiometryScaling);
+                FillDisplacementMapsAndOutputImage(aLastPixInsideTriangle, aLastTranslatedFilledPoint,
+                                                   aLastRadiometryTranslation, aLastRadiometryScaling);
             }
         }
 
         // save displacement maps in x and y to image files
         if (mUseMultiScaleApproach)
         {
-            mDImDepX->ToFile("DisplacedPixelsX_iter_" + std::to_string(aIterNumber) + "_" +
-                             std::to_string(mNumberPointsToGenerate) + "_" +
-                             std::to_string(mNumberOfScales + mNumberOfEndIterations) + ".tif");
-            mDImDepY->ToFile("DisplacedPixelsY_iter_" + std::to_string(aIterNumber) + "_" +
-                             std::to_string(mNumberPointsToGenerate) + "_" +
-                             std::to_string(mNumberOfScales + mNumberOfEndIterations) + ".tif");
+            if (aUserDefinedFolderName)
+            {
+                mDImDepX->ToFile(mFolderSaveResult + "/DisplacedPixelsX_iter_" + std::to_string(aIterNumber) + "_" +
+                                std::to_string(mNumberPointsToGenerate) + "_" +
+                                std::to_string(mNumberOfScales + mNumberOfEndIterations) + ".tif");
+                mDImDepY->ToFile(mFolderSaveResult + "/DisplacedPixelsY_iter_" + std::to_string(aIterNumber) + "_" +
+                                std::to_string(mNumberPointsToGenerate) + "_" +
+                                std::to_string(mNumberOfScales + mNumberOfEndIterations) + ".tif");
+            }
+            else
+            {
+                mDImDepX->ToFile("DisplacedPixelsX_iter_" + std::to_string(aIterNumber) + "_" +
+                                std::to_string(mNumberPointsToGenerate) + "_" +
+                                std::to_string(mNumberOfScales + mNumberOfEndIterations) + ".tif");
+                mDImDepY->ToFile("DisplacedPixelsY_iter_" + std::to_string(aIterNumber) + "_" +
+                                std::to_string(mNumberPointsToGenerate) + "_" +
+                                std::to_string(mNumberOfScales + mNumberOfEndIterations) + ".tif");
+            }
             if (aIterNumber == mNumberOfScales + mNumberOfEndIterations - 1)
             {
-                mDImOutTr->ToFile("DisplacedPixels_iter_" + std::to_string(aIterNumber) + "_" +
-                                  std::to_string(mNumberPointsToGenerate) + "_" +
-                                  std::to_string(mNumberOfScales + mNumberOfEndIterations) + ".tif");
-                mDImOutRad->ToFile("OutputImage_iter_" + std::to_string(aIterNumber) + "_" +
-                                   std::to_string(mNumberPointsToGenerate) + "_" +
-                                   std::to_string(mNumberOfScales + mNumberOfEndIterations) + ".tif");
+                if (aUserDefinedFolderName)
+                    mDImOut->ToFile(mFolderSaveResult + "/DisplacedPixels_iter_" + std::to_string(aIterNumber) + "_" +
+                                    std::to_string(mNumberPointsToGenerate) + "_" +
+                                    std::to_string(mNumberOfScales + mNumberOfEndIterations) + ".tif");
+                else
+                    mDImOut->ToFile("DisplacedPixels_iter_" + std::to_string(aIterNumber) + "_" +
+                                    std::to_string(mNumberPointsToGenerate) + "_" +
+                                    std::to_string(mNumberOfScales + mNumberOfEndIterations) + ".tif");
             }
         }
         else
         {
-            mDImDepX->ToFile("DisplacedPixelsX_" + std::to_string(mNumberPointsToGenerate) + "_" +
-                             std::to_string(mNumberOfScales) + ".tif");
-            mDImDepY->ToFile("DisplacedPixelsY_" + std::to_string(mNumberPointsToGenerate) + "_" +
-                             std::to_string(mNumberOfScales) + ".tif");
-            mDImOutTr->ToFile("DisplacedPixels_" + std::to_string(mNumberPointsToGenerate) + "_" +
-                              std::to_string(mNumberOfScales) + ".tif");
-            mDImOutRad->ToFile("OutputImage_" + std::to_string(mNumberPointsToGenerate) + "_" +
-                               std::to_string(mNumberOfScales) + ".tif");
+            if (aUserDefinedFolderName)
+            {
+                mDImDepX->ToFile(mFolderSaveResult + "/DisplacedPixelsX_" + std::to_string(mNumberPointsToGenerate) + "_" +
+                                std::to_string(mNumberOfScales) + ".tif");
+                mDImDepY->ToFile(mFolderSaveResult + "/DisplacedPixelsY_" + std::to_string(mNumberPointsToGenerate) + "_" +
+                                std::to_string(mNumberOfScales) + ".tif");
+                mDImOut->ToFile(mFolderSaveResult + "/DisplacedPixels_" + std::to_string(mNumberPointsToGenerate) + "_" +
+                                std::to_string(mNumberOfScales) + ".tif");
+            }
+            else
+            {
+                mDImDepX->ToFile("DisplacedPixelsX_" + std::to_string(mNumberPointsToGenerate) + "_" +
+                                std::to_string(mNumberOfScales) + ".tif");
+                mDImDepY->ToFile("DisplacedPixelsY_" + std::to_string(mNumberPointsToGenerate) + "_" +
+                                std::to_string(mNumberOfScales) + ".tif");
+                mDImOut->ToFile("DisplacedPixels_" + std::to_string(mNumberPointsToGenerate) + "_" +
+                                std::to_string(mNumberOfScales) + ".tif");
+            }
         }
     }
 
-    void cAppli_cTriangleDeformation::GenerateDisplacementMapsAndDisplayLastValuesUnknowns(const int aIterNumber)
+    void cAppli_cTriangleDeformation::DisplayLastUnknownValues(const tDenseVect &aVFinalSol, const bool aDisplayLastRadiometryValues,
+                                                               const bool aDisplayLastTranslationValues)
     {
-        tDenseVect aVFinalSol = mSys->CurGlobSol();
-
-        if (mGenerateDisplacementImage)
-            GenerateDisplacementMaps(aVFinalSol, aIterNumber);
-
-        if (mDisplayLastRadiometryValues && mDisplayLastTranslationValues)
+        if (aDisplayLastRadiometryValues && aDisplayLastTranslationValues)
         {
             for (int aFinalUnk = 0; aFinalUnk < aVFinalSol.DIm().Sz(); aFinalUnk++)
             {
@@ -696,7 +784,7 @@ namespace MMVII
                     StdOut() << std::endl;
             }
         }
-        if (mDisplayLastTranslationValues && !mDisplayLastRadiometryValues)
+        if (aDisplayLastRadiometryValues && !aDisplayLastTranslationValues)
         {
             for (int aFinalUnk = 0; aFinalUnk < aVFinalSol.DIm().Sz(); aFinalUnk++)
             {
@@ -706,7 +794,7 @@ namespace MMVII
                     StdOut() << std::endl;
             }
         }
-        else if (mDisplayLastRadiometryValues && !mDisplayLastTranslationValues)
+        else if (aDisplayLastRadiometryValues && !aDisplayLastTranslationValues)
         {
             for (int aFinalUnk = 0; aFinalUnk < aVFinalSol.DIm().Sz(); aFinalUnk++)
             {
@@ -718,20 +806,34 @@ namespace MMVII
         }
     }
 
-    void cAppli_cTriangleDeformation::DoOneIteration(const int aIterNumber)
+    void cAppli_cTriangleDeformation::GenerateDisplacementMapsAndDisplayLastValuesUnknowns(const int aIterNumber, const bool aDisplayLastRadiometryValues,
+                                                                                           const bool aDisplayLastTranslationValues, const bool aUserDefinedFolderName)
     {
-        LoopOverTrianglesAndUpdateParameters(aIterNumber); // Iterate over triangles and solve system
+        tDenseVect aVFinalSol = mSys->CurGlobSol();
+
+        if (mGenerateDisplacementImage)
+            GenerateDisplacementMapsAndOutputImages(aVFinalSol, aIterNumber, aUserDefinedFolderName);
+
+        if (aDisplayLastRadiometryValues || aDisplayLastTranslationValues)
+            DisplayLastUnknownValues(aVFinalSol, aDisplayLastRadiometryValues, aDisplayLastTranslationValues);
+    }
+
+    void cAppli_cTriangleDeformation::DoOneIteration(const int aIterNumber, const bool aUserDefinedFolderName)
+    {
+        LoopOverTrianglesAndUpdateParameters(aIterNumber, aUserDefinedFolderName); // Iterate over triangles and solve system
 
         // Show final translation results and produce displacement maps
         if (mUseMultiScaleApproach)
         {
             if (aIterNumber == (mNumberOfScales + mNumberOfEndIterations - 1))
-                GenerateDisplacementMapsAndDisplayLastValuesUnknowns(aIterNumber);
+                GenerateDisplacementMapsAndDisplayLastValuesUnknowns(aIterNumber, mDisplayLastRadiometryValues,
+                                                                     mDisplayLastTranslationValues, aUserDefinedFolderName);
         }
         else
         {
             if (aIterNumber == (mNumberOfScales - 1))
-                GenerateDisplacementMapsAndDisplayLastValuesUnknowns(aIterNumber);
+                GenerateDisplacementMapsAndDisplayLastValuesUnknowns(aIterNumber, mDisplayLastRadiometryValues,
+                                                                     mDisplayLastTranslationValues, aUserDefinedFolderName);
         }
     }
 
@@ -760,19 +862,38 @@ namespace MMVII
                      << "Diff, "
                      << "NbOut" << std::endl;
 
-        GeneratePointsForDelaunay();
+        // Generate triangulated knots coordinates
+        GeneratePointsForDelaunay(mVectorPts, mNumberPointsToGenerate, mRandomUniformLawUpperBoundLines,
+                                  mRandomUniformLawUpperBoundCols, mDelTri, mSzImPre);
 
-        InitialisationAfterExe();
+        // Initialise unknown values of problem
+        InitialisationAfterExe(mDelTri, mSys);
+
+        bool aUseDefinedFolderName = false;
+        if (!mFolderSaveResult.empty())
+        {
+            aUseDefinedFolderName = true;
+            if (!std::filesystem::exists(mFolderSaveResult))
+                std::filesystem::create_directory(mFolderSaveResult);
+        }
 
         if (mUseMultiScaleApproach)
         {
             for (int aIterNumber = 0; aIterNumber < mNumberOfScales + mNumberOfEndIterations; aIterNumber++)
-                DoOneIteration(aIterNumber);
+            {
+                DoOneIteration(aIterNumber, aUseDefinedFolderName);
+                if (mInitialiseWithPreviousIter)
+                    InitialisationBeforeIteration(mDelTri, mSys);
+            }
         }
         else
         {
             for (int aIterNumber = 0; aIterNumber < mNumberOfScales; aIterNumber++)
-                DoOneIteration(aIterNumber);
+            {
+                DoOneIteration(aIterNumber, aUseDefinedFolderName);
+                if (mInitialiseWithPreviousIter)
+                    InitialisationBeforeIteration(mDelTri, mSys);
+            }
         }
 
         return EXIT_SUCCESS;

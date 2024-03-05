@@ -35,28 +35,24 @@ namespace MMVII
         cCollecSpecArg2007 &ArgObl(cCollecSpecArg2007 &anArgObl) override;
         cCollecSpecArg2007 &ArgOpt(cCollecSpecArg2007 &anArgOpt) override;
 
-        // Build uniform vector of coordinates and apply Delaunay triangulation
-        virtual void ConstructUniformRandomVectorAndApplyDelaunay();
-        // Generate coordinates from uniform law for Delaunay triangulation application
-        virtual void GeneratePointsForDelaunay();
         // Iterate of triangles and inside pixels
         void DoOneIterationTranslation(const int aIterNumber);
-        // Loads current pre and post images
-        virtual void LoadImageAndData(tIm &aCurIm, tDIm *&aCurDIm, const std::string &aPreOrPostImage);
-        // Load image and data according to number of iterations to optimise on original image
-        virtual void ManageDifferentCasesOfEndIterations(const int aIterNumber, tIm aCurPreIm, tDIm * aCurPreDIm,
-                                                 tIm aCurPostIm, tDIm * aCurPostDIm);
         // Loops over all triangles and solves system to update parameters at end of iteration
-        virtual void LoopOverTrianglesAndUpdateParameters(const int aIterNumber);
+        void LoopOverTrianglesAndUpdateParametersTranslation(const int aIterNumber);
         // Generate displacement maps of last solution
-        virtual void GenerateDisplacementMaps(const tDenseVect &aVFinalSol, const int aIterNumber);
+        void GenerateDisplacementMaps(const tDenseVect &aVFinalSol, const int aIterNumber);
         // Generates Displacement maps and coordinates of points in triangulation at last iteration
-        virtual void GenerateDisplacementMapsAndLastTranslatedPoints(const int aIterNumber);
+        void GenerateDisplacementMapsAndLastTranslatedPoints(const int aIterNumber);
         // Initialise problem after user has input information
-        virtual void InitialisationAfterExe();
+        void InitialisationAfterExeTranslation();
         // Fill displacement maps and output image
-        virtual void FillDisplacementMapsAndOutputImage(const cPtInsideTriangles &aLastPixInsideTriangle,
-                                                        const cPt2dr &aLastTranslatedFilledPoint);
+        void FillDisplacementMaps(const cPtInsideTriangles &aLastPixInsideTriangle,
+                                  const cPt2dr &aLastTranslatedFilledPoint);
+        // Apply  barycentration translation formula to last translation values in optimisation process
+        cPt2dr ApplyLastBarycenterTranslationFormulaToInsidePixel(const cPt2dr &aLastTranslationPointA,
+                                                                  const cPt2dr &aLastTranslationPointB,
+                                                                  const cPt2dr &aLastTranslationPointC,
+                                                                  const cPtInsideTriangles &aLastPixInsideTriangle);
 
     private:
         // ==  Mandatory args ====

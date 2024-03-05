@@ -1,22 +1,23 @@
-#ifndef _TRIANGLEDEFORMATIONRADIOMETRY_H_
-#define _TRIANGLEDEFORMATIONRADIOMETRY_H_
+#ifndef _TRIANGLEDEFORMATIONRAD_H_
+#define _TRIANGLEDEFORMATIONRAD_H_
 
 #include "MMVII_Geom2D.h"
 #include "MMVII_PhgrDist.h"
 #include "TriangleDeformation.h"
+#include "TriangleDeformationRadiometry.h"
 
 using namespace NS_SymbolicDerivative;
 
 namespace MMVII
 {
 
-    /**************************************************/
-    /*                                                */
-    /*     cAppli_cTriangleDeformationRadiometry      */
-    /*                                                */
-    /**************************************************/
+    /******************************************************/
+    /*                                                    */
+    /*           cAppli_cTriangleDeformationRad           */
+    /*                                                    */
+    /******************************************************/
 
-    class cAppli_cTriangleDeformationRadiometry : public cAppli_cTriangleDeformation
+    class cAppli_cTriangleDeformationRad : public cAppli_cTriangleDeformationRadiometry
     {
     public:
         typedef cIm2D<tREAL8> tIm;
@@ -26,9 +27,9 @@ namespace MMVII
         typedef std::vector<int> tIntVect;
         typedef std::vector<double> tDoubleVect;
 
-        cAppli_cTriangleDeformationRadiometry(const std::vector<std::string> &aVArgs,
-                                              const cSpecMMVII_Appli &aSpec);
-        ~cAppli_cTriangleDeformationRadiometry();
+        cAppli_cTriangleDeformationRad(const std::vector<std::string> &aVArgs,
+                                       const cSpecMMVII_Appli &aSpec);
+        ~cAppli_cTriangleDeformationRad();
 
         int Exe() override;
         cCollecSpecArg2007 &ArgObl(cCollecSpecArg2007 &anArgObl) override;
@@ -40,24 +41,6 @@ namespace MMVII
         virtual void LoopOverTrianglesAndUpdateParametersRadiometry(const int aIterNumber);
         // Generate displacement maps of last solution
         virtual void GenerateOutputImageAndDisplayLastRadiometryValues(const tDenseVect &aVFinalSol, const int aIterNumber);
-        // Initialise problem after user has input information
-        void InitialisationAfterExeRadiometry(cTriangulation2D<tREAL8> &aDelaunayTri,
-                                              cResolSysNonLinear<tREAL8> *&aSys);
-        // Fill displacement maps and output image
-        void FillOutputImage(const cPtInsideTriangles &aLastPixInsideTriangle,
-                             const tREAL8 aLastRadiometryTranslation,
-                             const tREAL8 aLastRadiometryScaling);
-
-        // Apply barycentric translation formula to last radiometric translation values
-        tREAL8 ApplyLastBarycenterInterpolationFormulaRadiometryTranslation(const tREAL8 aLastRadTranslationPointA,
-                                                                            const tREAL8 aLastRadTranslationPointB,
-                                                                            const tREAL8 aLastRadTranslationPointC,
-                                                                            const cPtInsideTriangles &aLastPixInsideTriangle);
-        // Apply barycentric translation formula to last radiometric scaling values
-        tREAL8 ApplyLastBarycenterInterpolationFormulaRadiometryScaling(const tREAL8 aLastRadScalingPointA,
-                                                                        const tREAL8 aLastRadScalingPointB,
-                                                                        const tREAL8 aLastRadScalingPointC,
-                                                                        const cPtInsideTriangles &aLastPixInsideTriangle);
 
     private:
         // ==  Mandatory args ====
@@ -101,9 +84,9 @@ namespace MMVII
         std::vector<cPt2dr> mVectorPts;   // A vector containing a set of points
         cTriangulation2D<tREAL8> mDelTri; // A Delaunay triangle
 
-        cResolSysNonLinear<tREAL8> *mSys;      // Non Linear Sys for solving problem
-        cCalculator<double> *mEqRadiometryTri; // calculator giving access to values and derivatives
+        cResolSysNonLinear<tREAL8> *mSys; // Non Linear Sys for solving problem
+        cCalculator<double> *mEqRadTri;   // calculator giving access to values and derivatives
     };
 }
 
-#endif // _TRIANGLEDEFORMATIONRADIOMETRY_H_
+#endif // _TRIANGLEDEFORMATIONRAD_H_

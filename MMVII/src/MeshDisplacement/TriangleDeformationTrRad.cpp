@@ -27,13 +27,16 @@ namespace MMVII
                                                                                                         mUseMultiScaleApproach(true),
                                                                                                         mSigmaGaussFilterStep(1),
                                                                                                         mGenerateDisplacementImage(true),
+                                                                                                        mFreezeTranslationX(false),
+                                                                                                        mFreezeTranslationY(false),
                                                                                                         mFreezeRadTranslation(false),
                                                                                                         mFreezeRadScale(false),
                                                                                                         mWeightRadTranslation(-1),
                                                                                                         mWeightRadScale(-1),
                                                                                                         mNumberOfIterGaussFilter(3),
                                                                                                         mNumberOfEndIterations(2),
-                                                                                                        mDisplayLastTranslatedPointsCoordinates(false),
+                                                                                                        mDisplayLastTranslationValues(false),
+                                                                                                        mDisplayLastRadiometryValues(false),
                                                                                                         mSzImPre(cPt2di(1, 1)),
                                                                                                         mImPre(mSzImPre),
                                                                                                         mDImPre(nullptr),
@@ -84,6 +87,10 @@ namespace MMVII
                << AOpt2007(mSigmaGaussFilterStep, "SigmaGaussFilterStep", "Sigma value to use for Gauss filter in multi-stage approach.", {eTA2007::HDV})
                << AOpt2007(mGenerateDisplacementImage, "GenerateDisplacementImage",
                            "Whether to generate and save an image having been translated.", {eTA2007::HDV})
+               << AOpt2007(mFreezeTranslationX, "FreezeXTranslation", 
+                           "Whether to freeze or not x-translation to certain value during computation.", {eTA2007::HDV})
+               << AOpt2007(mFreezeTranslationY, "FreezeYTranslation", 
+                           "Whether to freeze or not y-translation to certain value during computation.", {eTA2007::HDV})
                << AOpt2007(mFreezeRadTranslation, "FreezeRadTranslation",
                            "Whether to freeze radiometry translation factor in computation or not.", {eTA2007::HDV})
                << AOpt2007(mFreezeRadScale, "FreezeRadScaling",
@@ -96,147 +103,10 @@ namespace MMVII
                            "Number of iterations to run in Gauss filter algorithm.", {eTA2007::HDV})
                << AOpt2007(mNumberOfEndIterations, "NumberOfEndIterations",
                            "Number of iterations to run on original images in multi-scale approach.", {eTA2007::HDV})
-               << AOpt2007(mDisplayLastTranslatedPointsCoordinates, "DisplayLastTranslationsOfPoints",
-                           "Whether to display the final coordinates of the trainslated points.", {eTA2007::HDV});
-    }
-
-    void cAppli_cTriangleDeformationTrRad::ConstructUniformRandomVectorAndApplyDelaunay()
-    {
-        // Use current time as seed for random generator
-        // srand(time(0));
-
-        mVectorPts.pop_back(); // eliminate initialisation values
-        // Generate coordinates from drawing lines and columns of coordinates from a uniform distribution
-        for (int aNbPt = 0; aNbPt < mNumberPointsToGenerate; aNbPt++)
-        {
-            const tREAL8 aUniformRandomLine = RandUnif_N(mRandomUniformLawUpperBoundLines);
-            const tREAL8 aUniformRandomCol = RandUnif_N(mRandomUniformLawUpperBoundCols);
-            const cPt2dr aUniformRandomPt(aUniformRandomCol, aUniformRandomLine); // cPt2dr format
-            mVectorPts.push_back(aUniformRandomPt);
-        }
-        mDelTri = mVectorPts;
-
-        mDelTri.MakeDelaunay(); // Delaunay triangulate randomly generated points.
-    }
-
-    void cAppli_cTriangleDeformationTrRad::GeneratePointsForDelaunay()
-    {
-        // If user hasn't defined another value than the default value, it is changed
-        if (mRandomUniformLawUpperBoundLines == 1 && mRandomUniformLawUpperBoundCols == 1)
-        {
-            // Maximum value of coordinates are drawn from [0, NumberOfImageLines[ for lines
-            mRandomUniformLawUpperBoundLines = mSzImPre.y();
-            // Maximum value of coordinates are drawn from [0, NumberOfImageColumns[ for columns
-            mRandomUniformLawUpperBoundCols = mSzImPre.x();
-        }
-        else
-        {
-            if (mRandomUniformLawUpperBoundLines != 1 && mRandomUniformLawUpperBoundCols == 1)
-                mRandomUniformLawUpperBoundCols = mSzImPre.x();
-            else
-            {
-                if (mRandomUniformLawUpperBoundLines == 1 && mRandomUniformLawUpperBoundCols != 1)
-                    mRandomUniformLawUpperBoundLines = mSzImPre.y();
-            }
-        }
-
-        ConstructUniformRandomVectorAndApplyDelaunay();
-    }
-
-    void cAppli_cTriangleDeformationTrRad::InitialisationAfterExe()
-    {
-        tDenseVect aVInit(4 * mDelTri.NbPts(), eModeInitImage::eMIA_Null);
-
-        for (size_t aKtNumber = 0; aKtNumber < 4 * mDelTri.NbPts(); aKtNumber++)
-        {
-            if (aKtNumber % 4 == 3)
-                aVInit(aKtNumber) = 1;
-        }
-
-        mSys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqDense, aVInit);
-    }
-
-    cPt2dr cAppli_cTriangleDeformationTrRad::ApplyBarycenterTranslationFormulaToFilledPixel(const cPt2dr &aCurrentTranslationPointA,
-                                                                                            const cPt2dr &aCurrentTranslationPointB,
-                                                                                            const cPt2dr &aCurrentTranslationPointC,
-                                                                                            const tDoubleVect &aVObs)
-    {
-        // apply current barycenter translation formula for x and y on current observations.
-        const tREAL8 aXTriCoord = aVObs[0] + aVObs[2] * aCurrentTranslationPointA.x() + aVObs[3] * aCurrentTranslationPointB.x() +
-                                  aVObs[4] * aCurrentTranslationPointC.x();
-        const tREAL8 aYTriCoord = aVObs[1] + aVObs[2] * aCurrentTranslationPointA.y() + aVObs[3] * aCurrentTranslationPointB.y() +
-                                  aVObs[4] * aCurrentTranslationPointC.y();
-
-        const cPt2dr aCurrentTranslatedPixel = cPt2dr(aXTriCoord, aYTriCoord);
-
-        return aCurrentTranslatedPixel;
-    }
-
-    tREAL8 cAppli_cTriangleDeformationTrRad::ApplyBarycenterTranslationFormulaForTranslationRadiometry(const tREAL8 aCurrentRadTranslationPointA,
-                                                                                                       const tREAL8 aCurrentRadTranslationPointB,
-                                                                                                       const tREAL8 aCurrentRadTranslationPointC,
-                                                                                                       const tDoubleVect &aVObs)
-    {
-        const tREAL8 aCurentRadTranslation = aVObs[2] * aCurrentRadTranslationPointA + aVObs[3] * aCurrentRadTranslationPointB +
-                                             aVObs[4] * aCurrentRadTranslationPointC;
-        return aCurentRadTranslation;
-    }
-
-    tREAL8 cAppli_cTriangleDeformationTrRad::ApplyBarycenterTranslationFormulaForScalingRadiometry(const tREAL8 aCurrentRadScalingPointA,
-                                                                                                   const tREAL8 aCurrentRadScalingPointB,
-                                                                                                   const tREAL8 aCurrentRadScalingPointC,
-                                                                                                   const tDoubleVect &aVObs)
-    {
-        const tREAL8 aCurrentRadScaling = aVObs[2] * aCurrentRadScalingPointA + aVObs[3] * aCurrentRadScalingPointB +
-                                          aVObs[4] * aCurrentRadScalingPointC;
-        return aCurrentRadScaling;
-    }
-
-    void cAppli_cTriangleDeformationTrRad::LoadImageAndData(tIm &aCurIm, tDIm *&aCurDIm, const std::string &aPreOrPostImage)
-    {
-        (aPreOrPostImage == "pre") ? aCurIm = mImPre : aCurIm = mImPost;
-        aCurDIm = &aCurIm.DIm();
-    }
-
-    void cAppli_cTriangleDeformationTrRad::ManageDifferentCasesOfEndIterations(const int aIterNumber, tIm aCurPreIm, tDIm *aCurPreDIm,
-                                                                               tIm aCurPostIm, tDIm *aCurPostDIm)
-    {
-        switch (mNumberOfEndIterations)
-        {
-        case 1: // one last iteration
-            if (aIterNumber == mNumberOfScales)
-            {
-                mIsLastIters = true;
-                LoadImageAndData(aCurPreIm, aCurPreDIm, "pre");
-                LoadImageAndData(aCurPostIm, aCurPostDIm, "post");
-            }
-            break;
-        case 2: // two last iterations
-            if ((aIterNumber == mNumberOfScales) || (aIterNumber == mNumberOfScales + mNumberOfEndIterations - 1))
-            {
-                mIsLastIters = true;
-                LoadImageAndData(aCurPreIm, aCurPreDIm, "pre");
-                LoadImageAndData(aCurPostIm, aCurPostDIm, "post");
-            }
-            break;
-        case 3: //  three last iterations
-            if ((aIterNumber == mNumberOfScales) || (aIterNumber == mNumberOfScales + mNumberOfEndIterations - 2) ||
-                (aIterNumber == mNumberOfScales + mNumberOfEndIterations - 1))
-            {
-                mIsLastIters = true;
-                LoadImageAndData(aCurPreIm, aCurPreDIm, "pre");
-                LoadImageAndData(aCurPostIm, aCurPostDIm, "post");
-            }
-            break;
-        default: // default is two last iterations
-            if ((aIterNumber == mNumberOfScales) || (aIterNumber == mNumberOfScales + mNumberOfEndIterations - 1))
-            {
-                mIsLastIters = true;
-                LoadImageAndData(aCurPreIm, aCurPreDIm, "pre");
-                LoadImageAndData(aCurPostIm, aCurPostDIm, "post");
-            }
-            break;
-        }
+               << AOpt2007(mDisplayLastTranslationValues, "DisplayLastTranslationsValues",
+                           "Whether to display the final values of unknowns linked to point translation.", {eTA2007::HDV})
+               << AOpt2007(mDisplayLastRadiometryValues, "DisplayLastRadiometryValues",
+                           "Whether to display or not the last values of radiometry unknowns after optimisation process.", {eTA2007::HDV});
     }
 
     void cAppli_cTriangleDeformationTrRad::LoopOverTrianglesAndUpdateParameters(const int aIterNumber)
@@ -247,12 +117,6 @@ namespace MMVII
         //----------- extract current parameters
         tDenseVect aVCur = mSys->CurGlobSol(); // Get current solution.
 
-        /*
-        for (int aUnk=0; aUnk<aVCur.DIm().Sz(); aUnk++)
-            StdOut() << aVCur(aUnk) << " " ;
-        StdOut() << std::endl;
-        */
-
         tIm aCurPreIm = tIm(mSzImPre);
         tDIm *aCurPreDIm = nullptr;
         tIm aCurPostIm = tIm(mSzImPost);
@@ -261,12 +125,13 @@ namespace MMVII
         mIsLastIters = false;
 
         if (mUseMultiScaleApproach)
-            ManageDifferentCasesOfEndIterations(aIterNumber, aCurPreIm, aCurPreDIm,
-                                                aCurPostIm, aCurPostDIm);
+            mIsLastIters = cAppli_cTriangleDeformation::ManageDifferentCasesOfEndIterations(aIterNumber, mNumberOfScales, mNumberOfEndIterations,
+                                                                                            mIsLastIters, mImPre, mImPost, aCurPreIm, aCurPreDIm,
+                                                                                            aCurPostIm, aCurPostDIm);
         else
         {
-            LoadImageAndData(aCurPreIm, aCurPreDIm, "pre");
-            LoadImageAndData(aCurPostIm, aCurPostDIm, "post");
+            cAppli_cTriangleDeformation::LoadImageAndData(aCurPreIm, aCurPreDIm, "pre", mImPre, mImPost);
+            cAppli_cTriangleDeformation::LoadImageAndData(aCurPostIm, aCurPostDIm, "post", mImPre, mImPost);
         }
 
         if (mUseMultiScaleApproach && !mIsLastIters)
@@ -283,6 +148,11 @@ namespace MMVII
             if (aSaveGaussImage)
                 aCurPreDIm->ToFile("GaussFilteredImPre_iter_" + std::to_string(aIterNumber) + ".tif");
         }
+        else if (mUseMultiScaleApproach && mIsLastIters)
+        {
+            cAppli_cTriangleDeformation::LoadImageAndData(aCurPreIm, aCurPreDIm, "pre", mImPre, mImPost);
+            cAppli_cTriangleDeformation::LoadImageAndData(aCurPostIm, aCurPostDIm, "post", mImPre, mImPost);
+        }
 
         //----------- declaration of indicator of convergence
         tREAL8 aSomDif = 0; // sum of difference between untranslated pixel and translated one.
@@ -292,7 +162,8 @@ namespace MMVII
         size_t aTotalNumberOfInsidePixels = 0;
 
         // hard constraint : freeze radiometric coefficients
-        if (mFreezeRadTranslation || mFreezeRadScale)
+        if (mFreezeRadTranslation || mFreezeRadScale ||
+            mFreezeTranslationX || mFreezeTranslationY)
         {
             for (size_t aTr = 0; aTr < mDelTri.NbFace(); aTr++)
             {
@@ -305,6 +176,18 @@ namespace MMVII
                                           4 * aIndicesOfTriKnots.z(), 4 * aIndicesOfTriKnots.z() + 1,
                                           4 * aIndicesOfTriKnots.z() + 2, 4 * aIndicesOfTriKnots.z() + 3};
 
+                if (mFreezeTranslationX)
+                {
+                    mSys->SetFrozenVar(aVecInd.at(2), aVCur(0));
+                    mSys->SetFrozenVar(aVecInd.at(6), aVCur(4));
+                    mSys->SetFrozenVar(aVecInd.at(10), aVCur(8));
+                }
+                if (mFreezeTranslationY)
+                {
+                    mSys->SetFrozenVar(aVecInd.at(2), aVCur(1));
+                    mSys->SetFrozenVar(aVecInd.at(6), aVCur(5));
+                    mSys->SetFrozenVar(aVecInd.at(10), aVCur(9));
+                }
                 if (mFreezeRadTranslation)
                 {
                     mSys->SetFrozenVar(aVecInd.at(2), aVCur(2));
@@ -395,18 +278,18 @@ namespace MMVII
                 FormalInterpBarycenter_SetObs(aVObs, 0, aPixInsideTriangle);
 
                 // image of a point in triangle by current translation
-                const cPt2dr aTranslatedFilledPoint = ApplyBarycenterTranslationFormulaToFilledPixel(aCurTrPointA, aCurTrPointB,
-                                                                                                     aCurTrPointC, aVObs);
+                const cPt2dr aTranslatedFilledPoint = cAppli_cTriangleDeformation::ApplyBarycenterTranslationFormulaToFilledPixel(aCurTrPointA, aCurTrPointB,
+                                                                                                                                  aCurTrPointC, aVObs);
                 // radiometry translation of pixel by current radiometry translation of triangle knots
-                const tREAL8 aRadiometryTranslation = ApplyBarycenterTranslationFormulaForTranslationRadiometry(aCurRadTrPointA,
-                                                                                                                aCurRadTrPointB,
-                                                                                                                aCurRadTrPointC,
-                                                                                                                aVObs);
+                const tREAL8 aRadiometryTranslation = cAppli_cTriangleDeformation::ApplyBarycenterTranslationFormulaForTranslationRadiometry(aCurRadTrPointA,
+                                                                                                                                             aCurRadTrPointB,
+                                                                                                                                             aCurRadTrPointC,
+                                                                                                                                             aVObs);
                 // radiometry translation of pixel by current radiometry scaling of triangle knots
-                const tREAL8 aRadiometryScaling = ApplyBarycenterTranslationFormulaForScalingRadiometry(aCurRadScPointA,
-                                                                                                        aCurRadScPointB,
-                                                                                                        aCurRadScPointC,
-                                                                                                        aVObs);
+                const tREAL8 aRadiometryScaling = cAppli_cTriangleDeformation::ApplyBarycenterTranslationFormulaForScalingRadiometry(aCurRadScPointA,
+                                                                                                                                     aCurRadScPointB,
+                                                                                                                                     aCurRadScPointC,
+                                                                                                                                     aVObs);
 
                 if (aCurPostDIm->InsideBL(aTranslatedFilledPoint)) // avoid errors
                 {
@@ -432,7 +315,7 @@ namespace MMVII
         {
             const bool aGenerateIntermediateMaps = false;
             if (aGenerateIntermediateMaps)
-                GenerateDisplacementMaps(aVCur, aIterNumber);
+                GenerateDisplacementMapsAndOutputImages(aVCur, aIterNumber);
         }
 
         // Update all parameter taking into account previous observation
@@ -489,7 +372,7 @@ namespace MMVII
             mDImOut->SetV(cPt2di(aLastXTranslatedCoord, aLastYTranslatedCoord), aLastRadiometryValue);
     }
 
-    void cAppli_cTriangleDeformationTrRad::GenerateDisplacementMaps(const tDenseVect &aVFinalSol, const int aIterNumber)
+    void cAppli_cTriangleDeformationTrRad::GenerateDisplacementMapsAndOutputImages(const tDenseVect &aVFinalSol, const int aIterNumber)
     {
         mImOut = tIm(mSzImPre);
         mDImOut = &mImOut.DIm();
@@ -503,7 +386,7 @@ namespace MMVII
 
         tIm aLastPostIm = tIm(mSzImPost);
         tDIm *aLastPostDIm = nullptr;
-        LoadImageAndData(aLastPostIm, aLastPostDIm, "post");
+        cAppli_cTriangleDeformation::LoadImageAndData(aLastPostIm, aLastPostDIm, "post", mImPre, mImPost);
 
         if (mUseMultiScaleApproach && !mIsLastIters)
         {
@@ -565,18 +448,18 @@ namespace MMVII
                 FormalInterpBarycenter_SetObs(aLastVObs, 0, aLastPixInsideTriangle);
 
                 // image of a point in triangle by current translation
-                const cPt2dr aLastTranslatedFilledPoint = ApplyBarycenterTranslationFormulaToFilledPixel(aLastTrPointA, aLastTrPointB,
-                                                                                                         aLastTrPointC, aLastVObs);
+                const cPt2dr aLastTranslatedFilledPoint = cAppli_cTriangleDeformation::ApplyBarycenterTranslationFormulaToFilledPixel(aLastTrPointA, aLastTrPointB,
+                                                                                                                                      aLastTrPointC, aLastVObs);
 
-                const tREAL8 aLastRadiometryTranslation = ApplyBarycenterTranslationFormulaForTranslationRadiometry(aLastRadTrPointA,
-                                                                                                                    aLastRadTrPointB,
-                                                                                                                    aLastRadTrPointC,
-                                                                                                                    aLastVObs);
+                const tREAL8 aLastRadiometryTranslation = cAppli_cTriangleDeformation::ApplyBarycenterTranslationFormulaForTranslationRadiometry(aLastRadTrPointA,
+                                                                                                                                                 aLastRadTrPointB,
+                                                                                                                                                 aLastRadTrPointC,
+                                                                                                                                                 aLastVObs);
 
-                const tREAL8 aLastRadiometryScaling = ApplyBarycenterTranslationFormulaForScalingRadiometry(aLastRadScPointA,
-                                                                                                            aLastRadScPointB,
-                                                                                                            aLastRadScPointC,
-                                                                                                            aLastVObs);
+                const tREAL8 aLastRadiometryScaling = cAppli_cTriangleDeformation::ApplyBarycenterTranslationFormulaForScalingRadiometry(aLastRadScPointA,
+                                                                                                                                         aLastRadScPointB,
+                                                                                                                                         aLastRadScPointC,
+                                                                                                                                         aLastVObs);
 
                 FillDisplacementMapsAndOutputImage(aLastPixInsideTriangle, aLastTranslatedFilledPoint, aLastRadiometryTranslation,
                                                    aLastRadiometryScaling);
@@ -605,28 +488,17 @@ namespace MMVII
         }
     }
 
-    void cAppli_cTriangleDeformationTrRad::GenerateDisplacementMapsAndLastTranslatedPoints(const int aIterNumber)
+    void cAppli_cTriangleDeformationTrRad::GenerateDisplacementMapsAndDisplayLastValuesUnknowns(const int aIterNumber, const bool aDisplayLastRadiometryValues,
+                                                                                                const bool aDisplayLastTranslationValues)
     {
         tDenseVect aVFinalSol = mSys->CurGlobSol();
 
         if (mGenerateDisplacementImage)
-            GenerateDisplacementMaps(aVFinalSol, aIterNumber);
+            GenerateDisplacementMapsAndOutputImages(aVFinalSol, aIterNumber);
 
-        if (mDisplayLastTranslatedPointsCoordinates)
-        {
-            for (size_t aLastTrCoordinate = 0; aLastTrCoordinate < mDelTri.NbPts(); aLastTrCoordinate++)
-            {
-                // final translation for points in triangulation
-                const cPt2dr aLastTrPoint = cPt2dr(aVFinalSol(4 * aLastTrCoordinate),
-                                                   aVFinalSol(4 * aLastTrCoordinate + 1));
-
-                const cPt2dr aUntranslatedCoord = mDelTri.KthPts(aLastTrCoordinate);
-
-                StdOut() << "The untranslated point has the following coordinates : " << aUntranslatedCoord
-                         << ". The final translation of this point is : " << aLastTrPoint.x()
-                         << " on the x-axis and " << aLastTrPoint.y() << " for the y-axis." << std::endl;
-            }
-        }
+        if (aDisplayLastRadiometryValues || aDisplayLastTranslationValues)
+            cAppli_cTriangleDeformation::DisplayLastUnknownValues(aVFinalSol, aDisplayLastRadiometryValues, 
+                                                                  aDisplayLastTranslationValues);
     }
 
     void cAppli_cTriangleDeformationTrRad::DoOneIteration(const int aIterNumber)
@@ -637,12 +509,14 @@ namespace MMVII
         if (mUseMultiScaleApproach)
         {
             if (aIterNumber == (mNumberOfScales + mNumberOfEndIterations - 1))
-                GenerateDisplacementMapsAndLastTranslatedPoints(aIterNumber);
+                GenerateDisplacementMapsAndDisplayLastValuesUnknowns(aIterNumber, mDisplayLastRadiometryValues,
+                                                                     mDisplayLastTranslationValues);
         }
         else
         {
             if (aIterNumber == (mNumberOfScales - 1))
-                GenerateDisplacementMapsAndLastTranslatedPoints(aIterNumber);
+                GenerateDisplacementMapsAndDisplayLastValuesUnknowns(aIterNumber, mDisplayLastRadiometryValues,
+                                                                     mDisplayLastTranslationValues);
         }
     }
 
@@ -668,9 +542,10 @@ namespace MMVII
                      << "Diff, "
                      << "NbOut" << std::endl;
 
-        GeneratePointsForDelaunay();
+        cAppli_cTriangleDeformation::GeneratePointsForDelaunay(mVectorPts, mNumberPointsToGenerate, mRandomUniformLawUpperBoundLines,
+                                                               mRandomUniformLawUpperBoundCols, mDelTri, mSzImPre);
 
-        InitialisationAfterExe();
+        cAppli_cTriangleDeformation::InitialisationAfterExe(mDelTri, mSys);
 
         if (mUseMultiScaleApproach)
         {
@@ -699,7 +574,7 @@ namespace MMVII
     cSpecMMVII_Appli TheSpec_ComputeTriangleDeformationTrRad(
         "ComputeTriangleDeformationTrRad",
         Alloc_cTriangleDeformationTrRad,
-        "Compute 2D deformation of triangles between images using triangles",
+        "Compute 2D deformation of triangles between images using triangles and alternative formula",
         {eApF::ImProc}, // category
         {eApDT::Image}, // input
         {eApDT::Image}, // output

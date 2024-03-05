@@ -324,6 +324,11 @@ cCalculator<double> *EqDeformTriRadiometry(bool WithDerive, int aSzBuf)
     return StdAllocCalc(NameFormula(cTriangleDeformationRadiometry(), WithDerive), aSzBuf);
 }
 
+cCalculator<double> *EqDeformTriRad(bool WithDerive, int aSzBuf)
+{
+    return StdAllocCalc(NameFormula(cTriangleDeformationRad(), WithDerive), aSzBuf);
+}
+
 // dist3d
 //    Cons distance
 template <class Type> cCalculator<Type> * TplEqDist3D(bool WithDerive,int aSzBuf)
@@ -833,6 +838,7 @@ int cAppliGenCode::Exe()
        GenCodesFormula((tREAL8 *)nullptr, cTriangleDeformationTrRad(), WithDer);
        GenCodesFormula((tREAL8 *)nullptr, cTriangleDeformationTranslation(), WithDer);
        GenCodesFormula((tREAL8 *)nullptr, cTriangleDeformationRadiometry(), WithDer);
+       GenCodesFormula((tREAL8 *)nullptr, cTriangleDeformationRad(), WithDer);
 
 
        //  ===============   CODE FOR RADIOMETRY =========================================

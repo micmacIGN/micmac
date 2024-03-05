@@ -204,6 +204,8 @@ NS_SymbolicDerivative::cCalculator<double> *EqDeformTriTrRad(bool WithDerive, in
 NS_SymbolicDerivative::cCalculator<double> *EqDeformTriTranslation(bool WithDerive, int aSzBuf);
 /// Equation used to optimize radiometric transformation between two images.
 NS_SymbolicDerivative::cCalculator<double> *EqDeformTriRadiometry(bool WithDerive, int aSzBuf);
+/// Equation used to optimize radiometric transformation between two images with alternate equation
+NS_SymbolicDerivative::cCalculator<double> *EqDeformTriRad(bool WithDerive, int aSzBuf);
 
            // .............   Covariance propagation  .............
 

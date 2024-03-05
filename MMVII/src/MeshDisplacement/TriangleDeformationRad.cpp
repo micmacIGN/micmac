@@ -1,9 +1,9 @@
 #include "MMVII_TplSymbTriangle.h"
 
-#include "TriangleDeformationRadiometry.h"
+#include "TriangleDeformationRad.h"
 
 /**
-   \file TriangleDeformationRadiometry.cpp
+   \file TriangleDeformationRad.cpp
 
    \brief file computing radiometric deformations
    between 2 images using triangles.
@@ -14,49 +14,49 @@ namespace MMVII
 
     /**********************************************/
     /*                                            */
-    /*       cTriangleDeformationRadiometry       */
+    /*          cTriangleDeformationRad           */
     /*                                            */
     /**********************************************/
 
-    cAppli_cTriangleDeformationRadiometry::cAppli_cTriangleDeformationRadiometry(const std::vector<std::string> &aVArgs,
-                                                                                 const cSpecMMVII_Appli &aSpec) : cAppli_cTriangleDeformation(aVArgs, aSpec),
-                                                                                                                  mRandomUniformLawUpperBoundLines(1),
-                                                                                                                  mRandomUniformLawUpperBoundCols(1),
-                                                                                                                  mShow(true),
-                                                                                                                  mGenerateOutputImage(true),
-                                                                                                                  mUseMultiScaleApproach(false),
-                                                                                                                  mWeightRadTranslation(-1),
-                                                                                                                  mWeightRadScale(-1),
-                                                                                                                  mDisplayLastRadiometryValues(false),
-                                                                                                                  mSigmaGaussFilterStep(1),
-                                                                                                                  mNumberOfIterGaussFilter(3),
-                                                                                                                  mNumberOfEndIterations(2),
-                                                                                                                  mSzImPre(cPt2di(1, 1)),
-                                                                                                                  mImPre(mSzImPre),
-                                                                                                                  mDImPre(nullptr),
-                                                                                                                  mSzImPost(cPt2di(1, 1)),
-                                                                                                                  mImPost(mSzImPost),
-                                                                                                                  mDImPost(nullptr),
-                                                                                                                  mSzImOut(cPt2di(1, 1)),
-                                                                                                                  mImOut(mSzImOut),
-                                                                                                                  mDImOut(nullptr),
-                                                                                                                  mVectorPts({cPt2dr(0, 0)}),
-                                                                                                                  mDelTri(mVectorPts),
-                                                                                                                  mSys(nullptr),
-                                                                                                                  mEqRadiometryTri(nullptr)
+    cAppli_cTriangleDeformationRad::cAppli_cTriangleDeformationRad(const std::vector<std::string> &aVArgs,
+                                                                   const cSpecMMVII_Appli &aSpec) : cAppli_cTriangleDeformationRadiometry(aVArgs, aSpec),
+                                                                                                    mRandomUniformLawUpperBoundLines(1),
+                                                                                                    mRandomUniformLawUpperBoundCols(1),
+                                                                                                    mShow(true),
+                                                                                                    mGenerateOutputImage(true),
+                                                                                                    mUseMultiScaleApproach(false),
+                                                                                                    mWeightRadTranslation(-1),
+                                                                                                    mWeightRadScale(-1),
+                                                                                                    mDisplayLastRadiometryValues(false),
+                                                                                                    mSigmaGaussFilterStep(1),
+                                                                                                    mNumberOfIterGaussFilter(3),
+                                                                                                    mNumberOfEndIterations(2),
+                                                                                                    mSzImPre(cPt2di(1, 1)),
+                                                                                                    mImPre(mSzImPre),
+                                                                                                    mDImPre(nullptr),
+                                                                                                    mSzImPost(cPt2di(1, 1)),
+                                                                                                    mImPost(mSzImPost),
+                                                                                                    mDImPost(nullptr),
+                                                                                                    mSzImOut(cPt2di(1, 1)),
+                                                                                                    mImOut(mSzImOut),
+                                                                                                    mDImOut(nullptr),
+                                                                                                    mVectorPts({cPt2dr(0, 0)}),
+                                                                                                    mDelTri(mVectorPts),
+                                                                                                    mSys(nullptr),
+                                                                                                    mEqRadTri(nullptr)
 
     {
-        mEqRadiometryTri = EqDeformTriRadiometry(true, 1); // true means with derivative, 1 is size of buffer
+        mEqRadTri = EqDeformTriRad(true, 1); // true means with derivative, 1 is size of buffer
         // mEqRadiometryTri->SetDebugEnabled(true);
     }
 
-    cAppli_cTriangleDeformationRadiometry::~cAppli_cTriangleDeformationRadiometry()
+    cAppli_cTriangleDeformationRad::~cAppli_cTriangleDeformationRad()
     {
         delete mSys;
-        delete mEqRadiometryTri;
+        delete mEqRadTri;
     }
 
-    cCollecSpecArg2007 &cAppli_cTriangleDeformationRadiometry::ArgObl(cCollecSpecArg2007 &anArgObl)
+    cCollecSpecArg2007 &cAppli_cTriangleDeformationRad::ArgObl(cCollecSpecArg2007 &anArgObl)
     {
         return anArgObl
                << Arg2007(mNamePreImage, "Name of pre-image file.", {{eTA2007::FileImage}, {eTA2007::FileDirProj}})
@@ -65,7 +65,7 @@ namespace MMVII
                << Arg2007(mNumberOfScales, "Total number of scales to run in multi-scale approach optimisation process.");
     }
 
-    cCollecSpecArg2007 &cAppli_cTriangleDeformationRadiometry::ArgOpt(cCollecSpecArg2007 &anArgOpt)
+    cCollecSpecArg2007 &cAppli_cTriangleDeformationRad::ArgOpt(cCollecSpecArg2007 &anArgOpt)
     {
         return anArgOpt
                << AOpt2007(mRandomUniformLawUpperBoundCols, "RandomUniformLawUpperBoundXAxis",
@@ -90,22 +90,7 @@ namespace MMVII
                            "Number of iterations to run on original images in multi-scale approach.", {eTA2007::HDV});
     }
 
-    void cAppli_cTriangleDeformationRadiometry::InitialisationAfterExeRadiometry(cTriangulation2D<tREAL8> &aDelaunayTri,
-                                                                                 cResolSysNonLinear<tREAL8> *&aSys)
-    {
-        const size_t aNumberPts = 2 * aDelaunayTri.NbPts();
-        tDenseVect aVInit(aNumberPts, eModeInitImage::eMIA_Null); // eMIA_V1
-
-        for (size_t aKtNumber = 0; aKtNumber < aNumberPts; aKtNumber++)
-        {
-            if (aKtNumber % 2 == 1)
-                aVInit(aKtNumber) = 1;
-        }
-
-        aSys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqDense, aVInit);
-    }
-
-    void cAppli_cTriangleDeformationRadiometry::LoopOverTrianglesAndUpdateParametersRadiometry(const int aIterNumber)
+    void cAppli_cTriangleDeformationRad::LoopOverTrianglesAndUpdateParametersRadiometry(const int aIterNumber)
     {
         //----------- allocate vec of obs :
         tDoubleVect aVObs(12, 0.0); // 6 for ImagePre and 6 for ImagePost
@@ -146,8 +131,8 @@ namespace MMVII
         }
         else if (mUseMultiScaleApproach && mIsLastIters)
         {
-            cAppli_cTriangleDeformation::LoadImageAndData(aCurPreIm, aCurPreDIm, "pre", mImPre, mImPost);
-            cAppli_cTriangleDeformation::LoadImageAndData(aCurPostIm, aCurPostDIm, "post", mImPre, mImPost);
+            LoadImageAndData(aCurPreIm, aCurPreDIm, "pre", mImPre, mImPost);
+            LoadImageAndData(aCurPostIm, aCurPostDIm, "post", mImPre, mImPost);
         }
 
         //----------- declaration of indicator of convergence
@@ -239,11 +224,12 @@ namespace MMVII
                         FormalBilinTri_SetObs(aVObs, TriangleDisplacement_NbObs, aInsideTrianglePoint, *aCurPostDIm);
 
                         // Now add observation
-                        mSys->CalcAndAddObs(mEqRadiometryTri, aVecInd, aVObs);
+                        mSys->CalcAndAddObs(mEqRadTri, aVecInd, aVObs);
 
                         // compute indicators
-                        const tREAL8 aRadiomValueImPre = aRadiometryScaling * aVObs[5] + aRadiometryTranslation;
-                        const tREAL8 aDif = aRadiomValueImPre - aCurPostDIm->GetVBL(aInsideTrianglePoint); // residual
+                        const tREAL8 aBilinearRadiomValue = aRadiometryScaling * aCurPostDIm->GetVBL(aPixInsideTriangle.GetCartesianCoordinates()) +
+                                                            aRadiometryTranslation;
+                        const tREAL8 aDif = aVObs[5] - aBilinearRadiomValue; // residual : aValueImPre - aBilinearRadiomValue
                         aSomDif += std::abs(aDif);
                     }
                 }
@@ -261,62 +247,24 @@ namespace MMVII
                      << ", " << aNbOut << std::endl;
     }
 
-    void cAppli_cTriangleDeformationRadiometry::FillOutputImage(const cPtInsideTriangles &aLastPixInsideTriangle,
-                                                                const tREAL8 aLastRadiometryTranslation,
-                                                                const tREAL8 aLastRadiometryScaling)
-    {
-        const tREAL8 aLastXCoordinate = aLastPixInsideTriangle.GetCartesianCoordinates().x();
-        const tREAL8 aLastYCoordinate = aLastPixInsideTriangle.GetCartesianCoordinates().y();
-
-        const cPt2di aLastCoordinate = cPt2di(aLastXCoordinate, aLastYCoordinate);
-
-        const tREAL8 aLastRadiometryValue = aLastRadiometryScaling * aLastPixInsideTriangle.GetPixelValue() +
-                                            aLastRadiometryTranslation;
-
-        // Build image with radiometric intensities
-        mDImOut->SetV(aLastCoordinate, aLastRadiometryValue);
-    }
-
-    tREAL8 cAppli_cTriangleDeformationRadiometry::ApplyLastBarycenterInterpolationFormulaRadiometryTranslation(const tREAL8 aLastRadTranslationPointA,
-                                                                                                               const tREAL8 aLastRadTranslationPointB,
-                                                                                                               const tREAL8 aLastRadTranslationPointC,
-                                                                                                               const cPtInsideTriangles &aLastPixInsideTriangle)
-    {
-        const cPt3dr BarycenterCoordinateOfPoint = aLastPixInsideTriangle.GetBarycenterCoordinates();
-        const tREAL8 aCurentRadTranslation = BarycenterCoordinateOfPoint.x() * aLastRadTranslationPointA + BarycenterCoordinateOfPoint.y() * aLastRadTranslationPointB +
-                                             BarycenterCoordinateOfPoint.z() * aLastRadTranslationPointC;
-        return aCurentRadTranslation;
-    }
-
-    tREAL8 cAppli_cTriangleDeformationRadiometry::ApplyLastBarycenterInterpolationFormulaRadiometryScaling(const tREAL8 aLastRadScalingPointA,
-                                                                                                           const tREAL8 aLastRadScalingPointB,
-                                                                                                           const tREAL8 aLastRadScalingPointC,
-                                                                                                           const cPtInsideTriangles &aLastPixInsideTriangle)
-    {
-        const cPt3dr BarycenterCoordinateOfPoint = aLastPixInsideTriangle.GetBarycenterCoordinates();
-        const tREAL8 aCurrentRadScaling = BarycenterCoordinateOfPoint.x() * aLastRadScalingPointA + BarycenterCoordinateOfPoint.y() * aLastRadScalingPointB +
-                                          BarycenterCoordinateOfPoint.z() * aLastRadScalingPointC;
-        return aCurrentRadScaling;
-    }
-
-    void cAppli_cTriangleDeformationRadiometry::GenerateOutputImageAndDisplayLastRadiometryValues(const tDenseVect &aVFinalSol, const int aIterNumber)
+    void cAppli_cTriangleDeformationRad::GenerateOutputImageAndDisplayLastRadiometryValues(const tDenseVect &aVFinalSol, const int aIterNumber)
     {
         mImOut = tIm(mSzImPre);
         mDImOut = &mImOut.DIm();
         mSzImOut = cPt2di(mDImOut->Sz().x(), mDImOut->Sz().y());
 
-        tIm aLastPreIm = tIm(mSzImPre);
-        tDIm *aLastPreDIm = nullptr;
-        cAppli_cTriangleDeformation::LoadImageAndData(aLastPreIm, aLastPreDIm, "pre", mImPre, mImPost);
+        tIm aLastPostIm = tIm(mSzImPost);
+        tDIm *aLastPostDIm = nullptr;
+        cAppli_cTriangleDeformation::LoadImageAndData(aLastPostIm, aLastPostDIm, "post", mImPre, mImPost);
 
         if (mUseMultiScaleApproach && !mIsLastIters)
         {
-            aLastPreIm = mImPre.GaussFilter(mSigmaGaussFilter, mNumberOfIterGaussFilter);
-            aLastPreDIm = &aLastPreIm.DIm();
+            aLastPostIm = mImPost.GaussFilter(mSigmaGaussFilter, mNumberOfIterGaussFilter);
+            aLastPostDIm = &aLastPostIm.DIm();
         }
 
         for (const cPt2di &aOutPix : *mDImOut) // Initialise output image
-            mDImOut->SetV(aOutPix, aLastPreDIm->GetV(aOutPix));
+            mDImOut->SetV(aOutPix, aLastPostDIm->GetV(aOutPix));
 
         for (size_t aLTr = 0; aLTr < mDelTri.NbFace(); aLTr++)
         {
@@ -344,7 +292,7 @@ namespace MMVII
             for (size_t aLastFilledPixel = 0; aLastFilledPixel < aLastNumberOfInsidePixels; aLastFilledPixel++)
             {
                 const cPtInsideTriangles aLastPixInsideTriangle = cPtInsideTriangles(aLastCompTri, aLastVectorToFillWithInsidePixels,
-                                                                                     aLastFilledPixel, *aLastPreDIm);
+                                                                                     aLastFilledPixel, *aLastPostDIm);
 
                 // radiometry translation of pixel by current radiometry translation
                 const tREAL8 aLastRadiometryTranslation = cAppli_cTriangleDeformationRadiometry::ApplyLastBarycenterInterpolationFormulaRadiometryTranslation(aLastRadTrPointA,
@@ -357,8 +305,8 @@ namespace MMVII
                                                                                                                                                       aLastRadScPointC,
                                                                                                                                                       aLastPixInsideTriangle);
 
-                FillOutputImage(aLastPixInsideTriangle, aLastRadiometryTranslation,
-                                aLastRadiometryScaling);
+                cAppli_cTriangleDeformationRadiometry::FillOutputImage(aLastPixInsideTriangle, aLastRadiometryTranslation,
+                                                                       aLastRadiometryScaling);
             }
         }
 
@@ -376,7 +324,7 @@ namespace MMVII
         }
     }
 
-    void cAppli_cTriangleDeformationRadiometry::DoOneIterationRadiometry(const int aIterNumber)
+    void cAppli_cTriangleDeformationRad::DoOneIterationRadiometry(const int aIterNumber)
     {
         LoopOverTrianglesAndUpdateParametersRadiometry(aIterNumber); // Iterate over triangles and solve system
 
@@ -396,7 +344,7 @@ namespace MMVII
 
     //-----------------------------------------
 
-    int cAppli_cTriangleDeformationRadiometry::Exe()
+    int cAppli_cTriangleDeformationRad::Exe()
     {
         // read pre and post images and their sizes
         mImPre = tIm::FromFile(mNamePreImage);
@@ -439,16 +387,16 @@ namespace MMVII
     //              ::MMVII                     //
     /********************************************/
 
-    tMMVII_UnikPApli Alloc_cTriangleDeformationRadiometry(const std::vector<std::string> &aVArgs,
-                                                          const cSpecMMVII_Appli &aSpec)
+    tMMVII_UnikPApli Alloc_cTriangleDeformationRad(const std::vector<std::string> &aVArgs,
+                                                   const cSpecMMVII_Appli &aSpec)
     {
-        return tMMVII_UnikPApli(new cAppli_cTriangleDeformationRadiometry(aVArgs, aSpec));
+        return tMMVII_UnikPApli(new cAppli_cTriangleDeformationRad(aVArgs, aSpec));
     }
 
-    cSpecMMVII_Appli TheSpec_ComputeTriangleDeformationRadiometry(
-        "ComputeTriangleDeformationRadiometry",
-        Alloc_cTriangleDeformationRadiometry,
-        "Compute radiometric deformation between images using triangles",
+    cSpecMMVII_Appli TheSpec_ComputeTriangleDeformationRad(
+        "ComputeTriangleDeformationRad",
+        Alloc_cTriangleDeformationRad,
+        "Compute radiometric deformation between images using triangles and alternative equation",
         {eApF::ImProc}, // category
         {eApDT::Image}, // input
         {eApDT::Image}, // output

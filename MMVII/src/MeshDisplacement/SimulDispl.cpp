@@ -55,7 +55,7 @@ namespace MMVII
         const std::vector<std::string> &aVArgs,
         const cSpecMMVII_Appli &aSpec) : cMMVII_Appli(aVArgs, aSpec),
                                          mAmplDef(2.0),
-                                         mWithDisc(true),
+                                         mWithDisc(false),
                                          mImIn(cPt2di(1, 1)),
                                          mDImIn(nullptr),
                                          mImOut(cPt2di(1, 1)),
@@ -90,7 +90,7 @@ namespace MMVII
         tImDispl aResSsEch(aSzRed);
 
         for (const cPt2di &aPix : aResSsEch.DIm())
-                aResSsEch.DIm().SetV(aPix, RandUnif_C());
+            aResSsEch.DIm().SetV(aPix, RandUnif_C());
 
         ExpFilterOfStdDev(aResSsEch.DIm(), 5, Norm2(aSzRed) / aNbBlob);
         NormalizedAvgDev(aResSsEch.DIm(), 1e-10, mAmplDef);
@@ -131,7 +131,7 @@ namespace MMVII
                 if (aImRegion.DIm().GetV(aPix))
                     std::swap(aImDispx.DIm().GetReference_V(aPix),
                               aImDispy.DIm().GetReference_V(aPix));
-            }
+           }
         }
 
         aImDispx.DIm().ToFile("DeplX.tif");
@@ -142,15 +142,15 @@ namespace MMVII
         {
             const tREAL8 aDx = aImDispx.DIm().GetV(aPix);
             const tREAL8 aDy = aImDispy.DIm().GetV(aPix);
-            const cPt2dr aPixR = ToR(aPix) + cPt2dr(aDx, aDy);
+            const cPt2dr aPixR = ToR(aPix) - cPt2dr(aDx, aDy);
 
             mDImOut->SetV(aPix, mDImIn->DefGetVBL(aPixR, 0));
         }
 
         mDImOut->ToFile("image_post.tif", aDescFile.Type());
 
-        StdOut() << "hello , size of image = [" << mImIn.DIm().Sz().x() 
-                 << ", " << mDImIn->Sz().y() << "]" << std::endl;
+        StdOut() << "Size of image = [" << mImIn.DIm().Sz().x() 
+                 << ", " << mDImIn->SzY() << "]" << std::endl;
         return EXIT_SUCCESS;
     }
 
@@ -174,8 +174,5 @@ namespace MMVII
         {eApDT::Image},
         {eApDT::Image},
         __FILE__);
-
-#if (0)
-#endif
 
 }; // MMVII

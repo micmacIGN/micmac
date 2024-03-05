@@ -83,123 +83,27 @@ namespace MMVII
                << AOpt2007(mGenerateDisplacementImage, "GenerateDisplacementImage",
                            "Whether to generate and save an image having been translated.", {eTA2007::HDV})
                << AOpt2007(mDisplayLastTranslatedPointsCoordinates, "DisplayLastTranslatedCoordinates",
-                           "Whether to display the final coordinates of the trainslated points.", {eTA2007::HDV})    
+                           "Whether to display the final coordinates of the trainslated points.", {eTA2007::HDV})
                << AOpt2007(mNumberOfIterGaussFilter, "NumberOfIterationsGaussFilter",
                            "Number of iterations to run in Gauss filter algorithm.", {eTA2007::HDV})
                << AOpt2007(mNumberOfEndIterations, "NumberOfEndIterations",
                            "Number of iterations to run on original images in multi-scale approach.", {eTA2007::HDV});
     }
 
-    void cAppli_cTriangleDeformationTranslation::InitialisationAfterExe()
+    void cAppli_cTriangleDeformationTranslation::InitialisationAfterExeTranslation()
     {
         tDenseVect aVInit(2 * mDelTri.NbPts(), eModeInitImage::eMIA_Null);
 
         mSys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqDense, aVInit);
     }
 
-    void cAppli_cTriangleDeformationTranslation::ConstructUniformRandomVectorAndApplyDelaunay()
-    {
-        // Use current time as seed for random generator
-        // srand(time(0));
-
-        mVectorPts.pop_back(); // eliminate initialisation values
-        // Generate coordinates from drawing lines and columns of coordinates from a uniform distribution
-        for (int aNbPt = 0; aNbPt < mNumberPointsToGenerate; aNbPt++)
-        {
-            const tREAL8 aUniformRandomLine = RandUnif_N(mRandomUniformLawUpperBoundLines);
-            const tREAL8 aUniformRandomCol = RandUnif_N(mRandomUniformLawUpperBoundCols);
-            const cPt2dr aUniformRandomPt(aUniformRandomCol, aUniformRandomLine); // cPt2dr format
-            mVectorPts.push_back(aUniformRandomPt);
-        }
-        mDelTri = mVectorPts;
-
-        mDelTri.MakeDelaunay(); // Delaunay triangulate randomly generated points.
-    }
-
-    void cAppli_cTriangleDeformationTranslation::GeneratePointsForDelaunay()
-    {
-        // If user hasn't defined another value than the default value, it is changed
-        if (mRandomUniformLawUpperBoundLines == 1 && mRandomUniformLawUpperBoundCols == 1)
-        {
-            // Maximum value of coordinates are drawn from [0, NumberOfImageLines[ for lines
-            mRandomUniformLawUpperBoundLines = mSzImPre.y();
-            // Maximum value of coordinates are drawn from [0, NumberOfImageColumns[ for columns
-            mRandomUniformLawUpperBoundCols = mSzImPre.x();
-        }
-        else
-        {
-            if (mRandomUniformLawUpperBoundLines != 1 && mRandomUniformLawUpperBoundCols == 1)
-                mRandomUniformLawUpperBoundCols = mSzImPre.x();
-            else
-            {
-                if (mRandomUniformLawUpperBoundLines == 1 && mRandomUniformLawUpperBoundCols != 1)
-                    mRandomUniformLawUpperBoundLines = mSzImPre.y();
-            }
-        }
-
-        ConstructUniformRandomVectorAndApplyDelaunay();
-    }
-
-    void cAppli_cTriangleDeformationTranslation::LoadImageAndData(tIm &aCurIm, tDIm *&aCurDIm, const std::string &aPreOrPostImage)
-    {
-        (aPreOrPostImage == "pre") ? aCurIm = mImPre : aCurIm = mImPost;
-        aCurDIm = &aCurIm.DIm();
-    }
-
-    void cAppli_cTriangleDeformationTranslation::ManageDifferentCasesOfEndIterations(const int aIterNumber, tIm aCurPreIm, tDIm * aCurPreDIm,
-                                                                                     tIm aCurPostIm, tDIm * aCurPostDIm)
-    {
-        switch (mNumberOfEndIterations)
-        {
-        case 1: // one last iteration
-            if (aIterNumber == mNumberOfScales)
-            {
-                mIsLastIters = true;
-                LoadImageAndData(aCurPreIm, aCurPreDIm, "pre");
-                LoadImageAndData(aCurPostIm, aCurPostDIm, "post");
-            }
-            break;
-        case 2: // two last iterations
-            if ((aIterNumber == mNumberOfScales) || (aIterNumber == mNumberOfScales + mNumberOfEndIterations - 1))
-            {
-                mIsLastIters = true;
-                LoadImageAndData(aCurPreIm, aCurPreDIm, "pre");
-                LoadImageAndData(aCurPostIm, aCurPostDIm, "post");
-            }
-            break;
-        case 3: //  three last iterations
-            if ((aIterNumber == mNumberOfScales) || (aIterNumber == mNumberOfScales + mNumberOfEndIterations - 2) ||
-                (aIterNumber == mNumberOfScales + mNumberOfEndIterations - 1))
-            {
-                mIsLastIters = true;
-                LoadImageAndData(aCurPreIm, aCurPreDIm, "pre");
-                LoadImageAndData(aCurPostIm, aCurPostDIm, "post");
-            }
-            break;
-        default: // default is two last iterations
-            if ((aIterNumber == mNumberOfScales) || (aIterNumber == mNumberOfScales + mNumberOfEndIterations - 1))
-            {
-                mIsLastIters = true;
-                LoadImageAndData(aCurPreIm, aCurPreDIm, "pre");
-                LoadImageAndData(aCurPostIm, aCurPostDIm, "post");
-            }
-            break;
-        }
-    }
-
-    void cAppli_cTriangleDeformationTranslation::LoopOverTrianglesAndUpdateParameters(const int aIterNumber)
+    void cAppli_cTriangleDeformationTranslation::LoopOverTrianglesAndUpdateParametersTranslation(const int aIterNumber)
     {
         //----------- allocate vec of obs :
         tDoubleVect aVObs(12, 0.0); // 6 for ImagePre and 6 for ImagePost
 
         //----------- extract current parameters
         tDenseVect aVCur = mSys->CurGlobSol(); // Get current solution.
-
-        /*
-        for (int aUnk=0; aUnk<aVCur.DIm().Sz(); aUnk++)
-            StdOut() << aVCur(aUnk) << " " ;
-        StdOut() << std::endl;
-        */
 
         tIm aCurPreIm = tIm(mSzImPre);
         tDIm *aCurPreDIm = nullptr;
@@ -209,12 +113,13 @@ namespace MMVII
         mIsLastIters = false;
 
         if (mUseMultiScaleApproach)
-            ManageDifferentCasesOfEndIterations(aIterNumber, aCurPreIm, aCurPreDIm, 
-                                                aCurPostIm, aCurPostDIm);
+            mIsLastIters = cAppli_cTriangleDeformation::ManageDifferentCasesOfEndIterations(aIterNumber, mNumberOfScales, mNumberOfEndIterations,
+                                                                                            mIsLastIters, mImPre, mImPost, aCurPreIm, aCurPreDIm,
+                                                                                            aCurPostIm, aCurPostDIm);
         else
         {
-            LoadImageAndData(aCurPreIm, aCurPreDIm, "pre");
-            LoadImageAndData(aCurPostIm, aCurPostDIm, "post");
+            cAppli_cTriangleDeformation::LoadImageAndData(aCurPreIm, aCurPreDIm, "pre", mImPre, mImPost);
+            cAppli_cTriangleDeformation::LoadImageAndData(aCurPostIm, aCurPostDIm, "post", mImPre, mImPost);
         }
 
         if (mUseMultiScaleApproach && !mIsLastIters)
@@ -230,6 +135,11 @@ namespace MMVII
             const bool aSaveGaussImage = false;
             if (aSaveGaussImage)
                 aCurPreDIm->ToFile("GaussFilteredImPre_iter_" + std::to_string(aIterNumber) + ".tif");
+        }
+        else if (mUseMultiScaleApproach && mIsLastIters)
+        {
+            cAppli_cTriangleDeformation::LoadImageAndData(aCurPreIm, aCurPreDIm, "pre", mImPre, mImPost);
+            cAppli_cTriangleDeformation::LoadImageAndData(aCurPostIm, aCurPostDIm, "post", mImPre, mImPost);
         }
 
         //----------- declaration of indicator of convergence
@@ -269,13 +179,13 @@ namespace MMVII
             for (size_t aFilledPixel = 0; aFilledPixel < aNumberOfInsidePixels; aFilledPixel++)
             {
                 const cPtInsideTriangles aPixInsideTriangle = cPtInsideTriangles(aCompTri, aVectorToFillWithInsidePixels,
-                                                                                    aFilledPixel, *aCurPreDIm);
+                                                                                 aFilledPixel, *aCurPreDIm);
                 // prepare for barycenter translation formula by filling aVObs with different coordinates
                 FormalInterpBarycenter_SetObs(aVObs, 0, aPixInsideTriangle);
 
                 // image of a point in triangle by current translation
-                const cPt2dr aTranslatedFilledPoint = ApplyBarycenterTranslationFormulaToFilledPixel(aCurTrPointA, aCurTrPointB,
-                                                                                                     aCurTrPointC, aVObs);
+                const cPt2dr aTranslatedFilledPoint = cAppli_cTriangleDeformation::ApplyBarycenterTranslationFormulaToFilledPixel(aCurTrPointA, aCurTrPointB,
+                                                                                                                                  aCurTrPointC, aVObs);
 
                 if (aCurPostDIm->InsideBL(aTranslatedFilledPoint)) // avoid errors
                 {
@@ -311,8 +221,26 @@ namespace MMVII
                      << ", " << aNbOut << std::endl;
     }
 
-    void cAppli_cTriangleDeformationTranslation::FillDisplacementMapsAndOutputImage(const cPtInsideTriangles &aLastPixInsideTriangle,
-                                                                                    const cPt2dr &aLastTranslatedFilledPoint)
+    cPt2dr cAppli_cTriangleDeformationTranslation::ApplyLastBarycenterTranslationFormulaToInsidePixel(const cPt2dr &aLastTranslationPointA,
+                                                                                                      const cPt2dr &aLastTranslationPointB,
+                                                                                                      const cPt2dr &aLastTranslationPointC,
+                                                                                                      const cPtInsideTriangles &aLastPixInsideTriangle)
+    {
+        const cPt2dr aLastCartesianCoordinates = aLastPixInsideTriangle.GetCartesianCoordinates();
+        const cPt3dr aLastBarycenterCoordinates = aLastPixInsideTriangle.GetBarycenterCoordinates();
+        // apply current barycenter translation formula for x and y on current observations.
+        const tREAL8 aLastXTriCoord = aLastCartesianCoordinates.x() + aLastBarycenterCoordinates.x() * aLastTranslationPointA.x() + 
+                                      aLastBarycenterCoordinates.y() * aLastTranslationPointB.x() + aLastBarycenterCoordinates.z() * aLastTranslationPointC.x();
+        const tREAL8 aLastYTriCoord = aLastCartesianCoordinates.y() + aLastBarycenterCoordinates.x() * aLastTranslationPointA.y() + 
+                                      aLastBarycenterCoordinates.y() * aLastTranslationPointB.y() + aLastBarycenterCoordinates.z() * aLastTranslationPointC.y();
+
+        const cPt2dr aLastTranslatedPixel = cPt2dr(aLastXTriCoord, aLastYTriCoord);
+
+        return aLastTranslatedPixel;
+    }
+
+    void cAppli_cTriangleDeformationTranslation::FillDisplacementMaps(const cPtInsideTriangles &aLastPixInsideTriangle,
+                                                                      const cPt2dr &aLastTranslatedFilledPoint)
     {
         const tREAL8 aLastXCoordinate = aLastPixInsideTriangle.GetCartesianCoordinates().x();
         const tREAL8 aLastYCoordinate = aLastPixInsideTriangle.GetCartesianCoordinates().y();
@@ -355,7 +283,7 @@ namespace MMVII
     }
 
     void cAppli_cTriangleDeformationTranslation::GenerateDisplacementMaps(const tDenseVect &aVFinalSol, const int aIterNumber)
-    {   
+    {
         mImOut = tIm(mSzImPre);
         mDImOut = &mImOut.DIm();
         mSzImOut = cPt2di(mDImOut->Sz().x(), mDImOut->Sz().y());
@@ -368,15 +296,13 @@ namespace MMVII
 
         tIm aLastPreIm = tIm(mSzImPre);
         tDIm *aLastPreDIm = nullptr;
-        LoadImageAndData(aLastPreIm, aLastPreDIm, "pre");
+        cAppli_cTriangleDeformation::LoadImageAndData(aLastPreIm, aLastPreDIm, "pre", mImPre, mImPost);
 
         if (mUseMultiScaleApproach && !mIsLastIters)
         {
             aLastPreIm = mImPre.GaussFilter(mSigmaGaussFilter, mNumberOfIterGaussFilter);
             aLastPreDIm = &aLastPreIm.DIm();
         }
-
-        tDoubleVect aLastVObs(12, 0.0);
 
         for (const cPt2di &aOutPix : *mDImOut) // Initialise output image
             mDImOut->SetV(aOutPix, aLastPreDIm->GetV(aOutPix));
@@ -408,14 +334,12 @@ namespace MMVII
             {
                 const cPtInsideTriangles aLastPixInsideTriangle = cPtInsideTriangles(aLastCompTri, aLastVectorToFillWithInsidePixels,
                                                                                      aLastFilledPixel, *aLastPreDIm);
-                // prepare for barycenter translation formula by filling aVObs with different coordinates
-                FormalInterpBarycenter_SetObs(aLastVObs, 0, aLastPixInsideTriangle);
 
                 // image of a point in triangle by current translation
-                const cPt2dr aLastTranslatedFilledPoint = ApplyBarycenterTranslationFormulaToFilledPixel(aLastTrPointA, aLastTrPointB,
-                                                                                                         aLastTrPointC, aLastVObs);
+                const cPt2dr aLastTranslatedFilledPoint = ApplyLastBarycenterTranslationFormulaToInsidePixel(aLastTrPointA, aLastTrPointB,
+                                                                                                             aLastTrPointC, aLastPixInsideTriangle);
 
-                FillDisplacementMapsAndOutputImage(aLastPixInsideTriangle, aLastTranslatedFilledPoint);
+                FillDisplacementMaps(aLastPixInsideTriangle, aLastTranslatedFilledPoint);
             }
         }
 
@@ -453,7 +377,7 @@ namespace MMVII
             for (int aFinalUnk = 0; aFinalUnk < aVFinalSol.DIm().Sz(); aFinalUnk++)
             {
                 StdOut() << aVFinalSol(aFinalUnk) << " ";
-                if (aFinalUnk %2 == 1 && aFinalUnk != 0)
+                if (aFinalUnk % 2 == 1 && aFinalUnk != 0)
                     StdOut() << std::endl;
             }
         }
@@ -461,7 +385,7 @@ namespace MMVII
 
     void cAppli_cTriangleDeformationTranslation::DoOneIterationTranslation(const int aIterNumber)
     {
-        LoopOverTrianglesAndUpdateParameters(aIterNumber); // Iterate over triangles and solve system
+        LoopOverTrianglesAndUpdateParametersTranslation(aIterNumber); // Iterate over triangles and solve system
 
         // Show final translation results and produce displacement maps
         if (mUseMultiScaleApproach)
@@ -498,9 +422,10 @@ namespace MMVII
                      << "Diff, "
                      << "NbOut" << std::endl;
 
-        GeneratePointsForDelaunay();
+        cAppli_cTriangleDeformation::GeneratePointsForDelaunay(mVectorPts, mNumberPointsToGenerate, mRandomUniformLawUpperBoundLines,
+                                                               mRandomUniformLawUpperBoundCols, mDelTri, mSzImPre);
 
-        InitialisationAfterExe();
+        InitialisationAfterExeTranslation();
 
         if (mUseMultiScaleApproach)
         {

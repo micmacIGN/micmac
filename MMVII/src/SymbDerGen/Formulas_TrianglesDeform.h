@@ -101,7 +101,7 @@ namespace MMVII
       );
     }
 
-    std::string FormulaName() const { return "TriangleDeformation"; }
+    std::string FormulaName() const { return "TriangleDeformationTrRad"; }
 
     template <typename tUk, typename tObs>
     static std::vector<tUk> formula(
@@ -248,6 +248,63 @@ namespace MMVII
       auto aRadTranslation = aAlphaCoordinate * aRadTranslationPointA + aBetaCoordinate * aRadTranslationPointB + aGammaCoordinate * aRadTranslationPointC;
       auto aRadScaling = aAlphaCoordinate * aRadScalingPointA + aBetaCoordinate * aRadScalingPointB + aGammaCoordinate * aRadScalingPointC;
 
+      // compute formula of bilinear interpolation
+      auto aBilinearValueTri = FormalBilinTri_Formula(aVObs, TriangleDisplacement_NbObs, aXCoordinate, aYCoordinate);
+
+      // Take into account radiometry in minimisation process
+      auto aRadiometryValueTri = aRadScaling * aIntensityImPre + aRadTranslation;
+
+      // residual is simply the difference between values in before image and estimated value in new image
+      return {aRadiometryValueTri - aBilinearValueTri};
+    }
+  };
+
+class cTriangleDeformationRad
+  {
+  public:
+    cTriangleDeformationRad()
+    {
+    }
+
+    static const std::vector<std::string> VNamesUnknowns() { return Append(std::vector<std::string>{"RadTranslationPointA", "RadScalingPointA"},
+                                                                           std::vector<std::string>{"RadTranslationPointB", "RadScalingPointB"},
+                                                                           std::vector<std::string>{"RadTranslationPointC", "RadScalingPointC"}); }
+
+    static const std::vector<std::string> VNamesObs()
+    {
+      return Append(
+          std::vector<std::string>{"PixelCoordinatesX", "PixelCoordinatesY", "AlphaCoordPixel", "BetaCoordPixel", "GammaCoordPixel", "IntensityImPre"},
+          FormalBilinIm2D_NameObs("T") // 6 obs for bilinear interpol of Im
+      );
+    }
+
+    std::string FormulaName() const { return "TriangleDeformationRad"; }
+
+    template <typename tUk, typename tObs>
+    static std::vector<tUk> formula(
+        const std::vector<tUk> &aVUnk,
+        const std::vector<tObs> &aVObs)
+    {
+      // extract observation
+      const auto &aXCoordinate = aVObs[0];
+      const auto &aYCoordinate = aVObs[1];
+      const auto &aAlphaCoordinate = aVObs[2];
+      const auto &aBetaCoordinate = aVObs[3];
+      const auto &aGammaCoordinate = aVObs[4];
+      const auto &aIntensityImPre = aVObs[5];
+
+      // extract unknowns
+      const auto &aRadTranslationPointA = aVUnk[0];
+      const auto &aRadScalingPointA = aVUnk[1];
+      const auto &aRadTranslationPointB = aVUnk[2];
+      const auto &aRadScalingPointB = aVUnk[3];
+      const auto &aRadTranslationPointC = aVUnk[4];
+      const auto &aRadScalingPointC = aVUnk[5];
+
+      // Apply barycentric interpolation to radiometric factors
+      auto aRadTranslation = aAlphaCoordinate * aRadTranslationPointA + aBetaCoordinate * aRadTranslationPointB + aGammaCoordinate * aRadTranslationPointC;
+      auto aRadScaling = aAlphaCoordinate * aRadScalingPointA + aBetaCoordinate * aRadScalingPointB + aGammaCoordinate * aRadScalingPointC;
+
       // SymbPrint(aRadTranslation, "RadTranslation");
       // SymbPrint(aRadScaling, "RadScaling");
 
@@ -255,7 +312,7 @@ namespace MMVII
       auto aBilinearValueTri = FormalBilinTri_Formula(aVObs, TriangleDisplacement_NbObs, aXCoordinate, aYCoordinate);
 
       // Take into account radiometry in minimisation process
-      auto aRadiometryValueTri = aRadScaling * aBilinearValueTri + aRadTranslation;
+       auto aRadiometryValueTri = aRadScaling * aBilinearValueTri + aRadTranslation;
 
       // residual is simply the difference between values in before image and estimated value in new image
       return {aIntensityImPre - aRadiometryValueTri};

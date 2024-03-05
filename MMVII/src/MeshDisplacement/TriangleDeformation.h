@@ -56,26 +56,39 @@ namespace MMVII
         cCollecSpecArg2007 &ArgOpt(cCollecSpecArg2007 &anArgOpt) override;
 
         // Build uniform vector of coordinates and apply Delaunay triangulation
-        virtual void ConstructUniformRandomVectorAndApplyDelaunay();
+        void ConstructUniformRandomVectorAndApplyDelaunay(std::vector<cPt2dr> aVectorPts, const int aNumberOfPointsToGenerate,
+                                                          const int aRandomUniformLawUpperBoundLines, const int aRandomUniformLawUpperBoundCols,
+                                                          cTriangulation2D<tREAL8> &aDelaunayTri);
         // Generate coordinates from uniform law for Delaunay triangulation application
-        virtual void GeneratePointsForDelaunay();
+        void GeneratePointsForDelaunay(std::vector<cPt2dr> aVectorPts, const int aNumberOfPointsToGenerate,
+                                       int aRandomUniformLawUpperBoundLines, int aRandomUniformLawUpperBoundCols,
+                                       cTriangulation2D<tREAL8> &aDelaunayTri, const cPt2di &aSzImPre);
         // Construct difference image and compute average and max pixel value on ths image
         void SubtractPrePostImageAndComputeAvgAndMax();
         // Iterate of triangles and inside pixels
-        void DoOneIteration(const int aIterNumber);
+        virtual void DoOneIteration(const int aIterNumber, const bool aUserDefinedFolderName);
         // Loops over all triangles and solves system to update parameters at end of iteration
-        virtual void LoopOverTrianglesAndUpdateParameters(const int aIterNumber);
+        virtual void LoopOverTrianglesAndUpdateParameters(const int aIterNumber, const bool aUserDefinedFolderName);
         // Generate displacement maps of last solution
-        virtual void GenerateDisplacementMaps(const tDenseVect &aVFinalSol, const int aIterNumber);
+        virtual void GenerateDisplacementMapsAndOutputImages(const tDenseVect &aVFinalSol, const int aIterNumber,
+                                                             const bool aUserDefinedFolderName);
+        // Display values of unknowns at last iteration of optimisation process
+        void DisplayLastUnknownValues(const tDenseVect &aVFinalSol, const bool aDisplayLastRadiometryValues,
+                                      const bool aDisplayLastTranslationValues);
         // Generates Displacement maps and coordinates of points in triangulation at last iteration
-        void GenerateDisplacementMapsAndDisplayLastValuesUnknowns(const int aIterNumber);
-        // Initialise problem after user has input information
-        virtual void InitialisationAfterExe();
+        virtual void GenerateDisplacementMapsAndDisplayLastValuesUnknowns(const int aIterNumber, const bool aDisplayLastRadiometryValues,
+                                                                          const bool aDisplayLastTranslationValues, const bool aUserDefinedFolderName);
+        // Initialise values of unknowns at the beginning of optimsation process after user has input information
+        void InitialisationAfterExe(cTriangulation2D<tREAL8> &aDelaunayTri,
+                                    cResolSysNonLinear<tREAL8> *&aSys);
+        // Initialise values of unknowns before current iteration
+        void InitialisationBeforeIteration(cTriangulation2D<tREAL8> &aDelaunayTri, cResolSysNonLinear<tREAL8> *&aSys);
         // Loads current pre and post images
-        virtual void LoadImageAndData(tIm &aCurIm, tDIm *&aCurDIm, const std::string &aPreOrPostImage);
+        void LoadImageAndData(tIm &aCurIm, tDIm *&aCurDIm, const std::string &aPreOrPostImage, tIm &aImPre, tIm &aImPost);
         // Load image and data according to number of iterations to optimise on original image
-        virtual void ManageDifferentCasesOfEndIterations(const int aIterNumber, tIm aCurPreIm, tDIm * aCurPreDIm,
-                                                 tIm aCurPostIm, tDIm * aCurPostDIm);
+        bool ManageDifferentCasesOfEndIterations(const int aIterNumber, const int aNumberOfScales, const int aNumberOfEndIterations,
+                                                 bool aIsLastIters, tIm &aImPre, tIm &aImPost, tIm aCurPreIm, tDIm *aCurPreDIm,
+                                                 tIm aCurPostIm, tDIm *aCurPostDIm);
         // Fill displacement maps and output image
         virtual void FillDisplacementMapsAndOutputImage(const cPtInsideTriangles &aLastPixInsideTriangle,
                                                         const cPt2dr &aLastTranslatedFilledPoint,
@@ -107,21 +120,25 @@ namespace MMVII
 
         // ==  Optionnal args ====
 
-        int mRandomUniformLawUpperBoundLines;         // Uniform law generates random coordinates in interval [0, mRandomUniformLawUpperBoundLines [
-        int mRandomUniformLawUpperBoundCols;          // Uniform law generates random coordinates in interval [0, mRandomUniformLawUpperBoundCols [
-        bool mShow;                                   // Print result, export image ...
-        bool mComputeAvgMax;                          // Compute average and maximum pixel value of difference image between pre and post images
-        bool mUseMultiScaleApproach;                  // Apply multi-scale approach or not
-        int mSigmaGaussFilterStep;                    // Decreasing step of sigma value during iterations
-        bool mGenerateDisplacementImage;              // Generate image with displaced pixels
-        bool mFreezeRadTranslation;                   // Freeze radiometry translation in computation
-        bool mFreezeRadScale;                         // Freeze radiometry scaling in computation
-        double mWeightRadTranslation;                 // Weight given to radiometry translation if soft freezing is applied (default : negative => not applied)
-        double mWeightRadScale;                       // Weight given to radiometry scaling if soft freezing is applied (default : negative => not applied)
-        int mNumberOfIterGaussFilter;                 // Number of iterations to be done in Gauss filter algorithm
-        int mNumberOfEndIterations;                   // Number of iterations to do while using original image in multi-scale approach
-        bool mDisplayLastTranslationValues;           // Whether to display the final coordinates of the translated points
-        bool mDisplayLastRadiometryValues;            // Display final values of radiometry unknowns at last iteration of optimisation process
+        int mRandomUniformLawUpperBoundLines; // Uniform law generates random coordinates in interval [0, mRandomUniformLawUpperBoundLines [
+        int mRandomUniformLawUpperBoundCols;  // Uniform law generates random coordinates in interval [0, mRandomUniformLawUpperBoundCols [
+        bool mShow;                           // Print result, export image ...
+        bool mComputeAvgMax;                  // Compute average and maximum pixel value of difference image between pre and post images
+        bool mUseMultiScaleApproach;          // Apply multi-scale approach or not
+        int mSigmaGaussFilterStep;            // Decreasing step of sigma value during iterations
+        bool mGenerateDisplacementImage;      // Generate image with displaced pixels
+        bool mInitialiseWithPreviousIter;     // Initialise unknown value at beginning of every iteration with values obtained at previous iteration
+        bool mFreezeTranslationX;             // Freeze x-translation or not during optimisation
+        bool mFreezeTranslationY;             // Freeze y-translation or not during optimisation
+        bool mFreezeRadTranslation;           // Freeze radiometry translation or not during optimisation
+        bool mFreezeRadScale;                 // Freeze radiometry scaling or not during optimisation
+        double mWeightRadTranslation;         // Weight given to radiometry translation if soft freezing is applied (default : negative => not applied)
+        double mWeightRadScale;               // Weight given to radiometry scaling if soft freezing is applied (default : negative => not applied)
+        int mNumberOfIterGaussFilter;         // Number of iterations to be done in Gauss filter algorithm
+        int mNumberOfEndIterations;           // Number of iterations to do while using original image in multi-scale approach
+        std::string mFolderSaveResult;        // Folder name to save results
+        bool mDisplayLastTranslationValues;   // Whether to display the final coordinates of the translated points
+        bool mDisplayLastRadiometryValues;    // Display final values of radiometry unknowns at last iteration of optimisation process
 
         // ==  Internal variables ====
 
@@ -133,13 +150,9 @@ namespace MMVII
         tIm mImPost;      //  memory representation of the image
         tDIm *mDImPost;   //  memory representation of the image
 
-        cPt2di mSzImOutTr; //  size of image
-        tIm mImOutTr;      //  memory representation of the image
-        tDIm *mDImOutTr;   //  memory representation of the image
-
-        cPt2di mSzImOutRad; //  size of image
-        tIm mImOutRad;      //  memory representation of the image
-        tDIm *mDImOutRad;   //  memory representation of the image
+        cPt2di mSzImOut; //  size of image
+        tIm mImOut;      //  memory representation of the image
+        tDIm *mDImOut;   //  memory representation of the image
 
         cPt2di mSzImDiff; //  size of image
         tIm mImDiff;      //  memory representation of the image
