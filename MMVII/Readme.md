@@ -112,8 +112,9 @@ Bash completion (beta)
 It is possible to have MMVII command completion for Linux bash
 
 - Requires: python3
-
    (Already installed by default on Ubuntu, just in case:  sudo apt install bash-completion python3)
+
+   python3 must be known as 'python'  (ubuntu 22.04: sudo apt install python-is-python3)
 
 - Configuration:
   - MMVII must be (fully) compiled
