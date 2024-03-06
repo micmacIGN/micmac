@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<Root>
+   <Type>"MMVII_Serialization"</Type>
+   <Version>"0.0.0"</Version>
+   <Data>
+      <SetOfName>
+         <el>"OIS-Reech_IGNF_PVA_1-0__1971-06-21__C2844-0141_1971_FR2117_1066.tif"</el>
+         <el>"OIS-Reech_IGNF_PVA_1-0__1971-06-21__C2844-0141_1971_FR2117_1067.tif"</el>
+         <el>"OIS-Reech_IGNF_PVA_1-0__1971-06-21__C2844-0141_1971_FR2117_1068.tif"</el>
+         <el>"OIS-Reech_IGNF_PVA_1-0__1971-06-21__C2844-0141_1971_FR2117_1122.tif"</el>
+         <el>"OIS-Reech_IGNF_PVA_1-0__1971-06-21__C2844-0141_1971_FR2117_1123.tif"</el>
+         <el>"OIS-Reech_IGNF_PVA_1-0__1971-06-21__C2844-0141_1971_FR2117_1124.tif"</el>
+      </SetOfName>
+   </Data>
+</Root>
