@@ -3,6 +3,7 @@
 #include "MMVII_Sensor.h"
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_util_tpl.h"
+#include "MMVII_util.h"
 #include "MMVII_PCSens.h"
 
 /**
@@ -23,29 +24,6 @@ class cOneTranslAttrIm;           ///< contains the set of pair for a given type
 class cOneCalculMetaDataProject;  ///< contains all the translation for all type, contained in a single file
 class cGlobCalculMetaDataProject; ///< contains all the files
 
-/**  Define a try to associate a name to another .
- *     For a given name "N" if , if N match pattern then pattern
- *     substitution is used to compute  mValue.
- *
- *     For example :
- *         Pat =  IM_([0-9]*).tif
- *         Value = Stuf_$1
- *         N = IM_128.tif
- *
- *       the value computed is  Stuf_128
- */
-
-class cOneTryCAI
-{
-     public :
-        cOneTryCAI();  ///< Defaut cstr, required for serialization
-        cOneTryCAI(const std::string & aPat,const std::string & aValue);
-
-        std::string                  mPat;    ///< Pattern for selecting and translatting
-	tNameSelector                mSel;    ///<  Computation of Pattern
-        std::string                  mValue;  ///<  Value computed 
-
-};
 
 /**    Define the rule for associting a value to name :
  *
@@ -135,6 +113,8 @@ void AddData(const cAuxAr2007 & anAux,cOneTryCAI & aTry)
      AddData(cAuxAr2007("Val",anAux),aTry.mValue);
 }
 
+
+
 /* ******************************************* */
 /*                                             */
 /*             cOneTranslAttrIm                */
@@ -148,10 +128,10 @@ cOneTranslAttrIm::cOneTranslAttrIm():
 
 static const std::string TheNameSHOW_MTD = "TheNameSHOW_MTD";
 
-std::string cOneTranslAttrIm::Translate(const std::string & aName,bool ForTest) const
+std::string Translate(const std::list<cOneTryCAI> & aVTries,const std::string & aName,bool ForTest) 
 {
 
-    for (const auto & aTry : mVTries)
+    for (const auto & aTry : aVTries)
     {
         if (aName==TheNameSHOW_MTD)
 	{
@@ -168,7 +148,6 @@ std::string cOneTranslAttrIm::Translate(const std::string & aName,bool ForTest) 
 	        {
                    if (ForTest)
                      StdOut()  <<  " match and got : [" << aTransfo  << "]" << std::endl ;
-// StdOut() << "TTrrRanfooo= " << aTransfo << " P=" << aTry.mPat << " V=" << aTry.mValue << " N=" << aName<< std::endl;
                    return aTransfo;
 	        }
 	        else
@@ -184,6 +163,13 @@ std::string cOneTranslAttrIm::Translate(const std::string & aName,bool ForTest) 
     return MMVII_NONE;
 }
 
+std::string cOneTranslAttrIm::Translate(const std::string & aName,bool ForTest) const
+{
+     return MMVII::Translate(mVTries,aName,ForTest) ;
+}
+
+
+
 void AddData(const cAuxAr2007 & anAux,cOneTranslAttrIm & aTransl)
 {
       //  cAuxAr2007 anAux("Translat",anAuxParam);
@@ -191,6 +177,48 @@ void AddData(const cAuxAr2007 & anAux,cOneTranslAttrIm & aTransl)
       EnumAddData(anAux,aTransl.mMode,"Mode");
       AddData(cAuxAr2007("Tries",anAux),aTransl.mVTries);
 }
+
+/* ******************************************* */
+/*                                             */
+/*             cComputeAssociation             */
+/*                                             */
+/* ******************************************* */
+
+/*
+class cComputeAssociation
+{
+     public :
+          static cComputeAssociation  Read();
+          void Write(const std::string & aName) const;
+
+          std::string Translate(const std::string & aName) const;
+     private :
+          std::list<cOneTryCAI> mVTries;
+};
+*/
+
+std::string cComputeAssociation::Translate(const std::string & aName) const
+{
+   return MMVII::Translate(mVTries,aName,false);
+}
+
+void AddData(const cAuxAr2007 & anAux,cComputeAssociation & aTransl)
+{
+    AddData(cAuxAr2007("Tries",anAux),aTransl.mVTries);
+}
+
+void cComputeAssociation::Write(const std::string & aName) const
+{
+    SaveInFile(*this,aName);
+}
+
+cComputeAssociation  cComputeAssociation::FromFile(const std::string & aName)
+{
+    cComputeAssociation aRes;
+    ReadFromFile(aRes,aName);
+    return aRes;
+}
+
 
 /* ******************************************* */
 /*                                             */

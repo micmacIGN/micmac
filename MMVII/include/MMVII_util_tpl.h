@@ -488,6 +488,44 @@ template <class tCont>  typename tCont::value_type *  KthElem(tCont & aCont,int 
     return nullptr;
 }
 
+
+/**    Used in Metadata, but can be used more generally.
+ *
+ *     Define a try to associate a name to another .
+ *     For a given name "N" if , if N match pattern then pattern
+ *     substitution is used to compute  mValue.
+ *
+ *     For example :
+ *         Pat =  IM_([0-9]*).tif
+ *         Value = Stuf_$1
+ *         N = IM_128.tif
+ *
+ *       the value computed is  Stuf_128
+ */
+
+class cOneTryCAI
+{
+     public :
+        cOneTryCAI();  ///< Defaut cstr, required for serialization
+        cOneTryCAI(const std::string & aPat,const std::string & aValue);
+
+        std::string                  mPat;    ///< Pattern for selecting and translatting
+        tNameSelector                mSel;    ///<  Computation of Pattern
+        std::string                  mValue;  ///<  Value computed 
+};
+
+class cComputeAssociation
+{
+     public :
+          static cComputeAssociation  FromFile(const std::string & aName);
+          void Write(const std::string & aName) const;
+
+          std::string Translate(const std::string & aName) const;
+     //  ==================
+          std::list<cOneTryCAI> mVTries;
+};
+void AddData(const cAuxAr2007 & anAux,cComputeAssociation & aTransl);
+
 };
 
 #endif  //  _MMVII_Util_TPL_H_

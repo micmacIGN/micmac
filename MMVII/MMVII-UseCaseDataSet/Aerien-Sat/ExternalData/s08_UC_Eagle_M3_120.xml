@@ -1,0 +1,33 @@
+<sensor>
+<name> UCE-M3-f120 </name>
+<objectif> 123.9mm </objectif>
+<origine> UCE-M3-f120-s08 </origine>
+<argentique> 0 </argentique>
+<calibration-date> 17-08-2020 </calibration-date>
+<serial-number> 431S22505X411400-f120 </serial-number>
+<usefull-frame> 
+<rect> 
+<x> 0 </x>
+<y> 0 </y>
+<w> 26460 </w>
+<h> 17004 </h>
+</rect>
+ </usefull-frame>
+<dark-frame> 
+<rect> 
+<x> 0 </x>
+<y> 0 </y>
+<w> 0 </w>
+<h> 0 </h>
+</rect>
+</dark-frame>
+<focal>
+<pt3d> 
+<x> 13230 </x>
+<y> 8502 </y>
+<z> 30975 </z>
+</pt3d>
+</focal>
+<pixel_size> 0.000004 </pixel_size>
+<orientation> 0 </orientation>
+</sensor>

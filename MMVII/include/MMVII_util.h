@@ -417,9 +417,6 @@ class cParamRansac
 };
 
 
-
-
-
 };
 
 #endif  //  _MMVII_Util_H_

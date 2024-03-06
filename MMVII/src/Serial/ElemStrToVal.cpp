@@ -893,6 +893,7 @@ MACRO_INSTANTIATE_ARG2007(double)
 MACRO_INSTANTIATE_ARG2007(bool)
 MACRO_INSTANTIATE_ARG2007(std::string)
 MACRO_INSTANTIATE_ARG2007(std::vector<std::string>)
+MACRO_INSTANTIATE_ARG2007(std::vector<std::vector<std::string>>)
 MACRO_INSTANTIATE_ARG2007(std::vector<int>)
 MACRO_INSTANTIATE_ARG2007(std::vector<double>)
 MACRO_INSTANTIATE_ARG2007(cPt2di)
@@ -1040,6 +1041,7 @@ template <>  std::vector<TYPE> cStrIO<std::vector<TYPE> >::FromStr(const std::st
 }\
 template <>  const std::string cStrIO<std::vector<TYPE>>::msNameType = "std::vector<"  #TYPE  ">";\
 
+MACRO_INSTANTITATE_STRIO_VECT_TYPE(std::vector<std::string>)
 MACRO_INSTANTITATE_STRIO_VECT_TYPE(std::string)
 MACRO_INSTANTITATE_STRIO_VECT_TYPE(int)
 MACRO_INSTANTITATE_STRIO_VECT_TYPE(double)
@@ -1228,9 +1230,6 @@ template <>  char cStrIO<char>::FromStr(const std::string & aStr)
 }
 
 template <>  const std::string cStrIO<char>::msNameType = "char";
-
-
-
 
 
 

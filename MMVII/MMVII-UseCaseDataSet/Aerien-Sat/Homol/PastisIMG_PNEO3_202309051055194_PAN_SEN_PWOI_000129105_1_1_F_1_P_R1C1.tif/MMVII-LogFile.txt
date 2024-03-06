@@ -1,0 +1,16 @@
+========================================================================
+  Id : MMVII_Tim1883_76974_0385_Num0_Pid102636_UtiRename
+  begining at : Tue Feb 27 20:22:54 2024
+
+  MMVII UtiRename "(.*).result" '$1.txt'
+
+  ending correctly at : Tue Feb 27 20:22:54 2024 (Id=MMVII_Tim1883_76974_0385_Num0_Pid102636_UtiRename)
+
+========================================================================
+  Id : MMVII_Tim1883_76980_8681_Num0_Pid102639_UtiRename
+  begining at : Tue Feb 27 20:23:01 2024
+
+  MMVII UtiRename "(.*).result" '$1.txt' DoReplace=1
+
+  ending correctly at : Tue Feb 27 20:23:01 2024 (Id=MMVII_Tim1883_76980_8681_Num0_Pid102639_UtiRename)
+

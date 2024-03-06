@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<Xml_CamGenPolBundle>
+     <NameCamSsCor>./Ori-Campari_Refined-SuperGlue/UnCorExtern-Orientation-eTIGB_MMDimap2-Crop-UnCorExtern-Orientation-eTIGB_MMDimap2-IMG_PHR1A_P_201406121049386.XML.xml.xml</NameCamSsCor>
+     <NameIma>Crop-IMG_PHR1A_P_201406121049386.tif</NameIma>
+     <SysCible>
+          <BSC>
+               <TypeCoord>eTC_Proj4</TypeCoord>
+               <AuxStr>+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs</AuxStr>
+               <ByFile>false</ByFile>
+          </BSC>
+     </SysCible>
+     <DegreTot>0</DegreTot>
+     <Center>4480.5 5018.5</Center>
+     <Ampl>6727.571813068962</Ampl>
+     <CorX>
+          <Monomes>1.42444e-05 0 0</Monomes>
+     </CorX>
+     <CorY>
+          <Monomes>3.70999e-06 0 0</Monomes>
+     </CorY>
+</Xml_CamGenPolBundle>

@@ -8,24 +8,40 @@ namespace MMVII
     /*            Tie Points                    */
     /* ---------------------------------------- */
 
-void cMMVII_BundleAdj::AddMTieP(cComputeMergeMulTieP  * aMTP,const cStdWeighterResidual & aWIm)
+cBA_TieP::cBA_TieP(const std::string & aName,cComputeMergeMulTieP* aMTP,const cStdWeighterResidual &aResW):
+    mName           (aName),
+    mMTP            (aMTP),
+    mTieP_Weighter  (aResW)
 {
-     mMTP = aMTP;
-     mTieP_Weighter = aWIm;
+}
+
+cBA_TieP::~cBA_TieP()
+{
+    delete mMTP;
 }
 
 
-void cMMVII_BundleAdj::OneItere_TieP()
+    /* ---------------------------------------- */
+    /*            Tie Points                    */
+    /* ---------------------------------------- */
+
+void cMMVII_BundleAdj::AddMTieP(const std::string & aName,cComputeMergeMulTieP  * aMTP,const cStdWeighterResidual & aWIm)
 {
-   if (!mMTP)
-      return;
+    mVTieP.push_back(new cBA_TieP(aName,aMTP,aWIm));
+}
+
+
+void cMMVII_BundleAdj::OneItere_TieP(const cBA_TieP& aBA_TieP)
+{
+   cComputeMergeMulTieP * aMTP = aBA_TieP.mMTP;
+   const cStdWeighterResidual&    aTieP_Weighter = aBA_TieP.mTieP_Weighter;
 
    // update the bundle point by 3D-intersection:
    // To see : maybe don't update each time; probably add some robust option
-   mMTP->SetPGround();
+   aMTP->SetPGround();
 
    cWeightAv<tREAL8> aWeigthedRes;
-   for (const auto & aPair : mMTP->Pts())
+   for (const auto & aPair : aMTP->Pts())
    {
        const auto & aConfig  = aPair.first;
 
@@ -61,7 +77,7 @@ void cMMVII_BundleAdj::OneItere_TieP()
 	       if (aSens->IsVisibleOnImFrame(aPIm) && aSens->IsVisible(aPGr))
 	       {
 	           cPt2dr aResidual  = aPIm-aSens->Ground2Image(aPGr);
-                   tREAL8 aWeightImage =  mTieP_Weighter.SingleWOfResidual(aResidual);
+                   tREAL8 aWeightImage =  aTieP_Weighter.SingleWOfResidual(aResidual);
 
                    // StdOut() << "RRRR " << aResidual << " W=" << aWeightImage << "\n";
 
@@ -89,7 +105,13 @@ void cMMVII_BundleAdj::OneItere_TieP()
        }
 
    }
-   StdOut() << "Weighted Residual=" << aWeigthedRes.Average() << std::endl; 
+   StdOut() <<  "  # " << aBA_TieP.mName << ": Weighted Residual=" << aWeigthedRes.Average() << std::endl; 
+}
+
+void cMMVII_BundleAdj::OneItere_TieP()
+{
+    for (const auto & aParamTieP  : mVTieP)
+        OneItere_TieP(*aParamTieP);
 }
 
 

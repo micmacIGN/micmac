@@ -134,7 +134,14 @@ tPtrSysCo cPhotogrammetricProject::ReadSysCo(const std::string &aName,bool SVP) 
      if (starts_with(aName,MMVII_LocalSys))
      {
          std::string aSubstr = aName.substr(MMVII_LocalSys.size(),std::string::npos);
-         return cSysCoordV2::LocalSystem(aSubstr);
+         tPtrSysCo aRes = cSysCoordV2::LocalSystem(aSubstr);
+         //  see if it already exist 
+         tPtrSysCo aReRead = ReadSysCo(aSubstr,SVP::Yes);
+         //  if not create it
+         if (aReRead.get() == nullptr)
+            SaveSysCo(aRes,aSubstr);
+
+         return aRes;
      }
 
 
@@ -189,9 +196,6 @@ tPtrSysCo  cPhotogrammetricProject::CurSysCo(const cDirsPhProj & aDP,bool SVP) c
        return tPtrSysCo(nullptr);
     }
     cRefSysCo aRef;
-
-    StdOut() << "NNNNaaMee " << aName << "\n";
-
     ReadFromFile(aRef,aName);
 
     return  ReadSysCo(aRef.mName,false);
@@ -218,9 +222,10 @@ void cPhotogrammetricProject::SaveStdCurSysCo(bool IsOri) const
 
 void cPhotogrammetricProject::CpSysIn2Out(bool  OriIn,bool OriOut) const
 {
+   StdOut() << "ENTER_CpSysIn2Out\n";
    tPtrSysCo aSysIn = OriIn ?  CurSysCoOri(true) : CurSysCoGCP(true);
 
-   // StdOut() << "CpSysIn2OutCpSysIn2Out " << OriIn " " << OriOut << " PTR=" << aSysIn.get() << "\n";
+   StdOut() << "CpSysIn2OutCpSysIn2Out " << OriIn << " " << OriOut << " PTR=" << aSysIn.get() << "\n";
 
    if (aSysIn.get() == nullptr)
       return;

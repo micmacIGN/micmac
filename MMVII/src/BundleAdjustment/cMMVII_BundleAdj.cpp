@@ -87,9 +87,8 @@ cMMVII_BundleAdj::cMMVII_BundleAdj(cPhotogrammetricProject * aPhp) :
     mPatParamFrozenCalib (""),
     mPatFrozenCenter (""),
     mPatFrozenOrient (""),
-    mMesGCP           (nullptr),
-    mSigmaGCP         (-1),
-    mMTP              (nullptr),
+    //mMesGCP           (nullptr),
+    //mSigmaGCP         (-1),
     mBlRig            (nullptr),
     mTopo             (nullptr),
     mFolderRefCam     (""),
@@ -107,11 +106,12 @@ cMMVII_BundleAdj::~cMMVII_BundleAdj()
 {
     mSetIntervUK.SIUK_Reset();
     delete mSys;
-    delete mMesGCP;
-    delete mMTP;
+    // delete mMesGCP;
+    DeleteAllAndClear(mVTieP);
     delete mBlRig;
     delete mTopo;
-    DeleteAllAndClear(mGCP_UK);
+    // DeleteAllAndClear(mGCP_UK);
+    DeleteAllAndClear(mVGCP);
 }
 
 

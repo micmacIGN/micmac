@@ -63,7 +63,6 @@ void GenSpec_BitEncoding(const std::string & aDir);
 void GenSpec_SysCoordV1(const std::string & aDir);
 
 
-
 int  cAppliSpecSerial::Exe()
 {
    std::string aDir = DirRessourcesMMVII() + "SpecifSerial/";
@@ -76,6 +75,8 @@ int  cAppliSpecSerial::Exe()
    SpecificationSaveInFile<tNameSet>(aDir+"SetName.xml");
    SpecificationSaveInFile<cSetMesPtOf1Im>(aDir+"SetMesureIm.xml");
    SpecificationSaveInFile<cSetMesGCP>(aDir+"SetMesureGCP.xml");
+
+   SpecificationSaveInFile<cComputeAssociation>(aDir+"ComputeAssociation.xml");
 
    return EXIT_SUCCESS;
 }

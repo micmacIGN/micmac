@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<Root>
+   <Type>"MMVII_Serialization"</Type>
+   <Version>"0.0.0"</Version>
+   <Data>
+      <SetOfName>
+         <el>"21FD244720x00015_00614.tif"</el>
+         <el>"21FD244720x00015_00615.tif"</el>
+         <el>"21FD244720x00015_00616.tif"</el>
+         <el>"21FD244720x00015_00617.tif"</el>
+         <el>"21FD244720x00015_00618.tif"</el>
+         <el>"21FD244720x00015_00619.tif"</el>
+         <el>"21FD244720x00015_00620.tif"</el>
+         <el>"21FD244720x00016_00807.tif"</el>
+         <el>"21FD244720x00016_00808.tif"</el>
+         <el>"21FD244720x00016_00809.tif"</el>
+         <el>"21FD244720x00016_00810.tif"</el>
+         <el>"21FD244720x00016_00811.tif"</el>
+         <el>"21FD244720x00016_00812.tif"</el>
+         <el>"21FD244720x00016_00813.tif"</el>
+         <el>"21FD244720x00017_00888.tif"</el>
+         <el>"21FD244720x00017_00889.tif"</el>
+         <el>"21FD244720x00017_00890.tif"</el>
+         <el>"21FD244720x00017_00891.tif"</el>
+         <el>"21FD244720x00017_00892.tif"</el>
+         <el>"21FD244720x00017_00893.tif"</el>
+      </SetOfName>
+   </Data>
+</Root>

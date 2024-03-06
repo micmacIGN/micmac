@@ -92,6 +92,7 @@ template <>  const std::string cStrIO<int>::msNameType;
 template <>  const std::string cStrIO<double>::msNameType;
 template <>  const std::string cStrIO<std::string>::msNameType;
 
+template <>  const std::string cStrIO<std::vector<std::vector<std::string>>>::msNameType;
 template <>  const std::string cStrIO<std::vector<std::string>>::msNameType;
 template <>  const std::string cStrIO<std::vector<int>>::msNameType;
 template <>  const std::string cStrIO<std::vector<double>>::msNameType;
