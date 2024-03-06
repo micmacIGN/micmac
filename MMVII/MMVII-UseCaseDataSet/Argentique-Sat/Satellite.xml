@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<Root>
+   <Type>"MMVII_Serialization"</Type>
+   <Version>"0.0.0"</Version>
+   <Data>
+      <SetOfName>
+         <el>"Crop-IMG_PHR1A_P_201406121049025.tif"</el>
+         <el>"Crop-IMG_PHR1A_P_201406121049386.tif"</el>
+      </SetOfName>
+   </Data>
+</Root>
