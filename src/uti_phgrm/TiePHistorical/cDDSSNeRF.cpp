@@ -36,6 +36,13 @@ void GeoreferencedDepthMap(std::string aImg1, std::string aDir, std::string aDSM
     cout<<"Masq file name: "<<aMasqName<<endl;
     cout<<"Correl file name: "<<aCorrelName<<endl;
 
+    std::string aOutIm = aImName + "_tmp.tif";
+    std::string aComScaleIm = MMBinFile(MM3DStr) + "ScaleIm " + aImName + " " + std::to_string(1.0/aScale) + " Out=" + aOutIm;
+    cout<<aComScaleIm<<endl;
+    System(aComScaleIm);
+    Pt2di aDSMSclSz = Pt2di(aDSMSz.x*aScale, aDSMSz.y*aScale);
+    cout<<"DSM size after scale: "<<aDSMSclSz.x<<", "<<aDSMSclSz.y<<endl;
+
     //load mask
     TIm2D<float,double> aTImMasq(aDSMSz);
         Tiff_Im aImMasqTif = Tiff_Im::StdConvGen((aMasqName).c_str(), -1, true ,true);
@@ -59,8 +66,8 @@ void GeoreferencedDepthMap(std::string aImg1, std::string aDir, std::string aDSM
         bMasq = true;
 
     //load DSM
-    Tiff_Im aImDSMTif = Tiff_Im::StdConvGen((aImName).c_str(), -1, true ,true);
-    TIm2D<float,double> aTImDSM(aDSMSz);
+    Tiff_Im aImDSMTif = Tiff_Im::StdConvGen((aOutIm).c_str(), -1, true ,true);
+    TIm2D<float,double> aTImDSM(aDSMSclSz);
     ELISE_COPY
     (
     aTImDSM.all_pts(),
@@ -78,7 +85,6 @@ void GeoreferencedDepthMap(std::string aImg1, std::string aDir, std::string aDSM
     aImCorrelTif.in(),
     aTImDSM.out()
     );*/
-
 
     Tiff_Im aRGBIm1 = Tiff_Im::StdConvGen((aDir+aImg1).c_str(), -1, true ,true);
     Pt2di ImgSzL = aRGBIm1.sz();
@@ -115,8 +121,8 @@ void GeoreferencedDepthMap(std::string aImg1, std::string aDir, std::string aDSM
     int nMasked = 0;
     double aCorrelMax = -100000;
     double aCorrelMin = 100000;
-    for(j=0; j<ImgSzL.y; j++){      //ImgSzL.y: height
-        for(i=0; i<ImgSzL.x; i++){    //ImgSzL.x: width
+    for(j=0; j<ImgSzL.y; j++){      //first row first, the row/height is the y in MicMac
+        for(i=0; i<ImgSzL.x; i++){
             Pt2di aP1_img = Pt2di(i, j);
             Pt2di aP1_dsm = Pt2di(int(i/aScale), int(j/aScale));
             int nVal = 0;
@@ -136,7 +142,7 @@ void GeoreferencedDepthMap(std::string aImg1, std::string aDir, std::string aDSM
             if(nVal > 0 || aMask==false)
             {
                 //cout<<i<<", "<<j<<endl;
-                double prof_d = aTImDSM.get(aP1_dsm);
+                double prof_d = aTImDSM.get(aP1_img);   //here is aP1_img because the DSM image is scaled
                 Pt3dr aPTer1 = aCamL->ImEtZ2Terrain(Pt2dr(aP1_img.x, aP1_img.y), prof_d);
                 //Pt3dr aPTer2 = aCamL->ImEtProf2Terrain(Pt2dr(aP1_img.x, aP1_img.y), prof_d);
 
