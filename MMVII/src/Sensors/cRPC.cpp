@@ -16,6 +16,7 @@ class cRatioPolynXY;
 class cRPC_RatioPolyn;
 class cRPC_Polyn ;
 
+class cAppliTestRPC;
 
 /**  A class containing a polynomial with RPC convention    */
 
@@ -291,17 +292,27 @@ double cRPC_Polyn::Val(const cPt3dr& aP) const
 
 double cRPC_Polyn::Val(const tRPCCoeff & aCoeffCub) const
 {
+    //0- multiply the polynomials coefficients in mCoeffs with
+    //   the "coordinates"
+
+    return 0.0;
+
+    /*
    // to see if faster than for(int ...) 
    return   mCoeffs[0] *aCoeffCub[0]   + mCoeffs[1] *aCoeffCub[1]  + mCoeffs[2] *aCoeffCub[2]  + mCoeffs[3] *aCoeffCub[3]
           + mCoeffs[4] *aCoeffCub[4]   + mCoeffs[5] *aCoeffCub[5]  + mCoeffs[6] *aCoeffCub[6]  + mCoeffs[7] *aCoeffCub[7]
           + mCoeffs[8] *aCoeffCub[8]   + mCoeffs[9] *aCoeffCub[9]  + mCoeffs[10]*aCoeffCub[10] + mCoeffs[11]*aCoeffCub[11]
           + mCoeffs[12] *aCoeffCub[12] + mCoeffs[13]*aCoeffCub[13] + mCoeffs[14]*aCoeffCub[14] + mCoeffs[15]*aCoeffCub[15]
           + mCoeffs[16] *aCoeffCub[16] + mCoeffs[17]*aCoeffCub[17] + mCoeffs[18]*aCoeffCub[18] + mCoeffs[19]*aCoeffCub[19]
-    ;
+    ;*/
 }
 
 void  cRPC_Polyn::FillCubicCoeff(tRPCCoeff & aVCoeffs,const cPt3dr & aP) 
 {
+    //0- update aVCoeffs with the "coordinate" part of the polynomial
+    //
+
+    /*
      aVCoeffs[0] = 1.0;
      aVCoeffs[5]  = aP.y() * aP.z();
      aVCoeffs[10] = aP.x() * aP.y() * aP.z();
@@ -321,7 +332,7 @@ void  cRPC_Polyn::FillCubicCoeff(tRPCCoeff & aVCoeffs,const cPt3dr & aP)
      aVCoeffs[4]  = aP.y() * aP.x();
      aVCoeffs[9]  = aP.z() * aP.z();
      aVCoeffs[14] = aP.y() * aP.y() * aP.x();
-     aVCoeffs[19] = aP.z() * aP.z() * aP.z();
+     aVCoeffs[19] = aP.z() * aP.z() * aP.z();*/
 }
 
 void cRPC_Polyn::PushCoeffs(std::vector<tREAL8>& aVObs) const
@@ -400,17 +411,23 @@ void cRPC_RatioPolyn::SetCoeffs(const std::vector<tREAL8>& aVC)
 
 cPt2dr cRatioPolynXY::Val(const cPt3dr &aP) const
 {
+    //0- create tRPCCoeff vector of 20 elements
+
+    //1- fill the vector with the "coordinate" part
+    //   use cRPC_Polyn::FillCubicCoeff
+
+    //2- apply the rational polynomial over the vector to predict two coordinates
+    //   use mX.Val  and mY.Val
+
+    return cPt2dr(0,0);
+
+
+/*
     static tRPCCoeff aBuf;
     cRPC_Polyn::FillCubicCoeff(aBuf,aP);
 
-    return cPt2dr(mX.Val(aBuf),mY.Val(aBuf));
+    return cPt2dr(mX.Val(aBuf),mY.Val(aBuf));*/
 
-    /*
-    cPt2dr aRes;
-    aRes.x() = mX.Val(aP);
-    aRes.y() = mY.Val(aP);
-    return aRes;
-    */
 }
 
 void cRatioPolynXY::Show()
@@ -700,20 +717,34 @@ void cRPCSens::Dimap_ReadXML_Glob(const cSerialTree & aTree)
 
 cPt2dr cRPCSens::NormIm(const cPt2dr &aP,bool Direct) const
 {
-    return  Direct ?
-            DivCByC(aP - mImOffset,mImScale) : MulCByC(aP,mImScale) + mImOffset;
+    // if Direct: un-normalise
+    // else:         normalise
+
+    /*return  Direct ?
+            DivCByC(aP - mImOffset,mImScale) : MulCByC(aP,mImScale) + mImOffset; */
+
+    return  cPt2dr(0,0);
 }
 
 cPt3dr cRPCSens::NormGround(const cPt3dr &aP,bool Direct) const
 {
-    return  Direct ?
-            DivCByC(aP - mGroundOffset,mGroundScale) : MulCByC(aP,mGroundScale) + mGroundOffset;
+    // if Direct: un-normalise
+    // else:         normalise
+
+    return cPt3dr(0,0,0);
+
+    /*return  Direct ?
+            DivCByC(aP - mGroundOffset,mGroundScale) : MulCByC(aP,mGroundScale) + mGroundOffset; */
 }
 
 double cRPCSens::NormZ(const double aZ,bool Direct) const
 {
-    return Direct ?
-           (aZ - mGroundOffset.z())/mGroundScale.z() : aZ*mGroundScale.z() + mGroundOffset.z();
+    // if Direct: un-normalise
+    // else:         normalise
+
+    return 0.0;
+    /*return Direct ?
+           (aZ - mGroundOffset.z())/mGroundScale.z() : aZ*mGroundScale.z() + mGroundOffset.z();*/
 }
 
      // ====================================================
@@ -728,10 +759,25 @@ cPt3dr cRPCSens::IO_PtGr(const cPt3dr&aPt) const {return mSwapXYGround?PSymXY(aP
 
 cPt2dr cRPCSens::Ground2Image(const cPt3dr& aP) const
 {
-    cPt3dr aPN  = NormGround(IO_PtGr(aP),true); // ground normalised
+    //0- invert X,Y coordinate to comply with RPC standard
+    //   use IO_PtGr
+
+    //1- normalise the ground coordinate
+    //   use NormGround( ,true)
+
+    //2- apply inverse RPC model, ie. 3D -> 2D
+    //   use  mInverseRPC->Val
+
+    //3- de-normalise the 2D coordinates
+    //   use   NormIm( ,false)
+
+    //4- invert x,y coordinates to comply with MicMac convention
+
+    return cPt2dr(0,0);
+    /*cPt3dr aPN  = NormGround(IO_PtGr(aP),true); // ground normalised
     cPt2dr aRes = NormIm(mInverseRPC->Val(aPN),false); // image unnormalised
 
-    return IO_PtIm(aRes);
+    return IO_PtIm(aRes);*/
 }
 
 tProjImAndGrad  cRPCSens::DiffGround2Im(const cPt3dr & aP) const 
@@ -792,13 +838,33 @@ cPt3dr  cRPCSens::EpsDiffGround2Im(const cPt3dr & ) const {return mEpsCoord;}
 
 cPt3dr cRPCSens::ImageZToGround(const cPt2dr& aPIm,const double aZ) const
 {
+    //0- invert x,y coordinates to comply with RPC standard
+    //   use IO_PtIm
 
-    cPt2dr aPImN = NormIm(IO_PtIm(aPIm),true); // image normalised
+    //1- normalise image coordinates
+    //   use NormIm( ,true)
+
+    //2- normalise the Z-coordinate
+    //   use NormZ
+
+    //3- apply direct RPC model, ie 2D -> 3D
+    //   use  mDirectRPC->Val
+
+    //4- de-normalise the 3D coordinates
+    //   NormGround(  ,false)
+
+    //5- invert the X,Y coordinates to comply with MicMac convention
+    //   use IO_PtGr
+
+
+    /*cPt2dr aPImN = NormIm(IO_PtIm(aPIm),true); // image normalised
     double aZN = NormZ(aZ,true); // norm Z
     cPt2dr aPGrN = mDirectRPC->Val(cPt3dr(aPImN.x(),aPImN.y(),aZN)); // ground normalised
     cPt3dr aRes = NormGround( cPt3dr(aPGrN.x(),aPGrN.y(),aZN) ,false); // ground unnormalised
 
-    return IO_PtGr(aRes);
+    return IO_PtGr(aRes);*/
+
+    return IO_PtGr(cPt3dr(0,0,0));
 }
 
 cPt3dr cRPCSens::ImageAndZ2Ground(const cPt3dr& aP) const
@@ -808,13 +874,26 @@ cPt3dr cRPCSens::ImageAndZ2Ground(const cPt3dr& aP) const
 
 tSeg3dr  cRPCSens::Image2Bundle(const cPt2dr & aPtIm) const 
 {
-     tREAL8  aZ0 = mGroundOffset.z() - mAmplZB;
+    // bundle as a line segment defined by 2 points
+
+    //0- define Z-coordinates of the beginning and end of the segment
+    //   use mGroundOffset.z()
+
+    //1- intersect the image ray with the two Z-coordinates
+    //   with ImageZToGround
+
+    //2- return tSeg3dr segment
+
+
+    /* tREAL8  aZ0 = mGroundOffset.z() - mAmplZB;
      tREAL8  aZ1 = mGroundOffset.z() + mAmplZB;
       
      cPt3dr  aPGr0 = ImageZToGround(aPtIm,aZ0);
      cPt3dr  aPGr1 = ImageZToGround(aPtIm,aZ1);
 
-     return tSeg3dr(aPGr0,aPGr1);
+    return tSeg3dr(aPGr0,aPGr1); */
+
+    return tSeg3dr(cPt3dr(0,0,0),cPt3dr(0,0,0));
 }
 
 const cPt3dr * cRPCSens::CenterOfFootPrint() const { return & mCenterOfFootPrint; }
@@ -847,5 +926,100 @@ cSensorImage *  AllocRPCDimap(const cAnalyseTSOF & anAnalyse,const std::string &
 
     return aRes;
 }
+
+/*************************************************************************/
+/*                           MMV2-Satellite tools                        */
+/*************************************************************************/
+/* =============================================== */
+/*                                                 */
+/*                 cAppliTestRPC                */
+/*                                                 */
+/* =============================================== */
+class cAppliTestRPC : public cMMVII_Appli
+{
+public :
+    cAppliTestRPC(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
+
+private :
+    int Exe() override;
+    cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
+    cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+
+    void TestNormalisation(const cRPCSens&) const;
+    void TestInverseModel(const cRPCSens&) const;
+    void TestDirectModel(const cRPCSens&) const;
+
+    //cPhotogrammetricProject  mPhProj;
+    std::string              mImName;
+    std::string              mRPCFile;
+    bool                     mShowDetail;
+
+};
+
+cAppliTestRPC::cAppliTestRPC(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
+    cMMVII_Appli    (aVArgs,aSpec),
+    //mPhProj         (*this),
+    mShowDetail     (false)
+{
+}
+
+cCollecSpecArg2007 & cAppliTestRPC::ArgObl(cCollecSpecArg2007 & anArgObl)
+{
+    return    anArgObl
+           << Arg2007(mImName,"Name of imagee", {eTA2007::FileImage})
+           << Arg2007(mRPCFile,"Name of input RPC file", {eTA2007::Input})
+        ;
+}
+
+cCollecSpecArg2007 & cAppliTestRPC::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+    return anArgOpt
+           << AOpt2007(mShowDetail,"ShowD","Show detail",{eTA2007::HDV})
+        ;
+}
+
+int cAppliTestRPC::Exe()
+{
+
+    std::string aNameFile = "./MMVII-PhgrProj/InitialOrientations/UnCorExtern-Orientation-eTIGB_MMDimap2-Crop-UnCorExtern-Orientation-eTIGB_MMDimap2-IMG_PHR1A_P_201406121049025.XML.xml.xml";//
+    cAnalyseTSOF anAnalyse(aNameFile,false);
+
+    cRPCSens* aRPC = new cRPCSens(mImName);
+    aRPC->InitFromFile(anAnalyse);
+
+    //aRPC->Show();
+
+    StdOut() << "Proj=" << aRPC->DirectRPC().Val(cPt3dr(43.457,3.45,0.0)) << std::endl;
+
+    //- test
+
+
+
+
+
+    anAnalyse.FreeAnalyse();
+    delete aRPC;
+
+    return EXIT_SUCCESS;
+}
+
+
+tMMVII_UnikPApli Alloc_TestRPC(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
+{
+    return tMMVII_UnikPApli(new cAppliTestRPC(aVArgs,aSpec));
+}
+
+
+cSpecMMVII_Appli  TheSpecTestRPC
+    (
+        "TestRPC",
+        Alloc_TestRPC,
+        "Test implementation of RPC classes : MMV2-Satellite live-programming",
+        {eApF::Ori},
+        {eApDT::Ori,eApDT::GCP},
+        {eApDT::Console},
+        __FILE__
+        );
+
 
 };

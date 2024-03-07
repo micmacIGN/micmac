@@ -94,6 +94,7 @@ extern cSpecMMVII_Appli  TheSpec_CreateCalib;
 extern cSpecMMVII_Appli  TheSpecImportExtSens;
 extern cSpecMMVII_Appli  TheSpecTestSensor;
 extern cSpecMMVII_Appli  TheSpecParametrizeSensor;
+extern cSpecMMVII_Appli  TheSpecTestRPC;
 };
 
 #endif  //  _MMVII_DeclareAllCmd_H_
