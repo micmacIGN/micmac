@@ -43,10 +43,11 @@ SRCS_INC:=${wildcard *.h}
 export XML_MICMAC_FILES=$(wildcard ../../include/XML_MicMac/*.xml)
 export XML_GEN_FILES=$(wildcard ../../include/XML_GEN/*.xml)
 export XML_MMVII_LOCALPARAMETERS=$(wildcard ../MMVII-LocalParameters/*.xml)
+export XML_MMVII_LOCALPARAMETERS_DEFAULT=../MMVII-LocalParameters/Default/MMVII-UserOfProfile.xml
 export EXTRA_OBJECTS=../bin/libP2007.a ../../lib/libelise.a ../../lib/libANN.a
 export MMVII_BIN=../bin/MMVII
 
-MODULE=$(shell export CC="$$CXX" SRCS="$$SRCS"  CXXFLAGS="$$CXXFLAGS" XML_MICMAC_FILES="$$XML_MICMAC_FILES" XML_GEN_FILES="$$XML_GEN_FILES" XML_MMVII_LOCALPARAMETERS="$$XML_MMVII_LOCALPARAMETERS" EXTRA_OBJECTS="$$EXTRA_OBJECTS" MMVII_BIN="$$MMVII_BIN" ; $(PYTHON) setup.py module_name)
+MODULE=$(shell export CC="$$CXX" SRCS="$$SRCS"  CXXFLAGS="$$CXXFLAGS" XML_MICMAC_FILES="$$XML_MICMAC_FILES" XML_GEN_FILES="$$XML_GEN_FILES" XML_MMVII_LOCALPARAMETERS="$$XML_MMVII_LOCALPARAMETERS"  XML_MMVII_LOCALPARAMETERS_DEFAULT="$$XML_MMVII_LOCALPARAMETERS_DEFAULT" EXTRA_OBJECTS="$$EXTRA_OBJECTS" MMVII_BIN="$$MMVII_BIN" ; $(PYTHON) setup.py module_name)
 
 .phony: all clean clean_python install uninstall
 

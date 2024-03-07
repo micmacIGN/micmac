@@ -22,6 +22,7 @@ all_cpp_api_files =  os.getenv('SRCS').split()
 cxxflags = os.getenv('CXXFLAGS').split()
 xml_micmac_files = os.getenv('XML_MICMAC_FILES').split()
 xml_mmvii_localparamters = os.getenv('XML_MMVII_LOCALPARAMETERS').split()
+xml_mmvii_localparamters_default = os.getenv('XML_MMVII_LOCALPARAMETERS_DEFAULT').split()
 xml_gen_files = os.getenv('XML_GEN_FILES').split()
 extra_objects = os.getenv('EXTRA_OBJECTS').split()
 mmv2_bin = os.getenv('MMVII_BIN').split()
@@ -67,6 +68,7 @@ setup_kwargs = dict(
                   (module_name+"/MMVII/bin", mmv2_bin),
                   (module_name+"/include/XML_MicMac", xml_micmac_files),
                   (module_name+"/MMVII/MMVII-LocalParameters", xml_mmvii_localparamters),
+                  (module_name+"/MMVII/MMVII-LocalParameters/Default", xml_mmvii_localparamters_default),
                   (module_name+"/include/XML_GEN", xml_gen_files)
                  ],
     platforms  = ['x86_64'],
