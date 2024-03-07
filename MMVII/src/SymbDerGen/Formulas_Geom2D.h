@@ -68,7 +68,6 @@ class cDist2DConservation
 
     std::string FormulaName() const { return "Dist2DCons";}
 
-/*
     template <typename tUk,typename tObs> 
              static std::vector<tUk> formula
                   (
@@ -86,10 +85,9 @@ class cDist2DConservation
           return { Norm2(v)/ObsDist - aCst1 } ;
           // return { sqrt(square(v.x())+square(v.y()))/ObsDist - aCst1 } ;
      }
-*/
 
  // Alternate version of the same formula, showing use case of SymbPrint and SymbComment
-  
+/*
     template <typename tUk,typename tObs>
              static std::vector<tUk> formula
                   (
@@ -128,6 +126,7 @@ class cDist2DConservation
           return { result } ;
           // return { sqrt(square(v.x())+square(v.y()))/ObsDist - aCst1 } ;
      }
+*/
 };
 
 
