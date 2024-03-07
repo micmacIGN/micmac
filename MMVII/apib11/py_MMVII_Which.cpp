@@ -20,7 +20,7 @@ void pyb_init_cWhichMin_tpl(py::module_ &m, const std::string& name) {
 
     auto tb = py::class_<tWhichMin,tWhichExtrem>(m, name.c_str())
             .def(py::init<const T&, const Dim&>(),"Index"_a,"Val"_a)
-	    ;
+    ;
 
 }
 
