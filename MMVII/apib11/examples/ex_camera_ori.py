@@ -1,9 +1,11 @@
-from MMVII import *
+import MMVII
 
 # Prepare data: see MMVII/MMVII-TestDir/Input/Saisies-MMV1/readme.md
 
 dirData = '../../MMVII-TestDir/Input/Saisies-MMV1/'
-cam = SensorCamPC.fromFile(dirData + 'MMVII-PhgrProj/Ori/toto/Ori-PerspCentral-IMGP4168.JPG.xml')
+imPath = dirData + 'MMVII-PhgrProj/Ori/toto/Ori-PerspCentral-IMGP4168.JPG.xml'
+
+cam = MMVII.SensorCamPC.fromFile(imPath)
 
 pose = cam.pose
 icalib = cam.internalCalib
@@ -22,7 +24,7 @@ print("Point image 3D: ",cam.ground2ImageAndDepth(p), "=", pid)
 
 i2pp=pp2i.mapInverse()
 inv_proj=icalib.inv_Proj()
-inv_dist=DataInvertOfMapping2D(icalib.dir_DistInvertible())
+inv_dist=MMVII.DataInvertOfMapping2D(icalib.dir_DistInvertible())
 pCam = inv_proj.value(inv_dist.value(i2pp.value((pid[0], pid[1]))))
 pg = pose.value(pCam * (pid[2] / pCam[2]))
 
@@ -49,3 +51,4 @@ pid_calcs = [ (p1[0],p1[1],p2[2]) for p1,p2 in zip(pi_calcs,camPGs)]
 
 print (pids, "=>" )
 print (pid_calcs)
+
