@@ -72,6 +72,7 @@ class cRPC_Formulas
 			       int aKDenom
                            )  
               {
+		      // std::cout << Polyn(aP,aVCoeffs,aKNum)->InfixPPrint() << "\n";
 		      return  Polyn(aP,aVCoeffs,aKNum) /  Polyn(aP,aVCoeffs,aKDenom);
               }
 

@@ -238,6 +238,8 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecTestSensor);
         TheVecAll.push_back(&TheSpecParametrizeSensor);
         TheVecAll.push_back(&TheSpec_ChSysCoGCP);
+        TheVecAll.push_back(&TheSpec_TutoSerial);
+        TheVecAll.push_back(&TheSpec_TutoFormalDeriv);
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }
