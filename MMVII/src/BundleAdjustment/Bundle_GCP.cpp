@@ -80,8 +80,9 @@ void cMMVII_BundleAdj::InitItereGCP()
 
 void cMMVII_BundleAdj::OneItere_OnePackGCP(cBA_GCP & aBA)
 {
+    bool Show=true;
     const cSetMesImGCP   * aSet           = aBA.mMesGCP;
-    tREAL8 & aSigmaGCP                    = aBA.mSigmaGCP;
+    const tREAL8 & aSigmaGCP              = aBA.mSigmaGCP;
     cSetMesImGCP&   aNewGCP               = aBA.mNewGCP;
     std::vector<cPt3dr_UK*> & aGCP_UK     = aBA.mGCP_UK;
     cStdWeighterResidual& aGCPIm_Weighter = aBA.mGCPIm_Weighter;
@@ -106,7 +107,10 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(cBA_GCP & aBA)
      bool  aGcpFix = (aSigmaGCP==0);  // is GCP just an obervation
      tREAL8 aWeightGround =   aGcpFix ? 1.0 : (1.0/Square(aSigmaGCP)) ;  // standard formula, avoid 1/0
 
-     if (1)
+     int aNbGCPVis = 0;
+     int aAvgVis = 0;
+     int aAvgNonVis = 0;
+     if (Show)
      {
         StdOut() << "  * " <<  aBA.mName << " : Gcp0=" << aSet->AvgSqResidual() ;
         if (aGcpUk)
@@ -120,7 +124,6 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(cBA_GCP & aBA)
 	    }
             StdOut() << " , GcpNew=" << aNewGCP.AvgSqResidual() ; // getchar();
         }
-        StdOut() << std::endl;
      }
 
     // MMVII_INTERNAL_ASSERT_tiny(!aGcpUk,"Dont handle GCP UK 4 Now");
@@ -139,6 +142,7 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(cBA_GCP & aBA)
 	   const std::vector<cPt2dr> & aVPIm  = aVMesIm.at(aKp).VMeasures();
 	   const std::vector<int> &  aVIndIm  = aVMesIm.at(aKp).VImages();
 
+	   int aNbImVis  = 0;
 	   // Parse all image having a measure with this GCP
            for (size_t aKIm=0 ; aKIm<aVPIm.size() ; aKIm++)
            {
@@ -165,6 +169,7 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(cBA_GCP & aBA)
 	       // Do something only if GCP is visible 
                if (aSens->IsVisibleOnImFrame(aPIm) && (aSens->IsVisible(aPGr)))
                {
+                     aNbImVis++;
 	             cPt2dr aResidual = aPIm - aSens->Ground2Image(aPGr);
                      tREAL8 aWeightImage =   aGCPIm_Weighter.SingleWOfResidual(aResidual);
 	             cCalculator<double> * anEqColin =  aSens->GetEqColinearity();
@@ -181,13 +186,17 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(cBA_GCP & aBA)
 		     {
                         mSys->R_AddEq2Subst(aStrSubst,anEqColin,aVIndGlob,aVObs,aWeightImage);
 		     }
- // StdOut() << "RRRRrr " << aResidual << " IImm=" << aPIm  << " Prroj" << aSens->Ground2Image(aPGr) << "\n"; getchar();
                }
 	    }
+            aAvgVis += aNbImVis;
+            aAvgNonVis += aVPIm.size() -aNbImVis;
+            aNbGCPVis += (aNbImVis !=0);
 
-           if (aVMesGCP.at(aKp).isFree())
+             // bool  aGcpUk = (aSigmaGCP>0);  // are GCP unknowns
+             // bool  aGcpFix = (aSigmaGCP==0);  // is GCP just an obervation
+            if (aVMesGCP.at(aKp).isFree())
                continue;
-	    if (! aGcpUk) // case  subst,  we now can make schurr commpl and subst
+	    if (! aGcpUk) // case  subst,  we now can make schurr commpl and subst aSigmaGCP<=0
 	    {
                 if (! aGcpFix)  // if GCP is not hard fix, we must add obs on ground
 		{
@@ -196,12 +205,23 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(cBA_GCP & aBA)
 		}
                 mSys->R_AddObsWithTmpUK(aStrSubst);  // finnaly add obs accummulated
 	    }
-	    else
+	    else  // aSigmaGCP >0
 	    {
-                 //  Add observation fixing GCP
-                 mR8_Sys->AddEqFixCurVar(*aPtrGcpUk,aPtrGcpUk->Pt(),aWeightGround);
+                 //  Add observation fixing GCP  aPGr
+                 // mR8_Sys->AddEqFixCurVar(*aPtrGcpUk,aPtrGcpUk->Pt(),aWeightGround);
+		 // FIX TO GCP INIT NOT TO LAST ESTIMATION
+                 mR8_Sys->AddEqFixNewVal(*aPtrGcpUk,aPtrGcpUk->Pt(),aPGr,aWeightGround);
 	    }
     }
+
+     if (Show)
+     {
+        StdOut() << " PropVis1Im=" << aNbGCPVis /double(aNbGCP)  
+		<< " AvgVis=" << aAvgVis/double(aNbGCP) 
+		<< " NonVis=" << aAvgNonVis/double(aNbGCP) 
+        ;
+        StdOut() << std::endl;
+     }
 }
 
 

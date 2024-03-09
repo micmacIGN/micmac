@@ -1,0 +1,645 @@
+\documentclass[notes]{beamer}
+\usetheme{Madrid}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\newcounter{saveenumi}
+\newcommand{\seti}{\setcounter{saveenumi}{\value{enumi}}}
+\newcommand{\conti}{\setcounter{enumi}{\value{saveenumi}}}
+
+\resetcounteronoverlays{saveenumi}
+%\author{}
+
+\usepackage{geometry} 
+\usepackage{array}
+\usepackage{float}
+\usepackage{placeins}
+\usepackage{xcolor}
+\usepackage{cancel}
+\usepackage{graphicx}
+\usepackage{tikz} 
+\usepackage[overlay]{textpos}
+\usepackage{hyperref}
+\usepackage{animate}
+\usepackage{wasysym}
+\usepackage{listings}
+
+ 
+ 
+\newcommand{\tikzmarkk}[2][minimum width=6cm,minimum height=1.5cm]{
+ \tikz[remember picture,overlay]
+ \node[anchor=west,
+       inner sep=0pt,
+       outer sep=6pt,
+       xshift=-0.5em,
+       yshift=-3ex,
+       #1](#2){};
+}
+
+\newcommand{\shownode}[1]{
+  \tikz[remember picture,overlay]\draw[red](#1.south east)rectangle(#1.north west);
+}
+
+\newcommand{\showanchor}[1]{
+  \tikz[remember picture,overlay]\draw[red,thick,mark=x] plot coordinates{(#1)};
+}
+
+% original code from Stefan Kottwitz
+% http://tex.stackexchange.com/a/12551/13304
+\newenvironment<>{varblock}[2][.9\textwidth]{%
+  \setlength{\textwidth}{#1}
+  \begin{actionenv}#3%
+    \def\insertblocktitle{#2}%
+    \par%    
+    \usebeamertemplate{block begin}%
+    }
+  {\par%
+    \usebeamertemplate{block end}%
+  \end{actionenv}}
+
+\newenvironment{myblock}[1]{\begin{textblock*}{500pt}(#1)}{\end{textblock*}}
+
+% special way to reach the top of the block
+\def\newabove(#1){
+([yshift=1.5ex]#1.center)
+}
+
+\definecolor{dgreen}{rgb}{0.,0.6,0.}
+\colorlet{dgr}{green!70!black}
+\definecolor{aqua}{rgb}{0.0, 0.2, 1.0}
+
+ 
+\definecolor{persianindigo}{rgb}{0.2, 0.2, 0.7}  
+\newcommand{\indigo}[1]{\textcolor{persianindigo}{#1}}
+
+\definecolor{red}{rgb}{1.0, 0.0, 0.0}  
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+
+\title{MicMac V1/V2 état d'avancement}
+\subtitle{\textcolor{lightgray}{Ajustement de faisceaux}}
+\author{Marc Pierrot Deseilligny 
+%\footnotesize \textit{with support slides from A Pinte and M Pierrot Deseilligny}
+} 
+
+\institute
+{
+	Univ. Gustave Eiffel -- IGN/ENSG, LaSTIG lab.- France 
+}
+
+\date{novembre 2022}
+
+\graphicspath{{./img/}}
+
+%vertical curmy braces 
+\usetikzlibrary{decorations.pathreplacing,calc}
+\newcommand{\tikzmark}[1]{\tikz[overlay,remember picture] \node (#1) {};}
+
+\newcommand{\COM}[1]{}
+  
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}
+\tableofcontents
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%   \section{MicMac V1 et V2}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}
+\section{MicMac V1 et V2}
+\begin{center}
+    {\bf {\Large MicMac V1 et V2}}
+\end{center}
+\end{frame}
+
+
+
+  % -----------------------------------------------------------------
+\subsection{Historique  V1}
+
+
+  %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\begin{frame}{Quelques jalons(1)}
+\begin{enumerate}
+    \item[2003]  code d'appariement d'images pour les MNS/MNT : multi-échelle, multi-images ;
+                 pour l'orientation utilise {\tt OriLib}, modèle {\tt Grille};
+    \item[2005]  ajout de méthode d'orientation et d'ajustement pour la calibration géométrique des
+                 caméras numériques du LoEMI;
+    \item[2007]  intégration des point SIFT comme points homologues , pipeline d'orientation automatique
+                 à partir d'un "paquet" d'images:
+    \item[2008]  début d'une collaboration structurante avec le MAP-CNRS dans le domaine du patrimoine;
+    \item[2009]  intégration des modèle fisheye (+- "tous" les modèles)
+    \item[2010]  diffusion assez large de MicMac dans différentes communautés scientifiques (patrimoine, environnement)
+\end{enumerate}
+\end{frame}
+
+  %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\begin{frame}{Quelques jalons(2)}
+\begin{enumerate}
+    \item[2011]  pipeline de calcul de modèles en "vrai 3D" en $100\%$ automatique ,  (i.e, pas   du $2.5$ d):
+    \item[2012]  début d'une collaboration structurante en science de la terre avec l'IPGP;
+    \item[2013]  portage sous Windows;
+    \item[2015]  prise en compte de l'ajustement de faisceau sur des capteurs satellitte;
+    \item[2018]  \dots décision de lancer une deuxième version $V_2$.
+    \item[2020]  début de recherches utilisant le deep learning dans $V_1$;
+\end{enumerate}
+\end{frame}
+
+  %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\begin{frame}{Bilan-1 Points positifs }
+\begin{enumerate}
+    \item  une chaine photogrammétrique libre open source complète  (satellite, aérien, terrestre)  
+    \item  une chaine photogrammétrique centrée sur la métrologie, offrant un contrôle fin des étapes de calcul (!= boite noire);
+    \item  un outil qui a été largement utilisé à l'IGN (calcul de MNS France par la production,  études à IGN-Espace, 
+           apprentissage de la photogrammétrie à l'ENSG, prestation en photogra terrestre par le SGM, utilisation 
+           au Matis/Lastig);
+    \item  a été largement utilisé par des scientifiques, ingénieur \dots dans le patrimoine et l'environnement (2010-2016) ;
+    \item  a été financé par plusieurs acteurs privés ou public ($4$ thèses industrielles, $1$ ANR, $1$ FUI, projet CNES-TOSCA).
+\end{enumerate}
+\end{frame}
+
+
+  %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\begin{frame}{Bilan -2 , points negatifs}
+
+Un outil qui s'est dévloppé depuis $15$ ans, sans réelle stratégie globale, et pour l'essentiel avec 
+un seul programmeur pour le noyau. Conséquences :
+
+\begin{enumerate}
+    \item  une chaine sans interface et compliquée à utiliser : noms de commandes sans rapport avec ce qu'elles font,
+           message d'erreur peu clairs
+
+    \item un code peu ou mal documenté; pas de test unitaire, fonctionnel ; 
+
+    \item des choix de conception complexes, notamment des optimisation (CPU, mémoire) moins justifiées avec le 
+          matériel actuel; le gros de la librairie est orientée traitement d'image, alors que l'usage majoritaire est photogrammétrique;
+
+    \item  utilise peu de librairies externes, beaucoup de "home made" sur des fonctionnalité courante (lecture tiff maison,
+           certaines interface sur XLib);
+
+    \item  des contribution externes réalisées par des contractuels, pas facile à maintenir;
+
+    \item  une chaine "viellissante" à l'ère du deep-learning, big data .
+\end{enumerate}
+
+\end{frame}
+
+  %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\begin{frame}{Décisions}
+
+     MicMac V1 ne pourra pas évoluer sur le long terme :
+      
+\begin{enumerate}
+    \item  soit on "abandonne" à moyen terme, en se limitant à une maintenance currative;
+    \item  soit on fait une nouvelle version.
+\end{enumerate}
+
+\pause
+
+\vline
+
+    Il y a un interet a avoir une chaine photogrammetrique open source  complete développée à l'IGN
+    En faisant une deuxième itération grace au recul, on espère reprendre les bonnes idées et éviter  les ecueil de V1.
+
+\begin{enumerate}
+    \item  on n'abandonne pas et on fait une nouvelle version!
+\end{enumerate}
+
+\end{frame}
+
+  % -----------------------------------------------------------------
+\subsection{Le "projet" MicMac V2}
+
+
+  %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\begin{frame}{Ulisateurs  prioritaires}
+
+Utilisateurs  prioritaires :
+
+\begin{enumerate}
+    \item  étudiants et enseignants en photogrammétrie, notamment ENSG;
+
+    \item  chercheurs en STIC utilisant la photogrammétrie, notamment au LaSTIG, CEREMA, UGE \dots
+
+    \item  expert/ingénieur en photogrammétrie terrestre, aérienne et spatiale, notamment à l'IGN
+           et dans le cadre de collaborations formalisées(CERN).
+\end{enumerate}
+
+\vline
+
+$\rightarrow$ Les utilisations plus "grands publics" pour avoir des modèles visuellement  plaisants
+ne sont pas une priorité, mais pourront se développer dans le cadre de collaborations (ex
+développement pour les archives dans le cadre du stage d'Alexane NGhien).
+
+\end{frame}
+
+  %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\begin{frame}{Les "interfaces"}
+
+\begin{enumerate}
+     \item {\bf programmeur}, au niveau du code lui-même pour les programmeurs, avec objectif d'avoir une qualité de code et
+           de documentation le permettant;
+
+     \item {\bf expert},  au niveau ligne de commandes : noms rationnels, complétions automatique, spécifications des
+                    commandes (entrée, sortie, objectif);
+
+     \item {\bf étudiant},  vCommand systématisée
+
+     \item {\bf expert,étudiant},  binding python permettant un accès relativement simple, à "grain plus fin" que les commandes;
+
+     \item {\bf "grand public"},  dans le cadre de collaboration extérieur, interface finalisée, contacts pris avec Map-CNRS et
+          meshroom.
+
+\end{enumerate}
+
+\end{frame}
+
+  %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\begin{frame}{Organisation : table rase \dots}
+
+\begin{enumerate}
+    \item  évolution progressive incompatible avec les ambition de correction des problèmes
+    \item  on part "from scratch"  
+\end{enumerate}
+
+\pause
+\vline
+\dots ou presque, il y a provisoirement des liens avec V1 :
+
+\begin{enumerate}
+    \item  on link avec V1, qui est utilisé comme librairie externe pour quelques fonctionnalités avant
+           que l'on  choisisse la "bonne" lib (essentiellement lecture/ecriture des images, 
+           gestion des systèmes de projection);
+
+
+    \item  on peut importer des données V1 au format V2 pour prototyper des chaines complètes ; par exemple
+	    import d'orientation initiale,  calcul de points homoloques ;
+
+    \item  on peut faire du copié-collé de code sur des petits morceaux autonomes (marginal).
+
+\end{enumerate}
+
+\end{frame}
+
+  %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\begin{frame}{Organisation : équipe \dots}
+
+Actuellement un peu plus de $2$  ETP . A gros traits :
+
+\begin{enumerate}
+   \item  Mehdi Daakir, dans le cadre du CERN, test Window, développemet de tests fonctionnels;
+   \item  Celestin Huet, dans le cadre du CERN, développement spécifique, ajout de librairies externes;
+   \item  Yann Meneroux, détection de cibles pour PRISMA
+   \item  Christophe Meynard, informatique  (portage windows, git, vcommand et complétion), dérivée formelle (avec MPD);
+   \item  Jean Michaël Muller, binding python, ajout de la topographie;
+   \item  Marc Pierrot Deseilligny, développement du noyau;
+   \item  Ewelina Rupnik, estimation de pose  initiale rapide et précise.
+\end{enumerate}
+
+Plus un ingénieur de recherche (Christian Staron) travaillant  dans {\tt MMVII} dans le
+cadre d'une collaboration IGN/CNES-Tosca/IPGP.
+
+\end{frame}
+
+  %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\begin{frame}{Etat d'avancement, général}
+
+\begin{enumerate}
+    \item  noyau ($70\%$ ??) : classe pour les commandes, la gestion de chantier, la serialization,
+           les dérivées partielles, l'optimisation non linéaire, 
+
+
+    \item  portage windows, ok en interne, premier beta testeur CERN en janvier;
+
+    \item  vCommand et complétion, premier proto,  en beta;  
+
+    \item   binding python : premiers exercices avec les PPMD  en $2023$;
+
+    \item  tests unitaires : $80\%$ 
+
+    \item  tests fonctionnel  : $40\%$ 
+
+    \item  documentation algorithmique ($60\%$ ??) de l'existant
+
+    \item  documentation programmeur à haut niveau  ($50\%$ ??) de l'existant
+
+    \item  documentation programmeur  dans le code  ($70\%$ ) .
+
+\end{enumerate}
+\end{frame}
+
+  %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\begin{frame}{Etat d'avancement, thématique}
+
+\begin{enumerate}
+    \item  détection de cible codées, pour l'IGN et le CERN : $90\%$;
+
+    \item  classe capteur avec perspective central quasi complet, incluant plusieur modèle 
+           de fishey et de nombreux modèle de distorsion;
+
+    \item  estimation de poses initiales quelques algorithmes : relèvement dans l'espace (calibré ou non),
+           matrice essentielles;
+
+    \item  ajustement de faisceau cas conique : assimilation de : points d'appuis, points de liaison,
+           contraintes de bloc rigide,  inclinomètres ($70\%$) ; possibilité de contrainte
+           dans les équations (i.e. optimisation sous contrainte stricte);
+
+   \item   quelques développements prototype pour intégrer de la topo;
+
+   \item  ajustement de faisceau cas spatial ($30-50\% ??$) : gestion des RPC, gestion des changement
+	   de coordonnées, calcul de modèle ajusté purement $2d$ ; reste à faire :
+          gestion de modèle initiaux  physique (grille ? modèle type "airbus") ,  gestion
+          de corrections "physiques" $3d$ (nécessite discussion et collaboration avec le 
+          service de l'information spatiale);
+
+  \item  développement de surface (cas motivé par une application concrète) : quelque modèle d'égalisation
+	  de la radiométrie (purement paramétrique).
+\end{enumerate}
+\end{frame}
+
+
+  % -----------------------------------------------------------------
+\subsection{Feuille de route}
+  %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\begin{frame}{Pipeline photogrammétrique}
+
+Le pipeline photogrammétrique est classiquement divisé en $3$ étapes photogrammétriques et le reste :
+
+\begin{enumerate}
+    \item  calcul de mesure images éparses : points homologues , points d'appuis (détection de cible)
+
+    \item  calcul de la géométrie des caméras : estimation initiale (cas conique terrestre) et ajustement ;
+
+    \item  calcul de la scène $3D$ : appariement dense contraint par la géométrie;
+
+    \item  égalisation radiométrique ;
+
+    \item  géneration du produit final : de nuage de points, de modèle numérique de surface,  d'ortho photo, de mesh texturé  \dots
+\end{enumerate}
+
+Le point le plus avancé est le calcul de la géométrie, les autres points sont inexistant ou à l'état d'ébauche.
+
+\end{frame}
+
+  %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\begin{frame}{"Stratégie"}
+
+La ligne directrice est :
+
+\begin{itemize}
+      \item avoir prioritairement une solution  pour le calcul d'orientation 
+            (coeur de métier IGN ) , éventuellement la topométrie ;
+
+     \item intégrer d'abord des solutions libre externes pour le calcul d'appariement
+           éparse et dense;  
+
+     \item compléter avec des solution interne pour : (1)  être maitre de son destin
+          (2) intégrer des résultat de recherches (par ex thèse de Mohamed Ali Chebbi);
+
+     \item externe pour l'appariement éparse : SIFT + solutions basées sur l'apprentissage   + autre ?
+
+     \item externe pour l'appariement dense, notamment des solution basée sur l'apprentissage fonctionnant en épipolaire
+           (MMVII assurant toute la machinerie complémentaire en amont et en aval).
+\end{itemize}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \section{Organisation du  code existant}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}
+\section{Organisation du  code existant}
+\begin{center}
+     {\bf {\Large Organisation du  code existant}}
+\end{center}
+\end{frame}
+
+
+  % -----------------------------------------------------------------
+
+\begin{frame}{Outils utilisés}
+\begin{itemize}
+	\item  langage de développement principal {\tt C++},  version minimale {\tt C++17} 
+
+	\item  compilateur supporté actuellement {\tt g++, clang, MSVC++}
+
+        \item portage testé régulièrement sur Linux et Windows, ca marche pour l'instant sous MacOS;
+
+        \item automatisation de la compilation par cmake (3.15 au moins);
+
+        \item gestion de version par {\tt git} ;
+
+	\item binding python (prototype) avec {\tt pybind-11};
+
+	\item documentation  élémentaire avec  {\tt doxygen};
+
+	\item documentation  plus "haut niveau" avec un document {\tt Latex}.
+
+\end{itemize}
+\end{frame}
+
+  % -----------------------------------------------------------------
+
+\begin{frame}{Bibliothèques Utilisées}
+
+On essaye d'éviter les deux extrêmes : MicMac-V1 \emph{tout à la main}, outil comme Orpheo-too box :
+\emph{reposer sur les épaules de géants} . Les deux posent des problèmes de maintenance  à long terme \dots
+Bibliothèques utilisées :
+
+\begin{itemize}
+    \item Eigen : algèbre matricielle;
+    \item pybind11 :  binding python;
+    \item GDAL : lecture/écriture des images (en cours);
+    \item PROJX : système de coordonnées (à venir/V1 pour l'instant);
+    \item Xif... :  méta-données des images (à venir/V1 pour l'instant);
+    \item  quelques code open source  composé de  fichier directement inclus  dans MMVII
+	    (triangulation de delaunay Volodymyr Bilonenko-MIT, gestion du format ply Nick Sharp-MIT) ;
+\end{itemize}
+
+\end{frame}
+
+
+  % -----------------------------------------------------------------
+
+\begin{frame}{Bibliothèques non utilisées}
+
+Peut-être utilisé plus tard :
+
+\begin{itemize}
+     \item CGAL pour la triangulation 2D-3D la tetrahdrization (mais problème
+           de licence);
+\end{itemize}
+
+
+\emph {A priori} Non utilisé :
+
+\begin{itemize}
+    \item bibliothèque de traitement d'image
+
+    \item boost (la librairie standard contient à peu près tout ce dont on a besoin);
+\end{itemize}
+
+\end{frame}
+
+
+  % -----------------------------------------------------------------
+
+\begin{frame}{Précautions logicielles(1)}
+
+Tout en restant du code de recherche fait avec les moyen du bord, un
+certain nombre de précaution sont prises  pour limiter les bugs  :
+
+\begin{itemize}
+   \item une variable d'environnement {\tt The\_MMVII\_DebugLevel} fixe
+         le niveau de vérification;
+
+   \item à son plus haut niveau : tous les accès aux images sont vérifiés
+         (débordement d'indice, de valeur) , les division par $0$ , les racine carrés négatives \dots
+
+    \item à son plus bas niveau seules les vérifications liées aux erreurs utilisateurs sont effectuées;
+
+\end{itemize}
+
+Pour la gestion mémoire les classes peuvent dériver de {\tt cMemCheck} , dans ce cas (si
+on est en mode DEBUG):
+
+\begin{itemize}
+      \item une vérification empirirque de non débordement en écriture sera faire à la destruction de l'objet;
+
+      \item une vérification de la libération sera faite à la fin du process.
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Précautions logicielles(2)}
+
+Un programme , appelé abusivement {\tt BENCH}, effectue des
+test unitaires assez "complets", par exemple :
+
+\begin{itemize}
+	\item {\tt  MMVII Bench 1}  lance les test sur toute les fonctionnalité;
+	\item {\tt  MMVII Bench 200  PatBench=Geom}  lance $200$ fois les test sur les fonctionnalité
+		géometrique, avec des configurations aléatoires différentes et \dots plante à l'itération $36$
+\end{itemize}
+
+Plusieurs  ensembles de commande s'executant consécutivement sont présents dans le dossier {\tt MMVII-UseCaseDataSet},
+en plus d'être des exemples didactiques, ce sont des précurseurs de test fonctionnels.
+
+\end{frame}
+
+  % -----------------------------------------------------------------
+
+\begin{frame}{Quelques conventions/habitudes}
+
+\begin{itemize}
+	\item  on essaye de réduire la taille des header et la taille du
+		code compilé :  pas de \emph{grosse} méthode \emph{inline}, 
+		instantiation explicite des \emph{grosse} méthodes template dans les cpp;
+
+         \item pour les classes applications, le code de dérivation automatique, on 
+		 passe par des allocateur qui évitent d'avoir à exporter tous les header 
+		 (voir présentation suivantes);
+	
+	\item  les header qui contiennet \emph{beaucoup} de code  \emph{inline} s'appellent 
+		généalement {\tt *Tpl*} ;
+
+	\item  les données membre commencent généralement par {\tt m} et les variable par {\tt a},
+	        les noms de classes par {\tt c}, les {\tt typedef} par {\tt t}, les classe enum par {\tt e},
+
+	\item  header sont essentiellement tous à plat sous {\tt include}; 
+
+	\item   quelques headers spécifiques à un ensemble de source sont au même niveau que les sources
+	        (exemple {\tt src/Sensors/cExternalSensor.h});
+
+	\item   tous les sources sont au même niveau {\tt src/AA/BB.ccp} sauf le {\tt src/main.cpp}.
+\end{itemize}
+
+\end{frame}
+
+  % -----------------------------------------------------------------
+
+\begin{frame}{Les formats MMVII (1) : dans la \emph{jungle} des données photogrammétriques}
+
+Pas de standard permettant 
+d'échanger simplement d'un logiciel à l'autre.  Rien qu'en interne IGN, au moins $3$
+famille de format \dots 
+
+Au début de {\tt MMVII}, réflexion sur l'utilisation du format {\tt kapture}, format ouvert
+développé par {\tt Naver-labs}, ayant des passerelle vers un certain nombre de solutions
+photogrammétrique.   Mais un format d'échange, n'est pas forcément un bon format de travail.
+Format de travail doit pouvoir représenter finement toutes les étapes d'un calcul tel
+que modélisées par le logiciel, peu de chance qu'il puisse être représenté par un
+format standard.
+
+Format interne spécifique {\tt MMVII} : les grande lignes seront décrites dans la suite;
+permet pour chaque type de données de stocker autant d'état de calcul que nécessaire.
+
+La capacité d'importer/exporter des données est considérée comme importante mais est
+dissociée du format interne.
+
+\end{frame}
+
+  % -----------------------------------------------------------------
+
+\begin{frame}{Interface avec les autres formats}
+
+Les interfaces suivante existent ou sont prévues, essentiellement en import pour l'instant :
+
+\begin{itemize}
+    \item import de donnée  micmac-V1, V2 étant pour l'instant très incomplète;
+
+    \item import de nombreuses type de donéees structurées sous forme \emph{BSV}  (blank separated value) ou CSV
+	    avec de commandes comme {\tt ImportGCP,  ImportTiePMul , ImportOri};
+
+    \item import d'une calibration  sans distorsion avec la commande {\tt EditCalcMTDI};
+
+    \item import d'orientation RPC {\tt ImportInitExtSens } , autres format à venir ?
+
+    \item import des données du SIA/SMD  (cas particulier du BSV)
+
+    \item import spécifique du format {\tt ORGI} du {\tt SIV }.
+\end{itemize}
+
+A moyen terme, import/export vers les solution courrantes, sans doute en se basant sur 
+une solution type {\tt kapture} (qui supporte  COLMAP, bundler, nvm, OpenMVG, OpenSfM).
+
+\end{frame}
+
+  % -----------------------------------------------------------------
+
+\begin{frame}{Documentation}
+
+Le point faible de tous les logiciels \dots Les ressources suivantes sont accessible :
+
+\begin{itemize}
+    \item documentation au plus près du code avec {\tt Doxygen} :  lancer
+          {\tt doxygen Doxyfile}
+
+    \item documentation \emph{classique} sous forme d'un pdf à compiler à parir du Latex
+	  sous {\tt MMVII/Doc};  ambitionne d'être une doc programmeur + utilisateur +
+          algorithmique (cours de photogra),  vaste programme \dots  sans doute un quart
+          de ce qui devrait être écrit l'a été;
+
+    \item  des cas d'usage sous {\tt MMVII/MMVII-UseCaseDataSet/};
+
+    \item  retour des sessions de formation : document rédigé par un ou deux stagiaires,
+	    vidéo.
+
+\end{itemize}
+
+\end{frame}
+
+
+\end{document}
+
+
+
+

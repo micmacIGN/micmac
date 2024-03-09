@@ -642,7 +642,7 @@ void cRPCSens::Dimap_ReadXMLNorms(const cSerialTree& aTree)
 
     //  ===========   MULTIPLY  ============
     cPt3dr aMil = (aP1Gr+aP0Gr)/2.0;
-    cPt3dr aAmpl = MulCByC((aP1Gr-aP0Gr),cPt3dr(aMul,aMul,1));
+    cPt3dr aAmpl = MulCByC((aP1Gr-aP0Gr)/2.0,cPt3dr(aMul,aMul,1));
     aP0Gr = aMil-aAmpl;
     aP1Gr = aMil+aAmpl;
 
