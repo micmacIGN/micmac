@@ -163,11 +163,13 @@ NS_SymbolicDerivative::cCalculator<double> * EqDistPol2D(int  aDeg,bool WithDeri
      return StdAllocCalc(NameFormula(cEqDistPolyn2D(aDeg,false),WithDerive),aSzBuf,SVP,ReUse);
 }
 
-NS_SymbolicDerivative::cCalculator<double> * RPC_Proj(bool WithDerive,int aSzBuf,bool ReUse) // PUSHB
-{
-     bool SVP =  false; // we generate an error if dont exist
-     return StdAllocCalc(NameFormula(cFormula_RPC_RatioPolyn(),WithDerive),aSzBuf,SVP,ReUse);
-}
+//TO-DO
+// write the object allocator for your equation
+// the optimizer will operate on the pointer to your eq class, which derives from the mother class calculator
+//
+
+
+
 											     
 
 
@@ -760,10 +762,8 @@ int cAppliGenCode::Exe()
 
    GenerateCodeCamPerpCentrale<cProjFE_EquiDist>(cPt3di(3,1,1),true);
 
-   for (const auto WithDer : {true,false})
-   {
-           GenCodesFormula((tREAL8*)nullptr,cFormula_RPC_RatioPolyn(),WithDer);  
-   }
+   //TO-DO
+
 
 
    for (const auto WithDer : {true,false})

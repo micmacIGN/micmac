@@ -133,7 +133,7 @@ NS_SymbolicDerivative::cCalculator<double> * EqCPProjInv(eProjPC  aType,bool Wit
 
 NS_SymbolicDerivative::cCalculator<double> * EqDistPol2D(int  aDeg,bool WithDerive,int aSzBuf,bool ReUse); // PUSHB
 NS_SymbolicDerivative::cCalculator<double> * EqColinearityCamGen(int  aDeg,bool WithDerive,int aSzBuf,bool ReUse); // PUSHB
-NS_SymbolicDerivative::cCalculator<double> * RPC_Proj(bool WithDerive,int aSzBuf,bool ReUse); // PUSHB
+//TO-DO
 
            // .............   Equation colinearity , imply external parameter, Projectiion, distorsion, foc+PP .............
 NS_SymbolicDerivative::cCalculator<double> * EqColinearityCamPPC(eProjPC  aType,const cPt3di & aDeg,bool WithDerive,int aSzBuf,bool ReUse,bool isFraserMode);
