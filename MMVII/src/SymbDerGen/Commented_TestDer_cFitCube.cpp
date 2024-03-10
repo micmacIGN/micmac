@@ -1,4 +1,4 @@
-#include "TestDer_cFitCube.h"
+#include "Commented_TestDer_cFitCube.h"
 
 namespace NS_SymbolicDerivative {
 
@@ -13,8 +13,8 @@ void cFitCube::DoEval()
     double &y = this->mVUk[aK][1];
     double &a = this->mVObs[aK][0];
     double &b = this->mVObs[aK][1];
-    double F7_ = (b * x);
-    double F13_ = (2 * b);
+    double F7_ = (b * x);              // bx
+    double F13_ = (2 * b);             // 2b
     double F8_ = (F7_ + a);            // ax+b
     double F9_ = square(F8_);          // (ax+b)^2
     double F14_ = (F13_ * F8_);        // 2b(ax+b)

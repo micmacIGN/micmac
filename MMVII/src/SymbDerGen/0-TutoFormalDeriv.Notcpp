@@ -9,7 +9,7 @@
     practicle use, but to understand a bit, what is inside.
 
 
-    We have the function  F_ab(x,y) =  cos (ax+b) ^2 - 42*y
+    We have the function  F_ab(x,y) =  cos (ax+b) ^2 -y
 
     We generate the formula corresponding ,
 
@@ -25,7 +25,8 @@ template <class Type>
 std::vector<Type> FitCube
                   (
                       const std::vector<Type> & aVUk,
-                      const std::vector<Type> & aVObs
+                      const std::vector<Type> & aVObs,
+		      bool OrderRand
                   )
 {
     const Type & x = aVUk[0];
@@ -43,7 +44,18 @@ std::vector<Type> FitCube
 
 void  ShowTreeFormulaRec(const cFormula<tREAL8>& aF,int aLevel)
 {
-     // To implemant 
+     
+     // StdOut()  << aF->GenCodeFormName() << std::endl;
+     // StdOut()  << aF->GenCodeExpr() << std::endl;
+     for (int aK=0 ; aK < aLevel ; aK++)
+     {
+         StdOut() << "   ";
+     }
+     StdOut()  << aF->Name4Print() 
+               << std::endl;
+
+     for (auto aChild : aF->Ref())
+          ShowTreeFormulaRec(aChild,aLevel+1);
 }
 
 void  ShowTreeFormula(const cFormula<tREAL8>& aF) 
@@ -77,7 +89,7 @@ void TestCubeFormula(bool OrderRand,bool GenCode)
     getchar();
 
     // Create the formula corresponding to residual
-    std::vector<SD::cFormula<double>>  aVResidu = FitCube(aCFD.VUk(),aCFD.VObs());
+    std::vector<SD::cFormula<double>>  aVResidu = FitCube(aCFD.VUk(),aCFD.VObs(),OrderRand);
     SD::cFormula<double>  aResidu = aVResidu[0];
     ShowTreeFormula(aResidu);
 /*

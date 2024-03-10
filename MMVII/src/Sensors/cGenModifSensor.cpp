@@ -146,8 +146,10 @@ cExternalSensorModif2D::cExternalSensorModif2D
     mVParams     (NbParam(),0.0),
     mSensorInit  (aSI)
 {
+    //  read the 2-D polynomial equation
     InitEquation();
-    if (mSensorInit)
+
+    if (mSensorInit)  // Put eventually the coordinate system in which the sensor works
        TransferateCoordSys(*mSensorInit);
 }
 
@@ -159,10 +161,12 @@ size_t  cExternalSensorModif2D::NbParam() const
 
 void cExternalSensorModif2D::InitEquation() 
 {
+/*
     mEqIma2End   =  (mDegree>=0)                                                       ?
-		    EqDistPol2D(mDegree,false/*W/O derive*/,1,true/*Recycling mode*/)  :
+		    EqDistPol2D(mDegree,WithDerivate::No,1,ReUseMode::Yes)  :
 		    nullptr
 		 ;    
+*/
 }
 
 cExternalSensorModif2D::~cExternalSensorModif2D()
@@ -171,7 +175,9 @@ cExternalSensorModif2D::~cExternalSensorModif2D()
 
 void cExternalSensorModif2D::InitSensor(const cPhotogrammetricProject & aPhP)
 {
+     // Read the sensor init : indicate the folder where it is located
      mSensorInit = aPhP.ReadSensorFromFolder(mDirSensInit,mNameImage,true,false);
+     // Initialize  the coordinate system
      TransferateCoordSys(*mSensorInit);
 }
 
@@ -188,6 +194,8 @@ cExternalSensorModif2D * cExternalSensorModif2D::TryRead
                         const std::string & aNameImage
                   )
 {
+   return nullptr;
+/*
    // [1] Try read w
    bool AlreadyExist = false;
    cExternalSensorModif2D * aSensM2D = SimpleTplTryRead<cExternalSensorModif2D>(aPhProj,aNameImage,AlreadyExist);
@@ -199,7 +207,7 @@ cExternalSensorModif2D * cExternalSensorModif2D::TryRead
    aSensM2D->InitSensor(aPhProj);
    aSensM2D->InitEquation();
    return aSensM2D;
-
+*/
 }
 
 cSensorImage * SensorTryReadSensM2D (const cPhotogrammetricProject & aPhProj, const std::string & aNameImage)
@@ -210,6 +218,7 @@ cSensorImage * SensorTryReadSensM2D (const cPhotogrammetricProject & aPhProj, co
 
 void cExternalSensorModif2D::AddData(const  cAuxAr2007 & anAux0)
 {
+/*
     cAuxAr2007 anAux("SensorCorrecPol2D",anAux0); // embeds the sensor in a global tag "SensorCorrecPol2D"
 
         // read/write the 3 "easy" fields
@@ -233,6 +242,7 @@ void cExternalSensorModif2D::AddData(const  cAuxAr2007 & anAux0)
              MMVII::AddData(cAuxAr2007(aVDesc[aK].mName,anAuxCoeff),mVParams[aK]);
          }
     }
+*/
 }
 
 void AddData(const  cAuxAr2007 & anAux,cExternalSensorModif2D & aExtSM2d)
@@ -272,13 +282,14 @@ cCalculator<double> * cExternalSensorModif2D::CreateEqColinearity(bool WithDeriv
 {
     // the sensor dont store its colinearity equation, it furnish it to the bundle adjusment when it is
     // required
-    return EqColinearityCamGen(mDegree,WithDerive,aSzBuf,ReUse);
+    return nullptr;
+    // return EqColinearityCamGen(mDegree,WithDerive,aSzBuf,ReUse);
 }
 
 void cExternalSensorModif2D::PutUknowsInSetInterval() 
 {
      // the unknowns that the sensor want to estimate are the coefficient of the monom
-     mSetInterv->AddOneInterv(mVParams);
+     // mSetInterv->AddOneInterv(mVParams);
 }
 
 void cExternalSensorModif2D::PushOwnObsColinearity
@@ -287,6 +298,7 @@ void cExternalSensorModif2D::PushOwnObsColinearity
 	 const cPt3dr & aPGround      //  3D ground point (current estimation of unknown point)
      )
 {
+/*
    //  Copy the string extracted from file "SymbDerGen/Formulas_GenSensor.h"
    //
    // "IObs","JObs"  |,|      "P0x","P0y","P0z"   |,|     "IP0","JP0"  |,|      "dIdX","dIDY","dIdZ"  |,|  "dJdX","dJDY","dJdZ"
@@ -302,6 +314,7 @@ void cExternalSensorModif2D::PushOwnObsColinearity
     aProj.mPIJ.PushInStdVector(aVObs);      // "IP0","JP0"  :  projection of estimated point
     aProj.mGradI.PushInStdVector(aVObs);    // "dIdX","dIDY","dIdZ" :  gradient of I-coordinate of  projection, in estimated point
     aProj.mGradJ.PushInStdVector(aVObs);     //  "dJdX","dJDY","dJdZ" :  gradient of J-coordinate of  projection, in estimated point
+*/
 }
 
     //-------------------------------------------------------------------------------
@@ -356,16 +369,21 @@ cPt2dr cExternalSensorModif2D::GetIntervalZ() const
 
 cPt2dr  cExternalSensorModif2D::Correc2InitPix (const cPt2dr & aP0) const
 {
+     return aP0;
      // the equation compute directly the distorsion from vector to vector, we just
      // make some interface to make it work on points
+/*
      std::vector<tREAL8>  aVXY = aP0.ToStdVector();
      std::vector<tREAL8>  aDistXY =  mEqIma2End->DoOneEval(aVXY,mVParams);
      return cPt2dr::FromStdVector(aDistXY);
+*/
 }
 
 
 cPt2dr  cExternalSensorModif2D::InitPix2Correc (const cPt2dr & aPInit) const
 {
+    return aPInit;
+/*
     // For now implement a very basic "fix point" method for inversion
      tREAL8 aThresh = 1e-3;
      int aNbIterMax = 10;
@@ -384,6 +402,7 @@ cPt2dr  cExternalSensorModif2D::InitPix2Correc (const cPt2dr & aPInit) const
      }
      // StdOut() << "NBITER=" << aNbIter << "\n";
      return aPEnd;
+*/
 }
     //-------------------------------------------------------------------------------
     //----------------------  FOR CHECK/SIMULATION  ---------------------------------

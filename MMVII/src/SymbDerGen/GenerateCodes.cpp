@@ -150,18 +150,21 @@ void TestResDegree(cCalculator<double> * aCalc,const cPt3di & aDeg,const std::st
      }
 }
 
-     //   PUSHB
-NS_SymbolicDerivative::cCalculator<double> * EqColinearityCamGen(int  aDeg,bool WithDerive,int aSzBuf,bool ReUse)
+/*
+NS_SymbolicDerivative::cCalculator<double> * EqColinearityCamGen(int  aDeg,bool WithDerive,int aSzBuf,bool ReUse) // BAPOL2
 {
      bool SVP =  false; // we generate an error if dont exist
      return StdAllocCalc(NameFormula(cEqColinSensGenPolyn2D(aDeg,false),WithDerive),aSzBuf,SVP,ReUse);
 }
+*/
 
-NS_SymbolicDerivative::cCalculator<double> * EqDistPol2D(int  aDeg,bool WithDerive,int aSzBuf,bool ReUse) // PUSHB
+/*
+NS_SymbolicDerivative::cCalculator<double> * EqDistPol2D(int  aDeg,bool WithDerive,int aSzBuf,bool ReUse) // BAPOL2
 {
      bool SVP =  false; // we generate an error if dont exist
      return StdAllocCalc(NameFormula(cEqDistPolyn2D(aDeg,false),WithDerive),aSzBuf,SVP,ReUse);
 }
+*/
 
 NS_SymbolicDerivative::cCalculator<double> * RPC_Proj(bool WithDerive,int aSzBuf,bool ReUse) // PUSHB
 {

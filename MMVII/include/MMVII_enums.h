@@ -645,6 +645,19 @@ class SVP
       static constexpr bool Yes = true;
       static constexpr bool No  = false;
 };
+class WithDerivate
+{
+   public :
+      static constexpr bool Yes = true;
+      static constexpr bool No  = false;
+};
+class ReUseMode
+{
+   public :
+      static constexpr bool Yes = true;
+      static constexpr bool No  = false;
+};
+
 
 
 };
