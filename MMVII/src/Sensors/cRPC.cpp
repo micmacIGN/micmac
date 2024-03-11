@@ -267,7 +267,7 @@ double cRPC_Polyn::Val(const cPt3dr& aP) const
 
 }
 
-//TO-DO
+//TODO-RPCProj
 double cRPC_Polyn::Val(const tRPCCoeff & aCoeffCub) const
 {
     //0- multiply the polynomials coefficients in mCoeffs with
@@ -277,7 +277,7 @@ double cRPC_Polyn::Val(const tRPCCoeff & aCoeffCub) const
 
 }
 
-//TO-DO
+//TODO-RPCProj
 void  cRPC_Polyn::FillCubicCoeff(tRPCCoeff & aVCoeffs,const cPt3dr & aP) 
 {
     //0- update aVCoeffs with the "coordinate" part of the polynomial
@@ -322,7 +322,7 @@ void cRPC_Polyn::Show()
 
 double cRPC_RatioPolyn::Val(const tRPCCoeff &aCoeff) const
 {
-    //TO-DO
+    //TODO-RPCProj
     // return the coordinate as Num/Den
     return 0.0;
 
@@ -366,7 +366,7 @@ void cRPC_RatioPolyn::SetCoeffs(const std::vector<tREAL8>& aVC)
 /* =============================================== */
 
 
-//TO-DO
+//TODO-RPCProj
 cPt2dr cRatioPolynXY::Val(const cPt3dr &aP) const
 {
     //0- create tRPCCoeff vector of 20 elements
@@ -668,7 +668,7 @@ void cRPCSens::Dimap_ReadXML_Glob(const cSerialTree & aTree)
 
 cPt2dr cRPCSens::NormIm(const cPt2dr &aP,bool Direct) const
 {
-    //TO-DO
+    //TODO-RPCProj
     // if Direct: normalise
     // else:      un-normalise
     //    use DivCByC and MulCByC for division and multiplication over cPtxd
@@ -679,7 +679,7 @@ cPt2dr cRPCSens::NormIm(const cPt2dr &aP,bool Direct) const
 
 cPt3dr cRPCSens::NormGround(const cPt3dr &aP,bool Direct) const
 {
-    //TO-DO
+    //TODO-RPCProj
     // if Direct: normalise
     // else:      un-normalise
     //    use DivCByC and MulCByC for division and multiplication over cPtxd
@@ -707,7 +707,7 @@ double cRPCSens::NormZ(const double aZ,bool Direct) const
 cPt2dr cRPCSens::IO_PtIm(const cPt2dr&aPt) const {return mSwapIJImage?PSymXY(aPt):aPt;}  
 cPt3dr cRPCSens::IO_PtGr(const cPt3dr&aPt) const {return mSwapXYGround?PSymXY(aPt):aPt;}
 
-//TO-DO
+//TODO-RPCProj
 cPt2dr cRPCSens::Ground2Image(const cPt3dr& aP) const
 {
     //0- invert X,Y coordinate to comply with RPC standard
@@ -729,7 +729,7 @@ cPt2dr cRPCSens::Ground2Image(const cPt3dr& aP) const
     return cPt2dr(0.0,0.0);
 }
 
-//TO-DO
+//TODO-RPCProj
 tProjImAndGrad  cRPCSens::DiffGround2Im(const cPt3dr & aP) const
 {
 
@@ -782,7 +782,7 @@ tProjImAndGrad  cRPCSens::DiffGround2Im(const cPt3dr & aP) const
 cPt3dr  cRPCSens::EpsDiffGround2Im(const cPt3dr & ) const {return mEpsCoord;}
 
 
-//TO-DO
+//TODO-RPCProj
 cPt3dr cRPCSens::ImageZToGround(const cPt2dr& aPIm,const double aZ) const
 {
     //0- invert x,y coordinates to comply with RPC standard
@@ -814,7 +814,7 @@ cPt3dr cRPCSens::ImageAndZ2Ground(const cPt3dr& aP) const
 }
 
 
-//TO-DO
+//TODO-RPCProj
 tSeg3dr  cRPCSens::Image2Bundle(const cPt2dr & aPtIm) const 
 {
     // bundle as a line segment defined by 2 points
@@ -929,16 +929,16 @@ int cAppliTestRPC::Exe()
     cPt3dr aP2DNormZ(-0.649515,-0.389812,0);
 
 
-    //TO-DO
+    //TODO-RPCProj
     //0- test the rational polynomial on normalised coordinates
     //   use cRPCSens->InverseRPC().Val
 
 
-    //TO-DO
+    //TODO-RPCProj
     //1- test the Ground2Image, including the normalisation code NormGround, NormIm
 
 
-    //TO-DO
+    //TODO-RPCProj
     //2- Test Image2Bundle with Ground2Image(Image2Bundle(aP))
 
     anAnalyse.FreeAnalyse();

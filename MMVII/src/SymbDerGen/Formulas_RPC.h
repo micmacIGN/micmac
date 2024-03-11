@@ -20,7 +20,7 @@ namespace MMVII
 /** "Helper" class for evaluating the ground to image projection RPC projection function
 */
 
-//TO-DO
+//TODO-RPCProj
 class cRPC_Formulas
 {
     public:
@@ -51,7 +51,7 @@ class cRPC_Formulas
 
 };
 
-//TO-DO
+//TODO-RPCProj
 // Implement the ground to image projection function
 
 /*class cFormula_RPC_RatioPolyn
