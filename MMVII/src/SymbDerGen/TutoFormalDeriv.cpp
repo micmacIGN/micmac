@@ -40,7 +40,6 @@ std::vector<Type> FitCube
     //  return {(a+b *x)*(x*b+a)*(a+b *x) - y};
 }
 
-
 void  ShowTreeFormulaRec(const cFormula<tREAL8>& aF,int aLevel)
 {
      // To implemant 

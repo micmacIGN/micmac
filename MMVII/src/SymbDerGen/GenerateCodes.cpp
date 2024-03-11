@@ -769,17 +769,19 @@ int cAppliGenCode::Exe()
    }
 
 
+/*   BAPOL2 
    for (const auto WithDer : {true,false})
    {
        // PUSHB
        std::vector<int>  aVDegEqCol   {0,1,2,3};
        for (const auto & aDegree : aVDegEqCol)
        {
-           GenCodesFormula((tREAL8*)nullptr,cEqColinSensGenPolyn2D(aDegree),WithDer);  
-           GenCodesFormula((tREAL8*)nullptr,cEqDistPolyn2D(aDegree),WithDer);  
+           // GenCodesFormula((tREAL8*)nullptr,cEqColinSensGenPolyn2D(aDegree),WithDer);   // BAPOL2
+           // GenCodesFormula((tREAL8*)nullptr,cEqDistPolyn2D(aDegree),WithDer);           // BAPOL2
            // StdOut() << "FffffffFFFF " << cEqDistPolyn2D(aDegree).FormulaName() << "\n";
        }
    }
+*/
 
    //=======================   Other code radiom/rigid ....
 
