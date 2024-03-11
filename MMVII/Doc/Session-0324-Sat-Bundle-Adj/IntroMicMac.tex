@@ -157,7 +157,7 @@
 \begin{enumerate}
     \item  une chaine photogrammétrique libre open source complète  (satellite, aérien, terrestre)  
     \item  une chaine photogrammétrique centrée sur la métrologie, offrant un contrôle fin des étapes de calcul (!= boite noire);
-    \item  un outil qui a été largement utilisé à l'IGN (calcul de MNS France par la production,  études à IGN-Espace, 
+    \item  un outil qui a été largement utilisé à l'IGN (calcul de MNS France par les services de production,  études à IGN-Espace, 
            apprentissage de la photogrammétrie à l'ENSG, prestation en photogra terrestre par le SGM, utilisation 
            au Matis/Lastig);
     \item  a été largement utilisé par des scientifiques, ingénieur \dots dans le patrimoine et l'environnement (2010-2016) ;
@@ -174,15 +174,15 @@ un seul programmeur pour le noyau. Conséquences :
 
 \begin{enumerate}
     \item  une chaine sans interface et compliquée à utiliser : noms de commandes sans rapport avec ce qu'elles font,
-           message d'erreur peu clairs
+           messages d'erreur peu clairs;
 
-    \item un code peu ou mal documenté; pas de test unitaire, fonctionnel ; 
+    \item un code peu ou mal documenté; pas de test unitaire, fonctionnel \dots
 
-    \item des choix de conception complexes, notamment des optimisation (CPU, mémoire) moins justifiées avec le 
+    \item des choix de conception complexes, notamment des optimisations (CPU, mémoire) moins justifiées avec le 
           matériel actuel; le gros de la librairie est orientée traitement d'image, alors que l'usage majoritaire est photogrammétrique;
 
     \item  utilise peu de librairies externes, beaucoup de "home made" sur des fonctionnalité courante (lecture tiff maison,
-           certaines interface sur XLib);
+           certaines interface "attaquent" directemnt XLib);
 
     \item  des contribution externes réalisées par des contractuels, pas facile à maintenir;
 
@@ -205,7 +205,7 @@ un seul programmeur pour le noyau. Conséquences :
 
 \vline
 
-    Il y a un interet a avoir une chaine photogrammetrique open source  complete développée à l'IGN
+    Il y a un interêt a avoir une chaine photogrammetrique open source  complète développée à l'IGN
     En faisant une deuxième itération grace au recul, on espère reprendre les bonnes idées et éviter  les ecueil de V1.
 
 \begin{enumerate}
@@ -265,12 +265,14 @@ développement pour les archives dans le cadre du stage d'Alexane NGhien).
 \begin{frame}{Organisation : table rase \dots}
 
 \begin{enumerate}
-    \item  évolution progressive incompatible avec les ambition de correction des problèmes
+    \item  évolution progressive incompatible avec les ambitions de correction des problèmes
     \item  on part "from scratch"  
 \end{enumerate}
 
 \pause
-\vline
+
+  ***********************************************************
+     
 \dots ou presque, il y a provisoirement des liens avec V1 :
 
 \begin{enumerate}
@@ -295,7 +297,7 @@ Actuellement un peu plus de $2$  ETP . A gros traits :
 
 \begin{enumerate}
    \item  Mehdi Daakir, dans le cadre du CERN, test Window, développemet de tests fonctionnels;
-   \item  Celestin Huet, dans le cadre du CERN, développement spécifique, ajout de librairies externes;
+   \item  Celestin Huet, dans le cadre du CERN, développements spécifiques, ajout de librairies externes;
    \item  Yann Meneroux, détection de cibles pour PRISMA
    \item  Christophe Meynard, informatique  (portage windows, git, vcommand et complétion), dérivée formelle (avec MPD);
    \item  Jean Michaël Muller, binding python, ajout de la topographie;
@@ -338,16 +340,17 @@ cadre d'une collaboration IGN/CNES-Tosca/IPGP.
   %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 \begin{frame}{Etat d'avancement, thématique}
 
+	{\small{
 \begin{enumerate}
     \item  détection de cible codées, pour l'IGN et le CERN : $90\%$;
 
     \item  classe capteur avec perspective central quasi complet, incluant plusieur modèle 
-           de fishey et de nombreux modèle de distorsion;
+           de fisheyes et de nombreux modèle de distorsion;
 
     \item  estimation de poses initiales quelques algorithmes : relèvement dans l'espace (calibré ou non),
-           matrice essentielles;
+           matrice essentielle;
 
-    \item  ajustement de faisceau cas conique : assimilation de : points d'appuis, points de liaison,
+    \item  ajustement de faisceaux cas conique : assimilation de : points d'appuis, points de liaison,
            contraintes de bloc rigide,  inclinomètres ($70\%$) ; possibilité de contrainte
            dans les équations (i.e. optimisation sous contrainte stricte);
 
@@ -355,13 +358,14 @@ cadre d'une collaboration IGN/CNES-Tosca/IPGP.
 
    \item  ajustement de faisceau cas spatial ($30-50\% ??$) : gestion des RPC, gestion des changement
 	   de coordonnées, calcul de modèle ajusté purement $2d$ ; reste à faire :
-          gestion de modèle initiaux  physique (grille ? modèle type "airbus") ,  gestion
+          gestion de modèle initiaux  physique (grilles ? modèles type "airbus") ,  gestion
           de corrections "physiques" $3d$ (nécessite discussion et collaboration avec le 
           service de l'information spatiale);
 
   \item  développement de surface (cas motivé par une application concrète) : quelque modèle d'égalisation
 	  de la radiométrie (purement paramétrique).
 \end{enumerate}
+	}}
 \end{frame}
 
 
@@ -404,10 +408,13 @@ La ligne directrice est :
      \item compléter avec des solution interne pour : (1)  être maitre de son destin
           (2) intégrer des résultat de recherches (par ex thèse de Mohamed Ali Chebbi);
 
-     \item externe pour l'appariement éparse : SIFT + solutions basées sur l'apprentissage   + autre ?
+     \item externe pour l'appariement éparse : SIFT + solutions basées sur l'apprentissage   + méthodes "maison"
+	     (meilleure prise en compte des a priori) ?
 
      \item externe pour l'appariement dense, notamment des solution basée sur l'apprentissage fonctionnant en épipolaire
-           (MMVII assurant toute la machinerie complémentaire en amont et en aval).
+           (MMVII assurant toute la machinerie complémentaire en amont et en aval), puis méthodes "maison" 
+		(géométrie terrain, multi-image).
+           
 \end{itemize}
 \end{frame}
 
@@ -474,7 +481,7 @@ Bibliothèques utilisées :
 Peut-être utilisé plus tard :
 
 \begin{itemize}
-     \item CGAL pour la triangulation 2D-3D la tetrahdrization (mais problème
+     \item CGAL pour la triangulation 2D-3D la tetrahédrization (mais problème
            de licence);
 \end{itemize}
 
@@ -494,8 +501,8 @@ Peut-être utilisé plus tard :
 
 \begin{frame}{Précautions logicielles(1)}
 
-Tout en restant du code de recherche fait avec les moyen du bord, un
-certain nombre de précaution sont prises  pour limiter les bugs  :
+Tout en restant du code de recherche, fait avec les moyen du bord, un
+certain nombre de précautions sont prises  pour limiter les bugs  :
 
 \begin{itemize}
    \item une variable d'environnement {\tt The\_MMVII\_DebugLevel} fixe
@@ -537,7 +544,7 @@ en plus d'être des exemples didactiques, ce sont des précurseurs de test fonct
 
   % -----------------------------------------------------------------
 
-\begin{frame}{Quelques conventions/habitudes}
+\begin{frame}{Quelques conventions/habitudes/styles}
 
 \begin{itemize}
 	\item  on essaye de réduire la taille des header et la taille du
@@ -570,7 +577,7 @@ en plus d'être des exemples didactiques, ce sont des précurseurs de test fonct
 
 Pas de standard permettant 
 d'échanger simplement d'un logiciel à l'autre.  Rien qu'en interne IGN, au moins $3$
-famille de format \dots 
+familles de formats \dots 
 
 Au début de {\tt MMVII}, réflexion sur l'utilisation du format {\tt kapture}, format ouvert
 développé par {\tt Naver-labs}, ayant des passerelle vers un certain nombre de solutions
@@ -623,7 +630,7 @@ Le point faible de tous les logiciels \dots Les ressources suivantes sont access
     \item documentation au plus près du code avec {\tt Doxygen} :  lancer
           {\tt doxygen Doxyfile}
 
-    \item documentation \emph{classique} sous forme d'un pdf à compiler à parir du Latex
+    \item documentation \emph{classique} sous forme d'un pdf à compiler à partir du Latex
 	  sous {\tt MMVII/Doc};  ambitionne d'être une doc programmeur + utilisateur +
           algorithmique (cours de photogra),  vaste programme \dots  sans doute un quart
           de ce qui devrait être écrit l'a été;

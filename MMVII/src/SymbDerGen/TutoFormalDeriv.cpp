@@ -40,30 +40,45 @@ std::vector<Type> FitCube
     //  return {(a+b *x)*(x*b+a)*(a+b *x) - y};
 }
 
-void  ShowTreeFormulaRec(const cFormula<tREAL8>& aF,int aLevel)
+void  MyShowTreeFormulaRec(const cFormula<tREAL8>& aF,int aLevel)
 {
-     // To implemant 
+     // To implemant   we want for example that x+(a*b) write something like
+     //
+     //     +
+     //         x
+     //         *
+     //             a
+     //             b
+     //   We will use two method of class formula  for this :
+     //       Name4Print()  : return the "atomic" name as "+ * cos a x 44 ..."
+     //       Ref()         : return the vector of "sub-formumla" (size "2" for "+",  size "0" for "x" ...)
+     //
+     //
 }
 
-void  ShowTreeFormula(const cFormula<tREAL8>& aF) 
+void  MyShowTreeFormula(const cFormula<tREAL8>& aF) 
 {
-   StdOut()  << aF->Name() << std::endl;
-   StdOut()  << aF->GenCodeFormName() << std::endl;
-   StdOut()  << aF->GenCodeExpr() << std::endl;
+   // StdOut()  << aF->Name() << std::endl;
+   // StdOut()  << aF->GenCodeFormName() << std::endl;
+   // StdOut()  << aF->GenCodeExpr() << std::endl;
    StdOut()  << aF->Name4Print() << std::endl;
    StdOut()  << aF->Ref().size() << std::endl;
-   ShowTreeFormulaRec(aF,0);
+   MyShowTreeFormulaRec(aF,0);
 }
 
 void TestCubeFormula(bool OrderRand,bool GenCode)
 {
     std::cout <<  "===================== TestFoncCube  ===================\n";
 
-    // Create a context where values are stored on double and :
-    //    2 unknown, 2 observations, a buffer of size 100
-    //    aCFD(100,2,2) would have the same effect for the computation
-    //    The variant with vector of string, will fix the name of variables, it
-    //    will be usefull when will generate code and will want  to analyse it
+    //
+    //   A  coordinator is the object that contain all the information necessary
+    //   to process a formula and its derivative, its main role is to maintain a map
+    //   of all existing  to create an efficient DAG 
+    //
+    //   For creating a coorinator  we essentially give a vector of unknwon and observations;
+    //   the key-point of these vector is their size, if we change the name, it will give
+    //   the same code (dummy variable) as long as they generate valide code (dont call them "0-@" for example ...)
+    //
     SD::cCoordinatorF<double>  aCFD("FitCube",100,{"x","y"},{"a","b"});
 
     // Inspect vector of unknown and vector of observations
@@ -78,7 +93,12 @@ void TestCubeFormula(bool OrderRand,bool GenCode)
     // Create the formula corresponding to residual
     std::vector<SD::cFormula<double>>  aVResidu = FitCube(aCFD.VUk(),aCFD.VObs());
     SD::cFormula<double>  aResidu = aVResidu[0];
-    ShowTreeFormula(aResidu);
+
+    MyShowTreeFormula(aResidu);
+
+    // MyShowTreeFormula(aResidu->Derivate(0));
+    // MyShowTreeFormula(aResidu->Derivate(0)->Derivate(0));  // => will generate unreachable code
+
 /*
 
    // Inspect the formula
@@ -94,11 +114,11 @@ void TestCubeFormula(bool OrderRand,bool GenCode)
 
 */
     // Set the formula that will be computed
-    aCFD.SetCurFormulasWithDerivative(aVResidu);
+    // aCFD.SetCurFormulasWithDerivative(aVResidu);
 
     // Print stack of formula
-    // std::cout << "====== Stack === \n";
-    // aCFD.ShowStackFunc();
+     // std::cout << "====== Stack === \n";
+     // aCFD.ShowStackFunc();
     //
     //
     //  PP= 2x  *  (a+bx)^2 +  (a+bx)^2 * x

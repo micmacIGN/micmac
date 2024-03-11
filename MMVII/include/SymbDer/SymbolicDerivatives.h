@@ -657,7 +657,8 @@ template <class TypeElem> class cAtomicF : public cImplemF<TypeElem>
             typedef typename tCoordF::tFormula  tFormula;
 
             /// Should work always
-            std::string  InfixPPrint() const override {return tImplemF::Name();}
+            // std::string  InfixPPrint() const override {return tImplemF::Name();}
+            std::string  InfixPPrint() const override {return this->Name4Print();}
             /// Rule deriv=0 , work by default (constant and observations)
             tFormula Derivate(int aK) const override {return tImplemF::mCoordF->Cste0();}
 
@@ -1275,6 +1276,34 @@ inline const cFormula<TypeElem> SymbCommentDer(const cFormula<TypeElem> & aF, in
     aF->CoordF()->AddComment(aF->Derivate(aK), aComment);
     return aF;
 }
+
+
+
+template <class TypeElem> void  StdShowTreeFormulaRec(const cFormula<TypeElem>& aF,int aMaxPerL,int aLevel)
+{    
+
+     // StdOut()  << aF->GenCodeFormName() << std::endl;
+     // StdOut()  << aF->GenCodeExpr() << std::endl;
+     for (int aK=0 ; aK < aLevel ; aK++)
+     {   
+             std::cout << "   ";
+     }   
+     if (aF->RecursiveRec() < aMaxPerL)
+     {
+           std::cout << aF->InfixPPrint() << std::endl;
+     }
+     else
+     {
+         std::cout  << aF->Name4Print() << std::endl;
+         for (auto aChild : aF->Ref())
+              StdShowTreeFormulaRec(aChild,aMaxPerL,aLevel+1);
+     }
+}
+template <class TypeElem>  void  StdShowTreeFormula(const cFormula<TypeElem>& aF,int aMaxPerL=7) 
+{
+    StdShowTreeFormulaRec(aF,aMaxPerL,0);
+}
+
 
 
 } //  namespace NS_SymbolicDerivative
