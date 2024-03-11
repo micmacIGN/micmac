@@ -13,7 +13,7 @@ MMVII V1OriConv Ori-Campari_Refined-SuperGlue/  V1Conik #  SYSTEM
 
 
 #MMVII ImportInitExtSens Crop-IMG_PHR1A_P_201406121049025.tif [Crop-IMG_PHR1A_P_201406121049025.tif,Ori-Campari_Refined-SuperGlue/UnCorExtern-Orientation-eTIGB_MMDimap2-Crop-UnCorExtern-Orientation-eTIGB_MMDimap2-IMG_PHR1A_P_201406121049025.XML.xml.xml]  V1Sat
-MMVII ImportInitExtSens Satel.xml '[([A-z]{4})-(.*).tif,Ori-Campari_Refined-SuperGlue/UnCorExtern-Orientation-eTIGB_MMDimap2-$1-UnCorExtern-Orientation-eTIGB_MMDimap2-$2.XML.xml.xml]'  V1Sat
+MMVII ImportInitExtSens Satellite.xml '[([A-z]{4})-(.*).tif,Ori-Campari_Refined-SuperGlue/UnCorExtern-Orientation-eTIGB_MMDimap2-$1-UnCorExtern-Orientation-eTIGB_MMDimap2-$2.XML.xml.xml]'  V1Sat
 
 #MMVII ImportInitExtSens Crop-IMG_PHR1A_P_201406121049386.tif [Crop-IMG_PHR1A_P_201406121049386.tif,Ori-Campari_Refined-SuperGlue/UnCorExtern-Orientation-eTIGB_MMDimap2-Crop-UnCorExtern-Orientation-eTIGB_MMDimap2-IMG_PHR1A_P_201406121049386.XML.xml.xml] V1Sat
 
