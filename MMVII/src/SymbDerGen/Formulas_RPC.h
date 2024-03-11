@@ -60,7 +60,7 @@ public:
         // class empty constructor
 
 
-        // NamesUnknowns() : function returning names of unknowns
+        // VNamesUnknowns() : function returning names of unknowns
 
 
         // VNamesObs() : function returning unique names of observations :
@@ -70,7 +70,6 @@ public:
 
 
         // FormulaName() : function returning the name of the equation
-
 
         // formula() : your projection equation
 

@@ -366,14 +366,13 @@ void cRPC_RatioPolyn::SetCoeffs(const std::vector<tREAL8>& aVC)
 /* =============================================== */
 
 
+//TO-DO
 cPt2dr cRatioPolynXY::Val(const cPt3dr &aP) const
 {
     //0- create tRPCCoeff vector of 20 elements
 
-
     //1- fill the vector with the "coordinate" part
     //   use cRPC_Polyn::FillCubicCoeff
-
 
     //2- apply the rational polynomial over the vector to predict two coordinates
     //   use mX.Val  and mY.Val
@@ -674,7 +673,7 @@ cPt2dr cRPCSens::NormIm(const cPt2dr &aP,bool Direct) const
     // else:      un-normalise
     //    use DivCByC and MulCByC for division and multiplication over cPtxd
 
-    return  cPt2dr(0.0,0.0);
+    return cPt2dr(0.0,0.0);
 
 }
 
@@ -740,6 +739,7 @@ tProjImAndGrad  cRPCSens::DiffGround2Im(const cPt3dr & aP) const
     //   - set SetDebugEnabled(true) to print values of derivatives
 
 
+
     // create an empty vector of observation, use static for recycling memory
 
 
@@ -781,33 +781,31 @@ tProjImAndGrad  cRPCSens::DiffGround2Im(const cPt3dr & aP) const
 
 cPt3dr  cRPCSens::EpsDiffGround2Im(const cPt3dr & ) const {return mEpsCoord;}
 
+
+//TO-DO
 cPt3dr cRPCSens::ImageZToGround(const cPt2dr& aPIm,const double aZ) const
 {
     //0- invert x,y coordinates to comply with RPC standard
     //   use IO_PtIm    
     //1- normalise image coordinates
     //   use NormIm( ,true)
-    cPt2dr aPImN = NormIm(IO_PtIm(aPIm),true);
 
 
     //2- normalise the Z-coordinate
     //   use NormZ
-    double aZN = NormZ(aZ,true);
 
 
     //3- apply direct RPC model, ie 2D -> 3D
     //   use  mDirectRPC->Val
-    cPt2dr aPGrN = mDirectRPC->Val(cPt3dr(aPImN.x(),aPImN.y(),aZN));
 
 
     //4- de-normalise the 3D coordinates
     //   NormGround(  ,false)
     //5- invert the X,Y coordinates to comply with MicMac convention
                             //   use IO_PtGr
-    cPt3dr aRes = NormGround( cPt3dr(aPGrN.x(),aPGrN.y(),aZN) ,false);
 
 
-    return IO_PtGr(aRes);
+    return cPt3dr(0,0,0);
 }
 
 cPt3dr cRPCSens::ImageAndZ2Ground(const cPt3dr& aP) const
@@ -815,22 +813,20 @@ cPt3dr cRPCSens::ImageAndZ2Ground(const cPt3dr& aP) const
     return ImageZToGround(cPt2dr(aP.x(),aP.y()),aP.z());
 }
 
+
+//TO-DO
 tSeg3dr  cRPCSens::Image2Bundle(const cPt2dr & aPtIm) const 
 {
     // bundle as a line segment defined by 2 points
 
     //0- define Z-coordinates of the beginning and end of the segment
     //   use mGroundOffset.z()
-    tREAL8  aZ0 = mGroundOffset.z() - mAmplZB;
-    tREAL8  aZ1 = mGroundOffset.z() + mAmplZB;
 
     //1- intersect the image ray with the two Z-coordinates
     //   with ImageZToGround
-    cPt3dr  aPGr0 = ImageZToGround(aPtIm,aZ0);
-    cPt3dr  aPGr1 = ImageZToGround(aPtIm,aZ1);
 
     //2- return tSeg3dr segment
-    return tSeg3dr(aPGr0,aPGr1);
+    return tSeg3dr(cPt3dr(0,0,0),cPt3dr(0,0,0));
 
 }
 
@@ -942,6 +938,8 @@ int cAppliTestRPC::Exe()
     //1- test the Ground2Image, including the normalisation code NormGround, NormIm
 
 
+    //TO-DO
+    //2- Test Image2Bundle with Ground2Image(Image2Bundle(aP))
 
     anAnalyse.FreeAnalyse();
     delete aRPC;
