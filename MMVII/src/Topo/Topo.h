@@ -11,6 +11,7 @@ class cMMVII_BundleAdj;
 class cPhotogrammetricProject;
 class cSensorCamPC;
 class cTopoObsSet;
+class cBA_GCP;
 
 class cBA_Topo
 {
@@ -21,7 +22,7 @@ public :
     ~cBA_Topo();
     void clear();
 
-    void makePtsUnknowns(cSetMesImGCP *aMesGCP, std::vector<cPt3dr_UK*> * aGCP_UK, cPhotogrammetricProject *aPhProj); //< to be called after points creation and before AddToSys and ObsSetStation::SetOrigin...
+    void makePtsUnknowns(const std::vector<cBA_GCP *> &vGCP, cPhotogrammetricProject *aPhProj); //< to be called after points creation and before AddToSys and ObsSetStation::SetOrigin...
 
     void  AddToSys(cSetInterUK_MultipeObj<tREAL8> &); // The system must be aware of all the unknowns
 
@@ -30,8 +31,8 @@ public :
 
     //  Do the kernel job : add topo constraints to the system
     void AddTopoEquations(cResolSysNonLinear<tREAL8> &);
-    void FromData(const cTopoData &aTopoData, cSetMesImGCP *aMesGCP, std::vector<cPt3dr_UK*> * aGCP_UK, cPhotogrammetricProject *aPhProj);
-    void FromFile(cSetMesImGCP *aMesGCP, std::vector<cPt3dr_UK*> * aGCP_UK, cPhotogrammetricProject *aPhProj);
+    void FromData(const cTopoData &aTopoData, const std::vector<cBA_GCP *> &vGCP, cPhotogrammetricProject *aPhProj);
+    void FromFile(const std::vector<cBA_GCP *> &vGCP, cPhotogrammetricProject *aPhProj);
     void ToFile(const std::string & aName);
     void print();
     double  Sigma0() {return mSigma0;}

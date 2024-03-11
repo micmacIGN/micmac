@@ -81,9 +81,12 @@ std::vector<int> cTopoObs::getIndices(cBA_Topo *aBATopo) const
             return {}; //just to please the compiler
         }
         set->getPtOrigin()->getUK()->PushIndexes(indices);
+        indices.resize(3); // keep only the point part for cSensorImage UK // TODO: improve, how to get only the point part of UK?
         set->getRotOmega().PushIndexes(indices);
         cObjWithUnkowns<tREAL8>* toUk = aBATopo->getPoint(mPtsNames[1]).getUK();
+        int nbIndBefore = indices.size();
         toUk->PushIndexes(indices);
+        indices.resize(nbIndBefore+3); // keep only the point part for cSensorImage UK // TODO: improve
         break;
     }
     default:

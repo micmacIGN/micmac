@@ -14,11 +14,7 @@ void cMMVII_BundleAdj::InitItereTopo()
     if (mTopo)
     {
         std::cout<<"cMMVII_BundleAdj::InitItereTopo\n";
-        //  MPD => JMM :  2 check with new way of handling GCP
-        MMVII_INTERNAL_ERROR(" MPD => JMM  : PLEASE CHECK at line " + ToStr(__LINE__+1) + " in file " +  __FILE__);
-        mTopo->FromFile(mVGCP.at(0)->mMesGCP, &mVGCP.at(0)->mGCP_UK, mPhProj);
-        // mTopo->FromFile(mMesGCP, &mGCP_UK, mPhProj);
-        //mTopo->getTopoData().createEx4();
+        mTopo->FromFile(mVGCP, mPhProj);
         mTopo->AddToSys(mSetIntervUK); //after all is created
     }
 }
@@ -67,11 +63,11 @@ void cBA_Topo::clear()
     mIsReady = false;
 }
 
-void cBA_Topo::makePtsUnknowns(cSetMesImGCP *aMesGCP, std::vector<cPt3dr_UK*> * aGCP_UK, cPhotogrammetricProject *aPhProj)
+void cBA_Topo::makePtsUnknowns(const std::vector<cBA_GCP*> & vGCP, cPhotogrammetricProject *aPhProj)
 {
     for (auto & [aName, aPtT] : getAllPts())
     {
-        aPtT.findOrMakeUK(aMesGCP, aGCP_UK, aPhProj, aPtT.getInitCoord());
+        aPtT.findOrMakeUK(vGCP, aPhProj, aPtT.getInitCoord());
     }
 }
 
@@ -81,7 +77,7 @@ void cBA_Topo::ToFile(const std::string & aName)
     aTopoData.ToFile(aName);
 }
 
-void cBA_Topo::FromData(const cTopoData &aTopoData, cSetMesImGCP *aMesGCP, std::vector<cPt3dr_UK*> * aGCP_UK, cPhotogrammetricProject *aPhProj)
+void cBA_Topo::FromData(const cTopoData &aTopoData, const std::vector<cBA_GCP *> & vGCP, cPhotogrammetricProject *aPhProj)
 {
     for (auto & aPointData: aTopoData.mAllPoints)
     {
@@ -92,7 +88,7 @@ void cBA_Topo::FromData(const cTopoData &aTopoData, cSetMesImGCP *aMesGCP, std::
             mAllPts[aPointData.mName].setVertDefl(aPointData.mVertDefl.value_or(cPt2dr(0.,0.)));
     }
 
-    makePtsUnknowns(aMesGCP, aGCP_UK, aPhProj);
+    makePtsUnknowns(vGCP, aPhProj);
 
     for (auto & aSetData: aTopoData.mAllObsSets)
     {
@@ -135,11 +131,11 @@ void cBA_Topo::FromData(const cTopoData &aTopoData, cSetMesImGCP *aMesGCP, std::
     mIsReady = true;
 }
 
-void cBA_Topo::FromFile(cSetMesImGCP *aMesGCP, std::vector<cPt3dr_UK*> * aGCP_UK, cPhotogrammetricProject *aPhProj)
+void cBA_Topo::FromFile(const std::vector<cBA_GCP*> & vGCP, cPhotogrammetricProject *aPhProj)
 {
     cTopoData aTopoData;
     aTopoData.FromFile(mInFile);
-    FromData(aTopoData, aMesGCP, aGCP_UK, aPhProj);
+    FromData(aTopoData, vGCP, aPhProj);
 }
 
 void cBA_Topo::print()
@@ -265,7 +261,7 @@ void BenchTopoComp(cParamExeBench & aParam)
     aTopoData.ToFile(cMMVII_Appli::TmpDirTestMMVII()+"bench-in.json");
 
     cBA_Topo aTopo(nullptr, cMMVII_Appli::TmpDirTestMMVII()+"bench-in.json");
-    aTopo.FromFile(nullptr, nullptr, nullptr);
+    aTopo.FromFile( {}, nullptr);
 
 
 #ifdef VERBOSE_TOPO
