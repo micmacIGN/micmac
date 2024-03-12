@@ -1248,8 +1248,7 @@ void cMMVII_Appli::GenerateOneArgSpec(cCollecSpecArg2007& aSpecArgs, const std::
         std::string range;
         std::string vectorSize;
         for (const auto& a : Arg->SemPL()) {
-
-            if (a.Type() < eTA2007::AddCom) {
+            if (a.Type() < eTA2007::AddCom || a.Type() == eTA2007::XmlOfTopTag) {
                 semantic.push_back(E2Str(a.Type()));
             }
             if (a.Type() == eTA2007::AllowedValues) {
