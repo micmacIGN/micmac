@@ -54,6 +54,15 @@ void  MyShowTreeFormulaRec(const cFormula<tREAL8>& aF,int aLevel)
      //       Ref()         : return the vector of "sub-formumla" (size "2" for "+",  size "0" for "x" ...)
      //
      //
+     for (int aK=0 ; aK<aLevel; aK++)
+     {
+         StdOut() << "   ";
+     }
+     StdOut() << aF->Name4Print() << std::endl;
+     for (const auto & aChild : aF->Ref())
+     {
+         MyShowTreeFormulaRec(aChild,1+aLevel);
+     }
 }
 
 void  MyShowTreeFormula(const cFormula<tREAL8>& aF) 
@@ -88,7 +97,7 @@ void TestCubeFormula(bool OrderRand,bool GenCode)
         for (const auto & aF : aCFD.VObs())
            std::cout << "Observation : "<< aF->Name() << "\n";
     }
-    getchar();
+  //  getchar();
 
     // Create the formula corresponding to residual
     std::vector<SD::cFormula<double>>  aVResidu = FitCube(aCFD.VUk(),aCFD.VObs());
@@ -96,29 +105,29 @@ void TestCubeFormula(bool OrderRand,bool GenCode)
 
     MyShowTreeFormula(aResidu);
 
-    // MyShowTreeFormula(aResidu->Derivate(0));
-    // MyShowTreeFormula(aResidu->Derivate(0)->Derivate(0));  // => will generate unreachable code
+//    MyShowTreeFormula(aResidu->Derivate(0));
+//    MyShowTreeFormula(aResidu->Derivate(0)->Derivate(0));  // => will generate unreachable code
 
-/*
+aResidu->Derivate(0)->Derivate(0);
 
    // Inspect the formula
-    std::cout  << "RESIDU FORMULA, Num=" << aResidu->NumGlob() << " Name=" <<  aResidu->Name() <<"\n";
-    std::cout  << " PP=[" << aResidu->InfixPPrint() <<"]\n";
-    getchar();
+    //std::cout  << "RESIDU FORMULA, Num=" << aResidu->NumGlob() << " Name=" <<  aResidu->Name() <<"\n";
+    //std::cout  << " PP=[" << aResidu->InfixPPrint() <<"]\n";
+    //getchar();
 
     // Inspect the derivative  relatively to b
-    auto aDerx = aResidu->Derivate(0);
-    std::cout  << "DERIVATE FORMULA , Num=" << aDerx->NumGlob() << " Name=" <<  aDerx->Name() <<"\n";
-    std::cout  << " PP=[" << aDerx->InfixPPrint() <<"]\n";
-    getchar();
+   // auto aDerx = aResidu->Derivate(0);
+   // std::cout  << "DERIVATE FORMULA , Num=" << aDerx->NumGlob() << " Name=" <<  aDerx->Name() <<"\n";
+   // std::cout  << " PP=[" << aDerx->InfixPPrint() <<"]\n";
+   // getchar();
 
-*/
+
     // Set the formula that will be computed
-    // aCFD.SetCurFormulasWithDerivative(aVResidu);
+    aCFD.SetCurFormulasWithDerivative(aVResidu);
 
     // Print stack of formula
      // std::cout << "====== Stack === \n";
-     // aCFD.ShowStackFunc();
+    aCFD.ShowStackFunc();
     //
     //
     //  PP= 2x  *  (a+bx)^2 +  (a+bx)^2 * x
