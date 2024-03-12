@@ -5,6 +5,7 @@
 #include "../Serial/Serial.h"
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "cExternalSensor.h"
+#include "../SymbDerGen/Formulas_GenSensor.h"
 
 using namespace NS_SymbolicDerivative;
 
@@ -430,6 +431,8 @@ class cAppliParametrizeSensor : public cMMVII_Appli
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 	std::vector<std::string>  Samples() const override;
 
+        void TestTuto() const;
+
 	void ImportOneImage(const std::string &);
 
         cPhotogrammetricProject  mPhProj;
@@ -442,6 +445,7 @@ class cAppliParametrizeSensor : public cMMVII_Appli
 	int          mDegreeCorr;
 	tREAL8       mRanPert;
 	bool         mShowPert;
+	bool         mTutoTest;
 
      // --- Internal ----
 };
@@ -449,7 +453,8 @@ class cAppliParametrizeSensor : public cMMVII_Appli
 cAppliParametrizeSensor::cAppliParametrizeSensor(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli     (aVArgs,aSpec),
    mPhProj          (*this),
-   mShowPert        (false)
+   mShowPert        (false),
+   mTutoTest        (false)
 {
 }
 
@@ -468,7 +473,8 @@ cCollecSpecArg2007 & cAppliParametrizeSensor::ArgOpt(cCollecSpecArg2007 & anArgO
 {
    return anArgOpt
            << AOpt2007(mRanPert,"RandomPerturb","Random perturbation of initial 2D-Poly",{eTA2007::Tuning})
-           << AOpt2007(mShowPert,"ShowPert","Do we show the result of pert",{eTA2007::Tuning})
+           << AOpt2007(mShowPert,"ShowPert","Do we show the result of pert",{eTA2007::HDV,eTA2007::Tuning})
+           << AOpt2007(mTutoTest,"TutoTest","Do we show the result of pert",{eTA2007::HDV,eTA2007::Tuning})
    ;
 }
 
@@ -492,10 +498,33 @@ void  cAppliParametrizeSensor::ImportOneImage(const std::string & aNameIm)
     mPhProj.SaveSensor(aSensM2D);
 }
 
+void cAppliParametrizeSensor::TestTuto() const
+{
+     std::vector<cDescOneFuncDist>  aVD = Polyn2DDescDist(mDegreeCorr);
+
+     StdOut() <<  " =============  MONOMS DESCRIPTOR ================= \n";
+     for (const auto & aDesc : aVD)
+         StdOut() << " Deg=" << aDesc.mDegMon  << " Name=" << aDesc.mName << "\n";
+
+     cDistPolyn2D aDist(mDegreeCorr,false);
+     NS_SymbolicDerivative::cCoordinatorF<double>  aCFD("Test",1,{"x","y"},aDist.VNamesParam());
+
+     auto aXY = aCFD.VUk();
+     auto aParam = aCFD.VObs();
+
+     auto aF = aDist.Funcs(aXY.at(0),aXY.at(1),aParam,0);
+     StdShowTreeFormula(aF.at(0));
+
+
+}
+
 
 int cAppliParametrizeSensor::Exe()
 {
     mPhProj.FinishInit();
+
+    if (mTutoTest)
+       TestTuto();
 
     for (const auto & aNameIm :  VectMainSet(0))
     {
