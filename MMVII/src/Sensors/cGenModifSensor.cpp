@@ -7,6 +7,10 @@
 #include "cExternalSensor.h"
 #include "../SymbDerGen/Formulas_GenSensor.h"
 
+
+// Pour avoir des exemple de functor d'équation de colinearité "simple",
+// voir  "CodeGen_cEqColinearityCamPPC_Stenope_Dist_Rad0_Dec0_XY0Val.cpp"
+
 using namespace NS_SymbolicDerivative;
 
 namespace MMVII
