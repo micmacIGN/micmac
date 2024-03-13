@@ -167,11 +167,11 @@ NS_SymbolicDerivative::cCalculator<double> * EqDistPol2D(int  aDeg,bool WithDeri
 // write the object allocator for your equation; allocation from class name;
 // the optimizer will operate on the pointer to your eq class, which derives from the mother class calculator
 //
-//NS_SymbolicDerivative::cCalculator<double> * RPC_Proj(bool WithDerive,int aSzBuf,bool ReUse)
-//{
-//    bool SVP = false;
-//    return StdAllocCalc(NameFormula(cFormula_RPC_RatioPolyn(),WithDerive),aSzBuf,SVP,ReUse);
-//}
+NS_SymbolicDerivative::cCalculator<double> * RPC_Proj(bool WithDerive,int aSzBuf,bool ReUse)
+{
+    bool SVP = false;
+    return StdAllocCalc(NameFormula(cFormula_RPC_RatioPolyn(),WithDerive),aSzBuf,SVP,ReUse);
+}
 
 
      //  distorion
@@ -764,10 +764,10 @@ int cAppliGenCode::Exe()
    GenerateCodeCamPerpCentrale<cProjFE_EquiDist>(cPt3di(3,1,1),true);
 
    //TODO-RPCProj
-   //for (const auto WithDer : {true,false})
-   //{
-   //    GenCodesFormula((tREAL8*)nullptr,cFormula_RPC_RatioPolyn(),WithDer);
-   //}
+   for (const auto WithDer : {true,false})
+   {
+       GenCodesFormula((tREAL8*)nullptr,cFormula_RPC_RatioPolyn(),WithDer);
+   }
 
 
    for (const auto WithDer : {true,false})
