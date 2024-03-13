@@ -788,22 +788,32 @@ tProjImAndGrad  cRPCSens::DiffGround2Im(const cPt3dr & aP) const
     //   -go to SymbDerGen/GenerateCodes.cpp and define the allocator for your equation
     //   -instantiate the calculator
     //   - set SetDebugEnabled(true) to print values of derivatives
+    cCalculator<double> * aCalc = RPC_Proj(true,1,true);
+    aCalc->SetDebugEnabled(false);
 
 
 
     // create an empty vector of observation, use static for recycling memory
+    std::vector<double> aVObs;
 
 
     // push the normalisation data in the vector of observation
     //  use the PushInStdVector function
+    mGroundOffset.PushInStdVector(aVObs);
+    mGroundScale.PushInStdVector(aVObs);
+    m3DImOffset.PushInStdVector(aVObs);
+    m3DImScale.PushInStdVector(aVObs);
+
 
 
     // push the 80 coefficients of RPC
-    //  use the PushInStdVector function
+    //  use the PushCoeffs function
+    mInverseRPC->PushCoeffs(aVObs);
 
 
     // compute value & derivatives
     // use cCalculator::DoOneEval
+    aCalc->DoOneEval(IO_PtGr(aP).ToStdVector(),aVObs);
 
 
     // Un-mangle the data :
@@ -821,9 +831,19 @@ tProjImAndGrad  cRPCSens::DiffGround2Im(const cPt3dr & aP) const
     //   when retrieving the derivatives, use IO_PtGr to swap X,Y (ground coords) to comply with MicMac convention
     tProjImAndGrad aRes;
 
+    aRes.mPIJ = IO_PtIm(cPt2dr(aCalc->ValComp(0,0),aCalc->ValComp(0,1)));
+    aRes.mGradI = IO_PtGr(cPt3dr(aCalc->DerComp(0,0,0),
+                                 aCalc->DerComp(0,0,1),
+                                 aCalc->DerComp(0,0,2)) );
+    aRes.mGradJ = IO_PtGr(cPt3dr (aCalc->DerComp(0,1,0),
+                                  aCalc->DerComp(0,1,1),
+                                  aCalc->DerComp(0,1,2)));
+
 
     // swap the gradients mGradI/mGradJ to comply with MicMac convention
     //   use mSwapIJImage and std::swap()
+    if (mSwapIJImage)
+        std::swap(aRes.mGradI,aRes.mGradJ);
 
 
     return aRes;
@@ -1001,6 +1021,11 @@ int cAppliTestRPC::Exe()
 
     //TODO-RPCProj
     //2- Test Image2Bundle with Ground2Image(Image2Bundle(aP))
+
+    tProjImAndGrad aDCalc = aRPC->DiffGround2Im(aP3D);
+
+    StdOut() << "Test dérive: " << aDCalc.mPIJ << " , "
+             << aDCalc.mGradI << ", " << aDCalc.mGradJ << std::endl;
 
     anAnalyse.FreeAnalyse();
     delete aRPC;
