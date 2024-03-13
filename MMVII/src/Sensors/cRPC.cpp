@@ -273,7 +273,27 @@ double cRPC_Polyn::Val(const tRPCCoeff & aCoeffCub) const
     //0- multiply the polynomials coefficients in mCoeffs with
     //   the "coordinates" in aCoeffCub
 
-    return 0.0;
+
+    return      aCoeffCub[0] * mCoeffs[0] +
+                aCoeffCub[1] * mCoeffs[1] +
+                aCoeffCub[2] * mCoeffs[2] +
+                aCoeffCub[3] * mCoeffs[3] +
+                aCoeffCub[4] * mCoeffs[4] +
+                aCoeffCub[5] * mCoeffs[5] +
+                aCoeffCub[6] * mCoeffs[6] +
+                aCoeffCub[7] * mCoeffs[7] +
+                aCoeffCub[8] * mCoeffs[8] +
+                aCoeffCub[9] * mCoeffs[9] +
+                aCoeffCub[10] * mCoeffs[10] +
+                aCoeffCub[11] * mCoeffs[11] +
+                aCoeffCub[12] * mCoeffs[12] +
+                aCoeffCub[13] * mCoeffs[13] +
+                aCoeffCub[14] * mCoeffs[14] +
+                aCoeffCub[15] * mCoeffs[15] +
+                aCoeffCub[16] * mCoeffs[16] +
+                aCoeffCub[17] * mCoeffs[17] +
+                aCoeffCub[18] * mCoeffs[18] +
+                aCoeffCub[19] * mCoeffs[19] ;
 
 }
 
@@ -285,6 +305,28 @@ void  cRPC_Polyn::FillCubicCoeff(tRPCCoeff & aVCoeffs,const cPt3dr & aP)
     // c_1 + c_2 L + c_3 P + c_4 H + c_5 LP + c_6 LH + c_7 PH + c_8 L^2 + c_9 P^2 + c_{10} H^2
     //+ \\c_{11} PLH + c_{12} L^3 + c_{13} LP^2 + c_{14} LH^2 + c_{15} L^2P
     // + c_{16} P^3 + c_{17} PH^2 + c_{18} L^2H + c_{19} P^2H + c_{20} H^3
+    aVCoeffs[0] = 1.0;
+    aVCoeffs[1] = aP.y();
+    aVCoeffs[2] = aP.x();
+    aVCoeffs[3] = aP.z();
+    aVCoeffs[4] = aP.x() * aP.y();
+    aVCoeffs[5] = aP.y() * aP.z();
+    aVCoeffs[6] = aP.x() * aP.z();
+    aVCoeffs[7] = aP.y() * aP.y();
+    aVCoeffs[8] = aP.x() * aP.x();
+    aVCoeffs[9] = aP.z() * aP.z();
+    aVCoeffs[10] = aP.x() * aP.y() * aP.z();
+    aVCoeffs[11] = aP.y() * aP.y() * aP.y();
+    aVCoeffs[12] = aP.y() * aP.x() * aP.x();
+    aVCoeffs[13] = aP.y() * aP.z() * aP.z();
+    aVCoeffs[14] = aP.y() * aP.y() * aP.x();
+    aVCoeffs[15] = aP.x() * aP.x() * aP.x();
+    aVCoeffs[16] = aP.x() * aP.z() * aP.z();
+    aVCoeffs[17] = aP.y() * aP.y() * aP.z();
+    aVCoeffs[18] = aP.x() * aP.x() * aP.z();
+    aVCoeffs[19] = aP.z() * aP.z() * aP.z();
+
+
 
 
 }
@@ -324,7 +366,8 @@ double cRPC_RatioPolyn::Val(const tRPCCoeff &aCoeff) const
 {
     //TODO-RPCProj
     // return the coordinate as Num/Den
-    return 0.0;
+
+    return mNumPoly.Val(aCoeff) / mDenPoly.Val(aCoeff);
 
 }
 
@@ -370,14 +413,16 @@ void cRPC_RatioPolyn::SetCoeffs(const std::vector<tREAL8>& aVC)
 cPt2dr cRatioPolynXY::Val(const cPt3dr &aP) const
 {
     //0- create tRPCCoeff vector of 20 elements
+    tRPCCoeff aCoefCubic;
 
     //1- fill the vector with the "coordinate" part
     //   use cRPC_Polyn::FillCubicCoeff
+    cRPC_Polyn::FillCubicCoeff(aCoefCubic,aP);
 
     //2- apply the rational polynomial over the vector to predict two coordinates
     //   use mX.Val  and mY.Val
 
-    return cPt2dr(0.0,0.0);
+    return cPt2dr(mX.Val(aCoefCubic),mY.Val(aCoefCubic));
 
 }
 
@@ -673,7 +718,8 @@ cPt2dr cRPCSens::NormIm(const cPt2dr &aP,bool Direct) const
     // else:      un-normalise
     //    use DivCByC and MulCByC for division and multiplication over cPtxd
 
-    return cPt2dr(0.0,0.0);
+    return Direct ? DivCByC(aP-mImOffset,mImScale) :
+                   ( MulCByC(aP,mImScale) + mImOffset );
 
 }
 
@@ -684,7 +730,8 @@ cPt3dr cRPCSens::NormGround(const cPt3dr &aP,bool Direct) const
     // else:      un-normalise
     //    use DivCByC and MulCByC for division and multiplication over cPtxd
 
-    return cPt3dr(0.0,0.0,0.0);
+    return Direct ? DivCByC(aP-mGroundOffset,mGroundScale) :
+                  ( MulCByC(aP,mGroundScale) + mGroundOffset );
 
 }
 
@@ -715,18 +762,22 @@ cPt2dr cRPCSens::Ground2Image(const cPt3dr& aP) const
 
     //1- normalise the ground coordinate
     //   use NormGround( ,true)
+    cPt3dr aPNorm = NormGround(IO_PtGr(aP), true);
 
 
     //2- apply inverse RPC model, ie. 3D -> 2D
     //   use  mInverseRPC->Val
+    cPt2dr aPImNorm = mInverseRPC->Val(aPNorm);
 
 
     //3- de-normalise the 2D coordinates
     //   use   NormIm( ,false)
 
     //4- invert x,y coordinates to comply with MicMac convention
+    // IO_PtIm()
 
-    return cPt2dr(0.0,0.0);
+
+    return IO_PtIm(NormIm(aPImNorm,false));
 }
 
 //TODO-RPCProj
@@ -932,10 +983,20 @@ int cAppliTestRPC::Exe()
     //TODO-RPCProj
     //0- test the rational polynomial on normalised coordinates
     //   use cRPCSens->InverseRPC().Val
+    cPt2dr aYourP2Norm = aRPC->InverseRPC().Val(aP3DNorm);
+
+    StdOut() << "Test RPC: " << aYourP2Norm << " "
+                             << aP2DNorm << " dif="
+                             << Norm2(aYourP2Norm-aP2DNorm) << std::endl;
 
 
     //TODO-RPCProj
     //1- test the Ground2Image, including the normalisation code NormGround, NormIm
+    cPt2dr aYourP2 = aRPC->Ground2Image(aP3D);
+
+    StdOut() << "Test aP3D: " << aYourP2 << " "
+             << aP2D << ", Dif="
+             << Norm2(aYourP2-aP2D) << std::endl;
 
 
     //TODO-RPCProj

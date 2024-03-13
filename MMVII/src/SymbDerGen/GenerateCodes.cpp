@@ -170,7 +170,7 @@ NS_SymbolicDerivative::cCalculator<double> * EqDistPol2D(int  aDeg,bool WithDeri
 //NS_SymbolicDerivative::cCalculator<double> * RPC_Proj(bool WithDerive,int aSzBuf,bool ReUse)
 //{
 //    bool SVP = false;
-//    return StdAllocCalc(NameFormula(cFormula_RPC_RatioPolyn(),WithDerive),aSzBuf,ReUse);
+//    return StdAllocCalc(NameFormula(cFormula_RPC_RatioPolyn(),WithDerive),aSzBuf,SVP,ReUse);
 //}
 
 
