@@ -27,6 +27,7 @@ jobs:
     - name: Remove previous MMVII documentation release
       env:
          GH_TOKEN: ${{ github.token }}
+      continue-on-error: true
       run: gh release delete MMVII_Documentation -y --cleanup-tag
 
     - name: Upload MMVII documentaion
@@ -129,6 +130,7 @@ jobs:
     - name: Remove previous Windows MMVII build release
       env:
          GH_TOKEN: ${{ github.token }}
+      continue-on-error: true
       run: gh release delete Windows_MMVII_build -y --cleanup-tag
 
     - name: Upload binaries to release
