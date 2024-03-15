@@ -13,7 +13,8 @@ namespace MMVII
 
 cTopoObs::cTopoObs(cTopoObsSet* set, cBA_Topo *aBA_Topo, eTopoObsType type, const std::vector<std::string> &ptsNames, const std::vector<tREAL8> & measures, const cResidualWeighterExplicit<tREAL8> &aWeights):
     mSet(set), mBA_Topo(aBA_Topo), mType(type),
-    mPtsNames(ptsNames), mMeasures(measures), mWeights(aWeights)
+    mPtsNames(ptsNames), mMeasures(measures), mWeights(aWeights),
+    mLastResiduals(measures.size(), NAN)
 {
     if (!mSet)
     {
@@ -57,8 +58,14 @@ std::string cTopoObs::toString() const
     oss<<"TopoObs "<<E2Str(mType)<<" ";
     for (auto & pt: mPtsNames)
         oss<<pt<<" ";
-    oss<<"values: ";
+    oss<<"val: ";
     for (auto & val: mMeasures)
+        oss<<val<<" ";
+    oss<<"sigma: ";
+    for (auto & val: mWeights.getSigmas())
+        oss<<val<<" ";
+    oss<<"res: ";
+    for (auto & val: mLastResiduals)
         oss<<val<<" ";
     return oss.str();
 }

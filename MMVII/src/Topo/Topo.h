@@ -35,6 +35,7 @@ public :
     void FromFile(const std::vector<cBA_GCP *> &vGCP, cPhotogrammetricProject *aPhProj);
     void ToFile(const std::string & aName);
     void print();
+    void printObs(bool withDetails=false);
     double  Sigma0() {return mSigma0;}
     std::string & getInFile() { return mInFile;}
 

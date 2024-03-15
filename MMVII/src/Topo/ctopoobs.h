@@ -29,6 +29,7 @@ public:
     std::vector<int> getIndices(cBA_Topo *aBA_Topo) const;
     std::vector<tREAL8> getVals() const; //< for least squares (with rotation matrix if needed
     std::vector<tREAL8> & getMeasures() { return mMeasures;} //< original measures
+    std::vector<tREAL8> & getResiduals() { return mLastResiduals;} //< last residuals
     cResidualWeighterExplicit<tREAL8>& getWeights();
     const std::string & getPointName(size_t i) const { return mPtsNames.at(i); }
     //std::vector<tREAL8> getResiduals(const cTopoComp *comp) const;
@@ -43,6 +44,7 @@ protected:
     std::vector<std::string> mPtsNames;
     std::vector<tREAL8> mMeasures;
     cResidualWeighterExplicit<tREAL8> mWeights;
+    std::vector<tREAL8> mLastResiduals;
 };
 
 };

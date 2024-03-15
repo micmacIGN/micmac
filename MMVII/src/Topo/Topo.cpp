@@ -148,6 +148,25 @@ void cBA_Topo::print()
         std::cout<<" - "<<obsSet->toString()<<"\n";
 }
 
+void cBA_Topo::printObs(bool withDetails)
+{
+    tREAL8 aAvgResNorm = 0.0;
+    int nbObs =0;
+    for (auto &obsSet: mAllObsSets)
+        for (auto & obs: obsSet->getAllObs())
+        {
+            if (withDetails)
+                StdOut() << obs->toString()<< "\n";
+            for (unsigned int i=0;i<obs->getMeasures().size();++i)
+            {
+                ++nbObs;
+                aAvgResNorm += fabs(obs->getResiduals()[i]) / obs->getWeights().getSigmas()[i];
+            }
+        }
+    aAvgResNorm /= nbObs;
+    StdOut() << "Topo average std residual: " << aAvgResNorm << "\n";
+}
+
 void cBA_Topo::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet)
 {
     MMVII_INTERNAL_ASSERT_strong(mIsReady,"cBA_Topo is not ready");
@@ -218,7 +237,7 @@ void cBA_Topo::AddTopoEquations(cResolSysNonLinear<tREAL8> & aSys)
 {
     mSigma0 = 0.0;
     int aNbObs = 0;
-    int aNbUk = 0; // TODO!!!
+    int aNbUk = 0;
     for (auto &obsSet: mAllObsSets)
         for (size_t i=0;i<obsSet->nbObs();++i)
         {
@@ -229,6 +248,7 @@ void cBA_Topo::AddTopoEquations(cResolSysNonLinear<tREAL8> & aSys)
             for (unsigned int i=0; i<obs->getMeasures().size();++i)
             {
                 double residual = equation->ValComp(0,i);
+                obs->getResiduals().at(i) = residual;
 #ifdef VERBOSE_TOPO
                 StdOut() << "  resid: " << residual << " ";
 #endif
