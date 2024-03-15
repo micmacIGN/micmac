@@ -26,6 +26,13 @@ namespace MMVII
                                                                                                                     mRandomUniformLawUpperBoundCols(1),
                                                                                                                     mShow(true),
                                                                                                                     mUseMultiScaleApproach(true),
+                                                                                                                    mInitialiseWithPreviousExecution(true),
+                                                                                                                    mNameImIntermediateDepX("IntermediateXDisplacementMap"),
+                                                                                                                    mNameImIntermediateDepY("IntermediateYDisplacementMap"),
+                                                                                                                    mIsFirstExecution(false),
+                                                                                                                    mInitialiseWithMMVI(false),
+                                                                                                                    mNameFileInitialDepX("InitialXDisplacementMap"),
+                                                                                                                    mNameFileInitialDepY("InitialYDisplacementMap"),
                                                                                                                     mSigmaGaussFilterStep(1),
                                                                                                                     mGenerateDisplacementImage(true),
                                                                                                                     mNumberOfIterGaussFilter(3),
@@ -46,13 +53,21 @@ namespace MMVII
                                                                                                                     mSzImDepY(cPt2di(1, 1)),
                                                                                                                     mImDepY(mSzImDepY),
                                                                                                                     mDImDepY(nullptr),
+                                                                                                                    //mSzIntermediateImOut(cPt2di(1, 1)),
+                                                                                                                    //mImIntermediateOut(mSzIntermediateImOut),
+                                                                                                                    //mDImIntermediateOut(nullptr),
+                                                                                                                    mSzImIntermediateDepX(cPt2di(1, 1)),
+                                                                                                                    mImIntermediateDepX(mSzImIntermediateDepX),
+                                                                                                                    mDImIntermediateDepX(nullptr),
+                                                                                                                    mSzImIntermediateDepY(cPt2di(1, 1)),
+                                                                                                                    mImIntermediateDepY(mSzImIntermediateDepY),
+                                                                                                                    mDImIntermediateDepY(nullptr),
                                                                                                                     mVectorPts({cPt2dr(0, 0)}),
                                                                                                                     mDelTri(mVectorPts),
                                                                                                                     mSys(nullptr),
                                                                                                                     mEqTranslationTri(nullptr)
     {
         mEqTranslationTri = EqDeformTriTranslation(true, 1); // true means with derivative, 1 is size of buffer
-        // mEqTranslationTri->SetDebugEnabled(true);
     }
 
     cAppli_cTriangleDeformationTranslation::~cAppli_cTriangleDeformationTranslation()
@@ -64,35 +79,89 @@ namespace MMVII
     cCollecSpecArg2007 &cAppli_cTriangleDeformationTranslation::ArgObl(cCollecSpecArg2007 &anArgObl)
     {
         return anArgObl
-               << Arg2007(mNamePreImage, "Name of pre-image file.", {{eTA2007::FileImage}, {eTA2007::FileDirProj}})
-               << Arg2007(mNamePostImage, "Name of post-image file.", {eTA2007::FileImage})
-               << Arg2007(mNumberPointsToGenerate, "Number of points you want to generate for triangulation.")
-               << Arg2007(mNumberOfScales, "Total number of scales to run in multi-scale approach optimisation process.");
+                << Arg2007(mNamePreImage, "Name of pre-image file.", {{eTA2007::FileImage}, {eTA2007::FileDirProj}})
+                << Arg2007(mNamePostImage, "Name of post-image file.", {eTA2007::FileImage})
+                << Arg2007(mNumberPointsToGenerate, "Number of points you want to generate for triangulation.")
+                << Arg2007(mNumberOfScales, "Total number of scales to run in multi-scale approach optimisation process.");
+                            
     }
 
     cCollecSpecArg2007 &cAppli_cTriangleDeformationTranslation::ArgOpt(cCollecSpecArg2007 &anArgOpt)
     {
         return anArgOpt
-               << AOpt2007(mRandomUniformLawUpperBoundCols, "RandomUniformLawUpperBoundXAxis",
+                << AOpt2007(mRandomUniformLawUpperBoundCols, "RandomUniformLawUpperBoundXAxis",
                            "Maximum value that the uniform law can draw from on the x-axis.", {eTA2007::HDV})
-               << AOpt2007(mRandomUniformLawUpperBoundLines, "RandomUniformLawUpperBoundYAxis",
+                << AOpt2007(mRandomUniformLawUpperBoundLines, "RandomUniformLawUpperBoundYAxis",
                            "Maximum value that the uniform law can draw from for on the y-axis.", {eTA2007::HDV})
-               << AOpt2007(mShow, "Show", "Whether to print minimisation results.", {eTA2007::HDV})
-               << AOpt2007(mUseMultiScaleApproach, "UseMultiScaleApproach", "Whether to use multi-scale approach or not.", {eTA2007::HDV})
-               << AOpt2007(mSigmaGaussFilterStep, "SigmaGaussFilterStep", "Sigma value to use for Gauss filter in multi-stage approach.", {eTA2007::HDV})
-               << AOpt2007(mGenerateDisplacementImage, "GenerateDisplacementImage",
+                << AOpt2007(mShow, "Show", "Whether to print minimisation results.", {eTA2007::HDV})
+                << AOpt2007(mUseMultiScaleApproach, "UseMultiScaleApproach", "Whether to use multi-scale approach or not.", {eTA2007::HDV})
+                << AOpt2007(mInitialiseWithPreviousExecution, "InitialiseWithPreviousIteration",
+                           "Whether to initialise or not with unknown values obtained at previous iteration", {eTA2007::HDV})
+                << AOpt2007(mNameImIntermediateDepX, "NameForIntermediateXDisplacementMap",
+                            "File name to use when saving intermediate x-displacement maps between executions", {eTA2007::HDV})
+                << AOpt2007(mNameImIntermediateDepY, "NameForIntermediateXDisplacementMap",
+                            "File name to use when saving intermediate y-displacement maps between executions", {eTA2007::HDV})
+                << AOpt2007(mIsFirstExecution, "IsFirstExecution",
+                            "Whether this is the first execution of optimisation algorithm or not", {eTA2007::HDV})
+                << AOpt2007(mInitialiseWithMMVI, "InitialiseWithMMVI",
+                            "Whether to initialise or not values of unknowns with pre-computed values from MicMacV1 at first execution", {eTA2007::HDV})
+                << AOpt2007(mNameFileInitialDepX, "InitialDepXMapFileName", "Name of file of initial X-displacement map", {eTA2007::HDV})
+                << AOpt2007(mNameFileInitialDepY, "InitialDepYMapFileName", "Name of file of initial Y-displacement map", {eTA2007::HDV})
+                << AOpt2007(mSigmaGaussFilterStep, "SigmaGaussFilterStep", "Sigma value to use for Gauss filter in multi-stage approach.", {eTA2007::HDV})
+                << AOpt2007(mGenerateDisplacementImage, "GenerateDisplacementImage",
                            "Whether to generate and save an image having been translated.", {eTA2007::HDV})
-               << AOpt2007(mDisplayLastTranslatedPointsCoordinates, "DisplayLastTranslatedCoordinates",
+                << AOpt2007(mDisplayLastTranslatedPointsCoordinates, "DisplayLastTranslatedCoordinates",
                            "Whether to display the final coordinates of the trainslated points.", {eTA2007::HDV})
-               << AOpt2007(mNumberOfIterGaussFilter, "NumberOfIterationsGaussFilter",
+                << AOpt2007(mNumberOfIterGaussFilter, "NumberOfIterationsGaussFilter",
                            "Number of iterations to run in Gauss filter algorithm.", {eTA2007::HDV})
-               << AOpt2007(mNumberOfEndIterations, "NumberOfEndIterations",
+                << AOpt2007(mNumberOfEndIterations, "NumberOfEndIterations",
                            "Number of iterations to run on original images in multi-scale approach.", {eTA2007::HDV});
     }
 
     void cAppli_cTriangleDeformationTranslation::InitialisationAfterExeTranslation()
     {
         tDenseVect aVInit(2 * mDelTri.NbPts(), eModeInitImage::eMIA_Null);
+
+        mSys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqDense, aVInit);
+    }
+
+    void cAppli_cTriangleDeformationTranslation::InitialiseWithPreviousExecutionValuesTranslation()
+    {
+        tDenseVect aVInit(2 * mDelTri.NbPts(), eModeInitImage::eMIA_Null);
+
+        if (!mIsFirstExecution)
+        {
+            mImIntermediateDepX = tIm::FromFile(mNameImIntermediateDepX);
+            mImIntermediateDepY = tIm::FromFile(mNameImIntermediateDepY);
+
+            mDImIntermediateDepX = &mImIntermediateDepX.DIm();
+            mSzImIntermediateDepX = mDImIntermediateDepX->Sz();
+
+            mDImIntermediateDepY = &mImIntermediateDepY.DIm();
+            mSzImIntermediateDepY = mDImIntermediateDepY->Sz();
+        }
+
+        for (size_t aTr = 0; aTr < mDelTri.NbFace(); aTr++)
+        {
+            const tTri2dr aTri = mDelTri.KthTri(aTr);
+            const cPt3di aIndicesOfTriKnots = mDelTri.KthFace(aTr);
+
+            const cPt2di aFirstPointTri = cPt2di(aTri.Pt(0).x(), aTri.Pt(0).y());
+            const cPt2di aSecondPointTri = cPt2di(aTri.Pt(1).x(), aTri.Pt(1).y());
+            const cPt2di aThirdPointTri = cPt2di(aTri.Pt(2).x(), aTri.Pt(2).y());
+
+            //----------- index of unknown, finds the associated pixels of current triangle
+            const tIntVect aVecInd = {2 * aIndicesOfTriKnots.x(), 2 * aIndicesOfTriKnots.x() + 1,
+                                      2 * aIndicesOfTriKnots.y(), 2 * aIndicesOfTriKnots.y() + 1,
+                                      2 * aIndicesOfTriKnots.z(), 2 * aIndicesOfTriKnots.z() + 1};
+
+            aVInit(aVecInd.at(0)) = mDImIntermediateDepX->GetV(aFirstPointTri);
+            aVInit(aVecInd.at(1)) = mDImIntermediateDepY->GetV(aFirstPointTri);
+            aVInit(aVecInd.at(2)) = mDImIntermediateDepX->GetV(aSecondPointTri);
+            aVInit(aVecInd.at(3)) = mDImIntermediateDepY->GetV(aSecondPointTri);
+            aVInit(aVecInd.at(4)) = mDImIntermediateDepX->GetV(aThirdPointTri);
+            aVInit(aVecInd.at(5)) = mDImIntermediateDepY->GetV(aThirdPointTri);
+        }
 
         mSys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqDense, aVInit);
     }
@@ -355,6 +424,11 @@ namespace MMVII
             if (aIterNumber == mNumberOfScales + mNumberOfEndIterations - 1)
                 mDImOut->ToFile("DisplacedPixels.tif");
         }
+        else if (mInitialiseWithPreviousExecution)
+        {
+            mDImDepX->ToFile(mNameImIntermediateDepX + ".tif");
+            mDImDepY->ToFile(mNameImIntermediateDepY + ".tif");           
+        }
         else
         {
             mDImDepX->ToFile("DisplacedPixelsX_" + std::to_string(mNumberPointsToGenerate) + "_" +
@@ -424,8 +498,28 @@ namespace MMVII
 
         cAppli_cTriangleDeformation::GeneratePointsForDelaunay(mVectorPts, mNumberPointsToGenerate, mRandomUniformLawUpperBoundLines,
                                                                mRandomUniformLawUpperBoundCols, mDelTri, mSzImPre);
+        if (!mInitialiseWithPreviousExecution)
+            InitialisationAfterExeTranslation();
+        else
+        {
+            if (mIsFirstExecution && mInitialiseWithMMVI)
+            {
+                mImIntermediateDepX = tIm::FromFile(mNameFileInitialDepX);
+                mImIntermediateDepY = tIm::FromFile(mNameFileInitialDepY);
 
-        InitialisationAfterExeTranslation();
+                mDImIntermediateDepX = &mImIntermediateDepX.DIm();
+                mSzImIntermediateDepX = mDImIntermediateDepX->Sz();
+
+                mDImIntermediateDepY = &mImIntermediateDepY.DIm();
+                mSzImIntermediateDepY = mDImIntermediateDepY->Sz();
+
+                InitialiseWithPreviousExecutionValuesTranslation();
+            }
+            else if (mIsFirstExecution && !mInitialiseWithMMVI)
+                InitialisationAfterExeTranslation();
+            else if (!mIsFirstExecution)
+                InitialiseWithPreviousExecutionValuesTranslation();
+        }
 
         if (mUseMultiScaleApproach)
         {

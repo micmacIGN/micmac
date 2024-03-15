@@ -45,6 +45,8 @@ namespace MMVII
         void GenerateDisplacementMapsAndLastTranslatedPoints(const int aIterNumber);
         // Initialise problem after user has input information
         void InitialisationAfterExeTranslation();
+        // Initialise unknowns values with values obtained at previous exection
+        void InitialiseWithPreviousExecutionValuesTranslation();
         // Fill displacement maps and output image
         void FillDisplacementMaps(const cPtInsideTriangles &aLastPixInsideTriangle,
                                   const cPt2dr &aLastTranslatedFilledPoint);
@@ -60,7 +62,7 @@ namespace MMVII
         std::string mNamePreImage;   // Name of given pre-image
         std::string mNamePostImage;  // Name of given post-image
         int mNumberPointsToGenerate; // number of generated points
-        int mNumberOfScales;         // number of iterations in optimisation process
+        int mNumberOfScales;         // number of iterations in optimisation process or scales is use of multi-scale approach
 
         // ==  Optionnal args ====
 
@@ -69,6 +71,13 @@ namespace MMVII
         bool mShow;                                   // Print result, export image ...
         bool mComputeAvgMax;                          // Compute average and maximum pixel value of difference image between pre and post images
         bool mUseMultiScaleApproach;                  // Apply multi-scale approach or not
+        bool mInitialiseWithPreviousExecution;        // Initialise values of unknowns with values obtained at previous algorithm execution
+        std::string mNameImIntermediateDepX;          // File name to save to of intermediate X-displacement map between executions if initialisation with previous unknown values is true
+        std::string mNameImIntermediateDepY;          // File name to save to of intermediate Y-displacement map between executions if initialisation with previous unknown values is true
+        bool mIsFirstExecution;                       // Whether current execution of algorithm is first execution or not
+        bool mInitialiseWithMMVI;                     // Whether to initialise values of unknowns with pre-computed values from MicMacV1 or not
+        std::string mNameFileInitialDepX;             // File name of initial X-displacement map
+        std::string mNameFileInitialDepY;             // File name of initial Y-displacement map
         int mSigmaGaussFilterStep;                    // Decreasing step of sigma value during iterations
         bool mGenerateDisplacementImage;              // Generate image with displaced pixels
         int mNumberOfIterGaussFilter;                 // Number of iterations to be done in Gauss filter algorithm
@@ -96,6 +105,18 @@ namespace MMVII
         cPt2di mSzImDepY; //  size of image
         tIm mImDepY;      //  memory representation of the image
         tDIm *mDImDepY;   //  memory representation of the image
+
+        //cPt2di mSzIntermediateImOut; //  size of image
+        //tIm mImIntermediateOut;      //  memory representation of the image
+        //tDIm *mDImIntermediateOut;   //  memory representation of the image
+
+        cPt2di mSzImIntermediateDepX; //  size of image
+        tIm mImIntermediateDepX;      //  memory representation of the image
+        tDIm *mDImIntermediateDepX;   //  memory representation of the image
+
+        cPt2di mSzImIntermediateDepY; //  size of image
+        tIm mImIntermediateDepY;      //  memory representation of the image
+        tDIm *mDImIntermediateDepY;   //  memory representation of the image
 
         double mSigmaGaussFilter; // Value of sigma in gauss filter
         bool mIsLastIters;        // Determines whether optimisation process is at last iters to optimise on original image
