@@ -50,6 +50,8 @@ template <class TypeElem> class cBinaryF : public cImplemF<TypeElem>
                 InternalError("No operation defined",aV1->CoordF()->Name());
                 return aV1;
             }
+
+            std::string  Name4Print() const override {return this->NameOperator();}
       protected  :
             void AssocSortedVect(std::vector<tFormula> & aV);
             void EmpileAssoc (const cFormula <TypeElem>& aF, std::vector<tFormula > & aV);
