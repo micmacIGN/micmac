@@ -150,21 +150,20 @@ void TestResDegree(cCalculator<double> * aCalc,const cPt3di & aDeg,const std::st
      }
 }
 
-/*
+
 NS_SymbolicDerivative::cCalculator<double> * EqColinearityCamGen(int  aDeg,bool WithDerive,int aSzBuf,bool ReUse) // BAPOL2
 {
      bool SVP =  false; // we generate an error if dont exist
      return StdAllocCalc(NameFormula(cEqColinSensGenPolyn2D(aDeg,false),WithDerive),aSzBuf,SVP,ReUse);
 }
-*/
 
-/*
+
 NS_SymbolicDerivative::cCalculator<double> * EqDistPol2D(int  aDeg,bool WithDerive,int aSzBuf,bool ReUse) // BAPOL2
 {
      bool SVP =  false; // we generate an error if dont exist
      return StdAllocCalc(NameFormula(cEqDistPolyn2D(aDeg,false),WithDerive),aSzBuf,SVP,ReUse);
 }
-*/
+
 
 NS_SymbolicDerivative::cCalculator<double> * RPC_Proj(bool WithDerive,int aSzBuf,bool ReUse) // PUSHB
 {
@@ -769,19 +768,18 @@ int cAppliGenCode::Exe()
    }
 
 
-/*   BAPOL2 
+
    for (const auto WithDer : {true,false})
    {
        // PUSHB
        std::vector<int>  aVDegEqCol   {0,1,2,3};
        for (const auto & aDegree : aVDegEqCol)
        {
-           // GenCodesFormula((tREAL8*)nullptr,cEqColinSensGenPolyn2D(aDegree),WithDer);   // BAPOL2
-           // GenCodesFormula((tREAL8*)nullptr,cEqDistPolyn2D(aDegree),WithDer);           // BAPOL2
+            GenCodesFormula((tREAL8*)nullptr,cEqColinSensGenPolyn2D(aDegree),WithDer);   // BAPOL2
+            GenCodesFormula((tREAL8*)nullptr,cEqDistPolyn2D(aDegree),WithDer);           // BAPOL2
            // StdOut() << "FffffffFFFF " << cEqDistPolyn2D(aDegree).FormulaName() << "\n";
        }
    }
-*/
 
    //=======================   Other code radiom/rigid ....
 

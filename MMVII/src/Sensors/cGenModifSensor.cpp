@@ -109,10 +109,10 @@ class cExternalSensorModif2D  : public cSensorImage
 
          std::string             mDirSensInit; ///< Folder where is located the initial sensor
          std::string             mNameImage;   ///< Name of the attached image
-	 int                     mDegree;      ///< Maxima total degree of monoms
+         int                     mDegree;      ///< Maxima total degree of monoms
          std::vector<tREAL8>     mVParams;     ///< Coefficient of monoms in correction
 						       
-	 cSensorImage *                 mSensorInit;   ///< The initial sensor, for which we compute a correctio,
+         cSensorImage *                 mSensorInit;   ///< The initial sensor, for which we compute a correctio,
          cCalculator<double> *          mEqCorrec2ImInit;    ///< Functor that compute the distorstion
 };
 
@@ -166,12 +166,10 @@ size_t  cExternalSensorModif2D::NbParam() const
 
 void cExternalSensorModif2D::InitEquation() 
 {
-/*
     mEqCorrec2ImInit   =  (mDegree>=0)                                                       ?
 		    EqDistPol2D(mDegree,WithDerivate::No,1,ReUseMode::Yes)  :
 		    nullptr
 		 ;    
-*/
 }
 
 cExternalSensorModif2D::~cExternalSensorModif2D()
@@ -199,12 +197,18 @@ cExternalSensorModif2D * cExternalSensorModif2D::TryRead
                         const std::string & aNameImage
                   )
 {
-   return nullptr;
-   // [1] ToDoBAPOL2 Try read w, use method SimpleTplTryRead
+    // [1] Try read w
+    bool AlreadyExist = false;
+    cExternalSensorModif2D * aSensM2D = SimpleTplTryRead<cExternalSensorModif2D>(aPhProj,aNameImage,AlreadyExist);
 
-   // [2] ToDoBAPOL2 if fail (adequate name did not exist)  or already exist : stop here
+    // [2] if fail (adequate name did not exist) stop heree
+    if ((aSensM2D==nullptr) || AlreadyExist) return aSensM2D;
 
-   // [3] ToDoBAPOL2  else, we have the "data part", we can finish the intializatio, InitSensor/InitEquation
+    // [3] else, we have the "data part", we can finish the intializatio,
+    aSensM2D->InitSensor(aPhProj);
+    aSensM2D->InitEquation();
+    return aSensM2D;
+
 }
 
 cSensorImage * SensorTryReadSensM2D (const cPhotogrammetricProject & aPhProj, const std::string & aNameImage)
@@ -227,11 +231,31 @@ void cExternalSensorModif2D::AddData(const  cAuxAr2007 & anAux0)
      //         for this we use Polyn2DDescDist, that give high level description
      //
 
-    // read/write the 3 "easy" fields
+    cAuxAr2007 anAux("SensorCorrecPol2D",anAux0); // embeds the sensor in a global tag "SensorCorrecPol2D"
+
+        // read/write the 3 "easy" fields
+    MMVII::AddData(cAuxAr2007("FolderOri",anAux),mDirSensInit);
+    MMVII::AddData(cAuxAr2007("NameImage",anAux),mNameImage);
+    MMVII::AddData(cAuxAr2007("DegreeCorrection",anAux),mDegree);
 
     // in read mode, we must fix the size before parsing all parameters
+    if (anAux.Ar().Input())
+    {
+       mVParams.resize(NbParam());
+    }
 
     // now read/write the coefficients
+    {
+         cAuxAr2007  anAuxCoeff("CoeffsCorrection",anAux); // embeds the coeefss in a tag "CoeffsCorrection"
+         // use aVDesc to attribuate name to coeff tag
+         auto aVDesc =  Polyn2DDescDist(mDegree);
+         for (size_t aK=0 ; aK<aVDesc.size() ; aK++)
+         {
+             MMVII::AddData(cAuxAr2007(aVDesc[aK].mName,anAuxCoeff),mVParams[aK]);
+         }
+    }
+
+
 }
 
 void AddData(const  cAuxAr2007 & anAux,cExternalSensorModif2D & aExtSM2d)
@@ -271,37 +295,34 @@ cCalculator<double> * cExternalSensorModif2D::CreateEqColinearity(bool WithDeriv
 {
     // the sensor dont store its colinearity equation, it furnish it to the bundle adjusment when it is
     // required
-   
-    return nullptr; // ToDoBAPOL2
+    return EqColinearityCamGen(mDegree,WithDerive,aSzBuf,ReUse);
 }
 
 void cExternalSensorModif2D::PutUknowsInSetInterval() 
 {
-     // the unknowns that the sensor want to estimate are the coefficient of the monom
-     //    ToDoBAPOL2
+    mSetInterv->AddOneInterv(mVParams);
 }
 
 void cExternalSensorModif2D::PushOwnObsColinearity
      (
          std::vector<double> & aVObs, //  vector where must write our observation/context
-	 const cPt3dr & aPGround      //  3D ground point (current estimation of unknown point)
+          const cPt3dr & aPGround      //  3D ground point (current estimation of unknown point)
      )
 {
-   //  Copy the string extracted from file "SymbDerGen/Formulas_GenSensor.h"
-   //
-   // "IObs","JObs"  |,|      "P0x","P0y","P0z"   |,|     "IP0","JP0"  |,|      "dIdX","dIDY","dIdZ"  |,|  "dJdX","dJDY","dJdZ"
-  
+    //  Copy the string extracted from file "SymbDerGen/Formulas_GenSensor.h"
+     //
+     // "IObs","JObs"  |,|   "P0x","P0y","P0z"   |,|     "IP0","JP0"  |,|      "dIdX","dIDY","dIdZ"  |,|  "dJdX","dJDY","dJdZ"
 
-   // "IObs","JObs",  are the coordinate of the measured point, we dont add them, it is the job of BA-Kernel
+     // "IObs","JObs",  are the coordinate of the measured point, we dont add them, it is the job of BA-Kernel
 
-   // ToDoBAPOL2  "P0x","P0y","P0z"  : estimation of 3D point
+      aPGround.PushInStdVector(aVObs);  //  "P0x","P0y","P0z"  : estimation of 3D point
 
-    // Now we compute the jacobian  ToDoBAPOL2
-    
+      // Now we compute the jacobian
+      tProjImAndGrad aProj = mSensorInit->DiffGround2Im(aPGround);
 
-     //  ToDoBAPOL2   "IP0","JP0"  :  projection of estimated point
-     //  ToDoBAPOL2   "dIdX","dIDY","dIdZ" :  gradient of I-coordinate of  projection, in estimated point
-     //  ToDoBAPOL2   "dJdX","dJDY","dJdZ" :  gradient of J-coordinate of  projection, in estimated point
+      aProj.mPIJ.PushInStdVector(aVObs);      // "IP0","JP0"  :  projection of estimated point
+      aProj.mGradI.PushInStdVector(aVObs);    // "dIdX","dIDY","dIdZ" :  gradient of I-coordinate of  projection, in estimated point
+      aProj.mGradJ.PushInStdVector(aVObs);     //  "dJdX","dJDY","dJdZ" :  gradient of J-coordinate of  projection, in estimated point
 }
 
     //-------------------------------------------------------------------------------
@@ -312,15 +333,16 @@ void cExternalSensorModif2D::PushOwnObsColinearity
   
 tSeg3dr  cExternalSensorModif2D::Image2Bundle(const cPt2dr & aPixIm) const 
 {
-	// it just the bundle of initial sensor, taking into account corrected point  (Init->Correc)
-	tSeg3dr aSeg =   mSensorInit->Image2Bundle(aPixIm);  // ToDoBAPOL2
-	return aSeg;
+    // it just the bundle of initial sensor, taking into account corrected point
+     tSeg3dr aSeg =   mSensorInit->Image2Bundle(InitPix2Correc(aPixIm));
+     return aSeg;
+
 }
 
 cPt2dr cExternalSensorModif2D::Ground2Image(const cPt3dr & aPGround) const
 {
 	// it is just the projection of initial sensor + correction (Correc ->Init)
-	return  mSensorInit->Ground2Image(aPGround); // ToDoBAPOL2
+    return Correc2InitPix( mSensorInit->Ground2Image(aPGround));
 }
 
 cPt3dr cExternalSensorModif2D::ImageAndZ2Ground(const cPt3dr & aPxyz) const 
@@ -362,7 +384,10 @@ cPt2dr  cExternalSensorModif2D::Correc2InitPix (const cPt2dr & aP0) const
      //          ToStdVecto        mEqIma2End->DoOneEval(Unk,Obs)                    FromStdVector
      //    P0   -------> vector   ----------------------------------> corr vector ------------------> PCor
      //
-     return cPt2dr(0,0);   // ToDoBAPOL2
+
+     std::vector<tREAL8>  aVXY = aP0.ToStdVector();
+     std::vector<tREAL8>  aDistXY =  mEqCorrec2ImInit->DoOneEval(aVXY,mVParams);
+     return cPt2dr::FromStdVector(aDistXY);
 }
 
 
@@ -394,12 +419,14 @@ cPt2dr  cExternalSensorModif2D::InitPix2Correc (const cPt2dr & aPInit) const
 void cExternalSensorModif2D::PerturbateRandom(tREAL8 anAmpl,bool Show)
 {
     anAmpl /= mVParams.size();
-    tREAL8 aNorm = Norm2(Sz());
+    tREAL8 aNorm = Norm2(ToR(Sz()));
 
+   // StdOut() << "AMPL" << anAmpl << " SZ=" << Sz() << "N=" << aNorm<< "\n";
     std::vector<cDescOneFuncDist>  aVDesc =  Polyn2DDescDist(mDegree);
     for (size_t aK=0 ; aK<mVParams.size() ; aK++)
     {
         mVParams[aK] = (RandUnif_C() * anAmpl ) / std::pow(aNorm,aVDesc[aK].mDegTot-1);
+       // StdOut() << "VP=" << mVParams[aK] << "\n";
     }
 
     if (Show)
@@ -410,7 +437,6 @@ void cExternalSensorModif2D::PerturbateRandom(tREAL8 anAmpl,bool Show)
 
           cPt2dr aP1 = Correc2InitPix(aP0);
           cPt2dr aP2 = InitPix2Correc(aP1);
-
           StdOut() << " Pts=" << aP0  << " Dist=" << aP1-aP0  <<  " Dist/Inv" << (aP2 -aP0)*1e10 << "\n";
        }
     }
