@@ -1,0 +1,132 @@
+\usetheme{default}
+%\useinnertheme{rounded}
+
+%\useoutertheme[left,hideothersubsections]{IGNsidebar}
+\useoutertheme[left,hideothersubsections]{IGNsidebar}
+
+
+
+
+%/usr/share/texmf/tex/latex/beamer/themes/font/beamerfontthemedefault.sty
+%/usr/share/texmf/tex/latex/beamer/themes/font/beamerfontthemeprofessionalfonts.sty
+%/usr/share/texmf/tex/latex/beamer/themes/font/beamerfontthemeserif.sty
+%/usr/share/texmf/tex/latex/beamer/themes/font/beamerfontthemestructurebold.sty
+%/usr/share/texmf/tex/latex/beamer/themes/font/beamerfontthemestructureitalicserif.sty
+%/usr/share/texmf/tex/latex/beamer/themes/font/beamerfontthemestructuresmallcapsserif.sty
+\usefonttheme{structurebold}
+
+\RequirePackage{tikz}
+
+\definecolor{IGNVert}{RGB}{148, 192,  22}
+\definecolor{IGNGris}{RGB}{112, 119, 122}
+
+\definecolor{IGNRouge}{RGB}{255, 100, 100}
+
+%PUCES
+\setbeamercolor{item projected}{bg=IGNGris!70}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% COLOR
+\setbeamercolor*{normal text}{fg=IGNGris}
+
+\setbeamercolor{title}{fg=IGNGris}
+\setbeamercolor{subtitle}{fg=IGNVert}
+\setbeamercolor{item}{fg=IGNVert} 
+
+\setbeamercolor{caption name}{ fg=IGNGris}
+
+%\setbeamercolor{author in head/foot}{ fg=IGNGris}
+%\setbeamercolor{institute in head/foot}{fg=IGNGris}
+\setbeamercolor{title in head/foot}{ fg=IGNGris}
+\setbeamercolor{date in head/foot}{ fg=IGNGris}
+\setbeamercolor{page in head/foot}{ fg=IGNGris}
+\setbeamercolor{section in toc}{ fg=IGNGris}
+\setbeamercolor{subsection in toc}{ fg=IGNGris}
+
+\setbeamercolor*{block title alerted}{bg=IGNRouge!70}
+\setbeamercolor*{block body alerted}{bg=IGNRouge!20}
+
+\setbeamercolor*{block title example}{bg=IGNVert!70}
+\setbeamercolor*{block body example}{bg=IGNVert!20}
+
+\setbeamercolor*{block title}{bg=IGNGris!50}
+\setbeamercolor*{block body}{bg=IGNGris!20}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% NAVIGATION SYMBOLS
+\setbeamertemplate{navigation symbols}{} 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SIDE BAR
+\setbeamersize{sidebar width left=1.5cm}
+\setbeamercolor{section in sidebar}{fg=IGNGris}
+\setbeamercolor{subsection in sidebar}{fg=IGNGris}
+
+\setbeamercolor{section in sidebar shaded}{fg=IGNVert}
+\setbeamercolor{subsection in sidebar shaded}{fg=IGNVert}
+
+
+\defbeamertemplate*{sidebar}{SSB}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% HEAD LINE
+\defbeamertemplate*{frametitle}{}{
+  \begin{tikzpicture}[scale=0.503]
+  \filldraw[color=white] (0,0) rectangle(0.1,0.54);
+  \end{tikzpicture}
+  
+    \textcolor{IGNGris}{ \textbf{\insertframetitle}}
+  \begin{tikzpicture}
+  \draw[very thick,color=IGNVert] (0,1)--(\paperwidth- 2.24,1);
+  \end{tikzpicture} 
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% HEAD LINE
+%\defbeamertemplate*{headline}{AH}{
+%}
+
+\defbeamertemplate*{headline}{}{}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BACKGROUND
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% FOOT LINE
+\defbeamertemplate*{footline}{}
+{
+\leavevmode%
+  \begin{tikzpicture}
+  \draw (0,0) node  {};
+  \draw (0.5,0) node[right]  { \textcolor{IGNGris}{\insertshorttitle}};
+  \draw (5,0) node[right]  { \textcolor{IGNVert}{$\blacksquare$} \textcolor{IGNGris}{\insertshortdate{} } };
+  \draw (7.5,0) node  { \textcolor{IGNVert}{$\blacksquare$} \textcolor{IGNGris}{\insertframenumber{} / \inserttotalframenumber\hspace*{2ex} }};
+  %\draw (9.75,0) node  { \textcolor{IGNGris}{ \insertinstitute }};
+  \draw (12,0) node[right] { \includegraphics[height=0.25cm]{img/LOGO_IGN_p.png} };
+  \end{tikzpicture} 
+
+}%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% AT BEGIN SECTION
+
+
+\AtBeginSection[]
+{ 
+\setbeamercolor{section in sidebar}{fg=white }
+\setbeamercolor{subsection in sidebar}{fg=white }
+
+\setbeamercolor{section in sidebar shaded}{fg=white }
+\setbeamercolor{subsection in sidebar shaded}{fg=white }
+
+
+
+\begin{frame}{
+  \begin{tikzpicture}[scale=0.503]
+  \draw[color=IGNGris,fill=IGNGris]  (0,0) rectangle (23,9);
+  \draw (1,1) node [right,text width=10cm,text justified]  {  \textcolor{white}{\insertsection}};
+  \end{tikzpicture}
+}
+\end{frame} 
+
+
+\setbeamercolor{section in sidebar}{fg=IGNGris}
+\setbeamercolor{subsection in sidebar}{fg=IGNGris}
+
+\setbeamercolor{section in sidebar shaded}{fg=IGNVert}
+\setbeamercolor{subsection in sidebar shaded}{fg=IGNVert}
+
+\addtocounter{framenumber}{-1}
+
+}
+
