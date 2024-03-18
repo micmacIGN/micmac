@@ -49,6 +49,12 @@ template <class T>  inline cPtxd<T,2> ToPolar(const cPtxd<T,2> & aP1)  ///<  Fro
    AssertNonNul(aP1);
    return  cPtxd<T,2>(std::hypot(aP1.x(),aP1.y()),std::atan2(aP1.y(),aP1.x()));
 }
+template <class T>  inline T Teta(const cPtxd<T,2> & aP1)  ///<  From x,y to To rho,teta
+{
+   AssertNonNul(aP1);
+   return  std::atan2(aP1.y(),aP1.x());
+}
+
 template <class T> inline cPtxd<T,2> ToPolar(const cPtxd<T,2> & aP1,T aDefTeta)  ///<  With Def value 4 teta
 {
     return IsNotNull(aP1) ? ToPolar(aP1) : cPtxd<T,2>(0,aDefTeta);
