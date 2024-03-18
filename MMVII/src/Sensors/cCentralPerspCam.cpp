@@ -507,6 +507,9 @@ cPt3dr  cPerspCamIntrCalib::DirBundle(const tPtOut & aPt) const
    Maybe maybe do a specialize version later
 
        cPt2dr  cPerspCamIntrCalib::Undist_Quick(const tPtOut & aP0) const;
+
+            +PP,*F         Dist-1         InProj            x,y/z           -PP,/F
+       PIm  ------>  PHgr --------> PUd  ------->  Bundle ---------->  P1  ---------->  PUndist
 */
 
 cPt2dr  cPerspCamIntrCalib::Undist(const tPtOut & aP0) const
@@ -515,6 +518,17 @@ cPt2dr  cPerspCamIntrCalib::Undist(const tPtOut & aP0) const
     cPt2dr aP1 = Proj(aPt) / aPt.z();
     return mMapPProj2Im.Value(aP1);
 }
+
+cPt2dr  cPerspCamIntrCalib::Redist(const tPtOut & aP0) const
+{
+     cPt2dr aP1 =  mMapIm2PProj.Value(aP0);
+     cPt3dr aP2(aP1.x(),aP1.y(),1.0);
+
+     return Value(aP2);
+}
+
+
+
 
 tREAL8  cPerspCamIntrCalib::InvProjIsDef(const tPtOut & aPix ) const
 {
