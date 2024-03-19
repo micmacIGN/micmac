@@ -121,13 +121,13 @@ namespace MMVII
         mIsLastIters = false;
 
         if (mUseMultiScaleApproach)
-            mIsLastIters = cAppli_cTriangleDeformation::ManageDifferentCasesOfEndIterations(aIterNumber, mNumberOfScales, mNumberOfEndIterations,
-                                                                                            mIsLastIters, mImPre, mImPost, aCurPreIm, aCurPreDIm,
-                                                                                            aCurPostIm, aCurPostDIm);
+            mIsLastIters = ManageDifferentCasesOfEndIterations(aIterNumber, mNumberOfScales, mNumberOfEndIterations,
+                                                               mIsLastIters, mImPre, mImPost, aCurPreIm, aCurPreDIm,
+                                                               aCurPostIm, aCurPostDIm);
         else
         {
-            cAppli_cTriangleDeformation::LoadImageAndData(aCurPreIm, aCurPreDIm, "pre", mImPre, mImPost);
-            cAppli_cTriangleDeformation::LoadImageAndData(aCurPostIm, aCurPostDIm, "post", mImPre, mImPost);
+            LoadPrePostImageAndData(aCurPreIm, aCurPreDIm, "pre", mImPre, mImPost);
+            LoadPrePostImageAndData(aCurPostIm, aCurPostDIm, "post", mImPre, mImPost);
         }
 
         if (mUseMultiScaleApproach && !mIsLastIters)
@@ -146,8 +146,8 @@ namespace MMVII
         }
         else if (mUseMultiScaleApproach && mIsLastIters)
         {
-            cAppli_cTriangleDeformation::LoadImageAndData(aCurPreIm, aCurPreDIm, "pre", mImPre, mImPost);
-            cAppli_cTriangleDeformation::LoadImageAndData(aCurPostIm, aCurPostDIm, "post", mImPre, mImPost);
+            LoadPrePostImageAndData(aCurPreIm, aCurPreDIm, "pre", mImPre, mImPost);
+            LoadPrePostImageAndData(aCurPostIm, aCurPostDIm, "post", mImPre, mImPost);
         }
 
         //----------- declaration of indicator of convergence
@@ -216,16 +216,16 @@ namespace MMVII
                 FormalInterpBarycenter_SetObs(aVObs, 0, aPixInsideTriangle);
 
                 // radiometry translation of pixel by current radiometry translation of triangle knots
-                const tREAL8 aRadiometryTranslation = cAppli_cTriangleDeformation::ApplyBarycenterTranslationFormulaForTranslationRadiometry(aCurRadTrPointA,
-                                                                                                                                             aCurRadTrPointB,
-                                                                                                                                             aCurRadTrPointC,
-                                                                                                                                             aVObs);
+                const tREAL8 aRadiometryTranslation = ApplyBarycenterTranslationFormulaForTranslationRadiometry(aCurRadTrPointA,
+                                                                                                                aCurRadTrPointB,
+                                                                                                                aCurRadTrPointC,
+                                                                                                                aVObs);
 
                 // radiometry scaling of pixel by current radiometry scaling of triangle knots
-                const tREAL8 aRadiometryScaling = cAppli_cTriangleDeformation::ApplyBarycenterTranslationFormulaForScalingRadiometry(aCurRadScPointA,
-                                                                                                                                     aCurRadScPointB,
-                                                                                                                                     aCurRadScPointC,
-                                                                                                                                     aVObs);
+                const tREAL8 aRadiometryScaling = ApplyBarycenterTranslationFormulaForScalingRadiometry(aCurRadScPointA,
+                                                                                                        aCurRadScPointB,
+                                                                                                        aCurRadScPointC,
+                                                                                                        aVObs);
 
                 const cPt2dr aInsideTrianglePoint = aPixInsideTriangle.GetCartesianCoordinates();
                 const cPt2di aEastTranslatedPoint = cPt2di(aInsideTrianglePoint.x(), aInsideTrianglePoint.y()) + cPt2di(1, 0);
@@ -303,11 +303,11 @@ namespace MMVII
     {
         mImOut = tIm(mSzImPre);
         mDImOut = &mImOut.DIm();
-        mSzImOut = cPt2di(mDImOut->Sz().x(), mDImOut->Sz().y());
+        mSzImOut = mDImOut->Sz();
 
         tIm aLastPreIm = tIm(mSzImPre);
         tDIm *aLastPreDIm = nullptr;
-        cAppli_cTriangleDeformation::LoadImageAndData(aLastPreIm, aLastPreDIm, "pre", mImPre, mImPost);
+        LoadPrePostImageAndData(aLastPreIm, aLastPreDIm, "pre", mImPre, mImPost);
 
         if (mUseMultiScaleApproach && !mIsLastIters)
         {
@@ -399,14 +399,8 @@ namespace MMVII
     int cAppli_cTriangleDeformationRadiometry::Exe()
     {
         // read pre and post images and their sizes
-        mImPre = tIm::FromFile(mNamePreImage);
-        mImPost = tIm::FromFile(mNamePostImage);
-
-        mDImPre = &mImPre.DIm();
-        mSzImPre = mDImPre->Sz();
-
-        mDImPost = &mImPost.DIm();
-        mSzImPost = mDImPost->Sz();
+        ReadFileNameLoadData(mNamePreImage, mImPre, mDImPre, mSzImPre);
+        ReadFileNameLoadData(mNamePostImage, mImPost, mDImPost, mSzImPost);
 
         if (mUseMultiScaleApproach)
             mSigmaGaussFilter = mNumberOfScales * mSigmaGaussFilterStep;
@@ -416,8 +410,8 @@ namespace MMVII
                      << "Diff, "
                      << "NbOut" << std::endl;
 
-        cAppli_cTriangleDeformation::GeneratePointsForDelaunay(mVectorPts, mNumberPointsToGenerate, mRandomUniformLawUpperBoundLines,
-                                                               mRandomUniformLawUpperBoundCols, mDelTri, mSzImPre);
+        GeneratePointsForDelaunay(mVectorPts, mNumberPointsToGenerate, mRandomUniformLawUpperBoundLines,
+                                  mRandomUniformLawUpperBoundCols, mDelTri, mSzImPre);
 
         cAppli_cTriangleDeformationRadiometry::InitialisationAfterExeRadiometry(mDelTri, mSys);
 

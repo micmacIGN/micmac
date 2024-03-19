@@ -36,13 +36,13 @@ namespace MMVII
         cCollecSpecArg2007 &ArgOpt(cCollecSpecArg2007 &anArgOpt) override;
 
         // Iterate of triangles and inside pixels
-        void DoOneIterationTranslation(const int aIterNumber);
+        void DoOneIterationTranslation(const int aIterNumber, const int aTotalNumberOfIterations);
         // Loops over all triangles and solves system to update parameters at end of iteration
-        void LoopOverTrianglesAndUpdateParametersTranslation(const int aIterNumber);
+        void LoopOverTrianglesAndUpdateParametersTranslation(const int aIterNumber, const int aTotalNumberOfIterations);
         // Generate displacement maps of last solution
-        void GenerateDisplacementMaps(const tDenseVect &aVFinalSol, const int aIterNumber);
+        void GenerateDisplacementMaps(const tDenseVect &aVFinalSol, const int aIterNumber, const int aTotalNumberOfIterations);
         // Generates Displacement maps and coordinates of points in triangulation at last iteration
-        void GenerateDisplacementMapsAndLastTranslatedPoints(const int aIterNumber);
+        void GenerateDisplacementMapsAndLastTranslatedPoints(const int aIterNumber, const int aTotalNumberOfIterations);
         // Initialise problem after user has input information
         void InitialisationAfterExeTranslation();
         // Initialise unknowns values with values obtained at previous exection
@@ -66,23 +66,23 @@ namespace MMVII
 
         // ==  Optionnal args ====
 
-        int mRandomUniformLawUpperBoundLines;         // Uniform law generates random coordinates in interval [0, mRandomUniformLawUpperBoundLines [
-        int mRandomUniformLawUpperBoundCols;          // Uniform law generates random coordinates in interval [0, mRandomUniformLawUpperBoundCols [
-        bool mShow;                                   // Print result, export image ...
-        bool mComputeAvgMax;                          // Compute average and maximum pixel value of difference image between pre and post images
-        bool mUseMultiScaleApproach;                  // Apply multi-scale approach or not
-        bool mInitialiseWithPreviousExecution;        // Initialise values of unknowns with values obtained at previous algorithm execution
-        std::string mNameImIntermediateDepX;          // File name to save to of intermediate X-displacement map between executions if initialisation with previous unknown values is true
-        std::string mNameImIntermediateDepY;          // File name to save to of intermediate Y-displacement map between executions if initialisation with previous unknown values is true
-        bool mIsFirstExecution;                       // Whether current execution of algorithm is first execution or not
-        bool mInitialiseWithMMVI;                     // Whether to initialise values of unknowns with pre-computed values from MicMacV1 or not
-        std::string mNameFileInitialDepX;             // File name of initial X-displacement map
-        std::string mNameFileInitialDepY;             // File name of initial Y-displacement map
-        int mSigmaGaussFilterStep;                    // Decreasing step of sigma value during iterations
-        bool mGenerateDisplacementImage;              // Generate image with displaced pixels
-        int mNumberOfIterGaussFilter;                 // Number of iterations to be done in Gauss filter algorithm
-        int mNumberOfEndIterations;                   // Number of iterations to do while using original image in multi-scale approach
-        bool mDisplayLastTranslatedPointsCoordinates; // Whether to display the final coordinates of the translated points
+        int mRandomUniformLawUpperBoundLines;             // Uniform law generates random coordinates in interval [0, mRandomUniformLawUpperBoundLines [
+        int mRandomUniformLawUpperBoundCols;              // Uniform law generates random coordinates in interval [0, mRandomUniformLawUpperBoundCols [
+        bool mShow;                                       // Print result, export image ...
+        bool mComputeAvgMax;                              // Compute average and maximum pixel value of difference image between pre and post images
+        bool mUseMultiScaleApproach;                      // Apply multi-scale approach or not
+        bool mInitialiseTranslationWithPreviousExecution; // Initialise values of unknowns with values obtained at previous algorithm execution
+        std::string mNameIntermediateDepX;                // File name to save to of intermediate X-displacement map between executions if initialisation with previous unknown values is true
+        std::string mNameIntermediateDepY;                // File name to save to of intermediate Y-displacement map between executions if initialisation with previous unknown values is true
+        bool mIsFirstExecution;                           // Whether current execution of algorithm is first execution or not
+        bool mInitialiseWithMMVI;                         // Whether to initialise values of unknowns with pre-computed values from MicMacV1 or not
+        std::string mNameFileInitialDepX;                 // File name of initial X-displacement map
+        std::string mNameFileInitialDepY;                 // File name of initial Y-displacement map
+        int mSigmaGaussFilterStep;                        // Decreasing step of sigma value during iterations
+        bool mGenerateDisplacementImage;                  // Generate image with displaced pixels
+        int mNumberOfIterGaussFilter;                     // Number of iterations to be done in Gauss filter algorithm
+        int mNumberOfEndIterations;                       // Number of iterations to do while using original image in multi-scale approach
+        bool mDisplayLastTranslationValues;               // Whether to display the final coordinates of the translated points
 
         // ==  Internal variables ====
 
@@ -105,10 +105,6 @@ namespace MMVII
         cPt2di mSzImDepY; //  size of image
         tIm mImDepY;      //  memory representation of the image
         tDIm *mDImDepY;   //  memory representation of the image
-
-        //cPt2di mSzIntermediateImOut; //  size of image
-        //tIm mImIntermediateOut;      //  memory representation of the image
-        //tDIm *mDImIntermediateOut;   //  memory representation of the image
 
         cPt2di mSzImIntermediateDepX; //  size of image
         tIm mImIntermediateDepX;      //  memory representation of the image
