@@ -282,6 +282,8 @@ void cRGBImage::ToFileDeZoom(const std::string & aName,int aDeZoom)
 void cRGBImage::ToJpgFileDeZoom(const std::string & aName,int aDeZoom)
 {
     ToFileDeZoom(aName,aDeZoom);
+    
+    //  StdOut() << "ToJpgFileDeZoomToJpgFileDeZoom=" << aName << "\n"; getchar();
     Convert_JPG(aName,true,90,"jpg");
 }
 

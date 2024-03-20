@@ -76,6 +76,9 @@ template <class Type> inline cPtxd<Type,2> PSymXY (const cPtxd<Type,2> & aP)
 ///  matrix of  linear function  q -> q * aP
 template <class Type> cDenseMatrix<Type> MatOfMul (const cPtxd<Type,2> & aP);
 
+/**  This specialization is specific to dim 2, as the normal to a vector is 
+ * specific to d2
+ */
 template <class Type> class cSegment2DCompiled : public cSegmentCompiled<Type,2>
 {
     public :

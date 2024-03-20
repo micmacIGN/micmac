@@ -432,12 +432,17 @@ cIm2D<tU_INT1> ImageOfString_DCT(const std::string & aStr ,int aSpace)
 
 void Convert_JPG(const std::string &  aNameIm,bool DeleteAfter,tREAL8 aQuality,const std::string & aPost)
 {
+    // std::string aStrCom = "convert -quality "+ToStr(aQuality) + " "+  aNameIm + " " + LastPrefix(aNameIm) + "." + aPost;
+
     cParamCallSys aCom("convert","-quality",ToStr(aQuality),
 	                   aNameIm,
                        LastPrefix(aNameIm) + "." + aPost
                        );
 
        int aResult = GlobSysCall(aCom,true);
+
+      // StdOut() << "CCC= " << aStrCom << "\n";
+      // StdOut() << "Convert_JPGConvert_JPG\n"; getchar();
 
        if ( (aResult==EXIT_SUCCESS) && DeleteAfter)
        {
