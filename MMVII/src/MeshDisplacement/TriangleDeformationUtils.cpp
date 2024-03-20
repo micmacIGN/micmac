@@ -85,6 +85,44 @@ namespace MMVII
         aSys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqDense, aVInit);
     }
 
+    void InitialisationAfterExeTranslation(cTriangulation2D<tREAL8> &aDelaunayTri,
+                                           cResolSysNonLinear<tREAL8> *&aSysTranslation)
+    {
+        tDenseVect aVInitTranslation(2 * aDelaunayTri.NbPts(), eModeInitImage::eMIA_Null);
+
+        aSysTranslation = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqDense, aVInitTranslation);
+    }
+
+    void InitialisationAfterExeRadiometry(cTriangulation2D<tREAL8> &aDelaunayTri,
+                                          cResolSysNonLinear<tREAL8> *&aSysRadiometry)
+    {
+        const size_t aNumberPts = 2 * aDelaunayTri.NbPts();
+        tDenseVect aVInitRadiometry(aNumberPts, eModeInitImage::eMIA_Null); // eMIA_V1
+
+        for (size_t aKtNumber = 0; aKtNumber < aNumberPts; aKtNumber++)
+        {
+            if (aKtNumber % 2 == 1)
+                aVInitRadiometry(aKtNumber) = 1;
+        }
+
+        aSysRadiometry = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqDense, aVInitRadiometry);
+    }
+
+    bool CheckValidCorrelationValue(tDIm * aMask, const cPt2di &aPointTri)
+    {
+        bool aIsValidCorrelPoint;
+        (aMask->GetV(aPointTri) == 1) ? aIsValidCorrelPoint = true : aIsValidCorrelPoint = false;
+        return aIsValidCorrelPoint;
+    }
+
+    tREAL8 ReturnCorrectInitialisationValue(const bool aIsValidCorrelation, tDIm *aIntermediateDispMap,
+                                            const cPt2di &aTriPoint, const tREAL8 aValueToReturnIfFalse)
+    {
+        tREAL8 aInitialisationValue;
+        (aIsValidCorrelation) ? aInitialisationValue = aIntermediateDispMap->GetV(aTriPoint) : aInitialisationValue = aValueToReturnIfFalse;
+        return aInitialisationValue;
+    }
+
     void SubtractPrePostImageAndComputeAvgAndMax(tIm aImDiff, tDIm *aDImDiff, tDIm *aDImPre,
                                                  tDIm *aDImPost, cPt2di aSzImPre)
     {

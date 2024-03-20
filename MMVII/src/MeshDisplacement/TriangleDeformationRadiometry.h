@@ -35,14 +35,11 @@ namespace MMVII
         cCollecSpecArg2007 &ArgOpt(cCollecSpecArg2007 &anArgOpt) override;
 
         // Iterate of triangles and inside pixels
-        virtual void DoOneIterationRadiometry(const int aIterNumber);
+        virtual void DoOneIterationRadiometry(const int aIterNumber, const int aTotalNumberOfIterations);
         // Loops over all triangles and solves system to update parameters at end of iteration
         virtual void LoopOverTrianglesAndUpdateParametersRadiometry(const int aIterNumber);
         // Generate displacement maps of last solution
         virtual void GenerateOutputImageAndDisplayLastRadiometryValues(const tDenseVect &aVFinalSol, const int aIterNumber);
-        // Initialise problem after user has input information
-        void InitialisationAfterExeRadiometry(cTriangulation2D<tREAL8> &aDelaunayTri,
-                                              cResolSysNonLinear<tREAL8> *&aSys);
         // Fill displacement maps and output image
         void FillOutputImage(const cPtInsideTriangles &aLastPixInsideTriangle,
                              const tREAL8 aLastRadiometryTranslation,
@@ -101,7 +98,7 @@ namespace MMVII
         std::vector<cPt2dr> mVectorPts;   // A vector containing a set of points
         cTriangulation2D<tREAL8> mDelTri; // A Delaunay triangle
 
-        cResolSysNonLinear<tREAL8> *mSys;      // Non Linear Sys for solving problem
+        cResolSysNonLinear<tREAL8> *mSysRadiometry;      // Non Linear Sys for solving problem
         cCalculator<double> *mEqRadiometryTri; // calculator giving access to values and derivatives
     };
 }

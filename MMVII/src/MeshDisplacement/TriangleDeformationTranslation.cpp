@@ -27,12 +27,13 @@ namespace MMVII
                                                                                                                     mShow(true),
                                                                                                                     mUseMultiScaleApproach(true),
                                                                                                                     mInitialiseTranslationWithPreviousExecution(true),
-                                                                                                                    mNameIntermediateDepX("IntermediateXDisplacementMap"),
-                                                                                                                    mNameIntermediateDepY("IntermediateYDisplacementMap"),
-                                                                                                                    mIsFirstExecution(false),
                                                                                                                     mInitialiseWithMMVI(false),
                                                                                                                     mNameFileInitialDepX("InitialXDisplacementMap"),
                                                                                                                     mNameFileInitialDepY("InitialYDisplacementMap"),
+                                                                                                                    mNameIntermediateDepX("IntermediateXDisplacementMap"),
+                                                                                                                    mNameIntermediateDepY("IntermediateYDisplacementMap"),
+                                                                                                                    mNameCorrelationMaskMMVI("CorrelationMask.tif"),
+                                                                                                                    mIsFirstExecution(false),
                                                                                                                     mSigmaGaussFilterStep(1),
                                                                                                                     mGenerateDisplacementImage(true),
                                                                                                                     mNumberOfIterGaussFilter(3),
@@ -59,9 +60,12 @@ namespace MMVII
                                                                                                                     mSzImIntermediateDepY(cPt2di(1, 1)),
                                                                                                                     mImIntermediateDepY(mSzImIntermediateDepY),
                                                                                                                     mDImIntermediateDepY(nullptr),
+                                                                                                                    mSzCorrelatioMask(cPt2di(1, 1)),
+                                                                                                                    mImCorrelatioMask(mSzImIntermediateDepY),
+                                                                                                                    mDImCorrelatioMask(nullptr),
                                                                                                                     mVectorPts({cPt2dr(0, 0)}),
                                                                                                                     mDelTri(mVectorPts),
-                                                                                                                    mSys(nullptr),
+                                                                                                                    mSysTranslation(nullptr),
                                                                                                                     mEqTranslationTri(nullptr)
     {
         mEqTranslationTri = EqDeformTriTranslation(true, 1); // true means with derivative, 1 is size of buffer
@@ -69,7 +73,7 @@ namespace MMVII
 
     cAppli_cTriangleDeformationTranslation::~cAppli_cTriangleDeformationTranslation()
     {
-        delete mSys;
+        delete mSysTranslation;
         delete mEqTranslationTri;
     }
 
@@ -93,16 +97,18 @@ namespace MMVII
                << AOpt2007(mUseMultiScaleApproach, "UseMultiScaleApproach", "Whether to use multi-scale approach or not.", {eTA2007::HDV})
                << AOpt2007(mInitialiseTranslationWithPreviousExecution, "InitialiseTranslationWithPreviousExecution",
                            "Whether to initialise or not with unknown values obtained at previous algorithm execution", {eTA2007::HDV})
+               << AOpt2007(mInitialiseWithMMVI, "InitialiseWithMMVI",
+                           "Whether to initialise or not values of unknowns with pre-computed values from MicMacV1 at first execution", {eTA2007::HDV})
+               << AOpt2007(mNameFileInitialDepX, "NameOfInitialDepXMap", "Name of file of initial X-displacement map", {eTA2007::HDV})
+               << AOpt2007(mNameFileInitialDepY, "NameOfInitialDepYMap", "Name of file of initial Y-displacement map", {eTA2007::HDV})
                << AOpt2007(mNameIntermediateDepX, "NameForIntermediateXDisplacementMap",
                            "File name to use when saving intermediate x-displacement maps between executions", {eTA2007::HDV})
                << AOpt2007(mNameIntermediateDepY, "NameForIntermediateYDisplacementMap",
                            "File name to use when saving intermediate y-displacement maps between executions", {eTA2007::HDV})
+               << AOpt2007(mNameCorrelationMaskMMVI, "NameOfCorrelationMask",
+                           "File name of mask file from MMVI giving locations where correlation is computed", {eTA2007::HDV})
                << AOpt2007(mIsFirstExecution, "IsFirstExecution",
                            "Whether this is the first execution of optimisation algorithm or not", {eTA2007::HDV})
-               << AOpt2007(mInitialiseWithMMVI, "InitialiseWithMMVI",
-                           "Whether to initialise or not values of unknowns with pre-computed values from MicMacV1 at first execution", {eTA2007::HDV})
-               << AOpt2007(mNameFileInitialDepX, "InitialDepXMapFilename", "Name of file of initial X-displacement map", {eTA2007::HDV})
-               << AOpt2007(mNameFileInitialDepY, "InitialDepYMapFilename", "Name of file of initial Y-displacement map", {eTA2007::HDV})
                << AOpt2007(mSigmaGaussFilterStep, "SigmaGaussFilterStep", "Sigma value to use for Gauss filter in multi-stage approach.", {eTA2007::HDV})
                << AOpt2007(mGenerateDisplacementImage, "GenerateDisplacementImage",
                            "Whether to generate and save an image having been translated.", {eTA2007::HDV})
@@ -114,58 +120,64 @@ namespace MMVII
                            "Number of iterations to run on original images in multi-scale approach.", {eTA2007::HDV});
     }
 
-    void cAppli_cTriangleDeformationTranslation::InitialisationAfterExeTranslation()
-    {
-        tDenseVect aVInit(2 * mDelTri.NbPts(), eModeInitImage::eMIA_Null);
-
-        mSys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqDense, aVInit);
-    }
-
     void cAppli_cTriangleDeformationTranslation::InitialiseWithPreviousExecutionValuesTranslation()
     {
-        tDenseVect aVInit(2 * mDelTri.NbPts(), eModeInitImage::eMIA_Null);
+        tDenseVect aVInitTranslation(2 * mDelTri.NbPts(), eModeInitImage::eMIA_Null);
 
         if (!mIsFirstExecution)
         {
             ReadFileNameLoadData(mNameIntermediateDepX, mImIntermediateDepX,
-                                mDImIntermediateDepX, mSzImIntermediateDepX);
+                                 mDImIntermediateDepX, mSzImIntermediateDepX);
             ReadFileNameLoadData(mNameIntermediateDepY, mImIntermediateDepY,
-                                mDImIntermediateDepY, mSzImIntermediateDepY);
+                                 mDImIntermediateDepY, mSzImIntermediateDepY);
         }
+
+        ReadFileNameLoadData(mNameCorrelationMaskMMVI, mImCorrelatioMask,
+                             mDImCorrelatioMask, mSzCorrelatioMask);
 
         for (size_t aTr = 0; aTr < mDelTri.NbFace(); aTr++)
         {
             const tTri2dr aTri = mDelTri.KthTri(aTr);
             const cPt3di aIndicesOfTriKnots = mDelTri.KthFace(aTr);
 
+            // Get points coordinates associated to triangle
             const cPt2di aFirstPointTri = cPt2di(aTri.Pt(0).x(), aTri.Pt(0).y());
+            const bool aFirstPointIsValid = CheckValidCorrelationValue(mDImCorrelatioMask, aFirstPointTri);
             const cPt2di aSecondPointTri = cPt2di(aTri.Pt(1).x(), aTri.Pt(1).y());
+            const bool aSecondPointIsValid = CheckValidCorrelationValue(mDImCorrelatioMask, aSecondPointTri);
             const cPt2di aThirdPointTri = cPt2di(aTri.Pt(2).x(), aTri.Pt(2).y());
+            const bool aThirdPointIsValid = CheckValidCorrelationValue(mDImCorrelatioMask, aThirdPointTri);
 
             //----------- index of unknown, finds the associated pixels of current triangle
             const tIntVect aVecInd = {2 * aIndicesOfTriKnots.x(), 2 * aIndicesOfTriKnots.x() + 1,
                                       2 * aIndicesOfTriKnots.y(), 2 * aIndicesOfTriKnots.y() + 1,
                                       2 * aIndicesOfTriKnots.z(), 2 * aIndicesOfTriKnots.z() + 1};
 
-            aVInit(aVecInd.at(0)) = mDImIntermediateDepX->GetV(aFirstPointTri);
-            aVInit(aVecInd.at(1)) = mDImIntermediateDepY->GetV(aFirstPointTri);
-            aVInit(aVecInd.at(2)) = mDImIntermediateDepX->GetV(aSecondPointTri);
-            aVInit(aVecInd.at(3)) = mDImIntermediateDepY->GetV(aSecondPointTri);
-            aVInit(aVecInd.at(4)) = mDImIntermediateDepX->GetV(aThirdPointTri);
-            aVInit(aVecInd.at(5)) = mDImIntermediateDepY->GetV(aThirdPointTri);
+            aVInitTranslation(aVecInd.at(0)) = ReturnCorrectInitialisationValue(aFirstPointIsValid, mDImIntermediateDepX,
+                                                                                aFirstPointTri, 0);
+            aVInitTranslation(aVecInd.at(1)) = ReturnCorrectInitialisationValue(aFirstPointIsValid, mDImIntermediateDepY,
+                                                                                aFirstPointTri, 0);
+            aVInitTranslation(aVecInd.at(2)) = ReturnCorrectInitialisationValue(aSecondPointIsValid, mDImIntermediateDepX,
+                                                                                aSecondPointTri, 0);
+            aVInitTranslation(aVecInd.at(3)) = ReturnCorrectInitialisationValue(aSecondPointIsValid, mDImIntermediateDepY,
+                                                                                aSecondPointTri, 0);
+            aVInitTranslation(aVecInd.at(4)) = ReturnCorrectInitialisationValue(aThirdPointIsValid, mDImIntermediateDepX,
+                                                                                aThirdPointTri, 0);
+            aVInitTranslation(aVecInd.at(5)) = ReturnCorrectInitialisationValue(aThirdPointIsValid, mDImIntermediateDepY,
+                                                                                aThirdPointTri, 0);
         }
 
-        mSys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqDense, aVInit);
+        mSysTranslation = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqDense, aVInitTranslation);
     }
 
-    void cAppli_cTriangleDeformationTranslation::LoopOverTrianglesAndUpdateParametersTranslation(const int aIterNumber, 
+    void cAppli_cTriangleDeformationTranslation::LoopOverTrianglesAndUpdateParametersTranslation(const int aIterNumber,
                                                                                                  const int aTotalNumberOfIterations)
     {
         //----------- allocate vec of obs :
         tDoubleVect aVObs(12, 0.0); // 6 for ImagePre and 6 for ImagePost
 
         //----------- extract current parameters
-        tDenseVect aVCur = mSys->CurGlobSol(); // Get current solution.
+        tDenseVect aVCur = mSysTranslation->CurGlobSol(); // Get current solution.
 
         tIm aCurPreIm = tIm(mSzImPre);
         tDIm *aCurPreDIm = nullptr;
@@ -255,7 +267,7 @@ namespace MMVII
                     FormalBilinTri_SetObs(aVObs, TriangleDisplacement_NbObs, aTranslatedFilledPoint, *aCurPostDIm);
 
                     // Now add observation
-                    mSys->CalcAndAddObs(mEqTranslationTri, aVecInd, aVObs);
+                    mSysTranslation->CalcAndAddObs(mEqTranslationTri, aVecInd, aVObs);
 
                     // compute indicators
                     const tREAL8 aDif = aVObs[5] - aCurPostDIm->GetVBL(aTranslatedFilledPoint); // residual - aValueImPre - aCurPostDIm->GetVBL(aTranslatedFilledPoint)
@@ -276,7 +288,7 @@ namespace MMVII
         }
 
         // Update all parameter taking into account previous observation
-        mSys->SolveUpdateReset();
+        mSysTranslation->SolveUpdateReset();
 
         if (mShow)
             StdOut() << aIterNumber + 1 << ", " << aSomDif / aTotalNumberOfInsidePixels
@@ -416,7 +428,9 @@ namespace MMVII
                              std::to_string(mNumberPointsToGenerate) + "_" +
                              std::to_string(aTotalNumberOfIterations) + ".tif");
             if (aIterNumber == aTotalNumberOfIterations - 1)
-                mDImOut->ToFile("DisplacedPixels.tif");
+                mDImOut->ToFile("DisplacedPixels_iter_" + std::to_string(aIterNumber) + "_" +
+                                std::to_string(mNumberPointsToGenerate) + "_" +
+                                std::to_string(aTotalNumberOfIterations) + ".tif");
         }
         else if (mInitialiseTranslationWithPreviousExecution)
         {
@@ -429,14 +443,15 @@ namespace MMVII
                              std::to_string(aTotalNumberOfIterations) + ".tif");
             mDImDepY->ToFile("DisplacedPixelsY_" + std::to_string(mNumberPointsToGenerate) + "_" +
                              std::to_string(aTotalNumberOfIterations) + ".tif");
-            mDImOut->ToFile("DisplacedPixels.tif");
+            mDImOut->ToFile("DisplacedPixels_" + std::to_string(mNumberPointsToGenerate) + "_" +
+                            std::to_string(aTotalNumberOfIterations) + ".tif");
         }
     }
 
     void cAppli_cTriangleDeformationTranslation::GenerateDisplacementMapsAndLastTranslatedPoints(const int aIterNumber,
                                                                                                  const int aTotalNumberOfIterations)
     {
-        tDenseVect aVFinalSol = mSys->CurGlobSol();
+        tDenseVect aVFinalSol = mSysTranslation->CurGlobSol();
 
         if (mGenerateDisplacementImage)
             GenerateDisplacementMaps(aVFinalSol, aIterNumber, aTotalNumberOfIterations);
@@ -465,7 +480,7 @@ namespace MMVII
 
     int cAppli_cTriangleDeformationTranslation::Exe()
     {
-        // read pre and post images and their sizes
+        // read pre and post images and update their sizes
         ReadFileNameLoadData(mNamePreImage, mImPre, mDImPre, mSzImPre);
         ReadFileNameLoadData(mNamePostImage, mImPost, mDImPost, mSzImPost);
 
@@ -480,8 +495,8 @@ namespace MMVII
         GeneratePointsForDelaunay(mVectorPts, mNumberPointsToGenerate, mRandomUniformLawUpperBoundLines,
                                   mRandomUniformLawUpperBoundCols, mDelTri, mSzImPre);
 
-        if (!mInitialiseTranslationWithPreviousExecution)
-            InitialisationAfterExeTranslation();
+        if (!mInitialiseTranslationWithPreviousExecution || (mIsFirstExecution && !mInitialiseWithMMVI))
+            InitialisationAfterExeTranslation(mDelTri, mSysTranslation);
         else
         {
             if (mIsFirstExecution && mInitialiseWithMMVI)
@@ -493,19 +508,18 @@ namespace MMVII
 
                 InitialiseWithPreviousExecutionValuesTranslation();
             }
-            else if (mIsFirstExecution && !mInitialiseWithMMVI)
-                InitialisationAfterExeTranslation();
-            else if (!mIsFirstExecution)
+            // else if (mIsFirstExecution && !mInitialiseWithMMVI)
+                //InitialisationAfterExeTranslation();
+            else if ((!mIsFirstExecution && mInitialiseWithMMVI) ||
+                     (!mIsFirstExecution && mInitialiseTranslationWithPreviousExecution))
                 InitialiseWithPreviousExecutionValuesTranslation();
         }
 
         int aTotalNumberOfIterations = 0;
-        (mUseMultiScaleApproach) ? aTotalNumberOfIterations = mNumberOfScales + mNumberOfEndIterations : 
-                                   aTotalNumberOfIterations = mNumberOfScales;
+        (mUseMultiScaleApproach) ? aTotalNumberOfIterations = mNumberOfScales + mNumberOfEndIterations : aTotalNumberOfIterations = mNumberOfScales;
 
         for (int aIterNumber = 0; aIterNumber < mNumberOfScales; aIterNumber++)
             DoOneIterationTranslation(aIterNumber, aTotalNumberOfIterations);
-
 
         return EXIT_SUCCESS;
     }

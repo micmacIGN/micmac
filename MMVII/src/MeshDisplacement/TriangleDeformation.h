@@ -68,15 +68,14 @@ namespace MMVII
         bool mUseMultiScaleApproach;                      // Apply multi-scale approach or not
         bool mInitialiseTranslationWithPreviousExecution; // Initialise values of translation unknowns with values obtained at previous algorithm execution
         bool mInitialiseRadiometryWithPreviousExecution;  // Initialise values of radiometry unknowns with values obtained at previous algorithm execution
-        std::string mNameIntermediateDepX;              // File name to save to of intermediate X-displacement map between executions if initialisation with previous unknown values is true
-        std::string mNameIntermediateDepY;              // File name to save to of intermediate Y-displacement map between executions if initialisation with previous unknown values is true
+        bool mInitialiseWithMMVI;                         // Whether to initialise values of unknowns with pre-computed values from MicMacV1 or not
         std::string mNameFileInitialDepX;                 // File name of initial X-displacement map
         std::string mNameFileInitialDepY;                 // File name of initial Y-displacement map
+        std::string mNameIntermediateDepX;                // File name to save to of intermediate X-displacement map between executions if initialisation with previous unknown values is true
+        std::string mNameIntermediateDepY;                // File name to save to of intermediate Y-displacement map between executions if initialisation with previous unknown values is true
         bool mIsFirstExecution;                           // Whether current execution of algorithm is first execution or not
-        bool mInitialiseWithMMVI;                         // Whether to initialise values of unknowns with pre-computed values from MicMacV1 or not
         int mSigmaGaussFilterStep;                        // Decreasing step of sigma value during iterations
         bool mGenerateDisplacementImage;                  // Generate image with displaced pixels
-        bool mInitialiseWithPreviousIter;                 // Initialise unknown value at beginning of every iteration with values obtained at previous iteration
         bool mFreezeTranslationX;                         // Freeze x-translation or not during optimisation
         bool mFreezeTranslationY;                         // Freeze y-translation or not during optimisation
         bool mFreezeRadTranslation;                       // Freeze radiometry translation or not during optimisation

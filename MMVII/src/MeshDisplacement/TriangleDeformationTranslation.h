@@ -43,8 +43,6 @@ namespace MMVII
         void GenerateDisplacementMaps(const tDenseVect &aVFinalSol, const int aIterNumber, const int aTotalNumberOfIterations);
         // Generates Displacement maps and coordinates of points in triangulation at last iteration
         void GenerateDisplacementMapsAndLastTranslatedPoints(const int aIterNumber, const int aTotalNumberOfIterations);
-        // Initialise problem after user has input information
-        void InitialisationAfterExeTranslation();
         // Initialise unknowns values with values obtained at previous exection
         void InitialiseWithPreviousExecutionValuesTranslation();
         // Fill displacement maps and output image
@@ -72,12 +70,13 @@ namespace MMVII
         bool mComputeAvgMax;                              // Compute average and maximum pixel value of difference image between pre and post images
         bool mUseMultiScaleApproach;                      // Apply multi-scale approach or not
         bool mInitialiseTranslationWithPreviousExecution; // Initialise values of unknowns with values obtained at previous algorithm execution
-        std::string mNameIntermediateDepX;                // File name to save to of intermediate X-displacement map between executions if initialisation with previous unknown values is true
-        std::string mNameIntermediateDepY;                // File name to save to of intermediate Y-displacement map between executions if initialisation with previous unknown values is true
-        bool mIsFirstExecution;                           // Whether current execution of algorithm is first execution or not
         bool mInitialiseWithMMVI;                         // Whether to initialise values of unknowns with pre-computed values from MicMacV1 or not
         std::string mNameFileInitialDepX;                 // File name of initial X-displacement map
         std::string mNameFileInitialDepY;                 // File name of initial Y-displacement map
+        std::string mNameIntermediateDepX;                // File name to save to of intermediate X-displacement map between executions if initialisation with previous unknown values is true
+        std::string mNameIntermediateDepY;                // File name to save to of intermediate Y-displacement map between executions if initialisation with previous unknown values is true
+        std::string mNameCorrelationMaskMMVI;             // File name of mask file produced by MMVI that gives pixel locations where correlation was computed
+        bool mIsFirstExecution;                           // Whether current execution of algorithm is first execution or not
         int mSigmaGaussFilterStep;                        // Decreasing step of sigma value during iterations
         bool mGenerateDisplacementImage;                  // Generate image with displaced pixels
         int mNumberOfIterGaussFilter;                     // Number of iterations to be done in Gauss filter algorithm
@@ -114,13 +113,17 @@ namespace MMVII
         tIm mImIntermediateDepY;      //  memory representation of the image
         tDIm *mDImIntermediateDepY;   //  memory representation of the image
 
+        cPt2di mSzCorrelatioMask;   //  size of image
+        tIm mImCorrelatioMask;      //  memory representation of the image
+        tDIm *mDImCorrelatioMask;   //  memory representation of the image
+
         double mSigmaGaussFilter; // Value of sigma in gauss filter
         bool mIsLastIters;        // Determines whether optimisation process is at last iters to optimise on original image
 
         std::vector<cPt2dr> mVectorPts;   // A vector containing a set of points
         cTriangulation2D<tREAL8> mDelTri; // A Delaunay triangle
 
-        cResolSysNonLinear<tREAL8> *mSys;       // Non Linear Sys for solving problem
+        cResolSysNonLinear<tREAL8> *mSysTranslation;       // Non Linear Sys for solving problem
         cCalculator<double> *mEqTranslationTri; // calculator giving access to values and derivatives
     };
 }

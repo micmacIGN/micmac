@@ -42,7 +42,7 @@ namespace MMVII
                                                                                                                   mDImOut(nullptr),
                                                                                                                   mVectorPts({cPt2dr(0, 0)}),
                                                                                                                   mDelTri(mVectorPts),
-                                                                                                                  mSys(nullptr),
+                                                                                                                  mSysRadiometry(nullptr),
                                                                                                                   mEqRadiometryTri(nullptr)
 
     {
@@ -52,7 +52,7 @@ namespace MMVII
 
     cAppli_cTriangleDeformationRadiometry::~cAppli_cTriangleDeformationRadiometry()
     {
-        delete mSys;
+        delete mSysRadiometry;
         delete mEqRadiometryTri;
     }
 
@@ -90,28 +90,13 @@ namespace MMVII
                            "Number of iterations to run on original images in multi-scale approach.", {eTA2007::HDV});
     }
 
-    void cAppli_cTriangleDeformationRadiometry::InitialisationAfterExeRadiometry(cTriangulation2D<tREAL8> &aDelaunayTri,
-                                                                                 cResolSysNonLinear<tREAL8> *&aSys)
-    {
-        const size_t aNumberPts = 2 * aDelaunayTri.NbPts();
-        tDenseVect aVInit(aNumberPts, eModeInitImage::eMIA_Null); // eMIA_V1
-
-        for (size_t aKtNumber = 0; aKtNumber < aNumberPts; aKtNumber++)
-        {
-            if (aKtNumber % 2 == 1)
-                aVInit(aKtNumber) = 1;
-        }
-
-        aSys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqDense, aVInit);
-    }
-
     void cAppli_cTriangleDeformationRadiometry::LoopOverTrianglesAndUpdateParametersRadiometry(const int aIterNumber)
     {
         //----------- allocate vec of obs :
         tDoubleVect aVObs(12, 0.0); // 6 for ImagePre and 6 for ImagePost
 
         //----------- extract current parameters
-        tDenseVect aVCur = mSys->CurGlobSol(); // Get current solution.
+        tDenseVect aVCur = mSysRadiometry->CurGlobSol(); // Get current solution.
 
         tIm aCurPreIm = tIm(mSzImPre);
         tDIm *aCurPreDIm = nullptr;
@@ -188,7 +173,7 @@ namespace MMVII
                 for (size_t aIndCurSol = aSolStart; aIndCurSol < aVecInd.size() - 1; aIndCurSol += aSolStep)
                 {
                     const int aIndices = aVecInd.at(aIndCurSol);
-                    mSys->AddEqFixVar(aIndices, aVCur(aIndices), mWeightRadTranslation);
+                    mSysRadiometry->AddEqFixVar(aIndices, aVCur(aIndices), mWeightRadTranslation);
                 }
             }
 
@@ -200,7 +185,7 @@ namespace MMVII
                 for (size_t aIndCurSol = aSolStart; aIndCurSol < aVecInd.size(); aIndCurSol += aSolStep)
                 {
                     const int aIndices = aVecInd.at(aIndCurSol);
-                    mSys->AddEqFixVar(aIndices, aVCur(aIndices), mWeightRadScale);
+                    mSysRadiometry->AddEqFixVar(aIndices, aVCur(aIndices), mWeightRadScale);
                 }
             }
 
@@ -239,7 +224,7 @@ namespace MMVII
                         FormalBilinTri_SetObs(aVObs, TriangleDisplacement_NbObs, aInsideTrianglePoint, *aCurPostDIm);
 
                         // Now add observation
-                        mSys->CalcAndAddObs(mEqRadiometryTri, aVecInd, aVObs);
+                        mSysRadiometry->CalcAndAddObs(mEqRadiometryTri, aVecInd, aVObs);
 
                         // compute indicators
                         const tREAL8 aRadiomValueImPre = aRadiometryScaling * aVObs[5] + aRadiometryTranslation;
@@ -254,7 +239,7 @@ namespace MMVII
         }
 
         // Update all parameter taking into account previous observation
-        mSys->SolveUpdateReset();
+        mSysRadiometry->SolveUpdateReset();
 
         if (mShow)
             StdOut() << aIterNumber + 1 << ", " << aSomDif / aTotalNumberOfInsidePixels
@@ -376,22 +361,16 @@ namespace MMVII
         }
     }
 
-    void cAppli_cTriangleDeformationRadiometry::DoOneIterationRadiometry(const int aIterNumber)
+    void cAppli_cTriangleDeformationRadiometry::DoOneIterationRadiometry(const int aIterNumber, const int aTotalNumberOfIterations)
     {
         LoopOverTrianglesAndUpdateParametersRadiometry(aIterNumber); // Iterate over triangles and solve system
 
-        tDenseVect aVFinalSol = mSys->CurGlobSol();
+        tDenseVect aVFinalSol = mSysRadiometry->CurGlobSol();
         // Show final translation results and produce displacement maps
-        if (mUseMultiScaleApproach)
-        {
-            if (aIterNumber == (mNumberOfScales + mNumberOfEndIterations - 1))
-                GenerateOutputImageAndDisplayLastRadiometryValues(aVFinalSol, aIterNumber);
-        }
-        else
-        {
-            if (aIterNumber == (mNumberOfScales - 1))
-                GenerateOutputImageAndDisplayLastRadiometryValues(aVFinalSol, aIterNumber);
-        }
+
+        if (aIterNumber == (aTotalNumberOfIterations - 1))
+            GenerateOutputImageAndDisplayLastRadiometryValues(aVFinalSol, aIterNumber);
+
     }
 
     //-----------------------------------------
@@ -413,18 +392,13 @@ namespace MMVII
         GeneratePointsForDelaunay(mVectorPts, mNumberPointsToGenerate, mRandomUniformLawUpperBoundLines,
                                   mRandomUniformLawUpperBoundCols, mDelTri, mSzImPre);
 
-        cAppli_cTriangleDeformationRadiometry::InitialisationAfterExeRadiometry(mDelTri, mSys);
+        InitialisationAfterExeRadiometry(mDelTri, mSysRadiometry);
 
-        if (mUseMultiScaleApproach)
-        {
-            for (int aIterNumber = 0; aIterNumber < mNumberOfScales + mNumberOfEndIterations; aIterNumber++)
-                DoOneIterationRadiometry(aIterNumber);
-        }
-        else
-        {
-            for (int aIterNumber = 0; aIterNumber < mNumberOfScales; aIterNumber++)
-                DoOneIterationRadiometry(aIterNumber);
-        }
+        int aTotalNumberOfIterations = 0;
+        (mUseMultiScaleApproach) ? aTotalNumberOfIterations = mNumberOfScales + mNumberOfEndIterations : aTotalNumberOfIterations = mNumberOfScales;
+    
+        for (int aIterNumber = 0; aIterNumber < aTotalNumberOfIterations; aIterNumber++)
+            DoOneIterationRadiometry(aIterNumber, aTotalNumberOfIterations);
 
         return EXIT_SUCCESS;
     }

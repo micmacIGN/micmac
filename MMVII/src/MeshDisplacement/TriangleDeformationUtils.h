@@ -37,9 +37,20 @@ namespace MMVII
     void GeneratePointsForDelaunay(std::vector<cPt2dr> &aVectorPts, const int aNumberOfPointsToGenerate,
                                    int aRandomUniformLawUpperBoundLines, int aRandomUniformLawUpperBoundCols,
                                    cTriangulation2D<tREAL8> &aDelaunayTri, const cPt2di &aSzImPre);
-    // Initialise values of unknowns at the beginning of optimsation process after user has input information
+    // Initialise values of unknowns at the beginning of optimisation process after user has input information
     void InitialisationAfterExe(const cTriangulation2D<tREAL8> &aDelaunayTri,
                                 cResolSysNonLinear<tREAL8> *&aSys);
+    // Initialise problem after user has input information for translation
+    void InitialisationAfterExeTranslation(cTriangulation2D<tREAL8> &aDelaunayTri,
+                                           cResolSysNonLinear<tREAL8> *&aSys);
+    // Initialise problem after user has input information for radiometry
+    void InitialisationAfterExeRadiometry(cTriangulation2D<tREAL8> &aDelaunayTri,
+                                            cResolSysNonLinear<tREAL8> *&aSys);
+    // Check whether point has a correlation value or not thanks to MMVI correlation mask
+    bool CheckValidCorrelationValue(tDIm * aMask, const cPt2di &aPointTri);
+    // Return correct value for initalisation depending on mask
+    tREAL8 ReturnCorrectInitialisationValue(const bool aIsValidCorrelation, tDIm *aIntermediateDispMap,
+                                            const cPt2di &aTriPoint, const tREAL8 aValueToReturnIfFalse);
     // Construct difference image and compute average and max pixel value on ths image
     void SubtractPrePostImageAndComputeAvgAndMax(tIm aImDiff, tDIm *aDImDiff, tDIm *aDImPre, 
                                                  tDIm *aDImPost, cPt2di aSzImPre);
