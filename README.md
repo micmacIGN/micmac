@@ -24,7 +24,7 @@ directories of the *PATH* environment variable.
 There is also a special directory for tool finding which is named *binaire-aux*, in Micmac directory. When an external program
 is needed, this directory is always scanned whatever the value of PATH.
 
-## Additionnal notes for Windows
+## Additional notes for Windows
 
 You will need [Visual C++ 2010 runtime redistribuables](http://www.microsoft.com/fr-fr/download/details.aspx?id=5555) to run pre-compiled binaries of micmac.
 Both pre-compiled and compiled from source executables will need :
@@ -94,7 +94,7 @@ the ending '/', it's mandatory for the script to work.
 	After some computation time, you may find three 'ply' files in the 'MEC-6-Im' directory with the three parts of the dense points cloud
 of the statue's head. Open the PLY files with a viewer like meshlab to check everything proceeded correctly.
 
-# Additionnal notes
+# Additional notes
 
 You can append the full path of the `bin` directory to `PATH` environment variable to call Micmac commands from anywhere. However, it is not necessary to add the `binaire-aux` directory to the `PATH` variable.
 
