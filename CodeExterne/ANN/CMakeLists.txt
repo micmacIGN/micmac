@@ -1,6 +1,9 @@
 include_directories(${PROJECT_SOURCE_DIR}/CodeExterne/ANN/include)
+if(BUILD_PATH_LIB)
+set(Install_Dir_lib ${BUILD_PATH_LIB})
+else(BUILD_PATH_LIB)
 set(Install_Dir_lib ${PROJECT_SOURCE_DIR}/lib)
-
+endif(BUILD_PATH_LIB)
 set(ANN_SRC_DIR ${PROJECT_SOURCE_DIR}/CodeExterne/ANN/src)
 
 set(ann_source_files ${ANN_SRC_DIR}/ANN.cpp
