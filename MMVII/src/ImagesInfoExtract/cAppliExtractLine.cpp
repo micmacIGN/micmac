@@ -95,8 +95,13 @@ template <class Type> class  cImGradWithN : public cImGrad<Type>
      public :
         ///  Constructor using size
         cImGradWithN(const cPt2di & aSz);
+        ///  Constructor using image & Alpha-Deriche parameters
+        cImGradWithN(const cDataIm2D<Type> & aImIn,Type aAlphaDeriche);
+
+
+
 	/// Is it a local-maxima in the direction of the gradient
-        bool  IsMaxLocDirGrad(const cPt2di& aPix,const std::vector<cPt2di> &) const;
+        bool  IsMaxLocDirGrad(const cPt2di& aPix,const std::vector<cPt2di> &,tREAL8 aRatioXY = 1.0) const;
 	/// Allocat the neighbourhood use for computing local-maxima
         static  std::vector<cPt2di>  NeighborsForMaxLoc(tREAL8 aRay,tREAL8 aRatioXY = 1.0);
         cIm2D<Type>      NormG() {return mNormG;}  ///< Accessor
@@ -293,40 +298,6 @@ std::vector<cPt3dr>  cHoughTransform::ExtractLocalMax(size_t aNbMax,tREAL8 aDist
 
 
     return aRes;
-
-
-    /*
-    if (aVMaxI.size() > aNbMax)
-    {
-        std::vector<tREAL8> aVThrs;
-        for (const auto & aPt : aExtr.mPtsMax)
-        {
-            aVThrs.push_back(-aDAccum.GetV(aPt));
-        }
-	tREAL8 aVThr = - IKthVal(aVThrs,aNbMax);
-      
-	aVMaxI.clear();
-        for (const auto & aPt : aExtr.mPtsMax)
-        {
-            if (aDAccum.GetV(aPt) > aVThr)
-               aVMaxI.push_back(aPt);
-        }
-	//KthVal
-    }
-
-
-    std::vector<cPt3dr> aRes;
-    cAffineExtremum<tREAL4>  aAffin(mAccum.DIm(),1.5);
-    for (const auto aPt : aVMaxI)
-    {
-         cPt2dr aPAff = aAffin.OneIter(ToR(aPt));
-	 if ( mDAccum.InsideBL(aPAff))
-            aRes.push_back(cPt3dr(aPAff.x(),aPAff.y(),mDAccum.GetVBL(aPAff)));
-    }
-
-    SortOnCriteria(aRes,[](const auto & aP) {return -aP.z();});
-    return aRes;
-    */
 }
 
 /* ************************************************************************ */
@@ -334,11 +305,6 @@ std::vector<cPt3dr>  cHoughTransform::ExtractLocalMax(size_t aNbMax,tREAL8 aDist
 /*                       cImGradWithN                                       */
 /*                                                                          */
 /* ************************************************************************ */
-
-
-
-
-
 
 
 template <class Type>   
@@ -349,15 +315,32 @@ template <class Type>
 {
 }
 
-template<class Type> bool  cImGradWithN<Type>::IsMaxLocDirGrad(const cPt2di& aPix,const std::vector<cPt2di> & aVP) const
+template <class Type>   
+  cImGradWithN<Type>::cImGradWithN(const cDataIm2D<Type> & aImIn,Type aAlphaDeriche) :
+	   cImGradWithN<Type>(aImIn.Sz())
 {
+    ComputeDericheAndNorm(*this,aImIn,aAlphaDeriche);
+}
+
+
+/*   The test is  more complicated than traditionnal local maxima :
+ *
+ *     - 1- On a given edge if we take all the 8-neighboors, one the neighbors in the edge will
+ *         have higher value, that why we take the neigbours that are +- in the direction of grad
+ *         See "NeighborsForMaxLoc()"
+ *
+ *     - 2- with thin line, the oposite contour may have value that may be higer than the contour itself,
+ *      that's why we consider only the point which are orientd in the same direction (test "Scal > 0"),
+ *      note this work for a dark or light line on a average back-ground
+ */
+template<class Type> bool  cImGradWithN<Type>::IsMaxLocDirGrad(const cPt2di& aPix,const std::vector<cPt2di> & aVP,tREAL8 aRatioXY) const
+{
+    //  [1] Compute unitary vector
     tREAL8 aN = mDataNG.GetV(aPix);
-
-    if (aN==0) return false;
-
+    if (aN==0) return false;  // avoid div by 0
     cPt2dr aDirGrad = ToR(this->Grad(aPix)) * (1.0/ aN);
 
-    //  A Basic test to reject point on integer neighbourhood
+    //[2]   A Basic test to reject point on integer neighbourhood in the two direction
     {
         cPt2di aIDirGrad = ToI(aDirGrad);
         for (int aSign : {-1,1})
@@ -370,15 +353,31 @@ template<class Type> bool  cImGradWithN<Type>::IsMaxLocDirGrad(const cPt2di& aPi
         }
     }
 
-
+    // [3]
+#if (0)
     for (const auto & aDeltaNeigh : aVP)
     {
         cPt2di aNeigh = aPix + ToI(ToR(aDeltaNeigh) * aDirGrad);
         if ( (mDataNG.DefGetV(aNeigh,-1)>aN) && (Scal(aDirGrad,ToR(this->Grad(aNeigh))) >0))
            return false;
-       // Compute dir of Neigh in gradient dir
+        //  Maintain test on real neighboor if want to add this option
+        /*cPt2dr aNeigh = ToR(aPix) + ToR(aDeltaNeigh) * aDirGrad;  
+        if ( (mDataNG.DefGetVBL(aNeigh,-1)>aN) && (Scal(aDirGrad,ToR(this->GradBL(aNeigh))) >0))
+           return false;
+        */
+    }
+#endif
+    for (const auto & aDeltaNeigh : aVP)
+    {
+        cPt2dr aDirLoc = ToR(aDeltaNeigh) / aDirGrad;
+        if (std::abs(aDirLoc.x()) >= std::abs(aDirLoc.y()*aRatioXY))
+	{
+            cPt2di aNeigh = aPix + aDeltaNeigh;
 
-        /*cPt2dr aNeigh = ToR(aPix) + ToR(aDeltaNeigh) * aDirGrad;
+            if ( (mDataNG.DefGetV(aNeigh,-1)>aN) && (Scal(aDirGrad,ToR(this->Grad(aNeigh))) >0))
+               return false;
+	}
+        /*cPt2dr aNeigh = ToR(aPix) + ToR(aDeltaNeigh) * aDirGrad;  
         if ( (mDataNG.DefGetVBL(aNeigh,-1)>aN) && (Scal(aDirGrad,ToR(this->GradBL(aNeigh))) >0))
            return false;
         */
@@ -390,6 +389,8 @@ template<class Type> bool  cImGradWithN<Type>::IsMaxLocDirGrad(const cPt2di& aPi
 template<class Type> std::vector<cPt2di>   cImGradWithN<Type>::NeighborsForMaxLoc(tREAL8 aRay,tREAL8 aRatioXY)
 {
    std::vector<cPt2di> aVec = SortedVectOfRadius(0.5,aRay);
+   return aVec;
+/*
 
    std::vector<cPt2di> aRes ;
    for (const auto & aPix : aVec)
@@ -397,6 +398,7 @@ template<class Type> std::vector<cPt2di>   cImGradWithN<Type>::NeighborsForMaxLo
          aRes.push_back(aPix);
 
   return aRes;
+  */
 }
 
 template<class Type> cPt2dr   cImGradWithN<Type>::OneRefinePos(const cPt2dr & aP1) const
@@ -541,9 +543,10 @@ template <class Type> void cExtractLines<Type>::SetHough
 template <class Type> void cExtractLines<Type>::SetDericheGradAndMasq(tREAL8 aAlpha,tREAL8 aRay,int aBorder)
 {
      // Create the data for storing gradient
-     mGrad = new cImGradWithN<Type>(mIm.DIm().Sz());
+     mGrad = new cImGradWithN<Type>(mIm.DIm(),aAlpha);
+     // mGrad = new cImGradWithN<Type>(mIm.DIm().Sz());
      //  compute the gradient & its norm using deriche method
-     ComputeDericheAndNorm(*mGrad,mIm.DIm(),aAlpha);
+     // ComputeDericheAndNorm(*mGrad,mIm.DIm(),aAlpha);
 
      cRect2 aRect(mImMasqCont.DIm().Dilate(-aBorder));
      std::vector<cPt2di>  aVec = cImGradWithN<Type>::NeighborsForMaxLoc(aRay,1.1);
@@ -553,7 +556,7 @@ template <class Type> void cExtractLines<Type>::SetDericheGradAndMasq(tREAL8 aAl
      for (const auto & aPix :  aRect)
      {
          aNbPt++;
-         if (mGrad->IsMaxLocDirGrad(aPix,aVec))
+         if (mGrad->IsMaxLocDirGrad(aPix,aVec,1.0))
          {
             mImMasqCont.DIm().SetV(aPix,255);
             mNbPtsCont++;
