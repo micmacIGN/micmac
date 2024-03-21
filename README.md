@@ -41,7 +41,7 @@ the source and Windows binaries archives. They are placed in the `binaire-aux` d
 ## Prerequisites
 
 In addition of previously named tools, people willing to compile binaries from the source code will need to install the [cmake](www.cmake.org)
-program. Linux and MacOS X users may also want to get X11 header files in order to generate graphical functionalities like *SaisieBasc*, *SaisieMasque*, etc ...
+program and git. Linux and MacOS X users may also want to get X11 header files in order to generate graphical functionalities like *SaisieBasc*, *SaisieMasque*, etc ...
 The package of X11 headers is general called `libx11-dev` under Linux distributions.
 X11-based tools are not available in the Windows version.
 Windows users may need Qt5 libraries to generate graphical interfaces such as *SaisieMasqQT*.
