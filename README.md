@@ -80,12 +80,11 @@ You can also use MicMac on Windows 10 through the Windows Subsystem for Linux (W
 
 # Installation test
 
-The website [logiciels.ign.fr](http://logiciels.ign.fr/?Telechargement,20) also provides a test dataset called `Boudha_dataset.zip`.
-This file contains images and configuration files needed to compute the *Boudha* example from Micmac's documentation. By calling the script this way :
+The [Datasets](https://micmac.ensg.eu/index.php/Datasets) and [data](https://micmac.ensg.eu/data/) pages at the [ensg.eu](https://micmac.ensg.eu/index.php/Accueil) site provide test datasets, including `boudha_dataset-2.zip`, which contains images and configuration files needed to compute the *Boudha* example from Micmac's documentation. By calling the script this way :
 
 `./boudha_test.sh my_micmac_bin/`
 
-assuming your working directory is the *Boudha* directory contained in the file, you can process all the tool-chain until dense point matching. 
+assuming your working directory is the *Boudha* directory contained in the unzipped directory, you can process all the tool-chain until dense point matching. 
 
 'my_micmac_bin' is a path to the 'bin' directory of your installation.
 	ex.: ./boudha_test.sh ../micmac/bin/
