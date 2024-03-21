@@ -28,6 +28,8 @@
 #undef REAL
 #endif
 
+using namespace qpbo;
+
 template <typename REAL>
 	void QPBO<REAL>::ComputeWeakPersistencies()
 {
