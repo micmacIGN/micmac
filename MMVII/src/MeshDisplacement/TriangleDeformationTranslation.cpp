@@ -28,42 +28,46 @@ namespace MMVII
                                                                                                                     mUseMultiScaleApproach(true),
                                                                                                                     mInitialiseTranslationWithPreviousExecution(true),
                                                                                                                     mInitialiseWithMMVI(false),
-                                                                                                                    mNameFileInitialDepX("InitialXDisplacementMap"),
-                                                                                                                    mNameFileInitialDepY("InitialYDisplacementMap"),
-                                                                                                                    mNameIntermediateDepX("IntermediateXDisplacementMap"),
-                                                                                                                    mNameIntermediateDepY("IntermediateYDisplacementMap"),
+                                                                                                                    mNameFileInitialDepX("InitialXDisplacementMap.tif"),
+                                                                                                                    mNameFileInitialDepY("InitialYDisplacementMap.tif"),
+                                                                                                                    mNameIntermediateDepX("IntermediateXDisplacementMap.tif"),
+                                                                                                                    mNameIntermediateDepY("IntermediateYDisplacementMap.tif"),
                                                                                                                     mNameCorrelationMaskMMVI("CorrelationMask.tif"),
                                                                                                                     mIsFirstExecution(false),
                                                                                                                     mSigmaGaussFilterStep(1),
                                                                                                                     mGenerateDisplacementImage(true),
+                                                                                                                    mFreezeTranslationX(false),
+                                                                                                                    mFreezeTranslationY(false),
+                                                                                                                    mWeightTranslationX(-1),
+                                                                                                                    mWeightTranslationY(-1),
                                                                                                                     mNumberOfIterGaussFilter(3),
                                                                                                                     mNumberOfEndIterations(2),
                                                                                                                     mDisplayLastTranslationValues(false),
-                                                                                                                    mSzImPre(cPt2di(1, 1)),
+                                                                                                                    mSzImPre(tPt2di(1, 1)),
                                                                                                                     mImPre(mSzImPre),
                                                                                                                     mDImPre(nullptr),
-                                                                                                                    mSzImPost(cPt2di(1, 1)),
+                                                                                                                    mSzImPost(tPt2di(1, 1)),
                                                                                                                     mImPost(mSzImPost),
                                                                                                                     mDImPost(nullptr),
-                                                                                                                    mSzImOut(cPt2di(1, 1)),
+                                                                                                                    mSzImOut(tPt2di(1, 1)),
                                                                                                                     mImOut(mSzImOut),
                                                                                                                     mDImOut(nullptr),
-                                                                                                                    mSzImDepX(cPt2di(1, 1)),
+                                                                                                                    mSzImDepX(tPt2di(1, 1)),
                                                                                                                     mImDepX(mSzImDepX),
                                                                                                                     mDImDepX(nullptr),
-                                                                                                                    mSzImDepY(cPt2di(1, 1)),
+                                                                                                                    mSzImDepY(tPt2di(1, 1)),
                                                                                                                     mImDepY(mSzImDepY),
                                                                                                                     mDImDepY(nullptr),
-                                                                                                                    mSzImIntermediateDepX(cPt2di(1, 1)),
+                                                                                                                    mSzImIntermediateDepX(tPt2di(1, 1)),
                                                                                                                     mImIntermediateDepX(mSzImIntermediateDepX),
                                                                                                                     mDImIntermediateDepX(nullptr),
-                                                                                                                    mSzImIntermediateDepY(cPt2di(1, 1)),
+                                                                                                                    mSzImIntermediateDepY(tPt2di(1, 1)),
                                                                                                                     mImIntermediateDepY(mSzImIntermediateDepY),
                                                                                                                     mDImIntermediateDepY(nullptr),
-                                                                                                                    mSzCorrelatioMask(cPt2di(1, 1)),
-                                                                                                                    mImCorrelatioMask(mSzImIntermediateDepY),
-                                                                                                                    mDImCorrelatioMask(nullptr),
-                                                                                                                    mVectorPts({cPt2dr(0, 0)}),
+                                                                                                                    mSzCorrelationMask(tPt2di(1, 1)),
+                                                                                                                    mImCorrelationMask(mSzImIntermediateDepY),
+                                                                                                                    mDImCorrelationMask(nullptr),
+                                                                                                                    mVectorPts({tPt2dr(0, 0)}),
                                                                                                                     mDelTri(mVectorPts),
                                                                                                                     mSysTranslation(nullptr),
                                                                                                                     mEqTranslationTri(nullptr)
@@ -112,6 +116,14 @@ namespace MMVII
                << AOpt2007(mSigmaGaussFilterStep, "SigmaGaussFilterStep", "Sigma value to use for Gauss filter in multi-stage approach.", {eTA2007::HDV})
                << AOpt2007(mGenerateDisplacementImage, "GenerateDisplacementImage",
                            "Whether to generate and save an image having been translated.", {eTA2007::HDV})
+               << AOpt2007(mFreezeTranslationX, "FreezeXTranslation",
+                           "Whether to freeze or not x-translation to certain value during computation.", {eTA2007::HDV})
+               << AOpt2007(mFreezeTranslationY, "FreezeYTranslation",
+                           "Whether to freeze or not y-translation to certain value during computation.", {eTA2007::HDV})
+               << AOpt2007(mWeightTranslationX, "WeightTranslationX",
+                           "A value to weight x-translation for soft freezing of coefficient.", {eTA2007::HDV})
+               << AOpt2007(mWeightTranslationY, "WeightTranslationY",
+                           "A value to weight y-translation for soft freezing of coefficient.", {eTA2007::HDV})
                << AOpt2007(mDisplayLastTranslationValues, "DisplayLastTranslationValues",
                            "Whether to display the final coordinates of the trainslated points.", {eTA2007::HDV})
                << AOpt2007(mNumberOfIterGaussFilter, "NumberOfIterationsGaussFilter",
@@ -132,39 +144,41 @@ namespace MMVII
                                  mDImIntermediateDepY, mSzImIntermediateDepY);
         }
 
-        ReadFileNameLoadData(mNameCorrelationMaskMMVI, mImCorrelatioMask,
-                             mDImCorrelatioMask, mSzCorrelatioMask);
+        ReadFileNameLoadData(mNameCorrelationMaskMMVI, mImCorrelationMask,
+                             mDImCorrelationMask, mSzCorrelationMask);
 
         for (size_t aTr = 0; aTr < mDelTri.NbFace(); aTr++)
         {
-            const tTri2dr aTri = mDelTri.KthTri(aTr);
-            const cPt3di aIndicesOfTriKnots = mDelTri.KthFace(aTr);
-
-            // Get points coordinates associated to triangle
-            const cPt2di aFirstPointTri = cPt2di(aTri.Pt(0).x(), aTri.Pt(0).y());
-            const bool aFirstPointIsValid = CheckValidCorrelationValue(mDImCorrelatioMask, aFirstPointTri);
-            const cPt2di aSecondPointTri = cPt2di(aTri.Pt(1).x(), aTri.Pt(1).y());
-            const bool aSecondPointIsValid = CheckValidCorrelationValue(mDImCorrelatioMask, aSecondPointTri);
-            const cPt2di aThirdPointTri = cPt2di(aTri.Pt(2).x(), aTri.Pt(2).y());
-            const bool aThirdPointIsValid = CheckValidCorrelationValue(mDImCorrelatioMask, aThirdPointTri);
+            const tTri2dr aInitTri = mDelTri.KthTri(aTr);
+            const tPt3di aInitIndicesOfTriKnots = mDelTri.KthFace(aTr);
 
             //----------- index of unknown, finds the associated pixels of current triangle
-            const tIntVect aVecInd = {2 * aIndicesOfTriKnots.x(), 2 * aIndicesOfTriKnots.x() + 1,
-                                      2 * aIndicesOfTriKnots.y(), 2 * aIndicesOfTriKnots.y() + 1,
-                                      2 * aIndicesOfTriKnots.z(), 2 * aIndicesOfTriKnots.z() + 1};
+            const tIntVect aInitVecInd = {2 * aInitIndicesOfTriKnots.x(), 2 * aInitIndicesOfTriKnots.x() + 1,
+                                          2 * aInitIndicesOfTriKnots.y(), 2 * aInitIndicesOfTriKnots.y() + 1,
+                                          2 * aInitIndicesOfTriKnots.z(), 2 * aInitIndicesOfTriKnots.z() + 1};
 
-            aVInitTranslation(aVecInd.at(0)) = ReturnCorrectInitialisationValue(aFirstPointIsValid, mDImIntermediateDepX,
-                                                                                aFirstPointTri, 0);
-            aVInitTranslation(aVecInd.at(1)) = ReturnCorrectInitialisationValue(aFirstPointIsValid, mDImIntermediateDepY,
-                                                                                aFirstPointTri, 0);
-            aVInitTranslation(aVecInd.at(2)) = ReturnCorrectInitialisationValue(aSecondPointIsValid, mDImIntermediateDepX,
-                                                                                aSecondPointTri, 0);
-            aVInitTranslation(aVecInd.at(3)) = ReturnCorrectInitialisationValue(aSecondPointIsValid, mDImIntermediateDepY,
-                                                                                aSecondPointTri, 0);
-            aVInitTranslation(aVecInd.at(4)) = ReturnCorrectInitialisationValue(aThirdPointIsValid, mDImIntermediateDepX,
-                                                                                aThirdPointTri, 0);
-            aVInitTranslation(aVecInd.at(5)) = ReturnCorrectInitialisationValue(aThirdPointIsValid, mDImIntermediateDepY,
-                                                                                aThirdPointTri, 0);
+            // Get points coordinates associated to triangle
+            const cKtOfTriangles aFirstInitPointOfTri = cKtOfTriangles(aVInitTranslation, aInitVecInd, 0, 1, 0, 1, aInitTri, 0);
+            const cKtOfTriangles aSecondInitPointOfTri = cKtOfTriangles(aVInitTranslation, aInitVecInd, 2, 3, 2, 3, aInitTri, 1);
+            const cKtOfTriangles aThirdInitPointOfTri = cKtOfTriangles(aVInitTranslation, aInitVecInd, 4, 5, 4, 5, aInitTri, 2);
+
+            // Check if correlation is computed for these points
+            const bool aFirstPointIsValid = CheckValidCorrelationValue(mDImCorrelationMask, aFirstInitPointOfTri);
+            const bool aSecondPointIsValid = CheckValidCorrelationValue(mDImCorrelationMask, aSecondInitPointOfTri);
+            const bool aThirdPointIsValid = CheckValidCorrelationValue(mDImCorrelationMask, aThirdInitPointOfTri);
+
+            aVInitTranslation(aInitVecInd.at(0)) = ReturnCorrectInitialisationValue(aFirstPointIsValid, mDImIntermediateDepX,
+                                                                                    aFirstInitPointOfTri, 0);
+            aVInitTranslation(aInitVecInd.at(1)) = ReturnCorrectInitialisationValue(aFirstPointIsValid, mDImIntermediateDepY,
+                                                                                    aFirstInitPointOfTri, 0);
+            aVInitTranslation(aInitVecInd.at(2)) = ReturnCorrectInitialisationValue(aSecondPointIsValid, mDImIntermediateDepX,
+                                                                                    aSecondInitPointOfTri, 0);
+            aVInitTranslation(aInitVecInd.at(3)) = ReturnCorrectInitialisationValue(aSecondPointIsValid, mDImIntermediateDepY,
+                                                                                    aSecondInitPointOfTri, 0);
+            aVInitTranslation(aInitVecInd.at(4)) = ReturnCorrectInitialisationValue(aThirdPointIsValid, mDImIntermediateDepX,
+                                                                                    aThirdInitPointOfTri, 0);
+            aVInitTranslation(aInitVecInd.at(5)) = ReturnCorrectInitialisationValue(aThirdPointIsValid, mDImIntermediateDepY,
+                                                                                    aThirdInitPointOfTri, 0);
         }
 
         mSysTranslation = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqDense, aVInitTranslation);
@@ -223,15 +237,37 @@ namespace MMVII
         // Count number of pixels inside triangles for normalisation
         size_t aTotalNumberOfInsidePixels = 0;
 
+        for (size_t aTr = 0; aTr < mDelTri.NbFace(); aTr++)
+        {
+            const tPt3di aIndicesOfTriKnots = mDelTri.KthFace(aTr);
+
+            const tIntVect aVecInd = {2 * aIndicesOfTriKnots.x(), 2 * aIndicesOfTriKnots.x() + 1,
+                                      2 * aIndicesOfTriKnots.y(), 2 * aIndicesOfTriKnots.y() + 1,
+                                      2 * aIndicesOfTriKnots.z(), 2 * aIndicesOfTriKnots.z() + 1};
+
+            if (mFreezeTranslationX)
+            {
+                mSysTranslation->SetFrozenVar(aVecInd.at(0), aVCur(aVecInd.at(0)));
+                mSysTranslation->SetFrozenVar(aVecInd.at(2), aVCur(aVecInd.at(2)));
+                mSysTranslation->SetFrozenVar(aVecInd.at(4), aVCur(aVecInd.at(4)));
+            }
+            if (mFreezeTranslationY)
+            {
+                mSysTranslation->SetFrozenVar(aVecInd.at(1), aVCur(aVecInd.at(1)));
+                mSysTranslation->SetFrozenVar(aVecInd.at(3), aVCur(aVecInd.at(3)));
+                mSysTranslation->SetFrozenVar(aVecInd.at(5), aVCur(aVecInd.at(5)));
+            }
+        }
+
         // Loop over all triangles to add the observations on each point
         for (size_t aTr = 0; aTr < mDelTri.NbFace(); aTr++)
         {
             const tTri2dr aTri = mDelTri.KthTri(aTr);
-            const cPt3di aIndicesOfTriKnots = mDelTri.KthFace(aTr);
+            const tPt3di aIndicesOfTriKnots = mDelTri.KthFace(aTr);
 
             const cTriangle2DCompiled aCompTri(aTri);
 
-            std::vector<cPt2di> aVectorToFillWithInsidePixels;
+            std::vector<tPt2di> aVectorToFillWithInsidePixels;
             aCompTri.PixelsInside(aVectorToFillWithInsidePixels); // get pixels inside triangle
 
             //----------- index of unknown, finds the associated pixels of current triangle
@@ -239,12 +275,51 @@ namespace MMVII
                                       2 * aIndicesOfTriKnots.y(), 2 * aIndicesOfTriKnots.y() + 1,
                                       2 * aIndicesOfTriKnots.z(), 2 * aIndicesOfTriKnots.z() + 1};
 
-            const cPt2dr aCurTrPointA = cPt2dr(aVCur(aVecInd.at(0)),
-                                               aVCur(aVecInd.at(1))); // current translation 1st point of triangle
-            const cPt2dr aCurTrPointB = cPt2dr(aVCur(aVecInd.at(2)),
+            const cKtOfTriangles aFirstPointOfTri = cKtOfTriangles(aVCur, aVecInd, 0, 1, 0, 1, aTri, 0);
+            const cKtOfTriangles aSecondPointOfTri = cKtOfTriangles(aVCur, aVecInd, 2, 3, 2, 3, aTri, 1);
+            const cKtOfTriangles aThirdPointOfTri = cKtOfTriangles(aVCur, aVecInd, 4, 5, 4, 5, aTri, 2);
+            /*
+            const tPt2dr aCurTrPointA = tPt2dr(aVCur(aVecInd.at(0)),
+                                               aVCur(aVecInd.at(1)));
+                                               // current translation 1st point of triangle
+            const tPt2dr aCurTrPointB = tPt2dr(aVCur(aVecInd.at(2)),
                                                aVCur(aVecInd.at(3))); // current translation 2nd point of triangle
-            const cPt2dr aCurTrPointC = cPt2dr(aVCur(aVecInd.at(4)),
+            const tPt2dr aCurTrPointC = tPt2dr(aVCur(aVecInd.at(4)),
                                                aVCur(aVecInd.at(5))); // current translation 3rd point of triangle
+            */
+            const tPt2dr aCurTrPointA = aFirstPointOfTri.GetCurrentXYDisplacementVector();
+            const tPt2dr aCurTrPointB = aSecondPointOfTri.GetCurrentXYDisplacementVector();
+            const tPt2dr aCurTrPointC = aThirdPointOfTri.GetCurrentXYDisplacementVector();
+
+            // soft constraint radiometric translation
+            if (!mFreezeTranslationX)
+            {
+                if (mWeightTranslationX >= 0)
+                {
+                    const int aSolStart = 0;
+                    const int aSolStep = 2; // adapt step to solution vector configuration
+                    for (size_t aIndCurSol = aSolStart; aIndCurSol < aVecInd.size() - 1; aIndCurSol += aSolStep)
+                    {
+                        const int aIndices = aVecInd.at(aIndCurSol);
+                        mSysTranslation->AddEqFixVar(aIndices, aVCur(aIndices), mWeightTranslationX);
+                    }
+                }
+            }
+
+            // soft constraint radiometric scaling
+            if (!mFreezeTranslationY)
+            {
+                if (mWeightTranslationY >= 0)
+                {
+                    const int aSolStart = 1;
+                    const int aSolStep = 2; // adapt step to solution vector configuration
+                    for (size_t aIndCurSol = aSolStart; aIndCurSol < aVecInd.size(); aIndCurSol += aSolStep)
+                    {
+                        const int aIndices = aVecInd.at(aIndCurSol);
+                        mSysTranslation->AddEqFixVar(aIndices, aVCur(aIndices), mWeightTranslationY);
+                    }
+                }
+            }
 
             const size_t aNumberOfInsidePixels = aVectorToFillWithInsidePixels.size();
 
@@ -258,7 +333,7 @@ namespace MMVII
                 FormalInterpBarycenter_SetObs(aVObs, 0, aPixInsideTriangle);
 
                 // image of a point in triangle by current translation
-                const cPt2dr aTranslatedFilledPoint = ApplyBarycenterTranslationFormulaToFilledPixel(aCurTrPointA, aCurTrPointB,
+                const tPt2dr aTranslatedFilledPoint = ApplyBarycenterTranslationFormulaToFilledPixel(aCurTrPointA, aCurTrPointB,
                                                                                                      aCurTrPointC, aVObs);
 
                 if (aCurPostDIm->InsideBL(aTranslatedFilledPoint)) // avoid errors
@@ -295,12 +370,12 @@ namespace MMVII
                      << ", " << aNbOut << std::endl;
     }
 
-    cPt2dr cAppli_cTriangleDeformationTranslation::ApplyLastBarycenterTranslationFormulaToInsidePixel(const cPt2dr &aLastTranslationPointA,
-                                                                                                      const cPt2dr &aLastTranslationPointB,
-                                                                                                      const cPt2dr &aLastTranslationPointC,
+    tPt2dr cAppli_cTriangleDeformationTranslation::ApplyLastBarycenterTranslationFormulaToInsidePixel(const tPt2dr &aLastTranslationPointA,
+                                                                                                      const tPt2dr &aLastTranslationPointB,
+                                                                                                      const tPt2dr &aLastTranslationPointC,
                                                                                                       const cPtInsideTriangles &aLastPixInsideTriangle)
     {
-        const cPt2dr aLastCartesianCoordinates = aLastPixInsideTriangle.GetCartesianCoordinates();
+        const tPt2dr aLastCartesianCoordinates = aLastPixInsideTriangle.GetCartesianCoordinates();
         const cPt3dr aLastBarycenterCoordinates = aLastPixInsideTriangle.GetBarycenterCoordinates();
         // apply current barycenter translation formula for x and y on current observations.
         const tREAL8 aLastXTriCoord = aLastCartesianCoordinates.x() + aLastBarycenterCoordinates.x() * aLastTranslationPointA.x() +
@@ -308,19 +383,19 @@ namespace MMVII
         const tREAL8 aLastYTriCoord = aLastCartesianCoordinates.y() + aLastBarycenterCoordinates.x() * aLastTranslationPointA.y() +
                                       aLastBarycenterCoordinates.y() * aLastTranslationPointB.y() + aLastBarycenterCoordinates.z() * aLastTranslationPointC.y();
 
-        const cPt2dr aLastTranslatedPixel = cPt2dr(aLastXTriCoord, aLastYTriCoord);
+        const tPt2dr aLastTranslatedPixel = tPt2dr(aLastXTriCoord, aLastYTriCoord);
 
         return aLastTranslatedPixel;
     }
 
     void cAppli_cTriangleDeformationTranslation::FillDisplacementMaps(const cPtInsideTriangles &aLastPixInsideTriangle,
-                                                                      const cPt2dr &aLastTranslatedFilledPoint)
+                                                                      const tPt2dr &aLastTranslatedFilledPoint)
     {
         const tREAL8 aLastXCoordinate = aLastPixInsideTriangle.GetCartesianCoordinates().x();
         const tREAL8 aLastYCoordinate = aLastPixInsideTriangle.GetCartesianCoordinates().y();
         const tREAL8 aLastPixelValue = aLastPixInsideTriangle.GetPixelValue();
 
-        const cPt2di aLastCoordinate = cPt2di(aLastXCoordinate, aLastYCoordinate);
+        const tPt2di aLastCoordinate = tPt2di(aLastXCoordinate, aLastYCoordinate);
 
         mDImDepX->SetV(aLastCoordinate,
                        aLastTranslatedFilledPoint.x() - aLastXCoordinate);
@@ -332,33 +407,34 @@ namespace MMVII
         // Build image with intensities displaced
         // deal with different cases of pixel being translated out of image
         if (aLastXTranslatedCoord < 0 && aLastYTranslatedCoord < 0)
-            mDImOut->SetV(aLastCoordinate, mDImOut->GetV(cPt2di(0, 0)));
+            mDImOut->SetV(aLastCoordinate, mDImOut->GetV(tPt2di(0, 0)));
         else if (aLastXTranslatedCoord >= mSzImOut.x() && aLastYTranslatedCoord >= mSzImOut.y())
-            mDImOut->SetV(aLastCoordinate, mDImOut->GetV(cPt2di(mSzImOut.x() - 1, mSzImOut.y() - 1)));
+            mDImOut->SetV(aLastCoordinate, mDImOut->GetV(tPt2di(mSzImOut.x() - 1, mSzImOut.y() - 1)));
         else if (aLastXTranslatedCoord < 0 && aLastYTranslatedCoord >= mSzImOut.y())
-            mDImOut->SetV(aLastCoordinate, mDImOut->GetV(cPt2di(0, mSzImOut.y() - 1)));
+            mDImOut->SetV(aLastCoordinate, mDImOut->GetV(tPt2di(0, mSzImOut.y() - 1)));
         else if (aLastXTranslatedCoord >= mSzImOut.x() && aLastYTranslatedCoord < 0)
-            mDImOut->SetV(aLastCoordinate, mDImOut->GetV(cPt2di(mSzImOut.x() - 1, 0)));
+            mDImOut->SetV(aLastCoordinate, mDImOut->GetV(tPt2di(mSzImOut.x() - 1, 0)));
         else if (aLastXTranslatedCoord >= 0 && aLastXTranslatedCoord < mSzImOut.x() &&
                  aLastYTranslatedCoord < 0)
-            mDImOut->SetV(aLastCoordinate, mDImOut->GetV(cPt2di(aLastXTranslatedCoord, 0)));
+            mDImOut->SetV(aLastCoordinate, mDImOut->GetV(tPt2di(aLastXTranslatedCoord, 0)));
         else if (aLastXTranslatedCoord >= 0 && aLastXTranslatedCoord < mSzImOut.x() &&
                  aLastYTranslatedCoord > mSzImOut.y())
-            mDImOut->SetV(aLastCoordinate, mDImOut->GetV(cPt2di(aLastXTranslatedCoord, mSzImOut.y() - 1)));
+            mDImOut->SetV(aLastCoordinate, mDImOut->GetV(tPt2di(aLastXTranslatedCoord, mSzImOut.y() - 1)));
         else if (aLastYTranslatedCoord >= 0 && aLastYTranslatedCoord < mSzImOut.y() &&
                  aLastXTranslatedCoord < 0)
-            mDImOut->SetV(aLastCoordinate, mDImOut->GetV(cPt2di(0, aLastYTranslatedCoord)));
+            mDImOut->SetV(aLastCoordinate, mDImOut->GetV(tPt2di(0, aLastYTranslatedCoord)));
         else if (aLastYTranslatedCoord >= 0 && aLastYTranslatedCoord < mSzImOut.y() &&
                  aLastXTranslatedCoord > mSzImOut.x())
-            mDImOut->SetV(aLastCoordinate, mDImOut->GetV(cPt2di(mSzImOut.x() - 1, aLastYTranslatedCoord)));
+            mDImOut->SetV(aLastCoordinate, mDImOut->GetV(tPt2di(mSzImOut.x() - 1, aLastYTranslatedCoord)));
         else
             // at the translated pixel the untranslated pixel value is given
-            mDImOut->SetV(cPt2di(aLastXTranslatedCoord, aLastYTranslatedCoord), aLastPixelValue);
+            mDImOut->SetV(tPt2di(aLastXTranslatedCoord, aLastYTranslatedCoord), aLastPixelValue);
     }
 
     void cAppli_cTriangleDeformationTranslation::GenerateDisplacementMaps(const tDenseVect &aVFinalSol, const int aIterNumber,
                                                                           const int aTotalNumberOfIterations)
     {
+        // Initialise output image, x and y displacement maps
         mImOut = tIm(mSzImPre);
         mDImOut = &mImOut.DIm();
         mSzImOut = mDImOut->Sz();
@@ -379,29 +455,39 @@ namespace MMVII
             aLastPreDIm = &aLastPreIm.DIm();
         }
 
-        for (const cPt2di &aOutPix : *mDImOut) // Initialise output image
+        // prefill output image with ImPre pixels to not have null values
+        for (const tPt2di &aOutPix : *mDImOut)
             mDImOut->SetV(aOutPix, aLastPreDIm->GetV(aOutPix));
 
         for (size_t aLTr = 0; aLTr < mDelTri.NbFace(); aLTr++)
         {
             const tTri2dr aLastTri = mDelTri.KthTri(aLTr);
-            const cPt3di aLastIndicesOfTriKnots = mDelTri.KthFace(aLTr);
+            const tPt3di aLastIndicesOfTriKnots = mDelTri.KthFace(aLTr);
 
             const cTriangle2DCompiled aLastCompTri(aLastTri);
 
-            std::vector<cPt2di> aLastVectorToFillWithInsidePixels;
+            std::vector<tPt2di> aLastVectorToFillWithInsidePixels;
             aLastCompTri.PixelsInside(aLastVectorToFillWithInsidePixels);
 
             const tIntVect aLastVecInd = {2 * aLastIndicesOfTriKnots.x(), 2 * aLastIndicesOfTriKnots.x() + 1,
                                           2 * aLastIndicesOfTriKnots.y(), 2 * aLastIndicesOfTriKnots.y() + 1,
                                           2 * aLastIndicesOfTriKnots.z(), 2 * aLastIndicesOfTriKnots.z() + 1};
 
-            const cPt2dr aLastTrPointA = cPt2dr(aVFinalSol(aLastVecInd.at(0)),
+            const cKtOfTriangles aLastFirstPointOfTri = cKtOfTriangles(aVFinalSol, aLastVecInd, 0, 1, 0, 1, aLastTri, 0);
+            const cKtOfTriangles aLastSecondPointOfTri = cKtOfTriangles(aVFinalSol, aLastVecInd, 2, 3, 2, 3, aLastTri, 1);
+            const cKtOfTriangles aLastThirdPointOfTri = cKtOfTriangles(aVFinalSol, aLastVecInd, 4, 5, 4, 5, aLastTri, 2);
+
+            /*
+            const tPt2dr aLastTrPointA = tPt2dr(aVFinalSol(aLastVecInd.at(0)),
                                                 aVFinalSol(aLastVecInd.at(1))); // last translation 1st point of triangle
-            const cPt2dr aLastTrPointB = cPt2dr(aVFinalSol(aLastVecInd.at(2)),
+            const tPt2dr aLastTrPointB = tPt2dr(aVFinalSol(aLastVecInd.at(2)),
                                                 aVFinalSol(aLastVecInd.at(3))); // last translation 2nd point of triangle
-            const cPt2dr aLastTrPointC = cPt2dr(aVFinalSol(aLastVecInd.at(4)),
+            const tPt2dr aLastTrPointC = tPt2dr(aVFinalSol(aLastVecInd.at(4)),
                                                 aVFinalSol(aLastVecInd.at(5))); // last translation 3rd point of triangle
+            */
+            const tPt2dr aLastTrPointA = aLastFirstPointOfTri.GetCurrentXYDisplacementVector();
+            const tPt2dr aLastTrPointB = aLastSecondPointOfTri.GetCurrentXYDisplacementVector();
+            const tPt2dr aLastTrPointC = aLastThirdPointOfTri.GetCurrentXYDisplacementVector();
 
             const size_t aLastNumberOfInsidePixels = aLastVectorToFillWithInsidePixels.size();
 
@@ -411,7 +497,7 @@ namespace MMVII
                                                                                      aLastFilledPixel, *aLastPreDIm);
 
                 // image of a point in triangle by current translation
-                const cPt2dr aLastTranslatedFilledPoint = ApplyLastBarycenterTranslationFormulaToInsidePixel(aLastTrPointA, aLastTrPointB,
+                const tPt2dr aLastTranslatedFilledPoint = ApplyLastBarycenterTranslationFormulaToInsidePixel(aLastTrPointA, aLastTrPointB,
                                                                                                              aLastTrPointC, aLastPixInsideTriangle);
 
                 FillDisplacementMaps(aLastPixInsideTriangle, aLastTranslatedFilledPoint);
@@ -432,7 +518,7 @@ namespace MMVII
                                 std::to_string(mNumberPointsToGenerate) + "_" +
                                 std::to_string(aTotalNumberOfIterations) + ".tif");
         }
-        else if (mInitialiseTranslationWithPreviousExecution)
+        if (mInitialiseTranslationWithPreviousExecution)
         {
             mDImDepX->ToFile(mNameIntermediateDepX);
             mDImDepY->ToFile(mNameIntermediateDepY);
@@ -495,7 +581,7 @@ namespace MMVII
         GeneratePointsForDelaunay(mVectorPts, mNumberPointsToGenerate, mRandomUniformLawUpperBoundLines,
                                   mRandomUniformLawUpperBoundCols, mDelTri, mSzImPre);
 
-        if (!mInitialiseTranslationWithPreviousExecution || (mIsFirstExecution && !mInitialiseWithMMVI))
+        if (!mInitialiseTranslationWithPreviousExecution)
             InitialisationAfterExeTranslation(mDelTri, mSysTranslation);
         else
         {
@@ -508,10 +594,7 @@ namespace MMVII
 
                 InitialiseWithPreviousExecutionValuesTranslation();
             }
-            // else if (mIsFirstExecution && !mInitialiseWithMMVI)
-                //InitialisationAfterExeTranslation();
-            else if ((!mIsFirstExecution && mInitialiseWithMMVI) ||
-                     (!mIsFirstExecution && mInitialiseTranslationWithPreviousExecution))
+            else if (!mIsFirstExecution && mInitialiseWithMMVI)
                 InitialiseWithPreviousExecutionValuesTranslation();
         }
 

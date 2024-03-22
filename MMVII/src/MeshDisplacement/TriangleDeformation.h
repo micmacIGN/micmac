@@ -47,7 +47,7 @@ namespace MMVII
         void InitialiseWithPreviousExecutionValues(const cTriangulation2D<tREAL8> &aDelTri, cResolSysNonLinear<tREAL8> *&aSys);
         // Fill displacement maps and output image
         virtual void FillDisplacementMapsAndOutputImage(const cPtInsideTriangles &aLastPixInsideTriangle,
-                                                        const cPt2dr &aLastTranslatedFilledPoint,
+                                                        const tPt2dr &aLastTranslatedFilledPoint,
                                                         const tREAL8 aLastRadiometryTranslation,
                                                         const tREAL8 aLastRadiometryScaling);
 
@@ -73,6 +73,7 @@ namespace MMVII
         std::string mNameFileInitialDepY;                 // File name of initial Y-displacement map
         std::string mNameIntermediateDepX;                // File name to save to of intermediate X-displacement map between executions if initialisation with previous unknown values is true
         std::string mNameIntermediateDepY;                // File name to save to of intermediate Y-displacement map between executions if initialisation with previous unknown values is true
+        std::string mNameCorrelationMaskMMVI;             // File name of mask file produced by MMVI that gives pixel locations where correlation was computed
         bool mIsFirstExecution;                           // Whether current execution of algorithm is first execution or not
         int mSigmaGaussFilterStep;                        // Decreasing step of sigma value during iterations
         bool mGenerateDisplacementImage;                  // Generate image with displaced pixels
@@ -80,8 +81,8 @@ namespace MMVII
         bool mFreezeTranslationY;                         // Freeze y-translation or not during optimisation
         bool mFreezeRadTranslation;                       // Freeze radiometry translation or not during optimisation
         bool mFreezeRadScale;                             // Freeze radiometry scaling or not during optimisation
-        double mWeightRadTranslation;                     // Weight given to radiometry translation if soft freezing is applied (default : negative => not applied)
-        double mWeightRadScale;                           // Weight given to radiometry scaling if soft freezing is applied (default : negative => not applied)
+        tREAL8 mWeightRadTranslation;                     // Weight given to radiometry translation if soft freezing is applied (default : negative => not applied)
+        tREAL8 mWeightRadScale;                           // Weight given to radiometry scaling if soft freezing is applied (default : negative => not applied)
         int mNumberOfIterGaussFilter;                     // Number of iterations to be done in Gauss filter algorithm
         int mNumberOfEndIterations;                       // Number of iterations to do while using original image in multi-scale approach
         std::string mFolderSaveResult;                    // Folder name to save results
@@ -90,46 +91,50 @@ namespace MMVII
 
         // ==  Internal variables ====
 
-        cPt2di mSzImPre; //  size of image
+        tPt2di mSzImPre; //  size of image
         tIm mImPre;      //  memory representation of the image
         tDIm *mDImPre;   //  memory representation of the image
 
-        cPt2di mSzImPost; //  size of image
+        tPt2di mSzImPost; //  size of image
         tIm mImPost;      //  memory representation of the image
         tDIm *mDImPost;   //  memory representation of the image
 
-        cPt2di mSzImOut; //  size of image
+        tPt2di mSzImOut; //  size of image
         tIm mImOut;      //  memory representation of the image
         tDIm *mDImOut;   //  memory representation of the image
 
-        cPt2di mSzImDepX; //  size of image
+        tPt2di mSzImDepX; //  size of image
         tIm mImDepX;      //  memory representation of the image
         tDIm *mDImDepX;   //  memory representation of the image
 
-        cPt2di mSzImDepY; //  size of image
+        tPt2di mSzImDepY; //  size of image
         tIm mImDepY;      //  memory representation of the image
         tDIm *mDImDepY;   //  memory representation of the image
 
-        cPt2di mSzIntermediateImOut; //  size of image
+        tPt2di mSzIntermediateImOut; //  size of image
         tIm mImIntermediateOut;      //  memory representation of the image
         tDIm *mDImIntermediateOut;   //  memory representation of the image
 
-        cPt2di mSzImIntermediateDepX; //  size of image
+        tPt2di mSzImIntermediateDepX; //  size of image
         tIm mImIntermediateDepX;      //  memory representation of the image
         tDIm *mDImIntermediateDepX;   //  memory representation of the image
 
-        cPt2di mSzImIntermediateDepY; //  size of image
+        tPt2di mSzImIntermediateDepY; //  size of image
         tIm mImIntermediateDepY;      //  memory representation of the image
         tDIm *mDImIntermediateDepY;   //  memory representation of the image
 
-        cPt2di mSzImDiff; //  size of image
+        tPt2di mSzCorrelationMask;   //  size of image
+        tIm mImCorrelationMask;      //  memory representation of the image
+        tDIm *mDImCorrelationMask;   //  memory representation of the image
+
+        tPt2di mSzImDiff; //  size of image
         tIm mImDiff;      //  memory representation of the image
         tDIm *mDImDiff;   //  memory representation of the image
 
-        std::vector<cPt2dr> mVectorPts;   // A vector containing a set of points
+        std::vector<tPt2dr> mVectorPts;   // A vector containing a set of points
         cTriangulation2D<tREAL8> mDelTri; // A Delaunay triangle
 
-        double mSigmaGaussFilter; // Value of sigma in gauss filter
+        tREAL8 mSigmaGaussFilter; // Value of sigma in gauss filter
         bool mIsLastIters;        // Determines whether optimisation process is at last iters to optimise on original image
 
         cResolSysNonLinear<tREAL8> *mSys;  // Non Linear Sys for solving problem

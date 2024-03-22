@@ -9,22 +9,49 @@ namespace MMVII
     /****************************************/
 
     cPtInsideTriangles::cPtInsideTriangles(const cTriangle2DCompiled<tREAL8> &aCompTri,              // a compiled triangle
-                                           const std::vector<cPt2di> &aVectorFilledwithInsidePixels, // vector containing pixels insisde triangles
+                                           const std::vector<tPt2di> &aVectorFilledwithInsidePixels, // vector containing pixels insisde triangles
                                            const size_t aFilledPixel,                                // a counter that is looping over pixels in triangles
                                            const cDataIm2D<tREAL8> &aDIm)                            // image
     {
-        mFilledIndices = cPt2dr(aVectorFilledwithInsidePixels[aFilledPixel].x(), aVectorFilledwithInsidePixels[aFilledPixel].y());
+        mFilledIndices = tPt2dr(aVectorFilledwithInsidePixels[aFilledPixel].x(), aVectorFilledwithInsidePixels[aFilledPixel].y());
         mBarycenterCoordinatesOfPixel = aCompTri.CoordBarry(mFilledIndices);
-        mValueOfPixel = aDIm.GetV(cPt2di(mFilledIndices.x(), mFilledIndices.y()));
+        mValueOfPixel = aDIm.GetV(tPt2di(mFilledIndices.x(), mFilledIndices.y()));
     }
 
     cPt3dr cPtInsideTriangles::GetBarycenterCoordinates() const { return mBarycenterCoordinatesOfPixel; } // Accessor
-    cPt2dr cPtInsideTriangles::GetCartesianCoordinates() const { return mFilledIndices; }                 // Accessor
+    tPt2dr cPtInsideTriangles::GetCartesianCoordinates() const { return mFilledIndices; }                 // Accessor
     tREAL8 cPtInsideTriangles::GetPixelValue() const { return mValueOfPixel; }                            // Accessor
+
+    /****************************************/
+    /*                                      */
+    /*           cKtOfTriangles             */
+    /*                                      */
+    /****************************************/
+
+    cKtOfTriangles::cKtOfTriangles(const tDenseVect &aVecSol,
+                                   const tIntVect &aIndicesVec,
+                                   const int aXIndices,
+                                   const int aYIndices,
+                                   const tREAL8 aRadTrIndices,
+                                   const tREAL8 aRadScIndices,
+                                   const tTri2dr &aTri,
+                                   const int aPointNumberInTri)
+    {
+        mInitialKtCoordinates = aTri.Pt(aPointNumberInTri);
+        mCurXYDisplacementVector = tPt2dr(aVecSol(aIndicesVec.at(aXIndices)),
+                                          aVecSol(aIndicesVec.at(aYIndices)));
+        mCurRadTr = aVecSol(aRadTrIndices);
+        mCurRadSc = aVecSol(aRadScIndices);
+    }
+
+    tPt2dr cKtOfTriangles::GetInitialKtCoordinates() const { return mInitialKtCoordinates; }           // Accessor
+    tPt2dr cKtOfTriangles::GetCurrentXYDisplacementVector() const { return mCurXYDisplacementVector; } // Accessor
+    tREAL8 cKtOfTriangles::GetCurrentRadiometryScaling() const { return mCurRadSc; }                   // Accessor
+    tREAL8 cKtOfTriangles::GetCurrentRadiometryTranslation() const { return mCurRadTr; }               // Accessor
 
     //---------------------------------------------//
 
-    void ConstructUniformRandomVectorAndApplyDelaunay(std::vector<cPt2dr> &aVectorPts, const int aNumberOfPointsToGenerate,
+    void ConstructUniformRandomVectorAndApplyDelaunay(std::vector<tPt2dr> &aVectorPts, const int aNumberOfPointsToGenerate,
                                                       const int aRandomUniformLawUpperBoundLines, const int aRandomUniformLawUpperBoundCols,
                                                       cTriangulation2D<tREAL8> &aDelaunayTri)
     {
@@ -34,7 +61,7 @@ namespace MMVII
         {
             const tREAL8 aUniformRandomLine = RandUnif_N(aRandomUniformLawUpperBoundLines);
             const tREAL8 aUniformRandomCol = RandUnif_N(aRandomUniformLawUpperBoundCols);
-            const cPt2dr aUniformRandomPt(aUniformRandomCol, aUniformRandomLine); // cPt2dr format
+            const tPt2dr aUniformRandomPt(aUniformRandomCol, aUniformRandomLine); // tPt2dr format
             aVectorPts.push_back(aUniformRandomPt);
         }
         aDelaunayTri = aVectorPts;
@@ -42,9 +69,9 @@ namespace MMVII
         aDelaunayTri.MakeDelaunay(); // Delaunay triangulate randomly generated points.
     }
 
-    void GeneratePointsForDelaunay(std::vector<cPt2dr> &aVectorPts, const int aNumberOfPointsToGenerate,
+    void GeneratePointsForDelaunay(std::vector<tPt2dr> &aVectorPts, const int aNumberOfPointsToGenerate,
                                    int aRandomUniformLawUpperBoundLines, int aRandomUniformLawUpperBoundCols,
-                                   cTriangulation2D<tREAL8> &aDelaunayTri, const cPt2di &aSzImPre)
+                                   cTriangulation2D<tREAL8> &aDelaunayTri, const tPt2di &aSzImPre)
     {
         // If user hasn't defined another value than the default value, it is changed
         if (aRandomUniformLawUpperBoundLines == 1 && aRandomUniformLawUpperBoundCols == 1)
@@ -108,35 +135,38 @@ namespace MMVII
         aSysRadiometry = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqDense, aVInitRadiometry);
     }
 
-    bool CheckValidCorrelationValue(tDIm * aMask, const cPt2di &aPointTri)
+    bool CheckValidCorrelationValue(tDIm *aMask, const cKtOfTriangles &aPtOfTri)
     {
+        const tPt2di aCoordKt = tPt2di(aPtOfTri.GetInitialKtCoordinates().x(), aPtOfTri.GetInitialKtCoordinates().y());
         bool aIsValidCorrelPoint;
-        (aMask->GetV(aPointTri) == 1) ? aIsValidCorrelPoint = true : aIsValidCorrelPoint = false;
+        (aMask->GetV(aCoordKt) == 1) ? aIsValidCorrelPoint = true : aIsValidCorrelPoint = false;
         return aIsValidCorrelPoint;
     }
 
     tREAL8 ReturnCorrectInitialisationValue(const bool aIsValidCorrelation, tDIm *aIntermediateDispMap,
-                                            const cPt2di &aTriPoint, const tREAL8 aValueToReturnIfFalse)
+                                            const cKtOfTriangles &aPtOfTri, const tREAL8 aValueToReturnIfFalse)
     {
+        const tPt2di aCoordKt = tPt2di(aPtOfTri.GetInitialKtCoordinates().x(), aPtOfTri.GetInitialKtCoordinates().y());
         tREAL8 aInitialisationValue;
-        (aIsValidCorrelation) ? aInitialisationValue = aIntermediateDispMap->GetV(aTriPoint) : aInitialisationValue = aValueToReturnIfFalse;
+        (aIsValidCorrelation) ? aInitialisationValue = aIntermediateDispMap->GetV(aCoordKt) : aInitialisationValue = aValueToReturnIfFalse;
         return aInitialisationValue;
     }
 
-    void SubtractPrePostImageAndComputeAvgAndMax(tIm aImDiff, tDIm *aDImDiff, tDIm *aDImPre,
-                                                 tDIm *aDImPost, cPt2di aSzImPre)
+    void SubtractPrePostImageAndComputeAvgAndMax(tIm &aImDiff, tDIm *aDImDiff, tDIm *aDImPre,
+                                                 tDIm *aDImPost, tPt2di &aSzImPre)
     {
         aImDiff = tIm(aSzImPre);
         aDImDiff = &aImDiff.DIm();
 
-        for (const cPt2di &aDiffPix : *aDImDiff)
+        for (const tPt2di &aDiffPix : *aDImDiff)
             aDImDiff->SetV(aDiffPix, aDImPre->GetV(aDiffPix) - aDImPost->GetV(aDiffPix));
         const int aNumberOfPixelsInImage = aSzImPre.x() * aSzImPre.y();
 
         tREAL8 aSumPixelValuesInDiffImage = 0;
         tREAL8 aMaxPixelValuesInDiffImage = 0;
         tREAL8 aDiffImPixelValue = 0;
-        for (const cPt2di &aDiffPix : *aDImDiff)
+
+        for (const tPt2di &aDiffPix : *aDImDiff)
         {
             aDiffImPixelValue = aDImDiff->GetV(aDiffPix);
             aSumPixelValuesInDiffImage += aDiffImPixelValue;
@@ -149,9 +179,9 @@ namespace MMVII
                  << aMaxPixelValuesInDiffImage << std::endl;
     }
 
-    cPt2dr ApplyBarycenterTranslationFormulaToFilledPixel(const cPt2dr &aCurrentTranslationPointA,
-                                                          const cPt2dr &aCurrentTranslationPointB,
-                                                          const cPt2dr &aCurrentTranslationPointC,
+    tPt2dr ApplyBarycenterTranslationFormulaToFilledPixel(const tPt2dr &aCurrentTranslationPointA,
+                                                          const tPt2dr &aCurrentTranslationPointB,
+                                                          const tPt2dr &aCurrentTranslationPointC,
                                                           const tDoubleVect &aVObs)
     {
         // apply current barycenter translation formula for x and y on current observations.
@@ -160,7 +190,7 @@ namespace MMVII
         const tREAL8 aYTriCoord = aVObs[1] + aVObs[2] * aCurrentTranslationPointA.y() + aVObs[3] * aCurrentTranslationPointB.y() +
                                   aVObs[4] * aCurrentTranslationPointC.y();
 
-        const cPt2dr aCurrentTranslatedPixel = cPt2dr(aXTriCoord, aYTriCoord);
+        const tPt2dr aCurrentTranslatedPixel = tPt2dr(aXTriCoord, aYTriCoord);
 
         return aCurrentTranslatedPixel;
     }
@@ -184,9 +214,9 @@ namespace MMVII
                                           aVObs[4] * aCurrentRadScalingPointC;
         return aCurrentRadScaling;
     }
-    
-    void ReadFileNameLoadData(const std::string aImageFilename, tIm &aImage,
-                              tDIm *&aDataImage, cPt2di &aSzIm)
+
+    void ReadFileNameLoadData(const std::string &aImageFilename, tIm &aImage,
+                              tDIm *&aDataImage, tPt2di &aSzIm)
     {
         aImage = tIm::FromFile(aImageFilename);
 
@@ -201,8 +231,8 @@ namespace MMVII
     }
 
     bool ManageDifferentCasesOfEndIterations(const int aIterNumber, const int aNumberOfScales, const int aNumberOfEndIterations,
-                                             bool aIsLastIters, tIm &aImPre, tIm &aImPost, tIm aCurPreIm, tDIm *aCurPreDIm,
-                                             tIm aCurPostIm, tDIm *aCurPostDIm)
+                                             bool aIsLastIters, tIm &aImPre, tIm &aImPost, tIm &aCurPreIm, tDIm *aCurPreDIm,
+                                             tIm &aCurPostIm, tDIm *aCurPostDIm)
     {
         switch (aNumberOfEndIterations)
         {

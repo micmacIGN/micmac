@@ -47,11 +47,11 @@ namespace MMVII
         void InitialiseWithPreviousExecutionValuesTranslation();
         // Fill displacement maps and output image
         void FillDisplacementMaps(const cPtInsideTriangles &aLastPixInsideTriangle,
-                                  const cPt2dr &aLastTranslatedFilledPoint);
+                                  const tPt2dr &aLastTranslatedFilledPoint);
         // Apply  barycentration translation formula to last translation values in optimisation process
-        cPt2dr ApplyLastBarycenterTranslationFormulaToInsidePixel(const cPt2dr &aLastTranslationPointA,
-                                                                  const cPt2dr &aLastTranslationPointB,
-                                                                  const cPt2dr &aLastTranslationPointC,
+        tPt2dr ApplyLastBarycenterTranslationFormulaToInsidePixel(const tPt2dr &aLastTranslationPointA,
+                                                                  const tPt2dr &aLastTranslationPointB,
+                                                                  const tPt2dr &aLastTranslationPointC,
                                                                   const cPtInsideTriangles &aLastPixInsideTriangle);
 
     private:
@@ -67,7 +67,6 @@ namespace MMVII
         int mRandomUniformLawUpperBoundLines;             // Uniform law generates random coordinates in interval [0, mRandomUniformLawUpperBoundLines [
         int mRandomUniformLawUpperBoundCols;              // Uniform law generates random coordinates in interval [0, mRandomUniformLawUpperBoundCols [
         bool mShow;                                       // Print result, export image ...
-        bool mComputeAvgMax;                              // Compute average and maximum pixel value of difference image between pre and post images
         bool mUseMultiScaleApproach;                      // Apply multi-scale approach or not
         bool mInitialiseTranslationWithPreviousExecution; // Initialise values of unknowns with values obtained at previous algorithm execution
         bool mInitialiseWithMMVI;                         // Whether to initialise values of unknowns with pre-computed values from MicMacV1 or not
@@ -79,48 +78,52 @@ namespace MMVII
         bool mIsFirstExecution;                           // Whether current execution of algorithm is first execution or not
         int mSigmaGaussFilterStep;                        // Decreasing step of sigma value during iterations
         bool mGenerateDisplacementImage;                  // Generate image with displaced pixels
+        bool mFreezeTranslationX;                         // Freeze x-translation or not during optimisation
+        bool mFreezeTranslationY;                         // Freeze y-translation or not during optimisation
+        tREAL8 mWeightTranslationX;                       // Weight given to x-translation if soft freezing is applied (default : negative => not applied)
+        tREAL8 mWeightTranslationY;                       // Weight given to y-translation if soft freezing is applied (default : negative => not applied)
         int mNumberOfIterGaussFilter;                     // Number of iterations to be done in Gauss filter algorithm
         int mNumberOfEndIterations;                       // Number of iterations to do while using original image in multi-scale approach
         bool mDisplayLastTranslationValues;               // Whether to display the final coordinates of the translated points
 
         // ==  Internal variables ====
 
-        cPt2di mSzImPre; //  size of image
+        tPt2di mSzImPre; //  size of image
         tIm mImPre;      //  memory representation of the image
         tDIm *mDImPre;   //  memory representation of the image
 
-        cPt2di mSzImPost; //  size of image
+        tPt2di mSzImPost; //  size of image
         tIm mImPost;      //  memory representation of the image
         tDIm *mDImPost;   //  memory representation of the image
 
-        cPt2di mSzImOut; //  size of image
+        tPt2di mSzImOut; //  size of image
         tIm mImOut;      //  memory representation of the image
         tDIm *mDImOut;   //  memory representation of the image
 
-        cPt2di mSzImDepX; //  size of image
+        tPt2di mSzImDepX; //  size of image
         tIm mImDepX;      //  memory representation of the image
         tDIm *mDImDepX;   //  memory representation of the image
 
-        cPt2di mSzImDepY; //  size of image
+        tPt2di mSzImDepY; //  size of image
         tIm mImDepY;      //  memory representation of the image
         tDIm *mDImDepY;   //  memory representation of the image
 
-        cPt2di mSzImIntermediateDepX; //  size of image
+        tPt2di mSzImIntermediateDepX; //  size of image
         tIm mImIntermediateDepX;      //  memory representation of the image
         tDIm *mDImIntermediateDepX;   //  memory representation of the image
 
-        cPt2di mSzImIntermediateDepY; //  size of image
+        tPt2di mSzImIntermediateDepY; //  size of image
         tIm mImIntermediateDepY;      //  memory representation of the image
         tDIm *mDImIntermediateDepY;   //  memory representation of the image
 
-        cPt2di mSzCorrelatioMask;   //  size of image
-        tIm mImCorrelatioMask;      //  memory representation of the image
-        tDIm *mDImCorrelatioMask;   //  memory representation of the image
+        tPt2di mSzCorrelationMask;   //  size of image
+        tIm mImCorrelationMask;      //  memory representation of the image
+        tDIm *mDImCorrelationMask;   //  memory representation of the image
 
-        double mSigmaGaussFilter; // Value of sigma in gauss filter
+        tREAL8 mSigmaGaussFilter; // Value of sigma in gauss filter
         bool mIsLastIters;        // Determines whether optimisation process is at last iters to optimise on original image
 
-        std::vector<cPt2dr> mVectorPts;   // A vector containing a set of points
+        std::vector<tPt2dr> mVectorPts;   // A vector containing a set of points
         cTriangulation2D<tREAL8> mDelTri; // A Delaunay triangle
 
         cResolSysNonLinear<tREAL8> *mSysTranslation;       // Non Linear Sys for solving problem
