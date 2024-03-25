@@ -37,32 +37,34 @@ namespace MMVII
 
     /****************************************/
     /*                                      */
-    /*           cKtOfTriangles             */
+    /*           cNodeOfTriangles           */
     /*                                      */
     /****************************************/
 
-    class cKtOfTriangles
+    class cNodeOfTriangles
     {
         typedef cDenseVect<double> tDenseVect;
         typedef std::vector<int> tIntVect;
 
     public:
-        cKtOfTriangles(const tDenseVect &aVecSol,
-                       const tIntVect &aIndicesVec,
-                       const int aXIndices,
-                       const int aYIndices,
-                       const tREAL8 aRadTrIndices,
-                       const tREAL8 aRadScIndices,
-                       const tTri2dr &aTri,
-                       const int aPointNumberInTri);
+        cNodeOfTriangles(const tDenseVect &aVecSol,    // Current solution vector
+                         const tIntVect &aIndicesVec,  // Indices of current triangle in solution vector
+                         const int adXIndex,           // Index for current x-displacement in solution vector
+                         const int adYIndex,           // Index for current y-displacement in solution vector
+                         const tREAL8 aRadTrIndex,     // Index for current radiometry translation in solution vector
+                         const tREAL8 aRadScIndex,     // Index for current radiometry scaling in solution vector
+                         const tTri2dr &aTri,          // Current triangle
+                         const int aPointNumberInTri); // Index of point in triangle : 0, 1 or 2
 
-        tPt2dr GetInitialKtCoordinates() const;
-        tPt2dr GetCurrentXYDisplacementVector() const;
-        tREAL8 GetCurrentRadiometryScaling() const;
-        tREAL8 GetCurrentRadiometryTranslation() const;
+        tPt2dr GetInitialNodeCoordinates() const;       // Accessor
+        tPt2dr GetCurrentXYDisplacementVector() const;  // Accessor
+        tREAL8 GetCurrentRadiometryTranslation() const; // Accessor
+        tREAL8 &GetCurrentRadiometryTranslation();      // Accessor
+        tREAL8 GetCurrentRadiometryScaling() const;     // Accessor
+        tREAL8 &GetCurrentRadiometryScaling();          // Accessor
 
     private:
-        tPt2dr mInitialKtCoordinates; // Coordinates of knot before displacement
+        tPt2dr mInitialNodeCoordinates;  // Coordinates of knot before displacement
         tPt2dr mCurXYDisplacementVector; // Vector containing current dx, dy displacement values
         tREAL8 mCurRadSc;                // Current radiometry scaling value
         tREAL8 mCurRadTr;                // Current radiometry translation value
@@ -88,10 +90,10 @@ namespace MMVII
     void InitialisationAfterExeRadiometry(cTriangulation2D<tREAL8> &aDelaunayTri,
                                           cResolSysNonLinear<tREAL8> *&aSys);
     // Check whether point has a correlation value or not thanks to MMVI correlation mask
-    bool CheckValidCorrelationValue(tDIm *aMask, const cKtOfTriangles &aPtOfTri);
+    bool CheckValidCorrelationValue(tDIm *aMask, const cNodeOfTriangles &aPtOfTri);
     // Return correct value for initalisation depending on mask
     tREAL8 ReturnCorrectInitialisationValue(const bool aIsValidCorrelation, tDIm *aIntermediateDispMap,
-                                            const cKtOfTriangles &aPtOfTri, const tREAL8 aValueToReturnIfFalse);
+                                            const cNodeOfTriangles &aPtOfTri, const tREAL8 aValueToReturnIfFalse);
     // Construct difference image and compute average and max pixel value on ths image
     void SubtractPrePostImageAndComputeAvgAndMax(tIm &aImDiff, tDIm *aDImDiff, tDIm *aDImPre,
                                                  tDIm *aDImPost, tPt2di &aSzImPre);

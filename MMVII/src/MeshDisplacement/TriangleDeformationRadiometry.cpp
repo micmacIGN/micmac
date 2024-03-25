@@ -93,10 +93,10 @@ namespace MMVII
     void cAppli_cTriangleDeformationRadiometry::LoopOverTrianglesAndUpdateParametersRadiometry(const int aIterNumber)
     {
         //----------- allocate vec of obs :
-        tDoubleVect aVObs(12, 0.0); // 6 for ImagePre and 6 for ImagePost
+        tDoubleVect aVObsRad(12, 0.0); // 6 for ImagePre and 6 for ImagePost
 
         //----------- extract current parameters
-        tDenseVect aVCur = mSysRadiometry->CurGlobSol(); // Get current solution.
+        tDenseVect aVCurSolRad = mSysRadiometry->CurGlobSol(); // Get current solution.
 
         tIm aCurPreIm = tIm(mSzImPre);
         tDIm *aCurPreDIm = nullptr;
@@ -127,7 +127,7 @@ namespace MMVII
 
             const bool aSaveGaussImage = false;
             if (aSaveGaussImage)
-                aCurPreDIm->ToFile("GaussFilteredImPre_iter_" + std::to_string(aIterNumber) + ".tif");
+                aCurPreDIm->ToFile("GaussFilteredImPre_iter_" + ToStr(aIterNumber) + ".tif");
         }
         else if (mUseMultiScaleApproach && mIsLastIters)
         {
@@ -145,47 +145,58 @@ namespace MMVII
         // Loop over all triangles to add the observations on each point
         for (size_t aTr = 0; aTr < mDelTri.NbFace(); aTr++)
         {
-            const tTri2dr aTri = mDelTri.KthTri(aTr);
-            const cPt3di aIndicesOfTriKnots = mDelTri.KthFace(aTr);
+            const tTri2dr aTriRad = mDelTri.KthTri(aTr);
+            const cPt3di aIndicesOfTriKnotsRad = mDelTri.KthFace(aTr);
 
-            const cTriangle2DCompiled aCompTri(aTri);
+            const cTriangle2DCompiled aCompTri(aTriRad);
 
             std::vector<cPt2di> aVectorToFillWithInsidePixels;
             aCompTri.PixelsInside(aVectorToFillWithInsidePixels); // get pixels inside triangle
 
             //----------- index of unknown, finds the associated pixels of current triangle knots
-            const tIntVect aVecInd = {2 * aIndicesOfTriKnots.x(), 2 * aIndicesOfTriKnots.x() + 1,
-                                      2 * aIndicesOfTriKnots.y(), 2 * aIndicesOfTriKnots.y() + 1,
-                                      2 * aIndicesOfTriKnots.z(), 2 * aIndicesOfTriKnots.z() + 1};
-
-            const tREAL8 aCurRadTrPointA = aVCur(aVecInd.at(0)); // current translation on radiometry 1st point of triangle
-            const tREAL8 aCurRadScPointA = aVCur(aVecInd.at(1)); // current scale on radiometry 3rd point of triangle
-            const tREAL8 aCurRadTrPointB = aVCur(aVecInd.at(2)); // current translation on radiometry 2nd point of triangle
-            const tREAL8 aCurRadScPointB = aVCur(aVecInd.at(3)); // current scale on radiometry 3rd point of triangle
-            const tREAL8 aCurRadTrPointC = aVCur(aVecInd.at(4)); // current translation on radiometry 3rd point of triangle
-            const tREAL8 aCurRadScPointC = aVCur(aVecInd.at(5)); // current scale on radiometry 3rd point of triangle
+            const tIntVect aVecInd = {2 * aIndicesOfTriKnotsRad.x(), 2 * aIndicesOfTriKnotsRad.x() + 1,
+                                      2 * aIndicesOfTriKnotsRad.y(), 2 * aIndicesOfTriKnotsRad.y() + 1,
+                                      2 * aIndicesOfTriKnotsRad.z(), 2 * aIndicesOfTriKnotsRad.z() + 1};
+            
+            const cNodeOfTriangles aFirstPointOfTriRad = cNodeOfTriangles(aVCurSolRad, aVecInd, 0, 1, 0, 1, aTriRad, 0);
+            const cNodeOfTriangles aSecondPointOfTriRad = cNodeOfTriangles(aVCurSolRad, aVecInd, 2, 3, 2, 3, aTriRad, 1);
+            const cNodeOfTriangles aThirdPointOfTriRad = cNodeOfTriangles(aVCurSolRad, aVecInd, 4, 5, 4, 5, aTriRad, 2);
+            /*
+            const tREAL8 aCurRadTrPointA = aVCurSolRad(aVecInd.at(0)); // current translation on radiometry 1st point of triangle
+            const tREAL8 aCurRadScPointA = aVCurSolRad(aVecInd.at(1)); // current scale on radiometry 3rd point of triangle
+            const tREAL8 aCurRadTrPointB = aVCurSolRad(aVecInd.at(2)); // current translation on radiometry 2nd point of triangle
+            const tREAL8 aCurRadScPointB = aVCurSolRad(aVecInd.at(3)); // current scale on radiometry 3rd point of triangle
+            const tREAL8 aCurRadTrPointC = aVCurSolRad(aVecInd.at(4)); // current translation on radiometry 3rd point of triangle
+            const tREAL8 aCurRadScPointC = aVCurSolRad(aVecInd.at(5)); // current scale on radiometry 3rd point of triangle
+            */
+            const tREAL8 aCurRadTrPointA = aFirstPointOfTriRad.GetCurrentRadiometryTranslation();  // current translation on radiometry 1st point of triangle
+            const tREAL8 aCurRadScPointA = aFirstPointOfTriRad.GetCurrentRadiometryScaling();  // current scale on radiometry 3rd point of triangle
+            const tREAL8 aCurRadTrPointB = aSecondPointOfTriRad.GetCurrentRadiometryTranslation();  // current translation on radiometry 2nd point of triangle
+            const tREAL8 aCurRadScPointB = aSecondPointOfTriRad.GetCurrentRadiometryScaling();  // current scale on radiometry 3rd point of triangle
+            const tREAL8 aCurRadTrPointC = aThirdPointOfTriRad.GetCurrentRadiometryTranslation(); // current translation on radiometry 3rd point of triangle
+            const tREAL8 aCurRadScPointC = aThirdPointOfTriRad.GetCurrentRadiometryScaling(); // current scale on radiometry 3rd point of triangle
 
             // soft constraint radiometric translation
             if (mWeightRadTranslation >= 0)
             {
-                const int aSolStep = 2; // adapt step to solution vector configuration
                 const int aSolStart = 0;
+                const int aSolStep = 2; // adapt step to solution vector configuration
                 for (size_t aIndCurSol = aSolStart; aIndCurSol < aVecInd.size() - 1; aIndCurSol += aSolStep)
                 {
                     const int aIndices = aVecInd.at(aIndCurSol);
-                    mSysRadiometry->AddEqFixVar(aIndices, aVCur(aIndices), mWeightRadTranslation);
+                    mSysRadiometry->AddEqFixVar(aIndices, aVCurSolRad(aIndices), mWeightRadTranslation);
                 }
             }
 
             // soft constraint radiometric scaling
             if (mWeightRadScale >= 0)
             {
-                const int aSolStep = 2; // adapt step to solution vector configuration
                 const int aSolStart = 1;
+                const int aSolStep = 2; // adapt step to solution vector configuration
                 for (size_t aIndCurSol = aSolStart; aIndCurSol < aVecInd.size(); aIndCurSol += aSolStep)
                 {
                     const int aIndices = aVecInd.at(aIndCurSol);
-                    mSysRadiometry->AddEqFixVar(aIndices, aVCur(aIndices), mWeightRadScale);
+                    mSysRadiometry->AddEqFixVar(aIndices, aVCurSolRad(aIndices), mWeightRadScale);
                 }
             }
 
@@ -197,20 +208,20 @@ namespace MMVII
             {
                 const cPtInsideTriangles aPixInsideTriangle = cPtInsideTriangles(aCompTri, aVectorToFillWithInsidePixels,
                                                                                  aFilledPixel, *aCurPreDIm);
-                // prepare for barycenter translation formula by filling aVObs with different coordinates
-                FormalInterpBarycenter_SetObs(aVObs, 0, aPixInsideTriangle);
+                // prepare for barycenter translation formula by filling aVObsRad with different coordinates
+                FormalInterpBarycenter_SetObs(aVObsRad, 0, aPixInsideTriangle);
 
                 // radiometry translation of pixel by current radiometry translation of triangle knots
                 const tREAL8 aRadiometryTranslation = ApplyBarycenterTranslationFormulaForTranslationRadiometry(aCurRadTrPointA,
                                                                                                                 aCurRadTrPointB,
                                                                                                                 aCurRadTrPointC,
-                                                                                                                aVObs);
+                                                                                                                aVObsRad);
 
                 // radiometry scaling of pixel by current radiometry scaling of triangle knots
                 const tREAL8 aRadiometryScaling = ApplyBarycenterTranslationFormulaForScalingRadiometry(aCurRadScPointA,
                                                                                                         aCurRadScPointB,
                                                                                                         aCurRadScPointC,
-                                                                                                        aVObs);
+                                                                                                        aVObsRad);
 
                 const cPt2dr aInsideTrianglePoint = aPixInsideTriangle.GetCartesianCoordinates();
                 const cPt2di aEastTranslatedPoint = cPt2di(aInsideTrianglePoint.x(), aInsideTrianglePoint.y()) + cPt2di(1, 0);
@@ -221,13 +232,13 @@ namespace MMVII
                     if (aCurPostDIm->InsideBL(cPt2dr(aSouthTranslatedPoint.x(), aSouthTranslatedPoint.y()))) // avoid errors
                     {
                         // prepare for application of bilinear formula
-                        FormalBilinTri_SetObs(aVObs, TriangleDisplacement_NbObs, aInsideTrianglePoint, *aCurPostDIm);
+                        FormalBilinTri_SetObs(aVObsRad, TriangleDisplacement_NbObs, aInsideTrianglePoint, *aCurPostDIm);
 
                         // Now add observation
-                        mSysRadiometry->CalcAndAddObs(mEqRadiometryTri, aVecInd, aVObs);
+                        mSysRadiometry->CalcAndAddObs(mEqRadiometryTri, aVecInd, aVObsRad);
 
                         // compute indicators
-                        const tREAL8 aRadiomValueImPre = aRadiometryScaling * aVObs[5] + aRadiometryTranslation;
+                        const tREAL8 aRadiomValueImPre = aRadiometryScaling * aVObsRad[5] + aRadiometryTranslation;
                         const tREAL8 aDif = aRadiomValueImPre - aCurPostDIm->GetVBL(aInsideTrianglePoint); // residual
                         aSomDif += std::abs(aDif);
                     }
@@ -305,24 +316,35 @@ namespace MMVII
 
         for (size_t aLTr = 0; aLTr < mDelTri.NbFace(); aLTr++)
         {
-            const tTri2dr aLastTri = mDelTri.KthTri(aLTr);
-            const cPt3di aLastIndicesOfTriKnots = mDelTri.KthFace(aLTr);
+            const tTri2dr aLastTriRad = mDelTri.KthTri(aLTr);
+            const cPt3di aLastIndicesOfTriKnotsTr = mDelTri.KthFace(aLTr);
 
-            const cTriangle2DCompiled aLastCompTri(aLastTri);
+            const cTriangle2DCompiled aLastCompTri(aLastTriRad);
 
             std::vector<cPt2di> aLastVectorToFillWithInsidePixels;
             aLastCompTri.PixelsInside(aLastVectorToFillWithInsidePixels);
 
-            const tIntVect aLastVecInd = {2 * aLastIndicesOfTriKnots.x(), 2 * aLastIndicesOfTriKnots.x() + 1,
-                                          2 * aLastIndicesOfTriKnots.y(), 2 * aLastIndicesOfTriKnots.y() + 1,
-                                          2 * aLastIndicesOfTriKnots.z(), 2 * aLastIndicesOfTriKnots.z() + 1};
-
+            const tIntVect aLastVecInd = {2 * aLastIndicesOfTriKnotsTr.x(), 2 * aLastIndicesOfTriKnotsTr.x() + 1,
+                                          2 * aLastIndicesOfTriKnotsTr.y(), 2 * aLastIndicesOfTriKnotsTr.y() + 1,
+                                          2 * aLastIndicesOfTriKnotsTr.z(), 2 * aLastIndicesOfTriKnotsTr.z() + 1};
+            
+            const cNodeOfTriangles aLastFirstPointOfTri = cNodeOfTriangles(aVFinalSol, aLastVecInd, 0, 1, 0, 1, aLastTriRad, 0);
+            const cNodeOfTriangles aLastSecondPointOfTri = cNodeOfTriangles(aVFinalSol, aLastVecInd, 2, 3, 2, 3, aLastTriRad, 1);
+            const cNodeOfTriangles aLastThirdPointOfTri = cNodeOfTriangles(aVFinalSol, aLastVecInd, 4, 5, 4, 5, aLastTriRad, 2);
+            /*
             const tREAL8 aLastRadTrPointA = aVFinalSol(aLastVecInd.at(0)); // last translation on radiometry 1st point of triangle
             const tREAL8 aLastRadScPointA = aVFinalSol(aLastVecInd.at(1)); // last scale on radiometry 1st point of triangle
             const tREAL8 aLastRadTrPointB = aVFinalSol(aLastVecInd.at(2)); // last translation on radiometry 2nd point of triangle
             const tREAL8 aLastRadScPointB = aVFinalSol(aLastVecInd.at(3)); // last scale on radiometry 2nd point of triangle
             const tREAL8 aLastRadTrPointC = aVFinalSol(aLastVecInd.at(4)); // last translation on radiometry 3rd point of triangle
             const tREAL8 aLastRadScPointC = aVFinalSol(aLastVecInd.at(5)); // last scale on radiometry 3rd point of triangle
+            */
+            const tREAL8 aLastRadTrPointA = aLastFirstPointOfTri.GetCurrentRadiometryTranslation();
+            const tREAL8 aLastRadScPointA = aLastFirstPointOfTri.GetCurrentRadiometryScaling();
+            const tREAL8 aLastRadTrPointB = aLastSecondPointOfTri.GetCurrentRadiometryTranslation();
+            const tREAL8 aLastRadScPointB = aLastSecondPointOfTri.GetCurrentRadiometryScaling();
+            const tREAL8 aLastRadTrPointC = aLastThirdPointOfTri.GetCurrentRadiometryTranslation();
+            const tREAL8 aLastRadScPointC = aLastThirdPointOfTri.GetCurrentRadiometryScaling();
 
             const size_t aLastNumberOfInsidePixels = aLastVectorToFillWithInsidePixels.size();
 
@@ -348,8 +370,9 @@ namespace MMVII
         }
 
         // save output image with calculated radiometries to image file
-        mDImOut->ToFile("OutputImage_" + std::to_string(mNumberOfScales) + "_" + std::to_string(mNumberPointsToGenerate) + ".tif");
+        mDImOut->ToFile("OutputImage_" + ToStr(mNumberOfScales) + "_" + ToStr(mNumberPointsToGenerate) + ".tif");
 
+        // Display last computed values of radiometry unknowns
         if (mDisplayLastRadiometryValues)
         {
             for (int aFinalUnk = 0; aFinalUnk < aVFinalSol.DIm().Sz(); aFinalUnk++)
@@ -366,8 +389,8 @@ namespace MMVII
         LoopOverTrianglesAndUpdateParametersRadiometry(aIterNumber); // Iterate over triangles and solve system
 
         tDenseVect aVFinalSol = mSysRadiometry->CurGlobSol();
-        // Show final translation results and produce displacement maps
 
+        // Show final translation results and produce displacement maps
         if (aIterNumber == (aTotalNumberOfIterations - 1))
             GenerateOutputImageAndDisplayLastRadiometryValues(aVFinalSol, aIterNumber);
 

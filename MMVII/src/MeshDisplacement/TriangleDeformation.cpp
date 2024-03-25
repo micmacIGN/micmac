@@ -185,9 +185,9 @@ namespace MMVII
                                       4 * aIndicesOfTriKnots.z() + 2, 4 * aIndicesOfTriKnots.z() + 3};
 
             // Get points coordinates associated to triangle
-            const cKtOfTriangles aFirstInitPointOfTri = cKtOfTriangles(aVInit, aInitVecInd, 0, 1, 2, 3, aInitTri, 0);
-            const cKtOfTriangles aSecondInitPointOfTri = cKtOfTriangles(aVInit, aInitVecInd, 4, 5, 6, 7, aInitTri, 1);
-            const cKtOfTriangles aThirdInitPointOfTri = cKtOfTriangles(aVInit, aInitVecInd, 8, 9, 10, 11, aInitTri, 2);
+            const cNodeOfTriangles aFirstInitPointOfTri = cNodeOfTriangles(aVInit, aInitVecInd, 0, 1, 2, 3, aInitTri, 0);
+            const cNodeOfTriangles aSecondInitPointOfTri = cNodeOfTriangles(aVInit, aInitVecInd, 4, 5, 6, 7, aInitTri, 1);
+            const cNodeOfTriangles aThirdInitPointOfTri = cNodeOfTriangles(aVInit, aInitVecInd, 8, 9, 10, 11, aInitTri, 2);
 
             // Check if correlation is computed for these points
             const bool aFirstPointIsValid = CheckValidCorrelationValue(mDImCorrelationMask, aFirstInitPointOfTri);
@@ -270,9 +270,9 @@ namespace MMVII
             if (aSaveGaussImage)
             {
                 if (aUserDefinedFolderName)
-                    aCurPreDIm->ToFile(mFolderSaveResult + "/GaussFilteredImPre_iter_" + std::to_string(aIterNumber) + ".tif");
+                    aCurPreDIm->ToFile(mFolderSaveResult + "/GaussFilteredImPre_iter_" + ToStr(aIterNumber) + ".tif");
                 else
-                    aCurPreDIm->ToFile("GaussFilteredImPre_iter_" + std::to_string(aIterNumber) + ".tif");
+                    aCurPreDIm->ToFile("GaussFilteredImPre_iter_" + ToStr(aIterNumber) + ".tif");
             }
         }
         else if (mUseMultiScaleApproach && mIsLastIters)
@@ -349,9 +349,9 @@ namespace MMVII
                                       4 * aIndicesOfTriKnots.z(), 4 * aIndicesOfTriKnots.z() + 1,
                                       4 * aIndicesOfTriKnots.z() + 2, 4 * aIndicesOfTriKnots.z() + 3};
 
-            const cKtOfTriangles aFirstPointOfTri = cKtOfTriangles(aVCur, aVecInd, 0, 1, 2, 3, aTri, 0);
-            const cKtOfTriangles aSecondPointOfTri = cKtOfTriangles(aVCur, aVecInd, 4, 5, 6, 7, aTri, 1);
-            const cKtOfTriangles aThirdPointOfTri = cKtOfTriangles(aVCur, aVecInd, 8, 9, 10, 11, aTri, 2);
+            const cNodeOfTriangles aFirstPointOfTri = cNodeOfTriangles(aVCur, aVecInd, 0, 1, 2, 3, aTri, 0);
+            const cNodeOfTriangles aSecondPointOfTri = cNodeOfTriangles(aVCur, aVecInd, 4, 5, 6, 7, aTri, 1);
+            const cNodeOfTriangles aThirdPointOfTri = cNodeOfTriangles(aVCur, aVecInd, 8, 9, 10, 11, aTri, 2);
 /*
             const tPt2dr aCurTrPointA = tPt2dr(aVCur(aVecInd.at(0)),
                                                aVCur(aVecInd.at(1))); 
@@ -575,9 +575,9 @@ namespace MMVII
             const tREAL8 aLastRadTrPointC = aVFinalSol(aLastVecInd.at(10)); // last translation on radiometry 3rd point of triangle
             const tREAL8 aLastRadScPointC = aVFinalSol(aLastVecInd.at(11)); // last scale on radiometry 3rd point of triangle
             */
-            const cKtOfTriangles aLastFirstPointOfTri = cKtOfTriangles(aVFinalSol, aLastVecInd, 0, 1, 2, 3, aLastTri, 0);
-            const cKtOfTriangles aLastSecondPointOfTri = cKtOfTriangles(aVFinalSol, aLastVecInd, 4, 5, 6, 7, aLastTri, 1);
-            const cKtOfTriangles aLastThirdPointOfTri = cKtOfTriangles(aVFinalSol, aLastVecInd, 8, 9, 10, 11, aLastTri, 2);
+            const cNodeOfTriangles aLastFirstPointOfTri = cNodeOfTriangles(aVFinalSol, aLastVecInd, 0, 1, 2, 3, aLastTri, 0);
+            const cNodeOfTriangles aLastSecondPointOfTri = cNodeOfTriangles(aVFinalSol, aLastVecInd, 4, 5, 6, 7, aLastTri, 1);
+            const cNodeOfTriangles aLastThirdPointOfTri = cNodeOfTriangles(aVFinalSol, aLastVecInd, 8, 9, 10, 11, aLastTri, 2);
 
             const tPt2dr aLastTrPointA = aLastFirstPointOfTri.GetCurrentXYDisplacementVector();
             const tPt2dr aLastTrPointB = aLastSecondPointOfTri.GetCurrentXYDisplacementVector();
@@ -623,32 +623,32 @@ namespace MMVII
         {
             if (aUserDefinedFolderName)
             {
-                mDImDepX->ToFile(mFolderSaveResult + "/DisplacedPixelsX_iter_" + std::to_string(aIterNumber) + "_" +
-                                 std::to_string(mNumberPointsToGenerate) + "_" +
-                                 std::to_string(aTotalNumberOfIterations) + ".tif");
-                mDImDepY->ToFile(mFolderSaveResult + "/DisplacedPixelsY_iter_" + std::to_string(aIterNumber) + "_" +
-                                 std::to_string(mNumberPointsToGenerate) + "_" +
-                                 std::to_string(aTotalNumberOfIterations) + ".tif");
+                mDImDepX->ToFile(mFolderSaveResult + "/DisplacedPixelsX_iter_" + ToStr(aIterNumber) + "_" +
+                                 ToStr(mNumberPointsToGenerate) + "_" +
+                                 ToStr(aTotalNumberOfIterations) + ".tif");
+                mDImDepY->ToFile(mFolderSaveResult + "/DisplacedPixelsY_iter_" + ToStr(aIterNumber) + "_" +
+                                 ToStr(mNumberPointsToGenerate) + "_" +
+                                 ToStr(aTotalNumberOfIterations) + ".tif");
             }
             else
             {
-                mDImDepX->ToFile("DisplacedPixelsX_iter_" + std::to_string(aIterNumber) + "_" +
-                                 std::to_string(mNumberPointsToGenerate) + "_" +
-                                 std::to_string(aTotalNumberOfIterations) + ".tif");
-                mDImDepY->ToFile("DisplacedPixelsY_iter_" + std::to_string(aIterNumber) + "_" +
-                                 std::to_string(mNumberPointsToGenerate) + "_" +
-                                 std::to_string(aTotalNumberOfIterations) + ".tif");
+                mDImDepX->ToFile("DisplacedPixelsX_iter_" + ToStr(aIterNumber) + "_" +
+                                 ToStr(mNumberPointsToGenerate) + "_" +
+                                 ToStr(aTotalNumberOfIterations) + ".tif");
+                mDImDepY->ToFile("DisplacedPixelsY_iter_" + ToStr(aIterNumber) + "_" +
+                                 ToStr(mNumberPointsToGenerate) + "_" +
+                                 ToStr(aTotalNumberOfIterations) + ".tif");
             }
             if (aIterNumber == aTotalNumberOfIterations - 1)
             {
                 if (aUserDefinedFolderName)
-                    mDImOut->ToFile(mFolderSaveResult + "/DisplacedPixels_iter_" + std::to_string(aIterNumber) + "_" +
-                                    std::to_string(mNumberPointsToGenerate) + "_" +
-                                    std::to_string(aTotalNumberOfIterations) + ".tif");
+                    mDImOut->ToFile(mFolderSaveResult + "/DisplacedPixels_iter_" + ToStr(aIterNumber) + "_" +
+                                    ToStr(mNumberPointsToGenerate) + "_" +
+                                    ToStr(aTotalNumberOfIterations) + ".tif");
                 else
-                    mDImOut->ToFile("DisplacedPixels_iter_" + std::to_string(aIterNumber) + "_" +
-                                    std::to_string(mNumberPointsToGenerate) + "_" +
-                                    std::to_string(aTotalNumberOfIterations) + ".tif");
+                    mDImOut->ToFile("DisplacedPixels_iter_" + ToStr(aIterNumber) + "_" +
+                                    ToStr(mNumberPointsToGenerate) + "_" +
+                                    ToStr(aTotalNumberOfIterations) + ".tif");
             }
         }
         else if (mInitialiseTranslationWithPreviousExecution)
@@ -660,21 +660,21 @@ namespace MMVII
         {
             if (aUserDefinedFolderName)
             {
-                mDImDepX->ToFile(mFolderSaveResult + "/DisplacedPixelsX_" + std::to_string(mNumberPointsToGenerate) + "_" +
-                                 std::to_string(aTotalNumberOfIterations) + ".tif");
-                mDImDepY->ToFile(mFolderSaveResult + "/DisplacedPixelsY_" + std::to_string(mNumberPointsToGenerate) + "_" +
-                                 std::to_string(aTotalNumberOfIterations) + ".tif");
-                mDImOut->ToFile(mFolderSaveResult + "/DisplacedPixels_" + std::to_string(mNumberPointsToGenerate) + "_" +
-                                std::to_string(aTotalNumberOfIterations) + ".tif");
+                mDImDepX->ToFile(mFolderSaveResult + "/DisplacedPixelsX_" + ToStr(mNumberPointsToGenerate) + "_" +
+                                 ToStr(aTotalNumberOfIterations) + ".tif");
+                mDImDepY->ToFile(mFolderSaveResult + "/DisplacedPixelsY_" + ToStr(mNumberPointsToGenerate) + "_" +
+                                 ToStr(aTotalNumberOfIterations) + ".tif");
+                mDImOut->ToFile(mFolderSaveResult + "/DisplacedPixels_" + ToStr(mNumberPointsToGenerate) + "_" +
+                                ToStr(aTotalNumberOfIterations) + ".tif");
             }
             else
             {
-                mDImDepX->ToFile("DisplacedPixelsX_" + std::to_string(mNumberPointsToGenerate) + "_" +
-                                 std::to_string(aTotalNumberOfIterations) + ".tif");
-                mDImDepY->ToFile("DisplacedPixelsY_" + std::to_string(mNumberPointsToGenerate) + "_" +
-                                 std::to_string(aTotalNumberOfIterations) + ".tif");
-                mDImOut->ToFile("DisplacedPixels_" + std::to_string(mNumberPointsToGenerate) + "_" +
-                                std::to_string(aTotalNumberOfIterations) + ".tif");
+                mDImDepX->ToFile("DisplacedPixelsX_" + ToStr(mNumberPointsToGenerate) + "_" +
+                                 ToStr(aTotalNumberOfIterations) + ".tif");
+                mDImDepY->ToFile("DisplacedPixelsY_" + ToStr(mNumberPointsToGenerate) + "_" +
+                                 ToStr(aTotalNumberOfIterations) + ".tif");
+                mDImOut->ToFile("DisplacedPixels_" + ToStr(mNumberPointsToGenerate) + "_" +
+                                ToStr(aTotalNumberOfIterations) + ".tif");
             }
         }
     }
