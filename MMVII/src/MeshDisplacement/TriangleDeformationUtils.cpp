@@ -36,18 +36,18 @@ namespace MMVII
 
     cNodeOfTriangles::cNodeOfTriangles(const tDenseVect &aVecSol,
                                        const tIntVect &aIndicesVec,
-                                       const int adXIndices,
-                                       const int adYIndices,
-                                       const tREAL8 aRadTrIndices,
-                                       const tREAL8 aRadScIndices,
+                                       const int adXIndex,
+                                       const int adYIndex,
+                                       const tREAL8 aRadTrIndex,
+                                       const tREAL8 aRadScIndex,
                                        const tTri2dr &aTri,
                                        const int aPointNumberInTri)
     {
         mInitialNodeCoordinates = aTri.Pt(aPointNumberInTri);
-        mCurXYDisplacementVector = tPt2dr(aVecSol(aIndicesVec.at(adXIndices)),
-                                          aVecSol(aIndicesVec.at(adYIndices)));
-        mCurRadTr = aVecSol(aRadTrIndices);
-        mCurRadSc = aVecSol(aRadScIndices);
+        mCurXYDisplacementVector = tPt2dr(aVecSol(aIndicesVec.at(adXIndex)),
+                                          aVecSol(aIndicesVec.at(adYIndex)));
+        mCurRadTr = aVecSol(aRadTrIndex);
+        mCurRadSc = aVecSol(aRadScIndex);
     }
 
     tPt2dr cNodeOfTriangles::GetInitialNodeCoordinates() const { return mInitialNodeCoordinates; }          // Accessor

@@ -157,7 +157,7 @@ namespace MMVII
                                           2 * aInitIndicesOfTriKnots.y(), 2 * aInitIndicesOfTriKnots.y() + 1,
                                           2 * aInitIndicesOfTriKnots.z(), 2 * aInitIndicesOfTriKnots.z() + 1};
 
-            // Get points coordinates associated to triangle
+            // Get points associated to triangle
             const cNodeOfTriangles aFirstInitPointOfTri = cNodeOfTriangles(aVInitTranslation, aInitVecInd, 0, 1, 0, 1, aInitTri, 0);
             const cNodeOfTriangles aSecondInitPointOfTri = cNodeOfTriangles(aVInitTranslation, aInitVecInd, 2, 3, 2, 3, aInitTri, 1);
             const cNodeOfTriangles aThirdInitPointOfTri = cNodeOfTriangles(aVInitTranslation, aInitVecInd, 4, 5, 4, 5, aInitTri, 2);
@@ -224,11 +224,13 @@ namespace MMVII
             if (aSaveGaussImage)
                 aCurPreDIm->ToFile("GaussFilteredImPre_iter_" + ToStr(aIterNumber) + ".tif");
         }
+        /*
         else if (mUseMultiScaleApproach && mIsLastIters)
         {
             LoadPrePostImageAndData(aCurPreIm, aCurPreDIm, "pre", mImPre, mImPost);
             LoadPrePostImageAndData(aCurPostIm, aCurPostDIm, "post", mImPre, mImPost);
         }
+        */
 
         //----------- declaration of indicator of convergence
         tREAL8 aSomDif = 0; // sum of difference between untranslated pixel and translated one.
@@ -237,25 +239,28 @@ namespace MMVII
         // Count number of pixels inside triangles for normalisation
         size_t aTotalNumberOfInsidePixels = 0;
 
-        for (size_t aTr = 0; aTr < mDelTri.NbFace(); aTr++)
+        if (mFreezeTranslationX || mFreezeTranslationY)
         {
-            const tPt3di aIndicesOfTriKnotsTr = mDelTri.KthFace(aTr);
-
-            const tIntVect aVecIndTr = {2 * aIndicesOfTriKnotsTr.x(), 2 * aIndicesOfTriKnotsTr.x() + 1,
-                                        2 * aIndicesOfTriKnotsTr.y(), 2 * aIndicesOfTriKnotsTr.y() + 1,
-                                        2 * aIndicesOfTriKnotsTr.z(), 2 * aIndicesOfTriKnotsTr.z() + 1};
-
-            if (mFreezeTranslationX)
+            for (size_t aTr = 0; aTr < mDelTri.NbFace(); aTr++)
             {
-                mSysTranslation->SetFrozenVar(aVecIndTr.at(0), aVCurSolTr(aVecIndTr.at(0)));
-                mSysTranslation->SetFrozenVar(aVecIndTr.at(2), aVCurSolTr(aVecIndTr.at(2)));
-                mSysTranslation->SetFrozenVar(aVecIndTr.at(4), aVCurSolTr(aVecIndTr.at(4)));
-            }
-            if (mFreezeTranslationY)
-            {
-                mSysTranslation->SetFrozenVar(aVecIndTr.at(1), aVCurSolTr(aVecIndTr.at(1)));
-                mSysTranslation->SetFrozenVar(aVecIndTr.at(3), aVCurSolTr(aVecIndTr.at(3)));
-                mSysTranslation->SetFrozenVar(aVecIndTr.at(5), aVCurSolTr(aVecIndTr.at(5)));
+                const tPt3di aIndicesOfTriKnotsTr = mDelTri.KthFace(aTr);
+
+                const tIntVect aVecIndTr = {2 * aIndicesOfTriKnotsTr.x(), 2 * aIndicesOfTriKnotsTr.x() + 1,
+                                            2 * aIndicesOfTriKnotsTr.y(), 2 * aIndicesOfTriKnotsTr.y() + 1,
+                                            2 * aIndicesOfTriKnotsTr.z(), 2 * aIndicesOfTriKnotsTr.z() + 1};
+
+                if (mFreezeTranslationX)
+                {
+                    mSysTranslation->SetFrozenVar(aVecIndTr.at(0), aVCurSolTr(aVecIndTr.at(0)));
+                    mSysTranslation->SetFrozenVar(aVecIndTr.at(2), aVCurSolTr(aVecIndTr.at(2)));
+                    mSysTranslation->SetFrozenVar(aVecIndTr.at(4), aVCurSolTr(aVecIndTr.at(4)));
+                }
+                if (mFreezeTranslationY)
+                {
+                    mSysTranslation->SetFrozenVar(aVecIndTr.at(1), aVCurSolTr(aVecIndTr.at(1)));
+                    mSysTranslation->SetFrozenVar(aVecIndTr.at(3), aVCurSolTr(aVecIndTr.at(3)));
+                    mSysTranslation->SetFrozenVar(aVecIndTr.at(5), aVCurSolTr(aVecIndTr.at(5)));
+                }
             }
         }
 
@@ -281,15 +286,15 @@ namespace MMVII
             /*
             const tPt2dr aCurTrPointA = tPt2dr(aVCurSolTr(aVecIndTr.at(0)),
                                                aVCurSolTr(aVecIndTr.at(1)));
-                                               // current translation 1st point of triangle
+                                               
             const tPt2dr aCurTrPointB = tPt2dr(aVCurSolTr(aVecIndTr.at(2)),
-                                               aVCurSolTr(aVecIndTr.at(3))); // current translation 2nd point of triangle
+                                               aVCurSolTr(aVecIndTr.at(3))); 
             const tPt2dr aCurTrPointC = tPt2dr(aVCurSolTr(aVecIndTr.at(4)),
-                                               aVCurSolTr(aVecIndTr.at(5))); // current translation 3rd point of triangle
+                                               aVCurSolTr(aVecIndTr.at(5)));
             */
-            const tPt2dr aCurTrPointA = aFirstPointOfTriTr.GetCurrentXYDisplacementVector();
-            const tPt2dr aCurTrPointB = aSecondPointOfTriTr.GetCurrentXYDisplacementVector();
-            const tPt2dr aCurTrPointC = aThirdPointOfTriTr.GetCurrentXYDisplacementVector();
+            const tPt2dr aCurTrPointA = aFirstPointOfTriTr.GetCurrentXYDisplacementVector();    // current translation 1st point of triangle
+            const tPt2dr aCurTrPointB = aSecondPointOfTriTr.GetCurrentXYDisplacementVector();   // current translation 2nd point of triangle
+            const tPt2dr aCurTrPointC = aThirdPointOfTriTr.GetCurrentXYDisplacementVector();    // current translation 3rd point of triangle
 
             // soft constraint radiometric translation
             if (!mFreezeTranslationX)
@@ -479,15 +484,15 @@ namespace MMVII
 
             /*
             const tPt2dr aLastTrPointA = tPt2dr(aVFinalSol(aLastVecInd.at(0)),
-                                                aVFinalSol(aLastVecInd.at(1))); // last translation 1st point of triangle
+                                                aVFinalSol(aLastVecInd.at(1))); 
             const tPt2dr aLastTrPointB = tPt2dr(aVFinalSol(aLastVecInd.at(2)),
-                                                aVFinalSol(aLastVecInd.at(3))); // last translation 2nd point of triangle
+                                                aVFinalSol(aLastVecInd.at(3))); 
             const tPt2dr aLastTrPointC = tPt2dr(aVFinalSol(aLastVecInd.at(4)),
-                                                aVFinalSol(aLastVecInd.at(5))); // last translation 3rd point of triangle
+                                                aVFinalSol(aLastVecInd.at(5))); 
             */
-            const tPt2dr aLastTrPointA = aLastFirstPointOfTri.GetCurrentXYDisplacementVector();
-            const tPt2dr aLastTrPointB = aLastSecondPointOfTri.GetCurrentXYDisplacementVector();
-            const tPt2dr aLastTrPointC = aLastThirdPointOfTri.GetCurrentXYDisplacementVector();
+            const tPt2dr aLastTrPointA = aLastFirstPointOfTri.GetCurrentXYDisplacementVector(); // last translation 1st point of triangle
+            const tPt2dr aLastTrPointB = aLastSecondPointOfTri.GetCurrentXYDisplacementVector();// last translation 2nd point of triangle
+            const tPt2dr aLastTrPointC = aLastThirdPointOfTri.GetCurrentXYDisplacementVector(); // last translation 3rd point of triangle
 
             const size_t aLastNumberOfInsidePixels = aLastVectorToFillWithInsidePixels.size();
 
@@ -601,7 +606,7 @@ namespace MMVII
         int aTotalNumberOfIterations = 0;
         (mUseMultiScaleApproach) ? aTotalNumberOfIterations = mNumberOfScales + mNumberOfEndIterations : aTotalNumberOfIterations = mNumberOfScales;
 
-        for (int aIterNumber = 0; aIterNumber < mNumberOfScales; aIterNumber++)
+        for (int aIterNumber = 0; aIterNumber < aTotalNumberOfIterations; aIterNumber++)
             DoOneIterationTranslation(aIterNumber, aTotalNumberOfIterations);
 
         return EXIT_SUCCESS;
