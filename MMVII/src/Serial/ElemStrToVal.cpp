@@ -208,6 +208,11 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::FileImage,"Im"},
                 {eTA2007::FileCloud,"Cloud"},
                 {eTA2007::File3DRegion,"3DReg"},
+                {eTA2007::FileTagged,"FileTagged"},
+                {eTA2007::FileTxt,"FileText"},
+                {eTA2007::FileAny,"FileAny"},
+                {eTA2007::FolderAny,"FolderAny"},
+
                 {eTA2007::MPatFile,"MPF"},
                 {eTA2007::Orient,"Ori"},
                 {eTA2007::RadiomData,"RadData"},

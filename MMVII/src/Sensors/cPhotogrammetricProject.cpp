@@ -614,12 +614,17 @@ cSensorImage* cPhotogrammetricProject::ReadSensorFromFolder(const std::string  &
 
 cPerspCamIntrCalib *  cPhotogrammetricProject::InternalCalibFromImage(const std::string & aNameIm) const
 {
-    // 4 now, pretty basic allox sensor, extract internal, destroy
-    // later will have to handle :
-    //    * case where calib exist but not pose
-    //    * case where nor calib nor pose exist, and must be created from xif 
+    //  allox sensor and if exist, extract internal, destroy
+    //  else try to extract calib from standard name
+    //    * case where nor calib nor pose exist, and must be created from xif still to implemant
     mDPOrient.AssertDirInIsInit();
-    cSensorCamPC *  aPC = ReadCamPC(aNameIm,false);
+
+    cSensorCamPC *  aPC = ReadCamPC(aNameIm,false,SVP::Yes);
+    if (aPC==nullptr)
+    {
+        return InternalCalibFromStdName(aNameIm);
+    }
+
     cPerspCamIntrCalib * aCalib = aPC->InternalCalib();
     delete aPC;
 

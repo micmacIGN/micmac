@@ -44,6 +44,7 @@ class cAppli_ImportGCP : public cMMVII_Appli
 	int                        mComment;
 	int                        mNbDigName;
 	std::vector<std::string>   mPatternTransfo;        
+	double                     mMulCoord;
 };
 
 cAppli_ImportGCP::cAppli_ImportGCP(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -51,7 +52,8 @@ cAppli_ImportGCP::cAppli_ImportGCP(const std::vector<std::string> & aVArgs,const
    mPhProj       (*this),
    mL0           (0),
    mLLast        (-1),
-   mComment      (-1)
+   mComment      (-1),
+   mMulCoord     (1.0)
 {
 }
 
@@ -73,6 +75,7 @@ cCollecSpecArg2007 & cAppli_ImportGCP::ArgOpt(cCollecSpecArg2007 & anArgObl)
        << AOpt2007(mLLast,"NumLast","Num of last line to read (-1 if at end of file)",{eTA2007::HDV})
        << AOpt2007(mPatternTransfo,"PatName","Pattern for transforming name (first sub-expr)",{{eTA2007::ISizeV,"[2,2]"}})
        << mPhProj.ArgChSys(true)  // true =>  default init with None
+       << AOpt2007(mMulCoord,"MulCoord","Coordinate multiplier, used to change unity as meter to mm")
     ;
 }
 
@@ -127,7 +130,7 @@ int cAppli_ImportGCP::Exe()
          std::string aAdditionalInfo = "";
          if (aHasAdditionalInfo)
              aAdditionalInfo = aVNames.at(aK).at(aRankA);
-         aSetM.AddMeasure(cMes1GCP(aChSys.Value(aVXYZ[aK]),aName,1.0,aAdditionalInfo));
+         aSetM.AddMeasure(cMes1GCP(aChSys.Value(aVXYZ[aK]*mMulCoord),aName,1.0,aAdditionalInfo));
     }
 
     mPhProj.SaveGCP(aSetM);

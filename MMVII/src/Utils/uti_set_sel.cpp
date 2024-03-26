@@ -1,5 +1,7 @@
 #include "MMVII_MMV1Compat.h"
 #include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_util_tpl.h"
+
 
 #include <regex>
 #include <unordered_set>
@@ -417,6 +419,52 @@ template <class Type> cSelector<Type> Str2Interv(const std::string & aStr)
     return aRes;
 }
 
+/******************************************************************/
+/*                                                                */
+/*                       cIdTransformator                         */
+/*                                                                */
+/******************************************************************/
+
+template <class Type> Type cIdTransformator<Type>::Transfo(const Type & aVal) const 
+{
+	return aVal;
+}
+
+/******************************************************************/
+/*                                                                */
+/*                       cPatternTransfo                          */
+/*                                                                */
+/******************************************************************/
+
+// replace a pattern :  yy(.*)zz , A$1 , yytotozz  => Atoto
+//std::string ReplacePattern(const std::string & aPattern,const std::string & aSubst,const std::string & aString);
+
+
+cPatternTransfo::cPatternTransfo(const std::string & aPat,const std::string & aSubst) :
+	mPat  (aPat),
+	mSubst (aSubst)
+{
+}
+
+cPatternTransfo::cPatternTransfo(const std::vector<std::string> & aVec) :
+     cPatternTransfo 
+     (
+          GetDef(aVec,0,std::string(".*")),
+          GetDef(aVec,1,std::string("$0"))
+     )
+{
+    if ( (aVec.size()!=0) && (aVec.size() != 2))
+       MMVII_UnclasseUsEr("cPatternTransfo bad size");
+}
+
+
+std::string  cPatternTransfo::Transfo(const std::string & aValue) const
+{
+   return  ReplacePattern(mPat,mSubst,aValue);
+}
+
+
+
 
 #define MACRO_INSTANTIATE_SELECTOR(Type)\
 template cSelector<Type> GenIntervalSelector(const std::optional<Type> & aV1, const std::optional<Type> & aV2, bool aInclLow,bool InclUp);\
@@ -435,6 +483,7 @@ template class cDataNegSelector<Type>;\
 template class cDataAndSelector<Type>;\
 template class cDataOrSelector<Type>;\
 template class cDataCsteSelector<Type>;\
+template class cIdTransformator<Type>;\
 
 
 MACRO_INSTANTIATE_SELECTOR(int)
@@ -724,16 +773,25 @@ template <class Type> bool cExtSet<Type>::Equal(const  cExtSet<Type> & aSet) con
    return  IncludedIn(aSet) && aSet.IncludedIn(*this);
 }
 
-template <class Type>  void  cExtSet<Type>::Filter(const cSelector<Type> & aSel)
+template <class Type>  void  cExtSet<Type>::Filter(const cSelector<Type> & aSel,const cTransformator<Type> & aTranfo)
 {
     std::vector<const Type *> aV;
     PutInVect(aV,false);
     for (const auto & ptr : aV)
     {
-        if (! aSel.Match(*ptr))
+        if (! aSel.Match(aTranfo.Transfo(*ptr)))
            Suppress(*ptr);
     }
 }
+
+
+template <class Type>  void  cExtSet<Type>::Filter(const cSelector<Type> & aSel)
+{
+	cIdTransformator<Type> aTransfoId;
+
+	Filter(aSel,aTransfoId);
+}
+
 
 template <class Type>  void cExtSet<Type>::OpAff(const eOpAff & anOp,const cExtSet<Type> aS)
 {

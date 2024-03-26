@@ -91,6 +91,34 @@ template <class Type> cSelector<Type> Str2Interv(const std::string & aStr);
 /*                                               */
 /* ============================================= */
 
+template <class Type> class cTransformator
+{
+     public :
+          virtual Type  Transfo(const Type &) const = 0;
+};
+
+template <class Type> class cIdTransformator : public cTransformator<Type>
+{
+     public :
+          Type  Transfo(const Type &) const override;
+};
+
+/**  Transformation by pattern of regular expression */
+class  cPatternTransfo : public cTransformator<std::string>
+{
+      public :
+            cPatternTransfo(const std::string & aPat,const std::string & aSubst);
+	    /// Can be 2 vect or empty
+            cPatternTransfo(const std::vector<std::string> & aPat);
+
+            std::string  Transfo(const std::string &) const override;
+      private :
+            std::string mPat;
+            std::string mSubst;
+};
+
+
+
 
 ///  Bench some sets functionnalities
 void BenchSet(const std::string & aDir);
@@ -125,6 +153,7 @@ template <class Type> class cExtSet  : public  cSelector<Type>
          bool Suppress(const Type &)  ;
          void    clear() ;
          int    size() const ;
+         void Filter(const cSelector<Type> &,const cTransformator<Type>&);
          void Filter(const cSelector<Type> &);
 
          virtual void  PutInVect(std::vector<const Type *> &,bool Sorted) const ; ///< Some type requires iteration 

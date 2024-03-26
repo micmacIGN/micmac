@@ -1,589 +1,122 @@
-#include "MMVII_Linear2DFiltering.h"
-#include "MMVII_Tpl_Images.h"
-#include "MMVII_Sensor.h"
 #include "MMVII_PCSens.h"
-#include "V1VII.h"
 #include "MMVII_ImageInfoExtract.h"
+#include "MMVII_ExtractLines.h"
 
 
 namespace MMVII
 {
 
-class cHoughTransform;
-template <class Type> class  cImGradWithN;
-template <class Type> class  cExtractLines;
-
-/** cHoughTransform
-                
-       for a line  L (rho=R,teta=T) with , vector orthog to  (cos T,sin T) :
-      the equation is  :
-
-             (x,y) in L  <=> x cos(T) + y Sin(T) = R
-
-      For now we consider oriented line,  typically when the point on a line comes from gradient,
-    in this case we have :
- 
-           T in [0,2Pi]    R in [-RMax,+RMax]
-*/
-class cHoughTransform
+cHoughPS::cHoughPS(const cHoughTransform * aHT,const cPt2dr & aTR,tREAL8 aCumul,const cPt2dr & aP1,const cPt2dr & aP2) :
+    mHT       (aHT),
+    mTetaRho  (aTR),
+    mCumul    (aCumul),
+    mSegE     (aP1,aP2)
 {
-    public :
-         cHoughTransform
-         (
-	      const cPt2dr  & aSzIn,       // Sz of the space
-	      const cPt2dr & aMulTetaRho,  // Multiplicator of Rho & Teta
-	      const tREAL8 & aSigmTeta,    //  Incertitude on gradient direction
-              cPerspCamIntrCalib * aCalib = nullptr  // possible internal calib for distorsion correction
-          );
-
-         ///  Add  a point with a given direction
-         void  AccumulatePtAndDir(const cPt2dr & aPt,tREAL8 aTeta0,tREAL8 aWeight);
-         cIm2D<tREAL4>      Accum() const; ///< Accessor
-
-	 tREAL8  AvgS2() const; ///< Avg of square, possibly use to measure "compactness"
-	 // tREAL8  Max() const;   ///< Max of val, possibly use to measure "compactness"
+    InitMatch();
+}
 
 
-	 /// Extract the local maxima retur point/line in hough space + value of max
-	 std::vector<cPt3dr> ExtractLocalMax
-		             (
-			           size_t aNbMax,  // bound to number of max-loc
-				   tREAL8 aDist,   // min distance between maxima
-				   tREAL8 aThrAvg, // threshold on Average, select if Accum > aThrAvg * Avg
-				   tREAL8 aThrMax  // threshold on Max, select if Accum > Max * Avg
-                             ) const;
 
-	 /// max the conversion houg-point ->  euclidian line
-	 cSegment<tREAL8,2> PtToLine(const cPt2dr &) const;
-    private :
-	 ///   return the angle teta, of a given  index/position in hough accumulator
-         inline tREAL8      RInd2Teta(tREAL8 aIndTeta) const {return aIndTeta  *mFactI2T;}
-	 ///   idem, return teta for "integer" index
-         inline tREAL8      Ind2Teta(int aK) const {return RInd2Teta(aK);}
-	 /// for a given teta, return  the index  (RInd2Teta o Teta2RInd = Identity)
-         inline tREAL8      Teta2RInd(const tREAL8 & aTeta) const {return aTeta /mFactI2T;}
 
-	 /// return the rho of a given index/position in hough accumulator
-         inline tREAL8      RInd2Rho(const tREAL8 & aRInd) const { return (aRInd-1.0) / mMulRho - mRhoMax; }
-	 /// return  the index of a given rho (Rho2RInd o RInd2Rho = Identity)
-         inline tREAL8      Rho2RInd(const tREAL8 & aRho) const {return 1.0+ (aRho+mRhoMax) * mMulRho;}
-
-         // inline tREAL8      R2Teta(tREAL8 aIndTeta) const {return aIndTeta  *mFactI2T;}
-	 
-         cPt2dr             mMiddle;      ///< Middle point, use a origin of Rho
-         tREAL8             mRhoMax;      ///< Max of distance to middle point
-         tREAL8             mMulTeta;     ///< Teta multiplier, if =1 ,  1 pix teta ~ 1 pix init  (in worst case)
-         tREAL8             mMulRho;      ///< Rho multiplier  , if =1, 1 pix-rho ~ 1 pix init
-         tREAL8             mSigmTeta;    ///< incertitude on teta
-	 cPerspCamIntrCalib* mCalib;      ///< Potential calibration for distorsion
-         int                mNbTeta;      ///< Number of Teta for hough-accum
-         tREAL8             mFactI2T ;    ///< Ratio Teta-Radian / Teta-Index
-         int                mNbRho;       ///< Number of Rho for hough-accum
-
-         cIm1D<tREAL8>      mTabSin;      ///< Tabulation of sinus for a given index of teta
-         cDataIm1D<tREAL8>& mDTabSin;     ///< Data Image of "mTabSin"
-         cIm1D<tREAL8>      mTabCos;      ///< Tabulation of co-sinus for a given index of teta
-         cDataIm1D<tREAL8>& mDTabCos;     ///< Data Image of "mTabCos"
-         cIm2D<tREAL4>      mAccum;       ///<  Accumulator of Hough
-         cDataIm2D<tREAL4>& mDAccum;      ///< Data Image of "mAccum"
-};
-
-/**  Class for storing Grad + its norm
- */
-template <class Type> class  cImGradWithN : public cImGrad<Type>
+tREAL8 cHoughPS::DistAnglAntiPar(const cHoughPS& aPS2) const
 {
-     public :
-        ///  Constructor using size
-        cImGradWithN(const cPt2di & aSz);
-        ///  Constructor using image & Alpha-Deriche parameters
-        cImGradWithN(const cDataIm2D<Type> & aImIn,Type aAlphaDeriche);
+     return diff_circ(Teta()+M_PI,aPS2.Teta(),2*M_PI);
+}
 
-
-
-	/// Is it a local-maxima in the direction of the gradient
-        bool  IsMaxLocDirGrad(const cPt2di& aPix,const std::vector<cPt2di> &,tREAL8 aRatioXY = 1.0) const;
-	/// Allocat the neighbourhood use for computing local-maxima
-        static  std::vector<cPt2di>  NeighborsForMaxLoc(tREAL8 aRay,tREAL8 aRatioXY = 1.0);
-        cIm2D<Type>      NormG() {return mNormG;}  ///< Accessor
-	cPt2dr   RefinePos(const cPt2dr &) const;  ///< Refine a sub-pixelar position of the contour
-     private :
-	cPt2dr   OneRefinePos(const cPt2dr &) const; ///< One iteration of refinement
- 
-        cIm2D<Type>       mNormG;   ///< Image of norm of gradient
-        cDataIm2D<Type>&  mDataNG;  ///<  Data Image of "mNormG"
-};
-/// Compute the deriche + its norm
-template<class Type> void ComputeDericheAndNorm(cImGradWithN<Type> & aResGrad,const cDataIm2D<Type> & aImIn,double aAlpha) ;
-
-
-/**  Class for extracting line using gradient & hough transform*/
-
-template <class Type> class  cExtractLines
+tREAL8 cHoughPS::DY(const cHoughPS & aHPS) const
 {
-      public :
-          typedef  cIm2D<Type>      tIm;
-          typedef  cDataIm2D<Type>  tDIm;
+   return mSegE.ToCoordLoc(aHPS.mSegE.PMil()) .y() ;
+}
 
-          cExtractLines(tIm anIm);  ///< constructor , memorize image
-          ~cExtractLines();
+const cSegment2DCompiled<tREAL8> & cHoughPS::Seg() const {return mSegE;}
+const cPt2dr & cHoughPS::TetaRho() const {return mTetaRho;}
+const tREAL8 & cHoughPS::Teta()    const {return mTetaRho.x();}
+const tREAL8 & cHoughPS::Rho()     const {return mTetaRho.y();}
+const tREAL8 & cHoughPS::Cumul()     const {return mCumul;}
+cHoughPS * cHoughPS::Matched() const {return mMatched;}
 
-	  /// initialize the gradient
-          void SetDericheGradAndMasq(tREAL8 aAlphaDerich,tREAL8 aRayMaxLoc,int aBorder);
-	  ///  Initialize the hough transform
-          void SetHough(const cPt2dr & aMulTetaRho,tREAL8 aSigmTeta,cPerspCamIntrCalib *,bool AffineMax);
-
-	  /// Generate an image for visualizing the contour,
-          cRGBImage MakeImageMaxLoc(tREAL8 aAlphaTransparency);
-          
-          cHoughTransform &  Hough();  ///< Accessor
-          cImGradWithN<Type> &  Grad(); ///< Acessor
-      private :
-          cPt2di                mSz;        ///<  Size of the image
-          tIm                   mIm;        ///< Memorize the image
-          cIm2D<tU_INT1>        mImMasqCont;    ///<  Masq of point selected as contour
-          int                   mNbPtsCont;     ///<  Number of point detected as contour
-
-          cImGradWithN<Type> *  mGrad;          ///< Structure allocated for computing gradient
-          cHoughTransform    *  mHough;         ///< Structure allocatedf or computing hough
-          cPerspCamIntrCalib *  mCalib;         ///< (Optional) calibration for distorsion correction
-};
-
-/* ************************************************************************ */
-/*                                                                          */
-/*                       cHoughTransform                                    */
-/*                                                                          */
-/* ************************************************************************ */
-
-
-cHoughTransform::cHoughTransform
-(
-     const cPt2dr  & aSzIn,
-     const cPt2dr &  aMulTetaRho,
-     const tREAL8 & aSigmTeta,
-     cPerspCamIntrCalib * aCalib
-) :
-    mMiddle    (aSzIn / 2.0),
-    mRhoMax    (Norm2(mMiddle)),
-    mMulTeta   (aMulTetaRho.x()),
-    mMulRho    (aMulTetaRho.y()),
-    mSigmTeta  (aSigmTeta),
-    mCalib     (aCalib),
-    mNbTeta    (round_up(2*M_PI*mMulTeta * mRhoMax)),
-    mFactI2T   ((2.0*M_PI)/mNbTeta),
-    mNbRho     (2+round_up(2*mMulRho * mRhoMax)),
-    mTabSin    (mNbTeta),
-    mDTabSin   (mTabSin.DIm()),
-    mTabCos    (mNbTeta),
-    mDTabCos   (mTabCos.DIm()),
-    mAccum     (cPt2di(mNbTeta,mNbRho),nullptr,eModeInitImage::eMIA_Null),
-    mDAccum    (mAccum.DIm())
+cPt2dr  cHoughPS::IndTetaRho() const
 {
-     //  Tabulate  "cos" and "sin"
-     for (int aKTeta=0 ; aKTeta<mNbTeta ; aKTeta++)
+	return cPt2dr(mHT->Teta2RInd(Teta()),mHT->Rho2RInd(Rho()));
+}
+
+tREAL8 cHoughPS::Dist(const cHoughPS& aPS2,const tREAL8 &aFactTeta) const
+{
+     return   std::abs(Rho()-aPS2.Rho())
+	    + DistAnglAntiPar(aPS2) * (aFactTeta * mHT->RhoMax())
+     ;
+}
+
+void cHoughPS::Test(const cHoughPS &  aHPS) const
+{
+	StdOut() << "LARG " << mSegE.ToCoordLoc(aHPS.mSegE.PMil()) .y()
+		 << " RMDistAng " << DistAnglAntiPar(aHPS) * mHT->RhoMax()
+		 << " DistAng " << DistAnglAntiPar(aHPS) 
+		 // << " T1=" << Teta()<< " T2=" aHPS.Teta()  << " "<< diff_circ(Teta(),aHPS.Teta(),2*M_PI)
+		 << "\n";
+}
+
+bool cHoughPS::Match(const cHoughPS & aPS2,bool IsLight,tREAL8 aMaxTeta,tREAL8 aDMin,tREAL8 aDMax) const
+{
+   tREAL8 aDY1 =      DY(aPS2 );
+   tREAL8 aDY2 = aPS2.DY(*this);
+
+   // Test the coherence of left/right position 
+   if ( ((aDY1>0) ==IsLight) || ((aDY2>0) ==IsLight))  return false;
+
+   if ( DistAnglAntiPar(aPS2) > aMaxTeta)  return false;
+
+   tREAL8 aDYAbs1 = std::abs(aDY1);
+   tREAL8 aDYAbs2 = std::abs(aDY2);
+
+   return (aDYAbs1>aDMin) && (aDYAbs1<aDMax) && (aDYAbs2>aDMin) && (aDYAbs2<aDMax);
+}
+
+
+void cHoughPS::InitMatch()
+{
+     mMatched = nullptr;
+     mDistM   = 1e10;
+}
+void cHoughPS::UpdateMatch(cHoughPS * aNewM,tREAL8 aDist)
+{
+    if (aDist<mDistM)
+    {
+       mMatched = aNewM;
+       mDistM   = aDist;
+    }
+}
+
+void cHoughPS::SetMatch(std::vector<cHoughPS*> & mVPS,bool IsLight,tREAL8 aMaxTeta,tREAL8 aDMin,tREAL8 aDMax)
+{
+     //  Reset matches
+     for (auto & aPtr : mVPS)
+	 aPtr->InitMatch();
+
+     //  compute best match
+     for (size_t aK1=0 ; aK1<mVPS.size() ; aK1++)
      {
-          mDTabSin.SetV(aKTeta,std::sin(Ind2Teta(aKTeta)));
-          mDTabCos.SetV(aKTeta,std::cos(Ind2Teta(aKTeta)));
+          for (size_t aK2=aK1+1 ; aK2<mVPS.size() ; aK2++)
+	  {
+               if (mVPS[aK1]->Match(*mVPS[aK2],IsLight,aMaxTeta,aDMin,aDMax))
+               {
+                  tREAL8 aD12 = mVPS[aK1]->Dist(*mVPS[aK2],2.0);
+                  mVPS[aK1]->UpdateMatch(mVPS[aK2],aD12);
+                  mVPS[aK2]->UpdateMatch(mVPS[aK1],aD12);
+               }
+	  }
+     }
+
+     //  Test if reciproc match
+     for (auto & aPtr : mVPS)
+     {
+          if (aPtr->mMatched && (aPtr->mMatched->mMatched!=aPtr))
+	  {
+             aPtr->mMatched->mMatched =nullptr;
+             aPtr->mMatched =nullptr;
+	  }
      }
 }
-
-cIm2D<tREAL4>      cHoughTransform::Accum() const {return mAccum;}
-
-tREAL8  cHoughTransform::AvgS2() const
-{
-   return std::sqrt(DotProduct(mDAccum,mDAccum) / mDAccum.NbElem());
-}
-
-cSegment<tREAL8,2> cHoughTransform::PtToLine(const cPt2dr & aPt) const
-{
-   // (x,y) in L  <=> x cos(T) + y Sin(T) = R
-   tREAL8  aTeta = RInd2Teta(aPt.x());
-   tREAL8  aRho  = RInd2Rho(aPt.y());
-   cPt2dr  aTgt(-sin(aTeta),cos(aTeta));
-   cPt2dr  aP0 = mMiddle + cPt2dr(aRho*cos(aTeta),aRho*sin(aTeta));
-
-   return cSegment<tREAL8,2>(aP0-aTgt,aP0+aTgt);
-}
-
-
-void  cHoughTransform::AccumulatePtAndDir(const cPt2dr & aPt,tREAL8 aTetaC,tREAL8 aWeight)
-{
-      //  compute the index-interval, centered on aTetaC, of size mSigmTeta
-      int  iTeta0 = round_down(Teta2RInd(aTetaC-mSigmTeta));
-      int  iTeta1 = round_up(Teta2RInd(aTetaC+mSigmTeta));
-
-      // Angle are defined %2PI, make interval > 0
-      if (iTeta0<0)
-      {
-           iTeta0 += mNbTeta;
-           iTeta1 += mNbTeta;
-           aTetaC += 2 * M_PI;
-      }
-      //  Polar coordinate Rho-Teta, are defined arround point mMiddle
-      tREAL8 aX = aPt.x() - mMiddle.x();
-      tREAL8 aY = aPt.y() - mMiddle.y();
-
-      for (int iTeta=iTeta0 ;  iTeta<=iTeta1 ; iTeta++)
-      {
-           tREAL8 aTeta = Ind2Teta(iTeta);
-	   //  Compute a weighting function : 1 at aTetaC, 0 if dist > mSigmTeta 
-           tREAL8 aWTot =    aWeight * ( 1 -    std::abs(aTeta-aTetaC) /mSigmTeta);
-           if (aWTot>0) // (weitgh can be <0 because of rounding)
-           {
-               int aITetaOK = iTeta%mNbTeta;  // % 2PI => put indexe in interval
-               //   equation :  (x,y) in L  <=> x cos(T) + y Sin(T) = R
-               tREAL8 aRho =   aX * mDTabCos.GetV(aITetaOK) + aY*mDTabSin.GetV(aITetaOK) ;
-               tREAL8  aRIndRho = Rho2RInd(aRho); // convert Real rho in its index inside accumulator
-	       // Make bi-linear repartition of contribution as "aRIndRho" is  real
-               int  aIRho0  = round_down(aRIndRho);
-               int  aIRho1  = aIRho0 +1;
-               tREAL8 aW0 = (aIRho1-aRIndRho);
-
-	       //  Finally accumulate
-               mDAccum.AddVal(cPt2di(aITetaOK,aIRho0),   aW0 *aWTot);
-               mDAccum.AddVal(cPt2di(aITetaOK,aIRho1),(1-aW0)*aWTot);
-           }
-      }
-}
-
-std::vector<cPt3dr>  cHoughTransform::ExtractLocalMax(size_t aNbMax,tREAL8 aDist,tREAL8 aThrAvg,tREAL8 aThrMax) const
-{
-    // [0]  Make a duplication as we will modify the accum
-    cIm2D<tREAL4> anAccum = mAccum.Dup();
-    cDataIm2D<tREAL4>& aDAccum = anAccum.DIm();
-
-    // [1]  Compute average , max and  threshold
-    //    [1.A]   : max & avg
-    tREAL8 aAvg = 0;
-    tREAL8 aVMax = 0;
-    for (const auto & aPix : aDAccum)
-    {
-         tREAL8 aVal = aDAccum.GetV(aPix);
-	 aAvg += aVal;
-	 UpdateMax(aVMax,aVal);
-    }
-    aAvg /= aDAccum.NbElem();
-
-    //    [1.B]    Threshlod is the stricter of both
-    tREAL8 aThrHold = std::max(aAvg*aThrAvg,aVMax*aThrMax);
-
-
-    // [2] Set to 0 point < aThrHold (to limitate number of pre-sel & accelerate IKthVal
-    for (const auto & aPix : aDAccum)
-    {
-        if (aDAccum.GetV(aPix)<aThrHold)
-        {
-            aDAccum.SetV(aPix,0.0);
-	}
-    }
-
-    // [3]  Extract the local maxima
-    cResultExtremum aExtr(false,true);
-    ExtractExtremum1(aDAccum,aExtr,aDist);
-
-    // [4] Refine the point and give a value to the max
-
-    std::vector<cPt3dr> aRes;
-    cAffineExtremum<tREAL4>  aAffin(mAccum.DIm(),1.5);
-    for (const auto aPt : aExtr.mPtsMax)
-    {
-         cPt2dr aPAff = aAffin.OneIter(ToR(aPt));
-	 if ( mDAccum.InsideBL(aPAff))
-            aRes.push_back(cPt3dr(aPAff.x(),aPAff.y(),mDAccum.GetV(aPt)));
-    }
-
-    // [5] Sort with highest value first, then select NbMax
-    SortOnCriteria(aRes,[](const auto & aP) {return -aP.z();});
-    while (aRes.size() > aNbMax)  
-          aRes.pop_back();
-
-
-    return aRes;
-}
-
-/* ************************************************************************ */
-/*                                                                          */
-/*                       cImGradWithN                                       */
-/*                                                                          */
-/* ************************************************************************ */
-
-
-template <class Type>   
-  cImGradWithN<Type>::cImGradWithN(const cPt2di & aSz) :
-     cImGrad<Type>  (aSz),
-     mNormG         (aSz),
-     mDataNG        (mNormG.DIm())
-{
-}
-
-template <class Type>   
-  cImGradWithN<Type>::cImGradWithN(const cDataIm2D<Type> & aImIn,Type aAlphaDeriche) :
-	   cImGradWithN<Type>(aImIn.Sz())
-{
-    ComputeDericheAndNorm(*this,aImIn,aAlphaDeriche);
-}
-
-
-/*   The test is  more complicated than traditionnal local maxima :
- *
- *     - 1- On a given edge if we take all the 8-neighboors, one the neighbors in the edge will
- *         have higher value, that why we take the neigbours that are +- in the direction of grad
- *         See "NeighborsForMaxLoc()"
- *
- *     - 2- with thin line, the oposite contour may have value that may be higer than the contour itself,
- *      that's why we consider only the point which are orientd in the same direction (test "Scal > 0"),
- *      note this work for a dark or light line on a average back-ground
- */
-template<class Type> bool  cImGradWithN<Type>::IsMaxLocDirGrad(const cPt2di& aPix,const std::vector<cPt2di> & aVP,tREAL8 aRatioXY) const
-{
-    //  [1] Compute unitary vector
-    tREAL8 aN = mDataNG.GetV(aPix);
-    if (aN==0) return false;  // avoid div by 0
-    cPt2dr aDirGrad = ToR(this->Grad(aPix)) * (1.0/ aN);
-
-    //[2]   A Basic test to reject point on integer neighbourhood in the two direction
-    {
-        cPt2di aIDirGrad = ToI(aDirGrad);
-        for (int aSign : {-1,1})
-        {
-             cPt2di  aNeigh =  aPix + aIDirGrad * aSign;
-             if ( (mDataNG.DefGetV(aNeigh,-1)>aN) && (Scal(aDirGrad,ToR(this->Grad(aNeigh)))>0) )
-             {
-                return false;
-             }
-        }
-    }
-
-    // [3]
-#if (0)
-    for (const auto & aDeltaNeigh : aVP)
-    {
-        cPt2di aNeigh = aPix + ToI(ToR(aDeltaNeigh) * aDirGrad);
-        if ( (mDataNG.DefGetV(aNeigh,-1)>aN) && (Scal(aDirGrad,ToR(this->Grad(aNeigh))) >0))
-           return false;
-        //  Maintain test on real neighboor if want to add this option
-        /*cPt2dr aNeigh = ToR(aPix) + ToR(aDeltaNeigh) * aDirGrad;  
-        if ( (mDataNG.DefGetVBL(aNeigh,-1)>aN) && (Scal(aDirGrad,ToR(this->GradBL(aNeigh))) >0))
-           return false;
-        */
-    }
-#endif
-    for (const auto & aDeltaNeigh : aVP)
-    {
-        cPt2dr aDirLoc = ToR(aDeltaNeigh) / aDirGrad;
-        if (std::abs(aDirLoc.x()) >= std::abs(aDirLoc.y()*aRatioXY))
-	{
-            cPt2di aNeigh = aPix + aDeltaNeigh;
-
-            if ( (mDataNG.DefGetV(aNeigh,-1)>aN) && (Scal(aDirGrad,ToR(this->Grad(aNeigh))) >0))
-               return false;
-	}
-        /*cPt2dr aNeigh = ToR(aPix) + ToR(aDeltaNeigh) * aDirGrad;  
-        if ( (mDataNG.DefGetVBL(aNeigh,-1)>aN) && (Scal(aDirGrad,ToR(this->GradBL(aNeigh))) >0))
-           return false;
-        */
-    }
-
-    return true;
-}
-
-template<class Type> std::vector<cPt2di>   cImGradWithN<Type>::NeighborsForMaxLoc(tREAL8 aRay,tREAL8 aRatioXY)
-{
-   std::vector<cPt2di> aVec = SortedVectOfRadius(0.5,aRay);
-   return aVec;
-/*
-
-   std::vector<cPt2di> aRes ;
-   for (const auto & aPix : aVec)
-      if (std::abs(aPix.x()) >= std::abs(aPix.y()*aRatioXY))
-         aRes.push_back(aPix);
-
-  return aRes;
-  */
-}
-
-template<class Type> cPt2dr   cImGradWithN<Type>::OneRefinePos(const cPt2dr & aP1) const
-{
-     if (! mDataNG.InsideBL(aP1)) 
-         return aP1;
-
-     cPt2dr aGr = VUnit(ToR(this->GradBL(aP1)));
-
-     cPt2dr aP0 = aP1- aGr;
-     if (! mDataNG.InsideBL(aP0)) 
-         return aP1;
-
-     cPt2dr aP2 = aP1+ aGr;
-     if (! mDataNG.InsideBL(aP2)) 
-         return aP1;
-
-     tREAL8 aAbs = StableInterpoleExtr(mDataNG.GetVBL(aP0),mDataNG.GetVBL(aP1),mDataNG.GetVBL(aP2));
-
-     return aP1 + aGr * aAbs;
-}
-template<class Type> cPt2dr   cImGradWithN<Type>::RefinePos(const cPt2dr & aP1) const
-{
-    return OneRefinePos(OneRefinePos(aP1));
-}
-
-          /* ************************************************ */
-
-template<class Type> void ComputeDericheAndNorm(cImGradWithN<Type> & aResGrad,const cDataIm2D<Type> & aImIn,double aAlpha) 
-{
-     ComputeDeriche(aResGrad,aImIn,aAlpha);
-
-     auto & aDN =  aResGrad.NormG().DIm();
-     for (const auto &  aPix : aDN)
-     {
-           aDN.SetV(aPix,Norm2(aResGrad.Grad(aPix)));
-     }
-}
-
-
-
-
-/* ************************************************************************ */
-/*                                                                          */
-/*                       cExtractLines                                      */
-/*                                                                          */
-/* ************************************************************************ */
-
-
-
-template <class Type> cExtractLines<Type>::cExtractLines(tIm anIm) :
-       mSz       (anIm.DIm().Sz()),
-       mIm       (anIm),
-       mImMasqCont   (mSz,nullptr,eModeInitImage::eMIA_Null),
-       mGrad     (nullptr),
-       mHough    (nullptr),
-       mCalib    (nullptr)
-{
-}
-
-template <class Type> cExtractLines<Type>::~cExtractLines()
-{
-    delete mGrad;
-    delete mHough;
-}
-
-template <class Type> void cExtractLines<Type>::SetHough
-                           (
-                                const cPt2dr & aMulTetaRho,
-                                tREAL8 aSigmTeta,
-                                cPerspCamIntrCalib * aCalib,
-                                bool AffineMax
-                           )
-{
-     mCalib = aCalib;
-     mHough = new cHoughTransform(ToR(mSz),aMulTetaRho,aSigmTeta,aCalib);
-
-     tREAL8 aAvgIm=0;
-     for (const auto & aPix :   mImMasqCont.DIm())
-         aAvgIm += mGrad->NormG().DIm().GetV(aPix);
-     aAvgIm /= mGrad->NormG().DIm().NbElem() ;
-     StdOut() << "AVGGGGG " << aAvgIm  << "\n";
-     
-     tREAL8 aSomCorAff=0;  // sums the distance between point and its correction by dist
-     tREAL8 aSomCorDist=0;  // sums the distance between point and its correction by dist
-     tREAL8 aSomCorTeta=0;  // sums the distance between point and its correction by dist
-     int aNbDone=0;
-
-
-
-     for (const auto & aPix :   mImMasqCont.DIm())
-     {
-         if ( mImMasqCont.DIm().GetV(aPix))
-         {
-             if ((aNbDone%200000)==0) 
-                StdOut() << "Remain to do " << mNbPtsCont-aNbDone << "\n";
-             aNbDone++;
-
-             cPt2dr aRPix0 = ToR(aPix);
-	     cPt2dr aRPix = aRPix0;
-	     if (AffineMax)
-                aRPix = mGrad->RefinePos(aRPix0);
-	     aSomCorAff += Norm2(aRPix0-aRPix);
-
-             cPt2df aGrad =  mGrad->Grad(aPix);
-             tREAL8 aTeta = Teta(aGrad);
- 
-             if (aCalib)
-             {
-            //  tPtOut Undist(const tPtOut &) const;
-                 cPt2dr aCor = aCalib->Undist(aRPix);
-            // StdOut() << " DDdDD " << aCalib->Redist(aCor) -aRPix << "\n";
-                 cPt2dr aCor2 = aCalib->Undist(aRPix+ FromPolar(0.1,aTeta) );
-
-                 tREAL8 aTetaCorr = Teta(aCor2-aCor);
-
-                 aSomCorDist += Norm2(aCor-aRPix);
-                 aSomCorTeta += std::abs(aTetaCorr-aTeta);
-                 aRPix = aCor;
-                 aTeta = aTetaCorr;
-             }
-           
-	     tREAL8 aNorm = mGrad->NormG().DIm().GetV(aPix);
-	     tREAL8 aW =  aNorm / (aNorm + (2.0*aAvgIm));
-             if (mImMasqCont.DIm().InsideBL(aRPix))
-                 mHough->AccumulatePtAndDir(aRPix,aTeta,aW);
-         }
-     }
-     ExpFilterOfStdDev(mHough->Accum().DIm(),4,1.0);
-     {
-        StdOut()  
-                  << " , Aff=" <<       (aSomCorAff/aNbDone) 
-                  << " , Dist-Pt=" <<   (aSomCorDist/aNbDone) 
-                  << " , Dist-Teta=" << (aSomCorTeta/aNbDone) 
-                  << std::endl;
-     }
-}
-
-// cHoughTransform::cHoughTransform(const cPt2dr  & aSzIn,const tREAL8 &  aMul,const tREAL8 & aSigmTeta) :
-// void  cHoughTransform::AccumulatePtAndDir(const cPt2dr & aPt,tREAL8 aTetaC,tREAL8 aWeight)
-
-template <class Type> void cExtractLines<Type>::SetDericheGradAndMasq(tREAL8 aAlpha,tREAL8 aRay,int aBorder)
-{
-     // Create the data for storing gradient
-     mGrad = new cImGradWithN<Type>(mIm.DIm(),aAlpha);
-     // mGrad = new cImGradWithN<Type>(mIm.DIm().Sz());
-     //  compute the gradient & its norm using deriche method
-     // ComputeDericheAndNorm(*mGrad,mIm.DIm(),aAlpha);
-
-     cRect2 aRect(mImMasqCont.DIm().Dilate(-aBorder));
-     std::vector<cPt2di>  aVec = cImGradWithN<Type>::NeighborsForMaxLoc(aRay,1.1);
-
-     mNbPtsCont = 0;
-     int aNbPt =0;
-     for (const auto & aPix :  aRect)
-     {
-         aNbPt++;
-         if (mGrad->IsMaxLocDirGrad(aPix,aVec,1.0))
-         {
-            mImMasqCont.DIm().SetV(aPix,255);
-            mNbPtsCont++;
-         }
-     }
-     StdOut()<< " Prop Contour = " << mNbPtsCont / double(aNbPt) << "\n";
-}
-
-template <class Type> cRGBImage cExtractLines<Type>::MakeImageMaxLoc(tREAL8 aAlpha)
-{
-     cRGBImage aImV(mIm.DIm().Sz());
-     for (const auto & aPix :  mImMasqCont.DIm())
-     {
-         aImV.SetGrayPix(aPix,mIm.DIm().GetV(aPix));
-         if (mImMasqCont.DIm().GetV(aPix))
-         {
-            tREAL8 aAlpha= 0.5;
-            aImV.SetRGBPixWithAlpha(aPix,cRGBImage::Red,cPt3dr(aAlpha,aAlpha,aAlpha));
-         }
-     }
-     return aImV;
-}
-
-
-
-template <class Type> cHoughTransform & cExtractLines<Type>::Hough()   {return *mHough;}
-template <class Type> cImGradWithN<Type> & cExtractLines<Type>::Grad() {return *mGrad;}
 
 /* =============================================== */
 /*                                                 */
@@ -591,9 +124,9 @@ template <class Type> cImGradWithN<Type> & cExtractLines<Type>::Grad() {return *
 /*                                                 */
 /* =============================================== */
 
-/**  An application for  testing the accuracy of a sensor : 
-        - consistency of direct/inverse model
-        - (optionnaly) comparison with a ground truth
+
+/**  An application for  computing line extraction. Created for CERN
+ *  porject, and parametrization is more or less optimized for this purpose.
  */
 
 class cAppliExtractLine : public cMMVII_Appli
@@ -603,47 +136,62 @@ class cAppliExtractLine : public cMMVII_Appli
      private :
         typedef tREAL4 tIm;
 
+	cPt2dr Redist(const cPt2dr &) const;
 
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
-	// std::vector<std::string>  Samples() const override;
+	std::vector<std::string>  Samples() const override;
+        virtual ~cAppliExtractLine();
 
         void  DoOneImage(const std::string & aNameIm) ;
 
+	void MakeVisu(const std::string & aNameIm);
+
         cPhotogrammetricProject  mPhProj;
         std::string              mPatImage;
+	bool                     mLineIsWhite;
         bool                     mShowSteps;
+	std::vector<tREAL8>      mVParams;
         cPerspCamIntrCalib *     mCalib;
 	bool                     mAffineMax;
 	std::vector<double>      mThreshCpt;
-        tREAL8                   mAlphaContour;
+        tREAL8                   mTransparencyCont;
+        cExtractLines<tIm>*      mExtrL;
+	int                      mZoomImL;
+        std::vector<cHoughPS*>   mVPS;
+	std::string              mNameReport;
+	tREAL8                   mRelThrsCum;
 };
 
-/*
-std::vector<std::string>  cAppliExtractLine::Samples() const
-{
-   return {
-              "MMVII TestSensor SPOT_1B.tif SPOT_Init InPointsMeasure=XingB"
-	};
-}
-*/
 
 cAppliExtractLine::cAppliExtractLine(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-    cMMVII_Appli    (aVArgs,aSpec),
-    mPhProj         (*this),
-    mShowSteps      (true),
-    mCalib          (nullptr),
-    mAffineMax      (true),
-    mThreshCpt      {100,200,400,600},
-    mAlphaContour   (0.5)
+    cMMVII_Appli      (aVArgs,aSpec),
+    mPhProj           (*this),
+    mShowSteps        (true),
+    mVParams          { 4e-4,2.0,5.0},
+    mCalib            (nullptr),
+    mAffineMax        (true),
+    mThreshCpt        {100,200,400,600},
+    mTransparencyCont (0.5),
+    mExtrL            (nullptr),
+    mZoomImL          (1),
+    mNameReport       ("LineExtract"),
+    mRelThrsCum       (0.3)
 {
+}
+
+cAppliExtractLine::~cAppliExtractLine()
+{
+     delete mExtrL;
+     DeleteAllAndClear(mVPS);
 }
 
 cCollecSpecArg2007 & cAppliExtractLine::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
       return    anArgObl
-             << Arg2007(mPatImage,"Name of input Image", {eTA2007::FileDirProj,{eTA2007::MPatFile,"0"}})
+             <<  Arg2007(mPatImage,"Name of input Image", {eTA2007::FileDirProj,{eTA2007::MPatFile,"0"}})
+	     <<  Arg2007(mLineIsWhite," True : its a light line , false dark ")
       ;
 }
 
@@ -653,33 +201,66 @@ cCollecSpecArg2007 & cAppliExtractLine::ArgOpt(cCollecSpecArg2007 & anArgOpt)
                << mPhProj.DPOrient().ArgDirInOpt("","Folder for calibration to integrate distorsion")
 	       << AOpt2007(mAffineMax,"AffineMax","Affinate the local maxima",{eTA2007::HDV})
 	       << AOpt2007(mShowSteps,"ShowSteps","Show detail of computation steps by steps",{eTA2007::HDV})
+	       << AOpt2007(mZoomImL,"ZoomImL","Zoom for images of line",{eTA2007::HDV})
+               << mPhProj.DPPointsMeasures().ArgDirInOpt("","Folder for ground truth measure")
             ;
 }
 
+std::vector<std::string>  cAppliExtractLine::Samples() const
+{
+   return {
+              "MMVII ExtractLine 'DSC_.*.JPG' ShowSteps=1 InOri=FB"
+	};
+}
+
+cPt2dr cAppliExtractLine::Redist(const cPt2dr & aP) const
+{
+     return mCalib ? mCalib->Redist(aP) : aP;
+}
 
 
 void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
 {
+    tREAL8 aMulTeta = 1.0/M_PI;
+// aMulTeta = 1.0;
+    bool mShow = true;
     mCalib = nullptr;
     if (mPhProj.DPOrient().DirInIsInit())
        mCalib = mPhProj.InternalCalibFromImage(aNameIm);
 
     cIm2D<tIm> anIm = cIm2D<tIm>::FromFile(aNameIm);
-    cExtractLines<tIm>  anExtrL(anIm);
+    tREAL8  aTrhsCum = mRelThrsCum * Norm2(anIm.DIm().Sz());
+    mExtrL = new cExtractLines<tIm> (anIm);
 
-    anExtrL.SetDericheGradAndMasq(2.0,10.0,2);
-    anExtrL.SetHough(cPt2dr(1.0/M_PI,1.0),0.1,mCalib,mAffineMax);
+    mExtrL->SetDericheGradAndMasq(2.0,10.0,2,mShow); // aAlphaDerich,aRayMaxLoc,aBorder
+    mExtrL->SetHough(cPt2dr(aMulTeta,1.0),0.1,mCalib,mAffineMax,mShow);
 
-    std::vector<cPt3dr> aVMaxLoc = anExtrL.Hough().ExtractLocalMax(10,4.0,10.0,0.1);
+    std::vector<cPt3dr> aVMaxLoc = mExtrL->Hough().ExtractLocalMax(10,4.0,10.0,0.1);
+    for (const auto & aPMax : aVMaxLoc)
+    {
+        cHoughPS * aPS = mExtrL->Hough().PtToLine(aPMax);
+	if (aPS->Cumul() > aTrhsCum)
+           mVPS.push_back(aPS);
+	else
+           delete aPS;
+    }
+    //  mVPS[0]->Test(*mVPS[1]);
+    //  mVPS[1]->Test(*mVPS[0]);
 
-    StdOut() << "MMMAXVect:: " << aVMaxLoc << "\n";
+    cHoughPS::SetMatch(mVPS,mLineIsWhite,mVParams.at(0),mVParams.at(1),mVParams.at(2));
 
     if (mShowSteps)
+       MakeVisu(aNameIm);
+}
+
+void cAppliExtractLine::MakeVisu(const std::string & aNameIm)
+{
+    const  cDataIm2D<tREAL4>& aDAccum =mExtrL->Hough().Accum().DIm();
+    tREAL8 aVMax=0.0;
+
+    // [0]  Print some  statistic to compared the compatcness of histogramm
     {
-        std::vector<int>  aVCpt(mThreshCpt.size(),0);
-        const  cDataIm2D<tREAL4>& aDAccum =anExtrL.Hough().Accum().DIm();
-	
-	tREAL8 aVMax=0.0;
+        std::vector<int>  aVCpt(mThreshCpt.size(),0);  // count the number of point over a threshold
         for (const auto & aPix : aDAccum)
         {
             tREAL8 aV = aDAccum.GetV(aPix);
@@ -690,70 +271,94 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
                    aVCpt.at(aK)++;
             }
         }
-        std::string aNameTif = LastPrefix(aNameIm) + ".tif";
 
+	// print max value
 	StdOut() << "VMAX=" << aVMax << std::endl;
         for (size_t aK=0 ; aK<mThreshCpt.size() ; aK++)
             StdOut() << " Cpt=" << aVCpt.at(aK) << " for threshold " << mThreshCpt.at(aK) << std::endl;
+    }
 
-	//  [1]  Visu selected max of gradient
-	{
-            cRGBImage aImV= anExtrL.MakeImageMaxLoc(mAlphaContour);
-            aImV.ToJpgFileDeZoom(mPhProj.DirVisu() + "DetectL_"+ aNameTif,1);
-	}
 
-	//  [2]  Visu module of gradient
-	{
-	    std::string aNameGrad = mPhProj.DirVisu()+"Grad_" + aNameTif;
-	    anExtrL.Grad().NormG().DIm().ToFile(aNameGrad);
-	    Convert_JPG(aNameGrad,true,90,"jpg");
-	}
+    std::string aNameTif = LastPrefix(aNameIm) + ".tif";
 
-	//  anExtrL.Grad().NormG().DIm().ToFile("toto.tif");
+    //  [1]  Visu selected max in  direction of gradient
+    {
+         cRGBImage aImV= mExtrL->MakeImageMaxLoc(mTransparencyCont);
+         aImV.ToJpgFileDeZoom(mPhProj.DirVisu() + "DetectL_"+ aNameTif,1);
+    }
+
+    //  [2]  Visu module of gradient
+    {
+         std::string aNameGrad = mPhProj.DirVisu()+"Grad_" + aNameTif;
+         mExtrL->Grad().NormG().DIm().ToFile(aNameGrad);
+         // Convert_JPG(aNameGrad,true,90,"jpg");
+    }
+
        
-	// [3] Visu  the accum + local maximal
-	{
-            cRGBImage  aVisAccum =  RGBImFromGray(aDAccum,255.0/aVMax);
-            for (const auto & aP : aVMaxLoc)
-            {
-                aVisAccum.SetRGBrectWithAlpha(cPt2di(round_ni(aP.x()),round_ni(aP.y())) ,15,cRGBImage::Red,0.5);
-            }
-	    aVisAccum.ToJpgFileDeZoom(mPhProj.DirVisu() + "Accum_" + aNameTif,1);
-	}
-	// [4]  Visu of Image + 
-	{
-            int aZoom = 1;
-            cRGBImage  aVisIm =  cRGBImage::FromFile(aNameIm,aZoom);
-	    const auto & aDIm = aVisIm.ImR().DIm();
-            for (size_t aKH=0 ; aKH<aVMaxLoc.size() ; aKH++)
-	    {
-                cPt3dr aPHough = aVMaxLoc[aKH];
-                cPt3di aCoul = cRGBImage::Red;
-                if (aKH>=2)  aCoul = cRGBImage::Green;
-                if (aKH>=4)  aCoul = cRGBImage::Blue;
-                cSegment<tREAL8,2> aSeg =  anExtrL.Hough().PtToLine(cPt2dr(aPHough.x(),aPHough.y()));
-                for (tREAL8 aSign : {-1.0,1.0})
-                {
-                    cPt2dr aPt = aSeg.PMil();
-                    cPt2dr aTgt = VUnit(aSeg.V12()) * aSign;
-		    cPt2dr  aQ = mCalib ? mCalib->Redist(aPt) : aPt;
-                    while (aDIm.InsideBL(aQ))
-                    {
-                        aVisIm.SetRGBPoint(aQ,aCoul);
-                        aPt = aPt+aTgt;
-		        aQ = mCalib ? mCalib->Redist(aPt) : aPt;
-                    }
-                }
-	    }
-	    std::string aNameLine = mPhProj.DirVisu() + "Lines_" + aNameTif;
-	    if (aZoom==1)
-	        aVisIm.ToJpgFileDeZoom(mPhProj.DirVisu() + "Lines_" + aNameTif,1);
-	    else
-	        aVisIm.ToFile(aNameLine);
+    // [3] Visu  the accum + local maximal
+    {
+         cRGBImage  aVisAccum =  RGBImFromGray(aDAccum,255.0/aVMax);
+	 int aK=0;
+         for (const auto & aPS : mVPS)
+         {
+             //aVisAccum.SetRGBrectWithAlpha(ToI(aPS->IndTetaRho())  ,15,cRGBImage::Red,0.5);
+	     cPt2dr aC=aPS->IndTetaRho();
+	     cPt2dr aSz(7,7);
+             aVisAccum.FillRectangle(cRGBImage::Red,ToI(aC-aSz),ToI(aC+aSz),cPt3dr(0.5,1.0,1.0));
+	     aK++;
+         }
+         aVisAccum.ToJpgFileDeZoom(mPhProj.DirVisu() + "Accum_" + aNameTif,1);
+         aDAccum.ToFile(mPhProj.DirVisu() + "RawAccum_" + aNameTif);
+    }
+    // [4]  Visu of Image +  Lines
+    {
+         cRGBImage  aVisIm =  cRGBImage::FromFile(aNameIm,mZoomImL); // Initialize with image
+	 const auto & aDIm = aVisIm.ImR().DIm();
+         for (size_t aKH=0 ; aKH<mVPS.size() ; aKH++)
+	 {
+             cHoughPS *aHS1 = mVPS[aKH];
+             cHoughPS *aHS2 = aHS1->Matched();
+             // Compute colour, depend of ranking
+	     bool isOk = (aHS2 != nullptr);
+             cPt3di aCoul = isOk ? cRGBImage::Red : cRGBImage::Blue ;
+             // if (aKH>=2)  aCoul = cRGBImage::Green;
+             // if (aKH>=4)  aCoul = cRGBImage::Blue;
+	     if (isOk && (aHS1> aHS2))
+	     {
+                 tREAL8 aDAng = aHS1->DistAnglAntiPar(*aHS2) * mExtrL->Hough().RhoMax() ;
+                 tREAL8 aLarg = aHS1->DY(*aHS2) ;
+		 tREAL8 aCumul = (aHS1->Cumul()+aHS2->Cumul())/2.0;
+                 AddOneReportCSV(mNameReport,{aNameIm,ToStr(aDAng),ToStr(aLarg),ToStr(aCumul)});
+	     }
 
-	}
+	     // Compute Hough-Point -> line
+             cSegment<tREAL8,2> aSeg =  mVPS[aKH]->Seg();
 
-	// cSegment<tREAL8,2> cHoughTransform::PtToLine(const cPt2dr & aPt) const
+	     tREAL8 aRay=5;
+	     cPt2dr aC = Redist(aSeg.PMil() +VUnit(aSeg.V12()*cPt2dr(0,-1))* aRay);
+             aVisIm.DrawCircle(aCoul,aC ,aRay);
+
+	     //  write point by point, in two direction
+             for (tREAL8 aSign : {-1.0,1.0})
+             {
+                 cPt2dr aPt = aSeg.PMil();
+                 cPt2dr aTgt = VUnit(aSeg.V12()) * aSign; // direction
+		 cPt2dr  aQ = Redist(aPt) ; // eventulay make invert distorsion correcion
+                 while (aDIm.InsideBL(aQ))
+                 {
+                     aVisIm.SetRGBPoint(aQ,aCoul);  // print point
+                     aPt = aPt+aTgt; // increment point
+		     aQ = Redist(aPt);  // eventulay make invert distorsion correcion
+                 }
+             }
+	 }
+	 std::string aNameLine = mPhProj.DirVisu() + "Lines_" + aNameTif;
+	 // convert dont handle well big file, so generate jpg only if zoom=1
+	 if (mZoomImL==1)
+	    aVisIm.ToJpgFileDeZoom(mPhProj.DirVisu() + "Lines_" + aNameTif,1);
+	 else
+	    aVisIm.ToFile(aNameLine);
+
     }
 }
 
@@ -762,9 +367,11 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
 int cAppliExtractLine::Exe()
 {
     mPhProj.FinishInit();
+    InitReport(mNameReport,"csv",true);
 
     if (RunMultiSet(0,0))
     {
+       AddOneReportCSV(mNameReport,{"NameIm","Paral","Larg","Cumul"});
        return ResultMultiSet();
     }
     DoOneImage(UniqueStr(0));

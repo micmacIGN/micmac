@@ -647,6 +647,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         bool                                      mRMSWasUsed; ///< Indicate if MultiCall was used
 
         std::string                               mIntervFilterMS[NbMaxMainSets];  ///< Filterings interval
+	std::vector<std::string>                  mTransfoFFI[NbMaxMainSets];  ///< Pattern of transformation for FFI
 
         // Variable for setting num of mm version for output
         int                                       mNumOutPut;  ///< specified by user
