@@ -430,13 +430,6 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
   cSpecOneArg2007::tAllSemPL aGlob{eTA2007::Global}; // just to make shorter lines
   cSpecOneArg2007::tAllSemPL aGlobHDV{eTA2007::Global,eTA2007::HDV}; // just to make shorter lines
 
-
-  /*  Decoding AOpt2007(mIntervFilterMS[0],GOP_Int0,"File Filter Interval, Main Set"  ,{eTA2007::Common,{eTA2007::FFI,"0"}})
-        mIntervFilterMS[0]  => string member, will store the value
-        GOP_Int0 => const name, Global Optionnal Interval , num 0, declared in MMVII_DeclareCste.h
-        {eTA2007::Common,{eTA2007::FFI,"0"}}  attibute, it's common, it's intervall with attribute "0"
-  */
-
   if (HasSharedSPO(eSharedPO::eSPO_CarPO))
   {
      mArgFac << AOpt2007(mCarPPrefOut,"CarPOut","Name for Output caracteristic points",{eTA2007::HDV});
@@ -457,13 +450,17 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
       TestMainSet(anArgObl,HasMain0,HasMain1);
       TestMainSet(anArgFac,HasMain0,HasMain1);
       if (HasMain0)
+      {
         mArgFac <<  AOpt2007(mIntervFilterMS[0],GOP_Int0,"File Filter Interval, Main Set"  ,{eTA2007::Shared,{eTA2007::FFI,"0"}});
+        mArgFac <<  AOpt2007(mTransfoFFI[0],"Pat"+GOP_Int0,"Pattern Transfo File Filter Interval, Main Set"  ,{eTA2007::Shared});
+      }
       if (HasMain1)
+      {
         mArgFac <<  AOpt2007(mIntervFilterMS[1],GOP_Int1,"File Filter Interval, Second Set",{eTA2007::Shared,{eTA2007::FFI,"1"}});
+        mArgFac <<  AOpt2007(mTransfoFFI[1],"Pat"+GOP_Int1,"Pattern Transfo File Filter Interval, Main Set"  ,{eTA2007::Shared});
+      }
   }
   mArgFac
-      // <<  AOpt2007(mIntervFilterMS[0],GOP_Int0,"File Filter Interval, Main Set"  ,{eTA2007::Common,{eTA2007::FFI,"0"}})
-      // <<  AOpt2007(mIntervFilterMS[1],GOP_Int1,"File Filter Interval, Second Set",{eTA2007::Common,{eTA2007::FFI,"1"}})
       <<  AOpt2007(mNumOutPut,GOP_NumVO,"Num version for output format (1 or 2)",{eTA2007::Global,{eTA2007::Range,"[1,2]"}})
       <<  AOpt2007(mSeedRand,GOP_SeedRand,"Seed for random,if <=0 init from time",aGlobHDV)
       <<  AOpt2007(mExtandPattern,"ExtPatFile","Do we extang patterns for files (or interpret them literally)",aGlobHDV)
@@ -781,10 +778,11 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
 
             //  Filter with interval
             {
-               std::string & aNameInterval = mIntervFilterMS[aNum];
+               const std::string & aNameInterval = mIntervFilterMS[aNum];
                if (IsInit(&aNameInterval))
                {
-                   mVMainSets.at(aNum).Filter(Str2Interv<std::string>(aNameInterval));
+		   cPatternTransfo aPat(mTransfoFFI[aNum]);
+                   mVMainSets.at(aNum).Filter(Str2Interv<std::string>(aNameInterval),aPat);
                }
             }
             // Test non empty
@@ -806,13 +804,6 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
          {
             MMVII_INTERNAL_ASSERT_always(false,"Multiple main set im for num:"+ToStr(aNum));
          }
-/*
-         std::string & aNameInterval = mIntervFilterMS[aNum];
-         if (IsInit(&aNameInterval))
-         {
-             mVMainSets.at(aNum).Filter(Str2Interv<std::string>(aNameInterval));
-         }
-*/
       }
   }
   // Check validity of main set initialization

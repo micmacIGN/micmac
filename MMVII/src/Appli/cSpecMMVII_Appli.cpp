@@ -240,6 +240,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_ChSysCoGCP);
         TheVecAll.push_back(&TheSpec_TutoSerial);
         TheVecAll.push_back(&TheSpec_TutoFormalDeriv);
+        TheVecAll.push_back(&TheSpecAppliExtractLine);
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }
