@@ -202,6 +202,7 @@ cCollecSpecArg2007 & cAppliExtractLine::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 	       << AOpt2007(mAffineMax,"AffineMax","Affinate the local maxima",{eTA2007::HDV})
 	       << AOpt2007(mShowSteps,"ShowSteps","Show detail of computation steps by steps",{eTA2007::HDV})
 	       << AOpt2007(mZoomImL,"ZoomImL","Zoom for images of line",{eTA2007::HDV})
+	       << AOpt2007(mRelThrsCum,"ThrCum","Thresold relative for cumul in histo",{eTA2007::HDV})
                << mPhProj.DPPointsMeasures().ArgDirInOpt("","Folder for ground truth measure")
             ;
 }

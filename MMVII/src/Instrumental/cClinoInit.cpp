@@ -209,7 +209,7 @@ cAppli_ClinoInit::cAppli_ClinoInit
 cCollecSpecArg2007 & cAppli_ClinoInit::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
       return anArgObl
-              <<  Arg2007(mNameClino,"Name of inclination file",{eTA2007::FileDirProj})
+              <<  Arg2007(mNameClino,"Name of inclination file") // ,{eTA2007::FileDirProj})
               <<  Arg2007(mPrePost,"[Prefix,PostFix] to compute image name",{{eTA2007::ISizeV,"[2,2]"}})
               <<  Arg2007(mVKClino,"Index of clinometer",{{eTA2007::ISizeV,"[1,2]"}})
               <<  mPhProj.DPOrient().ArgDirInMand()
