@@ -3765,7 +3765,8 @@ void RandomForest::DoNRandomSol(Dataset& data) {
         double* line = p + (aIterCur * (data.mV3.size() * 4));
         auto& aV3 = data.mV3;
         for (size_t aT = 0; aT < aV3.size(); aT++) {
-            if (line[aT * 4 + 0] == 0)
+            //If distance = 0 ignore
+            if (line[aT * 4 + 1] == 0)
                 continue;
             for (size_t k = 0; k < 4; k++) {
                 //std::cout << line[aT * 3 + k] << " ";
