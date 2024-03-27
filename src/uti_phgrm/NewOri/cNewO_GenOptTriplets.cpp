@@ -68,6 +68,8 @@ cAppliGenOptTriplets::cAppliGenOptTriplets(int argc,char ** argv) :
 
     std::string aDir;
     bool aModeBin = true;
+    bool aModePerfect = true;
+    double aRange = 1;
 
     std::vector<std::string> mSigmaTStr;
     std::vector<std::string> mSigmaRStr;
@@ -81,7 +83,9 @@ cAppliGenOptTriplets::cAppliGenOptTriplets(int argc,char ** argv) :
          LArgMain() << EAM(mSigmaTStr,"SigmaT",true,"Sigma of the translation added noise, Def=[] no noise added")
                     << EAM(mSigmaRStr,"SigmaR",true,"Sigma of the rotation added noise, Def=[] no noise added")
                     << EAM(mRatioOutlierStr,"Ratio", true, "Good to bad triplet ratio (outliers), Def=[]")
+                    << EAM(aRange,"Range",true,"Range of the noise, def = 1")
                     << EAM(aModeBin,"Bin",true,"Binaries file, def = true",eSAM_IsBool)
+                    << EAM(aModePerfect,"Perfect",true,"Use perfect triplet by default, otherwise origin triplets, def = true",eSAM_IsBool)
                     << ArgCMA()
         );
 
@@ -148,6 +152,7 @@ cAppliGenOptTriplets::cAppliGenOptTriplets(int argc,char ** argv) :
                   << cur_sigma_t << " SigmaR: " << cur_sigma_r << " ---- "<< std::endl;
         for (size_t j = start; j < end && end <= triplets.size(); j++) {
             auto& it3 = triplets[j];
+
             bool Ok;
             std::pair<ElRotation3D, ElRotation3D> aPair =
                 mNM->OriRelTripletFromExisting(InOri, it3.Name1(), it3.Name2(),
@@ -163,18 +168,29 @@ cAppliGenOptTriplets::cAppliGenOptTriplets(int argc,char ** argv) :
             //aXml.Sigma() = {cur_sigma_t, cur_sigma_r};
             //------------
             if (!cur_sigma_t && !cur_sigma_r) {
-                aXml.Ori2On1() = El2Xml(
-                    ElRotation3D(aPair.first.tr(), aPair.first.Mat(), true));
-                aXml.Ori3On1() = El2Xml(
-                    ElRotation3D(aPair.second.tr(), aPair.second.Mat(), true));
+                if (aModePerfect) {
+                    aXml.Ori2On1() = El2Xml(ElRotation3D(
+                        aPair.first.tr(), aPair.first.Mat(), true));
+                    aXml.Ori3On1() = El2Xml(ElRotation3D(
+                        aPair.second.tr(), aPair.second.Mat(), true));
+
+                } else {
+                    std::string aN3 = mNM->NameOriOptimTriplet(
+                        aModeBin, it3.Name1(), it3.Name2(), it3.Name3());
+                    cXml_Ori3ImInit aXml3Ori =
+                        StdGetFromSI(aN3, Xml_Ori3ImInit);
+                    aXml.Ori2On1() = aXml3Ori.Ori2On1();
+                    aXml.Ori3On1() = aXml3Ori.Ori3On1();
+                }
+
             } else {
                 aXml.Ori2On1() = El2Xml(RandView(
                     ElRotation3D(aPair.first.tr(), aPair.first.Mat(), true),
-                    cur_sigma_t, cur_sigma_r));
+                    cur_sigma_t, cur_sigma_r, aRange));
 
                 aXml.Ori3On1() = El2Xml(RandView(
                     ElRotation3D(aPair.second.tr(), aPair.second.Mat(), true),
-                    cur_sigma_t, cur_sigma_r));
+                    cur_sigma_t, cur_sigma_r, aRange));
 
                 std::cout << "Perturbed S:" << s << " R=[" << it3.Name1() << ","
                           << it3.Name2() << "," << it3.Name3() << "], "
@@ -236,16 +252,24 @@ ElMatrix<double> cAppliGenOptTriplets::RandPeturbRGovindu()
 }
 
 ElRotation3D cAppliGenOptTriplets::RandView(const ElRotation3D& view, double sigmaT,
-                                            double sigmaR) {
-    auto deviation = Pt3dr(sigmaT * (TheRandUnif->Unif_0_1() - 0.5),
-                                 sigmaT * (TheRandUnif->Unif_0_1() - 0.5),
-                                 sigmaT * (TheRandUnif->Unif_0_1() - 0.5));
-    std::cout << deviation << std::endl;
+                                            double sigmaR, double range) {
+    double sigmaT_offset = sigmaT * (1.-range);
+    double sigmaT_rnd = sigmaT * range;
+    auto deviation = Pt3dr(
+            sigmaT_offset + sigmaT_rnd * (TheRandUnif->Unif_0_1() - 0.5) * 2.,
+            sigmaT_offset + sigmaT_rnd * (TheRandUnif->Unif_0_1() - 0.5) * 2.,
+            sigmaT_offset + sigmaT_rnd * (TheRandUnif->Unif_0_1() - 0.5) * 2.
+                           );
+    std::cout << "Deviation" << deviation << std::endl;
     Pt3dr tr = view.tr() + deviation;
 
-    double aW[] = {sigmaR * (TheRandUnif->Unif_0_1() - 0.5) * 2.0,
-                   sigmaR * (TheRandUnif->Unif_0_1() - 0.5) * 2.0,
-                   sigmaR * (TheRandUnif->Unif_0_1() - 0.5) * 2.0};
+    double sigmaR_offset = sigmaR * (1.-range);
+    double sigmaR_rnd = sigmaR * range;
+    double aW[] = {
+        sigmaR_offset + sigmaR_rnd * (TheRandUnif->Unif_0_1() - 0.5) * 2.0,
+        sigmaR_offset + sigmaR_rnd * (TheRandUnif->Unif_0_1() - 0.5) * 2.0,
+        sigmaR_offset + sigmaR_rnd * (TheRandUnif->Unif_0_1() - 0.5) * 2.0,
+    };
     ElMatrix<double> WMat =
         MatFromCol(Pt3dr(     0,   aW[2], -aW[1]),
                    Pt3dr(-aW[2],       0,  aW[0]),

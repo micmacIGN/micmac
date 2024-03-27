@@ -977,9 +977,9 @@ static std::array<ElRotation3D, 3> EstimAllRt(const cLinkTripl* aLnk) {
 
 static void EstimRt(cLinkTripl* aLnk) {
     auto oris = EstimAllRt(aLnk);
-    //aLnk->S3()->attr().residue =
-    //    ((aLnk->S1()->attr().residue + aLnk->S2()->attr().residue) / 2.) +
-    //    aLnk->m3->Sum()[0];
+    aLnk->S3()->attr().residue =
+        ((aLnk->S1()->attr().residue + aLnk->S2()->attr().residue) / 2.) +
+        aLnk->m3->Sum()[0];
 
     // Get sommets
     tSomNSI* aS3 = aLnk->S3();
@@ -3766,7 +3766,7 @@ void RandomForest::DoNRandomSol(Dataset& data) {
         auto& aV3 = data.mV3;
         for (size_t aT = 0; aT < aV3.size(); aT++) {
             //If distance = 0 ignore
-            if (line[aT * 4 + 1] == 0)
+            if (line[aT * 4 + 0] == 0)
                 continue;
             for (size_t k = 0; k < 4; k++) {
                 //std::cout << line[aT * 3 + k] << " ";

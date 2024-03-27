@@ -57,7 +57,7 @@ class cAppliGenOptTriplets : public cCommonMartiniAppli
 
 		ElMatrix<double> RandPeturbR();
         ElMatrix<double> RandPeturbRGovindu();
-        ElRotation3D RandView(const ElRotation3D &view, double sigmaT, double sigmaR);
+        ElRotation3D RandView(const ElRotation3D &view, double sigmaT, double sigmaR, double range);
         ElMatrix<double> w2R(double[]);
 
 		std::string mFullPat;
