@@ -977,9 +977,9 @@ static std::array<ElRotation3D, 3> EstimAllRt(const cLinkTripl* aLnk) {
 
 static void EstimRt(cLinkTripl* aLnk) {
     auto oris = EstimAllRt(aLnk);
-    aLnk->S3()->attr().residue =
-        ((aLnk->S1()->attr().residue + aLnk->S2()->attr().residue) / 2.) +
-        aLnk->m3->Sum()[0];
+    //aLnk->S3()->attr().residue =
+    //    ((aLnk->S1()->attr().residue + aLnk->S2()->attr().residue) / 2.) +
+    //    aLnk->m3->Sum()[0];
 
     // Get sommets
     tSomNSI* aS3 = aLnk->S3();
@@ -1016,6 +1016,8 @@ void RandomForest::RandomSolOneCC(Dataset& data, cNOSolIn_Triplet* aSeed, int Nb
         // Tree Dist util
         aSeed->KSom(aK)->attr().NumId() = aSeed->NumId();
     }
+
+    aSeed->Flag().set_kth_true(data.mFlag3CC);
 
     double sres = aSeed->ProjTest();
     for (int aK = 0; aK < 3; aK++) {
@@ -1055,6 +1057,7 @@ void RandomForest::RandomSolOneCC(Dataset& data, cNOSolIn_Triplet* aSeed, int Nb
         EstimRt(aTri);
 
         double curRes = aTri->m3->ProjTest();
+
         aTri->S3()->attr().residue = curRes;
 
         // Mark sommit as vistied
@@ -1120,6 +1123,7 @@ void RandomForest::RandomSolOneCC(Dataset& data, cNO_CC_TripSom* aCC,
     clock_t end1 = clock();
     std::cout << "BuildTree " << double(end1 - start1)/CLOCKS_PER_SEC*1000 << std::endl;
 
+    //Save(data, "RandomTree" + std::to_string(n), false);
 
     GraphViz g;
     g.travelGraph(data, *aCC, aTri0);
@@ -2132,7 +2136,7 @@ void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC, ffinalTree& 
         aTri0->KSom(aK)->attr().treeCost = aTri0->Cost();
         tree.ori[aTri0->KSom(aK)] = aLnk0;
 
-        aTri0->KSom(aK)->attr().residue = aTri0->Sum()[0];
+        //aTri0->KSom(aK)->attr().residue = aTri0->Sum()[0];
         aTri0->KSom(aK)->attr().NumCC() = 0;
         aTri0->KSom(aK)->attr().NumId() = aTri0->NumId();
 
@@ -2577,6 +2581,7 @@ void RandomForest::processNode2(
         for (auto e : ss.at(node)) { e->flag_set_kth_true(data.mFlagS); }
         Save(data, ori0name, false);
         for (auto e : ss.at(node)) { e->flag_set_kth_false(data.mFlagS); }
+        //campari(ss.at(node), ori0name, mPrefHom, 4);
         std::cout << "Leaf: " << node->attr().Im()->Name() << std::endl;
 
         return;
@@ -2616,7 +2621,7 @@ void RandomForest::processNode2(
     for (auto e : current) { e->flag_set_kth_true(data.mFlagS); }
     Save(data, ori0name, false);
     for (auto e : current) { e->flag_set_kth_false(data.mFlagS); }
-    campari(current, ori0name, mPrefHom);
+    campari(current, ori0name, mPrefHom, 4);
     updateViewFrom(ori0name, current);
 
     for (size_t n = 1; n < childs.size(); n++) {
@@ -2650,7 +2655,7 @@ void RandomForest::processNode2(
     Save(data, ori0name, false);
     for (auto e : result) { e->flag_set_kth_false(data.mFlagS); }
 
-    campari(result, ori0name, mPrefHom);
+    //campari(result, ori0name, mPrefHom);
 
     //Fin pour ce node
     return;
@@ -3237,10 +3242,13 @@ void RandomForest::CoherTripletsGraphBasedV2(
         ores.push_back(currentTriplet->KSom(2)->attr().residue);
         double resMean = mean(ores);
 
+        (void)resMean;
+
         //double aDistAl = square_euclid(center2, center);
         //std::cout << "Distance euclid: " << aDistAl << std::endl;
 
-        //if (aDist < 1) continue;
+        if (aDist < 1) continue;
+
         if (aDist < mDistThresh) {
             //double aRot = abs(currentTriplet->CoherTest());
             // std::cout << ",Dist=" << aDist << " CohTest(à=" <<
@@ -3260,17 +3268,21 @@ void RandomForest::CoherTripletsGraphBasedV2(
                 //std::cout << "ProjTest " << double(end1 - start1)/CLOCKS_PER_SEC << std::endl;
                 log.add({currentTriplet->NumId(), aDist, aResidue});
 
-                double score = aResidue / (aResidue + mR0);
+                //double score = aResidue / (aResidue + mR0);
+                //double rscore = resMean  / (resMean + mR0);
 
                 // Median
                 output[aT * 4 + 0] = aResidue;
                 output[aT * 4 + 1] = aDist;
-                output[aT * 4 + 2] = score;
+                output[aT * 4 + 2] = aResidue;
 
                 //output[aT * 4 + 3] = (aResidue < resMean) ? resMean-aResidue : 0.;
                 //output[aT * 4 + 3] = (resMean+mR0) / (aResidue+mR0);
                 //output[aT * 4 + 3] = ((resMean - aResidue) * (resMean - aResidue))/mR0;
+                //
                 output[aT * 4 + 3] = mR0 * aResidue - mR1 * (resMean - aResidue);
+                //
+                //output[aT * 4 + 3] =mR0 * aResidue/ mR1 * (resMean - aResidue);
 
 
                 //output[aT * 4 + 3] = (aResidue < resMean) ? 1 : 0;
@@ -3515,18 +3527,12 @@ void RandomForest::CoherTripletsAllSamples(Dataset& data) {
             }
         }
 
-        double better = 0;
-        for ( double v : data.mV3[aT]->Data()[3]) {
-            better += v;
-        }
 
         data.mV3[aT]->Sum()[0] = mean(data.mV3[aT]->Data()[2]);
         data.mV3[aT]->Sum()[1] = median(data.mV3[aT]->Data()[2]);
         //data.mV3[aT]->Sum()[2] = calculateStandardDeviation(data.mV3[aT]->Data()[3], global_mean);
-        //auto it = std::remove(data.mV3[aT]->Data()[3].begin(), data.mV3[aT]->Data()[3].end(), 0);
-        //data.mV3[aT]->Data()[3].erase(it, data.mV3[aT]->Data()[3].end());
         data.mV3[aT]->Sum()[2] = median(data.mV3[aT]->Data()[3]);
-        data.mV3[aT]->Sum()[3] = better;
+        data.mV3[aT]->Sum()[3] = mean(data.mV3[aT]->Data()[3]);
         //data.mV3[aT]->Sum()[3] = mean(data.mV3[aT]->Data()[3]);
     }
 }
@@ -3759,6 +3765,8 @@ void RandomForest::DoNRandomSol(Dataset& data) {
         double* line = p + (aIterCur * (data.mV3.size() * 4));
         auto& aV3 = data.mV3;
         for (size_t aT = 0; aT < aV3.size(); aT++) {
+            if (line[aT * 4 + 0] == 0)
+                continue;
             for (size_t k = 0; k < 4; k++) {
                 //std::cout << line[aT * 3 + k] << " ";
                 aV3[aT]->Data()[k].push_back(line[aT * 4 + k]);
