@@ -202,6 +202,30 @@ template <class Type> cIsometry3D<tREAL8>  ToReal8(const cIsometry3D<Type>  & an
     return cIsometry3D<tREAL8>(  ToR(anIsom.Tr()) , ToReal8(anIsom.Rot())  );
 }
 
+void AddData(const cAuxAr2007 & anAux,tRotR & aRot)
+{
+     cPt3dr aI = aRot.AxeI();
+     cPt3dr aJ = aRot.AxeJ();
+     cPt3dr aK = aRot.AxeK();
+
+     cAuxAr2007 aAuxRot("RotMatrix",anAux);
+     MMVII::AddData(cAuxAr2007("AxeI",aAuxRot),aI);
+     MMVII::AddData(cAuxAr2007("AxeJ",aAuxRot),aJ);
+     MMVII::AddData(cAuxAr2007("AxeK",aAuxRot),aK);
+
+     if (anAux.Input())
+     {
+         aRot = tRotR(MatFromCols(aI,aJ,aK),false);
+     }
+}
+void AddData(const cAuxAr2007 & anAux,tPoseR & aPose)
+{
+     // StdOut() << "AddDataAddData anAux,tPoseR\n";
+     MMVII::AddData(cAuxAr2007("Center",anAux),aPose.Tr());
+     MMVII::AddData(anAux,aPose.Rot());
+} 
+
+/*
 void AddData(const cAuxAr2007 & anAux,tPoseR & aPose)
 {
      cPt3dr aC = aPose.Tr();
@@ -222,6 +246,7 @@ void AddData(const cAuxAr2007 & anAux,tPoseR & aPose)
      }
 }
 
+*/
 
 /* ************************************************* */
 /*                                                   */
