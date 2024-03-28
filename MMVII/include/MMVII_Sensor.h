@@ -435,6 +435,7 @@ class cPhotogrammetricProject
 	  cDirsPhProj &   DPTieP();    ///<  Accessor
 	  cDirsPhProj &   DPMulTieP();    ///<  Accessor
 	  cDirsPhProj &   DPRigBloc();    ///<  Accessor  // RIGIDBLOC
+	  cDirsPhProj &   DPClinoMeters();    ///<  Accessor  // RIGIDBLOC
 				    
 	  const cDirsPhProj &   DPOrient() const; ///< Accessor
       const cDirsPhProj &   DPOriTriplets() const; ///< Accessor
@@ -447,6 +448,7 @@ class cPhotogrammetricProject
 	  const cDirsPhProj &   DPTieP() const;    ///<  Accessor
 	  const cDirsPhProj &   DPMulTieP() const;    ///<  Accessor
 	  const cDirsPhProj &   DPRigBloc() const;    ///<  Accessor  // RIGIDBLOC
+	  const cDirsPhProj &   DPClinoMeters() const;    ///<  Accessor  // RIGIDBLOC
 
 
 	  // Sometime we need several dir of the same type, like "ReportPoseCmp", or RefPose in bundle
@@ -704,6 +706,7 @@ class cPhotogrammetricProject
 	  cDirsPhProj     mDPMulTieP;         ///<  For multiple Homologous point
 	  cDirsPhProj     mDPMetaData;
 	  cDirsPhProj     mDPRigBloc;         // RIGIDBLOC
+	  cDirsPhProj     mDPClinoMeters;         // RIGIDBLOC
 					      //
 
 	  std::vector<cDirsPhProj*> mDirAdded;

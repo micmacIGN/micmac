@@ -225,6 +225,7 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::TieP,"TieP"},
                 {eTA2007::MulTieP,"MulTieP"},
                 {eTA2007::RigBlock,"RigBlock"},
+                {eTA2007::Clino,"Clino"},
                 {eTA2007::SysCo,"SysCo"},
                 {eTA2007::Input,"In"},
                 {eTA2007::Output,"Out"},
