@@ -52,7 +52,7 @@ For recompilation optimization, [ccache](ccache.dev) is automatically used if de
 
 - clone the git repository : `git clone https://github.com/micmacIGN/micmac.git`
 - enter 'micmac' directory : `cd micmac`
-- create a directory for the build's intermediate files, then enter it : `mkdir build & cd build`
+- create a directory for the build's intermediate files, then enter it : `mkdir build && cd build`
 - generate makefiles using cmake : `cmake ../`
 - process compilation : `make install -j*cores number*` (ex.: `make install -j4`)
 
