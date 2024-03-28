@@ -278,6 +278,7 @@ cCollecSpecArg2007 & cAppli_ClinoInit::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 	    << AOpt2007(mNbIter,"NbIter","Number of iteration",{eTA2007::HDV})
 	    << AOpt2007(mASim,"AmplSim","Amplitude of rotation is simul [W,P,K,BS]",{{eTA2007::ISizeV,"[5,5]"}})
 	    << AOpt2007(mNameRel12,"Rel12","orientation relative 2 to 1, if several clino",{eTA2007::HDV})
+           <<  mPhProj.DPClinoMeters().ArgDirInOpt()  // Just for temporart test we can re-read, to supress later
     ;
 }
 
@@ -419,6 +420,7 @@ int cAppli_ClinoInit::Exe()
     StdOut() << "ExeExe " << aVNamesClino << "\n";
 
     std::string aNameCalibCam;
+    cPerspCamIntrCalib * aCalib = nullptr;
     //  put low level in a more structured data
     for (size_t aKLine=0 ; aKLine<aNbMeasures ; aKLine++)
     {
@@ -452,7 +454,8 @@ int cAppli_ClinoInit::Exe()
 	    cSensorCamPC * aCam = mPhProj.ReadCamPC(aNameIm,true);
             mVMeasures.push_back(cClinoCalMes1Cam(aCam,aRFS.VNums().at(aKLine)));
 
-	    aNameCalibCam = aCam->InternalCalib()->Name();
+	    aCalib = aCam->InternalCalib();
+	    aNameCalibCam = aCalib->Name();
 
 	    // We cannnot have multiple camera for now
 	    if ((mCalibSetClino.mNameCam !="") &&  (mCalibSetClino.mNameCam != aNameCalibCam))
@@ -520,10 +523,20 @@ int cAppli_ClinoInit::Exe()
     }
 
     // Save the result in standard file
+    mPhProj.SaveClino(mCalibSetClino);
+
+    if (mPhProj.DPClinoMeters().DirInIsInit())
+    {
+       cCalibSetClino* aClinoTest = mPhProj.GetClino(*aCalib);
+       SaveInFile(*aClinoTest,"TestReWriteClino.xml");
+
+       delete aClinoTest;
+
+    }
+    /*
     std::string aNameOut = mPhProj.DPClinoMeters().FullDirOut() + "ClinoCalib-" + aNameCalibCam + "."+ GlobTaggedNameDefSerial();
     SaveInFile(mCalibSetClino,aNameOut);
-
-
+    */
     return EXIT_SUCCESS;
 }                                       
 

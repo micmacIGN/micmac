@@ -6,6 +6,7 @@
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_BlocRig.h"
 #include "MMVII_DeclareCste.h"
+#include "MMVII_Clino.h"
 #include "cExternalSensor.h"
 
 
@@ -965,6 +966,36 @@ void  cPhotogrammetricProject::ReadHomol
     std::string aName = NameTiePIn(aNameIm1,aNameIm2,aDirIn); 
     ReadFromFile(aSetHCI.SetH(),aName);
 }
+        //  =============  Clino meters  =================
+
+std::string cPhotogrammetricProject::NameFileClino(const std::string &aNameCam,bool Input) const
+{
+    static const std::string TheClinoPrefix = "ClinoCalib-";
+    return mDPClinoMeters.FullDirInOut(Input) + TheClinoPrefix + aNameCam + "."+ GlobTaggedNameDefSerial();
+}
+
+void cPhotogrammetricProject::SaveClino(const cCalibSetClino & aCalib) const
+{
+    SaveInFile(aCalib,NameFileClino(aCalib.mNameCam,false));
+}
+
+bool cPhotogrammetricProject::HasClinoCalib(const cPerspCamIntrCalib & aCalib) const
+{
+     return ExistFile(NameFileClino(aCalib.Name(),true));
+}
+
+
+cCalibSetClino * cPhotogrammetricProject::GetClino(const cPerspCamIntrCalib & aCalib) const
+{
+    return ObjectFromFile<cCalibSetClino,cCalibSetClino>(NameFileClino(aCalib.Name(),true));
+}
+
+/*
+cCalibSetClino * GetClino(const cPerspCamIntrCalib &);
+*/
+
+
+
         //  =============  Rigid bloc  =================
 
 	                   // RIGIDBLOC
