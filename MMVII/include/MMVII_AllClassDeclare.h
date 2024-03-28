@@ -309,6 +309,11 @@ class cBlocMatrixSensor;
 class cDataBlocCam;      
 class cBlocOfCamera;
 
+//  Clino
+class cOneCalibRelClino;  
+class cOneCalibClino;    
+class cCalibSetClino;   
+
 //   sys co
 
 class cSysCoordV2;

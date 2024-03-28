@@ -3,6 +3,7 @@
 
 #include "MMVII_Geom3D.h"
 #include "MMVII_PCSens.h"
+#include "MMVII_memory.h"
 
 
 namespace MMVII
@@ -33,6 +34,7 @@ class cOneCalibRelClino
          tRotR          mRot;     ///< Value of relative rotation
       private :
 };
+void AddData(const  cAuxAr2007 & anAux,cOneCalibRelClino & aSet);
 
 /**   Calibrarion of 1 Clino :  Orient to camera + optional relative calib */
 class cOneCalibClino
@@ -43,9 +45,10 @@ class cOneCalibClino
          tRotR           mRot;       ///< Value of rotation
          std::optional<cOneCalibRelClino>   mLinkRel;  ///< Possible relative calib
 };
+void AddData(const  cAuxAr2007 & anAux,cOneCalibClino & aSet);
 
 /** Global calibration : name of the camera + vector of all individual calibs */
-class cCalibSetClino
+class cCalibSetClino : public cMemCheck
 {
      public :
 
@@ -56,6 +59,8 @@ class cCalibSetClino
 	 /// Set of all clinometers calibration
          std::vector<cOneCalibClino>  mClinosCal  ;
 };
+void AddData(const  cAuxAr2007 & anAux,cCalibSetClino & aSet);
+
 
 
 
