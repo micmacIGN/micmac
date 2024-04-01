@@ -531,10 +531,12 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 	std::string  NameTmpReport(const std::string &anId,const std::string &anImg);
         void SetReportSubDir(const std::string &);
 
-	void  InitReport(const std::string &anId,const std::string & aPost,bool IsMul);
+	void  InitReport(const std::string &anId,const std::string & aPost,bool IsMul,const std::vector<std::string> & aHeader={});
 	//  void  AddTopReport(const std::string &anId,const std::string & VecMsg);
 
 	void  AddOneReportCSV(const std::string &anId,const std::vector<std::string> & VecMsg);
+	/// Add a header line, do it only it at top-level
+	void  AddHeaderReportCSV(const std::string &anId,const std::vector<std::string> & VecMsg);
 
 	void  AddStdHeaderStatCSV(const std::string &anId,const std::string & aNameCol1,const std::vector<int> aVPerc,const std::vector<std::string> & ={});
 	void  AddStdStatCSV(const std::string &anId,const std::string & aCol1,const cStdStatRes &,const std::vector<int> aVPerc,const std::vector<std::string> & ={});

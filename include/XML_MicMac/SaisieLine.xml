@@ -9,6 +9,8 @@ Antipasti ~/micmac/include/XML_MicMac/SaisieLine.xml DirectoryChantier="/home/ma
             <Symb> Image=IMG_557[2-7].tif </Symb>
             <Symb> Ori=Test-7 </Symb>
             <Symb> Dir=/home/marc/TMP/ExempleDoc/Boudha/ </Symb>
+            <Symb> Gama=1.0 </Symb>
+
 
             <Symb> SzWx=800 </Symb>
             <Symb> SzWy=800 </Symb>
@@ -60,8 +62,7 @@ Antipasti ~/micmac/include/XML_MicMac/SaisieLine.xml DirectoryChantier="/home/ma
               <SetOfImages> ${Image}  </SetOfImages>
               <ForceGray> ${ForceGray} </ForceGray>
               <KeyAssocOri> ${Ori}  </KeyAssocOri>
-
-
+              <Gama> ${Gama} </Gama>
         </SectionImages>
 
        <SectionTerrain>

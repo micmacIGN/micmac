@@ -326,13 +326,20 @@ template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
 class cPlane3D
 {
      public :
+	 /* ---------------------  Static constructor ---------------------------*/
+	     /// construct with 1 point inside, and 2 vector inside
          static cPlane3D FromP0And2V(const cPt3dr & aP0,const cPt3dr& aAxeI , const cPt3dr& aAxeJ);
+	     /// construct with 1 point inside, and the normal direction
          static cPlane3D FromPtAndNormal(const cPt3dr & aP0,const cPt3dr& aAxeK);
+	     /// construct with 3 point inside
          static cPlane3D From3Point(const cPt3dr & aP0, const cPt3dr & aP1, const cPt3dr &aP2);
+
+	 /// Estimate from a set of point,
+         static std::pair<cPlane3D,tREAL8> RansacEstimate(const std::vector<cPt3dr> & aP0,bool AvgOrMax,int aNbTest=-1,tREAL8 aRegulMinTri =1e-3);
 	 /// Return the indexes of the "best" plane
          static std::pair<cPt3di,tREAL8>  IndexRansacEstimate(const std::vector<cPt3dr> & aP0,bool AvgOrMax,int aNbTest=-1,tREAL8 aRegulMinTri =1e-3);
-         static std::pair<cPlane3D,tREAL8> RansacEstimate(const std::vector<cPt3dr> & aP0,bool AvgOrMax,int aNbTest=-1,tREAL8 aRegulMinTri =1e-3);
 
+	 ///   Avegrage distance 
 	 tREAL8 AvgDist(const std::vector<cPt3dr> &) const;
 	 tREAL8 MaxDist(const std::vector<cPt3dr> &) const;
 

@@ -698,6 +698,13 @@ std::string cPhotogrammetricProject::NameMeasureGCPIm(const std::string & aNameI
     return  mDPPointsMeasures.FullDirInOut(isIn) + cSetMesPtOf1Im::StdNameFileOfIm(FileOfPath(aNameIm,false)) ;
 }
 
+
+bool cPhotogrammetricProject::HasMeasureIm(const std::string & aNameIm,bool InDir) const
+{
+   return ExistFile(NameMeasureGCPIm(aNameIm,InDir));
+}
+
+
 cSetMesPtOf1Im cPhotogrammetricProject::LoadMeasureIm(const std::string & aNameIm,bool isIn) const
 {
    //  std::string aDir = mDPPointsMeasures.FullDirInOut(isIn);

@@ -49,7 +49,8 @@ void SaisieBasc(int argc, char ** argv,
                 std::string &anOut,
                 Pt2di &aSzW,
                 Pt2di &aNbFen,
-                bool &aForceGray)
+                bool &aForceGray,
+		double & aGama)
 {
     MMD_InitArgcArgv(argc,argv);
 
@@ -62,6 +63,7 @@ void SaisieBasc(int argc, char ** argv,
           LArgMain()  << EAM(aSzW,"SzW",true,"Total size of windows")
                       << EAM(aNbFen,"NbF",true,"Number of Windows (def depend of number of images")
                       << EAM(aForceGray,"ForceGray",true," Force gray image, def =true")
+                      << EAM(aGama,"Gama",true," Gama correction, def=1.0")
     );
 
     if(!MMVisualMode)
@@ -117,8 +119,10 @@ int SaisieBasc_main_Gen(int argc,char ** argv,int aMode)
   Pt2di aNbFen(-1,-1);
   std::string aFullName,anOri,anOut, aDir, aName;
   bool aForceGray = true;
+  double aGama = 1.0;
 
-  SaisieBasc(argc, argv, aFullName, aDir, aName, anOri, anOut, aSzW, aNbFen, aForceGray);
+
+  SaisieBasc(argc, argv, aFullName, aDir, aName, anOri, anOut, aSzW, aNbFen, aForceGray,aGama);
 
   std::string aCom =     MMDir() +"bin/mm3d SaisiePts "
                       +  MMDir() +"include/XML_MicMac/SaisieLine.xml "
@@ -137,6 +141,12 @@ int SaisieBasc_main_Gen(int argc,char ** argv,int aMode)
   {
       if (EAMIsInit(&aForceGray))
           aCom = aCom + " +ForceGray=" + ToString(aForceGray);
+
+      if (EAMIsInit(&aGama))
+      {
+           aCom = aCom + " +Gama=" + ToString(aGama) + " ";
+      }
+
 
 
       std::cout << aCom << "\n";

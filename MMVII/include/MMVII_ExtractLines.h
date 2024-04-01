@@ -10,6 +10,12 @@ class cHoughTransform;
 template <class Type> class  cImGradWithN;
 template <class Type> class  cExtractLines;
 
+enum class eCodeHPS
+{
+      Ok,
+      LowCumul,
+      NotFirst
+};
 
 class cHoughPS : public cMemCheck
 {
@@ -27,7 +33,9 @@ class cHoughPS : public cMemCheck
 	 const tREAL8 & Rho() const;     ///< Accessor
 	 const tSeg & Seg() const ;      ///< Accessor
          cHoughPS * Matched() const;     ///< Accessor
-	 const tREAL8 & Cumul() const; ///< Accessor
+	 const tREAL8 & Cumul() const;   ///< Accessor
+	 eCodeHPS  Code() const ;        ///< Accessor
+         void SetCode(eCodeHPS);         ///< Modifior
 
 	 cPt2dr  IndTetaRho() const; ///< Teta/Rho in hough accum dynamic
 
@@ -48,6 +56,8 @@ class cHoughPS : public cMemCheck
          tSeg                     mSegE;
          cHoughPS *               mMatched;
          tREAL8                   mDistM;
+
+	 eCodeHPS                 mCode;
 };
 
 

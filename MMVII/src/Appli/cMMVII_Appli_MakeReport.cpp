@@ -31,12 +31,12 @@ std::string  cMMVII_Appli::DirSubPReport(const std::string &anId)
 }
 
 
-void  cMMVII_Appli::InitReport(const std::string &anId,const std::string &aPost,bool IsMul)
+void  cMMVII_Appli::InitReport(const std::string &anId,const std::string &aPost,bool IsMul,const std::vector<std::string> & aHeader)
 {
     if (IsMul && (LevelCall()==0))
     {
        mReport2Merge.insert(anId);
-     }
+    }
 
     if (LevelCall()==0)
     {
@@ -54,6 +54,9 @@ void  cMMVII_Appli::InitReport(const std::string &anId,const std::string &aPost,
     mMapIdPostReport[anId] = aPost;
 
     cMMVII_Ofs(mMapIdFilesReport[anId], eFileModeOut::CreateText);
+
+    if (! aHeader.empty())
+       AddHeaderReportCSV(anId,aHeader);
 }
 
 /*
@@ -73,6 +76,13 @@ void  cMMVII_Appli::AddOneReport(const std::string &anId,const std::string & aMs
     cMMVII_Ofs aFile(aName, eFileModeOut::AppendText);
 
     aFile.Ofs() << aMsg;
+}
+
+void  cMMVII_Appli::AddHeaderReportCSV(const std::string &anId,const std::vector<std::string> & aVecMsg)
+{
+    // Add header line : do handle single or multiple process , do it only if at top-level
+    if (mLevelCall==0)
+       AddOneReportCSV(anId,aVecMsg);
 }
 
 void  cMMVII_Appli::AddOneReportCSV(const std::string &anId,const std::vector<std::string> & aVecMsg)

@@ -10,7 +10,8 @@ cHoughPS::cHoughPS(const cHoughTransform * aHT,const cPt2dr & aTR,tREAL8 aCumul,
     mHT       (aHT),
     mTetaRho  (aTR),
     mCumul    (aCumul),
-    mSegE     (aP1,aP2)
+    mSegE     (aP1,aP2),
+    mCode     (eCodeHPS::Ok)
 {
     InitMatch();
 }
@@ -34,6 +35,8 @@ const tREAL8 & cHoughPS::Teta()    const {return mTetaRho.x();}
 const tREAL8 & cHoughPS::Rho()     const {return mTetaRho.y();}
 const tREAL8 & cHoughPS::Cumul()     const {return mCumul;}
 cHoughPS * cHoughPS::Matched() const {return mMatched;}
+eCodeHPS  cHoughPS::Code() const  {return mCode;}
+void cHoughPS::SetCode(eCodeHPS aCode) {  mCode = aCode;}
 
 cPt2dr  cHoughPS::IndTetaRho() const
 {
@@ -87,28 +90,28 @@ void cHoughPS::UpdateMatch(cHoughPS * aNewM,tREAL8 aDist)
     }
 }
 
-void cHoughPS::SetMatch(std::vector<cHoughPS*> & mVPS,bool IsLight,tREAL8 aMaxTeta,tREAL8 aDMin,tREAL8 aDMax)
+void cHoughPS::SetMatch(std::vector<cHoughPS*> & aVPS,bool IsLight,tREAL8 aMaxTeta,tREAL8 aDMin,tREAL8 aDMax)
 {
      //  Reset matches
-     for (auto & aPtr : mVPS)
+     for (auto & aPtr : aVPS)
 	 aPtr->InitMatch();
 
      //  compute best match
-     for (size_t aK1=0 ; aK1<mVPS.size() ; aK1++)
+     for (size_t aK1=0 ; aK1<aVPS.size() ; aK1++)
      {
-          for (size_t aK2=aK1+1 ; aK2<mVPS.size() ; aK2++)
+          for (size_t aK2=aK1+1 ; aK2<aVPS.size() ; aK2++)
 	  {
-               if (mVPS[aK1]->Match(*mVPS[aK2],IsLight,aMaxTeta,aDMin,aDMax))
+               if (aVPS[aK1]->Match(*aVPS[aK2],IsLight,aMaxTeta,aDMin,aDMax))
                {
-                  tREAL8 aD12 = mVPS[aK1]->Dist(*mVPS[aK2],2.0);
-                  mVPS[aK1]->UpdateMatch(mVPS[aK2],aD12);
-                  mVPS[aK2]->UpdateMatch(mVPS[aK1],aD12);
+                  tREAL8 aD12 = aVPS[aK1]->Dist(*aVPS[aK2],2.0);
+                  aVPS[aK1]->UpdateMatch(aVPS[aK2],aD12);
+                  aVPS[aK2]->UpdateMatch(aVPS[aK1],aD12);
                }
 	  }
      }
 
      //  Test if reciproc match
-     for (auto & aPtr : mVPS)
+     for (auto & aPtr : aVPS)
      {
           if (aPtr->mMatched && (aPtr->mMatched->mMatched!=aPtr))
 	  {
@@ -137,6 +140,7 @@ class cAppliExtractLine : public cMMVII_Appli
         typedef tREAL4 tIm;
 
 	cPt2dr Redist(const cPt2dr &) const;
+	cPt2dr Undist(const cPt2dr &) const;
 
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
@@ -160,8 +164,15 @@ class cAppliExtractLine : public cMMVII_Appli
         cExtractLines<tIm>*      mExtrL;
 	int                      mZoomImL;
         std::vector<cHoughPS*>   mVPS;
-	std::string              mNameReport;
-	tREAL8                   mRelThrsCum;
+        std::vector<cHoughPS*>   mMatchedVPS;
+	std::string              mNameReportByLine;
+	std::string              mNameReportByIm;
+	tREAL8                   mRelThrsCumulLow;
+	tREAL8                   mRelThrsCumulHigh;
+
+	bool                     mWithGT;  ///< Is there a ground truth of "handcrafted" segment
+	bool                     mGTEmpty; ///<  Does the GT "says" that here is no valid segment
+	std::vector<cPt2dr>      mVPtsGT;
 };
 
 
@@ -176,8 +187,12 @@ cAppliExtractLine::cAppliExtractLine(const std::vector<std::string> & aVArgs,con
     mTransparencyCont (0.5),
     mExtrL            (nullptr),
     mZoomImL          (1),
-    mNameReport       ("LineExtract"),
-    mRelThrsCum       (0.3)
+    mNameReportByLine ("LineMulExtract"),
+    mNameReportByIm   ("LineByIm"),
+    mRelThrsCumulLow    (0.15),
+    mRelThrsCumulHigh   (0.30),
+    mWithGT             (false),
+    mGTEmpty            (true)
 {
 }
 
@@ -202,7 +217,8 @@ cCollecSpecArg2007 & cAppliExtractLine::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 	       << AOpt2007(mAffineMax,"AffineMax","Affinate the local maxima",{eTA2007::HDV})
 	       << AOpt2007(mShowSteps,"ShowSteps","Show detail of computation steps by steps",{eTA2007::HDV})
 	       << AOpt2007(mZoomImL,"ZoomImL","Zoom for images of line",{eTA2007::HDV})
-	       << AOpt2007(mRelThrsCum,"ThrCum","Thresold relative for cumul in histo",{eTA2007::HDV})
+	       << AOpt2007(mRelThrsCumulLow,"ThrCumLow","Low Thresold relative for cumul in histo",{eTA2007::HDV})
+	       << AOpt2007(mRelThrsCumulHigh,"ThrCumHigh","Low Thresold relative for cumul in histo",{eTA2007::HDV})
                << mPhProj.DPPointsMeasures().ArgDirInOpt("","Folder for ground truth measure")
             ;
 }
@@ -219,9 +235,14 @@ cPt2dr cAppliExtractLine::Redist(const cPt2dr & aP) const
      return mCalib ? mCalib->Redist(aP) : aP;
 }
 
+cPt2dr cAppliExtractLine::Undist(const cPt2dr & aP) const
+{
+     return mCalib ? mCalib->Undist(aP) : aP;
+}
 
 void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
 {
+
     tREAL8 aMulTeta = 1.0/M_PI;
 // aMulTeta = 1.0;
     bool mShow = true;
@@ -229,26 +250,130 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
     if (mPhProj.DPOrient().DirInIsInit())
        mCalib = mPhProj.InternalCalibFromImage(aNameIm);
 
+
+   if (mPhProj.DPPointsMeasures().DirInIsInit()  && mPhProj.HasMeasureIm(aNameIm))
+   {
+      mWithGT = true;
+      cSetMesPtOf1Im  aSetMes = mPhProj.LoadMeasureIm(aNameIm);
+
+      if (aSetMes.NameHasMeasure("Line1") && aSetMes.NameHasMeasure("Line2"))
+      {
+          mGTEmpty = false;
+          mVPtsGT.push_back(Undist(aSetMes.MeasuresOfName("Line1").mPt));
+          mVPtsGT.push_back(Undist(aSetMes.MeasuresOfName("Line2").mPt));
+      }
+   }
+
+
+
     cIm2D<tIm> anIm = cIm2D<tIm>::FromFile(aNameIm);
-    tREAL8  aTrhsCum = mRelThrsCum * Norm2(anIm.DIm().Sz());
+    tREAL8  aTrhsCumulLow  = mRelThrsCumulLow   * Norm2(anIm.DIm().Sz());
+    tREAL8  aTrhsCumulHigh = mRelThrsCumulHigh * Norm2(anIm.DIm().Sz());
     mExtrL = new cExtractLines<tIm> (anIm);
 
     mExtrL->SetDericheGradAndMasq(2.0,10.0,2,mShow); // aAlphaDerich,aRayMaxLoc,aBorder
     mExtrL->SetHough(cPt2dr(aMulTeta,1.0),0.1,mCalib,mAffineMax,mShow);
 
+    // Extract Local Maxima
     std::vector<cPt3dr> aVMaxLoc = mExtrL->Hough().ExtractLocalMax(10,4.0,10.0,0.1);
+
+    //  Select Maxima with Cum > aTrhsCumulLow + labelize the quality of seg
+    int aRank=0;
     for (const auto & aPMax : aVMaxLoc)
     {
         cHoughPS * aPS = mExtrL->Hough().PtToLine(aPMax);
-	if (aPS->Cumul() > aTrhsCum)
+	if (aPS->Cumul() > aTrhsCumulLow)
+	{
+           if (aPS->Cumul() < aTrhsCumulHigh)
+               aPS->SetCode(eCodeHPS::LowCumul);
+	   else if (aRank !=0)
+               aPS->SetCode(eCodeHPS::NotFirst);
            mVPS.push_back(aPS);
+	}
 	else
            delete aPS;
+	aRank++;
     }
-    //  mVPS[0]->Test(*mVPS[1]);
-    //  mVPS[1]->Test(*mVPS[0]);
 
     cHoughPS::SetMatch(mVPS,mLineIsWhite,mVParams.at(0),mVParams.at(1),mVParams.at(2));
+
+    for (auto & aHS1 : mVPS)
+    {
+        cHoughPS *aHS2 = aHS1->Matched();
+        if ((aHS2!=nullptr) && (! BoolFind(mMatchedVPS,aHS2)))
+        {
+            mMatchedVPS.push_back(aHS1);
+	}
+    }
+
+
+    // Compute the quality and save it in report
+    {
+        std::string aStringQual = "OK";
+
+        if (mMatchedVPS.empty()) 
+           aStringQual = "Pb_Empty";
+        else if ((mMatchedVPS.size()>=2) && (mMatchedVPS.at(1)->Code() == eCodeHPS::Ok))
+           aStringQual = "Pb_AmbNOK";
+        else if ((mMatchedVPS.size()>=2) && ( (mMatchedVPS.at(1)->Cumul()/mMatchedVPS.at(0)->Cumul() ) > 0.5))
+           aStringQual = "Pb_AmbRatio12";
+        else if (mMatchedVPS.at(0)->Code() != eCodeHPS::Ok)
+           aStringQual = "Pb_LowCumul";
+
+
+	if (mWithGT)
+	{
+            if (mGTEmpty)
+	    {
+               aStringQual  = mMatchedVPS.empty() ? "Ok_Empty"  :  "Pb_NotEmpty";
+	    }
+	    else
+	    {
+                 if (mMatchedVPS.empty())
+		 {
+		 }
+		 else
+		 {
+                     bool  OkGT= true;
+                     for (const auto & aPt : mVPtsGT)
+		     {
+                         for (bool isSeg2 : {false,true})
+			 {
+                              cHoughPS * aSeg = mMatchedVPS.at(0);
+			      if (isSeg2)
+                                 aSeg = aSeg->Matched();
+			      cPt2dr aPLoc = aSeg->Seg().ToCoordLoc(aPt);
+			      if (aPLoc.y() > 2.0)
+				      OkGT=false;
+			 }
+		     }
+		     aStringQual = OkGT ? "OK_ByGT" : "PB_ByGT";
+		 }
+	    }
+	}
+
+        AddOneReportCSV(mNameReportByIm,{aNameIm,aStringQual});
+    }
+   
+
+
+
+    for (size_t aKH=0 ; aKH<mVPS.size() ; aKH++)
+    {
+        cHoughPS *aHS1 = mVPS[aKH];
+        cHoughPS *aHS2 = aHS1->Matched();
+        // Compute colour, depend of ranking
+        bool isOk = (aHS2 != nullptr);
+        // if (aKH>=2)  aCoul = cRGBImage::Green;
+        // if (aKH>=4)  aCoul = cRGBImage::Blue;
+        if (isOk && (aHS1> aHS2))
+        {
+            tREAL8 aDAng = aHS1->DistAnglAntiPar(*aHS2) * mExtrL->Hough().RhoMax() ;
+            tREAL8 aLarg = aHS1->DY(*aHS2) ;
+            tREAL8 aCumul = (aHS1->Cumul()+aHS2->Cumul())/2.0;
+            AddOneReportCSV(mNameReportByLine,{aNameIm,ToStr(aDAng),ToStr(aLarg),ToStr(aCumul)});
+        }
+    }
 
     if (mShowSteps)
        MakeVisu(aNameIm);
@@ -322,15 +447,6 @@ void cAppliExtractLine::MakeVisu(const std::string & aNameIm)
              // Compute colour, depend of ranking
 	     bool isOk = (aHS2 != nullptr);
              cPt3di aCoul = isOk ? cRGBImage::Red : cRGBImage::Blue ;
-             // if (aKH>=2)  aCoul = cRGBImage::Green;
-             // if (aKH>=4)  aCoul = cRGBImage::Blue;
-	     if (isOk && (aHS1> aHS2))
-	     {
-                 tREAL8 aDAng = aHS1->DistAnglAntiPar(*aHS2) * mExtrL->Hough().RhoMax() ;
-                 tREAL8 aLarg = aHS1->DY(*aHS2) ;
-		 tREAL8 aCumul = (aHS1->Cumul()+aHS2->Cumul())/2.0;
-                 AddOneReportCSV(mNameReport,{aNameIm,ToStr(aDAng),ToStr(aLarg),ToStr(aCumul)});
-	     }
 
 	     // Compute Hough-Point -> line
              cSegment<tREAL8,2> aSeg =  mVPS[aKH]->Seg();
@@ -368,11 +484,13 @@ void cAppliExtractLine::MakeVisu(const std::string & aNameIm)
 int cAppliExtractLine::Exe()
 {
     mPhProj.FinishInit();
-    InitReport(mNameReport,"csv",true);
+    InitReport(mNameReportByLine,"csv",true,{"NameIm","Paral","Larg","Cumul"});
+    InitReport(mNameReportByIm,"csv",true,{"NameIm","CodeResult"});
 
+    // AddHeaderReportCSV(mNameReportByLine,{"NameIm","Paral","Larg","Cumul"});
+    // AddHeaderReportCSV(mNameReportByIm,{"NameIm","CodeResult"});
     if (RunMultiSet(0,0))
     {
-       AddOneReportCSV(mNameReport,{"NameIm","Paral","Larg","Cumul"});
        return ResultMultiSet();
     }
     DoOneImage(UniqueStr(0));
