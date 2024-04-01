@@ -304,8 +304,10 @@ int cAppliBundlAdj::Exe()
 
     if (IsInit(&mTopoFilePath))
     {
-        bool aTopoOk = mBA.AddTopo(mTopoFilePath);
+        // Unused in mode release
+        [[maybe_unused]] bool aTopoOk = mBA.AddTopo(mTopoFilePath);
         MMVII_INTERNAL_ASSERT_tiny(aTopoOk,"Error reading topo obs file "+mTopoFilePath);
+        
     }
 
     MMVII_INTERNAL_ASSERT_User(mMeasureAdded,eTyUEr::eUnClassedError,"Not any measure added");

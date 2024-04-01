@@ -9,6 +9,139 @@ namespace MMVII
 
 /* ************************************************************************ */
 /*                                                                          */
+/*                          cHoughPS                                        */
+/*                                                                          */
+/* ************************************************************************ */
+
+cHoughPS::cHoughPS(const cHoughTransform * aHT,const cPt2dr & aTR,tREAL8 aCumul,const cPt2dr & aP1,const cPt2dr & aP2) :
+    mHT       (aHT),
+    mTetaRho  (aTR),
+    mCumul    (aCumul),
+    mSegE     (aP1,aP2),
+    mCode     (eCodeHPS::Ok)
+{
+    InitMatch();
+}
+
+
+
+
+tREAL8 cHoughPS::DistAnglAntiPar(const cHoughPS& aPS2) const
+{
+     return diff_circ(Teta()+M_PI,aPS2.Teta(),2*M_PI);
+}
+
+tSeg2dr  cHoughPS::SegMoyAntiParal(const cHoughPS& aPS2) const
+{
+    cPt2dr aP0 =   (mSegE.PMil() + aPS2.mSegE.PMil() ) / 2.0;
+    cPt2dr aTgt =  (mSegE.Tgt() - aPS2.mSegE.Tgt() ) / 2.0;
+
+    return tSeg2dr(aP0-aTgt,aP0+aTgt);
+}
+
+
+tREAL8 cHoughPS::DY(const cHoughPS & aHPS) const
+{
+   return mSegE.ToCoordLoc(aHPS.mSegE.PMil()) .y() ;
+}
+
+const cSegment2DCompiled<tREAL8> & cHoughPS::Seg() const {return mSegE;}
+const cPt2dr & cHoughPS::TetaRho() const {return mTetaRho;}
+const tREAL8 & cHoughPS::Teta()    const {return mTetaRho.x();}
+const tREAL8 & cHoughPS::Rho()     const {return mTetaRho.y();}
+const tREAL8 & cHoughPS::Cumul()     const {return mCumul;}
+cHoughPS * cHoughPS::Matched() const {return mMatched;}
+eCodeHPS  cHoughPS::Code() const  {return mCode;}
+void cHoughPS::SetCode(eCodeHPS aCode) {  mCode = aCode;}
+
+cPt2dr  cHoughPS::IndTetaRho() const
+{
+        return cPt2dr(mHT->Teta2RInd(Teta()),mHT->Rho2RInd(Rho()));
+}
+
+tREAL8 cHoughPS::Dist(const cHoughPS& aPS2,const tREAL8 &aFactTeta) const
+{
+     return   std::abs(Rho()-aPS2.Rho())
+            + DistAnglAntiPar(aPS2) * (aFactTeta * mHT->RhoMax())
+     ;
+}
+
+void cHoughPS::Test(const cHoughPS &  aHPS) const
+{
+        StdOut() << "LARG " << mSegE.ToCoordLoc(aHPS.mSegE.PMil()) .y()
+                 << " RMDistAng " << DistAnglAntiPar(aHPS) * mHT->RhoMax()
+                 << " DistAng " << DistAnglAntiPar(aHPS) 
+                 // << " T1=" << Teta()<< " T2=" aHPS.Teta()  << " "<< diff_circ(Teta(),aHPS.Teta(),2*M_PI)
+                 << "\n";
+}
+
+bool cHoughPS::Match(const cHoughPS & aPS2,bool IsLight,tREAL8 aMaxTeta,tREAL8 aDMin,tREAL8 aDMax) const
+{
+   tREAL8 aDY1 =      DY(aPS2 );
+   tREAL8 aDY2 = aPS2.DY(*this);
+
+   // Test the coherence of left/right position 
+   if ( ((aDY1>0) ==IsLight) || ((aDY2>0) ==IsLight))  return false;
+
+   if ( DistAnglAntiPar(aPS2) > aMaxTeta)  return false;
+
+   tREAL8 aDYAbs1 = std::abs(aDY1);
+   tREAL8 aDYAbs2 = std::abs(aDY2);
+
+   return (aDYAbs1>aDMin) && (aDYAbs1<aDMax) && (aDYAbs2>aDMin) && (aDYAbs2<aDMax);
+}
+
+void cHoughPS::InitMatch()
+{
+     mMatched = nullptr;
+     mDistM   = 1e10;
+}
+
+
+void cHoughPS::UpdateMatch(cHoughPS * aNewM,tREAL8 aDist)
+{
+    if (aDist<mDistM)
+    {
+       mMatched = aNewM;
+       mDistM   = aDist;
+    }
+}
+
+void cHoughPS::SetMatch(std::vector<cHoughPS*> & aVPS,bool IsLight,tREAL8 aMaxTeta,tREAL8 aDMin,tREAL8 aDMax)
+{
+     //  Reset matches
+     for (auto & aPtr : aVPS)
+         aPtr->InitMatch();
+
+     //  compute best match
+     for (size_t aK1=0 ; aK1<aVPS.size() ; aK1++)
+     {
+          for (size_t aK2=aK1+1 ; aK2<aVPS.size() ; aK2++)
+          {
+               if (aVPS[aK1]->Match(*aVPS[aK2],IsLight,aMaxTeta,aDMin,aDMax))
+               {
+                  tREAL8 aD12 = aVPS[aK1]->Dist(*aVPS[aK2],2.0);
+                  aVPS[aK1]->UpdateMatch(aVPS[aK2],aD12);
+                  aVPS[aK2]->UpdateMatch(aVPS[aK1],aD12);
+               }
+          }
+     }
+
+     //  Test if reciproc match
+     for (auto & aPtr : aVPS)
+     {
+          if (aPtr->mMatched && (aPtr->mMatched->mMatched!=aPtr))
+          {
+             aPtr->mMatched->mMatched =nullptr;
+             aPtr->mMatched =nullptr;
+          }
+     }
+}
+
+
+
+/* ************************************************************************ */
+/*                                                                          */
 /*                       cHoughTransform                                    */
 /*                                                                          */
 /* ************************************************************************ */

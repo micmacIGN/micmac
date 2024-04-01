@@ -27,6 +27,7 @@ class cHoughPS : public cMemCheck
 	 tREAL8 DistAnglAntiPar(const cHoughPS& aPS2) const;
          tREAL8 DY(const cHoughPS&) const;
          tREAL8 Dist(const cHoughPS&,const tREAL8 &aFactTeta=1.0) const;
+         tSeg2dr  SegMoyAntiParal(const cHoughPS& aPS2) const;
 
 	 const cPt2dr & TetaRho() const; ///< Accessor
 	 const tREAL8 & Teta() const;    ///< Accessor

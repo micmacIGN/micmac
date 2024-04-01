@@ -9,6 +9,8 @@
 namespace MMVII
 {
 
+typedef cSegment<tREAL8,2> tSeg2dr;
+
 
 /** \file MMVII_Geom2D.h
     \brief contain classes for geometric manipulation, specific to 2D space :

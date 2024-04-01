@@ -6,119 +6,43 @@
 namespace MMVII
 {
 
-cHoughPS::cHoughPS(const cHoughTransform * aHT,const cPt2dr & aTR,tREAL8 aCumul,const cPt2dr & aP1,const cPt2dr & aP2) :
-    mHT       (aHT),
-    mTetaRho  (aTR),
-    mCumul    (aCumul),
-    mSegE     (aP1,aP2),
-    mCode     (eCodeHPS::Ok)
+class cExtractOneLineIm
 {
-    InitMatch();
+     public :
+          cExtractOneLineIm();
+
+          tSeg2dr mSeg;
+          tREAL8  mAng;
+          tREAL8  mWidth;
+          tREAL8  mCumul;
+};
+
+class cExtractLinesIm
+{
+     public :
+         std::string                      mDirCalib;
+         std::vector<cExtractOneLineIm>   mLines;
+};
+
+
+cExtractOneLineIm::cExtractOneLineIm() :
+    mSeg (cPt2dr(0,0),cPt2dr(0,0))
+{
 }
 
-
-
-
-tREAL8 cHoughPS::DistAnglAntiPar(const cHoughPS& aPS2) const
+void AddData(const cAuxAr2007 & anAux,cExtractOneLineIm & anEx)
 {
-     return diff_circ(Teta()+M_PI,aPS2.Teta(),2*M_PI);
+      AddData(cAuxAr2007("P1",anAux),anEx.mSeg.P1());
+      AddData(cAuxAr2007("P2",anAux),anEx.mSeg.P2());
+      AddData(cAuxAr2007("ParalAng",anAux),anEx.mAng);
+      AddData(cAuxAr2007("Width",anAux),anEx.mWidth);
+      AddData(cAuxAr2007("Cumul",anAux),anEx.mCumul);
 }
 
-tREAL8 cHoughPS::DY(const cHoughPS & aHPS) const
+void AddData(const cAuxAr2007 & anAux,cExtractLinesIm & anEx)
 {
-   return mSegE.ToCoordLoc(aHPS.mSegE.PMil()) .y() ;
-}
-
-const cSegment2DCompiled<tREAL8> & cHoughPS::Seg() const {return mSegE;}
-const cPt2dr & cHoughPS::TetaRho() const {return mTetaRho;}
-const tREAL8 & cHoughPS::Teta()    const {return mTetaRho.x();}
-const tREAL8 & cHoughPS::Rho()     const {return mTetaRho.y();}
-const tREAL8 & cHoughPS::Cumul()     const {return mCumul;}
-cHoughPS * cHoughPS::Matched() const {return mMatched;}
-eCodeHPS  cHoughPS::Code() const  {return mCode;}
-void cHoughPS::SetCode(eCodeHPS aCode) {  mCode = aCode;}
-
-cPt2dr  cHoughPS::IndTetaRho() const
-{
-	return cPt2dr(mHT->Teta2RInd(Teta()),mHT->Rho2RInd(Rho()));
-}
-
-tREAL8 cHoughPS::Dist(const cHoughPS& aPS2,const tREAL8 &aFactTeta) const
-{
-     return   std::abs(Rho()-aPS2.Rho())
-	    + DistAnglAntiPar(aPS2) * (aFactTeta * mHT->RhoMax())
-     ;
-}
-
-void cHoughPS::Test(const cHoughPS &  aHPS) const
-{
-	StdOut() << "LARG " << mSegE.ToCoordLoc(aHPS.mSegE.PMil()) .y()
-		 << " RMDistAng " << DistAnglAntiPar(aHPS) * mHT->RhoMax()
-		 << " DistAng " << DistAnglAntiPar(aHPS) 
-		 // << " T1=" << Teta()<< " T2=" aHPS.Teta()  << " "<< diff_circ(Teta(),aHPS.Teta(),2*M_PI)
-		 << "\n";
-}
-
-bool cHoughPS::Match(const cHoughPS & aPS2,bool IsLight,tREAL8 aMaxTeta,tREAL8 aDMin,tREAL8 aDMax) const
-{
-   tREAL8 aDY1 =      DY(aPS2 );
-   tREAL8 aDY2 = aPS2.DY(*this);
-
-   // Test the coherence of left/right position 
-   if ( ((aDY1>0) ==IsLight) || ((aDY2>0) ==IsLight))  return false;
-
-   if ( DistAnglAntiPar(aPS2) > aMaxTeta)  return false;
-
-   tREAL8 aDYAbs1 = std::abs(aDY1);
-   tREAL8 aDYAbs2 = std::abs(aDY2);
-
-   return (aDYAbs1>aDMin) && (aDYAbs1<aDMax) && (aDYAbs2>aDMin) && (aDYAbs2<aDMax);
-}
-
-
-void cHoughPS::InitMatch()
-{
-     mMatched = nullptr;
-     mDistM   = 1e10;
-}
-void cHoughPS::UpdateMatch(cHoughPS * aNewM,tREAL8 aDist)
-{
-    if (aDist<mDistM)
-    {
-       mMatched = aNewM;
-       mDistM   = aDist;
-    }
-}
-
-void cHoughPS::SetMatch(std::vector<cHoughPS*> & aVPS,bool IsLight,tREAL8 aMaxTeta,tREAL8 aDMin,tREAL8 aDMax)
-{
-     //  Reset matches
-     for (auto & aPtr : aVPS)
-	 aPtr->InitMatch();
-
-     //  compute best match
-     for (size_t aK1=0 ; aK1<aVPS.size() ; aK1++)
-     {
-          for (size_t aK2=aK1+1 ; aK2<aVPS.size() ; aK2++)
-	  {
-               if (aVPS[aK1]->Match(*aVPS[aK2],IsLight,aMaxTeta,aDMin,aDMax))
-               {
-                  tREAL8 aD12 = aVPS[aK1]->Dist(*aVPS[aK2],2.0);
-                  aVPS[aK1]->UpdateMatch(aVPS[aK2],aD12);
-                  aVPS[aK2]->UpdateMatch(aVPS[aK1],aD12);
-               }
-	  }
-     }
-
-     //  Test if reciproc match
-     for (auto & aPtr : aVPS)
-     {
-          if (aPtr->mMatched && (aPtr->mMatched->mMatched!=aPtr))
-	  {
-             aPtr->mMatched->mMatched =nullptr;
-             aPtr->mMatched =nullptr;
-	  }
-     }
+      AddData(cAuxAr2007("Calib",anAux),anEx.mDirCalib);
+      AddData(cAuxAr2007("Lines",anAux),anEx.mLines);
 }
 
 /* =============================================== */
@@ -207,6 +131,7 @@ cCollecSpecArg2007 & cAppliExtractLine::ArgObl(cCollecSpecArg2007 & anArgObl)
       return    anArgObl
              <<  Arg2007(mPatImage,"Name of input Image", {eTA2007::FileDirProj,{eTA2007::MPatFile,"0"}})
 	     <<  Arg2007(mLineIsWhite," True : its a light line , false dark ")
+             << mPhProj.DPPointsMeasures().ArgDirOutMand()
       ;
 }
 
@@ -246,11 +171,14 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
     tREAL8 aMulTeta = 1.0/M_PI;
 // aMulTeta = 1.0;
     bool mShow = true;
+
+   // [1]  Eventually init calibration for correction distorsion
     mCalib = nullptr;
     if (mPhProj.DPOrient().DirInIsInit())
        mCalib = mPhProj.InternalCalibFromImage(aNameIm);
 
 
+   // [2]  Eventually init ground truth  2D-points
    if (mPhProj.DPPointsMeasures().DirInIsInit()  && mPhProj.HasMeasureIm(aNameIm))
    {
       mWithGT = true;
@@ -271,10 +199,12 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
     tREAL8  aTrhsCumulHigh = mRelThrsCumulHigh * Norm2(anIm.DIm().Sz());
     mExtrL = new cExtractLines<tIm> (anIm);
 
+    // Compute Gradient and extract max-loc in gradient direction
     mExtrL->SetDericheGradAndMasq(2.0,10.0,2,mShow); // aAlphaDerich,aRayMaxLoc,aBorder
+    // Compute Hough-Transform
     mExtrL->SetHough(cPt2dr(aMulTeta,1.0),0.1,mCalib,mAffineMax,mShow);
 
-    // Extract Local Maxima
+    // Extract Local Maxima in hough space
     std::vector<cPt3dr> aVMaxLoc = mExtrL->Hough().ExtractLocalMax(10,4.0,10.0,0.1);
 
     //  Select Maxima with Cum > aTrhsCumulLow + labelize the quality of seg
@@ -306,9 +236,11 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
 	}
     }
 
+    // StdOut() <<  "NbMatchHHHHHH " << mMatchedVPS.size() << "\n";
 
     // Compute the quality and save it in report
     {
+        // Intrinsic evaluation
         std::string aStringQual = "OK";
 
         if (mMatchedVPS.empty()) 
@@ -321,6 +253,7 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
            aStringQual = "Pb_LowCumul";
 
 
+        // modification if there is a ground truth
 	if (mWithGT)
 	{
             if (mGTEmpty)
@@ -334,6 +267,7 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
 		 }
 		 else
 		 {
+                     // Test is the 2 ground-truth points are "almost" inside the two lines
                      bool  OkGT= true;
                      for (const auto & aPt : mVPtsGT)
 		     {
@@ -351,29 +285,30 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
 		 }
 	    }
 	}
-
+ 
+        // register  the result in a report
         AddOneReportCSV(mNameReportByIm,{aNameIm,aStringQual});
     }
    
 
+    // make a report for each lines
+    cExtractLinesIm  aExAllLines;
+    if (mPhProj.DPOrient().DirInIsInit())
+       aExAllLines.mDirCalib = mPhProj.DPOrient().DirIn();
 
-
-    for (size_t aKH=0 ; aKH<mVPS.size() ; aKH++)
+    for (cHoughPS * aHS1 : mMatchedVPS)
     {
-        cHoughPS *aHS1 = mVPS[aKH];
         cHoughPS *aHS2 = aHS1->Matched();
-        // Compute colour, depend of ranking
-        bool isOk = (aHS2 != nullptr);
-        // if (aKH>=2)  aCoul = cRGBImage::Green;
-        // if (aKH>=4)  aCoul = cRGBImage::Blue;
-        if (isOk && (aHS1> aHS2))
-        {
-            tREAL8 aDAng = aHS1->DistAnglAntiPar(*aHS2) * mExtrL->Hough().RhoMax() ;
-            tREAL8 aLarg = aHS1->DY(*aHS2) ;
-            tREAL8 aCumul = (aHS1->Cumul()+aHS2->Cumul())/2.0;
-            AddOneReportCSV(mNameReportByLine,{aNameIm,ToStr(aDAng),ToStr(aLarg),ToStr(aCumul)});
-        }
+        cExtractOneLineIm aEx1L;
+        aEx1L.mAng    = aHS1->DistAnglAntiPar(*aHS2) * mExtrL->Hough().RhoMax() ;
+        aEx1L.mWidth  = -( aHS1->DY(*aHS2) + aHS2->DY(*aHS1) ) / 2.0;
+        aEx1L.mCumul  = (aHS1->Cumul()+aHS2->Cumul())/2.0;
+        aEx1L.mSeg    = aHS1->SegMoyAntiParal(*aHS2);
+        AddOneReportCSV(mNameReportByLine,{aNameIm,ToStr(aEx1L.mAng),ToStr(aEx1L.mWidth),ToStr(aEx1L.mCumul)});
+
+        aExAllLines.mLines.push_back(aEx1L);
     }
+    SaveInFile(aExAllLines,mPhProj.DPPointsMeasures().FullDirOut() + "Segs-"+aNameIm + "."+ GlobTaggedNameDefSerial());
 
     if (mShowSteps)
        MakeVisu(aNameIm);
