@@ -7,6 +7,7 @@
 #include "MMVII_BlocRig.h"
 #include "MMVII_DeclareCste.h"
 #include "cExternalSensor.h"
+#include "MMVII_PoseTriplet.h"
 
 
 
@@ -244,6 +245,7 @@ cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
     mCurSysCo         (nullptr),
     mChSys            (),
     mDPOrient         (eTA2007::Orient,*this),
+    mDPOriTriplets    (eTA2007::OriTriplet,*this),
     mDPRadiomData     (eTA2007::RadiomData,*this),
     mDPRadiomModel    (eTA2007::RadiomModel,*this),
     mDPMeshDev        (eTA2007::MeshDev,*this),
@@ -282,6 +284,7 @@ void cPhotogrammetricProject::FinishInit()
 
 
     mDPOrient.Finish();
+    mDPOriTriplets.Finish();
     mDPRadiomData.Finish();
     mDPRadiomModel.Finish();
     mDPMeshDev.Finish();
@@ -343,6 +346,7 @@ const std::string & cPhotogrammetricProject::TaggedNameDefSerial() const {return
 const std::string & cPhotogrammetricProject::VectNameDefSerial() const {return mAppli.VectNameDefSerial();}
 
 cDirsPhProj &   cPhotogrammetricProject::DPOrient() {return mDPOrient;}
+cDirsPhProj &   cPhotogrammetricProject::DPOriTriplets() {return mDPOriTriplets;}
 cDirsPhProj &   cPhotogrammetricProject::DPRadiomData() {return mDPRadiomData;}
 cDirsPhProj &   cPhotogrammetricProject::DPRadiomModel() {return mDPRadiomModel;}
 cDirsPhProj &   cPhotogrammetricProject::DPMeshDev() {return mDPMeshDev;}
@@ -354,6 +358,7 @@ cDirsPhProj &   cPhotogrammetricProject::DPMulTieP() {return mDPMulTieP;}
 cDirsPhProj &   cPhotogrammetricProject::DPRigBloc() {return mDPRigBloc;} // RIGIDBLOC
 
 const cDirsPhProj &   cPhotogrammetricProject::DPOrient() const {return mDPOrient;}
+const cDirsPhProj &   cPhotogrammetricProject::DPOriTriplets() const {return mDPOriTriplets;}
 const cDirsPhProj &   cPhotogrammetricProject::DPRadiomData() const {return mDPRadiomData;}
 const cDirsPhProj &   cPhotogrammetricProject::DPRadiomModel() const {return mDPRadiomModel;}
 const cDirsPhProj &   cPhotogrammetricProject::DPMeshDev() const {return mDPMeshDev;}
@@ -988,6 +993,12 @@ std::list<cBlocOfCamera *> cPhotogrammetricProject::ReadBlocCams() const
 
 //  see cMetaDataImages.cpp
 
+void cPhotogrammetricProject::SaveTriplets(const cTripletSet &aSet) const
+{
+    std::string aName = mDPOriTriplets.FullDirOut() + "TTT.xml";
+    StdOut() << "aName: " << aName << std::endl;
+    aSet.ToFile(aName);
+}
 
 }; // MMVII
 

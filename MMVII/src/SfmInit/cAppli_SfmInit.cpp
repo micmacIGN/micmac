@@ -23,6 +23,7 @@ class cAppli_SfmInitFromGraph: public cMMVII_Appli
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
      private :
         cPhotogrammetricProject   mPhProj;
+
 };
 
 cAppli_SfmInitFromGraph::cAppli_SfmInitFromGraph(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
