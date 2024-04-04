@@ -43,7 +43,7 @@ class cAppli_ImportTriplet : public cMMVII_Appli
 
 
     // Optionall Arg
-    std::string              mNameDicoName;
+    std::string              mNameTriSet;
     tNameSet                 mSetFilter;
 
 
@@ -77,6 +77,7 @@ cCollecSpecArg2007 & cAppli_ImportTriplet::ArgOpt(cCollecSpecArg2007 & anArgObl)
 {
     
     return anArgObl
+            << AOpt2007(mNameTriSet,"NameTri", "Name of the output triplet set; def=TripletSet")
             << AOpt2007(mFileBin,"FileBin","Binary file format, def=true")
                ;
 }
@@ -89,6 +90,8 @@ int cAppli_ImportTriplet::Exe()
     mPhProj.FinishInit();
 
     cTripletSet aSetOfTri;
+    if (IsInit(&mNameTriSet))
+        aSetOfTri.SetName(mNameTriSet);
 
     cXml_TopoTriplet aXml3 =  StdGetFromSI(mNameFile,Xml_TopoTriplet);
 
@@ -137,32 +140,30 @@ int cAppli_ImportTriplet::Exe()
                                 aIm3in1_rot.Centre().y,
                                 aIm3in1_rot.Centre().z);
 
-        StdOut() << "centers: " << aCenter21 << " " << aCenter31 << std::endl;
+        //StdOut() << "centers: " << aCenter21 << " " << aCenter31 << std::endl;
 
         tPose aPose1 = cIsometry3D<tREAL8>::Identity();
         tPose aPose21(aCenter21,aR21);
         tPose aPose31(aCenter31,aR31);
 
         cTriplet aTri;
-        aTri.Pose(0) = aPose1;
-        aTri.Pose(1) = aPose21;
-        aTri.Pose(2) = aPose31;
 
+        aTri.PVec().push_back(cView(tPose::Identity(),aTriXML.Name1()));
+        aTri.PVec().push_back(cView(tPose(aCenter21,aR21),aTriXML.Name2()));
+        aTri.PVec().push_back(cView(tPose(aCenter31,aR31),aTriXML.Name3()));
+
+        ///metrics (B/h, residual)
+        aTri.BH() = aXml3Ori.BSurH();
+        aTri.Residual() = aXml3Ori.ResiduTriplet();
+
+
+        /// push triplet to the set
         aSetOfTri.PushTriplet(aTri);
 
-        cPerspCamIntrCalib * aCalib = mPhProj.InternalCalibFromImage(aTriXML.Name1());
-        StdOut() << "Calib: " << aCalib->F() << " " << aCalib->PP() << std::endl;
+        //cPerspCamIntrCalib * aCalib = mPhProj.InternalCalibFromImage(aTriXML.Name1());
+        //StdOut() << "Calib: " << aCalib->F() << " " << aCalib->PP() << std::endl;
 
 
-
-        //cTriplet aTri;
-        //aTri.Pose(0)
-        /*
-            cRotation3D<tREAL8>  aRot =  cRotation3D<tREAL8>::RotFromWPK(aWPK);
-            aRot = aRot * aRotAfter;
-
-            cIsometry3D aPose(aCenter,aRot);
-        */
 
     }
 

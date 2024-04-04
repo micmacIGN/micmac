@@ -6,43 +6,57 @@
 namespace MMVII
 {
 
-class cView
+class cView : public cMemCheck
 {
     public:
         typedef cIsometry3D<tREAL8>  tPose;
-        cView(const tPose);
+        cView(const tPose,const std::string);
 
         const std::string & Name() {return mName;}
         const tPose & Pose() {return mPose;}
 
+        void AddData(const cAuxAr2007&);
+
     private:
-        const std::string           mName;
-        tPose                       mPose;
-        cPerspCamIntrCalib        * mCalib;
+        std::string           mName;
+        tPose                 mPose;
+        //cPerspCamIntrCalib        * mCalib;
 
 };
+void AddData(const  cAuxAr2007 &,cView &aV) ;
 
-class cTriplet
+class cTriplet : public cMemCheck
 {
     public:
         typedef cIsometry3D<tREAL8>  tPose;
         cTriplet();
 
-        tPose& Pose(int aK) {return mPoses[aK];}
-        const tPose& Pose(int aK) const {return mPoses[aK];}
+        cView& Pose(int aK) {return mPoses[aK];}
+        const cView& Pose(int aK) const {return mPoses[aK];}
+
+        std::vector<cView>& PVec() {return mPoses;}
+        const std::vector<cView>& PVec() const {return mPoses;}
+
+
+        const double & BH() const {return mBH;}
+        double &       BH() {return mBH;}
+        const double & Residual() const {return mResidual;}
+        double &       Residual() {return mResidual;}
 
         void AddData(const cAuxAr2007&);
 
     private:
-        std::vector<tPose> mPoses;
-      /*  tPose mPose1;
-        tPose mPose21;
-        tPose mPose31;*/
+        std::vector<cView> mPoses;
+
+        double             mBH;
+        double             mResidual;
+
+
 
 };
 void AddData(const  cAuxAr2007 &,cTripletSet &cTriplet) ;
 
-class cTripletSet
+class cTripletSet : public cMemCheck
 {
     public:
         cTripletSet();
@@ -51,9 +65,13 @@ class cTripletSet
 
         void PushTriplet(cTriplet &);
 
+        void SetName(std::string& aName) {mName=aName;}
+        const std::string & Name() const {return mName;}
+
         void AddData(const  cAuxAr2007 &);
 
     private:
+        std::string           mName;
         std::vector<cTriplet> mSet;
 
 };

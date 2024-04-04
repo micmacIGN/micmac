@@ -995,7 +995,7 @@ std::list<cBlocOfCamera *> cPhotogrammetricProject::ReadBlocCams() const
 
 void cPhotogrammetricProject::SaveTriplets(const cTripletSet &aSet) const
 {
-    std::string aName = mDPOriTriplets.FullDirOut() + "TTT.xml";
+    std::string aName = mDPOriTriplets.FullDirOut() + aSet.Name() + ".xml";
     StdOut() << "aName: " << aName << std::endl;
     aSet.ToFile(aName);
 }

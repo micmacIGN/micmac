@@ -5,6 +5,11 @@
 namespace MMVII
 {
 
+/* todo:
+     initialise graph with triplets
+     partition the graph
+*/
+
 
    /* ********************************************************** */
    /*                                                            */
