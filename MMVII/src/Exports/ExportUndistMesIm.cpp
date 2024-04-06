@@ -4,8 +4,6 @@
 namespace MMVII
 {
 
-//class declaration
-/*
 class cAppli_ExportUndistMesIm : public cMMVII_Appli
 {
     public:
@@ -21,134 +19,104 @@ class cAppli_ExportUndistMesIm : public cMMVII_Appli
         bool                     mShow;
 
 };
-*/
 
-//constructor
-/*
 cAppli_ExportUndistMesIm::cAppli_ExportUndistMesIm(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-    cMMVII_Appli (aVArgs,aSpec),
-    mPhProj      (*this),
-    mShow        (false)
+    cMMVII_Appli    (aVArgs,aSpec),
+    mPhProj         (*this),
+    mShow     (false)
 
 {
 }
-*/
 
-//handling mandatory arguments
-/*
 cCollecSpecArg2007 & cAppli_ExportUndistMesIm::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
       return anArgObl
-             << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}}) //vector of eTA2007 giving meta information on the arg
-             << ... //orientation folder
-             << ... //points measure 2D/3D folder
+             << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
+             << mPhProj.DPOrient().ArgDirInMand()
+             << mPhProj.DPPointsMeasures().ArgDirInMand()
       ;
 }
-*/
 
-//handling optionnal arguments
-/*
+
 cCollecSpecArg2007 & cAppli_ExportUndistMesIm::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
     return anArgOpt
-               <<  ... //output points measure 2D/3D folder
-               << ... //bool to display
+               <<  mPhProj.DPPointsMeasures().ArgDirOutOptWithDef("Undist")
+               << AOpt2007(mShow,"ShowD","Show details",{eTA2007::HDV})
             ;
 }
-*/
 
-//function as a main entry to the application
-/*
 int cAppli_ExportUndistMesIm::Exe()
 {
-    //construction of the photogrammetric project manager
-    ...
+    mPhProj.FinishInit();
 
-    //retreive list of images in the pattern via VectMainSet(int aK) interface to MainSet
-    ...
+    //read the image pattern
+    std::vector<std::string> aVecIm = VectMainSet(0);//interface to MainSet
     
-    //iterate over the images
     for (const std::string& aCImage : aVecIm)
     {
-		//declare a set of measure Imgs GCPs via cSetMesImGCP (class for storing GCP :  3D measures + 2D image measure)
-		...
-		
-		//load calibration via cPerspCamIntrCalib
-		...
+
+		cSetMesImGCP aSetMes;
+
+		//load calibration
+		cPerspCamIntrCalib * aCal = mPhProj.InternalCalibFromStdName(aCImage);
 
 		//load GCPs
-		...
+		mPhProj.LoadGCP(aSetMes);
 
 		//load image measurements
-		...
+		mPhProj.LoadIm(aSetMes,aCImage);
 
-		//image measurements to export via cSetMesPtOf1Im (class for representing a set of measure in an image)
-		...
-		
-		//iterate over cSetMesImGCP object
+		//image measurements to export
+		cSetMesPtOf1Im  aSetMesOut(FileOfPath(aCImage));
+
 		for(const auto & aVMes : aSetMes.MesImInit())
 		{
-			//retreive image name
-			...
+			std::string aNameImage = aVMes.NameIm();
 
-			//retreive a vector of cMesIm1Pt (class for representing  the measure of a point in an image)
-			...
+			std::vector<cMesIm1Pt> aVMesIm =  aVMes.Measures();
 			
-			//iterate over cMesIm1Pt object
 			for(const auto & aMes : aVMes.Measures())
 			{
-				//retreive point name
-				...
-				
-				//retreive image coordinates of the point
-				..
+				std::string aGcpName = aMes.mNamePt;
 
-				//compute the corrected coordinates of the point from the distorsion 
-				..
-				
-				//display
+				cPt2dr aPtIm = aMes.mPt;
+
+				cPt2dr aPtImUndist = aCal->Undist(aPtIm);
+
 				if(mShow)
 				{
-					...
+					std::cout << aNameImage << "," << aGcpName << "," << aPtImUndist.x() << "," << aPtImUndist.y() << std::endl;
 				}
 				
-				//fill a new object of type cMesIm1Pt with the new coordinates
-				...
-				
-				//add the measure to the object of type cSetMesPtOf1Im
-				...
+				//fill aSetMesOut
+				cMesIm1Pt aMesIm1Pt(aPtImUndist,aGcpName,1.0);
+				aSetMesOut.AddMeasure(aMesIm1Pt);
 
 			}
 		}
 		
-		//write in a file the object of type cSetMesPtOf1Im
-		...
+		//write in a file
+		mPhProj.SaveMeasureIm(aSetMesOut);
 	}
 
     return EXIT_SUCCESS;
 }
-*/
 
-//function to allocates the application
-/*
 tMMVII_UnikPApli Alloc_Test_ExportUndistMesIm(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
 {
       return tMMVII_UnikPApli(new cAppli_ExportUndistMesIm(aVArgs,aSpec));
 }
-*/
 
-//details about the application
-/*
 cSpecMMVII_Appli  TheSpec_ExportUndistMesIm
 (
-     "...", //application name
-      ..., //allocator name
-      "...", //comment
-      {...}, //vector of feature
-      {...}, //vector of type of input data
-      {...}, //vector of type of output data
+     "ExportUndistMesIm",
+      Alloc_Test_ExportUndistMesIm,
+      "Export image measurements of GCPs corrected from distorsion",
+      {eApF::Ori},
+      {eApDT::Ori,eApDT::GCP},
+      {eApDT::Console},
       __FILE__
 );
-*/
 
 }
