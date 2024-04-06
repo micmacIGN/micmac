@@ -96,6 +96,7 @@ extern cSpecMMVII_Appli  TheSpecTestSensor;
 extern cSpecMMVII_Appli  TheSpecParametrizeSensor;
 extern cSpecMMVII_Appli  TheSpec_TutoSerial;
 extern cSpecMMVII_Appli  TheSpec_TutoFormalDeriv;
+extern cSpecMMVII_Appli  TheSpec_ExportUndistMesIm;
 extern cSpecMMVII_Appli  TheSpecAppliExtractLine;
 };
 
