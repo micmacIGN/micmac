@@ -105,7 +105,7 @@ D_Tiff_ifd_Arg_opt::D_Tiff_ifd_Arg_opt() :
      mSzFileTile = Pt2di(Tiff_Im::DefTileFile(),Tiff_Im::DefTileFile());
 
 
-     std::cout << "mSzFileTilemSzFileTile " <<mSzFileTile << "\n";
+     // std::cout << "mSzFileTilemSzFileTile " <<mSzFileTile << "\n";
 
      mExifTiff_FocalLength = -1;
      mExifTiff_FocalEqui35Length = -1;

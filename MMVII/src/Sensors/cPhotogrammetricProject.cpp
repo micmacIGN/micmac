@@ -6,6 +6,7 @@
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_BlocRig.h"
 #include "MMVII_DeclareCste.h"
+#include "MMVII_Clino.h"
 #include "cExternalSensor.h"
 
 
@@ -253,6 +254,7 @@ cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
     mDPMulTieP        (eTA2007::MulTieP,*this),
     mDPMetaData       (eTA2007::MetaData,*this),
     mDPRigBloc        (eTA2007::RigBlock,*this),  // RIGIDBLOC
+    mDPClinoMeters    (eTA2007::Clino,*this),  // RIGIDBLOC
     mGlobCalcMTD      (nullptr)
 {
 }
@@ -291,6 +293,7 @@ void cPhotogrammetricProject::FinishInit()
     mDPMulTieP.Finish();
     mDPMetaData.Finish();
     mDPRigBloc.Finish() ; // RIGIDBLOC
+    mDPClinoMeters.Finish() ; // RIGIDBLOC
 
     // Force the creation of directory for metadata spec, make 
     if (! mDPMetaData.DirOutIsInit())
@@ -352,6 +355,7 @@ cDirsPhProj &   cPhotogrammetricProject::DPMetaData() {return mDPMetaData;}
 cDirsPhProj &   cPhotogrammetricProject::DPTieP() {return mDPTieP;}
 cDirsPhProj &   cPhotogrammetricProject::DPMulTieP() {return mDPMulTieP;}
 cDirsPhProj &   cPhotogrammetricProject::DPRigBloc() {return mDPRigBloc;} // RIGIDBLOC
+cDirsPhProj &   cPhotogrammetricProject::DPClinoMeters() {return mDPClinoMeters;} // RIGIDBLOC
 
 const cDirsPhProj &   cPhotogrammetricProject::DPOrient() const {return mDPOrient;}
 const cDirsPhProj &   cPhotogrammetricProject::DPRadiomData() const {return mDPRadiomData;}
@@ -363,6 +367,7 @@ const cDirsPhProj &   cPhotogrammetricProject::DPMetaData() const {return mDPMet
 const cDirsPhProj &   cPhotogrammetricProject::DPTieP() const {return mDPTieP;}
 const cDirsPhProj &   cPhotogrammetricProject::DPMulTieP() const {return mDPMulTieP;}
 const cDirsPhProj &   cPhotogrammetricProject::DPRigBloc() const {return mDPRigBloc;} // RIGIDBLOC
+const cDirsPhProj &   cPhotogrammetricProject::DPClinoMeters() const {return mDPClinoMeters;} // RIGIDBLOC
 
 
 const std::string &   cPhotogrammetricProject::DirPhp() const   {return mDirPhp;}
@@ -614,12 +619,17 @@ cSensorImage* cPhotogrammetricProject::ReadSensorFromFolder(const std::string  &
 
 cPerspCamIntrCalib *  cPhotogrammetricProject::InternalCalibFromImage(const std::string & aNameIm) const
 {
-    // 4 now, pretty basic allox sensor, extract internal, destroy
-    // later will have to handle :
-    //    * case where calib exist but not pose
-    //    * case where nor calib nor pose exist, and must be created from xif 
+    //  allox sensor and if exist, extract internal, destroy
+    //  else try to extract calib from standard name
+    //    * case where nor calib nor pose exist, and must be created from xif still to implemant
     mDPOrient.AssertDirInIsInit();
-    cSensorCamPC *  aPC = ReadCamPC(aNameIm,false);
+
+    cSensorCamPC *  aPC = ReadCamPC(aNameIm,false,SVP::Yes);
+    if (aPC==nullptr)
+    {
+        return InternalCalibFromStdName(aNameIm);
+    }
+
     cPerspCamIntrCalib * aCalib = aPC->InternalCalib();
     delete aPC;
 
@@ -956,6 +966,36 @@ void  cPhotogrammetricProject::ReadHomol
     std::string aName = NameTiePIn(aNameIm1,aNameIm2,aDirIn); 
     ReadFromFile(aSetHCI.SetH(),aName);
 }
+        //  =============  Clino meters  =================
+
+std::string cPhotogrammetricProject::NameFileClino(const std::string &aNameCam,bool Input) const
+{
+    static const std::string TheClinoPrefix = "ClinoCalib-";
+    return mDPClinoMeters.FullDirInOut(Input) + TheClinoPrefix + aNameCam + "."+ GlobTaggedNameDefSerial();
+}
+
+void cPhotogrammetricProject::SaveClino(const cCalibSetClino & aCalib) const
+{
+    SaveInFile(aCalib,NameFileClino(aCalib.mNameCam,false));
+}
+
+bool cPhotogrammetricProject::HasClinoCalib(const cPerspCamIntrCalib & aCalib) const
+{
+     return ExistFile(NameFileClino(aCalib.Name(),true));
+}
+
+
+cCalibSetClino * cPhotogrammetricProject::GetClino(const cPerspCamIntrCalib & aCalib) const
+{
+    return ObjectFromFile<cCalibSetClino,cCalibSetClino>(NameFileClino(aCalib.Name(),true));
+}
+
+/*
+cCalibSetClino * GetClino(const cPerspCamIntrCalib &);
+*/
+
+
+
         //  =============  Rigid bloc  =================
 
 	                   // RIGIDBLOC

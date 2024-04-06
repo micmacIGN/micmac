@@ -31,6 +31,10 @@ enum class eTA2007
                 FileImage,     ///< File containing an image
                 FileCloud,     ///< File containing a cloud file (ply ?)
                 File3DRegion,  ///< File containing a 3D region
+                FileTagged,    ///< File containing a "xml"  or "json" extension
+                FileTxt,       ///< Text file, no extension specified
+                FileAny,       ///< Any file, no more specificiation can be given
+                FolderAny,     ///< Any folder, no more specificiation can be given
                 MPatFile,      ///< Major PaternIm => "" or "0" in sem for set1, "1" or other for set2
                 FFI,           ///< File Filter Interval
                 Orient,        ///< Orientation
@@ -43,6 +47,7 @@ enum class eTA2007
                 TieP,          ///< Tie Points
                 MulTieP,       ///< Multiple Tie Points
                 RigBlock,      ///< Rigid bloc    // RIGIDBLOC
+                Clino,         ///< Clinometer
                 SysCo,         ///< System coord
                 Input,         ///< Is this parameter used as input/read
                 Output,        ///< Is this parameter used as output/write

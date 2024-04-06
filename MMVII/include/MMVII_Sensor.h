@@ -433,6 +433,7 @@ class cPhotogrammetricProject
 	  cDirsPhProj &   DPTieP();    ///<  Accessor
 	  cDirsPhProj &   DPMulTieP();    ///<  Accessor
 	  cDirsPhProj &   DPRigBloc();    ///<  Accessor  // RIGIDBLOC
+	  cDirsPhProj &   DPClinoMeters();    ///<  Accessor  // RIGIDBLOC
 				    
 	  const cDirsPhProj &   DPOrient() const; ///< Accessor
 	  const cDirsPhProj &   DPRadiomData() const; ///< Accessor
@@ -444,6 +445,7 @@ class cPhotogrammetricProject
 	  const cDirsPhProj &   DPTieP() const;    ///<  Accessor
 	  const cDirsPhProj &   DPMulTieP() const;    ///<  Accessor
 	  const cDirsPhProj &   DPRigBloc() const;    ///<  Accessor  // RIGIDBLOC
+	  const cDirsPhProj &   DPClinoMeters() const;    ///<  Accessor  // RIGIDBLOC
 
 
 	  // Sometime we need several dir of the same type, like "ReportPoseCmp", or RefPose in bundle
@@ -650,6 +652,20 @@ class cPhotogrammetricProject
 	 const cSysCoordV2 & SysCo() const ;
          bool  SysCoIsInit() const;
          void  AssertSysCoIsInit() const;
+	
+	 //===================================================================
+         //==================   Clinometers           ========================
+	 //===================================================================
+	
+	 /// Standard name for clino file using DPClinoMeters, in or out
+	 std::string NameFileClino(const std::string &aNameCam ,bool Input) const;
+	 /// Save clinometer calib in santdard out folder of DPClinoMeters
+	 void SaveClino(const cCalibSetClino &) const;
+	 /// Is there  clinometer in santdard input folder of DPClinoMeters ?
+	 bool HasClinoCalib(const cPerspCamIntrCalib &) const;
+	 /**  Read the clinometers calib in standard input folder of DPClinoMeters, create a dyn objec because
+	  *  probably "cCalibSetClino" will evolve in a not copiable object*/
+	 cCalibSetClino * GetClino(const cPerspCamIntrCalib &) const;
 
 	 //===================================================================
          //==================   Rigid Bloc           =========================
@@ -694,6 +710,7 @@ class cPhotogrammetricProject
 	  cDirsPhProj     mDPMulTieP;         ///<  For multiple Homologous point
 	  cDirsPhProj     mDPMetaData;
 	  cDirsPhProj     mDPRigBloc;         // RIGIDBLOC
+	  cDirsPhProj     mDPClinoMeters;         // RIGIDBLOC
 					      //
 
 	  std::vector<cDirsPhProj*> mDirAdded;

@@ -37,6 +37,7 @@ template <class TypeElem> class cUnaryF : public cImplemF<TypeElem>
             {
                return this->NameOperator() + " "+  mF->InfixPPrint() + PostName() ;
             }
+            std::string  Name4Print() const override {return this->NameOperator();}
 
       protected  :
             virtual std::string GenCodeExpr() const override

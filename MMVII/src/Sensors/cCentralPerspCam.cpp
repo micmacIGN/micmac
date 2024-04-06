@@ -478,9 +478,8 @@ double cPerspCamIntrCalib::DegreeVisibility(const cPt3dr & aP) const
 
 const  std::vector<cPt3dr> &  cPerspCamIntrCalib::DirBundles(tVecIn & aV3 ,const tVecOut & aV0 ) const 
 {
-     UpdateLSQDistIfRequired();
-
-     CheckBeforeInverse(aV0);
+     UpdateLSQDistIfRequired(); // Updtate inverse by least square
+     CheckBeforeInverse(aV0);   // Check that V0 is inversible, nothing done in release
 
      static tVecOut aV1,aV2;
      mMapIm2PProj.Values(aV1,aV0);
@@ -500,14 +499,36 @@ cPt3dr  cPerspCamIntrCalib::DirBundle(const tPtOut & aPt) const
      return aRes;
 }
 
+
+/*  Undist  :  compute the bundle then reproject on a perfect stenope camera.
+ 
+     For a stenope camera, generate un-necessary computation ,  P->Bundle->P/z which
+   turn to identity.  But this the price to pay for being generik.
+   Maybe maybe do a specialize version later
+
+       cPt2dr  cPerspCamIntrCalib::Undist_Quick(const tPtOut & aP0) const;
+
+            +PP,*F         Dist-1         InProj            x,y/z           -PP,/F
+       PIm  ------>  PHgr --------> PUd  ------->  Bundle ---------->  P1  ---------->  PUndist
+*/
+
 cPt2dr  cPerspCamIntrCalib::Undist(const tPtOut & aP0) const
 {
     cPt3dr aPt = DirBundle(aP0);
-
     cPt2dr aP1 = Proj(aPt) / aPt.z();
-
     return mMapPProj2Im.Value(aP1);
 }
+
+cPt2dr  cPerspCamIntrCalib::Redist(const tPtOut & aP0) const
+{
+     cPt2dr aP1 =  mMapIm2PProj.Value(aP0);
+     cPt3dr aP2(aP1.x(),aP1.y(),1.0);
+
+     return Value(aP2);
+}
+
+
+
 
 tREAL8  cPerspCamIntrCalib::InvProjIsDef(const tPtOut & aPix ) const
 {

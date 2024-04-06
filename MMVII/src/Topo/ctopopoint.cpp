@@ -43,7 +43,7 @@ void AddData(const cAuxAr2007 & anAux, cTopoPoint &aTopoPoint)
 
 
 
-void cTopoPoint::findOrMakeUK(cSetMesImGCP *aMesGCP, std::vector<cPt3dr_UK*> * aGCP_UK, cPhotogrammetricProject *aPhProj, const cPt3dr & aCoordIfPureTopo)
+void cTopoPoint::findOrMakeUK(const std::vector<cBA_GCP *> & vGCP, cPhotogrammetricProject *aPhProj, const cPt3dr & aCoordIfPureTopo)
 {
 #ifdef VERBOSE_TOPO
     std::cout<<"findOrMakeUK "<<mName<<": ";
@@ -58,25 +58,27 @@ void cTopoPoint::findOrMakeUK(cSetMesImGCP *aMesGCP, std::vector<cPt3dr_UK*> * a
     }*/
 
     // search among GCP
-    if (aMesGCP && aGCP_UK)
+    for (auto & gcp : vGCP)
     {
-        if (aGCP_UK->size() == aMesGCP->MesGCP().size()) // do nothing if gcp unknowns are substitued/shurred
+        //do not use Shurred GCP
+        if (gcp->mGCP_UK.size() != gcp->mMesGCP->MesGCP().size())
+            continue;
+
+        for (unsigned int i=0; i<gcp->mMesGCP->MesGCP().size(); ++i )
         {
-            for (unsigned int i=0; i<aMesGCP->MesGCP().size(); ++i )
+            if (mName ==gcp->mMesGCP->MesGCP()[i].mNamePt)
             {
-                if (mName == aMesGCP->MesGCP()[i].mNamePt)
-                {
-                    mUK = aGCP_UK->at(i);
-                    mPt = &aGCP_UK->at(i)->Pt();
-                    mOwnsUK = false;
+                mUK = gcp->mGCP_UK.at(i);
+                mPt = &gcp->mGCP_UK.at(i)->Pt();
+                mOwnsUK = false;
 #ifdef VERBOSE_TOPO
-                    std::cout<<"is a GCP\n";
+                std::cout<<"is a GCP\n";
 #endif
-                    return;
-                }
+                return;
             }
         }
     }
+
 
     // search among cameras
     if (aPhProj)

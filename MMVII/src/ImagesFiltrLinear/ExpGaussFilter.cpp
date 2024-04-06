@@ -195,8 +195,10 @@ void  ExpFilterOfStdDev(cDataIm1D<Type> & aDI1,int  aNbIt,double aStdDev)
 
 
 template <class Type> cImGrad<Type>::cImGrad(const cIm2D<Type> & aGx,const cIm2D<Type> &  aGy) :
-    mGx (aGx),
-    mGy (aGy)
+    mGx   (aGx),
+    mDGx  (&mGx.DIm()),
+    mGy   (aGy),
+    mDGy  (&mGy.DIm())
 {
 }
 template <class Type> cImGrad<Type>::   cImGrad(const cPt2di & aSz) :

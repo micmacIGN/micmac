@@ -576,6 +576,8 @@ class cAppli_BlockCamInit : public cMMVII_Appli
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
 
+	std::vector<std::string>  Samples() const override;
+
      private :
         std::string              mSpecImIn;   ///  Pattern or xml file
         cPhotogrammetricProject  mPhProj;
@@ -590,6 +592,12 @@ class cAppli_BlockCamInit : public cMMVII_Appli
 	bool                     mTestNoDel;   ///< Do force an error on memory management to illustrate the 
 };
 
+std::vector<std::string>  cAppli_BlockCamInit::Samples() const
+{
+    return {
+	     "MMVII BlockCamInit SetFiltered_GCP_OK_Resec.xml   BA_311_B   '(.*)_(.*).JPG' [1,2]  Rig_311_B"
+    };
+}
 cAppli_BlockCamInit::cAppli_BlockCamInit
 (
      const std::vector<std::string> &  aVArgs,

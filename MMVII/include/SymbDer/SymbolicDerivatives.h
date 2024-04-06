@@ -552,6 +552,8 @@ template <class TypeElem> class cImplemF  : public SYMBDER_cMemCheck
 
        /// Access at global level is 4 reducing, also it is used 4 implemant in Unary & Binary
        virtual const std::string &  NameOperator() const = 0;
+       /// Name for pretty print 
+       virtual std::string  Name4Print() const = 0;
 
 
       // --------------------  Destructor / Constructor  --------------------------
@@ -655,7 +657,8 @@ template <class TypeElem> class cAtomicF : public cImplemF<TypeElem>
             typedef typename tCoordF::tFormula  tFormula;
 
             /// Should work always
-            std::string  InfixPPrint() const override {return tImplemF::Name();}
+            // std::string  InfixPPrint() const override {return tImplemF::Name();}
+            std::string  InfixPPrint() const override {return this->Name4Print();}
             /// Rule deriv=0 , work by default (constant and observations)
             tFormula Derivate(int aK) const override {return tImplemF::mCoordF->Cste0();}
 
@@ -682,8 +685,9 @@ template <class TypeElem> class cUnknownF : public cAtomicF<TypeElem>
             typedef typename tCoordF::tFormula  tFormula;
 
             const std::string &  NameOperator() const override {static std::string s("UK"); return s;}
+            std::string  Name4Print() const override {return tImplemF::Name() +"_UK";}
 
-            std::string  InfixPPrint() const override {return tImplemF::Name();}
+            // std::string  InfixPPrint() const override {return tImplemF::Name();} All ready overided
             ///  rule :  dXi/dXj = delta(i,j)
             tFormula Derivate(int aK) const override 
             {
@@ -712,6 +716,8 @@ template <class TypeElem> class cObservationF : public cAtomicF<TypeElem>
             friend tCoordF;
 
             const std::string &  NameOperator() const override {static std::string s("Obs"); return s;}
+            std::string  Name4Print() const override {return tImplemF::Name() +"_Obs";}
+            // const std::string &  NameOperator() const override {return tImplemF::Name() +"-Obs";}
       private  :
             inline cObservationF(tCoordF * aCoordF,const std::string & aName,int aNum) : 
                   tAtom  (aCoordF,aName),
@@ -735,6 +741,7 @@ template <class TypeElem> class cConstantF : public cAtomicF<TypeElem>
             bool  IsCste(const TypeElem &K) const override {return mVal==K;} ///< Here we know if we are a constant of value K
             const TypeElem * ValCste() const override  {return &mVal;}
             const std::string &  NameOperator() const override {static std::string s("Cste"); return s;}
+            std::string  Name4Print() const override {return std::to_string(mVal) +"_Cste";}
       protected  :
             inline cConstantF(tCoordF * aCoordF,const std::string & aName,int aNum,const TypeElem& aVal) : 
                tAtom   (aCoordF,aName),
@@ -1269,6 +1276,34 @@ inline const cFormula<TypeElem> SymbCommentDer(const cFormula<TypeElem> & aF, in
     aF->CoordF()->AddComment(aF->Derivate(aK), aComment);
     return aF;
 }
+
+
+
+template <class TypeElem> void  StdShowTreeFormulaRec(const cFormula<TypeElem>& aF,int aMaxPerL,int aLevel)
+{    
+
+     // StdOut()  << aF->GenCodeFormName() << std::endl;
+     // StdOut()  << aF->GenCodeExpr() << std::endl;
+     for (int aK=0 ; aK < aLevel ; aK++)
+     {   
+             std::cout << "   ";
+     }   
+     if (aF->RecursiveRec() < aMaxPerL)
+     {
+           std::cout << aF->InfixPPrint() << std::endl;
+     }
+     else
+     {
+         std::cout  << aF->Name4Print() << std::endl;
+         for (auto aChild : aF->Ref())
+              StdShowTreeFormulaRec(aChild,aMaxPerL,aLevel+1);
+     }
+}
+template <class TypeElem>  void  StdShowTreeFormula(const cFormula<TypeElem>& aF,int aMaxPerL=7) 
+{
+    StdShowTreeFormulaRec(aF,aMaxPerL,0);
+}
+
 
 
 } //  namespace NS_SymbolicDerivative

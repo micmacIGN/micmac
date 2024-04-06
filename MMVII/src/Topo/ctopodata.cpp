@@ -53,6 +53,7 @@ void cTopoObsData::AddData(const  cAuxAr2007 & anAuxInit)
     MMVII::AddData(cAuxAr2007("Pts",anAux),mPtsNames);
     MMVII::AddData(cAuxAr2007("Measures",anAux),mMeasures);
     MMVII::AddData(cAuxAr2007("Sigmas",anAux),mSigmas);
+    AddOptData(anAux,"LastResiduals",mLastResiduals);
 }
 
 void AddData(const cAuxAr2007 & anAux, cTopoObsData & aTopoObs)
@@ -79,7 +80,10 @@ cTopoData::cTopoData(cBA_Topo* aBA_topo)
         aSetData.mType = aSet->mType;
         for (auto & aObs : aSet->mObs)
         {
-            cTopoObsData aObsData = {aObs->mType, aObs->mPtsNames, aObs->mMeasures, aObs->mWeights.getSigmas()};
+            cTopoObsData aObsData = {
+                aObs->mType, aObs->mPtsNames, aObs->mMeasures,
+                aObs->mWeights.getSigmas(), aObs->getResiduals()
+            };
             aSetData.mObs.push_back(aObsData);
         }
         mAllObsSets.push_back(aSetData);

@@ -119,18 +119,28 @@ void GeoreferencedDepthMap(std::string aImg1, std::string aDir, std::string aDSM
     int nIdx = 0;
     int nOutOfBorder = 0;
     int nMasked = 0;
+    int nLowCor = 0;
+    int nCorTh = 5;
     double aCorrelMax = -100000;
     double aCorrelMin = 100000;
+    double z_me = 0;
+    double z_me_outlier = 0;
+    double aZMax = -100000;
+    double aZMin = 100000;
     for(j=0; j<ImgSzL.y; j++){      //first row first, the row/height is the y in MicMac
         for(i=0; i<ImgSzL.x; i++){
             Pt2di aP1_img = Pt2di(i, j);
             Pt2di aP1_dsm = Pt2di(int(i/aScale), int(j/aScale));
             int nVal = 0;
+            double aCorrel = 0;
             if(bMasq == true){
                 if(aP1_dsm.x < aDSMSz.x && aP1_dsm.y < aDSMSz.y){
                     nVal = aTImMasq.get(aP1_dsm);
+                    aCorrel = aTImCorrel.get(aP1_dsm);
                     if(nVal == 0)
                         nMasked++;
+                    else if(aCorrel < nCorTh)
+                        nLowCor++;
                 }
                 else{
                     nOutOfBorder++;
@@ -146,7 +156,16 @@ void GeoreferencedDepthMap(std::string aImg1, std::string aDir, std::string aDSM
                 Pt3dr aPTer1 = aCamL->ImEtZ2Terrain(Pt2dr(aP1_img.x, aP1_img.y), prof_d);
                 //Pt3dr aPTer2 = aCamL->ImEtProf2Terrain(Pt2dr(aP1_img.x, aP1_img.y), prof_d);
 
-                double aCorrel = aTImCorrel.get(aP1_dsm);
+                //double aCorrel = aTImCorrel.get(aP1_dsm);
+                if(aCorrel < nCorTh){
+                    z_me_outlier += aPTer1.z;
+                    continue;
+                }
+
+                if(aPTer1.z > aZMax)
+                    aZMax = aPTer1.z;
+                if(aPTer1.z < aZMin)
+                    aZMin = aPTer1.z;
 
                 if(aCorrel > aCorrelMax)
                     aCorrelMax = aCorrel;
@@ -160,6 +179,8 @@ void GeoreferencedDepthMap(std::string aImg1, std::string aDir, std::string aDSM
                 fprintf(fpOutCorrel, "%lf\n", aCorrel);
                 fprintf(fpOut3DPts, "%lf %lf %lf\n", aPTer1.x, aPTer1.y, aPTer1.z);
 
+                z_me += aPTer1.z;
+
                 if(bPrint == true){
                     //if(i == 385 && j == 475)
                     printf("pt2d_img: [%d, %d], pt2d_dsm: [%d, %d], prof_d: %.2lf, Coorel: %.2lf, pt3d: [%.2lf, %.2lf, %.2lf]\n", aP1_img.x, aP1_img.y, aP1_dsm.x, aP1_dsm.y, prof_d, aCorrel, aPTer1.x, aPTer1.y, aPTer1.z);
@@ -172,10 +193,12 @@ void GeoreferencedDepthMap(std::string aImg1, std::string aDir, std::string aDSM
             //    fprintf(fpOutIdx, "%d\n", -1);  //-1 means the point is masked out
         }
     }
-    cout<<"aCorrelMin: "<<aCorrelMin<<", aCorrelMax: "<<aCorrelMax<<endl;
-    printf("Valid pts number: %d, (%.2lf percent)\n", nIdx, nIdx*100.0/ImgSzL.x/ImgSzL.y);
+    cout<<"aCorrelMin: "<<aCorrelMin<<", aCorrelMax: "<<aCorrelMax<<" | aZMin: "<<aZMin<<", aZMax: "<<aZMax<<endl;
     printf("OutOfBorder pts number: %d, (%.2lf percent)\n", nOutOfBorder, nOutOfBorder*100.0/ImgSzL.x/ImgSzL.y);
     printf("nMasked pts number: %d, (%.2lf percent)\n", nMasked, nMasked*100.0/ImgSzL.x/ImgSzL.y);
+    printf("nLowCor pts number in no masked area: %d, (%.2lf percent); z_mean: %.2lf\n", nLowCor, nLowCor*100.0/ImgSzL.x/ImgSzL.y, z_me_outlier/(nLowCor+1e-5));
+    printf("Valid pts number: %d, (%.2lf percent); z_mean: %.2lf\n", nIdx, nIdx*100.0/ImgSzL.x/ImgSzL.y, z_me/(nIdx+1e-5));
+    //cout<<z_me_outlier<<" "<<z_me<<endl;
     //fclose(fpOutIdx);
     fclose(fpOut2DPts);
     fclose(fpOut3DPts);

@@ -25,7 +25,7 @@ public:
     bool mIsFree;
     cPtxd<tREAL8, 3> mSigmas;
     std::optional<cPtxd<tREAL8, 2> > mVertDefl;
-    std::optional<cPtxd<tREAL8, 3> > mFinalCoord;
+    std::optional<cPtxd<tREAL8, 3> > mFinalCoord; // just for output
 };
 void AddData(const cAuxAr2007 & anAux, cTopoPointData & aObsSet);
 
@@ -43,6 +43,7 @@ public:
     std::vector<std::string> mPtsNames;
     std::vector<tREAL8> mMeasures;
     std::vector<tREAL8> mSigmas;
+    std::optional<std::vector<tREAL8>> mLastResiduals; // just for output
 };
 
 void AddData(const cAuxAr2007 & anAux, cTopoObsData & aObsSet);

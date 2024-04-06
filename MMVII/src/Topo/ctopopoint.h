@@ -25,7 +25,7 @@ public:
     ~cTopoPoint();
     void AddData(const  cAuxAr2007 & anAuxInit);
 
-    void findOrMakeUK(cSetMesImGCP *aMesGCP, std::vector<cPt3dr_UK*> * aGCP_UK, cPhotogrammetricProject *aPhProj, const cPt3dr &aCoordIfPureTopo); //< all params can be null
+    void findOrMakeUK(const std::vector<cBA_GCP *> &vGCP, cPhotogrammetricProject *aPhProj, const cPt3dr &aCoordIfPureTopo); //< all params can be null
     cPt3dr* getPt() const;
     cObjWithUnkowns<tREAL8>* getUK() const;
     bool isReady() const { return mUK!=nullptr; } //< ready after findOrMakeUK. Can't use in equations if not ready

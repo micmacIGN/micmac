@@ -27,15 +27,15 @@ jobs:
     - name: Remove previous MMVII documentation release
       env:
          GH_TOKEN: ${{ github.token }}
+      continue-on-error: true
       run: gh release delete MMVII_Documentation -y --cleanup-tag
 
     - name: Upload MMVII documentaion
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
-          draft: false
-          prerelease: true
           name: 'MMVII Documentation - Latest'
           tag_name: MMVII_Documentation
+          make_latest: false
           token: ${{ secrets.GITHUB_TOKEN }}
           files: MMVII/Doc/Doc2007_a4.pdf
 
@@ -130,14 +130,14 @@ jobs:
     - name: Remove previous Windows MMVII build release
       env:
          GH_TOKEN: ${{ github.token }}
+      continue-on-error: true
       run: gh release delete Windows_MMVII_build -y --cleanup-tag
 
     - name: Upload binaries to release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
-        draft: false
-        prerelease: true
         name: 'Windows MMVII build - Latest'
         tag_name: Windows_MMVII_build
+        make_latest: false
         token: ${{ secrets.GITHUB_TOKEN }}
         files: mmvii_windows.zip

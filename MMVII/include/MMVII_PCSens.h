@@ -250,6 +250,9 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 	     dont see what can be done ... */
 	    tPtOut Undist(const tPtOut &) const;
 
+            /** Inverse function of Undist ... */
+	    tPtOut Redist(const tPtOut &) const;
+
 
 
     // ==================   Accessors & Modifiers ===================

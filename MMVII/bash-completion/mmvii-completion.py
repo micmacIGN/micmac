@@ -198,7 +198,7 @@ def printSpecHelp(all_specs, spec, value) -> None:
             extensions += ['.xml','.json']
         printFiles(value,extensions)
         return
-    file_types = ('FDP','I','Out','OptEx')
+    file_types = ('FDP','In','Out','OptEx')
     if len(set(semantic).intersection(file_types)):
         printFiles(value)
         return

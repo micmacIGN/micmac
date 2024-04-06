@@ -146,15 +146,19 @@ template <class Type,const int Dim> class cPtxd
 
         inline Type & x()             {static_assert(Dim>=1,"bad dim in cPtxd initializer");return mCoords[0];}
         inline const Type & x() const {static_assert(Dim>=1,"bad dim in cPtxd initializer");return mCoords[0];}
+        inline tBigNum  BigX2() const {return Square(tBigNum(x()));}
 
         inline Type & y()             {static_assert(Dim>=2,"bad dim in cPtxd initializer");return mCoords[1];}
         inline const Type & y() const {static_assert(Dim>=2,"bad dim in cPtxd initializer");return mCoords[1];}
+        inline tBigNum  BigY2() const {return Square(tBigNum(y()));}
 
         inline Type & z()             {static_assert(Dim>=3,"bad dim in cPtxd initializer");return mCoords[2];}
         inline const Type & z() const {static_assert(Dim>=3,"bad dim in cPtxd initializer");return mCoords[2];}
+        inline tBigNum  BigZ2() const {return Square(tBigNum(z()));}
 
         inline Type & t()             {static_assert(Dim>=4,"bad dim in cPtxd initializer");return mCoords[3];}
         inline const Type & t() const {static_assert(Dim>=4,"bad dim in cPtxd initializer");return mCoords[3];}
+        inline tBigNum  BigT2() const {return Square(tBigNum(t()));}
 
         cDenseVect<Type> ToVect() const; ///< conversion
         std::vector<Type> ToStdVector() const; ///< conversion
@@ -395,10 +399,22 @@ template <class T> inline T NormInf(const cPtxd<T,2> & aP) {return std::max(std:
 // template <class T> inline T SqN2(const cPtxd<T,1> & aP) {return Square(aP.x());}
 */
    /// Currently, the L2 norm is used for comparaison, no need to extract square root
-template <class T> inline typename tNumTrait<T>::tBig SqN2(const cPtxd<T,1> & aP) {return Square(aP.x());}
-template <class T> inline typename tNumTrait<T>::tBig SqN2(const cPtxd<T,2> & aP) {return Square(aP.x())+Square(aP.y());}
-template <class T> inline typename tNumTrait<T>::tBig SqN2(const cPtxd<T,3> & aP) {return Square(aP.x())+Square(aP.y())+Square(aP.z());}
-template <class T> inline typename tNumTrait<T>::tBig SqN2(const cPtxd<T,4> & aP) {return Square(aP.x())+Square(aP.y())+Square(aP.z()) + Square(aP.t()) ;}
+template <class T> inline typename tNumTrait<T>::tBig SqN2(const cPtxd<T,1> & aP) 
+{
+	return aP.BigX2();
+}
+template <class T> inline typename tNumTrait<T>::tBig SqN2(const cPtxd<T,2> & aP) 
+{
+	return aP.BigX2() + aP.BigY2();
+}
+template <class T> inline typename tNumTrait<T>::tBig SqN2(const cPtxd<T,3> & aP) 
+{
+	return aP.BigX2() + aP.BigY2() + aP.BigZ2();
+}
+template <class T> inline typename tNumTrait<T>::tBig SqN2(const cPtxd<T,4> & aP) 
+{
+	return aP.BigX2() + aP.BigY2() + aP.BigZ2() + aP.BigT2() ;
+}
 /// Sort vector by norm, typically dont need to compute square root
 template <class Type,const int Dim> bool CmpN2(const cPtxd<Type,Dim> &aP1,const  cPtxd<Type,Dim> & aP2) 
 {
