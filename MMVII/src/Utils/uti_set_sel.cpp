@@ -450,7 +450,7 @@ cPatternTransfo::cPatternTransfo(const std::vector<std::string> & aVec) :
      cPatternTransfo 
      (
           GetDef(aVec,0,std::string(".*")),
-          GetDef(aVec,1,std::string("$0"))
+          GetDef(aVec,1,std::string("$&"))
      )
 {
 	// JOE

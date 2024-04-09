@@ -239,7 +239,7 @@ cCollecSpecArg2007 & cAppli_EditSet::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       anArgOpt
          << AOpt2007(mShow,"Show","Show detail of set before/after, 0->none, (1) modif, (2) all",{{eTA2007::HDV}})
          << AOpt2007(mNameXmlOut,"Out","Destination, def=Input, no save for " + MMVII_NONE,{})
-         << AOpt2007(mChgName,"ChgN","Change name [Pat,Name], for ex \"[(.*),IMU_\\$0]\"  add prefix \"IMU_\" ",{{eTA2007::ISizeV,"[2,2]"}})
+         << AOpt2007(mChgName,"ChgN","Change name [Pat,Name], for ex \"[(.*),IMU_\\$&]\"  add prefix \"IMU_\" ",{{eTA2007::ISizeV,"[2,2]"}})
 	 << mPhProj.DPMulTieP().ArgDirInOpt("TiePF","TieP for filtering on number")
          << AOpt2007(mNbMinTieP,"NbMinTieP","Number min of tie points, if TiePF",{{eTA2007::HDV}})
          << AOpt2007(mPatFilter,"PatF","Pattern to filter on name")

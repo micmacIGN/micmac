@@ -8,7 +8,7 @@ set -e
 #
 # To filter the set of tie points :
 #
-#   MMVII ImportTiePMul all_liaisons.mes NIXY Vexcell NumL0=1 'PatIm=[.*,$0.tif]' NumByConseq=1 ImFilter=ImAerien.xml
+#   MMVII ImportTiePMul all_liaisons.mes NIXY Vexcell NumL0=1 'PatIm=[.*,$&.tif]' NumByConseq=1 ImFilter=ImAerien.xml
 #    
 #
 
@@ -27,17 +27,17 @@ MMVII  EditCalcMTDI  Std Focalmm ImTest=21FD244720x00015_00614.tif Modif=[21FD24
 
 # Import Calibration & Orientations
 MMVII OriCreateCalib ImAerien.xml  CalibInit Degree=[3,1,1]
-MMVII  ImportOri  ExternalData/trajectograhie.opk   NXYZWPK  CalibInit  InitL93Up   NumL0=5 ChgN=[".*","\$0.tif"]   "AngU=degree" "KIsUp=true" FilterImIn=ImAerien.xml SysCo=Lambert93
+MMVII  ImportOri  ExternalData/trajectograhie.opk   NXYZWPK  CalibInit  InitL93Up   NumL0=5 ChgN=[".*","\$&.tif"]   "AngU=degree" "KIsUp=true" FilterImIn=ImAerien.xml SysCo=Lambert93
 
 # Import Tie Poins
-MMVII ImportTiePMul ExternalData/Filtered_all_liaisons.mes NIXY Vexcell NumL0=0 'PatIm=[.*,$0.tif]' NumByConseq=1
+MMVII ImportTiePMul ExternalData/Filtered_all_liaisons.mes NIXY Vexcell NumL0=0 'PatIm=[.*,$&.tif]' NumByConseq=1
 # Quick test on bundle adj to see if orient are likely to be correctly imported
 MMVII   OriBundleAdj ImAerien.xml InitL93Up Test TPDir=Vexcell TiePWeight=[1,1]  PatFzCenters=.*
 
 
 # Import GCP
 MMVII ImportGCP  ExternalData/Filtered_Terrain.APP 'NIXYZ'  AerRTL  ChSys=[Lambert93,RTL]
-MMVII ImportMesImGCP  ExternalData/Filtered_Terrain.MES NIXY AerRTL  'PatIm=[.*,$0.tif]' 
+MMVII ImportMesImGCP  ExternalData/Filtered_Terrain.MES NIXY AerRTL  'PatIm=[.*,$&.tif]' 
 MMVII OriChSysCo ImAerien.xml RTL  InitL93Up RTLD0
 
 

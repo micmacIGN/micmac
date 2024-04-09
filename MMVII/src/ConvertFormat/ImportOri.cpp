@@ -90,8 +90,8 @@ cCollecSpecArg2007 & cAppli_ImportOri::ArgOpt(cCollecSpecArg2007 & anArgObl)
        << AOpt2007(mAngleUnit,"AngU","Unity for angles",{{eTA2007::HDV},{AC_ListVal<eTyUnitAngle>()}})
        << AOpt2007(mRepIJK,"Rep","Repair coded (relative  to MMVII convention)  ",{{eTA2007::HDV}})
        << AOpt2007(mRepIJDir,"KIsUp","Corespond to repair \"i-j-k\" ",{{eTA2007::HDV}})
-       << AOpt2007(mChgName,"ChgN","Change name [Pat,Name], for ex \"[(.*),\\$0.tif]\"  add postfix \"tif\" ",{{eTA2007::ISizeV,"[2,2]"}})
-       << AOpt2007(mChgName2,"ChgN2","Change name [Pat,Name], for ex \"[(.*),\\$0.IMU]\"  add postfix \"IMU\" ",{{eTA2007::ISizeV,"[2,2]"}})
+       << AOpt2007(mChgName,"ChgN","Change name [Pat,Name], for ex \"[(.*),\\$&.tif]\"  add postfix \"tif\" ",{{eTA2007::ISizeV,"[2,2]"}})
+       << AOpt2007(mChgName2,"ChgN2","Change name [Pat,Name], for ex \"[(.*),\\$&.IMU]\"  add postfix \"IMU\" ",{{eTA2007::ISizeV,"[2,2]"}})
        << AOpt2007(mNameDicoName,"DicName","Dictionnary for changing names of images ")
        << AOpt2007(mFileSaveIm,"FileSaveIm","File for saving all names of images ")
        << mPhProj.DPMulTieP().ArgDirInOpt("TiePF","TieP for filtering on number")
@@ -105,7 +105,7 @@ std::vector<std::string>  cAppli_ImportOri::Samples() const
 {
    return 
    {
-        "MMVII ImportOri trajectographie_tif.opk NSSXYZWPKS Calib InitUP AngU=degree KIsUp=true ChgN=[\".*\",\"Traj_\\$0\"]",
+        "MMVII ImportOri trajectographie_tif.opk NSSXYZWPKS Calib InitUP AngU=degree KIsUp=true ChgN=[\".*\",\"Traj_\\$&\"]",
         "MMVII ImportOri trajectographie_tif.opk NSSXYZWPKS Calib001 InitUP AngU=degree KIsUp=true DicName=DicoVol.xml"
    };
 }

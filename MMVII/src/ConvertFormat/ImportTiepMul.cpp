@@ -238,7 +238,7 @@ std::vector<std::string>  cAppli_ImportTiePMul::Samples() const
    if (mModeTieP)
       return 
       {
-          "MMVII ImportTiePMul External-Data/Liaisons.MES NIXY Vexcell NumL0=1 PatIm=[\".*\",\"\\$0.tif\"] PatPt=[\"(MES_)(.*)\",\"\\$2\"]"
+          "MMVII ImportTiePMul External-Data/Liaisons.MES NIXY Vexcell NumL0=1 PatIm=[\".*\",\"\\$&.tif\"] PatPt=[\"(MES_)(.*)\",\"\\$2\"]"
       };
 
     return {};
