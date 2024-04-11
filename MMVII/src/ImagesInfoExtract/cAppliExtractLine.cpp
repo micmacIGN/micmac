@@ -60,6 +60,8 @@ class cAppliExtractLine : public cMMVII_Appli
 	bool                     mWithGT;  ///< Is there a ground truth of "handcrafted" segment
 	bool                     mGTEmpty; ///<  Does the GT "says" that here is no valid segment
 	std::vector<cPt2dr>      mVPtsGT;
+	std::vector<tSeg2dr>     mVSegsGT;
+	std::vector<cPt2dr>      mVHoughGT;
 };
 
 
@@ -157,6 +159,12 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
           mGTEmpty = false;
           mVPtsGT.push_back(Undist(aSetMes.MeasuresOfName("Line1").mPt));
           mVPtsGT.push_back(Undist(aSetMes.MeasuresOfName("Line2").mPt));
+
+	  for (bool IsDir : {false,true})
+	  {
+	      tSeg2dr aSeg(mVPtsGT.at(IsDir?0:1), mVPtsGT.at(IsDir?1:0));
+              mVSegsGT.push_back(aSeg);
+	  }
       }
    }
 
@@ -171,6 +179,29 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
     mExtrL->SetDericheGradAndMasq(2.0,10.0,2,mShow); // aAlphaDerich,aRayMaxLoc,aBorder
     // Compute Hough-Transform
     mExtrL->SetHough(cPt2dr(aMulTeta,1.0),mHoughSeuilAng,mCalib,mAffineMax,mShow);
+
+
+    if (!mVSegsGT.empty())
+    {
+        for (const auto & aSegInit : mVSegsGT)
+	{
+             cSegment2DCompiled<tREAL8> aSeg0(aSegInit);
+             cPt2dr aPtH0 = mExtrL->Hough().Line2Pt(aSeg0);
+	     mVHoughGT.push_back(aPtH0);
+             cHoughPS * aSH = mExtrL->Hough().PtToLine(TP3z0(aPtH0));
+	     cSegment2DCompiled<tREAL8> aSeg1 = aSH->Seg();
+
+	     //StdOut()  << " Seg=" <<  aSeg0.Tgt() << aSeg1.Tgt()  <<  Norm2(aSeg0.Tgt() - aSeg1.Tgt())  << "\n";
+	     //StdOut()  << " DDD=" <<  aSeg1.Dist(aSeg0.P1()) << " " << aSeg1.Dist(aSeg0.P2()) << "\n";
+
+	     MMVII_INTERNAL_ASSERT_bench(aSeg1.Dist(aSeg0.P1())<1e-5,"Hough check seg");
+	     MMVII_INTERNAL_ASSERT_bench(aSeg1.Dist(aSeg0.P2())<1e-5,"Hough check seg");
+             MMVII_INTERNAL_ASSERT_bench(Norm2(aSeg0.Tgt() - aSeg1.Tgt()) <1e-8,"Hough check seg");
+	     delete aSH;
+
+	     StdOut() << "HOUGH-GT= " << aPtH0 << "\n";
+	}
+    }
 
     // Extract Local Maxima in hough space
     std::vector<cPt3dr> aVMaxLoc = mExtrL->Hough().ExtractLocalMax(10,5.0,10.0,0.1);

@@ -123,6 +123,7 @@ class cHoughTransform
 
 	 tREAL8  GetValueBlob(cPt2di aP,int aMaxNeigh)  const;
     private :
+	 void ExtendMoreTeta() const;
 
          // inline tREAL8      R2Teta(tREAL8 aIndTeta) const {return aIndTeta  *mFactI2T;}
 	 
@@ -133,6 +134,7 @@ class cHoughTransform
          tREAL8             mSigmTeta;    ///< incertitude on teta
 	 cPerspCamIntrCalib* mCalib;      ///< Potential calibration for distorsion
          int                mNbTeta;      ///< Number of Teta for hough-accum
+	 int                mMoreTeta;     ///< a bit more teta to handle topol struct
          tREAL8             mFactI2T ;    ///< Ratio Teta-Radian / Teta-Index
          int                mNbRho;       ///< Number of Rho for hough-accum
 

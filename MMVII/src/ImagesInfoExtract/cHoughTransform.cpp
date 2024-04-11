@@ -161,13 +161,14 @@ cHoughTransform::cHoughTransform
     mSigmTeta  (aSigmTeta),
     mCalib     (aCalib),
     mNbTeta    (round_up(2*M_PI*mMulTeta * mRhoMax)),
+    mMoreTeta  (5),
     mFactI2T   ((2.0*M_PI)/mNbTeta),
     mNbRho     (2+round_up(2*mMulRho * mRhoMax)),
     mTabSin    (mNbTeta),
     mDTabSin   (mTabSin.DIm()),
     mTabCos    (mNbTeta),
     mDTabCos   (mTabCos.DIm()),
-    mAccum     (cPt2di(mNbTeta,mNbRho),nullptr,eModeInitImage::eMIA_Null),
+    mAccum     (cPt2di(mNbTeta+2*mMoreTeta,mNbRho),nullptr,eModeInitImage::eMIA_Null),
     mDAccum    (mAccum.DIm())
 {
 
@@ -200,13 +201,18 @@ cHoughPS* cHoughTransform::PtToLine(const cPt3dr & aPt) const
 
    return new cHoughPS(this,cPt2dr(aTeta,aRho),aPt.z(),aP0-aTgt,aP0+aTgt);
 }
-/*
-cPt2dr cHoughTransform::Line2Pt(const  tSeg2dr &) const
+cPt2dr cHoughTransform::Line2Pt(const  tSeg2dr &aSeg) const
 {
+   // Grad = (C,S) 
+   // T (-S,C)=  (C,S) * (0,-1) =  Grad * (-J)
+   //  Grad =  T * J
 
-   //  cPt2dr  aTgt(-sin(aTeta),cos(aTeta));
+   cPt2dr aGrad = VUnit(aSeg.V12() * cPt2dr(0,-1));
+   tREAL8 aTeta = Teta(aGrad);
+   tREAL8 aRho = Scal(aGrad,aSeg.PMil() - mMiddle);
+
+   return cPt2dr(Teta2RInd(aTeta),Rho2RInd(aRho));
 }
-*/
 
 
 void  cHoughTransform::AccumulatePtAndDir(const cPt2dr & aPt,tREAL8 aTetaC,tREAL8 aWeight)
@@ -276,9 +282,22 @@ tREAL8  cHoughTransform::GetValueBlob(cPt2di aPt,int aMaxNeigh) const
     return aRes;
 }
 
+void cHoughTransform::ExtendMoreTeta() const
+{
+    cDataIm2D<tREAL4>&  aNCAcc = const_cast<cDataIm2D<tREAL4>& > (mDAccum);
+
+    for (int  aKTeta=0 ; aKTeta< 2* mMoreTeta ; aKTeta++)
+    {
+        for (int  aKRho=0 ; aKRho< mNbRho ; aKRho++)
+		aNCAcc.SetV(cPt2di(aKTeta+mNbTeta,aKRho),mDAccum.GetV(cPt2di(aKTeta,aKRho)));
+    }
+}
+
+
 #if (1)
 std::vector<cPt3dr>  cHoughTransform::ExtractLocalMax(size_t aNbMax,tREAL8 aDist,tREAL8 aThrAvg,tREAL8 aThrMax) const
 {
+    ExtendMoreTeta();
     std::vector<cPt2di>  aVNeigh = SortedVectOfRadius(0.5,aDist,false);
 
     // [1]  Compute average , max and  threshold
@@ -298,14 +317,18 @@ std::vector<cPt3dr>  cHoughTransform::ExtractLocalMax(size_t aNbMax,tREAL8 aDist
 
 
     std::vector<cPt2di> aVPMaxLoc;
-    int aY0 = 1+round_up(aDist);
-    int aY1 =  mNbRho - aY0;
-    for (const auto & aPix : mDAccum)
+    // int aY0 = 1+round_up(aDist);
+    // int aY1 =  mNbRho - aY0;
+
+    // We parse only interoir to avoid Out in Rho and duplication in teta
+    cRect2 aRecInt(mDAccum.Dilate (-mMoreTeta));
+
+    for (const auto & aPix : aRecInt)
     {
         const tREAL4 & aVPix = mDAccum.GetV(aPix);
         if (      (aVPix>aThrHold) 
-               && (aPix.y() > aY0) && (aVPix >=  mDAccum.GetV(aPix-cPt2di(0,1)))
-               && (aPix.y() < aY1) && (aVPix >   mDAccum.GetV(aPix+cPt2di(0,1)))
+               &&  (aVPix >=  mDAccum.GetV(aPix-cPt2di(0,1)))
+               &&  (aVPix >   mDAccum.GetV(aPix+cPt2di(0,1)))
 	   )
         {
             bool IsMaxLoc=true;
@@ -314,6 +337,7 @@ std::vector<cPt3dr>  cHoughTransform::ExtractLocalMax(size_t aNbMax,tREAL8 aDist
                  const cPt2di & aNeigh = aVNeigh.at(aKNeigh);
 		 int aDX = aNeigh.x() ;
 		 int aDY = aNeigh.y() ;
+		 // use %, because may be out if Dist>mMoreTeta ...
 		 const tREAL8 & aVNeigh =  mDAccum.GetV(cPt2di((aPix.x() + mNbTeta + aDX) % mNbTeta,aPix.y() + aDY));
 		 if (aVNeigh>aVPix)
 		 {
@@ -338,7 +362,12 @@ std::vector<cPt3dr>  cHoughTransform::ExtractLocalMax(size_t aNbMax,tREAL8 aDist
     {
          cPt2dr aPAff = aAffin.OneIter(ToR(aPt));
 	 if ( mDAccum.InsideBL(aPAff))
-            aRes.push_back(cPt3dr(aPAff.x(),aPAff.y(),GetValueBlob(aPt,7)));
+	 {
+            tREAL8 aTeta = aPAff.x();
+	    if (aTeta>mNbTeta) 
+               aTeta -= mNbTeta;
+            aRes.push_back(cPt3dr(aTeta,aPAff.y(),GetValueBlob(aPt,7)));
+	 }
     }
 
     // [5] Sort with highest value first, then select NbMax
