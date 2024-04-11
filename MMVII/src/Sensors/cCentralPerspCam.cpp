@@ -862,6 +862,33 @@ cPerspCamIntrCalib * cPerspCamIntrCalib::RandomCalib(eProjPC aTypeProj,int aKDeg
        return aCam;
 }
 
+tSeg2dr  cPerspCamIntrCalib::ExtenSegUndistIncluded
+         (
+                          const tSeg2dr & aSegInit,
+                          tREAL8 aStepInitRel,
+                          tREAL8 aStepEnd,
+                          tREAL8 aRetract
+         ) const
+{
+      std::vector<cPt2dr> aVPts;
+      for (tREAL8 aSign : {-1.0,1.0})
+      {
+          cPt2dr aPt = aSegInit.PMil();
+          cPt2dr aTgt = VUnit(aSegInit.V12()) * aSign;
+	  tREAL8 aStep= aStepInitRel * Norm2(SzPix());
+	  while (aStep >= aStepEnd)
+	  {
+	      while (DegreeVisibilityOnImFrame(Redist(aPt))>=0)
+	           aPt += aTgt* aStep;
+	      aPt += aTgt* (-aStep);
+	      aStep /= 2.0;
+	  }
+	  aPt += aPt * (-aRetract);
+	  aVPts.push_back(aPt);
+      }
+      return tSeg2dr(aVPts.at(0),aVPts.at(1));
+}
+
 
 
 void BenchCentralePerspective(cParamExeBench & aParam,eProjPC aTypeProj)

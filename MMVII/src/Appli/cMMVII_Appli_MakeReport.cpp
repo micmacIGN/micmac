@@ -142,6 +142,7 @@ void  cMMVII_Appli::DoMergeReport()
              cMMVII_Ofs aFileGlob(anIt.second, eFileModeOut::AppendText);
              const std::string & anId = anIt.first;
 
+	     int aNbLines = 0;
 	     if (mRMSWasUsed)
 	     {
 	        for (const auto & aNameIm : VectMainSet(0))
@@ -153,13 +154,25 @@ void  cMMVII_Appli::DoMergeReport()
 	            while (std::getline(aIn.Ifs(), aLine))
 	            {
 	                 aFileGlob.Ofs() << aLine<< "\n";
+			 aNbLines++;
 	            }
 	         }
 	     }
              RemoveRecurs(DirSubPReport(anId),false,false);
+	     OnCloseReport(aNbLines,anIt.first,anIt.second);
 	}
      }
 }
 
 
+// By default nothing to do
+void  cMMVII_Appli::OnCloseReport(int aNbLine,const std::string & anIdent,const std::string & aNameFile) const
+{
+}
+
+
 };
+
+
+
+

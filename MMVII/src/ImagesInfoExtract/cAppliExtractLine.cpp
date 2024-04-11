@@ -6,45 +6,6 @@
 namespace MMVII
 {
 
-class cExtractOneLineIm
-{
-     public :
-          cExtractOneLineIm();
-
-          tSeg2dr mSeg;
-          tREAL8  mAng;
-          tREAL8  mWidth;
-          tREAL8  mCumul;
-};
-
-class cExtractLinesIm
-{
-     public :
-         std::string                      mDirCalib;
-         std::vector<cExtractOneLineIm>   mLines;
-};
-
-
-cExtractOneLineIm::cExtractOneLineIm() :
-    mSeg (cPt2dr(0,0),cPt2dr(0,0))
-{
-}
-
-void AddData(const cAuxAr2007 & anAux,cExtractOneLineIm & anEx)
-{
-      AddData(cAuxAr2007("P1",anAux),anEx.mSeg.P1());
-      AddData(cAuxAr2007("P2",anAux),anEx.mSeg.P2());
-      AddData(cAuxAr2007("ParalAng",anAux),anEx.mAng);
-      AddData(cAuxAr2007("Width",anAux),anEx.mWidth);
-      AddData(cAuxAr2007("Cumul",anAux),anEx.mCumul);
-}
-
-void AddData(const cAuxAr2007 & anAux,cExtractLinesIm & anEx)
-{
-      AddData(cAuxAr2007("Calib",anAux),anEx.mDirCalib);
-      AddData(cAuxAr2007("Lines",anAux),anEx.mLines);
-}
-
 /* =============================================== */
 /*                                                 */
 /*                 cAppliExtractLine               */
@@ -80,6 +41,7 @@ class cAppliExtractLine : public cMMVII_Appli
         std::string              mPatImage;
 	bool                     mLineIsWhite;
         bool                     mShowSteps;
+        // bool                     mShowImages;
 	std::vector<tREAL8>      mVParams;
         cPerspCamIntrCalib *     mCalib;
 	bool                     mAffineMax;
@@ -93,6 +55,7 @@ class cAppliExtractLine : public cMMVII_Appli
 	std::string              mNameReportByIm;
 	tREAL8                   mRelThrsCumulLow;
 	tREAL8                   mRelThrsCumulHigh;
+	tREAL8                   mHoughSeuilAng;
 
 	bool                     mWithGT;  ///< Is there a ground truth of "handcrafted" segment
 	bool                     mGTEmpty; ///<  Does the GT "says" that here is no valid segment
@@ -113,8 +76,9 @@ cAppliExtractLine::cAppliExtractLine(const std::vector<std::string> & aVArgs,con
     mZoomImL          (1),
     mNameReportByLine ("LineMulExtract"),
     mNameReportByIm   ("LineByIm"),
-    mRelThrsCumulLow    (0.15),
+    mRelThrsCumulLow    (0.10),
     mRelThrsCumulHigh   (0.30),
+    mHoughSeuilAng      (0.20),
     mWithGT             (false),
     mGTEmpty            (true)
 {
@@ -144,6 +108,7 @@ cCollecSpecArg2007 & cAppliExtractLine::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 	       << AOpt2007(mZoomImL,"ZoomImL","Zoom for images of line",{eTA2007::HDV})
 	       << AOpt2007(mRelThrsCumulLow,"ThrCumLow","Low Thresold relative for cumul in histo",{eTA2007::HDV})
 	       << AOpt2007(mRelThrsCumulHigh,"ThrCumHigh","Low Thresold relative for cumul in histo",{eTA2007::HDV})
+	       << AOpt2007(mHoughSeuilAng,"HoughThrAng","Angular threshold for hough acummulator",{eTA2007::HDV})
                << mPhProj.DPPointsMeasures().ArgDirInOpt("","Folder for ground truth measure")
             ;
 }
@@ -176,6 +141,9 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
     mCalib = nullptr;
     if (mPhProj.DPOrient().DirInIsInit())
        mCalib = mPhProj.InternalCalibFromImage(aNameIm);
+    else
+    {
+    }
 
 
    // [2]  Eventually init ground truth  2D-points
@@ -202,10 +170,11 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
     // Compute Gradient and extract max-loc in gradient direction
     mExtrL->SetDericheGradAndMasq(2.0,10.0,2,mShow); // aAlphaDerich,aRayMaxLoc,aBorder
     // Compute Hough-Transform
-    mExtrL->SetHough(cPt2dr(aMulTeta,1.0),0.1,mCalib,mAffineMax,mShow);
+    mExtrL->SetHough(cPt2dr(aMulTeta,1.0),mHoughSeuilAng,mCalib,mAffineMax,mShow);
 
     // Extract Local Maxima in hough space
-    std::vector<cPt3dr> aVMaxLoc = mExtrL->Hough().ExtractLocalMax(10,4.0,10.0,0.1);
+    std::vector<cPt3dr> aVMaxLoc = mExtrL->Hough().ExtractLocalMax(10,5.0,10.0,0.1);
+    StdOut() << "VMAXLoc " << aVMaxLoc.size() << "\n";
 
     //  Select Maxima with Cum > aTrhsCumulLow + labelize the quality of seg
     int aRank=0;
@@ -224,6 +193,7 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
            delete aPS;
 	aRank++;
     }
+    StdOut() << "VPSINIT " << mVPS.size() << "\n";
 
     cHoughPS::SetMatch(mVPS,mLineIsWhite,mVParams.at(0),mVParams.at(1),mVParams.at(2));
 
@@ -292,14 +262,15 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
    
 
     // make a report for each lines
-    cExtractLinesIm  aExAllLines;
+    cLinesAntiParal1Im  aExAllLines;
+    aExAllLines.mNameIm =  aNameIm;
     if (mPhProj.DPOrient().DirInIsInit())
        aExAllLines.mDirCalib = mPhProj.DPOrient().DirIn();
 
     for (cHoughPS * aHS1 : mMatchedVPS)
     {
         cHoughPS *aHS2 = aHS1->Matched();
-        cExtractOneLineIm aEx1L;
+        cOneLineAntiParal aEx1L;
         aEx1L.mAng    = aHS1->DistAnglAntiPar(*aHS2) * mExtrL->Hough().RhoMax() ;
         aEx1L.mWidth  = -( aHS1->DY(*aHS2) + aHS2->DY(*aHS1) ) / 2.0;
         aEx1L.mCumul  = (aHS1->Cumul()+aHS2->Cumul())/2.0;
@@ -308,7 +279,8 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
 
         aExAllLines.mLines.push_back(aEx1L);
     }
-    SaveInFile(aExAllLines,mPhProj.DPPointsMeasures().FullDirOut() + "Segs-"+aNameIm + "."+ GlobTaggedNameDefSerial());
+    mPhProj.SaveLines(aExAllLines);
+    // SaveInFile(aExAllLines,mPhProj.DPPointsMeasures().FullDirOut() + "Segs-"+aNameIm + "."+ GlobTaggedNameDefSerial());
 
     if (mShowSteps)
        MakeVisu(aNameIm);
@@ -374,7 +346,7 @@ void cAppliExtractLine::MakeVisu(const std::string & aNameIm)
     // [4]  Visu of Image +  Lines
     {
          cRGBImage  aVisIm =  cRGBImage::FromFile(aNameIm,mZoomImL); // Initialize with image
-	 const auto & aDIm = aVisIm.ImR().DIm();
+	 // const auto & aDIm = aVisIm.ImR().DIm();
          for (size_t aKH=0 ; aKH<mVPS.size() ; aKH++)
 	 {
              cHoughPS *aHS1 = mVPS[aKH];
@@ -390,7 +362,18 @@ void cAppliExtractLine::MakeVisu(const std::string & aNameIm)
 	     cPt2dr aC = Redist(aSeg.PMil() +VUnit(aSeg.V12()*cPt2dr(0,-1))* aRay);
              aVisIm.DrawCircle(aCoul,aC ,aRay);
 
+             MMVII_INTERNAL_ASSERT_tiny(mCalib!=nullptr,"Calib mandatory for now in line detect");
+
+	     cSegment2DCompiled<tREAL8> aSegC (mCalib->ExtenSegUndistIncluded(aSeg));
+	     for (tREAL8 aC=0 ; aC< aSegC.N2() ; aC+= 1.0)
+	     {
+		 cPt2dr  aQ = Redist(aSegC.FromCoordLoc(cPt2dr(aC,0.0))); ; // eventulay make invert distorsion correcion
+                 aVisIm.SetRGBPoint(aQ,aCoul);  // print point
+             }
+
+
 	     //  write point by point, in two direction
+	     /*
              for (tREAL8 aSign : {-1.0,1.0})
              {
                  cPt2dr aPt = aSeg.PMil();
@@ -403,6 +386,7 @@ void cAppliExtractLine::MakeVisu(const std::string & aNameIm)
 		     aQ = Redist(aPt);  // eventulay make invert distorsion correcion
                  }
              }
+	     */
 	 }
 	 std::string aNameLine = mPhProj.DirVisu() + "Lines_" + aNameTif;
 	 // convert dont handle well big file, so generate jpg only if zoom=1

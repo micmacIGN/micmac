@@ -351,10 +351,19 @@ class cPlane3D
 
          // return 3 point for random plane
          static std::vector<cPt3dr>  RandParam();
-         const cPt3dr& AxeI() const;
-         const cPt3dr& AxeJ() const;
-         const cPt3dr& AxeK() const;
 
+         const cPt3dr& P0() const; ///< Accessor
+         const cPt3dr& AxeI() const; ///< Accessor
+         const cPt3dr& AxeJ() const; ///< Accessor
+         const cPt3dr& AxeK() const; ///< Accessor
+	 
+	 /** Return the intersection of the planes consider  as vector space , used eigen decomposition
+	  * to get the best solutuob if Nb>2, if Sz=1 or 0 and aSzMin is Ok, return a random acceptable solution */
+	 static cPt3dr DirInterPlane(const std::vector<const cPlane3D*>& aVPlanes,int aSzMin=2);
+	 static cPt3dr DirInterPlane(const std::vector<cPlane3D>& aVPlanes,int aSzMin=2);
+
+	 static tSeg3dr InterPlane(const std::vector<const cPlane3D*>& aVPlanes,int aSzMin=2,tREAL8 aWeithStab=1e-10);
+	 static tSeg3dr InterPlane(const std::vector<cPlane3D>& aVPlanes,int aSzMin=2,tREAL8 aWeithStab=1e-10);
      private :
          cPlane3D(const cPt3dr & aP0,const cPt3dr& aAxeI , const cPt3dr& aAxeJ);
          cPt3dr mP0;

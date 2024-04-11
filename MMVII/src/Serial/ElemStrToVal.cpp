@@ -337,6 +337,7 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eNoFocaleEqui35,"NoFocaleEqui35"},
                 {eTyUEr::eNoNumberPixel,"NoNumberPixel"},
                 {eTyUEr::eNoCameraName,"NoCameraName"},
+                {eTyUEr::eMultipleTargetInOneImage,"MultipleTargetInOneImage,"},
                 {eTyUEr::eUnClassedError,"UnClassedError"}
            };
 

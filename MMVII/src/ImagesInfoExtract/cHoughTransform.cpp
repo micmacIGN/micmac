@@ -200,6 +200,13 @@ cHoughPS* cHoughTransform::PtToLine(const cPt3dr & aPt) const
 
    return new cHoughPS(this,cPt2dr(aTeta,aRho),aPt.z(),aP0-aTgt,aP0+aTgt);
 }
+/*
+cPt2dr cHoughTransform::Line2Pt(const  tSeg2dr &) const
+{
+
+   //  cPt2dr  aTgt(-sin(aTeta),cos(aTeta));
+}
+*/
 
 
 void  cHoughTransform::AccumulatePtAndDir(const cPt2dr & aPt,tREAL8 aTetaC,tREAL8 aWeight)
@@ -269,6 +276,82 @@ tREAL8  cHoughTransform::GetValueBlob(cPt2di aPt,int aMaxNeigh) const
     return aRes;
 }
 
+#if (1)
+std::vector<cPt3dr>  cHoughTransform::ExtractLocalMax(size_t aNbMax,tREAL8 aDist,tREAL8 aThrAvg,tREAL8 aThrMax) const
+{
+    std::vector<cPt2di>  aVNeigh = SortedVectOfRadius(0.5,aDist,false);
+
+    // [1]  Compute average , max and  threshold
+    //    [1.A]   : max & avg
+    tREAL8 aAvg = 0;
+    tREAL8 aVMax = 0;
+    for (const auto & aPix : mDAccum)
+    {
+         tREAL8 aVal = mDAccum.GetV(aPix);
+	 aAvg += aVal;
+	 UpdateMax(aVMax,aVal);
+    }
+    aAvg /= mDAccum.NbElem();
+
+    //    [1.B]    Threshlod is the stricter of both
+    tREAL8 aThrHold = std::max(aAvg*aThrAvg,aVMax*aThrMax);
+
+
+    std::vector<cPt2di> aVPMaxLoc;
+    int aY0 = 1+round_up(aDist);
+    int aY1 =  mNbRho - aY0;
+    for (const auto & aPix : mDAccum)
+    {
+        const tREAL4 & aVPix = mDAccum.GetV(aPix);
+        if (      (aVPix>aThrHold) 
+               && (aPix.y() > aY0) && (aVPix >=  mDAccum.GetV(aPix-cPt2di(0,1)))
+               && (aPix.y() < aY1) && (aVPix >   mDAccum.GetV(aPix+cPt2di(0,1)))
+	   )
+        {
+            bool IsMaxLoc=true;
+            for (size_t aKNeigh=0 ; (aKNeigh<aVNeigh.size()) && IsMaxLoc ; aKNeigh++)
+	    {
+                 const cPt2di & aNeigh = aVNeigh.at(aKNeigh);
+		 int aDX = aNeigh.x() ;
+		 int aDY = aNeigh.y() ;
+		 const tREAL8 & aVNeigh =  mDAccum.GetV(cPt2di((aPix.x() + mNbTeta + aDX) % mNbTeta,aPix.y() + aDY));
+		 if (aVNeigh>aVPix)
+		 {
+                     IsMaxLoc = false;
+		 }
+		 else if  (aVNeigh==aVPix)
+		 {
+                      if ((aDX>0) || ((aDX==0) && (aDY>0)))
+                          IsMaxLoc = false;
+		 }
+	    }
+	    if (IsMaxLoc)
+               aVPMaxLoc.push_back(aPix);
+	}
+    }
+    
+    // [4] Refine the point and give a value to the max
+
+    std::vector<cPt3dr> aRes;
+    cAffineExtremum<tREAL4>  aAffin(mDAccum,1.5); // 1.5 => radius , 8-neighboorhood
+    for (const auto aPt : aVPMaxLoc)
+    {
+         cPt2dr aPAff = aAffin.OneIter(ToR(aPt));
+	 if ( mDAccum.InsideBL(aPAff))
+            aRes.push_back(cPt3dr(aPAff.x(),aPAff.y(),GetValueBlob(aPt,7)));
+    }
+
+    // [5] Sort with highest value first, then select NbMax
+    SortOnCriteria(aRes,[](const auto & aP) {return -aP.z();});
+    while (aRes.size() > aNbMax)  
+          aRes.pop_back();
+
+    // StdOut() << "NBMAXLOC " << aRes  << "\n";
+
+    return aRes;
+}
+
+#else
 
 std::vector<cPt3dr>  cHoughTransform::ExtractLocalMax(size_t aNbMax,tREAL8 aDist,tREAL8 aThrAvg,tREAL8 aThrMax) const
 {
@@ -324,5 +407,6 @@ std::vector<cPt3dr>  cHoughTransform::ExtractLocalMax(size_t aNbMax,tREAL8 aDist
 
     return aRes;
 }
+#endif
 
 };

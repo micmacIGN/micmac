@@ -113,6 +113,8 @@ void BenchGlobImage(cParamExeBench & aParam); ///< Global bench on image
 void BenchFilterImage1(cParamExeBench & aParam);
 void BenchFilterLinear(cParamExeBench & aParam);
 void BenchGeom(cParamExeBench & aParam);
+void BenchPlane3D();
+void BenchPlaneInter();
 
 void BenchMapping(cParamExeBench & aParam);
 void BenchInvertMapping(cParamExeBench & aParam);

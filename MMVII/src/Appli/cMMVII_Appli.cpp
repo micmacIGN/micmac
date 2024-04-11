@@ -179,9 +179,15 @@ void cMMVII_Appli::AddObj2DelAtEnd(cObj2DelAtEnd * aPtrO)
      mVectObj2DelAtEnd.insert(aPtrO);
 }
 
+void cMMVII_Appli::ToDoBeforeDestruction()
+{
+   // Merge report call virtual methode :q
+   DoMergeReport();
+}
+
 cMMVII_Appli::~cMMVII_Appli()
 {
-   DoMergeReport();
+   // Maybe part, or all, the remaining can/should be done in ToDoBeforeDestruction ...
    if (mMainAppliInsideP)
    {
         for (auto  aPtrO : mVectObj2DelAtEnd)
@@ -781,8 +787,10 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
                const std::string & aNameInterval = mIntervFilterMS[aNum];
                if (IsInit(&aNameInterval))
                {
+		       // JOE
 		   cPatternTransfo aPat(mTransfoFFI[aNum]);
                    mVMainSets.at(aNum).Filter(Str2Interv<std::string>(aNameInterval),aPat);
+                   // mVMainSets.at(aNum).Filter(Str2Interv<std::string>(aNameInterval));
                }
             }
             // Test non empty

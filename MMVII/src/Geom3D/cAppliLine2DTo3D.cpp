@@ -1,23 +1,18 @@
 #include "MMVII_PCSens.h"
 #include "MMVII_ImageInfoExtract.h"
 #include "MMVII_ExtractLines.h"
+#include "MMVII_Matrix.h"
+
 
 
 namespace MMVII
 {
-
 /* =============================================== */
 /*                                                 */
 /*                 cAppliLine2DTo3D               */
 /*                                                 */
 /* =============================================== */
 
-
-/** 
- * 
- */
-
-#if (0)
 class cAppliLine2DTo3D : public cMMVII_Appli
 {
      public :
@@ -27,16 +22,29 @@ class cAppliLine2DTo3D : public cMMVII_Appli
 	cPt2dr Redist(const cPt2dr &) const;
 	cPt2dr Undist(const cPt2dr &) const;
 
+	void DoOneImage(const std::string & aNameIm);
+	/*
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 	std::vector<std::string>  Samples() const override;
+        virtual ~cAppliLine2DTo3D();
+	*/
 
         cPerspCamIntrCalib *     mCalib;
 
-        virtual ~cAppliLine2DTo3D();
 };
 
+/*
+void DoOneImage(const std::string & aNameIm)
+{
+}
+*/
+
+
+
+
+#if (0)
 
 cAppliLine2DTo3D::cAppliLine2DTo3D(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
     cMMVII_Appli      (aVArgs,aSpec),

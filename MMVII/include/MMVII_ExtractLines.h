@@ -102,8 +102,11 @@ class cHoughTransform
 				   tREAL8 aThrMax  // threshold on Max, select if Accum > Max * Avg
                              ) const;
 
-	 /// max the conversion houg-point ->  euclidian line  + rho teta
+	 /// max the conversion houg-point + value ->  euclidian line  + rho teta
 	 cHoughPS * PtToLine(const cPt3dr &) const;
+
+	 /// make the conversion seg (oriented)  -> hough point 
+	 cPt2dr  Line2Pt(const tSeg2dr &) const;
 
 	 const tREAL8 & RhoMax() const; ///<  Accessor
 	 ///   return the angle teta, of a given  index/position in hough accumulator

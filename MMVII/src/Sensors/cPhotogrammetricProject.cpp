@@ -862,6 +862,30 @@ void cPhotogrammetricProject::SaveAndFilterAttrEll(const cSetMesPtOf1Im &  aSetM
             aVSEEOut.push_back(aSEE);
      SaveInFile(aVSEEOut,cSaveExtrEllipe::NameFile(*this,aSetM,false));
 }
+     // ============================   LINES ==============================================
+
+std::string  cPhotogrammetricProject::NameFileLines(const std::string & aNameIm) const
+{
+    return DPPointsMeasures().FullDirOut() + "SegsAntiParal-"+ aNameIm + "."+ GlobTaggedNameDefSerial();
+}
+
+bool   cPhotogrammetricProject::HasFileLines(const std::string & aNameIm)  const
+{
+    return ExistFile(NameFileLines(aNameIm));
+}
+
+void  cPhotogrammetricProject::SaveLines(const cLinesAntiParal1Im &aLAP1I) const
+{
+    SaveInFile(aLAP1I,NameFileLines(aLAP1I.mNameIm));
+}
+
+cLinesAntiParal1Im  cPhotogrammetricProject::ReadLines(const std::string & aNameIm) const
+{
+    cLinesAntiParal1Im aRes;
+    ReadFromFile(aRes,NameFileLines(aNameIm));
+    return aRes;
+}
+
 
         //  =============  Multiple Tie Points =================
 
@@ -1025,6 +1049,7 @@ std::list<cBlocOfCamera *> cPhotogrammetricProject::ReadBlocCams() const
 
     return aRes;
 }
+
 
         //  =============  Meta Data =================
 

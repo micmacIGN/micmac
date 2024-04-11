@@ -237,6 +237,7 @@ enum class eTyUEr
               eNoFocaleEqui35,
               eNoNumberPixel,
               eNoCameraName,
+              eMultipleTargetInOneImage,
               eUnClassedError,
               eNbVals
            };

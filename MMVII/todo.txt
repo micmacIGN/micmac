@@ -1,3 +1,13 @@
+CERN :
+
+   * detection cibles sur nouvelles acquisitions 
+   * fils :  
+             - recalage image
+             - quali detection image
+             - 3D !!
+
+
+===========================================================
 Documentation/ COmmenta Reengeneerin :
 
 TieP Fomat
@@ -28,8 +38,6 @@ MMVII OriBundleAdj SetFiltered_GCP_OK_Resec.xml Resec_725 BA_725 GCPW=[1,1] Data
 terminate called after throwing an instance of 'std::filesystem::__cxx11::filesystem_error'
   what():  filesystem error: directory iterator cannot open directory: No such file or directory [./MMVII-PhgrProj/PointsMeasure/xx/]
 Abandon (core dumped)
-
-
 
 ================  DONE ================================
 ImortGCP => Pts Mult ;

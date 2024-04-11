@@ -446,6 +446,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         bool ModeHelp() const;              ///< If we are in help mode, don't execute
         bool ModeArgsSpec() const;          ///< If called only to output args specs, don't execute
         virtual ~cMMVII_Appli();            ///< Always virtual Dstrctr for "big" classes
+        void ToDoBeforeDestruction(); ///< Some stuff to do at the end, require virtual method that cannot be called in X::~X()
         bool    IsInit(const void *) const;       ///< indicate for each variable if it was initiazed by argc/argv
         bool    IsInSpecObl(const void *);  ///< indicate for each variable if it was in an arg opt list (used with cPhotogrammetricProject)
         bool    IsInSpecFac(const void *);  ///< indicate for each variable if it was in an arg obl list (used with cPhotogrammetricProject)
@@ -530,6 +531,9 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 	std::string  DirSubPReport(const std::string &anId);
 	std::string  NameTmpReport(const std::string &anId,const std::string &anImg);
         void SetReportSubDir(const std::string &);
+
+	/// Mehod called when the  report is finished, usefull when the report is used to memorize problem
+	virtual void OnCloseReport(int aNbLine,const std::string & anIdent,const std::string & aNameFile) const;
 
 	void  InitReport(const std::string &anId,const std::string & aPost,bool IsMul,const std::vector<std::string> & aHeader={});
 	//  void  AddTopReport(const std::string &anId,const std::string & VecMsg);

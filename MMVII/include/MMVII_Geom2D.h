@@ -86,6 +86,7 @@ template <class Type> class cSegment2DCompiled : public cSegmentCompiled<Type,2>
     public :
        typedef cPtxd<Type,2>   tPt;
        cSegment2DCompiled(const tPt& aP1,const tPt& aP2);
+       cSegment2DCompiled(const cSegment<Type,2>&);
        tPt  ToCoordLoc(const tPt&) const;
        tPt  FromCoordLoc(const tPt&) const;
        Type  DistLine(const tPt&) const; ///< distance between the line and the point

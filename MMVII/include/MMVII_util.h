@@ -47,7 +47,7 @@ class cCarLookUpTable
 	 void InitId(char aC1,char aC2);
 	 void Chg1C(char aC1,char aC2);
 
-
+	 void InitIdGlob();
 
          inline char Val(const int & aV) const
          {
@@ -66,6 +66,7 @@ class cCarLookUpTable
          bool          mInit;        ///< Is it initialize
          bool          mReUsable;    ///< If InitId of Chg1C used -> no longer reusable
 };
+
 
 // Indicate if all "word" of list are in KeyList, use aSpace to separate word
 // Si aMes=="SVP"=> No Error just return false, else aMes is error message

@@ -453,6 +453,7 @@ cPatternTransfo::cPatternTransfo(const std::vector<std::string> & aVec) :
           GetDef(aVec,1,std::string("$0"))
      )
 {
+	// JOE
     if ( (aVec.size()!=0) && (aVec.size() != 2))
        MMVII_UnclasseUsEr("cPatternTransfo bad size");
 }

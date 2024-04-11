@@ -552,7 +552,7 @@ template <class Type> class cResulSymEigenValue
 	  // =>  mEigenVectors * cDenseMatrix<Type>::Diag(mEigenValues) * mEigenVectors.Transpose();
 
 
-        const cDenseVect<Type>   &  EigenValues() const ; ///< Eigen values
+        const cDenseVect<Type>   &  EigenValues() const ; ///< Eigen values, in growing order !!! != cResulSVDDecomp
         const cDenseMatrix<Type> &  EigenVectors()const ; ///< Eigen vector
         void  SetKthEigenValue(int aK,const Type & aVal) ;  ///< Eigen values
         Type  Cond(Type Def=Type(-1)) const ; ///< Conditioning, def value is when all 0, if all0 and Def<0 : Error
@@ -571,7 +571,7 @@ template <class Type> class cResulSVDDecomp
 
         cDenseMatrix<Type>  OriMatr() const; ///< Check the avability to reconstruct original matrix   
 
-        const cDenseVect<Type>   &  SingularValues() const ; ///< Eigen values
+        const cDenseVect<Type>   &  SingularValues() const ; ///< Eigen values, in decreasing order !!! != cResulSymEigenValue
         const cDenseMatrix<Type> &  MatU()const ; ///< Eigen vector
         const cDenseMatrix<Type> &  MatV()const ; ///< Eigen vector
         // void  SetKthEigenValue(int aK,const Type & aVal) ;  ///< Eigen values

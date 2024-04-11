@@ -334,10 +334,10 @@ template <class Type>  void TplBenchDenseMatr(int aSzX,int aSzY)
            MMVII_INTERNAL_ASSERT_bench(aRSEV.EigenVectors().Unitarity() <1e-5,"Bench unitarity EigenValue");
                // Test Eigen value are given in growing order
            const cDenseVect<Type>   & aEVals = aRSEV.EigenValues();
-           //  check decreasing order
+           //  check growing order
            for (int aK=1 ; aK<aNb ; aK++)
            {
-               MMVII_INTERNAL_ASSERT_bench(aEVals(aK-1)<=aEVals(aK),"Bench decreasing order EigenValue");
+               MMVII_INTERNAL_ASSERT_bench(aEVals(aK-1)<=aEVals(aK),"Bench growing order EigenValue");
            }
            cDenseMatrix<Type> aCheckEV =  aRSEV.OriMatr();
            MMVII_INTERNAL_ASSERT_bench(aCheckEV.DIm().L2Dist(aSim.DIm())<1e-5,"Bench unitarity EigenValue");

@@ -63,6 +63,7 @@ class cCircTargExtr : public cBaseTE
 	 bool             mMarked4Test;
 	 bool             mWithCode;
 	 cOneEncoding     mEncode;
+	 int              mCardDetect; // Number of detection , should be 1 ....
 };
 
 
@@ -71,8 +72,9 @@ cCircTargExtr::cCircTargExtr(const cExtractedEllipse & anEE)  :
 	mEllipse     (anEE.mEllipse),
 	// mVBlack       (anEE.mSeed.mBlack),
 	// mVWhite       (anEE.mSeed.mWhite),
-	mMarked4Test (anEE.mSeed.mMarked4Test),
-	mWithCode    (false)
+	mMarked4Test  (anEE.mSeed.mMarked4Test),
+	mWithCode     (false),
+	mCardDetect   (1)    // By default, let be optimistic
 {
 }
 
@@ -631,6 +633,7 @@ class cAppliExtractCircTarget : public cMMVII_Appli,
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
         int ExeOnParsedBox() override;
+	void OnCloseReport(int aNbLine,const std::string & anIdent,const std::string & aNameFile) const override;
  
 
 	void MakeImageLabel();
@@ -662,6 +665,8 @@ class cAppliExtractCircTarget : public cMMVII_Appli,
 	bool                        mDoReportSimul;  // At glob level is true iff one the sub process is true
 	std::string                 mReportSimulDet;
 	std::string                 mReportSimulGlob;
+	std::string                 mReportMutipleDetec;  // Name for report of multiple detection in on target
+
 	double                      mRatioDMML;
         cThresholdCircTarget        mThresh;
 
@@ -728,11 +733,14 @@ void cAppliExtractCircTarget::DoExport()
      std::vector<cSaveExtrEllipe>  mVSavE;
      for (const auto & anEE : mVCTE)
      {
-         std::string aCode = anEE->mWithCode ?  anEE->mEncode.Name() : (MMVII_NONE +"_" + ToStr(aCptUnCoded,3));
-         aSetM.AddMeasure(cMesIm1Pt(anEE->mPt,aCode,1.0));
-         mVSavE.push_back(cSaveExtrEllipe(*anEE,aCode));
+         if (anEE->mCardDetect==1)
+	 {
+             std::string aCode = anEE->mWithCode ?  anEE->mEncode.Name() : (MMVII_NONE +"_" + ToStr(aCptUnCoded,mSpec->NbBits()));
+             aSetM.AddMeasure(cMesIm1Pt(anEE->mPt,aCode,1.0));
+             mVSavE.push_back(cSaveExtrEllipe(*anEE,aCode));
 
-	 if (! anEE->mWithCode) aCptUnCoded++;
+	     if (! anEE->mWithCode) aCptUnCoded++;
+	 }
      }
 
      mPhProj.SaveMeasureIm(aSetM);
@@ -789,7 +797,7 @@ void cAppliExtractCircTarget::MakeImageFinalEllispe()
         {
             aImVisu.DrawEllipse
             (
-               cRGBImage::Green ,  // anEE.mWithCode ? cRGBImage::Blue : cRGBImage::Red,
+               (anEE->mCardDetect==1) ? cRGBImage::Green : cRGBImage::Red  ,  // anEE.mWithCode ? cRGBImage::Blue : cRGBImage::Red,
                anEl.Center(),
                anEl.LGa()*aMul , anEl.LSa()*aMul , anEl.TetaGa()
             );
@@ -988,6 +996,33 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
        }
    }
 
+   if (1)
+   {
+       std::map<std::string,std::list<cCircTargExtr*> >  aMapDetect;
+       for (const auto & aCT : mVCTE)
+       {
+           if (aCT->mWithCode)
+	   {
+               aMapDetect[aCT->mEncode.Name() ] .push_back(aCT);
+	   }
+       }
+
+       for (const auto & [aName,aLPtr] : aMapDetect)
+       {
+           if (aLPtr.size() !=1)
+	   {
+               for (const auto & aPtr : aLPtr)
+	       {
+		   cPt2dr aC = aPtr->mEllipse.Center();
+                   AddOneReportCSV(mReportMutipleDetec,{APBI_NameIm(),aName,ToStr(aLPtr.size()),ToStr(aC.x()),ToStr(aC.y())});
+		   aPtr->mCardDetect = aLPtr.size();
+               }
+	   }
+       }
+       // std::set<
+       // for (const auto &
+   }
+
    if (mUseSimul)
    {
       TestOnSimul();
@@ -1017,6 +1052,16 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
 
 
 
+void cAppliExtractCircTarget::OnCloseReport(int aNbLine,const std::string & anIdent,const std::string & aNameFile) const 
+{
+    if (anIdent==mReportMutipleDetec)
+    {
+        if (aNbLine>4)  // Each target is detected 2 times
+        {
+            MMVII_UsersErrror(eTyUEr::eMultipleTargetInOneImage,"Nb Multiple Target = " + ToStr(aNbLine/2));
+        }
+    }
+}
 
 int  cAppliExtractCircTarget::Exe()
 {
@@ -1028,6 +1073,9 @@ int  cAppliExtractCircTarget::Exe()
        if (starts_with(FileOfPath(anIm),ThePrefixSimulTarget))
 	   mDoReportSimul = true;
    }
+
+   mReportMutipleDetec = "MultipleTarget";
+   InitReport(mReportMutipleDetec,"csv",true,{"Image","Target","Mult","x","y"});
 
    if (mDoReportSimul)
    {
