@@ -993,11 +993,21 @@ std::list<cBlocOfCamera *> cPhotogrammetricProject::ReadBlocCams() const
 
 //  see cMetaDataImages.cpp
 
+static std::string PrefixTripletSet = "TripletSet_";
+
 void cPhotogrammetricProject::SaveTriplets(const cTripletSet &aSet) const
-{
-    std::string aName = mDPOriTriplets.FullDirOut() + aSet.Name() + ".xml";
+{   
+    std::string aName =  mDPOriTriplets.FullDirOut() + PrefixTripletSet + aSet.Name() + ".xml";
     StdOut() << "aName: " << aName << std::endl;
     aSet.ToFile(aName);
+}
+
+cTripletSet * cPhotogrammetricProject::ReadTriplets() const
+{
+   std::vector<std::string> aVNames = GetFilesFromDir(mDPOriTriplets.FullDirIn(),AllocRegex(PrefixTripletSet+".*"));
+
+   return cTripletSet::FromFile(mDPOriTriplets.FullDirIn()+aVNames[0]);
+
 }
 
 }; // MMVII

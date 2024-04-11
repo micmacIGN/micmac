@@ -22,6 +22,10 @@ cView::cView(const tPose aPose,const std::string aName) :
 {
 };
 
+cView::cView() :
+    cView(tPose(),"")
+{}
+
 void cView::AddData(const cAuxAr2007 &anAuxInit)
 {
     cAuxAr2007 anAux("View",anAuxInit);
@@ -41,8 +45,12 @@ void AddData(const  cAuxAr2007 &anAux,cView &aV)
     /*                        cTriplet                            */
     /*                                                            */
     /* ********************************************************** */
-cTriplet::cTriplet()
+cTriplet::cTriplet() :
+    mPoses(std::vector<cView>())
 {
+    mPoses.push_back(cView());
+    mPoses.push_back(cView());
+    mPoses.push_back(cView());
 }
 
 void cTriplet::AddData(const cAuxAr2007 &anAuxInit)
@@ -71,7 +79,7 @@ void AddData(const cAuxAr2007& anAux,cTriplet& aTri)
     /* ********************************************************** */
 
 cTripletSet::cTripletSet() :
-    mName("TripletSet")
+    mName("v0")
 {}
 
 void cTripletSet::PushTriplet(cTriplet &aTri)
@@ -82,6 +90,16 @@ void cTripletSet::PushTriplet(cTriplet &aTri)
 void cTripletSet::ToFile(const std::string &aName) const
 {
     SaveInFile(this->mSet,aName);
+}
+
+cTripletSet * cTripletSet::FromFile(const std::string &aName)
+{
+    StdOut() << aName << std::endl;
+    cTripletSet * aRes = new cTripletSet;
+    StdOut() << "Before Readfromfile" << std::endl;
+    ReadFromFile(aRes->Set(),aName);
+
+    return aRes;
 }
 
 void cTripletSet::AddData(const  cAuxAr2007 & anAuxInit)

@@ -6,11 +6,16 @@
 namespace MMVII
 {
 
+class cView;
+class cTriplet;
+class cTripletSet;
+
 class cView : public cMemCheck
 {
     public:
         typedef cIsometry3D<tREAL8>  tPose;
         cView(const tPose,const std::string);
+        cView();
 
         const std::string & Name() {return mName;}
         const tPose & Pose() {return mPose;}
@@ -54,16 +59,22 @@ class cTriplet : public cMemCheck
 
 
 };
-void AddData(const  cAuxAr2007 &,cTripletSet &cTriplet) ;
+void AddData(const  cAuxAr2007 &,cTriplet &) ;
 
 class cTripletSet : public cMemCheck
 {
     public:
         cTripletSet();
 
+        /// Standard interface to write the object
         void ToFile(const std::string&) const;
+        /// Standard interface to create an object
+        static cTripletSet * FromFile(const std::string &) ;
 
         void PushTriplet(cTriplet &);
+
+        const std::vector<cTriplet>& Set() const {return mSet;}
+        std::vector<cTriplet>& Set() {return mSet;}
 
         void SetName(std::string& aName) {mName=aName;}
         const std::string & Name() const {return mName;}

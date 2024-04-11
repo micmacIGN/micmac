@@ -497,6 +497,7 @@ class cPhotogrammetricProject
           //==================   ORIENTATION OF TRIPLETS    ==================
       //===================================================================
       void SaveTriplets(const cTripletSet&) const;
+      cTripletSet * ReadTriplets() const;
 
 	 //===================================================================
          //==================   RADIOMETRY       =============================
