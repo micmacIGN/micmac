@@ -97,6 +97,12 @@ cCarLookUpTable::cCarLookUpTable() :
     MEM_RAZ(&mDTable,1);
 }
 
+void cCarLookUpTable::InitIdGlob()
+{
+    InitId(std::numeric_limits<char>::min(),std::numeric_limits<char>::max()-1);
+}
+
+
 /* ************************************************* */
 /*                                                   */
 /*                     MMVII                         */

@@ -99,7 +99,12 @@ template<class Type> cPt2dr   cImGradWithN<Type>::OneRefinePos(const cPt2dr & aP
      if (! mDataNG.InsideBL(aP1)) 
          return aP1;
 
-     cPt2dr aGr = VUnit(ToR(this->GradBL(aP1)));
+     cPt2dr aGr = ToR(this->GradBL(aP1));
+     tREAL8 aNorm = Norm2(aGr);
+
+     if (aNorm==0) 
+        return aP1;
+     aGr = aGr / aNorm;
 
      // extract point "before"
      cPt2dr aP0 = aP1- aGr;

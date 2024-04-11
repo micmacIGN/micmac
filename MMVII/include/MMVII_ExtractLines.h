@@ -10,6 +10,12 @@ class cHoughTransform;
 template <class Type> class  cImGradWithN;
 template <class Type> class  cExtractLines;
 
+enum class eCodeHPS
+{
+      Ok,
+      LowCumul,
+      NotFirst
+};
 
 class cHoughPS : public cMemCheck
 {
@@ -21,13 +27,16 @@ class cHoughPS : public cMemCheck
 	 tREAL8 DistAnglAntiPar(const cHoughPS& aPS2) const;
          tREAL8 DY(const cHoughPS&) const;
          tREAL8 Dist(const cHoughPS&,const tREAL8 &aFactTeta=1.0) const;
+         tSeg2dr  SegMoyAntiParal(const cHoughPS& aPS2) const;
 
 	 const cPt2dr & TetaRho() const; ///< Accessor
 	 const tREAL8 & Teta() const;    ///< Accessor
 	 const tREAL8 & Rho() const;     ///< Accessor
 	 const tSeg & Seg() const ;      ///< Accessor
          cHoughPS * Matched() const;     ///< Accessor
-	 const tREAL8 & Cumul() const; ///< Accessor
+	 const tREAL8 & Cumul() const;   ///< Accessor
+	 eCodeHPS  Code() const ;        ///< Accessor
+         void SetCode(eCodeHPS);         ///< Modifior
 
 	 cPt2dr  IndTetaRho() const; ///< Teta/Rho in hough accum dynamic
 
@@ -48,6 +57,8 @@ class cHoughPS : public cMemCheck
          tSeg                     mSegE;
          cHoughPS *               mMatched;
          tREAL8                   mDistM;
+
+	 eCodeHPS                 mCode;
 };
 
 
@@ -91,8 +102,11 @@ class cHoughTransform
 				   tREAL8 aThrMax  // threshold on Max, select if Accum > Max * Avg
                              ) const;
 
-	 /// max the conversion houg-point ->  euclidian line  + rho teta
+	 /// max the conversion houg-point + value ->  euclidian line  + rho teta
 	 cHoughPS * PtToLine(const cPt3dr &) const;
+
+	 /// make the conversion seg (oriented)  -> hough point 
+	 cPt2dr  Line2Pt(const tSeg2dr &) const;
 
 	 const tREAL8 & RhoMax() const; ///<  Accessor
 	 ///   return the angle teta, of a given  index/position in hough accumulator

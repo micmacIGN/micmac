@@ -517,6 +517,17 @@ template <class tCont>  typename tCont::value_type *  KthElem(tCont & aCont,int 
     return nullptr;
 }
 
+template <class Type> std::vector<const Type*> VecObj2VecPtr(const std::vector<Type> & aVecObj)
+{
+    std::vector<const Type *> aVPtr;
+
+    for (const auto & aObj : aVecObj)
+        aVPtr.push_back(&aObj);
+
+    return aVPtr;
+}
+
+
 
 /**    Used in Metadata, but can be used more generally.
  *

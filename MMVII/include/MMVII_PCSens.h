@@ -320,6 +320,14 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 	    /// For inversion, or sampling point, we need seed that is +- corresponding of sensor midle, befor dist
 	    cPt2dr PtSeedInv() const;
 
+	    /// Let S be a seg in undist space, extend as much as possible while distorted is include in image
+	    tSeg2dr  ExtenSegUndistIncluded
+		     (
+		          const tSeg2dr & aSegInit,
+			  tREAL8 aStepInitRel=0.05,
+			  tREAL8 aStepEnd=1.0,
+			  tREAL8 aRetract=0.0
+                     ) const;
        private :
 	     ///  big object, no valuable copy
             cPerspCamIntrCalib(const cPerspCamIntrCalib &) = delete;

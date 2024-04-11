@@ -46,6 +46,12 @@ template <class Type> cSegment2DCompiled<Type>::cSegment2DCompiled(const tPt& aP
 {
 }
 
+template <class Type> cSegment2DCompiled<Type>::cSegment2DCompiled(const cSegment<Type,2>& aSeg) :
+    cSegment2DCompiled<Type>(aSeg.P1(),aSeg.P2())
+{
+}
+
+
 template <class Type> cPtxd<Type,2> cSegment2DCompiled<Type>::ToCoordLoc(const tPt& aPt) const
 {
     tPt   aV1P = aPt - this->mP1;

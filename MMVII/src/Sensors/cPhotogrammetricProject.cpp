@@ -698,6 +698,13 @@ std::string cPhotogrammetricProject::NameMeasureGCPIm(const std::string & aNameI
     return  mDPPointsMeasures.FullDirInOut(isIn) + cSetMesPtOf1Im::StdNameFileOfIm(FileOfPath(aNameIm,false)) ;
 }
 
+
+bool cPhotogrammetricProject::HasMeasureIm(const std::string & aNameIm,bool InDir) const
+{
+   return ExistFile(NameMeasureGCPIm(aNameIm,InDir));
+}
+
+
 cSetMesPtOf1Im cPhotogrammetricProject::LoadMeasureIm(const std::string & aNameIm,bool isIn) const
 {
    //  std::string aDir = mDPPointsMeasures.FullDirInOut(isIn);
@@ -855,6 +862,30 @@ void cPhotogrammetricProject::SaveAndFilterAttrEll(const cSetMesPtOf1Im &  aSetM
             aVSEEOut.push_back(aSEE);
      SaveInFile(aVSEEOut,cSaveExtrEllipe::NameFile(*this,aSetM,false));
 }
+     // ============================   LINES ==============================================
+
+std::string  cPhotogrammetricProject::NameFileLines(const std::string & aNameIm) const
+{
+    return DPPointsMeasures().FullDirOut() + "SegsAntiParal-"+ aNameIm + "."+ GlobTaggedNameDefSerial();
+}
+
+bool   cPhotogrammetricProject::HasFileLines(const std::string & aNameIm)  const
+{
+    return ExistFile(NameFileLines(aNameIm));
+}
+
+void  cPhotogrammetricProject::SaveLines(const cLinesAntiParal1Im &aLAP1I) const
+{
+    SaveInFile(aLAP1I,NameFileLines(aLAP1I.mNameIm));
+}
+
+cLinesAntiParal1Im  cPhotogrammetricProject::ReadLines(const std::string & aNameIm) const
+{
+    cLinesAntiParal1Im aRes;
+    ReadFromFile(aRes,NameFileLines(aNameIm));
+    return aRes;
+}
+
 
         //  =============  Multiple Tie Points =================
 
@@ -1018,6 +1049,7 @@ std::list<cBlocOfCamera *> cPhotogrammetricProject::ReadBlocCams() const
 
     return aRes;
 }
+
 
         //  =============  Meta Data =================
 

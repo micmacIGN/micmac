@@ -222,6 +222,7 @@ class cAppli_ClinoInit : public cMMVII_Appli
 
         cPhotogrammetricProject        mPhProj;     ///<  Classical structure for photogrammetric project
         std::string                    mNameClino;  ///<  Pattern of xml file
+	std::string                    mFormat;
 	std::vector<std::string>       mPrePost;    ///<  Pattern of xml file
         int                            mNbStep0;    ///<  Number of step in initial  first round
         int                            mNbStepIter; ///< Number of step in each iteration
@@ -236,7 +237,9 @@ class cAppli_ClinoInit : public cMMVII_Appli
 	 */
 	std::vector<bool>              mComputedClino;  
 
+
 	std::string                    mNameRel12;  ///< relative orientation of Clino1/Clino2 stored as "i-kj"
+	bool                           isOkNoCam;   ///< Is it OK if cam does not exist sometime ?
         std::vector<tRotR>             mOriRelClin; ///< vector of relative orientations Clino[0]/Clino[K]
 	bool                           mShowAll;    ///< Do we show all the msg relative to residuals
         cCalibSetClino                 mCalibSetClino; ///< Result of the calibration
@@ -253,6 +256,7 @@ cAppli_ClinoInit::cAppli_ClinoInit
      mNbStepIter   (10),
      mNbIter       (50),
      mNameRel12    ("i-kj"),
+     isOkNoCam     (false),
      mShowAll      (false)
 {
 }
@@ -262,7 +266,7 @@ cCollecSpecArg2007 & cAppli_ClinoInit::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
       return anArgObl
               <<  Arg2007(mNameClino,"Name of inclination file") // ,{eTA2007::FileDirProj})
-              <<  Arg2007(mPrePost,"[Prefix,PostFix] to compute image name",{{eTA2007::ISizeV,"[2,2]"}})
+              <<  Arg2007(mFormat,"Format of file  like ISFSSFSSFSSFS ")
               <<  Arg2007(mVKClino,"Index of clinometer",{{eTA2007::ISizeV,"[1,2]"}})
               <<  mPhProj.DPOrient().ArgDirInMand()
               <<  mPhProj.DPClinoMeters().ArgDirOutMand()
@@ -278,7 +282,9 @@ cCollecSpecArg2007 & cAppli_ClinoInit::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 	    << AOpt2007(mNbIter,"NbIter","Number of iteration",{eTA2007::HDV})
 	    << AOpt2007(mASim,"AmplSim","Amplitude of rotation is simul [W,P,K,BS]",{{eTA2007::ISizeV,"[5,5]"}})
 	    << AOpt2007(mNameRel12,"Rel12","orientation relative 2 to 1, if several clino",{eTA2007::HDV})
-           <<  mPhProj.DPClinoMeters().ArgDirInOpt()  // Just for temporart test we can re-read, to supress later
+	    << AOpt2007(isOkNoCam,"OkNoCam","is it OK if some cam dont exist",{eTA2007::HDV})
+            <<  mPhProj.DPClinoMeters().ArgDirInOpt()  // Just for temporart test we can re-read, to supress later
+            <<  AOpt2007(mPrePost,"PrePost","[Prefix,PostFix] to compute image name",{{eTA2007::ISizeV,"[2,2]"}})
     ;
 }
 
@@ -399,7 +405,7 @@ int cAppli_ClinoInit::Exe()
 
 
     // --------- Read formated file ----------------
-    std::string mFormat = "ISFSF";
+    //  std::string mFormat = "ISFSF";
     cReadFilesStruct aRFS(mNameClino,mFormat,0,-1,'#');
     aRFS.Read();
     size_t aNbMeasures = aRFS.NbRead();
@@ -450,18 +456,24 @@ int cAppli_ClinoInit::Exe()
         }
 	else 
         {
-            std::string aNameIm = mPrePost[0] +  aRFS.VNameIm().at(aKLine) + mPrePost[1];
-	    cSensorCamPC * aCam = mPhProj.ReadCamPC(aNameIm,true);
-            mVMeasures.push_back(cClinoCalMes1Cam(aCam,aRFS.VNums().at(aKLine)));
+            std::string aNameIm =  aRFS.VNameIm().at(aKLine) ;
+	    if (IsInit(&mPrePost))
+                aNameIm = mPrePost[0] +  aNameIm + mPrePost[1];
 
-	    aCalib = aCam->InternalCalib();
-	    aNameCalibCam = aCalib->Name();
+	    cSensorCamPC * aCam = mPhProj.ReadCamPC(aNameIm,true,isOkNoCam);
+	    if (aCam != nullptr)
+	    {
+                 mVMeasures.push_back(cClinoCalMes1Cam(aCam,aRFS.VNums().at(aKLine)));
 
-	    // We cannnot have multiple camera for now
-	    if ((mCalibSetClino.mNameCam !="") &&  (mCalibSetClino.mNameCam != aNameCalibCam))
-               MMVII_UnclasseUsEr("Multiple camera not handled");
+	         aCalib = aCam->InternalCalib();
+	         aNameCalibCam = aCalib->Name();
 
-            mCalibSetClino.mNameCam = aNameCalibCam;
+	         // We cannnot have multiple camera for now
+	         if ((mCalibSetClino.mNameCam !="") &&  (mCalibSetClino.mNameCam != aNameCalibCam))
+                    MMVII_UnclasseUsEr("Multiple camera not handled");
+
+                 mCalibSetClino.mNameCam = aNameCalibCam;
+	    }
         }
     }
 

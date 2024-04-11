@@ -3,6 +3,7 @@
 
 #include "MMVII_Ptxd.h"
 #include "MMVII_util_tpl.h"
+#include "MMVII_Geom2D.h"
 
 namespace MMVII
 {
@@ -493,6 +494,30 @@ class cFilterMesIm
          bool                       mFinished;
 
 };
+
+/** Represent one line anti paral (computed by matching of 2 oriented line anti paral) */
+
+class cOneLineAntiParal
+{
+     public :
+          cOneLineAntiParal();
+
+          tSeg2dr mSeg;
+          tREAL8  mAng;
+          tREAL8  mWidth;
+          tREAL8  mCumul;
+};
+void AddData(const cAuxAr2007 & anAux,cOneLineAntiParal & anEx);
+
+
+class cLinesAntiParal1Im
+{
+     public :
+         std::string                      mNameIm;
+         std::string                      mDirCalib;
+         std::vector<cOneLineAntiParal>   mLines;
+};
+void AddData(const cAuxAr2007 & anAux,cLinesAntiParal1Im & anEx);
 
 
 

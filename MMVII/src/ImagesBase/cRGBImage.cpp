@@ -144,6 +144,8 @@ bool cRGBImage::InsideBL(const cPt2dr & aPix) const
 
 void cRGBImage::SetRGBPixWithAlpha(const cPt2di & aPix,const cPt3di &aCoul,const cPt3dr & aAlpha)
 {
+    if (!mImR.DIm().Inside(aPix))
+       return;
     AssertZ1();
       cPt3di aCurC = GetRGBPix(aPix); 
 

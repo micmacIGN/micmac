@@ -533,6 +533,8 @@ class cPhotogrammetricProject
 	 //===================================================================
 
 	  void SaveMeasureIm(const cSetMesPtOf1Im & aSetM) const;
+	  ///  Does the measure exist
+	  bool HasMeasureIm(const std::string & aNameIm,bool InDir=true) const;
           /// return from Std Dir, can be out in case of reload
 	  cSetMesPtOf1Im LoadMeasureIm(const std::string &,bool InDir=true) const;
          void LoadGCP(cSetMesImGCP&,const std::string & aPatFiltrFile="",const std::string & aFiltrNameGCP="",
@@ -564,6 +566,13 @@ class cPhotogrammetricProject
 	  cSet2D3D  LoadSet32(const std::string & aNameIm) const;
 
           void SaveAndFilterAttrEll(const cSetMesPtOf1Im &  aSetM,const std::list<std::string> & ToRem)   const ;
+
+
+	      // ---------------  Segment in/out ----------------------------------------
+	  std::string  NameFileLines(const std::string & aNameIm) const;
+	  bool         HasFileLines(const std::string & aNameIm)  const;
+	  void         SaveLines(const cLinesAntiParal1Im &) const;
+	  cLinesAntiParal1Im  ReadLines(const std::string & aNameIm) const;
 	  
 	 //===================================================================
          //==================   META-DATA       ==============================

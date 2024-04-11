@@ -84,6 +84,7 @@ int cSpecMMVII_Appli::AllocExecuteDestruct(const std::vector<std::string> & aVAr
         {
             CloseRandom();
         }
+	anAppli->ToDoBeforeDestruction();
     }
     cMemManager::CheckRestoration(aMemoState);
     MMVII_INTERNAL_ASSERT_always(cMemCountable::NbObjLive()==aNbObjLive,"Mem check obj not killed");
@@ -242,6 +243,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_TutoFormalDeriv);
         TheVecAll.push_back(&TheSpec_ExportUndistMesIm);
         TheVecAll.push_back(&TheSpecAppliExtractLine);
+        TheVecAll.push_back(&TheSpec_CERN_ImportClino);
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }

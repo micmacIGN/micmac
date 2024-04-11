@@ -15,6 +15,34 @@ namespace MMVII
 
 /* ********************************************* */
 /*                                               */
+/*             cOneLineAntiParal                 */
+/*                                               */
+/* ********************************************* */
+
+cOneLineAntiParal::cOneLineAntiParal() :
+    mSeg (cPt2dr(0,0),cPt2dr(1,0))  // Diff else error (cstr check not identic)
+{
+}
+
+void AddData(const cAuxAr2007 & anAux,cOneLineAntiParal & anEx)
+{
+      AddData(cAuxAr2007("P1",anAux),anEx.mSeg.P1());
+      AddData(cAuxAr2007("P2",anAux),anEx.mSeg.P2());
+      AddData(cAuxAr2007("ParalAng",anAux),anEx.mAng);
+      AddData(cAuxAr2007("Width",anAux),anEx.mWidth);
+      AddData(cAuxAr2007("Cumul",anAux),anEx.mCumul);
+}
+
+void AddData(const cAuxAr2007 & anAux,cLinesAntiParal1Im & anEx)
+{
+      AddData(cAuxAr2007("Calib",anAux),anEx.mDirCalib);
+      AddData(cAuxAr2007("Lines",anAux),anEx.mLines);
+}
+
+
+
+/* ********************************************* */
+/*                                               */
 /*             cHomogCpleIm                      */
 /*                                               */
 /* ********************************************* */

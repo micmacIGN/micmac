@@ -836,6 +836,8 @@ template <class Type,const int Dim> class cSegment
        void CompileFoncLinear(Type & aVal,tPt & aVec,const Type  &aV1,const Type  & aV2) const;
        const tPt&  P1() const; ///< Accessor
        const tPt&  P2() const; ///< Accessor
+       tPt&  P1() ; ///< Accessor
+       tPt&  P2() ; ///< Accessor
 
        tPt  V12() const;   ///<  Vector  P1->P2
        tPt  PMil() const;  ///<  P middle

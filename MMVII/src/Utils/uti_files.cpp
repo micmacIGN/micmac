@@ -187,6 +187,7 @@ void cMMVII_Ifs::Read(std::string & aVal )
 
 /** Low level read of file containing nums in fixed format */
 
+/*
 static std::string  CurFile;  /// global var to get context, not proud of that
 static int          CurLine;  /// global var to get context, not proud of that
 template<class Type> inline Type GetV(std::istringstream & iss)
@@ -199,6 +200,7 @@ template<class Type> inline Type GetV(std::istringstream & iss)
     }
     return aNum;
 }
+*/
 
 int CptOccur(const std::string & aStr,char aC0)
 {
@@ -277,6 +279,15 @@ void cReadFilesStruct::Read()
     CurFile = mNameFile;
 
 
+    /*
+    char  aLut[256];
+    for (int aK=0 ; aK<256 ; aK++)
+    {
+        aLut[aK] = aK;
+    }
+    cCarLookUpTable aLUT;
+    */
+
     mVNameIm.clear();
     mVNamePt.clear();
     mVXYZ.clear();
@@ -301,6 +312,11 @@ void cReadFilesStruct::Read()
         MMVII_DEV_WARNING("Dont understand why must add \" \" at end of line ReadFilesStruct");
         line += " ";
         CurLine = aNumL+1;  // editor begin at line 1, non 0
+	/*
+        for (size_t aK=0 ; aK<line.size() ; aK++)
+            line[aK] = aLut[line[aK]];
+	    */
+
         if ((aNumL>=mL0) && (aNumL<mLastL))
 	{
             if (mMemoLinesInt)
@@ -354,6 +370,7 @@ void cReadFilesStruct::Read()
 			 case 'N' : aNamePt = GetV<std::string>(iss);     initPt++; break;
 			 case 'I' : aNameIm = GetV<std::string>(iss);     initIm++; break;
 			 case 'S' : aLString.push_back(GetV<std::string>(iss)); initString++; break;
+			 case '#' : GetV<std::string>(iss); break;
 
 		         default :
                               MMVII_INTERNAL_ERROR(std::string(("Unhandled car in cReadFilesStruct::Read=") + aCar)+"]");

@@ -178,9 +178,31 @@ int   cAppli_EditSet::ExecuteBench(cParamExeBench & aParam)
 {
    for (int aK=0 ; aK<2 ; aK++)
    {
+	   /*
+        int aNumTest,                // Change test condition
+        const std::string & anOp,    // Operator
+        bool InitInput,              // If true, Input is set to last output
+        const std::string & aPat,    // Pattern of image
+        int aNumAskedOut,            // Required num version
+        int aRealNumOut,             // Real Num Version
+        int ExpectCard,              // Number of element required, useless with ExpSet added
+        const std::string & Interv,  // Interval,
+        const std::string & ExpSet   // Expect set
+				     // */
        std::string C09="0123456789";
      // Basic test, we create the file
-       OneBenchEditSet(aK,"+=",false,".*txt"       ,0,2,10,"",C09); // 
+       OneBenchEditSet
+       (
+             aK,      //  Change test condition : Use or Not Dir Project
+	     "+=",    // operator for mpdi
+	     false,   // If true, Previous OutPut is moved on input, else Input is purged at end of process
+	     ".*txt", // Pattern of used files 
+	     0,       //  Required num version
+	     2,       // Real Num Version
+	     10,      // Number of element expected (become obsolet with expected set)
+	     "",      // Interval modifying the pattern if != ""
+	     C09      //  Ground truth, what the string should be
+       ); // 
        OneBenchEditSet(aK,"+=",false,".*txt"       ,1,1,10,"",C09);
        OneBenchEditSet(aK,"+=",false,".*txt"       ,2,2,10,"",C09);
        OneBenchEditSet(aK,"+=",false,"F[02468].txt",2,2,5,"","02468");
