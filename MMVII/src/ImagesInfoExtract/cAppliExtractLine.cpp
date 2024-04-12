@@ -6,6 +6,59 @@
 namespace MMVII
 {
 
+/**  Interface to describe a "cPerspCamIntrCalib" as a invertible mapping for
+ * the pair Undist/Redist
+ */
+class cCamUDReD_Map : public cDataInvertibleMapping<tREAL8,2>
+{
+     public :
+          typedef  cDataInvertibleMapping<tREAL8,2>  tMap;
+          typedef  typename tMap::tPt                tPt;
+
+           tPt Value(const tPt &) const override;
+           tPt Inverse(const tPt &) const override;
+	   cCamUDReD_Map(cPerspCamIntrCalib * aCalib);
+
+     private :
+        cPerspCamIntrCalib * mCalib;
+};
+
+cCamUDReD_Map::tPt cCamUDReD_Map::Value(const tPt & aPt) const {return mCalib->Undist(aPt);}
+cCamUDReD_Map::tPt cCamUDReD_Map::Inverse(const tPt & aPt) const {return mCalib->Redist(aPt);}
+
+cCamUDReD_Map::cCamUDReD_Map(cPerspCamIntrCalib * aCalib) :
+   mCalib (aCalib)
+{
+}
+
+template <const int DimIn,const int DimOut> class cTabuMap : public cDataMapping<tREAL8,DimIn,DimOut>
+{
+     public :
+          typedef  cDataMapping<tREAL8,DimIn,DimOut>  tMap;
+          typedef  typename tMap::tPtIn               tPtIn;
+          typedef  typename tMap::tPtOut              tPtOut;
+          typedef  cTplBox<tREAL8,DimIn>              tBoxIn;
+
+          cTabuMap(const tMap & aMap,const tBoxIn & aBox,cPtxd<int,DimIn> & aSz);
+	
+    private :
+};
+
+/*
+template <const int Dim> class cTabuMapInv : public cDataInvertibleMapping<tREAL8,2>
+{
+     public :
+          typedef  cDataInvertibleMapping<tREAL8,Dim>  tMap;
+          typedef  typename tMap::tPt                tPt;
+
+          cTabuMapInv(const tMap & aMap,const cTplBox<tREAL8,Dim & aBox,cPtxd<Dim,int> & aSz);
+};
+*/
+
+
+
+
+
 /* =============================================== */
 /*                                                 */
 /*                 cAppliExtractLine               */
@@ -62,6 +115,7 @@ class cAppliExtractLine : public cMMVII_Appli
 	std::vector<cPt2dr>      mVPtsGT;
 	std::vector<tSeg2dr>     mVSegsGT;
 	std::vector<cPt2dr>      mVHoughGT;
+	cTimerSegm               mTimeSeg;
 };
 
 
@@ -82,7 +136,8 @@ cAppliExtractLine::cAppliExtractLine(const std::vector<std::string> & aVArgs,con
     mRelThrsCumulHigh   (0.30),
     mHoughSeuilAng      (0.20),
     mWithGT             (false),
-    mGTEmpty            (true)
+    mGTEmpty            (true),
+    mTimeSeg            (this)
 {
 }
 
@@ -134,6 +189,7 @@ cPt2dr cAppliExtractLine::Undist(const cPt2dr & aP) const
 
 void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
 {
+   cAutoTimerSegm  anATSInit (mTimeSeg,"Initialisation");
 
     tREAL8 aMulTeta = 1.0/M_PI;
 // aMulTeta = 1.0;
@@ -170,14 +226,18 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
 
 
 
+    cAutoTimerSegm  anATSReadIm (mTimeSeg,"ReadImage");
     cIm2D<tIm> anIm = cIm2D<tIm>::FromFile(aNameIm);
     tREAL8  aTrhsCumulLow  = mRelThrsCumulLow   * Norm2(anIm.DIm().Sz());
     tREAL8  aTrhsCumulHigh = mRelThrsCumulHigh * Norm2(anIm.DIm().Sz());
     mExtrL = new cExtractLines<tIm> (anIm);
 
     // Compute Gradient and extract max-loc in gradient direction
+    cAutoTimerSegm  anATSDerAndMasq (mTimeSeg,"DericheAndMasq");
     mExtrL->SetDericheGradAndMasq(2.0,10.0,2,mShow); // aAlphaDerich,aRayMaxLoc,aBorder
+						     
     // Compute Hough-Transform
+    cAutoTimerSegm  anATSHough (mTimeSeg,"Hough");
     mExtrL->SetHough(cPt2dr(aMulTeta,1.0),mHoughSeuilAng,mCalib,mAffineMax,mShow);
 
 
@@ -204,6 +264,7 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
     }
 
     // Extract Local Maxima in hough space
+    cAutoTimerSegm  anATSMaxLoc (mTimeSeg,"MaxLocHough");
     std::vector<cPt3dr> aVMaxLoc = mExtrL->Hough().ExtractLocalMax(10,5.0,10.0,0.1);
     StdOut() << "VMAXLoc " << aVMaxLoc.size() << "\n";
 
@@ -226,6 +287,7 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
     }
     StdOut() << "VPSINIT " << mVPS.size() << "\n";
 
+    cAutoTimerSegm  anATSMatchHough (mTimeSeg,"MaxLocHough");
     cHoughPS::SetMatch(mVPS,mLineIsWhite,mVParams.at(0),mVParams.at(1),mVParams.at(2));
 
     for (auto & aHS1 : mVPS)
@@ -239,6 +301,7 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
 
     // StdOut() <<  "NbMatchHHHHHH " << mMatchedVPS.size() << "\n";
 
+    cAutoTimerSegm  anATSReport (mTimeSeg,"Report");
     // Compute the quality and save it in report
     {
         // Intrinsic evaluation
@@ -292,7 +355,7 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
     }
    
 
-    // make a report for each lines
+    // generate the export
     cLinesAntiParal1Im  aExAllLines;
     aExAllLines.mNameIm =  aNameIm;
     if (mPhProj.DPOrient().DirInIsInit())
@@ -315,6 +378,8 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
 
     if (mShowSteps)
        MakeVisu(aNameIm);
+
+    mTimeSeg.Show();
 }
 
 void cAppliExtractLine::MakeVisu(const std::string & aNameIm)
@@ -393,14 +458,17 @@ void cAppliExtractLine::MakeVisu(const std::string & aNameIm)
 	     cPt2dr aC = Redist(aSeg.PMil() +VUnit(aSeg.V12()*cPt2dr(0,-1))* aRay);
              aVisIm.DrawCircle(aCoul,aC ,aRay);
 
-             MMVII_INTERNAL_ASSERT_tiny(mCalib!=nullptr,"Calib mandatory for now in line detect");
-
-	     cSegment2DCompiled<tREAL8> aSegC (mCalib->ExtenSegUndistIncluded(aSeg));
-	     for (tREAL8 aC=0 ; aC< aSegC.N2() ; aC+= 1.0)
+             if (mCalib)
 	     {
-		 cPt2dr  aQ = Redist(aSegC.FromCoordLoc(cPt2dr(aC,0.0))); ; // eventulay make invert distorsion correcion
-                 aVisIm.SetRGBPoint(aQ,aCoul);  // print point
-             }
+                 MMVII_INTERNAL_ASSERT_tiny(mCalib!=nullptr,"Calib mandatory for now in line detect");
+
+	         cSegment2DCompiled<tREAL8> aSegC (mCalib->ExtenSegUndistIncluded(aSeg));
+	         for (tREAL8 aC=0 ; aC< aSegC.N2() ; aC+= 1.0)
+	         {
+		     cPt2dr  aQ = Redist(aSegC.FromCoordLoc(cPt2dr(aC,0.0))); ; // eventulay make invert distorsion correcion
+                     aVisIm.SetRGBPoint(aQ,aCoul);  // print point
+                 }
+	     }
 
 
 	     //  write point by point, in two direction
