@@ -170,6 +170,9 @@ std::vector<tREAL8> cTopoObs::getVals() const
     }*/
 #ifdef VERBOSE_TOPO
     std::cout<<vals.size()<<" values ";//<<std::endl;
+    for (auto&v: vals)
+        std::cout<<v<<" ";
+    std::cout<<"\n";
 #endif
     return vals;
 }

@@ -18,7 +18,7 @@ template <class Type> class cResidualWeighterExplicit;
  * @brief The cTopoObs class represents an observation between several points.
  * It exists only in a cTopoObsSet because the obs may share parameters with other obs.
  */
-class cTopoObs
+class cTopoObs : public cMemCheck
 {
     friend class cTopoObsSet;
     friend class cTopoData;

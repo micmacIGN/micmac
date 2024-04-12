@@ -57,7 +57,7 @@ class cFormulaTopoHz
                auto       val = aVObs[9];
                cPtxd<tUk,3>  aP_to_instr = aPoseInstr.Inverse().Value(aP_to);
 
-               auto az = ATan2( aP_to_instr.y(), aP_to_instr.x() );
+               auto az = ATan2( aP_to_instr.x(), aP_to_instr.y() );
 
                return {  az - val };
            }

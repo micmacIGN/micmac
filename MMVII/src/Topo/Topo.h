@@ -13,7 +13,7 @@ class cSensorCamPC;
 class cTopoObsSet;
 class cBA_GCP;
 
-class cBA_Topo
+class cBA_Topo : public cMemCheck
 {
     friend class cTopoData;
 public :

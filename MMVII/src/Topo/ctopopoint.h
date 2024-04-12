@@ -16,7 +16,7 @@ namespace MMVII
  * they may have coord constraints (not isFree and sigmas)
  * vertical deflection can be given
  */
-class cTopoPoint
+class cTopoPoint : public cMemCheck
 {
     friend class cTopoData;
 public:

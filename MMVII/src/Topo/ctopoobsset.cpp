@@ -10,24 +10,6 @@
 namespace MMVII
 {
 
-void cTopoObsSetData::AddData(const  cAuxAr2007 & anAuxInit)
-{
-    cAuxAr2007 anAux("TopoObsSetData",anAuxInit);
-    //std::cout<<"Add data obs set '"<<toString()<<"'"<<std::endl;
-    MMVII::EnumAddData(anAux,mType,"Type");
-    MMVII::AddData(cAuxAr2007("AllObs",anAux),mObs);
-}
-
-
-void AddData(const cAuxAr2007 & anAux, cTopoObsSetData &aObsSet)
-{
-     aObsSet.AddData(anAux);
-}
-
-
-// ------------------------------------
-
-
 cTopoObsSet::cTopoObsSet(cBA_Topo * aBA_Topo, eTopoObsSetType type):
     mType(type), mBA_Topo(aBA_Topo)
 {
@@ -105,8 +87,8 @@ std::vector<int> cTopoObsSet::getParamIndices() const
 
 //----------------------------------------------------------------
 cTopoObsSetStation::cTopoObsSetStation(cBA_Topo *aBA_Topo) :
-    cTopoObsSet(aBA_Topo, eTopoObsSetType::eStation), mIsVericalized(true), mIsOriented(true),
-    mRot(tRot::Identity()), mRotOmega({0.,0.,0.}), mOriginName(""),mPtOrigin(nullptr)
+    cTopoObsSet(aBA_Topo, eTopoObsSetType::eStation), mIsVericalized(true), mIsOriented(false),
+    mRotVert2Instr(tRot::Identity()), mRotOmega({0.,0.,0.}), mOriginName(""),mPtOrigin(nullptr)
 {
 }
 
@@ -137,6 +119,7 @@ void cTopoObsSetStation::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet)
     std::cout<<"AddToSys SetStation mRotOmega "<<&mRotOmega<<std::endl;
 #endif
     aSet.AddOneObj(&mRotOmega);
+    aSet.AddOneObj(this); // to have OnUpdate called on SetVUnKnowns
 }
 
 void cTopoObsSetStation::createParams()
@@ -146,12 +129,19 @@ void cTopoObsSetStation::createParams()
 
 void cTopoObsSetStation::OnUpdate()
 {
-    // TODO: copy pose update
+    // like cPoseWithUK::OnUpdate(), without -...
+    mRotVert2Instr = mRotVert2Instr * cRotation3D<tREAL8>::RotFromAxiator(mRotOmega.Pt());
+
+    //std::cout<<"  OnUpdate mRotOmega: "<<mRotOmega.Pt()<<"\n";
+
+    // now this have modify rotation, the "delta" is void :
+    mRotOmega.Pt() = cPt3dr(0,0,0);
 }
 
 void cTopoObsSetStation::PushRotObs(std::vector<double> & aVObs) const
 {
-    mRot.Mat().PushByCol(aVObs);
+    // TODO: push rotLTF2Vert * mRotVert2Instr
+    mRotVert2Instr.Mat().PushByCol(aVObs);
 }
 
 std::string cTopoObsSetStation::toString() const
@@ -160,6 +150,12 @@ std::string cTopoObsSetStation::toString() const
     oss<<"   origin: "<<mOriginName;
     if (mPtOrigin)
         oss<<" "<<*mPtOrigin->getPt();
+    oss<<"\n   mRotOmega: "<<mRotOmega.Pt()<<"   ";
+    oss<<"\n   mRot:\n";
+    oss<<"      "<<mRotVert2Instr.AxeI()<<"\n";
+    oss<<"      "<<mRotVert2Instr.AxeJ()<<"\n";
+    oss<<"      "<<mRotVert2Instr.AxeK()<<"\n";
+
     return  cTopoObsSet::toString() + oss.str();
 }
 
@@ -169,7 +165,6 @@ void cTopoObsSetStation::makeConstraints(cResolSysNonLinear<tREAL8> & aSys)
     // TODO: depends on bubbling etc.
     if (mIsVericalized && mIsOriented)
     {
-        mRot = tRot::Identity();
         mRotOmega.Pt() = {0.,0.,0.};
 #ifdef VERBOSE_TOPO
         std::cout<<"Freeze rotation for "<<&mRotOmega<<std::endl;
@@ -178,10 +173,57 @@ void cTopoObsSetStation::makeConstraints(cResolSysNonLinear<tREAL8> & aSys)
         aSys.SetFrozenVarCurVal(mRotOmega,mRotOmega.Pt());
         //for (int i=mRotOmega.IndUk0()+3;i<mRotOmega.IndUk1();++i)
         //    aSys.AddEqFixCurVar(i,0.001);
-    } else {
-        MMVII_INTERNAL_ASSERT_strong(false,"Not fixed orientation station is forbidden");
+    }
+    else if (mIsVericalized)
+    {
+        mRotOmega.Pt() = {0.,0.,0.};
+#ifdef VERBOSE_TOPO
+        std::cout<<"Freeze bascule for "<<&mRotOmega<<std::endl;
+        std::cout<<"  rotation indices "<<mRotOmega.IndUk0()<<"-"<<mRotOmega.IndUk1()-2<<std::endl;
+#endif
+        aSys.SetFrozenVarCurVal(mRotOmega,mRotOmega.Pt().PtRawData(), 2); // not z
+        //for (int i=mRotOmega.IndUk0()+3;i<mRotOmega.IndUk1()-1;++i)
+        //    aSys.AddEqFixCurVar(i,0.001);
+    }
+    else
+    {
+        MMVII_INTERNAL_ASSERT_strong(false,"Not fixed orientation station is forbidden for now");
     }
 }
+
+
+bool cTopoObsSetStation::initialize()
+{
+#ifdef VERBOSE_TOPO
+    std::cout<<"cTopoObsSetStation::initialize "<<mOriginName<<std::endl;
+#endif
+    if (mIsVericalized && mIsOriented)
+    {
+        return true; // nothing to do
+    }
+    if (mIsVericalized) // compute initial G0
+    {
+        for (auto & obs: mObs)
+            if (obs->getType() == eTopoObsType::eHz)
+            {
+                // TODO: use projection for init G0
+                // TODO: check if points are init
+                auto & aPtTo = mBA_Topo->getPoint(obs->getPointName(1));
+                tREAL8 G0 = atan2( aPtTo.getPt()->x() - mPtOrigin->getPt()->x(),
+                                   aPtTo.getPt()->y() - mPtOrigin->getPt()->y())
+                            - obs->getMeasures().at(0);
+                //std::cout<<"Init G0: "<<G0<<std::endl;
+                mRotVert2Instr = mRotVert2Instr * cRotation3D<tREAL8>::RotFromAxiator({0., 0., G0});
+                return true;
+            }
+        // if there is no Hz mes, fix ori (TODO: fail if Hz but targets not init)
+        mIsOriented = true;
+        return initialize();
+    }
+    MMVII_DEV_WARNING("cTopoObsSetStation initialization not ready for not vericalized stations.")
+    return false;
+}
+
 
 void cTopoObsSetStation::setOrigin(std::string _OriginName, bool _IsVericalized)
 {
@@ -191,9 +233,14 @@ void cTopoObsSetStation::setOrigin(std::string _OriginName, bool _IsVericalized)
     mPtOrigin = &mBA_Topo->getPoint(_OriginName);
     mOriginName = _OriginName;
     mIsVericalized = _IsVericalized;
-    mRot = tRot::Identity();
+    mRotVert2Instr = tRot::Identity();
     mRotOmega.Pt() = {0.,0.,0.};
 
+}
+
+tREAL8 cTopoObsSetStation::getG0() const
+{
+    return atan2(mRotVert2Instr.Mat().GetElem(0,1), mRotVert2Instr.Mat().GetElem(0,0));
 }
 
 /*

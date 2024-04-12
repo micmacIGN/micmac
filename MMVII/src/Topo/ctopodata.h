@@ -59,6 +59,12 @@ public:
     void AddData(const  cAuxAr2007 & anAuxInit);
     eTopoObsSetType mType;
     std::vector<cTopoObsData> mObs;
+
+    // just for station
+    std::optional<bool> mStationIsVericalized;
+    std::optional<bool> mStationIsOriented;
+    std::optional<tREAL8> mStationG0; // just output
+    std::optional<cRotation3D<tREAL8>> mRotVert2Instr; // just output
 };
 
 void AddData(const cAuxAr2007 & anAux, cTopoObsSetData & aObsSet);

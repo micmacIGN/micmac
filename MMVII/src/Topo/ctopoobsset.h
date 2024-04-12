@@ -13,7 +13,7 @@ namespace MMVII
 /**
  * @brief The cTopoObsSet class represents a set of observations sharing the same set of parameters.
  */
-class cTopoObsSet : public cObjWithUnkowns<tREAL8>
+class cTopoObsSet : public cObjWithUnkowns<tREAL8>, public cMemCheck
 {
     friend class cTopoObs;
     friend class cTopoData;
@@ -30,6 +30,7 @@ public:
     std::vector<cTopoObs*> & getAllObs() {return mObs;}
     bool addObs(eTopoObsType type, cBA_Topo * aBA_Topo, const std::vector<std::string> &pts, const std::vector<tREAL8> & vals,  const cResidualWeighterExplicit<tREAL8> & aWeights);
     virtual void makeConstraints(cResolSysNonLinear<tREAL8> & aSys) = 0; // add constraints for current set
+    virtual bool initialize() = 0; // initialize set parameters
 protected:
     cTopoObsSet(cBA_Topo *aBA_Topo, eTopoObsSetType type);
     cTopoObsSet(cTopoObsSet const&) = delete;
@@ -70,11 +71,18 @@ public:
     void OnUpdate() override;    ///< "reaction" after linear update, eventually update inversion
     virtual std::string toString() const override;
     void makeConstraints(cResolSysNonLinear<tREAL8> &aSys) override;
+    virtual bool initialize() override; // initialize rotation
 
     void setOrigin(std::string _OriginName, bool _IsVericalized);
     void PushRotObs(std::vector<double> & aVObs) const;
     cPt3dr_UK & getRotOmega() { return mRotOmega; }
     cTopoPoint * getPtOrigin() const { return mPtOrigin; }
+    tREAL8 getG0() const;
+    const tRot & getRotVert2Instr() const { return mRotVert2Instr; }
+    bool isVericalized(){ return mIsVericalized; }
+    void setIsVericalized(bool isVert){ mIsVericalized = isVert; }
+    bool isOriented(){ return mIsOriented; }
+    void setIsOriented(bool isOri){ mIsOriented = isOri; }
 protected:
     cTopoObsSetStation(cBA_Topo *aBA_Topo);
     //cTopoObsSetStation(cTopoObsSetStation const&) = delete;
@@ -82,9 +90,9 @@ protected:
     void createAllowedObsTypes() override;
     void createParams() override;
 
-    bool mIsVericalized;
-    bool mIsOriented;
-    tRot mRot;        //< the station orientation
+    bool mIsVericalized; // bubbled (orientation free only around vertical)
+    bool mIsOriented;    // rotation around vertical is fixed
+    tRot mRotVert2Instr;        //< the station orientation from local vertical frame
     cPt3dr_UK mRotOmega; //< the station orientation unknown
     std::string mOriginName;
     cTopoPoint *mPtOrigin;
