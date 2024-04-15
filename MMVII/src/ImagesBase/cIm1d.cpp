@@ -135,6 +135,13 @@ template <class Type> void  cDataIm1D<Type>::VD_SetV(const cPt1di& aP,const doub
    SetVTrunc(aP,aV);
 }
 
+/*
+template <class Type> cDataIm1D<Type>::~cDataIm1D()
+{
+}
+*/
+
+
 
 /* ========================== */
 /*          cIm1D             */

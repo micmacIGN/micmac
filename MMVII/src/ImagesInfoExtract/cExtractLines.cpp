@@ -35,7 +35,7 @@ template <class Type> void cExtractLines<Type>::SetHough
                                 const cPt2dr & aMulTetaRho,
                                 tREAL8 aSigmTeta,
                                 cPerspCamIntrCalib * aCalib,
-                                bool AffineMax,
+                                bool isAccurate,
 				bool Show
                            )
 {
@@ -45,9 +45,12 @@ template <class Type> void cExtractLines<Type>::SetHough
 
      // compute average for weighting
      tREAL8 aAvgIm=0;
-     for (const auto & aPix :   mImMasqCont.DIm())
-         aAvgIm += mGrad->NormG().DIm().GetV(aPix);
-     aAvgIm /= mGrad->NormG().DIm().NbElem() ;
+     if (isAccurate)
+     {
+        for (const auto & aPix :   mImMasqCont.DIm())
+            aAvgIm += mGrad->NormG().DIm().GetV(aPix);
+        aAvgIm /= mGrad->NormG().DIm().NbElem() ;
+     }
      
      // Three measure of correction (tuning) 
      tREAL8 aSomCorAff=0;   // sums the distance between point and its correction by refinement
@@ -55,10 +58,9 @@ template <class Type> void cExtractLines<Type>::SetHough
      tREAL8 aSomCorTeta=0;  // sums the angulare distance of distorsion
      int aNbDone=0;
 
-     for (const auto & aPix :   mImMasqCont.DIm())
+     // for (const auto & aPix :   mImMasqCont.DIm())
+     for (const auto & aPix :   mPtsCont)
      {
-         if ( mImMasqCont.DIm().GetV(aPix))
-         {
              if (Show &&  ((aNbDone%200000)==0) )
                 StdOut() << "Remain to do " << mNbPtsCont-aNbDone << "\n";
              aNbDone++;
@@ -66,7 +68,7 @@ template <class Type> void cExtractLines<Type>::SetHough
 	     // compute eventually refined position
              cPt2dr aRPix0 = ToR(aPix);
 	     cPt2dr aRPix = aRPix0;
-	     if (AffineMax)
+	     if (isAccurate)
                 aRPix = mGrad->RefinePos(aRPix0);
 	     aSomCorAff += Norm2(aRPix0-aRPix);
 
@@ -92,11 +94,18 @@ template <class Type> void cExtractLines<Type>::SetHough
 
 	     // finnaly add the point to hough-accumulator
              if (mImMasqCont.DIm().InsideBL(aRPix))
-                 mHough->AccumulatePtAndDir(aRPix,aTeta,aW);
-         }
+             {
+                 if (isAccurate)
+                    mHough->Accurate_AccumulatePtAndDir(aRPix,aTeta,aW);
+                 else
+                 {
+                    mHough->Quick_AccumulatePtAndDir(aRPix,aTeta,aW);
+                 }
+             }
      }
      // make some filter, not sure usefull
-     ExpFilterOfStdDev(mHough->Accum().DIm(),4,1.0);
+     if (isAccurate)
+         ExpFilterOfStdDev(mHough->Accum().DIm(),4,1.0);
 
      if (Show)
      {
@@ -125,6 +134,7 @@ template <class Type> void cExtractLines<Type>::SetDericheGradAndMasq(tREAL8 aAl
          aNbPt++;
          if (mGrad->IsMaxLocDirGrad(aPix,aVecNeigh,1.0)) // aPix,Neigbours,aRatioXY
          {
+            mPtsCont.push_back(aPix);
             mImMasqCont.DIm().SetV(aPix,255);
             mNbPtsCont++;
          }
@@ -157,6 +167,7 @@ template <class Type> cRGBImage cExtractLines<Type>::MakeImageMaxLoc(tREAL8 aAlp
 
 template <class Type> cHoughTransform & cExtractLines<Type>::Hough()   {return *mHough;}
 template <class Type> cImGradWithN<Type> & cExtractLines<Type>::Grad() {return *mGrad;}
+template <class Type> const std::vector<cPt2di>& cExtractLines<Type>::PtsCont() const {return mPtsCont;}
 
 
 // =========================  INSTANCIATION ===============

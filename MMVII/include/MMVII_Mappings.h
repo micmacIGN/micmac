@@ -994,6 +994,88 @@ class cChangSysCoordV2  : public cDataInvertibleMapping<tREAL8,3>
             tPtrSysCo  mSysTarget;
 };
 
+/**  Class for "tabulating" a map :
+        - store values of the in a grid  (made of images)
+        - use bilinear interpolation for computing values
+        - the map used to construct value is "NOT"  memorizd one object is constructed
+*/
+
+
+template <const int DimIn,const int DimOut> class cTabulMap : public cDataMapping<tREAL8,DimIn,DimOut>
+{
+     public :
+          typedef cTabulMap<DimIn,DimOut>             tTabulMap;
+          typedef  cDataMapping<tREAL8,DimIn,DimOut>  tMap;
+          typedef  typename tMap::tPtIn               tPtIn;
+          typedef  typename tMap::tPtOut              tPtOut;
+          typedef  cPtxd<int,DimIn>                   tPix;
+          typedef  cTplBox<tREAL8,DimIn>              tBoxIn;
+          typedef  cTplBox<tREAL8,DimOut>             tBoxOut;
+          typedef  cDataTypedIm<tREAL8,DimIn>         tDIm;
+          /// Constructor : Map to tabulate, Box on which tabulation must be done, Sz of tabulation
+          cTabulMap(const tMap & aMap,const tBoxIn & aBox,const tPix & aSz);
+          /// Acces to interpolated value, make interfac as a cDataMapping
+          tPtOut  Value(const tPtIn &) const override;
+
+          ///  Destructor : free the images
+          virtual ~cTabulMap() ;
+
+          ///   accessor 
+          const tBoxOut&  BoxOutTabuled() const;
+
+          /// Can we access to BiLin interpolation
+          bool OkValue(const tPtIn &) const;
+    private :
+          cTabulMap(const tTabulMap &) = delete;
+          void operator =(const tTabulMap &) = delete;
+
+                  // {mP0In + MulCByC(aPt,mMulPix2In);}
+          /// Convert grid-coordinates to initial input values
+          inline tPtIn  Pix2In(const tPtIn & aPt) const;
+          inline tPtIn  Pix2In(const tPix & aPt) const;// {mP0In + MulCByC(aPt,mMulPix2In);}
+          inline tPtIn  In2Pix(const tPtIn & aPt) const;// {MulCByC(aPt-mP0In,mMulIn2Pix);}
+
+          tPtIn              mP0In;          ///< Origin in iput space
+          tPtIn              mMulPix2In;     ///< Multipiler Pixel of Grid -> Initial coordinates
+          tPtIn              mMulIn2Pix;     ///< Multipiler  Initial Coordinates -> Pixel of Grid 
+          tBoxOut            mBoxOutTabuled; ///<  Box of out tabulated points
+          std::vector<tDIm*> mVIms;          ///< vector of images to tabulate function
+};
+/**  Class for tabulating an invertible mapping, essentially done of 
+    2 tabluation : direct and invert mapping
+*/
+
+template <const int Dim> class cTabuMapInv : public cDataInvertibleMapping<tREAL8,Dim>
+{
+     public :
+          typedef  cTabuMapInv<Dim>                    tTabuMapInv;
+          typedef  cTabulMap<Dim,Dim>                  tTabuMap;
+          typedef  cDataInvertibleMapping<tREAL8,Dim>  tMap;
+          typedef  typename tMap::tPt                  tPt;
+          typedef  cPtxd<int,Dim>                      tPix;
+
+          /// Constructor : Map to tabulate, Box on which tabulation must be done, Sz of tabulation
+          cTabuMapInv(const tMap & aMap,const cTplBox<tREAL8,Dim> & aBox,const tPix & aSz);
+
+          /// What make it a mapping, Acces to direct tabulation
+          tPt  Value  (const tPt &) const override;
+          /// What make it an invetible mapping , Acces to invert tabulation
+          tPt  Inverse(const tPt &) const override;
+          /// Destructor : free the 2 tabulated
+          virtual ~cTabuMapInv() ;
+
+           bool OkDirect(const tPt &) const;
+           bool OkInverse(const tPt &) const;
+    private :
+          cTabuMapInv(const tTabuMapInv &) = delete;  // non copiable object
+          void operator =(const tTabuMapInv &) = delete;  // non copiable object
+
+          tTabuMap * mTabulMapDir;  ///<  Tabulation Direct Mapping
+          tTabuMap * mTabulMapInv;  ///<  Tabulation Invert Mapping
+};
+
+
+
 
 /*
 Avec R=N(x,y,z) et r=N(x,y)

@@ -215,7 +215,44 @@ cPt2dr cHoughTransform::Line2Pt(const  tSeg2dr &aSeg) const
 }
 
 
-void  cHoughTransform::AccumulatePtAndDir(const cPt2dr & aPt,tREAL8 aTetaC,tREAL8 aWeight)
+// version quick
+
+void  cHoughTransform::Quick_AccumulatePtAndDir(const cPt2dr & aPt,tREAL8 aTetaC,tREAL8 aWeight)
+{
+      //  compute the index-interval, centered on aTetaC, of size mSigmTeta
+      int  iTeta0 = round_down(Teta2RInd(aTetaC-mSigmTeta));
+      int  iTeta1 = round_up(Teta2RInd(aTetaC+mSigmTeta));
+
+      {
+          static bool First= true;
+          if (First)
+             StdOut() << "NBTETA IN HOUGH=" << iTeta1 - iTeta0 << "\n";
+          First = false;
+      }
+
+      // Angle are defined %2PI, make interval > 0
+      if (iTeta0<0)
+      {
+           iTeta0 += mNbTeta;
+           iTeta1 += mNbTeta;
+           aTetaC += 2 * M_PI;
+      }
+      //  Polar coordinate Rho-Teta, are defined arround point mMiddle
+      tREAL8 aX = aPt.x() - mMiddle.x();
+      tREAL8 aY = aPt.y() - mMiddle.y();
+
+      for (int iTeta=iTeta0 ;  iTeta<=iTeta1 ; iTeta++)
+      {
+          int aITetaOK = iTeta%mNbTeta;  // % 2PI => put indexe in interval
+          //   equation :  (x,y) in L  <=> x cos(T) + y Sin(T) = R
+          tREAL8 aRho =   aX * mDTabCos.GetV(aITetaOK) + aY*mDTabSin.GetV(aITetaOK) ;
+          int  aIndRho = round_ni(Rho2RInd(aRho)); // convert Real rho in its index inside accumulator
+	  //  Finally accumulate
+          mDAccum.AddVal(cPt2di(aITetaOK,aIndRho),1.0);
+      }
+}
+
+void  cHoughTransform::Accurate_AccumulatePtAndDir(const cPt2dr & aPt,tREAL8 aTetaC,tREAL8 aWeight)
 {
       //  compute the index-interval, centered on aTetaC, of size mSigmTeta
       int  iTeta0 = round_down(Teta2RInd(aTetaC-mSigmTeta));
@@ -254,6 +291,10 @@ void  cHoughTransform::AccumulatePtAndDir(const cPt2dr & aPt,tREAL8 aTetaC,tREAL
            }
       }
 }
+
+
+
+
 
 tREAL8  cHoughTransform::GetValueBlob(cPt2di aPt,int aMaxNeigh) const
 {

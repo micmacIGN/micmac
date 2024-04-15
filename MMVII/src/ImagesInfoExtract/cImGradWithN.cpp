@@ -130,6 +130,46 @@ template<class Type> cPt2dr   cImGradWithN<Type>::RefinePos(const cPt2dr & aP1) 
 
           /* ************************************************ */
 
+template<class TypeIm,class TypeGrad> 
+    void ComputeSobel
+         (
+              cDataIm2D<TypeGrad> & aDGX,
+              cDataIm2D<TypeGrad> & aDGY,
+              const cDataIm2D<TypeIm>& aDIm
+         )
+{
+     aDGX.AssertSameArea(aDGY);
+     aDGX.AssertSameArea(aDIm);
+     aDGX.InitNull();
+     aDGY.InitNull();
+
+     int aSzX = aDGX.Sz().x();
+     int aSzY = aDGX.Sz().y();
+
+     for (int aKY=1 ; aKY<aSzY-1 ; aKY++)
+     {
+         const TypeIm * aLinePrec = aDIm.ExtractRawData2D()[aKY-1] + 1;
+         const TypeIm * aLineCur  = aDIm.ExtractRawData2D()[aKY]   + 1;
+         const TypeIm * aLineNext = aDIm.ExtractRawData2D()[aKY+1] + 1;
+         TypeGrad * aLineGX = aDGX.ExtractRawData2D()[aKY]   + 1;
+         TypeGrad * aLineGY = aDGY.ExtractRawData2D()[aKY]   + 1;
+         
+          for (int aKX=1 ; aKX<aSzX-1 ; aKX++)
+          {
+              *aLineGX =   aLinePrec[ 1] + 2*aLineCur[1]  + aLineNext[1]
+                          -aLinePrec[-1] - 2*aLineCur[-1] - aLineNext[-1] ;
+
+              *aLineGY =   aLineNext[-1] + 2*aLineNext[0] + aLineNext[1]
+                          -aLinePrec[-1] - 2*aLinePrec[0] - aLinePrec[1] ;
+              aLinePrec++;
+              aLineCur++;
+              aLineNext++;
+              aLineGX++;
+              aLineGY++;
+          }
+     }
+}
+
 template<class Type> void ComputeDericheAndNorm(cImGradWithN<Type> & aResGrad,const cDataIm2D<Type> & aImIn,double aAlpha) 
 {
      ComputeDeriche(aResGrad,aImIn,aAlpha);

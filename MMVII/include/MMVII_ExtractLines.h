@@ -86,7 +86,9 @@ class cHoughTransform
           );
 
          ///  Add  a point with a given direction
-         void  AccumulatePtAndDir(const cPt2dr & aPt,tREAL8 aTeta0,tREAL8 aWeight);
+         void  Quick_AccumulatePtAndDir(const cPt2dr & aPt,tREAL8 aTeta0,tREAL8 aWeight);
+         void  Accurate_AccumulatePtAndDir(const cPt2dr & aPt,tREAL8 aTeta0,tREAL8 aWeight);
+
          cIm2D<tREAL4>      Accum() const; ///< Accessor
 
 	 tREAL8  AvgS2() const; ///< Avg of square, possibly use to measure "compactness"
@@ -188,13 +190,16 @@ template <class Type> class  cExtractLines
 	  /// initialize the gradient
           void SetDericheGradAndMasq(tREAL8 aAlphaDerich,tREAL8 aRayMaxLoc,int aBorder,bool Show=false);
 	  ///  Initialize the hough transform
-          void SetHough(const cPt2dr & aMulTetaRho,tREAL8 aSigmTeta,cPerspCamIntrCalib *,bool AffineMax,bool Show=false);
+          void SetHough(const cPt2dr & aMulTetaRho,tREAL8 aSigmTeta,cPerspCamIntrCalib *,bool Accurate,bool Show=false);
 
 	  /// Generate an image for visualizing the contour,
           cRGBImage MakeImageMaxLoc(tREAL8 aAlphaTransparency);
           
           cHoughTransform &  Hough();  ///< Accessor
           cImGradWithN<Type> &  Grad(); ///< Acessor
+          const std::vector<cPt2di>& PtsCont() const; ///< Accessor
+
+
       private :
           cPt2di                mSz;        ///<  Size of the image
           tIm                   mIm;        ///< Memorize the image
@@ -204,6 +209,7 @@ template <class Type> class  cExtractLines
           cImGradWithN<Type> *  mGrad;          ///< Structure allocated for computing gradient
           cHoughTransform    *  mHough;         ///< Structure allocatedf or computing hough
           cPerspCamIntrCalib *  mCalib;         ///< (Optional) calibration for distorsion correction
+          std::vector<cPt2di>   mPtsCont;      ///< List of point in mImMasqCont
 };
 
 };

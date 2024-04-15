@@ -330,11 +330,12 @@ template <class Type,const int Dim> class cDataTypedIm : public cDataGenUnTypedI
         typedef tNumTrait<Type> tTraits;
         typedef typename tTraits::tBase  tBase;
         typedef cPixBox<Dim>            tPB;
+        typedef cPtxd<int,Dim>          tPix;
 
         const tINT8 & NbElem() const {return tPB::NbElem();} ///< Number total of pixel
-        const cPtxd<int,Dim> & P0() const {return tPB::P0();}  ///< facility
-        const cPtxd<int,Dim> & P1() const {return tPB::P1();}  ///< facility
-        const cPtxd<int,Dim> & Sz() const {return tPB::Sz();}  ///< facility
+        const tPix & P0() const {return tPB::P0();}  ///< facility
+        const tPix & P1() const {return tPB::P1();}  ///< facility
+        const tPix & Sz() const {return tPB::Sz();}  ///< facility
 
         Type * RawDataLin() {return  mRawDataLin;}  ///< linear raw data
         const Type * RawDataLin() const {return  mRawDataLin;}  ///< linear raw data
@@ -362,6 +363,8 @@ template <class Type,const int Dim> class cDataTypedIm : public cDataGenUnTypedI
 
         cDataTypedIm (const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,
                       Type * DataLin=nullptr,eModeInitImage=eModeInitImage::eMIA_NoInit);  ///< Only cstr
+
+        static cDataTypedIm<Type,Dim> * AllocIm(const tPix & );
         virtual ~cDataTypedIm(); ///<   Big obj, do it virtual
         // If Avg=true, All distance-norm are  normalized/averaged , so that const image has a norm equal to the constante
         // This is default for image, but not for matrix/vector
@@ -393,6 +396,12 @@ template <class Type,const int Dim> class cDataTypedIm : public cDataGenUnTypedI
                 /// Set Pixel Float Value
         void VD_SetV(const  cPtxd<int,Dim> & aP,const double & aV)override;
         void Resize(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,eModeInitImage=eModeInitImage::eMIA_NoInit);
+
+        virtual double GetVBL(const  cPtxd<tREAL8,Dim> & aP) const 
+        {
+            MMVII_INTERNAL_ERROR("No Im3D::GetVBL");
+            return 0.0;
+        }
     protected :
 
         ///< Test 4 writing
@@ -409,6 +418,14 @@ template <class Type,const int Dim> class cDataTypedIm : public cDataGenUnTypedI
         Type *   mRawDataLin; ///< raw data containing pixel values
         int      mNbElemMax;  ///< maxim number reached untill now, for resize
 };
+
+/* Add explicit specialization declarations for some compilers */
+
+template <>   cDataTypedIm<tREAL8,1>* cDataTypedIm<tREAL8,1>::AllocIm(const tPix& aPix);
+template <>   cDataTypedIm<tREAL8,2>* cDataTypedIm<tREAL8,2>::AllocIm(const tPix & aPix);
+template <>   cDataTypedIm<tREAL8,3>* cDataTypedIm<tREAL8,3>::AllocIm(const tPix& aPix);
+//template <>  std::string cStrIO<bool>::ToStr(const bool & anI);
+
 
 
 ///  Class for 1D image in Ram of a given type
@@ -441,6 +458,8 @@ template <class Type>  class cDataIm1D  : public cDataTypedIm<Type,1>
            tPB::AssertInsideBL(cPt1dr(aP));
            return  ValueBL(aP);
         }
+        inline double GetVBL(const cPt1dr & aP) const override  {return GetVBL(aP.x());}
+
         const Type & GetV(const cPt1di & aP)  const {return GetV(aP.x());}
         /// Used by matrix/vector interface 
         Type & GetV(const int & aP) { tPB::AssertInside(aP); return  Value(aP); }
@@ -516,6 +535,8 @@ template <class Type>  class cDataIm1D  : public cDataTypedIm<Type,1>
         inline tREAL8  AvgInterv(int aX0,int aX1) const;
 
 	void CropIn(const int & aP0,const cDataIm1D<Type> &);
+        cDataIm1D(const cPt1di & aP0,const cPt1di & aP1,
+                      Type * DataLin=nullptr,eModeInitImage=eModeInitImage::eMIA_NoInit); ///< Called by shared ptr (cIm2D)
     protected :
     private :
         void PostInit();
@@ -523,8 +544,6 @@ template <class Type>  class cDataIm1D  : public cDataTypedIm<Type,1>
 
         cDataIm1D(const cDataIm1D<Type> &) = delete;  ///< No copy constructor for big obj, will add a dup()
         void operator = (const cDataIm1D<Type> &) = delete;  ///< No copy constructor for big obj, will add a dup()
-        cDataIm1D(const cPt1di & aP0,const cPt1di & aP1,
-                      Type * DataLin=nullptr,eModeInitImage=eModeInitImage::eMIA_NoInit); ///< Called by shared ptr (cIm2D)
 
         
         Type & Value(const int & aX)   {return mRawData1D[aX];} ///< Data Access
@@ -620,13 +639,14 @@ template <class Type>  class cDataIm3D  : public cDataTypedIm<Type,3>
         // Not private because called by shared_ptr ...
         virtual ~cDataIm3D();
 
+        cDataIm3D(const cPt3di & aSz,Type * aRawDataLin=nullptr,eModeInitImage aModeInit=eModeInitImage::eMIA_NoInit) ;
+
     private :
         cDataIm3D(const cDataIm3D &) = delete;
         void operator = (const cDataIm3D &) = delete;
         Type & Value(const cPt3di & aP)               {return mRawData3D[aP.z()][aP.y()][aP.x()];} ///< Data Access
         const Type & Value(const cPt3di & aP) const   {return mRawData3D[aP.z()][aP.y()][aP.x()];} /// Const Data Access
 
-        cDataIm3D(const cPt3di & aSz,Type * aRawDataLin,eModeInitImage aModeInit) ;
         tPPVal * mRawData3D;
 };
 
