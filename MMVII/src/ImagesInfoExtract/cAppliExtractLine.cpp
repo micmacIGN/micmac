@@ -22,6 +22,12 @@ This mean almost all the code in in the main loop of accumulator, no much thing 
     Norm    ~ 0.4
     10 Sobel -> 0.4 s !!
 
+
+With tabul-releas
+    Norm * 1  : DericheAndMasq   0003.7359 0003.8297
+    Norm * 21  : DericheAndMasq   0005.2141  0005.0927   5.4152
+    Norm -> 0.075 s
+
 */
 
 /*

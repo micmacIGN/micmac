@@ -106,10 +106,28 @@ class cTabulateGrad
            cTabulateGrad(int aVMax);
 
 	   inline tREAL8 GetRho(const cPt2di & aP) const {return mDataRho->GetV(aP);}
+
+/*
+           template<class TypeGrad,TypeNorm>
+               void ComputeNorm
+                    (
+                         cDataIm2D<TypeNorm> & aDIm,
+                         const cDataIm2D<TypeGrad> & aDGX,
+                         const cDataIm2D<TypeGrad> & aDGY
+                    )
+            {
+                 aDGX.AssertSameArea(aDGY);
+                 aDGX.AssertSameArea(aDIm);
+                 
+                 const TypeGrad * aDataGX = aDGX.RawDataLin();
+                 const TypeGrad * aDataGY = aDGY.RawDataLin();
+                 TypeNorm *       aDataNorm = aDIm.RawDataLin();
+            }
+*/
       private :
-           int mVMax;
-	   int mSz;
-	    
+           int     mVMax;
+           cPt2di  mP0;
+           cPt2di  mP1;
 
 	   tImTab      mTabRho;
 	   tDataImTab* mDataRho;

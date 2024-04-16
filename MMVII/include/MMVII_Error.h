@@ -30,8 +30,8 @@ namespace MMVII
 
 
 // extern int  The_MMVII_DebugLevel = The_MMVII_DebugLevel_InternalError_medium;
-// #define The_MMVII_DebugLevel The_MMVII_DebugLevel_BenchError
-#define The_MMVII_DebugLevel The_MMVII_DebugLevel_InternalError_tiny
+#define The_MMVII_DebugLevel The_MMVII_DebugLevel_BenchError
+// #define The_MMVII_DebugLevel The_MMVII_DebugLevel_InternalError_tiny
 // #define The_MMVII_DebugLevel The_MMVII_DebugLevel_BenchError
 // #define The_MMVII_DebugLevel The_MMVII_DebugLevel_UserError
 

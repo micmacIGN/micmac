@@ -7,6 +7,25 @@
 namespace MMVII
 {
 
+
+cTabulateGrad::cTabulateGrad(int aVMax) :
+   mVMax     (aVMax),
+   mP0       (-mVMax,-mVMax),
+   mP1       (1+mVMax,1+mVMax),
+   mTabRho   (mP0,mP1),
+   mDataRho  (&mTabRho.DIm()),
+   mTabTeta  (mP0,mP1),
+   mDataTeta (&mTabTeta.DIm())
+{
+   for (const auto & aPix : *mDataRho)
+   {
+        cPt2dr aPol = ToPolar(ToR(aPix),0.0);
+        mDataRho->SetV(aPix,aPol.x());
+        mDataTeta->SetV(aPix,aPol.y());
+   }
+}
+
+
 /* ************************************************************************ */
 /*                                                                          */
 /*                       cImGradWithN                                       */
@@ -133,14 +152,31 @@ template<class Type> cPt2dr   cImGradWithN<Type>::RefinePos(const cPt2dr & aP1) 
 
 template<class Type> void ComputeDericheAndNorm(cImGradWithN<Type> & aResGrad,const cDataIm2D<Type> & aImIn,double aAlpha) 
 {
-     ComputeDeriche(aResGrad,aImIn,aAlpha);
      // ComputeSobel(*aResGrad.mDGx,*aResGrad.mDGy,aImIn);
      // TruncadeComputeSobel(*aResGrad.mDGx,*aResGrad.mDGy,aImIn,2,256);
 
-     auto & aDN =  aResGrad.NormG().DIm();
-     for (const auto &  aPix : aDN)
+     if (1)
      {
-           aDN.SetV(aPix,Norm2(aResGrad.Grad(aPix)));
+         int aVMax = 256;
+         TruncadeComputeSobel(*aResGrad.mDGx,*aResGrad.mDGy,aImIn,2,aVMax);
+         cTabulateGrad aTabG(aVMax);
+         auto & aDN =  aResGrad.NormG().DIm();
+
+         for (const auto &  aPix : aDN)
+         {
+             int aGX = aResGrad.mDGx->GetV(aPix);
+             int aGY = aResGrad.mDGy->GetV(aPix);
+             aDN.SetV(aPix,aTabG.GetRho(cPt2di(aGX,aGY)));
+         }
+     }
+     else
+     {
+         ComputeDeriche(aResGrad,aImIn,aAlpha);
+         auto & aDN =  aResGrad.NormG().DIm();
+         for (const auto &  aPix : aDN)
+         {
+               aDN.SetV(aPix,Norm2(aResGrad.Grad(aPix)));
+         }
      }
 }
 
