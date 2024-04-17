@@ -156,9 +156,10 @@ template <class Type> class  cImGradWithN : public cImGrad<Type>
         ///  Constructor using size
         cImGradWithN(const cPt2di & aSz);
         ///  Constructor using image & Alpha-Deriche parameters
-        cImGradWithN(const cDataIm2D<Type> & aImIn,Type aAlphaDeriche);
+        void  SetDeriche(cDataIm2D<Type> & aDIm,Type aAlphaDeriche);
 
-
+        ///  Compute sobel and norm with tabulation
+        void  SetQuickSobel(cDataIm2D<Type> & aDIm,cTabulateGrad &,int aDiv);
 
 	/// Is it a local-maxima in the direction of the gradient
         bool  IsMaxLocDirGrad(const cPt2di& aPix,const std::vector<cPt2di> &,tREAL8 aRatioXY = 1.0) const;
@@ -189,6 +190,7 @@ template <class Type> class  cExtractLines
 
 	  /// initialize the gradient
           void SetDericheGradAndMasq(tREAL8 aAlphaDerich,tREAL8 aRayMaxLoc,int aBorder,bool Show=false);
+
 	  ///  Initialize the hough transform
           void SetHough(const cPt2dr & aMulTetaRho,tREAL8 aSigmTeta,cPerspCamIntrCalib *,bool Accurate,bool Show=false);
 

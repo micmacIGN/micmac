@@ -48,14 +48,50 @@ template<class TypeIm,class TypeGrad>
      }
 }
 
+
+
+class cTabulateGrad
+{
+      public :
+           typedef cIm2D<tREAL4>      tImTab;
+           typedef cDataIm2D<tREAL4>  tDataImTab;
+
+           cTabulateGrad(int aVMax);
+
+	   inline tREAL8 GetRho(const cPt2di & aP) const {return mDataRho->GetV(aP);}
+
+           template<class TypeGrad,class TypeNorm>
+               void ComputeNorm
+                    (
+                         cDataIm2D<TypeNorm> & aDIm,
+                         const cDataIm2D<TypeGrad> & aDGX,
+                         const cDataIm2D<TypeGrad> & aDGY
+                    )
+            {
+                 aDGX.AssertSameArea(aDGY);
+                 aDGX.AssertSameArea(aDIm);
+                 
+                 const TypeGrad * aDataGX = aDGX.RawDataLin();
+                 const TypeGrad * aDataGY = aDGY.RawDataLin();
+                 TypeNorm *       aDataNorm = aDIm.RawDataLin();
+                 tREAL4 ** aDataTabRho = mDataRho->ExtractRawData2D();
+               
+                 for ( int aNb= aDGY.NbElem(); aNb>0 ; aNb--)
+                 {
+                     *aDataNorm = aDataTabRho[(int)*aDataGY][(int)*aDataGX]; 
+                     aDataGX++;
+                     aDataGY++;
+                     aDataNorm++;
+                 }
+            }
+
 template<class TypeIm,class TypeGrad>
-    void TruncadeComputeSobel
+    void ComputeSobel
          (
               cDataIm2D<TypeGrad> & aDGX,
               cDataIm2D<TypeGrad> & aDGY,
               const cDataIm2D<TypeIm>& aDIm,
-	      int  aDiv,
-	      int  aMaxVal
+	      int  aDiv
          )
 {
      aDGX.AssertSameArea(aDGY);
@@ -81,8 +117,8 @@ template<class TypeIm,class TypeGrad>
               int aGY =  ( aLineNext[-1] + 2*aLineNext[0] + aLineNext[1]
                           -aLinePrec[-1] - 2*aLinePrec[0] - aLinePrec[1]) / aDiv ;
 
-              aGX = std::max(-aMaxVal,std::min(aMaxVal,aGX));
-              aGY = std::max(-aMaxVal,std::min(aMaxVal,aGY));
+              aGX = std::max(mVMin,std::min(mVMax,aGX));
+              aGY = std::max(mVMin,std::min(mVMax,aGY));
 
 	      *aLineGX= aGX;
 	      *aLineGY= aGY;
@@ -96,35 +132,9 @@ template<class TypeIm,class TypeGrad>
      }
 }
 
-
-class cTabulateGrad
-{
-      public :
-           typedef cIm2D<tREAL4>      tImTab;
-           typedef cDataIm2D<tREAL4>  tDataImTab;
-
-           cTabulateGrad(int aVMax);
-
-	   inline tREAL8 GetRho(const cPt2di & aP) const {return mDataRho->GetV(aP);}
-
-/*
-           template<class TypeGrad,TypeNorm>
-               void ComputeNorm
-                    (
-                         cDataIm2D<TypeNorm> & aDIm,
-                         const cDataIm2D<TypeGrad> & aDGX,
-                         const cDataIm2D<TypeGrad> & aDGY
-                    )
-            {
-                 aDGX.AssertSameArea(aDGY);
-                 aDGX.AssertSameArea(aDIm);
-                 
-                 const TypeGrad * aDataGX = aDGX.RawDataLin();
-                 const TypeGrad * aDataGY = aDGY.RawDataLin();
-                 TypeNorm *       aDataNorm = aDIm.RawDataLin();
-            }
-*/
+            int  VMax() const; ///< Accessor
       private :
+           int     mVMin;
            int     mVMax;
            cPt2di  mP0;
            cPt2di  mP1;

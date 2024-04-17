@@ -1,6 +1,8 @@
 #include "MMVII_PCSens.h"
 #include "MMVII_ImageInfoExtract.h"
 #include "MMVII_ExtractLines.h"
+#include "MMVII_TplGradImFilter.h"
+
 
 
 namespace MMVII
@@ -120,7 +122,21 @@ template <class Type> void cExtractLines<Type>::SetHough
 template <class Type> void cExtractLines<Type>::SetDericheGradAndMasq(tREAL8 aAlpha,tREAL8 aRay,int aBorder,bool Show)
 {
      // Create the data for storing gradient & init gradient
-     mGrad = new cImGradWithN<Type>(mIm.DIm(),aAlpha);
+     mGrad = new cImGradWithN<Type>(mIm.DIm().Sz());
+
+     bool Quick = true;
+     cTabulateGrad * aTabG =  nullptr;
+     if (Quick)
+        aTabG =new cTabulateGrad(256);
+         
+     if (Quick)
+     {
+         mGrad->SetQuickSobel(mIm.DIm(),*aTabG,2);
+     }
+     else 
+     {
+         mGrad->SetDeriche(mIm.DIm(),aAlpha);
+     }
 
      cRect2 aRect(mImMasqCont.DIm().Dilate(-aBorder)); // rect interior 
      std::vector<cPt2di>  aVecNeigh = cImGradWithN<Type>::NeighborsForMaxLoc(aRay); // neigbours for compute max
@@ -142,6 +158,7 @@ template <class Type> void cExtractLines<Type>::SetDericheGradAndMasq(tREAL8 aAl
 
      if (Show)
         StdOut()<< " Prop Contour = " << mNbPtsCont / double(aNbPt) << "\n";
+     delete aTabG;
 }
 
 /* Generate a RGB-image :

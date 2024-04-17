@@ -246,6 +246,7 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         
         Type & Value(const cPt2di & aP)   {return mRawData2D[aP.y()][aP.x()];} ///< Data Access
         const Type & Value(const cPt2di & aP) const   {return mRawData2D[aP.y()][aP.x()];} /// Const Data Access
+        const Type & Value(int aX,int aY) const   {return mRawData2D[aY][aX];} /// Const Data Access
 
         /** Bilinear interpolation */
         double  ValueBL(const cPt2dr & aP)  const

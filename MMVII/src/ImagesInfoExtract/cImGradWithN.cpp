@@ -9,6 +9,7 @@ namespace MMVII
 
 
 cTabulateGrad::cTabulateGrad(int aVMax) :
+   mVMin     (-aVMax),
    mVMax     (aVMax),
    mP0       (-mVMax,-mVMax),
    mP1       (1+mVMax,1+mVMax),
@@ -25,6 +26,7 @@ cTabulateGrad::cTabulateGrad(int aVMax) :
    }
 }
 
+int cTabulateGrad::VMax() const {return mVMax;}
 
 /* ************************************************************************ */
 /*                                                                          */
@@ -41,11 +43,17 @@ template <class Type>
 {
 }
 
-template <class Type>   
-  cImGradWithN<Type>::cImGradWithN(const cDataIm2D<Type> & aImIn,Type aAlphaDeriche) :
-	   cImGradWithN<Type>(aImIn.Sz())
+template <class Type>    void cImGradWithN<Type>::SetDeriche(cDataIm2D<Type> & aDIm,Type aAlphaDeriche)
 {
-    ComputeDericheAndNorm(*this,aImIn,aAlphaDeriche);
+    mNormG.DIm().AssertSameArea(aDIm);
+    ComputeDericheAndNorm(*this,aDIm,aAlphaDeriche);
+}
+
+template<class Type> void cImGradWithN<Type>::SetQuickSobel(cDataIm2D<Type> & aDIm,cTabulateGrad & aTab,int aDiv)
+{
+   // TruncadeComputeSobel(*this->mDGx,*this->mDGy,aDIm,2,aTab.VMax());
+   aTab.ComputeSobel(*this->mDGx,*this->mDGy,aDIm,aDiv);
+   aTab.ComputeNorm(mDataNG, *this->mDGx,*this->mDGy);
 }
 
 
@@ -148,37 +156,20 @@ template<class Type> cPt2dr   cImGradWithN<Type>::RefinePos(const cPt2dr & aP1) 
     return OneRefinePos(OneRefinePos(aP1));
 }
 
+
+
           /* ************************************************ */
 
 template<class Type> void ComputeDericheAndNorm(cImGradWithN<Type> & aResGrad,const cDataIm2D<Type> & aImIn,double aAlpha) 
 {
-     // ComputeSobel(*aResGrad.mDGx,*aResGrad.mDGy,aImIn);
-     // TruncadeComputeSobel(*aResGrad.mDGx,*aResGrad.mDGy,aImIn,2,256);
-
-     if (1)
-     {
-         int aVMax = 256;
-         TruncadeComputeSobel(*aResGrad.mDGx,*aResGrad.mDGy,aImIn,2,aVMax);
-         cTabulateGrad aTabG(aVMax);
-         auto & aDN =  aResGrad.NormG().DIm();
-
-         for (const auto &  aPix : aDN)
-         {
-             int aGX = aResGrad.mDGx->GetV(aPix);
-             int aGY = aResGrad.mDGy->GetV(aPix);
-             aDN.SetV(aPix,aTabG.GetRho(cPt2di(aGX,aGY)));
-         }
-     }
-     else
-     {
          ComputeDeriche(aResGrad,aImIn,aAlpha);
          auto & aDN =  aResGrad.NormG().DIm();
          for (const auto &  aPix : aDN)
          {
                aDN.SetV(aPix,Norm2(aResGrad.Grad(aPix)));
          }
-     }
 }
+
 
 template class cImGradWithN<tREAL4>;
 template void ComputeDericheAndNorm(cImGradWithN<tREAL4> & aResGrad,const cDataIm2D<tREAL4> & aImIn,double aAlpha) ;

@@ -322,6 +322,7 @@ typedef std::shared_ptr<cSysCoordV2>      tPtrSysCo;
 typedef std::shared_ptr<cChangSysCoordV2> tPtrChSys;
 
 
+class cTabulateGrad;
 
 };
 

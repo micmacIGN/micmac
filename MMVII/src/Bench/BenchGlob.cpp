@@ -193,6 +193,13 @@ void TestDir(const std::string & aDir);
 
 void Bench_0000_String(cParamExeBench & aParam)
 {
+    int aNb=0;
+    for (int aK=10 ; aK>0 ; aK--)
+        aNb++;
+    MMVII_INTERNAL_ASSERT_bench(aNb==10,"Test for (int aK=10 ; aK>0 ; aK--)");
+
+
+
     if (! aParam.NewBench("StringOperation")) return;
     // Bench elem sur la fonction SplitString
     // std::vector<std::string> aSplit;
