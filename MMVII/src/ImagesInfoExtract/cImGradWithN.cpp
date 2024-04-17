@@ -51,7 +51,6 @@ template <class Type>    void cImGradWithN<Type>::SetDeriche(cDataIm2D<Type> & a
 
 template<class Type> void cImGradWithN<Type>::SetQuickSobel(cDataIm2D<Type> & aDIm,cTabulateGrad & aTab,int aDiv)
 {
-   // TruncadeComputeSobel(*this->mDGx,*this->mDGy,aDIm,2,aTab.VMax());
    aTab.ComputeSobel(*this->mDGx,*this->mDGy,aDIm,aDiv);
    aTab.ComputeNorm(mDataNG, *this->mDGx,*this->mDGy);
 }
