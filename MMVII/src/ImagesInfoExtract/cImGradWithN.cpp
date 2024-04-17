@@ -60,6 +60,7 @@ void cTabulateGrad::TabulateTabAng(int aNbDir)
 void cTabulateGrad::TabulateNeighMaxLocGrad(int aNbDir,tREAL8 aRho)
 {
     TabulateTabAng(aNbDir);
+    tREAL8 aSinMax= 0.8;
 
     if ((int) mTabNeighMaxLocGrad.size() != aNbDir)
     {
@@ -73,9 +74,8 @@ void cTabulateGrad::TabulateNeighMaxLocGrad(int aNbDir,tREAL8 aRho)
                  tREAL8 aNorm = Norm2(aPixN);
                  if ((aNorm>0) && (aNorm<aRho))
                  {
-                     cPt2dr   DirLoc = VUnit(ToR(aPixN)) / aDirTeta;
-                     tREAL8 aSin = std::abs(DirLoc.y());
-                     if (aSin < 0.8)
+                     cPt2dr   aDirLoc = VUnit(ToR(aPixN)) / aDirTeta;
+                     if ((aDirLoc.x() >0) && (std::abs(aDirLoc.y())  < aSinMax))
                      {
                      }
                  }
