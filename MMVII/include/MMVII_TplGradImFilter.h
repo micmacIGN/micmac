@@ -57,6 +57,7 @@ class cTabulateGrad
            typedef cDataIm2D<tREAL4>  tDataImTab;
 
            cTabulateGrad(int aVMax);
+           void TabulateNeighMaxLocGrad(int aNbDir,tREAL8 aRho);
 
 	   inline tREAL8 GetRho(const cPt2di & aP) const {return mDataRho->GetV(aP);}
 
@@ -132,10 +133,18 @@ template<class TypeIm,class TypeGrad>
      }
 }
 
-            int  VMax() const; ///< Accessor
       private :
+           int  VMax() const; ///< Accessor
+           void TabulateTabAng(int aNbDir);
+           int  Teta2Index(tREAL8 Teta) const;
+           tREAL8  Index2Teta(int aInd) const;
+
+
+
+           typedef tU_INT1  tInAng;
            int     mVMin;
            int     mVMax;
+           int     mNbDirTabAng;
            cPt2di  mP0;
            cPt2di  mP1;
 
@@ -143,6 +152,11 @@ template<class TypeIm,class TypeGrad>
 	   tDataImTab* mDataRho;
 	   tImTab      mTabTeta;
 	   tDataImTab* mDataTeta;
+
+           cIm2D<tInAng>       mImIndAng;
+           cDataIm2D<tInAng>*  mDataIIA;
+
+           std::vector<std::vector<cPt2di> > mTabNeighMaxLocGrad;
 };
 
 

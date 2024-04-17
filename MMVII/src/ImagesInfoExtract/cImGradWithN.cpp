@@ -11,12 +11,15 @@ namespace MMVII
 cTabulateGrad::cTabulateGrad(int aVMax) :
    mVMin     (-aVMax),
    mVMax     (aVMax),
+   mNbDirTabAng (0),
    mP0       (-mVMax,-mVMax),
    mP1       (1+mVMax,1+mVMax),
    mTabRho   (mP0,mP1),
    mDataRho  (&mTabRho.DIm()),
    mTabTeta  (mP0,mP1),
-   mDataTeta (&mTabTeta.DIm())
+   mDataTeta (&mTabTeta.DIm()),
+   mImIndAng (cPt2di(1,1)),
+   mDataIIA  (nullptr)
 {
    for (const auto & aPix : *mDataRho)
    {
@@ -27,6 +30,61 @@ cTabulateGrad::cTabulateGrad(int aVMax) :
 }
 
 int cTabulateGrad::VMax() const {return mVMax;}
+
+int cTabulateGrad::Teta2Index(tREAL8 Teta) const
+{
+    return  mod (  round_ni((mNbDirTabAng*Teta)/(2*M_PI)) , mNbDirTabAng);
+}
+
+tREAL8 cTabulateGrad::Index2Teta(int aInd) const
+{
+    return  (mod(aInd,mNbDirTabAng) * 2*M_PI) / mNbDirTabAng;
+}
+
+void cTabulateGrad::TabulateTabAng(int aNbDir)
+{
+     if (mNbDirTabAng==aNbDir)
+        return;
+
+     mNbDirTabAng= aNbDir;
+
+     mImIndAng =  cIm2D<tInAng> (mP0,mP1);
+     mDataIIA  = & mImIndAng.DIm();
+
+     for (const auto & aPix : *mDataRho)
+     {
+         mDataIIA->SetV(aPix,Teta2Index(mDataTeta->GetV(aPix)));
+     }
+}
+
+void cTabulateGrad::TabulateNeighMaxLocGrad(int aNbDir,tREAL8 aRho)
+{
+    TabulateTabAng(aNbDir);
+
+    if ((int) mTabNeighMaxLocGrad.size() != aNbDir)
+    {
+        mTabNeighMaxLocGrad.clear();
+        for (int aKTeta=0 ; aKTeta<mNbDirTabAng ; aKTeta++)
+        {
+             cPt2dr aDirTeta = FromPolar(1.0,Index2Teta(aKTeta));
+
+             for (const auto aPixN : cRect2::BoxWindow(round_up(aRho)))
+             {
+                 tREAL8 aNorm = Norm2(aPixN);
+                 if ((aNorm>0) && (aNorm<aRho))
+                 {
+                     cPt2dr   DirLoc = VUnit(ToR(aPixN)) / aDirTeta;
+                     tREAL8 aSin = std::abs(DirLoc.y());
+                     if (aSin < 0.8)
+                     {
+                     }
+                 }
+             }
+        }
+    }
+}
+
+
 
 /* ************************************************************************ */
 /*                                                                          */

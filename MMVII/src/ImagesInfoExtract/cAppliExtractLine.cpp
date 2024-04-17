@@ -85,15 +85,6 @@ RELEASE :
 namespace MMVII
 {
 
-template <class TypeIm,class TypeGrad> class cIntGradIm
-{
-     public :
-        typedef cIm2D<TypeIm>        tIm;
-        typedef cDataIm2D<TypeIm>    tDIm;
-        typedef cIm2D<TypeGrad>      tGrad;
-        typedef cDataIm2D<TypeGrad>  tDGrad;
-};
-
 /* =============================================== */
 /*                                                 */
 /*                 cAppliExtractLine               */
