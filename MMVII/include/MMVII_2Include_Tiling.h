@@ -34,16 +34,18 @@ template <const int Dim> class cTilingIndex : cMemCheck
            typedef std::list<int>        tLIInd;
 
 	   /// Constructor from Bounding Box and target number of case, WihBoxOut indicate if we allow to put point outside box
-	   cTilingIndex(const tRBox &,bool WithBoxOut, int aNbCase);
+	   cTilingIndex(const tRBox &,bool WithBoxOut, int aNbCase); // NCase= targeted total, not by dimension
 
 	   /// Number of tiles
 	   size_t  NbElem() const;
            bool  OkOut() const;  ///<  Accessor 
            const tRBox & Box() const;
 
-        protected :
 	   /// Convert  R^n -> N^n
 	   tIPt  PtIndex(const tRPt &) const;
+
+	   const tIBox &  IBoxIn() const {return mIBoxIn;} ///< accessor
+        protected :
 	   /// Convert  R^n -> N
 	   int   IIndex(const tRPt &) const;
 
@@ -56,17 +58,19 @@ template <const int Dim> class cTilingIndex : cMemCheck
 
         private :
 
+	   cTilingIndex(const cTilingIndex<Dim> &) = delete;
+	   void operator = (const cTilingIndex<Dim> &) = delete;
 	   /// Helper in constructor
 	   static tREAL8  ComputeStep(const tRBox &, int aNbCase);
 	  
 	   // tIPt  Index(const tRPt &) const;
-	   tRBox    mRBoxIn;
-	   bool     mOkOut;
-	   int      mNbCase;
+	   tRBox    mRBoxIn;  ///< copy of in box
+	   bool     mOkOut;   ///< is it ok if object are out
+	   int      mNbCase;  ///< targeted total number of case/small boxx
 
-	   tREAL8   mStep;
-	   tIPt     mSzI;
-	   tIBox    mIBoxIn;
+	   tREAL8   mStep;  ///< computed step 
+	   tIPt     mSzI;   ///< number of case in each dim
+	   tIBox    mIBoxIn; ///< box number + add a margin for object outside
 };
 
 /*  For fast retrieving of object in tiling at given point position we test equality with a
@@ -202,6 +206,8 @@ template <const int TheDim> class cPointSpInd
          tPrimGeom  mPt;
 };
 
+
+/** Class for generating point such that all pairs are at distance > given value */
 template <const int TheDim> class cGeneratePointDiff
 {
      public :
@@ -212,29 +218,9 @@ template <const int TheDim> class cGeneratePointDiff
            typedef cPointSpInd<Dim>      tPSI;
            typedef cTiling<tPSI>         tTiling;
 
-           cGeneratePointDiff(const tRBox & aBox,tREAL8 aDistMin,int aNbMax=1000) :
-               mNbMax   (std::min(aNbMax,(round_down(aBox.NbElem()/pow(aDistMin,TheDim))))),
-               mTiling  (aBox,true,mNbMax,-1),
-               mDistMin (aDistMin)
-           {
-           }
-
-           tRPt GetNewPoint(int aNbTest=1000)
-           {
-               for (int aK=0 ; aK<aNbTest ; aK++)
-               {
-                    tRPt aRes =  mTiling.Box().GeneratePointInside();
-                    auto aL = mTiling.GetObjAtDist(aRes,mDistMin);
-                    if (aL.empty())
-                    {
-                            mTiling.Add(tPSI(aRes));
-                            return aRes;
-                    }
-               }
-               MMVII_INTERNAL_ERROR("Could not GetNewPoint in cGeneratePointDiff");
-               return tRPt::PCste(0);
-           }
-
+           cGeneratePointDiff(const tRBox & aBox,tREAL8 aDistMin,int aNbMax=1000) ;
+	   ///  generate a new point
+           tRPt GetNewPoint(int aNbTest=1000);
 
      private :
            int      mNbMax;

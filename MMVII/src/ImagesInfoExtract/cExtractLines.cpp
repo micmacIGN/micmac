@@ -125,9 +125,14 @@ template <class Type> void cExtractLines<Type>::SetDericheGradAndMasq(tREAL8 aAl
      mGrad = new cImGradWithN<Type>(mIm.DIm().Sz());
 
      bool Quick = true;
+     bool IsWhite = true;
+
      cTabulateGrad * aTabG =  nullptr;
      if (Quick)
+     {
         aTabG =new cTabulateGrad(256);
+	aTabG->TabulateNeighMaxLocGrad(63,1.7,aRay);  // 1.7=> maintain 8-neighboor,  63 ~
+     }
          
      if (Quick)
      {
@@ -148,7 +153,10 @@ template <class Type> void cExtractLines<Type>::SetDericheGradAndMasq(tREAL8 aAl
      for (const auto & aPix :  aRect)
      {
          aNbPt++;
-         if (mGrad->IsMaxLocDirGrad(aPix,aVecNeigh,1.0)) // aPix,Neigbours,aRatioXY
+	 bool IsMaxLoc =  Quick                                             ?
+		            mGrad->TabIsMaxLocDirGrad(aPix,*aTabG,IsWhite)  :
+			    mGrad->IsMaxLocDirGrad(aPix,aVecNeigh,1.0)      ;
+         if (IsMaxLoc)
          {
             mPtsCont.push_back(aPix);
             mImMasqCont.DIm().SetV(aPix,255);

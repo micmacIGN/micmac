@@ -335,7 +335,6 @@ void cHoughTransform::ExtendMoreTeta() const
 }
 
 
-#if (1)
 std::vector<cPt3dr>  cHoughTransform::ExtractLocalMax(size_t aNbMax,tREAL8 aDist,tREAL8 aThrAvg,tREAL8 aThrMax) const
 {
     ExtendMoreTeta();
@@ -420,63 +419,5 @@ std::vector<cPt3dr>  cHoughTransform::ExtractLocalMax(size_t aNbMax,tREAL8 aDist
 
     return aRes;
 }
-
-#else
-
-std::vector<cPt3dr>  cHoughTransform::ExtractLocalMax(size_t aNbMax,tREAL8 aDist,tREAL8 aThrAvg,tREAL8 aThrMax) const
-{
-    // [0]  Make a duplication as we will modify the accum
-    cIm2D<tREAL4> anAccum = mAccum.Dup();
-    cDataIm2D<tREAL4>& aDAccum = anAccum.DIm();
-
-    // [1]  Compute average , max and  threshold
-    //    [1.A]   : max & avg
-    tREAL8 aAvg = 0;
-    tREAL8 aVMax = 0;
-    for (const auto & aPix : aDAccum)
-    {
-         tREAL8 aVal = aDAccum.GetV(aPix);
-	 aAvg += aVal;
-	 UpdateMax(aVMax,aVal);
-    }
-    aAvg /= aDAccum.NbElem();
-
-    //    [1.B]    Threshlod is the stricter of both
-    tREAL8 aThrHold = std::max(aAvg*aThrAvg,aVMax*aThrMax);
-
-
-    // [2] Set to 0 point < aThrHold (to limitate number of pre-sel & accelerate IKthVal
-    for (const auto & aPix : aDAccum)
-    {
-        if (aDAccum.GetV(aPix)<aThrHold)
-        {
-            aDAccum.SetV(aPix,0.0);
-	}
-    }
-
-    // [3]  Extract the local maxima
-    cResultExtremum aExtr(false,true);
-    ExtractExtremum1(aDAccum,aExtr,aDist);
-
-    // [4] Refine the point and give a value to the max
-
-    std::vector<cPt3dr> aRes;
-    cAffineExtremum<tREAL4>  aAffin(mAccum.DIm(),1.5);
-    for (const auto aPt : aExtr.mPtsMax)
-    {
-         cPt2dr aPAff = aAffin.OneIter(ToR(aPt));
-	 if ( mDAccum.InsideBL(aPAff))
-            aRes.push_back(cPt3dr(aPAff.x(),aPAff.y(),GetValueBlob(aPt,7)));
-    }
-
-    // [5] Sort with highest value first, then select NbMax
-    SortOnCriteria(aRes,[](const auto & aP) {return -aP.z();});
-    while (aRes.size() > aNbMax)  
-          aRes.pop_back();
-
-
-    return aRes;
-}
-#endif
 
 };

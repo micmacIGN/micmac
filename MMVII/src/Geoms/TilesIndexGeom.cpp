@@ -3,6 +3,42 @@
 namespace MMVII
 {
 
+/* **************************************** */
+/*                                          */
+/*              cTilingIndex                */
+/*                                          */
+/* **************************************** */
+
+template <const int TheDim> 
+   cGeneratePointDiff<TheDim>:: cGeneratePointDiff(const tRBox & aBox,tREAL8 aDistMin,int aNbMax) :
+      mNbMax   (std::min(aNbMax,(round_down(aBox.NbElem()/pow(aDistMin,TheDim))))),
+      mTiling  (aBox,true,mNbMax,-1),
+      mDistMin (aDistMin)
+{
+}
+           
+                      ///  generate a new point
+template <const int TheDim> 
+    typename cGeneratePointDiff<TheDim>::tRPt cGeneratePointDiff<TheDim>::GetNewPoint(int aNbTest)
+{
+               for (int aK=0 ; aK<aNbTest ; aK++)
+               {
+                    tRPt aRes =  mTiling.Box().GeneratePointInside();  // generate a new random point
+                    auto aL = mTiling.GetObjAtDist(aRes,mDistMin);  // extract all point at a given distance
+                    if (aL.empty())   // if empty OK
+                    {
+                            mTiling.Add(tPSI(aRes));  // memo in the box
+                            return aRes;  // return value
+                    }
+               }
+               MMVII_INTERNAL_ERROR("Could not GetNewPoint in cGeneratePointDiff");
+               return tRPt::PCste(0);
+}
+/*	 
+	   */
+
+template class cGeneratePointDiff<2>;
+
 
 
 /* **************************************** */
@@ -23,7 +59,7 @@ template <const int Dim> tREAL8  cTilingIndex<Dim>::ComputeStep(const tRBox & aB
 
     tRPt aPStep = DivCByC(aSz,ToR(aPNb)); // Step for each dim
 
-    return MinAbsCoord(aPStep);
+    return MinAbsCoord(aPStep); // smallest of each size
 }
 
 
@@ -62,9 +98,11 @@ template <const int Dim> typename cTilingIndex<Dim>::tLIInd cTilingIndex<Dim>::G
       return tLIInd({IIndex(aPt)});
 }
 
+
 template <const int Dim> typename cTilingIndex<Dim>::tLIInd cTilingIndex<Dim>::GetCrossingIndexes(const tRBox & aBox)  const
 {
       tLIInd aRes;
+
       tIPt  aPI0 = PtIndex(aBox.P0());
       tIPt  aPI1 = PtIndex(aBox.P1()) + tIPt::PCste(1);
 
@@ -76,6 +114,7 @@ template <const int Dim> typename cTilingIndex<Dim>::tLIInd cTilingIndex<Dim>::G
       }
       return aRes;
 }
+
 
 
 
@@ -154,6 +193,7 @@ void OneBenchSpatialIndex()
        MMVII_INTERNAL_ASSERT_bench(aExtr!=nullptr,"Spat index, ungot unexpected");
     }
 
+    // Test etObjAtDist
     for (int aK=0 ; aK<100 ; aK++)
     {
          cPt2dr aP0 = aBoxMargin.GeneratePointInside();

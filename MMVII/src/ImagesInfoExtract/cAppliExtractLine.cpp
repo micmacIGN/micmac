@@ -158,7 +158,7 @@ cAppliExtractLine::cAppliExtractLine(const std::vector<std::string> & aVArgs,con
     mCalib            (nullptr),
     // mCalDUD           (nullptr),
     mNbTabCalib       (100),
-    mAccurateHough    (true),
+    mAccurateHough    (false),
     mThreshCpt        {100,200,400,600},
     mTransparencyCont (0.5),
     mExtrL            (nullptr),
@@ -283,7 +283,7 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
 
     // Compute Gradient and extract max-loc in gradient direction
     cAutoTimerSegm  anATSDerAndMasq (mTimeSeg,"DericheAndMasq");
-    mExtrL->SetDericheGradAndMasq(2.0,10.0,2,mShow); // aAlphaDerich,aRayMaxLoc,aBorder
+    mExtrL->SetDericheGradAndMasq(2.0,10.0,12,mShow); // aAlphaDerich,aRayMaxLoc,aBorder
 						     
     // Compute Hough-Transform
     cAutoTimerSegm  anATSHough (mTimeSeg,"Hough");

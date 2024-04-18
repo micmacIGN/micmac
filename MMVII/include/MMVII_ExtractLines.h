@@ -163,6 +163,10 @@ template <class Type> class  cImGradWithN : public cImGrad<Type>
 
 	/// Is it a local-maxima in the direction of the gradient
         bool  IsMaxLocDirGrad(const cPt2di& aPix,const std::vector<cPt2di> &,tREAL8 aRatioXY = 1.0) const;
+
+	/// Idem "IsMaxLocDirGrad" but used tabulated grad to accelerate
+	bool  TabIsMaxLocDirGrad(const cPt2di& aPix,const cTabulateGrad &,bool isWhite) const;
+
 	/// Allocat the neighbourhood use for computing local-maxima
         static  std::vector<cPt2di>  NeighborsForMaxLoc(tREAL8 aRay);
         cIm2D<Type>      NormG() {return mNormG;}  ///< Accessor
