@@ -100,7 +100,7 @@ int cAppli_ImportTriplet::Exe()
 
         std::string aNameDirTwoView = DirOfFile(mNameFile) + aTriXML.Name1() + "/" + aTriXML.Name2() + "/";
         std::string aNameTriplet = aNameDirTwoView + "Triplet-OriOpt-" + aTriXML.Name3() + (mFileBin ? ".dat" : ".xml");
-
+        //StdOut() << aNameTriplet << std::endl;
 
         cXml_Ori3ImInit aXml3Ori = StdGetFromSI(aNameTriplet,Xml_Ori3ImInit);
 
@@ -140,6 +140,7 @@ int cAppli_ImportTriplet::Exe()
                                 aIm3in1_rot.Centre().y,
                                 aIm3in1_rot.Centre().z);
 
+        //StdOut() << aTriXML.Name1() << " " << aTriXML.Name2() << " " << aTriXML.Name3() << std::endl;
         //StdOut() << "centers: " << aCenter21 << " " << aCenter31 << std::endl;
 
         tPose aPose1 = cIsometry3D<tREAL8>::Identity();
@@ -148,9 +149,10 @@ int cAppli_ImportTriplet::Exe()
 
         cTriplet aTri;
 
-        aTri.PVec().push_back(cView(tPose::Identity(),aTriXML.Name1()));
-        aTri.PVec().push_back(cView(tPose(aCenter21,aR21),aTriXML.Name2()));
-        aTri.PVec().push_back(cView(tPose(aCenter31,aR31),aTriXML.Name3()));
+        aTri.PVec()[0] = (cView(tPose::Identity(),aTriXML.Name1()));
+        aTri.PVec()[1] = (cView(tPose(aCenter21,aR21),aTriXML.Name2()));
+        aTri.PVec()[2] = (cView(tPose(aCenter31,aR31),aTriXML.Name3()));
+
 
         ///metrics (B/h, residual)
         aTri.BH() = aXml3Ori.BSurH();

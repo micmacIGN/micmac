@@ -2,6 +2,7 @@
 #define  _MMVII_POSE_TRIPLET_H_
 
 #include "MMVII_PCSens.h"
+#include "MMVII_Tpl_Images.h"
 
 namespace MMVII
 {
@@ -10,6 +11,13 @@ class cView;
 class cTriplet;
 class cTripletSet;
 
+
+
+typedef cIsometry3D<tREAL8>  tPose;
+cSimilitud3D<double> ComputeSim3D(std::vector<tPose>&,
+                                  std::vector<tPose>& );
+double DistBase(cPt3dr,cPt3dr);
+
 class cView : public cMemCheck
 {
     public:
@@ -17,8 +25,11 @@ class cView : public cMemCheck
         cView(const tPose,const std::string);
         cView();
 
-        const std::string & Name() {return mName;}
-        const tPose & Pose() {return mPose;}
+        const std::string & Name() const {return mName;}
+        std::string & Name() {return mName;}
+
+        tPose & Pose()  {return mPose;}
+        const tPose & Pose() const {return mPose;}
 
         void AddData(const cAuxAr2007&);
 

@@ -10,6 +10,85 @@ class cTriplet; ///< a class storing three views
 
 typedef cIsometry3D<tREAL8>  tPose;
 
+double DistBase(cPt3dr  aB1,cPt3dr  aB2)
+{
+      if (aB1.x()*aB2.x()+aB1.y()*aB2.y() < 0) aB2 = - aB2;
+      double aD1 = Norm2(aB1);
+      double aD2 = Norm2(aB2);
+
+      if (aD1 > aD2)
+         aB1 = aB1 * (aD2/aD1);
+      else
+         aB2 = aB2 * (aD1/aD2);
+
+      return Norm2(aB1-aB2);
+}
+
+cSimilitud3D<double> ComputeSim3D(std::vector<tPose>& aVPosesA,
+                                  std::vector<tPose>& aVPosesB)
+{
+    MMVII_INTERNAL_ASSERT_always( aVPosesA.size() == aVPosesB.size(), "ComputeSim3D vectors of different sizes" );
+
+
+    ///
+    /// \brief Calculte  rotation
+    ///
+    cDenseMatrix<double> aRotation(3,3,eModeInitImage::eMIA_Null);
+    for (size_t aK=0; aK<aVPosesA.size(); aK++ )
+    {
+        cDenseMatrix<double> aRotCur = aVPosesA[aK].Rot().Mat()
+                                     * aVPosesB[aK].Rot().Mat().Transpose();
+
+        // add two matrices
+        aRotation = aRotation + aRotCur;
+
+    }
+    aRotation = aRotation * (1.0/aVPosesA.size());
+    aRotation = aRotation.ClosestOrthog();
+    cRotation3D aRot3d(aRotation,false);
+
+    ///
+    ///  \brief Calculate scale and translation
+    ///
+    std::vector<cPt3dr> aVP1;
+    std::vector<cPt3dr> aVP2;
+    cPt3dr aCentroidA(0,0,0);
+    cPt3dr aCentroidB(0,0,0);
+    for (size_t aK=0; aK<aVPosesA.size(); aK++ )
+    {
+        cPt3dr anOrigin(0,0,0);
+        cPt3dr aP1 = aVPosesA[aK].Tr() + aVPosesA[aK].Rot().Mat() * anOrigin;
+        cPt3dr aP2 = aVPosesB[aK].Tr() + aVPosesB[aK].Rot().Mat() * anOrigin;
+
+        aVP1.push_back(aP1);
+        aVP2.push_back(aP2);
+
+        aCentroidA += aP1;
+        aCentroidB += aP2;
+    }
+    aCentroidA = aCentroidA * (1.0/aVPosesA.size());
+    aCentroidB = aCentroidB * (1.0/aVPosesB.size());
+
+    double aSumD1=0;
+    double aSumD2=0;
+    for (size_t aK=0; aK<aVPosesA.size(); aK++ )
+    {
+        double aDist1 = Norm2(aVP1[aK]-aCentroidA);
+        double aDist2 = Norm2(aVP2[aK]-aCentroidB);
+
+        aSumD1 += aDist1;
+        aSumD2 += aDist2;
+    }
+    aSumD1 /= aVPosesA.size();
+    aSumD2 /= aVPosesB.size();
+
+    double aScale = aSumD1/aSumD2;
+
+    cPt3dr aTr = aCentroidA - aCentroidB * aScale;
+
+    return cSimilitud3D<double>(aScale,aTr,aRot3d);
+}
+
    /* ********************************************************** */
    /*                                                            */
    /*                        cView                               */
