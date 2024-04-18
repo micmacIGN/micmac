@@ -1031,12 +1031,14 @@ class cIMakeTreeAr : public cAr2007,
 	tIterCTk              mItLR;
         std::string           mNameFile;
 	eTypeSerial           mTypeS;
+        bool mError;
 };
 
 cIMakeTreeAr::cIMakeTreeAr(const std::string & aName,eTypeSerial aTypeS)  :
     cAr2007   (true,true,false),
     mNameFile (aName),
-    mTypeS    (aTypeS)
+    mTypeS    (aTypeS),
+    mError    (false)
 {
    DEBUG = true;
 
@@ -1069,6 +1071,7 @@ cIMakeTreeAr::cIMakeTreeAr(const std::string & aName,eTypeSerial aTypeS)  :
 cResLex cIMakeTreeAr::GetNextLex() 
 {
 
+   if (mError) return cResLex("Tree error",{},{});
    if (mItLR==mListRL.end())
    {
         MMVII_INTERNAL_ASSERT_tiny(false,"End of list in mListRL for :" + mNameFile);
@@ -1080,6 +1083,7 @@ cResLex cIMakeTreeAr::GetNextLex()
 
 void cIMakeTreeAr::OnTag(const cAuxAr2007& aTag,bool IsUp)
 {
+   if (mError) return;
    if ((mTypeS==eTypeSerial::ejson)  && ( (aTag.Name() == StrElCont) || (aTag.Name()==StrElMap)))
        return;
    cResLex aRL = GetNextLexNotSizeCont();
@@ -1088,11 +1092,14 @@ void cIMakeTreeAr::OnTag(const cAuxAr2007& aTag,bool IsUp)
    if (aRL.mLexP != (IsUp ? eLexP::eUp  : eLexP::eDown))
    {
         StdOut() <<  "Error on lex " << int(aRL.mLexP)  << ", got '" << aRL.mVal  << "' when expecting '" <<  aTag.Name() << "' in file " << mNameFile << std::endl;
+        mError = true;
         MMVII_INTERNAL_ASSERT_tiny(false ,"Bad token cIMakeTreeAr::RawBegin-EndName");
+        return;
    }
    if (aRL.mVal  != aTag.Name())
    {
       StdOut() <<  "Error on lex " << int(aRL.mLexP)  << ", got '" << aRL.mVal  << "' when expecting '" <<  aTag.Name() << "' in file " << mNameFile << std::endl;
+      mError = true;
       MMVII_INTERNAL_ASSERT_tiny(false,"Bad tag cIMakeTreeAr::RawBegin-EndName");
    }
 }
@@ -1100,6 +1107,7 @@ void cIMakeTreeAr::OnTag(const cAuxAr2007& aTag,bool IsUp)
 
 void cIMakeTreeAr::RawBeginName(const cAuxAr2007& anIT)
 {
+   if (mError) return;
    OnTag(anIT,true);
 	/*
    cResLex aRL = GetNextLexNotSizeCont();
@@ -1113,6 +1121,7 @@ void cIMakeTreeAr::RawBeginName(const cAuxAr2007& anIT)
 
 void cIMakeTreeAr::RawEndName(const cAuxAr2007& anIT)
 {
+   if (mError) return;
    OnTag(anIT,false);
    /*
    cResLex aRL = GetNextLexNotSizeCont();
@@ -1125,6 +1134,7 @@ void cIMakeTreeAr::RawEndName(const cAuxAr2007& anIT)
 
 void cIMakeTreeAr::AddDataSizeCont(int & aNb,const cAuxAr2007 & anAux)
 {
+   if (mError) return;
    cResLex aRL = GetNextLexSizeCont();
 
    aNb = cStrIO<int>::FromStr(aRL.mVal);
@@ -1132,6 +1142,7 @@ void cIMakeTreeAr::AddDataSizeCont(int & aNb,const cAuxAr2007 & anAux)
 
 int cIMakeTreeAr::NbNextOptionnal(const std::string & aTag) 
 {
+    if (mError) return 0;
     tIterCTk    aCurIt =  mItLR;
     int aResult = 0;
 
@@ -1147,30 +1158,35 @@ int cIMakeTreeAr::NbNextOptionnal(const std::string & aTag)
 
 void cIMakeTreeAr::RawAddDataTerm(int &    anI)  
 {
+   if (mError) return;
    cResLex aRL = GetNextLexNotSizeCont();
    FromS(aRL.mVal,anI);
 }
 
 void cIMakeTreeAr::RawAddDataTerm(size_t &    aSz)  
 {
+   if (mError) return;
    cResLex aRL = GetNextLexNotSizeCont();
    FromS(aRL.mVal,aSz);
 }
 
 void cIMakeTreeAr::RawAddDataTerm(double &    aD)  
 {
+   if (mError) return;
    cResLex aRL = GetNextLexNotSizeCont();
    FromS(aRL.mVal,aD);
 }
 
 void cIMakeTreeAr::RawAddDataTerm(std::string &    aS)  
 {
+   if (mError) return;
    cResLex aRL = GetNextLexNotSizeCont();
    aS = aRL.mVal;
 }
 
 void cIMakeTreeAr::RawAddDataTerm(cRawData4Serial &    aRDS)  
 {
+   if (mError) return;
    cResLex aRL = GetNextLexNotSizeCont();
    const char * aCPtr = aRL.mVal.c_str();
 
