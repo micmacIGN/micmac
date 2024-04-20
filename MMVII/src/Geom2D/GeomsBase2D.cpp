@@ -68,6 +68,42 @@ template <class Type> Type cSegment2DCompiled<Type>::DistLine(const tPt& aPt) co
     return std::abs(Scal(mNorm,aPt - this->mP1));
 }
 
+template <class Type> Type cSegment2DCompiled<Type>::DistClosedSeg(const tPt& aPt) const
+{
+    tPt aPL = ToCoordLoc(aPt);
+
+    if (aPL.x() < 0)
+       return  Norm2(aPL);
+    if (aPL.x() >  this->mN2)
+      return  Norm2(aPt-this->mP2);
+
+    return std::abs(aPL.y());
+}
+
+/* ========================== */
+/*         cClosedSeg2D       */
+/* ========================== */
+
+
+
+cClosedSeg2D::cClosedSeg2D(const cPt2dr & aP0,const cPt2dr & aP1) :
+    mSeg (aP0,aP1)
+{
+}
+
+bool  cClosedSeg2D::InfEqDist(const cPt2dr & aPt,tREAL8 aDist) const
+{
+      return mSeg.DistClosedSeg(aPt) < aDist;
+}
+
+cBox2dr cClosedSeg2D::GetBoxEnglob() const
+{
+        return cBox2dr(mSeg.P1(),mSeg.P2(),true);
+}
+
+const cSegment2DCompiled<tREAL8> & cClosedSeg2D::Seg() const {return mSeg;}
+
+
 /* ========================== */
 /*         cMapEstimate       */
 /* ========================== */

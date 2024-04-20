@@ -9,6 +9,17 @@ namespace MMVII
 
 template <const int Dim> class cTilingIndex;
 template <class Type>  class  cTiling ;
+template <class Type>  class  cPrimGeom ;
+
+
+template <class TypeObj>  class  cPrimGeom 
+{
+       public :
+           static const int TheDim  =       TypeObj::TheDim;
+           typedef cPtxd<tREAL8,TheDim>     tRPt;
+           typedef cTplBox<tREAL8,TheDim>   tRBox;
+};
+
 
 /* **************************************** */
 /*                                          */
@@ -41,10 +52,18 @@ template <const int Dim> class cTilingIndex : cMemCheck
            bool  OkOut() const;  ///<  Accessor 
            const tRBox & Box() const;
 
-	   /// Convert  R^n -> N^n
-	   tIPt  PtIndex(const tRPt &) const;
+	   /// Convert  R^n -> N^n, return the bottom corner of box-index containing aPt
+	   tIPt  RPt2PIndex(const tRPt & aPt) const;
+	   /// Invert of RPt2PIndex, work R/R
+	   tRPt  PIndex2RPt(const tRPt &) const;
+	   /// Return the middle of the box
+	   tRPt  PIndex2MidleBox(const tIPt &) const;
 
 	   const tIBox &  IBoxIn() const {return mIBoxIn;} ///< accessor
+	   const tREAL8 &  Step() const {return mStep;} ///< accessor
+
+	   int  PInd2II(const tIPt & aPInt) {return mIBoxIn.IndexeLinear(aPInt);}
+
         protected :
 	   /// Convert  R^n -> N
 	   int   IIndex(const tRPt &) const;
@@ -56,7 +75,7 @@ template <const int Dim> class cTilingIndex : cMemCheck
 
 	   void AssertInside(const tRPt &) const;
 
-        private :
+
 
 	   cTilingIndex(const cTilingIndex<Dim> &) = delete;
 	   void operator = (const cTilingIndex<Dim> &) = delete;
@@ -71,6 +90,7 @@ template <const int Dim> class cTilingIndex : cMemCheck
 	   tREAL8   mStep;  ///< computed step 
 	   tIPt     mSzI;   ///< number of case in each dim
 	   tIBox    mIBoxIn; ///< box number + add a margin for object outside
+	   std::vector<bool>  mIndIsBorder;
 };
 
 /*  For fast retrieving of object in tiling at given point position we test equality with a
@@ -111,6 +131,7 @@ template <class Type>  class  cTiling : public cTilingIndex<Type::Dim>
            typedef cTilingIndex<Type::Dim>  tTI;
            typedef typename tTI::tRBox      tRBox;
            typedef typename tTI::tRPt       tRPt;
+           typedef typename tTI::tIPt       tIPt;
 
            typedef typename Type::tPrimGeom tPrimGeom;
            typedef typename Type::tArgPG    tArgPG;
@@ -136,7 +157,8 @@ template <class Type>  class  cTiling : public cTilingIndex<Type::Dim>
                }
 
                //  Put object in all  box that it crosses
-               for (const auto &  aInd :  tTI::GetCrossingIndexes(anObj.GetPrimGeom(mArgPG))  )
+	       const tPrimGeom & aPrimGeom = anObj.GetPrimGeom(mArgPG);
+               for (const auto &  aInd :  tTI::GetCrossingIndexes(aPrimGeom))
                {
                    mVTiles.at(aInd).push_back(anObj);
                }
@@ -165,20 +187,61 @@ template <class Type>  class  cTiling : public cTilingIndex<Type::Dim>
            }
 
 	   /// return list of object at given dist
+/*	
 	   template <class tPrimG2> std::list<Type*> GetObjAtDist(const tPrimG2 &aPrimG2,tREAL8 aDist)
 	   {
                  std::list<Type*> aRes;
 		 tRBox  aBox = aPrimG2.GetBoxEnglob().Dilate(aDist);  // Get indices of boxes that crosse englobing box
+		 tREAL8 aDistWMargin = aDist + this->Step() * sqrt(Dim) * 1.001 ;
+FakeUseIt(aDistWMargin);
 		 for (const auto & anInd : this->GetCrossingIndexes(aBox))
 		 {
-                      for (auto & anObj : mVTiles.at(anInd)) // Parse all obj of each tile
+                      //if (aPrimG2.InfEqDist(PIndex2MidleBox(anInd.P0()),aDistWMargin))
 		      {
-                           if (aPrimG2.InfEqDist(anObj.GetPrimGeom(mArgPG),aDist))
-                              aRes.push_back(&anObj);
+                         for (auto & anObj : mVTiles.at(anInd)) // Parse all obj of each tile
+		         {
+                             if (aPrimG2.InfEqDist(anObj.GetPrimGeom(mArgPG),aDist))
+                                aRes.push_back(&anObj);
+		         }
 		      }
 		 }
                  return aRes;
 	   }
+	   */
+	   template <class tPrimG2> std::list<Type*> GetObjAtDist(const tPrimG2 &aPrimG2,tREAL8 aDist)
+	   {
+                 std::list<Type*> aRes;
+		 tRBox  aBox = aPrimG2.GetBoxEnglob().Dilate(aDist);  // Get indices of boxes that crosse englobing box
+	         tIPt  aPI0 = this->RPt2PIndex(aBox.P0());
+                 tIPt  aPI1 = this->RPt2PIndex(aBox.P1()) + tIPt::PCste(1);
+                 cPixBox<Dim> aBoxI(aPI0,aPI1);
+
+		 [[maybe_unused]] tREAL8 aDistWMargin = aDist + (this->Step()*0.5) * std::sqrt(Dim) * 1.001 ;
+                 for (const auto & aPInt : aBoxI)
+		 {
+                     int aInd = this->PInd2II(aPInt);
+
+                      if (   (this->mIndIsBorder.at(aInd))  // border box cannot be bounded 
+                          || aPrimG2.InfEqDist(this->PIndex2MidleBox(aPInt),aDistWMargin)  
+                        )
+		      {
+			 // int anInd = this->PInd2II(aPInt);
+                         for (auto & anObj : mVTiles.at(aInd))   // Parse all obj of each tile
+		         {
+
+                             if (aPrimG2.InfEqDist(anObj.GetPrimGeom(mArgPG),aDist))
+                                aRes.push_back(&anObj);
+		         }
+		      }
+		 }
+                 return aRes;
+	   }
+
+
+
+
+
+
      private :
 	   tVectTiles  mVTiles;
 	   tArgPG      mArgPG;

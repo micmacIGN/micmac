@@ -855,7 +855,7 @@ template <class Type,const int Dim> class cSegmentCompiled : public cSegment<Typ
        cSegmentCompiled(const tPt& aP1,const tPt& aP2);
        cSegmentCompiled(const cSegment<Type,Dim>&);
        tPt  Proj(const tPt &) const;
-       Type Dist(const tPt &) const;
+       Type Dist(const tPt &) const; // dist to full line
 
        const Type & N2 () const;
        const tPt  & Tgt() const;

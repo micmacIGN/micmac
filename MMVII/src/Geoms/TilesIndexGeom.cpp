@@ -3,17 +3,18 @@
 namespace MMVII
 {
 
+
 /* **************************************** */
 /*                                          */
-/*              cTilingIndex                */
+/*              cGeneratePointDiff          */
 /*                                          */
 /* **************************************** */
 
 template <const int TheDim> 
    cGeneratePointDiff<TheDim>:: cGeneratePointDiff(const tRBox & aBox,tREAL8 aDistMin,int aNbMax) :
-      mNbMax   (std::min(aNbMax,(round_down(aBox.NbElem()/pow(aDistMin,TheDim))))),
-      mTiling  (aBox,true,mNbMax,-1),
-      mDistMin (aDistMin)
+      mNbMax           (std::min(aNbMax,(round_down(aBox.NbElem()/pow(aDistMin,TheDim))))),
+      mTiling          (aBox,true,mNbMax,-1),
+      mDistMin         (aDistMin)
 {
 }
            
@@ -64,13 +65,18 @@ template <const int Dim> tREAL8  cTilingIndex<Dim>::ComputeStep(const tRBox & aB
 
 
 template <const int Dim>  cTilingIndex<Dim>::cTilingIndex(const tRBox & aBox,bool OkOut, int aNbCase) :
-	mRBoxIn  (aBox),
-	mOkOut   (OkOut),
-        mNbCase  (aNbCase),
-	mStep    (ComputeStep(aBox,aNbCase)),
-	mSzI     (Pt_round_up(aBox.Sz()/mStep)),
-        mIBoxIn  (  tIBox(tIPt::PCste(0),mSzI+tIPt::PCste(2)))
+	mRBoxIn      (aBox),
+	mOkOut       (OkOut),
+        mNbCase      (aNbCase),
+	mStep        (ComputeStep(aBox,aNbCase)),
+	mSzI         (Pt_round_up(aBox.Sz()/mStep)),
+        mIBoxIn      (  tIBox(tIPt::PCste(0),mSzI+tIPt::PCste(2))),
+        mIndIsBorder (NbElem(),false)
 {
+    cBorderPixBox<Dim> aBorder(mIBoxIn,1);
+
+    for (const auto& aPix : aBorder)
+        mIndIsBorder.at(PInd2II(aPix)) = true;
     // StdOut()  <<  " -- SSSS=" << mStep << " " << mSzI << std::endl;
     // StdOut()  <<  mIBoxIn.P0()  << mIBoxIn.P1() << std::endl;
     // StdOut()  <<  mIBoxIn.Proj(cPt2di(1,1))   << mIBoxIn.Proj(cPt2di(-3,-3))  << mIBoxIn.Proj(cPt2di(10,10)) << std::endl;
@@ -83,14 +89,26 @@ template <const int Dim> void cTilingIndex<Dim>::AssertInside(const tRPt & aPt) 
     MMVII_INTERNAL_ASSERT_tiny(mOkOut || mRBoxIn.Inside(aPt),"cTilingIndex point out");
 }
 
-template <const int Dim>  typename cTilingIndex<Dim>::tIPt  cTilingIndex<Dim>::PtIndex(const tRPt & aPt) const
+template <const int Dim>  typename cTilingIndex<Dim>::tIPt  cTilingIndex<Dim>::RPt2PIndex(const tRPt & aPt) const
 {
      return  mIBoxIn.Proj( Pt_round_down((aPt-mRBoxIn.P0())/mStep) + tIPt::PCste(1)   );
 }
 
+template <const int Dim>  typename cTilingIndex<Dim>::tRPt  cTilingIndex<Dim>::PIndex2RPt(const tRPt & aPt) const
+{
+	return    (aPt-tRPt::PCste(1.0))*mStep + mRBoxIn.P0();
+}
+
+template <const int Dim>  typename cTilingIndex<Dim>::tRPt  cTilingIndex<Dim>::PIndex2MidleBox(const tIPt & aPt) const
+{
+	return PIndex2RPt(ToR(aPt) + tRPt::PCste(0.5));
+}
+
+
+
 template <const int Dim>  int  cTilingIndex<Dim>::IIndex(const tRPt & aPt) const
 {
-	return mIBoxIn.IndexeLinear(PtIndex(aPt));
+	return mIBoxIn.IndexeLinear(RPt2PIndex(aPt));
 }
 
 template <const int Dim> typename cTilingIndex<Dim>::tLIInd cTilingIndex<Dim>::GetCrossingIndexes(const tRPt & aPt)  const
@@ -103,8 +121,8 @@ template <const int Dim> typename cTilingIndex<Dim>::tLIInd cTilingIndex<Dim>::G
 {
       tLIInd aRes;
 
-      tIPt  aPI0 = PtIndex(aBox.P0());
-      tIPt  aPI1 = PtIndex(aBox.P1()) + tIPt::PCste(1);
+      tIPt  aPI0 = RPt2PIndex(aBox.P0());
+      tIPt  aPI1 = RPt2PIndex(aBox.P1()) + tIPt::PCste(1);
 
       cPixBox<Dim> aBoxI(aPI0,aPI1);
 
@@ -153,11 +171,16 @@ template <const int Dim> struct cVerifSpatial
 
        cVerifSpatial(const tRPt & aC ,tREAL8 aD) : mC  (aC), mD  (aD) { }
 
-       void Add(const tRPt & aP)
+       void Add(const tRPt & aP,tREAL8 aD)
        {
-           tREAL8 aW = std::pow(std::max(0.0,mD-Norm2(aP-mC)),0.5);
+           tREAL8 aW = std::pow(std::max(0.0,mD-aD),0.5);
            mWAvg.Add(aW,aP);
        }
+       void Add(const tRPt & aP)
+       {
+	       Add(aP,Norm2(aP-mC));
+       }
+
 
        cWeightAv<tREAL8,tRPt>  mWAvg;
        tRPt                    mC;
@@ -165,8 +188,16 @@ template <const int Dim> struct cVerifSpatial
 };
 
 
+bool  DBUG = true;
+static int CPT=0;
+bool  BRKTILE=false;
+
+
 void OneBenchSpatialIndex()
 {
+CPT++;
+BRKTILE = (CPT==18);
+
     tREAL8 aMul = RandInInterval(0.1,10);
     cPt2dr aSz = cPt2dr(0.01,0.01) + cPt2dr::PRand() * aMul;  // generate size >0 
     cPt2dr aSzMargin = aSz * RandInInterval(0.01,0.1);   //  generate some margin to have point outside
@@ -181,9 +212,18 @@ void OneBenchSpatialIndex()
 
     // Test the function GetObjAtPos
     std::list<cPt2dr>  aLPt;
-    for (int aK=0 ; aK<100 ; aK++)
+    for (int aK=0 ; aK<  (DBUG?1:100) ; aK++)
     {
        cPt2dr aPt = aBoxMargin.GeneratePointInside();
+
+       {
+            cPt2di aP0 = aSI.RPt2PIndex(aPt);
+	    cPt2dr aP1 = aSI.PIndex2MidleBox(aP0);
+	    cPt2di aP2 = aSI.RPt2PIndex(aP1);
+	    // StdOut() << "OneBenchSpatialIndexOneBenchSpatialIndex : " << aP1 << aP0 << aP2 << "\n";  //  getchar();
+            MMVII_INTERNAL_ASSERT_bench(aP0==aP2,"Spat index RPt2PIndex/PIndex2MidleBox");
+       }
+       
        aLPt.push_back(aPt);
        cPointSpInd<2> * aExtr = aSI.GetObjAtPos(aPt);
        MMVII_INTERNAL_ASSERT_bench(aExtr==nullptr,"Spat index, got unexpected");
@@ -194,27 +234,67 @@ void OneBenchSpatialIndex()
     }
 
     // Test etObjAtDist
-    for (int aK=0 ; aK<100 ; aK++)
+    for (int aK=0 ; aK<(DBUG?1:100) ; aK++)
     {
-         cPt2dr aP0 = aBoxMargin.GeneratePointInside();
 	 tREAL8 aDist =  aMul * std::max(1e-5,std::pow(RandUnif_0_1(),3)); // max -> else bug in dilate
-         std::list<cPointSpInd<2>*> aL = aSI.GetObjAtDist(aP0,aDist);
+         cPt2dr aP0 = aBoxMargin.GeneratePointInside();
+         {
+
+              std::list<cPointSpInd<2>*> aL = aSI.GetObjAtDist(aP0,aDist);
 
 
-	 cVerifSpatial<2>  aVerif1(aP0,aDist);
-	 for (const auto & aObj : aL)
-	 {
-              aVerif1.Add(aObj->GetPrimGeom());
+	      cVerifSpatial<2>  aVerif1(aP0,aDist);
+	      for (const auto & aObj : aL)
+	      {
+                   aVerif1.Add(aObj->GetPrimGeom());
+	      }
+
+	      cVerifSpatial<2>  aVerif2(aP0,aDist);
+	      for (const auto & aPt : aLPt)
+	      {
+                   aVerif2.Add(aPt);
+	      }
+
+	      MMVII_INTERNAL_ASSERT_bench(Norm2(aVerif1.mWAvg.SVW()-aVerif2.mWAvg.SVW())<1e-5,"GetObjAtDist");
 	 }
-
-	 cVerifSpatial<2>  aVerif2(aP0,aDist);
-	 for (const auto & aPt : aLPt)
-	 {
-              aVerif2.Add(aPt);
-	 }
-
-	 MMVII_INTERNAL_ASSERT_bench(Norm2(aVerif1.mWAvg.SVW()-aVerif2.mWAvg.SVW())<1e-5,"GetObjAtDist");
 	 //StdOut() << "Llllllll " << Norm2(aVerif1.mWAvg.SVW()-aVerif2.mWAvg.SVW()) << std::endl;
+
+	 if (aK%10==0)
+	 {
+	    cVerifSpatial<2>  aVerif1(aP0,aDist);
+	    cVerifSpatial<2>  aVerif2(aP0,aDist);
+
+            cPt2dr aP1 = aP0;
+	    while (Norm2(aP1-aP0)<1e-5)
+                  aP1 = aBoxMargin.GeneratePointInside();
+
+	    cClosedSeg2D  aSeg(aP0,aP1);
+	    std::list<cPointSpInd<2>*> aL = aSI.GetObjAtDist(aSeg,aDist);
+
+	    for (const auto & aPt : aL)
+	    {
+                 tREAL8 aDistSegPt = aSeg.Seg().DistClosedSeg(aPt->GetPrimGeom()) ;
+	         // StdOut() << " DDDD "  <<  aSeg.Seg().DistClosedSeg(aPt->GetPrimGeom()) << " " << aDist << "\n";
+                 aVerif2.Add(aPt->GetPrimGeom(),aDistSegPt);
+	    }
+
+	    int aNbIn=0;
+	    for (const auto & aPt : aLPt)
+	    {
+                tREAL8 aDistSegPt = aSeg.Seg().DistClosedSeg(aPt) ;
+                aVerif1.Add(aPt,aDistSegPt);
+		if (aDistSegPt<aDist)
+                   aNbIn++;
+	    }
+
+StdOut() <<  "SegDDD==" << Norm2(aVerif1.mWAvg.SVW()- aVerif2.mWAvg.SVW()) 
+	 << " NN " << aL.size() << " " << aNbIn 
+	 << " CPT=" << CPT
+	 << "\n";
+if (BRKTILE) getchar();
+
+
+	 }
     }
     //getchar();
 }
@@ -223,6 +303,8 @@ void OneBenchSpatialIndex()
 
 void Bench_SpatialIndex(cParamExeBench & aParam)
 {
+     cPrimGeom <cPt2dr>  aPG;  FakeUseIt(aPG);
+
      if (! aParam.NewBench("SpatialIndex")) return;
 
 
