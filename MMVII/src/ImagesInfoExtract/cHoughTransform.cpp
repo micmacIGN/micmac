@@ -14,16 +14,23 @@ namespace MMVII
 /* ************************************************************************ */
 
 cHoughPS::cHoughPS(const cHoughTransform * aHT,const cPt2dr & aTR,tREAL8 aCumul,const cPt2dr & aP1,const cPt2dr & aP2) :
-    mHT       (aHT),
-    mTetaRho  (aTR),
-    mCumul    (aCumul),
-    mSegE     (aP1,aP2),
-    mCode     (eCodeHPS::Ok)
+    mHT          (aHT),
+    mTetaRho     (aTR),
+    mCumul       (aCumul),
+    mSegE        (aP1,aP2),
+    mOldSeg      (mSegE),
+    mCode        (eCodeHPS::Ok),
+    mIsBestMatch (false)
 {
     InitMatch();
 }
 
-
+void cHoughPS::UpdateSegImage(const tSeg & aNewSeg,tREAL8 aNewCumul)
+{
+    mCumul = aNewCumul;
+    mSegE = aNewSeg;
+    mTetaRho = mHT->Line2PtInit(aNewSeg);
+}
 
 
 tREAL8 cHoughPS::DistAnglAntiPar(const cHoughPS& aPS2) const
@@ -53,6 +60,9 @@ const tREAL8 & cHoughPS::Cumul()     const {return mCumul;}
 cHoughPS * cHoughPS::Matched() const {return mMatched;}
 eCodeHPS  cHoughPS::Code() const  {return mCode;}
 void cHoughPS::SetCode(eCodeHPS aCode) {  mCode = aCode;}
+
+bool cHoughPS::IsBestMatch() const  {return mIsBestMatch;}
+void cHoughPS::SetIsBestMatch()  {mIsBestMatch=true;}
 
 cPt2dr  cHoughPS::IndTetaRho() const
 {
@@ -201,7 +211,8 @@ cHoughPS* cHoughTransform::PtToLine(const cPt3dr & aPt) const
 
    return new cHoughPS(this,cPt2dr(aTeta,aRho),aPt.z(),aP0-aTgt,aP0+aTgt);
 }
-cPt2dr cHoughTransform::Line2Pt(const  tSeg2dr &aSeg) const
+
+cPt2dr cHoughTransform::Line2PtInit(const  tSeg2dr &aSeg) const
 {
    // Grad = (C,S) 
    // T (-S,C)=  (C,S) * (0,-1) =  Grad * (-J)
@@ -211,7 +222,13 @@ cPt2dr cHoughTransform::Line2Pt(const  tSeg2dr &aSeg) const
    tREAL8 aTeta = Teta(aGrad);
    tREAL8 aRho = Scal(aGrad,aSeg.PMil() - mMiddle);
 
-   return cPt2dr(Teta2RInd(aTeta),Rho2RInd(aRho));
+   return cPt2dr(aTeta,aRho);
+}
+
+cPt2dr cHoughTransform::Line2PtPixel(const  tSeg2dr &aSeg) const
+{
+   cPt2dr aTR = Line2PtInit(aSeg);
+   return cPt2dr(Teta2RInd(aTR.x()),Rho2RInd(aTR.y()));
 }
 
 

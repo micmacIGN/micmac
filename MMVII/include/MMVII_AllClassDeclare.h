@@ -302,6 +302,10 @@ class cSetMesGCP ;
 class cSetMesPtOf1Im ;
 class cMesIm1Pt;
 
+// Tiling index
+template <class Type>  class  cTiling ;
+
+
 //   MMVII_BlocRig.h
     //  RIGIDBLOC  
 class cSetSensSameId;     

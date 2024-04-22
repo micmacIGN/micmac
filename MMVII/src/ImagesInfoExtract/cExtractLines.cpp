@@ -17,19 +17,22 @@ namespace MMVII
 
 
 template <class Type> cExtractLines<Type>::cExtractLines(tIm anIm) :
-       mSz       (anIm.DIm().Sz()),
-       mIm       (anIm),
-       mImMasqCont   (mSz,nullptr,eModeInitImage::eMIA_Null),
-       mGrad     (nullptr),
-       mHough    (nullptr),
-       mCalib    (nullptr)
+       mSz         (anIm.DIm().Sz()),
+       mIm         (anIm),
+       mImMasqCont (mSz,nullptr,eModeInitImage::eMIA_Null),
+       mDImMasq    (mImMasqCont.DIm()),
+       mGrad       (nullptr),
+       mTabG       (new cTabulateGrad(256)),
+       mHough      (nullptr),
+       mCalib      (nullptr)
 {
 }
 
 template <class Type> cExtractLines<Type>::~cExtractLines()
 {
-    delete mGrad;
     delete mHough;
+    delete mTabG;
+    delete mGrad;
 }
 
 template <class Type> void cExtractLines<Type>::SetHough
@@ -127,16 +130,10 @@ template <class Type> void cExtractLines<Type>::SetDericheGradAndMasq(tREAL8 aAl
      bool Quick = true;
      bool IsWhite = true;
 
-     cTabulateGrad * aTabG =  nullptr;
      if (Quick)
      {
-        aTabG =new cTabulateGrad(256);
-	aTabG->TabulateNeighMaxLocGrad(63,1.7,aRay);  // 1.7=> maintain 8-neighboor,  63 ~
-     }
-         
-     if (Quick)
-     {
-         mGrad->SetQuickSobel(mIm.DIm(),*aTabG,2);
+	 mTabG->TabulateNeighMaxLocGrad(63,1.7,aRay);  // 1.7=> maintain 8-neighboor,  63 ~
+         mGrad->SetQuickSobel(mIm.DIm(),*mTabG,2);
      }
      else 
      {
@@ -154,19 +151,18 @@ template <class Type> void cExtractLines<Type>::SetDericheGradAndMasq(tREAL8 aAl
      {
          aNbPt++;
 	 bool IsMaxLoc =  Quick                                             ?
-		            mGrad->TabIsMaxLocDirGrad(aPix,*aTabG,IsWhite)  :
+		            mGrad->TabIsMaxLocDirGrad(aPix,*mTabG,IsWhite)  :
 			    mGrad->IsMaxLocDirGrad(aPix,aVecNeigh,1.0)      ;
          if (IsMaxLoc)
          {
             mPtsCont.push_back(aPix);
-            mImMasqCont.DIm().SetV(aPix,255);
+            mImMasqCont.DIm().SetV(aPix,1);
             mNbPtsCont++;
          }
      }
 
      if (Show)
         StdOut()<< " Prop Contour = " << mNbPtsCont / double(aNbPt) << "\n";
-     delete aTabG;
 }
 
 /* Generate a RGB-image :
@@ -186,6 +182,147 @@ template <class Type> cRGBImage cExtractLines<Type>::MakeImageMaxLoc(tREAL8 aAlp
          }
      }
      return aImV;
+}
+
+
+template <class Type> void  cExtractLines<Type>::MarqBorderMasq(size_t aFlag)
+{
+    for (const auto & aPix : mDImMasq.Border(1))
+       mDImMasq.GetReference_V(aPix) |= aFlag;
+}
+
+template <class Type> void  cExtractLines<Type>::UnMarqBorderMasq(size_t aFlag)
+{
+    for (const auto & aPix : mDImMasq.Border(1))
+       mDImMasq.GetReference_V(aPix) &= aFlag;
+}
+
+template <class Type> cDataIm2D<tU_INT1>&   cExtractLines<Type>::DImMasq() {return mDImMasq;}
+
+
+cPt2dr NewPtRefined(const cDenseVect<tREAL8> &aSol,const cSegment2DCompiled<tREAL8> & aSeg0,tREAL8 aDeltaAbs)
+{
+    tREAL8 aX =  aSeg0.N2() / 2.0 + aDeltaAbs;
+    tREAL8 aY = aSol(0) + aSol(1) * aX;
+    return aSeg0.FromCoordLoc(cPt2dr(aX,aY));
+}
+
+template <class Type> void  cExtractLines<Type>::RefineLineInSpace(cHoughPS & aHPS)
+{
+    tREAL8 aMaxDL=2.0;  // Max Dist Line -> to parametrize
+    MMVII_INTERNAL_ASSERT_strong(mCalib!=nullptr,"RefineLineInSpace w/o Calib stil to write");
+
+    //  ------  [1]  compute the point that are inside a "buffer" arround the undist line
+    // --------      Use a connected component algorithm
+    cSegment2DCompiled<tREAL8> aSegC (mCalib->ExtenSegUndistIncluded(aHPS.Seg()));
+
+         //  [1.1]  initialise the seed
+    cPt2di  aSeed = ToI(mCalib->Redist(aSegC.PMil()));
+    if ((!mDImMasq.Inside(aSeed))  && (  (mDImMasq.GetV(aSeed)&TheFlagLine) ==0))
+       return;
+
+    std::vector<cPt2di>  aBufLine;
+    aBufLine.push_back(aSeed);
+    mDImMasq.GetReference_V(aSeed) |=  TheFlagLine;
+    size_t aCurInd = 0;
+
+         //  [1.2]  iterate on neighboroud propagation
+    std::vector<cPt2di>  aNeighoroud =  AllocNeighbourhood<2>(1);
+    size_t aNbN = aNeighoroud.size();
+    while( aCurInd != aBufLine.size())
+    {
+         cPt2di aCurP = aBufLine.at(aCurInd);
+         for (size_t aKN=0 ; aKN<aNbN ; aKN++)
+         {
+             cPt2di aNeigh = aCurP+aNeighoroud.at(aKN);
+             tU_INT1 & aMarq = mDImMasq.GetReference_V(aNeigh);
+             if (  ((aMarq& TheFlagLine)==0) && (aSegC.Dist(mCalib->Undist(ToR(aNeigh))) < aMaxDL))
+             {
+                  aMarq |=  TheFlagLine;
+                  aBufLine.push_back(aNeigh);
+             }
+         }
+         aCurInd++;
+    }
+
+    int aNbIter = 2;
+    std::vector<cStdStatRes>    aVStat(aNbIter+1);
+
+    //-----[2]  extract point fitting the line, they must be
+    //----- max loc of gradi and  with direction close to normal,
+    //---- also refine their position
+    tREAL8 aCosMin = std::cos(M_PI/10.0); // thresold to select good gradient direction
+    std::vector<cPt2dr>  aVPInit;         // vector of point in "initial" coordinates (for check)
+
+    for (const auto & aPix : aBufLine )
+    {
+        tU_INT1 & aMarq = mDImMasq.GetReference_V(aPix);
+        aMarq &= TheFlagSuprLine; // clean the flag
+        if (aMarq !=0)    // once flag cleaned, point marke are local directional max
+        {
+            cPt2dr aGrad = mGrad->GradN(aPix);  // extract grad normalized
+            tREAL8 aCos = -Scal(aGrad,aSegC.Normal()); // cos : scal between unit vect
+         
+            if (aCos> aCosMin)  // if direction close enouh
+            {
+                cPt2dr aRPix =   mCalib->Undist(mGrad->RefinePos(ToR(aPix)));  // refine pose & undist
+                aVPInit.push_back(aRPix);  // memorize position
+                aVStat.at(0).Add(aSegC.Dist(aRPix));         // memorize residual4 stat
+            }
+        }
+    }
+
+
+    //-----[3]  Fit an adjusted line, in local coordinate just fit y = ax +b
+    //---- also test to fit a parabol  optionnaly,  memorize the optimized segment
+    tREAL8 aSigmaW= 0.2;  // sigma for weighting residual
+    cSegment2DCompiled<tREAL8>  aNewSeg = aSegC;  // optimized segment
+
+    std::vector<tREAL8>  aSumNumbering(aNbIter,0.0) ;  // sum of weight to count point weighted by "quality"
+
+    for (int aKIter=0 ; aKIter<aNbIter ; aKIter++)  // if want to test with degre 2, try aKTest<2
+    {
+        cLeasSqtAA<tREAL8> aSys(2);
+        for (const auto aPt : aVPInit)
+        {
+             cDenseVect<tREAL8> aV(2);  // vector of obs
+             cPt2dr aPixL = aNewSeg.ToCoordLoc(aPt);
+             aV(0) = 1.0; 
+             aV(1) = aPixL.x();
+             tREAL8 aW= 1/(1 + Square(aPixL.y()/aSigmaW));  // weight to reduce outlayer
+             aSys.PublicAddObservation(aW,aV,aPixL.y());   // Add obs to system
+        }
+        cDenseVect<tREAL8> aSol = aSys.Solve();
+
+        // w/o parabol
+        aNewSeg = cSegment2DCompiled<tREAL8>(NewPtRefined(aSol,aNewSeg,-1),NewPtRefined(aSol,aNewSeg,1));
+        for (const auto & aPt : aVPInit)
+        {
+            tREAL8 aD = aNewSeg.Dist(aPt);
+            aVStat.at(aKIter+1).Add(aD);
+            aSumNumbering.at(aKIter) += 1/(1 + Square(aD/aSigmaW));
+        }
+    }
+
+    if (0)
+    {
+         StdOut()  
+              << " SSS=" << Scal(aNewSeg.Tgt(),aSegC.Tgt())
+              << " NB=" << aVPInit.size()
+              << " ERRINIT 0.5:" << aVStat.at(0).ErrAtProp(0.5)
+              << " 0.75 :"       << aVStat.at(0).ErrAtProp(0.75)
+              << "  #  " 
+              << " ERRADJ 0.5:"  << aVStat.at(1).ErrAtProp(0.5)
+              << " 0.75 :"       << aVStat.at(1).ErrAtProp(0.75)
+              << "  #  " 
+              << " ERRADJ 0.5:"  << aVStat.at(2).ErrAtProp(0.5)
+              << " 0.75 :"       << aVStat.at(2).ErrAtProp(0.75)
+              << " Wnb=" << aSumNumbering
+              << " Cumul=" << aHPS.Cumul()
+              << "\n";
+    }
+
+    aHPS.UpdateSegImage(aNewSeg,aSumNumbering.back());
 }
 
 

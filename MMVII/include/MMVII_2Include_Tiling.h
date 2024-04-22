@@ -9,16 +9,6 @@ namespace MMVII
 
 template <const int Dim> class cTilingIndex;
 template <class Type>  class  cTiling ;
-template <class Type>  class  cPrimGeom ;
-
-
-template <class TypeObj>  class  cPrimGeom 
-{
-       public :
-           static const int TheDim  =       TypeObj::TheDim;
-           typedef cPtxd<tREAL8,TheDim>     tRPt;
-           typedef cTplBox<tREAL8,TheDim>   tRBox;
-};
 
 
 /* **************************************** */
@@ -125,6 +115,7 @@ template <const int Dim>  bool EqualPt(const cPtxd<tREAL8,Dim> & aP1,const cPtxd
  *        - object if any at an exact position (GetObjAtPos)
  */
 
+
 template <class Type>  class  cTiling : public cTilingIndex<Type::Dim>
 {
      public :
@@ -211,17 +202,28 @@ FakeUseIt(aDistWMargin);
 	   template <class tPrimG2> std::list<Type*> GetObjAtDist(const tPrimG2 &aPrimG2,tREAL8 aDist)
 	   {
                  std::list<Type*> aRes;
-		 tRBox  aBox = aPrimG2.GetBoxEnglob().Dilate(aDist);  // Get indices of boxes that crosse englobing box
+		 tRBox  aBox = aPrimG2.GetBoxEnglob().Dilate(aDist);  // Boxes  of point  at Dist of box of prim
+
+                 // compute the Box of PT-Index
 	         tIPt  aPI0 = this->RPt2PIndex(aBox.P0());
                  tIPt  aPI1 = this->RPt2PIndex(aBox.P1()) + tIPt::PCste(1);
                  cPixBox<Dim> aBoxI(aPI0,aPI1);
 
-		 [[maybe_unused]] tREAL8 aDistWMargin = aDist + (this->Step()*0.5) * std::sqrt(Dim) * 1.001 ;
-                 for (const auto & aPInt : aBoxI)
+                 // intersect with global index (index may have bad IndLinear) 
+                 aBoxI = aBoxI.Inter(this->mIBoxIn);  
+                 if (aBoxI.IsEmpty())
+                     return aRes;
+
+                 // DIAM = diameter of elementary box = Step srqt(Dim); M=Middel of the box,
+                 // all point in the box are at distance DIAM/2 of M
+                 // using triangular inequality we know that point are out if 
+                 //   D(PRIM,M) < D(PRIM,M) + D(M,P)
+		 tREAL8 aDistWMargin = aDist + (this->Step()*0.5) * std::sqrt(Dim) * 1.001 ;
+                 for (const auto & aPInt : cRect2(aBoxI))
 		 {
                      int aInd = this->PInd2II(aPInt);
 
-                      if (   (this->mIndIsBorder.at(aInd))  // border box cannot be bounded 
+                      if (   (this->mIndIsBorder.at(aInd))  // border box cannot be bounded  by DIAM
                           || aPrimG2.InfEqDist(this->PIndex2MidleBox(aPInt),aDistWMargin)  
                         )
 		      {
@@ -236,7 +238,6 @@ FakeUseIt(aDistWMargin);
 		 }
                  return aRes;
 	   }
-
 
 
 

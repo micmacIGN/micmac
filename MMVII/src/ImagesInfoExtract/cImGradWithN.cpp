@@ -198,6 +198,9 @@ template<class Type> bool  cImGradWithN<Type>::TabIsMaxLocDirGrad(const cPt2di& 
 {
     int aSignGlob = isWhite ? -1 : 1;
     Type  aNormG = mDataNG.GetV(aPix);
+    //  Cannot be a max loc with grad 0
+    if (aNormG==0) 
+       return false;
     cPt2di aGrad(this->mDGx->GetV(aPix),this->mDGy->GetV(aPix));
     auto [aPtrVecNeigh,aIndR0] = aTabul.TabNeighMaxLocGrad(aGrad);
 

@@ -153,7 +153,7 @@ class cAppliExtractLine : public cMMVII_Appli
 cAppliExtractLine::cAppliExtractLine(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
     cMMVII_Appli      (aVArgs,aSpec),
     mPhProj           (*this),
-    mShowSteps        (true),
+    mShowSteps        (false),
     mVParams          { 4e-4,2.0,5.0},
     mCalib            (nullptr),
     // mCalDUD           (nullptr),
@@ -165,7 +165,7 @@ cAppliExtractLine::cAppliExtractLine(const std::vector<std::string> & aVArgs,con
     mZoomImL          (1),
     mNameReportByLine ("LineMulExtract"),
     mNameReportByIm   ("LineByIm"),
-    mRelThrsCumulLow    (0.10),
+    mRelThrsCumulLow    (0.05),
     mRelThrsCumulHigh   (0.30),
     mHoughSeuilAng      (0.20),
     mWithGT             (false),
@@ -295,7 +295,7 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
         for (const auto & aSegInit : mVSegsGT)
 	{
              cSegment2DCompiled<tREAL8> aSeg0(aSegInit);
-             cPt2dr aPtH0 = mExtrL->Hough().Line2Pt(aSeg0);
+             cPt2dr aPtH0 = mExtrL->Hough().Line2PtPixel(aSeg0);
 	     mVHoughGT.push_back(aPtH0);
              cHoughPS * aSH = mExtrL->Hough().PtToLine(TP3z0(aPtH0));
 	     cSegment2DCompiled<tREAL8> aSeg1 = aSH->Seg();
@@ -319,9 +319,11 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
 
     //  Select Maxima with Cum > aTrhsCumulLow + labelize the quality of seg
     int aRank=0;
+    mExtrL->MarqBorderMasq();
     for (const auto & aPMax : aVMaxLoc)
     {
         cHoughPS * aPS = mExtrL->Hough().PtToLine(aPMax);
+        mExtrL->RefineLineInSpace(*aPS);
 	if (aPS->Cumul() > aTrhsCumulLow)
 	{
            if (aPS->Cumul() < aTrhsCumulHigh)
@@ -334,18 +336,26 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
            delete aPS;
 	aRank++;
     }
-    StdOut() << "VPSINIT " << mVPS.size() << "\n";
+    mExtrL->UnMarqBorderMasq();
 
-    cAutoTimerSegm  anATSMatchHough (mTimeSeg,"MaxLocHough");
+    cAutoTimerSegm  anATSMaxLocHough (mTimeSeg,"MaxLocHough");
     cHoughPS::SetMatch(mVPS,mLineIsWhite,mVParams.at(0),mVParams.at(1),mVParams.at(2));
 
+    cAutoTimerSegm  anATSMatchHough (mTimeSeg,"MatchLocHough");
+    cWhichMax<cHoughPS *,tREAL8> aBestMatch;
     for (auto & aHS1 : mVPS)
     {
         cHoughPS *aHS2 = aHS1->Matched();
         if ((aHS2!=nullptr) && (! BoolFind(mMatchedVPS,aHS2)))
         {
             mMatchedVPS.push_back(aHS1);
+            aBestMatch.Add(aHS1,aHS1->Cumul());
 	}
+    }
+    if (aBestMatch.IsInit())
+    {
+        aBestMatch.IndexExtre()->SetIsBestMatch();
+        aBestMatch.IndexExtre()->Matched()->SetIsBestMatch();
     }
 
     // StdOut() <<  "NbMatchHHHHHH " << mMatchedVPS.size() << "\n";
@@ -500,7 +510,9 @@ void cAppliExtractLine::MakeVisu(const std::string & aNameIm)
              cHoughPS *aHS2 = aHS1->Matched();
              // Compute colour, depend of ranking
 	     bool isOk = (aHS2 != nullptr);
-             cPt3di aCoul = isOk ? cRGBImage::Red : cRGBImage::Blue ;
+             cPt3di aCoul = isOk ? cRGBImage::Green : cRGBImage::Blue ;
+             if (aHS1->IsBestMatch())
+                aCoul = cRGBImage::Red;
 
 	     // Compute Hough-Point -> line
              cSegment<tREAL8,2> aSeg =  mVPS[aKH]->Seg();

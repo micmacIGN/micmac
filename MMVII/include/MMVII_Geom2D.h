@@ -91,6 +91,10 @@ template <class Type> class cSegment2DCompiled : public cSegmentCompiled<Type,2>
        tPt  FromCoordLoc(const tPt&) const;
        Type  DistLine(const tPt&) const; ///< distance between the line and the point
        Type  DistClosedSeg(const tPt&) const; ///< distance between the point and closed segment
+       Type  SignedDist(const tPt& aPt) const; ///< Signed dist to the line (= y of local coordinates)
+       Type  Dist(const tPt& aPt) const; ///< Faster than upper class
+       const tPt & Normal() const {return mNorm;}
+
     private :
        tPt     mNorm;
 };

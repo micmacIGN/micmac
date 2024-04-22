@@ -188,15 +188,10 @@ template <const int Dim> struct cVerifSpatial
 };
 
 
-bool  DBUG = true;
-static int CPT=0;
-bool  BRKTILE=false;
 
 
 void OneBenchSpatialIndex()
 {
-CPT++;
-BRKTILE = (CPT==18);
 
     tREAL8 aMul = RandInInterval(0.1,10);
     cPt2dr aSz = cPt2dr(0.01,0.01) + cPt2dr::PRand() * aMul;  // generate size >0 
@@ -212,7 +207,7 @@ BRKTILE = (CPT==18);
 
     // Test the function GetObjAtPos
     std::list<cPt2dr>  aLPt;
-    for (int aK=0 ; aK<  (DBUG?1:100) ; aK++)
+    for (int aK=0 ; aK<  100 ; aK++)
     {
        cPt2dr aPt = aBoxMargin.GeneratePointInside();
 
@@ -234,10 +229,12 @@ BRKTILE = (CPT==18);
     }
 
     // Test etObjAtDist
-    for (int aK=0 ; aK<(DBUG?1:100) ; aK++)
+    for (int aK=0 ; aK<100 ; aK++)
     {
 	 tREAL8 aDist =  aMul * std::max(1e-5,std::pow(RandUnif_0_1(),3)); // max -> else bug in dilate
          cPt2dr aP0 = aBoxMargin.GeneratePointInside();
+
+         // Test tiling with  point query
          {
 
               std::list<cPointSpInd<2>*> aL = aSI.GetObjAtDist(aP0,aDist);
@@ -257,8 +254,8 @@ BRKTILE = (CPT==18);
 
 	      MMVII_INTERNAL_ASSERT_bench(Norm2(aVerif1.mWAvg.SVW()-aVerif2.mWAvg.SVW())<1e-5,"GetObjAtDist");
 	 }
-	 //StdOut() << "Llllllll " << Norm2(aVerif1.mWAvg.SVW()-aVerif2.mWAvg.SVW()) << std::endl;
 
+         // Test tiling with  segment query
 	 if (aK%10==0)
 	 {
 	    cVerifSpatial<2>  aVerif1(aP0,aDist);
@@ -269,6 +266,7 @@ BRKTILE = (CPT==18);
                   aP1 = aBoxMargin.GeneratePointInside();
 
 	    cClosedSeg2D  aSeg(aP0,aP1);
+
 	    std::list<cPointSpInd<2>*> aL = aSI.GetObjAtDist(aSeg,aDist);
 
 	    for (const auto & aPt : aL)
@@ -287,13 +285,7 @@ BRKTILE = (CPT==18);
                    aNbIn++;
 	    }
 
-StdOut() <<  "SegDDD==" << Norm2(aVerif1.mWAvg.SVW()- aVerif2.mWAvg.SVW()) 
-	 << " NN " << aL.size() << " " << aNbIn 
-	 << " CPT=" << CPT
-	 << "\n";
-if (BRKTILE) getchar();
-
-
+	    MMVII_INTERNAL_ASSERT_bench(Norm2(aVerif1.mWAvg.SVW()-aVerif2.mWAvg.SVW())<1e-5,"GetObjAtDist");
 	 }
     }
     //getchar();
@@ -303,16 +295,12 @@ if (BRKTILE) getchar();
 
 void Bench_SpatialIndex(cParamExeBench & aParam)
 {
-     cPrimGeom <cPt2dr>  aPG;  FakeUseIt(aPG);
-
      if (! aParam.NewBench("SpatialIndex")) return;
-
 
      for (int aK=0 ; aK<50 ; aK++)
      {
          OneBenchSpatialIndex();
      }
-
 
      aParam.EndBench();
 }

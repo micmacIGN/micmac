@@ -37,6 +37,8 @@ class cHoughPS : public cMemCheck
 	 const tREAL8 & Cumul() const;   ///< Accessor
 	 eCodeHPS  Code() const ;        ///< Accessor
          void SetCode(eCodeHPS);         ///< Modifior
+         bool IsBestMatch() const;       ///< Accessor
+         void SetIsBestMatch();          ///< Modifior
 
 	 cPt2dr  IndTetaRho() const; ///< Teta/Rho in hough accum dynamic
 
@@ -46,6 +48,7 @@ class cHoughPS : public cMemCheck
 
 	 static void SetMatch(std::vector<cHoughPS*>&  mVPS,bool IsLight,tREAL8 aMaxTeta,tREAL8 aDMin,tREAL8 aDMax);
 
+         void UpdateSegImage(const tSeg & aNewSeg,tREAL8 aNewCumul);
 
      private :
 	 void InitMatch();
@@ -55,10 +58,11 @@ class cHoughPS : public cMemCheck
          cPt2dr                   mTetaRho;
          tREAL8                   mCumul;
          tSeg                     mSegE;
+         tSeg                     mOldSeg;
          cHoughPS *               mMatched;
          tREAL8                   mDistM;
-
 	 eCodeHPS                 mCode;
+         bool                     mIsBestMatch;
 };
 
 
@@ -108,7 +112,8 @@ class cHoughTransform
 	 cHoughPS * PtToLine(const cPt3dr &) const;
 
 	 /// make the conversion seg (oriented)  -> hough point 
-	 cPt2dr  Line2Pt(const tSeg2dr &) const;
+	 cPt2dr  Line2PtInit(const tSeg2dr &) const;
+	 cPt2dr  Line2PtPixel(const tSeg2dr &) const;
 
 	 const tREAL8 & RhoMax() const; ///<  Accessor
 	 ///   return the angle teta, of a given  index/position in hough accumulator
@@ -171,6 +176,9 @@ template <class Type> class  cImGradWithN : public cImGrad<Type>
         static  std::vector<cPt2di>  NeighborsForMaxLoc(tREAL8 aRay);
         cIm2D<Type>      NormG() {return mNormG;}  ///< Accessor
 	cPt2dr   RefinePos(const cPt2dr &) const;  ///< Refine a sub-pixelar position of the contour
+
+        cPt2dr  GradN(const cPt2di & aPix) {return ToR(this->Grad(aPix))/ tREAL8(mDataNG.GetV(aPix));}
+        tREAL8  NormG(const cPt2di & aPix) {return  tREAL8(mDataNG.GetV(aPix));}
      private :
 	cPt2dr   OneRefinePos(const cPt2dr &) const; ///< One iteration of refinement
  
@@ -188,6 +196,8 @@ template <class Type> class  cExtractLines
       public :
           typedef  cIm2D<Type>      tIm;
           typedef  cDataIm2D<Type>  tDIm;
+          static const size_t  TheFlagLine=2;
+          static const size_t  TheFlagSuprLine=  0xFFFFFFFF ^ TheFlagLine;
 
           cExtractLines(tIm anIm);  ///< constructor , memorize image
           ~cExtractLines();
@@ -205,14 +215,22 @@ template <class Type> class  cExtractLines
           cImGradWithN<Type> &  Grad(); ///< Acessor
           const std::vector<cPt2di>& PtsCont() const; ///< Accessor
 
+          void  RefineLineInSpace(cHoughPS &); ///< refine the position of the line by matching on contour
+          void MarqBorderMasq(size_t aFlag= TheFlagLine);  ///< write a flag on border
+          void UnMarqBorderMasq(size_t aFlag= TheFlagSuprLine);  ///<  clear the flag on border
+          cDataIm2D<tU_INT1>&   DImMasq(); ///< Accessor (for visu ?)
+
 
       private :
           cPt2di                mSz;        ///<  Size of the image
           tIm                   mIm;        ///< Memorize the image
           cIm2D<tU_INT1>        mImMasqCont;    ///<  Masq of point selected as contour
+          cDataIm2D<tU_INT1>&   mDImMasq;    ///<  Masq of point selected as contour
+          
           int                   mNbPtsCont;     ///<  Number of point detected as contour
 
           cImGradWithN<Type> *  mGrad;          ///< Structure allocated for computing gradient
+          cTabulateGrad *       mTabG ;
           cHoughTransform    *  mHough;         ///< Structure allocatedf or computing hough
           cPerspCamIntrCalib *  mCalib;         ///< (Optional) calibration for distorsion correction
           std::vector<cPt2di>   mPtsCont;      ///< List of point in mImMasqCont
