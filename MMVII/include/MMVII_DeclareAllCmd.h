@@ -99,6 +99,7 @@ extern cSpecMMVII_Appli  TheSpec_TutoFormalDeriv;
 extern cSpecMMVII_Appli  TheSpec_ExportUndistMesIm;
 extern cSpecMMVII_Appli  TheSpecAppliExtractLine;
 extern cSpecMMVII_Appli  TheSpec_CERN_ImportClino;
+extern cSpecMMVII_Appli  TheSpec_MMV2_MesIm_2_MMV1;
 };
 
 #endif  //  _MMVII_DeclareAllCmd_H_
