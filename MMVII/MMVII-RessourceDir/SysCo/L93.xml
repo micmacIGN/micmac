@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<Root>
+   <Type>"MMVII_Serialization"</Type>
+   <Version>"0.0.0"</Version>
+   <Data>
+      <SysCoData>
+         <Name>"IGNF:LAMB93"</Name>
+      </SysCoData>
+   </Data>
+</Root>

@@ -81,7 +81,7 @@ int cAppli_ChSysCoGCP::Exe()
 
     // StdOut() << "HHHHHH " << mNameSysOut << " " << mNameSysIn << "\n";
 
-    cChangSysCoordV2 aChSys(aSysIn,aSysOut);
+    cChangeSysCo aChSys(aSysIn,aSysOut);
 
 
     for (const auto & aNameGPCIN : aListNameGCPIn)

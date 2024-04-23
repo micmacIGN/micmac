@@ -105,7 +105,7 @@ int cAppli_ImportGCP::Exe()
          mNameGCP = LastPrefix(mNameGCP);
     }
 
-   cChangSysCoordV2 & aChSys = mPhProj.ChSys();
+    cChangeSysCo & aChSys = mPhProj.ChSysCo();
 
     cSetMesGCP aSetM(mNameGCP);
 

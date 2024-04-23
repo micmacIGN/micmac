@@ -444,8 +444,8 @@ cRPCSens::cRPCSens(const std::string& aNameImage) :
     mPixelDomain       (&mDataPixelDomain),
     mBoxGround         (cBox3dr::Empty())  // Empty box because no default init
 {
-    ///  For now assume RPC is WGS84Degree always, see later if we change that
-    SetCoordinateSystem(E2Str(eSysCoGeo::eWGS84Degrees));
+    ///  For now assume RPC is WGS84 Degree always, see later if we change that
+    SetCoordinateSystem(MMVII_SysCoDefLatLong);
 }
 
 void cRPCSens::InitFromFile(const cAnalyseTSOF & anAnalyse)

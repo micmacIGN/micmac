@@ -26,22 +26,24 @@ namespace MMVII
 
                // ----------------   ChSys ---------------------------
 
-const cChangSysCoordV2 & cPhotogrammetricProject::ChSys() const 
+const cChangeSysCo & cPhotogrammetricProject::ChSysCo() const
 {
-   AssertChSysIsInit();
-   return mChSys;
-}
-cChangSysCoordV2 & cPhotogrammetricProject::ChSys() 
-{
-   AssertChSysIsInit();
-   return mChSys;
+   AssertChSysCoIsInit();
+   return mChSysCo;
 }
 
-bool  cPhotogrammetricProject::ChSysIsInit() const { return mAppli.IsInit(&mNameChSys); }
-void  cPhotogrammetricProject::AssertChSysIsInit() const
+cChangeSysCo & cPhotogrammetricProject::ChSysCo()
 {
-     MMVII_INTERNAL_ASSERT_strong(ChSysIsInit(),"Chang coord system is not init");
+   AssertChSysCoIsInit();
+   return mChSysCo;
 }
+
+bool  cPhotogrammetricProject::ChSysCoIsInit() const { return mAppli.IsInit(&mNameChSysCo); }
+void  cPhotogrammetricProject::AssertChSysCoIsInit() const
+{
+     MMVII_INTERNAL_ASSERT_strong(ChSysCoIsInit(),"Chang coord system is not init");
+}
+
 
 
 tPtrArg2007 cPhotogrammetricProject::ArgChSys(bool DefaultUndefined)
@@ -51,38 +53,22 @@ tPtrArg2007 cPhotogrammetricProject::ArgChSys(bool DefaultUndefined)
     if (DefaultUndefined)
     {
         aVOpt.push_back(eTA2007::HDV);
-        mAppli.SetVarInit(&mNameChSys);
-        mNameChSys = {"Local"+MMVII_NONE};
+        mAppli.SetVarInit(&mNameChSysCo);
+        mNameChSysCo = {"Local"+MMVII_NONE};
     }
-    return AOpt2007(mNameChSys,"ChSys","Change coordinate system, if 1 Sys In=Out",aVOpt);
-}
-
-               // ----------------   ChSys ---------------------------
-	       
-struct cRefSysCo
-{
-   public :
-	cRefSysCo() : mName (MMVII_NONE) {}
-	cRefSysCo(const cSysCoordV2 & aSys) : mName (aSys.Name()) {}
-	std::string mName;
-};
-
-void AddData (const cAuxAr2007 & anAux0,cRefSysCo & aRef)
-{
-     cAuxAr2007 anAux("Reference",anAux0);
-     AddData(cAuxAr2007("Name",anAux),aRef.mName);
+    return AOpt2007(mNameChSysCo,"ChSys","Change coordinate system, if 1 Sys In=Out",aVOpt);
 }
 
 
 void  cPhotogrammetricProject::AssertSysCoIsInit() const { MMVII_INTERNAL_ASSERT_strong(SysCoIsInit(),"Chang coord system is not init"); }
 bool cPhotogrammetricProject::SysCoIsInit () const { return IsInit(&mNameCurSysCo); }
 
-cSysCoordV2 & cPhotogrammetricProject::SysCo() 
+cSysCo & cPhotogrammetricProject::SysCo()
 {
 	AssertSysCoIsInit();
 	return *mCurSysCo;
 }
-const cSysCoordV2 & cPhotogrammetricProject::SysCo()  const
+const cSysCo & cPhotogrammetricProject::SysCo()  const
 {
 	AssertSysCoIsInit();
 	return *mCurSysCo;
@@ -93,22 +79,12 @@ tPtrArg2007  cPhotogrammetricProject::ArgSysCo()
     return AOpt2007(mNameCurSysCo,"SysCo","Name of coordinate system");
 }
 
-
 /*
          const cSysCoordV2 & SysCo() const ;
          bool  SysCoIsInit() const;
          void  AssertSysCoIsInit() const;
 	 */
 
-
-void cPhotogrammetricProject::SaveSysCo(tPtrSysCo aSys,const std::string& aName,bool OnlyIfNew) const
-{
-     std::string aFullName = mDirSysCo + aName + "."+  GlobTaggedNameDefSerial();
-
-     if (OnlyIfNew && ExistFile(aFullName))
-        return;
-     aSys->ToFile(aFullName);
-}
 
 std::string  cPhotogrammetricProject::FullNameSysCo(const std::string &aName,bool SVP) const
 {
@@ -122,61 +98,56 @@ std::string  cPhotogrammetricProject::FullNameSysCo(const std::string &aName,boo
      if (ExistFile(aNameGlob))
         return aNameGlob;
 
-     if (! SVP)
-        MMVII_UnclasseUsEr("Cannot find coord sys for " + aName);
-
-     return "";
+     // seems to be just a definition
+     return aName;
 }
 
-
-tPtrSysCo cPhotogrammetricProject::ReadSysCo(const std::string &aName,bool SVP) const
+void  cPhotogrammetricProject::SaveSysCo(tPtrSysCo aSys,const std::string& aName,bool OnlyIfNew) const
 {
-     if (starts_with(aName,MMVII_LocalSys))
-     {
-         std::string aSubstr = aName.substr(MMVII_LocalSys.size(),std::string::npos);
-         tPtrSysCo aRes = cSysCoordV2::LocalSystem(aSubstr);
-         //  see if it already exist 
-         tPtrSysCo aReRead = ReadSysCo(aSubstr,SVP::Yes);
-         //  if not create it
-         if (aReRead.get() == nullptr)
-            SaveSysCo(aRes,aSubstr);
+    std::string aFullName = mDirSysCo + aName + "."+  GlobTaggedNameDefSerial();
 
-         return aRes;
-     }
-
-
-     // compute name
-     std::string aNameGlob = FullNameSysCo(aName,SVP);
-     if (aNameGlob=="") // if we are here, SVP=true and we can return nullptr
-         return tPtrSysCo(nullptr);
-     return  cSysCoordV2::FromFile(aNameGlob);
+    if (OnlyIfNew && ExistFile(aFullName))
+       return;
+    SaveInFile(aSys->toSysCoData(), aFullName);
 }
 
-tPtrSysCo cPhotogrammetricProject::CreateSysCoRTL(const std::string& aNameResult,const cPt3dr & aOrig,const std::string &aNameRef,bool SVP) const
+tPtrSysCo cPhotogrammetricProject::ReadSysCo(const std::string &aName) const
+{
+    // compute name
+    std::string aNameGlob = FullNameSysCo(aName,true);
+    if (!ExistFile(aNameGlob))
+    {
+        return cSysCo::MakeSysCo(aName);
+    }
+    return  cSysCo::FromFile(aNameGlob);
+}
+
+tPtrSysCo cPhotogrammetricProject::CreateSysCoRTL(const cPt3dr & aOrig,const std::string &aNameRef,bool SVP) const
 {
     std::string  aNameFull = FullNameSysCo(aNameRef,SVP);
-    if (aNameFull=="")
-       return tPtrSysCo(nullptr);
+    //if (aNameFull=="")
+    //   return tPtrSysCo(nullptr);
 
-    return cSysCoordV2::RTL(aNameResult,aOrig,aNameFull);
+    return cSysCo::makeRTL(aOrig,aNameFull);
 }
 
-cChangSysCoordV2  cPhotogrammetricProject::ChangSys(const std::string aS1,const std::string aS2) const
-{
-   if (aS1==aS2)
-      return  cChangSysCoordV2{};	   
 
-    return cChangSysCoordV2(ReadSysCo(aS1),ReadSysCo(aS2));
+
+cChangeSysCo cPhotogrammetricProject::ChangSysCo(const std::string aS1,const std::string aS2) const
+{
+    if (aS1==aS2)
+       return  cChangeSysCo{};
+    return cChangeSysCo(ReadSysCo(aS1),ReadSysCo(aS2));
 }
 
-cChangSysCoordV2  cPhotogrammetricProject::ChangSys(const std::vector<std::string> & aVec,tREAL8 aEpsDif) 
+cChangeSysCo cPhotogrammetricProject::ChangSysCo(const std::vector<std::string> & aVec,tREAL8 aEpsDif)
 {
-    if (! mAppli.IsInit(&aVec))  return cChangSysCoordV2{};
+    if (! mAppli.IsInit(&aVec))  return cChangeSysCo{};
 
     if (aVec.size() == 1)
-       return cChangSysCoordV2(ReadSysCo(aVec.at(0)));
+       return cChangeSysCo(ReadSysCo(aVec.at(0)),ReadSysCo(aVec.at(0)));
 
-    return cChangSysCoordV2(   ReadSysCo(aVec.at(0))  ,  ReadSysCo(aVec.at(1))  );
+    return cChangeSysCo(   ReadSysCo(aVec.at(0))  ,  ReadSysCo(aVec.at(1))  );
 }
 
              //==================   SysCo saved in standard folder ============
@@ -186,29 +157,29 @@ std::string  cPhotogrammetricProject::NameCurSysCo(const cDirsPhProj & aDP,bool 
    return aDP.FullDirInOut(IsIn)   +  "CurSysCo." +  GlobTaggedNameDefSerial();
 
 }
+
 tPtrSysCo  cPhotogrammetricProject::CurSysCo(const cDirsPhProj & aDP,bool SVP) const
 {
-    std::string aName = NameCurSysCo(aDP,true);
-    if (! ExistFile(aName))
+    std::string aPath = NameCurSysCo(aDP,true);
+    if (! ExistFile(aPath))
     {
        if (! SVP)
-           MMVII_UnclasseUsEr("CurSysCo dont exist : " + aName);
+           MMVII_UnclasseUsEr("CurSysCo dont exist : " + aPath);
        return tPtrSysCo(nullptr);
     }
-    cRefSysCo aRef;
-    ReadFromFile(aRef,aName);
 
-    return  ReadSysCo(aRef.mName,false);
+    return  cSysCo::FromFile(aPath);
 }
 
 
 tPtrSysCo  cPhotogrammetricProject::CurSysCoOri(bool SVP) const {return CurSysCo(mDPOrient,SVP);}
 tPtrSysCo  cPhotogrammetricProject::CurSysCoGCP(bool SVP) const {return CurSysCo(mDPPointsMeasures,SVP);}
 
-void cPhotogrammetricProject::SaveCurSysCo(const cDirsPhProj & aDP,tPtrSysCo aSysCo) const 
+void cPhotogrammetricProject::SaveCurSysCo(const cDirsPhProj & aDP,tPtrSysCo aSysCo) const
 {
-    SaveInFile(cRefSysCo(*aSysCo),NameCurSysCo(aDP,false));
+    SaveInFile(aSysCo->toSysCoData(),NameCurSysCo(aDP,false));
 }
+
 
 void cPhotogrammetricProject::SaveCurSysCoOri(tPtrSysCo aSysCo) const { SaveCurSysCo(mDPOrient,aSysCo); }
 void cPhotogrammetricProject::SaveCurSysCoGCP(tPtrSysCo aSysCo) const { SaveCurSysCo(mDPPointsMeasures,aSysCo); }

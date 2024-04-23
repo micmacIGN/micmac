@@ -1,7 +1,6 @@
 #include "BundleAdjustment.h"
 #include "MMVII_BlocRig.h"
 
-
 namespace MMVII
 {
 

@@ -937,63 +937,6 @@ template <class Type,const int Dim> class cBijAffMapElem
         tMat  mMatInv;
 };
 
-typedef std::shared_ptr<cSysCoordV2>      tPtrSysCo;
-typedef std::shared_ptr<cChangSysCoordV2> tPtrChSys;
-
-class cSysCoordV2  : public cDataInvertibleMapping<tREAL8,3>
-{
-      public :
-
-
-         cSysCoordV2(tREAL8  aEpsDeriv = 1.0);
-	 virtual ~cSysCoordV2();
-
-         tPt Value(const tPt &)   const override;  // Mapping interface to ToGeoC
-         tPt Inverse(const tPt &) const override;  // Mapping interface to FromGeoC
-
-         virtual tPt ToGeoC  (const tPt &) const =0;
-         virtual tPt FromGeoC(const tPt &) const =0;
-	 virtual const std::string & Name() const = 0; // As RTL Lambert93 ...
-
-	 virtual void ToFile(const std::string &) const = 0;
-         static tPtrSysCo FromFile(const std::string &);
-
-
-         static tPtrSysCo Lambert93();
-         static tPtrSysCo GeoC();
-         static tPtrSysCo RTL(const std::string & aNameResult,const cPt3dr & Ori,const std::string & aSysRef);
-         static tPtrSysCo LocalSystem(const  std::string & aName);
-
-
-
-	 // cPt3dr  mPtEpsDeriv;
-};
-
-class cChangSysCoordV2  : public cDataInvertibleMapping<tREAL8,3>
-{
-        public :
-            cChangSysCoordV2(tPtrSysCo  aSysInit,tPtrSysCo  aSysTarget);
-            // Sometime it can be usefull to consider the same system as identit change to itself
-            cChangSysCoordV2(tPtrSysCo  aSysInitOut);
-	    // return identity  
-	    cChangSysCoordV2 ();
-
-            tPt Value(const tPt &) const override;   /// compute  Point from SysInit 2 SysTarget
-            tPt Inverse(const tPt &) const override; /// compute  Point from SysTarget 2 SysInit
-
-	    virtual ~cChangSysCoordV2();
-            tPtrSysCo  SysInit() const;     ///< Accessor
-            tPtrSysCo  SysTarget() const;   ///< Accessor
-	    bool       IsIdent() const;
-
-	    cChangSysCoordV2(const cChangSysCoordV2 &);
-        private :
-
-	    bool       mIdent;
-            tPtrSysCo  mSysInit;
-            tPtrSysCo  mSysTarget;
-};
-
 /**  Class for "tabulating" a map :
         - store values of the in a grid  (made of images)
         - use bilinear interpolation for computing values
@@ -1073,8 +1016,6 @@ template <const int Dim> class cTabuMapInv : public cDataInvertibleMapping<tREAL
           tTabuMap * mTabulMapDir;  ///<  Tabulation Direct Mapping
           tTabuMap * mTabulMapInv;  ///<  Tabulation Invert Mapping
 };
-
-
 
 
 /*
