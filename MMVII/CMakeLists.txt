@@ -34,9 +34,25 @@ endif()
 ##        Dependencies
 #######################################################
 
+find_package(PROJ QUIET)
+if (PROJ_FOUND)
+  message(STATUS "Found PROJ")
+  set(PROJ_LIB PROJ::proj)
+else()
+  # FindPkgConfig
+  find_package(PkgConfig)
+  # libPROJ
+  pkg_search_module(PROJ REQUIRED proj)
+  set(PROJ_LIB ${PROJ_LIBRARIES})
+endif()
+
+
 # Threads
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads)
+
+
+
 
 # OpenMP: Optional, included in GNU C++, separate package for CLANG.
 find_package(OpenMP)
@@ -108,8 +124,10 @@ file(GLOB mmv2_headers "${mmv2_include_dir}/*.h" "${mmv2_include_dir}/*/*.h" "${
 ##        libP2007 buid (MMVII library)
 #######################################################
 add_library(P2007 "${mmv2_libsrcs}" "${mmv2_headers}")
-target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH}")
+target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH};${PROJ_INCLUDE_DIRS}")
 target_link_libraries(P2007 PRIVATE MMVII_compiler_flags Threads::Threads)
+
+target_link_libraries(P2007 PRIVATE ${PROJ_LIB})
 
 # Force parallel compilation with MSVC
 if(MSVC)

@@ -17,6 +17,7 @@ include/CodeGen_*.h
 MMVII-TestDir/Input/Files/RelTest.xml
 MMVII-TestDir/Input/Files/RelTest_0-5.xml
 MMVII-PhgrProj/
+MMVII-PhgrProj*/
 MMVII-Tmp-Dir-Glob/
 Tmp-MM-Dir/
 .*.d

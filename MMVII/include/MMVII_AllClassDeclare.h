@@ -316,11 +316,9 @@ class cCalibSetClino;
 
 //   sys co
 
-class cSysCoordV2;
-class cChangSysCoordV2;
-typedef std::shared_ptr<cSysCoordV2>      tPtrSysCo;
-typedef std::shared_ptr<cChangSysCoordV2> tPtrChSys;
-
+class cSysCo;
+class cChangeSysCo;
+typedef std::shared_ptr<cSysCo>       tPtrSysCo;
 
 
 };

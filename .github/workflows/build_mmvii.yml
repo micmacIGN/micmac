@@ -18,6 +18,9 @@ jobs:
         sudo apt update
         sudo apt install qtbase5-dev clang-14
 
+    - name: Install libproj
+      run: sudo apt install libproj-dev proj-data
+
     - name: Install pdflatex
       run: sudo apt install texlive-latex-base texlive-latex-extra texlive-fonts-recommended texlive-fonts-extra
 
@@ -77,6 +80,10 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Install libproj
+      run: vcpkg install  proj --triplet x64-windows
+      # vcpkg-pkgconfig-get-modules proj --triplet x64-windows-release
+
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
       with: 
@@ -100,7 +107,7 @@ jobs:
       run: cmake --build build --config Release --target INSTALL -j 4
     
     - name: Configure CMake for MMVII
-      run: cmake -S MMVII -B MMVII/build
+      run: cmake -S MMVII -B MMVII/build -DCMAKE_INSTALL_PREFIX=${{github.workspace}} -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
 
     - name: Build MMVII
       run: cmake --build MMVII/build --config Release -j 4 --target full

@@ -429,7 +429,6 @@ void  cAppliImportInitialExternSensor::ImportOneImage(const std::string & aNameI
     {
        SetIfNotInit(mSysCoordOri,aSensorInit->GetCoordinateSystem());
     }
-    mPhProj.ReadSysCo(mSysCoordOri);
 
     mPhProj.SaveCurSysCoOri(mPhProj.ReadSysCo(mSysCoordOri));
 

@@ -9,6 +9,8 @@
 #include "MMVII_Geom2D.h"
 #include "MMVII_Geom3D.h"
 #include "MMVII_DeclareCste.h"
+#include "MMVII_SysCo.h"
+
 
 using namespace NS_SymbolicDerivative;
 
@@ -84,7 +86,7 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	  virtual ~cSensorImage();
 
 	  /// create a sensor in a new coordinate system, default error
-	  virtual cSensorImage * SensorChangSys(const std::string & aDir,cChangSysCoordV2 &) const ;
+	  virtual cSensorImage * SensorChangSys(const std::string & aDir, cChangeSysCo &) const ;
 
           virtual const cPixelDomain & PixelDomain() const = 0;
           const cPt2di & Sz() const;
@@ -629,15 +631,18 @@ class cPhotogrammetricProject
          //==================    Coord Sys           =========================
 	 //===================================================================
 
-                  //  ======== [1]  Sysco saved in "MMVII-PhgrProj/SysCo" 
-	 void  SaveSysCo(tPtrSysCo,const std::string&,bool OnlyIfNew=false) const;
-	 tPtrSysCo ReadSysCo(const std::string &aName,bool SVP=false) const;
-	 tPtrSysCo CreateSysCoRTL(const std::string & aNameResult,const cPt3dr & aOrig,const std::string &aNameRef,bool SVP=false) const;
+         //  ======== [1]  Sysco saved in "MMVII-PhgrProj/SysCo"
+         void  SaveSysCo(tPtrSysCo,const std::string&,bool OnlyIfNew=false) const;
+         tPtrSysCo ReadSysCo(const std::string &aName) const;
+
+
+         tPtrSysCo CreateSysCoRTL(const cPt3dr & aOrig,const std::string &aNameRef,bool SVP=false) const;
 	 std::string  FullNameSysCo(const std::string &aName,bool SVP=false) const;
-	 // return  identity if Vec not init
-	 cChangSysCoordV2  ChangSys(const std::vector<std::string> &,tREAL8 aEpsDif=0.1);
+
+         // return  identity if Vec not init
+	 cChangeSysCo ChangSysCo(const std::vector<std::string> &,tREAL8 aEpsDif=0.1);
 	 // Return idenitity if aS1==aS2
-	 cChangSysCoordV2  ChangSys(const std::string aS1,const std::string aS2) const;
+	 cChangeSysCo ChangSysCo(const std::string aS1,const std::string aS2) const;
 
                   //  ======== [1]  Sysco saved in "MMVII-PhgrProj/Ori/"  or "MMVII-PhgrProj/PointsMeasure//"
          std::string  NameCurSysCo(const cDirsPhProj &,bool IsIn) const;
@@ -647,21 +652,19 @@ class cPhotogrammetricProject
          void SaveCurSysCo(const cDirsPhProj &,tPtrSysCo) const ;
          void SaveCurSysCoOri(tPtrSysCo) const ;
          void SaveCurSysCoGCP(tPtrSysCo) const ;
-	 void SaveStdCurSysCo(bool IsOri) const; /// save the Cur Sysco in Orient/GCP
+         void SaveStdCurSysCo(bool IsOri) const; /// save the Cur Sysco in Orient/GCP
          void CpSysIn2Out(bool OriIn,bool OriOut) const;  // bool : Ori/GCP   do it only if exist, else no error
-							  
 
-         const cChangSysCoordV2 & ChSys() const;
-         cChangSysCoordV2 & ChSys() ;
-         bool  ChSysIsInit() const;
-         void  AssertChSysIsInit() const;
+         const cChangeSysCo & ChSysCo() const;
+         cChangeSysCo & ChSysCo() ;
+         bool  ChSysCoIsInit() const;
+         void  AssertChSysCoIsInit() const;
 
-
-	 cSysCoordV2 & SysCo() ;
-	 const cSysCoordV2 & SysCo() const ;
+         cSysCo & SysCo() ;
+         const cSysCo & SysCo() const ;
          bool  SysCoIsInit() const;
          void  AssertSysCoIsInit() const;
-	
+
 	 //===================================================================
          //==================   Clinometers           ========================
 	 //===================================================================
@@ -706,8 +709,8 @@ class cPhotogrammetricProject
           std::string     mNameCurSysCo;      /// Data where we store the system In Or Out if given in std args
           tPtrSysCo       mCurSysCo;          /// Global coord sys
 	  std::string     mDirImportInitOri; /// Folder where are stored INIT-al  ORI-entation
-          std::vector<std::string>   mNameChSys;
-          cChangSysCoordV2          mChSys;
+          std::vector<std::string>   mNameChSysCo;
+          cChangeSysCo          mChSysCo;
 
 	  cDirsPhProj     mDPOrient;
 	  cDirsPhProj     mDPRadiomData;

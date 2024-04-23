@@ -6,7 +6,6 @@
 #include "MMVII_DeclareCste.h"
 #include "MMVII_BundleAdj.h"
 
-
 using namespace NS_SymbolicDerivative;
 namespace MMVII
 {

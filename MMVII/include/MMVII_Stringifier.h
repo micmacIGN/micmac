@@ -118,7 +118,7 @@ template <>  const std::string cStrIO<eDCTFilters>::msNameType;
 
 template <>  const std::string cStrIO<eTypeSerial>::msNameType;
 template <>  const std::string cStrIO<eTyCodeTarget>::msNameType;
-template <>  const std::string cStrIO<eSysCoGeo>::msNameType;
+template <>  const std::string cStrIO<eSysCo>::msNameType;
 template <>  const std::string cStrIO<eMTDIm>::msNameType;
 
 template <>  const std::string cStrIO<eTypeSensor>::msNameType;

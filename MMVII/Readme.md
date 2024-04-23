@@ -1,10 +1,10 @@
 Dependencies
 ------------
-  - Required: cmake.
+  - Required: cmake, libproj-dev.
   - Optional: OpenMP, ccache
 
   - Ubuntu 20.04:
-    - `sudo apt install ccache cmake`
+    - `sudo apt install ccache cmake libproj-dev proj-data`
     - If using CLang version XX and want OpenMP: `sudo apt install libomp-XX-dev`
 
   - MacOs:
@@ -13,10 +13,12 @@ Dependencies
     - Install libX11,qt :
        - `brew install libX11`
        - `brew install qt`
+       - `brew install proj`
      - Set environment variables:
        -  `export PATH="/usr/local/opt/llvm/bin:$PATH"`
        -  `export LDFLAGS="-L/usr/local/opt/llvm/lib -L/usr/local/lib -Wl,-rpath,/usr/local/opt/llvm/lib"`
        -  `export CPPFLAGS="-I/usr/local/opt/llvm/include"`
+
 
 Compilation (short) :
 --------------------
@@ -53,6 +55,7 @@ Compilation (short) :
 
     make full
 
+
 Compilation (detail):
 --------------------
  - You can use `cmake -G Ninja ..` to use Ninja build system instead of the native one. (`sudo apt install ninja-build`)
@@ -70,23 +73,6 @@ Compilation (detail):
      - OFF: disable compilation of vMMVII
      - You may need to add 'CMAKE_PREFIX_PATH=<Qt dir>' on Windows (ex: c:\Qt\6.6.0\msvc2019_64)
 
-Legacy :
---------
-    Compile MicMac V1, then in MMVII/bin directory:
-      make
-
-   On first compilation or SymDer-related runtime error, synbolic derivatives code has to be generated:
- 
-    make
-    ./MMVII  GenCodeSymDer
-    make
- 
-   In case of SymDer-related compilation error, clear all generated code before compilation:
- 
-    make distclean
-    make
-    /MMVII  GenCodeSymDer
-    make
 
 
 To generate html doc

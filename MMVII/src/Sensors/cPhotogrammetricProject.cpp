@@ -243,7 +243,7 @@ void cDirsPhProj::SetDirOutInIfNotInit()
 cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
     mAppli            (anAppli),
     mCurSysCo         (nullptr),
-    mChSys            (),
+    mChSysCo          (),
     mDPOrient         (eTA2007::Orient,*this),
     mDPRadiomData     (eTA2007::RadiomData,*this),
     mDPRadiomModel    (eTA2007::RadiomModel,*this),
@@ -311,9 +311,9 @@ void cPhotogrammetricProject::FinishInit()
     // read the data base of existing cameras
     MakeCamDataBase();
 
-    if (mAppli.IsInit(&mNameChSys))
+    if (mAppli.IsInit(&mNameChSysCo))
     {
-       mChSys = ChangSys(mNameChSys);
+       mChSysCo = ChangSysCo(mNameChSysCo);
     }
 
     if (mAppli.IsInit(&mNameCurSysCo))

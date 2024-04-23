@@ -495,6 +495,9 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         // Test some matrix op : QR, EigenSym ....
         BenchDenseMatrix0(aParam);
 
+        // Test SysCo
+        BenchSysCo(aParam);
+
         // Test topo compensation
         BenchTopoComp(aParam);
 
@@ -974,7 +977,6 @@ int cAppli_MPDTest::Exe()
    if (1)
    {
 	   StdOut() << "cAppli_MPDTest \n";
-	   auto aSys= cSysCoordV2::Lambert93();
 	   return EXIT_SUCCESS;
    }
    if (1)

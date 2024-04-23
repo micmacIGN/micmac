@@ -238,6 +238,7 @@ enum class eTyUEr
               eNoNumberPixel,
               eNoCameraName,
               eMultipleTargetInOneImage,
+              eBadSysCo,
               eUnClassedError,
               eNbVals
            };
@@ -533,14 +534,11 @@ enum class eProjPC
      eNbVals
 };
 
-enum class eSysCoGeo
+enum class eSysCo
 {
-     eLambert93,
+     eProj,
      eRTL,
      eGeoC,
-     eWGS84Degrees,
-     eWGS84Rads,
-     eWGS84Meters,
      eLocalSys,
      eNbVals
 };
@@ -597,7 +595,7 @@ const std::string & E2Str(const eFormatExtern &);
 const std::string & E2Str(const eTypeSerial &);
 const std::string & E2Str(const eTAAr &);
 const std::string & E2Str(const eProjPC &);
-const std::string & E2Str(const eSysCoGeo &);         
+const std::string & E2Str(const eSysCo &);
 const std::string & E2Str(const eTopoObsSetType &);
 const std::string & E2Str(const eTopoObsType &);
 const std::string & E2Str(const eDCTFilters &);

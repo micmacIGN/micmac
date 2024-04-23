@@ -162,16 +162,15 @@ template<> cE2Str<eProjPC>::tMapE2Str cE2Str<eProjPC>::mE2S
                {eProjPC::eEquiRect,"eEquiRect"}
            };
 
-template<> cE2Str<eSysCoGeo>::tMapE2Str cE2Str<eSysCoGeo>::mE2S
+
+template<> cE2Str<eSysCo>::tMapE2Str cE2Str<eSysCo>::mE2S
            {
-               {eSysCoGeo::eLambert93,"Lambert93"},
-               {eSysCoGeo::eRTL,"RTL"},
-               {eSysCoGeo::eGeoC,"GeoC"},
-               {eSysCoGeo::eWGS84Degrees,"WGS84Degrees"},
-               {eSysCoGeo::eWGS84Rads,"WGS84Rads"},
-               {eSysCoGeo::eWGS84Meters,"WGS84Meters"},
-               {eSysCoGeo::eLocalSys,"Local"}
+               {eSysCo::eProj,"Proj"},
+               {eSysCo::eRTL,"RTL"},
+               {eSysCo::eGeoC,"GeoC"},
+               {eSysCo::eLocalSys,"Local"}
            };
+
 
 
 template<> cE2Str<eTopoObsSetType>::tMapE2Str cE2Str<eTopoObsSetType>::mE2S
@@ -338,6 +337,7 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eNoNumberPixel,"NoNumberPixel"},
                 {eTyUEr::eNoCameraName,"NoCameraName"},
                 {eTyUEr::eMultipleTargetInOneImage,"MultipleTargetInOneImage,"},
+                {eTyUEr::eBadSysCo,"BadSysCo"},
                 {eTyUEr::eUnClassedError,"UnClassedError"}
            };
 
@@ -581,7 +581,7 @@ void BenchEnum(cParamExeBench & aParam)
     if (! aParam.NewBench("Enum")) return;
 
     TplBenchEnum<eProjPC>();
-    TplBenchEnum<eSysCoGeo>();
+    TplBenchEnum<eSysCo>();
     TplBenchEnum<eTopoObsSetType>();
     TplBenchEnum<eTopoObsType>();
     TplBenchEnum<eOpAff>();
@@ -1174,7 +1174,7 @@ MACRO_INSTANTITATE_STRIO_ENUM(eTyUEr,"TyUEr")
 MACRO_INSTANTITATE_STRIO_ENUM(eTyInvRad,"TyInvRad")
 MACRO_INSTANTITATE_STRIO_ENUM(eTyPyrTieP,"TyPyrTieP")
 MACRO_INSTANTITATE_STRIO_ENUM(eProjPC,"ProjPC")
-MACRO_INSTANTITATE_STRIO_ENUM(eSysCoGeo,"SysCoGeo")
+MACRO_INSTANTITATE_STRIO_ENUM(eSysCo,"SysCo")
 MACRO_INSTANTITATE_STRIO_ENUM(eTopoObsSetType,"TopoObsSetType")
 MACRO_INSTANTITATE_STRIO_ENUM(eTopoObsType,"TopoObsType")
 MACRO_INSTANTITATE_STRIO_ENUM(eOpAff,"OpAff")

@@ -93,10 +93,16 @@ const std::string MMVIIBin2007 = "MMVII.exe";
 #endif
 
 // User/Command
-const   std::string MMVII_LocalSys = "Local";
 const   std::string MMVII_NONE = "NONE";
 const   std::string MMVII_StdDest = "STD";
 const   std::string MMVII_PrefRefBench = "RefBench-";
+
+// Prefix for SysCo names
+const   std::string MMVII_SysCoLocal = "Local";
+const   std::string MMVII_SysCoRTL   = "RTL";
+const   std::string MMVII_SysCoGeoC  = "GeoC";
+const   std::string MMVII_SysCoDefLatLong = "+proj=latlong";
+const   std::string MMVII_SysCoDefGeoC = "+proj=geocent";
 
 // PostFix 4 files
 const   std::string PostF_XmlFiles  = "xml";
