@@ -9,7 +9,7 @@
 #include <typeinfo>
 #include <iostream>
 #include <fstream>
-
+#include "MMVII_Sensor.h"
 
 #include "MMVII_PhgrDist.h"
 using namespace NS_SymbolicDerivative;
@@ -102,6 +102,7 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         std::vector<cPt2dr> extractButterflyEdge(const cDataIm2D<float> &, cDCT*);
         std::vector<cPt2dr> extractButterflyEdgeOld(const cDataIm2D<float> &, cDCT*);
         void exportInXml(std::vector<cDCT*>);
+        void exportMesIm();
         void plotDebugImage(cDCT*, const cDataIm2D<float>&);
         tImTarget generateRectifiedImage(cDCT*, const cDataIm2D<float>&);
         std::vector<cPt2dr> getEncodingPositions(tDataImT &, cDCT*);
@@ -208,6 +209,7 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         int mSizeYDrone;
         int mSizeXDroneSym;
         int mSizeYDroneSym;
+        cPhotogrammetricProject     mPhProj;
         
 };
 
@@ -260,7 +262,8 @@ cAppliExtractCodeTarget::cAppliExtractCodeTarget(const std::vector<std::string> 
    mSizeXDrone      (600),
    mSizeYDrone      (1096),
    mSizeXDroneSym   (600),
-   mSizeYDroneSym   (848)
+   mSizeYDroneSym   (848),
+   mPhProj          (*this)
 {
 }
 
@@ -303,6 +306,7 @@ cCollecSpecArg2007 & cAppliExtractCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgO
                     << AOpt2007(mLineWidthDebug, "Line", "Size of lines in debug plot", {eTA2007::HDV})
                     << AOpt2007(mLetter, "Letter", "Size of letters in debug plot", {eTA2007::HDV})
                     << AOpt2007(mGroundTruthFile, "GT", "Ground truth file (if any)", {eTA2007::HDV})
+                    << mPhProj.DPPointsMeasures().ArgDirOutOptWithDef("Std")
 	  );
    ;
 }
@@ -647,12 +651,19 @@ void  cAppliExtractCodeTarget::DoExtract(){
     // ------------------------------------------------
     // Xml output (if needed)
     // ------------------------------------------------
-    if (mXml != "") exportInXml(mVDCTOk);
+    if (mXml != "")
+    {
+        exportInXml(mVDCTOk);
+    }
+    
 
     // ------------------------------------------------
     // Plot debug if needed
     // ------------------------------------------------
-    if (mDebugPlot) mImVisu.ToFile("VisuCodeTarget.tif");
+    if (mDebugPlot)
+    {
+        mImVisu.ToFile(mPhProj.DirVisu() + mNameIm + "_" + "VisuCodeTarget.tif");
+    }
 
 }
 
@@ -682,7 +693,34 @@ void cAppliExtractCodeTarget::exportInXml(std::vector<cDCT*> mVDCTOk){
 
 }
 
+// ---------------------------------------------------------------------------
+// Function to export result in xml MMVII
+// ---------------------------------------------------------------------------
+void cAppliExtractCodeTarget::exportMesIm()
+{
+    cSetMesPtOf1Im  aSetMes(FileOfPath(mNameIm));
 
+    for(auto aDCT : mVDCTOk)
+    {
+        std::string aGcpName = aDCT->mDecodedName;
+
+		cPt2dr aPtIm;
+        aPtIm.x() = aDCT->mRefinedCenter.x();
+        aPtIm.y() = aDCT->mRefinedCenter.y();
+
+        if((aDCT->mDecodedName != "") && (aDCT->mDecodedName.substr(0,2) != "NA"))
+        {
+            //fill aSetMesOut
+		    cMesIm1Pt aMesIm1Pt(aPtIm,aGcpName,1.0);
+		    aSetMes.AddMeasure(aMesIm1Pt);
+        }
+
+
+    }
+
+    //write in a file
+	mPhProj.SaveMeasureIm(aSetMes);
+}
 
 // ---------------------------------------------------------------------------
 // Function to test if a predetected DCT candidate is valid
@@ -1959,6 +1997,8 @@ int cAppliExtractCodeTarget::ExeOnParsedBox()
 
 int  cAppliExtractCodeTarget::Exe(){
 
+    mPhProj.FinishInit();
+
 
     if (mTest){
 
@@ -2072,6 +2112,7 @@ int  cAppliExtractCodeTarget::Exe(){
 
    APBI_ExecAll();  // run the parse file  SIMPL
 
+    exportMesIm();
 
    delete mSpec;
    return EXIT_SUCCESS;
