@@ -13,11 +13,10 @@ template <class Type> class  cExtractLines;
 enum class eCodeHPS
 {
       Ok,
-      LowCumul,
-      NotFirst
+      LowCumul
 };
 
-class cHoughPS : public cMemCheck
+class cHoughPS // : public cMemCheck
 {
      public :
          typedef cSegment2DCompiled<tREAL8> tSeg;
@@ -27,44 +26,58 @@ class cHoughPS : public cMemCheck
 	 tREAL8 DistAnglAntiPar(const cHoughPS& aPS2) const;
          tREAL8 DY(const cHoughPS&) const;
          tREAL8 Dist(const cHoughPS&,const tREAL8 &aFactTeta=1.0) const;
-         tSeg2dr  SegMoyAntiParal(const cHoughPS& aPS2) const;
 
 	 const cPt2dr & TetaRho() const; ///< Accessor
 	 const tREAL8 & Teta() const;    ///< Accessor
 	 const tREAL8 & Rho() const;     ///< Accessor
 	 const tSeg & Seg() const ;      ///< Accessor
-         cHoughPS * Matched() const;     ///< Accessor
 	 const tREAL8 & Cumul() const;   ///< Accessor
 	 eCodeHPS  Code() const ;        ///< Accessor
          void SetCode(eCodeHPS);         ///< Modifior
-         bool IsBestMatch() const;       ///< Accessor
-         void SetIsBestMatch();          ///< Modifior
+         const cHoughTransform *  HT() const; ///< Accessor
 
 	 cPt2dr  IndTetaRho() const; ///< Teta/Rho in hough accum dynamic
 
 	 void Test(const cHoughPS & ) const;
-
 	 bool Match(const cHoughPS &,bool IsDark,tREAL8 aMaxTeta,tREAL8 aDMin,tREAL8 aDMax) const;
-
-	 static void SetMatch(std::vector<cHoughPS*>&  mVPS,bool IsLight,tREAL8 aMaxTeta,tREAL8 aDMin,tREAL8 aDMax);
+	 static std::vector<cPt2di> GetMatches(std::vector<cHoughPS>&  mVPS,bool IsLight,tREAL8 aMaxTeta,tREAL8 aDMin,tREAL8 aDMax);
 
          void UpdateSegImage(const tSeg & aNewSeg,tREAL8 aNewCumul);
 
-     private :
-	 void InitMatch();
+     protected :
 	 void UpdateMatch(cHoughPS *,tREAL8 aDist);
 
          const cHoughTransform *  mHT;
          cPt2dr                   mTetaRho;
          tREAL8                   mCumul;
          tSeg                     mSegE;
-         tSeg                     mOldSeg;
-         cHoughPS *               mMatched;
-         tREAL8                   mDistM;
 	 eCodeHPS                 mCode;
-         bool                     mIsBestMatch;
 };
 
+class cParalLine 
+{
+    public :
+         typedef cSegment2DCompiled<tREAL8> tSeg;
+
+         cParalLine(const cHoughPS & aS1,const cHoughPS & aS2);
+	 const tREAL8 & ScoreMatch() const ; ///< Accessor
+
+         size_t RankMatch() const;       ///< Accessor
+         void SetRankMatch(size_t);          ///< Modifior
+	 const std::vector<cHoughPS> &   VHS() const; ///< Accessor
+
+	 void  ComputeRadiomHomog(const cDataGenUnTypedIm<2> &,cPerspCamIntrCalib *,const std::string & aNameFile) ;
+
+	 tREAL8 DistGt(const tSeg2dr &) const;
+    private :
+	 std::vector<cHoughPS>     mVHS;
+         tSeg         mMidleSeg;
+	 tREAL8       mScoreMatch;
+         int          mRankMatch;
+	 tREAL8       mRadHom; // Radiometric homogeneity
+	 tREAL8       mAngle;
+	 tREAL8       mWidth;
+};
 
 /** cHoughTransform
                 
@@ -109,7 +122,7 @@ class cHoughTransform
                              ) const;
 
 	 /// max the conversion houg-point + value ->  euclidian line  + rho teta
-	 cHoughPS * PtToLine(const cPt3dr &) const;
+	 cHoughPS  PtToLine(const cPt3dr &) const;
 
 	 /// make the conversion seg (oriented)  -> hough point 
 	 cPt2dr  Line2PtInit(const tSeg2dr &) const;

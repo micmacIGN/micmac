@@ -892,7 +892,7 @@ tSeg2dr  cPerspCamIntrCalib::ExtenSegUndistIncluded
 	      aPt += aTgt* (-aStep);
 	      aStep /= 2.0;
 	  }
-	  aPt += aPt * (-aRetract);
+	  aPt += aTgt * (-aRetract);
 	  aVPts.push_back(aPt);
       }
       return tSeg2dr(aVPts.at(0),aVPts.at(1));

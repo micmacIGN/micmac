@@ -21,13 +21,15 @@ tREAL8 CubAppGaussVal(const tREAL8&);
 
 tREAL8  GaussLaw(const tREAL8& aVal,const tREAL8& aAvg,const tREAL8& aStdDev);
 
+/** Class for doing "very fine" ressampling , high cost because compute a kernel for each pixel
+ * typically for simulation with scale change, used for target simulation*/
 
 class cRessampleWeigth
 {
     public :
          static cRessampleWeigth  GaussBiCub(const cPt2dr & aPtsIn,const cAff2D_r & aMapIn, double aSzK);
     // private :
-         std::vector<cPt2di>  mVPts;
+         std::vector<cPt2di>  mVPts;  // Pts used
          std::vector<double>  mVWeight;
 };
 

@@ -306,6 +306,8 @@ template <const int Dim> class cDataGenUnTypedIm : public cPixBox<Dim>,
         virtual void VI_SetV(const  cPtxd<int,Dim> & aP,const int & aV) =0;
                 /// Set Pixel Float Value
         virtual void VD_SetV(const  cPtxd<int,Dim> & aP,const double & aV)=0 ;
+
+        virtual double GetVBL(const  cPtxd<tREAL8,Dim> & aP) const  = 0;
 };
 
 
