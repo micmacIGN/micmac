@@ -7,8 +7,10 @@ class cInterpolator1D : public cMemCheck
 {
       public :
         cInterpolator1D(const tREAL8 & aSzKernel);
+        virtual ~cInterpolator1D();
 
         virtual tREAL8  Weight(const tREAL8 & anX) const = 0;
+	const tREAL8 SzKernel() const;  // accessor
       protected :
 	tREAL8 mSzKernel;
 };
@@ -23,9 +25,39 @@ class cBilinInterpolator1D : public cInterpolator1D
 };
 
 
+/* *************************************************** */
+/*                                                     */
+/*           cInterpolator1D                           */
+/*                                                     */
+/* *************************************************** */
+
+cInterpolator1D::cInterpolator1D(const tREAL8 & aSzKernel) :
+	mSzKernel (aSzKernel)
+{
+}
+
+cInterpolator1D::~cInterpolator1D()
+{
+}
+
+const tREAL8 cInterpolator1D::SzKernel() const {return mSzKernel;}
 
 
-        // cInterpolator1D(const tREAL8 & aSzKernel);
+/* *************************************************** */
+/*                                                     */
+/*           cBilinInterpolator1D                      */
+/*                                                     */
+/* *************************************************** */
+
+cBilinInterpolator1D::cBilinInterpolator1D() :
+       cInterpolator1D (1.0)
+{
+}
+
+tREAL8  cBilinInterpolator1D::Weight(const tREAL8 & anX) const 
+{
+      return std::max(0.0,1.0-std::abs(anX));
+}
 
 
 tREAL8 CubAppGaussVal(const tREAL8& aV)
