@@ -94,7 +94,10 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
            tPB::AssertInsideBL(aP);
            AddValueBL(aP,aVal);
         }
-       /// Bilinear valie
+
+       /// Interpolated value, using a generic interpolator
+       double GetValueInterpol(const cPt2dr & aP,const cInterpolator1D &) const ;
+       /// Bilinear value
        inline double GetVBL(const cPt2dr & aP) const  override
        {
            tPB::AssertInsideBL(aP);

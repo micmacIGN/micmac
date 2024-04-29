@@ -181,6 +181,8 @@ template <class Type>  class cIm1D  ;
 template <class TypeObj,class TypeLayer>  class cLayerData3D ;
 template <class TypeObj,class TypeLayer>  class cLayer3D ;
 
+class cInterpolator1D ;
+
 
 
 // MMVII_Matrix.h
