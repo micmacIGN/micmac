@@ -349,6 +349,15 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
 	    std::string aNamVisuRH = (mGenVisu >=2) ? (mPhProj.DirVisu() + LastPrefix(mNameCurIm)) : "";
             mParalLines[aK].ComputeRadiomHomog(anIm.DIm(),mCalib,aNamVisuRH);
         }
+
+        std::vector<cParalLine>  aNewParL;
+        for (const auto & aParL : mParalLines)
+        {
+            if (! aParL.RejectByComparison(mParalLines.at(0)))
+               aNewParL.push_back(aParL);
+        }
+	mParalLines = aNewParL;
+
     }
 
     // StdOut() <<  "NbMatchHHHHHH " << mMatchedVPS.size() << "\n";
@@ -364,6 +373,7 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
         else if (mParalLines.size()>=2) 
            aStringQual = "Pb_AmbNOK";
 
+// StdOut() << "GGGGGTTTTT " << mWithGT
         // modification if there is a ground truth
 	if (mWithGT)
 	{
@@ -373,6 +383,7 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
 		 else
 		 {
                      tREAL8 aDist = mParalLines.at(0).DistGt(mSegGT.value());
+
 		     if (aDist<2)
 		     {
                         aStringQual = (mParalLines.size()==1) ? "OK_GT_1" : "OK_GT_Multiple_Match";

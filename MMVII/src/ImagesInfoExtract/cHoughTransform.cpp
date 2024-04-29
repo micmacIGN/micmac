@@ -49,6 +49,24 @@ tREAL8 cParalLine::DistGt(const tSeg2dr & aSeg) const
 }
 
 
+bool cParalLine::RejectByComparison(const cParalLine & aBetterOne) const
+{
+    if (aBetterOne.mScoreMatch<=mScoreMatch)
+	return false;
+
+    if (aBetterOne.mScoreMatch > (2.0 *mScoreMatch))
+       return true;
+
+    if (aBetterOne.mRadHom < (mRadHom/2.0))
+       return true;
+
+    if ((aBetterOne.mRadHom/aBetterOne.mScoreMatch ) < ((mRadHom/mScoreMatch)/ 2.0)  )
+       return true;
+
+     return false;
+}
+
+
 
 template <class Type> cIm1D<Type>  MedianFilter(const cDataIm1D<Type> & aDImIn,int aSz)
 {

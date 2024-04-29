@@ -182,7 +182,9 @@ void cMMVII_Appli::AddObj2DelAtEnd(cObj2DelAtEnd * aPtrO)
 void cMMVII_Appli::ToDoBeforeDestruction()
 {
    // Merge report call virtual methode :q
+ 
    DoMergeReport();
+
 }
 
 cMMVII_Appli::~cMMVII_Appli()

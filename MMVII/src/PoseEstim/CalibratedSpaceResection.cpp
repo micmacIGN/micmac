@@ -358,7 +358,10 @@ template <class Type>
    cSet2D3D aBufSetTest;  // will have the space to store locally the test set
    int aNbTot = aSet0.NbPair();
 
-   MMVII_INTERNAL_ASSERT_tiny(aNbTot>3,"Not enough 2-3 corresp in RansacPoseBySR");
+   if (aNbTot<=3)
+   {
+        MMVII_INTERNAL_ASSERT_strong(false,"Not enough 2-3 corresp in RansacPoseBySR, need>3, got :" + ToStr(aNbTot));
+   }
 
 
    //  is we require less test that total of point we must create the subset
@@ -650,6 +653,7 @@ int cAppli_CalibratedSpaceResection::Exe()
     }
 
 
+StdOut() << "FFF=" << __FILE__ << " LL=" << __LINE__ << "\n";
     // By default print detail if we are not in //
     SetIfNotInit(mShowBundle,LevelCall()==0);
 
@@ -657,9 +661,14 @@ int cAppli_CalibratedSpaceResection::Exe()
 
     mPhProj.LoadGCP(mSetMes);
     mPhProj.LoadIm(mSetMes,mNameIm);
+    
     mSetMes.ExtractMes1Im(mSet23,mNameIm);
 
-    MMVII_INTERNAL_ASSERT_User(mSet23.NbPair()>3,eTyUEr::eUnClassedError,"Not enouh 3-2 pair for space resection");
+    if (mSet23.NbPair()<=3)
+    {
+        MMVII_INTERNAL_ASSERT_User
+        (false,eTyUEr::eUnClassedError,"Not enouh 3-2 pair for space resection, need>3, got "+ToStr(mSet23.NbPair()));
+    }
 
     cPerspCamIntrCalib *   aCal = mPhProj.InternalCalibFromStdName(mNameIm);
 

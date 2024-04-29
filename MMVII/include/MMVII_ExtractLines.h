@@ -69,6 +69,8 @@ class cParalLine
 	 void  ComputeRadiomHomog(const cDataGenUnTypedIm<2> &,cPerspCamIntrCalib *,const std::string & aNameFile) ;
 
 	 tREAL8 DistGt(const tSeg2dr &) const;
+
+	 bool RejectByComparison(const cParalLine & aBetterOne) const;
     private :
 	 std::vector<cHoughPS>     mVHS;
          tSeg         mMidleSeg;
