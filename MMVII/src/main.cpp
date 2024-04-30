@@ -49,9 +49,7 @@ int main(int argc, char ** argv)
          std::vector<std::string> aVArgs;
          for (int aK=0 ; aK<argc; aK++)
              aVArgs.push_back(argv[aK]);
-std::cout << "FFF=" << __FILE__ << " LL=" << __LINE__ << std::endl;
          int aRes =  aSpec->AllocExecuteDestruct(aVArgs);
-std::cout << "FFF=" << __FILE__ << " LL=" << __LINE__ << std::endl;
          return aRes;
       }
    }

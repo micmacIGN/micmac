@@ -708,9 +708,9 @@ template <class TypeH,class TypeCumul>  class cHistoCumul
 class cTabulFonc1D : public cFctrRR
 {
      public  :
-       double F (double) const override;  ///< Virtual usable as cFctRR
+       double F (double) const override;  ///< Virtual usable as cFctRR calls InlF
 
-       cTabulFonc1D(const cFctrRR & aFctr,double XMin,double XMax,int aNbStep);
+       cTabulFonc1D(const cFctrRR & aFctr,double XMin,double XMax,int aNbStep,bool  IsBilin=false);
 
      private  :
        inline int    ToIntCoord(double aX) const;
@@ -722,6 +722,7 @@ class cTabulFonc1D : public cFctrRR
        double  mStep;
        double  mValXMin;
        double  mValXMax;  
+       bool    mIsBilin;
        cIm1D<double>      mIm;
        cDataIm1D<double>* mDIm;
 };

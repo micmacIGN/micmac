@@ -470,6 +470,7 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         Bench_Nums(aParam); // Basic numericall services
         BenchHamming(aParam);
         BenchPolynome(aParam);
+        BenchInterpol(aParam);
         BenchPoseEstim(aParam);
         BenchRansSubset(aParam);
         BenchRecall(aParam,mNumBugRecall); // Force MMVII to generate call to itself
@@ -963,7 +964,6 @@ void TestVectBool()
 
 bool PrintAndTrue(const std::string & aMes) 
 {
-    StdOut() <<"FFFFF=" << aMes << std::endl; 
     return true;
 }
 

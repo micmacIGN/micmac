@@ -128,6 +128,7 @@ void Bench_Target_Encoding();
 void BenchHamming(cParamExeBench & aParam);
 void BenchPolynome(cParamExeBench & aParam);
 
+void BenchInterpol(cParamExeBench & aParam);
 
 void BenchStenopeSat();
 void BenchUnCalibResection();

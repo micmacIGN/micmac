@@ -652,8 +652,6 @@ int cAppli_CalibratedSpaceResection::Exe()
         return EXIT_SUCCESS;
     }
 
-
-StdOut() << "FFF=" << __FILE__ << " LL=" << __LINE__ << "\n";
     // By default print detail if we are not in //
     SetIfNotInit(mShowBundle,LevelCall()==0);
 
