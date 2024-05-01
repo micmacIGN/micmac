@@ -89,7 +89,7 @@ template <const int Dim>  class cPixBox : public cTplBox<int,Dim>
         cBorderPixBox<Dim>  Border(int aSz) const;
 
         inline bool InsideBL(const cPtxd<double,Dim> & aP) const; ///< Inside for Bilin
-        bool InsideInterpolator(const cInterpolator1D &,const cPtxd<double,Dim> & aP) const; ///< Inside for Bilin
+        bool InsideInterpolator(const cInterpolator1D &,const cPtxd<double,Dim> & aP,tREAL8 aMargin=0.0) const; ///< Inside for Bilin
         inline void AssertInsideBL(const cPtxd<double,Dim> & aP) const
         {
              MMVII_INTERNAL_ASSERT_tiny(InsideBL(aP),"Outside image in bilinear mode");
