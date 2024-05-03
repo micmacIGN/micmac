@@ -244,6 +244,41 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM)
 }
 
 
+
+void cMMVII_BundleAdj::OneIterationTopoOnly(tREAL8 aLVM)
+{
+    // if it's first step, alloc ressources
+    if (mPhaseAdd)
+    {
+        InitIteration();
+    }
+
+    if (mTopo) // TOPO
+    {
+        mTopo->SetFrozenAndSharedVars(*mR8_Sys);
+    }
+
+    // ================================================
+    //  [3]   Add compensation measures
+    // ================================================
+
+
+    //OneItere_GCP();   // add GCP informations
+
+    if (mTopo) // TOPO
+    {
+        mTopo->AddTopoEquations(*mR8_Sys);
+        mTopo->printObs(true);
+    }
+
+    const auto & aVectSol = mSys->R_SolveUpdateReset(aLVM);
+    mSetIntervUK.SetVUnKnowns(aVectSol);
+
+    StdOut() << "---------------------------" << std::endl;
+    mNbIter++;
+}
+
+
 void cMMVII_BundleAdj::AddCalib(cPerspCamIntrCalib * aCalib)  
 {
     AssertPhaseAdd();
