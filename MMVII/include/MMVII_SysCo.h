@@ -5,7 +5,6 @@
 #include "MMVII_Mappings.h"
 #include "MMVII_AllClassDeclare.h"
 
-
 namespace MMVII
 {
 
