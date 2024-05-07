@@ -70,7 +70,7 @@ std::string cTopoObs::toString() const
     return oss.str();
 }
 
-std::vector<int> cTopoObs::getIndices(cBA_Topo *aBATopo) const
+std::vector<int> cTopoObs::getIndices() const
 {
     std::vector<int> indices;
     switch (mSet->getType()) {
@@ -90,7 +90,7 @@ std::vector<int> cTopoObs::getIndices(cBA_Topo *aBATopo) const
         set->getPtOrigin()->getUK()->PushIndexes(indices);
         indices.resize(3); // keep only the point part for cSensorImage UK // TODO: improve, how to get only the point part of UK?
         set->getRotOmega().PushIndexes(indices);
-        cObjWithUnkowns<tREAL8>* toUk = aBATopo->getPoint(mPtsNames[1]).getUK();
+        cObjWithUnkowns<tREAL8>* toUk = mBA_Topo->getPoint(mPtsNames[1]).getUK();
         int nbIndBefore = indices.size();
         toUk->PushIndexes(indices);
         indices.resize(nbIndBefore+3); // keep only the point part for cSensorImage UK // TODO: improve
@@ -130,6 +130,7 @@ std::vector<int> cTopoObs::getIndices(cBA_Topo *aBATopo) const
 std::vector<tREAL8> cTopoObs::getVals() const
 {
     std::vector<tREAL8> vals;
+
     switch (mSet->getType()) {
     case eTopoObsSetType::eStation:
     {
@@ -140,9 +141,12 @@ std::vector<tREAL8> cTopoObs::getVals() const
             return {}; //just to please the compiler
         }
         set->PushRotObs(vals);
+        cPt3dr* aPtFrom = set->getPtOrigin()->getPt();
+        cPt3dr* aPtTo = mBA_Topo->getPoint(mPtsNames[1]).getPt();
         if (mType==eTopoObsType::eZen)
         {
-            tREAL8 ref_cor = 0.12 * Dh / (2*R);
+            tREAL8 ref_cor = 0.12 * mBA_Topo->getSysCo()->getDistHzApprox(*aPtFrom, *aPtTo)
+                                  / (2*mBA_Topo->getSysCo()->getRadiusApprox(*aPtFrom));
             vals.push_back(ref_cor);
         }
         vals.insert(std::end(vals), std::begin(mMeasures), std::end(mMeasures));

@@ -1,5 +1,6 @@
 #include "MMVII_SysSurR.h"
 #include "MMVII_Sensor.h"
+#include "MMVII_SysCo.h"
 #include "ctopodata.h"
 
 using namespace NS_SymbolicDerivative;
@@ -44,6 +45,7 @@ public :
     std::map<std::string, cTopoPoint> & getAllPts() { return mAllPts; }
     cTopoPoint & getPoint(std::string name);
     cCalculator<double>* getEquation(eTopoObsType tot) const;
+    tPtrSysCo getSysCo() const { return mSysCo; }
 private :
     cPhotogrammetricProject * mPhProj;
     std::map<eTopoObsType, cCalculator<double>*> mTopoObsType2equation;
@@ -52,6 +54,7 @@ private :
     std::string                  mInFile;
     double                       mSigma0;
     bool                        mIsReady; //< if data has been read (via FromFile)
+    tPtrSysCo                     mSysCo;
 };
 
 

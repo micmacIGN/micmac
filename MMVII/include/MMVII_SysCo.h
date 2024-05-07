@@ -5,6 +5,9 @@
 #include "MMVII_Mappings.h"
 #include "MMVII_AllClassDeclare.h"
 
+struct PJconsts;
+typedef struct PJconsts PJ;
+
 namespace MMVII
 {
 
@@ -34,6 +37,8 @@ public :
     virtual tPt Inverse(const tPt &) const override = 0; //< from GeoC
 
     virtual cRotation3D<tREAL8> getVertical(const tPt &)   const; //< get rotation from SysCo origin to vertical at this point
+    virtual tREAL8 getRadiusApprox(const tPt &in) const;
+    virtual tREAL8 getDistHzApprox(const tPt & aPtA, const tPt & aPtB) const;
 
     static tPtrSysCo MakeSysCo(const std::string &aDef); //< factory
     static tPtrSysCo makeRTL(const cPt3dr & anOrigin, const std::string & aSysCoNameIn);
@@ -49,6 +54,7 @@ protected :
     cSysCo(const std::string & def);
     std::string mName; //< name / def
     eSysCo mType;
+    static PJ* PJ_GeoC2Geog; //< for generic use
 };
 
 //------------------------------------------------------------

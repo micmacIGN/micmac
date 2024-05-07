@@ -7,10 +7,11 @@
 namespace MMVII
 {
 
+PJ* cSysCo::PJ_GeoC2Geog = nullptr;
+
 const std::string SysCoRTLSeparator = "*";
 
 PJ* createCRS2CRS(const std::string &def_from, const std::string &def_to); //< returns nullptr if error
-
 
 PJ_COORD toPjCoord(const tPt3dr &aPt)
 {
@@ -131,13 +132,14 @@ protected:
     tPoseR mRTL2GeoC; //< only for RTL
     bool computeRTL(tPt anOrigin, std::string aInDef); //< init mRTL2GeoC
     tREAL8 mCenterLatRad, mCenterLongRad;
-    PJ* mPJ_GeoC2Geog;
 };
 //------------------------------------------------------------
 
 cSysCo::cSysCo() :
     mName(), mType(eSysCo::eLocalSys)
 {
+    if (!PJ_GeoC2Geog)
+        PJ_GeoC2Geog = createCRS2CRS(MMVII_SysCoDefGeoC, MMVII_SysCoDefLatLong);
 }
 
 cSysCo::cSysCo(const std::string &aDef) :
@@ -173,6 +175,33 @@ cRotation3D<tREAL8> cSysCo::getVertical(const tPt &)   const
     MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eBadSysCo,
                                std::string("Error: getEllispNormale() not defined for SysCo type ") + E2Str(mType));
     return cRotation3D<tREAL8>::Identity();
+}
+
+tREAL8 cSysCo::getRadiusApprox(const tPt &in) const
+{
+    auto inGeoc = Value(in);
+    PJ_COORD pj_geoc = toPjCoord(inGeoc);
+    PJ_COORD pj_geog = proj_trans(PJ_GeoC2Geog, PJ_FWD, pj_geoc);
+    tREAL8 lat = pj_geog.lp.phi/AngleInRad(eTyUnitAngle::eUA_degree);
+
+    //GRS80
+    const tREAL8 semi_axis = 6378137;
+    const tREAL8 e2        = 0.00669438;
+    return semi_axis*sqrt(1-e2)/(1-e2*Square(sin(lat)));//total curvature sphere
+}
+
+tREAL8 cSysCo::getDistHzApprox(const tPt & aPtA, const tPt & aPtB) const
+{
+    auto aPtAGeoc = Value(aPtA);
+    auto aPtAgeog = fromPjCoord(proj_trans(PJ_GeoC2Geog, PJ_FWD, toPjCoord(aPtAGeoc)));
+    auto aPtBGeoc = Value(aPtB);
+
+    tREAL8 cosAlpha = Scal(aPtAGeoc,aPtBGeoc)/(Norm2(aPtAGeoc)*Norm2(aPtBGeoc));
+    tREAL8 alpha = acos(cosAlpha);
+
+    tREAL8 radius = getRadiusApprox(aPtA);
+
+    return alpha*(radius + aPtAgeog.z());
 }
 
 tPtrSysCo cSysCo::MakeSysCo(const std::string &aDef)
@@ -253,8 +282,7 @@ cSysCoGeoC::cSysCoGeoC(const std::string &aDef) :
 //------------------------------------------------------------
 
 cSysCoRTL::cSysCoRTL(const std::string &aDef) :
-    cSysCo(aDef), mRTL2GeoC({}, cRotation3D<tREAL8>::Identity()),
-    mPJ_GeoC2Geog(nullptr)
+    cSysCo(aDef), mRTL2GeoC({}, cRotation3D<tREAL8>::Identity())
 {
     auto tokens = SplitString(mName, SysCoRTLSeparator);
     MMVII_INTERNAL_ASSERT_User(tokens.size()>4, eTyUEr::eInsufNbParam,
@@ -269,8 +297,7 @@ cSysCoRTL::cSysCoRTL(const std::string &aDef) :
 }
 
 cSysCoRTL::cSysCoRTL(tPt anOrigin, std::string aInDef) :
-    cSysCo(), mRTL2GeoC({}, cRotation3D<tREAL8>::Identity()),
-    mPJ_GeoC2Geog(nullptr)
+    cSysCo(), mRTL2GeoC({}, cRotation3D<tREAL8>::Identity())
 {
     std::ostringstream oss;
     oss.precision(8);
@@ -284,7 +311,6 @@ cSysCoRTL::cSysCoRTL(tPt anOrigin, std::string aInDef) :
 
 cSysCoRTL::~cSysCoRTL()
 {
-    proj_destroy(mPJ_GeoC2Geog);
 }
 
 
@@ -321,7 +347,6 @@ bool cSysCoRTL::computeRTL(tPt anOrigin, std::string aInDef)
             //            cRotation3D<tREAL8>::RotKappa(-M_PI/2);
     mRTL2GeoC.Rot() = cRotation3D<tREAL8>((Rz2*Ry*Rz).Transpose(),false);
 
-    mPJ_GeoC2Geog = createCRS2CRS(MMVII_SysCoDefGeoC, MMVII_SysCoDefLatLong);
     proj_destroy(pj_in2latlong);
     proj_destroy(pj_in2geocent);
     return true;

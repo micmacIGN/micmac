@@ -34,7 +34,8 @@ cBA_Topo::cBA_Topo
         //{eTopoObsType::eSubFrame, EqTopoSubFrame(true,1)},
         //{eTopoObsType::eDistParam, EqDist3DParam(true,1)},
     },
-    mInFile(aTopoFilePath), mIsReady(false)
+    mInFile(aTopoFilePath), mIsReady(false),
+    mSysCo(nullptr)
 {
     std::string aPost = Postfix(mInFile,'.',true);
     if (UCaseEqual(aPost,"obs"))
@@ -44,6 +45,10 @@ cBA_Topo::cBA_Topo
         mInFile = mInFile + ".json";
         aTopoData.ToFile(mInFile);
     }
+    if (mPhProj)
+        mSysCo = mPhProj->CurSysCoGCP(false);
+    else
+        mSysCo = cSysCo::MakeSysCo("RTL*0.*45.*0.*+proj=latlong");
 }
 
 cBA_Topo::~cBA_Topo()
@@ -249,7 +254,7 @@ void cBA_Topo::AddTopoEquations(cResolSysNonLinear<tREAL8> & aSys)
             cTopoObs* obs = obsSet->getObs(i);
             //std::cout<<"add eq: "<<obs->toString()<<" ";
             auto equation = getEquation(obs->getType());
-            aSys.CalcAndAddObs(equation, obs->getIndices(this), obs->getVals(), obs->getWeights());
+            aSys.CalcAndAddObs(equation, obs->getIndices(), obs->getVals(), obs->getWeights());
             for (unsigned int i=0; i<obs->getMeasures().size();++i)
             {
                 double residual = equation->ValComp(0,i);

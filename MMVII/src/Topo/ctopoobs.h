@@ -26,7 +26,7 @@ public:
     //~cTopoObs() { std::cout<<"delete topo obs "<<toString()<<std::endl; }
     std::string toString() const;
     eTopoObsType getType() const {return mType;}
-    std::vector<int> getIndices(cBA_Topo *aBA_Topo) const;
+    std::vector<int> getIndices() const;
     std::vector<tREAL8> getVals() const; //< for least squares (with rotation matrix if needed
     std::vector<tREAL8> & getMeasures() { return mMeasures;} //< original measures
     std::vector<tREAL8> & getResiduals() { return mLastResiduals;} //< last residuals
