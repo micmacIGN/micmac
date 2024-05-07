@@ -80,8 +80,9 @@ class cFormulaTopoZen
            std::vector<std::string>    VNamesObs() const
            {
                 // for the instrument pose, the 3x3 current rotation matrix as "observation/context"
+                // refraction correction
                 // and the measure value
-                return  Append(NamesMatr("mi",cPt2di(3,3)), {"val"} );
+                return  Append(NamesMatr("mi",cPt2di(3,3)), {"ref_cor", "val"} );
            }
 
            template <typename tUk>
@@ -93,12 +94,13 @@ class cFormulaTopoZen
            {
                cPoseF<tUk>  aPoseInstr(aVUk,0,aVObs,0,true);
                cPtxd<tUk,3> aP_to = VtoP3(aVUk,6);
-               auto       val = aVObs[9];
+               auto  ref_cor = aVObs[9];
+               auto      val = aVObs[10];
                cPtxd<tUk,3>  aP_to_instr = aPoseInstr.Inverse().Value(aP_to);
 
                auto   dist_hz =  Norm2(  cPtxd<tUk,2>(aP_to_instr.x(), aP_to_instr.y() ) );
 
-               auto   zen = ATan2( aP_to_instr.z(), dist_hz );
+               auto   zen = ATan2( aP_to_instr.z(), dist_hz ) - ref_cor;
 
                return {  zen - val };
            }

@@ -140,6 +140,11 @@ std::vector<tREAL8> cTopoObs::getVals() const
             return {}; //just to please the compiler
         }
         set->PushRotObs(vals);
+        if (mType==eTopoObsType::eZen)
+        {
+            tREAL8 ref_cor = 0.12 * Dh / (2*R);
+            vals.push_back(ref_cor);
+        }
         vals.insert(std::end(vals), std::begin(mMeasures), std::end(mMeasures));
         break;
     }
