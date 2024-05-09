@@ -467,6 +467,16 @@ template <class Type>  class cDataIm1D  : public cDataTypedIm<Type,1>
         /// Used by matrix/vector interface 
         Type & GetV(const int & aP) { tPB::AssertInside(aP); return  Value(aP); }
 
+	tBase  DefGetV(const int & aP,const tBase & aDef )  const
+        {
+            if (tPB::Inside(cPt1di(aP)))
+               return Value(aP);
+            return aDef;
+        }
+	tBase  DefGetV(const cPt1di aP,const tBase & aDef )  const {return DefGetV(aP.x(),aDef);}
+
+
+
 
         const Type & CircGetV(const int & aP)  const {return Value(tPB::CircNormProj(cPt1di(aP)).x());}
           /// Set Value

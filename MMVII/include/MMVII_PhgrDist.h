@@ -196,6 +196,8 @@ NS_SymbolicDerivative::cCalculator<double> * EqTopoDZ(bool WithDerive,int aSzBuf
 	   
 /// Equation used to optimize homothetic transform between model and image (used as a tutorial for deformable model)
 NS_SymbolicDerivative::cCalculator<double> * EqDeformImHomotethy(bool WithDerive,int aSzBuf);
+/// Variant of "EqDeformImHomotethy", case where we use linear approximation
+NS_SymbolicDerivative::cCalculator<double> * EqDeformImLinearGradHomotethy(bool WithDerive,int aSzBuf);
 
            // .............   Covariance propagation  .............
 

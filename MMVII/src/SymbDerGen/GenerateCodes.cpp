@@ -298,6 +298,11 @@ cCalculator<double> * EqDeformImHomotethy(bool WithDerive,int aSzBuf)
      return StdAllocCalc(NameFormula(cDeformImHomotethy(),WithDerive),aSzBuf);
 }
 
+cCalculator<double> * EqDeformImLinearGradHomotethy(bool WithDerive,int aSzBuf)
+{
+     return StdAllocCalc(NameFormula(cDeformImHomotethy(true),WithDerive),aSzBuf);
+}
+
 cCalculator<double> * EqDeformImAffinity(bool WithDerive,int aSzBuf)
 {
      return StdAllocCalc(NameFormula(cDeformImAffinity(),WithDerive),aSzBuf);
@@ -806,7 +811,8 @@ int cAppliGenCode::Exe()
        GenCodesFormula((tREAL8*)nullptr,cFormulaTopoDY(),WithDer);
        GenCodesFormula((tREAL8*)nullptr,cFormulaTopoDZ(),WithDer);
 
-       GenCodesFormula((tREAL8*)nullptr,cDeformImHomotethy()       ,WithDer);
+       for (const auto IsLinearGrad : {true,false})
+           GenCodesFormula((tREAL8*)nullptr,cDeformImHomotethy(IsLinearGrad)     ,WithDer);
 
 
        //  ===============   CODE FOR RADIOMETRY =========================================

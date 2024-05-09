@@ -3,179 +3,28 @@
 namespace MMVII
 {
 
-class cInterpolator1D ;
-class cDiffInterpolator1D ;
-class cLinearInterpolator ;
-class cCubicInterpolator ;
-class cSinCApodInterpolator ;
-
-class cTabulatedInterpolator ;
-class cTabulatedDiffInterpolator ;
-class cEpsDiffFctr ;
-
-
-
-class cInterpolator1D : public cMemCheck
-{
-      public :
-        cInterpolator1D(const tREAL8 & aSzKernel);
-        virtual ~cInterpolator1D();
-
-        virtual tREAL8  Weight(tREAL8  anX) const = 0;
-	const tREAL8 SzKernel() const;  // accessor
-      protected :
-	tREAL8 mSzKernel;
-};
-
-class cDiffInterpolator1D : public cInterpolator1D
-{
-       public :
-            cDiffInterpolator1D(tREAL8 aSzK);
-            virtual tREAL8  DiffWeight(tREAL8  anX) const =0;
-	    /// Sometime its more optimized to compute both value simultaneously, default calls F&DF
-            virtual std::pair<tREAL8,tREAL8>  WAndDiff(tREAL8  anX) const ;
-};
-
-
-/** Linear interpolator, not very usefull as  function GetVBL do the jobs
- * inline and faster, but used in unitary test
- *
- */
-
-class cLinearInterpolator : public cInterpolator1D
-{
-      public :
-        cLinearInterpolator();
-        tREAL8  Weight(tREAL8  anX) const override ;
-};
-
-/** Cubic  interpolator, we make it differentiable essentially for 
- * unitary test, because pratically the tabulated is probably more efficient
- *
- */
-
-class cCubicInterpolator : public cDiffInterpolator1D
-{
-	public :
-            // mA = valeur de la derivee en  ?  ( 1?)
-            // si vaut -0.5, reconstitue parfaitement une droite
-            // doit etre comprise en 0 et -3
-             cCubicInterpolator(tREAL8 aParam);
-             tREAL8  Weight(tREAL8  anX) const override ;
-             tREAL8  DiffWeight(tREAL8  anX) const override ;
-             std::pair<tREAL8,tREAL8>   WAndDiff(tREAL8  anX) const override;
-       private :
-	     tREAL8 mA;
-
-};
-
-class cSinCApodInterpolator : public cInterpolator1D
-{
-       public :
-            cSinCApodInterpolator(tREAL8 aSzSinC,tREAL8 aSzAppod);
-            tREAL8  Weight(tREAL8  anX) const override ;
-       public :
-            tREAL8 mSzSinC;
-            tREAL8 mSzAppod;
-};
-
-cSinCApodInterpolator::cSinCApodInterpolator(tREAL8 aSzSinC,tREAL8 aSzAppod) :
-    cInterpolator1D  (aSzSinC+aSzAppod),
-    mSzSinC          (aSzSinC),
-    mSzAppod         (aSzAppod)
-{
-}
-
-tREAL8  cSinCApodInterpolator::Weight(tREAL8  anX) const
-{
-    anX = std::abs(anX);  // classicaly even function
-    if (anX> mSzKernel)  // classicaly 0 out of kernel
-       return 0.0;
-
-    tREAL8 aSinC = sinC(anX*M_PI); // pure sinus cardinal
-
-    if (anX<mSzSinC)  // before apodisation window  , no apodisation
-       return aSinC;
-
-    // Apod coef : 1 in mSzSinc , 0 in SzKernel
-    anX = (mSzKernel - anX) / mSzAppod;
-    //  use CubAppGaussVal to make apodisation a differentiable function
-    // return CubAppGaussVal(anX) * aSinC;
-    // strangely seems better interpol with trapeze window ??
-    return anX * aSinC;
-}
-
-
-
-
-
-class cTabulatedInterpolator : public cInterpolator1D
-{
-      public :
-          friend class cTabulatedDiffInterpolator;
-
-          cTabulatedInterpolator(const cInterpolator1D &,int aNbTabul,bool IsBilin,bool DoNorm=true);
-          tREAL8  Weight(tREAL8  anX) const override ;
-      private :
-	  void SetDiff(const cTabulatedInterpolator & anInt);
-	  void DoNormalize(bool ForDeriv);
-	  bool               mIsBilin;
-	  int                mNbTabul;
-	  int                mSzTot;
-          cIm1D<double>      mIm;
-          cDataIm1D<double>* mDIm;
-
-};
-
-
-class cEpsDiffFctr : public cDiffInterpolator1D
-{
-      public :
-          cEpsDiffFctr(const cInterpolator1D & anInt,tREAL8 aEps) ;
-          tREAL8  Weight(tREAL8  anX) const override ;
-          tREAL8  DiffWeight(tREAL8  anX) const override;
-      private :
-	   const cInterpolator1D & mInt;
-	   tREAL8    mEps;
-};
-
-class cTabulatedDiffInterpolator : public cDiffInterpolator1D
-{
-      public :
-          cTabulatedDiffInterpolator(const cInterpolator1D &,int aNbTabul);
-
-          tREAL8  Weight(tREAL8  anX) const override ;
-          tREAL8  DiffWeight(tREAL8  anX) const override;
-          std::pair<tREAL8,tREAL8>   WAndDiff(tREAL8  anX) const override;
-      private :
-	  cTabulatedInterpolator  mTabW;
-	  cTabulatedInterpolator  mTabDifW;
-	  int                     mNbTabul;
-	  int                     mSzTot;
-          const tREAL8 *          mRawW; 
-          const tREAL8 *          mRawDifW; 
-
-};
-
-
-
 /* *************************************************** */
 /*                                                     */
-/*           cEpsDiffFctr                              */
+/*           cInterpolator1D                           */
 /*                                                     */
 /* *************************************************** */
 
-cEpsDiffFctr::cEpsDiffFctr(const cInterpolator1D & anInt,tREAL8 aEps) :
-    cDiffInterpolator1D (anInt.SzKernel()),
-    mInt (anInt),
-    mEps (aEps)
+cInterpolator1D::cInterpolator1D(const tREAL8 & aSzKernel,const std::vector<std::string> & aVNames) :
+	mSzKernel (aSzKernel),
+	mVNames   (aVNames)
 {
 }
 
+cInterpolator1D::~cInterpolator1D()
+{
+}
+const tREAL8 cInterpolator1D::SzKernel() const {return mSzKernel;}
+const std::vector<std::string> & cInterpolator1D::VNames() const {return mVNames;}
 
-tREAL8  cEpsDiffFctr::Weight(tREAL8  anX) const  {return mInt.Weight(anX);}
-tREAL8  cEpsDiffFctr::DiffWeight(tREAL8  anX) const  {return (mInt.Weight(anX+mEps)-mInt.Weight(anX-mEps)) / (2*mEps) ;}
-
+cInterpolator1D *  cInterpolator1D::TabulatedInterp(const cInterpolator1D & anInt,int aNbTabul,bool BilinInterp)
+{
+	return new cTabulatedInterpolator(anInt,aNbTabul,BilinInterp);
+}
 
 
 /* *************************************************** */
@@ -184,16 +33,120 @@ tREAL8  cEpsDiffFctr::DiffWeight(tREAL8  anX) const  {return (mInt.Weight(anX+mE
 /*                                                     */
 /* *************************************************** */
 
-cDiffInterpolator1D::cDiffInterpolator1D(tREAL8 aSzK) :
-      cInterpolator1D (aSzK)
+cDiffInterpolator1D::cDiffInterpolator1D(tREAL8 aSzK,const std::vector<std::string> & aVNames) :
+      cInterpolator1D (aSzK,aVNames)
 {
 }
 
 std::pair<tREAL8,tREAL8>   cDiffInterpolator1D::WAndDiff(tREAL8  anX) const
 {
+    // default value, simply calls 2 elementary methods
     return std::pair<tREAL8,tREAL8> (Weight(anX),DiffWeight(anX));
 }
 
+const std::string & cDiffInterpolator1D::Get(const std::vector<std::string> & aVName,size_t aK0)
+{
+    if (aK0>=aVName.size())
+    {
+        StdOut() << "while parsing " << aVName << "\n";
+	MMVII_UnclasseUsEr("Coulnd extract elem " + ToStr(aK0) +" while parsing interpolator vect-string");
+    }
+    return aVName.at(aK0);
+}
+
+void cDiffInterpolator1D::AssertEndParse(const std::vector<std::string> & aVName,size_t aK0)
+{
+    if ((aK0+1) != aVName.size())
+	MMVII_UnclasseUsEr("Too many string in parsing interpolator vect-string");
+}
+
+
+cDiffInterpolator1D * cDiffInterpolator1D::AllocFromNames(const std::vector<std::string> & aVName)
+{
+	return AllocFromNames(aVName,0);
+}
+
+cDiffInterpolator1D * cDiffInterpolator1D::AllocFromNames(const std::vector<std::string> & aVName,size_t aK)
+{
+     const std::string & aN0 = Get(aVName,aK);
+     if (aN0== cTabulatedDiffInterpolator::TheNameInterpol)
+     {
+	 int aNbTabul =  cStrIO<int>::FromStr(Get(aVName,aK+1));
+	 cDiffInterpolator1D * anInt = AllocFromNames(aVName,aK+2);
+	 cTabulatedDiffInterpolator * aRes = new cTabulatedDiffInterpolator(*anInt,aNbTabul);
+	 delete anInt;
+	 return aRes;
+     }
+     if (aN0== cMPD2Interpol::TheNameInterpol)
+     {
+         AssertEndParse(aVName,aK);
+         return new cMPD2Interpol;
+     }
+     if (aN0== cCubicInterpolator::TheNameInterpol)
+     {
+	 tREAL8 aParam =  cStrIO<tREAL8>::FromStr(Get(aVName,aK+1));
+         AssertEndParse(aVName,aK+1);
+         return new cCubicInterpolator(aParam);
+     }
+     if (aN0== cMPDKInterpol::TheNameInterpol)
+     {
+	 tREAL8 aParam =  cStrIO<tREAL8>::FromStr(Get(aVName,aK+1));
+         AssertEndParse(aVName,aK+1);
+         return new cMPDKInterpol(aParam);
+     }
+     if (aN0== cSinCApodInterpolator::TheNameInterpol)
+     {
+	 tREAL8 aSzK    =  cStrIO<tREAL8>::FromStr(Get(aVName,aK+1));
+	 tREAL8 aSzApod =  cStrIO<tREAL8>::FromStr(Get(aVName,aK+2));
+         AssertEndParse(aVName,aK+2);
+	 return new cSinCApodInterpolator(aSzK,aSzApod);
+     }
+
+
+     MMVII_UnclasseUsEr("Cannot interpret [" + aN0 + "] while  parsing interpolator vect-string");
+     return nullptr;
+}
+
+
+cDiffInterpolator1D *  cDiffInterpolator1D::TabulatedInterp(const cInterpolator1D & anInt,int aNbTabul)
+{
+    return new cTabulatedDiffInterpolator(anInt,aNbTabul);
+}
+
+cDiffInterpolator1D *  cDiffInterpolator1D::TabulatedInterp(cInterpolator1D * anInt,int aNbTabul)
+{
+    return new cTabulatedDiffInterpolator(anInt,aNbTabul);
+}
+
+
+
+
+/* *************************************************** */
+/*                                                     */
+/*           cLinearInterpolator                      */
+/*                                                     */
+/* *************************************************** */
+
+cLinearInterpolator::cLinearInterpolator() :
+       cDiffInterpolator1D (1.0,{"Linear"}) // kernel defined on [-1,1]
+{
+}
+
+tREAL8  cLinearInterpolator::Weight(tREAL8  anX) const 
+{
+      return std::max(0.0,1.0-std::abs(anX)); // classical formula
+}
+
+tREAL8  cLinearInterpolator::DiffWeight(tREAL8  anX) const
+{
+     if (anX<-1)  return 0.0;
+     if (anX==-1) return 0.5;
+     if (anX<0)   return 1.0;
+     if (anX==0)  return 0.0;
+     if (anX<1)   return -1.0;
+     if (anX==1)  return -0.5;
+     return 0.0;
+}
 
 /* *************************************************** */
 /*                                                     */
@@ -202,10 +155,12 @@ std::pair<tREAL8,tREAL8>   cDiffInterpolator1D::WAndDiff(tREAL8  anX) const
 /* *************************************************** */
 
 cCubicInterpolator::cCubicInterpolator(tREAL8 aParam) :
-   cDiffInterpolator1D((aParam==0.0) ? 1.0 : 2.0),  // when A=0, the kernel is [-1,1] 
+   cDiffInterpolator1D((aParam==0.0) ? 1.0 : 2.0,{TheNameInterpol,ToStr(aParam)}),  // when A=0, the kernel is [-1,1] , else [-2,2]
    mA (aParam)
 {
 }
+
+const std::string cCubicInterpolator::TheNameInterpol="Cubic";
 
 tREAL8  cCubicInterpolator::Weight(tREAL8  x) const
 {
@@ -235,6 +190,10 @@ tREAL8  cCubicInterpolator::DiffWeight(tREAL8  x) const
      return 0.0;
 }
 
+/*  Optimized version, some computation are shared between value and derivates,
+ *  rather a minor gain here, it's more to illustrate the way it works
+ */
+
 std::pair<tREAL8,tREAL8>   cCubicInterpolator::WAndDiff(tREAL8  x) const
 {
      int aS = (x>=0) ? 1 : -1;
@@ -253,15 +212,215 @@ std::pair<tREAL8,tREAL8>   cCubicInterpolator::WAndDiff(tREAL8  x) const
      return std::pair<tREAL8,tREAL8> (0.0,0);
 }
 
+
+/* *************************************************** */
+/*                                                     */
+/*           cSinCApodInterpolator                     */
+/*                                                     */
+/* *************************************************** */
+
+cSinCApodInterpolator::cSinCApodInterpolator(tREAL8 aSzSinC,tREAL8 aSzAppod) :
+    cDiffInterpolator1D  (aSzSinC+aSzAppod,{"SinCApod",ToStr(aSzSinC),ToStr(aSzAppod)}),
+    mSzSinC              (aSzSinC),
+    mSzAppod             (aSzAppod)
+{
+}
+
+tREAL8  cSinCApodInterpolator::DiffWeight(tREAL8  anX) const 
+{
+    MMVII_INTERNAL_ERROR("No DiffWeight for cSinCApodInterpolator");
+    return 0;
+}
+
+tREAL8  cSinCApodInterpolator::Weight(tREAL8  anX) const
+{
+    anX = std::abs(anX);  // classicaly even function
+    if (anX> mSzKernel)  // classicaly 0 out of kernel
+       return 0.0;
+
+    tREAL8 aSinC = sinC(anX*M_PI); // pure sinus cardinal
+
+    if (anX<mSzSinC)  // before apodisation window  : no apodisation is done
+       return aSinC;
+
+    // Apod coeff compute so tha value =  1 in mSzSinc , 0 in SzKernel
+    anX = (mSzKernel - anX) / mSzAppod;
+    return anX * aSinC;
+
+    //  Tentative to   use CubAppGaussVal to make apodisation a differentiable function
+    // return CubAppGaussVal(anX) * aSinC;
+    // strangely seems better interpol with trapeze window ?? to investigate later ??
+}
+
+
+const std::string cSinCApodInterpolator::TheNameInterpol = "SinCApod";
+
+/* *************************************************** */
+/*                                                     */
+/*           cMPD2Interpol                             */
+/*                                                     */
+/* *************************************************** */
+
+/* The "MPD" interpolator comes from a compromize for trying to limit
+ * the defautlt of current interpolator :
+ *
+ *     - linear is biased because for the smoothin effect varies with phase "Ph" of interpolation:*
+ *         - if "Ph"=0.5  the weight is [0.5,0.5] having a smoothing effect (low frequence filter)
+ *         - whlie if "Ph=0" the weight is [0,1,0], we take the exact value
+ *
+ *     - sinus card is  potentially  slow if taken with too big kernel
+ *     
+ *     - other like bicubic  are some in between, but not completely satisfafying vs bias
+ *
+ *  The specification of MPD is :
+ *    
+ *      - like linear take as few pixel as possible,
+ *      - when "Ph"=0.5 , you cannot do much better than weigth [0.5,0.5], if you want to limit the size and
+ *        process  equivalently the two neighboors
+ *      - when "Ph in [-0.5,0.5]" :
+ *
+ *            * we limit to 3 pixel {-1,0,1}
+ *            * we compute the weight in such way that the frequence filtering effect is the same than with
+ *             weigth [0.5,0.5];  this effect is defined as the variance of the distribution
+ *
+ *   Then let "{a,b,c}" be the weight of {-1,0,1}, and "x=Ph" we have 3 equation :
+ *
+ *   (1)    "a+b+c =1"   => they are weigthing
+ *   (2)    "-a+c  =x"   =>  barycenter must be equal to phase
+ *   (3)    "a(1+x)^2 + b x^2 + c(1-x) = 1/4 " => have the same variance than for "[0.5,0.5]"
+ *
+ *   Solving this equation, we use "b=1-a-c" in (3) :
+ *
+ *          "a(1+2x) + c (1-2x) = 1/4-x^2"    then using (2) to substitute "c" by "x+a"  we get
+ *          "a=1/2(x-1/2)^2"                  by symetry x->1-x, we get for c
+ *          "c=1/2(x+1/2)^2"                  and finaly for b we get
+ *          "b=1/2(3/2-2x^2)"
+ *
+ *  Some check, for x=0.5  a,b,c={0,0.5,0.5}  , for x=-0.5 a,b,c={0.5,0.5,0} , for x=0 a,b,c={1/8,3/4,1/8}
+ *
+ *  Regarding the kernel we have :
+ *
+ *   For |x|<=0.5  (then F(x)= b with previous) we have :
+ *    "F=F-(X) = 1/2 (3/2-2x^2)"  
+ *   For 0.5<= |x|<=1.5  ( for ex if x>0.5,  F(x) = a with Ph=x-1
+ *    "F=F+(X) = 1/2(x-3/2)^2"
+ *   Else F=0
+ *
+ *  We can check that F is continous and differentianle
+ *
+ *    F-(1/2) = 1/2  = F+(1/2)
+ *    dF-/dx = -2x  dF-/dx(1/2) = -1
+ *    dF+/dx = x-3/2 dF+/dx(1/2)= -1
+ *    dF+/dx(3/2) = 0
+ */
+
+cMPD2Interpol::cMPD2Interpol():
+    cDiffInterpolator1D (1.5,{TheNameInterpol})
+{
+}
+
+const std::string cMPD2Interpol::TheNameInterpol = "MPD2";
+
+tREAL8  cMPD2Interpol::Weight(tREAL8  anX) const 
+{
+    anX = std::abs(anX) ;
+    if (anX<=0.5)  return 0.5 *(1.5-2*Square(anX));
+    if (anX<=1.5)  return 0.5 * Square(anX-1.5) ;
+
+    return 0.0;
+}
+
+tREAL8  cMPD2Interpol::DiffWeight(tREAL8  anX) const
+{
+    int aS = SignSupEq0(anX);
+    tREAL8 aXAbs = aS * anX;
+
+    if (aXAbs<=0.5)  
+       return -2*anX;
+
+    if (aXAbs<=1.5)  
+       return aS * (aXAbs-1.5);
+    return 0.0;
+}
+
+/* *************************************************** */
+/*                                                     */
+/*           cMPDKInterpol                             */
+/*                                                     */
+/* *************************************************** */
+
+cMPDKInterpol::cMPDKInterpol(tREAL8 anExp) :
+    cDiffInterpolator1D(1.5,{"MPDK",ToStr(anExp)}),
+    mExp  (anExp)
+{
+}
+
+const std::string cMPDKInterpol::TheNameInterpol = "MPDK";
+
+tREAL8  cMPDKInterpol::DiffWeight(tREAL8  anX) const 
+{
+    MMVII_INTERNAL_ERROR("No DiffWeight for cMPDKInterpol");
+    return 0;
+}
+
+tREAL8  cMPDKInterpol::Weight(tREAL8  anX) const
+{
+    anX = std::abs(anX);
+    if (anX>= mSzKernel) return 0.0;
+
+    tREAL8 aPhX = anX;
+    if ((anX>0.5) && (anX<=1.0))
+       aPhX = 1.0 - anX;
+    if ((anX>1.0))
+       aPhX =  anX -1.0;
+
+    cPt3dr aL0(1,1,1);  //  A+B+C = 1
+    cPt3dr aL1(-1,0,1);  // -A+C = 1
+    cPt3dr aL2(std::pow(1+aPhX,mExp),std::pow(aPhX,mExp),std::pow(1-aPhX,mExp));
+			
+
+    cDenseMatrix aM = M3x3FromLines(aL0,aL1,aL2);
+
+    cPt3dr aCol (1,aPhX,std::pow(0.5,mExp));
+
+    cPt3dr aABC = SolveCol(aM,aCol);
+
+    if (anX<0.5)
+      return aABC.y();
+
+    if (anX<1.0)
+      return aABC.z();
+       
+    return aABC.x();
+}
+
+/* *************************************************** */
+/*                                                     */
+/*           cEpsDiffFctr                              */
+/*                                                     */
+/* *************************************************** */
+
+cEpsDiffFctr::cEpsDiffFctr(const cInterpolator1D & anInt,tREAL8 aEps) :
+    cDiffInterpolator1D (anInt.SzKernel(),Append(   {"EpdDif",ToStr(aEps)},anInt.VNames() )),
+    mInt (anInt),
+    mEps (aEps)
+{
+}
+
+
+tREAL8  cEpsDiffFctr::Weight(tREAL8  anX) const  {return mInt.Weight(anX);}
+tREAL8  cEpsDiffFctr::DiffWeight(tREAL8  anX) const  {return (mInt.Weight(anX+mEps)-mInt.Weight(anX-mEps)) / (2*mEps) ;}
+
+
 /* *************************************************** */
 /*                                                     */
 /*           cTabulatedInterpolator                    */
 /*                                                     */
 /* *************************************************** */
 
-cTabulatedInterpolator::cTabulatedInterpolator(const cInterpolator1D &anInt,int aNbTabul,bool IsBilin,bool DoNorm) :
-     cInterpolator1D  (anInt.SzKernel()),
-     mIsBilin         (IsBilin),
+cTabulatedInterpolator::cTabulatedInterpolator(const cInterpolator1D &anInt,int aNbTabul,bool mInterpolTab,bool DoNorm) :
+     cInterpolator1D  (anInt.SzKernel(),Append(   {"NDTabul",ToStr(aNbTabul)}, anInt.VNames()  )),
+     mInterpolTab     (mInterpolTab),
      mNbTabul         (aNbTabul),
      mSzTot           (round_up(anInt.SzKernel()*mNbTabul)),
      mIm              (mSzTot+1),
@@ -272,37 +431,48 @@ cTabulatedInterpolator::cTabulatedInterpolator(const cInterpolator1D &anInt,int 
           mDIm->SetV(aK,anInt.Weight(aK/tREAL8(mNbTabul)));
       mDIm->SetV(mSzTot,0.0);
 
+      // [1] if we do the normalization, do it in mode "non derivative"
       if (DoNorm) 
           DoNormalize(false);
 }
 
+cTabulatedInterpolator::cTabulatedInterpolator(const cInterpolator1D &anInt,int aNbTabul,bool mInterpolTab)  :
+	cTabulatedInterpolator(anInt,aNbTabul,mInterpolTab,true)
+{
+}
+
 void cTabulatedInterpolator::SetDiff(const cTabulatedInterpolator & anInt)
 {
-     mDIm->SetV(0,0.0);
-     mDIm->SetV(mSzTot,0.0);
+    // for low and high bounds, specific fixing the value
+     mDIm->SetV(0,0.0);       // even function so : dW/dx(0) =0
+     // mDIm->SetV(mSzTot,0.0);  // bounded function, 0 out of kernel support
 
      tREAL8 a2Eps = 2.0/mNbTabul;
+
+     mDIm->SetV(mSzTot,(anInt.mDIm->GetV(mSzTot)-anInt.mDIm->GetV(mSzTot-1)) / a2Eps);
+
+     // for other compute the value by finite difference
      for (int aK=1 ; aK<mSzTot ; aK++)
          mDIm->SetV(aK,(anInt.mDIm->GetV(aK+1)-anInt.mDIm->GetV(aK-1)) / a2Eps);
 }
 
+
 void cTabulatedInterpolator::DoNormalize(bool ForDerive)
 {
-      tREAL8 aSomWDif = 0; // observation of inital deviation
-      for (int aK=0 ; aK< mNbTabul ; aK++)
+      tREAL8 aSomWDif = 0; // observation of inital deviation, for eventual show/debug
+			   
+      int aAmpl = (mSzTot/mNbTabul+3) * mNbTabul;
+      // Avoid  parse twice the phase
+      for (int aKPhase=0 ; 2*aKPhase<= mNbTabul ; aKPhase++)
       {
-	  // [1] retract to first (negative) value of same phase
-	  int aK1 = aK;
-	  while ((aK1-mNbTabul) >= -mSzTot) 
-                aK1-= mNbTabul;
-
-	  // [2]  compute the sum of all value same phase
+	  // [2]  compute the sum/average of all value same phase
           tREAL8 aSumV=0.0;
-	  int aNb=0;
-          for (; aK1<=mSzTot  ; aK1+=mNbTabul)
+	  int aNb=0;  // count number for average
+          for (int aKSigned=aKPhase-aAmpl ; aKSigned<aAmpl ; aKSigned+=mNbTabul)
 	  {
-               tREAL8 aV = mDIm->GetV(std::abs(aK1)); 
-	       if (ForDerive) aV *= SignSupEq0(aK1);
+               tREAL8 aV = mDIm->DefGetV(std::abs(aKSigned),0.0); 
+	       if (ForDerive) 
+                   aV *= SignSupEq0(aKSigned); // even func => dF/dx (-X) = - dF/dx (X)
                aSumV += aV;
 	       aNb++;
 	  }
@@ -310,12 +480,30 @@ void cTabulatedInterpolator::DoNormalize(bool ForDerive)
 	  if (ForDerive)   // if not Sum1, then Sum0 -> this is the avg we substract
              aSumV /= aNb;
 
-          for (aK1=aK; aK1<=mSzTot  ; aK1+=mNbTabul)
+
+	  // divide/substratc to all value same phase
+	  tREAL8 aCheckS=0.0;
+          for (int aKSigned=aKPhase-aAmpl ; aKSigned<aAmpl ; aKSigned+=mNbTabul)
 	  {
-	       if (ForDerive)
-                  mDIm->SetV(aK1,mDIm->GetV(aK1)-aSumV);
-	       else
-                  mDIm->SetV(aK1,mDIm->GetV(aK1)/aSumV);
+               int aKAbs =  std::abs(aKSigned);
+               if (mDIm->Inside(cPt1di(aKAbs)))
+	       {
+			      
+	           if (ForDerive)
+		   {
+                      mDIm->SetV(aKAbs,mDIm->GetV(aKAbs)-aSumV);
+                      aCheckS += mDIm->GetV(aKAbs);
+		   }
+	           else
+		   {
+                      // if the phase = mNbTabul we dont want to divide twice the result
+                      if (  ((2*aKPhase)!=mNbTabul) || (aKSigned<=0))
+		      {
+                           mDIm->SetV(aKAbs,mDIm->GetV(aKAbs)/aSumV);
+		      }
+                      aCheckS += mDIm->GetV(aKAbs);
+		   }
+	       }
 	  }
 
 	  aSomWDif +=  ForDerive ?  std::abs(aSumV) : std::abs(aSumV-1) ;
@@ -332,14 +520,16 @@ void cTabulatedInterpolator::DoNormalize(bool ForDerive)
 
 tREAL8  cTabulatedInterpolator::Weight(tREAL8  anX) const 
 {
-   tREAL8 aRK = std::abs(anX) * mNbTabul;
-   if (aRK>= mSzTot) 
+   tREAL8 aRK = std::abs(anX) * mNbTabul;  // compute the real index in tab
+
+   if (aRK>= mSzTot) // out of kernel ->0
       return 0.0;
 
-   if (mIsBilin)
-      return mDIm->GetVBL(aRK);
+
+   if (mInterpolTab)
+      return mDIm->GetVBL(aRK);  // case linear interpol
    else
-      return mDIm->GetV(round_ni(aRK));
+      return mDIm->GetV(round_ni(aRK)); // case integer value
 }
 
 /* *************************************************** */
@@ -349,511 +539,61 @@ tREAL8  cTabulatedInterpolator::Weight(tREAL8  anX) const
 /* *************************************************** */
 
 cTabulatedDiffInterpolator::cTabulatedDiffInterpolator(const cInterpolator1D &anInt,int aNbTabul) :
-	cDiffInterpolator1D (anInt.SzKernel()),
-	mTabW     (anInt,aNbTabul,true,true),
-	mTabDifW  (anInt,aNbTabul,true,false), // we dont normalize, btw coeff are not up to date
-        mNbTabul  (mTabW.mNbTabul),
-	mSzTot    (mTabW.mSzTot),
-	mRawW     (mTabW.mDIm->RawDataLin()),
-	mRawDifW  (mTabDifW.mDIm->RawDataLin())
+	cDiffInterpolator1D (anInt.SzKernel(), Append(   {TheNameInterpol,ToStr(aNbTabul)}, anInt.VNames()  )),
+	mTabW     (anInt,aNbTabul,true,true),    // true -> linear interpol, true ->we normalize value
+	mTabDifW  (anInt,aNbTabul,true,false),   // we dont normalize, btw coeff are not up to date and would divide by 0
+        mNbTabul  (mTabW.mNbTabul),              // fast direct access
+	mSzTot    (mTabW.mSzTot),                // fast direct access
+	mRawW     (mTabW.mDIm->RawDataLin()),     // raw data for efficiency
+	mRawDifW  (mTabDifW.mDIm->RawDataLin())   // raw data for efficiency
 {
 	mTabDifW.SetDiff(mTabW);   // put in DifW the difference of W
 	mTabDifW.DoNormalize(true); // normalize by sum 0
 }
 
-tREAL8  cTabulatedDiffInterpolator::Weight(tREAL8  anX) const {return mTabW.Weight(anX);}
+cTabulatedDiffInterpolator::cTabulatedDiffInterpolator(cInterpolator1D * anInt,int aNbTabul) :
+     cTabulatedDiffInterpolator (*anInt,aNbTabul)
+{
+     delete anInt;
+}
+
+const std::string cTabulatedDiffInterpolator::TheNameInterpol = "Tabul";
+
+// just call the weight of tabulated values
+tREAL8  cTabulatedDiffInterpolator::Weight(tREAL8  anX) const 
+{
+	return mTabW.Weight(anX);
+}
+
+// call the weight of tab value; adjust sign to take account " F'(-X) = - F'(X) "
 tREAL8  cTabulatedDiffInterpolator::DiffWeight(tREAL8  anX) const 
 {
 	return SignSupEq0(anX) * mTabDifW.Weight(anX);
 }
 
+
+/* Optimized version, avoid multiple computation of indexes & linear weighting */
+
 std::pair<tREAL8,tREAL8>   cTabulatedDiffInterpolator::WAndDiff(tREAL8  anX) const 
 {
-   tREAL8 aRK = std::abs(anX) * mNbTabul;
-   if (aRK>= mSzTot) 
+   tREAL8 aRK = std::abs(anX) * mNbTabul;  // real indexe
+					  
+   if (aRK>= mSzTot)   // out kernel : value and derivative = 0
       return std::pair<tREAL8,tREAL8>(0,0);
 
-   int aIk = round_down(aRK);
-   tREAL8 aWeight1 = aRK-aIk;
+   int aIk = round_down(aRK);  // for interpol Ik <= aRK < Ik+1
+   tREAL8 aWeight1 = aRK-aIk;     // if Rk=Ik+E   W(Ik+1)=E and  W(Ik) = 1-E
    tREAL8 aWeight0 = 1-aWeight1;
    
-   const tREAL8  * aDataW    = mRawW+aIk;
-   const tREAL8  * aDataDifW = mRawDifW+aIk;
+   const tREAL8  * aDataW    = mRawW+aIk;      // raw data value shifted from IK
+   const tREAL8  * aDataDifW = mRawDifW+aIk;   // raw data derivative shifted from IK
 
+   // weighted linear interpolation, as before note the sign in derivative for "F'(-X)=-F'(X)"
    return std::pair<tREAL8,tREAL8>
 	 ( 
 	      aWeight0*aDataW[0] + aWeight1*aDataW[1] ,  
 	      (aWeight0*aDataDifW[0] + aWeight1*aDataDifW[1]) * SignSupEq0(anX)
 	 );
-}
-
-
-/* *************************************************** */
-/*                                                     */
-/*           cInterpolator1D                           */
-/*                                                     */
-/* *************************************************** */
-
-cInterpolator1D::cInterpolator1D(const tREAL8 & aSzKernel) :
-	mSzKernel (aSzKernel)
-{
-}
-
-cInterpolator1D::~cInterpolator1D()
-{
-}
-
-const tREAL8 cInterpolator1D::SzKernel() const {return mSzKernel;}
-
-
-/* *************************************************** */
-/*                                                     */
-/*           cLinearInterpolator                      */
-/*                                                     */
-/* *************************************************** */
-
-cLinearInterpolator::cLinearInterpolator() :
-       cInterpolator1D (1.0)
-{
-}
-
-tREAL8  cLinearInterpolator::Weight(tREAL8  anX) const 
-{
-      return std::max(0.0,1.0-std::abs(anX));
-}
-
-/* *************************************************** */
-/*                                                     */
-/*           IM2D/IM2D                                 */
-/*                                                     */
-/* *************************************************** */
-
-template <> inline  bool cPixBox<2>::InsideInterpolator(const cInterpolator1D & anInterpol,const cPtxd<double,2> & aP,tREAL8 aMargin) const
-{
-    tREAL8 aSzK = anInterpol.SzKernel() + aMargin;
-    // tREAL8 aSzKm1 = aSzK-1.0;
-
-    // StdOut()  << " IIII " << aP << " XX=" << aP.x()-aSzKm1 << "\n";
-
-
-    return   ( round_Uup(aP.x()-aSzK) >= tBox::mP0.x()) &&  (round_Ddown(aP.x()+aSzK) <  tBox::mP1.x())
-          && ( round_Uup(aP.y()-aSzK) >= tBox::mP0.y()) &&  (round_Ddown(aP.y()+aSzK) <  tBox::mP1.y())
-    ;
-}
-
-static std::vector<tREAL8>  TheBufCoeffX;  // store the value on 1 line, as they are separable
-template <class Type>  tREAL8 cDataIm2D<Type>::GetValueInterpol(const cPt2dr & aP,const cInterpolator1D & anInterpol) const 
-{
-    TheBufCoeffX.clear();
-    tREAL8 aSzK = anInterpol.SzKernel();
-
-    tREAL8 aRealY = aP.y();
-    int aY0 = round_Uup(aRealY-aSzK);  
-    int aY1 = round_Ddown(aRealY+aSzK);
-
-    tREAL8 aRealX = aP.x();
-    int aX0 = round_Uup(aRealX-aSzK); 
-    int aX1 = round_Ddown(aRealX+aSzK);
-    int aNbX =  aX1-aX0+1;
-
-    tREAL8 aSomWX=0;
-    for (int aIntX=aX0 ; aIntX<=aX1 ; aIntX++)
-    {
-        tREAL8 aWX = anInterpol.Weight(aIntX-aRealX);
-        TheBufCoeffX.push_back(aWX);
-	aSomWX += aWX;
-    }
-    const tREAL8 *  aLineW0  = TheBufCoeffX.data();
-
-    tREAL8 aSomWIxy = 0.0;
-    tREAL8 aSomWY=0;
-    for (int aIntY=aY0 ; aIntY<=aY1 ; aIntY++)
-    {
-        tREAL8 aWY = anInterpol.Weight(aIntY-aRealY);
-	aSomWY += aWY;
-	const Type *  aLineIm = mRawData2D[aIntY] + aX0;
-	const tREAL8 *  aCurWX  = aLineW0;
-	tREAL8 aSomWIx = 0.0;
-
-	// for (int aKX=0 ; aKX< aNbX ; aKX++)
-        int aKx= aNbX;
-	while (aKx--)
-            aSomWIx += *(aLineIm++)  *  *(aCurWX++) ;
-        aSomWIxy  += aSomWIx * aWY;
-    }
-
-    return aSomWIxy / (aSomWX * aSomWY) ;
-}
-
-/*
- *     d(Im @ Int) / dx = Im @ d(Int)/dx
- */
-
-static std::vector<tREAL8>  TheBufCoeffDerX;  // store the value on 1 line, as they are separable
-					   
-template <class Type>  cPt3dr cDataIm2D<Type>::GetValueAndDerInterpol(const cPt2dr & aP,const cDiffInterpolator1D & anInterpol) const 
-{
-    TheBufCoeffX.clear();
-    TheBufCoeffDerX.clear();
-    tREAL8 aSzK = anInterpol.SzKernel();
-
-    tREAL8 aRealY = aP.y();
-    int aY0 = round_Uup(aRealY-aSzK);  
-    int aY1 = round_Ddown(aRealY+aSzK);
-
-    tREAL8 aRealX = aP.x();
-    int aX0 = round_Uup(aRealX-aSzK); 
-    int aX1 = round_Ddown(aRealX+aSzK);
-    int aNbX =  aX1-aX0+1;
-
-    for (int aIntX=aX0 ; aIntX<=aX1 ; aIntX++)
-    {
-        auto [aWX,aDerX]  = anInterpol.WAndDiff(aIntX-aRealX);
-        TheBufCoeffX.push_back(aWX);
-        TheBufCoeffDerX.push_back(aDerX);
-    }
-    /*
-FakeUseIt(aNbX);
-FakeUseIt(aY0);
-FakeUseIt(aY1);
-*/
-
-    const tREAL8 *  aLineW0  = TheBufCoeffX.data();
-    const tREAL8 *  aDerLineW0  = TheBufCoeffDerX.data();
-
-    tREAL8 aSomWxyI = 0.0;
-    tREAL8 aSomWI_Dx = 0.0;
-    tREAL8 aSomWI_Dy = 0.0;
-
-    for (int aIntY=aY0 ; aIntY<=aY1 ; aIntY++)
-    {
-	const Type *  aLineIm = mRawData2D[aIntY] + aX0;
-
-	tREAL8 aSomWIx = 0.0;
-	tREAL8 aSomDerWIx = 0.0;
-	for (int aKX=0 ; aKX< aNbX ; aKX++)
-	{
-            aSomWIx    += aLineIm[aKX]  *  aLineW0 [aKX];
-            aSomDerWIx += aLineIm[aKX]  *  aDerLineW0[aKX];
-	}
-
-        auto [aWY,aDerY] = anInterpol.WAndDiff(aIntY-aRealY);
-	aSomWxyI  +=  aSomWIx    * aWY;
-	aSomWI_Dx +=  aSomDerWIx * aWY;
-	aSomWI_Dy +=  aSomWIx    * aDerY;
-    }
-
-    return cPt3dr(-aSomWI_Dx,-aSomWI_Dy,aSomWxyI);
-}
-
-
-template class cDataIm2D<tU_INT1>;
-template class cDataIm2D<tREAL4>;
-
-
-/**  Basic test on bilinear interpolator, compare "hand crafted" GetVBL with :
- *     - cLinearInterpolator
- *     - Tabulated-raw
- *     - Tabulated-bilin
- *     
- */
-template <class Type>  void  TplBenchInterpol_1(const cPt2di & aSz)
-{
-     cIm2D<Type> anIm(aSz,nullptr,eModeInitImage::eMIA_RandCenter);
-     cDataIm2D<Type> & aDIm = anIm.DIm();
-
-     cLinearInterpolator aBil1;
-     cBox2dr  aBoxR(cPt2dr(0,0),ToR(aSz));
-     cTabulatedInterpolator aTabBil1(aBil1,1e5,false);
-     cTabulatedInterpolator aTabBiBil(aBil1,1e2,true);  // the tabulation is itself bilin
-
-     int aNbTest = 0;
-     while (aNbTest<1000)
-     {
-         cPt2dr  aPt = aBoxR.GeneratePointInside();
-	 if (aDIm.InsideBL(aPt))
-	 {
-             tREAL8 aV1 = aDIm.GetVBL(aPt);
-             tREAL8 aV2 = aDIm.GetValueInterpol(aPt,aBil1);
-             tREAL8 aV3 = aDIm.GetValueInterpol(aPt,aTabBil1);
-             tREAL8 aV4 = aDIm.GetValueInterpol(aPt,aTabBiBil);
-	     MMVII_INTERNAL_ASSERT_bench(std::abs(aV1-aV2)<1e-5,"Interpol ");
-
-	     tREAL8 aDif = std::abs(aV1-aV3) / tNumTrait<Type>::AmplRandomValueCenter();
-	     MMVII_INTERNAL_ASSERT_bench(aDif<1e-4,"Interpol ");
-
-	     aDif = std::abs(aV1-aV4);
-	     MMVII_INTERNAL_ASSERT_bench(aDif<1e-4,"Interpol ");
-             aNbTest ++;
-	 }
-     }
-}
-
-
-/*  Test GetValueInterpol with a not so basic interolator : cubic
- *  we use Cubic(0.5) as for this value the interpolation of a linear
- *  function is exact, so we have a ground truth
- *
- *  The test is made with analytic and tabulated interpolator
- *
- */
-template <class Type>  void  TplBenchInterpol_2(const cPt2di & aSz)
-{
-	// ----- [0]  parameters for linear function "Ax+By+C"
-     tREAL8 A = -2;
-     tREAL8 B = 3;
-     tREAL8 C = -123;
-
-	// -----  [1]   Generate the linear function  in the image
-     cIm2D<Type> anIm(aSz,nullptr,eModeInitImage::eMIA_RandCenter);
-     cDataIm2D<Type> & aDIm = anIm.DIm();
-
-     for (const auto & aP : aDIm)
-     {
-         aDIm.SetV(aP,A*aP.x()+B*aP.y() + C);
-     }
-
-	// -----  [2]   Generate the linear function  in the image
-     // bicub that interpolate exactly linear function
-     cCubicInterpolator aI3(-0.5);
-     //  tabulated interpolator
-     cTabulatedInterpolator aTabI3(aI3,1000,true);
-
-
-	// -----  [3]   Test itsefl
-     int aNbTest = 0;
-     cBox2dr  aBoxR(cPt2dr(0,0),ToR(aSz));
-     while (aNbTest<5000)
-     {
-         cPt2dr  aPt = aBoxR.GeneratePointInside();
-         if (aDIm.InsideInterpolator(aI3,aPt))
-         {
-             aNbTest++;
-
-	     tREAL8 aV0 = A*aPt.x()+B*aPt.y() + C;   // Analytical value
-	     tREAL8 aV1 = aDIm.GetValueInterpol(aPt,aI3);  // interpolation with analytical interpolator
-	     tREAL8 aV2 = aDIm.GetValueInterpol(aPt,aTabI3);  // interpolation with tabulated interpolator
-
-	     MMVII_INTERNAL_ASSERT_bench(std::abs(aV0-aV1)<1e-6,"Interpol ");
-	     MMVII_INTERNAL_ASSERT_bench(std::abs(aV0-aV2)<1e-6,"Interpol ");
-         }
-     }
-}
-
-
-template <class Type>  void  TplBenchInterpol_3(const cPt2di & aSz,tREAL8 aCoeff)
-{
-     tREAL8 aPerX = 10.0;
-     tREAL8 aPerY = 15.0;
-
-     cIm2D<Type> anIm(aSz,nullptr,eModeInitImage::eMIA_RandCenter);
-     cDataIm2D<Type> & aDIm = anIm.DIm();
-     cBox2dr  aBoxR(cPt2dr(0,0),ToR(aSz));
-
-     for (const auto & aP : aDIm)
-     {
-         tREAL8 aVal = std::sin(aP.x()/aPerX) *  std::cos(aP.y()/aPerY) ;
-	 aDIm.SetV(aP,aVal);
-     }
-
-     cCubicInterpolator aI3(aCoeff);
-
-     cTabulatedDiffInterpolator aTabI3(aI3,1000);
-
-     cSinCApodInterpolator  aSinCInt(5.0,5.0);
-     cTabulatedDiffInterpolator aTabSinC(aSinCInt,1000);
-
-     int aNbTest = 0;
-     tREAL8 aSumDifSinC = 0;
-     while (aNbTest<5000)
-     {
-         tREAL8 aEpsDif = 1e-4;
-         cPt2dr  aPt = aBoxR.GeneratePointInside();
-         if (aDIm.InsideInterpolator(aSinCInt,aPt,aEpsDif*1.01))
-         {
-             aNbTest++;
-
-             cPt3dr aVAndD = aDIm.GetValueAndDerInterpol(aPt,aI3);
-	     tREAL8 aV0 = aDIm.GetValueInterpol(aPt,aI3);
-
-	     cPt2dr aEpsX(aEpsDif,0);
-	     tREAL8 aVDx = (aDIm.GetValueInterpol(aPt+aEpsX,aI3)-aDIm.GetValueInterpol(aPt-aEpsX,aI3)) / (2*aEpsDif);
-
-	     cPt2dr aEpsY(0,aEpsDif);
-	     tREAL8 aVDy = (aDIm.GetValueInterpol(aPt+aEpsY,aI3)-aDIm.GetValueInterpol(aPt-aEpsY,aI3)) / (2*aEpsDif);
-
-
-	     MMVII_INTERNAL_ASSERT_bench(std::abs(aVAndD.z()  - aV0)<1e-6,"Interpol VAndDer");
-	     MMVII_INTERNAL_ASSERT_bench(std::abs(aVAndD.x() - aVDx)<1e-5,"Interpol VAndDer X");
-	     MMVII_INTERNAL_ASSERT_bench(std::abs(aVAndD.y() - aVDy)<1e-5,"Interpol VAndDer Y");
-
-             cPt3dr aTI3VD = aDIm.GetValueAndDerInterpol(aPt,aTabI3);
-	     // StdOut () << aVAndD - aTI3VD << aPt << aSz << "\n";
-	     cPt3dr aDif = aVAndD - aTI3VD;
-	     MMVII_INTERNAL_ASSERT_bench(std::abs(aDif.x() )<1e-4,"Interpol VAndDer Tabulated");
-	     MMVII_INTERNAL_ASSERT_bench(std::abs(aDif.y() )<1e-4,"Interpol VAndDer Tabulated");
-	     MMVII_INTERNAL_ASSERT_bench(std::abs(aDif.z() )<1e-4,"Interpol VAndDer Tabulated");
-
-             cPt3dr aTSinC = aDIm.GetValueAndDerInterpol(aPt,aTabSinC);
-             tREAL8 aVTh = std::sin(aPt.x()/aPerX) *  std::cos(aPt.y()/aPerY) ;
-             // aTSinC = aDIm.GetValueAndDerInterpol(aPt,aSinCInt);
-	     aSumDifSinC  += std::abs(aTSinC.z()-aVTh);
-	     if (0)
-	     {
-                  tREAL8 aVThX = std::cos(aPt.x()/aPerX) *  std::cos(aPt.y()/aPerY)  / aPerX;
-                  tREAL8 aVThY = std::sin(aPt.x()/aPerX) *  -std::sin(aPt.y()/aPerY)  / aPerY;
-
-	          StdOut() << "Dv=" << aVAndD 
-			  << " Difd" <<  aVAndD.z()- aVTh  << " " << aVAndD.x()- aVThX << " " << aVAndD.y()- aVThY
-			  << " DifSinC" <<  aTSinC.z()- aVTh  << " " << aTSinC.x()- aVThX << " " << aTSinC.y()- aVThY
-		          << "\n";
-	     }
-	 }
-     }
-     if (0)
-        StdOut() << "AVG DIF SINC =" << aSumDifSinC / aNbTest << "\n";
-}
-
-
-
-void  BenchInterpol(cParamExeBench & aParam)
-{
-     if (! aParam.NewBench("Interpol")) return;
-
-
-     //  Bench on bicub interpola
-     //
-     for (const auto & aP : {0.0,1.0,2.0,3.0})
-     {
-         cCubicInterpolator  anI3(aP);
-
-	 MMVII_INTERNAL_ASSERT_bench(std::abs(1-anI3.Weight(0))<1e-8,"Interpol ");   // F(0)=1
-	 MMVII_INTERNAL_ASSERT_bench(std::abs(anI3.Weight(1))<1e-8,"Interpol ");     // F(1)=0
-	 MMVII_INTERNAL_ASSERT_bench(std::abs(anI3.Weight(2))<1e-8,"Interpol ");     // F(2)=0
-	 MMVII_INTERNAL_ASSERT_bench(std::abs(anI3.Weight(2.1))<1e-8,"Interpol ");    // F(X>2) = 0
-										 //
-	 for (const auto aEps : {1e-2,1e-3,1e-4})
-	 {
-             // Derivate in 2 = 0
-	     MMVII_INTERNAL_ASSERT_bench(std::abs(anI3.Weight(2-aEps))<4*Square(aEps) ,"Interpol ");
-	     // diffrentuale in 1  dF/dx+ = dF/dx-
-	     MMVII_INTERNAL_ASSERT_bench(std::abs(anI3.Weight(1-aEps) + anI3.Weight(1+aEps))<4*Square(aEps) ,"Interpol ");
-	 }
-	 // compare  "analytical derivatives" with finite diff
-         cEpsDiffFctr aEpsI3(anI3,1e-5);
-
-	 cTabulatedDiffInterpolator aTabDif(anI3,10000);
-
-	 for (int aK=0 ; aK<1000 ; aK++)
-	 {
-             tREAL8 anX = RandInInterval(-3,3);
-
-	     tREAL8 aD1 = anI3.DiffWeight(anX);
-	     tREAL8 aF1 = anI3.Weight(anX);
-
-	     tREAL8 aD2 = aEpsI3.DiffWeight(anX);
-	     tREAL8 aF2 = aEpsI3.Weight(anX);
-
-	     auto [aF3,aD3] = anI3.WAndDiff(anX);
-
-	     // StdOut() << "DDDD X=" << anX << " "  << aD1 << " DifF=" << aD3 << " Dif=" << aD1 -aD3 << "\n";
-	     // StdOut() << "FFFF X=" << anX << " "  << aF1 << " DifF=" << aF3 << " Dif=" << aF1 -aF3 << "\n\n";
-
-	     MMVII_INTERNAL_ASSERT_bench(std::abs(aD1-aD2)<1e-4 ,"Interpol ");
-	     MMVII_INTERNAL_ASSERT_bench(std::abs(aF1-aF2)<1e-8 ,"Interpol ");
-	     MMVII_INTERNAL_ASSERT_bench(std::abs(aD1-aD3)<1e-4 ,"Interpol ");
-	     MMVII_INTERNAL_ASSERT_bench(std::abs(aF1-aF3)<1e-8 ,"Interpol ");
-
-
-	     tREAL8 aD4 = aTabDif.DiffWeight(anX);
-	     tREAL8 aF4 = aTabDif.Weight(anX);
-	     auto [aF5,aD5] = aTabDif.WAndDiff(anX);
-
-	     //  these one should be very clos if not ==0, because they are same bilin formula
-	     MMVII_INTERNAL_ASSERT_bench(std::abs(aF4-aF5)<1e-8 ,"Interpol TabDif ");
-	     MMVII_INTERNAL_ASSERT_bench(std::abs(aD4-aD5)<1e-8 ,"Interpol  TabDif");
-
-	     // StdOut() << "D455  " <<  aD3-aD5  << " " << aF3 - aF5 << "\n";
-	     // Not so close : analyticall formula & bilin tab
-	     MMVII_INTERNAL_ASSERT_bench(std::abs(aD3-aD5)<1e-3 ,"Interpol ");
-	     MMVII_INTERNAL_ASSERT_bench(std::abs(aF3-aF5)<1e-3 ,"Interpol ");
-	 }
-     }
-
-     TplBenchInterpol_1<tU_INT1>(cPt2di(230,127));
-     TplBenchInterpol_1<tREAL4>(cPt2di(144,201));
-
-
-     TplBenchInterpol_2<tINT2>(cPt2di(199,147));
-     TplBenchInterpol_2<tREAL8>(cPt2di(100,188));
-
-     TplBenchInterpol_3<tREAL8>(cPt2di(300,400),-0.5);
-
-     aParam.EndBench();
-}
-
-
-/* *************************************************** */
-/*                                                     */
-/*                ::                                   */
-/*                                                     */
-/* *************************************************** */
-
-
-tREAL8 CubAppGaussVal(const tREAL8& aV)
-{
-   tREAL8 aAbsV = std::abs(aV);
-   if (aAbsV>1.0) return 0.0;
-
-   tREAL8 aAV2 = Square(aAbsV);
-
-   return 1.0 + 2.0*aAbsV*aAV2 - 3.0*aAV2;
-   // cubic formula , return (mA+2) * x3-(mA+3)*x2+1;   for A=0 -> 2x3-3x2+1  . 
-}
-
-/**   Compute the weighting for ressampling one pixel of an image with a mapping M.
- *  Formalisation :
- *
- *      - we have pixel out  Co
- *      - we have an image weighing arround Co  W(P) = BiCub((P-Co)/aSzK)
- *      - let S be the support of W(P) we compute the box of M-1(S)
- *
- */
-
-cRessampleWeigth  cRessampleWeigth::GaussBiCub(const cPt2dr & aCenterOut,const cAff2D_r & aMapO2I, double aSzK)
-{
-     cRessampleWeigth aRes;
-
-     // [1] compute the box in input image space 
-     cPt2dr aSzW = cPt2dr::PCste(aSzK);
-     cBox2dr aBoxOut(aCenterOut-aSzW,aCenterOut+aSzW);
-     cBox2di aBoxIn =  ImageOfBox(aMapO2I,aBoxOut).Dilate(1).ToI();
-
-     cAff2D_r  aMapI2O = aMapO2I.MapInverse();
-
-     double aSomW = 0.0;
-     for (const auto & aPixIn : cRect2(aBoxIn))
-     {
-         cPt2dr aPixOut = aMapI2O.Value(ToR(aPixIn));
-         double aW =  CubAppGaussVal(Norm2(aPixOut-aCenterOut)/aSzK);
-         if (aW>0)
-         {
-            aRes.mVPts.push_back(aPixIn);
-            aRes.mVWeight.push_back(aW);
-            aSomW += aW;
-         }
-     }
-
-     // if not empty  , som W = 1
-     if (aSomW>0)
-     {
-        for (auto & aW : aRes.mVWeight)
-        {
-            aW /= aSomW;
-        }
-     }
-
-     return aRes;
 }
 
 };

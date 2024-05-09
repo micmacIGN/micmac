@@ -98,7 +98,7 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
        /// Interpolated value, using a generic interpolator
        double GetValueInterpol(const cPt2dr & aP,const cInterpolator1D &) const ;
        /// Interpolated value+derivative, using a generic diffentiable interpolator
-       cPt3dr GetValueAndDerInterpol(const cPt2dr & aP,const cDiffInterpolator1D &) const ;
+       std::pair<tREAL8,cPt2dr> GetValueAndGradInterpol(const cPt2dr & aP,const cDiffInterpolator1D &) const ;
 
        /// Bilinear value
        inline double GetVBL(const cPt2dr & aP) const  override
