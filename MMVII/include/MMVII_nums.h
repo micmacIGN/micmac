@@ -455,6 +455,15 @@ template <class Type> class tNumTrait : public tElemNumTrait<Type> ,
                  return MinValue() + RandUnif_0_1() * (int(MaxValue())-int(MinValue())) ;
               return RandUnif_C();
          }
+         static Type AmplRandomValueCenter()
+         {
+              if (tETrait::IsInt())
+                 return  (int(MaxValue())-int(MinValue())) ;
+              return 2.0;
+         }
+
+
+
          static Type Eps()
          {
               if (tETrait::IsInt())

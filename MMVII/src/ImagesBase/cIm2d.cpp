@@ -1,4 +1,3 @@
-
 #include "MMVII_Tpl_Images.h"
 #include "MMVII_Linear2DFiltering.h"
 #include "MMVII_DeclareCste.h"
@@ -123,9 +122,6 @@ template <class Type>  void cDataIm2D<Type>::ClipToFile(const std::string & aNam
     cDataFileIm2D aDFI = cDataFileIm2D::Create(aName,tElemNumTrait<Type>::TyNum(),aBox.Sz(),1);
     Write(aDFI,-aBox.P0(),1.0,aBox);
 }
-
-
-
 
 
 

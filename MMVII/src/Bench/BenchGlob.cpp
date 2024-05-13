@@ -193,6 +193,13 @@ void TestDir(const std::string & aDir);
 
 void Bench_0000_String(cParamExeBench & aParam)
 {
+    int aNb=0;
+    for (int aK=10 ; aK>0 ; aK--)
+        aNb++;
+    MMVII_INTERNAL_ASSERT_bench(aNb==10,"Test for (int aK=10 ; aK>0 ; aK--)");
+
+
+
     if (! aParam.NewBench("StringOperation")) return;
     // Bench elem sur la fonction SplitString
     // std::vector<std::string> aSplit;
@@ -463,6 +470,7 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         Bench_Nums(aParam); // Basic numericall services
         BenchHamming(aParam);
         BenchPolynome(aParam);
+        BenchInterpol(aParam);
         BenchPoseEstim(aParam);
         BenchRansSubset(aParam);
         BenchRecall(aParam,mNumBugRecall); // Force MMVII to generate call to itself
@@ -956,7 +964,6 @@ void TestVectBool()
 
 bool PrintAndTrue(const std::string & aMes) 
 {
-    StdOut() <<"FFFFF=" << aMes << std::endl; 
     return true;
 }
 

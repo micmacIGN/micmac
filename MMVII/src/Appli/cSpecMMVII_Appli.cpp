@@ -36,6 +36,7 @@ cSpecMMVII_Appli::cSpecMMVII_Appli
 
 int cSpecMMVII_Appli::AllocExecuteDestruct(const std::vector<std::string> & aVArgs) const
 {
+
    // A conserver, on le mettra dans les sauvegarde
 #if 0
    {

@@ -51,6 +51,15 @@ template <class Type> cSegment2DCompiled<Type>::cSegment2DCompiled(const cSegmen
 {
 }
 
+template <class Type> Type cSegment2DCompiled<Type>::SignedDist(const tPt& aPt) const
+{
+    return Scal(mNorm,aPt - this->mP1);
+}
+template <class Type> Type cSegment2DCompiled<Type>::Dist(const tPt& aPt) const
+{
+    return std::abs(SignedDist(aPt));
+}
+
 
 template <class Type> cPtxd<Type,2> cSegment2DCompiled<Type>::ToCoordLoc(const tPt& aPt) const
 {
@@ -67,6 +76,46 @@ template <class Type> Type cSegment2DCompiled<Type>::DistLine(const tPt& aPt) co
 {
     return std::abs(Scal(mNorm,aPt - this->mP1));
 }
+
+
+template <class Type> Type cSegment2DCompiled<Type>::DistClosedSeg(const tPt& aPt) const
+{
+    tPt aPL = ToCoordLoc(aPt);
+
+    if (aPL.x() < 0)
+       return  Norm2(aPL);
+
+    if (aPL.x() >  this->mN2)
+      return  Norm2(aPt-this->mP2);
+
+    return std::abs(aPL.y());
+}
+
+/* ========================== */
+/*         cClosedSeg2D       */
+/* ========================== */
+
+
+
+cClosedSeg2D::cClosedSeg2D(const cPt2dr & aP0,const cPt2dr & aP1) :
+    mSeg (aP0,aP1)
+{
+}
+
+bool  cClosedSeg2D::InfEqDist(const cPt2dr & aPt,tREAL8 aDist) const
+{
+      return mSeg.DistClosedSeg(aPt) < aDist;
+}
+
+cBox2dr cClosedSeg2D::GetBoxEnglob() const
+{
+   //  return cBox 2dr(mSeg.P1(),mSeg.P2(),true); => does not work  because P1,P2 are not "min-max-ed" 
+   cTplBoxOfPts<tREAL8,2> aBox =   cTplBoxOfPts<tREAL8,2>::FromVect({mSeg.P1(),mSeg.P2()});
+   return aBox.CurBox(true);
+}
+
+const cSegment2DCompiled<tREAL8> & cClosedSeg2D::Seg() const {return mSeg;}
+
 
 /* ========================== */
 /*         cMapEstimate       */

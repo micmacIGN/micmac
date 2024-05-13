@@ -1,5 +1,5 @@
-
 #include "MMVII_Images.h"
+#include "MMVII_Image2D.h"
 // #include <Eigen/Dense>
 
 namespace MMVII
@@ -51,6 +51,21 @@ template <class Type,const int Dim>
 {
    Init(aModeInit);
 }
+
+template <>   cDataTypedIm<tREAL8,1> * cDataTypedIm<tREAL8,1>::AllocIm(const tPix& aPix)
+{
+   return new cDataIm1D<tREAL8>(cPt1di(0),aPix);
+}
+template <>   cDataTypedIm<tREAL8,2> * cDataTypedIm<tREAL8,2>::AllocIm(const tPix& aPix)
+{
+   return new cDataIm2D<tREAL8>(cPt2di(0,0),aPix);
+}
+template <>   cDataTypedIm<tREAL8,3> * cDataTypedIm<tREAL8,3>::AllocIm(const tPix& aPix)
+{
+   return new cDataIm3D<tREAL8>(aPix);
+}
+
+
 
 template <class Type,const int Dim>
     void cDataTypedIm<Type,Dim>::Resize(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,eModeInitImage aModeInit) 

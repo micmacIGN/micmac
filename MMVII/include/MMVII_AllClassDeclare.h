@@ -181,6 +181,9 @@ template <class Type>  class cIm1D  ;
 template <class TypeObj,class TypeLayer>  class cLayerData3D ;
 template <class TypeObj,class TypeLayer>  class cLayer3D ;
 
+class cInterpolator1D ;
+class cDiffInterpolator1D ;
+
 
 
 // MMVII_Matrix.h
@@ -302,6 +305,10 @@ class cSetMesGCP ;
 class cSetMesPtOf1Im ;
 class cMesIm1Pt;
 
+// Tiling index
+template <class Type>  class  cTiling ;
+
+
 //   MMVII_BlocRig.h
     //  RIGIDBLOC  
 class cSetSensSameId;     
@@ -322,6 +329,7 @@ typedef std::shared_ptr<cSysCoordV2>      tPtrSysCo;
 typedef std::shared_ptr<cChangSysCoordV2> tPtrChSys;
 
 
+class cTabulateGrad;
 
 };
 

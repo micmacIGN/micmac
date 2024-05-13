@@ -90,9 +90,27 @@ template <class Type> class cSegment2DCompiled : public cSegmentCompiled<Type,2>
        tPt  ToCoordLoc(const tPt&) const;
        tPt  FromCoordLoc(const tPt&) const;
        Type  DistLine(const tPt&) const; ///< distance between the line and the point
+       Type  DistClosedSeg(const tPt&) const; ///< distance between the point and closed segment
+       Type  SignedDist(const tPt& aPt) const; ///< Signed dist to the line (= y of local coordinates)
+       Type  Dist(const tPt& aPt) const; ///< Faster than upper class
+       const tPt & Normal() const {return mNorm;}
+
     private :
        tPt     mNorm;
 };
+
+class cClosedSeg2D
+{
+   public :
+      bool  InfEqDist(const cPt2dr & aPt,tREAL8 aDist) const;
+      cClosedSeg2D(const cPt2dr & aP0,const cPt2dr & aP1);
+      cBox2dr GetBoxEnglob() const;
+
+      const cSegment2DCompiled<tREAL8> & Seg() const;
+   private :
+      cSegment2DCompiled<tREAL8>  mSeg;
+};
+
 
 
 /*  Class of 2D mapping having the same interface, usable for ransac & least square */

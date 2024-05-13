@@ -13,11 +13,10 @@ template <class Type> class  cExtractLines;
 enum class eCodeHPS
 {
       Ok,
-      LowCumul,
-      NotFirst
+      LowCumul
 };
 
-class cHoughPS : public cMemCheck
+class cHoughPS // : public cMemCheck
 {
      public :
          typedef cSegment2DCompiled<tREAL8> tSeg;
@@ -27,40 +26,60 @@ class cHoughPS : public cMemCheck
 	 tREAL8 DistAnglAntiPar(const cHoughPS& aPS2) const;
          tREAL8 DY(const cHoughPS&) const;
          tREAL8 Dist(const cHoughPS&,const tREAL8 &aFactTeta=1.0) const;
-         tSeg2dr  SegMoyAntiParal(const cHoughPS& aPS2) const;
 
 	 const cPt2dr & TetaRho() const; ///< Accessor
 	 const tREAL8 & Teta() const;    ///< Accessor
 	 const tREAL8 & Rho() const;     ///< Accessor
 	 const tSeg & Seg() const ;      ///< Accessor
-         cHoughPS * Matched() const;     ///< Accessor
 	 const tREAL8 & Cumul() const;   ///< Accessor
 	 eCodeHPS  Code() const ;        ///< Accessor
          void SetCode(eCodeHPS);         ///< Modifior
+         const cHoughTransform *  HT() const; ///< Accessor
 
 	 cPt2dr  IndTetaRho() const; ///< Teta/Rho in hough accum dynamic
 
 	 void Test(const cHoughPS & ) const;
-
 	 bool Match(const cHoughPS &,bool IsDark,tREAL8 aMaxTeta,tREAL8 aDMin,tREAL8 aDMax) const;
+	 static std::vector<cPt2di> GetMatches(std::vector<cHoughPS>&  mVPS,bool IsLight,tREAL8 aMaxTeta,tREAL8 aDMin,tREAL8 aDMax);
 
-	 static void SetMatch(std::vector<cHoughPS*>&  mVPS,bool IsLight,tREAL8 aMaxTeta,tREAL8 aDMin,tREAL8 aDMax);
+         void UpdateSegImage(const tSeg & aNewSeg,tREAL8 aNewCumul);
 
-
-     private :
-	 void InitMatch();
+     protected :
 	 void UpdateMatch(cHoughPS *,tREAL8 aDist);
 
          const cHoughTransform *  mHT;
          cPt2dr                   mTetaRho;
          tREAL8                   mCumul;
          tSeg                     mSegE;
-         cHoughPS *               mMatched;
-         tREAL8                   mDistM;
-
 	 eCodeHPS                 mCode;
 };
 
+class cParalLine 
+{
+    public :
+         typedef cSegment2DCompiled<tREAL8> tSeg;
+
+         cParalLine(const cHoughPS & aS1,const cHoughPS & aS2);
+	 const tREAL8 & ScoreMatch() const ; ///< Accessor
+
+         size_t RankMatch() const;       ///< Accessor
+         void SetRankMatch(size_t);          ///< Modifior
+	 const std::vector<cHoughPS> &   VHS() const; ///< Accessor
+
+	 void  ComputeRadiomHomog(const cDataGenUnTypedIm<2> &,cPerspCamIntrCalib *,const std::string & aNameFile) ;
+
+	 tREAL8 DistGt(const tSeg2dr &) const;
+
+	 bool RejectByComparison(const cParalLine & aBetterOne) const;
+    private :
+	 std::vector<cHoughPS>     mVHS;
+         tSeg         mMidleSeg;
+	 tREAL8       mScoreMatch;
+         int          mRankMatch;
+	 tREAL8       mRadHom; // Radiometric homogeneity
+	 tREAL8       mAngle;
+	 tREAL8       mWidth;
+};
 
 /** cHoughTransform
                 
@@ -86,7 +105,9 @@ class cHoughTransform
           );
 
          ///  Add  a point with a given direction
-         void  AccumulatePtAndDir(const cPt2dr & aPt,tREAL8 aTeta0,tREAL8 aWeight);
+         void  Quick_AccumulatePtAndDir(const cPt2dr & aPt,tREAL8 aTeta0,tREAL8 aWeight);
+         void  Accurate_AccumulatePtAndDir(const cPt2dr & aPt,tREAL8 aTeta0,tREAL8 aWeight);
+
          cIm2D<tREAL4>      Accum() const; ///< Accessor
 
 	 tREAL8  AvgS2() const; ///< Avg of square, possibly use to measure "compactness"
@@ -103,10 +124,11 @@ class cHoughTransform
                              ) const;
 
 	 /// max the conversion houg-point + value ->  euclidian line  + rho teta
-	 cHoughPS * PtToLine(const cPt3dr &) const;
+	 cHoughPS  PtToLine(const cPt3dr &) const;
 
 	 /// make the conversion seg (oriented)  -> hough point 
-	 cPt2dr  Line2Pt(const tSeg2dr &) const;
+	 cPt2dr  Line2PtInit(const tSeg2dr &) const;
+	 cPt2dr  Line2PtPixel(const tSeg2dr &) const;
 
 	 const tREAL8 & RhoMax() const; ///<  Accessor
 	 ///   return the angle teta, of a given  index/position in hough accumulator
@@ -154,16 +176,24 @@ template <class Type> class  cImGradWithN : public cImGrad<Type>
         ///  Constructor using size
         cImGradWithN(const cPt2di & aSz);
         ///  Constructor using image & Alpha-Deriche parameters
-        cImGradWithN(const cDataIm2D<Type> & aImIn,Type aAlphaDeriche);
+        void  SetDeriche(cDataIm2D<Type> & aDIm,Type aAlphaDeriche);
 
-
+        ///  Compute sobel and norm with tabulation
+        void  SetQuickSobel(cDataIm2D<Type> & aDIm,cTabulateGrad &,int aDiv);
 
 	/// Is it a local-maxima in the direction of the gradient
         bool  IsMaxLocDirGrad(const cPt2di& aPix,const std::vector<cPt2di> &,tREAL8 aRatioXY = 1.0) const;
+
+	/// Idem "IsMaxLocDirGrad" but used tabulated grad to accelerate
+	bool  TabIsMaxLocDirGrad(const cPt2di& aPix,const cTabulateGrad &,bool isWhite) const;
+
 	/// Allocat the neighbourhood use for computing local-maxima
         static  std::vector<cPt2di>  NeighborsForMaxLoc(tREAL8 aRay);
         cIm2D<Type>      NormG() {return mNormG;}  ///< Accessor
 	cPt2dr   RefinePos(const cPt2dr &) const;  ///< Refine a sub-pixelar position of the contour
+
+        cPt2dr  GradN(const cPt2di & aPix) {return ToR(this->Grad(aPix))/ tREAL8(mDataNG.GetV(aPix));}
+        tREAL8  NormG(const cPt2di & aPix) {return  tREAL8(mDataNG.GetV(aPix));}
      private :
 	cPt2dr   OneRefinePos(const cPt2dr &) const; ///< One iteration of refinement
  
@@ -181,29 +211,44 @@ template <class Type> class  cExtractLines
       public :
           typedef  cIm2D<Type>      tIm;
           typedef  cDataIm2D<Type>  tDIm;
+          static const size_t  TheFlagLine=2;
+          static const size_t  TheFlagSuprLine=  0xFFFFFFFF ^ TheFlagLine;
 
           cExtractLines(tIm anIm);  ///< constructor , memorize image
           ~cExtractLines();
 
 	  /// initialize the gradient
           void SetDericheGradAndMasq(tREAL8 aAlphaDerich,tREAL8 aRayMaxLoc,int aBorder,bool Show=false);
+
 	  ///  Initialize the hough transform
-          void SetHough(const cPt2dr & aMulTetaRho,tREAL8 aSigmTeta,cPerspCamIntrCalib *,bool AffineMax,bool Show=false);
+          void SetHough(const cPt2dr & aMulTetaRho,tREAL8 aSigmTeta,cPerspCamIntrCalib *,bool Accurate,bool Show=false);
 
 	  /// Generate an image for visualizing the contour,
           cRGBImage MakeImageMaxLoc(tREAL8 aAlphaTransparency);
           
           cHoughTransform &  Hough();  ///< Accessor
           cImGradWithN<Type> &  Grad(); ///< Acessor
+          const std::vector<cPt2di>& PtsCont() const; ///< Accessor
+
+          void  RefineLineInSpace(cHoughPS &); ///< refine the position of the line by matching on contour
+          void MarqBorderMasq(size_t aFlag= TheFlagLine);  ///< write a flag on border
+          void UnMarqBorderMasq(size_t aFlag= TheFlagSuprLine);  ///<  clear the flag on border
+          cDataIm2D<tU_INT1>&   DImMasq(); ///< Accessor (for visu ?)
+
+
       private :
           cPt2di                mSz;        ///<  Size of the image
           tIm                   mIm;        ///< Memorize the image
           cIm2D<tU_INT1>        mImMasqCont;    ///<  Masq of point selected as contour
+          cDataIm2D<tU_INT1>&   mDImMasq;    ///<  Masq of point selected as contour
+          
           int                   mNbPtsCont;     ///<  Number of point detected as contour
 
           cImGradWithN<Type> *  mGrad;          ///< Structure allocated for computing gradient
+          cTabulateGrad *       mTabG ;
           cHoughTransform    *  mHough;         ///< Structure allocatedf or computing hough
           cPerspCamIntrCalib *  mCalib;         ///< (Optional) calibration for distorsion correction
+          std::vector<cPt2di>   mPtsCont;      ///< List of point in mImMasqCont
 };
 
 };

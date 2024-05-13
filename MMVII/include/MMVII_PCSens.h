@@ -204,7 +204,7 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 
 	    /**  Generate random calib, with assurance that distorsion will be inverible, 
 	       the KDeg (in 0,1,2)  pick one of the pre-defined degree */
-            static cPerspCamIntrCalib * RandomCalib(eProjPC aTypeProj,int aKDeg);
+            static cPerspCamIntrCalib * RandomCalib(eProjPC aTypeProj,int aKDeg,tREAL8 anAmpl=0.1);
 
 
 	    /** Given a set of 2D-3D correspondance, make a pose estimation using space resection,  
@@ -328,6 +328,12 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 			  tREAL8 aStepEnd=1.0,
 			  tREAL8 aRetract=0.0
                      ) const;
+
+            /// Generate a tabulated version of Undist/Redist
+            cTabuMapInv<2>* AllocTabulDUD(int aNb) const;
+            /// Memorize the tabulation that will be used when calling Undist/Redist
+            void SetTabulDUD(int aNb) ;
+
        private :
 	     ///  big object, no valuable copy
             cPerspCamIntrCalib(const cPerspCamIntrCalib &) = delete;
@@ -372,9 +378,29 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
             cDataIIMFromMap<tREAL8,2> *          mDist_DirInvertible; ///< accurate inverse, use approx + iterative
             cDataMapCalcSymbDer<tREAL8,2,3>*     mInv_Proj;   ///< direct projection  R2->R3
             bool                                 mInvIsUpToDate;        
-
+            cTabuMapInv<2>*                      mTabulDUD;  ///< Possibly store a tabulation of D/UD to replace call Undist/Redist
             // cDataMapCalcSymbDer<tREAL8,3,2>   * mProjInv;
 };
+
+
+
+/**  Interface to describe a "cPerspCamIntrCalib" as a invertible mapping for
+ * the pair Undist/Redist
+ */
+
+class cCamUDReD_Map : public cDataInvertibleMapping<tREAL8,2>
+{
+     public :
+          typedef  cDataInvertibleMapping<tREAL8,2>  tMap;
+          typedef  typename tMap::tPt                tPt;
+
+           tPt Value(const tPt &) const override;      ///< Undist 
+           tPt Inverse(const tPt &) const override;    ///< Redist 
+           cCamUDReD_Map(const cPerspCamIntrCalib * aCalib); ///< Constructor , memo the calib
+     private :
+        const cPerspCamIntrCalib * mCalib;  ///< memorize the calibration
+};
+
 
 void AddData(const cAuxAr2007 & anAux,cPerspCamIntrCalib &);
 

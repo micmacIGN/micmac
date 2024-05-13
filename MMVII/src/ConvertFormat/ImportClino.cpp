@@ -33,6 +33,7 @@ class cAppli_CERN_ImportClino : public cMMVII_Appli
 	cPhotogrammetricProject  mPhProj;
 
 	// Mandatory Arg
+	std::string               mDirData;
 	std::string               mNameRes;
 	std::vector<std::string>  Samples() const override;
 
@@ -49,7 +50,8 @@ cAppli_CERN_ImportClino::cAppli_CERN_ImportClino(const std::vector<std::string> 
 cCollecSpecArg2007 & cAppli_CERN_ImportClino::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
     return anArgObl
-	      <<  Arg2007(mNameRes ,"Folder of external project where the calib is to be imported")
+	      <<  Arg2007(mDirData ,"Folder where data are to be researched",{{eTA2007::FolderAny}})
+	      <<  Arg2007(mNameRes ,"Name of result file")
            ;
 }
 
@@ -57,7 +59,7 @@ cCollecSpecArg2007 & cAppli_CERN_ImportClino::ArgOpt(cCollecSpecArg2007 & anArgF
 {
     
     return anArgFac
-       //  << AOpt2007(mNameGCP,"NameGCP","Name of GCP set")
+           << AOpt2007(mNamesClino,"NameClino","Name of Clino")
        //  << AOpt2007(mNbDigName,"NbDigName","Number of digit for name, if fixed size required (only if int)")
        //  << AOpt2007(mL0,"NumL0","Num of first line to read",{eTA2007::HDV})
        //  << AOpt2007(mLLast,"NumLast","Num of last line to read (-1 if at end of file)",{eTA2007::HDV})
@@ -108,7 +110,11 @@ int cAppli_CERN_ImportClino::Exe()
     mPhProj.FinishInit();
 
     tNameSelector   aSelec = AllocRegex("Calibration_Clino_.*");
-    std::vector<std::string>   aLD = GetSubDirFromDir("./",aSelec);
+    // std::vector<std::string>   aTEST = RecGetFilesFromDir(mDirData,aSelec,0,100);
+    // StdOut() << "TTT=" << aTEST << "\n";
+
+
+    std::vector<std::string>   aLD = GetSubDirFromDir(mDirData,aSelec);
     std::sort(aLD.begin(),aLD.end());
 
     cMMVII_Ofs anOFS(mNameRes,eFileModeOut::CreateText);

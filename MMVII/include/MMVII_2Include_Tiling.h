@@ -10,6 +10,7 @@ namespace MMVII
 template <const int Dim> class cTilingIndex;
 template <class Type>  class  cTiling ;
 
+
 /* **************************************** */
 /*                                          */
 /*              cTilingIndex                */
@@ -34,16 +35,26 @@ template <const int Dim> class cTilingIndex : cMemCheck
            typedef std::list<int>        tLIInd;
 
 	   /// Constructor from Bounding Box and target number of case, WihBoxOut indicate if we allow to put point outside box
-	   cTilingIndex(const tRBox &,bool WithBoxOut, int aNbCase);
+	   cTilingIndex(const tRBox &,bool WithBoxOut, int aNbCase); // NCase= targeted total, not by dimension
 
 	   /// Number of tiles
 	   size_t  NbElem() const;
            bool  OkOut() const;  ///<  Accessor 
            const tRBox & Box() const;
 
+	   /// Convert  R^n -> N^n, return the bottom corner of box-index containing aPt
+	   tIPt  RPt2PIndex(const tRPt & aPt) const;
+	   /// Invert of RPt2PIndex, work R/R
+	   tRPt  PIndex2RPt(const tRPt &) const;
+	   /// Return the middle of the box
+	   tRPt  PIndex2MidleBox(const tIPt &) const;
+
+	   const tIBox &  IBoxIn() const {return mIBoxIn;} ///< accessor
+	   const tREAL8 &  Step() const {return mStep;} ///< accessor
+
+	   int  PInd2II(const tIPt & aPInt) {return mIBoxIn.IndexeLinear(aPInt);}
+
         protected :
-	   /// Convert  R^n -> N^n
-	   tIPt  PtIndex(const tRPt &) const;
 	   /// Convert  R^n -> N
 	   int   IIndex(const tRPt &) const;
 
@@ -54,19 +65,22 @@ template <const int Dim> class cTilingIndex : cMemCheck
 
 	   void AssertInside(const tRPt &) const;
 
-        private :
 
+
+	   cTilingIndex(const cTilingIndex<Dim> &) = delete;
+	   void operator = (const cTilingIndex<Dim> &) = delete;
 	   /// Helper in constructor
 	   static tREAL8  ComputeStep(const tRBox &, int aNbCase);
 	  
 	   // tIPt  Index(const tRPt &) const;
-	   tRBox    mRBoxIn;
-	   bool     mOkOut;
-	   int      mNbCase;
+	   tRBox    mRBoxIn;  ///< copy of in box
+	   bool     mOkOut;   ///< is it ok if object are out
+	   int      mNbCase;  ///< targeted total number of case/small boxx
 
-	   tREAL8   mStep;
-	   tIPt     mSzI;
-	   tIBox    mIBoxIn;
+	   tREAL8   mStep;  ///< computed step 
+	   tIPt     mSzI;   ///< number of case in each dim
+	   tIBox    mIBoxIn; ///< box number + add a margin for object outside
+	   std::vector<bool>  mIndIsBorder;
 };
 
 /*  For fast retrieving of object in tiling at given point position we test equality with a
@@ -101,12 +115,14 @@ template <const int Dim>  bool EqualPt(const cPtxd<tREAL8,Dim> & aP1,const cPtxd
  *        - object if any at an exact position (GetObjAtPos)
  */
 
+
 template <class Type>  class  cTiling : public cTilingIndex<Type::Dim>
 {
      public :
            typedef cTilingIndex<Type::Dim>  tTI;
            typedef typename tTI::tRBox      tRBox;
            typedef typename tTI::tRPt       tRPt;
+           typedef typename tTI::tIPt       tIPt;
 
            typedef typename Type::tPrimGeom tPrimGeom;
            typedef typename Type::tArgPG    tArgPG;
@@ -132,7 +148,8 @@ template <class Type>  class  cTiling : public cTilingIndex<Type::Dim>
                }
 
                //  Put object in all  box that it crosses
-               for (const auto &  aInd :  tTI::GetCrossingIndexes(anObj.GetPrimGeom(mArgPG))  )
+	       const tPrimGeom & aPrimGeom = anObj.GetPrimGeom(mArgPG);
+               for (const auto &  aInd :  tTI::GetCrossingIndexes(aPrimGeom))
                {
                    mVTiles.at(aInd).push_back(anObj);
                }
@@ -161,20 +178,71 @@ template <class Type>  class  cTiling : public cTilingIndex<Type::Dim>
            }
 
 	   /// return list of object at given dist
+/*	
 	   template <class tPrimG2> std::list<Type*> GetObjAtDist(const tPrimG2 &aPrimG2,tREAL8 aDist)
 	   {
                  std::list<Type*> aRes;
 		 tRBox  aBox = aPrimG2.GetBoxEnglob().Dilate(aDist);  // Get indices of boxes that crosse englobing box
+		 tREAL8 aDistWMargin = aDist + this->Step() * sqrt(Dim) * 1.001 ;
+FakeUseIt(aDistWMargin);
 		 for (const auto & anInd : this->GetCrossingIndexes(aBox))
 		 {
-                      for (auto & anObj : mVTiles.at(anInd)) // Parse all obj of each tile
+                      //if (aPrimG2.InfEqDist(PIndex2MidleBox(anInd.P0()),aDistWMargin))
 		      {
-                           if (aPrimG2.InfEqDist(anObj.GetPrimGeom(mArgPG),aDist))
-                              aRes.push_back(&anObj);
+                         for (auto & anObj : mVTiles.at(anInd)) // Parse all obj of each tile
+		         {
+                             if (aPrimG2.InfEqDist(anObj.GetPrimGeom(mArgPG),aDist))
+                                aRes.push_back(&anObj);
+		         }
 		      }
 		 }
                  return aRes;
 	   }
+	   */
+	   template <class tPrimG2> std::list<Type*> GetObjAtDist(const tPrimG2 &aPrimG2,tREAL8 aDist)
+	   {
+                 std::list<Type*> aRes;
+		 tRBox  aBox = aPrimG2.GetBoxEnglob().Dilate(aDist);  // Boxes  of point  at Dist of box of prim
+
+                 // compute the Box of PT-Index
+	         tIPt  aPI0 = this->RPt2PIndex(aBox.P0());
+                 tIPt  aPI1 = this->RPt2PIndex(aBox.P1()) + tIPt::PCste(1);
+                 cPixBox<Dim> aBoxI(aPI0,aPI1);
+
+                 // intersect with global index (index may have bad IndLinear) 
+                 aBoxI = aBoxI.Inter(this->mIBoxIn);  
+                 if (aBoxI.IsEmpty())
+                     return aRes;
+
+                 // DIAM = diameter of elementary box = Step srqt(Dim); M=Middel of the box,
+                 // all point in the box are at distance DIAM/2 of M
+                 // using triangular inequality we know that point are out if 
+                 //   D(PRIM,M) < D(PRIM,M) + D(M,P)
+		 tREAL8 aDistWMargin = aDist + (this->Step()*0.5) * std::sqrt(Dim) * 1.001 ;
+                 for (const auto & aPInt : cRect2(aBoxI))
+		 {
+                     int aInd = this->PInd2II(aPInt);
+
+                      if (   (this->mIndIsBorder.at(aInd))  // border box cannot be bounded  by DIAM
+                          || aPrimG2.InfEqDist(this->PIndex2MidleBox(aPInt),aDistWMargin)  
+                        )
+		      {
+			 // int anInd = this->PInd2II(aPInt);
+                         for (auto & anObj : mVTiles.at(aInd))   // Parse all obj of each tile
+		         {
+
+                             if (aPrimG2.InfEqDist(anObj.GetPrimGeom(mArgPG),aDist))
+                                aRes.push_back(&anObj);
+		         }
+		      }
+		 }
+                 return aRes;
+	   }
+
+
+
+
+
      private :
 	   tVectTiles  mVTiles;
 	   tArgPG      mArgPG;
@@ -202,6 +270,8 @@ template <const int TheDim> class cPointSpInd
          tPrimGeom  mPt;
 };
 
+
+/** Class for generating point such that all pairs are at distance > given value */
 template <const int TheDim> class cGeneratePointDiff
 {
      public :
@@ -212,29 +282,9 @@ template <const int TheDim> class cGeneratePointDiff
            typedef cPointSpInd<Dim>      tPSI;
            typedef cTiling<tPSI>         tTiling;
 
-           cGeneratePointDiff(const tRBox & aBox,tREAL8 aDistMin,int aNbMax=1000) :
-               mNbMax   (std::min(aNbMax,(round_down(aBox.NbElem()/pow(aDistMin,TheDim))))),
-               mTiling  (aBox,true,mNbMax,-1),
-               mDistMin (aDistMin)
-           {
-           }
-
-           tRPt GetNewPoint(int aNbTest=1000)
-           {
-               for (int aK=0 ; aK<aNbTest ; aK++)
-               {
-                    tRPt aRes =  mTiling.Box().GeneratePointInside();
-                    auto aL = mTiling.GetObjAtDist(aRes,mDistMin);
-                    if (aL.empty())
-                    {
-                            mTiling.Add(tPSI(aRes));
-                            return aRes;
-                    }
-               }
-               MMVII_INTERNAL_ERROR("Could not GetNewPoint in cGeneratePointDiff");
-               return tRPt::PCste(0);
-           }
-
+           cGeneratePointDiff(const tRBox & aBox,tREAL8 aDistMin,int aNbMax=1000) ;
+	   ///  generate a new point
+           tRPt GetNewPoint(int aNbTest=1000);
 
      private :
            int      mNbMax;

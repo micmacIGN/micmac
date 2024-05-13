@@ -31,7 +31,9 @@ namespace MMVII
 class cDeformImHomotethy
 {
   public :
-    cDeformImHomotethy() 
+    // temporay def value for backward compat
+    cDeformImHomotethy(bool isLinearGrad=false)  :
+          mLinearGrad  (isLinearGrad)
     {
     }
 
@@ -39,31 +41,32 @@ class cDeformImHomotethy
     { 
         return {"RadSc","RadTr","GeomSc","GeomTrX","GeomTrY"};  // 2 radiometry + 3 geometry
     }
-    static const std::vector<std::string> VNamesObs()      
+    std::vector<std::string> VNamesObs()   const
     { 
            return Append
                   (
-                       FormalBilinIm2D_NameObs("H") ,  // 6 obs for bilinear interpol of Im
+		       // 5 or 6 obs for linear-grad or bilinear interpol of Im
+                       mLinearGrad ?  FormalGradInterpol_NameObs("H")  : FormalBilinIm2D_NameObs("H") ,  
                        std::vector<std::string>{"xMod","yMod","ValueMod"} // x,y of point, value of modele
                   );
     }
 
-    std::string FormulaName() const { return "DeformImHomotethy";}
+    std::string FormulaName() const { return  mLinearGrad ?  "LGrad_DeformImHomotethy" : "DeformImHomotethy";}
 
     template <typename tUk,typename tObs> 
-             static std::vector<tUk> formula
+             std::vector<tUk> formula
                   (
                       const std::vector<tUk> & aVUk,
                       const std::vector<tObs> & aVObs
-                  ) // const
+                  )  const
     {
           size_t IndBilin = 0;
-          size_t IndX = FormalBilinIm2D_NbObs+ IndBilin;
+          size_t IndXModele = (size_t) (mLinearGrad ? FormalGradInterpolIm2D_NbObs : FormalBilinIm2D_NbObs ) + IndBilin;
 
 	  // extract observation on model 
-          const auto & xModele    = aVObs[IndX];
-          const auto & yModele    = aVObs[IndX+1];
-          const auto & vModelInit = aVObs[IndX+2];
+          const auto & xModele    = aVObs[IndXModele];
+          const auto & yModele    = aVObs[IndXModele+1];
+          const auto & vModelInit = aVObs[IndXModele+2];
 
 	  // extract unknowns
           const auto & aRadSc     = aVUk[0];
@@ -77,13 +80,18 @@ class cDeformImHomotethy
           auto  yIm = aGeomTry + aGeomScale *  yModele;
 
 	  // compute formula of bilinear interpolation
-          auto aValueIm = FormalBilinIm2D_Formula(aVObs,IndBilin,xIm,yIm);
+          auto aValueIm =   mLinearGrad                                             ?
+		            FormalGradInterpolIm2D_Formula(aVObs,IndBilin,xIm,yIm)  :
+		            FormalBilinIm2D_Formula(aVObs,IndBilin,xIm,yIm)         ;
 	  // take into account radiometric transform
           auto aValueModele = aRadTr + aRadSc * vModelInit;
 
 	  // residual is simply the difference  between both value
           return { aValueModele - aValueIm};
      }
+
+  private :
+     bool mLinearGrad; // Do we use the linear-grad of the bilinear model 
 };
 
 
