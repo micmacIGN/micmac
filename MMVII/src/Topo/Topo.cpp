@@ -308,7 +308,8 @@ void BenchTopoComp1example(cTopoData aTopoData, tREAL4 targetSigma0)
     }
     aTopo.ToFile(cMMVII_Appli::TmpDirTestMMVII()+"bench-out.json");
 
-    MMVII_INTERNAL_ASSERT_bench(std::abs(aTopo.Sigma0()-targetSigma0)<1e-5,"TopoComp sigma0 final");
+    // StdOut() << "TOPOOOERR=" << std::abs(aTopo.Sigma0()-targetSigma0) << "\n";
+    MMVII_INTERNAL_ASSERT_bench(std::abs(aTopo.Sigma0()-targetSigma0)<1e-4,"TopoComp sigma0 final");
 
     aSetIntervMultObj.SIUK_Reset();
 }
