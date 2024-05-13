@@ -400,7 +400,7 @@ template <class Type,const int Dim> class cDataTypedIm : public cDataGenUnTypedI
         void VD_SetV(const  cPtxd<int,Dim> & aP,const double & aV)override;
         void Resize(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,eModeInitImage=eModeInitImage::eMIA_NoInit);
 
-        virtual double GetVBL(const  cPtxd<tREAL8,Dim> & aP) const 
+        double GetVBL(const  cPtxd<tREAL8,Dim> & aP) const  override
         {
             MMVII_INTERNAL_ERROR("No Im3D::GetVBL");
             return 0.0;
