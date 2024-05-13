@@ -468,6 +468,7 @@ void cTabulatedInterpolator::SetDiff(const cTabulatedInterpolator & anInt)
 void cTabulatedInterpolator::DoNormalize(bool ForDerive)
 {
       tREAL8 aSomWDif = 0; // observation of inital deviation, for eventual show/debug
+      tREAL8 aCheckS=0.0;   // Check sum, useful 4 derive
 			   
       int aAmpl = (mSzTot/mNbTabul+3) * mNbTabul;
       // Avoid  parse twice the phase
@@ -490,7 +491,6 @@ void cTabulatedInterpolator::DoNormalize(bool ForDerive)
 
 
 	  // divide/substratc to all value same phase
-	  tREAL8 aCheckS=0.0;
           for (int aKSigned=aKPhase-aAmpl ; aKSigned<aAmpl ; aKSigned+=mNbTabul)
 	  {
                int aKAbs =  std::abs(aKSigned);
@@ -504,7 +504,7 @@ void cTabulatedInterpolator::DoNormalize(bool ForDerive)
 		   }
 	           else
 		   {
-                      // if the phase = mNbTabul we dont want to divide twice the result
+                      // if the 2*phase = mNbTabul we dont want to divide twice the result
                       if (  ((2*aKPhase)!=mNbTabul) || (aKSigned<=0))
 		      {
                            mDIm->SetV(aKAbs,mDIm->GetV(aKAbs)/aSumV);
@@ -520,7 +520,7 @@ void cTabulatedInterpolator::DoNormalize(bool ForDerive)
       if (0)
       {
           aSomWDif /= mNbTabul;
-          StdOut() << "SSS= " << aSomWDif  << " NbT=" << mNbTabul << "\n";
+          StdOut() << "SSS= " << aSomWDif  << " NbT=" << mNbTabul   << " CheckS=" << aCheckS << "\n";
           getchar();
       }
 }
