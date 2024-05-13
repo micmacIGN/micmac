@@ -1,0 +1,699 @@
+
+
+%   ------------------------------------------------------------------
+%   ------------------------------------------------------------------
+%                 Chapter Interpolators
+%   ------------------------------------------------------------------
+%   ------------------------------------------------------------------
+
+\chapter{Interpolators in \PPP}
+
+\label{ChapInterpolators}
+
+    % = = = = = = = = = = = = = = = = = = = = = = =
+    % = = = = = = = = = = = = = = = = = = = = = = =
+    % = = = = = = = = = = = = = = = = = = = = = = =
+
+\section{Introduction}
+This chapter groups the functionnality added in \PPP for image interpolation. In this
+first draft different view-points are merged in the same chapter : theory, users, programmers,
+and finally mainteners of the core-\PPP.  This organization may evolve with dispatching of different section
+of this chapter in different part.
+
+The following header  files , in {\tt include/} are involved in interpolators declaration :
+
+\begin{itemize}
+    \item {\tt MMVII\_Interpolators.h } : main file, contains the declaration of interpolators class;
+    \item {\tt MMVII\_Images.h} ,{\tt MMVII\_Image2D.h} declaration of methods involving interpolators
+          in images;
+
+    \item {\tt MMVII\_TplSymbImage.h}  declaration of method using interpolators in image differentiation
+          (as alternative to bilinear mode).
+\end{itemize}
+
+The following source  files , in {\tt src/} are involved in interpolators definition :
+
+\begin{itemize}
+   \item {\tt UtiMaths/Interpolators.cpp} definition of interpolator classes;
+   \item {\tt ImagesBase/cIm2d\_Interpolators.cpp} definition of methods for interpolating $2-d$ images with
+         \PPP's interpolators;
+   \item {\tt Bench/BenchInterpolators.cpp}  definition of method for checking correctness of implementation
+         (unitary test);
+
+   \item {\tt Bench/BenchTutoImageDef.cpp} contains the test for image differenciation, initially made for bilinear mode,
+         has been extended to take into account  interpolators.
+\end{itemize}
+
+
+    % = = = = = = = = = = = = = = = = = = = = = = =
+    % = = = = = = = = = = = = = = = = = = = = = = =
+    % = = = = = = = = = = = = = = = = = = = = = = =
+
+\section{Theoreticall background}
+
+\subsection{introducion}
+
+Theory of image/signal interpolation is an essential  part of image processing and there is a huge 
+documentation on the subject. The very brief theoreticall elements given here are more targeted to fix notation
+than to be a complete summary of the theory.
+
+In the more general case, in interpolation we have a function $F$  of $\RR^n$ sampled on a finite  set $p_k,v_k$
+\footnote{or countable and isolated} set of point and we want to extend the value to whole
+$\RR^n$  using some  property on $F$ :
+
+\begin{itemize}
+   \item $F$ is regular enough, whatever it means;
+   \item $F(p_k) = v_k$ if we require a perfect match, or $F(p_k) \approx v_k$  if require only a close
+         match,  whatever it means;
+\end{itemize}
+
+
+
+In the case of image/signal processing, we suppose that we know the value on regular grid $\{p_k\}=\ZZ^n$
+and want to extand $F$ from $\ZZ^n$ to whole $\RR^n$ . 
+Considering for know, a $1d$ interpolation, we have $p_k=k$, we note $\Interpol :  {v_k}  \rightarrow F$ 
+the interpolation process.  
+
+    % = = = = = = = = = = = = = = = = = = = = = = =
+
+\subsection{$1d$ interpolation kernel}
+
+We generally assume the following properties ,linearity as in~\ref{IntLin} :
+
+\begin{equation}
+    \Interpol_{\{a*v_k+b*w_k\}} = a*\Interpol_{\{v_k}\}+ b*\Interpol_{\{w_k\}} \label{IntLin}
+\end{equation}
+
+Invariance by translation, which mean that is we translate globally the $v_k$ of an integer $n$
+we must translate the function of $n$ :
+
+\begin{equation}
+    \Interpol_{\{v_{k+n}\}}(x) =  \Interpol_{\{v_{k}\}}(x+n)  \label{IntTrans}
+\end{equation}
+
+The property of equation \ref{IntLin} and \ref{IntTrans}, have for consequence that interpolation
+can be entirely caracterized by "kernel" function $\KernI : \RR \rightarrow \RR $ such that :
+
+\begin{equation}
+    F(x) =  \Interpol_{\{v_{k}\}}(x) = \sum_{k}  v_k  \KernI(x-k)   \label{KernIntDef}
+\end{equation}
+
+To assure the  integrity of interpolation process we generally assume properties on $\KernI$
+such as $\KernI$ is continous (or differrentiable) and  $\int_{\RR} \KernI ^2 $ is defined. We dont
+discuss in detail these "natural" hypothesis.
+We generally assume a symtetry hypethosis on interpolation that can be traduced in symetry on
+$\KernI$ :
+
+\begin{equation}
+    \KernI(-x) =   \KernI(x)   \label{KernIntSym}
+\end{equation}
+
+
+A "natural" property of interpolation is that if the value $v_k$ are constant $v_k=c$, the interpolated function 
+is constant $F(x)=c$ . From the kernel point of view this property is traduced as the \emph{aka} partition of unity :
+
+\begin{equation}
+    \forall x \in \RR : \sum_k \KernI(x+k) =   1 \label{PartUnit}
+\end{equation}
+
+
+The constraint that the intepolation coincide with values on sample point ($F(k)=v_k$) if it
+applies  is traduced by equation (where $\delta_x$ is kronecker's symbol) meaning that $ \KernI$ must
+be null for any non null integer value, and must value $1$ for $k=0$ :
+
+\begin{equation}
+    \forall x \in \ZZ :  \KernI(k) =   \delta_0 \label{KernIntDelta0}
+\end{equation}
+
+For practicall reason, we cannot compute infinite sum like in equation~\ref{KernIntDef}, and we 
+generally make the hypothesis that the support of $\KernI$ is bounded by a certain value $Sz_K$ :
+
+
+\begin{equation}
+    \forall x \in \RR   :  |x| > Sz_K  \Rightarrow \KernI(x) = 0 \label{KernIntBounded}
+\end{equation}
+
+    % = = = = = = = = = = = = = = = = = = = = = = =
+
+\subsection{N-dimentional interpolation}
+
+    %    -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Separable kernels}
+
+To keep things simple, we describe the interpolation on a $2$ dimensionnal grid $\ZZ^2$ wich is
+usefull for image processing, but generalization to  higher dimension is obvious. For $N-d$
+interpolation, we the same hypothesis than for $1d$ on linearity and invariance by translation we
+can deduce the existance of a kernel function $\KernI(x,y)$ such that :
+
+\begin{equation}
+    F(x,y) =  \Interpol_{\{v_{i,j}\}}(x,y) = \sum_{i,k}  v_{i,j}  \KernI(x-i,y-j)   \label{KernInt2DDef}
+\end{equation}
+
+We generally make the separability hypothesis, this hypothesis says in general that interpolation
+in $x,y$ can be done from the interpolation in $x$ of the sample interpolated in $y$. For a interpolation 
+kernel , this is traduced as :
+
+\begin{equation}
+     \KernI(a,b)  = \KernI_x(a) \KernI_y(b)  \label{KernIntSep} 
+\end{equation}
+
+Where $\KernI_x$ and $\KernI_y$ are the interpolation kernels for $x$ and $y$. Also in general $x$ and $y$ play
+the same role, which the case in image processing and we have :
+
+\begin{equation}
+      \KernI_x(a) =  \KernI_y(a)  \label{KernIntSymSep} 
+\end{equation}
+
+So finally we have the equation :
+
+\begin{equation}
+    F(x,y) =   \sum_{i,j}  v_{i,j}  \KernI(x-i) \KernI(y-j)   \label{KernInt2DDef}
+\end{equation}
+
+    %    -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Synthesis}
+
+We can make a brief synthesis of interpolation model we use in \PPP,  the interplation of an image $v_{i,j}$ can
+be computed by following formula :
+
+\begin{equation}
+    F(x,y) =  \sum_{i,j}  v_{i,j}  \KernI(x-i) \KernI(y-j)   \label{IntIm2D}
+\end{equation}
+
+
+Where the kernel  $\KernI$ is a  $\RR \rightarrow \RR$ function with the following properties :
+
+\begin{itemize}
+    \item  $\KernI$ is regular (continous at least) and $\int_{\RR} \KernI^2$ is finite;
+    \item  $\KernI$ is symetric (see \ref{KernIntSym});
+    \item  $\KernI$ complies with partition of unity property (see \ref{PartUnit});
+    \item  $\KernI$ is \emph{generally} such that $F(x,y)$ coincide with $v_{x,y}$ for integer
+           values of $x,y$, which lead to  equation \ref{KernIntDelta0} ;
+    \item  $\KernI$ is \emph{practically} bounded to an interval $Sz_K$ as in equation~\ref{KernIntBounded}.
+\end{itemize}
+
+    %    -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Remark on implemantaion efficiency}
+
+\label{InterpValueEff}
+
+Obviously, in equation~\ref{IntIm2D} we can  restrict the sum to $i \in [x-Sz_K,x+Sz_k]$, and
+idem for $j$. This said, a "naive" implementation of~\ref{IntIm2D}, can lead
+to $2*(1+2*Sz_K)^2$ evaluation of $\KernI$. 
+
+A basic optimization consist to use the separability and write :
+
+\begin{equation}
+    F(x,y) =  \sum_{j}  \KernI(y-j)   \sum_{i}  v_{i,j}  \KernI(x-i)  \label{IntIm2DOpt}
+\end{equation}
+
+Now if, before entering the main loop, we pre-compute in a table the value of $\KernI(x-i)$,  
+we will just need to  compute once the $\KernI(y-j)$ and $\KernI(x-i)$
+
+    % = = = = = = = = = = = = = = = = = = = = = = =
+
+\subsection{Derivate the interpolation}
+
+\label{InterpDeriv}
+
+When the image is considered as function of $x,y \in \RR^2$, interpolation by kernel
+offer not only the possibity to get the value for real coordinates, but also a \emph{natural}
+and relatively efficient, way to compute the exact derivatives, provide that $\KernI$ is
+a differentiable funcion. Noting :
+
+\begin{equation}
+       \KernI' =  \frac{\partial \KernI(x)}{\partial x}  \label{DefDerKern}
+\end{equation}
+
+Going back to equation \label{KernIntDef}, we have :
+
+
+\begin{equation}
+    F'(x)  = \sum_{k}  v_k  \KernI'(x-k)   \label{KernIntDeriv1D}
+\end{equation}
+
+Equation show that we can compute the derivative of interpolated function
+with a formula similar to  interpolation where $\KernI'$ replace $\KernI$.
+Let study then briefly the properties of $\KernI'$ when 
+ $\KernI$ is a differentiable interpolation kernel :
+
+\begin{itemize}
+   \item  $\KernI'$ is bounded on the same support than $\KernI$;
+   \item  $\KernI'$ is an odd function because $\KernI$ is an even function;
+   \item  if $\KernI$ is a partition of unity (equation~\ref{PartUnit}) then $\KernI'$ complies with equation  ~\ref{PartZero};
+\end{itemize}
+
+\begin{equation}
+    \forall x \in \RR : \sum_k \KernI'(x+k) =   0 \label{PartZero}
+\end{equation}
+
+For $2d$ interpolation, we have similarly :
+
+\begin{equation}
+    \frac{\partial F(x,y)}{\partial x} =  \sum_{i,j}  v_{i,j}  \KernI'(x-i) \KernI(y-j)   \label{Int2DerX}
+\end{equation}
+
+And  :
+\begin{equation}
+    \frac{\partial F(x,y)}{\partial y} =  \sum_{i,j}  v_{i,j}  \KernI(x-i) \KernI'(y-j)   \label{Int2DerY}
+\end{equation}
+
+Note also, that very often when need derivates, we need simultaneaously the $3$ values $F(x,y), \frac{\partial F(x,y)}{\partial x}$
+and  $\frac{\partial F(x,y)}{\partial y}$, it is advantageaous then to compute the $3$ value in the same function, because
+a shown by equations~\ref{InterpSimultComp} several computation can be shared :
+
+\begin{itemize} 
+    \item obviously share the loops on $i,j$;
+    \item share the tabulation of $\KernI(y-j)$;
+    \item share the computation of $\sum_{i}  v_{i,j}  \KernI(x-i)$.
+\end{itemize} 
+
+\begin{equation}
+\left\{ \begin{array}{rcl}
+     F(x,y)                                    &   \mbox{=} &  \sum_{j} \KernI(y-j)  \sum_{i}  v_{i,j}  \KernI(x-i)   \\
+      \frac{\partial F(x,y)}{\partial x}       &   \mbox{=} &  \sum_{j} \KernI(y-j)  \sum_{i}  v_{i,j}  \KernI'(x-i)  \\
+      \frac{\partial F(x,y)}{\partial y}       &   \mbox{=} &  \sum_{j} \KernI'(y-j) \sum_{i}  v_{i,j}  \KernI(x-i)  
+\end{array}\right.
+\label{InterpSimultComp}
+\end{equation}
+
+    % = = = = = = = = = = = = = = = = = = = = = = =
+\subsection{Standard interpolation kernel used in \PPP}
+
+All the standard intepolator complies with equation~\ref{KernIntDelta0}.
+
+   %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Nearest neighboor interpolation kernel}
+
+\emph{Not implemented for now} because it has very poor property (not even continous), but may be added 
+(for test/comparison ?).
+
+The kernel has support $S=]-\frac{1}{2},\frac{1}{2}]$ and we have $\KernI(x)=1$/
+
+   %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Linear interpolation kernel}
+\label{LinearInterp}
+
+The linear interpolator has support $[-1,1]$ and is defined by the following kernel :
+
+\begin{equation}
+  \KernI(x)= |1-x|
+\end{equation}
+
+It is continous but not derivable.
+
+
+   %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Sinus Cardinal interpolation kernel}
+\label{SinCInterp}
+
+
+In it's  "pure" definition it's an unbounded interpolator defined by :
+
+\begin{equation}
+  \KernI(x)= \sinc(\pi x) = \frac{\sin(\pi x)}{\pi x}
+\end{equation}
+
+It's $C_{\infty}$ and is interesting from the theoreticall point of view as it allows
+to recover exactly the  function from its sampling if the function complies with \emph{Nyquist-Shannon}
+hypothesis. Practically no realistic function complies with \emph{Nyquist-Shannon},   but
+it still remain interesting as a model when we require the "best ressampling possible".
+
+The function $\sinc$  veririfies equation  \ref{PartUnit} (reference for this non obvious property ??).
+
+
+   %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Apodized Sinus Cardinal interpolation kernel}
+\label{SinCApodInterp}
+
+
+A practicle limitation of $\sinc$-kernel is its infinite support that makes it impossible to use as is.  
+By the way, it remains an interesting option for these reconstruction aspect.  Also, "cuting" brutally
+the $\sinc$ to have a bounded kernel is not a good idea as it would creat high frequency, so generally
+we use an "apodization" function $A$ that generate a smooth transition, typically we will have :
+
+\begin{itemize}
+    \item $A(x)=1$  for $x \in [0,a] $
+    \item $A(x)$  decrease continuoussly from $1$ to $0$ for  $x \in [a,a+b] $, a basic example is
+          $A(x) = L_{a,b}(x) = \frac{b-x}{b-a}$, but can take also a smoother version as $Cub_0 \circ L_{a,b}$
+          where $Cub_0$ is the cubic function of parameter $0$ (see \ref{CubicInterpol});
+\end{itemize}
+
+The  $\sinc$ apodized is then defined by :
+
+\begin{equation}
+  \KernI(x)  = A(x) \sinc(\pi x)  \label{SinCApod}
+\end{equation}
+
+The formula cannot be used as is, because if $\sinc$ complies with~\ref{PartUnit}, it's no
+more the case of $\sinc * A$, an eathy way to overcome this issue (and work for any kernel) is
+to replace by the normalized kernal $\KernI^n$:
+
+\begin{equation}
+  \KernI^n(x)  =  \frac{\KernI(x)}{\sum_{k \in \ZZ} \KernI(x+k)} \label{InterNormKern}
+\end{equation}
+
+However we have then $2$ other issue :
+
+\begin{itemize}
+   \item  computation of formula~\ref{InterNormKern} can be a time-consuming ;
+   \item  derivation of formula~\ref{InterNormKern}, as required in~\ref{InterpDeriv} 
+          for dervivation of intepolated function, can become quite complex.
+\end{itemize}
+
+Concretely, these issues can be addressed efficiently  using a \emph{tabulated} implementation
+of the apodized $\sinc$ as described in~\ref{InterpolTabul}.
+
+
+   %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsubsection{Cubic interpolation kernel}
+
+\label{CubicInterpol}
+
+
+
+Cubic intepolation is a current choice as a compromise "quality/efficiency" : it is derivable and has a kernel of $2$ .
+Each cubic interpolator if define by a parameter $p$ which is the value of derivate in $1$, we have :
+
+\begin{equation}
+\KernI(x) = Cub_p(x)
+\left\{ \begin{array}{rcl}
+(p+2 ) x^3 -(p+3)x^2+1        &   \mbox{for} &  0 \leq x \leq 1 \\ 
+p*(x^3 - 5 * x^2 + 8* x -4)   &   \mbox{for} &  1 \leq x \leq 2 \\
+0                             &   \mbox{for} &  2 \leq x \\
+\KernI(-x)                    &   \mbox{for} &   x \leq 0 \\
+\end{array}\right.
+\end{equation}
+
+
+The cubic interpolator has following properties :
+
+\begin{itemize}
+    \item  it is derivable, it suffice to check that $\frac{\partial Cub_p(x^-)}{\partial x} = \frac{\partial Cub_p(x ^+)}{\partial x} $  
+           for $x \in \{0,1,2\}$;
+    \item  it complies with proterties \ref{KernIntBounded},   \ref{PartUnit} and \ref{KernIntDelta0}  
+\end{itemize}
+
+
+For theoreticall reason (which ??) , the parameter $p$ should be in $[-3,0]$ . Some remarq on parameter $p$ :
+
+\begin{itemize}
+    \item  when used in image ressampling, the higher value of  $p$ enhance the high frequency of images, which can be used
+           for zooming (upscaling) images ;
+
+    \item  for  $p=0$  the support is $[0,1]$ and $\KernI(x) \geq 0$ , it can be used for image downscaling,
+           it can be seen as an approximation of gaussian with small support;
+
+    \item  for  $p= -0.5$  the interpolator  is such that interpolation of purely linear images (as $I(x,y)=a+bx+cy$)
+           will  be linear; in some way, it will be the default choice when 
+\end{itemize}
+
+    % = = = = = = = = = = = = = = = = = = = = = = =
+\subsection{Non Standard interpolation kernel used in \PPP}
+
+\label{MMVIIInterpol}
+
+The origin of these interpolator go back to the analysis of existing bias when using interpolation
+in image correlation : in a context where the phase should theoretically be uniformly 
+distributed in $[0,0.5]$ we  observe that some phase are "privilegied"  (?? which one, experience to be done ??).
+
+The bias is particularly important with bilinear interpolator, a possible
+analysis of these fact is the following :
+
+\begin{itemize}
+    \item  the "bluring" effect of the interpolator varies with the phase;
+    \item  if the phase is $0$, the pixel will be a single pixel value 
+    \item  if the phase is $\frac{1}{2}$, the pixel will be the average of two
+           pixel, having a slight blurring effect.
+\end{itemize}
+
+To try to overcome this problem, we use the following reasonning :
+
+\begin{itemize}
+    \item  for phase  $\frac{1}{2}$, there is no much more to do than to have
+           a weigting $0.5,0.5$ for the $2$ nearest neighboor if we want to limit the number of neigboors
+           involved;
+    \item  for phase  in $x \in [0,0.5]$ , we want to limit the size of kernel,
+           but need to add at least a third pixel if we want to have weightin
+           that is centered on $x$ and has the same bluring effect than for phase $\frac{1}{2}$;
+    \item  regarding the blurring effect, it is caracterized as the average of the power $\alpha$ of 
+           to the center distance , where $\alpha$ is parameter of the kernel (for $\alpha=2$ it's the
+           variance);
+     \item let's name $a,b,c$ the weighting of pixels $-1$, $0$ and $1$ for phase $x \in [0,0.5]$, the value
+           of $a,b$ and $c$ can be evaluated by equations~\ref{KernInMMVIIEq}
+\end{itemize}
+
+\begin{equation}
+\left\{ \begin{array}{rc|l}
+  a+b+c        &    = 1  &  \textrm{it's a weigthing}  \\ 
+  -a+c      &       = x &   \textrm{center is on } x \\
+  a(1+x)^\alpha        + b x^\alpha +c(1-x)^\alpha & = \frac{1}{2} ^{\alpha} &  \textrm{maintain } \alpha  \textrm{-average of distance}
+\end{array}\right.
+\label{KernInMMVIIEq}
+\end{equation}
+
+For $\alpha=2$, the equations~\ref{KernInMMVIIEq} lead to a simple analyticall formula for the kernel :
+
+    % if (anX<=0.5)  return 0.5 *(1.5-2*Square(anX));
+    % if (anX<=1.5)  return 0.5 * Square(anX-1.5) ;
+
+\begin{equation}
+\KernI(x) = M_2(x)
+\left\{ \begin{array}{rcl}
+\frac{1.5-2x^2}{2}       &   \mbox{for} &  0 \leq |x| \leq \frac{1}{2} \\ 
+\frac{(x-1.5)^2}{2}       &   \mbox{for} &  \leq \frac{1}{2} \leq |x| \leq \frac{3}{2} \\ 
+0                             &   \mbox{for} &  |x| \geq \frac{3}{2}
+\end{array}\right.
+\label{KernInMMVII2Eq}
+\end{equation}
+
+For other value of $\alpha$ , the expression is not so simple, by the way if we need to use/test 
+different value, we proceed this way :
+
+\begin{itemize}
+     \item we have a numerical version of the parametrized that for each phase solve the system 
+           equations given in~\ref{KernInMMVIIEq};
+     \item this numerical version  is relatively slow, but it's not a problem if we use the
+           tabulated version as described in~\ref{InterpolTabul}.
+\end{itemize}
+
+
+    % = = = = = = = = = = = = = = = = = = = = = = =
+\subsection{Tabulated interpolators}
+\label{InterpolTabul}
+
+
+As interpolation  kernel are $1$ dimensionnal bounded function, their value can be easily tabulated, this
+means :
+
+\begin{itemize}
+    \item  fix a number $Nb$  of value per unity ;
+    \item  create a tab $T$ of size $Nb*Sz_K$ ;
+    \item for $K \in [0,Nb*Sz_K]$  set  $ T[K] = \KernI(\frac{K}{Nb})$
+    \item when required to compute $\KernI(x)$  we simply extract the value of $T[x*Nb]$,
+          preferably using bilinear interpolation.
+\end{itemize}
+
+Let note $T_\KernI$  the interpolator obtained by reading the values  $T[x*Nb]$.
+
+First note that this technique can be accurate for relatively small cost in memory and accuracy:
+
+\begin{itemize}
+     \item typically consider the apodidzed sinus carninal with a kernel of $5$ and an apodiszation of $5$, tabulated with $Nb=1000$;
+     \item the  cost in memory is $10000=(5+5)*1000$ elements, the cost of pre-computation is also $10000$  value;
+     \item the  accuracy, i.e max difference between $\KernI$ and the tabulation value can be estimate to $\frac{1}{Nb^2} = 10^{-6}$
+           (classical formula for accuracy of linear interpolation).
+\end{itemize}
+
+Having seen that the lost is low, see now what is the gain :
+
+\begin{itemize}
+    \item first obvious gain is time of computation of each new value ;
+
+    \item second gain is that, once all the value has been stored in the tab, it's possible to do a post-processing
+          using formula  similar to~\ref{InterNormKern} on the tabulated value; so finnaly $T_\KernI$ will 
+          complies with unity partition formula (\ref{PartUnit});
+
+    \item finnaly its possible to use $T$ for computing approximate values of derivates using formula
+          like  $\frac{\partial T_\KernI}{\partial x} \approx \frac{T[k+1]-T[k-1]}{2*Nb}$, so we can
+          make $T_\KernI$ differentiable, even if no analytical derivate is furnished for $\KernI$
+          (but obvioulsy if $\KernI$ is intrinsically not differentiable, like linear interpolator, the
+           results will be meanignless).
+\end{itemize}
+
+    % = = = = = = = = = = = = = = = = = = = = = = =
+    % = = = = = = = = = = = = = = = = = = = = = = =
+    % = = = = = = = = = = = = = = = = = = = = = = =
+
+\section{Users's view}
+
+\label{InterpUserView}
+
+Once the theoreticall presentation of interpolator is made, from user's view the point is
+how to specify an interpolator for the commands that takes it as a parameter.
+The user will specify an interpolator as a  vector of string, this vector can be :
+
+\begin{itemize}
+    \item {\tt [Linear]}  for creating a linear interpolator (see \ref{LinearInterp})
+    \item {\tt [MMVII]}  for creating the non standard interpolator of parameter $2$, which more of less the default value 
+                         (see~\ref{MMVIIInterpol});
+    \item {\tt [Cubic,Param]} for creating a cubic interpolator of parameter {\tt Param}, where {\tt Param} is the value
+          of derivate in $1$ (see  \ref{CubicInterpol});
+    \item {\tt [MMVIIK,Param]} for creating a non standard intepolator with exponent {\tt Param} 
+                         (see~\ref{MMVIIInterpol});
+    \item {\tt [SinCApod,Param1,aParam2]}  for creating an apodized sinus cardinal interpolator, which value exactly
+         $\sinc$ for    $ |x| \leq P_1$  , and is apodized for   $ P_1\leq |x| \leq P_1+P_2$
+                         (see~\ref{SinCApodInterp});
+    \item {\tt [Tabul,Nb, \dots ]} for creating a tabulated interpolator , wher  $Nb$ is the number of value per unit  
+          and {\tt \dots} must describe the interpolator to be tabulated
+\end{itemize}
+
+Here are some example of valid vector of strings :
+
+\begin{itemize}
+    \item   {\tt [Cubic,-0.5]} ;
+    \item   {\tt [Tabul,1000,MMVIIK,1.0]};
+    \item   {\tt [Tabul,1000,SinCApod,5.0,5.0]} ;
+\end{itemize}
+
+Note that it is not recommanded (when not forbiden) to create non tabulated version of {\tt MMVIIK} and 
+{\tt SinCApod}.
+
+    % = = = = = = = = = = = = = = = = = = = = = = =
+    % = = = = = = = = = = = = = = = = = = = = = = =
+    % = = = = = = = = = = = = = = = = = = = = = = =
+
+\section{Progammer's view}
+
+This section contains the documentation for the programmer that want to use, \emph{as is}, the
+interpolators library of {\tt MMVII} but does not need to make it evolve (i.e correct bug, add new interpolators ,
+accelerate \dots).
+
+
+    % = = = = = = = = = = = = = = = = = = = = = = =
+
+\subsection{Interpolator classes}
+
+The declaration of interpolators classes can be found in {\tt include/MMVII\_Interpolators.h } .
+The interpolator classes will derive of {\tt cInterpolator1D}  or, if it is differentiable,
+{\tt cDiffInterpolator1D}.   An interpolator essentialy describe its interpolation kernels.
+
+Also interpolators will be probably mostly used at {\tt macro}
+level with  methods described in~\ref{InterpolProgImAccess}, elementary methods
+of {\tt cInterpolator1D}  and {\tt cDiffInterpolator1D}
+can be used for a \emph{fine} specific usage . For {\tt cInterpolator1D} :
+
+\begin{itemize}
+   \item  {\tt tREAL8 SzKernel() const;}  access to the size of the kernel;
+
+   \item  {\tt virtual tREAL8  Weight(tREAL8  anX) const = 0;} "fundamental" method, return
+          for each phase the value of the kernel $\KernI$  function, it's a pure virtual method
+          which will be overided in concrete derivate class;
+
+    \item {\tt const std::vector<std::string> \& VNames() const ;} return a vector of string
+          describing the intepolator, not sure very usefull , maybe for generating message of error ?
+\end{itemize}
+
+For {\tt cDiffInterpolator1D} :
+
+\begin{itemize}
+    \item   {\tt virtual tREAL8  DiffWeight(tREAL8  anX) const =0;}  return the value of $\KernI'(x)$;
+
+    \item {\tt virtual std::pair<tREAL8,tREAL8>  WAndDiff(tREAL8  anX) const ;}  return a pair containing
+          $\{\KernI(x),\KernI'(x)\}$, it these $2$ value are required it may be more efficient than calling
+          successively {\tt Weight} and {\tt DiffWeight}.
+\end{itemize}
+
+An interpolator can be created directly using one the derivate class implementing "analyticall"
+interpolators :  {\tt cLinearInterpolator}, {\tt cCubicInterpolator}, {\tt cSinCApodInterpolator},
+{\tt cMMVII2Inperpol}, {\tt cMMVIIKInterpol}.
+
+
+A tabulated interpolator can be created using class {\tt cTabulatedDiffInterpolator},
+the constructor take as parameter an interpolator and the number of tabulation.
+The class {\tt cTabulatedInterpolator} is non differentiable, it's rather an implementation
+class and is not described here (see~\ref{InterpolMaintener}).
+
+
+To create an interpolator using the vector of string as described in~\ref{InterpUserView},
+the {\tt static}  method {\tt AllocFromNames} of class {\tt cDiffInterpolator1D} can be used.
+The object returned is of type {\tt cDiffInterpolator1D *} and must be deleted to avoid
+a memory check error.
+
+    % = = = = = = = = = = = = = = = = = = = = = = =
+
+\subsection{Images intepolation}
+\label{InterpolProgImAccess}
+
+The method for doing interpolation of images are accessible as method of  the class {\tt cDataIm2D}.
+
+
+   %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsubsection{{\tt InsideInterpolator}}
+
+{\tt bool InsideInterpolator(const cInterpolator1D \& anInt,const cPtxd<double,Dim> \& aP,tREAL8 aMargin=0.0) const; }
+
+The method is defined in class {\tt cPixBox}, and is accessible from class  {\tt cDataIm2D<Type>}
+as it inherits from {\tt cPixBox<2>}.
+
+This method indicate if  interpolator {\tt anInt} can be used with pixel {\tt P} : i.e. if {\tt P}
+is \emph{"sufficiently"} inside the image taking account the size of the kernel (and an optionnal
+margin if we want it even more inside).
+
+   %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsubsection{{\tt GetValueInterpol}}
+
+{tREAL8 GetValueInterpol(const cPt2dr \& aP,const cInterpolator1D \& anInt) const;}
+
+The method return the value of image at point {\tt aP} using interpolator {\tt anInt}. 
+The computation is done using optimisation described in~\ref{InterpValueEff}.
+In debug mode, an error will occurs if the point is not \emph{"sufficiently"} inside 
+the image. So if there is any doubt, a test of {\tt InsideInterpolator} will be required before calling it.
+
+   %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsubsection{{\tt GetValueAndGradInterpol}}
+
+{\tt std::pair<tREAL8,cPt2dr> GetValueAndGradInterpol(const cDiffInterpolator1D \&,const cPt2dr \& aP) const ;}
+
+The method is similar to {\tt GetValueInterpol}, but instead of returning only the values, it 
+return a pair containing the value (real) and the gradient (point).
+The computation is done using optimisation describes in equation~\ref{InterpSimultComp}.
+
+
+    % = = = = = = = = = = = = = = = = = = = = = = =
+
+\subsection{Interpolator and images optimization}
+
+%%        bool InsideInterpolator(const cInterpolator1D &,const cPtxd<double,Dim> & aP,tREAL8 aMargin=0.0) const; ///< Inside for Bilin
+
+
+
+%% GetVBl +ValInterpol
+    % = = = = = = = = = = = = = = = = = = = = = = =
+
+
+
+
+%% cDiffInterpolator1D * cDiffInterpolator1D::AllocFromNames(const std::vector<std::string> & aVName)
+
+
+%% Image differ
+
+    % = = = = = = = = = = = = = = = = = = = = = = =
+    % = = = = = = = = = = = = = = = = = = = = = = =
+    % = = = = = = = = = = = = = = = = = = = = = = =
+
+\section{Maintener's view}
+
+\label{InterpolMaintener}
+
+Efficiency 
+New interpol
+Bug correction
+Point partially inside
+
+

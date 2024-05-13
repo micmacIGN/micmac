@@ -167,7 +167,7 @@ template <class Type,class TypeIm>
      SetOrPush(aVObs, aK0  ,  Type(aPtIm.x())                      );
      SetOrPush(aVObs, aK0+1,  Type(aPtIm.y())                      );
 
-     auto [aValue,aGrad] = aDIm.GetValueAndGradInterpol(aPtIm,anInterpol);
+     auto [aValue,aGrad] = aDIm.GetValueAndGradInterpol(anInterpol,aPtIm);
 
      SetOrPush(aVObs, aK0+2,  (Type) aValue);
      SetOrPush(aVObs, aK0+3,  (Type) aGrad.x());

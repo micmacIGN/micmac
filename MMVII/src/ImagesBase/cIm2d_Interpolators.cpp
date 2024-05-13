@@ -42,7 +42,7 @@ template <> bool cPixBox<2>::InsideInterpolator(const cInterpolator1D & anInterp
 
 
 static std::vector<tREAL8>  TheBufCoeffX;  // store the value on 1 line, as they are separable
-template <class Type>  tREAL8 cDataIm2D<Type>::GetValueInterpol(const cPt2dr & aP,const cInterpolator1D & anInterpol) const 
+template <class Type>  tREAL8 cDataIm2D<Type>::GetValueInterpol(const cInterpolator1D & anInterpol,const cPt2dr & aP) const 
 {
 
     MMVII_INTERNAL_ASSERT_tiny(this->InsideInterpolator(anInterpol,aP,0.0),"Outside interpolator in GetValueInterpol");
@@ -114,8 +114,8 @@ template <class Type>
     std::pair<tREAL8,cPt2dr> 
            cDataIm2D<Type>::GetValueAndGradInterpol
            (
-	        const cPt2dr & aP,
-		const cDiffInterpolator1D & anInterpol
+		const cDiffInterpolator1D & anInterpol,
+	        const cPt2dr & aP
            ) const 
 {
     MMVII_INTERNAL_ASSERT_tiny(this->InsideInterpolator(anInterpol,aP,0.0),"Outside interpolator in GetValueAndDerInterpol");

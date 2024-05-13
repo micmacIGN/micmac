@@ -15,7 +15,7 @@ class cSinCApodInterpolator ;
 class cEpsDiffFctr ;
 class cTabulatedInterpolator ;
 class cTabulatedDiffInterpolator ;
-class cMPD2Interpol;
+class cMMVII2Inperpol;
 
 /*  ********************************* */
 /*       Kernels                      */
@@ -57,7 +57,7 @@ class cInterpolator1D : public cMemCheck
 
         ///  fundamental method described the weight for each X, supposed to be even
         virtual tREAL8  Weight(tREAL8  anX) const = 0;
-        const tREAL8 SzKernel() const;  ///< accessor
+        const tREAL8 & SzKernel() const;  ///< accessor
 
         const std::vector<std::string> & VNames() const ; ///< Accessor
 
@@ -108,6 +108,7 @@ class cDiffInterpolator1D : public cInterpolator1D
 class cLinearInterpolator : public cDiffInterpolator1D
 {
       public :
+        static const std::string TheNameInterpol;
         cLinearInterpolator();
         tREAL8  Weight(tREAL8  anX) const override ;
         /// Derivability can be discussed ...
@@ -162,22 +163,21 @@ class cSinCApodInterpolator : public cDiffInterpolator1D
             static const std::string TheNameInterpol;
             cSinCApodInterpolator(tREAL8 aSzSinC,tREAL8 aSzAppod);
             tREAL8  Weight(tREAL8  anX) const override ;
-            /// Analyticall differential of weight -> Error
             tREAL8  DiffWeight(tREAL8  anX) const override ;
        public :
             tREAL8 mSzSinC;
             tREAL8 mSzAppod;
 };
 
-/** See in the code (grep "cMPD2Interpol::cMPD2Interpol") the tricky definition of this
- * interpolator with megalomaniac name ;-) */
+/** See in the code (grep "cMMVII2Inperpol::cMMVII2Inperpol") the definition of this
+ * interpolator */
 
-class cMPD2Interpol : public cDiffInterpolator1D
+class cMMVII2Inperpol : public cDiffInterpolator1D
 {
         public :
              static const std::string TheNameInterpol;
              /// Contructor with value of derivate in 1
-             cMPD2Interpol();
+             cMMVII2Inperpol();
              /// Classical cubic weighting
              tREAL8  Weight(tREAL8  anX) const override ;
              /// Analyticall differential of weight
@@ -186,17 +186,17 @@ class cMPD2Interpol : public cDiffInterpolator1D
        private :
 };
 
-/** generalisation of "MPD2", where the spreading of the distribution is not variance but
- * sum(Avg-X)^Exp , cMPDKInterpol(2) is same as cMPD2Interpol. Implementation is very slow,
+/** generalisation of "cMMVII2Inperpol", where the spreading of the distribution is not variance but
+ * sum(Avg-X)^Exp , cMMVIIKInterpol(2) is same as cMMVII2Inperpol. Implementation is very slow,
  * (solve a linear system for each value), so use as tabulation is highly recommande
  */
 
-class cMPDKInterpol : public cDiffInterpolator1D
+class cMMVIIKInterpol : public cDiffInterpolator1D
 {
         public :
             ///
             static const std::string TheNameInterpol;
-            cMPDKInterpol(tREAL8 aParam);
+            cMMVIIKInterpol(tREAL8 aParam);
 
             tREAL8  Weight(tREAL8  anX) const override ;
              /// Analyticall differential of weight
@@ -288,9 +288,9 @@ class cTabulatedDiffInterpolator : public cDiffInterpolator1D
       public :
           static const std::string TheNameInterpol;
           /// constructor : interpol 2 tabluate , nb of value / unity
-          cTabulatedDiffInterpolator(const cInterpolator1D &,int aNbTabul);
+          cTabulatedDiffInterpolator(const cInterpolator1D &,int aNbTabul=1000);
           ///  idem but delete the interpolator
-          cTabulatedDiffInterpolator(cInterpolator1D *,int aNbTabul);
+          cTabulatedDiffInterpolator(cInterpolator1D *,int aNbTabul=1000);
 
           ///  Weight access to mTabW
           tREAL8  Weight(tREAL8  anX) const override ;

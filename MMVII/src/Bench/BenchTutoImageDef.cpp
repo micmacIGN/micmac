@@ -223,7 +223,7 @@ bool cTestDeformIm::OneIterationFitModele(bool IsLast)
 	     mSys->CalcAndAddObs(mEqHomIm,aVecInd,aVObs);
 
 	      // compute indicator
-	     tREAL8 aVRef =   mInterpol ? mDIm.GetValueInterpol(aPIm,*mInterpol) : mDIm.GetVBL(aPIm) ;
+	     tREAL8 aVRef =   mInterpol ? mDIm.GetValueInterpol(*mInterpol,aPIm) : mDIm.GetVBL(aPIm) ;
 	     double aDif =  aVRef  - (aCurTrR+aCurScR*mValueMod[aKPt]); // residual
 	     aSomMod += mValueMod[aKPt];
 	     aSomDif += std::abs(aDif);
@@ -255,20 +255,23 @@ void BenchDeformIm(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("DeformIm")) return;
 
-
     for (int aK=0 ; aK<4 ; aK++)
     {
-        cDiffInterpolator1D * anInterpol = nullptr;
-	tREAL8 aTargetResidual = 1e-10;
-	if (aK==1)
-           anInterpol = cDiffInterpolator1D::AllocFromNames({"Tabul","1000","Cubic","-0.5"});
-	else if (aK==2)
-           anInterpol = cDiffInterpolator1D::AllocFromNames({"Tabul","10000","SinCApod","10.0","10.0"});
-	else if (aK==3)
-	{
-           aTargetResidual = 1e-5;
-           anInterpol = cDiffInterpolator1D::AllocFromNames({"Tabul","1000","MPDK","2.0"});
-	}
+        cDiffInterpolator1D * anInterpol = nullptr;  // If K==0 -> no interpol, bi-linear mode
+	tREAL8 aTargetResidual = 1e-10;  // residual vary with interpolator (pseudo seem to have accuracy ?)
+        
+        // if K!=0 alloc various interpolator using the allocator by name(to test it)
+        {
+	   if (aK==1)
+              anInterpol = cDiffInterpolator1D::AllocFromNames({"Tabul","1000","Cubic","-0.5"});
+	   else if (aK==2)
+              anInterpol = cDiffInterpolator1D::AllocFromNames({"Tabul","10000","SinCApod","10.0","10.0"});
+	   else if (aK==3)
+	   {
+              aTargetResidual = 1e-5;
+              anInterpol = cDiffInterpolator1D::AllocFromNames({"Tabul","1000","MMVIIK","2.0"});
+	   }
+        }
 
         cTestDeformIm aTDI(100,0.15,aParam.Show(),anInterpol,aTargetResidual);
         int aNbIter = 20 ;

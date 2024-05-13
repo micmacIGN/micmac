@@ -37,9 +37,9 @@ template <class Type>  void  TplInterpol_CmpLinearGetVBL(const cPt2di & aSz)
 	 if (aDIm.InsideBL(aPt))
 	 {
              tREAL8 aV1 = aDIm.GetVBL(aPt);
-             tREAL8 aV2 = aDIm.GetValueInterpol(aPt,aBil1);
-             tREAL8 aV3 = aDIm.GetValueInterpol(aPt,*aTabBil1);
-             tREAL8 aV4 = aDIm.GetValueInterpol(aPt,*aTabBiBil);
+             tREAL8 aV2 = aDIm.GetValueInterpol(aBil1,aPt);
+             tREAL8 aV3 = aDIm.GetValueInterpol(*aTabBil1,aPt);
+             tREAL8 aV4 = aDIm.GetValueInterpol(*aTabBiBil,aPt);
 
 	     MMVII_INTERNAL_ASSERT_bench(std::abs(aV1-aV2)<1e-6,"Interpol 12 ");
 
@@ -98,8 +98,8 @@ template <class Type>  void  TplInterpol_CmpCubicFoncLinear(const cPt2di & aSz)
              aNbTest++;
 
 	     tREAL8 aV0 = A*aPt.x()+B*aPt.y() + C;   // Analytical value
-	     tREAL8 aV1 = aDIm.GetValueInterpol(aPt,aI3);  // interpolation with analytical interpolator
-	     tREAL8 aV2 = aDIm.GetValueInterpol(aPt,*aTabI3);  // interpolation with tabulated interpolator
+	     tREAL8 aV1 = aDIm.GetValueInterpol(aI3,aPt);  // interpolation with analytical interpolator
+	     tREAL8 aV2 = aDIm.GetValueInterpol(*aTabI3,aPt);  // interpolation with tabulated interpolator
 
 	     MMVII_INTERNAL_ASSERT_bench(std::abs(aV0-aV1)<1e-6,"Interpol ");
 	     MMVII_INTERNAL_ASSERT_bench(std::abs(aV0-aV2)<1e-6,"Interpol ");
@@ -154,17 +154,17 @@ template <class Type>  void  TplInterpol_FuncLowFreq(const cPt2di & aSz,const cD
          {
              aNbTest++;
              // compute value and derivative of interopolated function using "GetValueAndGradInterpol"
-             auto [aValue,aGrad] = aDIm.GetValueAndGradInterpol(aPt,anInterpol);
+             auto [aValue,aGrad] = aDIm.GetValueAndGradInterpol(anInterpol,aPt);
 
 	     // compute value and derative with finite difference methods
 
-	     tREAL8 aV0 = aDIm.GetValueInterpol(aPt,anInterpol);
+	     tREAL8 aV0 = aDIm.GetValueInterpol(anInterpol,aPt);
 
 	     cPt2dr aEpsX(aEpsDif,0);
-	     tREAL8 aVDx = (aDIm.GetValueInterpol(aPt+aEpsX,anInterpol)-aDIm.GetValueInterpol(aPt-aEpsX,anInterpol)) / (2*aEpsDif);
+	     tREAL8 aVDx = (aDIm.GetValueInterpol(anInterpol,aPt+aEpsX)-aDIm.GetValueInterpol(anInterpol,aPt-aEpsX)) / (2*aEpsDif);
 
 	     cPt2dr aEpsY(0,aEpsDif);
-	     tREAL8 aVDy = (aDIm.GetValueInterpol(aPt+aEpsY,anInterpol)-aDIm.GetValueInterpol(aPt-aEpsY,anInterpol)) / (2*aEpsDif);
+	     tREAL8 aVDy = (aDIm.GetValueInterpol(anInterpol,aPt+aEpsY)-aDIm.GetValueInterpol(anInterpol,aPt-aEpsY)) / (2*aEpsDif);
 
 	     // check that value with finite difference are close enough to value with GetValueAndGradInterpol
 	     MMVII_INTERNAL_ASSERT_bench(std::abs(aValue  - aV0)<1e-6,"Interpol VAndDer");
@@ -172,7 +172,7 @@ template <class Type>  void  TplInterpol_FuncLowFreq(const cPt2di & aSz,const cD
 	     MMVII_INTERNAL_ASSERT_bench(std::abs(aGrad.y() - aVDy)<1e-5,"Interpol VAndDer Y");
 
 	     //  test that the value got with tabulated are close enough, btw not so close for derivative 
-             auto [aVTab,aGTab] = aDIm.GetValueAndGradInterpol(aPt,*aTabInt);
+             auto [aVTab,aGTab] = aDIm.GetValueAndGradInterpol(*aTabInt,aPt);
 
 	     MMVII_INTERNAL_ASSERT_bench(std::abs(aGrad.x()-aGTab.x() )<1e-4,"Interpol VAndDer Tabulated");
 	     MMVII_INTERNAL_ASSERT_bench(std::abs(aGrad.y()-aGTab.y() )<1e-4,"Interpol VAndDer Tabulated");
@@ -183,7 +183,7 @@ template <class Type>  void  TplInterpol_FuncLowFreq(const cPt2di & aSz,const cD
 	     // as interoplation with sin card with high value can cost a lot, dont do it at each step
 	     if ((aNbTest%20)==0)
 	     {
-                  auto [aVTSinC,aGradTSinC]  = aDIm.GetValueAndGradInterpol(aPt,*aTabSinC);
+                  auto [aVTSinC,aGradTSinC]  = aDIm.GetValueAndGradInterpol(*aTabSinC,aPt);
 
                   tREAL8 aVTh = std::sin(aPt.x()/aPerX) *  std::cos(aPt.y()/aPerY) ;
                   tREAL8 aDerThX = std::cos(aPt.x()/aPerX) *  std::cos(aPt.y()/aPerY)  / aPerX;
@@ -219,8 +219,8 @@ template <class Type>  void  TplInterpol_FuncLowFreq(const cPt2di & aSz)
      // const cDiffInterpolator1D& aDifInt = aI3;
      TplInterpol_FuncLowFreq<Type>(aSz,aI3);
 
-     cMPD2Interpol aMPD2;
-     TplInterpol_FuncLowFreq<Type>(aSz,aMPD2);
+     cMMVII2Inperpol aMMVII;
+     TplInterpol_FuncLowFreq<Type>(aSz,aMMVII);
 }
 
 
@@ -280,12 +280,12 @@ void BenchIntrinsiqOneDiffInterpol
 }
 
 
-/**  Check that the "MPD's" interpolator commply with their specification. The specif is that
+/**  Check that the "MMVII's" interpolator commply with their specification. The specif is that
  *   for any phase in [-0.5,0.5] the weight will be shared on 3 point [-1,0,1] , let A,B,C
  *   be the 3 weights.
  */
 
-void BenchIntrinsiqMPDInterpol(const cInterpolator1D & anInt,tREAL8 anExp)
+void BenchIntrinsiqMMVIIInterpol(const cInterpolator1D & anInt,tREAL8 anExp)
 {
      // first it must be an interpolator
      BenchIntrinsiqOneInterpol(anInt,true,true);
@@ -307,19 +307,20 @@ void BenchIntrinsiqMPDInterpol(const cInterpolator1D & anInt,tREAL8 anExp)
 
 
 	  //  sum of weight are equals to 1
-	  MMVII_INTERNAL_ASSERT_bench(std::abs(aA+aB+aC-1.0)<1e-5,"Interpol MPD : Weigh=1");
+	  MMVII_INTERNAL_ASSERT_bench(std::abs(aA+aB+aC-1.0)<1e-5,"Interpol MMVII : Weigh=1");
 	  //  centroid is equal to the targeted phase
-	  MMVII_INTERNAL_ASSERT_bench(std::abs(-aA+aC-aPh)<1e-5,"Interpol MPD : Weigh=1");
+	  MMVII_INTERNAL_ASSERT_bench(std::abs(-aA+aC-aPh)<1e-5,"Interpol MMVII : Weigh=1");
 	  //  variance is constant
-	  MMVII_INTERNAL_ASSERT_bench(std::abs(aSigma-aSigmaRef)<1e-5,"Interpol MPD : Weigh=1");
+	  MMVII_INTERNAL_ASSERT_bench(std::abs(aSigma-aSigmaRef)<1e-5,"Interpol MMVII : Weigh=1");
 
 	  // finnaly check that for 1/2 pixel we just do the average between 2 closest pixel
 	  if (aK==aNb)
 	  {
               // StdOut() << "ABC=" << aA << " " << aB << " " << aC << "\n";
-	      MMVII_INTERNAL_ASSERT_bench(std::abs(aA)+std::abs(aB-0.5)+std::abs(aC-0.5)<1e-5,"Interpol MPD : Weigh=1");
+	      MMVII_INTERNAL_ASSERT_bench(std::abs(aA)+std::abs(aB-0.5)+std::abs(aC-0.5)<1e-5,"Interpol MMVII : Weigh=1");
 	  }
      }
+
 }
 
 
@@ -343,27 +344,45 @@ void  BenchInterpol(cParamExeBench & aParam)
 
      // bench different analytical or tabulated interolator
      PtrBenchIntrinsiqOneInterpol(new cLinearInterpolator(),true,true);
-     BenchIntrinsiqOneDiffInterpol(cMPD2Interpol(),true,true);
+     BenchIntrinsiqOneDiffInterpol(cMMVII2Inperpol(),true,true);
 
 
-     cDiffInterpolator1D * aTabMPD2= cDiffInterpolator1D::TabulatedInterp(cMPD2Interpol(),1000);
-     BenchIntrinsiqOneDiffInterpol(*aTabMPD2,true,true);
-     delete aTabMPD2;
+     cDiffInterpolator1D * aTabMMVII= cDiffInterpolator1D::TabulatedInterp(cMMVII2Inperpol(),1000);
+     BenchIntrinsiqOneDiffInterpol(*aTabMMVII,true,true);
+     delete aTabMMVII;
 
      //  also make the test of creation by name
-     PtrBenchIntrinsiqOneInterpol(cDiffInterpolator1D::AllocFromNames({"Tabul","1000","MPD2"}),true,true);
+     PtrBenchIntrinsiqOneInterpol(cDiffInterpolator1D::AllocFromNames({"Tabul","1000","MMVII"}),true,true);
 
 
-     // bench specific to MPD interpol 
-     BenchIntrinsiqMPDInterpol(cMPD2Interpol(),2.0); // test with analytical MPD2
+     // bench specific to MMVII interpol 
+     BenchIntrinsiqMMVIIInterpol(cMMVII2Inperpol(),2.0); // test with analytical cMMVII2Inperpol
      for (const auto & anExp : {1.0,2.0,3.0})
      {
-        // test with analytical  MPDK (very slow)
-        BenchIntrinsiqMPDInterpol(cMPDKInterpol(anExp),anExp);
-        // test with tabulated  MPDK 
-        auto aPtrTabInt = cDiffInterpolator1D::TabulatedInterp(cMPDKInterpol(anExp),1000);
-        BenchIntrinsiqMPDInterpol(*aPtrTabInt,anExp);
+        // test with analytical  cMMVIIKInterpol (very slow)
+        BenchIntrinsiqMMVIIInterpol(cMMVIIKInterpol(anExp),anExp);
+        // test with tabulated  cMMVIIKInterpol 
+        auto aPtrTabInt = cDiffInterpolator1D::TabulatedInterp(cMMVIIKInterpol(anExp),1000);
+        BenchIntrinsiqMMVIIInterpol(*aPtrTabInt,anExp);
 	delete aPtrTabInt;
+
+        // test with tabulated  cMMVIIKInterpol  allocated from names
+        auto aPtrTabInt2 = cDiffInterpolator1D::AllocFromNames({"Tabul","1000","MMVIIK",ToStr(anExp)});
+        BenchIntrinsiqMMVIIInterpol(*aPtrTabInt2,anExp);
+	delete aPtrTabInt2;
+
+     }
+     {
+         cMMVII2Inperpol aM2;
+         cMMVIIKInterpol aMK2(2.0);
+         cTabulatedInterpolator  aMKT2(cMMVIIKInterpol(2.0),1000,true);
+         for (tREAL8 aPh=-2.0 ; aPh<2.0 ; aPh+=0.1245)
+         {
+            tREAL8 aD1 = std::abs( aM2.Weight(aPh)-aMK2.Weight(aPh));
+            tREAL8 aD2 = std::abs( aM2.Weight(aPh)-aMKT2.Weight(aPh));
+            // StdOut() << "M2PHHhh= " << aD1  << " " << aD2 << "\n";
+	    MMVII_INTERNAL_ASSERT_bench((aD1<1e-5) && (aD2<1e-5) ,"Interpol MMVII : Weigh=1");
+         }
      }
 
      //  Bench on bicub interpola

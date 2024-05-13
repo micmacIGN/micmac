@@ -18,7 +18,7 @@ cInterpolator1D::cInterpolator1D(const tREAL8 & aSzKernel,const std::vector<std:
 cInterpolator1D::~cInterpolator1D()
 {
 }
-const tREAL8 cInterpolator1D::SzKernel() const {return mSzKernel;}
+const tREAL8 & cInterpolator1D::SzKernel() const {return mSzKernel;}
 const std::vector<std::string> & cInterpolator1D::VNames() const {return mVNames;}
 
 cInterpolator1D *  cInterpolator1D::TabulatedInterp(const cInterpolator1D & anInt,int aNbTabul,bool BilinInterp)
@@ -77,22 +77,28 @@ cDiffInterpolator1D * cDiffInterpolator1D::AllocFromNames(const std::vector<std:
 	 delete anInt;
 	 return aRes;
      }
-     if (aN0== cMPD2Interpol::TheNameInterpol)
+     if (aN0== cLinearInterpolator::TheNameInterpol)
      {
          AssertEndParse(aVName,aK);
-         return new cMPD2Interpol;
+         return new cLinearInterpolator;
      }
+     if (aN0== cMMVII2Inperpol::TheNameInterpol)
+     {
+         AssertEndParse(aVName,aK);
+         return new cMMVII2Inperpol;
+     }
+
      if (aN0== cCubicInterpolator::TheNameInterpol)
      {
 	 tREAL8 aParam =  cStrIO<tREAL8>::FromStr(Get(aVName,aK+1));
          AssertEndParse(aVName,aK+1);
          return new cCubicInterpolator(aParam);
      }
-     if (aN0== cMPDKInterpol::TheNameInterpol)
+     if (aN0== cMMVIIKInterpol::TheNameInterpol)
      {
 	 tREAL8 aParam =  cStrIO<tREAL8>::FromStr(Get(aVName,aK+1));
          AssertEndParse(aVName,aK+1);
-         return new cMPDKInterpol(aParam);
+         return new cMMVIIKInterpol(aParam);
      }
      if (aN0== cSinCApodInterpolator::TheNameInterpol)
      {
@@ -128,7 +134,7 @@ cDiffInterpolator1D *  cDiffInterpolator1D::TabulatedInterp(cInterpolator1D * an
 /* *************************************************** */
 
 cLinearInterpolator::cLinearInterpolator() :
-       cDiffInterpolator1D (1.0,{"Linear"}) // kernel defined on [-1,1]
+       cDiffInterpolator1D (1.0,{TheNameInterpol}) // kernel defined on [-1,1]
 {
 }
 
@@ -136,6 +142,8 @@ tREAL8  cLinearInterpolator::Weight(tREAL8  anX) const
 {
       return std::max(0.0,1.0-std::abs(anX)); // classical formula
 }
+
+const std::string cLinearInterpolator::TheNameInterpol="Linear";
 
 tREAL8  cLinearInterpolator::DiffWeight(tREAL8  anX) const
 {
@@ -220,7 +228,7 @@ std::pair<tREAL8,tREAL8>   cCubicInterpolator::WAndDiff(tREAL8  x) const
 /* *************************************************** */
 
 cSinCApodInterpolator::cSinCApodInterpolator(tREAL8 aSzSinC,tREAL8 aSzAppod) :
-    cDiffInterpolator1D  (aSzSinC+aSzAppod,{"SinCApod",ToStr(aSzSinC),ToStr(aSzAppod)}),
+    cDiffInterpolator1D  (aSzSinC+aSzAppod,{TheNameInterpol,ToStr(aSzSinC),ToStr(aSzAppod)}),
     mSzSinC              (aSzSinC),
     mSzAppod             (aSzAppod)
 {
@@ -257,7 +265,7 @@ const std::string cSinCApodInterpolator::TheNameInterpol = "SinCApod";
 
 /* *************************************************** */
 /*                                                     */
-/*           cMPD2Interpol                             */
+/*           cMMVII2Inperpol                           */
 /*                                                     */
 /* *************************************************** */
 
@@ -314,14 +322,14 @@ const std::string cSinCApodInterpolator::TheNameInterpol = "SinCApod";
  *    dF+/dx(3/2) = 0
  */
 
-cMPD2Interpol::cMPD2Interpol():
+cMMVII2Inperpol::cMMVII2Inperpol():
     cDiffInterpolator1D (1.5,{TheNameInterpol})
 {
 }
 
-const std::string cMPD2Interpol::TheNameInterpol = "MPD2";
+const std::string cMMVII2Inperpol::TheNameInterpol = "MMVII";
 
-tREAL8  cMPD2Interpol::Weight(tREAL8  anX) const 
+tREAL8  cMMVII2Inperpol::Weight(tREAL8  anX) const 
 {
     anX = std::abs(anX) ;
     if (anX<=0.5)  return 0.5 *(1.5-2*Square(anX));
@@ -330,7 +338,7 @@ tREAL8  cMPD2Interpol::Weight(tREAL8  anX) const
     return 0.0;
 }
 
-tREAL8  cMPD2Interpol::DiffWeight(tREAL8  anX) const
+tREAL8  cMMVII2Inperpol::DiffWeight(tREAL8  anX) const
 {
     int aS = SignSupEq0(anX);
     tREAL8 aXAbs = aS * anX;
@@ -345,25 +353,25 @@ tREAL8  cMPD2Interpol::DiffWeight(tREAL8  anX) const
 
 /* *************************************************** */
 /*                                                     */
-/*           cMPDKInterpol                             */
+/*           cMMVIIKInterpol                             */
 /*                                                     */
 /* *************************************************** */
 
-cMPDKInterpol::cMPDKInterpol(tREAL8 anExp) :
-    cDiffInterpolator1D(1.5,{"MPDK",ToStr(anExp)}),
+cMMVIIKInterpol::cMMVIIKInterpol(tREAL8 anExp) :
+    cDiffInterpolator1D(1.5,{TheNameInterpol,ToStr(anExp)}),
     mExp  (anExp)
 {
 }
 
-const std::string cMPDKInterpol::TheNameInterpol = "MPDK";
+const std::string cMMVIIKInterpol::TheNameInterpol = "MMVIIK";
 
-tREAL8  cMPDKInterpol::DiffWeight(tREAL8  anX) const 
+tREAL8  cMMVIIKInterpol::DiffWeight(tREAL8  anX) const 
 {
-    MMVII_INTERNAL_ERROR("No DiffWeight for cMPDKInterpol");
+    MMVII_INTERNAL_ERROR("No DiffWeight for cMMVIIKInterpol");
     return 0;
 }
 
-tREAL8  cMPDKInterpol::Weight(tREAL8  anX) const
+tREAL8  cMMVIIKInterpol::Weight(tREAL8  anX) const
 {
     anX = std::abs(anX);
     if (anX>= mSzKernel) return 0.0;
