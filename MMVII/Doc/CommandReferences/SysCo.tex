@@ -14,7 +14,8 @@ SysCo types supported by {\tt MMVII} are:
 \begin{itemize}
 \item \textbf{Local}: any euclidian frame, without any geolocalization or vertical knowledge.
 \item \textbf{GeoC}: geocentric coordinates.
-\item \textbf{RTL}: the local euclidian frame where origin is set, Z is ellipsoid normal at origin and X is East.
+\item \textbf{LGeo}: a local euclidian frame with an affine transformation into geocentric coordinates.
+\item \textbf{RTL}: a special case of LGeo where the local frame is defined by an origin point, where Z is ellipsoid normal at origin and X is East.
 \item \textbf{Proj}: any georeferenced system handled by {\tt libproj} (including geographical coordinates).
 \end{itemize}
 
@@ -40,6 +41,9 @@ The SysCo names to give to {\tt MMVII} commands can be:
 \item Any {\tt libproj} definition (such as {\tt IGNF:LAMB93} or {\tt EPSG:4326})
 \item Any string starting with {\tt Local} for a local frame
 \item Any string starting with {\tt GeoC} for geocentric
+\item A string starting with {\tt LGeo} following the pattern:
+
+{\tt LGeo*TX*TY*TZ*Omega*Phi*Kappa}, where the transformation is given in geocentric, the angles are in rad. 
 \item A string starting with {\tt RTL} following the pattern: {\tt RTL*X0*Y0*Z0*Def}
 
 (such as {\tt RTL*0.67451979*45.18899334*0.00000000*EPSG:4326}),

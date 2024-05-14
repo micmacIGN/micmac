@@ -6,7 +6,7 @@
 #include "MMVII_AllClassDeclare.h"
 
 struct PJconsts;
-typedef struct PJconsts PJ;
+typedef struct PJconsts PJ; //< libproj conversion between 2 CRS
 
 namespace MMVII
 {
@@ -26,6 +26,12 @@ void AddData(const cAuxAr2007 & anAux, cSysCoData & aSysCoData);
 /**
  * @brief The cSysCo class records one coordinate system.
  * Derived classes are used for different types of coordinates systems.
+ *
+ * Value() and Inverse() to convert to/from geocentric
+ *
+ * SysCo definitions are like this:
+ * "type*param1*param2*..."
+ * It is interpreted by the factory MakeSysCo() to create an object of the corresponding concrete class
  */
 class cSysCo : public cDataInvertibleMapping<tREAL8,3>
 {
@@ -40,7 +46,7 @@ public :
     virtual tREAL8 getRadiusApprox(const tPt &in) const;
     virtual tREAL8 getDistHzApprox(const tPt & aPtA, const tPt & aPtB) const;
 
-    static tPtrSysCo MakeSysCo(const std::string &aDef); //< factory
+    static tPtrSysCo MakeSysCo(const std::string &aDef); //< factory from a sysco definition
     static tPtrSysCo makeRTL(const cPt3dr & anOrigin, const std::string & aSysCoNameIn);
     static tPtrSysCo FromFile(const std::string &aNameFile);
 

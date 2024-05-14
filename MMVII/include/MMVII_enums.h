@@ -537,6 +537,7 @@ enum class eProjPC
 enum class eSysCo
 {
      eProj,
+     eLGeo,
      eRTL,
      eGeoC,
      eLocalSys,

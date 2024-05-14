@@ -166,6 +166,7 @@ template<> cE2Str<eProjPC>::tMapE2Str cE2Str<eProjPC>::mE2S
 template<> cE2Str<eSysCo>::tMapE2Str cE2Str<eSysCo>::mE2S
            {
                {eSysCo::eProj,"Proj"},
+               {eSysCo::eLGeo,"LGeo"},
                {eSysCo::eRTL,"RTL"},
                {eSysCo::eGeoC,"GeoC"},
                {eSysCo::eLocalSys,"Local"}
