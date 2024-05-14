@@ -3,6 +3,7 @@
 #include "MMVII_DeclareCste.h"
 #include "MMVII_PoseTriplet.h"
 #include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_SfmInit.h"
 
 
 /**
@@ -45,22 +46,19 @@ class cAppli_ImportTriplet : public cMMVII_Appli
     // Optionall Arg
     std::string              mNameTriSet;
     tNameSet                 mSetFilter;
+    bool                     mHMetisExp;
+    std::string              mHMetisName;
 
 
-    /*
-        // contains all nodes (views) with global orientation
-        // list of triplets of nodes
-        // for every triplet, for every edge of the triplet -> a list of triplets that are adjacent (have an edge in common)
-        // for every node, a list of triplets it appears in
-        // functions:
-        //    partition the graph => create several  */
 
 };
 
 cAppli_ImportTriplet::cAppli_ImportTriplet(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli  (aVArgs,aSpec),
    mPhProj       (*this),
-   mFileBin      (true)
+   mFileBin      (true),
+   mHMetisExp    (false),
+   mHMetisName   ("Graph_hmetis.txt")
 {
 }
 
@@ -79,6 +77,8 @@ cCollecSpecArg2007 & cAppli_ImportTriplet::ArgOpt(cCollecSpecArg2007 & anArgObl)
     return anArgObl
             << AOpt2007(mNameTriSet,"NameTri", "Name of the output triplet set; def=TripletSet")
             << AOpt2007(mFileBin,"FileBin","Binary file format, def=true")
+            << AOpt2007(mHMetisExp,"HMetis","Export graph in hMetis format, def=false")
+            << AOpt2007(mHMetisName,"HMetisName","hMetis file name")
                ;
 }
 
@@ -169,8 +169,19 @@ int cAppli_ImportTriplet::Exe()
 
     }
 
-
+    /// save triplets' graph to mmvii format
     mPhProj.SaveTriplets(aSetOfTri);
+
+    /// save triplets' graph to hMetis format
+    if (mHMetisExp)
+    {
+        cHyperGraph aHG;
+        aHG.InitFromTriSet(&aSetOfTri);
+
+        std::string aNameOut = mPhProj.DirPhp() + mHMetisName;
+        aHG.SaveHMetisFile(aNameOut);
+        StdOut() << aNameOut << std::endl;
+    }
 
     return EXIT_SUCCESS;
 }

@@ -243,6 +243,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecAppliExtractLine);
         TheVecAll.push_back(&TheSpec_ImportTriplet);
         TheVecAll.push_back(&TheSpec_SfmInitFromGraph);
+        TheVecAll.push_back(&TheSpec_SfmInitWithPartition);
 
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);

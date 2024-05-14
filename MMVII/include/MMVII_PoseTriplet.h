@@ -101,13 +101,6 @@ class cTripletSet : public cMemCheck
 ///  Global function with standard interface  required for serialization => just call member
 void AddData(const  cAuxAr2007 &,cTripletSet &) ;
 
-/*class cTripletLink
-{
-    public:
-
-    private:
-};*/
-
 
 };
 #endif // _MMVII_POSE_TRIPLET_H_

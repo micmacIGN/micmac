@@ -246,6 +246,46 @@ std::pair<ElRotation3D,ElRotation3D> cNewO_NameManager::OriRelTripletFromExistin
     CamStenope * aCam1 = CamOriOfNameSVP(aN1,aInOri);
     CamStenope * aCam2 = CamOriOfNameSVP(aN2,aInOri);
     CamStenope * aCam3 = CamOriOfNameSVP(aN3,aInOri);
+                
+        std::cout << "[ ";
+	for (int i=0; i<3; i++)
+        {
+                std::cout << "[ ";
+                for (int j=0; j<3; j++)
+                {
+                        std::cout << aCam1->Orient().Mat()(i,j) << ", ";
+                }
+                std::cout << "] ";
+                std::cout << std::endl;
+        }
+	std::cout << "tr=" << aCam1->Orient().tr() << std::endl;
+        std::cout << "[ ";
+	for (int i=0; i<3; i++)
+        {
+                std::cout << "[ ";
+                for (int j=0; j<3; j++)
+                {
+                        std::cout << aCam2->Orient().Mat()(i,j) << ", ";
+                }
+                std::cout << "] ";
+                std::cout << std::endl;
+        }
+        std::cout << "] ";
+	std::cout << "tr=" << aCam2->Orient().tr() << std::endl;
+std::cout << "[ ";
+        for (int i=0; i<3; i++)
+        {
+                std::cout << "[ "; 
+                for (int j=0; j<3; j++)
+                {       
+                        std::cout << aCam3->Orient().Mat()(i,j) << ", ";
+                }
+                std::cout << "] ";
+                std::cout << std::endl;
+        }
+        std::cout << "] ";
+        std::cout << "tr=" << aCam3->Orient().tr() << std::endl;
+
     if (aCam1 && aCam2 && aCam3)
     {
        ElRotation3D aRot2Sur1  = (aCam2->Orient() *aCam1->Orient().inv());

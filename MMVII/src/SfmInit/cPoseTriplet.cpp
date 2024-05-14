@@ -36,8 +36,9 @@ cSimilitud3D<double> ComputeSim3D(std::vector<tPose>& aVPosesA,
     cDenseMatrix<double> aRotation(3,3,eModeInitImage::eMIA_Null);
     for (size_t aK=0; aK<aVPosesA.size(); aK++ )
     {
-        cDenseMatrix<double> aRotCur = aVPosesA[aK].Rot().Mat()
-                                     * aVPosesB[aK].Rot().Mat().Transpose();
+        //  M = R^t * r
+        cDenseMatrix<double> aRotCur = aVPosesA[aK].Rot().Mat().Transpose()
+                                     * aVPosesB[aK].Rot().Mat();
 
         // add two matrices
         aRotation = aRotation + aRotCur;
@@ -57,8 +58,8 @@ cSimilitud3D<double> ComputeSim3D(std::vector<tPose>& aVPosesA,
     for (size_t aK=0; aK<aVPosesA.size(); aK++ )
     {
         cPt3dr anOrigin(0,0,0);
-        cPt3dr aP1 = aVPosesA[aK].Tr() + aVPosesA[aK].Rot().Mat() * anOrigin;
-        cPt3dr aP2 = aVPosesB[aK].Tr() + aVPosesB[aK].Rot().Mat() * anOrigin;
+        cPt3dr aP1 = aVPosesA[aK].Tr() ;
+        cPt3dr aP2 = aVPosesB[aK].Tr() ;
 
         aVP1.push_back(aP1);
         aVP2.push_back(aP2);
@@ -84,7 +85,7 @@ cSimilitud3D<double> ComputeSim3D(std::vector<tPose>& aVPosesA,
 
     double aScale = aSumD1/aSumD2;
 
-    cPt3dr aTr = aCentroidA - aCentroidB * aScale;
+    cPt3dr aTr = aCentroidA - aRot3d.Mat() * aCentroidB * aScale;
 
     return cSimilitud3D<double>(aScale,aTr,aRot3d);
 }

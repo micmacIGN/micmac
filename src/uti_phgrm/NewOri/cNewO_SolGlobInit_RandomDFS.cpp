@@ -1977,6 +1977,19 @@ cAppliGenOptTriplets::cAppliGenOptTriplets(int argc,char ** argv) :
     )
     {
 
+        // read the existing pair to get BsurH and Residual
+        std::string  aN3 = mNM->NameOriOptimTriplet
+                                    (
+                                        // mQuick,
+                                        false,  // ModeBin
+                                        it3->Name1(),
+                                        it3->Name2(),
+                                        it3->Name3()
+                                    );
+
+
+        cXml_Ori3ImInit aXmlIn = StdGetFromSI(aN3,Xml_Ori3ImInit);
+
 		bool Ok;
         std::pair<ElRotation3D,ElRotation3D> aPair = mNM->OriRelTripletFromExisting(
                                                         InOri,
@@ -2004,6 +2017,9 @@ cAppliGenOptTriplets::cAppliGenOptTriplets(int argc,char ** argv) :
 		
 		}
 
+        aXml.ResiduTriplet() = aXmlIn.ResiduTriplet() ;
+        aXml.BSurH() = aXmlIn.BSurH() ;
+        
 
         MakeFileXML(aXml,aNameSauveXml);
         MakeFileXML(aXml,aNameSauveBin);

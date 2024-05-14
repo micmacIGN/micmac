@@ -45,6 +45,7 @@ if((NOT OpenMP_CXX_FOUND) AND (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
 endif()
 
 
+
 #######################################################
 ##        Compilation toolchain
 #######################################################
@@ -66,6 +67,7 @@ target_compile_options(MMVII_compiler_flags INTERFACE
     "$<${msvc_cxx}:$<BUILD_INTERFACE:/W3;/D_USE_MATH_DEFINES;/D_HAS_STD_BYTE=0;/wd4244;/wd4267;/wd4305;/wd4661;/D_CRT_SECURE_NO_WARNINGS>>"
     "$<$<CONFIG:Debug>:$<$<CXX_COMPILER_ID:MSVC>:/bigobj>>"
     "$<$<CONFIG:RelWithDebInfo>:$<$<CXX_COMPILER_ID:MSVC>:/bigobj>>"
+    "-I/usr/local/include -L/usr/local/lib -lkahypar -L/usr/lib -I/usr/include -lboost_program_options"
 )
 
 # we really want -O3 instead of -O2 when available (GNU, Clang) in RelWithDebInfo mode
@@ -94,6 +96,13 @@ set(mmv2_gencode_dir "${mmv2_src_dir}/GeneratedCodes")
 set(mmv2_gencode_main_src "${mmv2_gencode_dir}/cName2CalcRegisterAll.cpp")
 set(EIGEN3_INCLUDE_PATH  "${mmv2_external_include_dir}/eigen-3.4.0")
 
+# MtKaHyPar
+set(mtkahypar_dir "/etc/opt/mt-kahypar/")
+set(mtkahypar_include_dir "${mtkahypar_dir}/include")
+set(mtkahypar_lib_dir "${mtkahypar_dir}/lib")
+find_library(mtkahypar_lib NAME mtkahypar PATHS "${mtkahypar_dir}" NO_DEFAULT_PATH)
+
+
 # Here we initialize the generated code with en empty template if working dir is clean (first checkout or after make distclean)
 if (NOT EXISTS "${mmv2_gencode_main_src}")
 	execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${mmv2_include_dir}/SymbDer/cName2CalcRegisterAll.cpp.tmpl "${mmv2_gencode_main_src}" )
@@ -108,7 +117,7 @@ file(GLOB mmv2_headers "${mmv2_include_dir}/*.h" "${mmv2_include_dir}/*/*.h" "${
 ##        libP2007 buid (MMVII library)
 #######################################################
 add_library(P2007 "${mmv2_libsrcs}" "${mmv2_headers}")
-target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH}")
+target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH};${mtkahypar_include_dir}")#
 target_link_libraries(P2007 PRIVATE MMVII_compiler_flags Threads::Threads)
 
 # Force parallel compilation with MSVC
@@ -130,7 +139,7 @@ endif()
 
 target_include_directories(MMVII PRIVATE "${MMVII_SOURCE_DIR}/include"  )
 
-target_link_libraries(MMVII PRIVATE MMVII_compiler_flags Threads::Threads P2007 ${mmv1_libs} ${mmv2_extlibs})
+target_link_libraries(MMVII PRIVATE MMVII_compiler_flags Threads::Threads P2007 ${mmv1_libs} ${mmv2_extlibs} ${mtkahypar_lib})
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION  VERSION_LESS "9.1")
   target_link_libraries(MMVII PRIVATE -lstdc++fs)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION  VERSION_LESS "9.0")

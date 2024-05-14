@@ -99,6 +99,8 @@ extern cSpecMMVII_Appli  TheSpec_TutoFormalDeriv;
 extern cSpecMMVII_Appli  TheSpecAppliExtractLine;
 extern cSpecMMVII_Appli  TheSpec_ImportTriplet;
 extern cSpecMMVII_Appli  TheSpec_SfmInitFromGraph;
+extern cSpecMMVII_Appli  TheSpec_SfmInitWithPartition;
+
 };
 
 #endif  //  _MMVII_DeclareAllCmd_H_
