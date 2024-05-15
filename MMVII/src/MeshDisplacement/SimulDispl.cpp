@@ -122,8 +122,8 @@ namespace MMVII
 
     cAppli_SimulDispl::tImDispl cAppli_SimulDispl::GenerateSmoothRandDispl()
     {
-        const tREAL8 aDeZoom = 10.0;
-        const tREAL8 aNbBlob = 10.0;
+        const tREAL8 aDeZoom = 10;
+        const tREAL8 aNbBlob = 10;
 
         const cPt2di aSzRed = Pt_round_up(ToR(mSz) / aDeZoom);
 
@@ -143,6 +143,20 @@ namespace MMVII
         }
 
         return aRes;
+    }
+
+    void cAppli_SimulDispl::GenerateDiscontinuity(tDImDispl *&aDImDispx, tDImDispl *&aDImDispy)
+    {
+        tImDispl aImRegion = tImDispl(mSz);
+        aImRegion = GenerateSmoothRandDispl();
+        for (const cPt2di &aPix : aImRegion.DIm())
+        {
+            aImRegion.DIm().SetV(aPix, aImRegion.DIm().GetV(aPix) > 0);
+            if (aImRegion.DIm().GetV(aPix))
+                std::swap(aDImDispx->GetReference_V(aPix),
+                          aDImDispy->GetReference_V(aPix));
+        }
+        aImRegion.DIm().ToFile("Region.tif");
     }
 
     int cAppli_SimulDispl::Exe()
