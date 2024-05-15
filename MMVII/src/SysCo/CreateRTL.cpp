@@ -35,8 +35,8 @@ private :
 
     // Mandatory Arg
     std::string              mSpecIm;
-    std::string              mNameSysIn;
-    std::string              mNameSysOut;
+    std::string              mDefSysCoIn;
+    std::string              mDefSysCoOut;
 
     // Optional Arg
     cPt3dr           mOrigin;
@@ -55,21 +55,21 @@ cCollecSpecArg2007 & cAppli_CreateRTL::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
     return anArgObl
             <<  Arg2007(mSpecIm ,"Name of Input File",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
-             <<  Arg2007(mNameSysOut ,"Output coordinate system")
+             <<  Arg2007(mDefSysCoOut ,"Output coordinate system name")
                  ;
 }
 
 cCollecSpecArg2007 & cAppli_CreateRTL::ArgOpt(cCollecSpecArg2007 & anArgObl) 
 {
     
-    return      anArgObl
-            <<  mPhProj.DPOrient().ArgDirInOpt()
-                //  <<  mPhProj.DPOrient().ArgDirOutOpt()
-             <<  mPhProj.DPPointsMeasures().ArgDirInOpt()
+    return    anArgObl
+              << mPhProj.DPOrient().ArgDirInOpt()
+            //  <<  mPhProj.DPOrient().ArgDirOutOpt()
+              << mPhProj.DPPointsMeasures().ArgDirInOpt()
               << AOpt2007(mOrigin,"Origin","Force origin of RTL Measures",{{}})
               << AOpt2007(mZ0,"Z0","Force altitute of RTL Measures",{{}})
               << AOpt2007(mEpsDer,"EpsDer","Epislon 4 computing derivative",{{eTA2007::HDV}})
-              << AOpt2007(mNameSysIn ,"SysIn" ,"Input coordinate system (default from GCP or Orient)")
+              << AOpt2007(mDefSysCoIn ,"SysIn" ,"Input coordinate system (default from GCP or Orient)")
                  ;
 }
 
@@ -82,12 +82,12 @@ int cAppli_CreateRTL::Exe()
     bool isInitSens  =false;
     bool isInitGCP  =false;
 
-    std::string aNameSyIn;
+    std::string aDefSysCoIn;
     if (mPhProj.DPOrient().DirInIsInit())
     {
         auto aSysIn = mPhProj.CurSysCoOri(true);
         if (aSysIn.get())
-            aNameSyIn = aSysIn->Name();
+            aDefSysCoIn = aSysIn->Def();
 
         for (const auto & aNameIm : VectMainSet(0))
         {
@@ -110,7 +110,7 @@ int cAppli_CreateRTL::Exe()
     {
         auto aSysIn = mPhProj.CurSysCoGCP(true);
         if (aSysIn.get())
-            aNameSyIn = aSysIn->Name();
+            aDefSysCoIn = aSysIn->Def();
 
         mPhProj.LoadGCP(aMesIm);
         for (const auto & aGCP : aMesIm.MesGCP())
@@ -119,7 +119,7 @@ int cAppli_CreateRTL::Exe()
             isInitGCP = true;
         }
     }
-    SetIfNotInit(mNameSysIn,aNameSyIn);
+    SetIfNotInit(mDefSysCoIn,aDefSysCoIn);
 
     if (! IsInit(&mOrigin))
     {
@@ -137,9 +137,9 @@ int cAppli_CreateRTL::Exe()
         mOrigin.z() = mZ0;
 
 
-    tPtrSysCo aSysRTL = mPhProj.CreateSysCoRTL(mOrigin,mNameSysIn);
+    tPtrSysCo aSysRTL = mPhProj.CreateSysCoRTL(mOrigin,mDefSysCoIn);
 
-    mPhProj.SaveSysCo(aSysRTL,mNameSysOut);
+    mPhProj.SaveSysCo(aSysRTL,mDefSysCoOut);
 
 
     return EXIT_SUCCESS;
@@ -148,7 +148,7 @@ int cAppli_CreateRTL::Exe()
 
 std::vector<std::string>  cAppli_CreateRTL::Samples() const
 {
-    return {"MMVII SysCoCreateRTL VolAllIm.xml Lambert93 RTLProj InOri=InitUPCalVol OutOri=RTLInitUPCalVol Z0=0 EpsDer=200"};
+    return {"MMVII SysCoCreateRTL AllIM.xml RTL InOri=SatWGS84 z0=0"};
 }
 
 

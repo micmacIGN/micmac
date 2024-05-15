@@ -17,7 +17,7 @@ namespace MMVII
 class cSysCoData
 {
 public :
-    std::string mName; //< name / def
+    std::string mDef; //< definition
     void AddData(const  cAuxAr2007 & anAuxInit);
 };
 
@@ -31,7 +31,8 @@ void AddData(const cAuxAr2007 & anAux, cSysCoData & aSysCoData);
  *
  * SysCo definitions are like this:
  * "type*param1*param2*..."
- * It is interpreted by the factory MakeSysCo() to create an object of the corresponding concrete class
+ * They entirely define a SysCo and are interpreted by the factory MakeSysCo() to create an object of the corresponding concrete class.
+ * The definitions are retrieved by command line argument or by deserialization of a cSysCoData.
  */
 class cSysCo : public cDataInvertibleMapping<tREAL8,3>
 {
@@ -43,14 +44,14 @@ public :
     virtual tPt Inverse(const tPt &) const override = 0; //< from GeoC
 
     virtual cRotation3D<tREAL8> getVertical(const tPt &)   const; //< get rotation from SysCo origin to vertical at this point
-    virtual tREAL8 getRadiusApprox(const tPt &in) const;
-    virtual tREAL8 getDistHzApprox(const tPt & aPtA, const tPt & aPtB) const;
+    virtual tREAL8 getRadiusApprox(const tPt &in) const; //< approximate earth total curvature radius at a point
+    virtual tREAL8 getDistHzApprox(const tPt & aPtA, const tPt & aPtB) const; //< approximate horizontal distance (along ellipsoid) from one point to an other
 
     static tPtrSysCo MakeSysCo(const std::string &aDef); //< factory from a sysco definition
-    static tPtrSysCo makeRTL(const cPt3dr & anOrigin, const std::string & aSysCoNameIn);
+    static tPtrSysCo makeRTL(const cPt3dr & anOrigin, const std::string & aSysCoInDef);
     static tPtrSysCo FromFile(const std::string &aNameFile);
 
-    std::string Name() const { return mName; }
+    std::string Def() const { return mDef; }
     cSysCoData toSysCoData();
 
     eSysCo getType() const { return mType; }
@@ -58,7 +59,7 @@ public :
 protected :
     cSysCo();
     cSysCo(const std::string & def);
-    std::string mName; //< name / def
+    std::string mDef; //< definition
     eSysCo mType;
     static PJ* PJ_GeoC2Geog; //< for generic use
 };
@@ -71,7 +72,7 @@ protected :
  * Value() goes from mSysCoInit to mSysCoTarget
  * Inverse() goes from mSysCoTarget to mSysCoInit
  *
- * It works with local cSysCo only if both have the same name.
+ * It works with cSysCoLocal only if both have the same definition.
  * */
 class cChangeSysCo : public cDataInvertibleMapping<tREAL8,3>
 {

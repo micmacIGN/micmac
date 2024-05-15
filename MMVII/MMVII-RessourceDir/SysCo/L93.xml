@@ -4,7 +4,7 @@
    <Version>"0.0.0"</Version>
    <Data>
       <SysCoData>
-         <Name>"IGNF:LAMB93"</Name>
+         <Def>"IGNF:LAMB93"</Def>
       </SysCoData>
    </Data>
 </Root>

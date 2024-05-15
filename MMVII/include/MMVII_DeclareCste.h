@@ -100,7 +100,7 @@ extern const   std::string MMVII_StdDest;  ///< For destination parameter (TieP 
 extern const   std::string MMVII_PrefRefBench; ///< Prefix for file used as reference in bench
 
 extern const   std::string MMVII_SysCoLocal;      ///< Prefix for SysCo type
-extern const   std::string MMVII_SysCoLGeo;     ///< Prefix for SysCo type
+extern const   std::string MMVII_SysCoLGeo;       ///< Prefix for SysCo type
 extern const   std::string MMVII_SysCoRTL;        ///< Prefix for SysCo type
 extern const   std::string MMVII_SysCoGeoC;       ///< Prefix for SysCo type
 extern const   std::string MMVII_SysCoDefLatLong; ///< Definition for latlong

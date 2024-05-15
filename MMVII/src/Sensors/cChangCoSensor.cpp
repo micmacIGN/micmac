@@ -214,8 +214,8 @@ cChSysSensImage::cChSysSensImage
 {
     mDirSensInit = aDirSens;
     mNameImage   = aSensInit->NameImage();
-    mSysCoOri    = aChSys.SysOrigin()->Name();
-    SetCoordinateSystem(aChSys.SysTarget()->Name());
+    mSysCoOri    = aChSys.SysOrigin()->Def();
+    SetCoordinateSystem(aChSys.SysTarget()->Def());
 
     cChangCoordSensImage::CCSI_SetSensorAndMap(aSensInit,new cChangeSysCo(aChSys),false /* delete sens*/);
 }

@@ -35,7 +35,7 @@ To inform {\tt MMVII} of the SysCo of some data, there are several methods:
 \end{itemize}
 
 \subsection{SysCo definition}
-The SysCo names to give to {\tt MMVII} commands can be:
+The SysCo definitions to give to {\tt MMVII} commands can be:
 \begin{itemize}
 \item The name of a file in source sub-folder {\tt MMVII/MMVII-RessourceDir/SysCo} or in project sub-folder {MMVII-PhgrProj/SysCo}, without its extension.
 \item Any {\tt libproj} definition (such as {\tt IGNF:LAMB93} or {\tt EPSG:4326})
@@ -56,9 +56,9 @@ where you give the coordinates in a certain system of the tengance point of the 
 \begin{itemize}
 \item {\tt SysCo=L93} will set the SysCo to Lambert93 (IGNF:LAMB93), as definied in \\
 {\tt MMVII/MMVII-RessourceDir/SysCo/L93.xml}.
-\item {\tt SysCo=LocalPanel} will set the SysCo to a local system named "LocalPanel", that will not be convertible into any other SysCo.
+\item {\tt SysCo=LocalPanel} will set the SysCo to a local system definied as "LocalPanel", that will not be convertible into any other SysCo.
 \item {\tt SysCo=IGNF:LAMB93} will set the SysCo to Lambert93.
-\item {\tt SysCo=RTL*0.67451979*45.18899334*0*EPSG:4326} will set the SysCo to a local euclidian frame where origin is $0.67451979, 45.18899334, 0$ in EPSG:4326.
+\item {\tt SysCo=RTL*0.67451979*45.18899334*0*EPSG:4326} will set the SysCo to a tangent local euclidian frame where origin is $0.67451979, 45.18899334, 0$ in EPSG:4326.
 \item {\tt SysCo=Toto} will use a project-defined SysCo if {MMVII-PhgrProj/SysCo/Toto.xml} exists. If not, "Toto" will be used as a libproj definition, and an error will occur.
 \item {\tt SysCo=GeoC} will set the SysCo to geocentric coordinates.
 

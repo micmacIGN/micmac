@@ -9,7 +9,7 @@ namespace MMVII
 
 PJ* cSysCo::PJ_GeoC2Geog = nullptr;
 
-const std::string SysCoNameSep = "*";
+const std::string SysCoDefSep = "*";
 
 PJ* createCRS2CRS(const std::string &def_from, const std::string &def_to); //< returns nullptr if error
 
@@ -34,7 +34,7 @@ tPt3dr fromPjCoord(const PJ_COORD &aPtPJ)
 void cSysCoData::AddData(const  cAuxAr2007 & anAuxInit)
 {
     cAuxAr2007 anAux("SysCoData",anAuxInit);
-    MMVII::AddData(cAuxAr2007("Name",anAux),mName);
+    MMVII::AddData(cAuxAr2007("Def",anAux),mDef);
 }
 
 void AddData(const cAuxAr2007 & anAux, cSysCoData & aSysCoData)
@@ -157,14 +157,14 @@ protected:
 //------------------------------------------------------------
 
 cSysCo::cSysCo() :
-    mName(), mType(eSysCo::eLocalSys)
+    mDef(), mType(eSysCo::eLocalSys)
 {
     if (!PJ_GeoC2Geog)
         PJ_GeoC2Geog = createCRS2CRS(MMVII_SysCoDefGeoC, MMVII_SysCoDefLatLong);
 }
 
 cSysCo::cSysCo(const std::string &aDef) :
-    mName(aDef), mType(eSysCo::eLocalSys)
+    mDef(aDef), mType(eSysCo::eLocalSys)
 {
 }
 
@@ -189,7 +189,7 @@ bool cSysCo::isEuclidian() const
 
 cSysCoData cSysCo::toSysCoData()
 {
-    return {mName};
+    return {mDef};
 }
 
 cRotation3D<tREAL8> cSysCo::getVertical(const tPt &)   const
@@ -250,19 +250,19 @@ tPtrSysCo cSysCo::MakeSysCo(const std::string &aDef)
     }
 }
 
-tPtrSysCo cSysCo::makeRTL(const cPt3dr & anOrigin, const std::string & aSysCoNameIn)
+tPtrSysCo cSysCo::makeRTL(const cPt3dr & anOrigin, const std::string & aSysCoInDef)
 {
     tPtrSysCo aSysCoFrom;
-    if (ExistFile(aSysCoNameIn))
-        aSysCoFrom = cSysCo::FromFile(aSysCoNameIn);
+    if (ExistFile(aSysCoInDef))
+        aSysCoFrom = cSysCo::FromFile(aSysCoInDef);
     else
-        aSysCoFrom = cSysCo::MakeSysCo(aSysCoNameIn);
+        aSysCoFrom = cSysCo::MakeSysCo(aSysCoInDef);
 
     std::ostringstream oss;
     oss.precision(8);
     oss<<std::fixed;
-    oss<<MMVII_SysCoRTL<<SysCoNameSep<<anOrigin.x()<<SysCoNameSep<<anOrigin.y()
-       <<SysCoNameSep<<anOrigin.z()<<SysCoNameSep<<aSysCoFrom->Name();
+    oss<<MMVII_SysCoRTL<<SysCoDefSep<<anOrigin.x()<<SysCoDefSep<<anOrigin.y()
+       <<SysCoDefSep<<anOrigin.z()<<SysCoDefSep<<aSysCoFrom->Def();
 
     return MakeSysCo(oss.str());
 }
@@ -271,7 +271,7 @@ tPtrSysCo cSysCo::FromFile(const std::string &aNameFile)
 {
     cSysCoData aSysCoDataTmp;
     ReadFromFile(aSysCoDataTmp,aNameFile);
-    return MakeSysCo(aSysCoDataTmp.mName);
+    return MakeSysCo(aSysCoDataTmp.mDef);
 }
 
 //------------------------------------------------------------
@@ -313,13 +313,13 @@ cSysCoLGeo::cSysCoLGeo(const std::string &aDef) :
 {
     mType = eSysCo::eLGeo;
 
-    auto tokens = SplitString(mName, SysCoNameSep);
+    auto tokens = SplitString(mDef, SysCoDefSep);
     MMVII_INTERNAL_ASSERT_User(tokens.size()>0, eTyUEr::eInsufNbParam,
-                               "Error in LGeo definition format: \""+mName+"\"")
+                               "Error in LGeo definition format: \""+mDef+"\"")
     if (tokens[0]==MMVII_SysCoLGeo)
     {
         MMVII_INTERNAL_ASSERT_User(tokens.size()==7, eTyUEr::eInsufNbParam,
-                                   "Error in LGeo definition format: \""+mName+"\"")
+                                   "Error in LGeo definition format: \""+mDef+"\"")
         mTranfo2GeoC.Tr() = {std::stod(tokens[1]), std::stod(tokens[2]), std::stod(tokens[3])};
         tPt aOmegaPhiKappa(std::stod(tokens[4]), std::stod(tokens[5]), std::stod(tokens[6]));
         mTranfo2GeoC.SetRotation(cRotation3D<tREAL8>::RotFromWPK(aOmegaPhiKappa));
@@ -337,7 +337,7 @@ cSysCoLGeo::cSysCoLGeo(const std::string &aDef) :
     else
     {
         MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eUnClassedError,
-                                   "Error in LGeo definition format: \""+mName+"\"")
+                                   "Error in LGeo definition format: \""+mDef+"\"")
     }
 }
 
@@ -370,15 +370,15 @@ cSysCoRTL::cSysCoRTL(const std::string &aDef) :
     cSysCoLGeo()
 {
     mType = eSysCo::eRTL;
-    mName = aDef;
+    mDef = aDef;
 
-    auto tokens = SplitString(mName, SysCoNameSep);
+    auto tokens = SplitString(mDef, SysCoDefSep);
     MMVII_INTERNAL_ASSERT_User(tokens.size()>0, eTyUEr::eInsufNbParam,
-                               "Error in RTL definition format: \""+mName+"\"")
+                               "Error in RTL definition format: \""+mDef+"\"")
     if (tokens[0]==MMVII_SysCoRTL)
     {
         MMVII_INTERNAL_ASSERT_User(tokens.size()==5, eTyUEr::eInsufNbParam,
-                                   "Error in RTL definition format: \""+mName+"\"")
+                                   "Error in RTL definition format: \""+mDef+"\"")
         tPt anOrigin(std::stod(tokens[1]), std::stod(tokens[2]), std::stod(tokens[3]));
         std::string aInDef = tokens[4];
         computeRTL(anOrigin, aInDef);
@@ -386,7 +386,7 @@ cSysCoRTL::cSysCoRTL(const std::string &aDef) :
     else
     {
         MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eUnClassedError,
-                                   "Error in RTL definition format: \""+mName+"\"")
+                                   "Error in RTL definition format: \""+mDef+"\"")
     }
 }
 
@@ -397,9 +397,9 @@ cSysCoRTL::cSysCoRTL(tPt anOrigin, std::string aInDef) :
     std::ostringstream oss;
     oss.precision(8);
     oss<<std::fixed;
-    oss<<MMVII_SysCoRTL<<SysCoNameSep<<anOrigin.x()<<SysCoNameSep<<anOrigin.y()
-       <<SysCoNameSep<<anOrigin.z()<<SysCoNameSep<<aInDef;
-    mName = oss.str();
+    oss<<MMVII_SysCoRTL<<SysCoDefSep<<anOrigin.x()<<SysCoDefSep<<anOrigin.y()
+       <<SysCoDefSep<<anOrigin.z()<<SysCoDefSep<<aInDef;
+    mDef = oss.str();
     computeRTL(anOrigin,aInDef);
 }
 
@@ -447,10 +447,10 @@ bool cSysCoRTL::computeRTL(tPt anOrigin, std::string aInDef)
         oss.precision(8);
         oss<<std::fixed;
         tPt aOmegaPhiKappa = mTranfo2GeoC.Rot().ToWPK();
-        oss<<MMVII_SysCoLGeo<<SysCoNameSep
-          <<mTranfo2GeoC.Tr().x()<<SysCoNameSep<<mTranfo2GeoC.Tr().y()<<SysCoNameSep<<mTranfo2GeoC.Tr().z()<<SysCoNameSep
-          <<aOmegaPhiKappa.x()<<SysCoNameSep<<aOmegaPhiKappa.y()<<SysCoNameSep<<aOmegaPhiKappa.z();
-        mName = oss.str();
+        oss<<MMVII_SysCoLGeo<<SysCoDefSep
+          <<mTranfo2GeoC.Tr().x()<<SysCoDefSep<<mTranfo2GeoC.Tr().y()<<SysCoDefSep<<mTranfo2GeoC.Tr().z()<<SysCoDefSep
+          <<aOmegaPhiKappa.x()<<SysCoDefSep<<aOmegaPhiKappa.y()<<SysCoDefSep<<aOmegaPhiKappa.z();
+        mDef = oss.str();
     }
 
     return true;
@@ -472,7 +472,7 @@ cSysCoProj::cSysCoProj(const std::string &aDef) :
     cSysCo(aDef), mPJ_Proj2GeoC(nullptr)
 {
     mType = eSysCo::eProj;
-    mPJ_Proj2GeoC = createCRS2CRS(mName, MMVII_SysCoDefGeoC);
+    mPJ_Proj2GeoC = createCRS2CRS(mDef, MMVII_SysCoDefGeoC);
 }
 
 cSysCoProj::~cSysCoProj()
@@ -487,7 +487,7 @@ tPt3dr cSysCoProj::Value(const tPt & in)   const  //< to GeoC
     pj_out = proj_trans(mPJ_Proj2GeoC, PJ_FWD, pj_in);
     if (proj_errno(mPJ_Proj2GeoC))
     {
-        StdOut()<<"Error with proj "<<mName<<" "<<MMVII_SysCoDefGeoC<<": "<<
+        StdOut()<<"Error with proj "<<mDef<<" "<<MMVII_SysCoDefGeoC<<": "<<
                                   proj_errno_string(proj_errno(mPJ_Proj2GeoC))<<"\n";
         MMVII_INTERNAL_ASSERT_medium(false, "SysCo proj error")
     }
@@ -501,7 +501,7 @@ tPt3dr cSysCoProj::Inverse(const tPt & in) const //< from GeoC
     pj_out = proj_trans(mPJ_Proj2GeoC, PJ_INV, pj_in);
     if (proj_errno(mPJ_Proj2GeoC))
     {
-        StdOut()<<"Error with proj "<<mName<<" "<<MMVII_SysCoDefGeoC<<": "<<
+        StdOut()<<"Error with proj "<<mDef<<" "<<MMVII_SysCoDefGeoC<<": "<<
                                   proj_errno_string(proj_errno(mPJ_Proj2GeoC))<<"\n";
         MMVII_INTERNAL_ASSERT_medium(false, "SysCo proj error")
     }
@@ -535,13 +535,13 @@ cChangeSysCo::cChangeSysCo():
 
 cChangeSysCo::cChangeSysCo(tPtrSysCo aSysCoOrigin, tPtrSysCo aSysCoTarget, tREAL8  aEpsDeriv):
     cDataInvertibleMapping<tREAL8,3> (cPt3dr::PCste(aEpsDeriv)),
-    mSysCoOrigin(aSysCoOrigin),mSysCoTarget(aSysCoTarget),mIsNull(mSysCoOrigin->Name()==mSysCoTarget->Name())
+    mSysCoOrigin(aSysCoOrigin),mSysCoTarget(aSysCoTarget),mIsNull(mSysCoOrigin->Def()==mSysCoTarget->Def())
 {
 }
 
 cChangeSysCo::cChangeSysCo(const cChangeSysCo &other):
     cDataInvertibleMapping<tREAL8,3> (other.EpsJac()),
-    mSysCoOrigin(other.mSysCoOrigin),mSysCoTarget(other.mSysCoTarget),mIsNull(mSysCoOrigin->Name()==mSysCoTarget->Name())
+    mSysCoOrigin(other.mSysCoOrigin),mSysCoTarget(other.mSysCoTarget),mIsNull(mSysCoOrigin->Def()==mSysCoTarget->Def())
 {
 }
 

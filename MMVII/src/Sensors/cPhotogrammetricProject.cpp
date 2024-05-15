@@ -275,11 +275,6 @@ void cPhotogrammetricProject::FinishInit()
         CreateDirectories(mDirSysCo,false);
         CreateDirectories(mDirImportInitOri,false);
 
-        // cPt3dr  aZeroNDP(652215.52,6861681.77,35.6);
-        // SaveSysCo(CreateSysCoRTL(aZeroNDP,"Lambert93"),"RTL_NotreDame");
-	// maintain it, who knows, but now replaced by 
-	// SaveSysCo(cSysCoordV2::Lambert93(),E2Str(eSysCoGeo::eLambert93),true);  
-	// SaveSysCo(cSysCoordV2::GeoC()     ,E2Str(eSysCoGeo::eGeoC)     ,true);
     }
 
 
