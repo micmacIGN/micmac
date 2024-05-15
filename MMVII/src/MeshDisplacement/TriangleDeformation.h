@@ -4,6 +4,7 @@
 #include "cMMVII_Appli.h"
 #include "MMVII_Geom2D.h"
 #include "MMVII_PhgrDist.h"
+#include "MMVII_Interpolators.h"
 
 #include "MMVII_util.h"
 #include "MMVII_TplSymbTriangle.h"
@@ -65,6 +66,10 @@ namespace MMVII
         bool mComputeAvgMax;                                // Compute average and maximum pixel value of difference image between pre and post images
         bool mUseMultiScaleApproach;                        // Apply multi-scale approach or not
         bool mBuildRandomUniformGrid;                       // Whether to triangulate grid made of points whose coordinates follow a uniform law or have coordinates that form rectangles
+        bool mUseLinearGradInterpolation;                   // Whether to use linear gradient interpolation instead of bilinear interpolation
+        std::vector<std::string> mInterpolArgs;             // Arguments to use if linear gradient interpolation is used
+        bool mSerialiseTriangleNodes;                       // Whether to serialise nodes to .xml file or not
+        std::string mNameMultipleTriangleNodes;             // File name to use when saving all to triangle nodes to .xml file
         bool mInitialiseTranslationWithPreviousExecution;   // Initialise values of translation unknowns with values obtained at previous algorithm execution
         bool mInitialiseRadiometryWithPreviousExecution;    // Initialise values of radiometry unknowns with values obtained at previous algorithm execution
         bool mInitialiseWithUserValues;                     // Initalise or not with values given by user
@@ -89,7 +94,7 @@ namespace MMVII
         tREAL8 mWeightRadScale;                             // Weight given to radiometry scaling if soft freezing is applied (default : negative => not applied)
         int mNumberOfIterGaussFilter;                       // Number of iterations to be done in Gauss filter algorithm
         int mNumberOfEndIterations;                         // Number of iterations to do while using original image in multi-scale approach
-        std::string mFolderSaveResult;                      // Folder name to save results
+        std::string mUserDefinedFolderNameSaveResult;       // Folder name to save results
         bool mDisplayLastTranslationValues;                 // Whether to display the final coordinates of the translated points
         bool mDisplayLastRadiometryValues;                  // Display final values of radiometry unknowns at last iteration of optimisation process
 
@@ -135,12 +140,12 @@ namespace MMVII
         tIm mImDiff;        // memory representation of the image
         tDIm *mDImDiff;     // memory representation of the image
 
-        //std::vector<tPt2dr> mVectorPts;     // A vector containing a set of points
         cTriangulation2D<tREAL8> mDelTri;   // A Delaunay triangle
 
         tREAL8 mSigmaGaussFilter;   // Value of sigma in gauss filter
         bool mIsLastIters;          // Determines whether optimisation process is at last iters to optimise on original image
 
+	    cDiffInterpolator1D * mInterpol;    // Interpolator, if exist use linear/grad instead of bilinear one
         cResolSysNonLinear<tREAL8> *mSys;   // Non Linear Sys for solving problem
         cCalculator<tREAL8> *mEqTriDeform;  // calculator giving access to values and derivatives
     };

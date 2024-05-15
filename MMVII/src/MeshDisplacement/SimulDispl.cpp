@@ -20,35 +20,36 @@ namespace MMVII
     class cAppli_SimulDispl : public cMMVII_Appli
     {
     public:
-        typedef cIm2D<tREAL4> tIm;
-        typedef cDataIm2D<tREAL4> tDIm;
         typedef cIm2D<tREAL4> tImDispl;
         typedef cDataIm2D<tREAL4> tDImDispl;
 
-        cAppli_SimulDispl(const std::vector<std::string> &aVArgs, 
+        cAppli_SimulDispl(const std::vector<std::string> &aVArgs,
                           const cSpecMMVII_Appli &);
 
         int Exe() override;
         cCollecSpecArg2007 &ArgObl(cCollecSpecArg2007 &anArgObl) override;
         cCollecSpecArg2007 &ArgOpt(cCollecSpecArg2007 &anArgOpt) override;
 
-    private:
         tImDispl GenerateSmoothRandDispl();
 
+    private:
         // ==   Mandatory args ====
-        std::string mNameImage; ///< name of the input image to deform
+        std::string mNameImage; // name of the input image to deform
 
         // ==   Optionnal args ====
 
-        tREAL8 mAmplDef;
-        bool mWithDisc;
+        tREAL8 mAmplDef;                      // Amplitude of deformation
+        bool mWithDisc;                       // Generate image with discontinuities
+        bool mGenerateDispImageFromUserMaps;  // Generate displaced image from user defined displacement map
+        std::string mUserDefinedDispXMapName; // Filename of user defined x-displacement map
+        std::string mUserDefinedDispYMapName; // Filename of user defined y-displacement map
 
         // ==    Internal variables ====
-        tIm mImIn;    ///<  memory representation of the image
-        tDIm *mDImIn; ///<  memory representation of the image
-        cPt2di mSz;
-        tIm mImOut;    ///<  memory representation of the image
-        tDIm *mDImOut; ///<  memory representation of the image
+        tImDispl mImIn;     // memory representation of the image
+        tDImDispl *mDImIn;  // memory representation of the image
+        cPt2di mSz;         // Size of image
+        tImDispl mImOut;    // memory representation of the image
+        tDImDispl *mDImOut; // memory representation of the image
     };
 
     cAppli_SimulDispl::cAppli_SimulDispl(
@@ -56,6 +57,9 @@ namespace MMVII
         const cSpecMMVII_Appli &aSpec) : cMMVII_Appli(aVArgs, aSpec),
                                          mAmplDef(2.0),
                                          mWithDisc(false),
+                                         mGenerateDispImageFromUserMaps(false),
+                                         mUserDefinedDispXMapName("UserDeplX.tif"),
+                                         mUserDefinedDispYMapName("UserDeplY.tif"),
                                          mImIn(cPt2di(1, 1)),
                                          mDImIn(nullptr),
                                          mImOut(cPt2di(1, 1)),
@@ -66,16 +70,19 @@ namespace MMVII
     cCollecSpecArg2007 &cAppli_SimulDispl::ArgObl(cCollecSpecArg2007 &anArgObl)
     {
         return anArgObl
-               << Arg2007(mNameImage, "Name of image to deform", {{eTA2007::FileImage}, 
-                                                                  {eTA2007::FileDirProj}});
+               << Arg2007(mNameImage, "Name of image to deform", {{eTA2007::FileImage}, {eTA2007::FileDirProj}});
     }
 
     cCollecSpecArg2007 &cAppli_SimulDispl::ArgOpt(cCollecSpecArg2007 &anArgOpt)
     {
 
         return anArgOpt
-               << AOpt2007(mAmplDef, "Ampl", "Amplitude of deformation", {eTA2007::HDV})
-               << AOpt2007(mWithDisc, "WithDisc", "Do we add disconinuities", {eTA2007::HDV});
+               << AOpt2007(mAmplDef, "Ampl", "Amplitude of deformation.", {eTA2007::HDV})
+               << AOpt2007(mWithDisc, "WithDisc", "Do we add disconinuities.", {eTA2007::HDV})
+               << AOpt2007(mGenerateDispImageFromUserMaps, "GenerateDispImageFromUserMaps",
+                           "Generate post deformation image from user defined displacement maps.", {eTA2007::HDV})
+               << AOpt2007(mUserDefinedDispXMapName, "UserDispXMapName", "Name of user defined x-displacement map.", {eTA2007::HDV, eTA2007::FileImage})
+               << AOpt2007(mUserDefinedDispYMapName, "UserDispYMapName", "Name of user defined y-displacement map.", {eTA2007::HDV, eTA2007::FileImage});
     }
 
     //================================================
@@ -98,7 +105,7 @@ namespace MMVII
         tImDispl aRes(mSz);
         for (const cPt2di &aPix : aRes.DIm())
         {
-            const cPt2dr aPixSE = ToR(aPix) / aDeZoom;
+            const tPt2dr aPixSE = ToR(aPix) / aDeZoom;
             aRes.DIm().SetV(aPix, aResSsEch.DIm().DefGetVBL(aPixSE, 0));
         }
 
@@ -107,50 +114,66 @@ namespace MMVII
 
     int cAppli_SimulDispl::Exe()
     {
-        mImIn = tIm::FromFile(mNameImage);
+        mImIn = tImDispl::FromFile(mNameImage);
         cDataFileIm2D aDescFile = cDataFileIm2D::Create(mNameImage, false);
 
         mDImIn = &mImIn.DIm();
         mSz = mDImIn->Sz();
 
-        mImOut = tIm(mSz);
+        mImOut = tImDispl(mSz);
         mDImOut = &mImOut.DIm();
 
         for (const cPt2di &aPix : *mDImIn)
             mDImOut->SetV(aPix, 255 - mDImIn->GetV(aPix));
 
-        tImDispl aImDispx = GenerateSmoothRandDispl();
-        tImDispl aImDispy = GenerateSmoothRandDispl();
-        tImDispl aImRegion = GenerateSmoothRandDispl();
+        tImDispl aImDispx = tImDispl(mSz);
+        tImDispl aImDispy = tImDispl(mSz);
+        tImDispl aImRegion = tImDispl(mSz);
+
+        if (mGenerateDispImageFromUserMaps)
+        {
+            aImDispx = tImDispl::FromFile(mUserDefinedDispXMapName);
+            aImDispy = tImDispl::FromFile(mUserDefinedDispYMapName);
+        }
+        else
+        {
+            aImDispx = GenerateSmoothRandDispl();
+            aImDispy = GenerateSmoothRandDispl();
+        }
+
+        tDImDispl *aDImDispx = &aImDispx.DIm();
+        tDImDispl *aDImDispy = &aImDispy.DIm();
 
         if (mWithDisc)
         {
+            aImRegion = GenerateSmoothRandDispl();
             for (const cPt2di &aPix : aImRegion.DIm())
             {
                 aImRegion.DIm().SetV(aPix, aImRegion.DIm().GetV(aPix) > 0);
                 if (aImRegion.DIm().GetV(aPix))
-                    std::swap(aImDispx.DIm().GetReference_V(aPix),
-                              aImDispy.DIm().GetReference_V(aPix));
-           }
+                    std::swap(aDImDispx->GetReference_V(aPix),
+                              aDImDispy->GetReference_V(aPix));
+            }
+            aImRegion.DIm().ToFile("Region.tif");
         }
 
-        aImDispx.DIm().ToFile("DeplX.tif");
-        aImDispy.DIm().ToFile("DeplY.tif");
-        aImRegion.DIm().ToFile("Region.tif");
+        aDImDispx->ToFile("DeplX.tif");
+        aDImDispy->ToFile("DeplY.tif");
 
-        for (const auto &aPix : mImOut.DIm())
+        for (const tPt2di &aPix : mImOut.DIm())
         {
-            const tREAL8 aDx = aImDispx.DIm().GetV(aPix);
-            const tREAL8 aDy = aImDispy.DIm().GetV(aPix);
-            const cPt2dr aPixR = ToR(aPix) - cPt2dr(aDx, aDy);
+            const tREAL8 aDx = aDImDispx->GetV(aPix);
+            const tREAL8 aDy = aDImDispy->GetV(aPix);
+            const tPt2dr aPixR = ToR(aPix) - tPt2dr(aDx, aDy);
 
             mDImOut->SetV(aPix, mDImIn->DefGetVBL(aPixR, 0));
         }
 
         mDImOut->ToFile("image_post.tif", aDescFile.Type());
 
-        StdOut() << "Size of image = [" << mImIn.DIm().Sz().x() 
+        StdOut() << "Size of image = [" << mImIn.DIm().Sz().x()
                  << ", " << mDImIn->SzY() << "]" << std::endl;
+
         return EXIT_SUCCESS;
     }
 
@@ -160,7 +183,7 @@ namespace MMVII
     /*                                        */
     /* ====================================== */
 
-    tMMVII_UnikPApli Alloc_SimulDispl(const std::vector<std::string> &aVArgs, 
+    tMMVII_UnikPApli Alloc_SimulDispl(const std::vector<std::string> &aVArgs,
                                       const cSpecMMVII_Appli &aSpec)
     {
         return tMMVII_UnikPApli(new cAppli_SimulDispl(aVArgs, aSpec));

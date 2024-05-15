@@ -43,18 +43,43 @@ namespace MMVII
 
     cNodeOfTriangles::cNodeOfTriangles(const tDenseVect &aVecSol,
                                        const tIntVect &aIndicesVec,
-                                       const int adXIndex,
-                                       const int adYIndex,
-                                       const int aRadTrIndex,
-                                       const int aRadScIndex,
+                                       const int aXIndices,
+                                       const int aYIndices,
+                                       const int aRadTrIndices,
+                                       const int aRadScIndices,
                                        const tTri2dr &aTri,
                                        const int aPointNumberInTri)
     {
         mInitialNodeCoordinates = aTri.Pt(aPointNumberInTri);
-        mCurXYDisplacementVector = tPt2dr(aVecSol(aIndicesVec.at(adXIndex)),
-                                          aVecSol(aIndicesVec.at(adYIndex)));
-        mCurRadTr = aVecSol(aIndicesVec.at(aRadTrIndex));
-        mCurRadSc = aVecSol(aIndicesVec.at(aRadScIndex));
+        mCurXYDisplacementVector = tPt2dr(aVecSol(aIndicesVec.at(aXIndices)),
+                                          aVecSol(aIndicesVec.at(aYIndices)));
+        mCurRadTr = aVecSol(aIndicesVec.at(aRadTrIndices));
+        mCurRadSc = aVecSol(aIndicesVec.at(aRadScIndices));
+    }
+
+    cNodeOfTriangles::cNodeOfTriangles(const tDenseVect &aVecSol,
+                                       const tIntVect &aIndicesVec,
+                                       const int aXIndices,
+                                       const int aYIndices,
+                                       const int aRadTrIndices,
+                                       const int aRadScIndices,
+                                       const tTri2dr &aTri,
+                                       const tPt3di &aFace,
+                                       const int aPointNumberInTri,
+                                       const int anIdOfPoint) : mIdOfPt(anIdOfPoint)
+    {
+        mInitialNodeCoordinates = aTri.Pt(aPointNumberInTri);
+        mCurXYDisplacementVector = tPt2dr(aVecSol(aIndicesVec.at(aXIndices)),
+                                          aVecSol(aIndicesVec.at(aYIndices)));
+        mCurRadTr = aVecSol(aIndicesVec.at(aRadTrIndices));
+        mCurRadSc = aVecSol(aIndicesVec.at(aRadScIndices));
+
+        if (aPointNumberInTri == 0)
+            mFaceOfTriangle = aFace.x();
+        else if (aPointNumberInTri == 1)
+            mFaceOfTriangle = aFace.y();
+        else
+            mFaceOfTriangle = aFace.z();
     }
 
     tPt2dr cNodeOfTriangles::GetInitialNodeCoordinates() const { return mInitialNodeCoordinates; }       // Accessor
@@ -63,6 +88,135 @@ namespace MMVII
     tREAL8 cNodeOfTriangles::GetCurrentRadiometryTranslation() const { return mCurRadTr; }               // Accessor
     tREAL8 &cNodeOfTriangles::GetCurrentRadiometryTranslation() { return mCurRadTr; }                    // Accessor
     tREAL8 &cNodeOfTriangles::GetCurrentRadiometryScaling() { return mCurRadSc; }                        // Accessor
+
+    std::ostream &operator<<(std::ostream &os, const cNodeOfTriangles &obj)
+    {
+        obj.ShowTriangleNodeCarateristics();
+        return os;
+    }
+
+    void cNodeOfTriangles::AddData(const cAuxAr2007 &anAux, cNodeOfTriangles &aPtToSerialise)
+    {
+        MMVII::AddData(cAuxAr2007("Id", anAux), aPtToSerialise.GetPointId());
+        MMVII::AddData(cAuxAr2007("Face", anAux), aPtToSerialise.GetTriangleFace());
+        MMVII::AddData(cAuxAr2007("x", anAux), aPtToSerialise.GetInitialNodeCoordinates().x());
+        MMVII::AddData(cAuxAr2007("y", anAux), aPtToSerialise.GetInitialNodeCoordinates().y());
+        MMVII::AddData(cAuxAr2007("dx", anAux), aPtToSerialise.GetCurrentXYDisplacementValues().x());
+        MMVII::AddData(cAuxAr2007("dy", anAux), aPtToSerialise.GetCurrentXYDisplacementValues().y());
+        MMVII::AddData(cAuxAr2007("RadiometryTranslation", anAux), aPtToSerialise.GetCurrentRadiometryTranslation());
+        MMVII::AddData(cAuxAr2007("RadiometryScaling", anAux), aPtToSerialise.GetCurrentRadiometryScaling());
+    }
+
+    void AddData(const cAuxAr2007 &anAux, cNodeOfTriangles &aPtToSerialise) { aPtToSerialise.AddData(anAux, aPtToSerialise); }
+
+    void cNodeOfTriangles::ShowTriangleNodeCarateristics() const
+    {
+        StdOut() << "Id of this point : " << this->GetPointId() << std::endl;
+        StdOut() << "Face of triangle associated to point : " << this->GetTriangleFace() << std::endl;
+        StdOut() << "Initial node coordinates : " << this->GetInitialNodeCoordinates() << "." << std::endl;
+        StdOut() << "Current displacement coefficient values : " << this->GetCurrentXYDisplacementValues()
+                 << "." << std::endl;
+        StdOut() << "Current radiometric coefficient values : " << this->GetCurrentRadiometryTranslation()
+                 << " for translation and " << this->GetCurrentRadiometryScaling() << " for scaling." << std::endl;
+    }
+
+    void cNodeOfTriangles::SaveTriangleNodeToFile() const
+    {
+        SaveInFile(*this, NameFileToSaveNode(mIdOfPt));
+    }
+
+    std::unique_ptr<cNodeOfTriangles> cNodeOfTriangles::ReadSerialisedTriangleNode(const tDenseVect &aVecSol, const tIntVect &aIndVec,
+                                                                                   const int aXInd, const int aYInd, const int aRadTrInd,
+                                                                                   const int aRadScInd, const tTri2dr &aTriangle, const tPt3di &aFace,
+                                                                                   const int aPointNumberInTri, const int anIdOfPoint)
+    {
+        std::unique_ptr<cNodeOfTriangles> aReReadSerialisedObj = std::make_unique<cNodeOfTriangles>(aVecSol, aIndVec, aXInd, aYInd, aRadTrInd,
+                                                                                                    aRadScInd, aTriangle, aFace, aPointNumberInTri,
+                                                                                                    anIdOfPoint);
+        ReadFromFile(*aReReadSerialisedObj, NameFileToSaveNode(anIdOfPoint));
+
+        return aReReadSerialisedObj;
+    }
+
+    std::string cNodeOfTriangles::NameFileToSaveNode(const int anId)
+    {
+        return "Id_" + ToStr(anId) + ".xml";
+    }
+
+    int cNodeOfTriangles::GetPointId() const
+    {
+        return mIdOfPt;
+    }
+
+    int cNodeOfTriangles::GetTriangleFace() const
+    {
+        return mFaceOfTriangle;
+    }
+
+    int &cNodeOfTriangles::GetPointId()
+    {
+        return mIdOfPt;
+    }
+
+    int &cNodeOfTriangles::GetTriangleFace()
+    {
+        return mFaceOfTriangle;
+    }
+
+    /************************************************/
+    /*                                              */
+    /*       cMultipleTriangleNodesSerialiser       */
+    /*                                              */
+    /************************************************/
+
+    cMultipleTriangleNodesSerialiser::cMultipleTriangleNodesSerialiser()
+    {
+    }
+
+    cMultipleTriangleNodesSerialiser::cMultipleTriangleNodesSerialiser(const std::string &aFileName) : mName(aFileName)
+    {
+    }
+
+    std::unique_ptr<cMultipleTriangleNodesSerialiser> cMultipleTriangleNodesSerialiser::NewMultipleTriangleNodes(const std::string &aName)
+    {
+        std::unique_ptr<cMultipleTriangleNodesSerialiser> aNewMultipleTriangleNodes = std::make_unique<cMultipleTriangleNodesSerialiser>(aName);
+        return aNewMultipleTriangleNodes;
+    }
+
+    void cMultipleTriangleNodesSerialiser::AddData(const cAuxAr2007 &anAux)
+    {
+        MMVII::AddData(cAuxAr2007("VectorOfTriangleNodes", anAux), mVectorTriangleNodes);
+    }
+    void AddData(const cAuxAr2007 &anAux, cMultipleTriangleNodesSerialiser &aSetOfObjsToSerialise) { aSetOfObjsToSerialise.AddData(anAux); }
+
+    void cMultipleTriangleNodesSerialiser::MultipleNodesToFile(const std::string &aFileName) const
+    {
+        SaveInFile(*this, aFileName);
+    }
+
+    void cMultipleTriangleNodesSerialiser::PushInVector(std::unique_ptr<cNodeOfTriangles> &aTriangleDeformationObj)
+    {
+        mVectorTriangleNodes.push_back(*aTriangleDeformationObj);
+    }
+
+    std::unique_ptr<cMultipleTriangleNodesSerialiser> cMultipleTriangleNodesSerialiser::ReadVectorOfTriangleNodes(const std::string &aFileName)
+    {
+        std::unique_ptr<cMultipleTriangleNodesSerialiser> aNewSetOfMultipleTriangleDeformations = NewMultipleTriangleNodes(aFileName);
+        ReadFromFile(*aNewSetOfMultipleTriangleDeformations, aFileName);
+
+        return aNewSetOfMultipleTriangleDeformations;
+    }
+
+    std::string cMultipleTriangleNodesSerialiser::GetName() const { return mName; } // Acessor
+
+    void cMultipleTriangleNodesSerialiser::ShowAllTriangleNodes(const std::string aAllOrSingularValue, int aNodeNumber) const
+    {
+        if (aAllOrSingularValue == "all")
+            StdOut() << "The carateristics of the nodes are : " << mVectorTriangleNodes << std::endl;
+        else
+            StdOut() << "The carateristics of node number " << aNodeNumber << " are : "
+                     << mVectorTriangleNodes.at(aNodeNumber) << std::endl;
+    }
 
     //---------------------------------------------//
 
@@ -142,13 +296,22 @@ namespace MMVII
         aDelaunayTri.MakeDelaunay(); // Delaunay triangulate randomly generated points.
     }
 
-    void InitialisationAfterExe(const cTriangulation2D<tREAL8> &aDelaunayTri,
-                                cResolSysNonLinear<tREAL8> *&aSys,
-                                const bool aUserInitialisation,
-                                const tREAL8 aXTranslationInitVal,
-                                const tREAL8 aYTranslationInitVal,
-                                const tREAL8 aRadTranslationInitVal,
-                                const tREAL8 aRadScaleInitVal)
+    void InitialiseInterpolationAndEquation(cCalculator<tREAL8> *&aEqDeformTri, cDiffInterpolator1D *&aInterpol,
+                                            const std::vector<std::string> aArgsVectorInterpol, const bool aUseLinearGradInterpolation)
+    {
+        if (aUseLinearGradInterpolation)
+            aInterpol = cDiffInterpolator1D::AllocFromNames(aArgsVectorInterpol);
+        // true means with derivative, 1 is size of buffer
+        aEqDeformTri = aUseLinearGradInterpolation ? EqDeformTriLinearGrad(true, 1) : EqDeformTriBilin(true, 1);
+    }
+
+    void InitialisationWithUserValues(const cTriangulation2D<tREAL8> &aDelaunayTri,
+                                      cResolSysNonLinear<tREAL8> *&aSys,
+                                      const bool aUserInitialisation,
+                                      const tREAL8 aXTranslationInitVal,
+                                      const tREAL8 aYTranslationInitVal,
+                                      const tREAL8 aRadTranslationInitVal,
+                                      const tREAL8 aRadScaleInitVal)
     {
         const size_t aStartNumberPts = 4 * aDelaunayTri.NbPts();
         tDenseVect aVInit(aStartNumberPts, eModeInitImage::eMIA_Null);
@@ -234,11 +397,21 @@ namespace MMVII
         aSys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqDense, aVInit);
     }
 
-    void InitialisationAfterExeTranslation(const cTriangulation2D<tREAL8> &aDelaunayTri,
-                                           cResolSysNonLinear<tREAL8> *&aSysTranslation,
-                                           const bool aUserInitialisation,
-                                           const tREAL8 aXTranslationInitVal,
-                                           const tREAL8 aYTranslationInitVal)
+    void InitialiseInterpolationAndEquationTranslation(cCalculator<tREAL8> *&aEqTranslationTri, cDiffInterpolator1D *&aInterpolTr,
+                                                       const std::vector<std::string> &aArgsVectorInterpolTr, const bool aUseLinearGradInterpolation)
+    {
+        if (aUseLinearGradInterpolation)
+            aInterpolTr = cDiffInterpolator1D::AllocFromNames(aArgsVectorInterpolTr);
+
+        // true means with derivative, 1 is size of buffer
+        aEqTranslationTri = aUseLinearGradInterpolation ? EqDeformTriTranslationLinearGrad(true, 1) : EqDeformTriTranslationBilin(true, 1);
+    }
+
+    void InitialiseWithUserValuesTranslation(const cTriangulation2D<tREAL8> &aDelaunayTri,
+                                             cResolSysNonLinear<tREAL8> *&aSysTranslation,
+                                             const bool aUserInitialisation,
+                                             const tREAL8 aXTranslationInitVal,
+                                             const tREAL8 aYTranslationInitVal)
     {
         const size_t aNumberPts = 2 * aDelaunayTri.NbPts();
         tDenseVect aVInitTranslation(aNumberPts, eModeInitImage::eMIA_Null);
@@ -312,11 +485,20 @@ namespace MMVII
         aSysTranslation = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqDense, aVInitTranslation);
     }
 
-    void InitialisationAfterExeRadiometry(const cTriangulation2D<tREAL8> &aDelaunayTri,
-                                          cResolSysNonLinear<tREAL8> *&aSysRadiometry,
-                                          const bool aUserInitialisation,
-                                          const tREAL8 aRadTranslationInitVal,
-                                          const tREAL8 aRadScaleInitVal)
+    void InitialiseInterpolationAndEquationRadiometry(cCalculator<tREAL8> *&aEqRadiometryTri, cDiffInterpolator1D *&aInterpolRad,
+                                                      const std::vector<std::string> aArgsVectorInterpolRad, const bool aUseLinearGradInterpolation)
+    {
+        if (aUseLinearGradInterpolation)
+            aInterpolRad = cDiffInterpolator1D::AllocFromNames(aArgsVectorInterpolRad);
+
+        aEqRadiometryTri = aUseLinearGradInterpolation ? EqDeformTriRadiometryLinearGrad(true, 1) : EqDeformTriRadiometryBilin(true, 1); // true means with derivative, 1 is size of buffer
+    }
+
+    void InitialiseWithUserValuesRadiometry(const cTriangulation2D<tREAL8> &aDelaunayTri,
+                                            cResolSysNonLinear<tREAL8> *&aSysRadiometry,
+                                            const bool aUserInitialisation,
+                                            const tREAL8 aRadTranslationInitVal,
+                                            const tREAL8 aRadScaleInitVal)
     {
         const size_t aNumberPts = 2 * aDelaunayTri.NbPts();
         tDenseVect aVInitRadiometry(aNumberPts, eModeInitImage::eMIA_Null);
@@ -341,6 +523,15 @@ namespace MMVII
         }
 
         aSysRadiometry = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqDense, aVInitRadiometry);
+    }
+
+    std::unique_ptr<cNodeOfTriangles> DefineNewTriangleNode(const tDenseVect &aVecSol, const std::vector<int> aIndVec, const int aXInd,
+                                                            const int aYInd, const int aRadTrInd, const int aRadScInd, const tTri2dr &aTriangle,
+                                                            const tPt3di &aFace, const int aPointNumberInTri, const int anIdOfPoint)
+    {
+        std::unique_ptr<cNodeOfTriangles> aNewTriangleNode = std::make_unique<cNodeOfTriangles>(aVecSol, aIndVec, aXInd, aYInd, aRadTrInd, aRadScInd, aTriangle, aFace,
+                                                                                                aPointNumberInTri, anIdOfPoint);
+        return aNewTriangleNode;
     }
 
     bool CheckValidCorrelationValue(tDIm *aMask, const cNodeOfTriangles &aPtOfTri)
@@ -510,6 +701,72 @@ namespace MMVII
         aImDispMap = tIm(aSzIm, 0, eModeInitImage::eMIA_Null);
         aDImDispMap = &aImDispMap.DIm();
         aSzImDispMap = aDImDispMap->Sz();
+    }
+
+    tPt2dr LoadNodeAndReturnCurrentDisplacement(const tDenseVect &aVCurSol, const std::vector<int> &aVecInd,
+                                                const int aXDispInd, const int aYDispInd, const int aRadTrInd,
+                                                const int aRadScInd, const tTri2dr &aTri, const int aPtInNumberTri)
+    {
+        const cNodeOfTriangles aTriNode = cNodeOfTriangles(aVCurSol, aVecInd, aXDispInd, aYDispInd,
+                                                           aRadTrInd, aRadScInd, aTri, aPtInNumberTri);
+        return aTriNode.GetCurrentXYDisplacementValues(); // current translation of node
+    }
+
+    tREAL8 LoadNodeAndReturnCurrentRadiometryTranslation(const tDenseVect &aVCurSol, const std::vector<int> &aVecInd,
+                                                         const int aXDispInd, const int aYDispInd, const int aRadTrInd,
+                                                         const int aRadScInd, const tTri2dr &aTri, const int aPtInNumberTri)
+    {
+        const cNodeOfTriangles aTriNode = cNodeOfTriangles(aVCurSol, aVecInd, aXDispInd, aYDispInd,
+                                                           aRadTrInd, aRadScInd, aTri, aPtInNumberTri);
+        return aTriNode.GetCurrentRadiometryTranslation(); // current radiometry translation of node
+    }
+
+    tREAL8 LoadNodeAndReturnCurrentRadiometryScaling(const tDenseVect &aVCurSol, const std::vector<int> &aVecInd,
+                                                     const int aXDispInd, const int aYDispInd, const int aRadTrInd,
+                                                     const int aRadScInd, const tTri2dr &aTri, const int aPtInNumberTri)
+    {
+        const cNodeOfTriangles aTriNode = cNodeOfTriangles(aVCurSol, aVecInd, aXDispInd, aYDispInd,
+                                                           aRadTrInd, aRadScInd, aTri, aPtInNumberTri);
+        return aTriNode.GetCurrentRadiometryScaling(); // current radiometry scaling of node
+    }
+
+    tPt2dr LoadNodeAppendVectorAndReturnCurrentDisplacement(const tDenseVect &aVCurSol, const std::vector<int> &aVecInd,
+                                                            const int aXDispInd, const int aYDispInd, const int aRadTrInd,
+                                                            const int aRadScInd, const tTri2dr &aTri, const int aPtInNumberTri,
+                                                            const int aNodeCounter, const tPt3di &aFace, const bool anAppend,
+                                                            std::unique_ptr<cMultipleTriangleNodesSerialiser> &aVectorOfTriangleNodes)
+    {
+        std::unique_ptr<cNodeOfTriangles> aNodeOfTri = DefineNewTriangleNode(aVCurSol, aVecInd, aXDispInd, aYDispInd, aRadTrInd, aRadScInd,
+                                                                             aTri, aFace, aPtInNumberTri, aNodeCounter);
+        if (anAppend)
+            aVectorOfTriangleNodes->PushInVector(aNodeOfTri);
+        return aNodeOfTri->GetCurrentXYDisplacementValues(); // current translation of node
+    }
+
+    tREAL8 LoadNodeAppendVectorAndReturnCurrentRadiometryTranslation(const tDenseVect &aVCurSol, const std::vector<int> &aVecInd,
+                                                                     const int aXDispInd, const int aYDispInd, const int aRadTrInd,
+                                                                     const int aRadScInd, const tTri2dr &aTri, const int aPtInNumberTri,
+                                                                     const int aNodeCounter, const tPt3di &aFace, const bool anAppend,
+                                                                     std::unique_ptr<cMultipleTriangleNodesSerialiser> &aVectorOfTriangleNodes)
+    {
+        std::unique_ptr<cNodeOfTriangles> aNodeOfTri = DefineNewTriangleNode(aVCurSol, aVecInd, aXDispInd, aYDispInd, aRadTrInd, aRadScInd,
+                                                                             aTri, aFace, aPtInNumberTri, aNodeCounter);
+        if (anAppend)
+            aVectorOfTriangleNodes->PushInVector(aNodeOfTri);
+        return aNodeOfTri->GetCurrentRadiometryTranslation(); // current radiometry translation of node
+    }
+
+    tREAL8 LoadNodeAppendVectorAndReturnCurrentRadiometryScaling(const tDenseVect &aVCurSol, const std::vector<int> &aVecInd,
+                                                                 const int aXDispInd, const int aYDispInd, const int aRadTrInd,
+                                                                 const int aRadScInd, const tTri2dr &aTri, const int aPtInNumberTri,
+                                                                 const int aNodeCounter, const tPt3di &aFace, const bool anAppend,
+                                                                 std::unique_ptr<cMultipleTriangleNodesSerialiser> &aVectorOfTriangleNodes)
+    {
+        std::unique_ptr<cNodeOfTriangles> aNodeOfTri = DefineNewTriangleNode(aVCurSol, aVecInd, aXDispInd, aYDispInd, aRadTrInd, aRadScInd,
+                                                                             aTri, aFace, aPtInNumberTri, aNodeCounter);
+        if (anAppend)
+            aVectorOfTriangleNodes->PushInVector(aNodeOfTri);
+        return aNodeOfTri->GetCurrentRadiometryScaling(); // current radiometry scaling of node
     }
 
     bool ManageDifferentCasesOfEndIterations(const int aIterNumber, const int aNumberOfScales, const int aNumberOfEndIterations,
@@ -687,6 +944,68 @@ namespace MMVII
             aDImTranslatedDispMap->SetV(aIntCoordinate, aDiffBarycentricInterpTranslation);
     }
 
+    void SaveMultiScaleDisplacementMapsToFile(tDIm *&aDImDepX, tDIm *&aDImDepY, const bool aUserDefinedFolderName,
+                                              const std::string &aFolderPathToSave, const std::string &aDepXFileNameToSave,
+                                              const std::string &aDepYFileNameToSave, const int aIterNumber,
+                                              const int aNumberOfPointsToGenerate, const int aTotalNumberOfIterations)
+    {
+        if (aUserDefinedFolderName)
+        {
+            aDImDepX->ToFile(aFolderPathToSave + "/" + aDepXFileNameToSave + "_" + ToStr(aIterNumber) + "_" +
+                             ToStr(aNumberOfPointsToGenerate) + "_" +
+                             ToStr(aTotalNumberOfIterations) + ".tif");
+            aDImDepY->ToFile(aFolderPathToSave + "/" + aDepYFileNameToSave + "_" + ToStr(aIterNumber) + "_" +
+                             ToStr(aNumberOfPointsToGenerate) + "_" +
+                             ToStr(aTotalNumberOfIterations) + ".tif");
+        }
+        else
+        {
+            aDImDepX->ToFile(aDepXFileNameToSave + "_" + ToStr(aIterNumber) + "_" +
+                             ToStr(aNumberOfPointsToGenerate) + "_" +
+                             ToStr(aTotalNumberOfIterations) + ".tif");
+            aDImDepY->ToFile(aDepYFileNameToSave + "_" + ToStr(aIterNumber) + "_" +
+                             ToStr(aNumberOfPointsToGenerate) + "_" +
+                             ToStr(aTotalNumberOfIterations) + ".tif");
+        }
+    }
+
+    void SaveFinalDisplacementMapsToFile(tDIm *&aDImDepX, tDIm *&aDImDepY, const bool aUserDefinedFolderName,
+                                         const std::string &aFolderPathToSave, const std::string &aDepXFileNameToSave,
+                                         const std::string &aDepYFileNameToSave, const int aNumberOfPointsToGenerate,
+                                         const int aTotalNumberOfIterations)
+    {
+        if (aUserDefinedFolderName)
+        {
+            aDImDepX->ToFile(aFolderPathToSave + "/" + aDepXFileNameToSave + "_" +
+                             ToStr(aNumberOfPointsToGenerate) + "_" +
+                             ToStr(aTotalNumberOfIterations) + ".tif");
+            aDImDepY->ToFile(aFolderPathToSave + "/" + aDepYFileNameToSave + "_" +
+                             ToStr(aNumberOfPointsToGenerate) + "_" +
+                             ToStr(aTotalNumberOfIterations) + ".tif");
+        }
+        else
+        {
+            aDImDepX->ToFile(aDepXFileNameToSave + "_" +
+                             ToStr(aNumberOfPointsToGenerate) + "_" +
+                             ToStr(aTotalNumberOfIterations) + ".tif");
+            aDImDepY->ToFile(aDepYFileNameToSave + "_" +
+                             ToStr(aNumberOfPointsToGenerate) + "_" +
+                             ToStr(aTotalNumberOfIterations) + ".tif");
+        }
+    }
+
+    void SaveOutputImageToFile(tDIm *&aDImOut, const bool aUserDefinedFolderName, const std::string &aFolderPathToSave,
+                               const std::string aOutputImageFileNameToSave,
+                               const int aNumberOfPointsToGenerate, const int aTotalNumberOfIterations)
+    {
+        if (aUserDefinedFolderName)
+            aDImOut->ToFile(aFolderPathToSave + "/" + aOutputImageFileNameToSave + ToStr(aNumberOfPointsToGenerate) + "_" +
+                            ToStr(aTotalNumberOfIterations) + ".tif");
+        else
+            aDImOut->ToFile(aOutputImageFileNameToSave + "_" + ToStr(aNumberOfPointsToGenerate) + "_" +
+                            ToStr(aTotalNumberOfIterations) + ".tif");
+    }
+
     void DisplayLastUnknownValuesAndComputeStatistics(const tDenseVect &aVFinalSol, const tDenseVect &aVInitSol)
     {
         tREAL8 aMaxFirstUnk = 0, aMinFirstUnk = 0, aMeanFirstUnk = 0, aVarianceMeanFirstUnk = 0;     // aVarFirstUnk = 0;
@@ -770,7 +1089,7 @@ namespace MMVII
     void DisplayLastUnknownValues(const tDenseVect &aVFinalSol, const bool aDisplayLastRadiometryValues,
                                   const bool aDisplayLastTranslationValues)
     {
-        if (aDisplayLastRadiometryValues && aDisplayLastTranslationValues)
+        if (aDisplayLastTranslationValues && aDisplayLastRadiometryValues)
         {
             for (int aFinalUnk = 0; aFinalUnk < aVFinalSol.DIm().Sz(); aFinalUnk++)
             {
@@ -779,7 +1098,7 @@ namespace MMVII
                     StdOut() << std::endl;
             }
         }
-        if (aDisplayLastRadiometryValues && !aDisplayLastTranslationValues)
+        else if (aDisplayLastTranslationValues && !aDisplayLastRadiometryValues)
         {
             for (int aFinalUnk = 0; aFinalUnk < aVFinalSol.DIm().Sz(); aFinalUnk++)
             {
@@ -789,7 +1108,7 @@ namespace MMVII
                     StdOut() << std::endl;
             }
         }
-        else if (aDisplayLastRadiometryValues && !aDisplayLastTranslationValues)
+        else if (!aDisplayLastTranslationValues && aDisplayLastRadiometryValues)
         {
             for (int aFinalUnk = 0; aFinalUnk < aVFinalSol.DIm().Sz(); aFinalUnk++)
             {
@@ -801,4 +1120,4 @@ namespace MMVII
         }
     }
 
-};  // namespace MMVII
+}; // namespace MMVII
