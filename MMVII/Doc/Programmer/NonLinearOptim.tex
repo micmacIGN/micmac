@@ -770,6 +770,8 @@ This is done by the method {\tt SolveUpdateReset() ;}.
 
 \section{Image, optmization and differenciation in MMVII}
 
+\label{ImageOptDiff}
+
           %  - - - - - - - - - - - - - - - - - - - 
 \subsection{Introduction}
 
@@ -817,6 +819,8 @@ A typical example is:
           %  - - - - - - - - - - - - - - - - - - - 
 \subsubsection{Bilinear case}
 
+\label{InterpBilCase}
+
 Let $p$ be a point and $q=(\tilde{x}_q,\tilde{y}_q)=\phi(p)$ its transformation by $\phi$. Let $x_0$ and $y_0$
 be the lower bound of $q$, and $x_1=x_0+1, y_1 = y_0+1$:
 
@@ -846,7 +850,7 @@ To add later maybe ....
           %  - - - - - - - - - - - - - - - - - - - 
 \subsubsection{Linear with gradient}
 
-\label{GradMode}
+\label{ImDifGradMode}
 
 Bi-linear and Bi-cubic case have the advantage to be a rigourous continuous analytical modelization of 
 image interpolated on whole $\RR^2$.  By the way bi-linear is known to be aliased, and bi-cubic
@@ -911,7 +915,7 @@ The parameter are :
           %  - - - - - - - - - - - - - - - - - - - 
 \subsection{Facility functions for gradient  mode}
 
-For gradient mode corresponding to modelization of~\ref{GradMode}, we have very similar functions.
+For gradient mode corresponding to modelization of~\ref{ImDifGradMode}, we have very similar functions.
 For code generation we have :
 
 \begin{itemize}
@@ -933,6 +937,7 @@ the  value and the gradient of interpolated image.
 %---------------------------------------------
 
 \section{Test example for image differenciation in MMVII}
+\label{SampleImageDiff}
 
 In this section we describe a test example, that has been implemented in MicMac, this example 
 has two objective : (1) make a didactic illustration of the fonctionnalities and (2) 
@@ -1048,10 +1053,11 @@ extend to test also the gradient model. The way it works if pretty much the same
 make a list of adaptations  :
 
 \begin{itemize}
-   \item class {\tt cDeformImHomotethy} was added a member indicating if it works in mode gradient
+   \item in class {\tt cDeformImHomotethy} was added a member indicating if it has to works 
+	   in mode gradient;
    \item in the class {\tt cTestDeformIm},  there is a member indicating the interpolator if
-         it exist (else we ar in bilinear mode); searching all the occurence of {\tt mInterpol} in
-         this class will show the adaptation to do. 
+         it exist (else when  we are in bilinear mode); searching all the occurence of {\tt mInterpol} in
+         this class will show the difference between the two modes.
 \end{itemize}
 
 %---------------------------------------------

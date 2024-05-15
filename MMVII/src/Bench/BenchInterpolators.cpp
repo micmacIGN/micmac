@@ -372,14 +372,16 @@ void  BenchInterpol(cParamExeBench & aParam)
 	delete aPtrTabInt2;
 
      }
+     // test that the two definition of cMMVII2Inperpol coincide (the spcialized with analyticall formula
+     // and the general, with paraméter 2, that solve a system (and test also with tab version)
      {
-         cMMVII2Inperpol aM2;
-         cMMVIIKInterpol aMK2(2.0);
-         cTabulatedInterpolator  aMKT2(cMMVIIKInterpol(2.0),1000,true);
+         cMMVII2Inperpol aM2;   //  version analytical formula
+         cMMVIIKInterpol aMK2(2.0);  // version solve system
+         cTabulatedInterpolator  aMKT2(cMMVIIKInterpol(2.0),1000,true); // tabulated
          for (tREAL8 aPh=-2.0 ; aPh<2.0 ; aPh+=0.1245)
          {
-            tREAL8 aD1 = std::abs( aM2.Weight(aPh)-aMK2.Weight(aPh));
-            tREAL8 aD2 = std::abs( aM2.Weight(aPh)-aMKT2.Weight(aPh));
+            tREAL8 aD1 = std::abs( aM2.Weight(aPh)-aMK2.Weight(aPh));  // Cmp analytical/solve syst
+            tREAL8 aD2 = std::abs( aM2.Weight(aPh)-aMKT2.Weight(aPh)); // Cmp analytical/tabulated
             // StdOut() << "M2PHHhh= " << aD1  << " " << aD2 << "\n";
 	    MMVII_INTERNAL_ASSERT_bench((aD1<1e-5) && (aD2<1e-5) ,"Interpol MMVII : Weigh=1");
          }
@@ -387,7 +389,7 @@ void  BenchInterpol(cParamExeBench & aParam)
 
      //  Bench on bicub interpola
      //
-     for (const auto & aP : {0.0,1.0,2.0,3.0})
+     for (const auto & aP : {0.0,1.0,2.0,3.0})  // Test different param of cubic
      {
          cCubicInterpolator  anI3(aP);
 
