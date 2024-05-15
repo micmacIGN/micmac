@@ -979,7 +979,8 @@ eTyCodeTarget cAppliGenCodedTarget::Type() {return mBE.Specs().mType ;}
 cAppliGenCodedTarget::cAppliGenCodedTarget(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli  (aVArgs,aSpec),
    mPerGen       (10),
-   mDoMarkC      (false)
+   mDoMarkC      (false),
+   mNbPixBin     (1800)
 {
 }
 
@@ -1011,7 +1012,7 @@ cCollecSpecArg2007 & cAppliGenCodedTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 	  << AOpt2007(mPCT.mRayOrientTablet,"SzOrFig","Size of \"diamond\" for orientation")
           << AOpt2007(mDoMarkC,"MarkC","Mark center of bits, just for verif ",{eTA2007::HDV,eTA2007::Tuning})
           << AOpt2007(mZoomShow,"ZoomShow","Zoom to generate a high resolution check images",{eTA2007::Tuning})
-          << AOpt2007(mNbPixBin,"NbPixBin","Size of binary image when printing")
+          << AOpt2007(mNbPixBin,"NbPixBin","Size of binary image when printing",{eTA2007::HDV})
    ;
 }
 
@@ -1022,8 +1023,8 @@ int  cAppliGenCodedTarget::Exe()
 
        // anAppli.SetIfNotInit(mWithParity,false);
 
-   if (IsInit(&mNbPixBin))
-      mPCT.SetNbPixBin(mNbPixBin);
+   //if (IsInit(&mNbPixBin))
+   mPCT.SetNbPixBin(mNbPixBin);
 
    ReadFromFile(mBE,mNameBE);
    mPCT.FinishInitOfSpec(mBE.Specs());
