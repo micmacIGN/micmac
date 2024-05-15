@@ -666,22 +666,47 @@ The computation is done using optimisation describes in equation~\ref{InterpSimu
 
     % = = = = = = = = = = = = = = = = = = = = = = =
 
-\subsection{Interpolator and images optimization}
-
-%%        bool InsideInterpolator(const cInterpolator1D &,const cPtxd<double,Dim> & aP,tREAL8 aMargin=0.0) const; ///< Inside for Bilin
+\subsection{Usage of interpolators}
 
 
+We give a brieve description of possible usage of interpolators.
 
-%% GetVBl +ValInterpol
-    % = = = = = = = = = = = = = = = = = = = = = = =
+   %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
+\subsubsection{Image ressampling}
 
+The classical usage of interpolators , nothing special to say, can be used for computing explicitely 
+an image transformation or "on the fly" for example in image correlation.
 
+   %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
-%% cDiffInterpolator1D * cDiffInterpolator1D::AllocFromNames(const std::vector<std::string> & aVName)
+\subsubsection{Interpolator and gradient}
 
+The method {\tt GetValueAndGradInterpol} can be used for computing the gradient in place
+of other classical algorithm (sobel, deriche \dots), don't know the value of it, by the way
+can give it a try.
 
-%% Image differ
+Perhaps more interesting is when we want to compute simultaneously a geometric transformation $\phi$
+and the gradient of the transformed image, if may be interesting for each pixel $p$ to :
+
+\begin{itemize}
+   \item computing simultaneously $I(\phi(p))$ and its gradient;
+   \item use the jacobian on $\phi(p)$ for infering the gradient in transformed image.
+\end{itemize}
+
+   %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsubsection{Interpolator and images optimization}
+
+When image are use in non linear optmisation (see~\ref{ImageOptDiff}), it is necessary to consider it like a
+continuous function $\RR^2 \rightarrow \RR$. In this case there is two option in
+\PPP (see \ref{SampleImageDiff}) :
+
+\begin{itemize}
+     \item  create an explicit interpolation function on formulas, see ~\ref{InterpBilCase};
+     \item  make a local linear approximation (see~\ref{ImDifGradMode}), in this case the
+            method {\tt GetValueAndGradInterpol} can be on option.
+\end{itemize}
 
     % = = = = = = = = = = = = = = = = = = = = = = =
     % = = = = = = = = = = = = = = = = = = = = = = =
@@ -689,11 +714,51 @@ The computation is done using optimisation describes in equation~\ref{InterpSimu
 
 \section{Maintener's view}
 
+By maintener's we mean personn that would : make bug correction or make evolve the library .
+
 \label{InterpolMaintener}
 
-Efficiency 
-New interpol
-Bug correction
-Point partially inside
+    % = = = = = = = = = = = = = = = = = = = = = = =
+
+\subsection{Evolution}
+
+The following evolution can be envisaged :
+
+\begin{itemize}
+    \item \emph{add a new interpolator}, in this case it is recommanded to study the bench library describe
+	    bellow;
+    \item \emph{Efficiency} the main cost of computation are probably the internal loop  that compute
+	    the  scalar produtc between a line of  image and the coeffx in x (search {\tt SCALARPRODUCT}
+		in function {\tt GetValueInterpol, GetValueAndGradInterpol}
+
+    \item \emph{Efficiency} a minor enhancement would be to add a method that compute not a single
+	   weight, but, for a given phase $Ph$ compute the vector of weight for $Ph-k,Ph-k+1,\dots Ph+k$,
+           for tabulated interpolator some computation would be shared;
+
+   \item \emph{Partially inside} the fact that all the point must be inside the image with the sz of the kernel
+	   may be too restrictive, especially with high kernel, maybe write a method for points that are not
+		enough inside image.
+\end{itemize}
+
+    % = = = = = = = = = = = = = = = = = = = = = = =
+
+\subsection{Bench for interpolator}
+
+Several "bench" method have been written to check the correctness of interpolation. When making evolve the
+libray, they should be at least run again to check that there is no regression, and eventually completed,
+for example when adding new interpolator.
+
+\begin{itemize}
+     \item {\tt TplInterpol\_CmpLinearGetVBL}
+     \item {\tt TplInterpol\_CmpCubicFoncLinear}
+     \item {\tt TplInterpol\_FuncLowFreq}
+     \item {\tt BenchIntrinsiqOneInterpol}
+     \item {\tt BenchIntrinsiqMMVIIInterpol}
+\end{itemize}
+
+
+%% GetVBl +ValInterpol
+
+
 
 

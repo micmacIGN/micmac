@@ -77,7 +77,7 @@ template <class Type>  tREAL8 cDataIm2D<Type>::GetValueInterpol(const cInterpola
 	// const tREAL8 *  aCurWX  = aLineWXInit;
 	tREAL8 aSomWIx = 0.0;
 
-	for (int aKX=0 ; aKX< aNbX ; aKX++)
+	for (int aKX=0 ; aKX< aNbX ; aKX++) // doc  SCALARPRODUCT
             aSomWIx += aLineIm[aKX]  * aLineWX[aKX] ;
 
 	/*  to see if this old style optim is any faster ? which I doubt ...
@@ -156,7 +156,7 @@ template <class Type>
 
 	tREAL8 aSomWIx = 0.0;
 	tREAL8 aSomDerWIx = 0.0;
-	for (int aKX=0 ; aKX< aNbX ; aKX++)
+	for (int aKX=0 ; aKX< aNbX ; aKX++) // doc  SCALARPRODUCT
 	{
             aSomWIx    += aLineIm[aKX]  *  aLineWX [aKX];
             aSomDerWIx += aLineIm[aKX]  *  aLineDerWX[aKX];
