@@ -82,24 +82,23 @@ void cAppli_CERN_ImportClino::MakeOneDir(const std::string & aDir,cMMVII_Ofs & a
     StdOut() << "DDD " << aDir << " " << aVFileIm << "\n";
 
     std::string line;
-    // mNbLineRead = 0;
-    // int aNumL = 0;
+    int aNumL = 0;
     cCarLookUpTable aLUT;
     aLUT.InitIdGlob();
     aLUT.Init("[],",' ');
     while (std::getline(infile, line))
     {
         line = aLUT.Translate(line);
-        //  StdOut() << "DDD=" << aDir << " [" << line << "]\n";
 	std::istringstream iss(line);
 
 	for (const auto & aNameClino : mNamesClino)
 	{
-		tREAL8 aAvg = GetV<tREAL8>(iss);
-		tREAL8 aStdDev = GetV<tREAL8>(iss);
+		tREAL8 aAvg = GetV<tREAL8>(iss,aNameF,aNumL);
+		tREAL8 aStdDev = GetV<tREAL8>(iss,aNameF,aNumL);
 		StdOut() << "   * " << aNameClino  << " " << aAvg << " " << aStdDev << "\n";
 		anOFS.Ofs() << " " << aNameClino  << " " << aAvg << " " << aStdDev ;
 	}
+        aNumL++;
     }
     anOFS.Ofs() << std::endl;
 }

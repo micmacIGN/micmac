@@ -276,8 +276,6 @@ void cReadFilesStruct::SetMemoLinesInit()
 
 void cReadFilesStruct::Read()
 {
-    CurFile = mNameFile;
-
 
     /*
     char  aLut[256];
@@ -307,11 +305,6 @@ void cReadFilesStruct::Read()
     int aNumL = 0;
     while (std::getline(infile, line))
     {
-// StdOut() << "LllllInnneee=" << aNumL << "\n";
-	// JOE
-        MMVII_DEV_WARNING("Dont understand why must add \" \" at end of line ReadFilesStruct");
-        line += " ";
-        CurLine = aNumL+1;  // editor begin at line 1, non 0
 	/*
         for (size_t aK=0 ; aK<line.size() ; aK++)
             line[aK] = aLut[line[aK]];
@@ -354,23 +347,23 @@ void cReadFilesStruct::Read()
                 {
                     switch (aCar) 
                     {
-                         case 'F' : aLNum.push_back(GetV<tREAL8>(iss));   initF++; break;
-                         case 'E' : aLInt.push_back(GetV<int>(iss));      initI++; break;
-                         case 'X' : aXYZ.x() = GetV<tREAL8>(iss);         initXYZ++; break;
-                         case 'Y' : aXYZ.y() = GetV<tREAL8>(iss);         initXYZ++;  break;
-                         case 'Z' : aXYZ.z() = GetV<tREAL8>(iss);         initXYZ++; break;
+                         case 'F' : aLNum.push_back(GetV<tREAL8>(iss,mNameFile,mNbLineRead));   initF++; break;
+                         case 'E' : aLInt.push_back(GetV<int>(iss,mNameFile,mNbLineRead));      initI++; break;
+                         case 'X' : aXYZ.x() = GetV<tREAL8>(iss,mNameFile,mNbLineRead);         initXYZ++; break;
+                         case 'Y' : aXYZ.y() = GetV<tREAL8>(iss,mNameFile,mNbLineRead);         initXYZ++;  break;
+                         case 'Z' : aXYZ.z() = GetV<tREAL8>(iss,mNameFile,mNbLineRead);         initXYZ++; break;
 
-                         case 'W' : aWPK.x() = GetV<tREAL8>(iss);         initWPK++; break;
-                         case 'P' : aWPK.y() = GetV<tREAL8>(iss);         initWPK++; break;
-                         case 'K' : aWPK.z() = GetV<tREAL8>(iss);         initWPK++; break;
+                         case 'W' : aWPK.x() = GetV<tREAL8>(iss,mNameFile,mNbLineRead);         initWPK++; break;
+                         case 'P' : aWPK.y() = GetV<tREAL8>(iss,mNameFile,mNbLineRead);         initWPK++; break;
+                         case 'K' : aWPK.z() = GetV<tREAL8>(iss,mNameFile,mNbLineRead);         initWPK++; break;
 
-			 case 'i' : aij.x() = GetV<tREAL8>(iss);          initij++;  break;
-                         case 'j' : aij.y() = GetV<tREAL8>(iss);          initij++;  break;
+			 case 'i' : aij.x() = GetV<tREAL8>(iss,mNameFile,mNbLineRead);          initij++;  break;
+                         case 'j' : aij.y() = GetV<tREAL8>(iss,mNameFile,mNbLineRead);          initij++;  break;
 
-			 case 'N' : aNamePt = GetV<std::string>(iss);     initPt++; break;
-			 case 'I' : aNameIm = GetV<std::string>(iss);     initIm++; break;
-			 case 'S' : aLString.push_back(GetV<std::string>(iss)); initString++; break;
-			 case '#' : GetV<std::string>(iss); break;
+			 case 'N' : aNamePt = GetV<std::string>(iss,mNameFile,mNbLineRead);     initPt++; break;
+			 case 'I' : aNameIm = GetV<std::string>(iss,mNameFile,mNbLineRead);     initIm++; break;
+			 case 'S' : aLString.push_back(GetV<std::string>(iss,mNameFile,mNbLineRead)); initString++; break;
+			 case '#' : GetV<std::string>(iss,mNameFile,mNbLineRead); break;
 
 		         default :
                               MMVII_INTERNAL_ERROR(std::string(("Unhandled car in cReadFilesStruct::Read=") + aCar)+"]");
@@ -409,7 +402,6 @@ void  ReadFilesStruct
 	    bool                                    CheckFormat
       )
 {
-    CurFile = aNameFile;
     if (CheckFormat)
     {
        CptSameOccur(aFormat,"NXYZ");
@@ -434,10 +426,6 @@ void  ReadFilesStruct
     int aNumL = 0;
     while (std::getline(infile, line))
     {
-	    // JOE
-MMVII_DEV_WARNING("Dont understand why must add \" \" at end of line ReadFilesStruct");
-line += " ";
-        CurLine = aNumL+1;  // editor begin at line 1, non 0
         if ((aNumL>=aL0) && (aNumL<aLastL))
 	{
             std::istringstream iss(line);
@@ -454,22 +442,22 @@ line += " ";
                 {
                     switch (aCar) 
                     {
-                         case 'F' : aLNum.push_back(GetV<tREAL8>(iss)); break;
-                         case 'X' : aXYZ.x() = GetV<tREAL8>(iss); break;
-                         case 'Y' : aXYZ.y() = GetV<tREAL8>(iss); break;
-                         case 'Z' : aXYZ.z() = GetV<tREAL8>(iss); break;
+                         case 'F' : aLNum.push_back(GetV<tREAL8>(iss,aNameFile,aNumL)); break;
+                         case 'X' : aXYZ.x() = GetV<tREAL8>(iss,aNameFile,aNumL); break;
+                         case 'Y' : aXYZ.y() = GetV<tREAL8>(iss,aNameFile,aNumL); break;
+                         case 'Z' : aXYZ.z() = GetV<tREAL8>(iss,aNameFile,aNumL); break;
 
-                         case 'W' : aWKP.x() = GetV<tREAL8>(iss); break;
-                         case 'P' : aWKP.y() = GetV<tREAL8>(iss); break;
-                         case 'K' : aWKP.z() = GetV<tREAL8>(iss); break;
+                         case 'W' : aWKP.x() = GetV<tREAL8>(iss,aNameFile,aNumL); break;
+                         case 'P' : aWKP.y() = GetV<tREAL8>(iss,aNameFile,aNumL); break;
+                         case 'K' : aWKP.z() = GetV<tREAL8>(iss,aNameFile,aNumL); break;
 
                          // case 'i' : aWKP.x() = GetV<tREAL8>(iss); break;
                          // case 'j' : aWKP.y() = GetV<tREAL8>(iss); break;
 
-			 case 'N' : aLNames.push_back(GetV<std::string>(iss)); break;
-			 case 'I' : aLNames.push_back(GetV<std::string>(iss)); break;
-                        case  'A' : aLNames.push_back(GetV<std::string>(iss)); break;
-		        case 'S' : GetV<std::string>(iss); break;
+			 case 'N' : aLNames.push_back(GetV<std::string>(iss,aNameFile,aNumL)); break;
+			 case 'I' : aLNames.push_back(GetV<std::string>(iss,aNameFile,aNumL)); break;
+                        case  'A' : aLNames.push_back(GetV<std::string>(iss,aNameFile,aNumL)); break;
+		        case 'S' : GetV<std::string>(iss,aNameFile,aNumL); break;
 
 		         default :
 		         break;

@@ -533,16 +533,13 @@ class cCmpSerializer
 };
 */
 
-static std::string  CurFile;  /// global var to get context, not proud of that
-static int          CurLine;  /// global var to get context, not proud of that
-
-template<class Type> inline Type GetV(std::istringstream & iss)
+template<class Type> inline Type GetV(std::istringstream & iss, const std::string& aSrcFile, int aSrcLine)
 {
     Type aNum;
     iss >> aNum;
-    if ( iss.rdstate())
+    if ( ! iss)
     {
-       MMVII_UnclasseUsEr("Bad reading at line  " + ToStr(CurLine) + " of file [" + CurFile + "] , rdstate=" + ToStr((size_t)iss.rdstate()));
+       MMVII_UnclasseUsEr("Bad reading at line  " + aSrcFile + " of file [" + std::to_string(aSrcLine+1) + "] , rdstate=" + ToStr((size_t)iss.rdstate()));
     }
     return aNum;
 }
