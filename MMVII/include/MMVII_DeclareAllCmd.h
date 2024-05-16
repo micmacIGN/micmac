@@ -26,6 +26,7 @@ extern cSpecMMVII_Appli  TheSpec_ComputeParamIndexBinaire;
 extern cSpecMMVII_Appli  TheSpecTestRecall;
 extern cSpecMMVII_Appli  TheSpecScaleImage;
 extern cSpecMMVII_Appli  TheSpec_StackIm;
+extern cSpecMMVII_Appli  TheSpec_StackDep;
 extern cSpecMMVII_Appli  TheSpecCalcDiscIm;
 extern cSpecMMVII_Appli  TheSpecCalcDescPCar;
 extern cSpecMMVII_Appli  TheSpecMatchTieP;
