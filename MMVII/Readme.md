@@ -4,13 +4,13 @@ Dependencies
   - Optional: OpenMP, ccache
 
   - Ubuntu 20.04:
-    - `sudo apt install ccache cmake libproj-dev proj-data`
+    - `sudo apt install ccache cmake pkg-config libproj-dev proj-data`
     - If using CLang version XX and want OpenMP: `sudo apt install libomp-XX-dev`
 
   - MacOs:
     - Install/check XCode is installed (xcode-select --version)
-    - Install brew : `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
-    - Install libX11,qt :
+    - Install brew: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
+    - Install libX11, qt and proj:
        - `brew install libX11`
        - `brew install qt`
        - `brew install proj`
@@ -20,10 +20,10 @@ Dependencies
        -  `export CPPFLAGS="-I/usr/local/opt/llvm/include"`
 
 
-Compilation (short) :
---------------------
+Compilation (short)
+-------------------
 
- Compile MicMac V1, then (replace N with the number of processor threads) :
+ Compile MicMac V1, then (replace N with the number of processor threads):
 
     cd MMVII
     mkdir -p build
@@ -36,12 +36,12 @@ Compilation (short) :
     make -j N
 
 
- Tests :
+ Tests:
 
     ../bin/MMVII Bench 1
 
 
- Compilation targets :
+ Compilation targets:
 
     all|(none) : build MMVII
     full       : re-generate files for symbolic calculus and build MMVII
@@ -56,7 +56,7 @@ Compilation (short) :
     make full
 
 
-Compilation (detail):
+Compilation (detail)
 --------------------
  - You can use `cmake -G Ninja ..` to use Ninja build system instead of the native one. (`sudo apt install ninja-build`)
  - Use `cmake --build . -j 8 [--target TARGET]` or `cmake --build . -j 8 -v [--target TARGET]` instead of make (works with all build systems)
