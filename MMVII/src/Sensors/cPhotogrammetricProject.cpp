@@ -675,16 +675,22 @@ bool  cPhotogrammetricProject::ImageHasMask(const std::string & aNameImage) cons
           && ExistFile(NameMaskOfImage(aNameImage)) ;
 }
 
-cIm2D<tU_INT1>  cPhotogrammetricProject::MaskWithDef(const std::string & aNameImage,const cBox2di & aBox,bool DefVal) const
+cIm2D<tU_INT1>  cPhotogrammetricProject::MaskWithDef(const std::string & aNameImage,const cBox2di & aBox,bool DefVal,bool OkNoMasq) const
 {
     if (ImageHasMask( aNameImage))
     {
         return cIm2D<tU_INT1>::FromFile(NameMaskOfImage(aNameImage),aBox);
     }
 
+     MMVII_INTERNAL_ASSERT_always(OkNoMasq,"Masq dont exist for image : " + aNameImage);
+
     return cIm2D<tU_INT1> (aBox.Sz(),nullptr,  (DefVal ? eModeInitImage::eMIA_V1 : eModeInitImage::eMIA_Null)) ;
 }
 
+cIm2D<tU_INT1>  cPhotogrammetricProject::MaskOfImage(const std::string & aNameImage,const cBox2di & aBox) const
+{
+	return MaskWithDef(aNameImage,aBox,false,false);
+}
 
         //  =============  PointsMeasures =================
 

@@ -526,7 +526,10 @@ class cPhotogrammetricProject
 	  /// Does the image has an existing mask : Dir is init + file exist
           bool  ImageHasMask(const std::string & aNameImage) const;
 
-	  cIm2D<tU_INT1>  MaskWithDef(const std::string & aNameImage,const cBox2di & aBox,bool DefVal) const;
+	  // read masq of image, if OkNoMasq accept masq dont exist, return a masq full or empty if file dont exist (depend DefVal)
+	  cIm2D<tU_INT1>  MaskWithDef(const std::string & aNameImage,const cBox2di & aBox,bool DefVal,bool OkNoMasq=true) const;
+	  // read masq , generate error if dont exist
+	  cIm2D<tU_INT1>  MaskOfImage(const std::string & aNameImage,const cBox2di & aBox) const;
 	  
 	 //===================================================================
          //==================    PointsMeasures  =============================

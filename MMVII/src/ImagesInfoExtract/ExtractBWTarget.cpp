@@ -268,6 +268,9 @@ bool  cExtract_BW_Target::AnalyseOneConnectedComponents(cSeedBWTarget & aSeed)
      // if the point has been explored or is in border 
      if (! MarqFree(aP0)) 
      {
+        if (aSeed.mMarked4Test)
+           StdOut() << "###  For Marked point " << aSeed.mPixW << " Point has already been explored   ###" << std::endl;
+
         aSeed.mOk = false;
         return false;
      }
@@ -315,6 +318,16 @@ bool  cExtract_BW_Target::AnalyseOneConnectedComponents(cSeedBWTarget & aSeed)
 
      if ((mPtsCC.size() >= aMaxNbPts) || touchOther  || (int(mPtsCC.size()) < mPBWT.NbMinPtsCC()))
      {            
+        if (aSeed.mMarked4Test)
+	{
+             if (mPtsCC.size() >= aMaxNbPts)
+                 StdOut() << "====> ###  For Marked point " << aSeed.mPixW << " too many points:" << mPtsCC.size() << " ###" << std::endl;
+             if (touchOther)
+                 StdOut() << "====> ###  For Marked point " << aSeed.mPixW << " touchOther "  << " ###" << std::endl;
+             if (int(mPtsCC.size()) < mPBWT.NbMinPtsCC())
+                 StdOut() << "====> ###  For Marked point " << aSeed.mPixW << " not enough point:" << mPtsCC.size() << " ###" << std::endl;
+	}
+
         CC_SetMarq(eEEBW_Lab::eBadZ); 
         return false;
      }

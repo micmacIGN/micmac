@@ -73,7 +73,9 @@ double cResSimul::BorderGlob() const
 
 void AddData(const  cAuxAr2007 & anAux,cResSimul & aRS)
 {
-   MMVII::AddData(cAuxAr2007("Com",anAux),aRS.mCom);
+   // Modif MPD, know that commande are quoted, they cannot be used as tag =>  "MMVII  "toto" "b=3" " => PB!!
+   //  MMVII::AddData(cAuxAr2007("Com",anAux),aRS.mCom);
+   anAux.Ar().AddComment(aRS.mCom);
    MMVII::AddData(cAuxAr2007("RayMinMax",anAux),aRS.mRayMinMax);
    MMVII::AddData(cAuxAr2007("RatioMax",anAux),aRS.mRatioMax);
    MMVII::AddData(cAuxAr2007("Geoms",anAux),aRS.mVG);

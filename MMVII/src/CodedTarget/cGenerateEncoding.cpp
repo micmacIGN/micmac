@@ -395,9 +395,12 @@ int  cAppliGenerateEncoding::Exe()
 
    if (mUseAiconCode)
    {
+       // Read the file in ressources MMVII
        std::vector<cPt2di>  aVCode ;
        ReadCodesTarget(aVCode,cCompEquiCodes::NameCERNLookUpTable(mSpec.mNbBits));
 
+       // In this case, by default, take all the code that were specified
+       SetIfNotInit(mSpec.mMaxNb,aVCode.size());
        std::list<cCompEquiCodes::tAmbigPair>  aLamb = mCEC->AmbiguousCode(aVCode);
 
        if (!aLamb.empty())
@@ -528,10 +531,10 @@ int  cAppliGenerateEncoding::Exe()
    SortOnCriteria(mVOC,[](auto aPCel){return aPCel->mLowCode;});
    {
        cBitEncoding aBE;
-       for (size_t aK=0 ; aK<mVOC.size(); aK++)  
+       for (size_t aK1=0 ; aK1<mVOC.size(); aK1++)  
        {
-           size_t aNum = aK + Num000;
-	   size_t aCode = mVOC[aK]->mLowCode;
+           size_t aNum = aK1 + Num000;
+	   size_t aCode = mVOC[aK1]->mLowCode;
            aBE.AddOneEncoding(aNum,aCode);  // add a new encoding
 
 	   // Update all ranges
