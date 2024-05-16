@@ -76,6 +76,7 @@ cCircTargExtr::cCircTargExtr(const cExtractedEllipse & anEE)  :
 	mWithCode     (false),
 	mCardDetect   (1)    // By default, let be optimistic
 {
+
 }
 
 
@@ -141,7 +142,7 @@ class cCCDecode
 
          cCCDecode(cCircTargExtr & anEE,tCDIm & aDIm,tCDIm & aDGx , tCDIm & aDGy,const cFullSpecifTarget &,const cThresholdCircTarget &);
 
-	 void Show(const std::string & aPrefix);
+	 void ShowCDecoded(const std::string & aPrefix);
 
          /// Compute phase minimizing standard deviation, make a decision if its low enough
 	 void ComputePhaseTeta() ;
@@ -206,6 +207,7 @@ class cCCDecode
 	 tREAL8                    mWhite;
 	 tREAL8                    mBWAmpl;
 	 tREAL8                    mBWAvg;
+	 size_t                    mFlagCode;
 	 const cOneEncoding *      mEnCode;
 	 bool                      mOkGrad;
          bool                      mMarked4Test;
@@ -455,11 +457,12 @@ void cCCDecode::ComputeCode()
 
     //  flag for coding must be eventually inverted, depending of orientation convention
     {
-        size_t aFlagCode = aFlag;
-        if (! mSpec.AntiClockWiseBit())
-            aFlagCode = BitMirror(aFlag,size_t(1)<<mSpec.NbBits());
+        mFlagCode = aFlag;
 
-        mEnCode = mSpec.EncodingFromCode(aFlagCode);
+        if (! mSpec.AntiClockWiseBit())
+            mFlagCode = BitMirror(aFlag,size_t(1)<<mSpec.NbBits());
+
+        mEnCode = mSpec.EncodingFromCode(mFlagCode);
 
         if (! mEnCode) return;
     }
@@ -581,7 +584,7 @@ void cCCDecode::ComputeCode()
 
 
 
-void  cCCDecode::Show(const std::string & aPrefix)
+void  cCCDecode::ShowCDecoded(const std::string & aPrefix)
 {
     static int aCpt=0; aCpt++;
 
@@ -600,7 +603,7 @@ void  cCCDecode::Show(const std::string & aPrefix)
 
     aIm.ToJpgFileDeZoom(aPrefix + "_ImPolar_"+ToStr(aCpt)+".tif",1);
 
-    StdOut() << "Adr=" << mEnCode << " Ok=" << mOK;
+    StdOut() << "Adr=" << mEnCode << " Ok=" << mOK << " BitCode=" << StrOfBitFlag(mFlagCode,2<<mNbB) ;
     if (mEnCode) 
     {
        StdOut() << " Name=" << mEnCode->Name()  
@@ -956,6 +959,7 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
    }
    double aT0 = SecFromT0();
 
+   // StdOut() << "JJJJJJ " << mPhProj.NameMaskOfImage(mNameIm) << "\n";
    mExtrEll = new cExtract_BW_Ellipse(APBI_Im(),mPBWT,mPhProj.MaskWithDef(mNameIm,CurBoxIn(),false));
 
    double aT1 = SecFromT0();
@@ -992,7 +996,7 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
        cCCDecode aCCD(*anEE,APBI_DIm(),mExtrEll->DGx(),mExtrEll->DGy(),*mSpec,mThresh);
        if (anEE->mMarked4Test)
        {
-	     aCCD.Show(mPrefixOut);
+	     aCCD.ShowCDecoded(mPrefixOut);
        }
    }
 

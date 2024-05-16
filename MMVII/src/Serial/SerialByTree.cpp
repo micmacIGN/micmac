@@ -392,8 +392,8 @@ void cXmlSerialTokenParser::CheckOnClose(const cSerialTree & aTree,const std::st
 {
      if (aTree.Value() != aStr)
      {
-         StdOut()<< "Expected : [" << aStr << "], Got : [" << aTree.Value()<< "] " << std::endl;
-         MMVII_INTERNAL_ASSERT_tiny(false,"Close tag unexpected");
+         StdOut()<< "Expected : [" << aTree.Value() << "], Got : [" << aStr << "] " << std::endl;
+         MMVII_INTERNAL_ASSERT_tiny(false,"Close tag unexpected in file "+ mMMIs.Name());
      }
 
 }

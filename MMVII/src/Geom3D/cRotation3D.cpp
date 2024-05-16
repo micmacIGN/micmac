@@ -261,6 +261,33 @@ template <class Type> cRotation3D<Type>::cRotation3D(const cDenseMatrix<Type> & 
    {
       mMat = mMat.ClosestOrthog();
    }
+   else
+   {
+#if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )
+       cPtxd<Type,3> aI = AxeI();
+       cPtxd<Type,3> aJ = AxeJ();
+       cPtxd<Type,3> aK = AxeK();
+
+       // "Epsilon value" set empirically taking into account the value obseved on current bench
+
+       // are the vector unitar, take into account accuracy of type
+       tREAL8 aDifN = (std::abs(SqN2(aI)-1)+std::abs(SqN2(aJ)-1)+std::abs(SqN2(aK)-1)) / tElemNumTrait<Type>::Accuracy() ;
+       MMVII_INTERNAL_ASSERT_tiny(aDifN<1e-3,"Rotation 3D init non norm w/o RefineIt");
+
+       // are the vector orthognal, take into account accuracy of type
+       tREAL8 aDifS = (std::abs(Scal(aI,aJ))) / tElemNumTrait<Type>::Accuracy() ;
+       MMVII_INTERNAL_ASSERT_tiny(aDifS<1e-4,"Rotation 3D init non orthog w/o RefineIt");
+
+       /*
+       static tREAL8 aMaxDif=0;
+       if (aDifS> aMaxDif)
+       {
+            aMaxDif = aDifS;
+            StdOut() << "*********************** ******************** DIFFSSS=" << tNumTrait<Type>::NameType() <<  " "<< aMaxDif << "\n";
+       }
+       */
+#endif
+   }
    // MMVII_INTERNAL_ASSERT_always((! RefineIt),"Refine to write in Rotation ...");
 }
 
