@@ -101,17 +101,23 @@ class cAppli_StackDep : public cMMVII_Appli
 	std::string NameScore(int aK1,int aK2) const;
 
 	void Do1Pixel(const cPt2di & aPix);
+	void InitPairs();
 
 
-        std::vector<std::string>     mArgInterpol;
-        cDiffInterpolator1D *        mInterpol;
-	bool                         mDoL2;
-	cLinearOverCstrSys<tREAL8>*  mSys;
-        int                          mNbIm ;
-        int                          mNbVar ;
-        int                          mKRef ;
-	std::string                  mSpecImIn;
-	std::vector<cOneDepOfStack>  mVecDepl;
+        std::vector<std::string>      mArgInterpol;
+        cDiffInterpolator1D *         mInterpol;
+	bool                          mDoL2;
+	cLinearOverCstrSys<tREAL8>*   mSys;
+        int                           mNbIm ;
+        int                           mNbVar ;
+        int                           mKRef ;
+	std::string                   mSpecImIn;
+	std::vector<cOneDepOfStack*>  mVecDepl;
+
+
+	std::string                   mFilePairs;
+	t2MapStrInt                   mMapS2Im;
+	cBijectiveMapI2O<cPt2di>      mMapCple2Match;
 };
 
 cAppli_StackDep::cAppli_StackDep(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec):
@@ -124,24 +130,23 @@ cCollecSpecArg2007 & cAppli_StackDep::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
       return anArgObl
               << Arg2007(mArgInterpol,"Argument interpolator ")
+              << Arg2007(mFilePairs,"File for pairs of images")
               << Arg2007(mDoL2,"L2/L1 compensation")
-/*
-              <<  mPhProj.DPPointsMeasures().ArgDirInMand()
-              <<  mPhProj.DPOrient().ArgDirOutMand()
-*/
            ;
 }
 
 cCollecSpecArg2007 & cAppli_StackDep::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
 
-    return anArgOpt;
+    return     anArgOpt
+    ;
 }
 
 
 std::string cAppli_StackDep::NameIm(int aK1,int aK2,const std::string & aPost) const
 {
-	return ToStr(aK1) + ToStr(aK2) + "_" + aPost + ".tif";
+        int aNum = mMapCple2Match.Obj2I(cPt2di(aK1,aK2));
+	return  ToStr(aNum,2) + "_" + aPost + ".tif";
 }
 
 std::string cAppli_StackDep::NamePx1(int aK1,int aK2) const {return NameIm(aK1,aK2,"px1");}
@@ -155,11 +160,36 @@ void  cAppli_StackDep::Do1Pixel(const cPt2di & aPix)
 }
 
 
+void cAppli_StackDep::InitPairs()
+{
+    if (! IsInit(&mFilePairs))  
+       return;
+
+    cReadFilesStruct aRFS(mFilePairs,"SSS",0,-1,'#');
+    aRFS.Read();
+
+    for (size_t aKL=0 ; aKL<aRFS.VStrings().size() ; aKL++)
+    {
+        const auto & aLine  = aRFS.VStrings().at(aKL);
+	const auto & aN1 = aLine.at(1);
+	const auto & aN2 = aLine.at(2);
+        mMapS2Im.Add(aN1,true);  // true : OK  Exist
+        mMapS2Im.Add(aN2,true);  // true : OK  Exist
+				 
+	int aI1 = mMapS2Im.Obj2I(aN1);
+	int aI2 = mMapS2Im.Obj2I(aN2);
+
+	mMapCple2Match.Add(cPt2di(aI1,aI2));
+    }
+    mNbIm =  mMapS2Im.size();
+}
 
 
 int cAppli_StackDep::Exe()
 {
     mInterpol = cDiffInterpolator1D::AllocFromNames(mArgInterpol);
+    InitPairs();
+
     mNbVar = mNbIm - 1;
     mKRef = mNbIm /2 ;
 
@@ -170,16 +200,27 @@ int cAppli_StackDep::Exe()
     {
         for (int aK2=0 ; aK2<mNbIm ; aK2++)
         {
-            if (ExistFile(NamePx1(aK1,aK2)) && ExistFile(NamePx2(aK1,aK2)) && ExistFile(NameScore(aK1,aK2)))
+            if (aK1!=aK2)
             {
-                cOneDepOfStack aDepl(aK1,aK2,aMasq,NamePx1(aK1,aK2),NamePx2(aK1,aK2) ,NameScore(aK1,aK2));
-		mVecDepl.push_back(aDepl);
+               bool  Ok = false;
+               if (ExistFile(NamePx1(aK1,aK2)) && ExistFile(NamePx2(aK1,aK2)) && ExistFile(NameScore(aK1,aK2)))
+               {
+                  cOneDepOfStack * aDepl = new cOneDepOfStack(aK1,aK2,aMasq,NamePx1(aK1,aK2),NamePx2(aK1,aK2) ,NameScore(aK1,aK2));
+		  mVecDepl.push_back(aDepl);
+		  Ok = true;
+               }
+	       if (aK1==mKRef)
+	       { 
+		   //  && (aK1!=aK2))
+		    StdOut() << " OK " << aK1 << " " << aK2 << " " << Ok << "\n";
+	       }
             }
         }
     }
 
     delete mInterpol;
     delete mSys;
+    DeleteAllAndClear(mVecDepl);
     return EXIT_SUCCESS;
 };
 

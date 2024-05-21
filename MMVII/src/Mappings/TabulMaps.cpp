@@ -2,10 +2,66 @@
 // #include "MMVII_ImageInfoExtract.h"
 // #include "MMVII_ExtractLines.h"
 #include "MMVII_Mappings.h"
+#include "MMVII_Interpolators.h"
+
 
 
 namespace MMVII
 {
+
+/* **************************************************** */
+/*                                                      */
+/*              cTabulatMap2D_Id                        */
+/*                                                      */
+/* **************************************************** */
+
+
+template <class Type>
+   cTabulatMap2D_Id<Type>::cTabulatMap2D_Id(tIm anImX,tIm anImY,cDiffInterpolator1D * anInt) :
+        mImX        (anImX),
+        mDImX       (&mImX.DIm()),
+        mImY        (anImY),
+        mDImY       (&mImY.DIm()),
+        mInt        (anInt),
+        mNbIterInv  (10),
+        mEpsInv     (1e-3)
+{
+        mDImX->AssertSameArea(*mDImY);
+}
+
+template <class Type>  cPt2dr   cTabulatMap2D_Id<Type>::Value(const cPt2dr & aPt) const
+{
+     cPt2dr aDelta;
+     if (mDImX->InsideInterpolator(*mInt,aPt))
+     {
+         aDelta.x() =  mDImX->GetValueInterpol(*mInt,aPt) ;
+         aDelta.y() =  mDImY->GetValueInterpol(*mInt,aPt) ;
+     }
+     else if (mDImX->InsideBL(aPt))
+     {
+         aDelta.x() =  mDImX->GetVBL(aPt) ;
+         aDelta.y() =  mDImY->GetVBL(aPt) ;
+     }
+     else
+     {
+        cPt2di  aPP = mDImX->Proj(ToI(aPt));
+        aDelta.x() =  mDImX->GetV(aPP) ;
+        aDelta.y() =  mDImY->GetV(aPP) ;
+     }
+
+     return aPt +  aDelta;
+}
+
+template <class Type>  cPt2dr   cTabulatMap2D_Id<Type>::Inverse(const cPt2dr & aPt) const
+{
+        return InvertQuasiTrans(aPt,aPt,mEpsInv,mNbIterInv);
+}
+template <class Type>  tREAL8   cTabulatMap2D_Id<Type>::EpsInv() const {return mEpsInv; }
+
+
+template class cTabulatMap2D_Id<tREAL4>;
+
+
 
 /* **************************************************** */
 /*                                                      */
