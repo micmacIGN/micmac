@@ -67,9 +67,9 @@ target_compile_options(MMVII_compiler_flags INTERFACE
     "$<${msvc_cxx}:$<BUILD_INTERFACE:/W3;/D_USE_MATH_DEFINES;/D_HAS_STD_BYTE=0;/wd4244;/wd4267;/wd4305;/wd4661;/D_CRT_SECURE_NO_WARNINGS>>"
     "$<$<CONFIG:Debug>:$<$<CXX_COMPILER_ID:MSVC>:/bigobj>>"
     "$<$<CONFIG:RelWithDebInfo>:$<$<CXX_COMPILER_ID:MSVC>:/bigobj>>"
-    "-I/usr/local/include -L/usr/local/lib -lkahypar -L/usr/lib -I/usr/include -lboost_program_options"
-)
 
+)
+#"-I/usr/local/include -L/usr/local/lib -lkahypar -L/usr/lib -I/usr/include -lboost_program_options"
 # we really want -O3 instead of -O2 when available (GNU, Clang) in RelWithDebInfo mode
 string(REPLACE "-O2" "-O3" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
 
@@ -85,6 +85,7 @@ string(REGEX REPLACE "[-/]D *NDEBUG" "" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_
 set(mmv1_dir "${MMVII_SOURCE_DIR}/..")
 set(mmv1_include_dir "${mmv1_dir}/include")
 set(mmv1_lib_dir "${mmv1_dir}/lib")
+
 find_library(elise_lib NAME elise PATHS "${mmv1_lib_dir}" NO_DEFAULT_PATH)
 find_library(ANN_lib NAME ANN PATHS "${mmv1_lib_dir}" NO_DEFAULT_PATH)
 
@@ -98,7 +99,8 @@ set(EIGEN3_INCLUDE_PATH  "${mmv2_external_include_dir}/eigen-3.4.0")
 
 # MtKaHyPar
 set(mtkahypar_dir "/etc/opt/mt-kahypar/")
-set(mtkahypar_include_dir "${mtkahypar_dir}/include")
+set(mtkahypar_include_dir "${mtkahypar_dir};${mtkahypar_dir}/include;${mtkahypar_dir}external_tools/kahypar-shared-resources")
+set(mtkahypar_src_dir "${mtkahypar_dir}/mt-kahypar/")
 set(mtkahypar_lib_dir "${mtkahypar_dir}/lib")
 find_library(mtkahypar_lib NAME mtkahypar PATHS "${mtkahypar_dir}" NO_DEFAULT_PATH)
 
