@@ -1078,6 +1078,8 @@ int cAppli_SfmInitWithPartition::Exe()
         std::thread::hardware_concurrency() /* use all available cores */,
         true /* activate interleaved NUMA allocation policy */ );
 
+
+
     mt_kahypar_context_t* aKP_context = mt_kahypar_context_new();
     //mt_kahypar_configure_context_from_file(aKP_context, mKPInitFile.c_str());
     mt_kahypar_load_preset(aKP_context, DEFAULT /* corresponds to MT-KaHyPar-D */);
@@ -1114,11 +1116,16 @@ int cAppli_SfmInitWithPartition::Exe()
 
     /// print cut matrix
     ///
-    printCutMatrix(aPartAll);
+    //printCutMatrix(aPartAll);
 
      //printCutMatrix(aPartAll);
     //mt_kahypar::PartitionerFacade::serializeCSV(
     //            aPartAll, aKP_context, 10);
+    std::cout << "Test connectivity:" << std::endl;
+    //mt_kahypar_connectivity(aPartAll);
+    //mt_kahypar::ds::ConnectivitySets
+    //mt_kahypar::io::printCutMatrix<mt_kahypar_partitioned_hypergraph_t>(aPartAll);
+
 
     // Output Results
     std::cout << "Partitioning Results:" << std::endl;
