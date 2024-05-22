@@ -100,7 +100,7 @@ class cFormulaTopoZen
 
                auto   dist_hz =  Norm2(  cPtxd<tUk,2>(aP_to_instr.x(), aP_to_instr.y() ) );
 
-               auto   zen = ATan2( aP_to_instr.z(), dist_hz ) - ref_cor;
+               auto   zen = ATan2( dist_hz, aP_to_instr.z() ) - ref_cor;
 
                return {   DiffAngMod(zen, val) };
            }

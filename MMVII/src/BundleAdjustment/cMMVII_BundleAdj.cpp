@@ -247,6 +247,8 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM)
 
 void cMMVII_BundleAdj::OneIterationTopoOnly(tREAL8 aLVM)
 {
+    StdOut() << "-------- Iter " << mNbIter << "-----------" << std::endl;
+
     // if it's first step, alloc ressources
     if (mPhaseAdd)
     {
@@ -268,7 +270,7 @@ void cMMVII_BundleAdj::OneIterationTopoOnly(tREAL8 aLVM)
     if (mTopo) // TOPO
     {
         mTopo->AddTopoEquations(*mR8_Sys);
-        mTopo->printObs(true);
+        mTopo->print();
     }
 
     const auto & aVectSol = mSys->R_SolveUpdateReset(aLVM);

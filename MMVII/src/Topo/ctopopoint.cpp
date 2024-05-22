@@ -71,6 +71,7 @@ void cTopoPoint::findOrMakeUK(const std::vector<cBA_GCP *> & vGCP, cPhotogrammet
                 mUK = gcp->mGCP_UK.at(i);
                 mPt = &gcp->mGCP_UK.at(i)->Pt();
                 mOwnsUK = false;
+                mIsFree = gcp->mMesGCP->MesGCP()[i].isFree();
 #ifdef VERBOSE_TOPO
                 std::cout<<"is a GCP\n";
 #endif
@@ -81,7 +82,7 @@ void cTopoPoint::findOrMakeUK(const std::vector<cBA_GCP *> & vGCP, cPhotogrammet
 
 
     // search among cameras
-    if (aPhProj)
+    if (aPhProj && aPhProj->IsOriInDirInit())
     {
         cSensorCamPC * aCam = aPhProj->ReadCamPC(mName, true, true);
         if (aCam)

@@ -172,6 +172,7 @@ bool cTopoData::FromCompFile(const std::string & aName)
         std::istringstream iss(line);
         int code;
         if (!(iss >> code)) continue; // line ignored
+        eCompObsType code_comp = (eCompObsType)code;
         std::string nameFrom, nameTo;
         double val, sigma;
         if (!(iss >> nameFrom >> nameTo >> val >> sigma))
@@ -181,7 +182,23 @@ bool cTopoData::FromCompFile(const std::string & aName)
         }
         allPointsNames.insert(nameFrom);
         allPointsNames.insert(nameTo);
-        if (!addObs((eCompObsTypes)code, nameFrom, nameTo, val, sigma))
+
+        switch (code_comp) {
+        case eCompObsType::eCompDist:
+        case eCompObsType::eCompDX:
+        case eCompObsType::eCompDY:
+        case eCompObsType::eCompDZ:
+            break;
+        case eCompObsType::eCompHzOpen:
+        case eCompObsType::eCompHz:
+        case eCompObsType::eCompZen:
+            // Angles in comp file are in gon. Transform it into rad
+            val /= AngleInRad(eTyUnitAngle::eUA_gon);
+            sigma /= AngleInRad(eTyUnitAngle::eUA_gon);
+            break;
+        }
+
+        if (!addObs(code_comp, nameFrom, nameTo, val, sigma))
             StdOut() << "Error interpreting line " << line_num << ": \""<<aName<<"\"\n";
     }
     for (const auto & aName : allPointsNames)
@@ -199,18 +216,20 @@ bool cTopoData::FromCompFile(const std::string & aName)
     return true;
 }
 
-bool cTopoData::addObs(eCompObsTypes code, const std::string & nameFrom, const std::string & nameTo, double val, double sigma)
+bool cTopoData::addObs(eCompObsType code, const std::string & nameFrom, const std::string & nameTo, double val, double sigma)
 {
     cTopoObsSetData * aSetDataStation = nullptr;
-    // search for a suitable set
-    // TODO: create new set if open circle
-    for (auto &aObsSet : mAllObsSets)
+    if (code != eCompObsType::eCompHzOpen) // new set if HzOpen
     {
-        // TODO: must search from end
-        if ((!aObsSet.mObs.empty()) && (aObsSet.mObs.at(0).mPtsNames.at(0) == nameFrom))
+        // search for a suitable set
+        for (auto &aObsSet : mAllObsSets)
         {
-            aSetDataStation = &aObsSet;
-            break;
+            // TODO: must search from end
+            if ((!aObsSet.mObs.empty()) && (aObsSet.mObs.at(0).mPtsNames.at(0) == nameFrom))
+            {
+                aSetDataStation = &aObsSet;
+                break;
+            }
         }
     }
     if (!aSetDataStation)
@@ -223,13 +242,14 @@ bool cTopoData::addObs(eCompObsTypes code, const std::string & nameFrom, const s
     cTopoObsData aObsData;
 
     switch (code) {
-    case eCompObsTypes::eCompDist:
+    case eCompObsType::eCompDist:
         aObsData = {eTopoObsType::eDist, {nameFrom,nameTo}, {val}, {sigma}};
         break;
-    case eCompObsTypes::eCompHz:
+    case eCompObsType::eCompHzOpen:
+    case eCompObsType::eCompHz:
         aObsData = {eTopoObsType::eHz, {nameFrom,nameTo}, {val}, {sigma}};
         break;
-    case eCompObsTypes::eCompZen:
+    case eCompObsType::eCompZen:
         aObsData = {eTopoObsType::eZen, {nameFrom,nameTo}, {val}, {sigma}};
         break;
     default:
@@ -309,7 +329,7 @@ cTopoData cTopoData::createEx3()
     double g0 = 2.2;
     cTopoObsData aObs1 = {eTopoObsType::eHz, {"St1", "Ori1"},  {0. - g0}, {0.001}};
     cTopoObsData aObs2 = {eTopoObsType::eHz, {"St1", "Tr1"},  {M_PI/4. - g0}, {0.001}};
-    cTopoObsData aObs3 = {eTopoObsType::eZen, {"St1", "Tr1"},  {0.}, {0.001}};
+    cTopoObsData aObs3 = {eTopoObsType::eZen, {"St1", "Tr1"},  {M_PI/2.}, {0.001}};
     cTopoObsData aObs4 = {eTopoObsType::eDist, {"St1", "Tr1"},  {10.}, {0.001}};
     cTopoObsData aObs5 = {eTopoObsType::eDist, {"St1", "Tr1"},  {10.002}, {0.001}};
 

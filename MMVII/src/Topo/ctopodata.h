@@ -74,10 +74,11 @@ void AddData(const cAuxAr2007 & anAux, cTopoObsSetData & aObsSet);
 /**
  * @brief Obs codes for comp3d file interpretation
  */
-enum class eCompObsTypes
+enum class eCompObsType
 {
         eCompDist=3,
         eCompHz=5,
+        eCompHzOpen=7,
         eCompZen=6,
         eCompDX=14,
         eCompDY=15,
@@ -105,7 +106,7 @@ public:
     //void createEx2();
     static cTopoData createEx3();
 
-    bool addObs(MMVII::eCompObsTypes code, const std::string & nameFrom, const std::string & nameTo, double val, double sigma);
+    bool addObs(MMVII::eCompObsType code, const std::string & nameFrom, const std::string & nameTo, double val, double sigma);
 
     std::vector<cTopoPointData> mAllPoints;
     std::vector<cTopoObsSetData> mAllObsSets;

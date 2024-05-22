@@ -446,6 +446,10 @@ cRadialCRS * cPhotogrammetricProject::CreateNewRadialCRS(size_t aDegree,const st
 const std::string &   cPhotogrammetricProject::DirImportInitOri() const { return mDirImportInitOri; }
 
 
+bool cPhotogrammetricProject::IsOriInDirInit() const
+{
+    return mDPOrient.DirInIsInit();
+}
 
          //  =============  Central Perspective camera =======================
 

@@ -156,6 +156,7 @@ void cBA_Topo::print()
     std::cout<<"ObsSets:\n";
     for (auto &obsSet: mAllObsSets)
         std::cout<<" - "<<obsSet->toString()<<"\n";
+    printObs(false);
 }
 
 void cBA_Topo::printObs(bool withDetails)
@@ -255,6 +256,9 @@ void cBA_Topo::AddTopoEquations(cResolSysNonLinear<tREAL8> & aSys)
             //std::cout<<"add eq: "<<obs->toString()<<" ";
             auto equation = getEquation(obs->getType());
             aSys.CalcAndAddObs(equation, obs->getIndices(), obs->getVals(), obs->getWeights());
+#ifdef VERBOSE_TOPO
+                StdOut() << obs->toString() << "      " ;
+#endif
             for (unsigned int i=0; i<obs->getMeasures().size();++i)
             {
                 double residual = equation->ValComp(0,i);

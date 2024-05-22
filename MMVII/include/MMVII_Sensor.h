@@ -460,11 +460,12 @@ class cPhotogrammetricProject
 	  /// To fix the "cur" sys co, its In,Out, or InOut, if both and diff use ArgChSys
           tPtrArg2007           ArgSysCo();
 
-	 //===================================================================
-         //==================   ORIENTATION      =============================
-	 //===================================================================
-	 
-	  const std::string &   DirImportInitOri() const;   ///< Accessor
+          //===================================================================
+          //==================   ORIENTATION      =============================
+          //===================================================================
+
+          const std::string &   DirImportInitOri() const;   ///< Accessor
+          bool IsOriInDirInit() const;
                //  Read/Write
           void SaveSensor(const cSensorImage &) const; ///< Save camera using OutPut-orientation
           void SaveCamPC(const cSensorCamPC &) const; ///< Save camera using OutPut-orientation
@@ -694,7 +695,6 @@ class cPhotogrammetricProject
 
          void MakeCamDataBase();
          bool OneTestMakeCamDataBase(const std::string & aDir,cCamDataBase &,bool ForceNew);
-
       private :
           cPhotogrammetricProject(const cPhotogrammetricProject &) = delete;
 

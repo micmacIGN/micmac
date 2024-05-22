@@ -64,9 +64,9 @@ std::string cTopoObs::toString() const
     oss<<"sigma: ";
     for (auto & val: mWeights.getSigmas())
         oss<<val<<" ";
-    oss<<"res: ";
-    for (auto & val: mLastResiduals)
-        oss<<val<<" ";
+    oss<<"res norm: ";
+    for (unsigned int i=0; i<mLastResiduals.size(); ++i)
+        oss<<mLastResiduals.at(i)/mWeights.getSigmas().at(i)<<" ";
     return oss.str();
 }
 
@@ -118,12 +118,12 @@ std::vector<int> cTopoObs::getIndices() const
     default:
         MMVII_INTERNAL_ERROR("unknown obs type")
     }*/
-#ifdef VERBOSE_TOPO
+/*#ifdef VERBOSE_TOPO
     std::cout<<indices.size()<<" indices:";
     for (auto &i:indices)
         std::cout<<i<<" ";
     std::cout<<std::endl;
-#endif
+#endif*/
     return indices;
 }
 
@@ -177,12 +177,12 @@ std::vector<tREAL8> cTopoObs::getVals() const
     default:
         MMVII_INTERNAL_ERROR("unknown obs type")
     }*/
-#ifdef VERBOSE_TOPO
+/*#ifdef VERBOSE_TOPO
     std::cout<<vals.size()<<" values ";//<<std::endl;
     for (auto&v: vals)
         std::cout<<v<<" ";
     std::cout<<"\n";
-#endif
+#endif*/
     return vals;
 }
 
