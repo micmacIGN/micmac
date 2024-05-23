@@ -19,45 +19,45 @@ namespace MMVII
 
 class cAppliTopoAdj : public cMMVII_Appli
 {
-     public :
-        cAppliTopoAdj(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
-        int Exe() override;
-        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
-        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
-     private :
+public :
+    cAppliTopoAdj(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
+    int Exe() override;
+    cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
+    cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+private :
 
-        std::vector<tREAL8>  ConvParamStandard(const std::vector<std::string> &,size_t aSzMin,size_t aSzMax) ;
-        /// New Method for multiple GCP : each 
-        void  AddOneSetGCP(const std::vector<std::string> & aParam);
-        void  AddOneSetTieP(const std::vector<std::string> & aParam);
+    std::vector<tREAL8>  ConvParamStandard(const std::vector<std::string> &,size_t aSzMin,size_t aSzMax) ;
+    /// New Method for multiple GCP : each
+    void  AddOneSetGCP(const std::vector<std::string> & aParam);
+    void  AddOneSetTieP(const std::vector<std::string> & aParam);
 
-	std::string               mSpecImIn;
+    std::string               mSpecImIn;
 
-	std::string               mDataDir;  /// Default Data dir for all
+    std::string               mDataDir;  /// Default Data dir for all
 
-	cPhotogrammetricProject   mPhProj;
-	cMMVII_BundleAdj          mBA;
+    cPhotogrammetricProject   mPhProj;
+    cMMVII_BundleAdj          mBA;
 
-	std::vector<std::string>  mGCPW;
-	std::vector<std::vector<std::string>>  mAddGCPW; // In case there is multiple GCP Set
-        std::string               mGCPFilter;  // pattern to filter names of GCP
-        std::string               mGCPFilterAdd;  // pattern to filter GCP by additional info
-	std::vector<std::string>  mTiePWeight;
-	std::vector<std::vector<std::string>>  mAddTieP; // In case there is multiple GCP Set
-	std::vector<double>       mBRSigma; // RIGIDBLOC
-	std::vector<double>       mBRSigma_Rat; // RIGIDBLOC
-        std::vector<std::string>  mParamRefOri;
+    double  mGCPW;
+    std::vector<std::vector<std::string>>  mAddGCPW; // In case there is multiple GCP Set
+    std::string               mGCPFilter;  // pattern to filter names of GCP
+    std::string               mGCPFilterAdd;  // pattern to filter GCP by additional info
+    std::vector<std::string>  mTiePWeight;
+    std::vector<std::vector<std::string>>  mAddTieP; // In case there is multiple GCP Set
+    std::vector<double>       mBRSigma; // RIGIDBLOC
+    std::vector<double>       mBRSigma_Rat; // RIGIDBLOC
+    std::vector<std::string>  mParamRefOri;
 
-	int                       mNbIter;
+    int                       mNbIter;
 
-        std::string               mTopoFilePath;  // TOPO
+    std::string               mTopoFilePath;  // TOPO
 
-	std::string               mPatParamFrozCalib;
-	std::string               mPatFrosenCenters;
-	std::string               mPatFrosenOrient;
-	std::vector<tREAL8>       mViscPose;
-        tREAL8                    mLVM;  ///< Levenberk Markard
-        std::vector<std::string>  mVSharedIP;  ///< Vector for shared intrinsic param
+    std::string               mPatParamFrozCalib;
+    std::string               mPatFrosenCenters;
+    std::string               mPatFrosenOrient;
+    std::vector<tREAL8>       mViscPose;
+    tREAL8                    mLVM;  ///< Levenberk Markard
+    std::vector<std::string>  mVSharedIP;  ///< Vector for shared intrinsic param
 };
 
 cAppliTopoAdj::cAppliTopoAdj(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -78,8 +78,7 @@ cCollecSpecArg2007 & cAppliTopoAdj::ArgObl(cCollecSpecArg2007 & anArgObl)
               << Arg2007(mTopoFilePath,"Topo obs file path",{{eTA2007::FileAny}})
               <<  mPhProj.DPPointsMeasures().ArgDirInMand()
               <<  mPhProj.DPPointsMeasures().ArgDirOutMand()
-              << Arg2007(mGCPW,"GCP Weight [SigG,SigI,SigAt?=-1,Thrs?=-1,Exp?=1], SG=0 fix, SG<0 schurr elim, SG>0",{{eTA2007::ISizeV,"[2,5]"}})
-
+              << Arg2007(mGCPW,"Constrained GCP Weight")
            ;
 }
 
@@ -88,7 +87,7 @@ cCollecSpecArg2007 & cAppliTopoAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
     
     return 
           anArgOpt
-      << AOpt2007(mDataDir,"DataDir","Defautl data directories ",{eTA2007::HDV})
+      << AOpt2007(mDataDir,"DataDir","Default data directories ",{eTA2007::HDV})
       << AOpt2007(mNbIter,"NbIter","Number of iterations",{eTA2007::HDV})
       << AOpt2007(mGCPFilter,"GCPFilter","Pattern to filter GCP by name")
       << AOpt2007(mGCPFilterAdd,"GCPFilterAdd","Pattern to filter GCP by additional info")
@@ -113,13 +112,14 @@ std::vector<tREAL8>  cAppliTopoAdj::ConvParamStandard(const std::vector<std::str
     return aRes;
 }
 
-// VParam standar is done from  Folder +  weight of size [2,5]
+// VParam standar is done from  Folder +  weight of size [1]
 void  cAppliTopoAdj::AddOneSetGCP(const std::vector<std::string> & aVParStd)
 {
     std::string aFolder = aVParStd.at(0);  // folder
-    std::vector<tREAL8>  aGCPW = ConvParamStandard(aVParStd,3,6);
+    std::vector<tREAL8>  aGCPW = {cStrIO<double>::FromStr(aVParStd.at(1)), 1.}; // with fake im weight
 
-    
+    MMVII_INTERNAL_ASSERT_User(aGCPW[0]>0., eTyUEr::eUnClassedError, "Error: GCPW must be > 0")
+
     //  load the GCP
     cSetMesImGCP  aFullMesGCP; 
     mPhProj.LoadGCPFromFolder(aFolder,aFullMesGCP,"",mGCPFilter,mGCPFilterAdd);
@@ -152,12 +152,12 @@ int cAppliTopoAdj::Exe()
     if (IsInit(&mParamRefOri))
          mBA.AddReferencePoses(mParamRefOri);
 
-    if (IsInit(&mGCPW))  // Add if any first the standadr GCP weighting 
-    {
-        std::vector<std::string>  aVParamStdGCP{mPhProj.DPPointsMeasures().DirIn()};
-        AppendIn(aVParamStdGCP,mGCPW);
-        AddOneSetGCP(aVParamStdGCP);
-    }
+    std::vector<std::string> aGCPW;
+    aGCPW.push_back(cStrIO<double>::ToStr(mGCPW));
+    std::vector<std::string>  aVParamStdGCP{mPhProj.DPPointsMeasures().DirIn()};
+    AppendIn(aVParamStdGCP,aGCPW);
+    AddOneSetGCP(aVParamStdGCP);
+
     // Add  the potential suplementary GCP
     for (const auto& aGCP : mAddGCPW)
         AddOneSetGCP(aGCP);
@@ -198,7 +198,7 @@ cSpecMMVII_Appli  TheSpec_TopoAdj
 (
      "TopoAdj",
       Alloc_TopoAdj,
-      "Topo adjusment",
+      "Topo adjustment",
       {eApF::Topo},
       {eApDT::GCP},
       {eApDT::GCP},

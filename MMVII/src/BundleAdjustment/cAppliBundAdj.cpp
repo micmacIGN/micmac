@@ -125,7 +125,7 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
     
     return 
           anArgOpt
-      << AOpt2007(mDataDir,"DataDir","Defautl data directories ",{eTA2007::HDV})
+      << AOpt2007(mDataDir,"DataDir","Default data directories ",{eTA2007::HDV})
       << AOpt2007(mNbIter,"NbIter","Number of iterations",{eTA2007::HDV})
       << mPhProj.DPPointsMeasures().ArgDirInOpt("GCPDir","Dir for GCP if != DataDir")
       << mPhProj.DPMulTieP().ArgDirInOpt("TPDir","Dir for Tie Points if != DataDir")
@@ -274,7 +274,7 @@ int cAppliBundlAdj::Exe()
     }
 	   
 
-    if (IsInit(&mGCPW))  // Add if any first the standadr GCP weighting 
+    if (IsInit(&mGCPW))  // Add if any first the standard GCP weighting
     {
         std::vector<std::string>  aVParamStdGCP{mPhProj.DPPointsMeasures().DirIn()};
         AppendIn(aVParamStdGCP,mGCPW);
