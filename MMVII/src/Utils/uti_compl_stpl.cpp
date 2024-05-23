@@ -93,6 +93,7 @@ template <class Type>
 }
 
 template class cBijectiveMapI2O<std::string>;
+template class cBijectiveMapI2O<cPt2di>;
 
 /****************************************************/
 /*                                                  */

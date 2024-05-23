@@ -389,6 +389,9 @@ template <class Type,const int Dim> class cDataNxNMapping : public cDataMapping<
       cDataNxNMapping();  ///< just initialize cDataMapping
       /// return bijective differential application , used for ex in BoxInByJacobian
       cBijAffMapElem<Type,Dim>  Linearize(const tPt & aPt) const;
+
+      /// Compute Invert of P2Inv, assuming Map~Translation, 
+      tPt  InvertQuasiTrans(const tPt& aP2Inv,tPt aGuess,Type aMaxErr,int aNbIterMax) const;
 };
 
 /**   This is the mother class of maping that can compute the inverse of a point.
@@ -1015,6 +1018,44 @@ template <const int Dim> class cTabuMapInv : public cDataInvertibleMapping<tREAL
 
           tTabuMap * mTabulMapDir;  ///<  Tabulation Direct Mapping
           tTabuMap * mTabulMapInv;  ///<  Tabulation Invert Mapping
+};
+
+
+/** Class for using im2d as "tabulated function", this version is for
+ * function "close to identity", typically displacement map and the tabulation is a delta => write derived class
+ * to generalize if necessary  (add homotety at left & right of values)
+ *
+ * It is invertible using InvertQuasiTrans, because it's adapted to displacement map
+ *
+ *  Also there is obvious similarity with "cTabulMap/cTabuMapInv", they are two different classes because
+ *  the "philosophy" are quite different :
+ *
+ *     * "cTabulMap/cTabuMapInv" takes an existing map and tabulates its values to gave faster access
+ *     * "cTabulatMap2D_Id" takes existing images (like resulting from matching) and create a "shell" to make 
+ *     them appears  like mapping
+ *
+ * */
+
+template <class Type>  class cTabulatMap2D_Id : cDataInvertibleMapping<tREAL8,2>
+{
+      public :
+           typedef cIm2D<Type>     tIm;
+           typedef cDataIm2D<Type> tDIm;
+           cTabulatMap2D_Id(tIm aImX,tIm aImY,cDiffInterpolator1D * aInt);
+
+           tPt Value(const tPt &) const override;
+           tPt Inverse(const tPt &) const override;
+           tREAL8 EpsInv() const;
+
+
+      private :
+           tIm     mImX;
+           tDIm *  mDImX;
+           tIm     mImY;
+           tDIm *  mDImY;
+           cDiffInterpolator1D * mInt;
+           int                   mNbIterInv;
+           tREAL8                mEpsInv;
 };
 
 

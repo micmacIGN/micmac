@@ -942,6 +942,12 @@ template<class Type,const int Dim> cPtxd<Type,Dim> SolveLine(const cPtxd<Type,Di
 template<class Type,const int DimOut,const int DimIn> Type 
      QScal(const cPtxd<Type,DimOut>&,const cDenseMatrix<Type>&,const cPtxd<Type,DimIn>&);
 
+
+//  !!  =>  logically this class  should be defined in file images, but for there is now a tricky dependances
+//      this clas requires DenseVect, so Matrix should appear before Image2D
+//     but Matrix require Image2D, so Image2D should appear before Matrix ...
+//  To break this, would require separate file for vector and matrix
+//
 /** Class for image of any dimension, relatively slow probably */
 
 template <class Type> class cDataGenDimTypedIm : public cMemCheck
