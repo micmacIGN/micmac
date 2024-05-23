@@ -59,7 +59,7 @@ class cFormulaTopoHz
 
                auto az = ATan2( aP_to_instr.x(), aP_to_instr.y() );
 
-               return {  az - val };
+               return {  DiffAngMod(az, val) };
            }
 };
 
@@ -102,7 +102,7 @@ class cFormulaTopoZen
 
                auto   zen = ATan2( aP_to_instr.z(), dist_hz ) - ref_cor;
 
-               return {  zen - val };
+               return {   DiffAngMod(zen, val) };
            }
 };
 

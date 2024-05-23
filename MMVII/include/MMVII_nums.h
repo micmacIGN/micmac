@@ -816,6 +816,14 @@ template <typename Type> Type DerX_ATan2(const Type & aX,const Type & aY);
 template <typename Type> Type DerY_ATan2(const Type & aX,const Type & aY);
 
 
+/// to have it in good namespace in code gen
+template <typename Type> Type DiffAngMod(const Type & aA,const Type & aB);
+/// to have it d/dx in code gen
+template <typename Type> Type DerA_DiffAngMod(const Type & aA,const Type & aB);
+/// to have it d/dy in code gen
+template <typename Type> Type DerB_DiffAngMod(const Type & aA,const Type & aB);
+
+
 /// Sinus hyperbolic
 template <typename Type> Type sinH(const Type & aTeta);
 /// CoSinus hyperbolic
