@@ -78,3 +78,118 @@ To keep small coordinates, a Local tangent frame (RTL) can be defined.
 It creates a file with the chosen name in {MMVII-PhgrProj/SysCo/}.
 
 Then every Ori and ground measures can be transformed into this RTL frame to be able to keep maximal precision during bundle adjustment.
+
+
+%-----------------------------------------------------------------------
+%-----------------------------------------------------------------------
+%-----------------------------------------------------------------------
+
+
+\chapter{Topometric compensation (WIP)}
+\label{Chap:TopoUser}
+
+
+\section{Topometry introduction}
+
+{\tt MMVII} supports the following topometric/surveying measurements types in global adjustments:
+
+\begin{itemize}
+    \item distances
+    \item pseudo-horizontal angles
+    \item pseudo-vertical angles
+    %\item cartesian vector in a sub-frame
+    %\item height differences
+\end{itemize}
+
+These measurements are made in regard to the gravitation field if the instruments are vericalized.
+For now, the vertical is modeled as the Earth's ellipsoid normal. Vertical deflection grids may be added later.
+
+The measurements are between named points that can be:
+\begin{itemize}
+    \item GCPs
+    \item camera summits
+    \item points declared in topo file
+    \item implicitly declared points in observations files.
+\end{itemize}
+
+
+Two {\tt MMVII} commands can use these measurements in compensation:
+\begin{itemize}
+    \item {\tt OriBundleAdj} via the {\tt TopoFile} option
+    \item {\tt TopoAdj} (see below)
+\end{itemize}
+
+The topo measurements file can be given as a {\tt MMVII} json or xml file, or in a simplified text format (named {\tt obs} file) inherited from IGN's Comp3D compensation software.
+
+The {\tt MMVII} topo files record all the input and output data, organized as the internal {\tt MMVII} objects during compensation.
+The {\tt obs} format is simplified and easily human-editable. It is the preferred input format for simple station-based measurements.
+
+
+\section{{\tt obs} file format}
+
+The {\tt obs} file format is limited to station-based measurements where the station in verticalized.
+{\tt MMVII} supports only a subset of Comp3D format.
+
+{\tt obs} files are text files with fields delimited by any number of spaces or tabs. Blank lines are overlooked.
+The {\tt *} character defines a comment that goes up to the end of the line.
+
+Example:
+
+\begin{verbatim}
+    7 St1 Or1   0.0000 0.0010 * horizontal reference
+    6 St1 Or1 100.0000 0.0010 * zenithal angle
+    3 St1 Or1  20.0000 0.0010 * distance
+
+    5 St1  E1  100.0000 0.0010 * horizontal angle
+    6 St1  E1  100.0000 0.0010
+    3 St1  E1 1000.0000 0.0010
+\end{verbatim}
+
+An observation line is composed by:
+
+\begin{itemize}
+    \item code: an integer representing the type of observation (see below)
+    \item station name
+    \item target name
+    \item measurement value (in meters for distances, in gon for angles)
+    \item measurement a priori $\sigma$ (in meters for distances, in gon for angles)
+    \item anything else is ignored until the end of the line
+\end{itemize}
+
+The observations codes are:
+
+\begin{itemize}
+    \item 3: 3d distance
+    \item 5: horizontal angle (relative to the last horizontal reference on the same station)
+    \item 6: zenithal angle
+    \item 7: horizontal reference
+\end{itemize}
+
+In the previous example, {\tt St1}, {\tt Or1} and {\tt E1} are points name.
+They can refer to GCP, cameras or undefined points.
+
+\section{{\tt TopoAdj} command}
+
+The {\tt TopoAdj} command can perform an adjustment between topometric and GCP constraints.
+It is used as a substitute to {\tt OriBundleAdj} when there are no cameras.
+
+\begin{verbatim}
+  For command : TopoAdj 
+   => Topo adjustment
+   => Srce code entry in :/home/JMMuller/micmac/MMVII/src/BundleAdjustment/cAppliTopoAdj.cpp
+
+ == Mandatory unnamed args : ==
+  * string [FileAny] :: Topo obs file path
+  * string [PointsMeasure,In] :: Input PointsMeasure
+  * string [PointsMeasure,Out] :: Output PointsMeasure
+  * double :: Constrained GCP Weight
+
+ == Optional named args : ==
+  * [Name=DataDir] string :: Defautl data directories  ,[Default=Std]
+  * [Name=NbIter] int :: Number of iterations ,[Default=10]
+  * [Name=GCPFilter] string :: Pattern to filter GCP by name
+  * [Name=GCPFilterAdd] string :: Pattern to filter GCP by additional info
+  * [Name=GCPDirOut] string [PointsMeasure,Out] :: Dir for output GCP
+  * [Name=LVM] double :: Levenberg–Marquardt parameter (to have better conditionning of least squares) ,[Default=0]
+\end{verbatim}
+
