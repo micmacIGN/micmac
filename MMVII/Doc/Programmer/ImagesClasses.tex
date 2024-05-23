@@ -1,0 +1,193 @@
+
+
+\chapter{Classes for images}
+
+
+%---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+
+\section{Introduction}
+
+Also \PPP is not specificamly an image processing library, there are several part where
+image are used to extract information and, at the end, image processing is a non neglectable part
+of the code.
+This chapter describe the general organization of image processing code.
+
+By some historical language abuse we call \emph{image} what is now commonly called a tensor,
+i.e. an array of $S_1 \times S_2 \times \dots S_d$ values , where $d$ is the dimension
+of the image, $S_1$, $S_2$ \dots the sizes in each dimension.
+
+
+
+%---------------------------------------------
+
+\section{Files organization }
+
+We begin by a description of files and folder related to images.
+
+       %  - - - - - - - - - - - - - - -
+
+\subsection{Connected files}
+
+Note the following files that are not directly image files, but are strongly connected :
+
+\begin{itemize}
+	\item {\tt MMVII\_Ptxd.h} contain the definition of points, and consquently of pixels (point
+		with integers coordinates),  contains the definition of boxes (and images inherit
+		of boxes);
+
+	\item {\tt MMVII\_Matrix.h} dense vector and dense matrix can be regarded as images ($1$ or $2$ dim), so in \PPP
+		they are implemented as a shell arround  images of dimension $1$ or $2$
+
+
+\end{itemize}
+
+       %  - - - - - - - - - - - - - - -
+
+\subsection{Header files}
+
+
+The file containing class representing images are essentially :
+
+\begin{itemize}
+	\item {\tt MMVII\_Images.h} this file contain the classes for representing 
+		generic images indepently of their dimension;
+		it contains also the classes specific to images of dimension $1$ and $3$,
+		which play a minor role:
+
+	\item {\tt MMVII\_Image2D.h} this file contain the classes specific to $2$-dimensionnal
+              images which obviously are the more frequent and more devlopped.
+\end{itemize}
+
+
+The definition (ie the code) of image processing routines can be found in "cpp" files
+(for "big" routines) or inlined in header files (for "small" routines).
+The declaration of routines defined in cpp files are found in :
+
+\begin{itemize}
+	\item {\tt MMVII\_Linear2DFiltering.h} contain linear filters , they are essentially
+		gaussian filters routines and class for gaussian pyramid (for sift-like multiscale);
+
+	\item {\tt MMVII\_NonLinear2DFiltering.h} contains declaration of non linear filters (for
+		now their implemantation will often use  V1);
+
+	\item {\tt MMVII\_ImageInfoExtract.h} contains declaration of classes and routines
+		for information extraction, for now contains fast extremum extraction,
+		and routine for extracting connected component on black and white image
+
+	\item {\tt MMVII\_ExtractLines.h} contains declaration of classes and routine for 
+		line extraction (hough transform);
+\end{itemize}
+
+
+The following files contains direcly the code of the function they implemant :
+
+\begin{itemize}
+	\item {\tt MMVII\_TplGradImFilter.h} contains code for gradient with optimization
+		(by tabulation) for fast computation of polar decomposition 
+
+        \item {\tt MMVII\_TplImage\_PtsFromValue.h} contain a very specific function for extracting
+	      a point having a given value in an image (used for target "fine" detection);
+
+      \item {\tt MMVII\_Tpl\_Images.h} containd codes for global basic operation on images not
+	      related to spatial organization  (i.e operation that can be defined using just
+		a vector of values); as they are not using spatial relation it contains also matrix
+		operation; example  difference, sum, conversion , multiplication by constant,  reduction
+		(sum of elements, bounds); 
+
+	\item {\tt MMVII\_TplSimpleOperator.h} a tentative to implemant a library similar to V1 for genericity,
+		but using templatization rather than virtualization; will see if it is devloped ...
+	
+	\item {\tt MMVII\_TplSymbImage.h} used when image are used in non linear optimization, see \ref{ImageOptDiff}
+
+\end{itemize}
+
+       %  - - - - - - - - - - - - - - -
+
+\subsection{Cpp files}
+
+The {\tt cpp} files can be found in the following folders :
+
+\begin{itemize}
+     \item {\tt ImagesBase/} contains the definition of image classe, it correspond to 
+	     essentially to declaration of {\tt MMVII\_Images.h} and {\tt MMVII\_Image2D.h} 
+
+     \item {\tt ImagesFiltrLinear/} contains linear filtering definition , correpond to declaration of
+	     {\tt MMVII\_Linear2DFiltering.h}, and also some final command (to move ?);
+
+     \item {\tt ImagesInfoExtract/}  contains the code definition for \emph{low level} "object" extraction
+\end{itemize}
+
+%---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+
+\section{Numerical types}
+
+\label{NumericalType}
+
+In {\tt MMVII} the following numerical types are defined in  {\tt MMVII\_AllClassDeclare.h}
+
+
+\begin{itemize}
+    \item {\tt tREAL4}, {\tt tREAL8} , {\tt tREAL16} for floatting point values on
+	    $4,8$ and $16$ bytes;
+
+    \item {\tt tINT1}, {\tt tINT2} , {\tt  tINT4}, {\tt  tINT8} for signed integer types
+	    on $1,2,4$ and $8$ bytes;
+
+    \item {\tt tU\_INT1}, {\tt tU\_INT2} , {\tt  tU\_INT4}, {\tt  tU\_INT8} for signed integer types
+            on $1,2,4$ and $8$ bytes;
+\end{itemize}
+
+
+
+%---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+
+\section{General image organization}
+
+\subsection{Parameter of image classes}
+
+A class of image is parametrized by $2$ value :
+
+\begin{itemize}
+   \item the type on which is code each elements , it must be one of the numerical types
+	   defined in \label{NumericalType}
+
+   \item the dimension of the image,  the value can be $1$, $2$ or $3$ (there exist
+	   also  unlimited dimension image, see ~\ref{UlimDimIm}  , but less efficient);
+\end{itemize}
+
+
+For maximal efficient manipulation, the code must "know" the type and the dimension
+of the image.  For example if we manipulate $2d$ images with integer element 
+include in $[0,255]$: , we will use images of type {\tt cDataIm2D<tU\_INT1>},
+and this class will contain a field {\tt mRawData} of type {\tt tU\_INT1}
+such that the reference to the value of $1$ pixel can be extracted by   {\tt mRawData[y][x]}.
+
+Also some time it is interesting for limitating the size of code to maninuplate  images
+independantly of their dimension or type. Sometime because this can be done as efficiently
+as when we now the type and dimension, or sometime because effficiency is just not our priority.
+
+
+
+
+
+% cDataGenUnTypedIm
+% cDataTypedIm : public cDataGenUnTypedIm<Dim>
+%template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
+
+%---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+
+\section{Unlimited dimension image}
+\label{UlimDimIm}
+
+Classe {\tt cDataGenDimTypedIm}
+
+
+

@@ -2,6 +2,7 @@
 #include "MMVII_Ptxd.h"
 #include "MMVII_SysSurR.h"
 #include "MMVII_Interpolators.h"
+#include "MMVII_Mappings.h"
 
 
 namespace MMVII
@@ -25,7 +26,8 @@ class cOneDepOfStack
 	   cIm2D<tU_INT1>      aMasqNoDepl,
            const std::string & aP1,
            const std::string & aP2,
-           const std::string & aScore
+           const std::string & aScore,
+	   cDiffInterpolator1D * anInterp
        );
 
        int    mK1;
@@ -36,6 +38,8 @@ class cOneDepOfStack
        tDIm & mDImPx2;
        tIm    mImScore;
        tDIm & mDImScore;
+       cTabulatMap2D_Id<tREAL4> mMap;
+
 };
 
 cOneDepOfStack::cOneDepOfStack
@@ -45,17 +49,22 @@ cOneDepOfStack::cOneDepOfStack
      cIm2D<tU_INT1>      aMasqNoDepl,
      const std::string & aP1,
      const std::string & aP2,
-     const std::string & aScore
+     const std::string & aScore,
+     cDiffInterpolator1D * anInterp
 ) :
-    mK1      (aK1),
-    mK2      (aK2),
-    mImPx1   (tIm::FromFile(aP1)),
-    mDImPx1  (mImPx1.DIm()),
-    mImPx2   (tIm::FromFile(aP2)),
-    mDImPx2  (mImPx2.DIm()),
-    mImScore (tIm::FromFile(aScore)),
-    mDImScore(mImScore.DIm())
+    mK1       (aK1),
+    mK2       (aK2),
+    mImPx1    (tIm::FromFile(aP1)),
+    mDImPx1   (mImPx1.DIm()),
+    mImPx2    (tIm::FromFile(aP2)),
+    mDImPx2   (mImPx2.DIm()),
+    mImScore  (tIm::FromFile(aScore)),
+    mDImScore (mImScore.DIm()),
+    mMap      (mImPx1,mImPx2,anInterp)
 {
+     mDImPx1.AssertSameArea(aMasqNoDepl.DIm());
+     mDImPx2.AssertSameArea(aMasqNoDepl.DIm());
+     mDImScore.AssertSameArea(aMasqNoDepl.DIm());
 
      // preprocessing average =0 
      {
@@ -101,6 +110,7 @@ class cAppli_StackDep : public cMMVII_Appli
 	std::string NameScore(int aK1,int aK2) const;
 
 	void Do1Pixel(const cPt2di & aPix);
+        void   AddObs1Disp(const cPt2dr & aDisp,int aK);
 	void InitPairs();
 
 
@@ -113,11 +123,19 @@ class cAppli_StackDep : public cMMVII_Appli
         int                           mKRef ;
 	std::string                   mSpecImIn;
 	std::vector<cOneDepOfStack*>  mVecDepl;
+	std::vector<cOneDepOfStack*>  mVecFromRef;
+	std::vector<cOneDepOfStack*>  mVecToRef;
 
 
 	std::string                   mFilePairs;
 	t2MapStrInt                   mMapS2Im;
 	cBijectiveMapI2O<cPt2di>      mMapCple2Match;
+
+        std::vector<int>  mX_NumUk;
+        std::vector<int>  mY_NumUk;
+
+	std::vector<tIm> mImSol;
+
 };
 
 cAppli_StackDep::cAppli_StackDep(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec):
@@ -154,9 +172,55 @@ std::string cAppli_StackDep::NamePx2(int aK1,int aK2) const {return NameIm(aK1,a
 std::string cAppli_StackDep::NameScore(int aK1,int aK2) const {return NameIm(aK1,aK2,"corrscore");}
 
 
+void   cAppli_StackDep::AddObs1Disp(const cPt2dr & aDisp,int aKDepl)
+{
+    {
+         cSparseVect<tREAL8> aSVX;
+         aSVX.AddIV(mX_NumUk.at(aKDepl),1.0);
+         mSys->PublicAddObservation(1.0,aSVX,aDisp.x());
+    }
+    {
+         cSparseVect<tREAL8> aSVY;
+         aSVY.AddIV(mY_NumUk.at(aKDepl),1.0);
+         mSys->PublicAddObservation(1.0,aSVY,aDisp.y());
+    }
+}
+
+
+
 void  cAppli_StackDep::Do1Pixel(const cPt2di & aPix)
 {
-	mSys->Reset();
+    mSys->Reset();
+
+    for (const auto &  aDepl : mVecDepl )
+    {
+        if (aDepl->mK1==mKRef)
+	{
+           cPt2dr aDisp = aDepl->mMap.Value(ToR(aPix)) - ToR(aPix);
+           AddObs1Disp(aDisp,aDepl->mK2);
+	}
+	else if (aDepl->mK2==mKRef)
+	{
+            cPt2dr aDisp = aDepl->mMap.Inverse(ToR(aPix)) -ToR(aPix);
+            AddObs1Disp(aDisp,aDepl->mK1);
+	}
+	else
+	{
+             cOneDepOfStack * aDispK1 =   mVecFromRef.at(aDepl->mK1);
+	     cPt2dr aPix1 = aDispK1->mMap.Value(ToR(aPix));
+	     cPt2dr aPix2 = aDepl->mMap.Value(aPix1);
+              // FakeUseIt(aPix2);
+              AddObs1Disp(aPix2-ToR(aPix),aDepl->mK2);
+	}
+    }
+
+    auto aSol = mSys->Solve();
+
+    for (int aKV=0 ;  aKV<mNbVar ; aKV++)
+    {
+        mImSol.at(aKV).DIm().SetV(aPix,aSol(aKV));
+    }
+    mSys->Reset();
 }
 
 
@@ -189,13 +253,33 @@ int cAppli_StackDep::Exe()
 {
     mInterpol = cDiffInterpolator1D::AllocFromNames(mArgInterpol);
     InitPairs();
+    cIm2D<tU_INT1> aMasq = cIm2D<tU_INT1>::FromFile("mask.tif");
 
-    mNbVar = mNbIm - 1;
+    mVecFromRef.resize(mNbIm,nullptr);
+    mVecToRef.resize(mNbIm,nullptr);
+    mNbVar = 2*(mNbIm - 1);
     mKRef = mNbIm /2 ;
+
+    for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
+    {
+         int aK0 = 2*aKIm;
+	 if (aKIm==mKRef)
+            aK0 = -2; // rubbish
+	 else if (aKIm>mKRef)
+            aK0 -=2 ; // skip one number for KREF
+
+	 mX_NumUk.push_back(aK0);
+	 mY_NumUk.push_back(aK0+1);
+	 
+	 if (aKIm!=mKRef)
+	 {
+             mImSol.push_back(tIm(aMasq.DIm().Sz()));
+             mImSol.push_back(tIm(aMasq.DIm().Sz()));
+	 }
+    }
 
     mSys = mDoL2 ? new cLeasSqtAA<tREAL8>(mNbVar) : AllocL1_Barrodale<tREAL8>(mNbVar);
 
-    cIm2D<tU_INT1> aMasq = cIm2D<tU_INT1>::FromFile("mask.tif");
     for (int aK1=0 ; aK1<mNbIm ; aK1++)
     {
         for (int aK2=0 ; aK2<mNbIm ; aK2++)
@@ -205,17 +289,37 @@ int cAppli_StackDep::Exe()
                bool  Ok = false;
                if (ExistFile(NamePx1(aK1,aK2)) && ExistFile(NamePx2(aK1,aK2)) && ExistFile(NameScore(aK1,aK2)))
                {
-                  cOneDepOfStack * aDepl = new cOneDepOfStack(aK1,aK2,aMasq,NamePx1(aK1,aK2),NamePx2(aK1,aK2) ,NameScore(aK1,aK2));
+                  cOneDepOfStack * aDepl = new cOneDepOfStack(aK1,aK2,aMasq,NamePx1(aK1,aK2),NamePx2(aK1,aK2) ,NameScore(aK1,aK2),mInterpol);
 		  mVecDepl.push_back(aDepl);
 		  Ok = true;
+		  if (aK1==mKRef)
+                       mVecFromRef.at(aK2) = aDepl;
+		  if (aK2==mKRef)
+                       mVecToRef.at(aK1) = aDepl;
                }
 	       if (aK1==mKRef)
 	       { 
 		   //  && (aK1!=aK2))
 		    StdOut() << " OK " << aK1 << " " << aK2 << " " << Ok << "\n";
+
 	       }
             }
         }
+    }
+
+
+    for (const auto & aPix : aMasq.DIm())
+        Do1Pixel(aPix);
+
+    for (int aKS=0 ; aKS<mNbIm-1 ; aKS++)
+    {
+        int aKI = aKS;
+	if (aKS>=mKRef)
+            aKI++;
+
+	std::string aName = "Merge_" + ToStr(mKRef) + "_to_" +  ToStr(aKI) ;
+        mImSol.at(2*aKS).DIm().ToFile(aName+"_x.tif");
+        mImSol.at(2*aKS+1).DIm().ToFile(aName+"_y.tif");
     }
 
     delete mInterpol;
