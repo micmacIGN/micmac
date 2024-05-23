@@ -88,7 +88,8 @@ std::vector<int> cTopoObsSet::getParamIndices() const
 //----------------------------------------------------------------
 cTopoObsSetStation::cTopoObsSetStation(cBA_Topo *aBA_Topo) :
     cTopoObsSet(aBA_Topo, eTopoObsSetType::eStation), mIsVericalized(true), mIsOriented(false),
-    mRotVert2Instr(tRot::Identity()), mRotOmega({0.,0.,0.}), mOriginName(""),mPtOrigin(nullptr)
+    mRotSysCo2Vert(tRot::Identity()), mRotVert2Instr(tRot::Identity()), mRotOmega({0.,0.,0.}),
+    mOriginName(""), mPtOrigin(nullptr)
 {
 }
 
@@ -132,6 +133,9 @@ void cTopoObsSetStation::OnUpdate()
     // like cPoseWithUK::OnUpdate(), without -...
     mRotVert2Instr = mRotVert2Instr * cRotation3D<tREAL8>::RotFromAxiator(mRotOmega.Pt());
 
+    // update mRotSysCo2Vert with new station position
+    mRotSysCo2Vert = mBA_Topo->getSysCo()->getVertical(*mPtOrigin->getPt());
+
     //std::cout<<"  OnUpdate mRotOmega: "<<mRotOmega.Pt()<<"\n";
 
     // now this have modify rotation, the "delta" is void :
@@ -140,8 +144,7 @@ void cTopoObsSetStation::OnUpdate()
 
 void cTopoObsSetStation::PushRotObs(std::vector<double> & aVObs) const
 {
-    // TODO: push rotLTF2Vert * mRotVert2Instr
-    mRotVert2Instr.Mat().PushByCol(aVObs);
+    (mRotSysCo2Vert * mRotVert2Instr).Mat().PushByCol(aVObs);
 }
 
 std::string cTopoObsSetStation::toString() const
@@ -197,6 +200,7 @@ bool cTopoObsSetStation::initialize()
 #ifdef VERBOSE_TOPO
     std::cout<<"cTopoObsSetStation::initialize "<<mOriginName<<std::endl;
 #endif
+    // mRotSysCo2Vert is initialized by setOrigin()
     if (mIsVericalized && mIsOriented)
     {
         return true; // nothing to do
@@ -235,7 +239,7 @@ void cTopoObsSetStation::setOrigin(std::string _OriginName, bool _IsVericalized)
     mIsVericalized = _IsVericalized;
     mRotVert2Instr = tRot::Identity();
     mRotOmega.Pt() = {0.,0.,0.};
-
+    mRotSysCo2Vert = mBA_Topo->getSysCo()->getVertical(*mPtOrigin->getPt());
 }
 
 tREAL8 cTopoObsSetStation::getG0() const

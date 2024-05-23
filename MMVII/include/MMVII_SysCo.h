@@ -43,11 +43,11 @@ public :
     virtual tPt Value(const tPt &)   const override = 0; //< to GeoC
     virtual tPt Inverse(const tPt &) const override = 0; //< from GeoC
 
-    virtual cRotation3D<tREAL8> getVertical(const tPt &)   const; //< get rotation from SysCo origin to vertical at this point
+    virtual cRotation3D<tREAL8> getVertical(const tPt &)   const; //< get rotation from SysCo origin to vertical at point
     virtual tREAL8 getRadiusApprox(const tPt &in) const; //< approximate earth total curvature radius at a point
     virtual tREAL8 getDistHzApprox(const tPt & aPtA, const tPt & aPtB) const; //< approximate horizontal distance (along ellipsoid) from one point to an other
 
-    static tPtrSysCo MakeSysCo(const std::string &aDef); //< factory from a sysco definition
+    static tPtrSysCo MakeSysCo(const std::string &aDef); //< factory from a SysCo definition
     static tPtrSysCo makeRTL(const cPt3dr & anOrigin, const std::string & aSysCoInDef);
     static tPtrSysCo FromFile(const std::string &aNameFile);
 

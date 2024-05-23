@@ -463,7 +463,7 @@ cRotation3D<tREAL8> cSysCoRTL::getVertical(const tPt & aPtIn)  const
     auto anOtherRTL = cSysCoLGeo::makeRTL(ptGeoC, MMVII_SysCoDefGeoC);
     auto anOtherRTL_asRTL = static_cast<cSysCoRTL*>(anOtherRTL.get());
     // TODO: add vertical deflection
-    return cRotation3D(getTranfo2GeoC().Rot().Mat().Transpose(),false) * anOtherRTL_asRTL->getTranfo2GeoC().Rot();
+    return cRotation3D(anOtherRTL_asRTL->getTranfo2GeoC().Rot().Mat().Transpose(),false) * getTranfo2GeoC().Rot();
 }
 
 //------------------------------------------------------------
@@ -681,7 +681,7 @@ void BenchSysCo(cParamExeBench & aParam)
             tPt3dr aPtGeog = aRTL2Geog.Value(aPtRTL);
             tPt3dr aVectUp = {0.,0.,testDist};
             tPt3dr aPtGeogUp = aPtGeog + aVectUp;
-            tPt3dr aPtRTLUp = aPtRTL + aMatVertical.Value(aVectUp);
+            tPt3dr aPtRTLUp = aPtRTL + aMatVertical.Inverse(aVectUp);
             tPt3dr aPtRTLUp_check = aRTL2Geog.Inverse(aPtGeogUp);
             //std::cout<<std::setprecision(10);
             //std::cout<<"at "<<aOrigin<<", aPtRTL: "<<aPtRTL<<"\n";

@@ -90,9 +90,10 @@ protected:
     void createAllowedObsTypes() override;
     void createParams() override;
 
-    bool mIsVericalized; // bubbled (orientation free only around vertical)
-    bool mIsOriented;    // rotation around vertical is fixed
-    tRot mRotVert2Instr;        //< the station orientation from local vertical frame
+    bool mIsVericalized; //< bubbled (orientation free only around vertical)
+    bool mIsOriented;    //< rotation around vertical is fixed
+    tRot mRotSysCo2Vert;   //< rotation between global SysCo and local vertical frame
+    tRot mRotVert2Instr; //< the station orientation from local vertical frame
     cPt3dr_UK mRotOmega; //< the station orientation unknown
     std::string mOriginName;
     cTopoPoint *mPtOrigin;
