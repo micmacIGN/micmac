@@ -102,7 +102,7 @@ void cBA_Topo::FromData(const cTopoData &aTopoData, const std::vector<cBA_GCP *>
         case eTopoObsSetType::eStation:
             mAllObsSets.push_back(make_TopoObsSet<cTopoObsSetStation>(this));
             break;
-        default:
+        case eTopoObsSetType::eNbVals:
             MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eUnClassedError, "Error: unknown eTopoObsSetType.")
         }
         cTopoObsSet *aSet = mAllObsSets.back();
@@ -131,7 +131,7 @@ void cBA_Topo::FromData(const cTopoData &aTopoData, const std::vector<cBA_GCP *>
             // MMVII_DEV_WARNING("TODO: read if topo station is verticalized")
             break;
         }
-        default:
+        case eTopoObsSetType::eNbVals:
             MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eUnClassedError, "Error: unknown eTopoObsSetType.")
         }
 
@@ -193,8 +193,10 @@ bool cBA_Topo::mergeUnknowns(cResolSysNonLinear<tREAL8> &aSys)
     for (auto &set: mAllObsSets)
     {
         switch (set->getType()) {
-        default:
+        case eTopoObsSetType::eStation:
             break;
+        case eTopoObsSetType::eNbVals:
+            MMVII_INTERNAL_ERROR("unknown obs set type")
         }
     }
     return ok;

@@ -45,7 +45,7 @@ cTopoObs::cTopoObs(cTopoObsSet* set, cBA_Topo *aBA_Topo, eTopoObsType type, cons
         MMVII_INTERNAL_ASSERT_strong(vals.empty(), "Obs: value should not be given")
         MMVII_INTERNAL_ASSERT_strong(aWeights.size()==1, "Obs: 1 weight should be given")
         break;*/
-    default:
+    case eTopoObsType::eNbVals:
         MMVII_INTERNAL_ERROR("unknown obs type")
     }
     //std::cout<<"DEBUG: create cTopoObs "<<toString()<<"\n";
@@ -96,28 +96,10 @@ std::vector<int> cTopoObs::getIndices() const
         indices.resize(nbIndBefore+3); // keep only the point part for cSensorImage UK // TODO: improve
         break;
     }
-    default:
+    case eTopoObsSetType::eNbVals:
         MMVII_INTERNAL_ERROR("unknown obs set type")
     }
-    /*switch (mType) {
-    case eTopoObsType::eDist:
-    case eTopoObsType::eDistParam:
-    case eTopoObsType::eSubFrame:
-        {
-            // 2 points
-            std::string nameFrom = mPts[0];
-            std::string nameTo = mPts[1];
-            auto & [ptFromUK, ptFrom3d] = aTopoData->getPointWithUK(nameFrom);
-            auto & [ptToUK, ptTo3d] = aTopoData->getPointWithUK(nameTo);
-            auto paramsIndices = mSet->getParamIndices();
-            indices.insert(std::end(indices), std::begin(paramsIndices), std::end(paramsIndices)); // TODO: use PushIndexes
-            ptFromUK->PushIndexes(indices, *ptFrom3d);
-            ptToUK->PushIndexes(indices, *ptTo3d);
-        }
-        break;
-    default:
-        MMVII_INTERNAL_ERROR("unknown obs type")
-    }*/
+
 /*#ifdef VERBOSE_TOPO
     std::cout<<indices.size()<<" indices:";
     for (auto &i:indices)
@@ -152,31 +134,10 @@ std::vector<tREAL8> cTopoObs::getVals() const
         vals.insert(std::end(vals), std::begin(mMeasures), std::end(mMeasures));
         break;
     }
-    default:
+    case eTopoObsSetType::eNbVals:
         MMVII_INTERNAL_ERROR("unknown obs set type")
     }
-    /*switch (mType) {
-    case eTopoObsType::eDist:
-    case eTopoObsType::eDistParam:
-        //just send measurments
-        vals = mVals;
-        break;
-    case eTopoObsType::eSubFrame:
-    {
-        //add rotations to measurments
-        cTopoObsSetSubFrame* set = dynamic_cast<cTopoObsSetSubFrame*>(mSet);
-        if (!set)
-        {
-            MMVII_INTERNAL_ERROR("error set type")
-            return {}; //just to please the compiler
-        }
-        vals = set->getRot();
-        vals.insert(std::end(vals), std::begin(mVals), std::end(mVals));
-        break;
-    }
-    default:
-        MMVII_INTERNAL_ERROR("unknown obs type")
-    }*/
+
 /*#ifdef VERBOSE_TOPO
     std::cout<<vals.size()<<" values ";//<<std::endl;
     for (auto&v: vals)

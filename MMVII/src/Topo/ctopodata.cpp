@@ -113,7 +113,7 @@ cTopoData::cTopoData(cBA_Topo* aBA_topo)
             aSetData.mRotVert2Instr = set->getRotVert2Instr();
             break;
         }
-        default:
+        case eTopoObsSetType::eNbVals:
             MMVII_INTERNAL_ERROR("unknown obs set type")
         }
 
@@ -172,7 +172,14 @@ bool cTopoData::FromCompFile(const std::string & aName)
         std::istringstream iss(line);
         int code;
         if (!(iss >> code)) continue; // line ignored
-        eCompObsType code_comp = (eCompObsType)code;
+
+        eCompObsType code_comp  = static_cast<eCompObsType>(code);
+        // Check if the conversion succeeded
+        if (static_cast<int>(code_comp) != code) {
+            StdOut() << "Error reading code on line " << line_num << ": \""<<aName<<"\"\n";
+            continue;
+        }
+
         std::string nameFrom, nameTo;
         double val, sigma;
         if (!(iss >> nameFrom >> nameTo >> val >> sigma))
@@ -252,9 +259,15 @@ bool cTopoData::addObs(eCompObsType code, const std::string & nameFrom, const st
     case eCompObsType::eCompZen:
         aObsData = {eTopoObsType::eZen, {nameFrom,nameTo}, {val}, {sigma}};
         break;
-    default:
-        StdOut() << "Error, unknown obs code " << (int)code <<".\n";
-        return false;
+    case eCompObsType::eCompDX:
+        aObsData = {eTopoObsType::eDX, {nameFrom,nameTo}, {val}, {sigma}};
+        break;
+    case eCompObsType::eCompDY:
+        aObsData = {eTopoObsType::eDY, {nameFrom,nameTo}, {val}, {sigma}};
+        break;
+    case eCompObsType::eCompDZ:
+        aObsData = {eTopoObsType::eDZ, {nameFrom,nameTo}, {val}, {sigma}};
+        break;
     }
     aSetDataStation->mObs.push_back(aObsData);
     return true;
