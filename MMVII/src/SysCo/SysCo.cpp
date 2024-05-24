@@ -665,7 +665,10 @@ void BenchSysCo(cParamExeBench & aParam)
     // Ellipsoid normals
     const tREAL8 testDist = 1000.;
     std::vector<std::string> allOrigins = {"0*0", "55*0", "0*55", "55*55", "-55*0",  "0*-55", "-55*-55"};
-    std::vector<tPt3dr> allPtRTL = { {0.,0.,0.}, {testDist,0.,0.}, {0.,testDist,0.}, {testDist,testDist,0.} };
+    std::vector<tPt3dr> allPtRTL = { {RandInInterval(-100.,100.),RandInInterval(-100.,100.),RandInInterval(-100.,100.)},
+                                     {testDist,RandInInterval(-100.,100.),RandInInterval(-100.,100.)},
+                                     {RandInInterval(-100.,100.),testDist,RandInInterval(-100.,100.)},
+                                     {testDist,testDist,RandInInterval(-100.,100.)} };
     for (auto & aOrigin: allOrigins)
     {
         for (auto & aPtRTL: allPtRTL)
