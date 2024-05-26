@@ -294,21 +294,24 @@ template <const int Dim> class cDataGenUnTypedIm : public cPixBox<Dim>,
         typedef cPixBox<Dim>            tPB;
         const   tPB  & RO() {return *this;}
 
+        typedef cPtxd<int,Dim>             tPixI
+        typedef cPtxd<tREAL8,Dim>          tPixR
+;
         cDataGenUnTypedIm(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1);
 
          
            // Get Value, integer coordinates
                 /// Pixel -> Integrer Value
-        virtual int VI_GetV(const cPtxd<int,Dim> & aP)  const =0;
+        virtual int VI_GetV(const tPixI & aP)  const =0;
                 /// Pixel -> float Value
-        virtual double VD_GetV(const cPtxd<int,Dim> & aP)  const =0;
+        virtual double VD_GetV(const tPixI & aP)  const =0;
            // Set Value, integer coordinates
                 /// Set Pixel Integrer Value
-        virtual void VI_SetV(const  cPtxd<int,Dim> & aP,const int & aV) =0;
+        virtual void VI_SetV(const  tPixI & aP,const int & aV) =0;
                 /// Set Pixel Float Value
-        virtual void VD_SetV(const  cPtxd<int,Dim> & aP,const double & aV)=0 ;
+        virtual void VD_SetV(const  tPixI & aP,const double & aV)=0 ;
 
-        virtual double GetVBL(const  cPtxd<tREAL8,Dim> & aP) const  = 0;
+        virtual double GetVBL(const  tPixR & aP) const  = 0;
 };
 
 
