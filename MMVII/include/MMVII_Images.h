@@ -294,8 +294,8 @@ template <const int Dim> class cDataGenUnTypedIm : public cPixBox<Dim>,
         typedef cPixBox<Dim>            tPB;
         const   tPB  & RO() {return *this;}
 
-        typedef cPtxd<int,Dim>             tPixI
-        typedef cPtxd<tREAL8,Dim>          tPixR
+        typedef cPtxd<int,Dim>             tPixI;
+        typedef cPtxd<tREAL8,Dim>          tPixR;
 ;
         cDataGenUnTypedIm(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1);
 
