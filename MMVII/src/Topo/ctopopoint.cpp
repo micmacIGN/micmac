@@ -132,6 +132,7 @@ std::string cTopoPoint::toString()
     oss<<"TopoPoint "<<mName;
     if (isReady())
         oss<<" "<<*getPt();
+    oss<<(mIsFree?" free":" fixed");
     return  oss.str();
 }
 

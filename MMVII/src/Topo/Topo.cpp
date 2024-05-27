@@ -115,27 +115,7 @@ void cBA_Topo::FromData(const cTopoData &aTopoData, const std::vector<cBA_GCP *>
         }
 
         // finish initialization
-        switch (aSetData.mType) {
-        case eTopoObsSetType::eStation:
-        {
-            cTopoObsSetStation * st1 = static_cast<cTopoObsSetStation*>(aSet);
-            st1->setIsOriented(aSetData.mStationIsOriented.value_or(false));
-            st1->setIsVericalized(aSetData.mStationIsVericalized.value_or(false));
-            std::string aOriginName;
-            MMVII_INTERNAL_ASSERT_User(st1->getAllObs().size()>0, eTyUEr::eUnClassedError, "Error: Obs Set without obs.")
-            aOriginName = aSet->getObs(0)->getPointName(0);
-            // check that every obs goes from the same point
-            for (auto &aObs : st1->getAllObs())
-                MMVII_INTERNAL_ASSERT_User(aObs->getPointName(0)==aOriginName, eTyUEr::eUnClassedError, "Error: Obs Set with several origins")
-            st1->setOrigin(aOriginName, true); // use 1st from name as station name
-            // MMVII_DEV_WARNING("TODO: read if topo station is verticalized")
-            break;
-        }
-        case eTopoObsSetType::eNbVals:
-            MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eUnClassedError, "Error: unknown eTopoObsSetType.")
-        }
-
-        MMVII_INTERNAL_ASSERT_User(aSet->initialize(), eTyUEr::eUnClassedError,
+        MMVII_INTERNAL_ASSERT_User(aSet->initialize(&aSetData), eTyUEr::eUnClassedError,
                                    "Error: Station initialization failed.")
     }
     mIsReady = true;
@@ -303,7 +283,7 @@ void BenchTopoComp1example(cTopoData aTopoData, tREAL4 targetSigma0)
     cDenseVect<double> aVUk = aSetIntervMultObj.GetVUnKnowns();
     cResolSysNonLinear<double>  aSys = cResolSysNonLinear<double>(eModeSSR::eSSR_LsqNormSparse,aVUk);
 
-    for (int iter=0; iter<6; ++iter)
+    for (int iter=0; iter<15; ++iter)
     {
 #ifdef VERBOSE_TOPO
         std::cout<<"Iter "<<iter<<std::endl;
@@ -314,7 +294,7 @@ void BenchTopoComp1example(cTopoData aTopoData, tREAL4 targetSigma0)
         aSetIntervMultObj.SetVUnKnowns(aVectSol);
 #ifdef VERBOSE_TOPO
         std::cout<<"  Sigma0: "<<aTopo.Sigma0()<<std::endl;
-        aTopo.print();
+        Topo.print();
 #endif
     }
     aTopo.ToFile(cMMVII_Appli::TmpDirTestMMVII()+"bench-out.json");
@@ -331,6 +311,7 @@ void BenchTopoComp(cParamExeBench & aParam)
 
     BenchTopoComp1example(cTopoData::createEx1(), 0.70711);
     BenchTopoComp1example(cTopoData::createEx3(), 1.41421);
+    BenchTopoComp1example(cTopoData::createEx4(), 0.);
 
     //std::cout<<"Bench Topo finished."<<std::endl;
     aParam.EndBench();

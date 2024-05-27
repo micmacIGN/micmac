@@ -73,8 +73,8 @@ void cTopoObsSetData::AddData(const  cAuxAr2007 & anAuxInit)
 
     AddOptData(anAux,"StationIsVericalized",mStationIsVericalized);
     AddOptData(anAux,"StationIsOriented",mStationIsOriented);
-    AddOptData(anAux,"G0",mStationG0);
-    //AddOptData(anAux,"StationRot",mRotVert2Instr); // TODO
+    AddOptData(anAux,"Out_G0",mStationG0);
+    // AddOptData(anAux,"Out_RotVert2Instr",mRotVert2Instr); // TODO
 }
 
 
@@ -176,7 +176,7 @@ bool cTopoData::FromCompFile(const std::string & aName)
         eCompObsType code_comp  = static_cast<eCompObsType>(code);
         // Check if the conversion succeeded
         if (static_cast<int>(code_comp) != code) {
-            StdOut() << "Error reading code on line " << line_num << ": \""<<aName<<"\"\n";
+            StdOut() << "Error reading "<<aName<<" at line " << line_num << ": \""<<line<<"\"\n";
             continue;
         }
 
@@ -184,7 +184,7 @@ bool cTopoData::FromCompFile(const std::string & aName)
         double val, sigma;
         if (!(iss >> nameFrom >> nameTo >> val >> sigma))
         {
-            StdOut() << "Error reading line " << line_num << ": \""<<aName<<"\"\n";
+            StdOut() << "Error reading "<<aName<<" at line " << line_num << ": \""<<line<<"\"\n";
             continue;
         }
         allPointsNames.insert(nameFrom);
@@ -244,6 +244,8 @@ bool cTopoData::addObs(eCompObsType code, const std::string & nameFrom, const st
         mAllObsSets.push_back( {} );
         aSetDataStation = &mAllObsSets.back();
         aSetDataStation->mType = eTopoObsSetType::eStation;
+        aSetDataStation->mStationIsVericalized = true;
+        aSetDataStation->mStationIsOriented = false;
     }
 
     cTopoObsData aObsData;
@@ -354,6 +356,61 @@ cTopoData cTopoData::createEx3()
 
     cTopoData aTopoData;
     aTopoData.mAllPoints = {aPt1, aPt2, aPt3};
+    aTopoData.mAllObsSets = {aSet1};
+
+    return aTopoData;
+}
+
+
+cTopoData cTopoData::createEx4()
+{
+    std::array aVectPoints = {cPt3dr(-50,0,0), cPt3dr(0,-50,0), cPt3dr(50,0,0), cPt3dr(0,50,0)};
+
+    cTopoData aTopoData;
+    // create points with an random translation
+    cPt3dr aTr = cPt3dr::PRandC()*1000.;
+    for (unsigned int i=0;i<aVectPoints.size();++i)
+    {
+        aTopoData.mAllPoints.push_back( { std::string("Pt")+(char)('1'+i),
+                                          aVectPoints[i]+aTr,false,cPt3dr(0.001,0.001,0.001)
+                                        } );
+    }
+    aTopoData.mAllPoints.push_back( { "St",{0.,0.,0.},true,{0.,0.,0.} } ); // the station is free
+
+    // create x y z obs with a random rotation
+    cTopoObsSetData aSet1;
+    aSet1.mType = eTopoObsSetType::eStation;
+    aSet1.mStationIsVericalized = false;
+    aSet1.mStationIsOriented = false;
+    auto aRot = cRotation3D<tREAL8>::RandomRot(M_PI);
+    //auto aRot = cRotation3D<tREAL8>::Identity();
+#ifdef VERBOSE_TOPO
+    StdOut()<<"cTopoData::createEx4() tr: "<<aTr<<"\n";
+    StdOut()<<"cTopoData::createEx4() rot:\n";
+    StdOut()<<aRot.AxeI()<<"\n";
+    StdOut()<<aRot.AxeJ()<<"\n";
+    StdOut()<<aRot.AxeK()<<"\n";
+#endif
+    for (unsigned int i=0;i<aVectPoints.size();++i)
+    {
+        auto aMesRot = aRot.Value(aVectPoints[i]);
+        aSet1.mObs.push_back(
+                        {    eTopoObsType::eDX,
+                             {"St", std::string("Pt")+(char)('1'+i)},
+                             {aMesRot.x()},
+                             {0.001}         }     );
+        aSet1.mObs.push_back(
+                        {    eTopoObsType::eDY,
+                             {"St", std::string("Pt")+(char)('1'+i)},
+                             {aMesRot.y()},
+                             {0.001}         }     );
+        aSet1.mObs.push_back(
+                        {    eTopoObsType::eDZ,
+                             {"St", std::string("Pt")+(char)('1'+i)},
+                             {aMesRot.z()},
+                             {0.001}         }     );
+    }
+
     aTopoData.mAllObsSets = {aSet1};
 
     return aTopoData;

@@ -1317,15 +1317,35 @@ then contact MPD.
 
 The premises of a topometric compensation system can be found in \texttt{MMVII/src/Topo/}.
 
-Computation takes place in a 3D cartesian frame. For now, there is no georeferencing
-and no Earth model.
+Computation takes place in a 3D euclidian frame. For now, only RTL SysCo is supported.
 
 All points must be given approximative coordinates as there is no automatic initialization.
 
-For now it is used in \texttt{OriBundleAdj} and in the Bench \texttt{TopoComp}.
+For now it is used in commands \texttt{OriBundleAdj} and \texttt{TopoAdj}, and in the Bench \texttt{TopoComp}.
 
 This Bench will be used to illustrate the topometric classes and their usage.
 
+
+\subsection{Frames for topometric stations}
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=12cm]{Programmer/framesTopo.png}
+\caption{The different frames types used in topo compensation}
+\label{fig:topoFrames}
+\end{figure}
+
+
+ \begin{itemize}
+    \item \texttt{Green}: a projection SysCo. As it is not euclidian, all point coordinates must be converted into RTL before compensation.
+    \item \texttt{Blue}: the RTL SysCo for the computation. Every parameter is in this frame.
+    \item \texttt{Purple}: each point has its own local euclidian tangent frame depending on its position.
+    \item \texttt{Yellow}: each topoemtric station has a rotation between the local euclidian tangent frame and the instrument frame.
+ \end{itemize}
+
+
+
+ 
 
 \subsection{\texttt{TopoComp} Bench example}
 \label{subsec:topoBench}

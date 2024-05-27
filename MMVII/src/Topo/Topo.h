@@ -12,6 +12,7 @@ class cMMVII_BundleAdj;
 class cPhotogrammetricProject;
 class cSensorCamPC;
 class cTopoObsSet;
+class cTopoPoint;
 class cBA_GCP;
 
 class cBA_Topo : public cMemCheck

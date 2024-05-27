@@ -4,6 +4,7 @@
 #include "MMVII_AllClassDeclare.h"
 #include "MMVII_enums.h"
 #include "MMVII_SysSurR.h"
+#include "MMVII_Geom3D.h"
 
 namespace MMVII
 {

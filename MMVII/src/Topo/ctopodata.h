@@ -1,9 +1,8 @@
 ﻿#ifndef CTOPODATA_H
 #define CTOPODATA_H
 
-#include "ctopoobsset.h"
-//#include "cMMVII_Appli.h"
-//#include "SymbDer/SymbDer_Common.h"
+#include "MMVII_Geom3D.h"
+#include "SymbDer/SymbDer_Common.h"
 
 using namespace NS_SymbolicDerivative;
 
@@ -11,6 +10,7 @@ using namespace NS_SymbolicDerivative;
 namespace MMVII
 {
 
+class cBA_Topo;
 
 /**
  * @brief The cTopoPointData class represents the serializable data of a cTopoPoint
@@ -82,7 +82,7 @@ enum class eCompObsType
         eCompZen=6,
         eCompDX=14,
         eCompDY=15,
-        eCompDZ=4,
+        eCompDZ=16,
         //eSubFrame=11,
         //eDistParam=22,
 };
@@ -105,6 +105,7 @@ public:
     static cTopoData createEx1();
     //void createEx2();
     static cTopoData createEx3();
+    static cTopoData createEx4();
 
     bool addObs(MMVII::eCompObsType code, const std::string & nameFrom, const std::string & nameTo, double val, double sigma);
 
