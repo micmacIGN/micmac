@@ -267,6 +267,7 @@ to {\tt mRawDataLin} as illustrated with figure~\ref{fig:Ptr2D}.
 
 
 
+
 \begin{figure}
 \centering
 \includegraphics[width=6cm]{Programmer/ImagesProg/PtrIm2D.jpg}
@@ -370,7 +371,7 @@ interpolation is sufficient.
 %----------------------------------------------------------------------------------------
 \subsection{Raw pointer and data organization}
 
-Note also that the class export also access to raw pointer and {\tt mRawDataXD} , {\tt mRawDataLin}
+Note also that the class exports also access to raw pointer and {\tt mRawDataXD} , {\tt mRawDataLin}
 or a specific line with {\tt GetLine},
 these access can be usefull for :
 
@@ -383,12 +384,29 @@ these access can be usefull for :
 
 \end{itemize}
 
+Regarding the data organisation for image with dimension $\geq 2$,  the convention
+is to access    {\tt mRawData2D[y][x]}  or {\tt mRawData3D[z][y][x]} . This convention
+comes from the fact that in image file formats the consecutive pixel are on the same
+line (vs the same column). For {\tt mRawDataLin}, the organization is the generalization
+of convention of figure~\ref{fig:Ptr2D}, for example :
+
+\begin{equation}
+	mRawData3D[z][y][x] = mRawDataLin[x + y * Sz_x + z * Sz_x * Sz_y] \label{EqIm3D}
+\end{equation}
 
 
 %----------------------------------------------------------------------------------------
-\subsection{Memory management}
 
+\subsection{Memory managementi and {\tt cDataImXD} vs {\tt cImXD} }
 
+For safety consideration, it is not possible to creat directly or to copy
+the objects of type {\tt cDataImXD} . The way it work is :
+
+\begin{itemize}
+	\item the object that can be created are {\tt cImXD}  (i.e {\tt cIm1D, cIm2D, cIm3D })
+	\item the {\tt cImXD} are shared pointer to {\tt cDataImXD}, the reference to the {\tt cDataImXD} can
+		be extracted via the method  {\tt  DIm()}.
+\end{itemize}
 
 %---------------------------------------------
 %---------------------------------------------
@@ -397,7 +415,28 @@ these access can be usefull for :
 \section{Unlimited dimension image}
 \label{UlimDimIm}
 
-Classe {\tt cDataGenDimTypedIm}
+\PPP propose also a class for images of any dimension. The manipulation is
+certainly slower than the specialized version  {\tt cDataImXD}, but can be usefull
+for image of dimension $4,5 \dots 10$ for creating a prototype or when performance
+is not the main issue.
+
+Basically for these images :
+
+\begin{itemize}
+    \item  the constructor take as argument the dimension of the image (i.e. the dimension
+	    is not contained in the type, but is a value of the object)
+
+    \item  the access to "pixels" is done via dense vector of type int ({\tt cDenseVect<int>}) ,
+	   internaly the data is stored on a linear vector and the conversion is done via
+           the generalization of formula like equation \ref{EqIm3D} ;
+
+    \item  access to linear interpolation can also be done via ({\tt cDenseVect<tREAL8>)}), by the
+	    way it can be intrinsiqually slow (form dimension D, i.e. there $2^D$ values to access).
+\end{itemize}
+
+
+
+
 
 
 
