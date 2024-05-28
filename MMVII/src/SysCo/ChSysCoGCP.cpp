@@ -49,7 +49,7 @@ cAppli_ChSysCoGCP::cAppli_ChSysCoGCP(const std::vector<std::string> & aVArgs,con
 cCollecSpecArg2007 & cAppli_ChSysCoGCP::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
     return anArgObl
-	      <<  Arg2007(mNameSysOut ,"Output coordinate system")
+	      <<  Arg2007(mNameSysOut ,"Output SysCo definition")
               <<  mPhProj.DPPointsMeasures().ArgDirInMand()
               <<  mPhProj.DPPointsMeasures().ArgDirOutMand()
            ;
@@ -59,7 +59,7 @@ cCollecSpecArg2007 & cAppli_ChSysCoGCP::ArgOpt(cCollecSpecArg2007 & anArgObl)
 {
     
     return      anArgObl
-            << AOpt2007(mNameSysIn,"SysIn","Input system coord, def=found in CurSysCo.xml (if exist)")
+            << AOpt2007(mNameSysIn,"SysIn","Input SysCo definition, default=found in CurSysCo.xml (if exists)")
     ;
 }
 
@@ -118,7 +118,7 @@ cSpecMMVII_Appli  TheSpec_ChSysCoGCP
 (
      "GCPChSysCo",
       Alloc_ChSysCoGCP,
-      "Chang coord system of GGP",
+      "Change SysCo of GCP",
       {eApF::SysCo,eApF::Ori},
       {eApDT::Ori,eApDT::SysCo},
       {eApDT::Ori,eApDT::SysCo},

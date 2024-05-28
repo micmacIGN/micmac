@@ -156,6 +156,26 @@ protected:
 };
 //------------------------------------------------------------
 
+/**
+ * @brief testPJerror: to be called after each crs2crs creation and proj usage
+ * @param aPJ: the PJ* to check
+ * @param aDefFrom: for information
+ * @param aDefTo: for information
+ */
+void testPJerror(PJ* aPJ, std::string aDefFrom, std::string aDefTo)
+{
+    if ((aPJ==nullptr) || (proj_errno(aPJ)))
+    {
+        int aProjErrorNo = proj_errno(aPJ);
+        std::string aStrErrorDescr = aProjErrorNo>0 ? proj_errno_string(proj_errno(aPJ)): " Panic! Check your proj installation.";
+        MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eBadSysCo,
+                                   std::string("Error in SysCo conversion creation from \"")
+                                   +aDefFrom+"\" to \""+aDefTo+"\": "+aStrErrorDescr)
+    }
+}
+
+
+
 cSysCo::cSysCo() :
     mDef(), mType(eSysCo::eLocalSys)
 {
@@ -325,12 +345,7 @@ cSysCoLGeo::cSysCoLGeo(const std::string &aDef) :
         mTranfo2GeoC.SetRotation(cRotation3D<tREAL8>::RotFromWPK(aOmegaPhiKappa));
 
         PJ_COORD to = proj_trans(PJ_GeoC2Geog, PJ_FWD, toPjCoord(mTranfo2GeoC.Tr()));
-        if (proj_errno(PJ_GeoC2Geog))
-        {
-            StdOut()<<"Error with PJ_GeoC2Geog: "<<
-                      proj_errno_string(proj_errno(PJ_GeoC2Geog))<<"\n";
-            MMVII_INTERNAL_ASSERT_medium(false, "SysCo proj error")
-        }
+        testPJerror(PJ_GeoC2Geog, MMVII_SysCoGeoC, MMVII_SysCoDefLatLong);
         mCenterLatRad = to.lp.phi/AngleInRad(eTyUnitAngle::eUA_degree);
         mCenterLongRad = to.lp.lam/AngleInRad(eTyUnitAngle::eUA_degree);
     }
@@ -415,20 +430,11 @@ bool cSysCoRTL::computeRTL(tPt anOrigin, std::string aInDef)
     PJ* pj_in2latlong = createCRS2CRS(aInDef, MMVII_SysCoDefLatLong);
     PJ* pj_in2geocent = createCRS2CRS(aInDef, MMVII_SysCoDefGeoC);
     to = proj_trans(pj_in2geocent, PJ_FWD, from);
-    if (proj_errno(pj_in2geocent))
-    {
-        StdOut()<<"Error with proj "<<aInDef<<" "<<MMVII_SysCoDefGeoC<<": "<<
-                                  proj_errno_string(proj_errno(pj_in2geocent))<<"\n";
-        MMVII_INTERNAL_ASSERT_medium(false, "SysCo proj error")
-    }
+    testPJerror(pj_in2geocent, aInDef, MMVII_SysCoDefGeoC);
+
     mTranfo2GeoC.Tr() = fromPjCoord(to);
     to = proj_trans(pj_in2latlong, PJ_FWD, from);
-    if (proj_errno(pj_in2latlong))
-    {
-        StdOut()<<"Error with proj "<<aInDef<<" "<<MMVII_SysCoDefLatLong<<": "<<
-                                  proj_errno_string(proj_errno(pj_in2latlong))<<"\n";
-        MMVII_INTERNAL_ASSERT_medium(false, "SysCo proj error")
-    }
+    testPJerror(pj_in2latlong, aInDef, MMVII_SysCoDefLatLong);
 
     mCenterLatRad = to.lp.phi/AngleInRad(eTyUnitAngle::eUA_degree);
     mCenterLongRad = to.lp.lam/AngleInRad(eTyUnitAngle::eUA_degree);
@@ -485,12 +491,7 @@ tPt3dr cSysCoProj::Value(const tPt & in)   const  //< to GeoC
     PJ_COORD pj_in, pj_out;
     pj_in = proj_coord(in.x(), in.y(), in.z(), 0.);
     pj_out = proj_trans(mPJ_Proj2GeoC, PJ_FWD, pj_in);
-    if (proj_errno(mPJ_Proj2GeoC))
-    {
-        StdOut()<<"Error with proj "<<mDef<<" "<<MMVII_SysCoDefGeoC<<": "<<
-                                  proj_errno_string(proj_errno(mPJ_Proj2GeoC))<<"\n";
-        MMVII_INTERNAL_ASSERT_medium(false, "SysCo proj error")
-    }
+    testPJerror(mPJ_Proj2GeoC, mDef, MMVII_SysCoDefGeoC);
     return {pj_out.xyz.x, pj_out.xyz.y, pj_out.xyz.z};
 }
 
@@ -499,12 +500,7 @@ tPt3dr cSysCoProj::Inverse(const tPt & in) const //< from GeoC
     PJ_COORD pj_in, pj_out;
     pj_in = proj_coord(in.x(), in.y(), in.z(), 0.);
     pj_out = proj_trans(mPJ_Proj2GeoC, PJ_INV, pj_in);
-    if (proj_errno(mPJ_Proj2GeoC))
-    {
-        StdOut()<<"Error with proj "<<mDef<<" "<<MMVII_SysCoDefGeoC<<": "<<
-                                  proj_errno_string(proj_errno(mPJ_Proj2GeoC))<<"\n";
-        MMVII_INTERNAL_ASSERT_medium(false, "SysCo proj error")
-    }
+    testPJerror(mPJ_Proj2GeoC, MMVII_SysCoDefGeoC, mDef);
     return {pj_out.xyz.x, pj_out.xyz.y, pj_out.xyz.z};
 }
 
@@ -513,14 +509,7 @@ tPt3dr cSysCoProj::Inverse(const tPt & in) const //< from GeoC
 PJ* createCRS2CRS(const std::string &def_from, const std::string &def_to)
 {
     PJ* aPJ = proj_create_crs_to_crs(nullptr, def_from.c_str(), def_to.c_str(), nullptr);
-    if (!aPJ)
-    {
-        StdOut() << "Error: init proj \""<<def_from<<"\" to \""<<def_to
-                 <<"\":\n"<<proj_errno_string(proj_errno(aPJ))<<"\n";
-        MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eBadSysCo,
-                                   std::string("Error in SysCo definition for \"")
-                                   +def_from+"\" to \""+def_to+"\": "+proj_errno_string(proj_errno(aPJ)))
-    }
+    testPJerror(aPJ, def_from, def_to);
     return aPJ;
 }
 
