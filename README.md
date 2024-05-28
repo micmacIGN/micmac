@@ -215,17 +215,17 @@ or build your own image from scratch using the existing Dockerfile:
 [![Docker Status](https://dockeri.co/image/rupnike/micmac)](https://hub.docker.com/r/rupnike/micmac/)
 
 # Run the example dataset
-1. Download the test dataset available **[HERE](https://micmac.ensg.eu/data/gravillons_dataset.zip)**
-2. unzip the folder and open a terminal inside the folder containing the images
-3. Run processing scripts:
+- Download the test dataset available **[HERE](https://micmac.ensg.eu/data/gravillons_dataset.zip)**
+- unzip the folder and open a terminal inside the folder containing the images
+- Run processing scripts:
 	- under Linux (Ubuntu) distribution:
-	```sh
-	sh gravillons_test.sh
-	```
+		```sh
+		sh gravillons_test.sh
+		```
  	- under Windows:
-	```sh
-	./gravillons_test.bat
-	```
+		```sh
+		./gravillons_test.bat
+		```
 # License
 This project is licensed under the **CECILL-B** License - see the **[LICENSE.md](LICENSE.md)** file for details.
 

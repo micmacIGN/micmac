@@ -72,7 +72,7 @@ Under Linux (Ubuntu) distribution the installation procedure is as follows:
 	```
 
 ## Windows
-Before starting the installation, it is necessary to install **MicMac v1** by following the instructions **[HERE](https://github.com/micmacIGN/micmac)**).
+Before starting the installation, it is necessary to install **MicMac v1** by following the instructions **[HERE](https://github.com/micmacIGN/micmac)**.
 
 Under Windows the installation procedure is as follows:
 
@@ -154,9 +154,9 @@ These are typically installed by default on Ubuntu. If not, you can install them
 	```
 
 **Configuration:**
-1. Ensure MMVII is compiled.
-2. Make sure the MMVII executable is in your `$PATH`.
-3. Add the following line to your `${HOME}/.bashrc` file:
+- Ensure MMVII is compiled.
+- Make sure the MMVII executable is in your `$PATH`.
+- Add the following line to your `${HOME}/.bashrc` file:
 
     ```sh
     [ -f ${HOME}/@MICMAC_SOURCE_DIR@/micmac/MMVII/bash-completion/mmvii-completion ] && . ${HOME}/@MICMAC_SOURCE_DIR@/micmac/MMVII/bash-completion/mmvii-completion
@@ -168,16 +168,17 @@ After making this modification, the command completion feature will be active in
 ### Graphical User Interface vMMVII
 The **vMMVII** tool provides a convenient graphical user interface (GUI) for writing **MMVII** commands.
 
-If you have the Qt5 (or Qt6) development package installed, **vMMVII** will be automatically compiled with **MMVII**. For Ubuntu 22.04, you can install the necessary package with the following command:
+If you have the Qt5 (or Qt6) development package installed, **vMMVII** will be automatically compiled with **MMVII**. 
 
-	```bash
-	sudo apt install qtbase5-dev
-	```
+For Ubuntu 22.04, you can install the necessary package with the following command:
+```bash
+sudo apt install qtbase5-dev
+```
 
 For windows, you can download and install Qt from **[HERE](https://www.qt.io/download)** and adapt the following command:
-	```bash
-	"[CMAKE_DIR]\cmake.exe" .. "-DCMAKE_TOOLCHAIN_FILE=[VCPKG_DIR]vcpkg\scripts\buildsystems\vcpkg.cmake" “-DCMAKE_PREFIX_PATH=[QT_DIR]\msvc2019_64”
-	```
+```bash
+"[CMAKE_DIR]\cmake.exe" .. "-DCMAKE_TOOLCHAIN_FILE=[VCPKG_DIR]vcpkg\scripts\buildsystems\vcpkg.cmake" “-DCMAKE_PREFIX_PATH=[QT_DIR]\msvc2019_64”
+```
 
 To use **vMMVII**, simply type `vMMVII` in a terminal in your working directory.
 
