@@ -1,6 +1,5 @@
 # MicMac
 
-- For the french version click **[HERE](LISEZMOI.md)**.
 - For **MicMac v2 (MMVII)** click **[HERE](MMVII/Readme.md)**. 
 
 **Table of Contents**
@@ -8,7 +7,7 @@
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 	- [Linux Ubuntu distribution](#linux-ubuntu-distribution)
- 	- [Windows 10](#windows-10)
+ 	- [Windows](#windows)
 		- [Windows via WSL subsystem](#windows-via-wsl-subsystem)
 	- [macOS](#macos)
 	- [Additionnal notes](#additionnal-notes)
@@ -23,42 +22,42 @@
 
 
 # Description
-**MicMac** is a free open-source photogrammetric software for 3D reconstruction under development at the National Institute of Geographic and Forestry Information - French Mapping Agency - (**[IGN](https://www.ign.fr/)**) and the National School of Geographic Sciences (**[ENSG](https://ensg.eu/)**). **MicMac** is distributed under **[CECILL-B](LICENSE.md)** license since 2007.
+**MicMac** is a free open-source photogrammetric software for 3D reconstruction under development at the National Institute of Geographic and Forestry Information - French Mapping Agency - (**[IGN](https://www.ign.fr/)**) and the National School of Geographic Sciences (**[ENSG](https://ensg.eu/)**) withing the **[LASTIG](https://www.umr-lastig.fr/)** lab. **MicMac** is distributed under **[CECILL-B](LICENSE.md)** license since 2007.
 
 # Prerequisites
-Some external tools need to be present on your system for **MicMac** to run properly :
+Some external tools need to be present on your system for **MicMac** to run properly:
 - **[Git](https://git-scm.com/)** to clone the repository
 - **[CMake](https://cmake.org/)** to generate build files
 - **[make](http://www.gnu.org/software/make)** for parallel processes management
-- **[ccache](https://ccache.dev/)** for recompilation optimization (optional)
 - **[ImageMagick](http://www.imagemagick.org)** for image format conversion
 - **[exiftool](http://www.sno.phy.queensu.ca/~phil/exiftool)** and **[exiv2](http://www.exiv2.org)** to read/write image meta-data
 - **[PROJ](http://trac.osgeo.org/proj/)** for coordinate system conversion and coordinate reference system transformation
 - **[Xlib](https://gitlab.freedesktop.org/xorg/lib/libx11)** to launch some GUI tools based on X window system
+- **[ccache](https://ccache.dev/)** for recompilation optimization (optional)
 - **[Qt](https://www.qt.io/)** to launch some GUI tool based on QT (optionnal)
 
 # Installation
 This section covers the compilation of **MicMac** source code to generate binaries. Pre-compiled binaries are available **[HERE](https://github.com/micmacIGN/micmac/releases)**.
 
 Compilation procedure is discribed below for the 3 main operating systems:
-- [Linux Ubuntu distribution](#linux-ubuntu-distribution)
-- [Windows 10](#windows-10)
-- [macOS](#macos) 
+- **[Linux Ubuntu distribution](#linux-ubuntu-distribution)**
+- **[Windows 10](#windows-10)**
+- **[macOS](#macos)** 
 
 
 ## Linux Ubuntu distribution
 Under Linux (Ubuntu) distribution the installation procedure is as follows:
 
 1. Open a terminal
-2. Installing dependencies:
+2. Install dependencies:
 ```bash
 sudo apt-get install git cmake make ccache imagemagick libimage-exiftool-perl exiv2 proj-bin libx11-dev qt5-default
 ```
-3. Clone **MicMac** repository:
+3. Clone the repository:
 ```bash
 git clone https://github.com/micmacIGN/micmac.git
 ```
-4. Access **micmac** folder:
+4. Access the folder:
 ```bash
 cd micmac
 ```
@@ -70,25 +69,25 @@ mkdir build && cd build
 ```bash
 cmake ../
 ```
-7. Compile **MicMac**:
+7. Compile:
 ```bash
-make install -jX
+make install -j N
 ```
-- X is the number of CPUs on the machine (the number can be retrieved by typing `nproc --all`)
+- N is the number of CPUs on the machine (the number can be retrieved by typing `nproc --all`)
 
-8. Add **MicMac** to the `PATH` (**adapt the path**):
+8. Add binaries to the `PATH` (**adapt the path**):
 ```bash
 echo 'export PATH=/home/src/micmac/bin:$PATH' >> ~/.bashrc
 ```
 
-## Windows 10
+## Windows
 Under Windows the installation procedure is as follows:
-1. Download and Install **[Microsoft Visual Studio Community 2019](https://visualstudio.microsoft.com/fr/vs/older-downloads/)** and select Env Dev C++
+1. Download and Install **[Build Tools for Visual Studio](https://visualstudio.microsoft.com/)**
 2. Download and Install **[Git](https://git-scm.com/)**
 3. Download and Install **[CMake](https://cmake.org/)**
-4. Download and Install **[Qt](https://www.qt.io/)**
+4. Download and Install **[Qt](https://www.qt.io/)** (optionnal)
 5. Open a **Git Bash** terminal
-6. Clone **MicMac** repository:
+6. Clone the repository:
 ```sh
 git clone https://github.com/micmacIGN/micmac.git
 ```
@@ -100,15 +99,15 @@ cd micmac
 ```bash
 mkdir build && cd build
 ```
-8. Generate Visual Studion Solution **MICMAC.sln**:
+8. Generate Microsoft Visual Studio Solution File **MICMAC.sln**:
 ```bash
-"C:\Program Files\CMake\bin\cmake.exe" ../
+"[CMAKE_DIR]\cmake.exe" ../
 ```
 9. Compile **MicMac**:
 ```bash
-"C:\Program Files\CMake\bin\cmake.exe" --build . --config Release --target INSTALL
+"[CMAKE_DIR]\cmake.exe" --build . --config Release --target INSTALL
 ```
-10. Add **MicMac** to Windows `PATH` environment variable via **Advanced system settings** menu. Example of path (**adapt the path**):
+10. Add binaries to Windows `PATH` environment variable via **Advanced system settings** menu. Example of path (**adapt the path**):
 ```bash
 "C:\src\micmac\bin"
 ```
@@ -134,11 +133,11 @@ brew install exiv2
 brew install proj
 brew install qt5
 ```
-3. Clone **MicMac** repository:
+3. Clone the repository:
 ```bash
 git clone https://github.com/micmacIGN/micmac.git
 ```
-4. Access **micmac** folder:
+4. Access the folder:
 ```bash
 cd micmac
 ```
@@ -152,11 +151,11 @@ cmake ../
 ```
 7. Compile **MicMac**:
 ```bash
-make install -jX
+make install -j N
 ```
-- X is the number of CPUs on the machine
+- N is the number of CPUs on the machine
 
-8. Add **MicMac** to the `PATH` (**adapt the path**):
+8. Add binaries to the `PATH` (**adapt the path**):
 ```bash
 echo 'export PATH=/home/src/micmac/bin:$PATH' >> ~/.zshrc
 ```
