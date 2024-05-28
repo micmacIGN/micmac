@@ -8,7 +8,6 @@
 - [Installation](#installation)
 	- [Linux Ubuntu distribution](#linux-ubuntu-distribution)
  	- [Windows](#windows)
-		- [Windows via WSL subsystem](#windows-via-wsl-subsystem)
 	- [macOS](#macos)
 	- [Additionnal notes](#additionnal-notes)
 		- [Install Homebrew Package Manager for macOS](#install-homebrew-package-manager-for-macos)
@@ -48,72 +47,69 @@ Compilation procedure is discribed below for the 3 main operating systems:
 ## Linux Ubuntu distribution
 Under Linux (Ubuntu) distribution the installation procedure is as follows:
 
-1. Open a terminal
-2. Install dependencies:
-```bash
-sudo apt-get install git cmake make ccache imagemagick libimage-exiftool-perl exiv2 proj-bin libx11-dev qt5-default
-```
-3. Clone the repository:
-```bash
-git clone https://github.com/micmacIGN/micmac.git
-```
-4. Access the folder:
-```bash
-cd micmac
-```
-5. Create a directory for building intermediate files and access it:
-```bash
-mkdir build && cd build
-```
-6. Generate makefiles:
-```bash
-cmake ../
-```
-7. Compile:
-```bash
-make install -j N
-```
-- N is the number of CPUs on the machine (the number can be retrieved by typing `nproc --all`)
+- Open a terminal
+- Install dependencies:
+	```bash
+	sudo apt-get install git cmake make ccache imagemagick libimage-exiftool-perl exiv2 proj-bin libx11-dev qt5-default
+	```
+- Clone the repository:
+	```bash
+	git clone https://github.com/micmacIGN/micmac.git
+	```
+- Access the folder:
+	```bash
+	cd micmac
+	```
+- Create a directory for building intermediate files and access it:
+	```bash
+	mkdir build && cd build
+	```
+- Generate makefiles:
+	```bash
+	cmake ..
+	```
+- Compile:
+	```bash
+	make install -j N
+	```
+	- N is the number of CPUs on the machine and can be retrieved by typing `nproc --all`
 
-8. Add binaries to the `PATH` (**adapt the path**):
-```bash
-echo 'export PATH=/home/src/micmac/bin:$PATH' >> ~/.bashrc
-```
+- Add binaries to the `PATH` (**adapt the path**):
+	```bash
+	echo 'export PATH=/home/src/micmac/bin:$PATH' >> ~/.bashrc
+	```
 
 ## Windows
 Under Windows the installation procedure is as follows:
-1. Download and Install **[Build Tools for Visual Studio](https://visualstudio.microsoft.com/)**
-2. Download and Install **[Git](https://git-scm.com/)**
-3. Download and Install **[CMake](https://cmake.org/)**
-4. Download and Install **[Qt](https://www.qt.io/)** (optionnal)
-5. Open a **Git Bash** terminal
-6. Clone the repository:
-```sh
-git clone https://github.com/micmacIGN/micmac.git
-```
-6. Access **micmac** folder:
-```bash
-cd micmac
-```
-7. Create a directory for building intermediate files and access it:
-```bash
-mkdir build && cd build
-```
-8. Generate Microsoft Visual Studio Solution File **MICMAC.sln**:
-```bash
-"[CMAKE_DIR]\cmake.exe" ../
-```
-9. Compile **MicMac**:
-```bash
-"[CMAKE_DIR]\cmake.exe" --build . --config Release --target INSTALL
-```
-10. Add binaries to Windows `PATH` environment variable via **Advanced system settings** menu. Example of path (**adapt the path**):
-```bash
-"C:\src\micmac\bin"
-```
-
-### Windows via WSL subsystem
-You can also use MicMac on Windows 10 through the Windows Subsystem for Linux (WSL). WSL allows you to run a Linux distribution (e.g. Ubuntu) directly on Windows, unmodified, without the overhead of a traditional virtual machine or dualboot setup. For further information please refer to the instructions in this **[WSL tutorial](https://micmac.ensg.eu/index.php/Install_MicMac_in_Windows_Subsystem_for_Linux)**.
+- Download and Install **[Build Tools for Visual Studio](https://visualstudio.microsoft.com/)**
+- Download and Install **[Git](https://git-scm.com/)**
+- Download and Install **[CMake](https://cmake.org/)**
+- Download and Install **[Qt](https://www.qt.io/)** (optionnal)
+- Open a **Git Bash** terminal
+- Clone the repository:
+	```sh
+	git clone https://github.com/micmacIGN/micmac.git
+	```
+- Access **micmac** folder:
+	```bash
+	cd micmac
+	```
+- Create a directory for building intermediate files and access it:
+	```bash
+	mkdir build && cd build
+	```
+- Generate Microsoft Visual Studio Solution File **MICMAC.sln**:
+	```bash
+	"[CMAKE_DIR]/cmake.exe" ..
+	```
+- Compile **MicMac**:
+	```bash
+	"[CMAKE_DIR]/cmake.exe" --build . --config Release --target INSTALL
+	```
+- Add binaries to Windows `PATH` environment variable via **Advanced system settings** menu. Example of path (**adapt the path**):
+	```bash
+	"C:\src\micmac\bin"
+	```
 
 ## macOS
 Under macOS we will use **[Homebrew](https://brew.sh/)** Package Manager to install dependencies.
@@ -122,100 +118,100 @@ If you don't have Homebrew, first follow the instructions **[HERE](#install-home
 
 Under macOS the installation procedure is as follows:
 
-1. Open a terminal
-2.  Use **Homebrew** to install dependencies:
-```bash
-brew install git
-brew install cmake
-brew install imagemagick
-brew install exiftool
-brew install exiv2
-brew install proj
-brew install qt5
-```
-3. Clone the repository:
-```bash
-git clone https://github.com/micmacIGN/micmac.git
-```
-4. Access the folder:
-```bash
-cd micmac
-```
-5. Create a directory for building intermediate files and access it:
-```bash
-mkdir build && cd build
-```
-6. Generate makefiles:
-```bash
-cmake ../
-```
-7. Compile **MicMac**:
-```bash
-make install -j N
-```
-- N is the number of CPUs on the machine
+- Open a terminal
+- Use **Homebrew** to install dependencies:
+	```bash
+	brew install git
+	brew install cmake
+	brew install imagemagick
+	brew install exiftool
+	brew install exiv2
+	brew install proj
+	brew install qt5
+	```
+- Clone the repository:
+	```bash
+	git clone https://github.com/micmacIGN/micmac.git
+	```
+- Access the folder:
+	```bash
+	cd micmac
+	```
+- Create a directory for building intermediate files and access it:
+	```bash
+	mkdir build && cd build
+	```
+- Generate makefiles:
+	```bash
+	cmake ..
+	```
+- Compile **MicMac**:
+	```bash
+	make install -j N
+	```
+	- N is the number of CPUs on the machine
 
-8. Add binaries to the `PATH` (**adapt the path**):
-```bash
-echo 'export PATH=/home/src/micmac/bin:$PATH' >> ~/.zshrc
-```
+- Add binaries to the `PATH` (**adapt the path**):
+	```bash
+	echo 'export PATH=/home/src/micmac/bin:$PATH' >> ~/.zshrc
+	```
 
 ## Additionnal notes
 
 ### Install Homebrew Package Manager for macOS
-1. Open a terminal
-2.  Download and run Homebrew installation script:
-```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-```
-3. Follow the on-screen instructions to complete the installation
-4. Add **Homebrew** to the configuration file of the Zsh shell environment:
-```bash
-echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zshrc
-```
-5. Execute the commands from the `.zshrc` file in the current shell session:
-```bash
-source ~/.zshrc
-```
-6. Check installation:
-```bash
-brew doctor
-```
+- Open a terminal
+- Download and run Homebrew installation script:
+	```bash
+	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+	```
+- Follow the on-screen instructions to complete the installation
+- Add **Homebrew** to the configuration file of the Zsh shell environment:
+	```bash
+	echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zshrc
+	```
+- Execute the commands from the `.zshrc` file in the current shell session:
+	```bash
+	source ~/.zshrc
+	```
+- Check installation:
+	```bash
+	brew doctor
+	```
 
 ### Qt Tools
 To use Qt GUIs, you need to adapt the **cmake** command as follows:
-```bash
-cmake ../ -DWITH_QT5=1
-```
+	```bash
+	cmake ../ -DWITH_QT5=1
+	```
 
 #### Issues
-In case **cmake** complains about missing Widgets library, you must assign `CMAKE_PREFIX_PATH`:
-```bash
-cmake ../ -DWITH_QT5=1 -DCMAKE_PREFIX_PATH=path/to/qt/X.XX.X/ 
-```
-For Linux/macOS it is sometimes necessary to append the `lib` directory to `LD_LIBRARY_PATH` in `.bashrc` / `.zshrc` to be able to use Qt tools:
+- In case **cmake** complains about missing Widgets library, you must assign `CMAKE_PREFIX_PATH` variable:
+	```bash
+	cmake ../ -DWITH_QT5=1 -DCMAKE_PREFIX_PATH=path/to/qt/X.XX.X/ 
+	```
+- For Linux/macOS it is sometimes necessary to append the `lib` directory to `LD_LIBRARY_PATH` in `.bashrc` / `.zshrc` to be able to use Qt tools:
 
-- Under Linux :
-```bash 
-echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/src/micmac/lib/' >>  ~/.bashrc
-```
-- Under macOS:
-```bash 
-echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/src/micmac/lib/' >>  ~/.zshrc
-```
+	- Under Linux :
+		```bash 
+		echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/src/micmac/lib/' >>  ~/.bashrc
+		```
+	- Under macOS:
+		```bash 
+		echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/src/micmac/lib/' >>  ~/.zshrc
+		```
 
 ### PATH and pre-compiled binaries 
 You can append the full path of the `bin` directory to `PATH` environment variable to call **MicMac** commands from anywhere. However, it is not necessary to add the `binaire-aux` directory to the `PATH` variable.
 
 ### MicMac via a Docker image
 A precompiled docker image is available and ready to use:
-```sh
-docker pull rupnike/micmac
-```
+	```sh
+	docker pull rupnike/micmac
+	```
 or build your own image from scratch using the existing Dockerfile:
-```sh
-docker image build -t micmac:1.0 -f Dockerfile
-```
+	```sh
+	docker image build -t micmac:1.0 -f Dockerfile
+	```
 [![Docker Status](https://dockeri.co/image/rupnike/micmac)](https://hub.docker.com/r/rupnike/micmac/)
 
 # Run the example dataset

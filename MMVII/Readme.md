@@ -12,7 +12,7 @@
 	- [Additionnal notes](#additionnal-notes)
 		- [Compilation details](#compilation-details)
 		- [MMVII Command Completion](#mmvii-command-completion)
-		- [Graphical User Interface vMMVII](#graphical-user_interface_vmmvii)
+		- [Graphical User Interface vMMVII](#graphical-user-interface-vmmvii)
 		- [Documentation](#documentation)
 			- [HTML Documentation](#html-documentation)
 			- [PDF Documentation](#pdf-documentation)
@@ -47,79 +47,79 @@ Before starting the installation, it is necessary to install **MicMac v1** by fo
 
 Under Linux (Ubuntu) distribution the installation procedure is as follows:
 
-1. Open a terminal
-3. Access the folder:
-```bash
-cd micmac/MMVII
-```
-4. Create a directory for building intermediate files and access it:
-```bash
-mkdir build && cd build
-```
-6. Generate makefiles:
-```bash
-cmake ../
-```
-7. Compile **MMVII**:
-```bash
-make full -j N
-```
-- N is the number of CPUs on the machine (the number can be retrieved by typing `nproc --all`)
+- Open a terminal
+- Access the folder:
+	```bash
+	cd micmac/MMVII
+	```
+- Create a directory for building intermediate files and access it:
+	```bash
+	mkdir build && cd build
+	```
+- Generate makefiles:
+	```bash
+	cmake ../
+	```
+- Compile **MMVII**:
+	```bash
+	make full -j N
+	```
+	- N is the number of CPUs on the machine and can be retrieved by typing `nproc --all`
 
-8. Add binaries to the `PATH` (**adapt the path**):
-```bash
-echo 'export PATH=/home/src/micmac/MMVII/bin:$PATH' >> ~/.bashrc
-```
+- Add binaries to the `PATH` (**adapt the path**):
+	```bash
+	echo 'export PATH=/home/src/micmac/MMVII/bin:$PATH' >> ~/.bashrc
+	```
 
 ## Windows
 Before starting the installation, it is necessary to install **MicMac v1** by following the instructions **[HERE](https://github.com/micmacIGN/micmac)**).
 
-Under Linux (Ubuntu) distribution the installation procedure is as follows:
+Under Windows the installation procedure is as follows:
 
 ### Install PROJ via vcpkg
-1. Open a **Git Bash** terminal
-2. In another working directory, clone the repository:
-```bash
-git clone  https://github.com/microsoft/vcpkg.git
-```
-3. Access the folder:
-```bash
-cd vcpkg
-```
-4. Execute the script:
-```bash
-./bootstrap-vcpkg.bat
-```
-5. Launch the executable:
-```bash
-vcpkg.exe integrate install
-```
-6. Install PROJ:
-```bash
-vcpkg install  proj --triplet x64-windows 
-```
+- Open a **Git Bash** terminal
+- In another working directory, clone the repository:
+	```bash
+	git clone  https://github.com/microsoft/vcpkg.git
+	```
+- Access the folder:
+	```bash
+	cd vcpkg
+	```
+- Setup vcpkg:
+	```bash
+	./bootstrap-vcpkg.bat
+	```
+	```bash
+	vcpkg.exe integrate install
+	```
+- Install PROJ:
+	```bash
+	vcpkg install  proj --triplet x64-windows 
+	```
+	
 ### Install MMVII
-1. Open a **Git Bash** terminal
-2. Access the folder:
-```bash
-cd micmac/MMVII
-```
-3. Create a directory for building intermediate files and access it:
-```bash
-mkdir build && cd build
-```
-4. Specify `CMAKE_TOOLCHAIN_FILE` variable:
-```bash
-"[CMAKE_DIR]\cmake.exe" .. "-DCMAKE_TOOLCHAIN_FILE=[VCPKG_DIR]vcpkg\scripts\buildsystems\vcpkg.cmake"
-```
-5. Compile **MMVII**:
-```bash
-"[CMAKE_DIR]\cmake.exe" --build . --target full --config Release
-```
-6. Add binaries to Windows `PATH` environment variable via **Advanced system settings** menu. Example of path (**adapt the path**):
-```bash
-"C:\src\micmac\MMVII\bin"
-```
+- Open a **Git Bash** terminal
+- Access the folder:
+	```bash
+	cd micmac/MMVII
+	```
+- Create a directory for building intermediate files and access it:
+	```bash
+	mkdir build && cd build
+	```
+- Specify `CMAKE_TOOLCHAIN_FILE` variable:
+	```bash
+	"[CMAKE_DIR]/cmake.exe" .. "-DCMAKE_TOOLCHAIN_FILE=[VCPKG_DIR]/vcpkg/scripts/buildsystems/vcpkg.cmake"
+	```
+- Compile **MMVII**:
+	```bash
+	"[CMAKE_DIR]/cmake.exe" --build . --target full --config Release
+	```
+- Add binaries to Windows `PATH` environment variable via **Advanced system settings** menu. Example of path (**adapt the path**):
+	```bash
+	"C:\src\micmac\MMVII\bin"
+	```
 
 ## macOS
 
@@ -149,9 +149,9 @@ You can enable command completion for **MMVII** in Linux Bash, which simplifies 
 - `python3` 
 
 These are typically installed by default on Ubuntu. If not, you can install them using:
-```bash
-sudo apt install bash-completion python3`
-```
+	```bash
+	sudo apt install bash-completion python3`
+	```
 
 **Configuration:**
 1. Ensure MMVII is compiled.
@@ -170,14 +170,14 @@ The **vMMVII** tool provides a convenient graphical user interface (GUI) for wri
 
 If you have the Qt5 (or Qt6) development package installed, **vMMVII** will be automatically compiled with **MMVII**. For Ubuntu 22.04, you can install the necessary package with the following command:
 
-```bash
-sudo apt install qtbase5-dev
-```
+	```bash
+	sudo apt install qtbase5-dev
+	```
 
 For windows, you can download and install Qt from **[HERE](https://www.qt.io/download)** and adapt the following command:
-```bash
-"[CMAKE_DIR]\cmake.exe" .. "-DCMAKE_TOOLCHAIN_FILE=[VCPKG_DIR]vcpkg\scripts\buildsystems\vcpkg.cmake" “-DCMAKE_PREFIX_PATH=[QT_DIR]\msvc2019_64”
-```
+	```bash
+	"[CMAKE_DIR]\cmake.exe" .. "-DCMAKE_TOOLCHAIN_FILE=[VCPKG_DIR]vcpkg\scripts\buildsystems\vcpkg.cmake" “-DCMAKE_PREFIX_PATH=[QT_DIR]\msvc2019_64”
+	```
 
 To use **vMMVII**, simply type `vMMVII` in a terminal in your working directory.
 
@@ -190,38 +190,38 @@ Please note:
 The latest version of the documentation can be downloaded directly **[HERE](https://github.com/micmacIGN/micmac/releases/tag/MMVII_Documentation)**.
 
 #### HTML Documentation
-1. Ensure you have doxygen installed (on Ubuntu, you can use the following command):
-```sh
-sudo apt install doxygen
-```
-2. Navigate to the MMVII directory:
-```sh
-cd micmac/MMVII
-```
-3. Run the following command:
-```sh
-doxygen Doxyfile
-```
+- Ensure you have doxygen installed (on Ubuntu, you can use the following command):
+	```sh
+	sudo apt install doxygen
+	```
+- Navigate to the MMVII directory:
+	```sh
+	cd micmac/MMVII
+	```
+- Run the following command:
+	```sh
+	doxygen Doxyfile
+	```
 
 #### PDF Documentation
-1. Ensure you have LaTeX installed (on Ubuntu, you can use the following command):
-```sh
-sudo apt install texlive
-```
-2. Navigate to the `MMVII/Doc` directory:
-```sh
-cd micmac/MMVII/Doc
-```
-3. Run the following command:
-```sh
-make
-```
+- Ensure you have LaTeX installed (on Ubuntu, you can use the following command):
+	```sh
+	sudo apt install texlive
+	```
+- Navigate to the `MMVII/Doc` directory:
+	```sh
+	cd micmac/MMVII/Doc
+	```
+- Run the following command:
+	```sh
+	make
+	```
 
 # Run a test
-1. In a terminal type:
-```sh
-MMVII Bench 1
-```
+- In a terminal type:
+	```sh
+	MMVII Bench 1
+	```
 
 # License
 This project is licensed under the **CECILL-B** License - see the **[LICENSE.md](LICENSE.md)** file for details.
