@@ -14,13 +14,9 @@
 		- [MMVII Command Completion](#mmvii-command-completion)
 		- [Graphical User Interface vMMVII](#graphical-user_interface_vmmvii)
 		- [Documentation](#documentation)
-		
-		- [Install Homebrew Package Manager for macOS](#install-homebrew-package-manager-for-macos)
-		- [Qt Tools](#qt-tools)
-			- [Issues](#issues)
-		- [PATH and pre-compiled binaries ](#path-and-pre-compiled-binaries)
-		- [MicMac via a Docker image](#micmac-via-a-docker-image)
-- [Run the example dataset](#run-the-example-dataset)
+			- [HTML Documentation](#html-documentation)
+			- [PDF Documentation](#pdf-documentation)
+- [Run a test](#run-a-test)
 - [License](#license)
 - [Useful links](#useful-links)
 
@@ -135,15 +131,15 @@ mkdir build && cd build
 - Use `cmake --build . --target clean` or `cmake --build . --target cleanall`
 - Use `ccmake ..` or `cmake-gui ..` to change config option:
 - CMAKE_BUILD_TYPE:
-	. Debug : -g
-	. RelWithDebInfo : -O3 -g  (default)
-	. Release : -O3 -DNDEBUG
+	- Debug : -g
+	- RelWithDebInfo : -O3 -g  (default)
+	- Release : -O3 -DNDEBUG
 - CMAKE_CXX_COMPILER (advanced mode : 't'):
-	. Allow to set compiler version and type (g++, clang)
+	- Allow to set compiler version and type (g++, clang)
 - Clean :
-	. make clean     : delete build products
-	. make distclean : delete build products and generated codes
-	. rm -fr MMVII/build/* : reinitialize the build configuration
+	- make clean     : delete build products
+	- make distclean : delete build products and generated codes
+	- rm -fr MMVII/build/* : reinitialize the build configuration
 
 ### MMVII Command Completion
 You can enable command completion for **MMVII** in Linux Bash, which simplifies the use of **MMVII** commands.
@@ -193,7 +189,7 @@ Please note:
 
 The latest version of the documentation can be downloaded directly **[HERE](https://github.com/micmacIGN/micmac/releases/tag/MMVII_Documentation)**.
 
-#### To Generate HTML Documentation
+#### HTML Documentation
 1. Ensure you have doxygen installed (on Ubuntu, you can use the following command):
 ```sh
 sudo apt install doxygen
@@ -207,7 +203,7 @@ cd micmac/MMVII
 doxygen Doxyfile
 ```
 
-#### To Generate PDF Documentation
+#### PDF Documentation
 1. Ensure you have LaTeX installed (on Ubuntu, you can use the following command):
 ```sh
 sudo apt install texlive
