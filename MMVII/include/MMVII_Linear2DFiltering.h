@@ -48,6 +48,13 @@ void  ExpFilterOfStdDev(cDataIm2D<Type> & aIOut,const cDataIm2D<Type> & aImIn,in
 
 
 /**************************************/
+/*           Average square filter    */
+/**************************************/
+
+template <class Type> void  SquareAvgFilter(cDataIm2D<Type> & aDIm,int  aNbIt,int aSzX,int aSzY);
+
+
+/**************************************/
 /*           Use en 1D Images         */
 /**************************************/
 
