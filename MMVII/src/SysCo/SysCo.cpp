@@ -7,8 +7,6 @@
 namespace MMVII
 {
 
-PJ* cSysCo::PJ_GeoC2Geog = nullptr;
-
 const std::string SysCoDefSep = "*";
 
 PJ* createCRS2CRS(const std::string &def_from, const std::string &def_to); //< returns nullptr if error
@@ -177,19 +175,19 @@ void testPJerror(PJ* aPJ, std::string aDefFrom, std::string aDefTo)
 
 
 cSysCo::cSysCo() :
-    mDef(), mType(eSysCo::eLocalSys)
+    mDef(), mType(eSysCo::eLocalSys), mPJ_GeoC2Geog(nullptr)
 {
-    if (!PJ_GeoC2Geog)
-        PJ_GeoC2Geog = createCRS2CRS(MMVII_SysCoDefGeoC, MMVII_SysCoDefLatLong);
+    mPJ_GeoC2Geog = createCRS2CRS(MMVII_SysCoDefGeoC, MMVII_SysCoDefLatLong);
 }
 
-cSysCo::cSysCo(const std::string &aDef) :
-    mDef(aDef), mType(eSysCo::eLocalSys)
+cSysCo::cSysCo(const std::string &aDef) : cSysCo()
 {
+    mDef = aDef;
 }
 
 cSysCo::~cSysCo()
 {
+    proj_destroy(mPJ_GeoC2Geog);
 }
 
 bool cSysCo::isEuclidian() const
@@ -223,7 +221,7 @@ tREAL8 cSysCo::getRadiusApprox(const tPt &in) const
 {
     auto inGeoc = Value(in);
     PJ_COORD pj_geoc = toPjCoord(inGeoc);
-    PJ_COORD pj_geog = proj_trans(PJ_GeoC2Geog, PJ_FWD, pj_geoc);
+    PJ_COORD pj_geog = proj_trans(mPJ_GeoC2Geog, PJ_FWD, pj_geoc);
     tREAL8 lat = pj_geog.lp.phi/AngleInRad(eTyUnitAngle::eUA_degree);
 
     //GRS80
@@ -235,7 +233,7 @@ tREAL8 cSysCo::getRadiusApprox(const tPt &in) const
 tREAL8 cSysCo::getDistHzApprox(const tPt & aPtA, const tPt & aPtB) const
 {
     auto aPtAGeoc = Value(aPtA);
-    auto aPtAgeog = fromPjCoord(proj_trans(PJ_GeoC2Geog, PJ_FWD, toPjCoord(aPtAGeoc)));
+    auto aPtAgeog = fromPjCoord(proj_trans(mPJ_GeoC2Geog, PJ_FWD, toPjCoord(aPtAGeoc)));
     auto aPtBGeoc = Value(aPtB);
 
     tREAL8 cosAlpha = Scal(aPtAGeoc,aPtBGeoc)/(Norm2(aPtAGeoc)*Norm2(aPtBGeoc));
@@ -344,8 +342,8 @@ cSysCoLGeo::cSysCoLGeo(const std::string &aDef) :
         tPt aOmegaPhiKappa(std::stod(tokens[4]), std::stod(tokens[5]), std::stod(tokens[6]));
         mTranfo2GeoC.SetRotation(cRotation3D<tREAL8>::RotFromWPK(aOmegaPhiKappa));
 
-        PJ_COORD to = proj_trans(PJ_GeoC2Geog, PJ_FWD, toPjCoord(mTranfo2GeoC.Tr()));
-        testPJerror(PJ_GeoC2Geog, MMVII_SysCoGeoC, MMVII_SysCoDefLatLong);
+        PJ_COORD to = proj_trans(mPJ_GeoC2Geog, PJ_FWD, toPjCoord(mTranfo2GeoC.Tr()));
+        testPJerror(mPJ_GeoC2Geog, MMVII_SysCoGeoC, MMVII_SysCoDefLatLong);
         mCenterLatRad = to.lp.phi/AngleInRad(eTyUnitAngle::eUA_degree);
         mCenterLongRad = to.lp.lam/AngleInRad(eTyUnitAngle::eUA_degree);
     }

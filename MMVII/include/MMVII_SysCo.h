@@ -37,8 +37,13 @@ void AddData(const cAuxAr2007 & anAux, cSysCoData & aSysCoData);
 class cSysCo : public cDataInvertibleMapping<tREAL8,3>
 {
 public :
-    cSysCo(const cSysCo &other) = delete;
     virtual ~cSysCo();
+
+    // do not copy and move because of PJ* (not needed via tPtrSysCo)
+    cSysCo(const cSysCo &other) = delete;
+    cSysCo(cSysCo &&other) = delete;
+    cSysCo& operator=(const cSysCo& other) = delete;
+    cSysCo& operator=(cSysCo&& other) = delete;
 
     virtual tPt Value(const tPt &)   const override = 0; //< to GeoC
     virtual tPt Inverse(const tPt &) const override = 0; //< from GeoC
@@ -56,12 +61,13 @@ public :
 
     eSysCo getType() const { return mType; }
     bool isEuclidian() const;
+
 protected :
     cSysCo();
     cSysCo(const std::string & def);
     std::string mDef; //< definition
     eSysCo mType;
-    static PJ* PJ_GeoC2Geog; //< for generic use
+    PJ* mPJ_GeoC2Geog; //< for generic use
 };
 
 //------------------------------------------------------------
