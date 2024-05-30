@@ -204,6 +204,11 @@ typedef cPtxd<float,3>   cPt3df ;
 // If Dim=3   1-> 6  2->    3->26 ( 3^3 -1)
 template <const int Dim>  const std::vector<cPtxd<int,Dim>> & AllocNeighbourhood(int aNbVois);
 
+//  classical  8-Neighbourhood
+const std::vector<cPt2di> & Alloc8Neighbourhood();
+//  classical  4-Neighbourhood
+const std::vector<cPt2di> & Alloc4Neighbourhood();
+
 //  Create a tab where K entrie represent vectors having NormInf equal to K
 //  !! =>  Entry go from 0 to aDistMax included
 //  !! =>   the size can be larger (but obviously not smaller) than dist required, as function remumber previous calls ....
