@@ -274,6 +274,7 @@ cMMVII_Appli::cMMVII_Appli
    mVMainSets     (NbMaxMainSets,tNameSet(eTySC::NonInit)),
    mResulMultiS   (EXIT_FAILURE),
    mRMSWasUsed    (false),
+   mNumTagObjCr   (-1),
    mNumOutPut     (0),
    mOutPutV1      (false),
    mOutPutV2      (false),
@@ -467,6 +468,11 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
         mArgFac <<  AOpt2007(mIntervFilterMS[1],GOP_Int1,"File Filter Interval, Second Set",{eTA2007::Shared,{eTA2007::FFI,"1"}});
         mArgFac <<  AOpt2007(mTransfoFFI[1],"Pat"+GOP_Int1,"Pattern Transfo File Filter Interval, Main Set"  ,{eTA2007::Shared});
       }
+  }
+  if  (The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_micro)
+  {
+      mArgFac
+         <<  AOpt2007(mNumTagObjCr,"NTOC4ML","Num of tagged object at creation for memory leak",{eTA2007::Global});
   }
   mArgFac
       <<  AOpt2007(mNumOutPut,GOP_NumVO,"Num version for output format (1 or 2)",{eTA2007::Global,{eTA2007::Range,"[1,2]"}})
@@ -681,6 +687,11 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
        mPrefixGMA  = mPrefixNameAppli;
        mPrefix_TIM_GMA = StrIdTime();
        mDirProjGMA = mDirProject;
+   }
+
+   if (IsInit(&mNumTagObjCr))
+   {
+       cMemCountable::SetTaggedObjectAtCreation(mNumTagObjCr);
    }
 
   // Manange OutPut redirection

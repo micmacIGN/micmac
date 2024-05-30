@@ -18,7 +18,9 @@ namespace MMVII
 
 // It generates error that, to my best knowledge, should not. Waiting for better time where
 // I will understand and solve them, they are tagged unresolved
-#define  The_MMVII_DebugLevel_Unresoved     6  
+#define  The_MMVII_DebugLevel_Unresoved     7  
+//  New level added for tracking memory leak, relatively costly in memory
+#define  The_MMVII_DebugLevel_InternalError_micro    6
 // Ce ne sont pas de petite erreurs, mais des erruer couteuse a checker
 #define  The_MMVII_DebugLevel_InternalError_tiny     5  
 #define  The_MMVII_DebugLevel_InternalError_medium   4

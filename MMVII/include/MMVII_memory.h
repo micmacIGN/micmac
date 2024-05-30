@@ -154,17 +154,29 @@ class cMemCountable
 #if (The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_tiny)
          cMemCountable()  
          {
-              mCpt = TheCptObj;
+             mCpt = TheCptObj;
+	     TheCptObj++;
+#if (The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_micro)
+             MMVII_INTERNAL_ASSERT_tiny((size_t)mCpt==TheVectFreeed.size(),"Internal check in cMemCountable::TheVectFreeed");
+             TheVectFreeed.push_back(false);
+	     if (mCpt==TheNumObjTagged)
+	     {
+                 MMVII_INTERNAL_ERROR("Creation of object tagged for memory leak tracking");
+	     }
+#endif
               mActiveNbObj=   cMemManager::IsActiveMemoryCount();
               if (mActiveNbObj)
               {
                  TheNbObjLive++;
               }
-	      TheCptObj++;
          }
          cMemCountable(const cMemCountable &)  : cMemCountable () {}
          ~cMemCountable()
          {
+#if (The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_micro)
+            TheVectFreeed.at(mCpt) = true;
+#endif
+
             if (mActiveNbObj)
             {
                  TheNbObjLive--;
@@ -174,9 +186,16 @@ class cMemCountable
 	 int  mCpt;
 #endif
          static int    NbObjLive();
+	 static const std::vector<bool> * AdrTheVectFreeed();
+	 static void  SetTaggedObjectAtCreation(int aNum);
       private :
          static int    TheNbObjLive;
          static int    TheCptObj;
+	 static int    TheNumObjTagged;
+
+#if (The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_micro)
+	 static std::vector<bool>  TheVectFreeed;
+#endif
 };
 
 

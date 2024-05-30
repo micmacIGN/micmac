@@ -48,6 +48,7 @@ extern cSpecMMVII_Appli  TheSpecDMEvalRef;
 extern cSpecMMVII_Appli  TheSpecGenCodedTarget; 
 extern cSpecMMVII_Appli  TheSpecExtractCircTarget; 
 extern cSpecMMVII_Appli  TheSpecExtractCodedTarget; 
+extern cSpecMMVII_Appli  TheSpecExtractCheckBoardTarget; 
 extern cSpecMMVII_Appli  TheSpecSimulCodedTarget; 
 extern cSpecMMVII_Appli  TheSpecDensifyRefMatch; 
 extern cSpecMMVII_Appli  TheSpecCompletUncodedTarget; 

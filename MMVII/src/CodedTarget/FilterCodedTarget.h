@@ -233,7 +233,8 @@ bool TestDirDCT(cDCT & aDCT,cIm2D<tREAL4> anIm,double aRayCB, double size_factor
 
 
 /**  To be general we use this abstract class for descring a basis of function,
- *   for a given pixel it must return a vector of value for each element of the basis
+ *   Let F1,F2 ... FN be a basis of 2D function,  for a given pixel P,
+ *   "WeightAndVals" must return a vector of value  "FK(p)" for each element of the basis
  */
 class cBasisFunc
 {
@@ -260,7 +261,7 @@ class cCompiledNeighBasisFunc
 
          /** Very basic implementation, slow but safe, will give a fast alternative later
 	  *  Typically a faster implemantation will store for once the var/covar matrix and its inverse
-	  *  (depend only of the neighbourhood */
+	  *  (depend only of the neighbourhood) */
          cDenseVect<tREAL8>   SlowCalc(const std::vector<tREAL8> & );
      private  :
          inline void AssertValsIsOk(const std::vector<tREAL8> & aVV)

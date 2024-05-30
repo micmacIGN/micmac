@@ -655,6 +655,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         std::string                               mIntervFilterMS[NbMaxMainSets];  ///< Filterings interval
 	std::vector<std::string>                  mTransfoFFI[NbMaxMainSets];  ///< Pattern of transformation for FFI
 
+	// Number of "tagged" object at creation (for tracking memory leaks)
+	int                                       mNumTagObjCr;
         // Variable for setting num of mm version for output
         int                                       mNumOutPut;  ///< specified by user
         bool                                      mOutPutV1;   ///< computed from mNumOutPut
