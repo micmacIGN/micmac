@@ -86,7 +86,7 @@ std::vector<int> cTopoObsSet::getParamIndices() const
 
 //----------------------------------------------------------------
 cTopoObsSetStation::cTopoObsSetStation(cBA_Topo *aBA_Topo) :
-    cTopoObsSet(aBA_Topo, eTopoObsSetType::eStation), mIsVericalized(true), mIsOriented(false),
+    cTopoObsSet(aBA_Topo, eTopoObsSetType::eStation), mOriStatus(eTopoStOriStat::eTopoStOriVert),
     mRotSysCo2Vert(tRot::Identity()), mRotVert2Instr(tRot::Identity()), mRotOmega({0.,0.,0.}),
     mOriginName(""), mPtOrigin(nullptr)
 {
@@ -125,7 +125,7 @@ void cTopoObsSetStation::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet)
 
 void cTopoObsSetStation::OnUpdate()
 {
-    mRotOmega.Pt() = mRotVert2Instr.Inverse(mRotOmega.Pt()); // TODO: why ?????
+    mRotOmega.Pt() = mRotVert2Instr.Inverse(mRotOmega.Pt()); // TODOJM: why ?????
 
     // like cPoseWithUK::OnUpdate(), without -...
     mRotVert2Instr = mRotVert2Instr * cRotation3D<tREAL8>::RotFromAxiator(mRotOmega.Pt());
@@ -155,8 +155,7 @@ std::string cTopoObsSetStation::toString() const
     oss<<"      "<<mRotVert2Instr.AxeI()<<"\n";
     oss<<"      "<<mRotVert2Instr.AxeJ()<<"\n";
     oss<<"      "<<mRotVert2Instr.AxeK()<<"\n";
-    oss<<"   "<<(mIsVericalized?"":"not ")<<"vericalized";
-    oss<<"   "<<(mIsOriented?"":"not ")<<"oriented\n";
+    oss<<"   "<<E2Str(mOriStatus)<<"\n";
 
     oss<<"\n   RotSysCo2Vert:\n";
     oss<<"      "<<mRotSysCo2Vert.AxeI()<<"\n";
@@ -175,8 +174,9 @@ void cTopoObsSetStation::makeConstraints(cResolSysNonLinear<tREAL8> & aSys)
 {
     mRotOmega.Pt() = {0.,0.,0.};
 
-    if (mIsVericalized && mIsOriented)
+    switch (mOriStatus)
     {
+    case(eTopoStOriStat::eTopoStOriFixed):
         mRotOmega.Pt() = {0.,0.,0.};
 #ifdef VERBOSE_TOPO
         std::cout<<"Freeze rotation for "<<&mRotOmega<<std::endl;
@@ -185,9 +185,8 @@ void cTopoObsSetStation::makeConstraints(cResolSysNonLinear<tREAL8> & aSys)
         aSys.SetFrozenVarCurVal(mRotOmega,mRotOmega.Pt());
         //for (int i=mRotOmega.IndUk0()+3;i<mRotOmega.IndUk1();++i)
         //    aSys.AddEqFixCurVar(i,0.001);
-    }
-    else if (mIsVericalized)
-    {
+        break;
+    case(eTopoStOriStat::eTopoStOriVert):
 #ifdef VERBOSE_TOPO
         std::cout<<"Freeze bascule for "<<&mRotOmega<<std::endl;
         std::cout<<"  rotation indices "<<mRotOmega.IndUk0()<<"-"<<mRotOmega.IndUk1()-2<<std::endl;
@@ -195,10 +194,12 @@ void cTopoObsSetStation::makeConstraints(cResolSysNonLinear<tREAL8> & aSys)
         aSys.SetFrozenVarCurVal(mRotOmega,mRotOmega.Pt().PtRawData(), 2); // not z
         //for (int i=mRotOmega.IndUk0()+3;i<mRotOmega.IndUk1()-1;++i)
         //    aSys.AddEqFixCurVar(i,0.001);
-    }
-    else
-    {
+        break;
+    case(eTopoStOriStat::eTopoStOriBasc):
         // free rotation: nothing to constrain
+        break;
+    case(eTopoStOriStat::eNbVals):
+        MMVII_INTERNAL_ASSERT_strong(false, "cTopoObsSetStation::makeConstraints: incorrect ori status")
     }
 }
 
@@ -210,10 +211,7 @@ bool cTopoObsSetStation::initialize(const cTopoObsSetData * aData)
 #endif
     // set parameters
     if (aData)
-    {
-        setIsOriented(aData->mStationIsOriented.value_or(false));
-        setIsVericalized(aData->mStationIsVericalized.value_or(true));
-    }
+        mOriStatus = aData->mStationOriStat.value_or(eTopoStOriStat::eTopoStOriVert);
 
     // auto fix mStationIsOriented if has orientation obs
     bool hasOriObs = false;
@@ -233,43 +231,81 @@ bool cTopoObsSetStation::initialize(const cTopoObsSetData * aData)
     }
 
     if (!hasOriObs)
-        mIsOriented = true;
+        mOriStatus = eTopoStOriStat::eTopoStOriFixed;
 
     // set origin
     std::string aOriginName;
+
     MMVII_INTERNAL_ASSERT_User(getAllObs().size()>0, eTyUEr::eUnClassedError, "Error: Obs Set without obs.")
     aOriginName = getObs(0)->getPointName(0);
     // check that every obs goes from the same point
     for (auto &aObs : getAllObs())
+    {
         MMVII_INTERNAL_ASSERT_User(aObs->getPointName(0)==aOriginName, eTyUEr::eUnClassedError, "Error: Obs Set with several origins")
+    }
     setOrigin(aOriginName); // use 1st from name as station name
 
     // initialize
     // mRotSysCo2Vert is initialized by setOrigin()
-    if (mIsVericalized && mIsOriented)
+    switch (mOriStatus)
     {
+    case(eTopoStOriStat::eTopoStOriFixed):
         return true; // nothing to do
-    }
-    if (mIsVericalized) // compute initial G0
+    case(eTopoStOriStat::eTopoStOriVert):
     {
+        cTopoObs * aObsDX = nullptr;
+        cTopoObs * aObsDY = nullptr;
+        tREAL8 G0 = NAN;
         for (auto & obs: mObs)
+        {
             if (obs->getType() == eTopoObsType::eHz)
             {
                 // TODO: use projection for init G0
                 // TODO: check if points are init
                 auto & aPtTo = mBA_Topo->getPoint(obs->getPointName(1));
-                tREAL8 G0 = atan2( aPtTo.getPt()->x() - mPtOrigin->getPt()->x(),
+                G0 = atan2( aPtTo.getPt()->x() - mPtOrigin->getPt()->x(),
                                    aPtTo.getPt()->y() - mPtOrigin->getPt()->y())
                             - obs->getMeasures().at(0);
-                //std::cout<<"Init G0: "<<G0<<std::endl;
-                mRotVert2Instr = mRotVert2Instr * cRotation3D<tREAL8>::RotFromAxiator({0., 0., G0});
-                return true;
+                break;
             }
+            if (obs->getType() == eTopoObsType::eDX && (!aObsDY || (aObsDY->getPointName(1)==obs->getPointName(1))))
+                aObsDX = obs;
+            if (obs->getType() == eTopoObsType::eDY && (!aObsDX || (aObsDX->getPointName(1)==obs->getPointName(1))))
+                aObsDY = obs;
+        }
+        if (aObsDX && aObsDY) // compute G0 from DX DY if Hz not found
+        {
+            // TODO: use projection for init G0
+            // TODO: check if points are init
+            auto & aPtTo = mBA_Topo->getPoint(aObsDX->getPointName(1));
+            G0 = atan2( aPtTo.getPt()->x() - mPtOrigin->getPt()->x(),
+                               aPtTo.getPt()->y() - mPtOrigin->getPt()->y())
+                        - atan2( aObsDX->getMeasures()[0], aObsDY->getMeasures()[0]);
+        }
+        if (std::isfinite(G0))
+        {
+            mRotVert2Instr = cRotation3D<tREAL8>::RotFromAxiator({0., 0., G0});
+#ifdef VERBOSE_TOPO
+            std::cout<<"Init G0: "<<G0<<std::endl;
+            std::cout<<"Init mRotVert2Instr:\n";
+            std::cout<<"    "<<mRotVert2Instr.AxeI()<<"\n";
+            std::cout<<"    "<<mRotVert2Instr.AxeJ()<<"\n";
+            std::cout<<"    "<<mRotVert2Instr.AxeK()<<"\n";
+#endif
+            return true;
+        }
+        return false;
     }
-    MMVII_DEV_WARNING("cTopoObsSetStation initialization not ready for not vericalized stations.")
-    // TODO: T-S?
+    case(eTopoStOriStat::eTopoStOriBasc):
+        MMVII_DEV_WARNING("cTopoObsSetStation rotation initialization not ready.")
+        // TODO: T-S?
+        return true;
+    case(eTopoStOriStat::eNbVals):
+        MMVII_INTERNAL_ASSERT_strong(false, "cTopoObsSetStation::initialize: incorrect ori status")
+        return false;
+    }
 
-    return true;
+    return false;
 }
 
 
@@ -280,6 +316,14 @@ void cTopoObsSetStation::setOrigin(std::string _OriginName)
 #endif
     mPtOrigin = &mBA_Topo->getPoint(_OriginName);
     mOriginName = _OriginName;
+
+    // automatic origin initialization
+    if (!mPtOrigin->getPt()->IsValid())
+    {
+        MMVII_DEV_WARNING("cTopoObsSetStation origin initialization not ready.")
+        *mPtOrigin->getPt() = {0.,0.,0.};
+    }
+
     mRotVert2Instr = tRot::Identity();
     mRotOmega.Pt() = {0.,0.,0.};
     mRotSysCo2Vert = mBA_Topo->getSysCo()->getVertical(*mPtOrigin->getPt());

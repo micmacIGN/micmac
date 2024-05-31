@@ -150,7 +150,7 @@ class cMMVII_BundleAdj
 
 	  void AddBlocRig(const std::vector<double>& aSigma,const std::vector<double>&  aSigmRat ); // RIGIDBLOC
 	  void AddCamBlocRig(const std::string & aCam); // RIGIDBLOC
-          bool AddTopo(const std::string & aTopoFilePath); // TOPO
+          void AddTopo(); // TOPO
           ///  =======  Add GCP, can be measure or measure & object
           void AddGCP(const std::string & aName,tREAL8 aSigmaGCP,const  cStdWeighterResidual& aWeightIm, cSetMesImGCP *);
 

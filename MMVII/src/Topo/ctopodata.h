@@ -20,6 +20,7 @@ class cTopoPointData
 public:
     void AddData(const  cAuxAr2007 & anAuxInit);
     std::string toString();
+
     std::string mName;
     cPtxd<tREAL8, 3> mInitCoord;
     bool mIsFree;
@@ -61,8 +62,7 @@ public:
     std::vector<cTopoObsData> mObs;
 
     // just for station
-    std::optional<bool> mStationIsVericalized;
-    std::optional<bool> mStationIsOriented;
+    std::optional<eTopoStOriStat> mStationOriStat;
     std::optional<tREAL8> mStationG0; // just output
     std::optional<cRotation3D<tREAL8>> mRotVert2Instr; // just output
 };
@@ -72,22 +72,32 @@ void AddData(const cAuxAr2007 & anAux, cTopoObsSetData & aObsSet);
 // ------------------------------------------------
 
 /**
- * @brief Obs codes for comp3d file interpretation
+ * @brief Obs codes for Comp3D file interpretation
  */
 enum class eCompObsType
 {
-        eCompDist=3,
-        eCompHz=5,
-        eCompHzOpen=7,
-        eCompZen=6,
-        eCompDX=14,
-        eCompDY=15,
-        eCompDZ=16,
-        //eSubFrame=11,
-        //eDistParam=22,
+    eCompDist=3,
+    eCompHz=5,
+    eCompHzOpen=7,
+    eCompZen=6,
+    eCompDX=14,
+    eCompDY=15,
+    eCompDZ=16,
+    //eDistParam=22,
+
+    eCompError,
 };
 
+eCompObsType intToCompObsType(int i); //< return eCompError if incorrect
 
+/**
+ * @brief Cor codes for Comp3D file interpretation
+ */
+enum class eCompCorType
+{
+        eCompFree=0,
+        eCompFixed=1,
+};
 
 /**
  * @brief The cTopoData class represents topometric data for serialization
@@ -96,21 +106,26 @@ class cTopoData
 {
 public:
     cTopoData() {}
-    cTopoData(cBA_Topo* aBA_topo); //< fill with actual computation data
+    cTopoData(const cBA_Topo *aBA_topo); //< fill with actual computation data
+    void InsertTopoData(const cTopoData & aOtherTopoData);
     void AddData(const  cAuxAr2007 & anAuxInit);
-    void ToFile(const std::string & aName) const;
-    void FromFile(const std::string & aName);
-    bool FromCompFile(const std::string & aName);
+    void ToFile(const std::string & aFileName) const;
+    void FromFile(const std::string & aFileName);
+    bool InsertCompObsFile(const std::string & aFileName);
+    bool InsertCompCorFile(const std::string & aFileName);
     void print();
     static cTopoData createEx1();
     //void createEx2();
     static cTopoData createEx3();
     static cTopoData createEx4();
 
-    bool addObs(MMVII::eCompObsType code, const std::string & nameFrom, const std::string & nameTo, double val, double sigma);
-
-    std::vector<cTopoPointData> mAllPoints;
+    static bool addObs(std::vector<cTopoObsSetData> & aCurrentVectObsSets, MMVII::eCompObsType code, const std::string & nameFrom, const std::string & nameTo, double val, double sigma, eTopoStOriStat aStationStatus);
+    std::set<std::string> mAllPointsNames; // all points names
+    std::vector<cTopoPointData> mAllPoints; //< for points data extracted from .cor files
     std::vector<cTopoObsSetData> mAllObsSets;
+
+protected:
+    void addObsSets(std::vector<cTopoObsSetData> & aCurrentVectObsSets);
 };
 
 

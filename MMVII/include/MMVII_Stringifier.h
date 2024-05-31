@@ -126,6 +126,7 @@ template <>  const std::string cStrIO<eFormatSensor>::msNameType;
 
 template <>  const std::string cStrIO<eTopoObsType>::msNameType;
 template <>  const std::string cStrIO<eTopoObsSetType>::msNameType;
+template <>  const std::string cStrIO<eTopoStOriStat>::msNameType;
 #endif
 
 /** These functions offer an"easy" interface to cStrIO, however I think

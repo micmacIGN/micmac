@@ -3,7 +3,7 @@
 
 #include "../BundleAdjustment/BundleAdjustment.h"
 
-//#define VERBOSE_TOPO
+#define VERBOSE_TOPO
 
 namespace MMVII
 {
@@ -20,7 +20,8 @@ class cTopoPoint : public cMemCheck
 {
     friend class cTopoData;
 public:
-    cTopoPoint(std::string name, const cPtxd<tREAL8,3> &_coord, bool _isFree, const cPtxd<tREAL8,3> &_sigmas={});
+    cTopoPoint(const std::string & name);
+    cTopoPoint(const std::string & name, const cPt3dr &aInitCoord, bool aIsFree, const cPt3dr &aSigmas);
     cTopoPoint();
     ~cTopoPoint();
     void AddData(const  cAuxAr2007 & anAuxInit);
@@ -40,9 +41,9 @@ public:
     void makeConstraints(cResolSysNonLinear<tREAL8> & aSys);
 protected:
     std::string mName;
-    cPtxd<tREAL8, 3> mInitCoord; //< coord initialized only for pure topo points, may be also reference coordinates if not free for any type of point
+    cPt3dr mInitCoord; //< coord initialized only for pure topo points, may be also reference coordinates if not free for any type of point
     bool mIsFree;
-    cPtxd<tREAL8, 3> mSigmas;
+    cPt3dr mSigmas;
     std::optional<cPtxd<tREAL8, 2> > mVertDefl;
     // Unknowns part
     cObjWithUnkowns<tREAL8>* mUK; //< the unknowns are stored as ptr, to be owned or common with GPC or image

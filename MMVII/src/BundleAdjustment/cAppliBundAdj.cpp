@@ -86,8 +86,6 @@ class cAppliBundlAdj : public cMMVII_Appli
 
 	int                       mNbIter;
 
-        std::string               mTopoFilePath;  // TOPO
-
 	std::string               mPatParamFrozCalib;
 	std::string               mPatFrosenCenters;
 	std::string               mPatFrosenOrient;
@@ -131,6 +129,8 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << mPhProj.DPMulTieP().ArgDirInOpt("TPDir","Dir for Tie Points if != DataDir")
       << mPhProj.DPRigBloc().ArgDirInOpt("BRDirIn","Dir for Bloc Rigid if != DataDir") //  RIGIDBLOC
       << mPhProj.DPRigBloc().ArgDirOutOpt() //  RIGIDBLOC
+      << mPhProj.DPTopoMes().ArgDirInOpt("TopoDirIn","Dir for Topo measures") //  TOPO
+      << mPhProj.DPTopoMes().ArgDirOutOpt() //  TOPO
       << AOpt2007
          (
             mGCPW,
@@ -155,7 +155,6 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mParamRefOri,"RefOri","Reference orientation [Ori,SimgaTr,SigmaRot?,PatApply?]",{{eTA2007::ISizeV,"[2,4]"}})  
       << AOpt2007(mVSharedIP,"SharedIP","Shared intrinc parmaters [Pat1Cam,Pat1Par,Pat2Cam...] ",{{eTA2007::ISizeV,"[2,20]"}})    // ]]
 
-      << AOpt2007(mTopoFilePath,"TopoFile","Topo obs file path")    //TOPO
     ;
 }
 
@@ -302,12 +301,9 @@ int cAppliBundlAdj::Exe()
             mBA.AddCamBlocRig(aNameIm);
     }
 
-    if (IsInit(&mTopoFilePath))
+    if (IsInit(&mPhProj.DPTopoMes().DirIn()))
     {
-        // Unused in mode release
-        [[maybe_unused]] bool aTopoOk = mBA.AddTopo(mTopoFilePath);
-        MMVII_INTERNAL_ASSERT_tiny(aTopoOk,"Error reading topo obs file "+mTopoFilePath);
-        
+        mBA.AddTopo();
     }
 
     MMVII_INTERNAL_ASSERT_User(mMeasureAdded,eTyUEr::eUnClassedError,"Not any measure added");

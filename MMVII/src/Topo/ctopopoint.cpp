@@ -1,18 +1,26 @@
 #include "ctopopoint.h"
 #include "MMVII_PhgrDist.h"
 #include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_util_tpl.h"
 #include <memory>
 namespace MMVII
 {
 
-cTopoPoint::cTopoPoint(std::string name, const cPtxd<tREAL8,3>& _coord, bool _isFree, const cPtxd<tREAL8, 3> &_sigmas) :
-    mName(name), mInitCoord(_coord), mIsFree(_isFree), mSigmas(_sigmas), mVertDefl(std::nullopt),
-    mUK(nullptr), mPt(nullptr), mOwnsUK(false)
+cTopoPoint::cTopoPoint(const std::string &name) :
+    mName(name), mInitCoord(cPt3dr::Dummy()), mIsFree(true), mSigmas({0.,0.,0.}),
+    mVertDefl(std::nullopt), mUK(nullptr), mPt(nullptr), mOwnsUK(false)
 {
 }
 
+cTopoPoint::cTopoPoint(const std::string & name, const cPt3dr &aInitCoord, bool aIsFree, const cPt3dr &aSigmas) :
+    mName(name), mInitCoord(aInitCoord), mIsFree(aIsFree), mSigmas(aSigmas),
+    mVertDefl(std::nullopt), mUK(nullptr), mPt(nullptr), mOwnsUK(false)
+{
+}
+
+
 cTopoPoint::cTopoPoint() :
-    mName(""), mInitCoord(0,0,0), mIsFree(false), mSigmas(), mVertDefl(std::nullopt),
+    mName(""), mInitCoord(cPt3dr::Dummy()), mIsFree(false), mSigmas(), mVertDefl(std::nullopt),
     mUK(nullptr), mPt(nullptr), mOwnsUK(false)
 {
 }
@@ -72,6 +80,12 @@ void cTopoPoint::findOrMakeUK(const std::vector<cBA_GCP *> & vGCP, cPhotogrammet
                 mPt = &gcp->mGCP_UK.at(i)->Pt();
                 mOwnsUK = false;
                 mIsFree = gcp->mMesGCP->MesGCP()[i].isFree();
+                mInitCoord = *mPt;
+                auto aSigma2 = gcp->mMesGCP->MesGCP()[i].mOptSigma2.value_or(cArray<tREAL4,6>());
+                mSigmas = { sqrt(aSigma2[cMes1GCP::IndXX]),
+                            sqrt(aSigma2[cMes1GCP::IndYY]),
+                            sqrt(aSigma2[cMes1GCP::IndZZ]) };
+
 #ifdef VERBOSE_TOPO
                 std::cout<<"is a GCP\n";
 #endif
@@ -90,6 +104,9 @@ void cTopoPoint::findOrMakeUK(const std::vector<cBA_GCP *> & vGCP, cPhotogrammet
             mUK = aCam;
             mPt = &aCam->Center();
             mOwnsUK = false;
+            mIsFree = true;
+            mInitCoord = *mPt;
+            mSigmas = { 0., 0., 0. };
 #ifdef VERBOSE_TOPO
             std::cout<<"is a camera\n";
 #endif

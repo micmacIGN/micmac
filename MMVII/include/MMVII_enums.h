@@ -48,6 +48,7 @@ enum class eTA2007
                 MulTieP,       ///< Multiple Tie Points
                 RigBlock,      ///< Rigid bloc    // RIGIDBLOC
                 Clino,         ///< Clinometer
+                Topo,          ///< Topo
                 SysCo,         ///< System coord
                 Input,         ///< Is this parameter used as input/read
                 Output,        ///< Is this parameter used as output/write
@@ -549,7 +550,6 @@ enum class eTopoObsSetType
 {
     eStation,
     //eDistParam,
-    //eSubFrame,
     eNbVals        ///< Tag for number of value
 };
 
@@ -563,6 +563,15 @@ enum class eTopoObsType
         eDY,
         eDZ,
         eNbVals        ///< Tag for number of value
+};
+
+// cTopoObsSetStation orientation freedom status
+enum class eTopoStOriStat
+{
+        eTopoStOriFixed,  ///< no rotation
+        eTopoStOriVert,   ///< z rotation
+        eTopoStOriBasc,   ///< 3d rotation
+        eNbVals           ///< Tag for number of value
 };
 
 
@@ -599,6 +608,7 @@ const std::string & E2Str(const eProjPC &);
 const std::string & E2Str(const eSysCo &);
 const std::string & E2Str(const eTopoObsSetType &);
 const std::string & E2Str(const eTopoObsType &);
+const std::string & E2Str(const eTopoStOriStat &);
 const std::string & E2Str(const eDCTFilters &);
 const std::string & E2Str(const eTyCodeTarget &);         
 const std::string & E2Str(const eTySC &);         

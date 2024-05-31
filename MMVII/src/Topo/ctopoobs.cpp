@@ -33,13 +33,7 @@ cTopoObs::cTopoObs(cTopoObsSet* set, cBA_Topo *aBA_Topo, eTopoObsType type, cons
         MMVII_INTERNAL_ASSERT_strong(measures.size()==1, "Obs: 1 value should be given")
         MMVII_INTERNAL_ASSERT_strong(aWeights.size()==1, "Obs: 1 weight should be given")
         break;
-/*    case eTopoObsType::eSubFrame:
-        MMVII_INTERNAL_ASSERT_strong(mSet->getType()==eTopoObsSetType::eSubFrame, "Obs: incorrect set type")
-        MMVII_INTERNAL_ASSERT_strong(pts.size()==2, "Obs: incorrect number of points")
-        MMVII_INTERNAL_ASSERT_strong(vals.size()==3, "Obs: 3 values should be given")
-        MMVII_INTERNAL_ASSERT_strong(aWeights.size()==3, "Obs: 3 weights should be given")
-        break;
-    case eTopoObsType::eDistParam:
+/*    case eTopoObsType::eDistParam:
         MMVII_INTERNAL_ASSERT_strong(mSet->getType()==eTopoObsSetType::eDistParam, "Obs: incorrect set type")
         MMVII_INTERNAL_ASSERT_strong(pts.size()==2, "Obs: incorrect number of points")
         MMVII_INTERNAL_ASSERT_strong(vals.empty(), "Obs: value should not be given")
@@ -64,7 +58,7 @@ std::string cTopoObs::toString() const
     oss<<"sigma: ";
     for (auto & val: mWeights.getSigmas())
         oss<<val<<" ";
-    oss<<"res norm: ";
+    oss<<"prev res norm: ";
     for (unsigned int i=0; i<mLastResiduals.size(); ++i)
         oss<<mLastResiduals.at(i)/mWeights.getSigmas().at(i)<<" ";
     return oss.str();

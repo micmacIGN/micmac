@@ -58,6 +58,7 @@ cTopoObsSet * make_TopoObsSet(cBA_Topo *aBA_Topo)
     return o;
 }
 
+
 /**
  * @brief The cTopoObsSetSimple class represents a set of observation without parameters
  */
@@ -81,17 +82,14 @@ public:
     tREAL8 getG0() const;
     const tRot & getRotVert2Instr() const { return mRotVert2Instr; }
     const tRot & getRotSysCo2Vert() const { return mRotSysCo2Vert; }
-    bool isVericalized(){ return mIsVericalized; }
-    void setIsVericalized(bool isVert){ mIsVericalized = isVert; }
-    bool isOriented(){ return mIsOriented; }
-    void setIsOriented(bool isOri){ mIsOriented = isOri; }
+    eTopoStOriStat getOriStatus() const { return mOriStatus; }
+    void setOriStatus(eTopoStOriStat aOriStatus) { mOriStatus = aOriStatus; }
 protected:
     cTopoObsSetStation(cBA_Topo *aBA_Topo);
     //cTopoObsSetStation(cTopoObsSetStation const&) = delete;
     //cTopoObsSetStation& operator=(cTopoObsSetStation const&) = delete;
     void createAllowedObsTypes() override;
-    bool mIsVericalized; //< bubbled (orientation free only around vertical)
-    bool mIsOriented;    //< rotation around vertical is fixed (has no sens if not mIsVericalized)
+    eTopoStOriStat mOriStatus; //< is bubbled, fixed or 3d rot free
     tRot mRotSysCo2Vert;   //< rotation between global SysCo and local vertical frame
     tRot mRotVert2Instr; //< the station orientation from local vertical frame
     cPt3dr_UK mRotOmega; //< the station orientation unknown

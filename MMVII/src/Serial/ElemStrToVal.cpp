@@ -178,7 +178,6 @@ template<> cE2Str<eTopoObsSetType>::tMapE2Str cE2Str<eTopoObsSetType>::mE2S
            {
                 {eTopoObsSetType::eStation,"Station"},
                 //{eTopoObsSetType::eDistParam,"DistParam"},
-                //{eTopoObsSetType::eSubFrame,"SubFrame"},
            };
 
 template<> cE2Str<eTopoObsType>::tMapE2Str cE2Str<eTopoObsType>::mE2S
@@ -189,8 +188,14 @@ template<> cE2Str<eTopoObsType>::tMapE2Str cE2Str<eTopoObsType>::mE2S
                 {eTopoObsType::eDX,"DX"},
                 {eTopoObsType::eDY,"DY"},
                 {eTopoObsType::eDZ,"DZ"},
-                //{eTopoObsType::eSubFrame,"SubFrame"},
                 //{eTopoObsType::eDistParam,"DistParam"},
+           };
+
+template<> cE2Str<eTopoStOriStat>::tMapE2Str cE2Str<eTopoStOriStat>::mE2S
+           {
+                {eTopoStOriStat::eTopoStOriFixed,"#FIX"},
+                {eTopoStOriStat::eTopoStOriVert,"#VERT"},
+                {eTopoStOriStat::eTopoStOriBasc,"#BASC"},
            };
 
 
@@ -225,6 +230,7 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::MulTieP,"MulTieP"},
                 {eTA2007::RigBlock,"RigBlock"},
                 {eTA2007::Clino,"Clino"},
+                {eTA2007::Topo,"Topo"},
                 {eTA2007::SysCo,"SysCo"},
                 {eTA2007::Input,"In"},
                 {eTA2007::Output,"Out"},
@@ -585,6 +591,7 @@ void BenchEnum(cParamExeBench & aParam)
     TplBenchEnum<eSysCo>();
     TplBenchEnum<eTopoObsSetType>();
     TplBenchEnum<eTopoObsType>();
+    TplBenchEnum<eTopoStOriStat>();
     TplBenchEnum<eOpAff>();
     TplBenchEnum<eTySC>();
     TplBenchEnum<eTA2007>();
@@ -1178,6 +1185,7 @@ MACRO_INSTANTITATE_STRIO_ENUM(eProjPC,"ProjPC")
 MACRO_INSTANTITATE_STRIO_ENUM(eSysCo,"SysCo")
 MACRO_INSTANTITATE_STRIO_ENUM(eTopoObsSetType,"TopoObsSetType")
 MACRO_INSTANTITATE_STRIO_ENUM(eTopoObsType,"TopoObsType")
+MACRO_INSTANTITATE_STRIO_ENUM(eTopoStOriStat,"TopoStOriStat")
 MACRO_INSTANTITATE_STRIO_ENUM(eOpAff,"OpAff")
 MACRO_INSTANTITATE_STRIO_ENUM(eModeEpipMatch,"ModeEpiMatch")
 MACRO_INSTANTITATE_STRIO_ENUM(eModePaddingEpip,"ModePadEpip")

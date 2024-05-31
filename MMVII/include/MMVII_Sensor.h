@@ -36,6 +36,7 @@ class  cPhotogrammetricProject;
 class  cSIMap_Ground2ImageAndProf ;
 class  cCalculMetaDataProject;
 class  cGlobCalculMetaDataProject;
+class  cBA_Topo;
 
 /**  helper for cPixelDomain, as the cPixelDomain must be serialisable we must separate the
  * minimal data for description, with def contructor from the more "sophisticated" object  */
@@ -436,6 +437,7 @@ class cPhotogrammetricProject
 	  cDirsPhProj &   DPMulTieP();    ///<  Accessor
 	  cDirsPhProj &   DPRigBloc();    ///<  Accessor  // RIGIDBLOC
 	  cDirsPhProj &   DPClinoMeters();    ///<  Accessor  // RIGIDBLOC
+	  cDirsPhProj &   DPTopoMes();    ///<  Accessor  // TOPO
 				    
 	  const cDirsPhProj &   DPOrient() const; ///< Accessor
 	  const cDirsPhProj &   DPRadiomData() const; ///< Accessor
@@ -448,6 +450,7 @@ class cPhotogrammetricProject
 	  const cDirsPhProj &   DPMulTieP() const;    ///<  Accessor
 	  const cDirsPhProj &   DPRigBloc() const;    ///<  Accessor  // RIGIDBLOC
 	  const cDirsPhProj &   DPClinoMeters() const;    ///<  Accessor  // RIGIDBLOC
+	  const cDirsPhProj &   DPTopoMes() const;    ///<  Accessor  // TOPO
 
 
 	  // Sometime we need several dir of the same type, like "ReportPoseCmp", or RefPose in bundle
@@ -691,6 +694,13 @@ class cPhotogrammetricProject
 	 std::list<cBlocOfCamera *> ReadBlocCams() const;
 	 void   SaveBlocCamera(const cBlocOfCamera &) const;
 
+     //===================================================================
+         //==================   Topo Mes           =========================
+	 //===================================================================
+
+	         // TOPO
+     std::vector<std::string> ReadTopoMes() const;
+     void   SaveTopoMes(const cBA_Topo & aBATopo) const;
          //==================   Camera Data Base     =========================
 
          void MakeCamDataBase();
@@ -725,7 +735,8 @@ class cPhotogrammetricProject
 	  cDirsPhProj     mDPMulTieP;         ///<  For multiple Homologous point
 	  cDirsPhProj     mDPMetaData;
 	  cDirsPhProj     mDPRigBloc;         // RIGIDBLOC
-	  cDirsPhProj     mDPClinoMeters;         // RIGIDBLOC
+      cDirsPhProj     mDPClinoMeters;         // RIGIDBLOC
+      cDirsPhProj     mDPTopoMes;         // Topo
 					      //
 
 	  std::vector<cDirsPhProj*> mDirAdded;

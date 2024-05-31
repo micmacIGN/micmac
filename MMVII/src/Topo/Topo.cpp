@@ -14,41 +14,52 @@ void cMMVII_BundleAdj::InitItereTopo()
     if (mTopo)
     {
         std::cout<<"cMMVII_BundleAdj::InitItereTopo\n";
-        mTopo->FromFile(mVGCP, mPhProj);
+        mTopo->Init(mVGCP, mPhProj);
         mTopo->AddToSys(mSetIntervUK); //after all is created
     }
 }
 
 cBA_Topo::cBA_Topo
-(cPhotogrammetricProject *aPhProj, const std::string & aTopoFilePath)  :
+(cPhotogrammetricProject *aPhProj)  :
     mPhProj  (aPhProj),
     mTopoObsType2equation
     {
         {eTopoObsType::eDist, EqTopoDist(true,1)},
-        {eTopoObsType::eHz, EqTopoHz(true,1)},
-        {eTopoObsType::eZen, EqTopoZen(true,1)},
-        {eTopoObsType::eDX, EqTopoDX(true,1)},
-        {eTopoObsType::eDY, EqTopoDY(true,1)},
-        {eTopoObsType::eDZ, EqTopoDZ(true,1)},
+        {eTopoObsType::eHz,   EqTopoHz(true,1)},
+        {eTopoObsType::eZen,  EqTopoZen(true,1)},
+        {eTopoObsType::eDX,   EqTopoDX(true,1)},
+        {eTopoObsType::eDY,   EqTopoDY(true,1)},
+        {eTopoObsType::eDZ,   EqTopoDZ(true,1)},
         //{eTopoObsType::eDist, EqDist3D(true,1)},
-        //{eTopoObsType::eSubFrame, EqTopoSubFrame(true,1)},
         //{eTopoObsType::eDistParam, EqDist3DParam(true,1)},
     },
-    mInFile(aTopoFilePath), mIsReady(false),
+    mIsReady(false),
     mSysCo(nullptr)
 {
-    std::string aPost = Postfix(mInFile,'.',true);
-    if (UCaseEqual(aPost,"obs"))
+    if (aPhProj)
     {
-        cTopoData aTopoData;
-        aTopoData.FromCompFile(mInFile);
-        mInFile = mInFile + ".json";
-        aTopoData.ToFile(mInFile);
-    }
-    if (mPhProj)
-        mSysCo = mPhProj->CurSysCoGCP(false);
-    else
+        for (auto & aInFile: aPhProj->ReadTopoMes())
+        {
+            if (aInFile == "CurSysCo.xml") // TODOJM improve
+                continue;
+            std::string aPost = Postfix(aInFile,'.',true);
+            if (UCaseEqual(aPost,"obs"))
+            {
+                mAllTopoDataIn.InsertCompObsFile( aPhProj->DPTopoMes().FullDirIn() + aInFile );
+            } else if (UCaseEqual(aPost,"cor"))
+            {
+                mAllTopoDataIn.InsertCompCorFile( aPhProj->DPTopoMes().FullDirIn() + aInFile );
+            } else{
+                cTopoData aTopoData;
+                aTopoData.FromFile( aPhProj->DPTopoMes().FullDirIn() + aInFile );
+                mAllTopoDataIn.InsertTopoData(aTopoData);
+            }
+        }
+        mSysCo = mPhProj->CurSysCo( aPhProj->DPTopoMes(), false);
+    } else {
+        // no PhProj: this is a bench, topodata will be added later
         mSysCo = cSysCo::MakeSysCo("RTL*0.*45.*0.*+proj=latlong");
+    }
 }
 
 cBA_Topo::~cBA_Topo()
@@ -76,7 +87,7 @@ void cBA_Topo::makePtsUnknowns(const std::vector<cBA_GCP*> & vGCP, cPhotogrammet
     }
 }
 
-void cBA_Topo::ToFile(const std::string & aName)
+void cBA_Topo::ToFile(const std::string & aName) const
 {
     cTopoData aTopoData(this);
     aTopoData.ToFile(aName);
@@ -84,13 +95,16 @@ void cBA_Topo::ToFile(const std::string & aName)
 
 void cBA_Topo::FromData(const cTopoData &aTopoData, const std::vector<cBA_GCP *> & vGCP, cPhotogrammetricProject *aPhProj)
 {
-    for (auto & aPointData: aTopoData.mAllPoints)
+    for (auto & aPointName: aTopoData.mAllPointsNames)
     {
-        mAllPts[aPointData.mName] = cTopoPoint(
-                    aPointData.mName,aPointData.mInitCoord,aPointData.mIsFree,
-                    aPointData.mSigmas);
-        if (aPointData.mVertDefl.has_value())
-            mAllPts[aPointData.mName].setVertDefl(aPointData.mVertDefl.value_or(cPt2dr(0.,0.)));
+        mAllPts[aPointName] = cTopoPoint(aPointName);
+    }
+    for (auto & aPoint: aTopoData.mAllPoints)
+    {
+        mAllPts[aPoint.mName] = cTopoPoint(aPoint.mName, aPoint.mInitCoord,
+                                           aPoint.mIsFree, aPoint.mSigmas);
+        //if (aPointData.mVertDefl.has_value())
+        //    mAllPts[aPointData.mName].setVertDefl(aPointData.mVertDefl.value_or(cPt2dr(0.,0.)));
     }
 
     makePtsUnknowns(vGCP, aPhProj);
@@ -121,11 +135,9 @@ void cBA_Topo::FromData(const cTopoData &aTopoData, const std::vector<cBA_GCP *>
     mIsReady = true;
 }
 
-void cBA_Topo::FromFile(const std::vector<cBA_GCP*> & vGCP, cPhotogrammetricProject *aPhProj)
+void cBA_Topo::Init(const std::vector<cBA_GCP*> & vGCP, cPhotogrammetricProject *aPhProj)
 {
-    cTopoData aTopoData;
-    aTopoData.FromFile(mInFile);
-    FromData(aTopoData, vGCP, aPhProj);
+    FromData(mAllTopoDataIn, vGCP, aPhProj);
 }
 
 void cBA_Topo::print()
@@ -245,10 +257,11 @@ void cBA_Topo::AddTopoEquations(cResolSysNonLinear<tREAL8> & aSys)
             {
                 double residual = equation->ValComp(0,i);
                 obs->getResiduals().at(i) = residual;
+                double residual_norm = residual/obs->getWeights().getSigmas()[i];
 #ifdef VERBOSE_TOPO
-                StdOut() << "  resid: " << residual << " ";
+                StdOut() << "  resid: " << residual_norm << " ";
 #endif
-                mSigma0 += Square(residual/obs->getWeights().getSigmas()[i]);
+                mSigma0 += Square(residual_norm);
             }
             aNbObs += obs->getMeasures().size();
 #ifdef VERBOSE_TOPO
@@ -270,10 +283,9 @@ void BenchTopoComp1example(cTopoData aTopoData, tREAL4 targetSigma0)
     cSetInterUK_MultipeObj<double> aSetIntervMultObj;
     double aLVM = 0.;
 
-    aTopoData.ToFile(cMMVII_Appli::TmpDirTestMMVII()+"bench-in.json");
-
-    cBA_Topo aTopo(nullptr, cMMVII_Appli::TmpDirTestMMVII()+"bench-in.json");
-    aTopo.FromFile( {}, nullptr);
+    cBA_Topo aTopo(nullptr);
+    aTopo.mAllTopoDataIn.InsertTopoData(aTopoData);
+    aTopo.Init( {}, nullptr);
 
 
 #ifdef VERBOSE_TOPO
@@ -294,7 +306,7 @@ void BenchTopoComp1example(cTopoData aTopoData, tREAL4 targetSigma0)
         aSetIntervMultObj.SetVUnKnowns(aVectSol);
 #ifdef VERBOSE_TOPO
         std::cout<<"  Sigma0: "<<aTopo.Sigma0()<<std::endl;
-        Topo.print();
+        aTopo.print();
 #endif
     }
     aTopo.ToFile(cMMVII_Appli::TmpDirTestMMVII()+"bench-out.json");

@@ -8,7 +8,7 @@
 #include "MMVII_DeclareCste.h"
 #include "MMVII_Clino.h"
 #include "cExternalSensor.h"
-
+#include "../src/Topo/Topo.h" // TODOJM
 
 
 /**
@@ -255,6 +255,7 @@ cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
     mDPMetaData       (eTA2007::MetaData,*this),
     mDPRigBloc        (eTA2007::RigBlock,*this),  // RIGIDBLOC
     mDPClinoMeters    (eTA2007::Clino,*this),  // RIGIDBLOC
+    mDPTopoMes        (eTA2007::Topo,*this),  // Topo
     mGlobCalcMTD      (nullptr)
 {
 }
@@ -289,6 +290,7 @@ void cPhotogrammetricProject::FinishInit()
     mDPMetaData.Finish();
     mDPRigBloc.Finish() ; // RIGIDBLOC
     mDPClinoMeters.Finish() ; // RIGIDBLOC
+    mDPTopoMes.Finish() ; // TOPO
 
     // Force the creation of directory for metadata spec, make 
     if (! mDPMetaData.DirOutIsInit())
@@ -351,6 +353,7 @@ cDirsPhProj &   cPhotogrammetricProject::DPTieP() {return mDPTieP;}
 cDirsPhProj &   cPhotogrammetricProject::DPMulTieP() {return mDPMulTieP;}
 cDirsPhProj &   cPhotogrammetricProject::DPRigBloc() {return mDPRigBloc;} // RIGIDBLOC
 cDirsPhProj &   cPhotogrammetricProject::DPClinoMeters() {return mDPClinoMeters;} // RIGIDBLOC
+cDirsPhProj &   cPhotogrammetricProject::DPTopoMes() {return mDPTopoMes;} // TOPO
 
 const cDirsPhProj &   cPhotogrammetricProject::DPOrient() const {return mDPOrient;}
 const cDirsPhProj &   cPhotogrammetricProject::DPRadiomData() const {return mDPRadiomData;}
@@ -363,6 +366,7 @@ const cDirsPhProj &   cPhotogrammetricProject::DPTieP() const {return mDPTieP;}
 const cDirsPhProj &   cPhotogrammetricProject::DPMulTieP() const {return mDPMulTieP;}
 const cDirsPhProj &   cPhotogrammetricProject::DPRigBloc() const {return mDPRigBloc;} // RIGIDBLOC
 const cDirsPhProj &   cPhotogrammetricProject::DPClinoMeters() const {return mDPClinoMeters;} // RIGIDBLOC
+const cDirsPhProj &   cPhotogrammetricProject::DPTopoMes() const {return mDPTopoMes;} // Topo
 
 
 const std::string &   cPhotogrammetricProject::DirPhp() const   {return mDirPhp;}
@@ -1053,6 +1057,23 @@ std::list<cBlocOfCamera *> cPhotogrammetricProject::ReadBlocCams() const
         aRes.push_back(cBlocOfCamera::FromFile(mDPRigBloc.FullDirIn()+aName));
 
     return aRes;
+}
+
+
+//  =============  Topo Mes  =================
+
+               // TOPO
+
+
+void   cPhotogrammetricProject::SaveTopoMes(const cBA_Topo & aBATopo) const
+{
+    std::string  aName = mDPTopoMes.FullDirOut() + "TopoOut." + TaggedNameDefSerial();
+    aBATopo.ToFile(aName);
+}
+
+std::vector<std::string> cPhotogrammetricProject::ReadTopoMes() const
+{
+    return GetFilesFromDir(mDPTopoMes.FullDirIn(),AllocRegex(std::string(".*")));
 }
 
 

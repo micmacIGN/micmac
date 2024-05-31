@@ -569,22 +569,23 @@ void cMMVII_BundleAdj::SaveBlocRigid()
        mBlRig->Save();
     }
 }
-void cMMVII_BundleAdj::SaveTopo()
-{
-    if (mTopo)
-    {
-       mTopo->ToFile(mTopo->getInFile() + "-out.json");
-    }
-}
 
 /* ---------------------------------------- */
 /*                 Topo                     */
 /* ---------------------------------------- */
 
-bool cMMVII_BundleAdj::AddTopo(const std::string & aTopoFilePath) // TOPO
+void cMMVII_BundleAdj::SaveTopo()
 {
-    mTopo = new cBA_Topo(mPhProj, aTopoFilePath);
-    return true;
+    if (mTopo && mPhProj->DPTopoMes().DirOutIsInit())
+    {
+        mPhProj->SaveTopoMes(*mTopo);
+    }
+}
+
+
+void cMMVII_BundleAdj::AddTopo() // TOPO
+{
+    mTopo = new cBA_Topo(mPhProj);
 }
 
 
