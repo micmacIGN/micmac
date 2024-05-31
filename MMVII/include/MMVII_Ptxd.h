@@ -169,6 +169,13 @@ template <class Type,const int Dim> class cPtxd
 	/// Used for "generik" object that must describes its box
 	cTplBox<Type,Dim>  GetBoxEnglob() const;
 	bool  InfEqDist(const tPt &,tREAL8) const;
+
+    bool IsValid() const {
+        for (int aK=0 ; aK<Dim; aK++)
+             if  (!tNumTrait<Type>::ValueOk(mCoords[aK]))
+                 return false;
+        return true;
+    }
     protected :
        Type mCoords[Dim];
 };
