@@ -12,38 +12,6 @@
 namespace MMVII
 {
 
-
-void cTopoPointData::AddData(const  cAuxAr2007 & anAuxInit)
-{
-    //std::cout<<"Add data point '"<<toString()<<"'"<<std::endl;
-    cAuxAr2007 anAux("TopoPointData",anAuxInit);
-
-    MMVII::AddData(cAuxAr2007("Name",anAux),mName);
-    MMVII::AddData(cAuxAr2007("InitCoord",anAux),mInitCoord);
-    MMVII::AddData(cAuxAr2007("IsFree",anAux),mIsFree);
-    MMVII::AddData(cAuxAr2007("Sigmas",anAux),mSigmas);
-    AddOptData(anAux,"VertDefl",mVertDefl);
-    AddOptData(anAux,"FinalCoord",mFinalCoord);
-}
-
-void AddData(const cAuxAr2007 & anAux, cTopoPointData & aTopoObs)
-{
-     aTopoObs.AddData(anAux);
-}
-
-
-std::string cTopoPointData::toString()
-{
-    std::ostringstream oss;
-    oss<<"TopoPoint "<<mName<<" "<<mInitCoord;
-    if (mFinalCoord.has_value())
-        oss<<" => "<<*mFinalCoord;
-    return  oss.str();
-}
-
-
-// -------------------------
-
 void cTopoObsData::AddData(const  cAuxAr2007 & anAuxInit)
 {
     //std::cout<<"Add data obs '"<<toString()<<"'"<<std::endl;
@@ -71,9 +39,7 @@ void cTopoObsSetData::AddData(const  cAuxAr2007 & anAuxInit)
     MMVII::EnumAddData(anAux,mType,"Type");
     MMVII::AddData(cAuxAr2007("AllObs",anAux),mObs);
 
-    //AddOptData(anAux,"StationOriStatus",mStationOriStat); // TODOJM
-    AddOptData(anAux,"Out_G0",mStationG0);
-    // AddOptData(anAux,"Out_RotVert2Instr",mRotVert2Instr); // TODOJM
+    AddSupData(anAux);
 }
 
 
@@ -82,57 +48,65 @@ void AddData(const cAuxAr2007 & anAux, cTopoObsSetData &aObsSet)
      aObsSet.AddData(anAux);
 }
 
+void cTopoObsSetStationData::AddSupData(const  cAuxAr2007 & anAux)
+{
+    MMVII::EnumAddData(anAux,mStationOriStat,"StationOriStatus");
+    AddOptData(anAux,"Out_G0",mStationG0);
+}
+
 
 // ------------------------------------
 
 cTopoData::cTopoData(const cBA_Topo* aBA_topo)
 {
-    for (auto & [aName, aPt] : aBA_topo->getAllPts())
-    {
-        cTopoPointData aPtData = {aName, aPt.mInitCoord, aPt.mIsFree, aPt.mSigmas,
-                                 aPt.mVertDefl, std::nullopt};
-        if (aPt.isReady())
-            aPtData.mFinalCoord = *aPt.getPt();
-        mAllPoints.push_back(aPtData);
-    }
-
     for (auto & aSet : aBA_topo->mAllObsSets)
     {
-        cTopoObsSetData aSetData;
-        aSetData.mType = aSet->mType;
+        std::unique_ptr<cTopoObsSetData> aSetData;
         switch (aSet->mType) {
         case eTopoObsSetType::eStation:
         {
+            aSetData = std::make_unique<cTopoObsSetStationData>();
             cTopoObsSetStation* set = dynamic_cast<cTopoObsSetStation*>(aSet);
             if (!set)
                 MMVII_INTERNAL_ERROR("error set type")
-            aSetData.mStationOriStat = set->getOriStatus();
-            aSetData.mStationG0 = set->getG0();
-            aSetData.mRotVert2Instr = set->getRotVert2Instr();
+            auto aSetStationData = dynamic_cast<cTopoObsSetStationData*>(aSetData.get());
+            aSetStationData->mStationOriStat = set->getOriStatus();
+            aSetStationData->mStationG0 = set->getG0();
+            aSetStationData->mRotVert2Instr = set->getRotVert2Instr();
             break;
         }
         case eTopoObsSetType::eNbVals:
             MMVII_INTERNAL_ERROR("unknown obs set type")
         }
 
-        for (auto & aObs : aSet->mObs)
+        if (aSetData)
         {
-            cTopoObsData aObsData = {
-                aObs->mType, aObs->mPtsNames, aObs->mMeasures,
-                aObs->mWeights.getSigmas(), aObs->getResiduals()
-            };
-            aSetData.mObs.push_back(aObsData);
+            aSetData->mType = aSet->mType;
+
+            for (auto & aObs : aSet->mObs)
+            {
+                cTopoObsData aObsData = {
+                    aObs->mType, aObs->mPtsNames, aObs->mMeasures,
+                    aObs->mWeights.getSigmas(), aObs->getResiduals()
+                };
+                aSetData->mObs.push_back(aObsData);
+            }
+
+            switch (aSet->mType) {
+            case eTopoObsSetType::eStation:
+                mAllObsSetStations.push_back( *dynamic_cast<cTopoObsSetStationData*>(aSetData.get()) );
+                break;
+            case eTopoObsSetType::eNbVals:
+                MMVII_INTERNAL_ERROR("unknown obs set type")
+            }
         }
-        mAllObsSets.push_back(aSetData);
     }
 }
 
 void cTopoData::AddData(const  cAuxAr2007 & anAuxInit)
 {
      cAuxAr2007 anAux("TopoData",anAuxInit);
-
-     MMVII::AddData(cAuxAr2007("AllPts",anAux),mAllPoints);
-     MMVII::AddData(cAuxAr2007("AllObsSets",anAux),mAllObsSets);
+     MMVII::AddData(cAuxAr2007("AllObsSetStations",anAux),mAllObsSetStations);
 }
 
 void AddData(const cAuxAr2007 & anAux, cTopoData & aTopoData)
@@ -152,24 +126,8 @@ void cTopoData::FromFile(const std::string & aFileName)
 
 void cTopoData::InsertTopoData(const cTopoData & aOtherTopoData)
 {
-    for (auto& aPtName: aOtherTopoData.mAllPointsNames)
-        mAllPointsNames.insert(aPtName);
-
-    for (auto& aObsSet: aOtherTopoData.mAllObsSets)
-        mAllObsSets.push_back(aObsSet);
-
-    for (auto& aPoint: aOtherTopoData.mAllPoints)
-        mAllPoints.push_back(aPoint);
-
-    // check that points are not duplicated
-    std::set<std::string> aTmpNamesSet;
-    for (auto& aPoint: aOtherTopoData.mAllPoints)
-    {
-        auto result = aTmpNamesSet.insert(aPoint.mName);
-        MMVII_INTERNAL_ASSERT_User(result.second, eTyUEr::eUnClassedError,
-                                   "Error: Point named "+aPoint.mName+
-                                   " appears several times in Topo data")
-    }
+    for (auto& aObsSet: aOtherTopoData.mAllObsSetStations)
+        mAllObsSetStations.push_back(aObsSet);
 }
 
 
@@ -219,7 +177,7 @@ void cleanCompLine( std::string& str)
 bool cTopoData::InsertCompObsFile(const std::string & aFileName)
 {
     int aNbNewObs = 0;
-    std::vector<cTopoObsSetData> aCurrentVectObsSets;
+    std::vector<cTopoObsSetStationData> aCurrentVectObsSetStations;
     eTopoStOriStat aCurrStationStatus = eTopoStOriStat::eTopoStOriVert;
 
     std::ifstream infile(aFileName);
@@ -245,7 +203,7 @@ bool cTopoData::InsertCompObsFile(const std::string & aFileName)
 
         if (aNewStationStatus != eTopoStOriStat::eNbVals)
         {
-            addObsSets(aCurrentVectObsSets); // if a station status is given, use only new stations
+            addObsSets(aCurrentVectObsSetStations); // if a station status is given, use only new stations
             aCurrStationStatus = aNewStationStatus;
             continue;
         }
@@ -271,8 +229,6 @@ bool cTopoData::InsertCompObsFile(const std::string & aFileName)
             StdOut() << "Error reading "<<aFileName<<" at line " << line_num << ": \""<<line<<"\"\n";
             continue;
         }
-        mAllPointsNames.insert(nameFrom);
-        mAllPointsNames.insert(nameTo);
 
         switch (code_comp) {
         case eCompObsType::eCompError:
@@ -290,81 +246,33 @@ bool cTopoData::InsertCompObsFile(const std::string & aFileName)
             break;
         }
 
-        if (!addObs(aCurrentVectObsSets, code_comp, nameFrom, nameTo,
+        if (!addObs(aCurrentVectObsSetStations, code_comp, nameFrom, nameTo,
                     val, sigma, aCurrStationStatus))
             StdOut() << "Error interpreting line " << line_num << ": \""<<aFileName<<"\"\n";
 
         ++aNbNewObs;
     }
 
-    addObsSets(aCurrentVectObsSets);
+    addObsSets(aCurrentVectObsSetStations);
 
     StdOut() << "Reading file finished, added " << aNbNewObs << " obs." << std::endl;
     return true;
 }
 
-
-bool cTopoData::InsertCompCorFile(const std::string & aFileName)
+void cTopoData::clear()
 {
-    std::ifstream infile(aFileName);
-    if (!infile.is_open())
-    {
-        StdOut() << "Error: can't open cor file \""<<aFileName<<"\""<<std::endl;
-        return false;
-    }
-
-    StdOut() << "Reading cor file \""<<aFileName<<"\"..."<<std::endl;
-    std::string line;
-    int line_num = 0;
-    while (std::getline(infile, line))
-    {
-        ++line_num;
-        //std::cout<<"read line "<<line_num<<": \""<<line<<"\""<<std::endl;
-        cleanCompLine(line);
-        if (line.empty())
-            continue;
-
-        std::istringstream iss(line);
-        int code;
-        if (!(iss >> code))
-        {
-            StdOut() << "Error reading "<<aFileName<<" at line " << line_num << ": \""<<line<<"\"\n";
-            continue;
-        }
-
-        eCompCorType code_comp  = static_cast<eCompCorType>(code);
-        // Check if the conversion succeeded
-        if (static_cast<int>(code_comp) != code) {
-            StdOut() << "Error reading "<<aFileName<<" at line " << line_num << ": \""<<line<<"\"\n";
-            continue;
-        }
-
-        std::string name;
-        double x, y, z;
-        if (!(iss >> name >> x >> y >> z))
-        {
-            StdOut() << "Error reading "<<aFileName<<" at line " << line_num << ": \""<<line<<"\"\n";
-            continue;
-        }
-        mAllPointsNames.insert(name);
-        mAllPoints.push_back({name, {x, y, z}, code_comp==eCompCorType::eCompFree});
-    }
-
-
-    StdOut() << "Reading file finished. " << mAllPointsNames.size() << " points found." << std::endl;
-
-    return true;
+    mAllObsSetStations.clear();
 }
 
-bool cTopoData::addObs(std::vector<cTopoObsSetData> &aCurrentVectObsSets, eCompObsType code,
+bool cTopoData::addObs(std::vector<cTopoObsSetStationData> &aCurrentVectObsSetStations, eCompObsType code,
                        const std::string & nameFrom, const std::string & nameTo, double val,
                        double sigma, eTopoStOriStat aStationStatus)
 {
-    cTopoObsSetData * aSetDataStation = nullptr;
+    cTopoObsSetStationData * aSetDataStation = nullptr;
     if (code != eCompObsType::eCompHzOpen) // new set if HzOpen
     {
         // search for a suitable set
-        for (auto &aObsSet : aCurrentVectObsSets)
+        for (auto &aObsSet : aCurrentVectObsSetStations)
         {
             // TODO: must search from end
             if ((!aObsSet.mObs.empty()) && (aObsSet.mObs.at(0).mPtsNames.at(0) == nameFrom))
@@ -376,8 +284,8 @@ bool cTopoData::addObs(std::vector<cTopoObsSetData> &aCurrentVectObsSets, eCompO
     }
     if (!aSetDataStation)
     {
-        aCurrentVectObsSets.push_back( {} );
-        aSetDataStation = &aCurrentVectObsSets.back();
+        aCurrentVectObsSetStations.push_back( {} );
+        aSetDataStation = &aCurrentVectObsSetStations.back();
         aSetDataStation->mType = eTopoObsSetType::eStation;
         aSetDataStation->mStationOriStat = aStationStatus;
     }
@@ -411,56 +319,40 @@ bool cTopoData::addObs(std::vector<cTopoObsSetData> &aCurrentVectObsSets, eCompO
     return true;
 }
 
-void cTopoData::addObsSets(std::vector<cTopoObsSetData> & aCurrentVectObsSets)
+void cTopoData::addObsSets(std::vector<cTopoObsSetStationData> &aCurrentVectObsSets)
 {
-    mAllObsSets.insert(mAllObsSets.end(), aCurrentVectObsSets.begin(), aCurrentVectObsSets.end());
+    mAllObsSetStations.insert(mAllObsSetStations.end(), aCurrentVectObsSets.begin(), aCurrentVectObsSets.end());
     aCurrentVectObsSets.clear();
 }
 
-void cTopoData::print()
-{
-    //std::cout<<"Points:\n";
-    //for (auto& [aName, aPtT] : mAllPts)
-    //    std::cout<<" - "<<aPtT.toString()<<"\n";
-    //std::cout<<"ObsSets:\n";
-    //for (auto &obsSet: mAllObsSets)
-    //    std::cout<<" - "<<obsSet.toString()<<"\n";
-}
-
-/*
-void cTopoData::addTopoPoint(cTopoPoint aPtT)
-{
-    MMVII_INTERNAL_ASSERT_User(mAllPts.count(aPtT.getName())==0, eTyUEr::eUnClassedError, "Error: TopoPoint " + aPtT.getName() + " already in TopoData.")
-    mAllPts[aPtT.getName()] = aPtT;
-}
-*/
-
-cTopoData cTopoData::createEx1()
+std::pair<cTopoData, cSetMesGCP> cTopoData::createEx1()
 {
     //verbose = true;
 
     //create fixed points
-    cTopoPointData ptA = {"ptA",cPt3dr(10,10,10),false};
-    cTopoPointData ptB = {"ptB",cPt3dr(20,10,10),false};
-    cTopoPointData ptC = {"ptC",cPt3dr(15,20,10),false};
-#define WW 0.01
+    cSetMesGCP aSetPts;
+    aSetPts.AddMeasure( cMes1GCP(cPt3dr(10,10,10), "ptA", 0.001) );
+    aSetPts.AddMeasure( cMes1GCP(cPt3dr(20,10,10), "ptB", 0.001) );
+    aSetPts.AddMeasure( cMes1GCP(cPt3dr(15,20,10), "ptC", 0.001) );
     // unknown point
-    cTopoPointData ptD = {"ptD",cPt3dr(14, 14, 14),true};// 14, 14, 14 // 15.000000, 13.744999, 17.80863
+    aSetPts.AddMeasure( cMes1GCP(cPt3dr(14,14,14), "ptD") );
+
+
+#define WW 0.01
     // distances to fixed points
     cTopoObsData aObs1 = {eTopoObsType::eDist, {"ptD", "ptA"},  {10.}, {WW}};
     cTopoObsData aObs2 = {eTopoObsType::eDist, {"ptD", "ptB"},  {10.}, {WW}};
     cTopoObsData aObs3 = {eTopoObsType::eDist, {"ptD", "ptC"},  {10.}, {WW}};
     cTopoObsData aObs4 = {eTopoObsType::eDist, {"ptD", "ptC"},  {10+WW}, {WW}};
 
-    cTopoObsSetData aSet1;
+    cTopoObsSetStationData aSet1;
     aSet1.mType = eTopoObsSetType::eStation;
     aSet1.mStationOriStat = eTopoStOriStat::eTopoStOriFixed;
     aSet1.mObs = {aObs1, aObs2, aObs3, aObs4};
 
     cTopoData aTopoData;
-    aTopoData.mAllPoints = {ptA, ptB, ptC, ptD};
-    aTopoData.mAllObsSets = {aSet1};
-    return aTopoData;
+    aTopoData.mAllObsSetStations = {aSet1};
+    return {aTopoData, aSetPts};
 }
 
 /*
@@ -477,11 +369,12 @@ void cTopoData::createEx2()
 
 }*/
 
-cTopoData cTopoData::createEx3()
+std::pair<cTopoData, cSetMesGCP>  cTopoData::createEx3()
 {
-    cTopoPointData aPt1 = {"Ori1",cPt3dr(100,110,100),false,cPt3dr(0.01,0.01,0.01)};
-    cTopoPointData aPt2 = {"St1",cPt3dr(100,100,100),false,cPt3dr(0.01,0.01,0.01)};
-    cTopoPointData aPt3 = {"Tr1",cPt3dr(105,115,105),true}; // 107.072, 107.072, 100
+    cSetMesGCP aSetPts;
+    aSetPts.AddMeasure( cMes1GCP(cPt3dr(100,110,100), "Ori1", 0.001) );
+    aSetPts.AddMeasure( cMes1GCP(cPt3dr(100,100,100), "St1", 0.001) );
+    aSetPts.AddMeasure( cMes1GCP(cPt3dr(105,115,105), "Tr1") ); // 107.072, 107.072, 100
 
     double g0 = 2.2;
     cTopoObsData aObs1 = {eTopoObsType::eHz, {"St1", "Ori1"},  {0. - g0}, {0.001}};
@@ -490,36 +383,35 @@ cTopoData cTopoData::createEx3()
     cTopoObsData aObs4 = {eTopoObsType::eDist, {"St1", "Tr1"},  {10.}, {0.001}};
     cTopoObsData aObs5 = {eTopoObsType::eDist, {"St1", "Tr1"},  {10.002}, {0.001}};
 
-    cTopoObsSetData aSet1;
+    cTopoObsSetStationData aSet1;
     aSet1.mType = eTopoObsSetType::eStation;
     aSet1.mStationOriStat = eTopoStOriStat::eTopoStOriVert;
     aSet1.mObs = {aObs1, aObs2, aObs3, aObs4, aObs5};
 
     cTopoData aTopoData;
-    aTopoData.mAllPoints = {aPt1, aPt2, aPt3};
-    aTopoData.mAllObsSets = {aSet1};
+    aTopoData.mAllObsSetStations = {aSet1};
 
-    return aTopoData;
+    return {aTopoData, aSetPts};
 }
 
 
-cTopoData cTopoData::createEx4()
+std::pair<cTopoData, cSetMesGCP> cTopoData::createEx4()
 {
     std::array aVectPoints = {cPt3dr(-50,0,0), cPt3dr(0,-50,0), cPt3dr(50,0,0), cPt3dr(0,50,0)};
 
+    cSetMesGCP aSetPts;
     cTopoData aTopoData;
+
     // create points with an random translation
     cPt3dr aTr = cPt3dr::PRandC()*1000.;
     for (unsigned int i=0;i<aVectPoints.size();++i)
     {
-        aTopoData.mAllPoints.push_back( { std::string("Pt")+(char)('1'+i),
-                                          aVectPoints[i]+aTr,false,cPt3dr(0.001,0.001,0.001)
-                                        } );
+        aSetPts.AddMeasure( cMes1GCP(aVectPoints[i]+aTr, std::string("Pt")+(char)('1'+i), 0.001) );
     }
-    aTopoData.mAllPoints.push_back( { "St",{0.,0.,0.},true,{0.,0.,0.} } ); // the station is free
+    aSetPts.AddMeasure( cMes1GCP(cPt3dr(0.,0.,0.), "St") ); // the station is free
 
     // create x y z obs with a random rotation
-    cTopoObsSetData aSet1;
+    cTopoObsSetStationData aSet1;
     aSet1.mType = eTopoObsSetType::eStation;
     aSet1.mStationOriStat = eTopoStOriStat::eTopoStOriBasc;
     auto aRot = cRotation3D<tREAL8>::RandomRot(M_PI);
@@ -551,9 +443,9 @@ cTopoData cTopoData::createEx4()
                              {0.001}         }     );
     }
 
-    aTopoData.mAllObsSets = {aSet1};
+    aTopoData.mAllObsSetStations = {aSet1};
 
-    return aTopoData;
+    return {aTopoData, aSetPts};
 }
 
 };

@@ -354,7 +354,10 @@ tREAL8 cSetMesImGCP::AvgSqResidual() const
          }
      }
 
-     return std::sqrt(aWA.Average());
+     if (ValidInvertibleFloatValue(aWA.SW()))
+        return std::sqrt(aWA.Average());
+     else
+         return NAN;
 }
 
 cSetMesGCP  cSetMesImGCP::ExtractSetGCP(const std::string & aName) const

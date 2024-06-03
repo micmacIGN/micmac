@@ -13,26 +13,6 @@ namespace MMVII
 class cBA_Topo;
 
 /**
- * @brief The cTopoPointData class represents the serializable data of a cTopoPoint
- */
-class cTopoPointData
-{
-public:
-    void AddData(const  cAuxAr2007 & anAuxInit);
-    std::string toString();
-
-    std::string mName;
-    cPtxd<tREAL8, 3> mInitCoord;
-    bool mIsFree;
-    cPtxd<tREAL8, 3> mSigmas;
-    std::optional<cPtxd<tREAL8, 2> > mVertDefl;
-    std::optional<cPtxd<tREAL8, 3> > mFinalCoord; // just for output
-};
-void AddData(const cAuxAr2007 & anAux, cTopoPointData & aObsSet);
-
-// ----------------------------------------
-
-/**
  * @brief The cTopoObsData class represents the serializable data of a cTopoObs
  */
 class cTopoObsData
@@ -40,7 +20,6 @@ class cTopoObsData
 public:
     void AddData(const  cAuxAr2007 & anAuxInit);
     eTopoObsType mType;
-    //std::vector<cTopoPoint*> mPts;
     std::vector<std::string> mPtsNames;
     std::vector<tREAL8> mMeasures;
     std::vector<tREAL8> mSigmas;
@@ -57,7 +36,9 @@ void AddData(const cAuxAr2007 & anAux, cTopoObsData & aObsSet);
 class cTopoObsSetData
 {
 public:
+    virtual ~cTopoObsSetData() {};
     void AddData(const  cAuxAr2007 & anAuxInit);
+    virtual void AddSupData(const  cAuxAr2007 & anAux) = 0;
     eTopoObsSetType mType;
     std::vector<cTopoObsData> mObs;
 
@@ -68,6 +49,18 @@ public:
 };
 
 void AddData(const cAuxAr2007 & anAux, cTopoObsSetData & aObsSet);
+
+class cTopoObsSetStationData: public cTopoObsSetData
+{
+public:
+    virtual ~cTopoObsSetStationData() {}
+    virtual void AddSupData(const  cAuxAr2007 & anAux) override;
+
+    eTopoStOriStat mStationOriStat;
+    std::optional<tREAL8> mStationG0; // just output
+    std::optional<cRotation3D<tREAL8>> mRotVert2Instr; // just output
+};
+
 
 // ------------------------------------------------
 
@@ -112,20 +105,18 @@ public:
     void ToFile(const std::string & aFileName) const;
     void FromFile(const std::string & aFileName);
     bool InsertCompObsFile(const std::string & aFileName);
-    bool InsertCompCorFile(const std::string & aFileName);
-    void print();
-    static cTopoData createEx1();
-    //void createEx2();
-    static cTopoData createEx3();
-    static cTopoData createEx4();
+    void clear();
+    static std::pair<cTopoData, cSetMesGCP>  createEx1();
+    //static std::pair<cTopoData, cSetMesGCP>  createEx2();
+    static std::pair<cTopoData, cSetMesGCP>  createEx3();
+    static std::pair<cTopoData, cSetMesGCP>  createEx4();
 
-    static bool addObs(std::vector<cTopoObsSetData> & aCurrentVectObsSets, MMVII::eCompObsType code, const std::string & nameFrom, const std::string & nameTo, double val, double sigma, eTopoStOriStat aStationStatus);
-    std::set<std::string> mAllPointsNames; // all points names
-    std::vector<cTopoPointData> mAllPoints; //< for points data extracted from .cor files
-    std::vector<cTopoObsSetData> mAllObsSets;
+    static bool addObs(std::vector<cTopoObsSetStationData> & aCurrentVectObsSetStations, MMVII::eCompObsType code,
+                       const std::string & nameFrom, const std::string & nameTo, double val, double sigma, eTopoStOriStat aStationStatus);
 
+    std::vector<cTopoObsSetStationData> mAllObsSetStations;
 protected:
-    void addObsSets(std::vector<cTopoObsSetData> & aCurrentVectObsSets);
+    void addObsSets(std::vector<cTopoObsSetStationData> & aCurrentVectObsSets);
 };
 
 

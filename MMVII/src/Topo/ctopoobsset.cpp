@@ -25,7 +25,7 @@ cTopoObsSet::~cTopoObsSet()
 void cTopoObsSet::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet)
 {
 #ifdef VERBOSE_TOPO
-    std::cout<<"AddToSys set "<<this<<std::endl;
+    //std::cout<<"AddToSys set "<<this<<std::endl;
 #endif
     PutUknowsInSetInterval();
 }
@@ -39,7 +39,7 @@ void cTopoObsSet::create()
 void cTopoObsSet::PutUknowsInSetInterval()
 {
 #ifdef VERBOSE_TOPO
-    std::cout<<"PutUknowsInSetInterval set "<<this<<std::endl;
+    //std::cout<<"PutUknowsInSetInterval set "<<this<<std::endl;
 #endif
     if (!mParams.empty())
         mSetInterv->AddOneInterv(mParams);
@@ -204,14 +204,11 @@ void cTopoObsSetStation::makeConstraints(cResolSysNonLinear<tREAL8> & aSys)
 }
 
 
-bool cTopoObsSetStation::initialize(const cTopoObsSetData * aData)
+bool cTopoObsSetStation::initialize()
 {
 #ifdef VERBOSE_TOPO
     std::cout<<"cTopoObsSetStation::initialize "<<mOriginName<<std::endl;
 #endif
-    // set parameters
-    if (aData)
-        mOriStatus = aData->mStationOriStat.value_or(eTopoStOriStat::eTopoStOriVert);
 
     // auto fix mStationIsOriented if has orientation obs
     bool hasOriObs = false;

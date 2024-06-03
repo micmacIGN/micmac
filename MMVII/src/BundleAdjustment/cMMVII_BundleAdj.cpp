@@ -249,29 +249,25 @@ void cMMVII_BundleAdj::OneIterationTopoOnly(tREAL8 aLVM)
 {
     StdOut() << "-------- Iter " << mNbIter << "-----------" << std::endl;
 
+    MMVII_INTERNAL_ASSERT_tiny(mTopo,"OneIterationTopoOnly: no topo??");
+
     // if it's first step, alloc ressources
     if (mPhaseAdd)
     {
         InitIteration();
     }
 
-    if (mTopo) // TOPO
-    {
-        mTopo->SetFrozenAndSharedVars(*mR8_Sys);
-    }
+    mTopo->SetFrozenAndSharedVars(*mR8_Sys);
 
     // ================================================
     //  [3]   Add compensation measures
     // ================================================
 
 
-    //OneItere_GCP();   // add GCP informations
+    OneItere_GCP();   // add GCP informations
 
-    if (mTopo) // TOPO
-    {
-        mTopo->AddTopoEquations(*mR8_Sys);
-        mTopo->print();
-    }
+    mTopo->AddTopoEquations(*mR8_Sys);
+    mTopo->print();
 
     const auto & aVectSol = mSys->R_SolveUpdateReset(aLVM);
     mSetIntervUK.SetVUnKnowns(aVectSol);
@@ -585,9 +581,8 @@ void cMMVII_BundleAdj::SaveTopo()
 
 void cMMVII_BundleAdj::AddTopo() // TOPO
 {
-    mTopo = new cBA_Topo(mPhProj);
+    mTopo = new cBA_Topo(mPhProj, this);
 }
-
 
 }; // MMVII
 

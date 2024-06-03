@@ -289,6 +289,7 @@ template <class Type> void   cResolSysNonLinear<Type>::AddEqFixVar(const int & a
      aSV.AddIV(aNumV,1.0);
      // Dont forget that the linear system compute the difference with current solution ...
      mSysLinear->PublicAddObservation(aWeight,aSV,aVal-CurSol(aNumV));
+     currNbObs++;
 }
 
 template <class Type> void   cResolSysNonLinear<Type>::R_AddEqFixVar(const int & aNumV,const tREAL8 & aVal,const tREAL8& aWeight)
@@ -413,7 +414,7 @@ template <class Type> void  cResolSysNonLinear<Type>::AddObservationLinear
           }
      }
 #endif
-     currNbObs++;  ///  Check JMM
+     currNbObs++;
      mSysLinear->PublicAddObservation(aWeight,aNewCoeff,aNewRHS);
 }
 
@@ -450,7 +451,7 @@ template <class Type> void  cResolSysNonLinear<Type>::AddObservationLinear
           }
      }
 #endif
-     currNbObs++;  ///  Check JMM
+     currNbObs++;
      mSysLinear->PublicAddObservation(aWeight,aNewCoeff,aNewRHS);
 }
 

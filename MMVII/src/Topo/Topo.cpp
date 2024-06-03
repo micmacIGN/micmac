@@ -14,13 +14,14 @@ void cMMVII_BundleAdj::InitItereTopo()
     if (mTopo)
     {
         std::cout<<"cMMVII_BundleAdj::InitItereTopo\n";
-        mTopo->Init(mVGCP, mPhProj);
+        mTopo->FromData(mVGCP, mPhProj);
         mTopo->AddToSys(mSetIntervUK); //after all is created
     }
 }
 
+
 cBA_Topo::cBA_Topo
-(cPhotogrammetricProject *aPhProj)  :
+(cPhotogrammetricProject *aPhProj, cMMVII_BundleAdj* aBA)  :
     mPhProj  (aPhProj),
     mTopoObsType2equation
     {
@@ -40,25 +41,20 @@ cBA_Topo::cBA_Topo
     {
         for (auto & aInFile: aPhProj->ReadTopoMes())
         {
-            if (aInFile == "CurSysCo.xml") // TODOJM improve
-                continue;
             std::string aPost = Postfix(aInFile,'.',true);
             if (UCaseEqual(aPost,"obs"))
             {
                 mAllTopoDataIn.InsertCompObsFile( aPhProj->DPTopoMes().FullDirIn() + aInFile );
-            } else if (UCaseEqual(aPost,"cor"))
-            {
-                mAllTopoDataIn.InsertCompCorFile( aPhProj->DPTopoMes().FullDirIn() + aInFile );
-            } else{
+            } else {
                 cTopoData aTopoData;
                 aTopoData.FromFile( aPhProj->DPTopoMes().FullDirIn() + aInFile );
                 mAllTopoDataIn.InsertTopoData(aTopoData);
             }
         }
-        mSysCo = mPhProj->CurSysCo( aPhProj->DPTopoMes(), false);
+        mSysCo = mPhProj->CurSysCoGCP();
     } else {
         // no PhProj: this is a bench, topodata will be added later
-        mSysCo = cSysCo::MakeSysCo("RTL*0.*45.*0.*+proj=latlong");
+        mSysCo = cSysCo::MakeSysCo("RTL*45*0*0*+proj=latlong");
     }
 }
 
@@ -79,11 +75,11 @@ void cBA_Topo::clear()
     mIsReady = false;
 }
 
-void cBA_Topo::makePtsUnknowns(const std::vector<cBA_GCP*> & vGCP, cPhotogrammetricProject *aPhProj)
+void cBA_Topo::findPtsUnknowns(const std::vector<cBA_GCP*> & vGCP, cPhotogrammetricProject *aPhProj)
 {
     for (auto & [aName, aPtT] : getAllPts())
     {
-        aPtT.findOrMakeUK(vGCP, aPhProj, aPtT.getInitCoord());
+        aPtT.findUK(vGCP, aPhProj, aPtT.getInitCoord());
     }
 }
 
@@ -93,52 +89,71 @@ void cBA_Topo::ToFile(const std::string & aName) const
     aTopoData.ToFile(aName);
 }
 
-void cBA_Topo::FromData(const cTopoData &aTopoData, const std::vector<cBA_GCP *> & vGCP, cPhotogrammetricProject *aPhProj)
+
+void cBA_Topo::AddPointsFromDataToGCP(cSetMesImGCP &aFullMesGCP)
 {
-    for (auto & aPointName: aTopoData.mAllPointsNames)
+    // fill every ObsSet types
+    for (auto & aSetData: mAllTopoDataIn.mAllObsSetStations)
     {
-        mAllPts[aPointName] = cTopoPoint(aPointName);
-    }
-    for (auto & aPoint: aTopoData.mAllPoints)
-    {
-        mAllPts[aPoint.mName] = cTopoPoint(aPoint.mName, aPoint.mInitCoord,
-                                           aPoint.mIsFree, aPoint.mSigmas);
-        //if (aPointData.mVertDefl.has_value())
-        //    mAllPts[aPointData.mName].setVertDefl(aPointData.mVertDefl.value_or(cPt2dr(0.,0.)));
-    }
-
-    makePtsUnknowns(vGCP, aPhProj);
-
-    for (auto & aSetData: aTopoData.mAllObsSets)
-    {
-        // create set
-        switch (aSetData.mType) {
-        case eTopoObsSetType::eStation:
-            mAllObsSets.push_back(make_TopoObsSet<cTopoObsSetStation>(this));
-            break;
-        case eTopoObsSetType::eNbVals:
-            MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eUnClassedError, "Error: unknown eTopoObsSetType.")
-        }
-        cTopoObsSet *aSet = mAllObsSets.back();
-
-        // fill obs
+        auto aSet = make_TopoObsSet<cTopoObsSetStation>(this);
+        mAllObsSets.push_back(aSet);
+        aSet->setOriStatus(aSetData.mStationOriStat); //< fill specific to this type of set
         for (auto & aObsData: aSetData.mObs)
         {
             aSet->addObs(aObsData.mType, this, aObsData.mPtsNames, aObsData.mMeasures,
                          {true, aObsData.mSigmas});
         }
+    }
 
-        // finish initialization
-        MMVII_INTERNAL_ASSERT_User(aSet->initialize(&aSetData), eTyUEr::eUnClassedError,
+    std::set<std::string> aAllPointsNames; //< will create cTopoPoints for all points refered to in observations
+    for (const auto & aSet: mAllObsSets)
+        for (const auto & aObs: aSet->getAllObs())
+            for (const auto & aName: aObs->getPointNames())
+                aAllPointsNames.insert(aName);
+
+    for (auto & aPointName: aAllPointsNames)
+    {
+        mAllPts[aPointName] = cTopoPoint(aPointName);
+    }
+
+    // add new points to GCP
+    std::set<std::string> aAllPointsNamesNotFound;
+    for (auto & aPointName: aAllPointsNames)
+    {
+        bool found = false;
+        for (auto &aMesGCP: aFullMesGCP.MesGCP())
+        {
+            if (aMesGCP.mNamePt == aPointName)
+            {
+               found = true;
+               break;
+            }
+        }
+        if (!found)
+            aAllPointsNamesNotFound.insert(aPointName);
+    }
+
+    for (auto & aPointName: aAllPointsNamesNotFound)
+    {
+        aFullMesGCP.Add1GCP( cMes1GCP({0.,0.,0.}, aPointName) );
+    }
+
+    mAllTopoDataIn.clear(); // if this function is called again, nothing more to add
+}
+
+void cBA_Topo::FromData(const std::vector<cBA_GCP *> & vGCP, cPhotogrammetricProject *aPhProj)
+{
+    findPtsUnknowns(vGCP, aPhProj);
+
+    // finish initialization when points are ready
+    for (auto & aSet: mAllObsSets)
+    {
+        MMVII_INTERNAL_ASSERT_User(aSet->initialize(), eTyUEr::eUnClassedError,
                                    "Error: Station initialization failed.")
     }
     mIsReady = true;
 }
 
-void cBA_Topo::Init(const std::vector<cBA_GCP*> & vGCP, cPhotogrammetricProject *aPhProj)
-{
-    FromData(mAllTopoDataIn, vGCP, aPhProj);
-}
 
 void cBA_Topo::print()
 {
@@ -153,28 +168,20 @@ void cBA_Topo::print()
 
 void cBA_Topo::printObs(bool withDetails)
 {
-    tREAL8 aAvgResNorm = 0.0;
     int nbObs =0;
     for (auto &obsSet: mAllObsSets)
         for (auto & obs: obsSet->getAllObs())
         {
             if (withDetails)
                 StdOut() << obs->toString()<< "\n";
-            for (unsigned int i=0;i<obs->getMeasures().size();++i)
-            {
-                ++nbObs;
-                aAvgResNorm += fabs(obs->getResiduals()[i]) / obs->getWeights().getSigmas()[i];
-            }
+            nbObs += obs->getMeasures().size();
         }
-    aAvgResNorm /= nbObs;
-    StdOut() << "Topo average std residual: " << aAvgResNorm << "\n";
+    StdOut() << "Topo sigma0: " << mSigma0 << " (" << nbObs <<  " obs)\n";
 }
 
 void cBA_Topo::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet)
 {
     MMVII_INTERNAL_ASSERT_strong(mIsReady,"cBA_Topo is not ready");
-    for (auto& [aName, aPt]: mAllPts)
-        aPt.AddToSys(aSet);
     for (auto& anObsSet: mAllObsSets)
         anObsSet->AddToSys(aSet);
 }
@@ -197,8 +204,6 @@ bool cBA_Topo::mergeUnknowns(cResolSysNonLinear<tREAL8> &aSys)
 
 void cBA_Topo::makeConstraints(cResolSysNonLinear<tREAL8> &aSys)
 {
-    for (auto& [aName, aPt]: mAllPts)
-        aPt.makeConstraints(aSys);
     for (auto &set: mAllObsSets)
         set->makeConstraints(aSys);
 }
@@ -240,14 +245,12 @@ void cBA_Topo::SetFrozenAndSharedVars(cResolSysNonLinear<tREAL8> & aSys)
 
 void cBA_Topo::AddTopoEquations(cResolSysNonLinear<tREAL8> & aSys)
 {
-    mSigma0 = 0.0;
-    int aNbObs = 0;
-    int aNbUk = 0;
+    mSigma0 = 0.0; // TODOJM compute it correctly will all obs, gcp constr etc.
     for (auto &obsSet: mAllObsSets)
         for (size_t i=0;i<obsSet->nbObs();++i)
         {
             cTopoObs* obs = obsSet->getObs(i);
-            //std::cout<<"add eq: "<<obs->toString()<<" ";
+            std::cout<<"add eq: "<<obs->toString()<<" ";
             auto equation = getEquation(obs->getType());
             aSys.CalcAndAddObs(equation, obs->getIndices(), obs->getVals(), obs->getWeights());
 #ifdef VERBOSE_TOPO
@@ -263,13 +266,13 @@ void cBA_Topo::AddTopoEquations(cResolSysNonLinear<tREAL8> & aSys)
 #endif
                 mSigma0 += Square(residual_norm);
             }
-            aNbObs += obs->getMeasures().size();
 #ifdef VERBOSE_TOPO
             StdOut() << "\n";
 #endif
         }
 
-    aNbUk = aSys.NbVar() - aSys.GetNbLinearConstraints();
+    int aNbObs = aSys.GetNbObs();
+    int aNbUk = aSys.NbVar() - aSys.GetNbLinearConstraints();
     mSigma0 = sqrt(mSigma0/(aNbObs-aNbUk));
     //StdOut() << "Sigma0 topo: " << mSigma0 << "\n";
 }
@@ -278,43 +281,35 @@ void cBA_Topo::AddTopoEquations(cResolSysNonLinear<tREAL8> & aSys)
 
 //-------------------------------------------------------------------
 
-void BenchTopoComp1example(cTopoData aTopoData, tREAL4 targetSigma0)
+void BenchTopoComp1example(const std::pair<cTopoData, cSetMesGCP>& aBenchData, tREAL4 targetSigma0)
 {
-    cSetInterUK_MultipeObj<double> aSetIntervMultObj;
     double aLVM = 0.;
+    int aNbIter = 15;
 
-    cBA_Topo aTopo(nullptr);
-    aTopo.mAllTopoDataIn.InsertTopoData(aTopoData);
-    aTopo.Init( {}, nullptr);
+    cMMVII_BundleAdj  aBA(nullptr);
+    aBA.AddTopo();
+    cBA_Topo * aTopo = aBA.getTopo();
+    aTopo->mAllTopoDataIn.InsertTopoData(aBenchData.first);
 
+    cSetMesImGCP aMesGCPtmp;
+    aMesGCPtmp.AddMes3D(aBenchData.second);
+    aTopo->AddPointsFromDataToGCP(aMesGCPtmp);
+    //here no 2d mes, fake it
+    cSetMesPtOf1Im aSetMesIm;
+    aMesGCPtmp.AddMes2D(aSetMesIm);
+    cSetMesImGCP * aMesGCP = aMesGCPtmp.FilterNonEmptyMeasure(0);
 
-#ifdef VERBOSE_TOPO
-    aTopo.print();
-#endif
-    aTopo.AddToSys(aSetIntervMultObj);
-    cDenseVect<double> aVUk = aSetIntervMultObj.GetVUnKnowns();
-    cResolSysNonLinear<double>  aSys = cResolSysNonLinear<double>(eModeSSR::eSSR_LsqNormSparse,aVUk);
+    aBA.AddGCP("topo", 1., {}, aMesGCP);
 
-    for (int iter=0; iter<15; ++iter)
+    for (int aKIter=0 ; aKIter<aNbIter ; aKIter++)
     {
-#ifdef VERBOSE_TOPO
-        std::cout<<"Iter "<<iter<<std::endl;
-#endif
-        aTopo.SetFrozenAndSharedVars(aSys);
-        aTopo.AddTopoEquations(aSys);
-        const auto & aVectSol = aSys.R_SolveUpdateReset(aLVM);
-        aSetIntervMultObj.SetVUnKnowns(aVectSol);
-#ifdef VERBOSE_TOPO
-        std::cout<<"  Sigma0: "<<aTopo.Sigma0()<<std::endl;
-        aTopo.print();
-#endif
+        aBA.OneIterationTopoOnly(aLVM);
     }
-    aTopo.ToFile(cMMVII_Appli::TmpDirTestMMVII()+"bench-out.json");
+
+    aTopo->ToFile(cMMVII_Appli::TmpDirTestMMVII()+"bench-out.json");
 
     // StdOut() << "TOPOOOERR=" << std::abs(aTopo.Sigma0()-targetSigma0) << "\n";
-    MMVII_INTERNAL_ASSERT_bench(std::abs(aTopo.Sigma0()-targetSigma0)<1e-5,"TopoComp sigma0 final");
-
-    aSetIntervMultObj.SIUK_Reset();
+    MMVII_INTERNAL_ASSERT_bench(std::abs(aTopo->Sigma0()-targetSigma0)<1e-5,"TopoComp sigma0 final");
 }
 
 void BenchTopoComp(cParamExeBench & aParam)

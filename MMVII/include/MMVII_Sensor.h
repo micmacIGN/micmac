@@ -548,9 +548,10 @@ class cPhotogrammetricProject
 	  cSetMesPtOf1Im LoadMeasureIm(const std::string &,bool InDir=true) const;
          void LoadGCP(cSetMesImGCP&,const std::string & aPatFiltrFile="",const std::string & aFiltrNameGCP="",
                       const std::string & aFiltrAdditionalInfoGCP="") const;
-	 ///  For reading GCP from folder potentially != of standard input measures
-         void LoadGCPFromFolder(const std::string & aFolder,cSetMesImGCP&,const std::string & aPatFiltrFile="",
-                                const std::string & aFiltrNameGCP="", const std::string & aFiltrAdditionalInfoGCP="") const;
+	 ///  For reading GCP from folder potentially != of standard input measures, can add missing points from topo obs
+         void LoadGCPFromFolder(const std::string & aFolder,cSetMesImGCP&, cBA_Topo * aBATopoAddPoints=nullptr,
+                                const std::string & aPatFiltrFile="", const std::string & aFiltrNameGCP="",
+                                const std::string & aFiltrAdditionalInfoGCP="" ) const;
           // if SVP && file doesnt exist, do nothing
 	  void LoadIm(cSetMesImGCP&,const std::string & aNameIm,cSensorImage * =nullptr,bool SVP=false) const;
           ///  When dont read from the standard input 

@@ -20,11 +20,11 @@ class cBA_Topo : public cMemCheck
     friend class cTopoData;
 public :
 
-    cBA_Topo(cPhotogrammetricProject *aPhProj);
+    cBA_Topo(cPhotogrammetricProject *aPhProj, cMMVII_BundleAdj *aBA);
     ~cBA_Topo();
     void clear();
 
-    void makePtsUnknowns(const std::vector<cBA_GCP *> &vGCP, cPhotogrammetricProject *aPhProj); //< to be called after points creation and before AddToSys and ObsSetStation::SetOrigin...
+    void findPtsUnknowns(const std::vector<cBA_GCP *> &vGCP, cPhotogrammetricProject *aPhProj); //< to be called after points creation and before AddToSys and ObsSetStation::SetOrigin...
 
     void  AddToSys(cSetInterUK_MultipeObj<tREAL8> &); // The system must be aware of all the unknowns
 
@@ -33,8 +33,8 @@ public :
 
     //  Do the kernel job : add topo constraints to the system
     void AddTopoEquations(cResolSysNonLinear<tREAL8> &);
-    void FromData(const cTopoData &aTopoData, const std::vector<cBA_GCP *> &vGCP, cPhotogrammetricProject *aPhProj);
-    void Init(const std::vector<cBA_GCP *> &vGCP, cPhotogrammetricProject *aPhProj);
+    void AddPointsFromDataToGCP(cSetMesImGCP &aFullMesGCP); //< get creates points in gcp from points names in data from mAllTopoDataIn, clear mAllTopoDataIn
+    void FromData(const std::vector<cBA_GCP *> &vGCP, cPhotogrammetricProject *aPhProj); //< get data from mAllTopoDataIn
     void ToFile(const std::string & aName) const;
     void print();
     void printObs(bool withDetails=false);
@@ -48,7 +48,7 @@ public :
     cCalculator<double>* getEquation(eTopoObsType tot) const;
     tPtrSysCo getSysCo() const { return mSysCo; }
 
-    friend void BenchTopoComp1example(cTopoData aTopoData, tREAL4 targetSigma0);
+    friend void BenchTopoComp1example(const std::pair<cTopoData, cSetMesGCP>& aBenchData, tREAL4 targetSigma0);
 private :
     cTopoData mAllTopoDataIn;
     cPhotogrammetricProject * mPhProj;

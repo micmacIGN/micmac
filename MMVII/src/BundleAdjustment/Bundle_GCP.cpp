@@ -49,17 +49,17 @@ void cMMVII_BundleAdj::InitItereGCP()
 {
     for (auto & aPtr_BA_GCP : mVGCP)
     {
-         //  This should no longer exist with new GCP handling
-         MMVII_INTERNAL_ASSERT_strong(aPtr_BA_GCP->mMesGCP!=nullptr,"aPtr_BA_GCP->mMesGCP");
-         if (aPtr_BA_GCP->mSigmaGCP>0)
-         {
+        //  This should no longer exist with new GCP handling
+        MMVII_INTERNAL_ASSERT_strong(aPtr_BA_GCP->mMesGCP!=nullptr,"aPtr_BA_GCP->mMesGCP");
+        if (aPtr_BA_GCP->mSigmaGCP>0)
+        {
             for (const auto & aGCP : aPtr_BA_GCP->mMesGCP->MesGCP())
-	    {
+            {
                 cPt3dr_UK * aPtrUK = new cPt3dr_UK(aGCP.mPt);
                 aPtr_BA_GCP->mGCP_UK.push_back(aPtrUK);
-	        mSetIntervUK.AddOneObj(aPtrUK);
-	    }
-         }
+                mSetIntervUK.AddOneObj(aPtrUK);
+            }
+        }
     }
 /*
     if (
@@ -142,13 +142,6 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(cBA_GCP & aBA)
         const std::vector<cPt2dr> & aVPIm  = aVMesIm.at(aKp).VMeasures();
         const std::vector<int> &  aVIndIm  = aVMesIm.at(aKp).VImages();
 
-        cPt3dr aWeightGroundXYZ(1., 1., 1.);
-        if (!aGcpFix)
-            aWeightGroundXYZ = DivCByC( {1., 1., 1.}, Square(aSigmaGCP)* MulCByC(aPtSigmas,aPtSigmas));
-
-        std::cout<<"\naPtSigmas "<<aPtSigmas<<"\n";
-        std::cout<<"aWeightGroundXYZ "<<aWeightGroundXYZ<<"\n";
-
         int aNbImVis  = 0;
         // Parse all image having a measure with this GCP
         for (size_t aKIm=0 ; aKIm<aVPIm.size() ; aKIm++)
@@ -203,6 +196,11 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(cBA_GCP & aBA)
         // bool  aGcpFix = (aSigmaGCP==0);  // is GCP just an obervation
         if (aVMesGCP.at(aKp).isFree())
             continue;
+
+        cPt3dr aWeightGroundXYZ(1., 1., 1.);
+        if (!aGcpFix)
+            aWeightGroundXYZ = DivCByC( {1., 1., 1.}, Square(aSigmaGCP)* MulCByC(aPtSigmas,aPtSigmas));
+
         if (! aGcpUk) // case  subst,  we now can make schurr commpl and subst aSigmaGCP<=0
         {
             if (! aGcpFix)  // if GCP is not hard fix, we must add obs on ground
@@ -219,14 +217,12 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(cBA_GCP & aBA)
             //  Add observation fixing GCP  aPGr
             // mR8_Sys->AddEqFixCurVar(*aPtrGcpUk,aPtrGcpUk->Pt(),aWeightGround);
             // FIX TO GCP INIT NOT TO LAST ESTIMATION
-            std::cout<<"constrain point "<<aVMesGCP.at(aKp).mNamePt<<" to "<<aPGr<<" weight "<<aWeightGroundXYZ<<" current pos: "<<aPtrGcpUk->Pt()<<"\n";
             for (auto i = 0; i < 3; ++i)
             {
 
                 mR8_Sys->AddEqFixNewVal(*aPtrGcpUk,aPtrGcpUk->Pt()[i],aPGr[i],aWeightGroundXYZ[i]);
             }
-            //mR8_Sys->AddEqFixNewVal(*aPtrGcpUk,aPtrGcpUk->Pt(),aPGr,1/1000);
-
+            //previously: mR8_Sys->AddEqFixNewVal(*aPtrGcpUk,aPtrGcpUk->Pt(),aPGr,1/1000);
         }
     }
 
@@ -246,7 +242,7 @@ void cMMVII_BundleAdj::OneItere_GCP()
      for (const auto & aBA_GCP_Ptr : mVGCP)
      {
          MMVII_INTERNAL_ASSERT_strong(aBA_GCP_Ptr->mMesGCP!=nullptr,"aPtr_BA_GCP->mMesGCP");
-	 OneItere_OnePackGCP(*aBA_GCP_Ptr);
+         OneItere_OnePackGCP(*aBA_GCP_Ptr);
      }
 }
 

@@ -33,6 +33,7 @@ public:
     std::vector<tREAL8> & getResiduals() { return mLastResiduals;} //< last residuals
     cResidualWeighterExplicit<tREAL8>& getWeights();
     const std::string & getPointName(size_t i) const { return mPtsNames.at(i); }
+    const std::vector<std::string> & getPointNames() const { return mPtsNames; }
     //std::vector<tREAL8> getResiduals(const cTopoComp *comp) const;
 protected:
     cTopoObs(cTopoObsSet* set, cBA_Topo * aBA_Topo, eTopoObsType type, const std::vector<std::string> & ptsNames, const std::vector<tREAL8> & measures,  const cResidualWeighterExplicit<tREAL8> & aWeights);

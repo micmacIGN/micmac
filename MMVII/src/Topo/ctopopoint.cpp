@@ -7,89 +7,52 @@ namespace MMVII
 {
 
 cTopoPoint::cTopoPoint(const std::string &name) :
-    mName(name), mInitCoord(cPt3dr::Dummy()), mIsFree(true), mSigmas({0.,0.,0.}),
-    mVertDefl(std::nullopt), mUK(nullptr), mPt(nullptr), mOwnsUK(false)
+    mName(name), mInitCoord(cPt3dr::Dummy()),
+    mVertDefl(std::nullopt), mUK(nullptr), mPt(nullptr)
 {
 }
 
 cTopoPoint::cTopoPoint(const std::string & name, const cPt3dr &aInitCoord, bool aIsFree, const cPt3dr &aSigmas) :
-    mName(name), mInitCoord(aInitCoord), mIsFree(aIsFree), mSigmas(aSigmas),
-    mVertDefl(std::nullopt), mUK(nullptr), mPt(nullptr), mOwnsUK(false)
+    mName(name), mInitCoord(aInitCoord),
+    mVertDefl(std::nullopt), mUK(nullptr), mPt(nullptr)
 {
 }
 
 
 cTopoPoint::cTopoPoint() :
-    mName(""), mInitCoord(cPt3dr::Dummy()), mIsFree(false), mSigmas(), mVertDefl(std::nullopt),
-    mUK(nullptr), mPt(nullptr), mOwnsUK(false)
+    mName(""), mInitCoord(cPt3dr::Dummy()), mVertDefl(std::nullopt),
+    mUK(nullptr), mPt(nullptr)
 {
 }
 
-cTopoPoint::~cTopoPoint()
-{
-    if (mOwnsUK)
-    {
-        delete mUK;
-    }
-}
 
-void cTopoPoint::AddData(const  cAuxAr2007 & anAuxInit)
-{
-     cAuxAr2007 anAux("TopoPoint",anAuxInit);
-
-     MMVII::AddData(cAuxAr2007("Name",anAux),mName);
-     MMVII::AddData(cAuxAr2007("InitCoord",anAux),mInitCoord);
-     MMVII::AddData(cAuxAr2007("IsFree",anAux),mIsFree);
-     MMVII::AddData(cAuxAr2007("Sigmas",anAux),mSigmas);
-     AddOptData(anAux,"VertDefl",mVertDefl);
-}
-
-void AddData(const cAuxAr2007 & anAux, cTopoPoint &aTopoPoint)
-{
-     aTopoPoint.AddData(anAux);
-}
-
-
-
-void cTopoPoint::findOrMakeUK(const std::vector<cBA_GCP *> & vGCP, cPhotogrammetricProject *aPhProj, const cPt3dr & aCoordIfPureTopo)
+void cTopoPoint::findUK(const std::vector<cBA_GCP *> & vGCP, cPhotogrammetricProject *aPhProj, const cPt3dr & aCoordIfPureTopo)
 {
 #ifdef VERBOSE_TOPO
     std::cout<<"findOrMakeUK "<<mName<<": ";
 #endif
     MMVII_INTERNAL_ASSERT_strong(!isReady(), "double cTopoPoint::findOrMakeUK for point "+mName);
-    /*if (mOwnsUK)
-    {
-        delete mUK;
-        mPt = nullptr;
-        mUK = nullptr;
-        mOwnsUK = false;
-    }*/
 
     // search among GCP
     for (auto & gcp : vGCP)
     {
-        //do not use Shurred GCP
-        if (gcp->mGCP_UK.size() != gcp->mMesGCP->MesGCP().size())
-            continue;
-
         for (unsigned int i=0; i<gcp->mMesGCP->MesGCP().size(); ++i )
         {
             if (mName ==gcp->mMesGCP->MesGCP()[i].mNamePt)
             {
-                mUK = gcp->mGCP_UK.at(i);
-                mPt = &gcp->mGCP_UK.at(i)->Pt();
-                mOwnsUK = false;
-                mIsFree = gcp->mMesGCP->MesGCP()[i].isFree();
-                mInitCoord = *mPt;
-                auto aSigma2 = gcp->mMesGCP->MesGCP()[i].mOptSigma2.value_or(cArray<tREAL4,6>());
-                mSigmas = { sqrt(aSigma2[cMes1GCP::IndXX]),
-                            sqrt(aSigma2[cMes1GCP::IndYY]),
-                            sqrt(aSigma2[cMes1GCP::IndZZ]) };
-
-#ifdef VERBOSE_TOPO
-                std::cout<<"is a GCP\n";
-#endif
-                return;
+                if (gcp->mGCP_UK.size() == gcp->mMesGCP->MesGCP().size())
+                {
+                    mUK = gcp->mGCP_UK.at(i);
+                    mPt = &gcp->mGCP_UK.at(i)->Pt(); //< use existing unknown if available
+                    mInitCoord = *mPt;
+    #ifdef VERBOSE_TOPO
+                    std::cout<<"is a GCP with existing unknowns\n";
+    #endif
+                    return;
+                } else {
+                    MMVII_INTERNAL_ASSERT_strong(false, "cTopoPoint::findOrMakeUK with shurred GCP not accepted for now");
+                    return;
+                }
             }
         }
     }
@@ -103,10 +66,7 @@ void cTopoPoint::findOrMakeUK(const std::vector<cBA_GCP *> & vGCP, cPhotogrammet
         {
             mUK = aCam;
             mPt = &aCam->Center();
-            mOwnsUK = false;
-            mIsFree = true;
             mInitCoord = *mPt;
-            mSigmas = { 0., 0., 0. };
 #ifdef VERBOSE_TOPO
             std::cout<<"is a camera\n";
 #endif
@@ -114,14 +74,7 @@ void cTopoPoint::findOrMakeUK(const std::vector<cBA_GCP *> & vGCP, cPhotogrammet
         }
     }
 
-    // create pure topo point
-    cPt3dr_UK * aPt3dr_UK = new cPt3dr_UK(aCoordIfPureTopo);
-    mUK = aPt3dr_UK;
-    mPt = &aPt3dr_UK->Pt();
-    mOwnsUK = true;
-#ifdef VERBOSE_TOPO
-    std::cout<<"is a pure topo point "<<*mPt<<"\n";
-#endif
+    MMVII_INTERNAL_ASSERT_strong(false, "cTopoPoint::findOrMakeUK topo point \""+mName+"\" not found in GCP or Ori");
     return;
 }
 
@@ -149,39 +102,8 @@ std::string cTopoPoint::toString()
     oss<<"TopoPoint "<<mName;
     if (isReady())
         oss<<" "<<*getPt();
-    oss<<(mIsFree?" free":" fixed");
     return  oss.str();
 }
 
-void cTopoPoint::makeConstraints(cResolSysNonLinear<tREAL8> & aSys)
-{
-    if (!mIsFree)
-    {
-#ifdef VERBOSE_TOPO
-        std::cout<<"makeConstraints for point "<<mName<<" indices "<<
-                   mUK->IndUk0()<<"-"<<mUK->IndUk1()-1<<std::endl;
-#endif
-
-        aSys.SetFrozenVarCurVal(*getUK(),*getPt());
-        //for (int i=mUK->IndUk0(); i<mUK->IndUk1(); ++i)
-        //    aSys.AddEqFixCurVar(i, 0.001);
-
-    } else {
-#ifdef VERBOSE_TOPO
-        std::cout<<"no constraintes for point "<<mName<<" indices "<<
-                   mUK->IndUk0()<<"-"<<mUK->IndUk1()-1<<std::endl;
-#endif
-    }
-}
-
-
-void cTopoPoint::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet)
-{
-#ifdef VERBOSE_TOPO
-    std::cout<<"AddToSys pt "<<mName<<" "<<this<<std::endl;
-#endif
-    if (doesOwnsUK())
-        aSet.AddOneObj(getUK());
-}
 
 };

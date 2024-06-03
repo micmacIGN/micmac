@@ -46,7 +46,6 @@ private :
     std::vector<std::vector<std::string>>  mAddTieP; // In case there is multiple GCP Set
     std::vector<double>       mBRSigma; // RIGIDBLOC
     std::vector<double>       mBRSigma_Rat; // RIGIDBLOC
-    std::vector<std::string>  mParamRefOri;
 
     int                       mNbIter;
 
@@ -63,6 +62,7 @@ cAppliTopoAdj::cAppliTopoAdj(const std::vector<std::string> & aVArgs,const cSpec
    mDataDir        ("Std"),
    mPhProj         (*this),
    mBA             (&mPhProj),
+   mGCPW           (1.),
    mGCPFilter      (""),
    mGCPFilterAdd   (""),
    mNbIter         (10),
@@ -73,8 +73,10 @@ cAppliTopoAdj::cAppliTopoAdj(const std::vector<std::string> & aVArgs,const cSpec
 cCollecSpecArg2007 & cAppliTopoAdj::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
     return anArgObl
-            << mPhProj.DPTopoMes().ArgDirInOpt("TopoDirIn","Dir for Topo measures if != DataDir")
-            << mPhProj.DPTopoMes().ArgDirOutOpt()
+            << mPhProj.DPTopoMes().ArgDirInMand("Dir for Topo measures")
+            << mPhProj.DPTopoMes().ArgDirOutMand("Dir for Topo measures output")
+            << mPhProj.DPPointsMeasures().ArgDirInMand("Dir for points initial coordinates")
+            << mPhProj.DPPointsMeasures().ArgDirOutMand("Dir for points final coordinates")
            ;
 }
 
@@ -83,9 +85,8 @@ cCollecSpecArg2007 & cAppliTopoAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
     
     return 
           anArgOpt
-      << mPhProj.DPPointsMeasures().ArgDirInOpt()
-      << mPhProj.DPPointsMeasures().ArgDirOutOpt()
-      << AOpt2007(mGCPW,"GCPW", "Constrained GCP Weight")
+
+      << AOpt2007(mGCPW,"GCPW", "Constrained GCP weight factor (default: 1)")
       << AOpt2007(mDataDir,"DataDir","Default data directories ",{eTA2007::HDV})
       << AOpt2007(mNbIter,"NbIter","Number of iterations",{eTA2007::HDV})
       << AOpt2007(mGCPFilter,"GCPFilter","Pattern to filter GCP by name")
@@ -121,7 +122,7 @@ void  cAppliTopoAdj::AddOneSetGCP(const std::vector<std::string> & aVParStd)
 
     //  load the GCP
     cSetMesImGCP  aFullMesGCP; 
-    mPhProj.LoadGCPFromFolder(aFolder,aFullMesGCP,"",mGCPFilter,mGCPFilterAdd);
+    mPhProj.LoadGCPFromFolder(aFolder,aFullMesGCP,mBA.getTopo(),"",mGCPFilter,mGCPFilterAdd);
 
     //here no 2d mes, fake it
     cSetMesPtOf1Im aSetMesIm;
@@ -131,6 +132,7 @@ void  cAppliTopoAdj::AddOneSetGCP(const std::vector<std::string> & aVParStd)
     cStdWeighterResidual aWeighter(aGCPW,1);
     mBA.AddGCP(aFolder,aGCPW.at(0),aWeighter,aMesGCP);
 }
+
 
 void  cAppliTopoAdj::AddOneSetTieP(const std::vector<std::string> & aVParStd)
 {
@@ -147,23 +149,18 @@ int cAppliTopoAdj::Exe()
     mPhProj.FinishInit();
 
 
-    if (IsInit(&mParamRefOri))
-         mBA.AddReferencePoses(mParamRefOri);
+    mBA.AddTopo();
 
-    if (IsInit(&mGCPW))
-    {
-        std::vector<std::string> aGCPW;
-        aGCPW.push_back(cStrIO<double>::ToStr(mGCPW));
-        std::vector<std::string>  aVParamStdGCP{mPhProj.DPPointsMeasures().DirIn()};
-        AppendIn(aVParamStdGCP,aGCPW);
-        AddOneSetGCP(aVParamStdGCP);
-    }
+    std::vector<std::string> aGCPW;
+    aGCPW.push_back(cStrIO<double>::ToStr(mGCPW));
+    std::vector<std::string>  aVParamStdGCP{mPhProj.DPPointsMeasures().DirIn()};
+    AppendIn(aVParamStdGCP,aGCPW);
+    AddOneSetGCP(aVParamStdGCP);
 
     // Add  the potential suplementary GCP
     for (const auto& aGCP : mAddGCPW)
         AddOneSetGCP(aGCP);
 
-    mBA.AddTopo();
 
     for (int aKIter=0 ; aKIter<mNbIter ; aKIter++)
     {

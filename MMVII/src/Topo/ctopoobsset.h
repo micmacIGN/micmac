@@ -32,7 +32,7 @@ public:
     std::vector<cTopoObs*> & getAllObs() {return mObs;}
     bool addObs(eTopoObsType type, cBA_Topo * aBA_Topo, const std::vector<std::string> &pts, const std::vector<tREAL8> & vals,  const cResidualWeighterExplicit<tREAL8> & aWeights);
     virtual void makeConstraints(cResolSysNonLinear<tREAL8> & aSys) = 0; // add constraints for current set
-    virtual bool initialize(const cTopoObsSetData * aData) = 0; // initialize set parameters, after all obs were added
+    virtual bool initialize() = 0; // initialize set parameters, after all obs and points were added
 protected:
     cTopoObsSet(cBA_Topo *aBA_Topo, eTopoObsSetType type);
     cTopoObsSet(cTopoObsSet const&) = delete;
@@ -51,7 +51,7 @@ protected:
  * Have to use make_TopoObsSet() to create cTopoObsSet with initialization
  */
 template <class T>
-cTopoObsSet * make_TopoObsSet(cBA_Topo *aBA_Topo)
+T * make_TopoObsSet(cBA_Topo *aBA_Topo)
 {
     auto o = new T(aBA_Topo);
     o->create();
@@ -65,7 +65,7 @@ cTopoObsSet * make_TopoObsSet(cBA_Topo *aBA_Topo)
 class cTopoObsSetStation : public cTopoObsSet
 {
     typedef cRotation3D<tREAL8> tRot;
-    friend cTopoObsSet * make_TopoObsSet<cTopoObsSetStation>(cBA_Topo *aBA_Topo);
+    friend cTopoObsSetStation * make_TopoObsSet<cTopoObsSetStation>(cBA_Topo *aBA_Topo);
 public:
     virtual ~cTopoObsSetStation() override {}
     virtual void PutUknowsInSetInterval() override ; ///< describes its unknowns
@@ -73,7 +73,7 @@ public:
     void OnUpdate() override;    ///< "reaction" after linear update, eventually update inversion
     virtual std::string toString() const override;
     void makeConstraints(cResolSysNonLinear<tREAL8> &aSys) override;
-    virtual bool initialize(const cTopoObsSetData *aData) override; // initialize rotation
+    virtual bool initialize() override; // initialize rotation
 
     void setOrigin(std::string _OriginName);
     void PushRotObs(std::vector<double> & aVObs) const;

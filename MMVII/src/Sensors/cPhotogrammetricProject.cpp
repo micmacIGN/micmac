@@ -763,13 +763,12 @@ void cPhotogrammetricProject::LoadGCP(cSetMesImGCP& aSetMes,const std::string & 
 }
 
 void cPhotogrammetricProject::LoadGCPFromFolder
-     (
-          const std::string & aFolder,
+     (const std::string & aFolder,
           cSetMesImGCP& aSetMes,
+          cBA_Topo * aBATopoAddPoints,
           const std::string & aArgPatFiltr,
           const std::string & aFiltrNameGCP,
-          const std::string & aFiltrAdditionalInfoGCP
-     ) const
+          const std::string & aFiltrAdditionalInfoGCP) const
 {
      cDirsPhProj& aDPPM = const_cast<cPhotogrammetricProject *>(this)->DPPointsMeasures();
      // Save current orientation and fix new
@@ -779,6 +778,9 @@ void cPhotogrammetricProject::LoadGCPFromFolder
      LoadGCP(aSetMes,aArgPatFiltr,aFiltrNameGCP,aFiltrAdditionalInfoGCP);
      // Restore initial current orientation
      aDPPM.SetDirIn(aDirInit);
+
+     if (aBATopoAddPoints)
+         aBATopoAddPoints->AddPointsFromDataToGCP(aSetMes);
 }
 
 void cPhotogrammetricProject::CpGCPPattern(const std::string & aDirIn,const std::string & aDirOut,const std::string & aArgPatFiltr) const

@@ -1311,27 +1311,23 @@ then contact MPD.
 %---------------------------------------------
 %---------------------------------------------
 
-\section{Topometric compensation (WIP)}
+\section{Survey measurements}
 \label{Chap:TopoProg}
 \subsection{Global presentation}
 
 The premises of a topometric compensation system can be found in \texttt{MMVII/src/Topo/}.
-
-Computation takes place in a 3D euclidian frame. For now, only RTL SysCo is supported.
-
-All points must be given approximative coordinates as there is no automatic initialization.
 
 For now it is used in commands \texttt{OriBundleAdj} and \texttt{TopoAdj}, and in the Bench \texttt{TopoComp}.
 
 This Bench will be used to illustrate the topometric classes and their usage.
 
 
-\subsection{Frames for topometric stations}
+\subsection{Frames for survey stations}
 
 \begin{figure}[!h]
 \centering
 \includegraphics[width=12cm]{Programmer/framesTopo.png}
-\caption{The different frames types used in topo compensation}
+\caption{The different frames types used in compensation}
 \label{fig:topoFrames}
 \end{figure}
 
@@ -1343,146 +1339,65 @@ This Bench will be used to illustrate the topometric classes and their usage.
     \item \texttt{Yellow}: each topoemtric station has a rotation between the local euclidian tangent frame and the instrument frame.
  \end{itemize}
 
+The computation must take place in a 3D euclidian frame.
+For now, only RTL SysCo is supported.
 
-
- 
-
-\subsection{\texttt{TopoComp} Bench example}
-\label{subsec:topoBench}
-
-The example is created by the method \texttt{cTopoData::createEx1()}.
-
-The classes named \texttt{cTopo???Data} are used for data serialization and deserialization.
-They are a simplified version of the classes without the \texttt{Data} suffix, that are used in
-the actual computation.
-
-
-\subsubsection{Creating the fixed points}
-
-At first, there are 3 fixed points ($A$, $B$, $C$), forming an isosceles triangle
-on an horizontal plane (Fig. \ref{fig:topoEx1}).
-
-\begin{figure}[!h]
-\centering
-\includegraphics[width=12cm]{Programmer/benchtopo1.png}
-\caption{The 3 fixed points}
-\label{fig:topoEx1}
-\end{figure}
-
-The points are instances of the \texttt{cTopoPoint} class.
-The false boolean in the constructor means that the points are not free.
-
-\begin{lstlisting}
-    //create fixed points
-    cTopoPointData ptA = {"ptA",cPt3dr(10,10,10),false};
-    cTopoPointData ptB = {"ptB",cPt3dr(20,10,10),false};
-    cTopoPointData ptC = {"ptC",cPt3dr(15,20,10),false};
-\end{lstlisting}
-
-At this point, there are no unknowns and no observations.
-
-
-\subsubsection{Creating the observations}
-
-A fourth point ($D$), this time not fixed, is initialized above the $ABC$ triangle.
-Distances from $D$ to $A$, $B$ and $C$
-are measured. For redondancy and error evaluation, the distance from $D$ to $C$ is measured twice
-with different values (Fig. \ref{fig:topoEx2}).
-
-\begin{figure}[!h]
-\centering
-\includegraphics[width=12cm]{Programmer/benchtopo2.png}
-\caption{Point $D$ is determined by measured distances}
-\label{fig:topoEx2}
-\end{figure}
-
-Observations are represented with the \texttt{cTopoObs} class.
-The constructor needs a \texttt{eTopoObsType}, the list of affected points
-(in order : "from", "to"), and a list of measurements and their sigmas.
-
-\begin{lstlisting}
-    cTopoPointData ptD = {"ptD",cPt3dr(14,14,14),true};
-  #define WW 0.01
-    //add measured dist to point D
-    cTopoObsData aObs1 = {eTopoObsType::eDist, {"ptD", "ptA"},  {10.}, {WW}};
-    cTopoObsData aObs2 = {eTopoObsType::eDist, {"ptD", "ptB"},  {10.}, {WW}};
-    cTopoObsData aObs3 = {eTopoObsType::eDist, {"ptD", "ptC"},  {10.}, {WW}};
-    cTopoObsData aObs4 = {eTopoObsType::eDist, {"ptD", "ptC"},  {10+WW}, {WW}};
-\end{lstlisting}
-
-The value \texttt{WW} is used for weighting and adding an error to the last measure
-compatible with the incertaincy.
-
-The observations must be recorded in a \texttt{cTopoObsSet}, which is used to
-record parameters common to several observations.
-Here we must use the set type \texttt{Station} because we have distances (more about that later).
-
-\begin{lstlisting}
-    cTopoObsSetData aSet1;
-    aSet1.mType = eTopoObsSetType::eStation;
-    aSet1.mObs = {aObs1, aObs2, aObs3, aObs4};
-\end{lstlisting}
-
-The system now contains 3 unknowns ($D$ coordinates) and 4 observations
-(measured distances $DA$, $DB$ and $DC$ two times).
-
-All these objects have to be added to a \texttt{aTopoData} object:
-
-\begin{lstlisting}
-    cTopoData aTopoData;
-    aTopoData.mAllPoints = {ptA, ptB, ptC, ptD};
-    aTopoData.mAllObsSets = {aSet1, aSet2, aSet3};
-\end{lstlisting}
-
-\begin{comment}
-
-
-\subsubsection{Step 3}
-
-A second non-fixed point, $E$, is initialized inside the $ABCD$ tetrahedron,
-and observations expressing that
-the distances from $E$ to $A$, $B$, $C$ and $D$ are equal and unknown ($d$ in Fig. \ref{fig:topoEx3})
-are added.
-
-\begin{figure}[!h]
-\centering
-\includegraphics[width=12cm]{Programmer/benchtopo3.png}
-\caption{Point $E$ determined by equal distance $d$}
-\label{fig:topoEx3}
-\end{figure}
-
-A new \texttt{cTopoObsSet} must be created. The \texttt{cTopoObsSetDistParam} class
-is used to create the parameter corresponding to the unknown $d$.
-
-
-\begin{lstlisting}
-  //add point E to an unknown common dist
-  allObsSets.push_back(make_TopoObsSet<cTopoObsSetDistParam>());
-  auto obsSet2 = allObsSets[1].get();
-  allPts.push_back(new cTopoPoint("ptE", cPt3dr(11,11,11), true));
-  auto ptE = allPts[4];
-  cTopoObs(obsSet2, TopoObsType::distParam, std::vector{ptE, ptA}, {});
-  cTopoObs(obsSet2, TopoObsType::distParam, std::vector{ptE, ptB}, {});
-  cTopoObs(obsSet2, TopoObsType::distParam, std::vector{ptE, ptC}, {});
-  cTopoObs(obsSet2, TopoObsType::distParam, std::vector{ptE, ptD}, {});
-\end{lstlisting}
-
-This adds 4 unknowns ($E$ coordinates and the unknown distance $d$) and 4 observations
-($EA = EB = EC = ED = d$).
-
-\end{comment}
 
 \subsubsection{Topometric classes}
 
-The \texttt{Data} objects are used to fill the actual computation objects.
-
 The topometric computation classes are :
  \begin{itemize}
-    \item \texttt{cTopoPoint}: a point used with topometric measurements. If its name is already in the pictures or GCP lists, it uses the existing unknown. Otherwise it makes its own unknown. 
+    \item \texttt{cTopoPoint}: a point used with topometric measurements. Keeps a pointer to the unknowns from GCP or Ori.
     \item \texttt{cTopoObs}: an observation corresponding to a formula, between several points.
     \item \texttt{cTopoObsSet}: a set of observations. The set is used to share common parameters between several observations. e.g., \texttt{cTopoObsSetStation} adds a rotation corresponding to an instrument setting.   
     \item \texttt{cBA\_Topo}: the class that handles the least square part. It records all the points and sets.
  \end{itemize}
+
+The classes named \texttt{cTopo???Data} are used only for data serialization and deserialization.
+They are a simplified version of the classes without the \texttt{Data} suffix.
+
+\texttt{cTopoObsSet} is an abstract class.
+The concrete class that is currently used is \texttt{cTopoObsSetStation}, that corresponds to a survey instrument positionned on one point.
+It has a notion of {\tt origin} (the point where the instrument is positionned), and an orientation matrix in the RTL SysCo.
+If the station is verticalized, the initial orientation matrix corresponds to the vertical orientation on the origin point, and only a rotation arround the vertical direction is free.
+
+\subsubsection{Topometric equations}
+
+For \texttt{cTopoObsSetStation}, all the measurements are expressed in the local survey station frame.
+
+The input data are:
+
+ \begin{itemize}
+    \item $O_{RTL}$: station origin point in RTL SysCo
+    \item $T_{RTL}$: target point in RTL SysCo
+    \item $R_{St, RTL}$: station origin point in station local frame
+    \item $\omega_R$: the rotation axiator unknown
+    \item $l$: the measurement value
+ \end{itemize}
+
+ At first we compute target coordinates in station local frame $T_{loc}$:
+
+ $$  T_{loc} = R_{Station, RTL}^T . (T_{RTL} - O_{RTL})  $$
+
+ Then for each type of observation:
+ 
+ \begin{itemize}
+    \item {\tt cFormulaTopoDX}: $$ residual = T_{loc,X} - l$$
+    \item {\tt cFormulaTopoDY}: $$ residual = T_{loc,X} - l$$
+    \item {\tt cFormulaTopoDZ}: $$ residual = T_{loc,X} - l$$
+
+    \item {\tt cFormulaTopoHz}: $$ residual =  \arctan\left(T_{loc,X}, T_{loc,Y}\right) - l $$
+    \item {\tt cFormulaTopoZen}:
+    $$ ref = 0.12 . \frac { hz\_dist\_ellips\left( T, O \right) }
+                          { 2 . earth\_radius} $$
+    $$ d_{hz} =  \| T_{loc,X}, T_{loc,Y} \| $$
+    $$ residual =  \arctan\left(d_{hz}, T_{loc,Z}\right) - ref - l $$
+    \item {\tt cFormulaTopoDist}: $$  residual =  \| T_{lol} \| - l $$
+
+ \end{itemize}
+
+ Angles residuals are put in $ [ -\pi, + \pi ] $ interval.
+
 
 %---------------------------------------------
 %---------------------------------------------

@@ -85,50 +85,43 @@ Then every Ori and ground measures can be transformed into this RTL frame to be 
 %-----------------------------------------------------------------------
 
 
-\chapter{Topometric compensation (WIP)}
+\chapter{Survey compensation (WIP)}
 \label{Chap:TopoUser}
 
 
-\section{Topometry introduction}
+\section{Survey introduction}
 
-{\tt MMVII} supports the following topometric/surveying measurements types in global adjustments:
+{\tt MMVII} can add survey/topometric measurements in global adjustments.
+The following measurements types are currently supported :
 
 \begin{itemize}
     \item distances
     \item pseudo-horizontal angles
     \item pseudo-vertical angles
-    %\item cartesian vector in a sub-frame
-    %\item height differences
+    \item direct cartesian vector observation
 \end{itemize}
 
-These measurements are made in regard to the gravitation field if the instruments are vericalized.
+These measurements are made from an instrument that can be verticalized or not.
 For now, the vertical is modeled as the Earth's ellipsoid normal. Vertical deflection grids may be added later.
 
-The measurements are between named points that can be:
-\begin{itemize}
-    \item GCPs
-    \item camera summits
-    \item points declared in topo file
-    \item implicitly declared points in observations files.
-\end{itemize}
+The measurements can be made between cameras Ori, GCP or new points (that will be inserted into GCP list).
 
-
-Two {\tt MMVII} commands can use these measurements in compensation:
+Two {\tt MMVII} commands can use survey measurements in compensation:
 \begin{itemize}
     \item {\tt OriBundleAdj} via the {\tt TopoFile} option
     \item {\tt TopoAdj} (see below)
 \end{itemize}
 
-The topo measurements file can be given as a {\tt MMVII} json or xml file, or in a simplified text format (named {\tt obs} file) inherited from IGN's Comp3D compensation software.
+The topo measurements file can be given as a {\tt MMVII} json or xml topo file, or in a simplified text format (named {\tt obs} file) inherited from IGN's Comp3D compensation software.
 
 The {\tt MMVII} topo files record all the input and output data, organized as the internal {\tt MMVII} objects during compensation.
 The {\tt obs} format is simplified and easily human-editable. It is the preferred input format for simple station-based measurements.
 
+All the measurements files must be put in the {\tt MMVII-PhgrProj/Topo/[ObsName]} folder.
 
 \section{{\tt obs} file format}
-
-The {\tt obs} file format is limited to station-based measurements where the station in verticalized.
-{\tt MMVII} supports only a subset of Comp3D format.
+\label{sec:compObsFormat}
+Note: {\tt MMVII} supports only a subset of Comp3D format.
 
 {\tt obs} files are text files with fields delimited by any number of spaces or tabs. Blank lines are overlooked.
 The {\tt *} character defines a comment that goes up to the end of the line.
@@ -160,36 +153,204 @@ The observations codes are:
 
 \begin{itemize}
     \item 3: 3d distance
-    \item 5: horizontal angle (relative to the last horizontal reference on the same station)
-    \item 6: zenithal angle
-    \item 7: horizontal reference
+    \item 5: local pseudo-horizontal angle
+    \item 6: local pseudo-zenithal angle
+    \item 14: local X difference
+    \item 15: local Y difference
+    \item 16: local Z difference
 \end{itemize}
+
+All these observations are made in the station frame.
 
 In the previous example, {\tt St1}, {\tt Or1} and {\tt E1} are points name.
 They can refer to GCP, cameras or undefined points.
+
+To declare the orientation status of the next station, the following lines have to be
+added to the {\tt obs} file (by default stations are supposed verticalized) :
+
+\begin{itemize}
+    \item \texttt{\#FIX}: the station verticalized and oriented to North
+    \item \texttt{\#VERT}: the station verticalized, only horizontal orientation is free
+    \item \texttt{\#BASC}: the station orientation has 3 degrees of liberty 
+\end{itemize}
+
+To distinguish several verticalized stations on the same point, the observation code {\tt 7} can be used:
+
+\begin{verbatim}
+    7 station target 100 0.001
+\end{verbatim}
+
+is equivalent to:
+
+\begin{verbatim}
+    #VERT
+    5 station target 100 0.001
+\end{verbatim}
+
+
 
 \section{{\tt TopoAdj} command}
 
 The {\tt TopoAdj} command can perform an adjustment between topometric and GCP constraints.
 It is used as a substitute to {\tt OriBundleAdj} when there are no cameras.
 
+As for {\tt OriBundleAdj}, when using survey measurements, a RTL SysCo must be used.
+
+The GCP folder must then have a RTL CurSysCo.xml file, and do not have to declare all the points
+refered to by topo observations, but automatic points initialization is not completed.
+
 \begin{verbatim}
-  For command : TopoAdj 
+   For command : TopoAdj 
    => Topo adjustment
    => Srce code entry in :/home/JMMuller/micmac/MMVII/src/BundleAdjustment/cAppliTopoAdj.cpp
 
  == Mandatory unnamed args : ==
-  * string [FileAny] :: Topo obs file path
-  * string [PointsMeasure,In] :: Input PointsMeasure
-  * string [PointsMeasure,Out] :: Output PointsMeasure
-  * double :: Constrained GCP Weight
+  * string [Topo,In] :: Dir for Topo measures
+  * string [Topo,Out] :: Dir for Topo measures output
+  * string [PointsMeasure,In] :: Dir for points initial coordinates
+  * string [PointsMeasure,Out] :: Dir for points final coordinates
 
  == Optional named args : ==
-  * [Name=DataDir] string :: Defautl data directories  ,[Default=Std]
+  * [Name=GCPW] double :: Constrained GCP weight factor (default: 1)
+  * [Name=DataDir] string :: Default data directories  ,[Default=Std]
   * [Name=NbIter] int :: Number of iterations ,[Default=10]
   * [Name=GCPFilter] string :: Pattern to filter GCP by name
   * [Name=GCPFilterAdd] string :: Pattern to filter GCP by additional info
   * [Name=GCPDirOut] string [PointsMeasure,Out] :: Dir for output GCP
   * [Name=LVM] double :: Levenberg–Marquardt parameter (to have better conditionning of least squares) ,[Default=0]
+
 \end{verbatim}
 
+
+
+\section{\texttt{TopoComp} Bench first example}
+\label{subsec:topoBench}
+
+The example is created by the method \texttt{cTopoData::createEx1()}.
+We will describe the input files equivalent for the \texttt{TopoAdj} command.
+
+
+\subsection{Creating the points}
+
+The points are declared, their initial coordinates and the sigmas on their coordinates constraints
+are given in a GCP file. 
+
+3 points have coordinates constraintes at 1cm ($A$, $B$, $C$). They form an isosceles triangle
+on an horizontal plane.
+A 4th point ($D$) is declared above the other. It has no {\tt \_\_Opt\_\_Sigma2} attribute as this point is free.
+(Fig. \ref{fig:topoEx1}).
+
+A {\tt CurSysCo.xml} must come along this GCP file to describe the RTL SysCo.
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=12cm]{Programmer/benchtopo1b.png}
+\caption{The 3 fixed points}
+\label{fig:topoEx1}
+\end{figure}
+
+The summerized content of the GCP file:
+
+\begin{lstlisting}
+      <SetGCP>
+         <NameSet>"terrain"</NameSet>
+         <Measures>
+            <el>
+               <Name>"A"</Name>
+               <Pt>10 10 10</Pt>
+               <AdditionalInfo>""</AdditionalInfo>
+               <__Opt__Sigma2>.0001 0 0 .0001 0 .0001</__Opt__Sigma2>
+            </el>
+            <el>
+               <Name>"B"</Name>
+               <Pt>20 10 10</Pt>
+               <AdditionalInfo>""</AdditionalInfo>
+               <__Opt__Sigma2>.0001 0 0 .0001 0 .0001</__Opt__Sigma2>
+            </el>
+            <el>
+               <Name>"C"</Name>
+               <Pt>15 20 10</Pt>
+               <AdditionalInfo>""</AdditionalInfo>
+               <__Opt__Sigma2>.0001 0 0 .0001 0 .0001</__Opt__Sigma2>
+            </el>
+            <el>
+               <Name>"D"</Name>
+               <Pt>14 14 14</Pt>
+               <AdditionalInfo>""</AdditionalInfo>
+            </el>
+         </Measures>
+      </SetGCP>
+\end{lstlisting}
+
+
+\subsection{Creating the observations}
+
+The distances from $D$ to $A$, $B$ and $C$
+are measured. For redondancy and error evaluation, the distance from $D$ to $C$ is measured twice
+with different values (Fig. \ref{fig:topoEx2}).
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=12cm]{Programmer/benchtopo2.png}
+\caption{Point $D$ is determined by measured distances}
+\label{fig:topoEx2}
+\end{figure}
+
+Observations are represented in an {\tt obs} file:
+\begin{lstlisting}
+    3  D  A  10.0  0.1
+    3  D  B  10.0  0.1
+    3  D  C  10.0  0.1
+    3  D  C  10.1  0.1
+\end{lstlisting}
+
+Here a implicit station is created, based on point D.
+As no orientation status is given, the station is supposed verticalized.
+It should have an horizontal orientation degree of liberty.
+But since there is no observations able to determine the station orientation,
+it is automatically set as fixed (as if a {\tt \#FIX} line was added at the start of the file).
+
+\subsection{Outputs}
+
+After a computation, the output GCP file contains the final coordinates of every point, including
+points that were not declared in the input GCP, but referenced in the survey measurements.
+
+The output Topo file contains info about all the stations and observations,
+with output values as residuals:
+
+\begin{lstlisting}
+<TopoData>
+ <AllObsSetStations>
+    <el>
+       <TopoObsSetData>
+          <Type>"Station"</Type>
+          <AllObs>
+             <el>
+                <TopoObsData>
+                   <Type>"Dist"</Type>
+                   <Pts>    <el>"D"</el>     <el>"A"</el>       </Pts>
+                   <Measures>    <el>10</el>      </Measures>
+                   <Sigmas>   <el>0.1</el>     </Sigmas>
+                   <__Opt__LastResiduals>  <el>-0.000000000000002</el>  </__Opt__LastResiduals>
+                </TopoObsData>
+             </el>
+[...]
+             <el>
+                <TopoObsData>
+                   <Type>"Dist"</Type>
+                   <Pts>      <el>"D"</el>     <el>"C"</el>          </Pts>
+                   <Measures>     <el>10.1</el>         </Measures>
+                   <Sigmas>       <el>0.1</el>           </Sigmas>
+                   <__Opt__LastResiduals>  <el>-0.050000000000001</el>  </__Opt__LastResiduals>
+                </TopoObsData>
+             </el>
+          </AllObs>
+          <StationOriStatus>"#FIX"</StationOriStatus>
+          <__Opt__Out_G0>0</__Opt__Out_G0>
+       </TopoObsSetData>
+    </el>
+ </AllObsSetStations>
+</TopoData>
+\end{lstlisting}
+
+This Topo file can be used as input for an other adjustment (it is completely equivalent to the {\tt obs} file).

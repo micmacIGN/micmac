@@ -151,8 +151,10 @@ class cMMVII_BundleAdj
 	  void AddBlocRig(const std::vector<double>& aSigma,const std::vector<double>&  aSigmRat ); // RIGIDBLOC
 	  void AddCamBlocRig(const std::string & aCam); // RIGIDBLOC
           void AddTopo(); // TOPO
+          cBA_Topo* getTopo() { return mTopo;}
           ///  =======  Add GCP, can be measure or measure & object
           void AddGCP(const std::string & aName,tREAL8 aSigmaGCP,const  cStdWeighterResidual& aWeightIm, cSetMesImGCP *);
+          std::vector<cBA_GCP*> & getVGCP() { return mVGCP;}
 
 	  ///  ============  Add multiple tie point ============
 	  void AddMTieP(const std::string & aName,cComputeMergeMulTieP  * aMTP,const cStdWeighterResidual & aWIm);
@@ -194,7 +196,7 @@ class cMMVII_BundleAdj
           void AssertPhpAndPhaseAdd() ;  /// Assert both
           void InitIteration();          /// Called at first iteration -> Init things and set we are non longer in Phase Add
           void InitItereGCP();           /// GCP Init => create UK
-          void InitItereTopo();           /// Topo Init => create UK
+          void InitItereTopo();          /// Topo Init => create UK
           void OneItere_GCP();           /// One iteraion of adding GCP measures
 
 	  void OneItere_TieP();   /// Iteration on tie points

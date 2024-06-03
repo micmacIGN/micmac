@@ -195,7 +195,7 @@ void  cAppliBundlAdj::AddOneSetGCP(const std::vector<std::string> & aVParStd)
     
     //  load the GCP
     cSetMesImGCP  aFullMesGCP; 
-    mPhProj.LoadGCPFromFolder(aFolder,aFullMesGCP,"",mGCPFilter,mGCPFilterAdd);
+    mPhProj.LoadGCPFromFolder(aFolder,aFullMesGCP,mBA.getTopo(),"",mGCPFilter,mGCPFilterAdd);
 
     for (const auto  & aSens : mBA.VSIm())
     {
@@ -301,7 +301,7 @@ int cAppliBundlAdj::Exe()
             mBA.AddCamBlocRig(aNameIm);
     }
 
-    if (IsInit(&mPhProj.DPTopoMes().DirIn()))
+    if (mPhProj.DPTopoMes().DirInIsInit())
     {
         mBA.AddTopo();
     }
