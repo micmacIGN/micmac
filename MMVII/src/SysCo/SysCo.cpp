@@ -522,13 +522,15 @@ cChangeSysCo::cChangeSysCo():
 
 cChangeSysCo::cChangeSysCo(tPtrSysCo aSysCoOrigin, tPtrSysCo aSysCoTarget, tREAL8  aEpsDeriv):
     cDataInvertibleMapping<tREAL8,3> (cPt3dr::PCste(aEpsDeriv)),
-    mSysCoOrigin(aSysCoOrigin),mSysCoTarget(aSysCoTarget),mIsNull(mSysCoOrigin->Def()==mSysCoTarget->Def())
+    mSysCoOrigin(aSysCoOrigin),mSysCoTarget(aSysCoTarget),
+    mIsNull( (mSysCoOrigin&&mSysCoTarget)?(*mSysCoOrigin==*mSysCoTarget):true )
 {
 }
 
 cChangeSysCo::cChangeSysCo(const cChangeSysCo &other):
     cDataInvertibleMapping<tREAL8,3> (other.EpsJac()),
-    mSysCoOrigin(other.mSysCoOrigin),mSysCoTarget(other.mSysCoTarget),mIsNull(mSysCoOrigin->Def()==mSysCoTarget->Def())
+    mSysCoOrigin(other.mSysCoOrigin),mSysCoTarget(other.mSysCoTarget),
+    mIsNull( (mSysCoOrigin&&mSysCoTarget)?(*mSysCoOrigin==*mSysCoTarget):true )
 {
 }
 

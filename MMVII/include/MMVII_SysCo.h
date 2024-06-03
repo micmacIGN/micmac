@@ -70,6 +70,9 @@ protected :
     PJ* mPJ_GeoC2Geog; //< for generic use
 };
 
+inline bool operator==(const cSysCo& lhs, const cSysCo& rhs) { return lhs.Def() == rhs.Def(); }
+inline bool operator!=(const cSysCo& lhs, const cSysCo& rhs) { return !(lhs == rhs); }
+
 //------------------------------------------------------------
 
 /**
