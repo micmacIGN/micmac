@@ -555,7 +555,7 @@ void cOneImMEff2MP::ComputeIndexPts(cInterfImportHom & anImport,const  cMemoryEf
      {
            public :
 	     //  static constexpr int     Dim = 2;  => dont work with local class, hapilly enum works
-	     enum {Dim=2};
+	     enum {TheDim=2};
              typedef cPt2dr           tPrimGeom;  // geometric primitives indexed are points
 	     // type of arg that we will used in call back "GetPrimGeom", we need to refer to images
              typedef cOneImMEff2MP *  tArgPG;     

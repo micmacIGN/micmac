@@ -3,13 +3,24 @@
 #include "MMVII_Tpl_Images.h"
 #include "MMVII_Interpolators.h"
 #include "MMVII_Linear2DFiltering.h"
-#include <bitset>
+#include "MMVII_ImageMorphoMath.h"
+#include "MMVII_2Include_Tiling.h"
+#include "MMVII_Sensor.h"
+#include "MMVII_HeuristikOpt.h"
 
 
 // Test git branch
 
 namespace MMVII
 {
+
+
+static constexpr tU_INT1 eNone = 0 ;
+static constexpr tU_INT1 eTopo0  = 1 ;
+static constexpr tU_INT1 eTopoTmpCC  = 2 ;
+static constexpr tU_INT1 eTopoMaxOfCC  = 3 ;
+static constexpr tU_INT1 eTopoMaxLoc  = 4 ;
+static constexpr tU_INT1 eFilterSym  = 5 ;
 
 /*  *********************************************************** */
 /*                                                              */
@@ -35,9 +46,17 @@ class cAppliCheckBoardTargetExtract : public cMMVII_Appli
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
+        bool IsPtTest(const cPt2dr & aPt) const;  ///< Is it a point marqed a test
+
+
 	void DoOneImage() ;
-        int  IsTopoSaddlePoint(const cPt2di & aPt) const;
-	void MakeImageSaddlePoints(const tDIm &) const;
+	void MakeImageSaddlePoints(const tDIm &,const cDataIm2D<tU_INT1> & aDMasq) const;
+
+        cWhichMin<cPt2dr,tREAL8>   OptimFilter(cFilterDCT<tREAL4> *,const cPt2dr &) const;
+
+	cPhotogrammetricProject     mPhProj;
+	cTimerSegm                  mTimeSegm;
+
         // =========== Mandatory args ============
 
 	std::string mNameIm;       ///< Name of background image
@@ -50,9 +69,13 @@ class cAppliCheckBoardTargetExtract : public cMMVII_Appli
 	std::vector<int>  mShowQuickSaddleF;
 
         // =========== Internal param ============
-        tIm       mImIn;        ///< Input global image
-        cPt2di    mSzIm;
-	tDIm *    mDImIn;
+        tIm                   mImIn;        ///< Input global image
+        cPt2di                mSzIm;        ///< Size of image
+	tDIm *                mDImIn;       ///< Data input image 
+	bool                  mHasMasqTest; ///< Do we have a test image 4 debuf (with masq)
+	cIm2D<tU_INT1>        mMasqTest;    ///< Possible image of mas 4 debug, print info ...
+        cIm2D<tU_INT1>        mImLabel;     ///< Image storing labels of centers
+	cDataIm2D<tU_INT1> *  mDImLabel;    ///< Data Image of label
 };
 
 
@@ -64,8 +87,14 @@ class cAppliCheckBoardTargetExtract : public cMMVII_Appli
 
 cAppliCheckBoardTargetExtract::cAppliCheckBoardTargetExtract(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli     (aVArgs,aSpec),
+   mPhProj          (*this),
+   mTimeSegm        (this),
    mImIn            (cPt2di(1,1)),
-   mDImIn           (nullptr)
+   mDImIn           (nullptr),
+   mHasMasqTest     (false),
+   mMasqTest        (cPt2di(1,1)),
+   mImLabel         (cPt2di(1,1)),
+   mDImLabel        (nullptr)
 {
 }
 
@@ -84,241 +113,279 @@ cCollecSpecArg2007 & cAppliCheckBoardTargetExtract::ArgOpt(cCollecSpecArg2007 & 
 {
    return
 	        anArgOpt
-             <<   AOpt2007(mShowQuickSaddleF,"ShowQSF","Vector to show quick saddle filters")
+             <<  mPhProj.DPMask().ArgDirInOpt("TestMask","Mask for selecting point used in detailed mesg/output")
+             <<  AOpt2007(mShowQuickSaddleF,"ShowQSF","Vector to show quick saddle filters")
    ;
 }
 
 
-
-/** Compute, as a flagt of bit, the set of Fremaan-8 neighboor that are > over a pixel,
- * for value==, the comparison is done on Y then X 
- */
-
-
-template <class Type>  tU_INT1   FlagSup8Neigh(const cDataIm2D<Type> & aDIm,const cPt2di & aPt)
-{
-   Type aV0 = aDIm.GetV(aPt);
-   tU_INT1 aResult = 0;
-   //  for freeman 1,4  Y is positive, for freeman 0, X is positive
-   for (int aK=0 ; aK<4 ; aK++)
-   {
-      if (aDIm.GetV(aPt+FreemanV8[aK]) >=  aV0)
-         aResult |=  1<< aK;
-   }
-   for (int aK=4 ; aK<8 ; aK++)
-   {
-      if (aDIm.GetV(aPt+FreemanV8[aK]) >  aV0)
-         aResult |=  1<< aK;
-   }
-   return aResult;
-}
-
-class cCCOfOrdNeigh
-{
-     public :
-        bool mIsSup;  // is it a component with value > pixel
-	int  mBit0;   // First neighboorr
-	int  mBit1;   // last neighboor 
-};
-
-/*
-void  ComputeCCOfeNeigh(std::vector<std::vector<cCCOfOrdNeigh>> & aVCC)
-{
-     for (size_t aFlag=0 ; aFlag<256 ; aFlag++)
-     {
-         for (size_t aBit=0 ; aBit<8 ; aBit++)
-         {
-              int aBitPrec = (7+aBit) % 8;
-              bool ThisIs0 = (aFlag& (1<<aBit)) == 0;
-              bool PrecIs0 = (aFlag& (1<<aBitPrec)) == 0;
-	      if (ThisIs0!=PrecIs0)
-	      {
-                   int aBitNext = aBit+1;
-	      }
-	 }
-     }
-}
-
-void FlagToVect(std::vector<bool> & aVBool,size_t aFlag)
-{
-}
-*/
-
-void ComputeNbbCCOfFlag(tU_INT1 * aTabFlag)
-{
-     for (size_t aFlag=0 ; aFlag<256 ; aFlag++)
-     {
-         tU_INT1 aNbCC = 0;
-         for (size_t aBit=0 ; aBit<8 ; aBit++)
-         {
-              int aNextBit = (1+aBit) % 8;
-              bool ThisIs0 = (aFlag& (1<<aBit)) == 0;
-              bool NextIs0 = (aFlag& (1<<aNextBit)) == 0;
-
-	      if (ThisIs0!=NextIs0)
-	          aNbCC ++;
-	 }
-	 aTabFlag[aFlag] = aNbCC;
-     }
-}
-
-int NbbCCOfFlag(tU_INT1 aFlag)
-{
-     static tU_INT1  TabFlag[256];
-     static bool First=true;
-     if (First)
-     {
-        First = false;
-        ComputeNbbCCOfFlag(TabFlag);
-     }
-     return TabFlag[aFlag];
-}
-/*
-template <class Type>  tREAL8  SadleDecision(const cDataIm2D<Type> & aDIm,const cPt2di & aPt)
-{
-
-}
-*/
-
-
-void ConnectedComponent
-     (
-         std::vector<cPt2di> & aVPts,
-         cDataIm2D<tU_INT1>  & aDIm,
-         const std::vector<cPt2di> & aNeighbourhood,
-         const cPt2di& aSeed,
-         int aMarqInit=1,
-         int aNewMarq=0
-     )
-{
-    aVPts.clear();
-    if (aDIm.GetV(aSeed) != aMarqInit)
-       return;
-
-    aDIm.SetV(aSeed,aNewMarq);
-    aVPts.push_back(aSeed);
-    size_t aIndBottom = 0;
-
-    while (aIndBottom!=aVPts.size())
-    {
-          cPt2di aP0 = aVPts[aIndBottom];
-	  for (const auto & aDelta : aNeighbourhood)
-	  {
-              cPt2di aNeigh = aP0 + aDelta;
-	      if (aDIm.GetV(aNeigh)==aMarqInit)
-	      {
-                  aDIm.SetV(aNeigh,aNewMarq);
-                  aVPts.push_back(aNeigh);
-	      }
-	  }
-	  aIndBottom++;
-    }
-}
-
-
-
-
-int cAppliCheckBoardTargetExtract::IsTopoSaddlePoint(const cPt2di & aPt) const
-{
-   tREAL4 aV0 = mDImIn->GetV(aPt);
-   std::vector<int> Sup0(8);
-
-   for (int aK=0 ; aK<4 ; aK++)
-   {
-      Sup0[aK] = mDImIn->GetV(aPt+FreemanV8[aK]) >=  aV0;
-   }
-   for (int aK=4 ; aK<8 ; aK++)
-   {
-      Sup0[aK] = mDImIn->GetV(aPt+FreemanV8[aK]) > aV0;
-   }
-
-   int aNbDist = 0;
-   for (int aK=0 ; aK<8 ; aK++)
-   {
-       if (Sup0[aK]!=Sup0[(aK+1)%8])
-          aNbDist++;
-   }
-
-
-   return aNbDist;
-}
-
-void cAppliCheckBoardTargetExtract::MakeImageSaddlePoints(const tDIm & aDIm) const
+void cAppliCheckBoardTargetExtract::MakeImageSaddlePoints(const tDIm & aDIm,const cDataIm2D<tU_INT1> & aDMasq) const
 {
     cRGBImage  aRGB = RGBImFromGray<tElem>(aDIm);
-    // cRect2 aRectInt = aDIm->Dilate(-1);
 
     for (const auto & aPix : cRect2(aDIm.Dilate(-1)))
     {
-       if (NbbCCOfFlag(FlagSup8Neigh(aDIm,aPix))>=4)
+       if (aDMasq.GetV(aPix) >= (int) eTopoMaxLoc)
        {
-          aRGB.SetRGBPix(aPix,cRGBImage::Red);
+          aRGB.SetRGBPix(aPix,(aDMasq.GetV(aPix)==eFilterSym) ? cRGBImage::Red : cRGBImage::Green );
        }
     }
     aRGB.ToFile("Saddles.tif");
 }
-void cAppliCheckBoardTargetExtract::DoOneImage() 
+
+bool cAppliCheckBoardTargetExtract::IsPtTest(const cPt2dr & aPt) const
 {
+   return mHasMasqTest && (mMasqTest.DIm().GetV(ToI(aPt)) != 0);
+}
+
+cWhichMin<cPt2dr,tREAL8>  cAppliCheckBoardTargetExtract::OptimFilter(cFilterDCT<tREAL4> * aFilter,const cPt2dr & aP0) const
+{
+     cWhichMin<cPt2dr,tREAL8> aRes;
+     for (tREAL8 aDx=-1.0 ; aDx<1.0 ; aDx += 0.1)
+     {
+         for (tREAL8 aDy=-1.0 ; aDy<1.0 ; aDy += 0.1)
+	 {
+             cPt2dr aPt = aP0+cPt2dr(aDx,aDy);
+	     // tREAL8 aVal = aFilter->ComputeValMaxCrown(aPt,1e10);
+	     tREAL8 aVal = aFilter->ComputeVal(aPt);
+	     aRes.Add(aPt,aVal);
+             // UpdateMin(aMinSym,aFSym->ComputeValMaxCrown(aP2+cPt2dr(aDx,aDy),10));
+	 }
+     }
+     return aRes;
+}
+
+void cAppliCheckBoardTargetExtract::DoOneImage() 
+{ 
+    int   mNbBlur1 = 4;  // Number of iteration of initial blurring
+    tREAL8 mDistMaxLocSad = 10.0;  // for supressing sadle-point,  not max loc in a neighboorhoud
+    int    mMaxNbMLS = 2000; //  Max number of point in best saddle points
+    tREAL8 aRayCalcSadle = sqrt(4+1);  // limit point 2,1
+
+    tREAL8 mThresholdSym     = 0.50;
+    tREAL8 mDistCalcSym0     = 8.0;
+    tREAL8 mDistDivSym       = 2.0;
+    
+
+    //   computed threshold
+    tINT8  mDistRectInt = 20; // to see later how we compute it
+
+
+    /* [0]    Initialise : read image and mask */
+
+    cAutoTimerSegm aTSInit(mTimeSegm,"Init");
+
+	// [0.0]   read image
     mImIn =  tIm::FromFile(mNameIm);
     mDImIn = &mImIn.DIm() ;
     mSzIm = mDImIn->Sz();
+    cRect2 aRectInt = mDImIn->Dilate(-mDistRectInt);
 
-    StdOut() << "BITSET , 4 " << sizeof(std::bitset<4>) << " 8:" << sizeof(std::bitset<8>) << " 9:" << sizeof(std::bitset<8>) << "\n";
-    StdOut() << "END READ IMAGE \n";
+	// [0.1]   initialize labeling image 
+    //mImLabel(mSzIm,nullptr,eModeInitImage::eMIA_Null);
+    mDImLabel =  &(mImLabel.DIm());
+    mDImLabel->Resize(mSzIm);
+    mDImLabel->InitCste(eNone);
 
-    SquareAvgFilter(*mDImIn,4,1,1);
 
-    StdOut() << "END FILTER \n";
+    mHasMasqTest = mPhProj.ImageHasMask(mNameIm);
+    if (mHasMasqTest)
+       mMasqTest =  mPhProj.MaskOfImage(mNameIm,*mDImIn);
 
-    // mDImIn->ToFile("tooooottttoto.tif");
 
-    cRect2 aRectInt = mDImIn->Dilate(-1);
+    /* [1]   Compute a blurred image => less noise, less low level saddle */
+
+    cAutoTimerSegm aTSBlur(mTimeSegm,"Blurr");
+
+    tIm   aImBlur  = mImIn.Dup(); // create image blurred with less noise
+    tDIm& aDImBlur = aImBlur.DIm();
+
+    SquareAvgFilter(aDImBlur,mNbBlur1,1,1);
+
+
+
+    /* [2]  Compute "topological" saddle point */
+
+    cAutoTimerSegm aTSTopoSad(mTimeSegm,"TopoSad");
+
+         // 2.1  point with criteria on conexity of point > in neighoor
+
     int aNbSaddle=0;
     int aNbTot=0;
 
-    // MakeImageSaddlePoints(*mDImIn);
-
-    cIm2D<tU_INT1>  aImMasq(mSzIm,nullptr,eModeInitImage::eMIA_Null);
-    cDataIm2D<tU_INT1> &  aDMasq = aImMasq.DIm();
     for (const auto & aPix : aRectInt)
     {
-        if (NbbCCOfFlag(FlagSup8Neigh(*mDImIn,aPix)) >=4)
+        if (FlagSup8Neigh(aDImBlur,aPix).NbConComp() >=4)
 	{
-            aImMasq.DIm().SetV(aPix,1);
+            mDImLabel->SetV(aPix,eTopo0);
 	    aNbSaddle++;
 	}
         aNbTot++;
     }
 
+    
+         // 2.2  as often there 2 "touching" point with this criteria
+	 // select 1 point in conected component
+
+    cAutoTimerSegm aTSMaxCC(mTimeSegm,"MaxCCSad");
     int aNbCCSad=0;
     std::vector<cPt2di>  aVCC;
     const std::vector<cPt2di> & aV8 = Alloc8Neighbourhood();
-    for (const auto& aPix : aDMasq)
+
+    for (const auto& aPix : *mDImLabel)
     {
-         if (aDMasq.GetV(aPix)==1)
+         if (mDImLabel->GetV(aPix)==eTopo0)
 	 {
              aNbCCSad++;
-             ConnectedComponent(aVCC,aDMasq,aV8,aPix,1,0);
+             ConnectedComponent(aVCC,*mDImLabel,aV8,aPix,eTopo0,eTopoTmpCC);
+	     cWhichMax<cPt2di,tREAL8> aBestPInCC;
 	     for (const auto & aPixCC : aVCC)
 	     {
-		     FakeUseIt(aPixCC);
+                 aBestPInCC.Add(aPixCC,CriterionTopoSadle(aDImBlur,aPixCC));
 	     }
+
+	     cPt2di aPCC = aBestPInCC.IndexExtre();
+	     mDImLabel->SetV(aPCC,eTopoMaxOfCC);
 	 }
     }
 
+    /* [3]  Compute point that are max local */
 
-    StdOut() << "NBS " << (100.0*aNbSaddle)/aNbTot << " " <<  (100.0*aNbCCSad)/aNbTot << "\n";
-    /*
-    for (const auto & aPix : aRectInt)
+    cAutoTimerSegm aTSCritSad(mTimeSegm,"CritSad");
+
+    std::vector<cPt3dr> aVSad0;
+    cCalcSaddle  aCalcSBlur(aRayCalcSadle+0.001,1.0);
+
+    for (const auto& aPix : *mDImLabel)
     {
+         if (mDImLabel->GetV(aPix)==eTopoMaxOfCC)
+	 {
+             tREAL8 aCritS = aCalcSBlur.CalcSaddleCrit(aDImBlur,aPix);
+             aVSad0.push_back(cPt3dr(aPix.x(),aPix.y(),aCritS));
+	 }
     }
-    */
+
+    //   [3.2]  select KBest + MaxLocal
+    cAutoTimerSegm aTSMaxLoc(mTimeSegm,"MaxLoc");
+
+    SortOnCriteria(aVSad0,[](const auto & aPt){return - aPt.z();} );
+    std::vector<cPt3dr> aVMaxLoc = FilterMaxLoc((cPt2dr*)nullptr,aVSad0,[](const auto & aP) {return Proj(aP);}, mDistMaxLocSad);
+
+    //  limit the number of point , a bit rough but first experiment show that sadle criterion is almost perfect on good images
+    aVMaxLoc.resize(std::min(aVMaxLoc.size(),size_t(mMaxNbMLS)));
+
+    for (const auto & aP3 : aVMaxLoc)
+        mDImLabel->SetV(ToI(Proj(aP3)),eTopoMaxLoc);
+
+    StdOut() << "END MAXLOC \n";
+
+
+
+    /* [4]  Calc Symetry criterion */
+
+    cAutoTimerSegm aTSSym(mTimeSegm,"SYM");
+    if (1)
+    {
+       cCalcSaddle  aCalcSInit(1.5,1.0);
+       std::vector<cPt3dr> aNewP3;
+       cFilterDCT<tREAL4> * aFSym = cFilterDCT<tREAL4>::AllocSym(mImIn,0.0,mDistCalcSym0,1.0);
+       cOptimByStep aOptimSym(*aFSym,true,mDistDivSym);
+       for (const auto & aP3 : aVMaxLoc)
+       {
+	   cPt2dr aP0 = Proj(aP3);
+
+	   auto [aValSym,aNewP] = aOptimSym.Optim(aP0,1.0,0.01);
+
+	   if (aValSym< mThresholdSym)
+	   {
+               aNewP3.push_back(cPt3dr(aNewP.x(),aNewP.y(),aValSym));
+               mDImLabel->SetV(ToI(aNewP),eFilterSym);
+	   }
+       }
+
+       delete aFSym;
+       aVMaxLoc = aNewP3;
+    }
+
+    if (0)
+    {
+       cFilterDCT<tREAL4> * aFSym = cFilterDCT<tREAL4>::AllocSym(mImIn,0.0,mDistCalcSym0,1.0);
+       cOptimByStep aOptimSym(*aFSym,true,mDistDivSym);
+// tPtR Optim(const tPtR & ,tREAL8 aStepInit,tREAL8 aStepLim,tREAL8 aMul=0.5);
+
+
+       cStdStatRes aSSad1;
+       cStdStatRes aSSad0;
+       cStdStatRes aSSymInt_1;
+       cStdStatRes aSSymInt_0;
+
+       cCalcSaddle  aCalcSInit(1.5,1.0);
+       for (const auto & aP3 : aVMaxLoc)
+       {
+	   cPt2dr aP0 = Proj(aP3);
+           cPt2dr aP1 =  aP0;
+	   aCalcSBlur.RefineSadlePointFromIm(aImBlur,aP1,true);
+           cPt2dr aP2 =  aP1;
+	   aCalcSInit.RefineSadlePointFromIm(aImBlur,aP2,true);
+
+	   // tREAL8 aSymInt = aFSym->ComputeValMaxCrown(aP2,10);
+           // tREAL8  aSymInt = OptimFilter(aFSym,aP2).ValExtre();
+
+	   tREAL8 aSymInt = aOptimSym.Optim(aP0,1.0,0.05).first;
+
+           bool  Ok = IsPtTest(Proj(aP3));
+
+	   //StdOut() << "SYMM=" << aFSym->ComputeVal(aP0) << "\n";
+
+	   if (Ok)
+	   {
+               aSSad1.Add(aP3.z());
+	       aSSymInt_1.Add(aSymInt);
+	   }
+	   else
+	   {
+               aSSad0.Add(aP3.z());
+	       aSSymInt_0.Add(aSymInt);
+	   }
+       }
+
+       if (mHasMasqTest)
+       {
+          StdOut()  << " ================ STAT LOC CRITERIA ==================== \n";
+          StdOut() << " * Saddle , #Ok  Min=" << aSSad1.Min()  
+		   << "     #NotOk 90% " << aSSad0.ErrAtProp(0.9) 
+		   << "   99%  " << aSSad0.ErrAtProp(0.99) 
+		   << "   99.9%  " << aSSad0.ErrAtProp(0.999) 
+		   << "\n";
+
+          StdOut() << " * SYM , #Ok=" << aSSymInt_1.Max()   << " %75=" <<  aSSymInt_1.ErrAtProp(0.75)
+		   << "  NotOk 50% " << aSSymInt_0.ErrAtProp(0.5) 
+		   << "    10%  "    << aSSymInt_0.ErrAtProp(0.10) 
+		   << "\n";
+       }
+       delete aFSym;
+    }
+
+    cAutoTimerSegm aTSMakeIm(mTimeSegm,"OTHERS");
+
+    MakeImageSaddlePoints(*mDImIn,*mDImLabel);
+    StdOut() << "NBS " << (100.0*aNbSaddle)/aNbTot << " " <<  (100.0*aNbCCSad)/aNbTot 
+	    << " " <<  (100.0*aVMaxLoc.size())/aNbTot  << " NB=" << aVMaxLoc.size() << "\n";
+    aDImBlur.ToFile("Blurred.tif");
+
 }
 
+/*
+ *  Dist= sqrt(5)
+ *  T=6.3751
+ *  2 sqrt->6.42483
+ */
 
 
 int  cAppliCheckBoardTargetExtract::Exe()
 {
+   mPhProj.FinishInit();
+
    if (RunMultiSet(0,0))
    {
        return ResultMultiSet();

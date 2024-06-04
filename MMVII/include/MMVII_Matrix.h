@@ -154,6 +154,7 @@ template <class Type> class  cDenseVect
             MMVII_INTERNAL_ASSERT_medium(aV.IsInside(Sz()) ,"Sparse Vector out dense vect");
         }
         void  WeightedAddIn(Type aWeight,const tSpV & aColLine);
+        void  WeightedAddIn(Type aWeight,const tDV & aColLine);
 
            /*  =========  Othognalization & projection stuff =========== */
 

@@ -4,6 +4,7 @@
 #include "MMVII_Linear2DFiltering.h"
 #include "MMVII_Geom2D.h"
 #include "MMVII_SysSurR.h"
+#include "MMVII_Mappings.h"
 
 
 /** \file  FilterCodedTarget.h
@@ -119,7 +120,7 @@ class cParamAllFilterDCT
 */
 
 
-template <class Type>  class  cFilterDCT : public cMemCheck
+template <class Type>  class  cFilterDCT : public tFunc2DReal
 {
     public :
            typedef cIm2D<Type>     tIm;
@@ -129,6 +130,8 @@ template <class Type>  class  cFilterDCT : public cMemCheck
 
 	   //  ===============  Allocator =============
            static cFilterDCT<Type> * AllocSym(tIm anIm,const cParamAllFilterDCT &);
+	   static cFilterDCT<Type> * AllocSym(tIm anIm,double aR0,double aR1,double aEpsilon);
+
            // static cFilterDCT<Type> * AllocBin(tIm anIm,double aR0,double aR1);
            static cFilterDCT<Type> * AllocRad(const tImGr & aImGr,const cParamAllFilterDCT &);
            static cFilterDCT<Type> * AllocBin(tIm anIm,const cParamAllFilterDCT &);
@@ -144,11 +147,13 @@ template <class Type>  class  cFilterDCT : public cMemCheck
            virtual void UpdateSelected(cDCT & aDC) const ;
 
            double ComputeVal(const cPt2dr & aP);
+	   cPt1dr Value(const cPt2dr&) const;
            tIm    ComputeIm();
            double ComputeValMaxCrown(const cPt2dr & aP,const double& aThreshold);
            tIm    ComputeImMaxCrown(const double& aThreshold);
 
            eDCTFilters  ModeF() const;
+
 
     protected  :
            cFilterDCT(bool IsCumul,eDCTFilters aMode,tIm anIm,bool IsSym,double aR0,double aR1,double aThickN=1.5);
@@ -263,6 +268,8 @@ class cCompiledNeighBasisFunc
 	  *  Typically a faster implemantation will store for once the var/covar matrix and its inverse
 	  *  (depend only of the neighbourhood) */
          cDenseVect<tREAL8>   SlowCalc(const std::vector<tREAL8> & );
+
+         const cDenseVect<tREAL8> &  FastCalc(const std::vector<tREAL8> & );
      private  :
          inline void AssertValsIsOk(const std::vector<tREAL8> & aVV)
          {
@@ -275,6 +282,10 @@ class cCompiledNeighBasisFunc
          std::vector<cDenseVect<tREAL8>>   mVFuncs;  ///< for each neighboor contain value on the basis
          size_t                            mNbFunc;  ///< number of functions, commodity
          cLeasSqtAA<tREAL8>                mSys;     ///< least square system
+	 bool                              mFisrtFast;  ///< First time we do Fast => compute mMatInvCov
+	 cDenseMatrix<tREAL8>              mMatInvCov;  ///< Invers of cov as it does not vary
+         cDenseVect<tREAL8>                mRHS;
+         cDenseVect<tREAL8>                mSolFast;
 };
 
 /** Class specific to saddle point computation using a least square fitting of neighbourood by quadratic
@@ -287,16 +298,20 @@ class cCalcSaddle
              cCalcSaddle(double aRay,double aStep);
 
 	     /// not use 4 now, compute criteria/eigen values
-             tREAL8  CalcSaddleCrit(const std::vector<tREAL8> &,bool Show);
+             tREAL8  CalcSaddleCrit(const std::vector<tREAL8> &,bool Show=false);
+
+	     /// Dont use interpol, require step = 1 
+             tREAL8  CalcSaddleCrit(cDataIm2D<tREAL4>& aIm,cPt2di);
 
 	     /// compute refined displacement a  saddle point using values of neihboor
              cPt2dr   RefineSadlPtFromVals(const std::vector<tREAL8> & aVVals,bool Show);
 	     /// optimize position by iteration on  RefineSadlPtFromVals
+             bool RefineSadlePointFromIm(cIm2D<tREAL4> aIm,cPt2dr & aPt,bool ResetIfDivg=false);
              void RefineSadlePointFromIm(cIm2D<tREAL4> aIm,cDCT & aDCT);
 
              double Ray() const { return mRay;}         //CM: avoid mRay unused
              double Step() const { return mStep;}       //CM: avoid mStep unused
-
+             const std::vector<cPt2di> &   VINeigh() const ;  ///<  Accessor
         private :
              double                   mRay;   ///< Radius of neighbourhood
              double                   mStep;  ///< Step for discretization

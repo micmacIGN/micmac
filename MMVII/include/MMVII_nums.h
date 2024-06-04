@@ -657,14 +657,17 @@ template <class TypeIndex,class TypeVal,const bool IsMin> class cWhichExtrem
 	 }
 	 bool IsInit() const {return mIsInit;}
 
-         void Add(const TypeIndex & anIndex,const TypeVal & aNewVal)
+	 // return value indicate if modif was done
+         bool Add(const TypeIndex & anIndex,const TypeVal & aNewVal)
          {
               if ( (IsMin?(aNewVal<mValExtre):(aNewVal>=mValExtre)) || (!mIsInit))
               {     
                     mValExtre   = aNewVal;
                     mIndexExtre = anIndex;
+                    mIsInit = true;
+		    return true;
               }
-              mIsInit = true;
+	      return false;
          }
          const TypeIndex & IndexExtre() const {AssertIsInit();return mIndexExtre;}
          const TypeVal   & ValExtre  () const {AssertIsInit();return mValExtre;}

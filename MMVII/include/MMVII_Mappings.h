@@ -373,6 +373,8 @@ template <class Type,const int DimIn,const int DimOut> class cDataMapping : publ
 #endif // MAP_STATIC_BUF
 };
 
+typedef cDataMapping<tREAL8,2,1> tFunc2DReal;
+
 /** Specialization for DimIn=DimOut , introduce because we want to force invertible mapping
     to have DimIn==DimOut
 */

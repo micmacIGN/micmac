@@ -584,12 +584,12 @@ template <class Type> class  cLeasSqtAA  :  public cLeasSq<Type>
 
        //  ================  Accessor used in Schur elim ========  :
        
-       const cDenseMatrix<Type> & tAA   () const;   ///< Accessor 
+       const cDenseMatrix<Type> & tAA   () const;   ///< Accessor  , warn not symetrized
        const cDenseVect<Type>   & tARhs () const;   ///< Accessor 
-       cDenseMatrix<Type> & tAA   () ;         ///< Accessor 
+       cDenseMatrix<Type> & tAA   () ;         ///< Accessor  , warn not symetrized
        cDenseVect<Type>   & tARhs () ;         ///< Accessor 
 
-      /// access to tAA via virtual interface
+      /// access to tAA via virtual interface, duplicate then do the symetrization
       cDenseMatrix<Type>  V_tAA() const override;
       /// access to tARhs via virtual interface
       cDenseVect<Type>    V_tARhs() const override;  
