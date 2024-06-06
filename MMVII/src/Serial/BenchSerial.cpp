@@ -549,6 +549,8 @@ void BenchSerialization
 }
 
 
+void BenchPolySer(const std::string& aDirOut);
+
 void BenchSerialization
     (
         cParamExeBench & aParam,
@@ -558,6 +560,7 @@ void BenchSerialization
 {
     if (! aParam.NewBench("Serial")) return;
 
+    BenchPolySer(aDirOut);
     BenchCSV(aDirOut);
 
     // SaveInFile(cTestSerial1(),"toto.json");
@@ -646,5 +649,97 @@ void BenchCSV(const std::string & aDirTmp)
 }
 
 
+enum class eTypePolymorph {eBase, eChild};
+
+class cBase {
+public:
+    cBase() {}
+    cBase(const std::string& name, int value) : name(name),value(value) {}
+    virtual ~cBase() {}
+
+    virtual eTypePolymorph PolymorphType() const  { return eTypePolymorph::eBase ;}
+
+    virtual void AddData(const cAuxAr2007 & anAux) {
+        MMVII::AddData(cAuxAr2007("Name",anAux),name);
+        MMVII::AddData(cAuxAr2007("Value",anAux),value);
+    }
+
+    std::string str() const { return "(" + doStr() + ")"; }
+    virtual std::string doStr() const {return "Name: '"  + name + "', Value: " + std::to_string(value); }
+
+    static cBase* Factory(eTypePolymorph);
+private:
+    std::string name;
+    int value;
 };
+
+
+class cChild : public cBase {
+public:
+    cChild() {}
+    cChild(const std::string& name, int value, double other) : cBase(name,value),other(other) {}
+    virtual ~cChild() {}
+
+    eTypePolymorph PolymorphType() const override { return eTypePolymorph::eChild ;}
+
+    virtual void AddData(const cAuxAr2007 & anAux) override {
+        cBase::AddData(anAux);
+        MMVII::AddData(cAuxAr2007("Other",anAux),other);
+    }
+
+    virtual std::string doStr() const override {return cBase::doStr() + ", Other: " + std::to_string(other); }
+private:
+    double other;
+};
+
+
+cBase* cBase::Factory(eTypePolymorph aType)
+{
+    switch (aType) {
+    case eTypePolymorph::eBase  : return new cBase;
+    case eTypePolymorph::eChild : return new cChild;
+    }
+}
+
+// Pas utile ici, c'est juste le truc 'normal' pour le principe
+void AddData(const cAuxAr2007 & anAux, cBase & aBase)
+{
+    aBase.AddData(anAux);
+}
+
+// Polymorphisme
+void AddData(const cAuxAr2007 & anAux, cBase *& aBase)
+{
+    int aIType;
+    if (! anAux.Input())
+        aIType = int(aBase->PolymorphType());
+    AddData(cAuxAr2007("PolymorphType",anAux),aIType);
+    if (anAux.Input()) {
+        delete aBase; // Mouais ...
+        aBase = cBase::Factory(eTypePolymorph(aIType));
+    }
+    aBase->AddData(anAux);
+}
+
+
+void BenchPolySer(const std::string& aDirOut)
+{
+    std::string aNameFile =  aDirOut + "TestObj." + E2Str(eTypeSerial::ejson);
+
+    std::vector<cBase*> aWrite,aRead;
+    aWrite.push_back(new cBase("joe",42));
+    aWrite.push_back(new cBase("toto",24));
+    aWrite.push_back(new cChild("Child",24,42.24));
+    aWrite.push_back(new cBase("toto",24));
+    SaveInFile(aWrite,aNameFile);
+    ReadFromFile(aRead,aNameFile);
+
+    for (const auto& aObj : aWrite)
+        std::cout << aObj->str() << std::endl;
+    for (const auto& aObj : aRead)
+        std::cout << aObj->str() << std::endl;
+}
+
+
+}
 
