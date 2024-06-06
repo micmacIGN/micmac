@@ -36,7 +36,7 @@ template <class Type>  class cCSVFile : public cBaseCVSFile
          cBaseCVSFile ()
          {
             mArOut->SetSpecif(true);
-            Type aT0;
+            Type aT0{};
             AddData(cAuxAr2007("CSV",*mArOut,eTAAr::eStd),aT0);
             mArOut->PutArchiveIn(&mHeader);
             mArOut->SetSpecif(false);
@@ -94,7 +94,7 @@ template <class Type>  class cICSVFile :  public  cCSVFile<Type>,
               aRes.clear();
               while (ReadLine())
               {
-                  Type anObj;
+                  Type anObj{};
                   AddData(cAuxAr2007("CSV",*this,eTAAr::eStd),anObj);
                   aRes.push_back(anObj);
               }
