@@ -89,129 +89,145 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(cBA_GCP & aBA)
 
     
 
-// MMVII_DEV_WARNING("std::cout.precision(15) JkUiiuoiu");
-// std::cout.precision(15);
+    // MMVII_DEV_WARNING("std::cout.precision(15) JkUiiuoiu");
+    // std::cout.precision(15);
     if (aSet==nullptr) return;
     //   W>0  obs is an unknown "like others"
     //   W=0 , obs is fix , use schurr subst and fix the variables
     //   W<0 , obs is substitued
-     const std::vector<cMes1GCP> &      aVMesGCP = aSet->MesGCP();
-     const std::vector<cMultipleImPt> & aVMesIm  = aSet->MesImOfPt() ;
-     const std::vector<cSensorImage*> & aVSens   = aSet->VSens() ;
+    const std::vector<cMes1GCP> &      aVMesGCP = aSet->MesGCP();
+    const std::vector<cMultipleImPt> & aVMesIm  = aSet->MesImOfPt() ;
+    const std::vector<cSensorImage*> & aVSens   = aSet->VSens() ;
 
     // StdOut() << "GCP " << aVMesGCP.size() << " " << aVMesIm.size() << " " << aVSens.size() << std::endl;
 
-     size_t aNbGCP = aVMesGCP.size();
+    size_t aNbGCP = aVMesGCP.size();
 
-     bool  aGcpUk = (aSigmaGCP>0);  // are GCP unknowns
-     bool  aGcpFix = (aSigmaGCP==0);  // is GCP just an obervation
-     tREAL8 aWeightGround =   aGcpFix ? 1.0 : (1.0/Square(aSigmaGCP)) ;  // standard formula, avoid 1/0
+    bool  aGcpUk = (aSigmaGCP>0);  // are GCP unknowns
+    bool  aGcpFix = (aSigmaGCP==0);  // is GCP just an obervation
 
-     int aNbGCPVis = 0;
-     int aAvgVis = 0;
-     int aAvgNonVis = 0;
-     if (Show)
-     {
+    int aNbGCPVis = 0;
+    int aAvgVis = 0;
+    int aAvgNonVis = 0;
+    if (Show)
+    {
         StdOut() << "  * " <<  aBA.mName << " : Gcp0=" << aSet->AvgSqResidual() ;
         if (aGcpUk)
         {
             aNewGCP = *aSet;
-	    for (size_t aK=0 ; aK< aNbGCP ; aK++)
-	    {
+            for (size_t aK=0 ; aK< aNbGCP ; aK++)
+            {
                 // cPt3dr aDif = mNewGCP.MesGCP()[aK].mPt -  aGCP_UK[aK]->Pt();
                 // StdOut() << " DIFF=" << aDif  << " DDD= "  << (aDif.x()==0)  <<" " << (aDif.y()==0)  <<" " << (aDif.z()==0)  <<" " << "\n";
                 aNewGCP.MesGCP()[aK].mPt = aGCP_UK[aK]->Pt();
-	    }
+            }
             StdOut() << " , GcpNew=" << aNewGCP.AvgSqResidual() ; // getchar();
         }
-     }
+    }
 
     // MMVII_INTERNAL_ASSERT_tiny(!aGcpUk,"Dont handle GCP UK 4 Now");
 
-     //  Three temporary unknowns for x-y-z of the 3d point
-     std::vector<int> aVIndGround = {-1,-2,-3};
-     std::vector<int> aVIndFix = (aGcpFix ? aVIndGround : std::vector<int>());
+    //  Three temporary unknowns for x-y-z of the 3d point
+    std::vector<int> aVIndGround = {-1,-2,-3};
+    std::vector<int> aVIndFix = (aGcpFix ? aVIndGround : std::vector<int>());
 
-     //  Parse all GCP
-     for (size_t aKp=0 ; aKp < aNbGCP ; aKp++)
-     {
-           const cPt3dr & aPGr = aVMesGCP.at(aKp).mPt;
-           cPt3dr_UK * aPtrGcpUk =  aGcpUk ? aGCP_UK[aKp] : nullptr;
-	   cSetIORSNL_SameTmp<tREAL8>  aStrSubst(aPGr.ToStdVector(),aVIndFix);
+    //  Parse all GCP
+    for (size_t aKp=0 ; aKp < aNbGCP ; aKp++)
+    {
+        const cPt3dr & aPGr = aVMesGCP.at(aKp).mPt;
+        const cPt3dr & aPtSigmas = aVMesGCP.at(aKp).SigmasXYZ();
+        cPt3dr_UK * aPtrGcpUk =  aGcpUk ? aGCP_UK[aKp] : nullptr;
+        cSetIORSNL_SameTmp<tREAL8>  aStrSubst(aPGr.ToStdVector(),aVIndFix);
 
-	   const std::vector<cPt2dr> & aVPIm  = aVMesIm.at(aKp).VMeasures();
-	   const std::vector<int> &  aVIndIm  = aVMesIm.at(aKp).VImages();
+        const std::vector<cPt2dr> & aVPIm  = aVMesIm.at(aKp).VMeasures();
+        const std::vector<int> &  aVIndIm  = aVMesIm.at(aKp).VImages();
 
-	   int aNbImVis  = 0;
-	   // Parse all image having a measure with this GCP
-           for (size_t aKIm=0 ; aKIm<aVPIm.size() ; aKIm++)
-           {
-               int aIndIm = aVIndIm.at(aKIm);
-               cSensorImage * aSens = aVSens.at(aIndIm);
-               const cPt2dr & aPIm = aVPIm.at(aKIm);
-//StdOut() << "aSensaSensaSens " << aSens->NameImage() << " " << aVIndIm << "\n";
+        cPt3dr aWeightGroundXYZ(1., 1., 1.);
+        if (!aGcpFix)
+            aWeightGroundXYZ = DivCByC( {1., 1., 1.}, Square(aSigmaGCP)* MulCByC(aPtSigmas,aPtSigmas));
 
-	       // compute indexe of unknown, if GCp are !UK we have fix index for temporary
-               std::vector<int> aVIndGlob = aGcpUk ? (std::vector<int>()) : aVIndGround;
-               if (aGcpUk)  // if GCP are UK, we have to fill with its index
-               {
-                    aPtrGcpUk->PushIndexes(aVIndGlob);
-               }
-	       //  Add index of sensor (Pose+Calib for PC Cam)
-               for (auto & anObj : aSens->GetAllUK())
-                  anObj->PushIndexes(aVIndGlob);
+        std::cout<<"\naPtSigmas "<<aPtSigmas<<"\n";
+        std::cout<<"aWeightGroundXYZ "<<aWeightGroundXYZ<<"\n";
 
-	       /*StdOut() << "VISSSS " << aSens->IsVisibleOnImFrame(aPIm) 
-		        << " " << aPGr
-		        << " "<< aSens->IsVisible(aPGr) 
-			<< "\n";*/
+        int aNbImVis  = 0;
+        // Parse all image having a measure with this GCP
+        for (size_t aKIm=0 ; aKIm<aVPIm.size() ; aKIm++)
+        {
+            int aIndIm = aVIndIm.at(aKIm);
+            cSensorImage * aSens = aVSens.at(aIndIm);
+            const cPt2dr & aPIm = aVPIm.at(aKIm);
+            //StdOut() << "aSensaSensaSens " << aSens->NameImage() << " " << aVIndIm << "\n";
 
-	       // Do something only if GCP is visible 
-               if (aSens->IsVisibleOnImFrame(aPIm) && (aSens->IsVisible(aPGr)))
-               {
-                     aNbImVis++;
-	             cPt2dr aResidual = aPIm - aSens->Ground2Image(aPGr);
-                     tREAL8 aWeightImage =   aGCPIm_Weighter.SingleWOfResidual(aResidual);
-	             cCalculator<double> * anEqColin =  aSens->GetEqColinearity();
-                     // the "obs" are made of 2 point and, possibily, current rotation (for PC cams)
-                     std::vector<double> aVObs = aPIm.ToStdVector();
+            // compute indexe of unknown, if GCp are !UK we have fix index for temporary
+            std::vector<int> aVIndGlob = aGcpUk ? (std::vector<int>()) : aVIndGround;
+            if (aGcpUk)  // if GCP are UK, we have to fill with its index
+            {
+                aPtrGcpUk->PushIndexes(aVIndGlob);
+            }
+            //  Add index of sensor (Pose+Calib for PC Cam)
+            for (auto & anObj : aSens->GetAllUK())
+                anObj->PushIndexes(aVIndGlob);
 
-		     aSens->PushOwnObsColinearity(aVObs,aPGr);
+            /*StdOut() << "VISSSS " << aSens->IsVisibleOnImFrame(aPIm)
+                << " " << aPGr
+                << " "<< aSens->IsVisible(aPGr)
+            << "\n";*/
 
-		     if (aGcpUk)  // Case Uknown, we just add the equation
-		     {
-		        mSys->R_CalcAndAddObs(anEqColin,aVIndGlob,aVObs,aWeightImage);
-		     }
-		     else  // Case to subst by schur compl,we accumulate in aStrSubst
-		     {
-                        mSys->R_AddEq2Subst(aStrSubst,anEqColin,aVIndGlob,aVObs,aWeightImage);
-		     }
-               }
-	    }
-            aAvgVis += aNbImVis;
-            aAvgNonVis += aVPIm.size() -aNbImVis;
-            aNbGCPVis += (aNbImVis !=0);
+            // Do something only if GCP is visible
+            if (aSens->IsVisibleOnImFrame(aPIm) && (aSens->IsVisible(aPGr)))
+            {
+                aNbImVis++;
+                cPt2dr aResidual = aPIm - aSens->Ground2Image(aPGr);
+                tREAL8 aWeightImage =   aGCPIm_Weighter.SingleWOfResidual(aResidual);
+                cCalculator<double> * anEqColin =  aSens->GetEqColinearity();
+                // the "obs" are made of 2 point and, possibily, current rotation (for PC cams)
+                std::vector<double> aVObs = aPIm.ToStdVector();
 
-             // bool  aGcpUk = (aSigmaGCP>0);  // are GCP unknowns
-             // bool  aGcpFix = (aSigmaGCP==0);  // is GCP just an obervation
-            if (aVMesGCP.at(aKp).isFree())
-               continue;
-	    if (! aGcpUk) // case  subst,  we now can make schurr commpl and subst aSigmaGCP<=0
-	    {
-                if (! aGcpFix)  // if GCP is not hard fix, we must add obs on ground
-		{
-                    for (auto & aIndGr : aVIndGround)
-                        aStrSubst.AddFixCurVarTmp(aIndGr,aWeightGround);
-		}
-                mSys->R_AddObsWithTmpUK(aStrSubst);  // finnaly add obs accummulated
-	    }
-	    else  // aSigmaGCP >0
-	    {
-                 //  Add observation fixing GCP  aPGr
-                 // mR8_Sys->AddEqFixCurVar(*aPtrGcpUk,aPtrGcpUk->Pt(),aWeightGround);
-		 // FIX TO GCP INIT NOT TO LAST ESTIMATION
-                 mR8_Sys->AddEqFixNewVal(*aPtrGcpUk,aPtrGcpUk->Pt(),aPGr,aWeightGround);
-	    }
+                aSens->PushOwnObsColinearity(aVObs,aPGr);
+
+                if (aGcpUk)  // Case Uknown, we just add the equation
+                {
+                    mSys->R_CalcAndAddObs(anEqColin,aVIndGlob,aVObs,aWeightImage);
+                }
+                else  // Case to subst by schur compl,we accumulate in aStrSubst
+                {
+                    mSys->R_AddEq2Subst(aStrSubst,anEqColin,aVIndGlob,aVObs,aWeightImage);
+                }
+            }
+        }
+        aAvgVis += aNbImVis;
+        aAvgNonVis += aVPIm.size() -aNbImVis;
+        aNbGCPVis += (aNbImVis !=0);
+
+        // bool  aGcpUk = (aSigmaGCP>0);  // are GCP unknowns
+        // bool  aGcpFix = (aSigmaGCP==0);  // is GCP just an obervation
+        if (aVMesGCP.at(aKp).isFree())
+            continue;
+        if (! aGcpUk) // case  subst,  we now can make schurr commpl and subst aSigmaGCP<=0
+        {
+            if (! aGcpFix)  // if GCP is not hard fix, we must add obs on ground
+            {
+                for (auto i = 0; i < 3; ++i)
+                {
+                    aStrSubst.AddFixCurVarTmp(aVIndGround[i],aWeightGroundXYZ[i]);
+                }
+            }
+            mSys->R_AddObsWithTmpUK(aStrSubst);  // finnaly add obs accummulated
+        }
+        else  // aSigmaGCP >0
+        {
+            //  Add observation fixing GCP  aPGr
+            // mR8_Sys->AddEqFixCurVar(*aPtrGcpUk,aPtrGcpUk->Pt(),aWeightGround);
+            // FIX TO GCP INIT NOT TO LAST ESTIMATION
+            std::cout<<"constrain point "<<aVMesGCP.at(aKp).mNamePt<<" to "<<aPGr<<" weight "<<aWeightGroundXYZ<<" current pos: "<<aPtrGcpUk->Pt()<<"\n";
+            for (auto i = 0; i < 3; ++i)
+            {
+
+                mR8_Sys->AddEqFixNewVal(*aPtrGcpUk,aPtrGcpUk->Pt()[i],aPGr[i],aWeightGroundXYZ[i]);
+            }
+            //mR8_Sys->AddEqFixNewVal(*aPtrGcpUk,aPtrGcpUk->Pt(),aPGr,1/1000);
+
+        }
     }
 
      if (Show)
