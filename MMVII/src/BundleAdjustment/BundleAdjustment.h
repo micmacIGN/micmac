@@ -153,7 +153,7 @@ class cMMVII_BundleAdj
           void AddTopo(); // TOPO
           cBA_Topo* getTopo() { return mTopo;}
           ///  =======  Add GCP, can be measure or measure & object
-          void AddGCP(const std::string & aName,tREAL8 aSigmaGCP,const  cStdWeighterResidual& aWeightIm, cSetMesImGCP *);
+          void AddGCP(const std::string & aName, tREAL8 aSigmaGCP, const  cStdWeighterResidual& aWeightIm, cSetMesImGCP *, bool verbose=true);
           std::vector<cBA_GCP*> & getVGCP() { return mVGCP;}
 
 	  ///  ============  Add multiple tie point ============
@@ -161,7 +161,7 @@ class cMMVII_BundleAdj
 
           /// One iteration : add all measure + constraint + Least Square Solve/Udpate/Init
           void OneIteration(tREAL8 aLVM=0.0);
-          void OneIterationTopoOnly(tREAL8 aLVM=0.0); //< if no images
+          void OneIterationTopoOnly(tREAL8 aLVM=0.0, bool verbose=false); //< if no images
 
           const std::vector<cSensorImage *> &  VSIm() const ;  ///< Accessor
           const std::vector<cSensorCamPC *> &  VSCPC() const;   ///< Accessor
@@ -197,13 +197,13 @@ class cMMVII_BundleAdj
           void InitIteration();          /// Called at first iteration -> Init things and set we are non longer in Phase Add
           void InitItereGCP();           /// GCP Init => create UK
           void InitItereTopo();          /// Topo Init => create UK
-          void OneItere_GCP();           /// One iteraion of adding GCP measures
+          void OneItere_GCP(bool verbose=true);           /// One iteraion of adding GCP measures
 
 	  void OneItere_TieP();   /// Iteration on tie points
 	  void OneItere_TieP(const cBA_TieP&);   /// Iteration on tie points
 
           ///  One It for 1 pack of GCP (4 now 1 pack allowed, but this may change)
-          void OneItere_OnePackGCP(cBA_GCP &);
+          void OneItere_OnePackGCP(cBA_GCP &, bool verbose=true);
 
           void CompileSharedIntrinsicParams(bool ForAvg);
 

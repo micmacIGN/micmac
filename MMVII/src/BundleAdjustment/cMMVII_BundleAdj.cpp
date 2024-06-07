@@ -245,9 +245,10 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM)
 
 
 
-void cMMVII_BundleAdj::OneIterationTopoOnly(tREAL8 aLVM)
+void cMMVII_BundleAdj::OneIterationTopoOnly(tREAL8 aLVM, bool verbose)
 {
-    StdOut() << "-------- Iter " << mNbIter << "-----------" << std::endl;
+    if (verbose)
+        StdOut() << "-------- Iter " << mNbIter << "-----------" << std::endl;
 
     MMVII_INTERNAL_ASSERT_tiny(mTopo,"OneIterationTopoOnly: no topo??");
 
@@ -264,15 +265,17 @@ void cMMVII_BundleAdj::OneIterationTopoOnly(tREAL8 aLVM)
     // ================================================
 
 
-    OneItere_GCP();   // add GCP informations
+    OneItere_GCP(verbose);   // add GCP informations
 
     mTopo->AddTopoEquations(*mR8_Sys);
-    mTopo->print();
+    if (verbose)
+        mTopo->print();
 
     const auto & aVectSol = mSys->R_SolveUpdateReset(aLVM);
     mSetIntervUK.SetVUnKnowns(aVectSol);
 
-    StdOut() << "---------------------------" << std::endl;
+    if (verbose)
+        StdOut() << "---------------------------" << std::endl;
     mNbIter++;
 }
 

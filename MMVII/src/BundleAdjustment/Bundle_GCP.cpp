@@ -24,7 +24,7 @@ cBA_GCP::~cBA_GCP()
 /*                cMMVII_BundleAdj::GCP                           */
 /* -------------------------------------------------------------- */
 
-void cMMVII_BundleAdj::AddGCP(const std::string & aName,tREAL8 aSigmaGCP,const  cStdWeighterResidual & aWeighter, cSetMesImGCP *  aMesGCP)
+void cMMVII_BundleAdj::AddGCP(const std::string & aName,tREAL8 aSigmaGCP,const  cStdWeighterResidual & aWeighter, cSetMesImGCP *  aMesGCP, bool verbose)
 {
     //mVGCP.push_back(cBA_GCP());
     cBA_GCP * aBA_GCP = new cBA_GCP;
@@ -39,7 +39,7 @@ void cMMVII_BundleAdj::AddGCP(const std::string & aName,tREAL8 aSigmaGCP,const  
     //  mSigmaGCP = aSigmaGCP;
     //  mGCPIm_Weighter = aWeighter;
 
-    if (1)
+    if (verbose)
     {
         StdOut()<<  "MESIM=" << aBA_GCP->mMesGCP->MesImOfPt().size() << " MesGCP=" << aBA_GCP->mMesGCP->MesGCP().size()  << std::endl;
     }
@@ -78,9 +78,8 @@ void cMMVII_BundleAdj::InitItereGCP()
 }
 
 
-void cMMVII_BundleAdj::OneItere_OnePackGCP(cBA_GCP & aBA)
+void cMMVII_BundleAdj::OneItere_OnePackGCP(cBA_GCP & aBA, bool verbose)
 {
-    bool Show=true;
     const cSetMesImGCP   * aSet           = aBA.mMesGCP;
     const tREAL8 & aSigmaGCP              = aBA.mSigmaGCP;
     cSetMesImGCP&   aNewGCP               = aBA.mNewGCP;
@@ -109,7 +108,7 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(cBA_GCP & aBA)
     int aNbGCPVis = 0;
     int aAvgVis = 0;
     int aAvgNonVis = 0;
-    if (Show)
+    if (verbose)
     {
         StdOut() << "  * " <<  aBA.mName << " : Gcp0=" << aSet->AvgSqResidual() ;
         if (aGcpUk)
@@ -226,7 +225,7 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(cBA_GCP & aBA)
         }
     }
 
-     if (Show)
+     if (verbose)
      {
         StdOut() << " PropVis1Im=" << aNbGCPVis /double(aNbGCP)  
 		<< " AvgVis=" << aAvgVis/double(aNbGCP) 
@@ -237,12 +236,12 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(cBA_GCP & aBA)
 }
 
 
-void cMMVII_BundleAdj::OneItere_GCP()
+void cMMVII_BundleAdj::OneItere_GCP(bool verbose)
 {
      for (const auto & aBA_GCP_Ptr : mVGCP)
      {
          MMVII_INTERNAL_ASSERT_strong(aBA_GCP_Ptr->mMesGCP!=nullptr,"aPtr_BA_GCP->mMesGCP");
-         OneItere_OnePackGCP(*aBA_GCP_Ptr);
+         OneItere_OnePackGCP(*aBA_GCP_Ptr, verbose);
      }
 }
 

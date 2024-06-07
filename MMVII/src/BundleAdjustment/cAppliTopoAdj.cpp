@@ -13,7 +13,7 @@ namespace MMVII
 
    /* ********************************************************** */
    /*                                                            */
-   /*                 cAppliTopoAdj                             */
+   /*                 cAppliTopoAdj                              */
    /*                                                            */
    /* ********************************************************** */
 
@@ -164,15 +164,11 @@ int cAppliTopoAdj::Exe()
 
     for (int aKIter=0 ; aKIter<mNbIter ; aKIter++)
     {
-        mBA.OneIterationTopoOnly(mLVM);
+        mBA.OneIterationTopoOnly(mLVM, true);
     }
 
     for (auto & aSI : mBA.VSIm())
         mPhProj.SaveSensor(*aSI);
-	    /*
-    for (auto & aCamPC : mBA.VSCPC())
-        mPhProj.SaveCamPC(*aCamPC);
-	*/
 
     mBA.Save_newGCP();
     mBA.SaveTopo(); // just for debug for now
