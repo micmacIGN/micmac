@@ -251,6 +251,43 @@ template <class Type> class  cExtractLines
           std::vector<cPt2di>   mPtsCont;      ///< List of point in mImMasqCont
 };
 
+
+/** Class for extracting a line arround a point, for now its very specialized in the extraction of
+ * direction in checkboard, may evolve to things more general ?
+ */
+
+class cScoreTetaLine : public tFunc1DReal // herit from tFunc1DReal for optimization in cOptimByStep
+{
+     public :
+         ///  constructor  : aL length of the segment, aStep step of discretization in a segment
+         cScoreTetaLine(cDataIm2D<tREAL4> &,const cDiffInterpolator1D & ,tREAL8 aL,tREAL8 aStep);
+
+	 /// extract the 2 angle of line in checkboar, aStepInit & aStepLim => used in cOptimByStep
+         std::pair<tREAL8,tREAL8> Tetas_CheckBoard(const cPt2dr& aC,tREAL8 aStepInit,tREAL8 aStepLim);
+     private :
+
+	 ///  fix center of reusing the data (to avoid cost for cTabulatedDiffInterpolator)
+         void SetCenter(const cPt2dr & aC);
+
+	 /// Extract the initial values of tetas by testing all at a given step (in pixel)
+         tREAL8  GetTetasInit(tREAL8 aStepPix,int aCurSign);
+	 /// Refine the value with a limit step in pixel
+         tREAL8  Refine(tREAL8 aTeta0,tREAL8 aStepPix,int aSign);
+
+	 /// Value as tFunc1DReal
+         cPt1dr  Value(const cPt1dr& aPt) const override;
+
+         cDataIm2D<tREAL4> *         mDIm;
+         tREAL8                      mLength;
+         int                         mNb;
+         tREAL8                      mStepAbsc;
+         tREAL8                      mStepTeta;
+         cTabulatedDiffInterpolator  mTabInt;
+         cPt2dr                      mC;
+         tREAL8                      mCurSign;  /// used to specify an orientaion of segment
+};
+
+
 };
 #endif //  _MMVII_EXTRACT_LINES_H_
        //

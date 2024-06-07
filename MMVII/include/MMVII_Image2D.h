@@ -499,6 +499,8 @@ class cRGBImage
         void Write(const std::string &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox) const;  // 1 to 1
 	/*
        */
+	// transformate the RGB internal image in gray
+	void ResetGray();
 
         /// set values iff param are OK,  RGB image are made for visu, not for intensive computation
         void SetRGBPix(const cPt2di & aPix,int aR,int aG,int aB);

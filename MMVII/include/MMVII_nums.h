@@ -725,6 +725,9 @@ template <class TypeIndex,class TypeVal> class cWhichMinMax
          const cWhichMin<TypeIndex,TypeVal> & Min() const {return  mMin;}
          const cWhichMax<TypeIndex,TypeVal> & Max() const {return  mMax;}
 
+         const TypeIndex &  IndMin() const {return  mMin.IndexExtre();}
+         const TypeIndex &  IndMax() const {return  mMax.IndexExtre();}
+
      private :
          cWhichMin<TypeIndex,TypeVal> mMin;
          cWhichMax<TypeIndex,TypeVal> mMax;

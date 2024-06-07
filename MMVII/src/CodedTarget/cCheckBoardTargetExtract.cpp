@@ -7,12 +7,86 @@
 #include "MMVII_2Include_Tiling.h"
 #include "MMVII_Sensor.h"
 #include "MMVII_HeuristikOpt.h"
+#include "MMVII_ExtractLines.h"
 
-
-// Test git branch
 
 namespace MMVII
 {
+
+
+class cOptimPosSeg : public tFunc2DReal
+{
+       public :
+            cOptimPosSeg(const tSeg2dr &);
+	    cPt1dr Value(const cPt2dr &) const override;
+            virtual tREAL8 CostOfSeg(const cSegment2DCompiled<tREAL8> &) const = 0;
+
+	    cSegment2DCompiled<tREAL8>  ModifiedSeg(const cPt2dr & aPModif) const;
+
+	    tSeg2dr OptimizeSeg(tREAL8 aStepInit,tREAL8 aStepLim,bool IsMin,tREAL8 aMaxDInfInit) const;
+
+       private :
+	    cSegment2DCompiled<tREAL8>  mSeg0;
+	    cPt2dr                      mP0Loc;
+	    cPt2dr                      mP1Loc;
+};
+
+
+cOptimPosSeg::cOptimPosSeg(const tSeg2dr & aSeg0) :
+    mSeg0   (aSeg0),
+    mP0Loc  (mSeg0.ToCoordLoc(mSeg0.P1())),
+    mP1Loc  (mSeg0.ToCoordLoc(mSeg0.P2()))
+{
+}
+
+cSegment2DCompiled<tREAL8>  cOptimPosSeg::ModifiedSeg(const cPt2dr & aPModif) const
+{
+    cPt2dr aP0Glob = mSeg0.FromCoordLoc(mP0Loc+cPt2dr(0,aPModif.x()));
+    cPt2dr aP1Glob = mSeg0.FromCoordLoc(mP1Loc+cPt2dr(0,aPModif.y()));
+
+    return cSegment2DCompiled<tREAL8>(aP0Glob,aP1Glob);
+}
+
+cPt1dr cOptimPosSeg::Value(const cPt2dr & aPt) const 
+{
+	return cPt1dr(CostOfSeg(ModifiedSeg(aPt)));
+}
+
+tSeg2dr cOptimPosSeg::OptimizeSeg(tREAL8 aStepInit,tREAL8 aStepLim,bool IsMin,tREAL8 aMaxDInfInit) const
+{
+    cOptimByStep<2>  aOpt(*this,true,IsMin,aMaxDInfInit);
+    auto [aScore,aSol] = aOpt.Optim(cPt2dr(0,0),aStepInit,aStepLim);
+
+    return ModifiedSeg(aSol);
+}
+
+class cOptimSeg_ValueIm : public cOptimPosSeg 
+{
+      public :
+         cOptimSeg_ValueIm(const tSeg2dr &,tREAL8 aStepOnSeg,const cDataIm2D<tREAL8> & aDIm,tREAL8 aTargetValue);
+
+         tREAL8 CostOfSeg(const cSegment2DCompiled<tREAL8> &) const override;
+      private :
+	 tREAL8                    mStepOnSeg;
+	 int                       mNbOnSeg;
+         const cDataIm2D<tREAL8> & mDataIm;
+	 tREAL8                    mTargetValue;
+};
+
+tREAL8 cOptimSeg_ValueIm::CostOfSeg(const cSegment2DCompiled<tREAL8> & aSeg) const
+{
+     tREAL8 aSum=0;
+
+     for (int aK=0 ; aK<= mNbOnSeg ; aK++)
+     {
+          cPt2dr aPt = Centroid(aK/double(mNbOnSeg),aSeg.P1(),aSeg.P2());
+	  aSum += std::abs(mDataIm.GetVBL(aPt) - mTargetValue);
+     }
+
+     return aSum / mNbOnSeg;
+}
+
+
 
 
 static constexpr tU_INT1 eNone = 0 ;
@@ -21,6 +95,184 @@ static constexpr tU_INT1 eTopoTmpCC  = 2 ;
 static constexpr tU_INT1 eTopoMaxOfCC  = 3 ;
 static constexpr tU_INT1 eTopoMaxLoc  = 4 ;
 static constexpr tU_INT1 eFilterSym  = 5 ;
+static constexpr tU_INT1 eFilterRadiom  = 6 ;
+
+/// candidate that are pre-selected on the sadle-point criteria
+class cCdSadle
+{
+    public :
+        cCdSadle (const cPt2dr & aC,tREAL8 aCrit) : mC (aC) , mSadCrit (aCrit) {}
+        cCdSadle (){}
+        cPt2dr mC;
+
+	///  Criterion of sadle point, obtain by fiting a quadric on gray level
+        tREAL8 mSadCrit;
+};
+
+/// candidate that are pre-selected after symetry criterion
+class cCdSym : public cCdSadle
+{
+    public :
+        cCdSym(const cCdSadle &  aCdSad,tREAL8 aCrit) : cCdSadle  (aCdSad), mSymCrit  (aCrit) { }
+	/// Criterion of symetry, obtain after optimisation of center
+	tREAL8   mSymCrit;
+
+};
+
+/// candid obtain after radiometric modelization, 
+
+class cCdRadiom : public cCdSym
+{
+      public :
+          cCdRadiom(const cCdSym &,const cDataIm2D<tREAL4> & aDIm,tREAL8 aTeta1,tREAL8 aTeta2,tREAL8 aThickness);
+
+	  cMatIner2Var<tREAL8> StatGray(const cDataIm2D<tREAL4> & aDIm,tREAL8 aThickness,bool IncludeSegs);
+
+	  tREAL8  mTeta0;
+	  tREAL8  mTeta1;
+
+	  tREAL8  mCostCorrel;  // 1-Correlation of model
+          tREAL8  mBlack;
+          tREAL8  mWhite;
+};
+				
+enum class eTPosCB
+{
+      eUndef,
+      eInsideBlack,
+      eInsideWhite,
+      eBorderLeft,
+      eBorderRight
+
+};
+
+inline bool IsInside(eTPosCB aState) {return (aState==eTPosCB::eInsideBlack)  ||   (aState==eTPosCB::eInsideWhite) ;}
+inline bool IsOk(eTPosCB aState) {return aState!=eTPosCB::eUndef;}
+
+///  Used temporary for compilation of radiom
+class cCdRadiomCompiled : public cCdRadiom
+{
+	public :
+          cCdRadiomCompiled(const cCdRadiom &,tREAL8 aThickness);
+
+	  /// Theoreticall radiom of modelize checkboard + bool if was computed
+	  std::pair<eTPosCB,tREAL8>  TheorRadiom(const cPt2dr &) const;
+
+	  tREAL8                     mThickness;
+          cSegment2DCompiled<tREAL8> mSeg0 ;
+          cSegment2DCompiled<tREAL8> mSeg1 ;
+};
+
+cCdRadiomCompiled::cCdRadiomCompiled(const cCdRadiom & aCDR,tREAL8 aThickness) :
+    cCdRadiom   (aCDR),
+    mThickness  (aThickness),
+    mSeg0       (mC,mC+FromPolar(1.0,mTeta0)),
+    mSeg1       (mC,mC+FromPolar(1.0,mTeta1))
+{
+}
+
+std::pair<eTPosCB,tREAL8>  cCdRadiomCompiled::TheorRadiom(const cPt2dr &aPt) const
+{
+    eTPosCB aPos = eTPosCB::eUndef;
+    tREAL8 aGrayTh = -1;
+
+    // we compute locacl coordinates because the sign of y indicate if we are left/right of the oriented segment
+    // and sign of x indicate if we are before/after the centre
+    cPt2dr aLoc0 = mSeg0.ToCoordLoc(aPt);
+    tREAL8  aY0 = aLoc0.y();
+
+    cPt2dr aLoc1 = mSeg1.ToCoordLoc(aPt);
+    tREAL8  aY1 = aLoc1.y();
+
+    // compute if we are far enough of S0/S1 because the computation of gray will change
+    //  black/white if far  enough, else interpolation
+    bool FarS0 = std::abs(aY0)> mThickness; 
+    bool FarS1 = std::abs(aY1)> mThickness;
+
+    if ( FarS0 && FarS1)
+    {
+       if ((aY0>0)!=(aY1>0))
+       {
+           aPos = eTPosCB::eInsideBlack;
+	   aGrayTh = 0.0;
+       }
+       else
+       {
+           aPos = eTPosCB::eInsideWhite;
+	   aGrayTh = 1.0;
+       }
+    }
+    else if  ((!FarS0) && FarS1)
+    {
+        // (! FarS0) => teta1
+        // Red = teta1 , black on left on image, right on left in coord oriented
+	 aPos = eTPosCB::eBorderRight;
+         int aSignX = (aLoc0.x() >0) ? -1 : 1;
+         aGrayTh = (mThickness+aSignX*aY0) / (2.0*mThickness);
+    }
+    else if  (FarS0 && (!FarS1))
+    {
+	 aPos = eTPosCB::eBorderLeft;
+	 int aSignX = (aLoc1.x() <0) ? -1 : 1;
+	 aGrayTh = (mThickness+aSignX*aY1) / (2.0 * mThickness);
+    }
+
+    return std::pair<eTPosCB,tREAL8>(aPos,aGrayTh);
+}
+
+cCdRadiom::cCdRadiom(const cCdSym & aCdSym,const cDataIm2D<tREAL4> & aDIm,tREAL8 aTeta0,tREAL8 aTeta1,tREAL8 aThickness) :
+       cCdSym      (aCdSym),
+       mTeta0      (aTeta0),
+       mTeta1      (aTeta1),
+       mCostCorrel (2.001)   // over maximal theoreticall value
+{
+    static int aCpt=0 ; aCpt++;
+
+
+    cSegment2DCompiled aSeg0 (mC,mC+FromPolar(1.0,mTeta0));
+    cSegment2DCompiled aSeg1 (mC,mC+FromPolar(1.0,mTeta1));
+    static std::vector<cPt2di>  aDisk = VectOfRadius(0.0,5);
+    cStdStatRes aW0;
+    cStdStatRes aW1;
+
+    int aNbIn0=0,aNbIn1=0;
+
+    cMatIner2Var<tREAL8> aCorGrayAll;
+    cMatIner2Var<tREAL8> aCorGrayInside;
+
+    cCdRadiomCompiled  aCRC(*this,aThickness);
+
+    for (const auto & aDelta : aDisk)
+    {
+        cPt2di aPImI = aDelta + ToI(mC);
+	tREAL8 aValIm = aDIm.GetV(aPImI);
+	cPt2dr aPImR = ToR(aPImI);
+
+	auto [aState,aGrayTh] = aCRC.TheorRadiom(aPImR);
+
+	if  (IsInside(aState))
+	{
+            aCorGrayInside.Add(aGrayTh,aValIm);
+            aNbIn0 += (aState == eTPosCB::eInsideBlack);
+            aNbIn1 += (aState == eTPosCB::eInsideWhite);
+	}
+	if  (IsOk(aState))
+	{
+            aCorGrayAll.Add(aGrayTh,aValIm);
+	}
+    }
+
+    tREAL8 aRatioNb = std::min(aNbIn0,aNbIn1) / (tREAL8) std::max(aNbIn0,aNbIn1);
+    if (aRatioNb <0.2)
+    {
+       return ;
+    }
+
+     mCostCorrel = 1-aCorGrayAll.Correl();
+     auto [a,b] = aCorGrayInside.FitLineDirect();
+     mBlack = b ;
+     mWhite = a+b;
+}
 
 /*  *********************************************************** */
 /*                                                              */
@@ -28,6 +280,7 @@ static constexpr tU_INT1 eFilterSym  = 5 ;
 /*                                                              */
 /*  *********************************************************** */
 
+class cScoreTetaLine;
 
 class cAppliCheckBoardTargetExtract : public cMMVII_Appli
 {
@@ -52,10 +305,10 @@ class cAppliCheckBoardTargetExtract : public cMMVII_Appli
 	void DoOneImage() ;
 	void MakeImageSaddlePoints(const tDIm &,const cDataIm2D<tU_INT1> & aDMasq) const;
 
-        cWhichMin<cPt2dr,tREAL8>   OptimFilter(cFilterDCT<tREAL4> *,const cPt2dr &) const;
-
 	cPhotogrammetricProject     mPhProj;
 	cTimerSegm                  mTimeSegm;
+
+        cCdRadiom TestBinarization(cScoreTetaLine&,const cCdSym &,tREAL8 aThickness);
 
         // =========== Mandatory args ============
 
@@ -66,7 +319,7 @@ class cAppliCheckBoardTargetExtract : public cMMVII_Appli
 
                 //  --
 
-	std::vector<int>  mShowQuickSaddleF;
+	tREAL8            mThickness;  ///<  used for fine estimation of radiom
 
         // =========== Internal param ============
         tIm                   mImIn;        ///< Input global image
@@ -89,6 +342,7 @@ cAppliCheckBoardTargetExtract::cAppliCheckBoardTargetExtract(const std::vector<s
    cMMVII_Appli     (aVArgs,aSpec),
    mPhProj          (*this),
    mTimeSegm        (this),
+   mThickness       (1.0),
    mImIn            (cPt2di(1,1)),
    mDImIn           (nullptr),
    mHasMasqTest     (false),
@@ -114,7 +368,7 @@ cCollecSpecArg2007 & cAppliCheckBoardTargetExtract::ArgOpt(cCollecSpecArg2007 & 
    return
 	        anArgOpt
              <<  mPhProj.DPMask().ArgDirInOpt("TestMask","Mask for selecting point used in detailed mesg/output")
-             <<  AOpt2007(mShowQuickSaddleF,"ShowQSF","Vector to show quick saddle filters")
+             <<  AOpt2007(mThickness,"Thickness","Thickness for modelizaing line-blur in fine radiom model",{eTA2007::HDV})
    ;
 }
 
@@ -138,21 +392,63 @@ bool cAppliCheckBoardTargetExtract::IsPtTest(const cPt2dr & aPt) const
    return mHasMasqTest && (mMasqTest.DIm().GetV(ToI(aPt)) != 0);
 }
 
-cWhichMin<cPt2dr,tREAL8>  cAppliCheckBoardTargetExtract::OptimFilter(cFilterDCT<tREAL4> * aFilter,const cPt2dr & aP0) const
+
+
+cCdRadiom cAppliCheckBoardTargetExtract::TestBinarization(cScoreTetaLine & aSTL,const cCdSym & aCdSym,tREAL8 aThickness)
 {
-     cWhichMin<cPt2dr,tREAL8> aRes;
-     for (tREAL8 aDx=-1.0 ; aDx<1.0 ; aDx += 0.1)
-     {
-         for (tREAL8 aDy=-1.0 ; aDy<1.0 ; aDy += 0.1)
-	 {
-             cPt2dr aPt = aP0+cPt2dr(aDx,aDy);
-	     // tREAL8 aVal = aFilter->ComputeValMaxCrown(aPt,1e10);
-	     tREAL8 aVal = aFilter->ComputeVal(aPt);
-	     aRes.Add(aPt,aVal);
-             // UpdateMin(aMinSym,aFSym->ComputeValMaxCrown(aP2+cPt2dr(aDx,aDy),10));
-	 }
-     }
-     return aRes;
+
+    auto [aTeta0,aTeta1] = aSTL.Tetas_CheckBoard(aCdSym.mC,0.5,1e-3);
+
+    cCdRadiom aCdRadiom(aCdSym,*mDImIn,aTeta0,aTeta1,aThickness);
+
+    if (IsPtTest(aCdSym.mC))
+    {
+          static int aCpt=0 ; aCpt++;
+          StdOut() << " CPT=" << aCpt << "  Corrrr=" <<  aCdRadiom.mCostCorrel << " V0="<< aCdRadiom.mBlack << " V1=" << aCdRadiom.mWhite << "\n";
+         // StdOut() << " CPT=" << aCpt << " TETASRef= " << aTeta0 << " " << aTeta1 << "\n";
+
+	  int aZoom = 9;
+	  cPt2di aSz(50,50);
+	  cPt2di aDec =  ToI(aCdSym.mC) - aSz/2;
+	  cPt2dr aCLoc = aCdSym.mC-ToR(aDec);
+
+	  cRGBImage  aIm = cRGBImage:: FromFile(mNameIm,cBox2di(aDec,aDec+aSz),aZoom);
+	  aIm.ResetGray();
+
+	  if (0)
+	  {
+               cCdRadiomCompiled aCRC(aCdRadiom,2.0);
+               for (const auto & aPix :  aIm.ImR().DIm())
+               {
+                    cPt2dr aPtR = ToR(aPix+aDec);
+                    auto [aState,aGray] = aCRC.TheorRadiom(aPtR);
+		    if (aState != eTPosCB::eUndef)
+		    {
+                        aIm.SetGrayPix(aPix,aGray*255);
+		    }
+               }
+	  }
+
+	  int aKT=0;
+	  for (const auto & aTeta  : {aTeta0,aTeta1})
+	  {
+              for (int aK= -aZoom * 20 ; aK<=aZoom*20 ; aK++)
+	      {
+		      tREAL8 aAbsc= aK/ (2.0 * aZoom);
+		      cPt2dr aPt = aCLoc + FromPolar(aAbsc,aTeta);
+	              aIm.SetRGBPoint(aPt,cRGBImage::Green);
+		      if (aK==6*aZoom)
+	                 aIm.DrawCircle((aKT==0) ?  cRGBImage::Blue : cRGBImage::Red,aPt,0.5);
+	                 // aIm.SetRGBPoint(aPt, (aKT==0) ?  cRGBImage::Blue : cRGBImage::Red);
+	      }
+	      aKT++;
+	  }
+
+	  aIm.SetRGBPoint(aCLoc,cRGBImage::Red);
+          aIm.ToFile("TestCenter_" + ToStr(aCpt) + ".tif");
+    }
+
+    return aCdRadiom;
 }
 
 void cAppliCheckBoardTargetExtract::DoOneImage() 
@@ -162,10 +458,13 @@ void cAppliCheckBoardTargetExtract::DoOneImage()
     int    mMaxNbMLS = 2000; //  Max number of point in best saddle points
     tREAL8 aRayCalcSadle = sqrt(4+1);  // limit point 2,1
 
-    tREAL8 mThresholdSym     = 0.50;
-    tREAL8 mDistCalcSym0     = 8.0;
-    tREAL8 mDistDivSym       = 2.0;
+    tREAL8 mThresholdSym     = 0.50;  // threshlod for symetry criteria
+    tREAL8 mDistCalcSym0     = 8.0;   // distance for evaluating symetry criteria
+    tREAL8 mDistDivSym       = 2.0;   // maximal distance to initial value in symetry opt
     
+    tREAL8 mLengtSInit = 5.0;
+    tREAL8 mStepSeg    = 0.5;
+    tREAL8 mMaxCostCorrIm  = 0.1;
 
     //   computed threshold
     tINT8  mDistRectInt = 20; // to see later how we compute it
@@ -251,73 +550,102 @@ void cAppliCheckBoardTargetExtract::DoOneImage()
 
     /* [3]  Compute point that are max local */
 
+
+    std::vector<cCdSadle> aVCdtSad;
     cAutoTimerSegm aTSCritSad(mTimeSegm,"CritSad");
 
-    std::vector<cPt3dr> aVSad0;
     cCalcSaddle  aCalcSBlur(aRayCalcSadle+0.001,1.0);
 
+       // [3.1]  compute for each point the saddle criteria
     for (const auto& aPix : *mDImLabel)
     {
          if (mDImLabel->GetV(aPix)==eTopoMaxOfCC)
 	 {
              tREAL8 aCritS = aCalcSBlur.CalcSaddleCrit(aDImBlur,aPix);
-             aVSad0.push_back(cPt3dr(aPix.x(),aPix.y(),aCritS));
+             aVCdtSad.push_back(cCdSadle(ToR(aPix),aCritS));
+//  cPt3dr(aPix.x(),aPix.y(),aCritS));
 	 }
     }
+    int aNbSad0 = aVCdtSad.size();
 
     //   [3.2]  select KBest + MaxLocal
     cAutoTimerSegm aTSMaxLoc(mTimeSegm,"MaxLoc");
 
-    SortOnCriteria(aVSad0,[](const auto & aPt){return - aPt.z();} );
-    std::vector<cPt3dr> aVMaxLoc = FilterMaxLoc((cPt2dr*)nullptr,aVSad0,[](const auto & aP) {return Proj(aP);}, mDistMaxLocSad);
+    //  sort by decreasing criteria of saddles => "-"  aCdt.mSadCrit
+    SortOnCriteria(aVCdtSad,[](const auto & aCdt){return - aCdt.mSadCrit;});
+    aVCdtSad = FilterMaxLoc((cPt2dr*)nullptr,aVCdtSad,[](const auto & aCdt) {return aCdt.mC;}, mDistMaxLocSad);
+    int aNbSad1 = aVCdtSad.size();
 
     //  limit the number of point , a bit rough but first experiment show that sadle criterion is almost perfect on good images
-    aVMaxLoc.resize(std::min(aVMaxLoc.size(),size_t(mMaxNbMLS)));
+    aVCdtSad.resize(std::min(aVCdtSad.size(),size_t(mMaxNbMLS)));
 
-    for (const auto & aP3 : aVMaxLoc)
-        mDImLabel->SetV(ToI(Proj(aP3)),eTopoMaxLoc);
+    for (const auto & aCdt : aVCdtSad)
+        mDImLabel->SetV(ToI(aCdt.mC),eTopoMaxLoc);
 
+    int aNbSad2 = aVCdtSad.size();
     StdOut() << "END MAXLOC \n";
-
 
 
     /* [4]  Calc Symetry criterion */
 
+    std::vector<cCdSym> aVCdtSym;
     cAutoTimerSegm aTSSym(mTimeSegm,"SYM");
-    if (1)
     {
        cCalcSaddle  aCalcSInit(1.5,1.0);
-       std::vector<cPt3dr> aNewP3;
        cFilterDCT<tREAL4> * aFSym = cFilterDCT<tREAL4>::AllocSym(mImIn,0.0,mDistCalcSym0,1.0);
        cOptimByStep aOptimSym(*aFSym,true,mDistDivSym);
-       for (const auto & aP3 : aVMaxLoc)
+
+       for (auto & aCdtSad : aVCdtSad)
        {
-	   cPt2dr aP0 = Proj(aP3);
+	   auto [aValSym,aNewP] = aOptimSym.Optim(aCdtSad.mC,1.0,0.01);  // Pos Init, Step Init, Step Lim
+	   aCdtSad.mC = aNewP;
 
-	   auto [aValSym,aNewP] = aOptimSym.Optim(aP0,1.0,0.01);
-
-	   if (aValSym< mThresholdSym)
+	   if (aValSym < mThresholdSym)
 	   {
-               aNewP3.push_back(cPt3dr(aNewP.x(),aNewP.y(),aValSym));
+	       aVCdtSym.push_back(cCdSym(aCdtSad,aValSym));
                mDImLabel->SetV(ToI(aNewP),eFilterSym);
 	   }
        }
 
        delete aFSym;
-       aVMaxLoc = aNewP3;
+    }
+    int aNbSym = aVCdtSym.size();
+
+    /* [5]  Compute lines, radiom model & correlation */
+    std::vector<cCdRadiom> aVCdtRad;
+    cAutoTimerSegm aTSRadiom(mTimeSegm,"Radiom");
+    {
+        cCubicInterpolator aCubI(-0.5);
+        cScoreTetaLine  aSTL(*mDImIn,aCubI,mLengtSInit,mStepSeg);
+        for (const auto & aCdtSym : aVCdtSym)
+        {
+            cCdRadiom aCdRad = TestBinarization(aSTL,aCdtSym,mThickness);
+	    if (aCdRad.mCostCorrel <= mMaxCostCorrIm)
+               aVCdtRad.push_back(aCdRad);
+        }
     }
 
-    if (0)
+
+
+#if (0)
+
+
+    if (1)
     {
        cFilterDCT<tREAL4> * aFSym = cFilterDCT<tREAL4>::AllocSym(mImIn,0.0,mDistCalcSym0,1.0);
        cOptimByStep aOptimSym(*aFSym,true,mDistDivSym);
 // tPtR Optim(const tPtR & ,tREAL8 aStepInit,tREAL8 aStepLim,tREAL8 aMul=0.5);
 
+       cCubicInterpolator aCubI(-0.5);
+       cScoreTetaLine  aSTL(*mDImIn,aCubI,5.0,0.5);
 
        cStdStatRes aSSad1;
        cStdStatRes aSSad0;
        cStdStatRes aSSymInt_1;
        cStdStatRes aSSymInt_0;
+
+       cStdStatRes aSSCor_0;
+       cStdStatRes aSSCor_1;
 
        cCalcSaddle  aCalcSInit(1.5,1.0);
        for (const auto & aP3 : aVMaxLoc)
@@ -328,10 +656,9 @@ void cAppliCheckBoardTargetExtract::DoOneImage()
            cPt2dr aP2 =  aP1;
 	   aCalcSInit.RefineSadlePointFromIm(aImBlur,aP2,true);
 
-	   // tREAL8 aSymInt = aFSym->ComputeValMaxCrown(aP2,10);
-           // tREAL8  aSymInt = OptimFilter(aFSym,aP2).ValExtre();
 
 	   tREAL8 aSymInt = aOptimSym.Optim(aP0,1.0,0.05).first;
+           tREAL8 aCorBin = TestBinarization(aSTL,Proj(aP3));
 
            bool  Ok = IsPtTest(Proj(aP3));
 
@@ -341,11 +668,13 @@ void cAppliCheckBoardTargetExtract::DoOneImage()
 	   {
                aSSad1.Add(aP3.z());
 	       aSSymInt_1.Add(aSymInt);
+	       aSSCor_1.Add(aCorBin);
 	   }
 	   else
 	   {
                aSSad0.Add(aP3.z());
 	       aSSymInt_0.Add(aSymInt);
+	       aSSCor_0.Add(aCorBin);
 	   }
        }
 
@@ -362,17 +691,27 @@ void cAppliCheckBoardTargetExtract::DoOneImage()
 		   << "  NotOk 50% " << aSSymInt_0.ErrAtProp(0.5) 
 		   << "    10%  "    << aSSymInt_0.ErrAtProp(0.10) 
 		   << "\n";
+
+          StdOut() << " * CORR , #Max=" << aSSCor_1.Max()   << " %75=" <<  aSSCor_1.ErrAtProp(0.75)
+		   << "  NotOk 50% " << aSSCor_0.ErrAtProp(0.5) 
+		   << "    10%  "    << aSSCor_0.ErrAtProp(0.10) 
+		   << "\n";
        }
        delete aFSym;
     }
 
     cAutoTimerSegm aTSMakeIm(mTimeSegm,"OTHERS");
 
-    MakeImageSaddlePoints(*mDImIn,*mDImLabel);
     StdOut() << "NBS " << (100.0*aNbSaddle)/aNbTot << " " <<  (100.0*aNbCCSad)/aNbTot 
 	    << " " <<  (100.0*aVMaxLoc.size())/aNbTot  << " NB=" << aVMaxLoc.size() << "\n";
     aDImBlur.ToFile("Blurred.tif");
 
+#endif
+    cAutoTimerSegm aTSMakeIm(mTimeSegm,"OTHERS");
+    MakeImageSaddlePoints(*mDImIn,*mDImLabel);
+
+    StdOut()  << "NB Cd,  SAD: " << aNbSad0 << " " << aNbSad1 <<  " " <<aNbSad2 
+	      << " SYM:" << aNbSym <<  " Radiom:" << aVCdtRad.size() << "\n";
 }
 
 /*
