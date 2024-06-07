@@ -93,7 +93,7 @@ enum class eCompCorType
 };
 
 /**
- * @brief The cTopoData class represents topometric data for serialization
+ * @brief The cTopoData class represents topo survey data for serialization
  */
 class cTopoData
 {

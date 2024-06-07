@@ -86,7 +86,7 @@ enum class eApF
                TiePLearn,    ///< Tie-Point processing  - Learning step
                Cloud,       ///< Cloud processing
                CodedTarget,  ///< Coded target (generate, match )
-               Topo,        ///< Topometry
+               Topo,        ///< Topo survey
                NoGui,        ///< Will not have a GUI frontend
                Perso,      ///< Personnal
                eNbVals     ///< Tag for number of value
@@ -545,7 +545,7 @@ enum class eSysCo
      eNbVals
 };
 
-// topometric observation sets types
+// topo observation sets types
 enum class eTopoObsSetType
 {
     eStation,
@@ -553,7 +553,7 @@ enum class eTopoObsSetType
     eNbVals        ///< Tag for number of value
 };
 
-// topometric observations types
+// topo observations types
 enum class eTopoObsType
 {
         eDist,

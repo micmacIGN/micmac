@@ -91,7 +91,7 @@ Then every Ori and ground measures can be transformed into this RTL frame to be 
 
 \section{Survey introduction}
 
-{\tt MMVII} can add survey/topometric measurements in global adjustments.
+{\tt MMVII} can add topographic survey measurements in global adjustments.
 The following measurements types are currently supported :
 
 \begin{itemize}
@@ -101,7 +101,7 @@ The following measurements types are currently supported :
     \item direct cartesian vector observation
 \end{itemize}
 
-These measurements are made from an instrument that can be verticalized or not.
+These measurements are made from an instrument that can be vertical or not.
 For now, the vertical is modeled as the Earth's ellipsoid normal. Vertical deflection grids may be added later.
 
 The measurements can be made between cameras Ori, GCP or new points (that will be inserted into GCP list).
@@ -166,15 +166,15 @@ In the previous example, {\tt St1}, {\tt Or1} and {\tt E1} are points name.
 They can refer to GCP, cameras or undefined points.
 
 To declare the orientation status of the next station, the following lines have to be
-added to the {\tt obs} file (by default stations are supposed verticalized) :
+added to the {\tt obs} file (by default stations are supposed vertical/plumb) :
 
 \begin{itemize}
-    \item \texttt{\#FIX}: the station verticalized and oriented to North
-    \item \texttt{\#VERT}: the station verticalized, only horizontal orientation is free
+    \item \texttt{\#FIX}: the station vertical and oriented to North
+    \item \texttt{\#VERT}: the station vertical, only horizontal orientation is free
     \item \texttt{\#BASC}: the station orientation has 3 degrees of liberty 
 \end{itemize}
 
-To distinguish several verticalized stations on the same point, the observation code {\tt 7} can be used:
+To distinguish several vertical stations on the same point, the observation code {\tt 7} can be used:
 
 \begin{verbatim}
     7 station target 100 0.001
@@ -191,13 +191,13 @@ is equivalent to:
 
 \section{{\tt TopoAdj} command}
 
-The {\tt TopoAdj} command can perform an adjustment between topometric and GCP constraints.
+The {\tt TopoAdj} command can perform an adjustment between survey and GCP constraints.
 It is used as a substitute to {\tt OriBundleAdj} when there are no cameras.
 
 As for {\tt OriBundleAdj}, when using survey measurements, a RTL SysCo must be used.
 
 The GCP folder must then have a RTL CurSysCo.xml file, and do not have to declare all the points
-refered to by topo observations, but automatic points initialization is not completed.
+referred to by topo observations, but automatic points initialization is not completed.
 
 \begin{verbatim}
    For command : TopoAdj 
@@ -235,21 +235,23 @@ We will describe the input files equivalent for the \texttt{TopoAdj} command.
 The points are declared, their initial coordinates and the sigmas on their coordinates constraints
 are given in a GCP file. 
 
-3 points have coordinates constraintes at 1cm ($A$, $B$, $C$). They form an isosceles triangle
+3 points have coordinates constraints at 1cm ($A$, $B$, $C$). They form an isosceles triangle
 on an horizontal plane.
 A 4th point ($D$) is declared above the other. It has no {\tt \_\_Opt\_\_Sigma2} attribute as this point is free.
-(Fig. \ref{fig:topoEx1}).
+(Fig. \ref{fig:topoEx1}). Note that depending on the initial coordinates for $D$, the computation may no succeed
+(e.g. if $A$ and $D$ have the same initial coordinates, the distance formula derivatives are $NaN$).
 
 A {\tt CurSysCo.xml} must come along this GCP file to describe the RTL SysCo.
+
 
 \begin{figure}[!h]
 \centering
 \includegraphics[width=12cm]{Programmer/benchtopo1b.png}
-\caption{The 3 fixed points}
+\caption{The 3 fixed points and the free point}
 \label{fig:topoEx1}
 \end{figure}
 
-The summerized content of the GCP file:
+The summarized content of the GCP file:
 
 \begin{lstlisting}
       <SetGCP>
@@ -286,7 +288,7 @@ The summerized content of the GCP file:
 \subsection{Creating the observations}
 
 The distances from $D$ to $A$, $B$ and $C$
-are measured. For redondancy and error evaluation, the distance from $D$ to $C$ is measured twice
+are measured. For redundancy and error evaluation, the distance from $D$ to $C$ is measured twice
 with different values (Fig. \ref{fig:topoEx2}).
 
 \begin{figure}[!h]

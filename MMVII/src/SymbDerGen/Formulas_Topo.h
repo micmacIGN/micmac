@@ -6,7 +6,7 @@
 #include "ComonHeaderSymb.h"
 #include "MMVII_PhgrDist.h"
 
-/**  Class for generating topometric equations:
+/**  Class for generating topo survey equations:
  *
  *  The instrument frame is representated as a pose:
  *    Pose_instr = {Ci ; Ri}

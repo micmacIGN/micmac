@@ -1315,11 +1315,11 @@ then contact MPD.
 \label{Chap:TopoProg}
 \subsection{Global presentation}
 
-The premises of a topometric compensation system can be found in \texttt{MMVII/src/Topo/}.
+The premises of a topographic survey compensation system can be found in \texttt{MMVII/src/Topo/}.
 
 For now it is used in commands \texttt{OriBundleAdj} and \texttt{TopoAdj}, and in the Bench \texttt{TopoComp}.
 
-This Bench will be used to illustrate the topometric classes and their usage.
+This Bench will be used to illustrate the survey classes and their usage.
 
 
 \subsection{Frames for survey stations}
@@ -1343,11 +1343,11 @@ The computation must take place in a 3D euclidian frame.
 For now, only RTL SysCo is supported.
 
 
-\subsubsection{Topometric classes}
+\subsubsection{Topo survey classes}
 
-The topometric computation classes are :
+The topo computation classes are :
  \begin{itemize}
-    \item \texttt{cTopoPoint}: a point used with topometric measurements. Keeps a pointer to the unknowns from GCP or Ori.
+    \item \texttt{cTopoPoint}: a point used with survey measurements. Keeps a pointer to the unknowns from GCP or Ori.
     \item \texttt{cTopoObs}: an observation corresponding to a formula, between several points.
     \item \texttt{cTopoObsSet}: a set of observations. The set is used to share common parameters between several observations. e.g., \texttt{cTopoObsSetStation} adds a rotation corresponding to an instrument setting.   
     \item \texttt{cBA\_Topo}: the class that handles the least square part. It records all the points and sets.
@@ -1361,7 +1361,7 @@ The concrete class that is currently used is \texttt{cTopoObsSetStation}, that c
 It has a notion of {\tt origin} (the point where the instrument is positionned), and an orientation matrix in the RTL SysCo.
 If the station is verticalized, the initial orientation matrix corresponds to the vertical orientation on the origin point, and only a rotation arround the vertical direction is free.
 
-\subsubsection{Topometric equations}
+\subsubsection{Topo survey equations}
 
 For \texttt{cTopoObsSetStation}, all the measurements are expressed in the local survey station frame.
 

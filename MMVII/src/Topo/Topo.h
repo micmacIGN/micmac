@@ -28,7 +28,7 @@ public :
 
     void  AddToSys(cSetInterUK_MultipeObj<tREAL8> &); // The system must be aware of all the unknowns
 
-    // fix the variable that are frozen
+    // fix the variables that are frozen
     void SetFrozenAndSharedVars(cResolSysNonLinear<tREAL8> &)  ;
 
     //  Do the kernel job : add topo constraints to the system
