@@ -126,12 +126,16 @@ class cMes1GCP
 {
      public :
         
-        cMes1GCP(const cPt3dr & aPt,const std::string & aNamePt,tREAL4 aSigma,
+        // aSigma==-1 for free point
+        cMes1GCP(const cPt3dr & aPt,const std::string & aNamePt,tREAL4 aSigma=-1,
                  const std::string &aAdditionalInfo="");
+
         cMes1GCP();
 	/// change the coordinate with mapping ! For now dont update sigma using the jacobian, maybe later ...
         void  ChangeCoord(const cDataMapping<tREAL8,3,3>&);
         bool isFree() const {return !mOptSigma2;}
+        cPt3dr SigmasXYZ() const;
+
         cPt3dr         mPt;
         std::string    mNamePt;
         static constexpr int IndXX = 0;

@@ -505,15 +505,19 @@ cMes1GCP::cMes1GCP(const cPt3dr & aPt, const std::string & aNamePt, tREAL4 aSigm
     mPt       (aPt),
     mNamePt   (aNamePt),
     mAdditionalInfo(aAdditionalInfo),
-    mOptSigma2   { {0,0,0,0,0,0} }
+    mOptSigma2(std::nullopt)
 {
-    (*mOptSigma2)[IndXX] = aSigma;
-    (*mOptSigma2)[IndYY] = aSigma;
-    (*mOptSigma2)[IndZZ] = aSigma;
+    if (aSigma>=0.)
+    {
+        mOptSigma2 = {0.,0.,0.,0.,0.,0.};
+        (*mOptSigma2)[IndXX] = Square(aSigma);
+        (*mOptSigma2)[IndYY] = Square(aSigma);
+        (*mOptSigma2)[IndZZ] = Square(aSigma);
+    }
 }
 
 cMes1GCP::cMes1GCP() :
-    cMes1GCP (cPt3dr(0,0,0),"??",-1)
+    cMes1GCP (cPt3dr(0,0,0),"??")
 {
 }
 
@@ -529,6 +533,16 @@ void cMes1GCP::ChangeCoord(const cDataMapping<tREAL8,3,3>& aMapping)
 {
 	// StdOut() << "PPPPP " << mPt << aMapping.Value(mPt) << aMapping.Inverse(mPt)<< "\n";
     mPt = aMapping.Value(mPt);
+}
+
+cPt3dr cMes1GCP::SigmasXYZ() const
+{
+    if (mOptSigma2)
+    {
+        return {sqrt((*mOptSigma2)[IndXX]), sqrt((*mOptSigma2)[IndXX]), sqrt((*mOptSigma2)[IndXX]) };
+    } else {
+        return cPt3dr::Dummy();
+    }
 }
 
 /* ********************************************* */
