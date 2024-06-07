@@ -14,7 +14,6 @@ namespace MMVII
 
 void cTopoObsData::AddData(const  cAuxAr2007 & anAuxInit)
 {
-    //std::cout<<"Add data obs '"<<toString()<<"'"<<std::endl;
     cAuxAr2007 anAux("TopoObsData",anAuxInit);
 
     MMVII::EnumAddData(anAux,mType,"Type");
@@ -35,7 +34,6 @@ void AddData(const cAuxAr2007 & anAux, cTopoObsData & aTopoObs)
 void cTopoObsSetData::AddData(const  cAuxAr2007 & anAuxInit)
 {
     cAuxAr2007 anAux("TopoObsSetData",anAuxInit);
-    //std::cout<<"Add data obs set '"<<toString()<<"'"<<std::endl;
     MMVII::EnumAddData(anAux,mType,"Type");
     MMVII::AddData(cAuxAr2007("AllObs",anAux),mObs);
 

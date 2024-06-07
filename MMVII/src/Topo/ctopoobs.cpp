@@ -42,8 +42,6 @@ cTopoObs::cTopoObs(cTopoObsSet* set, cBA_Topo *aBA_Topo, eTopoObsType type, cons
     case eTopoObsType::eNbVals:
         MMVII_INTERNAL_ERROR("unknown obs type")
     }
-    //std::cout<<"DEBUG: create cTopoObs "<<toString()<<"\n";
-
 }
 
 std::string cTopoObs::toString() const

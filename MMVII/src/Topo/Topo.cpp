@@ -13,7 +13,6 @@ void cMMVII_BundleAdj::InitItereTopo()
 {
     if (mTopo)
     {
-        std::cout<<"cMMVII_BundleAdj::InitItereTopo\n";
         mTopo->FromData(mVGCP, mPhProj);
         mTopo->AddToSys(mSetIntervUK); //after all is created
     }
@@ -60,7 +59,6 @@ cBA_Topo::cBA_Topo
 
 cBA_Topo::~cBA_Topo()
 {
-    //std::cout<<"delete cBA_Topo"<<std::endl;
     clear();
     for (auto& [_, aEq] : mTopoObsType2equation)
                   delete aEq;
@@ -157,12 +155,12 @@ void cBA_Topo::FromData(const std::vector<cBA_GCP *> & vGCP, cPhotogrammetricPro
 
 void cBA_Topo::print()
 {
-    std::cout<<"Points:\n";
+    StdOut() << "Points:\n";
     for (auto& [aName, aPtT] : mAllPts)
-        std::cout<<" - "<<aPtT.toString()<<"\n";
-    std::cout<<"ObsSets:\n";
+        StdOut() << " - "<<aPtT.toString()<<"\n";
+    StdOut() << "ObsSets:\n";
     for (auto &obsSet: mAllObsSets)
-        std::cout<<" - "<<obsSet->toString()<<"\n";
+        StdOut() << " - "<<obsSet->toString()<<"\n";
     printObs(false);
 }
 
@@ -250,7 +248,6 @@ void cBA_Topo::AddTopoEquations(cResolSysNonLinear<tREAL8> & aSys)
         for (size_t i=0;i<obsSet->nbObs();++i)
         {
             cTopoObs* obs = obsSet->getObs(i);
-            std::cout<<"add eq: "<<obs->toString()<<" ";
             auto equation = getEquation(obs->getType());
             aSys.CalcAndAddObs(equation, obs->getIndices(), obs->getVals(), obs->getWeights());
 #ifdef VERBOSE_TOPO
@@ -299,7 +296,7 @@ void BenchTopoComp1example(const std::pair<cTopoData, cSetMesGCP>& aBenchData, t
     aMesGCPtmp.AddMes2D(aSetMesIm);
     cSetMesImGCP * aMesGCP = aMesGCPtmp.FilterNonEmptyMeasure(0);
 
-    aBA.AddGCP("topo", 1., {}, aMesGCP);
+    aBA.AddGCP("topo", 1., {}, aMesGCP, false);
 
     for (int aKIter=0 ; aKIter<aNbIter ; aKIter++)
     {
