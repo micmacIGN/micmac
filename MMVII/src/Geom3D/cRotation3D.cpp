@@ -113,7 +113,12 @@ template <class Type> cIsometry3D<Type>::cIsometry3D(const tPt& aTr,const cRotat
  *  any use drive quickly to absurd result if not error
  */
 template <class Type> cIsometry3D<Type>::cIsometry3D() :
-	cIsometry3D(tPt(0,0,0),cRotation3D<Type>(cDenseMatrix<Type>(3,3,eModeInitImage::eMIA_Null),false))
+	cIsometry3D
+	(
+	      tPt(0,0,0),
+	      // cRotation3D<Type>(cDenseMatrix<Type>(3,3,eModeInitImage::eMIA_Null),false)
+	      cRotation3D<Type>()
+        )
 {
 }
 
@@ -254,6 +259,12 @@ void AddData(const cAuxAr2007 & anAux,tPoseR & aPose)
 /*                                                   */
 /* ************************************************* */
 
+template <class Type> cRotation3D<Type>::cRotation3D() :
+	mMat (3,3,eModeInitImage::eMIA_Null)
+{
+}
+	      // cRotation3D<Type>(cDenseMatrix<Type>(3,3,eModeInitImage::eMIA_Null),false)
+	      
 template <class Type> cRotation3D<Type>::cRotation3D(const cDenseMatrix<Type> & aMat,bool RefineIt) :
    mMat (aMat)
 {
@@ -272,6 +283,7 @@ template <class Type> cRotation3D<Type>::cRotation3D(const cDenseMatrix<Type> & 
 
        // are the vector unitar, take into account accuracy of type
        tREAL8 aDifN = (std::abs(SqN2(aI)-1)+std::abs(SqN2(aJ)-1)+std::abs(SqN2(aK)-1)) / tElemNumTrait<Type>::Accuracy() ;
+// StdOut() << "ffffffffff  " << std::abs(SqN2(aI)-1)<< " " << std::abs(SqN2(aJ)-1) << " " << std::abs(SqN2(aK)-1) << "\n";
        MMVII_INTERNAL_ASSERT_tiny(aDifN<1e-3,"Rotation 3D init non norm w/o RefineIt");
 
        // are the vector orthognal, take into account accuracy of type

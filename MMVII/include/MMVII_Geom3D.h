@@ -98,6 +98,8 @@ template <class Type> class cRotation3D
        typedef cRotation3D<Type>  tTypeMapInv;
        static int NbDOF()   {return 3;}
 
+       /// Create a "dummy" rotation, initialized with null matrix (to force problem if not init later)
+       cRotation3D();
 
        /// RefineIt : if true, assume not fully orthog and compute closest one
        cRotation3D(const cDenseMatrix<Type> &,bool RefineIt);
