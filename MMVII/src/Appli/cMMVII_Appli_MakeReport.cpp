@@ -139,26 +139,29 @@ void  cMMVII_Appli::DoMergeReport()
      {
         if (BoolFind(mReport2Merge,anIt.first))
 	{
-             cMMVII_Ofs aFileGlob(anIt.second, eFileModeOut::AppendText);
-             const std::string & anId = anIt.first;
-
 	     int aNbLines = 0;
-	     if (mRMSWasUsed)
-	     {
-	        for (const auto & aNameIm : VectMainSet(0))
-	        {
-                    std::string aNameIn = DirSubPReport(anId) + FileOfPath(aNameIm,false) + "." + mMapIdPostReport[anId];
-	            cMMVII_Ifs aIn(aNameIn, eFileModeIn::Text);
+             // Put aFileGlob in {} to create destruction before OnCloseReport that may generat error
+             {
+                 cMMVII_Ofs aFileGlob(anIt.second, eFileModeOut::AppendText);
+                 const std::string & anId = anIt.first;
 
-	            std::string aLine;
-	            while (std::getline(aIn.Ifs(), aLine))
+	         if (mRMSWasUsed)
+	         {
+	            for (const auto & aNameIm : VectMainSet(0))
 	            {
-	                 aFileGlob.Ofs() << aLine<< "\n";
-			 aNbLines++;
-	            }
+                        std::string aNameIn = DirSubPReport(anId) + FileOfPath(aNameIm,false) + "." + mMapIdPostReport[anId];
+	                cMMVII_Ifs aIn(aNameIn, eFileModeIn::Text);
+
+	                std::string aLine;
+	                while (std::getline(aIn.Ifs(), aLine))
+	                {
+	                     aFileGlob.Ofs() << aLine<< "\n";
+			     aNbLines++;
+	                }
+	             }
 	         }
-	     }
-             RemoveRecurs(DirSubPReport(anId),false,false);
+                 RemoveRecurs(DirSubPReport(anId),false,false);
+             }
 	     OnCloseReport(aNbLines,anIt.first,anIt.second);
 	}
      }

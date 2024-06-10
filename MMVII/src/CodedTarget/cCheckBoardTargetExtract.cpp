@@ -8,6 +8,7 @@
 #include "MMVII_Sensor.h"
 #include "MMVII_HeuristikOpt.h"
 #include "MMVII_ExtractLines.h"
+#include "MMVII_TplImage_PtsFromValue.h"
 
 
 namespace MMVII
@@ -26,23 +27,23 @@ class cOptimPosSeg : public tFunc2DReal
 	    tSeg2dr OptimizeSeg(tREAL8 aStepInit,tREAL8 aStepLim,bool IsMin,tREAL8 aMaxDInfInit) const;
 
        private :
-	    cSegment2DCompiled<tREAL8>  mSeg0;
+	    cSegment2DCompiled<tREAL8>  mSegInit;
 	    cPt2dr                      mP0Loc;
 	    cPt2dr                      mP1Loc;
 };
 
 
 cOptimPosSeg::cOptimPosSeg(const tSeg2dr & aSeg0) :
-    mSeg0   (aSeg0),
-    mP0Loc  (mSeg0.ToCoordLoc(mSeg0.P1())),
-    mP1Loc  (mSeg0.ToCoordLoc(mSeg0.P2()))
+    mSegInit   (aSeg0),
+    mP0Loc  (mSegInit.ToCoordLoc(mSegInit.P1())),
+    mP1Loc  (mSegInit.ToCoordLoc(mSegInit.P2()))
 {
 }
 
 cSegment2DCompiled<tREAL8>  cOptimPosSeg::ModifiedSeg(const cPt2dr & aPModif) const
 {
-    cPt2dr aP0Glob = mSeg0.FromCoordLoc(mP0Loc+cPt2dr(0,aPModif.x()));
-    cPt2dr aP1Glob = mSeg0.FromCoordLoc(mP1Loc+cPt2dr(0,aPModif.y()));
+    cPt2dr aP0Glob = mSegInit.FromCoordLoc(mP0Loc+cPt2dr(0,aPModif.x()));
+    cPt2dr aP1Glob = mSegInit.FromCoordLoc(mP1Loc+cPt2dr(0,aPModif.y()));
 
     return cSegment2DCompiled<tREAL8>(aP0Glob,aP1Glob);
 }
@@ -63,15 +64,30 @@ tSeg2dr cOptimPosSeg::OptimizeSeg(tREAL8 aStepInit,tREAL8 aStepLim,bool IsMin,tR
 class cOptimSeg_ValueIm : public cOptimPosSeg 
 {
       public :
-         cOptimSeg_ValueIm(const tSeg2dr &,tREAL8 aStepOnSeg,const cDataIm2D<tREAL8> & aDIm,tREAL8 aTargetValue);
+         cOptimSeg_ValueIm(const tSeg2dr &,tREAL8 aStepOnSeg,const cDataIm2D<tREAL4> & aDIm,tREAL8 aTargetValue);
 
          tREAL8 CostOfSeg(const cSegment2DCompiled<tREAL8> &) const override;
       private :
 	 tREAL8                    mStepOnSeg;
 	 int                       mNbOnSeg;
-         const cDataIm2D<tREAL8> & mDataIm;
+         const cDataIm2D<tREAL4> & mDataIm;
 	 tREAL8                    mTargetValue;
 };
+
+cOptimSeg_ValueIm::cOptimSeg_ValueIm
+(
+     const tSeg2dr & aSegInit,
+     tREAL8 aStepOnSeg,
+     const cDataIm2D<tREAL4> & aDIm,
+     tREAL8 aTargetValue
+)  :
+     cOptimPosSeg  (aSegInit),
+     mStepOnSeg    (aStepOnSeg),
+     mNbOnSeg      (round_up( Norm2(aSegInit.V12()) / mStepOnSeg )) ,
+     mDataIm       (aDIm),
+     mTargetValue  (aTargetValue)
+{
+}
 
 tREAL8 cOptimSeg_ValueIm::CostOfSeg(const cSegment2DCompiled<tREAL8> & aSeg) const
 {
@@ -85,6 +101,7 @@ tREAL8 cOptimSeg_ValueIm::CostOfSeg(const cSegment2DCompiled<tREAL8> & aSeg) con
 
      return aSum / mNbOnSeg;
 }
+
 
 
 
@@ -125,13 +142,16 @@ class cCdRadiom : public cCdSym
 {
       public :
           cCdRadiom(const cCdSym &,const cDataIm2D<tREAL4> & aDIm,tREAL8 aTeta1,tREAL8 aTeta2,tREAL8 aThickness);
-
 	  cMatIner2Var<tREAL8> StatGray(const cDataIm2D<tREAL4> & aDIm,tREAL8 aThickness,bool IncludeSegs);
 
-	  tREAL8  mTeta0;
-	  tREAL8  mTeta1;
+	  /// Once blac/white & teta are computed, refine seg using 
+	  void OptimSegIm(const cDataIm2D<tREAL4> & aDIm,tREAL8 aLength);
+
+//  cOptimSeg_ValueIm(const tSeg2dr &,tREAL8 aStepOnSeg,const cDataIm2D<tREAL8> & aDIm,tREAL8 aTargetValue);
+	  tREAL8  mTetas[2];
 
 	  tREAL8  mCostCorrel;  // 1-Correlation of model
+	  tREAL8  mRatioBW;  // ratio min/max of BW
           tREAL8  mBlack;
           tREAL8  mWhite;
 };
@@ -163,11 +183,12 @@ class cCdRadiomCompiled : public cCdRadiom
           cSegment2DCompiled<tREAL8> mSeg1 ;
 };
 
+
 cCdRadiomCompiled::cCdRadiomCompiled(const cCdRadiom & aCDR,tREAL8 aThickness) :
     cCdRadiom   (aCDR),
     mThickness  (aThickness),
-    mSeg0       (mC,mC+FromPolar(1.0,mTeta0)),
-    mSeg1       (mC,mC+FromPolar(1.0,mTeta1))
+    mSeg0       (mC,mC+FromPolar(1.0,mTetas[0])),
+    mSeg1       (mC,mC+FromPolar(1.0,mTetas[1]))
 {
 }
 
@@ -222,15 +243,15 @@ std::pair<eTPosCB,tREAL8>  cCdRadiomCompiled::TheorRadiom(const cPt2dr &aPt) con
 
 cCdRadiom::cCdRadiom(const cCdSym & aCdSym,const cDataIm2D<tREAL4> & aDIm,tREAL8 aTeta0,tREAL8 aTeta1,tREAL8 aThickness) :
        cCdSym      (aCdSym),
-       mTeta0      (aTeta0),
-       mTeta1      (aTeta1),
-       mCostCorrel (2.001)   // over maximal theoreticall value
+       mTetas      {aTeta0,aTeta1},
+       mCostCorrel (2.001),   // over maximal theoreticall value
+       mRatioBW    (0)
 {
     static int aCpt=0 ; aCpt++;
 
 
-    cSegment2DCompiled aSeg0 (mC,mC+FromPolar(1.0,mTeta0));
-    cSegment2DCompiled aSeg1 (mC,mC+FromPolar(1.0,mTeta1));
+    cSegment2DCompiled aSeg0 (mC,mC+FromPolar(1.0,mTetas[0]));
+    cSegment2DCompiled aSeg1 (mC,mC+FromPolar(1.0,mTetas[1]));
     static std::vector<cPt2di>  aDisk = VectOfRadius(0.0,5);
     cStdStatRes aW0;
     cStdStatRes aW1;
@@ -262,8 +283,8 @@ cCdRadiom::cCdRadiom(const cCdSym & aCdSym,const cDataIm2D<tREAL4> & aDIm,tREAL8
 	}
     }
 
-    tREAL8 aRatioNb = std::min(aNbIn0,aNbIn1) / (tREAL8) std::max(aNbIn0,aNbIn1);
-    if (aRatioNb <0.2)
+    mRatioBW = std::min(aNbIn0,aNbIn1) / (tREAL8) std::max(aNbIn0,aNbIn1);
+    if (mRatioBW <0.05)
     {
        return ;
     }
@@ -272,6 +293,27 @@ cCdRadiom::cCdRadiom(const cCdSym & aCdSym,const cDataIm2D<tREAL4> & aDIm,tREAL8
      auto [a,b] = aCorGrayInside.FitLineDirect();
      mBlack = b ;
      mWhite = a+b;
+}
+
+void cCdRadiom::OptimSegIm(const cDataIm2D<tREAL4> & aDIm,tREAL8 aLength)
+{
+     std::vector<cSegment2DCompiled<tREAL8>> aVSegOpt;
+     for (int aKTeta=0 ; aKTeta<2 ; aKTeta++)
+     {
+         cPt2dr aTgt = FromPolar(aLength,mTetas[aKTeta]);
+         tSeg2dr aSegInit(mC-aTgt,mC+aTgt);
+         cOptimSeg_ValueIm  aOSVI(aSegInit,0.5,aDIm,(mBlack+mWhite)/2.0);
+	 tSeg2dr  aSegOpt = aOSVI.OptimizeSeg(0.5,0.01,true,2.0);
+
+	 aVSegOpt.push_back(aSegOpt);
+	 mTetas[aKTeta] = Teta(aSegOpt.V12());
+	 // mTetas[aKTeta] = aSegOpt.I//
+     }
+
+     cPt2dr aC = aVSegOpt.at(0).InterSeg(aVSegOpt.at(1));
+
+     mC = aC;
+     cScoreTetaLine::NormalizeTeta(mTetas);
 }
 
 /*  *********************************************************** */
@@ -320,6 +362,7 @@ class cAppliCheckBoardTargetExtract : public cMMVII_Appli
                 //  --
 
 	tREAL8            mThickness;  ///<  used for fine estimation of radiom
+        bool              mOptimSegByRadiom;  ///< Do we optimize the segment on average radiom     
 
         // =========== Internal param ============
         tIm                   mImIn;        ///< Input global image
@@ -343,6 +386,7 @@ cAppliCheckBoardTargetExtract::cAppliCheckBoardTargetExtract(const std::vector<s
    mPhProj          (*this),
    mTimeSegm        (this),
    mThickness       (1.0),
+   mOptimSegByRadiom (false),
    mImIn            (cPt2di(1,1)),
    mDImIn           (nullptr),
    mHasMasqTest     (false),
@@ -369,6 +413,7 @@ cCollecSpecArg2007 & cAppliCheckBoardTargetExtract::ArgOpt(cCollecSpecArg2007 & 
 	        anArgOpt
              <<  mPhProj.DPMask().ArgDirInOpt("TestMask","Mask for selecting point used in detailed mesg/output")
              <<  AOpt2007(mThickness,"Thickness","Thickness for modelizaing line-blur in fine radiom model",{eTA2007::HDV})
+             <<  AOpt2007(mOptimSegByRadiom,"OSBR","Optimize segement by radiometry",{eTA2007::HDV})
    ;
 }
 
@@ -381,7 +426,10 @@ void cAppliCheckBoardTargetExtract::MakeImageSaddlePoints(const tDIm & aDIm,cons
     {
        if (aDMasq.GetV(aPix) >= (int) eTopoMaxLoc)
        {
-          aRGB.SetRGBPix(aPix,(aDMasq.GetV(aPix)==eFilterSym) ? cRGBImage::Red : cRGBImage::Green );
+          cPt3di  aCoul = cRGBImage::Yellow;
+	  if (aDMasq.GetV(aPix)== eFilterSym) aCoul = cRGBImage::Green;
+	  if (aDMasq.GetV(aPix)== eFilterRadiom) aCoul = cRGBImage::Red;
+          aRGB.SetRGBPix(aPix,aCoul);
        }
     }
     aRGB.ToFile("Saddles.tif");
@@ -401,16 +449,25 @@ cCdRadiom cAppliCheckBoardTargetExtract::TestBinarization(cScoreTetaLine & aSTL,
 
     cCdRadiom aCdRadiom(aCdSym,*mDImIn,aTeta0,aTeta1,aThickness);
 
+    if (mOptimSegByRadiom)
+    {
+       aCdRadiom.OptimSegIm(*(aSTL.DIm()),aSTL.Length());
+    }
+
     if (IsPtTest(aCdSym.mC))
     {
+
+
           static int aCpt=0 ; aCpt++;
-          StdOut() << " CPT=" << aCpt << "  Corrrr=" <<  aCdRadiom.mCostCorrel << " V0="<< aCdRadiom.mBlack << " V1=" << aCdRadiom.mWhite << "\n";
+          StdOut() << " CPT=" << aCpt << "  Corrrr=" <<  aCdRadiom.mCostCorrel 
+                   << " Ratio=" <<  aCdRadiom.mRatioBW
+		  << " V0="<< aCdRadiom.mBlack << " V1=" << aCdRadiom.mWhite << "\n";
          // StdOut() << " CPT=" << aCpt << " TETASRef= " << aTeta0 << " " << aTeta1 << "\n";
 
 	  int aZoom = 9;
 	  cPt2di aSz(50,50);
 	  cPt2di aDec =  ToI(aCdSym.mC) - aSz/2;
-	  cPt2dr aCLoc = aCdSym.mC-ToR(aDec);
+	  cPt2dr aCLoc = aCdRadiom.mC-ToR(aDec);
 
 	  cRGBImage  aIm = cRGBImage:: FromFile(mNameIm,cBox2di(aDec,aDec+aSz),aZoom);
 	  aIm.ResetGray();
@@ -430,22 +487,37 @@ cCdRadiom cAppliCheckBoardTargetExtract::TestBinarization(cScoreTetaLine & aSTL,
 	  }
 
 	  int aKT=0;
-	  for (const auto & aTeta  : {aTeta0,aTeta1})
+	  for (const auto & aTeta  : aCdRadiom.mTetas)
 	  {
               for (int aK= -aZoom * 20 ; aK<=aZoom*20 ; aK++)
 	      {
-		      tREAL8 aAbsc= aK/ (2.0 * aZoom);
-		      cPt2dr aPt = aCLoc + FromPolar(aAbsc,aTeta);
-	              aIm.SetRGBPoint(aPt,cRGBImage::Green);
-		      if (aK==6*aZoom)
-	                 aIm.DrawCircle((aKT==0) ?  cRGBImage::Blue : cRGBImage::Red,aPt,0.5);
+		  tREAL8 aAbsc= aK/ (2.0 * aZoom);
+		  cPt2dr aPt = aCLoc + FromPolar(aAbsc,aTeta);
+		  if (aK==6*aZoom)
+	             aIm.DrawCircle((aKT==0) ?  cRGBImage::Blue : cRGBImage::Red,aPt,0.5);
 	                 // aIm.SetRGBPoint(aPt, (aKT==0) ?  cRGBImage::Blue : cRGBImage::Red);
+		  tREAL8 aSign = ((aAbsc>0) ? 1.0 : -1.0) * ((aKT==0) ? 1 : -1) ;
+		  cPt2dr aNorm = FromPolar(1.0,aTeta + M_PI/2.0) * aSign;
+	          aIm.SetRGBPoint(aPt,cRGBImage::Yellow);
+		  if (std::abs(aAbsc) > 1.0)
+		  {
+                      tREAL8 aV = (aCdRadiom.mBlack+aCdRadiom.mWhite) /2.0;
+
+                      cGetPts_ImInterp_FromValue<tREAL4> aGIFV(*mDImIn,aV,0.1,aPt+ToR(aDec)-aNorm, aNorm);
+		      if (aGIFV.Ok())
+		      {
+	                  aIm.SetRGBPoint(aGIFV.PRes()-ToR(aDec),cRGBImage::Blue);
+                      }
+		      // StdOut() << "OKKK " << aGIFV.Ok()  << " K=" << aK << "\n";
+		  }
+	          // aIm.SetRGBPoint(aPt,cRGBImage::Green);
 	      }
 	      aKT++;
 	  }
 
 	  aIm.SetRGBPoint(aCLoc,cRGBImage::Red);
           aIm.ToFile("TestCenter_" + ToStr(aCpt) + ".tif");
+// getchar();
     }
 
     return aCdRadiom;
@@ -462,7 +534,7 @@ void cAppliCheckBoardTargetExtract::DoOneImage()
     tREAL8 mDistCalcSym0     = 8.0;   // distance for evaluating symetry criteria
     tREAL8 mDistDivSym       = 2.0;   // maximal distance to initial value in symetry opt
     
-    tREAL8 mLengtSInit = 5.0;
+    tREAL8 mLengtSInit = 05.0;
     tREAL8 mStepSeg    = 0.5;
     tREAL8 mMaxCostCorrIm  = 0.1;
 
@@ -621,7 +693,10 @@ void cAppliCheckBoardTargetExtract::DoOneImage()
         {
             cCdRadiom aCdRad = TestBinarization(aSTL,aCdtSym,mThickness);
 	    if (aCdRad.mCostCorrel <= mMaxCostCorrIm)
+	    {
                aVCdtRad.push_back(aCdRad);
+	        mDImLabel->SetV(ToI(aCdRad.mC),eFilterRadiom);
+	    }
         }
     }
 

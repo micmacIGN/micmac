@@ -1,6 +1,9 @@
 #ifndef _MMVII_EXTRACT_LINES_H_
 #define _MMVII_EXTRACT_LINES_H_
+
 #include "MMVII_Image2D.h"
+#include "MMVII_Interpolators.h"
+#include "MMVII_Mappings.h"
 
 
 namespace MMVII
@@ -264,6 +267,14 @@ class cScoreTetaLine : public tFunc1DReal // herit from tFunc1DReal for optimiza
 
 	 /// extract the 2 angle of line in checkboar, aStepInit & aStepLim => used in cOptimByStep
          std::pair<tREAL8,tREAL8> Tetas_CheckBoard(const cPt2dr& aC,tREAL8 aStepInit,tREAL8 aStepLim);
+
+	 typedef  tREAL8  t2Teta[2];
+	 ///  Assure that teta1->teta2 is trigo and teta1<Pi
+	 static void  NormalizeTeta(t2Teta &);
+
+	 const tREAL8 &  Length() const;  ///< Accessor
+         cDataIm2D<tREAL4> * DIm() const; ///< Accessor
+
      private :
 
 	 ///  fix center of reusing the data (to avoid cost for cTabulatedDiffInterpolator)

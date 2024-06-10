@@ -671,6 +671,7 @@ class cAppliExtractCircTarget : public cMMVII_Appli,
 	std::string                 mReportMutipleDetec;  // Name for report of multiple detection in on target
 
 	double                      mRatioDMML;
+        int                         mNbMaxMulTarget;
         cThresholdCircTarget        mThresh;
 
 	std::vector<const cGeomSimDCT*>     mGTMissed;
@@ -697,7 +698,8 @@ cAppliExtractCircTarget::cAppliExtractCircTarget
    mPatHihlight      ("XXXXX"),
    mUseSimul         (false),
    mDoReportSimul    (false),
-   mRatioDMML        (1.5)
+   mRatioDMML        (1.5),
+   mNbMaxMulTarget   (2)
 {
 }
 
@@ -724,6 +726,7 @@ cCollecSpecArg2007 & cAppliExtractCircTarget::ArgOpt(cCollecSpecArg2007 & anArgO
              << AOpt2007(mZoomVisuSeed,"ZoomVisuSeed","Make a visualisation of seed point",{eTA2007::HDV})
              << AOpt2007(mZoomVisuElFinal,"ZoomVisuEllipse","Make a visualisation extracted ellispe & target",{eTA2007::HDV})
              << AOpt2007(mPatHihlight,"PatHL","Pattern for highliting targets in visu",{eTA2007::HDV})
+             << AOpt2007(mNbMaxMulTarget,"NbMMT","Nb max of multiple target acceptable",{eTA2007::HDV})
 	     <<   mPhProj.DPPointsMeasures().ArgDirOutOptWithDef("Std")
           );
 }
@@ -1060,7 +1063,7 @@ void cAppliExtractCircTarget::OnCloseReport(int aNbLine,const std::string & anId
 {
     if (anIdent==mReportMutipleDetec)
     {
-        if (aNbLine>4)  // Each target is detected 2 times
+        if (aNbLine>(mNbMaxMulTarget*2))  // Each target is detected 2 times
         {
             MMVII_UsersErrror(eTyUEr::eMultipleTargetInOneImage,"Nb Multiple Target = " + ToStr(aNbLine/2));
         }

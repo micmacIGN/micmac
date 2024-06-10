@@ -104,25 +104,34 @@ tREAL8  cScoreTetaLine::Refine(tREAL8 aTeta0,tREAL8 aStepPix,int aSign)
 
 std::pair<tREAL8,tREAL8> cScoreTetaLine::Tetas_CheckBoard(const cPt2dr & aC,tREAL8 aStepInit,tREAL8 aStepLim)
 {
-    std::vector<tREAL8> aVTeta;
+    tREAL8 aVTeta[2];
     SetCenter(aC);
 
     for (const auto & aSign : {-1,1})
     {
         tREAL8  aTetaInit =  GetTetasInit(aStepInit,aSign);
         tREAL8  aTetaRefine = Refine(aTetaInit,aStepLim,aSign);
-
-        // at this step the angles are define % pi, theoretically in [0,Pi], btw after due to optim it can be slightly outside
-        aTetaRefine = mod_real(aTetaRefine,M_PI);
-        aVTeta.push_back(aTetaRefine);
+        aVTeta[(1+aSign)/2] = aTetaRefine;
     }
+    NormalizeTeta(aVTeta);
 
-    // the angle are defined %pi, to have a single representation we need that teta1/teta2
-    // correpond to a direct repair
-    if (aVTeta.at(0)> aVTeta.at(1))
-       aVTeta.at(1) += M_PI;
-
-    return std::pair<tREAL8,tREAL8>(aVTeta.at(0),aVTeta.at(1));
+    return std::pair<tREAL8,tREAL8>(aVTeta[0],aVTeta[1]);
 }
+
+void  cScoreTetaLine::NormalizeTeta(t2Teta & aVTeta)
+{
+   //  the angles are define % pi,  t2ddo have a unique representation
+   for (int aK=0 ; aK<2 ; aK++)
+        aVTeta[aK] = mod_real(aVTeta[aK],M_PI);
+
+   //  we need that teta1/teta2  correpond to a direct repair
+   if (aVTeta[0]> aVTeta[1])
+       aVTeta[1] += M_PI;
+
+}
+
+const tREAL8 &  cScoreTetaLine::Length() const {return mLength;}
+cDataIm2D<tREAL4> * cScoreTetaLine::DIm() const {return mDIm;}
+
 
 };
