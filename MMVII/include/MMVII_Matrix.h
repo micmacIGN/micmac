@@ -154,6 +154,7 @@ template <class Type> class  cDenseVect
             MMVII_INTERNAL_ASSERT_medium(aV.IsInside(Sz()) ,"Sparse Vector out dense vect");
         }
         void  WeightedAddIn(Type aWeight,const tSpV & aColLine);
+        void  WeightedAddIn(Type aWeight,const tDV & aColLine);
 
            /*  =========  Othognalization & projection stuff =========== */
 
@@ -727,6 +728,9 @@ template <class Type> class cMatIner2Var
        Type CorrelNotC(const Type &aEpsilon=1e-10) const; // Non centered correl
        Type StdDev1() const;
        Type StdDev2() const;
+
+       /// [A B] as least-square solution of V1 = A V2 + B
+       std::pair<Type,Type> FitLineDirect() const;  
     private :
         Type  mS0;   ///< Som of    W
         Type  mS1;   ///< Som of    W * V1
@@ -743,6 +747,7 @@ template <class TypeWeight,class TypeVal=TypeWeight> class cWeightAv
         cWeightAv();
         void Add(const TypeWeight & aWeight,const TypeVal & aVal);
         TypeVal Average() const;
+        TypeVal Average(const TypeVal  & aDef) const;
         const TypeVal & SVW() const;  /// Accessor to sum weighted vals
         const TypeWeight & SW() const;  /// Accessor to sum weighted vals
     private :

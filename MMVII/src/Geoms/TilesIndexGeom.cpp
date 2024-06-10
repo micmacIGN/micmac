@@ -40,6 +40,39 @@ template <const int TheDim>
 
 template class cGeneratePointDiff<2>;
 
+/* **************************************** */
+/*                                          */
+/*              cTilingIndex                */
+/*                                          */
+/* **************************************** */
+
+class cPoint2DValuated
+{
+    public :
+        static constexpr int Dim = 2;
+        typedef cPt2dr  tPrimGeom;
+        typedef int     tArgPG;  /// unused here
+
+        tPrimGeom  GetPrimGeom(int Arg=-1) const {return Proj(mPt);}
+
+        cPoint2DValuated(const cPt3dr & aPt) :
+           mPt (aPt)
+        {
+        }
+
+    private :
+         cPt3dr  mPt;
+};
+
+
+std::vector<cPt3dr>  FilterMaxLoc(std::vector<cPt3dr> & aVPt,tREAL8 aDist)
+{
+    SortOnCriteria(  aVPt,[](const auto & aPt){return - aPt.z();} );
+
+    return FilterMaxLoc((cPt2dr*)nullptr,aVPt,[](const auto & aP) {return Proj(aP);}, aDist);
+}
+
+
 
 
 /* **************************************** */
@@ -203,7 +236,7 @@ void OneBenchSpatialIndex()
     cBox2dr aBox(aP0,aP1); // Box of the tiling
     cBox2dr aBoxMargin(aP0-aSzMargin,aP1+aSzMargin); // box slightly bigger 
 
-    cTiling<cPointSpInd<2>> aSI(aBox,true,1000,-1); // The tiling we want to check
+    cTiling<cPointSpInd<2>> aSI(aBox,true,1000,-1); // The tiling we want to check , -1 is the fake arge
 
     // Test the function GetObjAtPos
     std::list<cPt2dr>  aLPt;

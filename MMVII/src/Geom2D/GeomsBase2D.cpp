@@ -8,6 +8,9 @@ namespace MMVII
 const  cPt2di FreemanV8[8]   {{1,0},{1,1},{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1}};
 const  cPt2di FreemanV10[10] {{1,0},{1,1},{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1},{1,0},{1,1}};
 
+const std::vector<cPt2di> & Alloc4Neighbourhood() { return AllocNeighbourhood<2>(1); }
+const std::vector<cPt2di> & Alloc8Neighbourhood() { return AllocNeighbourhood<2>(2); }
+
 /* ========================== */
 /*         cBox2di            */
 /* ========================== */
@@ -93,6 +96,40 @@ template <class Type> Type cSegment2DCompiled<Type>::DistClosedSeg(const tPt& aP
 
     return std::abs(aPL.y());
 }
+
+template <class Type> 
+    cPtxd<Type,2>  cSegment2DCompiled<Type>::InterSeg
+                   (
+		        const cSegment2DCompiled<Type> & aSeg2,
+			tREAL8 aMinAngle,
+			bool *IsOk
+                   )
+{
+      //  (aM1 + L1 T1) . N2 = M2 . N2
+      //  L1 (T1.N2)  = N2. (aM2-aM1) 
+      tPt aM1 = this->PMil();
+      tPt aM2 = aSeg2.PMil();
+
+      Type aScalT1N2 = Scal(this->mTgt,aSeg2.mNorm);
+
+      if (std::abs(aScalT1N2) <= aMinAngle)
+      {
+          if (IsOk)
+	  {
+		  *IsOk = false;
+		  return cPtxd<Type,2>::Dummy();
+	  }
+	  MMVII_INTERNAL_ERROR("Segment2DCompiled<Type>::InterSeg  : almost parallel");
+      }
+
+      if (IsOk) 
+          *IsOk = true;
+
+      Type aLambda = Scal(aM2-aM1,aSeg2.mNorm) / aScalT1N2 ;
+
+      return aM1 + this->mTgt * aLambda;
+}
+
 
 /* ========================== */
 /*         cClosedSeg2D       */

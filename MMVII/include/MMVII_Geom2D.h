@@ -12,6 +12,7 @@ namespace MMVII
 typedef cSegment<tREAL8,2> tSeg2dr;
 
 
+
 /** \file MMVII_Geom2D.h
     \brief contain classes for geometric manipulation, specific to 2D space :
            2D line, 2D plane, rotation, ...
@@ -95,9 +96,15 @@ template <class Type> class cSegment2DCompiled : public cSegmentCompiled<Type,2>
        Type  Dist(const tPt& aPt) const; ///< Faster than upper class
        const tPt & Normal() const {return mNorm;}
 
+
+       tPt InterSeg(const cSegment2DCompiled<Type> &,tREAL8 aMinAngle=1e-5,bool *IsOk=nullptr);
     private :
        tPt     mNorm;
 };
+
+/** this class a represent a "closed" segment , it has same data than cSegment2DCompiled,
+ * but as a set/geometric primitive, it is limited by extremities
+ */
 
 class cClosedSeg2D
 {

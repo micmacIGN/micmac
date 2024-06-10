@@ -116,17 +116,17 @@ template <const int Dim>  bool EqualPt(const cPtxd<tREAL8,Dim> & aP1,const cPtxd
  */
 
 
-template <class Type>  class  cTiling : public cTilingIndex<Type::Dim>
+template <class Type>  class  cTiling : public cTilingIndex<Type::TheDim>
 {
      public :
-           typedef cTilingIndex<Type::Dim>  tTI;
+           typedef cTilingIndex<Type::TheDim>  tTI;
            typedef typename tTI::tRBox      tRBox;
            typedef typename tTI::tRPt       tRPt;
            typedef typename tTI::tIPt       tIPt;
 
            typedef typename Type::tPrimGeom tPrimGeom;
            typedef typename Type::tArgPG    tArgPG;
-	   static constexpr int Dim = Type::Dim;
+	   static constexpr int Dim = Type::TheDim;
 
            typedef std::list<Type>          tCont1Tile;
            typedef std::vector<tCont1Tile>  tVectTiles;
@@ -248,14 +248,21 @@ FakeUseIt(aDistWMargin);
 	   tArgPG      mArgPG;
 };
 
+
+/**  We consider 2d point that are valuated with z()
+ * Extract point that do not contain any point > in a neighbourhood of size aDist,
+ * Non Const vect because they are sorted at the begining of process
+ */
+std::vector<cPt3dr>  FilterMaxLoc(std::vector<cPt3dr> & aVpt,tREAL8 aDist);
+
 /**  Sometime we only need to put points in a spatial index, this
  * class make the interface allowing to use simple point in spatial indexing
  */
 
-template <const int TheDim> class cPointSpInd
+template <const int Dim> class cPointSpInd
 {
     public :
-        static constexpr int Dim = TheDim;
+        static constexpr int TheDim = Dim;
         typedef cPtxd<tREAL8,TheDim>  tPrimGeom;
         typedef int     tArgPG;  /// unused here
 
@@ -291,6 +298,67 @@ template <const int TheDim> class cGeneratePointDiff
            tTiling  mTiling;
            tREAL8   mDistMin;
 };
+
+
+template <class TypePrim,class TypeObj,class TypeCalcP2 >
+    void IndexeseFilterMaxLoc
+         (
+             TypePrim *,  // Type specifier
+             std::vector<int> & aVInd,
+             const std::vector<TypeObj> & aVPt,
+             const TypeCalcP2 & aCalc,
+             tREAL8 aDist
+         )
+{
+    // compute box of points
+    cTplBoxOfPts<tREAL8,TypePrim::TheDim>  aBoxOfPt;
+    for (const auto & aPt : aVPt)
+        aBoxOfPt.Add(aCalc(aPt));
+
+    cTplBox<tREAL8,TypePrim::TheDim>  aBox = aBoxOfPt.CurBox();
+
+    // estimate number of case
+    int aNbCase = std::min
+                  (
+                      round_up(aVPt.size()/30.0)  ,
+                      round_up( 0.1*(aBox.NbElem()/pow(aDist,TypePrim::TheDim))  )
+                  );
+
+
+    // creat tiling + clear indexe
+    cTiling<cPointSpInd<TypePrim::TheDim>>  aTiling(aBox,true,aNbCase,-1);
+    aVInd.clear();
+
+    // parse and add
+    for (size_t aKPt=0 ; aKPt<aVPt.size(); aKPt++)
+    {
+        auto  aLpt = aTiling.GetObjAtDist(aCalc(aVPt.at(aKPt)),aDist);
+        if (aLpt.empty())
+        {
+           aTiling.Add(aCalc(aVPt.at(aKPt)));
+           aVInd.push_back(aKPt);
+        }
+    }
+}
+
+template <class TypePrim,class TypeObj,class TypeCalcP2 >
+    std::vector<TypeObj>
+         FilterMaxLoc
+         (
+             TypePrim *,  // Type specifier
+             const std::vector<TypeObj> & aVPt,
+             const TypeCalcP2 & aCalc,
+             tREAL8 aDist
+         )
+{
+     std::vector<int>  aVInd;
+     IndexeseFilterMaxLoc((TypePrim*) nullptr,aVInd,aVPt,aCalc,aDist);
+
+      std::vector<TypeObj> aRes;
+      for (const auto & aInd : aVInd)
+              aRes.push_back(aVPt.at(aInd));
+      return aRes;
+}
 
 
 

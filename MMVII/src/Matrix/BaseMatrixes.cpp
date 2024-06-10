@@ -284,6 +284,10 @@ template <class Type> void  cDenseVect<Type>::WeightedAddIn(Type aW,const tSpV &
        aD[aP.mInd] += aW * aP.mVal;
 }
 
+template <class Type> void  cDenseVect<Type>::WeightedAddIn(Type aW,const tDV & aVect)
+{
+	MMVII::WeightedAddIn(mIm.DIm(),aW,aVect.mIm.DIm());
+}
 
 template <class Type> std::ostream & operator << (std::ostream & OS,const cDenseVect<Type> &aV)
 {

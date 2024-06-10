@@ -657,14 +657,17 @@ template <class TypeIndex,class TypeVal,const bool IsMin> class cWhichExtrem
 	 }
 	 bool IsInit() const {return mIsInit;}
 
-         void Add(const TypeIndex & anIndex,const TypeVal & aNewVal)
+	 // return value indicate if modif was done
+         bool Add(const TypeIndex & anIndex,const TypeVal & aNewVal)
          {
               if ( (IsMin?(aNewVal<mValExtre):(aNewVal>=mValExtre)) || (!mIsInit))
               {     
                     mValExtre   = aNewVal;
                     mIndexExtre = anIndex;
+                    mIsInit = true;
+		    return true;
               }
-              mIsInit = true;
+	      return false;
          }
          const TypeIndex & IndexExtre() const {AssertIsInit();return mIndexExtre;}
          const TypeVal   & ValExtre  () const {AssertIsInit();return mValExtre;}
@@ -721,6 +724,9 @@ template <class TypeIndex,class TypeVal> class cWhichMinMax
          }
          const cWhichMin<TypeIndex,TypeVal> & Min() const {return  mMin;}
          const cWhichMax<TypeIndex,TypeVal> & Max() const {return  mMax;}
+
+         const TypeIndex &  IndMin() const {return  mMin.IndexExtre();}
+         const TypeIndex &  IndMax() const {return  mMax.IndexExtre();}
 
      private :
          cWhichMin<TypeIndex,TypeVal> mMin;

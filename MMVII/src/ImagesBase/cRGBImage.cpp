@@ -219,7 +219,9 @@ void cRGBImage::Read(const cDataFileIm2D & aDFI,const cPt2di & aP0File,double aD
     // In a first step we transfere data at the good origine (P0Z) but not
     // taking into account the zoom
     if (aDFI.NbChannel()==3)
+    {
         mImR.DIm().Read(aDFI,mImG.DIm(),mImB.DIm(),aP0File,aDyn,aRect1Z);
+    }
     else
     {
         mImR.DIm().Read(aDFI,aP0File,aDyn,aRect1Z);
@@ -230,6 +232,18 @@ void cRGBImage::Read(const cDataFileIm2D & aDFI,const cPt2di & aP0File,double aD
 
      ReplicateForZoom(aRect1Z);
 }
+
+void cRGBImage::ResetGray()
+{
+     for (const auto & aPix : mImR.DIm())
+     {
+         tU_INT1 aV = (mImR.DIm().GetV(aPix) + mImG.DIm().GetV(aPix) + mImB.DIm().GetV(aPix)) / 3;
+	 mImR.DIm().SetV(aPix,aV);
+	 mImG.DIm().SetV(aPix,aV);
+	 mImB.DIm().SetV(aPix,aV);
+     }
+}
+
 
 
 void cRGBImage::ReplicateForZoom(const cRect2 & aRect1Z)

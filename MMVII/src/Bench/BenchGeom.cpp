@@ -585,10 +585,30 @@ void  BenchMap2D()
 void BenchPlane3D();
 void BenchHomogr2D();
 
+void BenchSeg2D()
+{
+    for (int aK=0 ; aK<100 ; aK++)
+    {
+        cPt2dr aP1 = cPt2dr::PRandC();
+	cPt2dr aT1 = cPt2dr::PRandUnit();
+	cSegment2DCompiled<tREAL8>  aSeg1(aP1,aP1+aT1);
+
+        cPt2dr aP2 = cPt2dr::PRandC();
+	cPt2dr aT2 = cPt2dr::PRandUnitNonAligned(aT1);
+	cSegment2DCompiled<tREAL8>  aSeg2(aP2,aP2+aT2);
+
+	cPt2dr aI = aSeg1.InterSeg(aSeg2);
+
+	MMVII_INTERNAL_ASSERT_bench(aSeg1.DistLine(aI)<1e-8,"InterSeg");
+	MMVII_INTERNAL_ASSERT_bench(aSeg2.DistLine(aI)<1e-8,"InterSeg");
+    }
+}
 
 void BenchGeom(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("Geom")) return;
+
+    BenchSeg2D();
 
     BenchSampleQuat();
 
