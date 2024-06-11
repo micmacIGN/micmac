@@ -6,7 +6,6 @@
 
    \brief file for generating random points distributed uniformely
    and applying 2D Delaunay triangulation.
-
 **/
 
 namespace MMVII
@@ -14,89 +13,91 @@ namespace MMVII
 
 	/* ==================================================== */
 	/*                                                      */
-	/*          cAppli_RandomGeneratedDelaunay              */
+	/*          cAppli_GenerateRandomDelaunay              */
 	/*                                                      */
 	/* ==================================================== */
 
-	class cAppli_RandomGeneratedDelaunay : public cMMVII_Appli
+	class cAppli_GenerateRandomDelaunay : public cMMVII_Appli
 	{
 	public:
 		typedef cIm2D<tREAL4> tIm;
 		typedef cDataIm2D<tREAL4> tDIm;
 		typedef cTriangulation2D<tREAL8> tTriangule2dr;
 
-		cAppli_RandomGeneratedDelaunay(const std::vector<std::string> &aVArgs,
+		cAppli_GenerateRandomDelaunay(const std::vector<std::string> &aVArgs,
 									   const cSpecMMVII_Appli &aSpec);
 
 		int Exe() override;
 		cCollecSpecArg2007 &ArgObl(cCollecSpecArg2007 &anArgObl) override;
 		cCollecSpecArg2007 &ArgOpt(cCollecSpecArg2007 &anArgOpt) override;
 
-		void ApplyAndSaveDelaunayTriangulationOnPoints(); // Apply triangulation and save to .ply file
-		void DefineValueLimitsForPointGeneration();		  // Define limits of values for uniform law
-		void ConstructUniformRandomVector();			  // Build vector with node coordinates drawn from uniform law
-		void GeneratePointsForRectangularGrid();		  // Build vector with node coordinates that form a rectangular grid
+		void ApplyAndSaveDelaunayTriangulationOnPoints();	// Apply triangulation and save to .ply file
+		void DefineValueLimitsForPointGeneration();		  	// Define limits of values for uniform law
+		void ConstructUniformRandomVector();			  	// Build vector with node coordinates drawn from uniform law
+		void GeneratePointsForRectangularGrid();		  	// Build vector with node coordinates that form a rectangular grid
 		// Shift triangles by a certain quantity defined in method
 		void ComputeShiftedTrianglesAndPoints(const cTriangle<tREAL8, 2> &aTri, std::vector<tPt2dr> &ShiftedTriangleCoordinates,
 											  const tREAL8 aUniformRandomRedChannel, const tREAL8 aUniformRandomGreenChannel,
 											  const tREAL8 aUniformRandomBlueChannel);
 
 	private:
-		// ==   Mandatory args ====
+		// ==== Mandatory args ====
 
-		std::string mNameInputImage; // Name of input image
-		std::string mNamePlyFile;	 // Name of .ply file to save delaunay triangles to
-		int mNumberPointsToGenerate; // number of generated points
+		std::string mNameInputImage;	// Name of input image
+		std::string mNamePlyFile;	 	// Name of .ply file to save delaunay triangles to
+		int mNumberPointsToGenerate; 	// Number of generated points
 
-		// ==   Optionnal args ====
+		// ==== Optionnal args ====
 
-		int mNumberOfCols;						 // Uniform law generate numbers from [0, mRandomUniformLawUpperBound [ for x-axis
-		int mNumberOfLines;						 // Uniform law generate numbers from [0, mRandomUniformLawUpperBound [ for y-axis
-		bool mBuildRandomUniformGrid;			 // Whether to draw coordinates of nodes from uniform law or by rectangular grid
-		bool mShiftTriangles;					 // Whether or not to shift triangles
-		bool mPlyFileisBinary;					 // Whether the .ply file is binary or not
-		std::string mNameModifedTrianglePlyFile; // Name of .ply file to which the shifted triangles can be saved
+		int mNumberOfCols;						 	// Uniform law generate numbers from [0, mRandomUniformLawUpperBound [ for x-axis
+		int mNumberOfLines;						 	// Uniform law generate numbers from [0, mRandomUniformLawUpperBound [ for y-axis
+		bool mBuildRandomUniformGrid;				// Whether to draw coordinates of nodes from uniform law or by rectangular grid
+		int mDisplayEverySoManyInsidePixels;		// Only shift so many inside pixels in triangles and not all
+		bool mShiftTriangles;					 	// Whether or not to shift triangles
+		bool mPlyFileisBinary;					 	// Whether the .ply file is binary or not
+		std::string mNameModifedTrianglePlyFile;	// Name of .ply file to which the shifted triangles can be saved
 
-		// ==    Internal variables ====
+		// ==== Internal variables ====
 
-		cPt2di mSzImIn;					  // Size of images
-		tIm mImIn;						  // memory representation of the image
-		tDIm *mDImIn;					  // memory representation of the image
-		std::vector<tPt2dr> mVectorPts;	  // A vector containing a set of points
-		cTriangulation2D<tREAL8> mDelTri; // A delaunay triangle
+		cPt2di mSzImIn;					  	// Size of images
+		tIm mImIn;						  	// Memory representation of the image
+		tDIm *mDImIn;					  	// Memory representation of the image
+		cTriangulation2D<tREAL8> mDelTri;	// A delaunay triangle
 	};
 
-	cAppli_RandomGeneratedDelaunay::cAppli_RandomGeneratedDelaunay(const std::vector<std::string> &aVArgs,
+	cAppli_GenerateRandomDelaunay::cAppli_GenerateRandomDelaunay(const std::vector<std::string> &aVArgs,
 																   const cSpecMMVII_Appli &aSpec) : cMMVII_Appli(aVArgs, aSpec),
 																									mNumberOfCols(1),
 																									mNumberOfLines(1),
 																									mBuildRandomUniformGrid(true),
+																									mDisplayEverySoManyInsidePixels(40),
 																									mShiftTriangles(true),
 																									mPlyFileisBinary(false),
 																									mNameModifedTrianglePlyFile("ShiftedTriangles.ply"),
-																									mSzImIn(cPt2di(1, 1)),
+																									mSzImIn(tPt2di(1, 1)),
 																									mImIn(mSzImIn),
 																									mDImIn(nullptr),
-																									mVectorPts({tPt2dr(0, 0)}),
-																									mDelTri(mVectorPts)
+																									mDelTri({tPt2dr(0, 0)})
 	{
 	}
 
-	cCollecSpecArg2007 &cAppli_RandomGeneratedDelaunay::ArgObl(cCollecSpecArg2007 &anArgObl)
+	cCollecSpecArg2007 &cAppli_GenerateRandomDelaunay::ArgObl(cCollecSpecArg2007 &anArgObl)
 	{
 		return anArgObl
 			   << Arg2007(mNameInputImage, "Name of input image file.", {{eTA2007::FileImage}, {eTA2007::FileDirProj}})
-			   << Arg2007(mNamePlyFile, "Name of main triangulation file to save in .ply format.", {{eTA2007::FileCloud}})
+			   << Arg2007(mNamePlyFile, "Name of main triangulation file to save in .ply format.", {eTA2007::FileCloud})
 			   << Arg2007(mNumberPointsToGenerate, "Number of points you want to generate for triangulation.");
 	}
 
-	cCollecSpecArg2007 &cAppli_RandomGeneratedDelaunay::ArgOpt(cCollecSpecArg2007 &anArgOpt)
+	cCollecSpecArg2007 &cAppli_GenerateRandomDelaunay::ArgOpt(cCollecSpecArg2007 &anArgOpt)
 	{
 		return anArgOpt
 			   << AOpt2007(mNumberOfCols, "MaximumValueNumberOfCols", "Maximum value that the uniform law can draw from for x-axis.", {eTA2007::HDV})
 			   << AOpt2007(mNumberOfLines, "MaximumValueNumberOfLines", "Maximum value that the uniform law can draw from for y-axis.", {eTA2007::HDV})
 			   << AOpt2007(mBuildRandomUniformGrid, "GenerateRandomUniformGrid",
 						   "Whether to build a grid to be triangulated thanks to points generated randomly with a uniform law or build a grid made of rectangles.", {eTA2007::HDV})
+			   << AOpt2007(mDisplayEverySoManyInsidePixels, "DisplayEverySoManyInsidePixels",
+			   			   "Shift an inside pixel every so many pixels inside triangles.", {eTA2007::HDV})
 			   << AOpt2007(mShiftTriangles, "ShiftTriangles", "Whether to shift points of triangles after application of Delaunay triangulation.", {eTA2007::HDV})
 			   << AOpt2007(mPlyFileisBinary, "PlyFileIsBinary", "Whether to save the .ply file binarised or not.", {eTA2007::HDV})
 			   << AOpt2007(mNameModifedTrianglePlyFile, "NamePlyFileShiftedTriangles", "Name of .ply file for shifted triangles.", {eTA2007::HDV, eTA2007::FileCloud});
@@ -104,7 +105,7 @@ namespace MMVII
 
 	//=========================================================
 
-	void cAppli_RandomGeneratedDelaunay::ApplyAndSaveDelaunayTriangulationOnPoints()
+	void cAppli_GenerateRandomDelaunay::ApplyAndSaveDelaunayTriangulationOnPoints()
 	{
 		mDelTri.MakeDelaunay();
 
@@ -140,8 +141,9 @@ namespace MMVII
 		mDelTri.WriteFile(mNamePlyFile, mPlyFileisBinary);
 	}
 
-	void cAppli_RandomGeneratedDelaunay::ConstructUniformRandomVector()
+	void cAppli_GenerateRandomDelaunay::ConstructUniformRandomVector()
 	{
+		std::vector<tPt2dr> aVectorPts;
 		// Use current time as seed for random generator
 		srand(time(0));
 		// Generate coordinates from drawing lines and columns of coordinates from a uniform distribution
@@ -150,15 +152,15 @@ namespace MMVII
 			const double aUniformRandomXAxis = RandUnif_N(mNumberOfCols);
 			const double aUniformRandomYAxis = RandUnif_N(mNumberOfLines);
 			const tPt2dr aUniformRandomPt(aUniformRandomXAxis, aUniformRandomYAxis); // tPt2dr format
-			mVectorPts.push_back(aUniformRandomPt);
+			aVectorPts.push_back(aUniformRandomPt);
 		}
 
-		mDelTri = mVectorPts;
+		mDelTri = aVectorPts;
 	}
 
-	void cAppli_RandomGeneratedDelaunay::GeneratePointsForRectangularGrid()
+	void cAppli_GenerateRandomDelaunay::GeneratePointsForRectangularGrid()
 	{
-		std::vector<tPt2dr> aGridVector;
+		std::vector<tPt2dr> aRectGridVector;
 		const int anEdge = 10; // To take away variations linked to edges
 
 		const int aDistanceLines = mNumberOfLines / std::sqrt(mNumberPointsToGenerate);
@@ -168,15 +170,15 @@ namespace MMVII
 		{
 			for (int aColNumber = anEdge; aColNumber < mNumberOfCols; aColNumber += aDistanceCols)
 			{
-				const tPt2dr aGridPt = tPt2dr(aColNumber, aLineNumber);
-				aGridVector.push_back(aGridPt);
+				const tPt2dr aRectGridPt = tPt2dr(aColNumber, aLineNumber);
+				aRectGridVector.push_back(aRectGridPt);
 			}
 		}
 
-		mDelTri = aGridVector;
+		mDelTri = aRectGridVector;
 	}
 
-	void cAppli_RandomGeneratedDelaunay::DefineValueLimitsForPointGeneration()
+	void cAppli_GenerateRandomDelaunay::DefineValueLimitsForPointGeneration()
 	{
 		// If user hasn't defined another value than the default value, it is changed
 		if (mNumberOfCols == 1 && mNumberOfCols == 1)
@@ -203,7 +205,7 @@ namespace MMVII
 		ApplyAndSaveDelaunayTriangulationOnPoints(); // Apply Delaunay triangulation on generated points.
 	}
 
-	void cAppli_RandomGeneratedDelaunay::ComputeShiftedTrianglesAndPoints(const cTriangle<tREAL8, 2> &aTri,
+	void cAppli_GenerateRandomDelaunay::ComputeShiftedTrianglesAndPoints(const cTriangle<tREAL8, 2> &aTri,
 																		  std::vector<tPt2dr> &ShiftedTriangleCoordinates,
 																		  const tREAL8 aUniformRandomRedChannel,
 																		  const tREAL8 aUniformRandomGreenChannel,
@@ -213,7 +215,7 @@ namespace MMVII
 
 		// Compute shifts depending on point of triangle
 		const tPt2dr PercentDiffA = 0.01 * (aTri.Pt(0) - aTri.Pt(2));
-		const tPt2dr PercentDiffB = 0.015 * (aTri.Pt(1) - aTri.Pt(0)); // arbitrary values are chosen for displacement
+		const tPt2dr PercentDiffB = 0.015 * (aTri.Pt(1) - aTri.Pt(0));	// Arbitrary values are chosen for displacement
 		const tPt2dr PercentDiffC = 0.02 * (aTri.Pt(2) - aTri.Pt(1));
 
 		ShiftedTriangleCoordinates.push_back(aTri.Pt(0) + PercentDiffA);
@@ -225,7 +227,7 @@ namespace MMVII
 		aCompTri.PixelsInside(aVectorToFillwithInsidePixels);
 		for (size_t aFilledPixel = 0; aFilledPixel < aVectorToFillwithInsidePixels.size(); aFilledPixel++)
 		{
-			if (aFilledPixel % 40 == 0)
+			if (aFilledPixel % mDisplayEverySoManyInsidePixels == 0)
 			{
 				const tPt2dr aFilledPoint(aVectorToFillwithInsidePixels[aFilledPixel].x(), aVectorToFillwithInsidePixels[aFilledPixel].y());
 				const cPt3dr barycenter_coordinates = aCompTri.CoordBarry(aFilledPoint);
@@ -244,14 +246,8 @@ namespace MMVII
 
 	//----------------------------------------
 
-	int cAppli_RandomGeneratedDelaunay::Exe()
+	int cAppli_GenerateRandomDelaunay::Exe()
 	{
-		/*
-		MMVII RandomGeneratedDelaunay pair18_im1_720.png OriginalTriangles.ply 20 50 NamePlyFileShiftedTriangles=ShiftedTriangles.ply > OriginalAndShiftedPoints.xyz
-		awk NR%2==1 < OriginalAndShiftedPoints.xyz > OriginalPoints.xyz
-		awk NR%2==0 < OriginalAndShiftedPoints.xyz > ShiftedPoints.xyz
-		*/
-
 		mImIn = tIm::FromFile(mNameInputImage);
 
 		mDImIn = &mImIn.DIm();
@@ -268,14 +264,14 @@ namespace MMVII
 	/*                                    */
 	/* ================================== */
 
-	tMMVII_UnikPApli Alloc_RandomGeneratedDelaunay(const std::vector<std::string> &aVArgs, const cSpecMMVII_Appli &aSpec)
+	tMMVII_UnikPApli Alloc_GenerateRandomDelaunay(const std::vector<std::string> &aVArgs, const cSpecMMVII_Appli &aSpec)
 	{
-		return tMMVII_UnikPApli(new cAppli_RandomGeneratedDelaunay(aVArgs, aSpec));
+		return tMMVII_UnikPApli(new cAppli_GenerateRandomDelaunay(aVArgs, aSpec));
 	}
 
-	cSpecMMVII_Appli TheSpec_RandomGeneratedDelaunay(
-		"RandomGeneratedDelaunay",
-		Alloc_RandomGeneratedDelaunay,
+	cSpecMMVII_Appli TheSpec_GenerateRandomDelaunay(
+		"GenerateRandomDelaunay",
+		Alloc_GenerateRandomDelaunay,
 		"Generate random points thanks to uniform law and apply Delaunay triangulation",
 		{eApF::ImProc}, // category
 		{eApDT::Image}, // input

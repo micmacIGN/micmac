@@ -12,33 +12,33 @@
 
 namespace MMVII
 {
-    /* ======================================== */
-    /*                                          */
-    /*          cAppli_SimulDispl       	    */
-    /*                                          */
-    /* ======================================== */
+	/* ======================================== */
+	/*                                          */
+	/*          cAppli_SimulDispl       	    */
+	/*                                          */
+	/* ======================================== */
 
-    class cAppli_SimulDispl : public cMMVII_Appli
-    {
-    public:
-        typedef cIm2D<tREAL4> tImDispl;
-        typedef cDataIm2D<tREAL4> tDImDispl;
+	class cAppli_SimulDispl : public cMMVII_Appli
+	{
+	public:
+		typedef cIm2D<tREAL4> tImDispl;
+		typedef cDataIm2D<tREAL4> tDImDispl;
 
-        cAppli_SimulDispl(const std::vector<std::string> &aVArgs,
-                          const cSpecMMVII_Appli &);
+		cAppli_SimulDispl(const std::vector<std::string> &aVArgs,
+						  const cSpecMMVII_Appli &aSpec);
 
-        int Exe() override;
-        cCollecSpecArg2007 &ArgObl(cCollecSpecArg2007 &anArgObl) override;
-        cCollecSpecArg2007 &ArgOpt(cCollecSpecArg2007 &anArgOpt) override;
+		int Exe() override;
+		cCollecSpecArg2007 &ArgObl(cCollecSpecArg2007 &anArgObl) override;
+		cCollecSpecArg2007 &ArgOpt(cCollecSpecArg2007 &anArgOpt) override;
 
         tImDispl             GenerateSmoothRandDispl();
         cDiffInterpolator1D *InitUserInterpolator();
 
-    private:
-        // ==   Mandatory args ====
-        std::string mNameImage; // name of the input image to deform
+	private:
+		// ==== Mandatory args ====
+		std::string mNameImage; // Name of the input image to deform
 
-        // ==   Optionnal args ====
+		// ==== Optionnal args ====
 
         tREAL8 mAmplDef;                      // Amplitude of deformation
         bool mWithDisc;                       // Generate image with discontinuities
@@ -49,13 +49,13 @@ namespace MMVII
         std::string mInterpName;                // Interpolator name (bicubic, sinc, ..)
         std::vector<std::string> mInterpParams; // Interpolator's params
 
-        // ==    Internal variables ====
-        tImDispl mImIn;     // memory representation of the image
-        tDImDispl *mDImIn;  // memory representation of the image
-        cPt2di mSz;         // Size of image
-        tImDispl mImOut;    // memory representation of the image
-        tDImDispl *mDImOut; // memory representation of the image
-    };
+		// ==== Internal variables ====
+		tImDispl mImIn;		// Memory representation of the image
+		tDImDispl *mDImIn;	// Memory representation of the image
+		cPt2di mSz;			// Size of image
+		tImDispl mImOut;	// Memory representation of the image
+		tDImDispl *mDImOut; // Memory representation of the image
+	};
 
     cAppli_SimulDispl::cAppli_SimulDispl(
         const std::vector<std::string> &aVArgs,
@@ -74,14 +74,14 @@ namespace MMVII
     {
     }
 
-    cCollecSpecArg2007 &cAppli_SimulDispl::ArgObl(cCollecSpecArg2007 &anArgObl)
-    {
-        return anArgObl
-               << Arg2007(mNameImage, "Name of image to deform", {{eTA2007::FileImage}, {eTA2007::FileDirProj}});
-    }
+	cCollecSpecArg2007 &cAppli_SimulDispl::ArgObl(cCollecSpecArg2007 &anArgObl)
+	{
+		return anArgObl
+			   << Arg2007(mNameImage, "Name of image to deform", {{eTA2007::FileImage}, {eTA2007::FileDirProj}});
+	}
 
-    cCollecSpecArg2007 &cAppli_SimulDispl::ArgOpt(cCollecSpecArg2007 &anArgOpt)
-    {
+	cCollecSpecArg2007 &cAppli_SimulDispl::ArgOpt(cCollecSpecArg2007 &anArgOpt)
+	{
 
         return anArgOpt
                << AOpt2007(mAmplDef, "Ampl", "Amplitude of deformation.", {eTA2007::HDV})
@@ -94,7 +94,7 @@ namespace MMVII
                << AOpt2007(mUserDefinedDispYMapName, "UserDispYMapName", "Name of user defined y-displacement map.", {eTA2007::HDV, eTA2007::FileImage});
     }
 
-    //================================================
+	//================================================
 
     cDiffInterpolator1D *cAppli_SimulDispl::InitUserInterpolator()
     {
@@ -120,62 +120,61 @@ namespace MMVII
         return anInterp;
     }
 
-    cAppli_SimulDispl::tImDispl cAppli_SimulDispl::GenerateSmoothRandDispl()
-    {
-        const tREAL8 aDeZoom = 10;
-        const tREAL8 aNbBlob = 10;
+	cAppli_SimulDispl::tImDispl cAppli_SimulDispl::GenerateSmoothRandDispl()
+	{
+		const tREAL8 aDeZoom = 10;
+		const tREAL8 aNbBlob = 10;
 
-        const cPt2di aSzRed = Pt_round_up(ToR(mSz) / aDeZoom);
+		const cPt2di aSzRed = Pt_round_up(ToR(mSz) / aDeZoom);
 
-        tImDispl aResSsEch(aSzRed);
+		tImDispl aResSsEch(aSzRed);
 
-        for (const cPt2di &aPix : aResSsEch.DIm())
-            aResSsEch.DIm().SetV(aPix, RandUnif_C());
+		for (const cPt2di &aPix : aResSsEch.DIm())
+			aResSsEch.DIm().SetV(aPix, RandUnif_C());
 
-        ExpFilterOfStdDev(aResSsEch.DIm(), 5, Norm2(aSzRed) / aNbBlob);
-        NormalizedAvgDev(aResSsEch.DIm(), 1e-10, mAmplDef);
+		ExpFilterOfStdDev(aResSsEch.DIm(), 5, Norm2(aSzRed) / aNbBlob);
+		NormalizedAvgDev(aResSsEch.DIm(), 1e-10, mAmplDef);
 
-        tImDispl aRes(mSz);
-        for (const cPt2di &aPix : aRes.DIm())
-        {
-            const tPt2dr aPixSE = ToR(aPix) / aDeZoom;
-            aRes.DIm().SetV(aPix, aResSsEch.DIm().DefGetVBL(aPixSE, 0));
-        }
+		tImDispl aRes(mSz);
+		for (const cPt2di &aPix : aRes.DIm())
+		{
+			const tPt2dr aPixSE = ToR(aPix) / aDeZoom;
+			aRes.DIm().SetV(aPix, aResSsEch.DIm().DefGetVBL(aPixSE, 0));
+		}
 
-        return aRes;
-    }
+		return aRes;
+	}
 
-    void cAppli_SimulDispl::GenerateDiscontinuity(tDImDispl *&aDImDispx, tDImDispl *&aDImDispy)
-    {
-        tImDispl aImRegion = tImDispl(mSz);
-        aImRegion = GenerateSmoothRandDispl();
-        for (const cPt2di &aPix : aImRegion.DIm())
-        {
-            aImRegion.DIm().SetV(aPix, aImRegion.DIm().GetV(aPix) > 0);
-            if (aImRegion.DIm().GetV(aPix))
-                std::swap(aDImDispx->GetReference_V(aPix),
-                          aDImDispy->GetReference_V(aPix));
-        }
-        aImRegion.DIm().ToFile("Region.tif");
-    }
+	void cAppli_SimulDispl::GenerateDiscontinuity(tDImDispl *&aDImDispx, tDImDispl *&aDImDispy)
+	{
+		tImDispl aImRegion = tImDispl(mSz);
+		aImRegion = GenerateSmoothRandDispl();
+		for (const cPt2di &aPix : aImRegion.DIm())
+		{
+			aImRegion.DIm().SetV(aPix, aImRegion.DIm().GetV(aPix) > 0);
+			if (aImRegion.DIm().GetV(aPix))
+				std::swap(aDImDispx->GetReference_V(aPix),
+						  aDImDispy->GetReference_V(aPix));
+		}
+		aImRegion.DIm().ToFile("Region.tif");
+	}
 
-    int cAppli_SimulDispl::Exe()
-    {
-        const bool aIsBillinearInterp = (mInterpName == "Bilinear");
-        std::unique_ptr<cDiffInterpolator1D> anInterp = nullptr;
-        anInterp = std::unique_ptr<cDiffInterpolator1D>(InitUserInterpolator());
+	int cAppli_SimulDispl::Exe()
+	{
+		const bool aIsBillinearInterp = (mInterpName == "Bilinear");
+		std::unique_ptr<const cDiffInterpolator1D> anInterp = (!aIsBillinearInterp) ? std::unique_ptr<const cDiffInterpolator1D>(InitUserInterpolator()) : nullptr;
 
-        mImIn = tImDispl::FromFile(mNameImage);
-        cDataFileIm2D aDescFile = cDataFileIm2D::Create(mNameImage, false);
+		mImIn = tImDispl::FromFile(mNameImage);
+		cDataFileIm2D aDescFile = cDataFileIm2D::Create(mNameImage, false);
 
-        mDImIn = &mImIn.DIm();
-        mSz = mDImIn->Sz();
+		mDImIn = &mImIn.DIm();
+		mSz = mDImIn->Sz();
 
-        mImOut = tImDispl(mSz);
-        mDImOut = &mImOut.DIm();
+		mImOut = tImDispl(mSz);
+		mDImOut = &mImOut.DIm();
 
-        for (const cPt2di &aPix : *mDImIn)
-            mDImOut->SetV(aPix, 255 - mDImIn->GetV(aPix));
+		for (const tPt2di &aPix : *mDImIn)
+			mDImOut->SetV(aPix, 255 - mDImIn->GetV(aPix));
 
         tImDispl aImDispx = tImDispl(mSz);
         tImDispl aImDispy = tImDispl(mSz);
@@ -192,8 +191,8 @@ namespace MMVII
             aImDispy = GenerateSmoothRandDispl();
         }
 
-        tDImDispl *aDImDispx = &aImDispx.DIm();
-        tDImDispl *aDImDispy = &aImDispy.DIm();
+		tDImDispl *aDImDispx = &aImDispx.DIm();
+		tDImDispl *aDImDispy = &aImDispy.DIm();
 
         if (mWithDisc)
         {
@@ -208,16 +207,16 @@ namespace MMVII
             aImRegion.DIm().ToFile("Region.tif");
         }
 
-        aDImDispx->ToFile("DeplX.tif");
-        aDImDispy->ToFile("DeplY.tif");
+		aDImDispx->ToFile("DeplX.tif");
+		aDImDispy->ToFile("DeplY.tif");
 
-        for (const tPt2di &aPix : mImOut.DIm())
-        {
-            const tREAL8 aDx = aDImDispx->GetV(aPix);
-            const tREAL8 aDy = aDImDispy->GetV(aPix);
-            const tPt2dr aPixR = ToR(aPix) - tPt2dr(aDx, aDy);
+		for (const tPt2di &aPix : mImOut.DIm())
+		{
+			const tREAL8 aDx = aDImDispx->GetV(aPix);
+			const tREAL8 aDy = aDImDispy->GetV(aPix);
+			const tPt2dr aPixR = ToR(aPix) - tPt2dr(aDx, aDy);
 
-            const bool aPixIn = (aIsBillinearInterp) ? mDImIn->InsideBL(aPixR) : mDImIn->InsideInterpolator(*anInterp, aPixR, 0);
+			const bool aPixIn = (aIsBillinearInterp) ? mDImIn->InsideBL(aPixR) : mDImIn->InsideInterpolator(*anInterp, aPixR, 0);
 
             if (aPixIn)
             {
@@ -226,33 +225,33 @@ namespace MMVII
             }
         }
 
-        mDImOut->ToFile("image_post.tif", aDescFile.Type());
+		mDImOut->ToFile("image_post.tif", aDescFile.Type());
 
-        StdOut() << "Size of image = [" << mImIn.DIm().Sz().x()
-                 << ", " << mDImIn->SzY() << "]" << std::endl;
+		StdOut() << "Size of image = [" << mImIn.DIm().Sz().x()
+				 << ", " << mDImIn->SzY() << "]" << std::endl;
 
-        return EXIT_SUCCESS;
-    }
+		return EXIT_SUCCESS;
+	}
 
-    /* ====================================== */
-    /*                                        */
-    /*               MMVII                    */
-    /*                                        */
-    /* ====================================== */
+	/* =============================== */
+	/*                                 */
+	/*             MMVII               */
+	/*                                 */
+	/* =============================== */
 
-    tMMVII_UnikPApli Alloc_SimulDispl(const std::vector<std::string> &aVArgs,
-                                      const cSpecMMVII_Appli &aSpec)
-    {
-        return tMMVII_UnikPApli(new cAppli_SimulDispl(aVArgs, aSpec));
-    }
+	tMMVII_UnikPApli Alloc_SimulDispl(const std::vector<std::string> &aVArgs,
+									  const cSpecMMVII_Appli &aSpec)
+	{
+		return tMMVII_UnikPApli(new cAppli_SimulDispl(aVArgs, aSpec));
+	}
 
-    cSpecMMVII_Appli TheSpec_SimulDispl(
-        "SimulDispl",
-        Alloc_SimulDispl,
-        "Generate smooth displacement and deformed image",
-        {eApF::ImProc},
-        {eApDT::Image},
-        {eApDT::Image},
-        __FILE__);
+	cSpecMMVII_Appli TheSpec_SimulDispl(
+		"SimulDispl",
+		Alloc_SimulDispl,
+		"Generate smooth displacement and deformed image",
+		{eApF::ImProc},
+		{eApDT::Image},
+		{eApDT::Image},
+		__FILE__);
 
 }; // MMVII

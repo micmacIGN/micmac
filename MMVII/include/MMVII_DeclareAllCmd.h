@@ -83,11 +83,12 @@ extern cSpecMMVII_Appli  TheSpec_SpecSerial;
 extern cSpecMMVII_Appli  TheSpec_CGPReport;
 extern cSpecMMVII_Appli  TheSpec_TiePReport;
 extern cSpecMMVII_Appli  TheSpec_SimulDispl;
-extern cSpecMMVII_Appli  TheSpec_RandomGeneratedDelaunay;
+extern cSpecMMVII_Appli  TheSpec_GenerateRandomDelaunay;
 extern cSpecMMVII_Appli  TheSpec_ComputeTriangleDeformation;
 extern cSpecMMVII_Appli  TheSpec_ComputeTriangleDeformationTranslation;
 extern cSpecMMVII_Appli  TheSpec_ComputeTriangleDeformationRadiometry;
 extern cSpecMMVII_Appli  TheSpec_ComputeNodesPrecision;
+extern cSpecMMVII_Appli  TheSpec_GenerateSmoothSineImage;
 extern cSpecMMVII_Appli  TheSpec_PoseCmpReport;
 extern cSpecMMVII_Appli  TheSpec_BlockCamInit;   // RIGIDBLOC
 extern cSpecMMVII_Appli  TheSpec_ClinoInit;
