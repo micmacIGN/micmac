@@ -38,13 +38,17 @@ namespace MMVII
 
         // Iterate of triangles and inside pixels
         void DoOneIteration(const int aIterNumber, const int aTotalNumberOfIterations,
-                            const bool aUserDefinedFolderName);
+                            const bool aNonEmptyPathToFolder, const bool aHardFreezeForFirstItersTranslation,
+                            const bool aHardFreezeForFirstItersRadiometry, const bool aSoftFreezeForFirstItersTranslation,
+                            const bool aSoftFreezeForFirstItersRadiometry);
         // Loops over all triangles and solves system to update parameters at end of iteration
         void LoopOverTrianglesAndUpdateParameters(const int aIterNumber, const int aTotalNumberOfIterations,
-                                                  const bool aUserDefinedFolderName);
+                                                  const bool aUserDefinedFolderName, const bool aHardFreezeForFirstItersTranslation,
+                                                  const bool aHardFreezeForFirstItersRadiometry, const bool aSoftFreezeForFirstItersTranslation,
+                                                  const bool aSoftFreezeForFirstItersRadiometry);
         // Generate displacement maps of last solution
         void GenerateDisplacementMapsAndOutputImages(const tDenseVect &aVFinalSol, const int aIterNumber,
-                                                     const int aTotalNumberOfIterations, const bool aUserDefinedFolderName);
+                                                     const int aTotalNumberOfIterations, const bool aNonEmptyPathToFolder);
         // Generates Displacement maps and coordinates of points in triangulation at last iteration
         void GenerateDisplacementMapsAndDisplayLastValuesUnknowns(const int aIterNumber, const int aTotalNumberOfIterations,
                                                                   const bool aDisplayLastRadiometryValues, const bool aDisplayLastTranslationValues,
@@ -90,8 +94,14 @@ namespace MMVII
         bool mFreezeTranslationY;                         // Freeze y-translation or not during optimisation
         bool mFreezeRadTranslation;                       // Freeze radiometry translation or not during optimisation
         bool mFreezeRadScale;                             // Freeze radiometry scaling or not during optimisation
+        tREAL8 mWeightTranslationX;                       // Weight given to x-translation if soft freezing is applied (default : negative => not applied)
+        tREAL8 mWeightTranslationY;                       // Weight given to y-translation if soft freezing is applied (default : negative => not applied)
         tREAL8 mWeightRadTranslation;                     // Weight given to radiometry translation if soft freezing is applied (default : negative => not applied)
         tREAL8 mWeightRadScale;                           // Weight given to radiometry scaling if soft freezing is applied (default : negative => not applied)
+        int mNumberOfItersToHardFreezeTranslation;        // Freeze translation unknowns for a certain number of the first set of iterations
+        int mNumberOfItersToHardFreezeRadiometry;         // Freeze radiometry unknowns for a certain number of the first set of iterations
+        int mNumberOfItersToSoftFreezeTranslation;        // Apply soft constraints to translation unknowns for a certain number of the first set of iterations
+        int mNumberOfItersToSoftFreezeRadiometry;         // Apply soft constraints to radiometry unknowns for a certain number of the first set of iterations
         int mNumberOfIterGaussFilter;                     // Number of iterations to be done in Gauss filter algorithm
         int mNumberOfEndIterations;                       // Number of iterations to do while using original image in multi-scale approach
         std::string mUserDefinedFolderNameSaveResult;     // Folder name to save results

@@ -3,7 +3,7 @@
 /**
  \file TriangleDeformationUtils.cpp
  \brief File containing annexe methods that can be used by
- other classes linked to triangle deformation computation
+ other classes linked to triangle deformation computation.
 **/
 
 namespace MMVII
@@ -209,7 +209,7 @@ namespace MMVII
 
     std::string cMultipleTriangleNodesSerialiser::GetName() const { return mName; } // Acessor
 
-    void cMultipleTriangleNodesSerialiser::ShowAllTriangleNodes(const std::string aAllOrSingularValue, int aNodeNumber) const
+    void cMultipleTriangleNodesSerialiser::ShowAllTriangleNodes(const std::string &aAllOrSingularValue, int aNodeNumber) const
     {
         if (aAllOrSingularValue == "all")
             StdOut() << "The carateristics of the nodes are : " << mVectorTriangleNodes << std::endl;
@@ -297,7 +297,7 @@ namespace MMVII
     }
 
     void InitialiseInterpolationAndEquation(cCalculator<tREAL8> *&aEqDeformTri, cDiffInterpolator1D *&aInterpol,
-                                            const std::vector<std::string> aArgsVectorInterpol, const bool aUseLinearGradInterpolation)
+                                            const std::vector<std::string> &aArgsVectorInterpol, const bool aUseLinearGradInterpolation)
     {
         if (aUseLinearGradInterpolation)
             aInterpol = cDiffInterpolator1D::AllocFromNames(aArgsVectorInterpol);
@@ -316,7 +316,8 @@ namespace MMVII
         const size_t aStartNumberPts = 4 * aDelaunayTri.NbPts();
         tDenseVect aVInit(aStartNumberPts, eModeInitImage::eMIA_Null);
 
-        if (aUserInitialisation && aXTranslationInitVal != 0 && aYTranslationInitVal != 0 && aRadTranslationInitVal != 0 && aRadScaleInitVal != 1)
+        if (aUserInitialisation && aXTranslationInitVal != 0 && aYTranslationInitVal != 0
+            && aRadTranslationInitVal != 0 && aRadScaleInitVal != 1)
         {
             for (size_t aKtNumber = 0; aKtNumber < aStartNumberPts; aKtNumber++)
             {
@@ -354,13 +355,13 @@ namespace MMVII
     {
         tDenseVect aVInit(4 * aDelTri.NbPts(), eModeInitImage::eMIA_Null);
 
-        ReadFileNameLoadData(aNameDepXFile, aImDepX,
-                             aDImDepX, aSzImDepX);
-        ReadFileNameLoadData(aNameDepYFile, aImDepY,
-                             aDImDepY, aSzImDepY);
+        ReadImageFileNameLoadData(aNameDepXFile, aImDepX,
+                                  aDImDepX, aSzImDepX);
+        ReadImageFileNameLoadData(aNameDepYFile, aImDepY,
+                                  aDImDepY, aSzImDepY);
 
-        ReadFileNameLoadData(aNameCorrelationMask, aImCorrelationMask,
-                             aDImCorrelationMask, aSzCorrelationMask);
+        ReadImageFileNameLoadData(aNameCorrelationMask, aImCorrelationMask,
+                                  aDImCorrelationMask, aSzCorrelationMask);
 
         for (size_t aTr = 0; aTr < aDelTri.NbFace(); aTr++)
         {
@@ -438,13 +439,13 @@ namespace MMVII
     {
         tDenseVect aVInitTranslation(2 * aDelTri.NbPts(), eModeInitImage::eMIA_Null);
 
-        ReadFileNameLoadData(aNameDepXFile, aImDepX,
-                             aDImDepX, aSzImDepX);
-        ReadFileNameLoadData(aNameDepYFile, aImDepY,
-                             aDImDepY, aSzImDepY);
+        ReadImageFileNameLoadData(aNameDepXFile, aImDepX,
+                                  aDImDepX, aSzImDepX);
+        ReadImageFileNameLoadData(aNameDepYFile, aImDepY,
+                                  aDImDepY, aSzImDepY);
 
-        ReadFileNameLoadData(aNameCorrelationMask, aImCorrelationMask,
-                             aDImCorrelationMask, aSzCorrelationMask);
+        ReadImageFileNameLoadData(aNameCorrelationMask, aImCorrelationMask,
+                                  aDImCorrelationMask, aSzCorrelationMask);
 
         for (size_t aTr = 0; aTr < aDelTri.NbFace(); aTr++)
         {
@@ -481,7 +482,7 @@ namespace MMVII
     }
 
     void InitialiseInterpolationAndEquationRadiometry(cCalculator<tREAL8> *&aEqRadiometryTri, cDiffInterpolator1D *&aInterpolRad,
-                                                      const std::vector<std::string> aArgsVectorInterpolRad, const bool aUseLinearGradInterpolation)
+                                                      const std::vector<std::string> &aArgsVectorInterpolRad, const bool aUseLinearGradInterpolation)
     {
         if (aUseLinearGradInterpolation)
             aInterpolRad = cDiffInterpolator1D::AllocFromNames(aArgsVectorInterpolRad);
@@ -520,7 +521,7 @@ namespace MMVII
         aSysRadiometry = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqDense, aVInitRadiometry);
     }
 
-    std::unique_ptr<cNodeOfTriangles> DefineNewTriangleNode(const tDenseVect &aVecSol, const std::vector<int> aIndVec, const int aXInd,
+    std::unique_ptr<cNodeOfTriangles> DefineNewTriangleNode(const tDenseVect &aVecSol, const std::vector<int> &aIndVec, const int aXInd,
                                                             const int aYInd, const int aRadTrInd, const int aRadScInd, const tTri2dr &aTriangle,
                                                             const tPt3di &aFace, const int aPointNumberInTri, const int anIdOfPoint)
     {
@@ -529,7 +530,7 @@ namespace MMVII
         return aNewTriangleNode;
     }
 
-    bool CheckValidCorrelationValue(tDIm *aMask, const cNodeOfTriangles &aPtOfTri)
+    bool CheckValidCorrelationValue(tDIm *&aMask, const cNodeOfTriangles &aPtOfTri)
     {
         // const tPt2di aCoordKt = tPt2di(aPtOfTri.GetInitialNodeCoordinates().x(), aPtOfTri.GetInitialNodeCoordinates().y());
         const tPt2dr aCoordNode = aPtOfTri.GetInitialNodeCoordinates();
@@ -541,7 +542,7 @@ namespace MMVII
         return aIsValidCorrelPoint;
     }
 
-    tREAL8 ReturnCorrectInitialisationValue(tDIm *aMask, tDIm *aDispMap,
+    tREAL8 ReturnCorrectInitialisationValue(tDIm *&aMask, tDIm *&aDispMap,
                                             const cNodeOfTriangles &aPtOfTri, const tREAL8 aValueToReturnIfFalse)
     {
         // const tPt2di aCoordKt = tPt2di(aPtOfTri.GetInitialNodeCoordinates().x(), aPtOfTri.GetInitialNodeCoordinates().y());
@@ -600,8 +601,8 @@ namespace MMVII
                        4 * aIndicesOfTriKnots.z() + 2, 4 * aIndicesOfTriKnots.z() + 3};
     }
 
-    void SubtractPrePostImageAndComputeAvgAndMax(tIm &aImDiff, tDIm *aDImDiff, tDIm *aDImPre,
-                                                 tDIm *aDImPost, tPt2di &aSzImPre)
+    void SubtractPrePostImageAndComputeAvgAndMax(tIm &aImDiff, tDIm *&aDImDiff, tDIm *&aDImPre,
+                                                 tDIm *&aDImPost, const tPt2di &aSzImPre)
     {
         aImDiff = tIm(aSzImPre);
         aDImDiff = &aImDiff.DIm();
@@ -625,6 +626,179 @@ namespace MMVII
                  << aSumPixelValuesInDiffImage / (tREAL8)aNumberOfPixelsInImage << std::endl;
         StdOut() << "The maximum value of the difference image between the Pre and Post images is : "
                  << aMaxPixelValuesInDiffImage << std::endl;
+    }
+
+    void ReadImageFileNameLoadData(const std::string &aImageFilename, tIm &aImage,
+                                   tDIm *&aDataImage, tPt2di &aSzIm)
+    {
+        aImage = tIm::FromFile(aImageFilename);
+
+        aDataImage = &aImage.DIm();
+        aSzIm = aDataImage->Sz();
+    }
+
+    void LoadPrePostImageAndData(tIm &aCurIm, tDIm *&aCurDIm, const std::string &aPreOrPostImage, const tIm &aImPre, const tIm &aImPost)
+    {
+        (aPreOrPostImage == "pre") ? aCurIm = aImPre : aCurIm = aImPost;
+        aCurDIm = &aCurIm.DIm();
+    }
+
+    void InitialiseDisplacementMapsAndOutputImage(const tPt2di &aSzImIn, tIm &aImOut, tDIm *&aDImOut, tPt2di &aSzImOut)
+    {
+        aImOut = tIm(aSzImIn, 0, eModeInitImage::eMIA_Null);
+        aDImOut = &aImOut.DIm();
+        aSzImOut = aDImOut->Sz();
+    }
+
+    tPt2dr LoadNodeAndReturnCurrentDisplacement(const tDenseVect &aVCurSol, const std::vector<int> &aVecInd,
+                                                const int aXDispInd, const int aYDispInd, const int aRadTrInd,
+                                                const int aRadScInd, const tTri2dr &aTri, const int aPtInNumberTri)
+    {
+        const cNodeOfTriangles aTriNode = cNodeOfTriangles(aVCurSol, aVecInd, aXDispInd, aYDispInd,
+                                                           aRadTrInd, aRadScInd, aTri, aPtInNumberTri);
+        return aTriNode.GetCurrentXYDisplacementValues(); // current translation of node
+    }
+
+    tREAL8 LoadNodeAndReturnCurrentRadiometryTranslation(const tDenseVect &aVCurSol, const std::vector<int> &aVecInd,
+                                                         const int aXDispInd, const int aYDispInd, const int aRadTrInd,
+                                                         const int aRadScInd, const tTri2dr &aTri, const int aPtInNumberTri)
+    {
+        const cNodeOfTriangles aTriNode = cNodeOfTriangles(aVCurSol, aVecInd, aXDispInd, aYDispInd,
+                                                           aRadTrInd, aRadScInd, aTri, aPtInNumberTri);
+        return aTriNode.GetCurrentRadiometryTranslation(); // current radiometry translation of node
+    }
+
+    tREAL8 LoadNodeAndReturnCurrentRadiometryScaling(const tDenseVect &aVCurSol, const std::vector<int> &aVecInd,
+                                                     const int aXDispInd, const int aYDispInd, const int aRadTrInd,
+                                                     const int aRadScInd, const tTri2dr &aTri, const int aPtInNumberTri)
+    {
+        const cNodeOfTriangles aTriNode = cNodeOfTriangles(aVCurSol, aVecInd, aXDispInd, aYDispInd,
+                                                           aRadTrInd, aRadScInd, aTri, aPtInNumberTri);
+        return aTriNode.GetCurrentRadiometryScaling(); // current radiometry scaling of node
+    }
+
+    tPt2dr LoadNodeAppendVectorAndReturnCurrentDisplacement(const tDenseVect &aVCurSol, const std::vector<int> &aVecInd,
+                                                            const int aXDispInd, const int aYDispInd, const int aRadTrInd,
+                                                            const int aRadScInd, const tTri2dr &aTri, const int aPtInNumberTri,
+                                                            const int aNodeCounter, const tPt3di &aFace, const bool anAppend,
+                                                            std::unique_ptr<cMultipleTriangleNodesSerialiser> &aVectorOfTriangleNodes)
+    {
+        std::unique_ptr<cNodeOfTriangles> aNodeOfTri = DefineNewTriangleNode(aVCurSol, aVecInd, aXDispInd, aYDispInd, aRadTrInd, aRadScInd,
+                                                                             aTri, aFace, aPtInNumberTri, aNodeCounter);
+        if (anAppend)
+            aVectorOfTriangleNodes->PushInVector(aNodeOfTri);
+        return aNodeOfTri->GetCurrentXYDisplacementValues(); // current translation of node
+    }
+
+    tREAL8 LoadNodeAppendVectorAndReturnCurrentRadiometryTranslation(const tDenseVect &aVCurSol, const std::vector<int> &aVecInd,
+                                                                     const int aXDispInd, const int aYDispInd, const int aRadTrInd,
+                                                                     const int aRadScInd, const tTri2dr &aTri, const int aPtInNumberTri,
+                                                                     const int aNodeCounter, const tPt3di &aFace, const bool anAppend,
+                                                                     std::unique_ptr<cMultipleTriangleNodesSerialiser> &aVectorOfTriangleNodes)
+    {
+        std::unique_ptr<cNodeOfTriangles> aNodeOfTri = DefineNewTriangleNode(aVCurSol, aVecInd, aXDispInd, aYDispInd, aRadTrInd, aRadScInd,
+                                                                             aTri, aFace, aPtInNumberTri, aNodeCounter);
+        if (anAppend)
+            aVectorOfTriangleNodes->PushInVector(aNodeOfTri);
+        return aNodeOfTri->GetCurrentRadiometryTranslation(); // current radiometry translation of node
+    }
+
+    tREAL8 LoadNodeAppendVectorAndReturnCurrentRadiometryScaling(const tDenseVect &aVCurSol, const std::vector<int> &aVecInd,
+                                                                 const int aXDispInd, const int aYDispInd, const int aRadTrInd,
+                                                                 const int aRadScInd, const tTri2dr &aTri, const int aPtInNumberTri,
+                                                                 const int aNodeCounter, const tPt3di &aFace, const bool anAppend,
+                                                                 std::unique_ptr<cMultipleTriangleNodesSerialiser> &aVectorOfTriangleNodes)
+    {
+        std::unique_ptr<cNodeOfTriangles> aNodeOfTri = DefineNewTriangleNode(aVCurSol, aVecInd, aXDispInd, aYDispInd, aRadTrInd, aRadScInd,
+                                                                             aTri, aFace, aPtInNumberTri, aNodeCounter);
+        if (anAppend)
+            aVectorOfTriangleNodes->PushInVector(aNodeOfTri);
+        return aNodeOfTri->GetCurrentRadiometryScaling(); // current radiometry scaling of node
+    }
+
+    bool ManageDifferentCasesOfEndIterations(const int aIterNumber, const int aNumberOfScales, const int aNumberOfEndIterations,
+                                             bool aIsLastIters, const tIm &aImPre, const tIm &aImPost, tIm &aCurPreIm, tDIm *&aCurPreDIm,
+                                             tIm &aCurPostIm, tDIm *&aCurPostDIm)
+    {
+        switch (aNumberOfEndIterations)
+        {
+        case 1: // one last iteration
+            if (aIterNumber == aNumberOfScales)
+            {
+                aIsLastIters = true;
+                LoadPrePostImageAndData(aCurPreIm, aCurPreDIm, "pre", aImPre, aImPost);
+                LoadPrePostImageAndData(aCurPostIm, aCurPostDIm, "post", aImPre, aImPost);
+            }
+            break;
+        case 2: // two last iterations
+            if ((aIterNumber == aNumberOfScales) || (aIterNumber == aNumberOfScales + aNumberOfEndIterations - 1))
+            {
+                aIsLastIters = true;
+                LoadPrePostImageAndData(aCurPreIm, aCurPreDIm, "pre", aImPre, aImPost);
+                LoadPrePostImageAndData(aCurPostIm, aCurPostDIm, "post", aImPre, aImPost);
+            }
+            break;
+        case 3: //  three last iterations
+            if ((aIterNumber == aNumberOfScales) || (aIterNumber == aNumberOfScales + aNumberOfEndIterations - 2) ||
+                (aIterNumber == aNumberOfScales + aNumberOfEndIterations - 1))
+            {
+                aIsLastIters = true;
+                LoadPrePostImageAndData(aCurPreIm, aCurPreDIm, "pre", aImPre, aImPost);
+                LoadPrePostImageAndData(aCurPostIm, aCurPostDIm, "post", aImPre, aImPost);
+            }
+            break;
+        default: // default is two last iterations
+            if ((aIterNumber == aNumberOfScales) || (aIterNumber == aNumberOfScales + aNumberOfEndIterations - 1))
+            {
+                aIsLastIters = true;
+                LoadPrePostImageAndData(aCurPreIm, aCurPreDIm, "pre", aImPre, aImPost);
+                LoadPrePostImageAndData(aCurPostIm, aCurPostDIm, "post", aImPre, aImPost);
+            }
+            break;
+        }
+        return aIsLastIters;
+    }
+
+    void ApplyHardConstraintToUnknown(const int anIndices, const std::vector<int> &aVecInd,
+                                      const tDenseVect &aVCurSol, cResolSysNonLinear<tREAL8> *&aSys)
+    {
+        const int aIndicesToFreeze = aVecInd.at(anIndices);
+        aSys->SetFrozenVar(aIndicesToFreeze, aVCurSol(aIndicesToFreeze));
+    }
+
+    void ApplyHardConstraintsToMultipleUnknowns(const int aFirstIndToFreeze, const int aSecondIndToFreeze,
+                                                const int aThirdIndToFreeze, const std::vector<int> &aVecInd,
+                                                const tDenseVect &aVCurSol, cResolSysNonLinear<tREAL8> *&aSys)
+    {
+        ApplyHardConstraintToUnknown(aFirstIndToFreeze, aVecInd, aVCurSol, aSys);
+        ApplyHardConstraintToUnknown(aSecondIndToFreeze, aVecInd, aVCurSol, aSys);
+        ApplyHardConstraintToUnknown(aThirdIndToFreeze, aVecInd, aVCurSol, aSys);
+    }
+
+    void UnfreezeUnknown(const int anIndices, const std::vector<int> &aVecInd,
+                         cResolSysNonLinear<tREAL8> *&aSys)
+    {
+        const int anIndicesToUnfreeze = aVecInd.at(anIndices);
+        aSys->SetUnFrozen(anIndicesToUnfreeze);
+    }
+
+    void UnfreezeMultipleUnknowns(const int aFirstIndToUnfreeze, const int aSecondIndToUnfreeze,
+                                  const int aThirdIndToUnfreeze, const std::vector<int> &aVecInd,
+                                  cResolSysNonLinear<tREAL8> *&aSys)
+    {
+        UnfreezeUnknown(aFirstIndToUnfreeze, aVecInd, aSys);
+        UnfreezeUnknown(aSecondIndToUnfreeze, aVecInd, aSys);
+        UnfreezeUnknown(aThirdIndToUnfreeze, aVecInd, aSys);
+    }
+
+    void ApplySoftConstraintToUnknown(const int aSolStart, const int aSolStep, const std::vector<int> &aVecInd,
+                                      cResolSysNonLinear<tREAL8> *&aSys, const tDenseVect &aVCurSol, const tREAL8 aWeight)
+    {
+        for (size_t aIndCurSol = aSolStart; aIndCurSol < aVecInd.size() - 1; aIndCurSol += aSolStep)
+        {
+            const int aIndices = aVecInd.at(aIndCurSol);
+            aSys->AddEqFixVar(aIndices, aVCurSol(aIndices), aWeight);
+        }
     }
 
     tPt2dr ApplyBarycenterTranslationFormulaToFilledPixel(const tPt2dr &aCurrentTranslationPointA,
@@ -703,158 +877,10 @@ namespace MMVII
         return aCurrentRadScaling;
     }
 
-    void ReadFileNameLoadData(const std::string &aImageFilename, tIm &aImage,
-                              tDIm *&aDataImage, tPt2di &aSzIm)
+    void SetValueIfTranslatedOutOfImage(const tREAL8 anIntensityValue, const tREAL8 aLastXTranslatedCoord,
+                                        const tREAL8 aLastYTranslatedCoord, const tPt2di &aLastCoordinate,
+                                        const tPt2di &aSzImOut, tDIm *&aDImOut)
     {
-        aImage = tIm::FromFile(aImageFilename);
-
-        aDataImage = &aImage.DIm();
-        aSzIm = aDataImage->Sz();
-    }
-
-    void LoadPrePostImageAndData(tIm &aCurIm, tDIm *&aCurDIm, const std::string &aPreOrPostImage, tIm &aImPre, tIm &aImPost)
-    {
-        (aPreOrPostImage == "pre") ? aCurIm = aImPre : aCurIm = aImPost;
-        aCurDIm = &aCurIm.DIm();
-    }
-
-    void InitialiseDisplacementMaps(tPt2di &aSzIm, tIm &aImDispMap, tDIm *&aDImDispMap, tPt2di &aSzImDispMap)
-    {
-        aImDispMap = tIm(aSzIm, 0, eModeInitImage::eMIA_Null);
-        aDImDispMap = &aImDispMap.DIm();
-        aSzImDispMap = aDImDispMap->Sz();
-    }
-
-    tPt2dr LoadNodeAndReturnCurrentDisplacement(const tDenseVect &aVCurSol, const std::vector<int> &aVecInd,
-                                                const int aXDispInd, const int aYDispInd, const int aRadTrInd,
-                                                const int aRadScInd, const tTri2dr &aTri, const int aPtInNumberTri)
-    {
-        const cNodeOfTriangles aTriNode = cNodeOfTriangles(aVCurSol, aVecInd, aXDispInd, aYDispInd,
-                                                           aRadTrInd, aRadScInd, aTri, aPtInNumberTri);
-        return aTriNode.GetCurrentXYDisplacementValues(); // current translation of node
-    }
-
-    tREAL8 LoadNodeAndReturnCurrentRadiometryTranslation(const tDenseVect &aVCurSol, const std::vector<int> &aVecInd,
-                                                         const int aXDispInd, const int aYDispInd, const int aRadTrInd,
-                                                         const int aRadScInd, const tTri2dr &aTri, const int aPtInNumberTri)
-    {
-        const cNodeOfTriangles aTriNode = cNodeOfTriangles(aVCurSol, aVecInd, aXDispInd, aYDispInd,
-                                                           aRadTrInd, aRadScInd, aTri, aPtInNumberTri);
-        return aTriNode.GetCurrentRadiometryTranslation(); // current radiometry translation of node
-    }
-
-    tREAL8 LoadNodeAndReturnCurrentRadiometryScaling(const tDenseVect &aVCurSol, const std::vector<int> &aVecInd,
-                                                     const int aXDispInd, const int aYDispInd, const int aRadTrInd,
-                                                     const int aRadScInd, const tTri2dr &aTri, const int aPtInNumberTri)
-    {
-        const cNodeOfTriangles aTriNode = cNodeOfTriangles(aVCurSol, aVecInd, aXDispInd, aYDispInd,
-                                                           aRadTrInd, aRadScInd, aTri, aPtInNumberTri);
-        return aTriNode.GetCurrentRadiometryScaling(); // current radiometry scaling of node
-    }
-
-    tPt2dr LoadNodeAppendVectorAndReturnCurrentDisplacement(const tDenseVect &aVCurSol, const std::vector<int> &aVecInd,
-                                                            const int aXDispInd, const int aYDispInd, const int aRadTrInd,
-                                                            const int aRadScInd, const tTri2dr &aTri, const int aPtInNumberTri,
-                                                            const int aNodeCounter, const tPt3di &aFace, const bool anAppend,
-                                                            std::unique_ptr<cMultipleTriangleNodesSerialiser> &aVectorOfTriangleNodes)
-    {
-        std::unique_ptr<cNodeOfTriangles> aNodeOfTri = DefineNewTriangleNode(aVCurSol, aVecInd, aXDispInd, aYDispInd, aRadTrInd, aRadScInd,
-                                                                             aTri, aFace, aPtInNumberTri, aNodeCounter);
-        if (anAppend)
-            aVectorOfTriangleNodes->PushInVector(aNodeOfTri);
-        return aNodeOfTri->GetCurrentXYDisplacementValues(); // current translation of node
-    }
-
-    tREAL8 LoadNodeAppendVectorAndReturnCurrentRadiometryTranslation(const tDenseVect &aVCurSol, const std::vector<int> &aVecInd,
-                                                                     const int aXDispInd, const int aYDispInd, const int aRadTrInd,
-                                                                     const int aRadScInd, const tTri2dr &aTri, const int aPtInNumberTri,
-                                                                     const int aNodeCounter, const tPt3di &aFace, const bool anAppend,
-                                                                     std::unique_ptr<cMultipleTriangleNodesSerialiser> &aVectorOfTriangleNodes)
-    {
-        std::unique_ptr<cNodeOfTriangles> aNodeOfTri = DefineNewTriangleNode(aVCurSol, aVecInd, aXDispInd, aYDispInd, aRadTrInd, aRadScInd,
-                                                                             aTri, aFace, aPtInNumberTri, aNodeCounter);
-        if (anAppend)
-            aVectorOfTriangleNodes->PushInVector(aNodeOfTri);
-        return aNodeOfTri->GetCurrentRadiometryTranslation(); // current radiometry translation of node
-    }
-
-    tREAL8 LoadNodeAppendVectorAndReturnCurrentRadiometryScaling(const tDenseVect &aVCurSol, const std::vector<int> &aVecInd,
-                                                                 const int aXDispInd, const int aYDispInd, const int aRadTrInd,
-                                                                 const int aRadScInd, const tTri2dr &aTri, const int aPtInNumberTri,
-                                                                 const int aNodeCounter, const tPt3di &aFace, const bool anAppend,
-                                                                 std::unique_ptr<cMultipleTriangleNodesSerialiser> &aVectorOfTriangleNodes)
-    {
-        std::unique_ptr<cNodeOfTriangles> aNodeOfTri = DefineNewTriangleNode(aVCurSol, aVecInd, aXDispInd, aYDispInd, aRadTrInd, aRadScInd,
-                                                                             aTri, aFace, aPtInNumberTri, aNodeCounter);
-        if (anAppend)
-            aVectorOfTriangleNodes->PushInVector(aNodeOfTri);
-        return aNodeOfTri->GetCurrentRadiometryScaling(); // current radiometry scaling of node
-    }
-
-    bool ManageDifferentCasesOfEndIterations(const int aIterNumber, const int aNumberOfScales, const int aNumberOfEndIterations,
-                                             bool aIsLastIters, tIm &aImPre, tIm &aImPost, tIm &aCurPreIm, tDIm *&aCurPreDIm,
-                                             tIm &aCurPostIm, tDIm *&aCurPostDIm)
-    {
-        switch (aNumberOfEndIterations)
-        {
-        case 1: // one last iteration
-            if (aIterNumber == aNumberOfScales)
-            {
-                aIsLastIters = true;
-                LoadPrePostImageAndData(aCurPreIm, aCurPreDIm, "pre", aImPre, aImPost);
-                LoadPrePostImageAndData(aCurPostIm, aCurPostDIm, "post", aImPre, aImPost);
-            }
-            break;
-        case 2: // two last iterations
-            if ((aIterNumber == aNumberOfScales) || (aIterNumber == aNumberOfScales + aNumberOfEndIterations - 1))
-            {
-                aIsLastIters = true;
-                LoadPrePostImageAndData(aCurPreIm, aCurPreDIm, "pre", aImPre, aImPost);
-                LoadPrePostImageAndData(aCurPostIm, aCurPostDIm, "post", aImPre, aImPost);
-            }
-            break;
-        case 3: //  three last iterations
-            if ((aIterNumber == aNumberOfScales) || (aIterNumber == aNumberOfScales + aNumberOfEndIterations - 2) ||
-                (aIterNumber == aNumberOfScales + aNumberOfEndIterations - 1))
-            {
-                aIsLastIters = true;
-                LoadPrePostImageAndData(aCurPreIm, aCurPreDIm, "pre", aImPre, aImPost);
-                LoadPrePostImageAndData(aCurPostIm, aCurPostDIm, "post", aImPre, aImPost);
-            }
-            break;
-        default: // default is two last iterations
-            if ((aIterNumber == aNumberOfScales) || (aIterNumber == aNumberOfScales + aNumberOfEndIterations - 1))
-            {
-                aIsLastIters = true;
-                LoadPrePostImageAndData(aCurPreIm, aCurPreDIm, "pre", aImPre, aImPost);
-                LoadPrePostImageAndData(aCurPostIm, aCurPostDIm, "post", aImPre, aImPost);
-            }
-            break;
-        }
-        return aIsLastIters;
-    }
-
-    void FillDisplacementMapsAndOutputImage(const cPtInsideTriangles &aLastPixInsideTriangle,
-                                            const tPt2dr &aLastTranslatedFilledPoint,
-                                            const tREAL8 aLastRadiometryTranslation,
-                                            const tREAL8 aLastRadiometryScaling, tPt2di &aSzImOut,
-                                            tDIm *&aDImDepX, tDIm *&aDImDepY, tDIm *&aDImOut)
-    {
-        const tREAL8 aLastXCoordinate = aLastPixInsideTriangle.GetCartesianCoordinates().x();
-        const tREAL8 aLastYCoordinate = aLastPixInsideTriangle.GetCartesianCoordinates().y();
-        const tREAL8 aLastPixelValue = aLastPixInsideTriangle.GetPixelValue();
-
-        const tPt2di aLastCoordinate = tPt2di(aLastXCoordinate, aLastYCoordinate);
-        aDImDepX->SetV(aLastCoordinate,
-                       aLastTranslatedFilledPoint.x() - aLastXCoordinate);
-        aDImDepY->SetV(aLastCoordinate,
-                       aLastTranslatedFilledPoint.y() - aLastYCoordinate);
-        const tREAL8 aLastXTranslatedCoord = aLastXCoordinate + aDImDepX->GetV(aLastCoordinate);
-        const tREAL8 aLastYTranslatedCoord = aLastYCoordinate + aDImDepY->GetV(aLastCoordinate);
-
-        const tREAL8 aLastRadiometryValue = aLastRadiometryScaling * aLastPixelValue +
-                                            aLastRadiometryTranslation;
-
         // Build image with intensities displaced
         // deal with different cases of pixel being translated out of image
         if (aLastXTranslatedCoord < 0 && aLastYTranslatedCoord < 0)
@@ -879,28 +905,74 @@ namespace MMVII
             aDImOut->SetV(aLastCoordinate, aDImOut->GetV(tPt2di(aSzImOut.x() - 1, aLastYTranslatedCoord)));
         else
             // at the translated pixel the untranslated pixel value is given computed with the right radiometry values
-            aDImOut->SetV(tPt2di(aLastXTranslatedCoord, aLastYTranslatedCoord), aLastRadiometryValue);
+            aDImOut->SetV(tPt2di(aLastXTranslatedCoord, aLastYTranslatedCoord), anIntensityValue);
     }
 
-    void FillOutputImageRadiometry(const cPtInsideTriangles &aLastPixInsideTriangle,
-                                   const tREAL8 aLastRadiometryTranslation,
-                                   const tREAL8 aLastRadiometryScaling,
-                                   tDIm *&aDImOut)
-    {
-        const tREAL8 aLastXCoordinate = aLastPixInsideTriangle.GetCartesianCoordinates().x();
-        const tREAL8 aLastYCoordinate = aLastPixInsideTriangle.GetCartesianCoordinates().y();
+    void FillDisplacementMapsAndOutputImage(const cPtInsideTriangles &aLastPixInsideTriangle,
+                                            const tPt2dr &aLastTranslatedFilledPoint,
+                                            const tREAL8 aLastRadiometryTranslation,
+                                            const tREAL8 aLastRadiometryScaling, const tPt2di &aSzImOut,
+                                            tDIm *&aDImDepX, tDIm *&aDImDepY, tDIm *&aDImOut, tDIm *&aDImPost)
+    { /*
+      const tPt2dr aLastRealCoordinate = aLastPixInsideTriangle.GetCartesianCoordinates();
+      const tREAL8 aLastXCoordinate = aLastPixInsideTriangle.GetCartesianCoordinates().x();
+      const tREAL8 aLastYCoordinate = aLastPixInsideTriangle.GetCartesianCoordinates().y();
+      const tREAL8 aLastPixelValue = aLastPixInsideTriangle.GetPixelValue();
 
-        const tPt2di aLastCoordinate = tPt2di(aLastXCoordinate, aLastYCoordinate);
+      const tPt2di aLastIntCoordinate = tPt2di(aLastXCoordinate, aLastYCoordinate);
 
-        const tREAL8 aLastRadiometryValue = aLastRadiometryScaling * aLastPixInsideTriangle.GetPixelValue() +
-                                            aLastRadiometryTranslation;
+      aDImDepX->SetV(aLastIntCoordinate,
+                     aLastTranslatedFilledPoint.x() - aLastXCoordinate);
+      aDImDepY->SetV(aLastIntCoordinate,
+                     aLastTranslatedFilledPoint.y() - aLastYCoordinate);
 
-        // Build image with radiometric intensities
-        aDImOut->SetV(aLastCoordinate, aLastRadiometryValue);
+      tREAL8 aLastXTranslatedCoord = aLastXCoordinate + aDImDepX->GetV(aLastIntCoordinate);
+      tREAL8 aLastYTranslatedCoord = aLastYCoordinate + aDImDepY->GetV(aLastIntCoordinate);
+      if (aDImDepX->InsideBL(aLastRealCoordinate))
+          aLastXTranslatedCoord = aLastXCoordinate + aDImDepX->GetVBL(aLastRealCoordinate);
+      if (aDImDepY->InsideBL(aLastRealCoordinate))
+          aLastYTranslatedCoord = aLastYCoordinate + aDImDepY->GetVBL(aLastRealCoordinate);
+
+      const tREAL8 aLastRadiometryValue = aLastRadiometryScaling * aLastPixelValue +
+                                          aLastRadiometryTranslation;
+
+      SetValueIfTranslatedOutOfImage(aLastRadiometryValue, aLastXTranslatedCoord, aLastYTranslatedCoord,
+                                     aLastIntCoordinate, aSzImOut, aDImOut);
+      */
+        const tPt2dr aLastRealCoordinate = aLastPixInsideTriangle.GetCartesianCoordinates();
+        const tREAL8 aLastXCoordinate = aLastRealCoordinate.x();
+        const tREAL8 aLastYCoordinate = aLastRealCoordinate.y();
+
+        const tPt2di aLastIntCoordinate = tPt2di(aLastXCoordinate, aLastYCoordinate);
+
+        aDImDepX->SetV(aLastIntCoordinate,
+                       aLastTranslatedFilledPoint.x() - aLastXCoordinate);
+        aDImDepY->SetV(aLastIntCoordinate,
+                       aLastTranslatedFilledPoint.y() - aLastYCoordinate);
+
+        tREAL8 aLastXTranslatedCoord = aLastXCoordinate + aDImDepX->GetV(aLastIntCoordinate);
+        tREAL8 aLastYTranslatedCoord = aLastYCoordinate + aDImDepY->GetV(aLastIntCoordinate);
+        if (aDImDepX->InsideBL(aLastRealCoordinate))
+            aLastXTranslatedCoord = aLastXCoordinate + aDImDepX->GetVBL(aLastRealCoordinate);
+        if (aDImDepY->InsideBL(aLastRealCoordinate))
+            aLastYTranslatedCoord = aLastYCoordinate + aDImDepY->GetVBL(aLastRealCoordinate);
+
+        tREAL8 aLastPixelValue = aDImPost->GetV(tPt2di(aLastXTranslatedCoord, aLastYTranslatedCoord));
+
+        if (aDImOut->InsideBL(tPt2dr(aLastXTranslatedCoord, aLastYTranslatedCoord)))
+            aLastPixelValue = aDImPost->GetVBL(tPt2dr(aLastXTranslatedCoord, aLastYTranslatedCoord));
+
+        const tREAL8 aLastRadiometryValue = (aLastPixelValue - aLastRadiometryTranslation) / aLastRadiometryScaling;
+
+        aDImOut->SetV(aLastIntCoordinate, aLastRadiometryValue);
+        /*
+        SetValueIfTranslatedOutOfImage(aLastRadiometryValue, aLastXTranslatedCoord, aLastYTranslatedCoord,
+                                       aLastIntCoordinate, aSzImOut, aDImOut);
+        */
     }
 
     void FillDisplacementMapsTranslation(const cPtInsideTriangles &aLastPixInsideTriangle,
-                                         const tPt2dr &aLastTranslatedFilledPoint, tPt2di &aSzImOut,
+                                         const tPt2dr &aLastTranslatedFilledPoint, const tPt2di &aSzImOut,
                                          tDIm *&aDImDepX, tDIm *&aDImDepY, tDIm *&aDImOut)
     {
         const tPt2dr aLastRealCoordinate = aLastPixInsideTriangle.GetCartesianCoordinates();
@@ -922,31 +994,25 @@ namespace MMVII
         if (aDImDepY->InsideBL(aLastRealCoordinate))
             aLastYTranslatedCoord = aLastYCoordinate + aDImDepY->GetVBL(aLastRealCoordinate);
 
-        // Build image with intensities displaced
-        // deal with different cases of pixel being translated out of image
-        if (aLastXTranslatedCoord < 0 && aLastYTranslatedCoord < 0)
-            aDImOut->SetV(aLastIntCoordinate, aDImOut->GetV(tPt2di(0, 0)));
-        else if (aLastXTranslatedCoord >= aSzImOut.x() && aLastYTranslatedCoord >= aSzImOut.y())
-            aDImOut->SetV(aLastIntCoordinate, aDImOut->GetV(tPt2di(aSzImOut.x() - 1, aSzImOut.y() - 1)));
-        else if (aLastXTranslatedCoord < 0 && aLastYTranslatedCoord >= aSzImOut.y())
-            aDImOut->SetV(aLastIntCoordinate, aDImOut->GetV(tPt2di(0, aSzImOut.y() - 1)));
-        else if (aLastXTranslatedCoord >= aSzImOut.x() && aLastYTranslatedCoord < 0)
-            aDImOut->SetV(aLastIntCoordinate, aDImOut->GetV(tPt2di(aSzImOut.x() - 1, 0)));
-        else if (aLastXTranslatedCoord >= 0 && aLastXTranslatedCoord < aSzImOut.x() &&
-                 aLastYTranslatedCoord < 0)
-            aDImOut->SetV(aLastIntCoordinate, aDImOut->GetV(tPt2di(aLastXTranslatedCoord, 0)));
-        else if (aLastXTranslatedCoord >= 0 && aLastXTranslatedCoord < aSzImOut.x() &&
-                 aLastYTranslatedCoord > aSzImOut.y())
-            aDImOut->SetV(aLastIntCoordinate, aDImOut->GetV(tPt2di(aLastXTranslatedCoord, aSzImOut.y() - 1)));
-        else if (aLastYTranslatedCoord >= 0 && aLastYTranslatedCoord < aSzImOut.y() &&
-                 aLastXTranslatedCoord < 0)
-            aDImOut->SetV(aLastIntCoordinate, aDImOut->GetV(tPt2di(0, aLastYTranslatedCoord)));
-        else if (aLastYTranslatedCoord >= 0 && aLastYTranslatedCoord < aSzImOut.y() &&
-                 aLastXTranslatedCoord > aSzImOut.x())
-            aDImOut->SetV(aLastIntCoordinate, aDImOut->GetV(tPt2di(aSzImOut.x() - 1, aLastYTranslatedCoord)));
-        else
-            // at the translated pixel the untranslated pixel value is given
-            aDImOut->SetV(tPt2di(aLastXTranslatedCoord, aLastYTranslatedCoord), aLastPixelValue);
+        SetValueIfTranslatedOutOfImage(aLastPixelValue, aLastXTranslatedCoord, aLastYTranslatedCoord,
+                                       aLastIntCoordinate, aSzImOut, aDImOut);
+    }
+
+    void FillOutputImageRadiometry(const cPtInsideTriangles &aLastPixInsideTriangle,
+                                   const tREAL8 aLastRadiometryTranslation,
+                                   const tREAL8 aLastRadiometryScaling,
+                                   tDIm *&aDImOut)
+    {
+        const tREAL8 aLastXCoordinate = aLastPixInsideTriangle.GetCartesianCoordinates().x();
+        const tREAL8 aLastYCoordinate = aLastPixInsideTriangle.GetCartesianCoordinates().y();
+
+        const tPt2di aLastCoordinate = tPt2di(aLastXCoordinate, aLastYCoordinate);
+
+        const tREAL8 aLastRadiometryValue = aLastRadiometryScaling * aLastPixInsideTriangle.GetPixelValue() +
+                                            aLastRadiometryTranslation;
+
+        // Build image with radiometric intensities
+        aDImOut->SetV(aLastCoordinate, aLastRadiometryValue);
     }
 
     void FillDiffDisplacementMap(tDIm *&aDImDispMap, tDIm *&aDImDiffMap,
@@ -1017,7 +1083,7 @@ namespace MMVII
     }
 
     void SaveOutputImageToFile(tDIm *&aDImOut, const bool aUserDefinedFolderName, const std::string &aFolderPathToSave,
-                               const std::string aOutputImageFileNameToSave,
+                               const std::string &aOutputImageFileNameToSave,
                                const int aNumberOfPointsToGenerate, const int aTotalNumberOfIterations)
     {
         if (aUserDefinedFolderName)
@@ -1028,41 +1094,76 @@ namespace MMVII
                             ToStr(aTotalNumberOfIterations) + ".tif");
     }
 
-    void DisplayLastUnknownValuesAndComputeStatistics(const tDenseVect &aVFinalSol, const tDenseVect &aVInitSol)
+    tREAL8 CheckMinMaxValueIsChanged(const tREAL8 aMinMaxValue, tREAL8 aPossiblyChangedValue, const int aNbChanges)
     {
-        tREAL8 aMaxFirstUnk = 0, aMinFirstUnk = 0, aMeanFirstUnk = 0, aVarianceMeanFirstUnk = 0;     // aVarFirstUnk = 0;
-        tREAL8 aMaxSecondUnk = 0, aMinSecondUnk = 0, aMeanSecondUnk = 0, aVarianceMeanSecondUnk = 0; // aVarSecondUnk = 0;
+        if (aNbChanges > 0)
+            return aPossiblyChangedValue;
+        else
+        {
+            aPossiblyChangedValue = aMinMaxValue;
+            return aPossiblyChangedValue;
+        }
+    }
+
+    void DisplayFirstAndLastUnknownValuesAndComputeStatisticsTwoUnknowns(const tDenseVect &aVFinalSol, const tDenseVect &aVInitSol,
+                                                                         const int aNbUnk)
+    {
+        tREAL8 aMaxFirstUnk = INT_MAX, aMinFirstUnk = INT_MIN, aMeanFirstUnk = 0, aVarianceMeanFirstUnk = 0;     // aVarFirstUnk = 0;
+        tREAL8 aMaxSecondUnk = INT_MAX, aMinSecondUnk = INT_MIN, aMeanSecondUnk = 0, aVarianceMeanSecondUnk = 0; // aVarSecondUnk = 0;
         const tREAL8 aVecSolSz = aVFinalSol.DIm().Sz();
-        const tREAL8 aHalfVecSolSz = aVecSolSz / 2;
+        const tREAL8 aDividedVecSolSz = aVecSolSz / aNbUnk;
+
+        int aNbChangesMinFirstUnk = 0;
+        int aNbChangesMaxFirstUnk = 0;
+        int aNbChangesMinSecondUnk = 0;
+        int aNbChangesMaxSecondUnk = 0;
 
         for (int aFinalUnk = 0; aFinalUnk < aVecSolSz; aFinalUnk++)
         {
             const tREAL8 aFinalSolValue = aVFinalSol(aFinalUnk);
             const tREAL8 aInitSolValue = aVInitSol(aFinalUnk);
+
             StdOut() << aFinalSolValue << " " << aInitSolValue << " ";
-            if (aFinalUnk % 2 == 1 && aFinalUnk != 0)
+            if (aFinalUnk % aNbUnk == 1 && aFinalUnk != 0)
                 StdOut() << std::endl;
 
-            if (aFinalUnk % 2 == 0)
+            if (aFinalUnk % aNbUnk == 0)
             {
                 aMeanFirstUnk += aFinalSolValue;
                 if (aFinalSolValue > aMaxFirstUnk)
+                {
                     aMaxFirstUnk = aFinalSolValue;
+                    aNbChangesMaxFirstUnk++;
+                }
                 if (aFinalSolValue < aMinFirstUnk)
+                {
                     aMinFirstUnk = aFinalSolValue;
+                    aNbChangesMinFirstUnk++;
+                }
             }
             else
             {
                 aMeanSecondUnk += aFinalSolValue;
                 if (aFinalSolValue > aMaxSecondUnk)
+                {
                     aMaxSecondUnk = aFinalSolValue;
+                    aNbChangesMaxSecondUnk++;
+                }
                 if (aFinalSolValue < aMinSecondUnk)
+                {
                     aMinSecondUnk = aFinalSolValue;
+                    aNbChangesMinSecondUnk++;
+                }
             }
         }
 
-        aMeanFirstUnk /= aHalfVecSolSz;
-        aMeanSecondUnk /= aHalfVecSolSz;
+        aMinFirstUnk = CheckMinMaxValueIsChanged(aMaxFirstUnk, aMinFirstUnk, aNbChangesMinFirstUnk);
+        aMaxFirstUnk = CheckMinMaxValueIsChanged(aMinFirstUnk, aMaxFirstUnk, aNbChangesMaxFirstUnk);
+        aMinSecondUnk = CheckMinMaxValueIsChanged(aMaxSecondUnk, aMinSecondUnk, aNbChangesMinSecondUnk);
+        aMaxSecondUnk = CheckMinMaxValueIsChanged(aMinSecondUnk, aMaxSecondUnk, aNbChangesMaxSecondUnk);
+
+        aMeanFirstUnk /= aDividedVecSolSz;
+        aMeanSecondUnk /= aDividedVecSolSz;
 
         /*
         for (tREAL8 var: aVFinalSol)
@@ -1073,43 +1174,193 @@ namespace MMVII
                 aVarSecondUnk += (var - aMeanSecondUnk) * (var - aMeanSecondUnk);
         }
 
-        aVarFirstUnk /= (aHalfVecSolSz - 1);
-        aVarSecondUnk /= (aHalfVecSolSz - 1);
+        aVarFirstUnk /= (aDividedVecSolSz - 1);
+        aVarSecondUnk /= (aDividedVecSolSz - 1);
         */
+
         std::vector<tREAL8> aVarianceVectorFirstUnk;
         std::vector<tREAL8> aVarianceVectorSecondUnk;
+
         for (int aSolNumber = 0; aSolNumber < aVecSolSz; aSolNumber++)
         {
             const tREAL8 aFinalSolValue = aVFinalSol(aSolNumber);
-            if (aSolNumber % 2 == 0)
+            if (aSolNumber % aNbUnk == 0)
                 aVarianceVectorFirstUnk.push_back(std::abs(aFinalSolValue - aMeanFirstUnk) * std::abs(aFinalSolValue - aMeanFirstUnk));
             else
                 aVarianceVectorSecondUnk.push_back(std::abs(aFinalSolValue - aMeanSecondUnk) * std::abs(aFinalSolValue - aMeanSecondUnk));
         }
 
-        for (int aSolNumber = 0; aSolNumber < aHalfVecSolSz; aSolNumber++)
+        for (int aSolNumber = 0; aSolNumber < aDividedVecSolSz; aSolNumber++)
         {
-            if (aSolNumber % 2 == 0)
+            if (aSolNumber % aNbUnk == 0)
                 aVarianceMeanFirstUnk += aVarianceVectorFirstUnk[aSolNumber];
             else
                 aVarianceMeanSecondUnk += aVarianceVectorSecondUnk[aSolNumber];
         }
 
-        aVarianceMeanFirstUnk /= aHalfVecSolSz;
-        aVarianceMeanSecondUnk /= aHalfVecSolSz;
+        aVarianceMeanFirstUnk /= aDividedVecSolSz;
+        aVarianceMeanSecondUnk /= aDividedVecSolSz;
 
-        StdOut() << "The maximum value for the first unknown is : " << aMaxFirstUnk << " and the minimum value is : "
-                 << aMinFirstUnk << std::endl;
-        StdOut() << "The maximum value for the second unknown is : " << aMaxSecondUnk << " and the minimum value is : "
-                 << aMinSecondUnk << std::endl;
+        StdOut() << "The minimum value for the first unknown is : " << aMinFirstUnk << " and the maximum value is : "
+                 << aMaxFirstUnk << std::endl;
+        StdOut() << "The minimum  value for the second unknown is : " << aMinSecondUnk << " and the maximum value is : "
+                 << aMaxSecondUnk << std::endl;
         StdOut() << "The mean value for the first unknown is : " << aMeanFirstUnk << " and the standard deviation value is : "
                  << std::sqrt(aVarianceMeanFirstUnk) << std::endl;
         StdOut() << "The mean value for the second unknown is : " << aMeanSecondUnk << " and the standard deviation value is : "
                  << std::sqrt(aVarianceMeanSecondUnk) << std::endl;
     }
 
-    void DisplayLastUnknownValues(const tDenseVect &aVFinalSol, const bool aDisplayLastRadiometryValues,
-                                  const bool aDisplayLastTranslationValues)
+    void ComputeStatisticsFourUnknowns(const tDenseVect &aVFinalSol, const int aNbUnk)
+    {
+        tREAL8 aMinFirstUnk = INT_MAX, aMaxFirstUnk = INT_MIN, aMeanFirstUnk = 0, aVarianceMeanFirstUnk = 0;
+        tREAL8 aMinSecondUnk = INT_MAX, aMaxSecondUnk = INT_MIN, aMeanSecondUnk = 0, aVarianceMeanSecondUnk = 0;
+        tREAL8 aMinThirdUnk = INT_MAX, aMaxThirdUnk = INT_MIN, aMeanThirdUnk = 0, aVarianceMeanThirdUnk = 0;
+        tREAL8 aMinFourthUnk = INT_MAX, aMaxFourthUnk = INT_MIN, aMeanFourthUnk = 0, aVarianceMeanFourthUnk = 0;
+
+        const tREAL8 aVecSolSz = aVFinalSol.DIm().Sz();
+        const tREAL8 aDividedVecSolSz = aVecSolSz / aNbUnk;
+
+        int aNbChangesMinFirstUnk = 0;
+        int aNbChangesMaxFirstUnk = 0;
+        int aNbChangesMinSecondUnk = 0;
+        int aNbChangesMaxSecondUnk = 0;
+        int aNbChangesMinThirdUnk = 0;
+        int aNbChangesMaxThirdUnk = 0;
+        int aNbChangesMinFourthUnk = 0;
+        int aNbChangesMaxFourthUnk = 0;
+
+        for (int aFinalUnk = 0; aFinalUnk < aVecSolSz; aFinalUnk++)
+        {
+            const tREAL8 aFinalSolValue = aVFinalSol(aFinalUnk);
+
+            if (aFinalUnk % aNbUnk == 0)
+            {
+                aMeanFirstUnk += aFinalSolValue;
+                if (aFinalSolValue > aMaxFirstUnk)
+                {
+                    aMaxFirstUnk = aFinalSolValue;
+                    aNbChangesMaxFirstUnk++;
+                }
+                if (aFinalSolValue < aMinFirstUnk)
+                {
+                    aMinFirstUnk = aFinalSolValue;
+                    aNbChangesMinFirstUnk++;
+                }
+            }
+            else if (aFinalUnk % aNbUnk == 1)
+            {
+                aMeanSecondUnk += aFinalSolValue;
+                if (aFinalSolValue > aMaxSecondUnk)
+                {
+                    aMaxSecondUnk = aFinalSolValue;
+                    aNbChangesMaxSecondUnk++;
+                }
+                if (aFinalSolValue < aMinSecondUnk)
+                {
+                    aMinSecondUnk = aFinalSolValue;
+                    aNbChangesMinSecondUnk++;
+                }
+            }
+            else if (aFinalUnk % aNbUnk == 2)
+            {
+                aMeanThirdUnk += aFinalSolValue;
+                if (aFinalSolValue > aMaxThirdUnk)
+                {
+                    aMaxThirdUnk = aFinalSolValue;
+                    aNbChangesMaxThirdUnk++;
+                }
+                if (aFinalSolValue < aMinThirdUnk)
+                {
+                    aMinThirdUnk = aFinalSolValue;
+                    aNbChangesMinThirdUnk++;
+                }
+            }
+            else
+            {
+                aMeanFourthUnk += aFinalSolValue;
+                if (aFinalSolValue > aMaxFourthUnk)
+                {
+                    aMaxFourthUnk = aFinalSolValue;
+                    aNbChangesMaxFourthUnk++;
+                }
+                if (aFinalSolValue < aMinFourthUnk)
+                {
+                    aMinFourthUnk = aFinalSolValue;
+                    aNbChangesMinFourthUnk++;
+                }
+            }
+        }
+
+        aMinFirstUnk = CheckMinMaxValueIsChanged(aMaxFirstUnk, aMinFirstUnk, aNbChangesMinFirstUnk);
+        aMaxFirstUnk = CheckMinMaxValueIsChanged(aMinFirstUnk, aMaxFirstUnk, aNbChangesMaxFirstUnk);
+        aMinSecondUnk = CheckMinMaxValueIsChanged(aMaxSecondUnk, aMinSecondUnk, aNbChangesMinSecondUnk);
+        aMaxSecondUnk = CheckMinMaxValueIsChanged(aMinSecondUnk, aMaxSecondUnk, aNbChangesMaxSecondUnk);
+        aMinThirdUnk = CheckMinMaxValueIsChanged(aMaxThirdUnk, aMinThirdUnk, aNbChangesMinThirdUnk);
+        aMaxThirdUnk = CheckMinMaxValueIsChanged(aMinThirdUnk, aMaxThirdUnk, aNbChangesMaxThirdUnk);
+        aMinFourthUnk = CheckMinMaxValueIsChanged(aMaxFourthUnk, aMinFourthUnk, aNbChangesMinFourthUnk);
+        aMaxFourthUnk = CheckMinMaxValueIsChanged(aMinFourthUnk, aMaxFourthUnk, aNbChangesMaxFourthUnk);
+
+        aMeanFirstUnk /= aDividedVecSolSz;
+        aMeanSecondUnk /= aDividedVecSolSz;
+        aMeanThirdUnk /= aDividedVecSolSz;
+        aMeanFourthUnk /= aDividedVecSolSz;
+
+        std::vector<tREAL8> aVarianceVectorFirstUnk;
+        std::vector<tREAL8> aVarianceVectorSecondUnk;
+        std::vector<tREAL8> aVarianceVectorThirdUnk;
+        std::vector<tREAL8> aVarianceVectorFourthUnk;
+
+        for (int aSolNumber = 0; aSolNumber < aVecSolSz; aSolNumber++)
+        {
+            const tREAL8 aFinalSolValue = aVFinalSol(aSolNumber);
+            if (aSolNumber % aNbUnk == 0)
+                aVarianceVectorFirstUnk.push_back(std::abs(aFinalSolValue - aMeanFirstUnk) * std::abs(aFinalSolValue - aMeanFirstUnk));
+            else if (aSolNumber % aNbUnk == 1)
+                aVarianceVectorSecondUnk.push_back(std::abs(aFinalSolValue - aMeanSecondUnk) * std::abs(aFinalSolValue - aMeanSecondUnk));
+            else if (aSolNumber % aNbUnk == 2)
+                aVarianceVectorThirdUnk.push_back(std::abs(aFinalSolValue - aMeanThirdUnk) * std::abs(aFinalSolValue - aMeanThirdUnk));
+            else
+                aVarianceVectorFourthUnk.push_back(std::abs(aFinalSolValue - aMeanFourthUnk) * std::abs(aFinalSolValue - aMeanFourthUnk));
+        }
+
+        for (int aSolNumber = 0; aSolNumber < aDividedVecSolSz; aSolNumber++)
+        {
+            if (aSolNumber % aNbUnk == 0)
+                aVarianceMeanFirstUnk += aVarianceVectorFirstUnk[aSolNumber];
+            else if (aSolNumber % aNbUnk == 1)
+                aVarianceMeanSecondUnk += aVarianceVectorSecondUnk[aSolNumber];
+            else if (aSolNumber % aNbUnk == 2)
+                aVarianceMeanThirdUnk += aVarianceVectorThirdUnk[aSolNumber];
+            else
+                aVarianceMeanFourthUnk += aVarianceVectorFourthUnk[aSolNumber];
+        }
+
+        aVarianceMeanFirstUnk /= aDividedVecSolSz;
+        aVarianceMeanSecondUnk /= aDividedVecSolSz;
+        aVarianceMeanThirdUnk /= aDividedVecSolSz;
+        aVarianceMeanFourthUnk /= aDividedVecSolSz;
+
+        StdOut() << "The minimum value for the first unknown is : " << aMinFirstUnk << " and the maximum value is : "
+                 << aMaxFirstUnk << std::endl;
+        StdOut() << "The minimum value for the second unknown is : " << aMinSecondUnk << " and the maximum value is : "
+                 << aMaxSecondUnk << std::endl;
+        StdOut() << "The minimum value for the third unknown is : " << aMinThirdUnk << " and the maximum value is : "
+                 << aMaxThirdUnk << std::endl;
+        StdOut() << "The minimum value for the fourth unknown is : " << aMinFourthUnk << " and the maximum value is : "
+                 << aMaxFourthUnk << std::endl;
+        StdOut() << "The mean value for the first unknown is : " << aMeanFirstUnk << " and the standard deviation value is : "
+                 << std::sqrt(aVarianceMeanFirstUnk) << std::endl;
+        StdOut() << "The mean value for the second unknown is : " << aMeanSecondUnk << " and the standard deviation value is : "
+                 << std::sqrt(aVarianceMeanSecondUnk) << std::endl;
+        StdOut() << "The mean value for the third unknown is : " << aMeanThirdUnk << " and the standard deviation value is : "
+                 << std::sqrt(aVarianceMeanThirdUnk) << std::endl;
+        StdOut() << "The mean value for the fourth unknown is : " << aMeanFourthUnk << " and the standard deviation value is : "
+                 << std::sqrt(aVarianceMeanFourthUnk) << std::endl;
+    }
+
+    void DisplayLastUnknownValuesAndComputeStatistics(const tDenseVect &aVFinalSol, const bool aDisplayLastRadiometryValues,
+                                                      const bool aDisplayLastTranslationValues, const int aNbUnk)
     {
         if (aDisplayLastTranslationValues && aDisplayLastRadiometryValues)
         {
@@ -1140,6 +1391,7 @@ namespace MMVII
                     StdOut() << std::endl;
             }
         }
+        ComputeStatisticsFourUnknowns(aVFinalSol, aNbUnk);
     }
 
 }; // namespace MMVII

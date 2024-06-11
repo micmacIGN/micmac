@@ -69,6 +69,8 @@ namespace MMVII
         bool mInitialiseWithUserValues;                 // Initalise or not with values given by user
         tREAL8 mInitialiseRadTrValue;                   // Value given by user to initialise radiometry transltion unknowns
         tREAL8 mInitialiseRadScValue;                   // Value given by user to initialise radiometry scaling unknowns
+        bool mFreezeRadTranslation;                     // Freeze radiometry translation or not during optimisation
+        bool mFreezeRadScale;                           // Freeze radiometry scaling or not during optimisation
         tREAL8 mWeightRadTranslation;                   // Weight given to radiometry translation if soft freezing is applied (default : negative => not applied)
         tREAL8 mWeightRadScale;                         // Weight given to radiometry scaling if soft freezing is applied (default : negative => not applied)
         std::string mUserDefinedFolderNameToSaveResult; // Folder name to save results in, if wanted

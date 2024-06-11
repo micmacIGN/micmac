@@ -133,7 +133,7 @@ namespace MMVII
         void PushInVector(std::unique_ptr<cNodeOfTriangles> &aTriangleNode);
         void AddData(const cAuxAr2007 &anAux); // Add data method
 
-        void ShowAllTriangleNodes(const std::string aAllOrSingularValue, int aNodeNumber = 0) const; // Display contents of vector containing all triangle nodes
+        void ShowAllTriangleNodes(const std::string &aAllOrSingularValue, int aNodeNumber = 0) const; // Display contents of vector containing all triangle nodes
 
     private:
         std::string mName;                                  // File name to use to save/read vector of triangle nodes
@@ -155,7 +155,7 @@ namespace MMVII
 
     // Initialise equation and interpolator if needed
     void InitialiseInterpolationAndEquation(cCalculator<tREAL8> *&aEqDeformTri, cDiffInterpolator1D *&aInterpol,
-                                            const std::vector<std::string> aArgsVectorInterpol, const bool aUseLinearGradInterpolation);
+                                            const std::vector<std::string> &aArgsVectorInterpol, const bool aUseLinearGradInterpolation);
     // Initialise values of unknowns at the beginning of optimisation process after user has input information
     void InitialisationWithUserValues(const cTriangulation2D<tREAL8> &aDelaunayTri,
                                       cResolSysNonLinear<tREAL8> *&aSys,
@@ -195,7 +195,7 @@ namespace MMVII
                                                           tPt2di &aSzCorrelationMask);
     // Initialise equation and interpolation if needed for radiometry
     void InitialiseInterpolationAndEquationRadiometry(cCalculator<tREAL8> *&aEqRadiometryTri, cDiffInterpolator1D *&aInterpolRad,
-                                                      const std::vector<std::string> aArgsVectorInterpolRad, const bool aUseLinearGradInterpolation);
+                                                      const std::vector<std::string> &aArgsVectorInterpolRad, const bool aUseLinearGradInterpolation);
     // Initialise problem after user has input information for radiometry
     void InitialiseWithUserValuesRadiometry(const cTriangulation2D<tREAL8> &aDelaunayTri,
                                             cResolSysNonLinear<tREAL8> *&aSysRadiometry,
@@ -203,15 +203,15 @@ namespace MMVII
                                             const tREAL8 aRadTranslationInitVal,
                                             const tREAL8 aRadScaleInitVal);
     // Create unique pointer to triangle node to ease serialisation
-    std::unique_ptr<cNodeOfTriangles> DefineNewTriangleNode(const tDenseVect &aVecSol, const std::vector<int> aIndVec, const int aXInd,
+    std::unique_ptr<cNodeOfTriangles> DefineNewTriangleNode(const tDenseVect &aVecSol, const std::vector<int> &aIndVec, const int aXInd,
                                                             const int aYInd, const int aRadTrInd, const int aRadScInd, const tTri2dr &aTriangle,
                                                             const tPt3di &aFace, const int aPointNumberInTri, const int anIdOfPoint);
     // Check whether point has a correlation value or not thanks to MMVI correlation mask
-    bool CheckValidCorrelationValue(tDIm *aMask, const cNodeOfTriangles &aPtOfTri);
+    bool CheckValidCorrelationValue(tDIm *&aMask, const cNodeOfTriangles &aPtOfTri);
     // Check whether folder to save results exists or not
     bool CheckFolderExistence(const std::string &aUserDefinedFolderNameToSaveResult);
     // Return correct value for initalisation depending on mask
-    tREAL8 ReturnCorrectInitialisationValue(tDIm *aMask, tDIm *aIntermediateDispMap,
+    tREAL8 ReturnCorrectInitialisationValue(tDIm *&aMask, tDIm *&aIntermediateDispMap,
                                             const cNodeOfTriangles &aPtOfTri, const tREAL8 aValueToReturnIfFalse);
     // Check if interpolated bilinear value in displacement map can be returned or if integer value is needed
     tPt2dr CheckReturnOfBilinearValue(tDIm *&aDImDispXMap, tDIm *&aDImDispYMap,
@@ -219,16 +219,17 @@ namespace MMVII
     // Return correct indices vector
     void GetIndicesVector(std::vector<int> &aVecInd, const tPt3di &aIndicesOfTriKnots, const int aIsTwoOrFour);
     // Construct difference image and compute average and max pixel value on ths image
-    void SubtractPrePostImageAndComputeAvgAndMax(tIm &aImDiff, tDIm *aDImDiff, tDIm *aDImPre,
-                                                 tDIm *aDImPost, tPt2di &aSzImPre);
+    void SubtractPrePostImageAndComputeAvgAndMax(tIm &aImDiff, tDIm *&aDImDiff, tDIm *&aDImPre,
+                                                 tDIm *&aDImPost, const tPt2di &aSzImPre);
     // Read image filename and loads into MMVII data
-    void ReadFileNameLoadData(const std::string &aImageFilename, tIm &aImage,
-                              tDIm *&aDataImage, tPt2di &aSzIm);
+    void ReadImageFileNameLoadData(const std::string &aImageFilename, tIm &aImage,
+                                   tDIm *&aDataImage, tPt2di &aSzIm);
     // Loads current pre and post images
-    void LoadPrePostImageAndData(tIm &aCurIm, tDIm *&aCurDIm, const std::string &aPreOrPostImage, tIm &aImPre, tIm &aImPost);
-    // Initialise displacement maps with null coefficients
-    void InitialiseDisplacementMaps(tPt2di &aSzIm, tIm &aImDispMap, tDIm *&aDImDispMap, tPt2di &aSzImDispMap);
-    ;
+    void LoadPrePostImageAndData(tIm &aCurIm, tDIm *&aCurDIm, const std::string &aPreOrPostImage,
+                                 const tIm &aImPre, const tIm &aImPost);
+    // Initialise displacement maps and output image with null coefficients
+    void InitialiseDisplacementMapsAndOutputImage(const tPt2di &aSzImIn, tIm &aImOut,
+                                                  tDIm *&aDImOut, tPt2di &aSzImOut);
     // Load node of triangulation, get current displacement values point
     tPt2dr LoadNodeAndReturnCurrentDisplacement(const tDenseVect &aVCurSol, const std::vector<int> &aVecInd,
                                                 const int aXDispInd, const int aYDispInd, const int aRadTrInd,
@@ -261,8 +262,22 @@ namespace MMVII
                                                                  std::unique_ptr<cMultipleTriangleNodesSerialiser> &aVectorOfMultipleNodes);
     // Load image and data according to number of iterations to optimise on original image
     bool ManageDifferentCasesOfEndIterations(const int aIterNumber, const int aNumberOfScales, const int aNumberOfEndIterations,
-                                             bool aIsLastIters, tIm &aImPre, tIm &aImPost, tIm &aCurPreIm, tDIm *&aCurPreDIm,
+                                             bool aIsLastIters, const tIm &aImPre, const tIm &aImPost, tIm &aCurPreIm, tDIm *&aCurPreDIm,
                                              tIm &aCurPostIm, tDIm *&aCurPostDIm);
+    // Applies hard constraint to multiple unknowns
+    void ApplyHardConstraintsToMultipleUnknowns(const int aFirstIndToFreeze, const int aSecondIndToFreeze,
+                                                const int aThirdIndToFreeze, const std::vector<int> &aVecInd,
+                                                const tDenseVect &aVCurSol, cResolSysNonLinear<tREAL8> *&aSys);
+    // Applies hard constraint to the unknown : the unknown is frozen for the iteration
+    void ApplyHardConstraintToUnknown(const int anIndices, const std::vector<int> &aVecInd,
+                                      const tDenseVect &aVCurSol, cResolSysNonLinear<tREAL8> *&aSys);
+    // Unfreezes multiple unknowns frozen by hard constraints
+    void UnfreezeMultipleUnknowns(const int aFirstIndToUnfreeze, const int aSecondIndToUnfreeze,
+                                  const int aThirdIndToUnfreeze, const std::vector<int> &aVecInd,
+                                  cResolSysNonLinear<tREAL8> *&aSys);
+    // Applies soft constraint to correct unknowns if applied
+    void ApplySoftConstraintToUnknown(const int aSolStart, const int aSolStep, const std::vector<int> &aVecInd,
+                                      cResolSysNonLinear<tREAL8> *&aSys, const tDenseVect &aVCurSol, const tREAL8 aWeight);
     // Apply barycentric translation formula to current translation values with observations
     tPt2dr ApplyBarycenterTranslationFormulaToFilledPixel(const tPt2dr &aCurrentTranslationPointA,
                                                           const tPt2dr &aCurrentTranslationPointB,
@@ -291,21 +306,25 @@ namespace MMVII
                                                                  const tREAL8 aCurrentRadScalingPointB,
                                                                  const tREAL8 aCurrentRadScalingPointC,
                                                                  const cPtInsideTriangles &aLastPixInsideTriangle);
+    // Deal with different cases when building displaced image when pixel is translated out of image
+    void SetValueIfTranslatedOutOfImage(const tREAL8 anIntensityValue, const tREAL8 aLastXTranslatedCoord,
+                                        const tREAL8 aLastYTranslatedCoord, const tPt2di &aLastCoordinate,
+                                        const tPt2di &aSzImOut, tDIm *&aDImOut);
+    // Produces x and y displacement maps for computing just translation
+    void FillDisplacementMapsTranslation(const cPtInsideTriangles &aLastPixInsideTriangle,
+                                         const tPt2dr &aLastTranslatedFilledPoint, const tPt2di &aSzImOut,
+                                         tDIm *&aDImDepX, tDIm *&aDImDepY, tDIm *&aDImOut);
     // Produces output image with computed radiometry and displacement maps with computed translations
     void FillDisplacementMapsAndOutputImage(const cPtInsideTriangles &aLastPixInsideTriangle,
                                             const tPt2dr &aLastTranslatedFilledPoint,
                                             const tREAL8 aLastRadiometryTranslation,
-                                            const tREAL8 aLastRadiometryScaling, tPt2di &aSzImOut,
-                                            tDIm *&aDImDepX, tDIm *&aDImDepY, tDIm *&aDImOut);
+                                            const tREAL8 aLastRadiometryScaling, const tPt2di &aSzImOut,
+                                            tDIm *&aDImDepX, tDIm *&aDImDepY, tDIm *&aDImOut, tDIm *&aDImPost);
     // Produces output image when computing just radiometry
     void FillOutputImageRadiometry(const cPtInsideTriangles &aLastPixInsideTriangle,
                                    const tREAL8 aLastRadiometryTranslation,
                                    const tREAL8 aLastRadiometryScaling,
                                    tDIm *&aDImOut);
-    // Produces x and y displacement maps for computing just translation
-    void FillDisplacementMapsTranslation(const cPtInsideTriangles &aLastPixInsideTriangle,
-                                         const tPt2dr &aLastTranslatedFilledPoint, tPt2di &aSzImOut,
-                                         tDIm *&aDImDepX, tDIm *&aDImDepY, tDIm *&aDImOut);
     // Fills displacement map with difference between ground truth and interpolated pixel in ground truth
     void FillDiffDisplacementMap(tDIm *&aDImDispMap, tDIm *&aDImDiffMap,
                                  tDIm *&aDImTranslatedDispMap,
@@ -325,13 +344,18 @@ namespace MMVII
                                          const int aTotalNumberOfIterations);
     // Save intermediate output image in different folder or not
     void SaveOutputImageToFile(tDIm *&aDImOut, const bool aUserDefinedFolderName, const std::string &aFolderPathToSave,
-                               const std::string aOutputImageFileNameToSave,
+                               const std::string &aOutputImageFileNameToSave,
                                const int aNumberOfPointsToGenerate, const int aTotalNumberOfIterations);
-    // Display last values of unknowns and compute statistics on these values : min, mean, max and variance
-    void DisplayLastUnknownValuesAndComputeStatistics(const tDenseVect &aVFinalSol, const tDenseVect &aVInitSol);
-    // Display values of unknowns at last iteration of optimisation process
-    void DisplayLastUnknownValues(const tDenseVect &aVFinalSol, const bool aDisplayLastRadiometryValues,
-                                  const bool aDisplayLastTranslationValues);
+    // Check if min/max are changed or not
+    tREAL8 CheckMinMaxValueIsChanged(const tREAL8 aMinMaxValue, tREAL8 aPossiblyChangedValue, const int aNbChanges);
+    // Display first and last values of unknowns and compute statistics on these values (for 2 unknowns per pixel commands) : min, mean, max and variance
+    void DisplayFirstAndLastUnknownValuesAndComputeStatisticsTwoUnknowns(const tDenseVect &aVFinalSol, const tDenseVect &aVInitSol,
+                                                                         const int aNbUnk);
+    // Computes statistics in case where there are four unknowns in the problem
+    void ComputeStatisticsFourUnknowns(const tDenseVect &aVFinalSol, const int aNbUnk);
+    // Display values of unknowns at last iteration of optimisation process and compute statistics : min, mean, max and variance
+    void DisplayLastUnknownValuesAndComputeStatistics(const tDenseVect &aVFinalSol, const bool aDisplayLastRadiometryValues,
+                                                      const bool aDisplayLastTranslationValues, const int aNbUnk);
 
 }
 

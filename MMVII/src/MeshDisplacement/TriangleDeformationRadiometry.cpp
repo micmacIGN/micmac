@@ -4,7 +4,7 @@
    \file TriangleDeformationRadiometry.cpp
 
    \brief file computing radiometric deformations
-   between 2 images using triangles.
+   between 2 images using triangular meshes.
 **/
 
 namespace MMVII
@@ -30,6 +30,8 @@ namespace MMVII
                                                                                                                 mInitialiseWithUserValues(true),
                                                                                                                 mInitialiseRadTrValue(0),
                                                                                                                 mInitialiseRadScValue(1),
+                                                                                                                mFreezeRadTranslation(false),
+                                                                                                                mFreezeRadScale(false),
                                                                                                                 mWeightRadTranslation(-1),
                                                                                                                 mWeightRadScale(-1),
                                                                                                                 mUserDefinedFolderNameToSaveResult(""),
@@ -94,6 +96,10 @@ namespace MMVII
                << AOpt2007(mInitialiseRadScValue, "InitialeRadiometryScalingValue",
                            "Value to use for initialising radiometry scaling unknown values", {eTA2007::HDV})
                << AOpt2007(mUseMultiScaleApproach, "UseMultiScaleApproach", "Whether to use multi-scale approach or not.", {eTA2007::HDV})
+               << AOpt2007(mFreezeRadTranslation, "FreezeRadTranslation",
+                           "Whether to freeze radiometry translation factor in computation or not.", {eTA2007::HDV})
+               << AOpt2007(mFreezeRadScale, "FreezeRadScaling",
+                           "Whether to freeze radiometry scaling factor in computation or not.", {eTA2007::HDV})
                << AOpt2007(mWeightRadTranslation, "WeightRadiometryTranslation",
                            "A value to weight radiometry translation for soft freezing of coefficient.", {eTA2007::HDV})
                << AOpt2007(mWeightRadScale, "WeightRadiometryScaling",
@@ -164,6 +170,23 @@ namespace MMVII
 
         if (mSerialiseTriangleNodes && aVectorOfTriangleNodesRad == nullptr)
             aVectorOfTriangleNodesRad = cMultipleTriangleNodesSerialiser::NewMultipleTriangleNodes(mNameMultipleTriangleNodes);
+        
+        if (mFreezeRadTranslation || mFreezeRadScale)
+        {
+            for (size_t aTr = 0; aTr < mDelTri.NbFace(); aTr++)
+            {
+                const tPt3di aIndicesOfTriKnotsRad = mDelTri.KthFace(aTr);
+
+                tIntVect aVecIndRad;
+                GetIndicesVector(aVecIndRad, aIndicesOfTriKnotsRad, 2);
+
+                if (mFreezeRadTranslation)
+                    ApplyHardConstraintsToMultipleUnknowns(0, 2, 4, aVecIndRad, aVCurSolRad, mSysRadiometry);
+
+                if (mFreezeRadScale)
+                    ApplyHardConstraintsToMultipleUnknowns(1, 3, 5, aVecIndRad, aVCurSolRad, mSysRadiometry);
+            }
+        }
 
         // Loop over all triangles to add the observations on each point
         for (size_t aTr = 0; aTr < mDelTri.NbFace(); aTr++)
@@ -226,27 +249,17 @@ namespace MMVII
             }
 
             // soft constraint radiometric translation
-            if (mWeightRadTranslation >= 0)
+            if (!mFreezeRadTranslation)
             {
-                const int aSolStart = 0;
-                const int aSolStep = 2; // adapt step to solution vector configuration
-                for (size_t aIndCurSol = aSolStart; aIndCurSol < aVecIndRad.size() - 1; aIndCurSol += aSolStep)
-                {
-                    const int aIndices = aVecIndRad.at(aIndCurSol);
-                    mSysRadiometry->AddEqFixVar(aIndices, aVCurSolRad(aIndices), mWeightRadTranslation);
-                }
+                if (mWeightRadTranslation >= 0)
+                    ApplySoftConstraintToUnknown(0, 2, aVecIndRad, mSysRadiometry, aVCurSolRad, mWeightRadTranslation);
             }
 
             // soft constraint radiometric scaling
-            if (mWeightRadScale >= 0)
+            if (!mFreezeRadScale)
             {
-                const int aSolStart = 1;
-                const int aSolStep = 2; // adapt step to solution vector configuration
-                for (size_t aIndCurSol = aSolStart; aIndCurSol < aVecIndRad.size(); aIndCurSol += aSolStep)
-                {
-                    const int aIndices = aVecIndRad.at(aIndCurSol);
-                    mSysRadiometry->AddEqFixVar(aIndices, aVCurSolRad(aIndices), mWeightRadScale);
-                }
+                if (mWeightRadScale >= 0)
+                    ApplySoftConstraintToUnknown(1, 2, aVecIndRad, mSysRadiometry, aVCurSolRad, mWeightRadScale);
             }
 
             const size_t aNumberOfInsidePixels = aVectorToFillWithInsidePixels.size();
@@ -279,13 +292,12 @@ namespace MMVII
                 const bool aPixInside = (mUseMMVIIInterpolators) ? aCurPostDIm->InsideInterpolator(*mInterpolRad, aInsideTrianglePoint, 0) : (aCurPostDIm->InsideBL(tPt2dr(aEastTranslatedPoint.x(), aEastTranslatedPoint.y())) && aCurPostDIm->InsideBL(tPt2dr(aSouthTranslatedPoint.x(), aSouthTranslatedPoint.y())));
                 if (aPixInside)
                 {
-                    if (mUseMMVIIInterpolators)
+                    (mUseMMVIIInterpolators) ?
                         // prepare for application of linear gradient formula
-                        FormalGradInterpol_SetObs(aVObsRad, TriangleDisplacement_NbObs_ImPre, aInsideTrianglePoint,
-                                                  *aCurPostDIm, *mInterpolRad);
-                    else
+                        FormalGradInterpolTri_SetObs(aVObsRad, TriangleDisplacement_NbObs_ImPre, aInsideTrianglePoint,
+                                                     aCurPostDIm, mInterpolRad) :
                         // prepare for application of bilinear formula
-                        FormalBilinTri_SetObs(aVObsRad, TriangleDisplacement_NbObs_ImPre, aInsideTrianglePoint, *aCurPostDIm);
+                        FormalBilinTri_SetObs(aVObsRad, TriangleDisplacement_NbObs_ImPre, aInsideTrianglePoint, aCurPostDIm);
 
                     // Now add observation
                     mSysRadiometry->CalcAndAddObs(mEqRadiometryTri, aVecIndRad, aVObsRad);
@@ -318,9 +330,8 @@ namespace MMVII
     void cAppli_TriangleDeformationRadiometry::GenerateOutputImage(const tDenseVect &aVFinalSol, const int aTotalNumberOfIterations,
                                                                    const bool aNonEmptyFolderName)
     {
-        mImOut = tIm(mSzImPre);
-        mDImOut = &mImOut.DIm();
-        mSzImOut = mDImOut->Sz();
+        // Initialise output image
+        InitialiseDisplacementMapsAndOutputImage(mSzImOut, mImOut, mDImOut, mSzImOut);
 
         tIm aLastPreIm = tIm(mSzImPre);
         tDIm *aLastPreDIm = nullptr;
@@ -333,9 +344,6 @@ namespace MMVII
             aLastPreIm = mImPre.GaussFilter(mSigmaGaussFilter, mNumberOfIterGaussFilter);
             aLastPreDIm = &aLastPreIm.DIm();
         }
-
-        for (const tPt2di &aOutPix : *mDImOut) // Initialise output image
-            mDImOut->SetV(aOutPix, aLastPreDIm->GetV(aOutPix));
 
         int aLastNodeCounter = 0;
 
@@ -366,13 +374,13 @@ namespace MMVII
                 // last radiometry scaling of 1st point
                 aLastRadScPointA = LoadNodeAndReturnCurrentRadiometryScaling(aVFinalSol, aLastVecIndRad, 0, 1, 0, 1, aLastTriRad, 0);
                 // last radiometry translation of 2nd point
-                aLastRadTrPointA = LoadNodeAndReturnCurrentRadiometryTranslation(aVFinalSol, aLastVecIndRad, 2, 3, 2, 3, aLastTriRad, 1);
+                aLastRadTrPointB = LoadNodeAndReturnCurrentRadiometryTranslation(aVFinalSol, aLastVecIndRad, 2, 3, 2, 3, aLastTriRad, 1);
                 // last radiometry scaling of 2nd point
-                aLastRadScPointA = LoadNodeAndReturnCurrentRadiometryScaling(aVFinalSol, aLastVecIndRad, 2, 3, 2, 3, aLastTriRad, 1);
+                aLastRadScPointB = LoadNodeAndReturnCurrentRadiometryScaling(aVFinalSol, aLastVecIndRad, 2, 3, 2, 3, aLastTriRad, 1);
                 // last radiometry translation of 3rd point
-                aLastRadTrPointA = LoadNodeAndReturnCurrentRadiometryTranslation(aVFinalSol, aLastVecIndRad, 4, 5, 4, 5, aLastTriRad, 2);
+                aLastRadTrPointC = LoadNodeAndReturnCurrentRadiometryTranslation(aVFinalSol, aLastVecIndRad, 4, 5, 4, 5, aLastTriRad, 2);
                 // last radiometry scaling of 3rd point
-                aLastRadScPointA = LoadNodeAndReturnCurrentRadiometryScaling(aVFinalSol, aLastVecIndRad, 4, 5, 4, 5, aLastTriRad, 2);
+                aLastRadScPointC = LoadNodeAndReturnCurrentRadiometryScaling(aVFinalSol, aLastVecIndRad, 4, 5, 4, 5, aLastTriRad, 2);
             }
             else
             {
@@ -438,7 +446,7 @@ namespace MMVII
             GenerateOutputImage(aVFinalSol, aTotalNumberOfIterations, aNonEmptyFolderName);
             // Display last computed values of radiometry unknowns
             if (mDisplayLastRadiometryValues)
-                DisplayLastUnknownValuesAndComputeStatistics(aVFinalSol, aVInitSol);
+                DisplayFirstAndLastUnknownValuesAndComputeStatisticsTwoUnknowns(aVFinalSol, aVInitSol, 2);
         }
     }
 
@@ -447,8 +455,8 @@ namespace MMVII
     int cAppli_TriangleDeformationRadiometry::Exe()
     {
         // read pre and post images and their sizes
-        ReadFileNameLoadData(mNamePreImage, mImPre, mDImPre, mSzImPre);
-        ReadFileNameLoadData(mNamePostImage, mImPost, mDImPost, mSzImPost);
+        ReadImageFileNameLoadData(mNamePreImage, mImPre, mDImPre, mSzImPre);
+        ReadImageFileNameLoadData(mNamePostImage, mImPost, mDImPost, mSzImPost);
 
         const bool aNonEmptyFolderName = CheckFolderExistence(mUserDefinedFolderNameToSaveResult);
 
@@ -492,7 +500,7 @@ namespace MMVII
     cSpecMMVII_Appli TheSpec_ComputeTriangleDeformationRadiometry(
         "ComputeTriangleDeformationRadiometry",
         Alloc_cAppli_TriangleDeformationRadiometry,
-        "Compute radiometric deformation between images using triangles",
+        "Compute radiometric deformation between images using triangular mesh",
         {eApF::ImProc}, // category
         {eApDT::Image}, // input
         {eApDT::Image}, // output

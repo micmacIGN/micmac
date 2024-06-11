@@ -203,7 +203,7 @@ namespace MMVII
 
             if (aPixIn)
             {
-                const float aValNew = (aIsBillinearInterp) ? mDImIn->DefGetVBL(aPixR, 0) : mDImIn->GetValueInterpol(*anInterp, aPixR);
+                const tREAL4 aValNew = (aIsBillinearInterp) ? mDImIn->DefGetVBL(aPixR, 0) : mDImIn->GetValueInterpol(*anInterp, aPixR);
                 mDImOut->SetV(aPix, aValNew);
             }
         }

@@ -87,14 +87,14 @@ namespace MMVII
     {
         if (mComputeDiffDispMaps)
         {
-            InitialiseDisplacementMaps(mSzImDispX, mImDiffDispX, mDImDiffDispX, mSzImDiffDispX);
-            InitialiseDisplacementMaps(mSzImDispY, mImDiffDispY, mDImDiffDispY, mSzImDiffDispY);
+            InitialiseDisplacementMapsAndOutputImage(mSzImDispX, mImDiffDispX, mDImDiffDispX, mSzImDiffDispX);
+            InitialiseDisplacementMapsAndOutputImage(mSzImDispY, mImDiffDispY, mDImDiffDispY, mSzImDiffDispY);
         }
 
         if (mComputeInterpTranslationDispMaps)
         {
-            InitialiseDisplacementMaps(mSzImDispX, mImTranslatedDispX, mDImTranslatedDispX, mSzImTranslatedDispX);
-            InitialiseDisplacementMaps(mSzImDispY, mImTranslatedDispY, mDImTranslatedDispY, mSzImTranslatedDispY);
+            InitialiseDisplacementMapsAndOutputImage(mSzImDispX, mImTranslatedDispX, mDImTranslatedDispX, mSzImTranslatedDispX);
+            InitialiseDisplacementMapsAndOutputImage(mSzImDispY, mImTranslatedDispY, mDImTranslatedDispY, mSzImTranslatedDispY);
         }
 
         for (size_t aTr = 0; aTr < mDelTri.NbFace(); aTr++)
@@ -156,8 +156,8 @@ namespace MMVII
     int cAppli_ComputeNodesPrecision::Exe()
     {
         // read pre and post images and update their sizes
-        ReadFileNameLoadData(mNameDispXMap, mImDispX, mDImDispX, mSzImDispX);
-        ReadFileNameLoadData(mNameDispYMap, mImDispY, mDImDispY, mSzImDispY);
+        ReadImageFileNameLoadData(mNameDispXMap, mImDispX, mDImDispX, mSzImDispX);
+        ReadImageFileNameLoadData(mNameDispYMap, mImDispY, mDImDispY, mSzImDispY);
 
         // Build uniform or rectangular grid
         DefineValueLimitsForPointGenerationAndBuildGrid(mNumberPointsToGenerate, mNumberOfLines,

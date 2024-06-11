@@ -4,7 +4,7 @@
    \file TriangleDeformationTranslation.cpp
 
    \brief file for computing 2D translation between 2 images
-   thanks to triangles.
+   thanks to triangular meshes.
 **/
 
 namespace MMVII
@@ -219,23 +219,10 @@ namespace MMVII
                 GetIndicesVector(aVecIndTr, aIndicesOfTriKnotsTr, 2);
 
                 if (mFreezeTranslationX)
-                {
-                    const int aFirstTrXIndices = aVecIndTr.at(0);
-                    const int aSecondTrXIndices = aVecIndTr.at(2);
-                    const int aThirdTrXIndices = aVecIndTr.at(4);
-                    mSysTranslation->SetFrozenVar(aFirstTrXIndices, aVCurSolTr(aFirstTrXIndices));
-                    mSysTranslation->SetFrozenVar(aSecondTrXIndices, aVCurSolTr(aSecondTrXIndices));
-                    mSysTranslation->SetFrozenVar(aThirdTrXIndices, aVCurSolTr(aThirdTrXIndices));
-                }
+                    ApplyHardConstraintsToMultipleUnknowns(0, 2, 4, aVecIndTr, aVCurSolTr, mSysTranslation);
+
                 if (mFreezeTranslationY)
-                {
-                    const int aFirstTrYIndices = aVecIndTr.at(1);
-                    const int aSecondTrYIndices = aVecIndTr.at(3);
-                    const int aThirdTrYIndices = aVecIndTr.at(5);
-                    mSysTranslation->SetFrozenVar(aFirstTrYIndices, aVCurSolTr(aFirstTrYIndices));
-                    mSysTranslation->SetFrozenVar(aSecondTrYIndices, aVCurSolTr(aSecondTrYIndices));
-                    mSysTranslation->SetFrozenVar(aThirdTrYIndices, aVCurSolTr(aThirdTrYIndices));
-                }
+                    ApplyHardConstraintsToMultipleUnknowns(1, 3, 5, aVecIndTr, aVCurSolTr, mSysTranslation);
             }
         }
 
@@ -251,9 +238,8 @@ namespace MMVII
             aCompTri.PixelsInside(aVectorToFillWithInsidePixels); // get pixels inside triangle
 
             //----------- index of unknown, finds the associated pixels of current triangle
-            const tIntVect aVecIndTr = {2 * aIndicesOfTriKnotsTr.x(), 2 * aIndicesOfTriKnotsTr.x() + 1,
-                                        2 * aIndicesOfTriKnotsTr.y(), 2 * aIndicesOfTriKnotsTr.y() + 1,
-                                        2 * aIndicesOfTriKnotsTr.z(), 2 * aIndicesOfTriKnotsTr.z() + 1};
+            tIntVect aVecIndTr;
+            GetIndicesVector(aVecIndTr, aIndicesOfTriKnotsTr, 2);
 
             tPt2dr aCurTrPointA = tPt2dr(0, 0);
             tPt2dr aCurTrPointB = tPt2dr(0, 0);
@@ -286,30 +272,14 @@ namespace MMVII
             if (!mFreezeTranslationX)
             {
                 if (mWeightTranslationX >= 0)
-                {
-                    const int aSolStart = 0;
-                    const int aSolStep = 2; // adapt step to solution vector configuration
-                    for (size_t aIndCurSol = aSolStart; aIndCurSol < aVecIndTr.size() - 1; aIndCurSol += aSolStep)
-                    {
-                        const int aIndices = aVecIndTr.at(aIndCurSol);
-                        mSysTranslation->AddEqFixCurVar(aIndices, mWeightTranslationX);
-                    }
-                }
+                    ApplySoftConstraintToUnknown(0, 2, aVecIndTr, mSysTranslation, aVCurSolTr, mWeightTranslationX);
             }
 
             // soft constraint y-translation
             if (!mFreezeTranslationY)
             {
                 if (mWeightTranslationY >= 0)
-                {
-                    const int aSolStart = 1;
-                    const int aSolStep = 2; // adapt step to solution vector configuration
-                    for (size_t aIndCurSol = aSolStart; aIndCurSol < aVecIndTr.size(); aIndCurSol += aSolStep)
-                    {
-                        const int aIndices = aVecIndTr.at(aIndCurSol);
-                        mSysTranslation->AddEqFixCurVar(aIndices, mWeightTranslationY);
-                    }
-                }
+                    ApplySoftConstraintToUnknown(1, 2, aVecIndTr, mSysTranslation, aVCurSolTr, mWeightTranslationY);
             }
 
             const size_t aNumberOfInsidePixels = aVectorToFillWithInsidePixels.size();
@@ -330,20 +300,20 @@ namespace MMVII
                 const bool aPixInside = (mUseMMVIIInterpolators) ? aCurPostDIm->InsideInterpolator(*mInterpolTr, aTranslatedFilledPoint, 0) : aCurPostDIm->InsideBL(aTranslatedFilledPoint);
                 if (aPixInside)
                 {
-                    if (mUseMMVIIInterpolators)
-                        // prepare for application of linear gradient formula
-                        FormalGradInterpol_SetObs(aVObsTr, TriangleDisplacement_NbObs_ImPre, aTranslatedFilledPoint,
-                                                  *aCurPostDIm, *mInterpolTr);
-                    else
-                        // prepare for application of bilinear formula
-                        FormalBilinTri_SetObs(aVObsTr, TriangleDisplacement_NbObs_ImPre, aTranslatedFilledPoint, *aCurPostDIm);
+                    (mUseMMVIIInterpolators) ?
+                                             // prepare for application of linear gradient formula
+                        FormalGradInterpolTri_SetObs(aVObsTr, TriangleDisplacement_NbObs_ImPre, aTranslatedFilledPoint,
+                                                     aCurPostDIm, mInterpolTr)
+                                             :
+                                             // prepare for application of bilinear formula
+                        FormalBilinTri_SetObs(aVObsTr, TriangleDisplacement_NbObs_ImPre, aTranslatedFilledPoint, aCurPostDIm);
 
                     // Now add observation
                     mSysTranslation->CalcAndAddObs(mEqTranslationTri, aVecIndTr, aVObsTr);
 
-                    const tREAL8 aInterpolatedValue = (mUseMMVIIInterpolators) ? aCurPostDIm->GetValueInterpol(*mInterpolTr, aTranslatedFilledPoint) : aCurPostDIm->GetVBL(aTranslatedFilledPoint);
+                    const tREAL8 anInterpolatedValue = (mUseMMVIIInterpolators) ? aCurPostDIm->GetValueInterpol(*mInterpolTr, aTranslatedFilledPoint) : aCurPostDIm->GetVBL(aTranslatedFilledPoint);
                     // compute indicators
-                    const tREAL8 aDif = aVObsTr[5] - aInterpolatedValue; // residual
+                    const tREAL8 aDif = aVObsTr[5] - anInterpolatedValue; // residual
                     aSomDif += std::abs(aDif);
                 }
                 else
@@ -376,12 +346,9 @@ namespace MMVII
                                                                          const int aTotalNumberOfIterations, const bool aNonEmptyPathToFolder)
     {
         // Initialise output image, x and y displacement maps
-        mImOut = tIm(mSzImPre);
-        mDImOut = &mImOut.DIm();
-        mSzImOut = mDImOut->Sz();
-
-        InitialiseDisplacementMaps(mSzImPre, mImDepX, mDImDepX, mSzImDepX);
-        InitialiseDisplacementMaps(mSzImPre, mImDepY, mDImDepY, mSzImDepY);
+        InitialiseDisplacementMapsAndOutputImage(mSzImOut, mImOut, mDImOut, mSzImOut);
+        InitialiseDisplacementMapsAndOutputImage(mSzImPre, mImDepX, mDImDepX, mSzImDepX);
+        InitialiseDisplacementMapsAndOutputImage(mSzImPre, mImDepY, mDImDepY, mSzImDepY);
 
         tIm aLastPreIm = tIm(mSzImPre);
         tDIm *aLastPreDIm = nullptr;
@@ -396,10 +363,6 @@ namespace MMVII
         int aLastNodeCounterTr = 0;
 
         std::unique_ptr<cMultipleTriangleNodesSerialiser> aLastVectorOfTriangleNodesTr = nullptr;
-
-        // prefill output image with ImPre pixels to not have null values
-        for (const tPt2di &aOutPix : *mDImOut)
-            mDImOut->SetV(aOutPix, aLastPreDIm->GetV(aOutPix));
 
         for (size_t aLTr = 0; aLTr < mDelTri.NbFace(); aLTr++)
         {
@@ -479,7 +442,7 @@ namespace MMVII
 
     void cAppli_TriangleDeformationTranslation::GenerateDisplacementMapsAndDisplayLastTranslatedPoints(const int aIterNumber,
                                                                                                        const int aTotalNumberOfIterations,
-                                                                                                       const tDenseVect &aVinitVecSol,
+                                                                                                       const tDenseVect &aVinitVecSolTr,
                                                                                                        const bool aNonEmptyPathToFolder)
     {
         tDenseVect aVFinalSolTr = mSysTranslation->CurGlobSol();
@@ -488,7 +451,7 @@ namespace MMVII
             GenerateDisplacementMaps(aVFinalSolTr, aIterNumber, aTotalNumberOfIterations, aNonEmptyPathToFolder);
 
         if (mDisplayLastTranslationValues)
-            DisplayLastUnknownValuesAndComputeStatistics(aVFinalSolTr, aVinitVecSol);
+            DisplayFirstAndLastUnknownValuesAndComputeStatisticsTwoUnknowns(aVFinalSolTr, aVinitVecSolTr, 2);
     }
 
     void cAppli_TriangleDeformationTranslation::DoOneIterationTranslation(const int aIterNumber, const int aTotalNumberOfIterations,
@@ -506,8 +469,8 @@ namespace MMVII
     int cAppli_TriangleDeformationTranslation::Exe()
     {
         // read pre and post images and update their sizes
-        ReadFileNameLoadData(mNamePreImage, mImPre, mDImPre, mSzImPre);
-        ReadFileNameLoadData(mNamePostImage, mImPost, mDImPost, mSzImPost);
+        ReadImageFileNameLoadData(mNamePreImage, mImPre, mDImPre, mSzImPre);
+        ReadImageFileNameLoadData(mNamePostImage, mImPost, mDImPost, mSzImPost);
 
         const bool aNonEmptyFolderName = CheckFolderExistence(mUserDefinedFolderNameToSaveResult);
 
@@ -572,7 +535,7 @@ namespace MMVII
     cSpecMMVII_Appli TheSpec_ComputeTriangleDeformationTranslation(
         "ComputeTriangleDeformationTranslation",
         Alloc_cAppli_TriangleDeformationTranslation,
-        "Compute 2D translation deformations between images using triangles",
+        "Compute 2D translation deformations between images using triangular mesh",
         {eApF::ImProc}, // category
         {eApDT::Image}, // input
         {eApDT::Image}, // output

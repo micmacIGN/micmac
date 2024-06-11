@@ -239,6 +239,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_ComputeTriangleDeformationTranslation);
         TheVecAll.push_back(&TheSpec_ComputeTriangleDeformationRadiometry);
         TheVecAll.push_back(&TheSpec_ComputeNodesPrecision);
+        TheVecAll.push_back(&TheSpec_GenerateSmoothSineImage);
         TheVecAll.push_back(&TheSpec_ImportTiePMul);
         TheVecAll.push_back(&TheSpec_ImportMesImGCP);
         TheVecAll.push_back(&TheSpecImportExtSens);

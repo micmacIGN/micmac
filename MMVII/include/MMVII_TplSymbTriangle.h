@@ -47,7 +47,7 @@ namespace MMVII
     template <class TypeFunc, class TypeObs>
     TypeFunc FormalBilinTri_Formula(
         const std::vector<TypeObs> &aVObs,
-        int aKObs0,
+        const int aKObs0,
         const TypeFunc &FX,
         const TypeFunc &FY)
     {
@@ -92,11 +92,10 @@ namespace MMVII
     constexpr int TriangleDisplacement_Bilin_NbObs = 6;
     template <class Type, class TypeIm>
     void FormalBilinTri_SetObs(
-        std::vector<Type> &aVObs,     // vector of observation to fill
-        const int aK0,                // first index where fill the vector
-        const cPt2dr aPtIm,           // point in image
-        const cDataIm2D<TypeIm> &aDIm // image
-    )
+        std::vector<Type> &aVObs,       // vector of observation to fill
+        const int aK0,                  // first index where to fill the vector
+        const cPt2dr &aPtIm,            // point in image
+        cDataIm2D<TypeIm> *&aDIm)       // image
     {
         // compute coordinate of left-high corner of including pixel
         cPt2di aP0 = Pt_round_down(aPtIm);
@@ -106,10 +105,10 @@ namespace MMVII
         SetOrPush(aVObs, aK0 + 1, Type(aP0.y()));
 
         // push values of image at its 4 corners
-        SetOrPush(aVObs, aK0 + 2, (Type)aDIm.GetV(aP0));
-        SetOrPush(aVObs, aK0 + 3, (Type)aDIm.GetV(aP0 + cPt2di(1, 0)));
-        SetOrPush(aVObs, aK0 + 4, (Type)aDIm.GetV(aP0 + cPt2di(0, 1)));
-        SetOrPush(aVObs, aK0 + 5, (Type)aDIm.GetV(aP0 + cPt2di(1, 1)));
+        SetOrPush(aVObs, aK0 + 2, (Type)aDIm->GetV(aP0));
+        SetOrPush(aVObs, aK0 + 3, (Type)aDIm->GetV(aP0 + cPt2di(1, 0)));
+        SetOrPush(aVObs, aK0 + 4, (Type)aDIm->GetV(aP0 + cPt2di(0, 1)));
+        SetOrPush(aVObs, aK0 + 5, (Type)aDIm->GetV(aP0 + cPt2di(1, 1)));
     }
 
     /* ********************************************************* */
@@ -145,7 +144,6 @@ namespace MMVII
     /*
      *  "Companion" function of FormalGradInterpolIm2D_Formula. Push in correct order the values
      *  in aVObs of point, function and gradient.
-     *
      */
 
     /**  standard name for observation */
@@ -153,19 +151,18 @@ namespace MMVII
     constexpr int TriangleDisplacement_GradInterpol_NbObs = 5;
 
     template <class Type, class TypeIm>
-    void FormalGradInterpol_SetObs(
+    void FormalGradInterpolTri_SetObs(
         std::vector<Type> &aVObs,               // vector of observation to fill with [X0,Y0,I00...]
         const int aK0,                          // first index where fill the vector
         const cPt2dr &aPtIm,                    // point in image
-        const cDataIm2D<TypeIm> &aDIm,          // image
-        const cDiffInterpolator1D &anInterpol   // differentiable interpolator
-    )
+        cDataIm2D<TypeIm> *&aDIm,               // image
+        cDiffInterpolator1D *&anInterpol)       // differentiable interpolator
     {
         // compute coordinates of left-high corner of including pixel
         SetOrPush(aVObs, aK0, Type(aPtIm.x()));
         SetOrPush(aVObs, aK0 + 1, Type(aPtIm.y()));
 
-        auto [aValue, aGrad] = aDIm.GetValueAndGradInterpol(anInterpol, aPtIm);
+        auto [aValue, aGrad] = aDIm->GetValueAndGradInterpol(*anInterpol, aPtIm);
 
         SetOrPush(aVObs, aK0 + 2, (Type)aValue);
         SetOrPush(aVObs, aK0 + 3, (Type)aGrad.x());
