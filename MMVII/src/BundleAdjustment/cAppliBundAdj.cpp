@@ -130,7 +130,7 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << mPhProj.DPRigBloc().ArgDirInOpt("BRDirIn","Dir for Bloc Rigid if != DataDir") //  RIGIDBLOC
       << mPhProj.DPRigBloc().ArgDirOutOpt() //  RIGIDBLOC
       << mPhProj.DPTopoMes().ArgDirInOpt("TopoDirIn","Dir for Topo measures") //  TOPO
-      << mPhProj.DPTopoMes().ArgDirOutOpt() //  TOPO
+      << mPhProj.DPTopoMes().ArgDirOutOpt("TopoDirOut","Dir for Topo measures output") //  TOPO
       << AOpt2007
          (
             mGCPW,
@@ -271,7 +271,11 @@ int cAppliBundlAdj::Exe()
     {
         mBA.SetSharedIntrinsicParams(mVSharedIP);
     }
-	   
+
+    if (mPhProj.DPTopoMes().DirInIsInit())
+    {
+        mBA.AddTopo();
+    }
 
     if (IsInit(&mGCPW))  // Add if any first the standard GCP weighting
     {
@@ -299,11 +303,6 @@ int cAppliBundlAdj::Exe()
         mBA.AddBlocRig(mBRSigma,mBRSigma_Rat);
         for (const auto &  aNameIm : VectMainSet(0))
             mBA.AddCamBlocRig(aNameIm);
-    }
-
-    if (mPhProj.DPTopoMes().DirInIsInit())
-    {
-        mBA.AddTopo();
     }
 
     MMVII_INTERNAL_ASSERT_User(mMeasureAdded,eTyUEr::eUnClassedError,"Not any measure added");

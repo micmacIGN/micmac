@@ -189,7 +189,7 @@ void cTopoObsSetStation::makeConstraints(cResolSysNonLinear<tREAL8> & aSys)
 bool cTopoObsSetStation::initialize()
 {
 #ifdef VERBOSE_TOPO
-    StdOut() << <<"cTopoObsSetStation::initialize "<<mOriginName<<std::endl;
+    StdOut() <<"cTopoObsSetStation::initialize "<<mOriginName<<std::endl;
 #endif
 
     // auto fix mStationIsOriented if has orientation obs

@@ -233,7 +233,10 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM)
     if (mTopo) // TOPO
     {
         mTopo->AddTopoEquations(*mR8_Sys);
-        mTopo->printObs(true);
+    #ifdef VERBOSE_TOPO
+        mTopo->print();
+    #endif
+        mTopo->printObs(false);
     }
 
     const auto & aVectSol = mSys->R_SolveUpdateReset(aLVM);
