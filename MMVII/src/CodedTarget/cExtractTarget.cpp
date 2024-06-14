@@ -475,7 +475,7 @@ void  cAppliExtractCodeTarget::DoExtract(){
          //    [1.1]   extract integer pixel
          cIm2D<tREAL4>  aImSym = ImSymmetricity(false,aIm,mRayMinCB*0.4,mRayMinCB*0.8,0);  // compute fast symetry
 
-         if (1)
+         if (0)
          {
             aImSym.DIm().ToFile("TestDCT_SYMINIT_SimulTarget_test.tif");
          }
