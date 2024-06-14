@@ -260,6 +260,7 @@ void cMMVII_BundleAdj::Save_newGCP()
             mPhProj->SaveGCP(aBA_GCP_Ptr->mNewGCP.ExtractSetGCP("NewGCP"));
             for (const auto & aMes1Im : aBA_GCP_Ptr->mMesGCP->MesImInit())
                  mPhProj->SaveMeasureIm(aMes1Im);
+            mPhProj->SaveCurSysCoGCP(mPhProj->CurSysCo(mPhProj->DPPointsMeasures()));
         }
     }
 }
