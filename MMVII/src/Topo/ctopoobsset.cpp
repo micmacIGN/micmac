@@ -117,7 +117,7 @@ void cTopoObsSetStation::OnUpdate()
     mRotVert2Instr = mRotVert2Instr * cRotation3D<tREAL8>::RotFromAxiator(mRotOmega.Pt());
 
     // update mRotSysCo2Vert with new station position
-    mRotSysCo2Vert = mBA_Topo->getSysCo()->getVertical(*mPtOrigin->getPt());
+    updateVertMat();
 
     //StdOut() << "  OnUpdate mRotOmega: "<<mRotOmega.Pt()<<"\n";
 
@@ -288,6 +288,14 @@ bool cTopoObsSetStation::initialize()
 }
 
 
+void cTopoObsSetStation::updateVertMat()
+{
+    if ((mOriStatus == eTopoStOriStat::eTopoStOriFixed) && (mBA_Topo->getSysCo()->getType()!=eSysCo::eRTL))
+        mRotSysCo2Vert = tRot::Identity(); // do not seach for vertical if all fixed, to work will all SysCo
+    else
+        mRotSysCo2Vert = mBA_Topo->getSysCo()->getVertical(*mPtOrigin->getPt());
+}
+
 void cTopoObsSetStation::setOrigin(std::string _OriginName)
 {
 #ifdef VERBOSE_TOPO
@@ -305,7 +313,7 @@ void cTopoObsSetStation::setOrigin(std::string _OriginName)
 
     mRotVert2Instr = tRot::Identity();
     mRotOmega.Pt() = {0.,0.,0.};
-    mRotSysCo2Vert = mBA_Topo->getSysCo()->getVertical(*mPtOrigin->getPt());
+    updateVertMat();
 }
 
 tREAL8 cTopoObsSetStation::getG0() const

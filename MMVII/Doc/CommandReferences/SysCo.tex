@@ -194,10 +194,10 @@ is equivalent to:
 The {\tt TopoAdj} command can perform an adjustment between survey and GCP constraints.
 It is used as a substitute to {\tt OriBundleAdj} when there are no cameras.
 
-As for {\tt OriBundleAdj}, when using survey measurements, a RTL SysCo must be used.
-
 The GCP folder must then have a RTL CurSysCo.xml file, and do not have to declare all the points
-referred to by topo observations, but automatic points initialization is not completed.
+referred to by topo observations, but automatic points initialization is not completed for now.
+
+The SysCo has to be of type RTL, except if there are only distances measurements.
 
 \begin{verbatim}
    For command : TopoAdj 

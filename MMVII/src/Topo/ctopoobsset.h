@@ -89,6 +89,7 @@ protected:
     //cTopoObsSetStation(cTopoObsSetStation const&) = delete;
     //cTopoObsSetStation& operator=(cTopoObsSetStation const&) = delete;
     void createAllowedObsTypes() override;
+    void updateVertMat();
     eTopoStOriStat mOriStatus; //< is bubbled, fixed or 3d rot free
     tRot mRotSysCo2Vert;   //< rotation between global SysCo and local vertical frame
     tRot mRotVert2Instr; //< the station orientation from local vertical frame
