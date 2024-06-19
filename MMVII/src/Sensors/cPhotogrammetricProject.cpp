@@ -786,6 +786,7 @@ void cPhotogrammetricProject::LoadGCPFromFolder
 void cPhotogrammetricProject::CpGCPPattern(const std::string & aDirIn,const std::string & aDirOut,const std::string & aArgPatFiltr) const
 {
    CopyPatternFile(aDirIn,GCPPattern(aArgPatFiltr),aDirOut);
+   CopyPatternFile(aDirIn,"CurSysCo.xml",aDirOut);
 }
 
 void cPhotogrammetricProject::CpGCP() const
