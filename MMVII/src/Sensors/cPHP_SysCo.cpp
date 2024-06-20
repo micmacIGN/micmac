@@ -111,15 +111,15 @@ void  cPhotogrammetricProject::SaveSysCo(tPtrSysCo aSys,const std::string& aName
     SaveInFile(aSys->toSysCoData(), aFullName);
 }
 
-tPtrSysCo cPhotogrammetricProject::ReadSysCo(const std::string &aName) const
+tPtrSysCo cPhotogrammetricProject::ReadSysCo(const std::string &aName, bool aDebug) const
 {
     // compute name
     std::string aNameGlob = FullNameSysCo(aName,true);
     if (!ExistFile(aNameGlob))
     {
-        return cSysCo::MakeSysCo(aName);
+        return cSysCo::MakeSysCo(aName, aDebug);
     }
-    return  cSysCo::FromFile(aNameGlob);
+    return  cSysCo::FromFile(aNameGlob, aDebug);
 }
 
 tPtrSysCo cPhotogrammetricProject::CreateSysCoRTL(const cPt3dr & aOrig,const std::string &aNameRef,bool SVP) const

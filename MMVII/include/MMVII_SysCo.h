@@ -5,6 +5,8 @@
 #include "MMVII_Mappings.h"
 #include "MMVII_AllClassDeclare.h"
 
+struct pj_ctx;
+typedef struct pj_ctx PJ_CONTEXT;
 struct PJconsts;
 typedef struct PJconsts PJ; //< libproj conversion between 2 CRS
 
@@ -52,9 +54,9 @@ public :
     virtual tREAL8 getRadiusApprox(const tPt &in) const; //< approximate earth total curvature radius at a point
     virtual tREAL8 getDistHzApprox(const tPt & aPtA, const tPt & aPtB) const; //< approximate horizontal distance (along ellipsoid) from one point to an other
 
-    static tPtrSysCo MakeSysCo(const std::string &aDef); //< factory from a SysCo definition
+    static tPtrSysCo MakeSysCo(const std::string &aDef, bool aDebug=false); //< factory from a SysCo definition
     static tPtrSysCo makeRTL(const cPt3dr & anOrigin, const std::string & aSysCoInDef);
-    static tPtrSysCo FromFile(const std::string &aNameFile);
+    static tPtrSysCo FromFile(const std::string &aNameFile, bool aDebug=false);
 
     std::string Def() const { return mDef; }
     cSysCoData toSysCoData();
@@ -63,11 +65,13 @@ public :
     bool isEuclidian() const;
 
 protected :
-    cSysCo();
-    cSysCo(const std::string & def);
+    cSysCo(bool aDebug);
+    cSysCo(const std::string & def, bool aDebug);
     std::string mDef; //< definition
     eSysCo mType;
+    PJ_CONTEXT* mPJContext;
     PJ* mPJ_GeoC2Geog; //< for generic use
+    bool mDebug; //< show debug messages
 };
 
 inline bool operator==(const cSysCo& lhs, const cSysCo& rhs) { return lhs.Def() == rhs.Def(); }

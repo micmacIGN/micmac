@@ -9,8 +9,53 @@ namespace MMVII
 
 const std::string SysCoDefSep = "*";
 
-PJ* createCRS2CRS(const std::string &def_from, const std::string &def_to); //< returns nullptr if error
+namespace {
+    /**
+     * @brief testPJerror: to be called after each crs2crs creation and proj usage
+     * @param aPJ: the PJ* to check
+     * @param aDefFrom: for information
+     * @param aDefTo: for information
+     */
+    void testPJerror(PJ* aPJ, std::string aDefFrom, std::string aDefTo)
+    {
+        if ((aPJ==nullptr) || (proj_errno(aPJ)))
+        {
+            int aProjErrorNo = proj_errno(aPJ);
+            std::string aStrErrorDescr = aProjErrorNo>0 ? proj_errno_string(proj_errno(aPJ)): " Panic! Check your proj installation.";
+            MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eBadSysCo,
+                                       std::string("Error in SysCo conversion creation from \"")
+                                       +aDefFrom+"\" to \""+aDefTo+"\": "+aStrErrorDescr)
+        }
+    }
 
+    /**
+     * search for errors in proj logs
+     */
+    void check_proj_log(void *userdata, int level, const char *message) {
+        StdOut() << "PROJ LOG: " << message << std::endl;
+        //if (strstr(message, "failed")) {
+        //    //MMVII_DEV_WARNING( std::string("Log Proj: ")+message)
+        //}
+    }
+
+
+    PJ* createCRS2CRS(const std::string &def_from, const std::string &def_to, PJ_CONTEXT* context, bool aDebug) //< returns nullptr if error
+    {
+        PJ* aPJ = proj_create_crs_to_crs(context, def_from.c_str(), def_to.c_str(), nullptr);
+        testPJerror(aPJ, def_from, def_to);
+
+        // TODO: replacy with proj_create_crs_to_crs_from_pj option ONLY_BEST with proj>9.1?
+        if (aDebug)
+        {
+            auto aInfo = proj_pj_info(aPJ);
+            StdOut() << std::string("Proj \"")+def_from+"\" to \""+def_to
+                                       +"\" accuracy: "+ToStr(aInfo.accuracy) << "\n";
+        }
+        return aPJ;
+    }
+}
+
+//------------------------------------------------------------
 PJ_COORD toPjCoord(const tPt3dr &aPt)
 {
     PJ_COORD aPtPJ;
@@ -57,7 +102,7 @@ public :
     tPt Value(const tPt & in)   const override; //< to GeoC: error
     tPt Inverse(const tPt & in) const override; //< to GeoC: error
 protected:
-    cSysCoLocal(const std::string & def);
+    cSysCoLocal(const std::string & def, bool aDebug);
 };
 
 
@@ -73,7 +118,7 @@ public :
     tPt Value(const tPt & in)   const override { return in; } //< to GeoC
     tPt Inverse(const tPt & in) const override { return in; } //< from GeoC
 protected:
-    cSysCoGeoC(const std::string & def);
+    cSysCoGeoC(const std::string & def, bool aDebug);
 };
 
 /**
@@ -95,7 +140,7 @@ public :
     tPt Inverse(const tPt &) const override; //< from GeoC
 
 protected:
-    cSysCoProj(const std::string & def);
+    cSysCoProj(const std::string & def, bool aDebug);
     PJ* mPJ_Proj2GeoC;
 };
 
@@ -121,8 +166,8 @@ public :
 
     const tPoseR& getTranfo2GeoC() const { return mTranfo2GeoC; }
 protected:
-    cSysCoLGeo(const std::string & def); //< construct from a definition, starting with LGeo
-    cSysCoLGeo(); //< default constructor for derived classes
+    cSysCoLGeo(const std::string & def, bool aDebug); //< construct from a definition, starting with LGeo
+    cSysCoLGeo(bool aDebug); //< default constructor for derived classes
     tPoseR mTranfo2GeoC; //< the transfo to geocentric
     tREAL8 mCenterLatRad, mCenterLongRad;
 };
@@ -148,39 +193,26 @@ public :
     virtual cRotation3D<tREAL8> getVertical(const tPt &aPtIn) const override; //< get rotation from SysCo origin to vertical at this point
 
 protected:
-    cSysCoRTL(const std::string & def); //< construct from a definition, starting with RTL
-    cSysCoRTL(tPt anOrigin, std::string aInDef); //< construct for RTL
+    cSysCoRTL(const std::string & def, bool aDebug); //< construct from a definition, starting with RTL
+    cSysCoRTL(tPt anOrigin, std::string aInDef, bool aDebug); //< construct for RTL
     bool computeRTL(tPt anOrigin, std::string aInDef); //< init mTranfo2GeoC for RTL case
 };
 //------------------------------------------------------------
 
-/**
- * @brief testPJerror: to be called after each crs2crs creation and proj usage
- * @param aPJ: the PJ* to check
- * @param aDefFrom: for information
- * @param aDefTo: for information
- */
-void testPJerror(PJ* aPJ, std::string aDefFrom, std::string aDefTo)
+
+cSysCo::cSysCo(bool aDebug) :
+    mDef(), mType(eSysCo::eLocalSys), mPJContext(nullptr), mPJ_GeoC2Geog(nullptr), mDebug(aDebug)
 {
-    if ((aPJ==nullptr) || (proj_errno(aPJ)))
+    mPJContext = proj_context_create();
+    if (mDebug)
     {
-        int aProjErrorNo = proj_errno(aPJ);
-        std::string aStrErrorDescr = aProjErrorNo>0 ? proj_errno_string(proj_errno(aPJ)): " Panic! Check your proj installation.";
-        MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eBadSysCo,
-                                   std::string("Error in SysCo conversion creation from \"")
-                                   +aDefFrom+"\" to \""+aDefTo+"\": "+aStrErrorDescr)
+        proj_log_level(mPJContext, PJ_LOG_DEBUG);
+        proj_log_func(mPJContext, NULL, check_proj_log);
     }
+    mPJ_GeoC2Geog = createCRS2CRS(MMVII_SysCoDefGeoC, MMVII_SysCoDefLatLong, mPJContext, mDebug);
 }
 
-
-
-cSysCo::cSysCo() :
-    mDef(), mType(eSysCo::eLocalSys), mPJ_GeoC2Geog(nullptr)
-{
-    mPJ_GeoC2Geog = createCRS2CRS(MMVII_SysCoDefGeoC, MMVII_SysCoDefLatLong);
-}
-
-cSysCo::cSysCo(const std::string &aDef) : cSysCo()
+cSysCo::cSysCo(const std::string &aDef, bool aDebug) : cSysCo(aDebug)
 {
     mDef = aDef;
 }
@@ -188,6 +220,7 @@ cSysCo::cSysCo(const std::string &aDef) : cSysCo()
 cSysCo::~cSysCo()
 {
     proj_destroy(mPJ_GeoC2Geog);
+    proj_context_destroy(mPJContext);
 }
 
 bool cSysCo::isEuclidian() const
@@ -244,27 +277,27 @@ tREAL8 cSysCo::getDistHzApprox(const tPt & aPtA, const tPt & aPtB) const
     return alpha*(radius + aPtAgeog.z());
 }
 
-tPtrSysCo cSysCo::MakeSysCo(const std::string &aDef)
+tPtrSysCo cSysCo::MakeSysCo(const std::string &aDef, bool aDebug)
 {
     if (starts_with(aDef,MMVII_SysCoLocal))
     {
-        return tPtrSysCo(new cSysCoLocal(aDef));
+        return tPtrSysCo(new cSysCoLocal(aDef, aDebug));
     }
     else if (starts_with(aDef,MMVII_SysCoGeoC))
     {
-        return tPtrSysCo(new cSysCoGeoC(aDef));
+        return tPtrSysCo(new cSysCoGeoC(aDef, aDebug));
     }
     else if (starts_with(aDef,MMVII_SysCoLGeo))
     {
-        return tPtrSysCo(new cSysCoLGeo(aDef));
+        return tPtrSysCo(new cSysCoLGeo(aDef, aDebug));
     }
     else if (starts_with(aDef,MMVII_SysCoRTL))
     {
-        return tPtrSysCo(new cSysCoRTL(aDef));
+        return tPtrSysCo(new cSysCoRTL(aDef, aDebug));
     }
     else // def is supposed to be a libproj definition
     {
-        return tPtrSysCo(new cSysCoProj(aDef));
+        return tPtrSysCo(new cSysCoProj(aDef, aDebug));
     }
 }
 
@@ -285,17 +318,17 @@ tPtrSysCo cSysCo::makeRTL(const cPt3dr & anOrigin, const std::string & aSysCoInD
     return MakeSysCo(oss.str());
 }
 
-tPtrSysCo cSysCo::FromFile(const std::string &aNameFile)
+tPtrSysCo cSysCo::FromFile(const std::string &aNameFile, bool aDebug)
 {
     cSysCoData aSysCoDataTmp;
     ReadFromFile(aSysCoDataTmp,aNameFile);
-    return MakeSysCo(aSysCoDataTmp.mDef);
+    return MakeSysCo(aSysCoDataTmp.mDef, aDebug);
 }
 
 //------------------------------------------------------------
 
-cSysCoLocal::cSysCoLocal(const std::string &aDef) :
-    cSysCo(aDef)
+cSysCoLocal::cSysCoLocal(const std::string &aDef, bool aDebug) :
+    cSysCo(aDef, aDebug)
 {
     mType = eSysCo::eLocalSys;
 }
@@ -317,16 +350,16 @@ tPt3dr cSysCoLocal::Inverse(const tPt & in) const //< from GeoC
 //------------------------------------------------------------
 
 
-cSysCoGeoC::cSysCoGeoC(const std::string &aDef) :
-    cSysCo(aDef)
+cSysCoGeoC::cSysCoGeoC(const std::string &aDef, bool aDebug) :
+    cSysCo(aDef, aDebug)
 {
     mType = eSysCo::eGeoC;
 }
 
 //------------------------------------------------------------
 
-cSysCoLGeo::cSysCoLGeo(const std::string &aDef) :
-    cSysCo(aDef), mTranfo2GeoC({}, cRotation3D<tREAL8>::Identity()),
+cSysCoLGeo::cSysCoLGeo(const std::string &aDef, bool aDebug) :
+    cSysCo(aDef, aDebug), mTranfo2GeoC({}, cRotation3D<tREAL8>::Identity()),
     mCenterLatRad(NAN), mCenterLongRad(NAN)
 {
     mType = eSysCo::eLGeo;
@@ -343,7 +376,7 @@ cSysCoLGeo::cSysCoLGeo(const std::string &aDef) :
         mTranfo2GeoC.SetRotation(cRotation3D<tREAL8>::RotFromWPK(aOmegaPhiKappa));
 
         PJ_COORD to = proj_trans(mPJ_GeoC2Geog, PJ_FWD, toPjCoord(mTranfo2GeoC.Tr()));
-        testPJerror(mPJ_GeoC2Geog, MMVII_SysCoGeoC, MMVII_SysCoDefLatLong);
+        if (mDebug) testPJerror(mPJ_GeoC2Geog, MMVII_SysCoGeoC, MMVII_SysCoDefLatLong);
         mCenterLatRad = to.lp.phi/AngleInRad(eTyUnitAngle::eUA_degree);
         mCenterLongRad = to.lp.lam/AngleInRad(eTyUnitAngle::eUA_degree);
     }
@@ -354,8 +387,8 @@ cSysCoLGeo::cSysCoLGeo(const std::string &aDef) :
     }
 }
 
-cSysCoLGeo::cSysCoLGeo() :
-    cSysCo(), mTranfo2GeoC({}, cRotation3D<tREAL8>::Identity()),
+cSysCoLGeo::cSysCoLGeo(bool aDebug) :
+    cSysCo(aDebug), mTranfo2GeoC({}, cRotation3D<tREAL8>::Identity()),
     mCenterLatRad(NAN), mCenterLongRad(NAN)
 {
     mType = eSysCo::eLGeo;
@@ -379,8 +412,8 @@ tPt3dr cSysCoLGeo::Inverse(const tPt & in) const //< from GeoC
 
 //------------------------------------------------------------
 
-cSysCoRTL::cSysCoRTL(const std::string &aDef) :
-    cSysCoLGeo()
+cSysCoRTL::cSysCoRTL(const std::string &aDef, bool aDebug) :
+    cSysCoLGeo(aDebug)
 {
     mType = eSysCo::eRTL;
     mDef = aDef;
@@ -403,8 +436,8 @@ cSysCoRTL::cSysCoRTL(const std::string &aDef) :
     }
 }
 
-cSysCoRTL::cSysCoRTL(tPt anOrigin, std::string aInDef) :
-    cSysCoLGeo()
+cSysCoRTL::cSysCoRTL(tPt anOrigin, std::string aInDef, bool aDebug) :
+    cSysCoLGeo(aDebug)
 {
     mType = eSysCo::eRTL;
     std::ostringstream oss;
@@ -425,14 +458,14 @@ bool cSysCoRTL::computeRTL(tPt anOrigin, std::string aInDef)
     PJ_COORD from, to;
     from = toPjCoord(anOrigin);
 
-    PJ* pj_in2latlong = createCRS2CRS(aInDef, MMVII_SysCoDefLatLong);
-    PJ* pj_in2geocent = createCRS2CRS(aInDef, MMVII_SysCoDefGeoC);
+    PJ* pj_in2latlong = createCRS2CRS(aInDef, MMVII_SysCoDefLatLong, mPJContext, false);
+    PJ* pj_in2geocent = createCRS2CRS(aInDef, MMVII_SysCoDefGeoC, mPJContext, false);
     to = proj_trans(pj_in2geocent, PJ_FWD, from);
-    testPJerror(pj_in2geocent, aInDef, MMVII_SysCoDefGeoC);
+    if (mDebug) testPJerror(pj_in2geocent, aInDef, MMVII_SysCoDefGeoC);
 
     mTranfo2GeoC.Tr() = fromPjCoord(to);
     to = proj_trans(pj_in2latlong, PJ_FWD, from);
-    testPJerror(pj_in2latlong, aInDef, MMVII_SysCoDefLatLong);
+    if (mDebug) testPJerror(pj_in2latlong, aInDef, MMVII_SysCoDefLatLong);
 
     mCenterLatRad = to.lp.phi/AngleInRad(eTyUnitAngle::eUA_degree);
     mCenterLongRad = to.lp.lam/AngleInRad(eTyUnitAngle::eUA_degree);
@@ -472,11 +505,11 @@ cRotation3D<tREAL8> cSysCoRTL::getVertical(const tPt & aPtIn)  const
 
 //------------------------------------------------------------
 
-cSysCoProj::cSysCoProj(const std::string &aDef) :
-    cSysCo(aDef), mPJ_Proj2GeoC(nullptr)
+cSysCoProj::cSysCoProj(const std::string &aDef, bool aDebug) :
+    cSysCo(aDef, aDebug), mPJ_Proj2GeoC(nullptr)
 {
     mType = eSysCo::eProj;
-    mPJ_Proj2GeoC = createCRS2CRS(mDef, MMVII_SysCoDefGeoC);
+    mPJ_Proj2GeoC = createCRS2CRS(mDef, MMVII_SysCoDefGeoC, mPJContext, aDebug);
 }
 
 cSysCoProj::~cSysCoProj()
@@ -489,7 +522,7 @@ tPt3dr cSysCoProj::Value(const tPt & in)   const  //< to GeoC
     PJ_COORD pj_in, pj_out;
     pj_in = proj_coord(in.x(), in.y(), in.z(), 0.);
     pj_out = proj_trans(mPJ_Proj2GeoC, PJ_FWD, pj_in);
-    testPJerror(mPJ_Proj2GeoC, mDef, MMVII_SysCoDefGeoC);
+    if (mDebug) testPJerror(mPJ_Proj2GeoC, mDef, MMVII_SysCoDefGeoC);
     return {pj_out.xyz.x, pj_out.xyz.y, pj_out.xyz.z};
 }
 
@@ -498,20 +531,12 @@ tPt3dr cSysCoProj::Inverse(const tPt & in) const //< from GeoC
     PJ_COORD pj_in, pj_out;
     pj_in = proj_coord(in.x(), in.y(), in.z(), 0.);
     pj_out = proj_trans(mPJ_Proj2GeoC, PJ_INV, pj_in);
-    testPJerror(mPJ_Proj2GeoC, MMVII_SysCoDefGeoC, mDef);
+    if (mDebug) testPJerror(mPJ_Proj2GeoC, MMVII_SysCoDefGeoC, mDef);
     return {pj_out.xyz.x, pj_out.xyz.y, pj_out.xyz.z};
 }
 
 //------------------------------------------------------------
 
-PJ* createCRS2CRS(const std::string &def_from, const std::string &def_to)
-{
-    PJ* aPJ = proj_create_crs_to_crs(nullptr, def_from.c_str(), def_to.c_str(), nullptr);
-    testPJerror(aPJ, def_from, def_to);
-    return aPJ;
-}
-
-//------------------------------------------------------------
 
 cChangeSysCo::cChangeSysCo():
     cDataInvertibleMapping<tREAL8,3> (cPt3dr::PCste(1.0)),
@@ -573,7 +598,7 @@ void BenchSysCo(cParamExeBench & aParam)
     // basic libProj conversion
     std::string L93Def ="IGNF:LAMB93";
     std::string latlongDef ="+proj=latlong";
-    PJ* pj_L932latlong = createCRS2CRS(L93Def, latlongDef);
+    PJ* pj_L932latlong = createCRS2CRS(L93Def, latlongDef, nullptr, false);
 
     MMVII_INTERNAL_ASSERT_bench(pj_L932latlong,"SysCo create crs to crs");
 

@@ -641,7 +641,7 @@ class cPhotogrammetricProject
 
          //  ======== [1]  Sysco saved in "MMVII-PhgrProj/SysCo"
          void  SaveSysCo(tPtrSysCo,const std::string&,bool OnlyIfNew=false) const;
-         tPtrSysCo ReadSysCo(const std::string &aName) const;
+         tPtrSysCo ReadSysCo(const std::string &aName, bool aDebug=false) const;
 
 
          tPtrSysCo CreateSysCoRTL(const cPt3dr & aOrig,const std::string &aNameRef,bool SVP=false) const;
