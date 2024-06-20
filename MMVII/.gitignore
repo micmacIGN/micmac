@@ -20,6 +20,7 @@ MMVII-PhgrProj/
 MMVII-PhgrProj*/
 MMVII-Tmp-Dir-Glob/
 Tmp-MM-Dir/
+/share/
 .*.d
 !bin/
 bin/*

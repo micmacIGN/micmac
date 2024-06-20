@@ -34,16 +34,17 @@ endif()
 ##        Dependencies
 #######################################################
 
+# PROJ
 find_package(PROJ QUIET)
-if (PROJ_FOUND)
-  message(STATUS "Found PROJ")
-  set(PROJ_LIB PROJ::proj)
-else()
-  # FindPkgConfig
+if (NOT  PROJ_FOUND)
+  # needed on Ubuntu
   find_package(PkgConfig)
-  # libPROJ
   pkg_search_module(PROJ REQUIRED proj)
-  set(PROJ_LIB ${PROJ_LIBRARIES})
+endif()
+
+if (CMAKE_HOST_WIN32)
+  find_file(PROJ_PROJ_DB_FILE proj.db PATHS ${PROJ_DIR} ${PROJ_BINARY_DIRS}/../share/proj NO_DEFAULT_PATH)
+  file(COPY ${PROJ_PROJ_DB_FILE} DESTINATION ${MMVII_SOURCE_DIR}/share/proj)
 endif()
 
 
@@ -51,15 +52,11 @@ endif()
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads)
 
-
-
-
 # OpenMP: Optional, included in GNU C++, separate package for CLANG.
 find_package(OpenMP)
 if((NOT OpenMP_CXX_FOUND) AND (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
    message(STATUS "OpenMP not found: did you install libomp-dev ?")
 endif()
-
 
 #######################################################
 ##        Compilation toolchain
@@ -125,9 +122,7 @@ file(GLOB mmv2_headers "${mmv2_include_dir}/*.h" "${mmv2_include_dir}/*/*.h" "${
 #######################################################
 add_library(P2007 "${mmv2_libsrcs}" "${mmv2_headers}")
 target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH};${PROJ_INCLUDE_DIRS}")
-target_link_libraries(P2007 PRIVATE MMVII_compiler_flags Threads::Threads)
-
-target_link_libraries(P2007 PRIVATE ${PROJ_LIB})
+target_link_libraries(P2007 PRIVATE MMVII_compiler_flags Threads::Threads ${PROJ_LIBRARIES})
 
 # Force parallel compilation with MSVC
 if(MSVC)
@@ -147,7 +142,6 @@ else()
 endif()
 
 target_include_directories(MMVII PRIVATE "${MMVII_SOURCE_DIR}/include"  )
-
 target_link_libraries(MMVII PRIVATE MMVII_compiler_flags Threads::Threads P2007 ${mmv1_libs} ${mmv2_extlibs})
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION  VERSION_LESS "9.1")
   target_link_libraries(MMVII PRIVATE -lstdc++fs)
