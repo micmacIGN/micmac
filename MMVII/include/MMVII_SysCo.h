@@ -5,6 +5,8 @@
 #include "MMVII_Mappings.h"
 #include "MMVII_AllClassDeclare.h"
 
+struct pj_ctx;
+typedef struct pj_ctx PJ_CONTEXT;
 struct PJconsts;
 typedef struct PJconsts PJ; //< libproj conversion between 2 CRS
 
@@ -67,6 +69,7 @@ protected :
     cSysCo(const std::string & def);
     std::string mDef; //< definition
     eSysCo mType;
+    PJ_CONTEXT* mPJContext;
     PJ* mPJ_GeoC2Geog; //< for generic use
 };
 

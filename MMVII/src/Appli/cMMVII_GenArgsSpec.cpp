@@ -19,9 +19,9 @@ static const std::vector<eTA2007> prjSubDirList =                           // c
     eTA2007::PointsMeasure,
     eTA2007::TieP,
     eTA2007::MulTieP,
-    eTA2007::RigBlock,
+    eTA2007::RigBlock, // RIGIDBLOC
     eTA2007::SysCo,
-    eTA2007::Topo,
+    eTA2007::Topo,  // TOPO
     eTA2007::Clino,
 };
 
