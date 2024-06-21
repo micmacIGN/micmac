@@ -104,7 +104,7 @@ jobs:
         path: |
           lib/elise.lib
           lib/ANN.lib
-          bin/mm3d.exe
+          bin/*
         key: ${{ runner.os }}-build-mm3d-${{ hashFiles('src/**/*.cpp','src/**/*.h','include/**/*.h','!src/util/GIT_defines.cpp') }}
 
     - if: ${{ steps.cache-mm3d-windows.outputs.cache-hit != 'true' }}
@@ -118,7 +118,7 @@ jobs:
         path: |
           lib/elise.lib
           lib/ANN.lib
-          bin/mm3d.exe
+          bin/*
         key: ${{ runner.os }}-build-mm3d-${{ hashFiles('src/**/*.cpp','src/**/*.h','include/**/*.h','!src/util/GIT_defines.cpp') }}
     
     - name: Configure CMake for MMVII
