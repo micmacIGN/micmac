@@ -90,6 +90,7 @@ cMMVII_BundleAdj::cMMVII_BundleAdj(cPhotogrammetricProject * aPhp) :
     //mMesGCP           (nullptr),
     //mSigmaGCP         (-1),
     mBlRig            (nullptr),
+    mBlClino            (nullptr),
     mTopo             (nullptr),
     mFolderRefCam     (""),
     mSigmaTrRefCam    (-1.0),
@@ -110,6 +111,7 @@ cMMVII_BundleAdj::~cMMVII_BundleAdj()
     DeleteAllAndClear(mVTieP);
     delete mBlRig;
     delete mTopo;
+    delete mBlClino;
     // DeleteAllAndClear(mGCP_UK);
     DeleteAllAndClear(mVGCP);
 }
@@ -228,6 +230,12 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM)
         mBlRig->AddRigidityEquation(*mR8_Sys);
     }
     // StdOut() << "SYS=" << mR8_Sys->GetNbObs() << " " <<  mR8_Sys->NbVar() << std::endl;
+
+    if (mBlClino)
+    {
+        mBlClino->addEquations(*mR8_Sys);
+        mBlClino->printRes();
+    }
 
 
     if (mTopo) // TOPO
@@ -571,6 +579,29 @@ void cMMVII_BundleAdj::SaveBlocRigid()
        mBlRig->Save();
     }
 }
+
+void cMMVII_BundleAdj::SaveClino()
+{
+    if (mBlClino)
+    {
+       mBlClino->Save();
+    }
+}
+
+
+    /* ---------------------------------------- */
+    /*            Clino Bloc                    */
+    /* ---------------------------------------- */
+
+void cMMVII_BundleAdj::AddClinoBloc(const std::string aNameClino, const std::string aFormat, std::vector<std::string> aPrePost)
+{
+    AssertPhpAndPhaseAdd();
+    mBlClino = new cBA_Clino(mPhProj, aNameClino, aFormat, aPrePost);
+
+    mBlClino->AddToSys(mSetIntervUK);
+}
+
+
 
 /* ---------------------------------------- */
 /*                 Topo                     */

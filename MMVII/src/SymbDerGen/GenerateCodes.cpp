@@ -12,6 +12,7 @@
 #include "Formulas_Topo.h"
 #include "MMVII_Sys.h"
 #include "MMVII_Geom2D.h"
+#include "Formulas_ClinoBloc.h"
 
 #include "MMVII_PCSens.h"
 #include "MMVII_2Include_Serial_Tpl.h"
@@ -340,6 +341,11 @@ cCalculator<double> * EqBlocRig(bool WithDerive,int aSzBuf,bool ReUse)  // RIGID
 cCalculator<double> * EqBlocRig_RatE(bool WithDerive,int aSzBuf,bool ReUse)  // RIGIDBLOC
 {
     return StdAllocCalc(NameFormula(cFormulaRattBRExist(),WithDerive),aSzBuf,false,ReUse);
+}
+
+cCalculator<double> * EqClinoBloc(bool WithDerive,int aSzBuf,bool ReUse)  // CLINOBLOC
+{
+    return StdAllocCalc(NameFormula(cFormulaClinoBloc(),WithDerive),aSzBuf,false,ReUse);
 }
 
 // topo subframe with dist parameter
@@ -791,6 +797,7 @@ int cAppliGenCode::Exe()
 
        GenCodesFormula((tREAL8*)nullptr,cFormulaBlocRigid(),WithDer); // RIGIDBLOC
        GenCodesFormula((tREAL8*)nullptr,cFormulaRattBRExist(),WithDer); // RIGIDBLOC
+       GenCodesFormula((tREAL8*)nullptr,cFormulaClinoBloc(),WithDer); // CLINOBLOC
 
        // cDist2DConservation aD2C;
        GenCodesFormula((tREAL8*)nullptr,cDist2DConservation(),WithDer);

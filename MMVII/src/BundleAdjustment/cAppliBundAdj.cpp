@@ -82,6 +82,9 @@ class cAppliBundlAdj : public cMMVII_Appli
 	std::vector<std::vector<std::string>>  mAddTieP; // In case there is multiple GCP Set
 	std::vector<double>       mBRSigma; // RIGIDBLOC
 	std::vector<double>       mBRSigma_Rat; // RIGIDBLOC
+    std::string                    mNameClino;  ///<  Pattern of xml file  // CLINOBLOC
+    std::string                    mFormat;  // CLINOBLOC
+    std::vector<std::string>       mPrePost;  // CLINOBLOC
         std::vector<std::string>  mParamRefOri;
 
 	int                       mNbIter;
@@ -131,6 +134,8 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << mPhProj.DPRigBloc().ArgDirOutOpt() //  RIGIDBLOC
       << mPhProj.DPTopoMes().ArgDirInOpt("TopoDirIn","Dir for Topo measures") //  TOPO
       << mPhProj.DPTopoMes().ArgDirOutOpt("TopoDirOut","Dir for Topo measures output") //  TOPO
+      << mPhProj.DPClinoMeters().ArgDirInOpt("ClinoDirIn","Dir for Clino if != DataDir") //  CLINOBLOC
+      << mPhProj.DPClinoMeters().ArgDirOutOpt("ClinoDirOut","Dir for Clino if != DataDir") //  CLINOBLOC
       << AOpt2007
          (
             mGCPW,
@@ -151,6 +156,9 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mLVM,"LVM","Levenberg–Marquardt parameter (to have better conditionning of least squares)",{eTA2007::HDV})
       << AOpt2007(mBRSigma,"BRW","Bloc Rigid Weighting [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})  // RIGIDBLOC
       << AOpt2007(mBRSigma_Rat,"BRW_Rat","Rattachment fo Bloc Rigid Weighting [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})  // RIGIDBLOC
+      << AOpt2007(mNameClino, "NameClino", "Name of inclination file") // ,{eTA2007::FileDirProj})
+      << AOpt2007(mFormat, "Format", "Format of file  like ISFSSFSSFSSFS ")
+      << AOpt2007(mPrePost,"PrePost","[Prefix,PostFix] to compute image name",{{eTA2007::ISizeV,"[2,2]"}})
 
       << AOpt2007(mParamRefOri,"RefOri","Reference orientation [Ori,SimgaTr,SigmaRot?,PatApply?]",{{eTA2007::ISizeV,"[2,4]"}})  
       << AOpt2007(mVSharedIP,"SharedIP","Shared intrinc parmaters [Pat1Cam,Pat1Par,Pat2Cam...] ",{{eTA2007::ISizeV,"[2,20]"}})    // ]]
@@ -235,6 +243,7 @@ int cAppliBundlAdj::Exe()
     mPhProj.DPPointsMeasures().SetDirInIfNoInit(mDataDir);
     mPhProj.DPMulTieP().SetDirInIfNoInit(mDataDir);
     mPhProj.DPRigBloc().SetDirInIfNoInit(mDataDir); //  RIGIDBLOC
+    mPhProj.DPClinoMeters().SetDirInIfNoInit(mDataDir); //  CLINOBLOC
 
     mPhProj.FinishInit();
 
@@ -305,6 +314,12 @@ int cAppliBundlAdj::Exe()
             mBA.AddCamBlocRig(aNameIm);
     }
 
+    if (IsInit(&mNameClino))
+    {
+        mBA.AddClinoBloc(mNameClino, mFormat, mPrePost);
+    }
+    
+
     MMVII_INTERNAL_ASSERT_User(mMeasureAdded,eTyUEr::eUnClassedError,"Not any measure added");
 
     for (int aKIter=0 ; aKIter<mNbIter ; aKIter++)
@@ -324,6 +339,7 @@ int cAppliBundlAdj::Exe()
     mBA.SaveBlocRigid();  // RIGIDBLOC
     mBA.Save_newGCP();
     mBA.SaveTopo(); // just for debug for now
+    mBA.SaveClino();
 
     return EXIT_SUCCESS;
 }
