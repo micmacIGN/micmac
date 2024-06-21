@@ -17,6 +17,7 @@ public:
         DirProject,    ///< Exact Dir of Proj
         FileDirProj,   ///< File that define the  Dir Proj
         MPatFile,      ///< Major PaternIm => "" or "0" in sem for set1, "1" or other for set2
+        FolderAny,     ///< Any folder, no more specificiation can be given
         FFI,           ///< File Filter Interval
         Input,         ///< Is this parameter used as input/read
         Output,        ///< Is this parameter used as output/write
@@ -46,7 +47,7 @@ private:
 
 struct ArgSpec
 {
-    enum Type {T_UNKNOWN, T_CHAR, T_BOOL, T_INT, T_DOUBLE, T_STRING, T_VEC_DOUBLE, T_VEC_INT, T_VEC_STRING, T_PTXD2_INT, T_PTXD3_INT, T_PTXD2_DOUBLE, T_PTXD3_DOUBLE, T_BOX2_INT, T_ENUM};
+    enum Type {T_UNKNOWN, T_CHAR, T_BOOL, T_INT, T_DOUBLE, T_STRING, T_VEC_DOUBLE, T_VEC_INT, T_VEC_STRING, T_VEC_VEC_STRING, T_PTXD2_INT, T_PTXD3_INT, T_PTXD2_DOUBLE, T_PTXD3_DOUBLE, T_BOX2_INT, T_ENUM};
 
 
     ArgSpec(bool mandatory=true) : mandatory(mandatory),hasInitValue(false) {}

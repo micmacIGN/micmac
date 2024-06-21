@@ -10,6 +10,7 @@
 #include <QCheckBox>
 #include <QLabel>
 #include <QPushButton>
+#include <QTextEdit>
 #include "commandspec.h"
 #include "spinboxdefault.h"
 
@@ -73,6 +74,17 @@ protected:
     virtual void setInitialValue() override;
     State doCheckValue()  override;
     QLineEdit *lineEdit;
+};
+
+class InputText: public InputWidget
+{
+public:
+    InputText(QWidget *parent, QGridLayout *layout, ArgSpec &as);
+protected:
+    virtual void doReset() override;
+    virtual void setInitialValue() override;
+    State doCheckValue()  override;
+    QTextEdit *textEdit;
 };
 
 class InputFFI: public InputString

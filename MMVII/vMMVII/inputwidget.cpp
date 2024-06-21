@@ -203,6 +203,39 @@ InputWidget::State InputString::doCheckValue()
 }
 
 /*********************************************************************************/
+InputText::InputText(QWidget *parent, QGridLayout *layout, ArgSpec &as) : InputWidget(parent,layout,as)
+{
+    textEdit = new QTextEdit;
+    textEdit->setAcceptRichText(false);
+    addWidget(textEdit,2);
+    connect(textEdit,&QTextEdit::textChanged,this,[this]() {this->valueEdited(this->textEdit->toPlainText());});
+    if (showDebug && as.cppType == ArgSpec::T_UNKNOWN) {
+        QLabel *l = new QLabel();
+        l->setPixmap(style()->standardIcon(QStyle::SP_MessageBoxWarning).pixmap(16,16));
+        addWidget(l,3);
+    }
+    finish();
+}
+
+void InputText::doReset()
+{
+    textEdit->setPlainText(as.def);
+}
+
+void InputText::setInitialValue()
+{
+    if (as.hasInitValue)
+        textEdit->setPlainText(as.initValue);
+}
+
+InputWidget::State InputText::doCheckValue()
+{
+    if (as.value.isEmpty())
+        return State::EMPTY;
+    return State::OK;
+}
+
+/*********************************************************************************/
 InputFFI::InputFFI(QWidget *parent, QGridLayout *layout, ArgSpec &as) : InputString(parent,layout,as)
 {
     QRegularExpression re("[][].+,.+[][]");
@@ -279,9 +312,9 @@ InputFile::InputFile(QWidget *parent, QGridLayout *layout, ArgSpec &as, const MM
         return;
     }
     
-    if (contains(as.semantic, eTA2007::DirProject)) {
+    if (contains(as.semantic, {eTA2007::DirProject, eTA2007::FolderAny})) {
         mode    = DIR_MODE;
-        caption = tr("Select a project directory");
+        caption = contains(as.semantic, eTA2007::DirProject) ? tr("Select a project directory") : tr("Select a directory");
         pb->setText(tr("Select Dir"));
         filter  = "";
         finish();

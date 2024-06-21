@@ -96,11 +96,13 @@ InputWidget *CmdConfigureWidget::createInput(QWidget *widget, QGridLayout *layou
     case ArgSpec::T_STRING:
         if (contains(as.semantic,eTA2007::FFI))
             return new InputFFI(widget, layout, as);
-        if (contains(as.semantic,{eTA2007::DirProject, eTA2007::FileDirProj,eTA2007::MPatFile, eTA2007::vMMVII_PhpPrjDir,eTA2007::vMMVII_FilesType}))
+        if (contains(as.semantic,{eTA2007::DirProject, eTA2007::FileDirProj,eTA2007::MPatFile, eTA2007::FolderAny, eTA2007::vMMVII_PhpPrjDir,eTA2007::vMMVII_FilesType}))
             return new InputFile(widget, layout, as, allSpecs);
         return new InputString(widget, layout, as);
     case ArgSpec::T_VEC_STRING:
         return new InputStrings(widget,layout,as,0);
+    case ArgSpec::T_VEC_VEC_STRING:
+            return new InputText(widget, layout, as);
     case ArgSpec::T_UNKNOWN:
         return new InputString(widget, layout, as);
     }

@@ -21,6 +21,8 @@ static const std::vector<eTA2007> prjSubDirList =                           // c
     eTA2007::MulTieP,
     eTA2007::RigBlock,
     eTA2007::SysCo,
+    eTA2007::Topo,
+    eTA2007::Clino,
 };
 
 static const std::map<eTA2007,std::vector<std::string>> fileList =          // clazy:exclude=non-pod-global-static
@@ -29,6 +31,9 @@ static const std::map<eTA2007,std::vector<std::string>> fileList =          // c
     {eTA2007::FileCloud,{".ply"}},
     {eTA2007::File3DRegion,{".*"}},
     {eTA2007::XmlOfTopTag,{".xml",".json"}},
+    {eTA2007::FileTagged,{".xml",".json"}},
+    {eTA2007::FileAny,{"*"}},
+    {eTA2007::FileTxt,{"*"}},
 };
 
 } // namespace GenArgsInternal
