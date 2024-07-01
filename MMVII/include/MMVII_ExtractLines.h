@@ -272,9 +272,15 @@ class cScoreTetaLine : public tFunc1DReal // herit from tFunc1DReal for optimiza
 	 ///  Assure that teta1->teta2 is trigo and teta1<Pi
 	 static void  NormalizeTeta(t2Teta &);
 
-	 const tREAL8 &  Length() const;  ///< Accessor
+	 const tREAL8 &  LengthCur() const;  ///< Accessor
          cDataIm2D<tREAL4> * DIm() const; ///< Accessor
 
+	 /// Current lenght can vary 
+	 void SetLengthCur(tREAL8 aL);
+
+	 tREAL8 Prolongate(tREAL8 aLMax, std::pair<tREAL8,tREAL8> & aTeta,bool ReestimateTeta);
+
+         tREAL8  Score2Teta(const std::pair<tREAL8,tREAL8> & aTeta, tREAL8 aAbscMin) const;
      private :
 
 	 ///  fix center of reusing the data (to avoid cost for cTabulatedDiffInterpolator)
@@ -288,14 +294,21 @@ class cScoreTetaLine : public tFunc1DReal // herit from tFunc1DReal for optimiza
 	 /// Value as tFunc1DReal
          cPt1dr  Value(const cPt1dr& aPt) const override;
 
+         tREAL8  ScoreOfTeta(const tREAL8 & aTeta, tREAL8 aAbscMin,tREAL8 aSign) const;
+
          cDataIm2D<tREAL4> *         mDIm;
-         tREAL8                      mLength;
+
+         tREAL8                      mLengthInit;
+         tREAL8                      mStepAInit;
+         tREAL8                      mLengthCur;
          int                         mNb;
          tREAL8                      mStepAbsc;
          tREAL8                      mStepTeta;
          cTabulatedDiffInterpolator  mTabInt;
          cPt2dr                      mC;
          tREAL8                      mCurSign;  /// used to specify an orientaion of segment
+         tREAL8                      mStepTetaInit;
+         tREAL8                      mStepTetaLim;
 };
 
 

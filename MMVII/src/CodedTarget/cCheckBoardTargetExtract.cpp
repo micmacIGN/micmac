@@ -152,6 +152,7 @@ class cCdRadiom : public cCdSym
 
 	  tREAL8  mCostCorrel;  // 1-Correlation of model
 	  tREAL8  mRatioBW;  // ratio min/max of BW
+	  tREAL8  mScoreTeta;  // ratio min/max of BW
           tREAL8  mBlack;
           tREAL8  mWhite;
 };
@@ -241,14 +242,22 @@ std::pair<eTPosCB,tREAL8>  cCdRadiomCompiled::TheorRadiom(const cPt2dr &aPt) con
     return std::pair<eTPosCB,tREAL8>(aPos,aGrayTh);
 }
 
-cCdRadiom::cCdRadiom(const cCdSym & aCdSym,const cDataIm2D<tREAL4> & aDIm,tREAL8 aTeta0,tREAL8 aTeta1,tREAL8 aThickness) :
+
+
+cCdRadiom::cCdRadiom
+(
+    const cCdSym & aCdSym,
+    const cDataIm2D<tREAL4> & aDIm,
+    tREAL8 aTeta0,
+    tREAL8 aTeta1,
+    tREAL8 aThickness
+) :
        cCdSym      (aCdSym),
        mTetas      {aTeta0,aTeta1},
        mCostCorrel (2.001),   // over maximal theoreticall value
        mRatioBW    (0)
 {
     static int aCpt=0 ; aCpt++;
-
 
     cSegment2DCompiled aSeg0 (mC,mC+FromPolar(1.0,mTetas[0]));
     cSegment2DCompiled aSeg1 (mC,mC+FromPolar(1.0,mTetas[1]));
@@ -364,6 +373,12 @@ class cAppliCheckBoardTargetExtract : public cMMVII_Appli
 	tREAL8            mThickness;  ///<  used for fine estimation of radiom
         bool              mOptimSegByRadiom;  ///< Do we optimize the segment on average radiom     
 
+        tREAL8            mLengtSInit;// = 05.0;
+        tREAL8            mLengtProlong;// = 20.0;
+        tREAL8            mStepSeg;//    = 0.5;
+        tREAL8            mMaxCostCorrIm;//  = 0.1;
+	int               mNumDebug;
+
         // =========== Internal param ============
         tIm                   mImIn;        ///< Input global image
         cPt2di                mSzIm;        ///< Size of image
@@ -387,12 +402,17 @@ cAppliCheckBoardTargetExtract::cAppliCheckBoardTargetExtract(const std::vector<s
    mTimeSegm        (this),
    mThickness       (1.0),
    mOptimSegByRadiom (false),
-   mImIn            (cPt2di(1,1)),
-   mDImIn           (nullptr),
-   mHasMasqTest     (false),
-   mMasqTest        (cPt2di(1,1)),
-   mImLabel         (cPt2di(1,1)),
-   mDImLabel        (nullptr)
+   mLengtSInit       (5.0),
+   mLengtProlong     (20.0),
+   mStepSeg          (0.5),
+   mMaxCostCorrIm    (0.1),
+   mNumDebug         (-1),
+   mImIn             (cPt2di(1,1)),
+   mDImIn            (nullptr),
+   mHasMasqTest      (false),
+   mMasqTest         (cPt2di(1,1)),
+   mImLabel          (cPt2di(1,1)),
+   mDImLabel         (nullptr)
 {
 }
 
@@ -414,6 +434,7 @@ cCollecSpecArg2007 & cAppliCheckBoardTargetExtract::ArgOpt(cCollecSpecArg2007 & 
              <<  mPhProj.DPMask().ArgDirInOpt("TestMask","Mask for selecting point used in detailed mesg/output")
              <<  AOpt2007(mThickness,"Thickness","Thickness for modelizaing line-blur in fine radiom model",{eTA2007::HDV})
              <<  AOpt2007(mOptimSegByRadiom,"OSBR","Optimize segement by radiometry",{eTA2007::HDV})
+             <<  AOpt2007(mNumDebug,"NumDebug","Num marq target for debug",{eTA2007::Tuning})
    ;
 }
 
@@ -441,27 +462,50 @@ bool cAppliCheckBoardTargetExtract::IsPtTest(const cPt2dr & aPt) const
 }
 
 
+bool DebugCB = false;
+
+/*  
+ *
+ *  (cos(T) U + sin(T) V)^2  =>  1 + 2 cos(T)sin(T) U.V = 1 + sin(2T) U.V, ValMin  -> 1 -U.V
+ *
+ */
 
 cCdRadiom cAppliCheckBoardTargetExtract::TestBinarization(cScoreTetaLine & aSTL,const cCdSym & aCdSym,tREAL8 aThickness)
 {
+    bool IsMarqed = IsPtTest(aCdSym.mC);
+    static int aCptGlob=0 ; aCptGlob++;
+    static int aCptMarq=0 ; if (IsMarqed) aCptMarq++;
+    DebugCB = (aCptMarq == mNumDebug) && IsMarqed;
 
-    auto [aTeta0,aTeta1] = aSTL.Tetas_CheckBoard(aCdSym.mC,0.5,1e-3);
+    auto aPairTeta = aSTL.Tetas_CheckBoard(aCdSym.mC,0.1,1e-3);
+    tREAL8 aLength = aSTL.Prolongate(mLengtProlong,aPairTeta,true);
+
+    auto [aTeta0,aTeta1] = aPairTeta;
+    cPt2dr aV0 = FromPolar(1.0,aTeta0);
+    cPt2dr aV1 = FromPolar(1.0,aTeta1);
+
+    cAffin2D<tREAL8>  aMapEll2Ori(aCdSym.mC,aV0*aLength,aV1*aLength);
+    cAffin2D<tREAL8>  aMapOri2Ell = aMapEll2Ori.MapInverse();
+
+    /*  x,y =   mC + (V0 V1) y
+    */
 
     cCdRadiom aCdRadiom(aCdSym,*mDImIn,aTeta0,aTeta1,aThickness);
 
     if (mOptimSegByRadiom)
     {
-       aCdRadiom.OptimSegIm(*(aSTL.DIm()),aSTL.Length());
+       aCdRadiom.OptimSegIm(*(aSTL.DIm()),aSTL.LengthCur());
     }
 
-    if (IsPtTest(aCdSym.mC))
+    if (IsMarqed)
     {
 
-
-          static int aCpt=0 ; aCpt++;
-          StdOut() << " CPT=" << aCpt << "  Corrrr=" <<  aCdRadiom.mCostCorrel 
+          StdOut() << " CPT=" << aCptMarq << " " << aCptGlob  << "  Corrrr=" <<  aCdRadiom.mCostCorrel 
                    << " Ratio=" <<  aCdRadiom.mRatioBW
-		  << " V0="<< aCdRadiom.mBlack << " V1=" << aCdRadiom.mWhite << "\n";
+		  << " V0="<< aCdRadiom.mBlack << " V1=" << aCdRadiom.mWhite 
+		  << " ScTeta=" << aSTL.Score2Teta(aPairTeta,2.0)
+		  << " LLL=" << aLength
+		  << "\n";
          // StdOut() << " CPT=" << aCpt << " TETASRef= " << aTeta0 << " " << aTeta1 << "\n";
 
 	  int aZoom = 9;
@@ -482,6 +526,20 @@ cCdRadiom cAppliCheckBoardTargetExtract::TestBinarization(cScoreTetaLine & aSTL,
 		    if (aState != eTPosCB::eUndef)
 		    {
                         aIm.SetGrayPix(aPix,aGray*255);
+		    }
+               }
+	  }
+
+	  if (1)
+	  {
+               cCdRadiomCompiled aCRC(aCdRadiom,2.0);
+               for (const auto & aPix :  aIm.ImR().DIm())
+               {
+                    cPt2dr aPtR = ToR(aPix+aDec);
+		    aPtR  = aMapOri2Ell.Value(aPtR);
+		    if (Norm2(aPtR) < 1)
+		    {
+                        aIm.SetRGBPix(aPix,cRGBImage::Cyan);
 		    }
                }
 	  }
@@ -516,7 +574,7 @@ cCdRadiom cAppliCheckBoardTargetExtract::TestBinarization(cScoreTetaLine & aSTL,
 	  }
 
 	  aIm.SetRGBPoint(aCLoc,cRGBImage::Red);
-          aIm.ToFile("TestCenter_" + ToStr(aCpt) + ".tif");
+          aIm.ToFile("TestCenter_" + ToStr(aCptMarq) + ".tif");
 // getchar();
     }
 
@@ -534,10 +592,6 @@ void cAppliCheckBoardTargetExtract::DoOneImage()
     tREAL8 mDistCalcSym0     = 8.0;   // distance for evaluating symetry criteria
     tREAL8 mDistDivSym       = 2.0;   // maximal distance to initial value in symetry opt
     
-    tREAL8 mLengtSInit = 05.0;
-    tREAL8 mStepSeg    = 0.5;
-    tREAL8 mMaxCostCorrIm  = 0.1;
-
     //   computed threshold
     tINT8  mDistRectInt = 20; // to see later how we compute it
 
@@ -695,7 +749,7 @@ void cAppliCheckBoardTargetExtract::DoOneImage()
 	    if (aCdRad.mCostCorrel <= mMaxCostCorrIm)
 	    {
                aVCdtRad.push_back(aCdRad);
-	        mDImLabel->SetV(ToI(aCdRad.mC),eFilterRadiom);
+	       mDImLabel->SetV(ToI(aCdRad.mC),eFilterRadiom);
 	    }
         }
     }
