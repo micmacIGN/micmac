@@ -77,7 +77,7 @@ cNodeHTreeMT::cNodeHTreeMT(tNodeHT_mt_ptr parent, int i, int depth) :
     mChildrenCount(0),
     mDepth(depth+1)
 {
-    auto aParentName = mParent ? mParent->Name() + "-" : "" ;
+    auto aParentName = parent ? parent->Name() + "-" : "" ;
     mName = aParentName + std::to_string(i);
 }
 

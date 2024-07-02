@@ -143,7 +143,7 @@ class cNodeHTreeMT
         void Partition();
 
         std::string Name() const {return mName;}
-        const tNodeHT_mt_ptr parent() const { return mParent;}
+        const tNodeHT_mt_ptr parent() const { return mParent.lock();}
 
         int  ChildrenCount() const { return mChildrenCount;}
         bool isLastChild() const {
@@ -172,7 +172,7 @@ class cNodeHTreeMT
 
 
         /* Paralelization */
-        tNodeHT_mt_ptr              mParent;
+        std::weak_ptr<cNodeHTreeMT> mParent;
         int                         mChildrenCount;
         int                         mNbChildren;
         std::vector<tNodeHT_mt_ptr> mChildrenV;
