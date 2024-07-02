@@ -270,10 +270,11 @@ bool cTopoData::addObs(std::vector<cTopoObsSetStationData> &aCurrentVectObsSetSt
     if (code != eCompObsType::eCompHzOpen) // new set if HzOpen
     {
         // search for a suitable set
-        for (auto &aObsSet : aCurrentVectObsSetStations)
+        for (auto riter = aCurrentVectObsSetStations.rbegin();
+                 riter != aCurrentVectObsSetStations.rend(); ++riter)
         {
-            // TODO: must search from end
-            if ((!aObsSet.mObs.empty()) && (aObsSet.mObs.at(0).mPtsNames.at(0) == nameFrom))
+            auto &aObsSet = *riter;
+            if ((!aObsSet.mObs.empty()) && (aObsSet.mObs.front().mPtsNames.front() == nameFrom))
             {
                 aSetDataStation = &aObsSet;
                 break;
