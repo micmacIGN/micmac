@@ -1169,8 +1169,8 @@ cCollecSpecArg2007 & cAppli_SfmInitWithPartition::ArgObl(cCollecSpecArg2007 & an
 {
     return anArgObl
               <<  mPhProj.DPOriTriplets().ArgDirInMand()
-              <<  Arg2007(mHMetisFile,"Hypergraph file in hmetis format")
-              <<  Arg2007(mTGraphFile,"Triplet graph file in hmetis format")
+              <<  Arg2007(mHMetisFile,"Hypergraph file in hmetis format",{eTA2007::FileAny})
+              <<  Arg2007(mTGraphFile,"Triplet graph file in hmetis format",{eTA2007::FileAny})
            ;
 }
 

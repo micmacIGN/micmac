@@ -11,6 +11,7 @@ namespace GenArgsInternal
 static const std::vector<eTA2007> prjSubDirList =                           // clazy:exclude=non-pod-global-static
 {
     eTA2007::Orient,
+    eTA2007::OriTriplet,
     eTA2007::RadiomData,
     eTA2007::RadiomModel,
     eTA2007::MeshDev,
@@ -29,6 +30,7 @@ static const std::map<eTA2007,std::vector<std::string>> fileList =          // c
     {eTA2007::FileCloud,{".ply"}},
     {eTA2007::File3DRegion,{".*"}},
     {eTA2007::XmlOfTopTag,{".xml",".json"}},
+    {eTA2007::FileAny,{""}},
 };
 
 } // namespace GenArgsInternal
