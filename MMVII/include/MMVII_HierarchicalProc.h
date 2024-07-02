@@ -175,6 +175,7 @@ class cNodeHTreeMT
         tNodeHT_mt_ptr              mParent;
         int                         mChildrenCount;
         int                         mNbChildren;
+        std::vector<tNodeHT_mt_ptr> mChildrenV;
         std::atomic<int>            mChildrenToWait;
 
         int                         mDepth;

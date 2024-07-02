@@ -187,6 +187,7 @@ void cNodeHTreeMT::Descend(ThreadPool &threadPool, tNodeHT_mt_ptr input)
            StdOut() << aKid->Name() << std::endl;
 
            mChildrenCount++;
+           mChildrenV.push_back(aKid);
 
            aKid->Descend(threadPool,aKid);
            threadPool.addNode(aKid);
