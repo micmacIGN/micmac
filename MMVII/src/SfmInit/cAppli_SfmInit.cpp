@@ -1,12 +1,15 @@
 #include "MMVII_SfmInit.h"
 #include <random>
-#include "MMVII_TplHeap.h"
-
+//#include "MMVII_TplHeap.h"
+#include "graph.h"
+#include "MMVII_HierarchicalProc.h"
 
 namespace MMVII
 {
 class cRand19937;
-
+struct cObjQual;
+class cCmpObjQual;
+class cIndexObjQual;
 
 
 double PENALISE_NONVISITED_TRIPLETS=5;
@@ -112,18 +115,18 @@ void cHyperGraph::InitFromTriSet(const cTripletSet* aTSet)
            if (aMapIm2V.find(aV.Name()) == aMapIm2V.end() )
            {
                aMapIm2V[aV.Name()] =  new cVertex(aId++,aV.Name());
+               //StdOut() << aV.Name() << std::endl;
            }
         }
     }
 
     /// 1- Fill in the hypergraph
     ///
-
     // nodes
     SetVertices(aMapIm2V);
 
     // (hyper)edges
-    tU_INT4 anId=0;
+    //tU_INT4 anId=0;
     for (auto aT : aTSet->Set())
     {
         AddHyperedge(
@@ -131,7 +134,7 @@ void cHyperGraph::InitFromTriSet(const cTripletSet* aTSet)
                             aMapIm2V[aT.PVec()[1].Name()],
                             aMapIm2V[aT.PVec()[2].Name()]},
                             aT,
-                            anId++) );
+                            aT.Id()) );
     }
 
     IS_INIT = true;
@@ -191,7 +194,7 @@ void cHyperGraph::UpdateIndHeap()
 {
     for (auto aE : mVHEdges)
     {
-        aE->IndexHeap() = HEAP_NO_INDEX; // E->Index();
+        aE->IndexHeap() = MMVII_HEAP_NO_INDEX; // E->Index();
     }
 }
 
@@ -276,6 +279,73 @@ void cHyperGraph::SaveDotFile(std::string& aName)
    aFile->Ofs() << "}" << std::endl;
 
    delete aFile;
+}
+
+void cHyperGraph::SaveTriGraph(std::string& aName)
+{
+    /// save the graph in my triplet format
+    cMMVII_Ofs* aFile = new cMMVII_Ofs(aName,eFileModeOut::CreateText);
+
+    aFile->Ofs() << this->NbHEdges() << " " << this->NbVertices() << " 1" << "\n";
+
+    //map to remove doubles
+    std::map<std::string,std::pair<int,cPt2di>> aMapOfTripletPairs;
+    int aNbDupl=0;
+
+    double aUpScale=1.0;
+    for (auto anEdg : this->mAdjMap)
+    {
+        /// if there is more than 1 triplet
+        size_t aTriNum = anEdg.second.size();
+        if (aTriNum>1)
+        {
+            /// explore all possible combinations of triplet pairs
+            for (size_t aTi=0; aTi<aTriNum; aTi++)
+            {
+                for (size_t aTj=0; aTj<aTriNum; aTj++)
+                {
+                    /// iterate over the diagonal sup
+                    if (aTi<aTj)
+                    {
+
+                       // StdOut() << aTi << " " << aTj << std::endl;
+                        double aQual = //eventually this score should come from reprojection error of 5pts
+                                (anEdg.second[aTi]->Quality()>0) ? 1.0/(1 + anEdg.second[aTi]->Quality()) : 0.0;
+                      //  StdOut() << aQual << " " << anEdg.second[aTi]->Quality() << "\n";
+
+                        std::string aCurTriPairDir = ToStr(int(anEdg.second[aTi]->Index()))+"to"+
+                                                     ToStr(int(anEdg.second[aTj]->Index()));
+                        std::string aCurTriPairInv = ToStr(int(anEdg.second[aTj]->Index()))+"to"+
+                                                     ToStr(int(anEdg.second[aTi]->Index()));
+
+                        if ( (aMapOfTripletPairs.find(aCurTriPairDir) == aMapOfTripletPairs.end()) &&
+                             (aMapOfTripletPairs.find(aCurTriPairInv) == aMapOfTripletPairs.end()) )
+                        {
+                            aMapOfTripletPairs[aCurTriPairDir] = std::make_pair(round_up(aUpScale* aQual),
+                                            cPt2di(anEdg.second[aTi]->Index(),anEdg.second[aTj]->Index()));
+
+                            /// save a triplet pair (two pairs sharing an edge)
+                            aFile->Ofs() << (aUpScale* aQual ) << " "
+                                         << anEdg.second[aTi]->Index() << " "
+                                      //   << anEdg.second[aTi]->Vertices()[0]->Pose().Name()
+                                      //   << " " << anEdg.second[aTi]->Vertices()[1]->Pose().Name()
+                                      //   << " " << anEdg.second[aTi]->Vertices()[2]->Pose().Name() << " "
+                                         << anEdg.second[aTj]->Index()
+                                   //      << " "
+                                   //      << anEdg.second[aTj]->Vertices()[0]->Pose().Name()
+                                   //      << " " << anEdg.second[aTj]->Vertices()[1]->Pose().Name()
+                                   //      << " " << anEdg.second[aTj]->Vertices()[2]->Pose().Name()
+                                         << std::endl;
+                        }
+                        else aNbDupl++;
+
+                    }
+                }
+            }
+        }
+    }
+    StdOut() << "Number of detected duplicates: " << aNbDupl << ", Nb of edges=" << mAdjMap.size() << std::endl;
+    delete aFile;
 }
 
 void cHyperGraph::SaveHMetisFile(std::string& aName)
@@ -440,6 +510,54 @@ void cHyperGraph::CoherencyOfHyperEdges()
     }
 }
 
+void cHyperGraph::DFS(int anId, std::vector<bool>& aNodesVisited,
+                      std::map<int,std::vector<int>>& aAdjMap)
+{
+    aNodesVisited[anId] = true;
+
+    for (auto neighb : aAdjMap[anId])
+    {
+        if (!aNodesVisited[neighb])
+            DFS(neighb,aNodesVisited,aAdjMap);
+    }
+
+}
+
+bool cHyperGraph::CheckConnectivity(
+        std::map<int,std::vector<int>>& aAdjMap)
+{
+    int aNumN=aAdjMap.size();
+    std::vector<bool> aNVisited(aNumN,false);
+
+    /// go to node with at least 1 edge
+    ///
+    int aK;
+    for (aK=0; aK<aNumN; aK++)
+    {
+        if (!aAdjMap[aK].empty())
+            break;
+    }
+    StdOut() << "aK= " << aK << " " << aAdjMap[aK].size() << std::endl;
+    for (auto toto : aAdjMap[aK])
+        StdOut() << toto << std::endl;
+
+    /// depth-first algorithm
+    ///
+    DFS(aK,aNVisited,aAdjMap);
+
+    /// check if all nodes visited
+    ///
+    for (int aK=0; aK<aNumN; aK++)
+        if (!aNVisited[aK] && !aAdjMap[aK].empty())
+        {
+            StdOut() << aK << std::endl;
+            return false;
+        }
+    return true;
+}
+
+
+
 /* ********************************************************** */
 /*                                                            */
 /*                 cAppli_SfmInitFromGraph                    */
@@ -453,6 +571,7 @@ class cAppli_SfmInitFromGraph: public cMMVII_Appli
 
      cAppli_SfmInitFromGraph(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
      int Exe() override;
+
      cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
      cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
@@ -1032,9 +1151,13 @@ cSpecMMVII_Appli  TheSpec_SfmInitFromGraph
 /*                                                            */
 /* ********************************************************** */
 
+
+
 cAppli_SfmInitWithPartition::cAppli_SfmInitWithPartition(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
     cMMVII_Appli (aVArgs,aSpec),
     mPhProj      (*this),
+    mSourceInit  (1.0),
+    mSinkInit  (1.0),
     mNbParts     (4),
     mImbalance   (0.03),
     mPartOutFile ("kah_parts_out.hgr")
@@ -1047,6 +1170,7 @@ cCollecSpecArg2007 & cAppli_SfmInitWithPartition::ArgObl(cCollecSpecArg2007 & an
     return anArgObl
               <<  mPhProj.DPOriTriplets().ArgDirInMand()
               <<  Arg2007(mHMetisFile,"Hypergraph file in hmetis format")
+              <<  Arg2007(mTGraphFile,"Triplet graph file in hmetis format")
            ;
 }
 
@@ -1054,12 +1178,176 @@ cCollecSpecArg2007 & cAppli_SfmInitWithPartition::ArgOpt(cCollecSpecArg2007 & an
 {
    return    anArgOpt
            << AOpt2007(mNbParts,"NbParts", "Number of partitions; def=4")
+           << AOpt2007(mSourceInit,"SourceInit","Initialise source weight, Def=1.0")
+           << AOpt2007(mSinkInit,"SinkInit","Initialise sink weight, Def=1.0")
            << AOpt2007(mImbalance,"Imb","Partition size imbalance, Def=0.03")
            << AOpt2007(mPartOutFile,"PartOutput","Write partition to a file (filename)")
               ;
 }
 
+void cAppli_SfmInitWithPartition::DFS(int anId, std::vector<bool>& aNodesVisited,
+                      std::map<int,std::vector<int>>& aAdjMap)
+{
+    aNodesVisited[anId] = true;
+
+    for (auto neighb : aAdjMap[anId])
+    {
+        if (!aNodesVisited[neighb])
+            DFS(neighb,aNodesVisited,aAdjMap);
+    }
+
+}
+
+bool cAppli_SfmInitWithPartition::CheckConnectivity(
+        std::map<int,std::vector<int>>& aAdjMap)
+{
+    int aNumN=aAdjMap.size();
+    std::vector<bool> aNVisited(aNumN,false);
+
+    /// go to node with at least 1 edge
+    ///
+    int aK;
+    for (aK=0; aK<aNumN; aK++)
+    {
+        if (!aAdjMap[aK].empty())
+            break;
+    }
+    StdOut() << "aK= " << aK << " " << aAdjMap[aK].size() << std::endl;
+    for (auto toto : aAdjMap[aK])
+        StdOut() << toto << std::endl;
+
+    /// depth-first algorithm
+    ///
+    DFS(aK,aNVisited,aAdjMap);
+
+    /// check if all nodes visited
+    ///
+    for (int aK=0; aK<aNumN; aK++)
+        if (!aNVisited[aK] && !aAdjMap[aK].empty())
+        {
+            StdOut() << aK << std::endl;
+            return false;
+        }
+    return true;
+}
+
+
+
+
 int cAppli_SfmInitWithPartition::Exe()
+{
+    if (ExeHParal())
+        return EXIT_SUCCESS;
+
+    //if (ExeHierarch())
+      //  return EXIT_SUCCESS;
+
+    return EXIT_FAILURE;
+}
+
+int cAppli_SfmInitWithPartition::ExeHParal()
+{
+
+    /// ================ Read data
+    ///
+    mPhProj.FinishInit();
+    cTripletSet * aTriSet = mPhProj.ReadTriplets();
+
+    ThreadPool aThreadP;
+
+    /// ================ Initialise tree structure
+    ///
+    auto aRoot = std::make_shared<cNodeHTreeMT>(nullptr,0,0);
+    aRoot->Init(*aTriSet);
+    aRoot->Descend(aThreadP,aRoot);
+    aThreadP.addNode(aRoot); //adds parent to tp
+
+    aThreadP.Exec(NbThreadMax);
+
+    StdOut() << "tree propagated " <<   std::endl;
+
+
+
+    StdOut() << "partition ended " <<   std::endl;
+
+
+    delete aTriSet;
+
+    return EXIT_SUCCESS;
+}
+
+
+int cAppli_SfmInitWithPartition::ExeHierarch()
+{
+    /// ================ Read data
+    ///
+    mPhProj.FinishInit();
+    cTripletSet * aTriSet = mPhProj.ReadTriplets();
+
+
+
+    /// ================ Initialise tree structure
+    /*
+                               o root (r)
+                             /   \
+                 r->mPart0  o     o r->mPart1
+                           / \   /  \
+       r->mPart0->mPart0  o   o  o   o r->mPart1->mPart1
+              r->mPart0->mPart1  r->mPart1->mPart0
+    */
+    StdOut() << " ================ Tree structure" << std::endl;
+    auto aRoot = std::make_shared<cNodeHTree>(1);
+    aRoot->mPart0 = std::make_shared<cNodeHTree>(2);
+    aRoot->mPart1 = std::make_shared<cNodeHTree>(3);
+    aRoot->mPart0->mPart0 = std::make_shared<cNodeHTree>(4);
+    aRoot->mPart0->mPart1 = std::make_shared<cNodeHTree>(5);
+    aRoot->mPart1->mPart0 = std::make_shared<cNodeHTree>(6);
+    aRoot->mPart1->mPart1 = std::make_shared<cNodeHTree>(7);
+
+    /// ================ Partition
+    ///
+    StdOut() << " ================ Partition 0" << std::endl;
+    aRoot->Init(*aTriSet);
+    aRoot->Partition();
+    aRoot->PushPartition(*aTriSet);
+
+    ///
+    StdOut() << " ================ Partition 1" << std::endl;
+    StdOut() << " partition left" << std::endl;
+    aRoot->mPart0->Partition();
+    aRoot->mPart0->PushPartition(*aTriSet);
+
+
+    StdOut() << " partition right" << std::endl;
+    aRoot->mPart1->Partition();
+    aRoot->mPart1->PushPartition(*aTriSet);
+
+
+    /// ================ Solve the tree
+    StdOut() << " ================ Solve: " << std::endl;
+    ///
+    StdOut() << " ================    Spanning tree leaves" << std::endl;
+    aRoot->mPart0->mPart0->SpanTree();
+    aRoot->mPart0->mPart1->SpanTree();
+    aRoot->mPart1->mPart0->SpanTree();
+    aRoot->mPart1->mPart1->SpanTree();
+
+    StdOut() << " ================    Move up & Align" << std::endl;
+    aRoot->mPart0->Align();
+    aRoot->mPart1->Align();
+
+    ///
+    StdOut() << " ================    Move Top & Align" << std::endl;
+    aRoot->Align();
+
+
+
+    delete aTriSet;
+
+    return EXIT_SUCCESS;
+}
+
+int cAppli_SfmInitWithPartition::ExeKahyPar()
 {
     /*mPhProj.FinishInit();
 
@@ -1091,6 +1379,7 @@ int cAppli_SfmInitWithPartition::Exe()
 
     /// Enable logging
     mt_kahypar_set_context_parameter(aKP_context, VERBOSE, "1");
+    //aKP_context->partition.verbose_output = true;
 
     /// Load Hypergraph for DEFAULT preset
     mt_kahypar_hypergraph_t aHypergraph =
@@ -1164,14 +1453,99 @@ cSpecMMVII_Appli  TheSpec_SfmInitWithPartition
 
 }; // MMVII
 
-/*
- * todo:
-     OK initialise graph with triplets
-     OK scenario1 : absolute solution with a random spanning tree
-     scenario2 : partition the graph, spanning tree on each partition
-          OK partition
-            span within partitions
-            merge partitions
+
+/*   CHRISTOPHE
+#include <iostream>
+#include <vector>
+#include <deque>
+#include <chrono>
+#include <thread>
+#include <mutex>
+
+using namespace std;
+
+static constexpr int NbRuns = 100;
+static constexpr int NbThreadMax  = 10;
+
+// Classe "Tache de calcul"
+class Calculus
+{
+public:
+    Calculus() : n(nbInstance++) {}
+    void run() {
+        val=0;
+        start = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+        // Calcul stupide qui prend du temps ...
+        for (int i=0; i<1000000; i++)
+            val = val + (double)std::rand() / std::rand();
+        end = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    }
+
+    int n;          // Numero du calcul
+    double val;
+    std::time_t start,end;
+private:
+    static int nbInstance;  // Pour numeroter les taches
+};
+
+int Calculus::nbInstance = 0;
+
+
+// Pool de threads ...
+class ThreadPool
+{
+public:
+    ThreadPool() {}
+    void Exec(std::vector<Calculus>& calculus,int nbThread)
+    {
+        for (auto& c : calculus)
+            CalculusQueue.push_back(&c);    // On creee une queue de pointeurs sur les taches a executer
+        std::vector<std::thread> threadList;
+        for (int i = 0; i < nbThread; ++i) // On lance NbThreads, chaque thread execute ExecLoop
+            threadList.emplace_back(std::thread(&ThreadPool::ExecLoop, this));
+        for (auto& t : threadList)
+            t.join();                       // On attend la fin de tous les threads (donc de touts les taches)
+    }
+
+private:
+    void ExecLoop()
+    {
+        while (true) {  // boucle infinie: on prend l'élément suivant du tableau et on l'execute.
+            Calculus *c;
+            {
+                // On protege la liste des taches a executer contre l'execution en parallle des threads avec un lock
+                std::lock_guard<std::mutex> lock(mMutex_CalculusQueue);
+                if (CalculusQueue.empty())
+                    return;             // Si plus de tache, on sort. On va rejoindre le "t.join()"
+                c = CalculusQueue.front();
+                CalculusQueue.pop_front();
+            }
+            c->run();
+        }
+    }
+
+    std::deque<Calculus*> CalculusQueue;    // Liste des pointeurs sur les taches a executer
+    std::mutex mMutex_CalculusQueue;        // Mutex pour proteger l'acces a CalculusQueue entre les threads
+};
+
+
+
+std::vector<Calculus> calculus(NbRuns);     // Tableau des taches a executer
+
+
+int main()
+{
+    ThreadPool tp;
+    tp.Exec(calculus, NbThreadMax);     // On execute toutes les taches, NbThreadMax en paralleles
+    for (auto& c : calculus) {
+        std::cout << c.n << " " << c.val << " " << c.start << " " << c.end << std::endl;
+    }
+
+    return 0;
+}
+
+
+
 
 */
 

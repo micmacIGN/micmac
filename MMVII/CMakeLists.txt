@@ -97,6 +97,11 @@ set(mmv2_gencode_dir "${mmv2_src_dir}/GeneratedCodes")
 set(mmv2_gencode_main_src "${mmv2_gencode_dir}/cName2CalcRegisterAll.cpp")
 set(EIGEN3_INCLUDE_PATH  "${mmv2_external_include_dir}/eigen-3.4.0")
 
+# MaxFlow
+#set(maxflow_dir "/etc/opt/maxflow-v3.04.src/")
+set(maxflow_src_dir "/etc/opt/maxflow-v3.04.src/")
+
+
 # MtKaHyPar
 set(mtkahypar_dir "/etc/opt/mt-kahypar/")
 set(mtkahypar_include_dir "${mtkahypar_dir};${mtkahypar_dir}/include;${mtkahypar_dir}external_tools/kahypar-shared-resources")
@@ -111,15 +116,15 @@ if (NOT EXISTS "${mmv2_gencode_main_src}")
 endif()
 
 # MMVII sources: Auto generate. Not recommended, but let's try it ...
-file(GLOB mmv2_libsrcs CONFIGURE_DEPENDS "${mmv2_src_dir}/*/*.cpp")
-file(GLOB mmv2_headers "${mmv2_include_dir}/*.h" "${mmv2_include_dir}/*/*.h" "${mmv2_src_dir}/*/*.h")
+file(GLOB mmv2_libsrcs CONFIGURE_DEPENDS "${mmv2_src_dir}/*/*.cpp" "${maxflow_src_dir}/*.cpp")
+file(GLOB mmv2_headers "${mmv2_include_dir}/*.h" "${mmv2_include_dir}/*/*.h" "${mmv2_src_dir}/*/*.h" "${maxflow_src_dir}/*.h")
 
 
 #######################################################
 ##        libP2007 buid (MMVII library)
 #######################################################
 add_library(P2007 "${mmv2_libsrcs}" "${mmv2_headers}")
-target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH};${mtkahypar_include_dir}")#
+target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH};${mtkahypar_include_dir};${maxflow_src_dir}")#
 target_link_libraries(P2007 PRIVATE MMVII_compiler_flags Threads::Threads)
 
 # Force parallel compilation with MSVC
@@ -139,7 +144,7 @@ else()
 	set(mmv2_extlibs)
 endif()
 
-target_include_directories(MMVII PRIVATE "${MMVII_SOURCE_DIR}/include"  )
+target_include_directories(MMVII PRIVATE "${MMVII_SOURCE_DIR}/include" ${maxflow_src_dir} ) #
 
 target_link_libraries(MMVII PRIVATE MMVII_compiler_flags Threads::Threads P2007 ${mmv1_libs} ${mmv2_extlibs} ${mtkahypar_lib})
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION  VERSION_LESS "9.1")

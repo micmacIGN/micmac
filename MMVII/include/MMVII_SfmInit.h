@@ -5,7 +5,7 @@
 #include "MMVII_Tpl_Images.h"
 #include "MMVII_PoseTriplet.h"
 #include "MMVII_PoseRel.h"
-//#include "MMVII_TplHeap.h"   //conflict with mmv1
+#include "MMVII_TplHeap.h"   //conflict with mmv1
 #include <thread>
 
 //#include "mt-kahypar/macros.h"
@@ -23,12 +23,31 @@
 
 namespace MMVII
 {
-//extern const int HEAP_NO_INDEX;
 
 class cVertex;
 class cEdge;
 class cHyperEdge;
 class cHyperGraph;
+
+struct cObjQual
+{
+    int     mId;
+    double  mQual;
+};
+
+class cCmpObjQual
+{
+    public:
+        bool operator()(const cObjQual& anObj1,const cObjQual& anObj2) const
+        { return anObj1.mQual > anObj2.mQual; } //pops highest value
+};
+
+class cIndexObjQual
+{
+    public:
+        static void SetIndex(cObjQual& anObj,tU_INT4 i) {anObj.mId=i;}
+        static int  GetIndex(const cObjQual& anObj) {return anObj.mId;}
+};
 
 /* ********************************************************** */
 /*                                                            */
@@ -126,6 +145,8 @@ class cHyperEdge : public cMemCheck
      const tU_INT4& IndexHeap() const {return mIndexHeap;}
      const tU_INT4& Index() const {return mIndex;}
 
+     //std::string UniqueName();
+
      void  SetRelPoses(cTriplet& aT) {mRelPoses=aT;}
      const cView& RelPose(int aK) const {return mRelPoses.PVec()[aK];}
 
@@ -169,12 +190,16 @@ class cHyperGraph : public cMemCheck
       std::vector<cHyperEdge*>& GetAdjacentHyperedges(cEdge*);
       bool                      HasAdjacentHyperedges(cEdge*);
 
+      const std::vector<cHyperEdge*>& VHEdges() const {return mVHEdges;}
       cHyperEdge*               GetHyperEdge(int aK) {return mVHEdges[aK];}
       const cHyperEdge*         GetHyperEdge(int aK) const {return mVHEdges[aK];}
 
       cHyperEdge*               CurrentBestHyperedge();
 
-      const std::unordered_map<std::string,cVertex*>& GetMapVertices() const {return mMapVertices;}
+      const std::unordered_map<std::string,cVertex*>&
+                GetMapVertices() const {return mMapVertices;}
+      const std::unordered_map<cEdge, std::vector<cHyperEdge*>, typename cEdge::Hash>&
+                AdjMap() const {return mAdjMap;}
 
       cVertex*                  GetVertex(std::string& aN) {return mMapVertices[aN];}
 
@@ -192,27 +217,96 @@ class cHyperGraph : public cMemCheck
       void ClearFlags();
       void UpdateIndHeap();
 
+      ///
+      void DFS(int, std::vector<bool>&,
+               std::map<int,std::vector<int>>&);
+      bool CheckConnectivity(std::map<int,std::vector<int>>&);
+
+      template <typename tObj,typename tCmp>
+      void FindTerminals (cIndexedHeap<tObj,tCmp>&,
+                          std::map<int,std::vector<int>>&,
+                          cObjQual&, cObjQual&);
+
       void SaveDotFile(std::string&);
       void SaveHMetisFile(std::string&);
+      void SaveTriGraph(std::string&);
 
       void Show();
       void ShowFlags(bool);
       void ShowHyperEdgeVQual();
 
+
+
  private:
      std::unordered_map<std::string,cVertex*>    mMapVertices;
      std::vector<cHyperEdge*>                    mVHEdges;
-     std::unordered_map<cEdge, std::vector<cHyperEdge*>, typename cEdge::Hash> mAdjMap;
+     std::unordered_map<cEdge, std::vector<cHyperEdge*>,
+                           typename cEdge::Hash> mAdjMap;
 
      bool                                        IS_INIT;
 
 };
+
+template <typename tObj,typename tCmp>
+void cHyperGraph::FindTerminals(
+                   cIndexedHeap<tObj,tCmp>& aHeap,
+                   std::map<int,std::vector<int>>& aAdj,
+                   cObjQual& aObj1, cObjQual& aObj2)
+{
+    bool IsOK = aHeap.Pop(aObj1);
+    StdOut() << IsOK << " SOURCE id=" << aObj1.mId << ", #Connections=" << aObj1.mQual << std::endl;
+
+
+    IsOK = aHeap.Pop(aObj2);
+    //bool BestAreNeigh = true;
+
+    // make sure 2nd best is not a neighbour of the best
+    for (int aK=0; aK<int(aAdj[aObj1.mId].size()); aK++)
+    {
+        if (aObj2.mId == (aAdj[aObj1.mId][aK]))
+        {
+           // StdOut() << "=== " << aObj2.mId << " neighbour of "
+           //                    << aObj1.mId << std::endl;
+
+            IsOK = aHeap.Pop(aObj2);
+            aK=0; // reset the loop
+        }
+    }
+
+    StdOut() << IsOK << " SINK id=" << aObj2.mId << ", #Connections" << aObj2.mQual << std::endl;
+
+    // make sure that any edge starting at 2nd best node
+    //  is not adjacent to an edge containing the best node
+/*    for (int aK1=0; aK1<int(aAdj[aObj2.mId].size()); aK1++)
+    {
+        for (int aK2=0; aK2<int(aAdj[aObj1.mId].size()); aK2++)
+        {
+            StdOut() << aAdj[aObj2.mId][aK1] << " " << aAdj[aObj1.mId][aK2] << std::endl;
+
+            if ((aAdj[aObj2.mId][aK1] == aAdj[aObj1.mId][aK2]) ||
+                (aAdj[aObj2.mId][aK1] == aObj1.mId) ) //
+            {
+                StdOut() << "=== " << aObj2.mId << " node in common" << std::endl;
+
+                aHeap.Pop(aObj2);
+                aK1=0; // reset the loops
+                aK2=0;
+            }
+        }
+    } */
+
+
+    StdOut() << IsOK << " SOURCE " << aObj2.mId << " " << aObj2.mQual << std::endl;
+
+}
+
 
 /* ********************************************************** */
 /*                                                            */
 /*                 cAppli_SfmInitWithPartition                */
 /*                                                            */
 /* ********************************************************** */
+
 
 class cAppli_SfmInitWithPartition: public cMMVII_Appli
 {
@@ -221,16 +315,28 @@ class cAppli_SfmInitWithPartition: public cMMVII_Appli
 
      cAppli_SfmInitWithPartition(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
      int Exe() override;
+     int ExeHParal();
+     int ExeHierarch();
+     int ExeKahyPar();
      cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
      cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
 
  private :
+     void DFS(int, std::vector<bool>&,
+              std::map<int,std::vector<int>>&);
+     bool CheckConnectivity(std::map<int,std::vector<int>>&);
+
+
      cPhotogrammetricProject   mPhProj;
-     int                 mNbParts;
-     double              mImbalance;
-     //std::string         mKPInitFile;
+     double                    mSourceInit;
+     double                    mSinkInit;
+     int                       mNbParts;
+     double                    mImbalance;
+     //std::string             mKPInitFile;
+
      std::string         mHMetisFile;
+     std::string         mTGraphFile;
      std::string         mPartOutFile;
 
 };

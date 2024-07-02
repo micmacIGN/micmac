@@ -47,6 +47,7 @@ class cTriplet : public cMemCheck
         typedef cIsometry3D<tREAL8>  tPose;
         cTriplet();
 
+        int&    Id() {return mId;}
         cView& Pose(int aK) {return mPoses[aK];}
         const cView& Pose(int aK) const {return mPoses[aK];}
 
@@ -61,7 +62,10 @@ class cTriplet : public cMemCheck
 
         void AddData(const cAuxAr2007&);
 
+        //std::string UniqueName();
+
     private:
+        int                mId;
         std::vector<cView> mPoses;
 
         double             mBH;
@@ -83,6 +87,7 @@ class cTripletSet : public cMemCheck
         static cTripletSet * FromFile(const std::string &) ;
 
         void PushTriplet(cTriplet &);
+        //cTripletSet FilterTriplets(const std::vector<std::string>&);
 
         const std::vector<cTriplet>& Set() const {return mSet;}
         std::vector<cTriplet>& Set() {return mSet;}

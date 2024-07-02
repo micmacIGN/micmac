@@ -140,6 +140,7 @@ void cTriplet::AddData(const cAuxAr2007 &anAuxInit)
     // Save the relative poses
     // Pose1, Pose 21, Pose31
     //
+    MMVII::AddData(cAuxAr2007("Id",anAux),mId);
     MMVII::AddData(cAuxAr2007("Pose1",anAux),mPoses[0]);
     MMVII::AddData(cAuxAr2007("Pose21",anAux),mPoses[1]);
     MMVII::AddData(cAuxAr2007("Pose31",anAux),mPoses[2]);
@@ -166,6 +167,7 @@ void cTripletSet::PushTriplet(cTriplet &aTri)
 {
     mSet.push_back(aTri);
 }
+
 
 void cTripletSet::ToFile(const std::string &aName) const
 {
@@ -202,6 +204,8 @@ void AddData(const  cAuxAr2007 & anAux,cTripletSet & aSet)
 {
      aSet.AddData(anAux);
 }
+
+
 
 }; // MMVII
 
