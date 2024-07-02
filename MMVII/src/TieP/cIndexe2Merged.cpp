@@ -278,7 +278,7 @@ cReadMTP_Std::cReadMTP_Std
 	     aPt.mIdPt = aVec[0].mId;
 	     aPt.mNumCurInIm = 0;
 	     aPt.mIdIm = aKIm;
-	     aPt.mHeapIndex = HEAP_NO_INDEX;   // probably not necessary, but no harm
+	     aPt.mHeapIndex = MMVII_HEAP_NO_INDEX;   // probably not necessary, but no harm
 	     mHeap.Push(aPt);
 	     GotSomething = true;
 	  }

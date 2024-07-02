@@ -364,7 +364,7 @@ template<class Type>  class cSparseLeasSqtAA : public cSparseLeasSq<Type>
 template <class Type> cLineSparseLeasSqtAA<Type>::cLineSparseLeasSqtAA(size_t aY,size_t  aNb,bool isAlwaysDense) :
 	mY                (aY),
 	mCanRecycle       (true),
-	mHeapIndex        (HEAP_NO_INDEX),
+	mHeapIndex        (MMVII_HEAP_NO_INDEX),
 	mState            (isAlwaysDense ? eLineSLSqtAA::eLS_AlwaysDense   : eLineSLSqtAA::eLS_TempoSparse),
 	mDenseLine        (isAlwaysDense ? (cMemManager::Alloc<Type>(aY,aNb))   : nullptr),
 	// mDenseLine        (isAlwaysDense ? ((aNb-aY))   : 0),

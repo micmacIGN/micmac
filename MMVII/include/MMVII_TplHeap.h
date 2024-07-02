@@ -13,7 +13,7 @@ template <class Type> class DefaultParamHeap; // usable as 3rd template param of
 
 
 // #define HEAP_NO_INDEX -1
-static constexpr int HEAP_NO_INDEX = -1;
+static constexpr int MMVII_HEAP_NO_INDEX = -1;
 
 /**  Class to use for non indexable heap */
 template <class Type> class DefaultParamHeap
@@ -23,7 +23,7 @@ template <class Type> class DefaultParamHeap
         static int  GetIndex(const Type &)  ///< we dont know what to do here => error
         {
              MMVII_INTERNAL_ERROR("No DefaultParamHeap::Index");
-             return HEAP_NO_INDEX;
+             return MMVII_HEAP_NO_INDEX;
         }
 };
 
@@ -144,7 +144,7 @@ template <class Type,class Compare, class TParam=DefaultParamHeap<Type> > class 
              /// Direct acces to heap belongness , use indexe
         bool IsInHeap(const Type & aV) const
         {
-            return (TParam::GetIndex(aV)!=HEAP_NO_INDEX);
+            return (TParam::GetIndex(aV)!=MMVII_HEAP_NO_INDEX);
         }
              /// Update the position in the heap because the object may have been modified
         void UpDate(const Type & aV)
@@ -196,7 +196,7 @@ template <class Type,class Compare, class TParam=DefaultParamHeap<Type> > class 
         ///  readjust index so that it contain the conventional "NO INDEX"
         void SetNoIndex(Type & v)
         {
-            TParam::SetIndex(v,HEAP_NO_INDEX);
+            TParam::SetIndex(v,MMVII_HEAP_NO_INDEX);
         }
 
         /// swap values, udpate indexes, set ind1 to ind2

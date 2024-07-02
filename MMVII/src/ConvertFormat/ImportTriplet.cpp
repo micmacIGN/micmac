@@ -47,7 +47,9 @@ class cAppli_ImportTriplet : public cMMVII_Appli
     std::string              mNameTriSet;
     tNameSet                 mSetFilter;
     bool                     mHMetisExp;
+    bool                     mTriGraphExp;
     std::string              mHMetisName;
+    std::string              mTriGraphName;
 
 
 
@@ -58,7 +60,9 @@ cAppli_ImportTriplet::cAppli_ImportTriplet(const std::vector<std::string> & aVAr
    mPhProj       (*this),
    mFileBin      (true),
    mHMetisExp    (false),
-   mHMetisName   ("Graph_hmetis.txt")
+   mTriGraphExp  (false),
+   mHMetisName   ("Graph_hmetis.txt"),
+   mTriGraphName  ("Graph_triplets.txt")
 {
 }
 
@@ -77,6 +81,8 @@ cCollecSpecArg2007 & cAppli_ImportTriplet::ArgOpt(cCollecSpecArg2007 & anArgObl)
     return anArgObl
             << AOpt2007(mNameTriSet,"NameTri", "Name of the output triplet set; def=TripletSet")
             << AOpt2007(mFileBin,"FileBin","Binary file format, def=true")
+            << AOpt2007(mTriGraphExp,"TriGraph","Export graph in hMetis format, def=false")
+            << AOpt2007(mTriGraphName,"TGName","TriGraph file name")
             << AOpt2007(mHMetisExp,"HMetis","Export graph in hMetis format, def=false")
             << AOpt2007(mHMetisName,"HMetisName","hMetis file name")
                ;
@@ -95,6 +101,7 @@ int cAppli_ImportTriplet::Exe()
 
     cXml_TopoTriplet aXml3 =  StdGetFromSI(mNameFile,Xml_TopoTriplet);
 
+    int aId=0;
     for (auto aTriXML : aXml3.Triplets())
     {
 
@@ -149,6 +156,8 @@ int cAppli_ImportTriplet::Exe()
 
         cTriplet aTri;
 
+        aTri.Id() = aId++;
+
         aTri.PVec()[0] = (cView(tPose::Identity(),aTriXML.Name1()));
         aTri.PVec()[1] = (cView(tPose(aCenter21,aR21),aTriXML.Name2()));
         aTri.PVec()[2] = (cView(tPose(aCenter31,aR31),aTriXML.Name3()));
@@ -166,7 +175,6 @@ int cAppli_ImportTriplet::Exe()
         //StdOut() << "Calib: " << aCalib->F() << " " << aCalib->PP() << std::endl;
 
 
-
     }
 
     /// save triplets' graph to mmvii format
@@ -180,6 +188,16 @@ int cAppli_ImportTriplet::Exe()
 
         std::string aNameOut = mPhProj.DirPhp() + mHMetisName;
         aHG.SaveHMetisFile(aNameOut);
+        StdOut() << aNameOut << std::endl;
+    }
+
+    if (mTriGraphExp)
+    {
+        cHyperGraph aHG;
+        aHG.InitFromTriSet(&aSetOfTri);
+
+        std::string aNameOut = mPhProj.DirPhp() + mTriGraphName;
+        aHG.SaveTriGraph(aNameOut);
         StdOut() << aNameOut << std::endl;
     }
 
