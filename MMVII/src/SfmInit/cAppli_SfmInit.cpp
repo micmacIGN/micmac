@@ -1252,17 +1252,20 @@ int cAppli_SfmInitWithPartition::ExeHParal()
     ///
     mPhProj.FinishInit();
     cTripletSet * aTriSet = mPhProj.ReadTriplets();
-
-    ThreadPool aThreadP;
+    
+    ThreadPool aThreadP(NbThreadMax);
 
     /// ================ Initialise tree structure
     ///
     auto aRoot = std::make_shared<cNodeHTreeMT>(nullptr,0,0);
     aRoot->Init(*aTriSet);
-    aRoot->Descend(aThreadP,aRoot);
-    aThreadP.addNode(aRoot); //adds parent to tp
-
-    aThreadP.Exec(NbThreadMax);
+    aRoot->BuildChildren(aThreadP,aRoot);
+    aThreadP.addNode(aRoot);
+    
+    StdOut() << "PARTITION " <<   std::endl;
+    aThreadP.ExecDown();
+    StdOut() << "ALIGN " <<   std::endl;
+    aThreadP.ExecUp();
 
     StdOut() << "tree propagated " <<   std::endl;
 

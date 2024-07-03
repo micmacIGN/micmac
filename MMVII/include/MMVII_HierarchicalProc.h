@@ -14,9 +14,10 @@
 #include <memory>
 #include <atomic>
 #include <algorithm>
+#include <condition_variable>
 
-static constexpr int NbThreadMax  = 8;
-static constexpr int NbDepthMax  = 3;
+static constexpr int NbThreadMax  = 12;
+static constexpr int NbDepthMax  = 8;
 static constexpr int NbKidsMax  = 2;
 
 
@@ -39,21 +40,26 @@ typedef std::chrono::time_point<std::chrono::system_clock> Time;
 class ThreadPool
 {
     public:
-        ThreadPool() {}
+        ThreadPool(int aNbThread) : mNbThread(aNbThread) {}
 
         void addNode(tNodeHT_mt_ptr node);
-        void Exec(int nbThread);
+        void ExecUp();
+        void ExecDown();
 
         const std::vector<tNodeHT_mt_ptr> allNodes() const { return mAllNodes;}
         const std::deque<tNodeHT_mt_ptr> runQueue() const { return mRunQueue;}
     private:
-        void ExecLoop();
+        void ExecLoopUp();
+        void ExecLoopDown();
 
         std::deque<tNodeHT_mt_ptr> mRunQueue;   // Liste des pointeurs sur les taches a executer
         std::deque<tNodeHT_mt_ptr> mRunQueueInv;
         std::mutex mMutex_CalculusQueue;        // Mutex pour proteger l'acces a CalculusQueue entre les threads
+        std::condition_variable cv;
 
         std::vector<tNodeHT_mt_ptr> mAllNodes;
+        int mNbWorkingThread;
+        int mNbThread;
 };
 
 /* ********************************************************** */
@@ -135,23 +141,28 @@ class cNodeHTreeMT
 
         void Init(cTripletSet&);
         void InitCutData();
-
-        void Descend(ThreadPool& threadPool, tNodeHT_mt_ptr me);
-
-
-        void Run();
+        
+        void BuildChildren(ThreadPool& threadPool, tNodeHT_mt_ptr me);
+        
+        
+        void RunDown();
+        void RunUp();
         void Partition();
+        bool isPartitioned() const {return IS_PARTITIONED;}
 
         std::string Name() const {return mName;}
         const tNodeHT_mt_ptr parent() const { return mParent.lock();}
-
-        int  ChildrenCount() const { return mChildrenCount;}
+        
+        bool IsRoot() const { return parent() == nullptr;}
+        void ResetChildrenToWait() { mChildrenToWait = mChildrenV.size();}
+        int  ChildrenCount() const { return mChildrenV.size();}
+        const std::vector<tNodeHT_mt_ptr> Children() const { return mChildrenV; };
         bool isLastChild() const {
             if (! parent())
                 return false;
             return parent()->mChildrenToWait.fetch_sub(1) == 1;     // Atomic decrement; if mChildrenToWait was 1, we are the last child
         }
-        bool isPartitioned() const {return IS_PARTITIONED;}
+        
 
     private:
         /* Graph    */
@@ -173,8 +184,6 @@ class cNodeHTreeMT
 
         /* Paralelization */
         std::weak_ptr<cNodeHTreeMT> mParent;
-        int                         mChildrenCount;
-        int                         mNbChildren;
         std::vector<tNodeHT_mt_ptr> mChildrenV;
         std::atomic<int>            mChildrenToWait;
 

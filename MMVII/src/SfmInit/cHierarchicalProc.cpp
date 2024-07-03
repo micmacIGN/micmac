@@ -3,6 +3,7 @@
 #include "MMVII_TplHeap.h"
 #include "graph.h"
 
+
 namespace MMVII
 {
 
@@ -20,24 +21,26 @@ int getRand(int min, int max)
 void ThreadPool::addNode(tNodeHT_mt_ptr node)
 {
     mAllNodes.push_back(node);
-    if (node->ChildrenCount() == 0)
-    {
-        mRunQueue.push_back(node);///push only the last leaf
-        std::cerr << "eeeeeeee " << node->Name() << " " << node->ChildrenCount() << std::endl;
-    }
 }
 
-
-void ThreadPool::Exec(int nbThread)
+void ThreadPool::ExecUp()
 {
+    mRunQueue.clear();
+    for (auto &node : mAllNodes) {
+        node->ResetChildrenToWait();
+        if (node->ChildrenCount() == 0)
+            mRunQueue.push_back(node);  // push if leaf
+    }
     std::vector<std::thread> threadList;
-    for (int i = 0; i < nbThread; ++i) // On lance NbThreads, chaque thread execute ExecLoop
-        threadList.emplace_back(std::thread(&ThreadPool::ExecLoop, this));
+    for (int i = 0; i < mNbThread; ++i) // On lance NbThreads, chaque thread execute ExecLoop
+        threadList.emplace_back(std::thread(&ThreadPool::ExecLoopUp, this));
     for (auto& t : threadList)
         t.join();                       // On attend la fin de tous les threads (donc de touts les taches)
+    threadList.clear();
 }
 
-void ThreadPool::ExecLoop()
+
+void ThreadPool::ExecLoopUp()
 {
     StdOut() << "numbre of tasks at start= " << mRunQueue.size() << std::endl;
     while (true) {  // boucle infinie: on prend l'élément suivant du tableau et on l'execute.
@@ -51,10 +54,59 @@ void ThreadPool::ExecLoop()
             node = mRunQueue.front();
             mRunQueue.pop_front();
         }
-        node->Run();
+        node->RunUp();
         if (node->isLastChild()) {
             std::lock_guard<std::mutex> lock(mMutex_CalculusQueue);
             mRunQueue.push_back(node->parent());/// if children processed, add the parent
+        }
+    }
+}
+
+void ThreadPool::ExecDown()
+{
+    mRunQueue.clear();
+    for (auto &node : mAllNodes) {
+        if (node->IsRoot()) {
+            mRunQueue.push_back(node);  // push if root
+            break;
+        }
+    }
+    mNbWorkingThread = 0;
+    std::vector<std::thread> threadList;
+    for (int i = 0; i < mNbThread; ++i) // On lance NbThreads, chaque thread execute ExecLoop
+        threadList.emplace_back(std::thread(&ThreadPool::ExecLoopDown, this));
+    for (auto& t : threadList)
+        t.join();                       // On attend la fin de tous les threads (donc de touts les taches)
+    threadList.clear();
+}
+
+
+void ThreadPool::ExecLoopDown()
+{
+    StdOut() << "numbre of tasks at start= " << mRunQueue.size() << std::endl;
+    while (true) {  // boucle infinie: on prend l'élément suivant du tableau et on l'execute.
+        tNodeHT_mt_ptr node;
+        {
+            StdOut() << "   as we go= " << mRunQueue.size() << std::endl;
+            // On protege la liste des taches a executer contre l'execution en parallle des threads avec un lock
+            std::unique_lock<std::mutex> lock(mMutex_CalculusQueue);
+            cv.wait(lock, [this] { return (! mRunQueue.empty()) || (mNbWorkingThread == 0) ;});
+            if (mRunQueue.empty() && mNbWorkingThread == 0)
+                return;             // Si plus de tache, on sort. On va rejoindre le "t.join()"
+            if (mRunQueue.empty())
+                continue;
+            node = mRunQueue.front();
+            mRunQueue.pop_front();
+            mNbWorkingThread++;
+            lock.unlock();
+        }
+        node->RunDown();
+        {
+            std::lock_guard<std::mutex> lock(mMutex_CalculusQueue);
+            mNbWorkingThread--;
+            for (const auto& child : node->Children())
+                mRunQueue.push_back(child);
+            cv.notify_all();
         }
     }
 }
@@ -74,7 +126,6 @@ cNodeHTreeMT::cNodeHTreeMT(tNodeHT_mt_ptr parent, int i, int depth) :
     mSourceVal(1000),
     IS_PARTITIONED(false),
     mParent(parent),
-    mChildrenCount(0),
     mDepth(depth+1)
 {
     auto aParentName = parent ? parent->Name() + "-" : "" ;
@@ -174,7 +225,7 @@ void cNodeHTreeMT::InitCutData()
 }
 
 
-void cNodeHTreeMT::Descend(ThreadPool &threadPool, tNodeHT_mt_ptr input)
+void cNodeHTreeMT::BuildChildren(ThreadPool &threadPool, tNodeHT_mt_ptr input)
 {
 
     bool isLeaf = (NbDepthMax >= mDepth);
@@ -184,18 +235,14 @@ void cNodeHTreeMT::Descend(ThreadPool &threadPool, tNodeHT_mt_ptr input)
         for (int i=0; i<NbKidsMax; i++)
         {
            auto aKid = std::make_shared<cNodeHTreeMT>(input,i,mDepth);
+           threadPool.addNode(aKid);
            StdOut() << aKid->Name() << std::endl;
 
-           mChildrenCount++;
            mChildrenV.push_back(aKid);
-
-           aKid->Descend(threadPool,aKid);
-           threadPool.addNode(aKid);
+           
+           aKid->BuildChildren(threadPool,aKid);
         }
     }
-    mChildrenToWait = ChildrenCount();
-
-    StdOut() << "end " << mChildrenToWait <<  std::endl;
 
 }
 
@@ -205,7 +252,23 @@ void cNodeHTreeMT::Partition()
     StdOut() << "======partition" << std::endl;
 }
 
-void cNodeHTreeMT::Run()
+void cNodeHTreeMT::RunDown()
+{
+    int val = 0;
+    
+    Time start = std::chrono::system_clock::now();
+    // Calcul stupide qui prend du temps ...
+    auto nbLoop = getRand(50000,200000);
+    for (int i=0; i<nbLoop; i++)
+        val = val + (double)std::rand() / std::rand();
+    Time end = std::chrono::system_clock::now();
+    
+    StdOut() << "PARTITION, partition id=" << this->Name() << " "
+             << end.time_since_epoch().count() - start.time_since_epoch().count() << std::endl;
+}
+
+
+void cNodeHTreeMT::RunUp()
 {
     int val=0;
 
