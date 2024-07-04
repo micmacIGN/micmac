@@ -9,6 +9,78 @@ namespace MMVII
 
 /* ************************************************************************ */
 /*                                                                          */
+/*                          cOptimPosSeg                                    */
+/*                                                                          */
+/* ************************************************************************ */
+
+cOptimPosSeg::cOptimPosSeg(const tSeg2dr & aSeg0) :
+    mSegInit   (aSeg0),
+    mP0Loc     (mSegInit.ToCoordLoc(mSegInit.P1())),
+    mP1Loc     (mSegInit.ToCoordLoc(mSegInit.P2()))
+{
+}
+
+cSegment2DCompiled<tREAL8>  cOptimPosSeg::ModifiedSeg(const cPt2dr & aPModif) const
+{
+    cPt2dr aP0Glob = mSegInit.FromCoordLoc(mP0Loc+cPt2dr(0,aPModif.x()));
+    cPt2dr aP1Glob = mSegInit.FromCoordLoc(mP1Loc+cPt2dr(0,aPModif.y()));
+
+    return cSegment2DCompiled<tREAL8>(aP0Glob,aP1Glob);
+}
+
+cPt1dr cOptimPosSeg::Value(const cPt2dr & aPt) const
+{
+        return cPt1dr(CostOfSeg(ModifiedSeg(aPt)));
+}
+
+tSeg2dr cOptimPosSeg::OptimizeSeg(tREAL8 aStepInit,tREAL8 aStepLim,bool IsMin,tREAL8 aMaxDInfInit) const
+{
+    cOptimByStep<2>  aOpt(*this,true,IsMin,aMaxDInfInit);
+    auto [aScore,aSol] = aOpt.Optim(cPt2dr(0,0),aStepInit,aStepLim);
+
+    return ModifiedSeg(aSol);
+}
+
+/* ************************************************************************ */
+/*                                                                          */
+/*                          cOptimSeg_ValueIm                               */
+/*                                                                          */
+/* ************************************************************************ */
+
+template <class Type> cOptimSeg_ValueIm<Type>::cOptimSeg_ValueIm
+(
+     const tSeg2dr & aSegInit,
+     tREAL8 aStepOnSeg,
+     const cDataIm2D<Type> & aDIm,
+     tREAL8 aTargetValue
+)  :
+     cOptimPosSeg  (aSegInit),
+     mStepOnSeg    (aStepOnSeg),
+     mNbOnSeg      (round_up( Norm2(aSegInit.V12()) / mStepOnSeg )) ,
+     mDataIm       (aDIm),
+     mTargetValue  (aTargetValue)
+{
+}
+
+template <class Type>  tREAL8 cOptimSeg_ValueIm<Type>::CostOfSeg(const cSegment2DCompiled<tREAL8> & aSeg) const
+{
+     tREAL8 aSum=0;
+
+     for (int aK=0 ; aK<= mNbOnSeg ; aK++)
+     {
+          cPt2dr aPt = Centroid(aK/double(mNbOnSeg),aSeg.P1(),aSeg.P2());
+          aSum += std::abs(mDataIm.GetVBL(aPt) - mTargetValue);
+     }
+
+     return aSum / mNbOnSeg;
+}
+
+template class cOptimSeg_ValueIm<tREAL4>;
+
+
+
+/* ************************************************************************ */
+/*                                                                          */
 /*                          cScoreTetaLine                                  */
 /*                                                                          */
 /* ************************************************************************ */

@@ -311,6 +311,54 @@ class cScoreTetaLine : public tFunc1DReal // herit from tFunc1DReal for optimiza
          tREAL8                      mStepTetaLim;
 };
 
+/**  Base class for optimizing  of a segment it inherits of tFunc2DReal so that it can be used by " cOptimByStep<2>"
+ * in OptimizeSeg  . The function "CostOfSeg" must be defined.
+*/
+
+class cOptimPosSeg : public tFunc2DReal
+{
+       public :
+            ///  constructor takes initial segment
+            cOptimPosSeg(const tSeg2dr &);
+
+            
+            tSeg2dr OptimizeSeg(tREAL8 aStepInit,tREAL8 aStepLim,bool IsMin,tREAL8 aMaxDInfInit) const;
+       private :
+            cSegment2DCompiled<tREAL8>  ModifiedSeg(const cPt2dr & aPModif) const;
+	    /// Inteface CostOfSeg to make it a function of tFunc2DReal
+            cPt1dr Value(const cPt2dr &) const override;
+	    ///  Method to define for indicating the cost to optimize
+            virtual tREAL8 CostOfSeg(const cSegment2DCompiled<tREAL8> &) const = 0;
+
+            cSegment2DCompiled<tREAL8>  mSegInit; ///< initial value of segment
+            cPt2dr                      mP0Loc;   ///< First  point in local coordinates of segment (y=0)
+            cPt2dr                      mP1Loc;   ///< Second point in local coordinates of segment (y=0)
+};
+
+/**   Class for refine the position of a segment where the objective is that, on a given image "I" , the points have a given value "V" :
+ *
+ *                -----
+ *                \
+ *                /      | I(m) - V|
+ *   Cost(Seg) =  -----
+ *                 p in Seg
+ * */
+
+template <class Type> class cOptimSeg_ValueIm : public cOptimPosSeg
+{
+      public :
+         cOptimSeg_ValueIm(const tSeg2dr &,tREAL8 aStepOnSeg,const cDataIm2D<Type> & aDIm,tREAL8 aTargetValue);
+
+         tREAL8 CostOfSeg(const cSegment2DCompiled<tREAL8> &) const override;
+      private :
+         tREAL8                    mStepOnSeg;   ///< Sampling step on the seg
+         int                       mNbOnSeg;     ///< Number of points (computed from mStepOnSeg)
+         const cDataIm2D<Type> & mDataIm;      ///<  Image on which it is computed
+         tREAL8                    mTargetValue; ///<
+};
+
+
+
 
 };
 #endif //  _MMVII_EXTRACT_LINES_H_

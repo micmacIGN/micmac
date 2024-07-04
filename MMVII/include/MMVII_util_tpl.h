@@ -324,6 +324,9 @@ template <class Type> void ResizeUp(std::vector<Type> & aV1,size_t aSz,const Typ
       aV1.resize(aSz,aVal);
 }
 
+template <class Type> void ResizeDown(std::vector<Type> & aV1,size_t aSz) { aV1.resize(std::min(aV1.size(),aSz)); }
+
+
 template <class Type> void SetAndResize(std::vector<Type> & aVec,size_t aSz,const Type &aVal,const Type & aDef)
 {
       ResizeUp(aVec,aSz,aDef);
