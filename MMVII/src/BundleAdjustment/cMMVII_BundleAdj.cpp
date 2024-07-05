@@ -580,13 +580,6 @@ void cMMVII_BundleAdj::SaveBlocRigid()
     }
 }
 
-void cMMVII_BundleAdj::SaveClino()
-{
-    if (mBlClino)
-    {
-       mBlClino->Save();
-    }
-}
 
 
     /* ---------------------------------------- */
@@ -599,6 +592,14 @@ void cMMVII_BundleAdj::AddClinoBloc(const std::string aNameClino, const std::str
     mBlClino = new cBA_Clino(mPhProj, aNameClino, aFormat, aPrePost);
 
     mBlClino->AddToSys(mSetIntervUK);
+}
+
+void cMMVII_BundleAdj::SaveClino()
+{
+    if (mBlClino)
+    {
+       mBlClino->Save();
+    }
 }
 
 

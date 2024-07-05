@@ -8,6 +8,7 @@ namespace MMVII
         mVertInLoc (mCam->Vec_W2L(cPt3dr(0,0,-1)))
     {
         
+        // For each clino, add angle measure and weight 
         for (size_t aK = 0; aK < aVClinoName.size(); aK++)
         {
             mVDir[aVClinoName[aK]] = aVAngles[2*aK];
@@ -30,6 +31,7 @@ namespace MMVII
     void cClinoMes1Cam::pushWeights(std::vector<double> & aVWeights) const
     {
         
+        // For each weight, add it 3 times
         for (const auto & [aK, aV] : mWeights)
         {
             for (size_t i = 0; i < 3; i++)
@@ -73,6 +75,7 @@ namespace MMVII
 
     void cClinoWithUK::pushIndex(std::vector<int> & aVInd) const
     {
+        // Push index of unknowns in aVInd
         for (int i = IndUk0(); i < IndUk1(); i++)
         {
             aVInd.push_back(i);
@@ -116,13 +119,17 @@ namespace MMVII
 
     void cBA_Clino::readMeasures()
     {
+        // Read clino observations file
         cReadFilesStruct aRFS(mNameClino,mFormat,0,-1,'#');
         aRFS.Read();
 
+        // Get clino names
         mVNamesClino = aRFS.VStrings().at(0);
 
+        // Initialize cameara calibration (to get after its orientation)
         cPerspCamIntrCalib * aCalib = nullptr;
 
+        // For each measure
         size_t aNbMeasures = aRFS.NbRead();
         for (size_t aKLine=0 ; aKLine<aNbMeasures ; aKLine++)
         {
@@ -135,13 +142,19 @@ namespace MMVII
                 aNameIm = mPrePost[0] +  aNameIm + mPrePost[1];
             }
             
+            // read camera orientation if files
             cSensorCamPC * aCam = mPhProj->ReadCamPC(aNameIm,true,true);
             
             if (aCam != nullptr)
             {
+                // Get camera calibration
                 aCalib = aCam->InternalCalib();
+                // Get clino names for this measure
                 std::vector<std::string> aVString = aRFS.VStrings().at(aKLine);
+                // Get clino measures for this measure
                 std::vector<tREAL8> aVNum = aRFS.VNums().at(aKLine);
+
+                // Add measure
                 cClinoMes1Cam aClinoMes1Cam(aCam, aVString, aVNum);
                 mVMeasures.push_back(aClinoMes1Cam);
             }
@@ -152,17 +165,19 @@ namespace MMVII
             
         }
 
+        // If no measures, return an error
         if (mVMeasures.size() == 0)
         {
             MMVII_INTERNAL_ERROR("Not enough measures");
         }
         
-        // Read initial value
+        // Read initial value for relative orientation between camera and clino
         if (aCalib)
         {
             mCalibSetClino = mPhProj->GetClino(*aCalib);
         }
         
+        // Create cClinoWithUK objects
         for(auto & aClinoCal:mCalibSetClino->ClinosCal())
         {
             mClinosWithUK.emplace(std::piecewise_construct, std::make_tuple( aClinoCal.NameClino()), std::make_tuple(aClinoCal.Rot(), aClinoCal.NameClino()));
@@ -178,7 +193,7 @@ namespace MMVII
             aV.Rot().Mat().PushByLine(aVObs);
         }
 
-        //Add the vertical
+        //Push the vertical
         tPt3dr aVertical = {0.0,0.0,-1.0};
         // If mPhProj is null (for ClinoBench), vertical is (0,0,-1)
         // Else, vertical is defined by the system
@@ -205,19 +220,28 @@ namespace MMVII
 
     cPt2dr cBA_Clino::addOneEquation(cResolSysNonLinear<tREAL8> & aSys, cClinoMes1Cam & aMeasure)
     {
+        // Vector with observations
         std::vector<double> aVObs;
+
+        // Vector with weights
         std::vector<double> aVWeights;
+
+        // Vector with index of unknowns
         std::vector<int> aVInd;
 
         // Push initial value of boresight matrix and vertical
         pushObs(aVObs, aMeasure.Cam()->Pose().Tr());
+        
         // Push orientation of camera
         aMeasure.pushObs(aVObs);
 
+        // Push index of unknowns
         pushIndex(aVInd);
 
+        // Push weights
         aMeasure.pushWeights(aVWeights);   
         
+        // Compute solution for the unknowns defined in aVInd
         aSys.R_CalcAndAddObs(
             mEqBlUK,
             aVInd,
@@ -225,26 +249,33 @@ namespace MMVII
             cResidualWeighterExplicit<tREAL8>(false, aVWeights)
         );
 
+        
+        // Compute residuals
         cPt2dr aRes(0,1);
 
+        // For the six equations defined in cFormulaClinoBloc, add the residuals
         for (size_t aKU = 0; aKU < 6 ; aKU++)
         {
             aRes[0] += Square(mEqBlUK->ValComp(0, aKU));
         }
         
+        // Return the mean of residuals
         return cPt2dr(aRes.x()/6.0, 1.0);
     }
 
 
     void cBA_Clino::addEquations(cResolSysNonLinear<tREAL8> & aSys)
     {
+        // Initialize residuals
         cPt2dr aRes(0,0);
-        // For each camera
+        
+        // For each measure, solve least squares and add residual to residuals
         for (auto aMeasure : mVMeasures)
         {
             aRes += addOneEquation(aSys, aMeasure);
         }
 
+        // Return mean residual
         mRes = aRes/aRes.y();
     }
 
@@ -256,6 +287,7 @@ namespace MMVII
     
     void cBA_Clino::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet)
     {
+        // Add each clino to the system
         std::map<std::string, cClinoWithUK>::iterator itr;
         for (itr = mClinosWithUK.begin(); itr != mClinosWithUK.end(); ++itr)
         {
@@ -267,13 +299,19 @@ namespace MMVII
     void cBA_Clino::Save() const
     {
         
+        // Get all clinos 
         std::vector<cOneCalibClino> aVOneCalibClino = mCalibSetClino->ClinosCal();
+        
+        // For each clino
         for (auto & aOneCalibClino : aVOneCalibClino)
         {
+            // Get its cClinoWithUK object
             auto aClinoWithUK = mClinosWithUK.find(aOneCalibClino.mNameClino);
+            // Set its rotation with the result of least squares
             aOneCalibClino.mRot = aClinoWithUK->second.Rot();
         }
         
+        // Save relative orientations between clino and reference camera
         mPhProj->SaveClino(*mCalibSetClino);
     }
 
