@@ -122,7 +122,9 @@ void  cAppliTopoAdj::AddOneSetGCP(const std::vector<std::string> & aVParStd)
 
     //  load the GCP
     cSetMesImGCP  aFullMesGCP; 
-    mPhProj.LoadGCPFromFolder(aFolder,aFullMesGCP,mBA.getTopo(),"",mGCPFilter,mGCPFilterAdd);
+    mPhProj.LoadGCPFromFolder(aFolder,aFullMesGCP,
+                              {mBA.getTopo(),&mBA.getVGCP()},
+                              "",mGCPFilter,mGCPFilterAdd);
 
     //here no 2d mes, fake it
     cSetMesPtOf1Im aSetMesIm;

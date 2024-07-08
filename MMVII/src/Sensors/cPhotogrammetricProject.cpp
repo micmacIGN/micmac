@@ -765,7 +765,7 @@ void cPhotogrammetricProject::LoadGCP(cSetMesImGCP& aSetMes,const std::string & 
 void cPhotogrammetricProject::LoadGCPFromFolder
      (const std::string & aFolder,
           cSetMesImGCP& aSetMes,
-          cBA_Topo * aBATopoAddPoints,
+          std::pair<cBA_Topo *, std::vector<cBA_GCP*>*> aTopoAddPointsInfo,
           const std::string & aArgPatFiltr,
           const std::string & aFiltrNameGCP,
           const std::string & aFiltrAdditionalInfoGCP) const
@@ -779,8 +779,9 @@ void cPhotogrammetricProject::LoadGCPFromFolder
      // Restore initial current orientation
      aDPPM.SetDirIn(aDirInit);
 
-     if (aBATopoAddPoints)
-         aBATopoAddPoints->AddPointsFromDataToGCP(aSetMes);
+     auto [aBATopo, aVectBA_GCP] = aTopoAddPointsInfo;
+     if (aBATopo) // new points have to be added here to benefit from gcp unknown creation
+         aBATopo->AddPointsFromDataToGCP(aSetMes, aVectBA_GCP);
 }
 
 void cPhotogrammetricProject::CpGCPPattern(const std::string & aDirIn,const std::string & aDirOut,const std::string & aArgPatFiltr) const

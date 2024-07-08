@@ -37,6 +37,7 @@ class  cSIMap_Ground2ImageAndProf ;
 class  cCalculMetaDataProject;
 class  cGlobCalculMetaDataProject;
 class  cBA_Topo;
+class  cBA_GCP;
 
 /**  helper for cPixelDomain, as the cPixelDomain must be serialisable we must separate the
  * minimal data for description, with def contructor from the more "sophisticated" object  */
@@ -549,7 +550,8 @@ class cPhotogrammetricProject
          void LoadGCP(cSetMesImGCP&,const std::string & aPatFiltrFile="",const std::string & aFiltrNameGCP="",
                       const std::string & aFiltrAdditionalInfoGCP="") const;
 	 ///  For reading GCP from folder potentially != of standard input measures, can add missing points from topo obs
-         void LoadGCPFromFolder(const std::string & aFolder,cSetMesImGCP&, cBA_Topo * aBATopoAddPoints=nullptr,
+         void LoadGCPFromFolder(const std::string & aFolder,cSetMesImGCP&,
+                                std::pair<cBA_Topo *, std::vector<cBA_GCP*>*> aTopoAddPointsInfo,
                                 const std::string & aPatFiltrFile="", const std::string & aFiltrNameGCP="",
                                 const std::string & aFiltrAdditionalInfoGCP="" ) const;
           // if SVP && file doesnt exist, do nothing

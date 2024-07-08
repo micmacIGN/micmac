@@ -64,7 +64,7 @@ class cAppliBundlAdj : public cMMVII_Appli
 
         std::vector<tREAL8>  ConvParamStandard(const std::vector<std::string> &,size_t aSzMin,size_t aSzMax) ;
         /// New Method for multiple GCP : each 
-        void  AddOneSetGCP(const std::vector<std::string> & aParam);
+        void  AddOneSetGCP(const std::vector<std::string> & aParam, bool aDoAddNewTopoPoints); //< Add topo new points only on last gcp set
         void  AddOneSetTieP(const std::vector<std::string> & aParam);
 
 	std::string               mSpecImIn;
@@ -176,7 +176,7 @@ std::vector<tREAL8>  cAppliBundlAdj::ConvParamStandard(const std::vector<std::st
 }
 
 // VParam standar is done from  Folder +  weight of size [2,5]
-void  cAppliBundlAdj::AddOneSetGCP(const std::vector<std::string> & aVParStd)
+void  cAppliBundlAdj::AddOneSetGCP(const std::vector<std::string> & aVParStd, bool aDoAddNewTopoPoints)
 {
     std::string aFolder = aVParStd.at(0);  // folder
     std::vector<tREAL8>  aGCPW = ConvParamStandard(aVParStd,3,6);
@@ -194,8 +194,10 @@ void  cAppliBundlAdj::AddOneSetGCP(const std::vector<std::string> & aVParStd)
 */
     
     //  load the GCP
-    cSetMesImGCP  aFullMesGCP; 
-    mPhProj.LoadGCPFromFolder(aFolder,aFullMesGCP,mBA.getTopo(),"",mGCPFilter,mGCPFilterAdd);
+    cSetMesImGCP  aFullMesGCP;
+    mPhProj.LoadGCPFromFolder(aFolder, aFullMesGCP,
+                              {aDoAddNewTopoPoints?mBA.getTopo():nullptr, aDoAddNewTopoPoints?&mBA.getVGCP():nullptr},
+                              "", mGCPFilter, mGCPFilterAdd);
 
     for (const auto  & aSens : mBA.VSIm())
     {
@@ -281,11 +283,11 @@ int cAppliBundlAdj::Exe()
     {
         std::vector<std::string>  aVParamStdGCP{mPhProj.DPPointsMeasures().DirIn()};
         AppendIn(aVParamStdGCP,mGCPW);
-        AddOneSetGCP(aVParamStdGCP);
+        AddOneSetGCP(aVParamStdGCP, mAddGCPW.empty());
     }
     // Add  the potential suplementary GCP
     for (const auto& aGCP : mAddGCPW)
-        AddOneSetGCP(aGCP);
+        AddOneSetGCP(aGCP, aGCP==mAddGCPW.back());
 
     if (IsInit(&mTiePWeight))
     {

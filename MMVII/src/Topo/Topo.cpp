@@ -88,7 +88,7 @@ void cBA_Topo::ToFile(const std::string & aName) const
 }
 
 
-void cBA_Topo::AddPointsFromDataToGCP(cSetMesImGCP &aFullMesGCP)
+void cBA_Topo::AddPointsFromDataToGCP(cSetMesImGCP &aFullMesGCP, std::vector<cBA_GCP *> *aVGCP)
 {
     // fill every ObsSet types
     for (auto & aSetData: mAllTopoDataIn.mAllObsSetStations)
@@ -119,7 +119,19 @@ void cBA_Topo::AddPointsFromDataToGCP(cSetMesImGCP &aFullMesGCP)
     for (auto & aPointName: aAllPointsNames)
     {
         bool found = false;
-        for (auto &aMesGCP: aFullMesGCP.MesGCP())
+        if (aVGCP) // search for the point in all existing cBA_GCP
+            for (auto &aBA_GCP: *aVGCP)
+            {
+                for (auto &aMesGCP: aBA_GCP->mMesGCP->MesGCP())
+                {
+                    if (aMesGCP.mNamePt == aPointName)
+                    {
+                       found = true;
+                       break;
+                    }
+                }
+            }
+        for (auto &aMesGCP: aFullMesGCP.MesGCP()) // search in current MesGCP
         {
             if (aMesGCP.mNamePt == aPointName)
             {
@@ -271,7 +283,6 @@ void cBA_Topo::AddTopoEquations(cResolSysNonLinear<tREAL8> & aSys)
     int aNbObs = aSys.GetNbObs();
     int aNbUk = aSys.NbVar() - aSys.GetNbLinearConstraints();
     mSigma0 = sqrt(mSigma0/(aNbObs-aNbUk));
-    //StdOut() << "Sigma0 topo: " << mSigma0 << "\n";
 }
 
 
@@ -290,7 +301,7 @@ void BenchTopoComp1example(const std::pair<cTopoData, cSetMesGCP>& aBenchData, t
 
     cSetMesImGCP aMesGCPtmp;
     aMesGCPtmp.AddMes3D(aBenchData.second);
-    aTopo->AddPointsFromDataToGCP(aMesGCPtmp);
+    aTopo->AddPointsFromDataToGCP(aMesGCPtmp, nullptr);
     //here no 2d mes, fake it
     cSetMesPtOf1Im aSetMesIm;
     aMesGCPtmp.AddMes2D(aSetMesIm);

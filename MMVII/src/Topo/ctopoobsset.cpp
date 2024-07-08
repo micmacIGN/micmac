@@ -245,6 +245,9 @@ bool cTopoObsSetStation::initialize()
                 G0 = atan2( aPtTo.getPt()->x() - mPtOrigin->getPt()->x(),
                                    aPtTo.getPt()->y() - mPtOrigin->getPt()->y())
                             - obs->getMeasures().at(0);
+#ifdef VERBOSE_TOPO
+                StdOut()<<"G0 hz: "<<*mPtOrigin->getPt()<<" -> "<<*aPtTo.getPt()<<" mes "<<obs->getMeasures().at(0)<<"\n";
+#endif
                 break;
             }
             if (obs->getType() == eTopoObsType::eDX && (!aObsDY || (aObsDY->getPointName(1)==obs->getPointName(1))))
@@ -260,6 +263,9 @@ bool cTopoObsSetStation::initialize()
             G0 = atan2( aPtTo.getPt()->x() - mPtOrigin->getPt()->x(),
                                aPtTo.getPt()->y() - mPtOrigin->getPt()->y())
                         - atan2( aObsDX->getMeasures()[0], aObsDY->getMeasures()[0]);
+#ifdef VERBOSE_TOPO
+            StdOut()<<"G0 dxy: "<<*mPtOrigin->getPt()<<" -> "<<*aPtTo.getPt()<<" mes "<<aObsDX->getMeasures()[0]<<" "<<aObsDY->getMeasures()[0]<<"\n";
+#endif
         }
         if (std::isfinite(G0))
         {
