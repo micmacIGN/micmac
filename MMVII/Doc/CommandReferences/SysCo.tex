@@ -104,7 +104,7 @@ The following measurements types are currently supported :
 These measurements are made from an instrument that can be vertical or not.
 For now, the vertical is modeled as the Earth's ellipsoid normal. Vertical deflection grids may be added later.
 
-The measurements can be made between cameras Ori, GCP or new points (that will be inserted into GCP list).
+The measurements can be made between cameras Ori, GCP or new points (that will be inserted into the last GCP set of the adjustment).
 
 Two {\tt MMVII} commands can use survey measurements in compensation:
 \begin{itemize}
@@ -187,6 +187,33 @@ is equivalent to:
     5 station target 100 0.001
 \end{verbatim}
 
+
+\section{Survey obs to make minimal external constraints}
+
+For any kind of adjustment, minimal constraints can be useful to get the measurements internal precision.
+In general, several GCP with known coordinates are used to fix the frame, but their inconsistency may
+impact the computation.
+
+In a 3D adjustment, up to 7 external constraints have to be provided to fix the frame translation, rotation and scale.
+
+With photogrammetry, one camera pose can be fixed to fix 6 external constraints. The scale can then be given with an obs file:
+\begin{verbatim}
+    * 10 meters between IMG1.JPG and IMG2.JPG poses
+    3  IMG1.JPG  IMG2.JPG 10.0000 0.0010   
+\end{verbatim}
+
+An other possibility is to constrain the coordinates a one GCP, then add an obs file to fix the scale and the 3 rotations:
+\begin{verbatim}
+    3  IMG1.JPG  IMG2.JPG 10.0000 0.0010   * scale constraint
+
+    #FIX  * do not add a rotation unknown
+    5  IMG1.JPG  GCP_10  0   0.0010   * GCP_10 is north from IMG1.JPG => constraints Rz
+
+    * two Za=Zb constraints between non-aligned points to constrain Rx and Ry
+    16  GCP_03  GCP_10  0 0.0010
+    16  GCP_03  GCP_11  0 0.0010
+    
+\end{verbatim}
 
 
 \section{{\tt TopoAdj} command}
