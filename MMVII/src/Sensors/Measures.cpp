@@ -309,6 +309,11 @@ void cSetMesImGCP::AsserGCPFinished() const
      MMVII_UnclasseUsEr("cSetMesImGCP : use with no image file");
 }
 
+int cSetMesImGCP::GetNbImMesForPoint(const std::string & aGCPName) const
+{
+    size_t aKGCP = m2MapPtInt.Obj2I(aGCPName,true);
+    return     mMesImOfPt[aKGCP].VImages().size();
+}
 
 cSetMesImGCP *  cSetMesImGCP::FilterNonEmptyMeasure(int aNbMeasureMin) const
 {

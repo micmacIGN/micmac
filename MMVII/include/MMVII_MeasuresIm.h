@@ -230,6 +230,7 @@ class cSetMesImGCP : public cMemCheck
 								  
 	    /// suppress mMesGCP & mMesIm with no images measure (eventually can give higher threshold) 
 	    cSetMesImGCP * FilterNonEmptyMeasure(int NbMeasureMin=1) const;
+	    int GetNbImMesForPoint(const std::string & aGCPName) const;
 
             const cSetMesPtOf1Im  & MesImInitOfName(const std::string &) const;
 	    const cMes1GCP &        MesGCPOfName(const std::string &) const;

@@ -5,6 +5,7 @@
 #include "ctopoobs.h"
 #include "../BundleAdjustment/BundleAdjustment.h"
 #include "cMMVII_Appli.h"
+#include <algorithm>
 
 namespace MMVII
 {
@@ -189,6 +190,19 @@ void cBA_Topo::printObs(bool withDetails)
     StdOut() << "Topo sigma0: " << mSigma0 << " (" << nbObs <<  " obs)\n";
 }
 
+std::vector<cTopoObs*> cBA_Topo::GetObsPoint(std::string aPtName) const
+{
+    std::vector<cTopoObs*> aVectObs;
+    for (auto &obsSet: mAllObsSets)
+        for (auto & obs: obsSet->getAllObs())
+        {
+            auto & aVectObsPtNames = obs->getPointNames();
+            if (std::find(aVectObsPtNames.begin(), aVectObsPtNames.end(), aPtName) != aVectObsPtNames.end())
+                aVectObs.push_back(obs);
+        }
+    return aVectObs;
+}
+
 void cBA_Topo::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet)
 {
     MMVII_INTERNAL_ASSERT_strong(mIsReady,"cBA_Topo is not ready");
@@ -229,7 +243,7 @@ cCalculator<double>*  cBA_Topo::getEquation(eTopoObsType tot) const {
     }
 }
 
-cTopoPoint & cBA_Topo::getPoint(std::string name)
+const cTopoPoint & cBA_Topo::getPoint(std::string name) const
 {
     if (mAllPts.count(name)==0)
     {

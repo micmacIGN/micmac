@@ -12,6 +12,7 @@ class cMMVII_BundleAdj;
 class cPhotogrammetricProject;
 class cSensorCamPC;
 class cTopoObsSet;
+class cTopoObs;
 class cTopoPoint;
 class cBA_GCP;
 
@@ -39,12 +40,13 @@ public :
     void print();
     void printObs(bool withDetails=false);
     double  Sigma0() {return mSigma0;}
+    std::vector<cTopoObs*> GetObsPoint(std::string aPtName) const;
 
     bool mergeUnknowns(cResolSysNonLinear<tREAL8> &aSys); //< if several stations share origin etc.
     void makeConstraints(cResolSysNonLinear<tREAL8> &aSys);
     const std::map<std::string, cTopoPoint> & getAllPts() const { return mAllPts; }
     std::map<std::string, cTopoPoint> & getAllPts() { return mAllPts; }
-    cTopoPoint & getPoint(std::string name);
+    const cTopoPoint & getPoint(std::string name) const;
     cCalculator<double>* getEquation(eTopoObsType tot) const;
     tPtrSysCo getSysCo() const { return mSysCo; }
 

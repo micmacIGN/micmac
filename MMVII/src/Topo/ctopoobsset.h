@@ -78,7 +78,7 @@ public:
     void setOrigin(std::string _OriginName);
     void PushRotObs(std::vector<double> & aVObs) const;
     cPt3dr_UK & getRotOmega() { return mRotOmega; }
-    cTopoPoint * getPtOrigin() const { return mPtOrigin; }
+    const cTopoPoint * getPtOrigin() const { return mPtOrigin; }
     tREAL8 getG0() const;
     const tRot & getRotVert2Instr() const { return mRotVert2Instr; }
     const tRot & getRotSysCo2Vert() const { return mRotSysCo2Vert; }
@@ -95,7 +95,7 @@ protected:
     tRot mRotVert2Instr; //< the station orientation from local vertical frame
     cPt3dr_UK mRotOmega; //< the station orientation unknown
     std::string mOriginName;
-    cTopoPoint *mPtOrigin;
+    const cTopoPoint * mPtOrigin;
 };
 
 /**

@@ -2,6 +2,7 @@
 #include "MMVII_util_tpl.h"
 
 #include "../Topo/Topo.h"
+#include "../Topo/ctopoobs.h"
 
 /**
    \file cAppliBundAdj.cpp
@@ -151,6 +152,7 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM)
     if (mPhaseAdd)
     {
         InitIteration();
+        CheckGCPConstraints();
     }
 
 
@@ -259,6 +261,7 @@ void cMMVII_BundleAdj::OneIterationTopoOnly(tREAL8 aLVM, bool verbose)
     if (mPhaseAdd)
     {
         InitIteration();
+        CheckGCPConstraints();
     }
 
     mTopo->SetFrozenAndSharedVars(*mR8_Sys);
@@ -477,6 +480,36 @@ void cMMVII_BundleAdj::CompileSharedIntrinsicParams(bool ForAvg)
         }
 */
     }
+}
+
+
+bool cMMVII_BundleAdj::CheckGCPConstraints() const
+{
+    for (const auto & aBA_GCP_Ptr : mVGCP)
+    {
+        for (const auto & aMesGCP : aBA_GCP_Ptr->mMesGCP->MesGCP())
+        {
+            if (aMesGCP.isFree())
+            {
+
+                int aNbImObs = aBA_GCP_Ptr->mMesGCP->GetNbImMesForPoint(aMesGCP.mNamePt);
+                int aNbTopoElementObs = 0;
+                if (mTopo)
+                {
+                    for (auto & obs: mTopo->GetObsPoint(aMesGCP.mNamePt))
+                    {
+                        aNbTopoElementObs += obs->getMeasures().size();
+                    }
+                }
+                MMVII_INTERNAL_ASSERT_strong(aNbImObs*2+aNbTopoElementObs>=3,
+                                             "Not enough observations for point "+
+                                             aMesGCP.mNamePt+": "+
+                                             std::to_string(aNbImObs)+" im + "+
+                                             std::to_string(aNbTopoElementObs)+" topo");
+            }
+        }
+    }
+    return true;
 }
 
     /* ---------------------------------------- */

@@ -167,6 +167,7 @@ class cMMVII_BundleAdj
           const std::vector<cSensorCamPC *> &  VSCPC() const;   ///< Accessor
 								//
 
+          bool CheckGCPConstraints() const; //< test if free points have enough observations
 	  //  =========  control object free/frozen ===================
 
 	  void SetParamFrozenCalib(const std::string & aPattern);
