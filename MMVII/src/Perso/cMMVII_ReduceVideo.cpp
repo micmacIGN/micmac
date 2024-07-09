@@ -128,15 +128,20 @@ class cAppli_ReduceVideo : public cMMVII_Appli
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
+
+        std::vector<std::string>  Samples() const override; 
+
      private :
          std::string               mPat;         ///< Pattern of input file
 
          std::string               mDir;         ///< Pattern of input file
          bool                      mExec;        ///< Execute cat and remove file (else just create file)
+	 bool                      mIsAudio;     ///< For converting mp4->mp3, nor reduction
 	 cPt2di                    mSzReduc;
          std::string               mPrefixRed;
          std::string               mPrefixUnRed;
          std::string               mPrefixRedDone;
+	 std::string               mPostFRes;  ///< Postfix for result
          int                       mLevMin;
          int                       mLevMax;
 
@@ -159,10 +164,16 @@ cCollecSpecArg2007 & cAppli_ReduceVideo::ArgOpt(cCollecSpecArg2007 & anArgOpt)
    return 
       anArgOpt
          << AOpt2007(mExec,"Exec","Execute reduction, else only print",{eTA2007::HDV})
+         << AOpt2007(mIsAudio,"IsAudio","If true, done reduce, but convert mp4,wmv... ->mP3",{eTA2007::HDV})
          << AOpt2007(mSzReduc,"SzRed","Reduction size, x=-1 if no reduction",{eTA2007::HDV})
    ;
 }
 
+std::vector<std::string>  cAppli_ReduceVideo::Samples() const 
+{
+	return {};
+// mm3d MapCmd  S=1  ffmpeg -i "P=(.*)\.mp4" -vf scale=1280:720 "c=Reduced-\$1.mp4"
+}
 
 cAppli_ReduceVideo::cAppli_ReduceVideo
 (
@@ -172,6 +183,7 @@ cAppli_ReduceVideo::cAppli_ReduceVideo
   cMMVII_Appli (aVArgs,aSpec),
   mDir            (DirCur()),
   mExec           (false),
+  mIsAudio        (false),
   mSzReduc        (1280,720),  // 854x480  640x360
   mPrefixRed      ("Reduced-"),
   mPrefixUnRed    (mPrefixRed+ "UNRED-"),
@@ -183,6 +195,13 @@ cAppli_ReduceVideo::cAppli_ReduceVideo
 
 int cAppli_ReduceVideo::Exe()
 {
+    if (mIsAudio)
+    {
+       SetIfNotInit(mPrefixRed,std::string("Audio-"));
+    }
+    mPostFRes = mIsAudio ? ".mp3" : ".mp4";
+
+
     mAllFiles = RecGetFilesFromDir(mDir,AllocRegex(mPat),mLevMin,mLevMax);
 
     std::set<std::string>  aDirsWithWhite;// store  folder with ' '
@@ -216,10 +235,10 @@ int cAppli_ReduceVideo::Exe()
 		      RenameFiles(aCurDir+aNameInit,aCurDir+aNameCor);
 		      aNameInit = aNameCor;
 	         }
-	         std::string aNameTmp   =  mPrefixRed + LastPrefix(aNameInit) + "-TmpRed" + ".mp4";
+	         std::string aNameTmp   =  mPrefixRed + LastPrefix(aNameInit) + "-TmpRed" + mPostFRes;
 
          cParamCallSys aCom("ffmpeg","-i",aCurDir+aNameInit);
-         if (mSzReduc.x()>0)  //  x=-1 => convention for conserving size
+         if ((mSzReduc.x()>0) && (!mIsAudio))  //  x=-1 => convention for conserving size
          {
                     aCom.AddArgs("-vf","scale=" + ToStr(mSzReduc.x()) + ":" + ToStr(mSzReduc.y()));
          }
@@ -229,13 +248,13 @@ int cAppli_ReduceVideo::Exe()
 		 {
 		    if ( GlobSysCall(aCom,true) == EXIT_SUCCESS)
 		    {
-	                 std::string aNameReduc =  mPrefixRed + LastPrefix(aNameInit) + ".mp4";
+	                 std::string aNameReduc =  mPrefixRed + LastPrefix(aNameInit) + mPostFRes;
 	                 std::string aNameDone  =     mPrefixRed + LastPrefix(aNameInit) + "-DONE."+ LastPostfix(aNameInit) ;
 
 			 // if reduction didnt work, maintain names
 			 if (SizeFile(aFullN0)<SizeFile(aCurDir+aNameTmp))
 			 {
-	                    std::string aNameUnReduc =  mPrefixUnRed + LastPrefix(aNameInit) + ".mp4";
+	                    std::string aNameUnReduc =  mPrefixUnRed + LastPrefix(aNameInit) + mPostFRes;
                             RenameFiles(aFullN0         ,aCurDir+aNameUnReduc);
 			    RemoveFile(aCurDir+aNameTmp,false);
 	                    // aNameDone  =     mPrefixRed + LastPrefix(aNameInit) + "-DONE-00."+ LastPostfix(aNameInit) ;

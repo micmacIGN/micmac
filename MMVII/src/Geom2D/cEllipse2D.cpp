@@ -113,11 +113,24 @@ cPt2dr  cEllipse::PtOfTeta(tREAL8 aTeta,tREAL8 aMulRho) const
     return  mCenter+ mVGa *(cos(aTeta)*mLGa*aMulRho) + mVSa *(sin(aTeta)*mLSa*aMulRho);
 }
 
+cPt2dr cEllipse::InterSemiLine(tREAL8 aTeta) const
+{
+     cPt2dr aPt = VectToCoordLoc(FromPolar(1.0,aTeta));
+     aPt = VUnit(aPt);
+     return FromCoordLoc(aPt);
+}
 
 
 cPt2dr  cEllipse::ToCoordLoc(const cPt2dr & aP0) const
 {
-     cPt2dr aP = (aP0-mCenter)/mVGa;
+     // cPt2dr aP = (aP0-mCenter)/mVGa;
+     // return cPt2dr(aP.x()/mLGa,aP.y()/mLSa);
+     return VectToCoordLoc(aP0-mCenter);
+}
+
+cPt2dr  cEllipse::VectToCoordLoc(const cPt2dr & aP0) const
+{
+     cPt2dr aP = aP0/mVGa;
 
      return cPt2dr(aP.x()/mLGa,aP.y()/mLSa);
 }
@@ -437,9 +450,10 @@ void cEllipse::BenchEllispe()
 /*               cEllipseEstimate                               */
 /*                                                              */
 /*  *********************************************************** */
-cEllipse_Estimate::cEllipse_Estimate(const cPt2dr & aC0) :
-    mSys  (new cLeasSqtAA<tREAL8> (5)),
-    mC0   (aC0)
+cEllipse_Estimate::cEllipse_Estimate(const cPt2dr & aC0,bool isCenterFree) :
+    mIsCenterFree  (isCenterFree),
+    mSys           (new cLeasSqtAA<tREAL8> (5)),
+    mC0            (aC0)
 {
 }
 
@@ -458,8 +472,16 @@ void cEllipse_Estimate::AddPt(cPt2dr aP)
      aDV(0) = Square(aP.x());
      aDV(1) = 2 * aP.x() * aP.y();
      aDV(2) = Square(aP.y());
-     aDV(3) = aP.x();
-     aDV(4) = aP.y();
+     if (mIsCenterFree)
+     {
+        aDV(3) = aP.x();
+        aDV(4) = aP.y();
+     }
+     else
+     {
+        aDV(3) = 0.0 ;
+        aDV(4) = 0.0 ;
+     }
 
      mSys->PublicAddObservation(1.0,aDV,1.0);
 
@@ -469,6 +491,7 @@ void cEllipse_Estimate::AddPt(cPt2dr aP)
 cEllipse cEllipse_Estimate::Compute()
 {
      auto  aSol = mSys->Solve();
+
 
      return cEllipse(aSol,mC0);
      /// return  aRes;

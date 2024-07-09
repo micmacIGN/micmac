@@ -1273,6 +1273,13 @@ template <class Type,class tMap>  cTriangle<Type,2>  ImageOfTri(const cTriangle<
      return  cTriangle<Type,2>(aMap.Value(aTri.Pt(0)),aMap.Value(aTri.Pt(1)),aMap.Value(aTri.Pt(2)));
 }
 
+template <class T>  T LineAngles(const cPtxd<T,2> & aDir1,const cPtxd<T,2> & aDir2)
+{
+     T aRes = std::abs(Teta(aDir1* conj(aDir2)));  // Angle Dir1/Dir2
+     return std::min(aRes,(T)M_PI - aRes);
+}
+
+
 
 /* ========================== */
 /*       INSTANTIATION        */
@@ -1285,7 +1292,8 @@ template std::pair<std::vector<cPtxd<TYPE,2> >,std::vector<cPtxd<TYPE,2>>> Rando
 template class cSegment2DCompiled<TYPE>;\
 template class  cAffin2D<TYPE>;\
 template class  cHomogr2D<TYPE>;\
-template   cHomogr2D<TYPE> RandomMapId(TYPE);
+template   cHomogr2D<TYPE> RandomMapId(TYPE);\
+template TYPE LineAngles(const cPtxd<TYPE,2> & aDir1,const cPtxd<TYPE,2> & aDir2);
 
 INSTANTIATE_GEOM_REAL(tREAL4)
 INSTANTIATE_GEOM_REAL(tREAL8)

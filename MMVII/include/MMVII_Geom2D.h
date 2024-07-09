@@ -58,6 +58,10 @@ template <class T>  inline T Teta(const cPtxd<T,2> & aP1)  ///<  From x,y to To 
    return  std::atan2(aP1.y(),aP1.x());
 }
 
+/// return the "line" angle : i.e angle  between 2  non oriented direction, it's always in [0,PI/2] 
+template <class T>  T LineAngles(const cPtxd<T,2> & aDir1,const cPtxd<T,2> & aDir2);
+
+
 template <class T> inline cPtxd<T,2> ToPolar(const cPtxd<T,2> & aP1,T aDefTeta)  ///<  With Def value 4 teta
 {
     return IsNotNull(aP1) ? ToPolar(aP1) : cPtxd<T,2>(0,aDefTeta);
@@ -608,6 +612,7 @@ class cEllipse
        cPt2dr  PtAndGradOfTeta(tREAL8 aTeta,cPt2dr &,tREAL8 aMulRho=1.0) const;  /// return also the gradien of belong function
 
        cPt2dr  ToCoordLoc(const cPt2dr &) const; /// in a sys when ellipse is unity circle
+       cPt2dr  VectToCoordLoc(const cPt2dr &) const; ///  for vector (dont use center)
        cPt2dr  FromCoordLoc(const cPt2dr &) const; /// in a sys when ellipse is unity circle
        cPt2dr  VectFromCoordLoc(const cPt2dr &) const; /// for vector (dont use center)in a sys when ellipse is unity circle
        cPt2dr  ToRhoTeta(const cPt2dr &) const; /// Invert function of PtOfTeta
@@ -617,6 +622,8 @@ class cEllipse
 
        cPt2dr  Tgt(const cPt2dr &) const;
        cPt2dr  NormalInt(const cPt2dr &) const;
+
+       cPt2dr InterSemiLine(tREAL8 aTeta) const;    /// compute the intesection of 1/2 line of direction teta with the ellipse
 
     private :
        void OneBenchEllispe();
@@ -644,12 +651,13 @@ class cEllipse_Estimate
         cLeasSqtAA<tREAL8> & Sys();
 
         // indicate a rough center, for better numerical accuracy
-        cEllipse_Estimate(const cPt2dr & aC0);
+        cEllipse_Estimate(const cPt2dr & aC0,bool isCenterFree=true);
         void AddPt(cPt2dr aP) ;
 
         cEllipse Compute() ;
         ~cEllipse_Estimate();
       private :
+	 bool               mIsCenterFree;
          cLeasSqtAA<tREAL8> *mSys;
          cPt2dr             mC0;
 
