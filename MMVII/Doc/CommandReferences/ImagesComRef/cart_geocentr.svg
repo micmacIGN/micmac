@@ -1,0 +1,999 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg8"
+   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
+   sodipodi:docname="cart_geocentr.svg">
+  <defs
+     id="defs2">
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker1977"
+       refX="0.0"
+       refY="0.0"
+       orient="auto"
+       inkscape:stockid="Arrow2Lstart">
+      <path
+         transform="scale(1.1) translate(1,0)"
+         d="M 8.7185878,4.0337352 L -2.2072895,0.016013256 L 8.7185884,-4.0017078 C 6.9730900,-1.6296469 6.9831476,1.6157441 8.7185878,4.0337352 z "
+         style="fill-rule:evenodd;stroke-width:0.625;stroke-linejoin:round;stroke:#000000;stroke-opacity:1;fill:#000000;fill-opacity:1"
+         id="path1975" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible;"
+       id="marker1426"
+       refX="0.0"
+       refY="0.0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend">
+      <path
+         transform="scale(0.8) rotate(180) translate(12.5,0)"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1;fill:#000000;fill-opacity:1"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         id="path1424" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lstart"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="marker3474"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path3472"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1;fill:#000000;fill-opacity:1"
+         transform="scale(0.8) translate(12.5,0)" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker3002"
+       refX="0.0"
+       refY="0.0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lstart"
+       inkscape:collect="always">
+      <path
+         transform="scale(0.8) translate(12.5,0)"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1;fill:#000000;fill-opacity:1"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         id="path3000" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lstart"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="marker2516"
+       style="overflow:visible"
+       inkscape:isstock="true"
+       inkscape:collect="always">
+      <path
+         id="path2251"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1;fill:#000000;fill-opacity:1"
+         transform="scale(0.8) translate(12.5,0)" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible;"
+       id="marker2051"
+       refX="0.0"
+       refY="0.0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend">
+      <path
+         transform="scale(0.8) rotate(180) translate(12.5,0)"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1;fill:#000000;fill-opacity:1"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         id="path2049" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker16957"
+       refX="0.0"
+       refY="0.0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lstart">
+      <path
+         transform="scale(0.8) translate(12.5,0)"
+         style="fill-rule:evenodd;stroke:#9200c5;stroke-width:1pt;stroke-opacity:1;fill:#9200c5;fill-opacity:1"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         id="path16955" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow2Lstart"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow2Lstart"
+       style="overflow:visible"
+       inkscape:isstock="true"
+       inkscape:collect="always">
+      <path
+         id="path4767"
+         style="fill-rule:evenodd;stroke-width:0.625;stroke-linejoin:round;stroke:#7f2aff;stroke-opacity:1;fill:#7f2aff;fill-opacity:1"
+         d="M 8.7185878,4.0337352 L -2.2072895,0.016013256 L 8.7185884,-4.0017078 C 6.9730900,-1.6296469 6.9831476,1.6157441 8.7185878,4.0337352 z "
+         transform="scale(1.1) translate(1,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="marker12241"
+       style="overflow:visible;"
+       inkscape:isstock="true">
+      <path
+         id="path12239"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#ff6600;stroke-width:1pt;stroke-opacity:1;fill:#ff6600;fill-opacity:1"
+         transform="scale(0.4) rotate(180) translate(10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow1Mend"
+       style="overflow:visible;"
+       inkscape:isstock="true">
+      <path
+         id="path4758"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#ff00cc;stroke-width:1pt;stroke-opacity:1;fill:#ff00cc;fill-opacity:1"
+         transform="scale(0.4) rotate(180) translate(10,0)" />
+    </marker>
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect7228"
+       is_visible="true" />
+    <marker
+       inkscape:stockid="Arrow2Lend"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow2Lend"
+       style="overflow:visible;"
+       inkscape:isstock="true">
+      <path
+         id="path937"
+         style="fill-rule:evenodd;stroke-width:0.625;stroke-linejoin:round;stroke:#ff00cc;stroke-opacity:1;fill:#ff00cc;fill-opacity:1"
+         d="M 8.7185878,4.0337352 L -2.2072895,0.016013256 L 8.7185884,-4.0017078 C 6.9730900,-1.6296469 6.9831476,1.6157441 8.7185878,4.0337352 z "
+         transform="scale(1.1) rotate(180) translate(1,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="marker1968"
+       style="overflow:visible;"
+       inkscape:isstock="true">
+      <path
+         id="path1966"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#ff00cc;stroke-width:1pt;stroke-opacity:1;fill:#ff00cc;fill-opacity:1"
+         transform="scale(0.8) rotate(180) translate(12.5,0)" />
+    </marker>
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect1958"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect1954"
+       is_visible="true" />
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient1663">
+      <stop
+         style="stop-color:#aaeeff;stop-opacity:1;"
+         offset="0"
+         id="stop1659" />
+      <stop
+         style="stop-color:#0065ff;stop-opacity:0.80936456"
+         offset="1"
+         id="stop1661" />
+    </linearGradient>
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect914"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect910"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect906"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect902"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect862"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect862-3"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect862-3-7"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect862-9"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect862-3-3"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect862-3-7-6"
+       is_visible="true" />
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient1663"
+       id="radialGradient1665"
+       cx="91.092262"
+       cy="359.04297"
+       fx="91.092262"
+       fy="359.04297"
+       r="71.794419"
+       gradientTransform="matrix(1.389588,4.4663493e-8,-3.7990529e-8,1.1819762,-53.631303,-250.02848)"
+       gradientUnits="userSpaceOnUse" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect862-3-7-1"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect862-3-7-6-6"
+       is_visible="true" />
+    <marker
+       inkscape:stockid="Arrow2Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow2Lend-2"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path937-0"
+         style="fill:#ff6600;fill-opacity:1;fill-rule:evenodd;stroke:#ff6600;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)" />
+    </marker>
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect1958-6"
+       is_visible="true" />
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker1240-4"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path1238-7"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect906-6"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect910-9"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect902-4"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect910-9-6"
+       is_visible="true" />
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker1240-4-8"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path1238-7-8"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#0030ba;fill-opacity:1;fill-rule:evenodd;stroke:#0039ef;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect906-6-4"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect902-4-4"
+       is_visible="true" />
+    <marker
+       inkscape:stockid="Arrow2Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow2Lend-3"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path937-6"
+         style="fill:#ff00cc;fill-opacity:1;fill-rule:evenodd;stroke:#ff00cc;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)" />
+    </marker>
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect1958-7"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect910-9-6-1"
+       is_visible="true" />
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker1240-4-8-2"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path1238-7-8-7"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect906-6-4-0"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect902-4-6"
+       is_visible="true" />
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker1240-4-8-3"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path1238-7-8-75"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#0030ba;fill-opacity:1;fill-rule:evenodd;stroke:#0039ef;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect906-6-4-9"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect910-9-6-9"
+       is_visible="true" />
+    <marker
+       inkscape:stockid="Arrow2Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow2Lend-3-0"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path937-6-3"
+         style="fill:#ff00cc;fill-opacity:1;fill-rule:evenodd;stroke:#ff00cc;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)" />
+    </marker>
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect1958-7-6"
+       is_visible="true" />
+    <marker
+       inkscape:stockid="Arrow2Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow2Lend-2-0"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path937-0-6"
+         style="fill:#ff6600;fill-opacity:1;fill-rule:evenodd;stroke:#ff6600;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)" />
+    </marker>
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect1958-6-3"
+       is_visible="true" />
+    <marker
+       inkscape:stockid="Arrow2Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow2Lend-2-0-1"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path937-0-6-5"
+         style="fill:#ff6600;fill-opacity:1;fill-rule:evenodd;stroke:#ff6600;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)" />
+    </marker>
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect1958-6-3-5"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect910-9-6-9-5"
+       is_visible="true" />
+    <marker
+       inkscape:stockid="Arrow1Lstart"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lstart-6"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path4749-9"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#7f2aff;fill-opacity:1;fill-rule:evenodd;stroke:#7f2aff;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(0.8,0,0,0.8,10,0)" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker4621-3"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:#9200c5;fill-opacity:1;fill-rule:evenodd;stroke:#9200c5;stroke-width:1.00000003pt;stroke-opacity:1"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path4619-7" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker17600-6"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path17598-8"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#7d00b7;fill-opacity:1;fill-rule:evenodd;stroke:#7d00b7;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker1977-6"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Lstart">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(1.1,0,0,1.1,1.1,0)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path1975-7" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker1977-3"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Lstart">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(1.1,0,0,1.1,1.1,0)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path1975-5" />
+    </marker>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.49497475"
+     inkscape:cx="791.32047"
+     inkscape:cy="599.65492"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1848"
+     inkscape:window-height="1016"
+     inkscape:window-x="72"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:snap-midpoints="true"
+     inkscape:snap-object-midpoints="false"
+     inkscape:snap-nodes="true"
+     inkscape:snap-intersection-paths="false"
+     inkscape:snap-smooth-nodes="false"
+     inkscape:object-paths="true"
+     inkscape:snap-bbox="true" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Calque 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.31149653;stroke-linecap:butt;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;opacity:0.985"
+       id="rect5749"
+       width="214.8847"
+       height="190.29594"
+       x="2.6726983"
+       y="31.066818"
+       inkscape:export-xdpi="198"
+       inkscape:export-ydpi="198"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.46500002;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:3.72000014, 0.46500002000000001;stroke-dashoffset:0;opacity:0.985"
+       d="m 108.55168,156.04064 15.80375,-50.66111"
+       id="path1469"
+       inkscape:connector-curvature="0"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:2.11666654, 1.05833327000000010;stroke-dashoffset:0;opacity:0.985"
+       d="m 101.73489,154.90662 54.3342,9.03891"
+       id="path1952"
+       inkscape:connector-curvature="0"
+       inkscape:path-effect="#path-effect1954"
+       inkscape:original-d="m 101.73489,154.90662 c 18.10906,3.01438 36.22307,6.02567 54.3342,9.03891"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;opacity:0.985"
+       d="m 101.93088,95.045028 -0.19599,59.861592"
+       id="path1855"
+       inkscape:connector-curvature="0"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;opacity:0.985"
+       d="m 101.72019,154.72752 63.45449,1.75338"
+       id="path2722"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;opacity:0.985"
+       d="m 101.73489,154.90662 -28.488697,20.7264"
+       id="path3208"
+       inkscape:connector-curvature="0"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png" />
+    <path
+       style="fill:none;stroke:#7f2aff;stroke-width:0.365;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none;opacity:0.985"
+       d="m 101.72019,154.72752 21.71973,-49.95505"
+       id="path1414"
+       inkscape:connector-curvature="0"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png" />
+    <ellipse
+       style="opacity:0.985;fill:url(#radialGradient1665);fill-opacity:1;stroke:#000000;stroke-width:0.71383786;stroke-miterlimit:4;stroke-dasharray:none"
+       id="path834-2"
+       cx="101.67559"
+       cy="152.05113"
+       rx="71.4375"
+       ry="62.201744"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.5290493;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:4.2323944, 2.11619719999999978;stroke-dashoffset:0;opacity:0.985"
+       d="m -146.41029,118.50028 c -0.60185,21.56129 -6.71001,42.94657 -17.58677,61.5731 -18.34702,31.4194 -50.54311,54.40666 -86.21748,61.55727 -35.67437,7.15061 -74.24257,-1.65258 -103.28127,-23.57393"
+       id="path860-6-5-9-3"
+       inkscape:connector-curvature="0"
+       inkscape:path-effect="#path-effect862-3-7-6-6"
+       inkscape:original-d="m -146.41029,118.50028 c 61.706571,5.30167 289.68304,-387.48521 -17.58677,61.5731 -37.95763,55.47304 -113.54541,31.19988 -189.49875,37.98334"
+       transform="matrix(0,-0.54175856,0.59353241,0,11.235764,12.806558)"
+       sodipodi:nodetypes="csc"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.46207889;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;opacity:0.985"
+       d="m -259.7944,84.647239 c 27.66172,0.788328 54.54375,15.772911 69.76107,38.886231 15.21732,23.11331 18.35756,53.72899 8.14917,79.45021 -4.18182,10.53658 -10.46022,20.23623 -18.36066,28.36582"
+       id="path860-8"
+       inkscape:connector-curvature="0"
+       inkscape:path-effect="#path-effect862-9"
+       inkscape:original-d="m -259.7944,84.647239 c 57.75755,5.5911 74.31654,74.021201 77.91024,118.336441 3.86611,47.67451 -12.31277,27.10564 -18.36066,28.36582"
+       transform="matrix(-0.50825458,0,0,0.82933307,-16.866804,20.735577)"
+       sodipodi:nodetypes="csc"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.44534702;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;opacity:0.985"
+       d="m -230.33848,84.253576 c 22.56845,6.88264 41.41677,24.965804 49.22826,47.229824 8.09351,23.06784 4.07093,50.01947 -10.40564,69.71868 -14.47658,19.69921 -38.99675,31.58754 -63.42897,30.75284"
+       id="path860-6-7"
+       inkscape:connector-curvature="0"
+       inkscape:path-effect="#path-effect862-3-3"
+       inkscape:original-d="m -230.33848,84.253576 c 14.11137,47.120774 58.05822,-0.68058 49.22826,47.229824 -8.743,47.43852 -77.76099,97.73174 -73.83461,100.47152"
+       transform="matrix(0,0.47368919,0.95797014,0,-50.623582,261.65203)"
+       sodipodi:nodetypes="csc"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.52904933;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;opacity:0.985"
+       d="m -186.52711,112.76886 c 5.454,11.6968 9.06824,24.2492 10.66943,37.05534 2.73055,21.83859 -0.48391,44.39131 -9.20712,64.59739 -8.7232,20.20608 -22.93219,38.01233 -40.69857,51.00216 -17.76639,12.98982 -39.0434,21.12903 -60.94341,23.31299 -21.90001,2.18396 -44.36535,-1.59306 -64.34714,-10.81848"
+       id="path860-6-5-9"
+       inkscape:connector-curvature="0"
+       inkscape:path-effect="#path-effect862-3-7-6"
+       inkscape:original-d="m -186.52711,112.76886 c 61.70657,5.30167 8.63464,-10.64464 10.66943,37.05534 2.21205,51.85555 -99.2429,121.3106 -175.19624,128.09406"
+       transform="matrix(0,-0.54175855,0.59353241,0,-6.3470494,-0.37107784)"
+       sodipodi:nodetypes="csc"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332;opacity:0.985;"
+       x="105.07738"
+       y="52.071426"
+       id="text1522"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png"><tspan
+         sodipodi:role="line"
+         id="tspan1520"
+         x="105.07738"
+         y="52.071426"
+         style="stroke-width:0.26458332;">Z</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332;opacity:0.985;"
+       x="191.76193"
+       y="159.35223"
+       id="text1526"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png"><tspan
+         sodipodi:role="line"
+         id="tspan1524"
+         x="191.76193"
+         y="159.35223"
+         style="stroke-width:0.26458332;">Y</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332;opacity:0.985;"
+       x="48.380955"
+       y="189.65475"
+       id="text1530"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png"><tspan
+         sodipodi:role="line"
+         id="tspan1528"
+         x="48.380955"
+         y="189.65475"
+         style="stroke-width:0.26458332;">X</tspan></text>
+    <path
+       style="fill:none;stroke:#ff00cc;stroke-width:0.36500001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Lend);opacity:0.985"
+       d="m -68.821904,169.17835 c 17.698869,3.54654 36.341118,2.26328 53.387089,-3.67497 4.065325,-1.41622 8.0405018,-3.09116 11.8934941,-5.01132"
+       id="path1956"
+       inkscape:connector-curvature="0"
+       inkscape:path-effect="#path-effect1958"
+       inkscape:original-d="m -68.821904,169.17835 c -3.20697,2.58334 60.0141628,-5.98477 53.387089,-3.67497 -7.01838,2.44617 2.272055,-2.69524 11.8934941,-5.01132"
+       sodipodi:nodetypes="csc"
+       transform="translate(148.48764,1.7842524)"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#d400aa;fill-opacity:1;stroke:none;stroke-width:0.26458332;opacity:0.985;"
+       x="71.054237"
+       y="185.45181"
+       id="text7224"
+       transform="rotate(-8.9693421)"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png"><tspan
+         sodipodi:role="line"
+         id="tspan7222"
+         x="71.054237"
+         y="185.45181"
+         style="font-size:6.3499999px;fill:#d400aa;stroke-width:0.26458332;">longitude</tspan></text>
+    <path
+       style="fill:#7f2aff;stroke:#7f2aff;stroke-width:0.35;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#Arrow2Lstart);opacity:0.985"
+       d="m 126.86327,96.90459 -3.44154,7.87583"
+       id="path1416"
+       inkscape:connector-curvature="0"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.465;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:3.72, 0.46500000000000002;stroke-dashoffset:0;opacity:0.985"
+       d="m 127.41757,95.894265 -3.06214,9.485265"
+       id="path1471"
+       inkscape:connector-curvature="0"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.37100002;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-start:url(#marker1977-3);opacity:0.985"
+       d="m 136.35357,88.128326 -8.8182,7.727908"
+       id="path1471-3-6"
+       inkscape:connector-curvature="0"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png" />
+    <path
+       sodipodi:nodetypes="cc"
+       style="fill:#20a473;fill-opacity:1;stroke:#b8dd00;stroke-width:0.69999999;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;opacity:0.985"
+       d="m 125.37943,96.61283 3.84436,-1.355367"
+       id="path7252"
+       inkscape:connector-curvature="0"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.37100002;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-start:url(#marker1977-6);opacity:0.985"
+       d="m 109.68116,85.205726 17.85421,10.650508"
+       id="path1471-3-5"
+       inkscape:connector-curvature="0"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png" />
+    <path
+       style="fill:#208937;fill-opacity:1;stroke:#abe100;stroke-width:0.69999999;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;opacity:0.985"
+       d="m 126.33275,94.613942 2.41521,2.850476"
+       id="path7254"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="134.70384"
+       y="90.935196"
+       id="text7262"><tspan
+         sodipodi:role="line"
+         id="tspan7260"
+         x="134.70384"
+         y="100.29897"
+         style="stroke-width:0.26458332" /></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:9.44924259px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#98cd02;fill-opacity:1;stroke:#265f00;stroke-width:0.23599999;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers;opacity:0.985;"
+       x="136.68874"
+       y="82.034004"
+       id="text7266"
+       transform="scale(0.89284184,1.1200192)"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png"><tspan
+         sodipodi:role="line"
+         id="tspan7264"
+         x="136.68874"
+         y="82.034004"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:8.81929398px;font-family:'DejaVu Sans';-inkscape-font-specification:'DejaVu Sans';fill:#98cd02;fill-opacity:1;stroke:#265f00;stroke-width:0.23599999;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers;">M</tspan></text>
+    <path
+       style="fill:none;stroke:#ff6600;stroke-width:0.36500001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Lend-2);opacity:0.985"
+       d="m -45.897395,175.35992 c 10.914116,-0.45247 21.71272,-3.48762 31.264389,-8.78746 3.631222,-2.01482 7.0837833,-4.35149 10.3039596,-6.97365"
+       id="path1956-1"
+       inkscape:connector-curvature="0"
+       inkscape:path-effect="#path-effect1958-6"
+       inkscape:original-d="m -45.897395,175.35992 c -3.20697,2.58334 37.337712,-12.30428 31.264389,-8.78746 -5.147493,2.98071 0.682521,-4.65757 10.3039596,-6.97365"
+       sodipodi:nodetypes="csc"
+       transform="rotate(-90,37.656843,77.047527)"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#aa4400;fill-opacity:1;stroke:#b26010;stroke-width:0.26458332;stroke-opacity:1;opacity:0.985;"
+       x="55.714901"
+       y="177.14474"
+       id="text7224-5"
+       transform="rotate(-23.07657)"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png"><tspan
+         sodipodi:role="line"
+         id="tspan7222-5"
+         x="55.714901"
+         y="177.14474"
+         style="font-size:6.3499999px;fill:#a73800;stroke-width:0.26458332;stroke:none;stroke-opacity:1;fill-opacity:1;">latitude</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="170.08929"
+       y="255.8006"
+       id="text16661"><tspan
+         sodipodi:role="line"
+         id="tspan16659"
+         x="170.08929"
+         y="265.16437"
+         style="stroke-width:0.26458332" /></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-start:url(#marker2516);opacity:0.985"
+       d="m 101.73489,47.63753 0.19599,47.407496"
+       id="path1475"
+       inkscape:connector-curvature="0"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-start:url(#marker3002);opacity:0.985"
+       d="m 189.49409,157.08439 -24.32055,-0.60352"
+       id="path2724"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-start:url(#marker3474);opacity:0.985"
+       d="M 57.596582,187.01859 73.411823,175.51252"
+       id="path3210"
+       inkscape:connector-curvature="0"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png" />
+    <path
+       style="fill:none;stroke:#a4000a;stroke-width:0.565;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none;opacity:0.985"
+       d="m 125.19434,102.78091 2.93959,1.64022 -0.93274,2.94697"
+       id="path1411"
+       inkscape:connector-curvature="0"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332;opacity:0.985;"
+       x="148.93164"
+       y="73.010544"
+       id="text1784"
+       transform="rotate(23.785583)"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png"><tspan
+         sodipodi:role="line"
+         id="tspan1782"
+         x="148.93164"
+         y="73.010544"
+         style="font-size:8.46666622px;fill:#7f2aff;stroke-width:0.26458332;">T</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.371;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-start:url(#marker1977);opacity:0.985"
+       d="m 134.17051,75.303278 -6.63514,20.552956"
+       id="path1471-3"
+       inkscape:connector-curvature="0"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.72244883px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.14306121;opacity:0.985;"
+       x="134.45343"
+       y="74.230591"
+       id="text1530-3-8-9-2"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png"><tspan
+         sodipodi:role="line"
+         id="tspan1528-0-68-2-9"
+         x="134.45343"
+         y="74.230591"
+         style="stroke-width:0.14306121;">z</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.72244883px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.14306121;opacity:0.985;"
+       x="105.86066"
+       y="84.357651"
+       id="text1530-3-8-3-2"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png"><tspan
+         sodipodi:role="line"
+         id="tspan1528-0-68-1-7"
+         x="105.86066"
+         y="84.357651"
+         style="stroke-width:0.14306121;">y</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.72244883px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.14306121;opacity:0.985;"
+       x="137.82581"
+       y="89.57383"
+       id="text1530-3-8-93"
+       inkscape:export-xdpi="198.74367"
+       inkscape:export-ydpi="198.74367"
+       inkscape:export-filename="/home/CBellon/Documents/2021/Comp3D/comp3d_cpp_M/comp3d_cpp/doc_math/images/cart_geocentr.png"><tspan
+         sodipodi:role="line"
+         id="tspan1528-0-68-6"
+         x="137.82581"
+         y="89.57383"
+         style="stroke-width:0.14306121;">x</tspan></text>
+  </g>
+</svg>
