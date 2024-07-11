@@ -99,7 +99,7 @@ const   std::string MMVII_PrefRefBench = "RefBench-";
 
 // Prefix for SysCo names
 const   std::string MMVII_SysCoLocal  = "Local";
-const   std::string MMVII_SysCoLGeo   = "LGeo";
+const   std::string MMVII_SysCoLEuc   = "LEuc";
 const   std::string MMVII_SysCoRTL    = "RTL";
 const   std::string MMVII_SysCoGeoC   = "GeoC";
 const   std::string MMVII_SysCoDefLatLong = "+proj=latlong";
