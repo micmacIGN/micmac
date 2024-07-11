@@ -29,6 +29,7 @@ Some external tools need to be present on your system for **MMVII** to run prope
 - **[CMake](https://cmake.org/)** to generate build files
 - **[make](http://www.gnu.org/software/make)** for parallel processes management
 - **[PROJ](http://trac.osgeo.org/proj/)** for coordinate system conversion and coordinate reference system transformation
+- **[PROJ additional data](https://download.osgeo.org/proj/)** grids for coordinates tranformations (optional, see doc)
 - **[ccache](https://ccache.dev/)** for recompilation optimization (optional)
 - **[OpenMP](https://www.openmp.org/)** multi-platform parallel programming (optionnal)
 - **[Doxygen](https://www.doxygen.nl/)** documentation generator (optional)
@@ -124,7 +125,7 @@ Under Windows the installation procedure is as follows:
 ## macOS
 
 ## Additionnal notes
-### Compilation details
+### Linux compilation details
 - If using CLang version XX and want OpenMP: `sudo apt install libomp-XX-dev`
 - You can use `cmake -G Ninja ..` to use Ninja build system instead of the native one. (`sudo apt install ninja-build`)
 - Use `cmake --build . -j N` or `cmake --build . -j N -v` instead of make (works with all build systems)

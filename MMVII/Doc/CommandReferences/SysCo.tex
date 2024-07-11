@@ -80,10 +80,60 @@ It creates a file with the chosen name in {MMVII-PhgrProj/SysCo/}.
 Then every Ori and ground measures can be transformed into this RTL frame to be able to keep maximal precision during bundle adjustment.
 
 
-%-----------------------------------------------------------------------
-%-----------------------------------------------------------------------
-%-----------------------------------------------------------------------
+\section{Testing transformation and PROJ installation}
+The {\tt TestProj} command is used to display PROJ log for a transformation between two SysCo.
 
+\begin{verbatim}
+ == Mandatory unnamed args : ==
+  * string :: Input SysCo definition
+  * string :: Output SysCo definition
+
+ == Optional named args : ==
+  * [Name=TestPoint] cPtxd<double,3> :: Point in input SysCo to check transformation
+\end{verbatim}
+
+Usage example, to test if we can safely convert from ellipsoid height into altitude
+(from IGNF:LAMB93 into EPSG:5698 = RGF93 v1/Lambert-93 + NGF-IGN69 height):
+
+\begin{verbatim}
+MMVII TestProj "L93" "EPSG:5698" TestPoint=[657723,6860710,0]
+
+    PROJ LOG: pj_open_lib(proj.db): call fopen(/usr/share/proj/proj.db) - succeeded
+    PROJ LOG: pj_open_lib(proj.ini): call fopen(/usr/share/proj/proj.ini) - succeeded
+    Proj "+proj=geocent" to "+proj=latlong" accuracy: 0
+    Proj "IGNF:LAMB93" to "+proj=geocent" accuracy: 1
+    PROJ LOG: pj_open_lib(proj.db): call fopen(/usr/share/proj/proj.db) - succeeded
+    PROJ LOG: pj_open_lib(proj.ini): call fopen(/usr/share/proj/proj.ini) - succeeded
+    Proj "+proj=geocent" to "+proj=latlong" accuracy: 0
+    PROJ LOG: pj_open_lib(fr_ign_RAF18.tif): call fopen(fr_ign_RAF18.tif) - failed
+    PROJ LOG: pj_open_lib(RAF18.gtx): call fopen(RAF18.gtx) - failed
+    PROJ LOG: pj_open_lib(fr_ign_RAF20.tif): call fopen(fr_ign_RAF20.tif) - failed
+    PROJ LOG: pj_open_lib(fr_2019m.asc): call fopen(fr_2019m.asc) - failed
+    PROJ LOG: pj_open_lib(fr_2019z.asc): call fopen(fr_2019z.asc) - failed
+    Proj "EPSG:5698" to "+proj=geocent" accuracy: -1
+                    SysIn                 =>                 SysOut                
+    [657723.00000,6860710.00000,0.00000]  =>  [657723.00000,6860710.00000,-0.00000]
+\end{verbatim}
+
+Here for the test point the altitude is equal to the height, that is wrong (should be  $-43.77823$).
+The PROJ log messages shows that the RAF grids are missing hence the error.
+
+See ~\ref{ProjData} for PROJ additional data installation.
+
+
+\section{Proj additional data}
+\label{ProjData}
+Additional data for PROJ can be downloaded here: \url{https://download.osgeo.org/proj/}.
+
+On GNU/Linux, it should be copied into {\tt \textasciitilde /.local/share/proj/}.
+
+On Windows, it should be copied into {\tt MMVII\textbackslash share\textbackslash proj\textbackslash}.
+
+
+
+%-----------------------------------------------------------------------
+%-----------------------------------------------------------------------
+%-----------------------------------------------------------------------
 
 \chapter{Survey compensation (WIP)}
 \label{Chap:TopoUser}
