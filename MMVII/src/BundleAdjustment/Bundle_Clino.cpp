@@ -395,6 +395,7 @@ namespace MMVII
         }
         
         // Save relative orientations between clino and reference camera
+        mCalibSetClino->setClinosCal(aVOneCalibClino);
         mPhProj->SaveClino(*mCalibSetClino);
     }
 

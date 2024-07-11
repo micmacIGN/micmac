@@ -61,6 +61,9 @@ class cCalibSetClino : public cMemCheck
          std::string NameCam(){return mNameCam;};
          std::vector<cOneCalibClino> ClinosCal(){return mClinosCal;};
 
+         // Set clinometers calibration
+         void setClinosCal(std::vector<cOneCalibClino>  aClinosCal){mClinosCal=aClinosCal;}
+
 
          std::string mNameCam;
 
