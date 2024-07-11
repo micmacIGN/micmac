@@ -127,10 +127,10 @@ class cClinoMes1Cam : public cMemCheck
           const cSensorCamPC * Cam() const {return mCam;};
 
           // push observations : the camera orientation and clinometer measures
-          void pushObs(std::vector<double> & aVObs) const;
+          void pushClinoObs(std::vector<double> & aVObs, const std::string aClinoName);
 
           // push weights
-          void pushWeights(std::vector<double> & aVWeights) const;
+          void pushClinoWeights(std::vector<double> & aVWeights, const std::string aClinoName);
 
           // return the clinometers measures
           const std::map<std::string, double> VDir() const {return mVDir;};   
@@ -214,8 +214,11 @@ class cBA_Clino : public cMemCheck
           // Destructor
           ~cBA_Clino();
 
-          // Add equation with aMeasure observations 
-          cPt2dr addOneEquation(cResolSysNonLinear<tREAL8> & aSys, cClinoMes1Cam & aMeasure);
+          // Add equation with aMeasure observations for one clinometer
+          cPt2dr addOneClinoEquation(cResolSysNonLinear<tREAL8> & aSys, cClinoMes1Cam & aMeasure, const std::string aClinoName);
+
+          // Add equations on two boresight matrix and their initial values
+          cPt2dr addOneRotEquation(cResolSysNonLinear<tREAL8> & aSys, const std::string aClino1, const std::string aClino2);
 
           // Add all equations with all measures
           void addEquations(cResolSysNonLinear<tREAL8> & aSys);
@@ -223,14 +226,23 @@ class cBA_Clino : public cMemCheck
           // Add all clino with unknowns to the system
           void AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet);
 
-          // Push observations : initial values of Boresight matrix (2*9 values), and the vertical in local repere (3 values)
-          void pushObs(std::vector<double> & aVObs, const cPt3dr & aCamTr) const;
+          // Push observations for clino formula : initial values of Boresight matrix (9 values), and the vertical in local repere (3 values)
+          void pushClinoObs(std::vector<double> & aVObs, const cPt3dr & aCamTr, const std::string aClinoName);
 
-          // Push index of all clino unknowns
-          void pushIndex(std::vector<int> & aVInd) const;
+          // Push observations for rot formula : values of two Boresight matrix (2*9 values) and initial relative orientation between these two matrix
+          void pushRotObs(std::vector<double> & aVObs, const std::string aClino1, const std::string aClino2);
+
+          // Push index of all clino unknowns for clino formula
+          void pushClinoIndex(std::vector<int> & aVInd, const std::string aClinoName);
+
+          // Push index of all clino unknowns for rot formula
+          void pushRotIndex(std::vector<int> & aVInd, const std::string aClino1, const std::string aClino2);
+
+          // Push weights for rot formula
+          void pushRotWeights(std::vector<double> & aVWeights);
 
           // Save relative orientation between clinos and reference camera
-          void Save() const;
+          void Save();
 
           // Add a clino observation
           void addClinoMes1Cam(const cClinoMes1Cam & aClinoMes1Cam);
@@ -261,11 +273,14 @@ class cBA_Clino : public cMemCheck
                                                                  // file to have the same names than in initial solutions file
           std::vector<cClinoMes1Cam>  mVMeasures;                // observations for one image and one clino
           std::vector<std::string> mVNamesClino;                 // clino names
-          cCalculator<double> *        mEqBlUK;                  // calculator
+          cCalculator<double> *        mEqBlUK;                  // calculator for clino formula
+          cCalculator<double> *        mEqBlUKRot;               // calculator for rot formula
           std::vector<double>          mWeight;                  // weights
           std::map<std::string, cClinoWithUK>    mClinosWithUK;  // map with {clino name, cClinoWithUK object}
           cCalibSetClino               *mCalibSetClino;          // clino calibration
-          cPt2dr                        mRes;                    // Residuals
+          cPt2dr                        mClinoRes;               // Residuals for clino formula
+          cPt2dr                        mRotRes;                 // Residuals for rot formula
+          std::map<std::string, tRotR>    mInitRotClino;         // map with {clino name, initial rotation}
           
 };
 

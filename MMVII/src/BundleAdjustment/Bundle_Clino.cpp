@@ -17,27 +17,22 @@ namespace MMVII
     }
     
 
-    void cClinoMes1Cam::pushObs(std::vector<double> & aVObs) const
+    void cClinoMes1Cam::pushClinoObs(std::vector<double> & aVObs, const std::string aClinoName)
     {
         // Push camera orientation
         mCam->Pose().Rot().Mat().PushByLine(aVObs);
-        // Push the clino measures
-        for (const auto & [aK, aV] : mVDir)
-        {
-            aVObs.push_back(aV);
-        }    
+        
+        // Push the clino measure
+        aVObs.push_back(mVDir[aClinoName]);
     }
 
-    void cClinoMes1Cam::pushWeights(std::vector<double> & aVWeights) const
+    void cClinoMes1Cam::pushClinoWeights(std::vector<double> & aVWeights, const std::string aClinoName)
     {
         
-        // For each weight, add it 3 times
-        for (const auto & [aK, aV] : mWeights)
+        // For each weight, add it 2 times
+        for (size_t i = 0; i < 2; i++)
         {
-            for (size_t i = 0; i < 3; i++)
-            {
-                aVWeights.push_back(aV);
-            }
+            aVWeights.push_back(mWeights[aClinoName]);
         }
     }
 
@@ -95,7 +90,8 @@ namespace MMVII
         mNameClino   (aNameClino),
         mFormat   (aFormat),
         mPrePost  (aPrePost),
-        mEqBlUK  (EqClinoBloc(true,1,true))       
+        mEqBlUK  (EqClinoBloc(true,1,true)),
+        mEqBlUKRot  (EqClinoRot(true,1,true))     
     {
         // Read initial values of clinometers computed by ClinoInit 
         readMeasures();
@@ -108,7 +104,8 @@ namespace MMVII
     ):
         mPhProj  (aPhProj),
         mEqBlUK  (EqClinoBloc(true,1,true)),
-        mCalibSetClino (aCalibSetClino)     
+        mEqBlUKRot  (EqClinoRot(true,1,true)),
+        mCalibSetClino (aCalibSetClino)   
     {}
 
     cBA_Clino::~cBA_Clino()
@@ -177,21 +174,19 @@ namespace MMVII
             mCalibSetClino = mPhProj->GetClino(*aCalib);
         }
         
-        // Create cClinoWithUK objects
+        // Create cClinoWithUK objects and add initial rotation in a map
         for(auto & aClinoCal:mCalibSetClino->ClinosCal())
         {
             mClinosWithUK.emplace(std::piecewise_construct, std::make_tuple( aClinoCal.NameClino()), std::make_tuple(aClinoCal.Rot(), aClinoCal.NameClino()));
+            mInitRotClino[aClinoCal.NameClino()] = aClinoCal.Rot();
         }
     }
 
 
-    void cBA_Clino::pushObs(std::vector<double> & aVObs, const cPt3dr & aCamTr) const
+    void cBA_Clino::pushClinoObs(std::vector<double> & aVObs, const cPt3dr & aCamTr, const std::string aClinoName)
     {
         // Push initial boresight matrixes
-        for (const auto & [aK, aV] : mClinosWithUK)
-        {
-            aV.Rot().Mat().PushByLine(aVObs);
-        }
+        mClinosWithUK[aClinoName].Rot().Mat().PushByLine(aVObs);
 
         //Push the vertical
         tPt3dr aVertical = {0.0,0.0,-1.0};
@@ -209,16 +204,43 @@ namespace MMVII
         aVObs.push_back(aVertical.z());
     }
 
-    void cBA_Clino::pushIndex(std::vector<int> & aVInd) const
+    void cBA_Clino::pushRotObs(std::vector<double> & aVObs, const std::string aClino1, const std::string aClino2)
     {
-        for (const auto & [aK, aV] : mClinosWithUK)
+        // Push boresight matrixes
+        mClinosWithUK[aClino1].Rot().Mat().PushByLine(aVObs);
+        mClinosWithUK[aClino2].Rot().Mat().PushByLine(aVObs);
+
+        // Push initial relative orientation between the two matrix
+        tRotR aClinoRot1 = mInitRotClino[aClino1];
+        tRotR aClinoRot2 = mInitRotClino[aClino2];
+
+        cDenseMatrix<tREAL8> aInitRelativeRot = aClinoRot2.Mat() * aClinoRot1.Mat().Transpose();
+        aInitRelativeRot.PushByLine(aVObs);
+    }
+
+    void cBA_Clino::pushClinoIndex(std::vector<int> & aVInd, const std::string aClinoName)
+    {
+        // Push index of clino unknowns
+        mClinosWithUK[aClinoName].pushIndex(aVInd);
+    }
+
+    void cBA_Clino::pushRotIndex(std::vector<int> & aVInd, const std::string aClino1, const std::string aClino2)
+    {
+        // Push index of clino unknowns
+        mClinosWithUK[aClino1].pushIndex(aVInd);
+        mClinosWithUK[aClino2].pushIndex(aVInd);
+    }
+
+    void cBA_Clino::pushRotWeights(std::vector<double> & aVWeights)
+    {
+        for (size_t i = 0; i < 9; i++)
         {
-            aV.pushIndex(aVInd);
+            aVWeights.push_back(1.0);
         }
     }
 
 
-    cPt2dr cBA_Clino::addOneEquation(cResolSysNonLinear<tREAL8> & aSys, cClinoMes1Cam & aMeasure)
+    cPt2dr cBA_Clino::addOneClinoEquation(cResolSysNonLinear<tREAL8> & aSys, cClinoMes1Cam & aMeasure, const std::string aClinoName)
     {
         // Vector with observations
         std::vector<double> aVObs;
@@ -230,16 +252,16 @@ namespace MMVII
         std::vector<int> aVInd;
 
         // Push initial value of boresight matrix and vertical
-        pushObs(aVObs, aMeasure.Cam()->Pose().Tr());
+        pushClinoObs(aVObs, aMeasure.Cam()->Pose().Tr(), aClinoName);
         
         // Push orientation of camera
-        aMeasure.pushObs(aVObs);
+        aMeasure.pushClinoObs(aVObs, aClinoName);
 
         // Push index of unknowns
-        pushIndex(aVInd);
+        pushClinoIndex(aVInd, aClinoName);
 
         // Push weights
-        aMeasure.pushWeights(aVWeights);   
+        aMeasure.pushClinoWeights(aVWeights, aClinoName);   
         
         // Compute solution for the unknowns defined in aVInd
         aSys.R_CalcAndAddObs(
@@ -254,34 +276,95 @@ namespace MMVII
         cPt2dr aRes(0,1);
 
         // For the six equations defined in cFormulaClinoBloc, add the residuals
-        for (size_t aKU = 0; aKU < 6 ; aKU++)
+        for (size_t aKU = 0; aKU < 2 ; aKU++)
         {
             aRes[0] += Square(mEqBlUK->ValComp(0, aKU));
         }
         
         // Return the mean of residuals
-        return cPt2dr(aRes.x()/6.0, 1.0);
+        return cPt2dr(aRes.x()/2.0, 1.0);
+    }
+
+    cPt2dr cBA_Clino::addOneRotEquation(cResolSysNonLinear<tREAL8> & aSys, const std::string aClino1, const std::string aClino2)
+    {
+        // Vector with observations
+        std::vector<double> aVObs;
+
+        // Vector with weights
+        std::vector<double> aVWeights;
+
+        // Vector with index of unknowns
+        std::vector<int> aVInd;
+
+        // Push values of the two boresight matrix and initial relative orientation between these two matrix
+        pushRotObs(aVObs, aClino1, aClino2);
+
+        // Push index of unknowns
+        pushRotIndex(aVInd, aClino1, aClino2);
+
+        // Push weights
+        pushRotWeights(aVWeights);
+
+        // Compute solution for the unknowns defined in aVInd
+        aSys.R_CalcAndAddObs(
+            mEqBlUKRot,
+            aVInd,
+            aVObs,
+            cResidualWeighterExplicit<tREAL8>(false, aVWeights)
+        );
+
+        // Compute residuals
+        cPt2dr aRes(0,1);
+
+        // For the six equations defined in cFormulaClinoBloc, add the residuals
+        for (size_t aKU = 0; aKU < 9 ; aKU++)
+        {
+            aRes[0] += Square(mEqBlUKRot->ValComp(0, aKU));
+        }
+        
+        // Return the mean of residuals
+        return cPt2dr(aRes.x()/9.0, 1.0);
+
     }
 
 
     void cBA_Clino::addEquations(cResolSysNonLinear<tREAL8> & aSys)
     {
         // Initialize residuals
-        cPt2dr aRes(0,0);
+        cPt2dr aClinoRes(0,0);
+        cPt2dr aRotRes(0,0);
         
-        // For each measure, solve least squares and add residual to residuals
+        // For each measure and each clinometer, solve least squares and add residual to residuals
         for (auto aMeasure : mVMeasures)
         {
-            aRes += addOneEquation(aSys, aMeasure);
+            for (auto aClinoName : mVNamesClino)
+            {
+                aClinoRes += addOneClinoEquation(aSys, aMeasure, aClinoName);
+            }
         }
 
+
+        for (size_t aK1 = 0; aK1 < mVNamesClino.size(); aK1++)
+        {
+            std::string aClino1 = mVNamesClino[aK1];
+            for (size_t aK2 = aK1+1; aK2 < mVNamesClino.size(); aK2++)
+            {
+                std::string aClino2 = mVNamesClino[aK2];
+                aRotRes += addOneRotEquation(aSys, aClino1, aClino2);
+            }
+            
+        }
+        
+
         // Return mean residual
-        mRes = aRes/aRes.y();
+        mClinoRes = aClinoRes/aClinoRes.y();
+        mRotRes = aRotRes/aRotRes.y();
     }
 
     void cBA_Clino::printRes() const
     {
-        StdOut() << "Residual for clino bloc : " << mRes.x() << std::endl ;
+        StdOut() << "Residual for clino formula : " << mClinoRes.x() << std::endl ;
+        StdOut() << "Residual for rot formula : " << mRotRes.x() << std::endl ;
     }
     
     
@@ -296,12 +379,12 @@ namespace MMVII
     }
 
 
-    void cBA_Clino::Save() const
+    void cBA_Clino::Save()
     {
         
         // Get all clinos 
         std::vector<cOneCalibClino> aVOneCalibClino = mCalibSetClino->ClinosCal();
-        
+
         // For each clino
         for (auto & aOneCalibClino : aVOneCalibClino)
         {
