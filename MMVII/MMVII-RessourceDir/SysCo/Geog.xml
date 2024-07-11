@@ -4,7 +4,7 @@
    <Version>"0.0.0"</Version>
    <Data>
       <SysCoData>
-         <Def>"+proj=latlong"</Def>
+         <Def>"+proj=latlong +datum=WGS84"</Def>
       </SysCoData>
    </Data>
 </Root>
