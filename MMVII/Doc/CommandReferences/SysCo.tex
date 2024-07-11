@@ -6,63 +6,57 @@
 %-----------------------------------------------------------------------
 %-----------------------------------------------------------------------
 
-\section{SysCo introduction}
+\section{Introduction}
 
-Coordinate systems (SysCo) types supported by {\tt MMVII} are:
+Coordinate systems (\textbf{SysCo}) types supported by \CdPPP\ are:
 \begin{itemize}
-\item \textbf{Local}: any euclidian frame, without any geolocalization or vertical knowledge.
-\item \textbf{GeoC}: geocentric coordinates.
-\item \textbf{LEuc}: a local euclidian frame with an affine transformation into geocentric coordinates.
-\item \textbf{RTL}: a special case of LEuc where the local frame is defined by an origin point, where Z is ellipsoid normal at origin and X is East.
-\item \textbf{Proj}: any georeferenced system handled by the {\tt PROJ} library (including geographical coordinates).
+\item \textbf{Local}: any Euclidian frame, without any geolocalization or vertical direction knowledge
+\item \textbf{GeoC}: geocentric coordinates
+\item \textbf{LEuc}: a local Euclidian frame with an affine transformation into geocentric coordinates
+\item \textbf{RTL}: a special case of {\tt LEuc}, with the local frame defined by an origin point where Z is normal to ellipsoid and X is on East direction (see ~\ref{SysCoRTL})
+\item \textbf{Proj}: any georeferenced system supported by the \href{https://proj.org}{PROJ} library
 \end{itemize}
 
-When the SysCo is known or declared for an Ori or Measures folder, a file named {\tt CurSysCo.xml}
-is created to record it.
+When SysCo is known, its definition is recorded into the file {\tt CurSysCo.xml}, in {\tt Ori} and {\tt PointsMeasure} directories.
 
-This file can be copied into {\tt MMVII-PhgrProj/SysCo/} with a short name to be used in next commands.
-Example: copy {\tt CurSysCo.xml} as {\tt MMVII-PhgrProj/SysCo/MyCRS.xml}, to be able to use {\tt MyCRS}
-as a SysCo name.
+%This file can be copied into {\tt MMVII-PhgrProj/SysCo/} with a short name to be used in next commands.
+%Example: copy {\tt CurSysCo.xml} as {\tt MMVII-PhgrProj/SysCo/MyCRS.xml}, to be able to use {\tt MyCRS} as a SysCo name.
 
 \section{Setting SysCo}
 
 \subsection{MMVII Commands}
-To inform {\tt MMVII} of the SysCo of some data, there are several methods:
+There are several ways to declare a data SysCo:
 
 \begin{itemize}
-\item Some importation commands have an implicit SysCo, e.g. {\tt ImportInitExtSens} that suppose that RPC are always in WGS geographical coordinates in degrees.
-\item {\tt ImportOri} let you tell the SysCo with {\tt SysCo} option.
-\item {\tt ImportGCP} let you transform ground coordinates on-the-fly with {\tt ChSys} option.
-\item {\tt OriChSysCo} and {\tt GCPChSysCo} let you transform Ori and ground points from one SysCo into an other.
+\item with {\tt SysCo} option in {\tt ImportOri} command that imports orientations into a declared SysCo
+\item with {\tt ChSys} option in {\tt ImportGCP} command that declares or transforms ground coordinates on-the-fly
+\item some import commands with an implicit SysCo, such as {\tt ImportInitExtSens} that supposes that RPC are always in WGS84 geographical coordinates system in degrees
+\item {\tt OriChSysCo} and {\tt GCPChSysCo} commands that transforms orientations and ground points from one SysCo into another
 \end{itemize}
 
 \subsection{SysCo definition}
-The SysCo definitions to give to {\tt MMVII} commands can be:
+The SysCo definitions for \CdPPP\ commands can be:
 \begin{itemize}
-\item The name of a file in source sub-folder {\tt MMVII/MMVII-RessourceDir/SysCo} or in project sub-folder {\tt MMVII-PhgrProj/SysCo}, without its extension.
-\item Any {\tt PROJ} definition (such as {\tt IGNF:LAMB93}, {\tt EPSG:4326} or {\tt '+proj=merc +lat\_ts=56.5 +datum=WGS84'})
-\item Any string starting with {\tt Local} for a local frame
-\item Any string starting with {\tt GeoC} for geocentric
-\item A string starting with {\tt LEuc}, with the pattern:
-
-{\tt LEuc*TX*TY*TZ*Omega*Phi*Kappa}, where the transformation is given in geocentric, the angles are in rad.
-\item A string starting with {\tt RTL}, with the pattern: {\tt RTL*X0*Y0*Z0*Def}
-
-(such as {\tt RTL*0.67451979*45.18899334*0.00000000*EPSG:4326}),
-where you give the coordinates in a certain system of the tengance point of the local frame. Tip: use {\tt SysCoCreateRTL} command to make it automatically (see ~\ref{SysCoRTL}).
+\item the name of a file in \CdPPP\ source subfolder {\tt MMVII/MMVII-RessourceDir/SysCo} or in project subfolder {\tt MMVII-PhgrProj/SysCo}, without its extension, only its basename (e.g., {\tt RTL} for MMVII-PhgrProj/SysCo/RTL.xml file)
+\item any {\tt PROJ} definition (e.g., {\tt IGNF:LAMB93}, {\tt EPSG:4326} or {\tt '+proj=merc +lat\_ts=56.5 +datum=WGS84'})
+\item any string starting with {\tt Local} for a local frame (e.g., {\tt LocalAMRules})
+\item {\tt GeoC} for a geocentric frame
+\item a string starting with {\tt LEuc}, with the pattern: {\tt LEuc*TX*TY*TZ*Omega*Phi*Kappa}, where the transformation is given in geocentric coordinates, angles in rad
+\item a string starting with {\tt RTL}, with the pattern: {\tt RTL*X0*Y0*Z0*Def} (e.g., {\tt RTL*0.675*45.189*0*EPSG:4326}),
+where you give the origin point coordinates in a certain PROJ system. Tip: use {\tt SysCoCreateRTL} command to make it automatically (see ~\ref{SysCoRTL})
 
 \end{itemize}
 
 
 \subsection{Examples}
 \begin{itemize}
-\item {\tt SysCo=L93} will set the SysCo to Lambert93 (IGNF:LAMB93), as definied in \\
-{\tt MMVII/MMVII-RessourceDir/SysCo/L93.xml}.
-\item {\tt SysCo=LocalPanel} will set the SysCo to a local system definied as "LocalPanel", that will not be convertible into any other SysCo.
-\item {\tt SysCo=IGNF:LAMB93} will set the SysCo to Lambert93.
-\item {\tt SysCo=RTL*0.67451979*45.18899334*0*EPSG:4326} will set the SysCo to a tangent local euclidian frame where origin is $0.67451979, 45.18899334, 0$ in EPSG:4326.
-\item {\tt SysCo=Toto} will use a project-defined SysCo if {\tt MMVII-PhgrProj/SysCo/Toto.xml} exists. If not, "Toto" will be used as a PROJ definition, and an error will occur.
-\item {\tt SysCo=GeoC} will set the SysCo to geocentric coordinates.
+\item {\tt SysCo=L93} will set the SysCo to Lambert93 (IGNF:LAMB93), as defined in \\
+{\tt MMVII/MMVII-RessourceDir/SysCo/L93.xml}
+\item {\tt SysCo=IGNF:LAMB1} will set the SysCo to Lambert I
+\item {\tt SysCo=LocalPanel} will set the SysCo to a local frame defined as "LocalPanel", that will not be convertible into any other SysCo
+\item {\tt SysCo=RTL*0.675*45.189*0*EPSG:4326} will set the SysCo to a tangent local Euclidian frame, with origin ($0.67451979, 45.18899334, 0$) in EPSG:4326
+\item {\tt SysCo=GeoC} will set the SysCo to geocentric coordinates
+\item {\tt SysCo=AMRealm} will use a project-defined SysCo if {\tt MMVII-PhgrProj/SysCo/AMRealm.xml} exists. If not, "AMRealm" will be used as a PROJ definition, and an error will occur
 
 \end{itemize}
 
@@ -78,15 +72,15 @@ where you give the coordinates in a certain system of the tengance point of the 
 \end{figure}
 
 
-{\tt MMVII} supposes that the coordinates used during bundle adjustment are euclidian.
+\CdPPP\ supposes that the coordinates used during bundle adjustment are Euclidian.
 
-To keep small coordinates, a Local tangent frame (RTL) can be defined.
+A local tangent frame (RTL) can be defined to simplify ones life. 
 
-{\tt SysCoCreateRTL} command do that from an Ori, using as tangence point the average of canera positions or a fixed point.
+{\tt SysCoCreateRTL} command does that from orientations, with the origin point being defined as the average of camera positions or a fixed point.
 
 It creates a file with the chosen name in {MMVII-PhgrProj/SysCo/}.
 
-Then every Ori and ground measures can be transformed into this RTL frame to be able to keep maximal precision during bundle adjustment.
+Then every Ori and GCP is transformed into this RTL frame to be able to keep maximal precision during bundle adjustment.
 
 
 \section{Testing transformation and PROJ installation}
@@ -101,8 +95,8 @@ The {\tt TestProj} command is used to display PROJ log for a transformation betw
   * [Name=TestPoint] cPtxd<double,3> :: Point in input SysCo to check transformation
 \end{verbatim}
 
-Usage example, to test if we can safely convert from ellipsoid height into altitude
-(from IGNF:LAMB93 into EPSG:5698 = RGF93 v1/Lambert-93 + NGF-IGN69 height):
+Usage example: testing if we can safely convert from ellipsoid height into altitude
+(from {\tt IGNF:LAMB93} into {\tt EPSG:5698}, meaning RGF93 v1/Lambert-93 + NGF-IGN69 height):
 
 \begin{verbatim}
 MMVII TestProj "L93" "EPSG:5698" TestPoint=[657723,6860710,0]
@@ -124,8 +118,8 @@ MMVII TestProj "L93" "EPSG:5698" TestPoint=[657723,6860710,0]
     [657723.00000,6860710.00000,0.00000]  =>  [657723.00000,6860710.00000,-0.00000]
 \end{verbatim}
 
-Here for the test point the altitude is equal to the height, that is wrong (should be  $-43.77823$).
-The PROJ log messages shows that the RAF grids are missing hence the error.
+Here, for the {\tt TestPoint}, the output altitude is equal to the height, which in fact should be $-43.77823$.
+The PROJ log messages show that the RAF grids are missing, hence the error.
 
 See ~\ref{ProjData} for PROJ additional data installation.
 
@@ -134,7 +128,7 @@ See ~\ref{ProjData} for PROJ additional data installation.
 \label{ProjData}
 Additional data for PROJ can be downloaded here: \url{https://download.osgeo.org/proj/}.
 
-On GNU/Linux, it should be copied into {\tt \textasciitilde /.local/share/proj/}.
+On GNU/Linux, it should be copied into $\sim${\tt /.local/share/proj/}.
 
 On Windows, it should be copied into {\tt MMVII\textbackslash share\textbackslash proj\textbackslash}.
 
