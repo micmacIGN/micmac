@@ -564,7 +564,7 @@ template <class Type> class  cLeasSq  :  public cLinearOverCstrSys<Type>
 };
 
 /**  Implemant least by suming tA A ,  simple and efficient, by the way known to have
-  a conditionning problem 
+  a conditioning problem
 */
 
 template <class Type> class  cLeasSqtAA  :  public cLeasSq<Type>

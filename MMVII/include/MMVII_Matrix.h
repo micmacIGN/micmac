@@ -407,7 +407,7 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         tDM SubMatrix(const cPt2di & aSz) const;
         tDM SubMatrix(const cPt2di & aP0,const cPt2di & aP1) const;
 
-        /**  Generate a random square matrix having "good" conditionning property , i.e with eigen value constraint,
+        /**  Generate a random square matrix having "good" conditioning property , i.e with eigen value constraint,
             usefull for bench as when the random matrix is close to singular, it may instability that fail
             the numerical test.
         */

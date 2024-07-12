@@ -144,37 +144,40 @@ On Windows, it should be copied into {\tt MMVII\textbackslash share\textbackslas
 
 \section{Survey introduction}
 
-{\tt MMVII} can add topographic survey measurements in global adjustments.
-The following measurements types are currently supported :
+In \CdPPP, it is possible to add topographic survey measurements in global adjustments, alongside photogrammetric measurements. From now on, for convenience, "topo" term will be used instead of "topographic survey".
+\\\
+
+The following topo measurements types are currently supported:
 
 \begin{itemize}
     \item distances
     \item pseudo-horizontal angles
     \item pseudo-vertical angles
-    \item direct cartesian vector observation
+    \item direct Cartesian vector observation
 \end{itemize}
 
-These measurements are made from an instrument that can be vertical or not.
+These measurements are made from an instrument that can be verticalized or not.
 For now, the vertical is modeled as the Earth's ellipsoid normal. Vertical deflection grids may be added later.
 
-The measurements can be made between cameras Ori, GCP or new points (that will be inserted into the last GCP set of the adjustment).
+The measurements can be made between cameras poses, GCP or new points that will be inserted into the last GCP set of the adjustment.
 
-Two {\tt MMVII} commands can use survey measurements in compensation:
+Two \CdPPP\ commands can use topo measurements in compensation:
 \begin{itemize}
     \item {\tt OriBundleAdj} via the {\tt TopoFile} option
-    \item {\tt TopoAdj} (see below)
+    \item {\tt TopoAdj} (see \ref{sec:TopoAdj})
 \end{itemize}
 
-The topo measurements file can be given as a {\tt MMVII} json or xml topo file, or in a simplified text format (named {\tt obs} file) inherited from IGN's Comp3D compensation software.
+The topo measurements file can be given as a \CdPPP\ json or xml topo file, or in a simplified text format (named {\tt obs} file) inherited from IGN's Comp3D\footnote{\url{https://github.com/IGNF/Comp3D}} micro-geodesy compensation software.
 
-The {\tt MMVII} topo files record all the input and output data, organized as the internal {\tt MMVII} objects during compensation.
-The {\tt obs} format is simplified and easily human-editable. It is the preferred input format for simple station-based measurements.
+The {\tt obs} format is simple and easily human-editable. It is the preferred input format for simple station-based measurements.
 
-All the measurements files must be put in the {\tt MMVII-PhgrProj/Topo/[ObsName]} folder.
+All the measurements files must be in the {\tt MMVII-PhgrProj/Topo/[ObsName]} folder.
 
-\section{{\tt obs} file format}
+\section{\texttt{OBS} file format}
 \label{sec:compObsFormat}
-Note: {\tt MMVII} supports only a subset of Comp3D format.
+
+\faWarning\, Note: \CdPPP\ supports only a subset of Comp3D {\tt obs} format\footnote{\url{https://ignf.github.io/Comp3D/doc/obs.html}}.
+\vspace{0.5cm}
 
 {\tt obs} files are text files with fields delimited by any number of spaces or tabs. Blank lines are overlooked.
 The {\tt *} character defines a comment that goes up to the end of the line.
@@ -198,42 +201,43 @@ An observation line is composed by:
     \item station name
     \item target name
     \item measurement value (in meters for distances, in gon for angles)
-    \item measurement a priori $\sigma$ (in meters for distances, in gon for angles)
+    \item measurement \textit{a priori} $\sigma$ (in meters for distances, in gon for angles)
     \item anything else is ignored until the end of the line
 \end{itemize}
 
 The observations codes are:
 
 \begin{itemize}
-    \item 3: 3d distance
-    \item 5: local pseudo-horizontal angle
-    \item 6: local pseudo-zenithal angle
-    \item 14: local X difference
-    \item 15: local Y difference
-    \item 16: local Z difference
+    \item \textbf{3}: 3d distance
+    \item \textbf{5}: local pseudo-horizontal angle
+    \item \textbf{6}: local pseudo-zenithal angle
+    \item \textbf{14}: local X difference
+    \item \textbf{15}: local Y difference
+    \item \textbf{16}: local Z difference
 \end{itemize}
 
-All these observations are made in the station frame.
-
-In the previous example, {\tt St1}, {\tt Or1} and {\tt E1} are points name.
+In the previous example, {\tt St1}, {\tt Or1} and {\tt E1} are points names.
 They can refer to GCP, cameras or undefined points.
 
-To declare the orientation status of the next station, the following lines have to be
-added to the {\tt obs} file (by default stations are supposed vertical/plumb) :
+All these observations are made in the station frame. A station represents a series of measurements from one point, this point being the origin of the frame.
 
+Each station has orientation constraints that have to be given before the station observation's line in the {\tt {obs}} file.
+The possible orientation constraints are:
 \begin{itemize}
-    \item \texttt{\#FIX}: the station vertical and oriented to North
-    \item \texttt{\#VERT}: the station vertical, only horizontal orientation is free
-    \item \texttt{\#BASC}: the station orientation has 3 degrees of liberty 
+   \item \tt{\#FIX}: the station is axis-aligned, it is verticalized and oriented to North
+   \item \tt{\#VERT}: the station is verticalized and only horizontal orientation is free
+   \item \tt{\#BASC}: the station orientation has 3 degrees of freedom
 \end{itemize}
 
-To distinguish several vertical stations on the same point, the observation code {\tt 7} can be used:
+By default, stations are verticalized/plumb.
+
+To distinguish several vertical stations on the same point with different horizontal orientations, the observation code {\textbf 7} can be used:
 
 \begin{verbatim}
     7 station target 100 0.001
 \end{verbatim}
 
-is equivalent to:
+equivalent to:
 
 \begin{verbatim}
     #VERT
@@ -241,7 +245,7 @@ is equivalent to:
 \end{verbatim}
 
 
-\section{Survey obs to make minimal external constraints}
+\section{Topo \texttt{obs} for minimal external constraints}
 
 For any kind of adjustment, minimal constraints can be useful to get the measurements internal precision.
 In general, several GCP with known coordinates are used to fix the frame, but their inconsistency may
@@ -249,13 +253,13 @@ impact the computation.
 
 In a 3D adjustment, up to 7 external constraints have to be provided to fix the frame translation, rotation and scale.
 
-With photogrammetry, one camera pose can be fixed to fix 6 external constraints. The scale can then be given with an obs file:
+With photogrammetry, one camera pose can be used to fix 6 external constraints. The scale can then be given with an {\tt obs} file:
 \begin{verbatim}
     * 10 meters between IMG1.JPG and IMG2.JPG poses
     3  IMG1.JPG  IMG2.JPG 10.0000 0.0010   
 \end{verbatim}
 
-An other possibility is to constrain the coordinates a one GCP, then add an obs file to fix the scale and the 3 rotations:
+Another possibility is to constrain the coordinates of one GCP, then add an {\tt obs} file to fix the scale and the 3 rotations:
 \begin{verbatim}
     3  IMG1.JPG  IMG2.JPG 10.0000 0.0010   * scale constraint
 
@@ -269,13 +273,14 @@ An other possibility is to constrain the coordinates a one GCP, then add an obs 
 \end{verbatim}
 
 
-\section{{\tt TopoAdj} command}
+\section{\texttt{TopoAdj} command}
+\label{sec:TopoAdj}
 
-The {\tt TopoAdj} command can perform an adjustment between survey and GCP constraints.
+The {\tt TopoAdj} command can perform an adjustment between topo and GCP constraints.
 It is used as a substitute to {\tt OriBundleAdj} when there are no cameras.
 
 The GCP folder must then have a RTL CurSysCo.xml file, and do not have to declare all the points
-referred to by topo observations, but automatic points initialization is not completed for now.
+referred to by topo observations, \TOMODIF{but automatic points initialization is not completed for now.}
 
 The SysCo has to be of type RTL, except if there are only distances measurements.
 
@@ -297,7 +302,7 @@ The SysCo has to be of type RTL, except if there are only distances measurements
   * [Name=GCPFilter] string :: Pattern to filter GCP by name
   * [Name=GCPFilterAdd] string :: Pattern to filter GCP by additional info
   * [Name=GCPDirOut] string [PointsMeasure,Out] :: Dir for output GCP
-  * [Name=LVM] double :: Levenberg–Marquardt parameter (to have better conditionning of least squares) ,[Default=0]
+  * [Name=LVM] double :: Levenberg–Marquardt parameter (to have better conditioning of least squares) ,[Default=0]
 
 \end{verbatim}
 
