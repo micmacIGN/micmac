@@ -235,7 +235,7 @@ namespace MMVII
     {
         for (size_t i = 0; i < 9; i++)
         {
-            aVWeights.push_back(1.0);
+            aVWeights.push_back(1);
         }
     }
 

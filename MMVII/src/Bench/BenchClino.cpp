@@ -17,11 +17,11 @@ namespace MMVII
         aEqClinoBloc = EqClinoBloc(false, 1, true);
         
         // Value of axiator
-        std::vector<tREAL8> aVUK = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+        std::vector<tREAL8> aVUK = {0.0, 0.0, 0.0};
         std::vector<tREAL8> aVObs;
 
         
-        // First Boresight matrix
+        // Boresight matrix
         cRotation3D<tREAL8> aRotation = cRotation3D<tREAL8>::RotFromCanonicalAxes("j-k-i");
         cDenseMatrix<tREAL8> aBoresight = aRotation.Mat();
         
@@ -31,33 +31,20 @@ namespace MMVII
         // Image orientation
         cDenseMatrix<tREAL8> aImageOrientation = cDenseMatrix<tREAL8>::Identity(3);
         // values of the two clinometers
-        tREAL8 aClinoValue1 = 0;
-        tREAL8 aClinoValue2 = 0;
-
-
-        // Second Boresight matrix
-        std::string aNameRel12 = "i-kj";
-        tRotR aRel12 = tRotR::RotFromCanonicalAxes(aNameRel12);
-        cDenseMatrix<tREAL8> aBoresight2 = aRel12.Mat() * aBoresight;
-
+        tREAL8 aClinoValue = 0;
         
         // Push observations
         aBoresight.PushByLine(aVObs);
-        aBoresight2.PushByLine(aVObs);
+
         aVertical.PushInStdVector(aVObs);
         aImageOrientation.PushByLine(aVObs);
-        aVObs.push_back(aClinoValue1);
-        aVObs.push_back(aClinoValue2);
-
-        
+        aVObs.push_back(aClinoValue);
         
         std::vector<tREAL8> aVResult = aEqClinoBloc->DoOneEval(aVUK, aVObs);
         for (auto & aResult : aVResult)
         {
             MMVII_INTERNAL_ASSERT_bench(std::abs(aResult-0)<1e-5,"ClinoFormulaBench failed");
         }
-        
-
     }
 
     void BenchClinoBa()
@@ -81,6 +68,8 @@ namespace MMVII
         // Create aCalibSetClino
         cCalibSetClino* aCalibSetClino = new cCalibSetClino(aCameraName, aVCalibClino);
         cBA_Clino aBAClino(nullptr, aCalibSetClino);
+
+        aBAClino.setVNamesClino({"C1", "C2"});
         
         cRotation3D<tREAL8> aRotation(aCameraOrientation, false);
         cPtxd<tREAL8,3> aTr = {0.0, 0.0, 0.0};
@@ -122,6 +111,7 @@ namespace MMVII
         cRotation3D<tREAL8> aRotationB1 = cRotation3D<tREAL8>::RotFromCanonicalAxes("j-k-i");
 
         aBAClino.addClinoWithUK("C1", aRotationB1);
+        aBAClino.addInitRotClino("C1", aRotationB1);
 
         // Create initial boresight matrix for the second clinometer
         std::string aNameRel12 = "i-kj";
@@ -130,6 +120,7 @@ namespace MMVII
         cRotation3D<tREAL8> aRotationB2(aBoresight2, false);
 
         aBAClino.addClinoWithUK("C2", aRotationB2);
+        aBAClino.addInitRotClino("C2", aRotationB2);
 
         
         // Beginning of Bundle Adjustment
@@ -143,7 +134,7 @@ namespace MMVII
         for (int iter=0; iter<6; ++iter)
         {
             aBAClino.addEquations(aSys);
-            const auto & aVectSol = aSys.R_SolveUpdateReset(aLVM);
+            const auto & aVectSol = aSys.R_SolveUpdateReset(aLVM);            
             aSetIntervMultObj.SetVUnKnowns(aVectSol);
         }
 

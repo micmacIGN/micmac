@@ -259,6 +259,14 @@ class cBA_Clino : public cMemCheck
           // Display residuals
           void printRes() const; 
 
+          // Set vector with clino names
+          void setVNamesClino(std::vector<std::string> aVNamesClino){mVNamesClino=aVNamesClino;};
+
+          // Add a initial rotation for a clino
+          void addInitRotClino(std::string aClinoName, tRotR aRot){
+               mInitRotClino[aClinoName]=aRot;
+               mInitRotClino[aClinoName].Mat().Show();
+               };
 
           
      private :

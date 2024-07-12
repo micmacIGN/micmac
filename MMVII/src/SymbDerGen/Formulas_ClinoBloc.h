@@ -54,7 +54,7 @@ namespace MMVII
                 cMatF<tUk> aR = cMatF<tUk>(3,3,aVObs,12).Transpose();
                 
                 // get clinometer measure 
-                tUk aTheta = -aVObs[21];
+                tUk aTheta = aVObs[21];
 
                 // get rotation matrix from axiator
                 cMatF<tUk> aBAx = aB * cMatF<tUk>::MatAxiator(-VtoP3(aVUk,0));
@@ -62,8 +62,10 @@ namespace MMVII
                 // aBAx * aR * aVertical : vertical in the clinometer system
                 cMatF<tUk> aV1 = aBAx * aR * aVertical;
 
-                tUk aDelta1 = aV1(0,0) - cos(aTheta);
-                tUk aDelta2 = aV1(0,1) - sin(aTheta);
+                // Projection on plane (i, j)
+                tUk aNorm = sqrt(aV1(0,0)*aV1(0,0) + aV1(0,1)*aV1(0,1));
+                tUk aDelta1 = aV1(0,0)/aNorm - cos(aTheta);
+                tUk aDelta2 = aV1(0,1)/aNorm - sin(aTheta);
 
                 std::vector<tUk> aVec;
                 aVec.push_back(aDelta1);
