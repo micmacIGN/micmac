@@ -263,10 +263,7 @@ class cBA_Clino : public cMemCheck
           void setVNamesClino(std::vector<std::string> aVNamesClino){mVNamesClino=aVNamesClino;};
 
           // Add a initial rotation for a clino
-          void addInitRotClino(std::string aClinoName, tRotR aRot){
-               mInitRotClino[aClinoName]=aRot;
-               mInitRotClino[aClinoName].Mat().Show();
-               };
+          void addInitRotClino(std::string aClinoName, tRotR aRot){mInitRotClino[aClinoName]=aRot;};
 
           
      private :
