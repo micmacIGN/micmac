@@ -138,28 +138,38 @@ On Windows, it should be copied into {\tt MMVII\textbackslash share\textbackslas
 %-----------------------------------------------------------------------
 %-----------------------------------------------------------------------
 
-\chapter{Survey compensation (WIP)}
+\chapter{Survey compensation}
 \label{Chap:TopoUser}
 
 
 \section{Survey introduction}
 
 In \CdPPP, it is possible to add topographic survey measurements in global adjustments, alongside photogrammetric measurements. From now on, for convenience, "topo" term will be used instead of "topographic survey".
-\\\
 
-The following topo measurements types are currently supported:
+
+Topo measurements are made from an instrument that can be verticalized or not.
+The position and orientation of an instrument is called a station.
+All the observations are attached to a station and are expressed in the station frame.
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=9cm]{CommandReferences/ImagesComRef/topo.png}
+\caption{A topometric survey station, its instrument frame and measured angles}
+\label{fig:topoStation}
+\end{figure}
+
+The following measurements types are currently supported:
 
 \begin{itemize}
     \item distances
-    \item pseudo-horizontal angles
-    \item pseudo-vertical angles
-    \item direct Cartesian vector observation
+    \item horizontal angles
+    \item zenithal angles
+    \item direct Euclidian vector observation
 \end{itemize}
 
-These measurements are made from an instrument that can be verticalized or not.
-For now, the vertical is modeled as the Earth's ellipsoid normal. Vertical deflection grids may be added later.
+The measurements can be made between cameras poses, GCPs or undeclared points that will be inserted into the last GCP set of the adjustment.
 
-The measurements can be made between cameras poses, GCP or new points that will be inserted into the last GCP set of the adjustment.
+
 
 Two \CdPPP\ commands can use topo measurements in compensation:
 \begin{itemize}
@@ -169,30 +179,18 @@ Two \CdPPP\ commands can use topo measurements in compensation:
 
 The topo measurements file can be given as a \CdPPP\ json or xml topo file, or in a simplified text format (named {\tt obs} file) inherited from IGN's Comp3D\footnote{\url{https://github.com/IGNF/Comp3D}} micro-geodesy compensation software.
 
-The {\tt obs} format is simple and easily human-editable. It is the preferred input format for simple station-based measurements.
+The {\tt obs} format is simple and easily human-editable.
 
-All the measurements files must be in the {\tt MMVII-PhgrProj/Topo/[ObsName]} folder.
+All the measurements files must be in the {\tt MMVII-PhgrProj/Topo/[TopoObsName]} folder.
 
 \section{\texttt{OBS} file format}
 \label{sec:compObsFormat}
 
-\faWarning\, Note: \CdPPP\ supports only a subset of Comp3D {\tt obs} format\footnote{\url{https://ignf.github.io/Comp3D/doc/obs.html}}.
+Note: \CdPPP\ supports only a subset of Comp3D {\tt obs} format\footnote{\url{https://ignf.github.io/Comp3D/doc/obs.html}}.
 \vspace{0.5cm}
 
 {\tt obs} files are text files with fields delimited by any number of spaces or tabs. Blank lines are overlooked.
 The {\tt *} character defines a comment that goes up to the end of the line.
-
-Example:
-
-\begin{verbatim}
-    7 St1 Or1   0.0000 0.0010 * horizontal reference
-    6 St1 Or1 100.0000 0.0010 * zenithal angle
-    3 St1 Or1  20.0000 0.0010 * distance
-
-    5 St1  E1  100.0000 0.0010 * horizontal angle
-    6 St1  E1  100.0000 0.0010
-    3 St1  E1 1000.0000 0.0010
-\end{verbatim}
 
 An observation line is composed by:
 
@@ -205,33 +203,72 @@ An observation line is composed by:
     \item anything else is ignored until the end of the line
 \end{itemize}
 
+Example for a measured distance of $100.0000m$, with a $\sigma$ of $1mm$ from \texttt{PointA} to \texttt{PointA}:
+
+\begin{verbatim}
+    3   PointA    PointB    100.0000    0.001    * comment
+\end{verbatim}
+
 The observations codes are:
 
 \begin{itemize}
     \item \textbf{3}: 3d distance
-    \item \textbf{5}: local pseudo-horizontal angle
-    \item \textbf{6}: local pseudo-zenithal angle
-    \item \textbf{14}: local X difference
-    \item \textbf{15}: local Y difference
-    \item \textbf{16}: local Z difference
+    \item \textbf{5}: local horizontal angle
+    \item \textbf{6}: local zenithal angle
+    \item \textbf{7}: local horizontal angle for a new station 
+    \item \textbf{14}: local x difference
+    \item \textbf{15}: local y difference
+    \item \textbf{16}: local z difference
 \end{itemize}
 
-In the previous example, {\tt St1}, {\tt Or1} and {\tt E1} are points names.
-They can refer to GCP, cameras or undefined points.
-
-All these observations are made in the station frame. A station represents a series of measurements from one point, this point being the origin of the frame.
-
-Each station has orientation constraints that have to be given before the station observation's line in the {\tt {obs}} file.
+Each station has orientation constraints that have to be given before the station observations lines in the {\tt {obs}} file.
 The possible orientation constraints are:
 \begin{itemize}
-   \item \tt{\#FIX}: the station is axis-aligned, it is verticalized and oriented to North
-   \item \tt{\#VERT}: the station is verticalized and only horizontal orientation is free
-   \item \tt{\#BASC}: the station orientation has 3 degrees of freedom
+   \item \texttt{\#FIX}: the station is axis-aligned, it is verticalized and oriented to North
+   \item \texttt{\#VERT}: the station is verticalized and only horizontal orientation is free
+   \item \texttt{\#BASC}: the station orientation has 3 degrees of freedom
 \end{itemize}
 
+Example for a non-vericalized station on point \texttt{St1}, observing point \texttt{Or1} and \texttt{E1}:
+
+
+\begin{verbatim}
+    #BASC
+    7   St1   Or1     0.0000  0.0010 * horizontal reference
+    6   St1   Or1   100.0000  0.0010 * zenithal angle
+    3   St1   Or1    20.0000  0.0010 * distance
+
+    5   St1    E1   100.0000  0.0010 * horizontal angle
+    6   St1    E1   100.0000  0.0010
+    3   St1    E1  1000.0000  0.0010
+\end{verbatim}
+
+
+\section{Stations}
+
+Stations are created automatically when a new origin is used.
 By default, stations are verticalized/plumb.
 
-To distinguish several vertical stations on the same point with different horizontal orientations, the observation code {\textbf 7} can be used:
+Adding a \texttt{\#} line in a \texttt{obs} file change the default orientation constraint
+is changed until the end of the file. It also ends all the current stations, to make new
+orientations unknowns for the following observations on en same origin points.
+
+For now, the vertical is modeled as the Earth's ellipsoid normal. Vertical deflection grids may be added later.
+
+Example
+\begin{verbatim}
+    7  St1  A   0.0000  0.0010   * start of file: new VERT station on St1
+    ...                          * all the following obs starting on St1 are on this station
+    #BASC
+    3  St1  A  100.00  0.10      * new station with 3 orientation unknowns
+    ...                          * all the following obs starting on St1 are on this station
+    #BASC
+    3  St1  A  100.00  0.10      * new station with 3 new orientation unknowns
+    ...                          * all the following obs starting on St1 are on this station
+    
+\end{verbatim}
+
+To distinguish several verticalized stations on the same point with different horizontal orientations, \texttt{\#VERT} or the observation code {\textbf 7} can be used:
 
 \begin{verbatim}
     7 station target 100 0.001
@@ -302,16 +339,17 @@ The SysCo has to be of type RTL, except if there are only distances measurements
   * [Name=GCPFilter] string :: Pattern to filter GCP by name
   * [Name=GCPFilterAdd] string :: Pattern to filter GCP by additional info
   * [Name=GCPDirOut] string [PointsMeasure,Out] :: Dir for output GCP
-  * [Name=LVM] double :: Levenberg–Marquardt parameter (to have better conditioning of least squares) ,[Default=0]
+  * [Name=LVM] double :: Levenberg–Marquardt parameter (to have better conditioning
+                         of least squares) ,[Default=0]
 
 \end{verbatim}
 
 
 
-\section{\texttt{TopoComp} Bench first example}
+\section{Topometric adjustment example}
 \label{subsec:topoBench}
 
-The example is created by the method \texttt{cTopoData::createEx1()}.
+The example is used in \texttt{TopoComp} Bench. It is created by the method \texttt{cTopoData::createEx1()}.
 We will describe the input files equivalent for the \texttt{TopoAdj} command.
 
 
