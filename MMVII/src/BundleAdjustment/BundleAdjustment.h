@@ -226,6 +226,9 @@ class cBA_Clino : public cMemCheck
           // Add all clino with unknowns to the system
           void AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet);
 
+          // Froze boresight matrix of clinos described by aPatFrozenClino
+          void SetFrozenVar(cResolSysNonLinear<tREAL8> & aSys, const std::string aPatFrozenClino);
+
           // Push observations for clino formula : initial values of Boresight matrix (9 values), and the vertical in local repere (3 values)
           void pushClinoObs(std::vector<double> & aVObs, const cPt3dr & aCamTr, const std::string aClinoName);
 
@@ -368,6 +371,7 @@ class cMMVII_BundleAdj
 	  void SetViscosity(const tREAL8& aViscTr,const tREAL8& aViscAngle);
 	  void SetFrozenCenters(const std::string & aPattern);
 	  void SetFrozenOrients(const std::string & aPattern);
+       void SetFrozenClinos(const std::string & aPattern);
           void SetSharedIntrinsicParams(const std::vector<std::string> &);
            
 
@@ -427,6 +431,7 @@ class cMMVII_BundleAdj
 	  std::string  mPatParamFrozenCalib;  /// Pattern for name of paramater of internal calibration
 	  std::string  mPatFrozenCenter;      /// Pattern for name of pose with frozen centers
 	  std::string  mPatFrozenOrient;      /// Pattern for name of pose with frozen centers
+       std::string  mPatFrozenClinos;      /// Pattern for name of clino with frozen boresight
 
           std::vector<std::string>  mVPatShared;
 

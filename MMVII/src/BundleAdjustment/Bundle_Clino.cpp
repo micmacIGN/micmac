@@ -53,7 +53,7 @@ namespace MMVII
         // Modify rotation by axiator
         mRot = mRot * cRotation3D<tREAL8>::RotFromAxiator(-mOmega);
         // Initialize axiator
-        mOmega = cPt3dr(0,0,0);
+        mOmega = cPt3dr(0.0,0.0,0.0);
     }
 
     void cClinoWithUK::PutUknowsInSetInterval() 
@@ -375,6 +375,24 @@ namespace MMVII
         for (itr = mClinosWithUK.begin(); itr != mClinosWithUK.end(); ++itr)
         {
             aSet.AddOneObj(&itr->second); 
+        }
+    }
+
+
+    void cBA_Clino::SetFrozenVar(cResolSysNonLinear<tREAL8> & aSys, std::string aPatFrozenClino)  
+    {
+        // Froze boresight matrix of clinos described by aPatFrozenClino
+        tNameSelector aSel = AllocRegex(aPatFrozenClino);   
+
+        for (auto & [aClinoName, aClinoWithUK] : mClinosWithUK)
+        {
+            if (aSel.Match(aClinoName))
+            {
+                for (auto i = aClinoWithUK.IndUk0(); i < aClinoWithUK.IndUk1(); i++)
+                {
+                    aSys.SetFrozenVarCurVal(i);
+                }
+            }
         }
     }
 

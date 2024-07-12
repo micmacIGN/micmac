@@ -87,6 +87,7 @@ cMMVII_BundleAdj::cMMVII_BundleAdj(cPhotogrammetricProject * aPhp) :
     mPatParamFrozenCalib (""),
     mPatFrozenCenter (""),
     mPatFrozenOrient (""),
+    mPatFrozenClinos (""),
     //mMesGCP           (nullptr),
     //mSigmaGCP         (-1),
     mBlRig            (nullptr),
@@ -194,6 +195,12 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM)
 	    }
         }
     }
+
+    if (mPatFrozenClinos != "" && mBlClino)
+    {
+        mBlClino->SetFrozenVar(*mR8_Sys, mPatFrozenClinos);
+    }
+    
 
     if (mBlRig) // RIGIDBLOC
     {
@@ -385,6 +392,11 @@ void cMMVII_BundleAdj::SetFrozenCenters(const std::string & aPattern)
 void cMMVII_BundleAdj::SetFrozenOrients(const std::string & aPattern)
 {    
     mPatFrozenOrient = aPattern;
+}
+
+void cMMVII_BundleAdj::SetFrozenClinos(const std::string & aPattern)
+{    
+    mPatFrozenClinos = aPattern;
 }
 
 void cMMVII_BundleAdj::SetSharedIntrinsicParams(const std::vector<std::string> & aVParams)
