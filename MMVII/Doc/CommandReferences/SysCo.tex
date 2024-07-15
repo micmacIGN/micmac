@@ -146,15 +146,14 @@ On Windows, it should be copied into {\tt MMVII\textbackslash share\textbackslas
 
 In \CdPPP, it is possible to add topographic survey measurements in global adjustments, alongside photogrammetric measurements. From now on, for convenience, "topo" term will be used instead of "topographic survey".
 
-
 Topo measurements are made from an instrument that can be verticalized or not.
-The position and orientation of an instrument is called a station.
-All the observations are attached to a station and are expressed in the station frame.
+The position and orientation of an instrument define a \textit{station}.
+All the measurements are attached to a station and are expressed in the station frame.
 
 \begin{figure}[!h]
 \centering
-\includegraphics[width=9cm]{CommandReferences/ImagesComRef/topo.png}
-\caption{A topometric survey station, its instrument frame and measured angles}
+\includegraphics[width=7cm]{CommandReferences/ImagesComRef/topo.png}
+\caption{A topo station, its frame and measured angles}
 \label{fig:topoStation}
 \end{figure}
 
@@ -170,14 +169,13 @@ The following measurements types are currently supported:
 The measurements can be made between cameras poses, GCPs or undeclared points that will be inserted into the last GCP set of the adjustment.
 
 
-
 Two \CdPPP\ commands can use topo measurements in compensation:
 \begin{itemize}
     \item {\tt OriBundleAdj} via the {\tt TopoFile} option
     \item {\tt TopoAdj} (see \ref{sec:TopoAdj})
 \end{itemize}
 
-The topo measurements file can be given as a \CdPPP\ json or xml topo file, or in a simplified text format (named {\tt obs} file) inherited from IGN's Comp3D\footnote{\url{https://github.com/IGNF/Comp3D}} micro-geodesy compensation software.
+The topo measurements file can be given as a \CdPPP\ json or xml file, or in a simplified text format (named {\tt obs} file) inherited from IGN's Comp3D\footnote{\url{https://github.com/IGNF/Comp3D}} micro-geodesy compensation software.
 
 The {\tt obs} format is simple and easily human-editable.
 
@@ -186,10 +184,9 @@ All the measurements files must be in the {\tt MMVII-PhgrProj/Topo/[TopoObsName]
 \section{\texttt{OBS} file format}
 \label{sec:compObsFormat}
 
-Note: \CdPPP\ supports only a subset of Comp3D {\tt obs} format\footnote{\url{https://ignf.github.io/Comp3D/doc/obs.html}}.
-\vspace{0.5cm}
+Note: \CdPPP\ supports only a subset of Comp3D {\tt OBS} format\footnote{\url{https://ignf.github.io/Comp3D/doc/obs.html}}.
 
-{\tt obs} files are text files with fields delimited by any number of spaces or tabs. Blank lines are overlooked.
+{\tt OBS} files are text files with fields delimited by any number of spaces or tabs. Blank lines are overlooked.
 The {\tt *} character defines a comment that goes up to the end of the line.
 
 An observation line is composed by:
@@ -203,7 +200,7 @@ An observation line is composed by:
     \item anything else is ignored until the end of the line
 \end{itemize}
 
-Example for a measured distance of $100.0000m$, with a $\sigma$ of $1mm$ from \texttt{PointA} to \texttt{PointA}:
+Example for a measured distance of 100.0000 m, with a $\sigma$ of 1 mm from \texttt{PointA} to \texttt{PointB}:
 
 \begin{verbatim}
     3   PointA    PointB    100.0000    0.001    * comment
@@ -216,21 +213,27 @@ The observations codes are:
     \item \textbf{5}: local horizontal angle
     \item \textbf{6}: local zenithal angle
     \item \textbf{7}: local horizontal angle for a new station 
-    \item \textbf{14}: local x difference
-    \item \textbf{15}: local y difference
-    \item \textbf{16}: local z difference
+    \item \textbf{14}: local $\Delta$x
+    \item \textbf{15}: local $\Delta$y
+    \item \textbf{16}: local $\Delta$z
 \end{itemize}
 
+\section{Stations orientation constraints}
+
 Each station has orientation constraints that have to be given before the station observations lines in the {\tt {obs}} file.
+
 The possible orientation constraints are:
 \begin{itemize}
    \item \texttt{\#FIX}: the station is axis-aligned, it is verticalized and oriented to North
    \item \texttt{\#VERT}: the station is verticalized and only horizontal orientation is free
-   \item \texttt{\#BASC}: the station orientation has 3 degrees of freedom
+   \item \texttt{\#BASC}: the station orientation has 3 degrees of freedom, meaning non-verticalized and not oriented to North
 \end{itemize}
 
-Example for a non-vericalized station on point \texttt{St1}, observing point \texttt{Or1} and \texttt{E1}:
 
+Stations are created automatically when a new origin is used.
+By default, stations are verticalized/plumb. For now, the vertical is modeled as the Earth's ellipsoid normal. Vertical deflection grids may be added later.
+
+Example of a \texttt{\#BASC} station on point \texttt{St1}, observing the points \texttt{Or1} and \texttt{E1}:
 
 \begin{verbatim}
     #BASC
@@ -244,18 +247,11 @@ Example for a non-vericalized station on point \texttt{St1}, observing point \te
 \end{verbatim}
 
 
-\section{Stations}
+\TOMODIF{Adding a \texttt{\#} line in an \texttt{obs} file changes the default orientation constraint
+until the end of the file. It also ends all the current stations, to make new
+orientations unknowns for the following orientations on the same origin points.}
 
-Stations are created automatically when a new origin is used.
-By default, stations are verticalized/plumb.
-
-Adding a \texttt{\#} line in a \texttt{obs} file change the default orientation constraint
-is changed until the end of the file. It also ends all the current stations, to make new
-orientations unknowns for the following observations on en same origin points.
-
-For now, the vertical is modeled as the Earth's ellipsoid normal. Vertical deflection grids may be added later.
-
-Example
+Example:
 \begin{verbatim}
     7  St1  A   0.0000  0.0010   * start of file: new VERT station on St1
     ...                          * all the following obs starting on St1 are on this station
@@ -288,11 +284,11 @@ For any kind of adjustment, minimal constraints can be useful to get the measure
 In general, several GCP with known coordinates are used to fix the frame, but their inconsistency may
 impact the computation.
 
-In a 3D adjustment, up to 7 external constraints have to be provided to fix the frame translation, rotation and scale.
+In a 3D adjustment, up to 7 external constraints have to be provided to fix the frame translation, rotation ($R_X$, $R_Y$, $R_Z$) and scale.
 
 With photogrammetry, one camera pose can be used to fix 6 external constraints. The scale can then be given with an {\tt obs} file:
 \begin{verbatim}
-    * 10 meters between IMG1.JPG and IMG2.JPG poses
+    * distance of 10 meters between IMG1.JPG and IMG2.JPG poses centers
     3  IMG1.JPG  IMG2.JPG 10.0000 0.0010   
 \end{verbatim}
 
@@ -319,13 +315,9 @@ It is used as a substitute to {\tt OriBundleAdj} when there are no cameras.
 The GCP folder must then have a RTL CurSysCo.xml file, and do not have to declare all the points
 referred to by topo observations, \TOMODIF{but automatic points initialization is not completed for now.}
 
-The SysCo has to be of type RTL, except if there are only distances measurements.
+\TOMODIF{The SysCo has to be of type RTL, except if there are only distances measurements.}
 
 \begin{verbatim}
-   For command : TopoAdj 
-   => Topo adjustment
-   => Srce code entry in :/home/JMMuller/micmac/MMVII/src/BundleAdjustment/cAppliTopoAdj.cpp
-
  == Mandatory unnamed args : ==
   * string [Topo,In] :: Dir for Topo measures
   * string [Topo,Out] :: Dir for Topo measures output
@@ -355,14 +347,14 @@ We will describe the input files equivalent for the \texttt{TopoAdj} command.
 
 \subsection{Creating the points}
 
-The points are declared, their initial coordinates and the sigmas on their coordinates constraints
+The points with their initial coordinates and the sigmas on their coordinates constraints
 are given in a GCP file. 
 
-3 points have coordinates constraints at 1cm ($A$, $B$, $C$). They form an isosceles triangle
+3 points have coordinates constraints at 1 cm ($A$, $B$, $C$). They form an isosceles triangle
 on an horizontal plane.
-A 4th point ($D$) is declared above the other. It has no {\tt \_\_Opt\_\_Sigma2} attribute as this point is free.
+A 4th point ($D$) is declared above the other. It has no {\tt \_\_Opt\_\_Sigma2} attribute in the GCP file as this point is free.
 (Fig. \ref{fig:topoEx1}). Note that depending on the initial coordinates for $D$, the computation may no succeed
-(e.g. if $A$ and $D$ have the same initial coordinates, the distance formula derivatives are $NaN$).
+(i.e., if $A$ and $D$ have the same initial coordinates, the distance formula derivatives are $NaN$).
 
 A {\tt CurSysCo.xml} must come along this GCP file to describe the RTL SysCo.
 
@@ -370,7 +362,7 @@ A {\tt CurSysCo.xml} must come along this GCP file to describe the RTL SysCo.
 \begin{figure}[!h]
 \centering
 \includegraphics[width=12cm]{Programmer/benchtopo1b.png}
-\caption{The 3 fixed points and the free point}
+\caption{The 3 fixed points ($A$, $B$, $C$) and the free point ($D$)}
 \label{fig:topoEx1}
 \end{figure}
 
@@ -410,8 +402,7 @@ The summarized content of the GCP file:
 
 \subsection{Creating the observations}
 
-The distances from $D$ to $A$, $B$ and $C$
-are measured. For redundancy and error evaluation, the distance from $D$ to $C$ is measured twice
+The distances from $D$ to $A$, $B$ and $C$ are measured. For redundancy and error evaluation, the distance from $D$ to $C$ is measured twice
 with different values (Fig. \ref{fig:topoEx2}).
 
 \begin{figure}[!h]
@@ -429,7 +420,7 @@ Observations are represented in an {\tt obs} file:
     3  D  C  10.1  0.1
 \end{lstlisting}
 
-Here a implicit station is created, based on point D.
+Here a implicit station is created, based on point $D$.
 As no orientation status is given, the station is supposed verticalized.
 It should have an horizontal orientation degree of liberty.
 But since there is no observations able to determine the station orientation,
@@ -438,7 +429,7 @@ it is automatically set as fixed (as if a {\tt \#FIX} line was added at the star
 \subsection{Outputs}
 
 After a computation, the output GCP file contains the final coordinates of every point, including
-points that were not declared in the input GCP, but referenced in the survey measurements.
+points that were not declared in the input GCP, but referenced in the topo measurements.
 
 The output Topo file contains info about all the stations and observations,
 with output values as residuals:
@@ -478,4 +469,4 @@ with output values as residuals:
 </TopoData>
 \end{lstlisting}
 
-This Topo file can be used as input for an other adjustment (it is completely equivalent to the {\tt obs} file).
+This Topo file can be used as input for another adjustment (it is completely equivalent to the {\tt obs} file).
