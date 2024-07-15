@@ -105,7 +105,7 @@ namespace MMVII
         mPhProj  (aPhProj),
         mEqBlUK  (EqClinoBloc(true,1,true)),
         mEqBlUKRot  (EqClinoRot(true,1,true)),
-        mCalibSetClino (aCalibSetClino)   
+        mCalibSetClino (aCalibSetClino)
     {}
 
     cBA_Clino::~cBA_Clino()
@@ -357,8 +357,15 @@ namespace MMVII
         
 
         // Return mean residual
-        mClinoRes = aClinoRes/aClinoRes.y();
-        mRotRes = aRotRes/aRotRes.y();
+        if (aClinoRes.y()!=0)
+        {
+            mClinoRes = aClinoRes/aClinoRes.y();
+        }
+
+        if (aRotRes.y()!=0)
+        {
+            mRotRes = aRotRes/aRotRes.y();
+        }
     }
 
     void cBA_Clino::printRes() const

@@ -348,6 +348,7 @@ class cMMVII_BundleAdj
 
           // Add clino bloc to compute relative orientation between clino and a camera
           void AddClinoBloc(const std::string aNameClino, const std::string aFormat, std::vector<std::string> aPrePost);
+          void AddClinoBloc(cBA_Clino * aBAClino);
 
           bool AddTopo(const std::string & aTopoFilePath); // TOPO
           ///  =======  Add GCP, can be measure or measure & object
@@ -386,6 +387,8 @@ class cMMVII_BundleAdj
 
           // Save results of clino bundle adjustment
           void SaveClino();
+          void  AddBenchSensor(cSensorCamPC *); // Add sensor, used in Bench Clino
+          
 
      private :
 

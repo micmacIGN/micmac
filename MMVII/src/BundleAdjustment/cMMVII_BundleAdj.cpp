@@ -309,6 +309,11 @@ void cMMVII_BundleAdj::AddCalib(cPerspCamIntrCalib * aCalib)
     }
 }
 
+void  cMMVII_BundleAdj::AddBenchSensor(cSensorCamPC * aSI){
+    mVSCPC.push_back(aSI);
+    AddSensor(aSI);
+}
+
 void cMMVII_BundleAdj::AddSensor(cSensorImage* aSI)
 {
     AssertPhaseAdd();
@@ -603,6 +608,11 @@ void cMMVII_BundleAdj::AddClinoBloc(const std::string aNameClino, const std::str
     AssertPhpAndPhaseAdd();
     mBlClino = new cBA_Clino(mPhProj, aNameClino, aFormat, aPrePost);
 
+    mBlClino->AddToSys(mSetIntervUK);
+}
+
+void cMMVII_BundleAdj::AddClinoBloc(cBA_Clino * aBAClino){
+    mBlClino = aBAClino;
     mBlClino->AddToSys(mSetIntervUK);
 }
 
