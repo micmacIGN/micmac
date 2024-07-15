@@ -1,0 +1,9 @@
+{
+  "features": {
+    "qt5": {
+      "description" : "Use QT5",
+      "dependencies": [ "qt5" ]
+    }
+  },
+  "builtin-baseline": "94a50e8c1357d423840e22451e122f56d62b5c20"
+}

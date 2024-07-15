@@ -1,4 +1,15 @@
 cmake_minimum_required(VERSION 2.8.12)
+
+# Interfaces de saisie des param�tres
+option(WITH_QT5 "compile Qt interfaces" OFF)
+
+# VCPKG_MANIFEST_FEATURES must be set before project()
+# It will trigger download and install of QT5 via vcpkg.json 
+# if needed and vcpkg is used
+if(WITH_QT5)
+  list(APPEND VCPKG_MANIFEST_FEATURES "qt5")
+endif()
+
 project(MICMAC)
 
 
