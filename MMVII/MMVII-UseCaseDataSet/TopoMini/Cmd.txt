@@ -1,0 +1,20 @@
+set -e
+
+# clear
+rm -Rf MMVII-PhgrProj
+
+# import coords
+MMVII ImportGCP inputs/coords.txt NXYZ InitL93 ChSys=[L93]
+
+"remove __Opt__Sigma2 for PtB and PtC"
+
+
+# convert to RTL
+MMVII GCPChSysCo "RTL*657700*6860700*0*IGNF:LAMB93" InitL93 InitRTL
+
+mkdir -p MMVII-PhgrProj/Topo/Obs1/
+cp inputs/meas.obs MMVII-PhgrProj/Topo/Obs1/
+
+MMVII TopoAdj Obs1 Obs1_out InitRTL FinalRTL GCPW=0.001
+
+MMVII GCPChSysCo L93 FinalRTL FinalL93

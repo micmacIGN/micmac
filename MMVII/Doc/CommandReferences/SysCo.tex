@@ -35,6 +35,7 @@ There are several ways to declare a data SysCo:
 \end{itemize}
 
 \subsection{SysCo definition}
+\label{subsec:SysCoDef}
 The SysCo definitions for \CdPPP\ commands can be:
 \begin{itemize}
 \item the name of a file in \CdPPP\ source subfolder {\tt MMVII/MMVII-RessourceDir/SysCo} or in project subfolder {\tt MMVII-PhgrProj/SysCo}, without its extension, only its basename (e.g., {\tt RTL} for MMVII-PhgrProj/SysCo/RTL.xml file)
@@ -152,7 +153,7 @@ All the measurements are attached to a station and are expressed in the station 
 
 \begin{figure}[!h]
 \centering
-\includegraphics[width=7cm]{CommandReferences/ImagesComRef/topo.png}
+\includegraphics[width=9cm]{CommandReferences/ImagesComRef/topo.png}
 \caption{A topo station, its frame and measured angles}
 \label{fig:topoStation}
 \end{figure}
@@ -172,12 +173,11 @@ The measurements can be made between cameras poses, GCPs or undeclared points th
 Two \CdPPP\ commands can use topo measurements in compensation:
 \begin{itemize}
     \item {\tt OriBundleAdj} via the {\tt TopoFile} option
-    \item {\tt TopoAdj} (see \ref{sec:TopoAdj})
+    \item {\tt TopoAdj} (see \ref{subsec:TopoAdj})
 \end{itemize}
 
-The topo measurements file can be given as a \CdPPP\ json or xml file, or in a simplified text format (named {\tt obs} file) inherited from IGN's Comp3D\footnote{\url{https://github.com/IGNF/Comp3D}} micro-geodesy compensation software.
-
-The {\tt obs} format is simple and easily human-editable.
+The topo measurements file can be given as a set of \CdPPP\ json or xml file, or in a simplified text format (named {\tt OBS} file) inherited from IGN's
+Comp3D\footnote{\url{https://github.com/IGNF/Comp3D}} micro-geodesy compensation software.
 
 All the measurements files must be in the {\tt MMVII-PhgrProj/Topo/[TopoObsName]} folder.
 
@@ -218,6 +218,218 @@ The observations codes are:
     \item \textbf{16}: local $\Delta$z
 \end{itemize}
 
+\newpage
+\section{Quickstart}
+
+An example of topo  adjustment can be found in \texttt{MMVII/MMVII-UseCaseDataSet/TopoMini/}.
+It corresponds to this configuration:
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=11cm]{CommandReferences/ImagesComRef/topo2.png}
+\caption{The \texttt{TopoMini} dataset}
+\label{fig:topoSurvey}
+\end{figure}
+
+Where PtA and PtD have known coordinates, PtB and PtC have to be determined (only approximate coordinates are known).
+
+\subsection{3D points file}
+The initial coordinates of the 4 points in Lambert 93 are in a simple text file (\texttt{inputs/coords.txt}):
+
+\begin{verbatim}
+  PtA  657700.000  6860700.000  10.000
+  PtB  657710      6860700      10
+  PtC  657710      6860710      10
+  PtD  657700.000  6860690.000  10.000
+\end{verbatim}
+
+The coordinates of PtA and PtD are supposed known (with a certain precision).
+The coordinates of PtB and PtC are just for initialization.
+\\
+
+To import these coordinates in \CdPPP\ we use the \texttt{ImportGCP} command, where we give the text format
+(name, x, y, z), the name of the resulting \texttt{PointsMeasure} and the coordinates SysCo.
+
+\begin{lstlisting}
+MMVII ImportGCP inputs/coords.txt NXYZ InitL93 ChSys=[L93]
+\end{lstlisting}
+
+
+In the resulting file \texttt{MMVII-PhgrProj/PointsMeasure/InitL93/MesGCP-coords.xml},
+we have to remove the coordinates constraints on points PtB and PtC to make them free points
+with initial coordinates.
+
+To do that, their \texttt{\_\_Opt\_\_Sigma2} nodes have to be deleted.
+The resulting \texttt{MMVII-PhgrProj/PointsMeasure/InitL93/MesGCP-coords.xml} file is:
+
+\begin{lstlisting}
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<Root>
+   <Type>"MMVII_Serialization"</Type>
+   <Version>"0.0.0"</Version>
+   <Data>
+      <SetGCP>
+         <NameSet>"coords"</NameSet>
+         <Measures>
+            <el>
+               <Name>"PtA"</Name>
+               <Pt>-0.000000000016875 0.000000000583916 10.000000000498177</Pt>
+               <AdditionalInfo>""</AdditionalInfo>
+               <__Opt__Sigma2>1 0 0 1 0 1</__Opt__Sigma2>
+            </el>
+            <el>
+               <Name>"PtB"</Name>
+               <Pt>10.000907818502791 0.07300202118504 9.999992174224545</Pt>
+               <AdditionalInfo>""</AdditionalInfo>
+            </el>
+            <el>
+               <Name>"PtC"</Name>
+               <Pt>9.927905478628638 10.073909554171774 9.999984325034628</Pt>
+               <AdditionalInfo>""</AdditionalInfo>
+            </el>
+            <el>
+               <Name>"PtD"</Name>
+               <Pt>0.073001699489761 -10.000908193716121 9.999992150963823</Pt>
+               <AdditionalInfo>""</AdditionalInfo>
+               <__Opt__Sigma2>1 0 0 1 0 1</__Opt__Sigma2>
+            </el>
+         </Measures>
+      </SetGCP>
+   </Data>
+</Root>
+\end{lstlisting}
+
+
+
+\subsection{Computation SysCo}
+
+A \texttt{RTL} SysCo is mandatory to be able to make a topo compensation.
+We can choose the initial coordinates of PtA as the tangence point.
+The SysCo definition according to ~\ref{subsec:SysCoDef} is: \texttt{RTL*657700*6860700*0*IGNF:LAMB93}.
+
+The \texttt{GCPChSysCo} command does the conversion:
+
+\begin{lstlisting}
+MMVII GCPChSysCo "RTL*657700*6860700*0*IGNF:LAMB93" InitL93 InitRTL
+\end{lstlisting}
+
+
+
+\begin{comment}
+\subsection{SysCo shortcut}
+The SysCo file \texttt{MMVII-PhgrProj/PointsMeasure/InitRTL/CurSysCo.xml}, created by \texttt{ImportGCP}
+can be used to create a shortcut name for \texttt{RTL*657700*6860700*0*IGNF:LAMB93}.
+
+We just have to copy it as \texttt{MMVII-PhgrProj/SysCo/RTL.xml} to be able to designate this SysCo
+simply as \texttt{RTL} for the rest of the example.
+
+\begin{lstlisting}
+cp MMVII-PhgrProj/PointsMeasure/InitRTL/CurSysCo.xml MMVII-PhgrProj/SysCo/RTL.xml
+\end{lstlisting}
+\end{comment}
+
+
+\subsection{Measurements}
+The measurements are:
+\begin{itemize}
+   \item an instrument positionned on PtA measures hz angle, zen angle and distance to PtB and PtC
+   \item an instrument positionned on PtD measures hz angle, zen angle and distance to PtB and PtC
+\end{itemize}
+The corresponding \texttt{OBS} file (\texttt{inputs/meas.obs}) is:
+\begin{verbatim}
+ 7   PtA    PtB     0      0.001
+ 6   PtA    PtB   100      0.001
+ 3   PtA    PtB    10.05   0.005
+ 5   PtA    PtC   -40.62   0.001
+ 6   PtA    PtC   100      0.001
+ 3   PtA    PtC    14.88   0.005
+
+ 7   PtD    PtB     0      0.001
+ 6   PtD    PtB   100      0.001
+ 3   PtD    PtB    14.88   0.005
+ 5   PtD    PtC   -14.96   0.001
+ 6   PtD    PtC   100      0.001
+ 3   PtD    PtC    22.82   0.005
+\end{verbatim}
+This file has to be copied into a new directory in \texttt{MMVII-PhgrProj/Topo}:
+\begin{lstlisting}
+mkdir -p MMVII-PhgrProj/Topo/Obs1/
+cp inputs/meas.obs MMVII-PhgrProj/Topo/Obs1/
+\end{lstlisting}
+
+
+\subsection{Unknowns count}
+
+The previous \texttt{OBS} file creates two verticalized stations, one with its origin on PtA, the other on PtD.
+Each of these stations has an horizontal orientation unknown ($G_0$) due to the random orientation of the instrument
+when it has been set on the point.
+
+The number of unknowns in this adjustement is:
+\begin{itemize}
+   \item 3 per point ($x, y, z$)
+   \item 1 per station ($G_0$)
+\end{itemize}
+
+Total: $4 \times 3 + 2 \times 1 = 14$ unknowns.
+\\
+
+The number of constraints is:
+\begin{itemize}
+   \item 3 per constrained point, PtA and PtD
+   \item 1 per topo measurement
+\end{itemize}
+
+Total: $2 \times 3 + 12 = 18$ constraints.
+
+
+\subsection{Compensation}
+\label{subsec:TopoAdj}
+The {\tt TopoAdj} command can perform an adjustment between topo and GCP constraints.
+It is used as a substitute to {\tt OriBundleAdj} when there are no cameras.
+
+\begin{verbatim}
+ == Mandatory unnamed args : ==
+  * string [Topo,In] :: Dir for Topo measures
+  * string [Topo,Out] :: Dir for Topo measures output
+  * string [PointsMeasure,In] :: Dir for points initial coordinates
+  * string [PointsMeasure,Out] :: Dir for points final coordinates
+
+ == Optional named args : ==
+  * [Name=GCPW] double :: Constrained GCP weight factor (default: 1)
+  * [Name=DataDir] string :: Default data directories  ,[Default=Std]
+  * [Name=NbIter] int :: Number of iterations ,[Default=10]
+  * [Name=GCPFilter] string :: Pattern to filter GCP by name
+  * [Name=GCPFilterAdd] string :: Pattern to filter GCP by additional info
+  * [Name=GCPDirOut] string [PointsMeasure,Out] :: Dir for output GCP
+  * [Name=LVM] double :: Levenberg–Marquardt parameter (to have better conditioning
+                         of least squares) ,[Default=0]
+\end{verbatim}
+
+Here the input topo directory is \texttt{Obs1} and the input PointsMeasure is \texttt{Init}.
+We give output directories for topo and points, and add a weight factor for 3D constraintes coordinates,
+to say that PtA and PtD are known with a precision of 1 mm:
+\begin{lstlisting}
+MMVII TopoAdj Obs1 Obs1_out InitRTL FinalRTL GCPW=0.001
+\end{lstlisting}
+
+The final $\sigma_0$ value should be around 1 if everything goes well.
+In this example, $\sigma_{0 init} > 5000$, because the initial coordinates of PtB and PtC are approximate,
+and after 10 iterations it stabilizes at $\sigma_{0 final} = 1.7$.
+\\
+
+The output topo directory contains a single xml file with all the measurements and some output values (residuals,
+stations orientations...). It can be used as topo input file.
+\\
+
+The last step is to convert the RTL coordinates in Lambert 93:
+
+\begin{lstlisting}
+MMVII GCPChSysCo L93 FinalRTL FinalL93
+\end{lstlisting}
+
+
+
+
 \section{Stations orientation constraints}
 
 Each station has orientation constraints that have to be given before the station observations lines in the {\tt {obs}} file.
@@ -229,56 +441,91 @@ The possible orientation constraints are:
    \item \texttt{\#BASC}: the station orientation has 3 degrees of freedom, meaning non-verticalized and not oriented to North
 \end{itemize}
 
+After a \texttt{\#} line (\texttt{\#FIX}, \texttt{\#VERT} or \texttt{\#BASC}), all the following stations have the new orientation constraint until the next \texttt{\#} line.
+Each \texttt{OBS} file starts with an implicit \texttt{\#VERT}, making the stations verticalized by default.
 
-Stations are created automatically when a new origin is used.
-By default, stations are verticalized/plumb. For now, the vertical is modeled as the Earth's ellipsoid normal. Vertical deflection grids may be added later.
 
-Example of a \texttt{\#BASC} station on point \texttt{St1}, observing the points \texttt{Or1} and \texttt{E1}:
+For now, the vertical is modeled as the Earth's ellipsoid normal. Vertical deflection grids may be added later.
 
+
+\subsection{Return to quickstart example}
+The example \texttt{OBS} file was:
 \begin{verbatim}
-    #BASC
-    7   St1   Or1     0.0000  0.0010 * horizontal reference
-    6   St1   Or1   100.0000  0.0010 * zenithal angle
-    3   St1   Or1    20.0000  0.0010 * distance
+ 7   PtA    PtB     0      0.001
+ 6   PtA    PtB   100      0.001
+ 3   PtA    PtB    10.05   0.005
+ 5   PtA    PtC   -40.62   0.001
+ 6   PtA    PtC   100      0.001
+ 3   PtA    PtC    14.88   0.005
 
-    5   St1    E1   100.0000  0.0010 * horizontal angle
-    6   St1    E1   100.0000  0.0010
-    3   St1    E1  1000.0000  0.0010
+ 7   PtD    PtB     0      0.001
+ 6   PtD    PtB   100      0.001
+ 3   PtD    PtB    14.88   0.005
+ 5   PtD    PtC   -14.96   0.001
+ 6   PtD    PtC   100      0.001
+ 3   PtD    PtC    22.82   0.005
+\end{verbatim}
+
+It is possible to say that the station on PtA was not verticalized:
+\begin{verbatim}
+#BASC
+ 7   PtA    PtB     0      0.001
+ 6   PtA    PtB   100      0.001
+ 3   PtA    PtB    10.05   0.005
+ 5   PtA    PtC   -40.62   0.001
+ 6   PtA    PtC   100      0.001
+ 3   PtA    PtC    14.88   0.005
+
+#VERT
+ 7   PtD    PtB     0      0.001
+ 6   PtD    PtB   100      0.001
+ 3   PtD    PtB    14.88   0.005
+ 5   PtD    PtC   -14.96   0.001
+ 6   PtD    PtC   100      0.001
+ 3   PtD    PtC    22.82   0.005
+\end{verbatim}
+
+It will add two rotations unknowns to the computation.
+
+It is also possible to remove the $G_0$ unknown of a station, expressing the fact that it
+is verticalized and the horizontal reference is North:
+\begin{verbatim}
+#FIX
+ 7   PtA    PtB     0      0.001
+ 6   PtA    PtB   100      0.001
+ 3   PtA    PtB    10.05   0.005
+ 5   PtA    PtC   -40.62   0.001
+ 6   PtA    PtC   100      0.001
+ 3   PtA    PtC    14.88   0.005
+
+#VERT
+ 7   PtD    PtB     0      0.001
+ 6   PtD    PtB   100      0.001
+ 3   PtD    PtB    14.88   0.005
+ 5   PtD    PtC   -14.96   0.001
+ 6   PtD    PtC   100      0.001
+ 3   PtD    PtC    22.82   0.005
 \end{verbatim}
 
 
-\TOMODIF{Adding a \texttt{\#} line in an \texttt{obs} file changes the default orientation constraint
-until the end of the file. It also ends all the current stations, to make new
-orientations unknowns for the following orientations on the same origin points.}
 
-Example:
-\begin{verbatim}
-    7  St1  A   0.0000  0.0010   * start of file: new VERT station on St1
-    ...                          * all the following obs starting on St1 are on this station
-    #BASC
-    3  St1  A  100.00  0.10      * new station with 3 orientation unknowns
-    ...                          * all the following obs starting on St1 are on this station
-    #BASC
-    3  St1  A  100.00  0.10      * new station with 3 new orientation unknowns
-    ...                          * all the following obs starting on St1 are on this station
-    
-\end{verbatim}
+\subsection{Several stations on the same point}
 
-To distinguish several verticalized stations on the same point with different horizontal orientations, \texttt{\#VERT} or the observation code {\textbf 7} can be used:
+\CdPPP\ automatically creates a new station when a point is used for the first time as the origin of a measurement.
 
-\begin{verbatim}
-    7 station target 100 0.001
-\end{verbatim}
+If we have to make a new set of orientation unknowns because two instruments were set on the same point with different
+orientations, we can:
 
-equivalent to:
-
-\begin{verbatim}
-    #VERT
-    5 station target 100 0.001
-\end{verbatim}
+\begin{itemize}
+   \item use separated \texttt{OBS} files
+   \item add a \texttt{\#} line to separate the measurements sets
+   \item use a code 7 as first measurement
+\end{itemize}
 
 
-\section{Topo \texttt{obs} for minimal external constraints}
+
+
+\section{Topo measurements for minimal external constraints}
 
 For any kind of adjustment, minimal constraints can be useful to get the measurements internal precision.
 In general, several GCP with known coordinates are used to fix the frame, but their inconsistency may
@@ -305,39 +552,32 @@ Another possibility is to constrain the coordinates of one GCP, then add an {\tt
     
 \end{verbatim}
 
-
-\section{\texttt{TopoAdj} command}
-\label{sec:TopoAdj}
-
-The {\tt TopoAdj} command can perform an adjustment between topo and GCP constraints.
-It is used as a substitute to {\tt OriBundleAdj} when there are no cameras.
-
-The GCP folder must then have a RTL CurSysCo.xml file, and do not have to declare all the points
-referred to by topo observations, \TOMODIF{but automatic points initialization is not completed for now.}
-
-\TOMODIF{The SysCo has to be of type RTL, except if there are only distances measurements.}
+Minimal external constraints for the quickstart example:
+having constraints on only one point and this \texttt{OBS} file:
 
 \begin{verbatim}
- == Mandatory unnamed args : ==
-  * string [Topo,In] :: Dir for Topo measures
-  * string [Topo,Out] :: Dir for Topo measures output
-  * string [PointsMeasure,In] :: Dir for points initial coordinates
-  * string [PointsMeasure,Out] :: Dir for points final coordinates
+#FIX
+ 5   PtA    PtB   100      0.001 * PtA => PtB = East. Code 7 or 5 are equivalent here
+ 
+#VERT
+ 7   PtA    PtB     0      0.001
+ 6   PtA    PtB   100      0.001
+ 3   PtA    PtB    10.05   0.005
+ 5   PtA    PtC   -40.62   0.001
+ 6   PtA    PtC   100      0.001
+ 3   PtA    PtC    14.88   0.005
 
- == Optional named args : ==
-  * [Name=GCPW] double :: Constrained GCP weight factor (default: 1)
-  * [Name=DataDir] string :: Default data directories  ,[Default=Std]
-  * [Name=NbIter] int :: Number of iterations ,[Default=10]
-  * [Name=GCPFilter] string :: Pattern to filter GCP by name
-  * [Name=GCPFilterAdd] string :: Pattern to filter GCP by additional info
-  * [Name=GCPDirOut] string [PointsMeasure,Out] :: Dir for output GCP
-  * [Name=LVM] double :: Levenberg–Marquardt parameter (to have better conditioning
-                         of least squares) ,[Default=0]
 
+ 7   PtD    PtB     0      0.001
+ 6   PtD    PtB   100      0.001
+ 3   PtD    PtB    14.88   0.005
+ 5   PtD    PtC   -14.96   0.001
+ 6   PtD    PtC   100      0.001
+ 3   PtD    PtC    22.82   0.005
 \end{verbatim}
 
 
-
+\begin{comment}
 \section{Topometric adjustment example}
 \label{subsec:topoBench}
 
@@ -470,3 +710,5 @@ with output values as residuals:
 \end{lstlisting}
 
 This Topo file can be used as input for another adjustment (it is completely equivalent to the {\tt obs} file).
+
+\end{comment}

@@ -1,0 +1,15 @@
+ 7   PtA    PtB     0      0.001
+ 6   PtA    PtB   100      0.001
+ 3   PtA    PtB    10.05   0.005
+ 5   PtA    PtC   -40.62   0.001
+ 6   PtA    PtC   100      0.001
+ 3   PtA    PtC    14.88   0.005
+
+
+ 7   PtD    PtB     0      0.001
+ 6   PtD    PtB   100      0.001
+ 3   PtD    PtB    14.88   0.005
+ 5   PtD    PtC   -14.96   0.001
+ 6   PtD    PtC   100      0.001
+ 3   PtD    PtC    22.82   0.005
+
