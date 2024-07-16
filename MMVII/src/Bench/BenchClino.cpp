@@ -158,18 +158,47 @@ namespace MMVII
         }
     }
 
+    void AddGCP(const std::string aPName, const cPt3dr aCoords, const cSensorCamPC* aSensorCamPC, cSetMesGCP* aSetMesGCP, cSetMesPtOf1Im* aSetMesPtOf1Im, const tREAL8 aSigma){
+        cPt2dr aP1Image = aSensorCamPC->Ground2Image(aCoords);
+        aSetMesGCP->AddMeasure(cMes1GCP(aCoords, aPName, 0.0));
+        aSetMesPtOf1Im->AddMeasure(cMesIm1Pt(aP1Image, aPName, aSigma));
+    }
+
+    tREAL8 ComputeNeedleMeasure(const cRotation3D<tREAL8> aBoresight, const cRotation3D<tREAL8> aCameraRot){
+        cPtxd<tREAL8,3> aV = {0.0, 0.0, -1.0};
+        cPtxd<tREAL8,3> aVClino =  aBoresight.Mat() * aCameraRot.Mat() * aV;
+        tREAL8 aNorm = sqrt(aVClino.x()*aVClino.x() + aVClino.y()*aVClino.y());
+        tREAL8 aCos = aVClino.x() / aNorm;
+        tREAL8 aSin = aVClino.y() / aNorm;
+        tREAL8 aNeedleMeasure =  2*atan(aSin / (1+aCos));
+        return aNeedleMeasure;
+    }
+
+    cRotation3D<tREAL8> CreateClino(const std::string aCanonicalAxe, const cRotation3D<tREAL8> aCameraRot){
+        cRotation3D<tREAL8> aClinoOrientation = cRotation3D<tREAL8>::RotFromCanonicalAxes(aCanonicalAxe)*cRotation3D<tREAL8>::RandomRot(0.1);
+        cRotation3D<tREAL8> aBoresight = cRotation3D<tREAL8>(aClinoOrientation.Mat()*aCameraRot.Mat().Transpose(), false);
+        return aBoresight;
+    }
+
 
     void Bench1Clino2PointsBa(){
 
-        // Three points in ground geometry
+        // GCP in ground geometry
         std::string aP1Name = "aP1";
         std::string aP2Name = "aP2";
-        std::string aP3Name = "aP3";
+        //std::string aP3Name = "aP3";
         cPt3dr aP1 = {0.0, 0.0, 0.0};
         cPt3dr aP2 = {5.0, 20.0, 5.0};
-        cPt3dr aP3 = {10.0, 10.0, 15.0};
+        //cPt3dr aP3 = {10.0, 10.0, 15.0};
+        
+        // Sigma on clino measure and GCPs
+        tREAL8 aClinoSigma = 1e-5;
+        tREAL8 aGCPSigma = 1e5;
 
-        // Camera
+        tREAL8 aDelta = 1e-5;
+        tREAL8 aAmpl = 1e-5;
+
+        // Create camera : look at the ground with a small random rotation
         cPtxd<tREAL8,3> aCameraTr = {5.0, 5.0, 100.0};
         cRotation3D<tREAL8> aCameraRot = cRotation3D<tREAL8>::RotFromCanonicalAxes("-ij-k")*cRotation3D<tREAL8>::RandomRot(0.01);
         cIsometry3D<tREAL8> aIsometry(aCameraTr, aCameraRot);
@@ -179,30 +208,16 @@ namespace MMVII
         cSensorCamPC aSensorCamPC(aCameraName, aIsometry, aCalib);
 
         // Clinometer
-        cRotation3D<tREAL8> aClinoOrientation = cRotation3D<tREAL8>::RotFromCanonicalAxes("j-k-i")*cRotation3D<tREAL8>::RandomRot(0.1);
-        cRotation3D<tREAL8> aBoresight = cRotation3D<tREAL8>(aClinoOrientation.Mat()*aCameraRot.Mat().Transpose(), false);
-        
+        cRotation3D<tREAL8> aBoresight = CreateClino("j-k-i", aCameraRot);
         // Compute needle measure
-        cPtxd<tREAL8,3> aV = {0.0, 0.0, -1.0};
-        cPtxd<tREAL8,3> aVClino =  aBoresight.Mat() * aCameraRot.Mat() * aV;
-        tREAL8 aNorm = sqrt(aVClino.x()*aVClino.x() + aVClino.y()*aVClino.y());
-        tREAL8 aCos = aVClino.x() / aNorm;
-        tREAL8 aSin = aVClino.y() / aNorm;
-        tREAL8 aR = sqrt(aCos*aCos+aSin*aSin);
-        tREAL8 aNeedleMeasure =  2*atan(aSin / (aR+aCos));
-
-
-        // Points in image geometry
-        cPt2dr aP1Image = aSensorCamPC.Ground2Image(aP1);
-        cPt2dr aP2Image = aSensorCamPC.Ground2Image(aP2);
-        cPt2dr aP3Image = aSensorCamPC.Ground2Image(aP3);
+        tREAL8 aNeedleMeasure =  ComputeNeedleMeasure(aBoresight, aCameraRot);
 
         // Apply small translation and rotation to the camera
         // It will be initial conditions of bundle adjustment
         // The aim is to retrieve previous translation and rotation
-        cPtxd<tREAL8,3> aDeltaTr = {0.005, 0.005, 0.005};
+        cPtxd<tREAL8,3> aDeltaTr = {aDelta, aDelta, aDelta};
         cPtxd<tREAL8,3> aNewCameraTr = aCameraTr+aDeltaTr;
-        cRotation3D<tREAL8> aNewCameraRot = aCameraRot*cRotation3D<tREAL8>::RandomRot(0.0001);
+        cRotation3D<tREAL8> aNewCameraRot = aCameraRot*cRotation3D<tREAL8>::RandomRot(aAmpl);
         cIsometry3D<tREAL8> aNewIsometry(aNewCameraTr, aNewCameraRot);
         std::string aNewCameraName = "aNewCamera";
         cSensorCamPC aNewSensorCamPC(aNewCameraName, aNewIsometry, aCalib);
@@ -216,7 +231,7 @@ namespace MMVII
         
         // Create clino measures
         std::vector<std::string>aVClinoName({aCalibClino.NameClino()});
-        std::vector<tREAL8>aVAngles({aNeedleMeasure, 0.01});
+        std::vector<tREAL8>aVAngles({aNeedleMeasure, aClinoSigma});
         cClinoMes1Cam aClinoMes1Cam(&aNewSensorCamPC, aVClinoName, aVAngles);
         aBAClino.addClinoMes1Cam(aClinoMes1Cam);
         aBAClino.addClinoWithUK(aClinoName, aBoresight);
@@ -231,41 +246,147 @@ namespace MMVII
         aBundleAdj.AddBenchSensor(&aNewSensorCamPC);
         aBundleAdj.SetFrozenClinos(".*");//freeze boresight matrix
         aBundleAdj.SetParamFrozenCalib(".*");//freeze camera calibration
+        aBundleAdj.setClinoPrintRes(false);// Not print residuals
         // Now, only orientation and position of camera are not frozen
 
         // Add GCPs
-        cSetMesImGCP aSetMesImGCP = cSetMesImGCP();
-        // Add 3D measures 
         cSetMesGCP aSetMesGCP = cSetMesGCP();
-        aSetMesGCP.AddMeasure(cMes1GCP(aP1, aP1Name, 0.0));
-        aSetMesGCP.AddMeasure(cMes1GCP(aP2, aP2Name, 0.0));
-        aSetMesGCP.AddMeasure(cMes1GCP(aP3, aP3Name, 0.0));
-        aSetMesImGCP.AddMes3D(aSetMesGCP);
-        // Add 2D measures
         cSetMesPtOf1Im aSetMesPtOf1Im = cSetMesPtOf1Im();
-        tREAL8 aSigma = 0.01;
-        aSetMesPtOf1Im.AddMeasure(cMesIm1Pt(aP1Image, aP1Name, aSigma));
-        aSetMesPtOf1Im.AddMeasure(cMesIm1Pt(aP2Image, aP2Name, aSigma));
-        aSetMesPtOf1Im.AddMeasure(cMesIm1Pt(aP3Image, aP3Name, aSigma));
+        AddGCP(aP1Name, aP1, &aSensorCamPC, &aSetMesGCP, &aSetMesPtOf1Im, aGCPSigma);
+        AddGCP(aP2Name, aP2, &aSensorCamPC, &aSetMesGCP, &aSetMesPtOf1Im, aGCPSigma);
+        cSetMesImGCP aSetMesImGCP = cSetMesImGCP();
+        aSetMesImGCP.AddMes3D(aSetMesGCP);
         aSetMesImGCP.AddMes2D(aSetMesPtOf1Im, &aNewSensorCamPC);
         cStdWeighterResidual aStdWeighterResidual = cStdWeighterResidual();
         aBundleAdj.AddGCP("aGCP", 0.0, aStdWeighterResidual, &aSetMesImGCP);
 
+        // Solve least squares
         for (int aKIter=0 ; aKIter<20 ; aKIter++)
+        {
+            aBundleAdj.OneIteration();
+            StdOut() << aNewSensorCamPC.Pose().Tr() << std::endl;
+        }
+
+        
+        // Check that result of least squares is the same than initial
+
+        // For camera position
+        MMVII_INTERNAL_ASSERT_bench(std::abs(aNewSensorCamPC.Pose().Tr().x()-aSensorCamPC.Pose().Tr().x())<1e-10,"Bench1Clino2PointsBa failed");
+        MMVII_INTERNAL_ASSERT_bench(std::abs(aNewSensorCamPC.Pose().Tr().y()-aSensorCamPC.Pose().Tr().y())<1e-10,"Bench1Clino2PointsBa failed");
+        MMVII_INTERNAL_ASSERT_bench(std::abs(aNewSensorCamPC.Pose().Tr().z()-aSensorCamPC.Pose().Tr().z())<1e-10,"Bench1Clino2PointsBa failed");
+
+        // For camera orientation
+        for (size_t i = 0; i < 3; i++)
+        {
+            for (size_t j = 0; j < 3; j++)
+            {
+                MMVII_INTERNAL_ASSERT_bench(std::abs(aNewSensorCamPC.Pose().Rot().Mat()(i, j) - aSensorCamPC.Pose().Rot().Mat()(i, j))<1e-8,"Bench1Clino2PointsBa failed");
+            }
+        }
+    }
+
+
+    void Bench2Clinos1PointBa(){
+
+        // GCPs in ground geometry
+        std::string aP1Name = "aP1";
+        std::string aP2Name = "aP2";
+        cPt3dr aP1 = {0.0, 0.0, 0.0};
+        cPt3dr aP2 = {5.0, 20.0, 5.0};
+        
+        // Sigma on clino measure and GCPs
+        tREAL8 aClinoSigma = 1e-5;
+        tREAL8 aGCPSigma = 0.01;
+
+        // Create camera : look at the ground with a small random rotation
+        cPtxd<tREAL8,3> aCameraTr = {5.0, 5.0, 100.0};
+        cRotation3D<tREAL8> aCameraRot = cRotation3D<tREAL8>::RotFromCanonicalAxes("-ij-k")*cRotation3D<tREAL8>::RandomRot(0.01);
+        cIsometry3D<tREAL8> aIsometry(aCameraTr, aCameraRot);
+        eProjPC aTypeProj = eProjPC::eStenope;
+        cPerspCamIntrCalib* aCalib = cPerspCamIntrCalib::RandomCalib(aTypeProj, 0);
+        std::string aCameraName = "aCamera";
+        cSensorCamPC aSensorCamPC(aCameraName, aIsometry, aCalib);
+
+        // First Clinometer
+        cRotation3D<tREAL8> aBoresight = CreateClino("j-k-i", aCameraRot);
+        // Compute needle measure
+        tREAL8 aNeedleMeasure =  ComputeNeedleMeasure(aBoresight, aCameraRot);
+
+        // Second Clinometer
+        cRotation3D<tREAL8> aBoresight2 = CreateClino("-k-j-i", aCameraRot);
+        // Compute needle measure
+        tREAL8 aNeedleMeasure2 =  ComputeNeedleMeasure(aBoresight2, aCameraRot);
+
+        // Apply small translation and rotation to the camera
+        // It will be initial conditions of bundle adjustment
+        // The aim is to retrieve previous translation and rotation
+        cPtxd<tREAL8,3> aDeltaTr = {0.005, 0.005, 0.005};
+        cPtxd<tREAL8,3> aNewCameraTr = aCameraTr+aDeltaTr;
+        cRotation3D<tREAL8> aNewCameraRot = aCameraRot*cRotation3D<tREAL8>::RandomRot(0.0001);
+        cIsometry3D<tREAL8> aNewIsometry(aNewCameraTr, aNewCameraRot);
+        std::string aNewCameraName = "aNewCamera";
+        cSensorCamPC aNewSensorCamPC(aNewCameraName, aNewIsometry, aCalib);
+
+        // Create BAClino object
+        std::string aClinoName = "aClino1";
+        cOneCalibClino aCalibClino(aClinoName);
+        std::string aClinoName2 = "aClino2";
+        cOneCalibClino aCalibClino2(aClinoName2);
+        std::vector<cOneCalibClino>aVCalibClino({aCalibClino, aCalibClino2});
+        cCalibSetClino* aCalibSetClino = new cCalibSetClino(aCameraName, aVCalibClino);
+        cBA_Clino aBAClino(nullptr, aCalibSetClino);
+        
+        // Create clino measures
+        std::vector<std::string>aVClinoName({aCalibClino.NameClino(), aCalibClino2.NameClino()});
+        std::vector<tREAL8>aVAngles({aNeedleMeasure, aClinoSigma, aNeedleMeasure2, aClinoSigma});
+        cClinoMes1Cam aClinoMes1Cam(&aNewSensorCamPC, aVClinoName, aVAngles);
+        aBAClino.addClinoMes1Cam(aClinoMes1Cam);
+
+        aBAClino.addClinoWithUK(aClinoName, aBoresight);
+        aBAClino.addInitRotClino(aClinoName, aBoresight);
+        aBAClino.addClinoWithUK(aClinoName2, aBoresight2);
+        aBAClino.addInitRotClino(aClinoName2, aBoresight2);
+        aBAClino.setVNamesClino({aClinoName, aClinoName2});
+        
+        
+        // Create cMMVII_BundleAdj object
+        cMMVII_BundleAdj aBundleAdj(nullptr);
+        aBundleAdj.AddClinoBloc(&aBAClino);// add clino
+        aBundleAdj.AddCamPC(&aNewSensorCamPC);//add camera
+        aBundleAdj.AddBenchSensor(&aNewSensorCamPC);
+        aBundleAdj.SetFrozenClinos(".*");//freeze boresight matrix
+        aBundleAdj.SetParamFrozenCalib(".*");//freeze camera calibration
+        aBundleAdj.setClinoPrintRes(false);// Not print residuals
+        // Now, only orientation and position of camera are not frozen
+
+        // Add GCPs
+        cSetMesGCP aSetMesGCP = cSetMesGCP();
+        cSetMesPtOf1Im aSetMesPtOf1Im = cSetMesPtOf1Im();
+        AddGCP(aP1Name, aP1, &aSensorCamPC, &aSetMesGCP, &aSetMesPtOf1Im, aGCPSigma);
+        AddGCP(aP2Name, aP2, &aSensorCamPC, &aSetMesGCP, &aSetMesPtOf1Im, aGCPSigma);
+        cSetMesImGCP aSetMesImGCP = cSetMesImGCP();
+        aSetMesImGCP.AddMes3D(aSetMesGCP);
+        aSetMesImGCP.AddMes2D(aSetMesPtOf1Im, &aNewSensorCamPC);
+        
+        // Solve least squares
+        cStdWeighterResidual aStdWeighterResidual = cStdWeighterResidual();
+        aBundleAdj.AddGCP("aGCP", 0.0, aStdWeighterResidual, &aSetMesImGCP);
+
+        for (int aKIter=0 ; aKIter<6 ; aKIter++)
         {
             aBundleAdj.OneIteration();
         }
 
         
-        MMVII_INTERNAL_ASSERT_bench(std::abs(aNewSensorCamPC.Pose().Tr().x()-aSensorCamPC.Pose().Tr().x())<1e-10,"Bench1Clino2PointsBa failed");
-        MMVII_INTERNAL_ASSERT_bench(std::abs(aNewSensorCamPC.Pose().Tr().y()-aSensorCamPC.Pose().Tr().y())<1e-10,"Bench1Clino2PointsBa failed");
-        MMVII_INTERNAL_ASSERT_bench(std::abs(aNewSensorCamPC.Pose().Tr().z()-aSensorCamPC.Pose().Tr().z())<1e-10,"Bench1Clino2PointsBa failed");
+        MMVII_INTERNAL_ASSERT_bench(std::abs(aNewSensorCamPC.Pose().Tr().x()-aSensorCamPC.Pose().Tr().x())<1e-10,"Bench2Clino1PointsBa failed");
+        MMVII_INTERNAL_ASSERT_bench(std::abs(aNewSensorCamPC.Pose().Tr().y()-aSensorCamPC.Pose().Tr().y())<1e-10,"Bench2Clino1PointsBa failed");
+        MMVII_INTERNAL_ASSERT_bench(std::abs(aNewSensorCamPC.Pose().Tr().z()-aSensorCamPC.Pose().Tr().z())<1e-10,"Bench2Clino1PointsBa failed");
 
         for (size_t i = 0; i < 3; i++)
         {
             for (size_t j = 0; j < 3; j++)
             {
-                MMVII_INTERNAL_ASSERT_bench(std::abs(aNewSensorCamPC.Pose().Rot().Mat()(i, j) - aSensorCamPC.Pose().Rot().Mat()(i, j))<1e-8,"ClinoBABench failed");
+                MMVII_INTERNAL_ASSERT_bench(std::abs(aNewSensorCamPC.Pose().Rot().Mat()(i, j) - aSensorCamPC.Pose().Rot().Mat()(i, j))<1e-8,"Bench2Clino1PointsBa failed");
             }
         }
     }
@@ -278,6 +399,7 @@ namespace MMVII
         BenchClinoFormula();
         BenchClinoBa();
         Bench1Clino2PointsBa();
+        //Bench2Clinos1PointBa();
 
         aParam.EndBench();
         return;

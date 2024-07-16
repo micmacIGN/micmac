@@ -388,6 +388,8 @@ class cMMVII_BundleAdj
           // Save results of clino bundle adjustment
           void SaveClino();
           void  AddBenchSensor(cSensorCamPC *); // Add sensor, used in Bench Clino
+
+          void setClinoPrintRes(bool aClinoPrintRes){mClinoPrintRes=aClinoPrintRes;}; // Print or not residual on clino
           
 
      private :
@@ -472,6 +474,7 @@ class cMMVII_BundleAdj
 	  tREAL8   mSigmaViscCenter;  ///< "viscosity"  for centers
 				      //
 	  int      mNbIter;    /// counter of iteration, at least for debug
+       bool     mClinoPrintRes; // print residus on clinos
 };
 
 

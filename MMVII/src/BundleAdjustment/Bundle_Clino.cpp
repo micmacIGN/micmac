@@ -275,7 +275,7 @@ namespace MMVII
         // Compute residuals
         cPt2dr aRes(0,1);
 
-        // For the six equations defined in cFormulaClinoBloc, add the residuals
+        // For the two equations defined in cFormulaClinoBloc, add the residuals
         for (size_t aKU = 0; aKU < 2 ; aKU++)
         {
             aRes[0] += Square(mEqBlUK->ValComp(0, aKU));
@@ -316,7 +316,7 @@ namespace MMVII
         // Compute residuals
         cPt2dr aRes(0,1);
 
-        // For the six equations defined in cFormulaClinoBloc, add the residuals
+        // For the nine equations defined in cFormulaClinoRot, add the residuals
         for (size_t aKU = 0; aKU < 9 ; aKU++)
         {
             aRes[0] += Square(mEqBlUKRot->ValComp(0, aKU));

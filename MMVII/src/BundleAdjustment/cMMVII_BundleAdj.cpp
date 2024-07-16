@@ -100,7 +100,8 @@ cMMVII_BundleAdj::cMMVII_BundleAdj(cPhotogrammetricProject * aPhp) :
     mDirRefCam        (nullptr),
     mSigmaViscAngles  (-1.0),
     mSigmaViscCenter  (-1.0),
-    mNbIter           (0)
+    mNbIter           (0),
+    mClinoPrintRes    (true)
 {
 }
 
@@ -241,7 +242,10 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM)
     if (mBlClino)
     {
         mBlClino->addEquations(*mR8_Sys);
-        mBlClino->printRes();
+        if (mClinoPrintRes)
+        {
+            mBlClino->printRes();
+        }
     }
 
 
