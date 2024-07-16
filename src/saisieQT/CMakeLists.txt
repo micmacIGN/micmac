@@ -53,3 +53,8 @@ if (UNIX)
 endif()
 
 install(TARGETS SaisieQT DESTINATION ${Install_Dir})
+
+if (WIN32)
+   # copy *.dll and plugins/ to bin directory
+  install(DIRECTORY $<TARGET_FILE_DIR:SaisieQT>/ DESTINATION ${Install_Dir})
+endif()
