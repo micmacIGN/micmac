@@ -51,7 +51,7 @@ namespace MMVII
                 cMatF<tUk> aVertical = cMatF<tUk>(1,3,aVObs,9);
                 
                 // get camera orientation
-                cMatF<tUk> aR = cMatF<tUk>(3,3,aVObs,12);
+                cMatF<tUk> aR = cMatF<tUk>(3,3,aVObs,12).Transpose();
                 
                 // get clinometer measure 
                 tUk aTheta = aVObs[21];
