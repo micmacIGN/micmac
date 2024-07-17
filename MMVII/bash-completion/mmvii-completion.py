@@ -81,7 +81,7 @@ def printFiles(word,extensions=None) -> None:
                 try:
                     if file.is_dir():
                         dirs.append(os.path.join(path,file.name))
-                    elif not extensions or any (file.name.lower().endswith(ext) for ext in extensions):
+                    elif not extensions or "" in extensions or any (file.name.lower().endswith(ext) for ext in extensions):
                         files.append(os.path.join(path,file.name))
                 except PermissionError:
                     pass
