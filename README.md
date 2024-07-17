@@ -83,9 +83,17 @@ Under Linux (Ubuntu) distribution the installation procedure is as follows:
 Under Windows the installation procedure is as follows:
 - Download and Install **[Build Tools for Visual Studio](https://visualstudio.microsoft.com/)**
 - Download and Install **[Git](https://git-scm.com/)**
-- Download and Install **[CMake](https://cmake.org/)**
-- Download and Install **[Qt](https://www.qt.io/)** (optionnal)
+- Download and Install **[CMake](https://cmake.org/)**. Make sure cmake.exe is in the %PATH%
 - Open a **Git Bash** terminal
+- Optionnal, QT5 tools : Download and Install **[vcpkg](https://learn.microsoft.com/en-us/vcpkg/get_started/get-started)** 
+  in a general directory (c:\pgms, for example):
+   ```bash
+   git clone https://github.com/microsoft/vcpkg.git
+   cd vcpkg
+   bootstrap-vcpkg.bat
+   vcpkg.exe integrate install
+
+   ```
 - Clone the repository:
 	```sh
 	git clone https://github.com/micmacIGN/micmac.git
@@ -99,12 +107,18 @@ Under Windows the installation procedure is as follows:
 	mkdir build && cd build
 	```
 - Generate Microsoft Visual Studio Solution File **MICMAC.sln**:
+
+	- Without Qt5 Tools:
 	```bash
-	"[CMAKE_DIR]/cmake.exe" ..
+	cmake.exe ..
+	```
+    - With Qt5 Tools (This will download and compile QT5, it will take a very long time):
+    ```bash
+	cmake .. -DWITH_QT5=1 -DCMAKE_TOOLCHAIN_FILE=c:/pgms/vcpkg/script/buildsystem/vcpkg.cmake
 	```
 - Compile **MicMac**:
 	```bash
-	"[CMAKE_DIR]/cmake.exe" --build . --config Release --target INSTALL
+	cmake.exe" --build . --config Release --target INSTALL
 	```
 - Add binaries to Windows `PATH` environment variable via **Advanced system settings** menu. Example of path (**adapt the path**):
 	```bash
@@ -178,7 +192,7 @@ Under macOS the installation procedure is as follows:
 	brew doctor
 	```
 
-### Qt Tools
+### Qt Tools (Linux, MacOS)
 To use Qt GUIs, you need to adapt the **cmake** command as follows:
 	```bash
 	cmake ../ -DWITH_QT5=1
