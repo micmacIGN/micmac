@@ -240,6 +240,7 @@ enum class eTyUEr
               eNoCameraName,
               eMultipleTargetInOneImage,
               eBadSysCo,
+              eConstraintsError,
               eUnClassedError,
               eNbVals
            };
