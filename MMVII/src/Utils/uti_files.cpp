@@ -79,7 +79,7 @@ std::ofstream & cMMVII_Ofs::Ofs()
 #if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny)
    if (!mOfs.good())
    {
-       MMVII_UsersErrror(eTyUEr::eWriteFile,"Bad file for "+mName);
+       MMVII_UserError(eTyUEr::eWriteFile,"Bad file for "+mName);
    }
 #endif
    return mOfs;
@@ -147,7 +147,7 @@ std::ifstream & cMMVII_Ifs::Ifs()
 #if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny)
    if (!mIfs.good())
    {
-       MMVII_UsersErrror(eTyUEr::eReadFile,"Bad file for "+mName);
+       MMVII_UserError(eTyUEr::eReadFile,"Bad file for "+mName);
    }
 #endif
    return mIfs;
@@ -296,7 +296,7 @@ void cReadFilesStruct::Read()
 
     if (! ExistFile(mNameFile))
     {
-       MMVII_UsersErrror(eTyUEr::eOpenFile,std::string("For file ") + mNameFile);
+       MMVII_UserError(eTyUEr::eOpenFile,std::string("For file ") + mNameFile);
     }
     std::ifstream infile(mNameFile);
 
@@ -418,7 +418,7 @@ void  ReadFilesStruct
 
     if (! ExistFile(aNameFile))
     {
-       MMVII_UsersErrror(eTyUEr::eOpenFile,std::string("For file ") + aNameFile);
+       MMVII_UserError(eTyUEr::eOpenFile,std::string("For file ") + aNameFile);
     }
     std::ifstream infile(aNameFile);
 

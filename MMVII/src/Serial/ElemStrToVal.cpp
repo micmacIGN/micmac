@@ -55,7 +55,7 @@ template <class TypeEnum> class cE2Str
          {
             if (WithDef) 
                 return TypeEnum::eNbVals;
-            MMVII_UsersErrror(eTyUEr::eBadEnum,"Str2E for : "+aStr+" ; valids are : "+ StrAllVal() );
+            MMVII_UserError(eTyUEr::eBadEnum,"Str2E for : "+aStr+" ; valids are : "+ StrAllVal() );
          }
          return anIt->second;
      }
@@ -84,7 +84,7 @@ template <class TypeEnum> class cE2Str
           }
           if ((!AcceptEmpy) && aRes.empty())
           {
-             MMVII_UsersErrror
+             MMVII_UserError
              (
                 eTyUEr::eEmptyPattern,
                 "No value for enum, allowed are :"+StrAllVall<TypeEnum>()
@@ -843,7 +843,7 @@ template <class Type> void  GlobCheckSize(const std::vector<Type> & aVal,const s
     cPt2di aSz = cStrIO<cPt2di>::FromStr(anArg);
     if ((int(aVal.size()) < aSz.x()) || ((int(aVal.size()) > aSz.y()))) 
     {
-       MMVII_UsersErrror(eTyUEr::eBadSize4Vect,"IntervalOk=" + anArg + " Got=" + ToStr(int(aVal.size())));
+       MMVII_UserError(eTyUEr::eBadSize4Vect,"IntervalOk=" + anArg + " Got=" + ToStr(int(aVal.size())));
     }
 }
 
@@ -959,7 +959,7 @@ template <class Type>  std::vector<Type> Str2Vec(const std::string & aStrGlob)
    std::vector<Type> aRes;
    const char * aC=aStrGlob.c_str();
    if (*aC!='[')
-       MMVII_UsersErrror(eTyUEr::eParseError,"expected [ at beging of vect");
+       MMVII_UserError(eTyUEr::eParseError,"expected [ at beging of vect");
    aC++;
    int aLevel = 1;  // level in the parenthesis language, if Lev>1 we dont consider [,] as poncutation
    std::string aStrV;
@@ -967,7 +967,7 @@ template <class Type>  std::vector<Type> Str2Vec(const std::string & aStrGlob)
    {
        if (*aC==0)
        {
-          MMVII_UsersErrror(eTyUEr::eParseError,"unexpected end of string while parsing " + aStrGlob);
+          MMVII_UserError(eTyUEr::eParseError,"unexpected end of string while parsing " + aStrGlob);
        }
        // only level 1 "," are considered as separators
        else if ((*aC==',') && (aLevel==1))
@@ -1009,7 +1009,7 @@ template <class Type>  std::vector<Type> Str2Vec(const std::string & aStrGlob)
    }
 
    if (aLevel!=0)
-      MMVII_UsersErrror(eTyUEr::eParseError,"unexpected end of string , bad match in []");
+      MMVII_UserError(eTyUEr::eParseError,"unexpected end of string , bad match in []");
 
    return  aRes;
 }
@@ -1087,7 +1087,7 @@ template <>  cPtxd<TYPE,DIM> cStrIO<cPtxd<TYPE,DIM> >::FromStr(const std::string
 {\
     std::vector<TYPE> aV = cStrIO<std::vector<TYPE>>::FromStr(aStr);\
     if (aV.size()!=DIM)\
-       MMVII_UsersErrror(eTyUEr::eBadDimForPt,"Expect="+ MMVII::ToStr(DIM) + " Got=" + MMVII::ToStr(int(aV.size())) );\
+       MMVII_UserError(eTyUEr::eBadDimForPt,"Expect="+ MMVII::ToStr(DIM) + " Got=" + MMVII::ToStr(int(aV.size())) );\
     cPtxd<TYPE,DIM> aRes;\
     for (int aK=0 ; aK<DIM ; aK++)\
         aRes[aK] = aV[aK];\
@@ -1097,7 +1097,7 @@ template <>  cTplBox<TYPE,DIM> cStrIO<cTplBox<TYPE,DIM> >::FromStr(const std::st
 {\
     std::vector<TYPE> aV = cStrIO<std::vector<TYPE>>::FromStr(aStr);\
     if (aV.size()!=2*DIM)\
-       MMVII_UsersErrror(eTyUEr::eBadDimForBox,"Expect="+ MMVII::ToStr(2*DIM) + " Got=" + MMVII::ToStr(int(aV.size())) );\
+       MMVII_UserError(eTyUEr::eBadDimForBox,"Expect="+ MMVII::ToStr(2*DIM) + " Got=" + MMVII::ToStr(int(aV.size())) );\
     cPtxd<TYPE,DIM> aP0,aP1;\
     for (int aK=0 ; aK<DIM ; aK++){\
         aP0[aK] = aV[aK];\
@@ -1223,7 +1223,7 @@ template <>  bool cStrIO<bool>::FromStr(const std::string & aStr)
     if ((aStr=="1") || UCaseEqual(aStr,"true")) return true;
     if ((aStr=="0") || UCaseEqual(aStr,"false")) return false;
 
-    MMVII_UsersErrror(eTyUEr::eBadBool,"Bad value for boolean :["+aStr+"]");
+    MMVII_UserError(eTyUEr::eBadBool,"Bad value for boolean :["+aStr+"]");
 
     return false;
 }

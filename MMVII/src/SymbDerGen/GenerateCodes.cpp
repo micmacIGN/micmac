@@ -142,7 +142,7 @@ void TestResDegree(cCalculator<double> * aCalc,const cPt3di & aDeg,const std::st
      if (aCalc==nullptr)
      {
          StdOut() << " *  Generated Degree Are " <<   TheVectDegree << std::endl;
-	 MMVII_UsersErrror
+	 MMVII_UserError
          (
 	      eTyUEr::eBadDegreeDist,
 	      "Required degree " + ToStr(aDeg) + " for distorsion  in "+aFonc+" has not been generated"

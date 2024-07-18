@@ -508,7 +508,7 @@ bool cMMVII_BundleAdj::CheckGCPConstraints() const
         }
     }
     if (aNames.size())
-        MMVII_UsersErrror(eTyUEr::eConstraintsError,
+        MMVII_UserError(eTyUEr::eConstraintsError,
                           "Not enough observations for points: "+aNames);
 
     return true;

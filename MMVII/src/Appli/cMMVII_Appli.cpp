@@ -617,7 +617,7 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
          GenerateHelp();
          return;
       }
-      MMVII_UsersErrror
+      MMVII_UserError
       (
           eTyUEr::eInsufNbParam,
           "Not enough Arg, expecting " + ToS(aNbObl)  + " , Got only " +  ToS(aNbArgGot)
@@ -763,7 +763,7 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
       {
          if (!IsFileGivenTag(true,aVValues[aK],aNameTag))
 	 {
-	       MMVII_UsersErrror(eTyUEr::eBadXmlTopTag,"[" + aVValues[aK] + "] is not an existing xml file of main tag <" + aNameTag + ">");
+	       MMVII_UserError(eTyUEr::eBadXmlTopTag,"[" + aVValues[aK] + "] is not an existing xml file of main tag <" + aNameTag + ">");
 			      // IntervalOk=" + anArg + " Got=" + ToStr(int(aVal.size())));
 	 }
 	 //        MMVII_UsersErrror(eTyUEr::eBadSize4Vect,"IntervalOk=" + anArg + " Got=" + ToStr(int(aVal.size())));
@@ -816,7 +816,7 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
 		}
 		else
                 {
-                   MMVII_UsersErrror(eTyUEr::eEmptyPattern,"Specified set of files was empty");
+                   MMVII_UserError(eTyUEr::eEmptyPattern,"Specified set of files was empty");
                 }
             }
             // StdOut() << "cAaaaPPlii  " <<  __LINE__ << ToVect(mVMainSets.at(aNum)) << "\n";
@@ -833,7 +833,7 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
       // Why should user init interval if there no set ?
       if (IsInit(&mIntervFilterMS[aNum]) && (!  mVMainSets.at(aNum).IsInit()))
       {
-         MMVII_UsersErrror(eTyUEr::eIntervWithoutSet,"Interval without filter for num:"+ToStr(aNum));
+         MMVII_UserError(eTyUEr::eIntervWithoutSet,"Interval without filter for num:"+ToStr(aNum));
       }
       if (aNum>0)
       {

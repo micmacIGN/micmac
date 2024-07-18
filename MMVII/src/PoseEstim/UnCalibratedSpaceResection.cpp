@@ -756,7 +756,7 @@ void cAppli_UncalibSpaceResection::DoMedianCalib()
          else
          {
              // No reason dont exit
-             MMVII_UsersErrror(eTyUEr::eOpenFile,"No calib file found");
+             MMVII_UserError(eTyUEr::eOpenFile,"No calib file found");
          }
      }
 

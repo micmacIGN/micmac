@@ -1065,7 +1065,7 @@ void cAppliExtractCircTarget::OnCloseReport(int aNbLine,const std::string & anId
     {
         if (aNbLine>(mNbMaxMulTarget*2))  // Each target is detected 2 times
         {
-            MMVII_UsersErrror(eTyUEr::eMultipleTargetInOneImage,"Nb Multiple Target = " + ToStr(aNbLine/2));
+            MMVII_UserError(eTyUEr::eMultipleTargetInOneImage,"Nb Multiple Target = " + ToStr(aNbLine/2));
         }
     }
 }

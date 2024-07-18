@@ -49,7 +49,7 @@ void cMetaDataOneFileInvRad::CheckCoherence(const cMetaDataOneFileInvRad& aMD2) 
        StdOut() << "TYPES= " << E2Str(mDOIR->TIR()) << " " <<  E2Str(aMD2.mDOIR->TIR()) << std::endl;
        StdOut() << "NAMES= " << mName << " " <<  aMD2.mName << std::endl;
        StdOut() << "NbPatch= " << mNbPair  << " " << aMD2.mNbPair << std::endl;
-       MMVII_UsersErrror(eTyUEr::eUnClassedError,"Incohernt files of file in Invar");
+       MMVII_UserError(eTyUEr::eUnClassedError,"Incohernt files of file in Invar");
    }
 }
 
@@ -129,7 +129,7 @@ cDataOneInvRad::cDataOneInvRad(cAppli_ComputeParamIndexBinaire & anAppli,cDataOn
            mSzP0Init.x() = mMDOFIR.back().mDFIm.Sz().x();
            if (mSzP0Init.x()%2!=0) // Sz in x must be even, as it contain a pair of patch
            {
-              MMVII_UsersErrror(eTyUEr::eUnClassedError,"exptected even witdh");
+              MMVII_UserError(eTyUEr::eUnClassedError,"exptected even witdh");
            }
            mSzP0Init.x() /= 2;
            mSzP0Init.y() = mMDOFIR.back().mDFIm.Sz().y(); // Initialize to full size
@@ -139,7 +139,7 @@ cDataOneInvRad::cDataOneInvRad(cAppli_ComputeParamIndexBinaire & anAppli,cDataOn
             // Sz.x of patch must be equal for all Image in one invariant
             if ((2*mSzP0Init.x())!= mMDOFIR.back().mDFIm.Sz().x())
             {
-                 MMVII_UsersErrror(eTyUEr::eUnClassedError,"Variable size in Invariant rad");
+                 MMVII_UserError(eTyUEr::eUnClassedError,"Variable size in Invariant rad");
             } 
             // compute Sz.y as HCF (PGCD) 
             mSzP0Init.y() = HCF(mSzP0Init.y(),mMDOFIR.back().mDFIm.Sz().y());
@@ -184,7 +184,7 @@ void cDataOneInvRad::CheckCoherence(const cDataOneInvRad& aD2) const
        StdOut() << "\n" << std::endl;
        StdOut() << "SIZES = " << mMDOFIR.size() << " " << aD2.mMDOFIR.size() << std::endl;
        StdOut() << "TYPES = " << E2Str(mTIR) << " " << E2Str(aD2.mTIR) << std::endl;
-       MMVII_UsersErrror(eTyUEr::eUnClassedError,"Variable number of file in Invar");
+       MMVII_UserError(eTyUEr::eUnClassedError,"Variable number of file in Invar");
     }
     // Check coherence between corresponding files
     for (int aK=0 ; aK<int(mMDOFIR.size()) ; aK++)

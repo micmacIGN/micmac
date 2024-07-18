@@ -229,7 +229,7 @@ int cMDLB_AppliFormatTDEDM::Exe()
         break;
 
         default :
-              MMVII_UsersErrror(eTyUEr::eUnClassedError,"Year specified not avalaible");
+              MMVII_UserError(eTyUEr::eUnClassedError,"Year specified not avalaible");
         break;
    }
 
