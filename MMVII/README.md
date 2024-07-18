@@ -49,6 +49,12 @@ Before starting the installation, it is necessary to install **MicMac v1** by fo
 Under Linux (Ubuntu) distribution the installation procedure is as follows:
 
 - Open a terminal
+
+- Install dependancies specific to MMVII:
+	```bash
+	sudo apt install pkg-config libproj-dev
+	```
+
 - Access the folder:
 	```bash
 	cd micmac/MMVII

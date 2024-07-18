@@ -55,7 +55,7 @@ where you give the origin point coordinates in a certain PROJ system. Tip: use \
 \texttt{MMVII/MMVII-RessourceDir/SysCo/L93.xml}
 \item \texttt{SysCo=IGNF:LAMB1} will set the SysCo to Lambert I
 \item \texttt{SysCo=LocalPanel} will set the SysCo to a local frame defined as "LocalPanel", that will not be convertible into any other SysCo
-\item \texttt{SysCo=RTL*0.675*45.189*0*EPSG:4326} will set the SysCo to a tangent local Euclidian frame, with origin ($0.67451979, 45.18899334, 0$) in EPSG:4326
+\item \texttt{SysCo=RTL*657700*6860700*0*IGNF:LAMB93*} will set the SysCo to a tangent local Euclidian frame, with origin ($657700, 6860700, 0$) in Lambert 93
 \item \texttt{SysCo=GeoC} will set the SysCo to geocentric coordinates
 \item \texttt{SysCo=AMRealm} will use a project-defined SysCo if \texttt{MMVII-PhgrProj/SysCo/AMRealm.xml} exists. If not, "AMRealm" will be used as a PROJ definition, and an error will occur
 
@@ -255,50 +255,9 @@ known points is 0.001m and that lines starting with '*' are comment lines.
 MMVII ImportGCP inputs/coords.txt ANXYZ InitL93 ChSys=[L93] AddInfoFree=0 Sigma=0.001 Comment=*
 \end{lstlisting}
 
-
-The points PtA and PtD have a \texttt{\_\_Opt\_\_Sigma2} set to 0.001 m $\sigma$.
-The points PtB and PtC have no \texttt{\_\_Opt\_\_Sigma2}, making them free points.
-
-\begin{comment}
-The resulting \texttt{MMVII-PhgrProj/PointsMeasure/InitL93/MesGCP-coords.xml} file is:
-
-\begin{lstlisting}
-<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
-<Root>
-   <Type>"MMVII_Serialization"</Type>
-   <Version>"0.0.0"</Version>
-   <Data>
-      <SetGCP>
-         <NameSet>"coords"</NameSet>
-         <Measures>
-            <el>
-               <Name>"PtA"</Name>
-               <Pt>-0.000000000016875 0.000000000583916 10.000000000498177</Pt>
-               <AdditionalInfo>"1"</AdditionalInfo>
-               <__Opt__Sigma2>0.000001000000111 0 0 0.000001000000111 0 0.000001000000111</__Opt__Sigma2>
-            </el>
-            <el>
-               <Name>"PtB"</Name>
-               <Pt>10.000907818502791 0.07300202118504 9.999992174224545</Pt>
-               <AdditionalInfo>"0"</AdditionalInfo>
-            </el>
-            <el>
-               <Name>"PtC"</Name>
-               <Pt>9.927905478628638 10.073909554171774 9.999984325034628</Pt>
-               <AdditionalInfo>"0"</AdditionalInfo>
-            </el>
-            <el>
-               <Name>"PtD"</Name>
-               <Pt>0.073001699489761 -10.000908193716121 9.999992150963823</Pt>
-               <AdditionalInfo>"1"</AdditionalInfo>
-               <__Opt__Sigma2>0.000001000000111 0 0 0.000001000000111 0 0.000001000000111</__Opt__Sigma2>
-            </el>
-         </Measures>
-      </SetGCP>
-   </Data>
-</Root>
-\end{lstlisting}
-\end{comment}
+In the resulting file \texttt{MMVII-PhgrProj/PointsMeasure/InitL93/MesGCP-coords.xml},
+the points PtA and PtD have a \texttt{\_\_Opt\_\_Sigma2} set to 0.001 m $\sigma$,
+the points PtB and PtC have no \texttt{\_\_Opt\_\_Sigma2}, making them free points.
 
 
 \subsection{SysCo}
