@@ -235,10 +235,11 @@ It corresponds to this configuration:
 The initial coordinates of the 4 points, in Lambert 93, are in a simple text file (\texttt{inputs/coords.txt}):
 
 \begin{verbatim}
-  PtA  657700.000  6860700.000  10.000
-  PtB  657710      6860700      10
-  PtC  657710      6860710      10
-  PtD  657700.000  6860690.000  10.000
+* 1st column:  0 = free point
+1  PtA  657700.000  6860700.000  10.000
+0  PtB  657710      6860700      10   * approx
+0  PtC  657710      6860710      10   * approx
+1  PtD  657700.000  6860690.000  10.000
 \end{verbatim}
 
 The coordinates of PtA and PtD are supposed known (with a certain precision).
@@ -246,18 +247,17 @@ The coordinates of PtB and PtC are just for initialization.
 \\
 
 To import these coordinates in \CdPPP\ we use the \texttt{ImportGCP} command, where we give the text format
-(name, x, y, z), the name of the resulting \texttt{PointsMeasure} and the coordinates SysCo.
+(additional\_info, name, x, y, z), the name of the resulting \texttt{PointsMeasure} and the coordinates SysCo.
+We also specify that the points who have an additional\_info of '0' are free points, that the sigma for
+known points is 0.001m and that lines starting with '*' are comment lines.
 
 \begin{lstlisting}
-MMVII ImportGCP inputs/coords.txt NXYZ InitL93 ChSys=[L93]
+MMVII ImportGCP inputs/coords.txt ANXYZ InitL93 ChSys=[L93] AddInfoFree=0 Sigma=0.001 Comment=*
 \end{lstlisting}
 
-In the resulting file \texttt{MMVII-PhgrProj/PointsMeasure/InitL93/MesGCP-coords.xml},
-we have to remove the coordinates constraints on points PtB and PtC to make them free points
-with initial coordinates. To do that, their \texttt{\_\_Opt\_\_Sigma2} nodes have to be deleted.
 
-The points PtA and PtD have a \texttt{\_\_Opt\_\_Sigma2} corresponding to a 1 m $\sigma$. In adjustment,
-we will use the \texttt{GCPW} factor to get a $\sigma$ of 1 mm.
+The points PtA and PtD have a \texttt{\_\_Opt\_\_Sigma2} set to 0.001 m $\sigma$.
+The points PtB and PtC have no \texttt{\_\_Opt\_\_Sigma2}, making them free points.
 
 \begin{comment}
 The resulting \texttt{MMVII-PhgrProj/PointsMeasure/InitL93/MesGCP-coords.xml} file is:
@@ -274,24 +274,24 @@ The resulting \texttt{MMVII-PhgrProj/PointsMeasure/InitL93/MesGCP-coords.xml} fi
             <el>
                <Name>"PtA"</Name>
                <Pt>-0.000000000016875 0.000000000583916 10.000000000498177</Pt>
-               <AdditionalInfo>""</AdditionalInfo>
-               <__Opt__Sigma2>1 0 0 1 0 1</__Opt__Sigma2>
+               <AdditionalInfo>"1"</AdditionalInfo>
+               <__Opt__Sigma2>0.000001000000111 0 0 0.000001000000111 0 0.000001000000111</__Opt__Sigma2>
             </el>
             <el>
                <Name>"PtB"</Name>
                <Pt>10.000907818502791 0.07300202118504 9.999992174224545</Pt>
-               <AdditionalInfo>""</AdditionalInfo>
+               <AdditionalInfo>"0"</AdditionalInfo>
             </el>
             <el>
                <Name>"PtC"</Name>
                <Pt>9.927905478628638 10.073909554171774 9.999984325034628</Pt>
-               <AdditionalInfo>""</AdditionalInfo>
+               <AdditionalInfo>"0"</AdditionalInfo>
             </el>
             <el>
                <Name>"PtD"</Name>
                <Pt>0.073001699489761 -10.000908193716121 9.999992150963823</Pt>
-               <AdditionalInfo>""</AdditionalInfo>
-               <__Opt__Sigma2>1 0 0 1 0 1</__Opt__Sigma2>
+               <AdditionalInfo>"1"</AdditionalInfo>
+               <__Opt__Sigma2>0.000001000000111 0 0 0.000001000000111 0 0.000001000000111</__Opt__Sigma2>
             </el>
          </Measures>
       </SetGCP>
@@ -405,10 +405,9 @@ It is used as a substitute to \texttt{OriBundleAdj} when there are no cameras.
 \end{verbatim}
 
 In our example, the input topo directory is \texttt{Obs1} and the input PointsMeasure is \texttt{InitRTL}.
-We give output directories names for topo and points, and add a weight factor for 3D constrained coordinates
-because PtA and PtD are known with a precision of 1 mm:
+We give output directories names for topo and points.
 \begin{lstlisting}
-MMVII TopoAdj Obs1 Obs1_out InitRTL FinalRTL GCPW=0.001
+MMVII TopoAdj Obs1 Obs1_out InitRTL FinalRTL
 \end{lstlisting}
 
 The final $\sigma_0$ value should be around 1 if everything goes well.
