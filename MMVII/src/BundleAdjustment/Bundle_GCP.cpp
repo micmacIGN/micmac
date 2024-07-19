@@ -39,7 +39,7 @@ void cMMVII_BundleAdj::AddGCP(const std::string & aName,tREAL8 aSigmaGCP,const  
     //  mSigmaGCP = aSigmaGCP;
     //  mGCPIm_Weighter = aWeighter;
 
-    if (verbose)
+    if (verbose && mVerbose)
     {
         StdOut()<<  "MESIM=" << aBA_GCP->mMesGCP->MesImOfPt().size() << " MesGCP=" << aBA_GCP->mMesGCP->MesGCP().size()  << std::endl;
     }
@@ -108,7 +108,7 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(cBA_GCP & aBA, bool verbose)
     int aNbGCPVis = 0;
     int aAvgVis = 0;
     int aAvgNonVis = 0;
-    if (verbose)
+    if (verbose && mVerbose)
     {
         StdOut() << "  * " <<  aBA.mName << " : Gcp0=" << aSet->AvgSqResidual() ;
         if (aGcpUk)
@@ -225,7 +225,7 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(cBA_GCP & aBA, bool verbose)
         }
     }
 
-     if (verbose)
+     if (verbose && mVerbose)
      {
         StdOut() << " PropVis1Im=" << aNbGCPVis /double(aNbGCP)  
 		<< " AvgVis=" << aAvgVis/double(aNbGCP) 

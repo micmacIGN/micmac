@@ -101,7 +101,7 @@ cMMVII_BundleAdj::cMMVII_BundleAdj(cPhotogrammetricProject * aPhp) :
     mSigmaViscAngles  (-1.0),
     mSigmaViscCenter  (-1.0),
     mNbIter           (0),
-    mClinoPrintRes    (true)
+    mVerbose    (true)
 {
 }
 
@@ -242,7 +242,7 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM)
     if (mBlClino)
     {
         mBlClino->addEquations(*mR8_Sys);
-        if (mClinoPrintRes)
+        if (mVerbose)
         {
             mBlClino->printRes();
         }
@@ -261,7 +261,10 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM)
     const auto & aVectSol = mSys->R_SolveUpdateReset(aLVM);
     mSetIntervUK.SetVUnKnowns(aVectSol);
 
-    StdOut() << "---------------------------" << std::endl;
+    if(mVerbose)
+    {
+        StdOut() << "---------------------------" << std::endl;
+    }
     mNbIter++;
 }
 
