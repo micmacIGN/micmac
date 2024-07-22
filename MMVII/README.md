@@ -165,6 +165,19 @@ These are typically installed by default on Ubuntu. If not, you can install them
 
 After making this modification, the command completion feature will be active in any new terminal session.
 
+**Windows:**
+
+ If you're using bash (installed with git for example) on Windows, completion may also works:
+
+- You must have python >= 3.7 installed somewhere
+
+- Edit your ~/.bash_profile and add: (adapt first 2 lines to your case)
+    ```
+    MMVII_INSTALL_PATH=/c/micmac/MMVII
+    PYTHON_INSTALL_PATH=/c/Python/Python39/
+    PATH=${PYTHON_INSTALL_PATH}:${MMVII_INSTALL_PATH}/bin:$PATH
+    [ -f ${MMVII_INSTALL_PATH}/bash-completion/mmvii-completion ] && . ${MMVII_INSTALL_PATH}/bash-completion/mmvii-completion
+	```
 
 ### Graphical User Interface vMMVII
 The **vMMVII** tool provides a convenient graphical user interface (GUI) for writing **MMVII** commands.
