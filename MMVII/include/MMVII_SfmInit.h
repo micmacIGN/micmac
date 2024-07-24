@@ -265,13 +265,18 @@ void cHyperGraph::FindTerminals(
     {
         if (aObj2.mId == (aAdj[aObj1.mId][aK]))
         {
-           // StdOut() << "=== " << aObj2.mId << " neighbour of "
-           //                    << aObj1.mId << std::endl;
+            // StdOut() << "=== " << aObj2.mId << " neighbour of "
+            //                    << aObj1.mId << std::endl;
 
             IsOK = aHeap.Pop(aObj2);
             aK=0; // reset the loop
+
+            if (aHeap.Sz()<20) //// if small heap size it's probably not possible anyway
+                break;
+            //StdOut() << "Heap size= " << aHeap.Sz() << " ";
         }
     }
+
 
     StdOut() << IsOK << " SINK id=" << aObj2.mId << ", #Connections" << aObj2.mQual << std::endl;
 
@@ -329,8 +334,14 @@ class cAppli_SfmInitWithPartition: public cMMVII_Appli
 
 
      cPhotogrammetricProject   mPhProj;
+
+     /// mincut/maxflow
      double                    mSourceInit;
      double                    mSinkInit;
+     int                       mNbDepthMax;
+     int                       mNbThreadMax;
+
+     /// kahypar
      int                       mNbParts;
      double                    mImbalance;
      //std::string             mKPInitFile;

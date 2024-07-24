@@ -62,7 +62,7 @@ void ThreadPool::ExecLoopUp()
     }
 }
 
-void ThreadPool::ExecDown()
+void ThreadPool::ExecDown(const cTripletSet& aTSet)
 {
     mRunQueue.clear();
     for (auto &node : mAllNodes) {
@@ -74,14 +74,14 @@ void ThreadPool::ExecDown()
     mNbWorkingThread = 0;
     std::vector<std::thread> threadList;
     for (int i = 0; i < mNbThread; ++i) // On lance NbThreads, chaque thread execute ExecLoop
-        threadList.emplace_back(std::thread(&ThreadPool::ExecLoopDown, this));
+        threadList.emplace_back(std::thread(&ThreadPool::ExecLoopDown, this, aTSet));
     for (auto& t : threadList)
         t.join();                       // On attend la fin de tous les threads (donc de touts les taches)
     threadList.clear();
 }
 
 
-void ThreadPool::ExecLoopDown()
+void ThreadPool::ExecLoopDown(const cTripletSet& aTSet)
 {
     StdOut() << "numbre of tasks at start= " << mRunQueue.size() << std::endl;
     while (true) {  // boucle infinie: on prend l'élément suivant du tableau et on l'execute.
@@ -100,7 +100,7 @@ void ThreadPool::ExecLoopDown()
             mNbWorkingThread++;
             lock.unlock();
         }
-        node->RunDown();
+        node->RunDown(aTSet);
         {
             std::lock_guard<std::mutex> lock(mMutex_CalculusQueue);
             mNbWorkingThread--;
@@ -121,14 +121,13 @@ void ThreadPool::ExecLoopDown()
 
 
 /* for binary tree i= {0,1}*/
-cNodeHTreeMT::cNodeHTreeMT(tNodeHT_mt_ptr parent, int i, int depth) :
-    mSinkVal(0),
-    mSourceVal(1000),
-    IS_PARTITIONED(false),
+cNodeHTreeMT::cNodeHTreeMT(tNodeHT_mt_ptr parent, int i, int depth, int source, int sink) :
+    mSinkVal(sink),
+    mSourceVal(source),
     mParent(parent),
     mDepth(depth+1)
 {
-    auto aParentName = parent ? parent->Name() + "-" : "" ;
+    auto aParentName = parent ? parent->Name() + "" : "" ;
     mName = aParentName + std::to_string(i);
 }
 
@@ -149,7 +148,7 @@ void cNodeHTreeMT::InitCutData()
             - sink and source
     */
     int aGraphId=0;
-    double aUpScale = 10.0;
+    double aUpScale = 1.0;
     for (auto anEdg : mSubGr.AdjMap())
     {
         /// if there is more than 1 triplet
@@ -174,11 +173,11 @@ void cNodeHTreeMT::InitCutData()
                         if ( (mMapOfTriplets.find(aCurTriPairDir) == mMapOfTriplets.end()) &&
                              (mMapOfTriplets.find(aCurTriPairInv) == mMapOfTriplets.end()) )
                         {
-                            /// quality defined as 1/1+x^2 where x=max of the quality
-                            double aQual = aUpScale * (1.0/(1+std::pow(
-                                            anEdg.second[aTi]->Quality()-
-                                            anEdg.second[aTj]->Quality(),2)));
-                            //StdOut() << aQual << std::endl;
+                            /// quality defined as 1/(1+x)^2 where x=max of the quality~residual
+                            double aQual = aUpScale * (1.0/(1.0+std::pow(
+                                            std::max(anEdg.second[aTi]->Quality(),
+                                            anEdg.second[aTj]->Quality()),2)));
+                           // StdOut() << "mmmmmmm" << aQual << std::endl;
 
                             /// add the edge to the graph of triplets
                             mMapOfTriplets[aCurTriPairDir] = std::make_pair(aQual,
@@ -224,47 +223,317 @@ void cNodeHTreeMT::InitCutData()
 
 }
 
-
-void cNodeHTreeMT::BuildChildren(ThreadPool &threadPool, tNodeHT_mt_ptr input)
+void cNodeHTreeMT::Show()
 {
-
-    bool isLeaf = (NbDepthMax >= mDepth);
-    if (isLeaf)
+    // file structure: child parent value
+    if (mChildrenV.size())
     {
-
-        for (int i=0; i<NbKidsMax; i++)
+        for (const auto& aKid : mChildrenV)
         {
-           auto aKid = std::make_shared<cNodeHTreeMT>(input,i,mDepth);
-           threadPool.addNode(aKid);
-           StdOut() << aKid->Name() << std::endl;
+            // if children are leafs, print their full names
+            if (!aKid->mChildrenV.size())
+            {
+                for (const auto& aTri : aKid->mSubGr.VHEdges())
+                {
+                    for (const auto& aV : aTri->Vertices())
+                    {
+                        StdOut() << aV->Pose().Name() << ".";
+                    }
+                    StdOut() << " " << Name() << " 1" << std::endl;
+                }
+            }
+            else
+            {
+                {
+                    StdOut()
+                             << aKid->Name() << " "
+                             << Name() << " "
+                             << aKid->mNumNodes << std::endl;
+                }
 
-           mChildrenV.push_back(aKid);
-           
-           aKid->BuildChildren(threadPool,aKid);
+                aKid->Show();
+            }
         }
     }
 
 }
 
-void cNodeHTreeMT::Partition()
+void cNodeHTreeMT::BuildChildren(ThreadPool &threadPool, tNodeHT_mt_ptr input, int aNbDepth)
 {
-    IS_PARTITIONED=true;
-    StdOut() << "======partition" << std::endl;
+
+    bool isLeaf = (aNbDepth >= mDepth);
+    if (isLeaf)
+    {
+
+        for (int i=0; i<NbKidsMax; i++)
+        {
+           auto aKid = std::make_shared<cNodeHTreeMT>(input,i,mDepth,mSourceVal,mSinkVal);
+           threadPool.addNode(aKid);
+           StdOut() << aKid->Name() << std::endl;
+
+           mChildrenV.push_back(aKid);
+           
+           aKid->BuildChildren(threadPool,aKid,aNbDepth);
+        }
+    }
+
 }
 
-void cNodeHTreeMT::RunDown()
+void cNodeHTreeMT::PartitionPlus(const cTripletSet& aSetTriFull)
 {
-    int val = 0;
-    
-    Time start = std::chrono::system_clock::now();
-    // Calcul stupide qui prend du temps ...
-    auto nbLoop = getRand(50000,200000);
-    for (int i=0; i<nbLoop; i++)
-        val = val + (double)std::rand() / std::rand();
-    Time end = std::chrono::system_clock::now();
-    
-    StdOut() << "PARTITION, partition id=" << this->Name() << " "
-             << end.time_since_epoch().count() - start.time_since_epoch().count() << std::endl;
+
+    StdOut() << "======partition" << std::endl;
+
+    /// ================ Find the MINCUT/MAXFLOW
+    ///
+    bool GRAPH_AUGUMENT=true;
+    std::map<int,double> aNodeDegV;
+    double               aTotalDeg=0;
+
+    int aSourceId = mMapId2GraphId[mSource.mId];
+    int aSinkId   = mMapId2GraphId[mSink.mId];
+
+    int aNumNodeCur = mNumNodes;
+    int aNumEdgeCur = mNumEdges;
+
+    typedef Graph<double,double,double> GraphType;
+    GraphType *g = new GraphType( aNumNodeCur,//
+                                  aNumEdgeCur);
+
+    /// initialise the nodes of the graph
+    ///
+    g->add_node(aNumNodeCur);
+
+    /// add edges between nodes
+    ///
+    double aRevCap=0;
+    double aUpscale=100.0;
+    for (auto anE : mMapOfTriplets)
+    {
+        int aIdNode1 = mMapId2GraphId[anE.second.second.x()];
+        int aIdNode2 = mMapId2GraphId[anE.second.second.y()];
+
+        double aCap = anE.second.first;
+        //
+
+        /// edge weight
+        double aCapSca=aUpscale*aCap;
+        g->add_edge(aIdNode1,aIdNode2,aCapSca,aRevCap);
+        StdOut() << " e " << aIdNode1 << " "
+                          << aIdNode2 << " "
+                          << aCapSca << "\n";
+
+        if (GRAPH_AUGUMENT)
+        {
+            /// update degree of node
+            aTotalDeg += aCapSca;
+            if (aNodeDegV.find(aIdNode1) != aNodeDegV.end())
+                aNodeDegV[aIdNode1] += aCapSca;
+            else
+                aNodeDegV[aIdNode1] = aCapSca;
+        }
+
+    }
+
+
+
+    /// add terminal super-source and super-sink
+    ///   - last nodes, after "real" nodes
+    if (GRAPH_AUGUMENT)
+    {
+
+
+        /// add penalty for balancing
+        ///
+        for (auto aNDeg : aNodeDegV)
+        {
+            int aNodeCur = aNDeg.first;
+            double aLambda = 1;
+            double aPenalty = aLambda*aNDeg.second;
+
+            if (aSourceId!=aNodeCur && aSinkId!=aNodeCur)
+            {
+                g->add_edge(aSourceId,aNodeCur,aPenalty,0);
+                g->add_edge(aNodeCur,aSinkId,aPenalty,0);
+
+                StdOut() << "Added edge from " << aSourceId << " to " << aNodeCur << " with capacity " << aPenalty << std::endl;
+                StdOut() << "Added edge from " << aNodeCur << " to " << aSinkId << " with capacity " << aPenalty << std::endl;
+            }
+        }
+    }
+
+    /// add terminal SINK and SOURCE
+    ///
+    g->add_tweights(aSourceId,mSinkVal,mSourceVal);
+    g->add_tweights(aSinkId,mSourceVal,mSinkVal);
+    StdOut() << mSinkVal << " " << mSourceVal << std::endl;
+
+    /// compute the flow
+    ///
+    int aFlow = g->maxflow();
+    StdOut() << "Flow=" << aFlow << " "
+                        << ((GRAPH_AUGUMENT) ? aFlow-aTotalDeg : aFlow) << std::endl;
+
+    /// update children given the partition
+    ///
+    cTripletSet aSet0, aSet1;
+    std::vector<cTriplet> aTri0V, aTri1V;
+    for (const auto& aH : mSubGr.VHEdges())
+    {
+        for (const auto& aTri : mMapId2GraphId)
+        {
+            if (int(aH->Index()) == aTri.first)
+            {
+                if (g->what_segment(aTri.second) ==  GraphType::SOURCE)
+                {
+                    for (auto aT : aSetTriFull.Set())
+                    {
+                        if (aT.Id() == int(aH->Index()))
+                        {
+                            aTri0V.push_back(aT);
+                            StdOut() << aTri.first << " 0" << std::endl;
+                        }
+                    }
+                }
+                else
+                {
+                    for (auto aT : aSetTriFull.Set())
+                    {
+                        if (aT.Id() == int(aH->Index()))
+                        {
+                            aTri1V.push_back(aT);
+                            StdOut() << aTri.first << " 1" << std::endl;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    /// first kid
+    ///
+    std::string aN0 = aSetTriFull.Name() + "-Left";
+    aSet0.SetName(aN0);
+    aSet0.Set() = aTri0V; //new set containing the left partition
+    mChildrenV[0]->Init(aSet0);
+
+    /// second kid
+    ///
+    std::string aN1 = aSetTriFull.Name() + "-Right";
+    aSet1.SetName(aN1);
+    aSet1.Set() = aTri1V; //new set containing the right partition
+    mChildrenV[1]->Init(aSet1);
+
+    delete g;
+
+}
+
+void cNodeHTreeMT::Partition(const cTripletSet& aSetTriFull)
+{
+
+    StdOut() << "======partition" << std::endl;
+
+    /// ================ Find the MINCUT/MAXFLOW
+    ///
+    typedef Graph<double,double,double> GraphType;
+    GraphType *g = new GraphType( mNumNodes,
+                                  mNumEdges);
+
+    /// initialise the nodes of the graph
+    ///
+    g->add_node(mNumNodes);
+
+    /// add edges between nodes
+    ///
+    double aRevCap=0;
+    double aUpscale=1.0;
+    for (auto anE : mMapOfTriplets)
+    {
+        int aIdNode1 = mMapId2GraphId[anE.second.second.x()];
+        int aIdNode2 = mMapId2GraphId[anE.second.second.y()];
+
+        double aCap = anE.second.first;
+        //StdOut() << aUpscale*aCap << "\n";
+
+        /// edge weight
+        g->add_edge(aIdNode1,aIdNode2,aUpscale*aCap,aRevCap);
+
+    }
+
+    /// add terminal SINK and SOURCE
+    ///
+    g->add_tweights(mMapId2GraphId[mSource.mId],mSinkVal,mSourceVal);
+    g->add_tweights(mMapId2GraphId[mSink.mId],mSourceVal,mSinkVal);
+    //g->add_tweights(aMapMyId2GraphId[0],mSourceInit,mSinkInit);
+    //g->add_tweights(aMapMyId2GraphId[aNumNodes-1],mSinkInit,mSourceInit);
+
+    /// compute the flow
+    ///
+    int aFlow = g->maxflow();
+    StdOut() << "Flow=" << aFlow << std::endl;
+
+    /// update children given the partition
+    ///
+    cTripletSet aSet0, aSet1;
+    std::vector<cTriplet> aTri0V, aTri1V;
+    for (const auto& aH : mSubGr.VHEdges())
+    {
+        for (const auto& aTri : mMapId2GraphId)
+        {
+            if (int(aH->Index()) == aTri.first)
+            {
+                if (g->what_segment(aTri.second) ==  GraphType::SOURCE)
+                {
+                    for (auto aT : aSetTriFull.Set())
+                    {
+                        if (aT.Id() == int(aH->Index()))
+                        {
+                            aTri0V.push_back(aT);
+                            StdOut() << aTri.first << " 0" << std::endl;
+                        }
+                    }
+                }
+                else
+                {
+                    for (auto aT : aSetTriFull.Set())
+                    {
+                        if (aT.Id() == int(aH->Index()))
+                        {
+                            aTri1V.push_back(aT);
+                            StdOut() << aTri.first << " 1" << std::endl;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    /// first kid
+    ///
+    std::string aN0 = aSetTriFull.Name() + "-Left";
+    aSet0.SetName(aN0);
+    aSet0.Set() = aTri0V; //new set containing the left partition
+    mChildrenV[0]->Init(aSet0);
+
+    /// second kid
+    ///
+    std::string aN1 = aSetTriFull.Name() + "-Right";
+    aSet1.SetName(aN1);
+    aSet1.Set() = aTri1V; //new set containing the right partition
+    mChildrenV[1]->Init(aSet1);
+
+    delete g;
+
+}
+
+void cNodeHTreeMT::RunDown(const cTripletSet& aSet)
+{
+
+    if (mChildrenV.size())
+        PartitionPlus(aSet);
+
 }
 
 

@@ -65,7 +65,13 @@ cHyperEdge::cHyperEdge(std::vector<cVertex*> aVV,cTriplet& aT,tU_INT4 aId) :
 
 void cHyperEdge::Show()
 {
-    StdOut() << "Quality=" << mQual << std::endl;
+    //StdOut() << "Quality=" << mQual << std::endl;
+    //StdOut() << mIndex << " ";
+    for (const auto& aV : Vertices())
+    {
+        StdOut() << aV->Pose().Name() << " ";
+    }
+    StdOut() << std::endl;
 }
 
 
@@ -271,7 +277,7 @@ void cHyperGraph::SaveDotFile(std::string& aName)
 
     aFile->Ofs() <<  "digraph{" << "\n";
 
-    for (auto aE : mAdjMap)
+    for (const auto& aE : mAdjMap)
     {
        aFile->Ofs() << aE.first.StartVertex()->Id() << "->" << aE.first.EndVertex()->Id() << std::endl;
     }
@@ -293,7 +299,7 @@ void cHyperGraph::SaveTriGraph(std::string& aName)
     int aNbDupl=0;
 
     double aUpScale=1.0;
-    for (auto anEdg : this->mAdjMap)
+    for (const auto& anEdg : this->mAdjMap)
     {
         /// if there is more than 1 triplet
         size_t aTriNum = anEdg.second.size();
@@ -387,7 +393,7 @@ void cHyperGraph::Show()
         aMapNames[aMapIt.second] = aMapIt.first;
 
 
-    for (auto aElem : mAdjMap)
+    for (const auto& aElem : mAdjMap)
     {
         StdOut() << "Edge: " << aMapNames[aElem.first.StartVertex()] << " "
                              << aMapNames[aElem.first.EndVertex()] << std::endl;
@@ -1156,8 +1162,10 @@ cSpecMMVII_Appli  TheSpec_SfmInitFromGraph
 cAppli_SfmInitWithPartition::cAppli_SfmInitWithPartition(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
     cMMVII_Appli (aVArgs,aSpec),
     mPhProj      (*this),
-    mSourceInit  (1.0),
-    mSinkInit  (1.0),
+    mSourceInit  (100.0),
+    mSinkInit    (1.0),
+    mNbDepthMax  (4),
+    mNbThreadMax (8),
     mNbParts     (4),
     mImbalance   (0.03),
     mPartOutFile ("kah_parts_out.hgr")
@@ -1169,7 +1177,7 @@ cCollecSpecArg2007 & cAppli_SfmInitWithPartition::ArgObl(cCollecSpecArg2007 & an
 {
     return anArgObl
               <<  mPhProj.DPOriTriplets().ArgDirInMand()
-              <<  Arg2007(mHMetisFile,"Hypergraph file in hmetis format",{eTA2007::FileAny})
+          //    <<  Arg2007(mHMetisFile,"Hypergraph file in hmetis format",{eTA2007::FileAny})
               <<  Arg2007(mTGraphFile,"Triplet graph file in hmetis format",{eTA2007::FileAny})
            ;
 }
@@ -1180,8 +1188,11 @@ cCollecSpecArg2007 & cAppli_SfmInitWithPartition::ArgOpt(cCollecSpecArg2007 & an
            << AOpt2007(mNbParts,"NbParts", "Number of partitions; def=4")
            << AOpt2007(mSourceInit,"SourceInit","Initialise source weight, Def=1.0")
            << AOpt2007(mSinkInit,"SinkInit","Initialise sink weight, Def=1.0")
-           << AOpt2007(mImbalance,"Imb","Partition size imbalance, Def=0.03")
+           << AOpt2007(mNbDepthMax,"NbDepth","Maximum tree depth, Def=4")
+           << AOpt2007(mNbThreadMax,"NbThread","Maximum number of threads, Def=8")
+     //      << AOpt2007(mImbalance,"Imb","Partition size imbalance, Def=0.03")
            << AOpt2007(mPartOutFile,"PartOutput","Write partition to a file (filename)")
+           << AOpt2007(mHMetisFile,"HMetis","Hypergraph file in hmetis format")
               ;
 }
 
@@ -1253,17 +1264,19 @@ int cAppli_SfmInitWithPartition::ExeHParal()
     mPhProj.FinishInit();
     cTripletSet * aTriSet = mPhProj.ReadTriplets();
     
-    ThreadPool aThreadP(NbThreadMax);
+    ThreadPool aThreadP(mNbThreadMax);
 
     /// ================ Initialise tree structure
     ///
-    auto aRoot = std::make_shared<cNodeHTreeMT>(nullptr,0,0);
+    auto aRoot = std::make_shared<cNodeHTreeMT>(nullptr,0,0,mSourceInit,mSinkInit);
     aRoot->Init(*aTriSet);
-    aRoot->BuildChildren(aThreadP,aRoot);
+    aRoot->BuildChildren(aThreadP,aRoot,mNbDepthMax);
     aThreadP.addNode(aRoot);
     
     StdOut() << "PARTITION " <<   std::endl;
-    aThreadP.ExecDown();
+    aThreadP.ExecDown(*aTriSet);
+    aRoot->Show();
+
     StdOut() << "ALIGN " <<   std::endl;
     aThreadP.ExecUp();
 
@@ -1457,100 +1470,6 @@ cSpecMMVII_Appli  TheSpec_SfmInitWithPartition
 }; // MMVII
 
 
-/*   CHRISTOPHE
-#include <iostream>
-#include <vector>
-#include <deque>
-#include <chrono>
-#include <thread>
-#include <mutex>
-
-using namespace std;
-
-static constexpr int NbRuns = 100;
-static constexpr int NbThreadMax  = 10;
-
-// Classe "Tache de calcul"
-class Calculus
-{
-public:
-    Calculus() : n(nbInstance++) {}
-    void run() {
-        val=0;
-        start = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-        // Calcul stupide qui prend du temps ...
-        for (int i=0; i<1000000; i++)
-            val = val + (double)std::rand() / std::rand();
-        end = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-    }
-
-    int n;          // Numero du calcul
-    double val;
-    std::time_t start,end;
-private:
-    static int nbInstance;  // Pour numeroter les taches
-};
-
-int Calculus::nbInstance = 0;
-
-
-// Pool de threads ...
-class ThreadPool
-{
-public:
-    ThreadPool() {}
-    void Exec(std::vector<Calculus>& calculus,int nbThread)
-    {
-        for (auto& c : calculus)
-            CalculusQueue.push_back(&c);    // On creee une queue de pointeurs sur les taches a executer
-        std::vector<std::thread> threadList;
-        for (int i = 0; i < nbThread; ++i) // On lance NbThreads, chaque thread execute ExecLoop
-            threadList.emplace_back(std::thread(&ThreadPool::ExecLoop, this));
-        for (auto& t : threadList)
-            t.join();                       // On attend la fin de tous les threads (donc de touts les taches)
-    }
-
-private:
-    void ExecLoop()
-    {
-        while (true) {  // boucle infinie: on prend l'élément suivant du tableau et on l'execute.
-            Calculus *c;
-            {
-                // On protege la liste des taches a executer contre l'execution en parallle des threads avec un lock
-                std::lock_guard<std::mutex> lock(mMutex_CalculusQueue);
-                if (CalculusQueue.empty())
-                    return;             // Si plus de tache, on sort. On va rejoindre le "t.join()"
-                c = CalculusQueue.front();
-                CalculusQueue.pop_front();
-            }
-            c->run();
-        }
-    }
-
-    std::deque<Calculus*> CalculusQueue;    // Liste des pointeurs sur les taches a executer
-    std::mutex mMutex_CalculusQueue;        // Mutex pour proteger l'acces a CalculusQueue entre les threads
-};
-
-
-
-std::vector<Calculus> calculus(NbRuns);     // Tableau des taches a executer
-
-
-int main()
-{
-    ThreadPool tp;
-    tp.Exec(calculus, NbThreadMax);     // On execute toutes les taches, NbThreadMax en paralleles
-    for (auto& c : calculus) {
-        std::cout << c.n << " " << c.val << " " << c.start << " " << c.end << std::endl;
-    }
-
-    return 0;
-}
-
-
-
-
-*/
 
 
 

@@ -4,6 +4,7 @@
 
 #include "MMVII_TplHeap.h"
 #include "MMVII_SfmInit.h"
+#include "graph.h"
 
 #include <iostream>
 #include <vector>
@@ -17,7 +18,6 @@
 #include <condition_variable>
 
 static constexpr int NbThreadMax  = 12;
-static constexpr int NbDepthMax  = 8;
 static constexpr int NbKidsMax  = 2;
 
 
@@ -44,22 +44,90 @@ class ThreadPool
 
         void addNode(tNodeHT_mt_ptr node);
         void ExecUp();
-        void ExecDown();
+        void ExecDown(const cTripletSet&);
 
         const std::vector<tNodeHT_mt_ptr> allNodes() const { return mAllNodes;}
         const std::deque<tNodeHT_mt_ptr> runQueue() const { return mRunQueue;}
+
     private:
         void ExecLoopUp();
-        void ExecLoopDown();
+        void ExecLoopDown(const cTripletSet&);
 
         std::deque<tNodeHT_mt_ptr> mRunQueue;   // Liste des pointeurs sur les taches a executer
-        std::deque<tNodeHT_mt_ptr> mRunQueueInv;
         std::mutex mMutex_CalculusQueue;        // Mutex pour proteger l'acces a CalculusQueue entre les threads
         std::condition_variable cv;
 
         std::vector<tNodeHT_mt_ptr> mAllNodes;
         int mNbWorkingThread;
         int mNbThread;
+};
+
+/* ********************************************************** */
+/*                                                            */
+/*                        cNodeHTreeMT                        */
+/*                                                            */
+/* ********************************************************** */
+
+
+class cNodeHTreeMT
+{
+    public:
+        cNodeHTreeMT(tNodeHT_mt_ptr parent, int i, int depth, int, int);
+
+        /* Initialisation */
+        void        Init(cTripletSet&);
+        void        InitCutData();
+
+        /* Main photogrammetric tasks */
+        void Partition(const cTripletSet&);
+        void PartitionPlus(const cTripletSet&);
+
+
+        /* Paralelization */
+        void BuildChildren(ThreadPool&, tNodeHT_mt_ptr, int);
+        void RunDown(const cTripletSet&);
+        void RunUp();
+        bool IsRoot() const { return parent() == nullptr;}
+        void ResetChildrenToWait() { mChildrenToWait = mChildrenV.size();}
+        int  ChildrenCount() const { return mChildrenV.size();}
+        const tNodeHT_mt_ptr parent() const { return mParent.lock();}
+        const std::vector<tNodeHT_mt_ptr> Children() const { return mChildrenV; };
+        bool isLastChild() const
+        {
+            if (! parent())
+                return false;
+            return parent()->mChildrenToWait.fetch_sub(1) == 1;     // Atomic decrement; if mChildrenToWait was 1, we are the last child
+        }
+
+        std::string Name() const {return mName;}
+        void Show();
+
+    private:
+        /* Graph    */
+        cHyperGraph                 mSubGr;
+        std::string                 mName;
+        int                         mNumNodes;
+        int                         mNumEdges;
+
+        /* Data for MAXFLOW/MINCUT */
+        std::map<std::string,std::pair<double,cPt2di>> mMapOfTriplets;///< map of pairs of triplets (triplet graph)
+        std::map<int,int>                           mMapId2GraphId; ///< map between hypergraph's ids and maxflow ids
+        std::map<int,std::vector<int>>              mMapAdj; ///< adjacency map
+        cObjQual                                    mSink;
+        cObjQual                                    mSource;
+        int                                         mSinkVal;
+        int                                         mSourceVal;
+
+
+
+        /* Paralelization */
+        std::weak_ptr<cNodeHTreeMT> mParent;
+        std::vector<tNodeHT_mt_ptr> mChildrenV;
+        std::atomic<int>            mChildrenToWait;
+
+        int                         mDepth;
+        int                         mDepthMax;
+
 };
 
 /* ********************************************************** */
@@ -127,70 +195,7 @@ class cNodeHTree
 
 };
 
-/* ********************************************************** */
-/*                                                            */
-/*                        cNodeHTreeMT                        */
-/*                                                            */
-/* ********************************************************** */
 
-
-class cNodeHTreeMT
-{
-    public:
-        cNodeHTreeMT(tNodeHT_mt_ptr parent, int i, int depth);
-
-        void Init(cTripletSet&);
-        void InitCutData();
-        
-        void BuildChildren(ThreadPool& threadPool, tNodeHT_mt_ptr me);
-        
-        
-        void RunDown();
-        void RunUp();
-        void Partition();
-        bool isPartitioned() const {return IS_PARTITIONED;}
-
-        std::string Name() const {return mName;}
-        const tNodeHT_mt_ptr parent() const { return mParent.lock();}
-        
-        bool IsRoot() const { return parent() == nullptr;}
-        void ResetChildrenToWait() { mChildrenToWait = mChildrenV.size();}
-        int  ChildrenCount() const { return mChildrenV.size();}
-        const std::vector<tNodeHT_mt_ptr> Children() const { return mChildrenV; };
-        bool isLastChild() const {
-            if (! parent())
-                return false;
-            return parent()->mChildrenToWait.fetch_sub(1) == 1;     // Atomic decrement; if mChildrenToWait was 1, we are the last child
-        }
-        
-
-    private:
-        /* Graph    */
-        cHyperGraph                 mSubGr;
-        int                         mNumNodes;
-        int                         mNumEdges;
-
-        /* Data for MAXFLOW/MINCUT */
-        std::map<std::string,std::pair<int,cPt2di>> mMapOfTriplets;///< map of pairs of triplets (triplet graph)
-        std::map<int,int>                           mMapId2GraphId; ///< map between hypergraph's ids and maxflow ids
-        std::map<int,std::vector<int>>              mMapAdj; ///< adjacency map
-        cObjQual                                    mSink;
-        cObjQual                                    mSource;
-        int                                         mSinkVal;
-        int                                         mSourceVal;
-        bool                                        IS_PARTITIONED;
-
-
-
-        /* Paralelization */
-        std::weak_ptr<cNodeHTreeMT> mParent;
-        std::vector<tNodeHT_mt_ptr> mChildrenV;
-        std::atomic<int>            mChildrenToWait;
-
-        int                         mDepth;
-        int                         mDepthMax;
-        std::string                 mName;
-};
 
 };
 #endif // _MMVII_HIERARCHICALPROC_H_
