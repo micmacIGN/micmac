@@ -2,6 +2,7 @@
 #include "cMMVII_Appli.h"
 #include "MMVII_Linear2DFiltering.h"
 #include "MMVII_Tpl_Images.h"
+#include "MMVII_Interpolators.h"
 
 /**
    \file SimulDispl.cpp
@@ -30,7 +31,8 @@ namespace MMVII
         cCollecSpecArg2007 &ArgObl(cCollecSpecArg2007 &anArgObl) override;
         cCollecSpecArg2007 &ArgOpt(cCollecSpecArg2007 &anArgOpt) override;
 
-        tImDispl GenerateSmoothRandDispl();
+        tImDispl             GenerateSmoothRandDispl();
+        cDiffInterpolator1D *InitUserInterpolator();
 
     private:
         // ==   Mandatory args ====
@@ -43,6 +45,9 @@ namespace MMVII
         bool mGenerateDispImageFromUserMaps;  // Generate displaced image from user defined displacement map
         std::string mUserDefinedDispXMapName; // Filename of user defined x-displacement map
         std::string mUserDefinedDispYMapName; // Filename of user defined y-displacement map
+
+        std::string mInterpName;                // Interpolator name (bicubic, sinc, ..)
+        std::vector<std::string> mInterpParams; // Interpolator's params
 
         // ==    Internal variables ====
         tImDispl mImIn;     // memory representation of the image
@@ -60,6 +65,8 @@ namespace MMVII
                                          mGenerateDispImageFromUserMaps(false),
                                          mUserDefinedDispXMapName("UserDeplX.tif"),
                                          mUserDefinedDispYMapName("UserDeplY.tif"),
+                                         mInterpName("Cubic"),
+                                         mInterpParams({"Tabul", "1000", "Cubic", "-0.5"}),
                                          mImIn(cPt2di(1, 1)),
                                          mDImIn(nullptr),
                                          mImOut(cPt2di(1, 1)),
@@ -79,6 +86,8 @@ namespace MMVII
         return anArgOpt
                << AOpt2007(mAmplDef, "Ampl", "Amplitude of deformation.", {eTA2007::HDV})
                << AOpt2007(mWithDisc, "WithDisc", "Do we add disconinuities.", {eTA2007::HDV})
+               << AOpt2007(mInterpName,"Inter","Interpolator's name type, \"Bilinear\", \"Cubic\", \"SinCApod\", \"MMVIIK\" ", {eTA2007::HDV})
+               << AOpt2007(mInterpParams,"InterParams","Interpolator's parameters", {eTA2007::HDV})
                << AOpt2007(mGenerateDispImageFromUserMaps, "GenerateDispImageFromUserMaps",
                            "Generate post deformation image from user defined displacement maps.", {eTA2007::HDV})
                << AOpt2007(mUserDefinedDispXMapName, "UserDispXMapName", "Name of user defined x-displacement map.", {eTA2007::HDV, eTA2007::FileImage})
@@ -86,6 +95,30 @@ namespace MMVII
     }
 
     //================================================
+
+    cDiffInterpolator1D *cAppli_SimulDispl::InitUserInterpolator()
+    {
+        std::vector<std::string> aParamDef;
+        cDiffInterpolator1D *anInterp = nullptr;
+        if (mInterpName == "Cubic")
+        {
+            aParamDef = {"Tabul", "1000", "Cubic", "-0.5"};
+        }
+        else if (mInterpName == "SinCApod")
+        {
+            aParamDef = {"Tabul", "10000", "SinCApod", "10", "10"};
+        }
+        else if (mInterpName == "MMVIIK")
+        {
+            aParamDef = {"Tabul", "1000", "MMVIIK", "2"};
+        }
+        else
+            MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eUnClassedError, "A misspelled interpolator name ?");
+
+        anInterp = cDiffInterpolator1D::AllocFromNames( IsInit(&mInterpParams) ? mInterpParams : aParamDef);
+
+        return anInterp;
+    }
 
     cAppli_SimulDispl::tImDispl cAppli_SimulDispl::GenerateSmoothRandDispl()
     {
@@ -114,6 +147,10 @@ namespace MMVII
 
     int cAppli_SimulDispl::Exe()
     {
+        const bool aIsBillinearInterp = (mInterpName == "Bilinear");
+        std::unique_ptr<cDiffInterpolator1D> anInterp = nullptr;
+        anInterp = std::unique_ptr<cDiffInterpolator1D>(InitUserInterpolator());
+
         mImIn = tImDispl::FromFile(mNameImage);
         cDataFileIm2D aDescFile = cDataFileIm2D::Create(mNameImage, false);
 
@@ -166,7 +203,13 @@ namespace MMVII
             const tREAL8 aDy = aDImDispy->GetV(aPix);
             const tPt2dr aPixR = ToR(aPix) - tPt2dr(aDx, aDy);
 
-            mDImOut->SetV(aPix, mDImIn->DefGetVBL(aPixR, 0));
+            const bool aPixIn = (aIsBillinearInterp) ? mDImIn->InsideBL(aPixR) : mDImIn->InsideInterpolator(*anInterp, aPixR, 0);
+
+            if (aPixIn)
+            {
+                const tREAL4 aValNew = (aIsBillinearInterp) ? mDImIn->DefGetVBL(aPixR, 0) : mDImIn->GetValueInterpol(*anInterp, aPixR);
+                mDImOut->SetV(aPix, aValNew);
+            }
         }
 
         mDImOut->ToFile("image_post.tif", aDescFile.Type());
