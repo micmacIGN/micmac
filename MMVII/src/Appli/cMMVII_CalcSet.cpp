@@ -502,7 +502,7 @@ int cAppli_EditRel::Exe()
    {
       if (m2Set)
       {
-         MMVII_UsersErrror(eTyUEr::e2PatInModeLineEditRel,"In mode Line, cannot use multiple pattern in edit rel");
+         MMVII_UserError(eTyUEr::e2PatInModeLineEditRel,"In mode Line, cannot use multiple pattern in edit rel");
       }
 
       std::vector<const std::string *> aV1;
@@ -530,11 +530,11 @@ int cAppli_EditRel::Exe()
    {
        if (mNbMode==0)
        {
-           MMVII_UsersErrror(eTyUEr::eNoModeInEditRel,"No edit mode selected");
+           MMVII_UserError(eTyUEr::eNoModeInEditRel,"No edit mode selected");
        }
        if (mNbMode>1)
        {
-           MMVII_UsersErrror(eTyUEr::eMultiModeInEditRel,"Multi edit mode :"+mModeUsed);
+           MMVII_UserError(eTyUEr::eMultiModeInEditRel,"Multi edit mode :"+mModeUsed);
        }
    }
 

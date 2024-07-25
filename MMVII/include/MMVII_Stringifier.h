@@ -3,6 +3,7 @@
 
 #include "MMVII_memory.h"
 #include "MMVII_Ptxd.h"
+#include <sstream>
 
 namespace MMVII
 {

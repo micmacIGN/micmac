@@ -190,6 +190,7 @@ template <typename T>
 {
     code_assert(node_num_max_new > node_shift/((int)sizeof(Node)));
     Node* nodes_old[2] = { nodes[0], nodes[1] };
+    auto offset_node1 = ((char*)nodes_old[1] - (char*)nodes_old[0]);
     int node_num_max = node_num_max_new;
     nodes[0] = (Node*) realloc(nodes_old[0], 2*node_num_max*sizeof(Node));
     if (!nodes[0]) { if (error_function) (*error_function)("Not enough memory!"); exit(1); }
@@ -201,8 +202,7 @@ template <typename T>
     node_max[1] = nodes[1] + node_num_max;
     if (stage)
     {
-        auto size = ((char*)nodes_old[1] - (char*)nodes_old[0]); // gcc 13 wants an intermediate variable
-        memmove(nodes[1], (char*)nodes[0] + size, node_num*sizeof(Node));
+        memmove(nodes[1], (char*)nodes[0] + offset_node1, node_num*sizeof(Node));
     }
 
     Arc* a;

@@ -35,7 +35,7 @@ std::string SuppressDirFromNameFile(const std::string & aDir,const std::string &
 	 aPat = aPat + "\\." +  GlobTaggedNameDefSerial()  ;
      if (! MatchRegex(aName,aPat))
      {
-         MMVII_UsersErrror
+         MMVII_UserError
          (
              eTyUEr::eUnClassedError,
              "SuppressDirFromNameFile:No match for subdir, with name=" + aName + " Dir=" + aDir
@@ -402,7 +402,7 @@ cCalibRadiomIma * cPhotogrammetricProject::ReadCalibRadiomIma(const std::string 
     if (ExistFile(aNameFile))
        return cCalRadIm_Pol::FromFile(aNameFile);
 
-   MMVII_UsersErrror(eTyUEr::eUnClassedError,"Cannot determine Image RadiomCalib  for :" + aNameIm + " in " + mDPRadiomModel.DirIn());
+   MMVII_UserError(eTyUEr::eUnClassedError,"Cannot determine Image RadiomCalib  for :" + aNameIm + " in " + mDPRadiomModel.DirIn());
    return nullptr;
 }
 
@@ -597,7 +597,7 @@ void cPhotogrammetricProject::ReadSensor(const std::string  &aNameIm,cSensorImag
 
      if (!SVP)
      {
-         MMVII_UsersErrror
+         MMVII_UserError
          (
              eTyUEr::eUnClassedError,
              "Cannot get sensor for image " + aNameIm

@@ -240,6 +240,7 @@ enum class eTyUEr
               eNoCameraName,
               eMultipleTargetInOneImage,
               eBadSysCo,
+              eConstraintsError,
               eUnClassedError,
               eNbVals
            };
@@ -538,7 +539,7 @@ enum class eProjPC
 enum class eSysCo
 {
      eProj,
-     eLGeo,
+     eLEuc,
      eRTL,
      eGeoC,
      eLocalSys,

@@ -596,7 +596,7 @@ void OneBenchUnCalibResection(int aKTest)
 
 void BenchUnCalibResection()
 {
-    // Maybe because bad conditionning ? but inversion do not pass eigen test, 
+    // Maybe because bad conditioning ? but inversion do not pass eigen test,
     // BTW they pass "my" test on residual, so ....
     PushErrorEigenErrorLevel(eLevelCheck::Warning);
 
@@ -756,7 +756,7 @@ void cAppli_UncalibSpaceResection::DoMedianCalib()
          else
          {
              // No reason dont exit
-             MMVII_UsersErrror(eTyUEr::eOpenFile,"No calib file found");
+             MMVII_UserError(eTyUEr::eOpenFile,"No calib file found");
          }
      }
 

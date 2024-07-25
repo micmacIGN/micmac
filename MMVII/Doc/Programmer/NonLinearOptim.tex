@@ -532,7 +532,7 @@ one correspond to a value of enumeration {\bf \tt eModeSSR} :
           uses sparse matrix for storing the normal matrix; this is probably the most
           general way and the most efficient in time and storage for most cases in 
           photogrammetry involving many pose estimations. Its
-          drawback is that using normal equations increase the conditionning of the
+          drawback is that using normal equations increase the conditioning of the
           system, the potential problem increasing with number of unknowns; 
           solving is made calling  {\tt SimplicialCholesky} decomposition of eigen;
 
@@ -542,7 +542,7 @@ one correspond to a value of enumeration {\bf \tt eModeSSR} :
           {\tt LeastSquaresConjugateGradient} decomposition of eigen;
           \emph{do not} use Schur complement for temporary unknowns, they
           are processed like the other unknowns; according to eigen documentation
-          this method is the more robust for poorly conditionned systems 
+          this method is the more robust for poorly conditioned systems
           compared to {\bf \tt eSSR\_LsqNormSparse}, for big
           sparse system with a high proportion of temporary unknowns, 
           it's certainly less memory  efficient and it's probably
@@ -1355,6 +1355,8 @@ The topo computation classes are :
 
 The classes named \texttt{cTopo???Data} are used only for data serialization and deserialization.
 They are a simplified version of the classes without the \texttt{Data} suffix.
+
+%The \CdPPP\ topo files record all the input and output data, organized as the internal \CdPPP\ objects during compensation.
 
 \texttt{cTopoObsSet} is an abstract class.
 The concrete class that is currently used is \texttt{cTopoObsSetStation}, that corresponds to a survey instrument positionned on one point.

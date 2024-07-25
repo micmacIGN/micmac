@@ -485,6 +485,7 @@ void cMMVII_BundleAdj::CompileSharedIntrinsicParams(bool ForAvg)
 
 bool cMMVII_BundleAdj::CheckGCPConstraints() const
 {
+    std::string aNames;
     for (const auto & aBA_GCP_Ptr : mVGCP)
     {
         for (const auto & aMesGCP : aBA_GCP_Ptr->mMesGCP->MesGCP())
@@ -501,14 +502,15 @@ bool cMMVII_BundleAdj::CheckGCPConstraints() const
                         aNbTopoElementObs += obs->getMeasures().size();
                     }
                 }
-                MMVII_INTERNAL_ASSERT_strong(aNbImObs*2+aNbTopoElementObs>=3,
-                                             "Not enough observations for point "+
-                                             aMesGCP.mNamePt+": "+
-                                             std::to_string(aNbImObs)+" im + "+
-                                             std::to_string(aNbTopoElementObs)+" topo");
+                if (aNbImObs*2+aNbTopoElementObs<3)
+                    aNames += aMesGCP.mNamePt + " ";
             }
         }
     }
+    if (aNames.size())
+        MMVII_UserError(eTyUEr::eConstraintsError,
+                          "Not enough observations for points: "+aNames);
+
     return true;
 }
 

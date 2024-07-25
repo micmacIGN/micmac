@@ -178,8 +178,8 @@ Now we make the analysis of pro (and  cons ?) of covariance  analysis when the o
 the conclusion of experiment is coherent with theoreticall analysis:
 
     * covariance is always superior or equal to basic point propagation
-    * when the sub-network are well conditionned, the covariance and points propagation give the same results
-    * with ill conditionned sub-newtork , the difference can be significative (up to 5 in our example)
+    * when the sub-network are well conditioned, the covariance and points propagation give the same results
+    * with ill conditioned sub-newtork , the difference can be significative (up to 5 in our example)
 
               
                    ===============   Paramater description ==============
@@ -208,7 +208,7 @@ Identically we could have indicate  [1,0] ... or [1,0,0,0,0], all omitted elemen
 
 If we indicate WConf=[0,1], it correspond to a subnetwork where we have supress the left vertical edge ,
 WConf=[0,0,1]  correspond to a subnetwork where bottom horizontale edge is supressed. Purpose of this supression
-is to decrease the strenght of the subtnwork (or doing it less well conditionned).
+is to decrease the strenght of the subtnwork (or doing it less well conditioned).
 
             C_k -- D_k                       C_k -- D_k  
              |  \/                            |  \/  |   
@@ -232,7 +232,7 @@ extrem right point on the same line.
  Identically with WConf=[0,0,0,0,1] , we have conexion as [0,0,1]  with a mapping of A and B to the bottom of 
 the main newtork.
 
-The purpose of this option is two have even less conditionned netork in the sub-network, without changin the main
+The purpose of this option is two have even less conditioned netork in the sub-network, without changin the main
 network.
 
 4) Conbining configuration.

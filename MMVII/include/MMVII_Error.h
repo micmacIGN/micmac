@@ -89,10 +89,10 @@ void MMVII_RestoreDefaultHandle();
  if ((The_MMVII_DebugLevel>=The_MMVII_DebugLevel_BenchError ) && (!(aTest)))\
 {MMVII_INTERNAL_ERROR(aMes);}
 
-void MMVII_UsersErrror(const eTyUEr &,const std::string & aMes);
+void MMVII_UserError(const eTyUEr &,const std::string & aMes);
 #define MMVII_INTERNAL_ASSERT_User(aTest,aRef,aMes)\
  if ((The_MMVII_DebugLevel>=The_MMVII_DebugLevel_UserError) && (!(aTest))) \
-{  MMVII_UsersErrror(aRef,aMes);}
+{  MMVII_UserError(aRef,aMes);}
 void MMVII_UnclasseUsEr(const std::string & aMes);
 
 

@@ -99,11 +99,11 @@ const   std::string MMVII_PrefRefBench = "RefBench-";
 
 // Prefix for SysCo names
 const   std::string MMVII_SysCoLocal  = "Local";
-const   std::string MMVII_SysCoLGeo   = "LGeo";
+const   std::string MMVII_SysCoLEuc   = "LEuc";
 const   std::string MMVII_SysCoRTL    = "RTL";
 const   std::string MMVII_SysCoGeoC   = "GeoC";
-const   std::string MMVII_SysCoDefLatLong = "+proj=latlong";
-const   std::string MMVII_SysCoDefGeoC = "+proj=geocent";
+const   std::string MMVII_SysCoDefLatLong = "+proj=latlong +datum=WGS84";
+const   std::string MMVII_SysCoDefGeoC = "+proj=geocent +datum=WGS84";
 
 // PostFix 4 files
 const   std::string PostF_XmlFiles  = "xml";

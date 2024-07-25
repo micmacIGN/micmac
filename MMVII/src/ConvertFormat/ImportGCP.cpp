@@ -41,10 +41,12 @@ class cAppli_ImportGCP : public cMMVII_Appli
 	std::string                mNameGCP;
 	int                        mL0;
 	int                        mLLast;
-	int                        mComment;
+	char                       mComment;
 	int                        mNbDigName;
 	std::vector<std::string>   mPatternTransfo;        
 	double                     mMulCoord;
+	double                     mSigma;
+	std::string                mAddInfoFree;
 };
 
 cAppli_ImportGCP::cAppli_ImportGCP(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -52,15 +54,15 @@ cAppli_ImportGCP::cAppli_ImportGCP(const std::vector<std::string> & aVArgs,const
    mPhProj       (*this),
    mL0           (0),
    mLLast        (-1),
-   mComment      (-1),
-   mMulCoord     (1.0)
+   mMulCoord     (1.0),
+   mSigma        (1.0)
 {
 }
 
 cCollecSpecArg2007 & cAppli_ImportGCP::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
     return anArgObl
-	      <<  Arg2007(mNameFile ,"Name of Input File")
+	      <<  Arg2007(mNameFile ,"Name of Input File",{eTA2007::FileAny})
               <<  Arg2007(mFormat,"Format of file as for ex \"SNASXYZSS\" ")
               << mPhProj.DPPointsMeasures().ArgDirOutMand()
            ;
@@ -76,12 +78,19 @@ cCollecSpecArg2007 & cAppli_ImportGCP::ArgOpt(cCollecSpecArg2007 & anArgObl)
        << AOpt2007(mPatternTransfo,"PatName","Pattern for transforming name (first sub-expr)",{{eTA2007::ISizeV,"[2,2]"}})
        << mPhProj.ArgChSys(true)  // true =>  default init with None
        << AOpt2007(mMulCoord,"MulCoord","Coordinate multiplier, used to change unity as meter to mm")
+       << AOpt2007(mSigma,"Sigma","Sigma for all coords (covar is 0). -1 to make all points free",{eTA2007::HDV})
+       << AOpt2007(mComment,"Comment","Character for commented line")
+       << AOpt2007(mAddInfoFree,"AddInfoFree","All points whose Additional Info is set to this value are Free")
     ;
 }
 
 
 int cAppli_ImportGCP::Exe()
 {
+    int aComment = -1;
+    if (IsInit(&mComment))
+        aComment = mComment;
+
     mPhProj.FinishInit();
     std::vector<std::vector<std::string>> aVNames;
     std::vector<std::vector<double>> aVNums;
@@ -93,7 +102,7 @@ int cAppli_ImportGCP::Exe()
     ReadFilesStruct
     (
         mNameFile, mFormat,
-        mL0, mLLast, mComment,
+        mL0, mLLast, aComment,
         aVNames,aVXYZ,aVWKP,aVNums
     );
 
@@ -114,23 +123,31 @@ int cAppli_ImportGCP::Exe()
     bool aHasAdditionalInfo = aRankA_InF != mFormat.npos;
     size_t  aRankP = (aRankP_InF<aRankA_InF) ? 0 : 1;
     size_t  aRankA = 1 - aRankP;
+    if (IsInit(&mAddInfoFree) && !aHasAdditionalInfo)
+        MMVII_UserError(eTyUEr::eBadOptParam,"AddInfoFree specified but no 'A' in format string");
 
     for (size_t aK=0 ; aK<aVXYZ.size() ; aK++)
     {
-         std::string aName = aVNames.at(aK).at(aRankP);
+        auto aSigma = mSigma;
+        std::string aName = aVNames.at(aK).at(aRankP);
 
-	 if (IsInit(&mPatternTransfo))
-         {
+        if (IsInit(&mPatternTransfo))
+        {
 	//	 aName = PatternKthSubExpr(mPatternTransfo,1,aName);
-             aName = ReplacePattern(mPatternTransfo.at(0),mPatternTransfo.at(1),aName);
-          }
-	 if (IsInit(&mNbDigName))
+            aName = ReplacePattern(mPatternTransfo.at(0),mPatternTransfo.at(1),aName);
+        }
+
+        if (IsInit(&mNbDigName))
             aName =   ToStr(cStrIO<int>::FromStr(aName),mNbDigName);
 
-         std::string aAdditionalInfo = "";
-         if (aHasAdditionalInfo)
-             aAdditionalInfo = aVNames.at(aK).at(aRankA);
-         aSetM.AddMeasure(cMes1GCP(aChSys.Value(aVXYZ[aK]*mMulCoord),aName,1.0,aAdditionalInfo));
+        std::string aAdditionalInfo = "";
+        if (aHasAdditionalInfo)
+        {
+            aAdditionalInfo = aVNames.at(aK).at(aRankA);
+            if (IsInit(&mAddInfoFree) && aAdditionalInfo == mAddInfoFree)
+                aSigma = -1;
+        }
+        aSetM.AddMeasure(cMes1GCP(aChSys.Value(aVXYZ[aK]*mMulCoord),aName,aSigma,aAdditionalInfo));
     }
 
     mPhProj.SaveGCP(aSetM);
