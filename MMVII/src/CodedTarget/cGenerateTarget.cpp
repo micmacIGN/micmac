@@ -1,6 +1,7 @@
 #include <bitset>
 #include "CodedTarget.h"
 #include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_Sensor.h"
 
 //  49 : 387 =  256 + 128 + 2 +1
 //              00000110000011
@@ -11,11 +12,15 @@
 namespace MMVII
 {
 
+class cNormPix2Bit;
+class cCircNP2B ;
+class cStraightNP2B ;
+
 /**  Generate a visualistion of target, made an external-non-friend  function
  * to test the usability.
  *
  */
-void TestReloadAndShow_cFullSpecifTarget(const std::string & aName,int aZoom)
+void TestReloadAndShow_cFullSpecifTarget(const std::string & aDir,const std::string & aName,int aZoom)
 {
     // -1- ----------- Create the object from file ------------------
     std::unique_ptr<cFullSpecifTarget> aFullSpec (cFullSpecifTarget::CreateFromFile(aName));
@@ -27,15 +32,15 @@ void TestReloadAndShow_cFullSpecifTarget(const std::string & aName,int aZoom)
 
        // -2.2- generate a "standard" target image
     cFullSpecifTarget::tIm anIm = aFullSpec->OneImTarget(aEnc);
-    anIm.DIm().ToFile("TestTarget_"+aFullSpec->Prefix()+".tif");
+    // anIm.DIm().ToFile(aDir+"TestTarget_"+aFullSpec->Prefix()+".tif");
 
     // -3-  ------------------generate a high resolution to visualize
     cRGBImage aImZoom =   RGBImFromGray(anIm.DIm(),1.0,aZoom);
 
          // -3.1- visualize centers and corners
     aImZoom.DrawCircle(cRGBImage::Blue,aFullSpec->Center(),1.0);
-    aImZoom.DrawCircle(cRGBImage::Red,aFullSpec->CornerlEl_BW(),1.0);
-    aImZoom.DrawCircle(cRGBImage::Green,aFullSpec->CornerlEl_WB(),1.0);
+    aImZoom.DrawCircle(cRGBImage::Red,aFullSpec->CornerlEl_BW(),3.0);
+    aImZoom.DrawCircle(cRGBImage::Green,aFullSpec->CornerlEl_WB(),3.0);
 
          // -3.2- visualize the bits
     for (const auto & aC : aFullSpec->BitsCenters())
@@ -45,7 +50,7 @@ void TestReloadAndShow_cFullSpecifTarget(const std::string & aName,int aZoom)
     }
 
          // -3.3- write the file
-    aImZoom.ToFile("TestZoom_"+aFullSpec->Prefix()+".tif");
+    aImZoom.ToFile(aDir+"TestZoom_"+aFullSpec->Prefix()+".tif");
 }
 
 void Bench_Target_Encoding()
@@ -363,21 +368,24 @@ std::string cParamCodedTarget::NameFileOfNum(int aNum) const
 }
 
 
-
-
 /* *************************************************** */
 /*                                                     */
 /*             cNormPix2Bit                            */
 /*                                                     */
 /* *************************************************** */
 
-
+/**  Class for specifying the mapping between image and bits, it works with "normalized"
+ *   coordinates 
+ */
 class cNormPix2Bit
 {
     public :
+         /// Indicate if the point is coding a bit 
 	 virtual bool    PNormIsCoding(const cPt2dr & aPt)   const = 0;
+         /// Indicate the num of the bit coded
 	 virtual int     BitsOfNorm    (const cPt2dr & aPt)  const = 0;
 
+	 ///  Allocator retun one the derivate class
          static cNormPix2Bit * Alloc(const cFullSpecifTarget & aSpecif);
 
 	 virtual ~cNormPix2Bit() {}
@@ -390,22 +398,25 @@ class cNormPix2Bit
 /*                                                     */
 /* *************************************************** */
 
+/**  A "cNormPix2Bit" where the bits are code in a circle arround the checkboard */
 
 class cCircNP2B : public  cNormPix2Bit
 {
      public :
+         /// Construct from the full specification
          cCircNP2B(const cFullSpecifTarget & aSpecif);
-	 bool    PNormIsCoding(const cPt2dr & aPt)      const   override;
-	 int     BitsOfNorm    (const cPt2dr & aPt)     const   override;
+	 bool    PNormIsCoding(const cPt2dr & aPt)      const   override; ///< is it between circle
+	 int     BitsOfNorm    (const cPt2dr & aPt)     const   override; ///< convert teta to a num
 
      private :
-	 cPt2dr  PreProcessCoord(const cPt2dr & aPt)    const;
+         /// Pre-processing, just convert to polar coordinate
+	 cPt2dr  PreProcessCoord(const cPt2dr & aPt)    const; 
 
-	 tREAL8 mRho0;
-	 tREAL8 mRho1;
-	 tREAL8 mTeta0;
-	 int    mNbBits;
-	 tREAL8 mSignT;
+	 tREAL8 mRho0;    ///< minimal ray of coding part
+	 tREAL8 mRho1;    ///< maximal ray of coding part
+	 tREAL8 mTeta0;   ///< origin of teta for first bit
+	 int    mNbBits;  ///< number of bit to code
+	 tREAL8 mSignT;   ///< sign use to code the sens (clock-wise or not)
 };
 
 
@@ -423,19 +434,24 @@ cPt2dr  cCircNP2B::PreProcessCoord(const cPt2dr & aPt)   const
 {
     return ToPolar(aPt);
 }
+
 bool  cCircNP2B::PNormIsCoding(const cPt2dr & aPt) const 
 {
+    // extract the ray
     tREAL8 aRho = PreProcessCoord(aPt).x();
-    // StdOut() << " RRR " << aRho  << " "<< mRho0 << " " << mRho1 <<std::endl;
+    // coding part between 2 circle
     return   (aRho>=mRho0)  && (aRho<mRho1) ;
 }
 
 int cCircNP2B::BitsOfNorm(const cPt2dr & aPt) const 
 {
+     // compute the angle, taking into account origin & sens
      tREAL8 aTeta = (PreProcessCoord(aPt).y() -mTeta0) * mSignT;
+     // compute bit index from teta by mapping "[0,2PI]"  to "[0,NbBits]" 
      tREAL8 aIndex = mNbBits * (aTeta / (2*M_PI)) ;
+     // assure that index is in "[0,NbBits]"
      aIndex = mod_real(aIndex,mNbBits);
-     return round_down (aIndex);
+     return round_down (aIndex);   
 }
 
 /* *************************************************** */
@@ -443,6 +459,8 @@ int cCircNP2B::BitsOfNorm(const cPt2dr & aPt) const
 /*             cStraightNP2B                           */
 /*                                                     */
 /* *************************************************** */
+
+/**  A "cNormPix2Bit" where the bits are coded on a regular grid */
 
 class cStraightNP2B : public  cNormPix2Bit
 {
@@ -452,8 +470,8 @@ class cStraightNP2B : public  cNormPix2Bit
 	 int     BitsOfNorm    (const cPt2dr & aPt)     const   override;
 
      private :
-         bool     mIsSym;
-	 tREAL8   mRho1;
+         bool     mIsSym;  ///< If true, the coding part is splited in two part
+	 tREAL8   mRho1;   ///< begin
          int      mNbBits;
          int      mNbBS2;
 	 tREAL8   mSep2L;
@@ -474,29 +492,29 @@ cStraightNP2B::cStraightNP2B(const cFullSpecifTarget & aSpecif,bool IsSym) :
 bool    cStraightNP2B::PNormIsCoding(const cPt2dr & aPt) const   
 {
     return  mIsSym                      ?
-	    (std::abs(aPt.y()) > mRho1) : 
-	    (aPt.y() >  mRho1)        ;
+	    (std::abs(aPt.y()) > mRho1) :    // sym case, the coding part is symetric
+	    (aPt.y() >  mRho1)        ;      // else coding part on one side
 }
 
 int   cStraightNP2B::BitsOfNorm(const cPt2dr & aPt) const
 {
     bool  isLine2 =   (aPt.y()>mSep2L)  ;
+    //  map  [-mRho1,+mRho1] to [0,mNbBS2]  (because x is initially signed)
     int aRes = round_down((aPt.x()+mRho1)/(2*mRho1) *mNbBS2)  ;
 
-    // MPD 16/08/23 => correction because  want a trigonometrique ordrer of bits
-    // so that bit-shift correspond to rotations
+    // MPD 16/08/23 => correction because  want a trigonometrique ordrer of bits     0 1 2    and not  0 1 2
+    // so that bit-shift correspond to rotations            ie :                     xxxxx             xxxxx
+    //                                                                               5 4 3             3 4 5
     if (mIsSym && isLine2)
     {
         aRes =  mNbBS2-1 - aRes;
     }
     aRes = std::max(0,std::min(aRes,mNbBS2-1));
 
+    //  if second line, add the NbBits/2 
+    aRes =  aRes +  mNbBS2* isLine2;
 
-
-   aRes =  aRes +  mNbBS2* isLine2;
-
-   // StdOut()  << "rrr = " << aRes << " " << (aPt.x()+mRho1)/(2*mRho1) << std::endl;
-   return aRes;
+    return aRes;
 }
 
 /* *************************************************** */
@@ -962,6 +980,7 @@ class cAppliGenCodedTarget : public cMMVII_Appli
         int PerGen() const { return mPerGen;}   //CM: avoid mPerGen unused
 
 
+	cPhotogrammetricProject  mPhgrPr;  ///< Used to generate dir visu
 	int                mPerGen;  // Pattern of numbers
 	int                mZoomShow;
 	std::string        mNameBE;
@@ -978,6 +997,7 @@ eTyCodeTarget cAppliGenCodedTarget::Type() {return mBE.Specs().mType ;}
 
 cAppliGenCodedTarget::cAppliGenCodedTarget(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli  (aVArgs,aSpec),
+   mPhgrPr       (*this),
    mPerGen       (10),
    mDoMarkC      (false),
    mNbPixBin     (1800)
@@ -1023,6 +1043,7 @@ int  cAppliGenCodedTarget::Exe()
 
        // anAppli.SetIfNotInit(mWithParity,false);
 
+   mPhgrPr.FinishInit();
    //if (IsInit(&mNbPixBin))
    mPCT.SetNbPixBin(mNbPixBin);
 
@@ -1034,11 +1055,12 @@ int  cAppliGenCodedTarget::Exe()
 
    // Activate the computaion of centers
    aFullSpec.ImagePattern();
+   std::string aDirVisu = mPhgrPr.DirVisu();
 
    if (IsInit(&mPatternDoImage))
    {
       //  generate the pattern image
-      aFullSpec.ImagePattern().DIm().ToFile(aFullSpec.NameOfImPattern());
+      aFullSpec.ImagePattern().DIm().ToFile(aDirVisu+aFullSpec.NameOfImPattern());
 
       // parse all encodings
       for (const auto & anEncode : aFullSpec.Encodings())
@@ -1048,7 +1070,7 @@ int  cAppliGenCodedTarget::Exe()
              cCodedTargetPatternIm::tIm anIm = aFullSpec.OneImTarget(anEncode);
 
              std::string aName = aFullSpec.NameOfEncode(anEncode);
-             anIm.DIm().ToFile(aName);
+             anIm.DIm().ToFile(aDirVisu+aName);
              StdOut() << aName << std::endl;
 	  }
       }
@@ -1066,7 +1088,7 @@ int  cAppliGenCodedTarget::Exe()
 
    if (IsInit(&mZoomShow))
    {
-      TestReloadAndShow_cFullSpecifTarget(aName,mZoomShow);
+      TestReloadAndShow_cFullSpecifTarget(aDirVisu,aName,mZoomShow);
    }
 
 

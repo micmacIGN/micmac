@@ -26,6 +26,11 @@ cInterpolator1D *  cInterpolator1D::TabulatedInterp(const cInterpolator1D & anIn
 	return new cTabulatedInterpolator(anInt,aNbTabul,BilinInterp);
 }
 
+void  cInterpolator1D::SetSzKernel(tREAL8  aSzK) 
+{
+      mSzKernel = aSzK;
+}
+
 
 /* *************************************************** */
 /*                                                     */
@@ -434,6 +439,7 @@ cTabulatedInterpolator::cTabulatedInterpolator(const cInterpolator1D &anInt,int 
      mIm              (mSzTot+1),
      mDIm             (&mIm.DIm())
 {
+
       // [0]  initialisation of weight
       for (int aK=0 ; aK<mDIm->Sz() ; aK++)
           mDIm->SetV(aK,anInt.Weight(aK/tREAL8(mNbTabul)));
@@ -467,6 +473,9 @@ void cTabulatedInterpolator::SetDiff(const cTabulatedInterpolator & anInt)
 
 void cTabulatedInterpolator::DoNormalize(bool ForDerive)
 {
+      // Can't make a partion of unity if kernel too small
+      MMVII_INTERNAL_ASSERT_bench(mSzKernel>0.5,"Kernel too small in cTabulatedInterpolator");
+
       tREAL8 aSomWDif = 0; // observation of inital deviation, for eventual show/debug
       tREAL8 aCheckS=0.0;   // Check sum, useful 4 derive
 			   
@@ -604,5 +613,233 @@ std::pair<tREAL8,tREAL8>   cTabulatedDiffInterpolator::WAndDiff(tREAL8  anX) con
 	 );
 }
 
+
+/* *********************************************** */
+/*                                                 */
+/*             cScaledInterpolator                 */
+/*                                                 */
+/* *********************************************** */
+
+/* class for constructing an scaled version of an existing interpolator from scaled version,
+ *
+ *    +  usefull essentially for image ressampling to create a specific blurring
+ *    +  !!!  its not a partition unit, so like "cSinCApodInterpolator" it must be used to generate a tabulated versions
+ *
+ * */
+
+class cScaledInterpolator : public cInterpolator1D
+{
+      public :
+            cScaledInterpolator(cInterpolator1D *,tREAL8 aScale,bool ToDelete=false);
+
+	    virtual ~ cScaledInterpolator();
+	    tREAL8  Weight(tREAL8  anX) const override;
+	    static  cTabulatedDiffInterpolator * AllocTab(const cInterpolator1D &,tREAL8 aScale,int aNbTabul);
+
+
+      private :
+
+	    cInterpolator1D  * mInterp;
+	    tREAL8             mScale;
+	    bool               mToDelete;
 };
 
+
+cScaledInterpolator::cScaledInterpolator
+(
+        cInterpolator1D * aInterp,
+	tREAL8 aScale,
+	bool   isToDelete
+)  :
+	cInterpolator1D
+	(
+	      aInterp->SzKernel() * aScale,
+	      Append(std::vector<std::string>{"Scale",ToStr(aScale)},aInterp->VNames())
+	),
+	mInterp     (aInterp),
+	mScale      (aScale),
+        mToDelete   (isToDelete)
+{
+}
+
+cScaledInterpolator::~cScaledInterpolator()
+{
+   if (mToDelete)
+      delete mInterp;
+}
+
+
+tREAL8  cScaledInterpolator::Weight(tREAL8  anX) const 
+{
+      return mInterp->Weight(anX/mScale);
+}
+
+cTabulatedDiffInterpolator * cScaledInterpolator::AllocTab(const cInterpolator1D & anI,tREAL8 aScale,int aNbTabul) 
+{
+	cScaledInterpolator aScalI(const_cast<cInterpolator1D*>(&anI),aScale,false);
+
+	return new cTabulatedDiffInterpolator(aScalI,aNbTabul);
+}
+
+/* *********************************************** */
+/*                                                 */
+/*             cMultiScaledInterpolator            */
+/*                                                 */
+/* *********************************************** */
+
+class cMultiScaledInterpolator : public cDiffInterpolator1D
+{
+	public :
+             cMultiScaledInterpolator
+             (
+                  const cInterpolator1D & anI,
+		  const tREAL8 aScale0, 
+		  const tREAL8 aScale1, 
+		  int   aNbScale,
+		  int   aNbTabul
+	     );
+	     virtual ~cMultiScaledInterpolator();
+	     tREAL8  UnBoundedIndex2Scale(tREAL8 anIndex) const;
+	     tREAL8  UnBoundedScale2Index(tREAL8 aScale) const;
+
+	     tREAL8  Weight(tREAL8  anX) const override;
+	     tREAL8  DiffWeight(tREAL8  anX) const override;
+
+	     void SetScale(tREAL8 aScale);
+	private :
+
+	     tREAL8  mSzKInit;
+	     tREAL8  mCurScale;
+	     tREAL8  mScale0;
+	     tREAL8  mScale1;
+	     tREAL8  mRatio;
+	     tREAL8  mLogRatio;
+	     int     mNbScale;
+
+	     std::vector<cTabulatedDiffInterpolator*> mTabInterps;
+	     std::vector<cTabulatedDiffInterpolator*> mICur;
+	     std::vector<tREAL8>                  mWCur;
+};
+
+
+cMultiScaledInterpolator::cMultiScaledInterpolator
+(
+     const cInterpolator1D & anI,
+     const tREAL8 aScale0, 
+     const tREAL8 aScale1, 
+     int   aNbScale,
+     int   aNbTabul
+) :
+     cDiffInterpolator1D (1.0,{}),
+     mSzKInit  (anI.SzKernel()),
+     mCurScale (-1),
+     mScale0   (aScale0),
+     mScale1   (aScale1),
+     mRatio    (mScale1/mScale0),
+     mLogRatio (std::log(mRatio)),
+     mNbScale  (aNbScale)
+{
+	for (int aK=0 ; aK<=mNbScale ; aK++)
+	{
+            tREAL8 aScale = UnBoundedIndex2Scale(aK);
+            mTabInterps.push_back(cScaledInterpolator::AllocTab(anI,aScale,aNbTabul));
+	}
+
+	SetScale(std::sqrt(mScale0*mScale1));
+}
+
+cMultiScaledInterpolator::~cMultiScaledInterpolator()
+{
+    DeleteAllAndClear(mTabInterps);
+}
+
+void cMultiScaledInterpolator::SetScale(tREAL8 aScale)
+{
+    mICur.clear();
+    mWCur.clear();
+
+    tREAL8  aRIndex = UnBoundedScale2Index(aScale);
+
+    if (aRIndex<=0)
+    {
+        mICur.push_back(mTabInterps[0]);
+	mWCur.push_back(1.0);
+    }
+    else if (aRIndex>=mNbScale)
+    {
+        mICur.push_back(mTabInterps.back());
+	mWCur.push_back(1.0);
+    }
+    else
+    {
+        int anInd = round_down(aRIndex);
+	tREAL8 aW1 = aRIndex-anInd;
+
+        mICur.push_back(mTabInterps.at(anInd));
+	mWCur.push_back(1-aW1);
+
+        mICur.push_back(mTabInterps.at(anInd+1));
+	mWCur.push_back(aW1);
+    }
+    SetSzKernel(std::max(mICur[0]->SzKernel(),mICur.back()->SzKernel()));
+
+}
+
+
+
+tREAL8  cMultiScaledInterpolator::UnBoundedIndex2Scale(tREAL8 anIndex) const
+{
+      return  mScale0 * std::pow(mRatio,anIndex/mNbScale);
+}
+
+tREAL8  cMultiScaledInterpolator::UnBoundedScale2Index(tREAL8 aScale) const
+{
+	return std::log(aScale/mScale0) * (mNbScale / mLogRatio) ;
+}
+
+tREAL8  cMultiScaledInterpolator::Weight(tREAL8  anX) const 
+{ 
+     tREAL8 aRes =  mICur[0]->Weight(anX) *  mWCur[0];
+     if (mICur.size() >= 2)
+         aRes +=  mICur[1]->Weight(anX) *  mWCur[1];
+
+     return aRes;
+}
+
+tREAL8  cMultiScaledInterpolator::DiffWeight(tREAL8  anX) const 
+{ 
+     tREAL8 aRes =  mICur[0]->DiffWeight(anX) *  mWCur[0];
+     if (mICur.size() >= 2)
+         aRes +=  mICur[1]->DiffWeight(anX) *  mWCur[1];
+
+     return aRes;
+}
+
+
+// tREAL8  cMultiScaledInterpolator::DiffWeight(tREAL8  anX) const { return 0.0; }
+
+void Bench_cMultiScaledInterpolator()
+{
+     for (int aK=0 ; aK<10 ; aK++)
+     {
+          tREAL8 aS0 = 0.7 + RandUnif_0_1() * 2;
+          tREAL8 aS1 = aS0 * std::pow(100.0, RandUnif_0_1());
+          int aNbInd = 10;
+          cMultiScaledInterpolator  aMSI(cCubicInterpolator(0.0),aS0,aS1,aNbInd,50);
+
+          for (int aK=0 ; aK<10 ; aK++)
+          {
+              tREAL8 aInd = RandInInterval(-3,aNbInd+3);
+              tREAL8 aS = aMSI.UnBoundedIndex2Scale(aInd) ;
+              tREAL8 aInd2 = aMSI.UnBoundedScale2Index(aS) ;
+              MMVII_INTERNAL_ASSERT_bench(std::abs(aInd-aInd2)<1e-5,"Bench_cMultiScaledInterpolator");
+
+              aMSI.SetScale(aS);
+          }
+     }
+}
+
+
+
+
+};

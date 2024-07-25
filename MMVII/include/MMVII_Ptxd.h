@@ -395,6 +395,7 @@ template <class T,const int Dim> typename tNumTrait<T>::tBig Scal(const cPtxd<T,
 template <class T,const int Dim> typename tNumTrait<T>::tBig MulCoord(const cPtxd<T,Dim> & aP);
 
 template <class T,const int Dim> T Cos(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);
+template <class T,const int Dim> T CosWDef(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &,const T&);
 template <class T,const int Dim> T AbsAngle(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);
 //  Trunk cos in [-1,1] if necessary
 template <class T,const int Dim> T AbsAngleTrnk(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);

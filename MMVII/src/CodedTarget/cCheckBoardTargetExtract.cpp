@@ -90,9 +90,11 @@ class cCdRadiom : public cCdSym
           bool PtIsOnLine(const cPt2dr &,tREAL8 aTeta) const;
 
 	  ///  Make a visualisation of geometry
-	  void ShowDetail(int aCptMarq,const cScoreTetaLine & aSTL,const std::string &,cDataIm2D<tU_INT1> & aMarq) const;
+	  void ShowDetail(int aCptMarq,const cScoreTetaLine & aSTL,const std::string &,cDataIm2D<tU_INT1> & aMarq, cFullSpecifTarget *) const;
 
+          bool    mIsOk;
 	  const cDataIm2D<tREAL4> * mDIm;
+
 	  tREAL8  mTetas[2];
 	  tREAL8  mLength;     ///< length of the lines
 	  tREAL8  mThickness;  ///< thickness of the transition B/W
@@ -107,19 +109,20 @@ class cCdRadiom : public cCdSym
 class cCdEllipse : public cCdRadiom
 {
 	public : 
-           cCdEllipse(const cCdRadiom &,cDataIm2D<tU_INT1> & aMarq);
+           cCdEllipse(const cCdRadiom &,cFullSpecifTarget *,cDataIm2D<tU_INT1> & aMarq);
 	   bool IsOk() const;
 	   const cEllipse & Ell() const;
-           const cPt2dr &   V1() const;
-           const cPt2dr &   V2() const;
+           const cPt2dr &   CornerlEl_WB() const;
+           const cPt2dr &   CornerlEl_BW() const;
+           cPt2dr  M2I(const cPt2dr & aPMod) const;
 
 	private : 
            void AssertOk() const;
 
-           bool       mIsOk;
 	   cEllipse   mEll;
-	   cPt2dr     mV1;
-	   cPt2dr     mV2;
+	   cPt2dr     mCornerlEl_WB;
+	   cPt2dr     mCornerlEl_BW;
+	   cAff2D_r   mAffIm2Mod;
 };
 
 
@@ -166,6 +169,7 @@ cCdRadiom::cCdRadiom
     tREAL8 aThickness
 ) :
        cCdSym      (aCdSym),
+       mIsOk       (false),
        mDIm        (&aDIm),
        mTetas      {aTeta0,aTeta1},
        mLength     (aLength),
@@ -203,22 +207,29 @@ cCdRadiom::cCdRadiom
 	}
     }
 
+    if ((aNbIn0==0) && (aNbIn1==0))
+       return;
+
     mRatioBW = std::min(aNbIn0,aNbIn1) / (tREAL8) std::max(aNbIn0,aNbIn1);
     if (mRatioBW <0.05)
     {
        return ;
     }
 
-     mCostCorrel = 1-aCorGrayAll.Correl();
-     auto [a,b] = aCorGrayInside.FitLineDirect();
-     mBlack = b ;
-     mWhite = a+b;
+    mIsOk = true;
+
+    mCostCorrel = 1-aCorGrayAll.Correl();
+    auto [a,b] = aCorGrayInside.FitLineDirect();
+    mBlack = b ;
+    mWhite = a+b;
 }
 
 tREAL8 cCdRadiom::Threshold() const {return (mBlack+mWhite)/2.0;}
 
 void cCdRadiom::OptimSegIm(const cDataIm2D<tREAL4> & aDIm,tREAL8 aLength)
 {
+     // StdOut() <<  "TttTT=" << Threshold() << " " << mBlack << " " << mWhite << " " << mRatioBW << "\n";
+
      std::vector<cSegment2DCompiled<tREAL8>> aVSegOpt;
      for (int aKTeta=0 ; aKTeta<2 ; aKTeta++)
      {
@@ -235,7 +246,7 @@ void cCdRadiom::OptimSegIm(const cDataIm2D<tREAL4> & aDIm,tREAL8 aLength)
      cPt2dr aC = aVSegOpt.at(0).InterSeg(aVSegOpt.at(1));
 
      mC = aC;
-     cScoreTetaLine::NormalizeTeta(mTetas);
+     cScoreTetaLine::NormalizeTetaCheckBoard(mTetas);
 }
 
 void cCdRadiom::ComputePtsOfEllipse(std::vector<cPt2di> & aRes) const
@@ -251,8 +262,8 @@ void cCdRadiom::ComputePtsOfEllipse(std::vector<cPt2di> & aRes,tREAL8 aLength) c
     cPt2dr aV1 = FromPolar(aLength,mTetas[1]);
 
     //  ----  x,y ->   mC + x V0 + y V1  ------
-    cAffin2D<tREAL8>  aMapEll2Ori(mC,aV0,aV1);
-    cAffin2D<tREAL8>  aMapOri2Ell = aMapEll2Ori.MapInverse();
+    cAff2D_r aMapEll2Ori(mC,aV0,aV1);
+    cAff2D_r aMapOri2Ell = aMapEll2Ori.MapInverse();
 
     cTplBoxOfPts<tREAL8,2> aBox;
     int aNbTeta = 100;
@@ -286,23 +297,28 @@ bool cCdRadiom::PtIsOnLine(const cPt2dr & aPAbs,tREAL8 aTeta) const
 
 bool cCdRadiom::PtIsOnEll(cPt2dr & aPtAbs) const
 {
+    // point must be far enough of center (because close to, it's not easily separable)
     if  (Norm2(aPtAbs - mC)<3.0)
         return false;
 
+    // point canot be a point of the line
     for (const auto & aTeta : mTetas )
         if (PtIsOnLine(aPtAbs,aTeta))
            return false;
 
+    // extract the point that has the gray threshold (assuming gray starting point is bellow)
     cGetPts_ImInterp_FromValue<tREAL4> aGIFV(*mDIm,Threshold(),0.1,aPtAbs, VUnit(aPtAbs - mC));
     cPt2dr aNewP = aPtAbs;
     if (aGIFV.Ok())
     {
+        // if interpoleted point is to far from initial : suscpicious
         aNewP = aGIFV.PRes();
 	if (Norm2(aPtAbs-aNewP)>2.0)
            return false;
 
         cPt2dr aPGr =  Proj(mDIm->GetGradAndVBL(aNewP));
-	tREAL8 aSc =  std::abs(Cos(aPGr,aNewP-mC));
+	// StdOut() << "PGR=== " << aPGr << "\n";
+	tREAL8 aSc =  std::abs(CosWDef(aPGr,aNewP-mC,1.0));
 	if (aSc<0.5)
            return false;
 
@@ -408,7 +424,7 @@ bool cCdRadiom::FrontBlackCC(std::vector<cPt2di> & aVFront,cDataIm2D<tU_INT1> & 
 
 	// if (has8NeighWhite && PtIsOnEll(aRPix))
 
-void  cCdRadiom::ShowDetail(int aCptMarq,const cScoreTetaLine & aSTL,const std::string & aNameIm,cDataIm2D<tU_INT1> & aMarq) const
+void  cCdRadiom::ShowDetail(int aCptMarq,const cScoreTetaLine & aSTL,const std::string & aNameIm,cDataIm2D<tU_INT1> & aMarq,cFullSpecifTarget *aSpec) const
 {
       std::pair<tREAL8,tREAL8> aPairTeta(mTetas[0],mTetas[1]);
 
@@ -417,6 +433,7 @@ void  cCdRadiom::ShowDetail(int aCptMarq,const cScoreTetaLine & aSTL,const std::
                    << " Ratio=" <<  mRatioBW
 		  << " V0="<< mBlack << " V1=" << mWhite 
 		  << " ScTeta=" << aSTL.Score2Teta(aPairTeta,2.0)
+		  << " ScSym=" << mSymCrit
 		  << " LLL=" << mLength
 		  << " ThickN=" << mThickness
 		  << "\n";
@@ -429,11 +446,13 @@ void  cCdRadiom::ShowDetail(int aCptMarq,const cScoreTetaLine & aSTL,const std::
       cRGBImage  aIm = cRGBImage:: FromFile(aNameIm,cBox2di(aDec,aDec+aSz),aZoom);
       aIm.ResetGray();
 
-      cPt3di  aCol_BlRight = cRGBImage::Red;  // color for teta wih blakc on right (on visualization)
-      cPt3di  aCol_BlLeft = cRGBImage::Blue;  // color for teta wih blakc on left (on visualization)
+      cPt3di  aCol_CornBW = cRGBImage::Red;  // color for teta wih blakc on right (on visualization)
+      cPt3di  aCol_CornWB = cRGBImage::Green;  // color for teta wih blakc on left (on visualization)
+					      
       cPt3di  aCol_StrL = cRGBImage::Yellow;  // color for theoreticall straight line
       cPt3di  aCoulFront = cRGBImage::Cyan; 
       cPt3di  aCoulEllFront = cRGBImage::Orange; 
+      cPt3di  aCoulBits = cRGBImage::Magenta; 
 					     
       if (0)   // generate the theoretical image + the area (ellipse) of gray modelization
       {
@@ -476,15 +495,25 @@ void  cCdRadiom::ShowDetail(int aCptMarq,const cScoreTetaLine & aSTL,const std::
 
       if (1)
       {
-           cCdEllipse aCDE(*this,aMarq);
-	   int aNb= 500 ; 
-	   for (int aK=0 ; aK<aNb ; aK++)
+           cCdEllipse aCDE(*this,aSpec,aMarq);
+	   if (aCDE.IsOk())
 	   {
-                cPt2dr aPt = aCDE.Ell().PtOfTeta((2*M_PI*aK)/aNb);
-                aIm.SetRGBPoint(aPt-ToR(aDec),cRGBImage::Red);
+	       //  Draw the ellipse
+	       int aNb= 500 ; 
+	       for (int aK=0 ; aK<aNb ; aK++)
+	       {
+                    cPt2dr aPt = aCDE.Ell().PtOfTeta((2*M_PI*aK)/aNb);
+                    aIm.SetRGBPoint(aPt-ToR(aDec),cRGBImage::Red);
+	       }
+
+	       // Draw the 2 corner
+	       aIm.DrawCircle(aCol_CornWB ,aCDE.CornerlEl_WB()-ToR(aDec),0.5);
+	       aIm.DrawCircle(aCol_CornBW,aCDE.CornerlEl_BW()-ToR(aDec),0.5);
+
+	       // Draw the bits position
+	       for (const auto & aPBit : aSpec->BitsCenters())
+                  aIm.DrawCircle(aCoulBits,aCDE.M2I(aPBit)-ToR(aDec),0.3);
 	   }
-	   aIm.DrawCircle(aCol_BlLeft,aCDE.V1()-ToR(aDec),0.5);
-	   aIm.DrawCircle(aCol_BlRight,aCDE.V2()-ToR(aDec),0.5);
       }
 
       //  visualize orientation draw the line detected : straight line, orientation, level curve
@@ -500,12 +529,9 @@ void  cCdRadiom::ShowDetail(int aCptMarq,const cScoreTetaLine & aSTL,const std::
 
 	          aIm.SetRGBPoint(aPt,aCol_StrL); // show straight line
 
-		  //  show orientation of line
-		  // if (aK==6*aZoom)
-                  //    aIm.DrawCircle((aKT==0) ?  aCol_BlLeft : aCol_BlRight ,aPt,0.5);
 		   
 		  // Now show interpolation (but only  if far enough of intersection)
-		  if (std::abs(aAbsc) > 1.0) 
+		  if (true && (std::abs(aAbsc) > 1.0) )
 		  {
                       // The orientation of normal change : (1) when we cross intersection
 		      // (2) when we change the segment 
@@ -541,11 +567,12 @@ void  cCdRadiom::ShowDetail(int aCptMarq,const cScoreTetaLine & aSTL,const std::
 /*                                                       */
 /* ***************************************************** */
 
-cCdEllipse::cCdEllipse(const cCdRadiom & aCdR,cDataIm2D<tU_INT1> & aMarq) :
+cCdEllipse::cCdEllipse(const cCdRadiom & aCdR,cFullSpecifTarget * aSpec,cDataIm2D<tU_INT1> & aMarq) :
      cCdRadiom (aCdR),
-     mIsOk     (false),
      mEll      (cPt2dr(0,0),0,1,1)
 {
+     if (! mIsOk) return;
+     mIsOk = true;
      std::vector<cPt2di> aIFront;
      FrontBlackCC(aIFront,aMarq);
 
@@ -567,8 +594,19 @@ cCdEllipse::cCdEllipse(const cCdRadiom & aCdR,cDataIm2D<tU_INT1> & aMarq) :
 
      mEll = anEE.Compute();
 
-     mV1 = mEll.InterSemiLine(mTetas[0]);
-     mV2 = mEll.InterSemiLine(mTetas[1]);
+     // In specif the corner are for a white sector, with name of transition (B->W or W->B)
+     // coming with trigonometric convention; here the angle have been comouted for a  black sector
+     // The correction for angle have been made experimentally ...
+     mCornerlEl_WB = mEll.InterSemiLine(mTetas[0]);
+     mCornerlEl_BW = mEll.InterSemiLine(mTetas[1]+M_PI);
+
+
+
+     cAff2D_r::tTabMin  aTabIm{mC,mCornerlEl_WB,mCornerlEl_BW};
+     cAff2D_r::tTabMin  aTabMod{aSpec->Center(),aSpec->CornerlEl_WB(),aSpec->CornerlEl_BW()};
+
+     mAffIm2Mod =  cAff2D_r::FromMinimalSamples(aTabIm,aTabMod);
+     // mAffIm2Mod
 }
 
 bool cCdEllipse::IsOk() const {return mIsOk;}
@@ -577,9 +615,15 @@ void cCdEllipse::AssertOk() const
     MMVII_INTERNAL_ASSERT_tiny(mIsOk,"No ellipse Ok in cCdEllipse");
 }
 
+cPt2dr  cCdEllipse::M2I(const cPt2dr & aPMod) const
+{
+    AssertOk();
+    return mAffIm2Mod.Inverse(aPMod);
+}
+
 const cEllipse & cCdEllipse::Ell() const {AssertOk(); return mEll;}
-const cPt2dr & cCdEllipse::V1() const {AssertOk(); return mV1;}
-const cPt2dr & cCdEllipse::V2() const {AssertOk(); return mV2;}
+const cPt2dr & cCdEllipse::CornerlEl_WB() const {AssertOk(); return mCornerlEl_WB;}
+const cPt2dr & cCdEllipse::CornerlEl_BW() const {AssertOk(); return mCornerlEl_BW;}
 
 /* ***************************************************** */
 /*                                                       */
@@ -706,7 +750,8 @@ class cAppliCheckBoardTargetExtract : public cMMVII_Appli
 	tREAL8            mThickness;  ///<  used for fine estimation of radiom
         bool              mOptimSegByRadiom;  ///< Do we optimize the segment on average radiom     
 
-        tREAL8            mLengtSInit;      ///<  = 05.0;
+        tREAL8            mLInitTeta;      ///<  = 05.0;
+        tREAL8            mLInitProl;      ///<  = 03.0;
         tREAL8            mLengtProlong;    ///<  = 20.0;
         tREAL8            mStepSeg;         ///<  = 0.5;
         tREAL8            mMaxCostCorrIm;   ///<  = 0.1;
@@ -721,11 +766,12 @@ class cAppliCheckBoardTargetExtract : public cMMVII_Appli
 
         // ---------------- Thresholds for Symetry  criteria --------------------
         tREAL8            mThresholdSym  ;  ///< = 0.5,  threshlod for symetry criteria
-        tREAL8            mDistCalcSym0  ;  ///< = 8.0  distance for evaluating symetry criteria
+        tREAL8            mRayCalcSym0  ;  ///< = 8.0  distance for evaluating symetry criteria
         tREAL8            mDistDivSym    ;  ///< = 2.0  maximal distance to initial value in symetry opt
 
 	int               mNumDebug;
         // =========== Internal param ============
+        cFullSpecifTarget *   mSpecif;
         tIm                   mImIn;        ///< Input global image
         cPt2di                mSzIm;        ///< Size of image
 	tDIm *                mDImIn;       ///< Data input image 
@@ -756,7 +802,8 @@ cAppliCheckBoardTargetExtract::cAppliCheckBoardTargetExtract(const std::vector<s
    mTimeSegm        (this),
    mThickness       (1.0),
    mOptimSegByRadiom (false),
-   mLengtSInit       (5.0),
+   mLInitTeta        (5.0),
+   mLInitProl        (3.0),
    mLengtProlong     (20.0),
    mStepSeg          (0.5),
    mMaxCostCorrIm    (0.1),
@@ -767,9 +814,10 @@ cAppliCheckBoardTargetExtract::cAppliCheckBoardTargetExtract(const std::vector<s
    mMaxNbSP_ML1      (2000),
    mPtLimCalcSadle   (2,1),
    mThresholdSym     (0.5),
-   mDistCalcSym0     (8.0),
+   mRayCalcSym0      (8.0),
    mDistDivSym       (2.0),
    mNumDebug         (-1),
+   mSpecif           (nullptr),
    mImIn             (cPt2di(1,1)),
    mDImIn            (nullptr),
    mImBlur           (cPt2di(1,1)),
@@ -789,7 +837,9 @@ cCollecSpecArg2007 & cAppliCheckBoardTargetExtract::ArgObl(cCollecSpecArg2007 & 
 {
    return  anArgObl
              <<   Arg2007(mNameIm,"Name of image (first one)",{{eTA2007::MPatFile,"0"},eTA2007::FileImage})
-             <<   Arg2007(mNameSpecif,"Name of target file")
+            //  <<   Arg2007(mNameSpecif,"Name of target file")
+	     <<   Arg2007(mNameSpecif,"Xml/Json name for bit encoding struct",{{eTA2007::XmlOfTopTag,cFullSpecifTarget::TheMainTag}})
+
    ;
 }
 
@@ -800,6 +850,10 @@ cCollecSpecArg2007 & cAppliCheckBoardTargetExtract::ArgOpt(cCollecSpecArg2007 & 
 	        anArgOpt
              <<  mPhProj.DPMask().ArgDirInOpt("TestMask","Mask for selecting point used in detailed mesg/output")
              <<  AOpt2007(mThickness,"Thickness","Thickness for modelizaing line-blur in fine radiom model",{eTA2007::HDV})
+             <<  AOpt2007(mLInitTeta,"LSIT","Length Segment Init, for teta",{eTA2007::HDV})
+             <<  AOpt2007(mNbBlur1,"NbB1","Number of blurr with sz1",{eTA2007::HDV})
+             <<  AOpt2007(mRayCalcSym0,"SymRay","Ray arround point for initial computation of symetry",{eTA2007::HDV}) 
+             <<  AOpt2007(mLInitProl,"LSIP","Length Segment Init, for prolongation",{eTA2007::HDV})
              <<  AOpt2007(mOptimSegByRadiom,"OSBR","Optimize segement by radiometry",{eTA2007::HDV})
              <<  AOpt2007(mNumDebug,"NumDebug","Num marq target for debug",{eTA2007::Tuning})
    ;
@@ -844,21 +898,24 @@ cCdRadiom cAppliCheckBoardTargetExtract::TestBinarization(cScoreTetaLine & aSTL,
     static int aCptMarq=0 ; if (IsMarqed) aCptMarq++;
     DebugCB = (aCptMarq == mNumDebug) && IsMarqed;
 
-    auto aPairTeta = aSTL.Tetas_CheckBoard(aCdSym.mC,0.1,1e-3);
-    tREAL8 aLength = aSTL.Prolongate(mLengtProlong,aPairTeta,true);
+    auto aPairTeta = aSTL.Tetas_CheckBoard(mLInitTeta,aCdSym.mC,0.1,1e-3);
+    tREAL8 aLength = aSTL.Prolongate(mLInitProl,mLengtProlong,aPairTeta);
 
     auto [aTeta0,aTeta1] = aPairTeta;
 
     cCdRadiom aCdRadiom(aCdSym,*mDImIn,aTeta0,aTeta1,aLength,aThickness);
 
+    if (! aCdRadiom.mIsOk) 
+       return aCdRadiom;
+
     if (mOptimSegByRadiom)
     {
-       aCdRadiom.OptimSegIm(*(aSTL.DIm()),aSTL.LengthCur());
+       aCdRadiom.OptimSegIm(*(aSTL.DIm()),aLength);
     }
 
     if (IsMarqed)
     {
-          aCdRadiom.ShowDetail(aCptMarq,aSTL,mNameIm,*mDImTmp);
+          aCdRadiom.ShowDetail(aCptMarq,aSTL,mNameIm,*mDImTmp,mSpecif);
     }
 
     return aCdRadiom;
@@ -996,7 +1053,7 @@ void cAppliCheckBoardTargetExtract::SaddleCritFiler()
 void cAppliCheckBoardTargetExtract::SymetryFiler()
 {
     cAutoTimerSegm aTSSym(mTimeSegm,"4-SYM");
-    cFilterDCT<tREAL4> * aFSym = cFilterDCT<tREAL4>::AllocSym(mImIn,0.0,mDistCalcSym0,1.0);
+    cFilterDCT<tREAL4> * aFSym = cFilterDCT<tREAL4>::AllocSym(mImIn,0.0,mRayCalcSym0,1.0);
     cOptimByStep<2> aOptimSym(*aFSym,true,mDistDivSym);
 
     for (auto & aCdtSad : mVCdtSad)
@@ -1009,6 +1066,10 @@ void cAppliCheckBoardTargetExtract::SymetryFiler()
            mVCdtSym.push_back(cCdSym(aCdtSad,aValSym));
            mDImLabel->SetV(ToI(aNewP),eFilterSym);
         }
+	else if (IsPtTest(aCdtSad.mC))
+	{
+		StdOut()  << "SYMREFUT,  C=" << aCdtSad.mC << " ValSym=" << aValSym << "\n";
+	}
     }
 
     delete aFSym;
@@ -1016,6 +1077,7 @@ void cAppliCheckBoardTargetExtract::SymetryFiler()
 
 void cAppliCheckBoardTargetExtract::DoOneImage() 
 { 
+    mSpecif = cFullSpecifTarget::CreateFromFile(mNameSpecif);
     /* [0]    Initialise : read image ,  mask + Blurr */
     ReadImagesAndBlurr();
     /* [2]  Compute "topological" saddle point */
@@ -1030,7 +1092,7 @@ void cAppliCheckBoardTargetExtract::DoOneImage()
     cAutoTimerSegm aTSRadiom(mTimeSegm,"Radiom");
     {
         cCubicInterpolator aCubI(-0.5);
-        cScoreTetaLine  aSTL(*mDImIn,aCubI,mLengtSInit,mStepSeg);
+        cScoreTetaLine  aSTL(*mDImIn,aCubI,mStepSeg);
         for (const auto & aCdtSym : mVCdtSym)
         {
             cCdRadiom aCdRad = TestBinarization(aSTL,aCdtSym,mThickness);
@@ -1049,6 +1111,8 @@ void cAppliCheckBoardTargetExtract::DoOneImage()
     StdOut()  << "NB Cd,  SAD: " << mNbSads
 	      << " SYM:" << mVCdtSym.size() 
 	      << " Radiom:" << aVCdtRad.size() << "\n";
+
+    delete mSpecif;
 }
 
 /*

@@ -324,11 +324,15 @@ void BenchIntrinsiqMMVIIInterpol(const cInterpolator1D & anInt,tREAL8 anExp)
 }
 
 
+void Bench_cMultiScaledInterpolator();
 
 
 void  BenchInterpol(cParamExeBench & aParam)
 {
      if (! aParam.NewBench("Interpol")) return;
+
+
+     Bench_cMultiScaledInterpolator();
 
      // This one, obviously should not pass the "unity partition test" 
      //  --  BenchIntrinsiqOneInterpol(cSinCApodInterpolator(5,5),true,true);

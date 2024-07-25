@@ -64,6 +64,8 @@ class cInterpolator1D : public cMemCheck
 	/// create a tabulated interpol
         static cInterpolator1D *  TabulatedInterp(const cInterpolator1D &,int aNbTabul,bool BilinInterp);
       protected :
+	void SetSzKernel(tREAL8  aSzK) ;
+
         tREAL8 mSzKernel;
         std::vector<std::string>   mVNames;
 };

@@ -263,14 +263,14 @@ class cScoreTetaLine : public tFunc1DReal // herit from tFunc1DReal for optimiza
 {
      public :
          ///  constructor  : aL length of the segment, aStep step of discretization in a segment
-         cScoreTetaLine(cDataIm2D<tREAL4> &,const cDiffInterpolator1D & ,tREAL8 aL,tREAL8 aStep);
+         cScoreTetaLine(cDataIm2D<tREAL4> &,const cDiffInterpolator1D & ,tREAL8 aStep);
 
 	 /// extract the 2 angle of line in checkboar, aStepInit & aStepLim => used in cOptimByStep
-         std::pair<tREAL8,tREAL8> Tetas_CheckBoard(const cPt2dr& aC,tREAL8 aStepInit,tREAL8 aStepLim);
+         std::pair<tREAL8,tREAL8> Tetas_CheckBoard(tREAL8 aLength,const cPt2dr& aC,tREAL8 aStepInit,tREAL8 aStepLim);
 
 	 typedef  tREAL8  t2Teta[2];
 	 ///  Assure that teta1->teta2 is trigo and teta1<Pi
-	 static void  NormalizeTeta(t2Teta &);
+	 static void  NormalizeTetaCheckBoard(t2Teta &);
 
 	 const tREAL8 &  LengthCur() const;  ///< Accessor
          cDataIm2D<tREAL4> * DIm() const; ///< Accessor
@@ -278,7 +278,7 @@ class cScoreTetaLine : public tFunc1DReal // herit from tFunc1DReal for optimiza
 	 /// Current lenght can vary 
 	 void SetLengthCur(tREAL8 aL);
 
-	 tREAL8 Prolongate(tREAL8 aLMax, std::pair<tREAL8,tREAL8> & aTeta,bool ReestimateTeta);
+	 tREAL8 Prolongate(tREAL8 aL0,tREAL8 aLMax,const std::pair<tREAL8,tREAL8> & aTeta) const;
 
          tREAL8  Score2Teta(const std::pair<tREAL8,tREAL8> & aTeta, tREAL8 aAbscMin) const;
      private :
@@ -298,7 +298,6 @@ class cScoreTetaLine : public tFunc1DReal // herit from tFunc1DReal for optimiza
 
          cDataIm2D<tREAL4> *         mDIm;
 
-         tREAL8                      mLengthInit;
          tREAL8                      mStepAInit;
          tREAL8                      mLengthCur;
          int                         mNb;

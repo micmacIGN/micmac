@@ -506,6 +506,18 @@ template <class T,const int Dim>  T Cos(const cPtxd<T,Dim> &aP1,const cPtxd<T,Di
 {
    return SafeDiv(T(Scal(aP1,aP2)) , T(Norm2(aP1)*Norm2(aP2)));
 }
+
+template <class T,const int Dim>  T CosWDef(const cPtxd<T,Dim> &aP1,const cPtxd<T,Dim> & aP2,const T& aDefIf0)
+{
+	T aN1 = Norm2(aP1);
+	T aN2 = Norm2(aP2);
+
+	if ((aN1==0) || (aN2==0)) 
+           return aDefIf0;
+
+	return Scal(aP1,aP2) / (aN1*aN2);
+}
+
 template <class T,const int Dim>  T AbsAngle(const cPtxd<T,Dim> &aP1,const cPtxd<T,Dim> & aP2)
 {
    T aCos = Cos(aP1,aP2);
@@ -1346,6 +1358,7 @@ template  TYPE MinAbsCoord(const cPtxd<TYPE,DIM> & aPt);\
 template  typename  tNumTrait<TYPE>::tBig Scal(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
 template  typename  tNumTrait<TYPE>::tBig MulCoord(const cPtxd<TYPE,DIM> &);\
 template  TYPE Cos(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
+template  TYPE CosWDef(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &,const TYPE&);\
 template  TYPE AbsAngle(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
 template  TYPE AbsAngleTrnk(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
 template  cPtxd<TYPE,DIM>  VUnit(const cPtxd<TYPE,DIM> & aP);\
