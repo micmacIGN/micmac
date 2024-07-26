@@ -709,7 +709,7 @@ class cMultiScaledInterpolator : public cDiffInterpolator1D
 	private :
 
 	     tREAL8  mSzKInit;
-	     tREAL8  mCurScale;
+	     // tREAL8  mCurScale;
 	     tREAL8  mScale0;
 	     tREAL8  mScale1;
 	     tREAL8  mRatio;
@@ -732,7 +732,7 @@ cMultiScaledInterpolator::cMultiScaledInterpolator
 ) :
      cDiffInterpolator1D (1.0,{}),
      mSzKInit  (anI.SzKernel()),
-     mCurScale (-1),
+     // mCurScale (-1),
      mScale0   (aScale0),
      mScale1   (aScale1),
      mRatio    (mScale1/mScale0),

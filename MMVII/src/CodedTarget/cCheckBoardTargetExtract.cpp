@@ -258,22 +258,25 @@ void cCdRadiom::ComputePtsOfEllipse(std::vector<cPt2di> & aRes) const
 void cCdRadiom::ComputePtsOfEllipse(std::vector<cPt2di> & aRes,tREAL8 aLength) const
 {
     aRes.clear();
+    // [1]  Compute the affinity that goes from unity circle to ellipse
+    //  ----  x,y ->   mC + x V0 + y V1  ------
     cPt2dr aV0 = FromPolar(aLength,mTetas[0]);
     cPt2dr aV1 = FromPolar(aLength,mTetas[1]);
 
-    //  ----  x,y ->   mC + x V0 + y V1  ------
     cAff2D_r aMapEll2Ori(mC,aV0,aV1);
     cAff2D_r aMapOri2Ell = aMapEll2Ori.MapInverse();
 
+    // [2] Compute the bounding box containing the ellipse
     cTplBoxOfPts<tREAL8,2> aBox;
     int aNbTeta = 100;
-    for (int aKTeta=0 ; aKTeta<aNbTeta ; aKTeta++)
+    for (int aKTeta=0 ; aKTeta<aNbTeta ; aKTeta++) // sample the frontiers 
     {
          aBox.Add(aMapEll2Ori.Value(FromPolar(1.0, (2.0*M_PI * aKTeta) / aNbTeta)));
     }
 
-    cBox2di aBoxI = aBox.CurBox().Dilate(2.0).ToI();
+    cBox2di aBoxI = aBox.CurBox().Dilate(2.0).ToI(); // add a bit of margin
 
+    // [3]  Parse the bouding box and select point OK
     for (const auto & aPix : cRect2(aBoxI))
     {
          if (Norm2(aMapOri2Ell.Value(ToR(aPix))) < 1)
@@ -360,7 +363,7 @@ bool cCdRadiom::FrontBlackCC(std::vector<cPt2di> & aVFront,cDataIm2D<tU_INT1> & 
     aVFront.clear();
 
     std::vector<cPt2di> aVPtsEll;
-    ComputePtsOfEllipse(aVPtsEll,5.0);
+    ComputePtsOfEllipse(aVPtsEll,std::min(mLength,5.0));
 
     tREAL8 aThrs = Threshold();
     for (const auto & aPix : aVPtsEll)
