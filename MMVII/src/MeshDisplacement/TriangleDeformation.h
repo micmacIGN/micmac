@@ -122,7 +122,7 @@ namespace MMVII
 
         tPt2di mSzIntermediateImOut;    // size of image
         tIm mImIntermediateOut;         // memory representation of the image
-        tDIm *mDImIntermediateOut;      // memory representation of the image
+        // tDIm *mDImIntermediateOut;      // memory representation of the image ::  MPD error compile Git-Linux (unused private)
 
         tPt2di mSzImIntermediateDepX;   // size of image
         tIm mImIntermediateDepX;        // memory representation of the image

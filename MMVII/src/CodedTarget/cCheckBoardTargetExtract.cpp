@@ -29,6 +29,8 @@ class cCdSadle;
 class cCdSym;
 class cCdRadiom;
 class cTmpCdRadiomPos ;
+class cCdEllipse ;
+
 
 /* **************************************************** */
 /*                     cCdSadle                         */
@@ -139,7 +141,7 @@ enum class eTPosCB
 inline bool IsInside(eTPosCB aState) {return (aState==eTPosCB::eInsideBlack)  ||   (aState==eTPosCB::eInsideWhite) ;}
 inline bool IsOk(eTPosCB aState) {return aState!=eTPosCB::eUndef;}
 
-///  Used temporary for compilation of radiom
+///  Used temporary for theoreticall radiometric model compilation of radiom
 class cTmpCdRadiomPos : public cCdRadiom
 {
 	public :
@@ -292,8 +294,6 @@ bool cCdRadiom::PtIsOnLine(const cPt2dr & aPAbs,tREAL8 aTeta) const
 
     if (std::abs(aPLoc.y()) <= 1.0 + std::abs(aPLoc.x()) /30.0)
        return true;
-
-    
 
     return false;
 }

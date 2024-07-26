@@ -67,7 +67,7 @@ namespace MMVII
                                                                                             mDImDepY(nullptr),
                                                                                             mSzIntermediateImOut(tPt2di(1, 1)),
                                                                                             mImIntermediateOut(mSzIntermediateImOut),
-                                                                                            mDImIntermediateOut(nullptr),
+                                                                                            // mDImIntermediateOut(nullptr),
                                                                                             mSzImIntermediateDepX(tPt2di(1, 1)),
                                                                                             mImIntermediateDepX(mSzImIntermediateDepX),
                                                                                             mDImIntermediateDepX(nullptr),
