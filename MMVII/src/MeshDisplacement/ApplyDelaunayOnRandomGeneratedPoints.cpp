@@ -37,7 +37,7 @@ namespace MMVII
 		void ConstructUniformRandomVector();			  // Build vector with node coordinates drawn from uniform law
 		void GeneratePointsForRectangularGrid();		  // Build vector with node coordinates that form a rectangular grid
 		// Shift triangles by a certain quantity defined in method
-		void ComputeShiftedTrianglesAndPoints(const cTriangle<tREAL8, 2> &aTri, std::vector<tPt2dr> &ShiftedTriangleCoordinates,
+		void ComputeShiftedTrianglesAndPoints(const cTriangle<tREAL8, 2> &aTri, std::vector<cPt2dr> &ShiftedTriangleCoordinates,
 											  const tREAL8 aUniformRandomRedChannel, const tREAL8 aUniformRandomGreenChannel,
 											  const tREAL8 aUniformRandomBlueChannel);
 
@@ -62,7 +62,7 @@ namespace MMVII
 		cPt2di mSzImIn;					  // Size of images
 		tIm mImIn;						  // memory representation of the image
 		tDIm *mDImIn;					  // memory representation of the image
-		std::vector<tPt2dr> mVectorPts;	  // A vector containing a set of points
+		std::vector<cPt2dr> mVectorPts;	  // A vector containing a set of points
 		cTriangulation2D<tREAL8> mDelTri; // A delaunay triangle
 	};
 
@@ -108,7 +108,7 @@ namespace MMVII
 	{
 		mDelTri.MakeDelaunay();
 
-		std::vector<tPt2dr> ShiftedTriangleCoordinates;
+		std::vector<cPt2dr> ShiftedTriangleCoordinates;
 
 		const int aMaxValueUniformLaw = 256;
 
@@ -149,7 +149,7 @@ namespace MMVII
 		{
 			const double aUniformRandomXAxis = RandUnif_N(mNumberOfCols);
 			const double aUniformRandomYAxis = RandUnif_N(mNumberOfLines);
-			const tPt2dr aUniformRandomPt(aUniformRandomXAxis, aUniformRandomYAxis); // tPt2dr format
+			const cPt2dr aUniformRandomPt(aUniformRandomXAxis, aUniformRandomYAxis); // cPt2dr format
 			mVectorPts.push_back(aUniformRandomPt);
 		}
 
@@ -204,7 +204,7 @@ namespace MMVII
 	}
 
 	void cAppli_RandomGeneratedDelaunay::ComputeShiftedTrianglesAndPoints(const cTriangle<tREAL8, 2> &aTri,
-																		  std::vector<tPt2dr> &ShiftedTriangleCoordinates,
+																		  std::vector<cPt2dr> &ShiftedTriangleCoordinates,
 																		  const tREAL8 aUniformRandomRedChannel,
 																		  const tREAL8 aUniformRandomGreenChannel,
 																		  const tREAL8 aUniformRandomBlueChannel)
@@ -212,9 +212,9 @@ namespace MMVII
 		const cTriangle2DCompiled aCompTri(aTri);
 
 		// Compute shifts depending on point of triangle
-		const tPt2dr PercentDiffA = 0.01 * (aTri.Pt(0) - aTri.Pt(2));
-		const tPt2dr PercentDiffB = 0.015 * (aTri.Pt(1) - aTri.Pt(0)); // arbitrary values are chosen for displacement
-		const tPt2dr PercentDiffC = 0.02 * (aTri.Pt(2) - aTri.Pt(1));
+		const cPt2dr PercentDiffA = 0.01 * (aTri.Pt(0) - aTri.Pt(2));
+		const cPt2dr PercentDiffB = 0.015 * (aTri.Pt(1) - aTri.Pt(0)); // arbitrary values are chosen for displacement
+		const cPt2dr PercentDiffC = 0.02 * (aTri.Pt(2) - aTri.Pt(1));
 
 		ShiftedTriangleCoordinates.push_back(aTri.Pt(0) + PercentDiffA);
 		ShiftedTriangleCoordinates.push_back(aTri.Pt(1) + PercentDiffB);
@@ -227,9 +227,9 @@ namespace MMVII
 		{
 			if (aFilledPixel % 40 == 0)
 			{
-				const tPt2dr aFilledPoint(aVectorToFillwithInsidePixels[aFilledPixel].x(), aVectorToFillwithInsidePixels[aFilledPixel].y());
+				const cPt2dr aFilledPoint(aVectorToFillwithInsidePixels[aFilledPixel].x(), aVectorToFillwithInsidePixels[aFilledPixel].y());
 				const cPt3dr barycenter_coordinates = aCompTri.CoordBarry(aFilledPoint);
-				const tPt2dr ShiftedInsidePixels = tPt2dr(aFilledPoint.x() + barycenter_coordinates.x() * PercentDiffA.x() +
+				const cPt2dr ShiftedInsidePixels = cPt2dr(aFilledPoint.x() + barycenter_coordinates.x() * PercentDiffA.x() +
 															  barycenter_coordinates.y() * PercentDiffB.x() + barycenter_coordinates.z() * PercentDiffC.x(),
 														  aFilledPoint.y() + barycenter_coordinates.x() * PercentDiffA.y() +
 															  barycenter_coordinates.y() * PercentDiffB.y() + barycenter_coordinates.z() * PercentDiffC.y());

@@ -18,6 +18,7 @@ using namespace NS_SymbolicDerivative;
 
 namespace MMVII
 {
+
     /**
     Compute the formula for composition of a function and an image.
 
@@ -67,8 +68,7 @@ namespace MMVII
     }
 
     //  standard name for observation
-    std::vector<std::string> FormalBilinTri_NameObs(const std::string &aPrefix);
-    constexpr int TriangleDisplacement_NbObs_ImPre = 6;
+    std::vector<std::string> FormalBilinIm2D_NameObs(const std::string &aPrefix);
 
     template <class Type>
     void FormalInterpBarycenter_SetObs(
@@ -89,7 +89,7 @@ namespace MMVII
     This is the "companion" function of  FormalBilinIm2D_Formula, it fills
     the vector aVObs with X0,Y0,I00, that will be used in FormalBilinIm2D_Formula.
     */
-    constexpr int TriangleDisplacement_Bilin_NbObs = 6;
+
     template <class Type, class TypeIm>
     void FormalBilinTri_SetObs(
         std::vector<Type> &aVObs,     // vector of observation to fill
@@ -112,65 +112,7 @@ namespace MMVII
         SetOrPush(aVObs, aK0 + 5, (Type)aDIm.GetV(aP0 + cPt2di(1, 1)));
     }
 
-    /* ********************************************************* */
-    /*                                                           */
-    /*        UTIILITY FOR GRADIENT/INTERPOLATED FORMULA         */
-    /*                                                           */
-    /* ********************************************************* */
-
-    /**
-     * Similar to "FormalBilinIm2D_Formula", but using linear approx (by gradient generally) rather than bi-linear
-     *
-     * Given the linear approximation of function I (typically an image), by its gradient and value in (X0,Y0),
-     * and a mappinf FX,FY, return the  "I*(Fx,Fy)"
-     *
-     */
-
-    template <class TypeFunc, class TypeObs>
-    TypeFunc FormalGradInterpolTri_Formula(
-        const std::vector<TypeObs> &aVObs,
-        const int aKObs0,
-        const TypeFunc &FX,
-        const TypeFunc &FY)
-    {
-        TypeFunc aX0(aVObs.at(aKObs0));
-        TypeFunc aY0(aVObs.at(aKObs0 + 1));
-        TypeFunc aValI(aVObs.at(aKObs0 + 2));
-        TypeFunc aGIx(aVObs.at(aKObs0 + 3));
-        TypeFunc aGIy(aVObs.at(aKObs0 + 4));
-
-        return aValI + aGIx * (FX - aX0) + aGIy * (FY - aY0);
-    }
-
-    /*
-     *  "Companion" function of FormalGradInterpolIm2D_Formula. Push in correct order the values
-     *  in aVObs of point, function and gradient.
-     *
-     */
-
-    /**  standard name for observation */
-    std::vector<std::string> FormalGradInterpol_NameObs(const std::string &aPrefix);
-    constexpr int TriangleDisplacement_GradInterpol_NbObs = 5;
-
-    template <class Type, class TypeIm>
-    void FormalGradInterpol_SetObs(
-        std::vector<Type> &aVObs,               // vector of observation to fill with [X0,Y0,I00...]
-        const int aK0,                          // first index where fill the vector
-        const cPt2dr &aPtIm,                    // point in image
-        const cDataIm2D<TypeIm> &aDIm,          // image
-        const cDiffInterpolator1D &anInterpol   // differentiable interpolator
-    )
-    {
-        // compute coordinates of left-high corner of including pixel
-        SetOrPush(aVObs, aK0, Type(aPtIm.x()));
-        SetOrPush(aVObs, aK0 + 1, Type(aPtIm.y()));
-
-        auto [aValue, aGrad] = aDIm.GetValueAndGradInterpol(anInterpol, aPtIm);
-
-        SetOrPush(aVObs, aK0 + 2, (Type)aValue);
-        SetOrPush(aVObs, aK0 + 3, (Type)aGrad.x());
-        SetOrPush(aVObs, aK0 + 4, (Type)aGrad.y());
-    }
+    constexpr int TriangleDisplacement_NbObs = 6;
 };
 
 #endif //  _MMVII_TplSymbTriangle_

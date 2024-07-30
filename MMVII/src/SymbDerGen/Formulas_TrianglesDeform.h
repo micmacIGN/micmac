@@ -19,27 +19,27 @@ namespace MMVII
   class cTriangleDeformation
   {
   public:
-    cTriangleDeformation(bool UseLinearGradInterpol = false) : mUseLinearGradInterpol(UseLinearGradInterpol)
+    cTriangleDeformation()
     {
     }
 
     static const std::vector<std::string> VNamesUnknowns() { return Append(std::vector<std::string>{"GeomTrXPointA", "GeomTrYPointA", "RadTranslationPointA", "RadScalingPointA"},
                                                                            Append(std::vector<std::string>{"GeomTrXPointB", "GeomTrYPointB", "RadTranslationPointB", "RadScalingPointB"},
                                                                                   std::vector<std::string>{"GeomTrXPointC", "GeomTrYPointC", "RadTranslationPointC", "RadScalingPointC"})); }
-    std::vector<std::string> VNamesObs() const
+    static const std::vector<std::string> VNamesObs()
     {
-      const std::vector<std::string> aNameObsVector = mUseLinearGradInterpol ? FormalGradInterpol_NameObs("T") : FormalBilinTri_NameObs("T"); // 5 obs for linear gradient interpolation and 6 obs for bilinear interpol of Image
       return Append(
           std::vector<std::string>{"PixelCoordinatesX", "PixelCoordinatesY", "AlphaCoordPixel", "BetaCoordPixel", "GammaCoordPixel", "IntensityImPre"},
-          aNameObsVector);
+          FormalBilinIm2D_NameObs("T") // 6 obs for bilinear interpol of Im
+      );
     }
 
-    std::string FormulaName() const { return mUseLinearGradInterpol ? "TriangleDeformationLinearGrad" : "TriangleDeformationBilin"; }
+    std::string FormulaName() const { return "TriangleDeformation"; }
 
     template <typename tUk, typename tObs>
-    std::vector<tUk> formula(
+    static std::vector<tUk> formula(
         const std::vector<tUk> &aVUnk,
-        const std::vector<tObs> &aVObs) const
+        const std::vector<tObs> &aVObs)
     {
 
       // extract observation
@@ -72,46 +72,41 @@ namespace MMVII
       auto aRadTranslation = aAlphaCoordinate * aRadTranslationPointA + aBetaCoordinate * aRadTranslationPointB + aGammaCoordinate * aRadTranslationPointC;
       auto aRadScaling = aAlphaCoordinate * aRadScalingPointA + aBetaCoordinate * aRadScalingPointB + aGammaCoordinate * aRadScalingPointC;
 
-      // compute formula of interpolation
-      auto aInterpolationValueTri = mUseLinearGradInterpol ? FormalGradInterpolTri_Formula(aVObs, TriangleDisplacement_NbObs_ImPre, aXTri, aYTri) : 
-                                                             FormalBilinTri_Formula(aVObs, TriangleDisplacement_NbObs_ImPre, aXTri, aYTri);
+      // compute formula of bilinear interpolation
+      auto aBilinearValueTri = FormalBilinTri_Formula(aVObs, TriangleDisplacement_NbObs, aXTri, aYTri);
 
       // Take into account radiometry in minimisation process
       auto aRadiometryValueTri = aRadScaling * aIntensityImPre + aRadTranslation;
 
       // residual is simply the difference between values in before image and estimated value in new image
-      return {aRadiometryValueTri - aInterpolationValueTri};
+      return {aRadiometryValueTri - aBilinearValueTri};
     }
-
-  private:
-    bool mUseLinearGradInterpol; // Use linear gradient interpolation or bilinear interpolation
   };
 
   class cTriangleDeformationTranslation
   {
   public:
-    cTriangleDeformationTranslation(bool UseLinearGradInterpol = false) : mUseLinearGradInterpol(UseLinearGradInterpol)
+    cTriangleDeformationTranslation()
     {
     }
 
     static const std::vector<std::string> VNamesUnknowns() { return Append(std::vector<std::string>{"GeomTrXPointA", "GeomTrYPointA"},
                                                                            std::vector<std::string>{"GeomTrXPointB", "GeomTrYPointB"},
                                                                            std::vector<std::string>{"GeomTrXPointC", "GeomTrYPointC"}); }
-    std::vector<std::string> VNamesObs() const
+    static const std::vector<std::string> VNamesObs()
     {
-      // 5 obs for linear gradient interpolation and 6 obs for bilinear interpol of Image
-      const std::vector<std::string> aNameObsVector = mUseLinearGradInterpol ? FormalGradInterpol_NameObs("T") : FormalBilinTri_NameObs("T");
       return Append(
           std::vector<std::string>{"PixelCoordinatesX", "PixelCoordinatesY", "AlphaCoordPixel", "BetaCoordPixel", "GammaCoordPixel", "IntensityImPre"},
-          aNameObsVector);
+          FormalBilinIm2D_NameObs("T") // 6 obs for bilinear interpol of Image
+      );
     }
 
-    std::string FormulaName() const { return mUseLinearGradInterpol ? "TriangleDeformationTranslationLinearGrad" : "TriangleDeformationTranslationBilin"; }
+    std::string FormulaName() const { return "TriangleDeformationTranslation"; }
 
     template <typename tUk, typename tObs>
-    std::vector<tUk> formula(
+    static std::vector<tUk> formula(
         const std::vector<tUk> &aVUnk,
-        const std::vector<tObs> &aVObs) const
+        const std::vector<tObs> &aVObs)
     {
       // extract observation
       const auto &aXCoordinate = aVObs[0];
@@ -132,22 +127,18 @@ namespace MMVII
       auto aXTri = aXCoordinate + aAlphaCoordinate * aGeomTrXPointA + aBetaCoordinate * aGeomTrXPointB + aGammaCoordinate * aGeomTrXPointC;
       auto aYTri = aYCoordinate + aAlphaCoordinate * aGeomTrYPointA + aBetaCoordinate * aGeomTrYPointB + aGammaCoordinate * aGeomTrYPointC;
 
-      // compute formula of interpolation
-      auto aEstimatedTranslatedValueTri = mUseLinearGradInterpol ? FormalGradInterpolTri_Formula(aVObs, TriangleDisplacement_NbObs_ImPre, aXTri, aYTri) : 
-                                                                   FormalBilinTri_Formula(aVObs, TriangleDisplacement_NbObs_ImPre, aXTri, aYTri);
+      // compute formula of bilinear interpolation
+      auto aEstimatedTranslatedValueTri = FormalBilinTri_Formula(aVObs, TriangleDisplacement_NbObs, aXTri, aYTri);
 
       // residual is simply the difference between values in before image and estimated value in new image.
       return {aIntensityImPre - aEstimatedTranslatedValueTri};
     }
-
-  private:
-    bool mUseLinearGradInterpol; // Use linear gradient interpolation or bilinear interpolation
   };
 
   class cTriangleDeformationRadiometry
   {
   public:
-    cTriangleDeformationRadiometry(bool UseLinearGradInterpol = false) : mUseLinearGradInterpol(UseLinearGradInterpol)
+    cTriangleDeformationRadiometry()
     {
     }
 
@@ -155,20 +146,20 @@ namespace MMVII
                                                                            std::vector<std::string>{"RadTranslationPointB", "RadScalingPointB"},
                                                                            std::vector<std::string>{"RadTranslationPointC", "RadScalingPointC"}); }
 
-    std::vector<std::string> VNamesObs() const
+    static const std::vector<std::string> VNamesObs()
     {
-      const std::vector<std::string> aNameObsVector = mUseLinearGradInterpol ? FormalGradInterpol_NameObs("T") : FormalBilinTri_NameObs("T"); // 5 obs for linear gradient interpolation and 6 obs for bilinear interpol of Image
       return Append(
           std::vector<std::string>{"PixelCoordinatesX", "PixelCoordinatesY", "AlphaCoordPixel", "BetaCoordPixel", "GammaCoordPixel", "IntensityImPre"},
-          aNameObsVector);
+          FormalBilinIm2D_NameObs("T") // 6 obs for bilinear interpol of Im
+      );
     }
 
-    std::string FormulaName() const { return mUseLinearGradInterpol ? "TriangleDeformationGradInterpol" : "TriangleDeformationRadiometryBilin"; }
+    std::string FormulaName() const { return "TriangleDeformationRadiometry"; }
 
     template <typename tUk, typename tObs>
-    std::vector<tUk> formula(
+    static std::vector<tUk> formula(
         const std::vector<tUk> &aVUnk,
-        const std::vector<tObs> &aVObs) const
+        const std::vector<tObs> &aVObs)
     {
       // extract observation
       const auto &aXCoordinate = aVObs[0];
@@ -190,18 +181,15 @@ namespace MMVII
       auto aRadTranslation = aAlphaCoordinate * aRadTranslationPointA + aBetaCoordinate * aRadTranslationPointB + aGammaCoordinate * aRadTranslationPointC;
       auto aRadScaling = aAlphaCoordinate * aRadScalingPointA + aBetaCoordinate * aRadScalingPointB + aGammaCoordinate * aRadScalingPointC;
 
-      // compute formula of interpolation
-      auto aInterpolationValueTri = mUseLinearGradInterpol ? FormalGradInterpolTri_Formula(aVObs, TriangleDisplacement_NbObs_ImPre, aXCoordinate, aYCoordinate) : 
-                                                             FormalBilinTri_Formula(aVObs, TriangleDisplacement_NbObs_ImPre, aXCoordinate, aYCoordinate);
+      // compute formula of bilinear interpolation
+      auto aBilinearValueTri = FormalBilinTri_Formula(aVObs, TriangleDisplacement_NbObs, aXCoordinate, aYCoordinate);
+
       // Take into account radiometry in minimisation process
       auto aRadiometryValueTri = aRadScaling * aIntensityImPre + aRadTranslation;
 
       // residual is simply the difference between values in before image and estimated value in new image
-      return {aRadiometryValueTri - aInterpolationValueTri};
+      return {aRadiometryValueTri - aBilinearValueTri};
     }
-
-  private:
-    bool mUseLinearGradInterpol; // Use linear gradient interpolation or bilinear interpolation
   };
 
 }; // MMVII

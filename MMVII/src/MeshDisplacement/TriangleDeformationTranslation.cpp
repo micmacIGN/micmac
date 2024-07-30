@@ -16,16 +16,12 @@ namespace MMVII
     /************************************************/
 
     cAppli_TriangleDeformationTranslation::cAppli_TriangleDeformationTranslation(const std::vector<std::string> &aVArgs,
-                                                                                 const cSpecMMVII_Appli &aSpec) : cMMVII_Appli(aVArgs, aSpec),
+                                                                                 const cSpecMMVII_Appli &aSpec) : cAppli_TriangleDeformation(aVArgs, aSpec),
                                                                                                                   mNumberOfLines(1),
                                                                                                                   mNumberOfCols(1),
                                                                                                                   mShow(true),
                                                                                                                   mUseMultiScaleApproach(false),
                                                                                                                   mBuildRandomUniformGrid(false),
-                                                                                                                  mUseLinearGradInterpolation(false),
-                                                                                                                  mInterpolArgs({"Tabul", "1000", "Cubic", "-0.5"}),
-                                                                                                                  mSerialiseTriangleNodes(false),
-                                                                                                                  mNameMultipleTriangleNodes("TriangulationNodes.xml"),
                                                                                                                   mInitialiseTranslationWithPreviousExecution(false),
                                                                                                                   mInitialiseWithUserValues(true),
                                                                                                                   mInitialiseXTranslationValue(0),
@@ -43,7 +39,6 @@ namespace MMVII
                                                                                                                   mFreezeTranslationY(false),
                                                                                                                   mWeightTranslationX(-1),
                                                                                                                   mWeightTranslationY(-1),
-                                                                                                                  mUserDefinedFolderNameToSaveResult(""),
                                                                                                                   mNumberOfIterGaussFilter(3),
                                                                                                                   mNumberOfEndIterations(2),
                                                                                                                   mDisplayLastTranslationValues(false),
@@ -72,17 +67,16 @@ namespace MMVII
                                                                                                                   mImCorrelationMask(mSzImIntermediateDepY),
                                                                                                                   mDImCorrelationMask(nullptr),
                                                                                                                   mDelTri({tPt2dr(0, 0)}),
-                                                                                                                  mInterpolTr(nullptr),
                                                                                                                   mSysTranslation(nullptr),
                                                                                                                   mEqTranslationTri(nullptr)
     {
+        mEqTranslationTri = EqDeformTriTranslation(true, 1); // true means with derivative, 1 is size of buffer
     }
 
     cAppli_TriangleDeformationTranslation::~cAppli_TriangleDeformationTranslation()
     {
         delete mSysTranslation;
         delete mEqTranslationTri;
-        delete mInterpolTr;
     }
 
     cCollecSpecArg2007 &cAppli_TriangleDeformationTranslation::ArgObl(cCollecSpecArg2007 &anArgObl)
@@ -105,11 +99,6 @@ namespace MMVII
                << AOpt2007(mUseMultiScaleApproach, "UseMultiScaleApproach", "Whether to use multi-scale approach or not.", {eTA2007::HDV})
                << AOpt2007(mBuildRandomUniformGrid, "GenerateRandomUniformGrid",
                            "Whether to build a grid to be triangulated thanks to points generated randomly with a uniform law or build a grid made of rectangles.", {eTA2007::HDV})
-               << AOpt2007(mUseLinearGradInterpolation, "UseLinearGradientInterpolation",
-                           "Use linear gradient interpolation instead of bilinear interpolation.", {eTA2007::HDV})
-               << AOpt2007(mInterpolArgs, "InterpolationArguments", "Which arguments to use for interpolation.", {eTA2007::HDV})
-               << AOpt2007(mSerialiseTriangleNodes, "SerialiseTriangleNodes", "Whether to serialise triangle nodes to .xml file or not.", {eTA2007::HDV})
-               << AOpt2007(mNameMultipleTriangleNodes, "NameOfMultipleTriangleNodes", "File name to use when saving all triangle nodes values to .xml file.", {eTA2007::HDV})
                << AOpt2007(mInitialiseTranslationWithPreviousExecution, "InitialiseTranslationWithPreviousExecution",
                            "Whether to initialise or not with unknown values obtained at previous algorithm execution.", {eTA2007::HDV})
                << AOpt2007(mInitialiseWithUserValues, "InitialiseWithUserValues",
@@ -141,8 +130,6 @@ namespace MMVII
                            "A value to weight x-translation for soft freezing of coefficient.", {eTA2007::HDV})
                << AOpt2007(mWeightTranslationY, "WeightTranslationY",
                            "A value to weight y-translation for soft freezing of coefficient.", {eTA2007::HDV})
-               << AOpt2007(mUserDefinedFolderNameToSaveResult, "FolderNameToSaveResults",
-                           "Folder name where to store produced results", {eTA2007::HDV})
                << AOpt2007(mDisplayLastTranslationValues, "DisplayLastTranslationValues",
                            "Whether to display the final coordinates of the trainslated points.", {eTA2007::HDV})
                << AOpt2007(mNumberOfIterGaussFilter, "NumberOfIterationsGaussFilter",
@@ -152,13 +139,10 @@ namespace MMVII
     }
 
     void cAppli_TriangleDeformationTranslation::LoopOverTrianglesAndUpdateParametersTranslation(const int aIterNumber,
-                                                                                                const int aTotalNumberOfIterations,
-                                                                                                const bool aNonEmptyPathToFolder)
+                                                                                                const int aTotalNumberOfIterations)
     {
         //----------- allocate vec of obs :
-        // 6 for ImagePre and 5 for ImagePost in linear gradient case and 6 in bilinear case
-        const int aNumberOfObsTr = mUseLinearGradInterpolation ? TriangleDisplacement_GradInterpol_NbObs : TriangleDisplacement_Bilin_NbObs;
-        tDoubleVect aVObsTr(6 + aNumberOfObsTr, 0);
+        tDoubleVect aVObsTr(12, 0.0); // 6 for ImagePre and 6 for ImagePost
 
         //----------- extract current parameters
         tDenseVect aVCurSolTr = mSysTranslation->CurGlobSol(); // Get current solution.
@@ -201,13 +185,6 @@ namespace MMVII
 
         // Count number of pixels inside triangles for normalisation
         size_t aTotalNumberOfInsidePixels = 0;
-        // Id of points
-        int aNodeCounterTr = 0;
-
-        std::unique_ptr<cMultipleTriangleNodesSerialiser> aVectorOfTriangleNodesTr = nullptr;
-
-        if (mSerialiseTriangleNodes && aVectorOfTriangleNodesTr == nullptr)
-            aVectorOfTriangleNodesTr = cMultipleTriangleNodesSerialiser::NewMultipleTriangleNodes(mNameMultipleTriangleNodes);
 
         if (mFreezeTranslationX || mFreezeTranslationY)
         {
@@ -221,21 +198,15 @@ namespace MMVII
 
                 if (mFreezeTranslationX)
                 {
-                    const int aFirstTrXIndices = aVecIndTr.at(0);
-                    const int aSecondTrXIndices = aVecIndTr.at(2);
-                    const int aThirdTrXIndices = aVecIndTr.at(4);
-                    mSysTranslation->SetFrozenVar(aFirstTrXIndices, aVCurSolTr(aFirstTrXIndices));
-                    mSysTranslation->SetFrozenVar(aSecondTrXIndices, aVCurSolTr(aSecondTrXIndices));
-                    mSysTranslation->SetFrozenVar(aThirdTrXIndices, aVCurSolTr(aThirdTrXIndices));
+                    mSysTranslation->SetFrozenVar(aVecIndTr.at(0), aVCurSolTr(aVecIndTr.at(0)));
+                    mSysTranslation->SetFrozenVar(aVecIndTr.at(2), aVCurSolTr(aVecIndTr.at(2)));
+                    mSysTranslation->SetFrozenVar(aVecIndTr.at(4), aVCurSolTr(aVecIndTr.at(4)));
                 }
                 if (mFreezeTranslationY)
                 {
-                    const int aFirstTrYIndices = aVecIndTr.at(1);
-                    const int aSecondTrYIndices = aVecIndTr.at(3);
-                    const int aThirdTrYIndices = aVecIndTr.at(5);
-                    mSysTranslation->SetFrozenVar(aFirstTrYIndices, aVCurSolTr(aFirstTrYIndices));
-                    mSysTranslation->SetFrozenVar(aSecondTrYIndices, aVCurSolTr(aSecondTrYIndices));
-                    mSysTranslation->SetFrozenVar(aThirdTrYIndices, aVCurSolTr(aThirdTrYIndices));
+                    mSysTranslation->SetFrozenVar(aVecIndTr.at(1), aVCurSolTr(aVecIndTr.at(1)));
+                    mSysTranslation->SetFrozenVar(aVecIndTr.at(3), aVCurSolTr(aVecIndTr.at(3)));
+                    mSysTranslation->SetFrozenVar(aVecIndTr.at(5), aVCurSolTr(aVecIndTr.at(5)));
                 }
             }
         }
@@ -256,32 +227,13 @@ namespace MMVII
                                         2 * aIndicesOfTriKnotsTr.y(), 2 * aIndicesOfTriKnotsTr.y() + 1,
                                         2 * aIndicesOfTriKnotsTr.z(), 2 * aIndicesOfTriKnotsTr.z() + 1};
 
-            tPt2dr aCurTrPointA = tPt2dr(0, 0);
-            tPt2dr aCurTrPointB = tPt2dr(0, 0);
-            tPt2dr aCurTrPointC = tPt2dr(0, 0);
+            const cNodeOfTriangles aFirstPointOfTriTr = cNodeOfTriangles(aVCurSolTr, aVecIndTr, 0, 1, 0, 1, aTriTr, 0);
+            const cNodeOfTriangles aSecondPointOfTriTr = cNodeOfTriangles(aVCurSolTr, aVecIndTr, 2, 3, 2, 3, aTriTr, 1);
+            const cNodeOfTriangles aThirdPointOfTriTr = cNodeOfTriangles(aVCurSolTr, aVecIndTr, 4, 5, 4, 5, aTriTr, 2);
 
-            if (!mSerialiseTriangleNodes && aVectorOfTriangleNodesTr == nullptr)
-            {
-                // current translation 1st point of triangle
-                aCurTrPointA = LoadNodeAndReturnCurrentDisplacement(aVCurSolTr, aVecIndTr, 0, 1, 0, 1, aTriTr, 0);
-                // current translation 2nd point of triangle
-                aCurTrPointB = LoadNodeAndReturnCurrentDisplacement(aVCurSolTr, aVecIndTr, 2, 3, 2, 3, aTriTr, 1);
-                // current translation 3rd point of triangle
-                aCurTrPointC = LoadNodeAndReturnCurrentDisplacement(aVCurSolTr, aVecIndTr, 4, 5, 4, 5, aTriTr, 2);
-            }
-            else if (mSerialiseTriangleNodes && aVectorOfTriangleNodesTr != nullptr)
-            {
-                // current translation 1st point of triangle
-                aCurTrPointA = LoadNodeAppendVectorAndReturnCurrentDisplacement(aVCurSolTr, aVecIndTr, 0, 1, 0, 1, aTriTr, 0, aNodeCounterTr, 
-                                                                                aIndicesOfTriKnotsTr, true, aVectorOfTriangleNodesTr);
-                // current translation 2nd point of triangle
-                aCurTrPointB = LoadNodeAppendVectorAndReturnCurrentDisplacement(aVCurSolTr, aVecIndTr, 2, 3, 2, 3, aTriTr, 1, aNodeCounterTr + 1,
-                                                                                aIndicesOfTriKnotsTr, true, aVectorOfTriangleNodesTr);
-                // current translation 3rd point of triangle
-                aCurTrPointC = LoadNodeAppendVectorAndReturnCurrentDisplacement(aVCurSolTr, aVecIndTr, 4, 5, 4, 5, aTriTr, 2, aNodeCounterTr + 2, 
-                                                                                aIndicesOfTriKnotsTr, true, aVectorOfTriangleNodesTr);
-                aNodeCounterTr += 3;
-            }
+            const tPt2dr aCurTrPointA = aFirstPointOfTriTr.GetCurrentXYDisplacementValues();    // current translation 1st point of triangle
+            const tPt2dr aCurTrPointB = aSecondPointOfTriTr.GetCurrentXYDisplacementValues();   // current translation 2nd point of triangle
+            const tPt2dr aCurTrPointC = aThirdPointOfTriTr.GetCurrentXYDisplacementValues();    // current translation 3rd point of triangle
 
             // soft constraint x-translation
             if (!mFreezeTranslationX)
@@ -328,27 +280,20 @@ namespace MMVII
                 const tPt2dr aTranslatedFilledPoint = ApplyBarycenterTranslationFormulaToFilledPixel(aCurTrPointA, aCurTrPointB,
                                                                                                      aCurTrPointC, aVObsTr);
 
-                const bool aPixInside = (mUseLinearGradInterpolation) ? aCurPostDIm->InsideInterpolator(*mInterpolTr, aTranslatedFilledPoint, 0) : aCurPostDIm->InsideBL(aTranslatedFilledPoint);
-                if (aPixInside)
+                if (aCurPostDIm->InsideBL(aTranslatedFilledPoint)) // avoid errors
                 {
-                    if (mUseLinearGradInterpolation)
-                        // prepare for application of linear gradient formula
-                        FormalGradInterpol_SetObs(aVObsTr, TriangleDisplacement_NbObs_ImPre, aTranslatedFilledPoint,
-                                                  *aCurPostDIm, *mInterpolTr);
-                    else
-                        // prepare for application of bilinear formula
-                        FormalBilinTri_SetObs(aVObsTr, TriangleDisplacement_NbObs_ImPre, aTranslatedFilledPoint, *aCurPostDIm);
+                    // prepare for application of bilinear formula
+                    FormalBilinTri_SetObs(aVObsTr, TriangleDisplacement_NbObs, aTranslatedFilledPoint, *aCurPostDIm);
 
                     // Now add observation
                     mSysTranslation->CalcAndAddObs(mEqTranslationTri, aVecIndTr, aVObsTr);
 
-                    const tREAL8 aInterpolatedValue = (mUseLinearGradInterpolation) ? aCurPostDIm->GetValueInterpol(*mInterpolTr, aTranslatedFilledPoint) : aCurPostDIm->GetVBL(aTranslatedFilledPoint);
                     // compute indicators
-                    const tREAL8 aDif = aVObsTr[5] - aInterpolatedValue; // residual
+                    const tREAL8 aDif = aVObsTr[5] - aCurPostDIm->GetVBL(aTranslatedFilledPoint); // residual - aValueImPre - aCurPostDIm->GetVBL(aTranslatedFilledPoint)
                     aSomDif += std::abs(aDif);
                 }
                 else
-                    aNbOut++;
+                    aNbOut++; // Count number of pixels translated outside post image
 
                 aTotalNumberOfInsidePixels += aNumberOfInsidePixels;
             }
@@ -358,23 +303,19 @@ namespace MMVII
         {
             const bool aGenerateIntermediateMaps = false;
             if (aGenerateIntermediateMaps)
-                GenerateDisplacementMaps(aVCurSolTr, aIterNumber, aTotalNumberOfIterations, aNonEmptyPathToFolder);
+                GenerateDisplacementMaps(aVCurSolTr, aIterNumber, aTotalNumberOfIterations);
         }
 
         // Update all parameter taking into account previous observation
         mSysTranslation->SolveUpdateReset();
-
-        // Save all triangle nodes to .xml file
-        if (mSerialiseTriangleNodes && aVectorOfTriangleNodesTr != nullptr)
-            aVectorOfTriangleNodesTr->MultipleNodesToFile(mNameMultipleTriangleNodes);
 
         if (mShow)
             StdOut() << aIterNumber + 1 << ", " << aSomDif / aTotalNumberOfInsidePixels
                      << ", " << aNbOut << std::endl;
     }
 
-    void cAppli_TriangleDeformationTranslation::GenerateDisplacementMaps(const tDenseVect &aVFinalSolTr, const int aIterNumber,
-                                                                         const int aTotalNumberOfIterations, const bool aNonEmptyPathToFolder)
+    void cAppli_TriangleDeformationTranslation::GenerateDisplacementMaps(const tDenseVect &aVFinalSol, const int aIterNumber,
+                                                                         const int aTotalNumberOfIterations)
     {
         // Initialise output image, x and y displacement maps
         mImOut = tIm(mSzImPre);
@@ -394,51 +335,31 @@ namespace MMVII
             aLastPreDIm = &aLastPreIm.DIm();
         }
 
-        int aLastNodeCounterTr = 0;
-
-        std::unique_ptr<cMultipleTriangleNodesSerialiser> aLastVectorOfTriangleNodesTr = nullptr;
-
         // prefill output image with ImPre pixels to not have null values
         for (const tPt2di &aOutPix : *mDImOut)
             mDImOut->SetV(aOutPix, aLastPreDIm->GetV(aOutPix));
 
         for (size_t aLTr = 0; aLTr < mDelTri.NbFace(); aLTr++)
         {
-            const tTri2dr aLastTriTr = mDelTri.KthTri(aLTr);
-            const tPt3di aLastIndicesOfTriKnotsTr = mDelTri.KthFace(aLTr);
+            const tTri2dr aLastTri = mDelTri.KthTri(aLTr);
+            const tPt3di aLastIndicesOfTriKnots = mDelTri.KthFace(aLTr);
 
-            const cTriangle2DCompiled aLastCompTri(aLastTriTr);
+            const cTriangle2DCompiled aLastCompTri(aLastTri);
 
             std::vector<tPt2di> aLastVectorToFillWithInsidePixels;
             aLastCompTri.PixelsInside(aLastVectorToFillWithInsidePixels);
 
-            const tIntVect aLastVecIndTr = {2 * aLastIndicesOfTriKnotsTr.x(), 2 * aLastIndicesOfTriKnotsTr.x() + 1,
-                                            2 * aLastIndicesOfTriKnotsTr.y(), 2 * aLastIndicesOfTriKnotsTr.y() + 1,
-                                            2 * aLastIndicesOfTriKnotsTr.z(), 2 * aLastIndicesOfTriKnotsTr.z() + 1};
+            const tIntVect aLastVecInd = {2 * aLastIndicesOfTriKnots.x(), 2 * aLastIndicesOfTriKnots.x() + 1,
+                                          2 * aLastIndicesOfTriKnots.y(), 2 * aLastIndicesOfTriKnots.y() + 1,
+                                          2 * aLastIndicesOfTriKnots.z(), 2 * aLastIndicesOfTriKnots.z() + 1};
 
-            tPt2dr aLastTrPointA = tPt2dr(0, 0);
-            tPt2dr aLastTrPointB = tPt2dr(0, 0);
-            tPt2dr aLastTrPointC = tPt2dr(0, 0);
+            const cNodeOfTriangles aLastFirstPointOfTri = cNodeOfTriangles(aVFinalSol, aLastVecInd, 0, 1, 0, 1, aLastTri, 0);
+            const cNodeOfTriangles aLastSecondPointOfTri = cNodeOfTriangles(aVFinalSol, aLastVecInd, 2, 3, 2, 3, aLastTri, 1);
+            const cNodeOfTriangles aLastThirdPointOfTri = cNodeOfTriangles(aVFinalSol, aLastVecInd, 4, 5, 4, 5, aLastTri, 2);
 
-            if (!mSerialiseTriangleNodes)
-            {
-                aLastTrPointA = LoadNodeAndReturnCurrentDisplacement(aVFinalSolTr, aLastVecIndTr, 0, 1, 0, 1, aLastTriTr, 0);   // last translation 1st point of triangle
-                aLastTrPointB = LoadNodeAndReturnCurrentDisplacement(aVFinalSolTr, aLastVecIndTr, 2, 3, 2, 3, aLastTriTr, 1);   // last translation 2nd point of triangle
-                aLastTrPointC = LoadNodeAndReturnCurrentDisplacement(aVFinalSolTr, aLastVecIndTr, 4, 5, 4, 5, aLastTriTr, 2);   // last translation 3rd point of triangle
-            }
-            else
-            {
-                // last translation 1st point of triangle
-                aLastTrPointA = LoadNodeAppendVectorAndReturnCurrentDisplacement(aVFinalSolTr, aLastVecIndTr, 0, 1, 0, 1, aLastTriTr, 0, aLastNodeCounterTr,
-                                                                                 aLastIndicesOfTriKnotsTr, false, aLastVectorOfTriangleNodesTr);
-                // last translation 2nd point of triangle
-                aLastTrPointB = LoadNodeAppendVectorAndReturnCurrentDisplacement(aVFinalSolTr, aLastVecIndTr, 2, 3, 2, 3, aLastTriTr, 1, aLastNodeCounterTr + 1,
-                                                                                 aLastIndicesOfTriKnotsTr, false, aLastVectorOfTriangleNodesTr);
-                // last translation 3rd point of triangle
-                aLastTrPointC = LoadNodeAppendVectorAndReturnCurrentDisplacement(aVFinalSolTr, aLastVecIndTr, 4, 5, 4, 5, aLastTriTr, 2, aLastNodeCounterTr + 2,
-                                                                                 aLastIndicesOfTriKnotsTr, false, aLastVectorOfTriangleNodesTr);
-                aLastNodeCounterTr += 3;
-            }
+            const tPt2dr aLastTrPointA = aLastFirstPointOfTri.GetCurrentXYDisplacementValues();  // last translation 1st point of triangle
+            const tPt2dr aLastTrPointB = aLastSecondPointOfTri.GetCurrentXYDisplacementValues(); // last translation 2nd point of triangle
+            const tPt2dr aLastTrPointC = aLastThirdPointOfTri.GetCurrentXYDisplacementValues();  // last translation 3rd point of triangle
 
             const size_t aLastNumberOfInsidePixels = aLastVectorToFillWithInsidePixels.size();
 
@@ -451,7 +372,7 @@ namespace MMVII
                 const tPt2dr aLastTranslatedFilledPoint = ApplyBarycenterTranslationFormulaToFilledPixel(aLastTrPointA, aLastTrPointB,
                                                                                                          aLastTrPointC, aLastPixInsideTriangle);
 
-                FillDisplacementMapsTranslation(aLastPixInsideTriangle, aLastTranslatedFilledPoint,
+                FillDisplacementMapsTranslation(aLastPixInsideTriangle, aLastTranslatedFilledPoint, 
                                                 mSzImOut, mDImDepX, mDImDepY, mDImOut);
             }
         }
@@ -459,11 +380,16 @@ namespace MMVII
         // save displacement maps in x and y to image files
         if (mUseMultiScaleApproach)
         {
-            SaveMultiScaleDisplacementMapsToFile(mDImDepX, mDImDepY, aNonEmptyPathToFolder, mUserDefinedFolderNameToSaveResult, "DisplacedPixelsX_iter",
-                                                 "DisplacedPixelsY_iter", aIterNumber, mNumberPointsToGenerate, aTotalNumberOfIterations);
+            mDImDepX->ToFile("DisplacedPixelsX_iter_" + ToStr(aIterNumber) + "_" +
+                             ToStr(mNumberPointsToGenerate) + "_" +
+                             ToStr(aTotalNumberOfIterations) + ".tif");
+            mDImDepY->ToFile("DisplacedPixelsY_iter_" + ToStr(aIterNumber) + "_" +
+                             ToStr(mNumberPointsToGenerate) + "_" +
+                             ToStr(aTotalNumberOfIterations) + ".tif");
             if (aIterNumber == aTotalNumberOfIterations - 1)
-                SaveOutputImageToFile(mDImOut, aNonEmptyPathToFolder, mUserDefinedFolderNameToSaveResult, "DisplacedPixels",
-                                      mNumberPointsToGenerate, aTotalNumberOfIterations);
+                mDImOut->ToFile("DisplacedPixels_iter_" + ToStr(aIterNumber) + "_" +
+                                ToStr(mNumberPointsToGenerate) + "_" +
+                                ToStr(aTotalNumberOfIterations) + ".tif");
         }
         if (mInitialiseTranslationWithPreviousExecution)
         {
@@ -472,35 +398,36 @@ namespace MMVII
         }
         if (!mUseMultiScaleApproach && (aIterNumber == aTotalNumberOfIterations - 1))
         {
-            SaveFinalDisplacementMapsToFile(mDImDepX, mDImDepY, aNonEmptyPathToFolder, mUserDefinedFolderNameToSaveResult, "DisplacedPixelsX",
-                                            "DisplacedPixelsY", mNumberPointsToGenerate, aTotalNumberOfIterations);
-            SaveOutputImageToFile(mDImOut, aNonEmptyPathToFolder, mUserDefinedFolderNameToSaveResult, "DisplacedPixels",
-                                  mNumberPointsToGenerate, aTotalNumberOfIterations);
+            mDImDepX->ToFile("DisplacedPixelsX_" + ToStr(mNumberPointsToGenerate) + "_" +
+                             ToStr(aTotalNumberOfIterations) + ".tif");
+            mDImDepY->ToFile("DisplacedPixelsY_" + ToStr(mNumberPointsToGenerate) + "_" +
+                             ToStr(aTotalNumberOfIterations) + ".tif");
+            mDImOut->ToFile("DisplacedPixels_" + ToStr(mNumberPointsToGenerate) + "_" +
+                            ToStr(aTotalNumberOfIterations) + ".tif");
         }
     }
 
     void cAppli_TriangleDeformationTranslation::GenerateDisplacementMapsAndDisplayLastTranslatedPoints(const int aIterNumber,
                                                                                                        const int aTotalNumberOfIterations,
-                                                                                                       const tDenseVect &aVinitVecSol,
-                                                                                                       const bool aNonEmptyPathToFolder)
+                                                                                                       const tDenseVect &aVinitVecSol)
     {
-        tDenseVect aVFinalSolTr = mSysTranslation->CurGlobSol();
+        tDenseVect aVFinalSol = mSysTranslation->CurGlobSol();
 
         if (mGenerateDisplacementImage)
-            GenerateDisplacementMaps(aVFinalSolTr, aIterNumber, aTotalNumberOfIterations, aNonEmptyPathToFolder);
+            GenerateDisplacementMaps(aVFinalSol, aIterNumber, aTotalNumberOfIterations);
 
         if (mDisplayLastTranslationValues)
-            DisplayLastUnknownValuesAndComputeStatistics(aVFinalSolTr, aVinitVecSol);
+            DisplayLastUnknownValuesAndComputeStatistics(aVFinalSol, aVinitVecSol);
     }
 
     void cAppli_TriangleDeformationTranslation::DoOneIterationTranslation(const int aIterNumber, const int aTotalNumberOfIterations,
-                                                                          const tDenseVect &aVInitVecSol, const bool aNonEmptyPathToFolder)
+                                                                          const tDenseVect &aVInitVecSol)
     {
-        LoopOverTrianglesAndUpdateParametersTranslation(aIterNumber, aTotalNumberOfIterations, aNonEmptyPathToFolder); // Iterate over triangles and solve system
+        LoopOverTrianglesAndUpdateParametersTranslation(aIterNumber, aTotalNumberOfIterations); // Iterate over triangles and solve system
 
         // Show final translation results and produce displacement maps
         if (aIterNumber == (aTotalNumberOfIterations - 1))
-            GenerateDisplacementMapsAndDisplayLastTranslatedPoints(aIterNumber, aTotalNumberOfIterations, aVInitVecSol, aNonEmptyPathToFolder);
+            GenerateDisplacementMapsAndDisplayLastTranslatedPoints(aIterNumber, aTotalNumberOfIterations, aVInitVecSol);
     }
 
     //-----------------------------------------
@@ -510,14 +437,6 @@ namespace MMVII
         // read pre and post images and update their sizes
         ReadFileNameLoadData(mNamePreImage, mImPre, mDImPre, mSzImPre);
         ReadFileNameLoadData(mNamePostImage, mImPost, mDImPost, mSzImPost);
-
-        bool aNonEmptyPathToFolder = false;
-        if (!mUserDefinedFolderNameToSaveResult.empty())
-        {
-            aNonEmptyPathToFolder = true;
-            if (!ExistFile(mUserDefinedFolderNameToSaveResult))
-                CreateDirectories(mUserDefinedFolderNameToSaveResult, aNonEmptyPathToFolder);
-        }
 
         if (mUseMultiScaleApproach)
             mSigmaGaussFilter = mNumberOfScales * mSigmaGaussFilterStep;
@@ -530,11 +449,9 @@ namespace MMVII
         DefineValueLimitsForPointGenerationAndBuildGrid(mNumberPointsToGenerate, mNumberOfLines,
                                                         mNumberOfCols, mDelTri, mSzImPre, mBuildRandomUniformGrid);
 
-        InitialiseInterpolationAndEquationTranslation(mEqTranslationTri, mInterpolTr, mInterpolArgs, mUseLinearGradInterpolation);
-
         if (!mInitialiseTranslationWithPreviousExecution || mInitialiseWithUserValues)
-            InitialiseWithUserValuesTranslation(mDelTri, mSysTranslation, mInitialiseWithUserValues,
-                                                mInitialiseXTranslationValue, mInitialiseYTranslationValue);
+            InitialisationAfterExeTranslation(mDelTri, mSysTranslation, mInitialiseWithUserValues,
+                                              mInitialiseXTranslationValue, mInitialiseYTranslationValue);
         else
         {
             if (mIsFirstExecution && mInitialiseWithMMVI)
@@ -562,7 +479,7 @@ namespace MMVII
         (mUseMultiScaleApproach) ? aTotalNumberOfIterations = mNumberOfScales + mNumberOfEndIterations : aTotalNumberOfIterations = mNumberOfScales;
 
         for (int aIterNumber = 0; aIterNumber < aTotalNumberOfIterations; aIterNumber++)
-            DoOneIterationTranslation(aIterNumber, aTotalNumberOfIterations, aVInitSolTr, aNonEmptyPathToFolder);
+            DoOneIterationTranslation(aIterNumber, aTotalNumberOfIterations, aVInitSolTr);
 
         return EXIT_SUCCESS;
     }

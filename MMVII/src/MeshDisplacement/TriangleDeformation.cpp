@@ -23,8 +23,6 @@ namespace MMVII
                                                                                             mComputeAvgMax(false),
                                                                                             mUseMultiScaleApproach(false),
                                                                                             mBuildRandomUniformGrid(false),
-                                                                                            mUseLinearGradInterpolation(false),
-                                                                                            mInterpolArgs({"Tabul", "1000", "Cubic", "-0.5"}),
                                                                                             mInitialiseTranslationWithPreviousExecution(false),
                                                                                             mInitialiseRadiometryWithPreviousExecution(false),
                                                                                             mInitialiseWithUserValues(true),
@@ -48,7 +46,7 @@ namespace MMVII
                                                                                             mWeightRadScale(-1),
                                                                                             mNumberOfIterGaussFilter(3),
                                                                                             mNumberOfEndIterations(2),
-                                                                                            mUserDefinedFolderNameSaveResult(""),
+                                                                                            mFolderSaveResult(""),
                                                                                             mDisplayLastTranslationValues(false),
                                                                                             mSzImPre(tPt2di(1, 1)),
                                                                                             mImPre(mSzImPre),
@@ -81,111 +79,106 @@ namespace MMVII
                                                                                             mImDiff(mSzImDiff),
                                                                                             mDImDiff(nullptr),
                                                                                             mDelTri({tPt2dr(0, 0)}),
-                                                                                            mInterpol(nullptr),
                                                                                             mSys(nullptr),
                                                                                             mEqTriDeform(nullptr)
     {
+        mEqTriDeform = EqDeformTri(true, 1); // true means with derivative, 1 is size of buffer
     }
 
     cAppli_TriangleDeformation::~cAppli_TriangleDeformation()
     {
         delete mSys;
         delete mEqTriDeform;
-        delete mInterpol;
     }
 
     cCollecSpecArg2007 &cAppli_TriangleDeformation::ArgObl(cCollecSpecArg2007 &anArgObl)
     {
         return anArgObl
-               << Arg2007(mNamePreImage, "Name of pre-image file.", {{eTA2007::FileImage}, {eTA2007::FileDirProj}})
-               << Arg2007(mNamePostImage, "Name of post-image file.", {eTA2007::FileImage})
-               << Arg2007(mNumberPointsToGenerate, "Number of points you want to generate for triangulation.")
-               << Arg2007(mNumberOfScales, "Total number of scales to run in multi-scale approach or iterations if multi-scale approach is not applied in optimisation process.");
+                << Arg2007(mNamePreImage, "Name of pre-image file.", {{eTA2007::FileImage}, {eTA2007::FileDirProj}})
+                << Arg2007(mNamePostImage, "Name of post-image file.", {eTA2007::FileImage})
+                << Arg2007(mNumberPointsToGenerate, "Number of points you want to generate for triangulation.")
+                << Arg2007(mNumberOfScales, "Total number of scales to run in multi-scale approach or iterations if multi-scale approach is not applied in optimisation process.");
     }
 
     cCollecSpecArg2007 &cAppli_TriangleDeformation::ArgOpt(cCollecSpecArg2007 &anArgOpt)
     {
         return anArgOpt
-               << AOpt2007(mNumberOfCols, "MaximumValueNumberOfCols",
-                           "Maximum value that the uniform law can draw from on the x-axis.", {eTA2007::HDV, eTA2007::Tuning})
-               << AOpt2007(mNumberOfLines, "MaximumValueNumberOfLines",
-                           "Maximum value that the uniform law can draw from for on the y-axis.", {eTA2007::HDV, eTA2007::Tuning})
-               << AOpt2007(mShow, "Show", "Whether to print minimisation results.", {eTA2007::HDV, eTA2007::Tuning})
-               << AOpt2007(mComputeAvgMax, "ComputeAvgMaxDiffIm",
-                           "Whether to compute the average and maximum pixel value of the difference image between post and pre image or not.", {eTA2007::HDV, eTA2007::Tuning})
-               << AOpt2007(mUseMultiScaleApproach, "UseMultiScaleApproach", "Whether to use multi-scale approach or not.", {eTA2007::HDV})
-               << AOpt2007(mBuildRandomUniformGrid, "GenerateRandomUniformGrid",
-                           "Whether to build a grid to be triangulated thanks to points generated randomly with a uniform law or build a grid made of rectangles.", {eTA2007::HDV})
-               << AOpt2007(mUseLinearGradInterpolation, "UseLinearGradientInterpolation",
-                           "Use linear gradient interpolation instead of bilinear interpolation.", {eTA2007::HDV})
-               << AOpt2007(mInterpolArgs, "InterpolationName", "Which type of interpolation to use : cubic, sinc or MMVIIK", {eTA2007::HDV})
-               << AOpt2007(mInitialiseTranslationWithPreviousExecution, "InitialiseTranslationWithPreviousExecution",
-                           "Whether to initialise or not with unknown translation values obtained at previous execution", {eTA2007::HDV})
-               << AOpt2007(mInitialiseRadiometryWithPreviousExecution, "InitialiseRadiometryWithPreviousExecution",
-                           "Whether to initialise or not with unknown radiometry values obtained at previous execution", {eTA2007::HDV})
-               << AOpt2007(mInitialiseWithUserValues, "InitialiseWithUserValues",
-                           "Whether the user wishes or not to initialise unknowns with personalised values.", {eTA2007::HDV})
-               << AOpt2007(mInitialiseXTranslationValue, "InitialXTranslationValue",
-                           "Value to use for initialising x-translation unknowns.", {eTA2007::HDV})
-               << AOpt2007(mInitialiseYTranslationValue, "InitialYTranslationValue",
-                           "Value to use for initialising y-translation unknowns.", {eTA2007::HDV})
-               << AOpt2007(mInitialiseRadTrValue, "InitialeRadiometryTranslationValue",
-                           "Value to use for initialising radiometry translation unknown values", {eTA2007::HDV})
-               << AOpt2007(mInitialiseRadScValue, "InitialeRadiometryScalingValue",
-                           "Value to use for initialising radiometry scaling unknown values", {eTA2007::HDV})
-               << AOpt2007(mInitialiseWithMMVI, "InitialiseWithMMVI",
-                           "Whether to initialise or not values of unknowns with pre-computed values from MicMacV1 at first execution", {eTA2007::HDV})
-               << AOpt2007(mNameInitialDepX, "InitialDispXMapFilename", "Name of file of initial X-displacement map", {eTA2007::HDV, eTA2007::FileImage})
-               << AOpt2007(mNameInitialDepY, "InitialDispYMapFilename", "Name of file of initial Y-displacement map", {eTA2007::HDV, eTA2007::FileImage})
-               << AOpt2007(mNameIntermediateDepX, "NameForIntermediateXDispMap",
-                           "File name to use when saving intermediate x-displacement maps between executions", {eTA2007::HDV, eTA2007::FileImage, eTA2007::Tuning})
-               << AOpt2007(mNameIntermediateDepY, "NameForIntermediateYDispMap",
-                           "File name to use when saving intermediate y-displacement maps between executions", {eTA2007::HDV, eTA2007::FileImage, eTA2007::Tuning})
-               << AOpt2007(mNameCorrelationMaskMMVI, "NameOfCorrelationMask",
-                           "File name of mask file from MMVI giving locations where correlation is computed", {eTA2007::HDV, eTA2007::FileImage})
-               << AOpt2007(mIsFirstExecution, "IsFirstExecution",
-                           "Whether this is the first execution of optimisation algorithm or not", {eTA2007::HDV})
-               << AOpt2007(mSigmaGaussFilterStep, "SigmaGaussFilterStep", "Sigma value to use for Gauss filter in multi-stage approach.", {eTA2007::HDV, eTA2007::Tuning})
-               << AOpt2007(mGenerateDisplacementImage, "GenerateDisplacementImage",
-                           "Whether to generate and save an image having been translated.", {eTA2007::HDV})
-               << AOpt2007(mFreezeTranslationX, "FreezeXTranslation",
-                           "Whether to freeze or not x-translation to certain value during computation.", {eTA2007::HDV})
-               << AOpt2007(mFreezeTranslationY, "FreezeYTranslation",
-                           "Whether to freeze or not y-translation to certain value during computation.", {eTA2007::HDV})
-               << AOpt2007(mFreezeRadTranslation, "FreezeRadTranslation",
-                           "Whether to freeze radiometry translation factor in computation or not.", {eTA2007::HDV})
-               << AOpt2007(mFreezeRadScale, "FreezeRadScaling",
-                           "Whether to freeze radiometry scaling factor in computation or not.", {eTA2007::HDV})
-               << AOpt2007(mWeightRadTranslation, "WeightRadiometryTranslation",
-                           "A value to weight radiometry translation for soft freezing of coefficient.", {eTA2007::HDV})
-               << AOpt2007(mWeightRadScale, "WeightRadiometryScaling",
-                           "A value to weight radiometry scaling for soft freezing of coefficient.", {eTA2007::HDV})
-               << AOpt2007(mNumberOfIterGaussFilter, "NumberOfIterationsGaussFilter",
-                           "Number of iterations to run in Gauss filter algorithm.", {eTA2007::HDV, eTA2007::Tuning})
-               << AOpt2007(mNumberOfEndIterations, "NumberOfEndIterations",
-                           "Number of iterations to run on original images in multi-scale approach.", {eTA2007::HDV, eTA2007::Tuning})
-               << AOpt2007(mUserDefinedFolderNameSaveResult, "FolderNameToSaveResults",
-                           "Folder name where to store produced results", {eTA2007::HDV})
-               << AOpt2007(mDisplayLastTranslationValues, "DisplayLastTranslationsValues",
-                           "Whether to display the final values of unknowns linked to point translation.", {eTA2007::HDV})
-               << AOpt2007(mDisplayLastRadiometryValues, "DisplayLastRadiometryValues",
-                           "Whether to display or not the last values of radiometry unknowns after optimisation process.", {eTA2007::HDV});
+                << AOpt2007(mNumberOfCols, "MaximumValueNumberOfCols",
+                            "Maximum value that the uniform law can draw from on the x-axis.", {eTA2007::HDV, eTA2007::Tuning})
+                << AOpt2007(mNumberOfLines, "MaximumValueNumberOfLines",
+                            "Maximum value that the uniform law can draw from for on the y-axis.", {eTA2007::HDV, eTA2007::Tuning})
+                << AOpt2007(mShow, "Show", "Whether to print minimisation results.", {eTA2007::HDV, eTA2007::Tuning})
+                << AOpt2007(mComputeAvgMax, "ComputeAvgMaxDiffIm",
+                            "Whether to compute the average and maximum pixel value of the difference image between post and pre image or not.", {eTA2007::HDV, eTA2007::Tuning})
+                << AOpt2007(mUseMultiScaleApproach, "UseMultiScaleApproach", "Whether to use multi-scale approach or not.", {eTA2007::HDV})
+                << AOpt2007(mBuildRandomUniformGrid, "GenerateRandomUniformGrid",
+                            "Whether to build a grid to be triangulated thanks to points generated randomly with a uniform law or build a grid made of rectangles.", {eTA2007::HDV})
+                << AOpt2007(mInitialiseTranslationWithPreviousExecution, "InitialiseTranslationWithPreviousExecution",
+                            "Whether to initialise or not with unknown translation values obtained at previous execution", {eTA2007::HDV})
+                << AOpt2007(mInitialiseRadiometryWithPreviousExecution, "InitialiseRadiometryWithPreviousExecution",
+                            "Whether to initialise or not with unknown radiometry values obtained at previous execution", {eTA2007::HDV})
+                << AOpt2007(mInitialiseWithUserValues, "InitialiseWithUserValues",
+                            "Whether the user wishes or not to initialise unknowns with personalised values.", {eTA2007::HDV})
+                << AOpt2007(mInitialiseXTranslationValue, "InitialXTranslationValue",
+                            "Value to use for initialising x-translation unknowns.", {eTA2007::HDV})
+                << AOpt2007(mInitialiseYTranslationValue, "InitialYTranslationValue",
+                            "Value to use for initialising y-translation unknowns.", {eTA2007::HDV})
+                << AOpt2007(mInitialiseRadTrValue, "InitialeRadiometryTranslationValue",
+                            "Value to use for initialising radiometry translation unknown values", {eTA2007::HDV})
+                << AOpt2007(mInitialiseRadScValue, "InitialeRadiometryScalingValue",
+                            "Value to use for initialising radiometry scaling unknown values", {eTA2007::HDV})
+                << AOpt2007(mInitialiseWithMMVI, "InitialiseWithMMVI",
+                            "Whether to initialise or not values of unknowns with pre-computed values from MicMacV1 at first execution", {eTA2007::HDV})
+                    
+                << AOpt2007(mNameInitialDepX, "InitialDispXMapFilename", "Name of file of initial X-displacement map", {eTA2007::HDV, eTA2007::FileImage})
+                << AOpt2007(mNameInitialDepY, "InitialDispYMapFilename", "Name of file of initial Y-displacement map", {eTA2007::HDV, eTA2007::FileImage})
+                << AOpt2007(mNameIntermediateDepX, "NameForIntermediateXDispMap",
+                            "File name to use when saving intermediate x-displacement maps between executions", {eTA2007::HDV, eTA2007::FileImage, eTA2007::Tuning})
+                << AOpt2007(mNameIntermediateDepY, "NameForIntermediateYDispMap",
+                            "File name to use when saving intermediate y-displacement maps between executions", {eTA2007::HDV, eTA2007::FileImage, eTA2007::Tuning})
+                << AOpt2007(mNameCorrelationMaskMMVI, "NameOfCorrelationMask",
+                            "File name of mask file from MMVI giving locations where correlation is computed", {eTA2007::HDV, eTA2007::FileImage})
+                << AOpt2007(mIsFirstExecution, "IsFirstExecution",
+                            "Whether this is the first execution of optimisation algorithm or not", {eTA2007::HDV})
+                << AOpt2007(mSigmaGaussFilterStep, "SigmaGaussFilterStep", "Sigma value to use for Gauss filter in multi-stage approach.", {eTA2007::HDV, eTA2007::Tuning})
+                << AOpt2007(mGenerateDisplacementImage, "GenerateDisplacementImage",
+                            "Whether to generate and save an image having been translated.", {eTA2007::HDV})
+                << AOpt2007(mFreezeTranslationX, "FreezeXTranslation",
+                            "Whether to freeze or not x-translation to certain value during computation.", {eTA2007::HDV})
+                << AOpt2007(mFreezeTranslationY, "FreezeYTranslation",
+                            "Whether to freeze or not y-translation to certain value during computation.", {eTA2007::HDV})
+                << AOpt2007(mFreezeRadTranslation, "FreezeRadTranslation",
+                            "Whether to freeze radiometry translation factor in computation or not.", {eTA2007::HDV})
+                << AOpt2007(mFreezeRadScale, "FreezeRadScaling",
+                            "Whether to freeze radiometry scaling factor in computation or not.", {eTA2007::HDV})
+                << AOpt2007(mWeightRadTranslation, "WeightRadiometryTranslation",
+                            "A value to weight radiometry translation for soft freezing of coefficient.", {eTA2007::HDV})
+                << AOpt2007(mWeightRadScale, "WeightRadiometryScaling",
+                            "A value to weight radiometry scaling for soft freezing of coefficient.", {eTA2007::HDV})
+                << AOpt2007(mNumberOfIterGaussFilter, "NumberOfIterationsGaussFilter",
+                            "Number of iterations to run in Gauss filter algorithm.", {eTA2007::HDV, eTA2007::Tuning})
+                << AOpt2007(mNumberOfEndIterations, "NumberOfEndIterations",
+                            "Number of iterations to run on original images in multi-scale approach.", {eTA2007::HDV, eTA2007::Tuning})
+                << AOpt2007(mFolderSaveResult, "FolderToSaveResults",
+                            "Folder name where to store produced results", {eTA2007::HDV})
+                << AOpt2007(mDisplayLastTranslationValues, "DisplayLastTranslationsValues",
+                            "Whether to display the final values of unknowns linked to point translation.", {eTA2007::HDV})
+                << AOpt2007(mDisplayLastRadiometryValues, "DisplayLastRadiometryValues",
+                            "Whether to display or not the last values of radiometry unknowns after optimisation process.", {eTA2007::HDV});
     }
 
     void cAppli_TriangleDeformation::LoopOverTrianglesAndUpdateParameters(const int aIterNumber, const int aTotalNumberOfIterations,
-                                                                          const bool aNonEmptyPathToFolder)
+                                                                          const bool aUserDefinedFolderName)
     {
         //----------- allocate vec of obs :
-        // 6 for ImagePre and 5 for ImagePost in linear gradient case and 6 in bilinear case
-        const int aNumberOfObs = mUseLinearGradInterpolation ? TriangleDisplacement_GradInterpol_NbObs : TriangleDisplacement_Bilin_NbObs;
-        tDoubleVect aVObs(6 + aNumberOfObs, 0);
+        tDoubleVect aVObs(12, 0.0); // 6 for ImagePre and 6 for ImagePost
 
         //----------- extract current parameters
-        tDenseVect aVCurSol = mSys->CurGlobSol(); // Get current solution.
+        tDenseVect aVCur = mSys->CurGlobSol(); // Get current solution.
 
         /*
-        for (int aUnk=0; aUnk<aVCurSol.DIm().Sz(); aUnk++)
-            StdOut() << aVCurSol(aUnk) << " " ;
+        for (int aUnk=0; aUnk<aVCur.DIm().Sz(); aUnk++)
+            StdOut() << aVCur(aUnk) << " " ;
         StdOut() << std::endl;
         */
 
@@ -219,8 +212,8 @@ namespace MMVII
             const bool aSaveGaussImage = false; // if a save of image filtered by Gauss filter is wanted
             if (aSaveGaussImage)
             {
-                if (aNonEmptyPathToFolder)
-                    aCurPreDIm->ToFile(mUserDefinedFolderNameSaveResult + "/GaussFilteredImPre_iter_" + ToStr(aIterNumber) + ".tif");
+                if (aUserDefinedFolderName)
+                    aCurPreDIm->ToFile(mFolderSaveResult + "/GaussFilteredImPre_iter_" + ToStr(aIterNumber) + ".tif");
                 else
                     aCurPreDIm->ToFile("GaussFilteredImPre_iter_" + ToStr(aIterNumber) + ".tif");
             }
@@ -237,13 +230,6 @@ namespace MMVII
 
         // Count number of pixels inside triangles for normalisation
         size_t aTotalNumberOfInsidePixels = 0;
-        // Id of points
-        int aNodeCounter = 0;
-
-        std::unique_ptr<cMultipleTriangleNodesSerialiser> aVectorOfTriangleNodes = nullptr;
-
-        if (mSerialiseTriangleNodes && aVectorOfTriangleNodes == nullptr)
-            aVectorOfTriangleNodes = cMultipleTriangleNodesSerialiser::NewMultipleTriangleNodes(mNameMultipleTriangleNodes);
 
         // hard constraint : freeze radiometric coefficients
         if (mFreezeRadTranslation || mFreezeRadScale ||
@@ -262,39 +248,27 @@ namespace MMVII
 
                 if (mFreezeTranslationX)
                 {
-                    const int aFirstTrXIndices = aVecInd.at(0);
-                    const int aSecondTrXIndices = aVecInd.at(4);
-                    const int aThirdTrXIndices = aVecInd.at(8);
-                    mSys->SetFrozenVar(aFirstTrXIndices, aVCurSol(aFirstTrXIndices));
-                    mSys->SetFrozenVar(aSecondTrXIndices, aVCurSol(aSecondTrXIndices));
-                    mSys->SetFrozenVar(aThirdTrXIndices, aVCurSol(aThirdTrXIndices));
+                    mSys->SetFrozenVar(aVecInd.at(0), aVCur(aVecInd.at(0)));
+                    mSys->SetFrozenVar(aVecInd.at(4), aVCur(aVecInd.at(4)));
+                    mSys->SetFrozenVar(aVecInd.at(8), aVCur(aVecInd.at(8)));
                 }
                 if (mFreezeTranslationY)
                 {
-                    const int aFirstTrYIndices = aVecInd.at(1);
-                    const int aSecondTrYIndices = aVecInd.at(5);
-                    const int aThirdTrYIndices = aVecInd.at(9);
-                    mSys->SetFrozenVar(aFirstTrYIndices, aVCurSol(aFirstTrYIndices));
-                    mSys->SetFrozenVar(aSecondTrYIndices, aVCurSol(aSecondTrYIndices));
-                    mSys->SetFrozenVar(aThirdTrYIndices, aVCurSol(aThirdTrYIndices));
+                    mSys->SetFrozenVar(aVecInd.at(1), aVCur(aVecInd.at(1)));
+                    mSys->SetFrozenVar(aVecInd.at(5), aVCur(aVecInd.at(5)));
+                    mSys->SetFrozenVar(aVecInd.at(9), aVCur(aVecInd.at(9)));
                 }
                 if (mFreezeRadTranslation)
                 {
-                    const int aFirstRadTrIndices = aVecInd.at(2);
-                    const int aSecondRadTrIndices = aVecInd.at(6);
-                    const int aThirdRadTrIndices = aVecInd.at(10);
-                    mSys->SetFrozenVar(aFirstRadTrIndices, aVCurSol(aFirstRadTrIndices));
-                    mSys->SetFrozenVar(aSecondRadTrIndices, aVCurSol(aSecondRadTrIndices));
-                    mSys->SetFrozenVar(aThirdRadTrIndices, aVCurSol(aThirdRadTrIndices));
+                    mSys->SetFrozenVar(aVecInd.at(2), aVCur(aVecInd.at(2)));
+                    mSys->SetFrozenVar(aVecInd.at(6), aVCur(aVecInd.at(6)));
+                    mSys->SetFrozenVar(aVecInd.at(10), aVCur(aVecInd.at(10)));
                 }
                 if (mFreezeRadScale)
                 {
-                    const int aFirstRadScIndices = aVecInd.at(3);
-                    const int aSecondRadScIndices = aVecInd.at(7);
-                    const int aThirdRadScIndices = aVecInd.at(11);
-                    mSys->SetFrozenVar(aFirstRadScIndices, aVCurSol(aFirstRadScIndices));
-                    mSys->SetFrozenVar(aSecondRadScIndices, aVCurSol(aSecondRadScIndices));
-                    mSys->SetFrozenVar(aThirdRadScIndices, aVCurSol(aThirdRadScIndices));
+                    mSys->SetFrozenVar(aVecInd.at(3), aVCur(aVecInd.at(3)));
+                    mSys->SetFrozenVar(aVecInd.at(7), aVCur(aVecInd.at(7)));
+                    mSys->SetFrozenVar(aVecInd.at(11), aVCur(aVecInd.at(11)));
                 }
             }
         }
@@ -318,60 +292,20 @@ namespace MMVII
                                       4 * aIndicesOfTriKnots.z(), 4 * aIndicesOfTriKnots.z() + 1,
                                       4 * aIndicesOfTriKnots.z() + 2, 4 * aIndicesOfTriKnots.z() + 3};
 
-            tPt2dr aCurTrPointA = tPt2dr(0, 0);
-            tPt2dr aCurTrPointB = tPt2dr(0, 0);
-            tPt2dr aCurTrPointC = tPt2dr(0, 0);
-            tREAL8 aCurRadTrPointA = 0;
-            tREAL8 aCurRadScPointA = 1;
-            tREAL8 aCurRadTrPointB = 0;
-            tREAL8 aCurRadScPointB = 1;
-            tREAL8 aCurRadTrPointC = 0;
-            tREAL8 aCurRadScPointC = 1;
+            const cNodeOfTriangles aFirstPointOfTri = cNodeOfTriangles(aVCur, aVecInd, 0, 1, 2, 3, aTri, 0);
+            const cNodeOfTriangles aSecondPointOfTri = cNodeOfTriangles(aVCur, aVecInd, 4, 5, 6, 7, aTri, 1);
+            const cNodeOfTriangles aThirdPointOfTri = cNodeOfTriangles(aVCur, aVecInd, 8, 9, 10, 11, aTri, 2);
 
-            if (!mSerialiseTriangleNodes && aVectorOfTriangleNodes == nullptr)
-            {
-                aCurTrPointA = LoadNodeAndReturnCurrentDisplacement(aVCurSol, aVecInd, 0, 1, 2, 3, aTri, 0);    // current translation 1st point of triangle
-                aCurTrPointB = LoadNodeAndReturnCurrentDisplacement(aVCurSol, aVecInd, 4, 5, 6, 7, aTri, 1);    // current translation 2nd point of triangle
-                aCurTrPointC = LoadNodeAndReturnCurrentDisplacement(aVCurSol, aVecInd, 8, 9, 10, 11, aTri, 2);  // current translation 3rd point of triangle
+            const tPt2dr aCurTrPointA = aFirstPointOfTri.GetCurrentXYDisplacementValues();  // current translation 1st point of triangle
+            const tPt2dr aCurTrPointB = aSecondPointOfTri.GetCurrentXYDisplacementValues(); // current translation 2nd point of triangle
+            const tPt2dr aCurTrPointC = aThirdPointOfTri.GetCurrentXYDisplacementValues();  // current translation 3rd point of triangle
 
-                aCurRadTrPointA = LoadNodeAndReturnCurrentRadiometryTranslation(aVCurSol, aVecInd, 0, 1, 2, 3, aTri, 0);    // current translation on radiometry 1st point of triangle
-                aCurRadScPointA = LoadNodeAndReturnCurrentRadiometryScaling(aVCurSol, aVecInd, 0, 1, 2, 3, aTri, 0);        // current scale on radiometry 1st point of triangle
-                aCurRadTrPointB = LoadNodeAndReturnCurrentRadiometryTranslation(aVCurSol, aVecInd, 4, 5, 6, 7, aTri, 1);    // current translation on radiometry 2nd point of triangle
-                aCurRadScPointB = LoadNodeAndReturnCurrentRadiometryScaling(aVCurSol, aVecInd, 4, 5, 6, 7, aTri, 1);        // current scale on radiometry 2nd point of triangle
-                aCurRadTrPointC = LoadNodeAndReturnCurrentRadiometryTranslation(aVCurSol, aVecInd, 8, 9, 10, 11, aTri, 2);  // current translation on radiometry 3rd point of triangle
-                aCurRadScPointC = LoadNodeAndReturnCurrentRadiometryTranslation(aVCurSol, aVecInd, 8, 9, 10, 11, aTri, 2);  // current scale on radiometry 3rd point of triangle
-            }
-            else if (mSerialiseTriangleNodes && aVectorOfTriangleNodes != nullptr)
-            {
-                // current translation 1st point of triangle
-                aCurTrPointA = LoadNodeAppendVectorAndReturnCurrentDisplacement(aVCurSol, aVecInd, 0, 1, 2, 3, aTri, 0, aNodeCounter,
-                                                                                aIndicesOfTriKnots, true, aVectorOfTriangleNodes);
-                // current translation 2nd point of triangle
-                aCurTrPointB = LoadNodeAppendVectorAndReturnCurrentDisplacement(aVCurSol, aVecInd, 4, 5, 6, 7, aTri, 1, aNodeCounter + 1,
-                                                                                aIndicesOfTriKnots, true, aVectorOfTriangleNodes);
-                // current translation 3rd point of triangle
-                aCurTrPointC = LoadNodeAppendVectorAndReturnCurrentDisplacement(aVCurSol, aVecInd, 8, 9, 10, 11, aTri, 2, aNodeCounter + 2,
-                                                                                aIndicesOfTriKnots, true, aVectorOfTriangleNodes);
-                // current translation on radiometry 1st point of triangle
-                aCurRadTrPointA = LoadNodeAppendVectorAndReturnCurrentRadiometryTranslation(aVCurSol, aVecInd, 0, 1, 2, 3, aTri, 0, aNodeCounter,
-                                                                                            aIndicesOfTriKnots, false, aVectorOfTriangleNodes);
-                // current scaling on radiometry 1st point of triangle
-                aCurRadScPointA = LoadNodeAppendVectorAndReturnCurrentRadiometryScaling(aVCurSol, aVecInd, 0, 1, 2, 3, aTri, 0, aNodeCounter,
-                                                                                        aIndicesOfTriKnots, false, aVectorOfTriangleNodes);
-                // current translation on radiometry 2nd point of triangle
-                aCurRadTrPointB = LoadNodeAppendVectorAndReturnCurrentRadiometryTranslation(aVCurSol, aVecInd, 4, 5, 6, 7, aTri, 1, aNodeCounter + 1,
-                                                                                            aIndicesOfTriKnots, false, aVectorOfTriangleNodes);
-                // current scaling on radiometry 2nd point of triangle
-                aCurRadScPointB = LoadNodeAppendVectorAndReturnCurrentRadiometryScaling(aVCurSol, aVecInd, 4, 5, 6, 7, aTri, 1, aNodeCounter + 1,
-                                                                                        aIndicesOfTriKnots, false, aVectorOfTriangleNodes);
-                // current translation on radiometry 3rd point of triangle
-                aCurRadTrPointC = LoadNodeAppendVectorAndReturnCurrentRadiometryTranslation(aVCurSol, aVecInd, 8, 9, 10, 11, aTri, 2, aNodeCounter + 2,
-                                                                                            aIndicesOfTriKnots, false, aVectorOfTriangleNodes);
-                // current scaling on radiometry 3rd point of triangle
-                aCurRadScPointC = LoadNodeAppendVectorAndReturnCurrentRadiometryScaling(aVCurSol, aVecInd, 8, 9, 10, 11, aTri, 2, aNodeCounter + 2,
-                                                                                        aIndicesOfTriKnots, false, aVectorOfTriangleNodes);
-                aNodeCounter += 3;
-            }
+            const tREAL8 aCurRadTrPointA = aFirstPointOfTri.GetCurrentRadiometryTranslation();  // current translation on radiometry 1st point of triangle
+            const tREAL8 aCurRadScPointA = aFirstPointOfTri.GetCurrentRadiometryScaling();      // current scale on radiometry 3rd point of triangle
+            const tREAL8 aCurRadTrPointB = aSecondPointOfTri.GetCurrentRadiometryTranslation(); // current translation on radiometry 2nd point of triangle
+            const tREAL8 aCurRadScPointB = aSecondPointOfTri.GetCurrentRadiometryScaling();     // current scale on radiometry 3rd point of triangle
+            const tREAL8 aCurRadTrPointC = aThirdPointOfTri.GetCurrentRadiometryTranslation();  // current translation on radiometry 3rd point of triangle
+            const tREAL8 aCurRadScPointC = aThirdPointOfTri.GetCurrentRadiometryScaling();      // current scale on radiometry 3rd point of triangle
 
             // soft constraint radiometric translation
             if (!mFreezeRadTranslation)
@@ -383,7 +317,7 @@ namespace MMVII
                     for (size_t aIndCurSol = aSolStart; aIndCurSol < aVecInd.size() - 1; aIndCurSol += aSolStep)
                     {
                         const int aIndices = aVecInd.at(aIndCurSol);
-                        mSys->AddEqFixVar(aIndices, aVCurSol(aIndices), mWeightRadTranslation);
+                        mSys->AddEqFixVar(aIndices, aVCur(aIndices), mWeightRadTranslation);
                     }
                 }
             }
@@ -398,7 +332,7 @@ namespace MMVII
                     for (size_t aIndCurSol = aSolStart; aIndCurSol < aVecInd.size(); aIndCurSol += aSolStep)
                     {
                         const int aIndices = aVecInd.at(aIndCurSol);
-                        mSys->AddEqFixVar(aIndices, aVCurSol(aIndices), mWeightRadScale);
+                        mSys->AddEqFixVar(aIndices, aVCur(aIndices), mWeightRadScale);
                     }
                 }
             }
@@ -428,28 +362,21 @@ namespace MMVII
                                                                                                         aCurRadScPointC,
                                                                                                         aVObs);
 
-                const bool aPixInside = mUseLinearGradInterpolation ? aCurPostDIm->InsideInterpolator(*mInterpol, aTranslatedFilledPoint, 0) : aCurPostDIm->InsideBL(aTranslatedFilledPoint);
-                if (aPixInside)
+                if (aCurPostDIm->InsideBL(aTranslatedFilledPoint)) // avoid errors
                 {
-                    if (mUseLinearGradInterpolation)
-                        // prepare for application of linear gradient formula
-                        FormalGradInterpol_SetObs(aVObs, TriangleDisplacement_NbObs_ImPre, aTranslatedFilledPoint,
-                                                  *aCurPostDIm, *mInterpol);
-                    else
-                        // prepare for application of bilinear formula
-                        FormalBilinTri_SetObs(aVObs, TriangleDisplacement_NbObs_ImPre, aTranslatedFilledPoint, *aCurPostDIm);
+                    // prepare for application of bilinear formula
+                    FormalBilinTri_SetObs(aVObs, TriangleDisplacement_NbObs, aTranslatedFilledPoint, *aCurPostDIm);
 
                     // Now add observation
                     mSys->CalcAndAddObs(mEqTriDeform, aVecInd, aVObs);
 
-                    const tREAL8 aInterpolatedValue = (mUseLinearGradInterpolation) ? aCurPostDIm->GetValueInterpol(*mInterpol, aTranslatedFilledPoint) : aCurPostDIm->GetVBL(aTranslatedFilledPoint);
                     // compute indicators
                     const tREAL8 aRadiomValueImPre = aRadiometryScaling * aVObs[5] + aRadiometryTranslation;
-                    const tREAL8 aDif = aRadiomValueImPre - aInterpolatedValue; // residual
+                    const tREAL8 aDif = aRadiomValueImPre - aCurPostDIm->GetVBL(aTranslatedFilledPoint); // residual : IntensiteImPreWithRadiometry - TranslatedCoordImPost
                     aSomDif += std::abs(aDif);
                 }
                 else
-                    aNbOut++;
+                    aNbOut++; // Count number of pixels translated outside post image
 
                 aTotalNumberOfInsidePixels += aNumberOfInsidePixels;
             }
@@ -459,15 +386,11 @@ namespace MMVII
         {
             const bool aGenerateIntermediateMaps = false; // if a generating intermediate displacement maps is wanted
             if (aGenerateIntermediateMaps)
-                GenerateDisplacementMapsAndOutputImages(aVCurSol, aIterNumber, aTotalNumberOfIterations, aNonEmptyPathToFolder);
+                GenerateDisplacementMapsAndOutputImages(aVCur, aIterNumber, aTotalNumberOfIterations, aUserDefinedFolderName);
         }
 
         // Update all parameter taking into account previous observation
         mSys->SolveUpdateReset();
-
-        // Save all triangle nodes to .xml file
-        if (mSerialiseTriangleNodes && aVectorOfTriangleNodes != nullptr)
-            aVectorOfTriangleNodes->MultipleNodesToFile(mNameMultipleTriangleNodes);
 
         if (mShow)
             StdOut() << aIterNumber + 1 << ", " << aSomDif / aTotalNumberOfInsidePixels
@@ -475,7 +398,7 @@ namespace MMVII
     }
 
     void cAppli_TriangleDeformation::GenerateDisplacementMapsAndOutputImages(const tDenseVect &aVFinalSol, const int aIterNumber,
-                                                                             const int aTotalNumberOfIterations, const bool aNonEmptyPathToFolder)
+                                                                             const int aTotalNumberOfIterations, const bool aUserDefinedFolderName)
     {
         mImOut = tIm(mSzImPre);
         mDImOut = &mImOut.DIm();
@@ -488,15 +411,13 @@ namespace MMVII
         tDIm *aLastPreDIm = nullptr;
         LoadPrePostImageAndData(aLastPreIm, aLastPreDIm, "pre", mImPre, mImPost);
 
-        std::unique_ptr<cMultipleTriangleNodesSerialiser> aLastVectorOfTriangleNodes = nullptr;
-
         if (mUseMultiScaleApproach && !mIsLastIters)
         {
             aLastPreIm = mImPre.GaussFilter(mSigmaGaussFilter, mNumberOfIterGaussFilter);
             aLastPreDIm = &aLastPreIm.DIm();
         }
 
-        int aLastNodeCounter = 0;
+        tDoubleVect aLastVObs(12, 0.0);
 
         // Prefill output image with ImPre to not have null values
         for (const tPt2di &aOutPix : *mDImOut)
@@ -519,70 +440,20 @@ namespace MMVII
                                           4 * aLastIndicesOfTriKnots.z(), 4 * aLastIndicesOfTriKnots.z() + 1,
                                           4 * aLastIndicesOfTriKnots.z() + 2, 4 * aLastIndicesOfTriKnots.z() + 3};
 
-            tPt2dr aLastTrPointA = tPt2dr(0, 0);
-            tPt2dr aLastTrPointB = tPt2dr(0, 0);
-            tPt2dr aLastTrPointC = tPt2dr(0, 0);
-            tREAL8 aLastRadTrPointA = 0;
-            tREAL8 aLastRadScPointA = 1;
-            tREAL8 aLastRadTrPointB = 0;
-            tREAL8 aLastRadScPointB = 1;
-            tREAL8 aLastRadTrPointC = 0;
-            tREAL8 aLastRadScPointC = 1;
+            const cNodeOfTriangles aLastFirstPointOfTri = cNodeOfTriangles(aVFinalSol, aLastVecInd, 0, 1, 2, 3, aLastTri, 0);
+            const cNodeOfTriangles aLastSecondPointOfTri = cNodeOfTriangles(aVFinalSol, aLastVecInd, 4, 5, 6, 7, aLastTri, 1);
+            const cNodeOfTriangles aLastThirdPointOfTri = cNodeOfTriangles(aVFinalSol, aLastVecInd, 8, 9, 10, 11, aLastTri, 2);
 
-            if (!mSerialiseTriangleNodes)
-            {
-                // last translation 1st point of triangle
-                aLastTrPointA = LoadNodeAndReturnCurrentDisplacement(aVFinalSol, aLastVecInd, 0, 1, 2, 3, aLastTri, 0);
-                // last translation 2nd point of triangle
-                aLastTrPointB = LoadNodeAndReturnCurrentDisplacement(aVFinalSol, aLastVecInd, 4, 5, 6, 7, aLastTri, 1);
-                // last translation 3rd point of triangle
-                aLastTrPointC = LoadNodeAndReturnCurrentDisplacement(aVFinalSol, aLastVecInd, 8, 9, 10, 11, aLastTri, 2);
+            const tPt2dr aLastTrPointA = aLastFirstPointOfTri.GetCurrentXYDisplacementValues();
+            const tPt2dr aLastTrPointB = aLastSecondPointOfTri.GetCurrentXYDisplacementValues();
+            const tPt2dr aLastTrPointC = aLastThirdPointOfTri.GetCurrentXYDisplacementValues();
 
-                // last radiometry translation of 1st point
-                aLastRadTrPointA = LoadNodeAndReturnCurrentRadiometryTranslation(aVFinalSol, aLastVecInd, 0, 1, 2, 3, aLastTri, 0);
-                // last radiometry scaling of 1st point
-                aLastRadScPointA = LoadNodeAndReturnCurrentRadiometryScaling(aVFinalSol, aLastVecInd, 0, 1, 2, 3, aLastTri, 0);
-                // last radiometry translation of 2nd point
-                aLastRadTrPointB = LoadNodeAndReturnCurrentRadiometryTranslation(aVFinalSol, aLastVecInd, 4, 5, 6, 7, aLastTri, 1);
-                // last radiometry scaling of 2nd point
-                aLastRadScPointB = LoadNodeAndReturnCurrentRadiometryScaling(aVFinalSol, aLastVecInd, 4, 5, 6, 7, aLastTri, 1);
-                // last radiometry translation of 3rd point  
-                aLastRadTrPointC = LoadNodeAndReturnCurrentRadiometryTranslation(aVFinalSol, aLastVecInd, 8, 9, 10, 11, aLastTri, 2);
-                // last radiometry scaling of 3rd point
-                aLastRadScPointC = LoadNodeAndReturnCurrentRadiometryScaling(aVFinalSol, aLastVecInd, 8, 9, 10, 11, aLastTri, 2);
-            }
-            else
-            {
-                // last translation 1st point of triangle
-                aLastTrPointA =  LoadNodeAppendVectorAndReturnCurrentDisplacement(aVFinalSol, aLastVecInd, 0, 1, 2, 3, aLastTri, 0, aLastNodeCounter,
-                                                                                  aLastIndicesOfTriKnots, false, aLastVectorOfTriangleNodes);
-                // last translation 2nd point of triangle
-                aLastTrPointB = LoadNodeAppendVectorAndReturnCurrentDisplacement(aVFinalSol, aLastVecInd, 4, 5, 6, 7, aLastTri, 1, aLastNodeCounter + 1,
-                                                                                 aLastIndicesOfTriKnots, false, aLastVectorOfTriangleNodes);
-                // last translation 3rd point of triangle
-                aLastTrPointC = LoadNodeAppendVectorAndReturnCurrentDisplacement(aVFinalSol, aLastVecInd, 8, 9, 10, 11, aLastTri, 2, aLastNodeCounter + 2,
-                                                                                 aLastIndicesOfTriKnots, false, aLastVectorOfTriangleNodes);
-                
-                // last radiometry translation of 1st point
-                aLastRadTrPointA = LoadNodeAppendVectorAndReturnCurrentRadiometryTranslation(aVFinalSol, aLastVecInd, 0, 1, 2, 3, aLastTri, 0, aLastNodeCounter,
-                                                                                             aLastIndicesOfTriKnots, false, aLastVectorOfTriangleNodes);
-                // last radiometry scaling of 1st point
-                aLastRadScPointA = LoadNodeAppendVectorAndReturnCurrentRadiometryScaling(aVFinalSol, aLastVecInd, 0, 1, 2, 3, aLastTri, 0, aLastNodeCounter,
-                                                                                         aLastIndicesOfTriKnots, false, aLastVectorOfTriangleNodes);
-                // last radiometry translation of 2nd point
-                aLastRadTrPointB = LoadNodeAppendVectorAndReturnCurrentRadiometryTranslation(aVFinalSol, aLastVecInd, 4, 5, 6, 7, aLastTri, 1, aLastNodeCounter + 1,
-                                                                                             aLastIndicesOfTriKnots, false, aLastVectorOfTriangleNodes);
-                // last radiometry scaling of 2nd point
-                aLastRadScPointB = LoadNodeAppendVectorAndReturnCurrentRadiometryScaling(aVFinalSol, aLastVecInd, 4, 5, 6, 7, aLastTri, 1, aLastNodeCounter + 1,
-                                                                                         aLastIndicesOfTriKnots, false, aLastVectorOfTriangleNodes);
-                // last radiometry translation of 3rd point
-                aLastRadTrPointC = LoadNodeAppendVectorAndReturnCurrentRadiometryTranslation(aVFinalSol, aLastVecInd, 8, 9, 10, 11, aLastTri, 2, aLastNodeCounter + 2,
-                                                                                             aLastIndicesOfTriKnots, false, aLastVectorOfTriangleNodes);
-                // last radiometry scaling of 3rd point
-                aLastRadScPointC = LoadNodeAppendVectorAndReturnCurrentRadiometryScaling(aVFinalSol, aLastVecInd, 8, 9, 10, 11, aLastTri, 2, aLastNodeCounter + 2,
-                                                                                         aLastIndicesOfTriKnots, false, aLastVectorOfTriangleNodes);
-                aLastNodeCounter += 3;
-            }
+            const tREAL8 aLastRadTrPointA = aLastFirstPointOfTri.GetCurrentRadiometryTranslation();
+            const tREAL8 aLastRadScPointA = aLastFirstPointOfTri.GetCurrentRadiometryScaling();
+            const tREAL8 aLastRadTrPointB = aLastSecondPointOfTri.GetCurrentRadiometryTranslation();
+            const tREAL8 aLastRadScPointB = aLastSecondPointOfTri.GetCurrentRadiometryScaling();
+            const tREAL8 aLastRadTrPointC = aLastThirdPointOfTri.GetCurrentRadiometryTranslation();
+            const tREAL8 aLastRadScPointC = aLastThirdPointOfTri.GetCurrentRadiometryScaling();
 
             const size_t aLastNumberOfInsidePixels = aLastVectorToFillWithInsidePixels.size();
 
@@ -590,23 +461,25 @@ namespace MMVII
             {
                 const cPtInsideTriangles aLastPixInsideTriangle = cPtInsideTriangles(aLastCompTri, aLastVectorToFillWithInsidePixels,
                                                                                      aLastFilledPixel, aLastPreDIm);
+                // prepare for barycenter translation formula by filling aVObs with different coordinates
+                FormalInterpBarycenter_SetObs(aLastVObs, 0, aLastPixInsideTriangle);
 
                 // image of a point in triangle by current translation
                 const tPt2dr aLastTranslatedFilledPoint = ApplyBarycenterTranslationFormulaToFilledPixel(aLastTrPointA, aLastTrPointB,
-                                                                                                         aLastTrPointC, aLastPixInsideTriangle);
+                                                                                                         aLastTrPointC, aLastVObs);
 
                 const tREAL8 aLastRadiometryTranslation = ApplyBarycenterTranslationFormulaForTranslationRadiometry(aLastRadTrPointA,
                                                                                                                     aLastRadTrPointB,
                                                                                                                     aLastRadTrPointC,
-                                                                                                                    aLastPixInsideTriangle);
+                                                                                                                    aLastVObs);
 
                 const tREAL8 aLastRadiometryScaling = ApplyBarycenterTranslationFormulaForScalingRadiometry(aLastRadScPointA,
                                                                                                             aLastRadScPointB,
                                                                                                             aLastRadScPointC,
-                                                                                                            aLastPixInsideTriangle);
+                                                                                                            aLastVObs);
 
                 FillDisplacementMapsAndOutputImage(aLastPixInsideTriangle, aLastTranslatedFilledPoint,
-                                                   aLastRadiometryTranslation, aLastRadiometryScaling,
+                                                   aLastRadiometryTranslation, aLastRadiometryScaling, 
                                                    mSzImOut, mDImDepX, mDImDepY, mDImOut);
             }
         }
@@ -614,51 +487,88 @@ namespace MMVII
         // save displacement maps in x and y to image files
         if (mUseMultiScaleApproach)
         {
-            SaveMultiScaleDisplacementMapsToFile(mDImDepX, mDImDepY, aNonEmptyPathToFolder,
-                                                 mUserDefinedFolderNameSaveResult, "DisplacedPixelsX_iter", "DisplacedPixelsY_iter", aIterNumber,
-                                                 mNumberPointsToGenerate, aTotalNumberOfIterations);
+            if (aUserDefinedFolderName)
+            {
+                mDImDepX->ToFile(mFolderSaveResult + "/DisplacedPixelsX_iter_" + ToStr(aIterNumber) + "_" +
+                                 ToStr(mNumberPointsToGenerate) + "_" +
+                                 ToStr(aTotalNumberOfIterations) + ".tif");
+                mDImDepY->ToFile(mFolderSaveResult + "/DisplacedPixelsY_iter_" + ToStr(aIterNumber) + "_" +
+                                 ToStr(mNumberPointsToGenerate) + "_" +
+                                 ToStr(aTotalNumberOfIterations) + ".tif");
+            }
+            else
+            {
+                mDImDepX->ToFile("DisplacedPixelsX_iter_" + ToStr(aIterNumber) + "_" +
+                                 ToStr(mNumberPointsToGenerate) + "_" +
+                                 ToStr(aTotalNumberOfIterations) + ".tif");
+                mDImDepY->ToFile("DisplacedPixelsY_iter_" + ToStr(aIterNumber) + "_" +
+                                 ToStr(mNumberPointsToGenerate) + "_" +
+                                 ToStr(aTotalNumberOfIterations) + ".tif");
+            }
             if (aIterNumber == aTotalNumberOfIterations - 1)
-                SaveOutputImageToFile(mDImOut, aNonEmptyPathToFolder, mUserDefinedFolderNameSaveResult, "DisplacedPixels",
-                                      mNumberPointsToGenerate, aTotalNumberOfIterations);
+            {
+                if (aUserDefinedFolderName)
+                    mDImOut->ToFile(mFolderSaveResult + "/DisplacedPixels_iter_" + ToStr(aIterNumber) + "_" +
+                                    ToStr(mNumberPointsToGenerate) + "_" +
+                                    ToStr(aTotalNumberOfIterations) + ".tif");
+                else
+                    mDImOut->ToFile("DisplacedPixels_iter_" + ToStr(aIterNumber) + "_" +
+                                    ToStr(mNumberPointsToGenerate) + "_" +
+                                    ToStr(aTotalNumberOfIterations) + ".tif");
+            }
         }
-        if (mInitialiseTranslationWithPreviousExecution)
+        else if (mInitialiseTranslationWithPreviousExecution)
         {
             mDImDepX->ToFile(mNameIntermediateDepX + ".tif");
             mDImDepY->ToFile(mNameIntermediateDepY + ".tif");
         }
-        if (!mUseMultiScaleApproach && (aIterNumber == aTotalNumberOfIterations - 1))
+        else
         {
-            SaveFinalDisplacementMapsToFile(mDImDepX, mDImDepY, aNonEmptyPathToFolder, mUserDefinedFolderNameSaveResult, "DisplacedPixelsX",
-                                            "DisplacedPixelsY", mNumberPointsToGenerate, aTotalNumberOfIterations);
-            SaveOutputImageToFile(mDImOut, aNonEmptyPathToFolder, mUserDefinedFolderNameSaveResult, "DisplacedPixels",
-                                  mNumberPointsToGenerate, aTotalNumberOfIterations);
+            if (aUserDefinedFolderName)
+            {
+                mDImDepX->ToFile(mFolderSaveResult + "/DisplacedPixelsX_" + ToStr(mNumberPointsToGenerate) + "_" +
+                                 ToStr(aTotalNumberOfIterations) + ".tif");
+                mDImDepY->ToFile(mFolderSaveResult + "/DisplacedPixelsY_" + ToStr(mNumberPointsToGenerate) + "_" +
+                                 ToStr(aTotalNumberOfIterations) + ".tif");
+                mDImOut->ToFile(mFolderSaveResult + "/DisplacedPixels_" + ToStr(mNumberPointsToGenerate) + "_" +
+                                ToStr(aTotalNumberOfIterations) + ".tif");
+            }
+            else
+            {
+                mDImDepX->ToFile("DisplacedPixelsX_" + ToStr(mNumberPointsToGenerate) + "_" +
+                                 ToStr(aTotalNumberOfIterations) + ".tif");
+                mDImDepY->ToFile("DisplacedPixelsY_" + ToStr(mNumberPointsToGenerate) + "_" +
+                                 ToStr(aTotalNumberOfIterations) + ".tif");
+                mDImOut->ToFile("DisplacedPixels_" + ToStr(mNumberPointsToGenerate) + "_" +
+                                ToStr(aTotalNumberOfIterations) + ".tif");
+            }
         }
     }
 
     void cAppli_TriangleDeformation::GenerateDisplacementMapsAndDisplayLastValuesUnknowns(const int aIterNumber, const int aTotalNumberOfIterations,
                                                                                           const bool aDisplayLastRadiometryValues, const bool aDisplayLastTranslationValues,
-                                                                                          const bool aNonEmptyPathToFolder)
+                                                                                          const bool aUserDefinedFolderName)
     {
         tDenseVect aVFinalSol = mSys->CurGlobSol();
 
         if (mGenerateDisplacementImage)
-            GenerateDisplacementMapsAndOutputImages(aVFinalSol, aIterNumber, aTotalNumberOfIterations, aNonEmptyPathToFolder);
+            GenerateDisplacementMapsAndOutputImages(aVFinalSol, aIterNumber, aTotalNumberOfIterations, aUserDefinedFolderName);
 
         if (aDisplayLastRadiometryValues || aDisplayLastTranslationValues)
             DisplayLastUnknownValues(aVFinalSol, aDisplayLastRadiometryValues, aDisplayLastTranslationValues);
     }
 
     void cAppli_TriangleDeformation::DoOneIteration(const int aIterNumber, const int aTotalNumberOfIterations,
-                                                    const bool aNonEmptyPathToFolder)
+                                                    const bool aUserDefinedFolderName)
     {
         LoopOverTrianglesAndUpdateParameters(aIterNumber, aTotalNumberOfIterations,
-                                             aNonEmptyPathToFolder); // Iterate over triangles and solve system
+                                             aUserDefinedFolderName); // Iterate over triangles and solve system
 
         // Show final translation results and produce displacement maps
         if (aIterNumber == (aTotalNumberOfIterations - 1))
             GenerateDisplacementMapsAndDisplayLastValuesUnknowns(aIterNumber, aTotalNumberOfIterations,
                                                                  mDisplayLastRadiometryValues, mDisplayLastTranslationValues,
-                                                                 aNonEmptyPathToFolder);
+                                                                 aUserDefinedFolderName);
     }
 
     //-----------------------------------------
@@ -669,12 +579,12 @@ namespace MMVII
         ReadFileNameLoadData(mNamePreImage, mImPre, mDImPre, mSzImPre);
         ReadFileNameLoadData(mNamePostImage, mImPost, mDImPost, mSzImPost);
 
-        bool aNonEmptyPathToFolder = false;
-        if (!mUserDefinedFolderNameSaveResult.empty())
+        bool aUserDefinedFolderName = false;
+        if (!mFolderSaveResult.empty())
         {
-            aNonEmptyPathToFolder = true;
-            if (!ExistFile(mUserDefinedFolderNameSaveResult))
-                CreateDirectories(mUserDefinedFolderNameSaveResult, aNonEmptyPathToFolder);
+            aUserDefinedFolderName = true;
+            if (!ExistFile(mFolderSaveResult))
+                CreateDirectories(mFolderSaveResult, aUserDefinedFolderName);
         }
 
         if (mUseMultiScaleApproach)
@@ -692,13 +602,11 @@ namespace MMVII
         // Generate triangulated knots coordinates
         DefineValueLimitsForPointGenerationAndBuildGrid(mNumberPointsToGenerate, mNumberOfLines,
                                                         mNumberOfCols, mDelTri, mSzImPre, mBuildRandomUniformGrid);
-        // Initialise equation and interpolators if needed
-        InitialiseInterpolationAndEquation(mEqTriDeform, mInterpol, mInterpolArgs, mUseLinearGradInterpolation);
 
         // If initialisation with previous excution is not wanted initialise the problem with zeros everywhere apart from radiometry scaling, with one
         if ((!mInitialiseTranslationWithPreviousExecution && !mInitialiseRadiometryWithPreviousExecution) || mInitialiseWithUserValues)
-            InitialisationWithUserValues(mDelTri, mSys, mInitialiseWithUserValues, mInitialiseXTranslationValue,
-                                         mInitialiseYTranslationValue, mInitialiseRadTrValue, mInitialiseRadScValue);
+            InitialisationAfterExe(mDelTri, mSys, mInitialiseWithUserValues, mInitialiseXTranslationValue,
+                                   mInitialiseYTranslationValue, mInitialiseRadTrValue, mInitialiseRadScValue);
         else
         {
             if (mIsFirstExecution && mInitialiseWithMMVI)
@@ -719,7 +627,7 @@ namespace MMVII
         (mUseMultiScaleApproach) ? aTotalNumberOfIterations = mNumberOfScales + mNumberOfEndIterations : aTotalNumberOfIterations = mNumberOfScales;
 
         for (int aIterNumber = 0; aIterNumber < aTotalNumberOfIterations; aIterNumber++)
-            DoOneIteration(aIterNumber, aTotalNumberOfIterations, aNonEmptyPathToFolder);
+            DoOneIteration(aIterNumber, aTotalNumberOfIterations, aUserDefinedFolderName);
 
         return EXIT_SUCCESS;
     }

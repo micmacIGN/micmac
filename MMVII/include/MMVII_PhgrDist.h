@@ -198,18 +198,12 @@ NS_SymbolicDerivative::cCalculator<double> * EqTopoDZ(bool WithDerive,int aSzBuf
 NS_SymbolicDerivative::cCalculator<double> * EqDeformImHomotethy(bool WithDerive,int aSzBuf);
 /// Variant of "EqDeformImHomotethy", case where we use linear approximation
 NS_SymbolicDerivative::cCalculator<double> * EqDeformImLinearGradHomotethy(bool WithDerive,int aSzBuf);
-/// Equation used to optimize translation and radiometry transformation between two images with bilinear interpolator.
-NS_SymbolicDerivative::cCalculator<double> *EqDeformTriBilin(bool WithDerive, int aSzBuf);
-/// Equation used to optimize translation transformation between two images with bilinear interpolator.
-NS_SymbolicDerivative::cCalculator<double> *EqDeformTriTranslationBilin(bool WithDerive, int aSzBuf);
-/// Equation used to optimize radiometric transformation between two images with bilinear interpolator.
-NS_SymbolicDerivative::cCalculator<double> *EqDeformTriRadiometryBilin(bool WithDerive, int aSzBuf);
-/// Equation used to optimize translation and radiometry transformation between two images with linear interpolator.
-NS_SymbolicDerivative::cCalculator<double> *EqDeformTriLinearGrad(bool WithDerive, int aSzBuf);
-/// Equation used to optimize translation transformation between two images with linear interpolator.
-NS_SymbolicDerivative::cCalculator<double> *EqDeformTriTranslationLinearGrad(bool WithDerive, int aSzBuf);
-/// Equation used to optimize radiometric transformation between two images with linear interpolator.
-NS_SymbolicDerivative::cCalculator<double> *EqDeformTriRadiometryLinearGrad(bool WithDerive, int aSzBuf);
+/// Equation used to optimize translation and radiometry transformation between two images.
+NS_SymbolicDerivative::cCalculator<double> *EqDeformTri(bool WithDerive, int aSzBuf);
+/// Equation used to optimize translation transformation between two images.
+NS_SymbolicDerivative::cCalculator<double> *EqDeformTriTranslation(bool WithDerive, int aSzBuf);
+/// Equation used to optimize radiometric transformation between two images.
+NS_SymbolicDerivative::cCalculator<double> *EqDeformTriRadiometry(bool WithDerive, int aSzBuf);
 
            // .............   Covariance propagation  .............
 

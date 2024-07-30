@@ -309,34 +309,19 @@ cCalculator<double> * EqDeformImAffinity(bool WithDerive,int aSzBuf)
      return StdAllocCalc(NameFormula(cDeformImAffinity(),WithDerive),aSzBuf);
 }
 
-cCalculator<double> *EqDeformTriBilin(bool WithDerive, int aSzBuf)
+cCalculator<double> *EqDeformTri(bool WithDerive, int aSzBuf)
 {
     return StdAllocCalc(NameFormula(cTriangleDeformation(), WithDerive), aSzBuf);
 }
 
-cCalculator<double> *EqDeformTriTranslationBilin(bool WithDerive, int aSzBuf)
+cCalculator<double> *EqDeformTriTranslation(bool WithDerive, int aSzBuf)
 {
     return StdAllocCalc(NameFormula(cTriangleDeformationTranslation(), WithDerive), aSzBuf);
 }
 
-cCalculator<double> *EqDeformTriRadiometryBilin(bool WithDerive, int aSzBuf)
+cCalculator<double> *EqDeformTriRadiometry(bool WithDerive, int aSzBuf)
 {
     return StdAllocCalc(NameFormula(cTriangleDeformationRadiometry(), WithDerive), aSzBuf);
-}
-
-cCalculator<double> *EqDeformTriLinearGrad(bool WithDerive, int aSzBuf)
-{
-    return StdAllocCalc(NameFormula(cTriangleDeformation(true), WithDerive), aSzBuf);
-}
-
-cCalculator<double> *EqDeformTriTranslationLinearGrad(bool WithDerive, int aSzBuf)
-{
-    return StdAllocCalc(NameFormula(cTriangleDeformationTranslation(true), WithDerive), aSzBuf);
-}
-
-cCalculator<double> *EqDeformTriRadiometryLinearGrad(bool WithDerive, int aSzBuf)
-{
-    return StdAllocCalc(NameFormula(cTriangleDeformationRadiometry(true), WithDerive), aSzBuf);
 }
 
 // dist3d
@@ -845,13 +830,9 @@ int cAppliGenCode::Exe()
        for (const auto IsLinearGrad : {true,false})
            GenCodesFormula((tREAL8*)nullptr,cDeformImHomotethy(IsLinearGrad)     ,WithDer);
 
-       for (const auto IsLinearGrad : {true,false})
-       {
-           GenCodesFormula((tREAL8*)nullptr, cTriangleDeformation(IsLinearGrad), WithDer);
-           GenCodesFormula((tREAL8*)nullptr, cTriangleDeformationTranslation(IsLinearGrad), WithDer);
-           GenCodesFormula((tREAL8*)nullptr, cTriangleDeformationRadiometry(IsLinearGrad), WithDer);
-       }
-
+       GenCodesFormula((tREAL8 *)nullptr, cTriangleDeformation(), WithDer);
+       GenCodesFormula((tREAL8 *)nullptr, cTriangleDeformationTranslation(), WithDer);
+       GenCodesFormula((tREAL8 *)nullptr, cTriangleDeformationRadiometry(), WithDer);
 
 
        //  ===============   CODE FOR RADIOMETRY =========================================
