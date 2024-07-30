@@ -404,6 +404,7 @@ namespace MMVII
 			const cNodeOfTriangles aThirdInitPointOfTri = cNodeOfTriangles(aVInit, aInitVecInd, 8, 9, 10, 11, aInitTri, 2);
 			// Initialisation of geometrical translation and radiometry scaling is necessary but not radiometry translation
 			// as the initiale value of radiometry translation is zero
+
 			aVInit(aInitVecInd.at(0)) = ReturnCorrectInitialisationValueMMVI(aDImCorrelationMask, aDImDepX,
 																			 aFirstInitPointOfTri, 0, anInterpolator);
 			aVInit(aInitVecInd.at(1)) = ReturnCorrectInitialisationValueMMVI(aDImCorrelationMask, aDImDepY,
@@ -587,16 +588,15 @@ namespace MMVII
 		return aNewTriangleNode;
 	}
 
-	bool CheckValidCorrelationValue(tDIm *&aMask, const cNodeOfTriangles &aPtOfTri,
+	bool CheckValidCorrelationValue(tDIm *&aMask, const tPt2dr &aCoordNode,
 									cDiffInterpolator1D *&anInterpolator)
 	{
-		const tPt2dr aCoordNode = aPtOfTri.GetInitialNodeCoordinates();
-		bool aIsValidCorrelPoint;
+		bool aValidCorrelPoint;
 		if (aMask->InsideInterpolator(*anInterpolator, aCoordNode, 0))
-			aIsValidCorrelPoint = (aMask->GetValueInterpol(*anInterpolator, aCoordNode) == 1) ? true : false;
+			aValidCorrelPoint = (aMask->GetValueInterpol(*anInterpolator, aCoordNode) == 255) ? true : false;
 		else
-			aIsValidCorrelPoint = false;
-		return aIsValidCorrelPoint;
+			aValidCorrelPoint = false;
+		return aValidCorrelPoint;
 	}
 
 	tREAL8 ReturnCorrectInitialisationValueMMVI(tDIm *&aMask, tDIm *&aDispMap, const cNodeOfTriangles &aPtOfTri,
@@ -604,13 +604,13 @@ namespace MMVII
 	{
 		const tPt2dr aCoordNode = aPtOfTri.GetInitialNodeCoordinates();
 		// Check if correlation is computed for the point
-		const bool aPointIsValid = CheckValidCorrelationValue(aMask, aPtOfTri, anInterpolator);
-		tREAL8 aInitialisationValue;
+		const bool aPointIsValid = CheckValidCorrelationValue(aMask, aCoordNode, anInterpolator);
+		tREAL8 anInitialisationValue;
 		if (aDispMap->InsideInterpolator(*anInterpolator, aCoordNode, 0))
-			aInitialisationValue = (aPointIsValid) ? aDispMap->GetValueInterpol(*anInterpolator, aCoordNode) : aValueToReturnIfFalse;
+			anInitialisationValue = (aPointIsValid) ? aDispMap->GetValueInterpol(*anInterpolator, aCoordNode) : aValueToReturnIfFalse;
 		else
-			aInitialisationValue = aValueToReturnIfFalse;
-		return aInitialisationValue;
+			anInitialisationValue = aValueToReturnIfFalse;
+		return anInitialisationValue;
 	}
 
 	bool CheckFolderExistence(const std::string &aUserDefinedFolderNameToSaveResult)
@@ -625,17 +625,26 @@ namespace MMVII
 		return aNonEmptyFolderName;
 	}
 
+	int GetTotalNumberOfIterations(const bool aUseOfMultiScaleApproach, const int aNumberOfIterations,
+								   const int aNumberOfEndIterations)
+	{
+		const int aTotalNumberOfIterations = (aUseOfMultiScaleApproach) ? aNumberOfIterations + aNumberOfEndIterations : aNumberOfIterations;
+		return aTotalNumberOfIterations;
+	}
+
 	void GetIndicesVector(tIntVect &aVecInd, const tPt3di &aIndicesOfTriKnots, const int aIsTwoOrFour)
 	{
-		(aIsTwoOrFour == 2) ? aVecInd = {2 * aIndicesOfTriKnots.x(), 2 * aIndicesOfTriKnots.x() + 1,
-										 2 * aIndicesOfTriKnots.y(), 2 * aIndicesOfTriKnots.y() + 1,
-										 2 * aIndicesOfTriKnots.z(), 2 * aIndicesOfTriKnots.z() + 1}
-							: aVecInd = {4 * aIndicesOfTriKnots.x(), 4 * aIndicesOfTriKnots.x() + 1,
-										 4 * aIndicesOfTriKnots.x() + 2, 4 * aIndicesOfTriKnots.x() + 3,
-										 4 * aIndicesOfTriKnots.y(), 4 * aIndicesOfTriKnots.y() + 1,
-										 4 * aIndicesOfTriKnots.y() + 2, 4 * aIndicesOfTriKnots.y() + 3,
-										 4 * aIndicesOfTriKnots.z(), 4 * aIndicesOfTriKnots.z() + 1,
-										 4 * aIndicesOfTriKnots.z() + 2, 4 * aIndicesOfTriKnots.z() + 3};
+		const int aCaseWithTwoUnk = 2;
+		const int aCaseWithFourUnk = 4;
+		(aIsTwoOrFour == aCaseWithTwoUnk) ? aVecInd = {aCaseWithTwoUnk * aIndicesOfTriKnots.x(), aCaseWithTwoUnk * aIndicesOfTriKnots.x() + 1,
+													   aCaseWithTwoUnk * aIndicesOfTriKnots.y(), aCaseWithTwoUnk * aIndicesOfTriKnots.y() + 1,
+													   aCaseWithTwoUnk * aIndicesOfTriKnots.z(), aCaseWithTwoUnk * aIndicesOfTriKnots.z() + 1}
+										  : aVecInd = {aCaseWithFourUnk * aIndicesOfTriKnots.x(), aCaseWithFourUnk * aIndicesOfTriKnots.x() + 1,
+													   aCaseWithFourUnk * aIndicesOfTriKnots.x() + 2, aCaseWithFourUnk * aIndicesOfTriKnots.x() + 3,
+													   aCaseWithFourUnk * aIndicesOfTriKnots.y(), aCaseWithFourUnk * aIndicesOfTriKnots.y() + 1,
+													   aCaseWithFourUnk * aIndicesOfTriKnots.y() + 2, aCaseWithFourUnk * aIndicesOfTriKnots.y() + 3,
+													   aCaseWithFourUnk * aIndicesOfTriKnots.z(), aCaseWithFourUnk * aIndicesOfTriKnots.z() + 1,
+													   aCaseWithFourUnk * aIndicesOfTriKnots.z() + 2, aCaseWithFourUnk * aIndicesOfTriKnots.z() + 3};
 	}
 
 	void SubtractPrePostImageAndComputeAvgAndMax(tIm &aImDiff, tDIm *&aDImDiff, tDIm *&aDImPre,
@@ -1117,6 +1126,7 @@ namespace MMVII
 																								   aLastYTranslatedCoord,
 																								   aLastIntCoordinate,
 																								   aSzImOut, aDImOut);
+
 		(tPt2di(aCorrectCoordToPlaceValueInImage) == tPt2di(aLastXTranslatedCoord, aLastYTranslatedCoord)) ? aDImOut->SetV(tPt2di(aLastXTranslatedCoord, aLastYTranslatedCoord), aLastPixelValue)
 																										   : aDImOut->SetV(aLastIntCoordinate, aDImOut->GetV(aCorrectCoordToPlaceValueInImage));
 	}

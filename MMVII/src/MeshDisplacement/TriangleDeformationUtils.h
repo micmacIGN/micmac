@@ -83,15 +83,15 @@ namespace MMVII
 		tPt2dr GetCurrentXYDisplacementValues() const;	// Accessor
 		tREAL8 GetCurrentRadiometryTranslation() const; // Accessor
 		tREAL8 GetCurrentRadiometryScaling() const;		// Accessor
-		int GetPointId() const;		 					// Accessor
-		int GetTriangleFace() const; 					// Accessor
+		int GetPointId() const;							// Accessor
+		int GetTriangleFace() const;					// Accessor
 
-		tPt2dr &GetInitialNodeCoordinates();			// Accessor
-		tPt2dr &GetCurrentXYDisplacementValues();		// Accessor
-		tREAL8 &GetCurrentRadiometryTranslation();		// Accessor
-		tREAL8 &GetCurrentRadiometryScaling();			// Accessor
-		int &GetPointId();			 					// Accessor
-		int &GetTriangleFace();		 					// Accessor
+		tPt2dr &GetInitialNodeCoordinates();	   // Accessor
+		tPt2dr &GetCurrentXYDisplacementValues();  // Accessor
+		tREAL8 &GetCurrentRadiometryTranslation(); // Accessor
+		tREAL8 &GetCurrentRadiometryScaling();	   // Accessor
+		int &GetPointId();						   // Accessor
+		int &GetTriangleFace();					   // Accessor
 
 		void AddData(const cAuxAr2007 &anAux, cNodeOfTriangles &aPtToSerialise); // Add data to xml file
 		void SaveTriangleNodeToFile() const;									 // Save to xml file
@@ -135,9 +135,9 @@ namespace MMVII
 		// Read a saved vector of triangle nodes into vector
 		static std::unique_ptr<cMultipleTriangleNodesSerialiser> ReadVectorOfTriangleNodes(const std::string &aFileName);
 
-		std::string GetName() const; 							// Accessor
+		std::string GetName() const;							// Accessor
 		size_t GetNumberOfVectorTriangleNodes() const;			// Accessor
-		std::vector<cNodeOfTriangles> GetVectorOfNodes() const;	// Accessor
+		std::vector<cNodeOfTriangles> GetVectorOfNodes() const; // Accessor
 		// Appends triangle nodes in vector
 		void PushInVector(const std::unique_ptr<const cNodeOfTriangles> &aTriangleNode);
 		void AddData(const cAuxAr2007 &anAux); // Add data method
@@ -201,15 +201,15 @@ namespace MMVII
 											 const tREAL8 aYTranslationInitVal);
 	// Initialise unknowns values with values obtained at previous execution for translation
 	void InitialiseWithPreviousExecutionValuesTranslationMMVI(const cTriangulation2D<tREAL8> &aDelTri,
-														  	  tSys *&aSysTranslation,
-														      cDiffInterpolator1D *&anInterpolator,
-														      const std::string &aNameDepXFile, tIm &aImDepX,
-														      tDIm *&aDImDepX, tPt2di &aSzImDepX,
-														      const std::string &aNameDepYFile, tIm &aImDepY,
-														      tDIm *&aDImDepY, tPt2di &aSzImDepY,
-														  	  const std::string &aNameCorrelationMask,
-														      tIm &aImCorrelationMask, tDIm *&aDImCorrelationMask,
-														  	  tPt2di &aSzCorrelationMask);
+															  tSys *&aSysTranslation,
+															  cDiffInterpolator1D *&anInterpolator,
+															  const std::string &aNameDepXFile, tIm &aImDepX,
+															  tDIm *&aDImDepX, tPt2di &aSzImDepX,
+															  const std::string &aNameDepYFile, tIm &aImDepY,
+															  tDIm *&aDImDepY, tPt2di &aSzImDepY,
+															  const std::string &aNameCorrelationMask,
+															  tIm &aImCorrelationMask, tDIm *&aDImCorrelationMask,
+															  tPt2di &aSzCorrelationMask);
 	// Initialise equation and interpolation if needed for radiometry
 	void InitialiseInterpolationAndEquationRadiometry(cCalculator<tREAL8> *&aEqRadiometryTri, cDiffInterpolator1D *&aInterpolRad,
 													  const std::vector<std::string> &aArgsVectorInterpolRad, const bool aUseLinearGradInterpolation);
@@ -221,13 +221,16 @@ namespace MMVII
 											const tREAL8 aRadScaleInitVal);
 	// Create unique pointer to triangle node to ease serialisation
 	std::unique_ptr<const cNodeOfTriangles> DefineNewTriangleNode(const tDenseVect &aVecSol, const tIntVect &aIndVec, const int aXInd,
-															const int aYInd, const int aRadTrInd, const int aRadScInd, const tTri2dr &aTriangle,
-															const tPt3di &aFace, const int aPointNumberInTri, const int anIdOfPoint);
+																  const int aYInd, const int aRadTrInd, const int aRadScInd, const tTri2dr &aTriangle,
+																  const tPt3di &aFace, const int aPointNumberInTri, const int anIdOfPoint);
 	// Check whether point has a correlation value or not thanks to MMVI correlation mask
-	bool CheckValidCorrelationValue(tDIm *&aMask, const cNodeOfTriangles &aPtOfTri,
+	bool CheckValidCorrelationValue(tDIm *&aMask, const tPt2dr &aCoordNode,
 									cDiffInterpolator1D *&anInterpolator);
 	// Check whether folder to save results exists or not
 	bool CheckFolderExistence(const std::string &aUserDefinedFolderNameToSaveResult);
+	// Return the total number of iterations in optimisation process for one execution
+	int GetTotalNumberOfIterations(const bool aUseOfMultiScaleApproach, const int aNumberOfIterations,
+								   const int aNumberOfEndIterations);
 	// Return correct value for initalisation depending on mask
 	tREAL8 ReturnCorrectInitialisationValueMMVI(tDIm *&aMask, tDIm *&aDispMap, const cNodeOfTriangles &aPtOfTri,
 												const tREAL8 aValueToReturnIfFalse, cDiffInterpolator1D *&anInterpolator);

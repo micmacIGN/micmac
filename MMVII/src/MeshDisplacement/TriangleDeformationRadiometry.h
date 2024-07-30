@@ -52,7 +52,7 @@ namespace MMVII
 		std::string mNamePreImage;	 // Name of given pre-image
 		std::string mNamePostImage;	 // Name of given post-image
 		int mNumberPointsToGenerate; // Number of generated points
-		int mNumberOfScales;		 // Number of iterations in optimisation process
+		int mNumberOfIterations;		 // Number of iterations in optimisation process
 
 		// ==  Optionnal args ====
 
@@ -62,7 +62,7 @@ namespace MMVII
 		bool mUseMultiScaleApproach;					// Apply multi-scale approach or not
 		bool mGenerateOutputImage;						// Generate image with computed radiometric pixels
 		bool mBuildRandomUniformGrid;					// Whether to triangulate grid made of points whose coordinates follow a uniform law or have coordinates that form rectangles
-		bool mUseMMVIIInterpolators;					// Whether to use interpolators from MicMacV2 instead of usual bilinear interpolation
+		bool mUseMMV2Interpolators;						// Whether to use interpolators from MicMacV2 instead of usual bilinear interpolation
 		std::vector<std::string> mInterpolArgs;			// Arguments to use if linear gradient interpolation is used
 		bool mSerialiseTriangleNodes;					// Whether to serialise nodes to .xml file or not
 		std::string mNameMultipleTriangleNodes;			// File name to use when saving all to triangle nodes to .xml file

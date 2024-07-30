@@ -109,7 +109,7 @@ namespace MMVII
 		return anArgObl << Arg2007(mNamePreImage, "Name of pre-image file.", {{eTA2007::FileImage}, {eTA2007::FileDirProj}})
 						<< Arg2007(mNamePostImage, "Name of post-image file.", {eTA2007::FileImage})
 						<< Arg2007(mNumberPointsToGenerate, "Number of points you want to generate for triangulation.")
-						<< Arg2007(mNumberOfScales, "Total number of scales to run in multi-scale approach or iterations if multi-scale approach is not applied in optimisation process.");
+						<< Arg2007(mNumberOfIterations, "Total number of scales to run in multi-scale approach or iterations if multi-scale approach is not applied in optimisation process.");
 	}
 
 	cCollecSpecArg2007 &cAppli_TriangleDeformation::ArgOpt(cCollecSpecArg2007 &anArgOpt)
@@ -281,7 +281,7 @@ namespace MMVII
 																										 aHardFreezeForFirstItersTranslation, aHardFreezeForFirstItersRadiometry);
 
 		if (mUseMultiScaleApproach)
-			mIsLastIters = ManageDifferentCasesOfEndIterations(aIterNumber, mNumberOfScales, mNumberOfEndIterations,
+			mIsLastIters = ManageDifferentCasesOfEndIterations(aIterNumber, mNumberOfIterations, mNumberOfEndIterations,
 															   mIsLastIters, mImPre, mImPost, aCurPreIm, aCurPreDIm,
 															   aCurPostIm, aCurPostDIm);
 		else
@@ -320,7 +320,8 @@ namespace MMVII
 		// Id of points
 		int aNodeCounter = 0;
 
-		std::unique_ptr<cMultipleTriangleNodesSerialiser> aVectorOfTriangleNodes = (mSerialiseTriangleNodes) ? cMultipleTriangleNodesSerialiser::NewMultipleTriangleNodes(mNameMultipleTriangleNodes) : nullptr;
+		std::unique_ptr<cMultipleTriangleNodesSerialiser> aVectorOfTriangleNodes = (mSerialiseTriangleNodes) ? cMultipleTriangleNodesSerialiser::NewMultipleTriangleNodes(mNameMultipleTriangleNodes)
+																											 : nullptr;
 		// Hard constraint : freeze radiometric or geometric translation coefficients
 		if (mHardFreezeTranslationX || mHardFreezeTranslationY ||
 			mHardFreezeRadTranslation || mHardFreezeRadScale)
@@ -385,70 +386,49 @@ namespace MMVII
 			tIntVect aVecInd;
 			GetIndicesVector(aVecInd, aIndicesOfTriKnots, 4);
 
-			tPt2dr aCurTrPointA = tPt2dr(0, 0);
-			tPt2dr aCurTrPointB = tPt2dr(0, 0);
-			tPt2dr aCurTrPointC = tPt2dr(0, 0);
-			tREAL8 aCurRadTrPointA = 0;
-			tREAL8 aCurRadScPointA = 1;
-			tREAL8 aCurRadTrPointB = 0;
-			tREAL8 aCurRadScPointB = 1;
-			tREAL8 aCurRadTrPointC = 0;
-			tREAL8 aCurRadScPointC = 1;
+			// Current translation 1st point of triangle
+			const tPt2dr aCurTrPointA = (!mSerialiseTriangleNodes) ? LoadNodeAndReturnCurrentDisplacement(aVCurSol, aVecInd, 0, 1, 2, 3, aTri, 0)
+																   : LoadNodeAppendVectorAndReturnCurrentDisplacement(aVCurSol, aVecInd, 0, 1, 2, 3, aTri, 0, aNodeCounter,
+																													  aIndicesOfTriKnots, true, aVectorOfTriangleNodes);
+			// Current translation 2nd point of triangle
+			const tPt2dr aCurTrPointB = (!mSerialiseTriangleNodes) ? LoadNodeAndReturnCurrentDisplacement(aVCurSol, aVecInd, 4, 5, 6, 7, aTri, 1)
+																   : LoadNodeAppendVectorAndReturnCurrentDisplacement(aVCurSol, aVecInd, 4, 5, 6, 7, aTri, 1, aNodeCounter + 1,
+																													  aIndicesOfTriKnots, true, aVectorOfTriangleNodes);
+			// Current translation 3rd point of triangle
+			const tPt2dr aCurTrPointC = (!mSerialiseTriangleNodes) ? LoadNodeAndReturnCurrentDisplacement(aVCurSol, aVecInd, 8, 9, 10, 11, aTri, 2)
+																   : LoadNodeAppendVectorAndReturnCurrentDisplacement(aVCurSol, aVecInd, 8, 9, 10, 11, aTri, 2, aNodeCounter + 2,
+																													  aIndicesOfTriKnots, true, aVectorOfTriangleNodes);
+			// Current translation on radiometry 1st point of triangle
+			const tREAL8 aCurRadTrPointA = (!mSerialiseTriangleNodes) ? LoadNodeAndReturnCurrentRadiometryTranslation(aVCurSol, aVecInd, 0, 1, 2, 3, aTri, 0)
+																	  : LoadNodeAppendVectorAndReturnCurrentRadiometryTranslation(aVCurSol, aVecInd, 0, 1, 2, 3, aTri, 0,
+																	  															  aNodeCounter, aIndicesOfTriKnots, false,
+																																  aVectorOfTriangleNodes);
+			// Current scale on radiometry 1st point of triangle
+			const tREAL8 aCurRadScPointA = (!mSerialiseTriangleNodes) ? LoadNodeAndReturnCurrentRadiometryScaling(aVCurSol, aVecInd, 0, 1, 2, 3, aTri, 0)
+																	  : LoadNodeAppendVectorAndReturnCurrentRadiometryScaling(aVCurSol, aVecInd, 0, 1, 2, 3, aTri, 0, aNodeCounter,
+																															  aIndicesOfTriKnots, false, aVectorOfTriangleNodes);
+			// Current translation on radiometry 2nd point of triangle
+			const tREAL8 aCurRadTrPointB = (!mSerialiseTriangleNodes) ? LoadNodeAndReturnCurrentRadiometryTranslation(aVCurSol, aVecInd, 4, 5, 6, 7, aTri, 1)
+																	  : LoadNodeAppendVectorAndReturnCurrentRadiometryTranslation(aVCurSol, aVecInd, 4, 5, 6, 7, aTri, 1,
+																	  															  aNodeCounter + 1, aIndicesOfTriKnots, false,
+																																  aVectorOfTriangleNodes);
+			// Current scale on radiometry 2nd point of triangle
+			const tREAL8 aCurRadScPointB = (!mSerialiseTriangleNodes) ? LoadNodeAndReturnCurrentRadiometryScaling(aVCurSol, aVecInd, 4, 5, 6, 7, aTri, 1)
+																	  : LoadNodeAppendVectorAndReturnCurrentRadiometryScaling(aVCurSol, aVecInd, 4, 5, 6, 7, aTri, 1,
+																	  														  aNodeCounter + 1, aIndicesOfTriKnots, false,
+																															  aVectorOfTriangleNodes);
+			// Current translation on radiometry 3rd point of triangle
+			const tREAL8 aCurRadTrPointC = (!mSerialiseTriangleNodes) ? LoadNodeAndReturnCurrentRadiometryTranslation(aVCurSol, aVecInd, 8, 9, 10, 11, aTri, 2)
+																	  : LoadNodeAppendVectorAndReturnCurrentRadiometryTranslation(aVCurSol, aVecInd, 8, 9, 10, 11, aTri, 2,
+																	  															  aNodeCounter + 2, aIndicesOfTriKnots, false,
+																																  aVectorOfTriangleNodes);
+			// Current scale on radiometry 3rd point of triangle
+			const tREAL8 aCurRadScPointC = (!mSerialiseTriangleNodes) ? LoadNodeAndReturnCurrentRadiometryScaling(aVCurSol, aVecInd, 8, 9, 10, 11, aTri, 2)
+																	  : LoadNodeAppendVectorAndReturnCurrentRadiometryScaling(aVCurSol, aVecInd, 8, 9, 10, 11, aTri, 2,
+																	  														  aNodeCounter + 2, aIndicesOfTriKnots, false,
+																															  aVectorOfTriangleNodes);
 
-			if (!mSerialiseTriangleNodes && aVectorOfTriangleNodes == nullptr)
-			{
-				// Current translation 1st point of triangle
-				aCurTrPointA = LoadNodeAndReturnCurrentDisplacement(aVCurSol, aVecInd, 0, 1, 2, 3, aTri, 0);
-				// Current translation 2nd point of triangle
-				aCurTrPointB = LoadNodeAndReturnCurrentDisplacement(aVCurSol, aVecInd, 4, 5, 6, 7, aTri, 1);
-				// Current translation 3rd point of triangle
-				aCurTrPointC = LoadNodeAndReturnCurrentDisplacement(aVCurSol, aVecInd, 8, 9, 10, 11, aTri, 2);
-
-				// Current translation on radiometry 1st point of triangle
-				aCurRadTrPointA = LoadNodeAndReturnCurrentRadiometryTranslation(aVCurSol, aVecInd, 0, 1, 2, 3, aTri, 0);
-				// Current scale on radiometry 1st point of triangle
-				aCurRadScPointA = LoadNodeAndReturnCurrentRadiometryScaling(aVCurSol, aVecInd, 0, 1, 2, 3, aTri, 0);
-				// Current translation on radiometry 2nd point of triangle
-				aCurRadTrPointB = LoadNodeAndReturnCurrentRadiometryTranslation(aVCurSol, aVecInd, 4, 5, 6, 7, aTri, 1);
-				// Current scale on radiometry 2nd point of triangle
-				aCurRadScPointB = LoadNodeAndReturnCurrentRadiometryScaling(aVCurSol, aVecInd, 4, 5, 6, 7, aTri, 1);
-				// Current translation on radiometry 3rd point of triangle
-				aCurRadTrPointC = LoadNodeAndReturnCurrentRadiometryTranslation(aVCurSol, aVecInd, 8, 9, 10, 11, aTri, 2);
-				// Current scale on radiometry 3rd point of triangle
-				aCurRadScPointC = LoadNodeAndReturnCurrentRadiometryScaling(aVCurSol, aVecInd, 8, 9, 10, 11, aTri, 2);
-			}
-			else if (mSerialiseTriangleNodes && aVectorOfTriangleNodes != nullptr)
-			{
-				// Current translation 1st point of triangle
-				aCurTrPointA = LoadNodeAppendVectorAndReturnCurrentDisplacement(aVCurSol, aVecInd, 0, 1, 2, 3, aTri, 0, aNodeCounter,
-																				aIndicesOfTriKnots, true, aVectorOfTriangleNodes);
-				// Current translation 2nd point of triangle
-				aCurTrPointB = LoadNodeAppendVectorAndReturnCurrentDisplacement(aVCurSol, aVecInd, 4, 5, 6, 7, aTri, 1, aNodeCounter + 1,
-																				aIndicesOfTriKnots, true, aVectorOfTriangleNodes);
-				// Current translation 3rd point of triangle
-				aCurTrPointC = LoadNodeAppendVectorAndReturnCurrentDisplacement(aVCurSol, aVecInd, 8, 9, 10, 11, aTri, 2, aNodeCounter + 2,
-																				aIndicesOfTriKnots, true, aVectorOfTriangleNodes);
-
-				// Current translation on radiometry 1st point of triangle
-				aCurRadTrPointA = LoadNodeAppendVectorAndReturnCurrentRadiometryTranslation(aVCurSol, aVecInd, 0, 1, 2, 3, aTri, 0, aNodeCounter,
-																							aIndicesOfTriKnots, false, aVectorOfTriangleNodes);
-				// Current scaling on radiometry 1st point of triangle
-				aCurRadScPointA = LoadNodeAppendVectorAndReturnCurrentRadiometryScaling(aVCurSol, aVecInd, 0, 1, 2, 3, aTri, 0, aNodeCounter,
-																						aIndicesOfTriKnots, false, aVectorOfTriangleNodes);
-				// Current translation on radiometry 2nd point of triangle
-				aCurRadTrPointB = LoadNodeAppendVectorAndReturnCurrentRadiometryTranslation(aVCurSol, aVecInd, 4, 5, 6, 7, aTri, 1, aNodeCounter + 1,
-																							aIndicesOfTriKnots, false, aVectorOfTriangleNodes);
-				// Current scaling on radiometry 2nd point of triangle
-				aCurRadScPointB = LoadNodeAppendVectorAndReturnCurrentRadiometryScaling(aVCurSol, aVecInd, 4, 5, 6, 7, aTri, 1, aNodeCounter + 1,
-																						aIndicesOfTriKnots, false, aVectorOfTriangleNodes);
-				// Current translation on radiometry 3rd point of triangle
-				aCurRadTrPointC = LoadNodeAppendVectorAndReturnCurrentRadiometryTranslation(aVCurSol, aVecInd, 8, 9, 10, 11, aTri, 2, aNodeCounter + 2,
-																							aIndicesOfTriKnots, false, aVectorOfTriangleNodes);
-				// Current scaling on radiometry 3rd point of triangle
-				aCurRadScPointC = LoadNodeAppendVectorAndReturnCurrentRadiometryScaling(aVCurSol, aVecInd, 8, 9, 10, 11, aTri, 2, aNodeCounter + 2,
-																						aIndicesOfTriKnots, false, aVectorOfTriangleNodes);
-				aNodeCounter += 3;
-			}
+			aNodeCounter = (!mSerialiseTriangleNodes) ? 0 : aNodeCounter + 3;
 
 			if (mWeightTranslationX > 0 || mWeightTranslationY > 0 || mWeightRadTranslation > 0 || mWeightRadScale > 0)
 			{
@@ -499,7 +479,8 @@ namespace MMVII
 																										aCurRadScPointC,
 																										aVObs);
 				// Check if pixel is inside image and therefore can be used as an observation
-				const bool aPixInside = (mUseMMV2Interpolators) ? aCurPostDIm->InsideInterpolator(*mInterpol, aTranslatedFilledPoint, 0) : aCurPostDIm->InsideBL(aTranslatedFilledPoint);
+				const bool aPixInside = (mUseMMV2Interpolators) ? aCurPostDIm->InsideInterpolator(*mInterpol, aTranslatedFilledPoint, 0)
+																: aCurPostDIm->InsideBL(aTranslatedFilledPoint);
 				if (aPixInside)
 				{
 					(mUseMMV2Interpolators) ?
@@ -514,7 +495,8 @@ namespace MMVII
 					mSys->CalcAndAddObs(mEqTriDeform, aVecInd, aVObs);
 
 					// Get interpolated value
-					const tREAL8 anInterpolatedValue = (mUseMMV2Interpolators) ? aCurPostDIm->GetValueInterpol(*mInterpol, aTranslatedFilledPoint) : aCurPostDIm->GetVBL(aTranslatedFilledPoint);
+					const tREAL8 anInterpolatedValue = (mUseMMV2Interpolators) ? aCurPostDIm->GetValueInterpol(*mInterpol, aTranslatedFilledPoint)
+																			   : aCurPostDIm->GetVBL(aTranslatedFilledPoint);
 					const tREAL8 aRadValueImPre = aRadiometryScaling * aVObs[5] + aRadiometryTranslation;
 					// Compute indicators
 					const tREAL8 aDif = aRadValueImPre - anInterpolatedValue; // residual
@@ -597,70 +579,53 @@ namespace MMVII
 			tIntVect aLastVecInd;
 			GetIndicesVector(aLastVecInd, aLastIndicesOfTriKnots, 4);
 
-			tPt2dr aLastTrPointA = tPt2dr(0, 0);
-			tPt2dr aLastTrPointB = tPt2dr(0, 0);
-			tPt2dr aLastTrPointC = tPt2dr(0, 0);
-			tREAL8 aLastRadTrPointA = 0;
-			tREAL8 aLastRadScPointA = 1;
-			tREAL8 aLastRadTrPointB = 0;
-			tREAL8 aLastRadScPointB = 1;
-			tREAL8 aLastRadTrPointC = 0;
-			tREAL8 aLastRadScPointC = 1;
+			// Last translation 1st point of triangle
+			const tPt2dr aLastTrPointA = (!mSerialiseTriangleNodes) ? LoadNodeAndReturnCurrentDisplacement(aVFinalSol, aLastVecInd, 0, 1, 2, 3, aLastTri, 0)
+																	: LoadNodeAppendVectorAndReturnCurrentDisplacement(aVFinalSol, aLastVecInd, 0, 1, 2, 3, aLastTri, 0,
+																													   aLastNodeCounter, aLastIndicesOfTriKnots, false,
+																													   aLastVectorOfTriangleNodes);
+			// Last translation 2nd point of triangle
+			const tPt2dr aLastTrPointB = (!mSerialiseTriangleNodes) ? LoadNodeAndReturnCurrentDisplacement(aVFinalSol, aLastVecInd, 4, 5, 6, 7, aLastTri, 1)
+																	: LoadNodeAppendVectorAndReturnCurrentDisplacement(aVFinalSol, aLastVecInd, 4, 5, 6, 7, aLastTri, 1,
+																													   aLastNodeCounter + 1, aLastIndicesOfTriKnots, false,
+																													   aLastVectorOfTriangleNodes);
+			// Last translation 3rd point of triangle
+			const tPt2dr aLastTrPointC = (!mSerialiseTriangleNodes) ? LoadNodeAndReturnCurrentDisplacement(aVFinalSol, aLastVecInd, 8, 9, 10, 11, aLastTri, 2)
+																	: LoadNodeAppendVectorAndReturnCurrentDisplacement(aVFinalSol, aLastVecInd, 8, 9, 10, 11, aLastTri, 2,
+																													   aLastNodeCounter + 2, aLastIndicesOfTriKnots, false,
+																													   aLastVectorOfTriangleNodes);
+			// Last radiometry translation of 1st point
+			const tREAL8 aLastRadTrPointA = (!mSerialiseTriangleNodes) ? LoadNodeAndReturnCurrentRadiometryTranslation(aVFinalSol, aLastVecInd, 0, 1, 2, 3, aLastTri, 0)
+																	   : LoadNodeAppendVectorAndReturnCurrentRadiometryTranslation(aVFinalSol, aLastVecInd, 0, 1, 2, 3, aLastTri, 0,
+																																   aLastNodeCounter, aLastIndicesOfTriKnots, false,
+																																   aLastVectorOfTriangleNodes);
+			// Last radiometry scaling of 1st point
+			const tREAL8 aLastRadScPointA = (!mSerialiseTriangleNodes) ? LoadNodeAndReturnCurrentRadiometryScaling(aVFinalSol, aLastVecInd, 0, 1, 2, 3, aLastTri, 0)
+																	   : LoadNodeAppendVectorAndReturnCurrentRadiometryScaling(aVFinalSol, aLastVecInd, 0, 1, 2, 3, aLastTri, 0,
+																															   aLastNodeCounter, aLastIndicesOfTriKnots, false,
+																															   aLastVectorOfTriangleNodes);
+			// Last radiometry translation of 2nd point
+			const tREAL8 aLastRadTrPointB = (!mSerialiseTriangleNodes) ? LoadNodeAndReturnCurrentRadiometryTranslation(aVFinalSol, aLastVecInd, 4, 5, 6, 7, aLastTri, 1)
+																	   : LoadNodeAppendVectorAndReturnCurrentRadiometryTranslation(aVFinalSol, aLastVecInd, 4, 5, 6, 7, aLastTri, 1,
+																																   aLastNodeCounter + 1, aLastIndicesOfTriKnots, false,
+																																   aLastVectorOfTriangleNodes);
+			// Last radiometry scaling of 2nd point
+			const tREAL8 aLastRadScPointB = (!mSerialiseTriangleNodes) ? LoadNodeAndReturnCurrentRadiometryScaling(aVFinalSol, aLastVecInd, 4, 5, 6, 7, aLastTri, 1)
+																	   : LoadNodeAppendVectorAndReturnCurrentRadiometryScaling(aVFinalSol, aLastVecInd, 4, 5, 6, 7, aLastTri, 1,
+																															   aLastNodeCounter + 1, aLastIndicesOfTriKnots, false,
+																															   aLastVectorOfTriangleNodes);
+			// Last radiometry translation of 3rd point
+			const tREAL8 aLastRadTrPointC = (!mSerialiseTriangleNodes) ? LoadNodeAndReturnCurrentRadiometryTranslation(aVFinalSol, aLastVecInd, 8, 9, 10, 11, aLastTri, 2)
+																	   : LoadNodeAppendVectorAndReturnCurrentRadiometryTranslation(aVFinalSol, aLastVecInd, 8, 9, 10, 11, aLastTri, 2,
+																																   aLastNodeCounter + 2, aLastIndicesOfTriKnots, false,
+																																   aLastVectorOfTriangleNodes);
+			// Last radiometry scaling of 3rd point
+			const tREAL8 aLastRadScPointC = (!mSerialiseTriangleNodes) ? LoadNodeAndReturnCurrentRadiometryScaling(aVFinalSol, aLastVecInd, 8, 9, 10, 11, aLastTri, 2)
+																	   : LoadNodeAppendVectorAndReturnCurrentRadiometryScaling(aVFinalSol, aLastVecInd, 8, 9, 10, 11, aLastTri, 2,
+																															   aLastNodeCounter + 2, aLastIndicesOfTriKnots, false,
+																															   aLastVectorOfTriangleNodes);
 
-			if (!mSerialiseTriangleNodes)
-			{
-				// Last translation 1st point of triangle
-				aLastTrPointA = LoadNodeAndReturnCurrentDisplacement(aVFinalSol, aLastVecInd, 0, 1, 2, 3, aLastTri, 0);
-				// Last translation 2nd point of triangle
-				aLastTrPointB = LoadNodeAndReturnCurrentDisplacement(aVFinalSol, aLastVecInd, 4, 5, 6, 7, aLastTri, 1);
-				// Last translation 3rd point of triangle
-				aLastTrPointC = LoadNodeAndReturnCurrentDisplacement(aVFinalSol, aLastVecInd, 8, 9, 10, 11, aLastTri, 2);
-
-				// Last radiometry translation of 1st point
-				aLastRadTrPointA = LoadNodeAndReturnCurrentRadiometryTranslation(aVFinalSol, aLastVecInd, 0, 1, 2, 3, aLastTri, 0);
-				// Last radiometry scaling of 1st point
-				aLastRadScPointA = LoadNodeAndReturnCurrentRadiometryScaling(aVFinalSol, aLastVecInd, 0, 1, 2, 3, aLastTri, 0);
-				// Last radiometry translation of 2nd point
-				aLastRadTrPointB = LoadNodeAndReturnCurrentRadiometryTranslation(aVFinalSol, aLastVecInd, 4, 5, 6, 7, aLastTri, 1);
-				// Last radiometry scaling of 2nd point
-				aLastRadScPointB = LoadNodeAndReturnCurrentRadiometryScaling(aVFinalSol, aLastVecInd, 4, 5, 6, 7, aLastTri, 1);
-				// Last radiometry translation of 3rd point
-				aLastRadTrPointC = LoadNodeAndReturnCurrentRadiometryTranslation(aVFinalSol, aLastVecInd, 8, 9, 10, 11, aLastTri, 2);
-				// Last radiometry scaling of 3rd point
-				aLastRadScPointC = LoadNodeAndReturnCurrentRadiometryScaling(aVFinalSol, aLastVecInd, 8, 9, 10, 11, aLastTri, 2);
-			}
-			else
-			{
-				// Last translation 1st point of triangle
-				aLastTrPointA = LoadNodeAppendVectorAndReturnCurrentDisplacement(aVFinalSol, aLastVecInd, 0, 1, 2, 3, aLastTri, 0, aLastNodeCounter,
-																				 aLastIndicesOfTriKnots, false, aLastVectorOfTriangleNodes);
-				// Last translation 2nd point of triangle
-				aLastTrPointB = LoadNodeAppendVectorAndReturnCurrentDisplacement(aVFinalSol, aLastVecInd, 4, 5, 6, 7, aLastTri, 1, aLastNodeCounter + 1,
-																				 aLastIndicesOfTriKnots, false, aLastVectorOfTriangleNodes);
-				// Last translation 3rd point of triangle
-				aLastTrPointC = LoadNodeAppendVectorAndReturnCurrentDisplacement(aVFinalSol, aLastVecInd, 8, 9, 10, 11, aLastTri, 2, aLastNodeCounter + 2,
-																				 aLastIndicesOfTriKnots, false, aLastVectorOfTriangleNodes);
-
-				// Last radiometry translation of 1st point
-				aLastRadTrPointA = LoadNodeAppendVectorAndReturnCurrentRadiometryTranslation(aVFinalSol, aLastVecInd, 0, 1, 2, 3, aLastTri, 0, aLastNodeCounter,
-																							 aLastIndicesOfTriKnots, false, aLastVectorOfTriangleNodes);
-				// Last radiometry scaling of 1st point
-				aLastRadScPointA = LoadNodeAppendVectorAndReturnCurrentRadiometryScaling(aVFinalSol, aLastVecInd, 0, 1, 2, 3, aLastTri, 0, aLastNodeCounter,
-																						 aLastIndicesOfTriKnots, false, aLastVectorOfTriangleNodes);
-				// Last radiometry translation of 2nd point
-				aLastRadTrPointB = LoadNodeAppendVectorAndReturnCurrentRadiometryTranslation(aVFinalSol, aLastVecInd, 4, 5, 6, 7, aLastTri, 1, aLastNodeCounter + 1,
-																							 aLastIndicesOfTriKnots, false, aLastVectorOfTriangleNodes);
-				// Last radiometry scaling of 2nd point
-				aLastRadScPointB = LoadNodeAppendVectorAndReturnCurrentRadiometryScaling(aVFinalSol, aLastVecInd, 4, 5, 6, 7, aLastTri, 1, aLastNodeCounter + 1,
-																						 aLastIndicesOfTriKnots, false, aLastVectorOfTriangleNodes);
-				// Last radiometry translation of 3rd point
-				aLastRadTrPointC = LoadNodeAppendVectorAndReturnCurrentRadiometryTranslation(aVFinalSol, aLastVecInd, 8, 9, 10, 11, aLastTri, 2, aLastNodeCounter + 2,
-																							 aLastIndicesOfTriKnots, false, aLastVectorOfTriangleNodes);
-				// Last radiometry scaling of 3rd point
-				aLastRadScPointC = LoadNodeAppendVectorAndReturnCurrentRadiometryScaling(aVFinalSol, aLastVecInd, 8, 9, 10, 11, aLastTri, 2, aLastNodeCounter + 2,
-																						 aLastIndicesOfTriKnots, false, aLastVectorOfTriangleNodes);
-				aLastNodeCounter += 3;
-			}
+			aLastNodeCounter = (!mSerialiseTriangleNodes) ? 0 : aLastNodeCounter + 3;
 
 			const size_t aLastNumberOfInsidePixels = aLastVectorToFillWithInsidePixels.size();
 
@@ -756,7 +721,7 @@ namespace MMVII
 		const bool aNonEmptyFolderName = CheckFolderExistence(mUserDefinedFolderNameSaveResult);
 
 		if (mUseMultiScaleApproach)
-			mSigmaGaussFilter = mNumberOfScales * mSigmaGaussFilterStep;
+			mSigmaGaussFilter = mNumberOfIterations * mSigmaGaussFilterStep;
 
 		if (mComputeAvgMax)
 			SubtractPrePostImageAndComputeAvgAndMax(mImDiff, mDImDiff, mDImPre,
@@ -808,8 +773,8 @@ namespace MMVII
 
 		const tDenseVect aVInitSol = mSys->CurGlobSol().Dup(); // Duplicate initial solution
 
-		int aTotalNumberOfIterations = 0;
-		(mUseMultiScaleApproach) ? aTotalNumberOfIterations = mNumberOfScales + mNumberOfEndIterations : aTotalNumberOfIterations = mNumberOfScales;
+		const int aTotalNumberOfIterations = GetTotalNumberOfIterations(mUseMultiScaleApproach, mNumberOfIterations,
+																		mNumberOfEndIterations);
 
 		for (int aIterNumber = 0; aIterNumber < aTotalNumberOfIterations; aIterNumber++)
 			DoOneIteration(aIterNumber, aTotalNumberOfIterations, aNonEmptyFolderName, aHardFreezeForFirstItersTranslation,
@@ -838,4 +803,4 @@ namespace MMVII
 		{eApDT::Image}, // Output
 		__FILE__);
 
-};	// namespace MMVII
+}; // namespace MMVII

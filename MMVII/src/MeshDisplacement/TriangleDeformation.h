@@ -57,10 +57,10 @@ namespace MMVII
 	private:
 		// ==== Mandatory args ====
 
-		std::string mNamePreImage;	 // Name of given pre-image
-		std::string mNamePostImage;	 // Name of given post-image
-		int mNumberPointsToGenerate; // Number of generated points
-		int mNumberOfScales;		 // Number of iterations in optimisation process
+		std::string mNamePreImage;	 	// Name of given pre-image
+		std::string mNamePostImage;	 	// Name of given post-image
+		int mNumberPointsToGenerate; 	// Number of generated points
+		int mNumberOfIterations;		// Number of iterations in optimisation process
 
 		// ==== Optionnal args ====
 

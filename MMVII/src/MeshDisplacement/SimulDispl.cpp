@@ -33,9 +33,11 @@ namespace MMVII
 
         tImDispl             GenerateSmoothRandDispl();
         cDiffInterpolator1D *InitUserInterpolator();
+		void GenerateDiscontinuity(tDImDispl *&aDImDispx, tDImDispl *&aDImDispy);
 
 	private:
 		// ==== Mandatory args ====
+
 		std::string mNameImage; // Name of the input image to deform
 
 		// ==== Optionnal args ====
@@ -67,9 +69,9 @@ namespace MMVII
                                          mUserDefinedDispYMapName("UserDeplY.tif"),
                                          mInterpName("Cubic"),
                                          mInterpParams({"Tabul", "1000", "Cubic", "-0.5"}),
-                                         mImIn(cPt2di(1, 1)),
+                                         mImIn(tPt2di(1, 1)),
                                          mDImIn(nullptr),
-                                         mImOut(cPt2di(1, 1)),
+                                         mImOut(tPt2di(1, 1)),
                                          mDImOut(nullptr)
     {
     }
