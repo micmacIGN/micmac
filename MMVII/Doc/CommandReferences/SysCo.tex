@@ -174,7 +174,7 @@ Two \CdPPP\ commands can use topo measurements in compensation:
     \item \texttt{TopoAdj} (see \ref{subsec:TopoAdj})
 \end{itemize}
 
-The topo measurements file can be given as a set of \CdPPP\ json or xml file, or in a simplified text format (named \texttt{OBS} file) inherited from IGN's
+The topo measurements files can be given as a set of \CdPPP\ json or xml files, or in a simplified text format (named \texttt{OBS} file) inherited from IGN's
 Comp3D\footnote{\url{https://github.com/IGNF/Comp3D}} micro-geodesy compensation software.
 
 All the measurements files must be in the \texttt{MMVII-PhgrProj/Topo/[TopoObsName]} folder.
@@ -248,7 +248,7 @@ The coordinates of PtB and PtC are just for initialization.
 
 To import these coordinates in \CdPPP\ we use the \texttt{ImportGCP} command, where we give the text format
 (additional\_info, name, x, y, z), the name of the resulting \texttt{PointsMeasure} and the coordinates SysCo.
-We also specify that the points who have an additional\_info of '0' are free points, that the sigma for
+We also specify that the points that have '0' for their additional\_info are free points, that the sigma for
 known points is 0.001m and that lines starting with '*' are comment lines.
 
 \begin{lstlisting}
@@ -256,7 +256,7 @@ MMVII ImportGCP inputs/coords.txt ANXYZ InitL93 ChSys=[L93] AddInfoFree=0 Sigma=
 \end{lstlisting}
 
 In the resulting file \texttt{MMVII-PhgrProj/PointsMeasure/InitL93/MesGCP-coords.xml},
-the points PtA and PtD have a \texttt{\_\_Opt\_\_Sigma2} set to 0.001 m $\sigma$,
+the points PtA and PtD have a set \texttt{\_\_Opt\_\_Sigma2} equivalent to $\sigma = 0.001 m$ ,
 the points PtB and PtC have no \texttt{\_\_Opt\_\_Sigma2}, making them free points.
 
 
@@ -387,13 +387,14 @@ MMVII GCPChSysCo L93 FinalRTL FinalL93
 
 \section{Stations orientation constraints}
 
-Each station has orientation constraints that have to be given before the station observations lines in the \texttt{{obs}} file.
+Each station has orientation constraints that have to be given before the station observations lines in the \texttt{{OBS}} file.
 
 The possible orientation constraints are:
 \begin{itemize}
    \item \texttt{\#FIX}: the station is axis-aligned, it is verticalized and oriented to North
    \item \texttt{\#VERT}: the station is verticalized and only horizontal orientation is free
    \item \texttt{\#BASC}: the station orientation has 3 degrees of freedom, meaning non-verticalized and not oriented to North
+   \item TODO \texttt{\#CAM}:the station orientation is the camera orientation (only allowed for point names that corresponds to image file names)
 \end{itemize}
 
 After a \texttt{\#} line (\texttt{\#FIX}, \texttt{\#VERT} or \texttt{\#BASC}), all the following stations have the new orientation constraint until the next \texttt{\#} line.
