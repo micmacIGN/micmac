@@ -44,7 +44,7 @@ Compilation procedure is discribed below for the 3 main operating systems:
 - **[macOS](#macos)** 
 
 ## Linux Ubuntu distribution
-Before starting the installation, it is necessary to install **MicMac v1** by following the instructions **[HERE](https://github.com/micmacIGN/micmac/README.md)**.
+Before starting the installation, it is necessary to install **MicMac v1** by following the instructions **[HERE](../README.md)**.
 
 Under Linux (Ubuntu) distribution the installation procedure is as follows:
 
@@ -79,7 +79,7 @@ Under Linux (Ubuntu) distribution the installation procedure is as follows:
 	```
 
 ## Windows
-Before starting the installation, it is necessary to install **MicMac v1** by following the instructions **[HERE](https://github.com/micmacIGN/micmac/README.md)**.
+Before starting the installation, it is necessary to install **MicMac v1** by following the instructions **[HERE](../README.md)**.
 
 Under Windows the installation procedure is as follows:
 
