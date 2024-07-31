@@ -1315,35 +1315,24 @@ then contact MPD.
 \label{Chap:TopoProg}
 \subsection{Global presentation}
 
-The premises of a topographic survey compensation system can be found in \texttt{MMVII/src/Topo/}.
+Topographic survey compensation system can be found in \texttt{MMVII/src/Topo/}.
 
-For now it is used in commands \texttt{OriBundleAdj} and \texttt{TopoAdj}, and in the Bench \texttt{TopoComp}.
+For now it is used in commands \texttt{OriBundleAdj} and \texttt{TopoAdj}, and in the Bench \texttt{TopoComp} (see \ref{Chap:TopoUser}).
 
 This Bench will be used to illustrate the survey classes and their usage.
 
 
-\subsection{Frames for survey stations}
-
-\begin{figure}[!h]
-\centering
-\includegraphics[width=12cm]{Programmer/framesTopo.png}
-\caption{The different frames types used in compensation}
-\label{fig:topoFrames}
-\end{figure}
-
-
- \begin{itemize}
-    \item \texttt{Green}: a projection SysCo. As it is not euclidian, all point coordinates must be converted into RTL before compensation.
-    \item \texttt{Blue}: the RTL SysCo for the computation. Every parameter is in this frame.
-    \item \texttt{Purple}: each point has its own local euclidian tangent frame depending on its position.
-    \item \texttt{Yellow}: each topoemtric station has a rotation between the local euclidian tangent frame and the instrument frame.
- \end{itemize}
-
-The computation must take place in a 3D euclidian frame.
-For now, only RTL SysCo is supported.
-
-
 \subsubsection{Topo survey classes}
+
+The topo files are:
+ \begin{itemize}
+    \item \texttt{src/Topo/ctopopoint.h, src/Topo/ctopopoint.cpp}: class \texttt{cTopoPoint} (see below)
+    \item \texttt{src/Topo/ctopoobs.h, src/Topo/ctopoobs.cpp}: class \texttt{cTopoObs} (see below)
+    \item \texttt{src/Topo/ctopoobsset.h, src/Topo/ctopoobsset.cpp}: classes \texttt{cTopoObsSet} and derived classes (see below)
+    \item \texttt{src/Topo/topoinit.h, src/Topo/topoinit.cpp}: coordinates initialisation algorithms
+    \item \texttt{src/Topo/ctopodata.h, src/Topo/ctopodata.cpp}: classes for data serialization and deserialization
+    \item \texttt{include/MMVII\_Topo.h, src/Topo/Topo.cpp}: class \texttt{cBA\_Topo} (see below)
+ \end{itemize}
 
 The topo computation classes are :
  \begin{itemize}
@@ -1362,6 +1351,17 @@ They are a simplified version of the classes without the \texttt{Data} suffix.
 The concrete class that is currently used is \texttt{cTopoObsSetStation}, that corresponds to a survey instrument positionned on one point.
 It has a notion of {\tt origin} (the point where the instrument is positionned), and an orientation matrix in the RTL SysCo.
 If the station is verticalized, the initial orientation matrix corresponds to the vertical orientation on the origin point, and only a rotation arround the vertical direction is free.
+
+\subsubsection{Integration into photogrammetric compensation}
+
+Each topo measurement is between 3D points corresponding to system unknowns. These 3D points can be camera origins or GCPs.
+
+It is allowed to have topo measurements referencing points that are not cameras origins nor declared in GCP list.
+In this case, new 3D points will be created, and added to the last GCP set of the adjustment (during the last \texttt{cAppliBundlAdj::AddOneSetGCP()} call).
+
+Those points will have no coordinates constraints (free), and will be initialized by the topo system. If there is no initialization method usable for the point,
+an error will occure and the user will have to provide initial coordinates in the GCP 3D file.
+
 
 \subsubsection{Topo survey equations}
 

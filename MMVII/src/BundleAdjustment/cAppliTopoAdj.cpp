@@ -4,7 +4,7 @@
    \file cAppliTopoAdj.cpp
 
 */
-#include "../Topo/Topo.h"
+#include "MMVII_Topo.h"
 
 
 
@@ -168,9 +168,6 @@ int cAppliTopoAdj::Exe()
     {
         mBA.OneIterationTopoOnly(mLVM, true);
     }
-
-    for (auto & aSI : mBA.VSIm())
-        mPhProj.SaveSensor(*aSI);
 
     mBA.Save_newGCP();
     mBA.SaveTopo(); // just for debug for now

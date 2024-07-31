@@ -1,7 +1,13 @@
+#ifndef TOPO_H
+#define TOPO_H
+
 #include "MMVII_SysSurR.h"
 #include "MMVII_Sensor.h"
 #include "MMVII_SysCo.h"
-#include "ctopodata.h"
+#include "../src/Topo/ctopopoint.h"
+#include "../src/Topo/ctopoobs.h"
+#include "../src/Topo/ctopoobsset.h"
+#include "../src/Topo/ctopodata.h"
 
 using namespace NS_SymbolicDerivative;
 
@@ -11,16 +17,14 @@ namespace MMVII
 class cMMVII_BundleAdj;
 class cPhotogrammetricProject;
 class cSensorCamPC;
-class cTopoObsSet;
-class cTopoObs;
-class cTopoPoint;
 class cBA_GCP;
+
+typedef std::map<const cTopoPoint*, std::vector<cTopoObsSetStation*>> tStationsMap;
 
 class cBA_Topo : public cMemCheck
 {
     friend class cTopoData;
 public :
-
     cBA_Topo(cPhotogrammetricProject *aPhProj, cMMVII_BundleAdj *aBA);
     ~cBA_Topo();
     void clear();
@@ -41,6 +45,9 @@ public :
     void printObs(bool withDetails=false);
     double  Sigma0() {return mSigma0;}
     std::vector<cTopoObs*> GetObsPoint(std::string aPtName) const;
+
+    bool tryInitAll();
+    bool tryInit(cTopoPoint & aTopoPt, tStationsMap & stationsMap);
 
     bool mergeUnknowns(cResolSysNonLinear<tREAL8> &aSys); //< if several stations share origin etc.
     void makeConstraints(cResolSysNonLinear<tREAL8> &aSys);
@@ -65,3 +72,4 @@ private :
 
 };
 
+#endif // TOPO_H

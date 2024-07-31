@@ -1,8 +1,7 @@
 #include "BundleAdjustment.h"
 #include "MMVII_util_tpl.h"
 
-#include "../Topo/Topo.h"
-#include "../Topo/ctopoobs.h"
+#include "MMVII_Topo.h"
 
 /**
    \file cAppliBundAdj.cpp

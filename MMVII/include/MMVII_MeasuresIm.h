@@ -144,6 +144,7 @@ class cMes1GCP
         std::string mAdditionalInfo;
 
         std::optional<cArray<tREAL4,6> >  mOptSigma2;  //  xx xy xz yy yz zz
+        bool isInit() const {return mPt.IsValid();}
 };
 
 /**  A set of cMes1GCP */

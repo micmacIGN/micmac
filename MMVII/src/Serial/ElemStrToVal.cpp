@@ -193,6 +193,7 @@ template<> cE2Str<eTopoObsType>::tMapE2Str cE2Str<eTopoObsType>::mE2S
 
 template<> cE2Str<eTopoStOriStat>::tMapE2Str cE2Str<eTopoStOriStat>::mE2S
            {
+                {eTopoStOriStat::eTopoStOriContinue,"#NEW"},
                 {eTopoStOriStat::eTopoStOriFixed,"#FIX"},
                 {eTopoStOriStat::eTopoStOriVert,"#VERT"},
                 {eTopoStOriStat::eTopoStOriBasc,"#BASC"},

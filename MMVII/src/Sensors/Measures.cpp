@@ -528,7 +528,7 @@ cMes1GCP::cMes1GCP(const cPt3dr & aPt, const std::string & aNamePt, tREAL4 aSigm
 }
 
 cMes1GCP::cMes1GCP() :
-    cMes1GCP (cPt3dr(0,0,0),"??")
+    cMes1GCP (cPt3dr::Dummy(),"??")
 {
 }
 

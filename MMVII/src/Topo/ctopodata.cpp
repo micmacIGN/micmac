@@ -1,10 +1,7 @@
 #include "ctopodata.h"
 #include "MMVII_PhgrDist.h"
-#include "ctopopoint.h"
-#include "ctopoobsset.h"
-#include "ctopoobs.h"
 #include "MMVII_2Include_Serial_Tpl.h"
-#include "Topo.h"
+#include "MMVII_Topo.h"
 #include <memory>
 #include <fstream>
 #include <sstream>
@@ -181,7 +178,7 @@ bool cTopoData::InsertCompObsFile(const std::string & aFileName)
     std::ifstream infile(aFileName);
     if (!infile.is_open())
     {
-        StdOut() << "Error: can't open obs file \""<<aFileName<<"\""<<std::endl;
+        MMVII_INTERNAL_ERROR("Error: can't open obs file \""+aFileName+"\"")
         return false;
     }
 
@@ -202,21 +199,22 @@ bool cTopoData::InsertCompObsFile(const std::string & aFileName)
         if (aNewStationStatus != eTopoStOriStat::eNbVals)
         {
             addObsSets(aCurrentVectObsSetStations); // if a station status is given, use only new stations
-            aCurrStationStatus = aNewStationStatus;
+            if (aNewStationStatus != eTopoStOriStat::eTopoStOriContinue)
+                aCurrStationStatus = aNewStationStatus;
             continue;
         }
 
         int code;
         if (!(iss >> code))
         {
-            StdOut() << "Error reading "<<aFileName<<" at line " << line_num << ": \""<<line<<"\"\n";
+            MMVII_INTERNAL_ERROR("Error reading "+aFileName+" at line "+std::to_string(line_num)+": \""+line+"\"")
             continue;
         }
 
         eCompObsType code_comp  = intToCompObsType(code);
         // Check if the conversion succeeded
         if (code_comp == eCompObsType::eCompError) {
-            StdOut() << "Error reading "<<aFileName<<" at line " << line_num << ": \""<<line<<"\"\n";
+            MMVII_INTERNAL_ERROR("Error reading "+aFileName+" at line "+std::to_string(line_num)+": \""+line+"\"")
             continue;
         }
 
@@ -224,7 +222,12 @@ bool cTopoData::InsertCompObsFile(const std::string & aFileName)
         double val, sigma;
         if (!(iss >> nameFrom >> nameTo >> val >> sigma))
         {
-            StdOut() << "Error reading "<<aFileName<<" at line " << line_num << ": \""<<line<<"\"\n";
+            MMVII_INTERNAL_ERROR("Error reading "+aFileName+" at line "+std::to_string(line_num)+": \""+line+"\"")
+            continue;
+        }
+        if (sigma<0)
+        {
+            StdOut() << "skip: \""+line+"\"  (sigma<0)\n";
             continue;
         }
 
@@ -246,7 +249,7 @@ bool cTopoData::InsertCompObsFile(const std::string & aFileName)
 
         if (!addObs(aCurrentVectObsSetStations, code_comp, nameFrom, nameTo,
                     val, sigma, aCurrStationStatus))
-            StdOut() << "Error interpreting line " << line_num << ": \""<<aFileName<<"\"\n";
+            MMVII_INTERNAL_ERROR("Error interpreting line "+std::to_string(line_num)+": \""+aFileName+"\"")
 
         ++aNbNewObs;
     }
@@ -373,7 +376,7 @@ std::pair<cTopoData, cSetMesGCP>  cTopoData::createEx3()
     cSetMesGCP aSetPts;
     aSetPts.AddMeasure( cMes1GCP(cPt3dr(100,110,100), "Ori1", 0.001) );
     aSetPts.AddMeasure( cMes1GCP(cPt3dr(100,100,100), "St1", 0.001) );
-    aSetPts.AddMeasure( cMes1GCP(cPt3dr(105,115,105), "Tr1") ); // 107.072, 107.072, 100
+    //aSetPts.AddMeasure( cMes1GCP(cPt3dr(105,115,105), "Tr1") ); // init not needed. Final: 107.072, 107.072, 100
 
     double g0 = 2.2;
     cTopoObsData aObs1 = {eTopoObsType::eHz, {"St1", "Ori1"},  {0. - g0}, {0.001}};

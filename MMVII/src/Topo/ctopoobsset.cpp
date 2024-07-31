@@ -1,17 +1,14 @@
 #include "ctopoobsset.h"
 #include "MMVII_PhgrDist.h"
 #include "MMVII_2Include_Serial_Tpl.h"
-#include "ctopoobs.h"
-#include "ctopopoint.h"
-#include "ctopodata.h"
 #include "MMVII_PCSens.h"
-#include "Topo.h"
+#include "MMVII_Topo.h"
 #include <memory>
 namespace MMVII
 {
 
 cTopoObsSet::cTopoObsSet(cBA_Topo * aBA_Topo, eTopoObsSetType type):
-    mType(type), mBA_Topo(aBA_Topo)
+    mType(type), mBA_Topo(aBA_Topo), mInit(false)
 {
 }
 
@@ -158,6 +155,10 @@ void cTopoObsSetStation::makeConstraints(cResolSysNonLinear<tREAL8> & aSys)
 
     switch (mOriStatus)
     {
+    case(eTopoStOriStat::eTopoStOriContinue):
+        // should not exist, Continue is only for obs files
+        MMVII_INTERNAL_ASSERT_strong(false, "cTopoObsSetStation::makeConstraints: incorrect ori status")
+        break;
     case(eTopoStOriStat::eTopoStOriFixed):
         mRotOmega.Pt() = {0.,0.,0.};
 #ifdef VERBOSE_TOPO
@@ -224,24 +225,33 @@ bool cTopoObsSetStation::initialize()
     }
     setOrigin(aOriginName); // use 1st from name as station name
 
+    mInit = false;
     // initialize
     // mRotSysCo2Vert is initialized by setOrigin()
     switch (mOriStatus)
     {
+    case(eTopoStOriStat::eTopoStOriContinue):
+        // should not exist, Continue is only for obs files
+        MMVII_INTERNAL_ASSERT_strong(false, "cTopoObsSetStation::initialize: incorrect ori status")
+        break;
     case(eTopoStOriStat::eTopoStOriFixed):
+        mInit = mPtOrigin->isInit();
         return true; // nothing to do
     case(eTopoStOriStat::eTopoStOriVert):
     {
+        if (!mPtOrigin->isInit())
+            return false;
         cTopoObs * aObsDX = nullptr;
         cTopoObs * aObsDY = nullptr;
         tREAL8 G0 = NAN;
         for (auto & obs: mObs)
         {
+            auto & aPtTo = mBA_Topo->getPoint(obs->getPointName(1));
+            if (!aPtTo.isInit())
+                continue;
             if (obs->getType() == eTopoObsType::eHz)
             {
-                // TODO: use projection for init G0
-                // TODO: check if points are init
-                auto & aPtTo = mBA_Topo->getPoint(obs->getPointName(1));
+                // TODO: use projection for G0 init
                 G0 = atan2( aPtTo.getPt()->x() - mPtOrigin->getPt()->x(),
                                    aPtTo.getPt()->y() - mPtOrigin->getPt()->y())
                             - obs->getMeasures().at(0);
@@ -258,7 +268,6 @@ bool cTopoObsSetStation::initialize()
         if (aObsDX && aObsDY) // compute G0 from DX DY if Hz not found
         {
             // TODO: use projection for init G0
-            // TODO: check if points are init
             auto & aPtTo = mBA_Topo->getPoint(aObsDX->getPointName(1));
             G0 = atan2( aPtTo.getPt()->x() - mPtOrigin->getPt()->x(),
                                aPtTo.getPt()->y() - mPtOrigin->getPt()->y())
@@ -277,6 +286,7 @@ bool cTopoObsSetStation::initialize()
             StdOut() << "    "<<mRotVert2Instr.AxeJ()<<"\n";
             StdOut() << "    "<<mRotVert2Instr.AxeK()<<"\n";
 #endif
+            mInit = true;
             return true;
         }
         return false;
@@ -284,6 +294,7 @@ bool cTopoObsSetStation::initialize()
     case(eTopoStOriStat::eTopoStOriBasc):
         MMVII_DEV_WARNING("cTopoObsSetStation rotation initialization not ready.")
         // TODO: T-S?
+        mInit = mPtOrigin->isInit();
         return true;
     case(eTopoStOriStat::eNbVals):
         MMVII_INTERNAL_ASSERT_strong(false, "cTopoObsSetStation::initialize: incorrect ori status")
@@ -310,16 +321,10 @@ void cTopoObsSetStation::setOrigin(std::string _OriginName)
     mPtOrigin = &mBA_Topo->getPoint(_OriginName);
     mOriginName = _OriginName;
 
-    // automatic origin initialization
-    if (!mPtOrigin->getPt()->IsValid())
-    {
-        MMVII_DEV_WARNING("cTopoObsSetStation origin initialization not ready.")
-        *mPtOrigin->getPt() = {0.,0.,0.};
-    }
-
     mRotVert2Instr = tRot::Identity();
     mRotOmega.Pt() = {0.,0.,0.};
-    updateVertMat();
+    if (mPtOrigin->isInit())
+        updateVertMat();
 }
 
 tREAL8 cTopoObsSetStation::getG0() const

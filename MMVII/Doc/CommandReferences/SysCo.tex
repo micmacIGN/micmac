@@ -166,7 +166,8 @@ The following measurements types are currently supported:
     \item direct Euclidian vector observation
 \end{itemize}
 
-The measurements can be made between cameras poses, GCPs or undeclared points that will be inserted into the last GCP set of the adjustment.
+The measurements can be made between cameras poses, GCPs or undeclared points that will be inserted into the last GCP set of the adjustment
+(if automatic coordinates initialization succeeds).
 
 Two \CdPPP\ commands can use topo measurements in compensation:
 \begin{itemize}
@@ -174,7 +175,7 @@ Two \CdPPP\ commands can use topo measurements in compensation:
     \item \texttt{TopoAdj} (see \ref{subsec:TopoAdj})
 \end{itemize}
 
-The topo measurements file can be given as a set of \CdPPP\ json or xml file, or in a simplified text format (named \texttt{OBS} file) inherited from IGN's
+The topo measurements files can be given as a set of \CdPPP\ json or xml files, or in a simplified text format (named \texttt{OBS} file) inherited from IGN's
 Comp3D\footnote{\url{https://github.com/IGNF/Comp3D}} micro-geodesy compensation software.
 
 All the measurements files must be in the \texttt{MMVII-PhgrProj/Topo/[TopoObsName]} folder.
@@ -248,7 +249,7 @@ The coordinates of PtB and PtC are just for initialization.
 
 To import these coordinates in \CdPPP\ we use the \texttt{ImportGCP} command, where we give the text format
 (additional\_info, name, x, y, z), the name of the resulting \texttt{PointsMeasure} and the coordinates SysCo.
-We also specify that the points who have an additional\_info of '0' are free points, that the sigma for
+We also specify that the points that have '0' for their additional\_info are free points, that the sigma for
 known points is 0.001m and that lines starting with '*' are comment lines.
 
 \begin{lstlisting}
@@ -256,7 +257,7 @@ MMVII ImportGCP inputs/coords.txt ANXYZ InitL93 ChSys=[L93] AddInfoFree=0 Sigma=
 \end{lstlisting}
 
 In the resulting file \texttt{MMVII-PhgrProj/PointsMeasure/InitL93/MesGCP-coords.xml},
-the points PtA and PtD have a \texttt{\_\_Opt\_\_Sigma2} set to 0.001 m $\sigma$,
+the points PtA and PtD have a set \texttt{\_\_Opt\_\_Sigma2} equivalent to $\sigma = 0.001 m$ ,
 the points PtB and PtC have no \texttt{\_\_Opt\_\_Sigma2}, making them free points.
 
 
@@ -387,20 +388,49 @@ MMVII GCPChSysCo L93 FinalRTL FinalL93
 
 \section{Stations orientation constraints}
 
-Each station has orientation constraints that have to be given before the station observations lines in the \texttt{{obs}} file.
+Each station has orientation constraints that have to be given before the station observations lines in the \texttt{OBS} file.
+Each orientation constraint is indicated as a line starting with \texttt{\#} (from now on, called a \texttt{\#}-line).
+\\
 
 The possible orientation constraints are:
 \begin{itemize}
    \item \texttt{\#FIX}: the station is axis-aligned, it is verticalized and oriented to North
    \item \texttt{\#VERT}: the station is verticalized and only horizontal orientation is free
    \item \texttt{\#BASC}: the station orientation has 3 degrees of freedom, meaning non-verticalized and not oriented to North
+   \item TODO \texttt{\#CAM}:the station orientation is the camera orientation (only allowed for point names that correspond to image file names)
 \end{itemize}
 
-After a \texttt{\#} line (\texttt{\#FIX}, \texttt{\#VERT} or \texttt{\#BASC}), all the following stations have the new orientation constraint until the next \texttt{\#} line.
+After a \texttt{\#}-line, all the following stations have the new orientation constraint until the next \texttt{\#}-line with new orientation unknowns.
+For convenience, \texttt{\#NEW} can be used to keep current orientation constraint type and just add new unknowns for orientation (see \ref{subsec:SeveralStationsSamePoint}).
+
 
 Each \texttt{OBS} file starts with an implicit \texttt{\#VERT}, making the stations verticalized by default.
 
 For now, the vertical is modeled as the Earth's ellipsoid normal. Vertical deflection grids may be added later.
+
+
+
+\subsection{Frames for survey stations}
+
+The computation must take place in a 3D euclidian frame. For now, only RTL SysCo is supported.
+Figure \ref{fig:topoFrames} shows the frames used in topo compensation.
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=12cm]{Programmer/framesTopo.png}
+\caption{The different frames types used in compensation:
+   \texttt{Green}: a projection SysCo. As it is not euclidian, compensation should not be done in this frame.
+   \texttt{Blue}: the RTL SysCo for the computation. Every parameter is in this frame.
+   \texttt{Purple}: each 3D point has its own local euclidian frame tangent to the ellipsoid
+   \texttt{Yellow}: each topometric station has a rotation between the local euclidian tangent frame and the instrument frame.
+ }
+\label{fig:topoFrames}
+\end{figure}
+
+
+Stations orientation constraints fix some parts of the rotation between local tangent frame and instrument frame:
+no rotation (\textbf{\#FIX}), rotation around $Z$ only (\textbf{\#VERT}), or free rotation (\textbf{\#BASC}).
+
 
 
 \subsection{Return to quickstart example}
@@ -465,20 +495,85 @@ is verticalized and the horizontal reference is North:
 
 
 \subsection{Several stations on the same point}
+\label{subsec:SeveralStationsSamePoint}
 
 \CdPPP\ automatically creates a new station when a point is used for the first time as the origin of a measurement.
 
 If we have to make a new set of orientation unknowns because two instruments were set on the same point with different
-orientations, we can:
+orientations, we can either:
 
 \begin{itemize}
-   \item use separated \texttt{OBS} files
-   \item add a \texttt{\#} line to separate the measurements sets
-   \item use a code \textbf{7} for the first measurement
+   \item use separate \texttt{OBS} files
+   \item add a \texttt{\#}-line to separate the measurements sets (\texttt{\#NEW} is useful in this case to make a station with the same orientation constraints as before)
+   \item use a code \textbf{7} instead of \textbf{5} for the first measurement of the new station
 \end{itemize}
 
+A separate \texttt{OBS} files or a \texttt{\#}-line closes all current stations.
+Code \textbf{7} only closes the previous station on one point. 
 
-\subsection{Special case of distance-only measurements}
+Some illustrations :
+\begin{verbatim}
+ 7   St1    PtA   100.000   0.001 * creates a station on St1
+ 5   St1    PtB   110.000   0.001
+
+ 7   St1    PtA   150.000   0.001 * closes current station on St1, creates a new one on St1
+ 5   St1    PtC   210.000   0.001
+\end{verbatim}
+Creates two stations originating on point \texttt{St1}. Each of these station
+is vericalized (thanks to the implicit \texttt{\#VERT} at the start of the file) and each has one horizontal orientation unknown.
+Here, there is a 50 grades difference between the two stations orientations.
+
+With:
+\begin{verbatim}
+ 7   St1    PtA     100.000      0.001 * creates a station on St1
+ 5   St1    PtB     110.000      0.001
+
+ 5   St1    PtA     150.000      0.001
+ 5   St1    PtC     210.000      0.001
+\end{verbatim}
+There is only one station on \texttt{St1}. The incoherent horizontal angles values
+will make the computation fail.
+
+Another way to fix it:
+\begin{verbatim}
+ 5   St1    PtA     100.000      0.001 * creates a station on St1
+ 5   St1    PtB     110.000      0.001
+#NEW                                   * closes all current stations
+ 5   St1    PtA     150.000      0.001 * creates a station on St1
+ 5   St1    PtC     210.000      0.001
+\end{verbatim}
+The fisrt \textbf{7} is not mandatory since it is the start of a file, there is no
+current stations. \texttt{\#NEW} closes all the current stations, keeping the same orientations constraints (stations verticalized).
+
+Code \textbf{7} only closes the current station on one point :
+\begin{verbatim}
+ 5   St1    PtA   100.000   0.001 * creates a station on St1
+ 5   St1    PtB   110.000   0.001
+ 
+ 5   St2    PtA   200.000   0.001 * creates a station on St2
+ 5   St2    PtD   300.000   0.001
+
+ 7   St1    PtA   150.000   0.001 * closes station on St1, creates a new one on St1
+ 5   St1    PtC   210.000   0.001
+
+ 5   St2    PtE   250.000   0.001 * uses previous station on St2
+\end{verbatim}
+But:
+\begin{verbatim}
+ 5   St1    PtA   100.000   0.001 * creates a station on St1
+ 5   St1    PtB   110.000   0.001
+ 
+ 5   St2    PtA   200.000   0.001 * creates a station on St2
+ 5   St2    PtD   300.000   0.001
+#NEW                              * closes all the stations
+ 5   St1    PtA   150.000   0.001 * creates a station on St1
+ 5   St1    PtC   210.000   0.001
+
+ 5   St2    PtE   250.000   0.001 * creates a station on St2
+\end{verbatim}
+
+
+\subsection{Special case for distance-only measurements}
 
 If a station only has distances measurements, it is automatically
 set as a \texttt{\#FIX} station, since this station orientation unknowns

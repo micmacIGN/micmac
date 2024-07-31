@@ -2,10 +2,8 @@
 #include "MMVII_PhgrDist.h"
 #include "MMVII_2Include_Serial_Tpl.h"
 #include <memory>
-#include "ctopoobsset.h"
-#include "ctopopoint.h"
 #include "MMVII_SysSurR.h"
-#include "Topo.h"
+#include "MMVII_Topo.h"
 
 namespace MMVII
 {
