@@ -32,8 +32,9 @@ public:
     void setVertDefl(const cPtxd<tREAL8, 2> &_vertDefl);
     std::string toString();
     const cPtxd<tREAL8, 3> & getInitCoord() const {return mInitCoord;}
-    std::string getName() {return mName;}
+    std::string getName() const {return mName;}
     std::vector<int> getIndices();
+    bool isInit() const {return mPt->IsValid();}
 protected:
     std::string mName;
     cPt3dr mInitCoord; //< coord initialized only for pure topo points, may be also reference coordinates if not free for any type of point

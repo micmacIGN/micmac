@@ -31,8 +31,9 @@ public:
     cTopoObs* getObs(size_t i) {return mObs.at(i);}
     std::vector<cTopoObs*> & getAllObs() {return mObs;}
     bool addObs(eTopoObsType type, cBA_Topo * aBA_Topo, const std::vector<std::string> &pts, const std::vector<tREAL8> & vals,  const cResidualWeighterExplicit<tREAL8> & aWeights);
-    virtual void makeConstraints(cResolSysNonLinear<tREAL8> & aSys) = 0; // add constraints for current set
-    virtual bool initialize() = 0; // initialize set parameters, after all obs and points were added
+    virtual void makeConstraints(cResolSysNonLinear<tREAL8> & aSys) = 0; ///< add constraints for current set
+    virtual bool initialize() = 0; ///< initialize set parameters, after all obs and points were added
+    bool isInit() const {return mInit;}
 protected:
     cTopoObsSet(cBA_Topo *aBA_Topo, eTopoObsSetType type);
     cTopoObsSet(cTopoObsSet const&) = delete;
@@ -42,9 +43,10 @@ protected:
     eTopoObsSetType mType;
     std::vector<cTopoObs*> mObs;
     //cObjWithUnkowns<tREAL8> * mUK;
-    std::vector<tREAL8> mParams; //the only copy of the parameters
-    std::vector<eTopoObsType> mAllowedObsTypes;//to check if new obs are allowed
+    std::vector<tREAL8> mParams; ///< the only copy of the parameters
+    std::vector<eTopoObsType> mAllowedObsTypes; ///< to check if new obs are allowed
     cBA_Topo * mBA_Topo;
+    bool mInit; ///< is the set initialized
 };
 
 /**
@@ -73,7 +75,7 @@ public:
     void OnUpdate() override;    ///< "reaction" after linear update, eventually update inversion
     virtual std::string toString() const override;
     void makeConstraints(cResolSysNonLinear<tREAL8> &aSys) override;
-    virtual bool initialize() override; // initialize rotation
+    virtual bool initialize() override; ///< initialize rotation
 
     void setOrigin(std::string _OriginName);
     void PushRotObs(std::vector<double> & aVObs) const;

@@ -76,9 +76,9 @@ void cBA_Topo::clear()
 
 void cBA_Topo::findPtsUnknowns(const std::vector<cBA_GCP*> & vGCP, cPhotogrammetricProject *aPhProj)
 {
-    for (auto & [aName, aPtT] : getAllPts())
+    for (auto & [aName, aTopoPt] : getAllPts())
     {
-        aPtT.findUK(vGCP, aPhProj, aPtT.getInitCoord());
+        aTopoPt.findUK(vGCP, aPhProj, aTopoPt.getInitCoord());
     }
 }
 
@@ -146,7 +146,7 @@ void cBA_Topo::AddPointsFromDataToGCP(cSetMesImGCP &aFullMesGCP, std::vector<cBA
 
     for (auto & aPointName: aAllPointsNamesNotFound)
     {
-        aFullMesGCP.Add1GCP( cMes1GCP({0.,0.,0.}, aPointName) );
+        aFullMesGCP.Add1GCP( cMes1GCP(cPt3dr::Dummy(), aPointName) ); // points non-init
     }
 
     mAllTopoDataIn.clear(); // if this function is called again, nothing more to add
@@ -156,11 +156,19 @@ void cBA_Topo::FromData(const std::vector<cBA_GCP *> & vGCP, cPhotogrammetricPro
 {
     findPtsUnknowns(vGCP, aPhProj);
 
-    // finish initialization when points are ready
+    // initialization
+    tryInitAll();
+
+    // check that everything is initialized
+    for (auto& [aName, aTopoPt] : mAllPts)
+    {
+        MMVII_INTERNAL_ASSERT_User(aTopoPt.isInit(), eTyUEr::eUnClassedError,
+                                   "Error: Point "+aName+" initialization failed.")
+    }
     for (auto & aSet: mAllObsSets)
     {
-        MMVII_INTERNAL_ASSERT_User(aSet->initialize(), eTyUEr::eUnClassedError,
-                                   "Error: Station initialization failed.")
+        MMVII_INTERNAL_ASSERT_User(aSet->isInit(), eTyUEr::eUnClassedError,
+                                   "Error: Obs Set initialization failed.")
     }
     mIsReady = true;
 }
@@ -169,8 +177,8 @@ void cBA_Topo::FromData(const std::vector<cBA_GCP *> & vGCP, cPhotogrammetricPro
 void cBA_Topo::print()
 {
     StdOut() << "Points:\n";
-    for (auto& [aName, aPtT] : mAllPts)
-        StdOut() << " - "<<aPtT.toString()<<"\n";
+    for (auto& [aName, aTopoPt] : mAllPts)
+        StdOut() << " - "<<aTopoPt.toString()<<"\n";
     StdOut() << "ObsSets:\n";
     for (auto &obsSet: mAllObsSets)
         StdOut() << " - "<<obsSet->toString()<<"\n";
@@ -299,8 +307,123 @@ void cBA_Topo::AddTopoEquations(cResolSysNonLinear<tREAL8> & aSys)
     mSigma0 = sqrt(mSigma0/(aNbObs-aNbUk));
 }
 
+bool cBA_Topo::tryInitAll()
+{
+    // get all stations ordered by origin to optimize research
+    for (auto & aSet: mAllObsSets)
+        aSet->initialize(); // to get origin point for stations
+    tStationsMap allStations;
+    for (auto & aSet: mAllObsSets)
+    {
+        if (aSet->getType() ==  eTopoObsSetType::eStation)
+        {
+            cTopoObsSetStation* set = dynamic_cast<cTopoObsSetStation*>(aSet);
+            if (!set)
+                MMVII_INTERNAL_ERROR("error set type")
+            allStations[set->getPtOrigin()].push_back(set);
+        }
+    }
 
+    int aNbUninit=0;
+    for (auto & aSet: mAllObsSets)
+        if (!aSet->isInit())
+            ++aNbUninit;
+    for (auto& [aName, aTopoPt] : mAllPts)
+        if (!aTopoPt.isInit())
+            ++aNbUninit;
+    int aPreviousNbUninit = aNbUninit + 1; // kickstart
 
+    while (aPreviousNbUninit>aNbUninit)
+    {
+#ifdef VERBOSE_TOPO
+        StdOut() << "tryInitAll: " << aNbUninit << " to init.\n";
+#endif
+
+        for (auto& [aName, aTopoPt] : mAllPts)
+            if (!aTopoPt.isInit())
+                tryInit(aTopoPt, allStations);
+        for (auto & aSet: mAllObsSets)
+            if (!aSet->isInit())
+                aSet->initialize();
+
+        aPreviousNbUninit = aNbUninit;
+        aNbUninit = 0;
+        for (auto & aSet: mAllObsSets)
+            if (!aSet->isInit())
+                ++aNbUninit;
+        for (auto& [aName, aTopoPt] : mAllPts)
+            if (!aTopoPt.isInit())
+                ++aNbUninit;
+    }
+    return aNbUninit==0;
+}
+
+bool cBA_Topo::tryInit(cTopoPoint & aPtToInit, tStationsMap &stationsMap)
+{
+    if (aPtToInit.isInit())
+        return true;
+#ifdef VERBOSE_TOPO
+    StdOut() << "tryInit: " << aPtToInit.getName() <<".\n";
+#endif
+    // try bearing and distance from verticalized stations
+    {
+        for (auto& [aOriginPt, aStationVect] : stationsMap)
+        {
+            tREAL8 az=NAN, zen=NAN, dist=NAN;
+            if (!aOriginPt->isInit())
+                continue;
+            for (auto & aStation: aStationVect)
+            {
+                for (const auto & aObs: aStation->getAllObs())
+                {
+                    if (aObs->getPointName(1)==aPtToInit.getName())
+                    {
+                        // search for az: station needs to be init
+                        if (!std::isfinite(az))
+                            if ((aObs->getType()==eTopoObsType::eHz) && (aStation->isInit())
+                                    && ((aStation->getOriStatus()==eTopoStOriStat::eTopoStOriFixed)
+                                        || (aStation->getOriStatus()==eTopoStOriStat::eTopoStOriVert)))
+                                az = aObs->getMeasures()[0] + aStation->getG0();
+                        if (!std::isfinite(zen))
+                            if ((aObs->getType()==eTopoObsType::eZen) && (
+                                    (aStation->getOriStatus()==eTopoStOriStat::eTopoStOriFixed)
+                                    || (aStation->getOriStatus()==eTopoStOriStat::eTopoStOriVert)) )
+                                zen = aObs->getMeasures()[0];
+                        if (!std::isfinite(dist))
+                            if (aObs->getType()==eTopoObsType::eDist)
+                                dist = aObs->getMeasures()[0];
+
+                    }
+                }
+            }
+            if (std::isfinite(az) && std::isfinite(zen) && std::isfinite(dist))
+            {
+#ifdef VERBOSE_TOPO
+                StdOut() << "Init as bearing and distance from " << aOriginPt->getName() << "\n";
+#endif
+                cPt3dr a3DVect;
+                double d0=dist*sin(zen);
+                a3DVect.x() = d0*sin(az);
+                a3DVect.y() = d0*cos(az);
+                a3DVect.z() = dist*cos(zen);
+                *aPtToInit.getPt() =  *aOriginPt->getPt() + a3DVect;
+                return true;
+            }
+        }
+    }
+
+    // try 3D obs from one station
+    {
+
+    }
+
+    // try resection
+    {
+
+    }
+
+    return false;
+}
 //-------------------------------------------------------------------
 
 void BenchTopoComp1example(const std::pair<cTopoData, cSetMesGCP>& aBenchData, tREAL4 targetSigma0)

@@ -12,6 +12,7 @@ class cMMVII_BundleAdj;
 class cPhotogrammetricProject;
 class cSensorCamPC;
 class cTopoObsSet;
+class cTopoObsSetStation;
 class cTopoObs;
 class cTopoPoint;
 class cBA_GCP;
@@ -20,7 +21,7 @@ class cBA_Topo : public cMemCheck
 {
     friend class cTopoData;
 public :
-
+    typedef std::map<const cTopoPoint*, std::vector<cTopoObsSetStation*>> tStationsMap;
     cBA_Topo(cPhotogrammetricProject *aPhProj, cMMVII_BundleAdj *aBA);
     ~cBA_Topo();
     void clear();
@@ -41,6 +42,9 @@ public :
     void printObs(bool withDetails=false);
     double  Sigma0() {return mSigma0;}
     std::vector<cTopoObs*> GetObsPoint(std::string aPtName) const;
+
+    bool tryInitAll();
+    bool tryInit(cTopoPoint & aTopoPt, tStationsMap & stationsMap);
 
     bool mergeUnknowns(cResolSysNonLinear<tREAL8> &aSys); //< if several stations share origin etc.
     void makeConstraints(cResolSysNonLinear<tREAL8> &aSys);
