@@ -46,7 +46,7 @@ void cTopoPoint::findUK(const std::vector<cBA_GCP *> & vGCP, cPhotogrammetricPro
                     mPt = &gcp->mGCP_UK.at(i)->Pt(); //< use existing unknown if available
                     mInitCoord = *mPt;
     #ifdef VERBOSE_TOPO
-                    StdOut() << "is a GCP with existing unknowns: "<<*mPt<<" "<<mUK<<"\n";
+                    StdOut() << "is a GCP\n";
     #endif
                     return;
                 } else {
