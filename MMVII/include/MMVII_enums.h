@@ -569,10 +569,11 @@ enum class eTopoObsType
 // cTopoObsSetStation orientation freedom status
 enum class eTopoStOriStat
 {
-        eTopoStOriFixed,  ///< no rotation
-        eTopoStOriVert,   ///< z rotation
-        eTopoStOriBasc,   ///< 3d rotation
-        eNbVals           ///< Tag for number of value
+        eTopoStOriContinue, ///< special case,  used only on obs reading: same as previous ori constraint, just a marker to split stations
+        eTopoStOriFixed,    ///< no rotation
+        eTopoStOriVert,     ///< z rotation
+        eTopoStOriBasc,     ///< 3d rotation
+        eNbVals             ///< Tag for number of value
 };
 
 

@@ -388,17 +388,21 @@ MMVII GCPChSysCo L93 FinalRTL FinalL93
 
 \section{Stations orientation constraints}
 
-Each station has orientation constraints that have to be given before the station observations lines in the \texttt{{OBS}} file.
+Each station has orientation constraints that have to be given before the station observations lines in the \texttt{OBS} file.
+Each orientation constraint is indicated as a line starting with \texttt{\#} (from now on, called a \texttt{\#}-line).
+\\
 
 The possible orientation constraints are:
 \begin{itemize}
    \item \texttt{\#FIX}: the station is axis-aligned, it is verticalized and oriented to North
    \item \texttt{\#VERT}: the station is verticalized and only horizontal orientation is free
    \item \texttt{\#BASC}: the station orientation has 3 degrees of freedom, meaning non-verticalized and not oriented to North
-   \item TODO \texttt{\#CAM}:the station orientation is the camera orientation (only allowed for point names that corresponds to image file names)
+   \item TODO \texttt{\#CAM}:the station orientation is the camera orientation (only allowed for point names that correspond to image file names)
 \end{itemize}
 
-After a \texttt{\#} line (\texttt{\#FIX}, \texttt{\#VERT} or \texttt{\#BASC}), all the following stations have the new orientation constraint until the next \texttt{\#} line.
+After a \texttt{\#}-line, all the following stations have the new orientation constraint until the next \texttt{\#}-line with new orientation unknowns.
+For convenience, \texttt{\#NEW} can be used to keep current orientation constraint type and just add new unknowns for orientation (see \ref{subsec:SeveralStationsSamePoint}).
+
 
 Each \texttt{OBS} file starts with an implicit \texttt{\#VERT}, making the stations verticalized by default.
 
@@ -467,16 +471,17 @@ is verticalized and the horizontal reference is North:
 
 
 \subsection{Several stations on the same point}
+\label{subsec:SeveralStationsSamePoint}
 
 \CdPPP\ automatically creates a new station when a point is used for the first time as the origin of a measurement.
 
 If we have to make a new set of orientation unknowns because two instruments were set on the same point with different
-orientations, we can:
+orientations, we can either:
 
 \begin{itemize}
-   \item use separated \texttt{OBS} files
-   \item add a \texttt{\#} line to separate the measurements sets
-   \item use a code \textbf{7} for the first measurement
+   \item use separate \texttt{OBS} files
+   \item add a \texttt{\#}-line to separate the measurements sets (\texttt{\#NEW} is useful in this case to make a station with the same orientation constraints as before)
+   \item use a code \textbf{7} instead of \textbf{5} for the first measurement of the new station
 \end{itemize}
 
 

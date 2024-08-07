@@ -158,6 +158,10 @@ void cTopoObsSetStation::makeConstraints(cResolSysNonLinear<tREAL8> & aSys)
 
     switch (mOriStatus)
     {
+    case(eTopoStOriStat::eTopoStOriContinue):
+        // should not exist, Continue is only for obs files
+        MMVII_INTERNAL_ASSERT_strong(false, "cTopoObsSetStation::makeConstraints: incorrect ori status")
+        break;
     case(eTopoStOriStat::eTopoStOriFixed):
         mRotOmega.Pt() = {0.,0.,0.};
 #ifdef VERBOSE_TOPO
@@ -229,6 +233,10 @@ bool cTopoObsSetStation::initialize()
     // mRotSysCo2Vert is initialized by setOrigin()
     switch (mOriStatus)
     {
+    case(eTopoStOriStat::eTopoStOriContinue):
+        // should not exist, Continue is only for obs files
+        MMVII_INTERNAL_ASSERT_strong(false, "cTopoObsSetStation::initialize: incorrect ori status")
+        break;
     case(eTopoStOriStat::eTopoStOriFixed):
         mInit = mPtOrigin->isInit();
         return true; // nothing to do

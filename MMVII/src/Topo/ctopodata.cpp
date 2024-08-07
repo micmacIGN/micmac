@@ -202,7 +202,8 @@ bool cTopoData::InsertCompObsFile(const std::string & aFileName)
         if (aNewStationStatus != eTopoStOriStat::eNbVals)
         {
             addObsSets(aCurrentVectObsSetStations); // if a station status is given, use only new stations
-            aCurrStationStatus = aNewStationStatus;
+            if (aNewStationStatus != eTopoStOriStat::eTopoStOriContinue)
+                aCurrStationStatus = aNewStationStatus;
             continue;
         }
 
