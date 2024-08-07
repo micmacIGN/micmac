@@ -1,3 +1,6 @@
+#ifndef TOPO_H
+#define TOPO_H
+
 #include "MMVII_SysSurR.h"
 #include "MMVII_Sensor.h"
 #include "MMVII_SysCo.h"
@@ -17,11 +20,12 @@ class cTopoObs;
 class cTopoPoint;
 class cBA_GCP;
 
+typedef std::map<const cTopoPoint*, std::vector<cTopoObsSetStation*>> tStationsMap;
+
 class cBA_Topo : public cMemCheck
 {
     friend class cTopoData;
 public :
-    typedef std::map<const cTopoPoint*, std::vector<cTopoObsSetStation*>> tStationsMap;
     cBA_Topo(cPhotogrammetricProject *aPhProj, cMMVII_BundleAdj *aBA);
     ~cBA_Topo();
     void clear();
@@ -69,3 +73,4 @@ private :
 
 };
 
+#endif // TOPO_H

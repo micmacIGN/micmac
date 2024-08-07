@@ -378,7 +378,7 @@ std::pair<cTopoData, cSetMesGCP>  cTopoData::createEx3()
     cSetMesGCP aSetPts;
     aSetPts.AddMeasure( cMes1GCP(cPt3dr(100,110,100), "Ori1", 0.001) );
     aSetPts.AddMeasure( cMes1GCP(cPt3dr(100,100,100), "St1", 0.001) );
-    aSetPts.AddMeasure( cMes1GCP(cPt3dr(105,115,105), "Tr1") ); // 107.072, 107.072, 100
+    //aSetPts.AddMeasure( cMes1GCP(cPt3dr(105,115,105), "Tr1") ); // init not needed. Final: 107.072, 107.072, 100
 
     double g0 = 2.2;
     cTopoObsData aObs1 = {eTopoObsType::eHz, {"St1", "Ori1"},  {0. - g0}, {0.001}};
