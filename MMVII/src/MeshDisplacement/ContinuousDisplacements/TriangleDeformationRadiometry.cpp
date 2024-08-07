@@ -457,7 +457,7 @@ namespace MMVII
 
 		InitialiseInterpolationAndEquationRadiometry(mEqRadiometryTri, mInterpolRad, mInterpolArgs, mUseMMV2Interpolators);
 
-		InitialiseWithUserValuesRadiometry(mDelTri, mSysRadiometry, mInitialiseWithUserValues,
+		InitialiseWithUserValuesRadiometry(mDelTri.NbPts(), mSysRadiometry, mInitialiseWithUserValues,
 										   mInitialiseRadTrValue, mInitialiseRadScValue);
 
 		const tDenseVect aVInitSolRad = mSysRadiometry->CurGlobSol().Dup(); // Duplicate initial solution

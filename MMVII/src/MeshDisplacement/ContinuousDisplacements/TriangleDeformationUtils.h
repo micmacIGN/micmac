@@ -1,9 +1,9 @@
 #ifndef _TRIANGLEDEFORMATIONUTILS_H_
 #define _TRIANGLEDEFORMATIONUTILS_H_
 
-#include "MMVII_Geom2D.h"
 #include "MMVII_PhgrDist.h"
 #include "MMVII_Interpolators.h"
+#include "MMVII_TrianglePP.h"
 
 using namespace NS_SymbolicDerivative;
 
@@ -33,12 +33,12 @@ namespace MMVII
 						   tDIm *&aDIm,												 // image
 						   cDiffInterpolator1D *&anInterpolator);					 // an interpolator
 
-		cPt3dr GetBarycenterCoordinates() const; // Accessor for barycenter coordinates
+		tPt3dr GetBarycenterCoordinates() const; // Accessor for barycenter coordinates
 		tPt2dr GetCartesianCoordinates() const;	 // Accessor for cartesian coordinates
 		tREAL8 GetPixelValue() const;			 // Accessor for pixel value at coordinates
 
 	private:
-		cPt3dr mBarycenterCoordinatesOfPixel; // Barycentric coordinates of pixel.
+		tPt3dr mBarycenterCoordinatesOfPixel; // Barycentric coordinates of pixel.
 		tPt2dr mFilledIndices;				  // 2D cartesian coordinates of pixel.
 		tREAL8 mValueOfPixel;				  // Intensity in image at pixel.
 	};
@@ -157,6 +157,8 @@ namespace MMVII
 	// Build points vector that have coordinates that make up a grid made of rectangles
 	void GeneratePointsForRectangleGrid(const int aNumberOfPoints, const int aGridSizeLines,
 										const int aGridSizeCols, cTriangulation2D<tREAL8> &aDelaunayTri);
+	void GeneratePointsForRectangleGrid(const int aNumberOfPoints, const int aGridSizeLines,
+										const int aGridSizeCols, std::vector<int> &aRectGridVector);
 	// Generate coordinates from uniform law for Delaunay triangulation application
 	void DefineValueLimitsForPointGenerationAndBuildGrid(const int aNumberOfPointsToGenerate, int aRandomUniformLawUpperBoundLines,
 														 int aRandomUniformLawUpperBoundCols, cTriangulation2D<tREAL8> &aDelaunayTri,
@@ -164,11 +166,16 @@ namespace MMVII
 	// Regenerates grid thanks to node coordinates provided by serialised file
 	void RegenerateTriangulatedGridFromSerialisation(cTriangulation2D<tREAL8> &aDelaunayTri,
 													 const std::string &aNameMultipleNodesFile);
+	// Generates grid and contraints and triangulates the grid
+	void GenerateConstrainedTriangulationGridAndConstraints(tpp::Delaunay &aTriConstrGenerator, std::vector<int> &aVectorOfNodeCoordinates, 
+															const bool aUseOfConstraints, const int aNumberOfPointsToGenerate,
+															const tPt2di &aSzIm, const bool aLinkConstraintsWithIds, const bool aUseOfConvexHull,
+															const bool aSaveOfTriangulation, std::string &aSaveTriangulationFileName);
 	// Initialise equation and interpolator if needed
 	void InitialiseInterpolationAndEquation(cCalculator<tREAL8> *&aEqDeformTri, cDiffInterpolator1D *&anInterpol,
 											const std::vector<std::string> &aArgsVectorInterpol, const bool aUseLinearGradInterpolation);
 	// Initialise values of unknowns at the beginning of optimisation process after user has input information
-	void InitialisationWithUserValues(const cTriangulation2D<tREAL8> &aDelaunayTri,
+	void InitialisationWithUserValues(const size_t aNbNodesInTriangulation,
 									  tSys *&aSys,
 									  const bool aUserInitialisation,
 									  const tREAL8 aXTranslationInitVal,
@@ -176,7 +183,7 @@ namespace MMVII
 									  const tREAL8 aRadTranslationInitVal,
 									  const tREAL8 aRadScaleInitVal);
 	// Initialise unknowns values with values obtained at previous execution by using MicMacV1
-	void InitialiseWithPreviousExecutionValuesMMVI(const cTriangulation2D<tREAL8> &aDelTri,
+	void InitialiseWithPreviousExecutionValuesMMVI(const cTriangulation2D<tREAL8> &aDelaunayTri,
 												   tSys *&aSys,
 												   cDiffInterpolator1D *&anInterpolator,
 												   const std::string &aNameDepXFile, tIm &aImDepX,
@@ -187,20 +194,20 @@ namespace MMVII
 												   tIm &aImCorrelationMask, tDIm *&aDImCorrelationMask,
 												   tPt2di &aSzCorrelationMask);
 	// Initialise values of unknowns with values obtained through serialisation of a previous optimisation process result
-	void InitialiseWithPreviousExecutionValuesSerialisation(const cTriangulation2D<tREAL8> &aDelTri,
+	void InitialiseWithPreviousExecutionValuesSerialisation(const size_t aNbNodesInTriangulation,
 															tSys *&aSys,
 															const std::string &aMultipleNodesFilename);
 	// Initialise equation and interpolation if needed for translation
 	void InitialiseInterpolationAndEquationTranslation(cCalculator<tREAL8> *&aEqTranslationTri, cDiffInterpolator1D *&aInterpolTr,
 													   const std::vector<std::string> &aArgsVectorInterpolTr, const bool aUseLinearGradInterpolation);
 	// Initialise problem after user has input information for translation
-	void InitialiseWithUserValuesTranslation(const cTriangulation2D<tREAL8> &aDelaunayTri,
+	void InitialiseWithUserValuesTranslation(const size_t aNbNodesInTriangulation,
 											 tSys *&aSysTranslation,
 											 const bool aUserInitialisation,
 											 const tREAL8 aXTranslationInitVal,
 											 const tREAL8 aYTranslationInitVal);
 	// Initialise unknowns values with values obtained at previous execution for translation
-	void InitialiseWithPreviousExecutionValuesTranslationMMVI(const cTriangulation2D<tREAL8> &aDelTri,
+	void InitialiseWithPreviousExecutionValuesTranslationMMVI(const cTriangulation2D<tREAL8> &aDelaunayTri,
 															  tSys *&aSysTranslation,
 															  cDiffInterpolator1D *&anInterpolator,
 															  const std::string &aNameDepXFile, tIm &aImDepX,
@@ -214,7 +221,7 @@ namespace MMVII
 	void InitialiseInterpolationAndEquationRadiometry(cCalculator<tREAL8> *&aEqRadiometryTri, cDiffInterpolator1D *&aInterpolRad,
 													  const std::vector<std::string> &aArgsVectorInterpolRad, const bool aUseLinearGradInterpolation);
 	// Initialise problem after user has input information for radiometry
-	void InitialiseWithUserValuesRadiometry(const cTriangulation2D<tREAL8> &aDelaunayTri,
+	void InitialiseWithUserValuesRadiometry(const size_t aNbNodesInTriangulation,
 											tSys *&aSysRadiometry,
 											const bool aUserInitialisation,
 											const tREAL8 aRadTranslationInitVal,
@@ -236,13 +243,19 @@ namespace MMVII
 												const tREAL8 aValueToReturnIfFalse, cDiffInterpolator1D *&anInterpolator);
 	// Return correct indices vector
 	void GetIndicesVector(tIntVect &aVecInd, const tPt3di &aIndicesOfTriKnots, const int aIsTwoOrFour);
+	// Get MMVII triangle object from a set of tpp::Delaunay::Point objects
+	void GetFaceAndTriangleFromDelaunayPoints(const tpp::FaceIterator &aFaceIterator, const tpp::Delaunay &aTriConstrGenerator,
+											  tTri2dr &aTri, tPt3di &aIndicesOfKnots);
+	// Transform vector of integers with manually entered grid coordinates into a vector of tpp::Delaunay::Point
+	void TransformVectorOfIntegerCoordinatesToPointCoordinatesVector(std::vector<tpp::Delaunay::Point> &aVectorOfPoints,
+																	 const std::vector<int> &aVectorOfNodeCoordinates);
 	// Construct difference image and compute average and max pixel value on ths image
 	void SubtractPrePostImageAndComputeAvgAndMax(tIm &aImDiff, tDIm *&aDImDiff, tDIm *&aDImPre,
 												 tDIm *&aDImPost, const tPt2di &aSzImPre);
 	// Read image filename and loads into MMVII data
 	void ReadImageFileNameLoadData(const std::string &aImageFilename, tIm &aImage,
 								   tDIm *&aDataImage, tPt2di &aSzIm);
-	// Loads current pre and post images
+	// Load current pre and post images
 	void LoadPrePostImageAndData(tIm &aCurIm, tDIm *&aCurDIm, const std::string &aPreOrPostImage,
 								 const tIm &aImPre, const tIm &aImPost);
 	// Initialise displacement maps and output image with null coefficients
@@ -308,21 +321,21 @@ namespace MMVII
 	bool ManageDifferentCasesOfEndIterations(const int aIterNumber, const int aNumberOfScales, const int aNumberOfEndIterations,
 											 bool aIsLastIters, const tIm &aImPre, const tIm &aImPost, tIm &aCurPreIm, tDIm *&aCurPreDIm,
 											 tIm &aCurPostIm, tDIm *&aCurPostDIm);
-	// Applies hard constraint to multiple unknowns
+	// Apply hard constraint to multiple unknowns
 	void ApplyHardConstraintsToMultipleUnknowns(const int aSolStart, const int aSolStep, const tIntVect &aVecInd,
 												const tDenseVect &aVCurSol, tSys *&aSys);
-	// Unfreezes multiple unknowns frozen by hard constraints
+	// Unfreeze multiple unknowns frozen by hard constraints
 	void UnfreezeMultipleUnknowns(const int aSolStart, const int aSolStep,
 								  const tIntVect &aVecInd, tSys *&aSys);
 	// Can freeze or unfreeze unknowns
 	void FreezeOrUnfreezeUnknown(const bool aHardConstrainApplication, const bool aCurIterWithFreedUnk,
 								 const int aSolStart, const int aSolStep, const tIntVect &aVecInd,
 								 const tDenseVect &aVCurSol, tSys *&aSys);
-	// Applies soft constraint to correct unknowns if applied
+	// Apply soft constraint to correct unknowns if applied
 	void ApplySoftConstraintToMultipleUnknown(const int aSolStart, const int aSolStep, const tIntVect &aVecInd,
 											  tSys *&aSys, const tDenseVect &aVCurSol, const tREAL8 aWeight);
 
-	// Applies soft constraint with condition that current iteration applies soft constraint and that weight is positive
+	// Apply soft constraint with condition that current iteration applies soft constraint and that weight is positive
 	void ApplySoftConstraintWithCondition(const tREAL8 aWeight, const bool aCurIterWithSoftConstraintApplication,
 										  const int aSolStart, const int aSolStep, const tIntVect &aVecInd,
 										  const tDenseVect &aVCurSol, tSys *&aSys);
@@ -355,31 +368,31 @@ namespace MMVII
 																 const tREAL8 aCurrentRadScalingPointB,
 																 const tREAL8 aCurrentRadScalingPointC,
 																 const cPtInsideTriangles &aLastPixInsideTriangle);
-	// Returns correct coordinates to set value in output translated if translated coordinates are out of image size
+	// Return correct coordinates to set value in output translated if translated coordinates are out of image size
 	tPt2di GetCoordinatesToSetValueForTranslatedImage(const tREAL8 aLastXTranslatedCoord, const tREAL8 aLastYTranslatedCoord,
 													  const tPt2di &aLastCoordinate, const tPt2di &aSzImOut, tDIm *&aDImOut);
 	// Get bilinear translated coordinates if getting bilinear value is possible
 	tREAL8 GetInterpolatedcCoordinatesIfInsideInterpolator(const tREAL8 aLastCoordinate, const tPt2di &aLastIntCoordinate,
 														   const tPt2dr &aLastRealCoordinate, tDIm *&aDImDepMap,
 														   cDiffInterpolator1D *&anInterpolator);
-	// Produces x and y displacement maps for computing just translation
+	// Produce x and y displacement maps for computing just translation
 	void FillDisplacementMapsTranslation(const cPtInsideTriangles &aLastPixInsideTriangle,
 										 const tPt2dr &aLastTranslatedFilledPoint, const tPt2di &aSzImOut,
 										 tDIm *&aDImDepX, tDIm *&aDImDepY, tDIm *&aDImOut,
 										 cDiffInterpolator1D *&anInterpolator);
-	// Produces output image with computed radiometry and displacement maps with computed translations
+	// Produce output image with computed radiometry and displacement maps with computed translations
 	void FillDisplacementMapsAndOutputImage(const cPtInsideTriangles &aLastPixInsideTriangle,
 											const tPt2dr &aLastTranslatedFilledPoint,
 											const tREAL8 aLastRadiometryTranslation,
 											const tREAL8 aLastRadiometryScaling, const tPt2di &aSzImOut,
 											tDIm *&aDImDepX, tDIm *&aDImDepY, tDIm *&aDImOut, tDIm *&aDImPost,
 											cDiffInterpolator1D *&anInterpolator);
-	// Produces output image when computing just radiometry
+	// Produce output image when computing just radiometry
 	void FillOutputImageRadiometry(const cPtInsideTriangles &aLastPixInsideTriangle,
 								   const tREAL8 aLastRadiometryTranslation,
 								   const tREAL8 aLastRadiometryScaling,
 								   tDIm *&aDImOut);
-	// Fills displacement map with difference between ground truth and interpolated pixel in ground truth
+	// Fill displacement map with difference between ground truth and interpolated pixel in ground truth
 	void FillDiffDisplacementMap(tDIm *&aDImDispMap, tDIm *&aDImDiffMap,
 								 tDIm *&aDImTranslatedDispMap,
 								 const cPtInsideTriangles &aPixInsideTriangle,

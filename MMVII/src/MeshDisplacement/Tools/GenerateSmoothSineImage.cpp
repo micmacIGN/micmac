@@ -23,9 +23,13 @@ namespace MMVII
 		typedef cIm2D<tREAL8> tIm;
 		typedef cDataIm2D<tREAL8> tDIm;
 
+		// Constructor
 		cAppli_GenerateSmoothSineImage(const std::vector<std::string> &aVArgs,
 									   const cSpecMMVII_Appli &aSpec);
+		// Destructor
+		~cAppli_GenerateSmoothSineImage();
 
+		// Exe and argument methods
 		int Exe() override;
 		cCollecSpecArg2007 &ArgObl(cCollecSpecArg2007 &anArgObl) override;
 		cCollecSpecArg2007 &ArgOpt(cCollecSpecArg2007 &anArgOpt) override;
@@ -72,22 +76,24 @@ namespace MMVII
 	{
 	}
 
+	cAppli_GenerateSmoothSineImage::~cAppli_GenerateSmoothSineImage()
+	{
+	}
+
 	cCollecSpecArg2007 &cAppli_GenerateSmoothSineImage::ArgObl(cCollecSpecArg2007 &anArgObl)
 	{
-		return anArgObl
-			   << Arg2007(mNameImage, "Name of image to deform", {{eTA2007::FileImage}, {eTA2007::FileDirProj}});
+		return anArgObl << Arg2007(mNameImage, "Name of image to deform", {{eTA2007::FileImage}, {eTA2007::FileDirProj}});
 	}
 
 	cCollecSpecArg2007 &cAppli_GenerateSmoothSineImage::ArgOpt(cCollecSpecArg2007 &anArgOpt)
 	{
 
-		return anArgOpt
-			   << AOpt2007(mXAxisFrequency, "XAxisFrequency", "Frequency used by wave functions on x-axis of image", {eTA2007::HDV})
-			   << AOpt2007(mYAxisFrequency, "YAxisFrequency", "Frequency used by wave functions on y-axis of image", {eTA2007::HDV})
-			   << AOpt2007(mRadTranslationPhase, "RadiometryTranslationPhase", "Phase used for radiometry translation of cosine function.", {eTA2007::HDV})
-			   << AOpt2007(mRadScalingPhase, "RadiometryScalingPhase", "Phase used for radiometry scaling of sine function.", {eTA2007::HDV})
-			   << AOpt2007(mAmplRadTranslation, "AmplRadiometryTranslation", "Amplitude used for radiometry translation cosine function", {eTA2007::HDV})
-			   << AOpt2007(mAmplRadScaling, "AmplRadiometryScaling", "Amplitude used for radiometry scaling sine function", {eTA2007::HDV});
+		return anArgOpt << AOpt2007(mXAxisFrequency, "XAxisFrequency", "Frequency used by wave functions on x-axis of image", {eTA2007::HDV})
+			   			<< AOpt2007(mYAxisFrequency, "YAxisFrequency", "Frequency used by wave functions on y-axis of image", {eTA2007::HDV})
+			   			<< AOpt2007(mRadTranslationPhase, "RadiometryTranslationPhase", "Phase used for radiometry translation of cosine function.", {eTA2007::HDV})
+			   			<< AOpt2007(mRadScalingPhase, "RadiometryScalingPhase", "Phase used for radiometry scaling of sine function.", {eTA2007::HDV})
+			   			<< AOpt2007(mAmplRadTranslation, "AmplRadiometryTranslation", "Amplitude used for radiometry translation cosine function", {eTA2007::HDV})
+			   			<< AOpt2007(mAmplRadScaling, "AmplRadiometryScaling", "Amplitude used for radiometry scaling sine function", {eTA2007::HDV});
 	}
 
 	//------------------------------------------//

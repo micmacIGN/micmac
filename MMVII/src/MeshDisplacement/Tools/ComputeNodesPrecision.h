@@ -1,12 +1,10 @@
 #ifndef _COMPUTENODESPRECISION_H_
 #define _COMPUTENODESPRECISION_H_
 
-#include "cMMVII_Appli.h"
-
 #include "MMVII_Geom2D.h"
 #include "MMVII_PhgrDist.h"
 
-#include "TriangleDeformationUtils.h"
+#include "../ContinuousDisplacements/TriangleDeformationUtils.h"
 
 namespace MMVII
 {
@@ -24,21 +22,24 @@ namespace MMVII
 		typedef cDataIm2D<tREAL8> tDIm;
 		typedef cTriangle<tREAL8, 2> tTri2dr;
 
+		// Constructor
 		cAppli_ComputeNodesPrecision(const std::vector<std::string> &aVArgs,
 									 const cSpecMMVII_Appli &aSpec);
+		// Destructor
 		~cAppli_ComputeNodesPrecision();
 
+		// Exe and argument methods
 		int Exe() override;
 		cCollecSpecArg2007 &ArgObl(cCollecSpecArg2007 &anArgObl) override;
 		cCollecSpecArg2007 &ArgOpt(cCollecSpecArg2007 &anArgOpt) override;
 
-		// Loop over triangles and save displacement map between ground truth and interpolation value
+		// Loops over triangles and save displacement map between ground truth and interpolation value
 		void LoopOverTrianglesAndGetDiffDispMaps();
-		// Check if interpolated bilinear value in displacement map can be returned or if integer value is needed
+		// Checks if interpolated bilinear value in displacement map can be returned or if integer value is needed
 		tPt2dr CheckReturnOfInterpolatorValue(const tPt2dr &aRealCoordPoint, const tPt2di &aIntCoordPoint);
 
 	private:
-		// ==  Mandatory args ==
+		// == Mandatory args ==
 
 		std::string mNameDispXMap;	 // Name of given pre-image
 		std::string mNameDispYMap;	 // Name of given post-image

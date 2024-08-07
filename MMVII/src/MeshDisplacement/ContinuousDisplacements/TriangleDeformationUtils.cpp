@@ -293,6 +293,30 @@ namespace MMVII
 		aDelaunayTri.MakeDelaunay(); // Delaunay triangulate rectangular grid generated points.
 	}
 
+	void GeneratePointsForRectangleGrid(const int aNumberOfPoints, const int aGridSizeLines,
+										const int aGridSizeCols, std::vector<int> &aRectGridVector)
+	{
+		const int anEdge = 10; // To take away variations linked to edges
+
+		// Be aware that step between grid points are integers
+		const int aDistanceLines = aGridSizeLines / std::sqrt(aNumberOfPoints);
+		const int aDistanceCols = aGridSizeCols / std::sqrt(aNumberOfPoints);
+
+		const int anEndLinesLoop = aGridSizeLines - anEdge;
+		const int anEndColsLoop = aGridSizeCols - anEdge;
+
+		for (int aLineNumber = anEdge; aLineNumber < anEndLinesLoop; aLineNumber += aDistanceLines)
+		{
+			for (int aColNumber = anEdge; aColNumber < anEndColsLoop; aColNumber += aDistanceCols)
+			{
+				const int aRectGridColCoordinate = aColNumber;
+				const int aRectGridLineCoordinate = aLineNumber;
+				aRectGridVector.push_back(aRectGridColCoordinate);
+				aRectGridVector.push_back(aRectGridLineCoordinate);
+			}
+		}
+	}
+
 	void RegenerateTriangulatedGridFromSerialisation(cTriangulation2D<tREAL8> &aDelaunayTri,
 													 const std::string &aNameMultipleNodesFile)
 	{
@@ -316,6 +340,47 @@ namespace MMVII
 		aDelaunayTri.MakeDelaunay(); // Delaunay triangulate rectangular grid generated points.
 	}
 
+	void GenerateConstrainedTriangulationGridAndConstraints(tpp::Delaunay &aTriConstrGenerator, std::vector<int> &aVectorOfNodeCoordinates, 
+															const bool aUseOfConstraints, const int aNumberOfPointsToGenerate,
+															const tPt2di &aSzIm, const bool aLinkConstraintsWithIds, const bool aUseOfConvexHull,
+															const bool aSaveOfTriangulation, std::string &aSaveTriangulationFileName)
+	{
+		std::vector<tpp::Delaunay::Point> aPSLGDelaunayInput;
+
+		if (aVectorOfNodeCoordinates.empty())
+			GeneratePointsForRectangleGrid(aNumberOfPointsToGenerate, aSzIm.y(), aSzIm.x(), aVectorOfNodeCoordinates);
+
+		TransformVectorOfIntegerCoordinatesToPointCoordinatesVector(aPSLGDelaunayInput, aVectorOfNodeCoordinates);
+
+	   	// Initialise a constrained triangle object
+        aTriConstrGenerator = aPSLGDelaunayInput;
+
+		if (aUseOfConstraints)
+		{
+			std::vector<int> aConstrainedDelaunaySegmentsIds;
+			std::vector<tpp::Delaunay::Point> aConstrainedDelaunaySegmentsPoints;
+
+			if (aLinkConstraintsWithIds)
+			{
+				for (size_t aConstraintId = 0; aConstraintId < aVectorOfNodeCoordinates.size(); aConstraintId++)
+					aConstrainedDelaunaySegmentsIds.push_back(aVectorOfNodeCoordinates[aConstraintId]);
+			}
+			else
+				TransformVectorOfIntegerCoordinatesToPointCoordinatesVector(aConstrainedDelaunaySegmentsPoints, aVectorOfNodeCoordinates);
+
+			// segment-constrained triangulation
+			aTriConstrGenerator.setSegmentConstraint(aConstrainedDelaunaySegmentsIds);
+		}
+
+		if (aUseOfConvexHull)
+        	aTriConstrGenerator.useConvexHullWithSegments(true); // don't remove concavities!
+
+        aTriConstrGenerator.Triangulate();
+
+		if (aSaveOfTriangulation)
+        	aTriConstrGenerator.writeoff(aSaveTriangulationFileName);
+	}
+
 	void InitialiseInterpolationAndEquation(cCalculator<tREAL8> *&aEqDeformTri, cDiffInterpolator1D *&aInterpol,
 											const std::vector<std::string> &aArgsVectorInterpol, const bool aUseLinearGradInterpolation)
 	{
@@ -325,7 +390,7 @@ namespace MMVII
 		aEqDeformTri = aUseLinearGradInterpolation ? EqDeformTriLinearGrad(true, 1) : EqDeformTriBilin(true, 1);
 	}
 
-	void InitialisationWithUserValues(const cTriangulation2D<tREAL8> &aDelaunayTri,
+	void InitialisationWithUserValues(const size_t aNbNodesInTriangulation,
 									  tSys *&aSys,
 									  const bool aUserInitialisation,
 									  const tREAL8 aXTranslationInitVal,
@@ -334,7 +399,7 @@ namespace MMVII
 									  const tREAL8 aRadScaleInitVal)
 	{
 		const int aNbUnkPerNode = 4;
-		const size_t aStartNumberPts = aNbUnkPerNode * aDelaunayTri.NbPts();
+		const size_t aStartNumberPts = aNbUnkPerNode * aNbNodesInTriangulation;
 		tDenseVect aVInit(aStartNumberPts, eModeInitImage::eMIA_Null);
 
 		const bool aDiffTranslationInitValue = (aXTranslationInitVal != 0 || aYTranslationInitVal != 0) ? true : false;
@@ -366,7 +431,7 @@ namespace MMVII
 		aSys = new tSys(eModeSSR::eSSR_LsqDense, aVInit);
 	}
 
-	void InitialiseWithPreviousExecutionValuesMMVI(const cTriangulation2D<tREAL8> &aDelTri,
+	void InitialiseWithPreviousExecutionValuesMMVI(const cTriangulation2D<tREAL8> &aDelaunayTri,
 												   tSys *&aSys,
 												   cDiffInterpolator1D *&anInterpolator,
 												   const std::string &aNameDepXFile, tIm &aImDepX,
@@ -377,7 +442,8 @@ namespace MMVII
 												   tIm &aImCorrelationMask, tDIm *&aDImCorrelationMask,
 												   tPt2di &aSzCorrelationMask)
 	{
-		tDenseVect aVInit(4 * aDelTri.NbPts(), eModeInitImage::eMIA_Null);
+		const int aNbUnkPerNode = 4;
+		tDenseVect aVInit(aNbUnkPerNode * aDelaunayTri.NbPts(), eModeInitImage::eMIA_Null);
 
 		ReadImageFileNameLoadData(aNameDepXFile, aImDepX,
 								  aDImDepX, aSzImDepX);
@@ -389,10 +455,10 @@ namespace MMVII
 
 		const int aRadiometryScalingInitialValue = 1;
 
-		for (size_t aTr = 0; aTr < aDelTri.NbFace(); aTr++)
+		for (size_t aTr = 0; aTr < aDelaunayTri.NbFace(); aTr++)
 		{
-			const tTri2dr aInitTri = aDelTri.KthTri(aTr);
-			const tPt3di aIndicesOfTriKnots = aDelTri.KthFace(aTr);
+			const tTri2dr aInitTri = aDelaunayTri.KthTri(aTr);
+			const tPt3di aIndicesOfTriKnots = aDelaunayTri.KthFace(aTr);
 
 			//----------- Index of unknown, finds the associated pixels of current triangle
 			tIntVect aInitVecInd;
@@ -425,12 +491,12 @@ namespace MMVII
 		aSys = new tSys(eModeSSR::eSSR_LsqDense, aVInit);
 	}
 
-	void InitialiseWithPreviousExecutionValuesSerialisation(const cTriangulation2D<tREAL8> &aDelTri,
+	void InitialiseWithPreviousExecutionValuesSerialisation(const size_t aNbNodesInTriangulation,
 															tSys *&aSys,
 															const std::string &aMultipleNodesFilename)
 	{
 		const int aNbUnkPerNode = 4;
-		tDenseVect aVInit(aNbUnkPerNode * aDelTri.NbPts(), eModeInitImage::eMIA_Null);
+		tDenseVect aVInit(aNbUnkPerNode * aNbNodesInTriangulation, eModeInitImage::eMIA_Null);
 
 		std::unique_ptr<const cMultipleTriangleNodesSerialiser> aReReadNodeFile = cMultipleTriangleNodesSerialiser::ReadVectorOfTriangleNodes(aMultipleNodesFilename);
 
@@ -459,14 +525,14 @@ namespace MMVII
 		aEqTranslationTri = aUseLinearGradInterpolation ? EqDeformTriTranslationLinearGrad(true, 1) : EqDeformTriTranslationBilin(true, 1);
 	}
 
-	void InitialiseWithUserValuesTranslation(const cTriangulation2D<tREAL8> &aDelaunayTri,
+	void InitialiseWithUserValuesTranslation(const size_t aNbNodesInTriangulation,
 											 tSys *&aSysTranslation,
 											 const bool aUserInitialisation,
 											 const tREAL8 aXTranslationInitVal,
 											 const tREAL8 aYTranslationInitVal)
 	{
 		const int aNbUnkPerNode = 2;
-		const size_t aNumberPts = aNbUnkPerNode * aDelaunayTri.NbPts();
+		const size_t aNumberPts = aNbUnkPerNode * aNbNodesInTriangulation;
 		tDenseVect aVInitTranslation(aNumberPts, eModeInitImage::eMIA_Null);
 
 		if (aUserInitialisation && aXTranslationInitVal != 0 && aYTranslationInitVal != 0)
@@ -547,14 +613,14 @@ namespace MMVII
 		anEqRadiometryTri = aUseLinearGradInterpolation ? EqDeformTriRadiometryLinearGrad(true, 1) : EqDeformTriRadiometryBilin(true, 1);
 	}
 
-	void InitialiseWithUserValuesRadiometry(const cTriangulation2D<tREAL8> &aDelaunayTri,
+	void InitialiseWithUserValuesRadiometry(const size_t aNbNodesInTriangulation,
 											tSys *&aSysRadiometry,
 											const bool aUserInitialisation,
 											const tREAL8 aRadTranslationInitVal,
 											const tREAL8 aRadScaleInitVal)
 	{
 		const int aNbUnkPerNodeRad = 2;
-		const size_t aNumberPts = aNbUnkPerNodeRad * aDelaunayTri.NbPts();
+		const size_t aNumberPts = aNbUnkPerNodeRad * aNbNodesInTriangulation;
 		tDenseVect aVInitRadiometry(aNumberPts, eModeInitImage::eMIA_Null);
 
 		if (aUserInitialisation && aRadTranslationInitVal != 0 && aRadScaleInitVal != 1)
@@ -593,7 +659,8 @@ namespace MMVII
 	{
 		bool aValidCorrelPoint;
 		if (aMask->InsideInterpolator(*anInterpolator, aCoordNode, 0))
-			aValidCorrelPoint = (aMask->GetValueInterpol(*anInterpolator, aCoordNode) == 255) ? true : false;
+			aValidCorrelPoint = (aMask->GetValueInterpol(*anInterpolator, aCoordNode) == 255 ||
+								 aMask->GetValueInterpol(*anInterpolator, aCoordNode) == 1) ? true : false;
 		else
 			aValidCorrelPoint = false;
 		return aValidCorrelPoint;
@@ -645,6 +712,35 @@ namespace MMVII
 													   aCaseWithFourUnk * aIndicesOfTriKnots.y() + 2, aCaseWithFourUnk * aIndicesOfTriKnots.y() + 3,
 													   aCaseWithFourUnk * aIndicesOfTriKnots.z(), aCaseWithFourUnk * aIndicesOfTriKnots.z() + 1,
 													   aCaseWithFourUnk * aIndicesOfTriKnots.z() + 2, aCaseWithFourUnk * aIndicesOfTriKnots.z() + 3};
+	}
+
+	void GetFaceAndTriangleFromDelaunayPoints(const tpp::FaceIterator &aFaceIterator, const tpp::Delaunay &aTriConstrGenerator,
+											  tTri2dr &aTri, tPt3di &aIndicesOfKnots)
+	{
+			// A triangle abc has an origin (Org) a, a destination (Dest) b, and apex (Apex) c.
+			// These vertices occur in counterclockwise order about the triangle.
+			const int aVertexIdxPointA = aFaceIterator.Org();
+			const int aVertexIdxPointB = aFaceIterator.Dest();
+			const int aVertexIdxPointC = aFaceIterator.Apex();
+
+			// access tpp::Delaunay::point's coordinates: 
+			const tpp::Delaunay::Point PointAtVertexIdPointA = aTriConstrGenerator.pointAtVertexId(aVertexIdxPointA);
+			const tpp::Delaunay::Point PointAtVertexIdPointB = aTriConstrGenerator.pointAtVertexId(aVertexIdxPointB);
+			const tpp::Delaunay::Point PointAtVertexIdPointC = aTriConstrGenerator.pointAtVertexId(aVertexIdxPointC);
+
+			const tPt2dr aCoordinatesPointA = tPt2dr(PointAtVertexIdPointA[0], PointAtVertexIdPointA[1]);
+			const tPt2dr aCoordinatesPointB = tPt2dr(PointAtVertexIdPointB[0], PointAtVertexIdPointB[1]);
+			const tPt2dr aCoordinatesPointC = tPt2dr(PointAtVertexIdPointC[0], PointAtVertexIdPointC[1]);
+
+			aTri = cTriangle(aCoordinatesPointA, aCoordinatesPointB, aCoordinatesPointC);
+			aIndicesOfKnots = tPt3di(aVertexIdxPointA, aVertexIdxPointB, aVertexIdxPointC);
+	}
+
+	void TransformVectorOfIntegerCoordinatesToPointCoordinatesVector(std::vector<tpp::Delaunay::Point> &aVectorOfPoints,
+																	 const std::vector<int> &aVectorOfNodeCoordinates)
+	{
+        for (size_t aNodeCoordinate=0; aNodeCoordinate < aVectorOfNodeCoordinates.size() - 1; aNodeCoordinate += 2)
+            aVectorOfPoints.push_back(tpp::Delaunay::Point(aVectorOfNodeCoordinates[aNodeCoordinate], aVectorOfNodeCoordinates[aNodeCoordinate + 1]));
 	}
 
 	void SubtractPrePostImageAndComputeAvgAndMax(tIm &aImDiff, tDIm *&aDImDiff, tDIm *&aDImPre,

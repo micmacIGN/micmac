@@ -486,7 +486,7 @@ namespace MMVII
 
 		if ((!mIsFirstExecution && mInitialiseWithUserValues && !mInitialiseTranslationWithPreviousExecution) ||
 			(mIsFirstExecution && mSerialiseTriangleNodes))
-			InitialiseWithUserValuesTranslation(mDelTri, mSysTranslation, mInitialiseWithUserValues,
+			InitialiseWithUserValuesTranslation(mDelTri.NbPts(), mSysTranslation, mInitialiseWithUserValues,
 												mInitialiseXTranslationValue, mInitialiseYTranslationValue);
 		else
 		{
@@ -508,7 +508,7 @@ namespace MMVII
 																	 mNameCorrelationMaskMMVI, mImCorrelationMask,
 																	 mDImCorrelationMask, mSzCorrelationMask);
 			else if (!mIsFirstExecution && mSerialiseTriangleNodes && mInitialiseTranslationWithPreviousExecution)
-				InitialiseWithPreviousExecutionValuesSerialisation(mDelTri, mSysTranslation, mNameMultipleTriangleNodes);
+				InitialiseWithPreviousExecutionValuesSerialisation(mDelTri.NbPts(), mSysTranslation, mNameMultipleTriangleNodes);
 		}
 
 		const tDenseVect aVInitSolTr = mSysTranslation->CurGlobSol().Dup(); // Duplicate initial solution

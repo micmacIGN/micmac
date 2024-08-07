@@ -1,10 +1,6 @@
 #ifndef _TRIANGLEDEFORMATIONTRANSLATION_H_
 #define _TRIANGLEDEFORMATIONTRANSLATION_H_
 
-#include "MMVII_Geom2D.h"
-#include "MMVII_PhgrDist.h"
-#include "MMVII_Interpolators.h"
-
 #include "MMVII_TplSymbTriangle.h"
 #include "TriangleDeformationUtils.h"
 
@@ -29,21 +25,23 @@ namespace MMVII
 		typedef std::vector<int> tIntVect;
 		typedef std::vector<tREAL8> tDoubleVect;
 
+		// Constructor
 		cAppli_TriangleDeformationTranslation(const std::vector<std::string> &aVArgs,
 											  const cSpecMMVII_Appli &aSpec);
+		// Destructor
 		~cAppli_TriangleDeformationTranslation();
 
+		// Exe and argument methods
 		int Exe() override;
 		cCollecSpecArg2007 &ArgObl(cCollecSpecArg2007 &anArgObl) override;
 		cCollecSpecArg2007 &ArgOpt(cCollecSpecArg2007 &anArgOpt) override;
 
-		// Iterate of triangles and inside pixels
-		// void DoOneIterationTranslation(const int aIterNumber, const int aTotalNumberOfIterations);
+		// Does one iteration of optimisation
 		void DoOneIterationTranslation(const int aIterNumber, const int aTotalNumberOfIterations,
 									   const tDenseVect &aVInitVecSol, const bool aUserDefinedFolder);
 		// Loops over all triangles and solves system to update parameters at end of iteration
 		void LoopOverTrianglesAndUpdateParametersTranslation(const int aIterNumber, const int aTotalNumberOfIterations, const bool aUserDefinedFolder);
-		// Generate displacement maps of last solution
+		// Generates displacement maps of last solution
 		void GenerateDisplacementMaps(const tDenseVect &aVFinalSolTr, const int aIterNumber,
 									  const int aTotalNumberOfIterations, const bool aUserDefinedFolder);
 		// Generates Displacement maps and coordinates of points in triangulation at last iteration
@@ -65,7 +63,7 @@ namespace MMVII
 		bool mShow;										  // Print results
 		bool mUseMultiScaleApproach;					  // Apply multi-scale approach or not
 		bool mBuildRandomUniformGrid;					  // Whether to triangulate grid made of points whose coordinates follow a uniform law or have coordinates that form rectangles
-		bool mUseMMV2Interpolators;					  // Whether to use interpolators from MicMacV2 instead of usual bilinear interpolation
+		bool mUseMMV2Interpolators;					  	  // Whether to use interpolators from MicMacV2 instead of usual bilinear interpolation
 		std::vector<std::string> mInterpolArgs;			  // Arguments to use if linear gradient interpolation is used
 		bool mSerialiseTriangleNodes;					  // Whether to serialise nodes to .xml file or not
 		std::string mNameMultipleTriangleNodes;			  // File name to use when saving all to triangle nodes to .xml file

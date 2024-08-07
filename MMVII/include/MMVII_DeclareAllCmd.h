@@ -91,6 +91,8 @@ extern cSpecMMVII_Appli  TheSpec_ComputeTriangleDeformationTranslation;
 extern cSpecMMVII_Appli  TheSpec_ComputeTriangleDeformationRadiometry;
 extern cSpecMMVII_Appli  TheSpec_ComputeNodesPrecision;
 extern cSpecMMVII_Appli  TheSpec_GenerateSmoothSineImage;
+extern cSpecMMVII_Appli  TheSpec_GenerateConstrainedDelaunay;
+extern cSpecMMVII_Appli  TheSpec_ComputeConstrainedTriangleDeformation;
 extern cSpecMMVII_Appli  TheSpec_PoseCmpReport;
 extern cSpecMMVII_Appli  TheSpec_BlockCamInit;   // RIGIDBLOC
 extern cSpecMMVII_Appli  TheSpec_ClinoInit;

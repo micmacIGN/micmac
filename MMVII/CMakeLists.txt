@@ -110,6 +110,7 @@ find_library(ANN_lib NAME ANN PATHS "${mmv1_lib_dir}" NO_DEFAULT_PATH)
 # MMVII dir
 set(mmv2_include_dir "${MMVII_SOURCE_DIR}/include")
 set(mmv2_external_include_dir "${MMVII_SOURCE_DIR}/ExternalInclude")
+set(mmv2_external_src_dir "${MMVII_SOURCE_DIR}/ExternalSrc")
 set(mmv2_src_dir "${MMVII_SOURCE_DIR}/src")
 set(mmv2_gencode_dir "${mmv2_src_dir}/GeneratedCodes")
 set(mmv2_gencode_main_src "${mmv2_gencode_dir}/cName2CalcRegisterAll.cpp")
@@ -121,9 +122,10 @@ if (NOT EXISTS "${mmv2_gencode_main_src}")
 endif()
 
 # MMVII sources: Auto generate. Not recommended, but let's try it ...
-file(GLOB mmv2_libsrcs CONFIGURE_DEPENDS "${mmv2_src_dir}/*/*.cpp")
+file(GLOB mmv2_libsrcs CONFIGURE_DEPENDS "${mmv2_src_dir}/*/*.cpp" "${mmv2_src_dir}/*/*/*.cpp")
 file(GLOB mmv2_headers "${mmv2_include_dir}/*.h" "${mmv2_include_dir}/*/*.h" "${mmv2_src_dir}/*/*.h")
 
+add_subdirectory(${mmv2_external_src_dir}/TrianglePP)
 
 #######################################################
 ##        libP2007 build (MMVII library)
@@ -150,7 +152,7 @@ else()
 endif()
 
 target_include_directories(MMVII PRIVATE "${MMVII_SOURCE_DIR}/include"  )
-target_link_libraries(MMVII PRIVATE MMVII_compiler_flags Threads::Threads P2007 ${mmv1_libs} ${mmv2_extlibs})
+target_link_libraries(MMVII PRIVATE MMVII_compiler_flags Threads::Threads P2007 ${mmv1_libs} ${mmv2_extlibs} $<TARGET_OBJECTS:TrianglePPobjs>)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION  VERSION_LESS "9.1")
   target_link_libraries(MMVII PRIVATE -lstdc++fs)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION  VERSION_LESS "9.0")

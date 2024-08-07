@@ -56,34 +56,32 @@ namespace MMVII
 
 	cCollecSpecArg2007 &cAppli_ComputeNodesPrecision::ArgObl(cCollecSpecArg2007 &anArgObl)
 	{
-		return anArgObl
-			   << Arg2007(mNameDispXMap, "Name of x-displacement ground-truth file.", {eTA2007::FileImage, eTA2007::FileDirProj})
-			   << Arg2007(mNameDispYMap, "Name of y-displacement ground-truth file.", {eTA2007::FileImage})
-			   << Arg2007(mNumberPointsToGenerate, "Number of points you want to generate for triangulation.");
+		return anArgObl << Arg2007(mNameDispXMap, "Name of x-displacement ground-truth file.", {eTA2007::FileImage, eTA2007::FileDirProj})
+			   			<< Arg2007(mNameDispYMap, "Name of y-displacement ground-truth file.", {eTA2007::FileImage})
+			   			<< Arg2007(mNumberPointsToGenerate, "Number of points you want to generate for triangulation.");
 	}
 
 	cCollecSpecArg2007 &cAppli_ComputeNodesPrecision::ArgOpt(cCollecSpecArg2007 &anArgOpt)
 	{
-		return anArgOpt
-			   << AOpt2007(mNumberOfLines, "MaximumValueNumberOfLines",
-						   "Maximum value that the uniform law can draw from for on the y-axis.", {eTA2007::HDV, eTA2007::Tuning})
-			   << AOpt2007(mNumberOfCols, "MaximumValueNumberOfCols",
-						   "Maximum value that the uniform law can draw from on the x-axis.", {eTA2007::HDV, eTA2007::Tuning})
-			   << AOpt2007(mBuildRandomUniformGrid, "GenerateRandomUniformGrid",
-						   "Whether to build a grid to be triangulated thanks to points generated randomly with a uniform law or build a grid made of rectangles.", {eTA2007::HDV})
-			   << AOpt2007(mInterpolArgs, "InterpolationArguments", "Arguments used for interpolation", {eTA2007::HDV})
-			   << AOpt2007(mComputeDiffDispMaps, "ComputeDiffDisplacementMaps",
-						   "Whether to compute difference displacement maps or not.", {eTA2007::HDV})
-			   << AOpt2007(mComputeInterpTranslationDispMaps, "ComputeInterpTranslationDispMaps",
-						   "Whether to compute displacement maps containing translations by barycentric interpolation formula or not.", {eTA2007::HDV})
-			   << AOpt2007(mNameDiffDispX, "NameXDisplacementDiffMap",
-						   "File name to use to save the difference x-displacement map.", {eTA2007::HDV})
-			   << AOpt2007(mNameDiffDispY, "NameYDisplacementDiffMap",
-						   "File name to use to save the difference y-displacement map.", {eTA2007::HDV})
-			   << AOpt2007(mNameComputedTranslatedDispX, "NameXTranslatedDispMap",
-						   "File name to use to save the x-translated displacement map.", {eTA2007::HDV})
-			   << AOpt2007(mNameComputedTranslatedDispY, "NameYTranslatedDispMap",
-						   "File name to use to save the y-translated displacement map.", {eTA2007::HDV});
+		return anArgOpt << AOpt2007(mNumberOfLines, "MaximumValueNumberOfLines",
+						   			"Maximum value that the uniform law can draw from for on the y-axis.", {eTA2007::HDV, eTA2007::Tuning})
+			   			<< AOpt2007(mNumberOfCols, "MaximumValueNumberOfCols",
+						   			"Maximum value that the uniform law can draw from on the x-axis.", {eTA2007::HDV, eTA2007::Tuning})
+			   			<< AOpt2007(mBuildRandomUniformGrid, "GenerateRandomUniformGrid",
+						   			"Whether to build a grid to be triangulated thanks to points generated randomly with a uniform law or build a grid made of rectangles.", {eTA2007::HDV})
+			   			<< AOpt2007(mInterpolArgs, "InterpolationArguments", "Arguments used for interpolation", {eTA2007::HDV})
+			   			<< AOpt2007(mComputeDiffDispMaps, "ComputeDiffDisplacementMaps",
+						   			"Whether to compute difference displacement maps or not.", {eTA2007::HDV})
+			   			<< AOpt2007(mComputeInterpTranslationDispMaps, "ComputeInterpTranslationDispMaps",
+						   			"Whether to compute displacement maps containing translations by barycentric interpolation formula or not.", {eTA2007::HDV})
+			   			<< AOpt2007(mNameDiffDispX, "NameXDisplacementDiffMap",
+						   			"File name to use to save the difference x-displacement map.", {eTA2007::HDV})
+			   			<< AOpt2007(mNameDiffDispY, "NameYDisplacementDiffMap",
+						   			"File name to use to save the difference y-displacement map.", {eTA2007::HDV})
+			   			<< AOpt2007(mNameComputedTranslatedDispX, "NameXTranslatedDispMap",
+						   			"File name to use to save the x-translated displacement map.", {eTA2007::HDV})
+			   			<< AOpt2007(mNameComputedTranslatedDispY, "NameYTranslatedDispMap",
+						   			"File name to use to save the y-translated displacement map.", {eTA2007::HDV});
 	}
 
 	tPt2dr cAppli_ComputeNodesPrecision::CheckReturnOfInterpolatorValue(const tPt2dr &aRealCoordPoint, const tPt2di &aIntCoordPoint)

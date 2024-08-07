@@ -1,9 +1,6 @@
 #ifndef _TRIANGLEDEFORMATIONRADIOMETRY_H_
 #define _TRIANGLEDEFORMATIONRADIOMETRY_H_
 
-#include "MMVII_Geom2D.h"
-#include "MMVII_PhgrDist.h"
-#include "MMVII_Interpolators.h"
 #include "MMVII_TplSymbTriangle.h"
 #include "TriangleDeformationUtils.h"
 
@@ -28,21 +25,24 @@ namespace MMVII
 		typedef std::vector<int> tIntVect;
 		typedef std::vector<tREAL8> tDoubleVect;
 
+		// Constructor
 		cAppli_TriangleDeformationRadiometry(const std::vector<std::string> &aVArgs,
 											 const cSpecMMVII_Appli &aSpec);
+		// Destructor
 		~cAppli_TriangleDeformationRadiometry();
 
+		// Exe and argument methods
 		int Exe() override;
 		cCollecSpecArg2007 &ArgObl(cCollecSpecArg2007 &anArgObl) override;
 		cCollecSpecArg2007 &ArgOpt(cCollecSpecArg2007 &anArgOpt) override;
 
-		// Iterate of triangles and inside pixels
+		// Does one iteration of optimisation
 		void DoOneIterationRadiometry(const int aIterNumber, const int aTotalNumberOfIterations,
 									  const tDenseVect &aVInitSol, const bool aNonEmptyFolderName);
 		// Loops over all triangles and solves system to update parameters at end of iteration
 		void LoopOverTrianglesAndUpdateParametersRadiometry(const int aIterNumber, const int aTotalNumberOfIters,
 															const bool aNonEmptyPathToFolder);
-		// Generate displacement maps of last solution
+		// Generates displacement maps of last solution
 		void GenerateOutputImage(const tDenseVect &aVFinalSol, const int aTotalNumberOfIterations,
 								 const bool aNonEmptyFolderName);
 

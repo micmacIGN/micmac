@@ -115,22 +115,22 @@ namespace MMVII
 	cCollecSpecArg2007 &cAppli_TriangleDeformation::ArgOpt(cCollecSpecArg2007 &anArgOpt)
 	{
 		return anArgOpt << AOpt2007(mNumberOfCols, "MaximumValueNumberOfCols",
-									"Maximum value that the uniform law can draw from on the x-axis", {eTA2007::HDV, eTA2007::Tuning})
+									"Maximum value that the uniform law can draw from on the x-axis.", {eTA2007::HDV, eTA2007::Tuning})
 						<< AOpt2007(mNumberOfLines, "MaximumValueNumberOfLines",
-									"Maximum value that the uniform law can draw from for on the y-axis", {eTA2007::HDV, eTA2007::Tuning})
+									"Maximum value that the uniform law can draw from for on the y-axis.", {eTA2007::HDV, eTA2007::Tuning})
 						<< AOpt2007(mShow, "Show", "Whether to print minimisation results", {eTA2007::HDV, eTA2007::Tuning})
 						<< AOpt2007(mComputeAvgMax, "ComputeAvgMaxDiffIm",
-									"Whether to compute the average and maximum pixel value of the difference image between post and pre image or not", {eTA2007::HDV, eTA2007::Tuning})
-						<< AOpt2007(mUseMultiScaleApproach, "UseMultiScaleApproach", "Whether to use multi-scale approach or not", {eTA2007::HDV})
+									"Whether to compute the average and maximum pixel value of the difference image between post and pre image or not.", {eTA2007::HDV, eTA2007::Tuning})
+						<< AOpt2007(mUseMultiScaleApproach, "UseMultiScaleApproach", "Whether to use multi-scale approach or not.", {eTA2007::HDV})
 						<< AOpt2007(mBuildRandomUniformGrid, "GenerateRandomUniformGrid",
-									"Whether to build a grid to be triangulated thanks to points generated randomly with a uniform law or build a grid made of rectangles", {eTA2007::HDV, eTA2007::Tuning})
+									"Whether to build a grid to be triangulated thanks to points generated randomly with a uniform law or build a grid made of rectangles.", {eTA2007::HDV, eTA2007::Tuning})
 						<< AOpt2007(mUseMMV2Interpolators, "UseMMV2Interpolators",
 									"Use MMVII interpolators instead of usual bilinear interpolation.", {eTA2007::HDV})
-						<< AOpt2007(mInterpolArgs, "InterpolationArguments", "Input arguments for MMVII interpolation use", {eTA2007::HDV})
+						<< AOpt2007(mInterpolArgs, "InterpolationArguments", "Input arguments for MMVII interpolation use.", {eTA2007::HDV})
 						<< AOpt2007(mSerialiseTriangleNodes, "SerialiseTriangleNodes", "Whether to serialise triangle nodes to .xml file or not.", {eTA2007::HDV})
 						<< AOpt2007(mNameMultipleTriangleNodes, "NameOfMultipleTriangleNodes", "File name to use when saving all triangle nodes values to .xml file.", {eTA2007::HDV})
 						<< AOpt2007(mInitialiseWithPreviousExecution, "InitialiseWithPreviousExecution",
-									"Whether to initialise or not with unknown translation values obtained at previous execution", {eTA2007::HDV, eTA2007::Tuning})
+									"Whether to initialise or not with unknown translation values obtained at previous execution.", {eTA2007::HDV, eTA2007::Tuning})
 						<< AOpt2007(mInitialiseWithUserValues, "InitialiseWithUserValues",
 									"Whether the user wishes or not to initialise unknowns with personalised values.", {eTA2007::HDV, eTA2007::Tuning})
 						<< AOpt2007(mInitialiseXTranslationValue, "InitialTranslationXValue",
@@ -138,67 +138,67 @@ namespace MMVII
 						<< AOpt2007(mInitialiseYTranslationValue, "InitialTranslationYValue",
 									"Value to use for initialising y-translation unknowns.", {eTA2007::HDV, eTA2007::Tuning})
 						<< AOpt2007(mInitialiseRadTrValue, "InitialeRadiometryTranslationValue",
-									"Value to use for initialising radiometry translation unknown values", {eTA2007::HDV, eTA2007::Tuning})
+									"Value to use for initialising radiometry translation unknown values.", {eTA2007::HDV, eTA2007::Tuning})
 						<< AOpt2007(mInitialiseRadScValue, "InitialeRadiometryScalingValue",
-									"Value to use for initialising radiometry scaling unknown values", {eTA2007::HDV, eTA2007::Tuning})
+									"Value to use for initialising radiometry scaling unknown values.", {eTA2007::HDV, eTA2007::Tuning})
 						<< AOpt2007(mInitialiseWithMMVI, "InitialiseWithMMVI",
-									"Whether to initialise or not values of unknowns with pre-computed values from MicMacV1 at first execution", {eTA2007::HDV, eTA2007::Tuning})
-						<< AOpt2007(mNameInitialDepX, "InitialDispXMapFilename", "Name of file of initial X-displacement map", {eTA2007::HDV, eTA2007::FileImage, eTA2007::Tuning})
-						<< AOpt2007(mNameInitialDepY, "InitialDispYMapFilename", "Name of file of initial Y-displacement map", {eTA2007::HDV, eTA2007::FileImage, eTA2007::Tuning})
+									"Whether to initialise or not values of unknowns with pre-computed values from MicMacV1 at first execution.", {eTA2007::HDV, eTA2007::Tuning})
+						<< AOpt2007(mNameInitialDepX, "InitialDispXMapFilename", "Name of file of initial X-displacement map.", {eTA2007::HDV, eTA2007::FileImage, eTA2007::Tuning})
+						<< AOpt2007(mNameInitialDepY, "InitialDispYMapFilename", "Name of file of initial Y-displacement map.", {eTA2007::HDV, eTA2007::FileImage, eTA2007::Tuning})
 						<< AOpt2007(mNameIntermediateDepX, "NameForIntermediateDispXMap",
-									"File name to use when saving intermediate x-displacement maps between executions", {eTA2007::HDV, eTA2007::FileImage, eTA2007::Tuning})
+									"File name to use when saving intermediate x-displacement maps between executions.", {eTA2007::HDV, eTA2007::FileImage, eTA2007::Tuning})
 						<< AOpt2007(mNameIntermediateDepY, "NameForIntermediateDispYMap",
-									"File name to use when saving intermediate y-displacement maps between executions", {eTA2007::HDV, eTA2007::FileImage, eTA2007::Tuning})
+									"File name to use when saving intermediate y-displacement maps between executions.", {eTA2007::HDV, eTA2007::FileImage, eTA2007::Tuning})
 						<< AOpt2007(mNameCorrelationMaskMMVI, "NameOfCorrelationMask",
-									"File name of mask file from MMVI giving locations where correlation is computed", {eTA2007::HDV, eTA2007::FileImage, eTA2007::Tuning})
+									"File name of mask file from MMVI giving locations where correlation is computed.", {eTA2007::HDV, eTA2007::FileImage, eTA2007::Tuning})
 						<< AOpt2007(mIsFirstExecution, "IsFirstExecution",
-									"Whether this is the first execution of optimisation algorithm or not", {eTA2007::HDV, eTA2007::Tuning})
+									"Whether this is the first execution of optimisation algorithm or not.", {eTA2007::HDV, eTA2007::Tuning})
 						<< AOpt2007(mGenerateDisplacementImage, "GenerateDisplacementImage",
-									"Whether to generate and save an image having been translated", {eTA2007::HDV})
+									"Whether to generate and save an image having been translated.", {eTA2007::HDV})
 						<< AOpt2007(mHardFreezeTranslationX, "FreezeTranslationX",
-									"Whether to freeze or not x-translation to certain value during computation", {eTA2007::HDV})
+									"Whether to freeze or not x-translation to certain value during computation.", {eTA2007::HDV})
 						<< AOpt2007(mHardFreezeTranslationY, "FreezeTranslationY",
-									"Whether to freeze or not y-translation to certain value during computation", {eTA2007::HDV})
+									"Whether to freeze or not y-translation to certain value during computation.", {eTA2007::HDV})
 						<< AOpt2007(mHardFreezeRadTranslation, "FreezeRadiometryTranslation",
-									"Whether to freeze radiometry translation factor in computation or not", {eTA2007::HDV})
+									"Whether to freeze radiometry translation factor in computation or not.", {eTA2007::HDV})
 						<< AOpt2007(mHardFreezeRadScale, "FreezeRadiometryScaling",
-									"Whether to freeze radiometry scaling factor in computation or not", {eTA2007::HDV})
+									"Whether to freeze radiometry scaling factor in computation or not.", {eTA2007::HDV})
 						<< AOpt2007(mWeightTranslationX, "WeightTranslationX",
-									"A value to weight x-translation for soft freezing of coefficient", {eTA2007::HDV})
+									"A value to weight x-translation for soft freezing of coefficient.", {eTA2007::HDV})
 						<< AOpt2007(mWeightTranslationY, "WeightTranslationY",
-									"A value to weight y-translation for soft freezing of coefficient", {eTA2007::HDV})
+									"A value to weight y-translation for soft freezing of coefficient.", {eTA2007::HDV})
 						<< AOpt2007(mWeightRadTranslation, "WeightRadiometryTranslation",
-									"A value to weight radiometry translation for soft freezing of coefficient", {eTA2007::HDV})
+									"A value to weight radiometry translation for soft freezing of coefficient.", {eTA2007::HDV})
 						<< AOpt2007(mWeightRadScale, "WeightRadiometryScaling",
-									"A value to weight radiometry scaling for soft freezing of coefficient", {eTA2007::HDV})
+									"A value to weight radiometry scaling for soft freezing of coefficient.", {eTA2007::HDV})
 						<< AOpt2007(mNumberOfFirstItersToHardFreezeTranslation, "NumberOfFirstHardFrozenTranslationIters",
-									"Freeze x and y translation unknowns for a certain number of the first iterations", {eTA2007::HDV})
+									"Freeze x and y translation unknowns for a certain number of the first iterations.", {eTA2007::HDV})
 						<< AOpt2007(mNumberOfFirstItersToHardFreezeRadiometry, "NumberOfFirstHardFrozenRadiometryIters",
-									"Freeze radiometry translation and scaling unknowns for a certain number of the first iterations", {eTA2007::HDV})
+									"Freeze radiometry translation and scaling unknowns for a certain number of the first iterations.", {eTA2007::HDV})
 						<< AOpt2007(mNumberOfFirstItersToSoftFreezeTranslation, "NumberOfFirstSoftFrozenTranslationIters",
-									"Apply soft constraints to translation unknowns for a certain number of the first iterations", {eTA2007::HDV})
+									"Apply soft constraints to translation unknowns for a certain number of the first iterations.", {eTA2007::HDV})
 						<< AOpt2007(mNumberOfFirstItersToSoftFreezeRadiometry, "NumberOfFirstSoftFrozenRadiometryIters",
-									"Apply soft contraints to radiometry translation and scaling unknowns for a certain number of the first iterations", {eTA2007::HDV})
+									"Apply soft contraints to radiometry translation and scaling unknowns for a certain number of the first iterations.", {eTA2007::HDV})
 						<< AOpt2007(mHardFreezeTranslationAfterFirstIters, "FreezeTranslationAfterFirstIters",
-									"Whether or not to hard freeze translation unknowns after they have been frozen or freed for first iterations", {eTA2007::HDV})
+									"Whether or not to hard freeze translation unknowns after they have been frozen or freed for first iterations.", {eTA2007::HDV})
 						<< AOpt2007(mHardFreezeRadiometryAfterFirstIters, "FreezeRadiometryAfterFirstIters",
-									"Whether or not to hard freeze radiometry unknowns after they have been frozen or freed for first iterations", {eTA2007::HDV})
+									"Whether or not to hard freeze radiometry unknowns after they have been frozen or freed for first iterations.", {eTA2007::HDV})
 						<< AOpt2007(mSoftFreezeTranslationAfterFirstIters, "ApplySoftConstraintTranslationAfterFirstIters",
-									"Whether or not to apply soft constraints to translation unknowns after they have been frozen or freed for first iterations", {eTA2007::HDV})
+									"Whether or not to apply soft constraints to translation unknowns after they have been frozen or freed for first iterations.", {eTA2007::HDV})
 						<< AOpt2007(mSoftFreezeRadiometryAfterFirstIters, "ApplySoftConstraintRadiometryAfterFirstIters",
-									"Whether or not to apply soft constraints to radiometry unknowns after they have been frozen or freed for first iterations", {eTA2007::HDV})
-						<< AOpt2007(mSigmaGaussFilterStep, "SigmaGaussFilterStep", "Sigma value to use for Gauss filter in multi-stage approach", {eTA2007::HDV, eTA2007::Tuning})
+									"Whether or not to apply soft constraints to radiometry unknowns after they have been frozen or freed for first iterations.", {eTA2007::HDV})
+						<< AOpt2007(mSigmaGaussFilterStep, "SigmaGaussFilterStep", "Sigma value to use for Gauss filter in multi-stage approach.", {eTA2007::HDV, eTA2007::Tuning})
 						<< AOpt2007(mNumberOfIterGaussFilter, "NumberOfIterationsGaussFilter",
 									"Number of iterations to run in Gauss filter algorithm.", {eTA2007::HDV, eTA2007::Tuning})
 						<< AOpt2007(mNumberOfEndIterations, "NumberOfEndIterations",
-									"Number of iterations to run on original images in multi-scale approach", {eTA2007::HDV, eTA2007::Tuning})
+									"Number of iterations to run on original images in multi-scale approach.", {eTA2007::HDV, eTA2007::Tuning})
 						<< AOpt2007(mUserDefinedFolderNameSaveResult, "FolderNameToSaveResults",
-									"Folder name where to store produced results", {eTA2007::HDV, eTA2007::Tuning})
+									"Folder name where to store produced results.", {eTA2007::HDV, eTA2007::Tuning})
 						<< AOpt2007(mDisplayLastTranslationValues, "DisplayLastTranslationsValues",
-									"Whether to display the final values of unknowns linked to point translation", {eTA2007::HDV, eTA2007::Tuning})
+									"Whether to display the final values of unknowns linked to point translation.", {eTA2007::HDV, eTA2007::Tuning})
 						<< AOpt2007(mDisplayLastRadiometryValues, "DisplayLastRadiometryValues",
-									"Whether to display or not the last values of radiometry unknowns after optimisation process", {eTA2007::HDV, eTA2007::Tuning})
-						<< AOpt2007(mDisplayStatisticsOnUnkValues, "DisplayStatistics", "Display statististics : min, max, mean and std on final values of solution", {eTA2007::HDV, eTA2007::Tuning});
+									"Whether to display or not the last values of radiometry unknowns after optimisation process.", {eTA2007::HDV, eTA2007::Tuning})
+						<< AOpt2007(mDisplayStatisticsOnUnkValues, "DisplayStatistics", "Display statistics : min, max, mean and std on final values of solution.", {eTA2007::HDV, eTA2007::Tuning});
 	}
 
 	void cAppli_TriangleDeformation::LoopOverTrianglesAndUpdateParameters(const int aIterNumber, const int aTotalNumberOfIterations,
@@ -751,7 +751,7 @@ namespace MMVII
 		// If initialisation with previous excution is not wanted initialise the problem with zeros everywhere apart from radiometry scaling, with one
 		if ((!mIsFirstExecution && mInitialiseWithUserValues && !mInitialiseWithPreviousExecution) ||
 			(mIsFirstExecution && mSerialiseTriangleNodes))
-			InitialisationWithUserValues(mDelTri, mSys, mInitialiseWithUserValues, mInitialiseXTranslationValue,
+			InitialisationWithUserValues(mDelTri.NbPts(), mSys, mInitialiseWithUserValues, mInitialiseXTranslationValue,
 										 mInitialiseYTranslationValue, mInitialiseRadTrValue, mInitialiseRadScValue);
 		else
 		{
@@ -768,7 +768,7 @@ namespace MMVII
 														  mNameCorrelationMaskMMVI, mImCorrelationMask,
 														  mDImCorrelationMask, mSzCorrelationMask);
 			else if (!mIsFirstExecution && mSerialiseTriangleNodes && mInitialiseWithPreviousExecution)
-				InitialiseWithPreviousExecutionValuesSerialisation(mDelTri, mSys, mNameMultipleTriangleNodes);
+				InitialiseWithPreviousExecutionValuesSerialisation(mDelTri.NbPts(), mSys, mNameMultipleTriangleNodes);
 		}
 
 		const tDenseVect aVInitSol = mSys->CurGlobSol().Dup(); // Duplicate initial solution
