@@ -227,6 +227,11 @@ bool cTopoData::InsertCompObsFile(const std::string & aFileName)
             StdOut() << "Error reading "<<aFileName<<" at line " << line_num << ": \""<<line<<"\"\n";
             continue;
         }
+        if (sigma<0)
+        {
+            StdOut() << "skip: \""<<line<<"\"  (sigma<0)\n";
+            continue;
+        }
 
         switch (code_comp) {
         case eCompObsType::eCompError:
