@@ -1,9 +1,6 @@
 #ifndef _TRIANGLEDEFORMATIONRADIOMETRY_H_
 #define _TRIANGLEDEFORMATIONRADIOMETRY_H_
 
-#include "MMVII_Geom2D.h"
-#include "MMVII_PhgrDist.h"
-#include "MMVII_Interpolators.h"
 #include "MMVII_TplSymbTriangle.h"
 #include "TriangleDeformationUtils.h"
 

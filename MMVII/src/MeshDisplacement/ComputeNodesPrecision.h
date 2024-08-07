@@ -1,12 +1,12 @@
 #ifndef _COMPUTENODESPRECISION_H_
 #define _COMPUTENODESPRECISION_H_
 
-#include "cMMVII_Appli.h"
+//#include "cMMVII_Appli.h"
 
 #include "MMVII_Geom2D.h"
 #include "MMVII_PhgrDist.h"
 
-#include "TriangleDeformationUtils.h"
+#include "./ContinuousImages/TriangleDeformationUtils.h"
 
 namespace MMVII
 {

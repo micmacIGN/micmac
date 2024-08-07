@@ -1,12 +1,6 @@
 #ifndef _TRIANGLEDEFORMATION_H_
 #define _TRIANGLEDEFORMATION_H_
 
-#include "cMMVII_Appli.h"
-#include "MMVII_Geom2D.h"
-#include "MMVII_PhgrDist.h"
-#include "MMVII_Interpolators.h"
-
-#include "MMVII_util.h"
 #include "MMVII_TplSymbTriangle.h"
 #include "TriangleDeformationUtils.h"
 

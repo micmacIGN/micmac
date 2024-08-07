@@ -1,7 +1,7 @@
 #ifndef _TRIANGLEDEFORMATIONUTILS_H_
 #define _TRIANGLEDEFORMATIONUTILS_H_
 
-#include "MMVII_Geom2D.h"
+//#include "MMVII_Geom2D.h"
 #include "MMVII_PhgrDist.h"
 #include "MMVII_Interpolators.h"
 
@@ -33,12 +33,12 @@ namespace MMVII
 						   tDIm *&aDIm,												 // image
 						   cDiffInterpolator1D *&anInterpolator);					 // an interpolator
 
-		cPt3dr GetBarycenterCoordinates() const; // Accessor for barycenter coordinates
+		tPt3dr GetBarycenterCoordinates() const; // Accessor for barycenter coordinates
 		tPt2dr GetCartesianCoordinates() const;	 // Accessor for cartesian coordinates
 		tREAL8 GetPixelValue() const;			 // Accessor for pixel value at coordinates
 
 	private:
-		cPt3dr mBarycenterCoordinatesOfPixel; // Barycentric coordinates of pixel.
+		tPt3dr mBarycenterCoordinatesOfPixel; // Barycentric coordinates of pixel.
 		tPt2dr mFilledIndices;				  // 2D cartesian coordinates of pixel.
 		tREAL8 mValueOfPixel;				  // Intensity in image at pixel.
 	};

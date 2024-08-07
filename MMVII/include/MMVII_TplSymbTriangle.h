@@ -7,7 +7,7 @@
 #include "MMVII_Ptxd.h"
 #include "MMVII_Geom2D.h"
 
-#include "../src/MeshDisplacement/TriangleDeformationUtils.h"
+#include "../src/MeshDisplacement/ContinuousImages/TriangleDeformationUtils.h"
 
 /**
  \file MMVII_TplSymbTriangle.h
