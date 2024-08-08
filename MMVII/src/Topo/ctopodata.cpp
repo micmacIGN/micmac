@@ -181,7 +181,7 @@ bool cTopoData::InsertCompObsFile(const std::string & aFileName)
     std::ifstream infile(aFileName);
     if (!infile.is_open())
     {
-        StdOut() << "Error: can't open obs file \""<<aFileName<<"\""<<std::endl;
+        MMVII_DEV_WARNING("Error: can't open obs file \""+aFileName+"\"");
         return false;
     }
 
@@ -210,14 +210,14 @@ bool cTopoData::InsertCompObsFile(const std::string & aFileName)
         int code;
         if (!(iss >> code))
         {
-            StdOut() << "Error reading "<<aFileName<<" at line " << line_num << ": \""<<line<<"\"\n";
+            MMVII_DEV_WARNING("Error reading "+aFileName+" at line "+std::to_string(line_num)+": \""+line+"\"")
             continue;
         }
 
         eCompObsType code_comp  = intToCompObsType(code);
         // Check if the conversion succeeded
         if (code_comp == eCompObsType::eCompError) {
-            StdOut() << "Error reading "<<aFileName<<" at line " << line_num << ": \""<<line<<"\"\n";
+            MMVII_DEV_WARNING("Error reading "+aFileName+" at line "+std::to_string(line_num)+": \""+line+"\"")
             continue;
         }
 
@@ -225,12 +225,12 @@ bool cTopoData::InsertCompObsFile(const std::string & aFileName)
         double val, sigma;
         if (!(iss >> nameFrom >> nameTo >> val >> sigma))
         {
-            StdOut() << "Error reading "<<aFileName<<" at line " << line_num << ": \""<<line<<"\"\n";
+            MMVII_DEV_WARNING("Error reading "+aFileName+" at line "+std::to_string(line_num)+": \""+line+"\"")
             continue;
         }
         if (sigma<0)
         {
-            StdOut() << "skip: \""<<line<<"\"  (sigma<0)\n";
+            MMVII_DEV_WARNING("skip: \""+line+"\"  (sigma<0)")
             continue;
         }
 
@@ -252,7 +252,7 @@ bool cTopoData::InsertCompObsFile(const std::string & aFileName)
 
         if (!addObs(aCurrentVectObsSetStations, code_comp, nameFrom, nameTo,
                     val, sigma, aCurrStationStatus))
-            StdOut() << "Error interpreting line " << line_num << ": \""<<aFileName<<"\"\n";
+            MMVII_DEV_WARNING("Error interpreting line "+std::to_string(line_num)+": \""+aFileName+"\"")
 
         ++aNbNewObs;
     }
