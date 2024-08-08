@@ -181,7 +181,7 @@ bool cTopoData::InsertCompObsFile(const std::string & aFileName)
     std::ifstream infile(aFileName);
     if (!infile.is_open())
     {
-        MMVII_DEV_WARNING("Error: can't open obs file \""+aFileName+"\"");
+        StdOut() << "Error: can't open obs file \""+aFileName+"\"n";
         return false;
     }
 
@@ -210,14 +210,14 @@ bool cTopoData::InsertCompObsFile(const std::string & aFileName)
         int code;
         if (!(iss >> code))
         {
-            MMVII_DEV_WARNING("Error reading "+aFileName+" at line "+std::to_string(line_num)+": \""+line+"\"")
+            StdOut() << "Error reading "+aFileName+" at line "+std::to_string(line_num)+": \""+line+"\"\n";
             continue;
         }
 
         eCompObsType code_comp  = intToCompObsType(code);
         // Check if the conversion succeeded
         if (code_comp == eCompObsType::eCompError) {
-            MMVII_DEV_WARNING("Error reading "+aFileName+" at line "+std::to_string(line_num)+": \""+line+"\"")
+            StdOut() << "Error reading "+aFileName+" at line "+std::to_string(line_num)+": \""+line+"\"\n";
             continue;
         }
 
@@ -225,12 +225,12 @@ bool cTopoData::InsertCompObsFile(const std::string & aFileName)
         double val, sigma;
         if (!(iss >> nameFrom >> nameTo >> val >> sigma))
         {
-            MMVII_DEV_WARNING("Error reading "+aFileName+" at line "+std::to_string(line_num)+": \""+line+"\"")
+            StdOut() << "Error reading "+aFileName+" at line "+std::to_string(line_num)+": \""+line+"\"\n";
             continue;
         }
         if (sigma<0)
         {
-            MMVII_DEV_WARNING("skip: \""+line+"\"  (sigma<0)")
+            StdOut() << "skip: \""+line+"\"  (sigma<0)\n";
             continue;
         }
 
@@ -252,7 +252,7 @@ bool cTopoData::InsertCompObsFile(const std::string & aFileName)
 
         if (!addObs(aCurrentVectObsSetStations, code_comp, nameFrom, nameTo,
                     val, sigma, aCurrStationStatus))
-            MMVII_DEV_WARNING("Error interpreting line "+std::to_string(line_num)+": \""+aFileName+"\"")
+            StdOut() << "Error interpreting line "+std::to_string(line_num)+": \""+aFileName+"\"\n";
 
         ++aNbNewObs;
     }
