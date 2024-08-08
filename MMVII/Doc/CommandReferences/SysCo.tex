@@ -484,8 +484,72 @@ orientations, we can either:
    \item use a code \textbf{7} instead of \textbf{5} for the first measurement of the new station
 \end{itemize}
 
+A separate \texttt{OBS} files or a \texttt{\#}-line closes all current stations.
+Code \textbf{7} only closes the previous station on one point. 
 
-\subsection{Special case of distance-only measurements}
+Some illustrations :
+\begin{verbatim}
+ 7   St1    PtA   100.000   0.001 * creates a station on St1
+ 5   St1    PtB   110.000   0.001
+
+ 7   St1    PtA   150.000   0.001 * closes current station on St1, creates a new one on St1
+ 5   St1    PtC   210.000   0.001
+\end{verbatim}
+Creates two stations originating on point \texttt{St1}. Each of these station
+is vericalized (thanks to the implicit \texttt{\#VERT} at the start of the file) and each has one horizontal orientation unknown.
+Here, there is a 50 grades difference between the two stations orientations.
+
+With:
+\begin{verbatim}
+ 7   St1    PtA     100.000      0.001 * creates a station on St1
+ 5   St1    PtB     110.000      0.001
+
+ 5   St1    PtA     150.000      0.001
+ 5   St1    PtC     210.000      0.001
+\end{verbatim}
+There is only one station on \texttt{St1}. The incoherent horizontal angles values
+will make the computation fail.
+
+Another way to fix it:
+\begin{verbatim}
+ 5   St1    PtA     100.000      0.001 * creates a station on St1
+ 5   St1    PtB     110.000      0.001
+#NEW                                   * closes all current stations
+ 5   St1    PtA     150.000      0.001 * creates a station on St1
+ 5   St1    PtC     210.000      0.001
+\end{verbatim}
+The fisrt \textbf{7} is not mandatory since it is the start of a file, there is no
+current stations. \texttt{\#NEW} closes all the current stations, keeping the same orientations constraints (stations verticalized).
+
+Code \textbf{7} only closes the current station on one point :
+\begin{verbatim}
+ 5   St1    PtA   100.000   0.001 * creates a station on St1
+ 5   St1    PtB   110.000   0.001
+ 
+ 5   St2    PtA   200.000   0.001 * creates a station on St2
+ 5   St2    PtD   300.000   0.001
+
+ 7   St1    PtA   150.000   0.001 * closes station on St1, creates a new one on St1
+ 5   St1    PtC   210.000   0.001
+
+ 5   St2    PtE   250.000   0.001 * uses previous station on St2
+\end{verbatim}
+But:
+\begin{verbatim}
+ 5   St1    PtA   100.000   0.001 * creates a station on St1
+ 5   St1    PtB   110.000   0.001
+ 
+ 5   St2    PtA   200.000   0.001 * creates a station on St2
+ 5   St2    PtD   300.000   0.001
+#NEW                              * closes all the stations
+ 5   St1    PtA   150.000   0.001 * creates a station on St1
+ 5   St1    PtC   210.000   0.001
+
+ 5   St2    PtE   250.000   0.001 * creates a station on St2
+\end{verbatim}
+
+
+\subsection{Special case for distance-only measurements}
 
 If a station only has distances measurements, it is automatically
 set as a \texttt{\#FIX} station, since this station orientation unknowns
