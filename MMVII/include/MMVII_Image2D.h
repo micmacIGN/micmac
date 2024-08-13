@@ -112,6 +112,8 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
            tPB::AssertInsideBL(aP);
            return  ValueAndGradBL(aP);
        }
+       /// idem "GetGradAndVBL" but a more standard interface for use as " auto [Val,Grad] = "
+       std::pair<tREAL8,cPt2dr>  GetPairGradAndVBL(const cPt2dr & aP)  const;
 
        inline double DefGetVBL(const cPt2dr & aP,double aDef) const
        {

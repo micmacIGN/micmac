@@ -14,6 +14,44 @@
 namespace MMVII
 {
 
+namespace NS_CHKBRD_TARGET_EXTR {
+
+class c1Hyp;  // represent one hypothesis of interpretation
+class cTransHyp;
+
+class cTransHyp
+{
+    public :
+        tREAL8 mCostTrans;   // total cost of trans : Intrinsec + due to radiom
+	const c1Hyp* mPred;  // Predecessor
+
+        tREAL8 mIntrCostTrans;
+};
+
+class c1Hyp
+{
+   public :
+       const bool mIsBlack;    
+       const int mDRho;
+       const int mDTeta;
+};
+
+class cSetHypBit
+{
+     public :
+};
+
+
+
+enum class eFuzzyBool : int
+{
+    eUndef=-1,
+    eFalse=0,
+    eTrue=1
+};
+
+
+/* ================================================================= */
 
 
 static constexpr tU_INT1 eNone = 0 ;
@@ -40,13 +78,40 @@ class cCdEllipse ;
 class cCdSadle
 {
     public :
-        cCdSadle (const cPt2dr & aC,tREAL8 aCrit) : mC (aC) , mSadCrit (aCrit) {}
-        cCdSadle (){}
+        cCdSadle (const cPt2dr & aC,tREAL8 aCrit) ;
+        cCdSadle ();
+
+	bool Is4Debug() const;
+
+	/// Center 
         cPt2dr mC;
 
 	///  Criterion of sadle point, obtain by fiting a quadric on gray level
         tREAL8 mSadCrit;
+
+	///  Num : 4 debug
+	int      mNum; 
+	/// Use 2 compute mNum
+	static int TheCptNum;
+	/// Use to have breakpoint at creation
+	static int TheNum2Debug;
 };
+
+int cCdSadle::TheCptNum=0;
+int cCdSadle::TheNum2Debug=-2;
+
+cCdSadle::cCdSadle (const cPt2dr & aC,tREAL8 aCrit) : 
+    mC       (aC) , 
+    mSadCrit (aCrit) ,
+    mNum     (TheCptNum++)
+{
+}
+cCdSadle::cCdSadle () :
+    mNum  (-1)
+{
+}
+
+bool cCdSadle::Is4Debug() const  {return  mNum == TheNum2Debug;}
 
 /* **************************************************** */
 /*                     cCdSym                           */
@@ -71,7 +136,7 @@ class cCdRadiom : public cCdSym
           cCdRadiom(const cCdSym &,const cDataIm2D<tREAL4> & aDIm,tREAL8 aTeta1,tREAL8 aTeta2,tREAL8 aLength,tREAL8 aThickness);
 
           ///  Theoretical threshold
-          tREAL8 Threshold() const ;
+          tREAL8 Threshold(tREAL8 aWhite= 0.5 ) const ;
 	  /// Once black/white & teta are computed, refine seg using 
 	  void OptimSegIm(const cDataIm2D<tREAL4> & aDIm,tREAL8 aLength);
 
@@ -81,7 +146,7 @@ class cCdRadiom : public cCdSym
           void ComputePtsOfEllipse(std::vector<cPt2di> & aRes) const;
 
 	  /// compute an ellipse that contain 
-          bool FrontBlackCC(std::vector<cPt2di> & aRes,cDataIm2D<tU_INT1> & aMarq) const;
+          bool FrontBlackCC(std::vector<cPt2di> & aRes,cDataIm2D<tU_INT1> & aMarq,int aNbMax) const;
 	  ///  Select point of front that are on ellipse
           void SelEllAndRefineFront(std::vector<cPt2dr> & aRes,const std::vector<cPt2di> &) const;
 
@@ -108,23 +173,108 @@ class cCdRadiom : public cCdSym
           tREAL8  mWhite;
 };
 				
+/*
+class cDecodeFromCoulBits
+{
+      public :
+         cDecodeFromCoulBits(cFullSpecifTarget *);
+	 void SetColBit(bool IsBlack,size_t aBit);
+	 bool IsComplete() const;
+
+	 const cOneEncoding * Encoding() const;
+
+      private :
+	 cFullSpecifTarget * mSpec;
+         tSet32Bits          mCode;   /// Flag currently computed
+         tSet32Bits          mBitsFixed; /// Flag/List of bit that where fixed
+};
+
+cDecodeFromCoulBits::cDecodeFromCoulBits(cFullSpecifTarget * aSpec) :
+     mSpec       (aSpec),
+     mCode       (0),
+     mBitsFixed  (0)
+{
+}
+
+void cDecodeFromCoulBits::SetColBit(bool IsBlack,size_t aBit)
+{
+    MMVII_INTERNAL_ASSERT_tiny(aBit< mSpec->NbBits(),"Unvalide bit in cDecodeFromCoulBits::SetColBit");
+    if (mSpec->BitIs1(!IsBlack))
+       mCode.AddElem(aBit);
+    else
+       mCode.SuprElem(aBit);
+    mBitsFixed.AddElem(aBit);
+}
+
+bool cDecodeFromCoulBits::IsComplete() const
+{
+    return mBitsFixed.Cardinality() == mSpec->NbBits();
+}
+
+
+const cOneEncoding * cDecodeFromCoulBits::Encoding() const
+{
+    MMVII_INTERNAL_ASSERT_tiny(IsComplete(),"Cannot decode uncomplete in cDecodeFromCoulBits::Encoding()");
+    return mSpec->EncodingFromCode(mCode.FlagBits());
+}
+*/
+
+
 class cCdEllipse : public cCdRadiom
 {
 	public : 
-           cCdEllipse(const cCdRadiom &,cFullSpecifTarget *,cDataIm2D<tU_INT1> & aMarq);
+           typedef std::pair<eFuzzyBool,cPt2dr>  tRecal;
+
+           cCdEllipse(const cCdRadiom &,cFullSpecifTarget *,cDataIm2D<tU_INT1> & aMarq,int aNbMax);
 	   bool IsOk() const;
 	   const cEllipse & Ell() const;
            const cPt2dr &   CornerlEl_WB() const;
            const cPt2dr &   CornerlEl_BW() const;
            cPt2dr  M2I(const cPt2dr & aPMod) const;
+           cPt2dr  I2M(const cPt2dr & aPIM) const; 
+
+	   tRecal PtIsBlackAndRecal(cFullSpecifTarget *,const cPt2dr &,cRGBImage *,const cPt2dr & aDec) const;
+
+
+           /** compute the "normalized" length to encoding part*/ 
+	   std::pair<tREAL8,cPt2dr>  Length2CodingPart(tREAL8 aPropGray,const cPt2dr & aModCenterBit) const;
+
+	   /** adapted to case where the geometric prediction
+	    * is good on direction but relatively bad  on distance
+	    */
+           void  DecodeByL2CP(tREAL8 aPropGray) ;
+
+	   /// Decode just by reading the value of predicted position of bits
+	   const cOneEncoding *  BasicDecode(tREAL8 aWeightWhite);
+
+	   /// Do the decoding, switch to one of the specialized method
+	   const cOneEncoding *  Decode(cFullSpecifTarget *,tREAL8 aPropGray);
+
+
+	   const cOneEncoding * Code() const; ///< Accessor
+	   bool  BOutCB() const; ///< Accessor
+	   tREAL8  MaxEllD() const;
+	   tREAL8  ThrsEllD() const;
 
 	private : 
+
+	   /// Most basic method, return minimal of all lenght
+           tREAL8 ComputeThresholdsMin(const std::vector<std::pair<int,tREAL8>> & aVBR) const;
+	   /** "prefered" method, compute the minimal lenght under the constraint to have run length of white
+	       over the value given specificiation */
+           tREAL8 ComputeThresholdsByRLE(const std::vector<std::pair<int,tREAL8>> & aVBR) const;
+
+
            void AssertOk() const;
 
-	   cEllipse   mEll;
-	   cPt2dr     mCornerlEl_WB;
-	   cPt2dr     mCornerlEl_BW;
-	   cAff2D_r   mAffIm2Mod;
+           cFullSpecifTarget *  mSpec;
+	   cEllipse             mEll;
+	   cPt2dr               mCornerlEl_WB;
+	   cPt2dr               mCornerlEl_BW;
+	   cAff2D_r             mAffIm2Mod;
+	   tREAL8               mMaxEllD; /// Maximal distance 2 ellipse (for frontier point, not on lines)
+	   const cOneEncoding * mCode;
+	   bool                 mBOutCB;  /// Is there black point outside the  check board
 };
 
 
@@ -148,6 +298,7 @@ class cTmpCdRadiomPos : public cCdRadiom
           cTmpCdRadiomPos(const cCdRadiom &,tREAL8 aThickness);
 
 	  /// Theoreticall radiom of modelize checkboard + bool if was computed
+	  std::pair<eTPosCB,tREAL8>  TheorRadiom(const cPt2dr &,tREAL8 aThick,tREAL8 aSteep) const;
 	  std::pair<eTPosCB,tREAL8>  TheorRadiom(const cPt2dr &) const;
 
 	  tREAL8                     mThickness;
@@ -202,6 +353,7 @@ cCdRadiom::cCdRadiom
             aCorGrayInside.Add(aGrayTh,aValIm);
             aNbIn0 += (aState == eTPosCB::eInsideBlack);
             aNbIn1 += (aState == eTPosCB::eInsideWhite);
+            if (Is4Debug())   StdOut() <<  " GRRRAYY : " << aGrayTh  << " " << aValIm << "\n";
 	}
 	if  (IsOk(aState))
 	{
@@ -224,9 +376,18 @@ cCdRadiom::cCdRadiom
     auto [a,b] = aCorGrayInside.FitLineDirect();
     mBlack = b ;
     mWhite = a+b;
+
+    if (Is4Debug())
+    {
+          StdOut() << "Saaaadd= " << mBlack << " " << mWhite << "\n";
+	  getchar();
+    }
 }
 
-tREAL8 cCdRadiom::Threshold() const {return (mBlack+mWhite)/2.0;}
+tREAL8 cCdRadiom::Threshold(tREAL8 aWW) const 
+{
+	 return mBlack*(1-aWW) + mWhite *aWW;
+}
 
 void cCdRadiom::OptimSegIm(const cDataIm2D<tREAL4> & aDIm,tREAL8 aLength)
 {
@@ -357,7 +518,7 @@ void cCdRadiom::SelEllAndRefineFront(std::vector<cPt2dr> & aRes,const std::vecto
     }
 }
 
-bool cCdRadiom::FrontBlackCC(std::vector<cPt2di> & aVFront,cDataIm2D<tU_INT1> & aDMarq) const
+bool cCdRadiom::FrontBlackCC(std::vector<cPt2di> & aVFront,cDataIm2D<tU_INT1> & aDMarq,int aNbMax) const
 {
     std::vector<cPt2di> aRes;
     aVFront.clear();
@@ -381,7 +542,7 @@ bool cCdRadiom::FrontBlackCC(std::vector<cPt2di> & aVFront,cDataIm2D<tU_INT1> & 
     cRect2  aImOk(aDMarq.Dilate(-10));
     bool isOk = true;
 
-    while (aIndBot != aRes.size())
+    while ((aIndBot != aRes.size())  && isOk)
     {
           for (const auto & aDelta : aV4)
           {
@@ -392,6 +553,8 @@ bool cCdRadiom::FrontBlackCC(std::vector<cPt2di> & aVFront,cDataIm2D<tU_INT1> & 
 		 {
                     aDMarq.SetV(aPix,1);
 		    aRes.push_back(aPix);
+		    if ((int) aRes.size() == aNbMax)
+                       isOk = false;
 	         }
 	         else
 	         {
@@ -401,6 +564,8 @@ bool cCdRadiom::FrontBlackCC(std::vector<cPt2di> & aVFront,cDataIm2D<tU_INT1> & 
           }
 	  aIndBot++;
     }
+    if (!isOk) 
+       return false;
 
     const std::vector<cPt2di> & aV8 = Alloc8Neighbourhood();
     // compute frontier points
@@ -427,11 +592,27 @@ bool cCdRadiom::FrontBlackCC(std::vector<cPt2di> & aVFront,cDataIm2D<tU_INT1> & 
 
 	// if (has8NeighWhite && PtIsOnEll(aRPix))
 
-void  cCdRadiom::ShowDetail(int aCptMarq,const cScoreTetaLine & aSTL,const std::string & aNameIm,cDataIm2D<tU_INT1> & aMarq,cFullSpecifTarget *aSpec) const
+void  cCdRadiom::ShowDetail
+      (
+            int aCptMarq,
+	    const cScoreTetaLine & aSTL,
+	    const std::string & aNameIm,
+	    cDataIm2D<tU_INT1> & aMarq,
+	    cFullSpecifTarget *aSpec
+       ) const
 {
+      cCdEllipse aCDE(*this,aSpec,aMarq,-1);
+      if (! aCDE.IsOk())
+      {
+         StdOut()    << "   @@@@@@@@@@@@@@@@@@@@@@@@@@@@ "  << aCptMarq << "\n";
+         return;
+      }
+
       std::pair<tREAL8,tREAL8> aPairTeta(mTetas[0],mTetas[1]);
 
-      StdOut()    << " CPT=" << aCptMarq 
+      aCDE.DecodeByL2CP(2.0/3.0);
+      StdOut()    << " CptMarq=" << aCptMarq 
+	          << " NUM="     << mNum
 		  << "  Corrrr=" <<  mCostCorrel 
                    << " Ratio=" <<  mRatioBW
 		  << " V0="<< mBlack << " V1=" << mWhite 
@@ -439,10 +620,15 @@ void  cCdRadiom::ShowDetail(int aCptMarq,const cScoreTetaLine & aSTL,const std::
 		  << " ScSym=" << mSymCrit
 		  << " LLL=" << mLength
 		  << " ThickN=" << mThickness
+		  << " CODE=[" <<   aCDE.Code() << "]"
+		  << " C="   <<  mC
+		  <<  " DELL=" << aCDE.MaxEllD()
+		  <<  " OK=" << aCDE.mIsOk
+		  <<  " OUTCB=" << aCDE.BOutCB()
 		  << "\n";
 
       int aZoom = 9;
-      cPt2di aSz(100,100);
+      cPt2di aSz(170,170);
       cPt2di aDec =  ToI(mC) - aSz/2;
       cPt2dr aCLoc = mC-ToR(aDec);
 
@@ -455,7 +641,9 @@ void  cCdRadiom::ShowDetail(int aCptMarq,const cScoreTetaLine & aSTL,const std::
       cPt3di  aCol_StrL = cRGBImage::Yellow;  // color for theoreticall straight line
       cPt3di  aCoulFront = cRGBImage::Cyan; 
       cPt3di  aCoulEllFront = cRGBImage::Orange; 
-      cPt3di  aCoulBits = cRGBImage::Magenta; 
+
+      cPt3di  aCoulBits_0 = cRGBImage::Blue; 
+      // cPt3di  aCoulBits_1 = cRGBImage::Cyan; 
 					     
       if (0)   // generate the theoretical image + the area (ellipse) of gray modelization
       {
@@ -476,10 +664,21 @@ void  cCdRadiom::ShowDetail(int aCptMarq,const cScoreTetaLine & aSTL,const std::
           }
       }
 
+      if (1)   // generate the image with dynamic such "Black->0" , "White->255"
+      {
+          const auto & aDImR = aIm.ImR().DIm();
+          for (const auto & aPix : cRect2(cPt2di(0,0),aSz) )
+	  {
+              tREAL8 aGray = aDImR.GetV(aPix*aZoom);
+	      aGray = 255.0 * (aGray-mBlack) /(mWhite-mBlack);
+	      aIm.SetGrayPix(aPix,round_ni(aGray));
+	  }
+      }
+
       if (1)   // generate the connected 
       {
           std::vector<cPt2di> aIFront;
-          FrontBlackCC(aIFront,aMarq);
+          FrontBlackCC(aIFront,aMarq,1000000);
 	  if (0)
 	  {
              for (const auto & aPix : aIFront)
@@ -492,21 +691,28 @@ void  cCdRadiom::ShowDetail(int aCptMarq,const cScoreTetaLine & aSTL,const std::
 	  SelEllAndRefineFront(aEllFr,aIFront);
           for (const auto & aPt : aEllFr)
           {
+		  // StdOut() << "PPPPP " << aPt-ToR(aDec) << "\n";
               aIm.SetRGBPoint(aPt-ToR(aDec),aCoulEllFront);
           }
       }
 
       if (1)
       {
-           cCdEllipse aCDE(*this,aSpec,aMarq);
+           // cCdEllipse aCDE(*this,aSpec,aMarq);
 	   if (aCDE.IsOk())
 	   {
-	       //  Draw the ellipse
+              std::vector<tREAL8> aVRho = {aSpec->Rho_0_EndCCB(),aSpec->Rho_1_BeginCode(),aSpec->Rho_2_EndCode(),2.0};
+              // Rho_2_EndCode
+	      // Rho_0_EndCCB()-aSpec->Rho_1_BeginCode(
+	      //  Draw the ellipse
 	       int aNb= 500 ; 
 	       for (int aK=0 ; aK<aNb ; aK++)
 	       {
-                    cPt2dr aPt = aCDE.Ell().PtOfTeta((2*M_PI*aK)/aNb);
-                    aIm.SetRGBPoint(aPt-ToR(aDec),cRGBImage::Red);
+                    for (const auto & aRho : aVRho)
+		    {
+                        cPt2dr aPt = aCDE.Ell().PtOfTeta((2*M_PI*aK)/aNb,aRho);
+                        aIm.SetRGBPoint(aPt-ToR(aDec),cRGBImage::Red);
+		    }
 	       }
 
 	       // Draw the 2 corner
@@ -515,7 +721,18 @@ void  cCdRadiom::ShowDetail(int aCptMarq,const cScoreTetaLine & aSTL,const std::
 
 	       // Draw the bits position
 	       for (const auto & aPBit : aSpec->BitsCenters())
-                  aIm.DrawCircle(aCoulBits,aCDE.M2I(aPBit)-ToR(aDec),0.3);
+	       {
+		       /*
+                  auto [aVal,aPt] = aCDE.PtIsBlackAndRecal(aSpec,aPBit,nullptr,ToR(aDec));
+		  if (aVal !=  eFuzzyBool::eUndef)
+		  {
+                     aIm.DrawCircle((aVal == eFuzzyBool::eTrue)  ? aCoulBits_0 : aCoulBits_1,aPt-ToR(aDec),0.3);
+		  }
+		  */
+
+		  auto [aVal,aPt] = aCDE.Length2CodingPart(2.0/3.0,aPBit);
+                  aIm.DrawCircle(aCoulBits_0,aPt-ToR(aDec),0.3);
+	       }
 	   }
       }
 
@@ -534,7 +751,7 @@ void  cCdRadiom::ShowDetail(int aCptMarq,const cScoreTetaLine & aSTL,const std::
 
 		   
 		  // Now show interpolation (but only  if far enough of intersection)
-		  if (true && (std::abs(aAbsc) > 1.0) )
+		  if (false && (std::abs(aAbsc) > 1.0) )
 		  {
                       // The orientation of normal change : (1) when we cross intersection
 		      // (2) when we change the segment 
@@ -570,20 +787,47 @@ void  cCdRadiom::ShowDetail(int aCptMarq,const cScoreTetaLine & aSTL,const std::
 /*                                                       */
 /* ***************************************************** */
 
-cCdEllipse::cCdEllipse(const cCdRadiom & aCdR,cFullSpecifTarget * aSpec,cDataIm2D<tU_INT1> & aMarq) :
+cCdEllipse::cCdEllipse(const cCdRadiom & aCdR,cFullSpecifTarget * aSpec,cDataIm2D<tU_INT1> & aMarq,int aNbMax) :
      cCdRadiom (aCdR),
-     mEll      (cPt2dr(0,0),0,1,1)
+     mSpec     (aSpec),
+     mEll      (cPt2dr(0,0),0,1,1),
+     mMaxEllD  (0.0),
+     mCode     (nullptr),
+     mBOutCB    (false)
 {
+
      if (! mIsOk) return;
      mIsOk = true;
      std::vector<cPt2di> aIFront;
-     FrontBlackCC(aIFront,aMarq);
+     mIsOk = FrontBlackCC(aIFront,aMarq,aNbMax);
+     if (! mIsOk)
+	return;
+
+//   std::pair<eTPosCB,tREAL8>  cTmpCdRadiomPos::TheorRadiom(const cPt2dr &aPt,tREAL8 aThickInit,tREAL8 aSteep) const
+
+     {
+         cTmpCdRadiomPos aCRP(*this,1.0);
+         for (const auto & aPix : aIFront)
+         {
+             auto [aPos,aGray] = aCRP.TheorRadiom(ToR(aPix),2.0,1/20.0);
+	     if (aPos == eTPosCB::eInsideWhite)
+	     {
+		     mBOutCB = true;
+	     }
+         }
+	 if (mBOutCB)
+	 {
+             mIsOk = false;
+             return;
+	 }
+     }
 
      std::vector<cPt2dr> aEllFr;
      SelEllAndRefineFront(aEllFr,aIFront);
 
      if (aEllFr.size() < 6)
      {
+        mIsOk = false;
         return;
      }
 
@@ -597,6 +841,25 @@ cCdEllipse::cCdEllipse(const cCdRadiom & aCdR,cFullSpecifTarget * aSpec,cDataIm2
 
      mEll = anEE.Compute();
 
+     if  (!mEll.Ok())
+     {
+        mIsOk = false;
+        return;
+     }
+
+     tREAL8 aThrs = 0.6+ mEll.LGa()/20.0;
+     for (const auto & aPixFr : aEllFr)
+     {
+         tREAL8 aD =  mEll.EuclidDist(aPixFr);
+	 UpdateMax(mMaxEllD,aD);
+	 if (aD>aThrs)
+	 {
+            mIsOk = false;
+	    return;
+	 }
+     }
+
+
      // In specif the corner are for a white sector, with name of transition (B->W or W->B)
      // coming with trigonometric convention; here the angle have been comouted for a  black sector
      // The correction for angle have been made experimentally ...
@@ -606,12 +869,13 @@ cCdEllipse::cCdEllipse(const cCdRadiom & aCdR,cFullSpecifTarget * aSpec,cDataIm2
 
 
      cAff2D_r::tTabMin  aTabIm{mC,mCornerlEl_WB,mCornerlEl_BW};
-     cAff2D_r::tTabMin  aTabMod{aSpec->Center(),aSpec->CornerlEl_WB(),aSpec->CornerlEl_BW()};
+     cAff2D_r::tTabMin  aTabMod{mSpec->Center(),mSpec->CornerlEl_WB(),mSpec->CornerlEl_BW()};
 
      mAffIm2Mod =  cAff2D_r::FromMinimalSamples(aTabIm,aTabMod);
      // mAffIm2Mod
 }
 
+bool cCdEllipse::BOutCB() const {return mBOutCB;}
 bool cCdEllipse::IsOk() const {return mIsOk;}
 void cCdEllipse::AssertOk() const
 {
@@ -624,9 +888,237 @@ cPt2dr  cCdEllipse::M2I(const cPt2dr & aPMod) const
     return mAffIm2Mod.Inverse(aPMod);
 }
 
+cPt2dr  cCdEllipse::I2M(const cPt2dr & aPMod) const
+{
+    AssertOk();
+    return mAffIm2Mod.Value(aPMod);
+}
+
+
+const cOneEncoding * cCdEllipse::Code() const {return mCode;}
+tREAL8 cCdEllipse::MaxEllD() const {return mMaxEllD;}
+
 const cEllipse & cCdEllipse::Ell() const {AssertOk(); return mEll;}
 const cPt2dr & cCdEllipse::CornerlEl_WB() const {AssertOk(); return mCornerlEl_WB;}
 const cPt2dr & cCdEllipse::CornerlEl_BW() const {AssertOk(); return mCornerlEl_BW;}
+
+// tREAL8 cCdEllipse::ScoreCodeBlack(const cPt2dr& aDir,tREAL8 aRho,
+
+std::pair<tREAL8,cPt2dr>  cCdEllipse::Length2CodingPart(tREAL8 aWeighWhite,const cPt2dr & aModCenterBit) const
+{
+    // Rho end search, 1.5 theoretical end of code , highly over estimated (no risk ?)
+    tREAL8 aRhoMaxRel = mSpec->Rho_2_EndCode() * 1.5;
+    std::pair<tREAL8,cPt2dr>  aDef(aRhoMaxRel,cPt2dr(0,0));
+    std::pair<tREAL8,cPt2dr>  aNoValue(-1,cPt2dr(0,0));
+
+    // Not sur meaningful with other mode
+    MMVII_INTERNAL_ASSERT_tiny(mSpec->Type()==eTyCodeTarget::eIGNIndoor,"Bad code in PtIsBlackAndRecal");
+
+
+    cPt2dr aDirModel = VUnit(mSpec->Pix2Norm(aModCenterBit));  // -> normalize coord -> unitary vect
+    // distance , ratio on the line mC-Pt, between a normalized model pixel, and it corresponding image pixel
+    tREAL8  aMulN2I =  Norm2(M2I(mSpec->Norm2Pix(aDirModel))-mC);
+							       //
+    cPt2dr aDirIm = VUnit(M2I(aModCenterBit)-mC); // direction of line in image
+
+    // Rho begin search in  image, at mid position between check board and begining of code
+    tREAL8 aRho0 =   aMulN2I * ((mSpec->Rho_0_EndCCB()+mSpec->Rho_1_BeginCode()) / 2.0);
+
+    // Rho end search, 1.5 theoretical end of code , highly over estimated (no risk ?)
+    tREAL8 aRho1 =    aMulN2I * aRhoMaxRel;
+    // step of research, overly small (no risk ?)
+    tREAL8 aStepRho = 0.2;
+    int aNbRho = round_up((aRho1-aRho0) / aStepRho);
+    aStepRho  = (aRho1-aRho0) / aNbRho;
+
+    // threshold for value computing the black code
+    tREAL8 aThresh =  aWeighWhite * mWhite + (1-aWeighWhite) * mBlack;
+
+    for (int aKRho = 0 ; aKRho<=aNbRho ; aKRho++)
+    {
+        tREAL8 aRho = aRho0 + aKRho * aStepRho;
+	cPt2dr aPt =  mC + aDirIm * aRho;
+
+        if (!mDIm->InsideBL(aPt))  // we are too far, end of game
+	{
+           return aNoValue;
+	}
+	else
+	{
+            auto [aVal,aGrad] = mDIm->GetPairGradAndVBL(aPt);
+	    // we test also orientation of gradient, because with very small target, there is no clear separation , 
+	    // and we dont want to accept the checkboard as a 
+	    if ((aVal < aThresh) &&  (Scal(aGrad,aDirIm)<0))
+	    {
+               return std::pair<tREAL8,cPt2dr> (aRho/aMulN2I,aPt);
+	    }
+	}
+    }
+
+    return aDef;
+}
+
+tREAL8 cCdEllipse::ComputeThresholdsByRLE(const std::vector<std::pair<int,tREAL8>> & aVBR) const
+{
+    // cPt2di MaxRunLength(tU_INT4 aVal,size_t aPow2);
+
+   
+   int aMaxWL = mSpec->Specs().mMaxRunL.x(); // Max run lenght for 0 (= white in general, 2 adapt ...)
+   aMaxWL = std::min(aMaxWL,(int)mSpec->NbBits());
+
+   size_t aFlag = 0;
+   int aRunLE = mSpec->NbBits();
+   size_t aKBit = 0;
+   while ((aMaxWL<aRunLE)  && (aKBit<aVBR.size()))
+   {
+	aFlag |= (1<<aVBR.at(aKBit).first);
+        aKBit++;
+	aRunLE = MaxRunLength(aFlag,1<<mSpec->NbBits()).x();
+   }
+
+   return aVBR.at(aKBit-1).second * 1.2;
+
+}
+
+tREAL8 cCdEllipse::ComputeThresholdsMin(const std::vector<std::pair<int,tREAL8>> & aVBR) const
+{
+   tREAL8 aV0 = aVBR[0].second;
+
+   return aV0 * 1.25;
+}
+
+
+void cCdEllipse::DecodeByL2CP(tREAL8 aWeighWhite) 
+{
+     std::vector<std::pair<int,tREAL8>  >  aVBR;  // Vector Bits/Rho
+     const auto & aVC = mSpec->BitsCenters();     // Vector centers
+     for (size_t aKBit=0 ; aKBit<aVC.size() ; aKBit++)
+     {
+         auto [aRho,aCenter] = Length2CodingPart(aWeighWhite,aVC[aKBit]);
+	 // something bad, like out of image, occured
+	 if (aRho<0)
+            return ;
+	 aVBR.push_back(std::pair<int,tREAL8>(aKBit,aRho));
+     }
+
+     SortOnCriteria(aVBR,[](const auto & aPair) {return aPair.second;});
+     tREAL8 aRhoMin = aVBR.at(0).second;
+
+
+     if (0)
+     {
+         std::vector<std::pair<int,tREAL8>  > aDup = aVBR;
+         SortOnCriteria(aDup,[](const auto & aPair) {return aPair.first;});
+	 for (const auto & [aBit,aRho] : aDup)
+             StdOut() << " RRR=" << aRho/aRhoMin << "\n";
+     }
+
+     // tREAL8 aTreshold = ComputeThresholdsMin(aVBR);
+     tREAL8 aTreshold = ComputeThresholdsByRLE(aVBR);
+
+     cDecodeFromCoulBits aDec(mSpec);
+     for (const auto & [aBit,aRho] : aVBR)
+     {
+         aDec.SetColBit(aRho<aTreshold , aBit);
+     }
+
+     mCode = aDec.Encoding();
+}
+
+const cOneEncoding *  cCdEllipse::BasicDecode(tREAL8 aWW)
+{
+    cDecodeFromCoulBits aDec(mSpec);
+    const auto & aVC = mSpec->BitsCenters();
+    tREAL8 aThrs = Threshold(aWW);
+
+    for (size_t aKBit=0 ; aKBit<aVC.size() ; aKBit++)
+    {
+       cPt2dr aPIm = M2I(aVC.at(aKBit));
+       if (mDIm->InsideBL(aPIm))
+       {
+	  aDec.SetColBit(mDIm->GetVBL(aPIm) < aThrs , aKBit);
+       }
+       else
+	    return nullptr;
+    }
+    return aDec.Encoding();
+}
+/*
+*/
+
+cCdEllipse::tRecal cCdEllipse::PtIsBlackAndRecal(cFullSpecifTarget * aSpec,const cPt2dr & aPModel,cRGBImage* aRGBIm,const cPt2dr & aDec) const
+{
+    // if specif is not a circular, there is, 4 now, no much more to do than read the value
+    if (! IsCircularTarge(aSpec->Type()))
+    {
+       cPt2dr aPIm = M2I(aPModel);
+       eFuzzyBool IsBlack = eFuzzyBool::eUndef;
+       if (mDIm->InsideBL(aPIm))
+       {
+	  IsBlack =  (mDIm->GetVBL(aPIm) < Threshold() ) ?  eFuzzyBool::eTrue : eFuzzyBool::eFalse ;
+       }
+       return tRecal(IsBlack,aPIm);
+    }
+    MMVII_INTERNAL_ASSERT_tiny(aSpec->Type()==eTyCodeTarget::eIGNIndoor,"Bad code in PtIsBlackAndRecal");
+
+    tREAL8 aMarginAbs = 0.35;
+    tREAL8 aMarginRel = 0.075;
+
+    cPt2dr aDir = VUnit(aSpec->Pix2Norm(aPModel));
+
+    tREAL8 aRatio=0.0;
+    {
+        cPt2dr aP1 = M2I(aSpec->Norm2Pix(aDir*0.0));
+        cPt2dr aP2 = M2I(aSpec->Norm2Pix(aDir*1.0));
+	aRatio = Norm2(aP2-aP1);
+    }
+    tREAL8 aMargin = std::max(aMarginAbs/aRatio,aMarginRel);
+    tREAL8 aProp=1.0-aMargin;
+
+
+    tREAL8 aRhoBegin =   (aSpec->Rho_0_EndCCB()-aSpec->Rho_1_BeginCode())*aProp   +  (aSpec->Rho_1_BeginCode()+aSpec->Rho_2_EndCode()) / 2.0;
+    tREAL8 aRhoEnd   =   (aSpec->Rho_3_BeginCar()-aSpec->Rho_2_EndCode())*aProp   +  (aSpec->Rho_1_BeginCode()+aSpec->Rho_2_EndCode()) / 2.0;
+    tREAL8 aDelta =  (aSpec->Rho_2_EndCode() - aSpec->Rho_1_BeginCode()) / 2.0 + aMargin;
+
+
+    cWhichMax<cPt2dr,tREAL8> aMaxPt;
+    int aNbRho = 6;
+    for (int aKR=0 ; aKR<= aNbRho ; aKR++)
+    {
+        tREAL8 aW= aKR / tREAL8(aNbRho);
+	tREAL8 aRho =  aRhoBegin * aW + aRhoEnd * (1-aW);
+	cPt2dr aPC =  M2I(aSpec->Norm2Pix(aDir*aRho));
+	cPt2dr aP1 =  M2I(aSpec->Norm2Pix(aDir*(aRho-aDelta)));
+	cPt2dr aP2 =  M2I(aSpec->Norm2Pix(aDir*(aRho+aDelta)));
+        
+	if (mDIm->InsideBL(aPC) && mDIm->InsideBL(aP1) && mDIm->InsideBL(aP2))
+	{
+           tREAL8 aV1 = mDIm->GetVBL(aP1);
+           tREAL8 aVC = mDIm->GetVBL(aPC);
+           tREAL8 aV2 = mDIm->GetVBL(aP2);
+	   tREAL8 aSc = std::min(aV1-aVC,aV2-aVC);
+
+           aMaxPt.Add(aPC,aSc);
+	}
+	else
+	{
+            return tRecal(eFuzzyBool::eUndef,aPModel);
+	}
+
+        if (aRGBIm)
+        {
+            aRGBIm->DrawCircle(cRGBImage::Green ,aP1-aDec,0.5);
+            aRGBIm->DrawCircle(cRGBImage::Yellow ,aPC-aDec,0.5);
+            aRGBIm->DrawCircle(cRGBImage::Blue ,aP2-aDec,0.5);
+        }
+    }
+
+    if ( aMaxPt.ValExtre() >  (mWhite-mBlack) * 0.15) 
+       return tRecal(eFuzzyBool::eTrue,aMaxPt.IndexExtre());
+
+    // StdOut() << aMaxPt.IndexExtre() << aPModel << "\n";
+    return tRecal(eFuzzyBool::eFalse,M2I(aPModel));
+}
 
 /* ***************************************************** */
 /*                                                       */
@@ -643,7 +1135,7 @@ cTmpCdRadiomPos::cTmpCdRadiomPos(const cCdRadiom & aCDR,tREAL8 aThickness) :
 {
 }
 
-std::pair<eTPosCB,tREAL8>  cTmpCdRadiomPos::TheorRadiom(const cPt2dr &aPt) const
+std::pair<eTPosCB,tREAL8>  cTmpCdRadiomPos::TheorRadiom(const cPt2dr &aPt,tREAL8 aThickInit,tREAL8 aSteep) const
 {
     eTPosCB aPos = eTPosCB::eUndef;
     tREAL8 aGrayTh = -1;
@@ -652,14 +1144,16 @@ std::pair<eTPosCB,tREAL8>  cTmpCdRadiomPos::TheorRadiom(const cPt2dr &aPt) const
     // and sign of x indicate if we are before/after the centre
     cPt2dr aLoc0 = mSeg0.ToCoordLoc(aPt);
     tREAL8  aY0 = aLoc0.y();
+    tREAL8  aThick0 = aThickInit + aSteep * std::abs(aLoc0.x());
 
     cPt2dr aLoc1 = mSeg1.ToCoordLoc(aPt);
     tREAL8  aY1 = aLoc1.y();
+    tREAL8  aThick1 = aThickInit + aSteep * std::abs(aLoc1.x());
 
     // compute if we are far enough of S0/S1 because the computation of gray will change
     //  black/white if far  enough, else interpolation
-    bool FarS0 = std::abs(aY0)> mThickness; 
-    bool FarS1 = std::abs(aY1)> mThickness;
+    bool FarS0 = std::abs(aY0)> aThick0; 
+    bool FarS1 = std::abs(aY1)> aThick1;
 
     if ( FarS0 && FarS1)
     {
@@ -680,19 +1174,25 @@ std::pair<eTPosCB,tREAL8>  cTmpCdRadiomPos::TheorRadiom(const cPt2dr &aPt) const
         // Red = teta1 , black on left on image, right on left in coord oriented
 	 aPos = eTPosCB::eBorderRight;
          int aSignX = (aLoc0.x() >0) ? -1 : 1;
-         aGrayTh = (mThickness+aSignX*aY0) / (2.0*mThickness);
+         aGrayTh = (aThick0+aSignX*aY0) / (2.0*aThick0);
     }
     else if  (FarS0 && (!FarS1))
     {
 	 aPos = eTPosCB::eBorderLeft;
 	 int aSignX = (aLoc1.x() <0) ? -1 : 1;
-	 aGrayTh = (mThickness+aSignX*aY1) / (2.0 * mThickness);
+	 aGrayTh = (aThick1+aSignX*aY1) / (2.0 * aThick1);
     }
 
     return std::pair<eTPosCB,tREAL8>(aPos,aGrayTh);
 }
 
+std::pair<eTPosCB,tREAL8>  cTmpCdRadiomPos::TheorRadiom(const cPt2dr &aPt) const
+{
+	return TheorRadiom(aPt,mThickness,0.0);
+}
 
+}; // NS_CHKBRD_TARGET_EXTR
+using namespace NS_CHKBRD_TARGET_EXTR;
 
 
 /*  *********************************************************** */
@@ -720,6 +1220,7 @@ class cAppliCheckBoardTargetExtract : public cMMVII_Appli
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
+        void MakeImEllipses(const std::vector<cCdEllipse> &) const;
         bool IsPtTest(const cPt2dr & aPt) const;  ///< Is it a point marqed a test
 
 
@@ -758,6 +1259,8 @@ class cAppliCheckBoardTargetExtract : public cMMVII_Appli
         tREAL8            mLengtProlong;    ///<  = 20.0;
         tREAL8            mStepSeg;         ///<  = 0.5;
         tREAL8            mMaxCostCorrIm;   ///<  = 0.1;
+        int               mNbMaxBlackCB;    ///< Number max of point in black component of checkboard
+        tREAL8            mPropGrayDCD;     ///< Proportion Black/White for extracting 
 	int               mNbBlur1;         ///< = 4,  Number of initial blurring
 					    //
         // ---------------- Thresholds for Saddle point criteria --------------------
@@ -772,7 +1275,8 @@ class cAppliCheckBoardTargetExtract : public cMMVII_Appli
         tREAL8            mRayCalcSym0  ;  ///< = 8.0  distance for evaluating symetry criteria
         tREAL8            mDistDivSym    ;  ///< = 2.0  maximal distance to initial value in symetry opt
 
-	int               mNumDebug;
+	int                   mNumDebugMT;
+	int                   mNumDebugSaddle;
         // =========== Internal param ============
         cFullSpecifTarget *   mSpecif;
         tIm                   mImIn;        ///< Input global image
@@ -810,6 +1314,8 @@ cAppliCheckBoardTargetExtract::cAppliCheckBoardTargetExtract(const std::vector<s
    mLengtProlong     (20.0),
    mStepSeg          (0.5),
    mMaxCostCorrIm    (0.1),
+   mNbMaxBlackCB     (10000),
+   mPropGrayDCD      (2.0/3.0),
    mNbBlur1          (4),
    mDistMaxLocSad    (10.0),
    mDistRectInt      (20),
@@ -819,7 +1325,8 @@ cAppliCheckBoardTargetExtract::cAppliCheckBoardTargetExtract(const std::vector<s
    mThresholdSym     (0.5),
    mRayCalcSym0      (8.0),
    mDistDivSym       (2.0),
-   mNumDebug         (-1),
+   mNumDebugMT       (-1),
+   mNumDebugSaddle   (-1),
    mSpecif           (nullptr),
    mImIn             (cPt2di(1,1)),
    mDImIn            (nullptr),
@@ -858,7 +1365,10 @@ cCollecSpecArg2007 & cAppliCheckBoardTargetExtract::ArgOpt(cCollecSpecArg2007 & 
              <<  AOpt2007(mRayCalcSym0,"SymRay","Ray arround point for initial computation of symetry",{eTA2007::HDV}) 
              <<  AOpt2007(mLInitProl,"LSIP","Length Segment Init, for prolongation",{eTA2007::HDV})
              <<  AOpt2007(mOptimSegByRadiom,"OSBR","Optimize segement by radiometry",{eTA2007::HDV})
-             <<  AOpt2007(mNumDebug,"NumDebug","Num marq target for debug",{eTA2007::Tuning})
+             <<  AOpt2007(mNbMaxBlackCB,"NbMaxBlackCB","Number max of point in black part of check-board ",{eTA2007::HDV})
+             <<  AOpt2007(mPropGrayDCD,"PropGrayDCD","Proportion of gray for find coding part",{eTA2007::HDV})
+             <<  AOpt2007(mNumDebugMT,"NumDebugMT","Num marq target for debug",{eTA2007::Tuning})
+             <<  AOpt2007(mNumDebugSaddle,"NumDebugSaddle","Num Saddle point to debug",{eTA2007::Tuning})
    ;
 }
 
@@ -899,10 +1409,13 @@ cCdRadiom cAppliCheckBoardTargetExtract::TestBinarization(cScoreTetaLine & aSTL,
     bool IsMarqed = IsPtTest(aCdSym.mC);
     static int aCptGlob=0 ; aCptGlob++;
     static int aCptMarq=0 ; if (IsMarqed) aCptMarq++;
-    DebugCB = (aCptMarq == mNumDebug) && IsMarqed;
+    DebugCB = (aCptMarq == mNumDebugMT) && IsMarqed;
 
     auto aPairTeta = aSTL.Tetas_CheckBoard(mLInitTeta,aCdSym.mC,0.1,1e-3);
     tREAL8 aLength = aSTL.Prolongate(mLInitProl,mLengtProlong,aPairTeta);
+
+    // now restimate teta with a more appropriate lenght ?
+    //  aPairTeta = aSTL.Tetas_CheckBoard(aLength,aCdSym.mC,0.1,1e-3);
 
     auto [aTeta0,aTeta1] = aPairTeta;
 
@@ -1078,8 +1591,33 @@ void cAppliCheckBoardTargetExtract::SymetryFiler()
     delete aFSym;
 }
 
+void cAppliCheckBoardTargetExtract::MakeImEllipses(const std::vector<cCdEllipse> & aVCdtEll) const
+{
+      cRGBImage  aIm = cRGBImage::FromFile(mNameIm);
+      aIm.ResetGray();
+
+
+
+      for (const auto & aCdt :  aVCdtEll)
+      {
+          cPt3di aCoul =  aCdt.Code() ?  cRGBImage::Green  : cRGBImage::Red;
+	  // cPt2di aSz(50,50);
+	  aIm.SetRGBrectWithAlpha(ToI(aCdt.mC),50,aCoul,0.5);
+	  /*
+	  cRect2 aRect(aC-aSz,aC+aSz);
+	  for (const auto & aPix : aRect)
+	  */
+
+      }
+
+      aIm.ToFile(mPhProj.DirVisu()+ "CBTE-"+FileOfPath(mNameIm));
+}
+
 void cAppliCheckBoardTargetExtract::DoOneImage() 
 { 
+    if (IsInit(&mNumDebugSaddle))
+       cCdSadle::TheNum2Debug= mNumDebugSaddle ;
+
     mSpecif = cFullSpecifTarget::CreateFromFile(mNameSpecif);
     /* [0]    Initialise : read image ,  mask + Blurr */
     ReadImagesAndBlurr();
@@ -1107,13 +1645,38 @@ void cAppliCheckBoardTargetExtract::DoOneImage()
         }
     }
 
+    /* [6]  Compute model of geometry, ellipse & code */
+    std::vector<cCdEllipse> aVCdtEll;
+    int aNbEllWCode = 0;
+    cAutoTimerSegm aTSEllipse(mTimeSegm,"Ellipse");
+    {
+        int aCpt=0;
+        for (const auto & aCdtRad : aVCdtRad)
+        {
+           // StdOut() << "CCCCcc  " << aCpt << "\n";
+           cCdEllipse aCDE(aCdtRad,mSpecif,*mDImTmp,mNbMaxBlackCB);
+	   if (aCDE.IsOk())
+	   {
+              aCDE.DecodeByL2CP(mPropGrayDCD);
+              aVCdtEll.push_back(aCDE);
+	      if (aCDE.Code())
+	         aNbEllWCode++;
+	   }
+           aCpt++;
+        }
+    }
+
 
     cAutoTimerSegm aTSMakeIm(mTimeSegm,"OTHERS");
-    MakeImageSaddlePoints(*mDImIn,*mDImLabel);
+    // MakeImageSaddlePoints(*mDImIn,*mDImLabel);
+
+    MakeImEllipses(aVCdtEll);
 
     StdOut()  << "NB Cd,  SAD: " << mNbSads
 	      << " SYM:" << mVCdtSym.size() 
-	      << " Radiom:" << aVCdtRad.size() << "\n";
+	      << " Radiom:" << aVCdtRad.size() 
+	      << " Ellipse:" << aVCdtEll.size() 
+	      << " Code:" << aNbEllWCode << "\n";
 
     delete mSpecif;
 }

@@ -90,6 +90,41 @@ void Bench_Target_Encoding()
     }
 }
 
+/**************************************************/
+/*                                                */
+/*           cDecodeFromCoulBits                  */
+/*                                                */
+/**************************************************/
+
+cDecodeFromCoulBits::cDecodeFromCoulBits(cFullSpecifTarget * aSpec) :
+     mSpec       (aSpec),
+     mCode       (0),
+     mBitsFixed  (0)
+{
+}
+
+void cDecodeFromCoulBits::SetColBit(bool IsBlack,size_t aBit)
+{
+    MMVII_INTERNAL_ASSERT_tiny(aBit< mSpec->NbBits(),"Unvalide bit in cDecodeFromCoulBits::SetColBit");
+    if (mSpec->BitIs1(!IsBlack))
+       mCode.AddElem(aBit);
+    else
+       mCode.SuprElem(aBit);
+    mBitsFixed.AddElem(aBit);
+}
+
+bool cDecodeFromCoulBits::IsComplete() const
+{
+    return mBitsFixed.Cardinality() == mSpec->NbBits();
+}
+
+
+const cOneEncoding * cDecodeFromCoulBits::Encoding() const
+{
+    MMVII_INTERNAL_ASSERT_tiny(IsComplete(),"Cannot decode uncomplete in cDecodeFromCoulBits::Encoding()");
+    return mSpec->EncodingFromCode(mCode.FlagBits());
+}
+
 
 /**************************************************/
 /*                                                */
@@ -237,10 +272,17 @@ void cParamCodedTarget::FinishInitOfSpec(const cSpecBitEncoding & aSpec)
    mThickN_Car *= (aSpec.mNbDigit+1)/2;
 }
 
+cPt2dr cParamCodedTarget::Pix2Norm(const cPt2dr & aPix) const
+{
+   return (aPix-mMidle) / mScale;
+}
 cPt2dr cParamCodedTarget::Pix2Norm(const cPt2di & aPix) const
 {
-   return (ToR(aPix)-mMidle) / mScale;
+   return Pix2Norm(ToR(aPix));
 }
+
+
+
 cPt2dr cParamCodedTarget::Norm2PixR(const cPt2dr & aP) const
 {
     return mMidle + aP * mScale;
@@ -523,23 +565,36 @@ int   cStraightNP2B::BitsOfNorm(const cPt2dr & aPt) const
 /*                                                     */
 /* *************************************************** */
 
+
+bool IsCircularTarge(eTyCodeTarget aType)
+{
+	return (aType==eTyCodeTarget::eCERN) || (aType==eTyCodeTarget::eIGNIndoor);
+}
+
+
 cNormPix2Bit * cNormPix2Bit::Alloc(const cFullSpecifTarget & aSpecif)
 {
+   if (IsCircularTarge(aSpecif.Type()))
+      return new cCircNP2B(aSpecif);
+
+
    switch (aSpecif.Type())
    {
+	   /*
          case eTyCodeTarget::eCERN :
          case eTyCodeTarget::eIGNIndoor:
 	       return new cCircNP2B(aSpecif);
+	       */
          case eTyCodeTarget::eIGNDroneSym:
 	       return new cStraightNP2B(aSpecif,true);
 
          case eTyCodeTarget::eIGNDroneTop:
 	       return new cStraightNP2B(aSpecif,false);
-         case eTyCodeTarget::eNbVals:
+	 default :
               return nullptr;
    }
 
-   return nullptr;
+   // return nullptr;
 }
 
 /* *************************************************** */
@@ -853,9 +908,14 @@ int                               cFullSpecifTarget::DeZoomIm()    const {return
 eTyCodeTarget                     cFullSpecifTarget::Type()        const {return Specs().mType;}
 size_t                            cFullSpecifTarget::MinHammingD() const {return Specs().mMinHammingD;}
 
+cPt2dr    cFullSpecifTarget::Pix2Norm(const cPt2dr & aPix) const {return mRender.Pix2Norm(aPix*tREAL8(mRender.mSzGaussDeZoom));}
+cPt2dr    cFullSpecifTarget::Norm2Pix(const cPt2dr & aPix) const {return mRender.Norm2PixR(aPix)/tREAL8(mRender.mSzGaussDeZoom);}
+
+
 tREAL8 cFullSpecifTarget::Rho_0_EndCCB() const    {return mRender.mRho_0_EndCCB;}
 tREAL8 cFullSpecifTarget::Rho_1_BeginCode() const {return mRender.mRho_1_BeginCode;}
 tREAL8 cFullSpecifTarget::Rho_2_EndCode() const   {return mRender.mRho_2_EndCode;}
+tREAL8 cFullSpecifTarget::Rho_3_BeginCar() const   {return mRender.mRho_3_BeginCar;}
 
 
 const cPt2dr & cFullSpecifTarget::Center() const {return mRender.mCenterF;}

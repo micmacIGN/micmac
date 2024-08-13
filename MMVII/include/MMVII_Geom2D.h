@@ -626,6 +626,8 @@ class cEllipse
        cPt2dr InterSemiLine(tREAL8 aTeta) const;    /// compute the intesection of 1/2 line of direction teta with the ellipse
 
     private :
+       inline void AssertOk() const;
+
        void OneBenchEllispe();
        cDenseVect<tREAL8>     mV;
        double                 mNorm;

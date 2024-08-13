@@ -16,6 +16,19 @@ namespace MMVII
 /*                                                             */
 /* *********************************************************** */
 
+#if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )
+void cEllipse::AssertOk() const
+{
+    if (! mOk)
+       MMVII_INTERNAL_ERROR("Access to Ellipse Non OK");
+}
+#else
+void cEllipse::AssertOk() const
+{
+}
+#endif
+
+
 	//  =================== Create/Read/Write  ======================
 
 /**   Create an ellipse from it equation : v0 XX + v1 XY + v2 YY + v3 X + v4 Y = 1
@@ -80,6 +93,7 @@ cEllipse::cEllipse(const cPt2dr & aCenter,tREAL8 aTeta,tREAL8 aLGa,tREAL8 aLSa):
 
 void cEllipse::AddData(const  cAuxAr2007 & anAux)
 {
+     AssertOk();
      MMVII::AddData(cAuxAr2007("Vect",anAux),mV);
      MMVII::AddData(cAuxAr2007("C0",anAux),mC0);
      if (anAux.Input())
@@ -96,25 +110,27 @@ void AddData(const  cAuxAr2007 & anAux,cEllipse & anEl)
 
 	//  =================== Accessor  ======================
 
-const cPt2dr & cEllipse::VGa() const {return mVGa;}
-const cPt2dr & cEllipse::VSa() const {return mVSa;}
+const cPt2dr & cEllipse::VGa() const {AssertOk(); return mVGa;}
+const cPt2dr & cEllipse::VSa() const {AssertOk(); return mVSa;}
 bool   cEllipse::Ok() const   {return mOk;}
-tREAL8 cEllipse::LGa() const  {return mLGa;}
-tREAL8 cEllipse::LSa() const  {return mLSa;}
-tREAL8 cEllipse::RayMoy() const  {return mRayMoy;}
-const cPt2dr &  cEllipse::Center() const {return mCenter;}
-double cEllipse::TetaGa() const { return ToPolar(mVGa).y(); }
+tREAL8 cEllipse::LGa() const  {AssertOk(); return mLGa;}
+tREAL8 cEllipse::LSa() const  {AssertOk(); return mLSa;}
+tREAL8 cEllipse::RayMoy() const  {AssertOk(); return mRayMoy;}
+const cPt2dr &  cEllipse::Center() const {AssertOk(); return mCenter;}
+double cEllipse::TetaGa() const {AssertOk();  return ToPolar(mVGa).y(); }
 
 
 
 
 cPt2dr  cEllipse::PtOfTeta(tREAL8 aTeta,tREAL8 aMulRho) const
 {
+    AssertOk();
     return  mCenter+ mVGa *(cos(aTeta)*mLGa*aMulRho) + mVSa *(sin(aTeta)*mLSa*aMulRho);
 }
 
 cPt2dr cEllipse::InterSemiLine(tREAL8 aTeta) const
-{
+{ 
+    AssertOk();
      cPt2dr aPt = VectToCoordLoc(FromPolar(1.0,aTeta));
      aPt = VUnit(aPt);
      return FromCoordLoc(aPt);
@@ -125,11 +141,13 @@ cPt2dr  cEllipse::ToCoordLoc(const cPt2dr & aP0) const
 {
      // cPt2dr aP = (aP0-mCenter)/mVGa;
      // return cPt2dr(aP.x()/mLGa,aP.y()/mLSa);
+    AssertOk();
      return VectToCoordLoc(aP0-mCenter);
 }
 
 cPt2dr  cEllipse::VectToCoordLoc(const cPt2dr & aP0) const
 {
+    AssertOk();
      cPt2dr aP = aP0/mVGa;
 
      return cPt2dr(aP.x()/mLGa,aP.y()/mLSa);
@@ -137,33 +155,39 @@ cPt2dr  cEllipse::VectToCoordLoc(const cPt2dr & aP0) const
 
 cPt2dr  cEllipse::FromCoordLoc(const cPt2dr & aP0) const
 {
+    AssertOk();
    return mCenter + VectFromCoordLoc(aP0);
 }
 
 cPt2dr  cEllipse::VectFromCoordLoc(const cPt2dr & aP0) const
 {
+    AssertOk();
    return  mVGa * cPt2dr(aP0.x()*mLGa,aP0.y()*mLSa);
 }
 
 
 cPt2dr cEllipse::ToRhoTeta(const cPt2dr & aP0) const
 {
+    AssertOk();
      return ToPolar(ToCoordLoc(aP0));
 }
 
 cPt2dr  cEllipse::Tgt(const cPt2dr &aPInit) const
 {
+    AssertOk();
      return VectFromCoordLoc(Rot90(ToCoordLoc(aPInit)));
 }
 
 cPt2dr  cEllipse::NormalInt(const cPt2dr &aPInit) const
 {
+    AssertOk();
      return Rot90(Tgt(aPInit));
 }
 
 
 cPt2dr  cEllipse::PtAndGradOfTeta(tREAL8 aTeta,cPt2dr &aGrad,tREAL8 aMulRho) const
 {
+    AssertOk();
     // Tgt = DP/Dteta =  (-mLGa sin(aTeta)  ,  mLSa cos(teta)
     // Norm = Tgt * P(0,-1) =>    mLSa cos(teta) , mLGa sin(aTeta)
 
@@ -178,6 +202,7 @@ cPt2dr  cEllipse::PtAndGradOfTeta(tREAL8 aTeta,cPt2dr &aGrad,tREAL8 aMulRho) con
 
 double cEllipse::SignedQF_D2(const cPt2dr& aP) const
 {
+    AssertOk();
     cPt2dr aQ = aP-mCenter;
     tREAL8 aRes =   QScal(aQ,mQF,aQ)  + mCste;
 
@@ -186,11 +211,13 @@ double cEllipse::SignedQF_D2(const cPt2dr& aP) const
 
 double cEllipse::QF_Dist(const cPt2dr & aP) const 
 {
+    AssertOk();
     return std::sqrt(std::abs(SignedQF_D2(aP)));
 }
 
 double cEllipse::ApproxSigneDist(const cPt2dr & aP0) const
 {
+    AssertOk();
     cPt2dr aP = (aP0-mCenter) / mVGa;
     aP = cPt2dr(aP.x()/mSqRatio,aP.y()*mSqRatio);
 
@@ -199,16 +226,20 @@ double cEllipse::ApproxSigneDist(const cPt2dr & aP0) const
 
 double cEllipse::ApproxDist(const cPt2dr & aP0) const
 {
+    AssertOk();
 	return std::abs(ApproxSigneDist(aP0));
 }
 
 double cEllipse::EuclidDist(const cPt2dr& aP) const
 {
-     return Norm2(aP-ProjOnEllipse(aP));
+    AssertOk();
+     tREAL8 aRes = Norm2(aP-ProjOnEllipse(aP));
+     return aRes;
 }
 
 double cEllipse::SignedEuclidDist(const cPt2dr& aP) const
 {
+    AssertOk();
      cPt2dr aPProj = ProjOnEllipse(aP);
 
      tREAL8 aD = Norm2(aPProj-aP);
@@ -221,11 +252,16 @@ double cEllipse::SignedEuclidDist(const cPt2dr& aP) const
 
 cPt2dr  cEllipse::ProjOnEllipse(const cPt2dr & aPtAbs) const
 {
+    AssertOk();
+
     // Precaution because if A==B the polynon will be ill formed
     if (mSqRatio <= 1+3e-3)
     {
+
          if (mSqRatio <= 1+1e-7) 
+	 {
             return  ProjNonEuclOnEllipse(aPtAbs);
+	 }
          cPt2dr aRhoTeta =  ToRhoTeta(aPtAbs);
 
 	 double aStep    = std::max(mSqRatio-1.0,1e-5)*4.0;
@@ -259,7 +295,7 @@ cPt2dr  cEllipse::ProjOnEllipse(const cPt2dr & aPtAbs) const
 	 }
 
          return PtOfTeta(aTetaCur);
-}
+    }
 
     cPt2dr aPLoc  = (aPtAbs-mCenter)/mVGa;
 
@@ -315,7 +351,9 @@ cPt2dr  cEllipse::ProjOnEllipse(const cPt2dr & aPtAbs) const
 
 cPt2dr  cEllipse::ProjNonEuclOnEllipse(const cPt2dr & aPt) const
 {
-     return FromCoordLoc(VUnit(ToCoordLoc(aPt)));
+    AssertOk();
+     cPt2dr aRes =  FromCoordLoc(VUnit(ToCoordLoc(aPt)));
+     return aRes;
 }
 
           // ===================   BENCH ============================
@@ -490,10 +528,15 @@ void cEllipse_Estimate::AddPt(cPt2dr aP)
 
 cEllipse cEllipse_Estimate::Compute()
 {
+     if (! mIsCenterFree)
+     {
+         mSys->AddObsFixVar(1.0,3,0.0);
+         mSys->AddObsFixVar(1.0,4,0.0);
+     }
      auto  aSol = mSys->Solve();
 
-
-     return cEllipse(aSol,mC0);
+     cEllipse aRes(aSol,mC0);
+     return aRes;
      /// return  aRes;
 }
 
