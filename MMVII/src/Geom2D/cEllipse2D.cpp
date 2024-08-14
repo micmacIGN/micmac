@@ -341,12 +341,6 @@ cPt2dr  cEllipse::ProjOnEllipse(const cPt2dr & aPtAbs) const
     }
     return mCenter + mVGa * aBestP.IndexExtre();
 
-    /*
-    cPt2dr aPCS = aBestP.IndexExtre();
-    cPt2dr aPEllipse  (mLGa * aPCS.x()  , mLSa * aPCS.y());
-
-    return mCenter + mVGa * aPEllipse;
-    */
 }
 
 cPt2dr  cEllipse::ProjNonEuclOnEllipse(const cPt2dr & aPt) const
@@ -354,6 +348,11 @@ cPt2dr  cEllipse::ProjNonEuclOnEllipse(const cPt2dr & aPt) const
     AssertOk();
      cPt2dr aRes =  FromCoordLoc(VUnit(ToCoordLoc(aPt)));
      return aRes;
+}
+
+tREAL8 cEllipse::NonEuclidDist(const cPt2dr& aP) const
+{
+    return Norm2(aP-ProjNonEuclOnEllipse(aP));
 }
 
           // ===================   BENCH ============================

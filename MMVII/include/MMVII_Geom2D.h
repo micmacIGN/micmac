@@ -589,6 +589,7 @@ class cEllipse
        void AddData(const  cAuxAr2007 & anAux);
 
 
+       double NonEuclidDist(const cPt2dr& aP) const;  /// Dist to non euclid proj (on radius)
        double EuclidDist(const cPt2dr& aP) const;  /// rigourous  distance, use projection (long ?)
        double SignedEuclidDist(const cPt2dr& aP) const;  /// rigourous signed distance
 

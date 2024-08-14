@@ -666,9 +666,15 @@ bool starts_with(const std::string & aFullStr,const std::string & aPrefix)
     return anItPref==aPrefix.end();
 }
 
+bool contains(const std::string & aFullStr,char aC)
+{
+	return aFullStr.find(aC) != std::string::npos;
+}
+
 bool IsPrefixed(const std::string & aStr,char aSep)
 {
-	return aStr.find(aSep) != std::string::npos;
+	return contains(aStr,aSep);
+	// return aStr.find(aSep) != std::string::npos;
 }
 
 

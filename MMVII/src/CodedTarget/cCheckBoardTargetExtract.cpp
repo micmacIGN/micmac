@@ -14,7 +14,114 @@
 namespace MMVII
 {
 
+namespace NS_CHKBRD_TARGET_EXTR 
+{
+class cCdSadle;
+class cCdSym;
+class cCdRadiom;
+class cTmpCdRadiomPos ;
+class cCdEllipse ;
+};
+
 namespace NS_CHKBRD_TARGET_EXTR {
+class cAppliCheckBoardTargetExtract : public cMMVII_Appli
+{
+     public :
+        typedef tREAL4            tElem;
+        typedef cIm2D<tElem>      tIm;
+        typedef cDataIm2D<tElem>  tDIm;
+        typedef cAffin2D<tREAL8>  tAffMap;
+
+
+        cAppliCheckBoardTargetExtract(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
+
+     private :
+
+        cRGBImage  GenImaRadiom(int aSz,int aZoom,cCdRadiom &) const;
+        void       ComplImaEllipse(cRGBImage &,const  cCdEllipse &) const;
+
+        // =========== overridding cMMVII_Appli::methods ============
+        int Exe() override;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+
+        void MakeImEllipses(std::vector<cCdEllipse> &) const;
+        bool IsPtTest(const cPt2dr & aPt) const;  ///< Is it a point marqed a test
+
+
+	/// Method called do each image
+	void DoOneImage() ;
+	    ///  Read Image from files, init Label Image, init eventually masq 4 debug, compute blurred version of input image
+           void ReadImagesAndBlurr();
+	   /// compute points that are "topologicall" : memorized in  label image as  label "eTopoTmpCC"
+           void ComputeTopoSadles();
+	   /// start from topo point, compute the "saddle" criterion, and use it for filtering on relative  max
+           void SaddleCritFiler() ;
+	   /// start from saddle point, optimize position on symetry criterion then filter on sym thresholds
+           void SymetryFiler() ;
+
+	void MakeImageSaddlePoints(const tDIm &,const cDataIm2D<tU_INT1> & aDMasq) const;
+
+	cPhotogrammetricProject     mPhProj;
+	cTimerSegm                  mTimeSegm;
+
+        cCdRadiom TestBinarization(cScoreTetaLine&,const cCdSym &,tREAL8 aThickness);
+
+        // =========== Mandatory args ============
+
+	std::string mNameIm;       ///< Name of background image
+	std::string mNameSpecif;   ///< Name of specification file
+
+        // =========== Optionnal args ============
+
+                //  --
+
+	tREAL8            mThickness;  ///<  used for fine estimation of radiom
+        bool              mOptimSegByRadiom;  ///< Do we optimize the segment on average radiom     
+
+        tREAL8            mLInitTeta;      ///<  = 05.0;
+        tREAL8            mLInitProl;      ///<  = 03.0;
+        tREAL8            mLengtProlong;    ///<  = 20.0;
+        tREAL8            mStepSeg;         ///<  = 0.5;
+        tREAL8            mMaxCostCorrIm;   ///<  = 0.1;
+        int               mNbMaxBlackCB;    ///< Number max of point in black component of checkboard
+        tREAL8            mPropGrayDCD;     ///< Proportion Black/White for extracting 
+	int               mNbBlur1;         ///< = 4,  Number of initial blurring
+	std::string       mStrShow;
+					    //
+        // ---------------- Thresholds for Saddle point criteria --------------------
+        tREAL8            mDistMaxLocSad ;  ///< =10.0, for supressing sadle-point,  not max loc in a neighboorhoud
+        int               mDistRectInt;     ///< = 20,  insideness of points  for seed detection
+        size_t            mMaxNbSP_ML0 ;   ///< = 30000  Max number of best point  saddle points, before MaxLoc
+        size_t            mMaxNbSP_ML1  ;   ///< = 2000   Max number of best point  saddle points, after  MaxLoc
+        cPt2di            mPtLimCalcSadle;  ///< =(2,1)  limit point for calc sadle neighbour , included, 
+
+        // ---------------- Thresholds for Symetry  criteria --------------------
+        tREAL8            mThresholdSym  ;  ///< = 0.5,  threshlod for symetry criteria
+        tREAL8            mRayCalcSym0  ;  ///< = 8.0  distance for evaluating symetry criteria
+        tREAL8            mDistDivSym    ;  ///< = 2.0  maximal distance to initial value in symetry opt
+
+	int                   mNumDebugMT;
+	int                   mNumDebugSaddle;
+        // =========== Internal param ============
+        cFullSpecifTarget *   mSpecif;
+        tIm                   mImIn;        ///< Input global image
+        cPt2di                mSzIm;        ///< Size of image
+	tDIm *                mDImIn;       ///< Data input image 
+        tIm                   mImBlur;      ///< Blurred image, used in pre-detetction
+	tDIm *                mDImBlur;     ///< Data input image 
+	bool                  mHasMasqTest; ///< Do we have a test image 4 debuf (with masq)
+	cIm2D<tU_INT1>        mMasqTest;    ///< Possible image of mas 4 debug, print info ...
+        cIm2D<tU_INT1>        mImLabel;     ///< Image storing labels of centers
+	cDataIm2D<tU_INT1> *  mDImLabel;    ///< Data Image of label
+        cIm2D<tU_INT1>        mImTmp;       ///< Temporary image for connected components
+	cDataIm2D<tU_INT1> *  mDImTmp;      ///< Data Image of "mImTmp"
+
+        std::vector<cCdSadle> mVCdtSad;     ///< Candidate  that are selected as local max of saddle criteria
+        std::vector<int>      mNbSads;      ///< For info, number of sadle points at different step
+        std::vector<cCdSym>   mVCdtSym;     ///< Candidate that are selected on the symetry criteria
+};
+
 
 class c1Hyp;  // represent one hypothesis of interpretation
 class cTransHyp;
@@ -61,13 +168,6 @@ static constexpr tU_INT1 eTopoMaxOfCC  = 3 ;
 static constexpr tU_INT1 eTopoMaxLoc  = 4 ;
 static constexpr tU_INT1 eFilterSym  = 5 ;
 static constexpr tU_INT1 eFilterRadiom  = 6 ;
-
-
-class cCdSadle;
-class cCdSym;
-class cCdRadiom;
-class cTmpCdRadiomPos ;
-class cCdEllipse ;
 
 
 /* **************************************************** */
@@ -171,6 +271,7 @@ class cCdRadiom : public cCdSym
 	  tREAL8  mScoreTeta;  // ratio min/max of BW
           tREAL8  mBlack;
           tREAL8  mWhite;
+	  cPt2di  mDec;  ///< Shit for visu
 };
 				
 /*
@@ -353,7 +454,6 @@ cCdRadiom::cCdRadiom
             aCorGrayInside.Add(aGrayTh,aValIm);
             aNbIn0 += (aState == eTPosCB::eInsideBlack);
             aNbIn1 += (aState == eTPosCB::eInsideWhite);
-            if (Is4Debug())   StdOut() <<  " GRRRAYY : " << aGrayTh  << " " << aValIm << "\n";
 	}
 	if  (IsOk(aState))
 	{
@@ -376,12 +476,6 @@ cCdRadiom::cCdRadiom
     auto [a,b] = aCorGrayInside.FitLineDirect();
     mBlack = b ;
     mWhite = a+b;
-
-    if (Is4Debug())
-    {
-          StdOut() << "Saaaadd= " << mBlack << " " << mWhite << "\n";
-	  getchar();
-    }
 }
 
 tREAL8 cCdRadiom::Threshold(tREAL8 aWW) const 
@@ -565,7 +659,11 @@ bool cCdRadiom::FrontBlackCC(std::vector<cPt2di> & aVFront,cDataIm2D<tU_INT1> & 
 	  aIndBot++;
     }
     if (!isOk) 
-       return false;
+    {
+        for (const auto & aPix : aRes)
+            aDMarq.SetV(aPix,0);
+        return false;
+    }
 
     const std::vector<cPt2di> & aV8 = Alloc8Neighbourhood();
     // compute frontier points
@@ -579,7 +677,17 @@ bool cCdRadiom::FrontBlackCC(std::vector<cPt2di> & aVFront,cDataIm2D<tU_INT1> & 
 	}
 
 	if (has8NeighWhite)
+	{
             aVFront.push_back(aPix);
+	}
+    }
+    if (false && Is4Debug())
+    {
+	     StdOut()  << "--xxx--HASH " << HashValue(aVFront,true) << " SZCC=" << aRes.size() 
+		       << " HELLL=" << HashValue(aVPtsEll,true)
+		       << " HELLL=" << HashValue(aVPtsEll,true)
+		       << " C=" << mC  << " Thr=" << aThrs  
+		       <<  " L=" << mLength << "\n";
     }
     // StdOut() << "FFFF=" << aVFront << "\n";
 
@@ -587,6 +695,125 @@ bool cCdRadiom::FrontBlackCC(std::vector<cPt2di> & aVFront,cDataIm2D<tU_INT1> & 
         aDMarq.SetV(aPix,0);
 
     return isOk;
+}
+
+cRGBImage  cAppliCheckBoardTargetExtract::GenImaRadiom(int aSzI,int aZoom,cCdRadiom & aCdR) const
+{
+    bool  aLocalDyn=false; // if true generate the image with dynamic such "Black->0" , "White->255"
+    bool  aTheorGray=false; // if true generate the "theoreticall" gray, inside ellipse
+    cPt3di  aCoulCenter   = cRGBImage::Red; 
+    cPt3di  aCoulEllFront = cRGBImage::Orange; 
+    cPt3di  aCol_StrL = cRGBImage::Yellow;  // color for theoreticall straight line
+
+    cPt2di aSz(aSzI,aSzI);
+    aCdR.mDec =  ToI(aCdR.mC) - aSz/2;
+    cPt2dr aCLoc = aCdR.mC-ToR(aCdR.mDec);
+
+    // Read image from file using shift, and make of it a gray image
+    cRGBImage  aIm = cRGBImage:: FromFile(mNameIm,cBox2di(aCdR.mDec,aCdR.mDec+aSz),aZoom);
+    aIm.ResetGray();
+
+
+    if (aTheorGray)   // generate the theoretical image + the area (ellipse) of gray modelization
+    {
+          cTmpCdRadiomPos aCRC(aCdR,mThickness);
+	  std::vector<cPt2di> aVEllipse;
+          aCdR.ComputePtsOfEllipse(aVEllipse);
+
+          for (const auto & aPix :  aVEllipse)
+          {
+              auto [aState,aWeightWhite] = aCRC.TheorRadiom(ToR(aPix));
+              if (aState != eTPosCB::eUndef)
+              {
+                 tREAL8 aGr = aCdR.mBlack+ aWeightWhite*(aCdR.mWhite-aCdR.mBlack);
+		 cPt3di aCoul (128,aGr,aGr);
+		 // cPt3di aCoul (aGr,aGr,aGr);
+                 aIm.SetRGBPix(aPix-aCdR.mDec,aCoul);
+              }
+          }
+    }
+
+    // Parse all pixel, read radiom, and modify it to "maximize" dynamic
+    if (aLocalDyn)   
+    {
+          const auto & aDImR = aIm.ImR().DIm();
+          for (const auto & aPix : cRect2(cPt2di(0,0),aSz) )
+	  {
+              tREAL8 aGray = aDImR.GetV(aPix*aZoom);
+	      aGray = 255.0 * (aGray-aCdR.mBlack) /(aCdR.mWhite-aCdR.mBlack);
+	      aIm.SetGrayPix(aPix,round_ni(aGray));
+	  }
+    }
+    
+
+    // show the points that define the frontier (sub pixel detection)
+    if (1)   
+    {
+	       // compute integer frontier point
+          std::vector<cPt2di> aIFront;
+          aCdR.FrontBlackCC(aIFront,*mDImTmp,10000);
+
+	       // select frontier point that are not on line, then refine their position
+          std::vector<cPt2dr> aEllFr;
+	  aCdR.SelEllAndRefineFront(aEllFr,aIFront);
+	       //  print the  frontier point
+          for (const auto & aPt : aEllFr)
+          {
+              aIm.SetRGBPoint(aPt-ToR(aCdR.mDec),aCoulEllFront);
+              aIm.DrawCircle(aCoulEllFront,aPt-ToR(aCdR.mDec),3.0/aZoom);
+          }
+    }
+
+    // print the axes of the checkboard
+    if (1)
+    {
+	  for (const auto & aTeta  : aCdR.mTetas)
+	  {
+              for (int aK= -aZoom * 20 ; aK<=aZoom*20 ; aK++)
+	      {
+		  tREAL8 aAbsc= aK/ (2.0 * aZoom);
+		  cPt2dr aPt = aCLoc + FromPolar(aAbsc,aTeta);
+
+	          aIm.SetRGBPoint(aPt,aCol_StrL); 
+	      }
+	  }
+    }
+
+    aIm.SetRGBPoint(aCLoc,aCoulCenter);
+
+    return aIm;
+}
+
+void   cAppliCheckBoardTargetExtract::ComplImaEllipse(cRGBImage & aIm,const  cCdEllipse & aCDE) const
+{
+      cPt3di  aCol_CornBW = cRGBImage::Red;  // color for teta wih blakc on right (on visualization)
+      cPt3di  aCol_CornWB = cRGBImage::Green;  // color for teta wih blakc on left (on visualization)
+      cPt3di  aCoulBits_0 = cRGBImage::Blue; 
+					      
+      std::vector<tREAL8> aVRho = {mSpecif->Rho_0_EndCCB(),mSpecif->Rho_1_BeginCode(),mSpecif->Rho_2_EndCode(),2.0};
+      int aNb= 20*aCDE.Ell().LGa() ; 
+      for (int aK=0 ; aK<aNb ; aK++)
+      {
+          for (size_t aKRho=0 ; aKRho<aVRho.size() ; aKRho++)
+          {
+               tREAL8 aRho = aVRho.at(aKRho);
+               cPt2dr aPt = aCDE.Ell().PtOfTeta((2*M_PI*aK)/aNb,aRho);
+	       cPt3di aCoul = ((aKRho==1)||(aKRho==2)) ? cRGBImage::Red : cRGBImage::Green;
+               aIm.SetRGBPoint(aPt-ToR(aCDE.mDec),aCoul);
+          }
+     }
+
+     // Draw the 2 corner
+     aIm.DrawCircle(aCol_CornWB,aCDE.CornerlEl_WB()-ToR(aCDE.mDec),0.5);
+     aIm.DrawCircle(aCol_CornBW,aCDE.CornerlEl_BW()-ToR(aCDE.mDec),0.5);
+
+     // Draw the bits position
+     for (const auto & aPBit : mSpecif->BitsCenters())
+     {
+          auto [aVal,aPt] = aCDE.Length2CodingPart(2.0/3.0,aPBit);
+          aIm.DrawCircle(aCoulBits_0,aPt-ToR(aCDE.mDec),0.3);
+     }
+
 }
 
 
@@ -626,159 +853,6 @@ void  cCdRadiom::ShowDetail
 		  <<  " OK=" << aCDE.mIsOk
 		  <<  " OUTCB=" << aCDE.BOutCB()
 		  << "\n";
-
-      int aZoom = 9;
-      cPt2di aSz(170,170);
-      cPt2di aDec =  ToI(mC) - aSz/2;
-      cPt2dr aCLoc = mC-ToR(aDec);
-
-      cRGBImage  aIm = cRGBImage:: FromFile(aNameIm,cBox2di(aDec,aDec+aSz),aZoom);
-      aIm.ResetGray();
-
-      cPt3di  aCol_CornBW = cRGBImage::Red;  // color for teta wih blakc on right (on visualization)
-      cPt3di  aCol_CornWB = cRGBImage::Green;  // color for teta wih blakc on left (on visualization)
-					      
-      cPt3di  aCol_StrL = cRGBImage::Yellow;  // color for theoreticall straight line
-      cPt3di  aCoulFront = cRGBImage::Cyan; 
-      cPt3di  aCoulEllFront = cRGBImage::Orange; 
-
-      cPt3di  aCoulBits_0 = cRGBImage::Blue; 
-      // cPt3di  aCoulBits_1 = cRGBImage::Cyan; 
-					     
-      if (0)   // generate the theoretical image + the area (ellipse) of gray modelization
-      {
-          cTmpCdRadiomPos aCRC(*this,mThickness);
-	  std::vector<cPt2di> aVEllipse;
-          ComputePtsOfEllipse(aVEllipse);
-
-          for (const auto & aPix :  aVEllipse)
-          {
-              auto [aState,aWeightWhite] = aCRC.TheorRadiom(ToR(aPix));
-              if (aState != eTPosCB::eUndef)
-              {
-                 tREAL8 aGr = mBlack+ aWeightWhite*(mWhite-mBlack);
-		 cPt3di aCoul (128,aGr,aGr);
-		 // cPt3di aCoul (aGr,aGr,aGr);
-                 aIm.SetRGBPix(aPix-aDec,aCoul);
-              }
-          }
-      }
-
-      if (1)   // generate the image with dynamic such "Black->0" , "White->255"
-      {
-          const auto & aDImR = aIm.ImR().DIm();
-          for (const auto & aPix : cRect2(cPt2di(0,0),aSz) )
-	  {
-              tREAL8 aGray = aDImR.GetV(aPix*aZoom);
-	      aGray = 255.0 * (aGray-mBlack) /(mWhite-mBlack);
-	      aIm.SetGrayPix(aPix,round_ni(aGray));
-	  }
-      }
-
-      if (1)   // generate the connected 
-      {
-          std::vector<cPt2di> aIFront;
-          FrontBlackCC(aIFront,aMarq,1000000);
-	  if (0)
-	  {
-             for (const auto & aPix : aIFront)
-             {
-                 aIm.SetRGBPix(aPix-aDec,aCoulFront);
-             }
-	  }
-
-          std::vector<cPt2dr> aEllFr;
-	  SelEllAndRefineFront(aEllFr,aIFront);
-          for (const auto & aPt : aEllFr)
-          {
-		  // StdOut() << "PPPPP " << aPt-ToR(aDec) << "\n";
-              aIm.SetRGBPoint(aPt-ToR(aDec),aCoulEllFront);
-          }
-      }
-
-      if (1)
-      {
-           // cCdEllipse aCDE(*this,aSpec,aMarq);
-	   if (aCDE.IsOk())
-	   {
-              std::vector<tREAL8> aVRho = {aSpec->Rho_0_EndCCB(),aSpec->Rho_1_BeginCode(),aSpec->Rho_2_EndCode(),2.0};
-              // Rho_2_EndCode
-	      // Rho_0_EndCCB()-aSpec->Rho_1_BeginCode(
-	      //  Draw the ellipse
-	       int aNb= 500 ; 
-	       for (int aK=0 ; aK<aNb ; aK++)
-	       {
-                    for (const auto & aRho : aVRho)
-		    {
-                        cPt2dr aPt = aCDE.Ell().PtOfTeta((2*M_PI*aK)/aNb,aRho);
-                        aIm.SetRGBPoint(aPt-ToR(aDec),cRGBImage::Red);
-		    }
-	       }
-
-	       // Draw the 2 corner
-	       aIm.DrawCircle(aCol_CornWB ,aCDE.CornerlEl_WB()-ToR(aDec),0.5);
-	       aIm.DrawCircle(aCol_CornBW,aCDE.CornerlEl_BW()-ToR(aDec),0.5);
-
-	       // Draw the bits position
-	       for (const auto & aPBit : aSpec->BitsCenters())
-	       {
-		       /*
-                  auto [aVal,aPt] = aCDE.PtIsBlackAndRecal(aSpec,aPBit,nullptr,ToR(aDec));
-		  if (aVal !=  eFuzzyBool::eUndef)
-		  {
-                     aIm.DrawCircle((aVal == eFuzzyBool::eTrue)  ? aCoulBits_0 : aCoulBits_1,aPt-ToR(aDec),0.3);
-		  }
-		  */
-
-		  auto [aVal,aPt] = aCDE.Length2CodingPart(2.0/3.0,aPBit);
-                  aIm.DrawCircle(aCoulBits_0,aPt-ToR(aDec),0.3);
-	       }
-	   }
-      }
-
-      //  visualize orientation draw the line detected : straight line, orientation, level curve
-      if (1)
-      {
-	  int aKT=0;
-	  for (const auto & aTeta  : mTetas)
-	  {
-              for (int aK= -aZoom * 20 ; aK<=aZoom*20 ; aK++)
-	      {
-		  tREAL8 aAbsc= aK/ (2.0 * aZoom);
-		  cPt2dr aPt = aCLoc + FromPolar(aAbsc,aTeta);
-
-	          aIm.SetRGBPoint(aPt,aCol_StrL); // show straight line
-
-		   
-		  // Now show interpolation (but only  if far enough of intersection)
-		  if (false && (std::abs(aAbsc) > 1.0) )
-		  {
-                      // The orientation of normal change : (1) when we cross intersection
-		      // (2) when we change the segment 
-		      tREAL8 aSign = ((aAbsc>0) ? 1.0 : -1.0) * ((aKT==0) ? 1 : -1) ;
-		      cPt2dr aNorm = FromPolar(1.0,aTeta + M_PI/2.0) * aSign;
-                      tREAL8 aV = Threshold();
-
-		      // note that we retract from segment position by "-aNorm" , because the "cGetPts_ImInterp_FromValue"
-		      // is looking only in one direction !
-                      cGetPts_ImInterp_FromValue<tREAL4> aGIFV(*mDIm,aV,0.1,aPt+ToR(aDec)-aNorm, aNorm);
-		      if (aGIFV.Ok())
-		      {
-	                  aIm.SetRGBPoint(aGIFV.PRes()-ToR(aDec),cRGBImage::Green);
-                      }
-		      // StdOut() << "OKKK " << aGIFV.Ok()  << " K=" << aK << "\n";
-		  }
-		  /*
-		  */
-	          // aIm.SetRGBPoint(aPt,cRGBImage::Green);
-	      }
-	      aKT++;
-	  }
-      }
-
-
-      aIm.SetRGBPoint(aCLoc,cRGBImage::Red);
-      aIm.ToFile("TestCenter_" + ToStr(aCptMarq) + ".tif");
 }
 
 /* ***************************************************** */
@@ -800,10 +874,9 @@ cCdEllipse::cCdEllipse(const cCdRadiom & aCdR,cFullSpecifTarget * aSpec,cDataIm2
      mIsOk = true;
      std::vector<cPt2di> aIFront;
      mIsOk = FrontBlackCC(aIFront,aMarq,aNbMax);
+
      if (! mIsOk)
 	return;
-
-//   std::pair<eTPosCB,tREAL8>  cTmpCdRadiomPos::TheorRadiom(const cPt2dr &aPt,tREAL8 aThickInit,tREAL8 aSteep) const
 
      {
          cTmpCdRadiomPos aCRP(*this,1.0);
@@ -847,10 +920,10 @@ cCdEllipse::cCdEllipse(const cCdRadiom & aCdR,cFullSpecifTarget * aSpec,cDataIm2
         return;
      }
 
-     tREAL8 aThrs = 0.6+ mEll.LGa()/20.0;
+     tREAL8 aThrs = 0.6+ mEll.LGa()/40.0;
      for (const auto & aPixFr : aEllFr)
      {
-         tREAL8 aD =  mEll.EuclidDist(aPixFr);
+         tREAL8 aD =  mEll.NonEuclidDist(aPixFr);
 	 UpdateMax(mMaxEllD,aD);
 	 if (aD>aThrs)
 	 {
@@ -908,7 +981,6 @@ std::pair<tREAL8,cPt2dr>  cCdEllipse::Length2CodingPart(tREAL8 aWeighWhite,const
 {
     // Rho end search, 1.5 theoretical end of code , highly over estimated (no risk ?)
     tREAL8 aRhoMaxRel = mSpec->Rho_2_EndCode() * 1.5;
-    std::pair<tREAL8,cPt2dr>  aDef(aRhoMaxRel,cPt2dr(0,0));
     std::pair<tREAL8,cPt2dr>  aNoValue(-1,cPt2dr(0,0));
 
     // Not sur meaningful with other mode
@@ -954,6 +1026,7 @@ std::pair<tREAL8,cPt2dr>  cCdEllipse::Length2CodingPart(tREAL8 aWeighWhite,const
 	    }
 	}
     }
+    std::pair<tREAL8,cPt2dr>  aDef(aRhoMaxRel,mC + aDirIm*aRhoMaxRel*aMulN2I);
 
     return aDef;
 }
@@ -1203,98 +1276,6 @@ using namespace NS_CHKBRD_TARGET_EXTR;
 
 class cScoreTetaLine;
 
-class cAppliCheckBoardTargetExtract : public cMMVII_Appli
-{
-     public :
-        typedef tREAL4            tElem;
-        typedef cIm2D<tElem>      tIm;
-        typedef cDataIm2D<tElem>  tDIm;
-        typedef cAffin2D<tREAL8>  tAffMap;
-
-
-        cAppliCheckBoardTargetExtract(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
-
-     private :
-        // =========== overridding cMMVII_Appli::methods ============
-        int Exe() override;
-        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
-        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
-
-        void MakeImEllipses(const std::vector<cCdEllipse> &) const;
-        bool IsPtTest(const cPt2dr & aPt) const;  ///< Is it a point marqed a test
-
-
-	/// Method called do each image
-	void DoOneImage() ;
-	    ///  Read Image from files, init Label Image, init eventually masq 4 debug, compute blurred version of input image
-           void ReadImagesAndBlurr();
-	   /// compute points that are "topologicall" : memorized in  label image as  label "eTopoTmpCC"
-           void ComputeTopoSadles();
-	   /// start from topo point, compute the "saddle" criterion, and use it for filtering on relative  max
-           void SaddleCritFiler() ;
-	   /// start from saddle point, optimize position on symetry criterion then filter on sym thresholds
-           void SymetryFiler() ;
-
-	void MakeImageSaddlePoints(const tDIm &,const cDataIm2D<tU_INT1> & aDMasq) const;
-
-	cPhotogrammetricProject     mPhProj;
-	cTimerSegm                  mTimeSegm;
-
-        cCdRadiom TestBinarization(cScoreTetaLine&,const cCdSym &,tREAL8 aThickness);
-
-        // =========== Mandatory args ============
-
-	std::string mNameIm;       ///< Name of background image
-	std::string mNameSpecif;   ///< Name of specification file
-
-        // =========== Optionnal args ============
-
-                //  --
-
-	tREAL8            mThickness;  ///<  used for fine estimation of radiom
-        bool              mOptimSegByRadiom;  ///< Do we optimize the segment on average radiom     
-
-        tREAL8            mLInitTeta;      ///<  = 05.0;
-        tREAL8            mLInitProl;      ///<  = 03.0;
-        tREAL8            mLengtProlong;    ///<  = 20.0;
-        tREAL8            mStepSeg;         ///<  = 0.5;
-        tREAL8            mMaxCostCorrIm;   ///<  = 0.1;
-        int               mNbMaxBlackCB;    ///< Number max of point in black component of checkboard
-        tREAL8            mPropGrayDCD;     ///< Proportion Black/White for extracting 
-	int               mNbBlur1;         ///< = 4,  Number of initial blurring
-					    //
-        // ---------------- Thresholds for Saddle point criteria --------------------
-        tREAL8            mDistMaxLocSad ;  ///< =10.0, for supressing sadle-point,  not max loc in a neighboorhoud
-        int               mDistRectInt;     ///< = 20,  insideness of points  for seed detection
-        size_t            mMaxNbSP_ML0 ;   ///< = 30000  Max number of best point  saddle points, before MaxLoc
-        size_t            mMaxNbSP_ML1  ;   ///< = 2000   Max number of best point  saddle points, after  MaxLoc
-        cPt2di            mPtLimCalcSadle;  ///< =(2,1)  limit point for calc sadle neighbour , included, 
-
-        // ---------------- Thresholds for Symetry  criteria --------------------
-        tREAL8            mThresholdSym  ;  ///< = 0.5,  threshlod for symetry criteria
-        tREAL8            mRayCalcSym0  ;  ///< = 8.0  distance for evaluating symetry criteria
-        tREAL8            mDistDivSym    ;  ///< = 2.0  maximal distance to initial value in symetry opt
-
-	int                   mNumDebugMT;
-	int                   mNumDebugSaddle;
-        // =========== Internal param ============
-        cFullSpecifTarget *   mSpecif;
-        tIm                   mImIn;        ///< Input global image
-        cPt2di                mSzIm;        ///< Size of image
-	tDIm *                mDImIn;       ///< Data input image 
-        tIm                   mImBlur;      ///< Blurred image, used in pre-detetction
-	tDIm *                mDImBlur;     ///< Data input image 
-	bool                  mHasMasqTest; ///< Do we have a test image 4 debuf (with masq)
-	cIm2D<tU_INT1>        mMasqTest;    ///< Possible image of mas 4 debug, print info ...
-        cIm2D<tU_INT1>        mImLabel;     ///< Image storing labels of centers
-	cDataIm2D<tU_INT1> *  mDImLabel;    ///< Data Image of label
-        cIm2D<tU_INT1>        mImTmp;       ///< Temporary image for connected components
-	cDataIm2D<tU_INT1> *  mDImTmp;      ///< Data Image of "mImTmp"
-
-        std::vector<cCdSadle> mVCdtSad;     ///< Candidate  that are selected as local max of saddle criteria
-        std::vector<int>      mNbSads;      ///< For info, number of sadle points at different step
-        std::vector<cCdSym>   mVCdtSym;     ///< Candidate that are selected on the symetry criteria
-};
 
 
 /* *************************************************** */
@@ -1317,6 +1298,7 @@ cAppliCheckBoardTargetExtract::cAppliCheckBoardTargetExtract(const std::vector<s
    mNbMaxBlackCB     (10000),
    mPropGrayDCD      (2.0/3.0),
    mNbBlur1          (4),
+   mStrShow          ("GE"),
    mDistMaxLocSad    (10.0),
    mDistRectInt      (20),
    mMaxNbSP_ML0      (30000),
@@ -1362,6 +1344,7 @@ cCollecSpecArg2007 & cAppliCheckBoardTargetExtract::ArgOpt(cCollecSpecArg2007 & 
              <<  AOpt2007(mThickness,"Thickness","Thickness for modelizaing line-blur in fine radiom model",{eTA2007::HDV})
              <<  AOpt2007(mLInitTeta,"LSIT","Length Segment Init, for teta",{eTA2007::HDV})
              <<  AOpt2007(mNbBlur1,"NbB1","Number of blurr with sz1",{eTA2007::HDV})
+             <<  AOpt2007(mStrShow,"StrV","String for generate Visu : G-lobal E-llipse N-ums",{eTA2007::HDV})
              <<  AOpt2007(mRayCalcSym0,"SymRay","Ray arround point for initial computation of symetry",{eTA2007::HDV}) 
              <<  AOpt2007(mLInitProl,"LSIP","Length Segment Init, for prolongation",{eTA2007::HDV})
              <<  AOpt2007(mOptimSegByRadiom,"OSBR","Optimize segement by radiometry",{eTA2007::HDV})
@@ -1427,11 +1410,6 @@ cCdRadiom cAppliCheckBoardTargetExtract::TestBinarization(cScoreTetaLine & aSTL,
     if (mOptimSegByRadiom)
     {
        aCdRadiom.OptimSegIm(*(aSTL.DIm()),aLength);
-    }
-
-    if (IsMarqed)
-    {
-          aCdRadiom.ShowDetail(aCptMarq,aSTL,mNameIm,*mDImTmp,mSpecif);
     }
 
     return aCdRadiom;
@@ -1591,26 +1569,40 @@ void cAppliCheckBoardTargetExtract::SymetryFiler()
     delete aFSym;
 }
 
-void cAppliCheckBoardTargetExtract::MakeImEllipses(const std::vector<cCdEllipse> & aVCdtEll) const
+void cAppliCheckBoardTargetExtract::MakeImEllipses(std::vector<cCdEllipse> & aVCdtEll) const
 {
-      cRGBImage  aIm = cRGBImage::FromFile(mNameIm);
-      aIm.ResetGray();
 
-
-
-      for (const auto & aCdt :  aVCdtEll)
+      if (contains(mStrShow,'G') )
       {
-          cPt3di aCoul =  aCdt.Code() ?  cRGBImage::Green  : cRGBImage::Red;
-	  // cPt2di aSz(50,50);
-	  aIm.SetRGBrectWithAlpha(ToI(aCdt.mC),50,aCoul,0.5);
-	  /*
-	  cRect2 aRect(aC-aSz,aC+aSz);
-	  for (const auto & aPix : aRect)
-	  */
-
+         cRGBImage  aIm = cRGBImage::FromFile(mNameIm);
+         aIm.ResetGray();
+         for (auto & aCdt :  aVCdtEll)
+         {
+             cPt3di aCoul =  aCdt.Code() ?  cRGBImage::Green  : cRGBImage::Red;
+	     aIm.SetRGBrectWithAlpha(ToI(aCdt.mC),50,aCoul,0.5);
+	 }
+         aIm.ToFile(mPhProj.DirVisu()+ "CBTE-"+FileOfPath(mNameIm));
       }
 
-      aIm.ToFile(mPhProj.DirVisu()+ "CBTE-"+FileOfPath(mNameIm));
+      if (contains(mStrShow,'E') || contains(mStrShow,'N'))
+      {
+         int aCptIm = 0;
+         for (auto & aCdt :  aVCdtEll)
+         {
+             if (contains(mStrShow,'E'))
+             {
+                cRGBImage aRGBIm = GenImaRadiom(150,9,aCdt);
+                ComplImaEllipse(aRGBIm,aCdt);
+                std::string aName = mPhProj.DirVisu()+ "CBTE-" + LastPrefix(FileOfPath(mNameIm)) + "_Ellipse_" + ToStr(aCptIm) + ".tif";
+                aRGBIm.ToFile(aName);
+             }
+
+             if (contains(mStrShow,'N') )
+	         StdOut() << "NumIm=" << aCptIm  <<  " NumDebug=" << aCdt.mNum << "\n";
+
+	     aCptIm++;
+         }
+      }
 }
 
 void cAppliCheckBoardTargetExtract::DoOneImage() 
