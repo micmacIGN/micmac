@@ -505,7 +505,7 @@ std::cout << "CCMMM = " << aBoxClip._p0 << " " << aBoxClip._p1 << "\n"; getchar(
                              if (aTC.MutiCorrelOrthoExt().IsInit())
                                {
                                 //DoEstimHomWarpers();
-                                 DoEstimWarpersPDVs();
+                                DoEstimWarpersPDVs();
                                }
                            }
                      }

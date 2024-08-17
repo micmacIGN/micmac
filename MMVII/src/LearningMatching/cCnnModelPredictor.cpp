@@ -929,16 +929,34 @@ torch::Tensor aCnnModelPredictor::PredictUnetFeaturesOnly(torch::jit::script::Mo
         torch::Tensor aPL=torch::from_blob((*mPatchLData), {1,aPSz.y(),aPSz.x()},
                                            torch::TensorOptions().dtype(torch::kFloat32));
         aPL=aPL.div(255.0);
+        //aPL=(aPL.sub(at::min(aPL))).div(at::max(aPL)-at::min(aPL));
         //aPL=(aPL.sub(0.4353755468)).div(0.19367880); //0.434583236,0.1948717255
         //aPL=(aPL.sub(0.434583236)).div(0.1948717255);
         // Aerial data 22 cm resolution
-        aPL=(aPL.sub(0.214473)).div(0.090828);
+        // Images Gregoire Maillet :
+        //     ----> aPL=(aPL.sub(0.20912810375666974)).div(0.08828173006933751);
+        //aPL=(aPL.sub(0.49877)).div(0.0895);
+        aPL=(aPL.sub(0.3489)).div(0.25);
+        // Images Vaihingen
+        //aPL=(aPL.sub(0.37205569556786616)).div(0.15318937508043667);
+        // Zone 1 Toulouse
+        //aPL=(aPL.sub(0.27758397098638876)).div(0.19629460091512405);
+        // Zone urbaine Toulouse
+        //aPL=(aPL.sub(0.31662110673531746)).div(0.22801173902559266);
+        // Toulouse umbra Urban Dense
+         //aPL=(aPL.sub(0.38217)).div(0.307);
+         //aPL=(aPL.sub(0.42512)).div(0.18);
+        //aPL=(aPL.sub(at::mean(aPL))).div(at::std(aPL)+1e-6);
         aPAllSlaves.index_put_({cc},aPL.to(device));
     }
+    // rotate by 90°
+    //aPAllSlaves=aPAllSlaves.rot90(1,{1,2});
     torch::jit::IValue inp(aPAllSlaves.unsqueeze(0));
     std::vector<torch::jit::IValue> allinp={inp};
     auto out=mNet.forward(allinp);
     auto output=out.toTensor().squeeze();
+    //output=output.rot90(3,{1,2});
+    // annuler la rotation de 90°
     return output;//.to(torch::kCPU);
 }
 
@@ -986,9 +1004,14 @@ torch::Tensor aCnnModelPredictor::PredictMSNetTileFeatures(torch::jit::script::M
     // Normalize The tile with respect to the dataset configuration
     // print image content
     //std::cout<<"TILE CONTENT  ========= >  "<<aPL<<std::endl;
-    aPL=(aPL.div(255.0));
+    aPL=aPL.div(255.0);
+    //aPL=(aPL.sub(at::min(aPL))).div(at::max(aPL)-at::min(aPL));
     aPL=(aPL.sub(0.4357159999)).div(0.1951853861); //0.4357159999,0.1951853861 0.434583236,0.1948717255
-    //aPL=(aPL.sub(0.14555590213)).div(0.06);
+
+    //normalize with MONTPELLIER PLEAIDES 50 CM DATASET
+
+    //aPL=(aPL.sub(0.3489)).div(0.25); //0.4357159999,0.1951853861 0.434583236,0.1948717255
+    //aPL=(aPL.sub(0.45)).div(0.117);
     //aPL=(aPL.sub(aPL.mean())).div(aPL.std()+1e-8);
     torch::jit::IValue inp(aPL);
     std::vector<torch::jit::IValue> allinp={inp};

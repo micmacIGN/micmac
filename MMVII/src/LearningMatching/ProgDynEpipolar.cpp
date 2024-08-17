@@ -71,6 +71,7 @@ class cAppliProgDynEpipolar: public cAppliLearningMatch
         void DoInference();
         void DoInferenceFillCost();
         void DoInferenceFillCostOneForward();
+        void MatchLearningAndRegulMM();
         torch::Tensor gaussian(float sigma);
         // -------------- Mandatory args -------------------
         std::string mNameI1;
@@ -171,6 +172,7 @@ void cAppliProgDynEpipolar::DoInferenceFillCost()
     torch::Tensor disp = torch::ones({1, 1, aLeftImageT.size(2), aLeftImageT.size(3)},torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
     vol=vol.mul(0.5);
     using namespace torch::indexing;
+    namespace F=torch::nn::functional;
     for (int d=0;d<mDispRange;d++)
     {
         torch::Tensor aSlicedLeft=aLeftImageT.slice(3,d,aLeftImageT.size(3),1); // left image slice at certain disparities 
@@ -191,7 +193,8 @@ void cAppliProgDynEpipolar::DoInferenceFillCost()
     cudaDeviceSynchronize();
     Cross(aRightImageT, x1c, AggregParams.L1, AggregParams.tau1); 
     cudaDeviceSynchronize();
-    torch::Tensor tmp_cbca = torch::empty({1, mDispRange, vol.size(2), vol.size(3)},torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
+    torch::Tensor tmp_cbca = torch::empty({1, mDispRange, vol.size(2), vol.size(3)},
+                                          torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
     for (int i=0;i<AggregParams.cbca_i1;i++)
     {
         std::cout<<"================> COST AGGREGATION"<<std::endl;
@@ -201,8 +204,10 @@ void cAppliProgDynEpipolar::DoInferenceFillCost()
     // SEMI GLOBAL MATCHING 
     //vol=vol.transpose(1,2).transpose(2,3).clone();
     vol=at::transpose(at::transpose(vol,1,2),2,3).contiguous();
-    torch::Tensor out = torch::zeros({1, vol.size(1), vol.size(2), vol.size(3)},torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
-    torch::Tensor tmp = torch::zeros({vol.size(2), vol.size(3)},torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
+    torch::Tensor out = torch::zeros({1, vol.size(1), vol.size(2), vol.size(3)},
+                             torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
+    torch::Tensor tmp = torch::zeros({vol.size(2), vol.size(3)},
+                             torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
     for (int i=0;i<AggregParams.sgm_i;i++)
     {
         out=out.mul(0.0);
@@ -221,9 +226,12 @@ void cAppliProgDynEpipolar::DoInferenceFillCost()
     
     
     // Disparity postprocessing 
-    torch::Tensor out3 = torch::zeros(disp.sizes(),torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
-    torch::Tensor out4 = torch::zeros(disp.sizes(),torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
-    torch::Tensor out5 = torch::zeros(disp.sizes(),torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));    
+    torch::Tensor out3 = torch::zeros(disp.sizes(),
+                              torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
+    torch::Tensor out4 = torch::zeros(disp.sizes(),
+                              torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
+    torch::Tensor out5 = torch::zeros(disp.sizes(),
+                              torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
     subpixel_enchancement(disp, vol, out3, mDispRange);                 
     median2d(out3,out4,5);   
     mean2d(out4, gaussian(AggregParams.blur_sigma), out5, AggregParams.blur_t);      
@@ -234,12 +242,20 @@ void cAppliProgDynEpipolar::DoInferenceFillCost()
     mDIImDisp->ToFile(mNameImPax);
 }
 
+/***********************************************************************/
+
+void cAppliProgDynEpipolar::MatchLearningAndRegulMM()
+{
+
+}
 
 /***********************************************************************/
 void cAppliProgDynEpipolar::DoInferenceFillCostOneForward()
 {
-    torch::Tensor vol = torch::ones({1, mDispRange, aLeftImageT.size(2), aLeftImageT.size(3)},torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
-    torch::Tensor disp = torch::ones({1, 1, aLeftImageT.size(2), aLeftImageT.size(3)},torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
+    torch::Tensor vol = torch::ones({1, mDispRange, aLeftImageT.size(2), aLeftImageT.size(3)},
+                                    torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
+    torch::Tensor disp = torch::ones({1, 1, aLeftImageT.size(2), aLeftImageT.size(3)},
+                                    torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
     vol=vol.mul(0.5);
     using namespace torch::indexing;
     // Forward Features Only 
@@ -248,68 +264,84 @@ void cAppliProgDynEpipolar::DoInferenceFillCostOneForward()
     torch::NoGradGuard no_grad_guard;
     auto Feats=mSimilarityModel.forward(allinp);
     auto Features=Feats.toTensor(); 
-    
     auto l=Features.slice(0,0,1);
     auto r=Features.slice(0,1,2); 
     for (int d=0;d<mDispRange;d++)
     {
-        torch::Tensor aSlicedLeft=l.slice(3,d,aLeftImageT.size(3),1); // left image slice at certain disparities 
-        torch::Tensor aSlicedRight=r.slice(3,0,aRightImageT.size(3)-d,1); 
+        torch::Tensor aSlicedLeft=l.slice(3,d,aLeftImageT.size(3),1).squeeze(); // left image slice at certain disparities
+        torch::Tensor aSlicedRight=r.slice(3,0,aRightImageT.size(3)-d,1).squeeze();
+
+        std::cout<<"  SLICE LEFT   "<<aSlicedLeft.sizes()<<std::endl;
+        std::cout<<"  SLICE RIGHT  "<<aSlicedRight.sizes()<<std::endl;
+
+
         // Inference and fill cost volume with 1-Similarity 
-        torch::jit::IValue inp(torch::cat({aSlicedLeft,aSlicedRight},1));
+        torch::jit::IValue inp(torch::cat({aSlicedLeft,aSlicedRight},0).unsqueeze(1));
         std::vector<torch::jit::IValue> allinp={inp};
         torch::NoGradGuard no_grad_guard;
         auto out=mDecisionNetwork.forward(allinp);
         auto Simil=out.toTensor().squeeze().to(TheCPUDevice);
         vol.index({0,d,Slice(0,None,1),Slice(d,aLeftImageT.size(3),1)}).copy_(torch::sigmoid(Simil).mul(-1).add(1));
     }
-    //Cost Based Cross Aggregation CBCA
-    torch::Tensor x0c=torch::empty({1, 4, vol.size(2), vol.size(3)},torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
-    torch::Tensor x1c=torch::empty({1, 4, vol.size(2), vol.size(3)},torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
-    cudaDeviceSynchronize();
-    Cross(aLeftImageT, x0c, AggregParams.L1, AggregParams.tau1); 
-    cudaDeviceSynchronize();
-    Cross(aRightImageT, x1c, AggregParams.L1, AggregParams.tau1); 
-    cudaDeviceSynchronize();
-    torch::Tensor tmp_cbca = torch::empty({1, mDispRange, vol.size(2), vol.size(3)},torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
-    for (int i=0;i<AggregParams.cbca_i1;i++)
-    {
-        //std::cout<<"================> COST AGGREGATION"<<std::endl;
-        CrBaCoAgg(x0c,x1c,vol,tmp_cbca,-1);
-        vol.copy_(tmp_cbca);
-    }
-    // SEMI GLOBAL MATCHING 
-    //vol=vol.transpose(1,2).transpose(2,3).clone();
-    vol=at::transpose(at::transpose(vol,1,2),2,3).contiguous();
-    torch::Tensor out = torch::zeros({1, vol.size(1), vol.size(2), vol.size(3)},torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
-    torch::Tensor tmp = torch::zeros({vol.size(2), vol.size(3)},torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
-    for (int i=0;i<AggregParams.sgm_i;i++)
-    {
-        out=out.mul(0.0);
-        std::cout<<"================> SGM SGM SGM SGM SGM "<<std::endl;
-        sgm2(aLeftImageT, aRightImageT, vol, out, tmp, mP1, mP2, AggregParams.tau_so,
-            AggregParams.alpha1, AggregParams.sgm_q1, AggregParams.sgm_q2, -1);
-        vol.copy_(out.div(4.0));
-    }
-    vol=vol.reshape({1,mDispRange,aLeftImageT.size(2),aLeftImageT.size(3)});
-    vol.copy_(at::transpose(at::transpose(out,2,3),1,2).contiguous());
-    vol=vol.div(4.0);
-    //  ANOTHER CBCA 2
-    for (int i=0;i<AggregParams.cbca_i2;i++)
-    {
-        std::cout<<"================> COST AGGREGATION "<<std::endl;
-        CrBaCoAgg(x0c, x1c, vol, tmp_cbca, -1);
-        cudaDeviceSynchronize();
-        vol.copy_(tmp_cbca);
-    }   
+
+    if (1)
+      {
+          //Cost Based Cross Aggregation CBCA
+          torch::Tensor x0c=torch::empty({1, 4, vol.size(2), vol.size(3)},
+                                         torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
+          torch::Tensor x1c=torch::empty({1, 4, vol.size(2), vol.size(3)},
+                                         torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
+          cudaDeviceSynchronize();
+          Cross(aLeftImageT, x0c, AggregParams.L1, AggregParams.tau1);
+          cudaDeviceSynchronize();
+          Cross(aRightImageT, x1c, AggregParams.L1, AggregParams.tau1);
+          cudaDeviceSynchronize();
+          torch::Tensor tmp_cbca = torch::empty({1, mDispRange, vol.size(2), vol.size(3)},
+                                                torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
+          for (int i=0;i<AggregParams.cbca_i1;i++)
+          {
+              //std::cout<<"================> COST AGGREGATION"<<std::endl;
+              CrBaCoAgg(x0c,x1c,vol,tmp_cbca,-1);
+              vol.copy_(tmp_cbca);
+          }
+          // SEMI GLOBAL MATCHING
+          //vol=vol.transpose(1,2).transpose(2,3).clone();
+          vol=at::transpose(at::transpose(vol,1,2),2,3).contiguous();
+          torch::Tensor out = torch::zeros({1, vol.size(1), vol.size(2), vol.size(3)},
+                                           torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
+          torch::Tensor tmp = torch::zeros({vol.size(2), vol.size(3)},
+                                           torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
+          for (int i=0;i<AggregParams.sgm_i;i++)
+          {
+              out=out.mul(0.0);
+              std::cout<<"================> SGM SGM SGM SGM SGM "<<std::endl;
+              sgm2(aLeftImageT, aRightImageT, vol, out, tmp, mP1, mP2, AggregParams.tau_so,
+                  AggregParams.alpha1, AggregParams.sgm_q1, AggregParams.sgm_q2, -1);
+              vol.copy_(out.div(4.0));
+          }
+          vol=vol.reshape({1,mDispRange,aLeftImageT.size(2),aLeftImageT.size(3)});
+          vol.copy_(at::transpose(at::transpose(out,2,3),1,2).contiguous());
+          vol=vol.div(4.0);
+          //  ANOTHER CBCA 2
+          for (int i=0;i<AggregParams.cbca_i2;i++)
+          {
+              std::cout<<"================> COST AGGREGATION "<<std::endl;
+              CrBaCoAgg(x0c, x1c, vol, tmp_cbca, -1);
+              cudaDeviceSynchronize();
+              vol.copy_(tmp_cbca);
+          }
+       }
     
     std::tuple<torch::Tensor, torch::Tensor> d_Tpl = at::min(vol,1);
     torch::Tensor indexes=std::get<1>(d_Tpl);
     disp.index({0,0,Slice(0,None,1),Slice(0,None,1)}).copy_(indexes.squeeze()); 
     // Disparity postprocessing 
-    torch::Tensor out3 = torch::zeros(disp.sizes(),torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
-    torch::Tensor out4 = torch::zeros(disp.sizes(),torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
-    torch::Tensor out5 = torch::zeros(disp.sizes(),torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));    
+    torch::Tensor out3 = torch::zeros(disp.sizes(),
+                              torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
+    torch::Tensor out4 = torch::zeros(disp.sizes(),
+                              torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
+    torch::Tensor out5 = torch::zeros(disp.sizes(),
+                              torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
     subpixel_enchancement(disp, vol, out3, mDispRange);                 
     median2d(out3,out4,5);   
     mean2d(out4, gaussian(AggregParams.blur_sigma), out5, AggregParams.blur_t);      
@@ -435,8 +467,13 @@ int  cAppliProgDynEpipolar::Exe()
    // Generate Tensors from both images and assert equality between left and right 
    tREAL4 ** mL1Data=mDI1->ExtractRawData2D();
    tREAL4 ** mL2Data=mDI2->ExtractRawData2D();
-   aLeftImageT=torch::from_blob((*mL1Data), {1,1,aSz1.y(),aSz1.x()}, torch::TensorOptions().dtype(torch::kFloat32)).to(TheGPUDevice);
-   aRightImageT=torch::from_blob((*mL2Data), {1,1,aSz2.y(),aSz2.x()}, torch::TensorOptions().dtype(torch::kFloat32)).to(TheGPUDevice);
+   aLeftImageT=torch::from_blob((*mL1Data), {1,1,aSz1.y(),aSz1.x()},
+                                torch::TensorOptions().dtype(torch::kFloat32)).to(TheGPUDevice).div(255.0);
+   aRightImageT=torch::from_blob((*mL2Data), {1,1,aSz2.y(),aSz2.x()},
+                                torch::TensorOptions().dtype(torch::kFloat32)).to(TheGPUDevice).div(255.0);
+
+   aLeftImageT=(aLeftImageT.sub(0.434583236)).div(0.1948717255);
+   aRightImageT=(aRightImageT.sub(0.434583236)).div(0.1948717255);
    // Load Model 
    this->PopulateModel(mSimilarityModel,mModelPath);
    this->PopulateModel(mDecisionNetwork,mDecisonModelPath);

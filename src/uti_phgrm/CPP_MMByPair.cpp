@@ -1564,6 +1564,7 @@ void cAppliMMByPair::DoCorrelEpip()
                 else
                    aLCom.push_back(aCom);
              }
+             std::cout << "CommMM1P: " << aCom << "\n";
         }
    }
    if (mDebugMMByP)
@@ -1580,6 +1581,7 @@ void cAppliMMByPair::DoCorrelEpip()
    {
         cEl_GPAO::DoComInParal(aLCom);
    }
+
 }
 
 void cAppliMMByPair::DoReechantEpipInv()

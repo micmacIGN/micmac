@@ -341,8 +341,8 @@ cParamCallSys cOneLevel::StrComReduce(bool ModeIm) const
        NameImOrMasq(ModeIm),
        ToStr(mIm.mAppli.mRatioByL),
        std::string("Out=") + mDownLev->NameImOrMasq(ModeIm),
-       ModeIm ? "" : " ModMasq=1",
-	   "@ExitOnBrkp"
+       ModeIm ? "ModMasq=0" : "ModMasq=1",
+          "@ExitOnBrkp"
        );
 
 
@@ -799,7 +799,9 @@ cParamCallSys cAppli::ComMatch(cParam1Match & aParam)
        {
           if (Penalty1!="") mPenalty1=std::stof(Penalty1);
           if (Penalty2!="") mPenalty2=std::stof(Penalty2);
-          cParamCallSys aCom = cParamCallSys("MMVII SGMCUDA_IN_MM",
+          cParamCallSys aCom = cParamCallSys(
+                         "MMVII",
+                         "SGMCUDA_IN_MM",
                          mModelPath,
                          mModelDecisionPath,
                          DirTmpOfCmd() + aParam.mClipNameIm1,
@@ -940,7 +942,7 @@ void  cAppli::MatchOneLevel(int aLevel)
             break;
     
             case eModeEpipMatch::eMEM_UNETDECISION  :    
-	         aModePad = eModePaddingEpip::eMPE_PxNeg; 
+                 aModePad = eModePaddingEpip::eMPE_NoPad;
 	         aAmplMax = 180;
             break;
 
@@ -1090,7 +1092,8 @@ int cAppli::Exe()
        int aMin=0;
        int aMax=255;
 
-       if ((aIm->mPFileImFull.Type()==eTyNums::eTN_INT2) || (aIm->mPFileImFull.Type()==eTyNums::eTN_U_INT2))
+       if ((aIm->mPFileImFull.Type()==eTyNums::eTN_INT2)
+           || (aIm->mPFileImFull.Type()==eTyNums::eTN_U_INT2))
          {
            aMax=65535;
          }

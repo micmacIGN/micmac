@@ -1,7 +1,11 @@
 #include "include/MMVII_all.h"
 #include <StdAfx.h>
+#include "V1VII.h"
+#include "MMVII_Matrix.h"
+#include "MMVII_Linear2DFiltering.h"
 
 static int NODATA=-9999;
+
 
 namespace  MMVII {
 
@@ -141,8 +145,8 @@ namespace  MMVII {
           // read images Depth and Masqs
           tImDepth aDepth1=tImDepth::FromFile(N1);
           tDImDepth & aDDepth1=aDepth1.DIm();
-          //tImDepth aDepth2=tImDepth::FromFile(N2);
-          //tDImDepth & aDDepth2=aDepth2.DIm();
+          tImDepth aDepth2=tImDepth::FromFile(N2);
+          tDImDepth & aDDepth2=aDepth2.DIm();
 
           // Masq
           tImMasq aMasq1=tImMasq::FromFile(N1M);
@@ -174,25 +178,50 @@ namespace  MMVII {
                 {
                   if (aDDMasq1.GetV(aPix))
                     {
+                      // DDEPTH CONTAINS GROUND TRUTH
+                      // ADD perturbations to let locations in the image traval along epipolar lines
                         Pt3dr aTer=aCam1->ImEtProf2Terrain(Pt2dr(aPix.x(),aPix.y()),aDDepth1.GetV(aPix));
+                        //
+                        //aTer.z+=
 
                         if (aCam2->PIsVisibleInImage(aTer))
                           {
                             Pt2dr PtCam=aCam2->Ter2Capteur(aTer);
-                            cPt2di aIntP((int)PtCam.x,(int)PtCam.y);
-                            if(aDDMasq2.GetV(aIntP))
+                            // Check if we can get back to the first point
+
+                            cPt2dr aPMM2=cPt2dr(PtCam.x,PtCam.y);
+                            if (aDDepth2.InsideBL(aPMM2))
                               {
-                                aMxIm.SetV(aPix,1);
-                                aMyIm.SetV(aPix,1);
-                                aDxIm.SetV(aPix,PtCam.x);
-                                aDyIm.SetV(aPix,PtCam.y);
+                                Pt3dr aP3DIm2=aCam2->ImEtProf2Terrain(PtCam,aDDepth2.GetVBL(aPMM2));
+                                Pt2dr aP2InCam1=aCam1->Ter2Capteur(aP3DIm2);
+                                Pt2dr aDiff= aP2InCam1-Pt2dr(aPix.x(),aPix.y());
+                                if ((sqrt(aDiff.x*aDiff.x+aDiff.y*aDiff.y))<0.5) // Reprojection to the same point
+                                  {
+                                    // point is visible in both images
+                                    cPt2di aIntP((int)PtCam.x,(int)PtCam.y);
+                                    if(aDDMasq2.GetV(aIntP))
+                                      {
+                                        aMxIm.SetV(aPix,1);
+                                        aMyIm.SetV(aPix,1);
+                                        aDxIm.SetV(aPix,PtCam.x);
+                                        aDyIm.SetV(aPix,PtCam.y);
+                                      }
+                                  }
                               }
+
                           }
                     }
 
                 }
 
             }
+
+          // dilate before saving
+          auto  aMxImV1  = cMMV1_Conv<tU_INT1>::ImToMMV1(aMxIm);
+          // dilate
+          ELISE_COPY(aMxImV1.all_pts(),
+                     dilat_d8(aMxImV1.in(0),4),
+                     aMxImV1.out());
 
           // save Dx, Dy, Mx, My
           aDxIm.ToFile(NameOut(itV->N1()+"__"+itV->N2(),"Dx"));

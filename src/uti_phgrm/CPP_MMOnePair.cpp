@@ -130,6 +130,7 @@ class cAppliMMOnePair : public cMMOnePair,
          void PurgeFileEpi(const std::string & aName);
          void MatchTwoWay(int aStep0,int aStepF);
          void MatchOneWay(bool MasterIs1,int aStep0,int aStepF,bool ForMTD);
+         void MatchOneWayDeepSimNets(bool MasterIs1,int aStep0,int aStepF,bool ForMTD);
          void DoMasqReentrant(bool First,int aStep,bool Last);
          void SauvMasqReentrant(bool First,int aStep,bool Last);
          void SymetriseMasqReentrant();
@@ -809,6 +810,7 @@ void cAppliMMOnePair::MatchTwoWay(int aStep0,int aStepF)
        bool First = (aK==0);
        if (mDoubleSens |First )
           MatchOneWay(First,aStep0,aStepF,false);
+          // MatchOneWayDeepSimNets(First,aStep0,aStepF,false);
     }
 }
 
@@ -889,6 +891,42 @@ void cAppliMMOnePair::MatchOneWay(bool MasterIs1,int aStep0,int aStepF,bool ForM
 
 }
 
+
+
+void cAppliMMOnePair::MatchOneWayDeepSimNets(bool MasterIs1,int aStep0,int aStepF,bool ForMTD)
+{
+     std::string aNamA = MasterIs1 ? mNameIm1 : mNameIm2;
+     std::string aNamB = MasterIs1 ? mNameIm2 : mNameIm1;
+
+     std::string aCom =     MMBinFile(MM3DStr)
+                          + std::string(" MICMAC ")
+                          +  "./Epip_Deep_MSAFF.xml "
+                          + " WorkDir="  +  mEASF.mDir
+                          + " +Im1="     + aNamA
+                          + " +Im2="     + aNamB
+                          + " +Zoom0="   + ToString(mZoom0)
+                          + " +ZoomF="   + ToString(mZoomF)
+                          + " FirstEtapeMEC=" + ToString(aStep0)
+                          + " LastEtapeMEC=" + ToString(aStepF)
+                          + " +Purge="   +  ToString(mPurge && (aStep0==1) && (!ForMTD))
+                          + " +Ori="     + (ForMTD ? "Epi" :mNameOri)
+                          + " +DoEpi="   + ToString((mModeEpip) && (!ForMTD))
+                          + " +MMC="     + ToString(!ForMTD)
+                          + " +NbProc=" + ToString(4)
+                          + " +UseGpu=" + ToString(0)
+                          + " +DefCor=" + ToString(0.4)
+                          + " +ZReg="   + ToString(0.005)
+                          + " +IncPix=" + ToString(300)
+                          + " "+  QUOTE( "+ExtImIn=("   + StdPostfix(mNameIm1) + "|" + StdPostfix(mNameIm2) + ")")
+                      ;
+
+     std::string aDyrPyram = mCreateEpip ? LocDirMec2Im(mNameIm1,mNameIm2) : "Pyram/";
+     aCom = aCom+ " +DirPyram=" + aDyrPyram;
+
+     if (mNoOri) aCom = aCom+ " +MasqImOptional=true";
+     ExeCom(aCom);
+
+}
 /*****************************************************************/
 /*                                                               */
 /*                ::                                             */
