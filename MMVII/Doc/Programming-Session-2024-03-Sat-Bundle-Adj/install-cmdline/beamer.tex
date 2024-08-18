@@ -1,0 +1,132 @@
+\documentclass[11pt]{beamer}
+\include{IGN}
+\usepackage[english]{babel}
+\RequirePackage{tikz}
+\usetikzlibrary{arrows}
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+\usepackage{longtable,booktabs}
+%\setbeameroption{show notes}
+
+\def\tightlist{}
+
+%% DONNES UTILES A LA PAGE DE TITRE ET AU PIED DE PAGE...
+\graphicspath{{../../images_template/}}
+
+\title[]{MMVII Développement}
+\subtitle{IGN - 2024}
+%~ \author[shortname]{Jean-Michaël Muller}
+%\author[shortname]{Muller J.M. \inst{1} \and Poyard J.C. \inst{1} \and \\Collilieux X. \inst{2}}
+%\institute[shortinst]{\inst{1} IGN SGN, Saint-Mandé, France \and %
+%                      \inst{2} IGN LAREG, Université Paris Diderot - Sorbonne Paris Cité, Paris, France}
+\date{CM}
+
+\newenvironment{smallverbatim}%
+  {\verbatim\small}%
+  {\endverbatim}
+
+
+\begin{document}
+
+
+\usebackgroundtemplate{
+        \begin{tikzpicture}
+        %\draw (0,0.5) node[right] { \includegraphics[width=12.5cm]{img/fondClair.png} };
+        \draw (0,5) node[right] { \includegraphics[height=1.5cm]{img/LOGO_IGN2.png} };
+        %\draw (4,5) node[right] { \includegraphics[height=1.5cm]{img/hrao.png} };
+        %\draw (11,5) node[right] { \includegraphics[height=1.5cm]{img/IAG.png} };
+        %\draw (7.2,5) node[right] { \includegraphics[height=1.5cm]{img/logoISPRS2016.png} };
+        %\draw (11,5) node[right] { \includegraphics[height=1.5cm]{img/LOGO_MATIS.png} };
+%        \draw (1.5,4.95) node[right] { \includegraphics[width=3.5cm]{fondD.jpg} };
+        \end{tikzpicture}   
+}
+
+\begin{frame}[plain,c]
+\begin{columns}
+\begin{column}{10cm}
+\begin{center}
+\vspace{2cm}
+{
+%\tiny, \scriptsize, \footnotesize, \small, \normalsize, \large, \Large, \LARGE, \huge, \Huge.
+\LARGE
+\usebeamerfont{title}\usebeamercolor[fg]{title}\inserttitle}
+
+\vspace{0.3cm}
+
+{\small \insertsubtitle}
+
+\vspace{0.3cm}
+
+\normalsize
+
+\insertauthor
+
+
+
+\normalsize
+\vspace{0.5cm}
+
+\insertinstitute
+
+
+\vspace{0.5cm}
+
+\insertdate
+
+
+\end{center}
+\end{column}
+\begin{column}{1cm}
+\end{column}
+\end{columns}
+
+\end{frame}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% DEBUT DE LA PRESENTATION
+% BACKGROUND POUR AVOIR LE HAUT DE PAGE QUI VA BIEN
+\usebackgroundtemplate{
+    \begin{tikzpicture}[scale=0.503]
+    \filldraw[color=IGNGris] (0,0) rectangle(2.62,0.54);
+    \filldraw[color=IGNGris] (4.77,0) rectangle(2.62+4.77,0.54);
+    
+    \filldraw[color=IGNVert] (9.50+0.27,0) -- (9.50,0.54)-- (9.50+7.41-0.27,0.54)-- (9.50+7.41,0)--cycle;
+    
+    \filldraw[color=IGNGris] (19.50,0) rectangle(2.62+19.50,0.54);
+    \filldraw[color=IGNGris] (23.11,0.54)--(23.11+0.54,0)--(2.3+23.11,0)--(2.3+23.11,0.54)--cycle;;
+    \end{tikzpicture}   
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PLAN
+\setbeamercolor{section in sidebar}{fg=white } %LIGNE NECESSAIRE POUR EFFACER LE PLAN DE LA SIDEBAR (PAS MIEUX)
+\setbeamercolor{subsection in sidebar}{fg=white }%LIGNE NECESSAIRE POUR EFFACER LE PLAN DE LA SIDEBAR (PAS MIEUX)
+\setbeamercolor{section in sidebar shaded}{fg=white }%LIGNE NECESSAIRE POUR EFFACER LE PLAN DE LA SIDEBAR (PAS MIEUX)
+\setbeamercolor{subsection in sidebar shaded}{fg=white }%LIGNE NECESSAIRE POUR EFFACER LE PLAN DE LA SIDEBAR (PAS MIEUX)
+\begin{frame}
+  \begin{columns}[T]
+  \begin{column}{7cm}
+  \tableofcontents[sections={1-5},hideallsubsections]
+  \end{column}
+  %\begin{column}{5cm}
+  %\tableofcontents[sections={6-10},hideallsubsections]
+  %\end{column}
+  \end{columns}
+
+\end{frame}
+\setbeamercolor{section in sidebar}{fg=IGNGris}%LIGNE NECESSAIRE POUR AFFICHER LE PLAN DE LA SIDEBAR (PAS MIEUX)
+\setbeamercolor{subsection in sidebar}{fg=IGNGris}%LIGNE NECESSAIRE POUR AFFICHER LE PLAN DE LA SIDEBAR (PAS MIEUX)
+\setbeamercolor{section in sidebar shaded}{fg=IGNVert}%LIGNE NECESSAIRE POUR AFFICHER LE PLAN DE LA SIDEBAR (PAS MIEUX)
+\setbeamercolor{subsection in sidebar shaded}{fg=IGNVert}%LIGNE NECESSAIRE POUR AFFICHER LE PLAN DE LA SIDEBAR (PAS MIEUX)
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{"presentation.tex"}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}

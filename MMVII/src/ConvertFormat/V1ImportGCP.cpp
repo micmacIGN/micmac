@@ -41,8 +41,8 @@ cAppli_ConvertV1V2_GCPIM::cAppli_ConvertV1V2_GCPIM(const std::vector<std::string
 cCollecSpecArg2007 & cAppli_ConvertV1V2_GCPIM::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
     return anArgObl
-	      <<  Arg2007(mNameIm  ,"Name of V1-image-measure file (\""+MMVII_NONE +"\" if none !)")
-	      <<  Arg2007(mNameGCP ,"Name of V1-GCP file (\""+MMVII_NONE +"\")if none !)")
+	      <<  Arg2007(mNameIm  ,"Name of V1-image-measure file (\""+MMVII_NONE +"\" if none !)",{eTA2007::FileTagged})
+	      <<  Arg2007(mNameGCP ,"Name of V1-GCP file (\""+MMVII_NONE +"\")if none !)",{eTA2007::FileTagged})
               <<  mPhProj.DPPointsMeasures().ArgDirOutMand()
            ;
 }
@@ -62,7 +62,7 @@ int cAppli_ConvertV1V2_GCPIM::Exe()
     bool  useGCP=false;
     if (mNameGCP != MMVII_NONE)
     {
-        aMesGCP = ImportMesGCPV1(mNameGCP,"FromV1-"+Prefix(mNameGCP));
+        aMesGCP = ImportMesGCPV1(mNameGCP,"FromV1-"+LastPrefix(mNameGCP));
         useGCP = true;
 	mPhProj.SaveGCP(aMesGCP);
         // std::string aNameOut = mPhProj.DPPointsMeasures().FullDirOut() + cSetMesGCP::ThePrefixFiles + "_" + mNameGCP;

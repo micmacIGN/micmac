@@ -113,11 +113,24 @@ cPt2dr  cEllipse::PtOfTeta(tREAL8 aTeta,tREAL8 aMulRho) const
     return  mCenter+ mVGa *(cos(aTeta)*mLGa*aMulRho) + mVSa *(sin(aTeta)*mLSa*aMulRho);
 }
 
+cPt2dr cEllipse::InterSemiLine(tREAL8 aTeta) const
+{
+     cPt2dr aPt = VectToCoordLoc(FromPolar(1.0,aTeta));
+     aPt = VUnit(aPt);
+     return FromCoordLoc(aPt);
+}
 
 
 cPt2dr  cEllipse::ToCoordLoc(const cPt2dr & aP0) const
 {
-     cPt2dr aP = (aP0-mCenter)/mVGa;
+     // cPt2dr aP = (aP0-mCenter)/mVGa;
+     // return cPt2dr(aP.x()/mLGa,aP.y()/mLSa);
+     return VectToCoordLoc(aP0-mCenter);
+}
+
+cPt2dr  cEllipse::VectToCoordLoc(const cPt2dr & aP0) const
+{
+     cPt2dr aP = aP0/mVGa;
 
      return cPt2dr(aP.x()/mLGa,aP.y()/mLSa);
 }
@@ -362,9 +375,14 @@ void cEllipse::BenchEllispe()
 
          for (int aKp=0 ; aKp<10 ; aKp++)
 	 {
-             cPt2dr aP1 =  anEl.PtOfTeta(RandInInterval(-M_PI,M_PI),RandInInterval(0.99,0.999));
-             cPt2dr aP2 =  anEl.PtOfTeta(RandInInterval(-M_PI,M_PI),RandInInterval(1.001,1.01));
-             cPt2dr aP3 =  anEl.PtOfTeta(RandInInterval(-M_PI,M_PI),1.0);
+             auto v1 = RandInInterval(-M_PI,M_PI);
+             auto v2 = RandInInterval(0.99,0.999);
+             auto v3 = RandInInterval(-M_PI,M_PI);
+             auto v4 = RandInInterval(1.001,1.01);
+             auto v5 = RandInInterval(-M_PI,M_PI);
+             cPt2dr aP1 =  anEl.PtOfTeta(v1,v2);
+             cPt2dr aP2 =  anEl.PtOfTeta(v3,v4);
+             cPt2dr aP3 =  anEl.PtOfTeta(v5,1.0);
 
 	     MMVII_INTERNAL_ASSERT_bench(anEl.SignedQF_D2(aP1)<0,"BenchEllispe");
 	     MMVII_INTERNAL_ASSERT_bench(anEl.SignedQF_D2(aP2)>0,"BenchEllispe");
@@ -380,19 +398,21 @@ void cEllipse::BenchEllispe()
 	 }
 
          for (int aKp=0 ; aKp<10 ; aKp++)
-	 {
-             cPt2dr aP1 =  anEl.PtOfTeta(RandInInterval(0.1,10),RandInInterval(-M_PI,M_PI));
-	     cPt2dr aPP = anEl.ProjOnEllipse(aP1);
-	     if (Bug)
-	     {
-		     StdOut() << anEl.ToRhoTeta(aP1) << " " <<   Scal(anEl.Tgt(aPP),aP1-aPP)  << aP1-aPP  << std::endl;
-		     StdOut() <<  "Ratiooo=" << aLSa/aLGa   << std::endl;
-	     }
+         {
+             auto v1 = RandInInterval(0.1,10);
+             auto v2 = RandInInterval(-M_PI,M_PI) ;
+             cPt2dr aP1 =  anEl.PtOfTeta(v1,v2);
+             cPt2dr aPP = anEl.ProjOnEllipse(aP1);
+             if (Bug)
+             {
+                 StdOut() << anEl.ToRhoTeta(aP1) << " " <<   Scal(anEl.Tgt(aPP),aP1-aPP)  << aP1-aPP  << std::endl;
+                 StdOut() <<  "Ratiooo=" << aLSa/aLGa   << std::endl;
+             }
 
-	     MMVII_INTERNAL_ASSERT_bench(std::abs(anEl.ToRhoTeta(aPP).x()-1.0)<1e-5,"BenchEllispe");
-	     MMVII_INTERNAL_ASSERT_bench(std::abs(Scal(anEl.Tgt(aPP),aP1-aPP))<1e-3,"BenchEllispe");
-	     // getchar();
-	 }
+             MMVII_INTERNAL_ASSERT_bench(std::abs(anEl.ToRhoTeta(aPP).x()-1.0)<1e-5,"BenchEllispe");
+             MMVII_INTERNAL_ASSERT_bench(std::abs(Scal(anEl.Tgt(aPP),aP1-aPP))<1e-3,"BenchEllispe");
+             // getchar();
+         }
 
 	 /* Check experimentaly that ApproxDist ~ EuclidDist and that the approximation can be bounded as a fonction
 	  * of ellipse excentricity*/
@@ -400,7 +420,9 @@ void cEllipse::BenchEllispe()
 	 cWeightAv<tREAL8>  aWAvg;
          for (int aKp=0 ; aKp<100 ; aKp++)
 	 {
-             cPt2dr aP1 =  anEl.PtOfTeta(RandInInterval(0.9,1.1),RandInInterval(-M_PI,M_PI));
+             auto v1 = RandInInterval(0.9,1.1);
+             auto v2 = RandInInterval(-M_PI,M_PI);
+             cPt2dr aP1 =  anEl.PtOfTeta(v1,v2);
              tREAL8  aRatio= anEl.ApproxDist(aP1) / anEl.EuclidDist(aP1) ;
 	     UpdateMax(aMaxRatio,aRatio);
 	     aWAvg.Add(1.0,aRatio);
@@ -428,9 +450,10 @@ void cEllipse::BenchEllispe()
 /*               cEllipseEstimate                               */
 /*                                                              */
 /*  *********************************************************** */
-cEllipse_Estimate::cEllipse_Estimate(const cPt2dr & aC0) :
-    mSys  (new cLeasSqtAA<tREAL8> (5)),
-    mC0   (aC0)
+cEllipse_Estimate::cEllipse_Estimate(const cPt2dr & aC0,bool isCenterFree) :
+    mIsCenterFree  (isCenterFree),
+    mSys           (new cLeasSqtAA<tREAL8> (5)),
+    mC0            (aC0)
 {
 }
 
@@ -449,10 +472,18 @@ void cEllipse_Estimate::AddPt(cPt2dr aP)
      aDV(0) = Square(aP.x());
      aDV(1) = 2 * aP.x() * aP.y();
      aDV(2) = Square(aP.y());
-     aDV(3) = aP.x();
-     aDV(4) = aP.y();
+     if (mIsCenterFree)
+     {
+        aDV(3) = aP.x();
+        aDV(4) = aP.y();
+     }
+     else
+     {
+        aDV(3) = 0.0 ;
+        aDV(4) = 0.0 ;
+     }
 
-     mSys->AddObservation(1.0,aDV,1.0);
+     mSys->PublicAddObservation(1.0,aDV,1.0);
 
      mVObs.push_back(aP);
 }
@@ -460,6 +491,7 @@ void cEllipse_Estimate::AddPt(cPt2dr aP)
 cEllipse cEllipse_Estimate::Compute()
 {
      auto  aSol = mSys->Solve();
+
 
      return cEllipse(aSol,mC0);
      /// return  aRes;

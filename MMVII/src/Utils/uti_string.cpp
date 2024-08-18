@@ -100,6 +100,12 @@ cCarLookUpTable::cCarLookUpTable() :
     MEM_RAZ(&mDTable,1);
 }
 
+void cCarLookUpTable::InitIdGlob()
+{
+    InitId(std::numeric_limits<char>::min(),std::numeric_limits<char>::max()-1);
+}
+
+
 /* ************************************************* */
 /*                                                   */
 /*                     MMVII                         */
@@ -462,7 +468,7 @@ bool CreateDirectories(const std::string & aDir,bool SVP)
         }
         else
         {
-            MMVII_UsersErrror(eTyUEr::eCreateDir,"Cannot create directory for arg " + aDir);
+            MMVII_UserError(eTyUEr::eCreateDir,"Cannot create directory for arg " + aDir);
         }
     }
     return Ok;
@@ -587,6 +593,7 @@ void  MakeBckUp(const std::string & aDir,const std::string & aNameFile,int aNbDi
 
 void GetFilesFromDir(std::vector<std::string> & aRes,const std::string & aDir,const tNameSelector &  aNS,bool OnlyRegular)
 {
+    MMVII_INTERNAL_ASSERT_User(IsDirectory(aDir), eTyUEr::eOpenFile, aDir+" is not a directory!");
     for (fs::directory_iterator itr(aDir); itr!=fs::directory_iterator(); ++itr)
    {
       std::string aName ( itr->path().filename().generic_string().c_str());
@@ -621,6 +628,7 @@ std::vector<std::string> GetSubDirFromDir(const std::string & aDir,const tNameSe
 */
 void RecGetFilesFromDir( std::vector<std::string> & aRes, const std::string & aDir,tNameSelector  aNS,int aLevMin, int aLevMax)
 {
+    MMVII_INTERNAL_ASSERT_User(IsDirectory(aDir), eTyUEr::eOpenFile, aDir+" is not a directory!");
     for (fs::recursive_directory_iterator itr(aDir); itr!=fs::recursive_directory_iterator(); ++itr)
     {
         int aLev = itr.depth();

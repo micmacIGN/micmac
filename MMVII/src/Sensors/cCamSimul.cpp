@@ -52,10 +52,16 @@ bool cCamSimul::ValidateCenter(const cPt3dr & aP2) const
 cPt3dr  cCamSimul::GenAnyCenter(bool SubVert) const
 {
     if (SubVert)
-       return    mCenterGround 
-	       + cPt3dr(RandUnif_C()/mProfMax,RandUnif_C()/mProfMax,1.0) * RandInInterval(mProfMin,mProfMax);
+    {
+        auto v1 = RandUnif_C()/mProfMax;
+        auto v2 = RandUnif_C()/mProfMax;
+        auto v3 = RandInInterval(mProfMin,mProfMax);
+        return    mCenterGround  + cPt3dr(v1,v2,1.0) * v3;
+    }
 
-    return mCenterGround + cPt3dr::PRandUnit() * RandInInterval(mProfMin,mProfMax);
+    auto v1 = cPt3dr::PRandUnit();
+    auto v2 = RandInInterval(mProfMin,mProfMax);
+    return mCenterGround + v1 * v2;
 }
 
 

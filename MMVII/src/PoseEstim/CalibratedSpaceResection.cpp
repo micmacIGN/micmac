@@ -268,11 +268,10 @@ template <class Type> void  cElemSpaceResection<Type>::OneTestCorrectness()
        cPtxd<Type,3> C = VUnit(aTriBund.Pt(2))*c;
 
        //  put them anywhere and with any ratio using a random similitud
-       cSimilitud3D<Type> aSim(
-		               static_cast<Type>(RandUnif_C_NotNull(1e-2)*10.0),
-			       cPtxd<Type,3>::PRandC()*static_cast<Type>(100.0),
-			       cRotation3D<Type>::RandomRot()
-                         );
+       auto v1 = static_cast<Type>(RandUnif_C_NotNull(1e-2)*10.0);
+       auto v2 = cPtxd<Type,3>::PRandC()*static_cast<Type>(100.0);
+       auto v3 = cRotation3D<Type>::RandomRot();
+       cSimilitud3D<Type> aSim( v1, v2, v3 );
        cTriangle<Type,3> aTriG(aSim.Value(A),aSim.Value(B),aSim.Value(C));
 
        //  Now see that we can recover b & c
@@ -359,7 +358,10 @@ template <class Type>
    cSet2D3D aBufSetTest;  // will have the space to store locally the test set
    int aNbTot = aSet0.NbPair();
 
-   MMVII_INTERNAL_ASSERT_tiny(aNbTot>3,"Not enough 2-3 corresp in RansacPoseBySR");
+   if (aNbTot<=3)
+   {
+        MMVII_INTERNAL_ASSERT_strong(false,"Not enough 2-3 corresp in RansacPoseBySR, need>3, got :" + ToStr(aNbTot));
+   }
 
 
    //  is we require less test that total of point we must create the subset
@@ -505,14 +507,14 @@ void BenchCalibResection(cParamExeBench & aParam)
 	                  new cTimerSegm  (&(cMMVII_Appli::CurrentAppli()))   :
 	  		  nullptr                                             ;
 
-   for (int aK=0 ; aK<3 ; aK++)  // Test different degree
+   for (int aKCal=0 ; aKCal<4 ; aKCal++)  // Test different degree
    {
        for (int aKEnum=0 ; aKEnum<int(eProjPC::eNbVals) ; aKEnum++)  // Test all projections
        {
             cAutoTimerSegm * anATS = new cAutoTimerSegm(aTimeSeg,"CreateCalib");
             eProjPC aTypeProj = eProjPC(aKEnum);
 	    //  K%3  =>  3 option for degree of dist in random calib
-            cPerspCamIntrCalib *  aCalib = cPerspCamIntrCalib::RandomCalib(aTypeProj,aK%3);
+            cPerspCamIntrCalib *  aCalib = cPerspCamIntrCalib::RandomCalib(aTypeProj,aKCal%4);
 
 	    delete anATS;
 
@@ -626,7 +628,6 @@ cCollecSpecArg2007 & cAppli_CalibratedSpaceResection::ArgOpt(cCollecSpecArg2007 
 int cAppli_CalibratedSpaceResection::Exe()
 {
     mPhProj.FinishInit();
-
     mNameReport = "Rejected_Ori-" +   mPhProj.DPOrient().DirIn() + "_Mes-" + mPhProj.DPPointsMeasures().DirIn() ;
 
     InitReport(mNameReport,"csv",true);
@@ -651,7 +652,6 @@ int cAppli_CalibratedSpaceResection::Exe()
         return EXIT_SUCCESS;
     }
 
-
     // By default print detail if we are not in //
     SetIfNotInit(mShowBundle,LevelCall()==0);
 
@@ -659,9 +659,14 @@ int cAppli_CalibratedSpaceResection::Exe()
 
     mPhProj.LoadGCP(mSetMes);
     mPhProj.LoadIm(mSetMes,mNameIm);
+    
     mSetMes.ExtractMes1Im(mSet23,mNameIm);
 
-    MMVII_INTERNAL_ASSERT_User(mSet23.NbPair()>3,eTyUEr::eUnClassedError,"Not enouh 3-2 pair for space resection");
+    if (mSet23.NbPair()<=3)
+    {
+        MMVII_INTERNAL_ASSERT_User
+        (false,eTyUEr::eUnClassedError,"Not enouh 3-2 pair for space resection, need>3, got "+ToStr(mSet23.NbPair()));
+    }
 
     cPerspCamIntrCalib *   aCal = mPhProj.InternalCalibFromStdName(mNameIm);
 

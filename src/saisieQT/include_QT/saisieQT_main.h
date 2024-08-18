@@ -47,7 +47,7 @@ extern void SaisieBasc(int argc, char ** argv,
                         std::string &anOut,
 						Pt2di &aSzW,
 						Pt2di &aNbFen,
-                        bool &aForceGray);
+                        bool &aForceGray, double & aGama);
 
 QApplication & getQApplication();
 

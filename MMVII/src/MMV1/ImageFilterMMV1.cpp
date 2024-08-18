@@ -43,12 +43,9 @@ template<class Type> double  MoyAbs(cIm2D<Type> aImIn)
     return aSom[0] / aSom[1];
 }
 
-
-template<class Type> cImGrad<Type> Deriche(const cDataIm2D<Type> & aImIn,double aAlpha)
+template<class Type> void ComputeDeriche(cImGrad<Type> & aResGrad,const cDataIm2D<Type> & aImIn,double aAlpha)
 {
     auto  aV1In  = cMMV1_Conv<Type>::ImToMMV1(aImIn);
-
-    cImGrad<Type> aResGrad(aImIn.Sz());
     auto  aV1Gx  = cMMV1_Conv<Type>::ImToMMV1(aResGrad.mGx.DIm());
     auto  aV1Gy  = cMMV1_Conv<Type>::ImToMMV1(aResGrad.mGy.DIm());
 
@@ -58,7 +55,12 @@ template<class Type> cImGrad<Type> Deriche(const cDataIm2D<Type> & aImIn,double 
           deriche(aV1In.in_proj(),aAlpha,10),
 	  Virgule(aV1Gx.out(),aV1Gy.out())
     );
+}
 
+template<class Type> cImGrad<Type> Deriche(const cDataIm2D<Type> & aImIn,double aAlpha)
+{
+    cImGrad<Type> aResGrad(aImIn.Sz());
+    ComputeDeriche(aResGrad,aImIn,aAlpha);
     return aResGrad;
 }
 

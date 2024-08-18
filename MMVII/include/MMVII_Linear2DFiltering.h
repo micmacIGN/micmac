@@ -48,6 +48,13 @@ void  ExpFilterOfStdDev(cDataIm2D<Type> & aIOut,const cDataIm2D<Type> & aImIn,in
 
 
 /**************************************/
+/*           Average square filter    */
+/**************************************/
+
+template <class Type> void  SquareAvgFilter(cDataIm2D<Type> & aDIm,int  aNbIt,int aSzX,int aSzY);
+
+
+/**************************************/
 /*           Use en 1D Images         */
 /**************************************/
 
@@ -362,8 +369,18 @@ template <class Type> class  cGaussianPyramid : public cMemCheck
 template <class Type>  class cImGrad
 {
      public :
-        cIm2D<Type> mGx;
-        cIm2D<Type> mGy;
+        cIm2D<Type>       mGx;
+        cDataIm2D<Type>*  mDGx;
+        cIm2D<Type>       mGy;
+        cDataIm2D<Type>*  mDGy;
+
+        const Type & Gx(const cPt2di & aPix) const {return mDGx->GetV(aPix);}
+        const Type & Gy(const cPt2di & aPix) const {return mDGy->GetV(aPix);}
+        cPtxd<Type,2>  Grad(const cPt2di & aPix) const {return cPtxd<Type,2>(Gx(aPix),Gy(aPix));}
+
+        Type  GxBL(const cPt2dr & aPix) const {return mDGx->GetVBL(aPix);}
+        Type  GyBL(const cPt2dr & aPix) const {return mDGy->GetVBL(aPix);}
+        cPtxd<Type,2>  GradBL(const cPt2dr & aPix) const {return cPtxd<Type,2>(GxBL(aPix),GyBL(aPix));}
    /// memorize 
         cImGrad(const cIm2D<Type> & aGx,const cIm2D<Type> &  aGy) ;
    /// Use size to allocate
@@ -373,6 +390,8 @@ template <class Type>  class cImGrad
 };
 
 template<class Type> cImGrad<Type> Deriche(const cDataIm2D<Type> &aImIn,double aAlpha);
+template<class Type> void ComputeDeriche(cImGrad<Type> & aResGrad,const cDataIm2D<Type> & aImIn,double aAlpha);
+
 
 
 };

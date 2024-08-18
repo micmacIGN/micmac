@@ -31,6 +31,10 @@ enum class eTA2007
                 FileImage,     ///< File containing an image
                 FileCloud,     ///< File containing a cloud file (ply ?)
                 File3DRegion,  ///< File containing a 3D region
+                FileTagged,    ///< File containing a "xml"  or "json" extension
+                FileTxt,       ///< Text file, no extension specified
+                FileAny,       ///< Any file, no more specificiation can be given
+                FolderAny,     ///< Any folder, no more specificiation can be given
                 MPatFile,      ///< Major PaternIm => "" or "0" in sem for set1, "1" or other for set2
                 FFI,           ///< File Filter Interval
                 Orient,        ///< Orientation
@@ -43,6 +47,8 @@ enum class eTA2007
                 TieP,          ///< Tie Points
                 MulTieP,       ///< Multiple Tie Points
                 RigBlock,      ///< Rigid bloc    // RIGIDBLOC
+                Clino,         ///< Clinometer
+                Topo,          ///< Topo
                 SysCo,         ///< System coord
                 Input,         ///< Is this parameter used as input/read
                 Output,        ///< Is this parameter used as output/write
@@ -80,7 +86,7 @@ enum class eApF
                TiePLearn,    ///< Tie-Point processing  - Learning step
                Cloud,       ///< Cloud processing
                CodedTarget,  ///< Coded target (generate, match )
-               Topo,        ///< Topometry
+               Topo,        ///< Topo survey
                NoGui,        ///< Will not have a GUI frontend
                Perso,      ///< Personnal
                eNbVals     ///< Tag for number of value
@@ -118,7 +124,6 @@ enum class eTAAr
       eUndef,       //  when not initalized
       eNbVals     ///< Tag for number of value
 };
-
 
 
 /// Type of external format that are potentially imported/exported in MicMac
@@ -233,6 +238,9 @@ enum class eTyUEr
               eNoFocaleEqui35,
               eNoNumberPixel,
               eNoCameraName,
+              eMultipleTargetInOneImage,
+              eBadSysCo,
+              eConstraintsError,
               eUnClassedError,
               eNbVals
            };
@@ -504,6 +512,23 @@ enum class eDCTFilters
    eNbVals
 };
 
+enum class eTypeSensor
+{
+      eCenP,   // Central Perpsective
+      eRPC,    // Rational  Polynomial Coeff
+      eNbVals
+};
+
+enum class eFormatSensor
+{
+      eMMVII_CenP,   // Central Perpsective in MMVII Format
+      eDimap_RPC,   // Rational  Polynomial Coeff in DIMAP Format
+      eNbVals
+};
+
+
+
+
 enum class eProjPC
 {
      eStenope,
@@ -515,13 +540,44 @@ enum class eProjPC
      eNbVals
 };
 
-enum class eSysCoGeo
+enum class eSysCo
 {
-     eLambert93,
+     eProj,
+     eLEuc,
      eRTL,
      eGeoC,
      eLocalSys,
      eNbVals
+};
+
+// topo observation sets types
+enum class eTopoObsSetType
+{
+    eStation,
+    //eDistParam,
+    eNbVals        ///< Tag for number of value
+};
+
+// topo observations types
+enum class eTopoObsType
+{
+        eDist,
+        eHz,
+        eZen,
+        eDX,
+        eDY,
+        eDZ,
+        eNbVals        ///< Tag for number of value
+};
+
+// cTopoObsSetStation orientation freedom status
+enum class eTopoStOriStat
+{
+        eTopoStOriContinue, ///< special case,  used only on obs reading: same as previous ori constraint, just a marker to split stations
+        eTopoStOriFixed,    ///< no rotation
+        eTopoStOriVert,     ///< z rotation
+        eTopoStOriBasc,     ///< 3d rotation
+        eNbVals             ///< Tag for number of value
 };
 
 
@@ -546,15 +602,20 @@ enum class eMTDIm
               eNbVals
            };
 
+const std::string & E2Str(const eFormatSensor &);
+const std::string & E2Str(const eTypeSensor &);
 
 const std::string & E2Str(const eTyUnitAngle &);
 const std::string & E2Str(const eMTDIm &);
 const std::string & E2Str(const eFormatExtern &);
 const std::string & E2Str(const eTypeSerial &);
 const std::string & E2Str(const eTAAr &);
-const std::string & E2Str(const eProjPC &);         
-const std::string & E2Str(const eSysCoGeo &);         
-const std::string & E2Str(const eDCTFilters &);         
+const std::string & E2Str(const eProjPC &);
+const std::string & E2Str(const eSysCo &);
+const std::string & E2Str(const eTopoObsSetType &);
+const std::string & E2Str(const eTopoObsType &);
+const std::string & E2Str(const eTopoStOriStat &);
+const std::string & E2Str(const eDCTFilters &);
 const std::string & E2Str(const eTyCodeTarget &);         
 const std::string & E2Str(const eTySC &);         
 const std::string & E2Str(const eOpAff &);         
@@ -590,6 +651,22 @@ Serial/uti_e2string.cpp: ..::tMapE2Str cE2Str<eModeEpipMatch>::mE2S
 Serial/uti_e2string.cpp:TPL_ENUM_2_STRING
 =>  for creating the 2 dictionnaries enum <=> strings
 */
+
+// class used to make more explicit names of boolean parameters => To Replace by enum later which will be
+// safer (would detect swap) , but require more re-engenerin
+
+class DelAuto
+{
+   public :
+      static constexpr bool Yes = true;
+      static constexpr bool No  = false;
+};
+class SVP
+{
+   public :
+      static constexpr bool Yes = true;
+      static constexpr bool No  = false;
+};
 
 
 };

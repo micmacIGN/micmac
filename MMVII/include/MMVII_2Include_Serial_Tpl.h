@@ -42,7 +42,9 @@ template <class Type> void EnumAddData(const cAuxAr2007 & anAux,Type & anEnum,co
    if (anAux.Tagged())
    {
        // modif MPD , if input enum is not init
-       std::string aName = anAux.Input() ? std::string("") :E2Str(anEnum);
+       std::string aName =   (anAux.Ar().IsSpecif())  ?
+	                       ("enum_"+ cStrIO<Type>::msNameType)                   :  // Not sure what to put in case of specification file
+	                       (anAux.Input() ? std::string("") :E2Str(anEnum) ) ;
        AddData(cAuxAr2007(aTag,anAux),aName);
        if (anAux.Input())
           anEnum = Str2E<Type>(aName);
@@ -68,14 +70,14 @@ template <class Type> void EnumAddData(const cAuxAr2007 & anAux,Type & anEnum,co
 
 template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string & aTag0,std::optional<Type> & aL)
 {
-    // put the tag as <Opt::Tag0>,
+    // put the tag as <__Opt__Tag0>,
     //  Not mandatory, but optionality being an important feature I thought usefull to see it in XML file
     //  put it
     std::string aTagOpt;
     const std::string * anAdrTag = & aTag0;
     if (anAux.Tagged())
     {
-        aTagOpt = "Opt:" + aTag0;
+        aTagOpt = "__Opt__" + aTag0;
         anAdrTag = & aTagOpt;
     }
 
@@ -114,6 +116,56 @@ template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string
           AddData(anAux,*aL);
     }
 }
+
+template <class Type, size_t size> void AddOptTabData(const cAuxAr2007 & anAux,const std::string & aTag0,std::optional<cArray<Type, size>> & aL)
+{
+    // put the tag as <__Opt__Tag0>,
+    //  Not mandatory, but optionality being an important feature I thought usefull to see it in XML file
+    //  put it
+    std::string aTagOpt;
+    const std::string * anAdrTag = & aTag0;
+    if (anAux.Tagged())
+    {
+        aTagOpt = "__Opt__" + aTag0;
+        anAdrTag = & aTagOpt;
+    }
+
+   // In input mode, we must decide if the value is present
+    if (anAux.Input())
+    {
+        // The archive knows if the object is present
+        if (anAux.NbNextOptionnal(*anAdrTag))
+        {
+           // If yes read it and initialize optional value
+           cArray<Type, size> aV;
+           AddTabData(cAuxAr2007(*anAdrTag,anAux),aV.data(), size);
+           aL = aV;
+        }
+        // If no just put it initilized
+        else
+           aL = std::nullopt;
+        return;
+    }
+
+    // Now in writing mode
+    int aNb =  aL.has_value() ? 1 : 0;
+    // Tagged format (xml) is a special case
+    if (anAux.Tagged())
+    {
+       // If the value exist put it normally else do nothing (the absence of tag will be analysed at reading)
+       if (aNb)
+          AddTabData(cAuxAr2007(*anAdrTag,anAux),aL->data(), size);
+    }
+    else
+    {
+       // Indicate if the value is present and if yes put it
+       AddData(anAux,aNb);
+       anAux.Ar().Separator();
+       if (aNb)
+          AddTabData(anAux,aL->data(), size);
+    }
+}
+
 
 /// Pointer serialisation, make the assumption that pointer are valide (i.e null or dynamically allocated)
 template <class Type> void OnePtrAddData(const cAuxAr2007 & anAux,Type * & aL)
@@ -231,7 +283,8 @@ template <class TypeKey,class TypeVal> void AddData(const cAuxAr2007 & anAux,std
         if (anAux.Ar().IsSpecif())
         {
             aMap.clear();
-            aMap[TypeKey{}] = TypeVal{};
+            // aMap[TypeKey{}] = TypeVal{};
+            aMap.try_emplace(TypeKey{}); // TypeVal{};
         }
        // when write parse the map,
         for (auto & aPair : aMap)
@@ -441,15 +494,27 @@ template<class Type> void  ReadFromFileWithDef(Type & aVal,const std::string & a
 }
 
 ///  Save in file if it's the first times it occurs inside the process
-template<class Type> void  ToFileIfFirstime(const Type & anObj,const std::string & aNameFile)
+template<class Type> void  ToFileIfFirstime(const Type * anObj,const std::string & aNameFile,bool ForReset=false)
 {
    static std::set<std::string> aSetFilesAlreadySaved;
+   if (ForReset)
+   {
+       aSetFilesAlreadySaved.clear();
+       return;
+   }
+
    if (!BoolFind(aSetFilesAlreadySaved,aNameFile))
    {
         aSetFilesAlreadySaved.insert(aNameFile);
-        anObj.ToFile(aNameFile);
+        anObj->ToFile(aNameFile);
    }
 }
+template<class Type> void  ResetToFileIfFirstime()
+{
+    ToFileIfFirstime((Type*)nullptr,"",true);
+}
+
+
 
 template<class Type,class TypeTmp> Type * ObjectFromFile(const std::string & aName)
 {
@@ -461,11 +526,13 @@ template<class Type,class TypeTmp> Type * ObjectFromFile(const std::string & aNa
 /**  Read in the file if first time and memorize, other times return the same object ,
  *   at end, destruction will be handled using "AddObj2DelAtEnd"  (which is required for memory checking)
  */
-template<class Type,class TypeTmp> Type * RemanentObjectFromFile(const std::string & aName)
+template<class Type,class TypeTmp> Type * RemanentObjectFromFile(const std::string & aName,bool * AlreadyExist=nullptr)
 {
      static std::map<std::string,Type *> TheMap;
      Type * & anExistingRes = TheMap[aName];
 
+     if (AlreadyExist)
+        *AlreadyExist= true;
      if (anExistingRes == 0)
      {
         // TypeTmp aDataCreate;
@@ -473,9 +540,32 @@ template<class Type,class TypeTmp> Type * RemanentObjectFromFile(const std::stri
         // anExistingRes = new Type(aDataCreate);
         anExistingRes = ObjectFromFile<Type,TypeTmp>(aName);
         cMMVII_Appli::AddObj2DelAtEnd(anExistingRes);
+        if (AlreadyExist)
+           *AlreadyExist= false;
      }
      return anExistingRes;
 }
+
+/** Same than RemanentObjectFromFile, but note use the 2 time initialisation, require a default constructor */
+
+template<class Type> Type * SimpleRemanentObjectFromFile(const std::string & aName,bool * AlreadyExist=nullptr)
+{
+     static std::map<std::string,Type *> TheMap;
+     Type * & anExistingRes = TheMap[aName];
+
+     if (AlreadyExist)
+        *AlreadyExist= true;
+     if (anExistingRes == 0)
+     {
+        anExistingRes = new Type;
+        ReadFromFile(*anExistingRes,aName);
+        cMMVII_Appli::AddObj2DelAtEnd(anExistingRes);
+        if (AlreadyExist)
+           *AlreadyExist= false;
+     }
+     return anExistingRes;
+}
+
 
 };
 

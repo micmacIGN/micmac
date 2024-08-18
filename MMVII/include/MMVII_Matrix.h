@@ -39,6 +39,8 @@ template <class Type> struct  cCplIV
 template <class Type> class  cSparseVect  : public cMemCheck
 {
     public :
+
+        typedef cSparseVect<Type>       tSV;
         typedef cCplIV<Type>            tCplIV;
         typedef std::vector<tCplIV>     tCont;
         typedef typename tCont::const_iterator   const_iterator;
@@ -50,14 +52,16 @@ template <class Type> class  cSparseVect  : public cMemCheck
         const tCont & IV() const { return *(mIV.get());}
         tCont & IV() { return *(mIV.get());}
 
-        void AddIV(const int & anInd,const Type & aV) 
-	{
-             IV().push_back(tCplIV(anInd,aV));
-	}
-        void AddIV(const tCplIV & aCpl) { IV().push_back(aCpl); }
+        void AddIV(const int & anInd,const Type & aV) ;   /// "Raw" add, dont check if ind exist
+        void AddIV(const tCplIV & aCpl) ; /// "Raw" add, dont check if ind exist
+        void CumulIV(const tCplIV & aCpl) ; /// Create only if not exist, else add in place
 
 	/// Random sparse vector
-        static cSparseVect<Type>  RanGenerate(int aNbVar,double aProba);
+        static cSparseVect<Type>  RanGenerate(int aNbVar,double aProba,tREAL8 aMinVal= 1e-2,int aMinSize=1);
+
+        // generate NbVect of dimension NbVar with average density a Proba, assuring that in all vector we have
+        //  dist(Uk, < aCosMax
+        // static std::list<cSparseVect<Type> >  GenerateKVect(int aNbVar,int aNbVect,double aProba,tREAL8 aDMin);
 
         /// SzInit fill with arbitray value, only to reserve space
         // cSparseVect(int aSzReserve=-1,int aSzInit=-1) ;  
@@ -66,6 +70,16 @@ template <class Type> class  cSparseVect  : public cMemCheck
 	/// Check the vector can be used in a matrix,vect [0,Nb[, used in the assertions
         bool IsInside(int aNb) const;
 	void Reset();
+
+        const tCplIV  * Find(int anInd) const;  /// return the pair of a given index
+        tCplIV  * Find(int anInd) ;  /// return the pair of a given index
+
+        // Maximum index, aDef is used if empty, if aDef<=-2  & empty erreur
+        int MaxIndex(int aDef=-1) const;
+
+        void EraseIndex(int anInd);
+        /// Create a real duplicata, as copy-constructor return the same shared ptr
+        tSV  Dup() const;
     private :
 	/*
          inline void MakeSort(){if (!mIsSorted) Sort();}
@@ -84,11 +98,13 @@ template <class Type> class  cDenseVect
         typedef cIm1D<Type>  tIM;
         typedef cDataIm1D<Type>      tDIM;
         typedef cSparseVect<Type> tSpV;
+        typedef cDenseVect<Type> tDV;
 
         cDenseVect(int aSz, eModeInitImage=eModeInitImage::eMIA_NoInit);
         cDenseVect(tIM anIm);
         cDenseVect(const std::vector<Type> & aVect);
-        cDenseVect(int Sz,const tSpV &);
+        //  Adapt size , set
+        cDenseVect(const tSpV &,int aSz=-1);
         static cDenseVect<Type>  Cste(int aSz,const Type & aVal);
         cDenseVect<Type>  Dup() const;
         static cDenseVect<Type>  RanGenerate(int aNbVar);
@@ -102,13 +118,16 @@ template <class Type> class  cDenseVect
         Type & operator() (int aK) {return DIm().GetV(aK);}
         const int & Sz() const {return DIm().Sz();}
 
-        double L1Dist(const cDenseVect<Type> & aV) const;
-        double L2Dist(const cDenseVect<Type> & aV) const;
+        // For vector/matrix it's more standard than norm are a sum and not an average
+        double L1Dist(const cDenseVect<Type> & aV,bool Avg=false) const;
+        double L2Dist(const cDenseVect<Type> & aV,bool Avg=false) const;
 
-        double L1Norm() const;   ///< Norm som abs
-        double L2Norm() const;   ///< Norm square
+        double L1Norm(bool Avg=false) const;   ///< Norm som abs
+        double L2Norm(bool Avg=false) const;   ///< Norm square
+        double SqL2Norm(bool Avg=false) const;   ///< Norm square
         double LInfNorm() const; ///< Nomr max
 
+        tDV  VecUnit() const;  // return V/|V|
 
         Type * RawData();
         const Type * RawData() const;
@@ -126,15 +145,45 @@ template <class Type> class  cDenseVect
         Type AvgElem() const; ///< Avereage of all elements
         void SetAvg(const Type & anAvg); ///< multiply by a cste to fix the average
 
+        
+
         // operator -= 
-        double DotProduct(const cDenseVect &) const;
+        double DotProduct(const cDenseVect &) const; //== scalar product
         void TplCheck(const tSpV & aV)  const
         {
             MMVII_INTERNAL_ASSERT_medium(aV.IsInside(Sz()) ,"Sparse Vector out dense vect");
         }
         void  WeightedAddIn(Type aWeight,const tSpV & aColLine);
+        void  WeightedAddIn(Type aWeight,const tDV & aColLine);
+
+           /*  =========  Othognalization & projection stuff =========== */
+
+                        //   ----------  Projection, Dist to space ------------------
+        /// return orthognal projection on subspace defined by aVVect, use least square (slow ? At least good enough for bench )
+        tDV    ProjOnSubspace(const std::vector<tDV>  & aVVect) const;
+        /// return distance to subspace (i.e distance to proj)
+        Type   DistToSubspace(const std::vector<tDV>  &) const;
+
+	///  Theoretically max min distance, but before I find an exact algorithm, just the max on all vect , compute 2 way
+	static  Type ApproxDistBetweenSubspace(const std::vector<tDV>  &,const std::vector<tDV>  &);
+
+
+                       // --------------  Gram schmitd method for orthogonalization -------------------
+        /**  Elementary step of Gram-Schmit orthogonalization method ;  return a vector orthogonal
+             to all VV and that belong to the space "this+aVV", assumme aVV are already orthogonal */
+        tDV  GramSchmidtCompletion(const std::vector<tDV> & aVV) const;
+        /// full method of gram schmidt to orthogonalize
+        static std::vector<tDV>  GramSchmidtOrthogonalization(const std::vector<tDV> & aVV) ;
+
+                // ----------------  Base complementation in orthogonal subspace, slow but dont require initial base orthog --------
+         /// Return a unitary vector not colinear to VV, by iteration then randomization, untill the Dist to subspace > DMin
+        static tDV  VecComplem(const std::vector<tDV> & aVV,Type DMin=0.1) ;
+        /// Complement the base with vector orthogonal to the base, and orthog between them (if WithInit contain initial vect + added)
+        static std::vector<tDV>  BaseComplem(const std::vector<tDV> & aVV,bool WithInit=false,Type DMin=0.1) ;
+
     private :
 
+	static  Type ASymApproxDistBetweenSubspace(const std::vector<tDV>  &,const std::vector<tDV>  &);
         tIM mIm;
 };
 /* To come, sparse vector, will be vect<int> + vect<double> */
@@ -184,6 +233,7 @@ template <class Type> class cMatrix  : public cRect2
          virtual void ReadLineInPlace(int aY,tDV &) const;
          virtual tDV ReadLine(int aY) const;
          virtual void WriteLine(int aY,const tDV &) ;
+         std::vector<tDV>  MakeLines() const;  // generate all the lines
 
 
 
@@ -351,14 +401,21 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         cDenseMatrix Dup() const;
         static cDenseMatrix Identity(int aSz);  ///< return identity matrix
         static cDenseMatrix Diag(const tDV &);
+        static cDenseMatrix FromLines(const std::vector<tDV> &);  // Create from set of "line vector"
         cDenseMatrix ClosestOrthog() const;  ///< return closest 
 
-        /**  Generate a random square matrix having "good" conditionning property , i.e with eigen value constraint,
+        tDM SubMatrix(const cPt2di & aSz) const;
+        tDM SubMatrix(const cPt2di & aP0,const cPt2di & aP1) const;
+
+        /**  Generate a random square matrix having "good" conditioning property , i.e with eigen value constraint,
             usefull for bench as when the random matrix is close to singular, it may instability that fail
             the numerical test.
         */
         static tDM RandomSquareRegMatrix(const cPt2di&aSz,bool IsSym,double aAmplAcc,double aCondMinAccept);
         static tRSVD RandomSquareRegSVD(const cPt2di&aSz,bool IsSym,double aAmplAcc,double aCondMinAccept);
+
+
+        static tDM RandomOrthogMatrix(const int aSz);
 
         /* Generate a matrix rank deficient, where aSzK is the size of the kernel */
         static tRSVD RandomSquareRankDefSVD(const cPt2di & aSz,int aSzK);
@@ -448,6 +505,7 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         void ChangSign(); ///< Multiply by -1
         void SetDirectBySign(); ///< Multiply by -1 if indirect
 
+         tDV  Random1LineCombination() const; // retunr a vector that is a random combination of lines
         //  =====   Overridng of cMatrix classe  ==== 
         void  MulColInPlace(tDV &,const tDV &) const override;
         Type MulColElem(int  aY,const tDV &)const override;
@@ -463,8 +521,8 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         void  Weighted_Add_tAA(Type aWeight,const tSpV & aColLine,bool OnlySup=true) override;
 
         // === method implemente with DIm
-        Type L2Dist(const cDenseMatrix<Type> & aV) const;
-        Type SqL2Dist(const cDenseMatrix<Type> & aV) const;
+        Type L2Dist(const cDenseMatrix<Type> & aV,bool Avg=false) const;
+        Type SqL2Dist(const cDenseMatrix<Type> & aV,bool Avg=false) const;
 	//  void operator -= (const cDenseMatrix<Type> &) ;  => see  "include/MMVII_Tpl_Images.h"
 
    private :
@@ -495,7 +553,7 @@ template <class Type> class cResulSymEigenValue
 	  // =>  mEigenVectors * cDenseMatrix<Type>::Diag(mEigenValues) * mEigenVectors.Transpose();
 
 
-        const cDenseVect<Type>   &  EigenValues() const ; ///< Eigen values
+        const cDenseVect<Type>   &  EigenValues() const ; ///< Eigen values, in growing order !!! != cResulSVDDecomp
         const cDenseMatrix<Type> &  EigenVectors()const ; ///< Eigen vector
         void  SetKthEigenValue(int aK,const Type & aVal) ;  ///< Eigen values
         Type  Cond(Type Def=Type(-1)) const ; ///< Conditioning, def value is when all 0, if all0 and Def<0 : Error
@@ -514,7 +572,7 @@ template <class Type> class cResulSVDDecomp
 
         cDenseMatrix<Type>  OriMatr() const; ///< Check the avability to reconstruct original matrix   
 
-        const cDenseVect<Type>   &  SingularValues() const ; ///< Eigen values
+        const cDenseVect<Type>   &  SingularValues() const ; ///< Eigen values, in decreasing order !!! != cResulSymEigenValue
         const cDenseMatrix<Type> &  MatU()const ; ///< Eigen vector
         const cDenseMatrix<Type> &  MatV()const ; ///< Eigen vector
         // void  SetKthEigenValue(int aK,const Type & aVal) ;  ///< Eigen values
@@ -670,6 +728,9 @@ template <class Type> class cMatIner2Var
        Type CorrelNotC(const Type &aEpsilon=1e-10) const; // Non centered correl
        Type StdDev1() const;
        Type StdDev2() const;
+
+       /// [A B] as least-square solution of V1 = A V2 + B
+       std::pair<Type,Type> FitLineDirect() const;  
     private :
         Type  mS0;   ///< Som of    W
         Type  mS1;   ///< Som of    W * V1
@@ -686,6 +747,7 @@ template <class TypeWeight,class TypeVal=TypeWeight> class cWeightAv
         cWeightAv();
         void Add(const TypeWeight & aWeight,const TypeVal & aVal);
         TypeVal Average() const;
+        TypeVal Average(const TypeVal  & aDef) const;
         const TypeVal & SVW() const;  /// Accessor to sum weighted vals
         const TypeWeight & SW() const;  /// Accessor to sum weighted vals
     private :
@@ -885,6 +947,12 @@ template<class Type,const int Dim> cPtxd<Type,Dim> SolveLine(const cPtxd<Type,Di
 template<class Type,const int DimOut,const int DimIn> Type 
      QScal(const cPtxd<Type,DimOut>&,const cDenseMatrix<Type>&,const cPtxd<Type,DimIn>&);
 
+
+//  !!  =>  logically this class  should be defined in file images, but for there is now a tricky dependances
+//      this clas requires DenseVect, so Matrix should appear before Image2D
+//     but Matrix require Image2D, so Image2D should appear before Matrix ...
+//  To break this, would require separate file for vector and matrix
+//
 /** Class for image of any dimension, relatively slow probably */
 
 template <class Type> class cDataGenDimTypedIm : public cMemCheck

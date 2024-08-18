@@ -48,7 +48,6 @@ class cAppli_CGPReport : public cMMVII_Appli
 	std::vector<double>      mGeomFiedlVec;
 	std::vector<int>         mPropStat;
 
-	std::string              mPostfixReport;
 	std::string              mPrefixReport;
 
 	std::string              mNameReportDetail;
@@ -60,6 +59,9 @@ class cAppli_CGPReport : public cMMVII_Appli
         std::string              mNameReportMissed;
 
 	double                   mMarginMiss;  ///  Margin for counting missing targets
+        std::string              mSuffixReportSubDir; // additional name for report subdir
+        std::string               mFilterName;  // pattern to filter names of GCP
+        std::string               mFilterAdd;  // pattern to filter GCP by additional info
 };
 
 cAppli_CGPReport::cAppli_CGPReport
@@ -72,7 +74,10 @@ cAppli_CGPReport::cAppli_CGPReport
      mPhProj       (*this),
      mIsGCP        (isGCP),
      mPropStat     ({50,75}),
-     mMarginMiss   (50.0)
+     mMarginMiss   (50.0),
+     mSuffixReportSubDir (""),
+     mFilterName         (""),
+     mFilterAdd          ("")
 {
 }
 
@@ -97,6 +102,9 @@ cCollecSpecArg2007 & cAppli_CGPReport::ArgOpt(cCollecSpecArg2007 & anArgOpt)
     if (mIsGCP)
        return aRes << AOpt2007(mGeomFiedlVec,"GFV","Geom Fiel Vect for visu [Mul,Witdh,Ray,Zoom?=2]",{{eTA2007::ISizeV,"[3,4]"}})
 	           << AOpt2007(mMarginMiss,"MargMiss","Margin to border for counting missed target",{eTA2007::HDV})
+                   << AOpt2007(mSuffixReportSubDir, "Suffix", "Suffix to report subdirectory name")
+                   << AOpt2007(mFilterName, "Filter", "Pattern to filter GCP by name")
+                   << AOpt2007(mFilterAdd, "FilterAdd", "Pattern to filter GCP by additional info")
        ;
 
     return aRes;
@@ -112,13 +120,13 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
        return ;
 
     cSetMesImGCP             aSetMes;
-    mPhProj.LoadGCP(aSetMes);
+    mPhProj.LoadGCP(aSetMes,"",mFilterName,mFilterAdd);
     mPhProj.LoadIm(aSetMes,aNameIm);
     const cSetMesPtOf1Im  &  aSetMesIm = aSetMes.MesImInitOfName(aNameIm);
 
     // cSet2D3D aSet32;
     // mSetMes.ExtractMes1Im(aSet32,aNameIm);
-    cSensorImage*  aCam = mPhProj.LoadSensor(aNameIm,false);
+    cSensorImage*  aCam = mPhProj.ReadSensor(aNameIm,true,false);
 
     // StdOut() << " aNameImaNameIm " << aNameIm  << " " << aSetMesIm.Measures().size() << " Cam=" << aCam << std::endl;
 
@@ -159,7 +167,7 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
 	aAvg2d.Add(1.0,aVec);
 	tREAL8 aDist = Norm2(aVec);
 	aStat.Add(aDist);
-        AddOneReportCSV(mNameReportDetail,{aNameIm,aMes.mNamePt,ToStr(aDist)});
+        AddOneReportCSV(mNameReportDetail,{aNameIm,aMes.mNamePt,ToStr(aDist),ToStr(aVec.x()),ToStr(aVec.y())});
     }
 
 
@@ -194,10 +202,12 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
         aImaFieldRes.ToJpgFileDeZoom(mPhProj.DirVisu() + "FieldRes-"+aNameIm+".tif",aDeZoom);
     }
 
+    auto aMesX = (aAvg2d.SW()>0.) ? ToStr(aAvg2d.Average().x()) : "XXX";
+    auto aMesY = (aAvg2d.SW()>0.) ? ToStr(aAvg2d.Average().y()) : "XXX";
     AddStdStatCSV
     (
-       mNameReportIm,aNameIm,aStat,mPropStat, 
-       {ToStr(aAvg2d.Average().x()),ToStr(aAvg2d.Average().y())}
+       mNameReportIm,aNameIm,aStat,mPropStat,
+       {aMesX, aMesY}
     );
 
 }
@@ -207,11 +217,11 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
 void cAppli_CGPReport::ReportsByGCP()
 {
    cSetMesImGCP             aSetMes;
-   mPhProj.LoadGCP(aSetMes);
+   mPhProj.LoadGCP(aSetMes,"",mFilterName,mFilterAdd);
 
    for (const auto & aNameIm : VectMainSet(0))
    {
-       mPhProj.LoadIm(aSetMes,aNameIm,mPhProj.LoadSensor(aNameIm,false),true);
+       mPhProj.LoadIm(aSetMes,aNameIm,mPhProj.ReadSensor(aNameIm,true,false),true);
    }
 
    const std::vector<cSensorImage*> &  aVSens =  aSetMes.VSens() ;
@@ -258,13 +268,16 @@ void cAppli_CGPReport::ReportsByCam()
 {
    std::map<cPerspCamIntrCalib*,std::vector<cSensorCamPC*>>  aMapCam;
    cSetMesImGCP             aSetMes;
-   mPhProj.LoadGCP(aSetMes);
+   mPhProj.LoadGCP(aSetMes,"",mFilterName,mFilterAdd);
 
    for (const auto & aNameIm : VectMainSet(0))
    {
-       cSensorCamPC *  aCam = mPhProj.ReadCamPC(aNameIm,true);
-       mPhProj.LoadIm(aSetMes,aNameIm,aCam,true);
-       aMapCam[aCam->InternalCalib()].push_back(aCam);
+       cSensorCamPC *  aCam = mPhProj.ReadCamPC(aNameIm,true,true);
+       if (aCam)
+       {
+            mPhProj.LoadIm(aSetMes,aNameIm,aCam,true);
+            aMapCam[aCam->InternalCalib()].push_back(aCam);
+       }
    }
 
    InitReport(mNameReportCam,"csv",false);
@@ -328,16 +341,20 @@ int cAppli_CGPReport::Exe()
 {
    mPhProj.FinishInit();
 
-   mPostfixReport  =  "_Ori-"+  mPhProj.DPOrient().DirIn() +  "_Mes-"+  mPhProj.DPPointsMeasures().DirIn() ;
-   mNameReportIm   =  "ByImage" + mPostfixReport;
-   mNameReportDetail   =  "Detail" + mPostfixReport;
-   mNameReportGCP  =  "ByGCP"   + mPostfixReport;
-   mNameReportCam   =  "ByCam"   + mPostfixReport;
+   auto nameSubDir = mPhProj.DPOrient().DirIn() +  "_Mes-"+  mPhProj.DPPointsMeasures().DirIn();
+   if (IsInit(&mSuffixReportSubDir))
+       nameSubDir += "_" + mSuffixReportSubDir;
+   SetReportSubDir(nameSubDir);
 
-   mNameReportGCP_Ground   =  "ByGCP_3D_"   + mPostfixReport;
-   mNameReportGCP_Ground_Glob   =  "ByGCP_3D_Stat_"   + mPostfixReport;
+   mNameReportIm   =  "ByImage" ;
+   mNameReportDetail   =  "Detail" ;
+   mNameReportGCP  =  "ByGCP"   ;
+   mNameReportCam   =  "ByCam"   ;
 
-   mNameReportMissed   =  "MissedPoint"   + mPostfixReport;
+   mNameReportGCP_Ground   =  "ByGCP_3D"   ;
+   mNameReportGCP_Ground_Glob   =  "ByGCP_3D_Stat"   ;
+
+   mNameReportMissed   =  "MissedPoint"   ;
 
    InitReport(mNameReportIm,"csv",true);
    InitReport(mNameReportDetail,"csv",true);
@@ -346,7 +363,7 @@ int cAppli_CGPReport::Exe()
    if (LevelCall()==0)
    {
        AddStdHeaderStatCSV(mNameReportIm,"Image",mPropStat,{"AvgX","AvgY"});
-       AddOneReportCSV(mNameReportDetail,{"Image","GCP","Err"});
+       AddOneReportCSV(mNameReportDetail,{"Image","GCP","Err","Dx","Dy"});
        AddOneReportCSV(mNameReportMissed,{"Image","GCP","XTh","YTh"});
    }
    if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set

@@ -349,7 +349,7 @@ template <class Type>  void  cUncalibSpaceRessection<Type>::AddOneEquation(const
        cDenseVect<Type>  aVect (TheNbVar, eModeInitImage::eMIA_Null);
        SetOneAffineForm( aVect , (IsX ? 0 : 4) , aP3 ,  1.0                                   );
        SetOneAffineForm( aVect ,             8 , aP3 , - (IsX ?aPair.mP2.x() : aPair.mP2.y()) );
-       mSys0.AddObservation(aW,aVect,0.0);
+       mSys0.PublicAddObservation(aW,aVect,0.0);
 
        // update weigthings
        mSumW += aW;
@@ -533,8 +533,9 @@ void OneBenchUnCalibResection(int aKTest)
 {
 
      // StdOut() << "KKK=" << aKTest << std::endl;
-
-     cPt2di  aSz(2000+RandUnif_0_1()*2000,2000+RandUnif_0_1()*2000);
+     auto v1 = 2000+RandUnif_0_1()*2000;
+     auto v2 = 2000+RandUnif_0_1()*2000;
+     cPt2di  aSz(v1,v2);
      tREAL8  aFoc = 1000 + RandUnif_0_1() * 10000;
      //cPt2dr  aPP(1250.0,1100.0);
      cPt2dr  aPP =  ToR(aSz/2) + cPt2dr::PRandC() * 4000.0;
@@ -584,7 +585,7 @@ void OneBenchUnCalibResection(int aKTest)
           cSensorCamPC aCam("Camera_BenchUncalibResection",cIsometry3D<tREAL8>::RandomIsom3D(100.0),aCalib);
 
           std::vector<double> aVDepts({1,2});
-          cSet2D3D  aSetCorresp  =  aCam.SyntheticsCorresp3D2D(10,aVDepts) ;
+          cSet2D3D  aSetCorresp  =  aCam.SyntheticsCorresp3D2D(10,aVDepts,true) ;
 
           cUncalibSpaceRessection<tREAL8>  aResec8(aSz,aSetCorresp,&aCam);
           cSensorCamPC * aCamCalc = aResec8.ComputeParameters("NoIm_UCSR");
@@ -595,7 +596,7 @@ void OneBenchUnCalibResection(int aKTest)
 
 void BenchUnCalibResection()
 {
-    // Maybe because bad conditionning ? but inversion do not pass eigen test, 
+    // Maybe because bad conditioning ? but inversion do not pass eigen test,
     // BTW they pass "my" test on residual, so ....
     PushErrorEigenErrorLevel(eLevelCheck::Warning);
 
@@ -755,7 +756,7 @@ void cAppli_UncalibSpaceResection::DoMedianCalib()
          else
          {
              // No reason dont exit
-             MMVII_UsersErrror(eTyUEr::eOpenFile,"No calib file found");
+             MMVII_UserError(eTyUEr::eOpenFile,"No calib file found");
          }
      }
 

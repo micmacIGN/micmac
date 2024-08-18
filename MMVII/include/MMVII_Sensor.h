@@ -9,6 +9,8 @@
 #include "MMVII_Geom2D.h"
 #include "MMVII_Geom3D.h"
 #include "MMVII_DeclareCste.h"
+#include "MMVII_SysCo.h"
+
 
 using namespace NS_SymbolicDerivative;
 
@@ -34,6 +36,8 @@ class  cPhotogrammetricProject;
 class  cSIMap_Ground2ImageAndProf ;
 class  cCalculMetaDataProject;
 class  cGlobCalculMetaDataProject;
+class  cBA_Topo;
+class  cBA_GCP;
 
 /**  helper for cPixelDomain, as the cPixelDomain must be serialisable we must separate the
  * minimal data for description, with def contructor from the more "sophisticated" object  */
@@ -55,22 +59,36 @@ class cPixelDomain :  public cDataBoundedSet<tREAL8,2>
 	public :
 		cPixelDomain(cDataPixelDomain *);
                 const cPt2di & Sz() const;
+		// probably to virtualize later
+		tREAL8 DegreeVisibility(const cPt2dr & aP) const;
 	private :
 		cDataPixelDomain * mDPD;
 };
 
 
-/*  base-class  4 all image sensor */
 
+          // type to store the result of jacobian of proj R3->R2, stores P(G)  dP/dX  dP/dY dP/dZ
+class tProjImAndGrad
+{
+      public :
+          cPt2dr   mPIJ;
+          cPt3dr   mGradI;
+          cPt3dr   mGradJ;
+};
+
+/*  base-class  4 all image sensor */
 class cSensorImage  :   public cObj2DelAtEnd,
                         public cObjWithUnkowns<tREAL8>
 {
      public :
-
           cSensorImage(const std::string & aNameImage);
 
-	  /// create a sensor in a new coordinate system
-	  virtual cSensorImage * SensorChangSys(cDataInvertibleMapping<tREAL8,3> &) const = 0;
+          //  Allocators  , return nulltr if dont exist
+
+	  virtual ~cSensorImage();
+
+	  /// create a sensor in a new coordinate system, default error
+	  virtual cSensorImage * SensorChangSys(const std::string & aDir, cChangeSysCo &) const ;
 
           virtual const cPixelDomain & PixelDomain() const = 0;
           const cPt2di & Sz() const;
@@ -83,34 +101,63 @@ class cSensorImage  :   public cObj2DelAtEnd,
 
 	  /// Generate a random point visible on 2 image , algo : generate 2 random point and comppute bundle inter
 	  cPt3dr RandomVisiblePGround(const cSensorImage &,int aNbTestMax=10000,bool * OK =nullptr ) const;
-
 	  /// reproject RandomVisiblePGround
 	  cHomogCpleIm RandomVisibleCple(const cSensorImage &,int aNbTestMax=10000,bool * OK =nullptr ) const;
 
 
 	 // =================   Image <-->  Ground  mappings  ===========================
 	 
-         ///  The most fundamental method, theoretically should be sufficient
+         /*  The most fundamental method, theoretically should be sufficient, when meaning full (ie non orthocentric) 
+            orientation must go from sensor to the scene */
+        
          virtual tSeg3dr  Image2Bundle(const cPt2dr &) const =0;
 	 /// Basic method  GroundCoordinate ->  image coordinate of projection
          virtual cPt2dr Ground2Image(const cPt3dr &) const = 0;
-	 ///  add the the depth (to see if have a default with bundle+Gr2Ima)
-         virtual cPt3dr Ground2ImageAndDepth(const cPt3dr &) const = 0;
-         /// Invert of Ground2ImageAndDepth
-         virtual cPt3dr ImageAndDepth2Ground(const cPt3dr &) const = 0;
+
+	 ///  Coordinate system, default is undef "LocalNONE"
+         // virtual std::string  CoordinateSystem() const;
+
+	 /// Can we manipulate  Image & Depth -> 3d, default false, true for Central Persp
+	 virtual bool  HasImageAndDepth() const;
+	 ///  add the the depth (to see if have a default with bundle+Gr2Ima), default error
+         virtual cPt3dr Ground2ImageAndDepth(const cPt3dr &) const ;
+         /// Invert of Ground2ImageAndDepth, default error
+         virtual cPt3dr ImageAndDepth2Ground(const cPt3dr &) const ;
 	 /// Facility for calling ImageeAndDepth2Ground(const cPt3dr &)
          cPt3dr ImageAndDepth2Ground(const cPt2dr &,const double & ) const;
+
+	 ///  add the the Z, not virtual just a facility using Ground2Image
+         cPt3dr Ground2ImageAndZ(const cPt3dr &) const ;
+         /// Invert of Ground2ImageAndZ, default use bundle, RPC for ex have a specialize method
+         virtual cPt3dr ImageAndZ2Ground(const cPt3dr &) const ;
+	 ///  Does it know its Z-validity interval
+	 virtual bool  HasIntervalZ() const;
+	 /// Default error
+	 virtual cPt2dr GetIntervalZ() const;
 
 
 	 /// Compute 3D point by bundle intersection
 	  cPt3dr PInterBundle(const cHomogCpleIm & aCple,const cSensorImage &) const;
 
+
+	         //  -------------------  Jacobian ---------------------------------
+		 
+	  /**  Compute the gradient of the projection function  R3->R2  Ground->Image, 
+	   * def use finite diff;  result component I and J of differential */
+	  virtual tProjImAndGrad  DiffGround2Im(const cPt3dr &) const;
+
+	  /** For test purpose, we may wish to compute jacobian by finite difference even if DiffGround2Im was overloaded */
+	  tProjImAndGrad  DiffG2IByFiniteDiff(const cPt3dr &) const;
+
+	  /// Epislon-value for computing finite difference, def => ERROR
+	  virtual cPt3dr  EpsDiffGround2Im(const cPt3dr &) const ;
+
 	 // =================   Visibility/validity   ===========================
 
 	 /// Indicate how much a point belongs to sensor visibilty domain
          virtual double DegreeVisibility(const cPt3dr &) const =0 ;
-	 /// Indicacte how much a 2 D points belongs to definition of image frame
-         virtual double DegreeVisibilityOnImFrame(const cPt2dr &) const =0 ;
+	 /// Indicacte how much a 2 D points belongs to definition of image frame, defautlt use PixelDomain
+         virtual double DegreeVisibilityOnImFrame(const cPt2dr &) const ;
 	 /// Indicate if a point belongs to sensor visibilty domain (threshold DegreeVisibility)
          bool IsVisible(const cPt3dr &) const  ;
 	 /// Indicacte how a 2 D points belongs to definition of image frame (threshold DegreeVisibilityOnImFrame)
@@ -120,12 +167,12 @@ class cSensorImage  :   public cObj2DelAtEnd,
 
 	 // =================   Generation of points & correspondance   ===========================
 
-	 /// return a set point regulary sampled (+/-) on sensor, take care of frontier
-         virtual std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim)  const = 0;
-	 ///  return artificial/synthetic correspondance , with vector of depth
-	 cSet2D3D  SyntheticsCorresp3D2D (int aNbByDim,std::vector<double> & aVecDepth) const;
-	 ///  call variant with vector, depth regularly spaced
-	 cSet2D3D  SyntheticsCorresp3D2D (int aNbByDim,int aNbDepts,double aD0,double aD1) const;
+	 /// return a set point regulary sampled (+/-) on sensor, take care of frontier, default is as simple grid
+         virtual std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim,tREAL8 aEpsMargRel=0.05)  const ;
+	 ///  return artificial/synthetic correspondance , with vector of depth / Z
+	 cSet2D3D  SyntheticsCorresp3D2D (int aNbByDim,std::vector<double> & aVecDepth,bool IsDepthOrZ,tREAL8 aEpsMargRel=0.05) const;
+	 ///  call variant with vector, depth regularly spaced  depth / Z
+	 cSet2D3D  SyntheticsCorresp3D2D (int aNbByDim,int aNbDepts,double aD0,double aD1,bool IsDepthOrZ,tREAL8 aEpsMargRel=0.05) const;
 
 
 	 // =================   Residual   ===========================
@@ -151,22 +198,59 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	 std::string NameOriStd() const ;
 	 ///  Prefix of the subtype
 	 virtual std::string  V_PrefixName() const = 0  ;
-	 /// method for saving oblet
-	 virtual void ToFile(const std::string &) const = 0;
+	 /// method for saving oblet, def error
+	 virtual void ToFile(const std::string &) const ;
 
-	 // --------------------   methods used in bundle adjustment  --------------------
+	 // --------------------   Method for computing center of projection, or approximation  --------------------
 	
 	 ///  For stenope camera return center, for other best approx
 	 virtual cPt3dr  PseudoCenterOfProj() const = 0;
-	 ///  For stenope camera return center, for other nullptr
-	 virtual const cPt3dr * CenterOfPC() const = 0;
-	 /// Return the calculator, adapted to the type, for computing colinearity equation
-         virtual cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf,bool ReUse) = 0;
-	 /// If the camera has its own "obs/cste" (like curent rot for PC-Cam) that's the place to say it
-	 virtual  void PushOwnObsColinearity( std::vector<double> &) = 0;
+	 ///  For stenope camera return center, for other nullptr, default retunr null ptr, its not a stenoppe
+	 virtual const cPt3dr * CenterOfPC() const ;
 
+	 /// Return if any the center of footprint 
+	 virtual  const cPt3dr *  CenterOfFootPrint() const;
+
+
+         //  method used in push-broom perturbation model
+
+          /// Extract the pose a line of sensor, meaningfull for push-broom , but can be used in other  context
+          tPoseR   GetPoseLineSensor(tREAL8 aXorY,bool LineIsX,int aNbSample,bool*IsOk=0,std::vector<double>*aResCD=0) const;
+          /**  Once computed the Orientation of line, compute the differential of proj relatively to WPK
+               EpsXYZ and EpsWPK are used for computing derivative with relative differences */
+           cDenseMatrix<tREAL8> CalcDiffProjRot(const cPt3dr & aPt,const tPoseR &,const cPt3dr & aEpsXYZ,const tREAL8 & aEpsWPK) const;
+
+	       //  =============   Method used in bundle adjsutment , default error for 3 virtual =============
+
+	 /// Return the calculator, adapted to the type, for computing colinearity equation, def=error
+         virtual cCalculator<double> * CreateEqColinearity(bool WithDerives,int aSzBuf,bool ReUse);
+	 ///  cObjWithUnkowns , default error
+	 void PutUknowsInSetInterval() override;
+	 /// If the camera has its own "obs/cste" (like curent rot for PC-Cam) that's the place to say it
+	 virtual  void PushOwnObsColinearity(std::vector<double> &,const cPt3dr & aPGround) ;
+	 
+	 // Create if new, and memorize the colinearity equation
+         cCalculator<double> * SetAndGetEqColinearity(bool WithDerives,int aSzBuf,bool ReUse);
+	 // suppose it was init (and assert it)
+         cCalculator<double> * GetEqColinearity();
+
+	 // Acces to coordinate system of the sensor if exist
+
+	 bool  HasCoordinateSystem() const ; ///<  Was the coordinate system provided ?
+	 const  std::string & GetCoordinateSystem() const ; ///< Get it if exist (and error else ...)
+	 void SetCoordinateSystem(const std::string&) ; ///< Fix the coordinate system
+         std::optional<std::string> &  OptCoordinateSystem() ; ///< redondant with 3 above, but usefull for serialization
+	 void TransferateCoordSys(const cSensorImage & aSI); ///< Transferat coordinate sys  aSI if it has any
+         static const std::string TagCoordSys;
+	 						   
      private :
-	 std::string                                    mNameImage;
+
+	 std::string                                   mNameImage;
+         cCalculator<double> *                         mEqColinearity;  // memo equation, can be nullptr (for pure pose)
+	 bool                                          mEqCIsInit;      // memo if init of "mEqColinearity" was done
+	 /// coordinate system, use optionnal (instead of def value as NONE) as it is an opportunity to test back compatibility
+	 std::optional<std::string>                    mNameSysCo;  
+								
 	 // static std::map<std::string,cSensorImage*>  mDicoSensor;
 	 // static int                                  mNum;
 };
@@ -353,6 +437,8 @@ class cPhotogrammetricProject
 	  cDirsPhProj &   DPTieP();    ///<  Accessor
 	  cDirsPhProj &   DPMulTieP();    ///<  Accessor
 	  cDirsPhProj &   DPRigBloc();    ///<  Accessor  // RIGIDBLOC
+	  cDirsPhProj &   DPClinoMeters();    ///<  Accessor  // RIGIDBLOC
+	  cDirsPhProj &   DPTopoMes();    ///<  Accessor  // TOPO
 				    
 	  const cDirsPhProj &   DPOrient() const; ///< Accessor
 	  const cDirsPhProj &   DPRadiomData() const; ///< Accessor
@@ -364,6 +450,8 @@ class cPhotogrammetricProject
 	  const cDirsPhProj &   DPTieP() const;    ///<  Accessor
 	  const cDirsPhProj &   DPMulTieP() const;    ///<  Accessor
 	  const cDirsPhProj &   DPRigBloc() const;    ///<  Accessor  // RIGIDBLOC
+	  const cDirsPhProj &   DPClinoMeters() const;    ///<  Accessor  // RIGIDBLOC
+	  const cDirsPhProj &   DPTopoMes() const;    ///<  Accessor  // TOPO
 
 
 	  // Sometime we need several dir of the same type, like "ReportPoseCmp", or RefPose in bundle
@@ -373,11 +461,15 @@ class cPhotogrammetricProject
 	  const std::string &   DirVisu() const;   ///< Accessor
 	  const std::string &   DirSysCo() const;   ///< Accessor
           tPtrArg2007           ArgChSys(bool DefaultUndefined=false);
+	  /// To fix the "cur" sys co, its In,Out, or InOut, if both and diff use ArgChSys
+          tPtrArg2007           ArgSysCo();
 
-	 //===================================================================
-         //==================   ORIENTATION      =============================
-	 //===================================================================
-	 
+          //===================================================================
+          //==================   ORIENTATION      =============================
+          //===================================================================
+
+          const std::string &   DirImportInitOri() const;   ///< Accessor
+          bool IsOriInDirInit() const;
                //  Read/Write
           void SaveSensor(const cSensorImage &) const; ///< Save camera using OutPut-orientation
           void SaveCamPC(const cSensorCamPC &) const; ///< Save camera using OutPut-orientation
@@ -388,10 +480,12 @@ class cPhotogrammetricProject
 
 
 	  /// Load a sensor, try different type (will add RPC , and others ?) use autom delete (dont need to delete it)
-	  void LoadSensor(const std::string &NameIm,cSensorImage* &,cSensorCamPC * &,bool SVP=false);
-
+	  void ReadSensor(const std::string &NameIm,cSensorImage* &,cSensorCamPC * &,bool ToDeleteAutom,bool SVP=false) const;
+	 
 	  /// return the generic sensor, use autom delete (dont need to delete it)
-	  cSensorImage* LoadSensor(const std::string  &aNameIm,bool SVP=false);
+	  cSensorImage* ReadSensor(const std::string  &aNameIm,bool ToDeleteAutom,bool SVP=false) const;
+	  /// same as "ReadSensor" but do it from another folder than the standard input one
+	  cSensorImage* ReadSensorFromFolder(const std::string  & aFolder,const std::string  &aNameIm,bool ToDeleteAutom,bool SVP=false) const;
 
 
 	      // Internal Calibration  
@@ -439,24 +533,38 @@ class cPhotogrammetricProject
 	  /// Does the image has an existing mask : Dir is init + file exist
           bool  ImageHasMask(const std::string & aNameImage) const;
 
-	  cIm2D<tU_INT1>  MaskWithDef(const std::string & aNameImage,const cBox2di & aBox,bool DefVal) const;
+	  // read masq of image, if OkNoMasq accept masq dont exist, return a masq full or empty if file dont exist (depend DefVal)
+	  cIm2D<tU_INT1>  MaskWithDef(const std::string & aNameImage,const cBox2di & aBox,bool DefVal,bool OkNoMasq=true) const;
+	  // read masq , generate error if dont exist
+	  cIm2D<tU_INT1>  MaskOfImage(const std::string & aNameImage,const cBox2di & aBox) const;
 	  
 	 //===================================================================
          //==================    PointsMeasures  =============================
 	 //===================================================================
 
 	  void SaveMeasureIm(const cSetMesPtOf1Im & aSetM) const;
+	  ///  Does the measure exist
+	  bool HasMeasureIm(const std::string & aNameIm,bool InDir=true) const;
           /// return from Std Dir, can be out in case of reload
 	  cSetMesPtOf1Im LoadMeasureIm(const std::string &,bool InDir=true) const;
-	  void LoadGCP(cSetMesImGCP&,const std::string & aPatFiltrFile="",const std::string & aFiltrNameGCP="") const;
-	  // if SVP && file doesnt exist, do nothing
+         void LoadGCP(cSetMesImGCP&,const std::string & aPatFiltrFile="",const std::string & aFiltrNameGCP="",
+                      const std::string & aFiltrAdditionalInfoGCP="") const;
+	 ///  For reading GCP from folder potentially != of standard input measures, can add missing points from topo obs
+         void LoadGCPFromFolder(const std::string & aFolder,cSetMesImGCP&,
+                                std::pair<cBA_Topo *, std::vector<cBA_GCP*>*> aTopoAddPointsInfo,
+                                const std::string & aPatFiltrFile="", const std::string & aFiltrNameGCP="",
+                                const std::string & aFiltrAdditionalInfoGCP="" ) const;
+          // if SVP && file doesnt exist, do nothing
 	  void LoadIm(cSetMesImGCP&,const std::string & aNameIm,cSensorImage * =nullptr,bool SVP=false) const;
+          ///  When dont read from the standard input 
+	  void LoadImFromFolder(const std::string & aFolder,cSetMesImGCP&,const std::string & aNameIm,
+                                cSensorImage * =nullptr,bool SVP=false) const;
 	  void LoadIm(cSetMesImGCP&,cSensorImage & ) const;
-	  void SaveGCP(const cSetMesGCP&);
+
+	  void SaveGCP(const cSetMesGCP&) const;
 
 	  /// Name of the file, usefull if we need to test existence before doing anything
 	  std::string NameMeasureGCPIm(const std::string & aNameIm,bool isIn) const;
-
 
 
 	  /// Pattern for GCP file, if "" return default  = "cSetMesGCP::ThePrefixFiles.*.xml"
@@ -464,11 +572,19 @@ class cPhotogrammetricProject
           std::vector<std::string>  ListFileGCP(const std::string & aArgPatFiltr) const;
 	  void CpGCPPattern(const std::string& aDirIn,const std::string & aDirOut,const std::string & aArgPatFiltr="") const;
 	  void CpGCP() const;
+	  void CpMeasureIm() const;
 
 	  /// For a givgen image, return 3D-2D corresp, using LoadGCP&LoadIm
 	  cSet2D3D  LoadSet32(const std::string & aNameIm) const;
 
           void SaveAndFilterAttrEll(const cSetMesPtOf1Im &  aSetM,const std::list<std::string> & ToRem)   const ;
+
+
+	      // ---------------  Segment in/out ----------------------------------------
+	  std::string  NameFileLines(const std::string & aNameIm) const;
+	  bool         HasFileLines(const std::string & aNameIm)  const;
+	  void         SaveLines(const cLinesAntiParal1Im &) const;
+	  cLinesAntiParal1Im  ReadLines(const std::string & aNameIm) const;
 	  
 	 //===================================================================
          //==================   META-DATA       ==============================
@@ -484,7 +600,7 @@ class cPhotogrammetricProject
 
           /// Create calib w/o distorsion from paramameters
           cPerspCamIntrCalib * GetCalibInit(const std::string& aName,eProjPC aTypeProj,const cPt3di & aDeg,
-                                            cPt2dr   aPP=cPt2dr(0.5,0.5), bool SVP=false);
+                                            cPt2dr   aPP=cPt2dr(0.5,0.5), bool SVP=false,bool IsFraser=true);
 
           ///  Extract Camera specif from data base, given name of camera
           const cElemCamDataBase * GetCamFromNameCam(const std::string& aNameCam,bool SVP=false) const;
@@ -516,19 +632,27 @@ class cPhotogrammetricProject
 
 	 std::string NameMultipleTieP(const std::string &) const;
 	 void  SaveMultipleTieP(const cVecTiePMul&,const std::string &) const;
-	 void  ReadMultipleTieP(cVecTiePMul&,const std::string & ) const;
+	 void  ReadMultipleTieP(cVecTiePMul&,const std::string &aNameIm,bool SVP =false ) const;
+         ///  When dont read from the standard input 
+	 void  ReadMultipleTiePFromFolder(const std::string & aFolder,cVecTiePMul&,const std::string &,bool SVP =false ) const;
+	 bool HasNbMinMultiTiePoints(const std::string & aNameIm,size_t aNbMin,bool AcceptNoDirIn =false) const;
 
 	 //===================================================================
          //==================    Coord Sys           =========================
 	 //===================================================================
 
-                  //  ======== [1]  Sysco saved in "MMVII-PhgrProj/SysCo" 
-	 void  SaveSysCo(tPtrSysCo,const std::string&,bool OnlyIfNew=false) const;
-	 tPtrSysCo ReadSysCo(const std::string &aName,bool SVP=false) const;
-	 tPtrSysCo CreateSysCoRTL(const cPt3dr & aOrig,const std::string &aName,bool SVP=false) const;
+         //  ======== [1]  Sysco saved in "MMVII-PhgrProj/SysCo"
+         void  SaveSysCo(tPtrSysCo,const std::string&,bool OnlyIfNew=false) const;
+         tPtrSysCo ReadSysCo(const std::string &aName, bool aDebug=false) const;
+
+
+         tPtrSysCo CreateSysCoRTL(const cPt3dr & aOrig,const std::string &aNameRef,bool SVP=false) const;
 	 std::string  FullNameSysCo(const std::string &aName,bool SVP=false) const;
-	 // return  identity if Vec not init
-	 cChangSysCoordV2  ChangSys(const std::vector<std::string> &,tREAL8 aEpsDif=0.1);
+
+         // return  identity if Vec not init
+	 cChangeSysCo ChangSysCo(const std::vector<std::string> &,tREAL8 aEpsDif=0.1);
+	 // Return idenitity if aS1==aS2
+	 cChangeSysCo ChangSysCo(const std::string aS1,const std::string aS2) const;
 
                   //  ======== [1]  Sysco saved in "MMVII-PhgrProj/Ori/"  or "MMVII-PhgrProj/PointsMeasure//"
          std::string  NameCurSysCo(const cDirsPhProj &,bool IsIn) const;
@@ -538,12 +662,32 @@ class cPhotogrammetricProject
          void SaveCurSysCo(const cDirsPhProj &,tPtrSysCo) const ;
          void SaveCurSysCoOri(tPtrSysCo) const ;
          void SaveCurSysCoGCP(tPtrSysCo) const ;
+         void SaveStdCurSysCo(bool IsOri) const; /// save the Cur Sysco in Orient/GCP
          void CpSysIn2Out(bool OriIn,bool OriOut) const;  // bool : Ori/GCP   do it only if exist, else no error
 
-         const cChangSysCoordV2 & ChSys() const;
-         cChangSysCoordV2 & ChSys() ;
-         bool  ChSysIsInit() const;
-         void  AssertChSysIsInit() const;
+         const cChangeSysCo & ChSysCo() const;
+         cChangeSysCo & ChSysCo() ;
+         bool  ChSysCoIsInit() const;
+         void  AssertChSysCoIsInit() const;
+
+         cSysCo & SysCo() ;
+         const cSysCo & SysCo() const ;
+         bool  SysCoIsInit() const;
+         void  AssertSysCoIsInit() const;
+
+	 //===================================================================
+         //==================   Clinometers           ========================
+	 //===================================================================
+	
+	 /// Standard name for clino file using DPClinoMeters, in or out
+	 std::string NameFileClino(const std::string &aNameCam ,bool Input) const;
+	 /// Save clinometer calib in santdard out folder of DPClinoMeters
+	 void SaveClino(const cCalibSetClino &) const;
+	 /// Is there  clinometer in santdard input folder of DPClinoMeters ?
+	 bool HasClinoCalib(const cPerspCamIntrCalib &) const;
+	 /**  Read the clinometers calib in standard input folder of DPClinoMeters, create a dyn objec because
+	  *  probably "cCalibSetClino" will evolve in a not copiable object*/
+	 cCalibSetClino * GetClino(const cPerspCamIntrCalib &) const;
 
 	 //===================================================================
          //==================   Rigid Bloc           =========================
@@ -553,11 +697,17 @@ class cPhotogrammetricProject
 	 std::list<cBlocOfCamera *> ReadBlocCams() const;
 	 void   SaveBlocCamera(const cBlocOfCamera &) const;
 
+     //===================================================================
+         //==================   Topo Mes           =========================
+	 //===================================================================
+
+	         // TOPO
+     std::vector<std::string> ReadTopoMes() const;
+     void   SaveTopoMes(const cBA_Topo & aBATopo) const;
          //==================   Camera Data Base     =========================
 
          void MakeCamDataBase();
          bool OneTestMakeCamDataBase(const std::string & aDir,cCamDataBase &,bool ForceNew);
-
       private :
           cPhotogrammetricProject(const cPhotogrammetricProject &) = delete;
 
@@ -571,9 +721,12 @@ class cPhotogrammetricProject
 	  std::string     mDirPhp;
 	  std::string     mDirVisu;
 
-	  std::string     mDirSysCo;
-          std::vector<std::string>   mNameChSys;
-          cChangSysCoordV2          mChSys;
+	  std::string     mDirSysCo;        /// Folder where are stored System of coordinates
+          std::string     mNameCurSysCo;      /// Data where we store the system In Or Out if given in std args
+          tPtrSysCo       mCurSysCo;          /// Global coord sys
+	  std::string     mDirImportInitOri; /// Folder where are stored INIT-al  ORI-entation
+          std::vector<std::string>   mNameChSysCo;
+          cChangeSysCo          mChSysCo;
 
 	  cDirsPhProj     mDPOrient;
 	  cDirsPhProj     mDPRadiomData;
@@ -585,6 +738,8 @@ class cPhotogrammetricProject
 	  cDirsPhProj     mDPMulTieP;         ///<  For multiple Homologous point
 	  cDirsPhProj     mDPMetaData;
 	  cDirsPhProj     mDPRigBloc;         // RIGIDBLOC
+      cDirsPhProj     mDPClinoMeters;         // RIGIDBLOC
+      cDirsPhProj     mDPTopoMes;         // Topo
 					      //
 
 	  std::vector<cDirsPhProj*> mDirAdded;

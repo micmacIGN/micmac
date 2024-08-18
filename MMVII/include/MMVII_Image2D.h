@@ -94,8 +94,14 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
            tPB::AssertInsideBL(aP);
            AddValueBL(aP,aVal);
         }
-       /// Bilinear valie
-       inline double GetVBL(const cPt2dr & aP) const 
+
+       /// Interpolated value, using a generic interpolator
+       double GetValueInterpol(const cInterpolator1D &,const cPt2dr & aP) const ;
+       /// Interpolated value+derivative, using a generic diffentiable interpolator
+       std::pair<tREAL8,cPt2dr> GetValueAndGradInterpol(const cDiffInterpolator1D &,const cPt2dr & aP) const ;
+
+       /// Bilinear value
+       inline double GetVBL(const cPt2dr & aP) const  override
        {
            tPB::AssertInsideBL(aP);
            return  ValueBL(aP);
@@ -233,17 +239,20 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         const tPVal * ExtractRawData2D() const {return mRawData2D;}
 
 
+   // public for used by cDataIm2D::AllocIm
+        cDataIm2D(const cPt2di & aP0,const cPt2di & aP1,
+                 Type * DataLin=nullptr,eModeInitImage=eModeInitImage::eMIA_NoInit); ///< Called by shared ptr (cIm2D)
     protected :
     private :
         void PostInit();
         cDataIm2D(const cDataIm2D<Type> &) = delete;  ///< No copy constructor for big obj, will add a dup()
-        cDataIm2D(const cPt2di & aP0,const cPt2di & aP1,
-                 Type * DataLin=nullptr,eModeInitImage=eModeInitImage::eMIA_NoInit); ///< Called by shared ptr (cIm2D)
+        void operator = (const cDataIm2D<Type> &) = delete;  ///< No affectation for big obj, will add a dup()
 
 
         
         Type & Value(const cPt2di & aP)   {return mRawData2D[aP.y()][aP.x()];} ///< Data Access
         const Type & Value(const cPt2di & aP) const   {return mRawData2D[aP.y()][aP.x()];} /// Const Data Access
+        const Type & Value(int aX,int aY) const   {return mRawData2D[aY][aX];} /// Const Data Access
 
         /** Bilinear interpolation */
         double  ValueBL(const cPt2dr & aP)  const
@@ -490,6 +499,8 @@ class cRGBImage
         void Write(const std::string &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox) const;  // 1 to 1
 	/*
        */
+	// transformate the RGB internal image in gray
+	void ResetGray();
 
         /// set values iff param are OK,  RGB image are made for visu, not for intensive computation
         void SetRGBPix(const cPt2di & aPix,int aR,int aG,int aB);
@@ -574,8 +585,10 @@ template <class Type> void SetGrayPix(cRGBImage& aRGBIm,const cDataIm2D<Type> & 
 template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm,const double & aMul=1.0,int aZoom=1);
 
 
-
-
+/// 8 neighboors stored in order compatible with freeman-numbering
+extern const  cPt2di FreemanV8[8];
+/// = FreemanV8 with  FreemanV9[8] = FreemanV9[0]
+extern const  cPt2di FreemanV10[10];
 
 };
 

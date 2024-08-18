@@ -108,6 +108,8 @@ template <class Type,const int Dim> void cSegment<Type,Dim>::CompileFoncLinear
 
 template <class Type,const int Dim>  const cPtxd<Type,Dim>& cSegment<Type,Dim>::P1() const {return mP1;}
 template <class Type,const int Dim>  const cPtxd<Type,Dim>& cSegment<Type,Dim>::P2() const {return mP2;}
+template <class Type,const int Dim>  cPtxd<Type,Dim>& cSegment<Type,Dim>::P1() {return mP1;}
+template <class Type,const int Dim>  cPtxd<Type,Dim>& cSegment<Type,Dim>::P2() {return mP2;}
 
 
 template <class Type,const int Dim> cPtxd<Type,Dim> cSegment<Type,Dim>::V12() const  {return mP2-mP1;}
@@ -124,15 +126,31 @@ template <class Type,const int Dim> cSegmentCompiled<Type,Dim>::cSegmentCompiled
 {
 }
 
+template <class Type,const int Dim> cSegmentCompiled<Type,Dim>::cSegmentCompiled(const  cSegment<Type,Dim> & aSeg) :
+    cSegmentCompiled<Type,Dim>(aSeg.P1(),aSeg.P2())
+{
+}
+
+template <class Type,const int Dim> Type cSegmentCompiled<Type,Dim>::Abscissa(const tPt& aPt) const
+{
+    return Scal(mTgt,aPt - this->mP1);
+}
+
 template <class Type,const int Dim> cPtxd<Type,Dim>  cSegmentCompiled<Type,Dim>::Proj(const tPt & aPt) const
 {
-     return this->mP1 + mTgt * Type(Scal(mTgt,aPt-this->mP1)) ;
+     return this->mP1 + mTgt * Abscissa(aPt); //  Type(Scal(mTgt,aPt-this->mP1)) ;
 }
 
 template <class Type,const int Dim> Type  cSegmentCompiled<Type,Dim>::Dist(const tPt & aPt) const
 {
 	return Norm2(aPt-Proj(aPt));
 }
+
+
+
+template <class Type,const int Dim> const Type &   cSegmentCompiled<Type,Dim>::N2 () const {return mN2;}
+template <class Type,const int Dim> const cPtxd<Type,Dim> &   cSegmentCompiled<Type,Dim>::Tgt () const {return mTgt;}
+
 /* ========================== */
 /*          ::                */
 /* ========================== */
@@ -221,6 +239,11 @@ template <const int Dim>  void cBorderPixBox<Dim>::IncrPt(tPt & aP)
 /*          cPtxd             */
 /* ========================== */
 
+template <class Type> double  SpecAbsSurfParalogram(const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2)
+{
+    MMVII_INTERNAL_ERROR("SpecAbsSurfParalogram for dim 1");
+    return 0.0;
+}
 template <class Type> double  SpecAbsSurfParalogram(const cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2)
 {
     return std::abs(aP1 ^ aP2) ;
@@ -238,6 +261,10 @@ template <class Type,const int Dim>  Type AbsSurfParalogram(const cPtxd<Type,Dim
 template <class T>   cPtxd<T,3> TP3z0  (const cPtxd<T,2> & aPt)
 {
     return cPtxd<T,3>(aPt.x(),aPt.y(),0);
+}
+template <class T>   cPtxd<T,3> TP3z  (const cPtxd<T,2> & aPt,const T& aZ)
+{
+    return cPtxd<T,3>(aPt.x(),aPt.y(),aZ);
 }
 template <class T>   cPtxd<T,2> Proj  (const cPtxd<T,3> & aPt)
 {
@@ -293,15 +320,6 @@ template <const int Dim> int NbPixVign(const cPtxd<int,Dim> & aVign)
 
 cPt2di  TAB4Corner[4] = {{1,1},{-1,1},{-1,-1},{1,-1}};
 
-/*
-template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::PCste(const Type & aVal)
-{
-   cPtxd<Type,Dim> aRes;
-   for (int aK=0 ; aK<Dim; aK++)
-       aRes.mCoords[aK]= aVal;
-   return aRes;
-}
-*/
 
 
 template <class Type,const int Dim>  cPtxd<Type,Dim>  cPtxd<Type,Dim>::PFromCanonicalName(const std::string & aName,size_t & anIndex)
@@ -320,7 +338,12 @@ template <class Type,const int Dim>  cPtxd<Type,Dim>  cPtxd<Type,Dim>::PFromCano
     return aRes;
 }
 
-
+template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::P1Coord(size_t aKCoord,const Type & aVal)
+{
+   cPtxd<Type,Dim> aRes = PCste(0);
+   aRes.mCoords[aKCoord]= aVal;
+   return aRes;
+}
 
 template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::Dummy()
 {
@@ -483,6 +506,18 @@ template <class T,const int Dim>  T Cos(const cPtxd<T,Dim> &aP1,const cPtxd<T,Di
 {
    return SafeDiv(T(Scal(aP1,aP2)) , T(Norm2(aP1)*Norm2(aP2)));
 }
+
+template <class T,const int Dim>  T CosWDef(const cPtxd<T,Dim> &aP1,const cPtxd<T,Dim> & aP2,const T& aDefIf0)
+{
+	T aN1 = Norm2(aP1);
+	T aN2 = Norm2(aP2);
+
+	if ((aN1==0) || (aN2==0)) 
+           return aDefIf0;
+
+	return Scal(aP1,aP2) / (aN1*aN2);
+}
+
 template <class T,const int Dim>  T AbsAngle(const cPtxd<T,Dim> &aP1,const cPtxd<T,Dim> & aP2)
 {
    T aCos = Cos(aP1,aP2);
@@ -1259,7 +1294,9 @@ template   cTplBox<int,3> ToI(const  cTplBox<tREAL8,3> & aBox);
 
 #define INSTANTIATE_ABS_SURF(TYPE)\
 template  cPtxd<TYPE,3> TP3z0  (const cPtxd<TYPE,2> & aPt);\
+template  cPtxd<TYPE,3> TP3z  (const cPtxd<TYPE,2> & aPt,const TYPE &);\
 template  cPtxd<TYPE,2> Proj  (const cPtxd<TYPE,3> & aPt);\
+template  TYPE AbsSurfParalogram(const cPtxd<TYPE,1>& aP1,const cPtxd<TYPE,1>& aP2);\
 template  TYPE AbsSurfParalogram(const cPtxd<TYPE,2>& aP1,const cPtxd<TYPE,2>& aP2);\
 template  TYPE AbsSurfParalogram(const cPtxd<TYPE,3>& aP1,const cPtxd<TYPE,3>& aP2);
 
@@ -1303,6 +1340,7 @@ template  cPtxd<TYPE,DIM> Centroid(TYPE aW0,const cPtxd<TYPE,DIM> & aP0,const cP
 template  std::ostream & operator << (std::ostream & OS,const cPtxd<TYPE,DIM> &aP);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PFromCanonicalName(const std::string & aName,size_t & anIndex);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::Dummy();\
+template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::P1Coord(size_t,const TYPE &);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::FromStdVector(const std::vector<TYPE>&);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRand();\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandC();\
@@ -1320,6 +1358,7 @@ template  TYPE MinAbsCoord(const cPtxd<TYPE,DIM> & aPt);\
 template  typename  tNumTrait<TYPE>::tBig Scal(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
 template  typename  tNumTrait<TYPE>::tBig MulCoord(const cPtxd<TYPE,DIM> &);\
 template  TYPE Cos(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
+template  TYPE CosWDef(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &,const TYPE&);\
 template  TYPE AbsAngle(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
 template  TYPE AbsAngleTrnk(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
 template  cPtxd<TYPE,DIM>  VUnit(const cPtxd<TYPE,DIM> & aP);\

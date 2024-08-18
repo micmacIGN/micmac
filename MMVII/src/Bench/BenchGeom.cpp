@@ -1,6 +1,7 @@
 #include "MMVII_Geom2D.h"
 #include "MMVII_Geom3D.h"
 #include "MMVII_Tpl_Images.h"
+#include "MMVII_PCSens.h"
 
 namespace MMVII
 {
@@ -150,7 +151,10 @@ template<class Type> void TplBenchRotation3D(cParamExeBench & aParam)
    for (int aKTest=0 ; aKTest<20 ; aKTest++)
    {
 	// generate WPK, with caution to have cos phi not to close to 0
-        cPtxd<Type,3>  aWPK(RandUnif_C()*20,RandUnif_C()*1.5,RandUnif_C()*20);
+       auto v1 = RandUnif_C()*20;
+       auto v2 = RandUnif_C()*1.5;
+       auto v3 = RandUnif_C()*20;
+        cPtxd<Type,3>  aWPK(v1,v2,v3);
 
 	// now force to PI/2 and -PI/2 sometime
 	if (aKTest%3!=1)
@@ -177,8 +181,30 @@ template<class Type> void TplBenchRotation3D(cParamExeBench & aParam)
    // StdOut() << "============================" << std::endl;
 }
 
+void BenchRotation3DReal8()
+{
+    tREAL8 aEps = 0.2;
+    for (int aKT=0 ; aKT<100 ; aKT++)
+    {
+         cRotation3D<tREAL8>  aR0 = cRotation3D<tREAL8>::RandomRot();
+         cRotation3D<tREAL8>  aRTarget = aR0*cRotation3D<tREAL8>::RandomRot(aEps);
+
+         cPoseWithUK  aPUK(tPoseR(cPt3dr(0,0,0),aR0));
+
+         for (int aKIter=0 ; aKIter<5; aKIter++)
+         {
+             cPt3dr  W = aPUK.ValAxiatorFixRot(aRTarget);
+             aPUK.Omega() = W;
+             aPUK.OnUpdate();
+         }
+         tREAL8 aD =  aRTarget.Mat().L2Dist(aPUK.Pose().Rot().Mat()) ;
+	 MMVII_INTERNAL_ASSERT_bench(aD <1e-10,"FromTriInAndOut p1 !!");
+    }
+}
+
 void BenchRotation3D(cParamExeBench & aParam)
 {
+    BenchRotation3DReal8();
     TplBenchRotation3D<tREAL4 >(aParam);
     TplBenchRotation3D<tREAL8 >(aParam);
     TplBenchRotation3D<tREAL16>(aParam);
@@ -500,15 +526,17 @@ template <class tMap,class TypeEl> void TplBenchMap2D_NonLinear(const tMap & aMa
     MMVII_INTERNAL_ASSERT_bench(aResMin<1e-5,"Ransac  Estimat 4 Mapping");
     // Dont understand why sometimes it grows back after initial decrease, to see later ...
     MMVII_INTERNAL_ASSERT_Unresolved(aRes<1e-3,"Ransac  Estimat 4 Mapping");
-    // StdOut() << "Hhhhhhhhhhhhh " << std::endl; getchar();
 }
 
 template <class Type> void TplElBenchMap2D()
 {
+   auto v1 = cRot2D<Type>::RandomRot(5);
+   auto v2 = cPtxd<Type,2>::PRandC()*Type(0.3);
+   auto v3 = Type(RandUnif_C()*0.2);
    TplBenchMap2D_NonLinear
    (
-         cRot2D<Type>::RandomRot(5) ,
-         cRot2D<Type>(cPtxd<Type,2>::PRandC()*Type(0.3), Type(RandUnif_C()*0.2)),
+         v1,
+         cRot2D<Type>(v2, v3),
          (Type*)nullptr
    );
 
@@ -519,10 +547,18 @@ template <class Type> void TplElBenchMap2D()
    TplBenchMap2D_LSQ<cHomot2D<Type>>((Type*)nullptr);
 
 
-   TplBenchMap2D(cAffin2D<Type>::AllocRandom(1e-1),cAffin2D<Type>::AllocRandom(1e-1),(Type*)nullptr);
-   TplBenchMap2D(cSim2D<Type>::RandomSimInv(5,2,1e-1),cSim2D<Type>::RandomSimInv(3,4,1e-1),(Type*)nullptr);
-   TplBenchMap2D(cHomot2D<Type>::RandomHomotInv(5,2,1e-1),cHomot2D<Type>::RandomHomotInv(3,4,1e-1),(Type*)nullptr);
-   TplBenchMap2D(cRot2D<Type>::RandomRot(5),cRot2D<Type>::RandomRot(3),(Type*)nullptr);
+   auto v4 = cAffin2D<Type>::AllocRandom(1e-1);
+   auto v5 = cAffin2D<Type>::AllocRandom(1e-1);
+   TplBenchMap2D(v4,v5,(Type*)nullptr);
+   auto v6 = cSim2D<Type>::RandomSimInv(5,2,1e-1);
+   auto v7 = cSim2D<Type>::RandomSimInv(3,4,1e-1);
+   TplBenchMap2D(v6,v7,(Type*)nullptr);
+   auto v8 = cHomot2D<Type>::RandomHomotInv(5,2,1e-1);
+   auto v9 = cHomot2D<Type>::RandomHomotInv(3,4,1e-1);
+   TplBenchMap2D(v8,v9,(Type*)nullptr);
+   auto v10 = cRot2D<Type>::RandomRot(5);
+   auto v11 = cRot2D<Type>::RandomRot(3);
+   TplBenchMap2D(v10,v11,(Type*)nullptr);
 
    cHomogr2D<Type> aHgrId =  RandomMapId<cHomogr2D<Type>>(0.1);
    cHomogr2D<Type> aHgGlob =  cHomogr2D<Type>::AllocRandom(2.0);
@@ -549,10 +585,30 @@ void  BenchMap2D()
 void BenchPlane3D();
 void BenchHomogr2D();
 
+void BenchSeg2D()
+{
+    for (int aK=0 ; aK<100 ; aK++)
+    {
+        cPt2dr aP1 = cPt2dr::PRandC();
+	cPt2dr aT1 = cPt2dr::PRandUnit();
+	cSegment2DCompiled<tREAL8>  aSeg1(aP1,aP1+aT1);
+
+        cPt2dr aP2 = cPt2dr::PRandC();
+	cPt2dr aT2 = cPt2dr::PRandUnitNonAligned(aT1);
+	cSegment2DCompiled<tREAL8>  aSeg2(aP2,aP2+aT2);
+
+	cPt2dr aI = aSeg1.InterSeg(aSeg2);
+
+	MMVII_INTERNAL_ASSERT_bench(aSeg1.DistLine(aI)<1e-8,"InterSeg");
+	MMVII_INTERNAL_ASSERT_bench(aSeg2.DistLine(aI)<1e-8,"InterSeg");
+    }
+}
 
 void BenchGeom(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("Geom")) return;
+
+    BenchSeg2D();
 
     BenchSampleQuat();
 

@@ -31,7 +31,7 @@ cCorresp32_BA::cCorresp32_BA
     mCFix          (false), // By default we use fix point for GCP (contrary only interesting 4 bench)
     mSetCorresp    (aSetCorresp),
     mSzBuf         (100),
-    mEqColinearity (mSensor->EqColinearity(true,mSzBuf,false))
+    mEqColinearity (mSensor->SetAndGetEqColinearity(true,mSzBuf,false))
 {
 
     for (auto & anObj : mSensor->GetAllUK())
@@ -77,6 +77,7 @@ void cCorresp32_BA::OneIteration()
      std::vector<int> aVIndGlob = aVIndGround;
      // m CamPC->PushIndexes(aVIndGlob); // #DOC-PushIndex
      // m Calib->PushIndexes(aVIndGlob); // #DOC-PushIndex
+
      for (auto & anObj : mSensor->GetAllUK())
         anObj->PushIndexes(aVIndGlob); // #DOC-PushIndex
 
@@ -101,7 +102,7 @@ void cCorresp32_BA::OneIteration()
             // "observation" of equation  : PTIm (real obs) + Cur-Rotation (Rot = Axiator*CurRot : to avoid guimbal-lock)
             std::vector<double> aVObs = aCorresp.mP2.ToStdVector(); //  Add X-Im, Y-Im in obs
 
-	    mSensor->PushOwnObsColinearity(aVObs); // For PC cam dd all matrix coeff og current rot
+	    mSensor->PushOwnObsColinearity(aVObs,aCorresp.mP3); // For PC cam dd all matrix coeff og current rot
 
             mSys->AddEq2Subst(aStrSubst,mEqColinearity,aVIndGlob,aVObs);
             mSys->AddObsWithTmpUK(aStrSubst);

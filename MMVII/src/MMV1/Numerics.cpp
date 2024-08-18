@@ -19,6 +19,13 @@ double NC_KthVal(std::vector<double> & aV, double aProportion)
    return ::KthValProp(aV,aProportion);
 }
 
+// template <class TVal> TVal KthVal(std::vector<TVal> & aV,int aKth)
+double  IKthVal(std::vector<double> & aV, int aK)
+{
+     return ::KthVal(aV,aK);
+}
+
+
 
 double Cst_KthVal(const std::vector<double> & aV, double aProportion)
 {

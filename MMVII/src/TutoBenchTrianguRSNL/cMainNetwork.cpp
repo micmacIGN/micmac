@@ -257,8 +257,16 @@ template <class Type> Type cMainNetwork <Type>::CalcResidual()
      return sqrt(aSumResidual / aNbPairTested );
 }
 
-template <class Type> void cMainNetwork <Type>::AddGaugeConstraint(Type aWeightFix)
+template <class Type> void cMainNetwork<Type>::AddGaugeConstraint(Type aWeightFix,bool CanMangle)
 {
+     // If true, instead of using FrozenVar, we use a random mix of all the constraint, jut to test
+     // the correctness of the 
+     static int   aCptWNeg = 0;
+     bool   isHardConstr = (aWeightFix<0);
+     aCptWNeg +=  isHardConstr;
+     bool doMangleCstr = isHardConstr && (aCptWNeg%2==0) && CanMangle;
+
+
      if (aWeightFix==0) return;
      //  Compute dist to sol + add constraint for fixed var
      for (const auto & aPN : mVPts)
@@ -270,27 +278,80 @@ template <class Type> void cMainNetwork <Type>::AddGaugeConstraint(Type aWeightF
               if (aWeightFix>=0)
                  mSys->AddEqFixVar(aPN.mNumY,aPN.TheorPt().y(),aWeightFix);
 	      else
+              {
                  mSys->SetFrozenVar(aPN.mNumY,aPN.TheorPt().y());
+              }
 	   }
 
 
 	   if (aPN.mFrozenX)   // If X is frozenn add equation fixing X to its theoreticall value
 	   {
+              // Case soft constraint
               if (aWeightFix>=0)
                   mSys->AddEqFixVar(aPN.mNumX,aPN.TheorPt().x(),aWeightFix);
-	      else 
-                 mSys->SetFrozenVar(aPN.mNumX,aPN.TheorPt().x());
+	      else // case of "hard" constraint 
+              {
+                 // case mangling, we will build a constraint involving all neighbors
+                 if (doMangleCstr)
+                 {
+                     //  Use for linear constraint 
+                     cSparseVect<Type> aLC;   // Linear constraint 
+                     Type              aCste = 0.0;  // constant 
+                     
+                     // use for Non Linear constraint
+                     std::vector<int> aVInd;
+                     Type             aSumSqRef = 0.0;
+                     Type             aSumSqCur = 0.0;
+
+                     for (const auto & aDelta : AllocNeighbourhood<2>(2))  // Parse all 8 neighbors
+                     {
+                         cPt2di aPixNeigh = aPN.mInd + aDelta;  //  neighboring point
+                         if (IsInGrid(aPixNeigh))  // if inside the grid
+                         {
+                             const cPNetwork<Type> & aPN = PNetOfGrid(aPixNeigh); // network point corresponding
+                             if (aPN.mNumX >=0)  // if NumX is not a temporary
+                             {
+                                 // Linear constraint
+                                 Type  aCoeff = RandUnif_C_NotNull(0.1);  // randomize the contribution
+                                 aLC.AddIV(aPN.mNumX,aCoeff);
+                                 aCste += aCoeff * aPN.mTheorPt.x();
+                                 // Non linear constraint
+                                 aSumSqRef +=  Square(aPN.mTheorPt.x());
+                                 aSumSqCur +=  Square(aPN.PCur().x());
+                                 aVInd.push_back(aPN.mNumX);
+                             }
+                         }
+                     }
+                     // we can use generated code only if we have the good number of unknowns
+                     if (aVInd.size()==8)
+                     {
+                        auto aCalc = EqSumSquare(8,true,1,true);
+                        mSys->AddNonLinearConstr(aCalc,aVInd,{aSumSqRef},true);
+                        //  StdOut() << "SssQdDif=" << aSumSqCur - aSumSqRef << "\n";
+                     }
+                     else
+                        mSys->AddConstr(aLC,aCste);
+                 }
+                 else
+                 {
+                     mSys->SetFrozenVar(aPN.mNumX,aPN.TheorPt().x());
+                 }
+              }
 	   }
+     }
+     if (doMangleCstr)
+     {
+         // StdOut() << "doMangleCstrdoMangleCstr "  << mWithSchur << "\n";
      }
 }
 
-template <class Type> Type cMainNetwork<Type>::DoOneIterationCompensation(double aWeigthGauge,bool WithCalcReset)
+template <class Type> Type cMainNetwork<Type>::DoOneIterationCompensation(double aWeigthGauge,bool WithCalcReset,bool CanMangleCstr)
 
 {
      Type   aResidual = CalcResidual() ;
      // if we are computing covariance we want it in a free network (the gauge constraint 
      // in the local network have no meaning in the coordinate of the global network)
-     AddGaugeConstraint(aWeigthGauge);
+     AddGaugeConstraint(aWeigthGauge,CanMangleCstr);
      
      
      //  Add observation on distances

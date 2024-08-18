@@ -19,7 +19,7 @@ cCalibRadiomSensor::cCalibRadiomSensor()
 
 void  cCalibRadiomSensor::ToFileIfFirstime(const std::string & aNameFile) const
 {
-    MMVII::ToFileIfFirstime(*this,aNameFile);
+    MMVII::ToFileIfFirstime(this,aNameFile);
 }
 
 cCalibRadiomSensor * cCalibRadiomSensor::FromFile(const std::string & aNameFile)
@@ -27,7 +27,7 @@ cCalibRadiomSensor * cCalibRadiomSensor::FromFile(const std::string & aNameFile)
    if (starts_with(FileOfPath(aNameFile),PrefixCalRadRad))
       return cRadialCRS::FromFile(aNameFile);
 
-   MMVII_UsersErrror(eTyUEr::eUnClassedError,"Cannot determine radiom-file mode for :" + aNameFile);
+   MMVII_UserError(eTyUEr::eUnClassedError,"Cannot determine radiom-file mode for :" + aNameFile);
    return nullptr;
 }
 

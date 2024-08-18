@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<Root>
+   <Type>"MMVII_Serialization"</Type>
+   <Version>"0.0.0"</Version>
+   <Data>
+      <SetGCP>
+         <NameSet>"FromV1-Ground-Pts3D"</NameSet>
+         <Measures>
+            <el>
+               <Name>"Stone-1"</Name>
+               <Pt>0.182895665614618 -3.780020604698052 2.560228105719643</Pt>
+               <AdditionalInfo>""</AdditionalInfo>
+               <__Opt__Sigma2>1 0 0 1 0 1</__Opt__Sigma2>
+            </el>
+            <el>
+               <Name>"Stone-2"</Name>
+               <Pt>0.234792215591027 -5.363338005809749 2.426597204406351</Pt>
+               <AdditionalInfo>""</AdditionalInfo>
+               <__Opt__Sigma2>1 0 0 1 0 1</__Opt__Sigma2>
+            </el>
+            <el>
+               <Name>"Stone-3"</Name>
+               <Pt>0.194213046998493 -4.822930639210511 1.753772559141096</Pt>
+               <AdditionalInfo>""</AdditionalInfo>
+               <__Opt__Sigma2>1 0 0 1 0 1</__Opt__Sigma2>
+            </el>
+            <el>
+               <Name>"I-of-I"</Name>
+               <Pt>0.754045221758524 0.496427193197003 0.431416432371162</Pt>
+               <AdditionalInfo>""</AdditionalInfo>
+               <__Opt__Sigma2>1 0 0 1 0 1</__Opt__Sigma2>
+            </el>
+            <el>
+               <Name>"Acute"</Name>
+               <Pt>0.898750585424819 1.104095072492661 0.444680581722014</Pt>
+               <AdditionalInfo>""</AdditionalInfo>
+               <__Opt__Sigma2>1 0 0 1 0 1</__Opt__Sigma2>
+            </el>
+            <el>
+               <Name>"Finger-1"</Name>
+               <Pt>1.317713337538785 0.989188464947305 0.370627429238322</Pt>
+               <AdditionalInfo>""</AdditionalInfo>
+               <__Opt__Sigma2>1 0 0 1 0 1</__Opt__Sigma2>
+            </el>
+            <el>
+               <Name>"Stone-6"</Name>
+               <Pt>0.150697933447584 1.108183371793216 0.773464897817899</Pt>
+               <AdditionalInfo>""</AdditionalInfo>
+               <__Opt__Sigma2>1 0 0 1 0 1</__Opt__Sigma2>
+            </el>
+            <el>
+               <Name>"Stone-7"</Name>
+               <Pt>0.256396378205514 2.353187590216264 2.238877852582342</Pt>
+               <AdditionalInfo>""</AdditionalInfo>
+               <__Opt__Sigma2>1 0 0 1 0 1</__Opt__Sigma2>
+            </el>
+            <el>
+               <Name>"Grille"</Name>
+               <Pt>1.402075192528317 2.194545889839955 0.403829859842775</Pt>
+               <AdditionalInfo>""</AdditionalInfo>
+               <__Opt__Sigma2>1 0 0 1 0 1</__Opt__Sigma2>
+            </el>
+         </Measures>
+      </SetGCP>
+   </Data>
+</Root>

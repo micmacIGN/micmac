@@ -6,6 +6,9 @@
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_BlocRig.h"
 #include "MMVII_DeclareCste.h"
+#include "MMVII_Clino.h"
+#include "cExternalSensor.h"
+#include "MMVII_Topo.h"
 
 
 /**
@@ -32,7 +35,7 @@ std::string SuppressDirFromNameFile(const std::string & aDir,const std::string &
 	 aPat = aPat + "\\." +  GlobTaggedNameDefSerial()  ;
      if (! MatchRegex(aName,aPat))
      {
-         MMVII_UsersErrror
+         MMVII_UserError
          (
              eTyUEr::eUnClassedError,
              "SuppressDirFromNameFile:No match for subdir, with name=" + aName + " Dir=" + aDir
@@ -203,6 +206,9 @@ void cDirsPhProj::SetDirIn(const std::string & aDirIn)
 {
      mDirIn = aDirIn;
      mAppli.SetVarInit(&mDirIn); // required becaus of AssertOriInIsInit
+    //  StdOut() << "cDirsPhProj::SetDirI In cDirsPhProj::SetDirIn\n";
+    // MPD : may be dangerous, but seems required, dont understand why it was not made before
+    Finish();
 }
 
 void cDirsPhProj::SetDirInIfNoInit(const std::string & aDirIn)
@@ -236,7 +242,8 @@ void cDirsPhProj::SetDirOutInIfNotInit()
 
 cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
     mAppli            (anAppli),
-    mChSys            (),
+    mCurSysCo         (nullptr),
+    mChSysCo          (),
     mDPOrient         (eTA2007::Orient,*this),
     mDPRadiomData     (eTA2007::RadiomData,*this),
     mDPRadiomModel    (eTA2007::RadiomModel,*this),
@@ -247,6 +254,8 @@ cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
     mDPMulTieP        (eTA2007::MulTieP,*this),
     mDPMetaData       (eTA2007::MetaData,*this),
     mDPRigBloc        (eTA2007::RigBlock,*this),  // RIGIDBLOC
+    mDPClinoMeters    (eTA2007::Clino,*this),  // RIGIDBLOC
+    mDPTopoMes        (eTA2007::Topo,*this),  // Topo
     mGlobCalcMTD      (nullptr)
 {
 }
@@ -259,17 +268,14 @@ void cPhotogrammetricProject::FinishInit()
     mDirPhp   = mFolderProject + MMVII_DirPhp + StringDirSeparator();
     mDirVisu  = mDirPhp + "VISU" + StringDirSeparator();
     mDirSysCo = mDirPhp + E2Str(eTA2007::SysCo) + StringDirSeparator();
+    mDirImportInitOri =  mDirPhp + "InitialOrientations" + StringDirSeparator();
 
     if (mAppli.LevelCall()==0)
     {
         CreateDirectories(mDirVisu,false);
         CreateDirectories(mDirSysCo,false);
+        CreateDirectories(mDirImportInitOri,false);
 
-	 // cPt3dr  aZeroNDP(652215.52,6861681.77,35.6);
-	 // SaveSysCo(CreateSysCoRTL(aZeroNDP,"Lambert93"),"RTL_NotreDame");
-	// maintain it, who knows, but now replaced by 
-	// SaveSysCo(cSysCoordV2::Lambert93(),E2Str(eSysCoGeo::eLambert93),true);  
-	// SaveSysCo(cSysCoordV2::GeoC()     ,E2Str(eSysCoGeo::eGeoC)     ,true);
     }
 
 
@@ -283,6 +289,8 @@ void cPhotogrammetricProject::FinishInit()
     mDPMulTieP.Finish();
     mDPMetaData.Finish();
     mDPRigBloc.Finish() ; // RIGIDBLOC
+    mDPClinoMeters.Finish() ; // RIGIDBLOC
+    mDPTopoMes.Finish() ; // TOPO
 
     // Force the creation of directory for metadata spec, make 
     if (! mDPMetaData.DirOutIsInit())
@@ -300,9 +308,14 @@ void cPhotogrammetricProject::FinishInit()
     // read the data base of existing cameras
     MakeCamDataBase();
 
-    if (mAppli.IsInit(&mNameChSys))
+    if (mAppli.IsInit(&mNameChSysCo))
     {
-       mChSys = ChangSys(mNameChSys);
+       mChSysCo = ChangSysCo(mNameChSysCo);
+    }
+
+    if (mAppli.IsInit(&mNameCurSysCo))
+    {
+       mCurSysCo = ReadSysCo(mNameCurSysCo);
     }
 }
 
@@ -339,6 +352,8 @@ cDirsPhProj &   cPhotogrammetricProject::DPMetaData() {return mDPMetaData;}
 cDirsPhProj &   cPhotogrammetricProject::DPTieP() {return mDPTieP;}
 cDirsPhProj &   cPhotogrammetricProject::DPMulTieP() {return mDPMulTieP;}
 cDirsPhProj &   cPhotogrammetricProject::DPRigBloc() {return mDPRigBloc;} // RIGIDBLOC
+cDirsPhProj &   cPhotogrammetricProject::DPClinoMeters() {return mDPClinoMeters;} // RIGIDBLOC
+cDirsPhProj &   cPhotogrammetricProject::DPTopoMes() {return mDPTopoMes;} // TOPO
 
 const cDirsPhProj &   cPhotogrammetricProject::DPOrient() const {return mDPOrient;}
 const cDirsPhProj &   cPhotogrammetricProject::DPRadiomData() const {return mDPRadiomData;}
@@ -350,6 +365,8 @@ const cDirsPhProj &   cPhotogrammetricProject::DPMetaData() const {return mDPMet
 const cDirsPhProj &   cPhotogrammetricProject::DPTieP() const {return mDPTieP;}
 const cDirsPhProj &   cPhotogrammetricProject::DPMulTieP() const {return mDPMulTieP;}
 const cDirsPhProj &   cPhotogrammetricProject::DPRigBloc() const {return mDPRigBloc;} // RIGIDBLOC
+const cDirsPhProj &   cPhotogrammetricProject::DPClinoMeters() const {return mDPClinoMeters;} // RIGIDBLOC
+const cDirsPhProj &   cPhotogrammetricProject::DPTopoMes() const {return mDPTopoMes;} // Topo
 
 
 const std::string &   cPhotogrammetricProject::DirPhp() const   {return mDirPhp;}
@@ -385,7 +402,7 @@ cCalibRadiomIma * cPhotogrammetricProject::ReadCalibRadiomIma(const std::string 
     if (ExistFile(aNameFile))
        return cCalRadIm_Pol::FromFile(aNameFile);
 
-   MMVII_UsersErrror(eTyUEr::eUnClassedError,"Cannot determine Image RadiomCalib  for :" + aNameIm + " in " + mDPRadiomModel.DirIn());
+   MMVII_UserError(eTyUEr::eUnClassedError,"Cannot determine Image RadiomCalib  for :" + aNameIm + " in " + mDPRadiomModel.DirIn());
    return nullptr;
 }
 
@@ -425,9 +442,20 @@ cRadialCRS * cPhotogrammetricProject::CreateNewRadialCRS(size_t aDegree,const st
       return aRes;
 }
 
+         
+        //  ============================================
+        //                   Orientation 
+        //  ============================================
+
+const std::string &   cPhotogrammetricProject::DirImportInitOri() const { return mDirImportInitOri; }
 
 
-        //  =============  Orientation =================
+bool cPhotogrammetricProject::IsOriInDirInit() const
+{
+    return mDPOrient.DirInIsInit();
+}
+
+         //  =============  Central Perspective camera =======================
 
 void cPhotogrammetricProject::SaveCamPC(const cSensorCamPC & aCamPC) const
 {
@@ -437,7 +465,62 @@ void cPhotogrammetricProject::SaveCamPC(const cSensorCamPC & aCamPC) const
 
 void cPhotogrammetricProject::SaveSensor(const cSensorImage & aSens) const
 {
+    /*  Supression by global pattern can be very slow with big data
+     *  So we creat the first time a map that contain for an image all the files corresponding to
+     *  a sensor in the standard out folder.
+     *
+     *  This is done by (1) computing all the file (2) use regular expression to recover the
+     *  name of image from the file.  This works because the MMVII prefix dont contain any "-" .
+     */
+    static std::map<std::string,std::vector<std::string>> TheMapIm2Sensors;
+    static bool First = true;
+    if (First)
+    {
+         First = false;
+         std::string aPat2Sup =  "Ori-[A-Za-z0-9]*-(.*)." + GlobTaggedNameDefSerial()  ;
+         std::string aFullPat2Sup = mDPOrient.FullDirOut() + aPat2Sup;
+	 tNameSet aSet = SetNameFromPat(aFullPat2Sup);
+
+	 std::vector<std::string> aVect = ToVect(aSet);
+	 for (const auto & aNameSens : aVect)
+	 {
+            std::string aNameIm = PatternKthSubExpr(aPat2Sup,1,aNameSens);
+
+	    TheMapIm2Sensors[aNameIm].push_back(aNameSens);
+	 }
+    }
+
+
+    // We dont want to have different variant of the same image in a given folder
+    // so supress potentiel existing orientation of the same image
+    // CM: Should be ...Image() + "\\." + Glob..., but '\' is a directory separator on Windows
+    //     and SplitDirAndFile() called by RemovePatternFile() will do bad things in this case ...
+    //
+    //
+
+    if (0)
+    {
+        //     can be very slow with big data file  ...
+        std::string aPat2Sup = mDPOrient.FullDirOut() + "Ori-.*-" + aSens.NameImage() + "." + GlobTaggedNameDefSerial()  ;
+        RemovePatternFile(aPat2Sup,false);
+    }
+    else
+    {
+         for (const  auto & aName : TheMapIm2Sensors[aSens.NameImage()])
+	 {
+             RemoveFile(mDPOrient.FullDirOut() + aName,false);
+	 }
+    }
+
     aSens.ToFile(mDPOrient.FullDirOut() + aSens.NameOriStd());
+
+    // if (UserIsMPD())
+    {
+        if (aSens.HasCoordinateSystem())
+        {
+            SaveCurSysCoOri(ReadSysCo(aSens.GetCoordinateSystem()));
+        }
+    }
 }
 
 
@@ -475,31 +558,46 @@ cSensorCamPC * cPhotogrammetricProject::ReadCamPC(const std::string & aNameIm,bo
     return ReadCamPC(mDPOrient,aNameIm,ToDeleteAutom,SVP);
 }
 
-cSensorImage* cPhotogrammetricProject::LoadSensor(const std::string  &aNameIm,bool SVP)
+cSensorImage* cPhotogrammetricProject::ReadSensor(const std::string  &aNameIm,bool ToDeleteAutom,bool SVP) const
 {
      cSensorImage*   aSI;
      cSensorCamPC *  aSPC;
 
-     LoadSensor(aNameIm,aSI,aSPC,SVP);
+     ReadSensor(aNameIm,aSI,aSPC,ToDeleteAutom,SVP);
 
      return aSI;
 }
 
-void cPhotogrammetricProject::LoadSensor(const std::string  &aNameIm,cSensorImage* & aSI,cSensorCamPC * & aSPC,bool SVP)
+void cPhotogrammetricProject::ReadSensor(const std::string  &aNameIm,cSensorImage* & aSI,cSensorCamPC * & aSPC,bool ToDeleteAutom,bool SVP) const
 {
      aSI = nullptr;
      aSPC =nullptr;
 
-     aSPC = ReadCamPC(aNameIm,true,true);
+     // Try a stenope camera which has interesting properties
+     aSPC = ReadCamPC(aNameIm,ToDeleteAutom,true);
      if (aSPC !=nullptr)
      {
         aSI = aSPC;
         return;
      }
 
+     // Else try an external sensor
+     if (aSI==nullptr) aSI =  SensorTryReadImported(*this,aNameIm);
+     if (aSI==nullptr) aSI =  SensorTryReasChSys(*this,aNameIm);
+     if (aSI==nullptr) aSI =  SensorTryReadSensM2D(*this,aNameIm);
+
+     if (aSI!=nullptr)
+     {
+        if (ToDeleteAutom)
+           cMMVII_Appli::AddObj2DelAtEnd(aSI);
+
+        return;
+     }
+
+
      if (!SVP)
      {
-         MMVII_UsersErrror
+         MMVII_UserError
          (
              eTyUEr::eUnClassedError,
              "Cannot get sensor for image " + aNameIm
@@ -507,14 +605,34 @@ void cPhotogrammetricProject::LoadSensor(const std::string  &aNameIm,cSensorImag
      }
 }
 
+cSensorImage* cPhotogrammetricProject::ReadSensorFromFolder(const std::string  & aFolder,const std::string  &aNameIm,bool ToDeleteAutom,bool SVP) const
+{
+     cDirsPhProj& aDPO = const_cast<cPhotogrammetricProject *>(this)->DPOrient();
+     // Save current orientation and fix new
+     std::string aDirInit = aDPO.DirIn();
+     aDPO.SetDirIn(aFolder);
+
+     cSensorImage* aSensor = ReadSensor(aNameIm,true/*ToDelAutom*/);
+     // Restore initial current orientation
+     aDPO.SetDirIn(aDirInit);
+
+     return aSensor;
+}
+
+
 cPerspCamIntrCalib *  cPhotogrammetricProject::InternalCalibFromImage(const std::string & aNameIm) const
 {
-    // 4 now, pretty basic allox sensor, extract internal, destroy
-    // later will have to handle :
-    //    * case where calib exist but not pose
-    //    * case where nor calib nor pose exist, and must be created from xif 
+    //  allox sensor and if exist, extract internal, destroy
+    //  else try to extract calib from standard name
+    //    * case where nor calib nor pose exist, and must be created from xif still to implemant
     mDPOrient.AssertDirInIsInit();
-    cSensorCamPC *  aPC = ReadCamPC(aNameIm,false);
+
+    cSensorCamPC *  aPC = ReadCamPC(aNameIm,false,SVP::Yes);
+    if (aPC==nullptr)
+    {
+        return InternalCalibFromStdName(aNameIm);
+    }
+
     cPerspCamIntrCalib * aCalib = aPC->InternalCalib();
     delete aPC;
 
@@ -560,16 +678,22 @@ bool  cPhotogrammetricProject::ImageHasMask(const std::string & aNameImage) cons
           && ExistFile(NameMaskOfImage(aNameImage)) ;
 }
 
-cIm2D<tU_INT1>  cPhotogrammetricProject::MaskWithDef(const std::string & aNameImage,const cBox2di & aBox,bool DefVal) const
+cIm2D<tU_INT1>  cPhotogrammetricProject::MaskWithDef(const std::string & aNameImage,const cBox2di & aBox,bool DefVal,bool OkNoMasq) const
 {
     if (ImageHasMask( aNameImage))
     {
         return cIm2D<tU_INT1>::FromFile(NameMaskOfImage(aNameImage),aBox);
     }
 
+     MMVII_INTERNAL_ASSERT_always(OkNoMasq,"Masq dont exist for image : " + aNameImage);
+
     return cIm2D<tU_INT1> (aBox.Sz(),nullptr,  (DefVal ? eModeInitImage::eMIA_V1 : eModeInitImage::eMIA_Null)) ;
 }
 
+cIm2D<tU_INT1>  cPhotogrammetricProject::MaskOfImage(const std::string & aNameImage,const cBox2di & aBox) const
+{
+	return MaskWithDef(aNameImage,aBox,false,false);
+}
 
         //  =============  PointsMeasures =================
 
@@ -583,6 +707,13 @@ std::string cPhotogrammetricProject::NameMeasureGCPIm(const std::string & aNameI
     return  mDPPointsMeasures.FullDirInOut(isIn) + cSetMesPtOf1Im::StdNameFileOfIm(FileOfPath(aNameIm,false)) ;
 }
 
+
+bool cPhotogrammetricProject::HasMeasureIm(const std::string & aNameIm,bool InDir) const
+{
+   return ExistFile(NameMeasureGCPIm(aNameIm,InDir));
+}
+
+
 cSetMesPtOf1Im cPhotogrammetricProject::LoadMeasureIm(const std::string & aNameIm,bool isIn) const
 {
    //  std::string aDir = mDPPointsMeasures.FullDirInOut(isIn);
@@ -591,7 +722,7 @@ cSetMesPtOf1Im cPhotogrammetricProject::LoadMeasureIm(const std::string & aNameI
    return cSetMesPtOf1Im::FromFile(NameMeasureGCPIm(aNameIm,isIn));
 }
 
-void cPhotogrammetricProject::SaveGCP(const cSetMesGCP & aMGCP)
+void cPhotogrammetricProject::SaveGCP(const cSetMesGCP & aMGCP) const
 {
      aMGCP.ToFile(mDPPointsMeasures.FullDirOut() + aMGCP.StdNameFile());
      // aMGCP.ToFile(mDPPointsMeasures.FullDirOut() + cSetMesGCP::ThePrefixFiles + aMGCP.Name() + "." + TaggedNameDefSerial());
@@ -616,7 +747,8 @@ std::vector<std::string>  cPhotogrammetricProject::ListFileGCP(const std::string
    return aRes;
 }
 
-void cPhotogrammetricProject::LoadGCP(cSetMesImGCP& aSetMes,const std::string & aArgPatFiltr,const std::string & aFiltrNameGCP) const
+void cPhotogrammetricProject::LoadGCP(cSetMesImGCP& aSetMes,const std::string & aArgPatFiltr,const std::string & aFiltrNameGCP,
+                                      const std::string & aFiltrAdditionalInfoGCP) const
 {
    std::vector<std::string> aListFileGCP = ListFileGCP(aArgPatFiltr);
    MMVII_INTERNAL_ASSERT_User(!aListFileGCP.empty(),eTyUEr::eUnClassedError,"No file found in LoadGCP");
@@ -624,21 +756,55 @@ void cPhotogrammetricProject::LoadGCP(cSetMesImGCP& aSetMes,const std::string & 
    for (const auto  & aNameFile : aListFileGCP)
    {
        cSetMesGCP aMesGCP = cSetMesGCP::FromFile(aNameFile);
-       if (aFiltrNameGCP!="")
-          aMesGCP = aMesGCP.Filter(aFiltrNameGCP);
+       if ( (!aFiltrNameGCP.empty()) || (!aFiltrAdditionalInfoGCP.empty()) )
+          aMesGCP = aMesGCP.Filter(aFiltrNameGCP, aFiltrAdditionalInfoGCP);
        aSetMes.AddMes3D(aMesGCP);
    }
+}
+
+void cPhotogrammetricProject::LoadGCPFromFolder
+     (const std::string & aFolder,
+          cSetMesImGCP& aSetMes,
+          std::pair<cBA_Topo *, std::vector<cBA_GCP*>*> aTopoAddPointsInfo,
+          const std::string & aArgPatFiltr,
+          const std::string & aFiltrNameGCP,
+          const std::string & aFiltrAdditionalInfoGCP) const
+{
+     cDirsPhProj& aDPPM = const_cast<cPhotogrammetricProject *>(this)->DPPointsMeasures();
+     // Save current orientation and fix new
+     std::string aDirInit = aDPPM.DirIn();
+     aDPPM.SetDirIn(aFolder);
+
+     LoadGCP(aSetMes,aArgPatFiltr,aFiltrNameGCP,aFiltrAdditionalInfoGCP);
+     // Restore initial current orientation
+     aDPPM.SetDirIn(aDirInit);
+
+     auto [aBATopo, aVectBA_GCP] = aTopoAddPointsInfo;
+     if (aBATopo) // new points have to be added here to benefit from gcp unknown creation
+         aBATopo->AddPointsFromDataToGCP(aSetMes, aVectBA_GCP);
 }
 
 void cPhotogrammetricProject::CpGCPPattern(const std::string & aDirIn,const std::string & aDirOut,const std::string & aArgPatFiltr) const
 {
    CopyPatternFile(aDirIn,GCPPattern(aArgPatFiltr),aDirOut);
+   CopyPatternFile(aDirIn,"CurSysCo.xml",aDirOut);
 }
 
 void cPhotogrammetricProject::CpGCP() const
 {
 	CpGCPPattern(mDPPointsMeasures.FullDirIn(),mDPPointsMeasures.FullDirOut());
 }
+
+void cPhotogrammetricProject::CpMeasureIm() const
+{
+    CopyPatternFile
+    (
+        mDPPointsMeasures.FullDirIn(),
+	cSetMesPtOf1Im::ThePrefixFiles+ ".*"+ TaggedNameDefSerial(),
+        mDPPointsMeasures.FullDirOut()
+    );
+}
+
 
 
 
@@ -647,9 +813,31 @@ void cPhotogrammetricProject::LoadIm(cSetMesImGCP& aSetMes,const std::string & a
 //    std::string aDir = mDPPointsMeasures.FullDirIn();
    //cSetMesPtOf1Im  aSetIm = cSetMesPtOf1Im::FromFile(aDir+cSetMesPtOf1Im::StdNameFileOfIm(aNameIm));
    if (SVP && (! ExistFile(NameMeasureGCPIm(aNameIm,true))))
+   {
+      // StdOut() << "LoadImLoadIm " << aNameIm << "\n";
       return;
+   }
+      //  StdOut() << "LoadImLoadIm " << aNameIm << "\n";
    cSetMesPtOf1Im  aSetIm = LoadMeasureIm(aNameIm);
    aSetMes.AddMes2D(aSetIm,aSIm);
+}
+
+void cPhotogrammetricProject::LoadImFromFolder
+     (
+           const std::string & aFolder,
+           cSetMesImGCP& aSetMes,
+           const std::string & aNameIm,
+           cSensorImage * aSIm,bool SVP
+     ) const
+{
+     cDirsPhProj& aDPPM = const_cast<cPhotogrammetricProject *>(this)->DPPointsMeasures();
+     // Save current orientation and fix new
+     std::string aDirInit = aDPPM.DirIn();
+     aDPPM.SetDirIn(aFolder);
+
+     LoadIm(aSetMes,aNameIm,aSIm,SVP);
+     // Restore initial current orientation
+     aDPPM.SetDirIn(aDirInit);
 }
 
 void cPhotogrammetricProject::LoadIm(cSetMesImGCP& aSetMes,cSensorImage & aSIm) const
@@ -687,6 +875,30 @@ void cPhotogrammetricProject::SaveAndFilterAttrEll(const cSetMesPtOf1Im &  aSetM
             aVSEEOut.push_back(aSEE);
      SaveInFile(aVSEEOut,cSaveExtrEllipe::NameFile(*this,aSetM,false));
 }
+     // ============================   LINES ==============================================
+
+std::string  cPhotogrammetricProject::NameFileLines(const std::string & aNameIm) const
+{
+    return DPPointsMeasures().FullDirOut() + "SegsAntiParal-"+ aNameIm + "."+ GlobTaggedNameDefSerial();
+}
+
+bool   cPhotogrammetricProject::HasFileLines(const std::string & aNameIm)  const
+{
+    return ExistFile(NameFileLines(aNameIm));
+}
+
+void  cPhotogrammetricProject::SaveLines(const cLinesAntiParal1Im &aLAP1I) const
+{
+    SaveInFile(aLAP1I,NameFileLines(aLAP1I.mNameIm));
+}
+
+cLinesAntiParal1Im  cPhotogrammetricProject::ReadLines(const std::string & aNameIm) const
+{
+    cLinesAntiParal1Im aRes;
+    ReadFromFile(aRes,NameFileLines(aNameIm));
+    return aRes;
+}
+
 
         //  =============  Multiple Tie Points =================
 
@@ -702,11 +914,46 @@ void  cPhotogrammetricProject::SaveMultipleTieP(const cVecTiePMul& aVPm,const st
    PopPrecTxtSerial();
 }
 
-void  cPhotogrammetricProject::ReadMultipleTieP(cVecTiePMul& aVPm,const std::string & aNameIm) const
+void  cPhotogrammetricProject::ReadMultipleTieP(cVecTiePMul& aVPm,const std::string & aNameIm,bool SVP) const
 {
-   ReadFromFile(aVPm.mVecTPM,mDPMulTieP.FullDirIn()+NameMultipleTieP(aNameIm));
+   std::string aNameFile = mDPMulTieP.FullDirIn()+NameMultipleTieP(aNameIm);
+   if (! ExistFile(aNameFile))
+   {
+     MMVII_INTERNAL_ASSERT_User(SVP,eTyUEr::eUnClassedError,"Cannot find Multi Tie Points for " + aNameIm);
+   }
+   else
+       ReadFromFile(aVPm.mVecTPM,mDPMulTieP.FullDirIn()+NameMultipleTieP(aNameIm));
    aVPm.mNameIm = aNameIm;
 }
+
+void  cPhotogrammetricProject::ReadMultipleTiePFromFolder(const std::string &  aFolder,cVecTiePMul& aVPm,const std::string & aNameIm,bool SVP) const
+{
+     cDirsPhProj& aDPMTP = const_cast<cPhotogrammetricProject *>(this)->DPMulTieP();
+     // Save current orientation and fix new
+     std::string aDirInit = aDPMTP.DirIn();
+     aDPMTP.SetDirIn(aFolder);
+
+     ReadMultipleTieP(aVPm,aNameIm,SVP);
+     // Restore initial current orientation
+     aDPMTP.SetDirIn(aDirInit);
+}
+
+
+
+
+bool cPhotogrammetricProject::HasNbMinMultiTiePoints(const std::string & aNameIm,size_t aNbMinTieP,bool AcceptNoDirIn ) const
+{
+    if (!DPMulTieP().DirInIsInit())
+    {
+        MMVII_INTERNAL_ASSERT_strong(AcceptNoDirIn,"No DirInIsInit in HasNbMinMultiTiePoints");
+        return true;
+    }
+
+    cVecTiePMul aVPM(aNameIm);
+    ReadMultipleTieP(aVPM,aNameIm,true);
+    return aVPM.mVecTPM.size() >= aNbMinTieP;
+}
+
 
 
 std::string cPhotogrammetricProject::NameConfigMTP(const std::string &  anExt)
@@ -763,157 +1010,35 @@ void  cPhotogrammetricProject::ReadHomol
     std::string aName = NameTiePIn(aNameIm1,aNameIm2,aDirIn); 
     ReadFromFile(aSetHCI.SetH(),aName);
 }
-        //  =============  coord system  =================
+        //  =============  Clino meters  =================
 
-const cChangSysCoordV2 & cPhotogrammetricProject::ChSys() const 
+std::string cPhotogrammetricProject::NameFileClino(const std::string &aNameCam,bool Input) const
 {
-   AssertChSysIsInit();
-   return mChSys;
-}
-cChangSysCoordV2 & cPhotogrammetricProject::ChSys() 
-{
-   AssertChSysIsInit();
-   return mChSys;
+    static const std::string TheClinoPrefix = "ClinoCalib-";
+    return mDPClinoMeters.FullDirInOut(Input) + TheClinoPrefix + aNameCam + "."+ GlobTaggedNameDefSerial();
 }
 
-bool  cPhotogrammetricProject::ChSysIsInit() const
+void cPhotogrammetricProject::SaveClino(const cCalibSetClino & aCalib) const
 {
-    return mAppli.IsInit(&mNameChSys);
+    SaveInFile(aCalib,NameFileClino(aCalib.mNameCam,false));
 }
-void  cPhotogrammetricProject::AssertChSysIsInit() const
+
+bool cPhotogrammetricProject::HasClinoCalib(const cPerspCamIntrCalib & aCalib) const
 {
-     MMVII_INTERNAL_ASSERT_strong(ChSysIsInit(),"Chang coord system is not init");
+     return ExistFile(NameFileClino(aCalib.Name(),true));
 }
 
 
-tPtrArg2007 cPhotogrammetricProject::ArgChSys(bool DefaultUndefined)
+cCalibSetClino * cPhotogrammetricProject::GetClino(const cPerspCamIntrCalib & aCalib) const
 {
-    std::vector<tSemA2007>   aVOpt{{eTA2007::ISizeV,"[1,2]"}};
-
-    if (DefaultUndefined)
-    {
-        aVOpt.push_back(eTA2007::HDV);
-        mAppli.SetVarInit(&mNameChSys);
-        mNameChSys = {"Local"+MMVII_NONE};
-    }
-    return AOpt2007(mNameChSys,"ChSys","Change coordinate system, if 1 Sys In=Out",aVOpt);
+    return ObjectFromFile<cCalibSetClino,cCalibSetClino>(NameFileClino(aCalib.Name(),true));
 }
 
-void cPhotogrammetricProject::SaveSysCo(tPtrSysCo aSys,const std::string& aName,bool OnlyIfNew) const
-{
-     std::string aFullName = mDirSysCo + aName + "."+  GlobTaggedNameDefSerial();
-
-     if (OnlyIfNew && ExistFile(aFullName))
-        return;
-     aSys->ToFile(aFullName);
-}
-
-std::string  cPhotogrammetricProject::FullNameSysCo(const std::string &aName,bool SVP) const
-{
-     //  try to get the file in local folder
-     std::string aNameGlob = mDirSysCo + aName + "." + GlobTaggedNameDefSerial();
-     if (ExistFile(aNameGlob))
-        return aNameGlob;
-
-     //  try the name 
-     aNameGlob = cMMVII_Appli::DirRessourcesMMVII() + "SysCo/" + aName + "." + GlobTaggedNameDefSerial();
-     if (ExistFile(aNameGlob))
-        return aNameGlob;
-
-     if (! SVP)
-        MMVII_UnclasseUsEr("Cannot find coord sys for " + aName);
-
-     return "";
-}
+/*
+cCalibSetClino * GetClino(const cPerspCamIntrCalib &);
+*/
 
 
-tPtrSysCo cPhotogrammetricProject::ReadSysCo(const std::string &aName,bool SVP) const
-{
-     if (starts_with(aName,MMVII_LocalSys))
-     {
-         std::string aSubstr = aName.substr(MMVII_LocalSys.size(),std::string::npos);
-         return cSysCoordV2::LocalSystem(aSubstr);
-     }
-
-
-     // compute name
-     std::string aNameGlob = FullNameSysCo(aName,SVP);
-     if (aNameGlob=="") // if we are here, SVP=true and we can return nullptr
-         return tPtrSysCo(nullptr);
-     return  cSysCoordV2::FromFile(aNameGlob);
-}
-
-tPtrSysCo cPhotogrammetricProject::CreateSysCoRTL(const cPt3dr & aOrig,const std::string &aName,bool SVP) const
-{
-    std::string  aNameFull = FullNameSysCo(aName,SVP);
-    if (aNameFull=="")
-       return tPtrSysCo(nullptr);
-
-    return cSysCoordV2::RTL(aOrig,aNameFull);
-}
-
-cChangSysCoordV2  cPhotogrammetricProject::ChangSys(const std::vector<std::string> & aVec,tREAL8 aEpsDif) 
-{
-    if (! mAppli.IsInit(&aVec))  return cChangSysCoordV2{};
-
-    if (aVec.size() == 1)
-       return cChangSysCoordV2(ReadSysCo(aVec.at(0)));
-
-    return cChangSysCoordV2(   ReadSysCo(aVec.at(0))  ,  ReadSysCo(aVec.at(1))  );
-}
-
-             //==================   SysCo saved in standard folder ============
-
-std::string  cPhotogrammetricProject::NameCurSysCo(const cDirsPhProj & aDP,bool IsIn) const
-{
-   return aDP.FullDirInOut(IsIn)   +  "CurSysCo." +  GlobTaggedNameDefSerial();
-
-}
-tPtrSysCo  cPhotogrammetricProject::CurSysCo(const cDirsPhProj & aDP,bool SVP) const
-{
-    std::string aName = NameCurSysCo(aDP,true);
-    if (! ExistFile(aName))
-    {
-       if (! SVP)
-           MMVII_UnclasseUsEr("CurSysCo dont exist : " + aName);
-       return tPtrSysCo(nullptr);
-    }
-
-    return cSysCoordV2::FromFile(NameCurSysCo(aDP,true));
-}
-
-
-tPtrSysCo  cPhotogrammetricProject::CurSysCoOri(bool SVP) const {return CurSysCo(mDPOrient,SVP);}
-tPtrSysCo  cPhotogrammetricProject::CurSysCoGCP(bool SVP) const {return CurSysCo(mDPPointsMeasures,SVP);}
-
-void cPhotogrammetricProject::SaveCurSysCo(const cDirsPhProj & aDP,tPtrSysCo aSysCo) const 
-{
-    aSysCo->ToFile(NameCurSysCo(aDP,false));
-}
-
-void cPhotogrammetricProject::SaveCurSysCoOri(tPtrSysCo aSysCo) const { SaveCurSysCo(mDPOrient,aSysCo); }
-void cPhotogrammetricProject::SaveCurSysCoGCP(tPtrSysCo aSysCo) const { SaveCurSysCo(mDPPointsMeasures,aSysCo); }
-
-
-void cPhotogrammetricProject::CpSysIn2Out(bool  OriIn,bool OriOut) const
-{
-   tPtrSysCo aSysIn = OriIn ?  CurSysCoOri(true) : CurSysCoGCP(true);
-
-   // StdOut() << "CpSysIn2OutCpSysIn2Out " << OriIn " " << OriOut << " PTR=" << aSysIn.get() << "\n";
-
-   if (aSysIn.get() == nullptr)
-      return;
-
-   if (OriOut)
-      SaveCurSysCoOri(aSysIn);
-   else
-      SaveCurSysCoGCP(aSysIn);
-}
-
-
-
-
-//  cMMVII_Appli DirRessourcesMMVII
 
         //  =============  Rigid bloc  =================
 
@@ -937,6 +1062,24 @@ std::list<cBlocOfCamera *> cPhotogrammetricProject::ReadBlocCams() const
 
     return aRes;
 }
+
+
+//  =============  Topo Mes  =================
+
+               // TOPO
+
+
+void   cPhotogrammetricProject::SaveTopoMes(const cBA_Topo & aBATopo) const
+{
+    std::string  aName = mDPTopoMes.FullDirOut() + "TopoOut." + TaggedNameDefSerial();
+    aBATopo.ToFile(aName);
+}
+
+std::vector<std::string> cPhotogrammetricProject::ReadTopoMes() const
+{
+    return GetFilesFromDir(mDPTopoMes.FullDirIn(),AllocRegex(std::string(".*")));
+}
+
 
         //  =============  Meta Data =================
 

@@ -10,7 +10,58 @@
 
 \section{Encapsulation of boost, stl ..}
 \section{Error handling}
+
+%------------------------------------------------------------------
+%------------------------------------------------------------------
+%------------------------------------------------------------------
+
 \section{Memory check}
+
+
+%------------------------------------------------------------------
+\subsection{Detecting memory leak}
+
+Once memory leak has been detected, if the programmer cannot find easily the source of
+this leak, \PPP offer the following facility :
+
+First \PPP must be at its highest level of debug in file {\tt MMVII\_Error.h} :
+
+\begin{verbatim}
+#define The_MMVII_DebugLevel The_MMVII_DebugLevel_InternalError_micro
+\end{verbatim}
+
+Then compile and run a first time  the command that generate the leak, the identifiant of first
+object having generated the link will appears on the console :
+
+\begin{verbatim}
+========================== Ident of Non Freed object  102
+\end{verbatim}
+
+Now run again the same command using option the option {\tt NTOC4ML} under the debugger, the programm
+will stop the execution at the creation of the object, the debugger allowing to inspect the context ,
+will get something like that:
+
+\begin{verbatim}
+gdb MMVII
+...
+ run   .... NTOC4ML=102
+ ....
+ Mes=[Creation of object tagged for memory leak tracking]
+ ....
+.... in MMVII::cMemCountable::cMemCountable...
+...  MMVII::cMemCheck::cMemCheck (this=0x555557d54d58) ....
+...  MMVII::cDataGenUnTypedIm<2>::cDataGenUnTypedIm ....
+....
+...  MMVII::cAppliCheckBoardTargetExtract::DoOneImage  ...
+...
+\end{verbatim}
+
+
+
+%------------------------------------------------------------------
+%------------------------------------------------------------------
+%------------------------------------------------------------------
+
 \section{Serialization}
 \section{Shared pointer}
 

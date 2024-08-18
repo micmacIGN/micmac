@@ -1,6 +1,6 @@
 {
-   "Type" :"std::string" ,
-   "Version" :"std::string" ,
+   "Type" :"MMVII_Serialization" ,
+   "Version" :"0.0.0" ,
    "Data" :
    {
       "TS1" :

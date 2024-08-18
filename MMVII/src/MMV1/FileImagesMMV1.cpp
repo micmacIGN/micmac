@@ -177,6 +177,8 @@ template <class Type> void cMMV1_Conv<Type>::ReadWrite
                                const cRect2& aR2Init
                            )
 {
+
+// StdOut() <<  "aP0File,aP0File, " << aP0File << "\n";
    Init_mm3d_In_MMVII();
    // C'est une image en originie (0,0) necessairement en MMV1
    const tImMMVII & aImV2 = *(aVecImV2.at(0));
@@ -430,12 +432,17 @@ cIm2D<tU_INT1> ImageOfString_DCT(const std::string & aStr ,int aSpace)
 
 void Convert_JPG(const std::string &  aNameIm,bool DeleteAfter,tREAL8 aQuality,const std::string & aPost)
 {
+    // std::string aStrCom = "convert -quality "+ToStr(aQuality) + " "+  aNameIm + " " + LastPrefix(aNameIm) + "." + aPost;
+
     cParamCallSys aCom("convert","-quality",ToStr(aQuality),
 	                   aNameIm,
                        LastPrefix(aNameIm) + "." + aPost
                        );
 
        int aResult = GlobSysCall(aCom,true);
+
+      // StdOut() << "CCC= " << aStrCom << "\n";
+      // StdOut() << "Convert_JPGConvert_JPG\n"; getchar();
 
        if ( (aResult==EXIT_SUCCESS) && DeleteAfter)
        {

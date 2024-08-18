@@ -53,7 +53,7 @@ void MMVII_RestoreDefaultHandle()
 
 
 
-void MMVII_UsersErrror(const eTyUEr & aRef,const std::string & aMes)
+void MMVII_UserError(const eTyUEr & aRef,const std::string & aMes)
 {
     MMVVI_Error
     (
@@ -66,7 +66,7 @@ void MMVII_UsersErrror(const eTyUEr & aRef,const std::string & aMes)
 
 void MMVII_UnclasseUsEr(const std::string & aMes)
 {
-    MMVII_UsersErrror(eTyUEr::eUnClassedError,aMes);
+    MMVII_UserError(eTyUEr::eUnClassedError,aMes);
 }
 
 /// Warning : temporary version

@@ -68,8 +68,12 @@ template <class Type> void TestOneImage2D(const cPt2di & aP0,const cPt2di & aP1)
            MMVII_INTERNAL_ASSERT_bench(aIm.GetV(aP)==0,"Bench image error");
        }
     }
-    cPt2di aP0Pert = cPt2di(RandUnif_N(3), RandUnif_N(3));
-    cPt2di aP1Pert = aP0Pert + cPt2di(1+RandUnif_N(3),1+RandUnif_N(3));
+    auto v1 = RandUnif_N(3);
+    auto v2 = RandUnif_N(3);
+    cPt2di aP0Pert = cPt2di(v1, v2);
+    auto v3 = 1+RandUnif_N(3);
+    auto v4 = 1+RandUnif_N(3);
+    cPt2di aP1Pert = aP0Pert + cPt2di(v3,v4);
     cIm2D<Type> aPIm(aP0Pert,aP1Pert);
     aPIm.DIm().Resize(aP0,aP1);
 
@@ -230,7 +234,9 @@ template <class Type> void TestInterBL(cPt2di aSz,Type aCste,Type aCoeffX,Type a
     for (int aNb=0 ; aNb<10000 ; aNb++)
     {
         double UnMinEpsilon = 0.99999;
-        cPt2dr aP(RandUnif_0_1() * (aSz.x()-1),RandUnif_0_1()*(aSz.y()-1));
+        auto v1 = RandUnif_0_1() * (aSz.x()-1);
+        auto v2 = RandUnif_0_1()*(aSz.y()-1);
+        cPt2dr aP(v1,v2);
         aP = UnMinEpsilon * aP;
         double aV1 = aCste + aCoeffX * aP.x() + aCoeffY * aP.y() + aCXY * aP.x() * aP.y();
         double aV2 = aDIm.GetVBL(aP);
@@ -242,9 +248,11 @@ template <class Type> void TestInterBL(cPt2di aSz,Type aCste,Type aCoeffX,Type a
         //  =============== Test on grad =========================
 
             // Make a pts not too close to pixel limit
+        auto v3 = RandUnif_0_1();
+        auto v4 = RandUnif_0_1();
         aP =   cPt2dr(round_down(aP.x()),round_down(aP.y())) 
              + cPt2dr(0.1,0.1) 
-             + cPt2dr(RandUnif_0_1(),RandUnif_0_1()) * 0.8;
+             + cPt2dr(v3,v4) * 0.8;
 
          
             // compute Gx,Gy,Val

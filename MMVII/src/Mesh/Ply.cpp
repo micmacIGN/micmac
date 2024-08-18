@@ -2147,7 +2147,7 @@ template <class Type>  cTriangulation3D<Type>::cTriangulation3D(const std::strin
     } 
     else
     {
-       MMVII_UsersErrror(eTyUEr::eBadPostfix,"Unknown postfix in cTriangulation3D");
+       MMVII_UserError(eTyUEr::eBadPostfix,"Unknown postfix in cTriangulation3D");
     }
 }
 
@@ -2159,7 +2159,7 @@ template <class Type> void cTriangulation3D<Type>::WriteFile(const std::string &
     } 
     else
     {
-       MMVII_UsersErrror(eTyUEr::eBadPostfix,"Unknown postfix in cTriangulation3D");
+       MMVII_UserError(eTyUEr::eBadPostfix,"Unknown postfix in cTriangulation3D");
     }
 }
 

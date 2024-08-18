@@ -113,7 +113,12 @@ template <class Type> cIsometry3D<Type>::cIsometry3D(const tPt& aTr,const cRotat
  *  any use drive quickly to absurd result if not error
  */
 template <class Type> cIsometry3D<Type>::cIsometry3D() :
-	cIsometry3D(tPt(0,0,0),cRotation3D<Type>(cDenseMatrix<Type>(3,3,eModeInitImage::eMIA_Null),false))
+	cIsometry3D
+	(
+	      tPt(0,0,0),
+	      // cRotation3D<Type>(cDenseMatrix<Type>(3,3,eModeInitImage::eMIA_Null),false)
+	      cRotation3D<Type>()
+        )
 {
 }
 
@@ -192,7 +197,9 @@ template <class Type> cIsometry3D<Type> cIsometry3D<Type>::FromTriInAndOut
 template <class Type> 
    cIsometry3D<Type> cIsometry3D<Type>::RandomIsom3D(const Type & AmplPt)
 {
-    return  cIsometry3D<Type> (tPt::PRandC()*AmplPt,cRotation3D<Type>::RandomRot());
+    auto aTr = tPt::PRandC()*AmplPt;
+    auto aRot = cRotation3D<Type>::RandomRot();
+    return  cIsometry3D<Type> (aTr, aRot);
 }
 
 template <class Type> cIsometry3D<tREAL8>  ToReal8(const cIsometry3D<Type>  & anIsom)
@@ -200,6 +207,30 @@ template <class Type> cIsometry3D<tREAL8>  ToReal8(const cIsometry3D<Type>  & an
     return cIsometry3D<tREAL8>(  ToR(anIsom.Tr()) , ToReal8(anIsom.Rot())  );
 }
 
+void AddData(const cAuxAr2007 & anAux,tRotR & aRot)
+{
+     cPt3dr aI = aRot.AxeI();
+     cPt3dr aJ = aRot.AxeJ();
+     cPt3dr aK = aRot.AxeK();
+
+     cAuxAr2007 aAuxRot("RotMatrix",anAux);
+     MMVII::AddData(cAuxAr2007("AxeI",aAuxRot),aI);
+     MMVII::AddData(cAuxAr2007("AxeJ",aAuxRot),aJ);
+     MMVII::AddData(cAuxAr2007("AxeK",aAuxRot),aK);
+
+     if (anAux.Input())
+     {
+         aRot = tRotR(MatFromCols(aI,aJ,aK),false);
+     }
+}
+void AddData(const cAuxAr2007 & anAux,tPoseR & aPose)
+{
+     // StdOut() << "AddDataAddData anAux,tPoseR\n";
+     MMVII::AddData(cAuxAr2007("Center",anAux),aPose.Tr());
+     MMVII::AddData(anAux,aPose.Rot());
+} 
+
+/*
 void AddData(const cAuxAr2007 & anAux,tPoseR & aPose)
 {
      cPt3dr aC = aPose.Tr();
@@ -220,6 +251,7 @@ void AddData(const cAuxAr2007 & anAux,tPoseR & aPose)
      }
 }
 
+*/
 
 /* ************************************************* */
 /*                                                   */
@@ -227,12 +259,46 @@ void AddData(const cAuxAr2007 & anAux,tPoseR & aPose)
 /*                                                   */
 /* ************************************************* */
 
+template <class Type> cRotation3D<Type>::cRotation3D() :
+	mMat (3,3,eModeInitImage::eMIA_Null)
+{
+}
+	      // cRotation3D<Type>(cDenseMatrix<Type>(3,3,eModeInitImage::eMIA_Null),false)
+	      
 template <class Type> cRotation3D<Type>::cRotation3D(const cDenseMatrix<Type> & aMat,bool RefineIt) :
    mMat (aMat)
 {
    if (RefineIt)
    {
       mMat = mMat.ClosestOrthog();
+   }
+   else
+   {
+#if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )
+       cPtxd<Type,3> aI = AxeI();
+       cPtxd<Type,3> aJ = AxeJ();
+       cPtxd<Type,3> aK = AxeK();
+
+       // "Epsilon value" set empirically taking into account the value obseved on current bench
+
+       // are the vector unitar, take into account accuracy of type
+       tREAL8 aDifN = (std::abs(SqN2(aI)-1)+std::abs(SqN2(aJ)-1)+std::abs(SqN2(aK)-1)) / tElemNumTrait<Type>::Accuracy() ;
+// StdOut() << "ffffffffff  " << std::abs(SqN2(aI)-1)<< " " << std::abs(SqN2(aJ)-1) << " " << std::abs(SqN2(aK)-1) << "\n";
+       MMVII_INTERNAL_ASSERT_tiny(aDifN<1e-3,"Rotation 3D init non norm w/o RefineIt");
+
+       // are the vector orthognal, take into account accuracy of type
+       tREAL8 aDifS = (std::abs(Scal(aI,aJ))) / tElemNumTrait<Type>::Accuracy() ;
+       MMVII_INTERNAL_ASSERT_tiny(aDifS<1e-4,"Rotation 3D init non orthog w/o RefineIt");
+
+       /*
+       static tREAL8 aMaxDif=0;
+       if (aDifS> aMaxDif)
+       {
+            aMaxDif = aDifS;
+            StdOut() << "*********************** ******************** DIFFSSS=" << tNumTrait<Type>::NameType() <<  " "<< aMaxDif << "\n";
+       }
+       */
+#endif
    }
    // MMVII_INTERNAL_ASSERT_always((! RefineIt),"Refine to write in Rotation ...");
 }
@@ -386,19 +452,45 @@ template <class Type> cPtxd<Type,3>  cRotation3D<Type>::ToYPR() const
 	return tPt(-aWPK.z(),-aWPK.y(),-aWPK.x());
 }
 
+template <class Type> cDenseMatrix<Type>  cRotation3D<Type>::RotOmega(const tREAL8 & aOmega)
+{
+   Type aCx = std::cos(aOmega);
+   Type aSx = std::sin(aOmega);
+   return M3x3FromLines(tPt(1,0,0),tPt(0,aCx,-aSx),tPt(0,aSx,aCx));
+}
+
+template <class Type> cDenseMatrix<Type>  cRotation3D<Type>::RotPhi(const tREAL8 & aPhi)
+{
+   Type aCy = std::cos(aPhi);
+   Type aSy = std::sin(aPhi);
+   return M3x3FromLines(tPt(aCy,0,aSy),tPt(0,1,0),tPt(-aSy,0,aCy));
+}
+
+template <class Type> cDenseMatrix<Type>  cRotation3D<Type>::RotKappa(const tREAL8 & aKappa)
+{
+   Type aCz = std::cos(aKappa);
+   Type aSz = std::sin(aKappa);
+   return M3x3FromLines(tPt(aCz,-aSz,0),tPt(aSz,aCz,0),tPt(0,0,1));
+}
+
+template <class Type> cDenseMatrix<Type>  cRotation3D<Type>::Rot1WPK(int aK,const tREAL8 & aTeta)
+{
+    switch (aK)
+    {
+        case 0 : return RotOmega(aTeta);
+        case 1 : return RotPhi(aTeta);
+        case 2 : return RotKappa(aTeta);
+    }
+    MMVII_INTERNAL_ERROR("Bad value of K in Rot1WPK : " + ToStr(aK));
+    return  cDenseMatrix<Type>(3);
+}
+
+
 template <class Type> cRotation3D<Type>  cRotation3D<Type>::RotFromWPK(const tPt & aWPK)
 {
-   Type aCx = std::cos(aWPK.x());
-   Type aSx = std::sin(aWPK.x());
-   auto aRx = M3x3FromLines(tPt(1,0,0),tPt(0,aCx,-aSx),tPt(0,aSx,aCx));
-
-   Type aCy = std::cos(aWPK.y());
-   Type aSy = std::sin(aWPK.y());
-   auto aRy = M3x3FromLines(tPt(aCy,0,aSy),tPt(0,1,0),tPt(-aSy,0,aCy));
-
-   Type aCz = std::cos(aWPK.z());
-   Type aSz = std::sin(aWPK.z());
-   auto aRz = M3x3FromLines(tPt(aCz,-aSz,0),tPt(aSz,aCz,0),tPt(0,0,1));
+   auto aRx = RotOmega(aWPK.x());
+   auto aRy = RotPhi(aWPK.y());
+   auto aRz = RotKappa(aWPK.z());
 
    return cRotation3D<Type>(aRx*aRy*aRz,false);
 /*
@@ -484,7 +576,7 @@ template <class Type> cPtxd<Type,3>  cRotation3D<Type>::ToWPK() const
              cDenseVect<Type> aVCoef(3);
 	     for (int aKCoord =0 ; aKCoord<3 ; aKCoord++)
                 aVCoef(aKCoord) = aVecDer[aKCoord].GetElem(aPix);
-	     aSys.AddObservation(1.0,aVCoef ,mMat.GetElem(aPix));
+	     aSys.PublicAddObservation(1.0,aVCoef ,mMat.GetElem(aPix));
 
 	}
 

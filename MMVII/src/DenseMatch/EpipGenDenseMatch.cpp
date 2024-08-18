@@ -109,6 +109,8 @@ class cOneLevel
        /// Once clipped match was done, save in global file
        void SaveGlobPx(const cParam1Match & aParam) const;
 
+       void CalculNappeEnglobante(cParam1Match &, cBox2di & aBF1, cBox2di & aBF2) const;
+
 
              // --- Many method for file name and command generation
                    
@@ -501,6 +503,8 @@ void cOneLevel::SaveGlobPx(const cParam1Match & aParam) const
    }
    aImClipPx.Write(cDataFileIm2D::Create(mAppli.mOutDir+mNamePx,false),aParam.mBoxOut.P0());
 }
+
+
 
 void cOneLevel::EstimateIntervPx
      (
@@ -980,7 +984,7 @@ void  cAppli::MatchOneLevel(int aLevel)
 
         // The master level must compute the paralax interval  to complete param
         aILev1.EstimateIntervPx(aParam,aCurBoxFile1,aCurBoxFile2,mMaxAmplPxCur);
-        // Now Param ix complete
+        // Now Param ix compIntervPlete
         aLParam.push_back(aParam);
         if (aParam.mCanDoMatch)
         {

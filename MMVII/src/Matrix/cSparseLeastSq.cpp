@@ -125,15 +125,15 @@ template<class Type>  class cSparseLeasSq : public cLeasSq<Type>
 {
       public :
        /// Here genereate an error, no need to handle dense vector in sparse systems
-         void AddObservation(const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) override;
+         void SpecificAddObservation(const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) override;
          cSparseLeasSq(int  aNbVar);
 };
 
-template<class Type> void cSparseLeasSq<Type>::AddObservation
+template<class Type> void cSparseLeasSq<Type>::SpecificAddObservation
                       (const Type& aW ,const cDenseVect<Type> & aDV ,const Type & aVal ) 
 {
    // call to virtual  method, dont know why, compiler dont agre w/o cast 
-    static_cast<cLinearOverCstrSys<Type> *>(this)-> AddObservation(aW,cSparseVect(aDV),aVal);
+    static_cast<cLinearOverCstrSys<Type> *>(this)-> SpecificAddObservation(aW,cSparseVect(aDV),aVal);
 }
 
 template<class Type> 
@@ -323,9 +323,9 @@ template<class Type>  class cSparseLeasSqtAA : public cSparseLeasSq<Type>
          cSparseLeasSqtAA(int  aNbVar,const cParamSparseNormalLstSq & aParam);
          ~cSparseLeasSqtAA();
 
-         using cSparseLeasSq<Type>::AddObservation;         // Shutup CLANG about hiding overload virtual function
+         using cSparseLeasSq<Type>::SpecificAddObservation;         // Shutup CLANG about hiding overload virtual function
        /// Here memorize the obs
-         void AddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) override;
+         void SpecificAddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) override;
 
           void Reset() override;
           cDenseVect<Type>  Solve() override;
@@ -634,7 +634,7 @@ template<class Type> cDenseVect<Type> cSparseLeasSqtAA<Type>::Solve()
 
 
 
-template<class Type> void  cSparseLeasSqtAA<Type>::AddObservation
+template<class Type> void  cSparseLeasSqtAA<Type>::SpecificAddObservation
                            (
                                const Type& aWeight,
 			       const cSparseVect<Type> & aCoeff,
@@ -775,9 +775,9 @@ template<class Type>  class cSparseLeasSqGC : public cSparseLeasSq<Type>
 
          cSparseLeasSqGC(int  aNbVar );
 
-         using cSparseLeasSq<Type>::AddObservation;         // Shutup CLANG about hiding overload virtual function
+         using cSparseLeasSq<Type>::SpecificAddObservation;         // Shutup CLANG about hiding overload virtual function
        /// Here memorize the obs
-         void AddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) override;
+         void SpecificAddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) override;
 
          void Reset() override;
          cDenseVect<Type>  Solve() override;
@@ -801,7 +801,7 @@ template<class Type>
 {
 }
 
-template<class Type>  void cSparseLeasSqGC<Type>::AddObservation
+template<class Type>  void cSparseLeasSqGC<Type>::SpecificAddObservation
                            (
                                const Type& aWeight,
                                const cSparseVect<Type> & aCoeff,

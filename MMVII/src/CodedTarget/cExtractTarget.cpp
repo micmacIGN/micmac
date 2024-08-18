@@ -9,7 +9,7 @@
 #include <typeinfo>
 #include <iostream>
 #include <fstream>
-
+#include "MMVII_Sensor.h"
 
 #include "MMVII_PhgrDist.h"
 using namespace NS_SymbolicDerivative;
@@ -102,6 +102,7 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         std::vector<cPt2dr> extractButterflyEdge(const cDataIm2D<float> &, cDCT*);
         std::vector<cPt2dr> extractButterflyEdgeOld(const cDataIm2D<float> &, cDCT*);
         void exportInXml(std::vector<cDCT*>);
+        void exportMesIm();
         void plotDebugImage(cDCT*, const cDataIm2D<float>&);
         tImTarget generateRectifiedImage(cDCT*, const cDataIm2D<float>&);
         std::vector<cPt2dr> getEncodingPositions(tDataImT &, cDCT*);
@@ -208,6 +209,7 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         int mSizeYDrone;
         int mSizeXDroneSym;
         int mSizeYDroneSym;
+        cPhotogrammetricProject     mPhProj;
         
 };
 
@@ -260,7 +262,8 @@ cAppliExtractCodeTarget::cAppliExtractCodeTarget(const std::vector<std::string> 
    mSizeXDrone      (600),
    mSizeYDrone      (1096),
    mSizeXDroneSym   (600),
-   mSizeYDroneSym   (848)
+   mSizeYDroneSym   (848),
+   mPhProj          (*this)
 {
 }
 
@@ -303,6 +306,7 @@ cCollecSpecArg2007 & cAppliExtractCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgO
                     << AOpt2007(mLineWidthDebug, "Line", "Size of lines in debug plot", {eTA2007::HDV})
                     << AOpt2007(mLetter, "Letter", "Size of letters in debug plot", {eTA2007::HDV})
                     << AOpt2007(mGroundTruthFile, "GT", "Ground truth file (if any)", {eTA2007::HDV})
+                    << mPhProj.DPPointsMeasures().ArgDirOutOptWithDef("Std")
 	  );
    ;
 }
@@ -471,7 +475,7 @@ void  cAppliExtractCodeTarget::DoExtract(){
          //    [1.1]   extract integer pixel
          cIm2D<tREAL4>  aImSym = ImSymmetricity(false,aIm,mRayMinCB*0.4,mRayMinCB*0.8,0);  // compute fast symetry
 
-         if (1)
+         if (0)
          {
             aImSym.DIm().ToFile("TestDCT_SYMINIT_SimulTarget_test.tif");
          }
@@ -647,12 +651,19 @@ void  cAppliExtractCodeTarget::DoExtract(){
     // ------------------------------------------------
     // Xml output (if needed)
     // ------------------------------------------------
-    if (mXml != "") exportInXml(mVDCTOk);
+    if (mXml != "")
+    {
+        exportInXml(mVDCTOk);
+    }
+    
 
     // ------------------------------------------------
     // Plot debug if needed
     // ------------------------------------------------
-    if (mDebugPlot) mImVisu.ToFile("VisuCodeTarget.tif");
+    if (mDebugPlot)
+    {
+        mImVisu.ToFile(mPhProj.DirVisu() + mNameIm + "_" + "VisuCodeTarget.tif");
+    }
 
 }
 
@@ -682,7 +693,34 @@ void cAppliExtractCodeTarget::exportInXml(std::vector<cDCT*> mVDCTOk){
 
 }
 
+// ---------------------------------------------------------------------------
+// Function to export result in xml MMVII
+// ---------------------------------------------------------------------------
+void cAppliExtractCodeTarget::exportMesIm()
+{
+    cSetMesPtOf1Im  aSetMes(FileOfPath(mNameIm));
 
+    for(auto aDCT : mVDCTOk)
+    {
+        std::string aGcpName = aDCT->mDecodedName;
+
+		cPt2dr aPtIm;
+        aPtIm.x() = aDCT->mRefinedCenter.x();
+        aPtIm.y() = aDCT->mRefinedCenter.y();
+
+        if((aDCT->mDecodedName != "") && (aDCT->mDecodedName.substr(0,2) != "NA"))
+        {
+            //fill aSetMesOut
+		    cMesIm1Pt aMesIm1Pt(aPtIm,aGcpName,1.0);
+		    aSetMes.AddMeasure(aMesIm1Pt);
+        }
+
+
+    }
+
+    //write in a file
+	mPhProj.SaveMeasureIm(aSetMes);
+}
 
 // ---------------------------------------------------------------------------
 // Function to test if a predetected DCT candidate is valid
@@ -1854,7 +1892,9 @@ void cAppliExtractCodeTarget::benchEllipse(){
 
         // Generate data
         int nb = (int)(RandInInterval(m, M)); double flat = (param[2]-param[3])/param[2];
-        double noise = RandInInterval(0, noise_max)*param[3]*(RandInInterval(0,1) > 1e-1);
+        auto v1 = RandInInterval(0, noise_max);
+        auto v2 = RandInInterval(0,1);
+        double noise = v1*param[3]*(v2 > 1e-1);
         std::vector<cPt2dr> POINTS = generatePointsOnEllipse(param, nb, noise);
         StdOut() << "Generating " << nb << " pts:  FLAT. = " << flat;
         StdOut() << " ANG = " << param[4]*180/PI << " NOISE = " << noise << " ";
@@ -1956,6 +1996,8 @@ int cAppliExtractCodeTarget::ExeOnParsedBox()
 
 
 int  cAppliExtractCodeTarget::Exe(){
+
+    mPhProj.FinishInit();
 
 
     if (mTest){
@@ -2070,6 +2112,7 @@ int  cAppliExtractCodeTarget::Exe(){
 
    APBI_ExecAll();  // run the parse file  SIMPL
 
+    exportMesIm();
 
    delete mSpec;
    return EXIT_SUCCESS;

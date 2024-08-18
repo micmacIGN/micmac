@@ -292,6 +292,7 @@ template  <typename tScal>
 template <class Type> class cPoseF
 {
      public :
+         typedef cPtxd<Type,3>      tPt;
 
         cPoseF(const cPtxd<Type,3> & aCenter,const cMatF<Type> & aMat) :
              mCenter  (aCenter),
@@ -314,6 +315,8 @@ template <class Type> class cPoseF
         {
         }
 
+        tPt   Value(const tPt & aPt) const  {return mCenter + mIJK*aPt;}
+        // Work as M tM = Id
 
         /// A pose being considered a the, isometric, mapinc X->Tr+R*X, return pose corresponding to inverse mapping
         cPoseF<Type> Inverse() const

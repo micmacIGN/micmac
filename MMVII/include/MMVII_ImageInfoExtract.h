@@ -26,6 +26,7 @@ std::optional<double>  InterpoleExtr(double V1,double V2,double V3);
 /**  Given three consecutive value interpole the extremum assumming a parabol
 */
 double  StableInterpoleExtr(double V1,double V2,double V3);
+double  ValueStableInterpoleExtr(double V1,double V2,double V3);
 
 
 

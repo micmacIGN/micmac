@@ -17,6 +17,8 @@ using namespace MMVII;
 
 int main(int argc, char ** argv)
 {
+
+
    std::setlocale(LC_ALL, "C");
    // std::setlocale(LC_ALL, "en_US.UTF-8");
 
@@ -47,7 +49,8 @@ int main(int argc, char ** argv)
          std::vector<std::string> aVArgs;
          for (int aK=0 ; aK<argc; aK++)
              aVArgs.push_back(argv[aK]);
-         return aSpec->AllocExecuteDestruct(aVArgs);
+         int aRes =  aSpec->AllocExecuteDestruct(aVArgs);
+         return aRes;
       }
    }
 

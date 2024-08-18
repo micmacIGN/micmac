@@ -30,7 +30,7 @@ namespace MMVII
      uniqueness of solution, some arbitrary constraint are added on "frozen" points  (X0=0,Y0=0 and X1=0)
 
 Classes :
-     # cPNetwork       represent one point of the network 
+     # cPNetwork      represent one point of the network 
      # cMainNetwork   represent the network  itself
 */
 namespace NS_Bench_RSNL
@@ -120,17 +120,17 @@ template <class Type>  class  cMainNetwork
 	  Type  NetSz() const {return Norm2(mBoxInd.Sz());}
 
           /// If we use this iteration for covariance calculation , we dont add constraint, and dont solve
-	  Type DoOneIterationCompensation(double  aWeigthGauge,bool WithCalcReset);
+	  Type DoOneIterationCompensation(double  aWeigthGauge,bool WithCalcReset,bool CanMangleCstr);
 
 
-          ///  Distance observed between 2 points, can be redefines if we want to add noise
+          ///  Distance observed between 2 points, can be redefined if we want to add noise
           virtual Type ObsDist(const tPNet & aPN1,const tPNet & aPN2) const;
 
 	  /// A network can filter the linking on it own criteria, default -> true
 	  virtual bool OwnLinkingFiltrage(const cPt2di & aP1,const cPt2di & aP2) const;
 
 	  Type CalcResidual();
-	  void AddGaugeConstraint(Type aWeight); // W<0 : hard constraint, W>0 soft, W==0  None 
+	  void AddGaugeConstraint(Type aWeight,bool CanUseMangle); // W<0 : hard constraint, W>0 soft, W==0  None 
 
 
           /// Access to CurSol of mSys

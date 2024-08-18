@@ -43,6 +43,13 @@ cPixelDomain::cPixelDomain(cDataPixelDomain * aDPD) :
 
 const cPt2di & cPixelDomain::Sz() const {return mDPD->Sz();}
 
+tREAL8 cPixelDomain::DegreeVisibility(const cPt2dr & aP) const
+{
+   cBox2dr aBox(cPt2dr(0,0),ToR(Sz()));
+   return aBox.Insideness(aP);
+}
+
+
 /* ******************************************************* */
 /*                                                         */
 /*                   cSensorImage                          */
@@ -50,9 +57,39 @@ const cPt2di & cPixelDomain::Sz() const {return mDPD->Sz();}
 /* ******************************************************* */
 
 cSensorImage::cSensorImage(const std::string & aNameImage) :
-     mNameImage (aNameImage)
+     mNameImage      (aNameImage),
+     mEqColinearity  (nullptr),
+     mEqCIsInit      (false)
 {
 }
+
+cSensorImage::~cSensorImage()
+{
+}
+
+
+const cPt3dr * cSensorImage::CenterOfPC() const  {return nullptr;} // By default, we are not a central perpective
+								    //
+cCalculator<double> * cSensorImage::SetAndGetEqColinearity(bool WithDerives,int aSzBuf,bool ReUse)
+{
+    if (! mEqCIsInit)
+    {
+       MMVII_INTERNAL_ASSERT_tiny(WithDerives,"SetAndGetEqColinearity  w/o derivate to implement");
+       mEqCIsInit = true;
+       mEqColinearity  = CreateEqColinearity(WithDerives,aSzBuf,ReUse);
+    }
+
+    return mEqColinearity;
+}
+
+cCalculator<double> * cSensorImage::GetEqColinearity()
+{
+    MMVII_INTERNAL_ASSERT_tiny(mEqCIsInit,"GetEqColinearity Eq not init");
+
+    return mEqColinearity;
+}
+
+
 
 void cSensorImage::SetNameImage(const std::string & aNameImage)
 {
@@ -76,6 +113,72 @@ double  cSensorImage::AvgSqResidual(const cSet2D3D & aSet) const
      return std::sqrt(aSum/aSet.Pairs().size());
 }
 
+double cSensorImage::DegreeVisibilityOnImFrame(const cPt2dr & aP) const 
+{
+     return PixelDomain().DegreeVisibility(aP);
+}
+
+std::vector<cPt2dr>  cSensorImage::PtsSampledOnSensor(int aNbByDim,tREAL8 aEpsMarginRel)  const 
+{
+    std::vector<cPt2dr> aRes;
+    tREAL8 aEps =  aNbByDim * aEpsMarginRel;
+
+    for (int aKx=0 ; aKx<=aNbByDim ; aKx++)
+    {
+        for (int aKy=0 ; aKy<=aNbByDim ; aKy++)
+	{
+            aRes.push_back(  MulCByC(ToR(Sz()) , cPt2dr(aKx+aEps,aKy+aEps)/tREAL8(aNbByDim+2*aEps)) );
+	}
+    }
+
+    return aRes;
+}
+
+
+     // method that by default generate errors, 
+
+cPt3dr cSensorImage::Ground2ImageAndDepth(const cPt3dr &) const
+{
+    MMVII_INTERNAL_ERROR("No cSensorImage::Ground2ImageAndDepth");
+    return cPt3dr::Dummy();
+}
+
+cPt3dr cSensorImage::ImageAndDepth2Ground(const cPt3dr &) const
+{
+    MMVII_INTERNAL_ERROR("No cSensorImage::ImageAndDepth2Ground");
+    return cPt3dr::Dummy();
+}
+
+cCalculator<double> * cSensorImage::CreateEqColinearity(bool WithDerives,int aSzBuf,bool ReUse)
+{
+    MMVII_INTERNAL_ERROR("cSensorImage::CreateEqColinearity not implemanted");
+    return nullptr;
+}
+
+void cSensorImage::PutUknowsInSetInterval()
+{
+    MMVII_INTERNAL_ERROR("cSensorImage::PutUknowsInSetInterval not implemanted");
+}
+
+void cSensorImage::PushOwnObsColinearity( std::vector<double> &,const cPt3dr&) 
+{
+    MMVII_INTERNAL_ERROR("cSensorImage::PushOwnObsColinearity not implemanted");
+}
+
+void cSensorImage::ToFile(const std::string &) const 
+{
+    MMVII_INTERNAL_ERROR("cSensorImage::ToFile not implemanted");
+}
+
+
+cPt2dr cSensorImage::GetIntervalZ() const
+{
+    MMVII_INTERNAL_ERROR("cSensorImage::GetIntervalZ not implemanted");
+    return cPt2dr::Dummy();
+}
+
+
+
 /*
 double cSensorImage::RobustAvResidualOfProp(const cSet2D3D &,double aProp) const
 {
@@ -95,6 +198,7 @@ double cSensorImage::RobustAvResidualOfProp(const cSet2D3D &,double aProp) const
 std::string cSensorImage::PrefixName() { return "Ori"; }
 
 
+
 std::string  cSensorImage::NameOri_From_PrefixAndImage(const std::string & aPrefix,const std::string & aNameImage)
 { 
     return PrefixName() + "-" + aPrefix + "-" + aNameImage + "." + GlobTaggedNameDefSerial(); 
@@ -110,6 +214,43 @@ cPt3dr cSensorImage::ImageAndDepth2Ground(const cPt2dr & aP2,const double & aDep
 {
     return ImageAndDepth2Ground(cPt3dr(aP2.x(),aP2.y(),aDepth));
 }
+
+bool   cSensorImage::HasImageAndDepth() const {return false;}
+bool   cSensorImage::HasIntervalZ() const {return false;}
+
+cPt3dr  cSensorImage::EpsDiffGround2Im(const cPt3dr &) const 
+{
+    MMVII_INTERNAL_ERROR("EspDiffGround2Im has not been defined for sensor class : " + V_PrefixName());
+    return cPt3dr::Dummy();
+}
+
+tProjImAndGrad  cSensorImage::DiffG2IByFiniteDiff(const cPt3dr & aPt) const
+{
+     tProjImAndGrad aRes;
+     aRes.mPIJ = Ground2Image(aPt);
+
+     cPt3dr aEpsXYZ = EpsDiffGround2Im(aPt);
+
+     for (size_t aKCoord=0 ; aKCoord<3 ; aKCoord++)
+     {
+          tREAL8 aEps = aEpsXYZ[aKCoord];
+	  cPt3dr aPPlus =  aPt + cPt3dr::P1Coord(aKCoord,aEps);
+	  cPt3dr aPMinus = aPt + cPt3dr::P1Coord(aKCoord,-aEps);
+
+	  cPt2dr aGradK = (Ground2Image(aPPlus)-Ground2Image(aPMinus)) / (2*aEps);
+
+	  aRes.mGradI[aKCoord] = aGradK.x();
+	  aRes.mGradJ[aKCoord] = aGradK.y();
+     }
+     return aRes;
+}
+
+tProjImAndGrad  cSensorImage::DiffGround2Im(const cPt3dr & aPt) const
+{
+	return DiffG2IByFiniteDiff(aPt);
+}
+
+
 
 
 
@@ -177,34 +318,47 @@ cPt3dr cSensorImage::RandomVisiblePGround(tREAL8 aDepMin,tREAL8 aDepMax)
 
 
 
-cSet2D3D  cSensorImage::SyntheticsCorresp3D2D (int aNbByDim,std::vector<double> & aVecDepth) const
+cSet2D3D  cSensorImage::SyntheticsCorresp3D2D (int aNbByDim,std::vector<double> & aVecDepth,bool IsDepthOrZ,tREAL8 aEpsMarginRel) const
 {
     cSet2D3D aResult;
 
-    std::vector<cPt2dr>  aVPts =  PtsSampledOnSensor(aNbByDim);
+    std::vector<cPt2dr>  aVPts =  PtsSampledOnSensor(aNbByDim,aEpsMarginRel);
 
     for (const auto & aPIm : aVPts)
     {
         for (const auto & aDepth : aVecDepth)
         {
-	     aResult.AddPair(aPIm,ImageAndDepth2Ground(aPIm,aDepth));
+             cPt3dr aP = IsDepthOrZ                                           ? 
+		           ImageAndDepth2Ground(aPIm,aDepth)                  :
+		           ImageAndZ2Ground(cPt3dr(aPIm.x(),aPIm.y(),aDepth)) ;
+	     aResult.AddPair(aPIm,aP);
 	}
     }
 
     return aResult;
 }
          ///  call variant with vector, depth regularly spaced
-cSet2D3D  cSensorImage::SyntheticsCorresp3D2D (int aNbByDim,int aNbDepts,double aD0,double aD1) const
+cSet2D3D  cSensorImage::SyntheticsCorresp3D2D (int aNbByDim,int aNbDepts,double aD0,double aD1,bool IsDepthOrZ,tREAL8 aEpsMarginRel) const
 {
    std::vector<tREAL8> aVDepth;
 
+
    for (int aKD=0 ; aKD < aNbDepts; aKD++)
    {
-        tREAL8 aW = SafeDiv(aKD,aNbDepts);
-        aVDepth.push_back(aD0 * pow(aD1/aD0,aW));
+        tREAL8 aW = (aKD+aEpsMarginRel) / (aNbDepts-1+2*aEpsMarginRel);
+        if (IsDepthOrZ)
+	{
+	     //  Case depth we make some log regular spacing
+            aVDepth.push_back(aD0 * pow(aD1/aD0,aW));
+	}
+	else
+	{
+	     //  Case z we make basic regular spacing
+             aVDepth.push_back(  (aD0* (1-aW)) + aD1 * aW);
+	}
    }
 
-   return SyntheticsCorresp3D2D(aNbByDim,aVDepth);
+   return SyntheticsCorresp3D2D(aNbByDim,aVDepth,IsDepthOrZ,aEpsMarginRel);
 }
 
 bool cSensorImage::IsVisible(const cPt3dr & aP3) const  { return DegreeVisibility(aP3) > 0; }
@@ -237,6 +391,12 @@ cEllipse cSensorImage::EllipseIm2Plane(const cPlane3D & aPlane,const cEllipse & 
     return aEEst.Compute() ;
 }
 
+const cPt3dr *  cSensorImage::CenterOfFootPrint() const
+{
+   return nullptr;
+}
+
+
 cPt3dr cSensorImage::PInterBundle(const cHomogCpleIm & aCple,const cSensorImage & other) const
 {
      tSeg3dr aSeg1 = this->Image2Bundle(aCple.mP1);
@@ -245,6 +405,46 @@ cPt3dr cSensorImage::PInterBundle(const cHomogCpleIm & aCple,const cSensorImage 
      return BundleInters(aSeg1,aSeg2);
 }
 
+cPt3dr cSensorImage::Ground2ImageAndZ(const cPt3dr & aPGround) const 
+{
+    cPt2dr aPIm = Ground2Image(aPGround);
+
+    return cPt3dr(aPIm.x(),aPIm.y(),aPGround.z());
+}
+
+cPt3dr cSensorImage::ImageAndZ2Ground(const cPt3dr & aPImZ) const 
+{
+    tSeg3dr  aBundle =  Image2Bundle(cPt2dr(aPImZ.x(),aPImZ.y()));
+    
+    return BundleFixZ(aBundle,aPImZ.z());
+}
+
+            // ===========   coordinate systems  ==========================
+	  
+bool  cSensorImage::HasCoordinateSystem() const 
+{
+	return mNameSysCo.has_value();
+}
+
+const  std::string & cSensorImage::GetCoordinateSystem() const 
+{
+    MMVII_INTERNAL_ASSERT_tiny(HasCoordinateSystem(),"No coord system for" + NameImage());
+    return mNameSysCo.value();
+}
+
+void cSensorImage::SetCoordinateSystem(const std::string& aSysCo) 
+{
+    if (aSysCo != MMVII_NONE)
+       mNameSysCo = aSysCo;
+}
+std::optional<std::string> &  cSensorImage::OptCoordinateSystem() { return mNameSysCo; }
+
+void cSensorImage::TransferateCoordSys(const cSensorImage & aSI)
+{
+    if (aSI.HasCoordinateSystem())
+       SetCoordinateSystem(aSI.GetCoordinateSystem());
+}
+const std::string cSensorImage::TagCoordSys = "CoordinateSys";
 
 
 

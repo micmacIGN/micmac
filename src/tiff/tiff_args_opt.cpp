@@ -84,6 +84,7 @@ int Tiff_Im::mDefTileFile = 1 << 18;
 void Tiff_Im::SetDefTileFile(int aSz)
 {
    mDefTileFile = aSz;
+
 }
 int Tiff_Im::DefTileFile()
 {
@@ -102,6 +103,9 @@ D_Tiff_ifd_Arg_opt::D_Tiff_ifd_Arg_opt() :
      _res_unit      = -1;
      _orientation   = 1;
      mSzFileTile = Pt2di(Tiff_Im::DefTileFile(),Tiff_Im::DefTileFile());
+
+
+     // std::cout << "mSzFileTilemSzFileTile " <<mSzFileTile << "\n";
 
      mExifTiff_FocalLength = -1;
      mExifTiff_FocalEqui35Length = -1;

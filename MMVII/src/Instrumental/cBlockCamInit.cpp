@@ -283,13 +283,13 @@ cPoseWithUK & cBlocOfCamera::MasterPoseInBl()
 {
      return PoseUKOfIdBloc(mData.mMaster);
 }
-cPoseWithUK &  cBlocOfCamera::PoseUKOfIdBloc(const std::string& anId)
+
+cPoseWithUK &  cBlocOfCamera::PoseUKOfIdBloc(const std::string& anId) 
 {
      auto  anIter = mData.mMapPoseUKInBloc.find(anId);
      MMVII_INTERNAL_ASSERT_tiny(anIter!=mData.mMapPoseUKInBloc.end(),"cBlocOfCamera::PoseUKOfIdBloc none for:" + anId);
 
      return anIter->second;
-
 }
 
 
@@ -491,7 +491,8 @@ void cBlocOfCamera::EstimateBlocInit(size_t aKMaster)
           //    * estimate  relative pose with KMaster
          tPoseR  aPoseR =  EstimatePoseRel1Cple(aKMaster,aKB,nullptr,"");
           //    * update mMapPoseUKInBloc
-         mData.mMapPoseUKInBloc[aName]  = cPoseWithUK(aPoseR);
+         // mData.mMapPoseUKInBloc[aName]  = cPoseWithUK(aPoseR);
+         mData.mMapPoseUKInBloc.try_emplace(aName,aPoseR);
     }
 
     Set4Compute(); //  now can be used in computation
@@ -517,7 +518,7 @@ void cBlocOfCamera::TestReadWrite(bool OmitDel) const
 
      StdOut() << "Test Hash code" << std::endl;
      StdOut() <<  "HX==HJ= " << HashValue(aBRXml,true) << " " <<  HashValue(aBRJson,true) << std::endl;
-     aBRXml.mMapPoseUKInBloc["toto"]  = tPoseR();
+     aBRXml.mMapPoseUKInBloc.try_emplace("toto"); // , tPoseR();
      StdOut() <<  "HJ!=HX " << HashValue(aBRXml,true) << " " << HashValue(aBRJson,true) << std::endl;
      getchar();
 
@@ -576,6 +577,8 @@ class cAppli_BlockCamInit : public cMMVII_Appli
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
 
+	std::vector<std::string>  Samples() const override;
+
      private :
         std::string              mSpecImIn;   ///  Pattern or xml file
         cPhotogrammetricProject  mPhProj;
@@ -590,6 +593,12 @@ class cAppli_BlockCamInit : public cMMVII_Appli
         bool                     mTestNoDel;   ///< Do force an error on memory management to illustrate the
 };
 
+std::vector<std::string>  cAppli_BlockCamInit::Samples() const
+{
+    return {
+	     "MMVII BlockCamInit SetFiltered_GCP_OK_Resec.xml   BA_311_B   '(.*)_(.*).JPG' [1,2]  Rig_311_B"
+    };
+}
 cAppli_BlockCamInit::cAppli_BlockCamInit
 (
      const std::vector<std::string> &  aVArgs,

@@ -93,7 +93,7 @@ template <class Type> void cAppli_ComputeParamIndexBinaire::AddOneEqParamLin(dou
    for (int aK=0 ; aK<mNbValByP ; aK++)
       aV(aK) = aCdg.GetV(aK);
    aV(mNbValByP) = -1;
-   mLSQOpt.AddObservation(aPds,aV,aVal);
+   mLSQOpt.PublicAddObservation(aPds,aV,aVal);
 
 }
 

@@ -50,6 +50,18 @@ std::vector<std::string> FormalBilinIm2D_NameObs(const std::string & aPrefix)
           };
 }
 
+std::vector<std::string> FormalGradInterpol_NameObs(const std::string & aPrefix)
+{
+   return std::vector<std::string> 
+          {
+              "PtX0_" + aPrefix,
+              "PtY0_" + aPrefix,
+              "Im_"   + aPrefix,
+              "Gx_"   + aPrefix,
+              "Gy_"   + aPrefix
+          };
+}
+
 /* ******************************** */
 /*                                  */
 /*         cDescOneFuncDist         */
@@ -76,7 +88,7 @@ std::string NameMon(const cPt2di& aDegMon)
 }
 
 
-cDescOneFuncDist::cDescOneFuncDist(eTypeFuncDist aType,const cPt2di aDegXY) :
+cDescOneFuncDist::cDescOneFuncDist(eTypeFuncDist aType,const cPt2di aDegXY,eModeDistMonom aModeMonom) :
    mType    (aType),
    mDegMon  (-1,-1),
    mNum     (-1)
@@ -128,9 +140,13 @@ cDescOneFuncDist::cDescOneFuncDist(eTypeFuncDist aType,const cPt2di aDegXY) :
       mDegMon = aDegXY;
       mDegTot = mDegMon.x() + mDegMon.y();
       bool isX = (mType==eTypeFuncDist::eMonX);
-      if ((isX) && (mDegTot==1))
+      if ((isX) && (mDegTot==1) && (aModeMonom==eModeDistMonom::eModeFraser))
       {
           mName = ( mDegMon.x() == 1) ? "b1" : "b2";  // Usual convention
+      }
+      else if ((mDegTot==1) && ( mDegMon.y()==0) && (aModeMonom==eModeDistMonom::eModeSysCyl))
+      {
+          mName = isX  ? "a" : "b";  // Usual convention
       }
       else
       {

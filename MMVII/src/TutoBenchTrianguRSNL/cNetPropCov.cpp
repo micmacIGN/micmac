@@ -178,8 +178,8 @@ Now we make the analysis of pro (and  cons ?) of covariance  analysis when the o
 the conclusion of experiment is coherent with theoreticall analysis:
 
     * covariance is always superior or equal to basic point propagation
-    * when the sub-network are well conditionned, the covariance and points propagation give the same results
-    * with ill conditionned sub-newtork , the difference can be significative (up to 5 in our example)
+    * when the sub-network are well conditioned, the covariance and points propagation give the same results
+    * with ill conditioned sub-newtork , the difference can be significative (up to 5 in our example)
 
               
                    ===============   Paramater description ==============
@@ -208,7 +208,7 @@ Identically we could have indicate  [1,0] ... or [1,0,0,0,0], all omitted elemen
 
 If we indicate WConf=[0,1], it correspond to a subnetwork where we have supress the left vertical edge ,
 WConf=[0,0,1]  correspond to a subnetwork where bottom horizontale edge is supressed. Purpose of this supression
-is to decrease the strenght of the subtnwork (or doing it less well conditionned).
+is to decrease the strenght of the subtnwork (or doing it less well conditioned).
 
             C_k -- D_k                       C_k -- D_k  
              |  \/                            |  \/  |   
@@ -232,7 +232,7 @@ extrem right point on the same line.
  Identically with WConf=[0,0,0,0,1] , we have conexion as [0,0,1]  with a mapping of A and B to the bottom of 
 the main newtork.
 
-The purpose of this option is two have even less conditionned netork in the sub-network, without changin the main
+The purpose of this option is two have even less conditioned netork in the sub-network, without changin the main
 network.
 
 4) Conbining configuration.
@@ -681,7 +681,7 @@ template <class Type>  Type cCovNetwork<Type>::SolveByCovPropagation(double aChe
 
           //  Add a gauge constraint for the main newtork, as all subnetnwork are computed up to a rotation
 	  //  do it before propag, as required in case of hard constraint
-	  this->AddGaugeConstraint(-1);
+	  this->AddGaugeConstraint(-1,false);
           // for all subnetwork propagate the covariance
           for (auto & aPtrNet : mVNetElem)
              aPtrNet->PropagCov(aCheatMT);
@@ -791,12 +791,12 @@ template <class Type>  Type cElemNetwork<Type>::ComputeCovMatrix(double aWGaugeC
      for (int aK=0 ; aK<(aNbIter-1); aK++)
      {
          // this->DoOneIterationCompensation(10.0,true);  // Iterations with a gauge and solve
-         this->DoOneIterationCompensation(-1,true);  // Iterations with a gauge and solve
+         this->DoOneIterationCompensation(-1,true,false);  // Iterations with a gauge and solve, No Mangling of cstr
      } 
      Type aRes = this->CalcResidual(); // memorization of residual
 
      // last iteration with a gauge w/o solve (because solving would reinit the covariance) 
-     this->DoOneIterationCompensation(aWGaugeCovMatr,false);     
+     this->DoOneIterationCompensation(aWGaugeCovMatr,false,false);     
      // StdOut() << "aWGaugeCovMatr " << aWGaugeCovMatr << std::endl;
 
 
@@ -1127,7 +1127,7 @@ int  cAppli_TestPropCov::Exe()
        double aRefRes =100;
        for (int aK=0 ; aK < 10 ; aK++)
        {
-         aRefRes = mMainNet->DoOneIterationCompensation(100.0,true);
+         aRefRes = mMainNet->DoOneIterationCompensation(100.0,true,false);
        }
 
        aSomRefRes += aRefRes;

@@ -1,6 +1,7 @@
 #include "SymbDer/SymbDer_Common.h"
 #include "MMVII_Geom2D.h"
 #include "MMVII_PhgrDist.h"
+#include "MMVII_Interpolators.h"
 
 
 using namespace NS_SymbolicDerivative;
@@ -93,6 +94,57 @@ template <class Type,const int Dim>
     return  mMapToInv->Inverses(aVOut,aVIn);
 }
 
+
+/* **************************** */
+/*   BENCH on cTabulatMap2D_Id  */
+/*   BENCH on cTabulatMap2D_Id  */
+/*   BENCH on cTabulatMap2D_Id  */
+/* **************************** */
+
+template <class Type> void   Tpl_BenchTabMap2D(cPt2dr aFreqX,cPt2dr aFreqY,tREAL8 aMul,tREAL8 aOfs,const cPt2di aSz)
+{
+    cIm2D<Type> aImX(aSz);
+    cIm2D<Type> aImY(aSz);
+
+    for (const auto & aPix : aImX.DIm())
+    {
+        tREAL8 aDX =   aOfs  + aMul * cos(aPix.x()/aFreqX.x()) * sin(aPix.y()/aFreqX.y());
+        tREAL8 aDY =   aOfs  + aMul * cos(aPix.x()/aFreqY.x()) * sin(aPix.y()/aFreqY.y());
+
+        aImX.DIm().SetV(aPix, aDX);
+        aImY.DIm().SetV(aPix, aDY);
+    }
+
+    cCubicInterpolator aC3(-0.5);
+    cTabulatMap2D_Id  aTabM(aImX,aImY,&aC3);
+
+    cBox2dr aBox = aImX.DIm().Dilate(-10).ToR();
+
+
+    for (int aKTest=0 ; aKTest<1000 ; aKTest++)
+    {
+        cPt2dr aPt = aBox.GeneratePointInside();
+
+	cPt2dr aPIm = aTabM.Value(aPt);
+	cPt2dr aPInv = aTabM.Inverse(aPIm);
+
+        tREAL8 aDX =   aOfs  + aMul * cos(aPt.x()/aFreqX.x()) * sin(aPt.y()/aFreqX.y());
+        tREAL8 aDY =   aOfs  + aMul * cos(aPt.x()/aFreqY.x()) * sin(aPt.y()/aFreqY.y());
+	// cPt2dr aPIm2 = Ofs  + aMul * cos(aPix.x()/aFreqX.x()) * sin(aPix.y()/aFreqX.y())
+
+	tREAL8 aCheckDir = Norm2(aPt + cPt2dr(aDX,aDY)-aPIm);
+        MMVII_INTERNAL_ASSERT_bench(aCheckDir<1e-3 ,"Direct cTabulatMap2D_Id");
+	tREAL8 aCheckInv = Norm2(aPt-aPInv);
+	//  StdOut() << "JJJJ " << aCheckDir << "   " << aCheckInv << " " << aTabM.EpsInv() << "\n";
+        MMVII_INTERNAL_ASSERT_bench(aCheckInv<2*aTabM.EpsInv() ,"invver cTabulatMap2D_Id");
+    }
+
+}
+
+void   BenchTabMap2D()
+{
+       Tpl_BenchTabMap2D<tREAL4>(cPt2dr(10.0,13.0),cPt2dr(15.0,11.0),1.0,0.0,cPt2di(300,400));
+}
 
 /* ============================================= */
 /*            cInvertByIter<Type,Dim>            */
@@ -884,8 +936,11 @@ template <class Type,const int Dim>   std::vector<cPtxd<Type,Dim> >   cComputeMa
 	return Append(mOut_VPtsInt,mOut_VPtsFr);
 }
 
-void  OneBench_CMI(double aCMaxRel)
+void  OneBench_CMI(double aCMaxRel,bool IsFraserMode)
 {
+// bool IsFraserMode = true;
+
+
     cPt3di aDegMapDir(2,0,0);
     cPt3di aDegMapInv(5,1,1);
 
@@ -897,10 +952,10 @@ void  OneBench_CMI(double aCMaxRel)
 
     cSphereBoundedSet  aSBS(aBox,cPt2dr(0,0),aRho);
 
-    cRandInvertibleDist aRIDBasique(aDegMapDir,std::min(aRho,aCMax*sqrt(2.0)),1.0,0.2);
+    cRandInvertibleDist aRIDBasique(aDegMapDir,std::min(aRho,aCMax*sqrt(2.0)),1.0,0.2,IsFraserMode);
     cDataNxNMapCalcSymbDer<double,2> *  aTargetFunc = aRIDBasique.MapDerSymb();
 
-    cCalculator<double> * anEqBase = EqBaseFuncDist(aDegMapInv,10+ RandUnif_0_1()*25);  // Calculator for base of func
+    cCalculator<double> * anEqBase = EqBaseFuncDist(aDegMapInv,10+ RandUnif_0_1()*25,IsFraserMode);  // Calculator for base of func
     cLeastSqCompMapCalcSymb<double,2,2> aLsqSymb(anEqBase);
 
     cComputeMapInverse<double,2> aCMI
@@ -918,7 +973,7 @@ void  OneBench_CMI(double aCMaxRel)
     aCMI.mStepFrontLim = 1e-3;
     std::vector<double> aVParam;
     aCMI.DoAll(aVParam);
-    cDataNxNMapCalcSymbDer<double,2> *  aMapInv = NewMapOfDist(aDegMapInv,aVParam,100);
+    cDataNxNMapCalcSymbDer<double,2> *  aMapInv = NewMapOfDist(aDegMapInv,aVParam,100,IsFraserMode);
 
     bool CaseDiskInclude = (aCMaxRel>1.0);
     bool CaseDiskExclude = (aCMaxRel<sqrt(0.5));
@@ -1077,10 +1132,13 @@ class cTestMapInv : public cDataIterInvertMapping<tREAL8,3>
 void BenchInvertMapping(cParamExeBench & aParam)
 {
     {
-       OneBench_CMI(1.1);
-       OneBench_CMI(0.7);
+       BenchTabMap2D();
+
+       OneBench_CMI(1.1,false);
+       OneBench_CMI(1.1,true);
+       OneBench_CMI(0.7,true);
        for (int aK=0 ; aK<10 ; aK++)
-           OneBench_CMI((1.0 + 0.5 *RandUnif_C()));
+           OneBench_CMI((1.0 + 0.5 *RandUnif_C()),true);
 /*
        OneBenchMapInv(1.1);
        OneBenchMapInv(0.7);

@@ -124,11 +124,30 @@ template <class Type> bool cObjWithUnkowns<Type>::UkIsInit()  const
 }
 
 // add indexes  of unknown in a vect, note that indexes are consecutives even if unknown are no in object
-template <class Type> void cObjWithUnkowns<Type>::PushIndexes(std::vector<int> & aVect)
+template <class Type> void cObjWithUnkowns<Type>::PushIndexes(std::vector<int> & aVect) const
 {
      for (int aInd=mIndUk0; aInd<mIndUk1 ; aInd++)
          aVect.push_back(aInd);
 }
+
+template <class Type> void cObjWithUnkowns<Type>::PushIndexes(std::vector<int> & aVInd,const Type * aAdrV0,size_t aNbVal) const
+{
+   size_t aInd0 = IndOfVal(aAdrV0);
+   for (size_t aK=0 ; aK<aNbVal ; aK++)
+       aVInd.push_back(aInd0+aK);
+}
+
+template <class Type>  void cObjWithUnkowns<Type>::PushIndexes(std::vector<int> & aVInd,const Type & aVal) const
+{
+	 PushIndexes(aVInd,&aVal,1);
+}
+
+template <class Type>  void cObjWithUnkowns<Type>::PushIndexes(std::vector<int> & aVInd,const cPtxd<Type,3> & aPt) const
+{
+    PushIndexes(aVInd,aPt.PtRawData(),3);
+}
+
+
 
 
 template <class Type> size_t cObjWithUnkowns<Type>::IndOfVal(const Type * aVal) const

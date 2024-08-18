@@ -2,6 +2,7 @@
 #define  _MMVII_Util_TPL_H_
 
 #include <algorithm>
+#include <array>
 #include "MMVII_enums.h"
 #include "MMVII_Error.h"
 #include "MMVII_nums.h"
@@ -18,6 +19,15 @@ template <class Type> class cExtSet ;
 template <class Type> class cDataExtSet ;
 template <class Type> class cSelector ;
 template <class Type> class cDataSelector ;
+
+
+/// just a std::array that is Destructible for use with std::optional
+template <class T, size_t Dim> class cArray : public std::array<T,Dim>
+{
+public:
+    ~cArray() {}
+};
+
 
 
 /* ============================================= */
@@ -81,6 +91,34 @@ template <class Type> cSelector<Type> Str2Interv(const std::string & aStr);
 /*                                               */
 /* ============================================= */
 
+template <class Type> class cTransformator
+{
+     public :
+          virtual Type  Transfo(const Type &) const = 0;
+};
+
+template <class Type> class cIdTransformator : public cTransformator<Type>
+{
+     public :
+          Type  Transfo(const Type &) const override;
+};
+
+/**  Transformation by pattern of regular expression */
+class  cPatternTransfo : public cTransformator<std::string>
+{
+      public :
+            cPatternTransfo(const std::string & aPat,const std::string & aSubst);
+	    /// Can be 2 vect or empty
+            cPatternTransfo(const std::vector<std::string> & aPat);
+
+            std::string  Transfo(const std::string &) const override;
+      private :
+            std::string mPat;
+            std::string mSubst;
+};
+
+
+
 
 ///  Bench some sets functionnalities
 void BenchSet(const std::string & aDir);
@@ -115,6 +153,7 @@ template <class Type> class cExtSet  : public  cSelector<Type>
          bool Suppress(const Type &)  ;
          void    clear() ;
          int    size() const ;
+         void Filter(const cSelector<Type> &,const cTransformator<Type>&);
          void Filter(const cSelector<Type> &);
 
          virtual void  PutInVect(std::vector<const Type *> &,bool Sorted) const ; ///< Some type requires iteration 
@@ -284,6 +323,9 @@ template <class Type> void ResizeUp(std::vector<Type> & aV1,size_t aSz,const Typ
    if (aSz>aV1.size())
       aV1.resize(aSz,aVal);
 }
+
+template <class Type> void ResizeDown(std::vector<Type> & aV1,size_t aSz) { aV1.resize(std::min(aV1.size(),aSz)); }
+
 
 template <class Type> void SetAndResize(std::vector<Type> & aVec,size_t aSz,const Type &aVal,const Type & aDef)
 {
@@ -477,6 +519,55 @@ template <class tCont>  typename tCont::value_type *  KthElem(tCont & aCont,int 
 
     return nullptr;
 }
+
+template <class Type> std::vector<const Type*> VecObj2VecPtr(const std::vector<Type> & aVecObj)
+{
+    std::vector<const Type *> aVPtr;
+
+    for (const auto & aObj : aVecObj)
+        aVPtr.push_back(&aObj);
+
+    return aVPtr;
+}
+
+
+
+/**    Used in Metadata, but can be used more generally.
+ *
+ *     Define a try to associate a name to another .
+ *     For a given name "N" if , if N match pattern then pattern
+ *     substitution is used to compute  mValue.
+ *
+ *     For example :
+ *         Pat =  IM_([0-9]*).tif
+ *         Value = Stuf_$1
+ *         N = IM_128.tif
+ *
+ *       the value computed is  Stuf_128
+ */
+
+class cOneTryCAI
+{
+     public :
+        cOneTryCAI();  ///< Defaut cstr, required for serialization
+        cOneTryCAI(const std::string & aPat,const std::string & aValue);
+
+        std::string                  mPat;    ///< Pattern for selecting and translatting
+        tNameSelector                mSel;    ///<  Computation of Pattern
+        std::string                  mValue;  ///<  Value computed 
+};
+
+class cComputeAssociation
+{
+     public :
+          static cComputeAssociation  FromFile(const std::string & aName);
+          void Write(const std::string & aName) const;
+
+          std::string Translate(const std::string & aName) const;
+     //  ==================
+          std::list<cOneTryCAI> mVTries;
+};
+void AddData(const cAuxAr2007 & anAux,cComputeAssociation & aTransl);
 
 };
 

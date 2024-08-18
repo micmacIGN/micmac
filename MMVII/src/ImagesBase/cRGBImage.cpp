@@ -144,6 +144,8 @@ bool cRGBImage::InsideBL(const cPt2dr & aPix) const
 
 void cRGBImage::SetRGBPixWithAlpha(const cPt2di & aPix,const cPt3di &aCoul,const cPt3dr & aAlpha)
 {
+    if (!mImR.DIm().Inside(aPix))
+       return;
     AssertZ1();
       cPt3di aCurC = GetRGBPix(aPix); 
 
@@ -217,7 +219,9 @@ void cRGBImage::Read(const cDataFileIm2D & aDFI,const cPt2di & aP0File,double aD
     // In a first step we transfere data at the good origine (P0Z) but not
     // taking into account the zoom
     if (aDFI.NbChannel()==3)
+    {
         mImR.DIm().Read(aDFI,mImG.DIm(),mImB.DIm(),aP0File,aDyn,aRect1Z);
+    }
     else
     {
         mImR.DIm().Read(aDFI,aP0File,aDyn,aRect1Z);
@@ -228,6 +232,18 @@ void cRGBImage::Read(const cDataFileIm2D & aDFI,const cPt2di & aP0File,double aD
 
      ReplicateForZoom(aRect1Z);
 }
+
+void cRGBImage::ResetGray()
+{
+     for (const auto & aPix : mImR.DIm())
+     {
+         tU_INT1 aV = (mImR.DIm().GetV(aPix) + mImG.DIm().GetV(aPix) + mImB.DIm().GetV(aPix)) / 3;
+	 mImR.DIm().SetV(aPix,aV);
+	 mImG.DIm().SetV(aPix,aV);
+	 mImB.DIm().SetV(aPix,aV);
+     }
+}
+
 
 
 void cRGBImage::ReplicateForZoom(const cRect2 & aRect1Z)
@@ -282,6 +298,8 @@ void cRGBImage::ToFileDeZoom(const std::string & aName,int aDeZoom)
 void cRGBImage::ToJpgFileDeZoom(const std::string & aName,int aDeZoom)
 {
     ToFileDeZoom(aName,aDeZoom);
+    
+    //  StdOut() << "ToJpgFileDeZoomToJpgFileDeZoom=" << aName << "\n"; getchar();
     Convert_JPG(aName,true,90,"jpg");
 }
 

@@ -3,6 +3,7 @@
 
 #include "MMVII_Ptxd.h"
 #include "MMVII_util_tpl.h"
+#include "MMVII_Geom2D.h"
 
 namespace MMVII
 {
@@ -117,21 +118,33 @@ class cSetMesPtOf1Im : public cMemCheck
           std::string             mNameIm;
           std::vector<cMesIm1Pt>  mMeasures;
 };
+void AddData(const  cAuxAr2007 & anAux,cSetMesPtOf1Im & aGCPMI);
+
 
 /**  class for representing  the measure of a 3D point (Ground Control Point) */
 class cMes1GCP
 {
      public :
-        cMes1GCP(const cPt3dr & aPt,const std::string & aNamePt,tREAL4 aSigma);
+        
+        // aSigma==-1 for free point
+        cMes1GCP(const cPt3dr & aPt,const std::string & aNamePt,tREAL4 aSigma=-1,
+                 const std::string &aAdditionalInfo="");
+
         cMes1GCP();
+	/// change the coordinate with mapping ! For now dont update sigma using the jacobian, maybe later ...
+        void  ChangeCoord(const cDataMapping<tREAL8,3,3>&);
+        bool isFree() const {return !mOptSigma2;}
+        cPt3dr SigmasXYZ() const;
 
         cPt3dr         mPt;
         std::string    mNamePt;
         static constexpr int IndXX = 0;
         static constexpr int IndYY = 3;
         static constexpr int IndZZ = 5;
+        std::string mAdditionalInfo;
 
-        tREAL4         mSigma2[6];  //  xx xy xz yy yz zz
+        std::optional<cArray<tREAL4,6> >  mOptSigma2;  //  xx xy xz yy yz zz
+        bool isInit() const {return mPt.IsValid();}
 };
 
 /**  A set of cMes1GCP */
@@ -140,7 +153,9 @@ class cSetMesGCP : public cMemCheck
     public :
           cSetMesGCP();
           cSetMesGCP(const std::string &aNameSet);
-          cSetMesGCP  Filter(const std::string &aFilter) const;
+          cSetMesGCP  Filter(const std::string &aFilter, const std::string &aFiltrAdditionalInfo) const;
+	 /// change the coordinate of all points
+          void  ChangeCoord(const cDataMapping<tREAL8,3,3>&);
 	  static cSetMesGCP  FromFile(const std::string & aNameFile);
 	  void    ToFile(const std::string & aNameFile);
 
@@ -158,6 +173,7 @@ class cSetMesGCP : public cMemCheck
 	  std::string              mNameSet;
           std::vector<cMes1GCP>    mMeasures;
 };
+void AddData(const  cAuxAr2007 & anAux,cSetMesGCP & aSet);
 
 /**  Class for reprenting the same point in different image, maybe same class
  * used for GCP and tie points */
@@ -182,6 +198,7 @@ class cMultipleImPt
               std::vector<tREAL4>             mVSigma;  // optionnal
               std::vector<int>                mVImages;
 };
+
 
 /**  Class for storing a data base of GCP :  3D measures + 2D image measure
  *   The link between different measures is done using name of points.
@@ -208,11 +225,13 @@ class cSetMesImGCP : public cMemCheck
             std::vector<cMes1GCP> &        MesGCP() ; ///< Accessor
             const std::vector<cMultipleImPt> &   MesImOfPt() const ;  ///< Accessor
 	    const std::vector<cSensorImage*> &   VSens() const ;  ///< Accessor
+            const std::vector<cSetMesPtOf1Im> &  MesImInit() const;  ///< Accessor
 								
 	    tREAL8 AvgSqResidual() const;
 								  
 	    /// suppress mMesGCP & mMesIm with no images measure (eventually can give higher threshold) 
 	    cSetMesImGCP * FilterNonEmptyMeasure(int NbMeasureMin=1) const;
+	    int GetNbImMesForPoint(const std::string & aGCPName, bool SVP=false) const;
 
             const cSetMesPtOf1Im  & MesImInitOfName(const std::string &) const;
 	    const cMes1GCP &        MesGCPOfName(const std::string &) const;
@@ -226,6 +245,7 @@ class cSetMesImGCP : public cMemCheck
 	    cPt3dr  BundleInter(const cMultipleImPt & aMPT) const;
 
     private :
+           void AsserGCPFinished() const;
 
             cSetMesImGCP(const  cSetMesImGCP & ) = delete;
 
@@ -313,7 +333,7 @@ void AddData(const cAuxAr2007 & anAux,cTiePMul & aPMul);
 class   cVecTiePMul
 {
       public :
-          cVecTiePMul(const std::string & anIm);
+          cVecTiePMul(const std::string & = "" );
 
           std::string           mNameIm;
           std::vector<cTiePMul> mVecTPM;
@@ -438,6 +458,15 @@ cComputeMergeMulTieP * AllocStdFromMTP
 			    bool  WithSensor,
 			    bool  WithImageIndexe
                       );
+cComputeMergeMulTieP * AllocStdFromMTPFromFolder
+                      (
+                            const std::string & aFolder,
+                            const std::vector<std::string> & aVNames,
+                            cPhotogrammetricProject & aPhProj,
+                            bool  WithPtIndex,
+			    bool  WithSensor,
+			    bool  WithImageIndexe
+                      );
 
 
 
@@ -471,6 +500,30 @@ class cFilterMesIm
          bool                       mFinished;
 
 };
+
+/** Represent one line anti paral (computed by matching of 2 oriented line anti paral) */
+
+class cOneLineAntiParal
+{
+     public :
+          cOneLineAntiParal();
+
+          tSeg2dr mSeg;
+          tREAL8  mAng;
+          tREAL8  mWidth;
+          tREAL8  mCumul;
+};
+void AddData(const cAuxAr2007 & anAux,cOneLineAntiParal & anEx);
+
+
+class cLinesAntiParal1Im
+{
+     public :
+         std::string                      mNameIm;
+         std::string                      mDirCalib;
+         std::vector<cOneLineAntiParal>   mLines;
+};
+void AddData(const cAuxAr2007 & anAux,cLinesAntiParal1Im & anEx);
 
 
 

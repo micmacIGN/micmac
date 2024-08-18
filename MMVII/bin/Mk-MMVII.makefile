@@ -237,6 +237,17 @@ MMV2DirTopo=${MMV2DirSrc}Topo/
 SrcTopo=$(wildcard ${MMV2DirTopo}*.cpp)
 ObjTopo=$(SrcTopo:.cpp=.o) 
 #
+MMV2DirSysCo=${MMV2DirSrc}SysCo/
+SrcSysCo=$(wildcard ${MMV2DirSysCo}*.cpp)
+ObjSysCo=$(SrcSysCo:.cpp=.o)
+#
+MMV2DirExports=${MMV2DirSrc}Exports/
+SrcExports=$(wildcard ${MMV2DirExports}*.cpp)
+ObjExports=$(SrcExports:.cpp=.o)
+#
+MMV2DirMorphoMat =${MMV2DirSrc}MorphoMat/
+SrcMorphoMat=$(wildcard ${MMV2DirMorphoMat}*.cpp)
+ObjMorphoMat=$(SrcMorphoMat:.cpp=.o)
 #
 MMV2DirKapture=${MMV2DirSrc}kapture/
 #SrcKapture=$(fiter-out ${MMV2DirKapture}kpt_test.cpp $(wildcard ${MMV2DirKapture}*.cpp))
@@ -247,7 +258,7 @@ ObjKapture=$(SrcKapture:.cpp=.o)
 MAIN=${MMV2DirSrc}main.cpp
 #============ Calcul des objets
 #
-OBJ= ${ObjMatchTieP} ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB}   ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial}  ${ObjPerso}  ${ObjGraphs} ${ObjDenseMatch} ${ObjSymbDerGen} ${ObjGeneratedCodes} ${ObjGeoms} ${ObjGeom2D} ${ObjGeom3D}  ${ObjMappings} ${ObjLearnMatch} ${ObjKapture} ${ObjCodedTarget} ${ObjBenchSNL} ${ObjBenchSEN} ${ObjBA} ${ObjCnvrtFormat} ${ObjExoBloc} ${ObjInstrumental} ${ObjMesh} ${ObjMeshDispl} ${ObjOrientReport} ${ObjPoseEstim} ${ObjRadiom} ${ObjTieP} ${ObjTopo} ./SGM_CUDA/cudInfer.a
+OBJ= ${ObjMatchTieP} ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB}   ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial}  ${ObjPerso}  ${ObjGraphs} ${ObjDenseMatch} ${ObjSymbDerGen} ${ObjGeneratedCodes} ${ObjGeoms} ${ObjGeom2D} ${ObjGeom3D}  ${ObjMappings} ${ObjLearnMatch} ${ObjKapture} ${ObjSysCo} ${ObjExports} ${ObjMorphoMat} ${ObjCodedTarget} ${ObjBenchSNL} ${ObjBenchSEN} ${ObjBA} ${ObjCnvrtFormat} ${ObjExoBloc} ${ObjInstrumental} ${ObjMesh} ${ObjMeshDispl} ${ObjOrientReport} ${ObjPoseEstim} ${ObjRadiom} ${ObjTieP} ${ObjTopo} ./SGM_CUDA/cudInfer.a
 #
 #=========  Header ========
 #
@@ -265,7 +276,7 @@ CFlags= "-fopenmp" "-std=c++17" "-Wall"  "-Werror" "-O4" "-fPIC" -I${MMV2Dir} -I
 BOOST_LIBS=
 QTAnnLibs= -lXext /usr/lib/x86_64-linux-gnu/libQt5Core.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Xml.so /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so -lGLU -lGL  -ldl -lpthread /usr/lib/x86_64-linux-gnu/libQt5Xml.so /usr/lib/x86_64-linux-gnu/libQt5Concurrent.so /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so /usr/lib/x86_64-linux-gnu/libQt5Widgets.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Core.so ../../lib/libANN.a
 ## MacOS : may be -lstdc++fs should be replaced by -lc++experimental
-LibsFlags= ${MMV2ElisePath} -lX11  ${BOOST_LIBS}  ${QTAnnLibs} ${TORCHLIBS}  -lstdc++fs
+LibsFlags= ${MMV2ElisePath} -lX11  ${BOOST_LIBS}  ${QTAnnLibs} ${TORCHLIBS}  -lstdc++fs -lproj
 #
 ${MMV2DirBin}${MMV2Exe} :  ${OBJ} ${MAIN} ${MMV2ElisePath}
 	${CXX}  ${MAIN} ${CFlags}  ${OBJ}  ${TORCHLIB_CPP} ${TORCHLIB_NVCC} ${LibsFlags}  -o ${MMV2DirBin}${MMV2Exe} 
@@ -331,6 +342,12 @@ ${MMV2DirGeom2D}%.o :  ${MMV2DirGeom2D}%.cpp   ${HEADER}
 ${MMV2DirGeom3D}%.o :  ${MMV2DirGeom3D}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirKapture}%.o :  ${MMV2DirKapture}%.cpp   ${MMKaptureHeader}
+	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirSysCo}%.o :  ${MMV2DirSysCo}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -I /usr/include -o $@
+${MMV2DirExports}%.o :  ${MMV2DirExports}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirMorphoMat}%.o :  ${MMV2DirMorphoMat}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirCodedTarget}%.o :  ${MMV2DirCodedTarget}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@

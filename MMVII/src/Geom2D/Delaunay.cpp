@@ -744,7 +744,9 @@ void BenchDelaunay(cParamExeBench & aParam)
     BenchDelaunayGrid(cPt2di(10,20));
     for (int aK=0 ; aK<30 ;aK++)
     {
-         cPt2di aSz(2+RandUnif_N(10),2+RandUnif_N(10));
+         auto v1 = 2+RandUnif_N(10);
+         auto v2 = 2+RandUnif_N(10);
+         cPt2di aSz(v1,v2);
          BenchDelaunayGrid(aSz);
     }
 
@@ -778,7 +780,7 @@ template <class Type> void cTriangulation2D<Type>::WriteFile(const std::string &
     }
     else
     {
-       MMVII_UsersErrror(eTyUEr::eBadPostfix,"Unknown postfix in cTriangulation3D");
+       MMVII_UserError(eTyUEr::eBadPostfix,"Unknown postfix in cTriangulation3D");
     }
 }
 

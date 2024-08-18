@@ -116,7 +116,8 @@ cPerspCamIntrCalib * cPhotogrammetricProject::GetCalibInit
                           eProjPC aProj,
                           const cPt3di & aDeg, 
                           cPt2dr  aPP,
-                          bool SVP
+                          bool SVP,
+                          bool isFraserModel
                      )
 {
     static std::map<std::string,cPerspCamIntrCalib *> TheMapRes;
@@ -192,7 +193,7 @@ cPerspCamIntrCalib * cPhotogrammetricProject::GetCalibInit
        aPP = aPPPix;
     }
 
-    cDataPerspCamIntrCalib  aDataPCIC(anIdent, aProj, aDeg,aFocPix,aNbPix,PPIsRel,aPP);
+    cDataPerspCamIntrCalib  aDataPCIC(anIdent, aProj, aDeg,aFocPix,aNbPix,PPIsRel,aPP,-1,isFraserModel);
     aRes = new cPerspCamIntrCalib(aDataPCIC);
 
     cMMVII_Appli::AddObj2DelAtEnd(aRes);
@@ -221,6 +222,7 @@ class cAppli_CreateCalib : public cMMVII_Appli
         eProjPC                   mProj;
         cPt3di                    mDegree;
         cPt2dr                    mPPRel;
+        bool                      mSystCyl;
 };
 
 
@@ -229,7 +231,8 @@ cAppli_CreateCalib::cAppli_CreateCalib(const std::vector<std::string> & aVArgs,c
    mPhProj       (*this),
    mProj         (eProjPC::eStenope),
    mDegree       (3,1,1),
-   mPPRel        (0.5,0.5)
+   mPPRel        (0.5,0.5),
+   mSystCyl      (false)
 {
 }
 
@@ -246,6 +249,7 @@ cCollecSpecArg2007 & cAppli_CreateCalib::ArgOpt(cCollecSpecArg2007 & anArgObl)
   return      anArgObl
             << AOpt2007(mProj,"Proj","Projection mode ",{{eTA2007::HDV},AC_ListVal<eProjPC>()})
             << AOpt2007(mDegree,"Degree","Degree for distorsion param",{{eTA2007::HDV}})
+            << AOpt2007(mSystCyl,"SystCyl","Use SIA/SytCyl instead of Fraser Model",{{eTA2007::HDV}})
             // << AOpt2007(mNameBloc,"NameBloc","Set the name of the bloc ",{{eTA2007::HDV}})
     ;
 
@@ -257,7 +261,7 @@ int cAppli_CreateCalib::Exe()
 
     for (const auto & aNameIm : VectMainSet(0))
     {
-        cPerspCamIntrCalib * aCalib = mPhProj.GetCalibInit(aNameIm,mProj,mDegree,mPPRel);
+        cPerspCamIntrCalib * aCalib = mPhProj.GetCalibInit(aNameIm,mProj,mDegree,mPPRel,false,!mSystCyl);
         mPhProj.SaveCalibPC(*aCalib);
     }
 

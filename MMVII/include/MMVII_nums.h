@@ -455,6 +455,15 @@ template <class Type> class tNumTrait : public tElemNumTrait<Type> ,
                  return MinValue() + RandUnif_0_1() * (int(MaxValue())-int(MinValue())) ;
               return RandUnif_C();
          }
+         static Type AmplRandomValueCenter()
+         {
+              if (tETrait::IsInt())
+                 return  (int(MaxValue())-int(MinValue())) ;
+              return 2.0;
+         }
+
+
+
          static Type Eps()
          {
               if (tETrait::IsInt())
@@ -648,14 +657,17 @@ template <class TypeIndex,class TypeVal,const bool IsMin> class cWhichExtrem
 	 }
 	 bool IsInit() const {return mIsInit;}
 
-         void Add(const TypeIndex & anIndex,const TypeVal & aNewVal)
+	 // return value indicate if modif was done
+         bool Add(const TypeIndex & anIndex,const TypeVal & aNewVal)
          {
               if ( (IsMin?(aNewVal<mValExtre):(aNewVal>=mValExtre)) || (!mIsInit))
               {     
                     mValExtre   = aNewVal;
                     mIndexExtre = anIndex;
+                    mIsInit = true;
+		    return true;
               }
-              mIsInit = true;
+	      return false;
          }
          const TypeIndex & IndexExtre() const {AssertIsInit();return mIndexExtre;}
          const TypeVal   & ValExtre  () const {AssertIsInit();return mValExtre;}
@@ -713,6 +725,9 @@ template <class TypeIndex,class TypeVal> class cWhichMinMax
          const cWhichMin<TypeIndex,TypeVal> & Min() const {return  mMin;}
          const cWhichMax<TypeIndex,TypeVal> & Max() const {return  mMax;}
 
+         const TypeIndex &  IndMin() const {return  mMin.IndexExtre();}
+         const TypeIndex &  IndMax() const {return  mMax.IndexExtre();}
+
      private :
          cWhichMin<TypeIndex,TypeVal> mMin;
          cWhichMax<TypeIndex,TypeVal> mMax;
@@ -734,7 +749,8 @@ template <class TypeVal> class cBoundVals
 	public :
             cBoundVals() :
                    mVMin ( std::numeric_limits<TypeVal>::max()),
-		   mVMax (-std::numeric_limits<TypeVal>::max())
+		   //mVMax (-std::numeric_limits<TypeVal>::max())  MPD : strange why not min() ??
+		   mVMax (std::numeric_limits<TypeVal>::min())
 	    {
             }
             void Add(const TypeVal & aVal)
@@ -804,6 +820,14 @@ template <typename Type> Type ATan2(const Type & aX,const Type & aY);
 template <typename Type> Type DerX_ATan2(const Type & aX,const Type & aY);
 /// to have it d/dy in code gen
 template <typename Type> Type DerY_ATan2(const Type & aX,const Type & aY);
+
+
+/// to have it in good namespace in code gen
+template <typename Type> Type DiffAngMod(const Type & aA,const Type & aB);
+/// to have it d/dx in code gen
+template <typename Type> Type DerA_DiffAngMod(const Type & aA,const Type & aB);
+/// to have it d/dy in code gen
+template <typename Type> Type DerB_DiffAngMod(const Type & aA,const Type & aB);
 
 
 /// Sinus hyperbolic
@@ -1014,6 +1038,56 @@ void  ReadFilesStruct
           std::vector<std::vector<double>>  & aVNums,  //  get other double "FF*F"
           bool CheckFormat= true  // if true check :  XYZN have same count ... and more 2 com
       );
+
+class cReadFilesStruct
+{
+     public :
+
+       cReadFilesStruct( const std::string &  aNameFile,const std::string & aFormat,
+                         int aL0,int aLastL, int  aComment);
+
+       void Read();
+
+       const std::vector<std::string>               & VNameIm () const; ///< Accessor + Check init
+       const std::vector<std::string>               & VNamePt () const; ///< Accessor + Check init  "N"
+       const std::vector<std::vector<std::string>>  & VStrings () const; ///< Accessor + Check init  "S"
+       const std::vector<cPt3dr>                    & VXYZ () const; ///< Accessor + Check init    "XYZ"
+       const std::vector<cPt2dr>                    & Vij () const; ///< Accessor + Check init      "ij"
+       const std::vector<cPt3dr>                    & VWPK () const; ///< Accessor + Check init    "WPK"
+       const std::vector<std::vector<double>>       & VNums () const; ///< Accessor + Check init   "FF*F"
+       const std::vector<std::vector<int>>          & VInts () const; ///< Accessor + Check init     "EE*E"
+       const std::vector<std::string>               & VLinesInit () const; ///< Accessor + Check init
+       int NbRead() const;  ///< Number of line read
+       void SetMemoLinesInit() ;  ///< Activate the memo of initial lines (false by default)
+
+
+     private :
+         template <class Type> inline const std::vector<Type> & GetVect(const std::vector<Type> & aV) const
+         {
+                 MMVII_INTERNAL_ASSERT_tiny((int)aV.size()==mNbLineRead,"cReadFilesStruct::GetV");
+                 return aV;
+         }
+         // ============== copy of  constructor parameters ===================
+
+         std::string     mNameFile; ///< name of file
+         std::string     mFormat;   ///< format of each line
+         int             mL0;       ///< num of first line
+         int             mLastL;    ///< num of last line
+         int             mComment;  ///< carac used for comment if any
+
+         int             mNbLineRead;  ///< count number of line
+	 bool            mMemoLinesInt;   ///< Do we maintains a memory of initial line (w/o supressed one so that it match data)
+
+         std::vector<std::string>               mVNameIm;
+         std::vector<std::string>               mVNamePt;
+         std::vector<cPt3dr>                    mVXYZ;
+         std::vector<cPt2dr>                    mVij;
+         std::vector<cPt3dr>                    mVWPK;
+         std::vector<std::vector<double>>       mVNums;
+         std::vector<std::vector<int>>          mVInts;
+         std::vector<std::string>               mVLinesInit;
+         std::vector<std::vector<std::string>>  mVStrings;
+};
 
 /// nuber of occurence of aC0 in aStr
 int CptOccur(const std::string & aStr,char aC0);

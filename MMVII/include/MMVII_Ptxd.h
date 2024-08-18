@@ -80,6 +80,8 @@ template <class Type,const int Dim> class cPtxd
                 aRes.mCoords[aK]= aVal;
            return aRes;
        }
+       /// All coord 0 exect aCoord that values aVal
+       static cPtxd<Type,Dim>  P1Coord(size_t aCoord,const Type & aVal) ;
        /// Initialisation with nan value (to detect error asap)
        static cPtxd<Type,Dim>  Dummy();
        /// Initialisation from name "i..."  "-j..."    valide are "ijkl" 
@@ -144,24 +146,36 @@ template <class Type,const int Dim> class cPtxd
 
         inline Type & x()             {static_assert(Dim>=1,"bad dim in cPtxd initializer");return mCoords[0];}
         inline const Type & x() const {static_assert(Dim>=1,"bad dim in cPtxd initializer");return mCoords[0];}
+        inline tBigNum  BigX2() const {return Square(tBigNum(x()));}
 
         inline Type & y()             {static_assert(Dim>=2,"bad dim in cPtxd initializer");return mCoords[1];}
         inline const Type & y() const {static_assert(Dim>=2,"bad dim in cPtxd initializer");return mCoords[1];}
+        inline tBigNum  BigY2() const {return Square(tBigNum(y()));}
 
         inline Type & z()             {static_assert(Dim>=3,"bad dim in cPtxd initializer");return mCoords[2];}
         inline const Type & z() const {static_assert(Dim>=3,"bad dim in cPtxd initializer");return mCoords[2];}
+        inline tBigNum  BigZ2() const {return Square(tBigNum(z()));}
 
         inline Type & t()             {static_assert(Dim>=4,"bad dim in cPtxd initializer");return mCoords[3];}
         inline const Type & t() const {static_assert(Dim>=4,"bad dim in cPtxd initializer");return mCoords[3];}
+        inline tBigNum  BigT2() const {return Square(tBigNum(t()));}
 
         cDenseVect<Type> ToVect() const; ///< conversion
         std::vector<Type> ToStdVector() const; ///< conversion
+	void PushInStdVector(std::vector<Type> &) const;
 
         tBigNum  MinSqN2(const std::vector<tPt> &,bool SVP=false) const; ///< if SVP & empty return 0
 
 	/// Used for "generik" object that must describes its box
 	cTplBox<Type,Dim>  GetBoxEnglob() const;
 	bool  InfEqDist(const tPt &,tREAL8) const;
+
+    bool IsValid() const {
+        for (int aK=0 ; aK<Dim; aK++)
+             if  (!tNumTrait<Type>::ValueOk(mCoords[aK]))
+                 return false;
+        return true;
+    }
     protected :
        Type mCoords[Dim];
 };
@@ -196,6 +210,11 @@ typedef cPtxd<float,3>   cPt3df ;
 // If dim =2 aNbVois->1 create the 4 neigh, NbVois-> 2 create the 8 neigh
 // If Dim=3   1-> 6  2->    3->26 ( 3^3 -1)
 template <const int Dim>  const std::vector<cPtxd<int,Dim>> & AllocNeighbourhood(int aNbVois);
+
+//  classical  8-Neighbourhood
+const std::vector<cPt2di> & Alloc8Neighbourhood();
+//  classical  4-Neighbourhood
+const std::vector<cPt2di> & Alloc4Neighbourhood();
 
 //  Create a tab where K entrie represent vectors having NormInf equal to K
 //  !! =>  Entry go from 0 to aDistMax included
@@ -376,6 +395,7 @@ template <class T,const int Dim> typename tNumTrait<T>::tBig Scal(const cPtxd<T,
 template <class T,const int Dim> typename tNumTrait<T>::tBig MulCoord(const cPtxd<T,Dim> & aP);
 
 template <class T,const int Dim> T Cos(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);
+template <class T,const int Dim> T CosWDef(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &,const T&);
 template <class T,const int Dim> T AbsAngle(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);
 //  Trunk cos in [-1,1] if necessary
 template <class T,const int Dim> T AbsAngleTrnk(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);
@@ -392,10 +412,22 @@ template <class T> inline T NormInf(const cPtxd<T,2> & aP) {return std::max(std:
 // template <class T> inline T SqN2(const cPtxd<T,1> & aP) {return Square(aP.x());}
 */
    /// Currently, the L2 norm is used for comparaison, no need to extract square root
-template <class T> inline typename tNumTrait<T>::tBig SqN2(const cPtxd<T,1> & aP) {return Square(aP.x());}
-template <class T> inline typename tNumTrait<T>::tBig SqN2(const cPtxd<T,2> & aP) {return Square(aP.x())+Square(aP.y());}
-template <class T> inline typename tNumTrait<T>::tBig SqN2(const cPtxd<T,3> & aP) {return Square(aP.x())+Square(aP.y())+Square(aP.z());}
-template <class T> inline typename tNumTrait<T>::tBig SqN2(const cPtxd<T,4> & aP) {return Square(aP.x())+Square(aP.y())+Square(aP.z()) + Square(aP.t()) ;}
+template <class T> inline typename tNumTrait<T>::tBig SqN2(const cPtxd<T,1> & aP) 
+{
+	return aP.BigX2();
+}
+template <class T> inline typename tNumTrait<T>::tBig SqN2(const cPtxd<T,2> & aP) 
+{
+	return aP.BigX2() + aP.BigY2();
+}
+template <class T> inline typename tNumTrait<T>::tBig SqN2(const cPtxd<T,3> & aP) 
+{
+	return aP.BigX2() + aP.BigY2() + aP.BigZ2();
+}
+template <class T> inline typename tNumTrait<T>::tBig SqN2(const cPtxd<T,4> & aP) 
+{
+	return aP.BigX2() + aP.BigY2() + aP.BigZ2() + aP.BigT2() ;
+}
 /// Sort vector by norm, typically dont need to compute square root
 template <class Type,const int Dim> bool CmpN2(const cPtxd<Type,Dim> &aP1,const  cPtxd<Type,Dim> & aP2) 
 {
@@ -817,6 +849,8 @@ template <class Type,const int Dim> class cSegment
        void CompileFoncLinear(Type & aVal,tPt & aVec,const Type  &aV1,const Type  & aV2) const;
        const tPt&  P1() const; ///< Accessor
        const tPt&  P2() const; ///< Accessor
+       tPt&  P1() ; ///< Accessor
+       tPt&  P2() ; ///< Accessor
 
        tPt  V12() const;   ///<  Vector  P1->P2
        tPt  PMil() const;  ///<  P middle
@@ -832,8 +866,13 @@ template <class Type,const int Dim> class cSegmentCompiled : public cSegment<Typ
     public :
        typedef cPtxd<Type,Dim> tPt;
        cSegmentCompiled(const tPt& aP1,const tPt& aP2);
+       cSegmentCompiled(const cSegment<Type,Dim>&);
        tPt  Proj(const tPt &) const;
-       Type Dist(const tPt &) const;
+       Type Dist(const tPt &) const; // dist to full line
+       Type Abscissa(const tPt& aPt) const;
+
+       const Type & N2 () const;
+       const tPt  & Tgt() const;
     protected :
        Type    mN2;
        tPt     mTgt;

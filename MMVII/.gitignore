@@ -13,8 +13,14 @@ include/CodeGen_*.h
 *.ilg
 *.ind
 *.swp
-MMVII/MMVII-TestDir/Input/Files/RelTest.xml
-MMVII/MMVII-TestDir/Input/Files/RelTest_0-5.xml
+*.pyc
+MMVII-TestDir/Input/Files/RelTest.xml
+MMVII-TestDir/Input/Files/RelTest_0-5.xml
+MMVII-PhgrProj/
+MMVII-PhgrProj*/
+MMVII-Tmp-Dir-Glob/
+Tmp-MM-Dir/
+/share/
 .*.d
 !bin/
 bin/*

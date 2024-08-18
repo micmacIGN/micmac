@@ -15,6 +15,34 @@ namespace MMVII
 
 /* ********************************************* */
 /*                                               */
+/*             cOneLineAntiParal                 */
+/*                                               */
+/* ********************************************* */
+
+cOneLineAntiParal::cOneLineAntiParal() :
+    mSeg (cPt2dr(0,0),cPt2dr(1,0))  // Diff else error (cstr check not identic)
+{
+}
+
+void AddData(const cAuxAr2007 & anAux,cOneLineAntiParal & anEx)
+{
+      AddData(cAuxAr2007("P1",anAux),anEx.mSeg.P1());
+      AddData(cAuxAr2007("P2",anAux),anEx.mSeg.P2());
+      AddData(cAuxAr2007("ParalAng",anAux),anEx.mAng);
+      AddData(cAuxAr2007("Width",anAux),anEx.mWidth);
+      AddData(cAuxAr2007("Cumul",anAux),anEx.mCumul);
+}
+
+void AddData(const cAuxAr2007 & anAux,cLinesAntiParal1Im & anEx)
+{
+      AddData(cAuxAr2007("Calib",anAux),anEx.mDirCalib);
+      AddData(cAuxAr2007("Lines",anAux),anEx.mLines);
+}
+
+
+
+/* ********************************************* */
+/*                                               */
 /*             cHomogCpleIm                      */
 /*                                               */
 /* ********************************************* */
@@ -254,6 +282,7 @@ void cSetMesImGCP::AddMes2D(const cSetMesPtOf1Im & aSetMesIm,cSensorImage* aSens
 const std::vector<cMes1GCP> &        cSetMesImGCP::MesGCP()    const  {return mMesGCP; }
 const std::vector<cMultipleImPt> &   cSetMesImGCP::MesImOfPt() const  {return mMesImOfPt;  }
 const std::vector<cSensorImage*> &   cSetMesImGCP::VSens()     const  {return mVSens;}
+const std::vector<cSetMesPtOf1Im> &  cSetMesImGCP::MesImInit() const  {return mMesImInit;}
 
 std::vector<cMes1GCP> &        cSetMesImGCP::MesGCP()   {return mMesGCP; }
 
@@ -274,12 +303,30 @@ void cSetMesImGCP::ExtractMes1Im(cSet2D3D&  aS23,const std::string &aNameIm,bool
     }
 }
 
+void cSetMesImGCP::AsserGCPFinished() const
+{
+  if (! mPhaseGCPFinished)
+     MMVII_UnclasseUsEr("cSetMesImGCP : use with no image file");
+}
+
+int cSetMesImGCP::GetNbImMesForPoint(const std::string & aGCPName, bool SVP) const
+{
+    int aKGCP = m2MapPtInt.Obj2I(aGCPName,SVP);
+    if (aKGCP<0)
+        return 0;
+    else
+        return mMesImOfPt[aKGCP].VImages().size();
+}
+
 cSetMesImGCP *  cSetMesImGCP::FilterNonEmptyMeasure(int aNbMeasureMin) const
 {
+   AsserGCPFinished();
+
   cSetMesImGCP * aRes = new cSetMesImGCP;
 
   for (size_t aKGCP=0 ; aKGCP<mMesGCP.size() ; aKGCP++)
   {
+
        if ( int(mMesImOfPt[aKGCP].VImages().size()) >= aNbMeasureMin)
        {
              aRes->Add1GCP(mMesGCP[aKGCP]);
@@ -315,7 +362,10 @@ tREAL8 cSetMesImGCP::AvgSqResidual() const
          }
      }
 
-     return std::sqrt(aWA.Average());
+     if (ValidInvertibleFloatValue(aWA.SW()))
+        return std::sqrt(aWA.Average());
+     else
+         return NAN;
 }
 
 cSetMesGCP  cSetMesImGCP::ExtractSetGCP(const std::string & aName) const
@@ -461,18 +511,24 @@ bool cSetMesPtOf1Im::NameHasMeasure(const std::string & aN) const {return Privat
 /*                                               */
 /* ********************************************* */
 
-cMes1GCP::cMes1GCP(const cPt3dr & aPt,const std::string & aNamePt,tREAL4 aSigma) :
+cMes1GCP::cMes1GCP(const cPt3dr & aPt, const std::string & aNamePt, tREAL4 aSigma,
+                   const std::string &aAdditionalInfo) :
     mPt       (aPt),
     mNamePt   (aNamePt),
-    mSigma2   {0,0,0,0,0,0}
+    mAdditionalInfo(aAdditionalInfo),
+    mOptSigma2(std::nullopt)
 {
-    mSigma2[IndXX] = aSigma;
-    mSigma2[IndYY] = aSigma;
-    mSigma2[IndZZ] = aSigma;
+    if (aSigma>=0.)
+    {
+        mOptSigma2 = {0.,0.,0.,0.,0.,0.};
+        (*mOptSigma2)[IndXX] = Square(aSigma);
+        (*mOptSigma2)[IndYY] = Square(aSigma);
+        (*mOptSigma2)[IndZZ] = Square(aSigma);
+    }
 }
 
 cMes1GCP::cMes1GCP() :
-    cMes1GCP (cPt3dr(0,0,0),"??",-1)
+    cMes1GCP (cPt3dr::Dummy(),"??")
 {
 }
 
@@ -480,7 +536,24 @@ void AddData(const  cAuxAr2007 & anAux,cMes1GCP & aMes)
 {
    MMVII::AddData(cAuxAr2007("Name",anAux),aMes.mNamePt);
    MMVII::AddData(cAuxAr2007("Pt",anAux),aMes.mPt);
-   AddTabData(cAuxAr2007("Sigma2",anAux),aMes.mSigma2,6);
+   MMVII::AddData(cAuxAr2007("AdditionalInfo",anAux),aMes.mAdditionalInfo);
+   AddOptTabData(anAux,"Sigma2",aMes.mOptSigma2);
+}
+
+void cMes1GCP::ChangeCoord(const cDataMapping<tREAL8,3,3>& aMapping)
+{
+	// StdOut() << "PPPPP " << mPt << aMapping.Value(mPt) << aMapping.Inverse(mPt)<< "\n";
+    mPt = aMapping.Value(mPt);
+}
+
+cPt3dr cMes1GCP::SigmasXYZ() const
+{
+    if (mOptSigma2)
+    {
+        return {sqrt((*mOptSigma2)[IndXX]), sqrt((*mOptSigma2)[IndXX]), sqrt((*mOptSigma2)[IndXX]) };
+    } else {
+        return cPt3dr::Dummy();
+    }
 }
 
 /* ********************************************* */
@@ -500,6 +573,14 @@ cSetMesGCP::cSetMesGCP(const std::string &aNameSet) :
 cSetMesGCP::cSetMesGCP() :
     cSetMesGCP("???")
 {
+}
+
+
+
+void cSetMesGCP::ChangeCoord(const cDataMapping<tREAL8,3,3>& aMapping)
+{
+     for (auto & aGCP : mMeasures)
+          aGCP.ChangeCoord(aMapping);
 }
 
 void cSetMesGCP::AddMeasure(const cMes1GCP & aMeasure)
@@ -554,15 +635,16 @@ void cSetMesGCP::ToFile(const std::string & aNameFile) const
 
 const std::vector<cMes1GCP> &   cSetMesGCP::Measures() const {return mMeasures;}
 
-cSetMesGCP  cSetMesGCP::Filter(const std::string &aFilter) const
+cSetMesGCP  cSetMesGCP::Filter(const std::string &aFilter, const std::string &aFiltrAdditionalInfo) const
 {
     cSetMesGCP  aRes(mNameSet);
 
-    tNameSelector  aSelect =  AllocRegex(aFilter);
+    tNameSelector  aSelectName =  AllocRegex(aFilter);
+    tNameSelector  aSelectInfo =  AllocRegex(aFiltrAdditionalInfo);
 
     for (const auto & aPt : mMeasures)
     {
-         if (aSelect.Match(aPt.mNamePt))
+        if ( aSelectName.Match(aPt.mNamePt) && aSelectInfo.Match(aPt.mAdditionalInfo) )
             aRes.AddMeasure(aPt);
     }
 

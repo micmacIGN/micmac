@@ -131,7 +131,7 @@ void  MatEssAddEquations(const cSetHomogCpleDir & aSetD,cLinearOverCstrSys<tREAL
      for (size_t aKP=0 ; aKP<aVD1.size() ; aKP++)
      {
          SetVectMatEss(aVect,aVD1[aKP],aVD2[aKP]);
-	 aSys.AddObservation(1.0,aVect,0.0);
+	 aSys.PublicAddObservation(1.0,aVect,0.0);
      }
 }
 
@@ -233,7 +233,7 @@ cMatEssential::cMatEssential(const cSetHomogCpleDir & aSetD,cLinearOverCstrSys<t
      for (size_t aKP=0 ; aKP<aVD1.size() ; aKP++)
      {
          MMVII::SetVectMatEss(aVect,aVD1[aKP],aVD2[aKP]);
-	 aSys.AddObservation(1.0,aVect,0.0);
+	 aSys.PublicAddObservation(1.0,aVect,0.0);
      }
      aSys.AddObsFixVar(aVD1.size(),aKFix,1.0);
      cDenseVect<tREAL8> aSol = aSys.Solve();

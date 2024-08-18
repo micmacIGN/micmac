@@ -1,3 +1,6 @@
+#ifndef  _MMVII_BUNDLEADJUSTMENT_H_
+#define  _MMVII_BUNDLEADJUSTMENT_H_
+
 #include "MMVII_PCSens.h"
 #include "MMVII_MMV1Compat.h"
 #include "MMVII_DeclareCste.h"
@@ -7,24 +10,32 @@ using namespace NS_SymbolicDerivative;
 namespace MMVII
 {
 
+class cBA_Topo;
+
 /**   Class for representing a Pt of R3 in bundle adj, when it is considered as
  *   unknown.
  *      +  we have the exact value and uncertainty of the point is covariance is used
  *      -  it add (potentially many)  unknowns and then  it take more place in  memory & time
  */
 
-class cPt3dr_UK :  public cObjWithUnkowns<tREAL8>,
-                   public cMemCheck
+/*
+template <const int Dim>  class cPtxdr_UK :  public cObjWithUnkowns<tREAL8>,
+                                             public cMemCheck
 {
-      public :
-              cPt3dr_UK(const cPt3dr &);
-              ~cPt3dr_UK();
-              void PutUknowsInSetInterval() override;
-              const cPt3dr & Pt() const ;
-      private :
-              cPt3dr_UK(const cPt3dr_UK&) = delete;
-              cPt3dr mPt;
+   public :
+      typedef cPtxd<tREAL8,Dim>  tPt;
+
+      cPtxdr_UK(const tPt &);
+      ~cPtxdr_UK();
+      void PutUknowsInSetInterval() override;
+      const tPt & Pt() const ;
+   private :
+      cPtxdr_UK(const cPtxdr_UK&) = delete;
+      tPt mPt;
 };
+
+typedef cPtxdr_UK<3> cPt3dr_UK ;
+*/
 
 /**  "Standard" weighting classes, used the following formula
  *
@@ -95,6 +106,32 @@ class cBA_BlocRig
 
 };
 
+class cBA_GCP
+{
+     public :
+	          // - - - - - - - - GCP  - - - - - - - - - - -
+          cBA_GCP();
+          ~cBA_GCP();
+
+          std::string              mName;   // Name of folder 
+          cSetMesImGCP *           mMesGCP;
+          cSetMesImGCP             mNewGCP; // set of gcp after adjust
+	  tREAL8                   mSigmaGCP;
+          cStdWeighterResidual     mGCPIm_Weighter;
+          std::vector<cPt3dr_UK*>  mGCP_UK;
+};
+
+class cBA_TieP
+{
+     public :
+       cBA_TieP(const std::string & aName,cComputeMergeMulTieP*,const cStdWeighterResidual &aRes);
+       ~cBA_TieP();
+       
+       std::string              mName;   // Name of folder 
+       cComputeMergeMulTieP *   mMTP;
+       cStdWeighterResidual     mTieP_Weighter;
+};
+
 
 /**  
  */
@@ -113,25 +150,32 @@ class cMMVII_BundleAdj
 
 	  void AddBlocRig(const std::vector<double>& aSigma,const std::vector<double>&  aSigmRat ); // RIGIDBLOC
 	  void AddCamBlocRig(const std::string & aCam); // RIGIDBLOC
-
+          void AddTopo(); // TOPO
+          cBA_Topo* getTopo() { return mTopo;}
           ///  =======  Add GCP, can be measure or measure & object
-          void AddGCP(tREAL8 aSigmaGCP,const  cStdWeighterResidual& aWeightIm, cSetMesImGCP *);
+          void AddGCP(const std::string & aName, tREAL8 aSigmaGCP, const  cStdWeighterResidual& aWeightIm, cSetMesImGCP *, bool verbose=true);
+          std::vector<cBA_GCP*> & getVGCP() { return mVGCP;}
 
 	  ///  ============  Add multiple tie point ============
-	  void AddMTieP(cComputeMergeMulTieP  * aMTP,const cStdWeighterResidual & aWIm);
+	  void AddMTieP(const std::string & aName,cComputeMergeMulTieP  * aMTP,const cStdWeighterResidual & aWIm);
 
           /// One iteration : add all measure + constraint + Least Square Solve/Udpate/Init
-          void OneIteration();
+          void OneIteration(tREAL8 aLVM=0.0);
+          void OneIterationTopoOnly(tREAL8 aLVM=0.0, bool verbose=false); //< if no images
 
           const std::vector<cSensorImage *> &  VSIm() const ;  ///< Accessor
           const std::vector<cSensorCamPC *> &  VSCPC() const;   ///< Accessor
 								//
 
+          bool CheckGCPConstraints() const; //< test if free points have enough observations
 	  //  =========  control object free/frozen ===================
 
 	  void SetParamFrozenCalib(const std::string & aPattern);
 	  void SetViscosity(const tREAL8& aViscTr,const tREAL8& aViscAngle);
 	  void SetFrozenCenters(const std::string & aPattern);
+	  void SetFrozenOrients(const std::string & aPattern);
+          void SetSharedIntrinsicParams(const std::vector<std::string> &);
+           
 
 	  void AddPoseViscosity();
 	  void AddConstrainteRefPose();
@@ -139,6 +183,8 @@ class cMMVII_BundleAdj
 
 
 	  void SaveBlocRigid();
+          void Save_newGCP();
+          void SaveTopo();
 
      private :
 
@@ -151,12 +197,16 @@ class cMMVII_BundleAdj
           void AssertPhpAndPhaseAdd() ;  /// Assert both
           void InitIteration();          /// Called at first iteration -> Init things and set we are non longer in Phase Add
           void InitItereGCP();           /// GCP Init => create UK
-          void OneItere_GCP();           /// One iteraion of adding GCP measures
+          void InitItereTopo();          /// Topo Init => create UK
+          void OneItere_GCP(bool verbose=true);           /// One iteraion of adding GCP measures
 
 	  void OneItere_TieP();   /// Iteration on tie points
+	  void OneItere_TieP(const cBA_TieP&);   /// Iteration on tie points
 
           ///  One It for 1 pack of GCP (4 now 1 pack allowed, but this may change)
-          void OneItere_OnePackGCP(const cSetMesImGCP *);
+          void OneItere_OnePackGCP(cBA_GCP &, bool verbose=true);
+
+          void CompileSharedIntrinsicParams(bool ForAvg);
 
 
           //============== Data =============================
@@ -171,7 +221,7 @@ class cMMVII_BundleAdj
           std::vector<cPerspCamIntrCalib *>  mVPCIC;     ///< vector of all internal calibration 4 easy parse
           std::vector<cSensorCamPC *>        mVSCPC;      ///< vector of perspectiv  cameras
           std::vector<cSensorImage *>        mVSIm;       ///< vector of sensor image (PC+RPC ...)
-          std::vector<cCalculator<double> *> mVEqCol;     ///< vector of co-linearity equation
+          //  std::vector<cCalculator<double> *> mVEqCol;     ///< vector of co-linearity equation -> replace by direct access
 
           cSetInterUK_MultipeObj<tREAL8>    mSetIntervUK;
 
@@ -179,36 +229,46 @@ class cMMVII_BundleAdj
 
 	  std::string  mPatParamFrozenCalib;  /// Pattern for name of paramater of internal calibration
 	  std::string  mPatFrozenCenter;      /// Pattern for name of pose with frozen centers
+	  std::string  mPatFrozenOrient;      /// Pattern for name of pose with frozen centers
+
+          std::vector<std::string>  mVPatShared;
 
           // ===================  Information to use ==================
 	     
 	          // - - - - - - - - GCP  - - - - - - - - - - -
-          cSetMesImGCP *           mMesGCP;
-          cSetMesImGCP             mNewGCP; // set of gcp after adjust
-	  tREAL8                   mSigmaGCP;
-          cStdWeighterResidual     mGCPIm_Weighter;
-          std::vector<cPt3dr_UK*>  mGCP_UK;
+          std::vector<cBA_GCP*>        mVGCP;
+          //  cSetMesImGCP *           mMesGCP;
+          //  cSetMesImGCP             mNewGCP; // set of gcp after adjust
+	  //  tREAL8                   mSigmaGCP;
+          //  cStdWeighterResidual     mGCPIm_Weighter;
+          //  std::vector<cPt3dr_UK*>  mGCP_UK;
 
 	         // - - - - - - - - MTP  - - - - - - - - - - -
-	  cComputeMergeMulTieP *   mMTP;
-          cStdWeighterResidual     mTieP_Weighter;
+	  // cComputeMergeMulTieP *   mMTP;
+          // cStdWeighterResidual     mTieP_Weighter;
+          std::vector<cBA_TieP*>   mVTieP;
 
                  // - - - - - - -   Bloc Rigid - - - - - - - -
 	  cBA_BlocRig*              mBlRig;  // RIGIDBLOC
-	  
+          cBA_Topo*              mTopo;  // TOPO
+
 	         // - - - - - - -   Reference poses- - - - - - - -
           std::vector<cSensorCamPC *>        mVCamRefPoses;      ///< vector of reference  poses if they exist
 	  std::string                        mFolderRefCam;
 	  tREAL8                             mSigmaTrRefCam;
 	  tREAL8                             mSigmaRotRefCam;
+          std::string                        mPatternRef;
 	  bool                               mDoRefCam;
           cDirsPhProj*                       mDirRefCam;
           // ===================  "Viscosity"  ==================
 
 	  tREAL8   mSigmaViscAngles;  ///< "viscosity"  for angles
 	  tREAL8   mSigmaViscCenter;  ///< "viscosity"  for centers
+				      //
+	  int      mNbIter;    /// counter of iteration, at least for debug
 };
 
 
 };
 
+#endif // _MMVII_BUNDLEADJUSTMENT_H_

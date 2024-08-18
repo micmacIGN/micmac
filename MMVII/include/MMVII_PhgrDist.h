@@ -14,7 +14,7 @@ enum class eTypeFuncDist
               eDecY,  ///< Coefficient for decentric distorsion y mean derived by Cy (it has X and Y components)
               eMonX,  ///< Coefficient for a monom in X, of the polynomial distorsion
               eMonY,  ///< Coefficient for a monom in Y, of the polynomial distorsion
-              eMonom,   ///< Coefficient for a monom in X or Y
+              eMonom,   ///< Coefficient for a monom in X or Y, used for example in Radiom where there is no reason to sep X/Y
               eNbVals ///< Tag for number of value
            };
 
@@ -26,10 +26,18 @@ enum class eTypeFuncDist
      used of not according to the others, but as it internal/final classes, quick and dirty
      exceptionnaly allowed ...
 */
+enum class eModeDistMonom
+{
+     eModeFraser,  // dx = b1 x + b2 y
+     eModeSysCyl,  // dx = ax    dy = by
+     eModeStd      // no special case
+};
+
+
 class cDescOneFuncDist
 {
     public :
-      cDescOneFuncDist(eTypeFuncDist aType,const cPt2di aDeg);
+      cDescOneFuncDist(eTypeFuncDist aType,const cPt2di aDeg,eModeDistMonom aModeMonom);
       /// Majorarion of norms of jacobian , used in simulation
       double MajNormJacOfRho(double aRho) const;
 
@@ -41,7 +49,9 @@ class cDescOneFuncDist
       int           mDegTot;     ///< Total degree of the polynome
 };
 
-std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg);
+std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg,bool isFraserMode);
+
+std::vector<cDescOneFuncDist>   Polyn2DDescDist(int aDegree);
 
 const std::vector<cDescOneFuncDist> & VDesc_RadiomCPI(int aDegree,int aDRadElim=-1);
 
@@ -59,7 +69,8 @@ class cRandInvertibleDist
               const cPt3di & aDeg,   ///< Degree of the distortio,
               double aRhoMax,        ///< Radius on which it must be invertible
               double aProbaNotNul,   ///< Probability for a coefficient to be not 0
-              double aTargetSomJac   ///< Target majoration of jacobian
+              double aTargetSomJac,   ///< Target majoration of jacobian
+              bool   isFraserMode
        );
        cDataNxNMapCalcSymbDer<double,2> *  MapDerSymb();
        const std::vector<double> & VParam() const;  ///< Accessor to parameters
@@ -76,6 +87,7 @@ class cRandInvertibleDist
        tCalc *                         mEqDer;   ///< Calculator for values and derivatoves
        int                             mNbParam; ///< Number of parameters
        std::vector<double>             mVParam;  ///< Computed parameters
+       bool                            mIsFraserMode; ///<  Std Mode / SIA Mode
 };
 
 
@@ -101,16 +113,16 @@ std::vector<std::string>  NamesIntr(const std::string& aPref);  //  F  PPx   PPy
      derivate to x,y for example in iterative inversion)
        UK=x,y  Obs=K1,K2 .....   K1 r +K2 R^3 ...
  */
-NS_SymbolicDerivative::cCalculator<double> * EqDist(const cPt3di & aDeg,bool WithDerive,int aSzBuf);
+NS_SymbolicDerivative::cCalculator<double> * EqDist(const cPt3di & aDeg,bool WithDerive,int aSzBuf,bool isFraserMode);
 
 /** Allocate a calculator computing the base familly of a distorsion  UK=x,y Obs=K1,K2 .....  Kr, K2 R^3 , idem previous
     but does not return the sum, but the series of each independant function, used for least-square  feating with a
     given familly of func (for example in approximat inversion by least square)
  */
-NS_SymbolicDerivative::cCalculator<double> * EqBaseFuncDist(const cPt3di & aDeg,int aSzBuf);
+NS_SymbolicDerivative::cCalculator<double> * EqBaseFuncDist(const cPt3di & aDeg,int aSzBuf,bool isFraserMode);
 
 /** Alloc a map corresponding to  distorsions :   create a map interface to an EqDist */
-cDataNxNMapCalcSymbDer<double,2> * NewMapOfDist(const cPt3di & aDeg,const std::vector<double> & aVObs,int aSzBuf);
+cDataNxNMapCalcSymbDer<double,2> * NewMapOfDist(const cPt3di & aDeg,const std::vector<double> & aVObs,int aSzBuf,bool isFraserMode);
 
            // .............   Equation implying only projection  .............
 	 
@@ -119,9 +131,15 @@ NS_SymbolicDerivative::cCalculator<double> * EqCPProjDir(eProjPC  aType,bool Wit
 ///  For computing projections "inverse"   R2->R3 , return in fact direction of  bundle
 NS_SymbolicDerivative::cCalculator<double> * EqCPProjInv(eProjPC  aType,bool WithDerive,int aSzBuf);
 
-           // .............   Equation colinearity , imply external parameter, Projectiion, distorsion, foc+PP .............
-NS_SymbolicDerivative::cCalculator<double> * EqColinearityCamPPC(eProjPC  aType,const cPt3di & aDeg,bool WithDerive,int aSzBuf,bool ReUse);
+NS_SymbolicDerivative::cCalculator<double> * EqDistPol2D(int  aDeg,bool WithDerive,int aSzBuf,bool ReUse); // PUSHB
+NS_SymbolicDerivative::cCalculator<double> * EqColinearityCamGen(int  aDeg,bool WithDerive,int aSzBuf,bool ReUse); // PUSHB
+NS_SymbolicDerivative::cCalculator<double> * RPC_Proj(bool WithDerive,int aSzBuf,bool ReUse); // PUSHB
 
+           // .............   Equation colinearity , imply external parameter, Projectiion, distorsion, foc+PP .............
+NS_SymbolicDerivative::cCalculator<double> * EqColinearityCamPPC(eProjPC  aType,const cPt3di & aDeg,bool WithDerive,int aSzBuf,bool ReUse,bool isFraserMode);
+
+
+          
            // .............   Equation radiometry .............
 NS_SymbolicDerivative::cCalculator<double> * EqRadiomVignettageLinear(int aNbDeg,bool WithDerive,int aSzBuf,bool WithCste,int aDegPolSens);
 NS_SymbolicDerivative::cCalculator<double> * EqRadiomCalibRadSensor(int aNbDeg,bool WithDerive,int aSzBuf,bool WithCste,int aDegPolSens);
@@ -161,12 +179,25 @@ NS_SymbolicDerivative::cCalculator<double> * EqDist3DParam(bool WithDerive,int a
 /// let pk=(xk,yk,zk), R=(r00..r22)  Residual :  R(p2-p2) - {dx,dy,dz}
 NS_SymbolicDerivative::cCalculator<double> * EqTopoSubFrame(bool WithDerive,int aSzBuf);
 
+/// Sum of square of unknown, to test non linear constraints
+NS_SymbolicDerivative::cCalculator<double> * EqSumSquare(int aNb,bool WithDerive,int aSzBuf,bool ReUse);
+
+// .............   Equation for topo stations .............
+/// topo obs from a station: , Uk={pose_origin, pt_to} Obs={r00, r01, r02, r10, r11, r12, r20, r21, r22, val},
+NS_SymbolicDerivative::cCalculator<double> * EqTopoHz(bool WithDerive,int aSzBuf);
+NS_SymbolicDerivative::cCalculator<double> * EqTopoZen(bool WithDerive,int aSzBuf);
+NS_SymbolicDerivative::cCalculator<double> * EqTopoDist(bool WithDerive,int aSzBuf);
+NS_SymbolicDerivative::cCalculator<double> * EqTopoDX(bool WithDerive,int aSzBuf);
+NS_SymbolicDerivative::cCalculator<double> * EqTopoDY(bool WithDerive,int aSzBuf);
+NS_SymbolicDerivative::cCalculator<double> * EqTopoDZ(bool WithDerive,int aSzBuf);
 
 
            // .............   Equation implying 2D distance conservation .............
 	   
 /// Equation used to optimize homothetic transform between model and image (used as a tutorial for deformable model)
 NS_SymbolicDerivative::cCalculator<double> * EqDeformImHomotethy(bool WithDerive,int aSzBuf);
+/// Variant of "EqDeformImHomotethy", case where we use linear approximation
+NS_SymbolicDerivative::cCalculator<double> * EqDeformImLinearGradHomotethy(bool WithDerive,int aSzBuf);
 
            // .............   Covariance propagation  .............
 
@@ -176,7 +207,6 @@ NS_SymbolicDerivative::cCalculator<double> * EqNetworkConsDistProgCov(bool WithD
 NS_SymbolicDerivative::cCalculator<double> * EqNetworkConsDistFixPoints(bool WithDerive,int aSzBuf,const cPt2di& aSzN,bool WithSimUK);
 ///  idem, but more adapted to real case (as in surface devlopment)
 NS_SymbolicDerivative::cCalculator<double> * EqNetworkConsDistFixPoints(bool WithDerive,int aSzBuf,int aNbPts);
-
 
 
 

@@ -38,7 +38,7 @@ class cAppli_CatVideo : public cMMVII_Appli
          std::string mNameFoF;     ///< name of file of files
          std::string mNameResult;  ///< name of Resulting media
          bool        mVideoMode;       ///< is it video, change def options
-         std::string mOptions;     ///< is it video, change options
+         std::vector<std::string> mOptions;     ///< is it video, change options
 };
 
 
@@ -119,6 +119,11 @@ int cAppli_CatVideo::Exe()
        }
    }
 
+/*
+   JOE => modif MPD ,   else generate :
+   ffmpeg -safe 0 -f concat -i FileCatVideo.txt "-vcodec mpeg4 -b 15000k" toto.mp4
+   and the ffmpeg refuse to have  as a single string "-vcodec mpeg4 -b 15000k" 
+
    if (! IsInit(&mOptions))
    {
       if (mVideoMode)
@@ -126,6 +131,22 @@ int cAppli_CatVideo::Exe()
    }
 
    cParamCallSys aCom("ffmpeg","-safe","0","-f","concat","-i",mNameFoF,mOptions,mNameResult);
+*/
+
+   cParamCallSys aCom("ffmpeg","-safe","0","-f","concat","-i",mNameFoF);
+   if (! IsInit(&mOptions))
+   {
+      if (mVideoMode)
+         mOptions = {"-vcodec","mpeg4","-b","15000k"};
+   }
+
+
+   for (const auto & anOpt : mOptions)
+       aCom.AddArgs(anOpt);
+   aCom.AddArgs(mNameResult);
+   // End modif
+
+
    int aRes = EXIT_SUCCESS ;
    if (mExec) 
    {

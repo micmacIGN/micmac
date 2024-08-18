@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<Root>
+   <Type>"MMVII_Serialization"</Type>
+   <Version>"0.0.0"</Version>
+   <Data>
+      <SetMesIm>
+         <NameIm>"IMGP4167.JPG"</NameIm>
+         <Measures>
+            <el>
+               <Name>"Stone-6"</Name>
+               <Pt>644.286307996218966 232.6833164507199</Pt>
+               <Sigma2>1 0 1</Sigma2>
+            </el>
+            <el>
+               <Name>"Stone-7"</Name>
+               <Pt>1265.368071441166876 735.26882940476105</Pt>
+               <Sigma2>1 0 1</Sigma2>
+            </el>
+            <el>
+               <Name>"Grille"</Name>
+               <Pt>322.076097286495724 766.811866179541425</Pt>
+               <Sigma2>1 0 1</Sigma2>
+            </el>
+         </Measures>
+      </SetMesIm>
+   </Data>
+</Root>

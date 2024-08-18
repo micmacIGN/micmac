@@ -137,22 +137,49 @@ template <typename Type> Type DerYAtanXsY_sX(const Type & X,const Type & Y)
 
 template <typename Type> Type ATan2(const Type & aX,const Type & aY)
 {
-     MMVII_INTERNAL_ASSERT_tiny((aX!=0)||(aY!=0),"Bad value for arcsinus");
+     MMVII_INTERNAL_ASSERT_tiny((aX!=0)||(aY!=0),"Bad value for atan2");
 
      return std::atan2(aX,aY);
 }
 
 template <typename Type> Type DerX_ATan2(const Type & aX,const Type & aY)
 {
-     MMVII_INTERNAL_ASSERT_tiny((aX!=0)||(aY!=0),"Bad value for arcsinus");
+     MMVII_INTERNAL_ASSERT_tiny((aX!=0)||(aY!=0),"Bad value for atan2");
      return aY / (Square(aX)+Square(aY));
 }
 
 template <typename Type> Type DerY_ATan2(const Type & aX,const Type & aY)
 {
-     MMVII_INTERNAL_ASSERT_tiny((aX!=0)||(aY!=0),"Bad value for arcsinus");
+     MMVII_INTERNAL_ASSERT_tiny((aX!=0)||(aY!=0),"Bad value for atan2");
      return  (- aX) / (Square(aX)+Square(aY));
 }
+
+
+
+template <typename Type> Type DiffAngMod(const Type & aA, const Type & aB)
+{
+     auto aDiff = aA - aB;
+     if (std::isfinite(aDiff))
+     {
+         while (aDiff < -M_PI)
+            aDiff += 2*M_PI;
+         while (aDiff > 2*M_PI)
+            aDiff -= 2*M_PI;
+     }
+     return aDiff;
+}
+
+template <typename Type> Type DerA_DiffAngMod(const Type & aA,const Type & aB)
+{
+     return 1.;
+}
+
+template <typename Type> Type DerB_DiffAngMod(const Type & aA,const Type & aB)
+{
+     return -1.;
+}
+
+
 
 
 template <typename Type> Type sinH(const Type & aX) {return std::exp(aX)-std::exp(-aX);}
@@ -175,6 +202,9 @@ template  TYPE AtanXsY_sX(const TYPE & X,const TYPE & Y);\
 template  TYPE DerXAtanXsY_sX(const TYPE & X,const TYPE & Y,const TYPE & aEps);\
 template  TYPE DerXAtanXsY_sX(const TYPE & X,const TYPE & Y);\
 template  TYPE DerYAtanXsY_sX(const TYPE & X,const TYPE & Y);\
+template  TYPE DiffAngMod(const TYPE & A,const TYPE & B);\
+template  TYPE DerA_DiffAngMod(const TYPE & A,const TYPE & B);\
+template  TYPE DerB_DiffAngMod(const TYPE & A,const TYPE & B);\
 template  TYPE sinH(const TYPE & );\
 template  TYPE cosH(const TYPE & );
 

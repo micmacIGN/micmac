@@ -36,6 +36,7 @@ cSpecMMVII_Appli::cSpecMMVII_Appli
 
 int cSpecMMVII_Appli::AllocExecuteDestruct(const std::vector<std::string> & aVArgs) const
 {
+
    // A conserver, on le mettra dans les sauvegarde
 #if 0
    {
@@ -84,14 +85,15 @@ int cSpecMMVII_Appli::AllocExecuteDestruct(const std::vector<std::string> & aVAr
         {
             CloseRandom();
         }
+	anAppli->ToDoBeforeDestruction();
     }
     cMemManager::CheckRestoration(aMemoState);
-    MMVII_INTERNAL_ASSERT_always(cMemCheck::NbObjLive()==aNbObjLive,"Mem check obj not killed");
+    MMVII_INTERNAL_ASSERT_always(cMemCountable::NbObjLive()==aNbObjLive,"Mem check obj not killed");
     aCptCallIntern--;
     // This was the initial test, stricter, maintain it when call by main
     if (aCptCallIntern==0)
     {
-         MMVII_INTERNAL_ASSERT_always(cMemCheck::NbObjLive()==0,"Mem check obj not killed");
+         MMVII_INTERNAL_ASSERT_always(cMemCountable::NbObjLive()==0,"Mem check obj not killed");
     }
     return aRes;
 }
@@ -170,6 +172,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecTestRecall);
         TheVecAll.push_back(&TheSpecScaleImage);
         TheVecAll.push_back(&TheSpec_StackIm);
+        TheVecAll.push_back(&TheSpec_StackDep);
         TheVecAll.push_back(&TheSpecCalcDiscIm);
         TheVecAll.push_back(&TheSpecCalcDescPCar);
         TheVecAll.push_back(&TheSpecMatchTieP);
@@ -191,6 +194,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecDMEvalRef);
         TheVecAll.push_back(&TheSpecGenCodedTarget);
         TheVecAll.push_back(&TheSpecExtractCircTarget);
+        TheVecAll.push_back(&TheSpecExtractCheckBoardTarget);
         TheVecAll.push_back(&TheSpecExtractCodedTarget);
         TheVecAll.push_back(&TheSpecGenerateEncoding);
         TheVecAll.push_back(&TheSpecSimulCodedTarget);
@@ -209,6 +213,8 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_OriCalibratedSpaceResection);
         TheVecAll.push_back(&TheSpec_OriCheckGCPDist);
         TheVecAll.push_back(&TheSpec_OriBundlAdj);
+        TheVecAll.push_back(&TheSpec_TopoAdj);
+
         TheVecAll.push_back(&TheSpec_OriRel2Im);
         TheVecAll.push_back(&TheSpecMeshCheck);
         TheVecAll.push_back(&TheSpecProMeshImage);
@@ -218,6 +224,8 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
 
         TheVecAll.push_back(&TheSpecDistCorrectCirgTarget);
         TheVecAll.push_back(&TheSpec_ImportGCP);
+        TheVecAll.push_back(&TheSpec_ImportORGI);
+        TheVecAll.push_back(&TheSpec_ImportM32);
         //TheVecAll.push_back(&TheSpecTopoComp);
         TheVecAll.push_back(&TheSpecGenArgsSpec);
         TheVecAll.push_back(&TheSpec_ConvertV1V2_GCPIM);
@@ -232,9 +240,22 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_ImportOri);
         TheVecAll.push_back(&TheSpecDicoRename);
         TheVecAll.push_back(&TheSpec_SimulDispl);
-        /*TheVecAll.push_back(&TheSpec_CreateRTL);
+        TheVecAll.push_back(&TheSpec_CreateRTL);
+        TheVecAll.push_back(&TheSpec_TestProj);
         TheVecAll.push_back(&TheSpec_ChSysCo);
-        TheVecAll.push_back(&TheSpec_CreateCalib);*/
+        TheVecAll.push_back(&TheSpec_CreateCalib);
+        TheVecAll.push_back(&TheSpec_ImportTiePMul);
+        TheVecAll.push_back(&TheSpec_ImportMesImGCP);
+        TheVecAll.push_back(&TheSpecImportExtSens);
+        TheVecAll.push_back(&TheSpecTestSensor);
+        TheVecAll.push_back(&TheSpecParametrizeSensor);
+        TheVecAll.push_back(&TheSpec_ChSysCoGCP);
+        TheVecAll.push_back(&TheSpec_TutoSerial);
+        TheVecAll.push_back(&TheSpec_TutoFormalDeriv);
+        TheVecAll.push_back(&TheSpec_ExportUndistMesIm);
+        TheVecAll.push_back(&TheSpecAppliExtractLine);
+        TheVecAll.push_back(&TheSpec_CERN_ImportClino);
+        TheVecAll.push_back(&TheSpec_MMV2_MesIm_2_MMV1);
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }

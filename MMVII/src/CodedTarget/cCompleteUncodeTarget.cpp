@@ -16,22 +16,6 @@
 namespace MMVII
 {
 
-	/*
-struct A 
-{
-};
-struct B
-{
-	A mA;
-};
-
-void f ()
-{
-	B aB;
-	A aA = aB;
-}
-*/
-
 
 /*  *********************************************************** */
 /*                                                              */
@@ -150,6 +134,8 @@ void cAppliCompletUncodedTarget::CompleteOneGCP(const cMes1GCP & aGCP)
     }
 
     // Now test shape of ellispe compared to theoreticall ground pose
+
+    // StdOut() <<  "NNNNNoOOrmal " << mNormal  << " NAME=" << aGCP.mNamePt << std::endl;
  
     cPlane3D aPlaneT  = cPlane3D::FromPtAndNormal(aGCP.mPt,mNormal);     // 3D plane of the ellispe
     cEllipse aEl = mSensor->EllipseIm2Plane(aPlaneT,anIt_SEE->mEllipse,50);  // ellipse in ground coordinate
@@ -163,6 +149,7 @@ void cAppliCompletUncodedTarget::CompleteOneGCP(const cMes1GCP & aGCP)
    AddOneReportCSV(mNameReportEllipse,{mNameIm,aGCP.mNamePt,ToStr(aRMoy),ToStr(aRatio)});
 
 
+    // StdOut() <<  "CoooOmmpl  " << __LINE__ << "\n";
     if (  IsInit(&mThreshRay) &&
 	  (
                  (aRatio > mThreshRay[0])
@@ -173,6 +160,7 @@ void cAppliCompletUncodedTarget::CompleteOneGCP(const cMes1GCP & aGCP)
     {
        return;
     }
+    // StdOut() <<  "CoooOmmpl  " << __LINE__ << "\n";
 
     if (false && (LevelCall()==0))  // print info if was done whith only one image
     {
@@ -201,9 +189,9 @@ int  cAppliCompletUncodedTarget::Exe()
    InitReport(mNameReportEllipse,"csv",true);
 
 
+   AddHeaderReportCSV(mNameReportEllipse,{"Image","Pt","Ray","Ratio"});
    if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
    {
-       AddOneReportCSV(mNameReportEllipse,{"Image","Pt","Ray","Ratio"});
       int aRes =  ResultMultiSet();
       if (aRes!=EXIT_SUCCESS) return aRes;
 
@@ -213,7 +201,7 @@ int  cAppliCompletUncodedTarget::Exe()
    }
 
    mNameIm = FileOfPath(mSpecImIn);
-   mPhProj.LoadSensor(mNameIm,mSensor,mCamPC,false);
+   mPhProj.ReadSensor(mNameIm,mSensor,mCamPC,true,false);
 
    //   load CGP
    mPhProj.LoadGCP(mMesImGCP);

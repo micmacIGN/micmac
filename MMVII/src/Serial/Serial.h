@@ -42,6 +42,16 @@ class cJsonSerialTokenParser ; // instantiation of cSerialFileParser to json fil
 class cSerialTree;             //  class for representing in a tree the "grammatical" parsing of a token generator
 
 
+// From boost:: ...
+template <class T>
+static inline void hash_combine(std::size_t& seed, T const& v)
+{
+   std::hash<T> hasher;
+   seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+}
+
+// template <class T> void HashCombine(std::size_t& seed, T const& v);
+
 
 
 ///  Use to handle End Of File using exception
@@ -214,6 +224,11 @@ class cSerialTree : public cMemCheck
 	  void  Raw_PrettyPrint(cMMVII_Ofs& anOfs) const;  /// Tagt-pretty print
 	  void  CSV_PrettyPrint(std::vector<std::string>& aRes,bool IsSpecif) const;  /// print 
 
+      /// Extract a descendant from its name
+      std::vector<const cSerialTree *> GetAllDescFromName(const std::string &) const;
+      /// Test if there is a one and only one descendant, if not and SVP return nullptr
+      const cSerialTree * GetUniqueDescFromName(const std::string &,bool SVP=false) const;
+
 
 	  /// Assert that there is only 1 son and return it
 	  const cSerialTree & UniqueSon() const; 
@@ -224,9 +239,19 @@ class cSerialTree : public cMemCheck
 	  void Unfold(std::list<cResLex> &,eTypeSerial) const;
 
 	  const std::vector<cSerialTree>&  Sons() const; /// acessor
-          const std::string & Value() const ;            /// accessor
+          const std::string & Value() const ;            /// accessor !! it is the tag
+          const std::string * ValueInside(bool SVP=false) const ;   /// if tree has struct <A>"B" </A> => B , else null
+          const std::string * GetUniqueValFromName(const std::string &Tag,bool SVP=false) const;  /// if tree contain  <Tag>"B" </Tag> => B
+
+	  /// return true if there is a unique terminal tree we tag "Tag" containin "Val"
+          bool HasValAtUniqueTag(const std::string &Tag,const std::string &aVal) const; 
+						
      private :
-          void RecursSetFather(cSerialTree *);
+	  // cSerialTree (const cSerialTree &) = delete;
+
+      void RecGetAllDescFromName(std::vector<const cSerialTree *>&,const std::string &) const;
+
+      void RecursSetFather(cSerialTree *);
 	  // cSerialTree(const cSerialTree &) ;
 	  /// Implement using exception
 	  void Rec_AnalyseDiffTree(const cSerialTree &,const std::string & aSkeep) const;

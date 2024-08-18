@@ -23,7 +23,8 @@ namespace MMVII
 
 #define MMVII_SYS_L 6  // Gnu/Linux, first perfect number ;-)
 #define MMVII_SYS_A 666  // Apple  , Evil's number ;-(
-#define MMVII_SYS_W 2610  // Window , Evil's number in non standard hexadecimal , some system like to do it hard  ...
+#define MMVII_SYS_W 2910  // Window ,Evil's number in non standard hexadecimal ,some system like to do it hard  ... 0x29A =10+9*16+2*256=666
+
 
 enum class eSYS
 {

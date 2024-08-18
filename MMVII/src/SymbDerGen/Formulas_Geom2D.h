@@ -14,6 +14,45 @@ using namespace NS_SymbolicDerivative;
 
 namespace MMVII
 {
+/**  Class used in Bench of non linear constraint, it returns the some of square of 8 unknosnw, it is used
+     in the 8 neighbors;  purely articicial ...
+    */
+
+class cFormulaSumSquares
+{
+  public :
+    cFormulaSumSquares(int aNb) :
+       mNb   (aNb)
+    {
+    }
+
+    std::vector<std::string> VNamesUnknowns()  const
+    { 
+         std::vector<std::string> aRes;
+         for (int aK=0 ; aK<mNb; aK++)
+             aRes.push_back("X"+ToStr(aK));
+         return aRes;
+    }
+    static const std::vector<std::string> VNamesObs()      { return {"SXX"}; }
+
+    std::string FormulaName() const { return "SumSquare_"+ToStr(mNb);}
+
+    template <typename tUk,typename tObs> 
+             std::vector<tUk> formula
+                  (
+                      const std::vector<tUk> & aVUk,
+                      const std::vector<tObs> & aVObs
+                  )  const
+    {
+	  auto aSum = aVObs.at(0);
+          for (int aK=0 ; aK<mNb ; aK++)
+              aSum = aSum - Square(aVUk.at(aK));
+          return { aSum};
+     }
+
+     int mNb;
+};
+
 
 /**  Class for generating code relative to 2D-distance conservation for triangalution simulation */
 
@@ -39,14 +78,57 @@ class cDist2DConservation
           cPtxd<tUk,2>  p1 = VtoP2(aVUk,0);
           cPtxd<tUk,2>  p2 = VtoP2(aVUk,2);
           cPtxd<tUk,2>  v  = p2-p1;
-          const auto & ObsDist  = aVObs[0];  
-	  const auto aCst1 = CreateCste(1.0,p1.x());  // create a symbolic formula for constant 1
 
+          const auto & ObsDist  = aVObs[0];
+          const auto aCst1 = CreateCste(1.0,p1.x());  // create a symbolic formula for constant 1
 
           return { Norm2(v)/ObsDist - aCst1 } ;
           // return { sqrt(square(v.x())+square(v.y()))/ObsDist - aCst1 } ;
      }
+
+ // Alternate version of the same formula, showing use case of SymbPrint and SymbComment
+/*
+    template <typename tUk,typename tObs>
+             static std::vector<tUk> formula
+                  (
+                      const std::vector<tUk> & aVUk,
+                      const std::vector<tObs> & aVObs
+                  ) // const
+    {
+          cPtxd<tUk,2>  p1 = VtoP2(aVUk,0);
+          cPtxd<tUk,2>  p2 = VtoP2(aVUk,2);
+          cPtxd<tUk,2>  v  = p2-p1;
+          SymbComment(v.x(),"Vx");
+          SymbComment(v.y(),"Vy");
+          SymbComment(Norm2(v),"|v|");
+          SymbCommentDer(Norm2(v),0,"d(|v|)/d(p1.x)");
+          SymbCommentDer(Norm2(v),1,"d(|v|)/d(p1.y)");
+          SymbCommentDer(Norm2(v),2,"d(|v|)/d(p2.x)");
+          SymbCommentDer(Norm2(v),3,"d(|v|)/d(p2.y)");
+
+          const auto & ObsDist  = aVObs[0];
+          const auto aCst1 = CreateCste(1.0,p1.x());  // create a symbolic formula for constant 1
+
+          auto result = Norm2(v)/ObsDist - aCst1;
+
+          SymbComment(result,"f");
+          SymbCommentDer(result,0,"d(f)/d(p1.x)");
+          SymbCommentDer(result,1,"d(f)/d(p1.y)");
+          SymbCommentDer(result,2,"d(f)/d(p2.x)");
+          SymbCommentDer(result,3,"d(f)/d(p2.y)");
+
+          SymbPrint(v.x(),"Vx");
+          SymbPrint(v.y(),"Vy");
+          SymbPrint(result,"Dist2DConst");
+          SymbPrintDer(result,0,"d(dist2DConst)/d(p1.x)");
+          SymbPrintDer(result,3,"d(Dist2DConst)/d(p2.y)");
+
+          return { result } ;
+          // return { sqrt(square(v.x())+square(v.y()))/ObsDist - aCst1 } ;
+     }
+*/
 };
+
 
 /**  Class for generating code relative to 2D-"RATIO of distance"  */
 
@@ -114,6 +196,10 @@ class cBaseNetCDPC
        int    mNbCoord;
 };
 
+/**   This class is used for the covoriance propagation itself, in  fact its a purely affine constraint as
+      the covariance has been formulated as sum of square linear 
+*/
+
 class cNetworConsDistProgCov : public  cBaseNetCDPC
 {
       public :
@@ -179,7 +265,15 @@ class cNetworConsDistProgCov : public  cBaseNetCDPC
       public :
 };
 
-/** XXXXXX ag*/
+/** This class is used to generate conservation of distance/ratio using unknown isometric/conformal
+    mapping.  Let be Pref(k) some ref points, PUk some unknown point and Phi somme (possibly unknown) mapping,
+    the equation is
+ 
+            Pref(k)  =  Phi (PUk(k))
+
+     PS : to see if it is necessary to have multiple points ? Same result could probably be obtained with
+     only one pair of point Ref/Uk ....
+*/
 
 class cNetWConsDistSetPts : public  cBaseNetCDPC
 {

@@ -36,9 +36,9 @@ template <class Type>  class cLinearMemoEq  : public cLinearOverCstrSys<Type>
 	public :
              typedef cMemo1LinearEq<Type> tMemEq;
              /// 
-	     void AddObservation(const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) override;
+	     void SpecificAddObservation(const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) override;
              /// Add  aPds (  aCoeff .X = aRHS) , version sparse
-             void AddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) override;
+             void SpecificAddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) override;
 
 	     ///  Virtual method , specify the parameters (coeff ...)
              Type Residual(const cDenseVect<Type> & aVect,const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) const override;
@@ -119,15 +119,15 @@ template <class Type> Type cLinearMemoEq<Type>::Residual(const cDenseVect<Type> 
 }
 
 template <class Type>  
-    void cLinearMemoEq<Type>::AddObservation(const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS)
+    void cLinearMemoEq<Type>::SpecificAddObservation(const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS)
 {
     mLEq.push_back(tMemEq(aWeight,aCoeff,aRHS));
 }
 
 template <class Type>  
-    void cLinearMemoEq<Type>::AddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS)
+    void cLinearMemoEq<Type>::SpecificAddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS)
 {
-     AddObservation(aWeight,cDenseVect<Type>(this->mNbVar,aCoeff),aRHS);
+     SpecificAddObservation(aWeight,cDenseVect<Type>(aCoeff,this->mNbVar),aRHS);
 }
 
 template <class Type>  
@@ -199,7 +199,7 @@ template <class Type> void cCraig_Barrodale_Roberts_l1<Type>::Bench1Sol(const cD
 
      //StdOut() <<  "RESS " << aVRes.at(this->mNbVar-1) << " " << aVRes.at(this->mNbVar) << std::endl;
      // A first condition is that at least NB VAR are out
-     MMVII_INTERNAL_ASSERT_bench(aVRes.at(this->mNbVar-1)<1e-5,"Bench1Sol");
+     MMVII_INTERNAL_ASSERT_bench(aVRes.at(this->mNbVar-1)<1e-5,"Bench1Sol"); // TODO: is not always true
 
      tREAL8 aScoreS = this->Residual(aSol);
 
@@ -224,12 +224,15 @@ template <class Type> void cCraig_Barrodale_Roberts_l1<Type>::Bench()
         {
             int aNbEq = 3 + aDim * 3;
             cCraig_Barrodale_Roberts_l1 aSys(aDim);
-	    for (int aKEq = 0 ; aKEq<aNbEq ; aKEq++)
-	    {
-                aSys.AddObservation(RandInInterval(0.1,1.0),cDenseVect<Type>::RanGenerate(aDim),RandInInterval(-10.0,10.0));
-	    }
-	    cDenseVect<Type>  aVec = aSys.Solve();
-	    aSys.Bench1Sol(aVec);
+            for (int aKEq = 0 ; aKEq<aNbEq ; aKEq++)
+            {
+                auto v1 = RandInInterval(0.1,1.0);
+                auto v2 = cDenseVect<Type>::RanGenerate(aDim);
+                auto v3 = RandInInterval(-10.0,10.0);
+                aSys.PublicAddObservation(v1,v2,v3); // use variable to force evaluation order
+            }
+            cDenseVect<Type>  aVec = aSys.Solve();
+            aSys.Bench1Sol(aVec);
         }
     }
 }

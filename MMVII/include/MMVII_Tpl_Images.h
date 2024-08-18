@@ -139,6 +139,20 @@ template<class T2>   cDenseVect<T2> operator -= (cDenseVect<T2> & aI2,const cDen
 	return aI2;
 }
 
+template<class T1>   cIm2D<T1> operator - (const cIm2D<T1> & aIm)
+{
+   cIm2D<T1> aRes (aIm.DIm().Sz());
+   aIm.DIm().ChSignIn(aRes.DIm());
+
+   return aRes;
+}
+
+template<class T1>   cDenseMatrix<T1> operator - (const cDenseMatrix<T1> & aMat)
+{
+    return  cDenseMatrix<T1> (-aMat.Im());
+}
+
+
        //===========   Addition ===========
 
 template<class T1,class T2,class T3,int Dim>  

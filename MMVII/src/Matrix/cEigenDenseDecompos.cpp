@@ -1,3 +1,8 @@
+// CM: g++ reports  "result: may be used uninitialized" with Eigen 3.4.0
+#if defined(__GNUC__) && !defined(__clang__)
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
 
 #include "MMVII_Tpl_Images.h"
 #include "MMVII_SysSurR.h"
@@ -7,6 +12,9 @@
 #include "Eigen/Householder"  // HouseholderQR.h"
 // #include "Eigen/Cholesky"  // HouseholderQR.h"
 
+#if defined(__GNUC__) && !defined(__clang__)
+#  pragma GCC diagnostic pop
+#endif
 using namespace Eigen;
 
 namespace MMVII
@@ -105,7 +113,7 @@ template <class Type> Type  cResulSymEigenValue<Type>::Cond(Type aDef) const
    }
    if (aIMM.Max().ValExtre() == Type(0.0))
    {
-       MMVII_INTERNAL_ASSERT_strong(aDef>=0,"Conditionning of null eigen value without default");
+       MMVII_INTERNAL_ASSERT_strong(aDef>=0,"Conditioning of null eigen value without default");
        return aDef;
    }
    return  aIMM.Min().ValExtre() / aIMM.Max().ValExtre() ;
@@ -583,7 +591,7 @@ template <class Type> cLeasSqtAA<Type> cDecSumSqLinear<Type>::OriSys() const
     cLeasSqtAA<Type> aResult(mNbVar);
 
     for (const auto & anEl : mVElems)
-        aResult.AddObservation(anEl.mW,anEl.mCoeff,anEl.mCste);
+        aResult.PublicAddObservation(anEl.mW,anEl.mCoeff,anEl.mCste);
 
     return aResult;
 }

@@ -5,6 +5,7 @@
 #include "MMVII_Geom2D.h"
 #include "MMVII_PCSens.h"
 #include "Serial.h"
+#include "MMVII_MeasuresIm.h"
 
 
 /** \file DemoSerial.cpp
@@ -59,17 +60,23 @@ cCollecSpecArg2007 & cAppliSpecSerial::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
 
 void GenSpec_BitEncoding(const std::string & aDir);
+void GenSpec_SysCo(const std::string & aDir);
 
 
 int  cAppliSpecSerial::Exe()
 {
    std::string aDir = DirRessourcesMMVII() + "SpecifSerial/";
 
-   SpecificationSaveInFile<cTestSerial1>(aDir+"cTestSerial1.xml");
-   SpecificationSaveInFile<cTestSerial1>(aDir+"cTestSerial1.json");
+   // SpecificationSaveInFile<cTestSerial1>(aDir+"cTestSerial1.xml");
+   // SpecificationSaveInFile<cTestSerial1>(aDir+"cTestSerial1.json");
 
    GenSpec_BitEncoding(aDir);
+   GenSpec_SysCo(aDir);
+   SpecificationSaveInFile<tNameSet>(aDir+"SetName.xml");
+   SpecificationSaveInFile<cSetMesPtOf1Im>(aDir+"SetMesureIm.xml");
+   SpecificationSaveInFile<cSetMesGCP>(aDir+"SetMesureGCP.xml");
 
+   SpecificationSaveInFile<cComputeAssociation>(aDir+"ComputeAssociation.xml");
 
    return EXIT_SUCCESS;
 }

@@ -112,8 +112,6 @@ std::vector<Type> RatkoswkyResidual
     const Type & x  = aVObs[1];  // Warn the data I got were in order y,x ..
     const Type & y  = aVObs[0];
 
-    pow(b1,2.7);
-
     // Model :  y = b1 / (1+exp(b2-b3*x)) ^ 1/b4 + Error()  [Ratko]
     return { b1 / pow(1.0+exp(b2-b3*x),1.0/b4) - y } ;
 }
@@ -207,74 +205,10 @@ void TestRatkoswky(bool Show,const tVRatkoswkyData & aVData,const std::vector<do
 
 /* {II}  ========================    ==========================================
 
-   This second example, we take a very basic example to analyse some part of the
+   This second example, we take a very basic example to analyse some part of the internal
+
+   See InspectCube() in file TutoFormalDeriv.cpp
 */
-template <class Type> 
-std::vector<Type> FitCube
-                  (
-                      const std::vector<Type> & aVUk,
-                      const std::vector<Type> & aVObs
-                  )
-{
-    const Type & a = aVUk[0];
-    const Type & b = aVUk[1];
-
-    const Type & x  = aVObs[0];  
-    const Type & y  = aVObs[1];
-     
-    // Naturally the user would write that
-    if (false)
-    {
-       return {cube(a+b *x)- y};
-       Type F = (a+b *x);
-       return {F*F*F - y};
-    }
-
-
-    // but here we want to test the reduction process
-    return {(a+b *x)*(x*b+a)*(a+b *x) - y};
-}
-
-void LocInspectCube()
-{
-    std::cout <<  "===================== TestFoncCube  ===================\n";
-
-    // Create a context where values are stored on double and :
-    //    2 unknown, 2 observations, a buffer of size 100
-    //    aCFD(100,2,2) would have the same effect for the computation
-    //    The variant with vector of string, will fix the name of variables, it
-    //    will be usefull when will generate code and will want  to analyse it
-    SD::cCoordinatorF<double>  aCFD("FitCube",100,{"a","b"},{"x","y"});
-
-    // Inspect vector of unknown and vector of observations
-    {  
-        for (const auto & aF : aCFD.VUk())
-           std::cout << "Unknowns : "<< aF->Name() << "\n";
-        for (const auto & aF : aCFD.VObs())
-           std::cout << "Observation : "<< aF->Name() << "\n";
-    }
-
-    // Create the formula corresponding to residual
-    std::vector<SD::cFormula<double>>  aVResidu = FitCube(aCFD.VUk(),aCFD.VObs());
-    SD::cFormula<double>  aResidu = aVResidu[0];
- 
-    // Inspect the formula 
-    std::cout  << "RESIDU FORMULA, Num=" << aResidu->NumGlob() << " Name=" <<  aResidu->Name() <<"\n";
-    std::cout  << " PP=[" << aResidu->InfixPPrint() <<"]\n";
-
-    // Inspect the derivative  relatively to b
-    auto aDerb = aResidu->Derivate(1);  
-    std::cout  << "DERIVATE FORMULA , Num=" << aDerb->NumGlob() << " Name=" <<  aDerb->Name() <<"\n";
-    std::cout  << " PP=[" << aDerb->InfixPPrint() <<"]\n";
-
-    // Set the formula that will be computed
-    aCFD.SetCurFormulasWithDerivative(aVResidu);
-    
-    // Print stack of formula
-    std::cout << "====== Stack === \n";
-    aCFD.ShowStackFunc();
-
-}
 
 /* {III}  ========================  Test perf on colinearit equation ==========================
 
@@ -1054,10 +988,6 @@ void   Bench_powI(bool Show,int aLevel)
 
 namespace MMVII
 {
-void InspectCube()
-{
-     LocInspectCube();
-}
 
 void   BenchFormalDer(int aLevel, bool Show)
 {

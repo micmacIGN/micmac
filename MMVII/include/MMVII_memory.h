@@ -146,32 +146,37 @@ class cMemManager
 };
 
 
+/** cMemCountable to check that all object allocated are destroyed */
 
-
-/**
-    This classe redefine operators new and delate to check alloc / desalloc and (some) bad access.
-    Allocation and desallocation is delegated to  cMemManager
-*/
-
-class  cMemCheck
+class cMemCountable
 {
-      public :
-         void * operator new    (size_t sz);
-         void operator delete   (void * ptr) ;
+     public :
 #if (The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_tiny)
-         cMemCheck()  
+         cMemCountable()  
          {
-              mCpt = TheCptObj;
+             mCpt = TheCptObj;
+	     TheCptObj++;
+#if (The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_micro)
+             MMVII_INTERNAL_ASSERT_tiny((size_t)mCpt==TheVectFreeed.size(),"Internal check in cMemCountable::TheVectFreeed");
+             TheVectFreeed.push_back(false);
+	     if (mCpt==TheNumObjTagged)
+	     {
+                 MMVII_INTERNAL_ERROR("Creation of object tagged for memory leak tracking");
+	     }
+#endif
               mActiveNbObj=   cMemManager::IsActiveMemoryCount();
               if (mActiveNbObj)
               {
                  TheNbObjLive++;
               }
-	      TheCptObj++;
          }
-         cMemCheck(const cMemCheck &)  : cMemCheck () {}
-         ~cMemCheck()
+         cMemCountable(const cMemCountable &)  : cMemCountable () {}
+         ~cMemCountable()
          {
+#if (The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_micro)
+            TheVectFreeed.at(mCpt) = true;
+#endif
+
             if (mActiveNbObj)
             {
                  TheNbObjLive--;
@@ -181,16 +186,38 @@ class  cMemCheck
 	 int  mCpt;
 #endif
          static int    NbObjLive();
+	 static const std::vector<bool> * AdrTheVectFreeed();
+	 static void  SetTaggedObjectAtCreation(int aNum);
       private :
          static int    TheNbObjLive;
          static int    TheCptObj;
+	 static int    TheNumObjTagged;
+
+#if (The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_micro)
+	 static std::vector<bool>  TheVectFreeed;
+#endif
+};
+
+
+/**
+    This classe redefine operators new and delate to check alloc / desalloc and (some) bad access.
+    Allocation and desallocation is delegated to  cMemManager
+*/
+
+class  cMemCheck : public cMemCountable
+{
+      public :
+         void * operator new    (size_t sz);
+         void operator delete   (void * ptr) ;
+         cMemCheck () : cMemCountable() {}
+         cMemCheck(const cMemCheck &)  : cMemCheck () {}
        // to avoid use 
 };
 
 /**  some object have to live untill the end of the process, just before the verif is done in main
  *   appli destructor.
  */
-class cObj2DelAtEnd
+class cObj2DelAtEnd  : public cMemCountable
 {
         public :
                 virtual ~cObj2DelAtEnd();

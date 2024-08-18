@@ -210,7 +210,7 @@ template <class Type,const int Dim>  cPtxd<Type,Dim> GlobCenterInscribedCircle(c
        cPtxd<Type,Dim> aMil = (aP0+aP1)/Type(2.0);
        cPtxd<Type,Dim> aV01 = aP1-aP0;
 
-       aSys.AddObservation(Type(1.0),aV01.ToVect(),Scal(aMil,aV01));
+       aSys.PublicAddObservation(Type(1.0),aV01.ToVect(),Scal(aMil,aV01));
    }
 
    // For Dim=3 we have computed inter of 3 plane mediator that co-intersect in a line
@@ -238,7 +238,7 @@ template <class Type,const int Dim>  cPtxd<Type,Dim> cTriangle<Type,Dim>::Center
        tPt aMil = (aP0+aP1)/Type(2.0);
        tPt aV01 = aP1-aP0;
 
-       aSys.AddObservation(Type(1.0),aV01.ToVect(),Scal(aMil,aV01));
+       aSys.PublicAddObservation(Type(1.0),aV01.ToVect(),Scal(aMil,aV01));
    }
 
    // For Dim=3 we have computed inter of 3 plane mediator that co-intersect in a line
@@ -270,7 +270,10 @@ template<class Type> cPtxd<Type,3> Normal(const cTriangle<Type,3> & aTri)
 template <class Type,const int Dim>  
          cTriangle<Type,Dim>  cTriangle<Type,Dim>::RandomTri(const Type & aSz,const Type & aRegulMin )
 {
-	cTriangle<Type,Dim> aRes(tPt::PRandC()*aSz,tPt::PRandC()*aSz,tPt::PRandC()*aSz);
+        auto v1 = tPt::PRandC()*aSz;
+        auto v2 = tPt::PRandC()*aSz;
+        auto v3 = tPt::PRandC()*aSz;
+	cTriangle<Type,Dim> aRes(v1,v2,v3);
 
 	if (aRes.Regularity() > aRegulMin) return aRes;
 
@@ -760,6 +763,8 @@ INSTANTIATE_TRI_DIM(TYPE,3)\
 INSTANTIATE_TRI(tREAL4)
 INSTANTIATE_TRI(tREAL8)
 INSTANTIATE_TRI(tREAL16)
+
+template class cTriangle<tREAL8,1>;
 
 /*
 template class cTriangulation<tREAL8,2>;

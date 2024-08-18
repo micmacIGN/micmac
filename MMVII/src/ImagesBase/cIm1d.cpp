@@ -15,6 +15,13 @@ namespace MMVII
 
 double cTabulFonc1D::F(double aX) const 
 {
+   if (mIsBilin)
+   {
+        tREAL8 aRK=  (aX-mXMin)/mStep;
+        if (aRK<0) return mValXMin;
+        if (aRK>=mNbStep) return mValXMax;
+        return mDIm->GetVBL(aRK);
+   }
    int aK = ToIntCoord(aX);
    if (aK<0) return mValXMin;
    if (aK>mNbStep) return mValXMax;
@@ -37,19 +44,25 @@ cTabulFonc1D::cTabulFonc1D
     const cFctrRR & aFctr,
     double aXMin,
     double aXMax,
-    int aNbStep
+    int    aNbStep,
+    bool   IsBilin
 ) :
-    mXMin    (aXMin),
-    mXMax    (aXMax),
-    mNbStep  (aNbStep),
-    mStep    ((mXMax-mXMin)/mNbStep),
-    mValXMin (aFctr.F(mXMin)),
-    mValXMax (aFctr.F(mXMax)),
-    mIm      (mNbStep+1),
-    mDIm     (&mIm.DIm())
+    mXMin     (aXMin),
+    mXMax     (aXMax),
+    mNbStep   (aNbStep),
+    mStep     ((mXMax-mXMin)/mNbStep),
+    mValXMin  (aFctr.F(mXMin)),
+    mValXMax  (aFctr.F(mXMax)),
+    mIsBilin  (IsBilin),
+    mIm       (mNbStep+1 +mIsBilin,nullptr,eModeInitImage::eMIA_Null),
+    mDIm      (&mIm.DIm())
 {
-    for (int aK=0 ; aK<=mNbStep ; aK++)
+    for (int aK=0 ; aK<mDIm->Sz() ; aK++)
+    {
+// StdOut() << "K=" << aK  << " RK=" << ToRealCoord(aK)  << " F=" << aFctr.F(ToRealCoord(aK)) << "\n";
+// getchar();
         mDIm->SetV(aK,aFctr.F(ToRealCoord(aK)));
+    }
 }
 
 
@@ -134,6 +147,13 @@ template <class Type> void  cDataIm1D<Type>::VD_SetV(const cPt1di& aP,const doub
 {
    SetVTrunc(aP,aV);
 }
+
+/*
+template <class Type> cDataIm1D<Type>::~cDataIm1D()
+{
+}
+*/
+
 
 
 /* ========================== */

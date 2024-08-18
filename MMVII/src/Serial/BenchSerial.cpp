@@ -16,6 +16,8 @@
 
 namespace MMVII
 {
+
+
 void BenchCSV(const std::string & aDirTmp);
 
 bool  ReadableSerialType (eTypeSerial aType)
@@ -230,8 +232,9 @@ template <class Type> void BenchSerialIm2D(const std::string & aDirOut)
 	if (aK%4==2) aTypeS= eTypeSerial::edmp;
 	if (aK%4==3) aTypeS= eTypeSerial::etxt;
 
-
-        cPt2di aSz(1+RandUnif_N(10),1+RandUnif_N(10));
+        auto v1 = 1+RandUnif_N(10);
+        auto v2 = 1+RandUnif_N(10);
+        cPt2di aSz(v1,v2);
         cIm2D<Type>  anIm1(aSz,nullptr,eModeInitImage::eMIA_RandCenter);
 
         std::string aNameFile = aDirOut + "Image." + E2Str(aTypeS);
@@ -373,7 +376,7 @@ void BenchSerial_PerspCamIntrCalib(const std::string & aDirOut,eTypeSerial aType
 
      for (int aKM=0 ; aKM<int(eProjPC::eNbVals) ; aKM++)
      {
-         for (int aKDeg=0 ; aKDeg<3 ; aKDeg++)
+         for (int aKDeg=0 ; aKDeg<4 ; aKDeg++)
          {
 	     eProjPC aProj =  (eProjPC) aKM;
 	     cPerspCamIntrCalib *  aCal = cPerspCamIntrCalib::RandomCalib(aProj,aKDeg);
@@ -383,8 +386,6 @@ void BenchSerial_PerspCamIntrCalib(const std::string & aDirOut,eTypeSerial aType
          }
      }
 }
-// void  ToFile(const std::string & ) const ; ///< export in xml/dmp ...
-//  static cPerspCamIntrCalib * RandomCalib(eProjPC aTypeProj,int aKDeg);
 
 
 /* ===================================================== */

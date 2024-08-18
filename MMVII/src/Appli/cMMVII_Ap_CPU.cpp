@@ -127,7 +127,7 @@ cAutoTimerSegm::~cAutoTimerSegm()
 /*                                 */
 /***********************************/
 
-static const std::string DefTime(" OTHERS");
+static const std::string DefTime("OTHERS");
 
 cTimerSegm::cTimerSegm(cMMVII_Ap_CPU * anAppli) :
    mLastIndex     (DefTime),

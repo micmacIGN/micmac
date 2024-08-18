@@ -11,6 +11,10 @@ comp_cword=int(sys.argv[2])
 comp_line=os.getenv('COMP_LINE')
 screen_columns=int(os.getenv('COLUMNS','80'))
 
+# For windows, force remove CR (^M) from output
+sys.stdout.reconfigure(newline="\n")
+
+helpArgPossible=True
 
 if debug>1:
   print ('\n',file=sys.stderr)
@@ -36,17 +40,96 @@ def printMsgExit(s,code=0) -> None:
     print('Options:-o nosort')
     sys.exit(code)
 
+
+def printHelps(word) -> bool:
+    if not helpArgPossible or len(word)==0:
+        return False
+    matches=[w for w in ('help','Help','HELP') if w.startswith(word)]
+    if len(matches) == 1:
+        print(re.sub(r'^=','',matches[0]))
+        return True
+    return False
     
 
 def printFilter(word,words,option='') -> None:
     word_lower = word.lower()
     matches=[w for w in sorted(words) if w.lower().startswith(word_lower)]
-    if len(matches) == 1:
+    if len(matches) == 0:
+        printHelps(word)
+        print ('Options:-o nosort')
+        return
+    elif len(matches) == 1:
         print(re.sub(r'^=','',matches[0]))
     else:
         for w in matches:
             print(re.sub(r'^=','',word + w[len(word):]))
     print (f"Options:-o nosort {option}")
+
+
+def printFiles(word,extensions=None) -> None:
+    word = os.path.expanduser(word)
+    (path,name)=os.path.split(word)
+    search_path = path if path != '' else '.'
+
+    dirs  = []
+    files = []
+    try:
+        with os.scandir(search_path) as it:
+            for file in it:
+                if file.name.startswith('.') and not name.startswith('.'):
+                    continue
+                try:
+                    if file.is_dir():
+                        dirs.append(os.path.join(path,file.name))
+                    elif not extensions or "" in extensions or any (file.name.lower().endswith(ext) for ext in extensions):
+                        files.append(os.path.join(path,file.name))
+                except PermissionError:
+                    pass
+    except (FileNotFoundError,PermissionError):
+        pass
+
+    matches=[w for w in sorted(files)+sorted(dirs) if w.startswith(word)]
+    if len(matches) == 0:
+        printHelps(word)
+        print ('Options:-o nosort')
+        return
+    elif len(matches) == 1:
+        print(re.sub(r'^=','',matches[0]))
+    else:
+        for w in matches:
+            print(re.sub(r'^=','',word + w[len(word):]))
+    print ('Options:-o nosort -o filenames')
+
+
+def printDirs(word,path) -> None:
+    word = os.path.expanduser(word)
+    dirs = []
+    try:
+        with os.scandir(path) as it:
+            for file in it:
+                if file.name.startswith('.') and not word.startswith('.'):
+                    continue
+                try:
+                    if file.is_dir():
+                        dirs.append(file.name)
+                except PermissionError:
+                    pass
+    except (FileNotFoundError,PermissionError):
+        pass
+
+    matches=[w for w in sorted(dirs) if w.startswith(word)]
+    if len(matches) == 0:
+        printHelps(word)
+        print ('Options:-o nosort')
+        return
+    elif len(matches) == 1:
+        print(re.sub(r'^=','',matches[0]))
+    else:
+        for w in matches:
+            print(re.sub(r'^=','',word + w[len(word):]))
+    print ('Options:-o nosort -o filenames')
+
+
 
 def printSpecHelp(all_specs, spec, value) -> None:
     atype = spec['type']
@@ -81,32 +164,47 @@ def printSpecHelp(all_specs, spec, value) -> None:
         if vrange[1] - vrange[0] < 20:
             printFilter(value,[str(i) for i in range(vrange[0],vrange[1]+1)])
         return
-        
-        
+
     if allowed:
         printFilter(value,allowed)
         return
         
     if msg_type != 'string':
-        printMsgExit('')
+        if not printHelps(value):
+            printMsgExit('')
+        return
     if not semantic:
-        printMsgExit('')
+        if not printHelps(value):
+            printMsgExit('')
+        return
 
-    dir_types = all_specs["config"]["eTa2007DirTypes"]
+    dir_types = all_specs['config']['eTa2007DirTypes']
     dir_type = set(semantic).intersection(dir_types)
     if len(dir_type) == 1:
         dir_type = list(dir_type)[0]
         sub_dir = all_specs['config']['MMVIIDirPhp'] +  dir_type
-        print(f"File:pushd {sub_dir} >/dev/null 2>&1 && compgen -d -- '{value}'  && popd  >/dev/null 2>&1")
+        printDirs(value,sub_dir)
         return
 
-    file_types = all_specs["config"]["eTa2007FileTypes"]
-    file_types += ('MFP','FDP','I','Out','OptEx')
-    file_type = set(semantic).intersection(file_types)
-    if len(file_type) > 0:
-        print(f"File:compgen -f -- '{value}'")
+    file_types = all_specs['config']['eTa2007FileTypes']
+    if 'MPF' in semantic:
+        semantic.append('Im')
+    file_types = set(semantic).intersection(file_types)
+    if len(file_types):
+        extensions = []
+        for file_type in file_types:
+            extensions += all_specs['config']['extensions'][file_type]
+        if 'MPF' in semantic:
+            extensions += ['.xml','.json']
+        printFiles(value,extensions)
+        return
+    file_types = ('FDP','In','Out','OptEx')
+    if len(set(semantic).intersection(file_types)):
+        printFiles(value)
+        return
     if "DP" in semantic:
-        print(f"File:compgen -d -- '{value}'")
+        print(f"File:compgen -d -o filenames -- '{value}'")
+        return
 
 def getAllSpecs() -> dict:
     try:
@@ -160,6 +258,8 @@ def main() -> int:
         printFilter(cur_word,normal+tuning+common,'-o nospace')
         return 0
     # got '='
+    global helpArgPossible
+    helpArgPossible = False
     arg=arg_split.group(1)
     specs = [ s for s in applet.get('optional') if s['name'].lower() == arg.lower() ] 
     if len(specs) != 1:

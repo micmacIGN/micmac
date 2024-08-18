@@ -3,6 +3,7 @@
 
 #include "MMVII_memory.h"
 #include "MMVII_Ptxd.h"
+#include <sstream>
 
 namespace MMVII
 {
@@ -92,6 +93,7 @@ template <>  const std::string cStrIO<int>::msNameType;
 template <>  const std::string cStrIO<double>::msNameType;
 template <>  const std::string cStrIO<std::string>::msNameType;
 
+template <>  const std::string cStrIO<std::vector<std::vector<std::string>>>::msNameType;
 template <>  const std::string cStrIO<std::vector<std::string>>::msNameType;
 template <>  const std::string cStrIO<std::vector<int>>::msNameType;
 template <>  const std::string cStrIO<std::vector<double>>::msNameType;
@@ -114,6 +116,18 @@ template <>  const std::string cStrIO<eModeCaracMatch>::msNameType;
 template <>  const std::string cStrIO<eProjPC>::msNameType;
 template <>  const std::string cStrIO<eModeTestPropCov>::msNameType;
 template <>  const std::string cStrIO<eDCTFilters>::msNameType;
+
+template <>  const std::string cStrIO<eTypeSerial>::msNameType;
+template <>  const std::string cStrIO<eTyCodeTarget>::msNameType;
+template <>  const std::string cStrIO<eSysCo>::msNameType;
+template <>  const std::string cStrIO<eMTDIm>::msNameType;
+
+template <>  const std::string cStrIO<eTypeSensor>::msNameType;
+template <>  const std::string cStrIO<eFormatSensor>::msNameType;
+
+template <>  const std::string cStrIO<eTopoObsType>::msNameType;
+template <>  const std::string cStrIO<eTopoObsSetType>::msNameType;
+template <>  const std::string cStrIO<eTopoStOriStat>::msNameType;
 #endif
 
 /** These functions offer an"easy" interface to cStrIO, however I think
@@ -433,7 +447,8 @@ void AddData(const  cAuxAr2007 & anAux, tU_INT1  &  aVal); ///< for unsigned sho
 void AddData(const  cAuxAr2007 & anAux, tINT2  &  aVal); ///< for unsigned short
 void AddData(const  cAuxAr2007 & anAux, tU_INT2  &  aVal); ///< for unsigned short
 void AddData(const  cAuxAr2007 & anAux, tREAL4  &  aVal); ///< for unsigned short
-							   
+void AddData(const  cAuxAr2007 & anAux, tREAL16  &  aVal); ///< for long double
+
 void AddData(const  cAuxAr2007 & anAux, size_t  &  aVal); ///< for unsigned short
 void AddData(const  cAuxAr2007 & anAux, double  &  aVal) ; ///< for double
 void AddData(const  cAuxAr2007 & anAux, std::string  &  aVal) ; ///< for string
@@ -442,7 +457,7 @@ void AddData(const  cAuxAr2007 & anAux, tNameOCple  &  aVal) ;  ///< for Ordered
 void AddData(const  cAuxAr2007 & anAux, std::map<std::string,int>&  aVal) ;  ///< 
 
 template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cPtxd<Type,Dim>  &  aVal) ;  ///<for cPt2dr
-template <class Type> void AddTabData(const  cAuxAr2007 & anAux, Type *  aVD,int aNbVal,eTAAr aTAAr= eTAAr::eFixTabNum);
+template <class Type> void AddTabData(const  cAuxAr2007 & anAux, Type *  aVD,size_t aNbVal,eTAAr aTAAr= eTAAr::eFixTabNum);
 
 
 
@@ -519,6 +534,18 @@ class cCmpSerializer
          virtual bool Cmp(const int& aV1, const int &aV2) {return Cmp(double(aV1),double(aV2));}
 };
 */
+
+template<class Type> inline Type GetV(std::istringstream & iss, const std::string& aSrcFile, int aSrcLine)
+{
+    Type aNum;
+    iss >> aNum;
+    if ( ! iss)
+    {
+       MMVII_UnclasseUsEr("Bad reading at line  " + aSrcFile + " of file [" + std::to_string(aSrcLine+1) + "] , rdstate=" + ToStr((size_t)iss.rdstate()));
+    }
+    return aNum;
+}
+
 
 
 

@@ -2,6 +2,14 @@
 ##        Global configuration
 #######################################################
 cmake_minimum_required(VERSION 3.15)
+
+# VCPKG_MANIFEST_FEATURES must be set before project()
+# It will trigger download and install of QT5 via vcpkg.json if needed
+option(vMMVII_BUILD "Build vMMVII application (require Qt5)" OFF)
+if(vMMVII_BUILD)
+  list(APPEND VCPKG_MANIFEST_FEATURES "vmmvii")
+endif()
+
 project(MMVII VERSION 1.0)
 
 # strict C++17 required
@@ -34,6 +42,20 @@ endif()
 ##        Dependencies
 #######################################################
 
+# PROJ
+find_package(PROJ QUIET)
+if (NOT  PROJ_FOUND)
+  # needed on Ubuntu
+  find_package(PkgConfig)
+  pkg_search_module(PROJ REQUIRED proj)
+endif()
+
+if (CMAKE_HOST_WIN32)
+  find_file(PROJ_PROJ_DB_FILE proj.db PATHS ${PROJ_DIR} ${PROJ_BINARY_DIRS}/../share/proj NO_DEFAULT_PATH)
+  file(COPY ${PROJ_PROJ_DB_FILE} DESTINATION ${MMVII_SOURCE_DIR}/share/proj)
+endif()
+
+
 # Threads
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads)
@@ -43,7 +65,6 @@ find_package(OpenMP)
 if((NOT OpenMP_CXX_FOUND) AND (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
    message(STATUS "OpenMP not found: did you install libomp-dev ?")
 endif()
-
 
 #######################################################
 ##        Compilation toolchain
@@ -94,23 +115,27 @@ set(mmv2_gencode_dir "${mmv2_src_dir}/GeneratedCodes")
 set(mmv2_gencode_main_src "${mmv2_gencode_dir}/cName2CalcRegisterAll.cpp")
 set(EIGEN3_INCLUDE_PATH  "${mmv2_external_include_dir}/eigen-3.4.0")
 
+# Here we initialize the generated code with en empty template if working dir is clean (first checkout or after make distclean)
+if (NOT EXISTS "${mmv2_gencode_main_src}")
+	execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${mmv2_include_dir}/SymbDer/cName2CalcRegisterAll.cpp.tmpl "${mmv2_gencode_main_src}" )
+endif()
+
 # MMVII sources: Auto generate. Not recommended, but let's try it ...
 file(GLOB mmv2_libsrcs CONFIGURE_DEPENDS "${mmv2_src_dir}/*/*.cpp")
-file(GLOB mmv2_headers "${mmv2_include_dir}/*.h" "${mmv2_include_dir}/*.h" "${mmv2_src_dir}/*/*.h")
-
-# Here we initialize the generated code with en empty template if working dir is clean (first checkout or after make distclean)
-list(APPEND mmv2_libsrcs "${mmv2_gencode_main_src}")   # This file may not be present (deleted after clean all), force dependance on it
-list(REMOVE_DUPLICATES mmv2_libsrcs)				   # Avoid the file above being build twice
-add_custom_command(OUTPUT "${mmv2_gencode_main_src}" COMMAND ${CMAKE_COMMAND} -E copy ${mmv2_include_dir}/SymbDer/cName2CalcRegisterAll.cpp.tmpl "${mmv2_gencode_main_src}" VERBATIM)
+file(GLOB mmv2_headers "${mmv2_include_dir}/*.h" "${mmv2_include_dir}/*/*.h" "${mmv2_src_dir}/*/*.h")
 
 
 #######################################################
 ##        libP2007 buid (MMVII library)
 #######################################################
 add_library(P2007 "${mmv2_libsrcs}" "${mmv2_headers}")
-target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH}")
-target_link_libraries(P2007 PRIVATE MMVII_compiler_flags Threads::Threads)
+target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH};${PROJ_INCLUDE_DIRS}")
+target_link_libraries(P2007 PRIVATE MMVII_compiler_flags Threads::Threads ${PROJ_LIBRARIES})
 
+# Force parallel compilation with MSVC
+if(MSVC)
+ target_compile_options(P2007 PRIVATE "/MP")
+endif()
 
 #######################################################
 ##        MMVII build (executable)
@@ -125,7 +150,6 @@ else()
 endif()
 
 target_include_directories(MMVII PRIVATE "${MMVII_SOURCE_DIR}/include"  )
-
 target_link_libraries(MMVII PRIVATE MMVII_compiler_flags Threads::Threads P2007 ${mmv1_libs} ${mmv2_extlibs})
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION  VERSION_LESS "9.1")
   target_link_libraries(MMVII PRIVATE -lstdc++fs)
@@ -141,8 +165,6 @@ endif()
 #######################################################
 ##        Compile vMMVII if Qt is found
 #######################################################
-
-option(vMMVII_BUILD "Build vMMVII application (require Qt5)" ON)
 
 if (vMMVII_BUILD)
   find_package(QT NAMES Qt5 Qt6 QUIET OPTIONAL_COMPONENTS Widgets)
@@ -163,10 +185,39 @@ else()
 endif()
 
 #######################################################
-##        target distclean : remove generated code
+##        Custom targets
 #######################################################
+if (CMAKE_GENERATOR STREQUAL "Unix Makefiles")
+  set(make_parallel_prefix "+")
+else()
+  unset(make_parallel_prefix)
+endif()
+
+if(CMAKE_VERSION VERSION_LESS "3.17")
+  set(rmdir_command remove_directory)
+else()
+  set(rmdir_command rm -fr)
+endif()
+
+##  distclean : clean + remove generated source files for symbolic calculus
 add_custom_target(distclean
-  ${CMAKE_COMMAND} --build . --target clean
-  COMMAND   ${CMAKE_COMMAND} -E rm -rf ${mmv2_gencode_dir}
+  COMMAND ${make_parallel_prefix} ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --config $<CONFIG> --target clean
+  COMMAND ${make_parallel_prefix} ${CMAKE_COMMAND} -E ${rmdir_command} ${mmv2_gencode_dir}
   VERBATIM)
-  
+
+##  full : generate source files for symbolic calculus and recompile
+add_custom_target(full
+  COMMAND ${make_parallel_prefix} ${CMAKE_COMMAND} -E ${rmdir_command} ${mmv2_gencode_dir}
+  COMMAND ${make_parallel_prefix} ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --config $<CONFIG>
+  COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/MMVII GenCodeSymDer
+  COMMAND ${make_parallel_prefix} ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --config $<CONFIG>
+  VERBATIM USES_TERMINAL)
+
+## rebuild : distclean + full
+add_custom_target(rebuild
+  COMMAND ${make_parallel_prefix} ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target distclean
+  COMMAND ${make_parallel_prefix} ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --config $<CONFIG>
+  COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/MMVII GenCodeSymDer
+  COMMAND ${make_parallel_prefix} ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --config $<CONFIG>
+  VERBATIM USES_TERMINAL)
+

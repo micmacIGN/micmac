@@ -1,7 +1,8 @@
+#include "MMVII_Random.h"
 #include "MMVII_Ptxd.h"
 #include "cMMVII_Appli.h"
 #include "MMVII_SetITpl.h"
-#include <random>
+#include "../Serial/Serial.h"
 
 /** \file uti_rand.cpp
     \brief Implementation of random generator
@@ -15,6 +16,8 @@
 
 namespace MMVII
 {
+
+/// class cRandGenerator maybe exported later if  more sophisticated services are required
 
 void AssertIsSetKN(int aK,int aN,const std::vector<int> &aSet)
 {
@@ -30,6 +33,39 @@ void AssertIsSetKN(int aK,int aN,const std::vector<int> &aSet)
        }
        MMVII_INTERNAL_ASSERT_bench(aNbEq==1,"Random Set");
   }
+}
+
+/// to be called just before EndBench() because it resets seed
+void OneBench_Random_Generator(cParamExeBench & aParam)
+{
+    static bool already_done = false;
+    if (already_done)
+        return;
+    StdOut() << "Testing Random Generator" << std::endl;
+
+    //test if sequence is alwayas the same after fixing a seed
+    std::vector<size_t> aRefSequenceRawSeed0 = {
+        2357136044, 2546248239, 3071714933, 3626093760, 2588848963, 3684848379, 2340255427,
+        3638918503, 1819583497, 2678185683, 2774094101, 1650906866, 1879422756, 1277901399,
+        3830135878, 243580376, 4138900056, 1171049868, 1646868794, 2051556033, 3400433126,
+        3488238119, 2271586391, 2061486254, 2439732824, 1686997841, 3975407269, 3590930969,
+        305097549, 1449105480, 374217481, 2783877012, 86837363, 1581585360, 3576074995,
+        4110950085, 3342157822, 602801999, 3736673711, 3736996288, 4203133778, 2034131043,
+        3432359896, 3439885489, 1982038771, 2235433757, 3352347283, 2915765395, 507984782,
+        3095093671, 2748439840, 2499755969, 615697673, 2308000441, 4057322111, 3258229280,
+        2241321503, 454869706, 1780959476, 2034098327, 1136257699, 800291326, 3325308363,
+        3165039474, 1959150775, 930076700, 2441405218, 580757632, 80701568, 1392175012,
+        2652724277, 642848645, 2628931110, 954863080, 2649711348, 1659957521, 4053367119,
+        3876630916, 2928395881, 1932520490, 1544074682, 2633087519, 1877037944, 3875557633,
+        2996303169, 426405863, 258666409, 4165298233, 2863741219, 2805215078, 2880367735,
+        734051083, 903586222, 1538251858, 553734235, 3224172416, 1354754446, 2610612835,
+        1562125877, 1396067212 };
+
+    cRandGenerator::TheOne()->setSeed(0);
+    for (auto &v: aRefSequenceRawSeed0)
+        MMVII_INTERNAL_ASSERT_bench(cRandGenerator::TheOne()->next()==v,"Random Seq Raw Seed 0");
+
+    already_done = true;
 }
 
 void OneBench_Random(cParamExeBench & aParam)
@@ -90,9 +126,12 @@ void Bench_Random(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("Random")) return;
 
+
     int aNb = std::min(5,1+aParam.Level()*2);
     for (int aK=0 ; aK<aNb  ; aK++)
        OneBench_Random(aParam);
+
+    OneBench_Random_Generator(aParam); // called just before EndBench because resets seed
 
     aParam.EndBench();
 }
@@ -127,21 +166,6 @@ void Bench_SetI(cParamExeBench & aParam)
     aParam.EndBench();
 }
 
-
-/// class cRandGenerator maybe exported later if  more sophisticated services are required
-
-class cRandGenerator : public cMemCheck
-{
-   public :
-       virtual double Unif_0_1() = 0;
-       virtual int    Unif_N(int aN) = 0;
-       static cRandGenerator * TheOne();
-       static void Close();
-       static void Open();
-       virtual ~cRandGenerator() {};
-    private :
-       static cRandGenerator * msTheOne;
-};
 
 double RandUnif_0_1()
 {
@@ -277,6 +301,8 @@ class cRand19937 : public cRandGenerator
 {
      public :
          cRand19937(int aSeed);
+         void setSeed(size_t aSeed) override;
+         size_t next() override;
          double Unif_0_1() override ;
          int    Unif_N(int aN) override;
          ~cRand19937() {}
@@ -296,6 +322,16 @@ cRand19937::cRand19937(int aSeed) :
     mDis01   (0.0,1.0),
     mDisInt  (nullptr)
 {
+}
+
+void cRand19937::setSeed(size_t aSeed)
+{
+    mGen.seed(aSeed);
+}
+
+size_t cRand19937::next()
+{
+    return mGen();
 }
 
 double cRand19937::Unif_0_1()

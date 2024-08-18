@@ -25,6 +25,7 @@ std::optional<double>  InterpoleExtr(double V1,double V2,double V3)
     return std::optional<double> ((V1-V3) /(2*aDiv));
 }
 
+
 double  StableInterpoleExtr(double V1,double V2,double V3)
 {
     std::optional<double>  aVOpt =  InterpoleExtr(V1,V2,V3);
@@ -36,6 +37,13 @@ double  StableInterpoleExtr(double V1,double V2,double V3)
        return 0.0;
     }
     return 0.0;
+}
+
+double  ValueStableInterpoleExtr(double V1,double V2,double V3)
+{
+    tREAL8 aX = StableInterpoleExtr(V1,V2,V3);
+
+    return  ((V1+V3)/2.0 - V2) * Square(aX) +  ((V3-V1)/2.0) * aX + V2;
 }
 
 /*
@@ -96,7 +104,7 @@ template <class Type> cPt2dr cAffineExtremum<Type>::OneIter(const cPt2dr & aP0)
             mVectPol(3) = Square(aDP.x());
             mVectPol(4) = 2* aDP.x() * aDP.y();
             mVectPol(5) = Square(aDP.y());
-            mSysPol.AddObservation(aWeight,mVectPol,mIm.GetV(aPix));
+            mSysPol.PublicAddObservation(aWeight,mVectPol,mIm.GetV(aPix));
          }
       }
       else 
@@ -697,8 +705,9 @@ void OneBenchAffineExtre()
     aVB = aMatReg(0,1);
     aVC = aMatReg(1,1);
 
-
-    cPt2dr aCenter (aSz.x()/2.0+RandUnif_C()*3,aSz.y()/2.0+RandUnif_C()*3);
+    auto v1 = aSz.x()/2.0+RandUnif_C()*3;
+    auto v2 = aSz.y()/2.0+RandUnif_C()*3;
+    cPt2dr aCenter (v1,v2);
 
     // Generate image 
     cIm2D<tREAL4> aIm(aSz);
@@ -716,7 +725,9 @@ void OneBenchAffineExtre()
     for (int aK=0 ; aK<10 ; aK++)
     {
          // Initialize at a random distance of 2 pixel 
-         cPt2dr  aP0 = aCenter + cPt2dr(RandUnif_C(),RandUnif_C())*2.0;
+         auto v3 = RandUnif_C();
+         auto v4 = RandUnif_C();
+         cPt2dr  aP0 = aCenter + cPt2dr(v3,v4)*2.0;
          cPt2dr  aCurC = aP0;
          for (int aNbIter=0 ; aNbIter< 6 ;aNbIter ++)
          {

@@ -107,6 +107,20 @@ template <class TypePt> void  TestDist(TypePt aPt,double aN1,double aN2,double a
 
 void  Bench_0000_Ptxd(cParamExeBench & aParam)
 {
+    for (int aK=0 ; aK<8 ; aK++)
+    {
+        cPt2di aP0 = FreemanV8[aK];
+	for (int aD=1 ; aD<=3 ; aD++)
+        {
+             MMVII_INTERNAL_ASSERT_bench(aD == Norm1(aP0-FreemanV8[(aK+aD)%8]),"FreemanV8 dist");
+	}
+    }
+    for (int aK=0 ; aK<10 ; aK++)
+    {
+        MMVII_INTERNAL_ASSERT_bench(FreemanV8[(aK%8)] ==  FreemanV10[aK] ,"FreemanV10");
+    }
+
+
     if (! aParam.NewBench("Ptxd")) return;
     
     {

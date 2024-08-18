@@ -4,7 +4,9 @@
 #include "MMVII_PhgrDist.h"
 #include "MMVII_Geom3D.h"
 #include "MMVII_Radiom.h"
+#include "MMVII_Random.h"
 #include <cmath>
+#include <functional>
 #ifdef _WIN32
     #include <windows.h>
 #else
@@ -93,6 +95,7 @@ bool  cParamExeBench::NewBench(const std::string & aName,bool ExactMatch)
        mNbExe++;
        mInsideFunc = true;
        StdOut() << "  Bench : " << aName << std::endl;
+       cRandGenerator::TheOne()->setSeed(mCurLev);
    }
    return  mInsideFunc;
 }
@@ -190,6 +193,13 @@ void TestDir(const std::string & aDir);
 
 void Bench_0000_String(cParamExeBench & aParam)
 {
+    int aNb=0;
+    for (int aK=10 ; aK>0 ; aK--)
+        aNb++;
+    MMVII_INTERNAL_ASSERT_bench(aNb==10,"Test for (int aK=10 ; aK>0 ; aK--)");
+
+
+
     if (! aParam.NewBench("StringOperation")) return;
     // Bench elem sur la fonction SplitString
     // std::vector<std::string> aSplit;
@@ -437,6 +447,8 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
    {
         //==== Bench_0000 bench on very basic support functionnalities
 
+        Bench_Random(aParam);  // Bench random generator, check they are acceptably unbiased
+
         // Test on split Dir/File, string op,
         Bench_0000_SysDepString(aParam);
         Bench_0000_String(aParam);
@@ -458,6 +470,7 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         Bench_Nums(aParam); // Basic numericall services
         BenchHamming(aParam);
         BenchPolynome(aParam);
+        BenchInterpol(aParam);
         BenchPoseEstim(aParam);
         BenchRansSubset(aParam);
         BenchRecall(aParam,mNumBugRecall); // Force MMVII to generate call to itself
@@ -465,8 +478,6 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         BenchSelector(aParam,DirTestMMVII());  // Set (in comprehension)
 
         Bench_Heap(aParam); // Basic numericall services
-
-        Bench_Random(aParam);  // Bench random generator, check they are acceptably unbiased
 
 	Bench_SetI(aParam); // Bench manip on set of integers
 
@@ -491,6 +502,9 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
 
         // Test some matrix op : QR, EigenSym ....
         BenchDenseMatrix0(aParam);
+
+        // Test SysCo
+        BenchSysCo(aParam);
 
         // Test topo compensation
         BenchTopoComp(aParam);
@@ -546,6 +560,7 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
 	Bench_MatEss(aParam);
 	Bench_SpatialIndex(aParam);
 	Bench_ToHomMult(aParam);
+        BenchLinearConstr(aParam);
     }
 
     // Now call the bench of all application that define their own bench
@@ -575,6 +590,11 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
 
         // We clean the temporary files created
    RemoveRecurs(TmpDirTestMMVII(),true,false);
+
+
+   ResetToFileIfFirstime<cPerspCamIntrCalib>();
+
+
 
 
    //NS_MMVII_FastTreeDist::AllBenchFastTreeDist(true);
@@ -690,6 +710,7 @@ cAppli_MMRecall::cAppli_MMRecall(const std::vector<std::string> & aVArgs,const c
 
 int cAppli_MMRecall::Exe() 
 {
+
     std::string aDirT =  TmpDirTestMMVII() ;
     // Purge TMP
     if (mLevelCall == mLev0)
@@ -946,7 +967,6 @@ void TestVectBool()
 
 bool PrintAndTrue(const std::string & aMes) 
 {
-    StdOut() <<"FFFFF=" << aMes << std::endl; 
     return true;
 }
 
@@ -964,7 +984,6 @@ int cAppli_MPDTest::Exe()
    if (1)
    {
 	   StdOut() << "cAppli_MPDTest \n";
-	   auto aSys= cSysCoordV2::Lambert93();
 	   return EXIT_SUCCESS;
    }
    if (1)
@@ -986,11 +1005,15 @@ int cAppli_MPDTest::Exe()
    }
    if (IsInit(&mDegDistTest))
    {
-      std::vector<cDescOneFuncDist>  aVD =  DescDist(mDegDistTest);
+      for (auto isFraserMode : {true,false})
+      {
+          std::vector<cDescOneFuncDist>  aVD =  DescDist(mDegDistTest,isFraserMode);
 
-      for (const auto & aDesc : aVD)
+	  StdOut() << "============== FraserMode : " << isFraserMode << " ==================\n";
+          for (const auto & aDesc : aVD)
 	      StdOut() << " "  << aDesc.mName <<  " " << aDesc.mLongName << std::endl;
 
+      }
       return EXIT_SUCCESS;
    }
    TTT ();

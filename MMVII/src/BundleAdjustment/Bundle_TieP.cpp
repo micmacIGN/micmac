@@ -8,24 +8,40 @@ namespace MMVII
     /*            Tie Points                    */
     /* ---------------------------------------- */
 
-void cMMVII_BundleAdj::AddMTieP(cComputeMergeMulTieP  * aMTP,const cStdWeighterResidual & aWIm)
+cBA_TieP::cBA_TieP(const std::string & aName,cComputeMergeMulTieP* aMTP,const cStdWeighterResidual &aResW):
+    mName           (aName),
+    mMTP            (aMTP),
+    mTieP_Weighter  (aResW)
 {
-     mMTP = aMTP;
-     mTieP_Weighter = aWIm;
+}
+
+cBA_TieP::~cBA_TieP()
+{
+    delete mMTP;
 }
 
 
-void cMMVII_BundleAdj::OneItere_TieP()
+    /* ---------------------------------------- */
+    /*            Tie Points                    */
+    /* ---------------------------------------- */
+
+void cMMVII_BundleAdj::AddMTieP(const std::string & aName,cComputeMergeMulTieP  * aMTP,const cStdWeighterResidual & aWIm)
 {
-   if (!mMTP)
-      return;
+    mVTieP.push_back(new cBA_TieP(aName,aMTP,aWIm));
+}
+
+
+void cMMVII_BundleAdj::OneItere_TieP(const cBA_TieP& aBA_TieP)
+{
+   cComputeMergeMulTieP * aMTP = aBA_TieP.mMTP;
+   const cStdWeighterResidual&    aTieP_Weighter = aBA_TieP.mTieP_Weighter;
 
    // update the bundle point by 3D-intersection:
    // To see : maybe don't update each time; probably add some robust option
-   mMTP->SetPGround();
+   aMTP->SetPGround();
 
    cWeightAv<tREAL8> aWeigthedRes;
-   for (const auto & aPair : mMTP->Pts())
+   for (const auto & aPair : aMTP->Pts())
    {
        const auto & aConfig  = aPair.first;
 
@@ -36,7 +52,7 @@ void cMMVII_BundleAdj::OneItere_TieP()
        for (size_t aKIm : aConfig)
        {
            aVS.push_back(mVSIm.at(aKIm));
-	   aVEqCol.push_back(mVEqCol.at(aKIm));
+	   aVEqCol.push_back(mVSIm.at(aKIm)->GetEqColinearity());
        }
 
        const auto & aVals  = aPair.second;
@@ -56,24 +72,31 @@ void cMMVII_BundleAdj::OneItere_TieP()
                const cPt2dr & aPIm =  aVals.mVPIm.at(aKPts*aNbIm+aKIm);
 	       cSensorImage* aSens = aVS.at(aKIm);
 
-	       cPt2dr aResidual  = aPIm-aSens->Ground2Image(aPGr);
-               tREAL8 aWeightImage =  mTieP_Weighter.SingleWOfResidual(aResidual);
+// StdOut() << "VISSSS " << aSens->IsVisibleOnImFrame(aPIm) << " " <<  aSens->IsVisible(aPGr) << "\n";
 
-	       cCalculator<double> * anEqColin =  aVEqCol.at(aKIm);
-
-               std::vector<double> aVObs = aPIm.ToStdVector();  // put Xim & Yim as observation
-               aSens->PushOwnObsColinearity(aVObs);  // add eventual observation of sensor (as rot with central persp)
-
-               std::vector<int> aVIndGlob = {-1,-2,-3};  // index of unknown, begins with temporay
-               for (auto & anObj : aSens->GetAllUK())  // now put sensor unknown
-                  anObj->PushIndexes(aVIndGlob);
-
-	       if (aWeightImage>0)
+	       if (aSens->IsVisibleOnImFrame(aPIm) && aSens->IsVisible(aPGr))
 	       {
-                   aWeigthedRes.Add(aWeightImage,Norm2(aResidual));
-                   mSys->R_AddEq2Subst(aStrSubst,anEqColin,aVIndGlob,aVObs,aWeightImage);
-		   aNbEqAdded++;
-               }
+	           cPt2dr aResidual  = aPIm-aSens->Ground2Image(aPGr);
+                   tREAL8 aWeightImage =  aTieP_Weighter.SingleWOfResidual(aResidual);
+
+                   // StdOut() << "RRRR " << aResidual << " W=" << aWeightImage << "\n";
+
+	           cCalculator<double> * anEqColin =  aVEqCol.at(aKIm);
+
+                   std::vector<double> aVObs = aPIm.ToStdVector();  // put Xim & Yim as observation
+                   aSens->PushOwnObsColinearity(aVObs,aPGr);  // add eventual observation of sensor (as rot with central persp)
+
+                   std::vector<int> aVIndGlob = {-1,-2,-3};  // index of unknown, begins with temporay
+                   for (auto & anObj : aSens->GetAllUK())  // now put sensor unknown
+                      anObj->PushIndexes(aVIndGlob);
+
+	           if (aWeightImage>0)
+	           {
+                       aWeigthedRes.Add(aWeightImage,Norm2(aResidual));
+                       mSys->R_AddEq2Subst(aStrSubst,anEqColin,aVIndGlob,aVObs,aWeightImage);
+		       aNbEqAdded++;
+                   }
+	       }
            }
 
 	   // if at least 2 tie-point, we can add equation with schurr-complement
@@ -82,7 +105,13 @@ void cMMVII_BundleAdj::OneItere_TieP()
        }
 
    }
-   StdOut() << "Weighted Residual=" << aWeigthedRes.Average() << std::endl;
+   StdOut() <<  "  # " << aBA_TieP.mName << ": Weighted Residual=" << aWeigthedRes.Average() << std::endl; 
+}
+
+void cMMVII_BundleAdj::OneItere_TieP()
+{
+    for (const auto & aParamTieP  : mVTieP)
+        OneItere_TieP(*aParamTieP);
 }
 
 

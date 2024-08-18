@@ -1,0 +1,171 @@
+name: Build MMVII Linux/Windows
+
+on:
+  push:
+    branches:
+      - 'master'
+
+jobs:
+  build_linux:
+    if: true
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Qt and clang
+      run: |
+        sudo apt update
+        sudo apt install qtbase5-dev clang-14
+
+    - name: Install libproj
+      run: sudo apt install libproj-dev proj-data
+
+    - name: Install pdflatex
+      run: sudo apt install texlive-latex-base texlive-latex-extra texlive-fonts-recommended texlive-fonts-extra
+
+    - name: Build MMVII documentation
+      run: make -C MMVII/Doc a4
+
+    - name: Remove previous MMVII documentation release
+      env:
+         GH_TOKEN: ${{ github.token }}
+      continue-on-error: true
+      run: gh release delete MMVII_Documentation -y --cleanup-tag
+
+    - name: Upload MMVII documentaion
+      uses: softprops/action-gh-release@v2
+      with:
+          name: 'MMVII Documentation - Latest'
+          tag_name: MMVII_Documentation
+          make_latest: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: MMVII/Doc/Doc2007_a4.pdf
+
+    - name: Configure CMake for mm3d
+      run: cmake -B build -DWITH_CCACHE=OFF -DCMAKE_BUILD_TYPE=Release -DWITH_QT5=ON
+
+    - name: Cache mm3d build
+      id: cache-mm3d-linux
+      uses: actions/cache@v4
+      with:
+        path: |
+          lib/libelise.a
+          lib/libANN.a
+          bin/mm3d
+        key: ${{ runner.os }}-build-mm3d-${{ hashFiles('src/**/*.cpp','src/**/*.h','include/**/*.h','!src/util/GIT_defines.cpp') }}
+
+    - if: ${{ steps.cache-mm3d-linux.outputs.cache-hit != 'true' }}
+      name: Build elise.lib and mm3d
+      run: make -C build install -j 4
+
+    - name: Configure CMake for MMVII
+      run: cmake -S MMVII -B MMVII/build -DCMAKE_BUILD_TYPE=Release
+      env:
+        CXX: clang++-14
+        CC: clang-14
+
+    - name: Build MMVII
+      run: cmake --build MMVII/build -j 4 --target full -- -k
+
+    - name: Run MMVII Tests
+      working-directory: ./MMVII/bin
+      run: ./MMVII Bench 1
+
+
+  build_win:
+    if: true
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Miniconda 
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+         auto-update-conda: true
+          
+    - name: Install PROJ with miniconda
+      run: conda install -y proj
+      if: steps.cache-conda-gdal.outputs.cache-hit != 'true'
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v3
+      with: 
+        cache: true
+
+    - name: Configure CMake for mm3d 
+      run: cmake -B build -DWITH_CCACHE=OFF -DCMAKE_BUILD_TYPE=Release -DWITH_QT5=ON -DCMAKE_INSTALL_PREFIX=${{github.workspace}}
+
+    - name: Cache mm3d build
+      id: cache-mm3d-windows
+      uses: actions/cache@v4
+      with:
+        path: |
+          lib/elise.lib
+          lib/ANN.lib
+          bin/*
+        key: ${{ runner.os }}-build-mm3d-${{ hashFiles('src/**/*.cpp','src/**/*.h','include/**/*.h','!src/util/GIT_defines.cpp') }}
+
+    - if: ${{ steps.cache-mm3d-windows.outputs.cache-hit != 'true' }}
+      name: Build elise.lib and mm3d
+      run: cmake --build build --config Release --target INSTALL -j 4
+
+    - name: Force save mm3d build cache
+      uses: actions/cache/save@v3
+      if: always()
+      with:
+        path: |
+          lib/elise.lib
+          lib/ANN.lib
+          bin/*
+        key: ${{ runner.os }}-build-mm3d-${{ hashFiles('src/**/*.cpp','src/**/*.h','include/**/*.h','!src/util/GIT_defines.cpp') }}
+    
+    - name: Configure CMake for MMVII
+      run: cmake -S MMVII -B MMVII/build -DCMAKE_PREFIX_PATH=C:/Miniconda/envs/test/Library
+
+    - name: Build MMVII
+      run: cmake --build MMVII/build --config Release -j 4 --target full
+
+    - name: Run MMVII Tests
+      working-directory: ./MMVII/bin
+      run: ./MMVII Bench 1
+
+    - name: Package
+      shell: bash
+      run: |
+        rm -fr MMVII/bin/Makefile* MMVII/bin/*.makefile MMVII/bin/MMVII-* MMVII/bin/P2007.lib MMVII/MMVII-TestDir/Tmp/
+        mkdir -p micmac/include micmac/MMVII
+        cp -a bin/ binaire-aux/ micmac/
+        cp -a include/XML_MicMac include/XML_GEN/ include/qt micmac/include/
+        cp -a MMVII/MMVII-LocalParameters/ MMVII/MMVII-RessourceDir/ MMVII/MMVII-TestDir/ MMVII/bin/ MMVII/share/ micmac/MMVII/
+        mkdir -p micmac/bin/platforms micmac/bin/imageformats micmac/MMVII/bin/platforms
+        MMVII_BINDIR=$(pwd)/micmac/MMVII/bin
+        MM3D_BINDIR=$(pwd)/micmac/bin
+        cp ${Qt5_Dir}/plugins/platforms/qwindows.dll ${MMVII_BINDIR}/platforms/
+        cd /C/Miniconda/envs/test/Library/bin/
+        cp deflate.dll Lerc.dll libcrypto-3-x64.dll libcurl.dll liblzma.dll libssh2.dll proj_9_3.dll sqlite3.dll tiff.dll zlib.dll zstd.dll ${MMVII_BINDIR}/
+        cd $Qt5_Dir/bin
+        cp Qt5Core.dll Qt5Gui.dll Qt5Xml.dll Qt5OpenGL.dll Qt5Widgets.dll ${MM3D_BINDIR}/
+        cd $Qt5_Dir/plugins
+        cp platforms/qwindows.dll ${MM3D_BINDIR}/platforms/
+        cp imageformats/*.dll ${MM3D_BINDIR}/imageformats/
+        cd $GITHUB_WORKSPACE
+
+    - name: Create Zip
+      run: 7z a mmvii_windows.zip micmac
+    
+    - name: Remove previous Windows MMVII build release
+      env:
+         GH_TOKEN: ${{ github.token }}
+      continue-on-error: true
+      run: gh release delete Windows_MMVII_build -y --cleanup-tag
+
+    - name: Upload binaries to release
+      uses: softprops/action-gh-release@v2
+      with:
+        name: 'Windows MMVII build - Latest'
+        tag_name: Windows_MMVII_build
+        make_latest: false
+        token: ${{ secrets.GITHUB_TOKEN }}
+        files: mmvii_windows.zip

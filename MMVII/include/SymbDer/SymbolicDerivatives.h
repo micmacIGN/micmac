@@ -385,6 +385,15 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem> // 
         // Current (top) formulas
         const std::vector<tFormula>& VCurrent() const {return  mVCurF;}
 
+        inline void AddDebug(const tFormula& aPF, const std::string& aMesg)
+        {
+            mVDebugF.emplace_back(aPF,aMesg);
+        }
+        inline void AddComment(const tFormula& aPF, const std::string& aComment)
+        {
+            mVCommentF.emplace_back(aPF,aComment);
+        }
+
 
         size_t      NbCurFonc() const {return mVAllFormula.size();}
     private :
@@ -413,6 +422,8 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem> // 
         tFormula                       mCste2;       ///< Fonc constant 1
         std::vector<tFormula>          mVCurF;       ///< Current evaluted formulas
         std::vector<tFormula>          mVReachedF;   ///< Formula "reachable" i.e. necessary to comput mVCurF
+        std::vector<std::pair<tFormula,std::string>> mVDebugF;     ///< Formula whose value must be displayed
+        std::vector<std::pair<tFormula,std::string>> mVCommentF;   ///< Formula which will be commented in generated code
 
         std::string  mHeaderIncludeSymbDer;  ///< Compilation environment may want to change it
         std::string  mDirGenCode;   ///< Want to put generated code in a fixed folde ?
@@ -541,6 +552,8 @@ template <class TypeElem> class cImplemF  : public SYMBDER_cMemCheck
 
        /// Access at global level is 4 reducing, also it is used 4 implemant in Unary & Binary
        virtual const std::string &  NameOperator() const = 0;
+       /// Name for pretty print 
+       virtual std::string  Name4Print() const = 0;
 
 
       // --------------------  Destructor / Constructor  --------------------------
@@ -644,7 +657,8 @@ template <class TypeElem> class cAtomicF : public cImplemF<TypeElem>
             typedef typename tCoordF::tFormula  tFormula;
 
             /// Should work always
-            std::string  InfixPPrint() const override {return tImplemF::Name();}
+            // std::string  InfixPPrint() const override {return tImplemF::Name();}
+            std::string  InfixPPrint() const override {return this->Name4Print();}
             /// Rule deriv=0 , work by default (constant and observations)
             tFormula Derivate(int aK) const override {return tImplemF::mCoordF->Cste0();}
 
@@ -671,8 +685,9 @@ template <class TypeElem> class cUnknownF : public cAtomicF<TypeElem>
             typedef typename tCoordF::tFormula  tFormula;
 
             const std::string &  NameOperator() const override {static std::string s("UK"); return s;}
+            std::string  Name4Print() const override {return tImplemF::Name() +"_UK";}
 
-            std::string  InfixPPrint() const override {return tImplemF::Name();}
+            // std::string  InfixPPrint() const override {return tImplemF::Name();} All ready overided
             ///  rule :  dXi/dXj = delta(i,j)
             tFormula Derivate(int aK) const override 
             {
@@ -701,6 +716,8 @@ template <class TypeElem> class cObservationF : public cAtomicF<TypeElem>
             friend tCoordF;
 
             const std::string &  NameOperator() const override {static std::string s("Obs"); return s;}
+            std::string  Name4Print() const override {return tImplemF::Name() +"_Obs";}
+            // const std::string &  NameOperator() const override {return tImplemF::Name() +"-Obs";}
       private  :
             inline cObservationF(tCoordF * aCoordF,const std::string & aName,int aNum) : 
                   tAtom  (aCoordF,aName),
@@ -724,6 +741,7 @@ template <class TypeElem> class cConstantF : public cAtomicF<TypeElem>
             bool  IsCste(const TypeElem &K) const override {return mVal==K;} ///< Here we know if we are a constant of value K
             const TypeElem * ValCste() const override  {return &mVal;}
             const std::string &  NameOperator() const override {static std::string s("Cste"); return s;}
+            std::string  Name4Print() const override {return std::to_string(mVal) +"_Cste";}
       protected  :
             inline cConstantF(tCoordF * aCoordF,const std::string & aName,int aNum,const TypeElem& aVal) : 
                tAtom   (aCoordF,aName),
@@ -963,6 +981,10 @@ void cCoordinatorF<TypeElem>::SetCurFormulas(const std::vector<tFormula> & aVF0)
     {
         aF->CalcRecursiveDepth(mVReachedF);
     } 
+    for (auto & aDebugF : mVDebugF)
+    {
+        aDebugF.first->CalcRecursiveDepth(mVReachedF);
+    }
 
     // Use depth to have topological sort
     // In fact it is probably not necessary to make this sort, initial order of reaching order
@@ -1155,9 +1177,28 @@ std::pair<std::string,std::string> cCoordinatorF<TypeElem>::GenCodeCommon(const 
             aOs << "    " << aTypeName << " &" << aForm->GenCodeFormName() << " = " << aForm->GenCodeExpr() << ";\n";
     }
     for (const auto & aForm : mVReachedF) {
-        if (!aForm->isAtomic())
-            aOs << "    " << aTypeName << " " << aForm->GenCodeFormName() << " = " << aForm->GenCodeExpr() << ";\n";
+        if (!aForm->isAtomic()) {
+            aOs << "    " << aTypeName << " " << aForm->GenCodeFormName() << " = " << aForm->GenCodeExpr() << ";";
+            auto aCommentIt = std::find_if(mVCommentF.begin(),mVCommentF.end(),[&aForm](auto& aF) {return aF.first->GenCodeFormName() == aForm->GenCodeFormName();}) ;
+            if (aCommentIt != mVCommentF.end()) {
+                aOs << "  // " << aCommentIt->second;
+            }
+             aOs << "\n";
+        }
     }
+
+    if (mVDebugF.size())
+        aOs << "    if (IsDebugEnabled()) {\n";
+    for (const auto & aDebugF: mVDebugF) {
+#ifdef SYMBDER_WITH_MMVII
+        aOs << "      MMVII::StdOut()";
+#else
+        aOs << "      std::cout";
+#endif
+        aOs << "<< \"[\" << aK << \"]  " << aDebugF.second << "=\" << " <<  aDebugF.first->GenCodeFormName() << " << std::endl;\n";
+    }
+    if (mVDebugF.size())
+        aOs << "    }\n";
     for (size_t i=0; i<mVCurF.size(); i++)
         aOs <<  "    this->mBufLineRes[aK][" << i << "] = " << mVCurF[i]->GenCodeFormName() << ";\n";
 
@@ -1188,6 +1229,82 @@ inline std::string cCoordinatorF<TypeElem>::TypeElemName() const
     static_assert( Detect_if_TypeElemName_is_defined<TypeElem>::value , "** You must define cCoordinatorF::TypeElemName() for you type **");
     return "";
 }
+
+
+
+// Tools to print debug informations on calculated formula
+// SymbPrint(aFormula, aMesg):
+//    print "(aMesg) = (value of aFormula)" during execution
+// SymbPrintDer(aFormula, aK, aMesg):
+//    print "(aMesg) = (value of derivative of aFormula with respect to aKth unknown)" during execution
+//
+// Debug output MUST be enabled at the level of the calculator which contains the formulas:
+// aCalc->SetDebugEnabled(true)
+//
+// Nota: SymbPrint(aF,aMesg) return aF. It can be used inside expressions. Not really recommended, may be usefull.
+//
+//   auto aDist = sqrt(SymbPrint(x*x,"x2") + SymbPrint(y*y,"y2"));
+//   SymbPrint(aDist,"dist");
+//   SymbPrintDer(aDist,0,"d(dist)/dx")
+//   SymbPrintDer(aDist,1,"d(dist)/dy")
+
+
+template <class TypeElem>
+inline const cFormula<TypeElem> SymbPrint(const cFormula<TypeElem> & aF, const std::string& aMesg)
+{
+    aF->CoordF()->AddDebug(aF, aMesg);
+    return aF;
+}
+
+template <class TypeElem>
+inline void SymbPrintDer(const cFormula<TypeElem> & aF, int aK, const std::string& aMesg)
+{
+    aF->CoordF()->AddDebug(aF->Derivate(aK), aMesg);
+}
+
+
+template <class TypeElem>
+inline const cFormula<TypeElem> SymbComment(const cFormula<TypeElem> & aF, const std::string& aComment)
+{
+    aF->CoordF()->AddComment(aF, aComment);
+    return aF;
+}
+
+template <class TypeElem>
+inline const cFormula<TypeElem> SymbCommentDer(const cFormula<TypeElem> & aF, int aK, const std::string& aComment)
+{
+    aF->CoordF()->AddComment(aF->Derivate(aK), aComment);
+    return aF;
+}
+
+
+
+template <class TypeElem> void  StdShowTreeFormulaRec(const cFormula<TypeElem>& aF,int aMaxPerL,int aLevel)
+{    
+
+     // StdOut()  << aF->GenCodeFormName() << std::endl;
+     // StdOut()  << aF->GenCodeExpr() << std::endl;
+     for (int aK=0 ; aK < aLevel ; aK++)
+     {   
+             std::cout << "   ";
+     }   
+     if (aF->RecursiveRec() < aMaxPerL)
+     {
+           std::cout << aF->InfixPPrint() << std::endl;
+     }
+     else
+     {
+         std::cout  << aF->Name4Print() << std::endl;
+         for (auto aChild : aF->Ref())
+              StdShowTreeFormulaRec(aChild,aMaxPerL,aLevel+1);
+     }
+}
+template <class TypeElem>  void  StdShowTreeFormula(const cFormula<TypeElem>& aF,int aMaxPerL=7) 
+{
+    StdShowTreeFormulaRec(aF,aMaxPerL,0);
+}
+
+
 
 } //  namespace NS_SymbolicDerivative
 

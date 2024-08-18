@@ -564,7 +564,7 @@ cLibertOfCalib GetDefDegreeOfCalib(const cCalibDistortion & aCalib )
 }
 
 
-void GenerateMesure2D3D(cBasicGeomCap3D * aCamIn,int aNbXY,int aNbProf,const std::string & aNameIm,cDicoAppuisFlottant & aDAF,cMesureAppuiFlottant1Im & aMAF)
+void GenerateMesure2D3D(cBasicGeomCap3D * aCamIn,int aNbXY,int aNbProf,const std::string & aNameIm,cDicoAppuisFlottant & aDAF,cMesureAppuiFlottant1Im & aMAF,const std::string & aPostNamePt="")
 {
 
 // std::cout << "CONVCALL " << __LINE__ << "\n";
@@ -600,7 +600,7 @@ std::cout << "Ppppppppppp= " << aCamIn->GetVeryRoughInterProf()
                //std::cout << aPInt << " => " << aPIm << " " << aPCheck<< "\n";
                std::string aNamePt = "Pt_"+ ToString(aPInt.x)
                                      + "_"+ ToString(aPInt.y)
-                                     + "_"+ ToString(aKP);
+                                     + "_"+ ToString(aKP) +  aPostNamePt;
 
               // GCP generation
                cOneAppuisDAF anAp;
@@ -611,7 +611,18 @@ std::cout << "Ppppppppppp= " << aCamIn->GetVeryRoughInterProf()
                    aMult =  pow(2.0, 0.3 * (aKP-aNbP1/2.0) / aNbP1);
                }
                double aProf = aProfGlob * aMult;
-               Pt3dr aPGround = aCamIn->ImEtProf2Terrain(aPIm,aProf);
+               Pt3dr aPGround ;
+               if (aCS)
+                  aPGround = aCamIn->ImEtProf2Terrain(aPIm,aProf);
+               else
+               {
+                    Pt2dr aIntZ = aCamIn->GetAltiSolMinMax();
+                    double aZ = (aIntZ.x * aKP +  aIntZ.y *(aNbProf-1-aKP)) / (aNbProf-1);
+                    aPGround = aCamIn->ImEtZ2Terrain(aPIm,aZ);
+                    Pt2dr aPBis = aCamIn->Ter2Capteur(aPGround);
+                    std::cout << "AlerRetour: " << aPIm - aPBis << "\n";
+               }
+//  std::cout << "PRRRoof="  << aProf << " " << aPGround << "\n";
                anAp.Pt() = aPGround;
                anAp.Incertitude() = Pt3dr(anInc,anInc,anInc);
                anAp.NamePt() = aNamePt;
@@ -635,6 +646,7 @@ class cAppli_GenerateAppuisLiaison : public cAppliWithSetImage
 
         std::string mNameIm,mNameOri;
         int mNbXY,mNbProf;
+	std::string mPostNamePt;
 };
  
 std::string NameGenepi(const std::string & aName,bool Is3D)
@@ -645,8 +657,9 @@ std::string NameGenepi(const std::string & aName,bool Is3D)
 
 cAppli_GenerateAppuisLiaison::cAppli_GenerateAppuisLiaison(int argc, char** argv) :
       cAppliWithSetImage (argc-1,argv+1,0),
-      mNbXY    (20),
-      mNbProf  (3)
+      mNbXY       (20),
+      mNbProf     (3),
+      mPostNamePt ("")
 {
 
     ElInitArgMain
@@ -656,6 +669,7 @@ cAppli_GenerateAppuisLiaison::cAppli_GenerateAppuisLiaison(int argc, char** argv
                    << EAMC(mNameOri, "Orientation",eSAM_IsExistFile),
        LArgMain()  << EAM(mNbXY,"NbXY",true,"Number of point of the Grid")
                    << EAM(mNbProf,"NbProf",true,"Number of depth")
+                   << EAM(mPostNamePt,"PostNamePt",true,"Postfix to add to name of points (if want different for each image)")
     );
     // std::string aPref = "Genepi-";
 
@@ -664,7 +678,7 @@ cAppli_GenerateAppuisLiaison::cAppli_GenerateAppuisLiaison(int argc, char** argv
           cImaMM * anIm = mVSoms[aK]->attr().mIma;
           cDicoAppuisFlottant aDAF;
           cMesureAppuiFlottant1Im aMAF;
-          GenerateMesure2D3D(anIm->CamGen(),mNbXY,mNbProf,anIm->mNameIm,aDAF,aMAF);
+          GenerateMesure2D3D(anIm->CamGen(),mNbXY,mNbProf,anIm->mNameIm,aDAF,aMAF,mPostNamePt);
           cSetOfMesureAppuisFlottants  aSMAF;
           aSMAF.MesureAppuiFlottant1Im().push_back(aMAF);
           MakeFileXML(aDAF,  NameGenepi(anIm->mNameIm,true));

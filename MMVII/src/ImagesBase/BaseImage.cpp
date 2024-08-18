@@ -1,5 +1,5 @@
-
 #include "MMVII_Images.h"
+#include "MMVII_Image2D.h"
 // #include <Eigen/Dense>
 
 namespace MMVII
@@ -52,6 +52,21 @@ template <class Type,const int Dim>
    Init(aModeInit);
 }
 
+template <>   cDataTypedIm<tREAL8,1> * cDataTypedIm<tREAL8,1>::AllocIm(const tPix& aPix)
+{
+   return new cDataIm1D<tREAL8>(cPt1di(0),aPix);
+}
+template <>   cDataTypedIm<tREAL8,2> * cDataTypedIm<tREAL8,2>::AllocIm(const tPix& aPix)
+{
+   return new cDataIm2D<tREAL8>(cPt2di(0,0),aPix);
+}
+template <>   cDataTypedIm<tREAL8,3> * cDataTypedIm<tREAL8,3>::AllocIm(const tPix& aPix)
+{
+   return new cDataIm3D<tREAL8>(aPix);
+}
+
+
+
 template <class Type,const int Dim>
     void cDataTypedIm<Type,Dim>::Resize(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,eModeInitImage aModeInit) 
 {
@@ -83,31 +98,31 @@ template <class Type,const int Dim>
 
 
 template <class Type,const int Dim>  
-        double cDataTypedIm<Type,Dim>::L1Dist(const cDataTypedIm<Type,Dim> & aI2) const
+        double cDataTypedIm<Type,Dim>::L1Dist(const cDataTypedIm<Type,Dim> & aI2,bool isAvg) const
 {
     tPB::AssertSameArea(aI2);
     double aRes = 0.0;
     for (int aK=0 ; aK<NbElem() ; aK++)
        aRes += std::fabs(mRawDataLin[aK]-aI2.mRawDataLin[aK]);
 
-   return aRes/NbElem();
+   return isAvg ? aRes/NbElem() : aRes;
 }
 
 template <class Type,const int Dim>  
-        double cDataTypedIm<Type,Dim>::SqL2Dist(const cDataTypedIm<Type,Dim> & aI2) const
+        double cDataTypedIm<Type,Dim>::SqL2Dist(const cDataTypedIm<Type,Dim> & aI2,bool isAvg) const
 {
     tPB::AssertSameArea(aI2);
     double aRes = 0.0;
     for (int aK=0 ; aK<NbElem() ; aK++)
        aRes += R8Square(mRawDataLin[aK]-aI2.mRawDataLin[aK]);
 
-   return aRes/NbElem();
+   return isAvg ? aRes/NbElem() : aRes;
 }
 
 template <class Type,const int Dim>  
-        double cDataTypedIm<Type,Dim>::L2Dist(const cDataTypedIm<Type,Dim> & aI2) const
+        double cDataTypedIm<Type,Dim>::L2Dist(const cDataTypedIm<Type,Dim> & aI2,bool isAvg) const
 {
-   return sqrt(SqL2Dist(aI2));
+   return sqrt(SqL2Dist(aI2,isAvg));
 }
 
 
@@ -126,23 +141,30 @@ template <class Type,const int Dim>
 
 
 template <class Type,const int Dim>  
-        double cDataTypedIm<Type,Dim>::L1Norm() const
+        double cDataTypedIm<Type,Dim>::L1Norm(bool isAvg) const
 {
     double aRes = 0.0;
     for (int aK=0 ; aK<NbElem() ; aK++)
        aRes += std::fabs(mRawDataLin[aK]);
 
-   return aRes/NbElem();
+   return isAvg ? aRes/NbElem() : aRes;
 }
 template <class Type,const int Dim>  
-        double cDataTypedIm<Type,Dim>::L2Norm() const
+        double cDataTypedIm<Type,Dim>::SqL2Norm(bool isAvg) const
 {
     double aRes = 0.0;
     for (int aK=0 ; aK<NbElem() ; aK++)
        aRes += R8Square(mRawDataLin[aK]);
 
-   return sqrt(aRes/NbElem());
+   return isAvg ? aRes/NbElem() : aRes;
 }
+
+template <class Type,const int Dim>  
+        double cDataTypedIm<Type,Dim>::L2Norm(bool isAvg) const
+{
+   return sqrt(SqL2Norm(isAvg));
+}
+
 template <class Type,const int Dim>  
         double cDataTypedIm<Type,Dim>::LInfNorm() const
 {
@@ -330,6 +352,28 @@ template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::VD_SetV(const 
     MMVII_INTERNAL_ASSERT_tiny(tNumTrait<Type>::ValueOk(aV),"Bad Value in VD_SetV");
     mRawDataLin[tPB::IndexeLinear(aP)] = tNumTrait<Type>::RoundNearestToType(aV);
 }
+
+template<class Type,const int Dim> void  cDataTypedIm<Type,Dim>::ChSignIn(cDataTypedIm<Type,Dim> & aRes) const
+{
+   this->AssertSameArea(aRes);
+   auto  aOut =  aRes.mRawDataLin;
+   auto  aIn =   mRawDataLin;
+   auto aNbElem = NbElem();
+
+// msvc++ :  disable: warning C4146: unary minus operator applied to unsigned type, result still unsigned
+#ifdef _WIN32
+# pragma warning( push )
+# pragma warning( disable : 4146 )
+#endif
+
+   for (int aX=0 ; aX<aNbElem ; aX++)
+       aOut[aX] = -aIn[aX];
+
+#ifdef _WIN32
+# pragma warning( pop )
+#endif
+}
+
 
 /*
 template class cDataTypedIm<tREAL4,1>;

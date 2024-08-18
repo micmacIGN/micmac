@@ -406,7 +406,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         void MMVII_WARNING(const std::string &);
 
         /// According to StdOut param can be std::cout, a File, both or none
-        cMultipleOfs & StdOut();
+        cMultipleOfs & StdOut() const;
         cMultipleOfs & HelpOut();
         cMultipleOfs & ErrOut();
 
@@ -446,6 +446,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         bool ModeHelp() const;              ///< If we are in help mode, don't execute
         bool ModeArgsSpec() const;          ///< If called only to output args specs, don't execute
         virtual ~cMMVII_Appli();            ///< Always virtual Dstrctr for "big" classes
+        void ToDoBeforeDestruction(); ///< Some stuff to do at the end, require virtual method that cannot be called in X::~X()
         bool    IsInit(const void *) const;       ///< indicate for each variable if it was initiazed by argc/argv
         bool    IsInSpecObl(const void *);  ///< indicate for each variable if it was in an arg opt list (used with cPhotogrammetricProject)
         bool    IsInSpecFac(const void *);  ///< indicate for each variable if it was in an arg obl list (used with cPhotogrammetricProject)
@@ -529,11 +530,17 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 	std::string  DirReport();
 	std::string  DirSubPReport(const std::string &anId);
 	std::string  NameTmpReport(const std::string &anId,const std::string &anImg);
+        void SetReportSubDir(const std::string &);
 
-	void  InitReport(const std::string &anId,const std::string & aPost,bool IsMul);
+	/// Mehod called when the  report is finished, usefull when the report is used to memorize problem
+	virtual void OnCloseReport(int aNbLine,const std::string & anIdent,const std::string & aNameFile) const;
+
+	void  InitReport(const std::string &anId,const std::string & aPost,bool IsMul,const std::vector<std::string> & aHeader={});
 	//  void  AddTopReport(const std::string &anId,const std::string & VecMsg);
 
 	void  AddOneReportCSV(const std::string &anId,const std::vector<std::string> & VecMsg);
+	/// Add a header line, do it only it at top-level
+	void  AddHeaderReportCSV(const std::string &anId,const std::vector<std::string> & VecMsg);
 
 	void  AddStdHeaderStatCSV(const std::string &anId,const std::string & aNameCol1,const std::vector<int> aVPerc,const std::vector<std::string> & ={});
 	void  AddStdStatCSV(const std::string &anId,const std::string & aCol1,const cStdStatRes &,const std::vector<int> aVPerc,const std::vector<std::string> & ={});
@@ -572,6 +579,9 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         static const std::string & FullBin();            ///< Protected accessor to full pathname of MMVII executable
         static const std::string & DirTestMMVII();       ///< Protected accessor to dir to read/write test bench
     private :
+	// not very clean, but mutable dont seem enough
+        cMultipleOfs & NC_StdOut();
+
         cMMVII_Appli(const cMMVII_Appli&) = delete ; ///< New C++11 feature , forbid copy 
         cMMVII_Appli & operator = (const cMMVII_Appli&) = delete ; ///< New C++11 feature , forbid copy 
         // Subst  (aNameOpt,aVal)
@@ -643,7 +653,10 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         bool                                      mRMSWasUsed; ///< Indicate if MultiCall was used
 
         std::string                               mIntervFilterMS[NbMaxMainSets];  ///< Filterings interval
+	std::vector<std::string>                  mTransfoFFI[NbMaxMainSets];  ///< Pattern of transformation for FFI
 
+	// Number of "tagged" object at creation (for tracking memory leaks)
+	int                                       mNumTagObjCr;
         // Variable for setting num of mm version for output
         int                                       mNumOutPut;  ///< specified by user
         bool                                      mOutPutV1;   ///< computed from mNumOutPut
@@ -655,6 +668,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         cMultipleOfs                              mStdCout;     ///< Standard Ouput (File,Console, both or none)
         std::string                               mParamStdOut; ///< Users value
         int                                       mSeedRand;    ///< Seed for random generator
+        bool                                      mExtandPattern;  ///<  If false Interpret the pattern as single  , def=true !!
         // Control position/hierachy of call
         int                                       mNumCallInsideP; ///< Numero of Appli in the process of creation
         bool                                      mMainAppliInsideP; ///< Is the main/firsy Appli inside the process
@@ -711,10 +725,11 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         static std::set<cObj2DelAtEnd *>       mVectObj2DelAtEnd; 
         bool                                      mIsInBenchMode;   ///< is the command executed for bench (will probably make specific test)
 
-	char                               mCSVSep;
-	std::map<std::string,std::string>  mMapIdFilesReport;
-	std::map<std::string,std::string>  mMapIdPostReport;
-	std::set<std::string>              mReport2Merge;
+	char                               mCSVSep;    ///< separator in csv file, for now hard coded to ","
+	std::map<std::string,std::string>  mMapIdFilesReport; ///< For a given id memorize the post fix, as "csv"
+	std::map<std::string,std::string>  mMapIdPostReport; ///< For a given id , memorize the file (Global of Tmp in sub process)
+	std::set<std::string>              mReport2Merge;  ///< Memorize all the report identifier that must be merged
+        std::string                        mReportSubDir;  ///< In case we want to write in separate subdir (like with GCP)
 
 	std::string                        mPatternInitGMA;
 };
