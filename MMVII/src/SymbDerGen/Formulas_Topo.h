@@ -33,7 +33,7 @@ class cFormulaTopoHz
 
            std::vector<std::string>  VNamesUnknowns()  const
            {
-                //  Instrument pose with 6 unknowns : 3 for centers, 3 for axiator
+                //  Instrument pose with 6 unknowns : 3 for center, 3 for axiator
                // target pose with 3 unknowns : 3 for center
                 return  Append(NamesPose("Ci","Wi"),NamesP3("P_to"));
            }
@@ -52,10 +52,10 @@ class cFormulaTopoHz
                           const std::vector<tUk> & aVObs
                        ) const
            {
-               cPoseF<tUk>  aPoseInstr(aVUk,0,aVObs,0,true);
+               cPoseF<tUk>  aPoseInstr2RTL(aVUk,0,aVObs,0,true);
                cPtxd<tUk,3> aP_to = VtoP3(aVUk,6);
                auto       val = aVObs[9];
-               cPtxd<tUk,3>  aP_to_instr = aPoseInstr.Inverse().Value(aP_to);
+               cPtxd<tUk,3>  aP_to_instr = aPoseInstr2RTL.Inverse().Value(aP_to);
 
                auto az = ATan2( aP_to_instr.x(), aP_to_instr.y() );
 
@@ -72,7 +72,7 @@ class cFormulaTopoZen
 
            std::vector<std::string>  VNamesUnknowns()  const
            {
-                //  Instrument pose with 6 unknowns : 3 for centers, 3 for axiator
+                //  Instrument pose with 6 unknowns : 3 for center, 3 for axiator
                // target pose with 3 unknowns : 3 for center
                 return  Append(NamesPose("Ci","Wi"),NamesP3("P_to"));
            }
@@ -92,11 +92,11 @@ class cFormulaTopoZen
                           const std::vector<tUk> & aVObs
                        ) const
            {
-               cPoseF<tUk>  aPoseInstr(aVUk,0,aVObs,0,true);
+               cPoseF<tUk>  aPoseInstr2RTL(aVUk,0,aVObs,0,true);
                cPtxd<tUk,3> aP_to = VtoP3(aVUk,6);
                auto  ref_cor = aVObs[9];
                auto      val = aVObs[10];
-               cPtxd<tUk,3>  aP_to_instr = aPoseInstr.Inverse().Value(aP_to);
+               cPtxd<tUk,3>  aP_to_instr = aPoseInstr2RTL.Inverse().Value(aP_to);
 
                auto   dist_hz =  Norm2(  cPtxd<tUk,2>(aP_to_instr.x(), aP_to_instr.y() ) );
 
@@ -115,7 +115,7 @@ class cFormulaTopoDist
 
            std::vector<std::string>  VNamesUnknowns()  const
            {
-                //  Instrument pose with 6 unknowns : 3 for centers, 3 for axiator
+                //  Instrument pose with 6 unknowns : 3 for center, 3 for axiator
                // target pose with 3 unknowns : 3 for center
                 return  Append(NamesPose("Ci","Wi"),NamesP3("P_to"));
            }
@@ -134,10 +134,10 @@ class cFormulaTopoDist
                           const std::vector<tUk> & aVObs
                        ) const
            {
-               cPoseF<tUk>  aPoseInstr(aVUk,0,aVObs,0,true);
+               cPoseF<tUk>  aPoseInstr2RTL(aVUk,0,aVObs,0,true);
                cPtxd<tUk,3> aP_to = VtoP3(aVUk,6);
                auto       val = aVObs[9];
-               cPtxd<tUk,3>  aP_to_instr = aPoseInstr.Inverse().Value(aP_to);
+               cPtxd<tUk,3>  aP_to_instr = aPoseInstr2RTL.Inverse().Value(aP_to);
 
                auto dist = Norm2(aP_to_instr);
                return {  dist - val };
@@ -154,7 +154,7 @@ class cFormulaTopoDX
 
            std::vector<std::string>  VNamesUnknowns()  const
            {
-                //  Instrument pose with 6 unknowns : 3 for centers, 3 for axiator
+                //  Instrument pose with 6 unknowns : 3 for center, 3 for axiator
                // target pose with 3 unknowns : 3 for center
                 return  Append(NamesPose("Ci","Wi"),NamesP3("P_to"));
            }
@@ -173,10 +173,10 @@ class cFormulaTopoDX
                           const std::vector<tUk> & aVObs
                        ) const
            {
-               cPoseF<tUk>  aPoseInstr(aVUk,0,aVObs,0,true);
+               cPoseF<tUk>  aPoseInstr2RTL(aVUk,0,aVObs,0,true);
                cPtxd<tUk,3> aP_to = VtoP3(aVUk,6);
                auto       val = aVObs[9];
-               cPtxd<tUk,3>  aP_to_instr = aPoseInstr.Inverse().Value(aP_to);
+               cPtxd<tUk,3>  aP_to_instr = aPoseInstr2RTL.Inverse().Value(aP_to);
 
                return {  aP_to_instr.x() - val };
            }
@@ -191,7 +191,7 @@ class cFormulaTopoDY
 
            std::vector<std::string>  VNamesUnknowns()  const
            {
-                //  Instrument pose with 6 unknowns : 3 for centers, 3 for axiator
+                //  Instrument pose with 6 unknowns : 3 for center, 3 for axiator
                // target pose with 3 unknowns : 3 for center
                 return  Append(NamesPose("Ci","Wi"),NamesP3("P_to"));
            }
@@ -210,10 +210,10 @@ class cFormulaTopoDY
                           const std::vector<tUk> & aVObs
                        ) const
            {
-               cPoseF<tUk>  aPoseInstr(aVUk,0,aVObs,0,true);
+               cPoseF<tUk>  aPoseInstr2RTL(aVUk,0,aVObs,0,true);
                cPtxd<tUk,3> aP_to = VtoP3(aVUk,6);
                auto       val = aVObs[9];
-               cPtxd<tUk,3>  aP_to_instr = aPoseInstr.Inverse().Value(aP_to);
+               cPtxd<tUk,3>  aP_to_instr = aPoseInstr2RTL.Inverse().Value(aP_to);
 
                return {  aP_to_instr.y() - val };
            }
@@ -228,7 +228,7 @@ class cFormulaTopoDZ
 
            std::vector<std::string>  VNamesUnknowns()  const
            {
-                //  Instrument pose with 6 unknowns : 3 for centers, 3 for axiator
+                //  Instrument pose with 6 unknowns : 3 for center, 3 for axiator
                // target pose with 3 unknowns : 3 for center
                 return  Append(NamesPose("Ci","Wi"),NamesP3("P_to"));
            }
@@ -247,10 +247,10 @@ class cFormulaTopoDZ
                           const std::vector<tUk> & aVObs
                        ) const
            {
-               cPoseF<tUk>  aPoseInstr(aVUk,0,aVObs,0,true);
+               cPoseF<tUk>  aPoseInstr2RTL(aVUk,0,aVObs,0,true);
                cPtxd<tUk,3> aP_to = VtoP3(aVUk,6);
                auto       val = aVObs[9];
-               cPtxd<tUk,3>  aP_to_instr = aPoseInstr.Inverse().Value(aP_to);
+               cPtxd<tUk,3>  aP_to_instr = aPoseInstr2RTL.Inverse().Value(aP_to);
 
                return {  aP_to_instr.z() - val };
            }

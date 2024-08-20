@@ -22,7 +22,7 @@ namespace {
         {
             int aProjErrorNo = proj_errno(aPJ);
             std::string aStrErrorDescr = aProjErrorNo>0 ? proj_errno_string(proj_errno(aPJ)): " Panic! Check your proj installation.";
-            MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eBadSysCo,
+            MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eSysCo,
                                        std::string("Error in SysCo conversion creation from \"")
                                        +aDefFrom+"\" to \""+aDefTo+"\": "+aStrErrorDescr)
         }
@@ -190,7 +190,7 @@ public :
     cSysCoRTL& operator=(const cSysCoRTL& other) = delete;
     cSysCoRTL& operator=(cSysCoRTL&& other) = delete;
 
-    virtual cRotation3D<tREAL8> getVertical(const tPt &aPtIn) const override; //< get rotation from SysCo origin to vertical at this point
+    virtual cRotation3D<tREAL8> getRot2Vertical(const tPt &aPtIn) const override; //< get rotation from SysCo origin to vertical at this point
 
 protected:
     cSysCoRTL(const std::string & def, bool aDebug); //< construct from a definition, starting with RTL
@@ -243,9 +243,9 @@ cSysCoData cSysCo::toSysCoData()
     return {mDef};
 }
 
-cRotation3D<tREAL8> cSysCo::getVertical(const tPt &)   const
+cRotation3D<tREAL8> cSysCo::getRot2Vertical(const tPt &)   const
 {
-    MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eBadSysCo,
+    MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eSysCo,
                                std::string("Error: getVertical() not defined for SysCo type ") + E2Str(mType));
     return cRotation3D<tREAL8>::Identity();
 }
@@ -267,6 +267,10 @@ tREAL8 cSysCo::getDistHzApprox(const tPt & aPtA, const tPt & aPtB) const
 {
     auto aPtAGeoc = Value(aPtA);
     auto aPtAgeog = fromPjCoord(proj_trans(mPJ_GeoC2Geog, PJ_FWD, toPjCoord(aPtAGeoc)));
+    MMVII_INTERNAL_ASSERT_User((fabs(aPtAgeog.z())<1.0e10), eTyUEr::eSysCo,
+                               std::string("Error: point too far for cSysCo::getDistHzApprox(). Geog=")
+                               + std::to_string(aPtAgeog.x()) + " " + std::to_string(aPtAgeog.y()) + " " + std::to_string(aPtAgeog.z()));
+
     auto aPtBGeoc = Value(aPtB);
 
     tREAL8 cosAlpha = Scal(aPtAGeoc,aPtBGeoc)/(Norm2(aPtAGeoc)*Norm2(aPtBGeoc));
@@ -335,14 +339,14 @@ cSysCoLocal::cSysCoLocal(const std::string &aDef, bool aDebug) :
 
 tPt3dr cSysCoLocal::Value(const tPt & in)   const  //< to GeoC
 {
-    MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eBadSysCo,
+    MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eSysCo,
                                "Can not convert SysCoLocal to Geocentric")
     return {};
 }
 
 tPt3dr cSysCoLocal::Inverse(const tPt & in) const //< from GeoC
 {
-    MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eBadSysCo,
+    MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eSysCo,
                                "Can not convert SysCoLocal from Geocentric")
     return {};
 }
@@ -494,7 +498,7 @@ bool cSysCoRTL::computeRTL(tPt anOrigin, std::string aInDef)
 }
 
 
-cRotation3D<tREAL8> cSysCoRTL::getVertical(const tPt & aPtIn)  const
+cRotation3D<tREAL8> cSysCoRTL::getRot2Vertical(const tPt & aPtIn)  const
 {
     tPt ptGeoC = Value(aPtIn);
     auto anOtherRTL = cSysCoLEuc::makeRTL(ptGeoC, MMVII_SysCoDefGeoC);
@@ -694,11 +698,11 @@ void BenchSysCo(cParamExeBench & aParam)
             // check if possible to find the point above aPtRTL in RTL
             tPtrSysCo aSysCoGeog = cSysCo::MakeSysCo(MMVII_SysCoDefLatLong);
             cChangeSysCo aRTL2Geog(aSysCoRTL, aSysCoGeog);
-            auto aMatVertical = aSysCoRTLasRTL->getVertical( aPtRTL );
+            auto aRot2Vertical = aSysCoRTLasRTL->getRot2Vertical( aPtRTL );
             tPt3dr aPtGeog = aRTL2Geog.Value(aPtRTL);
             tPt3dr aVectUp = {0.,0.,testDist};
             tPt3dr aPtGeogUp = aPtGeog + aVectUp;
-            tPt3dr aPtRTLUp = aPtRTL + aMatVertical.Inverse(aVectUp);
+            tPt3dr aPtRTLUp = aPtRTL + aRot2Vertical.Inverse(aVectUp);
             tPt3dr aPtRTLUp_check = aRTL2Geog.Inverse(aPtGeogUp);
             //std::cout<<std::setprecision(10);
             //std::cout<<"at "<<aOrigin<<", aPtRTL: "<<aPtRTL<<"\n";

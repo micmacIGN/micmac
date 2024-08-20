@@ -15,6 +15,7 @@ double Cst_KthVal(const std::vector<double> &, double aProportion);
 double Average(const std::vector<double> &);
 
 tREAL8 AngleInRad(eTyUnitAngle);
+bool AssertRadAngleInOneRound(tREAL8 aAngleRad, bool makeError=true);
 
 // some time needs a null val for any type with + (neutral for +)
 

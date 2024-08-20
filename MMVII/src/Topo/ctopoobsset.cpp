@@ -124,7 +124,8 @@ void cTopoObsSetStation::OnUpdate()
 
 void cTopoObsSetStation::PushRotObs(std::vector<double> & aVObs) const
 {
-    (mRotSysCo2Vert * mRotVert2Instr).Mat().PushByCol(aVObs);
+    // fill aPoseInstr2RTL
+    (getRotSysCo2Instr()).Mat().PushByCol(aVObs);
 }
 
 std::string cTopoObsSetStation::toString() const
@@ -251,10 +252,8 @@ bool cTopoObsSetStation::initialize()
                 continue;
             if (obs->getType() == eTopoObsType::eHz)
             {
-                // TODO: use projection for G0 init
-                G0 = atan2( aPtTo.getPt()->x() - mPtOrigin->getPt()->x(),
-                                   aPtTo.getPt()->y() - mPtOrigin->getPt()->y())
-                            - obs->getMeasures().at(0);
+                cPt3dr aVectInstr = PtSysCo2Vert(aPtTo);
+                G0 = atan2( aVectInstr.x(), aVectInstr.y()) - obs->getMeasures().at(0);
 #ifdef VERBOSE_TOPO
                 StdOut()<<"G0 hz: "<<*mPtOrigin->getPt()<<" -> "<<*aPtTo.getPt()<<" mes "<<obs->getMeasures().at(0)<<"\n";
 #endif
@@ -267,10 +266,9 @@ bool cTopoObsSetStation::initialize()
         }
         if (aObsDX && aObsDY) // compute G0 from DX DY if Hz not found
         {
-            // TODO: use projection for init G0
             auto & aPtTo = mBA_Topo->getPoint(aObsDX->getPointName(1));
-            G0 = atan2( aPtTo.getPt()->x() - mPtOrigin->getPt()->x(),
-                               aPtTo.getPt()->y() - mPtOrigin->getPt()->y())
+            cPt3dr aVectInstr = PtSysCo2Vert(aPtTo);
+            G0 = atan2( aVectInstr.x(), aVectInstr.y())
                         - atan2( aObsDX->getMeasures()[0], aObsDY->getMeasures()[0]);
 #ifdef VERBOSE_TOPO
             StdOut()<<"G0 dxy: "<<*mPtOrigin->getPt()<<" -> "<<*aPtTo.getPt()<<" mes "<<aObsDX->getMeasures()[0]<<" "<<aObsDY->getMeasures()[0]<<"\n";
@@ -310,7 +308,7 @@ void cTopoObsSetStation::updateVertMat()
     if ((mOriStatus == eTopoStOriStat::eTopoStOriFixed) && (mBA_Topo->getSysCo()->getType()!=eSysCo::eRTL))
         mRotSysCo2Vert = tRot::Identity(); // do not seach for vertical if all fixed, to work will all SysCo
     else
-        mRotSysCo2Vert = mBA_Topo->getSysCo()->getVertical(*mPtOrigin->getPt());
+        mRotSysCo2Vert = mBA_Topo->getSysCo()->getRot2Vertical(*mPtOrigin->getPt());
 }
 
 void cTopoObsSetStation::setOrigin(std::string _OriginName)
@@ -332,6 +330,20 @@ tREAL8 cTopoObsSetStation::getG0() const
     return atan2(mRotVert2Instr.Mat().GetElem(0,1), mRotVert2Instr.Mat().GetElem(0,0));
 }
 
+cPt3dr cTopoObsSetStation::PtSysCo2Vert(const cTopoPoint & aPt) const
+{
+    return mRotSysCo2Vert.Value(*aPt.getPt() - *mPtOrigin->getPt());
+}
+
+cPt3dr cTopoObsSetStation::PtSysCo2Instr(const cTopoPoint &aPt) const
+{
+    return getRotSysCo2Instr().Value(*aPt.getPt() - *mPtOrigin->getPt());
+}
+
+cPt3dr cTopoObsSetStation::PtInstr2SysCo(const cPt3dr &aVect) const
+{
+    return getRotSysCo2Instr().Inverse(aVect) + *mPtOrigin->getPt();
+}
 /*
 //----------------------------------------------------------------
 cTopoObsSetDistParam::cTopoObsSetDistParam(cTopoData& aTopoData) :

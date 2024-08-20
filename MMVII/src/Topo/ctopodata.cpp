@@ -244,6 +244,8 @@ bool cTopoData::InsertCompObsFile(const std::string & aFileName)
             // Angles in comp file are in gon. Transform it into rad
             val /= AngleInRad(eTyUnitAngle::eUA_gon);
             sigma /= AngleInRad(eTyUnitAngle::eUA_gon);
+            MMVII_INTERNAL_ASSERT_strong(AssertRadAngleInOneRound(val, false),
+                                         "Angle out of range for "+aFileName+" at line "+std::to_string(line_num)+": \""+line+"\"")
             break;
         }
 

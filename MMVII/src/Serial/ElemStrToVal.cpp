@@ -345,7 +345,7 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eNoNumberPixel,"NoNumberPixel"},
                 {eTyUEr::eNoCameraName,"NoCameraName"},
                 {eTyUEr::eMultipleTargetInOneImage,"MultipleTargetInOneImage,"},
-                {eTyUEr::eBadSysCo,"BadSysCo"},
+                {eTyUEr::eSysCo,"SysCo"},
                 {eTyUEr::eConstraintsError,"ConstraintsError"},
                 {eTyUEr::eUnClassedError,"UnClassedError"}
            };

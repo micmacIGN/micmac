@@ -50,7 +50,7 @@ public :
     virtual tPt Value(const tPt &)   const override = 0; //< to GeoC
     virtual tPt Inverse(const tPt &) const override = 0; //< from GeoC
 
-    virtual cRotation3D<tREAL8> getVertical(const tPt &)   const; //< get rotation from SysCo origin to vertical at point
+    virtual cRotation3D<tREAL8> getRot2Vertical(const tPt &)   const; //< get rotation from SysCo origin to vertical at point
     virtual tREAL8 getRadiusApprox(const tPt &in) const; //< approximate earth total curvature radius at a point
     virtual tREAL8 getDistHzApprox(const tPt & aPtA, const tPt & aPtB) const; //< approximate horizontal distance (along ellipsoid) from one point to an other
 

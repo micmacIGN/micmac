@@ -239,7 +239,7 @@ enum class eTyUEr
               eNoNumberPixel,
               eNoCameraName,
               eMultipleTargetInOneImage,
-              eBadSysCo,
+              eSysCo,
               eConstraintsError,
               eUnClassedError,
               eNbVals

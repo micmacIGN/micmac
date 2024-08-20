@@ -83,7 +83,10 @@ public:
     const cTopoPoint * getPtOrigin() const { return mPtOrigin; }
     tREAL8 getG0() const;
     const tRot & getRotVert2Instr() const { return mRotVert2Instr; }
-    const tRot & getRotSysCo2Vert() const { return mRotSysCo2Vert; }
+    tRot getRotSysCo2Instr() const { return mRotVert2Instr * mRotSysCo2Vert; }
+    cPt3dr PtSysCo2Vert(const cTopoPoint &aPt) const;
+    cPt3dr PtSysCo2Instr(const cTopoPoint & aPt) const;
+    cPt3dr PtInstr2SysCo(const cPt3dr &aVect) const;
     eTopoStOriStat getOriStatus() const { return mOriStatus; }
     void setOriStatus(eTopoStOriStat aOriStatus) { mOriStatus = aOriStatus; }
 protected:
@@ -93,9 +96,9 @@ protected:
     void createAllowedObsTypes() override;
     void updateVertMat();
     eTopoStOriStat mOriStatus; //< is bubbled, fixed or 3d rot free
-    tRot mRotSysCo2Vert;   //< rotation between global SysCo and local vertical frame
-    tRot mRotVert2Instr; //< the station orientation from local vertical frame
-    cPt3dr_UK mRotOmega; //< the station orientation unknown
+    tRot mRotSysCo2Vert; //< rotation between global SysCo and local vertical frame
+    tRot mRotVert2Instr; //< current value for rotation from local vertical frame to instrument frame
+    cPt3dr_UK mRotOmega; //< mRotVert2Instr unknown
     std::string mOriginName;
     const cTopoPoint * mPtOrigin;
 };

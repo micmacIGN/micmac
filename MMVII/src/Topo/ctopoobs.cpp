@@ -40,6 +40,19 @@ cTopoObs::cTopoObs(cTopoObsSet* set, cBA_Topo *aBA_Topo, eTopoObsType type, cons
     case eTopoObsType::eNbVals:
         MMVII_INTERNAL_ERROR("unknown obs type")
     }
+
+    // check values
+    switch (mType) {
+    case eTopoObsType::eHz:
+    case eTopoObsType::eZen:
+        for (auto &m:measures)
+            MMVII_INTERNAL_ASSERT_strong(AssertRadAngleInOneRound(m, false),
+                                         "Angle out of range for "+this->toString())
+        break;
+    default:
+        break;
+    }
+
 }
 
 std::string cTopoObs::toString() const

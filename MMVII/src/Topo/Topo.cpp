@@ -366,11 +366,14 @@ bool cBA_Topo::tryInit(cTopoPoint & aPtToInit, tStationsMap &stationsMap)
 #ifdef VERBOSE_TOPO
     StdOut() << "tryInit: " << aPtToInit.getName() <<".\n";
 #endif
-
-    return
-            tryInit3Obs1Station(aPtToInit, stationsMap)
-         || tryInitVertStations(aPtToInit, stationsMap)
-            ;
+    bool ok =    tryInit3Obs1Station(aPtToInit, stationsMap)
+              || tryInitVertStations(aPtToInit, stationsMap)
+                 ;
+#ifdef VERBOSE_TOPO
+    if (ok)
+        StdOut() << "init coords: " << *aPtToInit.getPt() <<"\n";
+#endif
+    return ok;
 }
 
 //-------------------------------------------------------------------

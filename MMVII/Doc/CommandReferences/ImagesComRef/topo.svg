@@ -31,13 +31,13 @@
      inkscape:bbox-nodes="true"
      inkscape:snap-bbox-edge-midpoints="true"
      inkscape:snap-smooth-nodes="true"
-     inkscape:zoom="4"
-     inkscape:cx="532.5"
-     inkscape:cy="474"
+     inkscape:zoom="16"
+     inkscape:cx="254.5"
+     inkscape:cy="421.84375"
      inkscape:window-width="2560"
-     inkscape:window-height="1403"
+     inkscape:window-height="1351"
      inkscape:window-x="0"
-     inkscape:window-y="18"
+     inkscape:window-y="52"
      inkscape:window-maximized="1"
      inkscape:current-layer="layer1">
     <inkscape:grid
@@ -224,7 +224,7 @@
        xlink:href="#linearGradient2057"
        id="linearGradient48729"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(1.538461,0,0,1.2499952,-15.366146,-32.212471)"
+       gradientTransform="matrix(1.53353,-0.12307679,0.09999954,1.2459888,-26.601492,-24.912906)"
        x1="55.5625"
        y1="119.0625"
        x2="55.5625"
@@ -234,7 +234,7 @@
        xlink:href="#linearGradient2057"
        id="linearGradient49031"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(1.538461,0,0,1.2499952,-15.366144,-32.212481)"
+       gradientTransform="matrix(1.53353,-0.12307679,0.09999954,1.2459888,-26.60149,-24.912916)"
        x1="55.5625"
        y1="119.0625"
        x2="55.5625"
@@ -447,7 +447,7 @@
     <path
        id="path965-9-7"
        style="fill:url(#linearGradient49031);stroke-width:0.138676;stroke-linecap:round"
-       d="M 70.114583,108.34688 A 10.583333,3.3072916 0 0 0 59.53125,111.65417 H 80.697916 A 10.583333,3.3072916 0 0 0 70.114583,108.34688 Z" />
+       d="m 69.85,108.35748 a 3.3072916,10.583333 85.411438 0 0 -10.284829,4.14336 L 80.663995,110.8075 A 3.3072916,10.583333 85.411438 0 0 69.85,108.35748 Z" />
     <path
        style="fill:none;stroke:#c26719;stroke-width:0.57477px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="M 64.102292,129.19844 69.85,114.82917 l 5.747711,14.36927"
@@ -505,7 +505,7 @@
     <path
        id="path965-9"
        style="fill:url(#linearGradient48729);stroke-width:0.138676;stroke-linecap:round"
-       d="m 59.53125,111.65417 a 10.583333,3.3072916 0 0 0 10.583333,3.30729 10.583333,3.3072916 0 0 0 10.583334,-3.30729 z" />
+       d="m 59.565171,112.50084 a 3.3072916,10.583333 85.411438 0 0 10.813995,2.45002 3.3072916,10.583333 85.411438 0 0 10.28483,-4.14336 z" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:0.705556px;line-height:0.95;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"

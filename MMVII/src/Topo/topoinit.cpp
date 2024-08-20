@@ -62,8 +62,7 @@ bool tryInit3Obs1Station(cTopoPoint & aPtToInit, tStationsMap &stationsMap) // t
                 a3DVect.x() = d0*sin(obs_az->getMeasures()[0]);
                 a3DVect.y() = d0*cos(obs_az->getMeasures()[0]);
                 a3DVect.z() = obs_dist->getMeasures()[0]*cos(obs_zen->getMeasures()[0]);
-                *aPtToInit.getPt() =  *aOriginPt->getPt() +
-                        (aStation->getRotSysCo2Vert() * aStation->getRotVert2Instr()).Inverse(a3DVect);
+                *aPtToInit.getPt() = aStation->PtInstr2SysCo(a3DVect);
                 return true;
             }
             if (obs_dx && obs_dy && obs_dz)
@@ -75,8 +74,7 @@ bool tryInit3Obs1Station(cTopoPoint & aPtToInit, tStationsMap &stationsMap) // t
                                 obs_dy->getMeasures()[0],
                                 obs_dz->getMeasures()[0]
                         );
-                *aPtToInit.getPt() =  *aOriginPt->getPt() +
-                        (aStation->getRotSysCo2Vert() * aStation->getRotVert2Instr()).Inverse(a3DVect);
+                *aPtToInit.getPt() = aStation->PtInstr2SysCo(a3DVect);
                 return true;
             }
         }
@@ -116,7 +114,6 @@ bool tryInitVertStations(cTopoPoint & aPtToInit, tStationsMap &stationsMap) // t
                     if (!std::isfinite(dist))
                         if (aObs->getType()==eTopoObsType::eDist)
                             dist = aObs->getMeasures()[0];
-
                 }
             }
         }
@@ -130,8 +127,7 @@ bool tryInitVertStations(cTopoPoint & aPtToInit, tStationsMap &stationsMap) // t
             a3DVect.x() = d0*sin(az);
             a3DVect.y() = d0*cos(az);
             a3DVect.z() = dist*cos(zen);
-            *aPtToInit.getPt() =  *aOriginPt->getPt() +
-                    (aStationHz->getRotSysCo2Vert() * aStationHz->getRotVert2Instr()).Inverse(a3DVect);
+            *aPtToInit.getPt() = aStationHz->PtInstr2SysCo(a3DVect);
             return true;
         }
     }
