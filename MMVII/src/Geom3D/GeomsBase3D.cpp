@@ -548,8 +548,9 @@ tREAL8 L2_DegenerateIndex(const std::vector<cPt3dr> & aVPt,size_t aNumEigV)
             aStat.Add(aP3.ToVect());
     aStat.Normalise();
     const cDenseVect<tREAL8> anEV = aStat.DoEigen().EigenValues() ;
-
-    if (anEV(2)==0)  return 0.0;
+    // theoretically eigenvalues can't be negavive => treat <0 as =0
+    if (anEV(2)<=0)  return 0.0;
+    if (anEV(aNumEigV)<0)  return 0.0;
 
     return Sqrt(SafeDiv(anEV(aNumEigV),anEV(2)));
 }
