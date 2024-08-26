@@ -99,6 +99,9 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
        double GetValueInterpol(const cInterpolator1D &,const cPt2dr & aP) const ;
        /// Interpolated value+derivative, using a generic diffentiable interpolator
        std::pair<tREAL8,cPt2dr> GetValueAndGradInterpol(const cDiffInterpolator1D &,const cPt2dr & aP) const ;
+       /// Interpolated value, using a generic interpolator, accept point partially inside, if accept no point
+       /// must give a def value & Ok
+       double ClipedGetValueInterpol(const cInterpolator1D &,const cPt2dr & aP,double  aDefVal=0,bool * Ok=nullptr) const ;
 
        /// Bilinear value
        inline double GetVBL(const cPt2dr & aP) const  override
@@ -382,6 +385,13 @@ template <class Type>  class cIm2D
             Dilate => to change defautl gaussian kernel */
        cIm2D<Type>  GaussDeZoom(int aFact, int aNbIterExp=3,double Dilate=1.0) const;  
 
+
+       /**  a more "sophisticated" version, adapted to non integer factor and using interpolator adapted to scaling */
+       cIm2D<Type>  Scale(tREAL8 aFX,tREAL8 aFY=-1,tREAL8 aSzSinC=-1,tREAL8 DilateKernel=1.0) const;
+       /// Version allowing to fix the interpolator (called by version above)
+       cIm2D<Type>  Scale(const cInterpolator1D &,tREAL8 aFX,tREAL8 aFY=-1) const;
+
+
        /** Transposition, needed it once, maybe usefull later */
        cIm2D<Type> Transpose() const;
 
@@ -513,10 +523,13 @@ class cRGBImage
 	bool InsideBL(const cPt2dr & aPix) const;
 
 
-        ///  Alpha =>  1 force colour  , 0 no effect
+        //  Alpha =>  0 force colour  , 1 no effect
+        ///  Fill a pixel (only for Z1)
         void SetRGBPixWithAlpha(const cPt2di & aPix,const cPt3di &,const cPt3dr & aAlpha);
-        ///  
+        ///  Fill a rectangle
         void SetRGBrectWithAlpha(const cPt2di & aPix,int aSzW,const cPt3di & aCoul,const double & aAlpha);
+        ///  Fill a border of rectangle
+        void SetRGBBorderRectWithAlpha(const cPt2di & aPix,int aSzW,int aBorder,const cPt3di & aCoul,const double & aAlpha);
 
         void SetGrayPix(const cPt2di & aPix,int aGray);
 
@@ -585,6 +598,7 @@ class cRGBImage
 template <class Type> void SetGrayPix(cRGBImage& aRGBIm,const cPt2di & aPix,const cDataIm2D<Type> & aGrayIm,const double & aMul=1.0);
 template <class Type> void SetGrayPix(cRGBImage& aRGBIm,const cDataIm2D<Type> & aGrayIm,const double & aMul=1.0);
 template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm,const double & aMul=1.0,int aZoom=1);
+template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm,const cBox2di&,const double & aMul=1.0,int aZoom=1);
 
 
 /// 8 neighboors stored in order compatible with freeman-numbering

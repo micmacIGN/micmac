@@ -309,6 +309,29 @@ class cTabulatedDiffInterpolator : public cDiffInterpolator1D
           const tREAL8 *          mRawDifW;   ///< Raw data of derivates
 };
 
+/* class for constructing an scaled version of an existing interpolator from scaled version,
+ *
+ *    +  usefull essentially for image ressampling to create a specific blurring
+ *    +  !!!  its not a partition unit, so like "cSinCApodInterpolator" it must be used to generate a tabulated versions
+ *
+ * */
+
+class cScaledInterpolator : public cInterpolator1D
+{
+      public :
+
+            virtual ~ cScaledInterpolator();
+            tREAL8  Weight(tREAL8  anX) const override;
+            static  cTabulatedDiffInterpolator * AllocTab(const cInterpolator1D &,tREAL8 aScale,int aNbTabul);
+
+      private :
+	    /// constructor private to force tabulated version
+            cScaledInterpolator(cInterpolator1D *,tREAL8 aScale,bool ToDelete=false);
+
+            cInterpolator1D  * mInterp;
+            tREAL8             mScale;
+            bool               mToDelete;
+};
 
 
 

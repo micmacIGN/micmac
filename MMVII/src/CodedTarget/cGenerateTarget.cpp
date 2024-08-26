@@ -96,7 +96,7 @@ void Bench_Target_Encoding()
 /*                                                */
 /**************************************************/
 
-cDecodeFromCoulBits::cDecodeFromCoulBits(cFullSpecifTarget * aSpec) :
+cDecodeFromCoulBits::cDecodeFromCoulBits(const cFullSpecifTarget * aSpec) :
      mSpec       (aSpec),
      mCode       (0),
      mBitsFixed  (0)

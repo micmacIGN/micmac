@@ -40,6 +40,8 @@ void cEllipse::AssertOk() const
  *        =>  S = 1/2  Q-1 P  because  E(X,Y) = t(P-S) Q (P-S) +  CSte
  */
 
+bool DebugEll=true;
+
 cEllipse::cEllipse(cDenseVect<tREAL8> aDV,const cPt2dr & aC0) :
     mV    (aDV.Dup()),
     mNorm (std::sqrt(Square(mV(0)) + 2 * Square(mV(1))  + Square(mV(2)))),
@@ -57,7 +59,10 @@ cEllipse::cEllipse(cDenseVect<tREAL8> aDV,const cPt2dr & aC0) :
      mLSa = aRSEV.EigenValues()(1);
 
      mOk = (mLGa >0) && (mLSa>0) && (mCste<0) ;
-     if (!mOk) return;
+     if (!mOk)
+     {
+         return;
+     }
 
      mLGa = std::sqrt((-mCste)/mLGa);
      mLSa = std::sqrt((-mCste)/mLSa);
@@ -91,6 +96,11 @@ cEllipse::cEllipse(const cPt2dr & aCenter,tREAL8 aTeta,tREAL8 aLGa,tREAL8 aLSa):
 {
 }
 
+cEllipse::cEllipse(const cPt2dr & aCenter,tREAL8 aRay) :
+	cEllipse(aCenter,0.0,aRay,aRay)
+{
+}
+
 void cEllipse::AddData(const  cAuxAr2007 & anAux)
 {
      AssertOk();
@@ -118,6 +128,8 @@ tREAL8 cEllipse::LSa() const  {AssertOk(); return mLSa;}
 tREAL8 cEllipse::RayMoy() const  {AssertOk(); return mRayMoy;}
 const cPt2dr &  cEllipse::Center() const {AssertOk(); return mCenter;}
 double cEllipse::TetaGa() const {AssertOk();  return ToPolar(mVGa).y(); }
+tREAL8  cEllipse::EVP() const {return (mLGa>0) && (mLSa>0) ;}
+
 
 
 
@@ -487,11 +499,16 @@ void cEllipse::BenchEllispe()
 /*               cEllipseEstimate                               */
 /*                                                              */
 /*  *********************************************************** */
-cEllipse_Estimate::cEllipse_Estimate(const cPt2dr & aC0,bool isCenterFree) :
+cEllipse_Estimate::cEllipse_Estimate(const cPt2dr & aC0,bool isCenterFree,bool isCircle) :
     mIsCenterFree  (isCenterFree),
+    mIsCircle      (isCircle),
     mSys           (new cLeasSqtAA<tREAL8> (5)),
     mC0            (aC0)
 {
+	/*
+      if (mIsCircle)
+         MMVII_INTERNAL_ASSERT_strong(!isCenterFree,"Still dont handle Free center for circle");
+	 */
 }
 
 cLeasSqtAA<tREAL8> & cEllipse_Estimate::Sys() {return *mSys;}
@@ -506,9 +523,19 @@ void cEllipse_Estimate::AddPt(cPt2dr aP)
      aP = aP-mC0;
 
      cDenseVect<tREAL8> aDV(5);
-     aDV(0) = Square(aP.x());
-     aDV(1) = 2 * aP.x() * aP.y();
-     aDV(2) = Square(aP.y());
+     if (mIsCircle)
+     {
+         aDV(0) = Square(aP.x()) + Square(aP.y());
+         aDV(1) = 0 ;
+         aDV(2) = 0 ;
+     }
+     else
+     {
+         aDV(0) = Square(aP.x());
+         aDV(1) = 2 * aP.x() * aP.y();
+         aDV(2) = Square(aP.y());
+     }
+
      if (mIsCenterFree)
      {
         aDV(3) = aP.x();
@@ -532,7 +559,18 @@ cEllipse cEllipse_Estimate::Compute()
          mSys->AddObsFixVar(1.0,3,0.0);
          mSys->AddObsFixVar(1.0,4,0.0);
      }
+     if ( mIsCircle)
+     {
+         mSys->AddObsFixVar(1.0,1,0.0);
+         mSys->AddObsFixVar(1.0,2,0.0);
+     }
+
      auto  aSol = mSys->Solve();
+
+     if (mIsCircle)
+     {
+         aSol(2) = aSol(0);
+     }
 
      cEllipse aRes(aSol,mC0);
      return aRes;

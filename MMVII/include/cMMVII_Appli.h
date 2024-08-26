@@ -473,6 +473,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         void InitProfile();  ///< init the profile of usage/user ....
         void SetNot4Exe(); ///< Indicate that the appli was not fully initialized
 
+	const cSpecMMVII_Appli & Specs() const; ///< Accessor to appli specification
         int NbProcAllowed() const; ///< Accessor to nb of process allowed for the appli
         const std::string & DirProject() const;     ///<  Accessor to directoy of project
         static const std::string & TopDirMMVII();   ///<  main directory of MMVII , upon include,src ..

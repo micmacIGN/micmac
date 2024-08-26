@@ -447,14 +447,14 @@ class cFullSpecifTarget : public cMemCheck
 class cDecodeFromCoulBits
 {
       public :
-         cDecodeFromCoulBits(cFullSpecifTarget *);
+         cDecodeFromCoulBits(const cFullSpecifTarget *);
 	 ///  Fix the colour Black/white of a given bit
          void SetColBit(bool IsBlack,size_t aBit);
          bool IsComplete() const;   /// Have all the bits been fixed
          const cOneEncoding * Encoding() const; /// Extract encoding, asserting that "IsComplete()"
 
       private :
-         cFullSpecifTarget * mSpec;      /// Specification
+         const cFullSpecifTarget * mSpec;      /// Specification
          tSet32Bits          mCode;      /// Flag currently computed
          tSet32Bits          mBitsFixed; /// Flag/List of bit that where fixed
 };

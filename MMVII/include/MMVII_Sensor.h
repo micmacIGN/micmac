@@ -347,8 +347,9 @@ class cDirsPhProj : public cMemCheck
           cDirsPhProj(eTA2007 aMode,cPhotogrammetricProject & aPhp);
           void Finish();
 
-	  /// Input Orientation as mandatory paramaters
-          tPtrArg2007     ArgDirInMand(const std::string & aMes="") ;  
+	  /// Input Orientation as mandatory paramaters , def 4 dest : mDirIn
+          tPtrArg2007     ArgDirInMand(const std::string & aMes="");
+          tPtrArg2007     ArgDirInMand(const std::string & aMes,std::string * aDest) ;  
 	  /// Input Orientation as optional paramaters
           tPtrArg2007     ArgDirInOpt(const std::string & aNameVar="",const std::string & aMesg="",bool WithHDV=false) ;   
 
@@ -459,6 +460,7 @@ class cPhotogrammetricProject
 
 	  const std::string &   DirPhp() const;   ///< Accessor
 	  const std::string &   DirVisu() const;   ///< Accessor
+	  const std::string &   DirVisuAppli() const;   ///< Accessor
 	  const std::string &   DirSysCo() const;   ///< Accessor
           tPtrArg2007           ArgChSys(bool DefaultUndefined=false);
 	  /// To fix the "cur" sys co, its In,Out, or InOut, if both and diff use ArgChSys
@@ -547,6 +549,10 @@ class cPhotogrammetricProject
 	  bool HasMeasureIm(const std::string & aNameIm,bool InDir=true) const;
           /// return from Std Dir, can be out in case of reload
 	  cSetMesPtOf1Im LoadMeasureIm(const std::string &,bool InDir=true) const;
+
+	  /// Load the measure image from a specified folder, usefull when multiple folder
+	  cSetMesPtOf1Im LoadMeasureImFromFolder(const std::string & aFolder,const std::string &) const;
+
          void LoadGCP(cSetMesImGCP&,const std::string & aPatFiltrFile="",const std::string & aFiltrNameGCP="",
                       const std::string & aFiltrAdditionalInfoGCP="") const;
 	 ///  For reading GCP from folder potentially != of standard input measures, can add missing points from topo obs
@@ -720,6 +726,7 @@ class cPhotogrammetricProject
 
 	  std::string     mDirPhp;
 	  std::string     mDirVisu;
+	  std::string     mDirVisuAppli;
 
 	  std::string     mDirSysCo;        /// Folder where are stored System of coordinates
           std::string     mNameCurSysCo;      /// Data where we store the system In Or Out if given in std args

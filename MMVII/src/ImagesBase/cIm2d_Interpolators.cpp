@@ -92,6 +92,66 @@ template <class Type>  tREAL8 cDataIm2D<Type>::GetValueInterpol(const cInterpola
 }
 
 
+template <class Type>  
+    tREAL8 cDataIm2D<Type>::ClipedGetValueInterpol(const cInterpolator1D & anInterpol,const cPt2dr & aP,double  aDefVal,bool * Ok) const 
+{
+    TheBufCoeffX.clear(); // purge the buffer
+    tREAL8 aSzK = anInterpol.SzKernel();
+
+    // [0]  compute the bounding in X and Y
+    tREAL8 aRealY = aP.y();
+    //  round_Uup ->  y=4 SzK=2  ->   3, because value 2 is useless (Kernel is 0 outside support, and continuous)
+    int aY0 = std::max(0,round_up(aRealY-aSzK));  
+    int aY1 = std::min(SzY()-1,round_down(aRealY+aSzK));  // idem  Uup
+
+    tREAL8 aRealX = aP.x();
+    int aX0 = std::max(0,round_up(aRealX-aSzK)); 
+    int aX1 = std::min(SzX()-1,round_down(aRealX+aSzK));
+
+    tREAL8 aSWX = 0.0;
+    for (int aIntX=aX0 ; aIntX<=aX1 ; aIntX++)
+    {
+        tREAL8 aWX = anInterpol.Weight(aIntX-aRealX);
+        TheBufCoeffX.push_back(aWX);
+	aSWX += aWX;
+    }
+    int aNbX =  aX1-aX0+1;
+    const tREAL8 *  aLineWX  = TheBufCoeffX.data();
+
+    tREAL8 aSWY = 0.0;
+    // [2] compute the  Sum{i,j} I[i,j]   W(x-i) W(y-j)
+    tREAL8 aSomWIxy = 0.0;
+    for (int aIntY=aY0 ; aIntY<=aY1 ; aIntY++)
+    {
+	const Type *  aLineIm = mRawData2D[aIntY] + aX0;
+	// const tREAL8 *  aCurWX  = aLineWXInit;
+	tREAL8 aSomWIx = 0.0;
+
+	for (int aKX=0 ; aKX< aNbX ; aKX++) // doc  SCALARPRODUCT
+            aSomWIx += aLineIm[aKX]  * aLineWX[aKX] ;
+
+	tREAL8 aWY = anInterpol.Weight(aIntY-aRealY);
+
+        aSomWIxy  += aSomWIx * aWY;
+	aSWY += aWY;
+    }
+
+    if ((aSWX==0.0) || (aSWY==0.0))
+    {
+        if (Ok)
+        {
+           *Ok = false;
+           return aDefVal;	
+        }
+        MMVII_INTERNAL_ERROR("No point for ClipedGetValueInterpol");
+    }
+    if (Ok) *Ok = true;
+
+    return aSomWIxy  / (aSWX *  aSWY);
+}
+
+
+
 /*   Compute the linear interpolation and its derivative of an image,  noting @ the convultion operator we can
  *   write  using the separability of W :
  *
@@ -171,14 +231,100 @@ template <class Type>
     return std::pair<tREAL8,cPt2dr> (aSomWxyI,cPt2dr(aSomWI_Dx,aSomWI_Dy));
 }
 
+template <class Type>  
+       cIm2D<Type>  cIm2D<Type>::Scale(const cInterpolator1D & anInterpol,tREAL8 aFX,tREAL8 aFY) const
+{
+     // By Defaut SzY==SzX
+     if (aFY<0) aFY = aFX;
 
-template class cDataIm2D<tU_INT1>;
-template class cDataIm2D<tINT1>;
-template class cDataIm2D<tU_INT2>;
-template class cDataIm2D<tINT2>;
-template class cDataIm2D<tINT4>;
-template class cDataIm2D<tREAL4>;
-template class cDataIm2D<tREAL8>;
+     cPt2dr aPScale(aFX,aFY);
+     cPt2di aSzOut =  Pt_round_up(DivCByC(  ToR(mPIm->Sz()) , aPScale  ));
+
+     cIm2D<Type> aImOut(aSzOut);
+     cDataIm2D<Type> & aDImOut = aImOut.DIm();
+
+     for (const auto & aPixOut : aDImOut)
+     {
+         bool Ok;
+         cPt2dr aPixIn = MulCByC(ToR(aPixOut),aPScale);
+         tREAL8 aVal = mPIm->ClipedGetValueInterpol(anInterpol,aPixIn,0.0,&Ok);
+	 aDImOut.SetVTrunc(aPixOut,aVal);
+     }
+
+
+     return aImOut;
+}
+
+
+template <class Type>  
+       cIm2D<Type>  cIm2D<Type>::Scale(tREAL8 aFX,tREAL8 aFY,tREAL8 aSzSinC,tREAL8 aDilateKernel) const
+{
+     if (aFY<0) aFY = aFX;
+
+     if ((aFX==1.0) && (aFY==1.0))
+     {
+	     return Dup();
+     }
+
+     tREAL8 aF = std::sqrt(aFX*aFY);
+
+     cInterpolator1D * aInt = nullptr;
+
+
+     if (aF>1.0)
+     {
+          // if we shrink the image, we must be carefull to do it w/o aliasing, so we will use
+	  // a scaled version of bicubik interpol,  for scale close to "1.0" we 
+           tREAL8 aFactCub = std::min(-0.5 + (aF-1)/2.0,0.0);
+	   aInt = cScaledInterpolator::AllocTab(cCubicInterpolator(aFactCub),aF*aDilateKernel,100);
+
+	   /*
+for (tREAL8 aV=-10 ; aV<10 ; aV+=0.5)
+	StdOut() <<  "KKK= " << aV  << " => " << aInt->Weight(aV) << "\n";
+StdOut() << "FFFactCuub=" << aFactCub << " D=" << aDilateKernel << " SzK=" << aInt->SzKernel() << "\n";
+*/
+     }
+     else // if we enlarge the image, we must use standard interpolation
+     {
+	 if (aSzSinC>0)   // sincard is theoretically "the best" but costly
+         {
+	     aInt = new cTabulatedInterpolator(cSinCApodInterpolator(aSzSinC,aSzSinC),100,true);
+         }
+         else  // bi cubic is a compromise
+         {
+             // for F=1 use the bicub linear -0.5, for F=0.5 use -1 and do go over
+	     // a+b=-0.5  a/2+b=-1  ; a/2 =0.5 ; a=1 b=-1.5
+             // tREAL8 aFactCub = aF-1.5
+             tREAL8 aFactCub = std::max(-1.0,aF-1.5);
+
+             aInt = new cTabulatedInterpolator(cCubicInterpolator(aFactCub),100,true);
+         }
+     }
+
+      cIm2D<Type> aResult =  Scale(*aInt,aFX,aFY);
+
+      delete aInt;
+
+      return aResult;
+}
+
+
+
+
+
+
+#define INSTANTIATE_IM(TYPE)\
+template class cDataIm2D<TYPE>;\
+template class cIm2D<TYPE>;
+
+INSTANTIATE_IM(tU_INT1);
+INSTANTIATE_IM(tINT1);
+INSTANTIATE_IM(tU_INT2);
+INSTANTIATE_IM(tINT2);
+INSTANTIATE_IM(tINT4);
+INSTANTIATE_IM(tREAL4);
+INSTANTIATE_IM(tREAL8);
+
 
 };
 

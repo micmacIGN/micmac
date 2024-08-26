@@ -620,30 +620,6 @@ std::pair<tREAL8,tREAL8>   cTabulatedDiffInterpolator::WAndDiff(tREAL8  anX) con
 /*                                                 */
 /* *********************************************** */
 
-/* class for constructing an scaled version of an existing interpolator from scaled version,
- *
- *    +  usefull essentially for image ressampling to create a specific blurring
- *    +  !!!  its not a partition unit, so like "cSinCApodInterpolator" it must be used to generate a tabulated versions
- *
- * */
-
-class cScaledInterpolator : public cInterpolator1D
-{
-      public :
-            cScaledInterpolator(cInterpolator1D *,tREAL8 aScale,bool ToDelete=false);
-
-	    virtual ~ cScaledInterpolator();
-	    tREAL8  Weight(tREAL8  anX) const override;
-	    static  cTabulatedDiffInterpolator * AllocTab(const cInterpolator1D &,tREAL8 aScale,int aNbTabul);
-
-
-      private :
-
-	    cInterpolator1D  * mInterp;
-	    tREAL8             mScale;
-	    bool               mToDelete;
-};
-
 
 cScaledInterpolator::cScaledInterpolator
 (
@@ -671,7 +647,7 @@ cScaledInterpolator::~cScaledInterpolator()
 
 tREAL8  cScaledInterpolator::Weight(tREAL8  anX) const 
 {
-      return mInterp->Weight(anX/mScale);
+      return mInterp->Weight(anX/mScale) / mScale;
 }
 
 cTabulatedDiffInterpolator * cScaledInterpolator::AllocTab(const cInterpolator1D & anI,tREAL8 aScale,int aNbTabul) 
@@ -837,6 +813,13 @@ void Bench_cMultiScaledInterpolator()
               aMSI.SetScale(aS);
           }
      }
+
+     /*
+     cPt2di  aSz(100,120);
+     cPt2di  aPMil = aSz/2;
+     cIm2d<tU_INT1>  aImDirac(aSz);
+     aImDirac.aImDirac(aPMil,1);
+     */
 }
 
 

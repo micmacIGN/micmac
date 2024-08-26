@@ -165,6 +165,17 @@ void cRGBImage::SetRGBrectWithAlpha(const cPt2di & aC,int aSzW,const cPt3di & aC
         SetRGBPixWithAlpha(aPix,aCoul,cPt3dr(aAlpha,aAlpha,aAlpha));
 }
 
+void cRGBImage::SetRGBBorderRectWithAlpha(const cPt2di & aC,int aSzW,int aBorder,const cPt3di & aCoul,const double & aAlpha)
+{
+    AssertZ1();
+    cRect2 aR = cRect2::BoxWindow(aC,aSzW);
+    cBorderPixBox aRectBorder(aR,aBorder);
+
+    for (const auto & aPix  :  aRectBorder)
+        SetRGBPixWithAlpha(aPix,aCoul,cPt3dr(aAlpha,aAlpha,aAlpha));
+}
+
+
     ///  ===========  Manipulation from gray images ========================
 
 template <class Type> void SetGrayPix(cRGBImage& aRGBIm,const cPt2di & aPix,const cDataIm2D<Type> & aGrayIm,const double & aMul)
@@ -187,6 +198,19 @@ template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm,c
 
    return aRes;
 }
+
+template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm,const cBox2di & aBox0,const double & aMul,int aZoom)
+{
+   cBox2di aBoxC = aBox0.Inter(aGrayIm);
+   cRGBImage aRes(aBoxC.Sz(),aZoom);
+
+   for (const auto & aPix : cRect2(aBoxC))
+       aRes.SetGrayPix(aPix-aBoxC.P0(),round_ni(aMul*aGrayIm.GetV(aPix)));
+       
+   return aRes;
+}
+
+
 
     // ==================   FILE  EXPORT/EXPORT ====================
     
@@ -408,4 +432,6 @@ template  void SetGrayPix(cRGBImage&,const cPt2di & aPix,const cDataIm2D<tREAL4>
 template  void SetGrayPix(cRGBImage&,const cDataIm2D<tREAL4> & aIm,const double & aMul);
 template  cRGBImage  RGBImFromGray(const cDataIm2D<tREAL4> & aGrayIm,const double & aMul,int aZoom);
 template  cRGBImage  RGBImFromGray(const cDataIm2D<tU_INT1> & aGrayIm,const double & aMul,int aZoom);
+template  cRGBImage  RGBImFromGray(const cDataIm2D<tREAL4> & aGrayIm,const cBox2di&,const double & aMul,int aZoom);
+template  cRGBImage  RGBImFromGray(const cDataIm2D<tU_INT1> & aGrayIm,const cBox2di&,const double & aMul,int aZoom);
 };
