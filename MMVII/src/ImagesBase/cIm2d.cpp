@@ -1,6 +1,7 @@
 #include "MMVII_Tpl_Images.h"
 #include "MMVII_Linear2DFiltering.h"
 #include "MMVII_DeclareCste.h"
+#include "MMVII_Geom2D.h"
 
 namespace MMVII
 {
@@ -130,6 +131,14 @@ template <class Type>  void cDataIm2D<Type>::ToFile(const std::string & aName,co
     cDataFileIm2D aDFI = cDataFileIm2D::Create(aName,tElemNumTrait<Type>::TyNum(),Sz(),3);
     Write(aDFI,aIG,aIB,P0());
 }
+
+template <class Type>  std::pair<tREAL8,cPt2dr> cDataIm2D<Type>::GetPairGradAndVBL(const cPt2dr & aP)  const
+{
+	cPt3dr aGV = GetGradAndVBL(aP);
+
+	return std::pair<tREAL8,cPt2dr>(aGV.z(),Proj(aGV));
+}
+
 
 
 /* ========================== */

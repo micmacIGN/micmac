@@ -142,6 +142,7 @@ class cMMVII_Warning
 };
 
 #define MMVII_DEV_WARNING(MES) {static MMVII::cMMVII_Warning aWarn(MES,__LINE__,__FILE__); aWarn.Activate();}
+#define MMVII_USER_WARNING(MES) {MMVII_DEV_WARNING(MES);}
 
 
 #if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )

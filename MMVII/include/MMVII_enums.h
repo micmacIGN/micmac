@@ -585,6 +585,7 @@ enum class eTyCodeTarget
     eCERN,          ///<  central circle, coding invariant (AICON, METASHAPE ...)
     eNbVals
 };
+bool IsCircularTarge(eTyCodeTarget);
 
 enum class eMTDIm
            {

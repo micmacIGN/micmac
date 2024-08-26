@@ -283,6 +283,7 @@ class cParamCodedTarget : public cMemCheck
        cPt2dr    mMidle;  // Middle 
     // private :
 
+       cPt2dr    Pix2Norm(const cPt2dr &) const;
        cPt2dr    Pix2Norm(const cPt2di &) const;
        cPt2dr    Norm2PixR(const cPt2dr &) const;
        cPt2di    Norm2PixI(const cPt2dr &) const;
@@ -392,6 +393,7 @@ class cFullSpecifTarget : public cMemCheck
          tREAL8 Rho_0_EndCCB() const;      /// End of Central Checkboard
          tREAL8 Rho_1_BeginCode() const;   /// ray where begins the coding stuff
          tREAL8 Rho_2_EndCode() const;     /// ray where ends the coding stuff
+         tREAL8 Rho_3_BeginCar() const;    /// ray where ends margin after coding (and possibly carac)
 
 
 	 bool BitIs1(bool IsWhite) const;
@@ -407,6 +409,9 @@ class cFullSpecifTarget : public cMemCheck
 	 const cPt2dr & CornerlEl_WB() const; ///<  Corner of ellipse transition W->B ( trigonometric sense)
 
          const  cParamRenderingTarget &     Render()    const;
+         const  cSpecBitEncoding &          Specs()     const;
+         cPt2dr    Pix2Norm(const cPt2dr &) const;  // integrate the DeZoomIm 
+         cPt2dr    Norm2Pix(const cPt2dr &) const;  // integrate the DeZoomIm 
       private :
 	 ///  default constructor required for step by step buildin
          cFullSpecifTarget();
@@ -418,7 +423,6 @@ class cFullSpecifTarget : public cMemCheck
 	 // static void TestReloadAndShow(const std::string & aName,int aZoom);
 
 
-         const  cSpecBitEncoding &          Specs()     const;
 	 int    DeZoomIm() const;
 
 	 std::string NameOfImPattern() const;
@@ -439,7 +443,22 @@ class cFullSpecifTarget : public cMemCheck
          std::vector<cPt2dr>      mBitsCenters;
 };
 
-/** Minimal struct to save the result of an ellipse extracted in image */
+/** Helper class for computing an encoding from the colours affected to different bits */
+class cDecodeFromCoulBits
+{
+      public :
+         cDecodeFromCoulBits(const cFullSpecifTarget *);
+	 ///  Fix the colour Black/white of a given bit
+         void SetColBit(bool IsBlack,size_t aBit);
+         bool IsComplete() const;   /// Have all the bits been fixed
+         const cOneEncoding * Encoding() const; /// Extract encoding, asserting that "IsComplete()"
+
+      private :
+         const cFullSpecifTarget * mSpec;      /// Specification
+         tSet32Bits          mCode;      /// Flag currently computed
+         tSet32Bits          mBitsFixed; /// Flag/List of bit that where fixed
+};
+
 
 
 
