@@ -192,12 +192,108 @@ class cCdMerged : public  cCdEllipse
 
 	    tREAL8 mScale;
 	    cPt2dr mC0;  // center at initial image scale
+            void  OptimizePosition(const cInterpolator1D &);
 
-            void  OptimizePosition(tREAL8 aStepIm);
-	private :
-	    std::vector<cPt2dr>  mPtsOpt;
 	    const cDataIm2D<tREAL4> * mDIm0;
 };
+
+
+class cOptimPosCdM : public cDataMapping<tREAL8,2,1>
+{
+	public :
+           cOptimPosCdM(const cCdMerged & aCdM,const cInterpolator1D & );
+
+           cPt1dr Value(const cPt2dr & ) const override;
+	   typedef cSegment2DCompiled<tREAL8> tSeg;
+
+	private :
+	    void AddPts(const cPt2dr & aMaster,  const cPt2dr & aSecond,bool toAvoid2);
+
+            const cCdMerged&        mCdM;
+	    const cInterpolator1D & mCurInt;
+	    std::vector<cPt2dr>     mPtsOpt;
+};
+
+
+
+void  cCdMerged::OptimizePosition(const cInterpolator1D & anInt)
+{
+     cOptimPosCdM aCdtOpt(*this,anInt);
+     cOptimByStep anOpt(aCdtOpt,true,1.0);
+     auto [aVal,aDelta] =   anOpt.Optim(cPt2dr(0,0),0.02,0.001);
+
+     mC0 = mC0 + aDelta;
+}
+
+cPt1dr cOptimPosCdM::Value(const cPt2dr & aDelta ) const 
+{
+     cSymMeasure<tREAL8> aSymM; //
+     cPt2dr a2NewC = (mCdM.mC0 + aDelta) * 2.0;
+
+    const cDataIm2D<tREAL4> & aDIm = *(mCdM.mDIm0);
+     for (const auto & aP1 : mPtsOpt)
+     {
+          cPt2dr aP2 = a2NewC - aP1;
+	  if (aDIm.InsideInterpolator(mCurInt,aP1) && aDIm.InsideInterpolator(mCurInt,aP2))
+             aSymM.Add(aDIm.GetValueInterpol(mCurInt,aP1),aDIm.GetValueInterpol(mCurInt,aP2));
+     }
+
+     return cPt1dr(aSymM.Sym(1e-5));
+}
+
+
+cOptimPosCdM::cOptimPosCdM(const cCdMerged & aCdM,const cInterpolator1D & aInt)  :
+	mCdM      (aCdM),
+	mCurInt   (aInt)
+{
+	AddPts(mCdM.CornerlEl_WB(), mCdM.CornerlEl_BW(),true);
+	AddPts(mCdM.CornerlEl_BW(), mCdM.CornerlEl_WB(),false);
+}
+
+void cOptimPosCdM::AddPts(const cPt2dr & aSCorn1, const cPt2dr & aSCorn2,bool toAvoid2)
+{
+     cPt2dr  aCorn1 = aSCorn1  * mCdM.mScale;
+     cPt2dr  aCorn2 = aSCorn2  * mCdM.mScale;
+
+     tREAL8 aStep = 0.25;
+     tREAL8 aWidth = 1.0;
+     tREAL8 aL1 = std::min(10.0,Norm2(aCorn1-mCdM.mC0)-1.0);
+     // cPt2dr  aCorn2 = aSCorn2  * mScale;
+
+     int aNbX = round_up(aL1/aStep);
+     tREAL8 aStepX = aL1 / aNbX;
+
+     int aNbY = round_up(aWidth/aStep);
+     tREAL8 aStepY = aWidth / aNbY;
+
+     tSeg aSeg1(mCdM.mC0,aCorn1);
+     tSeg aSeg2(mCdM.mC0,aCorn2);
+
+     for (int aKX=-aNbX ; aKX<=aNbX ; aKX++)
+     {
+         for (int aKY=0 ; aKY<=aNbY ; aKY++)  // KY=0 : we take only one point /2 
+	 {
+             if ((aKY>0)  || (aKX>0))
+             {
+                  cPt2dr aPLoc(aKX*aStepX,aKY*aStepY);
+	          cPt2dr aPAbs = aSeg1.FromCoordLoc(aPLoc);
+	          if ((!toAvoid2)  ||  (aSeg2.DistLine(aPAbs) >aWidth))
+		  {
+                     mPtsOpt.push_back(aPAbs);
+		     // StdOut() << "PAAAA " << aPAbs - mCdM.mC0  << "\n";
+		  }
+             }
+	 }
+     }
+}
+
+/*
+*/
+
+/*
+	private :
+	    std::vector<cPt2dr>  mPtsOpt;
+	    */
 
 //void cCdMerged::
 
@@ -348,6 +444,7 @@ class cAppliCheckBoardTargetExtract : public cMMVII_Appli
         // ---------------- Thresholds for Ellipse  criteria --------------------
         int                   mNbMinPtEllipse;
 	bool                  mTryC;
+	bool                  mRefinePos;
 	
         // =========== Internal param ============
 
@@ -380,6 +477,7 @@ class cAppliCheckBoardTargetExtract : public cMMVII_Appli
 	std::vector<cCdMerged> mVCdtMerged; // Candidate merged form various scales
 	tREAL8                mCurScale;    /// Memorize the current value of the scale
 	bool                  mMainScale;   /// Is it the first/main scale 
+	cInterpolator1D *     mInterpol;
 };
 
 
@@ -1161,7 +1259,8 @@ cAppliCheckBoardTargetExtract::cAppliCheckBoardTargetExtract(const std::vector<s
    mNumDebugMT       (-1),
    mNumDebugSaddle   (-1),
    mNbMinPtEllipse   (6),
-   mTryC             (false),
+   mTryC             (true),
+   mRefinePos        (true),
    mZoomVisuDetec    (9),
    mDefSzVisDetec    (150),
    mSpecif           (nullptr),
@@ -1178,7 +1277,8 @@ cAppliCheckBoardTargetExtract::cAppliCheckBoardTargetExtract(const std::vector<s
    mImTmp            (cPt2di(1,1)),
    mDImTmp           (nullptr),
    mCurScale         (false),
-   mMainScale        (true)
+   mMainScale        (true),
+   mInterpol         (nullptr)
 {
 }
 
@@ -1209,6 +1309,7 @@ cCollecSpecArg2007 & cAppliCheckBoardTargetExtract::ArgOpt(cCollecSpecArg2007 & 
              <<  AOpt2007(mLInitProl,"LSIP","Length Segment Init, for prolongation",{eTA2007::HDV})
              <<  AOpt2007(mNbMinPtEllipse,"NbMinPtEl","Number minimal of point for ellipse estimation",{eTA2007::HDV})
              <<  AOpt2007(mTryC,"TryC","Try also circle when ellipse fails",{eTA2007::HDV})
+             <<  AOpt2007(mRefinePos,"RefinePos","Refine final position with SinC interpol & over sampling",{eTA2007::HDV})
 	     <<  AOpt2007(mScales,"Scales","Diff scales of compute (! 0.5 means bigger)",{eTA2007::HDV})
              <<  AOpt2007(mOptimSegByRadiom,"OSBR","Optimize segement by radiometry",{eTA2007::HDV})
              <<  AOpt2007(mNbMaxBlackCB,"NbMaxBlackCB","Number max of point in black part of check-board ",{eTA2007::HDV})
@@ -1662,6 +1763,8 @@ void  cAppliCheckBoardTargetExtract::DoExport()
 
 void cAppliCheckBoardTargetExtract::DoOneImage() 
 {
+    mInterpol = new   cTabulatedDiffInterpolator(cSinCApodInterpolator(5.0,5.0));
+
     mSpecif = cFullSpecifTarget::CreateFromFile(mNameSpecif);
 
     mImIn0 =  tIm::FromFile(mNameIm);
@@ -1679,11 +1782,19 @@ void cAppliCheckBoardTargetExtract::DoOneImage()
         DoOneImageAndScale(aScale,mImIn0.Scale(aScale));
     }
 
+    if (mRefinePos)
+    {
+        for (auto & aCdtM : mVCdtMerged)
+            aCdtM.OptimizePosition(*mInterpol);
+    }
+
+
     cAutoTimerSegm aTSMakeIm(mTimeSegm,"OTHERS");
 
     GenerateVisuFinal();
     DoExport();
     delete mSpecif;
+    delete mInterpol;
 }
 
 void cAppliCheckBoardTargetExtract::DoOneImageAndScale(tREAL8 aScale,const  tIm & anIm ) 
