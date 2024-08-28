@@ -537,7 +537,7 @@ void AddData(const  cAuxAr2007 & anAux,cMes1GCP & aMes)
    MMVII::AddData(cAuxAr2007("Name",anAux),aMes.mNamePt);
    MMVII::AddData(cAuxAr2007("Pt",anAux),aMes.mPt);
    MMVII::AddData(cAuxAr2007("AdditionalInfo",anAux),aMes.mAdditionalInfo);
-   AddOptTabData(anAux,"Sigma2",aMes.mOptSigma2);
+   AddOptData(anAux, "Sigma2", aMes.mOptSigma2);
 }
 
 void cMes1GCP::ChangeCoord(const cDataMapping<tREAL8,3,3>& aMapping)

@@ -117,56 +117,6 @@ template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string
     }
 }
 
-template <class Type, size_t size> void AddOptTabData(const cAuxAr2007 & anAux,const std::string & aTag0,std::optional<cArray<Type, size>> & aL)
-{
-    // put the tag as <__Opt__Tag0>,
-    //  Not mandatory, but optionality being an important feature I thought usefull to see it in XML file
-    //  put it
-    std::string aTagOpt;
-    const std::string * anAdrTag = & aTag0;
-    if (anAux.Tagged())
-    {
-        aTagOpt = "__Opt__" + aTag0;
-        anAdrTag = & aTagOpt;
-    }
-
-   // In input mode, we must decide if the value is present
-    if (anAux.Input())
-    {
-        // The archive knows if the object is present
-        if (anAux.NbNextOptionnal(*anAdrTag))
-        {
-           // If yes read it and initialize optional value
-           cArray<Type, size> aV;
-           AddTabData(cAuxAr2007(*anAdrTag,anAux),aV.data(), size);
-           aL = aV;
-        }
-        // If no just put it initilized
-        else
-           aL = std::nullopt;
-        return;
-    }
-
-    // Now in writing mode
-    int aNb =  aL.has_value() ? 1 : 0;
-    // Tagged format (xml) is a special case
-    if (anAux.Tagged())
-    {
-       // If the value exist put it normally else do nothing (the absence of tag will be analysed at reading)
-       if (aNb)
-          AddTabData(cAuxAr2007(*anAdrTag,anAux),aL->data(), size);
-    }
-    else
-    {
-       // Indicate if the value is present and if yes put it
-       AddData(anAux,aNb);
-       anAux.Ar().Separator();
-       if (aNb)
-          AddTabData(anAux,aL->data(), size);
-    }
-}
-
-
 /// Pointer serialisation, make the assumption that pointer are valide (i.e null or dynamically allocated)
 template <class Type> void OnePtrAddData(const cAuxAr2007 & anAux,Type * & aL)
 {
@@ -252,6 +202,8 @@ template <class TypeCont> void StdContAddData(const cAuxAr2007 & anAux,TypeCont 
 template <class Type> void AddData(const cAuxAr2007 & anAux,std::list<Type>   & aL) { StdContAddData(anAux,aL); }
 /// std::vector interface  AddData -> StdContAddData
 template <class Type> void AddData(const cAuxAr2007 & anAux,std::vector<Type> & aL) { StdContAddData(anAux,aL); }
+/// cArray interface  AddData -> StdContAddData
+template <class Type,size_t aSz> void AddData(const cAuxAr2007 & anAux,  cArray<Type,aSz> & aL) { AddTabData(anAux, aL.data(), aSz); }
 
 
 /** Serialization for map (will be) used for cSetMultipleTiePoints, and more ? */
