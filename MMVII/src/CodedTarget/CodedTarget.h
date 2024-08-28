@@ -67,6 +67,7 @@ class cSpecBitEncoding : public cMemCheck
          size_t        mNbDigit;        ///< Number of digit for names  Computed & Specified
 	 std::string   mPrefix;        ///< For all name generated
 				
+         std::string   mTargetNamePrefix; ///< prefix for target names, before number
          size_t        mMaxNum;         ///< max num of codes
          size_t        mMaxLowCode;     ///< max of all code (in fact max of the lowest representant)
          size_t        mMaxCodeEqui;    ///< max of all equivalent code

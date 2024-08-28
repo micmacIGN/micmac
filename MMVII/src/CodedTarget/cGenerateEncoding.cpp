@@ -32,6 +32,7 @@ cSpecBitEncoding::cSpecBitEncoding() :
      mBase4Name      (10),
      mNbDigit        (0),
      mPrefix         ("XXXX"),
+     mTargetNamePrefix(""),
      mMaxNum         (0),
      mMaxLowCode     (0),
      mMaxCodeEqui    (0)
@@ -262,6 +263,7 @@ cCollecSpecArg2007 & cAppliGenerateEncoding::ArgOpt(cCollecSpecArg2007 & anArgOp
                << AOpt2007(mSpec.mFreqCircEq,"FreqCircEq","Freq for generating circular permuts (conventionnaly 0->highest) (def depend of type)")
                << AOpt2007(mSpec.mParity,"Parity","Parity check , 1 odd, 2 even, 3 all (def depend of type)")
                << AOpt2007(mSpec.mMaxNb,"MaxNb","Max number of codes",{eTA2007::HDV})
+               << AOpt2007(mSpec.mTargetNamePrefix,"TargetNamePrefix","Prefix for targets names",{eTA2007::HDV})
                << AOpt2007(mSpec.mBase4Name,"Base4N","Base for name",{eTA2007::HDV})
                << AOpt2007(mSpec.mNbDigit,"NbDig","Number of digit for name (default depend of max num & base)")
                << AOpt2007(mSpec.mUseHammingCode,"UHC","Use Hamming code")
@@ -554,7 +556,7 @@ int  cAppliGenerateEncoding::Exe()
 
        for (auto & anEncode : aBE.Encodings())
        {
-           anEncode.SetName(NameOfNum_InBase(anEncode.Num(),mSpec.mBase4Name,mSpec.mNbDigit));
+           anEncode.SetName(mSpec.mTargetNamePrefix + NameOfNum_InBase(anEncode.Num(),mSpec.mBase4Name,mSpec.mNbDigit));
        }
 
        aBE.SetSpec(mSpec);
