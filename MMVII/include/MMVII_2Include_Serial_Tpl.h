@@ -113,7 +113,10 @@ template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string
        AddData(anAux,aNb);  
        anAux.Ar().Separator();
        if (aNb)
+       {
           AddData(anAux,*aL);
+          anAux.Ar().Separator();
+       }
     }
 }
 

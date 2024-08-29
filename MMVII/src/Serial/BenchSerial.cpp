@@ -72,6 +72,7 @@ cTestSerial1::cTestSerial1() :
     mP3(3.1,3.2) ,
     mLI{1,22,333},
     mVD {314,27,14},
+    mO1 (cPt2dr(99,999)),
     mO2 (cPt2dr(100,1000))
 {
 }
