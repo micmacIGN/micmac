@@ -400,7 +400,7 @@ void AddData(const  cAuxAr2007 & anAux,cMesIm1Pt & aMes)
 {
    MMVII::AddData(cAuxAr2007("Name",anAux),aMes.mNamePt);
    MMVII::AddData(cAuxAr2007("Pt",anAux),aMes.mPt);
-   AddTabData(cAuxAr2007("Sigma2",anAux),aMes.mSigma2,3);
+   MMVII::AddData(cAuxAr2007("Sigma2",anAux),aMes.mSigma2);
 }
 
 /* ********************************************* */

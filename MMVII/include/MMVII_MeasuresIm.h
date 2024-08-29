@@ -83,9 +83,9 @@ class cMesIm1Pt
         cMesIm1Pt(const cPt2dr & aPt,const std::string & aNamePt,tREAL4 aSigma2);
         cMesIm1Pt();
 
-        cPt2dr         mPt;
-        std::string    mNamePt;
-        tREAL4         mSigma2[3];  // xx xy yy
+        cPt2dr            mPt;
+        std::string       mNamePt;
+        cArray<tREAL4,3>  mSigma2;  // xx xy yy
 };
 
 /** class for representing a set of measure in an image*/
