@@ -1,17 +1,9 @@
 include/CodeGen_*.h
 *.o
-*.aux
-*.bbl
-*.ilg
-*.idx
-*.ind
 *.blz
 *.blg
 *.log
 *.out
-*.toc
-*.ilg
-*.ind
 *.swp
 *.pyc
 MMVII-TestDir/Input/Files/RelTest.xml
