@@ -53,7 +53,7 @@ class cAppli_MesImReport : public cMMVII_Appli
 	std::string              mNameReportDetail;
 
         std::string              mSuffixReportSubDir; // additional name for report subdir
-	double                   mMarginMiss;  ///  Margin for counting missing targets
+	// double                   mMarginMiss;  ///  Margin for counting missing targets
 
 	cStdStatRes              mStatGlob;
 	std::string              mNameSubDir;
@@ -76,7 +76,7 @@ cAppli_MesImReport::cAppli_MesImReport
      mNameReportGlobResidual   ("StatResidual"),
      mNameReportDetail         ("Detail"),
      mSuffixReportSubDir       (""),
-     mMarginMiss               (50.0),
+     // mMarginMiss               (50.0),
      mNbUndetectedGlob         (0),
      mNbFalseDetGlob           (0),
      mNbRefGlob                (0)
