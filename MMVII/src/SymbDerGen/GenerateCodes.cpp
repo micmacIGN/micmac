@@ -431,6 +431,18 @@ cCalculator<double> * EqTopoDZ(bool WithDerive,int aSzBuf)
     return TplEqTopoDZ<double>(WithDerive,aSzBuf);
 }
 
+// topo dH
+template <class Type> cCalculator<Type> * TplEqTopoDH(bool WithDerive,int aSzBuf)
+{
+    return StdAllocCalc(NameFormula(cFormulaTopoDH(),WithDerive),aSzBuf);
+}
+
+cCalculator<double> * EqTopoDH(bool WithDerive,int aSzBuf)
+{
+    return TplEqTopoDH<double>(WithDerive,aSzBuf);
+}
+
+
 
 
 cCalculator<double> * EqSumSquare(int aNb,bool WithDerive,int aSzBuf,bool ReUse)
@@ -824,6 +836,7 @@ int cAppliGenCode::Exe()
        GenCodesFormula((tREAL8*)nullptr,cFormulaTopoDX(),WithDer);
        GenCodesFormula((tREAL8*)nullptr,cFormulaTopoDY(),WithDer);
        GenCodesFormula((tREAL8*)nullptr,cFormulaTopoDZ(),WithDer);
+       GenCodesFormula((tREAL8*)nullptr,cFormulaTopoDH(),WithDer);
 
        for (const auto IsLinearGrad : {true,false})
            GenCodesFormula((tREAL8*)nullptr,cDeformImHomotethy(IsLinearGrad)     ,WithDer);

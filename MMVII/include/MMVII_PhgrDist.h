@@ -191,7 +191,7 @@ NS_SymbolicDerivative::cCalculator<double> * EqTopoDist(bool WithDerive,int aSzB
 NS_SymbolicDerivative::cCalculator<double> * EqTopoDX(bool WithDerive,int aSzBuf);
 NS_SymbolicDerivative::cCalculator<double> * EqTopoDY(bool WithDerive,int aSzBuf);
 NS_SymbolicDerivative::cCalculator<double> * EqTopoDZ(bool WithDerive,int aSzBuf);
-
+NS_SymbolicDerivative::cCalculator<double> * EqTopoDH(bool WithDerive,int aSzBuf);
 
            // .............   Equation implying 2D distance conservation .............
 	   

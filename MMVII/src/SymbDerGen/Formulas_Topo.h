@@ -257,6 +257,89 @@ class cFormulaTopoDZ
 };
 
 
+
+class cFormulaTopoDH
+{
+      public :
+
+           std::string FormulaName() const { return "TopoDH";}
+
+           std::vector<std::string>  VNamesUnknowns()  const
+           {
+               //  Instrument pose with 6 unknowns : 3 for center, 3 for axiator (axiator not used here)
+              // target pose with 3 unknowns : 3 for center
+               return  Append(NamesPose("P_from","Wi"),NamesP3("P_to"));
+           }
+
+           std::vector<std::string>    VNamesObs() const
+           {
+                // RTL to GeoC transfo, as matrix + translation
+                // GeoG phi (in rad) and M (=a*sqrt(1-e*e*sin(phi)*sin(phi))) for each point
+                // measured value
+                return  Append(NamesMatr("M_RTL",cPt2di(3,3)), NamesP3("T_RTL"),
+                               {"Phi_from", "M_from", "Phi_to", "M_to", "val"});
+           }
+
+           template <typename tUk>
+                       std::vector<tUk> formula
+                       (
+                          const std::vector<tUk> & aVUk,
+                          const std::vector<tUk> & aVObs
+                       ) const
+           {
+
+               cMatF<tUk> M_RTL = cMatF(3, 3, aVObs, 0);
+               auto T_RTL = VtoP3(aVObs,9);
+               auto Phi_from = aVObs[12];
+               auto M_from = aVObs[13];
+               auto Phi_to = aVObs[14];
+               auto M_to = aVObs[15];
+               auto val = aVObs[16];
+
+               // convert points to GeoC
+               auto aP_from_RTL = VtoP3(aVUk,0);
+               auto aP_from_GeoC =  M_RTL * aP_from_RTL + T_RTL;
+               auto aP_to_RTL = VtoP3(aVUk,6);
+               auto aP_to_GeoC =  M_RTL * aP_to_RTL + T_RTL;
+
+               // convert GeoC to GeoG
+               /* // Iterative formula
+               auto p_from = sqrt(aP_from_GeoC.x()*aP_from_GeoC.x()
+                             +aP_from_GeoC.y()*aP_from_GeoC.y());
+               auto h_from = p_from/cos(Phi_from) - N_from;
+
+               auto p_to = sqrt(aP_to_GeoC.x()*aP_to_GeoC.x()
+                             +aP_to_GeoC.y()*aP_to_GeoC.y());
+               auto h_to = p_to/cos(Phi_to) - N_to; */
+
+               // Bowring, 1985, The accuracy of geodetic latitude and height equations
+               // https://geodesie.ign.fr/contenu/fichiers/documentation/pedagogiques/TransformationsCoordonneesGeodesiques.pdf
+               auto p_from = sqrt(aP_from_GeoC.x()*aP_from_GeoC.x()
+                             +aP_from_GeoC.y()*aP_from_GeoC.y());
+               auto h_from = p_from*cos(Phi_from) + aP_from_GeoC.z()*sin(Phi_from) - M_from;
+
+               auto p_to = sqrt(aP_to_GeoC.x()*aP_to_GeoC.x()
+                             +aP_to_GeoC.y()*aP_to_GeoC.y());
+               auto h_to = p_to*cos(Phi_to) + aP_to_GeoC.z()*sin(Phi_to) - M_to;
+
+               auto dH = h_to - h_from;
+
+               /*
+               SymbPrint(aP_from_GeoC.x(),"aP_from_GeoC.x");
+               SymbPrint(aP_from_GeoC.y(),"aP_from_GeoC.y");
+               SymbPrint(aP_from_GeoC.z(),"aP_from_GeoC.z");
+               SymbPrint(aP_to_GeoC.x(),"aP_to_GeoC.x");
+               SymbPrint(aP_to_GeoC.y(),"aP_to_GeoC.y");
+               SymbPrint(aP_to_GeoC.z(),"aP_to_GeoC.z");
+               SymbPrint(h_from,"h_from");
+               SymbPrint(h_to,"h_to");
+               */
+
+               return {  dH - val };
+           }
+};
+
+
 };
 
 

@@ -1478,6 +1478,28 @@ class cFormulaTopoHz
 
 \end{lstlisting}
 
+For ellipsoid height difference observation, the equation is:
+$$ residual =  \left(H_{to} - H_{from}\right) - l$$
+
+To convert the points RTL coordinates into ellipsoid heights,
+the fist step is to convert them to geocentric ($X$, $Y$, $Z$) and then use the formula from
+\textit{Bowring, 1985, The accuracy of geodetic latitude and height equations}
+\url{https://geodesie.ign.fr/contenu/fichiers/documentation/pedagogiques/TransformationsCoordonneesGeodesiques.pdf}
+(see Fig~\ref{fig:GeoCtoGeoG}):
+
+$$h=\sqrt{ X^2 + Y^2} \cdot \cos \phi + Z \sin \phi - a \sqrt{1-e^2 \sin^2 \phi}$$
+
+Where $a$ and $e$ are constants from the ellipsoid.
+To simplify the computation, $\phi$ can be computed via the SysCo system
+and supposed a constant for derivation.
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=16cm]{Programmer/GeoCtoGeoG.png}
+\caption{Geocentric to geodetic coordinates}
+\label{fig:GeoCtoGeoG}
+\end{figure}
+
 %---------------------------------------------
 %---------------------------------------------
 %---------------------------------------------
