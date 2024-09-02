@@ -169,7 +169,7 @@ void cBA_Topo::FromData(const std::vector<cBA_GCP *> & vGCP, cPhotogrammetricPro
     for (auto & aSet: mAllObsSets)
     {
         MMVII_INTERNAL_ASSERT_User(aSet->isInit(), eTyUEr::eUnClassedError,
-                                   "Error: Obs Set initialization failed.")
+                                   "Error: Obs Set initialization failed: \""+aSet->getObs(0)->toString()+"\"")
     }
     mIsReady = true;
 }

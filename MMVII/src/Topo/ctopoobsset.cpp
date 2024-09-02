@@ -125,7 +125,7 @@ void cTopoObsSetStation::OnUpdate()
 void cTopoObsSetStation::PushRotObs(std::vector<double> & aVObs) const
 {
     // fill aPoseInstr2RTL
-    (getRotSysCo2Instr()).Mat().PushByCol(aVObs);
+    getRotSysCo2Instr().Mat().PushByCol(aVObs);
 }
 
 std::string cTopoObsSetStation::toString() const
@@ -242,8 +242,6 @@ bool cTopoObsSetStation::initialize()
     {
         if (!mPtOrigin->isInit())
             return false;
-        cTopoObs * aObsDX = nullptr;
-        cTopoObs * aObsDY = nullptr;
         tREAL8 G0 = NAN;
         for (auto & obs: mObs)
         {
@@ -259,20 +257,60 @@ bool cTopoObsSetStation::initialize()
 #endif
                 break;
             }
-            if (obs->getType() == eTopoObsType::eDX && (!aObsDY || (aObsDY->getPointName(1)==obs->getPointName(1))))
-                aObsDX = obs;
-            if (obs->getType() == eTopoObsType::eDY && (!aObsDX || (aObsDX->getPointName(1)==obs->getPointName(1))))
-                aObsDY = obs;
         }
-        if (aObsDX && aObsDY) // compute G0 from DX DY if Hz not found
+        if (!std::isfinite(G0)) // try to init with DX and DY
         {
-            auto & aPtTo = mBA_Topo->getPoint(aObsDX->getPointName(1));
-            cPt3dr aVectInstr = PtSysCo2Vert(aPtTo);
-            G0 = atan2( aVectInstr.x(), aVectInstr.y())
-                        - atan2( aObsDX->getMeasures()[0], aObsDY->getMeasures()[0]);
-#ifdef VERBOSE_TOPO
-            StdOut()<<"G0 dxy: "<<*mPtOrigin->getPt()<<" -> "<<*aPtTo.getPt()<<" mes "<<aObsDX->getMeasures()[0]<<" "<<aObsDY->getMeasures()[0]<<"\n";
-#endif
+            std::map<std::string, std::pair<cTopoObs *,cTopoObs *> > aBigDxDyPerPt;
+            for (auto & obs: mObs)
+            {
+                auto aPtTo = mBA_Topo->getPoint(obs->getPointName(1)).getName();
+                if (obs->getType() == eTopoObsType::eDX)
+                {
+                    if (aBigDxDyPerPt.count(aPtTo)==0)
+                        aBigDxDyPerPt[aPtTo] = {obs, nullptr};
+                    else
+                        if ((!aBigDxDyPerPt[aPtTo].first)
+                            || (obs->getMeasures()[0] > fabs(aBigDxDyPerPt[aPtTo].first->getMeasures()[0])))
+                                aBigDxDyPerPt[aPtTo].first = obs;
+                }
+                if (obs->getType() == eTopoObsType::eDY)
+                {
+                    if (aBigDxDyPerPt.count(aPtTo)==0)
+                        aBigDxDyPerPt[aPtTo] = {nullptr, obs};
+                    else
+                        if ((!aBigDxDyPerPt[aPtTo].second)
+                            || (obs->getMeasures()[0] > fabs(aBigDxDyPerPt[aPtTo].second->getMeasures()[0])))
+                                aBigDxDyPerPt[aPtTo].second = obs;
+                }
+            }
+            double aLongestObsDist2 = -1.;
+            std::string aLongestObsName = "";
+            for (auto & [aPtTo, aVal]: aBigDxDyPerPt)
+            {
+                auto & [aObsDX, aObsDY] = aVal;
+                if (aObsDX && aObsDY)
+                {
+                    double dX = aObsDX->getMeasures()[0];
+                    double dY = aObsDY->getMeasures()[0];
+                    double aCurrDist2 = dX*dX + dY*dY;
+                    if (aCurrDist2 > aLongestObsDist2)
+                    {
+                        aLongestObsDist2 = aCurrDist2;
+                        aLongestObsName = aPtTo;
+                    }
+                }
+            }
+            if (aLongestObsDist2>0.) // compute G0 from DX DY if Hz not found
+            {
+                auto & [aObsDX, aObsDY] = aBigDxDyPerPt[aLongestObsName];
+                auto & aPtTo = mBA_Topo->getPoint(aObsDX->getPointName(1));
+                cPt3dr aVectInstr = PtSysCo2Vert(aPtTo);
+                G0 = atan2( aVectInstr.x(), aVectInstr.y())
+                            - atan2( aObsDX->getMeasures()[0], aObsDY->getMeasures()[0]);
+    #ifdef VERBOSE_TOPO
+                StdOut()<<"G0 dxy: "<<*mPtOrigin->getPt()<<" -> "<<*aPtTo.getPt()<<" mes "<<aObsDX->getMeasures()[0]<<" "<<aObsDY->getMeasures()[0]<<"\n";
+    #endif
+            }
         }
         if (std::isfinite(G0))
         {
