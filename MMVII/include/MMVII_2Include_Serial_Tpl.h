@@ -154,6 +154,46 @@ template <class Type> void OnePtrAddData(const cAuxAr2007 & anAux,Type * & aL)
      AddData(anAux,*aL);
 }
 
+// general AddData where a default value is given if value not found at reading
+template <class Type> void AddData(const cAuxAr2007 & anAux,const std::string & aTag0,Type & aL, const Type & aDefValIfAbsentAtRead)
+{
+    const std::string * anAdrTag = & aTag0;
+
+   // In input mode, we must decide if the value is present
+    if (anAux.Input())
+    {
+        // The archive knows if the object is present
+        if (anAux.NbNextOptionnal(*anAdrTag))
+        {
+           // If yes read it and initialize optional value
+           Type  aV;
+           AddData(cAuxAr2007(*anAdrTag,anAux),aV);
+           aL = aV;
+        }
+        else
+           aL = aDefValIfAbsentAtRead;
+        return;
+    }
+
+    // Now in writing mode
+    int aNb = 1; // value always present for output
+    // Tagged format (xml) is a special case
+    if (anAux.Tagged())
+    {
+       // always write value in writing mode
+       AddData(cAuxAr2007(*anAdrTag,anAux),aL);
+    }
+    else
+    {
+        // Indicate that the value is present and put it
+        AddData(anAux,aNb);
+        anAux.Ar().Separator();
+        AddData(anAux,aL);
+        anAux.Ar().Separator();
+    }
+}
+
+
 // need general inteface for things like std::vector<Type *>
 template <class Type> void AddData(const cAuxAr2007 & anAux,Type * & aL)
 {

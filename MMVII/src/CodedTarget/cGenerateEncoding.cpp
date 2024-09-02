@@ -56,6 +56,7 @@ void cSpecBitEncoding::AddData(const  cAuxAr2007 & anAux)
        {
           MMVII::AddData(cAuxAr2007("Prefix",anAux),mPrefix);
           MMVII::AddData(cAuxAr2007("NbDigit",anAux),mNbDigit);
+          MMVII::AddData(anAux,"TargetNamePrefix",mTargetNamePrefix, std::string());
           MMVII::AddData(cAuxAr2007("MaxNum",anAux),mMaxNum);
           MMVII::AddData(cAuxAr2007("MaxLowCode",anAux),mMaxLowCode);
           MMVII::AddData(cAuxAr2007("MaxCodeEqui",anAux),mMaxCodeEqui);

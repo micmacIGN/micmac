@@ -73,7 +73,10 @@ cTestSerial1::cTestSerial1() :
     mLI{1,22,333},
     mVD {314,27,14},
     mO1 (cPt2dr(99,999)),
-    mO2 (cPt2dr(100,1000))
+    mO2 (cPt2dr(100,1000)),
+    mO3 ("HelloO"),
+    mD1("HelloD"),
+    mD2(1.0)
 {
 }
 
@@ -86,7 +89,10 @@ bool cTestSerial1::operator ==   (const cTestSerial1 & aT1) const
          && (mP3==aT1.mP3) 
          && (mO1==aT1.mO1) 
          && (mO2==aT1.mO2)
-         && EqualCont(mLI,aT1.mLI)   
+         && (mO3==aT1.mO3)
+         && (mD1==aT1.mD1)
+         && (mD2==aT1.mD2)
+         && EqualCont(mLI,aT1.mLI)
    ;
 }
 
@@ -104,6 +110,9 @@ void AddData(const cAuxAr2007 & anAux0, cTestSerial1 &    aTS1)
     AddData(cAuxAr2007("VD",anAux),aTS1.mVD);
     AddOptData(anAux,"O1",aTS1.mO1);
     AddOptData(anAux,"O2",aTS1.mO2);
+    AddOptData(anAux,"O3",aTS1.mO3);
+    AddData(anAux,"D1",aTS1.mD1, std::string("toto"));
+    AddData(anAux,"D2",aTS1.mD2, 3.14);
 }
 
 
