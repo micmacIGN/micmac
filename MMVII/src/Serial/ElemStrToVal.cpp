@@ -188,6 +188,7 @@ template<> cE2Str<eTopoObsType>::tMapE2Str cE2Str<eTopoObsType>::mE2S
                 {eTopoObsType::eDX,"DX"},
                 {eTopoObsType::eDY,"DY"},
                 {eTopoObsType::eDZ,"DZ"},
+                {eTopoObsType::eDH,"DH"},
                 //{eTopoObsType::eDistParam,"DistParam"},
            };
 

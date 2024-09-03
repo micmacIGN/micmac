@@ -26,6 +26,7 @@ cTopoObs::cTopoObs(cTopoObsSet* set, cBA_Topo *aBA_Topo, eTopoObsType type, cons
     case eTopoObsType::eDX:
     case eTopoObsType::eDY:
     case eTopoObsType::eDZ:
+    case eTopoObsType::eDH:
         MMVII_INTERNAL_ASSERT_strong(mSet->getType()==eTopoObsSetType::eStation, "Obs: incorrect set type")
         MMVII_INTERNAL_ASSERT_strong(ptsNames.size()==2, "Obs: incorrect number of points")
         MMVII_INTERNAL_ASSERT_strong(measures.size()==1, "Obs: 1 value should be given")
@@ -126,14 +127,40 @@ std::vector<tREAL8> cTopoObs::getVals() const
             MMVII_INTERNAL_ERROR("error set type")
             return {}; //just to please the compiler
         }
-        set->PushRotObs(vals);
         cPt3dr* aPtFrom = set->getPtOrigin()->getPt();
         cPt3dr* aPtTo = mBA_Topo->getPoint(mPtsNames[1]).getPt();
-        if (mType==eTopoObsType::eZen)
+        if (mType==eTopoObsType::eDH)
         {
-            tREAL8 ref_cor = 0.12 * mBA_Topo->getSysCo()->getDistHzApprox(*aPtFrom, *aPtTo)
-                                  / (2*mBA_Topo->getSysCo()->getRadiusApprox(*aPtFrom));
-            vals.push_back(ref_cor);
+            auto aSysCo = mBA_Topo->getSysCo();
+            // RTL to GeoC transfo, as matrix + translation
+            const tPoseR* aTranfo2GeoC = aSysCo->getTranfo2GeoC();
+            aTranfo2GeoC->Rot().Mat().PushByLine(vals); // TODO: why by line?
+            aTranfo2GeoC->Tr().PushInStdVector(vals);
+            //Phi_from
+            auto aPtFromGeoG = aSysCo->toGeoG(*aPtFrom);
+            auto aPhiFrom = aPtFromGeoG.y()/AngleInRad(eTyUnitAngle::eUA_degree);
+            vals.push_back(aPhiFrom);
+            //M_from = a*sqrt(1-e*e*sin(phi)*sin(phi))
+            auto aPtFromM = aSysCo->getEllipsoid_a()
+                    *sqrt(1-aSysCo->getEllipsoid_e2()*sin(aPhiFrom)*sin(aPhiFrom));
+            vals.push_back(aPtFromM);
+            //Phi_to
+            auto aPtToGeoG = aSysCo->toGeoG(*aPtTo);
+            auto aPhiTo = aPtToGeoG.y()/AngleInRad(eTyUnitAngle::eUA_degree);
+            vals.push_back(aPhiTo);
+            //M_To = a*sqrt(1-e*e*sin(phi)*sin(phi))
+            auto aPtToM = aSysCo->getEllipsoid_a()
+                    *sqrt(1-aSysCo->getEllipsoid_e2()*sin(aPhiTo)*sin(aPhiTo));
+            vals.push_back(aPtToM);
+        } else {
+            set->PushRotObs(vals);
+
+            if (mType==eTopoObsType::eZen)
+            {
+                tREAL8 ref_cor = 0.12 * mBA_Topo->getSysCo()->getDistHzApprox(*aPtFrom, *aPtTo)
+                                      / (2*mBA_Topo->getSysCo()->getRadiusApprox(*aPtFrom));
+                vals.push_back(ref_cor);
+            }
         }
         vals.insert(std::end(vals), std::begin(mMeasures), std::end(mMeasures));
         break;
@@ -142,12 +169,12 @@ std::vector<tREAL8> cTopoObs::getVals() const
         MMVII_INTERNAL_ERROR("unknown obs set type")
     }
 
-/*#ifdef VERBOSE_TOPO
+#ifdef VERBOSE_TOPO
     std::cout<<vals.size()<<" values ";//<<std::endl;
     for (auto&v: vals)
         std::cout<<v<<" ";
     std::cout<<"\n";
-#endif*/
+#endif
     return vals;
 }
 

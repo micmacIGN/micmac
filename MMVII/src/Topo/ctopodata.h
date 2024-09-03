@@ -70,6 +70,7 @@ public:
 enum class eCompObsType
 {
     eCompDist=3,
+    eCompDH=4,
     eCompHz=5,
     eCompHzOpen=7,
     eCompZen=6,

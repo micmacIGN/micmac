@@ -135,6 +135,7 @@ eCompObsType intToCompObsType(int i)
     case eCompObsType::eCompDX:
     case eCompObsType::eCompDY:
     case eCompObsType::eCompDZ:
+    case eCompObsType::eCompDH:
     case eCompObsType::eCompDist:
     case eCompObsType::eCompHz:
     case eCompObsType::eCompHzOpen:
@@ -237,6 +238,7 @@ bool cTopoData::InsertCompObsFile(const std::string & aFileName)
         case eCompObsType::eCompDX:
         case eCompObsType::eCompDY:
         case eCompObsType::eCompDZ:
+        case eCompObsType::eCompDH:
             break;
         case eCompObsType::eCompHzOpen:
         case eCompObsType::eCompHz:
@@ -316,6 +318,9 @@ bool cTopoData::addObs(std::vector<cTopoObsSetStationData> &aCurrentVectObsSetSt
     case eCompObsType::eCompDZ:
         aObsData = {eTopoObsType::eDZ, {nameFrom,nameTo}, {val}, {sigma}};
         break;
+    case eCompObsType::eCompDH:
+        aObsData = {eTopoObsType::eDH, {nameFrom,nameTo}, {val}, {sigma}};
+        break;
     case eCompObsType::eCompError:
         return false;
     }
@@ -381,16 +386,17 @@ std::pair<cTopoData, cSetMesGCP>  cTopoData::createEx3()
     //aSetPts.AddMeasure( cMes1GCP(cPt3dr(105,115,105), "Tr1") ); // init not needed. Final: 107.072, 107.072, 100
 
     double g0 = 2.2;
-    cTopoObsData aObs1 = {eTopoObsType::eHz, {"St1", "Ori1"},  {0. - g0}, {0.001}};
-    cTopoObsData aObs2 = {eTopoObsType::eHz, {"St1", "Tr1"},  {M_PI/4. - g0}, {0.001}};
-    cTopoObsData aObs3 = {eTopoObsType::eZen, {"St1", "Tr1"},  {M_PI/2.}, {0.001}};
+    cTopoObsData aObs1 = {eTopoObsType::eHz, {"St1", "Ori1"},  {0. - g0}, {0.0001}};
+    cTopoObsData aObs2 = {eTopoObsType::eHz, {"St1", "Tr1"},  {M_PI/4. - g0}, {0.0001}};
+    cTopoObsData aObs3 = {eTopoObsType::eZen, {"St1", "Tr1"},  {M_PI/2.}, {0.0001}};
     cTopoObsData aObs4 = {eTopoObsType::eDist, {"St1", "Tr1"},  {10.}, {0.001}};
     cTopoObsData aObs5 = {eTopoObsType::eDist, {"St1", "Tr1"},  {10.002}, {0.001}};
+    cTopoObsData aObs6 = {eTopoObsType::eDH, {"St1", "Tr1"},  {0.0002}, {0.0001}};
 
     cTopoObsSetStationData aSet1;
     aSet1.mType = eTopoObsSetType::eStation;
     aSet1.mStationOriStat = eTopoStOriStat::eTopoStOriVert;
-    aSet1.mObs = {aObs1, aObs2, aObs3, aObs4, aObs5};
+    aSet1.mObs = {aObs1, aObs2, aObs3, aObs4, aObs5, aObs6};
 
     cTopoData aTopoData;
     aTopoData.mAllObsSetStations = {aSet1};

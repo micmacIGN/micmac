@@ -29,12 +29,18 @@ cBA_Topo::cBA_Topo
         {eTopoObsType::eDX,   EqTopoDX(true,1)},
         {eTopoObsType::eDY,   EqTopoDY(true,1)},
         {eTopoObsType::eDZ,   EqTopoDZ(true,1)},
+        {eTopoObsType::eDH,   EqTopoDH(true,1)},
         //{eTopoObsType::eDist, EqDist3D(true,1)},
         //{eTopoObsType::eDistParam, EqDist3DParam(true,1)},
     },
     mIsReady(false),
     mSysCo(nullptr)
 {
+#ifdef VERBOSE_TOPO
+    for (auto& [_, aEq] : mTopoObsType2equation)
+        aEq->SetDebugEnabled(true);
+#endif
+
     if (aPhProj)
     {
         for (auto & aInFile: aPhProj->ReadTopoMes())
@@ -414,7 +420,7 @@ void BenchTopoComp(cParamExeBench & aParam)
     if (! aParam.NewBench("TopoComp")) return;
 
     BenchTopoComp1example(cTopoData::createEx1(), 0.70711);
-    BenchTopoComp1example(cTopoData::createEx3(), 1.41421);
+    BenchTopoComp1example(cTopoData::createEx3(), 1.00918);
     BenchTopoComp1example(cTopoData::createEx4(), 0.);
 
     //std::cout<<"Bench Topo finished."<<std::endl;

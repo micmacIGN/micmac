@@ -84,7 +84,8 @@ void cTopoObsSetStation::createAllowedObsTypes()
 {
     mAllowedObsTypes = {
         eTopoObsType::eDist,eTopoObsType::eHz,eTopoObsType::eZen,
-        eTopoObsType::eDX,eTopoObsType::eDY,eTopoObsType::eDZ
+        eTopoObsType::eDX,eTopoObsType::eDY,eTopoObsType::eDZ,
+        eTopoObsType::eDH
     };
 }
 

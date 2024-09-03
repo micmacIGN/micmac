@@ -1484,14 +1484,14 @@ $$ residual =  \left(H_{to} - H_{from}\right) - l$$
 To convert the points RTL coordinates into ellipsoid heights,
 the fist step is to convert them to geocentric ($X$, $Y$, $Z$) and then use the formula from
 \textit{Bowring, 1985, The accuracy of geodetic latitude and height equations}
-\url{https://geodesie.ign.fr/contenu/fichiers/documentation/pedagogiques/TransformationsCoordonneesGeodesiques.pdf}
+\url{geodesie.ign.fr/contenu/fichiers/documentation/pedagogiques/TransformationsCoordonneesGeodesiques.pdf}
 (see Fig~\ref{fig:GeoCtoGeoG}):
 
 $$h=\sqrt{ X^2 + Y^2} \cdot \cos \phi + Z \sin \phi - a \sqrt{1-e^2 \sin^2 \phi}$$
 
 Where $a$ and $e$ are constants from the ellipsoid.
 To simplify the computation, $\phi$ can be computed via the SysCo system
-and supposed a constant for derivation.
+and supposed a constant for derivation, as $a \sqrt{1-e^2 \sin^2 \phi}$ .
 
 \begin{figure}[!h]
 \centering
@@ -1499,6 +1499,8 @@ and supposed a constant for derivation.
 \caption{Geocentric to geodetic coordinates}
 \label{fig:GeoCtoGeoG}
 \end{figure}
+
+Since there is no vertical deflexion nor geoid model for now, we suppose that $H = h$.
 
 %---------------------------------------------
 %---------------------------------------------

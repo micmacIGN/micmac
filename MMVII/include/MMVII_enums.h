@@ -565,6 +565,7 @@ enum class eTopoObsType
         eDX,
         eDY,
         eDZ,
+        eDH,
         eNbVals        ///< Tag for number of value
 };
 
