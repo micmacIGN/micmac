@@ -45,7 +45,7 @@ cAppliCheckBoardTargetExtract::cAppliCheckBoardTargetExtract(const std::vector<s
    mMaxCostCorrIm    (0.1),
    mNbMaxBlackCB     (10000),
    mPropGrayDCD      (2.0/3.0),
-   mNbBlur1          (4),
+   mNbBlur1          (1),
    mStrShow          (""),
    mScales           {1.0},
    mDistMaxLocSad    (10.0),
@@ -54,13 +54,14 @@ cAppliCheckBoardTargetExtract::cAppliCheckBoardTargetExtract(const std::vector<s
    mMaxNbSP_ML1      (2000),
    mPtLimCalcSadle   (2,1),
    mThresholdSym     (0.5),
-   mRayCalcSym0      (8.0),
+   mRayCalcSym0      (4.0),
    mDistDivSym       (2.0),
    mNumDebugMT       (-1),
    mNumDebugSaddle   (-1),
    mNbMinPtEllipse   (6),
    mTryC             (true),
-   mStepRefinePos    (1e-3),
+   mStepHeuristikRefinePos    (-1),
+   mStepGradRefinePos (1e-4),
    mZoomVisuDetec    (9),
    mDefSzVisDetec    (150),
    mSpecif           (nullptr),
@@ -109,7 +110,9 @@ cCollecSpecArg2007 & cAppliCheckBoardTargetExtract::ArgOpt(cCollecSpecArg2007 & 
              <<  AOpt2007(mLInitProl,"LSIP","Length Segment Init, for prolongation",{eTA2007::HDV})
              <<  AOpt2007(mNbMinPtEllipse,"NbMinPtEl","Number minimal of point for ellipse estimation",{eTA2007::HDV})
              <<  AOpt2007(mTryC,"TryC","Try also circle when ellipse fails",{eTA2007::HDV})
-             <<  AOpt2007(mStepRefinePos,"StepRefinePos","Step Refine final position with SinC interpol & over sampling (<0 : no refine)",{eTA2007::HDV})
+             <<  AOpt2007(mStepHeuristikRefinePos,"HeuristikStepRefinePos","Step Gradient-Refine final position with SinC interpol & over sampling (<0 : no refine)",{eTA2007::HDV,eTA2007::Tuning})
+
+             <<  AOpt2007(mStepGradRefinePos,"GradStepRefinePos","Step Gradient-Refine final position with SinC interpol & over sampling (<0 : no refine)",{eTA2007::HDV})
 	     <<  AOpt2007(mScales,"Scales","Diff scales of compute (! 0.5 means bigger)",{eTA2007::HDV})
              <<  AOpt2007(mOptimSegByRadiom,"OSBR","Optimize segement by radiometry",{eTA2007::HDV})
              <<  AOpt2007(mNbMaxBlackCB,"NbMaxBlackCB","Number max of point in black part of check-board ",{eTA2007::HDV})
@@ -579,13 +582,22 @@ void cAppliCheckBoardTargetExtract::DoOneImage()
 
     for (const auto & aScale : mScales)
     {
-        DoOneImageAndScale(aScale,mImIn0.Scale(aScale));
+        cAutoTimerSegm aTSRefine(mTimeSegm,"00-Scaling");
+        auto aScIm = mImIn0.Scale(aScale);
+        DoOneImageAndScale(aScale,aScIm);
     }
 
-    if (mStepRefinePos>0)
+    if (mStepHeuristikRefinePos>0)
     {
+        cAutoTimerSegm aTSRefine(mTimeSegm,"RefineHeuristik");
         for (auto & aCdtM : mVCdtMerged)
-            aCdtM.OptimizePosition(*mInterpol,mStepRefinePos);
+            aCdtM.HeuristikOptimizePosition(*mInterpol,mStepHeuristikRefinePos);
+    }
+    if (mStepGradRefinePos>0)
+    {
+        cAutoTimerSegm aTSRefine(mTimeSegm,"RefineGradient");
+        for (auto & aCdtM : mVCdtMerged)
+            aCdtM.GradOptimizePosition(*mInterpol,mStepGradRefinePos);
     }
 
 

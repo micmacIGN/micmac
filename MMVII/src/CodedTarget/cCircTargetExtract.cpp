@@ -7,6 +7,8 @@
 #include "CodedTarget.h"
 #include "CodedTarget_Tpl.h"
 #include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_Interpolators.h"
+
 #include <cmath>
 
 /*   Modularistion
@@ -55,6 +57,7 @@ cThresholdCircTarget::cThresholdCircTarget() :
 class cCircTargExtr : public cBaseTE
 {
      public :
+         typedef cDataIm2D<tREAL4>  tDIm;
          cCircTargExtr(const cExtractedEllipse &);
 
          cEllipse         mEllipse;
@@ -64,6 +67,8 @@ class cCircTargExtr : public cBaseTE
 	 bool             mWithCode;
 	 cOneEncoding     mEncode;
 	 int              mCardDetect; // Number of detection , should be 1 ....
+
+	 void  RefinePosBySym(tREAL8 aStep,const tDIm & ,const cDiffInterpolator1D &);
 };
 
 
@@ -79,6 +84,81 @@ cCircTargExtr::cCircTargExtr(const cExtractedEllipse & anEE)  :
 
 }
 
+void cEllipse::GetTetasRegularSample(std::vector<tREAL8> & aVTetas,const tREAL8 & aStepD)
+{
+     tREAL8 aEps =  aStepD /  (2*M_PI * mLGa)  ;
+     aEps /= 100.0;
+
+     tREAL8 aTetaCur = 0.0;
+     cPt2dr aLastPt = PtOfTeta(aTetaCur);
+
+     while (aTetaCur < 2*M_PI)
+     {
+         aVTetas.push_back(aTetaCur);
+	 tREAL8 aDist = Norm2(PtOfTeta(aTetaCur+aEps)-aLastPt);
+	 aTetaCur += aEps * (aStepD/aDist) ;
+
+         aLastPt = PtOfTeta(aTetaCur);
+     }
+
+     for  (auto & aTeta : aVTetas)
+         aTeta *= (2*M_PI) / aTetaCur;
+}
+
+void cCircTargExtr::RefinePosBySym(tREAL8 aStepLim,const tDIm & aDIm ,const cDiffInterpolator1D & anInt)
+{
+     cOptimSymetryOnImage aOptim(mEllipse.Center(),aDIm,anInt);
+     std::vector<tREAL8> aVTeta;
+     tREAL8 aStepDist = 0.25;
+     mEllipse.GetTetasRegularSample(aVTeta,aStepDist);
+
+     // check regularity on dist
+
+     tREAL8 aIntervRad = 0.5;
+     int aNbRad = round_up((2*aIntervRad)/aStepDist);
+     tREAL8 aStepRad = (2*aIntervRad) / aNbRad;
+     for (const auto & aTeta : aVTeta)
+     {
+          cPt2dr aPOnEl = mEllipse.PtOfTeta(aTeta);
+	  cPt2dr aNorm = VUnit(mEllipse.NormalInt(aPOnEl));
+
+	  for (int aKRad=0 ; aKRad<=aNbRad ; aKRad++)
+	  {
+               tREAL8 aRad = -aIntervRad + aKRad * aStepRad;
+
+	       cPt2dr aPt = aPOnEl + aNorm * aRad;
+               aOptim.AddPts(aPt);
+	  }
+     }
+
+     aOptim.IterLeastSqGrad(aStepLim,5);
+     mEllipse = cEllipse(aOptim.C0(),mEllipse.TetaGa(),mEllipse.LGa(),mEllipse.LSa());
+     mPt = aOptim.C0();
+
+
+     if (0)
+     {
+        tREAL8 aDifMax = 0;
+        for (size_t aK= 0 ; aK<aVTeta.size() ; aK++)
+        {
+	     tREAL8 aDist = Norm2(mEllipse.PtOfTeta(aVTeta.at(aK)) - mEllipse.PtOfTeta(aVTeta.at((aK+1)%aVTeta.size())));
+	     UpdateMax(aDifMax,std::abs(aDist-aStepDist));
+
+        }
+        StdOut() << "ENCOOOONAME " << mEncode.Name() << " VT=" << aVTeta.size() << " DifMax=" << aDifMax << " SR=" << aStepRad << "\n";
+     }
+
+
+     // getchar();
+     /*
+     tREAL8 aStep=0.25;
+     tREAL8 aTeta = 0.0;
+     while (aTeta< 2*M_PI)
+     {
+           tREAL8 aEps = mEllipse
+     }
+     */
+}
 
 /* ********************************************* */
 /*                                               */
@@ -677,6 +757,8 @@ class cAppliExtractCircTarget : public cMMVII_Appli,
 	std::vector<const cGeomSimDCT*>     mGTMissed;
 	std::vector<const cCircTargExtr*>   mFalseExtr;
 
+	tREAL8                              mStepRefineGrad;
+        cDiffInterpolator1D *               mInterpol;
 };
 
 
@@ -699,7 +781,9 @@ cAppliExtractCircTarget::cAppliExtractCircTarget
    mUseSimul         (false),
    mDoReportSimul    (false),
    mRatioDMML        (1.5),
-   mNbMaxMulTarget   (2)
+   mNbMaxMulTarget   (2),
+   mStepRefineGrad   (1e-4),
+   mInterpol         (nullptr)
 {
 }
 
@@ -727,6 +811,7 @@ cCollecSpecArg2007 & cAppliExtractCircTarget::ArgOpt(cCollecSpecArg2007 & anArgO
              << AOpt2007(mZoomVisuElFinal,"ZoomVisuEllipse","Make a visualisation extracted ellispe & target",{eTA2007::HDV})
              << AOpt2007(mPatHihlight,"PatHL","Pattern for highliting targets in visu",{eTA2007::HDV})
              << AOpt2007(mNbMaxMulTarget,"NbMMT","Nb max of multiple target acceptable",{eTA2007::HDV})
+             << AOpt2007(mStepRefineGrad,"StepRefineGrad","Step Refine Sym Grad",{eTA2007::HDV})
 	     <<   mPhProj.DPPointsMeasures().ArgDirOutOptWithDef("Std")
           );
 }
@@ -941,6 +1026,8 @@ void cAppliExtractCircTarget::TestOnSimul()
 
 int cAppliExtractCircTarget::ExeOnParsedBox()
 {
+   mInterpol = new   cTabulatedDiffInterpolator(cSinCApodInterpolator(5.0,5.0));
+
    mPBWT.mDistMinMaxLoc =  mPBWT.mMinDiam * mRatioDMML;
    // All the process has been devloppe/tested using target with black background, rather than revisiting
    // all the process to see where the varaiant black/white has to be adressed, I do it "quick and (not so) dirty",
@@ -1011,6 +1098,11 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
            if (aCT->mWithCode)
 	   {
                aMapDetect[aCT->mEncode.Name() ] .push_back(aCT);
+
+	       if (mStepRefineGrad>0)
+	       {
+	           aCT->RefinePosBySym(mStepRefineGrad,APBI_DIm(),*mInterpol);
+	       }
 	   }
        }
 
@@ -1053,6 +1145,7 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
 
 
    delete mExtrEll;
+   delete mInterpol;
 
    return EXIT_SUCCESS;
 }
@@ -1075,10 +1168,13 @@ int  cAppliExtractCircTarget::Exe()
    mPhProj.FinishInit();
 
    // Do simul if one sub image do simul
+
    for (const auto & anIm : VectMainSet(0))
    {
-       if (starts_with(FileOfPath(anIm),ThePrefixSimulTarget))
-	   mDoReportSimul = true;
+       // No longer does it as we have the "ReportMesIm" that does the same job, but more globally
+       if (false)
+           if (starts_with(FileOfPath(anIm),ThePrefixSimulTarget))
+	       mDoReportSimul = true;
    }
 
    mReportMutipleDetec = "MultipleTarget";
@@ -1112,7 +1208,9 @@ int  cAppliExtractCircTarget::Exe()
    // By default use Simul iff the name of imagebegin by "SimulTarget"
    if (! IsInit(&mUseSimul))
    {
-       mUseSimul = starts_with(FileOfPath(mNameIm),ThePrefixSimulTarget);
+       // No longer does it as we have the "ReportMesIm" that does the same job, but more globally
+       if (false)
+          mUseSimul = starts_with(FileOfPath(mNameIm),ThePrefixSimulTarget);
    }
    if (mUseSimul)  // If use it, read the ground truth
    {

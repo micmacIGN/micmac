@@ -630,6 +630,10 @@ class cEllipse
 
        cPt2dr InterSemiLine(tREAL8 aTeta) const;    /// compute the intesection of 1/2 line of direction teta with the ellipse
 
+       /// get points on ellipse that are +- less regularly sampled at a given step
+       void GetTetasRegularSample(std::vector<tREAL8> & aVTetas,const tREAL8 & aDist);
+
+
     private :
        inline void AssertOk() const;
 
