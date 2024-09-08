@@ -1,7 +1,98 @@
 #include "cCheckBoardTargetExtract.h"
+#include "FilterCodedTarget.h"
 
 namespace MMVII
 {
+
+/* ********************************************* */
+/*                                               */
+/*           cOptimSymetryOnImage                */
+/*                                               */
+/* ********************************************* */
+
+template <class Type> 
+    cOptimSymetryOnImage<Type>::cOptimSymetryOnImage(const cPt2dr & aC0,const tDIm & aDIm,const cDiffInterpolator1D & anInt) :
+         mC0     (aC0),
+         mDIm    (aDIm),
+	 mInterp (anInt)
+{
+}
+
+template <class Type> cPt1dr cOptimSymetryOnImage<Type>::Value(const cPt2dr & aDelta ) const 
+{
+     cSymMeasure<tREAL8> aSymM; // Structure to compute symetry coeff
+     cPt2dr a2NewC = (mC0 + aDelta) * 2.0;  // twice the center actualized
+
+     for (const auto & aP1 : mPtsOpt)
+     {
+          cPt2dr aP2 = a2NewC - aP1;
+	  if (mDIm.InsideInterpolator(mInterp,aP1) && mDIm.InsideInterpolator(mInterp,aP2))
+             aSymM.Add(mDIm.GetValueInterpol(mInterp,aP1),mDIm.GetValueInterpol(mInterp,aP2));
+     }
+
+     return cPt1dr(aSymM.Sym(1e-5));
+}
+
+template <class Type> void cOptimSymetryOnImage<Type>::AddPts(const cPt2dr & aPt)
+{
+   mPtsOpt.push_back(aPt);
+}
+
+template <class Type> tREAL8 cOptimSymetryOnImage<Type>::OneIterLeastSqGrad()
+{
+     cLeasSqtAA<tREAL8>  aSys(2);
+
+     cSymMeasure<tREAL8> aSymM; //
+     for (const auto & aP1 : mPtsOpt)
+     {
+          cPt2dr aP2 = mC0 * 2.0 - aP1;
+	  if (mDIm.InsideInterpolator(mInterp,aP1) && mDIm.InsideInterpolator(mInterp,aP2))
+	  {
+              auto [aV1,aG1] = mDIm.GetValueAndGradInterpol(mInterp,aP1);
+              auto [aV2,aG2] = mDIm.GetValueAndGradInterpol(mInterp,aP2);
+
+	      aSymM.Add(aV1,aV2);
+
+	      cPt2dr a2G2= (aG2*2.0);
+	      cDenseVect<tREAL8> aDV (a2G2.ToVect());
+
+	      //  NewV2 = aV2 + 2 * aG2 . delta  = aV1
+	      aSys.PublicAddObservation(1.0,aDV,aV1-aV2);
+
+
+	      //  StdOut() << aG1 - aG2 << "\n";
+	  }
+     }
+
+     cDenseVect<tREAL8> aSol = aSys.Solve();
+     cPt2dr aDelta = cPt2dr::FromVect(aSol);
+
+     mC0 += aDelta;
+     for (auto & aP1 : mPtsOpt)
+         aP1 += aDelta;
+
+     return  aSymM.Sym(1e-5);
+
+     //  StdOut() << " Ggggg " << aDelta << " " << aSymM.Sym(1e-5) << "\n";
+
+}
+
+template <class Type> int cOptimSymetryOnImage<Type>::IterLeastSqGrad(tREAL8 aGainMin,int aNbMax)
+{
+   tREAL8 aLastScore =  OneIterLeastSqGrad();
+
+   for (int aK= 1 ; aK<aNbMax ; aK++)
+   {
+       tREAL8 aNewScore = OneIterLeastSqGrad();
+       if (aNewScore>aLastScore-aGainMin)
+          return aK+1;
+       aLastScore = aNewScore;
+   }
+   return aNbMax;
+}
+
+template class cOptimSymetryOnImage<tREAL4>;
+
 
 namespace NS_CHKBRD_TARGET_EXTR { 
 
@@ -714,57 +805,40 @@ std::pair<eTPosCB,tREAL8>  cTmpCdRadiomPos::TheorRadiom(const cPt2dr &aPt) const
 	return TheorRadiom(aPt,mThickness,0.0);
 }
 
+
 /* ********************************************* */
 /*                                               */
 /*               cOptimPosCdM                    */
 /*                                               */
 /* ********************************************* */
 
-class cOptimPosCdM : public cDataMapping<tREAL8,2,1>
+
+
+class cOptimPosCdM : public cOptimSymetryOnImage<tREAL4>
 {
 	public :
-           cOptimPosCdM(const cCdMerged & aCdM,const cInterpolator1D & );
+           cOptimPosCdM(const cCdMerged & aCdM,const cDiffInterpolator1D & );
 
-           cPt1dr Value(const cPt2dr & ) const override;
+           // cPt1dr Value(const cPt2dr & ) const override;
 	   typedef cSegment2DCompiled<tREAL8> tSeg;
 
 	private :
-	    void AddPts(const cPt2dr & aMaster,  const cPt2dr & aSecond,bool toAvoid2);
-
+	    void AddPts1Seg(const cPt2dr & aMaster,  const cPt2dr & aSecond,bool toAvoid2);
             const cCdMerged&        mCdM;
-	    const cInterpolator1D & mCurInt;
-	    std::vector<cPt2dr>     mPtsOpt;
 };
 
 
 
-
-cPt1dr cOptimPosCdM::Value(const cPt2dr & aDelta ) const 
+cOptimPosCdM::cOptimPosCdM(const cCdMerged & aCdM,const cDiffInterpolator1D & aInt)  :
+        cOptimSymetryOnImage<tREAL4>(aCdM.mC0,(*aCdM.mDIm0),aInt),
+	mCdM      (aCdM)
+	// mCurInt   (aInt)
 {
-     cSymMeasure<tREAL8> aSymM; //
-     cPt2dr a2NewC = (mCdM.mC0 + aDelta) * 2.0;
-
-    const cDataIm2D<tREAL4> & aDIm = *(mCdM.mDIm0);
-     for (const auto & aP1 : mPtsOpt)
-     {
-          cPt2dr aP2 = a2NewC - aP1;
-	  if (aDIm.InsideInterpolator(mCurInt,aP1) && aDIm.InsideInterpolator(mCurInt,aP2))
-             aSymM.Add(aDIm.GetValueInterpol(mCurInt,aP1),aDIm.GetValueInterpol(mCurInt,aP2));
-     }
-
-     return cPt1dr(aSymM.Sym(1e-5));
+	AddPts1Seg(aCdM.CornerlEl_WB(), aCdM.CornerlEl_BW(),true);
+	AddPts1Seg(aCdM.CornerlEl_BW(), aCdM.CornerlEl_WB(),false);
 }
 
-
-cOptimPosCdM::cOptimPosCdM(const cCdMerged & aCdM,const cInterpolator1D & aInt)  :
-	mCdM      (aCdM),
-	mCurInt   (aInt)
-{
-	AddPts(mCdM.CornerlEl_WB(), mCdM.CornerlEl_BW(),true);
-	AddPts(mCdM.CornerlEl_BW(), mCdM.CornerlEl_WB(),false);
-}
-
-void cOptimPosCdM::AddPts(const cPt2dr & aSCorn1, const cPt2dr & aSCorn2,bool toAvoid2)
+void cOptimPosCdM::AddPts1Seg(const cPt2dr & aSCorn1, const cPt2dr & aSCorn2,bool toAvoid2)
 {
      cPt2dr  aCorn1 = aSCorn1  * mCdM.mScale;
      cPt2dr  aCorn2 = aSCorn2  * mCdM.mScale;
@@ -815,13 +889,26 @@ cCdMerged::cCdMerged(const cDataIm2D<tREAL4> * aDIm0,const cCdEllipse & aCDE,tRE
 {
 }
 
-void  cCdMerged::OptimizePosition(const cInterpolator1D & anInt,tREAL8 aStepEnd)
+void cCdMerged::GradOptimizePosition(const cDiffInterpolator1D & anInt,tREAL8 aStepEnd)
 {
-     cOptimPosCdM aCdtOpt(*this,anInt);
-     cOptimByStep anOpt(aCdtOpt,true,1.0);
-     auto [aVal,aDelta] =   anOpt.Optim(cPt2dr(0,0),0.02,aStepEnd);
+    cOptimPosCdM aCdGrad(*this,anInt);
+         // StdOut() << "-----------  TEST GRAD ----------------  V0=" << aCdGrad.Value(cPt2dr(0,0)) << " \n";
 
-     mC0 = mC0 + aDelta;
+    aCdGrad.IterLeastSqGrad(aStepEnd,5);
+    mC0 = aCdGrad.C0();
+}
+
+void  cCdMerged::HeuristikOptimizePosition(const cDiffInterpolator1D & anInt,tREAL8 aStepEnd)
+{
+      cOptimPosCdM aCdtOpt(*this,anInt);
+      cOptimByStep anOpt(aCdtOpt,true,1.0);
+
+
+      // tREAL8  aV0 = aCdtOpt.Value(cPt2dr(0,0)).x();
+      auto [aVal,aDelta] =   anOpt.Optim(cPt2dr(0,0),0.02,aStepEnd);
+
+     //  StdOut() << "  HEURISTIK =" << aV0 << " => " <<  aVal << "\n";
+      mC0 = mC0 + aDelta;
 }
 
 

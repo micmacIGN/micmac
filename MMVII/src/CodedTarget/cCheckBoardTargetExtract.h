@@ -191,7 +191,9 @@ class cCdMerged : public  cCdEllipse
 
 	    tREAL8 mScale;
 	    cPt2dr mC0;  // center at initial image scale
-            void  OptimizePosition(const cInterpolator1D &,tREAL8 aStepEnd);
+            void  HeuristikOptimizePosition(const cDiffInterpolator1D &,tREAL8 aStepEnd);
+
+            void  GradOptimizePosition(const cDiffInterpolator1D &,tREAL8 aStepEnd);
 
 	    const cDataIm2D<tREAL4> * mDIm0;
 };
@@ -345,7 +347,10 @@ class cAppliCheckBoardTargetExtract : public cMMVII_Appli
         // ---------------- Thresholds for Ellipse  criteria --------------------
         int                   mNbMinPtEllipse;
 	bool                  mTryC;
-	tREAL8                mStepRefinePos;
+
+	tREAL8                mStepHeuristikRefinePos;
+	tREAL8                mStepGradRefinePos;
+	bool                  mDoGradRefine;
 	
         // =========== Internal param ============
 
@@ -378,7 +383,7 @@ class cAppliCheckBoardTargetExtract : public cMMVII_Appli
 	std::vector<cCdMerged> mVCdtMerged; // Candidate merged form various scales
 	tREAL8                mCurScale;    /// Memorize the current value of the scale
 	bool                  mMainScale;   /// Is it the first/main scale 
-	cInterpolator1D *     mInterpol;
+	cDiffInterpolator1D * mInterpol;
 };
 
 

@@ -58,9 +58,11 @@ cCollecSpecArg2007 & cAppli_ScaleImage::ArgOpt(cCollecSpecArg2007 & anArgOpt)
    ;
 
    if (! mIsBasic)
+   {
       anArgOpt
              << AOpt2007(mSzSinC,"SzSinC","Sz of SinCardinal (default bicubic) for image elarging",{eTA2007::HDV})
       ;
+   }
 
    return anArgOpt;
 }

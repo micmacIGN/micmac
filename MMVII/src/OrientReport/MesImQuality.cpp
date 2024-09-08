@@ -61,6 +61,7 @@ class cAppli_MesImReport : public cMMVII_Appli
 	int                      mNbFalseDetGlob;
 	int                      mNbRefGlob;
 	tREAL8                   mExagRes;
+	tREAL8                   mScaleImage;
 };
 
 cAppli_MesImReport::cAppli_MesImReport
@@ -79,7 +80,8 @@ cAppli_MesImReport::cAppli_MesImReport
      // mMarginMiss               (50.0),
      mNbUndetectedGlob         (0),
      mNbFalseDetGlob           (0),
-     mNbRefGlob                (0)
+     mNbRefGlob                (0),
+     mScaleImage               (1.0)
 {
 }
 
@@ -100,6 +102,7 @@ cCollecSpecArg2007 & cAppli_MesImReport::ArgOpt(cCollecSpecArg2007 & anArgOpt)
     return      anArgOpt
 	     << AOpt2007(mPropStat,"Perc","Percentil for stat exp",{eTA2007::HDV})
              << AOpt2007(mExagRes,"ExagRes","Factor of residual exageration, set make visu",{eTA2007::HDV})
+             << AOpt2007(mScaleImage,"ScaleIma","Is any,scale having been applied to image before extract",{eTA2007::HDV})
     ;
 }
 
@@ -128,11 +131,12 @@ void cAppli_MesImReport::MakeOneIm(const std::string & aNameIm)
      for (const auto & aRef : aSetRef.Measures())
      {
          std::string aNameRef = aRef.mNamePt;
+	 cPt2dr aRefPt = aRef.mPt/mScaleImage;
 	 bool isDetected  = false;
 	 if (aSet2Test.NameHasMeasure(aNameRef))
 	 {
              cMesIm1Pt aHom = aSet2Test.MeasuresOfName(aNameRef);
-             cPt2dr aVRes  = aRef.mPt - aHom.mPt;
+             cPt2dr aVRes  = aRefPt - aHom.mPt;
 	     tREAL8 aRes = Norm2(aVRes);
 	     if (aRes < mThresholdMatch)
 	     {
@@ -147,7 +151,7 @@ void cAppli_MesImReport::MakeOneIm(const std::string & aNameIm)
 		   if (Norm2(aVRes) > aMaxN)
                       aVRes = VUnit(aVRes) * aMaxN;
 
-		   aIm.DrawLine(aRef.mPt,aRef.mPt+aVRes,cRGBImage::Green);
+		   aIm.DrawLine(aRefPt,aRefPt+aVRes,cRGBImage::Green);
 		}
 	     }
 	     // --- StdOut() << aNameRef <<  aRes << "\n";
@@ -156,7 +160,7 @@ void cAppli_MesImReport::MakeOneIm(const std::string & aNameIm)
 	 {
              nbUnDetected ++;
 	     if (doImage)
-                aIm.SetRGBrectWithAlpha(ToI(aRef.mPt),30,cRGBImage::Orange,0.8);
+                aIm.SetRGBrectWithAlpha(ToI(aRefPt),30,cRGBImage::Orange,0.8);
 	 }
      }
 
@@ -168,7 +172,8 @@ void cAppli_MesImReport::MakeOneIm(const std::string & aNameIm)
 	 if (aSetRef.NameHasMeasure(aNameTest))
 	 {
              cMesIm1Pt aHom = aSetRef.MeasuresOfName(aNameTest);
-	     if (Norm2(aTest.mPt-aHom.mPt) < mThresholdMatch)
+	     cPt2dr aRefPt = aHom.mPt/mScaleImage;
+	     if (Norm2(aTest.mPt-aRefPt) < mThresholdMatch)
                 isDetected = true;
 	 }
 	 if (! isDetected)
@@ -205,6 +210,8 @@ int cAppli_MesImReport::Exe()
    mPhProj.FinishInit();
 
    mNameSubDir = mPhProj.DPPointsMeasures().DirIn() +  "_vs_"+  mRefFolder;
+   if (mScaleImage != 1.0)
+       mNameSubDir += "_Scale" + ToStr(mScaleImage);
    if (IsInit(&mSuffixReportSubDir))
        mNameSubDir += "_" + mSuffixReportSubDir;
    SetReportSubDir(mNameSubDir);
