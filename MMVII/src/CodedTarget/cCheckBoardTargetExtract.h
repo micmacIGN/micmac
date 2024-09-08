@@ -350,7 +350,7 @@ class cAppliCheckBoardTargetExtract : public cMMVII_Appli
 
 	tREAL8                mStepHeuristikRefinePos;
 	tREAL8                mStepGradRefinePos;
-	bool                  mDoGradRefine;
+	// bool                  mDoGradRefine;
 	
         // =========== Internal param ============
 
