@@ -818,6 +818,11 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
                 {
                    MMVII_UserError(eTyUEr::eEmptyPattern,"Specified set of files was empty");
                 }
+            } else if (mVMainSets.at(aNum).size() == 1){
+                // If only 1 file matches the pattern, we replace the pattern in this arg by the matched file
+                // If RunMultiSet is called, the Appli can use this arg name to retrieve the file
+                // (if not doing this, arg will be the pattern (i.e ".*.tif") and the appli will fail to open that)
+                aVSpec.at(aK)->InitParam(UniqueStr(aNum));
             }
             // StdOut() << "cAaaaPPlii  " <<  __LINE__ << ToVect(mVMainSets.at(aNum)) << "\n";
          }
@@ -1988,9 +1993,9 @@ bool cMMVII_Appli::RunMultiSet(int aKParam,int aKSet,bool MkFSilence)
        for (const auto & aName : aVSetIm)
           aVSetPluDir.push_back(mDirProject + aName);
     }
-
-
-    if (aVSetPluDir.size() != 1)  // Multiple image, run in parall 
+   
+   
+    if (aVSetPluDir.size() > 1)  // Multiple image, run in parall 
     {
          eTyModeRecall aMode = MkFSilence ?  eTyModeRecall::eTMR_ParallSilence  : eTyModeRecall::eTMR_Parall  ;
          ExeMultiAutoRecallMMVII(ToStr(aKParam),aVSetPluDir,cColStrAOpt::Empty, aMode); // Recall with substitute recall itself
@@ -1998,7 +2003,8 @@ bool cMMVII_Appli::RunMultiSet(int aKParam,int aKSet,bool MkFSilence)
          mRMSWasUsed = true;
          return true;
     }
-
+    
+    
     // so that the pattern is defined with coherent value even if run with a single file
     if (mLevelCall==0)
        mPatternInitGMA = mArgObl[aKParam]->Value();

@@ -710,7 +710,6 @@ int  cAppliCheckBoardTargetExtract::Exe()
    {
        return ResultMultiSet();
    }
-
    DoOneImage();
 
    return EXIT_SUCCESS;
