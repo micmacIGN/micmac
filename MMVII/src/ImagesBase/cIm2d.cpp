@@ -136,7 +136,7 @@ template <class Type>  std::pair<tREAL8,cPt2dr> cDataIm2D<Type>::GetPairGradAndV
 {
 	cPt3dr aGV = GetGradAndVBL(aP);
 
-	return std::pair<tREAL8,cPt2dr>(aGV.z(),Proj(aGV));
+	return std::pair<tREAL8,cPt2dr>(aGV.z(),MMVII::Proj(aGV));
 }
 
 
