@@ -127,7 +127,7 @@ void  cAppliTopoAdj::AddOneSetGCP(const std::vector<std::string> & aVParStd)
                               "",mGCPFilter,mGCPFilterAdd);
 
     //here no 2d mes, fake it
-    cSetMesPtOf1Im aSetMesIm;
+    cSetMesPtOf1Im aSetMesIm("none");
     aFullMesGCP.AddMes2D(aSetMesIm);
     cSetMesImGCP * aMesGCP = aFullMesGCP.FilterNonEmptyMeasure(0);
 
