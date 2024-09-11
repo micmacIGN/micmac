@@ -282,6 +282,7 @@ template<> cE2Str<eApDT>::tMapE2Str cE2Str<eApDT>::mE2S
                 {eApDT::SysCo,"SysCo"},
                 {eApDT::Radiom,"Radiom"},
                 {eApDT::Ply,"Ply"},
+                {eApDT::Topo,"Topo"},
                 {eApDT::None,"None"},
                 {eApDT::ToDef,"ToDef"},
                 {eApDT::Console,"Console"},
