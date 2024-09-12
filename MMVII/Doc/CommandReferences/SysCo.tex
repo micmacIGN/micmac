@@ -308,10 +308,9 @@ The corresponding \texttt{OBS} file (\texttt{inputs/meas.obs}) is:
  6   PtD    PtC   100      0.001
  3   PtD    PtC    22.82   0.005
 \end{verbatim}
-This file has to be copied into a subdirectory of \texttt{MMVII-PhgrProj/Topo}:
+This file has to be put into a subdirectory of \texttt{MMVII-PhgrProj/Topo} via the \texttt{ImportOBS} command:
 \begin{lstlisting}
-mkdir -p MMVII-PhgrProj/Topo/Obs1/
-cp inputs/meas.obs MMVII-PhgrProj/Topo/Obs1/
+MMVII ImportOBS inputs/meas.obs Obs1
 \end{lstlisting}
 
 

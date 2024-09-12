@@ -6,13 +6,14 @@ rm -Rf MMVII-PhgrProj
 # import coords
 MMVII ImportGCP inputs/coords.txt ANXYZ InitL93 ChSys=[L93] AddInfoFree=0 Sigma=0.001 Comment=*
 
-
 # convert to RTL
 MMVII GCPChSysCo "RTL*657700*6860700*0*IGNF:LAMB93" InitL93 InitRTL
 
-mkdir -p MMVII-PhgrProj/Topo/Obs1/
-cp inputs/meas.obs MMVII-PhgrProj/Topo/Obs1/
+# import obs
+MMVII ImportOBS inputs/meas.obs Obs1
 
+# adjust
 MMVII TopoAdj Obs1 Obs1_out InitRTL FinalRTL
 
+# export to L93
 MMVII GCPChSysCo L93 FinalRTL FinalL93

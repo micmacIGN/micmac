@@ -57,7 +57,6 @@ int cAppli_ImportOBS::Exe()
 {
     mPhProj.FinishInit();
 
-    //cBA_Topo aBA_Topo(nullptr, nullptr);
     cTopoData aAllTopoDataIn;
     std::string aPost = Postfix(mNameObsFile,'.',true);
     if (UCaseEqual(aPost,"obs"))
@@ -67,7 +66,6 @@ int cAppli_ImportOBS::Exe()
         MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eUnClassedError,
                                    "Error: obs file has not the correct \".obs\" extension")
     }
-    //mPhProj.SaveTopoMes(*mTopo);
     std::string aInputFileDir;
     std::string aInputFileFile;
     SplitDirAndFile(aInputFileDir, aInputFileFile, mNameObsFile, true);
