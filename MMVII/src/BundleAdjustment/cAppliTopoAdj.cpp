@@ -74,9 +74,9 @@ cCollecSpecArg2007 & cAppliTopoAdj::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
     return anArgObl
             << mPhProj.DPTopoMes().ArgDirInMand("Dir for Topo measures")
+            << mPhProj.DPPointsMeasures().ArgDirInMand("Dir for initial coordinates")
             << mPhProj.DPTopoMes().ArgDirOutMand("Dir for Topo measures output")
-            << mPhProj.DPPointsMeasures().ArgDirInMand("Dir for points initial coordinates")
-            << mPhProj.DPPointsMeasures().ArgDirOutMand("Dir for points final coordinates")
+            << mPhProj.DPPointsMeasures().ArgDirOutMand("Dir for final coordinates")
            ;
 }
 

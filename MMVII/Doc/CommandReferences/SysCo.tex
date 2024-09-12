@@ -348,8 +348,8 @@ It is used as a substitute to \texttt{OriBundleAdj} when there are no cameras.
 \begin{verbatim}
  == Mandatory unnamed args : ==
   * string [Topo,In] :: Dir for Topo measures
-  * string [Topo,Out] :: Dir for Topo measures output
   * string [PointsMeasure,In] :: Dir for points initial coordinates
+  * string [Topo,Out] :: Dir for Topo measures output
   * string [PointsMeasure,Out] :: Dir for points final coordinates
 
  == Optional named args : ==
@@ -366,7 +366,7 @@ It is used as a substitute to \texttt{OriBundleAdj} when there are no cameras.
 In our example, the input topo directory is \texttt{Obs1} and the input PointsMeasure is \texttt{InitRTL}.
 We give output directories names for topo and points.
 \begin{lstlisting}
-MMVII TopoAdj Obs1 Obs1_out InitRTL FinalRTL
+MMVII TopoAdj Obs1 InitRTL Obs1_out FinalRTL
 \end{lstlisting}
 
 The final $\sigma_0$ value should be around 1 if everything goes well.

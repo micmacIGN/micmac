@@ -13,7 +13,7 @@ MMVII GCPChSysCo "RTL*657700*6860700*0*IGNF:LAMB93" InitL93 InitRTL
 MMVII ImportOBS inputs/meas.obs Obs1
 
 # adjust
-MMVII TopoAdj Obs1 Obs1_out InitRTL FinalRTL
+MMVII TopoAdj Obs1 InitRTL Obs1_out FinalRTL
 
 # export to L93
 MMVII GCPChSysCo L93 FinalRTL FinalL93
