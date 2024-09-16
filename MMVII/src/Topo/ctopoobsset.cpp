@@ -7,6 +7,7 @@
 namespace MMVII
 {
 
+
 cTopoObsSet::cTopoObsSet(cBA_Topo * aBA_Topo, eTopoObsSetType type):
     mType(type), 
     mBA_Topo(aBA_Topo), 
@@ -70,7 +71,46 @@ std::vector<int> cTopoObsSet::getParamIndices() const
     return indices;
 }
 
+// ------------------------------------------------------------
+
+cTopoObsSetSimple::cTopoObsSetSimple(cBA_Topo *aBA_Topo) :
+    cTopoObsSet(aBA_Topo, eTopoObsSetType::eSimple)
+{
+}
+
+
+void cTopoObsSetSimple::createAllowedObsTypes()
+{
+    mAllowedObsTypes = {
+        eTopoObsType::eDist, eTopoObsType::eDH
+    };
+}
+
+
+void cTopoObsSetSimple::OnUpdate()
+{
+}
+
+
+std::string cTopoObsSetSimple::toString() const
+{
+    return  cTopoObsSet::toString();
+}
+
+
+void cTopoObsSetSimple::makeConstraints(cResolSysNonLinear<tREAL8> & aSys)
+{
+}
+
+
+bool cTopoObsSetSimple::initialize()
+{
+    mInit = true;
+    return true;
+}
+
 //----------------------------------------------------------------
+
 cTopoObsSetStation::cTopoObsSetStation(cBA_Topo *aBA_Topo) :
     cTopoObsSet(aBA_Topo, eTopoObsSetType::eStation), mOriStatus(eTopoStOriStat::eTopoStOriVert),
     mRotSysCo2Vert(tRot::Identity()), mRotVert2Instr(tRot::Identity()),
@@ -83,9 +123,8 @@ cTopoObsSetStation::cTopoObsSetStation(cBA_Topo *aBA_Topo) :
 void cTopoObsSetStation::createAllowedObsTypes()
 {
     mAllowedObsTypes = {
-        eTopoObsType::eDist,eTopoObsType::eHz,eTopoObsType::eZen,
-        eTopoObsType::eDX,eTopoObsType::eDY,eTopoObsType::eDZ,
-        eTopoObsType::eDH
+        eTopoObsType::eHz, eTopoObsType::eZen,
+        eTopoObsType::eDX, eTopoObsType::eDY, eTopoObsType::eDZ
     };
 }
 

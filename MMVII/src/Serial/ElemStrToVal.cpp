@@ -176,6 +176,7 @@ template<> cE2Str<eSysCo>::tMapE2Str cE2Str<eSysCo>::mE2S
 
 template<> cE2Str<eTopoObsSetType>::tMapE2Str cE2Str<eTopoObsSetType>::mE2S
            {
+                {eTopoObsSetType::eSimple,"Simple"},
                 {eTopoObsSetType::eStation,"Station"},
                 //{eTopoObsSetType::eDistParam,"DistParam"},
            };

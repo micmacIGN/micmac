@@ -551,6 +551,7 @@ enum class eSysCo
 // topo observation sets types
 enum class eTopoObsSetType
 {
+    eSimple,
     eStation,
     //eDistParam,
     eNbVals        ///< Tag for number of value

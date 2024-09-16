@@ -20,6 +20,7 @@ class cSensorCamPC;
 class cBA_GCP;
 
 typedef std::map<const cTopoPoint*, std::vector<cTopoObsSetStation*>> tStationsMap;
+typedef std::map<const cTopoPoint*, std::vector<cTopoObs*>> tSimpleObsMap;
 
 class cBA_Topo : public cMemCheck
 {
@@ -47,7 +48,7 @@ public :
     std::vector<cTopoObs*> GetObsPoint(std::string aPtName) const;
 
     bool tryInitAll();
-    bool tryInit(cTopoPoint & aTopoPt, tStationsMap & stationsMap);
+    bool tryInit(cTopoPoint & aTopoPt, tStationsMap & stationsMap, tSimpleObsMap &allSimpleObs);
 
     bool mergeUnknowns(cResolSysNonLinear<tREAL8> &aSys); //< if several stations share origin etc.
     void makeConstraints(cResolSysNonLinear<tREAL8> &aSys);

@@ -60,6 +60,25 @@ T * make_TopoObsSet(cBA_Topo *aBA_Topo)
 
 
 /**
+ * @brief The cTopoObsSetSimple class represents a set of observations without parameters
+ */
+class cTopoObsSetSimple : public cTopoObsSet
+{
+    friend cTopoObsSetSimple * make_TopoObsSet<cTopoObsSetSimple>(cBA_Topo *aBA_Topo);
+public:
+    virtual ~cTopoObsSetSimple() override {}
+    void OnUpdate() override;    ///< "reaction" after linear update, eventually update inversion
+    virtual std::string toString() const override;
+    void makeConstraints(cResolSysNonLinear<tREAL8> &aSys) override;
+    virtual bool initialize() override; ///< initialize rotation
+
+protected:
+    cTopoObsSetSimple(cBA_Topo *aBA_Topo);
+    void createAllowedObsTypes() override;
+};
+
+
+/**
  * @brief The cTopoObsSetStation class represents a set of observation from one station,
  * that has a rotation unknown
  *  mRotVert2Instr unknown is recorded as mParams[0..2]
@@ -101,6 +120,8 @@ protected:
     std::string mOriginName;
     const cTopoPoint * mPtOrigin;
 };
+
+
 
 /**
  * @brief The cTopoObsSetDistParam class represents a set of observation of type distParam,

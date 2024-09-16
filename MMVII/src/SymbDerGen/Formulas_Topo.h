@@ -107,43 +107,6 @@ class cFormulaTopoZen
 };
 
 
-class cFormulaTopoDist
-{
-      public :
-
-           std::string FormulaName() const { return "TopoDist";}
-
-           std::vector<std::string>  VNamesUnknowns()  const
-           {
-                //  Instrument pose with 6 unknowns : 3 for center, 3 for axiator
-               // target pose with 3 unknowns : 3 for center
-                return  Append(NamesPose("Ci","Wi"),NamesP3("P_to"));
-           }
-
-           std::vector<std::string>    VNamesObs() const
-           {
-                // for the instrument pose, the 3x3 current rotation matrix as "observation/context"
-                // and the measure value
-                return  Append(NamesMatr("mi",cPt2di(3,3)), {"val"} );
-           }
-
-           template <typename tUk>
-                       std::vector<tUk> formula
-                       (
-                          const std::vector<tUk> & aVUk,
-                          const std::vector<tUk> & aVObs
-                       ) const
-           {
-               cPoseF<tUk>  aPoseInstr2RTL(aVUk,0,aVObs,0,true);
-               cPtxd<tUk,3> aP_to = VtoP3(aVUk,6);
-               auto       val = aVObs[9];
-               cPtxd<tUk,3>  aP_to_instr = aPoseInstr2RTL.Inverse().Value(aP_to);
-
-               auto dist = Norm2(aP_to_instr);
-               return {  dist - val };
-           }
-};
-
 
 
 class cFormulaTopoDX
@@ -257,6 +220,43 @@ class cFormulaTopoDZ
 };
 
 
+// -------------------------------------------
+
+class cFormulaTopoDist
+{
+      public :
+
+           std::string FormulaName() const { return "TopoDist";}
+
+           std::vector<std::string>  VNamesUnknowns()  const
+           {
+                //  Instrument pose with 3 unknowns : 3 for center
+               // target pose with 3 unknowns : 3 for center
+                return  Append(NamesP3("P_from"),NamesP3("P_to"));
+           }
+
+           std::vector<std::string>    VNamesObs() const
+           {
+                // the measure value
+                return  {"val"} ;
+           }
+
+           template <typename tUk>
+                       std::vector<tUk> formula
+                       (
+                          const std::vector<tUk> & aVUk,
+                          const std::vector<tUk> & aVObs
+                       ) const
+           {
+               cPtxd<tUk,3> aP_from = VtoP3(aVUk,0);
+               cPtxd<tUk,3> aP_to = VtoP3(aVUk,3);
+               auto       val = aVObs[0];
+
+               auto dist = Norm2(aP_to - aP_from);
+               return {  dist - val };
+           }
+};
+
 
 class cFormulaTopoDH
 {
@@ -266,9 +266,9 @@ class cFormulaTopoDH
 
            std::vector<std::string>  VNamesUnknowns()  const
            {
-               //  Instrument pose with 6 unknowns : 3 for center, 3 for axiator (axiator not used here)
+               //  Instrument pose with 3 unknowns : 3 for center
               // target pose with 3 unknowns : 3 for center
-               return  Append(NamesPose("P_from","Wi"),NamesP3("P_to"));
+               return  Append(NamesP3("P_from"),NamesP3("P_to"));
            }
 
            std::vector<std::string>    VNamesObs() const
@@ -299,7 +299,7 @@ class cFormulaTopoDH
                // convert points to GeoC
                auto aP_from_RTL = VtoP3(aVUk,0);
                auto aP_from_GeoC =  M_RTL * aP_from_RTL + T_RTL;
-               auto aP_to_RTL = VtoP3(aVUk,6);
+               auto aP_to_RTL = VtoP3(aVUk,3);
                auto aP_to_GeoC =  M_RTL * aP_to_RTL + T_RTL;
 
                // convert GeoC to GeoG

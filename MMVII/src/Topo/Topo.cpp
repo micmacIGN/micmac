@@ -96,6 +96,16 @@ void cBA_Topo::ToFile(const std::string & aName) const
 void cBA_Topo::AddPointsFromDataToGCP(cSetMesImGCP &aFullMesGCP, std::vector<cBA_GCP *> *aVGCP)
 {
     // fill every ObsSet types
+    if (!mAllTopoDataIn.mObsSetSimple.mObs.empty())
+    {
+        auto aSet = make_TopoObsSet<cTopoObsSetSimple>(this);
+        mAllObsSets.push_back(aSet);
+        for (auto & aObsData: mAllTopoDataIn.mObsSetSimple.mObs)
+        {
+            aSet->addObs(aObsData.mType, this, aObsData.mPtsNames, aObsData.mMeasures,
+                         {true, aObsData.mSigmas});
+        }
+    }
     for (auto & aSetData: mAllTopoDataIn.mAllObsSetStations)
     {
         auto aSet = make_TopoObsSet<cTopoObsSetStation>(this);
@@ -107,6 +117,7 @@ void cBA_Topo::AddPointsFromDataToGCP(cSetMesImGCP &aFullMesGCP, std::vector<cBA
                          {true, aObsData.mSigmas});
         }
     }
+
 
     std::set<std::string> aAllPointsNames; //< will create cTopoPoints for all points refered to in observations
     for (const auto & aSet: mAllObsSets)
@@ -231,6 +242,8 @@ bool cBA_Topo::mergeUnknowns(cResolSysNonLinear<tREAL8> &aSys)
     for (auto &set: mAllObsSets)
     {
         switch (set->getType()) {
+        case eTopoObsSetType::eSimple:
+            break;
         case eTopoObsSetType::eStation:
             break;
         case eTopoObsSetType::eNbVals:
@@ -331,6 +344,26 @@ bool cBA_Topo::tryInitAll()
         }
     }
 
+    tSimpleObsMap allSimpleObs; // obs from simple sets, in all directions
+    for (auto & aSet: mAllObsSets)
+    {
+        if (aSet->getType() ==  eTopoObsSetType::eSimple)
+        {
+            cTopoObsSetSimple* set = dynamic_cast<cTopoObsSetSimple*>(aSet);
+            if (!set)
+                MMVII_INTERNAL_ERROR("error set type")
+            for (auto &aObs:set->getAllObs())
+            {
+                if (aObs->getPointNames().size()==2)
+                {
+                    // those 2-point obs are recorded for both points
+                    allSimpleObs[&getPoint(aObs->getPointName(0))].push_back( aObs );
+                    allSimpleObs[&getPoint(aObs->getPointName(1))].push_back( aObs );
+                }
+            }
+        }
+    }
+
     int aNbUninit=0;
     for (auto & aSet: mAllObsSets)
         if (!aSet->isInit())
@@ -348,7 +381,7 @@ bool cBA_Topo::tryInitAll()
 
         for (auto& [aName, aTopoPt] : mAllPts)
             if (!aTopoPt.isInit())
-                tryInit(aTopoPt, allStations);
+                tryInit(aTopoPt, allStations, allSimpleObs);
         for (auto & aSet: mAllObsSets)
             if (!aSet->isInit())
                 aSet->initialize();
@@ -365,15 +398,15 @@ bool cBA_Topo::tryInitAll()
     return aNbUninit==0;
 }
 
-bool cBA_Topo::tryInit(cTopoPoint & aPtToInit, tStationsMap &stationsMap)
+bool cBA_Topo::tryInit(cTopoPoint & aPtToInit, tStationsMap &stationsMap, tSimpleObsMap &allSimpleObs)
 {
     if (aPtToInit.isInit())
         return true;
 #ifdef VERBOSE_TOPO
     StdOut() << "tryInit: " << aPtToInit.getName() <<".\n";
 #endif
-    bool ok =    tryInit3Obs1Station(aPtToInit, stationsMap)
-              || tryInitVertStations(aPtToInit, stationsMap)
+    bool ok =    tryInit3Obs1Station(aPtToInit, stationsMap, allSimpleObs)
+              || tryInitVertStations(aPtToInit, stationsMap, allSimpleObs)
                  ;
 #ifdef VERBOSE_TOPO
     if (ok)

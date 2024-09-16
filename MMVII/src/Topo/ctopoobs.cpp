@@ -20,13 +20,18 @@ cTopoObs::cTopoObs(cTopoObsSet* set, cBA_Topo *aBA_Topo, eTopoObsType type, cons
         return; //just to please the compiler
     }
     switch (mType) {
+    case eTopoObsType::eDist:
+    case eTopoObsType::eDH:
+        MMVII_INTERNAL_ASSERT_strong(mSet->getType()==eTopoObsSetType::eSimple, "Obs: incorrect set type")
+        MMVII_INTERNAL_ASSERT_strong(ptsNames.size()==2, "Obs: incorrect number of points")
+        MMVII_INTERNAL_ASSERT_strong(measures.size()==1, "Obs: 1 value should be given")
+        MMVII_INTERNAL_ASSERT_strong(aWeights.size()==1, "Obs: 1 weight should be given")
+        break;
     case eTopoObsType::eHz:
     case eTopoObsType::eZen:
-    case eTopoObsType::eDist:
     case eTopoObsType::eDX:
     case eTopoObsType::eDY:
     case eTopoObsType::eDZ:
-    case eTopoObsType::eDH:
         MMVII_INTERNAL_ASSERT_strong(mSet->getType()==eTopoObsSetType::eStation, "Obs: incorrect set type")
         MMVII_INTERNAL_ASSERT_strong(ptsNames.size()==2, "Obs: incorrect number of points")
         MMVII_INTERNAL_ASSERT_strong(measures.size()==1, "Obs: 1 value should be given")
@@ -78,6 +83,20 @@ std::vector<int> cTopoObs::getIndices() const
 {
     std::vector<int> indices;
     switch (mSet->getType()) {
+    case eTopoObsSetType::eSimple:
+    {
+        cTopoObsSetSimple* set = dynamic_cast<cTopoObsSetSimple*>(mSet);
+        if (!set)
+        {
+            MMVII_INTERNAL_ERROR("error set type")
+            return {}; //just to please the compiler
+        }
+        cObjWithUnkowns<tREAL8>* fromUk = mBA_Topo->getPoint(mPtsNames[0]).getUK();
+        cObjWithUnkowns<tREAL8>* toUk = mBA_Topo->getPoint(mPtsNames[1]).getUK();
+        fromUk->PushIndexes(indices);
+        toUk->PushIndexes(indices);
+        break;
+    }
     case eTopoObsSetType::eStation:
     {
         cTopoObsSetStation* set = dynamic_cast<cTopoObsSetStation*>(mSet);
@@ -119,15 +138,15 @@ std::vector<tREAL8> cTopoObs::getVals() const
     std::vector<tREAL8> vals;
 
     switch (mSet->getType()) {
-    case eTopoObsSetType::eStation:
+    case eTopoObsSetType::eSimple:
     {
-        cTopoObsSetStation* set = dynamic_cast<cTopoObsSetStation*>(mSet);
+        cTopoObsSetSimple* set = dynamic_cast<cTopoObsSetSimple*>(mSet);
         if (!set)
         {
             MMVII_INTERNAL_ERROR("error set type")
             return {}; //just to please the compiler
         }
-        cPt3dr* aPtFrom = set->getPtOrigin()->getPt();
+        cPt3dr* aPtFrom = mBA_Topo->getPoint(mPtsNames[0]).getPt();
         cPt3dr* aPtTo = mBA_Topo->getPoint(mPtsNames[1]).getPt();
         if (mType==eTopoObsType::eDH)
         {
@@ -152,15 +171,26 @@ std::vector<tREAL8> cTopoObs::getVals() const
             auto aPtToM = aSysCo->getEllipsoid_a()
                     *sqrt(1-aSysCo->getEllipsoid_e2()*sin(aPhiTo)*sin(aPhiTo));
             vals.push_back(aPtToM);
-        } else {
-            set->PushRotObs(vals);
-
-            if (mType==eTopoObsType::eZen)
-            {
-                tREAL8 ref_cor = 0.12 * mBA_Topo->getSysCo()->getDistHzApprox(*aPtFrom, *aPtTo)
-                                      / (2*mBA_Topo->getSysCo()->getRadiusApprox(*aPtFrom));
-                vals.push_back(ref_cor);
-            }
+        }
+        vals.insert(std::end(vals), std::begin(mMeasures), std::end(mMeasures));
+        break;
+    }
+    case eTopoObsSetType::eStation:
+    {
+        cTopoObsSetStation* set = dynamic_cast<cTopoObsSetStation*>(mSet);
+        if (!set)
+        {
+            MMVII_INTERNAL_ERROR("error set type")
+            return {}; //just to please the compiler
+        }
+        cPt3dr* aPtFrom = set->getPtOrigin()->getPt();
+        cPt3dr* aPtTo = mBA_Topo->getPoint(mPtsNames[1]).getPt();
+        set->PushRotObs(vals);
+        if (mType==eTopoObsType::eZen)
+        {
+            tREAL8 ref_cor = 0.12 * mBA_Topo->getSysCo()->getDistHzApprox(*aPtFrom, *aPtTo)
+                                  / (2*mBA_Topo->getSysCo()->getRadiusApprox(*aPtFrom));
+            vals.push_back(ref_cor);
         }
         vals.insert(std::end(vals), std::begin(mMeasures), std::end(mMeasures));
         break;

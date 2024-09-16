@@ -8,19 +8,38 @@
 namespace MMVII
 {
 
-bool tryInit3Obs1Station(cTopoPoint & aPtToInit, tStationsMap &stationsMap) // try 3 obs from one station
+// try 3 obs from one station
+bool tryInit3Obs1Station(cTopoPoint & aPtToInit, tStationsMap &stationsMap, tSimpleObsMap &allSimpleObs)
 {
     for (auto& [aOriginPt, aStationVect] : stationsMap)
     {
         if (!aOriginPt->isInit())
             continue;
+        cTopoObs * obs_dist = nullptr;
+        if (allSimpleObs.count(aOriginPt))
+        {
+            for (auto & aObs: allSimpleObs[aOriginPt])
+            {
+                if ( aObs->getPointName(0)==aPtToInit.getName()
+                     || aObs->getPointName(1)==aPtToInit.getName() )
+                {
+                    switch (aObs->getType()) {
+                    case eTopoObsType::eDist:
+                        obs_dist = aObs;
+                        break;
+                    default:
+                        break;
+                    }
+                }
+            }
+        }
         for (auto & aStation: aStationVect)
         {
             if (!aStation->isInit())
                 continue;
             cTopoObs * obs_az = nullptr;
             cTopoObs * obs_zen = nullptr;
-            cTopoObs * obs_dist = nullptr;
+
             cTopoObs * obs_dx = nullptr;
             cTopoObs * obs_dy = nullptr;
             cTopoObs * obs_dz = nullptr;
@@ -34,9 +53,6 @@ bool tryInit3Obs1Station(cTopoPoint & aPtToInit, tStationsMap &stationsMap) // t
                         break;
                     case eTopoObsType::eZen:
                         obs_zen = aObs;
-                        break;
-                    case eTopoObsType::eDist:
-                        obs_dist = aObs;
                         break;
                     case eTopoObsType::eDX:
                         obs_dx = aObs;
@@ -82,8 +98,8 @@ bool tryInit3Obs1Station(cTopoPoint & aPtToInit, tStationsMap &stationsMap) // t
     return false;
 }
 
-
-bool tryInitVertStations(cTopoPoint & aPtToInit, tStationsMap &stationsMap) // try bearing and distance from verticalized stations
+ // try bearing and distance from verticalized stations
+bool tryInitVertStations(cTopoPoint & aPtToInit, tStationsMap &stationsMap, tSimpleObsMap &allSimpleObs)
 {
     for (auto& [aOriginPt, aStationVect] : stationsMap)
     {
@@ -91,6 +107,23 @@ bool tryInitVertStations(cTopoPoint & aPtToInit, tStationsMap &stationsMap) // t
         cTopoObsSetStation * aStationHz = nullptr;
         if (!aOriginPt->isInit())
             continue;
+        if (allSimpleObs.count(aOriginPt))
+        {
+            for (auto & aObs: allSimpleObs[aOriginPt])
+            {
+                if ( aObs->getPointName(0)==aPtToInit.getName()
+                     || aObs->getPointName(1)==aPtToInit.getName() )
+                {
+                    switch (aObs->getType()) {
+                    case eTopoObsType::eDist:
+                        dist = aObs->getMeasures()[0];
+                        break;
+                    default:
+                        break;
+                    }
+                }
+            }
+        }
         for (auto & aStation: aStationVect)
         {
             for (const auto & aObs: aStation->getAllObs())
@@ -111,9 +144,6 @@ bool tryInitVertStations(cTopoPoint & aPtToInit, tStationsMap &stationsMap) // t
                                 (aStation->getOriStatus()==eTopoStOriStat::eTopoStOriFixed)
                                 || (aStation->getOriStatus()==eTopoStOriStat::eTopoStOriVert)) )
                             zen = aObs->getMeasures()[0];
-                    if (!std::isfinite(dist))
-                        if (aObs->getType()==eTopoObsType::eDist)
-                            dist = aObs->getMeasures()[0];
                 }
             }
         }
