@@ -1,0 +1,239 @@
+from __future__ import print_function
+import argparse
+import os
+import random
+import torch
+import torch.nn as nn
+import torch.nn.parallel
+import torch.backends.cudnn as cudnn
+import torch.optim as optim
+import torch.utils.data
+from torch.autograd import Variable
+import torch.nn.functional as F
+import skimage
+import skimage.io
+import skimage.transform
+import numpy as np
+import time
+import math
+from dataloader import KITTIloader2015 as ls
+from dataloader import KITTILoader as DA
+#from dataloader import vaihingen_collector_folder as vsf
+from dataloader import vaihingen_collector_file as vse
+
+from models import *
+
+import pdb
+
+# input is gray image
+parser = argparse.ArgumentParser(description='PSMNet')
+parser.add_argument('--maxdisp', type=int ,default=192,
+                    help='maxium disparity')
+parser.add_argument('--model', default='stackhourglass',
+                    help='select model')
+parser.add_argument('--datatype', default='2015',
+                    help='datapath')
+parser.add_argument('--datapath', default='/media/jiaren/ImageNet/data_scene_flow_2015/training/',
+                    help='datapath')
+parser.add_argument('--disp_scale', type=int ,default=256,
+                    help='maxium disparity')                    
+parser.add_argument('--train_datapath', default=None,
+                    help='training data path')
+parser.add_argument('--val_datapath', default=None,
+                    help='validation data path')
+parser.add_argument('--epoch_start', type=int, default=0, help='number of epochs to train for')
+parser.add_argument('--epochs', type=int, default=300,
+                    help='number of epochs to train')
+parser.add_argument('--loadmodel', default='./trained/submission_model.tar',
+                    help='load model')
+parser.add_argument('--resume', action='store_true', default=False,
+                    help='load model and optimizer')
+parser.add_argument('--savemodel', default='./',
+                    help='save model')
+parser.add_argument('--no-cuda', action='store_true', default=False,
+                    help='enables CUDA training')
+parser.add_argument('--seed', type=int, default=1, metavar='S',
+                    help='random seed (default: 1)')
+args = parser.parse_args()
+args.cuda = not args.no_cuda and torch.cuda.is_available()
+torch.manual_seed(args.seed)
+if args.cuda:
+    torch.cuda.manual_seed(args.seed)
+
+"""if args.datatype == '2015':
+   from dataloader import KITTIloader2015 as ls
+elif args.datatype == '2012':
+   from dataloader import KITTIloader2012 as ls"""
+
+#all_left_img, all_right_img, all_left_disp, test_left_img, test_right_img, test_left_disp = ls.dataloader(args.datapath)
+all_left_img, all_right_img, all_left_disp, test_left_img, test_right_img, test_left_disp = vse.datacollectorall(
+    args.train_datapath, args.val_datapath)
+    
+#batch_size= 12
+TrainImgLoader = torch.utils.data.DataLoader(
+         DA.myImageFloder(all_left_img,all_right_img,all_left_disp, True, loader=DA.gray_loader, disp_scale=args.disp_scale), 
+         batch_size= 3, shuffle= True, num_workers= 8, drop_last=False)
+
+TestImgLoader = torch.utils.data.DataLoader(
+         DA.myImageFloder(test_left_img,test_right_img,test_left_disp, False, loader=DA.gray_loader, disp_scale=args.disp_scale), 
+         batch_size= 3, shuffle= False, num_workers= 4, drop_last=False)
+
+if args.model == 'stackhourglass':
+    model = stackhourglass(args.maxdisp, 1)
+elif args.model == 'basic':
+    model = basic(args.maxdisp)
+else:
+    print('no model')
+
+if args.cuda:
+    model = nn.DataParallel(model)
+    model.cuda()
+
+# refer to https://discuss.pytorch.org/t/how-to-load-part-of-pre-trained-model/1113/2
+# refer to https://discuss.pytorch.org/t/how-to-load-part-of-pre-trained-model/1113/16
+if args.loadmodel is not None:
+    # check point
+    # resume problem
+    if args.resume :
+        state_dict = torch.load(args.loadmodel)
+        model.load_state_dict(state_dict['state_dict'])
+        print('Number of model parameters: {}'.format(sum([p.data.nelement() for p in model.parameters()])))
+        optimizer = optim.Adam(model.parameters(), lr=0.1, betas=(0.9, 0.999))
+        optimizer.load_state_dict(state_dict['optimizer'])
+    else :
+        state_dict = torch.load(args.loadmodel)
+        pretrained_dict = state_dict['state_dict']
+        model_dict = model.state_dict()
+        # 1. filter out unnecessary keys
+        # filter unnecessary keys
+        pretrained_dict = {k: v for k, v in pretrained_dict.items() if (k in model_dict) and (model_dict[k].shape == pretrained_dict[k].shape)}
+        # 2. overwrite entries in the existing state dict
+        model_dict.update(pretrained_dict) 
+        # 3. load the new state dict
+        model.load_state_dict(model_dict)
+        optimizer = optim.Adam(model.parameters(), lr=0.1, betas=(0.9, 0.999))
+
+else:
+    optimizer = optim.Adam(model.parameters(), lr=0.1, betas=(0.9, 0.999))
+    
+def train(imgL,imgR,disp_L):
+        model.train()
+        #pdb.set_trace()
+        imgL   = Variable(torch.FloatTensor(imgL))
+        imgR   = Variable(torch.FloatTensor(imgR))   
+        disp_L = Variable(torch.FloatTensor(disp_L))
+
+        if args.cuda:
+            imgL, imgR, disp_true = imgL.cuda(), imgR.cuda(), disp_L.cuda()
+
+        #---------
+        mask1 = (disp_true > 0)
+        mask2 = (disp_true < args.maxdisp)
+        mask = mask1 & mask2
+        #mask = (disp_true > 0)
+        mask.detach_()
+        #----
+
+        optimizer.zero_grad()
+        
+        if args.model == 'stackhourglass':
+            output1, output2, output3 = model(imgL,imgR)
+            output1 = torch.squeeze(output1,1)
+            output2 = torch.squeeze(output2,1)
+            output3 = torch.squeeze(output3,1)
+            loss = 0.5*F.smooth_l1_loss(output1[mask], disp_true[mask], size_average=True) + 0.7*F.smooth_l1_loss(output2[mask], disp_true[mask], size_average=True) + F.smooth_l1_loss(output3[mask], disp_true[mask], size_average=True) 
+        elif args.model == 'basic':
+            output = model(imgL,imgR)
+            output = torch.squeeze(output3,1)
+            loss = F.smooth_l1_loss(output3[mask], disp_true[mask], size_average=True)
+
+        loss.backward()
+        optimizer.step()
+
+        return loss.data
+
+def test(imgL,imgR,disp_true):
+        model.eval()
+        imgL   = Variable(torch.FloatTensor(imgL))
+        imgR   = Variable(torch.FloatTensor(imgR))   
+        if args.cuda:
+            imgL, imgR = imgL.cuda(), imgR.cuda()
+
+        with torch.no_grad():
+            output3 = model(imgL,imgR)
+            output3 = torch.squeeze(output3)
+
+        pred_disp = output3.data.cpu()
+
+        #computing 3-px error#
+        true_disp = disp_true
+        mask1 = (disp_true > 0)
+        mask2 = (disp_true < args.maxdisp)
+        mask = mask1 & mask2
+        index = np.argwhere(mask)
+        #index = np.argwhere(true_disp>0)
+        disp_true[index[0][:], index[1][:], index[2][:]] = np.abs(true_disp[index[0][:], index[1][:], index[2][:]]-pred_disp[index[0][:], index[1][:], index[2][:]])
+        correct = (disp_true[index[0][:], index[1][:], index[2][:]] < 3)|(disp_true[index[0][:], index[1][:], index[2][:]] < true_disp[index[0][:], index[1][:], index[2][:]]*0.05)      
+        torch.cuda.empty_cache()
+
+        return 1-(float(torch.sum(correct))/float(len(index[0])))
+
+def adjust_learning_rate(optimizer, epoch):
+    if epoch <= 100:
+       lr = 0.001
+    else:
+       lr = 0.0001
+    print(lr)
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = lr
+
+
+def main():
+    max_acc=0
+    max_epo=0
+    start_full_time = time.time()
+    for epoch in range(args.epoch_start, args.epochs+1):
+        total_train_loss = 0
+        total_test_loss = 0
+        adjust_learning_rate(optimizer,epoch)
+        
+        ## training ##
+        for batch_idx, (imgL_crop, imgR_crop, disp_crop_L) in enumerate(TrainImgLoader):
+            start_time = time.time()
+            #pdb.set_trace()
+            loss = train(imgL_crop,imgR_crop, disp_crop_L)
+            print('Iter %d training loss = %.3f , time = %.2f' %(batch_idx, loss, time.time() - start_time))
+            total_train_loss += loss
+        print('epoch %d total training loss = %.3f' %(epoch, total_train_loss/len(TrainImgLoader)))
+        ## Test ##
+        for batch_idx, (imgL, imgR, disp_L) in enumerate(TestImgLoader):
+            test_loss = test(imgL,imgR, disp_L)
+            print('Iter %d 3-px error in val = %.3f' %(batch_idx, test_loss*100))
+            total_test_loss += test_loss
+
+
+        print('epoch %d total 3-px error in val = %.3f' %(epoch, total_test_loss/len(TestImgLoader)*100))
+        if total_test_loss/len(TestImgLoader)*100 > max_acc:
+            max_acc = total_test_loss/len(TestImgLoader)*100
+            max_epo = epoch
+        
+        print('MAX epoch %d total test error = %.3f' %(max_epo, max_acc))
+        
+        #SAVE
+        if (epoch + 1) % 2 ==0 :
+            savefilename = args.savemodel+'finetune_'+str(epoch)+'.tar'
+            torch.save({
+                'epoch': epoch,
+                'state_dict': model.state_dict(),
+                'optimizer': optimizer.state_dict(),
+                'train_loss': total_train_loss/len(TrainImgLoader),
+                'test_loss': total_test_loss/len(TestImgLoader)*100,
+            }, savefilename)
+	
+        print('full finetune time = %.2f HR' %((time.time() - start_full_time)/3600))
+    print(max_epo)
+    print(max_acc)
+
+
+if __name__ == '__main__':
+   main()
