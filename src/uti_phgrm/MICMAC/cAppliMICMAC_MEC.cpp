@@ -504,8 +504,20 @@ std::cout << "CCMMM = " << aBoxClip._p0 << " " << aBoxClip._p1 << "\n"; getchar(
                              const cTypeCAH & aTC  = mCorrelAdHoc->TypeCAH();
                              if (aTC.MutiCorrelOrthoExt().IsInit())
                                {
-                                //DoEstimHomWarpers();
-                                DoEstimWarpersPDVs();
+
+                                 const cMutiCorrelOrthoExt aMCOE = aTC.MutiCorrelOrthoExt().Val();
+                                 //aMCOE.UseEpip().Val()
+                                 if (aMCOE.UseEpip().IsInit())
+                                   {
+                                       if (aMCOE.UseEpip().Val())
+                                         {
+                                           DoEstimWarpersPDVs();
+                                         }
+                                        else
+                                         {
+                                            DoEstimHomWarpers();
+                                         }
+                                   }
                                }
                            }
                      }

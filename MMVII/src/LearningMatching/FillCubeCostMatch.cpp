@@ -203,9 +203,10 @@ class cAppliFillCubeCost : public cAppliLearningMatch
 	const tImZ  & ImZMax() {return  mImZMax;}
 	void MakeNormalizedIm();
         // if with decision Network 
-    bool mWithPredictionNetwork=true;
-    bool mWithMatcher3D=false;
-    bool mUseCuda=false;
+        bool mWithMatcher3D=false;
+        bool mUseCuda=false;
+        bool mUsePredicNet=false;
+
 	// -------------- Internal variables -------------------
      private :
 
@@ -479,7 +480,7 @@ cOneModele::cOneModele
             mCNNPredictor = new aCnnModelPredictor(TheMSNet,mModelBinDir,mAppli->mUseCuda);
             mCNNPredictor->PopulateModelFeatures(mMSNet);
             mCNNWin=cPt2di(7,7); 
-            if (mAppli->mWithPredictionNetwork)
+            if (mAppli->mUsePredicNet)
             {
               mCNNPredictor->PopulateModelDecision(mDecisionNet);  
             }
@@ -489,7 +490,7 @@ cOneModele::cOneModele
                 mCNNPredictor = new aCnnModelPredictor(TheUnetMlpCubeMatcher,mModelBinDir,mAppli->mUseCuda);
                 mCNNPredictor->PopulateModelFeatures(mMSNet);
                 mCNNWin=cPt2di(1,1);
-                if (mAppli->mWithPredictionNetwork)
+                if (mAppli->mUsePredicNet)
                 {
                   mCNNPredictor->PopulateModelDecision(mDecisionNet);
                 }
@@ -759,6 +760,7 @@ cCollecSpecArg2007 & cAppliFillCubeCost::ArgOpt(cCollecSpecArg2007 & anArgOpt)
           << AOpt2007(mModelBinaries,"CNNParams" ,"Model Directory : Contient des fichiers binaires *.bin")
           << AOpt2007(mModelArchitecture,"CNNArch" ,"Modek architecture : "+TheFastArch+" || "+TheFastStandard+" || "+TheFastArchWithMLP)
           << AOpt2007(mUseCuda,"UseCuda","USE CUDA TO LAUNCH MODELS")
+          << AOpt2007(mUsePredicNet,"UsePredicNet","Use the mlp to compute learnt similarities")
    ;
 }
 
@@ -974,7 +976,7 @@ int  cAppliFillCubeCost::Exe()
         
         cPt2di aPix;
         using namespace torch::indexing;
-        if (mWithPredictionNetwork && !mWithMatcher3D)
+        if (mUsePredicNet && !mWithMatcher3D)
         {
             LREmbeddingsL=LREmbeddingsL.unsqueeze(0);
             LREmbeddingsR=LREmbeddingsR.unsqueeze(0);
@@ -1337,7 +1339,7 @@ int  cAppliFillCubeCost::Exe()
             }*/
 
         }
-        else if(mWithPredictionNetwork && mWithMatcher3D)
+        else if(mUsePredicNet && mWithMatcher3D)
 
         {
             // CREATE THE COST VOLUME AND PUSH COST AT RELEVANT NAPPE LOCATIONS

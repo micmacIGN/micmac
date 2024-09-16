@@ -391,7 +391,15 @@ void aCnnModelPredictor::PopulateModelFeatures(torch::jit::script::Module & Netw
     StdOut()<<"Model Name "<<aModel<<"\n";
     //auto cuda_available=false;
     torch::Device device(DeviceCuda ? torch::kCUDA : torch::kCPU);
-    Network=torch::jit::load(aModel);
+    try
+    {
+            Network= torch::jit::load(aModel);
+    }
+    catch (std::exception& e)
+    {
+            std::cout << e.what() << std::endl;
+    }
+    //Network=torch::jit::load(aModel);
     Network.to(device);
     StdOut()<<"MODEL FEATURES LOADED !!!!!! "<<"\n";
 }
@@ -1004,9 +1012,9 @@ torch::Tensor aCnnModelPredictor::PredictMSNetTileFeatures(torch::jit::script::M
     // Normalize The tile with respect to the dataset configuration
     // print image content
     //std::cout<<"TILE CONTENT  ========= >  "<<aPL<<std::endl;
-    aPL=aPL.div(255.0);
+    aPL=aPL.div(255.0)-0.5;
     //aPL=(aPL.sub(at::min(aPL))).div(at::max(aPL)-at::min(aPL));
-    aPL=(aPL.sub(0.4357159999)).div(0.1951853861); //0.4357159999,0.1951853861 0.434583236,0.1948717255
+    //***********************************aPL=(aPL.sub(0.4357159999)).div(0.1951853861); //0.4357159999,0.1951853861 0.434583236,0.1948717255
 
     //normalize with MONTPELLIER PLEAIDES 50 CM DATASET
 

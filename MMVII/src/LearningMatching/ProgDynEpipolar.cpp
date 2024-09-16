@@ -283,8 +283,44 @@ void cAppliProgDynEpipolar::DoInferenceFillCostOneForward()
         auto Simil=out.toTensor().squeeze().to(TheCPUDevice);
         vol.index({0,d,Slice(0,None,1),Slice(d,aLeftImageT.size(3),1)}).copy_(torch::sigmoid(Simil).mul(-1).add(1));
     }
+    /*for (int dd=;dd<mDispRange;dd+)
+      {
+        // compute cosine similarities
+        auto aSliceLeft = Features.slice(0,0,1).slice(3,d,aLeftImageT.size(3),1).squeeze();
+        auto aSliceRight= Features.slice(0,1,2).slice(3,0,aRightImageT.size(3)-d,1).squeeze();
+        auto aSimil=F::cosine_similarity(aSliceLeft,aSliceRight,
+              F::CosineSimilarityFuncOptions().dim(0)).squeeze().to(torch::kCPU);
+        vol.index({0,d,Slice(0,None,1),Slice(d,aLeftImageT.size(3),1)}).copy_(
+              torch::sigmoid(Simil).mul(-1).add(1)
+              );
+      }*/
 
-    if (1)
+    // CHECK that SGM works fine
+   /* if (1)
+       {
+        vol=at::transpose(at::transpose(vol,1,2),2,3).contiguous();
+        torch::Tensor out = torch::zeros({1, vol.size(1),
+                                          vol.size(2),
+                                          vol.size(3)},
+                                         torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
+        torch::Tensor tmp = torch::zeros({vol.size(2), vol.size(3)},
+                                         torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
+        for (int i=0;i<AggregParams.sgm_i;i++)
+        {
+            out=out.mul(0.0);
+            std::cout<<"================> SGM SGM SGM SGM SGM "<<std::endl;
+            sgm2(aLeftImageT, aRightImageT, vol, out, tmp, mP1, mP2, AggregParams.tau_so,
+                AggregParams.alpha1, AggregParams.sgm_q1, AggregParams.sgm_q2, -1);
+            vol.copy_(out.div(4.0));
+        }
+        vol=vol.reshape({1,mDispRange,aLeftImageT.size(2),aLeftImageT.size(3)});
+        vol.copy_(at::transpose(at::transpose(out,2,3),1,2).contiguous());
+        vol=vol.div(4.0);
+
+      }*/
+
+
+    if (0)
       {
           //Cost Based Cross Aggregation CBCA
           torch::Tensor x0c=torch::empty({1, 4, vol.size(2), vol.size(3)},

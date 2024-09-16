@@ -844,8 +844,21 @@ cParamCallSys cAppli::ComMatch(cParam1Match & aParam)
               );
           break;
        }
-       case eModeEpipMatch::eMEM_NoMatch :
-       {
+
+     case eModeEpipMatch::eMEM_RAFTStereo :
+     {
+        std::string aDenseMDir = TopDirMMVII() + "src/DenseMatch/";
+        return cParamCallSys(
+                   "bash",
+                   aDenseMDir + "run_raftstereo.sh",
+                   "-l", DirTmpOfCmd()+aParam.mClipNameIm1,
+                   "-r", DirTmpOfCmd()+aParam.mClipNameIm2,
+                   "-o", DirTmpOfCmd() +aParam.mClipNamePx
+            );
+        break;
+     }
+     case eModeEpipMatch::eMEM_NoMatch :
+     {
              std::string aNamePx = DirTmpOfCmd() + aParam.mClipNamePx;
              cPt2di aSzBox1 =  aParam.mBoxIn1.Sz();
              cPt2di aSzBox2 =  aParam.mBoxIn2.Sz();
@@ -860,7 +873,7 @@ cParamCallSys cAppli::ComMatch(cParam1Match & aParam)
              cDataFileIm2D::Create(aNamePx,eTyNums::eTN_INT1,aParam.mBoxIn1.Sz(),1);
 
              return cParamCallSys();
-       }
+      }
 
        default : break;
    }
@@ -944,6 +957,11 @@ void  cAppli::MatchOneLevel(int aLevel)
 	         aModePad = eModePaddingEpip::eMPE_PxNeg; 
 	         aAmplMax = 180;
             break;
+
+           case eModeEpipMatch::eMEM_RAFTStereo  :
+                aModePad = eModePaddingEpip::eMPE_PxNeg;
+                aAmplMax = 180;
+           break;
     
             case eModeEpipMatch::eMEM_UNETDECISION  :    
                  aModePad = eModePaddingEpip::eMPE_NoPad;
@@ -1049,11 +1067,12 @@ int cAppli::Exe()
    {
        switch (mModeMatchCur)
        {
-            case eModeEpipMatch::eMEM_MMV1    :    mModePad = eModePaddingEpip::eMPE_NoPad; break;
-            case eModeEpipMatch::eMEM_PSMNet  :    mModePad = eModePaddingEpip::eMPE_PxNeg; break;
+            case eModeEpipMatch::eMEM_MMV1      :  mModePad = eModePaddingEpip::eMPE_NoPad; break;
+            case eModeEpipMatch::eMEM_PSMNet    :  mModePad = eModePaddingEpip::eMPE_PxNeg; break;
+            case eModeEpipMatch::eMEM_RAFTStereo:  mModePad = eModePaddingEpip::eMPE_PxNeg; break;
             case eModeEpipMatch::eMEM_UNETDECISION :    mModePad = eModePaddingEpip::eMPE_PxNeg; break;
-            case eModeEpipMatch::eMEM_NoMatch :    mModePad = eModePaddingEpip::eMPE_NoPad; break;
-            case eModeEpipMatch::eNbVals      :                                             break;
+            case eModeEpipMatch::eMEM_NoMatch   :  mModePad = eModePaddingEpip::eMPE_NoPad; break;
+            case eModeEpipMatch::eNbVals        :                                             break;
        }
    }
    SetIfNotInit(mDoFileCommands,!mDoPurge);
@@ -1142,17 +1161,19 @@ int cAppli::Exe()
                          */
 
        cParamCallSys aCom(
-             "MMVII DenseMatchEpipEval",
-             mNameIm1,
+             "MMVII",
+             "DenseMatchEpipEval",
+              mNameIm1,
               mNameIm2,
               mOutDir+mOutPx,
               "true",
               "Masq1="+Im1().LevAt(0).NameImOrMasq(false),
               "Masq2="+Im2().LevAt(0).NameImOrMasq(false),
               "ImCorrel="+mOutDir+NameCorrel,
-              "HiddenMask="+mOutDir+NameMasq,
-              "@ExitOnBrkp"
+              "HiddenMask="+mOutDir+NameMasq
+              //"@ExitOnBrkp"
            );
+       std::cout<<"COMMAND COrrell "<<aCom.Com()<<std::endl;
         ExtSysCall(aCom,false);
      }
    // Save Output MMLastNuage.xml

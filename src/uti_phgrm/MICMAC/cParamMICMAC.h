@@ -2391,6 +2391,12 @@ class cMutiCorrelOrthoExt
         cTplValGesInit< bool > & Cuda();
         const cTplValGesInit< bool > & Cuda()const ;
 
+        cTplValGesInit< bool > & UsePredicNet();
+        const cTplValGesInit< bool > & UsePredicNet()const ;
+
+        cTplValGesInit< bool > & UseEpip();
+        const cTplValGesInit< bool > & UseEpip()const ;
+
     private:
         cTplValGesInit< std::string > mCmd;
         cTplValGesInit< std::string > mOrthFileModeleParams;
@@ -2399,6 +2405,8 @@ class cMutiCorrelOrthoExt
         cTplValGesInit< std::string > mOptions;
         cTplValGesInit< int > mDeltaZ;
         cTplValGesInit< bool > mUseCuda;
+        cTplValGesInit <bool> mUsePredicNet;
+        cTplValGesInit <bool> mUseEpip;
 
         
 };
@@ -2522,6 +2530,9 @@ class cScoreLearnedMMVII
         cTplValGesInit< bool > &  Cuda();
         const cTplValGesInit< bool >  & Cuda() const;
 
+        cTplValGesInit< bool > &  UsePredicNet();
+        const cTplValGesInit< bool >  & UsePredicNet() const;
+
         cTplValGesInit< double > & CostDyn();
         const cTplValGesInit< double > & CostDyn()const ;
 
@@ -2541,6 +2552,7 @@ class cScoreLearnedMMVII
         cTplValGesInit< std::string > mFileModeleParams;
         cTplValGesInit< std::string > mFileModeleArch;
         cTplValGesInit< bool > mCuda;
+        cTplValGesInit< bool > mUsePredicNet;
 
         
         cTplValGesInit< double > mCostDyn;

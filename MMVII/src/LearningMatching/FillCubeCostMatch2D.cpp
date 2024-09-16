@@ -61,11 +61,12 @@ namespace MMVII {
           torch::Tensor InterpolateSlice(torch::Tensor & FeatMap,torch::Tensor & aGeoXT,torch::Tensor & aGeoYT);
           void ExeOptim();
           aCnnModelPredictor * mCNNPredictor=nullptr;
-          bool mWithPredictionNetwork=false;
-          bool mWithMatcher3D=false;
           torch::jit::script::Module mMSNet;
           torch::jit::script::Module mDecisionNet;
           torch::jit::script::Module mMatcherNet;
+          bool mUseCuda=false;
+          bool mUsePredicNet=false;
+          bool mWithMatcher3D=false;
     private:
           int Exe() override;
           cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
@@ -159,6 +160,8 @@ namespace MMVII {
             << AOpt2007(mNameCmpModele, "ModCmp","Modele for Comparison")
             << AOpt2007(mModelBinaries,"CNNParams" ,"Model Directory : scripted model files *.pt")
             << AOpt2007(mModelArchitecture,"CNNArch" ,"Model architecture : " + TheUnetMlpCubeMatcher)
+            << AOpt2007(mUseCuda,"UseCuda","USE CUDA TO LAUNCH MODELS")
+            << AOpt2007(mUsePredicNet,"UsePredicNet","Use the mlp to compute learnt similarities")
      ;
   }
 
@@ -292,9 +295,9 @@ void cAppliFillCubeCost2D::ExeOptim()
    // LOADING MODELS
    if (NameArch()==TheUnetMlpCubeMatcher)
        {
-           mCNNPredictor = new aCnnModelPredictor(TheUnetMlpCubeMatcher,this->NameDirModel(),false);
+           mCNNPredictor = new aCnnModelPredictor(TheUnetMlpCubeMatcher,this->NameDirModel(),mUseCuda);
            mCNNPredictor->PopulateModelFeatures(mMSNet);
-           if (mWithPredictionNetwork)
+           if (mUsePredicNet)
            {
              mCNNPredictor->PopulateModelDecision(mDecisionNet);
            }
@@ -360,7 +363,7 @@ void cAppliFillCubeCost2D::ExeOptim()
            std::cout<<"BORNES INITIALES PAX 2 "<<aZMin<<"   "<<aZMax<<std::endl;
            /*******************************************************************************/
            /*******************************************************************************/
-           /******  Optimized solution to solve sub-pixel interpolation memory overhead ***/
+           /****** blabla Optimized solution to solve sub-pixel interpolation memory  ***/
            /*******************************************************************************/
            /*******************************************************************************/
            if (StepZ()<1.0)
@@ -548,9 +551,9 @@ void cAppliFillCubeCost2D::ExeOptim()
     // LOADING MODELS
     if (NameArch()==TheUnetMlpCubeMatcher)
         {
-            mCNNPredictor = new aCnnModelPredictor(TheUnetMlpCubeMatcher,this->NameDirModel(),false);
+            mCNNPredictor = new aCnnModelPredictor(TheUnetMlpCubeMatcher,this->NameDirModel(),mUseCuda);
             mCNNPredictor->PopulateModelFeatures(mMSNet);
-            if (mWithPredictionNetwork)
+            if (mUsePredicNet)
             {
               mCNNPredictor->PopulateModelDecision(mDecisionNet);
             }
@@ -575,7 +578,7 @@ void cAppliFillCubeCost2D::ExeOptim()
             namespace F= torch::nn::functional;
             /*******************************************************************************/
             /*******************************************************************************/
-            /*******  Simple Loop solution --> memory overflow *****************************/
+            /*******  Simple Loop solution                     *****************************/
             /*******************************************************************************/
             /*******************************************************************************/
             // Compute similarity
@@ -689,13 +692,22 @@ void cAppliFillCubeCost2D::ExeOptim()
                                                                 Slice(inf_y,sup_y,1),
                                                                 Slice(inf_x,sup_x,1)}));
                       }
+                    torch::Tensor CosSim;
 
-
-                    // compute similarity
-                    //std::cout<<" All_Query SIZES  "<< All_Query.sizes()<<std::endl;
-                    torch::Tensor CosSim=F::cosine_similarity(All_Reference,
-                                                                    All_Query,
-                                                                    F::CosineSimilarityFuncOptions().dim(0)).squeeze();
+                    if(mUsePredicNet)
+                      {
+                        auto ReferenceQuery=torch::cat({All_Reference.unsqueeze(2),
+                                                        All_Query.unsqueeze(2)},0);
+                        CosSim=mCNNPredictor->PredictONCUBE(mDecisionNet,ReferenceQuery).squeeze();
+                      }
+                    else
+                      {
+                        // compute similarity
+                        //std::cout<<" All_Query SIZES  "<< All_Query.sizes()<<std::endl;
+                        CosSim=F::cosine_similarity(All_Reference,
+                                                    All_Query,
+                                                    F::CosineSimilarityFuncOptions().dim(0)).squeeze();
+                      }
                     //std::cout<<" CosSim SIZES  "<< CosSim.sizes()<<std::endl;
                     // dump in mFileCube
                     for (int aDzy=aDZMin2.GetV(aPix) ; aDzy<aDZMax2.GetV(aPix) ; aDzy++)
@@ -710,13 +722,14 @@ void cAppliFillCubeCost2D::ExeOptim()
                                 {
                                   auto aSim=CosSim.index({(int64_t)(aDzy-aDZMin2.GetV(aPix)),
                                                                 (int64_t)(aDzx-aDZMin1.GetV(aPix))});
-                                  //ELISE_ASSERT(aSim.item<float>()<=1.0 && aSim.item<float>()>=-1.0, "Similarity values issue not in bound 0 ,1 ");
-                                  //aTabCost[0] =(1-(double)aSim.item<float>())/2.0;
-                                  double aCorrelMin=0.7;
+                                  ELISE_ASSERT(aSim.item<float>()<=1.0 && aSim.item<float>()>=(mUsePredicNet ? 0:-1.0), "Similarity values issue not in bound 0 ,1 ");
+
+                                  aTabCost[0] = mUsePredicNet ? (1-(double)aSim.item<float>()): (1-(double)aSim.item<float>())/2.0;
+                                  /*double aCorrelMin=0.7;
                                   double aGamaCorr=2.0;
                                   double aRes =  ((double)aSim.item<float>()- aCorrelMin) / (1-aCorrelMin);  // 1->1 , CorrelMi->0
                                   aRes = std::pow(aRes,aGamaCorr);
-                                  aTabCost[0]=aRes;
+                                  aTabCost[0]=aRes;*/
                                 }
                                 PushCost(aTabCost[0]);
                           }

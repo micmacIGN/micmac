@@ -4001,6 +4001,22 @@ void cAppliMICMAC::DoCorrelAdHoc
 			  {
 			    aCom= aCom + " "+"UseCuda=" +ToString(0);
 			  }
+			if (aMCOE.UsePredicNet().IsInit())
+			  {
+			     aCom= aCom + " "+"UsePredicNet=" +QUOTE(ToString(aMCOE.UsePredicNet().Val()));
+			  }
+			else
+			  {
+			       aCom= aCom + " "+"UsePredicNet=" +ToString(0);
+			  }
+			if (aMCOE.UseEpip().IsInit())
+			  {
+			     aCom= aCom + " "+"UseEpip=" +QUOTE(ToString(aMCOE.UseEpip().Val()));
+			  }
+			else
+			  {
+			       aCom= aCom + " "+"UseEpip=" +ToString(0);
+			  }
 			std::cout<<"COMMAND 2 TEST "<<aCom<<std::endl;
 			System(aCom);
 

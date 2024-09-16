@@ -812,7 +812,8 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
     aCnnModelPredictor *  mCNNPredictor=nullptr;
     bool                  mWithIntCorr=true;  // initialized in the begining 
     bool                  mWithExtCorr=false;  // initialized in the begining 
-    bool                  mWithDecisionNet=false;
+    bool                  mUsePredicNet=false;
+    bool                  mUseEpip= false;
     bool                  mWithMatcher3D=false;
     std::string           mArchitecture;
     std::string           mResol;
@@ -887,10 +888,12 @@ cCollecSpecArg2007 & cAppliMatchMultipleOrtho::ArgOpt(cCollecSpecArg2007 & anArg
 {
    return anArgOpt
           // << AOpt2007(mStepZ, "StepZ","Step for paralax",{eTA2007::HDV})
-          << AOpt2007(mModelBinDir,"CNNParams" ,"Model Directory : Contient des fichiers binaires *.bin")
+          << AOpt2007(mModelBinDir,"CNNParams" ,"Model Directory : Contient des fichiers binaires *.pt")
           << AOpt2007(mArchitecture,"CNNArch" ,"Model architecture : "+TheFastArch+" || "+TheFastStandard+" || "+TheFastArchWithMLP)
-          << AOpt2007(mResol,"RESOL" ,"RESOL OPTION FOR THE MULTISCALE TRAINING: ")
-          << AOpt2007(mUseCuda,"UseCuda","USE CUDA TO LAUNCH MODELS")
+          << AOpt2007(mResol,"RESOL" ,"RESOL OPTION FOR THE MULT^ISCALE TRAINING: ")
+          << AOpt2007(mUseCuda,"UseCuda","USE Cuda for inference")
+          << AOpt2007(mUsePredicNet,"UsePredicNet","Use the prediction Network to compute learnt similarities")
+          << AOpt2007(mUseEpip,"UseEpip","Use epipolar warping to orient features, if 0, then use homographic warping")
    ;
 }
 
@@ -1079,7 +1082,7 @@ void cAppliMatchMultipleOrtho::InitializePredictor ()
             mCNNPredictor = new aCnnModelPredictor(TheUnetMlpCubeMatcher,mModelBinDir,mUseCuda);
             mCNNPredictor->PopulateModelFeatures(mMSAFF,mUseCuda);
             mCNNWin=cPt2di(0,0);
-            if (mWithDecisionNet)
+            if (mUsePredicNet)
             {
               mCNNPredictor->PopulateModelDecision(mDecisionMLP,mUseCuda);
             }
@@ -1260,7 +1263,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterEnhanced(std::ve
     {
         // compute element wise cross product along feature size dimension
         torch::Tensor aCrossProd;
-        if (mWithDecisionNet)
+        if (mUsePredicNet)
         {
             torch::Tensor MasterSlave=torch::cat({AllOrthosEmbeddings->at(0).unsqueeze(2),AllOrthosEmbeddings->at(k).unsqueeze(2)},0);
             aCrossProd=mCNNPredictor->PredictONCUBE(mDecisionMLP,MasterSlave).squeeze();
@@ -1354,7 +1357,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterEnhancedHom(std:
     {
         // compute element wise cross product along feature size dimension
         torch::Tensor aCrossProd;
-        if (mWithDecisionNet)
+        if (mUsePredicNet)
         {
             namespace F=torch::nn::functional;
             // Check Features Normalizaton
@@ -1441,7 +1444,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterEnhancedHom(std:
                           (aSumCorAllOk / aSumWeightAllOk) :
                           (aSumCorPart / std::max(1e-5f,aSumWeightPart)) ;
 
-        if (mWithDecisionNet)
+        if (mUsePredicNet)
           {
             aDImSim.SetV(aP,1.0-aAvgCorr);
           }
@@ -1471,7 +1474,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterEnhancedHomMV(st
         for (int j=k+1 ; j<ANBIM ; j++)
           {
             torch::Tensor aCrossProd;
-            if (mWithDecisionNet)
+            if (mUsePredicNet)
             {
                 namespace F=torch::nn::functional;
                 /*
@@ -1567,7 +1570,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterEnhancedHomMV(st
                           (aSumCorAllOk / aSumWeightAllOk) :
                           (aSumCorPart / std::max(1e-5f,aSumWeightPart)) ;
 
-        if (mWithDecisionNet)
+        if (mUsePredicNet)
           {
             aDImSim.SetV(aP,1.0-aAvgCorr);
           }
@@ -1596,7 +1599,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterEnhancedMVS(std:
       {
         //compute similarity maps by pair of as if it is in epipolar geometry
         torch::Tensor aCrossProd;
-        if (mWithDecisionNet)
+        if (mUsePredicNet)
         {
             torch::Tensor MasterSlave=torch::cat({AllOrthosEmbeddings->at(k).unsqueeze(2),AllOrthosEmbeddings->at(k+1).unsqueeze(2)},0);
             aCrossProd=mCNNPredictor->PredictONCUBE(mDecisionMLP,MasterSlave).squeeze();
@@ -1686,7 +1689,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterEnhancedMVS(std:
             std::cout<<"Get AVG Correl Value <<  "<<aAvgCorr<<"  aCoord "<<aP<<std::endl;
           }
 
-        if (mWithDecisionNet)
+        if (mUsePredicNet)
           {
             aDImSim.SetV(aP,1.0-aAvgCorr);
           }
@@ -1714,7 +1717,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterEnhancedMVSMAX(s
       {
         //compute similarity maps by pair of as if it is in epipolar geometry
         torch::Tensor aCrossProd;
-        if (mWithDecisionNet)
+        if (mUsePredicNet)
         {
             torch::Tensor MasterSlave=torch::cat({AllOrthosEmbeddings->at(k).unsqueeze(2),AllOrthosEmbeddings->at(k+1).unsqueeze(2)},0);
             aCrossProd=mCNNPredictor->PredictONCUBE(mDecisionMLP,MasterSlave).squeeze();
@@ -1770,7 +1773,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterEnhancedMVSMAX(s
             std::cout<<"Get Max Correl Value <<  "<<aCorMax<<"  aCoord "<<aP<<std::endl;
           }
 
-        if (mWithDecisionNet)
+        if (mUsePredicNet)
           {
             aDImSim.SetV(aP,1.0-aCorMax);
           }
@@ -2259,7 +2262,7 @@ int  cAppliMatchMultipleOrtho::ExeSubPixFeats()
         if(mWithExtCorr)
         {
             std::vector<torch::Tensor> * OrthosEmbeddings= new std::vector<torch::Tensor>;
-            if (!mWithDecisionNet)
+            if (!mUsePredicNet)
             {
                 // Inference based correlation 
                 // Create Embeddings 
@@ -3359,19 +3362,14 @@ int  cAppliMatchMultipleOrtho::GotoHomography()
 
 int cAppliMatchMultipleOrtho::Exe()
 {
-  int aResol=std::atoi(mResol.c_str());
-  if ((aResol==1) || (aResol==2))
+  //int aResol=std::atoi(mResol.c_str());
+  if (mUseEpip)
     {
-      //mWithDecisionNet=true;
       return GotoEpipolar();
-      //return GotoHomography();
-      //return ExeProjectOrigEmbeddings();
     }
   else
     {
-      //return GotoHomography();
-      return GotoEpipolar();
-      //return ExeProjectOrigEmbeddings();
+      return GotoHomography();
     }
 }
 
