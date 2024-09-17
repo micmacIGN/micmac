@@ -12,12 +12,12 @@
 #include <boost/algorithm/string.hpp>
 
 
-using namespace std::experimental::filesystem;
+
 
 namespace std {
 using namespace experimental;
 }
-
+using namespace std::filesystem;
 #include <stdexcept>
 
 // #define KAPTURE_USE_EIGEN
