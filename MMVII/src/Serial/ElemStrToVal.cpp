@@ -314,6 +314,7 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eCreateDir,"MkDir"},
                 {eTyUEr::eRemoveFile,"RmFile"},
                 {eTyUEr::eEmptyPattern,"EmptyPattern"},
+                {eTyUEr::eBadPattern,"BadPattern"},
                 {eTyUEr::eBadXmlTopTag,"XmlTopTag"},
                 {eTyUEr::eParseBadClose,"ParseBadClose"},
                 {eTyUEr::eJSonBadPunct,"JSonBadPunct"},

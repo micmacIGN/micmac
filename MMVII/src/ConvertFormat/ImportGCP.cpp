@@ -2,6 +2,7 @@
 #include "MMVII_MMV1Compat.h"
 #include "MMVII_DeclareCste.h"
 #include "MMVII_BundleAdj.h"
+#include <regex>
 
 /**
    \file cConvCalib.cpp  testgit
@@ -46,7 +47,7 @@ class cAppli_ImportGCP : public cMMVII_Appli
 	std::vector<std::string>   mPatternTransfo;        
 	double                     mMulCoord;
 	double                     mSigma;
-	std::string                mAddInfoFree;
+	std::string                mPatternAddInfoFree;
 };
 
 cAppli_ImportGCP::cAppli_ImportGCP(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -55,7 +56,8 @@ cAppli_ImportGCP::cAppli_ImportGCP(const std::vector<std::string> & aVArgs,const
    mL0           (0),
    mLLast        (-1),
    mMulCoord     (1.0),
-   mSigma        (1.0)
+   mSigma        (1.0),
+   mPatternAddInfoFree("")
 {
 }
 
@@ -80,7 +82,7 @@ cCollecSpecArg2007 & cAppli_ImportGCP::ArgOpt(cCollecSpecArg2007 & anArgObl)
        << AOpt2007(mMulCoord,"MulCoord","Coordinate multiplier, used to change unity as meter to mm")
        << AOpt2007(mSigma,"Sigma","Sigma for all coords (covar is 0). -1 to make all points free",{eTA2007::HDV})
        << AOpt2007(mComment,"Comment","Character for commented line")
-       << AOpt2007(mAddInfoFree,"AddInfoFree","All points whose Additional Info is set to this value are Free")
+       << AOpt2007(mPatternAddInfoFree,"AddInfoFree","All points whose Additional Info matches this pattern are Free")
     ;
 }
 
@@ -120,11 +122,20 @@ int cAppli_ImportGCP::Exe()
 
     size_t  aRankP_InF = mFormat.find('N');
     size_t  aRankA_InF = mFormat.find('A');
-    bool aHasAdditionalInfo = aRankA_InF != mFormat.npos;
     size_t  aRankP = (aRankP_InF<aRankA_InF) ? 0 : 1;
     size_t  aRankA = 1 - aRankP;
-    if (IsInit(&mAddInfoFree) && !aHasAdditionalInfo)
-        MMVII_UserError(eTyUEr::eBadOptParam,"AddInfoFree specified but no 'A' in format string");
+    bool aHasAdditionalInfo = aRankA_InF != mFormat.npos;
+    bool aUseAddInfoFree = IsInit(&mPatternAddInfoFree);
+    std::regex aRegexAddInfoFree;
+    try {
+        aRegexAddInfoFree = std::regex(mPatternAddInfoFree);
+    } catch (std::regex_error&) {
+        MMVII_UserError(eTyUEr::eBadPattern,"Invalid regular expression for AddInfoFree : '" + mPatternAddInfoFree + "'");
+    } catch (...) {
+        throw;
+    }
+    if (aUseAddInfoFree && !aHasAdditionalInfo)
+            MMVII_UserError(eTyUEr::eBadOptParam,"AddInfoFree specified but no 'A' in format string");
 
     for (size_t aK=0 ; aK<aVXYZ.size() ; aK++)
     {
@@ -144,7 +155,7 @@ int cAppli_ImportGCP::Exe()
         if (aHasAdditionalInfo)
         {
             aAdditionalInfo = aVNames.at(aK).at(aRankA);
-            if (IsInit(&mAddInfoFree) && aAdditionalInfo == mAddInfoFree)
+            if (aUseAddInfoFree && std::regex_match(aAdditionalInfo, aRegexAddInfoFree))
                 aSigma = -1;
         }
         aSetM.AddMeasure(cMes1GCP(aChSys.Value(aVXYZ[aK]*mMulCoord),aName,aSigma,aAdditionalInfo));

@@ -208,6 +208,7 @@ enum class eTyUEr
               eCreateDir,
               eRemoveFile,
               eEmptyPattern,
+              eBadPattern,
               eBadXmlTopTag,
               eParseBadClose,
               eJSonBadPunct,
