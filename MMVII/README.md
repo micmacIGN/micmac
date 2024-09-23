@@ -149,11 +149,11 @@ You can enable command completion for **MMVII** in Linux Bash, which simplifies 
 
 **Requirements:**
 - `bash-completion`
-- `python3` 
+- `python-is-python3`
 
 These are typically installed by default on Ubuntu. If not, you can install them using:
 	```bash
-	sudo apt install bash-completion python3`
+	sudo apt install bash-completion python-is-python3`
 	```
 
 **Configuration:**

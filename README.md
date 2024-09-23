@@ -50,7 +50,7 @@ Under Linux (Ubuntu) distribution the installation procedure is as follows:
 - Open a terminal
 - Install dependencies:
 	```bash
-	sudo apt-get install git cmake make ccache imagemagick libimage-exiftool-perl exiv2 proj-bin libx11-dev qt5-default
+	sudo apt-get install git cmake make ccache imagemagick libimage-exiftool-perl exiv2 proj-bin libx11-dev
 	```
 - Clone the repository:
 	```bash
