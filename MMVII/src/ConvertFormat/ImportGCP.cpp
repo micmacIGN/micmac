@@ -137,6 +137,25 @@ int cAppli_ImportGCP::Exe()
     if (aUseAddInfoFree && !aHasAdditionalInfo)
             MMVII_UserError(eTyUEr::eBadOptParam,"AddInfoFree specified but no 'A' in format string");
 
+    // compute output RTL if necessary
+    if (mPhProj.ChSysCo().SysTarget()->getType()==eSysCo::eRTL && !mPhProj.ChSysCo().SysTarget()->isReady())
+    {
+        cWeightAv<tREAL8,cPt3dr> aAvgPt;
+
+        for (size_t aK=0 ; aK<aVXYZ.size() ; aK++)
+        {
+            aAvgPt.Add(1.0,aVXYZ[aK]);
+        }
+        std::string aRTLName = mPhProj.ChSysCo().SysTarget()->Def();
+        mPhProj.ChSysCo().setTargetsysCo(mPhProj.CreateSysCoRTL(
+                                             aAvgPt.Average(),
+                                             mPhProj.ChSysCo().SysOrigin()->Def()));
+        SaveInFile(mPhProj.ChSysCo().SysTarget()->toSysCoData(),
+                   mPhProj.getDirSysCo() + aRTLName + "." + GlobTaggedNameDefSerial());
+
+    }
+
+
     for (size_t aK=0 ; aK<aVXYZ.size() ; aK++)
     {
         auto aSigma = mSigma;

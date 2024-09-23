@@ -189,10 +189,11 @@ public :
 
     virtual cRotation3D<tREAL8> getRot2Vertical(const tPt &aPtIn) const override; //< get rotation from SysCo origin to vertical at this point
 
+    bool computeRTL(tPt anOrigin, std::string aInDef); //< init mTranfo2GeoC for RTL case
+
 protected:
     cSysCoRTL(const std::string & def, bool aDebug); //< construct from a definition, starting with RTL
     cSysCoRTL(tPt anOrigin, std::string aInDef, bool aDebug); //< construct for RTL
-    bool computeRTL(tPt anOrigin, std::string aInDef); //< init mTranfo2GeoC for RTL case
 };
 //------------------------------------------------------------
 
@@ -421,11 +422,13 @@ cSysCoLEuc::~cSysCoLEuc()
 
 tPt3dr cSysCoLEuc::Value(const tPt & in)   const  //< to GeoC
 {
+    MMVII_INTERNAL_ASSERT_User(mIsReady, eTyUEr::eSysCo, "SysCo not ready")
     return getTranfo2GeoC()->Rot().Mat() * in + getTranfo2GeoC()->Tr();
 }
 
 tPt3dr cSysCoLEuc::Inverse(const tPt & in) const //< from GeoC
 {
+    MMVII_INTERNAL_ASSERT_User(mIsReady, eTyUEr::eSysCo, "SysCo not ready")
     return getTranfo2GeoC()->Rot().Mat().Transpose() * (in - getTranfo2GeoC()->Tr());
 }
 
@@ -443,6 +446,12 @@ cSysCoRTL::cSysCoRTL(const std::string &aDef, bool aDebug) :
                                "Error in RTL definition format: \""+mDef+"\"")
     if (tokens[0]==MMVII_SysCoRTL)
     {
+        if (tokens.size()==1)
+        {
+            // RTL to be made later
+            mIsReady = false;
+            return;
+        }
         MMVII_INTERNAL_ASSERT_User(tokens.size()==5, eTyUEr::eInsufNbParam,
                                    "Error in RTL definition format: \""+mDef+"\"")
         tPt anOrigin(std::stod(tokens[1]), std::stod(tokens[2]), std::stod(tokens[3]));
@@ -509,13 +518,14 @@ bool cSysCoRTL::computeRTL(tPt anOrigin, std::string aInDef)
           <<aOmegaPhiKappa.x()<<SysCoDefSep<<aOmegaPhiKappa.y()<<SysCoDefSep<<aOmegaPhiKappa.z();
         mDef = oss.str();
     }
-
+    mIsReady = true;
     return true;
 }
 
 
 cRotation3D<tREAL8> cSysCoRTL::getRot2Vertical(const tPt & aPtIn)  const
 {
+    MMVII_INTERNAL_ASSERT_User(mIsReady, eTyUEr::eSysCo, "SysCo not ready")
     tPt ptGeoC = Value(aPtIn);
     auto anOtherRTL = cSysCoLEuc::makeRTL(ptGeoC, MMVII_SysCoDefGeoC);
     auto anOtherRTL_asRTL = static_cast<cSysCoRTL*>(anOtherRTL.get());
@@ -539,6 +549,7 @@ cSysCoProj::~cSysCoProj()
 
 tPt3dr cSysCoProj::Value(const tPt & in)   const  //< to GeoC
 {
+    MMVII_INTERNAL_ASSERT_User(mIsReady, eTyUEr::eSysCo, "SysCo not ready")
     PJ_COORD pj_in, pj_out;
     pj_in = proj_coord(in.x(), in.y(), in.z(), 0.);
     pj_out = proj_trans(mPJ_Proj2GeoC, PJ_FWD, pj_in);
@@ -548,6 +559,7 @@ tPt3dr cSysCoProj::Value(const tPt & in)   const  //< to GeoC
 
 tPt3dr cSysCoProj::Inverse(const tPt & in) const //< from GeoC
 {
+    MMVII_INTERNAL_ASSERT_User(mIsReady, eTyUEr::eSysCo, "SysCo not ready")
     PJ_COORD pj_in, pj_out;
     pj_in = proj_coord(in.x(), in.y(), in.z(), 0.);
     pj_out = proj_trans(mPJ_Proj2GeoC, PJ_INV, pj_in);
@@ -600,6 +612,16 @@ tPt3dr cChangeSysCo::Inverse(const tPt &in)   const
         tPt aPtGeoC = mSysCoTarget->Value(in);
         return mSysCoOrigin->Inverse(aPtGeoC);
     }
+}
+
+void cChangeSysCo::setOriginSysCo(tPtrSysCo aSysCo)
+{
+    mSysCoOrigin = aSysCo;
+}
+
+void cChangeSysCo::setTargetsysCo(tPtrSysCo aSysCo)
+{
+    mSysCoTarget = aSysCo;
 }
 
 //------------------------------------------------------------

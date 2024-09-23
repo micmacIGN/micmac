@@ -4,10 +4,15 @@ set -e
 rm -Rf MMVII-PhgrProj
 
 # import coords
-MMVII ImportGCP inputs/coords.txt ANXYZ InitL93 ChSys=[L93] AddInfoFree=0 Sigma=0.001 Comment=*
-
+#MMVII ImportGCP inputs/coords.txt ANXYZ InitL93 ChSys=[L93] AddInfoFree=0 Sigma=0.001 Comment=*
 # convert to RTL
-MMVII GCPChSysCo "RTL*657700*6860700*0*IGNF:LAMB93" InitL93 InitRTL
+#MMVII GCPChSysCo "RTL*657700*6860700*0*IGNF:LAMB93" InitL93 InitRTL
+
+# or direct convert to RTL
+#MMVII ImportGCP inputs/coords.txt ANXYZ InitRTL ChSys=[L93,"RTL*657700*6860700*0*IGNF:LAMB93"] AddInfoFree=0 Sigma=0.001 Comment=*
+
+# or auto RTL from average + create SysCo/RTL.xml
+MMVII ImportGCP inputs/coords.txt ANXYZ InitRTL ChSys=[L93,RTL] AddInfoFree=0 Sigma=0.001 Comment=*
 
 # import obs
 MMVII ImportOBS inputs/meas.obs Obs1

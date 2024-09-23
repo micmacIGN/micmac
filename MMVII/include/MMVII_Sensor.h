@@ -670,6 +670,7 @@ class cPhotogrammetricProject
          void SaveCurSysCoGCP(tPtrSysCo) const ;
          void SaveStdCurSysCo(bool IsOri) const; /// save the Cur Sysco in Orient/GCP
          void CpSysIn2Out(bool OriIn,bool OriOut) const;  // bool : Ori/GCP   do it only if exist, else no error
+         std::string  getDirSysCo() const { return mDirSysCo; }
 
          const cChangeSysCo & ChSysCo() const;
          cChangeSysCo & ChSysCo() ;

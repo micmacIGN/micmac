@@ -74,6 +74,7 @@ public :
     tREAL8 getEllipsoid_a() const {return semi_axis;}
     tREAL8 getEllipsoid_e2() const {return e2;}
     tREAL8 getEllipsoid_b() const {return b;}
+    bool isReady() const {return mIsReady; }
 protected :
     cSysCo(bool aDebug);
     cSysCo(const std::string & def, bool aDebug);
@@ -82,6 +83,7 @@ protected :
     PJ_CONTEXT* mPJContext;
     PJ* mPJ_GeoC2Geog; //< for generic use
     bool mDebug; //< show debug messages
+    bool mIsReady = true; // to be able to compute transfo later
 
     //GRS80
     const tREAL8 semi_axis = 6378137;
@@ -114,6 +116,9 @@ public:
 
     tPtrSysCo  SysOrigin() const { return mSysCoOrigin; };     ///< Accessor
     tPtrSysCo  SysTarget() const { return mSysCoTarget; };   ///< Accessor
+
+    void setOriginSysCo(tPtrSysCo aSysCo);
+    void setTargetsysCo(tPtrSysCo aSysCo);
 
 private:
     tPtrSysCo mSysCoOrigin;

@@ -272,6 +272,24 @@ The \texttt{GCPChSysCo} command does the conversion to \texttt{RTL}:
 MMVII GCPChSysCo "RTL*657700*6860700*0*IGNF:LAMB93" InitL93 InitRTL
 \end{lstlisting}
 
+
+The two previous steps can be done in one \texttt{ImportGCP} call, the \texttt{ChSys} parameter accepting two
+SysCos:
+
+\begin{lstlisting}
+MMVII ImportGCP inputs/coords.txt ANXYZ InitL93 ChSys="[L93,RTL*657700*6860700*0*IGNF:LAMB93]" AddInfoFree=0 Sigma=0.001 Comment=*
+\end{lstlisting}
+
+\subsection{Auto RTL SysCo}
+
+\texttt{ImportGCP} can automatically create a \texttt{RTL} SysCo, with its origin equal to the average of the input coordinates:
+just give \texttt{RTL} as the destination SysCo. This new SysCo will be saved as \texttt{MMVII-PhgrProj/SysCo/RTL.xml}, making
+the SysCo available for every following command as \texttt{RTL}.
+
+\begin{lstlisting}
+MMVII ImportGCP inputs/coords.txt ANXYZ InitL93 ChSys=[L93,RTL] AddInfoFree=0 Sigma=0.001 Comment=*
+\end{lstlisting}
+
 \begin{comment}
 \subsection{SysCo shortcut}
 The SysCo file \texttt{MMVII-PhgrProj/PointsMeasure/InitRTL/CurSysCo.xml}, created by \texttt{ImportGCP}
