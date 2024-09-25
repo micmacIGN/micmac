@@ -1410,14 +1410,14 @@ The possible orientation constraints are:
 The transformation from RTL to instrument local frame is:
 
 \begin{equation}
-    T_{Instr} = R_{RTL \rightarrow Instr} \cdot (T_{RTL} - O_{RTL})
+    T_{Instr} = R_{RTL \rightarrow Instr} \cdot (T_{RTL} - S_{RTL})
 \end{equation}
 
 Where:
 
  \begin{itemize}
     \item $T_{Instr}$: target point in instrument local frame
-    \item $O_{RTL}$: station origin point in RTL SysCo
+    \item $S_{RTL}$: station origin point in RTL SysCo
     \item $T_{RTL}$: target point in RTL SysCo
     \item $R_{RTL \rightarrow Instr}$: rotation from RTL to instrument frame
  \end{itemize}
@@ -1432,7 +1432,7 @@ Then for each type of observation ($l$ being the measurement value):
 
     \item {\tt cFormulaTopoHz}: $$ residual =  \arctan\left(T_{Instr_X}, T_{Instr_Y}\right) - l $$
     \item {\tt cFormulaTopoZen}:
-    $$ ref = 0.12 . \frac { hz\_dist\_ellips\left( T, O \right) }
+    $$ ref = 0.12 . \frac { hz\_dist\_ellips\left( T, S \right) }
                           { 2 . earth\_radius} $$
     $$ d_{hz} =  \| T_{Instr_X}, T_{Instr_Y} \| $$
     $$ residual =  \arctan\left(d_{hz}, T_{Instr_Z}\right) - ref - l $$
