@@ -114,6 +114,33 @@ cMMVII_BundleAdj::~cMMVII_BundleAdj()
     DeleteAllAndClear(mVGCP);
 }
 
+void cMMVII_BundleAdj::ShowUKNames() 
+{
+     StdOut() << "=================== ShowUKNamesShowUKNames ===============\n";
+
+
+     cDenseVect<tREAL8>   aVUk = mSetIntervUK.GetVUnKnowns() ;
+     StdOut() << "====== NBUK=" << aVUk.Sz() << "\n";
+     size_t aKUk=0;
+     for (size_t aKObj=0 ; aKObj<  mSetIntervUK.NumberObject() ; aKObj++)
+     {
+         cObjWithUnkowns<tREAL8> & anObj = mSetIntervUK.KthObj(aKObj);
+
+	 cGetAdrInfoParam<tREAL8> aGIP (".*",anObj,false);
+         StdOut() << "    ************ " <<  aGIP.NameType() << " : " << aGIP.IdObj()  << "\n";
+	 for (const auto & aN : aGIP.VNames())
+	 {
+             StdOut() << "      # " << aN  << " : " << aVUk(aKUk) << "\n";
+	     aKUk++;
+	 }
+	// virtual  void  GetAdrInfoParam(cGetAdrInfoParam<Type> &);
+
+     }
+     getchar();
+	// mSetIntervUK
+}
+
+
 
 void cMMVII_BundleAdj::AssertPhaseAdd() 
 {
@@ -405,7 +432,7 @@ void cMMVII_BundleAdj::CompileSharedIntrinsicParams(bool ForAvg)
             if (MatchRegex(aPtrCal->Name(),mVPatShared[aKPat]))
             {
                 // Extract information on parameter macthing the pattern of params
-                cGetAdrInfoParam<tREAL8>  aGIP(mVPatShared[aKPat+1],*aPtrCal);  
+                cGetAdrInfoParam<tREAL8>  aGIP(mVPatShared[aKPat+1],*aPtrCal,false);  
                 for (size_t aKParam=0 ; aKParam<aGIP.VAdrs().size() ; aKParam++)
                 {
                     tREAL8 * aAdr                 = aGIP.VAdrs().at(aKParam);

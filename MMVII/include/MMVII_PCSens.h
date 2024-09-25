@@ -152,6 +152,7 @@ class cDataPerspCamIntrCalib
       std::vector<std::string> & VecInfo() ;
 
       const cMapPProj2Im& MapPProj2Im() const { return mMapPProj2Im;}
+      const std::string & Name() const; ///< Accessor
 
    protected :
       std::string                    mName;

@@ -82,7 +82,7 @@ class cAppliBundlAdj : public cMMVII_Appli
 	std::vector<std::vector<std::string>>  mAddTieP; // In case there is multiple GCP Set
 	std::vector<double>       mBRSigma; // RIGIDBLOC
 	std::vector<double>       mBRSigma_Rat; // RIGIDBLOC
-        std::vector<std::string>  mParamRefOri;
+        std::vector<std::string>  mParamRefOri;  // Force Poses to be +- equals to this reference
 
 	int                       mNbIter;
 
@@ -93,6 +93,8 @@ class cAppliBundlAdj : public cMMVII_Appli
         tREAL8                    mLVM;  ///< Levenberk Markard
         bool                      mMeasureAdded ;
         std::vector<std::string>  mVSharedIP;  ///< Vector for shared intrinsic param
+
+	bool                      mBAShowUKNames;  ///< Do We Show the names of unknowns
 };
 
 cAppliBundlAdj::cAppliBundlAdj(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -104,7 +106,8 @@ cAppliBundlAdj::cAppliBundlAdj(const std::vector<std::string> & aVArgs,const cSp
    mGCPFilterAdd   (""),
    mNbIter         (10),
    mLVM            (0.0),
-   mMeasureAdded   (false)
+   mMeasureAdded   (false),
+   mBAShowUKNames  (false)
 {
 }
 
@@ -155,6 +158,7 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mParamRefOri,"RefOri","Reference orientation [Ori,SimgaTr,SigmaRot?,PatApply?]",{{eTA2007::ISizeV,"[2,4]"}})  
       << AOpt2007(mVSharedIP,"SharedIP","Shared intrinc parmaters [Pat1Cam,Pat1Par,Pat2Cam...] ",{{eTA2007::ISizeV,"[2,20]"}})    // ]]
 
+      << AOpt2007(mBAShowUKNames,"ShowUKN","Show names of unknowns (tuning) ",{{eTA2007::HDV},{eTA2007::Tuning}})    // ]]
     ;
 }
 
@@ -234,6 +238,7 @@ int cAppliBundlAdj::Exe()
 }
 */
 
+    //   ========== [0]   initialisation of def values  =============================
     mPhProj.DPPointsMeasures().SetDirInIfNoInit(mDataDir);
     mPhProj.DPMulTieP().SetDirInIfNoInit(mDataDir);
     mPhProj.DPRigBloc().SetDirInIfNoInit(mDataDir); //  RIGIDBLOC
@@ -244,6 +249,7 @@ int cAppliBundlAdj::Exe()
     if (IsInit(&mParamRefOri))
          mBA.AddReferencePoses(mParamRefOri);
 
+    //   ========== [1]   Read unkowns of bundle  =============================
     for (const auto &  aNameIm : VectMainSet(0))
     {
          mBA.AddCam(aNameIm);
@@ -307,13 +313,17 @@ int cAppliBundlAdj::Exe()
             mBA.AddCamBlocRig(aNameIm);
     }
 
+
     MMVII_INTERNAL_ASSERT_User(mMeasureAdded,eTyUEr::eUnClassedError,"Not any measure added");
 
+
+    //   ========== [2]   Make Iteration =============================
     for (int aKIter=0 ; aKIter<mNbIter ; aKIter++)
     {
         mBA.OneIteration(mLVM);
     }
 
+    //   ========== [3]   Save resulst =============================
     for (auto & aSI : mBA.VSIm())
         mPhProj.SaveSensor(*aSI);
 	    /*
@@ -326,6 +336,11 @@ int cAppliBundlAdj::Exe()
     mBA.SaveBlocRigid();  // RIGIDBLOC
     mBA.Save_newGCP();
     mBA.SaveTopo(); // just for debug for now
+
+    if (mBAShowUKNames)
+    {
+        mBA.ShowUKNames();
+    }
 
     return EXIT_SUCCESS;
 }

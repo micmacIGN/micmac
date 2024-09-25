@@ -757,6 +757,12 @@ template <class Type> class cSetInterUK_MultipeObj
 	   ///  return a DenseVect filled with all unknowns  as expected to create a cResolSysNonLinear
            cDenseVect<Type>  GetVUnKnowns() const;
 
+	   ///  Nunmber of object
+	   size_t  NumberObject() const;
+	   ///  Access to kth object
+	   const cObjWithUnkowns<Type> & KthObj(size_t) const;
+	   cObjWithUnkowns<Type> & KthObj(size_t) ;
+
 	   ///  fills all unknown of object with a vector as created by cResolSysNonLinear::SolveUpdateReset()
            void  SetVUnKnowns(const cDenseVect<Type> &);
 
@@ -799,23 +805,32 @@ template <class Type> class cGetAdrInfoParam
 	typedef cObjWithUnkowns<Type> tObjWUK;
 
         //  cGetAdrInfoParam(const std::string & aPattern);
-	cGetAdrInfoParam(const std::string & aPattern,tObjWUK & aObj);
+	cGetAdrInfoParam(const std::string & aPattern,tObjWUK & aObj,bool Recurs);
 
 	static void PatternSetToVal(const std::string & aPattern,tObjWUK & aObj,const Type & aVal);
 
         void TestParam(tObjWUK*,Type *,const std::string &);
 
-	const std::vector<Type*>  &      VAdrs()  const;
-	const std::vector<std::string> & VNames() const;
-	const std::vector<tObjWUK*> &    VObjs() const;
+	const std::vector<Type*>  &   VAdrs()  const;
+	const std::vector<std::string> &    VNames() const;
+	const std::vector<tObjWUK*> &       VObjs() const;
 
 	static void ShowAllParam(tObjWUK &);
+
+	void SetNameType(const std::string & aNameType);
+	const std::string &  NameType() const;
+	void SetIdObj(const std::string & aNameType);
+	const std::string &  IdObj() const;
+
+
      private :
 
 	tNameSelector  mPattern;
 	std::vector<tObjWUK*>      mVObjs;
-	std::vector<Type*>         mVAdrs;
+	std::vector<Type*>   mVAdrs;
 	std::vector<std::string>   mVNames;
+	std::string                mNameType;
+	std::string                mIdObj;
 };
 
 template <class Type> class cObjWithUnkowns //  : public cObjOfMultipleObjUk<Type>
@@ -861,8 +876,6 @@ template <class Type> class cObjWithUnkowns //  : public cObjOfMultipleObjUk<Typ
           int   IndUk0() const;   ///< Accessor
           int   IndUk1() const;   ///< Accessor
 
-	  // void GetAllValues(std::vector<Type> & aVRes);
-
        protected :
 	  /// defautl constructor, put non init in all vars
           void OUK_Reset();
@@ -890,14 +903,18 @@ template <const int Dim>  class cPtxdr_UK :  public cObjWithUnkowns<tREAL8>,
    public :
       typedef cPtxd<tREAL8,Dim>  tPt;
 
-      cPtxdr_UK(const tPt &);
+      cPtxdr_UK(const tPt &,const std::string& aName);
       ~cPtxdr_UK();
       void PutUknowsInSetInterval() override;
       const tPt & Pt() const ;
       tPt & Pt() ;
+
+      void  GetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
+
    private :
       cPtxdr_UK(const cPtxdr_UK&) = delete;
       tPt mPt;
+      std::string mName;
 };
 
 typedef cPtxdr_UK<2> cPt2dr_UK ;
