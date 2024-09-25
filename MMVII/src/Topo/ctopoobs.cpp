@@ -146,8 +146,6 @@ std::vector<tREAL8> cTopoObs::getVals() const
             MMVII_INTERNAL_ERROR("error set type")
             return {}; //just to please the compiler
         }
-        cPt3dr* aPtFrom = mBA_Topo->getPoint(mPtsNames[0]).getPt();
-        cPt3dr* aPtTo = mBA_Topo->getPoint(mPtsNames[1]).getPt();
         if (mType==eTopoObsType::eDH)
         {
             auto aSysCo = mBA_Topo->getSysCo();
@@ -155,6 +153,13 @@ std::vector<tREAL8> cTopoObs::getVals() const
             const tPoseR* aTranfo2GeoC = aSysCo->getTranfo2GeoC();
             aTranfo2GeoC->Rot().Mat().PushByLine(vals); // TODO: why by line?
             aTranfo2GeoC->Tr().PushInStdVector(vals);
+            // a
+            vals.push_back(aSysCo->getEllipsoid_a());
+            // e2
+            vals.push_back(aSysCo->getEllipsoid_e2());
+            /*
+            cPt3dr* aPtFrom = mBA_Topo->getPoint(mPtsNames[0]).getPt();
+            cPt3dr* aPtTo = mBA_Topo->getPoint(mPtsNames[1]).getPt();
             //Phi_from
             auto aPtFromGeoG = aSysCo->toGeoG(*aPtFrom);
             auto aPhiFrom = aPtFromGeoG.y()/AngleInRad(eTyUnitAngle::eUA_degree);
@@ -170,7 +175,7 @@ std::vector<tREAL8> cTopoObs::getVals() const
             //M_To = a*sqrt(1-e*e*sin(phi)*sin(phi))
             auto aPtToM = aSysCo->getEllipsoid_a()
                     *sqrt(1-aSysCo->getEllipsoid_e2()*sin(aPhiTo)*sin(aPhiTo));
-            vals.push_back(aPtToM);
+            vals.push_back(aPtToM);*/
         }
         vals.insert(std::end(vals), std::begin(mMeasures), std::end(mMeasures));
         break;
