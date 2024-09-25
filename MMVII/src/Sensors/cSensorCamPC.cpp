@@ -530,9 +530,9 @@ std::string  cSensorCamPC::PrefixName()  { return "PerspCentral";}
 
 void  cSensorCamPC::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 {
+   mPose_WU.GetAdrInfoParam(aGAIP);
    aGAIP.SetNameType("PoseCamPC");
    aGAIP.SetIdObj(NameImage());
-   mPose_WU.GetAdrInfoParam(aGAIP);
 }
      // =================  becnh ===================
 
