@@ -8,7 +8,9 @@ namespace MMVII
 {
 
 cTopoObsSet::cTopoObsSet(cBA_Topo * aBA_Topo, eTopoObsSetType type):
-    mType(type), mBA_Topo(aBA_Topo), mInit(false)
+    mType(type), 
+    mBA_Topo(aBA_Topo), 
+    mInit(false)
 {
 }
 
@@ -77,7 +79,7 @@ std::vector<int> cTopoObsSet::getParamIndices() const
 //----------------------------------------------------------------
 cTopoObsSetStation::cTopoObsSetStation(cBA_Topo *aBA_Topo) :
     cTopoObsSet(aBA_Topo, eTopoObsSetType::eStation), mOriStatus(eTopoStOriStat::eTopoStOriVert),
-    mRotSysCo2Vert(tRot::Identity()), mRotVert2Instr(tRot::Identity()), mRotOmega({0.,0.,0.}),
+    mRotSysCo2Vert(tRot::Identity()), mRotVert2Instr(tRot::Identity()), mRotOmega({0.,0.,0.},"OMEGA??"),
     mOriginName(""), mPtOrigin(nullptr)
 {
 }

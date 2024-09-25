@@ -56,10 +56,10 @@ tREAL8 cPixelDomain::DegreeVisibility(const cPt2dr & aP) const
 /*                                                         */
 /* ******************************************************* */
 
-cSensorImage::cSensorImage(const std::string & aNameImage) :
-     mNameImage      (aNameImage),
-     mEqColinearity  (nullptr),
-     mEqCIsInit      (false)
+cSensorImage::cSensorImage(const std::string & aNameImage)  :
+     mNameImage               (aNameImage),
+     mEqColinearity           (nullptr),
+     mEqCIsInit               (false)
 {
 }
 

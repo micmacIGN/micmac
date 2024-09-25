@@ -12,7 +12,7 @@ namespace MMVII
 /*                cCalibRadiomSensor                  */
 /* ================================================== */
 
-cCalibRadiomSensor::cCalibRadiomSensor()
+cCalibRadiomSensor::cCalibRadiomSensor() 
 {
 }
 
@@ -221,7 +221,7 @@ tREAL8 & cRadialCRS::Cste2Add() {return mCste2Add;}
 /*                  cCalibRadiomIma                   */
 /* ================================================== */
 
-cCalibRadiomIma::cCalibRadiomIma()
+cCalibRadiomIma::cCalibRadiomIma() 
 {
 }
 

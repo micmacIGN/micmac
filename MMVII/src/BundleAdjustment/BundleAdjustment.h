@@ -186,6 +186,8 @@ class cMMVII_BundleAdj
           void Save_newGCP();
           void SaveTopo();
 
+	  void ShowUKNames() ;
+
      private :
 
           //============== Methods =============================

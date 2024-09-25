@@ -55,7 +55,7 @@ void cMMVII_BundleAdj::InitItereGCP()
         {
             for (const auto & aGCP : aPtr_BA_GCP->mMesGCP->MesGCP())
             {
-                cPt3dr_UK * aPtrUK = new cPt3dr_UK(aGCP.mPt);
+                cPt3dr_UK * aPtrUK = new cPt3dr_UK(aGCP.mPt,aGCP.mNamePt);
                 aPtr_BA_GCP->mGCP_UK.push_back(aPtrUK);
                 mSetIntervUK.AddOneObj(aPtrUK);
             }
@@ -269,11 +269,23 @@ void cMMVII_BundleAdj::Save_newGCP()
     /*            cPt3dr_UK                     */
     /* ---------------------------------------- */
 
-template <const int Dim> cPtxdr_UK<Dim>::cPtxdr_UK(const tPt & aPt) :
-    mPt  (aPt)
+template <const int Dim> cPtxdr_UK<Dim>::cPtxdr_UK(const tPt & aPt,const std::string& aName)  :
+    mPt    (aPt),
+    mName  (aName)
 {
 }
 
+std::vector<std::string> VNameCoordsPt = {"x","y","z","t"};
+
+template <const int Dim>  void cPtxdr_UK<Dim>::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
+{
+    for (int aD=0 ; aD<Dim ; aD++)
+    {
+        aGAIP.TestParam(this,&mPt[aD],VNameCoordsPt.at(aD));
+    }
+    aGAIP.SetNameType("GCP");
+    aGAIP.SetIdObj(mName);
+}
 
 template <const int Dim>  cPtxdr_UK<Dim>::~cPtxdr_UK()
 {

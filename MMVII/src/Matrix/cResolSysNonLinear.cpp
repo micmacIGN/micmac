@@ -257,7 +257,7 @@ template <class Type> void  cResolSysNonLinear<Type>::SetFrozenAllCurrentValues(
 template <class Type> 
     void  cResolSysNonLinear<Type>::SetFrozenFromPat(tObjWUk & anObjGlob,const std::string& aPat, bool Frozen)
 {
-      cGetAdrInfoParam<Type> aGIAP(aPat,anObjGlob);
+      cGetAdrInfoParam<Type> aGIAP(aPat,anObjGlob,false);
       for (size_t aK=0 ;aK<aGIAP.VAdrs().size() ; aK++)
       {
           Type * anAdr =aGIAP.VAdrs()[aK];

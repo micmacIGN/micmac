@@ -91,6 +91,7 @@ cDataPerspCamIntrCalib::cDataPerspCamIntrCalib
 
 }
 
+const std::string & cDataPerspCamIntrCalib::Name() const {return mName;}
     
 void cDataPerspCamIntrCalib::AddData(const cAuxAr2007 & anAux0)
 {
@@ -571,6 +572,9 @@ void cPerspCamIntrCalib::PutUknowsInSetInterval()
 
 void  cPerspCamIntrCalib::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 {
+   aGAIP.SetNameType("CalibCamPC");
+   aGAIP.SetIdObj(mName);
+
    aGAIP.TestParam(this,&(mMapPProj2Im.F()),"F");
    aGAIP.TestParam(this,&(mMapPProj2Im.PP().x()),"PPx");
    aGAIP.TestParam(this,&(mMapPProj2Im.PP().y()),"PPy");
