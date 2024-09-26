@@ -41,9 +41,12 @@ class cOneCalibClino
 {
       public :
          cOneCalibClino();  ///< Defaut constructor for serialization
+         cOneCalibClino(const std::string aNameClino);
          std::string    mNameClino;  ///< Name of clinometer
          tRotR           mRot;       ///< Value of rotation
          std::optional<cOneCalibRelClino>   mLinkRel;  ///< Possible relative calib
+         tRotR Rot() const {return mRot;};
+         std::string NameClino() const {return mNameClino;};
 };
 void AddData(const  cAuxAr2007 & anAux,cOneCalibClino & aSet);
 
@@ -53,11 +56,19 @@ class cCalibSetClino : public cMemCheck
      public :
 
          cCalibSetClino();  ///< Defaut constructor for serialization
+         cCalibSetClino(std::string aNameCam, std::vector<cOneCalibClino> aClinosCal);
          /// Name of the camera where the calibration, but at least for tracability
+         std::string NameCam(){return mNameCam;};
+         std::vector<cOneCalibClino> ClinosCal(){return mClinosCal;};
+
+         // Set clinometers calibration
+         void setClinosCal(std::vector<cOneCalibClino>  aClinosCal){mClinosCal=aClinosCal;}
+
+
          std::string mNameCam;
 
 	 /// Set of all clinometers calibration
-         std::vector<cOneCalibClino>  mClinosCal  ;
+         std::vector<cOneCalibClino>  mClinosCal  ;        
 };
 void AddData(const  cAuxAr2007 & anAux,cCalibSetClino & aSet);
 

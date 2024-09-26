@@ -83,12 +83,16 @@ class cAppliBundlAdj : public cMMVII_Appli
 	std::vector<double>       mBRSigma; // RIGIDBLOC
 	std::vector<double>       mBRSigma_Rat; // RIGIDBLOC
         std::vector<std::string>  mParamRefOri;  // Force Poses to be +- equals to this reference
+    std::string                    mNameClino;  ///<  Pattern of xml file  // CLINOBLOC
+    std::string                    mFormat;  // CLINOBLOC
+    std::vector<std::string>       mPrePost;  // CLINOBLOC
 
 	int                       mNbIter;
 
 	std::string               mPatParamFrozCalib;
 	std::string               mPatFrosenCenters;
 	std::string               mPatFrosenOrient;
+    std::string               mPatFrosenClino;
 	std::vector<tREAL8>       mViscPose;
         tREAL8                    mLVM;  ///< Levenberk Markard
         bool                      mMeasureAdded ;
@@ -134,6 +138,8 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << mPhProj.DPRigBloc().ArgDirOutOpt() //  RIGIDBLOC
       << mPhProj.DPTopoMes().ArgDirInOpt("TopoDirIn","Dir for Topo measures") //  TOPO
       << mPhProj.DPTopoMes().ArgDirOutOpt("TopoDirOut","Dir for Topo measures output") //  TOPO
+      << mPhProj.DPClinoMeters().ArgDirInOpt("ClinoDirIn","Dir for Clino if != DataDir") //  CLINOBLOC
+      << mPhProj.DPClinoMeters().ArgDirOutOpt("ClinoDirOut","Dir for Clino if != DataDir") //  CLINOBLOC
       << AOpt2007
          (
             mGCPW,
@@ -150,10 +156,14 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mPatParamFrozCalib,"PPFzCal","Pattern for freezing internal calibration parameters")
       << AOpt2007(mPatFrosenCenters,"PatFzCenters","Pattern of images for freezing center of poses")
       << AOpt2007(mPatFrosenOrient,"PatFzOrient","Pattern of images for freezing orientation of poses")
+      << AOpt2007(mPatFrosenClino,"PatFzClino","Pattern of clinometers for freezing boresight")
       << AOpt2007(mViscPose,"PoseVisc","Sigma viscosity on pose [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})
       << AOpt2007(mLVM,"LVM","Levenberg–Marquardt parameter (to have better conditioning of least squares)",{eTA2007::HDV})
       << AOpt2007(mBRSigma,"BRW","Bloc Rigid Weighting [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})  // RIGIDBLOC
       << AOpt2007(mBRSigma_Rat,"BRW_Rat","Rattachment fo Bloc Rigid Weighting [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})  // RIGIDBLOC
+      << AOpt2007(mNameClino, "NameClino", "Name of inclination file") // ,{eTA2007::FileDirProj})
+      << AOpt2007(mFormat, "Format", "Format of file  like ISFSSFSSFSSFS ")
+      << AOpt2007(mPrePost,"PrePost","[Prefix,PostFix] to compute image name",{{eTA2007::ISizeV,"[2,2]"}})
 
       << AOpt2007(mParamRefOri,"RefOri","Reference orientation [Ori,SimgaTr,SigmaRot?,PatApply?]",{{eTA2007::ISizeV,"[2,4]"}})  
       << AOpt2007(mVSharedIP,"SharedIP","Shared intrinc parmaters [Pat1Cam,Pat1Par,Pat2Cam...] ",{{eTA2007::ISizeV,"[2,20]"}})    // ]]
@@ -242,6 +252,7 @@ int cAppliBundlAdj::Exe()
     mPhProj.DPPointsMeasures().SetDirInIfNoInit(mDataDir);
     mPhProj.DPMulTieP().SetDirInIfNoInit(mDataDir);
     mPhProj.DPRigBloc().SetDirInIfNoInit(mDataDir); //  RIGIDBLOC
+    mPhProj.DPClinoMeters().SetDirInIfNoInit(mDataDir); //  CLINOBLOC
 
     mPhProj.FinishInit();
 
@@ -313,6 +324,16 @@ int cAppliBundlAdj::Exe()
             mBA.AddCamBlocRig(aNameIm);
     }
 
+    if (IsInit(&mNameClino))
+    {
+        mBA.AddClinoBloc(mNameClino, mFormat, mPrePost);
+    }
+
+    if (IsInit(&mPatFrosenClino))
+    {
+        mBA.SetFrozenClinos(mPatFrosenClino);
+    }
+    
 
     MMVII_INTERNAL_ASSERT_User(mMeasureAdded,eTyUEr::eUnClassedError,"Not any measure added");
 
@@ -336,6 +357,7 @@ int cAppliBundlAdj::Exe()
     mBA.SaveBlocRigid();  // RIGIDBLOC
     mBA.Save_newGCP();
     mBA.SaveTopo(); // just for debug for now
+    mBA.SaveClino();
 
     if (mBAShowUKNames)
     {

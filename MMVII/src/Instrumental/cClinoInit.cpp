@@ -42,6 +42,12 @@ cOneCalibClino::cOneCalibClino() :
 {
 }
 
+cOneCalibClino::cOneCalibClino(std::string aNameClino) :
+     mNameClino (aNameClino),
+     mRot       (tRotR::Identity())
+{
+}
+
 void AddData(const  cAuxAr2007 & anAux,cOneCalibClino & aClino)
 {
     AddData(cAuxAr2007("NameClino",anAux),aClino.mNameClino);
@@ -56,6 +62,13 @@ void AddData(const  cAuxAr2007 & anAux,cOneCalibClino & aClino)
 
 cCalibSetClino::cCalibSetClino() :
    mNameCam ("")
+{
+}
+
+
+cCalibSetClino::cCalibSetClino(std::string aNameCam, std::vector<cOneCalibClino> aClinosCal) :
+   mNameCam (aNameCam),
+   mClinosCal (aClinosCal)
 {
 }
 
