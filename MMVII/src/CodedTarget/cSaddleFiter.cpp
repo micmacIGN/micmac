@@ -81,14 +81,14 @@ cCompiledNeighBasisFunc::cCompiledNeighBasisFunc(const cBasisFunc & aBaseF ,cons
 cDenseVect<tREAL8>   cCompiledNeighBasisFunc::SlowCalc(const std::vector<tREAL8> & aVV) 
 {
     AssertValsIsOk(aVV);
-    mSys.Reset();
+    mSys.PublicReset();
 
     for (size_t aK=0 ; aK<mNbNeigh ; aK++)
     {
          mSys.PublicAddObservation(mVWeight[aK],mVFuncs[aK],aVV[aK]);
     }
 
-    cDenseVect<tREAL8>  aRes =  mSys.Solve();
+    cDenseVect<tREAL8>  aRes =  mSys.PublicSolve();
 
     return aRes;
 }

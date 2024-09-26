@@ -377,7 +377,7 @@ template <class Type>  void cUncalibSpaceRessection<Type>::CalcSolOneVarFixed(in
      aW *= mSumW ;  // now weithed summ
      aSys.AddObsFixVar(aW,aKV,1.0);  // Add a constraint
 
-     cDenseVect<Type>  aSol = aSys.Solve();  // extract the least square sol with constraint
+     cDenseVect<Type>  aSol = aSys.PublicSolve();  // extract the least square sol with constraint
      cHomog2D3D<Type>  aHom(aSol.RawData()); // make an homography of the sol
 
      tREAL8 aScore = AvgReProj(mSet,aHom); // compute the residual

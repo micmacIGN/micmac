@@ -107,7 +107,7 @@ tREAL8 LeasSqModelRadiom(const cDataIm1D<tREAL8> &  anIm, int aDeg)
    }
 
    tREAL8 aSomRes = 0.0;
-   cDenseVect<tREAL8> aSol = aSys.Solve();
+   cDenseVect<tREAL8> aSol = aSys.PublicSolve();
    for (int aKX=0 ; aKX<aNbX ; aKX++)
    {
         tREAL8 aXN= (aKX-aNbX) / double(aNbX);

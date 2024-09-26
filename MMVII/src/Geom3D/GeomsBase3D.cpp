@@ -397,7 +397,7 @@ tSeg3dr  cPlane3D::InterPlane(const std::vector<const cPlane3D*>& aVPlanes,int a
        aSys.PublicAddObservation(aWeightStab,aDir.ToVect(),Scal(aDir,aAvgP0));
    }
 
-   cPt3dr aP0 = cPt3dr::FromVect(aSys.Solve());
+   cPt3dr aP0 = cPt3dr::FromVect(aSys.PublicSolve());
    return tSeg3dr(aP0,aP0+aDir);
 }
 

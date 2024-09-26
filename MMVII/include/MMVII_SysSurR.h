@@ -465,21 +465,28 @@ template <class Type> class cLinearOverCstrSys  : public cMemCheck
              - treat temporary as unknowns and increase the size of their unknowns
 	     - refuse to process =>default is error ...
 	*/
-       virtual void AddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>&);
+       void PublicAddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>&);
 
-       /// "Purge" all accumulated equations
-       virtual void Reset() = 0;
-       /// Compute a solution
-       virtual cDenseVect<Type>  Solve() = 0;
-       ///  May contain a specialization for sparse system, default use generik
-       virtual cDenseVect<Type>  SparseSolve() ;
+       /// Do the common stuff to "Reset", before calling SpecificReset
+       void PublicReset();
+       /// Do the common stuff to "Solve" , befor calling SpecificReset
+       cDenseVect<Type> PublicSolve();
+
+       ///  Do the common stuff to "SparseSolve" , befor calling SpecifiSparseSolve
+       virtual cDenseVect<Type>  PublicSparseSolve() ;
 
        /** Return for a given "solution" the weighted residual of a given observation
            Typically can be square, abs ....
            Usefull for bench at least (check that solution is minimum, or least < to neighboor)
         */
        
-       virtual Type Residual(const cDenseVect<Type> & aVect,const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) const = 0;
+       virtual Type ResidualOf1Eq(const cDenseVect<Type> & aVect,const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) const =0;
+
+
+       /* specialization for sparse vector, defautlt use dense vector */
+       virtual Type ResidualOf1Eq(const cDenseVect<Type> & aVect,const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) const ;
+
+
        
        //  ============ Fix value of variable =============
             ///  Fix value of curent variable, 1 variable
@@ -512,7 +519,15 @@ template <class Type> class cLinearOverCstrSys  : public cMemCheck
     protected :
        int mNbVar;
        cDenseVect<Type>  mLVMW;  // The Levenberg markad weigthing
-    // private :
+    private :
+       /// "Purge" all accumulated equations
+       virtual void SpecificReset() = 0;
+       /// Compute a solution
+       virtual cDenseVect<Type>  SpecificSolve() = 0;
+       ///  May contain a specialization for sparse system, default use generik, (unused at the time being ...)
+       virtual cDenseVect<Type>  SpecificSparseSolve() ;
+
+       virtual void SpecificAddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>&);
 };
 
 template <class Type>  cLinearOverCstrSys<Type> *  AllocL1_Barrodale(size_t aNbVar);
@@ -549,7 +564,8 @@ template <class Type> class  cLeasSq  :  public cLinearOverCstrSys<Type>
 {
     public :
        cLeasSq(int aNbVar);
-       Type Residual(const cDenseVect<Type> & aVect,const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) const override;
+       Type ResidualOf1Eq(const cDenseVect<Type> & aVect,const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) const override;
+       Type ResidualOf1Eq(const cDenseVect<Type> & aVect,const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) const override;
        
        /// Dont use normal equation 
        static cLeasSq<Type>*  AllocSparseGCLstSq(int aNbVar);
@@ -574,13 +590,13 @@ template <class Type> class  cLeasSqtAA  :  public cLeasSq<Type>
        cLeasSqtAA<Type> Dup() const;
 
        virtual ~cLeasSqtAA();
-       void Reset() override;
+       void SpecificReset() override;
        /// Compute a solution
-       cDenseVect<Type>  Solve() override;
+       cDenseVect<Type>  SpecificSolve() override;
        /// Use  sparse cholesky , usefull for "sparse dense" system ...
-       cDenseVect<Type>  SparseSolve() override ;
+       cDenseVect<Type>  SpecificSparseSolve() override ;
 
-       void AddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>&) override;
+       void SpecificAddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>&) override;
 
        //  ================  Accessor used in Schur elim ========  :
        

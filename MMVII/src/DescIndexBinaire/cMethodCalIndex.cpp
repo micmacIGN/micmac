@@ -147,7 +147,7 @@ void cAppli_ComputeParamIndexBinaire::OptimiseScoreAPriori(tPtVBool  aVBOld,cons
 
    //  Fill least square
 
-      mLSQOpt.Reset();
+      mLSQOpt.PublicReset();
       double aPdsClose000 = 10;
       double aPdsCloseCur = 1000;
       double aPdsAver0 = 1e6;
@@ -184,7 +184,7 @@ void cAppli_ComputeParamIndexBinaire::OptimiseScoreAPriori(tPtVBool  aVBOld,cons
       AddEqProxCur(aPdsCloseCur*aSomPds,aVBOld);
       AddEqProxCur(aPdsClose000*aSomPds,aV000);
       AddOneEqParamLin(aPdsAver0*aSomPds,mStat2.Moy().DIm(),0.0,1);
-      cDenseVect<double>  aSol = mLSQOpt.Solve();
+      cDenseVect<double>  aSol = mLSQOpt.PublicSolve();
 
       tPtVBool aVBNew = VecBoolFromSol(aSol,aVBOld->Index());
       double aDelta = aVBOld->Score() - aVBNew->Score() ;
@@ -232,7 +232,7 @@ void cAppli_ComputeParamIndexBinaire::TestNewParamLinear(const std::vector<tPtVB
 {
    double aPdsCloseCur = 1e-1;
    double aPdsEq       = 1;
-   mLSQOpt.Reset();
+   mLSQOpt.PublicReset();
 
    AddEqProxCur(aPdsCloseCur,aOldVB[aK0Vec]);
 /*
@@ -250,7 +250,7 @@ void cAppli_ComputeParamIndexBinaire::TestNewParamLinear(const std::vector<tPtVB
       AddOneEqParamLin(aPds,aVB.Cdg0().DIm(),0.0,aVB.Nb0());
       AddOneEqParamLin(aPds,aVB.Cdg1().DIm(),0.0,aVB.Nb1());
    }
-   cDenseVect<double>  aSol = mLSQOpt.Solve();
+   cDenseVect<double>  aSol = mLSQOpt.PublicSolve();
 
  
    tPtVBool aVB = VecBoolFromSol(aSol,aOldVB[aK0Vec]->Index());

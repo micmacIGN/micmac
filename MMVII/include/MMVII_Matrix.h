@@ -56,6 +56,7 @@ template <class Type> class  cSparseVect  : public cMemCheck
         void AddIV(const tCplIV & aCpl) ; /// "Raw" add, dont check if ind exist
         void CumulIV(const tCplIV & aCpl) ; /// Create only if not exist, else add in place
 
+        double DotProduct(const cDenseVect<Type> &) const; //== scalar product
 	/// Random sparse vector
         static cSparseVect<Type>  RanGenerate(int aNbVar,double aProba,tREAL8 aMinVal= 1e-2,int aMinSize=1);
 

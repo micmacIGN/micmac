@@ -80,7 +80,7 @@ template <class Type>
      }
      else
      {
-         mSysRed.Reset();
+         mSysRed.PublicReset();
      }
 
      //  Compute the reduced  least square system
@@ -202,13 +202,13 @@ template<class Type> void  cLeasSqtAA<Type>::SpecificAddObservation
 
 
 
-template<class Type> void  cLeasSqtAA<Type>::Reset()
+template<class Type> void  cLeasSqtAA<Type>::SpecificReset()
 {
    mtAA.DIm().InitNull();
    mtARhs.DIm().InitNull();
 }
 
-template<class Type> void  cLeasSqtAA<Type>::AddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>& aSetSetEq) 
+template<class Type> void  cLeasSqtAA<Type>::SpecificAddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>& aSetSetEq) 
 {
     if (mBSC==nullptr)
          mBSC = new cBufSchurSubst<Type>(this->NbVar());
@@ -230,7 +230,7 @@ template<class Type> void  cLeasSqtAA<Type>::AddObsWithTmpUK(const cSetIORSNL_Sa
     }
 } 
 
-template<class Type> cDenseVect<Type> cLeasSqtAA<Type>::Solve()
+template<class Type> cDenseVect<Type> cLeasSqtAA<Type>::SpecificSolve()
 {
    mtAA.SelfSymetrizeBottom();
    return mtAA.SolveColumn(mtARhs,eTyEigenDec::eTED_LLDT);
@@ -241,7 +241,7 @@ template<class Type> const cDenseVect<Type>   & cLeasSqtAA<Type>::tARhs () const
 template<class Type> cDenseMatrix<Type> & cLeasSqtAA<Type>::tAA ()   {return mtAA;}
 template<class Type> cDenseVect<Type>   & cLeasSqtAA<Type>::tARhs () {return mtARhs;}
 
-template<class Type> cDenseVect<Type> cLeasSqtAA<Type>::SparseSolve()
+template<class Type> cDenseVect<Type> cLeasSqtAA<Type>::SpecificSparseSolve()
 {
    const  cDataIm2D<Type> & aDIm = mtAA.DIm();
    std::vector<cEigenTriplet<Type> > aVCoeff;            // list of non-zeros coefficients
@@ -303,7 +303,7 @@ template<class Type>  cLeasSq<Type>::cLeasSq(int aNbVar):
 {
 }
 
-template<class Type> Type  cLeasSq<Type>::Residual
+template<class Type> Type  cLeasSq<Type>::ResidualOf1Eq
                              (
                                  const cDenseVect<Type> & aVect,
                                  const Type& aWeight,
@@ -313,6 +313,25 @@ template<class Type> Type  cLeasSq<Type>::Residual
 {
    return aWeight * Square(aVect.DotProduct(aCoeff)-aRHS);
 }
+
+
+template<class Type> Type  cLeasSq<Type>::ResidualOf1Eq
+                             (
+                                 const cDenseVect<Type> & aVect,
+                                 const Type& aWeight,
+                                 const cSparseVect<Type> & aSparseCoeff,
+                                 const Type &  aRHS
+                             ) const
+{
+   return aWeight * Square(aSparseCoeff.DotProduct(aVect)-aRHS);
+   // return 0.0;
+}
+/*
+*/
+
+
+
+
 
 template<class Type> cLeasSq<Type> * cLeasSq<Type>::AllocDenseLstSq(int aNbVar)
 {
@@ -325,11 +344,26 @@ template<class Type> cLeasSq<Type> * cLeasSq<Type>::AllocDenseLstSq(int aNbVar)
 /*                                     */
 /* *********************************** */
 
+
+
 template<class Type> cLinearOverCstrSys<Type>::cLinearOverCstrSys(int aNbVar) :
    mNbVar (aNbVar),
    mLVMW  (aNbVar,eModeInitImage::eMIA_Null)
 {
 }
+
+template<class Type> void cLinearOverCstrSys<Type>::PublicReset()
+{
+     SpecificReset();
+     mLVMW.DIm().InitNull();
+}
+
+template<class Type> cDenseVect<Type> cLinearOverCstrSys<Type>::PublicSolve()
+{
+     return SpecificSolve();
+}
+
+
 
 template<class Type> cLinearOverCstrSys<Type>::~cLinearOverCstrSys()
 {
@@ -342,6 +376,8 @@ template<class Type> int cLinearOverCstrSys<Type>::NbVar() const
 
 template<class Type> Type cLinearOverCstrSys<Type>::LVMW(int aK) const
 {
+    if (aK==0)
+	StdOut() << "========== LVMINIT=" << mNbVar << " " << mLVMW(aK) << "\n";
    return mLVMW(aK);
 }
 
@@ -356,14 +392,36 @@ template<class Type> void cLinearOverCstrSys<Type>::AddObsFixVar(const Type& aWe
    PublicAddObservation(aWeight,aSpV,aVal);
 }
 
+template<class Type> Type cLinearOverCstrSys<Type>::ResidualOf1Eq
+                             (
+                                 const cDenseVect<Type> & aVect,
+                                 const Type& aWeight,
+                                 const cSparseVect<Type> & aSparseCoeff,
+                                 const Type &  aRHS
+                             ) const
+{
+      // default method, generate a dense vector, not very efficient but OK ...
+      cDenseVect<Type>  aDenseCoeff(aSparseCoeff,aVect.Sz());
+
+      return ResidualOf1Eq(aVect,aWeight,aDenseCoeff,aRHS);
+}
+
+
+
 template<class Type> void cLinearOverCstrSys<Type>::PublicAddObservation (const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS)
 {
+     // No harm to do this optimization , even if done elsewhere
+     if (aWeight==0)  return;
+
      SpecificAddObservation(aWeight,aCoeff,aRHS);
      for (int aKV=0 ; aKV<mNbVar ; aKV++)
         mLVMW(aKV) += aWeight * Square(aCoeff(aKV));
 }
 template<class Type> void cLinearOverCstrSys<Type>::PublicAddObservation (const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS)
 {
+     // No harm to do this optimization , even if done elsewhere
+     if (aWeight==0)  return;
+
      SpecificAddObservation(aWeight,aCoeff,aRHS);
      for (const auto & aPair : aCoeff)
         mLVMW(aPair.mInd) += aWeight * Square(aPair.mVal);
@@ -382,9 +440,14 @@ template<class Type> void cLinearOverCstrSys<Type>::AddObsFixVar (const Type& aW
         AddObsFixVar(aWeight,aK,aVRHS(aK));
 }
 
-template<class Type> cDenseVect<Type> cLinearOverCstrSys<Type>::SparseSolve()
+template<class Type> cDenseVect<Type> cLinearOverCstrSys<Type>::SpecificSparseSolve()
 {
-     return Solve();
+   return this->SpecificSolve();
+}
+
+template<class Type> cDenseVect<Type> cLinearOverCstrSys<Type>::PublicSparseSolve()
+{
+   return SpecificSparseSolve();
 }
 
 template<class Type> cLinearOverCstrSys<Type> * cLinearOverCstrSys<Type>::AllocSSR(eModeSSR aMode,int aNbVar)
@@ -403,11 +466,35 @@ template<class Type> cLinearOverCstrSys<Type> * cLinearOverCstrSys<Type>::AllocS
      return nullptr;
 }
 
-template<class Type> void cLinearOverCstrSys<Type>::AddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>&)
+template<class Type> void cLinearOverCstrSys<Type>::SpecificAddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>&)
 {
 	MMVII_INTERNAL_ERROR("Used AddObsWithTmpK unsupported");
 }
 
+template<class Type> void cLinearOverCstrSys<Type>::PublicAddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>& aSetSetEq)
+{
+     SpecificAddObsWithTmpUK(aSetSetEq);
+
+     for (const auto & aSetEq : aSetSetEq.AllEq())
+     {
+         // For example parse the two equation on i,j residual
+         for (size_t aKEq=0 ; aKEq<aSetEq.mVals.size() ; aKEq++)
+         {
+                 const std::vector<Type> & aVDer = aSetEq.mDers.at(aKEq);
+                 Type aWeight = aSetEq.WeightOfKthResisual(aKEq);
+
+                 for (size_t aKGlob=0 ; aKGlob<aSetEq.mGlobVInd.size() ; aKGlob++)
+                 {
+                     int aInd = aSetEq.mGlobVInd[aKGlob];
+                     if (!cSetIORSNL_SameTmp<Type>::IsIndTmp(aInd))
+		     {
+                         mLVMW(aInd) += aWeight * Square(aVDer.at(aKGlob));
+		     }
+                 }
+                 // Note the minus sign because we have a taylor expansion we need to annulate
+         }
+     }
+}
 
 template<class Type> cDenseMatrix<Type> cLinearOverCstrSys<Type>::V_tAA() const
 {

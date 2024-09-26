@@ -292,7 +292,7 @@ template <class Type> void  cExtractLines<Type>::RefineLineInSpace(cHoughPS & aH
              tREAL8 aW= 1/(1 + Square(aPixL.y()/aSigmaW));  // weight to reduce outlayer
              aSys.PublicAddObservation(aW,aV,aPixL.y());   // Add obs to system
         }
-        cDenseVect<tREAL8> aSol = aSys.Solve();
+        cDenseVect<tREAL8> aSol = aSys.PublicSolve();
 
         // w/o parabol
         aNewSeg = cSegment2DCompiled<tREAL8>(NewPtRefined(aSol,aNewSeg,-1),NewPtRefined(aSol,aNewSeg,1));
