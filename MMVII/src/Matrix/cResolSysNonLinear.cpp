@@ -749,7 +749,7 @@ template <> void   cResolSysNonLinear<tREAL8>::R_AddEq2Subst
 template <class Type> void cResolSysNonLinear<Type>::AddObsWithTmpUK (const tSetIO_ST & aSetIO)
 {
     currNbObs += aSetIO.NbRedundacy();
-    mSysLinear->AddObsWithTmpUK(aSetIO);
+    mSysLinear->PublicAddObsWithTmpUK(aSetIO);
 }
 
 template <class Type> void cResolSysNonLinear<Type>::R_AddObsWithTmpUK (const tR_Up::tSetIO_ST & aR_SetIO)
@@ -798,8 +798,8 @@ template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUp
         }
     }
 
-    mCurGlobSol += mSysLinear->Solve();     //  mCurGlobSol += mSysLinear->SparseSolve();
-    mSysLinear->Reset();
+    mCurGlobSol += mSysLinear->PublicSolve();     //  mCurGlobSol += mSysLinear->SparseSolve();
+    mSysLinear->PublicReset();
     currNbObs = 0;
 
     mNbIter++;

@@ -64,7 +64,7 @@ template <class Type> tREAL8 cOptimSymetryOnImage<Type>::OneIterLeastSqGrad()
 	  }
      }
 
-     cDenseVect<tREAL8> aSol = aSys.Solve();
+     cDenseVect<tREAL8> aSol = aSys.PublicSolve();
      cPt2dr aDelta = cPt2dr::FromVect(aSol);
 
      mC0 += aDelta;

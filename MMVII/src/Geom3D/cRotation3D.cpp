@@ -580,7 +580,7 @@ template <class Type> cPtxd<Type,3>  cRotation3D<Type>::ToWPK() const
 
 	}
 
-	cDenseVect<Type> aSol = aSys.Solve();
+	cDenseVect<Type> aSol = aSys.PublicSolve();
 	aWPK += tPt::FromVect(aSol);
     }
 

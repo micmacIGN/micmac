@@ -217,7 +217,7 @@ template <class Type,const int Dim>  cPtxd<Type,Dim> GlobCenterInscribedCircle(c
    // we need to add also a equation inside the plane
    MMVII_INTERNAL_ASSERT_tiny(Dim==2,"CenterInscribedCircle to Finish for DIm!=2");
 
-   return cPtxd<Type,Dim>::FromVect(aSys.Solve());
+   return cPtxd<Type,Dim>::FromVect(aSys.PublicSolve());
 }
 template <const int Dim>  cPtxd<int,Dim> GlobCenterInscribedCircle(const cPtxd<int,Dim> *)
 {

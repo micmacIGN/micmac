@@ -327,11 +327,11 @@ template<class Type>  class cSparseLeasSqtAA : public cSparseLeasSq<Type>
        /// Here memorize the obs
          void SpecificAddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) override;
 
-          void Reset() override;
-          cDenseVect<Type>  Solve() override;
+          void SpecificReset() override;
+          cDenseVect<Type>  SpecificSolve() override;
 
 
-         void  AddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>& aSetSetEq)  override;
+         void  SpecificAddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>& aSetSetEq)  override;
 	 /// Put bufferd line in matrixs, used at end or during filling to liberate memorry
 	 void PutBufererEqInNormalMatrix() ;
 
@@ -610,7 +610,7 @@ template<class Type> void  cSparseLeasSqtAA<Type>::HeapUpdate(tLine & aDenseL)
    mHeapDL.UpDate(&aDenseL);
 }
 
-template<class Type> void cSparseLeasSqtAA<Type>::Reset()
+template<class Type> void cSparseLeasSqtAA<Type>::SpecificReset()
 {
     mBufInput.clear();
     for (auto & aLine : mtAA)
@@ -621,7 +621,7 @@ template<class Type> void cSparseLeasSqtAA<Type>::Reset()
 
 }
 
-template<class Type> cDenseVect<Type> cSparseLeasSqtAA<Type>::Solve()
+template<class Type> cDenseVect<Type> cSparseLeasSqtAA<Type>::SpecificSolve()
 {
    std::vector<cEigenTriplet<Type> > aVCoeff;            // list of non-zeros coefficients
    PutBufererEqInNormalMatrix();
@@ -680,7 +680,7 @@ template<class Type> void  cSparseLeasSqtAA<Type>::PutBufererEqInNormalMatrix()
 }
 
 
-template<class Type>  void  cSparseLeasSqtAA<Type>::AddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>& aSetSetEq) 
+template<class Type>  void  cSparseLeasSqtAA<Type>::SpecificAddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>& aSetSetEq) 
 {
 // StdOut() << "cSparseLeasSqtAA<Type>::AddObsWithTmpUK " << std::endl;
 
@@ -779,12 +779,12 @@ template<class Type>  class cSparseLeasSqGC : public cSparseLeasSq<Type>
        /// Here memorize the obs
          void SpecificAddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) override;
 
-         void Reset() override;
-         cDenseVect<Type>  Solve() override;
+         void SpecificReset() override;
+         cDenseVect<Type>  SpecificSolve() override;
 
 
 	 /// Here the temporay are in fact processed like standards equation, they decoded an memorized
-	 void AddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>&) override;
+	 void SpecificAddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>&) override;
 
 
       private :
@@ -818,21 +818,21 @@ template<class Type>  void cSparseLeasSqGC<Type>::SpecificAddObservation
     mVRhs.push_back(aSW*aRHS);
 }
 
-template<class Type>  void cSparseLeasSqGC<Type>::Reset() 
+template<class Type>  void cSparseLeasSqGC<Type>::SpecificReset() 
 {
     mVTri.clear();
     mVRhs.clear();
     mNbTmpVar = 0;
 }
 
-template<class Type>  cDenseVect<Type>  cSparseLeasSqGC<Type>::Solve()
+template<class Type>  cDenseVect<Type>  cSparseLeasSqGC<Type>::SpecificSolve()
 {
      cDenseVect<Type> aRes = EigenSolveLsqGC(mVTri,mVRhs,this->mNbVar+mNbTmpVar);
      // supress the temporary variables
      return aRes.SubVect(0,this->mNbVar);
 }
 
-template<class Type>  void  cSparseLeasSqGC<Type>::AddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>& aSetSetEq) 
+template<class Type>  void  cSparseLeasSqGC<Type>::SpecificAddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>& aSetSetEq) 
 {
     aSetSetEq.AssertOk();
 

@@ -565,7 +565,7 @@ cEllipse cEllipse_Estimate::Compute()
          mSys->AddObsFixVar(1.0,2,0.0);
      }
 
-     auto  aSol = mSys->Solve();
+     auto  aSol = mSys->PublicSolve();
 
      if (mIsCircle)
      {
