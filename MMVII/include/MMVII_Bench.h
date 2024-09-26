@@ -153,7 +153,7 @@ void Bench_SpatialIndex(cParamExeBench & aParam); /// test spatial index
 
 void  BenchLinearConstr(cParamExeBench & aParam);  /// elementary test on linear constr
 
-
+void BenchClino(cParamExeBench & aParam); // Bench for clinometer Bundle Adjustment
 
 
 /* Called by BenchGlobImage */
