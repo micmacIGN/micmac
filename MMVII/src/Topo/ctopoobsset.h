@@ -74,6 +74,7 @@ public:
     virtual std::string toString() const override;
     void makeConstraints(cResolSysNonLinear<tREAL8> &aSys) override;
     virtual bool initialize() override; ///< initialize rotation
+    void GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP) override;
 
     void setOrigin(std::string _OriginName);
     void PushRotObs(std::vector<double> & aVObs) const;
