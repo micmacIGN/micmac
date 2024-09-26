@@ -19,12 +19,6 @@ cTopoObsSet::~cTopoObsSet()
     std::for_each(mObs.begin(), mObs.end(), [](auto o){ delete o; });
 }
 
-
-void cTopoObsSet::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet)
-{
-    PutUknowsInSetInterval();
-}
-
 void cTopoObsSet::create()
 {
     createAllowedObsTypes();
@@ -79,14 +73,10 @@ std::vector<int> cTopoObsSet::getParamIndices() const
 //----------------------------------------------------------------
 cTopoObsSetStation::cTopoObsSetStation(cBA_Topo *aBA_Topo) :
     cTopoObsSet(aBA_Topo, eTopoObsSetType::eStation), mOriStatus(eTopoStOriStat::eTopoStOriVert),
-    mRotSysCo2Vert(tRot::Identity()), mRotVert2Instr(tRot::Identity()), mRotOmega({0.,0.,0.},"OMEGA??"),
+    mRotSysCo2Vert(tRot::Identity()), mRotVert2Instr(tRot::Identity()),
     mOriginName(""), mPtOrigin(nullptr)
 {
-}
-
-void cTopoObsSetStation::PutUknowsInSetInterval()
-{
-    cTopoObsSet::PutUknowsInSetInterval();
+    mParams = {0.,0.,0.}; // the rotation axiator unknown
 }
 
 
@@ -99,21 +89,13 @@ void cTopoObsSetStation::createAllowedObsTypes()
 }
 
 
-void cTopoObsSetStation::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet)
-{
-    cTopoObsSet::AddToSys(aSet);
-
-    aSet.AddOneObj(&mRotOmega);
-    aSet.AddOneObj(this); // to have OnUpdate called on SetVUnKnowns
-}
-
-
 void cTopoObsSetStation::OnUpdate()
 {
-    mRotOmega.Pt() = mRotVert2Instr.Inverse(mRotOmega.Pt()); // TODOJM: why ?????
+    auto aRotOmega = getRotOmega();
+    aRotOmega = mRotVert2Instr.Inverse(aRotOmega); // see cPoseF comments
 
     // like cPoseWithUK::OnUpdate(), without -...
-    mRotVert2Instr = mRotVert2Instr * cRotation3D<tREAL8>::RotFromAxiator(mRotOmega.Pt());
+    mRotVert2Instr = mRotVert2Instr * cRotation3D<tREAL8>::RotFromAxiator(aRotOmega);
 
     // update mRotSysCo2Vert with new station position
     updateVertMat();
@@ -121,7 +103,7 @@ void cTopoObsSetStation::OnUpdate()
     //StdOut() << "  OnUpdate mRotOmega: "<<mRotOmega.Pt()<<"\n";
 
     // now this have modified rotation, the "delta" is void:
-    mRotOmega.Pt() = cPt3dr(0,0,0);
+    mParams = {0.,0.,0.};
 }
 
 void cTopoObsSetStation::PushRotObs(std::vector<double> & aVObs) const
@@ -136,7 +118,6 @@ std::string cTopoObsSetStation::toString() const
     oss<<"   origin: "<<mOriginName;
     if (mPtOrigin)
         oss<<" "<<*mPtOrigin->getPt();
-    oss<<"\n   RotOmega: "<<mRotOmega.Pt()<<"   ";
     oss<<"\n   Rot:\n";
     oss<<"      "<<mRotVert2Instr.AxeI()<<"\n";
     oss<<"      "<<mRotVert2Instr.AxeJ()<<"\n";
@@ -154,7 +135,7 @@ std::string cTopoObsSetStation::toString() const
 
 void cTopoObsSetStation::makeConstraints(cResolSysNonLinear<tREAL8> & aSys)
 {
-    mRotOmega.Pt() = {0.,0.,0.};
+    mParams = {0.,0.,0.};
 
     switch (mOriStatus)
     {
@@ -163,12 +144,12 @@ void cTopoObsSetStation::makeConstraints(cResolSysNonLinear<tREAL8> & aSys)
         MMVII_INTERNAL_ASSERT_strong(false, "cTopoObsSetStation::makeConstraints: incorrect ori status")
         break;
     case(eTopoStOriStat::eTopoStOriFixed):
-        mRotOmega.Pt() = {0.,0.,0.};
+        mParams = {0.,0.,0.};
 #ifdef VERBOSE_TOPO
         StdOut() << "Freeze rotation for "<<&mRotOmega<<std::endl;
         StdOut() << "  rotation indices "<<mRotOmega.IndUk0()<<"-"<<mRotOmega.IndUk1()-1<<std::endl;
 #endif
-        aSys.SetFrozenVarCurVal(mRotOmega,mRotOmega.Pt());
+        aSys.SetFrozenVarCurVal(*this,mParams);
         //for (int i=mRotOmega.IndUk0()+3;i<mRotOmega.IndUk1();++i)
         //    aSys.AddEqFixCurVar(i,0.001);
         break;
@@ -177,7 +158,7 @@ void cTopoObsSetStation::makeConstraints(cResolSysNonLinear<tREAL8> & aSys)
         StdOut() << "Freeze bascule for "<<&mRotOmega<<std::endl;
         StdOut() << "  rotation indices "<<mRotOmega.IndUk0()<<"-"<<mRotOmega.IndUk1()-2<<std::endl;
 #endif
-        aSys.SetFrozenVarCurVal(mRotOmega,mRotOmega.Pt().PtRawData(), 2); // not z
+        aSys.SetFrozenVarCurVal(*this,mParams.data(), 2); // not z
         //for (int i=mRotOmega.IndUk0()+3;i<mRotOmega.IndUk1()-1;++i)
         //    aSys.AddEqFixCurVar(i,0.001);
         break;
@@ -360,7 +341,7 @@ void cTopoObsSetStation::setOrigin(std::string _OriginName)
     mOriginName = _OriginName;
 
     mRotVert2Instr = tRot::Identity();
-    mRotOmega.Pt() = {0.,0.,0.};
+    mParams = {0.,0.,0.};
     if (mPtOrigin->isInit())
         updateVertMat();
 }

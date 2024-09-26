@@ -31,7 +31,7 @@ public :
 
     void findPtsUnknowns(const std::vector<cBA_GCP *> &vGCP, cPhotogrammetricProject *aPhProj); //< to be called after points creation and before AddToSys and ObsSetStation::SetOrigin...
 
-    void  AddToSys(cSetInterUK_MultipeObj<tREAL8> &); // The system must be aware of all the unknowns
+    void  AddToSys(cSetInterUK_MultipeObj<tREAL8> &aSetInterUK); // The system must be aware of all the unknowns
 
     // fix the variables that are frozen
     void SetFrozenAndSharedVars(cResolSysNonLinear<tREAL8> &)  ;

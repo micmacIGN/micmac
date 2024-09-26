@@ -212,11 +212,11 @@ std::vector<cTopoObs*> cBA_Topo::GetObsPoint(std::string aPtName) const
     return aVectObs;
 }
 
-void cBA_Topo::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet)
+void cBA_Topo::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSetInterUK)
 {
     MMVII_INTERNAL_ASSERT_strong(mIsReady,"cBA_Topo is not ready");
     for (auto& anObsSet: mAllObsSets)
-        anObsSet->AddToSys(aSet);
+        aSetInterUK.AddOneObj(anObsSet);
 }
 
 bool cBA_Topo::mergeUnknowns(cResolSysNonLinear<tREAL8> &aSys)

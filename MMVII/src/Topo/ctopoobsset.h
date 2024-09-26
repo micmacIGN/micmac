@@ -21,8 +21,7 @@ class cTopoObsSet : public cObjWithUnkowns<tREAL8>, public cMemCheck
     friend class cTopoData;
 public:
     virtual ~cTopoObsSet();
-    virtual void AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet);
-    virtual void PutUknowsInSetInterval() override ; ///< describes its unknowns
+    void PutUknowsInSetInterval() override ; ///< describes its unknowns
     virtual void OnUpdate() override = 0;    ///< "reaction" after linear update, eventually update inversion
     virtual std::string toString() const;
     eTopoObsSetType getType() const {return mType;}
@@ -42,7 +41,6 @@ protected:
     void create(); ///< will be called automatically by make_TopoObsSet()
     eTopoObsSetType mType;
     std::vector<cTopoObs*> mObs;
-    //cObjWithUnkowns<tREAL8> * mUK;
     std::vector<tREAL8> mParams; ///< the only copy of the parameters
     std::vector<eTopoObsType> mAllowedObsTypes; ///< to check if new obs are allowed
     cBA_Topo * mBA_Topo;
@@ -62,7 +60,9 @@ T * make_TopoObsSet(cBA_Topo *aBA_Topo)
 
 
 /**
- * @brief The cTopoObsSetSimple class represents a set of observation without parameters
+ * @brief The cTopoObsSetStation class represents a set of observation from one station,
+ * that has a rotation unknown
+ *  mRotVert2Instr unknown is recorded as mParams[0..2]
  */
 class cTopoObsSetStation : public cTopoObsSet
 {
@@ -70,8 +70,6 @@ class cTopoObsSetStation : public cTopoObsSet
     friend cTopoObsSetStation * make_TopoObsSet<cTopoObsSetStation>(cBA_Topo *aBA_Topo);
 public:
     virtual ~cTopoObsSetStation() override {}
-    virtual void PutUknowsInSetInterval() override ; ///< describes its unknowns
-    void AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet) override;
     void OnUpdate() override;    ///< "reaction" after linear update, eventually update inversion
     virtual std::string toString() const override;
     void makeConstraints(cResolSysNonLinear<tREAL8> &aSys) override;
@@ -79,7 +77,7 @@ public:
 
     void setOrigin(std::string _OriginName);
     void PushRotObs(std::vector<double> & aVObs) const;
-    cPt3dr_UK & getRotOmega() { return mRotOmega; }
+    cPt3dr getRotOmega() const { return cPt3dr::FromStdVector(mParams); }
     const cTopoPoint * getPtOrigin() const { return mPtOrigin; }
     tREAL8 getG0() const;
     const tRot & getRotVert2Instr() const { return mRotVert2Instr; }
@@ -98,7 +96,6 @@ protected:
     eTopoStOriStat mOriStatus; //< is bubbled, fixed or 3d rot free
     tRot mRotSysCo2Vert; //< rotation between global SysCo and local vertical frame
     tRot mRotVert2Instr; //< current value for rotation from local vertical frame to instrument frame
-    cPt3dr_UK mRotOmega; //< mRotVert2Instr unknown
     std::string mOriginName;
     const cTopoPoint * mPtOrigin;
 };
