@@ -94,6 +94,7 @@ protected:
     //cTopoObsSetStation& operator=(cTopoObsSetStation const&) = delete;
     void createAllowedObsTypes() override;
     void updateVertMat();
+    void resetRotOmega(); //< reset rotation unknowns to 0 (in mParams)
     eTopoStOriStat mOriStatus; //< is bubbled, fixed or 3d rot free
     tRot mRotSysCo2Vert; //< rotation between global SysCo and local vertical frame
     tRot mRotVert2Instr; //< current value for rotation from local vertical frame to instrument frame

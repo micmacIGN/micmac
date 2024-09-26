@@ -103,7 +103,7 @@ void cTopoObsSetStation::OnUpdate()
     //StdOut() << "  OnUpdate mRotOmega: "<<mRotOmega.Pt()<<"\n";
 
     // now this have modified rotation, the "delta" is void:
-    mParams = {0.,0.,0.};
+    resetRotOmega();
 }
 
 void cTopoObsSetStation::PushRotObs(std::vector<double> & aVObs) const
@@ -144,8 +144,7 @@ std::string cTopoObsSetStation::toString() const
 
 void cTopoObsSetStation::makeConstraints(cResolSysNonLinear<tREAL8> & aSys)
 {
-    mParams = {0.,0.,0.};
-
+    resetRotOmega();
     switch (mOriStatus)
     {
     case(eTopoStOriStat::eTopoStOriContinue):
@@ -153,23 +152,18 @@ void cTopoObsSetStation::makeConstraints(cResolSysNonLinear<tREAL8> & aSys)
         MMVII_INTERNAL_ASSERT_strong(false, "cTopoObsSetStation::makeConstraints: incorrect ori status")
         break;
     case(eTopoStOriStat::eTopoStOriFixed):
-        mParams = {0.,0.,0.};
 #ifdef VERBOSE_TOPO
-        StdOut() << "Freeze rotation for "<<&mRotOmega<<std::endl;
-        StdOut() << "  rotation indices "<<mRotOmega.IndUk0()<<"-"<<mRotOmega.IndUk1()-1<<std::endl;
+        StdOut() << "Freeze rotation for "<<mParams.data()<<std::endl;
+        StdOut() << "  rotation indices "<<IndUk0()<<"-"<<IndUk1()-1<<std::endl;
 #endif
         aSys.SetFrozenVarCurVal(*this,mParams);
-        //for (int i=mRotOmega.IndUk0()+3;i<mRotOmega.IndUk1();++i)
-        //    aSys.AddEqFixCurVar(i,0.001);
         break;
     case(eTopoStOriStat::eTopoStOriVert):
 #ifdef VERBOSE_TOPO
-        StdOut() << "Freeze bascule for "<<&mRotOmega<<std::endl;
-        StdOut() << "  rotation indices "<<mRotOmega.IndUk0()<<"-"<<mRotOmega.IndUk1()-2<<std::endl;
+        StdOut() << "Freeze bascule for "<<mParams.data()<<std::endl;
+        StdOut() << "  rotation indices "<<IndUk0()<<"-"<<IndUk1()-2<<std::endl;
 #endif
         aSys.SetFrozenVarCurVal(*this,mParams.data(), 2); // not z
-        //for (int i=mRotOmega.IndUk0()+3;i<mRotOmega.IndUk1()-1;++i)
-        //    aSys.AddEqFixCurVar(i,0.001);
         break;
     case(eTopoStOriStat::eTopoStOriBasc):
         // free rotation: nothing to constrain
@@ -341,6 +335,11 @@ void cTopoObsSetStation::updateVertMat()
         mRotSysCo2Vert = mBA_Topo->getSysCo()->getRot2Vertical(*mPtOrigin->getPt());
 }
 
+void cTopoObsSetStation::resetRotOmega()
+{
+    std::fill(mParams.begin(), mParams.end(), 0.); // makes sure to keep the same data address
+}
+
 void cTopoObsSetStation::setOrigin(std::string _OriginName)
 {
 #ifdef VERBOSE_TOPO
@@ -350,7 +349,7 @@ void cTopoObsSetStation::setOrigin(std::string _OriginName)
     mOriginName = _OriginName;
 
     mRotVert2Instr = tRot::Identity();
-    mParams = {0.,0.,0.};
+    resetRotOmega();
     if (mPtOrigin->isInit())
         updateVertMat();
 }
