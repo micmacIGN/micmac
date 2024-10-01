@@ -70,7 +70,10 @@ class  cNewReadFilesStruct
 	 void ReadFile(const std::string & aNameFile,int aL0,int aLL,int aCom);
 
 
-	 template <class Type> const std::vector<Type> &  GetVect(const std::string & aNameField);
+	 template <class Type> const std::vector<Type> &  GetVect(const std::string & aNameField)
+	 {
+             MMVII_INTERNAL_ASSERT_tiny(
+	 }
      private :
 
 	 template <class Type> void AddVal
@@ -81,7 +84,7 @@ class  cNewReadFilesStruct
                                     )
 	 {
 		 if (mDebug) 
-                     StdOut() <<  "   " << aNameField << " = [" << aNameValue  << "]\n";
+                     StdOut() <<  "   " << aNameField << " = [" << aNameValue  << "] , '("<<  cStrIO<Type>::msNameType << ")\n";
 		 aMap[aNameField].push_back(cStrIO<Type>::FromStr(aNameValue));
 	 }
 	 
