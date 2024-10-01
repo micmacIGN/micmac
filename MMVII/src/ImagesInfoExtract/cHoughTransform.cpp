@@ -27,8 +27,22 @@ cParalLine::cParalLine(const cHoughPS & aH1,const cHoughPS & aH2) :
     mMidleSeg =  tSeg2dr(aP0-aTgt,aP0+aTgt);
     mScoreMatch = std::min(aH1.Cumul(),aH2.Cumul());
 
-    mAngle    = aH1.DistAnglAntiPar(aH2) * aH1.HT()->RhoMax() ;
-    mWidth    = -( aH1.DY(aH2) + aH2.DY(aH1) ) / 2.0;
+    mAngleDif  = aH1.DistAnglAntiPar(aH2) * aH1.HT()->RhoMax() ;
+    mWidth     = -( aH1.DY(aH2) + aH2.DY(aH1) ) / 2.0;
+}
+
+
+cOneLineAntiParal cParalLine::GetLAP(const cPerspCamIntrCalib & aCalib) const
+{
+   cOneLineAntiParal  aOLAP;
+
+   aOLAP.mSeg  = aCalib.ExtenSegUndistIncluded(true,mMidleSeg);
+   aOLAP.mAngDif = mAngleDif;
+   aOLAP.mRadHom = mRadHom;
+   aOLAP.mWidth  = mWidth;
+   aOLAP.mCumul  = mScoreMatch;
+   
+   return aOLAP;
 }
 
 
@@ -146,9 +160,10 @@ void ShowImProfile(const cDataIm1D<tREAL8> &  anIm,const std::string & aName)
 
 void  cParalLine::ComputeRadiomHomog(const cDataGenUnTypedIm<2> & anIm,cPerspCamIntrCalib * aCalib,const std::string & aNameFile) 
 {
+// StdOut() << "aNameFileaNameFileaNameFileaNameFile " << aNameFile << "\n";
     static int aCPT=0; aCPT++;
 
-    cSegment2DCompiled<tREAL8>  aSegFull = aCalib->ExtenSegUndistIncluded(mMidleSeg,0.05,1.0,5.0);
+    cSegment2DCompiled<tREAL8>  aSegFull = aCalib->ExtenSegUndistIncluded(false,mMidleSeg,0.05,1.0,5.0);
 
     // [1]   Compute a 1D  image of radiometry along line
     tREAL8 aN2 = aSegFull.N2();
@@ -158,7 +173,15 @@ void  cParalLine::ComputeRadiomHomog(const cDataGenUnTypedIm<2> & anIm,cPerspCam
     for (int aKX=0 ; aKX<=aNbX ; aKX++)
     {
          tREAL8 aXLoc = aN2 * (aKX/tREAL8(aNbX));
-	 tREAL8 aValue = anIm.GetVBL(aCalib->Redist(aSegFull.FromCoordLoc(cPt2dr(aXLoc,0.0))));
+         cPt2dr aPt = aCalib->Redist(aSegFull.FromCoordLoc(cPt2dr(aXLoc,0.0)));
+	 if (!anIm.InsideBL(aPt))
+	 {
+// StdOut() << "xxxxxxxxxxxx   aNameFileaNameFileaNameFileaNameFile " << aNameFile << "\n";
+             mRadHom = 1e4;
+             return;
+	 }
+
+	 tREAL8 aValue = anIm.GetVBL(aPt);
 
 	 aIm1.DIm().SetV(aKX,aValue);
 	aSomV += aValue;

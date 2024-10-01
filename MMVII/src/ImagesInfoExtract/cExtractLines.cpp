@@ -209,22 +209,34 @@ cPt2dr NewPtRefined(const cDenseVect<tREAL8> &aSol,const cSegment2DCompiled<tREA
 
 template <class Type> void  cExtractLines<Type>::RefineLineInSpace(cHoughPS & aHPS)
 {
+// static int aCpt=0 ; aCpt++;
+// StdOut() << "\n\n RefineLineInSpacellll " << __LINE__ << " Cpt=" << aCpt << "\n";
     tREAL8 aMaxDL=2.0;  // Max Dist Line -> to parametrize
     MMVII_INTERNAL_ASSERT_strong(mCalib!=nullptr,"RefineLineInSpace w/o Calib stil to write");
 
+// StdOut() << "RefineLineInSpacellll " << __LINE__ << "\n";
     //  ------  [1]  compute the point that are inside a "buffer" arround the undist line
     // --------      Use a connected component algorithm
-    cSegment2DCompiled<tREAL8> aSegC (mCalib->ExtenSegUndistIncluded(aHPS.Seg()));
+    cSegment2DCompiled<tREAL8> aSegC (mCalib->ExtenSegUndistIncluded(false,aHPS.Seg()));
 
+// StdOut() << " RefineLineInSpacellll " << __LINE__ << "\n";
          //  [1.1]  initialise the seed
     cPt2di  aSeed = ToI(mCalib->Redist(aSegC.PMil()));
-    if ((!mDImMasq.Inside(aSeed))  && (  (mDImMasq.GetV(aSeed)&TheFlagLine) ==0))
+
+
+    if ( (!mDImMasq.Inside(aSeed))  || ((mDImMasq.GetV(aSeed)&TheFlagLine) !=0))
        return;
+    /*
+    if ((!mDImMasq.Inside(aSeed))  |?| (  (mDImMasq.GetV(aSeed)&TheFlagLine) ==0))
+       return;
+       */
+// StdOut() << "RefineLineInSpacellll " << __LINE__ << "\n";
 
     std::vector<cPt2di>  aBufLine;
     aBufLine.push_back(aSeed);
     mDImMasq.GetReference_V(aSeed) |=  TheFlagLine;
     size_t aCurInd = 0;
+//  StdOut() << "RefineLineInSpacellll " << __LINE__ << "\n";
 
          //  [1.2]  iterate on neighboroud propagation
     std::vector<cPt2di>  aNeighoroud =  AllocNeighbourhood<2>(1);
@@ -244,6 +256,7 @@ template <class Type> void  cExtractLines<Type>::RefineLineInSpace(cHoughPS & aH
          }
          aCurInd++;
     }
+//  StdOut() << "RefineLineInSpacellll " << __LINE__ << "\n";
 
     int aNbIter = 2;
     std::vector<cStdStatRes>    aVStat(aNbIter+1);
@@ -271,6 +284,7 @@ template <class Type> void  cExtractLines<Type>::RefineLineInSpace(cHoughPS & aH
             }
         }
     }
+//  StdOut() << "RefineLineInSpacellll " << __LINE__ << "\n";
 
 
     //-----[3]  Fit an adjusted line, in local coordinate just fit y = ax +b
@@ -303,6 +317,7 @@ template <class Type> void  cExtractLines<Type>::RefineLineInSpace(cHoughPS & aH
             aSumNumbering.at(aKIter) += 1/(1 + Square(aD/aSigmaW));
         }
     }
+//  StdOut() << "RefineLineInSpacellll " << __LINE__ << "\n";
 
     if (0)
     {
@@ -321,6 +336,7 @@ template <class Type> void  cExtractLines<Type>::RefineLineInSpace(cHoughPS & aH
               << " Cumul=" << aHPS.Cumul()
               << "\n";
     }
+//  StdOut() << "RefineLineInSpacellll " << __LINE__ << "\n";
 
     aHPS.UpdateSegImage(aNewSeg,aSumNumbering.back());
 }

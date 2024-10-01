@@ -28,7 +28,7 @@ void AddData(const cAuxAr2007 & anAux,cOneLineAntiParal & anEx)
 {
       AddData(cAuxAr2007("P1",anAux),anEx.mSeg.P1());
       AddData(cAuxAr2007("P2",anAux),anEx.mSeg.P2());
-      AddData(cAuxAr2007("ParalAng",anAux),anEx.mAng);
+      AddData(cAuxAr2007("ParalAng",anAux),anEx.mAngDif);
       AddData(cAuxAr2007("Width",anAux),anEx.mWidth);
       AddData(cAuxAr2007("Cumul",anAux),anEx.mCumul);
 }

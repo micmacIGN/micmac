@@ -877,10 +877,11 @@ cPerspCamIntrCalib * cPerspCamIntrCalib::RandomCalib(eProjPC aTypeProj,int aKDeg
 
 tSeg2dr  cPerspCamIntrCalib::ExtenSegUndistIncluded
          (
-                          const tSeg2dr & aSegInit,
-                          tREAL8 aStepInitRel,
-                          tREAL8 aStepEnd,
-                          tREAL8 aRetract
+             bool   doRedist,
+             const tSeg2dr & aSegInit,
+             tREAL8 aStepInitRel,
+             tREAL8 aStepEnd,
+             tREAL8 aRetract
          ) const
 {
       std::vector<cPt2dr> aVPts;
@@ -897,6 +898,8 @@ tSeg2dr  cPerspCamIntrCalib::ExtenSegUndistIncluded
 	      aStep /= 2.0;
 	  }
 	  aPt += aTgt * (-aRetract);
+	  if (doRedist)
+             aPt = Redist(aPt);
 	  aVPts.push_back(aPt);
       }
       return tSeg2dr(aVPts.at(0),aVPts.at(1));
