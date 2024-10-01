@@ -70,10 +70,12 @@ class  cNewReadFilesStruct
 	 void ReadFile(const std::string & aNameFile,int aL0,int aLL,int aCom);
 
 
+	 /*
 	 template <class Type> const std::vector<Type> &  GetVect(const std::string & aNameField)
 	 {
              MMVII_INTERNAL_ASSERT_tiny(
 	 }
+	 */
      private :
 
 	 template <class Type> void AddVal
