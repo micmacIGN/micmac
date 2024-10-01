@@ -69,7 +69,22 @@ class  cNewReadFilesStruct
 	 
 	 void ReadFile(const std::string & aNameFile,int aL0,int aLL,int aCom);
 
+
+	 template <class Type> const std::vector<Type> &  GetVect(const std::string & aNameField);
      private :
+
+	 template <class Type> void AddVal
+		                    (
+				        const std::string & aNameField, 
+				        const std::string & aNameValue, 
+				        std::map<std::string,std::vector<Type> >& aMap
+                                    )
+	 {
+		 if (mDebug) 
+                     StdOut() <<  "   " << aNameField << " = [" << aNameValue  << "]\n";
+		 aMap[aNameField].push_back(cStrIO<Type>::FromStr(aNameValue));
+	 }
+	 
 
 	 /// Check that the specif and the format are coherent
 	 void Check(std::map<std::string,size_t> & aMap1,std::map<std::string,size_t> & aMap2,bool RefIsI1);
@@ -81,11 +96,19 @@ class  cNewReadFilesStruct
          static void  ParseFormat(const std::string & aFormat,std::map<std::string,size_t>  & aMap,std::vector<std::string> & );
 
          std::string                     mFormat;      ///< Format used to parse the file 
+	 bool mDebug;
+
 	 std::map<std::string,size_t>    mCptFields;   ///< count the occurence of each token in the format
 	 std::vector<std::string>        mNameFields;  ///< list of token
 	 std::vector<eTypeField>         mTypes;       ///< list of type of token
 						       //
 	 std::string                     mNameFile;
+
+
+	 std::map<std::string,std::vector<int> >          mMapInt;
+	 std::map<std::string,std::vector<tREAL8> >       mMapFloat;
+	 std::map<std::string,std::vector<std::string> >  mMapString;
+
 };
 
 
@@ -167,7 +190,8 @@ void  cNewReadFilesStruct::ParseFormat(const std::string & aFormat,std::map<std:
 }
 
 cNewReadFilesStruct::cNewReadFilesStruct(const std::string & aFormat,const std::string & aSpecifFormat) :
-    mFormat  (aFormat)
+    mFormat  (aFormat),
+    mDebug   (false)
 {
    ParseFormat(mFormat,mCptFields,mNameFields);
 
@@ -222,10 +246,22 @@ void cNewReadFilesStruct::ReadFile(const std::string & aNameFile,int aL0,int aNu
                             aC++;
 
 	              std::string aToken(aC0,size_t(aC-aC0));
+		      std::string aNameField = mNameFields.at(aNbToken);
 		      switch (mTypes.at(aNbToken))
 		      {
-			      case eTypeField::eInt  :
+		  	      case  eTypeField::eInt  : 
+                                    AddVal(aNameField,aToken,mMapInt);
                               break;
+
+		  	      case  eTypeField::eFloat  : 
+                                    AddVal(aNameField,aToken,mMapFloat);
+                              break;
+
+		  	      case  eTypeField::eString  : 
+                                    AddVal(aNameField,aToken,mMapString);
+                              break;
+
+
 			      default :
                               break;
 		      }
@@ -233,11 +269,11 @@ void cNewReadFilesStruct::ReadFile(const std::string & aNameFile,int aL0,int aNu
 
 	              aNbToken ++;
 
-		      StdOut() <<  "   #=" << aToken << "\n";
 		 }
 	     }
 	 }
-	 StdOut() << "-------------------------------------------\n";
+	 if (mDebug)
+	    StdOut() << "-------------------------------------------\n";
          aNumL++;
     }
 }
