@@ -12,12 +12,6 @@ cTopoPoint::cTopoPoint(const std::string &name) :
 {
 }
 
-cTopoPoint::cTopoPoint(const std::string & name, const cPt3dr &aInitCoord, bool aIsFree, const cPt3dr &aSigmas) :
-    mName(name), mInitCoord(aInitCoord),
-    mVertDefl(std::nullopt), mUK(nullptr), mPt(nullptr)
-{
-}
-
 
 cTopoPoint::cTopoPoint() :
     mName(""), mInitCoord(cPt3dr::Dummy()), mVertDefl(std::nullopt),
@@ -26,7 +20,7 @@ cTopoPoint::cTopoPoint() :
 }
 
 
-void cTopoPoint::findUK(const std::vector<cBA_GCP *> & vGCP, cPhotogrammetricProject *aPhProj, const cPt3dr & aCoordIfPureTopo)
+void cTopoPoint::findUK(const std::vector<cBA_GCP *> & vGCP, cPhotogrammetricProject *aPhProj)
 {
 #ifdef VERBOSE_TOPO
     StdOut() << "findUK "<<mName<<": ";
