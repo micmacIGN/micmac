@@ -19,7 +19,7 @@ void cMMVII_BundleAdj::InitItereTopo()
 
 
 cBA_Topo::cBA_Topo
-(cPhotogrammetricProject *aPhProj, cMMVII_BundleAdj* aBA)  :
+(cPhotogrammetricProject *aPhProj)  :
     mPhProj  (aPhProj),
     mTopoObsType2equation
     {
@@ -82,7 +82,7 @@ void cBA_Topo::findPtsUnknowns(const std::vector<cBA_GCP*> & vGCP, cPhotogrammet
 {
     for (auto & [aName, aTopoPt] : getAllPts())
     {
-        aTopoPt.findUK(vGCP, aPhProj, aTopoPt.getInitCoord());
+        aTopoPt.findUK(vGCP, aPhProj);
     }
 }
 
@@ -236,7 +236,7 @@ void cBA_Topo::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSetInterUK)
         aSetInterUK.AddOneObj(anObsSet);
 }
 
-bool cBA_Topo::mergeUnknowns(cResolSysNonLinear<tREAL8> &aSys)
+bool cBA_Topo::mergeUnknowns()
 {
     bool ok = true;
     for (auto &set: mAllObsSets)
@@ -291,7 +291,7 @@ const cTopoPoint & cBA_Topo::getPoint(std::string name) const
 void cBA_Topo::SetFrozenAndSharedVars(cResolSysNonLinear<tREAL8> & aSys)
 {
      // create unknowns for all stations
-     mergeUnknowns(aSys); //
+     mergeUnknowns(); //
      makeConstraints(aSys);
 }
 

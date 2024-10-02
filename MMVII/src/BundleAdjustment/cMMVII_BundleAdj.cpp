@@ -709,7 +709,7 @@ void cMMVII_BundleAdj::SaveTopo()
 
 void cMMVII_BundleAdj::AddTopo() // TOPO
 {
-    mTopo = new cBA_Topo(mPhProj, this);
+    mTopo = new cBA_Topo(mPhProj);
 }
 
 }; // MMVII

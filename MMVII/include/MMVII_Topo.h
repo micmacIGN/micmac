@@ -26,7 +26,7 @@ class cBA_Topo : public cMemCheck
 {
     friend class cTopoData;
 public :
-    cBA_Topo(cPhotogrammetricProject *aPhProj, cMMVII_BundleAdj *aBA);
+    cBA_Topo(cPhotogrammetricProject *aPhProj);
     ~cBA_Topo();
     void clear();
 
@@ -50,7 +50,7 @@ public :
     bool tryInitAll();
     bool tryInit(cTopoPoint & aTopoPt, tStationsMap & stationsMap, tSimpleObsMap &allSimpleObs);
 
-    bool mergeUnknowns(cResolSysNonLinear<tREAL8> &aSys); //< if several stations share origin etc.
+    bool mergeUnknowns(); //< if several stations share origin etc.
     void makeConstraints(cResolSysNonLinear<tREAL8> &aSys);
     const std::map<std::string, cTopoPoint> & getAllPts() const { return mAllPts; }
     std::map<std::string, cTopoPoint> & getAllPts() { return mAllPts; }
