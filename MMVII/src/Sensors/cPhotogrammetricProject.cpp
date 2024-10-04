@@ -936,28 +936,42 @@ void cPhotogrammetricProject::SaveAndFilterAttrEll(const cSetMesPtOf1Im &  aSetM
 }
      // ============================   LINES ==============================================
 
-std::string  cPhotogrammetricProject::NameFileLines(const std::string & aNameIm) const
+std::string  cPhotogrammetricProject::NameFileLines(const std::string & aNameIm,bool isIn) const
 {
-    return DPPointsMeasures().FullDirOut() + "SegsAntiParal-"+ aNameIm + "."+ GlobTaggedNameDefSerial();
+    return DPPointsMeasures().FullDirInOut(isIn) + "SegsAntiParal-"+ aNameIm + "."+ GlobTaggedNameDefSerial();
 }
 
 bool   cPhotogrammetricProject::HasFileLines(const std::string & aNameIm)  const
 {
-    return ExistFile(NameFileLines(aNameIm));
+    return ExistFile(NameFileLines(aNameIm,IO::In));
 }
+
+bool   cPhotogrammetricProject::HasFileLinesFolder(const std::string & aFolder,const std::string & aNameIm)  const
+{
+    cAutoChgRestoreDefFolder  aCRDF(aFolder,DPPointsMeasures()); // Chg Folder and restore at destruction
+    return HasFileLines(aNameIm);
+}
+
+
+
 
 void  cPhotogrammetricProject::SaveLines(const cLinesAntiParal1Im &aLAP1I) const
 {
-    SaveInFile(aLAP1I,NameFileLines(aLAP1I.mNameIm));
+    SaveInFile(aLAP1I,NameFileLines(aLAP1I.mNameIm,IO::Out));
 }
 
 cLinesAntiParal1Im  cPhotogrammetricProject::ReadLines(const std::string & aNameIm) const
 {
     cLinesAntiParal1Im aRes;
-    ReadFromFile(aRes,NameFileLines(aNameIm));
+    ReadFromFile(aRes,NameFileLines(aNameIm,IO::In));
     return aRes;
 }
 
+cLinesAntiParal1Im  cPhotogrammetricProject::ReadLinesFolder(const std::string & aFolder,const std::string & aNameIm) const
+{
+    cAutoChgRestoreDefFolder  aCRDF(aFolder,DPPointsMeasures()); // Chg Folder and restore at destruction
+    return ReadLines(aNameIm);
+}
 
         //  =============  Multiple Tie Points =================
 

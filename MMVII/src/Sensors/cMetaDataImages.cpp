@@ -144,6 +144,15 @@ std::string Translate(const std::list<cOneTryCAI> & aVTries,const std::string & 
             if (aTry.mSel.Match(aName))
 	    {
                 std::string aTransfo = ReplacePattern(aTry.mPat,aTry.mValue,aName);
+if (0)
+{
+    StdOut() << "Translate "
+	     << " Pat=[" << aTry.mPat << "]"
+	     << " Val=[" << aTry.mValue << "]"
+	     << " N=[" << aName << "]"
+	     << " ========> " << aTransfo
+	     << "\n";
+}
 	        if (aTransfo != MMVII_NONE)
 	        {
                    if (ForTest)
@@ -165,7 +174,9 @@ std::string Translate(const std::list<cOneTryCAI> & aVTries,const std::string & 
 
 std::string cOneTranslAttrIm::Translate(const std::string & aName,bool ForTest) const
 {
-     return MMVII::Translate(mVTries,aName,ForTest) ;
+     std::string aRes =  MMVII::Translate(mVTries,aName,ForTest) ;
+     // StdOut() << "OneTranslAttrIm::Transxxx " << aRes << "\n";
+     return aRes;
 }
 
 
@@ -246,7 +257,11 @@ std::string cCalculMetaDataProject::Translate(const std::string & aName,eMTDIm  
     {
        if (ForTest || (aName==TheNameSHOW_MTD))
            StdOut()  <<  "   -> found section for : " << E2Str(aMode) << std::endl;
-       return aTransl->Translate(aName,ForTest);
+
+
+       std::string aRes = aTransl->Translate(aName,ForTest);
+
+       return aRes;
     }
 	/*
     for (const auto & aTransl : mTranslators)
@@ -339,6 +354,7 @@ std::string cGlobCalculMetaDataProject::Translate(const std::string & aName,eMTD
 	     StdOut() << "============= Try with dir " << *aV << " =================" << std::endl;
 	}
         std::string aRes = aTr.Translate(aName,aMode,ForTest);
+//  StdOut() << "cGlobCalculMetaDataProject::Tran " << aRes << "\n";
 	// StdOut()  << " WwwttTttt " << aRes << std::endl;
 	if (aRes != MMVII_NONE)
            return aRes;
@@ -364,6 +380,8 @@ void  cGlobCalculMetaDataProject::SetName(std::string & aVal,const std::string &
     if (aVal !="") return;
 
     std::string aTr = Translate(aNameIm,aMode);
+
+    // StdOut() << "GlobCalculMetaDataProject::SetNam " << aTr << "\n";
 
     if (aTr !=MMVII_NONE)  
         aVal =  aTr;
@@ -455,6 +473,8 @@ cMetaDataImage::cMetaDataImage(const std::string & aDir,const std::string & aNam
 {
     mNameImage    = aNameIm;
 
+    // StdOut() << "cMetaDataImagecMetaDataImage-IN: " << mCameraName << " IM=" << aNameIm << "\n";
+
     aGlobCalc->SetPt2dr(mPPPixel,aNameIm,eMTDIm::ePPPix);
     aGlobCalc->SetReal(mFocalPixel,aNameIm,eMTDIm::eFocalPix);
 
@@ -462,6 +482,9 @@ cMetaDataImage::cMetaDataImage(const std::string & aDir,const std::string & aNam
     aGlobCalc->SetReal(mFocalMM,aNameIm,eMTDIm::eFocalmm);
     aGlobCalc->SetName(mCameraName,aNameIm,eMTDIm::eModelCam);
     aGlobCalc->SetName(mAdditionalName,aNameIm,eMTDIm::eAdditionalName);
+
+
+    // StdOut() << "cMetaDataImagecMetaDataImage-OUT: " << mCameraName << "\n";
 }
 
 cMetaDataImage::cMetaDataImage() :
@@ -479,6 +502,7 @@ cMetaDataImage::cMetaDataImage() :
 std::string  cMetaDataImage::InternalCalibGeomIdent() const
 {
     std::string  aRes = cPerspCamIntrCalib::SharedCalibPrefixName();
+// StdOut()  << "cMetaDataImage::InternalCalibGeombbb " << aRes << " " << CameraName() << "\n";
     aRes = aRes + "_Cam"+ ToStandardStringIdent(CameraName());  // replace " " by "_" , refuse special characters
     if (mAdditionalName!="")
     {

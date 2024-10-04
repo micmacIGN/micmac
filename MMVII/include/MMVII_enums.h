@@ -667,6 +667,12 @@ class SVP
       static constexpr bool Yes = true;
       static constexpr bool No  = false;
 };
+class IO
+{
+   public :
+      static constexpr bool In = true;
+      static constexpr bool Out  = false;
+};
 
 
 };

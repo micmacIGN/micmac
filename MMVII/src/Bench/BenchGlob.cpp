@@ -461,6 +461,7 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
 
         //==== Bench on general support services
 
+	BenchcNewReadFilesStruct(aParam);
         // Make bench on STL, this can be thing I want to be 100% sure on STL behaviour
         // or test some extension I added in STL like spirit
         BenchSTL_Support(aParam);

@@ -175,7 +175,7 @@ void BenchJetsCam();  ///< Test specifique to camera projection
 void MMV1_GenerateCodeTestCam(); ///< To generate code of derivative MMV1-like (for comparing with jets)
 void BenchSampleQuat();
 
-
+void BenchcNewReadFilesStruct(cParamExeBench & aParam);  ///< Test the new system for reading structured files on some samples
 
 
 

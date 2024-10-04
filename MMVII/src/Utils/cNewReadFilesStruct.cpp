@@ -1,12 +1,7 @@
-#include "MMVII_PCSens.h"
-#include "MMVII_MMV1Compat.h"
-#include "MMVII_DeclareCste.h"
-#include "MMVII_BundleAdj.h"
-#include "MMVII_2Include_Serial_Tpl.h"
-
+#include "cMMVII_Appli.h"
 #include "MMVII_ReadFileStruct.h"
+#include "MMVII_Bench.h"
 
-#include "MMVII_util_tpl.h"
 
 
 /**
@@ -19,7 +14,13 @@
 namespace MMVII
 {
 
-#if (0)
+/* ***************************************************************************************** */
+/*                                                                                           */
+/*                                cNewReadFilesStruct                                        */
+/*                                                                                           */
+/* ***************************************************************************************** */
+
+
 
 
 void cNewReadFilesStruct::Check(std::map<std::string,size_t> & aMap1,std::map<std::string,size_t> & aMap2,bool RefIsI1)
@@ -263,6 +264,12 @@ void cNewReadFilesStruct::ReadFile(const std::string & aNameFile,int aL0,int aNu
     }
 }
 
+/* ***************************************************************************************** */
+/*                                                                                           */
+/*                              Different Bench on  cNewReadFilesStruct                      */
+/*                                                                                           */
+/* ***************************************************************************************** */
+
 class cBenchcNewReadFilesStruct
 {
       public :
@@ -366,9 +373,10 @@ void cBenchcNewReadFilesStruct::OneTest
 
 }
 
-void BenchcNewReadFilesStruct()
+void BenchcNewReadFilesStruct(cParamExeBench & aParam)
 {
-    StdOut() << "BenchcNewReadFilesStructBenchcNewReadFilesStruct\n";
+    if (! aParam.NewBench("NewFileStruct")) return;
+
     // Full specif  Integer-Line(1)   Name-Line  Pi Float-Line(1,2)   Float-Col(1,2,3) Integer-Line(2)
 
     cBenchcNewReadFilesStruct  aBRNF;
@@ -432,162 +440,11 @@ void BenchcNewReadFilesStruct()
             MMVII_INTERNAL_ASSERT_bench((aNRFSAll.GetValue<tREAL8>("Fpi",aKL)==aNRFSBla.GetKthValue<tREAL8>("X",aKL,1)),"BenchcNewReadF El0");
         }
     }
-}
-#endif
-
-
-   /* ********************************************************** */
-   /*                                                            */
-   /*                 cAppli_ImportLines                         */
-   /*                                                            */
-   /* ********************************************************** */
-
-class cAppli_ImportLines : public cMMVII_Appli
-{
-     public :
-        cAppli_ImportLines(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
-        int Exe() override;
-        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
-        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
-
-        std::vector<std::string>  Samples() const override;
-     private :
-
-	cPhotogrammetricProject  mPhProj;
-
-	// Mandatory Arg
-	std::string              mNameFile;
-	std::string              mFormat;
-
-	// Optionall Arg
-	int                        mL0;
-	int                        mLLast;
-	char                        mComment;
-
-	//   Format specif
-	std::string              mNameIm;
-	std::string              mNameX1;
-	std::string              mNameY1;
-	std::string              mNameX2;
-	std::string              mNameY2;
-	std::string              mNameSigma;
-	std::string              mNameWidth;
-	std::string              mSpecFormatMand;
-	std::string              mSpecFormatTot;
-
-};
-
-cAppli_ImportLines::cAppli_ImportLines(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-   cMMVII_Appli    (aVArgs,aSpec),
-   mPhProj         (*this),
-   mL0             (0),
-   mLLast          (-1),
-   mComment        (0),
-   mNameIm         ("Im"),
-   mNameX1         ("X1"),
-   mNameY1         ("Y1"),
-   mNameX2         ("X2"),
-   mNameY2         ("Y2"),
-   mNameSigma      ("Sigma"),
-   mNameWidth      ("Width"),
-   mSpecFormatMand (mNameIm+mNameX1+mNameY1+mNameX2+mNameY2),
-   mSpecFormatTot  (mSpecFormatMand+"/"+mNameSigma +mNameWidth)
-{
-	// std::map<std::string,int>  aMap{{"2",2}};
+    aParam.EndBench();
 }
 
-cCollecSpecArg2007 & cAppli_ImportLines::ArgObl(cCollecSpecArg2007 & anArgObl) 
-{
-    return anArgObl
-	      <<  Arg2007(mNameFile ,"Name of Input File",{eTA2007::FileAny})
-	      <<  Arg2007(mFormat   ,"Format of file as for in spec :  \"" + mSpecFormatTot + "\"")
-              <<  mPhProj.DPPointsMeasures().ArgDirOutMand()
-           ;
-}
-
-cCollecSpecArg2007 & cAppli_ImportLines::ArgOpt(cCollecSpecArg2007 & anArgOpt) 
-{
-    return anArgOpt
-       << AOpt2007(mL0,"NumL0","Num of first line to read",{eTA2007::HDV})
-       << AOpt2007(mLLast,"NumLast","Num of last line to read (-1 if at end of file)",{eTA2007::HDV})
-       << AOpt2007(mComment,"Comment","Carac for comment")
-       << mPhProj.ArgSysCo()
-    ;
-}
+};  // MMVII 
+ 
 
 
-int cAppli_ImportLines::Exe()
-{
-    mPhProj.FinishInit();
-    // BenchcNewReadFilesStruct();
-
-    cNewReadFilesStruct aNRFS(mFormat,mSpecFormatMand,mSpecFormatTot);
-    aNRFS.ReadFile(mNameFile,mL0,mLLast ,mComment);
-
-
-   // Create a structure of map, because there can exist multiple line/image
-   std::map<std::string,cLinesAntiParal1Im> aMap;
-
-    bool WithSigma = aNRFS.FieldIsKnow(mNameSigma);
-    bool WithWidth = aNRFS.FieldIsKnow(mNameWidth);
-    for (size_t aK=0 ; aK<aNRFS.NbLineRead() ; aK++)
-    {
-         // Create potentially a new set of line for image
-         std::string aNameIm =  aNRFS.GetValue<std::string>(mNameIm,aK);
-         cLinesAntiParal1Im  & aLAP = aMap[aNameIm];
-	 aLAP.mNameIm  = aNameIm;
-
-	 //  Add a new line
-	 cOneLineAntiParal aLine;
-         cPt2dr aP1=aNRFS.GetPt2dr(mNameX1,mNameY1,aK);
-         cPt2dr aP2=aNRFS.GetPt2dr(mNameX2,mNameY2,aK);
-
-	 if (aP1.x() > -100)  // CERN CONVENTION FOR FALSE SEG
-	 {
-	     aLine.mSeg = tSeg2dr(aP1,aP2);
-
-	     if (WithSigma)
-                aLine.mSimgaLine = aNRFS.GetFloat(mNameSigma,aK);
-	     if (WithWidth)
-                aLine.mWidth = aNRFS.GetFloat(mNameWidth,aK);
-
-	     aLAP.mLines.push_back(aLine);
-	 }
-    }
-
-    for (const auto & [aStr,aL]  : aMap)
-        mPhProj.SaveLines(aL);
-
-
-    return EXIT_SUCCESS;
-}
-
-std::vector<std::string>  cAppli_ImportLines::Samples() const
-{
-   return 
-   {
-          "MMVII ImportM32 verif_1B.txt SjiXYZ XingB NumL0=13 NumLast=30 NameIm=SPOT_1B.tif"
-   };
-}
-
-
-tMMVII_UnikPApli Alloc_ImportLines(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
-{
-   return tMMVII_UnikPApli(new cAppli_ImportLines(aVArgs,aSpec));
-}
-
-cSpecMMVII_Appli  TheSpec_ImportLines
-(
-     "ImportLine",
-      Alloc_ImportLines,
-      "Import/Convert Set of lines extracted",
-      {eApF::Lines},
-      {eApDT::Lines},
-      {eApDT::Lines},
-      __FILE__
-);
-#if (0)
-#endif
-
-}; // MMVII
 
