@@ -305,6 +305,10 @@ class cSetMesGCP ;
 class cSetMesPtOf1Im ;
 class cMesIm1Pt;
 
+      // Line detection
+class cOneLineAntiParal;
+class cLinesAntiParal1Im;
+
 // Tiling index
 template <class Type>  class  cTiling ;
 

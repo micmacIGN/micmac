@@ -253,6 +253,11 @@ template<class TCont,class TVal> bool  BoolFind(const TCont & aCont,const TVal &
     return std::find(aCont.begin(),aCont.end(),aVal) != aCont.end();
 }
 
+template<class TCont,class TVal> bool  MapBoolFind(const TCont & aCont,const TVal & aVal)
+{
+    return aCont.find(aVal) != aCont.end();
+}
+
 template <class TV,class TF> void erase_if(TV & aVec,const TF& aFonc)
 {
    aVec.erase(std::remove_if(aVec.begin(),aVec.end(),aFonc),aVec.end());

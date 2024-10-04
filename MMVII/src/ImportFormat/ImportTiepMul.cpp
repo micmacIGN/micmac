@@ -76,7 +76,7 @@ cCollecSpecArg2007 & cAppli_ImportTiePMul::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
     cCollecSpecArg2007 &
           aRes  =  anArgObl
-	      <<  Arg2007(mNameFile ,"Name of Input File")
+	      <<  Arg2007(mNameFile ,"Name of Input File",{eTA2007::FileAny})
 	      <<  Arg2007(mFormat   ,"Format of file as for ex \"SINSXYSS\" ")
            ;
  

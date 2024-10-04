@@ -20,7 +20,11 @@ namespace MMVII
 /* ********************************************* */
 
 cOneLineAntiParal::cOneLineAntiParal() :
-    mSeg (cPt2dr(0,0),cPt2dr(1,0))  // Diff else error (cstr check not identic)
+    mSeg (cPt2dr(0,0),cPt2dr(1,0)),  // Diff else error (cstr check not identic)
+    mAngDif  (-1),
+    mWidth   (-1),
+    mCumul   (-1),
+    mRadHom  (-1)
 {
 }
 
@@ -28,9 +32,10 @@ void AddData(const cAuxAr2007 & anAux,cOneLineAntiParal & anEx)
 {
       AddData(cAuxAr2007("P1",anAux),anEx.mSeg.P1());
       AddData(cAuxAr2007("P2",anAux),anEx.mSeg.P2());
-      AddData(cAuxAr2007("ParalAng",anAux),anEx.mAng);
+      AddData(cAuxAr2007("ParalAng",anAux),anEx.mAngDif);
       AddData(cAuxAr2007("Width",anAux),anEx.mWidth);
       AddData(cAuxAr2007("Cumul",anAux),anEx.mCumul);
+      AddData(cAuxAr2007("SigmaL",anAux),anEx.mSimgaLine);
 }
 
 void AddData(const cAuxAr2007 & anAux,cLinesAntiParal1Im & anEx)

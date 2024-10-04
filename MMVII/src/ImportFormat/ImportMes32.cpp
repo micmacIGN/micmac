@@ -63,7 +63,7 @@ cAppli_ImportM32::cAppli_ImportM32(const std::vector<std::string> & aVArgs,const
 cCollecSpecArg2007 & cAppli_ImportM32::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
     return anArgObl
-	      <<  Arg2007(mNameFile ,"Name of Input File")
+	      <<  Arg2007(mNameFile ,"Name of Input File",{eTA2007::FileAny})
 	      <<  Arg2007(mFormat   ,"Format of file as for ex \"SijXYZS\" ")
               <<  mPhProj.DPPointsMeasures().ArgDirOutMand()
            ;

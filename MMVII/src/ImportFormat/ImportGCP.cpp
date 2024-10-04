@@ -45,7 +45,7 @@ class cAppli_ImportGCP : public cMMVII_Appli
 	char                       mComment;
 	int                        mNbDigName;
 	std::vector<std::string>   mPatternTransfo;        
-	double                     mMulCoord;
+	double                     mMulCoord;  ///< Coordinates multiplicator (to change units)
 	double                     mSigma;
 	std::string                mPatternAddInfoFree;
 };

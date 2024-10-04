@@ -751,7 +751,11 @@ class cAppliExtractCircTarget : public cMMVII_Appli,
 	std::string                 mReportMutipleDetec;  // Name for report of multiple detection in on target
 
 	double                      mRatioDMML;
-        int                         mNbMaxMulTarget;
+
+        double                      mNbMaxMT_Init;    ///< Number of Multiple Target OK for 0 image
+        double                      mNbMaxMT_PerIm;    ///<  Number of Multiple Target OK per additional image
+        double                      mNbMaxMulTargetTot;  ///<  Number of Multiple Target OK per additional image
+
         cThresholdCircTarget        mThresh;
 
 	std::vector<const cGeomSimDCT*>     mGTMissed;
@@ -781,7 +785,8 @@ cAppliExtractCircTarget::cAppliExtractCircTarget
    mUseSimul         (false),
    mDoReportSimul    (false),
    mRatioDMML        (1.5),
-   mNbMaxMulTarget   (2),
+   mNbMaxMT_Init     (2.0),
+   mNbMaxMT_PerIm    (0.1),
    mStepRefineGrad   (1e-4),
    mInterpol         (nullptr)
 {
@@ -810,7 +815,10 @@ cCollecSpecArg2007 & cAppliExtractCircTarget::ArgOpt(cCollecSpecArg2007 & anArgO
              << AOpt2007(mZoomVisuSeed,"ZoomVisuSeed","Make a visualisation of seed point",{eTA2007::HDV})
              << AOpt2007(mZoomVisuElFinal,"ZoomVisuEllipse","Make a visualisation extracted ellispe & target",{eTA2007::HDV})
              << AOpt2007(mPatHihlight,"PatHL","Pattern for highliting targets in visu",{eTA2007::HDV})
-             << AOpt2007(mNbMaxMulTarget,"NbMMT","Nb max of multiple target acceptable",{eTA2007::HDV})
+
+             << AOpt2007(mNbMaxMT_Init,"NbMMT0","Nb max of multiple target acceptable initial (for 0 image)",{eTA2007::HDV})
+             << AOpt2007(mNbMaxMT_PerIm,"NbMMT1","Nb max of multiple target acceptable per image",{eTA2007::HDV})
+
              << AOpt2007(mStepRefineGrad,"StepRefineGrad","Step Refine Sym Grad",{eTA2007::HDV})
 	     <<   mPhProj.DPPointsMeasures().ArgDirOutOptWithDef("Std")
           );
@@ -854,7 +862,7 @@ void cAppliExtractCircTarget::MakeImageSeed()
                5.0,5.0,0.0
             );
    }
-    aImVisu.ToJpgFileDeZoom(mPhProj.DirVisu()+mPrefixOut + "_VisuSeed.tif",mZoomVisuSeed);
+    aImVisu.ToJpgFileDeZoom(mPhProj.DirVisuAppli()+mPrefixOut + "_VisuSeed.tif",mZoomVisuSeed);
 }
 
 void cAppliExtractCircTarget::MakeImageFinalEllispe()
@@ -906,7 +914,7 @@ void cAppliExtractCircTarget::MakeImageFinalEllispe()
 	}
    }
 
-    aImVisu.ToJpgFileDeZoom(mPhProj.DirVisu()+mPrefixOut + "_Ellipses.tif",mZoomVisuElFinal);
+    aImVisu.ToJpgFileDeZoom(mPhProj.DirVisuAppli()+mPrefixOut + "_Ellipses.tif",mZoomVisuElFinal);
 }
 
 void cAppliExtractCircTarget::MakeImageLabel()
@@ -944,7 +952,7 @@ void cAppliExtractCircTarget::MakeImageLabel()
            aImVisuLabel.SetRGBPix(aSeed.mPixW,cRGBImage::Yellow);
         }
     }
-    aImVisuLabel.ToJpgFileDeZoom(mPhProj.DirVisu()+mPrefixOut + "_Label.tif",mZoomVisuLabel);
+    aImVisuLabel.ToJpgFileDeZoom(mPhProj.DirVisuAppli()+mPrefixOut + "_Label.tif",mZoomVisuLabel);
 }
 
 
@@ -1156,7 +1164,8 @@ void cAppliExtractCircTarget::OnCloseReport(int aNbLine,const std::string & anId
 {
     if (anIdent==mReportMutipleDetec)
     {
-        if (aNbLine>(mNbMaxMulTarget*2))  // Each target is detected 2 times
+
+        if (aNbLine>(mNbMaxMulTargetTot*2))  // Each target is detected 2 times
         {
             MMVII_UserError(eTyUEr::eMultipleTargetInOneImage,"Nb Multiple Target = " + ToStr(aNbLine/2));
         }
@@ -1187,6 +1196,9 @@ int  cAppliExtractCircTarget::Exe()
         InitReport(mReportSimulDet,"csv",true);
         InitReport(mReportSimulGlob,"csv",true);
    }
+   mNbMaxMulTargetTot =  mNbMaxMT_Init + mNbMaxMT_PerIm *  VectMainSet(0).size() ;
+StdOut() << "mNbMaxMulTargetTotmNbMaxMulTargetTotmNbMaxMulTargetTotmNbMaxMulTargetTotmNbMaxMulTargetTotmNbMaxMulTargetTot " << mNbMaxMulTargetTot << "\n";
+
 
    if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
    {

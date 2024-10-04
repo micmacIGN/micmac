@@ -587,10 +587,15 @@ class cPhotogrammetricProject
 
 
 	      // ---------------  Segment in/out ----------------------------------------
-	  std::string  NameFileLines(const std::string & aNameIm) const;
-	  bool         HasFileLines(const std::string & aNameIm)  const;
+	  std::string  NameFileLines(const std::string & aNameIm,bool isIn) const;
+	  bool         HasFileLines(const std::string & aNameIm)  const;  ///<  Does exist the file with lines ?
+	  bool         HasFileLinesFolder(const std::string &aFolder,const std::string & aNameIm)  const; ///< Idem with spec folder
 	  void         SaveLines(const cLinesAntiParal1Im &) const;
-	  cLinesAntiParal1Im  ReadLines(const std::string & aNameIm) const;
+	  cLinesAntiParal1Im  ReadLines(const std::string & aNameIm) const; ///< Read lines from std folder
+	  cLinesAntiParal1Im  ReadLinesFolder(const std::string &aFolder,const std::string & aNameIm) const; ///< Idem with spec folder
+
+
+
 	  
 	 //===================================================================
          //==================   META-DATA       ==============================

@@ -220,6 +220,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
 
         TheVecAll.push_back(&TheSpecDistCorrectCirgTarget);
         TheVecAll.push_back(&TheSpec_ImportGCP);
+        TheVecAll.push_back(&TheSpec_ImportLines);
         TheVecAll.push_back(&TheSpec_ImportOBS);
         TheVecAll.push_back(&TheSpec_ImportORGI);
         TheVecAll.push_back(&TheSpec_ImportM32);
@@ -231,6 +232,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_CGPReport);
         TheVecAll.push_back(&TheSpec_MesImReport);
         TheVecAll.push_back(&TheSpec_TiePReport);
+        TheVecAll.push_back(&TheSpec_SegImReport);
         TheVecAll.push_back(&TheSpec_BlockCamInit);  // RIGIDBLOC    RB_0_0
         TheVecAll.push_back(&TheSpec_ClinoInit);
         TheVecAll.push_back(&TheSpecRename);

@@ -509,9 +509,11 @@ class cOneLineAntiParal
           cOneLineAntiParal();
 
           tSeg2dr mSeg;
-          tREAL8  mAng;
+          tREAL8  mAngDif;
           tREAL8  mWidth;
           tREAL8  mCumul;
+          tREAL8  mRadHom;
+          tREAL8  mSimgaLine;
 };
 void AddData(const cAuxAr2007 & anAux,cOneLineAntiParal & anEx);
 

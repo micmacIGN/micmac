@@ -10,6 +10,7 @@ namespace MMVII
 {
 
 typedef cSegment<tREAL8,2> tSeg2dr;
+typedef cSegmentCompiled<tREAL8,2> tSegComp2dr;
 
 
 

@@ -83,6 +83,7 @@ enum class eApF
                Match,      ///< Dense Matching
                GCP,       ///< Tie-Point processing
                TieP,       ///< Tie-Point processing
+               Lines,       ///< Lines processing
                TiePLearn,    ///< Tie-Point processing  - Learning step
                Cloud,       ///< Cloud processing
                CodedTarget,  ///< Coded target (generate, match )
@@ -141,6 +142,7 @@ enum class eApDT
               PCar,   ///< Tie Points
               TieP,   ///< Tie Points
               GCP,   ///< Tie Points
+              Lines,   ///< Tie Points
               Image,   ///< Image
               Orient,   ///< Orientations files
               SysCo,   ///< Coordinate system
@@ -666,6 +668,12 @@ class SVP
    public :
       static constexpr bool Yes = true;
       static constexpr bool No  = false;
+};
+class IO
+{
+   public :
+      static constexpr bool In = true;
+      static constexpr bool Out  = false;
 };
 
 

@@ -126,6 +126,10 @@ cPerspCamIntrCalib * cPhotogrammetricProject::GetCalibInit
     cMetaDataImage  aMTD = GetMetaData(aNameIm);
     // if already exist return it
     std::string  anIdent = aMTD.InternalCalibGeomIdent();
+
+    // StdOut() << "anIdentanIdent " << anIdent << " for " << aNameIm << "\n";
+
+
     cPerspCamIntrCalib  * & aRes = TheMapRes[anIdent];
     if (aRes!=nullptr) 
        return aRes;
