@@ -209,6 +209,7 @@ The observations codes are:
 
 \begin{itemize}
     \item \textbf{3}: 3D distance
+    \item \textbf{4}: height difference
     \item \textbf{5}: local horizontal (hz) angle
     \item \textbf{6}: local zenithal (zen) angle
     \item \textbf{7}: local horizontal angle for a new station 
@@ -272,6 +273,24 @@ The \texttt{GCPChSysCo} command does the conversion to \texttt{RTL}:
 MMVII GCPChSysCo "RTL*657700*6860700*0*IGNF:LAMB93" InitL93 InitRTL
 \end{lstlisting}
 
+
+The two previous steps can be done in one \texttt{ImportGCP} call, the \texttt{ChSys} parameter accepting two
+SysCos:
+
+\begin{lstlisting}
+MMVII ImportGCP inputs/coords.txt ANXYZ InitL93 ChSys="[L93,RTL*657700*6860700*0*IGNF:LAMB93]" AddInfoFree=0 Sigma=0.001 Comment=*
+\end{lstlisting}
+
+\subsection{Auto RTL SysCo}
+
+\texttt{ImportGCP} can automatically create a \texttt{RTL} SysCo, with its origin equal to the average of the input coordinates:
+just give \texttt{RTL} as the destination SysCo. This new SysCo will be saved as \texttt{MMVII-PhgrProj/SysCo/RTL.xml}, making
+the SysCo available for every following command as \texttt{RTL}.
+
+\begin{lstlisting}
+MMVII ImportGCP inputs/coords.txt ANXYZ InitL93 ChSys=[L93,RTL] AddInfoFree=0 Sigma=0.001 Comment=*
+\end{lstlisting}
+
 \begin{comment}
 \subsection{SysCo shortcut}
 The SysCo file \texttt{MMVII-PhgrProj/PointsMeasure/InitRTL/CurSysCo.xml}, created by \texttt{ImportGCP}
@@ -308,10 +327,9 @@ The corresponding \texttt{OBS} file (\texttt{inputs/meas.obs}) is:
  6   PtD    PtC   100      0.001
  3   PtD    PtC    22.82   0.005
 \end{verbatim}
-This file has to be copied into a subdirectory of \texttt{MMVII-PhgrProj/Topo}:
+This file has to be put into a subdirectory of \texttt{MMVII-PhgrProj/Topo} via the \texttt{ImportOBS} command:
 \begin{lstlisting}
-mkdir -p MMVII-PhgrProj/Topo/Obs1/
-cp inputs/meas.obs MMVII-PhgrProj/Topo/Obs1/
+MMVII ImportOBS inputs/meas.obs Obs1
 \end{lstlisting}
 
 
@@ -349,8 +367,8 @@ It is used as a substitute to \texttt{OriBundleAdj} when there are no cameras.
 \begin{verbatim}
  == Mandatory unnamed args : ==
   * string [Topo,In] :: Dir for Topo measures
-  * string [Topo,Out] :: Dir for Topo measures output
   * string [PointsMeasure,In] :: Dir for points initial coordinates
+  * string [Topo,Out] :: Dir for Topo measures output
   * string [PointsMeasure,Out] :: Dir for points final coordinates
 
  == Optional named args : ==
@@ -367,7 +385,7 @@ It is used as a substitute to \texttt{OriBundleAdj} when there are no cameras.
 In our example, the input topo directory is \texttt{Obs1} and the input PointsMeasure is \texttt{InitRTL}.
 We give output directories names for topo and points.
 \begin{lstlisting}
-MMVII TopoAdj Obs1 Obs1_out InitRTL FinalRTL
+MMVII TopoAdj Obs1 InitRTL Obs1_out FinalRTL
 \end{lstlisting}
 
 The final $\sigma_0$ value should be around 1 if everything goes well.
@@ -421,7 +439,7 @@ Figure \ref{fig:topoFrames} shows the frames used in topo compensation.
 \caption{The different frames types used in compensation:
    \texttt{Green}: a projection SysCo. As it is not euclidian, compensation should not be done in this frame.
    \texttt{Blue}: the RTL SysCo for the computation. Every parameter is in this frame.
-   \texttt{Purple}: each 3D point has its own local euclidian frame tangent to the ellipsoid
+   \texttt{Purple}: each 3D point has its own local euclidian frame tangent to the ellipsoid.
    \texttt{Yellow}: each topometric station has a rotation between the local euclidian tangent frame and the instrument frame.
  }
 \label{fig:topoFrames}

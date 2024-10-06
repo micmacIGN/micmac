@@ -152,6 +152,7 @@ class cDataPerspCamIntrCalib
       std::vector<std::string> & VecInfo() ;
 
       const cMapPProj2Im& MapPProj2Im() const { return mMapPProj2Im;}
+      const std::string & Name() const; ///< Accessor
 
    protected :
       std::string                    mName;
@@ -323,6 +324,7 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 	    /// Let S be a seg in undist space, extend as much as possible while distorted is include in image
 	    tSeg2dr  ExtenSegUndistIncluded
 		     (
+		          bool  Redist,
 		          const tSeg2dr & aSegInit,
 			  tREAL8 aStepInitRel=0.05,
 			  tREAL8 aStepEnd=1.0,

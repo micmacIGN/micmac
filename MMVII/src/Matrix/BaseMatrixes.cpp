@@ -133,9 +133,19 @@ template <class Type>  void cSparseVect<Type>::EraseIndex(int anInd)
 {
     erase_if(*mIV,[anInd](const auto & aPair){return aPair.mInd==anInd;});
 }
-/*
-*/
 
+template <class Type> double cSparseVect<Type>::DotProduct(const cDenseVect<Type> & aV) const
+{
+   double  aRes = 0.0;
+
+   const auto & aDIm = aV.DIm();
+   for (const auto & aPair : *this)
+   {
+       aRes += aPair.mVal *  aDIm.GetV(aPair.mInd);
+   }
+
+   return aRes;
+}
 
 
 /* ========================== */
@@ -263,12 +273,13 @@ template <class Type> cDenseVect<Type> cDenseVect<Type>::VecUnit() const
 
 
 
-
-
 template <class Type> double cDenseVect<Type>::DotProduct(const cDenseVect<Type> & aV) const
 {
    return MMVII::DotProduct(DIm(),aV.DIm());
 }
+
+
+
 // double L2Dist(const cDenseVect<Type> & aV) const;
 
 template <class Type> Type*       cDenseVect<Type>::RawData()       {return DIm().RawDataLin();}
@@ -805,7 +816,7 @@ template <class Type>  cDenseVect<Type>   cDenseVect<Type>::ProjOnSubspace(const
 
              aSys.PublicAddObservation(1.0,anEq,(*this)(aKCoord));
          }
-         cDenseVect<Type>  aSol = aSys.Solve();
+         cDenseVect<Type>  aSol = aSys.PublicSolve();
 
          for (int aKV = 0 ; aKV<aNbVec ; aKV++)
              aRes +=  aSol(aKV) * aVV.at(aKV);

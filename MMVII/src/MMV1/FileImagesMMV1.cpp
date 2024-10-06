@@ -217,12 +217,18 @@ template <class Type> void cMMV1_Conv<Type>::ReadWrite
    if (ReadMode)
    {
       Symb_FNum  aFIn = aTF.in();
+      // If input is multi-channel and out single, we compute the average of all channel
       if ((aFIn.dimf_out()>1) && (aVecImV2.size()==1))
       {
+         // if we have more than 3 channel, the 4th is generally an alpha channel, so dont want to use it
+	 // btw it a bit basic, and certainly a more sophisticated rule will have to be used (as weighting of diff channels)
+         int aNbCh = std::min(3,aFIn.dimf_out());
+
          Fonc_Num aNewF = aFIn.kth_proj(0);
-         for (int aKF=1 ; aKF< aFIn.dimf_out() ; aKF++)
+         for (int aKF=1 ; aKF< aNbCh ; aKF++)
              aNewF = aNewF + aFIn.kth_proj(aKF);
-          aFIn = aNewF / aFIn.dimf_out();
+
+           aFIn = aNewF / aNbCh;
       }
           
       ELISE_COPY

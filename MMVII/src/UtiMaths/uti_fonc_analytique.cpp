@@ -155,17 +155,23 @@ template <typename Type> Type DerY_ATan2(const Type & aX,const Type & aY)
 }
 
 
-
 template <typename Type> Type DiffAngMod(const Type & aA, const Type & aB)
 {
      auto aDiff = aA - aB;
      if (std::isfinite(aDiff))
      {
-         while (aDiff < -M_PI)
-            aDiff += 2*M_PI;
-         while (aDiff > 2*M_PI)
-            aDiff -= 2*M_PI;
+         if (aDiff < -M_PI)
+         {
+             int n = (aDiff-M_PI)/(-2*M_PI);
+             aDiff += n*2*M_PI;
+         }
+         if (aDiff > 2*M_PI)
+         {
+             int n = aDiff/(2*M_PI);
+             aDiff -= n*2*M_PI;
+         }
      }
+
      return aDiff;
 }
 

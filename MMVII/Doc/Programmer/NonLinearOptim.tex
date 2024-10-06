@@ -1365,41 +1365,140 @@ an error will occure and the user will have to provide initial coordinates in th
 
 \subsubsection{Topo survey equations}
 
-For \texttt{cTopoObsSetStation}, all the measurements are expressed in the local survey station frame.
+The adjustment unknowns are in RTL.
 
-The input data are:
+For \texttt{cTopoObsSetStation}, all the measurements are expressed in the instrument's local frame.
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=8cm]{Programmer/framesTopo.png}
+\caption{Frames types:
+   \texttt{Green}: projection SysCo.
+   \texttt{Blue}: RTL SysCo for the computation.
+   \texttt{Purple}: 3D point local vertical frame tangent to the ellipsoid.
+   \texttt{Yellow}: instrument frame.
+ }
+\label{fig:topoFrames}
+\end{figure}
+
+Each instrument orientation rotation from RTL is computed via the local vertical frame at its origin:
+
+\begin{equation}
+  R_{RTL \rightarrow Instr} = R_{Vert \rightarrow Instr} \cdot R_{RTL \rightarrow Vert}
+\end{equation}
+
+
+Where $R_{RTL \rightarrow Vert}$ is computed bu the SysCo from station origin position and
+$R_{Vert \rightarrow Instr}$ is unknown, with a degree of liberty depending on the station orientation constraint.
+
+It is recorded in \texttt{cTopoObsSetStation} as:
+
+\begin{lstlisting}
+    tRot mRotSysCo2Vert; //< rotation between global SysCo and local vertical frame
+    tRot mRotVert2Instr; //< current value for rotation from local vertical frame to instrument frame
+    cPt3dr_UK mRotOmega; //< mRotVert2Instr unknown
+\end{lstlisting}
+
+The possible orientation constraints are:
+\begin{itemize}
+   \item \texttt{\#FIX}: \texttt{mRotOmega} is fixed for $x$, $y$ and $z$
+   \item \texttt{\#VERT}: \texttt{mRotOmega} is fixed for $x$ and $y$
+   \item \texttt{\#BASC}: \texttt{mRotOmega} has no fixed component
+\end{itemize}
+
+
+The transformation from RTL to instrument local frame is:
+
+\begin{equation}
+    T_{Instr} = R_{RTL \rightarrow Instr} \cdot (T_{RTL} - S_{RTL})
+\end{equation}
+
+Where:
 
  \begin{itemize}
-    \item $O_{RTL}$: station origin point in RTL SysCo
+    \item $T_{Instr}$: target point in instrument local frame
+    \item $S_{RTL}$: station origin point in RTL SysCo
     \item $T_{RTL}$: target point in RTL SysCo
-    \item $R_{St, RTL}$: station origin point in station local frame
-    \item $\omega_R$: the rotation axiator unknown
-    \item $l$: the measurement value
+    \item $R_{RTL \rightarrow Instr}$: rotation from RTL to instrument frame
  \end{itemize}
 
- At first we compute target coordinates in station local frame $T_{loc}$:
 
- $$  T_{loc} = R_{Station, RTL}^T . (T_{RTL} - O_{RTL})  $$
-
- Then for each type of observation:
+Then for each type of observation ($l$ being the measurement value):
  
  \begin{itemize}
-    \item {\tt cFormulaTopoDX}: $$ residual = T_{loc,X} - l$$
-    \item {\tt cFormulaTopoDY}: $$ residual = T_{loc,X} - l$$
-    \item {\tt cFormulaTopoDZ}: $$ residual = T_{loc,X} - l$$
+    \item {\tt cFormulaTopoDX}: $$ residual = T_{Instr_X} - l$$
+    \item {\tt cFormulaTopoDY}: $$ residual = T_{Instr_Y} - l$$
+    \item {\tt cFormulaTopoDZ}: $$ residual = T_{Instr_Z} - l$$
 
-    \item {\tt cFormulaTopoHz}: $$ residual =  \arctan\left(T_{loc,X}, T_{loc,Y}\right) - l $$
+    \item {\tt cFormulaTopoHz}: $$ residual =  \arctan\left(T_{Instr_X}, T_{Instr_Y}\right) - l $$
     \item {\tt cFormulaTopoZen}:
-    $$ ref = 0.12 . \frac { hz\_dist\_ellips\left( T, O \right) }
+    $$ ref = 0.12 . \frac { hz\_dist\_ellips\left( T, S \right) }
                           { 2 . earth\_radius} $$
-    $$ d_{hz} =  \| T_{loc,X}, T_{loc,Y} \| $$
-    $$ residual =  \arctan\left(d_{hz}, T_{loc,Z}\right) - ref - l $$
-    \item {\tt cFormulaTopoDist}: $$  residual =  \| T_{lol} \| - l $$
+    $$ d_{hz} =  \| T_{Instr_X}, T_{Instr_Y} \| $$
+    $$ residual =  \arctan\left(d_{hz}, T_{Instr_Z}\right) - ref - l $$
+    \item {\tt cFormulaTopoDist}: $$  residual =  \| T_{Instr} \| - l $$
 
  \end{itemize}
 
- Angles residuals are put in $ [ -\pi, + \pi ] $ interval.
+Angles residuals are in $\left[ -\pi, + \pi \right]$ interval.
 
+This is implemented like this:
+\begin{lstlisting}
+class cFormulaTopoHz
+{
+      public :
+           std::string FormulaName() const { return "TopoHz";}
+           std::vector<std::string>  VNamesUnknowns()  const
+           {
+                //  Instrument pose with 6 unknowns : 3 for center, 3 for axiator
+               // target pose with 3 unknowns : 3 for center
+                return  Append(NamesPose("Ci","Wi"),NamesP3("P_to"));
+           }
+           std::vector<std::string>    VNamesObs() const
+           {
+                // for the instrument pose, the 3x3 current rotation matrix as "observation/context"
+                // and the measure value
+                return  Append(NamesMatr("mi",cPt2di(3,3)), {"val"} );
+           }
+           template <typename tUk>
+                       std::vector<tUk> formula
+                       (
+                          const std::vector<tUk> & aVUk,
+                          const std::vector<tUk> & aVObs
+                       ) const
+           {
+               cPoseF<tUk>  aPoseInstr2RTL(aVUk,0,aVObs,0,true);
+               cPtxd<tUk,3> aP_to = VtoP3(aVUk,6);
+               auto       val = aVObs[9];
+               cPtxd<tUk,3>  aP_to_instr = aPoseInstr2RTL.Inverse().Value(aP_to);
+               auto az = ATan2( aP_to_instr.x(), aP_to_instr.y() );
+               return {  DiffAngMod(az, val) };
+           }
+};
+
+\end{lstlisting}
+
+For ellipsoid height difference observation, the equation is:
+$$ residual =  \left(H_{to} - H_{from}\right) - l$$
+
+To convert the points RTL coordinates into ellipsoid heights,
+the fist step is to convert them to geocentric ($X$, $Y$, $Z$) and then use the formula from
+\textit{Bowring, 1985, The accuracy of geodetic latitude and height equations}
+\url{geodesie.ign.fr/contenu/fichiers/documentation/pedagogiques/TransformationsCoordonneesGeodesiques.pdf}
+(see Fig~\ref{fig:GeoCtoGeoG}):
+
+$$h=\sqrt{ X^2 + Y^2} \cdot \cos \phi + Z \sin \phi - a \sqrt{1-e^2 \sin^2 \phi}$$
+
+Where $a$ and $e$ are constants from the ellipsoid.
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=16cm]{Programmer/GeoCtoGeoG.png}
+\caption{Geocentric to geodetic coordinates}
+\label{fig:GeoCtoGeoG}
+\end{figure}
+
+Since there is no vertical deflexion nor geoid model for now, we suppose that $H = h$.
 
 %---------------------------------------------
 %---------------------------------------------

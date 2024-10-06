@@ -541,7 +541,7 @@ template<class Type> inline Type GetV(std::istringstream & iss, const std::strin
     iss >> aNum;
     if ( ! iss)
     {
-       MMVII_UnclasseUsEr("Bad reading at line  " + aSrcFile + " of file [" + std::to_string(aSrcLine+1) + "] , rdstate=" + ToStr((size_t)iss.rdstate()));
+       MMVII_UnclasseUsEr("Bad reading at line  " + std::to_string(aSrcLine+1)+ " of file [" + aSrcFile + "]. (rdstate=" + ToStr((size_t)iss.rdstate()) + ')');
     }
     return aNum;
 }

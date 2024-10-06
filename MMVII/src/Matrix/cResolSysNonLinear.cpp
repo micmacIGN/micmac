@@ -258,7 +258,7 @@ template <class Type> void  cResolSysNonLinear<Type>::SetFrozenAllCurrentValues(
 template <class Type> 
     void  cResolSysNonLinear<Type>::SetFrozenFromPat(tObjWUk & anObjGlob,const std::string& aPat, bool Frozen)
 {
-      cGetAdrInfoParam<Type> aGIAP(aPat,anObjGlob);
+      cGetAdrInfoParam<Type> aGIAP(aPat,anObjGlob,false);
       for (size_t aK=0 ;aK<aGIAP.VAdrs().size() ; aK++)
       {
           Type * anAdr =aGIAP.VAdrs()[aK];
@@ -750,7 +750,7 @@ template <> void   cResolSysNonLinear<tREAL8>::R_AddEq2Subst
 template <class Type> void cResolSysNonLinear<Type>::AddObsWithTmpUK (const tSetIO_ST & aSetIO)
 {
     currNbObs += aSetIO.NbRedundacy();
-    mSysLinear->AddObsWithTmpUK(aSetIO);
+    mSysLinear->PublicAddObsWithTmpUK(aSetIO);
 }
 
 template <class Type> void cResolSysNonLinear<Type>::R_AddObsWithTmpUK (const tR_Up::tSetIO_ST & aR_SetIO)
@@ -799,8 +799,8 @@ template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUp
         }
     }
 
-    mCurGlobSol += mSysLinear->Solve();     //  mCurGlobSol += mSysLinear->SparseSolve();
-    mSysLinear->Reset();
+    mCurGlobSol += mSysLinear->PublicSolve();     //  mCurGlobSol += mSysLinear->SparseSolve();
+    mSysLinear->PublicReset();
     currNbObs = 0;
 
     mNbIter++;

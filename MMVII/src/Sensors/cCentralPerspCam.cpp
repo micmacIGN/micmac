@@ -91,6 +91,7 @@ cDataPerspCamIntrCalib::cDataPerspCamIntrCalib
 
 }
 
+const std::string & cDataPerspCamIntrCalib::Name() const {return mName;}
     
 void cDataPerspCamIntrCalib::AddData(const cAuxAr2007 & anAux0)
 {
@@ -571,6 +572,9 @@ void cPerspCamIntrCalib::PutUknowsInSetInterval()
 
 void  cPerspCamIntrCalib::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 {
+   aGAIP.SetNameType("CalibCamPC");
+   aGAIP.SetIdObj(mName);
+
    aGAIP.TestParam(this,&(mMapPProj2Im.F()),"F");
    aGAIP.TestParam(this,&(mMapPProj2Im.PP().x()),"PPx");
    aGAIP.TestParam(this,&(mMapPProj2Im.PP().y()),"PPy");
@@ -873,10 +877,11 @@ cPerspCamIntrCalib * cPerspCamIntrCalib::RandomCalib(eProjPC aTypeProj,int aKDeg
 
 tSeg2dr  cPerspCamIntrCalib::ExtenSegUndistIncluded
          (
-                          const tSeg2dr & aSegInit,
-                          tREAL8 aStepInitRel,
-                          tREAL8 aStepEnd,
-                          tREAL8 aRetract
+             bool   doRedist,
+             const tSeg2dr & aSegInit,
+             tREAL8 aStepInitRel,
+             tREAL8 aStepEnd,
+             tREAL8 aRetract
          ) const
 {
       std::vector<cPt2dr> aVPts;
@@ -893,6 +898,8 @@ tSeg2dr  cPerspCamIntrCalib::ExtenSegUndistIncluded
 	      aStep /= 2.0;
 	  }
 	  aPt += aTgt * (-aRetract);
+	  if (doRedist)
+             aPt = Redist(aPt);
 	  aVPts.push_back(aPt);
       }
       return tSeg2dr(aVPts.at(0),aVPts.at(1));

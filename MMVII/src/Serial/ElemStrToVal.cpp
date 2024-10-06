@@ -176,6 +176,7 @@ template<> cE2Str<eSysCo>::tMapE2Str cE2Str<eSysCo>::mE2S
 
 template<> cE2Str<eTopoObsSetType>::tMapE2Str cE2Str<eTopoObsSetType>::mE2S
            {
+                {eTopoObsSetType::eSimple,"Simple"},
                 {eTopoObsSetType::eStation,"Station"},
                 //{eTopoObsSetType::eDistParam,"DistParam"},
            };
@@ -188,6 +189,7 @@ template<> cE2Str<eTopoObsType>::tMapE2Str cE2Str<eTopoObsType>::mE2S
                 {eTopoObsType::eDX,"DX"},
                 {eTopoObsType::eDY,"DY"},
                 {eTopoObsType::eDZ,"DZ"},
+                {eTopoObsType::eDH,"DH"},
                 //{eTopoObsType::eDistParam,"DistParam"},
            };
 
@@ -261,6 +263,7 @@ template<> cE2Str<eApF>::tMapE2Str cE2Str<eApF>::mE2S
                 {eApF::SysCo,"SysCo"},
                 {eApF::Match,"Match"},
                 {eApF::GCP,"GCP"},
+                {eApF::Lines,"Lines"},
                 {eApF::TieP,"TieP"},
                 {eApF::TiePLearn,"TiePLearn"},
                 {eApF::Cloud,"Cloud"},
@@ -277,11 +280,13 @@ template<> cE2Str<eApDT>::tMapE2Str cE2Str<eApDT>::mE2S
                 {eApDT::PCar,"PCar"},
                 {eApDT::TieP,"TieP"},
                 {eApDT::GCP,"GCP"},
+                {eApDT::Lines,"Lines"},
                 {eApDT::Image,"Image"},
                 {eApDT::Orient,"Orient"},
                 {eApDT::SysCo,"SysCo"},
                 {eApDT::Radiom,"Radiom"},
                 {eApDT::Ply,"Ply"},
+                {eApDT::Topo,"Topo"},
                 {eApDT::None,"None"},
                 {eApDT::ToDef,"ToDef"},
                 {eApDT::Console,"Console"},
@@ -313,6 +318,7 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eCreateDir,"MkDir"},
                 {eTyUEr::eRemoveFile,"RmFile"},
                 {eTyUEr::eEmptyPattern,"EmptyPattern"},
+                {eTyUEr::eBadPattern,"BadPattern"},
                 {eTyUEr::eBadXmlTopTag,"XmlTopTag"},
                 {eTyUEr::eParseBadClose,"ParseBadClose"},
                 {eTyUEr::eJSonBadPunct,"JSonBadPunct"},
@@ -345,7 +351,7 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eNoNumberPixel,"NoNumberPixel"},
                 {eTyUEr::eNoCameraName,"NoCameraName"},
                 {eTyUEr::eMultipleTargetInOneImage,"MultipleTargetInOneImage,"},
-                {eTyUEr::eBadSysCo,"BadSysCo"},
+                {eTyUEr::eSysCo,"SysCo"},
                 {eTyUEr::eConstraintsError,"ConstraintsError"},
                 {eTyUEr::eUnClassedError,"UnClassedError"}
            };

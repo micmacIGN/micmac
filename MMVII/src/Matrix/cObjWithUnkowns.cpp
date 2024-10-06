@@ -21,16 +21,44 @@ template <class Type> cGetAdrInfoParam<Type>::cGetAdrInfoParam(const std::string
 }
 */
 
-template <class Type> cGetAdrInfoParam<Type>::cGetAdrInfoParam(const std::string & aPattern,cObjWithUnkowns<Type> & aObj) :
+template <class Type> cGetAdrInfoParam<Type>::cGetAdrInfoParam(const std::string & aPattern,cObjWithUnkowns<Type> & aObj,bool isRecurs) :
       // cGetAdrInfoParam<Type>(aPattern)
-	mPattern  (AllocRegex(aPattern))
+	mPattern  (AllocRegex(aPattern)),
+	mNameType ("???"),
+	mIdObj    ("???")
 {
+    if (isRecurs)
+    {
+        std::vector<cObjWithUnkowns<Type> *>  aVObj = aObj.RecursGetAllUK() ;
+
+        for (auto  aPtr : aVObj)
+        {
+            aPtr->GetAdrInfoParam(*this);
+        }
+    }
+    else
+    {
+       aObj.GetAdrInfoParam(*this);
+    }
+	/*
      std::vector<cObjWithUnkowns<Type> *>  aVObj = aObj.RecursGetAllUK() ;
 
      for (auto  aPtr : aVObj)
      {
           aPtr->GetAdrInfoParam(*this);
      }
+     */
+}
+template <class Type> const std::string & cGetAdrInfoParam<Type>::NameType() const {return mNameType;}
+template <class Type> const std::string & cGetAdrInfoParam<Type>::IdObj() const {return mIdObj;}
+
+template <class Type> void cGetAdrInfoParam<Type>::SetNameType(const std::string & aNameType)
+{
+    mNameType = aNameType;
+}
+template <class Type> void cGetAdrInfoParam<Type>::SetIdObj(const std::string & aIdObj)
+{
+    mIdObj = aIdObj;
 }
 
 template <class Type> void cGetAdrInfoParam<Type>::TestParam(tObjWUK * anObj,Type * anAdr,const std::string & aName)
@@ -44,31 +72,33 @@ template <class Type> void cGetAdrInfoParam<Type>::TestParam(tObjWUK * anObj,Typ
 }
 
 template <class Type> const std::vector<std::string>  &   cGetAdrInfoParam<Type>::VNames() const { return mVNames; }
-template <class Type> const std::vector<Type*> &        cGetAdrInfoParam<Type>::VAdrs()  const {return mVAdrs;}
+template <class Type> const std::vector<Type*> &        cGetAdrInfoParam<Type>::VAdrs() const {return mVAdrs;}
 template <class Type> const std::vector<cObjWithUnkowns<Type>*>& cGetAdrInfoParam<Type>::VObjs()  const {return mVObjs;}
 
 template <class Type> void cGetAdrInfoParam<Type>::ShowAllParam(cObjWithUnkowns<Type> & anObj)
 {
-    cGetAdrInfoParam aGAIP(".*",anObj);
+    cGetAdrInfoParam<Type> aGAIP(".*",anObj,true);
 
     StdOut() << "===============  Avalaible names =================" << std::endl;
     for (const auto & aName  : aGAIP.VNames())
         StdOut()  << "  -[ " << aName << "]" << std::endl;
 }
 
+/*
 template <class Type> void cGetAdrInfoParam<Type>::PatternSetToVal(const std::string & aPattern,tObjWUK & aObj,const Type & aVal)
 {
     cGetAdrInfoParam<Type> aGAIP(aPattern,aObj);
     for (auto & anAdr : aGAIP.mVAdrs)
         *anAdr = aVal;
 }
+*/
 
 /* ******************************** */
 /*       cSetInterUK_MultipeObj     */
 /* ******************************** */
 
 //  put all value to "bull shit"
-template <class Type> cObjWithUnkowns<Type>::cObjWithUnkowns() 
+template <class Type> cObjWithUnkowns<Type>::cObjWithUnkowns()
 {
    OUK_Reset();
 }
@@ -173,6 +203,23 @@ template <class Type> cSetInterUK_MultipeObj<Type>::cSetInterUK_MultipeObj() :
     mNbUk (0)
 {
 }
+
+template <class Type> size_t cSetInterUK_MultipeObj<Type>::NumberObject() const
+{
+	return mVVInterv.size();
+}
+
+template <class Type>  const cObjWithUnkowns<Type> &  cSetInterUK_MultipeObj<Type>::KthObj(size_t aKth) const
+{
+	return *(mVVInterv.at(aKth).mObj);
+}
+template <class Type>  cObjWithUnkowns<Type> &  cSetInterUK_MultipeObj<Type>::KthObj(size_t aKth) 
+{
+	return *(mVVInterv.at(aKth).mObj);
+}
+
+
+
 
 template <class Type> void  cSetInterUK_MultipeObj<Type>::SIUK_Reset()
 {

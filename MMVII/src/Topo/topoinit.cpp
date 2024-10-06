@@ -8,19 +8,38 @@
 namespace MMVII
 {
 
-bool tryInit3Obs1Station(cTopoPoint & aPtToInit, tStationsMap &stationsMap) // try 3 obs from one station
+// try 3 obs from one station
+bool tryInit3Obs1Station(cTopoPoint & aPtToInit, tStationsMap &stationsMap, tSimpleObsMap &allSimpleObs)
 {
     for (auto& [aOriginPt, aStationVect] : stationsMap)
     {
         if (!aOriginPt->isInit())
             continue;
+        cTopoObs * obs_dist = nullptr;
+        if (allSimpleObs.count(aOriginPt))
+        {
+            for (auto & aObs: allSimpleObs[aOriginPt])
+            {
+                if ( aObs->getPointName(0)==aPtToInit.getName()
+                     || aObs->getPointName(1)==aPtToInit.getName() )
+                {
+                    switch (aObs->getType()) {
+                    case eTopoObsType::eDist:
+                        obs_dist = aObs;
+                        break;
+                    default:
+                        break;
+                    }
+                }
+            }
+        }
         for (auto & aStation: aStationVect)
         {
             if (!aStation->isInit())
                 continue;
             cTopoObs * obs_az = nullptr;
             cTopoObs * obs_zen = nullptr;
-            cTopoObs * obs_dist = nullptr;
+
             cTopoObs * obs_dx = nullptr;
             cTopoObs * obs_dy = nullptr;
             cTopoObs * obs_dz = nullptr;
@@ -34,9 +53,6 @@ bool tryInit3Obs1Station(cTopoPoint & aPtToInit, tStationsMap &stationsMap) // t
                         break;
                     case eTopoObsType::eZen:
                         obs_zen = aObs;
-                        break;
-                    case eTopoObsType::eDist:
-                        obs_dist = aObs;
                         break;
                     case eTopoObsType::eDX:
                         obs_dx = aObs;
@@ -62,8 +78,7 @@ bool tryInit3Obs1Station(cTopoPoint & aPtToInit, tStationsMap &stationsMap) // t
                 a3DVect.x() = d0*sin(obs_az->getMeasures()[0]);
                 a3DVect.y() = d0*cos(obs_az->getMeasures()[0]);
                 a3DVect.z() = obs_dist->getMeasures()[0]*cos(obs_zen->getMeasures()[0]);
-                *aPtToInit.getPt() =  *aOriginPt->getPt() +
-                        (aStation->getRotSysCo2Vert() * aStation->getRotVert2Instr()).Inverse(a3DVect);
+                *aPtToInit.getPt() = aStation->PtInstr2SysCo(a3DVect);
                 return true;
             }
             if (obs_dx && obs_dy && obs_dz)
@@ -75,8 +90,7 @@ bool tryInit3Obs1Station(cTopoPoint & aPtToInit, tStationsMap &stationsMap) // t
                                 obs_dy->getMeasures()[0],
                                 obs_dz->getMeasures()[0]
                         );
-                *aPtToInit.getPt() =  *aOriginPt->getPt() +
-                        (aStation->getRotSysCo2Vert() * aStation->getRotVert2Instr()).Inverse(a3DVect);
+                *aPtToInit.getPt() = aStation->PtInstr2SysCo(a3DVect);
                 return true;
             }
         }
@@ -84,8 +98,8 @@ bool tryInit3Obs1Station(cTopoPoint & aPtToInit, tStationsMap &stationsMap) // t
     return false;
 }
 
-
-bool tryInitVertStations(cTopoPoint & aPtToInit, tStationsMap &stationsMap) // try bearing and distance from verticalized stations
+ // try bearing and distance from verticalized stations
+bool tryInitVertStations(cTopoPoint & aPtToInit, tStationsMap &stationsMap, tSimpleObsMap &allSimpleObs)
 {
     for (auto& [aOriginPt, aStationVect] : stationsMap)
     {
@@ -93,6 +107,23 @@ bool tryInitVertStations(cTopoPoint & aPtToInit, tStationsMap &stationsMap) // t
         cTopoObsSetStation * aStationHz = nullptr;
         if (!aOriginPt->isInit())
             continue;
+        if (allSimpleObs.count(aOriginPt))
+        {
+            for (auto & aObs: allSimpleObs[aOriginPt])
+            {
+                if ( aObs->getPointName(0)==aPtToInit.getName()
+                     || aObs->getPointName(1)==aPtToInit.getName() )
+                {
+                    switch (aObs->getType()) {
+                    case eTopoObsType::eDist:
+                        dist = aObs->getMeasures()[0];
+                        break;
+                    default:
+                        break;
+                    }
+                }
+            }
+        }
         for (auto & aStation: aStationVect)
         {
             for (const auto & aObs: aStation->getAllObs())
@@ -113,10 +144,6 @@ bool tryInitVertStations(cTopoPoint & aPtToInit, tStationsMap &stationsMap) // t
                                 (aStation->getOriStatus()==eTopoStOriStat::eTopoStOriFixed)
                                 || (aStation->getOriStatus()==eTopoStOriStat::eTopoStOriVert)) )
                             zen = aObs->getMeasures()[0];
-                    if (!std::isfinite(dist))
-                        if (aObs->getType()==eTopoObsType::eDist)
-                            dist = aObs->getMeasures()[0];
-
                 }
             }
         }
@@ -130,8 +157,7 @@ bool tryInitVertStations(cTopoPoint & aPtToInit, tStationsMap &stationsMap) // t
             a3DVect.x() = d0*sin(az);
             a3DVect.y() = d0*cos(az);
             a3DVect.z() = dist*cos(zen);
-            *aPtToInit.getPt() =  *aOriginPt->getPt() +
-                    (aStationHz->getRotSysCo2Vert() * aStationHz->getRotVert2Instr()).Inverse(a3DVect);
+            *aPtToInit.getPt() = aStationHz->PtInstr2SysCo(a3DVect);
             return true;
         }
     }

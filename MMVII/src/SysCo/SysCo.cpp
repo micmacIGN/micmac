@@ -1,6 +1,6 @@
 #include "MMVII_SysCo.h"
-//#include <proj.h>
 #include "MMVII_Geom3D.h"
+#include <proj.h>
 
 
 namespace MMVII
@@ -21,7 +21,7 @@ namespace {
         {
             int aProjErrorNo = proj_errno(aPJ);
             std::string aStrErrorDescr = aProjErrorNo>0 ? proj_errno_string(proj_errno(aPJ)): " Panic! Check your proj installation.";
-            MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eBadSysCo,
+            MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eSysCo,
                                        std::string("Error in SysCo conversion creation from \"")
                                        +aDefFrom+"\" to \""+aDefTo+"\": "+aStrErrorDescr)
         }
@@ -151,7 +151,6 @@ class cSysCoLEuc : public cSysCo
 {
     friend class cSysCo;
 public :
-    typedef cIsometry3D<tREAL8> tPoseR;
     virtual ~cSysCoLEuc();
 
     // do not copy and move because of PJ* (not needed via tPtrSysCo)
@@ -163,7 +162,7 @@ public :
     tPt Value(const tPt &)   const override; //< to GeoC
     tPt Inverse(const tPt &) const override; //< from GeoC
 
-    const tPoseR& getTranfo2GeoC() const { return mTranfo2GeoC; }
+    virtual const tPoseR* getTranfo2GeoC() const override { return &mTranfo2GeoC; }
 protected:
     cSysCoLEuc(const std::string & def, bool aDebug); //< construct from a definition, starting with LEuc
     cSysCoLEuc(bool aDebug); //< default constructor for derived classes
@@ -189,12 +188,13 @@ public :
     cSysCoRTL& operator=(const cSysCoRTL& other) = delete;
     cSysCoRTL& operator=(cSysCoRTL&& other) = delete;
 
-    virtual cRotation3D<tREAL8> getVertical(const tPt &aPtIn) const override; //< get rotation from SysCo origin to vertical at this point
+    virtual cRotation3D<tREAL8> getRot2Vertical(const tPt &aPtIn) const override; //< get rotation from SysCo origin to vertical at this point
+
+    bool computeRTL(tPt anOrigin, std::string aInDef); //< init mTranfo2GeoC for RTL case
 
 protected:
     cSysCoRTL(const std::string & def, bool aDebug); //< construct from a definition, starting with RTL
     cSysCoRTL(tPt anOrigin, std::string aInDef, bool aDebug); //< construct for RTL
-    bool computeRTL(tPt anOrigin, std::string aInDef); //< init mTranfo2GeoC for RTL case
 };
 //------------------------------------------------------------
 
@@ -242,9 +242,9 @@ cSysCoData cSysCo::toSysCoData()
     return {mDef};
 }
 
-cRotation3D<tREAL8> cSysCo::getVertical(const tPt &)   const
+cRotation3D<tREAL8> cSysCo::getRot2Vertical(const tPt &)   const
 {
-    MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eBadSysCo,
+    MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eSysCo,
                                std::string("Error: getVertical() not defined for SysCo type ") + E2Str(mType));
     return cRotation3D<tREAL8>::Identity();
 }
@@ -256,9 +256,6 @@ tREAL8 cSysCo::getRadiusApprox(const tPt &in) const
     PJ_COORD pj_geog = proj_trans(mPJ_GeoC2Geog, PJ_FWD, pj_geoc);
     tREAL8 lat = pj_geog.lp.phi/AngleInRad(eTyUnitAngle::eUA_degree);
 
-    //GRS80
-    const tREAL8 semi_axis = 6378137;
-    const tREAL8 e2        = 0.00669438;
     return semi_axis*sqrt(1-e2)/(1-e2*Square(sin(lat)));//total curvature sphere
 }
 
@@ -266,6 +263,10 @@ tREAL8 cSysCo::getDistHzApprox(const tPt & aPtA, const tPt & aPtB) const
 {
     auto aPtAGeoc = Value(aPtA);
     auto aPtAgeog = fromPjCoord(proj_trans(mPJ_GeoC2Geog, PJ_FWD, toPjCoord(aPtAGeoc)));
+    MMVII_INTERNAL_ASSERT_User((fabs(aPtAgeog.z())<1.0e10), eTyUEr::eSysCo,
+                               std::string("Error: point too far for cSysCo::getDistHzApprox(). Geog=")
+                               + std::to_string(aPtAgeog.x()) + " " + std::to_string(aPtAgeog.y()) + " " + std::to_string(aPtAgeog.z()));
+
     auto aPtBGeoc = Value(aPtB);
 
     tREAL8 cosAlpha = Scal(aPtAGeoc,aPtBGeoc)/(Norm2(aPtAGeoc)*Norm2(aPtBGeoc));
@@ -274,6 +275,28 @@ tREAL8 cSysCo::getDistHzApprox(const tPt & aPtA, const tPt & aPtB) const
     tREAL8 radius = getRadiusApprox(aPtA);
 
     return alpha*(radius + aPtAgeog.z());
+}
+
+tPt3dr cSysCo::toGeoG(const tPt & aPtIn) const
+{
+    auto inGeoc = Value(aPtIn);
+    PJ_COORD pj_geoc = toPjCoord(inGeoc);
+    PJ_COORD pj_geog = proj_trans(mPJ_GeoC2Geog, PJ_FWD, pj_geoc);
+    return fromPjCoord(pj_geog);
+}
+
+tPt3dr cSysCo::fromGeoG(const tPt &aPtInGeoG) const
+{
+    PJ_COORD pj_geog = toPjCoord(aPtInGeoG);
+    PJ_COORD pj_geoc = proj_trans(mPJ_GeoC2Geog, PJ_INV, pj_geog);
+    return Inverse(fromPjCoord(pj_geoc));
+}
+
+const tPoseR* cSysCo::getTranfo2GeoC() const
+{
+    MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eSysCo,
+                               std::string("Error: getTranfo2GeoC() not defined for SysCo type ") + E2Str(mType));
+    return nullptr;
 }
 
 tPtrSysCo cSysCo::MakeSysCo(const std::string &aDef, bool aDebug)
@@ -334,14 +357,14 @@ cSysCoLocal::cSysCoLocal(const std::string &aDef, bool aDebug) :
 
 tPt3dr cSysCoLocal::Value(const tPt & in)   const  //< to GeoC
 {
-    MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eBadSysCo,
+    MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eSysCo,
                                "Can not convert SysCoLocal to Geocentric")
     return {};
 }
 
 tPt3dr cSysCoLocal::Inverse(const tPt & in) const //< from GeoC
 {
-    MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eBadSysCo,
+    MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eSysCo,
                                "Can not convert SysCoLocal from Geocentric")
     return {};
 }
@@ -400,12 +423,14 @@ cSysCoLEuc::~cSysCoLEuc()
 
 tPt3dr cSysCoLEuc::Value(const tPt & in)   const  //< to GeoC
 {
-    return getTranfo2GeoC().Rot().Mat() * in + getTranfo2GeoC().Tr();
+    MMVII_INTERNAL_ASSERT_User(mIsReady, eTyUEr::eSysCo, "SysCo not ready")
+    return getTranfo2GeoC()->Rot().Mat() * in + getTranfo2GeoC()->Tr();
 }
 
 tPt3dr cSysCoLEuc::Inverse(const tPt & in) const //< from GeoC
 {
-    return getTranfo2GeoC().Rot().Mat().Transpose() * (in - getTranfo2GeoC().Tr());
+    MMVII_INTERNAL_ASSERT_User(mIsReady, eTyUEr::eSysCo, "SysCo not ready")
+    return getTranfo2GeoC()->Rot().Mat().Transpose() * (in - getTranfo2GeoC()->Tr());
 }
 
 
@@ -422,6 +447,12 @@ cSysCoRTL::cSysCoRTL(const std::string &aDef, bool aDebug) :
                                "Error in RTL definition format: \""+mDef+"\"")
     if (tokens[0]==MMVII_SysCoRTL)
     {
+        if (tokens.size()==1)
+        {
+            // RTL to be made later
+            mIsReady = false;
+            return;
+        }
         MMVII_INTERNAL_ASSERT_User(tokens.size()==5, eTyUEr::eInsufNbParam,
                                    "Error in RTL definition format: \""+mDef+"\"")
         tPt anOrigin(std::stod(tokens[1]), std::stod(tokens[2]), std::stod(tokens[3]));
@@ -488,18 +519,19 @@ bool cSysCoRTL::computeRTL(tPt anOrigin, std::string aInDef)
           <<aOmegaPhiKappa.x()<<SysCoDefSep<<aOmegaPhiKappa.y()<<SysCoDefSep<<aOmegaPhiKappa.z();
         mDef = oss.str();
     }
-
+    mIsReady = true;
     return true;
 }
 
 
-cRotation3D<tREAL8> cSysCoRTL::getVertical(const tPt & aPtIn)  const
+cRotation3D<tREAL8> cSysCoRTL::getRot2Vertical(const tPt & aPtIn)  const
 {
+    MMVII_INTERNAL_ASSERT_User(mIsReady, eTyUEr::eSysCo, "SysCo not ready")
     tPt ptGeoC = Value(aPtIn);
     auto anOtherRTL = cSysCoLEuc::makeRTL(ptGeoC, MMVII_SysCoDefGeoC);
     auto anOtherRTL_asRTL = static_cast<cSysCoRTL*>(anOtherRTL.get());
     // TODO: add vertical deflection
-    return cRotation3D(anOtherRTL_asRTL->getTranfo2GeoC().Rot().Mat().Transpose(),false) * getTranfo2GeoC().Rot();
+    return cRotation3D(anOtherRTL_asRTL->getTranfo2GeoC()->Rot().Mat().Transpose(),false)* getTranfo2GeoC()->Rot();
 }
 
 //------------------------------------------------------------
@@ -518,6 +550,7 @@ cSysCoProj::~cSysCoProj()
 
 tPt3dr cSysCoProj::Value(const tPt & in)   const  //< to GeoC
 {
+    MMVII_INTERNAL_ASSERT_User(mIsReady, eTyUEr::eSysCo, "SysCo not ready")
     PJ_COORD pj_in, pj_out;
     pj_in = proj_coord(in.x(), in.y(), in.z(), 0.);
     pj_out = proj_trans(mPJ_Proj2GeoC, PJ_FWD, pj_in);
@@ -527,6 +560,7 @@ tPt3dr cSysCoProj::Value(const tPt & in)   const  //< to GeoC
 
 tPt3dr cSysCoProj::Inverse(const tPt & in) const //< from GeoC
 {
+    MMVII_INTERNAL_ASSERT_User(mIsReady, eTyUEr::eSysCo, "SysCo not ready")
     PJ_COORD pj_in, pj_out;
     pj_in = proj_coord(in.x(), in.y(), in.z(), 0.);
     pj_out = proj_trans(mPJ_Proj2GeoC, PJ_INV, pj_in);
@@ -581,6 +615,16 @@ tPt3dr cChangeSysCo::Inverse(const tPt &in)   const
     }
 }
 
+void cChangeSysCo::setOriginSysCo(tPtrSysCo aSysCo)
+{
+    mSysCoOrigin = aSysCo;
+}
+
+void cChangeSysCo::setTargetsysCo(tPtrSysCo aSysCo)
+{
+    mSysCoTarget = aSysCo;
+}
+
 //------------------------------------------------------------
 
 void GenSpec_SysCo(const std::string & aDir)
@@ -619,16 +663,16 @@ void BenchSysCo(cParamExeBench & aParam)
     //              0                      0.6580976792477065    0.7529325630949846              4779236.016271434
 
     auto aPose = aSysCoRTL_asRTL->getTranfo2GeoC();
-    MMVII_INTERNAL_ASSERT_bench(Norm2(aPose.Tr()-tPt3dr(4201661.926785135,177860.1878016033,4779236.016271434))<0.00001,"SysCo RTL");
-    MMVII_INTERNAL_ASSERT_bench(Norm2(aPose.Rot().AxeI()-tPt3dr(-0.042293037933441094,0.9991052491816668,0.))<0.00001,"SysCo RTL");
-    MMVII_INTERNAL_ASSERT_bench(Norm2(aPose.Rot().AxeJ()-tPt3dr(-0.7522588760680056,-0.031843805452299215,0.6580976792477065))<0.00001,"SysCo RTL");
-    MMVII_INTERNAL_ASSERT_bench(Norm2(aPose.Rot().AxeK()-tPt3dr(0.6575088458106564,0.027832950112332798,0.7529325630949846))<0.00001,"SysCo RTL");
+    MMVII_INTERNAL_ASSERT_bench(Norm2(aPose->Tr()-tPt3dr(4201661.926785135,177860.1878016033,4779236.016271434))<0.00001,"SysCo RTL");
+    MMVII_INTERNAL_ASSERT_bench(Norm2(aPose->Rot().AxeI()-tPt3dr(-0.042293037933441094,0.9991052491816668,0.))<0.00001,"SysCo RTL");
+    MMVII_INTERNAL_ASSERT_bench(Norm2(aPose->Rot().AxeJ()-tPt3dr(-0.7522588760680056,-0.031843805452299215,0.6580976792477065))<0.00001,"SysCo RTL");
+    MMVII_INTERNAL_ASSERT_bench(Norm2(aPose->Rot().AxeK()-tPt3dr(0.6575088458106564,0.027832950112332798,0.7529325630949846))<0.00001,"SysCo RTL");
 
 
     // RTL to GeoC
     tPtrSysCo aSysCoGeoC = cSysCo::MakeSysCo("GeoC");
     cChangeSysCo aRTL2GeoC(aSysCoRTL, aSysCoGeoC);
-    tPt3dr aPtGeoC = aSysCoRTL_asRTL->getTranfo2GeoC().Tr();
+    tPt3dr aPtGeoC = aSysCoRTL_asRTL->getTranfo2GeoC()->Tr();
     MMVII_INTERNAL_ASSERT_bench(Norm2(aRTL2GeoC.Inverse(aPtGeoC)-tPt3dr(0.,0.,0.))<0.00001,"SysCo RTL2GeoC");
 
     tPt3dr aPtRTL = {100.,10,1.};
@@ -693,11 +737,11 @@ void BenchSysCo(cParamExeBench & aParam)
             // check if possible to find the point above aPtRTL in RTL
             tPtrSysCo aSysCoGeog = cSysCo::MakeSysCo(MMVII_SysCoDefLatLong);
             cChangeSysCo aRTL2Geog(aSysCoRTL, aSysCoGeog);
-            auto aMatVertical = aSysCoRTLasRTL->getVertical( aPtRTL );
+            auto aRot2Vertical = aSysCoRTLasRTL->getRot2Vertical( aPtRTL );
             tPt3dr aPtGeog = aRTL2Geog.Value(aPtRTL);
             tPt3dr aVectUp = {0.,0.,testDist};
             tPt3dr aPtGeogUp = aPtGeog + aVectUp;
-            tPt3dr aPtRTLUp = aPtRTL + aMatVertical.Inverse(aVectUp);
+            tPt3dr aPtRTLUp = aPtRTL + aRot2Vertical.Inverse(aVectUp);
             tPt3dr aPtRTLUp_check = aRTL2Geog.Inverse(aPtGeogUp);
             //std::cout<<std::setprecision(10);
             //std::cout<<"at "<<aOrigin<<", aPtRTL: "<<aPtRTL<<"\n";

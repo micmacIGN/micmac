@@ -12,6 +12,8 @@
 #include "Formulas_Topo.h"
 #include "MMVII_Sys.h"
 #include "MMVII_Geom2D.h"
+#include "Formulas_ClinoBloc.h"
+#include "Formulas_ClinoRot.h"
 
 #include "MMVII_PCSens.h"
 #include "MMVII_2Include_Serial_Tpl.h"
@@ -342,6 +344,16 @@ cCalculator<double> * EqBlocRig_RatE(bool WithDerive,int aSzBuf,bool ReUse)  // 
     return StdAllocCalc(NameFormula(cFormulaRattBRExist(),WithDerive),aSzBuf,false,ReUse);
 }
 
+cCalculator<double> * EqClinoBloc(bool WithDerive,int aSzBuf,bool ReUse)  // CLINOBLOC
+{
+    return StdAllocCalc(NameFormula(cFormulaClinoBloc(),WithDerive),aSzBuf,false,ReUse);
+}
+
+cCalculator<double> * EqClinoRot(bool WithDerive,int aSzBuf,bool ReUse)  // CLINOBLOC
+{
+    return StdAllocCalc(NameFormula(cFormulaClinoRot(),WithDerive),aSzBuf,false,ReUse);
+}
+
 // topo subframe with dist parameter
 template <class Type> cCalculator<Type> * TplEqTopoSubFrame(bool WithDerive,int aSzBuf)
 {
@@ -418,6 +430,18 @@ cCalculator<double> * EqTopoDZ(bool WithDerive,int aSzBuf)
 {
     return TplEqTopoDZ<double>(WithDerive,aSzBuf);
 }
+
+// topo dH
+template <class Type> cCalculator<Type> * TplEqTopoDH(bool WithDerive,int aSzBuf)
+{
+    return StdAllocCalc(NameFormula(cFormulaTopoDH(),WithDerive),aSzBuf);
+}
+
+cCalculator<double> * EqTopoDH(bool WithDerive,int aSzBuf)
+{
+    return TplEqTopoDH<double>(WithDerive,aSzBuf);
+}
+
 
 
 
@@ -792,6 +816,8 @@ int cAppliGenCode::Exe()
        GenCodesFormula((tREAL8*)nullptr,cFormulaBlocRigid(),WithDer); // RIGIDBLOC
 
        GenCodesFormula((tREAL8*)nullptr,cFormulaRattBRExist(),WithDer); // RIGIDBLOC
+       GenCodesFormula((tREAL8*)nullptr,cFormulaClinoBloc(),WithDer); // CLINOBLOC
+       GenCodesFormula((tREAL8*)nullptr,cFormulaClinoRot(),WithDer); // CLINOBLOC
 
        // cDist2DConservation aD2C;
        GenCodesFormula((tREAL8*)nullptr,cDist2DConservation(),WithDer);
@@ -811,6 +837,7 @@ int cAppliGenCode::Exe()
        GenCodesFormula((tREAL8*)nullptr,cFormulaTopoDX(),WithDer);
        GenCodesFormula((tREAL8*)nullptr,cFormulaTopoDY(),WithDer);
        GenCodesFormula((tREAL8*)nullptr,cFormulaTopoDZ(),WithDer);
+       GenCodesFormula((tREAL8*)nullptr,cFormulaTopoDH(),WithDer);
 
        for (const auto IsLinearGrad : {true,false})
            GenCodesFormula((tREAL8*)nullptr,cDeformImHomotethy(IsLinearGrad)     ,WithDer);

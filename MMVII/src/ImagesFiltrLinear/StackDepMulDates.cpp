@@ -190,7 +190,7 @@ void   cAppli_StackDep::AddObs1Disp(const cPt2dr & aDisp,int aKDepl)
 
 void  cAppli_StackDep::Do1Pixel(const cPt2di & aPix)
 {
-    mSys->Reset();
+    mSys->PublicReset();
 
     for (const auto &  aDepl : mVecDepl )
     {
@@ -214,13 +214,13 @@ void  cAppli_StackDep::Do1Pixel(const cPt2di & aPix)
 	}
     }
 
-    auto aSol = mSys->Solve();
+    auto aSol = mSys->PublicSolve();
 
     for (int aKV=0 ;  aKV<mNbVar ; aKV++)
     {
         mImSol.at(aKV).DIm().SetV(aPix,aSol(aKV));
     }
-    mSys->Reset();
+    mSys->PublicReset();
 }
 
 

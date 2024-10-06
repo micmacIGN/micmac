@@ -539,7 +539,7 @@ void  cRatioPolynXY::InitFromSamples(const std::vector<cPt3dr> & aVIn,const std:
 	    aSys.PublicAddObservation(1.0,aVCoeff,-aValCste);
         }
 	aSys.AddObsFixVar(std::sqrt(aSomC2),IndNumCste,1.0);
-	std::vector<tREAL8> aSol = aSys.Solve().ToStdVect();
+	std::vector<tREAL8> aSol = aSys.PublicSolve().ToStdVect();
 
         if (IsX)
            mX.SetCoeffs(aSol);

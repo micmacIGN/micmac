@@ -92,6 +92,7 @@ std::string LastPostfix(const std::string & aStr,char aSep='.'); ///< No error: 
 bool starts_with(const std::string & aFullStr,const std::string & aBegining); /// as c++20  std::string.starts_with
 bool ends_with(const std::string & aFullStr,const std::string & aEnding); /// as c++20  std::string.starts_with TO IMPLEMENT
 bool contains(const std::string & aFullStr,const std::string & aEnding); /// as c++23  std::string.contains TO IMPLEMENT
+bool contains(const std::string & aFullStr,char); /// does the string contain the char (use find)
 
 // Direcytory and files names, Rely on std::filesystem
 void MakeNameDir(std::string & aDir); ///< Add a '/', or equiv, to make a name of directory

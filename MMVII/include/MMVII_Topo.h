@@ -20,6 +20,7 @@ class cSensorCamPC;
 class cBA_GCP;
 
 typedef std::map<const cTopoPoint*, std::vector<cTopoObsSetStation*>> tStationsMap;
+typedef std::map<const cTopoPoint*, std::vector<cTopoObs*>> tSimpleObsMap;
 
 class cBA_Topo : public cMemCheck
 {
@@ -31,7 +32,7 @@ public :
 
     void findPtsUnknowns(const std::vector<cBA_GCP *> &vGCP, cPhotogrammetricProject *aPhProj); //< to be called after points creation and before AddToSys and ObsSetStation::SetOrigin...
 
-    void  AddToSys(cSetInterUK_MultipeObj<tREAL8> &); // The system must be aware of all the unknowns
+    void  AddToSys(cSetInterUK_MultipeObj<tREAL8> &aSetInterUK); // The system must be aware of all the unknowns
 
     // fix the variables that are frozen
     void SetFrozenAndSharedVars(cResolSysNonLinear<tREAL8> &)  ;
@@ -47,7 +48,7 @@ public :
     std::vector<cTopoObs*> GetObsPoint(std::string aPtName) const;
 
     bool tryInitAll();
-    bool tryInit(cTopoPoint & aTopoPt, tStationsMap & stationsMap);
+    bool tryInit(cTopoPoint & aTopoPt, tStationsMap & stationsMap, tSimpleObsMap &allSimpleObs);
 
     bool mergeUnknowns(cResolSysNonLinear<tREAL8> &aSys); //< if several stations share origin etc.
     void makeConstraints(cResolSysNonLinear<tREAL8> &aSys);

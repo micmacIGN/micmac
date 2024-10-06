@@ -83,6 +83,7 @@ enum class eApF
                Match,      ///< Dense Matching
                GCP,       ///< Tie-Point processing
                TieP,       ///< Tie-Point processing
+               Lines,       ///< Lines processing
                TiePLearn,    ///< Tie-Point processing  - Learning step
                Cloud,       ///< Cloud processing
                CodedTarget,  ///< Coded target (generate, match )
@@ -141,12 +142,14 @@ enum class eApDT
               PCar,   ///< Tie Points
               TieP,   ///< Tie Points
               GCP,   ///< Tie Points
+              Lines,   ///< Tie Points
               Image,   ///< Image
               Orient,   ///< Orientations files
               SysCo,   ///< Coordinate system
               Radiom,   ///< Orientations files
               Ply,    ///< Ply file
-              None,     ///< Nothing 
+              Topo,    ///< Topo files
+              None,     ///< Nothing
               ToDef,     ///< still unclassed
               Console,  ///< Console , (i.e printed message have values)
               Xml,      ///< Xml-files
@@ -207,6 +210,7 @@ enum class eTyUEr
               eCreateDir,
               eRemoveFile,
               eEmptyPattern,
+              eBadPattern,
               eBadXmlTopTag,
               eParseBadClose,
               eJSonBadPunct,
@@ -239,7 +243,7 @@ enum class eTyUEr
               eNoNumberPixel,
               eNoCameraName,
               eMultipleTargetInOneImage,
-              eBadSysCo,
+              eSysCo,
               eConstraintsError,
               eUnClassedError,
               eNbVals
@@ -554,6 +558,7 @@ enum class eSysCo
 // topo observation sets types
 enum class eTopoObsSetType
 {
+    eSimple,
     eStation,
     //eDistParam,
     eNbVals        ///< Tag for number of value
@@ -568,6 +573,7 @@ enum class eTopoObsType
         eDX,
         eDY,
         eDZ,
+        eDH,
         eNbVals        ///< Tag for number of value
 };
 
@@ -590,6 +596,7 @@ enum class eTyCodeTarget
     eCERN,          ///<  central circle, coding invariant (AICON, METASHAPE ...)
     eNbVals
 };
+bool IsCircularTarge(eTyCodeTarget);
 
 enum class eMTDIm
            {
@@ -667,6 +674,12 @@ class SVP
    public :
       static constexpr bool Yes = true;
       static constexpr bool No  = false;
+};
+class IO
+{
+   public :
+      static constexpr bool In = true;
+      static constexpr bool Out  = false;
 };
 
 

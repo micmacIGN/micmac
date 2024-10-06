@@ -51,6 +51,11 @@ class cTestSerial1 : public cMemCheck
         std::vector<double>      mVD;
         std::optional<cPt2dr>   mO1;
         std::optional<cPt2dr>   mO2;
+        std::optional<std::string> mO3;
+        std::string             mD1; // with default val
+        double                  mD2;
+
+
 };
 void AddData(const cAuxAr2007 & anAux, cTestSerial1 &    aTS1) ;
 

@@ -228,7 +228,7 @@ template <class TypeMap>
         aSys.PublicAddObservation(aWeight,aVX,aRHS.x());
         aSys.PublicAddObservation(aWeight,aVY,aRHS.y());
    }
-   cDenseVect<tTypeElem> aSol =  aSys.Solve();
+   cDenseVect<tTypeElem> aSol =  aSys.PublicSolve();
    TypeMap aMap =  TypeMap::FromParam(aSol);
 
    if (aRes2)
@@ -1111,7 +1111,7 @@ template <class Type>   cHomogr2D<Type>  cHomogr2D<Type>::LeastSqParalPlaneShift
        aSys.PublicAddObservation(1.0,aVec,yo*aHz-aHy);
    }
 
-   cDenseVect<Type>  aSol = aSys.Solve();
+   cDenseVect<Type>  aSol = aSys.PublicSolve();
    tTypeMap  aRes 
 	     (
 	         mHX + tElemH(0,0,aSol(0)),

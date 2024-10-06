@@ -2,6 +2,9 @@
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_Tpl_Images.h"
 #include "MMVII_Interpolators.h"
+#include "MMVII_Sensor.h"
+#include "MMVII_Random.h"
+
 
 
 // Test git branch
@@ -128,6 +131,8 @@ class cAppliSimulCodeTarget : public cMMVII_Appli
 	double RandomRay() const;
 
 
+        cPhotogrammetricProject     mPhProj;
+
         // =========== Mandatory args ============
 
 	std::string mNameIm;       ///< Name of background image
@@ -161,6 +166,7 @@ class cAppliSimulCodeTarget : public cMMVII_Appli
 
 cAppliSimulCodeTarget::cAppliSimulCodeTarget(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli     (aVArgs,aSpec),
+   mPhProj          (*this),
    mSzKernel        (2.0),
    mPatternNames    (".*"),
    mDownScale       (3.0),
@@ -177,8 +183,8 @@ cAppliSimulCodeTarget::cAppliSimulCodeTarget(const std::vector<std::string> & aV
 cCollecSpecArg2007 & cAppliSimulCodeTarget::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
    return  anArgObl
-             <<   Arg2007(mNameIm,"Name of image (first one)",{{eTA2007::MPatFile,"0"},eTA2007::FileImage})
-             <<   Arg2007(mNameSpecif,"Name of target file")
+             <<   Arg2007(mNameIm,"Pattern of files",{{eTA2007::MPatFile,"0"},eTA2007::FileImage})
+             <<   Arg2007(mNameSpecif,"Name of target file specification",{{eTA2007::XmlOfTopTag,cFullSpecifTarget::TheMainTag}})
    ;
 }
 
@@ -187,6 +193,7 @@ cCollecSpecArg2007 & cAppliSimulCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt
 {
    return
 	        anArgOpt
+             <<  mPhProj.DPPointsMeasures().ArgDirOutOptWithDef("Simul")
              <<   AOpt2007(mRS.mRayMinMax,"Rays","Min/Max ray for gen target",{eTA2007::HDV})
              <<   AOpt2007(mPatternNames,"PatNames","Pattern for selection of names",{eTA2007::HDV})
              <<   AOpt2007(mSzKernel,"SzK","Sz of Kernel for interpol",{eTA2007::HDV})
@@ -323,10 +330,22 @@ const std::string ThePostfixGTSimulTarget = "_GroundTruth.xml";
 
 int  cAppliSimulCodeTarget::Exe()
 {
+   mPhProj.FinishInit();
+
    if (RunMultiSet(0,0))
    {
 	   return ResultMultiSet();
    }
+
+   // generally dont want to add target on target
+   if (starts_with(FileOfPath(mNameIm),ThePrefixSimulTarget))
+   {
+        MMVII_USER_WARNING("File is already a simulation, dont process");
+        return EXIT_SUCCESS;
+   }
+
+   // We want that random is different for each image, but deterministic for one given image
+   cRandGenerator::TheOne()->setSeed(HashValue(mNameIm,true));
 
    mPrefixOut =  ThePrefixSimulTarget +  mSuplPref + LastPrefix(FileOfPath(mNameIm));
    mRS.mCom = CommandOfMain().Com();
@@ -348,9 +367,21 @@ int  cAppliSimulCodeTarget::Exe()
    {
        IncrustTarget(aG);
    }
-   SaveInFile(mRS,mPrefixOut + ThePostfixGTSimulTarget);
 
-   mImIn.DIm().ToFile(mPrefixOut+".tif",eTyNums::eTN_U_INT1);
+   std::string aNameOut = mPrefixOut+".tif";
+   {
+        cSetMesPtOf1Im  aSetM(aNameOut);
+        for (const auto & aGSim : mRS.mVG)
+        {
+            aSetM.AddMeasure(cMesIm1Pt(aGSim.mC,aGSim.mEncod.Name(),1.0));
+        }
+        mPhProj.SaveMeasureIm(aSetM);
+   }
+
+   SaveInFile(mRS,mPhProj.DPPointsMeasures().FullDirOut() + mPrefixOut + ThePostfixGTSimulTarget);
+   // StdOut() <<  "ooo--OOOOO=" << mPhProj.DPPointsMeasures().FullDirOut() + mPrefixOut + ThePostfixGTSimulTarget << "\n";
+
+   mImIn.DIm().ToFile(aNameOut,eTyNums::eTN_U_INT1);
 
 
    delete mSpec;

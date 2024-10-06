@@ -377,7 +377,7 @@ template <class Type>  void cUncalibSpaceRessection<Type>::CalcSolOneVarFixed(in
      aW *= mSumW ;  // now weithed summ
      aSys.AddObsFixVar(aW,aKV,1.0);  // Add a constraint
 
-     cDenseVect<Type>  aSol = aSys.Solve();  // extract the least square sol with constraint
+     cDenseVect<Type>  aSol = aSys.PublicSolve();  // extract the least square sol with constraint
      cHomog2D3D<Type>  aHom(aSol.RawData()); // make an homography of the sol
 
      tREAL8 aScore = AvgReProj(mSet,aHom); // compute the residual
@@ -759,6 +759,7 @@ void cAppli_UncalibSpaceResection::DoMedianCalib()
              MMVII_UserError(eTyUEr::eOpenFile,"No calib file found");
          }
      }
+     bool isRecursGAIP = false;
 
      for (const auto & aNameCal : aMapCal)
      {
@@ -766,13 +767,13 @@ void cAppli_UncalibSpaceResection::DoMedianCalib()
           std::string  aName = aNameCal.first;
 	  const tVCal &  aVCal = aNameCal.second;
           cPerspCamIntrCalib & aCal0 = *(aVCal.at(0));
-          cGetAdrInfoParam<tREAL8>  aGAIP0(".*",aCal0); // Structure for extract param by names, all here
+          cGetAdrInfoParam<tREAL8>  aGAIP0(".*",aCal0,isRecursGAIP); // Structure for extract param by names, all here
           size_t aNbParam = aGAIP0.VAdrs().size();
 
           std::vector<std::vector<double> > aVVParam(aNbParam); // will store all the value of a given param
           for (const auto & aPCal : aVCal)
           {
-                cGetAdrInfoParam<tREAL8>  aGAIPK(".*",*(aPCal));
+                cGetAdrInfoParam<tREAL8>  aGAIPK(".*",*(aPCal),isRecursGAIP);
                 for (size_t aKP=0 ; aKP<aNbParam ; aKP++)
                 {
                      aVVParam.at(aKP).push_back(*aGAIPK.VAdrs().at(aKP));

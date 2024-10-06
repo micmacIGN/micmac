@@ -170,7 +170,8 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_TestEigen);
         TheVecAll.push_back(&TheSpec_ComputeParamIndexBinaire);
         TheVecAll.push_back(&TheSpecTestRecall);
-        TheVecAll.push_back(&TheSpecScaleImage);
+        TheVecAll.push_back(&TheSpecScaleImage_Basic);
+        TheVecAll.push_back(&TheSpecScaleImage_Std);
         TheVecAll.push_back(&TheSpec_StackIm);
         TheVecAll.push_back(&TheSpec_StackDep);
         TheVecAll.push_back(&TheSpecCalcDiscIm);
@@ -224,6 +225,8 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
 
         TheVecAll.push_back(&TheSpecDistCorrectCirgTarget);
         TheVecAll.push_back(&TheSpec_ImportGCP);
+        TheVecAll.push_back(&TheSpec_ImportLines);
+        TheVecAll.push_back(&TheSpec_ImportOBS);
         TheVecAll.push_back(&TheSpec_ImportORGI);
         TheVecAll.push_back(&TheSpec_ImportM32);
         //TheVecAll.push_back(&TheSpecTopoComp);
@@ -232,7 +235,9 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_SpecSerial);
         TheVecAll.push_back(&TheSpec_PoseCmpReport);
         TheVecAll.push_back(&TheSpec_CGPReport);
+        TheVecAll.push_back(&TheSpec_MesImReport);
         TheVecAll.push_back(&TheSpec_TiePReport);
+        TheVecAll.push_back(&TheSpec_SegImReport);
         TheVecAll.push_back(&TheSpec_BlockCamInit);  // RIGIDBLOC    RB_0_0
         TheVecAll.push_back(&TheSpec_ClinoInit);
         TheVecAll.push_back(&TheSpecRename);

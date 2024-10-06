@@ -45,15 +45,20 @@ template <typename tVal> class cSetISingleFixed
          size_t  Cardinality() const {return SetI_CardByNbMax(*this);}
          std::vector<int> ToVect() const {return SetI_ToVectNbMax(*this);}
 
-         void AddElem(const tElem & anElem) {mFlagBits |= FlagSingle(anElem);}
+         void AddElem(const tElem & anElem)  {mFlagBits |= FlagSingle(anElem);}
+         void SuprElem(const tElem & anElem) {mFlagBits &= (FlagSingle(anElem) ^tElemNumTrait<tVal>::MaxVal()) ;}
 
          cSetISingleFixed(const tVal & aFlagBit) : mFlagBits (aFlagBit) {}
+
+	 tVal  FlagBits() const {return mFlagBits;}
     protected :
          static constexpr  size_t NbBits = 8 *sizeof(tVal);
          static tVal  FlagSingle(const tElem & anElem) {return (1<<anElem);}
 
          tVal    mFlagBits;
 };
+
+typedef cSetISingleFixed<tU_INT4>  tSet32Bits;
 
 
 // Compute Cardinality, Usable when NbMax (number max of elem in type) is defined

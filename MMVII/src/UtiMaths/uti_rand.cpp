@@ -163,6 +163,18 @@ void Bench_SetI(cParamExeBench & aParam)
 
     OneBenchSet<cSetISingleFixed<tU_INT2> >();
 
+    int anEl0 = 28;
+    cSetISingleFixed<tU_INT4> aSet(1<<anEl0);
+    std::vector aVBit {0,1,3,7,11,23,31};
+    for (const auto & aBit : aVBit)
+        aSet.AddElem(aBit);
+
+    MMVII_INTERNAL_ASSERT_bench(aSet.Cardinality()==1+aVBit.size(),"Bench_SetI, card");  // Check each subset has good number of elem
+
+    aSet.SuprElem(anEl0);
+    MMVII_INTERNAL_ASSERT_bench(aSet.Cardinality()==aVBit.size(),"Bench_SetI, card");  // Check each subset has good number of elem
+
+    StdOut() << "CCCC " << aSet.Cardinality() << "\n";
     aParam.EndBench();
 }
 

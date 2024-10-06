@@ -13,7 +13,7 @@
 namespace MMVII
 {
 
-cPoseWithUK::cPoseWithUK(const tPoseR & aPose) :
+cPoseWithUK::cPoseWithUK(const tPoseR & aPose)  :
       mPose (aPose),
       mOmega (0.0,0.0,0.0)
 {
@@ -530,7 +530,9 @@ std::string  cSensorCamPC::PrefixName()  { return "PerspCentral";}
 
 void  cSensorCamPC::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 {
-     mPose_WU.GetAdrInfoParam(aGAIP);
+   mPose_WU.GetAdrInfoParam(aGAIP);
+   aGAIP.SetNameType("PoseCamPC");
+   aGAIP.SetIdObj(NameImage());
 }
      // =================  becnh ===================
 

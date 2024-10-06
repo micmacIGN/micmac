@@ -123,7 +123,7 @@ class cAppliExtractLine : public cMMVII_Appli
         std::string              mNameCurIm;
 	bool                     mLineIsWhite;
         int                      mGenVisu;
-	std::vector<tREAL8>      mVParams;
+	std::vector<tREAL8>      mParamMatch;
         cPerspCamIntrCalib *     mCalib;      ///< Calibration 4 correc dist
         // cTabuMapInv<2>*          mCalDUD;     ///< Tabul of dist/undist for acceleratio,
         int                      mNbTabCalib; ///< Number of grid in calib tabul
@@ -137,7 +137,6 @@ class cAppliExtractLine : public cMMVII_Appli
 	std::string              mNameReportByLine;
 	std::string              mNameReportByIm;
 	tREAL8                   mRelThrsCumulLow;
-	tREAL8                   mRelThrsCumulHigh;
 	tREAL8                   mHoughSeuilAng;
 
 	bool                     mWithGT;  ///< Is there a ground truth of "handcrafted" segment
@@ -151,7 +150,7 @@ cAppliExtractLine::cAppliExtractLine(const std::vector<std::string> & aVArgs,con
     cMMVII_Appli      (aVArgs,aSpec),
     mPhProj           (*this),
     mGenVisu          (1),
-    mVParams          { 4e-4,2.0,5.0},
+    mParamMatch       {6e-4,2.0,7.0},
     mCalib            (nullptr),
     // mCalDUD           (nullptr),
     mNbTabCalib       (100),
@@ -163,7 +162,6 @@ cAppliExtractLine::cAppliExtractLine(const std::vector<std::string> & aVArgs,con
     mNameReportByLine ("LineMulExtract"),
     mNameReportByIm   ("LineByIm"),
     mRelThrsCumulLow    (0.05),
-    mRelThrsCumulHigh   (0.30),
     mHoughSeuilAng      (0.20),
     mWithGT             (false),
     mGTHasSeg           (false),
@@ -192,8 +190,8 @@ cCollecSpecArg2007 & cAppliExtractLine::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 	       << AOpt2007(mAccurateHough,"AccurateHough","Accurate/Quick hough",{eTA2007::HDV})
 	       << AOpt2007(mGenVisu,"GenVisu","Generate Visu 0 none, 1 déroulé, 2 image wire, 3",{eTA2007::HDV})
 	       << AOpt2007(mZoomImL,"ZoomImL","Zoom for images of line",{eTA2007::HDV})
+	       << AOpt2007(mParamMatch,"MatchParam","[Angl,DMin,DMax]",{eTA2007::HDV,{eTA2007::ISizeV,"[3,3]"}})
 	       << AOpt2007(mRelThrsCumulLow,"ThrCumLow","Low Thresold relative for cumul in histo",{eTA2007::HDV})
-	       << AOpt2007(mRelThrsCumulHigh,"ThrCumHigh","Low Thresold relative for cumul in histo",{eTA2007::HDV})
 	       << AOpt2007(mHoughSeuilAng,"HoughThrAng","Angular threshold for hough acummulator",{eTA2007::HDV})
                << mPhProj.DPPointsMeasures().ArgDirInOpt("","Folder for ground truth measure")
             ;
@@ -280,7 +278,7 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
     cAutoTimerSegm  anATSReadIm (mTimeSeg,"ReadImage");
     cIm2D<tIm> anIm = cIm2D<tIm>::FromFile(mNameCurIm);
     tREAL8  aTrhsCumulLow  = mRelThrsCumulLow   * Norm2(anIm.DIm().Sz());
-[[maybe_unused]] tREAL8  aTrhsCumulHigh = mRelThrsCumulHigh * Norm2(anIm.DIm().Sz());
+//   [[maybe_unused]] tREAL8  aTrhsCumulHigh = mRelThrsCumulHigh * Norm2(anIm.DIm().Sz());
     mExtrL = new cExtractLines<tIm> (anIm);
 
     // Compute Gradient and extract max-loc in gradient direction
@@ -310,7 +308,7 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
     // Extract Local Maxima in hough space
     cAutoTimerSegm  anATSMaxLoc (mTimeSeg,"MaxLocHough");
     std::vector<cPt3dr> aVMaxLoc = mExtrL->Hough().ExtractLocalMax(10,5.0,10.0,0.1);
-    StdOut() << "VMAXLoc " << aVMaxLoc.size() << "\n";
+    StdOut() << " # VMAXLoc " << aVMaxLoc.size() << "\n";
 
     //  Refine the position in euclidean space
     //  Select Maxima with Cum > aTrhsCumulLow + labelize the quality of seg
@@ -327,16 +325,18 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
         }
         mExtrL->UnMarqBorderMasq();
     }
+    StdOut() << " # VMAX>CumMin " << mVPS.size() << "\n";
 
 
     {
         cAutoTimerSegm  anATSMatchHough (mTimeSeg,"MatchLocHough");
-	std::vector<cPt2di>  aVMatches = cHoughPS::GetMatches(mVPS,mLineIsWhite,mVParams.at(0),mVParams.at(1),mVParams.at(2));
+	std::vector<cPt2di>  aVMatches = cHoughPS::GetMatches(mVPS,mLineIsWhite,mParamMatch.at(0),mParamMatch.at(1),mParamMatch.at(2));
 
 	for (const auto aPair : aVMatches)
 	{
 		mParalLines.push_back(cParalLine(mVPS.at(aPair.x()),mVPS.at(aPair.y())));
 	}
+        StdOut() << " # NBMatched " << aVMatches.size() << "\n";
 	SortOnCriteria
         (
               mParalLines,
@@ -346,7 +346,7 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
         for (size_t aK=0 ; aK<mParalLines.size() ; aK++)
         {
             mParalLines[aK].SetRankMatch(aK);
-	    std::string aNamVisuRH = (mGenVisu >=2) ? (mPhProj.DirVisu() + LastPrefix(mNameCurIm)) : "";
+	    std::string aNamVisuRH = (mGenVisu >=2) ? (mPhProj.DirVisuAppli() + LastPrefix(mNameCurIm)) : "";
             mParalLines[aK].ComputeRadiomHomog(anIm.DIm(),mCalib,aNamVisuRH);
         }
 
@@ -402,14 +402,31 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
         AddOneReportCSV(mNameReportByIm,{mNameCurIm,aStringQual});
     }
    
+
+    {
+        // generate the export
+        cLinesAntiParal1Im  aExAllLines;
+        aExAllLines.mNameIm =  mNameCurIm;
+        if (mPhProj.DPOrient().DirInIsInit())
+           aExAllLines.mDirCalib = mPhProj.DPOrient().DirIn();
+
+	for (const auto & aParL :  mParalLines)
+	{
+            aExAllLines.mLines.push_back(aParL.GetLAP(*mCalib));
+	    /*
+            StdOut()  <<  " =========  SCM=" << aParL.ScoreMatch() << "\n";
+	    for (int aKSeg=0 ; aKSeg<2 ; aKSeg++)
+	    {
+                 cHoughPS aHS = aParL.VHS().at(aKSeg);
+		 StdOut() << "   PH=" << aHS.TetaRho() << "\n";
+
+	    }
+	    */
+	}
+	mPhProj.SaveLines(aExAllLines);
+    }
+
 #if (0)
-
-    // generate the export
-    cLinesAntiParal1Im  aExAllLines;
-    aExAllLines.mNameIm =  mNameCurIm;
-    if (mPhProj.DPOrient().DirInIsInit())
-       aExAllLines.mDirCalib = mPhProj.DPOrient().DirIn();
-
     for (cHoughPS * aHS1 : mMatchedVPS)
     {
         cHoughPS *aHS2 = aHS1->Matched();
@@ -429,7 +446,7 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
     if (mGenVisu)
        MakeVisu(mNameCurIm);
 
-    mTimeSeg.Show();
+    // mTimeSeg.Show();
 
     // delete mCalDUD;
 }
@@ -465,13 +482,13 @@ void cAppliExtractLine::MakeVisu(const std::string & aNameIm)
     if (mGenVisu>=2)
     {
          cRGBImage aImV= mExtrL->MakeImageMaxLoc(mTransparencyCont);
-         aImV.ToJpgFileDeZoom(mPhProj.DirVisu() + "DetectL_"+ aNameTif,1);
+         aImV.ToJpgFileDeZoom(mPhProj.DirVisuAppli() + "DetectL_"+ aNameTif,1);
     }
 
     //  [2]  Visu module of gradient
     if (mGenVisu>=4)
     {
-         std::string aNameGrad = mPhProj.DirVisu()+"Grad_" + aNameTif;
+         std::string aNameGrad = mPhProj.DirVisuAppli()+"Grad_" + aNameTif;
          mExtrL->Grad().NormG().DIm().ToFile(aNameGrad);
          // Convert_JPG(aNameGrad,true,90,"jpg");
     }
@@ -490,8 +507,8 @@ void cAppliExtractLine::MakeVisu(const std::string & aNameIm)
              aVisAccum.FillRectangle(cRGBImage::Red,ToI(aC-aSz),ToI(aC+aSz),cPt3dr(0.5,1.0,1.0));
 	     aK++;
          }
-         aVisAccum.ToJpgFileDeZoom(mPhProj.DirVisu() + "Accum_" + aNameTif,1);
-         aDAccum.ToFile(mPhProj.DirVisu() + "RawAccum_" + aNameTif);
+         aVisAccum.ToJpgFileDeZoom(mPhProj.DirVisuAppli() + "Accum_" + aNameTif,1);
+         aDAccum.ToFile(mPhProj.DirVisuAppli() + "RawAccum_" + aNameTif);
     }
     // [4]  Visu of Image +  Lines
     if (mGenVisu>=1)
@@ -501,6 +518,11 @@ void cAppliExtractLine::MakeVisu(const std::string & aNameIm)
          for (const auto & aLine : mParalLines)
 	 {
              cPt3di aCoul = (aLine.RankMatch()==0) ? cRGBImage::Red : cRGBImage::Green ;
+             MMVII_INTERNAL_ASSERT_tiny(mCalib!=nullptr,"Calib mandatory for now in line detect");
+	     cOneLineAntiParal aOLAP = aLine.GetLAP(*mCalib);
+	     aVisIm.DrawCircle(cRGBImage::Orange,aOLAP.mSeg.P1(),5.0);
+	     aVisIm.DrawCircle(cRGBImage::Orange,aOLAP.mSeg.P2(),5.0);
+
 	     for (int aKSeg=0 ; aKSeg<2 ; aKSeg++)
 	     {
                  cHoughPS aHS = aLine.VHS().at(aKSeg);
@@ -511,11 +533,10 @@ void cAppliExtractLine::MakeVisu(const std::string & aNameIm)
 	         cPt2dr aC = Redist(aSeg.PMil() +VUnit(aSeg.V12()*cPt2dr(0,-1))* aRay);
                  aVisIm.DrawCircle(aCoul,aC ,aRay);
 
-                 MMVII_INTERNAL_ASSERT_tiny(mCalib!=nullptr,"Calib mandatory for now in line detect");
                  if (mCalib)
 	         {
 
-	             cSegment2DCompiled<tREAL8> aSegC (mCalib->ExtenSegUndistIncluded(aSeg));
+	             cSegment2DCompiled<tREAL8> aSegC (mCalib->ExtenSegUndistIncluded(false,aSeg));
 	             for (tREAL8 aC=0 ; aC< aSegC.N2() ; aC+= 1.0)
 	             {
 		         cPt2dr  aQ = Redist(aSegC.FromCoordLoc(cPt2dr(aC,0.0))); ; // eventulay make invert distorsion correcion
@@ -524,10 +545,10 @@ void cAppliExtractLine::MakeVisu(const std::string & aNameIm)
 	         }
 	     }
 	 }
-	 std::string aNameLine = mPhProj.DirVisu() + "Lines_" + aNameTif;
+	 std::string aNameLine = mPhProj.DirVisuAppli() + "Lines_" + aNameTif;
 	 // convert dont handle well big file, so generate jpg only if zoom=1
 	 if (mZoomImL==1)
-	    aVisIm.ToJpgFileDeZoom(mPhProj.DirVisu() + "Lines_" + aNameTif,1);
+	    aVisIm.ToJpgFileDeZoom(mPhProj.DirVisuAppli() + "Lines_" + aNameTif,1);
 	 else
 	    aVisIm.ToFile(aNameLine);
     }

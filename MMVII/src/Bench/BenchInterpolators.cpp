@@ -466,6 +466,60 @@ void  BenchInterpol(cParamExeBench & aParam)
 
      TplInterpol_FuncLowFreq<tREAL8>(cPt2di(800,700));
 
+     // test the "ClipedGetValueInterpol"  and "cScaledInterpolator"
+
+     for (const auto  aFactCub : {0.0,-1.0})
+     {
+         for (const auto  aScale : {1.0,2.0,4.0} )
+         {
+             cPt2di  aSz(100,120);
+
+	     // Create a "dirac" image, as interpolator value can be easily compared
+             cPt2di  aPMil = aSz/2;
+             cIm2D<tU_INT1>  aImDirac(aSz);
+             aImDirac.DIm().InitDirac(aPMil,1);
+
+	     // Create a constant image, Cliped interpol must be equal to the cste, even on the border
+	     tINT2  aVCste = tNumTrait<tINT1>::RandomValue();
+             cIm2D<tINT1>  aImCste(aSz);
+	     aImCste.DIm().InitCste(aVCste);
+
+	     // Create the "pure" cubic and its tabulated scaling
+	     cCubicInterpolator aCubI(aFactCub);
+	     cInterpolator1D *  aIScale = cScaledInterpolator::AllocTab(aCubI,aScale,10000);
+
+	     for (auto & aPix : aImDirac.DIm())
+	     {
+                 // Randomize pixel to have real coordinates
+                 cPt2dr aPt = ToR(aPix) + cPt2dr::PRandC() * 0.5;
+
+		 // scaled difference and theoreticall dirac value
+                 tREAL8 aDx = (aPt.x()-aPMil.x()) / aScale;
+                 tREAL8 aDy = (aPt.y()-aPMil.y()) / aScale;
+		 tREAL8 aDiracVTh =  ( aCubI.Weight(aDx) * aCubI.Weight(aDy) ) / Square(aScale) ;
+
+		 // compare for dirac
+		 bool isOk;
+		 tREAL8 aVIm =  aImDirac.DIm().ClipedGetValueInterpol(*aIScale,aPt,1e5,&isOk);
+
+	         MMVII_INTERNAL_ASSERT_bench(isOk ,"ClipInterpol  OK");
+	         MMVII_INTERNAL_ASSERT_bench(std::abs(aDiracVTh-aVIm)<1e-6 ,"ClipInterpol  OK");
+
+		 // compare for constant
+		 aVIm =  aImCste.DIm().ClipedGetValueInterpol(*aIScale,aPt,1e5,&isOk);
+	         MMVII_INTERNAL_ASSERT_bench(isOk ,"ClipInterpol  OK");
+
+		 tREAL8 aDif = std::abs(aVIm - aVCste) / (1+std::abs(aVCste)) ;
+	         MMVII_INTERNAL_ASSERT_bench(aDif<1e-6 ,"ClipInterpol  OK");
+
+	     }
+
+
+             delete aIScale;
+        }
+     }
+
+
      aParam.EndBench();
 }
 

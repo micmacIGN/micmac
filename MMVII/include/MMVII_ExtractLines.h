@@ -63,7 +63,8 @@ class cParalLine
          typedef cSegment2DCompiled<tREAL8> tSeg;
 
          cParalLine(const cHoughPS & aS1,const cHoughPS & aS2);
-	 const tREAL8 & ScoreMatch() const ; ///< Accessor
+	 const tREAL8 & ScoreMatch() const ;    ///< Accessor
+	 cOneLineAntiParal GetLAP(const cPerspCamIntrCalib &) const;
 
          size_t RankMatch() const;       ///< Accessor
          void SetRankMatch(size_t);          ///< Modifior
@@ -80,7 +81,7 @@ class cParalLine
 	 tREAL8       mScoreMatch;
          int          mRankMatch;
 	 tREAL8       mRadHom; // Radiometric homogeneity
-	 tREAL8       mAngle;
+	 tREAL8       mAngleDif;
 	 tREAL8       mWidth;
 };
 

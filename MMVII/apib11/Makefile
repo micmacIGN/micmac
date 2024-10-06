@@ -17,9 +17,6 @@ PYBIND_INCLUDES=$(shell python3 -m pybind11 --includes)
 MMV2_LIBNAME=P2007
 MMV2_LIB=${MMV2_BINDIR}/lib${MMV2_LIBNAME}.a
 MMV1_LIBS=${MMV1_LIBDIR}/libelise.a ${MMV1_LIBDIR}/libANN.a
-## MacOS : may be -lstdc++fs should be replaced by -lc++experimental
-EXT_LIBS=-lpthread -lX11 -lstdc++fs
-
 
 # =========== Compiler & Flags
 CXX=g++

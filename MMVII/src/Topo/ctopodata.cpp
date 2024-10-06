@@ -43,6 +43,11 @@ void AddData(const cAuxAr2007 & anAux, cTopoObsSetData &aObsSet)
      aObsSet.AddData(anAux);
 }
 
+cTopoObsSetStationData::cTopoObsSetStationData()
+{
+    mType = eTopoObsSetType::eSimple;
+}
+
 void cTopoObsSetStationData::AddSupData(const  cAuxAr2007 & anAux)
 {
     MMVII::EnumAddData(anAux,mStationOriStat,"StationOriStatus");
@@ -56,44 +61,39 @@ cTopoData::cTopoData(const cBA_Topo* aBA_topo)
 {
     for (auto & aSet : aBA_topo->mAllObsSets)
     {
-        std::unique_ptr<cTopoObsSetData> aSetData;
+        std::vector <cTopoObsData> aVectObsData;
+        for (auto & aObs : aSet->mObs)
+        {
+            cTopoObsData aObsData = {
+                aObs->mType, aObs->mPtsNames, aObs->mMeasures,
+                aObs->mWeights.getSigmas(), aObs->getResiduals()
+            };
+            aVectObsData.push_back(aObsData);
+        }
+
         switch (aSet->mType) {
+        case eTopoObsSetType::eSimple:
+        {
+            for (auto & aObs : aVectObsData)
+                mObsSetSimple.mObs.push_back( aObs );
+            break;
+        }
         case eTopoObsSetType::eStation:
         {
-            aSetData = std::make_unique<cTopoObsSetStationData>();
             cTopoObsSetStation* set = dynamic_cast<cTopoObsSetStation*>(aSet);
             if (!set)
                 MMVII_INTERNAL_ERROR("error set type")
-            auto aSetStationData = dynamic_cast<cTopoObsSetStationData*>(aSetData.get());
-            aSetStationData->mStationOriStat = set->getOriStatus();
-            aSetStationData->mStationG0 = set->getG0();
-            aSetStationData->mRotVert2Instr = set->getRotVert2Instr();
+            cTopoObsSetStationData aSetStationData;
+            aSetStationData.mStationOriStat = set->getOriStatus();
+            aSetStationData.mStationG0 = set->getG0();
+            aSetStationData.mRotVert2Instr = set->getRotVert2Instr();
+            for (auto & aObs : aVectObsData)
+                aSetStationData.mObs.push_back( aObs );
+            mAllObsSetStations.push_back( aSetStationData );
             break;
         }
         case eTopoObsSetType::eNbVals:
             MMVII_INTERNAL_ERROR("unknown obs set type")
-        }
-
-        if (aSetData)
-        {
-            aSetData->mType = aSet->mType;
-
-            for (auto & aObs : aSet->mObs)
-            {
-                cTopoObsData aObsData = {
-                    aObs->mType, aObs->mPtsNames, aObs->mMeasures,
-                    aObs->mWeights.getSigmas(), aObs->getResiduals()
-                };
-                aSetData->mObs.push_back(aObsData);
-            }
-
-            switch (aSet->mType) {
-            case eTopoObsSetType::eStation:
-                mAllObsSetStations.push_back( *dynamic_cast<cTopoObsSetStationData*>(aSetData.get()) );
-                break;
-            case eTopoObsSetType::eNbVals:
-                MMVII_INTERNAL_ERROR("unknown obs set type")
-            }
         }
     }
 }
@@ -102,6 +102,8 @@ void cTopoData::AddData(const  cAuxAr2007 & anAuxInit)
 {
      cAuxAr2007 anAux("TopoData",anAuxInit);
      MMVII::AddData(cAuxAr2007("AllObsSetStations",anAux),mAllObsSetStations);
+     MMVII::AddData(cAuxAr2007("ObsSetSimple",anAux),mObsSetSimple);
+
 }
 
 void AddData(const cAuxAr2007 & anAux, cTopoData & aTopoData)
@@ -123,6 +125,8 @@ void cTopoData::InsertTopoData(const cTopoData & aOtherTopoData)
 {
     for (auto& aObsSet: aOtherTopoData.mAllObsSetStations)
         mAllObsSetStations.push_back(aObsSet);
+    for (auto& aObs: aOtherTopoData.mObsSetSimple.mObs)
+        mObsSetSimple.mObs.push_back(aObs);
 }
 
 
@@ -135,6 +139,7 @@ eCompObsType intToCompObsType(int i)
     case eCompObsType::eCompDX:
     case eCompObsType::eCompDY:
     case eCompObsType::eCompDZ:
+    case eCompObsType::eCompDH:
     case eCompObsType::eCompDist:
     case eCompObsType::eCompHz:
     case eCompObsType::eCompHzOpen:
@@ -172,6 +177,7 @@ void cleanCompLine( std::string& str)
 bool cTopoData::InsertCompObsFile(const std::string & aFileName)
 {
     int aNbNewObs = 0;
+    cTopoObsSetData aCurrentObsSetSimple;
     std::vector<cTopoObsSetStationData> aCurrentVectObsSetStations;
     eTopoStOriStat aCurrStationStatus = eTopoStOriStat::eTopoStOriVert;
 
@@ -237,6 +243,7 @@ bool cTopoData::InsertCompObsFile(const std::string & aFileName)
         case eCompObsType::eCompDX:
         case eCompObsType::eCompDY:
         case eCompObsType::eCompDZ:
+        case eCompObsType::eCompDH:
             break;
         case eCompObsType::eCompHzOpen:
         case eCompObsType::eCompHz:
@@ -244,6 +251,8 @@ bool cTopoData::InsertCompObsFile(const std::string & aFileName)
             // Angles in comp file are in gon. Transform it into rad
             val /= AngleInRad(eTyUnitAngle::eUA_gon);
             sigma /= AngleInRad(eTyUnitAngle::eUA_gon);
+            MMVII_INTERNAL_ASSERT_strong(AssertRadAngleInOneRound(val, false),
+                                         "Angle out of range for "+aFileName+" at line "+std::to_string(line_num)+": \""+line+"\"")
             break;
         }
 
@@ -263,6 +272,7 @@ bool cTopoData::InsertCompObsFile(const std::string & aFileName)
 void cTopoData::clear()
 {
     mAllObsSetStations.clear();
+    mObsSetSimple.mObs.clear();
 }
 
 bool cTopoData::addObs(std::vector<cTopoObsSetStationData> &aCurrentVectObsSetStations, eCompObsType code,
@@ -270,30 +280,47 @@ bool cTopoData::addObs(std::vector<cTopoObsSetStationData> &aCurrentVectObsSetSt
                        double sigma, eTopoStOriStat aStationStatus)
 {
     cTopoObsSetStationData * aSetDataStation = nullptr;
-    if (code != eCompObsType::eCompHzOpen) // new set if HzOpen
-    {
-        // search for a suitable set
-        for (auto riter = aCurrentVectObsSetStations.rbegin();
-                 riter != aCurrentVectObsSetStations.rend(); ++riter)
+
+    // find set
+    switch (code) {
+    case eCompObsType::eCompDist:
+    case eCompObsType::eCompDH:
+        // always add to mObsSetSimple
+        break;
+    case eCompObsType::eCompHzOpen:
+    case eCompObsType::eCompHz:
+    case eCompObsType::eCompZen:
+    case eCompObsType::eCompDX:
+    case eCompObsType::eCompDY:
+    case eCompObsType::eCompDZ:
+        if (code != eCompObsType::eCompHzOpen) // new set if HzOpen
         {
-            auto &aObsSet = *riter;
-            if ((!aObsSet.mObs.empty()) && (aObsSet.mObs.front().mPtsNames.front() == nameFrom))
+            // search for a suitable set
+            for (auto riter = aCurrentVectObsSetStations.rbegin();
+                     riter != aCurrentVectObsSetStations.rend(); ++riter)
             {
-                aSetDataStation = &aObsSet;
-                break;
+                auto &aObsSet = *riter;
+                if ((!aObsSet.mObs.empty()) && (aObsSet.mObs.front().mPtsNames.front() == nameFrom))
+                {
+                    aSetDataStation = &aObsSet;
+                    break;
+                }
             }
         }
-    }
-    if (!aSetDataStation)
-    {
-        aCurrentVectObsSetStations.push_back( {} );
-        aSetDataStation = &aCurrentVectObsSetStations.back();
-        aSetDataStation->mType = eTopoObsSetType::eStation;
-        aSetDataStation->mStationOriStat = aStationStatus;
+        if (!aSetDataStation)
+        {
+            aCurrentVectObsSetStations.push_back( {} );
+            aSetDataStation = &aCurrentVectObsSetStations.back();
+            aSetDataStation->mType = eTopoObsSetType::eStation;
+            aSetDataStation->mStationOriStat = aStationStatus;
+        }
+        break;
+    case eCompObsType::eCompError:
+        return false;
     }
 
     cTopoObsData aObsData;
-
+    // create obs
     switch (code) {
     case eCompObsType::eCompDist:
         aObsData = {eTopoObsType::eDist, {nameFrom,nameTo}, {val}, {sigma}};
@@ -314,10 +341,31 @@ bool cTopoData::addObs(std::vector<cTopoObsSetStationData> &aCurrentVectObsSetSt
     case eCompObsType::eCompDZ:
         aObsData = {eTopoObsType::eDZ, {nameFrom,nameTo}, {val}, {sigma}};
         break;
+    case eCompObsType::eCompDH:
+        aObsData = {eTopoObsType::eDH, {nameFrom,nameTo}, {val}, {sigma}};
+        break;
     case eCompObsType::eCompError:
         return false;
     }
-    aSetDataStation->mObs.push_back(aObsData);
+
+    // add obs to set
+    switch (code) {
+    case eCompObsType::eCompDist:
+    case eCompObsType::eCompDH:
+        mObsSetSimple.mObs.push_back(aObsData);
+        break;
+    case eCompObsType::eCompHzOpen:
+    case eCompObsType::eCompHz:
+    case eCompObsType::eCompZen:
+    case eCompObsType::eCompDX:
+    case eCompObsType::eCompDY:
+    case eCompObsType::eCompDZ:
+        aSetDataStation->mObs.push_back(aObsData);
+        break;
+    case eCompObsType::eCompError:
+        return false;
+    }
+
     return true;
 }
 
@@ -347,13 +395,12 @@ std::pair<cTopoData, cSetMesGCP> cTopoData::createEx1()
     cTopoObsData aObs3 = {eTopoObsType::eDist, {"ptD", "ptC"},  {10.}, {WW}};
     cTopoObsData aObs4 = {eTopoObsType::eDist, {"ptD", "ptC"},  {10+WW}, {WW}};
 
-    cTopoObsSetStationData aSet1;
-    aSet1.mType = eTopoObsSetType::eStation;
-    aSet1.mStationOriStat = eTopoStOriStat::eTopoStOriFixed;
+    cTopoObsSetData aSet1;
+    aSet1.mType = eTopoObsSetType::eSimple;
     aSet1.mObs = {aObs1, aObs2, aObs3, aObs4};
 
     cTopoData aTopoData;
-    aTopoData.mAllObsSetStations = {aSet1};
+    aTopoData.mObsSetSimple = aSet1;
     return {aTopoData, aSetPts};
 }
 
@@ -379,19 +426,26 @@ std::pair<cTopoData, cSetMesGCP>  cTopoData::createEx3()
     //aSetPts.AddMeasure( cMes1GCP(cPt3dr(105,115,105), "Tr1") ); // init not needed. Final: 107.072, 107.072, 100
 
     double g0 = 2.2;
-    cTopoObsData aObs1 = {eTopoObsType::eHz, {"St1", "Ori1"},  {0. - g0}, {0.001}};
-    cTopoObsData aObs2 = {eTopoObsType::eHz, {"St1", "Tr1"},  {M_PI/4. - g0}, {0.001}};
-    cTopoObsData aObs3 = {eTopoObsType::eZen, {"St1", "Tr1"},  {M_PI/2.}, {0.001}};
+    cTopoObsData aObs1 = {eTopoObsType::eHz, {"St1", "Ori1"},  {0. - g0}, {0.0001}};
+    cTopoObsData aObs2 = {eTopoObsType::eHz, {"St1", "Tr1"},  {M_PI/4. - g0}, {0.0001}};
+    cTopoObsData aObs3 = {eTopoObsType::eZen, {"St1", "Tr1"},  {M_PI/2.}, {0.0001}};
+
     cTopoObsData aObs4 = {eTopoObsType::eDist, {"St1", "Tr1"},  {10.}, {0.001}};
     cTopoObsData aObs5 = {eTopoObsType::eDist, {"St1", "Tr1"},  {10.002}, {0.001}};
+    cTopoObsData aObs6 = {eTopoObsType::eDH, {"St1", "Tr1"},  {0.0002}, {0.0001}};
 
     cTopoObsSetStationData aSet1;
     aSet1.mType = eTopoObsSetType::eStation;
     aSet1.mStationOriStat = eTopoStOriStat::eTopoStOriVert;
-    aSet1.mObs = {aObs1, aObs2, aObs3, aObs4, aObs5};
+    aSet1.mObs = {aObs1, aObs2, aObs3};
+
+    cTopoObsSetStationData aSet2;
+    aSet2.mType = eTopoObsSetType::eSimple;
+    aSet2.mObs = {aObs4, aObs5, aObs6};
 
     cTopoData aTopoData;
     aTopoData.mAllObsSetStations = {aSet1};
+    aTopoData.mObsSetSimple = aSet2;
 
     return {aTopoData, aSetPts};
 }
