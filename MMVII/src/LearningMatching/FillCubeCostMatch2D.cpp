@@ -1,8 +1,8 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_all.h"
+#include "MMVII_2Include_Serial_Tpl.h"
 #include "LearnDM.h"
-#include "include/MMVII_Tpl_Images.h"
-#include "include/MMVII_TplLayers3D.h"
+#include "MMVII_Tpl_Images.h"
+#include "MMVII_TplLayers3D.h"
 #include <thread>
 
 
@@ -58,6 +58,7 @@ namespace MMVII {
 
           const tImZ  & ImZMin2() {return  mImZMin2;}
           const tImZ  & ImZMax2() {return  mImZMax2;}
+          torch::Tensor InterpolGridSample(torch::Tensor & aFeatMap);
           torch::Tensor InterpolateSlice(torch::Tensor & FeatMap,torch::Tensor & aGeoXT,torch::Tensor & aGeoYT);
           void ExeOptim();
           aCnnModelPredictor * mCNNPredictor=nullptr;
@@ -174,6 +175,11 @@ namespace MMVII {
   {
      tU_INT2 aICost = round_ni(1e4*(std::max(0.0,std::min(1.0,aCost))));
      mFileCube->Write(aICost);
+  }
+
+torch::Tensor cAppliFillCubeCost2D::InterpolGridSample(torch::Tensor & aFeatMap)//, torch::Tensor & aGeoXT,torch::Tensor & aGeoYT)
+  {
+    return torch::tensor(0.0) ;
   }
 
 torch::Tensor cAppliFillCubeCost2D::InterpolateSlice(torch::Tensor & aFeatMap, torch::Tensor & aGeoXT,torch::Tensor & aGeoYT)

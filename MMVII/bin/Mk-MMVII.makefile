@@ -18,8 +18,9 @@ TORCHLIB_NVCC=-L$(TORCHLIBPath)/lib -Xlinker -rpath=$(TORCHLIBPath)/lib
 TORCHLIB_CPP=-L$(TORCHLIBPath)/lib -Wl,-rpath=$(TORCHLIBPath)/lib
 TORCHINCLUDE=-I$(TORCHLIBPath)/include -I$(TORCHLIBPath)/include/torch/csrc/api/include
 #QTINCLUDE=-I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/x86_64-linux-gnu/qt5/QtConcurrent -I/usr/include/x86_64-linux-gnu/qt5/QtXml -I/usr/include/x86_64-linux-gnu/qt5/QtOpenGL
-TORCHLIBS=-Wl,--no-as-needed -ltorch -ltorch_cuda_cpp -ltorch_cuda_cu -ltorch_cuda -lc10d_cuda_test -ltorch_cpu -lcaffe2_nvrtc -lc10 -lc10_cuda $(TORCHLIBPath)/lib/libnvrtc-builtins-4730a239.so.11.3 -lnvrtc -lnvToolsExt -lcudart
+TORCHLIBS=-Wl,--no-as-needed -ltorch -ltorch_cuda_cpp -ltorch_cuda_cu -ltorch_cuda -lc10d_cuda_test -ltorch_cpu -lc10 -lc10_cuda $(TORCHLIBPath)/lib/libnvrtc-builtins-4730a239.so.11.3 -lnvToolsExt -lcudart
 #===========================================================#
+# libs to exclude: -lcaffe2_nvrtc
 MMV2Exe=MMVII
 MMV2_INSTALL_PATH=${abspath ${MMV2DirBin}}/
 

@@ -170,6 +170,8 @@ public:
 /***********************************************************************/
 	int64_t getKernelSize()
 	{ return this->mkernel;}
+	int64_t getHidden()
+	{ return this->mnbHidden;}
 /***********************************************************************/
  private:
    int64_t mkernel;

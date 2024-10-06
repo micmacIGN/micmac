@@ -810,7 +810,7 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
 	
 	// ADDED LEARNING ENV
     aCnnModelPredictor *  mCNNPredictor=nullptr;
-    bool                  mWithIntCorr=true;  // initialized in the begining 
+    //bool                  mWithIntCorr=true;  // initialized in the begining
     bool                  mWithExtCorr=false;  // initialized in the begining 
     bool                  mUsePredicNet=false;
     bool                  mUseEpip= false;

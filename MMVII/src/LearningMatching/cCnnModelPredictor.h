@@ -9,10 +9,10 @@
 #include <unistd.h>
 #include <fstream>
 #include <vector>*/
-#include "include/MMVII_all.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
-#include "include/MMVII_Tpl_Images.h"
-#include "include/V1VII.h"
+#include "MMVII_all.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_Tpl_Images.h"
+#include "V1VII.h"
 #include <fcntl.h>
 #include "cConvnet_Fast.h"
 #include "cConvnet_Slow.h"

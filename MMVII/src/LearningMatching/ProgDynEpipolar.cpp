@@ -1,6 +1,6 @@
-#include "include/MMVII_all.h"
+#include "MMVII_all.h"
 //#include "include/V1VII.h"
-#include "include/MMVII_Tpl_Images.h"
+#include "MMVII_Tpl_Images.h"
 #include "LearnDM.h"
 #include <torch/torch.h>
 #include <torch/script.h>
@@ -322,6 +322,7 @@ void cAppliProgDynEpipolar::DoInferenceFillCostOneForward()
 
     if (0)
       {
+
           //Cost Based Cross Aggregation CBCA
           torch::Tensor x0c=torch::empty({1, 4, vol.size(2), vol.size(3)},
                                          torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));

@@ -429,7 +429,7 @@ int cWT_AppliFormatTDEDM::Exe()
 
        std::string aTmpPx =   PrefixAll() + "_tmppx.tif";
        GenConvertIm(aDir+"../disp_occ/"+aFile,aTmpPx);
-       cParamCallSys aComDyn(MMV1Bin(),"Nikrup","/ " + aTmpPx + " -256.0",NamePx1(aPref));
+       cParamCallSys aComDyn(MMV1Bin(),"Nikrup","/ " + aTmpPx + " -64.0",NamePx1(aPref));
        GlobSysCall(aComDyn);
 
        cParamCallSys  aComMasq(MMV1Bin(),"Nikrup","* 255 !=  " + aTmpPx + " 0",NameMasq1(aPref),"Type=u_int1");

@@ -10,6 +10,10 @@ if(vMMVII_BUILD)
   list(APPEND VCPKG_MANIFEST_FEATURES "vmmvii")
 endif()
 
+#################### append libtorch directory #################
+#list(APPEND CMAKE_PREFIX_PATH "libtorch")
+#################### append libtorch directory #################
+
 project(MMVII VERSION 1.0)
 
 # strict C++17 required
@@ -55,6 +59,37 @@ if (CMAKE_HOST_WIN32)
   file(COPY ${PROJ_PROJ_DB_FILE} DESTINATION ${MMVII_SOURCE_DIR}/share/proj)
 endif()
 
+############################# libtorch  ###############
+set(TORCH_INSTALL_PREFIX "${MMVII_SOURCE_DIR}/libtorch")
+#find_package(Torch REQUIRED)
+set(TORCH_INCLUDE_DIRS
+    ${TORCH_INSTALL_PREFIX}/include
+    ${TORCH_INSTALL_PREFIX}/include/torch/csrc/api/include)
+
+set(TORCH_LIBRARIES
+    -Wl,--no-as-needed
+    ${TORCH_INSTALL_PREFIX}/lib/libtorch.so
+    ${TORCH_INSTALL_PREFIX}/lib/libtorch_cuda.so
+    ${TORCH_INSTALL_PREFIX}/lib/libtorch_cuda_cu.so
+    ${TORCH_INSTALL_PREFIX}/lib/libtorch_cpu.so
+    ${TORCH_INSTALL_PREFIX}/lib/libc10.so
+    ${TORCH_INSTALL_PREFIX}/lib/libc10_cuda.so
+    /usr/lib/x86_64-linux-gnu/libcudart.so
+    )
+
+
+if(MSVC)
+  file(GLOB TORCH_LIBRARIES "${TORCH_INSTALL_PREFIX}/lib/*.dll")
+  #add_custom_command(TARGET MMVII
+  #                   POST_BUILD
+  #                   COMMAND ${CMAKE_COMMAND} -E copy_if_different
+  #                   ${TORCH_DLLS}
+  #                   $<TARGET_FILE_DIR:MMVII>)
+endif()
+############################# libtorch  ###############
+
+#-Wl,--no-as-needed -ltorch -ltorch_cuda_cpp -ltorch_cuda_cu -ltorch_cuda -lc10d_cuda_test -ltorch_cpu -lc10 -lc10_cuda $(TORCHLIBPath)/lib/libnvrtc-builtins-4730a239.so.11.3 -lnvToolsExt -lcudart)
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 
 # Threads
 set(THREADS_PREFER_PTHREAD_FLAG ON)
@@ -104,8 +139,11 @@ string(REGEX REPLACE "[-/]D *NDEBUG" "" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_
 set(mmv1_dir "${MMVII_SOURCE_DIR}/..")
 set(mmv1_include_dir "${mmv1_dir}/include")
 set(mmv1_lib_dir "${mmv1_dir}/lib")
+set(sgm_lib_dir "${MMVII_SOURCE_DIR}/bin/SGM_CUDA")
+
 find_library(elise_lib NAME elise PATHS "${mmv1_lib_dir}" NO_DEFAULT_PATH)
 find_library(ANN_lib NAME ANN PATHS "${mmv1_lib_dir}" NO_DEFAULT_PATH)
+find_library(SGMCUDA_lib NAME cudInfer PATHS "${sgm_lib_dir}" NO_DEFAULT_PATH)
 
 # MMVII dir
 set(mmv2_include_dir "${MMVII_SOURCE_DIR}/include")
@@ -114,6 +152,7 @@ set(mmv2_src_dir "${MMVII_SOURCE_DIR}/src")
 set(mmv2_gencode_dir "${mmv2_src_dir}/GeneratedCodes")
 set(mmv2_gencode_main_src "${mmv2_gencode_dir}/cName2CalcRegisterAll.cpp")
 set(EIGEN3_INCLUDE_PATH  "${mmv2_external_include_dir}/eigen-3.4.0")
+
 
 # Here we initialize the generated code with en empty template if working dir is clean (first checkout or after make distclean)
 if (NOT EXISTS "${mmv2_gencode_main_src}")
@@ -129,8 +168,8 @@ file(GLOB mmv2_headers "${mmv2_include_dir}/*.h" "${mmv2_include_dir}/*/*.h" "${
 ##        libP2007 buid (MMVII library)
 #######################################################
 add_library(P2007 "${mmv2_libsrcs}" "${mmv2_headers}")
-target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH};${PROJ_INCLUDE_DIRS}")
-target_link_libraries(P2007 PRIVATE MMVII_compiler_flags Threads::Threads ${PROJ_LIBRARIES})
+target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH};${PROJ_INCLUDE_DIRS};${TORCH_INCLUDE_DIRS}")
+target_link_libraries(P2007 PRIVATE MMVII_compiler_flags Threads::Threads ${PROJ_LIBRARIES} ${TORCH_LIBRARIES})
 
 # Force parallel compilation with MSVC
 if(MSVC)
@@ -149,8 +188,8 @@ else()
 	set(mmv2_extlibs)
 endif()
 
-target_include_directories(MMVII PRIVATE "${MMVII_SOURCE_DIR}/include"  )
-target_link_libraries(MMVII PRIVATE MMVII_compiler_flags Threads::Threads P2007 ${mmv1_libs} ${mmv2_extlibs})
+target_include_directories(MMVII PRIVATE "${mmv2_include_dir};${TORCH_INCLUDE_DIRS}")
+target_link_libraries(MMVII PRIVATE MMVII_compiler_flags Threads::Threads P2007 ${mmv1_libs} ${SGMCUDA_lib} ${mmv2_extlibs} ${TORCH_LIBRARIES})
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION  VERSION_LESS "9.1")
   target_link_libraries(MMVII PRIVATE -lstdc++fs)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION  VERSION_LESS "9.0")

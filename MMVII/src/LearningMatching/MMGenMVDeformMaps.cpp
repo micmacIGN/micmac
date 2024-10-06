@@ -1,4 +1,4 @@
-#include "include/MMVII_all.h"
+#include "MMVII_all.h"
 #include <StdAfx.h>
 #include "V1VII.h"
 #include "MMVII_Matrix.h"
