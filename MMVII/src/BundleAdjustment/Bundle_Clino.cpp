@@ -389,8 +389,8 @@ namespace MMVII
 
     void cBA_Clino::printRes() const
     {
-        StdOut() << "Residual for clino formula : " << mClinoRes.x() << std::endl ;
-        StdOut() << "Residual for rot formula : " << mRotRes.x() << std::endl ;
+        StdOut() << "Residual for clino formula : " << sqrt(mClinoRes.x()) << std::endl ;
+        StdOut() << "Residual for rot formula : " << sqrt(mRotRes.x()) << std::endl ;
     }
     
     
