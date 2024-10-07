@@ -66,8 +66,7 @@ namespace MMVII
         std::string aCameraName = "001";
 
         // Create aCalibSetClino
-        cCalibSetClino* aCalibSetClino = new cCalibSetClino(aCameraName, aVCalibClino);
-        cBA_Clino aBAClino(nullptr, aCalibSetClino);
+        cBA_Clino aBAClino(nullptr);
 
         aBAClino.setVNamesClino({"C1", "C2"});
         
@@ -252,8 +251,7 @@ namespace MMVII
         std::string aClinoName = "aClino1";
         cOneCalibClino aCalibClino(aClinoName);
         std::vector<cOneCalibClino>aVCalibClino({aCalibClino});
-        cCalibSetClino* aCalibSetClino = new cCalibSetClino(aCameraName, aVCalibClino);
-        cBA_Clino* aBAClino = new cBA_Clino(nullptr, aCalibSetClino);
+        cBA_Clino* aBAClino = new cBA_Clino(nullptr);
         
         // Create clino measures
         std::vector<std::string>aVClinoName({aCalibClino.NameClino()});
@@ -374,8 +372,7 @@ namespace MMVII
         std::string aClinoName2 = "aClino2";
         cOneCalibClino aCalibClino2(aClinoName2);
         std::vector<cOneCalibClino>aVCalibClino({aCalibClino, aCalibClino2});
-        cCalibSetClino* aCalibSetClino = new cCalibSetClino(aCameraName, aVCalibClino);
-        cBA_Clino* aBAClino = new cBA_Clino(nullptr, aCalibSetClino);
+        cBA_Clino* aBAClino = new cBA_Clino(nullptr);
         
         // Create clino measures
         std::vector<std::string>aVClinoName({aCalibClino.NameClino(), aCalibClino2.NameClino()});

@@ -202,8 +202,7 @@ class cBA_Clino : public cMemCheck
 
           // Constructor for ClinoBench (set manually clino observations)
           cBA_Clino(
-               const cPhotogrammetricProject *aPhProj, // photogrammetric project 
-               cCalibSetClino *aCalibSetClino          // set of clino calibration
+               const cPhotogrammetricProject *aPhProj // photogrammetric project 
           );
 
           // Constructor for cMMVII_BundleAdj (read a clino observations file)
@@ -214,9 +213,6 @@ class cBA_Clino : public cMemCheck
                const std::vector<std::string> & aPrePost    // values added before and after image names in clino observations 
                                                             // file to have the same names than in initial solutions file
           );
-          
-          // Destructor
-          ~cBA_Clino();
 
           // Add equation with aMeasure observations for one clinometer
           cPt2dr addOneClinoEquation(cResolSysNonLinear<tREAL8> & aSys, cClinoMes1Cam & aMeasure, const std::string aClinoName);
@@ -260,9 +256,6 @@ class cBA_Clino : public cMemCheck
           // Get all relative rotations in cClinosWithUK objects. Used in BenchClino only
           std::vector<tRotR>  ClinosWithUKRot() const;
 
-          // Set aCalibSetClino
-          void setCalibSetClino(cCalibSetClino* aCalibSetClino);
-
           // Display residuals
           void printRes() const; 
 
@@ -289,10 +282,10 @@ class cBA_Clino : public cMemCheck
           cCalculator<double> *        mEqBlUKRot;               // calculator for rot formula
           std::vector<double>          mWeight;                  // weights
           std::map<std::string, cClinoWithUK>    mClinosWithUK;  // map with {clino name, cClinoWithUK object}
-          cCalibSetClino               *mCalibSetClino;          // clino calibration
           cPt2dr                        mClinoRes;               // Residuals for clino formula
           cPt2dr                        mRotRes;                 // Residuals for rot formula
           std::map<std::string, tRotR>    mInitRotClino;         // map with {clino name, initial rotation}
+          std::string                   mCameraName;              // name of the camera
           
 };
 

@@ -52,6 +52,7 @@ void AddData(const  cAuxAr2007 & anAux,cOneCalibClino & aClino)
 {
     AddData(cAuxAr2007("NameClino",anAux),aClino.mNameClino);
     AddData(cAuxAr2007("Rotation",anAux),aClino.mRot);
+    AddData(cAuxAr2007("NameCamera",anAux),aClino.mCameraName);
     AddOptData(anAux,"RelCalib",aClino.mLinkRel);
 }
 
@@ -452,7 +453,7 @@ int cAppli_ClinoInit::Exe()
 	    // for now we process the case where clinos are identic on all lines, maybe to change later
         if (aVNamesClino!=aVNamesCl2) 
         {
-           MMVII_UnclasseUsEr("Names of clinmeter vary with line");
+           MMVII_UnclasseUsEr("Names of clinometer vary with line");
         }
         if (IsInit(&mASim))
         {
@@ -530,11 +531,12 @@ int cAppli_ClinoInit::Exe()
        cOneCalibClino aCal;
        aCal.mNameClino = aVNamesClino.at(mVKClino.at(aKClino));
        aCal.mRot = OriOfClino(aKClino,aWM0.IndexExtre());
+       aCal.mCameraName = mCalibSetClino.mNameCam;
        if (aKClino != 0)
        {
             cOneCalibRelClino aCalRel;
 	        aCalRel.mNameRef = aVNamesClino.at(mVKClino.at(0));
-	    aCalRel.mRot = mOriRelClin.at(aKClino);
+	        aCalRel.mRot = mOriRelClin.at(aKClino);
             aCal.mLinkRel = aCalRel;
        }
        mCalibSetClino.mClinosCal.push_back(aCal);
@@ -568,15 +570,6 @@ int cAppli_ClinoInit::Exe()
 
     // Save the result in standard file
     mPhProj.SaveClino(mCalibSetClino);
-
-    if (mPhProj.DPClinoMeters().DirInIsInit())
-    {
-       cCalibSetClino* aClinoTest = mPhProj.GetClino(*aCalib);
-       SaveInFile(*aClinoTest,"TestReWriteClino.xml");
-
-       delete aClinoTest;
-
-    }
     /*
     std::string aNameOut = mPhProj.DPClinoMeters().FullDirOut() + "ClinoCalib-" + aNameCalibCam + "."+ GlobTaggedNameDefSerial();
     SaveInFile(mCalibSetClino,aNameOut);
