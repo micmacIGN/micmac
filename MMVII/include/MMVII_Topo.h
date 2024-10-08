@@ -46,7 +46,6 @@ public :
     void printObs(bool withDetails=false);
     double  Sigma0() {return mSigma0;}
     std::vector<cTopoObs*> GetObsPoint(std::string aPtName) const;
-
     bool tryInitAll();
     bool tryInit(cTopoPoint & aTopoPt, tStationsMap & stationsMap, tSimpleObsMap &allSimpleObs);
 

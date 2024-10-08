@@ -5,22 +5,14 @@
 #include <vector>
 #include <set>
 #include <iostream>
-#include <experimental/filesystem>
-#include <boost/algorithm/string.hpp>
-
-
+#include <filesystem>
 #include <stdexcept>
+
 // #define KAPTURE_USE_EIGEN
 
 #ifdef KAPTURE_USE_EIGEN
 #include <Eigen/Geometry>
 #endif
-
-namespace std {
-using namespace experimental;
-}
-using namespace std::filesystem;
-
 
 
 // FIXME CM: Faire les write

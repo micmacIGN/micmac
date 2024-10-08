@@ -12,20 +12,14 @@
 
 */
 
-#include <experimental/filesystem>
+#include <filesystem>
 
 #include "MMVII_Sys.h"
 #include "MMVII_util.h"
 #include "cMMVII_Appli.h"
 
 
-
-//using namespace std::experimental::filesystem;
-namespace fs=std::experimental::filesystem;
-
-namespace std {
-using namespace experimental;
-}
+namespace fs=std::filesystem;
 
 namespace MMVII
 {

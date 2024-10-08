@@ -335,10 +335,11 @@ void cBA_Topo::AddTopoEquations(cResolSysNonLinear<tREAL8> & aSys)
 
 bool cBA_Topo::tryInitAll()
 {
+      tStationsMap allStations;
     // get all stations ordered by origin to optimize research
     for (auto & aSet: mAllObsSets)
         aSet->initialize(); // to get origin point for stations
-    tStationsMap allStations;
+
     for (auto & aSet: mAllObsSets)
     {
         if (aSet->getType() ==  eTopoObsSetType::eStation)
@@ -408,10 +409,10 @@ bool cBA_Topo::tryInitAll()
             if (!aTopoPt.isInit())
                 ++aNbUninit;
             }
-    }
+              }
+      }
     return aNbUninit==0;
 }
-
 bool cBA_Topo::tryInit(cTopoPoint & aPtToInit, tStationsMap &stationsMap, tSimpleObsMap &allSimpleObs)
 {
     if (aPtToInit.isInit())

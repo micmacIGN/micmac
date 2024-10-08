@@ -66,25 +66,27 @@ set(TORCH_INCLUDE_DIRS
     ${TORCH_INSTALL_PREFIX}/include
     ${TORCH_INSTALL_PREFIX}/include/torch/csrc/api/include)
 
-set(TORCH_LIBRARIES
-    -Wl,--no-as-needed
-    ${TORCH_INSTALL_PREFIX}/lib/libtorch.so
-    ${TORCH_INSTALL_PREFIX}/lib/libtorch_cuda.so
-    ${TORCH_INSTALL_PREFIX}/lib/libtorch_cuda_cu.so
-    ${TORCH_INSTALL_PREFIX}/lib/libtorch_cpu.so
-    ${TORCH_INSTALL_PREFIX}/lib/libc10.so
-    ${TORCH_INSTALL_PREFIX}/lib/libc10_cuda.so
-    /usr/lib/x86_64-linux-gnu/libcudart.so
-    )
+#set(TORCH_LIBRARIES
+#    -Wl,--no-as-needed
+#    ${TORCH_INSTALL_PREFIX}/lib/libtorch.so
+#    ${TORCH_INSTALL_PREFIX}/lib/libtorch_cuda.so
+#    ${TORCH_INSTALL_PREFIX}/lib/libtorch_cuda_cu.so
+#    ${TORCH_INSTALL_PREFIX}/lib/libtorch_cpu.so
+#    ${TORCH_INSTALL_PREFIX}/lib/libc10.so
+#    ${TORCH_INSTALL_PREFIX}/lib/libc10_cuda.so
+#    /usr/lib/x86_64-linux-gnu/libcudart.so
+#    )
+
+file (GLOB TORCH_LIBRARIES "${TORCH_INSTALL_PREFIX}/lib/*.so" "/usr/lib/x86_64-linux-gnu/libcudart.so")
 
 
 if(MSVC)
   file(GLOB TORCH_LIBRARIES "${TORCH_INSTALL_PREFIX}/lib/*.dll")
-  #add_custom_command(TARGET MMVII
-  #                   POST_BUILD
-  #                   COMMAND ${CMAKE_COMMAND} -E copy_if_different
-  #                   ${TORCH_DLLS}
-  #                   $<TARGET_FILE_DIR:MMVII>)
+  add_custom_command(TARGET MMVII
+                     POST_BUILD
+                     COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                     ${TORCH_DLLS}
+                     $<TARGET_FILE_DIR:MMVII>)
 endif()
 ############################# libtorch  ###############
 

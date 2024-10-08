@@ -4,7 +4,7 @@
 #include "MMVII_MMV1Compat.h"
 #include "MMVII_2Include_Serial_Tpl.h"
 
-#include <experimental/filesystem>
+#include <filesystem>
 
 #include <string>
 #include <mutex>
@@ -23,7 +23,7 @@
 #  include <mach-o/dyld.h>
 #endif
 
-namespace fs=std::experimental::filesystem;
+namespace fs=std::filesystem;
 
 namespace MMVII
 {

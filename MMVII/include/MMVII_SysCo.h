@@ -5,7 +5,7 @@
 #include "MMVII_Mappings.h"
 #include "MMVII_AllClassDeclare.h"
 #include "MMVII_Geom3D.h"
-
+#include <proj.h>
 
 //struct pj_ctx;
 //typedef struct pj_ctx PJ_CONTEXT;
