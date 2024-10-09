@@ -687,6 +687,9 @@ class cPhotogrammetricProject
          bool  SysCoIsInit() const;
          void  AssertSysCoIsInit() const;
 
+         /// If ChSys.Target() is not init, set it to RTL, considering center is expressed in SysOrigin
+	 void InitSysCoRTLIfNotReady(const cPt3dr & aCenter);
+
 	 //===================================================================
          //==================   Clinometers           ========================
 	 //===================================================================

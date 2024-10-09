@@ -746,6 +746,10 @@ template <class TypeWeight,class TypeVal=TypeWeight> class cWeightAv
 {
      public :
         cWeightAv();
+        cWeightAv(const std::vector<TypeVal> &);
+	static TypeVal AvgCst(const std::vector<TypeVal> &);
+
+
         void Add(const TypeWeight & aWeight,const TypeVal & aVal);
         TypeVal Average() const;
         TypeVal Average(const TypeVal  & aDef) const;

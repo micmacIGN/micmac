@@ -106,6 +106,14 @@ void cAppli_CERN_ImportClino::MakeOneDir(const std::string & aDir,cMMVII_Ofs & a
 
 int cAppli_CERN_ImportClino::Exe()
 {
+
+/*
+ *    To redo completely, CERN having adpoted a more standard format, this command is a priori useless
+ *
+ *    Now it may be usefull, rewritten in much more general way, in collecting file from different folders
+ *    from different files.
+*/
+
     mPhProj.FinishInit();
 
     tNameSelector   aSelec = AllocRegex("Calibration_Clino_.*");
@@ -140,7 +148,7 @@ cSpecMMVII_Appli  TheSpec_CERN_ImportClino
 (
      "CERN_ImportClino",
       Alloc_CERN_ImportClino,
-      "A temporary command to arrange clino format",
+      "A temporary command to arrange clino format from file splited in different folders",
       {eApF::Ori},
       {eApDT::Ori},
       {eApDT::Ori},
