@@ -74,6 +74,7 @@ extern cSpecMMVII_Appli  TheSpec_OriBundlAdj;
 extern cSpecMMVII_Appli  TheSpec_TopoAdj;
 extern cSpecMMVII_Appli  TheSpecDistCorrectCirgTarget;
 extern cSpecMMVII_Appli  TheSpecGenArgsSpec;
+extern cSpecMMVII_Appli  TheSpec_ImportClino;
 extern cSpecMMVII_Appli  TheSpec_ImportLines;
 extern cSpecMMVII_Appli  TheSpec_ImportGCP;
 extern cSpecMMVII_Appli  TheSpec_ImportOBS;

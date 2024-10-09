@@ -522,14 +522,10 @@ cMes1GCP::cMes1GCP(const cPt3dr & aPt, const std::string & aNamePt, tREAL4 aSigm
     mNamePt   (aNamePt),
     mAdditionalInfo(aAdditionalInfo),
     mOptSigma2(std::nullopt)
+
 {
     if (aSigma>=0.)
-    {
-        mOptSigma2 = {0.,0.,0.,0.,0.,0.};
-        (*mOptSigma2)[IndXX] = Square(aSigma);
-        (*mOptSigma2)[IndYY] = Square(aSigma);
-        (*mOptSigma2)[IndZZ] = Square(aSigma);
-    }
+        SetSigma2(aSigma);
 }
 
 cMes1GCP::cMes1GCP() :
@@ -537,12 +533,35 @@ cMes1GCP::cMes1GCP() :
 {
 }
 
+void cMes1GCP::SetSigma2(const cPt3dr & aSigma)
+{
+     mOptSigma2 = {0.,0.,0.,0.,0.,0.};
+     (*mOptSigma2)[IndXX] = (float) Square(aSigma.x());
+     (*mOptSigma2)[IndYY] = (float) Square(aSigma.y());
+     (*mOptSigma2)[IndZZ] = (float) Square(aSigma.z());
+}
+
+void cMes1GCP::SetSigma2(tREAL8 aSigma)
+{
+     SetSigma2(cPt3dr::PCste(aSigma));
+}
+
+const cArray<tREAL4,6> & cMes1GCP::Sigma2()  const { return  (*mOptSigma2); }
+
+bool cMes1GCP::Sigma2IsInit() const {return mOptSigma2.has_value();}
+
+
+void cMes1GCP::AddData(const  cAuxAr2007 & anAux)
+{
+   MMVII::AddData(cAuxAr2007("Name",anAux),mNamePt);
+   MMVII::AddData(cAuxAr2007("Pt",anAux),mPt);
+   MMVII::AddData(cAuxAr2007("AdditionalInfo",anAux),mAdditionalInfo);
+   AddOptData(anAux, "Sigma2", mOptSigma2);
+}
+
 void AddData(const  cAuxAr2007 & anAux,cMes1GCP & aMes)
 {
-   MMVII::AddData(cAuxAr2007("Name",anAux),aMes.mNamePt);
-   MMVII::AddData(cAuxAr2007("Pt",anAux),aMes.mPt);
-   MMVII::AddData(cAuxAr2007("AdditionalInfo",anAux),aMes.mAdditionalInfo);
-   AddOptData(anAux, "Sigma2", aMes.mOptSigma2);
+	aMes.AddData(anAux);
 }
 
 void cMes1GCP::ChangeCoord(const cDataMapping<tREAL8,3,3>& aMapping)

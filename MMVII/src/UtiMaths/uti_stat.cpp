@@ -426,6 +426,21 @@ template <class TypeWeight,class TypeVal> cWeightAv<TypeWeight,TypeVal>::cWeight
 {
 }
 
+
+template <class TypeWeight,class TypeVal> cWeightAv<TypeWeight,TypeVal>::cWeightAv(const std::vector<TypeVal> & aVect) :
+   cWeightAv()
+{
+    for (const auto & aVal : aVect)
+        Add(1.0,aVal);
+}
+
+template <class TypeWeight,class TypeVal> TypeVal cWeightAv<TypeWeight,TypeVal>::AvgCst(const std::vector<TypeVal> & aVect) 
+{
+    cWeightAv<TypeWeight,TypeVal> aWA(aVect);
+    return aWA.Average();
+}
+
+
 template <class TypeWeight,class TypeVal> void cWeightAv<TypeWeight,TypeVal>::Add(const TypeWeight & aWeight,const TypeVal & aVal)
 {
    mSW += aWeight;

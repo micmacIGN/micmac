@@ -143,8 +143,21 @@ class cMes1GCP
         static constexpr int IndZZ = 5;
         std::string mAdditionalInfo;
 
-        std::optional<cArray<tREAL4,6> >  mOptSigma2;  //  xx xy xz yy yz zz
         bool isInit() const {return mPt.IsValid();}
+
+        /// Accessor but create, but if not exist, create with diag cov of sigma
+	void SetSigma2(tREAL8 aSigma );
+	void SetSigma2(const cPt3dr &);
+        /// Accessor but assume optional is init
+	const cArray<tREAL4,6> & Sigma2() const ;
+	///
+	bool  Sigma2IsInit() const;
+
+	/// Serialization 
+	void AddData(const  cAuxAr2007 & anAux);
+
+     private :
+        std::optional<cArray<tREAL4,6> >  mOptSigma2;  //  xx xy xz yy yz zz
 };
 
 /**  A set of cMes1GCP */

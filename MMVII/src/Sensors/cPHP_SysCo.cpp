@@ -208,6 +208,17 @@ void cPhotogrammetricProject::CpSysIn2Out(bool  OriIn,bool OriOut) const
 }
 
 
+void cPhotogrammetricProject::InitSysCoRTLIfNotReady(const cPt3dr & aCenter) 
+{
+    if (  (ChSysCo().SysTarget()->getType()==eSysCo::eRTL)  &&  (!ChSysCo().SysTarget()->isReady())  )
+    {
+        std::string aRTLName = ChSysCo().SysTarget()->Def();
+        ChSysCo().setTargetsysCo(CreateSysCoRTL(aCenter,ChSysCo().SysOrigin()->Def()));
+        SaveInFile(ChSysCo().SysTarget()->toSysCoData(), getDirSysCo() + aRTLName + "." + GlobTaggedNameDefSerial());
+    }
+}
+
+
 
 }; // MMVII
 

@@ -12,7 +12,7 @@ token  to specify we can add anything after we get the required token
 #  NumOfMine (real)
 #  NumOfLine (int)
 
-1  One  3.14 1.0  1.0  1    2   3    1.0 1                  quatre ciniq six ,  cueillir des cerises
+1  One  3.14 1.0  1.0  1    2   3    1.0 1                  quatre cinq six ,  cueillir des cerises
 
 # blabla
 # blabla again 
