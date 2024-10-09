@@ -2,153 +2,146 @@
 #include "MMVII_MMV1Compat.h"
 #include "MMVII_DeclareCste.h"
 #include "MMVII_BundleAdj.h"
-#include "MMVII_Stringifier.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+
+#include "MMVII_ReadFileStruct.h"
+
+#include "MMVII_util_tpl.h"
+
 
 /**
-   \file cConvCalib.cpp  testgit
+   \file ImportClino.cpp
 
-   \brief file for conversion between calibration (change format, change model) and tests
+   \brief file for conversion from raw calibration file to  MMVII format
+
 */
 
 
 namespace MMVII
 {
 
+
+
    /* ********************************************************** */
    /*                                                            */
-   /*                 cAppli_CERN_ImportClino                    */
+   /*                 cAppli_ImportClino                         */
    /*                                                            */
    /* ********************************************************** */
 
-class cAppli_CERN_ImportClino : public cMMVII_Appli
+class cAppli_ImportClino : public cMMVII_Appli
 {
      public :
-        cAppli_CERN_ImportClino(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
+        cAppli_ImportClino(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+
+        std::vector<std::string>  Samples() const override;
      private :
 
-        void MakeOneDir(const std::string & aDir,cMMVII_Ofs &) const;
 	cPhotogrammetricProject  mPhProj;
 
 	// Mandatory Arg
-	std::string               mDirData;
-	std::string               mNameRes;
-	std::vector<std::string>  Samples() const override;
+	std::string              mNameFile;
+	std::string              mFormat;
 
-	std::vector<std::string>  mNamesClino;
+	// Optionall Arg
+	cNRFS_ParamRead            mParamRead;
+
+	//   Format specif
+	std::string              mNameFieldIm;
+	std::string              mNameFieldAngle;
+	std::string              mNameSigma;
+	std::string              mSpecFormatMand;
+	std::string              mSpecFormatTot;
+
 };
 
-cAppli_CERN_ImportClino::cAppli_CERN_ImportClino(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-   cMMVII_Appli  (aVArgs,aSpec),
-   mPhProj       (*this),
-   mNamesClino   {"A1","B1","B2","A2"}
+cAppli_ImportClino::cAppli_ImportClino(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
+   cMMVII_Appli    (aVArgs,aSpec),
+   mPhProj         (*this),
+   mNameFieldIm    ("Im"),
+   mNameFieldAngle ("A"),
+   mNameSigma      ("S"),
+   mSpecFormatMand (mNameFieldIm+mNameFieldAngle+"*" + mNameSigma+"*"),
+   mSpecFormatTot  (cNewReadFilesStruct::MakeSpecTot(mSpecFormatMand,""))
 {
+	// std::map<std::string,int>  aMap{{"2",2}};
 }
 
-cCollecSpecArg2007 & cAppli_CERN_ImportClino::ArgObl(cCollecSpecArg2007 & anArgObl) 
+cCollecSpecArg2007 & cAppli_ImportClino::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
     return anArgObl
-	      <<  Arg2007(mDirData ,"Folder where data are to be researched",{{eTA2007::FolderAny}})
-	      <<  Arg2007(mNameRes ,"Name of result file")
+	      <<  Arg2007(mNameFile ,"Name of Input File",{eTA2007::FileAny})
+	      // <<  Arg2007(mFormat   ,"Format of file as for in spec :  \"" + mSpecFormatTot + "\"")
+	      <<  Arg2007(mFormat   ,cNewReadFilesStruct::MsgFormat(mSpecFormatTot))
+              <<  mPhProj.DPClinoMeters().ArgDirOutMand()
            ;
 }
 
-cCollecSpecArg2007 & cAppli_CERN_ImportClino::ArgOpt(cCollecSpecArg2007 & anArgFac) 
+cCollecSpecArg2007 & cAppli_ImportClino::ArgOpt(cCollecSpecArg2007 & anArgOpt) 
 {
-    
-    return anArgFac
-           << AOpt2007(mNamesClino,"NameClino","Name of Clino")
-       //  << AOpt2007(mNbDigName,"NbDigName","Number of digit for name, if fixed size required (only if int)")
-       //  << AOpt2007(mL0,"NumL0","Num of first line to read",{eTA2007::HDV})
-       //  << AOpt2007(mLLast,"NumLast","Num of last line to read (-1 if at end of file)",{eTA2007::HDV})
-       //  << AOpt2007(mPatternTransfo,"PatName","Pattern for transforming name (first sub-expr)")
+    mParamRead.AddArgOpt(anArgOpt);
+    return      anArgOpt
     ;
 }
 
-//template<class Type> inline Type GetV(std::istringstream & iss);
 
-
-void cAppli_CERN_ImportClino::MakeOneDir(const std::string & aDir,cMMVII_Ofs & anOFS) const
-{
-    std::string aNameF = aDir + StringDirSeparator() +  "ClinoValue.json";
-    std::ifstream infile(aNameF);
-
-    std::vector<std::string>  aVFileIm =  GetFilesFromDir(aDir+StringDirSeparator(),AllocRegex("043.*"));
-
-    MMVII_INTERNAL_ASSERT_tiny(aVFileIm.size()==1,"cAppli_CERN_ImportClino : bad size for image pattern match");
-    anOFS.Ofs() << aVFileIm.at(0) ;
-    StdOut() << "DDD " << aDir << " " << aVFileIm << "\n";
-
-    std::string line;
-    int aNumL = 0;
-    cCarLookUpTable aLUT;
-    aLUT.InitIdGlob();
-    aLUT.Init("[],",' ');
-    while (std::getline(infile, line))
-    {
-        line = aLUT.Translate(line);
-	std::istringstream iss(line);
-
-	for (const auto & aNameClino : mNamesClino)
-	{
-		tREAL8 aAvg = GetV<tREAL8>(iss,aNameF,aNumL);
-		tREAL8 aStdDev = GetV<tREAL8>(iss,aNameF,aNumL);
-		StdOut() << "   * " << aNameClino  << " " << aAvg << " " << aStdDev << "\n";
-		anOFS.Ofs() << " " << aNameClino  << " " << aAvg << " " << aStdDev ;
-	}
-        aNumL++;
-    }
-    anOFS.Ofs() << std::endl;
-}
-
-
-int cAppli_CERN_ImportClino::Exe()
+int cAppli_ImportClino::Exe()
 {
     mPhProj.FinishInit();
 
-    tNameSelector   aSelec = AllocRegex("Calibration_Clino_.*");
-    // std::vector<std::string>   aTEST = RecGetFilesFromDir(mDirData,aSelec,0,100);
-    // StdOut() << "TTT=" << aTEST << "\n";
+    cNewReadFilesStruct aNRFS;
+    aNRFS.SetPatternAddType({"^$",mNameFieldAngle,"^$"});
+    aNRFS.SetFormat(mFormat,mSpecFormatMand,mSpecFormatTot);
+    aNRFS.ReadFile(mNameFile,mParamRead);
+
+    int aNbAngle = aNRFS.ArrityField(mNameFieldAngle);
+    int aNbSigma = aNRFS.ArrityField(mNameSigma);
+
+    if ((aNbSigma!=0) && (aNbSigma!=aNbAngle))
+    {
+        MMVII_UnclasseUsEr("Nb sigma must equal nb angle or 0");
+    }
 
 
-    std::vector<std::string>   aLD = GetSubDirFromDir(mDirData,aSelec);
-    std::sort(aLD.begin(),aLD.end());
+    for (size_t aKL=0 ; aKL<aNRFS.NbLineRead() ; aKL++)
+    {
+         std::string aNameIm =  aNRFS.GetValue<std::string>(mNameFieldIm,aKL);
 
-    cMMVII_Ofs anOFS(mNameRes,eFileModeOut::CreateText);
-    for (const auto & aDir : aLD)
-        MakeOneDir(aDir,anOFS);
+	 StdOut() << "II=" << aNameIm << "\n";
 
+    }
 
     return EXIT_SUCCESS;
 }
 
-
-std::vector<std::string>  cAppli_CERN_ImportClino::Samples() const
+std::vector<std::string>  cAppli_ImportClino::Samples() const
 {
-	return {"MMVII V2ImportCalib ../../Pannel/ BA_725 CalibInit725"};
+   return 
+   {
+          "MMVII ImportM32 verif_1B.txt SjiXYZ XingB NumL0=13 NumLast=30 NameIm=SPOT_1B.tif"
+   };
 }
 
 
-tMMVII_UnikPApli Alloc_CERN_ImportClino(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
+tMMVII_UnikPApli Alloc_ImportClino(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppli_CERN_ImportClino(aVArgs,aSpec));
+   return tMMVII_UnikPApli(new cAppli_ImportClino(aVArgs,aSpec));
 }
 
-cSpecMMVII_Appli  TheSpec_CERN_ImportClino
+cSpecMMVII_Appli  TheSpec_ImportClino
 (
-     "CERN_ImportClino",
-      Alloc_CERN_ImportClino,
-      "A temporary command to arrange clino format",
-      {eApF::Ori},
-      {eApDT::Ori},
-      {eApDT::Ori},
+     "ImportClino",
+      Alloc_ImportClino,
+      "Import/Convert file of clinometers from raw to MMVII format",
+      {eApF::Lines},
+      {eApDT::Lines},
+      {eApDT::Lines},
       __FILE__
 );
-/*
-*/
-
+#if (0)
+#endif
 
 }; // MMVII
 
