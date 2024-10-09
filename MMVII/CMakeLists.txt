@@ -139,6 +139,11 @@ if(MSVC)
  target_compile_options(P2007 PRIVATE "/MP")
 endif()
 
+option(MMVII_KEEP_MMV1_IMAGE "If OFF, MMVII will use GDAL only to read/write image" ON)
+if(MMVII_KEEP_MMV1_IMAGE)
+  target_compile_definitions(P2007 PUBLIC MMVII_KEEP_MMV1_IMAGE)
+endif()
+
 #######################################################
 ##        MMVII build (executable)
 #######################################################

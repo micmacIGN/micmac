@@ -1,3 +1,4 @@
+// FIXME CM: clean list of headers
 #include "V1VII.h"
 #include "MMVII_Stringifier.h"
 #include "MMVII_util.h"
@@ -13,6 +14,18 @@
 using namespace MMVII;
 
 namespace{ // Private
+
+//FIXME CM: Add a warning+help env MMVII_USE_MMV1_IMAGE dans MMVII (help) à la fin ...
+#ifdef MMVII_KEEP_MMV1_IMAGE
+   bool mmvii_use_mmv1_image()
+   {
+       static std::optional<bool> use_mmv1_image;
+       if (! use_mmv1_image.has_value())
+           use_mmv1_image = (getenv("MMVII_USE_MMV1_IMAGE") != nullptr);
+       return use_mmv1_image.value();
+   }
+#endif   
+
    eTyNums GdalToMMVII( GDALDataType aType )
    {
       switch (aType)
@@ -220,7 +233,9 @@ namespace{ // Private
 }// Private
 
 
-
+#ifdef MMVII_KEEP_MMV1_IMAGE
+extern std::string MM3DFixeByMMVII; // Declared in MMV1 for its own stuff
+#endif
 
 namespace MMVII
 {
@@ -230,6 +245,23 @@ std::string V1NameMasqOfIm(const std::string & aName)
 {
    return LastPrefix(aName) + "_Masq.tif";
 }
+
+#ifdef MMVII_KEEP_MMV1_IMAGE
+static void Init_mm3d_In_MMVII()
+{
+   // 
+   static bool First= true;
+   if (! First) return;
+   First = false;
+
+   // Compute mm3d location from relative position to MMVII
+   // static std::string CA0 =  DirBin2007 + "../../bin/mm3d";
+   char * A0= const_cast<char *>(cMMVII_Appli::MMV1Bin().c_str());
+   MM3DFixeByMMVII = cMMVII_Appli::MMV1Bin();
+   MMD_InitArgcArgv(1,&A0);
+}
+#endif
+
 
 /* =========================== */
 /*       cDataFileIm2D         */
@@ -244,7 +276,7 @@ cDataFileIm2D::cDataFileIm2D(const std::string & aName,eTyNums aType,const cPt2d
     
 }
 
-
+// FIXME CM: remove this constructor (and from header too !)
 cDataFileIm2D::cDataFileIm2D(const std::string & aName, const cPt2di & aSz) :
    cPixBox<2> (cPt2di(0,0), aSz),
    mName       (aName)
@@ -274,26 +306,65 @@ void cDataFileIm2D::AssertNotEmpty() const
 }
 
 
+// FIXME CM: Create must use the original constructor only
 cDataFileIm2D cDataFileIm2D::Create(const std::string & aName,bool aForceGray)
 {
-
-   // Create a cDataFileIm2D on an existing image
-   
-   // Open a first time with gdal to have access to the size and then to create a cDataFileIm2D object
-   GDALAllRegister();
-   auto aDataset = OpenDataset(aName);
-   cPt2di aSz = cPt2di(aDataset->GetRasterXSize(), aDataset->GetRasterYSize());
-   CloseDataset(aDataset);
-
-   return cDataFileIm2D(aName, aSz);
+#ifdef MMVII_KEEP_MMV1_IMAGE
+    if (mmvii_use_mmv1_image()) {
+        // required because with jpg/raw mm1 may call itself, need some special stuff
+        // as standar mmv1 by analyse of arg/argv would not work
+        Init_mm3d_In_MMVII();
+        
+        bool aForce8B = false;
+        std::string aNameTif = NameFileStd(aName,aForceGray ? 1 :-1,!aForce8B ,true,true);
+        
+        Tiff_Im aTF = Tiff_Im::StdConvGen(aNameTif.c_str(),aForceGray ? 1 :-1,!aForce8B ,true);
+        
+        return cDataFileIm2D(aName,ToMMVII(aTF.type_el()),ToMMVII(aTF.sz()), aTF.nb_chan());
+    } else {
+#endif
+    // Open a first time with gdal to have access to the size and then to create a cDataFileIm2D object
+    GDALAllRegister();
+    auto aDataset = OpenDataset(aName);
+    cPt2di aSz = cPt2di(aDataset->GetRasterXSize(), aDataset->GetRasterYSize());
+    CloseDataset(aDataset);
+    
+    // Create a cDataFileIm2D on an existing image
+    return cDataFileIm2D(aName, aSz);
+#ifdef MMVII_KEEP_MMV1_IMAGE
+    }
+#endif    
 }
 
 cDataFileIm2D  cDataFileIm2D::Create(const std::string & aName,eTyNums aType,const cPt2di & aSz,int aNbChan)
 {
-
+#ifdef MMVII_KEEP_MMV1_IMAGE
+    if (mmvii_use_mmv1_image()) {
+        Tiff_Im::PH_INTER_TYPE aPIT = Tiff_Im::BlackIsZero;
+        if (aNbChan==1)
+            aPIT = Tiff_Im::BlackIsZero;
+        else if (aNbChan==3)
+            aPIT = Tiff_Im::RGB;
+        else
+        {
+            MMVII_INTERNAL_ASSERT_strong(false,"Incoherent channel number");
+        }
+        
+        bool IsModified;
+        Tiff_Im::CreateIfNeeded
+        (
+            IsModified,
+            aName,
+            ToMMV1(aSz),
+            ToMMV1(aType),
+            Tiff_Im::No_Compr,
+            aPIT
+        );
+        return Create(aName,false);
+    } else {
+#endif    
    // Create an image and a cDataFileIm2D
-
-   remove(aName.c_str());
+   remove(aName.c_str());       // FIXME CM: must work as Tiff_Im::CreateIfNeeded
 
    // Check that aNbChan is 1 or 3
    if (aNbChan!=1 && aNbChan!=3)
@@ -334,6 +405,10 @@ cDataFileIm2D  cDataFileIm2D::Create(const std::string & aName,eTyNums aType,con
    CloseDataset(poDstDS );
 
    return cDataFileIm2D(aName, aSz);
+#ifdef MMVII_KEEP_MMV1_IMAGE
+    }
+#endif    
+  
 }
 
 
@@ -361,48 +436,272 @@ bool cDataFileIm2D::IsNameWith_PostFixImage(const std::string & aName)
 
 
 
+#ifdef MMVII_KEEP_MMV1_IMAGE
+/********************************************************/
+/********************************************************/
+/********************************************************/
+/********************************************************/
 
+
+// template <class Type> Pt2d<Type> ToMMV1(const cPtxd<Type,2> &
+
+/*
+template <class Type> class cMMV1_Conv
+{
+    public :
+     typedef typename El_CTypeTraits<Type>::tBase   tBase;
+     typedef  Im2D<Type,tBase>  tImMMV1;
+     typedef  cDataIm2D<Type>       tImMMVII;
+
+     static tImMMV1 ImToMMV1(const tImMMVII &  aImV2)  // To avoid conflict with global MMV1
+     {
+        Type * aDL = const_cast< tImMMVII &> (aImV2).RawDataLin();
+        // return   tImMMV1(aImV2.RawDataLin(),nullptr,aImV2.Sz().x(),aImV2.Sz().y());
+        return   tImMMV1(aDL,nullptr,aImV2.Sz().x(),aImV2.Sz().y());
+     };
+
+      
+     static void ReadWrite(bool ReadMode,const tImMMVII &aImV2,const cDataFileIm2D & aDF,const cPt2di & aP0File,double aDyn,const cRect2& aR2Init);
+};
+*/
+
+template <class Type> void cMMV1_Conv<Type>::ReadWrite
+                           (
+                               bool ReadMode,
+                               const std::vector<const tImMMVII *> & aVecImV2,
+                               const cDataFileIm2D & aDF,
+                               const cPt2di & aP0File,
+                               double aDyn,
+                               const cRect2& aR2Init
+                           )
+{
+
+// StdOut() <<  "aP0File,aP0File, " << aP0File << "\n";
+   Init_mm3d_In_MMVII();
+   // C'est une image en originie (0,0) necessairement en MMV1
+   const tImMMVII & aImV2 = *(aVecImV2.at(0));
+   Fonc_Num aFoncImV1 = ImToMMV1(aImV2).in();
+   Output   aOutImV1  = ImToMMV1(aImV2).out();
+   for (int aKIm=1 ; aKIm<int(aVecImV2.size()) ; aKIm++)
+   {
+       MMVII_INTERNAL_ASSERT_strong(aImV2.Sz()==aVecImV2.at(aKIm)->Sz(),"Diff Sz in ReadWrite");
+       MMVII_INTERNAL_ASSERT_strong(aImV2.P0()==aVecImV2.at(aKIm)->P0(),"Diff P0 in ReadWrite");
+       aFoncImV1 = Virgule(aFoncImV1,ImToMMV1(*aVecImV2.at(aKIm)).in());
+       aOutImV1  = Virgule( aOutImV1,ImToMMV1(*aVecImV2.at(aKIm)).out());
+   }
+   cRect2 aRectFullIm (cPt2di(0,0),aImV2.Sz());
+
+   // Rectangle image / a un origine (0,0)
+   cRect2 aRectIm =  (aR2Init== cRect2::TheEmptyBox)           ?  // Val par def
+                     aRectFullIm                           :  // Rectangle en 00
+                     aR2Init.Translate(-aImV2.P0())   ;  // Convention aR2Init tient compte de P0
+
+   // It's a bit strange but in fact P0File en aImV2.P0() are redundant, so if both are used
+   // it seems normal to add them
+          
+   Pt2di aTrans  = ToMMV1(aImV2.P0() + aP0File);
+   Pt2di aP0Im = ToMMV1(aRectIm.P0());
+   Pt2di aP1Im = ToMMV1(aRectIm.P1());
+
+   cRect2 aRUsed(ToMMVII(aP0Im+aTrans),ToMMVII(aP1Im+aTrans));
+   if (true)
+   {
+       MMVII_INTERNAL_ASSERT_strong(aRUsed.IncludedIn(aDF), "Read/write out of file");
+       MMVII_INTERNAL_ASSERT_strong(aRectIm.IncludedIn(aRectFullIm), "Read/write out of Im");
+   }
+
+   Tiff_Im aTF=Tiff_Im::StdConvGen(aDF.Name(),-1,true);
+
+   if (ReadMode)
+   {
+      Symb_FNum  aFIn = aTF.in();
+      // If input is multi-channel and out single, we compute the average of all channel
+      if ((aFIn.dimf_out()>1) && (aVecImV2.size()==1))
+      {
+         // if we have more than 3 channel, the 4th is generally an alpha channel, so dont want to use it
+	 // btw it a bit basic, and certainly a more sophisticated rule will have to be used (as weighting of diff channels)
+         int aNbCh = std::min(3,aFIn.dimf_out());
+
+         Fonc_Num aNewF = aFIn.kth_proj(0);
+         for (int aKF=1 ; aKF< aNbCh ; aKF++)
+             aNewF = aNewF + aFIn.kth_proj(aKF);
+
+           aFIn = aNewF / aNbCh;
+      }
+          
+      ELISE_COPY
+      (
+           rectangle(aP0Im,aP1Im),
+           trans(El_CTypeTraits<Type>::TronqueF(aFIn*aDyn),aTrans),
+           aOutImV1
+      );
+   }
+   else
+   {
+      ELISE_COPY
+      (
+           rectangle(aP0Im+aTrans,aP1Im+aTrans),
+           trans(Tronque(aTF.type_el(),aFoncImV1*aDyn),-aTrans),
+           aTF.out()
+      );
+   }
+}
+
+template <class Type> void cMMV1_Conv<Type>::ReadWrite
+                           (
+                               bool ReadMode,
+                               const tImMMVII &aImV2,
+                               const cDataFileIm2D & aDF,
+                               const cPt2di & aP0File,
+                               double aDyn,
+                               const cRect2& aR2Init
+                           )
+{
+     std::vector<const tImMMVII *> aVIms({&aImV2});
+     ReadWrite(ReadMode,aVIms,aDF,aP0File,aDyn,aR2Init);
+}
+template <class Type> void cMMV1_Conv<Type>::ReadWrite
+                           (
+                               bool ReadMode,
+                               const tImMMVII &aImV2R,
+                               const tImMMVII &aImV2G,
+                               const tImMMVII &aImV2B,
+                               const cDataFileIm2D & aDF,
+                               const cPt2di & aP0File,
+                               double aDyn,
+                               const cRect2& aR2Init
+                           )
+{
+
+     std::vector<const tImMMVII *> aVIms({&aImV2R,&aImV2G,&aImV2B});
+     ReadWrite(ReadMode,aVIms,aDF,aP0File,aDyn,aR2Init);
+}
+
+
+template <> void cMMV1_Conv<tREAL16>::ReadWrite
+                 (bool,const tImMMVII &,const cDataFileIm2D &,const cPt2di &,double,const cRect2& )
+{
+   MMVII_INTERNAL_ASSERT_strong(false,"No ReadWrite of 16-Byte float");
+}
+template <> void cMMV1_Conv<tREAL16>::ReadWrite
+                 (bool,const tImMMVII &,const tImMMVII &,const tImMMVII &,const cDataFileIm2D &,const cPt2di &,double,const cRect2& )
+{
+   MMVII_INTERNAL_ASSERT_strong(false,"No ReadWrite of 16-Byte float");
+}
+template <> void cMMV1_Conv<tU_INT4>::ReadWrite
+                 (bool,const tImMMVII &,const tImMMVII &,const tImMMVII &,const cDataFileIm2D &,const cPt2di &,double,const cRect2& )
+{
+   MMVII_INTERNAL_ASSERT_strong(false,"No ReadWrite of 16-Byte float");
+}
+#endif
 
 template <class Type>  void  cDataIm2D<Type>::Read(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2)
 {
+#ifdef MMVII_KEEP_MMV1_IMAGE
+   if (mmvii_use_mmv1_image()) {
+        cMMV1_Conv<Type>::ReadWrite(true,*this,aFile,aP0,aDyn,aR2);
+    } else {
+#else
     std::vector<tIm * > aVIms({this});
-     GdalRead(aVIms, aFile, aP0, aDyn, aR2);
-
+    GdalRead(aVIms, aFile, aP0, aDyn, aR2);
+#endif
+#ifdef MMVII_KEEP_MMV1_IMAGE
+    }
+#endif
 }
 
 template <class Type>  void  cDataIm2D<Type>::Read(const cDataFileIm2D & aFile,tIm &aImG,tIm &aImB,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2)
 {
-     std::vector<tIm * > aVIms({this,&aImG,&aImB});
-     GdalRead(aVIms, aFile, aP0, aDyn, aR2);
+#ifdef MMVII_KEEP_MMV1_IMAGE
+   if (mmvii_use_mmv1_image()) {
+        cMMV1_Conv<Type>::ReadWrite(true,*this,aImG,aImB,aFile,aP0,aDyn,aR2);
+    } else {
+#else
+    std::vector<tIm * > aVIms({this,&aImG,&aImB});
+    GdalRead(aVIms, aFile, aP0, aDyn, aR2);
+#endif
+#ifdef MMVII_KEEP_MMV1_IMAGE
+    }
+#endif
 }
 
 
 template <class Type>  void  cDataIm2D<Type>::Write(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2) const
 {
-   std::vector<const tIm * > aVIms({this});
-   GdalWrite(aVIms, aFile, aP0, aDyn, aR2);
+#ifdef MMVII_KEEP_MMV1_IMAGE
+   if (mmvii_use_mmv1_image()) {
+        cMMV1_Conv<Type>::ReadWrite(false,*this,aFile,aP0,aDyn,aR2);
+    } else {
+#else
+    std::vector<const tIm * > aVIms({this});
+    GdalWrite(aVIms, aFile, aP0, aDyn, aR2);
+#endif
+#ifdef MMVII_KEEP_MMV1_IMAGE
+    }
+#endif
 }
 
 template <class Type>  void  cDataIm2D<Type>::Write(const cDataFileIm2D & aFile,const tIm &aImG,const tIm &aImB,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2) const
 {
+#ifdef MMVII_KEEP_MMV1_IMAGE
+   if (mmvii_use_mmv1_image()) {
+        cMMV1_Conv<Type>::ReadWrite(false,*this,aImG,aImB,aFile,aP0,aDyn,aR2);
+    } else {
+#else
       std::vector<const tIm * > aVIms({this,&aImG,&aImB});
       GdalWrite(aVIms, aFile, aP0, aDyn, aR2);
+#endif
+#ifdef MMVII_KEEP_MMV1_IMAGE
+    }
+#endif
 }
 
+#ifdef MMVII_KEEP_MMV1_IMAGE
+//  It's difficult to read unsigned int4 with micmac V1, wait for final implementation
+template <>  void  cDataIm2D<tU_INT4>::Read(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2)
+{
+    if (mmvii_use_mmv1_image()) {
+        MMVII_INTERNAL_ASSERT_strong(false,"No read for unsigned int4 now");
+    } else {
+        std::vector<tIm * > aVIms({this});
+        GdalRead(aVIms, aFile, aP0, aDyn, aR2);
+    }
+}
 
+template <>  void  cDataIm2D<tU_INT4>::Write(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2) const
+{
+    if (mmvii_use_mmv1_image()) {
+        MMVII_INTERNAL_ASSERT_strong(false,"No write for unsigned int4 now");
+    } else {
+        std::vector<const tIm * > aVIms({this});
+        GdalWrite(aVIms, aFile, aP0, aDyn, aR2);
+    }
+}
+
+template <>  void  cDataIm2D<tU_INT4>::Write(const cDataFileIm2D & aFile,const tIm& aImG,const tIm& aImB,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2) const
+{
+    if (mmvii_use_mmv1_image()) {
+        MMVII_INTERNAL_ASSERT_strong(false,"No write for unsigned int4 now");
+    } else {
+      std::vector<const tIm * > aVIms({this,&aImG,&aImB});
+      GdalWrite(aVIms, aFile, aP0, aDyn, aR2);
+    }
+}
+#endif
 
 
 template <class Type>  void  cIm2D<Type>::Read(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2)
 {
-      DIm().Read(aFile,aP0,aDyn,aR2);
+    DIm().Read(aFile,aP0,aDyn,aR2);
 }
 template <class Type>  void  cIm2D<Type>::Write(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2) const
 {
-      DIm().Write(aFile,aP0,aDyn,aR2);
+    DIm().Write(aFile,aP0,aDyn,aR2);
 }
 
 
 
+// FIXME CM: Remove/modify following code (until EOF)
 GenIm::type_el ToMMV1(eTyNums aV2)
 {
     switch (aV2)
