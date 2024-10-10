@@ -90,14 +90,33 @@ template<class Type> cDenseVect<Type> EigenSolveCholeskyarseFromV3
 
    // Eigen::SimplicialCholesky< Eigen::SparseMatrix<Type>  > aChol(aSpMat);  // performs a Cholesky factorization of A
    Eigen::SimplicialLDLT< Eigen::SparseMatrix<Type>  > aChol(aSpMat);  // performs a Cholesky factorization of A
-
+   if(aChol.info()!=Success) {
+        std::cout<<"compute error\n";
+   }
 
    cConst_EigenColVectWrap  aWVec(aVec);
 
    cDenseVect<Type> aRes(aN);
    cNC_EigenColVectWrap<Type> aWRes(aRes);
 
+
    aWRes.EW() = aChol.solve(aWVec.EW());
+   if(aChol.info()!=Success) {
+        std::cout<<"solve error\n";
+   }
+
+   std::cout<<"Det: "<<aChol.determinant()<<"\n";
+
+   Eigen::Matrix<Type, Dynamic, Dynamic> AtPA_half(aSpMat);
+   Eigen::Matrix<Type, Dynamic, Dynamic> AtPA_dense = AtPA_half;//.template selfadjointView<Eigen::Lower>();
+   std::cout<<"AtPA_dense: \n"<<AtPA_dense<<"\n";
+   Eigen::Matrix<Type, Dynamic, Dynamic> AtPA_kernel = AtPA_dense.fullPivLu().kernel();
+   auto rankDeficiency = AtPA_kernel.cols();
+   if (AtPA_kernel.col(0).squaredNorm()==0.0)
+       rankDeficiency = 0;
+   std::cout<<"Kernel rankDeficiency: "<<rankDeficiency<<"\n";
+   if (rankDeficiency>0)
+     std::cout<<"Kernel: \n"<<AtPA_kernel.transpose()<<"\n";
 
    if (EigenDoTestSuccess())
    {
