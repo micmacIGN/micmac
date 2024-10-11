@@ -391,6 +391,7 @@ class cMMVII_BundleAdj
           void SaveTopo();
 
 	  void ShowUKNames() ;
+          void ShowKernel();
           // Save results of clino bundle adjustment
           void SaveClino();
           void  AddBenchSensor(cSensorCamPC *); // Add sensor, used in Bench Clino

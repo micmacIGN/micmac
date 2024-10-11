@@ -144,6 +144,13 @@ void cMMVII_BundleAdj::ShowUKNames()
 	// mSetIntervUK
 }
 
+void cMMVII_BundleAdj::ShowKernel()
+{
+    auto aNamesVect =  mSetIntervUK.getAllUkNames();
+    for (auto &name: aNamesVect)
+        std::cout<<name<<" ";
+    std::cout<<"\n";
+};
 
 
 void cMMVII_BundleAdj::AssertPhaseAdd() 

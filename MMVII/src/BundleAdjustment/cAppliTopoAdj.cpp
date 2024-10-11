@@ -172,6 +172,8 @@ int cAppliTopoAdj::Exe()
     mBA.Save_newGCP();
     mBA.SaveTopo(); // just for debug for now
 
+    mBA.ShowKernel();
+
     return EXIT_SUCCESS;
 }
 
