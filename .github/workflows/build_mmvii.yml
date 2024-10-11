@@ -3,7 +3,7 @@ name: Build MMVII Linux/Windows
 on:
   push:
     branches:
-      - 'test_gdal'
+      - 'DO_NOT_test_gdal'
 
 jobs:
   build_linux:
