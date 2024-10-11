@@ -66,27 +66,12 @@ set(TORCH_INCLUDE_DIRS
     ${TORCH_INSTALL_PREFIX}/include
     ${TORCH_INSTALL_PREFIX}/include/torch/csrc/api/include)
 
-#set(TORCH_LIBRARIES
-#    -Wl,--no-as-needed
-#    ${TORCH_INSTALL_PREFIX}/lib/libtorch.so
-#    ${TORCH_INSTALL_PREFIX}/lib/libtorch_cuda.so
-#    ${TORCH_INSTALL_PREFIX}/lib/libtorch_cuda_cu.so
-#    ${TORCH_INSTALL_PREFIX}/lib/libtorch_cpu.so
-#    ${TORCH_INSTALL_PREFIX}/lib/libc10.so
-#    ${TORCH_INSTALL_PREFIX}/lib/libc10_cuda.so
-#    /usr/lib/x86_64-linux-gnu/libcudart.so
-#    )
-
-file (GLOB TORCH_LIBRARIES "${TORCH_INSTALL_PREFIX}/lib/*.so" "/usr/lib/x86_64-linux-gnu/libcudart.so")
-
+if(UNIX)
+file (GLOB TORCH_LIBRARIES "${TORCH_INSTALL_PREFIX}/lib/libtorch*.so" "${TORCH_INSTALL_PREFIX}/lib/libc10*.so" "/usr/lib/x86_64-linux-gnu/libcudart.so")
+endif()
 
 if(MSVC)
-  file(GLOB TORCH_LIBRARIES "${TORCH_INSTALL_PREFIX}/lib/*.dll")
-  add_custom_command(TARGET MMVII
-                     POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                     ${TORCH_DLLS}
-                     $<TARGET_FILE_DIR:MMVII>)
+file (GLOB TORCH_LIBRARIES "${TORCH_INSTALL_PREFIX}/lib/torch*.lib" "${TORCH_INSTALL_PREFIX}/lib/c10*.lib" )
 endif()
 ############################# libtorch  ###############
 
@@ -141,11 +126,11 @@ string(REGEX REPLACE "[-/]D *NDEBUG" "" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_
 set(mmv1_dir "${MMVII_SOURCE_DIR}/..")
 set(mmv1_include_dir "${mmv1_dir}/include")
 set(mmv1_lib_dir "${mmv1_dir}/lib")
-set(sgm_lib_dir "${MMVII_SOURCE_DIR}/bin/SGM_CUDA")
+#set(sgm_lib_dir "${MMVII_SOURCE_DIR}/bin/SGM_CUDA")
 
 find_library(elise_lib NAME elise PATHS "${mmv1_lib_dir}" NO_DEFAULT_PATH)
 find_library(ANN_lib NAME ANN PATHS "${mmv1_lib_dir}" NO_DEFAULT_PATH)
-find_library(SGMCUDA_lib NAME cudInfer PATHS "${sgm_lib_dir}" NO_DEFAULT_PATH)
+#find_library(SGMCUDA_lib NAME cudInfer PATHS "${sgm_lib_dir}" NO_DEFAULT_PATH)
 
 # MMVII dir
 set(mmv2_include_dir "${MMVII_SOURCE_DIR}/include")
@@ -191,11 +176,20 @@ else()
 endif()
 
 target_include_directories(MMVII PRIVATE "${mmv2_include_dir};${TORCH_INCLUDE_DIRS}")
-target_link_libraries(MMVII PRIVATE MMVII_compiler_flags Threads::Threads P2007 ${mmv1_libs} ${SGMCUDA_lib} ${mmv2_extlibs} ${TORCH_LIBRARIES})
+target_link_libraries(MMVII PRIVATE MMVII_compiler_flags Threads::Threads P2007 ${mmv1_libs} ${mmv2_extlibs} ${TORCH_LIBRARIES})
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION  VERSION_LESS "9.1")
   target_link_libraries(MMVII PRIVATE -lstdc++fs)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION  VERSION_LESS "9.0")
   target_link_libraries(MMVII PRIVATE -lc++fs)
+endif()
+
+if(MSVC)
+  file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/torch*.dll" "${TORCH_INSTALL_PREFIX}/lib/c10*.dll")
+  add_custom_command(TARGET MMVII
+                     POST_BUILD
+                     COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                     ${TORCH_DLLS}
+                     $<TARGET_FILE_DIR:MMVII>)
 endif()
 
 if(OpenMP_CXX_FOUND)
