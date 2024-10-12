@@ -13,7 +13,7 @@
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_Tpl_Images.h"
 #include "V1VII.h"
-#include <fcntl.h>
+//#include <fcntl.h>
 /*#include "cConvnet_Fast.h"
 #include "cConvnet_Slow.h"
 #include "cConvNet_Fast_BN.h"*/

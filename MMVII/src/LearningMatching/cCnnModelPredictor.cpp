@@ -39,12 +39,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <torch/torch.h>
 #include <torch/script.h>
 #include <ATen/ATen.h>
-#include <sys/mman.h>
+/*#include <sys/mman.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include "cConvnet_Fast.h"
 #include "cConvnet_Slow.h"
-#include "cConvNet_Fast_BN.h"
+#include "cConvNet_Fast_BN.h"*/
 #include "cCnnModelPredictor.h"
 
 namespace F = torch::nn::functional;

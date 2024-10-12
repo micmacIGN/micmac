@@ -685,7 +685,7 @@ int  cAppliFillCubeCost::Exe()
    mIm2 = tImRad::FromFile(mNameI2,mBoxGlob2);
    mDI2 = &(mIm2.DIm());
 
-   mFileCube = new cMMVII_Ofs(mNameCube, eFileModeOut::CreateText);
+   mFileCube = new cMMVII_Ofs(mNameCube, eFileModeOut::CreateBinary);
 
    mCmpCorLearn = IsInit(&mNameCmpModele);
    std::vector<cOneModele*> aVMods;
