@@ -352,6 +352,12 @@ torch::Tensor aCnnModelPredictor::PredictMSNetTile(torch::jit::script::Module mN
 /**********************************************************************************************************************/
 torch::Tensor aCnnModelPredictor::PredictMSNetTileFeatures(torch::jit::script::Module mNet, tTImV2 aPatchLV, cPt2di aPSz)
 {
+    #ifdef _WIN32
+    if(IsCuda)
+      {
+        LoadLibrary("torch_cuda.dll");
+      }
+    #endif
     //auto cuda_available = torch::cuda::is_available();
     //std::cout<<"Cuda is available ? "<<cuda_available<<std::endl;
     torch::Device device(IsCuda ? torch::kCUDA : torch::kCPU);

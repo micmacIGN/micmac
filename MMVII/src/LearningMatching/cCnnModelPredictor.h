@@ -19,6 +19,10 @@
 #include "cConvNet_Fast_BN.h"*/
 #include "cMSNet.h"
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 namespace F = torch::nn::functional;
 
 namespace MMVII
