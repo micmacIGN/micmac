@@ -376,17 +376,17 @@ cDataFileIm2D  cDataFileIm2D::Create(const std::string & aName,eTyNums aType,con
    GDALAllRegister();
    auto pszFormat = ExtToGdalDriver(aName);
    GDALDriver *poDriver;
-   poDriver = GetGDALDriverManager()->GetDriverByName(pszFormat.c_str());
+   poDriver = GetGDALDriverManager()->GetDriverByName(pszFormat.c_str());  //FIXME CM: Test return value !
 
    // Create a dataset
    GDALDataset *poDstDS;
    char **papszOptions = NULL;
    poDstDS = poDriver->Create( aName.c_str(), aSz.x(), aSz.y(), aNbChan, MMVIIToGdal(aType), papszOptions );
 
-   double * abyRaster;
+   double * abyRaster;  //FIXME CM: Why double ???
    abyRaster = (double *) cMemManager::Calloc(1, sizeof(double)*aSz.x()*aSz.y());
 
-   for (int aK = 0; aK < aSz.x()*aSz.y(); aK++)
+   for (int aK = 0; aK < aSz.x()*aSz.y(); aK++) //FIXME CM: memset ? Don't Calloc do it already ?
    {
       abyRaster[aK] = 0;
    }
@@ -437,33 +437,6 @@ bool cDataFileIm2D::IsNameWith_PostFixImage(const std::string & aName)
 
 
 #ifdef MMVII_KEEP_MMV1_IMAGE
-/********************************************************/
-/********************************************************/
-/********************************************************/
-/********************************************************/
-
-
-// template <class Type> Pt2d<Type> ToMMV1(const cPtxd<Type,2> &
-
-/*
-template <class Type> class cMMV1_Conv
-{
-    public :
-     typedef typename El_CTypeTraits<Type>::tBase   tBase;
-     typedef  Im2D<Type,tBase>  tImMMV1;
-     typedef  cDataIm2D<Type>       tImMMVII;
-
-     static tImMMV1 ImToMMV1(const tImMMVII &  aImV2)  // To avoid conflict with global MMV1
-     {
-        Type * aDL = const_cast< tImMMVII &> (aImV2).RawDataLin();
-        // return   tImMMV1(aImV2.RawDataLin(),nullptr,aImV2.Sz().x(),aImV2.Sz().y());
-        return   tImMMV1(aDL,nullptr,aImV2.Sz().x(),aImV2.Sz().y());
-     };
-
-      
-     static void ReadWrite(bool ReadMode,const tImMMVII &aImV2,const cDataFileIm2D & aDF,const cPt2di & aP0File,double aDyn,const cRect2& aR2Init);
-};
-*/
 
 template <class Type> void cMMV1_Conv<Type>::ReadWrite
                            (
@@ -601,10 +574,9 @@ template <class Type>  void  cDataIm2D<Type>::Read(const cDataFileIm2D & aFile,c
    if (mmvii_use_mmv1_image()) {
         cMMV1_Conv<Type>::ReadWrite(true,*this,aFile,aP0,aDyn,aR2);
     } else {
-#else
+#endif
     std::vector<tIm * > aVIms({this});
     GdalRead(aVIms, aFile, aP0, aDyn, aR2);
-#endif
 #ifdef MMVII_KEEP_MMV1_IMAGE
     }
 #endif
@@ -616,10 +588,9 @@ template <class Type>  void  cDataIm2D<Type>::Read(const cDataFileIm2D & aFile,t
    if (mmvii_use_mmv1_image()) {
         cMMV1_Conv<Type>::ReadWrite(true,*this,aImG,aImB,aFile,aP0,aDyn,aR2);
     } else {
-#else
+#endif
     std::vector<tIm * > aVIms({this,&aImG,&aImB});
     GdalRead(aVIms, aFile, aP0, aDyn, aR2);
-#endif
 #ifdef MMVII_KEEP_MMV1_IMAGE
     }
 #endif
@@ -632,10 +603,9 @@ template <class Type>  void  cDataIm2D<Type>::Write(const cDataFileIm2D & aFile,
    if (mmvii_use_mmv1_image()) {
         cMMV1_Conv<Type>::ReadWrite(false,*this,aFile,aP0,aDyn,aR2);
     } else {
-#else
+#endif
     std::vector<const tIm * > aVIms({this});
     GdalWrite(aVIms, aFile, aP0, aDyn, aR2);
-#endif
 #ifdef MMVII_KEEP_MMV1_IMAGE
     }
 #endif
@@ -647,10 +617,9 @@ template <class Type>  void  cDataIm2D<Type>::Write(const cDataFileIm2D & aFile,
    if (mmvii_use_mmv1_image()) {
         cMMV1_Conv<Type>::ReadWrite(false,*this,aImG,aImB,aFile,aP0,aDyn,aR2);
     } else {
-#else
+#endif
       std::vector<const tIm * > aVIms({this,&aImG,&aImB});
       GdalWrite(aVIms, aFile, aP0, aDyn, aR2);
-#endif
 #ifdef MMVII_KEEP_MMV1_IMAGE
     }
 #endif
