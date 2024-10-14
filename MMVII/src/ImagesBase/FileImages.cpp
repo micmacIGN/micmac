@@ -15,57 +15,48 @@ using namespace MMVII;
 
 namespace{ // Private
 
-//FIXME CM: Add a warning+help env MMVII_USE_MMV1_IMAGE dans MMVII (help) à la fin ...
 #ifdef MMVII_KEEP_MMV1_IMAGE
-   bool mmvii_use_mmv1_image()
-   {
-       static std::optional<bool> use_mmv1_image;
-       if (! use_mmv1_image.has_value())
-           use_mmv1_image = (getenv("MMVII_USE_MMV1_IMAGE") != nullptr);
-       return use_mmv1_image.value();
-   }
+bool mmvii_use_mmv1_image=false;
 #endif   
 
-   eTyNums GdalToMMVII( GDALDataType aType )
+   eTyNums TyGdalToMMVII( GDALDataType aType )
    {
       switch (aType)
       {
-         case GDT_Unknown : return eTyNums::eTN_UnKnown;
-         case  GDT_Byte :  return eTyNums::eTN_U_INT1 ;
-         case  GDT_UInt16 :  return eTyNums::eTN_U_INT2 ;
-         case  GDT_Int16 :  return eTyNums::eTN_INT2 ;
-         case  GDT_UInt32 :  return eTyNums::eTN_U_INT4 ;
-         case  GDT_Int32 :  return eTyNums::eTN_INT4 ;
-         case  GDT_Float32 :  return eTyNums::eTN_REAL4 ;
-         case  GDT_Float64 :  return eTyNums::eTN_REAL8 ;
+         case GDT_Byte    : return eTyNums::eTN_U_INT1 ;
+         case GDT_UInt16  : return eTyNums::eTN_U_INT2 ;
+         case GDT_Int16   : return eTyNums::eTN_INT2 ;
+         case GDT_UInt32  : return eTyNums::eTN_U_INT4 ;
+         case GDT_Int32   : return eTyNums::eTN_INT4 ;
+         case GDT_Float32 : return eTyNums::eTN_REAL4 ;
+         case GDT_Float64 : return eTyNums::eTN_REAL8 ;
 
-         case  GDT_CInt16 :  MMVII_INTERNAL_ERROR("GdalToMMVII : case GDT_CInt16") ;
-         case  GDT_CInt32 :  MMVII_INTERNAL_ERROR("GdalToMMVII : case GDT_CInt32") ;
-         case  GDT_CFloat32 :  MMVII_INTERNAL_ERROR("GdalToMMVII : case GDT_CFloat32") ;
-         case  GDT_CFloat64 :  MMVII_INTERNAL_ERROR("GdalToMMVII : case GDT_CFloat64") ;
-         case  GDT_TypeCount :  MMVII_INTERNAL_ERROR("GdalToMMVII : case GDT_TypeCount") ;
+         case GDT_CInt16   : MMVII_INTERNAL_ERROR("TyGdalToMMVII: GDAL Image type GDT_CInt16 not supported");
+         case GDT_CInt32   : MMVII_INTERNAL_ERROR("TyGdalToMMVII: GDAL Image type GDT_CInt32 not supported");
+         case GDT_CFloat32 : MMVII_INTERNAL_ERROR("TyGdalToMMVII: GDAL Image type GDT_CFloat32 not supported");
+         case GDT_CFloat64 : MMVII_INTERNAL_ERROR("TyGdalToMMVII: GDAL Image type GDT_CFloat64 not supported");
+         case GDT_Unknown  : MMVII_INTERNAL_ERROR("TyGdalToMMVII: GDAL Image type GDT_Unknown not supported");
+         default: MMVII_INTERNAL_ERROR("TyGdalToMMVII: GDAL Image type #" + std::to_string(aType) + " not supported");
       }
       return eTyNums::eTN_UnKnown ;
    }
 
 
-   GDALDataType MMVIIToGdal( eTyNums aType )
+   GDALDataType TyMMVIIToGdal( eTyNums aType )
    {
       switch (aType)
       {
-
-         case  eTyNums::eTN_INT1 :  MMVII_INTERNAL_ERROR("MMVIIToGdal : case eTyNums::eTN_INT1") ;
-         case  eTyNums::eTN_U_INT1 :  return GDT_Byte ;
-         case  eTyNums::eTN_INT2 :  return GDT_Int16 ;
-         case  eTyNums::eTN_U_INT2 :  return GDT_UInt16 ;
-         case  eTyNums::eTN_INT4 :  return GDT_Int32 ;
-         case  eTyNums::eTN_U_INT4 :  return GDT_UInt32 ;
-         case  eTyNums::eTN_INT8 :  MMVII_INTERNAL_ERROR("MMVIIToGdal : case eTyNums::eTN_INT8") ;
-         case  eTyNums::eTN_REAL4 :  return GDT_Float32 ;
-         case  eTyNums::eTN_REAL8 :  return GDT_Float64 ;
-         case  eTyNums::eTN_REAL16 :  MMVII_INTERNAL_ERROR("MMVIIToGdal : case eTyNums::eTN_REAL16") ;
-         case  eTyNums::eTN_UnKnown :  MMVII_INTERNAL_ERROR("MMVIIToGdal : case eTyNums::eTN_UnKnown") ;
-         case  eTyNums::eNbVals :  MMVII_INTERNAL_ERROR("MMVIIToGdal : case eTyNums::eNbVals") ;
+         case eTyNums::eTN_U_INT1  : return GDT_Byte ;
+         case eTyNums::eTN_INT2    : return GDT_Int16 ;
+         case eTyNums::eTN_U_INT2  : return GDT_UInt16 ;
+         case eTyNums::eTN_INT4    : return GDT_Int32 ;
+         case eTyNums::eTN_U_INT4  : return GDT_UInt32 ;
+         case eTyNums::eTN_REAL4   : return GDT_Float32 ;
+         case eTyNums::eTN_REAL8   : return GDT_Float64 ;
+         case eTyNums::eTN_INT1    : 
+         case eTyNums::eTN_INT8    : 
+         case eTyNums::eTN_REAL16  : 
+         default: MMVII_INTERNAL_ERROR("TyMMVIIToGdal: eTyNums::eTN_" + ToStr(aType) + " not supported by GDAL");
       }
       return GDT_Unknown ;
    }
@@ -87,7 +78,6 @@ namespace{ // Private
 
    GDALDataset * OpenDataset(std::string aName)
    {
-      // Open image with Gdal
       return GDALDataset::FromHandle(GDALOpen( aName.c_str(), GA_Update ));
    }
    
@@ -109,7 +99,7 @@ namespace{ // Private
       // aRectIm est dans le repère d'origine P0
       cPt2di aTrans  = aDataIm2D->P0() + aP0;
       
-      // Read image according to Gdal tutorial
+      // FIXME CM: Optimize if aDyn == 1 !
       TypeOut *pafScanline;
       pafScanline = (TypeOut *) cMemManager::Calloc(1, sizeof(TypeOut)*aRectIm.Sz().x()*aRectIm.Sz().y());
       CPLErr cplErr2 = aBand->RasterIO( GF_Read, aRectIm.P0().x() + aTrans.x(), aRectIm.P0().y() + aTrans.y(), aRectIm.Sz().x(), aRectIm.Sz().y(), pafScanline, aRectIm.Sz().x(), aRectIm.Sz().y(), aGDALDataType, 0, 0 );   
@@ -143,6 +133,7 @@ namespace{ // Private
          // aRectIm est dans le repère d'origine P0
          cPt2di aTrans  = aDataIm2D->P0() + aP0;
          
+      // FIXME CM: Optimize if aDyn == 1 !
          TypeOut * abyRaster;
          abyRaster = (TypeOut *) cMemManager::Calloc(1, sizeof(TypeOut)*aRectIm.Sz().x()*aRectIm.Sz().y());
 
@@ -179,14 +170,14 @@ namespace{ // Private
                switch (aDF.Type())
                {
                   case eTyNums::eTN_INT1 : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Read : case eTyNums::eTN_INT1") ; break ;
-                  case eTyNums::eTN_U_INT1 : GdalReadData<Type, tU_INT1>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, MMVIIToGdal(aDF.Type()))  ; break ;
-                  case eTyNums::eTN_INT2 : GdalReadData<Type, tINT2>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, MMVIIToGdal(aDF.Type())) ; break ;
-                  case eTyNums::eTN_U_INT2 : GdalReadData<Type, tU_INT2>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, MMVIIToGdal(aDF.Type()))  ; break ;
-                  case eTyNums::eTN_INT4 : GdalReadData<Type, tINT4>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, MMVIIToGdal(aDF.Type()))  ;  break ;
-                  case eTyNums::eTN_U_INT4 : GdalReadData<Type, tU_INT4>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, MMVIIToGdal(aDF.Type()))  ; break ;
+                  case eTyNums::eTN_U_INT1 : GdalReadData<Type, tU_INT1>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, TyMMVIIToGdal(aDF.Type()))  ; break ;
+                  case eTyNums::eTN_INT2 : GdalReadData<Type, tINT2>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, TyMMVIIToGdal(aDF.Type())) ; break ;
+                  case eTyNums::eTN_U_INT2 : GdalReadData<Type, tU_INT2>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, TyMMVIIToGdal(aDF.Type()))  ; break ;
+                  case eTyNums::eTN_INT4 : GdalReadData<Type, tINT4>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, TyMMVIIToGdal(aDF.Type()))  ;  break ;
+                  case eTyNums::eTN_U_INT4 : GdalReadData<Type, tU_INT4>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, TyMMVIIToGdal(aDF.Type()))  ; break ;
                   case eTyNums::eTN_INT8 : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Read : case eTyNums::eTN_INT8") ; break ;
-                  case eTyNums::eTN_REAL4 : GdalReadData<Type, tREAL4>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, MMVIIToGdal(aDF.Type()))  ; break ;
-                  case eTyNums::eTN_REAL8 : GdalReadData<Type, tREAL8>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, MMVIIToGdal(aDF.Type()))  ; break ;
+                  case eTyNums::eTN_REAL4 : GdalReadData<Type, tREAL4>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, TyMMVIIToGdal(aDF.Type()))  ; break ;
+                  case eTyNums::eTN_REAL8 : GdalReadData<Type, tREAL8>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, TyMMVIIToGdal(aDF.Type()))  ; break ;
                   case eTyNums::eTN_REAL16 : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Read : case eTyNums::eTN_REAL16") ; break ;
                   case eTyNums::eTN_UnKnown : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Read : case eTyNums::eTN_UnKnown") ; break ;
                   case eTyNums::eNbVals : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Read : case eTyNums::eNbVals") ; break ;
@@ -213,14 +204,14 @@ namespace{ // Private
             switch (aDF.Type())
             {
                case eTyNums::eTN_INT1 : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Write : case eTyNums::eTN_INT1") ; break ;
-               case eTyNums::eTN_U_INT1 : GdalWriteData<Type, tU_INT1>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, MMVIIToGdal(aDF.Type()))  ; break ;
-               case eTyNums::eTN_INT2 : GdalWriteData<Type, tINT2>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, MMVIIToGdal(aDF.Type())) ; break ;
-               case eTyNums::eTN_U_INT2 : GdalWriteData<Type, tU_INT2>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, MMVIIToGdal(aDF.Type()))  ; break ;
-               case eTyNums::eTN_INT4 : GdalWriteData<Type, tINT4>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, MMVIIToGdal(aDF.Type()))  ; break ;
-               case eTyNums::eTN_U_INT4 : GdalWriteData<Type, tU_INT4>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, MMVIIToGdal(aDF.Type()))  ; break ;
+               case eTyNums::eTN_U_INT1 : GdalWriteData<Type, tU_INT1>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, TyMMVIIToGdal(aDF.Type()))  ; break ;
+               case eTyNums::eTN_INT2 : GdalWriteData<Type, tINT2>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, TyMMVIIToGdal(aDF.Type())) ; break ;
+               case eTyNums::eTN_U_INT2 : GdalWriteData<Type, tU_INT2>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, TyMMVIIToGdal(aDF.Type()))  ; break ;
+               case eTyNums::eTN_INT4 : GdalWriteData<Type, tINT4>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, TyMMVIIToGdal(aDF.Type()))  ; break ;
+               case eTyNums::eTN_U_INT4 : GdalWriteData<Type, tU_INT4>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, TyMMVIIToGdal(aDF.Type()))  ; break ;
                case eTyNums::eTN_INT8 : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Write : case eTyNums::eTN_INT8") ; break ;
-               case eTyNums::eTN_REAL4 : GdalWriteData<Type, tREAL4>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, MMVIIToGdal(aDF.Type()))  ; break ;
-               case eTyNums::eTN_REAL8 : GdalWriteData<Type, tREAL8>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, MMVIIToGdal(aDF.Type()))  ; break ;
+               case eTyNums::eTN_REAL4 : GdalWriteData<Type, tREAL4>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, TyMMVIIToGdal(aDF.Type()))  ; break ;
+               case eTyNums::eTN_REAL8 : GdalWriteData<Type, tREAL8>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, TyMMVIIToGdal(aDF.Type()))  ; break ;
                case eTyNums::eTN_REAL16 : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Write : case eTyNums::eTN_REAL16") ; break ;
                case eTyNums::eTN_UnKnown : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Write : case eTyNums::eTN_UnKnown") ; break ;
                case eTyNums::eNbVals : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Write : case eTyNums::eNbVals") ; break ;
@@ -276,17 +267,6 @@ cDataFileIm2D::cDataFileIm2D(const std::string & aName,eTyNums aType,const cPt2d
     
 }
 
-// FIXME CM: remove this constructor (and from header too !)
-cDataFileIm2D::cDataFileIm2D(const std::string & aName, const cPt2di & aSz) :
-   cPixBox<2> (cPt2di(0,0), aSz),
-   mName       (aName)
-{
-   auto aDataset = OpenDataset(mName);
-   mNbChannel = aDataset->GetRasterCount();
-   mType = GdalToMMVII( aDataset->GetRasterBand( 1 )->GetRasterDataType());
-   CloseDataset( aDataset );
-}
-
 
 
 cDataFileIm2D cDataFileIm2D::Empty()
@@ -306,11 +286,11 @@ void cDataFileIm2D::AssertNotEmpty() const
 }
 
 
-// FIXME CM: Create must use the original constructor only
+// FIXME CM: Must handle aForceGray correctly !
 cDataFileIm2D cDataFileIm2D::Create(const std::string & aName,bool aForceGray)
 {
 #ifdef MMVII_KEEP_MMV1_IMAGE
-    if (mmvii_use_mmv1_image()) {
+    if (mmvii_use_mmv1_image) {
         // required because with jpg/raw mm1 may call itself, need some special stuff
         // as standar mmv1 by analyse of arg/argv would not work
         Init_mm3d_In_MMVII();
@@ -323,14 +303,15 @@ cDataFileIm2D cDataFileIm2D::Create(const std::string & aName,bool aForceGray)
         return cDataFileIm2D(aName,ToMMVII(aTF.type_el()),ToMMVII(aTF.sz()), aTF.nb_chan());
     } else {
 #endif
-    // Open a first time with gdal to have access to the size and then to create a cDataFileIm2D object
+    // Open a first time with gdal to have access to metadata and then to create a cDataFileIm2D object
     GDALAllRegister();
     auto aDataset = OpenDataset(aName);
     cPt2di aSz = cPt2di(aDataset->GetRasterXSize(), aDataset->GetRasterYSize());
+    auto aNbChannel = aDataset->GetRasterCount();
+    auto aType = TyGdalToMMVII( aDataset->GetRasterBand( 1 )->GetRasterDataType());
     CloseDataset(aDataset);
-    
-    // Create a cDataFileIm2D on an existing image
-    return cDataFileIm2D(aName, aSz);
+     // Create a cDataFileIm2D on an existing image
+    return cDataFileIm2D(aName, aType, aSz, aNbChannel);
 #ifdef MMVII_KEEP_MMV1_IMAGE
     }
 #endif    
@@ -339,7 +320,7 @@ cDataFileIm2D cDataFileIm2D::Create(const std::string & aName,bool aForceGray)
 cDataFileIm2D  cDataFileIm2D::Create(const std::string & aName,eTyNums aType,const cPt2di & aSz,int aNbChan)
 {
 #ifdef MMVII_KEEP_MMV1_IMAGE
-    if (mmvii_use_mmv1_image()) {
+    if (mmvii_use_mmv1_image) {
         Tiff_Im::PH_INTER_TYPE aPIT = Tiff_Im::BlackIsZero;
         if (aNbChan==1)
             aPIT = Tiff_Im::BlackIsZero;
@@ -364,7 +345,7 @@ cDataFileIm2D  cDataFileIm2D::Create(const std::string & aName,eTyNums aType,con
     } else {
 #endif    
    // Create an image and a cDataFileIm2D
-   remove(aName.c_str());       // FIXME CM: must work as Tiff_Im::CreateIfNeeded
+   remove(aName.c_str());       // FIXME CM: must work as Tiff_Im::CreateIfNeeded -> create only if ( !exist or (sz!= or nbChannel!=) )
 
    // Check that aNbChan is 1 or 3
    if (aNbChan!=1 && aNbChan!=3)
@@ -375,36 +356,31 @@ cDataFileIm2D  cDataFileIm2D::Create(const std::string & aName,eTyNums aType,con
    // Create a driver
    GDALAllRegister();
    auto pszFormat = ExtToGdalDriver(aName);
-   GDALDriver *poDriver;
-   poDriver = GetGDALDriverManager()->GetDriverByName(pszFormat.c_str());  //FIXME CM: Test return value !
+   GDALDriver *aGDALDriver = GetGDALDriverManager()->GetDriverByName(pszFormat.c_str());  //FIXME CM: Test return value !
 
    // Create a dataset
-   GDALDataset *poDstDS;
-   char **papszOptions = NULL;
-   poDstDS = poDriver->Create( aName.c_str(), aSz.x(), aSz.y(), aNbChan, MMVIIToGdal(aType), papszOptions );
+   auto aGDALType = TyMMVIIToGdal(aType);
+   GDALDataset *aDataset = aGDALDriver->Create( aName.c_str(), aSz.x(), aSz.y(), aNbChan, aGDALType, nullptr );
 
-   double * abyRaster;  //FIXME CM: Why double ???
-   abyRaster = (double *) cMemManager::Calloc(1, sizeof(double)*aSz.x()*aSz.y());
-
-   for (int aK = 0; aK < aSz.x()*aSz.y(); aK++) //FIXME CM: memset ? Don't Calloc do it already ?
-   {
-      abyRaster[aK] = 0;
-   }
+   size_t aSize = GDALGetDataTypeSizeBytes(aGDALType)*aSz.x()*aSz.y();
+   void *abyRaster = cMemManager::Calloc(1, aSize);
+   memset(abyRaster,0, aSize);          // cMemManager::Calloc fill allocated memory with a constant fixed debug value ...
       
    // Initialize the dataset
-   GDALRasterBand *poBand;
+   GDALRasterBand *aBand;
    for (int i = 1; i < aNbChan+1; i++)
    {
-      poBand = poDstDS->GetRasterBand(i);
-      CPLErr cplErr2 = poBand->RasterIO( GF_Write, 0, 0, aSz.x(), aSz.y(), abyRaster, aSz.x(), aSz.y(), MMVIIToGdal(aType), 0, 0 );
+      aBand = aDataset->GetRasterBand(i);
+      CPLErr cplErr2 = aBand->RasterIO( GF_Write, 0, 0, aSz.x(), aSz.y(), abyRaster, aSz.x(), aSz.y(), aGDALType, 0, 0 );
       MMVII_INTERNAL_ASSERT_strong(cplErr2 == 0 || cplErr2 == 1,"Error in writing image");
    }
 
    cMemManager::Free(abyRaster);
    
-   CloseDataset(poDstDS );
-
-   return cDataFileIm2D(aName, aSz);
+   auto aNbChannel = aDataset->GetRasterCount();
+   auto aType = TyGdalToMMVII( aDataset->GetRasterBand( 1 )->GetRasterDataType());
+   CloseDataset(aDataset);
+   return cDataFileIm2D(aName, aType, aSz, aNbChannel);
 #ifdef MMVII_KEEP_MMV1_IMAGE
     }
 #endif    
@@ -571,7 +547,7 @@ template <> void cMMV1_Conv<tU_INT4>::ReadWrite
 template <class Type>  void  cDataIm2D<Type>::Read(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2)
 {
 #ifdef MMVII_KEEP_MMV1_IMAGE
-   if (mmvii_use_mmv1_image()) {
+   if (mmvii_use_mmv1_image) {
         cMMV1_Conv<Type>::ReadWrite(true,*this,aFile,aP0,aDyn,aR2);
     } else {
 #endif
@@ -585,7 +561,7 @@ template <class Type>  void  cDataIm2D<Type>::Read(const cDataFileIm2D & aFile,c
 template <class Type>  void  cDataIm2D<Type>::Read(const cDataFileIm2D & aFile,tIm &aImG,tIm &aImB,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2)
 {
 #ifdef MMVII_KEEP_MMV1_IMAGE
-   if (mmvii_use_mmv1_image()) {
+   if (mmvii_use_mmv1_image) {
         cMMV1_Conv<Type>::ReadWrite(true,*this,aImG,aImB,aFile,aP0,aDyn,aR2);
     } else {
 #endif
@@ -600,7 +576,7 @@ template <class Type>  void  cDataIm2D<Type>::Read(const cDataFileIm2D & aFile,t
 template <class Type>  void  cDataIm2D<Type>::Write(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2) const
 {
 #ifdef MMVII_KEEP_MMV1_IMAGE
-   if (mmvii_use_mmv1_image()) {
+   if (mmvii_use_mmv1_image) {
         cMMV1_Conv<Type>::ReadWrite(false,*this,aFile,aP0,aDyn,aR2);
     } else {
 #endif
@@ -614,7 +590,7 @@ template <class Type>  void  cDataIm2D<Type>::Write(const cDataFileIm2D & aFile,
 template <class Type>  void  cDataIm2D<Type>::Write(const cDataFileIm2D & aFile,const tIm &aImG,const tIm &aImB,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2) const
 {
 #ifdef MMVII_KEEP_MMV1_IMAGE
-   if (mmvii_use_mmv1_image()) {
+   if (mmvii_use_mmv1_image) {
         cMMV1_Conv<Type>::ReadWrite(false,*this,aImG,aImB,aFile,aP0,aDyn,aR2);
     } else {
 #endif
@@ -629,7 +605,7 @@ template <class Type>  void  cDataIm2D<Type>::Write(const cDataFileIm2D & aFile,
 //  It's difficult to read unsigned int4 with micmac V1, wait for final implementation
 template <>  void  cDataIm2D<tU_INT4>::Read(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2)
 {
-    if (mmvii_use_mmv1_image()) {
+    if (mmvii_use_mmv1_image) {
         MMVII_INTERNAL_ASSERT_strong(false,"No read for unsigned int4 now");
     } else {
         std::vector<tIm * > aVIms({this});
@@ -639,7 +615,7 @@ template <>  void  cDataIm2D<tU_INT4>::Read(const cDataFileIm2D & aFile,const cP
 
 template <>  void  cDataIm2D<tU_INT4>::Write(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2) const
 {
-    if (mmvii_use_mmv1_image()) {
+    if (mmvii_use_mmv1_image) {
         MMVII_INTERNAL_ASSERT_strong(false,"No write for unsigned int4 now");
     } else {
         std::vector<const tIm * > aVIms({this});
@@ -649,7 +625,7 @@ template <>  void  cDataIm2D<tU_INT4>::Write(const cDataFileIm2D & aFile,const c
 
 template <>  void  cDataIm2D<tU_INT4>::Write(const cDataFileIm2D & aFile,const tIm& aImG,const tIm& aImB,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2) const
 {
-    if (mmvii_use_mmv1_image()) {
+    if (mmvii_use_mmv1_image) {
         MMVII_INTERNAL_ASSERT_strong(false,"No write for unsigned int4 now");
     } else {
       std::vector<const tIm * > aVIms({this,&aImG,&aImB});
