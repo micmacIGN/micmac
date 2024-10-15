@@ -95,6 +95,8 @@ void MMVII_UserError(const eTyUEr &,const std::string & aMes);
 {  MMVII_UserError(aRef,aMes);}
 void MMVII_UnclasseUsEr(const std::string & aMes);
 
+#define MMVII_INTERNAL_ASSERT_User_UndefE(aTest,aMes)\
+{MMVII_INTERNAL_ASSERT_User(aTest,eTyUEr::eUnClassedError,aMes);}
 
 #define MMVII_INTERNAL_ASSERT_always(aTest,aMes)\
  if  (!(aTest))\

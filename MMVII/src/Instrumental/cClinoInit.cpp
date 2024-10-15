@@ -237,9 +237,6 @@ class cAppli_ClinoInit : public cMMVII_Appli
 
         cPhotogrammetricProject        mPhProj;     ///<  Classical structure for photogrammetric project
         std::string                    mNameClino;  ///<  Pattern of xml file
-	std::string                    mFormat;
-	std::vector<std::string>       mPrePost;    ///<  Pattern of xml file
-	tREAL8                         mPCCE;
         int                            mNbStep0;    ///<  Number of step in initial  first round
         int                            mNbStepIter; ///< Number of step in each iteration
         int                            mNbIter;     ///< Number of iteration
@@ -281,8 +278,7 @@ cAppli_ClinoInit::cAppli_ClinoInit
 cCollecSpecArg2007 & cAppli_ClinoInit::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
       return anArgObl
-              <<  Arg2007(mNameClino,"Name of inclination file",{eTA2007::FileAny}) // ,{eTA2007::FileDirProj})
-              <<  Arg2007(mFormat,"Format of file  like ISFSSFSSFSSFS ")
+	      <<  mPhProj.DPMeasuresClino().ArgDirInMand()
               <<  Arg2007(mVKClino,"Index of clinometer",{{eTA2007::ISizeV,"[1,2]"}})
               <<  mPhProj.DPOrient().ArgDirInMand()
               <<  mPhProj.DPClinoMeters().ArgDirOutMand()
@@ -300,8 +296,6 @@ cCollecSpecArg2007 & cAppli_ClinoInit::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 	    << AOpt2007(mNameRel12,"Rel12","orientation relative 2 to 1, if several clino",{eTA2007::HDV})
 	    << AOpt2007(isOkNoCam,"OkNoCam","is it OK if some cam dont exist",{eTA2007::HDV})
             <<  mPhProj.DPClinoMeters().ArgDirInOpt()  // Just for temporart test we can re-read, to supress later
-            <<  AOpt2007(mPrePost,"PrePost","[Prefix,PostFix] to compute image name",{{eTA2007::ISizeV,"[2,2]"}})
-            <<  AOpt2007(mPCCE,"EAPCC","Empirical Angle Power Cosinus Correction",{{eTA2007::HDV}})
     ;
 }
 
@@ -422,10 +416,8 @@ int cAppli_ClinoInit::Exe()
 
 
     // --------- Read formated file ----------------
-    //  std::string mFormat = "ISFSF";
-    cReadFilesStruct aRFS(mNameClino,mFormat,0,-1,'#');
-    aRFS.Read();
-    size_t aNbMeasures = aRFS.NbRead();
+    cSetMeasureClino aSMC = mPhProj.ReadMeasureClino() ;
+    const std::vector<cOneMesureClino>&  aVMC =  aSMC.SetMeasures();
 
     // ------------- Compute vector ofrelative position  : usefull only when we have 2 clino
     tRotR aRSim = tRotR::Identity();  // Rotation for simulation
@@ -433,27 +425,23 @@ int cAppli_ClinoInit::Exe()
     mOriRelClin.push_back(tRotR::RotFromCanonicalAxes(mNameRel12));  // Relative 2 to 1 
 
     //  if we do simulation, generate 
+    size_t aNbMeasures = aVMC.size();
     if (IsInit(&mASim))
     {
        aRSim = tRotR::RandomRot(mASim[3]);
        aNbMeasures = size_t (mASim[4]);
     }
-    std::vector<std::string> aVNamesClino = aRFS.VStrings().at(0);
+    std::vector<std::string> aVNamesClino = aSMC.NamesClino();
 
     StdOut() << "ExeExe " << aVNamesClino << "\n";
 
     std::string aNameCalibCam;
     cPerspCamIntrCalib * aCalib = nullptr;
     //  put low level in a more structured data
-    for (size_t aKLine=0 ; aKLine<aNbMeasures ; aKLine++)
-    {
-        std::vector<std::string> aVNamesCl2 = aRFS.VStrings().at(aKLine);
 
+    for (size_t aKMes = 0 ; aKMes<aNbMeasures ; aKMes++)
+    {
 	// for now we process the case where clinos are identic on all lines, maybe to change later
-        if (aVNamesClino!=aVNamesCl2) 
-        {
-           MMVII_UnclasseUsEr("Names of clinmeter vary with line");
-        }
         if (IsInit(&mASim))
         {
             auto v1 = RandUnif_C()*mASim[0];
@@ -473,27 +461,14 @@ int cAppli_ClinoInit::Exe()
         }
 	else 
         {
-            std::string aNameIm =  aRFS.VNameIm().at(aKLine) ;
-	    if (IsInit(&mPrePost))
-                aNameIm = mPrePost[0] +  aNameIm + mPrePost[1];
+            const cOneMesureClino &  aMes = aVMC.at(aKMes);
+            std::string aNameIm =  aSMC.NameOfIm(aMes);
 
 	    cSensorCamPC * aCam = mPhProj.ReadCamPC(aNameIm,true,isOkNoCam);
 	    if (aCam != nullptr)
 	    {
 
-		 std::vector<double>  aVAngles = aRFS.VNums().at(aKLine);
-		 if (mPCCE !=0)
-		 {
-                     if (mVKClino.size() !=2)
-                        MMVII_UnclasseUsEr("Cos corr with szclino !=2");
-
-		     tREAL8 aTeta0 = aVAngles.at(mVKClino.at(0));
-		     tREAL8 aTeta1 = aVAngles.at(mVKClino.at(1));
-		     aVAngles.at(mVKClino.at(0)) = aTeta0 * pow(std::abs(cos(aTeta1)),mPCCE);
-		     aVAngles.at(mVKClino.at(1)) = aTeta1 * pow(std::abs(cos(aTeta0)),mPCCE);
-
-		 }
-
+		 std::vector<double>  aVAngles = aMes.Angles();
 
                  mVMeasures.push_back(cClinoCalMes1Cam(aCam,aVAngles));
 

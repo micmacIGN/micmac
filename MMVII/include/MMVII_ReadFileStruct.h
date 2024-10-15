@@ -110,7 +110,7 @@ class  cNewReadFilesStruct
                  MMVII_INTERNAL_ASSERT_tiny(MapBoolFind(mCptFields,aNameField),"No such field " +aNameField);
 		 size_t aNbInL = mCptFields.at(aNameField);
 
-                 MMVII_INTERNAL_ASSERT_tiny(aKLine<aNbInL,"No so many elem for "+ aNameField);
+                 MMVII_INTERNAL_ASSERT_tiny(aNumInLine<aNbInL,"No so many elem for "+ aNameField);
 
 		 const Type& aRes = GetVect<Type>(aNameField).at(aKLine*aNbInL+aNumInLine);
 		 return aRes;
