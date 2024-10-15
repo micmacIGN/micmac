@@ -20,6 +20,7 @@
 namespace MMVII
 {
 
+#if (0)
 
 
    /* ********************************************************** */
@@ -140,7 +141,6 @@ cSpecMMVII_Appli  TheSpec_ImportClino
       {eApDT::Lines},
       __FILE__
 );
-#if (0)
 #endif
 
 }; // MMVII
