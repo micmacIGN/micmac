@@ -145,14 +145,24 @@ class cCalibBlocCam
 	   typedef std::map<std::string,cPoseWithUK> tMapStrPoseUK;
 
 	   /// contructor allow to compute identifier time/bloc + Name of the bloc
-           cCalibBlocCam(const std::string & aPattern,size_t aKPatBloc,size_t aKPatSync,const std::string & aName);
+           cCalibBlocCam
+           (
+	        const std::string & aPattern,size_t aKPatBloc,size_t aKPatSync,
+	        const std::vector<std::string> & aInv , // aPattInv,  aPattReplace, aPattSeparator
+		const std::string & aName
+           );
            /// defalut constructor for serialization
            cCalibBlocCam();
 
            /** Compute the index of a sensor inside a bloc, pose have same index "iff" they are correpond to a position in abloc */
            std::string  CalculIdBloc(cSensorCamPC * ) const ;
+           std::string  CalculIdBloc(const std::string &aNameImage) const ;
            /** Compute the synchronisation index of a sensor, pose  have same index "iff" they are acquired at same time */
            std::string  CalculIdSync(cSensorCamPC * ) const ;
+           std::string  CalculIdSync(const std::string & aNameImage) const ;
+
+           std::string  CalculIds2Image(const std::string &aIdBloc,const std::string & aIdSync) const ;
+
            /// it may happen that processing cannot be made  (different bloc, or camera outside the bloc)
            bool  CanProcess(cSensorCamPC * ) const ;
            ///  Local function for serialization, access to private member
@@ -162,6 +172,10 @@ class cCalibBlocCam
            std::string       mPattern;         ///< Regular expression for extracting "BlocId/SyncId"
            size_t            mKPatBloc;        ///< Num of sub-expression that contain the CamId
            size_t            mKPatSync;        ///< Num of sub-expression that contain the sync-id
+           std::string       mPatternId2Im;    ///< Pattern used for computing inverse transfo  : "IdSync x IdBloc => image"
+	   std::string       mReplacePI2I;     ///< Replacement string for inverse transfo
+	   std::string       mSeparatorPI2I;   ///< Separator for compute inverse transfo
+
            std::string       mMaster;          ///<  Name of master cam
            tMapStrPoseUK     mMapPoseUKInBloc; ///<  Map  IdCam -> PoseRel 
 };
@@ -185,7 +199,12 @@ class cBlocOfCamera : public cMemCheck
            void ShowBySync() const;  /// show matricial organization by time
 
 	   /// construct a bloc, empty for now
-           cBlocOfCamera(const std::string & aPattern,size_t aKBloc,size_t aKSync,const std::string & aName);
+           cBlocOfCamera
+           (
+                const std::string & aPattern,size_t aKBloc,size_t aKSync,
+	        const std::vector<std::string> & aInv , // aPattInv,  aPattReplace, aPattSeparator
+		const std::string & aName
+           );
 	   /// destructor (do nothing at time being)
            ~cBlocOfCamera();
 
@@ -196,6 +215,11 @@ class cBlocOfCamera : public cMemCheck
 
 	   /// For of bloc id, return its number;- if dont exist : -1 if SVP, error else
            int NumInBloc(const std::string &,bool SVP=false)  const;
+
+
+           std::string  IdBloc(const std::string &aNameImage) const ;
+           std::string  IdSync(const std::string & aNameImage) const ;
+           std::string  Ids2Image(const std::string &aIdBloc,const std::string & aIdSync) const ;
 
 	   /// name of Kth in bloc
            const std::string & NameKthInBloc(size_t) const;
@@ -244,6 +268,7 @@ class cBlocOfCamera : public cMemCheck
 	   /// A function, that illustrate the read/write possibility once object is serialized
 	   void TestReadWrite(bool OmitDel) const;
 
+           // const cCalibBlocCam & Data() const;  ///< Accessor 
       private :
            cBlocOfCamera();
 	   ///  Transformate the state from init to computable

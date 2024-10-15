@@ -440,6 +440,7 @@ class cPhotogrammetricProject
 	  cDirsPhProj &   DPRigBloc();    ///<  Accessor  // RIGIDBLOC
 	  cDirsPhProj &   DPClinoMeters();    ///<  Accessor  // RIGIDBLOC
 	  cDirsPhProj &   DPTopoMes();    ///<  Accessor  // TOPO
+	  cDirsPhProj &   DPMeasuresClino();    ///<  Accessor  // RIGIDBLOC
 				    
 	  const cDirsPhProj &   DPOrient() const; ///< Accessor
 	  const cDirsPhProj &   DPRadiomData() const; ///< Accessor
@@ -453,6 +454,7 @@ class cPhotogrammetricProject
 	  const cDirsPhProj &   DPRigBloc() const;    ///<  Accessor  // RIGIDBLOC
 	  const cDirsPhProj &   DPClinoMeters() const;    ///<  Accessor  // RIGIDBLOC
 	  const cDirsPhProj &   DPTopoMes() const;    ///<  Accessor  // TOPO
+	  const cDirsPhProj &   DPMeasuresClino() const;    ///<  Accessor  // RIGIDBLOC
 
 
 	  // Sometime we need several dir of the same type, like "ReportPoseCmp", or RefPose in bundle
@@ -704,6 +706,12 @@ class cPhotogrammetricProject
 	  *  probably "cCalibSetClino" will evolve in a not copiable object*/
 	 cCalibSetClino * GetClino(const cPerspCamIntrCalib &) const;
 
+	 /// Standard name for file of measures clino 
+	 std::string NameFileMeasuresClino(bool Input,const std::string & aNameFile="" ) const;
+	 void SaveMeasureClino(const cSetMeasureClino &) const;
+	 void ReadMeasureClino(cSetMeasureClino &) const;
+	 cSetMeasureClino ReadMeasureClino() const;
+
 	 //===================================================================
          //==================   Rigid Bloc           =========================
 	 //===================================================================
@@ -754,8 +762,9 @@ class cPhotogrammetricProject
 	  cDirsPhProj     mDPMulTieP;         ///<  For multiple Homologous point
 	  cDirsPhProj     mDPMetaData;
 	  cDirsPhProj     mDPRigBloc;         // RIGIDBLOC
-      cDirsPhProj     mDPClinoMeters;         // RIGIDBLOC
-      cDirsPhProj     mDPTopoMes;         // Topo
+          cDirsPhProj     mDPClinoMeters;      // +-  resulta of clino calib (boresight)
+          cDirsPhProj     mDPMeasuresClino;     // measure (angles) of clino
+          cDirsPhProj     mDPTopoMes;         // Topo
 					      //
 
 	  std::vector<cDirsPhProj*> mDirAdded;

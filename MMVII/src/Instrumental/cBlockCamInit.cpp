@@ -171,17 +171,25 @@ const std::string & cBlocMatrixSensor::NameKthSet(  size_t aKTh) const { return 
 /*              cCalibBlocCam                         */
 /* ************************************************** */
 
-cCalibBlocCam::cCalibBlocCam(const std::string & aPattern,size_t aKPatBloc,size_t aKPatSync,const std::string & aName) :
-     mName      (aName),
-     mPattern   (aPattern),
-     mKPatBloc  (aKPatBloc),
-     mKPatSync  (aKPatSync)
+cCalibBlocCam::cCalibBlocCam
+(
+    const std::string & aPattern,size_t aKPatBloc,size_t aKPatSync,
+    const std::vector<std::string> & aInv ,
+    const std::string & aName
+) :
+   mName          (aName),
+   mPattern       (aPattern),
+   mKPatBloc      (aKPatBloc),
+   mKPatSync      (aKPatSync),
+   mPatternId2Im  (aInv.at(0)),
+   mReplacePI2I   (aInv.at(1)),
+   mSeparatorPI2I (aInv.at(2))
 {
 }
 
 /// dummy value
 cCalibBlocCam::cCalibBlocCam() :
-     cCalibBlocCam ("",0,0,"")
+     cCalibBlocCam ("",0,0,{"","",""},"")
 {
 }
 
@@ -192,13 +200,37 @@ bool  cCalibBlocCam::CanProcess(cSensorCamPC * aCam) const
 
 std::string  cCalibBlocCam::CalculIdBloc(cSensorCamPC * aCam) const
 {
-     return PatternKthSubExpr(mPattern,mKPatBloc,aCam->NameImage());
+     // return PatternKthSubExpr(mPattern,mKPatBloc,aCam->NameImage());
+     return CalculIdBloc(aCam->NameImage());
 }
+std::string  cCalibBlocCam::CalculIdBloc(const std::string & aNameImage) const
+{
+     return PatternKthSubExpr(mPattern,mKPatBloc,aNameImage);
+}
+
 
 std::string  cCalibBlocCam::CalculIdSync(cSensorCamPC * aCam) const
 {
-     return PatternKthSubExpr(mPattern,mKPatSync,aCam->NameImage());
+     return CalculIdSync(aCam->NameImage());
 }
+std::string  cCalibBlocCam::CalculIdSync(const std::string & aNameImage) const
+{
+     return PatternKthSubExpr(mPattern,mKPatSync,aNameImage);
+}
+
+
+std::string  cCalibBlocCam::CalculIds2Image(const std::string &aIdBloc,const std::string & aIdSync) const 
+{
+   return ReplacePattern
+          (
+               mPatternId2Im,
+               mReplacePI2I,
+               aIdBloc+ mSeparatorPI2I+ aIdSync
+          );
+}
+
+
+
 
 
 void cCalibBlocCam::AddData(const  cAuxAr2007 & anAuxInit)
@@ -220,6 +252,12 @@ void cCalibBlocCam::AddData(const  cAuxAr2007 & anAuxInit)
      MMVII::AddData(cAuxAr2007("Pattern",anAux),mPattern);
      MMVII::AddData(cAuxAr2007("KBloc",anAux),mKPatBloc);
      MMVII::AddData(cAuxAr2007("KSync",anAux),mKPatSync);
+
+     MMVII::AddData(cAuxAr2007("PatternInv",anAux),mPatternId2Im);
+     MMVII::AddData(cAuxAr2007("ReplaceInv",anAux),mReplacePI2I);
+     MMVII::AddData(cAuxAr2007("SeparatorInv",anAux),mSeparatorPI2I);
+
+
      MMVII::AddData(cAuxAr2007("PoseRel",anAux),mMapPoseUKInBloc);
 
      //  cAuxAr2007(const std::string& ,const  cAuxAr2007 &)
@@ -235,14 +273,19 @@ void AddData(const  cAuxAr2007 & anAux,cCalibBlocCam & aBloc)
 /*              cBlocOfCamera                         */
 /* ************************************************** */
 
-cBlocOfCamera::cBlocOfCamera(const std::string & aPattern,size_t aKBloc,size_t aKSync,const std::string & aName) :
+cBlocOfCamera::cBlocOfCamera
+(
+      const std::string & aPattern,size_t aKBloc,size_t aKSync,
+      const std::vector<std::string> & aInv,
+      const std::string & aName
+) :
     mForInit  (true),
-    mData     (aPattern,aKBloc,aKSync,aName)
+    mData     (aPattern,aKBloc,aKSync,aInv,aName)
 {
 }
 
 cBlocOfCamera::cBlocOfCamera() :
-     cBlocOfCamera("",0,0,"")
+     cBlocOfCamera("",0,0,{"","",""},"")
 {
 }
 
@@ -295,6 +338,18 @@ cPoseWithUK &  cBlocOfCamera::PoseUKOfIdBloc(const std::string& anId)
 const std::string &  cBlocOfCamera::NameMaster() const  { return mData.mMaster; }
 size_t cBlocOfCamera::IndexMaster() const {return NumInBloc(NameMaster());}
 
+
+std::string  cBlocOfCamera::IdBloc(const std::string &aNameImage)  const  {return mData.CalculIdBloc(aNameImage);}
+std::string  cBlocOfCamera::IdSync(const std::string & aNameImage) const  {return mData.CalculIdSync(aNameImage);}
+
+std::string  cBlocOfCamera::Ids2Image(const std::string &aIdBloc,const std::string & aIdSync) const 
+{
+     return mData.CalculIds2Image(aIdBloc,aIdSync);
+}
+
+
+
+// const cCalibBlocCam & cBlocOfCamera::Data() const {return mData; }
 
 
 
@@ -583,6 +638,7 @@ class cAppli_BlockCamInit : public cMMVII_Appli
         cPhotogrammetricProject  mPhProj;
 	std::string              mPattern;
 	cPt2di                   mNumSub;
+	std::vector<std::string> mComputeInv;
 
 	bool                     mShowByBloc;  ///< Do we show the structure by bloc of image
 	bool                     mShowBySync;  ///< Do we show structure by synchronization
@@ -622,6 +678,7 @@ cCollecSpecArg2007 & cAppli_BlockCamInit::ArgObl(cCollecSpecArg2007 & anArgObl)
              <<  mPhProj.DPOrient().ArgDirInMand()
              <<  Arg2007(mPattern,"Pattern for images specifing sup expr")
              <<  Arg2007(mNumSub,"Num of sub expr for x:block and  y:image")
+             <<  Arg2007(mComputeInv,"Struct for comput IdxId->image [Pat,Repl,Sep]",{{eTA2007::ISizeV,"[3,3]"}})
              <<  mPhProj.DPRigBloc().ArgDirOutMand()
            ;
 }
@@ -645,7 +702,7 @@ int cAppli_BlockCamInit::Exe()
     mPhProj.FinishInit();  // the final construction of  photogrammetric project manager can only be done now
 
     // creat the bloc, for now no cam,just the info to insert them
-    cBlocOfCamera aBloc(mPattern,mNumSub.x(),mNumSub.y(),mNameBloc);
+    cBlocOfCamera aBloc(mPattern,mNumSub.x(),mNumSub.y(),mComputeInv,mNameBloc);
 
     //  parse all images : create the sensor and add it  to the bloc
     for (const auto & aNameIm :  VectMainSet(0))

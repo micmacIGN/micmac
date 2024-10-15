@@ -325,6 +325,9 @@ class cOneCalibRelClino;
 class cOneCalibClino;    
 class cCalibSetClino;   
 class cBA_Clino;
+class cOneMesureClino;
+class cSetMeasureClino;
+
 
 //   sys co
 
