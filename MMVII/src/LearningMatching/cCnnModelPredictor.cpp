@@ -39,12 +39,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <torch/torch.h>
 #include <torch/script.h>
 #include <ATen/ATen.h>
-/*#include <sys/mman.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include "cConvnet_Fast.h"
-#include "cConvnet_Slow.h"
-#include "cConvNet_Fast_BN.h"*/
 #include "cCnnModelPredictor.h"
 
 namespace F = torch::nn::functional;
@@ -77,6 +71,10 @@ void aCnnModelPredictor::PopulateModelMSNetHead(/*MSNetHead Network*/ torch::jit
 /***********************************************************************/
 void aCnnModelPredictor::PopulateModelFeatures(torch::jit::script::Module & Network)
 {
+#ifdef _WIN32
+  if (IsCuda) LoadLibraryA("torch_cuda.dll")
+#endif
+
     // add a convention on Model Name TAKE FOR EXAMPLES FEATURES AS A KEY FOR THE FEATURE MODULE 
     std::string aModel;
     for (unsigned int i=0;i<mSetModelBinaries.size();i++)

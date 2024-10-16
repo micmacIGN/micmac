@@ -669,7 +669,9 @@ void cAppliFillCubeCost::OneSliceSimil(
 
 int  cAppliFillCubeCost::Exe()
 {
-
+#ifdef _WIN32
+  if (mUseCuda) LoadLibraryA("torch_cuda.dll")
+#endif
    // Compute names
    mNameZMin = StdName("ZMin","tif");
    mNameZMax = StdName("ZMax","tif");

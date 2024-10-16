@@ -71,7 +71,7 @@ file (GLOB TORCH_LIBRARIES "${TORCH_INSTALL_PREFIX}/lib/libtorch*.so" "${TORCH_I
 endif()
 
 if(MSVC)
-file (GLOB TORCH_LIBRARIES "${TORCH_INSTALL_PREFIX}/lib/torch*.lib" "${TORCH_INSTALL_PREFIX}/lib/c10*.lib" )
+file (GLOB TORCH_LIBRARIES "${TORCH_INSTALL_PREFIX}/lib/*.lib")
 endif()
 ############################# libtorch  ###############
 
@@ -184,7 +184,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION  VE
 endif()
 
 if(MSVC)
-  file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/torch*.dll" "${TORCH_INSTALL_PREFIX}/lib/c10*.dll")
+  file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/*.dll")
   add_custom_command(TARGET MMVII
                      POST_BUILD
                      COMMAND ${CMAKE_COMMAND} -E copy_if_different
