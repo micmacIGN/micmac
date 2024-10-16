@@ -72,7 +72,7 @@ void aCnnModelPredictor::PopulateModelMSNetHead(/*MSNetHead Network*/ torch::jit
 void aCnnModelPredictor::PopulateModelFeatures(torch::jit::script::Module & Network)
 {
 #ifdef _WIN32
-  if (IsCuda) LoadLibraryA("torch_cuda.dll")
+  if (IsCuda) LoadLibraryA("torch_cuda.dll");
 #endif
 
     // add a convention on Model Name TAKE FOR EXAMPLES FEATURES AS A KEY FOR THE FEATURE MODULE 
