@@ -70,9 +70,12 @@ cDataFileIm2D cDataFileIm2D::Create(const std::string & aName,eForceGray isFG)
     Init_mm3d_In_MMVII();
 
     bool aForce8B = false;
+/*
     std::string aNameTif = NameFileStd(aName,(isFG==eForceGray::Yes) ? 1 :-1,!aForce8B ,true,true);
-
     Tiff_Im aTF = Tiff_Im::StdConvGen(aNameTif.c_str(),(isFG==eForceGray::Yes) ? 1 :-1,!aForce8B ,true);
+*/
+    std::string aNameTif = NameFileStd(aName,-1,!aForce8B ,true,true);
+    Tiff_Im aTF = Tiff_Im::StdConvGen(aNameTif.c_str(),-1,!aForce8B ,true);
 
     return cDataFileIm2D(aName,ToMMVII(aTF.type_el()),ToMMVII(aTF.sz()), aTF.nb_chan(),isFG);
 }
