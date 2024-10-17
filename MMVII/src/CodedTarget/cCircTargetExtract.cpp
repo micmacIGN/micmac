@@ -38,8 +38,10 @@ struct cThresholdCircTarget
 cThresholdCircTarget::cThresholdCircTarget() :
     mRatioStdDevGlob  (0.15),
     mRatioStdDevAmpl  (0.07),
-    // mAngRadCode       (0.15),
+    // mAngRadCode    (0.15),
+    // mAngRadCode    (0.60),
     mAngRadCode       (0.25),
+    // mAngTanCode    (0.60)
     mAngTanCode       (0.40)
 {
 }
@@ -648,7 +650,16 @@ void cCCDecode::ComputeCode()
 		       << " PBB " << mPixPerB 
 		       << " Rad:" <<  aAvgRad.Average()  
 		       << " Tan:" << aAvgTan.Average() 
-		       << " Th=" << aThickCode << "\n"; 
+		       << " Th=" << aThickCode ; 
+	       if (! mOkGrad)
+	       {
+		       StdOut() << " (TH:"
+			        << " RAD=" << mThresh.mAngRadCode
+			        << " TAN=" << mThresh.mAngTanCode 
+				<< ")";
+	       }
+	       StdOut() << "\n";
+                  
 	}
 	// getchar();
     }
@@ -773,7 +784,7 @@ cAppliExtractCircTarget::cAppliExtractCircTarget
     const cSpecMMVII_Appli & aSpec
 ) :
    cMMVII_Appli  (aVArgs,aSpec),
-   cAppliParseBoxIm<tREAL4>(*this,true,cPt2di(20000,20000),cPt2di(300,300),false) ,
+   cAppliParseBoxIm<tREAL4>(*this,eForceGray::Yes,cPt2di(20000,20000),cPt2di(300,300),false) ,
    mSpec             (nullptr),
    mZoomVisuLabel    (0),
    mZoomVisuSeed     (0),

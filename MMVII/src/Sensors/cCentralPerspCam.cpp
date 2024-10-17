@@ -77,15 +77,15 @@ cDataPerspCamIntrCalib::cDataPerspCamIntrCalib
 ) :
     cDataPerspCamIntrCalib
     (
-	         aName,
-	         aTypeProj, 
-	         aDeg,
-	         std::vector<double>(),
-                 cMapPProj2Im(aFoc, PPIsRel ? MulCByC(ToR(aNbPix), aPP) : aPP),
-                 cDataPixelDomain(aNbPix),
-	         aDeg,
-	         aSzBuf,
-                 isFraserModel
+        aName,
+        aTypeProj, 
+        aDeg,
+        std::vector<double>(),
+        cMapPProj2Im(aFoc, PPIsRel ? MulCByC(ToR(aNbPix), aPP) : aPP),
+        cDataPixelDomain(aNbPix),
+        aDeg,
+        aSzBuf,
+        isFraserModel
     )
 {
 
@@ -101,12 +101,12 @@ void cDataPerspCamIntrCalib::AddData(const cAuxAr2007 & anAux0)
 
     {
         MMVII::EnumAddData(anAux,mTypeProj,"Projection");
-	    /*  MODIF MPD, has "rediscover" the "EnumAddData"  function ...
+  /*  MODIF MPD, has "rediscover" the "EnumAddData"  function ...
         std::string aNameProj= E2Str(mTypeProj);
         MMVII::AddData(cAuxAr2007("Projection",anAux),aNameProj);
         if (anAux.Input())
-	   mTypeProj = Str2E<eProjPC>(aNameProj);
-	   */
+ mTypeProj = Str2E<eProjPC>(aNameProj);
+ */
     }
     {
            cAuxAr2007 aAuxAux("Auxiliary",anAux);
@@ -125,6 +125,7 @@ void cDataPerspCamIntrCalib::AddData(const cAuxAr2007 & anAux0)
            cAuxAr2007 aAuxSten("PerfectProj",anAux);
            MMVII::AddData(cAuxAr2007("F",aAuxSten),mMapPProj2Im.F());
            MMVII::AddData(cAuxAr2007("PP",aAuxSten),mMapPProj2Im.PP());
+
 
 	   // Just in case redo a coherent object
 	   if (anAux.Input())
@@ -536,6 +537,15 @@ cPt2dr  cPerspCamIntrCalib::Redist(const tPtOut & aP0) const
 
      return Value(aP2);
 }
+
+cPt2dr cPerspCamIntrCalib::InterpolOnUDLine(const tSeg2dr& aSeg,tREAL8 aWeightP1) const
+{
+     cPt2dr  aPU1 = Undist(aSeg.P1());
+     cPt2dr  aPU2 = Undist(aSeg.P2());
+
+     return Redist(Centroid(aWeightP1,aPU1,1.0-aWeightP1,aPU2));
+}
+
 
 
 

@@ -36,17 +36,18 @@ void Init_mm3d_In_MMVII()
 /*       cDataFileIm2D         */
 /* =========================== */
 
-cDataFileIm2D::cDataFileIm2D(const std::string & aName,eTyNums aType,const cPt2di & aSz,int aNbChannel) :
+cDataFileIm2D::cDataFileIm2D(const std::string & aName,eTyNums aType,const cPt2di & aSz,int aNbChannel,eForceGray isFG) :
     cPixBox<2> (cPt2di(0,0),aSz),
     mName       (aName),
     mType       (aType),
-    mNbChannel  (aNbChannel)
+    mNbChannel  (aNbChannel),
+    mForceGray  (isFG)
 {
 }
 
 cDataFileIm2D cDataFileIm2D::Empty()
 {
-   return cDataFileIm2D( MMVII_NONE, eTyNums::eNbVals, cPt2di(1,1), -1);
+   return cDataFileIm2D( MMVII_NONE, eTyNums::eNbVals, cPt2di(1,1), -1,eForceGray::No);
 }
 
 bool cDataFileIm2D::IsEmpty() const
@@ -62,18 +63,18 @@ void cDataFileIm2D::AssertNotEmpty() const
 
 
 
-cDataFileIm2D cDataFileIm2D::Create(const std::string & aName,bool aForceGray)
+cDataFileIm2D cDataFileIm2D::Create(const std::string & aName,eForceGray isFG)
 {
     // required because with jpg/raw mm1 may call itself, need some special stuff
     // as standar mmv1 by analyse of arg/argv would not work
     Init_mm3d_In_MMVII();
 
     bool aForce8B = false;
-    std::string aNameTif = NameFileStd(aName,aForceGray ? 1 :-1,!aForce8B ,true,true);
+    std::string aNameTif = NameFileStd(aName,(isFG==eForceGray::Yes) ? 1 :-1,!aForce8B ,true,true);
 
-    Tiff_Im aTF = Tiff_Im::StdConvGen(aNameTif.c_str(),aForceGray ? 1 :-1,!aForce8B ,true);
+    Tiff_Im aTF = Tiff_Im::StdConvGen(aNameTif.c_str(),(isFG==eForceGray::Yes) ? 1 :-1,!aForce8B ,true);
 
-    return cDataFileIm2D(aName,ToMMVII(aTF.type_el()),ToMMVII(aTF.sz()), aTF.nb_chan());
+    return cDataFileIm2D(aName,ToMMVII(aTF.type_el()),ToMMVII(aTF.sz()), aTF.nb_chan(),isFG);
 }
 
 cDataFileIm2D  cDataFileIm2D::Create(const std::string & aName,eTyNums aType,const cPt2di & aSz,int aNbChan)
@@ -108,7 +109,7 @@ cDataFileIm2D  cDataFileIm2D::Create(const std::string & aName,eTyNums aType,con
       aPIT
    );
 */
-   return Create(aName,false);
+   return Create(aName,eForceGray::No);
 }
 
 

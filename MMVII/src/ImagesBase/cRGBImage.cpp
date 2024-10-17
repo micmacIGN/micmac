@@ -219,14 +219,14 @@ template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm,c
 cRGBImage cRGBImage::FromFile(const std::string& aName,const cBox2di & aBox,int aZoom)
 {
      cRGBImage aRes(aBox.Sz(),aZoom);
-     aRes.Read(cDataFileIm2D::Create(aName,false),aBox.P0());
+     aRes.Read(cDataFileIm2D::Create(aName,eForceGray::No),aBox.P0());
 
      return aRes;
 }
 
 cRGBImage cRGBImage::FromFile(const std::string& aName,int aZoom)
 {
-     cRect2 aRect = cDataFileIm2D::Create(aName,false);
+     cRect2 aRect = cDataFileIm2D::Create(aName,eForceGray::No);
      return FromFile(aName,aRect,aZoom);
 }
 
@@ -295,7 +295,7 @@ void cRGBImage::ReplicateForZoom(const cRect2 & aRect1Z)
 
 void cRGBImage::Read(const std::string & aName,const cPt2di & aP0,double aDyn,const cRect2& aRect) 
 {
-     Read(cDataFileIm2D::Create(aName,false),aP0,aDyn,aRect);
+     Read(cDataFileIm2D::Create(aName,eForceGray::No),aP0,aDyn,aRect);
 }
 
                //  file  create/write
@@ -337,7 +337,7 @@ void cRGBImage::Write(const cDataFileIm2D & aDFI,const cPt2di & aP0,double aDyn,
 void cRGBImage::Write(const std::string & aName,const cPt2di & aP0,double aDyn,const cRect2& aRect) const
 {
     AssertZ1();
-     Write(cDataFileIm2D::Create(aName,false),aP0,aDyn,aRect);
+     Write(cDataFileIm2D::Create(aName,eForceGray::No),aP0,aDyn,aRect);
 }
 
 void cRGBImage::DrawEllipse(const cPt3di& aCoul,const cPt2dr & aCenter,tREAL8 aGA,tREAL8 aSA,tREAL8 aTeta,tREAL8 aWitdh)

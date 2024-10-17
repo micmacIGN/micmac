@@ -189,6 +189,8 @@ void AddData(const  cAuxAr2007 & anAux,cCalibBlocCam & aBloc) ;
 class cBlocOfCamera : public cMemCheck
 {
       public :
+           std::vector<std::vector<cSensorCamPC *>>  
+	      GenerateOrientLoc(const cPhotogrammetricProject &,const std::vector<std::string> & aVNameIm) const;
            typedef std::map<std::string,tPoseR> tMapStrPose;
 	   typedef std::map<std::string,cPoseWithUK> tMapStrPoseUK;
 

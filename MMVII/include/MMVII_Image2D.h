@@ -24,6 +24,11 @@ namespace MMVII
 */
 
 
+enum class eForceGray
+           {
+                Yes,    
+                No
+           };
 
 class cDataFileIm2D : public cRect2
 {
@@ -35,7 +40,7 @@ class cDataFileIm2D : public cRect2
 	bool IsEmpty() const;
 	void AssertNotEmpty() const;
         /// Create a descriptor on existing file
-        static cDataFileIm2D Create(const std::string & aName,bool ForceGray);
+        static cDataFileIm2D Create(const std::string & aName,eForceGray);
         /// Create the file before returning the descriptor
         static cDataFileIm2D Create(const std::string & aName,eTyNums,const cPt2di & aSz,int aNbChan=1);
 
@@ -45,13 +50,15 @@ class cDataFileIm2D : public cRect2
         
 	static bool IsPostFixNameImage(const std::string & aPost);
 	static bool IsNameWith_PostFixImage(const std::string & aPost);
+        eForceGray ForceGray() const; ///< Accessor
      private :
-        cDataFileIm2D(const std::string &,eTyNums,const cPt2di & aSz,int aNbChannel) ;
+        cDataFileIm2D(const std::string &,eTyNums,const cPt2di & aSz,int aNbChannel,eForceGray) ;
 
         cMemCheck    mMemCheck;  ///< Inheritage may be multiple, member will have the same effect
         std::string  mName;      ///< Name on the disk
         eTyNums      mType;      ///< Type of value for pixel
         int          mNbChannel; ///< Number of channels
+        eForceGray   mForceGray;
 };
 
 /// Size differnce of associated file images
@@ -430,7 +437,7 @@ template<class TypeEl> class  cAppliParseBoxIm
                APBI_WriteIm(aName,anIm,tElemNumTrait<Type2>::TyNum());
         }
 
-        cAppliParseBoxIm(cMMVII_Appli & anAppli,bool IsGray,const cPt2di & aSzTiles,const cPt2di & aSzOverlap,bool ParalTiles) ;
+        cAppliParseBoxIm(cMMVII_Appli & anAppli,eForceGray IsGray,const cPt2di & aSzTiles,const cPt2di & aSzOverlap,bool ParalTiles) ;
         ~cAppliParseBoxIm();
 
 	void  APBI_ExecAll(); ///< Execute Action on all Box of file  OR  only on Test Box if exist
@@ -474,7 +481,7 @@ template<class TypeEl> class  cAppliParseBoxIm
         cPt2di         mIndBoxRecal;  ///< Index for box when recalling in paral
 
         cMMVII_Appli & mAppli;   ///< Ineriting appli ("daughter")
-        bool           mIsGray;  ///< Is it a gray file
+        eForceGray     mIsGray;  ///< Is it a gray file
         cParseBoxInOut<2> *mParseBox;  ///<Current structure used to parse the  box
 	cPt2di         mCurPixIndex; ///< Index of parsing box
         cDataFileIm2D  mDFI2d;   ///< Data for file image to parse

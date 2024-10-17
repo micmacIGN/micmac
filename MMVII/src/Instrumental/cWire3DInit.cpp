@@ -22,6 +22,7 @@
 namespace MMVII
 {
 
+
 /* ==================================================== */
 /*                                                      */
 /*          cAppli_CalibratedSpaceResection             */
@@ -40,8 +41,10 @@ class cAppli_Wire3DInit : public cMMVII_Appli
 	//  std::vector<std::string>  Samples() const override;
 
      private :
-        void MakeOneIm(const std::string & aNameIm);
+	void MakeOneBloc(const std::vector<cSensorCamPC *> &);
+
         void TestWire3D(const std::vector<cSensorCamPC *> & aVCam);
+        void TestPoint3D(const std::vector<cSensorCamPC *> & aVCam);
 
         cPhotogrammetricProject  mPhProj;
 
@@ -98,118 +101,112 @@ cCollecSpecArg2007 & cAppli_Wire3DInit::ArgOpt(cCollecSpecArg2007 & anArgOpt)
     ;
 }
 
+
+
 void cAppli_Wire3DInit::TestWire3D(const std::vector<cSensorCamPC *> & aVCam)
 {
 
      std::vector<cPlane3D>  aVPlane;
      std::vector<cSensorCamPC *>  aVCamOk;
      std::vector<tSeg2dr>         aVSegOk;
+
      for (const auto & aCam : aVCam)
      {
-          cLinesAntiParal1Im   aSetL  = mPhProj.ReadLines(aCam->NameImage());
-	  const std::vector<cOneLineAntiParal> & aVL  = 	aSetL.mLines;
-
-	  StdOut() << " NBL=" << aCam->NameImage()  << " NBL=" << aVL.size() << "\n";
-
-
-	  // At this step we dont handle multiple lines
-	  if (aVL.size()==1)
+          const std::string & aNameIm = aCam->NameImage();
+          if (mPhProj.HasFileLines(aNameIm))
 	  {
-             tSeg2dr aSeg = aVL.at(0).mSeg;
+              cLinesAntiParal1Im   aSetL  = mPhProj.ReadLines(aNameIm);
+	      const std::vector<cOneLineAntiParal> & aVL  = 	aSetL.mLines;
 
-	     cPt2dr aPIm1 = aSeg.P1();
-	     cPt2dr aPIm2 = aSeg.P2();
-	     cPt3dr aPG1 = aCam->ImageAndDepth2Ground(cPt3dr(aPIm1.x(),aPIm1.y(),1.0));
-	     cPt3dr aPG2 = aCam->ImageAndDepth2Ground(cPt3dr(aPIm2.x(),aPIm2.y(),1.0));
-	     cPt3dr aPG0 = aCam->Center();
-	     aVPlane.push_back(cPlane3D::From3Point(aPG0,aPG1,aPG2));
-	     aVCamOk.push_back(aCam);
-	     aVSegOk.push_back(aSeg);
-	     // StdOut() <<  "     " <<  aSeg.P1() << " " << aSeg.P2() << "\n";
+	      // At this step we dont handle multiple lines
+	      if (aVL.size()==1)
+	      {
+                 tSeg2dr aSeg = aVL.at(0).mSeg;
+
+	         aVPlane.push_back(aCam->SegImage2Ground(aSeg));
+	         aVCamOk.push_back(aCam);
+	         aVSegOk.push_back(aSeg);
+	      }
 	  }
      }
 
-     if (aVPlane.size() >= 3)
+     int aNbPl = aVPlane.size();
+     if (aNbPl>=3)
      {
 	 cSegmentCompiled<tREAL8,3> aWire = cPlane3D::InterPlane(aVPlane);
+	 cWeightAv<tREAL8> aWGr;
+	 cWeightAv<tREAL8> aWPix;
 	 for (size_t aKC=0 ; aKC<aVCamOk.size() ; aKC++)
 	 {
              cSensorCamPC * aCam = aVCamOk[aKC];
              cPerspCamIntrCalib * aCalib = aCam->InternalCalib();
-             cPt2dr aPIm1 =  aVSegOk[aKC].P1();
-             cPt2dr aPIm2 =  aVSegOk[aKC].P2();
 	     int aNbSeg = 5;
 
-	     cPt2dr  aPU1 = aCalib->Undist(aPIm1);
-	     cPt2dr  aPU2 = aCalib->Undist(aPIm2);
-	     cSegment2DCompiled aSegU(aPU1,aPU2);
 
 	     for (int aKS=0 ; aKS<=aNbSeg ; aKS++)
 	     {
-		  tREAL8 aW1 = 1.0 - aKS/tREAL8(aNbSeg); 
-
-		  cPt2dr aPU = aPU1 * aW1 + aPU2 * (1-aW1);
-
-		  cPt2dr aPIm = aCalib->Redist(aPU);
-                  cSegmentCompiled<tREAL8,3> aBundIm = aCam->Image2Bundle(aPIm);
-                  cPt3dr  aPWire =  BundleInters(aWire,aBundIm,1.0);
-
-		  cPt2dr aProjW = aCam->Ground2Image(aPWire);
-		  cPt2dr aPUW = aCalib->Undist(aProjW);
-
-	          StdOut() << "DIST3 "  << aBundIm.Dist(aPWire) 
-			  << " DistPix=" << Norm2(aProjW-aPIm)  
-			  << " Prof "  << Norm2(aPWire-aCam->Center())
-			  << " DistUPix=" << aSegU.DistLine(aPUW)
-			  << "\n";
+		  cPt2dr aPIm = aCalib->InterpolOnUDLine(aVSegOk[aKC],aKS/tREAL8(aNbSeg));
+		  aWGr.Add(1.0,aCam->GroundDistBundleSeg(aPIm,aWire));
+		  aWPix.Add(1.0,aCam->PixDistBundleSeg(aPIm,aWire));
 	     }
-	     /*
-		
-			     cSegmentCompiled<tREAL8,3> aB1 = aVCamOk[aKC]->Image2Bundle( aVSegOk[aKC].P1());
-             cPt3dr  aPW1 =  BundleInters(aWire,aB1,1.0);
-
-             cSegmentCompiled<tREAL8,3> aB2 = aVCamOk[aKC]->Image2Bundle( aVSegOk[aKC].P2());
-             cPt3dr  aPW2 =  BundleInters(aWire,aB2,1.0);
-
-	     StdOut() << "DIST "  << aB1.Dist(aPW1) << " " << aB2.Dist(aPW2) << "\n";
-
-	     cPt2dr aProjW1 = 
-	     */
-
 	 }
-     }
-      
+	 tREAL8 aRatio = aNbPl /(aNbPl-2.0);
 
-     StdOut() << "NBPL " << aVPlane.size() << "\n";
+         StdOut()     << " DIST3="  <<  aWGr.Average() * aRatio
+                      << " DDDDd= " << aWPix.Average() * aRatio
+		      << " NBPL = " << aNbPl 
+		      << " RATIO="  << aRatio
+                      << "\n";
+     }
+}
+
+typedef std::pair<cSensorCamPC *,cMesIm1Pt> tPairCamPt;
+
+
+void cAppli_Wire3DInit::TestPoint3D(const std::vector<cSensorCamPC *> & aVCam)
+{
+     std::map<std::string,std::list<tPairCamPt>> aMapMatch;
+
+     for (const auto & aCam : aVCam)
+     {
+	  cSetMesPtOf1Im  aSet = mPhProj.LoadMeasureIm(aCam->NameImage());
+
+	  for (const auto & aMes : aSet.Measures())
+	  {
+              if (!starts_with( aMes.mNamePt,MMVII_NONE))
+	      {
+		      aMapMatch[aMes.mNamePt].push_back(tPairCamPt(aCam,aMes));
+	      }
+	  }
+	  // StdOut()  << "IM="  << aSet.NameIm() << " Nb=" << aSet.Measures().size() << "\n";
+     }
+
+     for (const auto & [aStr,aList] : aMapMatch )
+     {
+         if (aList.size() > 2) 
+         {
+	     StdOut() << " NAME=" << aStr << " " << aList.size() << "\n";
+             std::vector<tSeg3dr> aVSeg;
+	     for (const auto & [aCam,aMes] : aList)
+	     {
+                 aVSeg.push_back(aCam->Image2Bundle(aMes.mPt));
+	     }
+	     cPt3dr aPG =   BundleInters(aVSeg);
+	     for (const auto & [aCam,aMes] : aList)
+	     {
+                 cPt2dr aPProj = aCam->Ground2Image(aPG);
+		 StdOut() << " DDDD = " << Norm2(aMes.mPt-aPProj) << "\n";
+	     }
+         }
+     }
+		  
 }
 
 
-void cAppli_Wire3DInit::MakeOneIm(const std::string & aNameIm)
+void cAppli_Wire3DInit::MakeOneBloc(const std::vector<cSensorCamPC *> & aVCam)
 {
-     std::string anIdBloc = mTheBloc->IdBloc(aNameIm);
-     std::string anIdSync = mTheBloc->IdSync(aNameIm);
-     cBlocOfCamera::tMapStrPoseUK& aMap = mTheBloc-> MapStrPoseUK();
-
-     StdOut() << "NBCAM="  << aNameIm 
-	     << "  IdBloc=" << anIdBloc
-	     << "  IdSync=" << anIdSync
-	     << "  Size=" << aMap.size()
-	     << "\n";
-
-
-     std::vector<cSensorCamPC *>  aVCam;
-     for (const auto & [aNameBl,aPoseUK] : aMap)
-     {
-         std::string aNameIm = mTheBloc->Ids2Image(aNameBl,anIdSync);
-         cPerspCamIntrCalib *  aIntr = mPhProj.InternalCalibFromImage(aNameIm);
-	 aVCam.push_back(new cSensorCamPC (aNameIm,aPoseUK.Pose(),aIntr));
-     }
-
      TestWire3D(aVCam);
-
-     DeleteAllAndClear(aVCam);
-
-     StdOut() << "\n";
+     // TestPoint3D(aVCam);
 }
 
 int cAppli_Wire3DInit::Exe()
@@ -220,11 +217,12 @@ int cAppli_Wire3DInit::Exe()
     MMVII_INTERNAL_ASSERT_tiny(mListBloc.size()==1,"Number of bloc ="+ ToStr(mListBloc.size()));
 
     mTheBloc = *(mListBloc.begin());
-    for (const auto & aNameIm : VectMainSet(0))
+    std::vector<std::vector<cSensorCamPC *>>  aVVC = (*(mListBloc.begin()))->GenerateOrientLoc(mPhProj,VectMainSet(0));
+
+    for (auto & aVC : aVVC)
     {
-        MakeOneIm(aNameIm);
-        // cSensorCamPC * aCam = 
-        // mTheBloc->
+        MakeOneBloc(aVC);
+        DeleteAllAndClear(aVC);
     }
 
     DeleteAllAndClear(mListBloc);

@@ -616,6 +616,37 @@ void cBlocOfCamera::TestReadWrite(bool OmitDel) const
          delete aB2;
 }
 
+
+std::vector<std::vector<cSensorCamPC *>>
+        cBlocOfCamera::GenerateOrientLoc
+        (
+             const cPhotogrammetricProject & aPhProj,
+             const std::vector<std::string> & aVNameIm
+        )  const
+{
+    std::vector<std::vector<cSensorCamPC *>> aRes;
+    std::set<std::string>  aSetIdSync;
+    for (const auto & aNameIm0 : aVNameIm)
+    {
+        std::string anIdSync = IdSync(aNameIm0);
+        if (! MapBoolFind(aSetIdSync,anIdSync))
+        {
+            aSetIdSync.insert(anIdSync);
+            aRes.push_back(std::vector<cSensorCamPC *>());
+            for (const auto & [aNameBl,aPoseUK] :  mData.mMapPoseUKInBloc)
+            {
+                std::string aNameIm = Ids2Image(aNameBl,anIdSync);
+                cPerspCamIntrCalib *  aIntr = aPhProj.InternalCalibFromImage(aNameIm);
+                aRes.back().push_back(new cSensorCamPC (aNameIm,aPoseUK.Pose(),aIntr));
+            }
+        }
+    }
+
+    return aRes;
+}
+
+
+
 /* ==================================================== */
 /*                                                      */
 /*          cAppli_CalibratedSpaceResection             */

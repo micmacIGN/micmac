@@ -126,7 +126,7 @@ class cOneLevel
        std::string  NameClipDirTmp(const cPt2di & aInd) const;  ///< Directory tmp for cliped match
 
        // =========== Inline Definition ========
-       cDataFileIm2D  DFI()   const {return cDataFileIm2D::Create(mNameIm,false);}
+       cDataFileIm2D  DFI()   const {return cDataFileIm2D::Create(mNameIm,eForceGray::No);}
        cBox2di        BoxIm() const {return cBox2di(DFI().Sz());}
        std::string NameImOrMasq(bool ModeIm) const {return ModeIm ?mNameIm : mNameMasq;}
        int         Level() const {return mLevel;}
@@ -316,7 +316,7 @@ cOneLevel::cOneLevel(cOneIm &anIm,int aLevel) :
 
 void  cOneLevel::MakeImPx()
 {
-   cDataFileIm2D aDataIm = cDataFileIm2D::Create(mNameIm,false);
+   cDataFileIm2D aDataIm = cDataFileIm2D::Create(mNameIm,eForceGray::No);
    cDataFileIm2D::Create(mNamePx,eTyNums::eTN_REAL4,aDataIm.Sz());
 }
 
@@ -406,13 +406,13 @@ void cOneLevel::SaveGlobPx(const cParam1Match & aParam) const
    cIm2D<tREAL4>  aImClipPx(aParam.mBoxOut.Sz());
    cPt2di aDecInOut = aParam.mBoxOut.P0()-aParam.mBoxIn1.P0();
 
-   aImClipPx.Read(cDataFileIm2D::Create(NameClipPx(aParam.mIndex),false),aDecInOut);
+   aImClipPx.Read(cDataFileIm2D::Create(NameClipPx(aParam.mIndex),eForceGray::No),aDecInOut);
    cDataIm2D<tREAL4> & aDIm = aImClipPx.DIm();
    for (const auto & aP : aDIm)
    {
         aDIm.AddVal(aP, aParam.mOffsetPx);
    }
-   aImClipPx.Write(cDataFileIm2D::Create(mNamePx,false),aParam.mBoxOut.P0());
+   aImClipPx.Write(cDataFileIm2D::Create(mNamePx,eForceGray::No),aParam.mBoxOut.P0());
 }
 
 void cOneLevel::EstimateIntervPx
@@ -440,8 +440,8 @@ void cOneLevel::EstimateIntervPx
 
       // Be inialized with def values
 
-      cDataFileIm2D aRedFilePx   = cDataFileIm2D::Create(mDownLev->mNamePx,false);
-      cDataFileIm2D aRedFileMasq = cDataFileIm2D::Create(mDownLev->mNameMasq,false);
+      cDataFileIm2D aRedFilePx   = cDataFileIm2D::Create(mDownLev->mNamePx,eForceGray::No);
+      cDataFileIm2D aRedFileMasq = cDataFileIm2D::Create(mDownLev->mNameMasq,eForceGray::No);
 
 
       // Box of Im1, of reduced size, include in reduce file
@@ -579,7 +579,7 @@ cOneIm::cOneIm
    mIsIm1       (IsIm1),
    mNameIm      (aNameIm),
    mNameMasq    (V1NameMasqOfIm(mNameIm)), // Assume MMV1 convention, to see later
-   mPFileImFull (cDataFileIm2D::Create(mAppli.DirProject()+mNameIm,false))
+   mPFileImFull (cDataFileIm2D::Create(mAppli.DirProject()+mNameIm,eForceGray::No))
 {
 }
 

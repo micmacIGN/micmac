@@ -83,8 +83,8 @@ class cAppliFillCubeCost : public cAppliLearningMatch
         const std::string   & NameI1() const {return mNameI1;}  ///< Accessor
         const std::string   & NameI2() const {return mNameI2;}  ///< Accessor
 
-	cBox2di BoxFile1() const {return cDataFileIm2D::Create(mNameI1,false);}
-	cBox2di BoxFile2() const {return cDataFileIm2D::Create(mNameI2,false);}
+	cBox2di BoxFile1() const {return cDataFileIm2D::Create(mNameI1,eForceGray::No);}
+	cBox2di BoxFile2() const {return cDataFileIm2D::Create(mNameI2,eForceGray::No);}
 
 	int  SzW() const {return mSzW;}
 	bool InterpolLearn() const {return mInterpolLearn;}
