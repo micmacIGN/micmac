@@ -2,11 +2,11 @@
   "dependencies": [
     {
       "name": "proj",
-      "version": "9.4.1"
+      "version>=": "9.4.1"
     },
     {
       "name": "gdal",
-      "version>=" : "3.4"
+      "version>=" : "3.4.1"
     }
   ],
   "features": {
