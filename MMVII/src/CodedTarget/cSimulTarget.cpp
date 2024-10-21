@@ -63,7 +63,7 @@ void AddData(const  cAuxAr2007 & anAux,cGeomSimDCT & aGSD)
 /*  *********************************************************** */
 
 cResSimul::cResSimul() :
-    mRayMinMax (15.0,60.0),
+    mRadiusMinMax (15.0,60.0),
     mBorder    (1.0),
     mRatioMax  (3.0)
 {
@@ -71,7 +71,7 @@ cResSimul::cResSimul() :
 
 double cResSimul::BorderGlob() const
 {
-    return mBorder * mRayMinMax.y();
+    return mBorder * mRadiusMinMax.y();
 }
 
 void AddData(const  cAuxAr2007 & anAux,cResSimul & aRS)
@@ -79,7 +79,7 @@ void AddData(const  cAuxAr2007 & anAux,cResSimul & aRS)
    // Modif MPD, know that commande are quoted, they cannot be used as tag =>  "MMVII  "toto" "b=3" " => PB!!
    //  MMVII::AddData(cAuxAr2007("Com",anAux),aRS.mCom);
    anAux.Ar().AddComment(aRS.mCom);
-   MMVII::AddData(cAuxAr2007("RayMinMax",anAux),aRS.mRayMinMax);
+   MMVII::AddData(cAuxAr2007("RadiusMinMax",anAux),aRS.mRadiusMinMax);
    MMVII::AddData(cAuxAr2007("RatioMax",anAux),aRS.mRatioMax);
    MMVII::AddData(cAuxAr2007("Geoms",anAux),aRS.mVG);
 }
@@ -128,7 +128,7 @@ class cAppliSimulCodeTarget : public cMMVII_Appli
         void  IncrustTarget(cGeomSimDCT & aGSD);
 
 	/// return a random value in the specified interval 
-	double RandomRay() const;
+	double RandomRadius() const;
 
 
         cPhotogrammetricProject     mPhProj;
@@ -194,7 +194,7 @@ cCollecSpecArg2007 & cAppliSimulCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt
    return
 	        anArgOpt
              <<  mPhProj.DPPointsMeasures().ArgDirOutOptWithDef("Simul")
-             <<   AOpt2007(mRS.mRayMinMax,"Rays","Min/Max ray for gen target",{eTA2007::HDV})
+             <<   AOpt2007(mRS.mRadiusMinMax,"Radius","Min/Max radius for gen target",{eTA2007::HDV})
              <<   AOpt2007(mPatternNames,"PatNames","Pattern for selection of names",{eTA2007::HDV})
              <<   AOpt2007(mSzKernel,"SzK","Sz of Kernel for interpol",{eTA2007::HDV})
              <<   AOpt2007(mRS.mBorder,"Border","Border w/o target, prop to R Max",{eTA2007::HDV})
@@ -206,7 +206,7 @@ cCollecSpecArg2007 & cAppliSimulCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt
    ;
 }
 
-double cAppliSimulCodeTarget::RandomRay() const { return RandInInterval(mRS.mRayMinMax.x(),mRS.mRayMinMax.y());}
+double cAppliSimulCodeTarget::RandomRadius() const { return RandInInterval(mRS.mRadiusMinMax.x(),mRS.mRadiusMinMax.y());}
 
 
 
@@ -217,9 +217,9 @@ void   cAppliSimulCodeTarget::AddPosTarget(const cOneEncoding & anEncod)
      for (int aK=0 ; aK< 200 ; aK++)
      {
         cPt2dr  aC = aBoxGenerate.GeneratePointInside(); // generat a random point inside the box
-        //  Compute two random ray in the given interval
-        double  aR1 = RandomRay() ;
-        double  aR2 = RandomRay() ;
+        //  Compute two random radii in the given interval
+        double  aR1 = RandomRadius() ;
+        double  aR2 = RandomRadius() ;
 	OrderMinMax(aR1,aR2);  //   assure  aR1 <= aR2
 
         // assure that  R2/R1 <= RatioMax

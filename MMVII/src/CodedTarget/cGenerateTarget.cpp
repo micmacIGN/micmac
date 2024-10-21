@@ -165,9 +165,9 @@ void cParamCodedTarget::AddData(const cAuxAr2007 & anAuxParam)
     MMVII::AddData(cAuxAr2007("ZeroIsBackGround",anAux),mZeroIsBackGround);
     MMVII::AddData(cAuxAr2007("AntiClockWiseBit",anAux),mAntiClockWiseBit);
 
-    MMVII::AddData(cAuxAr2007("RayOrientTablet",anAux),mRayOrientTablet);
+    MMVII::AddData(cAuxAr2007("RayOrientTablet",anAux),mRadiusOrientTablet);
     MMVII::AddData(cAuxAr2007("CenterOrientTablet",anAux),mCenterOrientTablet);
-    MMVII::AddData(cAuxAr2007("RayCenterMiniTarget",anAux),mRayCenterMiniTarget);
+    MMVII::AddData(cAuxAr2007("RayCenterMiniTarget",anAux),mRadiusCenterMiniTarget);
 
      if (anAux.Input())
 	Finish();
@@ -221,9 +221,9 @@ cParamCodedTarget::cParamCodedTarget(int aNbPixBin) :
    mWhiteBackGround  (true),
    mZeroIsBackGround (true),
    mAntiClockWiseBit (true),
-   mRayOrientTablet     (-1),
+   mRadiusOrientTablet     (-1),
    mCenterOrientTablet  (0,0),
-   mRayCenterMiniTarget (-1),
+   mRadiusCenterMiniTarget (-1),
    mModeFlight       (false),  // MPD => def value was not initialized ?
    mCBAtTop          (false),//
    mDecP             ({1,1})  // "Fake" init 4 now
@@ -253,7 +253,7 @@ void cParamCodedTarget::FinishInitOfSpec(const cSpecBitEncoding & aSpec)
        anAppli.SetIfNotInit(mThickN_Car,0.3);
        anAppli.SetIfNotInit(mChessboardAng,-M_PI/4.0);
 
-       anAppli.SetIfNotInit(mRayOrientTablet,0.1);
+       anAppli.SetIfNotInit(mRadiusOrientTablet,0.1);
        anAppli.SetIfNotInit(mCenterOrientTablet,cPt2dr(0.7,0));
    }
    else if (aSpec.mType==eTyCodeTarget::eCERN)
@@ -668,10 +668,10 @@ cCodedTargetPatternIm::cCodedTargetPatternIm(cFullSpecifTarget & aSpec) :
      mTeta0      (mRender.mChessboardAng),
      mRhoC       (mRender.mRho_0_EndCCB),
      mRho2C      (Square(mRhoC)),
-     mWOriTab    (mRender.mRayOrientTablet >0),
-     mRayOT      (mRender.mRayOrientTablet),
+     mWOriTab    (mRender.mRadiusOrientTablet >0),
+     mRayOT      (mRender.mRadiusOrientTablet),
      mCenterOT   (mRender.mCenterOrientTablet * FromPolar(1.0,(M_PI/4.0+mTeta0))),
-     mRayCT      (mRender.mRayCenterMiniTarget),
+     mRayCT      (mRender.mRadiusCenterMiniTarget),
      mRay2CT     (Square(mRayCT))
 {
     mDIC.InitCste(tElem(eLPT::eBackGround));
@@ -1078,7 +1078,7 @@ cCollecSpecArg2007 & cAppliGenCodedTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return anArgOpt
           << AOpt2007(mPatternDoImage,"PatIm","Pattern for generating image (def no generation)")
-          << AOpt2007(mPCT.mRayCenterMiniTarget,"RayMCT","Rayon \"mini\" center target (for topo)",{eTA2007::HDV})
+          << AOpt2007(mPCT.mRadiusCenterMiniTarget,"RayMCT","Rayon \"mini\" center target (for topo)",{eTA2007::HDV})
           // << AOpt2007(mPCT.mNbBit,"NbBit","Nb Bit printed",{eTA2007::HDV})
           // << AOpt2007(mPCT.mWithParity,"WPar","With parity bit",{eTA2007::HDV})
           << AOpt2007(mPCT.mThickN_WInt,"ThW0","Thickness of interior white circle",{eTA2007::HDV})
@@ -1089,7 +1089,7 @@ cCollecSpecArg2007 & cAppliGenCodedTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt)
           << AOpt2007(mPCT.mChessboardAng,"Theta","Origin angle of chessboard pattern ",{eTA2007::HDV})
           << AOpt2007(mPCT.mWhiteBackGround,"WhiteBG","White back ground")
           << AOpt2007(mPCT.mModeFlight,"ModeFlight","Special mode for Patricio ",{eTA2007::HDV})
-	  << AOpt2007(mPCT.mRayOrientTablet,"SzOrFig","Size of \"diamond\" for orientation")
+	  << AOpt2007(mPCT.mRadiusOrientTablet,"SzOrFig","Size of \"diamond\" for orientation")
           << AOpt2007(mDoMarkC,"MarkC","Mark center of bits, just for verif ",{eTA2007::HDV,eTA2007::Tuning})
           << AOpt2007(mZoomShow,"ZoomShow","Zoom to generate a high resolution check images",{eTA2007::Tuning})
           << AOpt2007(mNbPixBin,"NbPixBin","Size of binary image when printing",{eTA2007::HDV})

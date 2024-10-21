@@ -166,7 +166,7 @@ class cResSimul
 
        double BorderGlob() const ;
        std::string                mCom;  ///< Command used to create the file
-       cPt2dr                     mRayMinMax;
+       cPt2dr                     mRadiusMinMax;
        double                     mBorder;
        double                     mRatioMax;
        std::vector<cGeomSimDCT>   mVG;
@@ -315,19 +315,19 @@ class cParamCodedTarget : public cMemCheck
        bool      mAntiClockWiseBit;        ///< Do  growin bits go in trigonometric sens (!  visuel repair is clokwise)
 
 
-       double    mRayOrientTablet;    
+       double    mRadiusOrientTablet;
        tPt2dr    mCenterOrientTablet;
-       double    mRayCenterMiniTarget;
+       double    mRadiusCenterMiniTarget;
 
        bool mModeFlight;  // Special mode for Patricio
        bool mCBAtTop;     // mean Check board at top (initial drone)			  
        // bool mCodeCirc;  // Special mode for Patricio
        double          mRho_0_EndCCB;// End of Central CB , here Rho=ThickN ...
-       double          mRho_1_BeginCode;// ray where begins the coding stuff
-       double          mRho_2_EndCode;// ray where begins the coding stuff
-       double          mRho_3_BeginCar;// ray where begins the coding stuff
-       double          mRho_4_EndCar;  // ray where begins the coding stuff
-       double          mRho_EndIm;  // ray where begins the coding stuff
+       double          mRho_1_BeginCode;// radius where begins the coding stuff
+       double          mRho_2_EndCode;// radius where begins the coding stuff
+       double          mRho_3_BeginCar;// radius where begins the coding stuff
+       double          mRho_4_EndCar;  // radius where begins the coding stuff
+       double          mRho_EndIm;  // radius where begins the coding stuff
        double          mSignAngle;
 
        cPt2di    mSzBin;
@@ -392,9 +392,9 @@ class cFullSpecifTarget : public cMemCheck
          const  std::string &     Prefix()    const;  ///< Prefix used in name-generation
 	 size_t MinHammingD() const;       ///<  Number of bits
          tREAL8 Rho_0_EndCCB() const;      /// End of Central Checkboard
-         tREAL8 Rho_1_BeginCode() const;   /// ray where begins the coding stuff
-         tREAL8 Rho_2_EndCode() const;     /// ray where ends the coding stuff
-         tREAL8 Rho_3_BeginCar() const;    /// ray where ends margin after coding (and possibly carac)
+         tREAL8 Rho_1_BeginCode() const;   /// radius where begins the coding stuff
+         tREAL8 Rho_2_EndCode() const;     /// radius where ends the coding stuff
+         tREAL8 Rho_3_BeginCar() const;    /// radius where ends margin after coding (and possibly carac)
 
 
 	 bool BitIs1(bool IsWhite) const;
