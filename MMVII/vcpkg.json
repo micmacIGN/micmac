@@ -1,6 +1,13 @@
 {
   "dependencies": [
-    "proj"
+    {
+      "name": "proj",
+      "version>=": "9.4.1"
+    },
+    {
+      "name": "gdal",
+      "version>=" : "3.4.1"
+    }
   ],
   "features": {
     "vmmvii": {

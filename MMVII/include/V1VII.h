@@ -30,9 +30,6 @@ template <class Type> std::string ToStrComMMV1(const cTplBox<Type,2> & aBox)
 
 
 
-GenIm::type_el ToMMV1(eTyNums aV2);
-eTyNums ToMMVII( GenIm::type_el );
-
 void ExportHomMMV1(const std::string & aIm1,const std::string & aIm2,const std::string & SH,const std::vector<cPt2di> & aVP);
 void ExportHomMMV1(const std::string & aIm1,const std::string & aIm2,const std::string & SH,const std::vector<cPt2dr> & aVP);
 
@@ -40,7 +37,7 @@ void MakeStdIm8BIts(cIm2D<tREAL4> aImIn,const std::string& aName);
 
 
 
-
+//FIXME CM->MPD: Must replace cMMV1_Conv::ImToMMV1
 template <class Type> class cMMV1_Conv
 {
     public :
@@ -55,7 +52,7 @@ template <class Type> class cMMV1_Conv
         return   tImMMV1(aDL,nullptr,aImV2.Sz().x(),aImV2.Sz().y());
      };
 
-
+#ifdef MMVII_KEEP_MMV1_IMAGE
      // For gray level
      static void ReadWrite(bool ReadMode,const tImMMVII &aImV2,const cDataFileIm2D & aDF,const cPt2di & aP0File,double aDyn,const cRect2& aR2Init);
 
@@ -64,6 +61,7 @@ template <class Type> class cMMV1_Conv
    private :
      // Generik function, real implemantation
      static void ReadWrite(bool ReadMode,const std::vector<const tImMMVII*>& ,const cDataFileIm2D &aDF,const cPt2di & aP0File,double aDyn,const cRect2& aR2Init);
+#endif
 };
 
 std::string V1NameMasqOfIm(const std::string & aName);

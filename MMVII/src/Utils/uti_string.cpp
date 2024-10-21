@@ -666,6 +666,17 @@ bool starts_with(const std::string & aFullStr,const std::string & aPrefix)
     return anItPref==aPrefix.end();
 }
 
+bool ends_with(const std::string & aFullStr,const std::string & aEnding)
+{
+    if (aFullStr.size() < aEnding.size())
+        return false;
+    auto it = aEnding.begin();
+    return std::all_of(std::next(aFullStr.begin(),aFullStr.size()-aEnding.size()), aFullStr.end(),
+                       [&it](const char& c) { return c == *(it++);});
+
+}
+
+
 bool contains(const std::string & aFullStr,char aC)
 {
 	return aFullStr.find(aC) != std::string::npos;
