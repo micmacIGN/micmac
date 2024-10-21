@@ -14,10 +14,18 @@ eigen ...
 using namespace MMVII;
 
 
+#ifdef MMVII_KEEP_MMV1_IMAGE
+static const char* ENV_MMVII_USE_MMV1_IMAGE = "MMVII_USE_MMV1_IMAGE";
+extern bool mmvii_use_mmv1_image;
+#endif
+
+
 
 int main(int argc, char ** argv)
 {
-
+#ifdef MMVII_KEEP_MMV1_IMAGE
+    bool mmvii_use_mmv1_image = ( getenv(ENV_MMVII_USE_MMV1_IMAGE) != nullptr );
+#endif
 
    std::setlocale(LC_ALL, "C");
    // std::setlocale(LC_ALL, "en_US.UTF-8");
@@ -59,6 +67,14 @@ int main(int argc, char ** argv)
    {
       StdOut()  << aSpec->Name() << " => " << aSpec->Comment() << std::endl;
    }
+
+#ifdef MMVII_KEEP_MMV1_IMAGE
+   StdOut()
+       << "\n"
+       << " >>> MMVII is using " << (mmvii_use_mmv1_image ? "MicMac v1" : "GDal") << " to read/write image file.\n"
+       << " >>> (Env var '" << ENV_MMVII_USE_MMV1_IMAGE << "' is " << (mmvii_use_mmv1_image ? "" : "not ") << " set)" << std::endl;
+#endif
+
    return EXIT_SUCCESS;
 }
 
