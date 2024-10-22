@@ -13,11 +13,11 @@
 
 using namespace MMVII;
 
-namespace{ // Private
-
 #ifdef MMVII_KEEP_MMV1_IMAGE
 bool mmvii_use_mmv1_image=false;
 #endif   
+
+namespace{ // Private
 
    eTyNums TyGdalToMMVII( GDALDataType aType )
    {
@@ -60,7 +60,25 @@ bool mmvii_use_mmv1_image=false;
       }
       return GDT_Unknown ;
    }
-
+   
+   // Global GDal Error Handler. Not multithread safe !
+   // Avoid printing of error message => each API call must test and handle error case.
+   void GDalErrorHandler(CPLErr aErrorCat, CPLErrorNum aErrorNum, const char *aMesg)
+   {
+       if (aErrorCat == CE_Fatal) {
+           MMVII_INTERNAL_ERROR("GDal fatal Error #" + std::to_string(aErrorNum) + ": " +aMesg);
+       }
+   }
+   
+   void InitGDAL()
+   {
+       static bool isGdalInitialized = false;
+       if (isGdalInitialized)
+           return;
+       GDALAllRegister();
+       CPLSetErrorHandler(GDalErrorHandler);
+       isGdalInitialized = true;
+   }
 
    std::string ExtToGdalDriver( std::string aName )
    {
@@ -75,10 +93,12 @@ bool mmvii_use_mmv1_image=false;
          return "";
    }
 
-
+   // Return nullptr if error
    GDALDataset * OpenDataset(std::string aName)
    {
-      return GDALDataset::FromHandle(GDALOpen( aName.c_str(), GA_Update ));
+       auto aHandle = GDALOpen( aName.c_str(), GA_Update );
+       auto aDataSet = GDALDataset::FromHandle(aHandle);
+       return aDataSet;
    }
    
    void CloseDataset(GDALDataset *aGdalDataset)
@@ -269,7 +289,7 @@ cDataFileIm2D::cDataFileIm2D(const std::string & aName,eTyNums aType,const cPt2d
 }
 
 
-
+// FIXME CM: check Empty is correctly handled (Read, write ...)
 cDataFileIm2D cDataFileIm2D::Empty()
 {
    return cDataFileIm2D( MMVII_NONE, eTyNums::eNbVals, cPt2di(1,1), -1,eForceGray::No);
@@ -304,8 +324,12 @@ cDataFileIm2D cDataFileIm2D::Create(const std::string & aName,eForceGray isFG)
 #endif
     // Open a first time with gdal to have access to metadata and then to create a cDataFileIm2D object
     // FIXME CM: handle error case (OpenDataSet)
-    GDALAllRegister();
+    InitGDAL();
     auto aDataset = OpenDataset(aName);
+    if (aDataset == nullptr) {
+        MMVII_UserError(eTyUEr::eOpenFile,std::string("Can't open image file: ") + CPLGetLastErrorMsg());
+        return Empty();
+    }
     cPt2di aSz = cPt2di(aDataset->GetRasterXSize(), aDataset->GetRasterYSize());
     auto aNbChannel = aDataset->GetRasterCount();
     auto aType = TyGdalToMMVII( aDataset->GetRasterBand( 1 )->GetRasterDataType());
@@ -354,8 +378,7 @@ cDataFileIm2D  cDataFileIm2D::Create(const std::string & aName,eTyNums aType,con
       MMVII_INTERNAL_ASSERT_strong(false,"Incoherent channel number");
    } 
 
-   // Create a driver
-   GDALAllRegister();
+   InitGDAL();
    auto pszFormat = ExtToGdalDriver(aName);
    //FIXME CM: Test return value !
    GDALDriver *aGDALDriver = GetGDALDriverManager()->GetDriverByName(pszFormat.c_str());

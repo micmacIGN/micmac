@@ -24,7 +24,7 @@ extern bool mmvii_use_mmv1_image;
 int main(int argc, char ** argv)
 {
 #ifdef MMVII_KEEP_MMV1_IMAGE
-    bool mmvii_use_mmv1_image = ( getenv(ENV_MMVII_USE_MMV1_IMAGE) != nullptr );
+    mmvii_use_mmv1_image = ( getenv(ENV_MMVII_USE_MMV1_IMAGE) != nullptr );
 #endif
 
    std::setlocale(LC_ALL, "C");
