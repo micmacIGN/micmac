@@ -203,6 +203,10 @@ double RandInInterval(double a,double b)
    return b+ (a-b) * RandUnif_0_1() ;
 }
 
+double RandInInterval(const cPt2dr &interval)
+{
+    return RandInInterval(interval.x(), interval.y());
+}
 
 double RandUnif_C_NotNull(double aEps)
 {
