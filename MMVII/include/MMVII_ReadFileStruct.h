@@ -29,17 +29,19 @@ class cNRFS_ParamRead
 {
      public :
 	 cNRFS_ParamRead();
-	 cNRFS_ParamRead(int aL0,int aLast,char aComment);
+	 cNRFS_ParamRead(int aL0,int aLast,char aComment,bool noDupL=false);
 
 	 int  L0()      const;
 	 int  LLast()   const;
 	 char Comment() const;
+         bool NoDupLine() const;
 
 	 void   AddArgOpt(cCollecSpecArg2007 &);
      private :
          int    mL0;
          int    mLLast;
          char   mComment;
+         bool   mNoDupLine;
 };
 
 

@@ -54,6 +54,7 @@ class cAppli_ImportLines : public cMMVII_Appli
 	std::string              mNameWidth;
 	std::string              mSpecFormatMand;
 	std::string              mSpecFormatTot;
+        cPt2dr                   mOffset;
 
 };
 
@@ -68,7 +69,8 @@ cAppli_ImportLines::cAppli_ImportLines(const std::vector<std::string> & aVArgs,c
    mNameSigma      ("Sigma"),
    mNameWidth      ("Width"),
    mSpecFormatMand (mNameIm+mNameX1+mNameY1+mNameX2+mNameY2),
-   mSpecFormatTot  (mSpecFormatMand+"/"+mNameSigma +mNameWidth)
+   mSpecFormatTot  (mSpecFormatMand+"/"+mNameSigma +mNameWidth),
+   mOffset         (0,0)
 {
 	// std::map<std::string,int>  aMap{{"2",2}};
 }
@@ -89,6 +91,8 @@ cCollecSpecArg2007 & cAppli_ImportLines::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
     return    anArgOpt
            << mPhProj.ArgSysCo()
+           << AOpt2007(mOffset,"Offset","Offset to add to pixels",{eTA2007::HDV})
+
     ;
 }
 
@@ -116,8 +120,8 @@ int cAppli_ImportLines::Exe()
 
 	 //  Add a new line
          cOneLineAntiParal aLine;
-         cPt2dr aP1=aNRFS.GetPt2dr(aK,mNameX1,mNameY1);
-         cPt2dr aP2=aNRFS.GetPt2dr(aK,mNameX2,mNameY2);
+         cPt2dr aP1=aNRFS.GetPt2dr(aK,mNameX1,mNameY1) + mOffset;
+         cPt2dr aP2=aNRFS.GetPt2dr(aK,mNameX2,mNameY2) + mOffset;
 
 	 if (aP1.x() > -100)  // CERN CONVENTION FOR FALSE SEG
 	 {

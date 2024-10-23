@@ -447,6 +447,30 @@ void cSetMesPtOf1Im::AddMeasure(const cMesIm1Pt & aMeasure)
      mMeasures.push_back(aMeasure);
 }
 
+
+void cSetMesPtOf1Im::AddSetMeasure(const cSetMesPtOf1Im & aSet,bool SuprNone,bool OkDupl)
+{
+    MMVII_INTERNAL_ASSERT_tiny(mNameIm==aSet.mNameIm,"Mix different images in AddSetMeasure " + mNameIm + "!=" + aSet.mNameIm);
+
+    for (const auto & aMes : aSet.mMeasures)
+    {
+         if (NameHasMeasure(aMes.mNamePt))
+         {
+             if (! OkDupl)
+             {
+                 MMVII_INTERNAL_ERROR("Non autorize duplicate name for Im=" + mNameIm + " Pt=" +aMes.mNamePt);
+             }
+         }
+         else
+         {
+             if ((!SuprNone) || (!starts_with(aMes.mNamePt,MMVII_NONE)) )
+                mMeasures.push_back(aMes);
+         }
+    }
+}
+
+
+
 cMesIm1Pt *  cSetMesPtOf1Im::NearestMeasure(const cPt2dr & aPt) 
 {
    return WhitchMinVect

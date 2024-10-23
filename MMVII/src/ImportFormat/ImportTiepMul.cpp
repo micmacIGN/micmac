@@ -54,6 +54,7 @@ class cAppli_ImportTiePMul : public cMMVII_Appli
         tNameSet                   mSetFilterIm;
 	bool                       mWithImFilter;
 	cMMVII_Ofs *               mFiltFile;
+        cPt2dr                     mOffset;
 
 };
 
@@ -68,7 +69,8 @@ cAppli_ImportTiePMul::cAppli_ImportTiePMul(const std::vector<std::string> & aVAr
    mFileSelIm    ("ImagesWithTieP"),
    mNumByConseq  (false),
    mWithImFilter (false),
-   mFiltFile     (nullptr)
+   mFiltFile     (nullptr),
+   mOffset       (0,0)
 {
 }
 
@@ -97,6 +99,7 @@ cCollecSpecArg2007 & cAppli_ImportTiePMul::ArgOpt(cCollecSpecArg2007 & anArgObl)
             << AOpt2007(mPatIm,"PatIm","Pattern for transforming name [Pat,Replace]",{{eTA2007::ISizeV,"[2,2]"}})
             << AOpt2007(mPatPt,"PatPt","Pattern for transforming/select pt [Pat,Replace] ",{{eTA2007::ISizeV,"[2,2]"}})
             << AOpt2007(mImFilter,"ImFilter","File/Pattern for selecting images")
+            << AOpt2007(mOffset,"Offset","Offset to add to image measures",{eTA2007::HDV})
    ;
    if (mModeTieP)
       return      aRes
@@ -162,7 +165,7 @@ int cAppli_ImportTiePMul::Exe()
                 aNameI = ReplacePattern(mPatIm.at(0),mPatIm.at(1),aNameI);
 
 
-             cPt2dr aP2 = Proj(aVXYZ.at(aK));
+             cPt2dr aP2 = Proj(aVXYZ.at(aK)) + mOffset;
              bool  ImIsSel = true;
              if (mWithImFilter)
                  ImIsSel =  mSetFilterIm.Match(aNameI);

@@ -549,6 +549,9 @@ class cPhotogrammetricProject
 	  void SaveMeasureIm(const cSetMesPtOf1Im & aSetM) const;
 	  ///  Does the measure exist
 	  bool HasMeasureIm(const std::string & aNameIm,bool InDir=true) const;
+          /// Does it exist for a specific folder
+          bool HasMeasureImFolder(const std::string & aFolder,const std::string & aNameIma) const;
+
           /// return from Std Dir, can be out in case of reload
 	  cSetMesPtOf1Im LoadMeasureIm(const std::string &,bool InDir=true) const;
 

@@ -43,7 +43,7 @@ class cHoughPS // : public cMemCheck
 
 	 void Test(const cHoughPS & ) const;
 	 bool Match(const cHoughPS &,bool IsDark,tREAL8 aMaxTeta,tREAL8 aDMin,tREAL8 aDMax) const;
-	 static std::vector<cPt2di> GetMatches(std::vector<cHoughPS>&  mVPS,bool IsLight,tREAL8 aMaxTeta,tREAL8 aDMin,tREAL8 aDMax);
+	 static std::vector<std::pair<int,int>> GetMatches(const std::vector<cHoughPS>&  mVPS,bool IsLight,tREAL8 aMaxTeta,tREAL8 aDMin,tREAL8 aDMax);
 
          void UpdateSegImage(const tSeg & aNewSeg,tREAL8 aNewCumul);
 
@@ -210,6 +210,20 @@ template<class Type> void ComputeDericheAndNorm(cImGradWithN<Type> & aResGrad,co
 
 /**  Class for extracting line using gradient & hough transform*/
 
+enum class eIsWhite
+{
+     Yes,
+     No
+};
+
+enum class eIsQuick
+{
+     Yes,
+     No
+};
+
+template <class Type> bool IsYes(const Type & aVal) {return aVal==Type::Yes;}
+
 template <class Type> class  cExtractLines
 {
       public :
@@ -221,8 +235,12 @@ template <class Type> class  cExtractLines
           cExtractLines(tIm anIm);  ///< constructor , memorize image
           ~cExtractLines();
 
+          // isWhite is necessary for oriented test on max loc
+
 	  /// initialize the gradient
-          void SetDericheGradAndMasq(tREAL8 aAlphaDerich,tREAL8 aRayMaxLoc,int aBorder,bool Show=false);
+          void SetSobelAndMasq(eIsWhite,tREAL8 aRayMaxLoc,int aBorder,bool Show=false);
+          void SetDericheAndMasq(eIsWhite,tREAL8 aAlphaDerich,tREAL8 aRayMaxLoc,int aBorder,bool Show=false);
+
 
 	  ///  Initialize the hough transform
           void SetHough(const cPt2dr & aMulTetaRho,tREAL8 aSigmTeta,cPerspCamIntrCalib *,bool Accurate,bool Show=false);
@@ -241,6 +259,8 @@ template <class Type> class  cExtractLines
 
 
       private :
+          void SetGradAndMasq(eIsQuick Quick,eIsWhite isWhite,tREAL8 aRayMaxLoc,int aBorder,bool Show=false);
+
           cPt2di                mSz;        ///<  Size of the image
           tIm                   mIm;        ///< Memorize the image
           cIm2D<tU_INT1>        mImMasqCont;    ///<  Masq of point selected as contour

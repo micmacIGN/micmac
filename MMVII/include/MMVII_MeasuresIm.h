@@ -98,6 +98,9 @@ class cSetMesPtOf1Im : public cMemCheck
           void AddMeasure(const cMesIm1Pt &);
           void AddData(const  cAuxAr2007 & anAux);
 
+
+          void AddSetMeasure(const cSetMesPtOf1Im &,bool SuprNone,bool OkDupl);
+
 	  void ToFile(const std::string & aNameFile) const;
 	  static std::string StdNameFileOfIm(const std::string &);
 	  std::string StdNameFile() const;

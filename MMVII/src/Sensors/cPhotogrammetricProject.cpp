@@ -748,6 +748,12 @@ bool cPhotogrammetricProject::HasMeasureIm(const std::string & aNameIm,bool InDi
    return ExistFile(NameMeasureGCPIm(aNameIm,InDir));
 }
 
+bool cPhotogrammetricProject::HasMeasureImFolder(const std::string & aFolder,const std::string & aNameIm) const
+{
+     cAutoChgRestoreDefFolder  aCRDF(aFolder,DPPointsMeasures()); // Chg Folder and restore at destruction
+     return HasMeasureIm(aNameIm,true);
+}
+
 
 cSetMesPtOf1Im cPhotogrammetricProject::LoadMeasureIm(const std::string & aNameIm,bool isIn) const
 {

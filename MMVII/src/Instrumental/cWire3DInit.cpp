@@ -43,8 +43,8 @@ class cAppli_Wire3DInit : public cMMVII_Appli
      private :
 	void MakeOneBloc(const std::vector<cSensorCamPC *> &);
 
-        void TestWire3D(const std::vector<cSensorCamPC *> & aVCam);
-        void TestPoint3D(const std::vector<cSensorCamPC *> & aVCam);
+        void TestWire3D(const std::string& anIdSync,const std::vector<cSensorCamPC *> & aVCam);
+        void TestPoint3D(const std::string& anIdSync,const std::vector<cSensorCamPC *> & aVCam);
 
         cPhotogrammetricProject  mPhProj;
 
@@ -52,6 +52,9 @@ class cAppli_Wire3DInit : public cMMVII_Appli
         std::list<cBlocOfCamera *>  mListBloc;
         cBlocOfCamera *             mTheBloc;
 
+        std::string                  mRepW;
+        std::string                  mRepPt;
+        std::string                  mPatNameGCP;
 };
 
 /*
@@ -70,7 +73,10 @@ cAppli_Wire3DInit::cAppli_Wire3DInit
      const cSpecMMVII_Appli & aSpec
 ) :
      cMMVII_Appli  (aVArgs,aSpec),
-     mPhProj       (*this)
+     mPhProj       (*this),
+     mRepW         ("Wire"),
+     mRepPt        ("Pt"),
+     mPatNameGCP   (".*")
 {
 }
 
@@ -89,21 +95,14 @@ cCollecSpecArg2007 & cAppli_Wire3DInit::ArgObl(cCollecSpecArg2007 & anArgObl)
 cCollecSpecArg2007 & cAppli_Wire3DInit::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
 
-    return    anArgOpt
-	    /*
-             << AOpt2007(mNameBloc,"NameBloc","Set the name of the bloc ",{{eTA2007::HDV}})
-             << AOpt2007(mMaster,"Master","Set the name of the master bloc, is user wants to enforce it ")
-             << AOpt2007(mShowByBloc,"ShowByBloc","Show matricial organization by bloc ",{{eTA2007::HDV}})
-             << AOpt2007(mShowBySync,"ShowBySync","Show matricial organization by sync ",{{eTA2007::HDV}})
-             << AOpt2007(mTestRW,"TestRW","Call test en Read-Write ",{{eTA2007::HDV}})
-             << AOpt2007(mTestNoDel,"TestNoDel","Force a memory leak error ",{{eTA2007::HDV}})
-	     */
+    return      anArgOpt
+             << AOpt2007(mPatNameGCP,"PatFiltGCP","Pattern to filter name of GCP",{{eTA2007::HDV}})
     ;
 }
 
 
 
-void cAppli_Wire3DInit::TestWire3D(const std::vector<cSensorCamPC *> & aVCam)
+void cAppli_Wire3DInit::TestWire3D(const std::string & anIdSync,const std::vector<cSensorCamPC *> & aVCam)
 {
 
      std::vector<cPlane3D>  aVPlane;
@@ -130,7 +129,9 @@ void cAppli_Wire3DInit::TestWire3D(const std::vector<cSensorCamPC *> & aVCam)
 	  }
      }
 
+
      int aNbPl = aVPlane.size();
+
      if (aNbPl>=3)
      {
 	 cSegmentCompiled<tREAL8,3> aWire = cPlane3D::InterPlane(aVPlane);
@@ -151,52 +152,66 @@ void cAppli_Wire3DInit::TestWire3D(const std::vector<cSensorCamPC *> & aVCam)
 	     }
 	 }
 	 tREAL8 aRatio = aNbPl /(aNbPl-2.0);
+         tREAL8 aDist3D =  aWGr.Average() * aRatio;
+         tREAL8 aDistPix =  aWPix.Average() * aRatio;
 
-         StdOut()     << " DIST3="  <<  aWGr.Average() * aRatio
-                      << " DDDDd= " << aWPix.Average() * aRatio
+         AddOneReportCSV(mRepW,{anIdSync,ToStr(aNbPl),ToStr(aDist3D),ToStr(aDistPix)});
+
+/*
+         StdOut()     << " DIST3="  <<  aDist3D
+                      << " DDDDd= " <<  aDistPix
 		      << " NBPL = " << aNbPl 
 		      << " RATIO="  << aRatio
                       << "\n";
+*/
      }
 }
 
 typedef std::pair<cSensorCamPC *,cMesIm1Pt> tPairCamPt;
 
 
-void cAppli_Wire3DInit::TestPoint3D(const std::vector<cSensorCamPC *> & aVCam)
+void cAppli_Wire3DInit::TestPoint3D(const std::string & anIdSync,const std::vector<cSensorCamPC *> & aVCam)
 {
      std::map<std::string,std::list<tPairCamPt>> aMapMatch;
 
      for (const auto & aCam : aVCam)
      {
-	  cSetMesPtOf1Im  aSet = mPhProj.LoadMeasureIm(aCam->NameImage());
+          if (mPhProj.HasMeasureIm(aCam->NameImage()))
+          {
+	     cSetMesPtOf1Im  aSet = mPhProj.LoadMeasureIm(aCam->NameImage());
 
-	  for (const auto & aMes : aSet.Measures())
-	  {
-              if (!starts_with( aMes.mNamePt,MMVII_NONE))
-	      {
-		      aMapMatch[aMes.mNamePt].push_back(tPairCamPt(aCam,aMes));
-	      }
+	     for (const auto & aMes : aSet.Measures())
+	     {
+                 if ((!starts_with( aMes.mNamePt,MMVII_NONE)) && MatchRegex(aMes.mNamePt,mPatNameGCP))
+	         {
+		         aMapMatch[aMes.mNamePt].push_back(tPairCamPt(aCam,aMes));
+	         }
+	     }
 	  }
 	  // StdOut()  << "IM="  << aSet.NameIm() << " Nb=" << aSet.Measures().size() << "\n";
      }
 
      for (const auto & [aStr,aList] : aMapMatch )
      {
-         if (aList.size() > 2) 
+         int aNbPt = aList.size();
+         if (aNbPt  > 2) 
          {
-	     StdOut() << " NAME=" << aStr << " " << aList.size() << "\n";
+	     // StdOut() << " NAME=" << aStr << " " << aList.size() << "\n";
              std::vector<tSeg3dr> aVSeg;
 	     for (const auto & [aCam,aMes] : aList)
 	     {
                  aVSeg.push_back(aCam->Image2Bundle(aMes.mPt));
 	     }
 	     cPt3dr aPG =   BundleInters(aVSeg);
+	     cWeightAv<tREAL8> aWPix;
 	     for (const auto & [aCam,aMes] : aList)
 	     {
                  cPt2dr aPProj = aCam->Ground2Image(aPG);
-		 StdOut() << " DDDD = " << Norm2(aMes.mPt-aPProj) << "\n";
+                 aWPix.Add(1.0,Norm2(aMes.mPt-aPProj));
+		 // StdOut() << " DDDD = " << Norm2(aMes.mPt-aPProj) << "\n";
 	     }
+             tREAL8 aDistPix = aWPix.Average() * (aNbPt*2.0) / (aNbPt*2.0 -3.0);
+             AddOneReportCSV(mRepPt,{anIdSync,ToStr(aNbPt),ToStr(aDistPix)});
          }
      }
 		  
@@ -205,13 +220,25 @@ void cAppli_Wire3DInit::TestPoint3D(const std::vector<cSensorCamPC *> & aVCam)
 
 void cAppli_Wire3DInit::MakeOneBloc(const std::vector<cSensorCamPC *> & aVCam)
 {
-     TestWire3D(aVCam);
-     // TestPoint3D(aVCam);
+     std::string anIdSync = mTheBloc->IdSync(aVCam.at(0)->NameImage());
+     TestWire3D(anIdSync,aVCam);
+     TestPoint3D(anIdSync,aVCam);
 }
 
 int cAppli_Wire3DInit::Exe()
 {
     mPhProj.FinishInit();  // the final construction of  photogrammetric project manager can only be done now
+
+    std::string aDirRep =          mPhProj.DPOrient().DirIn() 
+                           + "-" + mPhProj.DPPointsMeasures().DirIn() 
+                           + "-" + mPhProj.DPRigBloc().DirIn() ;
+    SetReportSubDir(aDirRep);
+
+    InitReport(mRepW,"csv",true);
+    InitReport(mRepPt,"csv",true);
+    AddOneReportCSV(mRepW,{"TimeBloc","NbPlane","Dist Ground","Dist Pix"});
+    AddOneReportCSV(mRepPt,{"TimeBloc","NbPt","Dist Pix"});
+
 
     mListBloc = mPhProj.ReadBlocCams();
     MMVII_INTERNAL_ASSERT_tiny(mListBloc.size()==1,"Number of bloc ="+ ToStr(mListBloc.size()));

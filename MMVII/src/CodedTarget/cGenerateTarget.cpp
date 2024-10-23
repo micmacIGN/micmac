@@ -1050,6 +1050,7 @@ class cAppliGenCodedTarget : public cMMVII_Appli
 	bool               mDoMarkC;
 	std::string        mPatternDoImage;
 	int                mNbPixBin;
+        std::string        mNameOut;
 };
 
 eTyCodeTarget cAppliGenCodedTarget::Type() {return mBE.Specs().mType ;}
@@ -1068,7 +1069,8 @@ cCollecSpecArg2007 & cAppliGenCodedTarget::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
  return
       anArgObl
-          <<   Arg2007(mNameBE,"Xml/Json name for bit encoding struct",{{eTA2007::XmlOfTopTag,cBitEncoding::TheMainTag}})
+          // <<   Arg2007(mNameBE,"Xml/Json name for bit encoding struct",{{eTA2007::XmlOfTopTag,cBitEncoding::TheMainTag}})
+          <<   Arg2007(mNameBE,"Xml/Json/Dmp name for bit encoding struct",{{eTA2007::FileAny}})
    ;
 }
 
@@ -1093,6 +1095,7 @@ cCollecSpecArg2007 & cAppliGenCodedTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt)
           << AOpt2007(mDoMarkC,"MarkC","Mark center of bits, just for verif ",{eTA2007::HDV,eTA2007::Tuning})
           << AOpt2007(mZoomShow,"ZoomShow","Zoom to generate a high resolution check images",{eTA2007::Tuning})
           << AOpt2007(mNbPixBin,"NbPixBin","Size of binary image when printing",{eTA2007::HDV})
+          << AOpt2007(mNameOut,"Out","Name for out file")
    ;
 }
 
@@ -1136,19 +1139,21 @@ int  cAppliGenCodedTarget::Exe()
       }
    }
 
-   std::string aName = aFullSpec.Prefix()+"_FullSpecif."+TaggedNameDefSerial();
-   SaveInFile(aFullSpec, aName);
+   // std::string aName = aFullSpec.Prefix()+"_FullSpecif."+TaggedNameDefSerial();
+   if (! IsInit(&mNameOut)) 
+      mNameOut = aFullSpec.Prefix()+"_FullSpecif."+  LastPostfix(mNameBE);
+   SaveInFile(aFullSpec, mNameOut);
 
    if (0)  // test reload
    {
-         auto aPtr = cFullSpecifTarget::CreateFromFile(aName);
-	 StdOut() << "NNN=" << aName << std::endl;
+         auto aPtr = cFullSpecifTarget::CreateFromFile(mNameOut);
+	 StdOut() << "NNN=" << mNameOut << std::endl;
 	 delete aPtr;
    }
 
    if (IsInit(&mZoomShow))
    {
-      TestReloadAndShow_cFullSpecifTarget(aDirVisu,aName,mZoomShow);
+      TestReloadAndShow_cFullSpecifTarget(aDirVisu,mNameOut,mZoomShow);
    }
 
 
