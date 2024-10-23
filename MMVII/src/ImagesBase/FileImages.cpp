@@ -94,9 +94,9 @@ namespace{ // Private
    }
 
    // Return nullptr if error
-   GDALDataset * OpenDataset(std::string aName)
+   GDALDataset * OpenDataset(std::string aName, GDALAccess aAccess)
    {
-       auto aHandle = GDALOpen( aName.c_str(), GA_Update );
+       auto aHandle = GDALOpen( aName.c_str(), aAccess);
        auto aDataSet = GDALDataset::FromHandle(aHandle);
        return aDataSet;
    }
@@ -136,7 +136,6 @@ namespace{ // Private
       }
 
       cMemManager::Free(pafScanline);
-
    }
 
 
@@ -169,7 +168,6 @@ namespace{ // Private
          MMVII_INTERNAL_ASSERT_strong(cplErr2 == 0 || cplErr2 == 1,"Error in writing image");
 
          cMemManager::Free(abyRaster);
-
    }
 
 
@@ -183,7 +181,7 @@ namespace{ // Private
                                 const cRect2& aR2Init
                             )
    {
-      GDALDataset * aGdalDataset = OpenDataset(aDF.Name());
+      GDALDataset * aGdalDataset = OpenDataset(aDF.Name(), GA_ReadOnly);
       int i = 0;
       for (auto & element : aVecImV2)
       {
@@ -217,7 +215,7 @@ namespace{ // Private
                                  const cRect2& aR2Init
                               )
    {
-      GDALDataset * aGdalDataset = OpenDataset(aDF.Name());
+      GDALDataset * aGdalDataset = OpenDataset(aDF.Name(), GA_Update);
       int i = 0;
       for (auto & element : aVecImV2)
       {
@@ -289,7 +287,6 @@ cDataFileIm2D::cDataFileIm2D(const std::string & aName,eTyNums aType,const cPt2d
 }
 
 
-// FIXME CM: check Empty is correctly handled (Read, write ...)
 cDataFileIm2D cDataFileIm2D::Empty()
 {
    return cDataFileIm2D( MMVII_NONE, eTyNums::eNbVals, cPt2di(1,1), -1,eForceGray::No);
@@ -323,12 +320,11 @@ cDataFileIm2D cDataFileIm2D::Create(const std::string & aName,eForceGray isFG)
     } else {
 #endif
     // Open a first time with gdal to have access to metadata and then to create a cDataFileIm2D object
-    // FIXME CM: handle error case (OpenDataSet)
     InitGDAL();
-    auto aDataset = OpenDataset(aName);
+    auto aDataset = OpenDataset(aName, GA_ReadOnly);
     if (aDataset == nullptr) {
         MMVII_UserError(eTyUEr::eOpenFile,std::string("Can't open image file: ") + CPLGetLastErrorMsg());
-        return Empty();
+        return Empty(); // Never executed
     }
     cPt2di aSz = cPt2di(aDataset->GetRasterXSize(), aDataset->GetRasterYSize());
     auto aNbChannel = aDataset->GetRasterCount();
@@ -367,46 +363,52 @@ cDataFileIm2D  cDataFileIm2D::Create(const std::string & aName,eTyNums aType,con
         );
         return Create(aName,eForceGray::No);
     } else {
-#endif    
-   // Create an image and a cDataFileIm2D
-   // FIXME CM: must work as Tiff_Im::CreateIfNeeded -> create only if ( !exist or (sz!= or nbChannel!=) )
-   remove(aName.c_str());
-
-   // Check that aNbChan is 1 or 3
-   if (aNbChan!=1 && aNbChan!=3)
-   {
-      MMVII_INTERNAL_ASSERT_strong(false,"Incoherent channel number");
-   } 
-
-   InitGDAL();
-   auto pszFormat = ExtToGdalDriver(aName);
-   //FIXME CM: Test return value !
-   GDALDriver *aGDALDriver = GetGDALDriverManager()->GetDriverByName(pszFormat.c_str());
-
-   // Create a dataset
-   auto aGDALType = TyMMVIIToGdal(aType);
-   //FIXME CM: Test return value !
-   GDALDataset *aDataset = aGDALDriver->Create( aName.c_str(), aSz.x(), aSz.y(), aNbChan, aGDALType, nullptr );
-
-   size_t aSize = GDALGetDataTypeSizeBytes(aGDALType)*aSz.x()*aSz.y();
-   void *abyRaster = cMemManager::Calloc(1, aSize);
-   memset(abyRaster,0, aSize);          // cMemManager::Calloc fill allocated memory with a constant fixed debug value ...
-      
-   // Initialize the dataset
-   GDALRasterBand *aBand;
-   for (int i = 1; i < aNbChan+1; i++)
-   {
-      aBand = aDataset->GetRasterBand(i);
-      CPLErr cplErr2 = aBand->RasterIO( GF_Write, 0, 0, aSz.x(), aSz.y(), abyRaster, aSz.x(), aSz.y(), aGDALType, 0, 0 );
-      MMVII_INTERNAL_ASSERT_strong(cplErr2 == 0 || cplErr2 == 1,"Error in writing image");
-   }
-
-   cMemManager::Free(abyRaster);
-   
-   auto aNbChannel = aDataset->GetRasterCount();
-   auto aType = TyGdalToMMVII( aDataset->GetRasterBand( 1 )->GetRasterDataType());
-   CloseDataset(aDataset);
-   return cDataFileIm2D(aName, aType, aSz, aNbChannel,eForceGray::No);
+#endif
+    if (aNbChan!=1 && aNbChan!=3)
+    {
+        MMVII_INTERNAL_ASSERT_strong(false,"Incoherent channel number");
+    }
+    
+    InitGDAL();
+    auto aDataset = OpenDataset(aName, GA_ReadOnly);
+    if (aDataset != nullptr) {
+        cPt2di fileSz = cPt2di(aDataset->GetRasterXSize(), aDataset->GetRasterYSize());
+        auto fileNbChan = aDataset->GetRasterCount();
+        auto fileType = TyGdalToMMVII( aDataset->GetRasterBand( 1 )->GetRasterDataType());
+        if (fileSz == aSz && fileNbChan == aNbChan && fileType == aType) {
+            CloseDataset(aDataset);
+            return cDataFileIm2D(aName, aType, aSz, aNbChan, eForceGray::No);
+        }
+    }
+    remove(aName.c_str());
+    
+    auto pszFormat = ExtToGdalDriver(aName);
+    GDALDriver *aGDALDriver = GetGDALDriverManager()->GetDriverByName(pszFormat.c_str());
+    if (!aGDALDriver) {
+        MMVII_INTERNAL_ERROR(std::string("GDAL can't handle file format : ") + pszFormat);
+        return Empty(); // Never executed
+    }
+    auto aGDALType = TyMMVIIToGdal(aType);
+    aDataset = aGDALDriver->Create( aName.c_str(), aSz.x(), aSz.y(), aNbChan, aGDALType, nullptr );
+    if (!aDataset) {
+        MMVII_UserError(eTyUEr::eOpenFile,std::string("Can't create image file: ") + CPLGetLastErrorMsg());
+        return Empty(); // Never executed
+    }
+    size_t aSize = GDALGetDataTypeSizeBytes(aGDALType)*aSz.x()*aSz.y();
+    void *abyRaster = cMemManager::Calloc(1, aSize);
+    memset(abyRaster,0, aSize);          // cMemManager::Calloc fill allocated memory with a constant fixed debug value ...
+    
+    // Initialize the dataset
+    GDALRasterBand *aBand;
+    for (int aChan = 0; aChan < aNbChan; aChan++)
+    {
+        aBand = aDataset->GetRasterBand(aChan+1);
+        CPLErr cplErr2 = aBand->RasterIO( GF_Write, 0, 0, aSz.x(), aSz.y(), abyRaster, aSz.x(), aSz.y(), aGDALType, 0, 0 );
+        MMVII_INTERNAL_ASSERT_strong(cplErr2 == 0 || cplErr2 == 1,"Error in writing image");
+    }
+    cMemManager::Free(abyRaster);
+    CloseDataset(aDataset);
+    return cDataFileIm2D(aName, aType, aSz, aNbChan,eForceGray::No);
 #ifdef MMVII_KEEP_MMV1_IMAGE
     }
 #endif    

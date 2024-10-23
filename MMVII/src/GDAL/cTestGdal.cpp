@@ -85,7 +85,7 @@ namespace MMVII
         cIm2D<tU_INT1> aIm2D = cIm2D<tU_INT1>::FromFile(mImagePathBW);
         cDataIm2D<tU_INT1> & aDataIm2D = aIm2D.DIm();
         StdOut() << "Taille de l'image : " << aDataIm2D.Sz() << std::endl;
-        StdOut() << "Valeur du pixel (5000, 8000) : " << (int) aDataIm2D.GetV(cPt2di(5000, 8000)) << std::endl;
+        StdOut() << "Valeur du pixel (500, 800) : " << (int) aDataIm2D.GetV(cPt2di(500, 800)) << std::endl;
         StdOut() << "" << std::endl;
 
     }
