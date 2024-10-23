@@ -15,7 +15,9 @@ using namespace MMVII;
 
 #ifdef MMVII_KEEP_MMV1_IMAGE
 bool mmvii_use_mmv1_image=false;
-#endif   
+#endif
+
+//FIXME CM: rien a voir, mais faut corriger UseCaseDataSet pour nouveau format file (ANXYZBla)
 
 namespace{ // Private
 
@@ -122,8 +124,9 @@ namespace{ // Private
       // FIXME CM: Optimize if aDyn == 1 !
       TypeOut *pafScanline;
       pafScanline = (TypeOut *) cMemManager::Calloc(1, sizeof(TypeOut)*aRectIm.Sz().x()*aRectIm.Sz().y());
-      CPLErr cplErr2 = aBand->RasterIO( GF_Read, aRectIm.P0().x() + aTrans.x(), aRectIm.P0().y() + aTrans.y(), aRectIm.Sz().x(), aRectIm.Sz().y(), pafScanline, aRectIm.Sz().x(), aRectIm.Sz().y(), aGDALDataType, 0, 0 );   
-      MMVII_INTERNAL_ASSERT_strong(cplErr2 == 0 || cplErr2 == 1,"Error in writing image");
+      CPLErr cplErr2 = aBand->RasterIO( GF_Read, aRectIm.P0().x() + aTrans.x(), aRectIm.P0().y() + aTrans.y(), aRectIm.Sz().x(), aRectIm.Sz().y(), pafScanline, aRectIm.Sz().x(), aRectIm.Sz().y(), aGDALDataType, 0, 0 );
+      // FIXME CM: better error message
+      MMVII_INTERNAL_ASSERT_strong(cplErr2 == 0 || cplErr2 == 1,"Error in reading image");
       
       // Copy of data in mRawData2D. Is there a way to complete mRawData2D directly in aBand->RasterIO()?
       // Image is read in float 32, and the conversion is done here
@@ -165,7 +168,8 @@ namespace{ // Private
          }
          // Write data in file
          CPLErr cplErr2 = poBand->RasterIO( GF_Write, aRectIm.P0().x() + aTrans.x(), aRectIm.P0().y() + aTrans.y(), aRectIm.Sz().x(), aRectIm.Sz().y(), abyRaster, aRectIm.Sz().x(), aRectIm.Sz().y(), aGDALDataType, 0, 0 );
-         MMVII_INTERNAL_ASSERT_strong(cplErr2 == 0 || cplErr2 == 1,"Error in writing image");
+         // FIXME CM: better error message
+         MMVII_INTERNAL_ASSERT_strong(cplErr2 == 0 | | cplErr2 == 1,"Error in writing image");
 
          cMemManager::Free(abyRaster);
    }
@@ -204,8 +208,9 @@ namespace{ // Private
       }
       CloseDataset( aGdalDataset );
    }
-
-
+   
+   
+   // FIXME CM: if aVecImV2.size() != aDF.mNbChannel => write NnChannel times same channel if aVecImV2.size()==1, else error
    template <class Type> void GdalWrite
                               (
                                  std::vector<const cDataIm2D<Type>*>& aVecImV2,
