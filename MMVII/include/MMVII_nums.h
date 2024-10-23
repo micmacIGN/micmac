@@ -71,6 +71,7 @@ double RandUnif_C_NotNull(double aEps);   ///<  Uniform distribution in  -1 1, b
 double RandUnif_NotNull(double aEps);   ///<  Uniform distribution in  0 1, but abs > aEps
 double RandInInterval(double a,double b); ///<  Uniform distribution in [a,b]
 double RandInInterval(const cPt2dr &interval); ///<  Uniform distribution in [interval.x,interval.y]
+double RandInInterval_C(const cPt2dr &interval); ///<  Uniform distribution in [-interval.y,-interval.x]U[interval.x,interval.y]
 
 /** Class for mapping object R->R */
 class cFctrRR
