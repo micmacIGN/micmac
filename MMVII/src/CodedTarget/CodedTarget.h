@@ -168,7 +168,7 @@ class cResSimul
        std::string                mCom;  ///< Command used to create the file
        cPt2dr                     mRadiusMinMax;
        double                     mBorder;
-       double                     mRatioMax;
+       cPt2dr                     mRatioMinMax; //< ratio between big and small ellipse axis (maxium max = 1)
        std::vector<cGeomSimDCT>   mVG;
 };
 void AddData(const  cAuxAr2007 & anAux,cResSimul & aRS);

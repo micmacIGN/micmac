@@ -65,7 +65,7 @@ void AddData(const  cAuxAr2007 & anAux,cGeomSimDCT & aGSD)
 cResSimul::cResSimul() :
     mRadiusMinMax (15.0,60.0),
     mBorder    (1.0),
-    mRatioMax  (3.0)
+    mRatioMinMax  (0.3,1.0)
 {
 }
 
@@ -80,7 +80,7 @@ void AddData(const  cAuxAr2007 & anAux,cResSimul & aRS)
    //  MMVII::AddData(cAuxAr2007("Com",anAux),aRS.mCom);
    anAux.Ar().AddComment(aRS.mCom);
    MMVII::AddData(cAuxAr2007("RadiusMinMax",anAux),aRS.mRadiusMinMax);
-   MMVII::AddData(cAuxAr2007("RatioMax",anAux),aRS.mRatioMax);
+   MMVII::AddData(cAuxAr2007("RatioMax",anAux),aRS.mRatioMinMax);
    MMVII::AddData(cAuxAr2007("Geoms",anAux),aRS.mVG);
 }
 
@@ -121,14 +121,16 @@ class cAppliSimulCodeTarget : public cMMVII_Appli
 
         // =========== other methods ============
 
-	/// Find a new  position of target, not too close from existing ones, in mRS.mVG 
-        void  AddPosTarget(const cOneEncoding & );  
+	/// Find a new  position of target, not too close from existing ones, in mRS.mVG
+        void  AddPosTarget(const cOneEncoding & );
 
 	/// Put the target in the image
         void  IncrustTarget(cGeomSimDCT & aGSD);
 
-	/// return a random value in the specified interval 
+	/// return a random radius in the specified interval
 	double RandomRadius() const;
+    /// return a random radius ratio in the specified interval
+	double RandomRatio() const;
 
 
         cPhotogrammetricProject     mPhProj;
@@ -140,7 +142,7 @@ class cAppliSimulCodeTarget : public cMMVII_Appli
 
         // =========== Optionnal args ============
 	cResSimul           mRS;        /// List of result
-        double              mSzKernel;  /// Sz of interpolation kernel 
+        double              mSzKernel;  /// Sz of interpolation kernel
 	std::string         mPatternNames;
 
                 //  --
@@ -195,6 +197,7 @@ cCollecSpecArg2007 & cAppliSimulCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt
 	        anArgOpt
              <<  mPhProj.DPPointsMeasures().ArgDirOutOptWithDef("Simul")
              <<   AOpt2007(mRS.mRadiusMinMax,"Radius","Min/Max radius for gen target",{eTA2007::HDV})
+             <<   AOpt2007(mRS.mRatioMinMax,"Ratio","Min/Max ratio between target ellipses axis (<=1)",{eTA2007::HDV})
              <<   AOpt2007(mPatternNames,"PatNames","Pattern for selection of names",{eTA2007::HDV})
              <<   AOpt2007(mSzKernel,"SzK","Sz of Kernel for interpol",{eTA2007::HDV})
              <<   AOpt2007(mRS.mBorder,"Border","Border w/o target, prop to R Max",{eTA2007::HDV})
@@ -208,6 +211,7 @@ cCollecSpecArg2007 & cAppliSimulCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt
 
 double cAppliSimulCodeTarget::RandomRadius() const { return RandInInterval(mRS.mRadiusMinMax.x(),mRS.mRadiusMinMax.y());}
 
+double cAppliSimulCodeTarget::RandomRatio() const { return RandInInterval(mRS.mRatioMinMax.x(),mRS.mRatioMinMax.y());}
 
 
 void   cAppliSimulCodeTarget::AddPosTarget(const cOneEncoding & anEncod)
@@ -218,20 +222,11 @@ void   cAppliSimulCodeTarget::AddPosTarget(const cOneEncoding & anEncod)
      {
         cPt2dr  aC = aBoxGenerate.GeneratePointInside(); // generat a random point inside the box
         //  Compute two random radii in the given interval
-        double  aR1 = RandomRadius() ;
-        double  aR2 = RandomRadius() ;
-	OrderMinMax(aR1,aR2);  //   assure  aR1 <= aR2
+        double  aRbig = RandomRadius() ;
+        double  aRsmall = aRbig*RandomRatio() ;
 
-        // assure that  R2/R1 <= RatioMax
-        // if not "magic" formula to assure R1/R2 = RatioMax  R1R2 = R1Init R2Init
-	if (aR2/aR1 > mRS.mRatioMax)  
-	{
-            double aR = sqrt(aR1*aR2);
-	    aR1 = aR / sqrt(mRS.mRatioMax);
-	    aR2 = aR * sqrt(mRS.mRatioMax);
-	}
-	// check if there is already a selected target overlaping
-        cGeomSimDCT aGSD(anEncod,aC,aR1,aR2);
+        // check if there is already a selected target overlaping
+        cGeomSimDCT aGSD(anEncod,aC,aRsmall,aRbig);
 	bool GotClose = false;
 	for (const auto& aG2 : mRS.mVG)
             GotClose = GotClose || aG2.Intersect(aGSD);
@@ -294,7 +289,7 @@ void  cAppliSimulCodeTarget::IncrustTarget(cGeomSimDCT & aGSD)
     {
         if ( aDImIn.Inside(aPix))
 	{
-            // compute a weighted coordinate in target coordinates, 
+            // compute a weighted coordinate in target coordinates,
             cRessampleWeigth  aRW = cRessampleWeigth::GaussBiCub(ToR(aPix),aMapIm2T,mSzKernel);
 	    const std::vector<cPt2di>  & aVPts = aRW.mVPts;
 	    if (!aVPts.empty())
@@ -342,6 +337,14 @@ int  cAppliSimulCodeTarget::Exe()
    {
         MMVII_USER_WARNING("File is already a simulation, dont process");
         return EXIT_SUCCESS;
+   }
+
+   // check that ratios are in (0;1]
+   if ((mRS.mRatioMinMax.x()<=0)||(mRS.mRatioMinMax.x()>1.)||
+           (mRS.mRatioMinMax.y()<=0)||(mRS.mRatioMinMax.y()>1))
+   {
+        MMVII_USER_WARNING("Ratios must be in (0;1].");
+        mRS.mRatioMinMax = {0.3,1.0};
    }
 
    // We want that random is different for each image, but deterministic for one given image
