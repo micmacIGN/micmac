@@ -307,9 +307,9 @@ bool cHoughPS::Match(const cHoughPS & aPS2,bool IsLight,tREAL8 aMaxTeta,tREAL8 a
 }
 
 
-std::vector<cPt2di> cHoughPS::GetMatches(std::vector<cHoughPS>&  aVPS,bool IsLight,tREAL8 aMaxTeta,tREAL8 aDMin,tREAL8 aDMax)
+std::vector<std::pair<int,int>> cHoughPS::GetMatches(const std::vector<cHoughPS>&  aVPS,bool IsLight,tREAL8 aMaxTeta,tREAL8 aDMin,tREAL8 aDMax)
 {
-     std::vector<cPt2di>    aVMatches;
+     std::vector<std::pair<int,int>>    aVMatches;
      std::vector<int>       aIndM( aVPS.size(),-1);
      std::vector<tREAL8>    aCostM( aVPS.size(),1e30);
 
@@ -341,7 +341,7 @@ std::vector<cPt2di> cHoughPS::GetMatches(std::vector<cHoughPS>&  aVPS,bool IsLig
           // test to get only one way && reciprocity
           if ((aIndM[aK] > aK) && (aIndM[aIndM[aK]] == aK))
           {
-              aVMatches.push_back(cPt2di(aK,aIndM[aK]));
+              aVMatches.push_back(std::pair<int,int>(aK,aIndM[aK]));
           }
      }
      return aVMatches;

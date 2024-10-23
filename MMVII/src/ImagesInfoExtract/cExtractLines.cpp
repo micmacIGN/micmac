@@ -122,9 +122,35 @@ template <class Type> void cExtractLines<Type>::SetHough
      }
 }
 
-template <class Type> void cExtractLines<Type>::SetDericheGradAndMasq(tREAL8 aAlpha,tREAL8 aRay,int aBorder,bool Show)
+template <class Type> void cExtractLines<Type>::SetSobelAndMasq(eIsWhite isWhite,tREAL8 aRayMaxLoc,int aBorder,bool Show)
 {
      // Create the data for storing gradient & init gradient
+     mGrad = new cImGradWithN<Type>(mIm.DIm().Sz());
+
+     mTabG->TabulateNeighMaxLocGrad(63,1.7,aRayMaxLoc);  // 1.7=> maintain 8-neighboor,  63 number of direction
+     mGrad->SetQuickSobel(mIm.DIm(),*mTabG,2);
+
+     SetGradAndMasq(eIsQuick::Yes,isWhite, aRayMaxLoc,aBorder,Show);
+}
+
+/*  The behaviour is not coherent with "SetSobelAndMasq" , to modify later probably, for now comment 
+     
+template <class Type>  void cExtractLines<Type>::SetDericheAndMasq(eIsWhite isWhite,tREAL8 aAlphaDerich,tREAL8 aRayMaxLoc,int aBorder,bool Show)
+{
+     // Create the data for storing gradient & init gradient
+     mGrad = new cImGradWithN<Type>(mIm.DIm().Sz());
+
+     mGrad->SetDeriche(mIm.DIm(),aAlphaDerich);
+
+     SetGradAndMasq(eIsQuick::No,isWhite, aRayMaxLoc,aBorder,Show);
+}
+*/
+
+template <class Type> void cExtractLines<Type>::SetGradAndMasq(eIsQuick isQuick,eIsWhite isWhite,tREAL8 aRayMaxLoc,int aBorder,bool Show)
+
+{
+     // Create the data for storing gradient & init gradient
+/*
      mGrad = new cImGradWithN<Type>(mIm.DIm().Sz());
 
      bool Quick = true;
@@ -139,9 +165,10 @@ template <class Type> void cExtractLines<Type>::SetDericheGradAndMasq(tREAL8 aAl
      {
          mGrad->SetDeriche(mIm.DIm(),aAlpha);
      }
+*/
 
      cRect2 aRect(mImMasqCont.DIm().Dilate(-aBorder)); // rect interior 
-     std::vector<cPt2di>  aVecNeigh = cImGradWithN<Type>::NeighborsForMaxLoc(aRay); // neigbours for compute max
+     std::vector<cPt2di>  aVecNeigh = cImGradWithN<Type>::NeighborsForMaxLoc(aRayMaxLoc); // neigbours for compute max
 
      //  count pts & pts of contour for stat
      mNbPtsCont = 0;
@@ -150,8 +177,8 @@ template <class Type> void cExtractLines<Type>::SetDericheGradAndMasq(tREAL8 aAl
      for (const auto & aPix :  aRect)
      {
          aNbPt++;
-	 bool IsMaxLoc =  Quick                                             ?
-		            mGrad->TabIsMaxLocDirGrad(aPix,*mTabG,IsWhite)  :
+	 bool IsMaxLoc =    IsYes(isQuick)                                  ?
+		            mGrad->TabIsMaxLocDirGrad(aPix,*mTabG,IsYes(isWhite))  :
 			    mGrad->IsMaxLocDirGrad(aPix,aVecNeigh,1.0)      ;
          if (IsMaxLoc)
          {
@@ -164,6 +191,8 @@ template <class Type> void cExtractLines<Type>::SetDericheGradAndMasq(tREAL8 aAl
      if (Show)
         StdOut()<< " Prop Contour = " << mNbPtsCont / double(aNbPt) << "\n";
 }
+/*
+*/
 
 /* Generate a RGB-image :
  *     - background is initial image

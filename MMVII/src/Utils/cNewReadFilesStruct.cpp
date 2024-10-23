@@ -1,6 +1,7 @@
 #include "cMMVII_Appli.h"
 #include "MMVII_ReadFileStruct.h"
 #include "MMVII_Bench.h"
+#include "MMVII_2Include_Serial_Tpl.h"
 
 
 
@@ -34,10 +35,11 @@ namespace MMVII
 /*                                                                                      */
 /* ************************************************************************************ */
 
-cNRFS_ParamRead::cNRFS_ParamRead(int aL0,int aLast,char aComment) :
-   mL0      (aL0),
-   mLLast   (aLast),
-   mComment (aComment)
+cNRFS_ParamRead::cNRFS_ParamRead(int aL0,int aLast,char aComment,bool noDupL) :
+   mL0        (aL0),
+   mLLast     (aLast),
+   mComment   (aComment),
+   mNoDupLine (noDupL)
 {
 }
 
@@ -46,9 +48,10 @@ cNRFS_ParamRead::cNRFS_ParamRead() :
 {
 }
 
-int  cNRFS_ParamRead::L0()      const {return mL0;}
-int  cNRFS_ParamRead::LLast()   const {return mLLast;}
-char cNRFS_ParamRead::Comment() const {return mComment;}
+int  cNRFS_ParamRead::L0()        const {return mL0;}
+int  cNRFS_ParamRead::LLast()     const {return mLLast;}
+char cNRFS_ParamRead::Comment()   const {return mComment;}
+bool cNRFS_ParamRead::NoDupLine() const {return mNoDupLine;}
 
 void   cNRFS_ParamRead::AddArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
@@ -56,6 +59,7 @@ void   cNRFS_ParamRead::AddArgOpt(cCollecSpecArg2007 & anArgOpt)
             <<  AOpt2007(mL0,"NumL0","Num of first line to read",{eTA2007::HDV})
             <<  AOpt2007(mLLast,"NumLast","Num of last line to read (-1 if at end of file)",{eTA2007::HDV})
             <<  AOpt2007(mComment,"Comment","Carac for comment")
+            <<  AOpt2007(mNoDupLine,"NoDupL","Supress duplicated lines")
     ;
 }
 
@@ -260,6 +264,7 @@ void  cNewReadFilesStruct::ParseFormat(bool isSpec,const std::string & aFormat,s
 
 void cNewReadFilesStruct::ReadFile(const std::string & aNameFile,const  cNRFS_ParamRead & aParam)
 {
+   std::set<size_t>  aSetHCode;
 	 // std::map<std::string,std::vector<int> >          mMapInt;
 	 // std::map<std::string,std::vector<tREAL8> >       mMapFloat;
 	 // std::map<std::string,std::vector<std::string> >  mMapString;
@@ -282,7 +287,12 @@ void cNewReadFilesStruct::ReadFile(const std::string & aNameFile,const  cNRFS_Pa
 
     while (std::getline(infile, line))
     {
-         if ((aNumL>=aParam.L0()) && (aNumL< aParam.LLast()))
+         size_t aHashCode = HashValue(line,true);
+         // must we skeep the line for duplicata reason
+         bool toSkip4Dupl = aParam.NoDupLine() && MapBoolFind(aSetHCode,aHashCode);
+
+
+         if ((aNumL>=aParam.L0()) && (aNumL< aParam.LLast())  && (!toSkip4Dupl) )
 	 {
              const char * aC = line.c_str();
              bool  GoOn = true;
@@ -311,6 +321,7 @@ void cNewReadFilesStruct::ReadFile(const std::string & aNameFile,const  cNRFS_Pa
                             aC++;
 
 	              std::string aToken(aC0,size_t(aC-aC0));
+                      
 		      std::string aNameField = mNameFields.at(aNbToken);
 		      switch (mTypes.at(aNbToken))
 		      {
@@ -340,6 +351,8 @@ void cNewReadFilesStruct::ReadFile(const std::string & aNameFile,const  cNRFS_Pa
 	     }
 	     if (aNbToken>0)
 	        mNbLineRead++;
+             
+             aSetHCode.insert(aHashCode);
 	 }
 	 if (mDebug)
 	    StdOut() << "-------------------------------------------\n";
@@ -420,7 +433,7 @@ class cBenchcNewReadFilesStruct
 
 cBenchcNewReadFilesStruct::cBenchcNewReadFilesStruct(int aNum) :
      mNameFile  (cMMVII_Appli::InputDirTestMMVII() + "TestParseFile"+ToStr(aNum) + ".txt"),
-     mParamRead (2,21,'#')
+     mParamRead (2,21,'#',true)
 {
 }
 

@@ -283,7 +283,8 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
 
     // Compute Gradient and extract max-loc in gradient direction
     cAutoTimerSegm  anATSDerAndMasq (mTimeSeg,"DericheAndMasq");
-    mExtrL->SetDericheGradAndMasq(2.0,10.0,12,mShow); // aAlphaDerich,aRayMaxLoc,aBorder
+    mExtrL->SetSobelAndMasq(eIsWhite::Yes,10.0,12,mShow);  // aRayMaxLoc,aBorder
+    // mExtrL->SetDericheGradAndMasq(2.0,10.0,12,mShow); // aAlphaDerich,aRayMaxLoc,aBorder
 						     
     // Compute Hough-Transform
     cAutoTimerSegm  anATSHough (mTimeSeg,"Hough");
@@ -330,11 +331,11 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
 
     {
         cAutoTimerSegm  anATSMatchHough (mTimeSeg,"MatchLocHough");
-	std::vector<cPt2di>  aVMatches = cHoughPS::GetMatches(mVPS,mLineIsWhite,mParamMatch.at(0),mParamMatch.at(1),mParamMatch.at(2));
+	std::vector<std::pair<int,int>>  aVMatches = cHoughPS::GetMatches(mVPS,mLineIsWhite,mParamMatch.at(0),mParamMatch.at(1),mParamMatch.at(2));
 
-	for (const auto aPair : aVMatches)
+	for (const auto & [aK1,aK2] : aVMatches)
 	{
-		mParalLines.push_back(cParalLine(mVPS.at(aPair.x()),mVPS.at(aPair.y())));
+		mParalLines.push_back(cParalLine(mVPS.at(aK1),mVPS.at(aK2)));
 	}
         StdOut() << " # NBMatched " << aVMatches.size() << "\n";
 	SortOnCriteria

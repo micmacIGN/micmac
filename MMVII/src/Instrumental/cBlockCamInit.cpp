@@ -732,6 +732,8 @@ int cAppli_BlockCamInit::Exe()
 {
     mPhProj.FinishInit();  // the final construction of  photogrammetric project manager can only be done now
 
+   SetReportSubDir(mPhProj.DPRigBloc().DirOut());
+
     // creat the bloc, for now no cam,just the info to insert them
     cBlocOfCamera aBloc(mPattern,mNumSub.x(),mNumSub.y(),mComputeInv,mNameBloc);
 

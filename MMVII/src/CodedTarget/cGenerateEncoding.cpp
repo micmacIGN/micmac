@@ -270,6 +270,7 @@ cCollecSpecArg2007 & cAppliGenerateEncoding::ArgOpt(cCollecSpecArg2007 & anArgOp
                << AOpt2007(mSpec.mUseHammingCode,"UHC","Use Hamming code")
                << AOpt2007(mSpec.mPrefix,"Prefix","Prefix for output files")
                << AOpt2007(mMiror,"Mir","Unify mirro codes")
+               << AOpt2007(mNameOut,"Out","Name for output file")
           ;
 }
 
@@ -381,7 +382,8 @@ int  cAppliGenerateEncoding::Exe()
                        + "_Hamm" + ToStr(mSpec.mMinHammingD)
                        + "_Run" + ToStr(mSpec.mMaxRunL.x()) + "_" + ToStr(mSpec.mMaxRunL.y());
    }
-   mNameOut  =   mSpec.mPrefix + "_SpecEncoding." + TaggedNameDefSerial();
+   if (! IsInit(&mNameOut))
+      mNameOut  =   mSpec.mPrefix + "_SpecEncoding." + TaggedNameDefSerial();
 
    // calls method in cMMVII_Appli, to show current value of params, as many transformation have been made
    ShowAllParams();
