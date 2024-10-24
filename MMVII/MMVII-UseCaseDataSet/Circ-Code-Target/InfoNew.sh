@@ -14,7 +14,7 @@ MMVII  OriCreateCalib ".*tif" CalibInit
 
 #  Import GCP , we fix a coordinate system "Pannel", purely local, mainly for documentation
 #
-MMVII  ImportGCP  Data-Aux/Positions-3D-14bit_lookup.txt NXYZ Test NbDigName=3  ChSys=[LocalPannel]
+MMVII  ImportGCP  Data-Aux/Positions-3D-14bit_lookup.txt NXYZBla Test NbDigName=3 ChSys=[LocalPannel]
 MMVII  CodedTargetCircExtract ".*_Scaled.tif" CERN_Nbb14_Freq14_Hamm1_Run1000_1000_FullSpecif.xml DiamMin=8  OutPointsMeasure=Test
 
 #  pose estimation init : resection + bundle
