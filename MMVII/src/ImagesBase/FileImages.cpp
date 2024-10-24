@@ -17,8 +17,6 @@ using namespace MMVII;
 bool mmvii_use_mmv1_image=false;
 #endif
 
-//FIXME CM: rien a voir, mais faut corriger UseCaseDataSet pour nouveau format file (ANXYZBla)
-
 namespace{ // Private
 
    eTyNums TyGdalToMMVII( GDALDataType aType )
@@ -63,6 +61,8 @@ namespace{ // Private
       return GDT_Unknown ;
    }
    
+   enum class IoMode {Read, Write};
+
    // Global GDal Error Handler. Not multithread safe !
    // Avoid printing of error message => each API call must test and handle error case.
    void GDalErrorHandler(CPLErr aErrorCat, CPLErrorNum aErrorNum, const char *aMesg)
@@ -107,144 +107,118 @@ namespace{ // Private
    {
       GDALClose( (GDALDatasetH) aGdalDataset );
    }
-   
-
-   template <typename TypeIn, typename TypeOut> void GdalReadData(GDALDataset* aDataset,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2, int band, cDataIm2D<TypeIn> * aDataIm2D, GDALDataType aGDALDataType){
-
-      // Get first band
-      GDALRasterBand* aBand = aDataset->GetRasterBand(band);
-
-      cRect2 aRectFullIm (cPt2di(0,0),aDataIm2D->Sz());
-      cRect2 aRectIm =  (aR2== cRect2::TheEmptyBox)           ?  
-                        aRectFullIm                           :  
-                        aR2   ;
-      // aRectIm est dans le repère d'origine P0
-      cPt2di aTrans  = aDataIm2D->P0() + aP0;
-      
-      // FIXME CM: Optimize if aDyn == 1 !
-      TypeOut *pafScanline;
-      pafScanline = (TypeOut *) cMemManager::Calloc(1, sizeof(TypeOut)*aRectIm.Sz().x()*aRectIm.Sz().y());
-      CPLErr cplErr2 = aBand->RasterIO( GF_Read, aRectIm.P0().x() + aTrans.x(), aRectIm.P0().y() + aTrans.y(), aRectIm.Sz().x(), aRectIm.Sz().y(), pafScanline, aRectIm.Sz().x(), aRectIm.Sz().y(), aGDALDataType, 0, 0 );
-      // FIXME CM: better error message
-      MMVII_INTERNAL_ASSERT_strong(cplErr2 == 0 || cplErr2 == 1,"Error in reading image");
-      
-      // Copy of data in mRawData2D. Is there a way to complete mRawData2D directly in aBand->RasterIO()?
-      // Image is read in float 32, and the conversion is done here
-      for (int aY = 0; aY < aRectIm.Sz().y(); aY++)
-      {
-         for (int aX = 0; aX < aRectIm.Sz().x(); aX++)
-         {
-            aDataIm2D->SetVTrunc(cPt2di(aX, aY) + aDataIm2D->P0(), pafScanline[aY * aRectIm.Sz().x() + aX] * aDyn);
-         }
-      }
-
-      cMemManager::Free(pafScanline);
-   }
 
 
-   template <typename TypeIn, typename TypeOut> void GdalWriteData(GDALDataset * poDstDS,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2, int band, const cDataIm2D<TypeIn> * aDataIm2D, GDALDataType aGDALDataType){
-         
-         // get the raster band
-         GDALRasterBand *poBand;
-         poBand = poDstDS->GetRasterBand(band);
-
-         cRect2 aRectFullIm (cPt2di(0,0),aDataIm2D->Sz());
-         cRect2 aRectIm =  (aR2== cRect2::TheEmptyBox)           ?  
-                           aRectFullIm                           :  
-                           aR2   ;
-         // aRectIm est dans le repère d'origine P0
-         cPt2di aTrans  = aDataIm2D->P0() + aP0;
-         
-      // FIXME CM: Optimize if aDyn == 1 !
-         TypeOut * abyRaster;
-         abyRaster = (TypeOut *) cMemManager::Calloc(1, sizeof(TypeOut)*aRectIm.Sz().x()*aRectIm.Sz().y());
-
-         for (int aY = 0; aY < aRectIm.Sz().y(); aY++)
-         {
-            for (int aX = 0; aX < aRectIm.Sz().x(); aX++)
+   //FIXME CM: Handle here: N<->N, 1->N, N->1
+   template <typename TypeIn, typename TypeOut> void GdalReadWriteIO(IoMode aMode, const cDataFileIm2D &aDF, std::vector<const cDataIm2D<TypeIn>*>& aVecImV2, const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2)
+   {
+        GDALDataset * aDataset = OpenDataset(aDF.Name(), aMode==IoMode::Read ? GA_ReadOnly : GA_Update);
+        GDALDataType aGDALDataType = TyMMVIIToGdal(aDF.Type());
+        auto aDataIm2D = aVecImV2[0];
+        cRect2 aRectFullIm (cPt2di(0,0),aDataIm2D->Sz());
+        cRect2 aRectIm =  (aR2 == cRect2::TheEmptyBox) ? aRectFullIm : aR2;
+        // aRectIm est dans le repère d'origine P0
+        cPt2di aTrans  = aDataIm2D->P0() + aP0;
+        TypeOut *aScanline = (TypeOut *) cMemManager::Calloc(1, sizeof(TypeOut)*aRectIm.Sz().x()*aRectIm.Sz().y());
+        if (aMode == IoMode::Read) {
+            for (auto aChan = 0; aChan < aDF.NbChannel(); aChan++)
             {
-               abyRaster[aY * aRectIm.Sz().x() + aX] = tNumTrait<TypeOut>::Trunc(aDataIm2D->GetV(cPt2di(aX, aY) + aDataIm2D->P0() + aR2.P0()) * aDyn);
-            }
-         }
-         // Write data in file
-         CPLErr cplErr2 = poBand->RasterIO( GF_Write, aRectIm.P0().x() + aTrans.x(), aRectIm.P0().y() + aTrans.y(), aRectIm.Sz().x(), aRectIm.Sz().y(), abyRaster, aRectIm.Sz().x(), aRectIm.Sz().y(), aGDALDataType, 0, 0 );
-         // FIXME CM: better error message
-         MMVII_INTERNAL_ASSERT_strong(cplErr2 == 0 | | cplErr2 == 1,"Error in writing image");
+                auto aDataIm2D = const_cast<cDataIm2D<TypeIn>*>(aVecImV2[aChan]); // If IoMode::Read, the original parameter was not const. So we can de-const it.
+                GDALRasterBand* aBand = aDataset->GetRasterBand(aChan+1);
+                CPLErr cplErr2 = aBand->RasterIO( GF_Read, aRectIm.P0().x() + aTrans.x(), aRectIm.P0().y() + aTrans.y(), aRectIm.Sz().x(), aRectIm.Sz().y(), aScanline, aRectIm.Sz().x(), aRectIm.Sz().y(), aGDALDataType, 0, 0 );
+                // FIXME CM: better error message
+                MMVII_INTERNAL_ASSERT_strong(cplErr2 == 0 || cplErr2 == 1,"Error in reading image");
 
-         cMemManager::Free(abyRaster);
+                for (int aY = 0; aY < aRectIm.Sz().y(); aY++)
+                {
+                    for (int aX = 0; aX < aRectIm.Sz().x(); aX++)
+                    {
+                        aDataIm2D->SetVTrunc(cPt2di(aX, aY) + aDataIm2D->P0(), aScanline[aY * aRectIm.Sz().x() + aX] * aDyn);
+                    }
+                }
+            }
+        } else {
+            for (auto aChan = 0; aChan < aDF.NbChannel(); aChan++)
+            {
+                auto aDataIm2D = aVecImV2[aChan];
+                GDALRasterBand* aBand = aDataset->GetRasterBand(aChan+1);
+                for (int aY = 0; aY < aRectIm.Sz().y(); aY++)
+                {
+                    for (int aX = 0; aX < aRectIm.Sz().x(); aX++)
+                    {
+                        aScanline[aY * aRectIm.Sz().x() + aX] = tNumTrait<TypeOut>::Trunc(aDataIm2D->GetV(cPt2di(aX, aY) + aDataIm2D->P0() + aR2.P0()) * aDyn);
+                    }
+                }
+                CPLErr cplErr2 = aBand->RasterIO( GF_Write, aRectIm.P0().x() + aTrans.x(), aRectIm.P0().y() + aTrans.y(), aRectIm.Sz().x(), aRectIm.Sz().y(), aScanline, aRectIm.Sz().x(), aRectIm.Sz().y(), aGDALDataType, 0, 0 );
+                // FIXME CM: better error message
+                MMVII_INTERNAL_ASSERT_strong(cplErr2 == 0 || cplErr2 == 1,"Error in writing image");
+            }
+        }
+        cMemManager::Free(aScanline);
+        CloseDataset(aDataset);
    }
 
+// FIXME CM: special API to write a full image: Needed for JPEG, avoid empty useless image creation for TIFF (see: cDataFileIm2D::create and cDataIm2D::ToFile)
+// FIXME CM: Read: if aVecImV2.size() != aDF.mNbChannel => Convert to gray if aVecImV2.size()==1, else error
+// FIXME CM: test P0 and Sz is same on all aVecImV2
+// FIXME CM: Write: if aVecImV2.size() != aDF.mNbChannel => write NnChannel times same channel if aVecImV2.size()==1, else error
 
-// FIXME CM: if aVecImV2.size() != aDF.mNbChannel => Convert to gray if aVecImV2.size()==1, else error
-   template <class Type> void GdalRead
+    template <class Type> void GdalReadWrite
                             (
-                                std::vector<cDataIm2D<Type>*>& aVecImV2,
+                                IoMode aMode,
+                                std::vector<const cDataIm2D<Type>*>& aVecImV2,
                                 const cDataFileIm2D &aDF,
                                 const cPt2di & aP0File,
                                 double aDyn,
                                 const cRect2& aR2Init
                             )
-   {
-      GDALDataset * aGdalDataset = OpenDataset(aDF.Name(), GA_ReadOnly);
-      int i = 0;
-      for (auto & element : aVecImV2)
-      {
-               switch (aDF.Type())
-               {
-                  case eTyNums::eTN_INT1 : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Read : case eTyNums::eTN_INT1") ; break ;
-                  case eTyNums::eTN_U_INT1 : GdalReadData<Type, tU_INT1>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, TyMMVIIToGdal(aDF.Type()))  ; break ;
-                  case eTyNums::eTN_INT2 : GdalReadData<Type, tINT2>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, TyMMVIIToGdal(aDF.Type())) ; break ;
-                  case eTyNums::eTN_U_INT2 : GdalReadData<Type, tU_INT2>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, TyMMVIIToGdal(aDF.Type()))  ; break ;
-                  case eTyNums::eTN_INT4 : GdalReadData<Type, tINT4>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, TyMMVIIToGdal(aDF.Type()))  ;  break ;
-                  case eTyNums::eTN_U_INT4 : GdalReadData<Type, tU_INT4>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, TyMMVIIToGdal(aDF.Type()))  ; break ;
-                  case eTyNums::eTN_INT8 : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Read : case eTyNums::eTN_INT8") ; break ;
-                  case eTyNums::eTN_REAL4 : GdalReadData<Type, tREAL4>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, TyMMVIIToGdal(aDF.Type()))  ; break ;
-                  case eTyNums::eTN_REAL8 : GdalReadData<Type, tREAL8>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, TyMMVIIToGdal(aDF.Type()))  ; break ;
-                  case eTyNums::eTN_REAL16 : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Read : case eTyNums::eTN_REAL16") ; break ;
-                  case eTyNums::eTN_UnKnown : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Read : case eTyNums::eTN_UnKnown") ; break ;
-                  case eTyNums::eNbVals : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Read : case eTyNums::eNbVals") ; break ;
-               }
-         i++;
-      }
-      CloseDataset( aGdalDataset );
-   }
-   
-   
-   // FIXME CM: if aVecImV2.size() != aDF.mNbChannel => write NnChannel times same channel if aVecImV2.size()==1, else error
-   template <class Type> void GdalWrite
-                              (
-                                 std::vector<const cDataIm2D<Type>*>& aVecImV2,
-                                 const cDataFileIm2D &aDF,
-                                 const cPt2di & aP0File,
-                                 double aDyn,
-                                 const cRect2& aR2Init
-                              )
-   {
-      GDALDataset * aGdalDataset = OpenDataset(aDF.Name(), GA_Update);
-      int i = 0;
-      for (auto & element : aVecImV2)
-      {
-            switch (aDF.Type())
-            {
-               case eTyNums::eTN_INT1 : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Write : case eTyNums::eTN_INT1") ; break ;
-               case eTyNums::eTN_U_INT1 : GdalWriteData<Type, tU_INT1>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, TyMMVIIToGdal(aDF.Type()))  ; break ;
-               case eTyNums::eTN_INT2 : GdalWriteData<Type, tINT2>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, TyMMVIIToGdal(aDF.Type())) ; break ;
-               case eTyNums::eTN_U_INT2 : GdalWriteData<Type, tU_INT2>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, TyMMVIIToGdal(aDF.Type()))  ; break ;
-               case eTyNums::eTN_INT4 : GdalWriteData<Type, tINT4>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, TyMMVIIToGdal(aDF.Type()))  ; break ;
-               case eTyNums::eTN_U_INT4 : GdalWriteData<Type, tU_INT4>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, TyMMVIIToGdal(aDF.Type()))  ; break ;
-               case eTyNums::eTN_INT8 : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Write : case eTyNums::eTN_INT8") ; break ;
-               case eTyNums::eTN_REAL4 : GdalWriteData<Type, tREAL4>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, TyMMVIIToGdal(aDF.Type()))  ; break ;
-               case eTyNums::eTN_REAL8 : GdalWriteData<Type, tREAL8>(aGdalDataset, aP0File, aDyn, aR2Init, i+1, element, TyMMVIIToGdal(aDF.Type()))  ; break ;
-               case eTyNums::eTN_REAL16 : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Write : case eTyNums::eTN_REAL16") ; break ;
-               case eTyNums::eTN_UnKnown : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Write : case eTyNums::eTN_UnKnown") ; break ;
-               case eTyNums::eNbVals : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::Write : case eTyNums::eNbVals") ; break ;
-            }
-         i++;
-      }
-      CloseDataset( aGdalDataset );
-   }
+    {
+        switch (aDF.Type())
+        {
+        case eTyNums::eTN_INT1 : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::ReadWrite : case eTyNums::eTN_INT1") ; break ;
+        case eTyNums::eTN_U_INT1 : GdalReadWriteIO<Type, tU_INT1>(aMode, aDF, aVecImV2, aP0File, aDyn, aR2Init)  ; break ;
+        case eTyNums::eTN_INT2 : GdalReadWriteIO<Type, tINT2>(aMode, aDF, aVecImV2, aP0File, aDyn, aR2Init) ; break ;
+        case eTyNums::eTN_U_INT2 : GdalReadWriteIO<Type, tU_INT2>(aMode, aDF, aVecImV2, aP0File, aDyn, aR2Init)  ; break ;
+        case eTyNums::eTN_INT4 : GdalReadWriteIO<Type, tINT4>(aMode, aDF, aVecImV2, aP0File, aDyn, aR2Init)  ;  break ;
+        case eTyNums::eTN_U_INT4 : GdalReadWriteIO<Type, tU_INT4>(aMode, aDF, aVecImV2, aP0File, aDyn, aR2Init)  ; break ;
+        case eTyNums::eTN_INT8 : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::ReadWrite : case eTyNums::eTN_INT8") ; break ;
+        case eTyNums::eTN_REAL4 : GdalReadWriteIO<Type, tREAL4>(aMode, aDF, aVecImV2, aP0File, aDyn, aR2Init)  ; break ;
+        case eTyNums::eTN_REAL8 : GdalReadWriteIO<Type, tREAL8>(aMode, aDF, aVecImV2, aP0File, aDyn, aR2Init)  ; break ;
+        case eTyNums::eTN_REAL16 : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::ReadWrite : case eTyNums::eTN_REAL16") ; break ;
+        case eTyNums::eTN_UnKnown : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::ReadWrite : case eTyNums::eTN_UnKnown") ; break ;
+        case eTyNums::eNbVals : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::ReadWrite : case eTyNums::eNbVals") ; break ;
+        }
+    }
 
-}// Private
+   template <class Type> void GdalReadWrite(
+        IoMode aMode,
+        const cDataIm2D<Type>& aImV2,
+        const cDataFileIm2D &aDF,
+        const cPt2di & aP0File,
+        double aDyn,
+        const cRect2& aR2Init
+    )
+    {
+        std::vector<const cDataIm2D<Type> *> aVIms({&aImV2});
+        GdalReadWrite(aMode,aVIms,aDF,aP0File,aDyn,aR2Init);
+    }
+
+   template <class Type> void GdalReadWrite(
+        IoMode aMode,
+        const cDataIm2D<Type>& aImV2R,
+        const cDataIm2D<Type>& aImV2G,
+        const cDataIm2D<Type>& aImV2B,
+        const cDataFileIm2D &aDF,
+        const cPt2di & aP0File,
+        double aDyn,
+        const cRect2& aR2Init
+    )
+    {
+        std::vector<const cDataIm2D<Type> *> aVIms({&aImV2R,&aImV2G,&aImV2B});
+        GdalReadWrite(aMode,aVIms,aDF,aP0File,aDyn,aR2Init);
+    }
+
+} // namespace Private
 
 
 #ifdef MMVII_KEEP_MMV1_IMAGE
@@ -584,8 +558,7 @@ template <class Type>  void  cDataIm2D<Type>::Read(const cDataFileIm2D & aFile,c
         cMMV1_Conv<Type>::ReadWrite(true,*this,aFile,aP0,aDyn,aR2);
     } else {
 #endif
-    std::vector<tIm * > aVIms({this});
-    GdalRead(aVIms, aFile, aP0, aDyn, aR2);
+    GdalReadWrite(IoMode::Read, *this, aFile, aP0, aDyn, aR2);
 #ifdef MMVII_KEEP_MMV1_IMAGE
     }
 #endif
@@ -598,8 +571,7 @@ template <class Type>  void  cDataIm2D<Type>::Read(const cDataFileIm2D & aFile,t
         cMMV1_Conv<Type>::ReadWrite(true,*this,aImG,aImB,aFile,aP0,aDyn,aR2);
     } else {
 #endif
-    std::vector<tIm * > aVIms({this,&aImG,&aImB});
-    GdalRead(aVIms, aFile, aP0, aDyn, aR2);
+    GdalReadWrite(IoMode::Read, *this, aImG, aImB, aFile, aP0, aDyn, aR2);
 #ifdef MMVII_KEEP_MMV1_IMAGE
     }
 #endif
@@ -613,8 +585,7 @@ template <class Type>  void  cDataIm2D<Type>::Write(const cDataFileIm2D & aFile,
         cMMV1_Conv<Type>::ReadWrite(false,*this,aFile,aP0,aDyn,aR2);
     } else {
 #endif
-    std::vector<const tIm * > aVIms({this});
-    GdalWrite(aVIms, aFile, aP0, aDyn, aR2);
+    GdalReadWrite(IoMode::Write, *this, aFile, aP0, aDyn, aR2);
 #ifdef MMVII_KEEP_MMV1_IMAGE
     }
 #endif
@@ -627,8 +598,7 @@ template <class Type>  void  cDataIm2D<Type>::Write(const cDataFileIm2D & aFile,
         cMMV1_Conv<Type>::ReadWrite(false,*this,aImG,aImB,aFile,aP0,aDyn,aR2);
     } else {
 #endif
-      std::vector<const tIm * > aVIms({this,&aImG,&aImB});
-      GdalWrite(aVIms, aFile, aP0, aDyn, aR2);
+      GdalReadWrite(IoMode::Write, *this, aImG, aImB, aFile, aP0, aDyn, aR2);
 #ifdef MMVII_KEEP_MMV1_IMAGE
     }
 #endif
@@ -641,8 +611,7 @@ template <>  void  cDataIm2D<tU_INT4>::Read(const cDataFileIm2D & aFile,const cP
     if (mmvii_use_mmv1_image) {
         MMVII_INTERNAL_ASSERT_strong(false,"No read for unsigned int4 now");
     } else {
-        std::vector<tIm * > aVIms({this});
-        GdalRead(aVIms, aFile, aP0, aDyn, aR2);
+        GdalReadWrite(IoMode::Read, *this, aFile, aP0, aDyn, aR2);
     }
 }
 
@@ -651,8 +620,7 @@ template <>  void  cDataIm2D<tU_INT4>::Write(const cDataFileIm2D & aFile,const c
     if (mmvii_use_mmv1_image) {
         MMVII_INTERNAL_ASSERT_strong(false,"No write for unsigned int4 now");
     } else {
-        std::vector<const tIm * > aVIms({this});
-        GdalWrite(aVIms, aFile, aP0, aDyn, aR2);
+        GdalReadWrite(IoMode::Write, *this, aFile, aP0, aDyn, aR2);
     }
 }
 
@@ -661,8 +629,7 @@ template <>  void  cDataIm2D<tU_INT4>::Write(const cDataFileIm2D & aFile,const t
     if (mmvii_use_mmv1_image) {
         MMVII_INTERNAL_ASSERT_strong(false,"No write for unsigned int4 now");
     } else {
-      std::vector<const tIm * > aVIms({this,&aImG,&aImB});
-      GdalWrite(aVIms, aFile, aP0, aDyn, aR2);
+      GdalReadWrite(IoMode::Write, *this, aImG, aImB, aFile, aP0, aDyn, aR2);
     }
 }
 #endif
