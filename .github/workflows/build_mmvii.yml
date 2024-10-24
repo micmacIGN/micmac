@@ -22,7 +22,7 @@ jobs:
       run: sudo apt install libproj-dev proj-data
 
     - name: Install pdflatex
-      run: sudo apt install texlive-latex-base texlive-latex-extra texlive-fonts-recommended texlive-fonts-extra
+      run: sudo apt install texlive-latex-base texlive-latex-extra texlive-fonts-recommended texlive-fonts-extra texlive-science
 
     - name: Build MMVII documentation
       run: make -C MMVII/Doc a4
