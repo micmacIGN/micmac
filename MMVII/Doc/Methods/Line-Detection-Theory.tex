@@ -501,6 +501,50 @@ the best one is signficantly better, to see the rule used, examine the method
 \end{itemize}
 
 
+%-----------------------------------------------------------------------
+%-----------------------------------------------------------------------
+%-----------------------------------------------------------------------
+
+\section{The \PPP command }
+
+The command for line extraction is {\tt ExtractLine}. It takes $4$  mandatory parameters  in the following order :
+
+
+\begin{itemize}
+   \item  the set of images where the line must be extracted ;
+   \item  a boolean indicate if the wire is white  (used when orientation of line is meaningfull like computing neighboorhouds
+          or matching anti parallel line);
+   \item  a folder indicating the location of an existing calibration  \footnote{it is planned to be able to use
+          it w/o calibration using the key word {\tt NONE}, by the way it is still not fully working};
+   \item  a folder where storing the results.
+\end{itemize}
+
+For example :
+
+\begin{verbatim}
+   MMVII ExtractLine  AllImFil.xml   true BA_311_C Fils 
+   MMVII ExtractLine  (.*)_0158.tif  true BA_311_C Fils 
+   MMVII ExtractLine  043_0158.tif   true BA_311_C Fils 
+\end{verbatim}
+
+For example with last command :
+
+\begin{itemize}
+    \item we will extract white line on image {\tt 043\_0158.tif};
+
+    \item for distorsion correction we will look for intrisic calibration in 
+          folder {\tt MMVII-PhgrProj/Ori/BA\_311\_/} ;
+
+    \item the result will be stored in folder {\tt MMVII-PhgrProj/PointsMeasure/Fils};
+\end{itemize}
+
+The result will be stored in two way :
+
+\begin{itemize}
+    \item a xml file by image, that is used by \PPP ;
+    \item a global file {\tt Lines.csv} that is generated for convenient use by external software.
+\end{itemize}
+
 
 %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 % \subsubsection{AAA}

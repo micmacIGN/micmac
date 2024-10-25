@@ -41,6 +41,7 @@ cOneLineAntiParal cParalLine::GetLAP(const cPerspCamIntrCalib & aCalib) const
    aOLAP.mRadHom = mRadHom;
    aOLAP.mWidth  = mWidth;
    aOLAP.mCumul  = mScoreMatch;
+   aOLAP.mSigmaLine = (mVHS.at(0).SigmaL() + mVHS.at(1).SigmaL()) / 2.0;
    
    return aOLAP;
 }
@@ -231,14 +232,16 @@ cHoughPS::cHoughPS(const cHoughTransform * aHT,const cPt2dr & aTR,tREAL8 aCumul,
     mHT          (aHT),
     mTetaRho     (aTR),
     mCumul       (aCumul),
+    mSigmaL      (-1),     // undef
     mSegE        (aP1,aP2),
     mCode        (eCodeHPS::Ok)
 {
 }
 
-void cHoughPS::UpdateSegImage(const tSeg & aNewSeg,tREAL8 aNewCumul)
+void cHoughPS::UpdateSegImage(const tSeg & aNewSeg,tREAL8 aNewCumul,tREAL8 aSigma)
 {
     mCumul = aNewCumul;
+    mSigmaL = aSigma;
     mSegE = aNewSeg;
     mTetaRho = mHT->Line2PtInit(aNewSeg);
 }
@@ -260,6 +263,7 @@ const cPt2dr & cHoughPS::TetaRho() const {return mTetaRho;}
 const tREAL8 & cHoughPS::Teta()    const {return mTetaRho.x();}
 const tREAL8 & cHoughPS::Rho()     const {return mTetaRho.y();}
 const tREAL8 & cHoughPS::Cumul()     const {return mCumul;}
+const tREAL8 & cHoughPS::SigmaL()     const {return mSigmaL;}
 // cHoughPS * cHoughPS::Matched() const {return mMatched;}
 eCodeHPS  cHoughPS::Code() const  {return mCode;}
 void cHoughPS::SetCode(eCodeHPS aCode) {  mCode = aCode;}

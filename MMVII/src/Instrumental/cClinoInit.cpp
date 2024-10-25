@@ -3,6 +3,7 @@
 #include "MMVII_Geom3D.h"
 #include "MMVII_PCSens.h"
 #include "MMVII_Clino.h"
+#include "MMVII_Tpl_Images.h"
 
 
 /**
@@ -521,6 +522,7 @@ int cAppli_ClinoInit::Exe()
     if (mVKClino.size() > 1)
     {
         StdOut() <<  "=============== Result of individual  optimization  =============" << std::endl;
+        std::vector<tRotR>  aREnd;
         for (size_t aKCSel=0 ; aKCSel<mVKClino.size() ; aKCSel++)
 	{
             StdOut() << "   ----- OPTIMIZE CLINO " << mVKClino[aKCSel] << "   -------- " << std::endl;
@@ -538,7 +540,22 @@ int cAppli_ClinoInit::Exe()
             StdOut() << "Residual=" << std::sqrt(aWMK.ValExtre()) 
                      << " Cond=" << ComputeCond(aWMK.IndexExtre())
 		     << std::endl;
+
+           aREnd.push_back(aWMK.IndexExtre());
 	}
+        /* compute Orthogonality between solution of independant clinos,  Let O be the ortognality matrix, what we optimize
+            when using the 2 clino and applying the orthognality is (see  "OriOfClino") :
+
+                 F(R) + F(O R)
+
+            So  R2 R-1 = O is how much clino are Ortho
+            
+        */
+        tRotR  aR1 = aREnd.at(0);
+        tRotR  aR2 = aREnd.at(1);
+        tRotR  aR12  = aR2 * aR1.MapInverse() ;
+
+        StdOut() << " Orthogonality diff   N="   <<  aR12.Angle() << "\n";
     }
 
     // Save the result in standard file
@@ -552,6 +569,35 @@ int cAppli_ClinoInit::Exe()
        delete aClinoTest;
 
     }
+
+
+    // Test 2 understand WPK distance / axiator ...
+    if (0)
+    {
+        tREAL8 aEps = 1e-2;
+
+        for (int aKW=-1 ; aKW<=1 ; aKW++)
+             for (int aKP=-1 ; aKP<=1 ; aKP++)
+                 for (int aKK=-1 ; aKK<=1 ; aKK++)
+                     if ((aKW!=0) || (aKP!=0) || (aKK !=0))
+                     {
+                        cPt3dr aWPK = cPt3dr(aKW,aKP,aKK) * aEps;
+                        tRotR aRot = tRotR::RotFromWPK(aWPK);
+                        auto aDifId = aRot.Mat() - cDenseMatrix<tREAL8>::Identity(3);
+                        tREAL8 aDwpk = Norm2(aWPK);
+                        tREAL8 aDId =  aDifId.DIm().L2Norm(false);
+                        StdOut() << " R=" << aDwpk / aDId   
+                                          << " DW" << aDwpk/aEps   
+                                          << " DA=" << aRot.Angle()/aEps
+                                          << " DId="  << aDId/aEps << "\n";
+                        if ((aKW==1) && (aKP==0) && (aKK==0))
+                        {
+                              aDifId.Show() ;
+                        }
+                     }
+    }
+
+
     /*
     std::string aNameOut = mPhProj.DPClinoMeters().FullDirOut() + "ClinoCalib-" + aNameCalibCam + "."+ GlobTaggedNameDefSerial();
     SaveInFile(mCalibSetClino,aNameOut);

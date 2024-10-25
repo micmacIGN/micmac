@@ -35,6 +35,7 @@ class cHoughPS // : public cMemCheck
 	 const tREAL8 & Rho() const;     ///< Accessor
 	 const tSeg & Seg() const ;      ///< Accessor
 	 const tREAL8 & Cumul() const;   ///< Accessor
+	 const tREAL8 & SigmaL() const;   ///< Accessor
 	 eCodeHPS  Code() const ;        ///< Accessor
          void SetCode(eCodeHPS);         ///< Modifior
          const cHoughTransform *  HT() const; ///< Accessor
@@ -45,7 +46,7 @@ class cHoughPS // : public cMemCheck
 	 bool Match(const cHoughPS &,bool IsDark,tREAL8 aMaxTeta,tREAL8 aDMin,tREAL8 aDMax) const;
 	 static std::vector<std::pair<int,int>> GetMatches(const std::vector<cHoughPS>&  mVPS,bool IsLight,tREAL8 aMaxTeta,tREAL8 aDMin,tREAL8 aDMax);
 
-         void UpdateSegImage(const tSeg & aNewSeg,tREAL8 aNewCumul);
+         void UpdateSegImage(const tSeg & aNewSeg,tREAL8 aNewCumul,tREAL8 aSigmaL);
 
      protected :
 	 void UpdateMatch(cHoughPS *,tREAL8 aDist);
@@ -53,6 +54,7 @@ class cHoughPS // : public cMemCheck
          const cHoughTransform *  mHT;
          cPt2dr                   mTetaRho;
          tREAL8                   mCumul;
+         tREAL8                   mSigmaL;
          tSeg                     mSegE;
 	 eCodeHPS                 mCode;
 };
