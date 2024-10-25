@@ -97,6 +97,7 @@ class cSetMesPtOf1Im : public cMemCheck
 	  static cSetMesPtOf1Im  FromFile(const std::string & aNameFile);
           void AddMeasure(const cMesIm1Pt &);
           void AddData(const  cAuxAr2007 & anAux);
+          void SortMes(); // sort measures in place with NamePt
 
 
           void AddSetMeasure(const cSetMesPtOf1Im &,bool SuprNone,bool OkDupl);

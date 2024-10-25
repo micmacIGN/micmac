@@ -561,6 +561,7 @@ void  cAppliCheckBoardTargetExtract::DoExport()
          }
      }
 
+     aSetM.SortMes();
      mPhProj.SaveMeasureIm(aSetM);
 }
 

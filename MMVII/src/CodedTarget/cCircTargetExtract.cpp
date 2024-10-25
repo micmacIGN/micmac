@@ -854,6 +854,7 @@ void cAppliExtractCircTarget::DoExport()
 	 }
      }
 
+     aSetM.SortMes();
      mPhProj.SaveMeasureIm(aSetM);
 
      //SaveInFile(mVSavE,mPhProj.DPPointsMeasures().FullDirOut()+ "Attribute-"+  aSetM.StdNameFile());

@@ -500,6 +500,16 @@ void cSetMesPtOf1Im::ToFile(const std::string & aName) const
     SaveInFile(*this,aName);
 }
 
+void cSetMesPtOf1Im::SortMes()
+{
+    std::sort(mMeasures.begin(), mMeasures.end(),
+              [](const cMesIm1Pt &a, const cMesIm1Pt &b)
+                {
+                    return a.mNamePt < b.mNamePt;
+                }
+    );
+}
+
 const std::string  cSetMesPtOf1Im::ThePrefixFiles = "MesIm-";
 
 std::string cSetMesPtOf1Im::StdNameFileOfIm(const std::string & aName)
