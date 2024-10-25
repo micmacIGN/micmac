@@ -530,7 +530,7 @@ class cOneLineAntiParal
           tREAL8  mWidth;
           tREAL8  mCumul;
           tREAL8  mRadHom;
-          tREAL8  mSimgaLine;
+          tREAL8  mSigmaLine;
 };
 void AddData(const cAuxAr2007 & anAux,cOneLineAntiParal & anEx);
 

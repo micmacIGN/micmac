@@ -128,7 +128,7 @@ int cAppli_ImportLines::Exe()
 	     aLine.mSeg = tSeg2dr(aP1,aP2);
 
 	     if (WithSigma)
-                aLine.mSimgaLine = aNRFS.GetFloat(mNameSigma,aK);
+                aLine.mSigmaLine = aNRFS.GetFloat(mNameSigma,aK);
 	     if (WithWidth)
                 aLine.mWidth = aNRFS.GetFloat(mNameWidth,aK);
 

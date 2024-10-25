@@ -234,8 +234,9 @@ int cAppli_Wire3DInit::Exe()
                            + "-" + mPhProj.DPRigBloc().DirIn() ;
     SetReportSubDir(aDirRep);
 
-    InitReport(mRepW,"csv",true);
-    InitReport(mRepPt,"csv",true);
+
+    InitReport(mRepW,"csv",false);
+    InitReport(mRepPt,"csv",false);
     AddOneReportCSV(mRepW,{"TimeBloc","NbPlane","Dist Ground","Dist Pix"});
     AddOneReportCSV(mRepPt,{"TimeBloc","NbPt","Dist Pix"});
 

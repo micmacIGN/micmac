@@ -143,13 +143,15 @@ class cAppliExtractLine : public cMMVII_Appli
 	bool                     mGTHasSeg; ///<  Does the GT "says" that here is no valid segment
 	std::optional<tSeg2dr>   mSegGT;
 	cTimerSegm               mTimeSeg;
+
+        std::string              mIdExportCSV;  ///<  used of export lines in CSV files
 }; 
 
 
 cAppliExtractLine::cAppliExtractLine(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
     cMMVII_Appli      (aVArgs,aSpec),
     mPhProj           (*this),
-    mGenVisu          (1),
+    mGenVisu          (0),
     mParamMatch       {6e-4,2.0,7.0},
     mCalib            (nullptr),
     // mCalDUD           (nullptr),
@@ -165,7 +167,8 @@ cAppliExtractLine::cAppliExtractLine(const std::vector<std::string> & aVArgs,con
     mHoughSeuilAng      (0.20),
     mWithGT             (false),
     mGTHasSeg           (false),
-    mTimeSeg            (this)
+    mTimeSeg            (this),
+    mIdExportCSV        ("Lines")
 {
 }
 
@@ -179,6 +182,7 @@ cCollecSpecArg2007 & cAppliExtractLine::ArgObl(cCollecSpecArg2007 & anArgObl)
       return    anArgObl
              <<  Arg2007(mPatImage,"Name of input Image", {eTA2007::FileDirProj,{eTA2007::MPatFile,"0"}})
 	     <<  Arg2007(mLineIsWhite," True : its a light line , false dark ")
+             << mPhProj.DPOrient().ArgDirInMand()
              << mPhProj.DPPointsMeasures().ArgDirOutMand()
       ;
 }
@@ -186,7 +190,6 @@ cCollecSpecArg2007 & cAppliExtractLine::ArgObl(cCollecSpecArg2007 & anArgObl)
 cCollecSpecArg2007 & cAppliExtractLine::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
     return anArgOpt
-               << mPhProj.DPOrient().ArgDirInOpt("","Folder for calibration to integrate distorsion")
 	       << AOpt2007(mAccurateHough,"AccurateHough","Accurate/Quick hough",{eTA2007::HDV})
 	       << AOpt2007(mGenVisu,"GenVisu","Generate Visu 0 none, 1 déroulé, 2 image wire, 3",{eTA2007::HDV})
 	       << AOpt2007(mZoomImL,"ZoomImL","Zoom for images of line",{eTA2007::HDV})
@@ -200,7 +203,7 @@ cCollecSpecArg2007 & cAppliExtractLine::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 std::vector<std::string>  cAppliExtractLine::Samples() const
 {
    return {
-              "MMVII ExtractLine 'DSC_.*.JPG' ShowSteps=1 InOri=FB"
+              "MMVII ExtractLine AllImFil.xml true BA_311_C Fils"
 	};
 }
 
@@ -425,6 +428,19 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
 	    */
 	}
 	mPhProj.SaveLines(aExAllLines);
+
+        for  (const auto & aLine : aExAllLines.mLines)
+        {
+             cPt2dr aP1 = aLine.mSeg.P1();
+             cPt2dr aP2 = aLine.mSeg.P2();
+             std::vector<std::string> aVS {        aNameIm,
+                                                   ToStr(aP1.x()),ToStr(aP1.y()),ToStr(aP2.x()),ToStr(aP2.y()),
+                                                   ToStr(aLine.mWidth),ToStr(aLine.mSigmaLine)
+                                          };
+             AddOneReportCSV(mIdExportCSV,aVS);
+        }
+    // InitReport(mIdExportCSV,"csv",true,{"NameIm","X1","Y1","X2","Y2","Witdh","Sigma"});
+        // AddOneReportCSV(mNameReportByLine,{mNameCurIm,ToStr(aEx1L.mAng),ToStr(aEx1L.mWidth),ToStr(aEx1L.mCumul),ToStr(aHS1->RadHom())});
     }
 
 #if (0)
@@ -562,6 +578,9 @@ int cAppliExtractLine::Exe()
     mPhProj.FinishInit();
     InitReport(mNameReportByLine,"csv",true,{"NameIm","Paral","Larg","Score","RadHom"});
     InitReport(mNameReportByIm,"csv",true,{"NameIm","CodeResult"});
+
+    InitReport(mIdExportCSV,"csv",true,{"NameIm","X1","Y1","X2","Y2","Witdh","Sigma"});
+    SetReportRedir(mIdExportCSV,mPhProj.DPPointsMeasures().FullDirOut());
 
     // AddHeaderReportCSV(mNameReportByLine,{"NameIm","Paral","Larg","Cumul"});
     // AddHeaderReportCSV(mNameReportByIm,{"NameIm","CodeResult"});

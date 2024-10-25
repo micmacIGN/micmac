@@ -367,7 +367,8 @@ template <class Type> void  cExtractLines<Type>::RefineLineInSpace(cHoughPS & aH
     }
 //  StdOut() << "RefineLineInSpacellll " << __LINE__ << "\n";
 
-    aHPS.UpdateSegImage(aNewSeg,aSumNumbering.back());
+    aHPS.UpdateSegImage(aNewSeg,aSumNumbering.back(),aVStat.back().QuadAvg());
+// StdOut() << "RESSSS " << aVStat.at(aKIter+1).QuadAvg() << "\n";
 }
 
 

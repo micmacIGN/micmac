@@ -25,6 +25,13 @@ void cMMVII_Appli::SetReportSubDir(const std::string & aSubDir)
    mReportSubDir = aSubDir;
 }
 
+void  cMMVII_Appli::SetReportRedir(const std::string &anId,const std::string & aNewDir)
+{
+    CreateDirectories(aNewDir,false);
+    mMapIdRedirect[anId] = aNewDir;
+}
+
+
 std::string  cMMVII_Appli::DirSubPReport(const std::string &anId)
 {
       return DirReport() + "Tmp-" + anId + StringDirSeparator();
@@ -161,12 +168,17 @@ void  cMMVII_Appli::DoMergeReport()
 	             }
 	         }
                  RemoveRecurs(DirSubPReport(anId),false,false);
+
              }
 	     OnCloseReport(aNbLines,anIt.first,anIt.second);
 	}
+        if (MapBoolFind(mMapIdRedirect,anIt.first) && (LevelCall()==0))
+        {
+            std::string aNewFile = mMapIdRedirect[anIt.first] + FileOfPath(anIt.second);
+            RenameFiles(anIt.second,aNewFile);
+        }
      }
 }
-
 
 // By default nothing to do
 void  cMMVII_Appli::OnCloseReport(int aNbLine,const std::string & anIdent,const std::string & aNameFile) const
