@@ -15,6 +15,7 @@ double Cst_KthVal(const std::vector<double> &, double aProportion);
 double Average(const std::vector<double> &);
 
 tREAL8 AngleInRad(eTyUnitAngle);
+bool AssertRadAngleInOneRound(tREAL8 aAngleRad, bool makeError=true);
 
 // some time needs a null val for any type with + (neutral for +)
 
@@ -69,6 +70,8 @@ double RandUnif_N(int aN); ///< Uniform disrtibution in [0,N[
 double RandUnif_C_NotNull(double aEps);   ///<  Uniform distribution in  -1 1, but abs > aEps
 double RandUnif_NotNull(double aEps);   ///<  Uniform distribution in  0 1, but abs > aEps
 double RandInInterval(double a,double b); ///<  Uniform distribution in [a,b]
+double RandInInterval(const cPt2dr &interval); ///<  Uniform distribution in [interval.x,interval.y]
+double RandInInterval_C(const cPt2dr &interval); ///<  Uniform distribution in [-interval.y,-interval.x]U[interval.x,interval.y]
 
 /** Class for mapping object R->R */
 class cFctrRR

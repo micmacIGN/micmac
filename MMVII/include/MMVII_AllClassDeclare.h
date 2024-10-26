@@ -305,6 +305,10 @@ class cSetMesGCP ;
 class cSetMesPtOf1Im ;
 class cMesIm1Pt;
 
+      // Line detection
+class cOneLineAntiParal;
+class cLinesAntiParal1Im;
+
 // Tiling index
 template <class Type>  class  cTiling ;
 
@@ -320,6 +324,10 @@ class cBlocOfCamera;
 class cOneCalibRelClino;  
 class cOneCalibClino;    
 class cCalibSetClino;   
+class cBA_Clino;
+class cOneMesureClino;
+class cSetMeasureClino;
+
 
 //   sys co
 

@@ -189,7 +189,7 @@ int   MatEss_GetKMax(const cSetHomogCpleDir & aSetD,tREAL8 aWeightStab,bool Show
                  aSys.AddObsFixVar(aNbEq*aWeightStab,aKFix0,0.0);
          }
         
-        cDenseVect<tREAL8> aSol = aSys.Solve();
+        cDenseVect<tREAL8> aSol = aSys.PublicSolve();
 
         tREAL8 aSInf = aSol.LInfNorm();
         for (int aK=0 ; aK<9 ; aK++)
@@ -225,7 +225,7 @@ int   MatEss_GetKMax(const cSetHomogCpleDir & aSetD,tREAL8 aWeightStab,bool Show
 cMatEssential::cMatEssential(const cSetHomogCpleDir & aSetD,cLinearOverCstrSys<tREAL8> & aSys,int aKFix) :
     mMat  (cPt2di(3,3))
 {
-     aSys.Reset();
+     aSys.PublicReset();
      cDenseVect<tREAL8> aVect(9);
 
      const std::vector<cPt3dr>&  aVD1 = aSetD.VDir1() ;
@@ -236,7 +236,7 @@ cMatEssential::cMatEssential(const cSetHomogCpleDir & aSetD,cLinearOverCstrSys<t
 	 aSys.PublicAddObservation(1.0,aVect,0.0);
      }
      aSys.AddObsFixVar(aVD1.size(),aKFix,1.0);
-     cDenseVect<tREAL8> aSol = aSys.Solve();
+     cDenseVect<tREAL8> aSol = aSys.PublicSolve();
 
      SetLine(0,mMat,cPt3dr(aSol(0),aSol(1),aSol(2)));
      SetLine(1,mMat,cPt3dr(aSol(3),aSol(4),aSol(5)));

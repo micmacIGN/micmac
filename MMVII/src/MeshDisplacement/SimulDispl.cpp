@@ -152,7 +152,7 @@ namespace MMVII
         anInterp = std::unique_ptr<cDiffInterpolator1D>(InitUserInterpolator());
 
         mImIn = tImDispl::FromFile(mNameImage);
-        cDataFileIm2D aDescFile = cDataFileIm2D::Create(mNameImage, false);
+        cDataFileIm2D aDescFile = cDataFileIm2D::Create(mNameImage, eForceGray::No);
 
         mDImIn = &mImIn.DIm();
         mSz = mDImIn->Sz();

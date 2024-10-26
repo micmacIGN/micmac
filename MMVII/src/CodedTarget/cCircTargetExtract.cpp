@@ -7,6 +7,8 @@
 #include "CodedTarget.h"
 #include "CodedTarget_Tpl.h"
 #include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_Interpolators.h"
+
 #include <cmath>
 
 /*   Modularistion
@@ -36,8 +38,10 @@ struct cThresholdCircTarget
 cThresholdCircTarget::cThresholdCircTarget() :
     mRatioStdDevGlob  (0.15),
     mRatioStdDevAmpl  (0.07),
-    // mAngRadCode       (0.15),
+    // mAngRadCode    (0.15),
+    // mAngRadCode    (0.60),
     mAngRadCode       (0.25),
+    // mAngTanCode    (0.60)
     mAngTanCode       (0.40)
 {
 }
@@ -55,6 +59,7 @@ cThresholdCircTarget::cThresholdCircTarget() :
 class cCircTargExtr : public cBaseTE
 {
      public :
+         typedef cDataIm2D<tREAL4>  tDIm;
          cCircTargExtr(const cExtractedEllipse &);
 
          cEllipse         mEllipse;
@@ -64,6 +69,8 @@ class cCircTargExtr : public cBaseTE
 	 bool             mWithCode;
 	 cOneEncoding     mEncode;
 	 int              mCardDetect; // Number of detection , should be 1 ....
+
+	 void  RefinePosBySym(tREAL8 aStep,const tDIm & ,const cDiffInterpolator1D &);
 };
 
 
@@ -79,6 +86,81 @@ cCircTargExtr::cCircTargExtr(const cExtractedEllipse & anEE)  :
 
 }
 
+void cEllipse::GetTetasRegularSample(std::vector<tREAL8> & aVTetas,const tREAL8 & aStepD)
+{
+     tREAL8 aEps =  aStepD /  (2*M_PI * mLGa)  ;
+     aEps /= 100.0;
+
+     tREAL8 aTetaCur = 0.0;
+     cPt2dr aLastPt = PtOfTeta(aTetaCur);
+
+     while (aTetaCur < 2*M_PI)
+     {
+         aVTetas.push_back(aTetaCur);
+	 tREAL8 aDist = Norm2(PtOfTeta(aTetaCur+aEps)-aLastPt);
+	 aTetaCur += aEps * (aStepD/aDist) ;
+
+         aLastPt = PtOfTeta(aTetaCur);
+     }
+
+     for  (auto & aTeta : aVTetas)
+         aTeta *= (2*M_PI) / aTetaCur;
+}
+
+void cCircTargExtr::RefinePosBySym(tREAL8 aStepLim,const tDIm & aDIm ,const cDiffInterpolator1D & anInt)
+{
+     cOptimSymetryOnImage aOptim(mEllipse.Center(),aDIm,anInt);
+     std::vector<tREAL8> aVTeta;
+     tREAL8 aStepDist = 0.25;
+     mEllipse.GetTetasRegularSample(aVTeta,aStepDist);
+
+     // check regularity on dist
+
+     tREAL8 aIntervRad = 0.5;
+     int aNbRad = round_up((2*aIntervRad)/aStepDist);
+     tREAL8 aStepRad = (2*aIntervRad) / aNbRad;
+     for (const auto & aTeta : aVTeta)
+     {
+          cPt2dr aPOnEl = mEllipse.PtOfTeta(aTeta);
+	  cPt2dr aNorm = VUnit(mEllipse.NormalInt(aPOnEl));
+
+	  for (int aKRad=0 ; aKRad<=aNbRad ; aKRad++)
+	  {
+               tREAL8 aRad = -aIntervRad + aKRad * aStepRad;
+
+	       cPt2dr aPt = aPOnEl + aNorm * aRad;
+               aOptim.AddPts(aPt);
+	  }
+     }
+
+     aOptim.IterLeastSqGrad(aStepLim,5);
+     mEllipse = cEllipse(aOptim.C0(),mEllipse.TetaGa(),mEllipse.LGa(),mEllipse.LSa());
+     mPt = aOptim.C0();
+
+
+     if (0)
+     {
+        tREAL8 aDifMax = 0;
+        for (size_t aK= 0 ; aK<aVTeta.size() ; aK++)
+        {
+	     tREAL8 aDist = Norm2(mEllipse.PtOfTeta(aVTeta.at(aK)) - mEllipse.PtOfTeta(aVTeta.at((aK+1)%aVTeta.size())));
+	     UpdateMax(aDifMax,std::abs(aDist-aStepDist));
+
+        }
+        StdOut() << "ENCOOOONAME " << mEncode.Name() << " VT=" << aVTeta.size() << " DifMax=" << aDifMax << " SR=" << aStepRad << "\n";
+     }
+
+
+     // getchar();
+     /*
+     tREAL8 aStep=0.25;
+     tREAL8 aTeta = 0.0;
+     while (aTeta< 2*M_PI)
+     {
+           tREAL8 aEps = mEllipse
+     }
+     */
+}
 
 /* ********************************************* */
 /*                                               */
@@ -568,7 +650,16 @@ void cCCDecode::ComputeCode()
 		       << " PBB " << mPixPerB 
 		       << " Rad:" <<  aAvgRad.Average()  
 		       << " Tan:" << aAvgTan.Average() 
-		       << " Th=" << aThickCode << "\n"; 
+		       << " Th=" << aThickCode ; 
+	       if (! mOkGrad)
+	       {
+		       StdOut() << " (TH:"
+			        << " RAD=" << mThresh.mAngRadCode
+			        << " TAN=" << mThresh.mAngTanCode 
+				<< ")";
+	       }
+	       StdOut() << "\n";
+                  
 	}
 	// getchar();
     }
@@ -671,12 +762,18 @@ class cAppliExtractCircTarget : public cMMVII_Appli,
 	std::string                 mReportMutipleDetec;  // Name for report of multiple detection in on target
 
 	double                      mRatioDMML;
-        int                         mNbMaxMulTarget;
+
+        double                      mNbMaxMT_Init;    ///< Number of Multiple Target OK for 0 image
+        double                      mNbMaxMT_PerIm;    ///<  Number of Multiple Target OK per additional image
+        double                      mNbMaxMulTargetTot;  ///<  Number of Multiple Target OK per additional image
+
         cThresholdCircTarget        mThresh;
 
 	std::vector<const cGeomSimDCT*>     mGTMissed;
 	std::vector<const cCircTargExtr*>   mFalseExtr;
 
+	tREAL8                              mStepRefineGrad;
+        cDiffInterpolator1D *               mInterpol;
 };
 
 
@@ -687,7 +784,7 @@ cAppliExtractCircTarget::cAppliExtractCircTarget
     const cSpecMMVII_Appli & aSpec
 ) :
    cMMVII_Appli  (aVArgs,aSpec),
-   cAppliParseBoxIm<tREAL4>(*this,true,cPt2di(20000,20000),cPt2di(300,300),false) ,
+   cAppliParseBoxIm<tREAL4>(*this,eForceGray::Yes,cPt2di(20000,20000),cPt2di(300,300),false) ,
    mSpec             (nullptr),
    mZoomVisuLabel    (0),
    mZoomVisuSeed     (0),
@@ -699,7 +796,10 @@ cAppliExtractCircTarget::cAppliExtractCircTarget
    mUseSimul         (false),
    mDoReportSimul    (false),
    mRatioDMML        (1.5),
-   mNbMaxMulTarget   (2)
+   mNbMaxMT_Init     (2.0),
+   mNbMaxMT_PerIm    (0.1),
+   mStepRefineGrad   (1e-4),
+   mInterpol         (nullptr)
 {
 }
 
@@ -709,7 +809,8 @@ cCollecSpecArg2007 & cAppliExtractCircTarget::ArgObl(cCollecSpecArg2007 & anArgO
    // Standard use, we put args of  cAppliParseBoxIm first
    return
              APBI_ArgObl(anArgObl)
-        <<   Arg2007(mNameSpec,"Xml/Json name for bit encoding struct",{{eTA2007::XmlOfTopTag,cFullSpecifTarget::TheMainTag}})
+        // <<   Arg2007(mNameSpec,"Xml/Json name for bit encoding struct",{{eTA2007::XmlOfTopTag,cFullSpecifTarget::TheMainTag}})
+        <<   Arg2007(mNameSpec,"Xml/Json name for bit encoding struct",{{eTA2007::FileAny}})
    ;
 }
 
@@ -726,7 +827,11 @@ cCollecSpecArg2007 & cAppliExtractCircTarget::ArgOpt(cCollecSpecArg2007 & anArgO
              << AOpt2007(mZoomVisuSeed,"ZoomVisuSeed","Make a visualisation of seed point",{eTA2007::HDV})
              << AOpt2007(mZoomVisuElFinal,"ZoomVisuEllipse","Make a visualisation extracted ellispe & target",{eTA2007::HDV})
              << AOpt2007(mPatHihlight,"PatHL","Pattern for highliting targets in visu",{eTA2007::HDV})
-             << AOpt2007(mNbMaxMulTarget,"NbMMT","Nb max of multiple target acceptable",{eTA2007::HDV})
+
+             << AOpt2007(mNbMaxMT_Init,"NbMMT0","Nb max of multiple target acceptable initial (for 0 image)",{eTA2007::HDV})
+             << AOpt2007(mNbMaxMT_PerIm,"NbMMT1","Nb max of multiple target acceptable per image",{eTA2007::HDV})
+
+             << AOpt2007(mStepRefineGrad,"StepRefineGrad","Step Refine Sym Grad",{eTA2007::HDV})
 	     <<   mPhProj.DPPointsMeasures().ArgDirOutOptWithDef("Std")
           );
 }
@@ -769,7 +874,7 @@ void cAppliExtractCircTarget::MakeImageSeed()
                5.0,5.0,0.0
             );
    }
-    aImVisu.ToJpgFileDeZoom(mPhProj.DirVisu()+mPrefixOut + "_VisuSeed.tif",mZoomVisuSeed);
+    aImVisu.ToJpgFileDeZoom(mPhProj.DirVisuAppli()+mPrefixOut + "_VisuSeed.tif",mZoomVisuSeed);
 }
 
 void cAppliExtractCircTarget::MakeImageFinalEllispe()
@@ -821,7 +926,7 @@ void cAppliExtractCircTarget::MakeImageFinalEllispe()
 	}
    }
 
-    aImVisu.ToJpgFileDeZoom(mPhProj.DirVisu()+mPrefixOut + "_Ellipses.tif",mZoomVisuElFinal);
+    aImVisu.ToJpgFileDeZoom(mPhProj.DirVisuAppli()+mPrefixOut + "_Ellipses.tif",mZoomVisuElFinal);
 }
 
 void cAppliExtractCircTarget::MakeImageLabel()
@@ -859,7 +964,7 @@ void cAppliExtractCircTarget::MakeImageLabel()
            aImVisuLabel.SetRGBPix(aSeed.mPixW,cRGBImage::Yellow);
         }
     }
-    aImVisuLabel.ToJpgFileDeZoom(mPhProj.DirVisu()+mPrefixOut + "_Label.tif",mZoomVisuLabel);
+    aImVisuLabel.ToJpgFileDeZoom(mPhProj.DirVisuAppli()+mPrefixOut + "_Label.tif",mZoomVisuLabel);
 }
 
 
@@ -941,6 +1046,8 @@ void cAppliExtractCircTarget::TestOnSimul()
 
 int cAppliExtractCircTarget::ExeOnParsedBox()
 {
+   mInterpol = new   cTabulatedDiffInterpolator(cSinCApodInterpolator(5.0,5.0));
+
    mPBWT.mDistMinMaxLoc =  mPBWT.mMinDiam * mRatioDMML;
    // All the process has been devloppe/tested using target with black background, rather than revisiting
    // all the process to see where the varaiant black/white has to be adressed, I do it "quick and (not so) dirty",
@@ -1011,6 +1118,11 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
            if (aCT->mWithCode)
 	   {
                aMapDetect[aCT->mEncode.Name() ] .push_back(aCT);
+
+	       if (mStepRefineGrad>0)
+	       {
+	           aCT->RefinePosBySym(mStepRefineGrad,APBI_DIm(),*mInterpol);
+	       }
 	   }
        }
 
@@ -1053,6 +1165,7 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
 
 
    delete mExtrEll;
+   delete mInterpol;
 
    return EXIT_SUCCESS;
 }
@@ -1063,7 +1176,8 @@ void cAppliExtractCircTarget::OnCloseReport(int aNbLine,const std::string & anId
 {
     if (anIdent==mReportMutipleDetec)
     {
-        if (aNbLine>(mNbMaxMulTarget*2))  // Each target is detected 2 times
+
+        if (aNbLine>(mNbMaxMulTargetTot*2))  // Each target is detected 2 times
         {
             MMVII_UserError(eTyUEr::eMultipleTargetInOneImage,"Nb Multiple Target = " + ToStr(aNbLine/2));
         }
@@ -1075,10 +1189,13 @@ int  cAppliExtractCircTarget::Exe()
    mPhProj.FinishInit();
 
    // Do simul if one sub image do simul
+
    for (const auto & anIm : VectMainSet(0))
    {
-       if (starts_with(FileOfPath(anIm),ThePrefixSimulTarget))
-	   mDoReportSimul = true;
+       // No longer does it as we have the "ReportMesIm" that does the same job, but more globally
+       if (false)
+           if (starts_with(FileOfPath(anIm),ThePrefixSimulTarget))
+	       mDoReportSimul = true;
    }
 
    mReportMutipleDetec = "MultipleTarget";
@@ -1091,6 +1208,9 @@ int  cAppliExtractCircTarget::Exe()
         InitReport(mReportSimulDet,"csv",true);
         InitReport(mReportSimulGlob,"csv",true);
    }
+   mNbMaxMulTargetTot =  mNbMaxMT_Init + mNbMaxMT_PerIm *  VectMainSet(0).size() ;
+StdOut() << "mNbMaxMulTargetTotmNbMaxMulTargetTotmNbMaxMulTargetTotmNbMaxMulTargetTotmNbMaxMulTargetTotmNbMaxMulTargetTot " << mNbMaxMulTargetTot << "\n";
+
 
    if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
    {
@@ -1112,7 +1232,9 @@ int  cAppliExtractCircTarget::Exe()
    // By default use Simul iff the name of imagebegin by "SimulTarget"
    if (! IsInit(&mUseSimul))
    {
-       mUseSimul = starts_with(FileOfPath(mNameIm),ThePrefixSimulTarget);
+       // No longer does it as we have the "ReportMesIm" that does the same job, but more globally
+       if (false)
+          mUseSimul = starts_with(FileOfPath(mNameIm),ThePrefixSimulTarget);
    }
    if (mUseSimul)  // If use it, read the ground truth
    {

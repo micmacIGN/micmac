@@ -187,7 +187,7 @@ int  cAppliMatchMultipleOrtho::Exe()
         MMVII_INTERNAL_ASSERT_strong(NoFile!=WithFile,"DM4MatchMultipleOrtho, incoherence file");
         if ((aZ==0)  && (true))
         {
-             cDataFileIm2D aDF = cDataFileIm2D::Create(NameOrtho(0,0),false);
+             cDataFileIm2D aDF = cDataFileIm2D::Create(NameOrtho(0,0),eForceGray::No);
              StdOut() << " * NbI=" << mNbIm << " NbS=" <<  mNbScale << " NbZ=" <<  mNbZ << " Sz=" << aDF.Sz() << " SzW=" << mSzW << std::endl;
         }
 

@@ -568,10 +568,10 @@ void BenchFrozenAndShare()
 {
     cSetInterUK_MultipeObj<double> aSetIntervMultObj;
 
-    cPt3dr_UK pA( cPt3dr(100., 100.,100.) );
-    cPt3dr_UK pB( cPt3dr(110., 100.,100.) );
-    cPt3dr_UK pC( cPt3dr(110., 100.,100.) );
-    cPt3dr_UK rOmega( cPt3dr(0., 0.,0.) );
+    cPt3dr_UK pA( cPt3dr(100., 100.,100.),"A" );
+    cPt3dr_UK pB( cPt3dr(110., 100.,100.),"B" );
+    cPt3dr_UK pC( cPt3dr(110., 100.,100.),"C" );
+    cPt3dr_UK rOmega( cPt3dr(0., 0.,0.),"W" );
 
     bool verbose = false;
 

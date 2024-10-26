@@ -83,9 +83,9 @@ class cMesIm1Pt
         cMesIm1Pt(const cPt2dr & aPt,const std::string & aNamePt,tREAL4 aSigma2);
         cMesIm1Pt();
 
-        cPt2dr         mPt;
-        std::string    mNamePt;
-        tREAL4         mSigma2[3];  // xx xy yy
+        cPt2dr            mPt;
+        std::string       mNamePt;
+        cArray<tREAL4,3>  mSigma2;  // xx xy yy
 };
 
 /** class for representing a set of measure in an image*/
@@ -97,6 +97,9 @@ class cSetMesPtOf1Im : public cMemCheck
 	  static cSetMesPtOf1Im  FromFile(const std::string & aNameFile);
           void AddMeasure(const cMesIm1Pt &);
           void AddData(const  cAuxAr2007 & anAux);
+
+
+          void AddSetMeasure(const cSetMesPtOf1Im &,bool SuprNone,bool OkDupl);
 
 	  void ToFile(const std::string & aNameFile) const;
 	  static std::string StdNameFileOfIm(const std::string &);
@@ -143,6 +146,20 @@ class cMes1GCP
         static constexpr int IndZZ = 5;
         std::string mAdditionalInfo;
 
+        bool isInit() const {return mPt.IsValid();}
+
+        /// Accessor but create, but if not exist, create with diag cov of sigma
+	void SetSigma2(tREAL8 aSigma );
+	void SetSigma2(const cPt3dr &);
+        /// Accessor but assume optional is init
+	const cArray<tREAL4,6> & Sigma2() const ;
+	///
+	bool  Sigma2IsInit() const;
+
+	/// Serialization 
+	void AddData(const  cAuxAr2007 & anAux);
+
+     private :
         std::optional<cArray<tREAL4,6> >  mOptSigma2;  //  xx xy xz yy yz zz
 };
 
@@ -508,9 +525,11 @@ class cOneLineAntiParal
           cOneLineAntiParal();
 
           tSeg2dr mSeg;
-          tREAL8  mAng;
+          tREAL8  mAngDif;
           tREAL8  mWidth;
           tREAL8  mCumul;
+          tREAL8  mRadHom;
+          tREAL8  mSigmaLine;
 };
 void AddData(const cAuxAr2007 & anAux,cOneLineAntiParal & anEx);
 

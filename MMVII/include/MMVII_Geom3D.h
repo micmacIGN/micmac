@@ -137,8 +137,15 @@ template <class Type> class cRotation3D
        //// Compute a normal repair, first vector being colinear to P1, second in the plane P1,P2
       // static cRotation3D<Type> CompleteRON(const tPt & aP0,const tPt & aP1);
 
-       // Extract Axes of a rotation and compute its angle 
-       void ExtractAxe(tPt & anAxe,Type & aTeta);
+       /// Extract Axes of a rotation and compute its angle 
+       void ExtractAxe(tPt & anAxe,Type & aTeta) const;
+       /// More modern interface to ExtractAxe
+       std::pair<tPt,Type> ExtractAxe() const;
+
+       /// Convenient if you only need Angle, but slow else
+       Type Angle() const;
+       /// Convenient if you only need Axe, but slow else
+       tPt    Axe() const;
 
        /// conversion to Omega Phi Kapa
        static cRotation3D<Type>  RotFromWPK(const tPt & aWPK);

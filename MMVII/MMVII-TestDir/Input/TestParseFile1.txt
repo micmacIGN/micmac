@@ -1,0 +1,27 @@
+Example of test file for parsing with "cNewReadFilesStruct" , first line will be skipped
+this one also
+0  Zero 3.14 0.0  0.0  1.0  2.0 3.0  0.0 0 #   some comment after line
+
+# Each line will contains
+# NumOfLine  (int)
+# NumOfline  (string)
+# 3.14 
+# NumOfFile  (real)
+#  1 2 3     (real)
+#  NumOfMine (real)
+#  NumOfLine (int)
+
+1  One  3.14 1.0  1.0  1    2   3    1.0 1 
+
+# blabla
+# blabla again 
+
+#  here we add a line identic to already done, will ne skiped
+0  Zero 3.14 0.0  0.0  1.0  2.0 3.0  0.0 0 #   some comment after line
+2  Two  3.14 2.0  2.0  1.0  2.0 3.0  2.0 2
+
+
+These line will be also skipped
+a
+b 
+c

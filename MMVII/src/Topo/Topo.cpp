@@ -1,8 +1,6 @@
-#include "Topo.h"
+#include "MMVII_Topo.h"
 #include "MMVII_PhgrDist.h"
-#include "ctopopoint.h"
-#include "ctopoobsset.h"
-#include "ctopoobs.h"
+#include "topoinit.h"
 #include "../BundleAdjustment/BundleAdjustment.h"
 #include "cMMVII_Appli.h"
 #include <algorithm>
@@ -21,7 +19,7 @@ void cMMVII_BundleAdj::InitItereTopo()
 
 
 cBA_Topo::cBA_Topo
-(cPhotogrammetricProject *aPhProj, cMMVII_BundleAdj* aBA)  :
+(cPhotogrammetricProject *aPhProj)  :
     mPhProj  (aPhProj),
     mTopoObsType2equation
     {
@@ -31,12 +29,18 @@ cBA_Topo::cBA_Topo
         {eTopoObsType::eDX,   EqTopoDX(true,1)},
         {eTopoObsType::eDY,   EqTopoDY(true,1)},
         {eTopoObsType::eDZ,   EqTopoDZ(true,1)},
+        {eTopoObsType::eDH,   EqTopoDH(true,1)},
         //{eTopoObsType::eDist, EqDist3D(true,1)},
         //{eTopoObsType::eDistParam, EqDist3DParam(true,1)},
     },
     mIsReady(false),
     mSysCo(nullptr)
 {
+#ifdef VERBOSE_TOPO
+    for (auto& [_, aEq] : mTopoObsType2equation)
+        aEq->SetDebugEnabled(true);
+#endif
+
     if (aPhProj)
     {
         for (auto & aInFile: aPhProj->ReadTopoMes())
@@ -76,9 +80,9 @@ void cBA_Topo::clear()
 
 void cBA_Topo::findPtsUnknowns(const std::vector<cBA_GCP*> & vGCP, cPhotogrammetricProject *aPhProj)
 {
-    for (auto & [aName, aPtT] : getAllPts())
+    for (auto & [aName, aTopoPt] : getAllPts())
     {
-        aPtT.findUK(vGCP, aPhProj, aPtT.getInitCoord());
+        aTopoPt.findUK(vGCP, aPhProj);
     }
 }
 
@@ -92,6 +96,16 @@ void cBA_Topo::ToFile(const std::string & aName) const
 void cBA_Topo::AddPointsFromDataToGCP(cSetMesImGCP &aFullMesGCP, std::vector<cBA_GCP *> *aVGCP)
 {
     // fill every ObsSet types
+    if (!mAllTopoDataIn.mObsSetSimple.mObs.empty())
+    {
+        auto aSet = make_TopoObsSet<cTopoObsSetSimple>(this);
+        mAllObsSets.push_back(aSet);
+        for (auto & aObsData: mAllTopoDataIn.mObsSetSimple.mObs)
+        {
+            aSet->addObs(aObsData.mType, this, aObsData.mPtsNames, aObsData.mMeasures,
+                         {true, aObsData.mSigmas});
+        }
+    }
     for (auto & aSetData: mAllTopoDataIn.mAllObsSetStations)
     {
         auto aSet = make_TopoObsSet<cTopoObsSetStation>(this);
@@ -103,6 +117,7 @@ void cBA_Topo::AddPointsFromDataToGCP(cSetMesImGCP &aFullMesGCP, std::vector<cBA
                          {true, aObsData.mSigmas});
         }
     }
+
 
     std::set<std::string> aAllPointsNames; //< will create cTopoPoints for all points refered to in observations
     for (const auto & aSet: mAllObsSets)
@@ -146,7 +161,7 @@ void cBA_Topo::AddPointsFromDataToGCP(cSetMesImGCP &aFullMesGCP, std::vector<cBA
 
     for (auto & aPointName: aAllPointsNamesNotFound)
     {
-        aFullMesGCP.Add1GCP( cMes1GCP({0.,0.,0.}, aPointName) );
+        aFullMesGCP.Add1GCP( cMes1GCP(cPt3dr::Dummy(), aPointName) ); // points non-init
     }
 
     mAllTopoDataIn.clear(); // if this function is called again, nothing more to add
@@ -156,11 +171,22 @@ void cBA_Topo::FromData(const std::vector<cBA_GCP *> & vGCP, cPhotogrammetricPro
 {
     findPtsUnknowns(vGCP, aPhProj);
 
-    // finish initialization when points are ready
+    // initialization
+    tryInitAll();
+
+    // check that everything is initialized
+    std::string aPtsNamesUninit="";
+    for (auto& [aName, aTopoPt] : mAllPts)
+    {
+        if (!aTopoPt.isInit())
+            aPtsNamesUninit += aName + " ";
+    }
+    MMVII_INTERNAL_ASSERT_User(aPtsNamesUninit.empty(), eTyUEr::eUnClassedError,
+                               "Error: Initialization has failed for points: "+aPtsNamesUninit)
     for (auto & aSet: mAllObsSets)
     {
-        MMVII_INTERNAL_ASSERT_User(aSet->initialize(), eTyUEr::eUnClassedError,
-                                   "Error: Station initialization failed.")
+        MMVII_INTERNAL_ASSERT_User(aSet->isInit(), eTyUEr::eUnClassedError,
+                                   "Error: Obs Set initialization failed: \""+aSet->getObs(0)->toString()+"\"")
     }
     mIsReady = true;
 }
@@ -169,8 +195,8 @@ void cBA_Topo::FromData(const std::vector<cBA_GCP *> & vGCP, cPhotogrammetricPro
 void cBA_Topo::print()
 {
     StdOut() << "Points:\n";
-    for (auto& [aName, aPtT] : mAllPts)
-        StdOut() << " - "<<aPtT.toString()<<"\n";
+    for (auto& [aName, aTopoPt] : mAllPts)
+        StdOut() << " - "<<aTopoPt.toString()<<"\n";
     StdOut() << "ObsSets:\n";
     for (auto &obsSet: mAllObsSets)
         StdOut() << " - "<<obsSet->toString()<<"\n";
@@ -203,19 +229,21 @@ std::vector<cTopoObs*> cBA_Topo::GetObsPoint(std::string aPtName) const
     return aVectObs;
 }
 
-void cBA_Topo::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet)
+void cBA_Topo::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSetInterUK)
 {
     MMVII_INTERNAL_ASSERT_strong(mIsReady,"cBA_Topo is not ready");
     for (auto& anObsSet: mAllObsSets)
-        anObsSet->AddToSys(aSet);
+        aSetInterUK.AddOneObj(anObsSet);
 }
 
-bool cBA_Topo::mergeUnknowns(cResolSysNonLinear<tREAL8> &aSys)
+bool cBA_Topo::mergeUnknowns()
 {
     bool ok = true;
     for (auto &set: mAllObsSets)
     {
         switch (set->getType()) {
+        case eTopoObsSetType::eSimple:
+            break;
         case eTopoObsSetType::eStation:
             break;
         case eTopoObsSetType::eNbVals:
@@ -263,7 +291,7 @@ const cTopoPoint & cBA_Topo::getPoint(std::string name) const
 void cBA_Topo::SetFrozenAndSharedVars(cResolSysNonLinear<tREAL8> & aSys)
 {
      // create unknowns for all stations
-     mergeUnknowns(aSys); //
+     mergeUnknowns(); //
      makeConstraints(aSys);
 }
 
@@ -299,7 +327,93 @@ void cBA_Topo::AddTopoEquations(cResolSysNonLinear<tREAL8> & aSys)
     mSigma0 = sqrt(mSigma0/(aNbObs-aNbUk));
 }
 
+bool cBA_Topo::tryInitAll()
+{
+    // get all stations ordered by origin to optimize research
+    for (auto & aSet: mAllObsSets)
+        aSet->initialize(); // to get origin point for stations
+    tStationsMap allStations;
+    for (auto & aSet: mAllObsSets)
+    {
+        if (aSet->getType() ==  eTopoObsSetType::eStation)
+        {
+            cTopoObsSetStation* set = dynamic_cast<cTopoObsSetStation*>(aSet);
+            if (!set)
+                MMVII_INTERNAL_ERROR("error set type")
+            allStations[set->getPtOrigin()].push_back(set);
+        }
+    }
 
+    tSimpleObsMap allSimpleObs; // obs from simple sets, in all directions
+    for (auto & aSet: mAllObsSets)
+    {
+        if (aSet->getType() ==  eTopoObsSetType::eSimple)
+        {
+            cTopoObsSetSimple* set = dynamic_cast<cTopoObsSetSimple*>(aSet);
+            if (!set)
+                MMVII_INTERNAL_ERROR("error set type")
+            for (auto &aObs:set->getAllObs())
+            {
+                if (aObs->getPointNames().size()==2)
+                {
+                    // those 2-point obs are recorded for both points
+                    allSimpleObs[&getPoint(aObs->getPointName(0))].push_back( aObs );
+                    allSimpleObs[&getPoint(aObs->getPointName(1))].push_back( aObs );
+                }
+            }
+        }
+    }
+
+    int aNbUninit=0;
+    for (auto & aSet: mAllObsSets)
+        if (!aSet->isInit())
+            ++aNbUninit;
+    for (auto& [aName, aTopoPt] : mAllPts)
+        if (!aTopoPt.isInit())
+            ++aNbUninit;
+    int aPreviousNbUninit = aNbUninit + 1; // kickstart
+
+    while (aPreviousNbUninit>aNbUninit)
+    {
+#ifdef VERBOSE_TOPO
+        StdOut() << "tryInitAll: " << aNbUninit << " to init.\n";
+#endif
+
+        for (auto& [aName, aTopoPt] : mAllPts)
+            if (!aTopoPt.isInit())
+                tryInit(aTopoPt, allStations, allSimpleObs);
+        for (auto & aSet: mAllObsSets)
+            if (!aSet->isInit())
+                aSet->initialize();
+
+        aPreviousNbUninit = aNbUninit;
+        aNbUninit = 0;
+        for (auto & aSet: mAllObsSets)
+            if (!aSet->isInit())
+                ++aNbUninit;
+        for (auto& [aName, aTopoPt] : mAllPts)
+            if (!aTopoPt.isInit())
+                ++aNbUninit;
+    }
+    return aNbUninit==0;
+}
+
+bool cBA_Topo::tryInit(cTopoPoint & aPtToInit, tStationsMap &stationsMap, tSimpleObsMap &allSimpleObs)
+{
+    if (aPtToInit.isInit())
+        return true;
+#ifdef VERBOSE_TOPO
+    StdOut() << "tryInit: " << aPtToInit.getName() <<".\n";
+#endif
+    bool ok =    tryInit3Obs1Station(aPtToInit, stationsMap, allSimpleObs)
+              || tryInitVertStations(aPtToInit, stationsMap, allSimpleObs)
+                 ;
+#ifdef VERBOSE_TOPO
+    if (ok)
+        StdOut() << "init coords: " << *aPtToInit.getPt() <<"\n";
+#endif
+    return ok;
+}
 
 //-------------------------------------------------------------------
 
@@ -339,7 +453,7 @@ void BenchTopoComp(cParamExeBench & aParam)
     if (! aParam.NewBench("TopoComp")) return;
 
     BenchTopoComp1example(cTopoData::createEx1(), 0.70711);
-    BenchTopoComp1example(cTopoData::createEx3(), 1.41421);
+    BenchTopoComp1example(cTopoData::createEx3(), 1.00918);
     BenchTopoComp1example(cTopoData::createEx4(), 0.);
 
     //std::cout<<"Bench Topo finished."<<std::endl;

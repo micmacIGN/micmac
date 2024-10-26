@@ -36,7 +36,8 @@ public:
     const std::vector<std::string> & getPointNames() const { return mPtsNames; }
     //std::vector<tREAL8> getResiduals(const cTopoComp *comp) const;
 protected:
-    cTopoObs(cTopoObsSet* set, cBA_Topo * aBA_Topo, eTopoObsType type, const std::vector<std::string> & ptsNames, const std::vector<tREAL8> & measures,  const cResidualWeighterExplicit<tREAL8> & aWeights);
+    cTopoObs(cTopoObsSet* set, cBA_Topo * aBA_Topo, eTopoObsType type, const std::vector<std::string> & ptsNames,
+             const std::vector<tREAL8> & measures,  const cResidualWeighterExplicit<tREAL8> & aWeights);
     cTopoObs(const cTopoObs &) = delete;
     cTopoObs& operator=(const cTopoObs &) = delete;
     cTopoObsSet* mSet;//the set containing the shared parameters

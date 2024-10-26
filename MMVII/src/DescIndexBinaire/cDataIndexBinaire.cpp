@@ -26,7 +26,7 @@ cMetaDataOneFileInvRad::cMetaDataOneFileInvRad
 )  :
    mDOIR (&aDOIR),
    mName (aName),
-   mDFIm (cDataFileIm2D::Create(aDOIR.Dir() + StringDirSeparator() + mName,true))
+   mDFIm (cDataFileIm2D::Create(aDOIR.Dir() + StringDirSeparator() + mName,eForceGray::Yes))
 {
 }
 

@@ -2,6 +2,14 @@
 ##        Global configuration
 #######################################################
 cmake_minimum_required(VERSION 3.15)
+
+# VCPKG_MANIFEST_FEATURES must be set before project()
+# It will trigger download and install of QT5 via vcpkg.json if needed
+option(vMMVII_BUILD "Build vMMVII application (require Qt5)" OFF)
+if(vMMVII_BUILD)
+  list(APPEND VCPKG_MANIFEST_FEATURES "vmmvii")
+endif()
+
 project(MMVII VERSION 1.0)
 
 # strict C++17 required
@@ -42,7 +50,7 @@ if (NOT  PROJ_FOUND)
   pkg_search_module(PROJ REQUIRED proj)
 endif()
 
-if (CMAKE_HOST_WIN32)
+if (PROJ_FOUND AND CMAKE_HOST_WIN32)
   find_file(PROJ_PROJ_DB_FILE proj.db PATHS ${PROJ_DIR} ${PROJ_BINARY_DIRS}/../share/proj NO_DEFAULT_PATH)
   file(COPY ${PROJ_PROJ_DB_FILE} DESTINATION ${MMVII_SOURCE_DIR}/share/proj)
 endif()
@@ -157,8 +165,6 @@ endif()
 #######################################################
 ##        Compile vMMVII if Qt is found
 #######################################################
-
-option(vMMVII_BUILD "Build vMMVII application (require Qt5)" ON)
 
 if (vMMVII_BUILD)
   find_package(QT NAMES Qt5 Qt6 QUIET OPTIONAL_COMPONENTS Widgets)

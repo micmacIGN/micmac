@@ -150,7 +150,8 @@ NS_SymbolicDerivative::cCalculator<double> * EqRadiomStabilization(int aDegSens,
            // .............   Equation on rigid bloc .............
 NS_SymbolicDerivative::cCalculator<double> * EqBlocRig(bool WithDerive,int aSzBuf,bool Reuse);  // RIGIDBLOC
 NS_SymbolicDerivative::cCalculator<double> * EqBlocRig_RatE(bool WithDerive,int aSzBuf,bool Reuse);  // RIGIDBLOC
-
+NS_SymbolicDerivative::cCalculator<double> * EqClinoBloc(bool WithDerive,int aSzBuf,bool Reuse);  // CLINOBLOC
+NS_SymbolicDerivative::cCalculator<double> * EqClinoRot(bool WithDerive,int aSzBuf,bool Reuse);  // CLINOBLOC
 
 
 
@@ -190,7 +191,7 @@ NS_SymbolicDerivative::cCalculator<double> * EqTopoDist(bool WithDerive,int aSzB
 NS_SymbolicDerivative::cCalculator<double> * EqTopoDX(bool WithDerive,int aSzBuf);
 NS_SymbolicDerivative::cCalculator<double> * EqTopoDY(bool WithDerive,int aSzBuf);
 NS_SymbolicDerivative::cCalculator<double> * EqTopoDZ(bool WithDerive,int aSzBuf);
-
+NS_SymbolicDerivative::cCalculator<double> * EqTopoDH(bool WithDerive,int aSzBuf);
 
            // .............   Equation implying 2D distance conservation .............
 	   
@@ -198,18 +199,6 @@ NS_SymbolicDerivative::cCalculator<double> * EqTopoDZ(bool WithDerive,int aSzBuf
 NS_SymbolicDerivative::cCalculator<double> * EqDeformImHomotethy(bool WithDerive,int aSzBuf);
 /// Variant of "EqDeformImHomotethy", case where we use linear approximation
 NS_SymbolicDerivative::cCalculator<double> * EqDeformImLinearGradHomotethy(bool WithDerive,int aSzBuf);
-/// Equation used to optimize translation and radiometry transformation between two images with bilinear interpolator.
-NS_SymbolicDerivative::cCalculator<double> *EqDeformTriBilin(bool WithDerive, int aSzBuf);
-/// Equation used to optimize translation transformation between two images with bilinear interpolator.
-NS_SymbolicDerivative::cCalculator<double> *EqDeformTriTranslationBilin(bool WithDerive, int aSzBuf);
-/// Equation used to optimize radiometric transformation between two images with bilinear interpolator.
-NS_SymbolicDerivative::cCalculator<double> *EqDeformTriRadiometryBilin(bool WithDerive, int aSzBuf);
-/// Equation used to optimize translation and radiometry transformation between two images with linear interpolator.
-NS_SymbolicDerivative::cCalculator<double> *EqDeformTriLinearGrad(bool WithDerive, int aSzBuf);
-/// Equation used to optimize translation transformation between two images with linear interpolator.
-NS_SymbolicDerivative::cCalculator<double> *EqDeformTriTranslationLinearGrad(bool WithDerive, int aSzBuf);
-/// Equation used to optimize radiometric transformation between two images with linear interpolator.
-NS_SymbolicDerivative::cCalculator<double> *EqDeformTriRadiometryLinearGrad(bool WithDerive, int aSzBuf);
 
            // .............   Covariance propagation  .............
 

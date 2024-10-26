@@ -2,7 +2,6 @@
 #include "SymbDer/SymbolicDerivatives.h"
 #include "SymbDer/SymbDer_GenNameAlloc.h"
 #include "Formulas_ImagesDeform.h"
-#include "Formulas_TrianglesDeform.h"
 #include "Formulas_CamStenope.h"
 #include "Formulas_Geom2D.h"
 #include "Formulas_Radiom.h"
@@ -13,6 +12,8 @@
 #include "Formulas_Topo.h"
 #include "MMVII_Sys.h"
 #include "MMVII_Geom2D.h"
+#include "Formulas_ClinoBloc.h"
+#include "Formulas_ClinoRot.h"
 
 #include "MMVII_PCSens.h"
 #include "MMVII_2Include_Serial_Tpl.h"
@@ -309,36 +310,6 @@ cCalculator<double> * EqDeformImAffinity(bool WithDerive,int aSzBuf)
      return StdAllocCalc(NameFormula(cDeformImAffinity(),WithDerive),aSzBuf);
 }
 
-cCalculator<double> *EqDeformTriBilin(bool WithDerive, int aSzBuf)
-{
-    return StdAllocCalc(NameFormula(cTriangleDeformation(), WithDerive), aSzBuf);
-}
-
-cCalculator<double> *EqDeformTriTranslationBilin(bool WithDerive, int aSzBuf)
-{
-    return StdAllocCalc(NameFormula(cTriangleDeformationTranslation(), WithDerive), aSzBuf);
-}
-
-cCalculator<double> *EqDeformTriRadiometryBilin(bool WithDerive, int aSzBuf)
-{
-    return StdAllocCalc(NameFormula(cTriangleDeformationRadiometry(), WithDerive), aSzBuf);
-}
-
-cCalculator<double> *EqDeformTriLinearGrad(bool WithDerive, int aSzBuf)
-{
-    return StdAllocCalc(NameFormula(cTriangleDeformation(true), WithDerive), aSzBuf);
-}
-
-cCalculator<double> *EqDeformTriTranslationLinearGrad(bool WithDerive, int aSzBuf)
-{
-    return StdAllocCalc(NameFormula(cTriangleDeformationTranslation(true), WithDerive), aSzBuf);
-}
-
-cCalculator<double> *EqDeformTriRadiometryLinearGrad(bool WithDerive, int aSzBuf)
-{
-    return StdAllocCalc(NameFormula(cTriangleDeformationRadiometry(true), WithDerive), aSzBuf);
-}
-
 // dist3d
 //    Cons distance
 template <class Type> cCalculator<Type> * TplEqDist3D(bool WithDerive,int aSzBuf)
@@ -371,6 +342,16 @@ cCalculator<double> * EqBlocRig(bool WithDerive,int aSzBuf,bool ReUse)  // RIGID
 cCalculator<double> * EqBlocRig_RatE(bool WithDerive,int aSzBuf,bool ReUse)  // RIGIDBLOC
 {
     return StdAllocCalc(NameFormula(cFormulaRattBRExist(),WithDerive),aSzBuf,false,ReUse);
+}
+
+cCalculator<double> * EqClinoBloc(bool WithDerive,int aSzBuf,bool ReUse)  // CLINOBLOC
+{
+    return StdAllocCalc(NameFormula(cFormulaClinoBloc(),WithDerive),aSzBuf,false,ReUse);
+}
+
+cCalculator<double> * EqClinoRot(bool WithDerive,int aSzBuf,bool ReUse)  // CLINOBLOC
+{
+    return StdAllocCalc(NameFormula(cFormulaClinoRot(),WithDerive),aSzBuf,false,ReUse);
 }
 
 // topo subframe with dist parameter
@@ -449,6 +430,18 @@ cCalculator<double> * EqTopoDZ(bool WithDerive,int aSzBuf)
 {
     return TplEqTopoDZ<double>(WithDerive,aSzBuf);
 }
+
+// topo dH
+template <class Type> cCalculator<Type> * TplEqTopoDH(bool WithDerive,int aSzBuf)
+{
+    return StdAllocCalc(NameFormula(cFormulaTopoDH(),WithDerive),aSzBuf);
+}
+
+cCalculator<double> * EqTopoDH(bool WithDerive,int aSzBuf)
+{
+    return TplEqTopoDH<double>(WithDerive,aSzBuf);
+}
+
 
 
 
@@ -822,6 +815,8 @@ int cAppliGenCode::Exe()
 
        GenCodesFormula((tREAL8*)nullptr,cFormulaBlocRigid(),WithDer); // RIGIDBLOC
        GenCodesFormula((tREAL8*)nullptr,cFormulaRattBRExist(),WithDer); // RIGIDBLOC
+       GenCodesFormula((tREAL8*)nullptr,cFormulaClinoBloc(),WithDer); // CLINOBLOC
+       GenCodesFormula((tREAL8*)nullptr,cFormulaClinoRot(),WithDer); // CLINOBLOC
 
        // cDist2DConservation aD2C;
        GenCodesFormula((tREAL8*)nullptr,cDist2DConservation(),WithDer);
@@ -841,17 +836,10 @@ int cAppliGenCode::Exe()
        GenCodesFormula((tREAL8*)nullptr,cFormulaTopoDX(),WithDer);
        GenCodesFormula((tREAL8*)nullptr,cFormulaTopoDY(),WithDer);
        GenCodesFormula((tREAL8*)nullptr,cFormulaTopoDZ(),WithDer);
+       GenCodesFormula((tREAL8*)nullptr,cFormulaTopoDH(),WithDer);
 
        for (const auto IsLinearGrad : {true,false})
            GenCodesFormula((tREAL8*)nullptr,cDeformImHomotethy(IsLinearGrad)     ,WithDer);
-
-       for (const auto IsLinearGrad : {true,false})
-       {
-           GenCodesFormula((tREAL8*)nullptr, cTriangleDeformation(IsLinearGrad), WithDer);
-           GenCodesFormula((tREAL8*)nullptr, cTriangleDeformationTranslation(IsLinearGrad), WithDer);
-           GenCodesFormula((tREAL8*)nullptr, cTriangleDeformationRadiometry(IsLinearGrad), WithDer);
-       }
-
 
 
        //  ===============   CODE FOR RADIOMETRY =========================================

@@ -176,6 +176,7 @@ template<> cE2Str<eSysCo>::tMapE2Str cE2Str<eSysCo>::mE2S
 
 template<> cE2Str<eTopoObsSetType>::tMapE2Str cE2Str<eTopoObsSetType>::mE2S
            {
+                {eTopoObsSetType::eSimple,"Simple"},
                 {eTopoObsSetType::eStation,"Station"},
                 //{eTopoObsSetType::eDistParam,"DistParam"},
            };
@@ -188,11 +189,13 @@ template<> cE2Str<eTopoObsType>::tMapE2Str cE2Str<eTopoObsType>::mE2S
                 {eTopoObsType::eDX,"DX"},
                 {eTopoObsType::eDY,"DY"},
                 {eTopoObsType::eDZ,"DZ"},
+                {eTopoObsType::eDH,"DH"},
                 //{eTopoObsType::eDistParam,"DistParam"},
            };
 
 template<> cE2Str<eTopoStOriStat>::tMapE2Str cE2Str<eTopoStOriStat>::mE2S
            {
+                {eTopoStOriStat::eTopoStOriContinue,"#NEW"},
                 {eTopoStOriStat::eTopoStOriFixed,"#FIX"},
                 {eTopoStOriStat::eTopoStOriVert,"#VERT"},
                 {eTopoStOriStat::eTopoStOriBasc,"#BASC"},
@@ -230,6 +233,7 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::MulTieP,"MulTieP"},
                 {eTA2007::RigBlock,"RigBlock"},
                 {eTA2007::Clino,"Clino"},
+                {eTA2007::MeasureClino,"MeasureClino"},
                 {eTA2007::Topo,"Topo"},
                 {eTA2007::SysCo,"SysCo"},
                 {eTA2007::Input,"In"},
@@ -260,6 +264,7 @@ template<> cE2Str<eApF>::tMapE2Str cE2Str<eApF>::mE2S
                 {eApF::SysCo,"SysCo"},
                 {eApF::Match,"Match"},
                 {eApF::GCP,"GCP"},
+                {eApF::Lines,"Lines"},
                 {eApF::TieP,"TieP"},
                 {eApF::TiePLearn,"TiePLearn"},
                 {eApF::Cloud,"Cloud"},
@@ -276,11 +281,13 @@ template<> cE2Str<eApDT>::tMapE2Str cE2Str<eApDT>::mE2S
                 {eApDT::PCar,"PCar"},
                 {eApDT::TieP,"TieP"},
                 {eApDT::GCP,"GCP"},
+                {eApDT::Lines,"Lines"},
                 {eApDT::Image,"Image"},
                 {eApDT::Orient,"Orient"},
                 {eApDT::SysCo,"SysCo"},
                 {eApDT::Radiom,"Radiom"},
                 {eApDT::Ply,"Ply"},
+                {eApDT::Topo,"Topo"},
                 {eApDT::None,"None"},
                 {eApDT::ToDef,"ToDef"},
                 {eApDT::Console,"Console"},
@@ -312,6 +319,7 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eCreateDir,"MkDir"},
                 {eTyUEr::eRemoveFile,"RmFile"},
                 {eTyUEr::eEmptyPattern,"EmptyPattern"},
+                {eTyUEr::eBadPattern,"BadPattern"},
                 {eTyUEr::eBadXmlTopTag,"XmlTopTag"},
                 {eTyUEr::eParseBadClose,"ParseBadClose"},
                 {eTyUEr::eJSonBadPunct,"JSonBadPunct"},
@@ -344,7 +352,7 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eNoNumberPixel,"NoNumberPixel"},
                 {eTyUEr::eNoCameraName,"NoCameraName"},
                 {eTyUEr::eMultipleTargetInOneImage,"MultipleTargetInOneImage,"},
-                {eTyUEr::eBadSysCo,"BadSysCo"},
+                {eTyUEr::eSysCo,"SysCo"},
                 {eTyUEr::eConstraintsError,"ConstraintsError"},
                 {eTyUEr::eUnClassedError,"UnClassedError"}
            };
@@ -912,6 +920,7 @@ MACRO_INSTANTIATE_ARG2007(std::vector<std::string>)
 MACRO_INSTANTIATE_ARG2007(std::vector<std::vector<std::string>>)
 MACRO_INSTANTIATE_ARG2007(std::vector<int>)
 MACRO_INSTANTIATE_ARG2007(std::vector<double>)
+MACRO_INSTANTIATE_ARG2007(std::vector<cPt2di>)
 MACRO_INSTANTIATE_ARG2007(cPt2di)
 MACRO_INSTANTIATE_ARG2007(cPt2dr)
 MACRO_INSTANTIATE_ARG2007(cPt3di)
@@ -956,6 +965,7 @@ template <class Type>  std::string Vect2Str(const std::vector<Type>  & aV)
 
 template <class Type>  std::vector<Type> Str2Vec(const std::string & aStrGlob)
 {
+// StdOut() <<  "aStrGlobaStrGlobaStrGlob =" << aStrGlob << "\n";
    std::vector<Type> aRes;
    const char * aC=aStrGlob.c_str();
    if (*aC!='[')
@@ -1061,6 +1071,7 @@ MACRO_INSTANTITATE_STRIO_VECT_TYPE(std::vector<std::string>)
 MACRO_INSTANTITATE_STRIO_VECT_TYPE(std::string)
 MACRO_INSTANTITATE_STRIO_VECT_TYPE(int)
 MACRO_INSTANTITATE_STRIO_VECT_TYPE(double)
+MACRO_INSTANTITATE_STRIO_VECT_TYPE(cPt2di)
 
 /* ==================================== */
 /*                                      */

@@ -4,7 +4,7 @@
    \file cAppliTopoAdj.cpp
 
 */
-#include "../Topo/Topo.h"
+#include "MMVII_Topo.h"
 
 
 
@@ -74,9 +74,9 @@ cCollecSpecArg2007 & cAppliTopoAdj::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
     return anArgObl
             << mPhProj.DPTopoMes().ArgDirInMand("Dir for Topo measures")
+            << mPhProj.DPPointsMeasures().ArgDirInMand("Dir for initial coordinates")
             << mPhProj.DPTopoMes().ArgDirOutMand("Dir for Topo measures output")
-            << mPhProj.DPPointsMeasures().ArgDirInMand("Dir for points initial coordinates")
-            << mPhProj.DPPointsMeasures().ArgDirOutMand("Dir for points final coordinates")
+            << mPhProj.DPPointsMeasures().ArgDirOutMand("Dir for final coordinates")
            ;
 }
 
@@ -127,7 +127,7 @@ void  cAppliTopoAdj::AddOneSetGCP(const std::vector<std::string> & aVParStd)
                               "",mGCPFilter,mGCPFilterAdd);
 
     //here no 2d mes, fake it
-    cSetMesPtOf1Im aSetMesIm;
+    cSetMesPtOf1Im aSetMesIm("none");
     aFullMesGCP.AddMes2D(aSetMesIm);
     cSetMesImGCP * aMesGCP = aFullMesGCP.FilterNonEmptyMeasure(0);
 
@@ -168,9 +168,6 @@ int cAppliTopoAdj::Exe()
     {
         mBA.OneIterationTopoOnly(mLVM, true);
     }
-
-    for (auto & aSI : mBA.VSIm())
-        mPhProj.SaveSensor(*aSI);
 
     mBA.Save_newGCP();
     mBA.SaveTopo(); // just for debug for now

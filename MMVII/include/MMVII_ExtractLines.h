@@ -35,6 +35,7 @@ class cHoughPS // : public cMemCheck
 	 const tREAL8 & Rho() const;     ///< Accessor
 	 const tSeg & Seg() const ;      ///< Accessor
 	 const tREAL8 & Cumul() const;   ///< Accessor
+	 const tREAL8 & SigmaL() const;   ///< Accessor
 	 eCodeHPS  Code() const ;        ///< Accessor
          void SetCode(eCodeHPS);         ///< Modifior
          const cHoughTransform *  HT() const; ///< Accessor
@@ -43,9 +44,9 @@ class cHoughPS // : public cMemCheck
 
 	 void Test(const cHoughPS & ) const;
 	 bool Match(const cHoughPS &,bool IsDark,tREAL8 aMaxTeta,tREAL8 aDMin,tREAL8 aDMax) const;
-	 static std::vector<cPt2di> GetMatches(std::vector<cHoughPS>&  mVPS,bool IsLight,tREAL8 aMaxTeta,tREAL8 aDMin,tREAL8 aDMax);
+	 static std::vector<std::pair<int,int>> GetMatches(const std::vector<cHoughPS>&  mVPS,bool IsLight,tREAL8 aMaxTeta,tREAL8 aDMin,tREAL8 aDMax);
 
-         void UpdateSegImage(const tSeg & aNewSeg,tREAL8 aNewCumul);
+         void UpdateSegImage(const tSeg & aNewSeg,tREAL8 aNewCumul,tREAL8 aSigmaL);
 
      protected :
 	 void UpdateMatch(cHoughPS *,tREAL8 aDist);
@@ -53,6 +54,7 @@ class cHoughPS // : public cMemCheck
          const cHoughTransform *  mHT;
          cPt2dr                   mTetaRho;
          tREAL8                   mCumul;
+         tREAL8                   mSigmaL;
          tSeg                     mSegE;
 	 eCodeHPS                 mCode;
 };
@@ -63,7 +65,8 @@ class cParalLine
          typedef cSegment2DCompiled<tREAL8> tSeg;
 
          cParalLine(const cHoughPS & aS1,const cHoughPS & aS2);
-	 const tREAL8 & ScoreMatch() const ; ///< Accessor
+	 const tREAL8 & ScoreMatch() const ;    ///< Accessor
+	 cOneLineAntiParal GetLAP(const cPerspCamIntrCalib &) const;
 
          size_t RankMatch() const;       ///< Accessor
          void SetRankMatch(size_t);          ///< Modifior
@@ -80,7 +83,7 @@ class cParalLine
 	 tREAL8       mScoreMatch;
          int          mRankMatch;
 	 tREAL8       mRadHom; // Radiometric homogeneity
-	 tREAL8       mAngle;
+	 tREAL8       mAngleDif;
 	 tREAL8       mWidth;
 };
 
@@ -209,6 +212,20 @@ template<class Type> void ComputeDericheAndNorm(cImGradWithN<Type> & aResGrad,co
 
 /**  Class for extracting line using gradient & hough transform*/
 
+enum class eIsWhite
+{
+     Yes,
+     No
+};
+
+enum class eIsQuick
+{
+     Yes,
+     No
+};
+
+template <class Type> bool IsYes(const Type & aVal) {return aVal==Type::Yes;}
+
 template <class Type> class  cExtractLines
 {
       public :
@@ -220,8 +237,12 @@ template <class Type> class  cExtractLines
           cExtractLines(tIm anIm);  ///< constructor , memorize image
           ~cExtractLines();
 
+          // isWhite is necessary for oriented test on max loc
+
 	  /// initialize the gradient
-          void SetDericheGradAndMasq(tREAL8 aAlphaDerich,tREAL8 aRayMaxLoc,int aBorder,bool Show=false);
+          void SetSobelAndMasq(eIsWhite,tREAL8 aRayMaxLoc,int aBorder,bool Show=false);
+          void SetDericheAndMasq(eIsWhite,tREAL8 aAlphaDerich,tREAL8 aRayMaxLoc,int aBorder,bool Show=false);
+
 
 	  ///  Initialize the hough transform
           void SetHough(const cPt2dr & aMulTetaRho,tREAL8 aSigmTeta,cPerspCamIntrCalib *,bool Accurate,bool Show=false);
@@ -240,6 +261,8 @@ template <class Type> class  cExtractLines
 
 
       private :
+          void SetGradAndMasq(eIsQuick Quick,eIsWhite isWhite,tREAL8 aRayMaxLoc,int aBorder,bool Show=false);
+
           cPt2di                mSz;        ///<  Size of the image
           tIm                   mIm;        ///< Memorize the image
           cIm2D<tU_INT1>        mImMasqCont;    ///<  Masq of point selected as contour

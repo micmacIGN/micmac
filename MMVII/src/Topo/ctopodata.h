@@ -38,14 +38,9 @@ class cTopoObsSetData
 public:
     virtual ~cTopoObsSetData() {};
     void AddData(const  cAuxAr2007 & anAuxInit);
-    virtual void AddSupData(const  cAuxAr2007 & anAux) = 0;
-    eTopoObsSetType mType;
+    virtual void AddSupData(const  cAuxAr2007 & anAux) {};
+    eTopoObsSetType mType = eTopoObsSetType::eSimple;
     std::vector<cTopoObsData> mObs;
-
-    // just for station
-    std::optional<eTopoStOriStat> mStationOriStat;
-    std::optional<tREAL8> mStationG0; // just output
-    std::optional<cRotation3D<tREAL8>> mRotVert2Instr; // just output
 };
 
 void AddData(const cAuxAr2007 & anAux, cTopoObsSetData & aObsSet);
@@ -53,14 +48,14 @@ void AddData(const cAuxAr2007 & anAux, cTopoObsSetData & aObsSet);
 class cTopoObsSetStationData: public cTopoObsSetData
 {
 public:
+    cTopoObsSetStationData();
     virtual ~cTopoObsSetStationData() {}
-    virtual void AddSupData(const  cAuxAr2007 & anAux) override;
+    virtual void AddSupData(const cAuxAr2007 & anAux) override;
 
     eTopoStOriStat mStationOriStat;
     std::optional<tREAL8> mStationG0; // just output
     std::optional<cRotation3D<tREAL8>> mRotVert2Instr; // just output
 };
-
 
 // ------------------------------------------------
 
@@ -70,6 +65,7 @@ public:
 enum class eCompObsType
 {
     eCompDist=3,
+    eCompDH=4,
     eCompHz=5,
     eCompHzOpen=7,
     eCompZen=6,
@@ -111,10 +107,11 @@ public:
     static std::pair<cTopoData, cSetMesGCP>  createEx3();
     static std::pair<cTopoData, cSetMesGCP>  createEx4();
 
-    static bool addObs(std::vector<cTopoObsSetStationData> & aCurrentVectObsSetStations, MMVII::eCompObsType code,
+    bool addObs(std::vector<cTopoObsSetStationData> & aCurrentVectObsSetStations, MMVII::eCompObsType code,
                        const std::string & nameFrom, const std::string & nameTo, double val, double sigma, eTopoStOriStat aStationStatus);
 
     std::vector<cTopoObsSetStationData> mAllObsSetStations;
+    cTopoObsSetData mObsSetSimple;
 protected:
     void addObsSets(std::vector<cTopoObsSetStationData> & aCurrentVectObsSets);
 };

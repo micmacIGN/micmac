@@ -1,0 +1,27 @@
+A more complex file using the "Bla" 
+token  to specify we can add anything after we get the required token
+
+0  Zero 3.14 0.0  0.0  1.0  2.0 3.0  0.0 0                  un deux trois ,  nous irons au bois,
+
+# Each line will contains
+# NumOfLine  (int)
+# NumOfline  (string)
+# 3.14 
+# NumOfFile  (real)
+#  1 2 3     (real)
+#  NumOfMine (real)
+#  NumOfLine (int)
+
+1  One  3.14 1.0  1.0  1    2   3    1.0 1                  quatre cinq six ,  cueillir des cerises
+
+# blabla
+# blabla again 
+
+2  Two    3.14 2.0  2.0  1.0  2.0 3.0  2.0 2                sept huit neuf  ,  dans mon panier neuf
+
+3  Three  3.14 3.0  3.0  1.0  2.0 3.0  3.0 3                dix onze douze  ,  elles seront toutes rouges
+
+These line will be also skipped
+a
+b 
+c

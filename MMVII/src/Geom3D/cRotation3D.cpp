@@ -411,7 +411,7 @@ template <class Type> cRotation3D<Type>  cRotation3D<Type>::RandomRot(const Type
 }
 
 
-template <class Type> void cRotation3D<Type>::ExtractAxe(tPt & anAxe,Type & aTeta)
+template <class Type> void cRotation3D<Type>::ExtractAxe(tPt & anAxe,Type & aTeta) const
 {
     cDenseVect<Type> aDVAxe =  mMat.EigenVect(1.0);
     anAxe =  cPtxd<Type,3>::FromVect(aDVAxe);
@@ -429,6 +429,24 @@ template <class Type> void cRotation3D<Type>::ExtractAxe(tPt & anAxe,Type & aTet
     MMVII_INTERNAL_ASSERT_medium(std::abs(aRhoTeta.x()-1.0)<1e-5,"Axes from rot");
     aTeta = aRhoTeta.y();
 }
+
+template <class Type> std::pair<cPtxd<Type,3>,Type> cRotation3D<Type>::ExtractAxe() const
+{
+    tPt anAxe;
+    Type aTeta;
+    ExtractAxe(anAxe,aTeta);
+    return std::pair<cPtxd<Type,3>,Type> (anAxe,aTeta);
+}
+
+template <class Type> cPtxd<Type,3> cRotation3D<Type>::Axe() const { return ExtractAxe().first; }
+template <class Type> Type cRotation3D<Type>::Angle() const { return ExtractAxe().second; }
+
+
+
+/*
+*/
+
+
 
 /*    WPK = Rx(W) Ry(P) Rz(K)  
  *    YPR = Rz(Y) Ry(P) Rx(R)
@@ -580,7 +598,7 @@ template <class Type> cPtxd<Type,3>  cRotation3D<Type>::ToWPK() const
 
 	}
 
-	cDenseVect<Type> aSol = aSys.Solve();
+	cDenseVect<Type> aSol = aSys.PublicSolve();
 	aWPK += tPt::FromVect(aSol);
     }
 

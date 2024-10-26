@@ -77,20 +77,21 @@ cDataPerspCamIntrCalib::cDataPerspCamIntrCalib
 ) :
     cDataPerspCamIntrCalib
     (
-	         aName,
-	         aTypeProj, 
-	         aDeg,
-	         std::vector<double>(),
-                 cMapPProj2Im(aFoc, PPIsRel ? MulCByC(ToR(aNbPix), aPP) : aPP),
-                 cDataPixelDomain(aNbPix),
-	         aDeg,
-	         aSzBuf,
-                 isFraserModel
+        aName,
+        aTypeProj, 
+        aDeg,
+        std::vector<double>(),
+        cMapPProj2Im(aFoc, PPIsRel ? MulCByC(ToR(aNbPix), aPP) : aPP),
+        cDataPixelDomain(aNbPix),
+        aDeg,
+        aSzBuf,
+        isFraserModel
     )
 {
 
 }
 
+const std::string & cDataPerspCamIntrCalib::Name() const {return mName;}
     
 void cDataPerspCamIntrCalib::AddData(const cAuxAr2007 & anAux0)
 {
@@ -100,12 +101,12 @@ void cDataPerspCamIntrCalib::AddData(const cAuxAr2007 & anAux0)
 
     {
         MMVII::EnumAddData(anAux,mTypeProj,"Projection");
-	    /*  MODIF MPD, has "rediscover" the "EnumAddData"  function ...
+  /*  MODIF MPD, has "rediscover" the "EnumAddData"  function ...
         std::string aNameProj= E2Str(mTypeProj);
         MMVII::AddData(cAuxAr2007("Projection",anAux),aNameProj);
         if (anAux.Input())
-	   mTypeProj = Str2E<eProjPC>(aNameProj);
-	   */
+ mTypeProj = Str2E<eProjPC>(aNameProj);
+ */
     }
     {
            cAuxAr2007 aAuxAux("Auxiliary",anAux);
@@ -124,6 +125,7 @@ void cDataPerspCamIntrCalib::AddData(const cAuxAr2007 & anAux0)
            cAuxAr2007 aAuxSten("PerfectProj",anAux);
            MMVII::AddData(cAuxAr2007("F",aAuxSten),mMapPProj2Im.F());
            MMVII::AddData(cAuxAr2007("PP",aAuxSten),mMapPProj2Im.PP());
+
 
 	   // Just in case redo a coherent object
 	   if (anAux.Input())
@@ -536,6 +538,15 @@ cPt2dr  cPerspCamIntrCalib::Redist(const tPtOut & aP0) const
      return Value(aP2);
 }
 
+cPt2dr cPerspCamIntrCalib::InterpolOnUDLine(const tSeg2dr& aSeg,tREAL8 aWeightP1) const
+{
+     cPt2dr  aPU1 = Undist(aSeg.P1());
+     cPt2dr  aPU2 = Undist(aSeg.P2());
+
+     return Redist(Centroid(aWeightP1,aPU1,1.0-aWeightP1,aPU2));
+}
+
+
 
 
 
@@ -571,6 +582,9 @@ void cPerspCamIntrCalib::PutUknowsInSetInterval()
 
 void  cPerspCamIntrCalib::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 {
+   aGAIP.SetNameType("CalibCamPC");
+   aGAIP.SetIdObj(mName);
+
    aGAIP.TestParam(this,&(mMapPProj2Im.F()),"F");
    aGAIP.TestParam(this,&(mMapPProj2Im.PP().x()),"PPx");
    aGAIP.TestParam(this,&(mMapPProj2Im.PP().y()),"PPy");
@@ -873,10 +887,11 @@ cPerspCamIntrCalib * cPerspCamIntrCalib::RandomCalib(eProjPC aTypeProj,int aKDeg
 
 tSeg2dr  cPerspCamIntrCalib::ExtenSegUndistIncluded
          (
-                          const tSeg2dr & aSegInit,
-                          tREAL8 aStepInitRel,
-                          tREAL8 aStepEnd,
-                          tREAL8 aRetract
+             bool   doRedist,
+             const tSeg2dr & aSegInit,
+             tREAL8 aStepInitRel,
+             tREAL8 aStepEnd,
+             tREAL8 aRetract
          ) const
 {
       std::vector<cPt2dr> aVPts;
@@ -893,6 +908,8 @@ tSeg2dr  cPerspCamIntrCalib::ExtenSegUndistIncluded
 	      aStep /= 2.0;
 	  }
 	  aPt += aTgt * (-aRetract);
+	  if (doRedist)
+             aPt = Redist(aPt);
 	  aVPts.push_back(aPt);
       }
       return tSeg2dr(aVPts.at(0),aVPts.at(1));

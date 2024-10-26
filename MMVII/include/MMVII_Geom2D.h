@@ -10,6 +10,7 @@ namespace MMVII
 {
 
 typedef cSegment<tREAL8,2> tSeg2dr;
+typedef cSegmentCompiled<tREAL8,2> tSegComp2dr;
 
 
 
@@ -585,6 +586,8 @@ class cEllipse
        cEllipse(cDenseVect<tREAL8> aDV,const cPt2dr & aC0);
        ///  A more physicall creation
        cEllipse(const cPt2dr & aCenter,tREAL8 aTeta,tREAL8 aLGa,tREAL8 aLSa);
+       /// Create a circle
+       cEllipse (const cPt2dr & aCenter,tREAL8 aRay);
 
        void AddData(const  cAuxAr2007 & anAux);
 
@@ -608,6 +611,8 @@ class cEllipse
        const cPt2dr &  VGa() const; ///< Accessor
        const cPt2dr &  VSa() const; ///< Accessor
        double TetaGa() const; /// Teta great axe
+       tREAL8  EVP() const ;  /// Are Eigen value positive
+
 
        cPt2dr  PtOfTeta(tREAL8 aTeta,tREAL8 aMulRho=1.0) const; /// return on ellipse with param A cos(T) + B sin(T)
        cPt2dr  PtAndGradOfTeta(tREAL8 aTeta,cPt2dr &,tREAL8 aMulRho=1.0) const;  /// return also the gradien of belong function
@@ -625,6 +630,10 @@ class cEllipse
        cPt2dr  NormalInt(const cPt2dr &) const;
 
        cPt2dr InterSemiLine(tREAL8 aTeta) const;    /// compute the intesection of 1/2 line of direction teta with the ellipse
+
+       /// get points on ellipse that are +- less regularly sampled at a given step
+       void GetTetasRegularSample(std::vector<tREAL8> & aVTetas,const tREAL8 & aDist);
+
 
     private :
        inline void AssertOk() const;
@@ -654,13 +663,14 @@ class cEllipse_Estimate
         cLeasSqtAA<tREAL8> & Sys();
 
         // indicate a rough center, for better numerical accuracy
-        cEllipse_Estimate(const cPt2dr & aC0,bool isCenterFree=true);
+        cEllipse_Estimate(const cPt2dr & aC0,bool isCenterFree=true,bool isCircle=false);
         void AddPt(cPt2dr aP) ;
 
         cEllipse Compute() ;
         ~cEllipse_Estimate();
       private :
 	 bool               mIsCenterFree;
+	 bool               mIsCircle;
          cLeasSqtAA<tREAL8> *mSys;
          cPt2dr             mC0;
 

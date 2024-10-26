@@ -105,7 +105,7 @@ template<class Type> cTplAppliCalcDescPCar<Type>::cTplAppliCalcDescPCar(cAppliCa
    mPyr       (nullptr),
    mPyrLapl   (nullptr),
    mPyrOriNom (nullptr),
-   mDFI       (cDataFileIm2D::Create(mAppli.mNameIm,true)),
+   mDFI       (cDataFileIm2D::Create(mAppli.mNameIm,eForceGray::Yes)),
    mTargAmpl  (10000.0),  // Not to high => else overflow in gaussian before normalisation
    mBoxIn     (cRect2::TheEmptyBox),
    mBoxOut    (cRect2::TheEmptyBox)

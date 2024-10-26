@@ -626,3 +626,164 @@ MMVII OriBundleAdj ".*_Scaled.tif"  BA BA2  GCPW=[1,1] DataDir=Completed
 
 
 
+\section{Clinometers calibration processing}
+
+\subsection{Introduction}
+
+This section presents how to add clinometers to an image orientation. You are supposed to have :
+\begin{itemize}
+     \item a calibrated camera
+     \item a set of images
+     \item a set of measures acquired by clinometers in the same time than images
+     \item a set of GCP points
+\end{itemize}
+
+The relative orientation between camera to the clinometers are supposed to be constant through all acquisitions.
+The aim of this calibration is to compute the relative orientations (Boresight matrixes) between camera and each clinometers.
+
+In a first step, an approximation of these Boresight matrixes are computed with {\tt ClinoInit}. 
+In a second step, these Boresight matrixes are computed with bundle adjustment with {\tt OriBundleAdj}.
+
+
+\subsection{Equations}
+
+Two equations are used for bundle adjustment :
+\begin{itemize}
+     \item the first one uses only one clinometer and determines its Boresight matrix
+     \item the second one uses two clinometers and checkes that their relative orientation is almost the same than their initial relative orientation. 
+     This equation prevents the least squares from diverging
+\end{itemize}
+
+
+$R_C$ is the rotation of the camera in the absolute system.\\
+
+$B_1$ is the first Boresight matrix : the rotation from camera system to first clinometer system. $B_{10}$ is the initial approximation of $B_1$.
+
+$B_2$ is the second Boresight matrix : the rotation from camera system to second clinometer system. $B_{20}$ is the initial approximation of $B_2$.
+
+$B_1$ and $B_2$ are the unknowns of the problem.\\
+
+The first clinometer measure is $\theta_1$. 
+
+The second clinometer measure is $\theta_2$. \\
+
+For each clinometer, $(\Vec{i}, \Vec{j}, \Vec{k})$ is the clinometer system and $\theta$ is the measure of angle between $\Vec{i}$ and the vertical in the plan $(\Vec{i}, \Vec{j})$.
+
+The vertical in the local system is $ \Vec{v_{loc}} $ \\
+
+
+\subsubsection{First equation}
+
+\label{FirstClinoCalibEq}
+
+
+The vertical in the camera system is $ R_C \Vec{v_{loc}} $
+
+The vertical in the first clinometer system is $\Vec{v_{clino}} = B_1 R_C \Vec{v_{loc}} $\\
+
+Each clinometer gives the angle between the vertical and one plan of its system.
+
+$\Phi$ is the projection of a vector on the plan $(\Vec{i}, \Vec{j})$ :
+\begin{equation}
+     \Phi \begin{pmatrix}
+          v_i \\
+          v_j \\
+          v_k
+     \end{pmatrix} = \begin{pmatrix}
+          v_i \\
+          v_j
+     \end{pmatrix}
+\end{equation}
+
+
+Finally :
+\begin{equation}
+     \frac{\Phi (\Vec{v_{clino}})}{|| \Phi (\Vec{v_{clino}}) ||}   = \begin{pmatrix}
+          cos(\theta_1) \\
+          sin(\theta_1)
+     \end{pmatrix}
+\end{equation}
+
+
+\subsubsection{Second equation}
+
+\label{SecondClinoCalibEq}
+
+This equation is not mathematically exact but prevents the least square from diverging : relative orientation between couple of clinometers are supposed to be constant in the time.
+
+\begin{equation}
+     B_2 B_1^\intercal = B_{20} B_{10}^\intercal
+\end{equation}
+
+\includegraphics[width=12cm]{Programmer/ClinoBA.png}
+
+
+\subsection{Clinometers measures file}
+
+The file with clinometers measures must have :
+\begin{itemize}
+     \item one line per camera
+     \item in each line, the image name
+     \item in each line, the measures of the two clinometers
+     \item each clinometer measure has the name of the clinometer, its measure and its sigma  
+\end{itemize}
+
+For example, the file should be like :
+
+\begin{lstlisting}
+image1 clino1 +0.064786 +0.00001 clino2 +0.014629 +0.00002
+image2 clino1 +0.064786 +0.00001 clino2 +0.014629 +0.00002
+image3 clino1 +0.064786 +0.00001 clino2 +0.014629 +0.00002
+\end{lstlisting}
+
+
+
+\subsection{ClinoInit}
+
+The first step is to find approximation of the Boresight matrixes with {\tt ClinoInit}.
+
+\begin{lstlisting}
+     MMVII ClinoInit Data-Input/ClinoMeasures.txt "ISF#SF#" [1,0] BA_Clino_B  INIT_CLINO Rel12="i-kj" OkNoCam=true PrePost=[949_,.JPG]
+\end{lstlisting}
+
+
+Parameters of {\tt ClinoInit} are :
+\begin{itemize}
+     \item Data-Input/ClinoMeasures.txt : file with clinometers measures.
+     \item "ISF\#SF\#" : structure of ClinoMeasures.txt : I for image name, S for clinometer name, F for a value, \# for a not used column. In {\tt ClinoInit}, sigma are not used
+     \item $[$1,0$]$ : index of clinometers in ClinoMeasures.txt
+     \item BA$\_$Clino$\_$B : orientation of camera
+     \item INIT$\_$CLINO : name of directory where approximation of clinometers calibrations will be saved
+     \item Rel12="i-kj" : an approximation of the relative orientation between the two clinometers systems ($\Vec{i_2}=\Vec{i_1}, \Vec{j_2}=-\Vec{k_1}, \Vec{k_2}=\Vec{j_1}$)
+     \item OkNoCam=true : if true, do not raise error if an image in ClinoMeasures.txt is not in BA$\_$Clino$\_$B
+     \item PrePost=[949$\_$,.JPG] : values added before and after image names in ClinoMeasures.txt to have the same names than in BA$\_$Clino$\_$B
+\end{itemize}
+
+In INIT$\_$CLINO, there are the clinometers name with their approximate Boresight matrix. There is also the approximation of the relative orientation between the two clinometers system.
+
+
+
+\subsection{OriBundleAdj}
+
+Then, you can compute the Boresight matrixes with {\tt OriBundleAdj}. You need to complete the parameter NameClino to compute the clinometers calibration
+
+\begin{lstlisting}
+     MMVII  OriBundleAdj  AllImClino.xml  BA_Clino_B   BA_Clino_C   GCPDir=ClinoCompl  GCPW=[1,1,0.5]  PPFzCal=.* ClinoDirIn=INIT_CLINO ClinoDirOut=CALIB_CLINO NameClino=Data-Input/ClinoMeasures.txt Format=ISFFSFF PrePost=[949_,.JPG]
+\end{lstlisting}
+
+Parameters of {\tt ClinoInit} are :
+\begin{itemize}
+     \item AllImClino.xml : name of images
+     \item BA$\_$Clino$\_$B : orientation of camera
+     \item BA$\_$Clino$\_$C : orientation of camera after the bundle adjustment
+     \item GCPDir=ClinoCompl : directory for GCP
+     \item GCPW=[1,1,0.5] : GCP weights
+     \item PPFzCal=.* : freeze internal calibration
+     \item ClinoDirIn=INIT$\_$CLINO : approximation of the two Boresight matrixes computed with {\tt ClinoInit}
+     \item ClinoDirOut=CALIB$\_$CLINO : name of directory where clinometers calibrations will be saved
+     \item NameClino=Data-Input/ClinoMeasures.txt : file with clinometers measures.
+     \item "ISFFSFF" : structure of ClinoMeasures.txt. This time, sigmas are used
+     \item PrePost=[949$\_$,.JPG] : see {\tt ClinoInit}
+\end{itemize}
+
+The output clinometers orientations are the same than for {\tt ClinoInit}.

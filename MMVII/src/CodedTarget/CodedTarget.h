@@ -67,6 +67,7 @@ class cSpecBitEncoding : public cMemCheck
          size_t        mNbDigit;        ///< Number of digit for names  Computed & Specified
 	 std::string   mPrefix;        ///< For all name generated
 				
+         std::string   mTargetNamePrefix; ///< prefix for target names, before number
          size_t        mMaxNum;         ///< max num of codes
          size_t        mMaxLowCode;     ///< max of all code (in fact max of the lowest representant)
          size_t        mMaxCodeEqui;    ///< max of all equivalent code
@@ -165,9 +166,9 @@ class cResSimul
 
        double BorderGlob() const ;
        std::string                mCom;  ///< Command used to create the file
-       cPt2dr                     mRayMinMax;
+       cPt2dr                     mRadiusMinMax;
        double                     mBorder;
-       double                     mRatioMax;
+       cPt2dr                     mRatioMinMax; //< ratio between big and small ellipse axis (maxium max = 1)
        std::vector<cGeomSimDCT>   mVG;
 };
 void AddData(const  cAuxAr2007 & anAux,cResSimul & aRS);
@@ -314,19 +315,19 @@ class cParamCodedTarget : public cMemCheck
        bool      mAntiClockWiseBit;        ///< Do  growin bits go in trigonometric sens (!  visuel repair is clokwise)
 
 
-       double    mRayOrientTablet;    
+       double    mRadiusOrientTablet;
        tPt2dr    mCenterOrientTablet;
-       double    mRayCenterMiniTarget;
+       double    mRadiusCenterMiniTarget;
 
        bool mModeFlight;  // Special mode for Patricio
        bool mCBAtTop;     // mean Check board at top (initial drone)			  
        // bool mCodeCirc;  // Special mode for Patricio
        double          mRho_0_EndCCB;// End of Central CB , here Rho=ThickN ...
-       double          mRho_1_BeginCode;// ray where begins the coding stuff
-       double          mRho_2_EndCode;// ray where begins the coding stuff
-       double          mRho_3_BeginCar;// ray where begins the coding stuff
-       double          mRho_4_EndCar;  // ray where begins the coding stuff
-       double          mRho_EndIm;  // ray where begins the coding stuff
+       double          mRho_1_BeginCode;// radius where begins the coding stuff
+       double          mRho_2_EndCode;// radius where begins the coding stuff
+       double          mRho_3_BeginCar;// radius where begins the coding stuff
+       double          mRho_4_EndCar;  // radius where begins the coding stuff
+       double          mRho_EndIm;  // radius where begins the coding stuff
        double          mSignAngle;
 
        cPt2di    mSzBin;
@@ -391,9 +392,9 @@ class cFullSpecifTarget : public cMemCheck
          const  std::string &     Prefix()    const;  ///< Prefix used in name-generation
 	 size_t MinHammingD() const;       ///<  Number of bits
          tREAL8 Rho_0_EndCCB() const;      /// End of Central Checkboard
-         tREAL8 Rho_1_BeginCode() const;   /// ray where begins the coding stuff
-         tREAL8 Rho_2_EndCode() const;     /// ray where ends the coding stuff
-         tREAL8 Rho_3_BeginCar() const;    /// ray where ends margin after coding (and possibly carac)
+         tREAL8 Rho_1_BeginCode() const;   /// radius where begins the coding stuff
+         tREAL8 Rho_2_EndCode() const;     /// radius where ends the coding stuff
+         tREAL8 Rho_3_BeginCar() const;    /// radius where ends margin after coding (and possibly carac)
 
 
 	 bool BitIs1(bool IsWhite) const;
@@ -447,14 +448,14 @@ class cFullSpecifTarget : public cMemCheck
 class cDecodeFromCoulBits
 {
       public :
-         cDecodeFromCoulBits(cFullSpecifTarget *);
+         cDecodeFromCoulBits(const cFullSpecifTarget *);
 	 ///  Fix the colour Black/white of a given bit
          void SetColBit(bool IsBlack,size_t aBit);
          bool IsComplete() const;   /// Have all the bits been fixed
          const cOneEncoding * Encoding() const; /// Extract encoding, asserting that "IsComplete()"
 
       private :
-         cFullSpecifTarget * mSpec;      /// Specification
+         const cFullSpecifTarget * mSpec;      /// Specification
          tSet32Bits          mCode;      /// Flag currently computed
          tSet32Bits          mBitsFixed; /// Flag/List of bit that where fixed
 };

@@ -95,6 +95,8 @@ void MMVII_UserError(const eTyUEr &,const std::string & aMes);
 {  MMVII_UserError(aRef,aMes);}
 void MMVII_UnclasseUsEr(const std::string & aMes);
 
+#define MMVII_INTERNAL_ASSERT_User_UndefE(aTest,aMes)\
+{MMVII_INTERNAL_ASSERT_User(aTest,eTyUEr::eUnClassedError,aMes);}
 
 #define MMVII_INTERNAL_ASSERT_always(aTest,aMes)\
  if  (!(aTest))\
@@ -142,6 +144,7 @@ class cMMVII_Warning
 };
 
 #define MMVII_DEV_WARNING(MES) {static MMVII::cMMVII_Warning aWarn(MES,__LINE__,__FILE__); aWarn.Activate();}
+#define MMVII_USER_WARNING(MES) {MMVII_DEV_WARNING(MES);}
 
 
 #if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )

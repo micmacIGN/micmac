@@ -24,7 +24,8 @@ extern cSpecMMVII_Appli  TheSpecReduceVideo;
 extern cSpecMMVII_Appli  TheSpec_TestEigen;
 extern cSpecMMVII_Appli  TheSpec_ComputeParamIndexBinaire;
 extern cSpecMMVII_Appli  TheSpecTestRecall;
-extern cSpecMMVII_Appli  TheSpecScaleImage;
+extern cSpecMMVII_Appli  TheSpecScaleImage_Basic;
+extern cSpecMMVII_Appli  TheSpecScaleImage_Std;
 extern cSpecMMVII_Appli  TheSpec_StackIm;
 extern cSpecMMVII_Appli  TheSpec_StackDep;
 extern cSpecMMVII_Appli  TheSpecCalcDiscIm;
@@ -35,7 +36,6 @@ extern cSpecMMVII_Appli  TheSpec_ToTiePMul;
 extern cSpecMMVII_Appli  TheSpecEpipGenDenseMatch;
 extern cSpecMMVII_Appli  TheSpecEpipDenseMatchEval; 
 extern cSpecMMVII_Appli  TheSpecGenSymbDer;
-extern cSpecMMVII_Appli  TheSpecKapture;
 extern cSpecMMVII_Appli  TheSpecFormatTDEDM_WT;  // Wu Teng
 extern cSpecMMVII_Appli  TheSpecFormatTDEDM_MDLB; // Middleburry
 extern cSpecMMVII_Appli  TheSpecTestHypStep; // Middleburry
@@ -73,7 +73,10 @@ extern cSpecMMVII_Appli  TheSpec_OriBundlAdj;
 extern cSpecMMVII_Appli  TheSpec_TopoAdj;
 extern cSpecMMVII_Appli  TheSpecDistCorrectCirgTarget;
 extern cSpecMMVII_Appli  TheSpecGenArgsSpec;
+extern cSpecMMVII_Appli  TheSpec_ImportClino;
+extern cSpecMMVII_Appli  TheSpec_ImportLines;
 extern cSpecMMVII_Appli  TheSpec_ImportGCP;
+extern cSpecMMVII_Appli  TheSpec_ImportOBS;
 extern cSpecMMVII_Appli  TheSpec_ImportORGI;
 extern cSpecMMVII_Appli  TheSpec_ImportTiePMul;
 extern cSpecMMVII_Appli  TheSpec_ImportMesImGCP;
@@ -81,20 +84,19 @@ extern cSpecMMVII_Appli  TheSpec_ImportM32;
 extern cSpecMMVII_Appli  TheSpec_ConvertV1V2_GCPIM;
 extern cSpecMMVII_Appli  TheSpec_SpecSerial;
 extern cSpecMMVII_Appli  TheSpec_CGPReport;
+extern cSpecMMVII_Appli  TheSpec_MesImReport;
 extern cSpecMMVII_Appli  TheSpec_TiePReport;
-extern cSpecMMVII_Appli  TheSpec_SimulDispl;
-extern cSpecMMVII_Appli  TheSpec_RandomGeneratedDelaunay;
-extern cSpecMMVII_Appli  TheSpec_ComputeTriangleDeformation;
-extern cSpecMMVII_Appli  TheSpec_ComputeTriangleDeformationTranslation;
-extern cSpecMMVII_Appli  TheSpec_ComputeTriangleDeformationRadiometry;
-extern cSpecMMVII_Appli  TheSpec_ComputeNodesPrecision;
+extern cSpecMMVII_Appli  TheSpec_SegImReport;
 extern cSpecMMVII_Appli  TheSpec_PoseCmpReport;
 extern cSpecMMVII_Appli  TheSpec_BlockCamInit;   // RIGIDBLOC
+extern cSpecMMVII_Appli  TheSpec_Wire3DInit;   
+						
 extern cSpecMMVII_Appli  TheSpec_ClinoInit;
 extern cSpecMMVII_Appli  TheSpecRename;
 extern cSpecMMVII_Appli  TheSpec_V2ImportCalib;
 extern cSpecMMVII_Appli  TheSpec_ImportOri;
 extern cSpecMMVII_Appli  TheSpecDicoRename;
+extern cSpecMMVII_Appli  TheSpec_SimulDispl;
 extern cSpecMMVII_Appli  TheSpec_CreateRTL;
 extern cSpecMMVII_Appli  TheSpec_TestProj;
 extern cSpecMMVII_Appli  TheSpec_ChSysCo;
@@ -109,6 +111,8 @@ extern cSpecMMVII_Appli  TheSpec_ExportUndistMesIm;
 extern cSpecMMVII_Appli  TheSpecAppliExtractLine;
 extern cSpecMMVII_Appli  TheSpec_CERN_ImportClino;
 extern cSpecMMVII_Appli  TheSpec_MMV2_MesIm_2_MMV1;
+
+extern cSpecMMVII_Appli TheSpec_MergeMesImGCP;
 };
 
 #endif  //  _MMVII_DeclareAllCmd_H_

@@ -23,6 +23,58 @@ namespace MMVII
 class cOneCalibRelClino;   // Relative calibration of 2 clinometers,
 class cOneCalibClino;      // Calibration of 1 clinometer
 class cCalibSetClino;      // Set of calibration of "N" clinometers relatively to a Cam
+class cOneMesureClino;     // Represent the  set of angular measures associated to one measurement time
+class cSetMeasureClino;   // Represent a set of cOneMesureClino (used for ex in a measure or in a compensation)
+
+
+/**  Class for Representing the  set of angular measures associated to one measurement time */
+class cOneMesureClino
+{
+      public :
+              cOneMesureClino(); ///< Default constructor, required for serialization
+              /// Constructor used at import step
+              cOneMesureClino(const std::string &,const std::vector<tREAL8> &,const std::optional<std::vector<tREAL8>>&);
+
+              void AddData(const  cAuxAr2007 & anAux);  ///< Serialization
+              const std::string &  Ident() const;          ///< Accessor
+              const std::vector<tREAL8> & Angles() const;  ///< Accessor
+              const std::optional<std::vector<tREAL8>> & VSigma() const; ///< Accessor
+      private :
+              std::string mIdent;  ///< Identifier of time
+              std::vector<tREAL8> mAngles;  ///< Value of angles measures
+              std::optional<std::vector<tREAL8>> mVSigma; ///< Optional values of sigma on measures
+};
+/// External function for serialization
+void AddData(const  cAuxAr2007 & anAux, cOneMesureClino & aMesClino);
+
+/** Class for Representing  a set of "cOneMesureClino" */
+class cSetMeasureClino
+{
+       public :
+          cSetMeasureClino(const std::string& aPatMatch,const std::string &aPatReplace,const std::vector<std::string> & aVNames = {});
+          cSetMeasureClino();
+
+          void Add1Mesures(const cOneMesureClino &);
+          void AddData(const  cAuxAr2007 & anAux);
+
+          std::string NameOfIm(const cOneMesureClino & ) const;
+
+	  const std::vector<cOneMesureClino>&  SetMeasures() const;
+          const std::vector<std::string> &     NamesClino() const;
+	 
+
+          void SetNames(const  std::vector<std::string> &);
+
+       private :
+          std::vector<std::string>      mNamesClino;
+          std::string                   mPatMatch;
+          std::string                   mPatReplace;
+          std::vector<cOneMesureClino>  mSetMeasures;
+};
+
+/// External function for serialization
+void AddData(const  cAuxAr2007 & anAux, cSetMeasureClino & aSet);
+
 
 
 /** Relative calibration of 2 clinometers : Orient + name of reference */
@@ -41,9 +93,12 @@ class cOneCalibClino
 {
       public :
          cOneCalibClino();  ///< Defaut constructor for serialization
+         cOneCalibClino(const std::string aNameClino);
          std::string    mNameClino;  ///< Name of clinometer
          tRotR           mRot;       ///< Value of rotation
          std::optional<cOneCalibRelClino>   mLinkRel;  ///< Possible relative calib
+         tRotR Rot() const {return mRot;};
+         std::string NameClino() const {return mNameClino;};
 };
 void AddData(const  cAuxAr2007 & anAux,cOneCalibClino & aSet);
 
@@ -53,11 +108,19 @@ class cCalibSetClino : public cMemCheck
      public :
 
          cCalibSetClino();  ///< Defaut constructor for serialization
+         cCalibSetClino(std::string aNameCam, std::vector<cOneCalibClino> aClinosCal);
          /// Name of the camera where the calibration, but at least for tracability
+         std::string NameCam(){return mNameCam;};
+         std::vector<cOneCalibClino> ClinosCal(){return mClinosCal;};
+
+         // Set clinometers calibration
+         void setClinosCal(std::vector<cOneCalibClino>  aClinosCal){mClinosCal=aClinosCal;}
+
+
          std::string mNameCam;
 
 	 /// Set of all clinometers calibration
-         std::vector<cOneCalibClino>  mClinosCal  ;
+         std::vector<cOneCalibClino>  mClinosCal  ;        
 };
 void AddData(const  cAuxAr2007 & anAux,cCalibSetClino & aSet);
 

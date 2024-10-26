@@ -27,7 +27,7 @@ template <class Type,const int  DimIn,const int DimOut>
 template <class Type,const int  DimIn,const int DimOut> 
     void  cLeastSqComputeMaps<Type,DimIn,DimOut>::ComputeSolNotClear(std::vector<Type>& aRes)
 {
-     cDenseVect<Type> aVD =  mLSQ.Solve();
+     cDenseVect<Type> aVD =  mLSQ.PublicSolve();
      aVD.DIm().DupInVect(aRes);
 }
 
@@ -35,7 +35,7 @@ template <class Type,const int  DimIn,const int DimOut>
     void  cLeastSqComputeMaps<Type,DimIn,DimOut>::ComputeSol(std::vector<Type>& aRes)
 {
     ComputeSolNotClear(aRes);
-    mLSQ.Reset();
+    mLSQ.PublicReset();
 }
 
 

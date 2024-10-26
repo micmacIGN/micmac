@@ -20,7 +20,12 @@ namespace MMVII
 /* ********************************************* */
 
 cOneLineAntiParal::cOneLineAntiParal() :
-    mSeg (cPt2dr(0,0),cPt2dr(1,0))  // Diff else error (cstr check not identic)
+    mSeg (cPt2dr(0,0),cPt2dr(1,0)),  // Diff else error (cstr check not identic)
+    mAngDif     (-1),
+    mWidth      (-1),
+    mCumul      (-1),
+    mRadHom     (-1),
+    mSigmaLine  (-1)
 {
 }
 
@@ -28,9 +33,10 @@ void AddData(const cAuxAr2007 & anAux,cOneLineAntiParal & anEx)
 {
       AddData(cAuxAr2007("P1",anAux),anEx.mSeg.P1());
       AddData(cAuxAr2007("P2",anAux),anEx.mSeg.P2());
-      AddData(cAuxAr2007("ParalAng",anAux),anEx.mAng);
+      AddData(cAuxAr2007("ParalAng",anAux),anEx.mAngDif);
       AddData(cAuxAr2007("Width",anAux),anEx.mWidth);
       AddData(cAuxAr2007("Cumul",anAux),anEx.mCumul);
+      AddData(cAuxAr2007("SigmaL",anAux),anEx.mSigmaLine);
 }
 
 void AddData(const cAuxAr2007 & anAux,cLinesAntiParal1Im & anEx)
@@ -400,7 +406,7 @@ void AddData(const  cAuxAr2007 & anAux,cMesIm1Pt & aMes)
 {
    MMVII::AddData(cAuxAr2007("Name",anAux),aMes.mNamePt);
    MMVII::AddData(cAuxAr2007("Pt",anAux),aMes.mPt);
-   AddTabData(cAuxAr2007("Sigma2",anAux),aMes.mSigma2,3);
+   MMVII::AddData(cAuxAr2007("Sigma2",anAux),aMes.mSigma2);
 }
 
 /* ********************************************* */
@@ -441,6 +447,30 @@ void cSetMesPtOf1Im::AddMeasure(const cMesIm1Pt & aMeasure)
 {
      mMeasures.push_back(aMeasure);
 }
+
+
+void cSetMesPtOf1Im::AddSetMeasure(const cSetMesPtOf1Im & aSet,bool SuprNone,bool OkDupl)
+{
+    MMVII_INTERNAL_ASSERT_tiny(mNameIm==aSet.mNameIm,"Mix different images in AddSetMeasure " + mNameIm + "!=" + aSet.mNameIm);
+
+    for (const auto & aMes : aSet.mMeasures)
+    {
+         if (NameHasMeasure(aMes.mNamePt))
+         {
+             if (! OkDupl)
+             {
+                 MMVII_INTERNAL_ERROR("Non autorize duplicate name for Im=" + mNameIm + " Pt=" +aMes.mNamePt);
+             }
+         }
+         else
+         {
+             if ((!SuprNone) || (!starts_with(aMes.mNamePt,MMVII_NONE)) )
+                mMeasures.push_back(aMes);
+         }
+    }
+}
+
+
 
 cMesIm1Pt *  cSetMesPtOf1Im::NearestMeasure(const cPt2dr & aPt) 
 {
@@ -517,27 +547,46 @@ cMes1GCP::cMes1GCP(const cPt3dr & aPt, const std::string & aNamePt, tREAL4 aSigm
     mNamePt   (aNamePt),
     mAdditionalInfo(aAdditionalInfo),
     mOptSigma2(std::nullopt)
+
 {
     if (aSigma>=0.)
-    {
-        mOptSigma2 = {0.,0.,0.,0.,0.,0.};
-        (*mOptSigma2)[IndXX] = Square(aSigma);
-        (*mOptSigma2)[IndYY] = Square(aSigma);
-        (*mOptSigma2)[IndZZ] = Square(aSigma);
-    }
+        SetSigma2(aSigma);
 }
 
 cMes1GCP::cMes1GCP() :
-    cMes1GCP (cPt3dr(0,0,0),"??")
+    cMes1GCP (cPt3dr::Dummy(),"??")
 {
+}
+
+void cMes1GCP::SetSigma2(const cPt3dr & aSigma)
+{
+     mOptSigma2 = {0.,0.,0.,0.,0.,0.};
+     (*mOptSigma2)[IndXX] = (float) Square(aSigma.x());
+     (*mOptSigma2)[IndYY] = (float) Square(aSigma.y());
+     (*mOptSigma2)[IndZZ] = (float) Square(aSigma.z());
+}
+
+void cMes1GCP::SetSigma2(tREAL8 aSigma)
+{
+     SetSigma2(cPt3dr::PCste(aSigma));
+}
+
+const cArray<tREAL4,6> & cMes1GCP::Sigma2()  const { return  (*mOptSigma2); }
+
+bool cMes1GCP::Sigma2IsInit() const {return mOptSigma2.has_value();}
+
+
+void cMes1GCP::AddData(const  cAuxAr2007 & anAux)
+{
+   MMVII::AddData(cAuxAr2007("Name",anAux),mNamePt);
+   MMVII::AddData(cAuxAr2007("Pt",anAux),mPt);
+   MMVII::AddData(cAuxAr2007("AdditionalInfo",anAux),mAdditionalInfo);
+   AddOptData(anAux, "Sigma2", mOptSigma2);
 }
 
 void AddData(const  cAuxAr2007 & anAux,cMes1GCP & aMes)
 {
-   MMVII::AddData(cAuxAr2007("Name",anAux),aMes.mNamePt);
-   MMVII::AddData(cAuxAr2007("Pt",anAux),aMes.mPt);
-   MMVII::AddData(cAuxAr2007("AdditionalInfo",anAux),aMes.mAdditionalInfo);
-   AddOptTabData(anAux,"Sigma2",aMes.mOptSigma2);
+	aMes.AddData(anAux);
 }
 
 void cMes1GCP::ChangeCoord(const cDataMapping<tREAL8,3,3>& aMapping)

@@ -56,6 +56,7 @@ template <class Type> class  cSparseVect  : public cMemCheck
         void AddIV(const tCplIV & aCpl) ; /// "Raw" add, dont check if ind exist
         void CumulIV(const tCplIV & aCpl) ; /// Create only if not exist, else add in place
 
+        double DotProduct(const cDenseVect<Type> &) const; //== scalar product
 	/// Random sparse vector
         static cSparseVect<Type>  RanGenerate(int aNbVar,double aProba,tREAL8 aMinVal= 1e-2,int aMinSize=1);
 
@@ -745,6 +746,10 @@ template <class TypeWeight,class TypeVal=TypeWeight> class cWeightAv
 {
      public :
         cWeightAv();
+        cWeightAv(const std::vector<TypeVal> &);
+	static TypeVal AvgCst(const std::vector<TypeVal> &);
+
+
         void Add(const TypeWeight & aWeight,const TypeVal & aVal);
         TypeVal Average() const;
         TypeVal Average(const TypeVal  & aDef) const;

@@ -152,6 +152,7 @@ class cDataPerspCamIntrCalib
       std::vector<std::string> & VecInfo() ;
 
       const cMapPProj2Im& MapPProj2Im() const { return mMapPProj2Im;}
+      const std::string & Name() const; ///< Accessor
 
    protected :
       std::string                    mName;
@@ -253,6 +254,8 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
             /** Inverse function of Undist ... */
 	    tPtOut Redist(const tPtOut &) const;
 
+	    /// Interpolate on the curve of un-distorted line
+            cPt2dr InterpolOnUDLine(const tSeg2dr&,tREAL8 WeightP1) const;
 
 
     // ==================   Accessors & Modifiers ===================
@@ -323,6 +326,7 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 	    /// Let S be a seg in undist space, extend as much as possible while distorted is include in image
 	    tSeg2dr  ExtenSegUndistIncluded
 		     (
+		          bool  Redist,
 		          const tSeg2dr & aSegInit,
 			  tREAL8 aStepInitRel=0.05,
 			  tREAL8 aStepEnd=1.0,
@@ -456,6 +460,7 @@ void AddData(const  cAuxAr2007 & anAux,cPoseWithUK & aPUK);
 class cSensorCamPC : public cSensorImage
 {
      public :
+
 	 typedef cObjWithUnkowns<tREAL8> * tPtrOUK;
          typedef cIsometry3D<tREAL8>  tPose;   /// transformation Cam to Word
 
@@ -503,6 +508,14 @@ class cSensorCamPC : public cSensorImage
 	 /// Push the current rotation, as equation are fixed using delta-rot
 	 void PushOwnObsColinearity(std::vector<double> &,const cPt3dr &) override;
 
+	 /// return the 3-d plane crossing the 2-d seg, depth is optionnal as theoretically it define the same plane
+         cPlane3D  SegImage2Ground(const tSeg2dr &,tREAL8 aDepth=1.0) const;
+
+
+	 ///  compute the  ground distance between bundle of PIm and aSeg3
+	 tREAL8  GroundDistBundleSeg(const cPt2dr & aPIm,const cSegmentCompiled<tREAL8,3>  & aSeg3) const;
+	 /// compute the pixel distance  between  PIm and aSeg3
+	 tREAL8  PixDistBundleSeg(const cPt2dr & aPIm,const cSegmentCompiled<tREAL8,3>  & aSeg3) const;
 
 	 /// return the pose of aCam2 relatively to Cam1
 	 tPose RelativePose(const cSensorCamPC& aCame) const;

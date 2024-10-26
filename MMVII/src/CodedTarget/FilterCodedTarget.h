@@ -335,6 +335,52 @@ class cCalcSaddle
 std::pair<cIm2D<tREAL4>,cIm2D<tREAL4>> FastComputeSaddleCriterion(cIm2D<tREAL4>  aIm,double aRay);
 
 
+/**  Class for "fine" optimiization of symetry criterion on a image , the input
+ * are : the image "IM", the interpolator "i", a set of point "Pk", an initial center "C",
+ * it trie to adapt "C" so that the equation  "Eq1" is satisfied
+ *
+ *     IM(Pk) = IM(P'k) =  IM(C + C-Pk)  "Eq1"
+ *
+ *    Note that in Pk, we do not store the symetic points P'K, they are computed "on the fly"
+ *
+ *  It offers 2 "strategy" a "fast" one using gradient and another using heuristik
+ *  (which is maintained because it exists and may be safer, but not really sure ...)
+ *
+ *  Inherit from "cDataMapping" to be usable in heuristik optimization by "cOptimByStep".
+ *
+ *  Generally (at least in B/W target) the points will be located on frontier/gradient for 2 reasons :
+ *
+ *      - efficiency in computation (less point)
+ *      - accuraccy, in theoretically homogeneous region, the un-semitry in radiometry is only due to noise
+ */
+
+template <class Type> class cOptimSymetryOnImage : public cDataMapping<tREAL8,2,1>
+{
+        public :
+           typedef  cDataIm2D<Type> tDIm;
+           ///  return symetry  coefficient
+           cPt1dr Value(const cPt2dr & ) const override;
+
+           /// do one iteration of refined with gradient & least square
+           tREAL8 OneIterLeastSqGrad();
+           /// do N iteration of "OneIterLeastSqGrad" until decreasing is small enough or number max of iter reached
+           int IterLeastSqGrad(tREAL8 aGainMin,int aNbMax);
+
+           const cPt2dr & C0() const {return mC0;} ///< Accessor
+
+           /// Constructor memorize parameters and initializd mPtsOpt empty
+           cOptimSymetryOnImage(const cPt2dr & aC0,const tDIm & ,const cDiffInterpolator1D &);
+           /// Add a pts in mPtsOpt
+           void AddPts(const cPt2dr & aPts);
+        protected :
+
+           cPt2dr                       mC0;     ///<   Centers , can be updated
+           const tDIm &                 mDIm;    ///< Image on which optimization os made
+           const cDiffInterpolator1D &  mInterp; ///< Interpolator, used for sub-pixel refinement
+           std::vector<cPt2dr>          mPtsOpt; ///< set of points used for computation
+};
+
+
 };
 #endif // _FILTER_CODED_TARGET_H_
 

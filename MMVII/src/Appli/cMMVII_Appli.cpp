@@ -990,6 +990,7 @@ const std::string & cMMVII_Appli::TaggedNameDefSerial   () const
 const std::string & GlobVectNameDefSerial() {return cMMVII_Appli::CurrentAppli().VectNameDefSerial();}
 const std::string & GlobTaggedNameDefSerial() {return cMMVII_Appli::CurrentAppli().TaggedNameDefSerial();}
 
+const cSpecMMVII_Appli & cMMVII_Appli::Specs() const {return mSpecs;}
 
 
 // const  std::string & cMMVII_Appli::UserName() {return mParamProfile.mUserName;}

@@ -126,6 +126,10 @@ cPerspCamIntrCalib * cPhotogrammetricProject::GetCalibInit
     cMetaDataImage  aMTD = GetMetaData(aNameIm);
     // if already exist return it
     std::string  anIdent = aMTD.InternalCalibGeomIdent();
+
+    // StdOut() << "anIdentanIdent " << anIdent << " for " << aNameIm << "\n";
+
+
     cPerspCamIntrCalib  * & aRes = TheMapRes[anIdent];
     if (aRes!=nullptr) 
        return aRes;
@@ -148,7 +152,7 @@ cPerspCamIntrCalib * cPhotogrammetricProject::GetCalibInit
         // if the file exist  read the pixel from image
         if (ExistFile(aNameIm))
         {
-            cDataFileIm2D aDF2 = cDataFileIm2D::Create(aNameIm,false);
+            cDataFileIm2D aDF2 = cDataFileIm2D::Create(aNameIm,eForceGray::No);
             aNbPix =  aDF2.Sz();
         }
         else

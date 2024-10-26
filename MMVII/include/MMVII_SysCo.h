@@ -5,6 +5,7 @@
 #include "MMVII_DeclareCste.h"
 #include "MMVII_Mappings.h"
 #include "MMVII_AllClassDeclare.h"
+#include "MMVII_Geom3D.h"
 
 struct pj_ctx;
 typedef struct pj_ctx PJ_CONTEXT;
@@ -40,6 +41,7 @@ void AddData(const cAuxAr2007 & anAux, cSysCoData & aSysCoData);
 class cSysCo : public cDataInvertibleMapping<tREAL8,3>
 {
 public :
+    typedef cIsometry3D<tREAL8> tPoseR;
     virtual ~cSysCo();
 
     // do not copy and move because of PJ* (not needed via tPtrSysCo)
@@ -51,9 +53,14 @@ public :
     virtual tPt Value(const tPt &)   const override = 0; //< to GeoC
     virtual tPt Inverse(const tPt &) const override = 0; //< from GeoC
 
-    virtual cRotation3D<tREAL8> getVertical(const tPt &)   const; //< get rotation from SysCo origin to vertical at point
+
+    tPt toGeoG(const tPt & aPtIn) const; //< uses mPJ_GeoC2Geog
+    tPt fromGeoG(const tPt &aPtInGeoG) const; //< uses mPJ_GeoC2Geog
+
+    virtual cRotation3D<tREAL8> getRot2Vertical(const tPt &)   const; //< get rotation from SysCo origin to vertical at point
     virtual tREAL8 getRadiusApprox(const tPt &in) const; //< approximate earth total curvature radius at a point
     virtual tREAL8 getDistHzApprox(const tPt & aPtA, const tPt & aPtB) const; //< approximate horizontal distance (along ellipsoid) from one point to an other
+    virtual const tPoseR *getTranfo2GeoC() const;
 
     static tPtrSysCo MakeSysCo(const std::string &aDef, bool aDebug=false); //< factory from a SysCo definition
     static tPtrSysCo makeRTL(const cPt3dr & anOrigin, const std::string & aSysCoInDef);
@@ -65,6 +72,10 @@ public :
     eSysCo getType() const { return mType; }
     bool isEuclidian() const;
 
+    tREAL8 getEllipsoid_a() const {return semi_axis;}
+    tREAL8 getEllipsoid_e2() const {return e2;}
+    tREAL8 getEllipsoid_b() const {return b;}
+    bool isReady() const {return mIsReady; }
 protected :
     cSysCo(bool aDebug);
     cSysCo(const std::string & def, bool aDebug);
@@ -73,6 +84,12 @@ protected :
     PJ_CONTEXT* mPJContext;
     PJ* mPJ_GeoC2Geog; //< for generic use
     bool mDebug; //< show debug messages
+    bool mIsReady = true; // to be able to compute transfo later
+
+    //GRS80
+    const tREAL8 semi_axis = 6378137;
+    const tREAL8 e2        = 0.00669438;
+    const tREAL8 b = semi_axis * sqrt(1.-e2);
 };
 
 inline bool operator==(const cSysCo& lhs, const cSysCo& rhs) { return lhs.Def() == rhs.Def(); }
@@ -100,6 +117,9 @@ public:
 
     tPtrSysCo  SysOrigin() const { return mSysCoOrigin; };     ///< Accessor
     tPtrSysCo  SysTarget() const { return mSysCoTarget; };   ///< Accessor
+
+    void setOriginSysCo(tPtrSysCo aSysCo);
+    void setTargetsysCo(tPtrSysCo aSysCo);
 
 private:
     tPtrSysCo mSysCoOrigin;

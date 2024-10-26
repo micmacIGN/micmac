@@ -35,10 +35,14 @@ cSetMesGCP ImportMesGCPV1(const std::string & aNameFileMesGCPV1,const std::strin
     {
         cMes1GCP  aMesV2(ToMMVII(aMesV1.Pt()),aMesV1.NamePt(),1.0);
 
-        aMesV2.mOptSigma2 = {0,0,0,0,0,0};
-        (*aMesV2.mOptSigma2)[cMes1GCP::IndXX] =  Square(aMesV1.Incertitude().x);
-        (*aMesV2.mOptSigma2)[cMes1GCP::IndYY] =  Square(aMesV1.Incertitude().y);
-        (*aMesV2.mOptSigma2)[cMes1GCP::IndZZ] =  Square(aMesV1.Incertitude().z);
+	aMesV2.SetSigma2(ToMMVII(aMesV1.Incertitude()));
+	/*
+        aMesV2.Sigma2() = {0,0,0,0,0,0};
+	
+        (aMesV2.Sigma2())[cMes1GCP::IndXX] =  Square(aMesV1.Incertitude().x);
+        (aMesV2.Sigma2())[cMes1GCP::IndYY] =  Square(aMesV1.Incertitude().y);
+        (aMesV2.Sigma2())[cMes1GCP::IndZZ] =  Square(aMesV1.Incertitude().z);
+	*/
 
         aResult.AddMeasure(aMesV2);
     }

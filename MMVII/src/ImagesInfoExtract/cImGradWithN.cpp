@@ -204,6 +204,7 @@ template<class Type> bool  cImGradWithN<Type>::TabIsMaxLocDirGrad(const cPt2di& 
     cPt2di aGrad(this->mDGx->GetV(aPix),this->mDGy->GetV(aPix));
     auto [aPtrVecNeigh,aIndR0] = aTabul.TabNeighMaxLocGrad(aGrad);
 
+    // first check in "small" neighboorhood if it's max lox
     for (int anInd=0 ; anInd<aIndR0 ; anInd++)
     {
         for (auto aSign : {-1,1})
@@ -218,6 +219,7 @@ template<class Type> bool  cImGradWithN<Type>::TabIsMaxLocDirGrad(const cPt2di& 
 	}
     }
 
+    // first check in "big" half neighboorhood (opposed to posible matching seg of the wire) if it's max lox
     for (size_t anInd=aIndR0 ; anInd<aPtrVecNeigh->size() ; anInd++)
     {
         cPt2di aNeigh = aPtrVecNeigh->at(anInd) * aSignGlob;
@@ -229,6 +231,8 @@ template<class Type> bool  cImGradWithN<Type>::TabIsMaxLocDirGrad(const cPt2di& 
            return false;
     }
 
+    // then  check in other big  half neighboorhood , if its max loc, but only with point in same direction
+    // to avoid elimination by anti-paralell seg
     for (size_t anInd=aIndR0 ; anInd<aPtrVecNeigh->size() ; anInd++)
     {
         cPt2di aNeigh = aPtrVecNeigh->at(anInd) * (-aSignGlob);
