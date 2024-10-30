@@ -261,9 +261,6 @@ const std::vector<std::string>& cReadFilesStruct::VNamePt () const { return GetV
 
 const std::vector<std::string>& cReadFilesStruct::VLinesInit () const { return GetVect(mVLinesInit); }
 
-const std::vector<std::vector<std::string>>  & cReadFilesStruct::VStrings () const {return mVStrings;}
-
-
 int cReadFilesStruct::NbRead() const { return mNbLineRead; }
 
 void cReadFilesStruct::SetMemoLinesInit() 
@@ -315,8 +312,7 @@ void cReadFilesStruct::Read()
                 iss.unget();  // as C0 is not  a comment it will have to be parsed (!!=> Ok because there is only one)
 			   
                 std::vector<double> aLNum;
-                std::vector<int>            aLInt;
-                std::vector<std::string>    aLString;
+                std::vector<int>    aLInt;
 	        cPt3dr aXYZ = cPt3dr::Dummy();
 	        cPt3dr aWPK = cPt3dr::Dummy();
 	        cPt2dr aij =  cPt2dr::Dummy();
@@ -331,7 +327,6 @@ void cReadFilesStruct::Read()
 		int  initIm=0;
 		int  initPt=0;
 		int  initI=0;
-		int  initString=0;
 
 
                 for (const auto & aCar : mFormat)
@@ -351,9 +346,9 @@ void cReadFilesStruct::Read()
 			 case 'i' : aij.x() = GetV<tREAL8>(iss);          initij++;  break;
                          case 'j' : aij.y() = GetV<tREAL8>(iss);          initij++;  break;
 
-			 case 'N' : aNamePt = GetV<std::string>(iss);     initPt++; break;
-			 case 'I' : aNameIm = GetV<std::string>(iss);     initIm++; break;
-			 case 'S' : aLString.push_back(GetV<std::string>(iss)); initString++; break;
+			 case 'N' : aNamePt = GetV<std::string>(iss);  initPt++; break;
+			 case 'I' : aNameIm = GetV<std::string>(iss);  initIm++; break;
+			 case 'S' : GetV<std::string>(iss); break;
 
 		         default :
                               MMVII_INTERNAL_ERROR(std::string(("Unhandled car in cReadFilesStruct::Read=") + aCar)+"]");
@@ -367,7 +362,6 @@ void cReadFilesStruct::Read()
 		if (initI) mVInts.push_back(aLInt);
 		if (initIm) mVNameIm.push_back(aNameIm);
 		if (initPt) mVNamePt.push_back(aNamePt);
-		if (initString) mVStrings.push_back(aLString);
             }
 	}
 	aNumL++;
@@ -451,8 +445,8 @@ line += " ";
 
 			 case 'N' : aLNames.push_back(GetV<std::string>(iss)); break;
 			 case 'I' : aLNames.push_back(GetV<std::string>(iss)); break;
-                        case  'A' : aLNames.push_back(GetV<std::string>(iss)); break;
-		        case 'S' : GetV<std::string>(iss); break;
+                        case 'A' : aLNames.push_back(GetV<std::string>(iss)); break;
+			 case 'S' : GetV<std::string>(iss); break;
 
 		         default :
 		         break;

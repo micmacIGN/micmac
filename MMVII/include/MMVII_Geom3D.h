@@ -162,8 +162,6 @@ template <class Type> class cRotation3D
 };
 
 typedef cRotation3D<tREAL8> tRotR; 
-void AddData(const  cAuxAr2007 & anAux,tRotR&);
-
 
 /**  Class for 3D "affine" rotation of vector
 
@@ -207,7 +205,6 @@ template <class Type> class cIsometry3D
        void SetRotation(const cRotation3D<Type> &);
 
        const cRotation3D<Type> & Rot() const {return mRot;}  ///< Accessor
-       cRotation3D<Type> & Rot() {return mRot;}  ///< Accessor
        const tPt &Tr() const {return mTr;}  ///< Accessor
        tPt &Tr() {return mTr;}  ///< Accessor
 

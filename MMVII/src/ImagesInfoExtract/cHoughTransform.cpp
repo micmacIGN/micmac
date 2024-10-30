@@ -37,10 +37,6 @@ cHoughTransform::cHoughTransform
     mAccum     (cPt2di(mNbTeta,mNbRho),nullptr,eModeInitImage::eMIA_Null),
     mDAccum    (mAccum.DIm())
 {
-
-     // Just to avoid a Clang-Warning because "mCalib" is private and not used
-     if (mCalib==nullptr) { delete mCalib; }
-
      //  Tabulate  "cos" and "sin"
      for (int aKTeta=0 ; aKTeta<mNbTeta ; aKTeta++)
      {
