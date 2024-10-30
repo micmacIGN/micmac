@@ -133,6 +133,9 @@ template <class Type> class cRotation3D
        static cRotation3D<Type> RandomRot(const Type & aAmpl);
        /// create rotation from  string like "ijk" "i-kj" ... if sth like "ikj" => error !, so last is redundant but necessary
        static cRotation3D RotFromCanonicalAxes(const std::string&);
+
+       //  0-> arround I, 1->arround J ...
+       static cRotation3D RotArroundKthAxe(int aNum);
        
        //// Compute a normal repair, first vector being colinear to P1, second in the plane P1,P2
       // static cRotation3D<Type> CompleteRON(const tPt & aP0,const tPt & aP1);

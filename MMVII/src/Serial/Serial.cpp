@@ -81,6 +81,40 @@ void AddDataSizeCont(int& aNb,const cAuxAr2007 & anAux)
 
 void cAr2007::AddComment(const std::string &){}
 
+/*
+template <class Type> Tpl_RawAddDataTerm(cAr2007 & anAr,Type & aVal)
+{
+     if (anAr.Input())
+     {
+          MMVII_INTERNAL_ERROR("No Tpl_RawAddDataTerm for Input specif");
+     }
+     else
+     {
+          if (anAr.IsSpecif())
+          {
+               anAr
+          }
+     }
+}
+
+void cAr2007::RawAddDataTerm(int&         anI)   { PushString_RawAddDataTerm(ToStr(anI)) ; }
+*/
+/*
+void cAr2007::RawAddDataTerm(size_t&      aSz)   {PushString_RawAddDataTerm(ToStr(aSz)) ;}
+void cAr2007::RawAddDataTerm(double&      aReal) {PushString_RawAddDataTerm(ToStr(aReal)) ;}
+void cAr2007::RawAddDataTerm(std::string& aStr)  {PushString_RawAddDataTerm(ToStr(aStr)) ;}
+
+void  PushString_RawAddDataTerm(const std::string&)
+{
+}
+*/
+
+/*
+void cAr2007::RawAddDataTerm(size_t &    aSz) ; ///< Heriting class descrine how they serialze int
+void cAr2007::RawAddDataTerm(double &    aReal) ; ///< Heriting class descrine how they serialze double
+void cAr2007::RawAddDataTerm(std::string &    aStr) ; ///< Heriting class descrine how they serialze string
+*/
+
 
 /*
 void AddComment(cAr2007 & anAr, const std::string & aString)

@@ -794,8 +794,46 @@ tREAL8  cMultiScaledInterpolator::DiffWeight(tREAL8  anX) const
 
 // tREAL8  cMultiScaledInterpolator::DiffWeight(tREAL8  anX) const { return 0.0; }
 
+template <class Type> cPt2dr  Centroid(const cDataIm2D<Type> & aDIm)
+{
+   cWeightAv<tREAL8,cPt2dr> aAvg;
+
+   for (const auto & aPt : aDIm)
+      aAvg.Add(aDIm.GetV(aPt),ToR(aPt));
+
+  return aAvg.Average();
+}
+
+template <class Type> void BenchScaleIm(Type aValC,tREAL8 aEps)
+{
+    for (int aK=0 ; aK<50; aK++)
+    {
+          tREAL8 aScale = 2.0 +(aK%4) ;
+
+          cPt2di aSz(round_ni(RandInInterval(30,40)),round_ni(RandInInterval(30,40)));
+          cPt2di aMil = aSz/2;
+
+          cIm2D<Type> aIm(aSz,nullptr,eModeInitImage::eMIA_Null);
+          aIm.DIm().SetV(aMil,aValC);
+
+          cIm2D<Type>  aImSc  = aIm.Scale(aScale);
+          
+
+          tREAL8 aDif = Norm2(Centroid(aIm.DIm())  - Centroid(aImSc.DIm()) * aScale);
+          // StdOut() << " CC  " <<  aDif << "\n";
+          MMVII_INTERNAL_ASSERT_bench(aDif<aEps,"BenchScaleIm");
+    }
+}
+
 void Bench_cMultiScaledInterpolator()
 {
+
+     BenchScaleIm<tREAL4>(1.0,1e-5);
+     BenchScaleIm<tU_INT2>(50000,1e-2);
+     BenchScaleIm<tINT4>(100000000,1e-4);
+     // BenchScaleIm<tREAL8>(1.0);
+
+
      for (int aK=0 ; aK<10 ; aK++)
      {
           tREAL8 aS0 = 0.7 + RandUnif_0_1() * 2;

@@ -394,7 +394,9 @@ template <class Type>  class cIm2D
 
 
        /**  a more "sophisticated" version, adapted to non integer factor and using interpolator adapted to scaling */
-       cIm2D<Type>  Scale(tREAL8 aFX,tREAL8 aFY=-1,tREAL8 aSzSinC=-1,tREAL8 DilateKernel=1.0) const;
+       cIm2D<Type>  Scale(tREAL8 aFX,tREAL8 aFY=-1,tREAL8 aSzSinC=-1,tREAL8 DilateKernel=1.0,
+                           const std::vector<std::string> & aVNameKernI = {"MMVII"}
+                         ) const;
        /// Version allowing to fix the interpolator (called by version above)
        cIm2D<Type>  Scale(const cInterpolator1D &,tREAL8 aFX,tREAL8 aFY=-1) const;
 
