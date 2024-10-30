@@ -444,8 +444,8 @@ cRPCSens::cRPCSens(const std::string& aNameImage) :
     mPixelDomain       (&mDataPixelDomain),
     mBoxGround         (cBox3dr::Empty())  // Empty box because no default init
 {
-    ///  For now assume RPC is WGS84Degree always, see later if we change that
-    SetCoordinateSystem(E2Str(eSysCoGeo::eWGS84Degrees));
+    ///  For now assume RPC is WGS84 Degree always, see later if we change that
+    SetCoordinateSystem(MMVII_SysCoDefLatLong);
 }
 
 void cRPCSens::InitFromFile(const cAnalyseTSOF & anAnalyse)
@@ -539,7 +539,7 @@ void  cRatioPolynXY::InitFromSamples(const std::vector<cPt3dr> & aVIn,const std:
 	    aSys.PublicAddObservation(1.0,aVCoeff,-aValCste);
         }
 	aSys.AddObsFixVar(std::sqrt(aSomC2),IndNumCste,1.0);
-	std::vector<tREAL8> aSol = aSys.Solve().ToStdVect();
+	std::vector<tREAL8> aSol = aSys.PublicSolve().ToStdVect();
 
         if (IsX)
            mX.SetCoeffs(aSol);

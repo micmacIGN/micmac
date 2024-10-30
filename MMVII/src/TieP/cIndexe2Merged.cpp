@@ -42,7 +42,7 @@ void  c1ConfigLogMTP::AddData(const cAuxAr2007 & anAux)
      {
         mIndIm.resize(aNbIm);
      }
-     AddTabData(cAuxAr2007("IndIm", anAux),mIndIm.data(),mIndIm.size());
+     MMVII::AddData(cAuxAr2007("IndIm", anAux),mIndIm);
      MMVII::AddData(cAuxAr2007("IdP0", anAux),mIdP0);
      MMVII::AddData(cAuxAr2007("NbPts", anAux),mNbPts);
 }

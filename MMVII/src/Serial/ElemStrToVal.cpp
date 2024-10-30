@@ -55,7 +55,7 @@ template <class TypeEnum> class cE2Str
          {
             if (WithDef) 
                 return TypeEnum::eNbVals;
-            MMVII_UsersErrror(eTyUEr::eBadEnum,"Str2E for : "+aStr+" ; valids are : "+ StrAllVal() );
+            MMVII_UserError(eTyUEr::eBadEnum,"Str2E for : "+aStr+" ; valids are : "+ StrAllVal() );
          }
          return anIt->second;
      }
@@ -84,7 +84,7 @@ template <class TypeEnum> class cE2Str
           }
           if ((!AcceptEmpy) && aRes.empty())
           {
-             MMVII_UsersErrror
+             MMVII_UserError
              (
                 eTyUEr::eEmptyPattern,
                 "No value for enum, allowed are :"+StrAllVall<TypeEnum>()
@@ -162,23 +162,23 @@ template<> cE2Str<eProjPC>::tMapE2Str cE2Str<eProjPC>::mE2S
                {eProjPC::eEquiRect,"eEquiRect"}
            };
 
-template<> cE2Str<eSysCoGeo>::tMapE2Str cE2Str<eSysCoGeo>::mE2S
+
+template<> cE2Str<eSysCo>::tMapE2Str cE2Str<eSysCo>::mE2S
            {
-               {eSysCoGeo::eLambert93,"Lambert93"},
-               {eSysCoGeo::eRTL,"RTL"},
-               {eSysCoGeo::eGeoC,"GeoC"},
-               {eSysCoGeo::eWGS84Degrees,"WGS84Degrees"},
-               {eSysCoGeo::eWGS84Rads,"WGS84Rads"},
-               {eSysCoGeo::eWGS84Meters,"WGS84Meters"},
-               {eSysCoGeo::eLocalSys,"Local"}
+               {eSysCo::eProj,"Proj"},
+               {eSysCo::eLEuc,"LEuc"},
+               {eSysCo::eRTL,"RTL"},
+               {eSysCo::eGeoC,"GeoC"},
+               {eSysCo::eLocalSys,"Local"}
            };
+
 
 
 template<> cE2Str<eTopoObsSetType>::tMapE2Str cE2Str<eTopoObsSetType>::mE2S
            {
+                {eTopoObsSetType::eSimple,"Simple"},
                 {eTopoObsSetType::eStation,"Station"},
                 //{eTopoObsSetType::eDistParam,"DistParam"},
-                //{eTopoObsSetType::eSubFrame,"SubFrame"},
            };
 
 template<> cE2Str<eTopoObsType>::tMapE2Str cE2Str<eTopoObsType>::mE2S
@@ -189,8 +189,16 @@ template<> cE2Str<eTopoObsType>::tMapE2Str cE2Str<eTopoObsType>::mE2S
                 {eTopoObsType::eDX,"DX"},
                 {eTopoObsType::eDY,"DY"},
                 {eTopoObsType::eDZ,"DZ"},
-                //{eTopoObsType::eSubFrame,"SubFrame"},
+                {eTopoObsType::eDH,"DH"},
                 //{eTopoObsType::eDistParam,"DistParam"},
+           };
+
+template<> cE2Str<eTopoStOriStat>::tMapE2Str cE2Str<eTopoStOriStat>::mE2S
+           {
+                {eTopoStOriStat::eTopoStOriContinue,"#NEW"},
+                {eTopoStOriStat::eTopoStOriFixed,"#FIX"},
+                {eTopoStOriStat::eTopoStOriVert,"#VERT"},
+                {eTopoStOriStat::eTopoStOriBasc,"#BASC"},
            };
 
 
@@ -225,6 +233,9 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::TieP,"TieP"},
                 {eTA2007::MulTieP,"MulTieP"},
                 {eTA2007::RigBlock,"RigBlock"},
+                {eTA2007::Clino,"Clino"},
+                {eTA2007::MeasureClino,"MeasureClino"},
+                {eTA2007::Topo,"Topo"},
                 {eTA2007::SysCo,"SysCo"},
                 {eTA2007::Input,"In"},
                 {eTA2007::Output,"Out"},
@@ -254,6 +265,7 @@ template<> cE2Str<eApF>::tMapE2Str cE2Str<eApF>::mE2S
                 {eApF::SysCo,"SysCo"},
                 {eApF::Match,"Match"},
                 {eApF::GCP,"GCP"},
+                {eApF::Lines,"Lines"},
                 {eApF::TieP,"TieP"},
                 {eApF::TiePLearn,"TiePLearn"},
                 {eApF::Cloud,"Cloud"},
@@ -270,11 +282,13 @@ template<> cE2Str<eApDT>::tMapE2Str cE2Str<eApDT>::mE2S
                 {eApDT::PCar,"PCar"},
                 {eApDT::TieP,"TieP"},
                 {eApDT::GCP,"GCP"},
+                {eApDT::Lines,"Lines"},
                 {eApDT::Image,"Image"},
                 {eApDT::Orient,"Orient"},
                 {eApDT::SysCo,"SysCo"},
                 {eApDT::Radiom,"Radiom"},
                 {eApDT::Ply,"Ply"},
+                {eApDT::Topo,"Topo"},
                 {eApDT::None,"None"},
                 {eApDT::ToDef,"ToDef"},
                 {eApDT::Console,"Console"},
@@ -306,6 +320,7 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eCreateDir,"MkDir"},
                 {eTyUEr::eRemoveFile,"RmFile"},
                 {eTyUEr::eEmptyPattern,"EmptyPattern"},
+                {eTyUEr::eBadPattern,"BadPattern"},
                 {eTyUEr::eBadXmlTopTag,"XmlTopTag"},
                 {eTyUEr::eParseBadClose,"ParseBadClose"},
                 {eTyUEr::eJSonBadPunct,"JSonBadPunct"},
@@ -337,6 +352,9 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eNoFocaleEqui35,"NoFocaleEqui35"},
                 {eTyUEr::eNoNumberPixel,"NoNumberPixel"},
                 {eTyUEr::eNoCameraName,"NoCameraName"},
+                {eTyUEr::eMultipleTargetInOneImage,"MultipleTargetInOneImage,"},
+                {eTyUEr::eSysCo,"SysCo"},
+                {eTyUEr::eConstraintsError,"ConstraintsError"},
                 {eTyUEr::eUnClassedError,"UnClassedError"}
            };
 
@@ -580,9 +598,10 @@ void BenchEnum(cParamExeBench & aParam)
     if (! aParam.NewBench("Enum")) return;
 
     TplBenchEnum<eProjPC>();
-    TplBenchEnum<eSysCoGeo>();
+    TplBenchEnum<eSysCo>();
     TplBenchEnum<eTopoObsSetType>();
     TplBenchEnum<eTopoObsType>();
+    TplBenchEnum<eTopoStOriStat>();
     TplBenchEnum<eOpAff>();
     TplBenchEnum<eTySC>();
     TplBenchEnum<eTA2007>();
@@ -833,7 +852,7 @@ template <class Type> void  GlobCheckSize(const std::vector<Type> & aVal,const s
     cPt2di aSz = cStrIO<cPt2di>::FromStr(anArg);
     if ((int(aVal.size()) < aSz.x()) || ((int(aVal.size()) > aSz.y()))) 
     {
-       MMVII_UsersErrror(eTyUEr::eBadSize4Vect,"IntervalOk=" + anArg + " Got=" + ToStr(int(aVal.size())));
+       MMVII_UserError(eTyUEr::eBadSize4Vect,"IntervalOk=" + anArg + " Got=" + ToStr(int(aVal.size())));
     }
 }
 
@@ -902,6 +921,7 @@ MACRO_INSTANTIATE_ARG2007(std::vector<std::string>)
 MACRO_INSTANTIATE_ARG2007(std::vector<std::vector<std::string>>)
 MACRO_INSTANTIATE_ARG2007(std::vector<int>)
 MACRO_INSTANTIATE_ARG2007(std::vector<double>)
+MACRO_INSTANTIATE_ARG2007(std::vector<cPt2di>)
 MACRO_INSTANTIATE_ARG2007(cPt2di)
 MACRO_INSTANTIATE_ARG2007(cPt2dr)
 MACRO_INSTANTIATE_ARG2007(cPt3di)
@@ -946,10 +966,11 @@ template <class Type>  std::string Vect2Str(const std::vector<Type>  & aV)
 
 template <class Type>  std::vector<Type> Str2Vec(const std::string & aStrGlob)
 {
+// StdOut() <<  "aStrGlobaStrGlobaStrGlob =" << aStrGlob << "\n";
    std::vector<Type> aRes;
    const char * aC=aStrGlob.c_str();
    if (*aC!='[')
-       MMVII_UsersErrror(eTyUEr::eParseError,"expected [ at beging of vect");
+       MMVII_UserError(eTyUEr::eParseError,"expected [ at beging of vect");
    aC++;
    int aLevel = 1;  // level in the parenthesis language, if Lev>1 we dont consider [,] as poncutation
    std::string aStrV;
@@ -957,7 +978,7 @@ template <class Type>  std::vector<Type> Str2Vec(const std::string & aStrGlob)
    {
        if (*aC==0)
        {
-          MMVII_UsersErrror(eTyUEr::eParseError,"unexpected end of string while parsing " + aStrGlob);
+          MMVII_UserError(eTyUEr::eParseError,"unexpected end of string while parsing " + aStrGlob);
        }
        // only level 1 "," are considered as separators
        else if ((*aC==',') && (aLevel==1))
@@ -999,7 +1020,7 @@ template <class Type>  std::vector<Type> Str2Vec(const std::string & aStrGlob)
    }
 
    if (aLevel!=0)
-      MMVII_UsersErrror(eTyUEr::eParseError,"unexpected end of string , bad match in []");
+      MMVII_UserError(eTyUEr::eParseError,"unexpected end of string , bad match in []");
 
    return  aRes;
 }
@@ -1051,6 +1072,7 @@ MACRO_INSTANTITATE_STRIO_VECT_TYPE(std::vector<std::string>)
 MACRO_INSTANTITATE_STRIO_VECT_TYPE(std::string)
 MACRO_INSTANTITATE_STRIO_VECT_TYPE(int)
 MACRO_INSTANTITATE_STRIO_VECT_TYPE(double)
+MACRO_INSTANTITATE_STRIO_VECT_TYPE(cPt2di)
 
 /* ==================================== */
 /*                                      */
@@ -1077,7 +1099,7 @@ template <>  cPtxd<TYPE,DIM> cStrIO<cPtxd<TYPE,DIM> >::FromStr(const std::string
 {\
     std::vector<TYPE> aV = cStrIO<std::vector<TYPE>>::FromStr(aStr);\
     if (aV.size()!=DIM)\
-       MMVII_UsersErrror(eTyUEr::eBadDimForPt,"Expect="+ MMVII::ToStr(DIM) + " Got=" + MMVII::ToStr(int(aV.size())) );\
+       MMVII_UserError(eTyUEr::eBadDimForPt,"Expect="+ MMVII::ToStr(DIM) + " Got=" + MMVII::ToStr(int(aV.size())) );\
     cPtxd<TYPE,DIM> aRes;\
     for (int aK=0 ; aK<DIM ; aK++)\
         aRes[aK] = aV[aK];\
@@ -1087,7 +1109,7 @@ template <>  cTplBox<TYPE,DIM> cStrIO<cTplBox<TYPE,DIM> >::FromStr(const std::st
 {\
     std::vector<TYPE> aV = cStrIO<std::vector<TYPE>>::FromStr(aStr);\
     if (aV.size()!=2*DIM)\
-       MMVII_UsersErrror(eTyUEr::eBadDimForBox,"Expect="+ MMVII::ToStr(2*DIM) + " Got=" + MMVII::ToStr(int(aV.size())) );\
+       MMVII_UserError(eTyUEr::eBadDimForBox,"Expect="+ MMVII::ToStr(2*DIM) + " Got=" + MMVII::ToStr(int(aV.size())) );\
     cPtxd<TYPE,DIM> aP0,aP1;\
     for (int aK=0 ; aK<DIM ; aK++){\
         aP0[aK] = aV[aK];\
@@ -1173,9 +1195,10 @@ MACRO_INSTANTITATE_STRIO_ENUM(eTyUEr,"TyUEr")
 MACRO_INSTANTITATE_STRIO_ENUM(eTyInvRad,"TyInvRad")
 MACRO_INSTANTITATE_STRIO_ENUM(eTyPyrTieP,"TyPyrTieP")
 MACRO_INSTANTITATE_STRIO_ENUM(eProjPC,"ProjPC")
-MACRO_INSTANTITATE_STRIO_ENUM(eSysCoGeo,"SysCoGeo")
+MACRO_INSTANTITATE_STRIO_ENUM(eSysCo,"SysCo")
 MACRO_INSTANTITATE_STRIO_ENUM(eTopoObsSetType,"TopoObsSetType")
 MACRO_INSTANTITATE_STRIO_ENUM(eTopoObsType,"TopoObsType")
+MACRO_INSTANTITATE_STRIO_ENUM(eTopoStOriStat,"TopoStOriStat")
 MACRO_INSTANTITATE_STRIO_ENUM(eOpAff,"OpAff")
 MACRO_INSTANTITATE_STRIO_ENUM(eModeEpipMatch,"ModeEpiMatch")
 MACRO_INSTANTITATE_STRIO_ENUM(eModePaddingEpip,"ModePadEpip")
@@ -1212,7 +1235,7 @@ template <>  bool cStrIO<bool>::FromStr(const std::string & aStr)
     if ((aStr=="1") || UCaseEqual(aStr,"true")) return true;
     if ((aStr=="0") || UCaseEqual(aStr,"false")) return false;
 
-    MMVII_UsersErrror(eTyUEr::eBadBool,"Bad value for boolean :["+aStr+"]");
+    MMVII_UserError(eTyUEr::eBadBool,"Bad value for boolean :["+aStr+"]");
 
     return false;
 }

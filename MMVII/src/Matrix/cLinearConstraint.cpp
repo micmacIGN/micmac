@@ -184,11 +184,14 @@ template <class Type> void cDSVec<Type>::Reset()
 
 template <class Type> void cDSVec<Type>::TestEmpty()
 {
+// put in #if else get warning unused error 
+#if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )
      for (const auto & aV : mVec.ToStdVect()) 
         MMVII_INTERNAL_ASSERT_tiny(aV==0.0,"Vec Test Empty");
      MMVII_INTERNAL_ASSERT_tiny(mSet.mVIndOcc.empty(),"Occ Test Empty");
      for (const auto & aV : mSet.mOccupied)
         MMVII_INTERNAL_ASSERT_tiny(aV==false,"Vec Test Empty");
+#endif
 }
 
 template <class Type> void cDSVec<Type>::Show()
@@ -565,10 +568,10 @@ void BenchFrozenAndShare()
 {
     cSetInterUK_MultipeObj<double> aSetIntervMultObj;
 
-    cPt3dr_UK pA( cPt3dr(100., 100.,100.) );
-    cPt3dr_UK pB( cPt3dr(110., 100.,100.) );
-    cPt3dr_UK pC( cPt3dr(110., 100.,100.) );
-    cPt3dr_UK rOmega( cPt3dr(0., 0.,0.) );
+    cPt3dr_UK pA( cPt3dr(100., 100.,100.),"A" );
+    cPt3dr_UK pB( cPt3dr(110., 100.,100.),"B" );
+    cPt3dr_UK pC( cPt3dr(110., 100.,100.),"C" );
+    cPt3dr_UK rOmega( cPt3dr(0., 0.,0.),"W" );
 
     bool verbose = false;
 

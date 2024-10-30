@@ -179,9 +179,17 @@ void cMMVII_Appli::AddObj2DelAtEnd(cObj2DelAtEnd * aPtrO)
      mVectObj2DelAtEnd.insert(aPtrO);
 }
 
+void cMMVII_Appli::ToDoBeforeDestruction()
+{
+   // Merge report call virtual methode :q
+ 
+   DoMergeReport();
+
+}
+
 cMMVII_Appli::~cMMVII_Appli()
 {
-   DoMergeReport();
+   // Maybe part, or all, the remaining can/should be done in ToDoBeforeDestruction ...
    if (mMainAppliInsideP)
    {
         for (auto  aPtrO : mVectObj2DelAtEnd)
@@ -266,6 +274,7 @@ cMMVII_Appli::cMMVII_Appli
    mVMainSets     (NbMaxMainSets,tNameSet(eTySC::NonInit)),
    mResulMultiS   (EXIT_FAILURE),
    mRMSWasUsed    (false),
+   mNumTagObjCr   (-1),
    mNumOutPut     (0),
    mOutPutV1      (false),
    mOutPutV2      (false),
@@ -452,13 +461,18 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
       if (HasMain0)
       {
         mArgFac <<  AOpt2007(mIntervFilterMS[0],GOP_Int0,"File Filter Interval, Main Set"  ,{eTA2007::Shared,{eTA2007::FFI,"0"}});
-        mArgFac <<  AOpt2007(mTransfoFFI[0],"Pat"+GOP_Int0,"Pattern Transfo File Filter Interval, Main Set"  ,{eTA2007::Shared});
+        mArgFac <<  AOpt2007(mTransfoFFI[0],"Pat"+GOP_Int0,"Pattern Transfo File Filter Interval, Main Set"  ,{eTA2007::Shared,{eTA2007::ISizeV,"[2,2]"}});
       }
       if (HasMain1)
       {
         mArgFac <<  AOpt2007(mIntervFilterMS[1],GOP_Int1,"File Filter Interval, Second Set",{eTA2007::Shared,{eTA2007::FFI,"1"}});
-        mArgFac <<  AOpt2007(mTransfoFFI[1],"Pat"+GOP_Int1,"Pattern Transfo File Filter Interval, Main Set"  ,{eTA2007::Shared});
+        mArgFac <<  AOpt2007(mTransfoFFI[1],"Pat"+GOP_Int1,"Pattern Transfo File Filter Interval, Main Set"  ,{eTA2007::Shared,{eTA2007::ISizeV,"[2,2]"}});
       }
+  }
+  if  (The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_micro)
+  {
+      mArgFac
+         <<  AOpt2007(mNumTagObjCr,"NTOC4ML","Num of tagged object at creation for memory leak",{eTA2007::Global});
   }
   mArgFac
       <<  AOpt2007(mNumOutPut,GOP_NumVO,"Num version for output format (1 or 2)",{eTA2007::Global,{eTA2007::Range,"[1,2]"}})
@@ -603,7 +617,7 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
          GenerateHelp();
          return;
       }
-      MMVII_UsersErrror
+      MMVII_UserError
       (
           eTyUEr::eInsufNbParam,
           "Not enough Arg, expecting " + ToS(aNbObl)  + " , Got only " +  ToS(aNbArgGot)
@@ -675,6 +689,11 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
        mDirProjGMA = mDirProject;
    }
 
+   if (IsInit(&mNumTagObjCr))
+   {
+       cMemCountable::SetTaggedObjectAtCreation(mNumTagObjCr);
+   }
+
   // Manange OutPut redirection
   if (IsInit(&mParamStdOut))
   {
@@ -744,7 +763,7 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
       {
          if (!IsFileGivenTag(true,aVValues[aK],aNameTag))
 	 {
-	       MMVII_UsersErrror(eTyUEr::eBadXmlTopTag,"[" + aVValues[aK] + "] is not an existing xml file of main tag <" + aNameTag + ">");
+	       MMVII_UserError(eTyUEr::eBadXmlTopTag,"[" + aVValues[aK] + "] is not an existing xml file of main tag <" + aNameTag + ">");
 			      // IntervalOk=" + anArg + " Got=" + ToStr(int(aVal.size())));
 	 }
 	 //        MMVII_UsersErrror(eTyUEr::eBadSize4Vect,"IntervalOk=" + anArg + " Got=" + ToStr(int(aVal.size())));
@@ -781,8 +800,10 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
                const std::string & aNameInterval = mIntervFilterMS[aNum];
                if (IsInit(&aNameInterval))
                {
+		       // JOE
 		   cPatternTransfo aPat(mTransfoFFI[aNum]);
                    mVMainSets.at(aNum).Filter(Str2Interv<std::string>(aNameInterval),aPat);
+                   // mVMainSets.at(aNum).Filter(Str2Interv<std::string>(aNameInterval));
                }
             }
             // Test non empty
@@ -795,7 +816,7 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
 		}
 		else
                 {
-                   MMVII_UsersErrror(eTyUEr::eEmptyPattern,"Specified set of files was empty");
+                   MMVII_UserError(eTyUEr::eEmptyPattern,"Specified set of files was empty");
                 }
             }
             // StdOut() << "cAaaaPPlii  " <<  __LINE__ << ToVect(mVMainSets.at(aNum)) << "\n";
@@ -812,7 +833,7 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
       // Why should user init interval if there no set ?
       if (IsInit(&mIntervFilterMS[aNum]) && (!  mVMainSets.at(aNum).IsInit()))
       {
-         MMVII_UsersErrror(eTyUEr::eIntervWithoutSet,"Interval without filter for num:"+ToStr(aNum));
+         MMVII_UserError(eTyUEr::eIntervWithoutSet,"Interval without filter for num:"+ToStr(aNum));
       }
       if (aNum>0)
       {
@@ -969,6 +990,7 @@ const std::string & cMMVII_Appli::TaggedNameDefSerial   () const
 const std::string & GlobVectNameDefSerial() {return cMMVII_Appli::CurrentAppli().VectNameDefSerial();}
 const std::string & GlobTaggedNameDefSerial() {return cMMVII_Appli::CurrentAppli().TaggedNameDefSerial();}
 
+const cSpecMMVII_Appli & cMMVII_Appli::Specs() const {return mSpecs;}
 
 
 // const  std::string & cMMVII_Appli::UserName() {return mParamProfile.mUserName;}

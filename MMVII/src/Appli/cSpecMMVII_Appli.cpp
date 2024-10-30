@@ -36,6 +36,7 @@ cSpecMMVII_Appli::cSpecMMVII_Appli
 
 int cSpecMMVII_Appli::AllocExecuteDestruct(const std::vector<std::string> & aVArgs) const
 {
+
    // A conserver, on le mettra dans les sauvegarde
 #if 0
    {
@@ -84,6 +85,7 @@ int cSpecMMVII_Appli::AllocExecuteDestruct(const std::vector<std::string> & aVAr
         {
             CloseRandom();
         }
+	anAppli->ToDoBeforeDestruction();
     }
     cMemManager::CheckRestoration(aMemoState);
     MMVII_INTERNAL_ASSERT_always(cMemCountable::NbObjLive()==aNbObjLive,"Mem check obj not killed");
@@ -168,8 +170,10 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_TestEigen);
         TheVecAll.push_back(&TheSpec_ComputeParamIndexBinaire);
         TheVecAll.push_back(&TheSpecTestRecall);
-        TheVecAll.push_back(&TheSpecScaleImage);
+        TheVecAll.push_back(&TheSpecScaleImage_Basic);
+        TheVecAll.push_back(&TheSpecScaleImage_Std);
         TheVecAll.push_back(&TheSpec_StackIm);
+        TheVecAll.push_back(&TheSpec_StackDep);
         TheVecAll.push_back(&TheSpecCalcDiscIm);
         TheVecAll.push_back(&TheSpecCalcDescPCar);
         TheVecAll.push_back(&TheSpecMatchTieP);
@@ -178,7 +182,6 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecEpipGenDenseMatch);
         TheVecAll.push_back(&TheSpecEpipDenseMatchEval);
         TheVecAll.push_back(&TheSpecGenSymbDer);
-        TheVecAll.push_back(&TheSpecKapture);
         TheVecAll.push_back(&TheSpecFormatTDEDM_WT);
         TheVecAll.push_back(&TheSpecFormatTDEDM_MDLB);
         TheVecAll.push_back(&TheSpecExtractLearnVecDM);
@@ -190,6 +193,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecDMEvalRef);
         TheVecAll.push_back(&TheSpecGenCodedTarget);
         TheVecAll.push_back(&TheSpecExtractCircTarget);
+        TheVecAll.push_back(&TheSpecExtractCheckBoardTarget);
         TheVecAll.push_back(&TheSpecExtractCodedTarget);
         TheVecAll.push_back(&TheSpecGenerateEncoding);
         TheVecAll.push_back(&TheSpecSimulCodedTarget);
@@ -204,6 +208,8 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_OriCalibratedSpaceResection);
         TheVecAll.push_back(&TheSpec_OriCheckGCPDist);
         TheVecAll.push_back(&TheSpec_OriBundlAdj);
+        TheVecAll.push_back(&TheSpec_TopoAdj);
+
         TheVecAll.push_back(&TheSpec_OriRel2Im);
         TheVecAll.push_back(&TheSpecMeshCheck);
         TheVecAll.push_back(&TheSpecProMeshImage);
@@ -213,6 +219,8 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
 
         TheVecAll.push_back(&TheSpecDistCorrectCirgTarget);
         TheVecAll.push_back(&TheSpec_ImportGCP);
+        TheVecAll.push_back(&TheSpec_ImportLines);
+        TheVecAll.push_back(&TheSpec_ImportOBS);
         TheVecAll.push_back(&TheSpec_ImportORGI);
         TheVecAll.push_back(&TheSpec_ImportM32);
         //TheVecAll.push_back(&TheSpecTopoComp);
@@ -221,8 +229,11 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_SpecSerial);
         TheVecAll.push_back(&TheSpec_PoseCmpReport);
         TheVecAll.push_back(&TheSpec_CGPReport);
+        TheVecAll.push_back(&TheSpec_MesImReport);
         TheVecAll.push_back(&TheSpec_TiePReport);
+        TheVecAll.push_back(&TheSpec_SegImReport);
         TheVecAll.push_back(&TheSpec_BlockCamInit);  // RIGIDBLOC    RB_0_0
+        TheVecAll.push_back(&TheSpec_Wire3DInit);
         TheVecAll.push_back(&TheSpec_ClinoInit);
         TheVecAll.push_back(&TheSpecRename);
         TheVecAll.push_back(&TheSpec_V2ImportCalib);
@@ -230,22 +241,28 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecDicoRename);
         TheVecAll.push_back(&TheSpec_SimulDispl);
         TheVecAll.push_back(&TheSpec_CreateRTL);
+        TheVecAll.push_back(&TheSpec_TestProj);
         TheVecAll.push_back(&TheSpec_ChSysCo);
         TheVecAll.push_back(&TheSpec_CreateCalib);
         TheVecAll.push_back(&TheSpec_ImportTiePMul);
         TheVecAll.push_back(&TheSpec_ImportMesImGCP);
+        TheVecAll.push_back(&TheSpec_ImportClino);
         TheVecAll.push_back(&TheSpecImportExtSens);
         TheVecAll.push_back(&TheSpecTestSensor);
         TheVecAll.push_back(&TheSpecParametrizeSensor);
         TheVecAll.push_back(&TheSpec_ChSysCoGCP);
         TheVecAll.push_back(&TheSpec_TutoSerial);
         TheVecAll.push_back(&TheSpec_TutoFormalDeriv);
+        TheVecAll.push_back(&TheSpec_ExportUndistMesIm);
         TheVecAll.push_back(&TheSpecAppliExtractLine);
         TheVecAll.push_back(&TheSpec_ImportTriplet);
         TheVecAll.push_back(&TheSpec_SfmInitFromGraph);
         TheVecAll.push_back(&TheSpec_SfmInitWithPartition);
 
+        TheVecAll.push_back(&TheSpec_CERN_ImportClino);
+        TheVecAll.push_back(&TheSpec_MMV2_MesIm_2_MMV1);
 
+        TheVecAll.push_back(&TheSpec_MergeMesImGCP);
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }
    

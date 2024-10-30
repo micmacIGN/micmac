@@ -1,15 +1,15 @@
-
 #include "MMVII_Tpl_Images.h"
 #include "MMVII_Linear2DFiltering.h"
 #include "MMVII_DeclareCste.h"
+#include "MMVII_Geom2D.h"
 
 namespace MMVII
 {
 
 cPt2di DifInSz(const std::string & aN1,const std::string & aN2)
 {
-    cDataFileIm2D aD1 = cDataFileIm2D::Create(aN1,false);
-    cDataFileIm2D aD2 = cDataFileIm2D::Create(aN2,false);
+    cDataFileIm2D aD1 = cDataFileIm2D::Create(aN1,eForceGray::No);
+    cDataFileIm2D aD2 = cDataFileIm2D::Create(aN2,eForceGray::No);
 
     return aD1.Sz() - aD2.Sz();
 }
@@ -126,14 +126,19 @@ template <class Type>  void cDataIm2D<Type>::ClipToFile(const std::string & aNam
 
 
 
-
-
-
 template <class Type>  void cDataIm2D<Type>::ToFile(const std::string & aName,const tIm &aIG,const tIm &aIB) const
 {
     cDataFileIm2D aDFI = cDataFileIm2D::Create(aName,tElemNumTrait<Type>::TyNum(),Sz(),3);
     Write(aDFI,aIG,aIB,P0());
 }
+
+template <class Type>  std::pair<tREAL8,cPt2dr> cDataIm2D<Type>::GetPairGradAndVBL(const cPt2dr & aP)  const
+{
+	cPt3dr aGV = GetGradAndVBL(aP);
+
+	return std::pair<tREAL8,cPt2dr>(aGV.z(),MMVII::Proj(aGV));
+}
+
 
 
 /* ========================== */
@@ -185,7 +190,7 @@ template <class Type>  cIm2D<Type>::cIm2D(const cBox2di & aBox,const cDataFileIm
 
 template <class Type>  cIm2D<Type> cIm2D<Type>::FromFile(const std::string & aName)
 {
-   cDataFileIm2D  aFileIm = cDataFileIm2D::Create(aName,true);
+   cDataFileIm2D  aFileIm = cDataFileIm2D::Create(aName,eForceGray::Yes);
    cIm2D<Type> aRes(aFileIm.Sz());
    aRes.Read(aFileIm,cPt2di(0,0));
 
@@ -194,7 +199,7 @@ template <class Type>  cIm2D<Type> cIm2D<Type>::FromFile(const std::string & aNa
 
 template <class Type>  cIm2D<Type> cIm2D<Type>::FromFile(const std::string & aName,const cBox2di & aBox)
 {
-   cDataFileIm2D  aFileIm = cDataFileIm2D::Create(aName,true);
+   cDataFileIm2D  aFileIm = cDataFileIm2D::Create(aName,eForceGray::Yes);
    cIm2D<Type> aRes(aBox.Sz());
    aRes.Read(aFileIm,aBox.P0());
 
@@ -344,7 +349,7 @@ static std::string NameIndBoxRecal="INTERNAL_IndexBoxRecall";
 template<class TypeEl>  cAppliParseBoxIm<TypeEl>::cAppliParseBoxIm
                         (
 			      cMMVII_Appli & anAppli,
-                              bool IsGray,
+                              eForceGray IsGray,
 			      const cPt2di & aSzTiles,
 			      const cPt2di & aSzOverlap,
                               bool  doTilesInParal

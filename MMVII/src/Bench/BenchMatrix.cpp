@@ -334,10 +334,10 @@ template <class Type>  void TplBenchDenseMatr(int aSzX,int aSzY)
            MMVII_INTERNAL_ASSERT_bench(aRSEV.EigenVectors().Unitarity() <1e-5,"Bench unitarity EigenValue");
                // Test Eigen value are given in growing order
            const cDenseVect<Type>   & aEVals = aRSEV.EigenValues();
-           //  check decreasing order
+           //  check growing order
            for (int aK=1 ; aK<aNb ; aK++)
            {
-               MMVII_INTERNAL_ASSERT_bench(aEVals(aK-1)<=aEVals(aK),"Bench decreasing order EigenValue");
+               MMVII_INTERNAL_ASSERT_bench(aEVals(aK-1)<=aEVals(aK),"Bench growing order EigenValue");
            }
            cDenseMatrix<Type> aCheckEV =  aRSEV.OriMatr();
            MMVII_INTERNAL_ASSERT_bench(aCheckEV.DIm().L2Dist(aSim.DIm())<1e-5,"Bench unitarity EigenValue");
@@ -528,7 +528,7 @@ template <class Type> static Type Residual
     Type aRes = 0.0;
     for (int aK=0 ; aK<int(aLVec.size()) ; aK++)
     {
-        aRes += aSys.Residual(aSol,aLWeight[aK],aLVec[aK],aLVal[aK]);
+        aRes += aSys.ResidualOf1Eq(aSol,aLWeight[aK],aLVec[aK],aLVal[aK]);
     }
     return aRes;
 }
@@ -541,7 +541,7 @@ template <class Type> void BenchSysSur(cLinearOverCstrSys<Type>& aSys,bool Exact
    for (int aNbIter=0 ; aNbIter<2; aNbIter++)
    {
       cLeasSqtAA<Type>  aSpSys(aNbVar);
-      aSys.Reset();
+      aSys.PublicReset();
       std::vector<Type>               aLWeight;
       std::vector<cDenseVect<Type> >  aLVec;
       std::vector<Type>               aLVal;
@@ -572,8 +572,8 @@ template <class Type> void BenchSysSur(cLinearOverCstrSys<Type>& aSys,bool Exact
           aSys.PublicAddObservation(aWeight,aDV,aVal);
           aSpSys.PublicAddObservation(aWeight,aSV,aVal);
       }
-      cDenseVect<Type> aSol = aSys.Solve();
-      cDenseVect<Type> aSpSol = aSpSys.Solve();
+      cDenseVect<Type> aSol = aSys.PublicSolve();
+      cDenseVect<Type> aSpSol = aSpSys.PublicSolve();
       double aDist= aSol.DIm().L2Dist(aSpSol.DIm());
       MMVII_INTERNAL_ASSERT_bench(aDist<1e-5,"Bench Op Im");
 
@@ -641,12 +641,12 @@ template <class Type> void BenchObsFixVar
    aSys2.AddObsFixVar(1.0,aSV2B);  // fix even var in S2
    aSys3.AddObsFixVar(1.0,aDV3);  // fix all var in S3
 
-   cDenseVect<Type>  aV1 = aSys1.Solve();
+   cDenseVect<Type>  aV1 = aSys1.PublicSolve();
    // cDenseVect<Type>  aV2 = aSys2.Solve().DIm();
    // cDenseVect<Type>  aV3 = aSys3.Solve().DIm();
    double aD1 = aDV3.DIm().L2Dist(aV1.DIm());
-   double aD2 = aDV3.DIm().L2Dist(aSys2.Solve().DIm());
-   double aD3 = aDV3.DIm().L2Dist(aSys3.Solve().DIm());
+   double aD2 = aDV3.DIm().L2Dist(aSys2.PublicSolve().DIm());
+   double aD3 = aDV3.DIm().L2Dist(aSys3.PublicSolve().DIm());
 
    MMVII_INTERNAL_ASSERT_bench((aD1+aD2+aD3)<1e-5,"Bench Add Obs Fix Var");
 }
@@ -751,7 +751,7 @@ template <class Type,class TypeSys> void TplBenchLsq()
                      else
                          PushErrorEigenErrorLevel(eLevelCheck::NoCheck); // else just ignore
                  }
-                  aVSol.push_back(aSys->Solve());
+                  aVSol.push_back(aSys->PublicSolve());
                   if ((aKSys==1)&& (!TrackBugEigenSucc)) // restore eventually
                      PopErrorEigenErrorLevel();
 	          Type aDist = aVSol[0].L2Dist(aVSol.back()) / tNumTrait<Type>::Accuracy() ;
@@ -772,7 +772,7 @@ template <class Type,class TypeSys> void TplBenchLsq()
                        
 	              for (int aKS2=0 ; aKS2<int(aVSys.size()) ;  aKS2++)
                       {
-                          cDenseVect<Type> aRes = atAA * aVSys[aKS2]->Solve() - atARhs;
+                          cDenseVect<Type> aRes = atAA * aVSys[aKS2]->PublicSolve() - atARhs;
                           StdOut() << "NNNN " << aRes.L2Norm()   << " " << atARhs.L2Norm() << std::endl;
                       }
   
@@ -786,7 +786,7 @@ template <class Type,class TypeSys> void TplBenchLsq()
 	      for (int aKSys=0 ; aKSys<int(aVSys.size()) ;  aKSys++)
               {
 	          auto & aSys  =  aVSys[aKSys];
-		  aSys->Reset();
+		  aSys->PublicReset();
               }
 	 }
 
@@ -841,7 +841,7 @@ void BenchLsqDegenerate()
     {
         // check if  tAA * Sol = tARhs  or not ...
         const auto & aPtrSys = aVSys[aK];
-        cDenseVect<tREAL8>  aSol = aPtrSys->Solve();
+        cDenseVect<tREAL8>  aSol = aPtrSys->PublicSolve();
         cDenseVect<tREAL8> aDif  = atAA * aSol - atARhs;
         //  stop only if DenseLeastSq, as other are not robust (to investigate ...)
         if ((aDif.L2Norm()>=1e-5) && (aK==2))

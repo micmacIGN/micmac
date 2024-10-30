@@ -56,6 +56,7 @@ template <class Type> class  cSparseVect  : public cMemCheck
         void AddIV(const tCplIV & aCpl) ; /// "Raw" add, dont check if ind exist
         void CumulIV(const tCplIV & aCpl) ; /// Create only if not exist, else add in place
 
+        double DotProduct(const cDenseVect<Type> &) const; //== scalar product
 	/// Random sparse vector
         static cSparseVect<Type>  RanGenerate(int aNbVar,double aProba,tREAL8 aMinVal= 1e-2,int aMinSize=1);
 
@@ -154,6 +155,7 @@ template <class Type> class  cDenseVect
             MMVII_INTERNAL_ASSERT_medium(aV.IsInside(Sz()) ,"Sparse Vector out dense vect");
         }
         void  WeightedAddIn(Type aWeight,const tSpV & aColLine);
+        void  WeightedAddIn(Type aWeight,const tDV & aColLine);
 
            /*  =========  Othognalization & projection stuff =========== */
 
@@ -406,7 +408,7 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         tDM SubMatrix(const cPt2di & aSz) const;
         tDM SubMatrix(const cPt2di & aP0,const cPt2di & aP1) const;
 
-        /**  Generate a random square matrix having "good" conditionning property , i.e with eigen value constraint,
+        /**  Generate a random square matrix having "good" conditioning property , i.e with eigen value constraint,
             usefull for bench as when the random matrix is close to singular, it may instability that fail
             the numerical test.
         */
@@ -552,7 +554,7 @@ template <class Type> class cResulSymEigenValue
 	  // =>  mEigenVectors * cDenseMatrix<Type>::Diag(mEigenValues) * mEigenVectors.Transpose();
 
 
-        const cDenseVect<Type>   &  EigenValues() const ; ///< Eigen values
+        const cDenseVect<Type>   &  EigenValues() const ; ///< Eigen values, in growing order !!! != cResulSVDDecomp
         const cDenseMatrix<Type> &  EigenVectors()const ; ///< Eigen vector
         void  SetKthEigenValue(int aK,const Type & aVal) ;  ///< Eigen values
         Type  Cond(Type Def=Type(-1)) const ; ///< Conditioning, def value is when all 0, if all0 and Def<0 : Error
@@ -571,7 +573,7 @@ template <class Type> class cResulSVDDecomp
 
         cDenseMatrix<Type>  OriMatr() const; ///< Check the avability to reconstruct original matrix   
 
-        const cDenseVect<Type>   &  SingularValues() const ; ///< Eigen values
+        const cDenseVect<Type>   &  SingularValues() const ; ///< Eigen values, in decreasing order !!! != cResulSymEigenValue
         const cDenseMatrix<Type> &  MatU()const ; ///< Eigen vector
         const cDenseMatrix<Type> &  MatV()const ; ///< Eigen vector
         // void  SetKthEigenValue(int aK,const Type & aVal) ;  ///< Eigen values
@@ -727,6 +729,9 @@ template <class Type> class cMatIner2Var
        Type CorrelNotC(const Type &aEpsilon=1e-10) const; // Non centered correl
        Type StdDev1() const;
        Type StdDev2() const;
+
+       /// [A B] as least-square solution of V1 = A V2 + B
+       std::pair<Type,Type> FitLineDirect() const;  
     private :
         Type  mS0;   ///< Som of    W
         Type  mS1;   ///< Som of    W * V1
@@ -741,8 +746,13 @@ template <class TypeWeight,class TypeVal=TypeWeight> class cWeightAv
 {
      public :
         cWeightAv();
+        cWeightAv(const std::vector<TypeVal> &);
+	static TypeVal AvgCst(const std::vector<TypeVal> &);
+
+
         void Add(const TypeWeight & aWeight,const TypeVal & aVal);
         TypeVal Average() const;
+        TypeVal Average(const TypeVal  & aDef) const;
         const TypeVal & SVW() const;  /// Accessor to sum weighted vals
         const TypeWeight & SW() const;  /// Accessor to sum weighted vals
     private :
@@ -942,6 +952,12 @@ template<class Type,const int Dim> cPtxd<Type,Dim> SolveLine(const cPtxd<Type,Di
 template<class Type,const int DimOut,const int DimIn> Type 
      QScal(const cPtxd<Type,DimOut>&,const cDenseMatrix<Type>&,const cPtxd<Type,DimIn>&);
 
+
+//  !!  =>  logically this class  should be defined in file images, but for there is now a tricky dependances
+//      this clas requires DenseVect, so Matrix should appear before Image2D
+//     but Matrix require Image2D, so Image2D should appear before Matrix ...
+//  To break this, would require separate file for vector and matrix
+//
 /** Class for image of any dimension, relatively slow probably */
 
 template <class Type> class cDataGenDimTypedIm : public cMemCheck

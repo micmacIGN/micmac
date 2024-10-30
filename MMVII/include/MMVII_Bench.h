@@ -91,7 +91,9 @@ void Bench_Duration(cParamExeBench & aParam);
 void BenchDenseMatrix0(cParamExeBench & aParam); ///< Basic Vector 
 void Bench_EigenDecompos(cParamExeBench & aParam);
 
-void BenchTopoComp(cParamExeBench & aParam); ///< Topometric compensation
+void BenchSysCo(cParamExeBench & aParam); ///< SysCo
+
+void BenchTopoComp(cParamExeBench & aParam); ///< Topo compensation
 
 // void cAppli_MMVII_Bench::Bench_0000_String(); => Bench on string-split
 void BenchSerialization(cParamExeBench & aParam,const std::string & aDirOut,const std::string & aDirIn); ///< Bench on seriaization function
@@ -113,6 +115,8 @@ void BenchGlobImage(cParamExeBench & aParam); ///< Global bench on image
 void BenchFilterImage1(cParamExeBench & aParam);
 void BenchFilterLinear(cParamExeBench & aParam);
 void BenchGeom(cParamExeBench & aParam);
+void BenchPlane3D();
+void BenchPlaneInter();
 
 void BenchMapping(cParamExeBench & aParam);
 void BenchInvertMapping(cParamExeBench & aParam);
@@ -126,6 +130,7 @@ void Bench_Target_Encoding();
 void BenchHamming(cParamExeBench & aParam);
 void BenchPolynome(cParamExeBench & aParam);
 
+void BenchInterpol(cParamExeBench & aParam);
 
 void BenchStenopeSat();
 void BenchUnCalibResection();
@@ -148,7 +153,7 @@ void Bench_SpatialIndex(cParamExeBench & aParam); /// test spatial index
 
 void  BenchLinearConstr(cParamExeBench & aParam);  /// elementary test on linear constr
 
-
+void BenchClino(cParamExeBench & aParam); // Bench for clinometer Bundle Adjustment
 
 
 /* Called by BenchGlobImage */
@@ -170,7 +175,7 @@ void BenchJetsCam();  ///< Test specifique to camera projection
 void MMV1_GenerateCodeTestCam(); ///< To generate code of derivative MMV1-like (for comparing with jets)
 void BenchSampleQuat();
 
-
+void BenchcNewReadFilesStruct(cParamExeBench & aParam);  ///< Test the new system for reading structured files on some samples
 
 
 

@@ -3,6 +3,7 @@
 
 #include "MMVII_Ptxd.h"
 #include "MMVII_util_tpl.h"
+#include "MMVII_Geom2D.h"
 
 namespace MMVII
 {
@@ -82,9 +83,9 @@ class cMesIm1Pt
         cMesIm1Pt(const cPt2dr & aPt,const std::string & aNamePt,tREAL4 aSigma2);
         cMesIm1Pt();
 
-        cPt2dr         mPt;
-        std::string    mNamePt;
-        tREAL4         mSigma2[3];  // xx xy yy
+        cPt2dr            mPt;
+        std::string       mNamePt;
+        cArray<tREAL4,3>  mSigma2;  // xx xy yy
 };
 
 /** class for representing a set of measure in an image*/
@@ -96,6 +97,10 @@ class cSetMesPtOf1Im : public cMemCheck
 	  static cSetMesPtOf1Im  FromFile(const std::string & aNameFile);
           void AddMeasure(const cMesIm1Pt &);
           void AddData(const  cAuxAr2007 & anAux);
+          void SortMes(); // sort measures in place with NamePt
+
+
+          void AddSetMeasure(const cSetMesPtOf1Im &,bool SuprNone,bool OkDupl);
 
 	  void ToFile(const std::string & aNameFile) const;
 	  static std::string StdNameFileOfIm(const std::string &);
@@ -125,12 +130,16 @@ class cMes1GCP
 {
      public :
         
-        cMes1GCP(const cPt3dr & aPt,const std::string & aNamePt,tREAL4 aSigma,
+        // aSigma==-1 for free point
+        cMes1GCP(const cPt3dr & aPt,const std::string & aNamePt,tREAL4 aSigma=-1,
                  const std::string &aAdditionalInfo="");
+
         cMes1GCP();
 	/// change the coordinate with mapping ! For now dont update sigma using the jacobian, maybe later ...
         void  ChangeCoord(const cDataMapping<tREAL8,3,3>&);
         bool isFree() const {return !mOptSigma2;}
+        cPt3dr SigmasXYZ() const;
+
         cPt3dr         mPt;
         std::string    mNamePt;
         static constexpr int IndXX = 0;
@@ -138,6 +147,20 @@ class cMes1GCP
         static constexpr int IndZZ = 5;
         std::string mAdditionalInfo;
 
+        bool isInit() const {return mPt.IsValid();}
+
+        /// Accessor but create, but if not exist, create with diag cov of sigma
+	void SetSigma2(tREAL8 aSigma );
+	void SetSigma2(const cPt3dr &);
+        /// Accessor but assume optional is init
+	const cArray<tREAL4,6> & Sigma2() const ;
+	///
+	bool  Sigma2IsInit() const;
+
+	/// Serialization 
+	void AddData(const  cAuxAr2007 & anAux);
+
+     private :
         std::optional<cArray<tREAL4,6> >  mOptSigma2;  //  xx xy xz yy yz zz
 };
 
@@ -225,6 +248,7 @@ class cSetMesImGCP : public cMemCheck
 								  
 	    /// suppress mMesGCP & mMesIm with no images measure (eventually can give higher threshold) 
 	    cSetMesImGCP * FilterNonEmptyMeasure(int NbMeasureMin=1) const;
+	    int GetNbImMesForPoint(const std::string & aGCPName, bool SVP=false) const;
 
             const cSetMesPtOf1Im  & MesImInitOfName(const std::string &) const;
 	    const cMes1GCP &        MesGCPOfName(const std::string &) const;
@@ -493,6 +517,32 @@ class cFilterMesIm
          bool                       mFinished;
 
 };
+
+/** Represent one line anti paral (computed by matching of 2 oriented line anti paral) */
+
+class cOneLineAntiParal
+{
+     public :
+          cOneLineAntiParal();
+
+          tSeg2dr mSeg;
+          tREAL8  mAngDif;
+          tREAL8  mWidth;
+          tREAL8  mCumul;
+          tREAL8  mRadHom;
+          tREAL8  mSigmaLine;
+};
+void AddData(const cAuxAr2007 & anAux,cOneLineAntiParal & anEx);
+
+
+class cLinesAntiParal1Im
+{
+     public :
+         std::string                      mNameIm;
+         std::string                      mDirCalib;
+         std::vector<cOneLineAntiParal>   mLines;
+};
+void AddData(const cAuxAr2007 & anAux,cLinesAntiParal1Im & anEx);
 
 
 

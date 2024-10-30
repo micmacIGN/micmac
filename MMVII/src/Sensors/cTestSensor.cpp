@@ -47,6 +47,7 @@ class cAppliTestSensor : public cMMVII_Appli
 
 	std::vector<int>         mSzGenerate;
 	bool                     mTestCorDirInv;
+	tREAL8                   mMaxDistImCorDirInv;  // if used in bench will make assertiob on max val
         cPt2dr                   mDefIntDepth;  // Defautlt interval of depth if sensor has depth functs
         bool                     mDoTestGrad;
 	std::vector<tREAL8>      mTestPLS;   // Test Pose Line Sensor
@@ -92,6 +93,7 @@ cCollecSpecArg2007 & cAppliTestSensor::ArgOpt(cCollecSpecArg2007 & anArgOpt)
                << AOpt2007(mSzGenerate,"SzGen","Sz gen",{eTA2007::HDV,{eTA2007::ISizeV,"[2,2]"}})
                << AOpt2007(mDoTestGrad,"TestGrad","Test coherence anlytic grad/finit diff (if different)",{eTA2007::HDV})
                << AOpt2007(mTestPLS,"TestPLS","Test Pose Line Sensor",{{eTA2007::ISizeV,"[2,2]"}})
+               << AOpt2007(mMaxDistImCorDirInv,"CCImDI","Check coherence image dist inverse")
             ;
 }
 
@@ -225,6 +227,11 @@ void cAppliTestSensor::TestCoherenceDirInv(const  cSensorImage & aSI) const
 	      <<  ", Worst=" << aStConsistIm.Max()  
 	      <<  ", Med=" << aStConsistIm.ErrAtProp(0.5)  
               << std::endl;
+
+     if (IsInit(& mMaxDistImCorDirInv))
+     {
+         MMVII_INTERNAL_ASSERT_tiny(aStConsistIm.Max()<mMaxDistImCorDirInv,"Consist Dir/Inv for tested camera");
+     }
 
      StdOut() << "     * Ground:  Avg=" <<   aStConsistGr.Avg() 
 	      <<  ", Worst=" << aStConsistGr.Max()  

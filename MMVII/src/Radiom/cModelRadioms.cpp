@@ -12,7 +12,7 @@ namespace MMVII
 /*                cCalibRadiomSensor                  */
 /* ================================================== */
 
-cCalibRadiomSensor::cCalibRadiomSensor()
+cCalibRadiomSensor::cCalibRadiomSensor() 
 {
 }
 
@@ -27,7 +27,7 @@ cCalibRadiomSensor * cCalibRadiomSensor::FromFile(const std::string & aNameFile)
    if (starts_with(FileOfPath(aNameFile),PrefixCalRadRad))
       return cRadialCRS::FromFile(aNameFile);
 
-   MMVII_UsersErrror(eTyUEr::eUnClassedError,"Cannot determine radiom-file mode for :" + aNameFile);
+   MMVII_UserError(eTyUEr::eUnClassedError,"Cannot determine radiom-file mode for :" + aNameFile);
    return nullptr;
 }
 
@@ -221,7 +221,7 @@ tREAL8 & cRadialCRS::Cste2Add() {return mCste2Add;}
 /*                  cCalibRadiomIma                   */
 /* ================================================== */
 
-cCalibRadiomIma::cCalibRadiomIma()
+cCalibRadiomIma::cCalibRadiomIma() 
 {
 }
 

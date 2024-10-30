@@ -446,6 +446,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         bool ModeHelp() const;              ///< If we are in help mode, don't execute
         bool ModeArgsSpec() const;          ///< If called only to output args specs, don't execute
         virtual ~cMMVII_Appli();            ///< Always virtual Dstrctr for "big" classes
+        void ToDoBeforeDestruction(); ///< Some stuff to do at the end, require virtual method that cannot be called in X::~X()
         bool    IsInit(const void *) const;       ///< indicate for each variable if it was initiazed by argc/argv
         bool    IsInSpecObl(const void *);  ///< indicate for each variable if it was in an arg opt list (used with cPhotogrammetricProject)
         bool    IsInSpecFac(const void *);  ///< indicate for each variable if it was in an arg obl list (used with cPhotogrammetricProject)
@@ -472,6 +473,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         void InitProfile();  ///< init the profile of usage/user ....
         void SetNot4Exe(); ///< Indicate that the appli was not fully initialized
 
+	const cSpecMMVII_Appli & Specs() const; ///< Accessor to appli specification
         int NbProcAllowed() const; ///< Accessor to nb of process allowed for the appli
         const std::string & DirProject() const;     ///<  Accessor to directoy of project
         static const std::string & TopDirMMVII();   ///<  main directory of MMVII , upon include,src ..
@@ -529,12 +531,22 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 	std::string  DirReport();
 	std::string  DirSubPReport(const std::string &anId);
 	std::string  NameTmpReport(const std::string &anId,const std::string &anImg);
+        /// If we want to create a subdir inside the report, to have multiple reports
         void SetReportSubDir(const std::string &);
+        /// Redirect the file in NewDir, typically when mecanism is used for exporting in csv, and not for report
+        void  SetReportRedir(const std::string &anId,const std::string & aNewDir);
 
-	void  InitReport(const std::string &anId,const std::string & aPost,bool IsMul);
+	/// Mehod called when the  report is finished, usefull when the report is used to memorize problem
+	virtual void OnCloseReport(int aNbLine,const std::string & anIdent,const std::string & aNameFile) const;
+
+        /// Generate a new entry for report "anId",  IsMul -> indicate if we are in multi process (for merge at end)
+	void  InitReport(const std::string &anId,const std::string & aPostfix,bool IsMul,const std::vector<std::string> & aHeader={});
 	//  void  AddTopReport(const std::string &anId,const std::string & VecMsg);
 
+
 	void  AddOneReportCSV(const std::string &anId,const std::vector<std::string> & VecMsg);
+	/// Add a header line, do it only it at top-level
+	void  AddHeaderReportCSV(const std::string &anId,const std::vector<std::string> & VecMsg);
 
 	void  AddStdHeaderStatCSV(const std::string &anId,const std::string & aNameCol1,const std::vector<int> aVPerc,const std::vector<std::string> & ={});
 	void  AddStdStatCSV(const std::string &anId,const std::string & aCol1,const cStdStatRes &,const std::vector<int> aVPerc,const std::vector<std::string> & ={});
@@ -649,6 +661,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         std::string                               mIntervFilterMS[NbMaxMainSets];  ///< Filterings interval
 	std::vector<std::string>                  mTransfoFFI[NbMaxMainSets];  ///< Pattern of transformation for FFI
 
+	// Number of "tagged" object at creation (for tracking memory leaks)
+	int                                       mNumTagObjCr;
         // Variable for setting num of mm version for output
         int                                       mNumOutPut;  ///< specified by user
         bool                                      mOutPutV1;   ///< computed from mNumOutPut
@@ -720,6 +734,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 	char                               mCSVSep;    ///< separator in csv file, for now hard coded to ","
 	std::map<std::string,std::string>  mMapIdFilesReport; ///< For a given id memorize the post fix, as "csv"
 	std::map<std::string,std::string>  mMapIdPostReport; ///< For a given id , memorize the file (Global of Tmp in sub process)
+        /// If finally, we want to store finall result is another Dir (when report is used for generating data in csv as export)
+	std::map<std::string,std::string>  mMapIdRedirect; 
 	std::set<std::string>              mReport2Merge;  ///< Memorize all the report identifier that must be merged
         std::string                        mReportSubDir;  ///< In case we want to write in separate subdir (like with GCP)
 

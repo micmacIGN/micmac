@@ -24,13 +24,13 @@ MMVII EditSet ImPNEO.xml += IMG_PNEO4_202309081102495_PAN_SEN_PWOI_000129107_1_1
 MMVII ImportInitExtSens  ImPNEO.xml  ['IMG(.*)_P_R1C1.tif','ExternalData/RPC$1.XML'] SatWGS84
 MMVII ImportORGI ExternalData/ORGI_LNR/ 
 
-#  Check import + initial residual
-MMVII TestSensor ImPNEO.xml SatWGS84 InPointsMeasure=ORGI
+#  Check import + initial residual,  CCImDI will generate an error when residual too high
+MMVII TestSensor ImPNEO.xml SatWGS84 InPointsMeasure=ORGI CCImDI=1e-2
 MMVII ReportGCP  ImPNEO.xml ORGI SatWGS84
 
 #     RTL SENS
 MMVII SysCoCreateRTL ImPNEO.xml RTL InOri=SatWGS84 z0=0
-MMVII GCPChSysCo RTL ORGI RTLSat SysIn=WGS84Degrees
+MMVII GCPChSysCo RTL ORGI RTLSat SysIn=Geog
 MMVII OriChSysCo  ImPNEO.xml RTL   SatWGS84 RTLFix
 
 
@@ -43,7 +43,7 @@ MMVII OriParametrizeSensor ImPNEO.xml RTLFix RTLD2 2
 MMVII OriBundleAdj ImPNEO.xml RTLD2  TestAdjSat GCPDir=RTLSat   GCPW=[1,1] TiePWeight=[1,1] TPDir=ORGI
 MMVII ReportGCP  ImPNEO.xml RTLSat TestAdjSat
 
-
+MMVII TestSensor ImPNEO.xml RTLD2 InPointsMeasure=ORGI CCImDI=1e-2
 
 
 

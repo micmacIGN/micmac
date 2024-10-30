@@ -1,0 +1,12 @@
+{
+  "dependencies": [
+    "proj"
+  ],
+  "features": {
+    "vmmvii": {
+      "description": "Build VMMVII",
+      "dependencies": [ "qt5" ]
+    }
+  },
+  "builtin-baseline": "94a50e8c1357d423840e22451e122f56d62b5c20"
+}

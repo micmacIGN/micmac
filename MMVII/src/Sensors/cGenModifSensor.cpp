@@ -18,9 +18,12 @@ namespace MMVII
 /*                                                 */
 /* *********************************************** */
 
+class cGenSensorAsMapping  ;
+
 class cExternalSensorModif2D  : public cSensorImage
 {
    public :
+         friend class cGenSensorAsMapping;
 
    // - - - - - - - Constructors and destructor - - - - - - - - 
 
@@ -110,6 +113,7 @@ class cExternalSensorModif2D  : public cSensorImage
 	 cSensorImage *                 mSensorInit;   ///< The initial sensor, for which we compute a correctio,
          cCalculator<double> *          mEqIma2End;    ///< Functor that compute the distorstion
 };
+
 
 
 /* =============================================== */
@@ -363,9 +367,50 @@ cPt2dr  cExternalSensorModif2D::Correc2InitPix (const cPt2dr & aP0) const
      return cPt2dr::FromStdVector(aDistXY);
 }
 
+		// InitPix2Correc
+class cGenSensorAsMapping  : public cDataNxNMapping<tREAL8,2>
+{
+     public  :
+        cGenSensorAsMapping(const cExternalSensorModif2D &aSens) : mSens(aSens) {}
+	cPt2dr Value(const cPt2dr & aPt) const override {return mSens.Correc2InitPix(aPt);}
+     private :
+	const cExternalSensorModif2D & mSens;
+};
+
+/*
+template <class Type,const int Dim> 
+      cPtxd<Type,Dim> cDataNxNMapping<Type,Dim>::InvertQuasiTrans(const tPt& aP2Inv,tPt aGuess,Type aMaxErr,int aNbIterMax) const
+{
+       tREAL8  aSqE = Square(aMaxErr);
+       tREAL8 aD2 = 1e30 + aSqE;
+
+       while ((aD2>aSqE) && (aNbIterMax>0))
+       {
+          tPt aValueGuess = this->Value(aGuess);
+          Type aNextD2  = SqN2(aValueGuess-aP2Inv);
+	  if (aNextD2>aD2) return aGuess;
+          aD2 = aNextD2;
+	  // We make the taylor expansion assume Correc2InitPix ~Identity
+	  //  Value(aGuess+aDelta)  = Value(aGuess) + aDelta = aP2Inv ;
+	  //  aDelta =  aP2Inv -  Value(aGuess) 
+	  aGuess += aP2Inv -  aValueGuess;
+
+	  aNbIterMax--;
+       }
+
+       return aGuess;
+}
+*/
+
 
 cPt2dr  cExternalSensorModif2D::InitPix2Correc (const cPt2dr & aPInit) const
 {
+    cGenSensorAsMapping aGSM(*this);
+
+    return aGSM.InvertQuasiTrans(aPInit,aPInit, 1e-3,10);
+
+    /*
+
     // For now implement a very basic "fix point" method for inversion
      tREAL8 aThresh = 1e-3;
      int aNbIterMax = 10;
@@ -383,7 +428,8 @@ cPt2dr  cExternalSensorModif2D::InitPix2Correc (const cPt2dr & aPInit) const
 	  GoOn = (aNbIter<aNbIterMax) && (Norm2(aNewPInit-aPInit)>aThresh);
      }
      // StdOut() << "NBITER=" << aNbIter << "\n";
-     return aPEnd;
+     return aPEnd ; // + cPt2dr(0.1,0.1);
+		    */
 }
     //-------------------------------------------------------------------------------
     //----------------------  FOR CHECK/SIMULATION  ---------------------------------

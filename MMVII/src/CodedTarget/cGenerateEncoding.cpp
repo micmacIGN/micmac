@@ -32,6 +32,7 @@ cSpecBitEncoding::cSpecBitEncoding() :
      mBase4Name      (10),
      mNbDigit        (0),
      mPrefix         ("XXXX"),
+     mTargetNamePrefix(""),
      mMaxNum         (0),
      mMaxLowCode     (0),
      mMaxCodeEqui    (0)
@@ -55,6 +56,7 @@ void cSpecBitEncoding::AddData(const  cAuxAr2007 & anAux)
        {
           MMVII::AddData(cAuxAr2007("Prefix",anAux),mPrefix);
           MMVII::AddData(cAuxAr2007("NbDigit",anAux),mNbDigit);
+          MMVII::AddData(anAux,"TargetNamePrefix",mTargetNamePrefix, std::string());
           MMVII::AddData(cAuxAr2007("MaxNum",anAux),mMaxNum);
           MMVII::AddData(cAuxAr2007("MaxLowCode",anAux),mMaxLowCode);
           MMVII::AddData(cAuxAr2007("MaxCodeEqui",anAux),mMaxCodeEqui);
@@ -262,11 +264,13 @@ cCollecSpecArg2007 & cAppliGenerateEncoding::ArgOpt(cCollecSpecArg2007 & anArgOp
                << AOpt2007(mSpec.mFreqCircEq,"FreqCircEq","Freq for generating circular permuts (conventionnaly 0->highest) (def depend of type)")
                << AOpt2007(mSpec.mParity,"Parity","Parity check , 1 odd, 2 even, 3 all (def depend of type)")
                << AOpt2007(mSpec.mMaxNb,"MaxNb","Max number of codes",{eTA2007::HDV})
+               << AOpt2007(mSpec.mTargetNamePrefix,"TargetNamePrefix","Prefix for targets names",{eTA2007::HDV})
                << AOpt2007(mSpec.mBase4Name,"Base4N","Base for name",{eTA2007::HDV})
                << AOpt2007(mSpec.mNbDigit,"NbDig","Number of digit for name (default depend of max num & base)")
                << AOpt2007(mSpec.mUseHammingCode,"UHC","Use Hamming code")
                << AOpt2007(mSpec.mPrefix,"Prefix","Prefix for output files")
                << AOpt2007(mMiror,"Mir","Unify mirro codes")
+               << AOpt2007(mNameOut,"Out","Name for output file")
           ;
 }
 
@@ -378,7 +382,8 @@ int  cAppliGenerateEncoding::Exe()
                        + "_Hamm" + ToStr(mSpec.mMinHammingD)
                        + "_Run" + ToStr(mSpec.mMaxRunL.x()) + "_" + ToStr(mSpec.mMaxRunL.y());
    }
-   mNameOut  =   mSpec.mPrefix + "_SpecEncoding." + TaggedNameDefSerial();
+   if (! IsInit(&mNameOut))
+      mNameOut  =   mSpec.mPrefix + "_SpecEncoding." + TaggedNameDefSerial();
 
    // calls method in cMMVII_Appli, to show current value of params, as many transformation have been made
    ShowAllParams();
@@ -395,9 +400,12 @@ int  cAppliGenerateEncoding::Exe()
 
    if (mUseAiconCode)
    {
+       // Read the file in ressources MMVII
        std::vector<cPt2di>  aVCode ;
        ReadCodesTarget(aVCode,cCompEquiCodes::NameCERNLookUpTable(mSpec.mNbBits));
 
+       // In this case, by default, take all the code that were specified
+       SetIfNotInit(mSpec.mMaxNb,aVCode.size());
        std::list<cCompEquiCodes::tAmbigPair>  aLamb = mCEC->AmbiguousCode(aVCode);
 
        if (!aLamb.empty())
@@ -528,10 +536,10 @@ int  cAppliGenerateEncoding::Exe()
    SortOnCriteria(mVOC,[](auto aPCel){return aPCel->mLowCode;});
    {
        cBitEncoding aBE;
-       for (size_t aK=0 ; aK<mVOC.size(); aK++)  
+       for (size_t aK1=0 ; aK1<mVOC.size(); aK1++)  
        {
-           size_t aNum = aK + Num000;
-	   size_t aCode = mVOC[aK]->mLowCode;
+           size_t aNum = aK1 + Num000;
+	   size_t aCode = mVOC[aK1]->mLowCode;
            aBE.AddOneEncoding(aNum,aCode);  // add a new encoding
 
 	   // Update all ranges
@@ -551,7 +559,7 @@ int  cAppliGenerateEncoding::Exe()
 
        for (auto & anEncode : aBE.Encodings())
        {
-           anEncode.SetName(NameOfNum_InBase(anEncode.Num(),mSpec.mBase4Name,mSpec.mNbDigit));
+           anEncode.SetName(mSpec.mTargetNamePrefix + NameOfNum_InBase(anEncode.Num(),mSpec.mBase4Name,mSpec.mNbDigit));
        }
 
        aBE.SetSpec(mSpec);

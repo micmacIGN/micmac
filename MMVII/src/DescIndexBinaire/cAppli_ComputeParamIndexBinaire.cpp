@@ -143,7 +143,7 @@ int cAppli_ComputeParamIndexBinaire::Exe()
    else
    {
        //  here mLDirPC.size()==0 ,  probably user did not want "no Pts Carac"
-       MMVII_UsersErrror(eTyUEr::eEmptyPattern,"No directory of Pt carac found");
+       MMVII_UserError(eTyUEr::eEmptyPattern,"No directory of Pt carac found");
    }
 
    return EXIT_SUCCESS;

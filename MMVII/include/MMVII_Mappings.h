@@ -373,6 +373,9 @@ template <class Type,const int DimIn,const int DimOut> class cDataMapping : publ
 #endif // MAP_STATIC_BUF
 };
 
+typedef cDataMapping<tREAL8,1,1> tFunc1DReal;
+typedef cDataMapping<tREAL8,2,1> tFunc2DReal;
+
 /** Specialization for DimIn=DimOut , introduce because we want to force invertible mapping
     to have DimIn==DimOut
 */
@@ -389,6 +392,9 @@ template <class Type,const int Dim> class cDataNxNMapping : public cDataMapping<
       cDataNxNMapping();  ///< just initialize cDataMapping
       /// return bijective differential application , used for ex in BoxInByJacobian
       cBijAffMapElem<Type,Dim>  Linearize(const tPt & aPt) const;
+
+      /// Compute Invert of P2Inv, assuming Map~Translation, 
+      tPt  InvertQuasiTrans(const tPt& aP2Inv,tPt aGuess,Type aMaxErr,int aNbIterMax) const;
 };
 
 /**   This is the mother class of maping that can compute the inverse of a point.
@@ -937,61 +943,122 @@ template <class Type,const int Dim> class cBijAffMapElem
         tMat  mMatInv;
 };
 
-typedef std::shared_ptr<cSysCoordV2>      tPtrSysCo;
-typedef std::shared_ptr<cChangSysCoordV2> tPtrChSys;
+/**  Class for "tabulating" a map :
+        - store values of the in a grid  (made of images)
+        - use bilinear interpolation for computing values
+        - the map used to construct value is "NOT"  memorizd one object is constructed
+*/
 
-class cSysCoordV2  : public cDataInvertibleMapping<tREAL8,3>
+
+template <const int DimIn,const int DimOut> class cTabulMap : public cDataMapping<tREAL8,DimIn,DimOut>
 {
-      public :
+     public :
+          typedef cTabulMap<DimIn,DimOut>             tTabulMap;
+          typedef  cDataMapping<tREAL8,DimIn,DimOut>  tMap;
+          typedef  typename tMap::tPtIn               tPtIn;
+          typedef  typename tMap::tPtOut              tPtOut;
+          typedef  cPtxd<int,DimIn>                   tPix;
+          typedef  cTplBox<tREAL8,DimIn>              tBoxIn;
+          typedef  cTplBox<tREAL8,DimOut>             tBoxOut;
+          typedef  cDataTypedIm<tREAL8,DimIn>         tDIm;
+          /// Constructor : Map to tabulate, Box on which tabulation must be done, Sz of tabulation
+          cTabulMap(const tMap & aMap,const tBoxIn & aBox,const tPix & aSz);
+          /// Acces to interpolated value, make interfac as a cDataMapping
+          tPtOut  Value(const tPtIn &) const override;
 
+          ///  Destructor : free the images
+          virtual ~cTabulMap() ;
 
-         cSysCoordV2(tREAL8  aEpsDeriv = 1.0);
-	 virtual ~cSysCoordV2();
+          ///   accessor 
+          const tBoxOut&  BoxOutTabuled() const;
 
-         tPt Value(const tPt &)   const override;  // Mapping interface to ToGeoC
-         tPt Inverse(const tPt &) const override;  // Mapping interface to FromGeoC
+          /// Can we access to BiLin interpolation
+          bool OkValue(const tPtIn &) const;
+    private :
+          cTabulMap(const tTabulMap &) = delete;
+          void operator =(const tTabulMap &) = delete;
 
-         virtual tPt ToGeoC  (const tPt &) const =0;
-         virtual tPt FromGeoC(const tPt &) const =0;
-	 virtual const std::string & Name() const = 0; // As RTL Lambert93 ...
+                  // {mP0In + MulCByC(aPt,mMulPix2In);}
+          /// Convert grid-coordinates to initial input values
+          inline tPtIn  Pix2In(const tPtIn & aPt) const;
+          inline tPtIn  Pix2In(const tPix & aPt) const;// {mP0In + MulCByC(aPt,mMulPix2In);}
+          inline tPtIn  In2Pix(const tPtIn & aPt) const;// {MulCByC(aPt-mP0In,mMulIn2Pix);}
 
-	 virtual void ToFile(const std::string &) const = 0;
-         static tPtrSysCo FromFile(const std::string &);
+          tPtIn              mP0In;          ///< Origin in iput space
+          tPtIn              mMulPix2In;     ///< Multipiler Pixel of Grid -> Initial coordinates
+          tPtIn              mMulIn2Pix;     ///< Multipiler  Initial Coordinates -> Pixel of Grid 
+          tBoxOut            mBoxOutTabuled; ///<  Box of out tabulated points
+          std::vector<tDIm*> mVIms;          ///< vector of images to tabulate function
+};
+/**  Class for tabulating an invertible mapping, essentially done of 
+    2 tabluation : direct and invert mapping
+*/
 
+template <const int Dim> class cTabuMapInv : public cDataInvertibleMapping<tREAL8,Dim>
+{
+     public :
+          typedef  cTabuMapInv<Dim>                    tTabuMapInv;
+          typedef  cTabulMap<Dim,Dim>                  tTabuMap;
+          typedef  cDataInvertibleMapping<tREAL8,Dim>  tMap;
+          typedef  typename tMap::tPt                  tPt;
+          typedef  cPtxd<int,Dim>                      tPix;
 
-         static tPtrSysCo Lambert93();
-         static tPtrSysCo GeoC();
-         static tPtrSysCo RTL(const std::string & aNameResult,const cPt3dr & Ori,const std::string & aSysRef);
-         static tPtrSysCo LocalSystem(const  std::string & aName);
+          /// Constructor : Map to tabulate, Box on which tabulation must be done, Sz of tabulation
+          cTabuMapInv(const tMap & aMap,const cTplBox<tREAL8,Dim> & aBox,const tPix & aSz);
 
+          /// What make it a mapping, Acces to direct tabulation
+          tPt  Value  (const tPt &) const override;
+          /// What make it an invetible mapping , Acces to invert tabulation
+          tPt  Inverse(const tPt &) const override;
+          /// Destructor : free the 2 tabulated
+          virtual ~cTabuMapInv() ;
 
+           bool OkDirect(const tPt &) const;
+           bool OkInverse(const tPt &) const;
+    private :
+          cTabuMapInv(const tTabuMapInv &) = delete;  // non copiable object
+          void operator =(const tTabuMapInv &) = delete;  // non copiable object
 
-	 // cPt3dr  mPtEpsDeriv;
+          tTabuMap * mTabulMapDir;  ///<  Tabulation Direct Mapping
+          tTabuMap * mTabulMapInv;  ///<  Tabulation Invert Mapping
 };
 
-class cChangSysCoordV2  : public cDataInvertibleMapping<tREAL8,3>
+
+/** Class for using im2d as "tabulated function", this version is for
+ * function "close to identity", typically displacement map and the tabulation is a delta => write derived class
+ * to generalize if necessary  (add homotety at left & right of values)
+ *
+ * It is invertible using InvertQuasiTrans, because it's adapted to displacement map
+ *
+ *  Also there is obvious similarity with "cTabulMap/cTabuMapInv", they are two different classes because
+ *  the "philosophy" are quite different :
+ *
+ *     * "cTabulMap/cTabuMapInv" takes an existing map and tabulates its values to gave faster access
+ *     * "cTabulatMap2D_Id" takes existing images (like resulting from matching) and create a "shell" to make 
+ *     them appears  like mapping
+ *
+ * */
+
+template <class Type>  class cTabulatMap2D_Id : cDataInvertibleMapping<tREAL8,2>
 {
-        public :
-            cChangSysCoordV2(tPtrSysCo  aSysInit,tPtrSysCo  aSysTarget);
-            // Sometime it can be usefull to consider the same system as identit change to itself
-            cChangSysCoordV2(tPtrSysCo  aSysInitOut);
-	    // return identity  
-	    cChangSysCoordV2 ();
+      public :
+           typedef cIm2D<Type>     tIm;
+           typedef cDataIm2D<Type> tDIm;
+           cTabulatMap2D_Id(tIm aImX,tIm aImY,cDiffInterpolator1D * aInt);
 
-            tPt Value(const tPt &) const override;   /// compute  Point from SysInit 2 SysTarget
-            tPt Inverse(const tPt &) const override; /// compute  Point from SysTarget 2 SysInit
+           tPt Value(const tPt &) const override;
+           tPt Inverse(const tPt &) const override;
+           tREAL8 EpsInv() const;
 
-	    virtual ~cChangSysCoordV2();
-            tPtrSysCo  SysInit() const;     ///< Accessor
-            tPtrSysCo  SysTarget() const;   ///< Accessor
-	    bool       IsIdent() const;
 
-	    cChangSysCoordV2(const cChangSysCoordV2 &);
-        private :
-
-	    bool       mIdent;
-            tPtrSysCo  mSysInit;
-            tPtrSysCo  mSysTarget;
+      private :
+           tIm     mImX;
+           tDIm *  mDImX;
+           tIm     mImY;
+           tDIm *  mDImY;
+           cDiffInterpolator1D * mInt;
+           int                   mNbIterInv;
+           tREAL8                mEpsInv;
 };
 
 

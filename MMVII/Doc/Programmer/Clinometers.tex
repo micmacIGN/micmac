@@ -1,0 +1,54 @@
+\chapter{Bundle Adjustment for clinometer calibration}
+
+
+
+Bundle adjustment for clinometer calibration is done with MMVII OriBundleAdj with the parameter NameClino not null. 
+In the source files not specific to clinometers (MMVII$\_$PhgrDist.h, BundleAdjustment.h...), code lines implementing clinometers bundle adjustment are commented with "// CLINOBLOC".  
+
+\section{BundleAdjustment.h}
+
+This file is in src/BundleAdjustment.
+
+This file describes the main classes to compute the bundle adjustment for clinometers calibration. These classes are :
+\begin{itemize}
+    \item cClinoMes1Cam : class with measures from all clinometers for one camera acquisition. There is one object cClinoMes1Cam for each camera acquisition.
+    \item cClinoWithUK : class to compute boresight matrix for one clinometer. This class inherites from cObjWithUnkowns (see \ref{ClassOWU}). 
+    There is one object cClinoWithUK for each clinometer.
+    \item cBA$\_$Clino : class to compute boresight matrixes for all clinometers. This class reads file with measures, add equations to the solver and save results of least squares.
+\end{itemize}
+
+\section{Bundle$\_$clino.cpp}
+
+This file is in src/BundleAdjustment.
+
+This file implements the three classes described in src/BundleAdjustment/BundleAdjustment.h.
+
+
+\section{Formulas$\_$ClinoBloc.h}
+
+This file is in src/SymbDerGen.
+
+This formula implements the first equation for clinometers calibration (described in \ref{FirstClinoCalibEq}).
+
+
+\section{Formulas$\_$ClinoRot.h}
+
+This file is in src/SymbDerGen.
+
+This formula implements the second equation for clinometers calibration (described in \ref{SecondClinoCalibEq}).
+
+
+\section{BenchClino.cpp}
+
+This file is in src/Bench.
+
+To launch the Bench for clinometer calibration : 
+\begin{lstlisting}
+    MMVII Bench 1 PatBench=BAClino
+\end{lstlisting}
+
+There are two bench :
+\begin{itemize}
+    \item the first one checks the values computed by Formulas$\_$ClinoBloc (\ref{FirstClinoCalibEq}).
+    \item the other checks the clinometers calibration with two clinometers and three acquisitions.
+\end{itemize}

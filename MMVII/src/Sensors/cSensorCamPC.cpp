@@ -13,7 +13,7 @@
 namespace MMVII
 {
 
-cPoseWithUK::cPoseWithUK(const tPoseR & aPose) :
+cPoseWithUK::cPoseWithUK(const tPoseR & aPose)  :
       mPose (aPose),
       mOmega (0.0,0.0,0.0)
 {
@@ -203,6 +203,42 @@ cPt2dr cSensorCamPC::Ground2Image(const cPt3dr & aP) const
 }
 
 
+cPlane3D  cSensorCamPC::SegImage2Ground(const tSeg2dr & aSeg,tREAL8 aDepth) const
+{
+     cPt3dr aPG1 = cSensorImage::ImageAndDepth2Ground(aSeg.P1(),aDepth);
+     cPt3dr aPG2 = cSensorImage::ImageAndDepth2Ground(aSeg.P2(),aDepth);
+     cPt3dr aPG0 = Center();
+
+     return cPlane3D::From3Point(aPG0,aPG1,aPG2);
+}
+
+tREAL8  cSensorCamPC::GroundDistBundleSeg(const cPt2dr & aPIm,const cSegmentCompiled<tREAL8,3>  & aSeg3) const
+{
+   cSegmentCompiled<tREAL8,3> aBundIm = Image2Bundle(aPIm);
+   cPt3dr  aPWire =  BundleInters(aSeg3,aBundIm,1.0);
+
+   return aBundIm.Dist(aPWire);
+}
+
+tREAL8  cSensorCamPC::PixDistBundleSeg(const cPt2dr & aPIm,const cSegmentCompiled<tREAL8,3>  & aSeg3) const
+{
+   cSegmentCompiled<tREAL8,3> aBundIm = Image2Bundle(aPIm);
+   cPt3dr  aPWire =  BundleInters(aSeg3,aBundIm,1.0);
+   cPt3dr  aPBund =  BundleInters(aSeg3,aBundIm,0.0);
+
+   tREAL8 aEps = Norm2(aPBund-Center()) / mInternalCalib->F(); // +or- the epsilon 3D correspond to 1 pixel
+
+   cPt2dr aPIm1 = Ground2Image(aPBund + aSeg3.Tgt() * aEps);
+   cPt2dr aPIm2 = Ground2Image(aPBund - aSeg3.Tgt() * aEps);
+   cPt2dr aDirIm = aPIm2-aPIm1;
+
+   cSegment2DCompiled aSeg(aPIm,aPIm+aDirIm);
+
+   return aSeg.DistLine(Ground2Image(aPWire));
+}
+
+
+
         //  Local(0,0,0) = Center, then mPose Cam->Word, then we use Inverse, BTW Inverse is as efficient as direct
 cPt3dr cSensorCamPC::Pt_W2L(const cPt3dr & aP) const { return       Pose().Inverse(aP); }
 cPt3dr cSensorCamPC::Vec_W2L(const cPt3dr & aP) const { return Pose().Rot().Inverse(aP); }
@@ -295,6 +331,8 @@ void cSensorCamPC::OnUpdate()
 {
      mPose_WU.OnUpdate();
 }
+
+
 
 
 cSensorCamPC * cSensorCamPC::PCChangSys(cDataInvertibleMapping<tREAL8,3> & aMap) const 
@@ -407,7 +445,7 @@ cSensorCamPC * cSensorCamPC::PCChangSys(cDataInvertibleMapping<tREAL8,3> & aMap)
     return new cSensorCamPC(NameImage(),aNewPose,InternalCalib());
 }
 
-cSensorImage * cSensorCamPC::SensorChangSys(const std::string &,cChangSysCoordV2 & aMap) const
+cSensorImage * cSensorCamPC::SensorChangSys(const std::string &, cChangeSysCo &aMap) const
 {
 	return PCChangSys(aMap);
 }
@@ -530,7 +568,9 @@ std::string  cSensorCamPC::PrefixName()  { return "PerspCentral";}
 
 void  cSensorCamPC::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 {
-     mPose_WU.GetAdrInfoParam(aGAIP);
+   mPose_WU.GetAdrInfoParam(aGAIP);
+   aGAIP.SetNameType("PoseCamPC");
+   aGAIP.SetIdObj(NameImage());
 }
      // =================  becnh ===================
 

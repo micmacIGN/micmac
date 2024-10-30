@@ -1,0 +1,1201 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   sodipodi:docname="topo.svg"
+   inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo.png"
+   inkscape:export-xdpi="1000.3484"
+   inkscape:export-ydpi="1000.3484"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="true"
+     inkscape:snap-bbox="true"
+     inkscape:bbox-nodes="true"
+     inkscape:snap-bbox-edge-midpoints="true"
+     inkscape:snap-smooth-nodes="true"
+     inkscape:zoom="16"
+     inkscape:cx="254.5"
+     inkscape:cy="421.84375"
+     inkscape:window-width="2560"
+     inkscape:window-height="1351"
+     inkscape:window-x="0"
+     inkscape:window-y="52"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1">
+    <inkscape:grid
+       type="xygrid"
+       id="grid824" />
+  </sodipodi:namedview>
+  <defs
+     id="defs2">
+    <marker
+       style="overflow:visible;"
+       id="marker51832"
+       refX="0.0"
+       refY="0.0"
+       orient="auto"
+       inkscape:stockid="Arrow1Mend"
+       inkscape:isstock="true">
+      <path
+         transform="scale(0.4) rotate(180) translate(10,0)"
+         style="fill-rule:evenodd;fill:context-stroke;stroke:context-stroke;stroke-width:1.0pt;"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         id="path22070" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1Mstart"
+       refX="0.0"
+       refY="0.0"
+       orient="auto"
+       inkscape:stockid="Arrow1Mstart"
+       inkscape:isstock="true">
+      <path
+         transform="scale(0.4) translate(10,0)"
+         style="fill-rule:evenodd;fill:context-stroke;stroke:context-stroke;stroke-width:1.0pt"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         id="path22067" />
+    </marker>
+    <marker
+       style="overflow:visible;"
+       id="marker40979"
+       refX="0.0"
+       refY="0.0"
+       orient="auto"
+       inkscape:stockid="Arrow1Mend"
+       inkscape:isstock="true">
+      <path
+         transform="scale(0.4) rotate(180) translate(10,0)"
+         style="fill-rule:evenodd;fill:context-stroke;stroke:context-stroke;stroke-width:1.0pt;"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         id="path40977" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1Sstart"
+       refX="0.0"
+       refY="0.0"
+       orient="auto"
+       inkscape:stockid="Arrow1Sstart"
+       inkscape:isstock="true">
+      <path
+         transform="scale(0.2) translate(6,0)"
+         style="fill-rule:evenodd;fill:context-stroke;stroke:context-stroke;stroke-width:1.0pt"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         id="path5551" />
+    </marker>
+    <marker
+       style="overflow:visible;"
+       id="Arrow1Mend"
+       refX="0.0"
+       refY="0.0"
+       orient="auto"
+       inkscape:stockid="Arrow1Mend"
+       inkscape:isstock="true">
+      <path
+         transform="scale(0.4) rotate(180) translate(10,0)"
+         style="fill-rule:evenodd;fill:context-stroke;stroke:context-stroke;stroke-width:1.0pt;"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         id="path5548" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1Lstart"
+       refX="0.0"
+       refY="0.0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lstart"
+       inkscape:isstock="true">
+      <path
+         transform="scale(0.8) translate(12.5,0)"
+         style="fill-rule:evenodd;fill:context-stroke;stroke:context-stroke;stroke-width:1.0pt"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         id="path5539" />
+    </marker>
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="9.2604165 : 159.41667 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="210 : 148.5 : 1"
+       inkscape:persp3d-origin="105 : 99 : 1"
+       id="perspective9273" />
+    <marker
+       style="overflow:visible;"
+       id="Arrow1Lend"
+       refX="0.0"
+       refY="0.0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend"
+       inkscape:isstock="true">
+      <path
+         transform="scale(0.8) rotate(180) translate(12.5,0)"
+         style="fill-rule:evenodd;fill:context-stroke;stroke:context-stroke;stroke-width:1.0pt;"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         id="path5542" />
+    </marker>
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient2057">
+      <stop
+         style="stop-color:#7ce2df;stop-opacity:1;"
+         offset="0"
+         id="stop2053" />
+      <stop
+         style="stop-color:#7ce2df;stop-opacity:0;"
+         offset="1"
+         id="stop2055" />
+    </linearGradient>
+    <marker
+       style="overflow:visible"
+       id="Arrow1Lend-5"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path5542-6" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1Lend-1"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path5542-2" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker41940"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path41938" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1Lend-19"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path5542-4" />
+    </marker>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2057"
+       id="linearGradient48729"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1.53353,-0.12307679,0.09999954,1.2459888,-26.601492,-24.912906)"
+       x1="55.5625"
+       y1="119.0625"
+       x2="55.5625"
+       y2="111.125" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2057"
+       id="linearGradient49031"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1.53353,-0.12307679,0.09999954,1.2459888,-26.60149,-24.912916)"
+       x1="55.5625"
+       y1="119.0625"
+       x2="55.5625"
+       y2="111.125" />
+    <marker
+       style="overflow:visible"
+       id="marker51832-0"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Mend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-0.4,0,0,-0.4,-4,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path22070-6" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1Lend-18"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path5542-7" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker40979-9"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Mend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-0.4,0,0,-0.4,-4,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path40977-2" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1Mstart-0"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Mstart"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(0.4,0,0,0.4,4,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path22067-2" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker70085"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path70083" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker70089"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path70087" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker51832-3"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Mend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-0.4,0,0,-0.4,-4,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path22070-7" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1Lend-18-0"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path5542-7-7" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1Lend-18-09"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path5542-7-1" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker91479"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path91477" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker91483"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path91481" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1Lend-18-0-7"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path5542-7-7-7" />
+    </marker>
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       style="fill:none;stroke:#6a390e;stroke-width:0.57477px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 155.70729,127.26457 0.0709,-11.87818"
+       id="path861-6-2-7"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:none;stroke:#6a390e;stroke-width:0.57477px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 69.85,126.73542 0.07088,-11.87818"
+       id="path861-6"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:none;stroke:#6a390e;stroke-width:0.57477px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 121.44376,134.67292 0.0709,-11.87818"
+       id="path861-6-2"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.088;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.088, 0.088;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 83.079167,108.47917 v 2.11666"
+       id="path5537-2-2"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <path
+       id="path965-9-7"
+       style="fill:url(#linearGradient49031);stroke-width:0.138676;stroke-linecap:round"
+       d="m 69.85,108.35748 a 3.3072916,10.583333 85.411438 0 0 -10.284829,4.14336 L 80.663995,110.8075 A 3.3072916,10.583333 85.411438 0 0 69.85,108.35748 Z" />
+    <path
+       style="fill:none;stroke:#c26719;stroke-width:0.57477px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 64.102292,129.19844 69.85,114.82917 l 5.747711,14.36927"
+       id="path861"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <path
+       id="rect9617-5-3"
+       style="fill:#3f5c2a;stroke-width:0.176389;stroke-linecap:round"
+       d="m 68.130202,116.41667 h 3.439605 c 0.146573,0 0.264575,-0.118 0.264573,-0.26457 l -1.1e-5,-1.05835 h -3.96875 l 1e-5,1.05835 c 10e-7,0.14657 0.117999,0.26457 0.264573,0.26457 z"
+       sodipodi:nodetypes="sssccss"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <rect
+       style="fill:#3f5c2a;fill-opacity:1;stroke:none;stroke-width:0.0881943;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect6155-7"
+       width="1.3229141"
+       height="3.96875"
+       x="68.262497"
+       y="110.99271"
+       ry="0.66145831" />
+    <path
+       style="fill:#d89f0c;fill-opacity:1;stroke:#dca10c;stroke-width:0.176389;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 67.166011,111.00106 4.984695,-2.06751 1.138877,1.66228 -0.418296,1.97111 -5.396455,-0.009 z"
+       id="path6946" />
+    <ellipse
+       style="fill:#0c17da;fill-opacity:1;stroke:#daa00c;stroke-width:0.176389;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path3270"
+       cx="44.27187"
+       cy="122.74025"
+       rx="0.51152748"
+       ry="0.79374999"
+       transform="rotate(-11.217441)" />
+    <path
+       style="fill:#da9f0c;fill-opacity:1;stroke:#daa00c;stroke-width:0.176389;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path3272"
+       sodipodi:type="arc"
+       sodipodi:cx="49.598812"
+       sodipodi:cy="122.74025"
+       sodipodi:rx="1.3229141"
+       sodipodi:ry="1.8520833"
+       sodipodi:start="4.704987"
+       sodipodi:end="1.5934553"
+       sodipodi:open="true"
+       sodipodi:arc-type="arc"
+       d="m 49.58902,120.88822 a 1.3229141,1.8520833 0 0 1 1.157197,0.93019 1.3229141,1.8520833 0 0 1 -0.01018,1.86808 1.3229141,1.8520833 0 0 1 -1.167199,0.90537"
+       transform="rotate(-11.217441)" />
+    <path
+       style="fill:none;stroke:#5b843c;stroke-width:0.0881944;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend)"
+       d="m 69.85,111.65417 13.229167,-3.175"
+       id="path5537"
+       sodipodi:nodetypes="cc" />
+    <path
+       id="path965-9"
+       style="fill:url(#linearGradient48729);stroke-width:0.138676;stroke-linecap:round"
+       d="m 59.565171,112.50084 a 3.3072916,10.583333 85.411438 0 0 10.813995,2.45002 3.3072916,10.583333 85.411438 0 0 10.28483,-4.14336 z" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:0.705556px;line-height:0.95;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="62.944305"
+       y="111.62454"
+       id="text15875-3"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484"><tspan
+         sodipodi:role="line"
+         style="font-size:0.705556px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="62.944305"
+         y="111.62454"
+         id="tspan19243-75">Instrument</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:0.705556px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="62.944305"
+         y="112.29482"
+         id="tspan2481">horizontal plane</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:0.705556px;line-height:0.95;font-family:sans-serif;text-align:end;letter-spacing:0px;word-spacing:0px;text-anchor:end;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="69.605057"
+       y="110.31644"
+       id="text15875-3-9"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484"><tspan
+         sodipodi:role="line"
+         style="font-size:0.705556px;text-align:end;text-anchor:end;stroke-width:0.264583"
+         x="67.707153"
+         y="110.31644"
+         id="tspan19243-75-3">Instrument</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:0.705556px;text-align:end;text-anchor:end;stroke-width:0.264583"
+         x="67.707153"
+         y="110.98672"
+         id="tspan2481-6">origin</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:0.705556px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#e12b00;fill-opacity:1;stroke:none;stroke-width:0.105833;stroke-miterlimit:4;stroke-dasharray:none"
+       x="76.996162"
+       y="113.0949"
+       id="text15875-8"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484"><tspan
+         sodipodi:role="line"
+         style="font-size:0.705556px;fill:#e12b00;fill-opacity:1;stroke:none;stroke-width:0.105833;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         x="76.996162"
+         y="113.0949"
+         id="tspan19243-7">Horizontal angle</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:0.70555556px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#e12b00;fill-opacity:1;stroke:none;stroke-width:0.105833;stroke-miterlimit:4;stroke-dasharray:none"
+       x="72.342186"
+       y="107.14143"
+       id="text15875-8-3"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484"><tspan
+         sodipodi:role="line"
+         style="fill:#e12b00;fill-opacity:1;stroke:none;stroke-width:0.105833;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;font-size:0.70555556px"
+         x="72.342186"
+         y="107.14143"
+         id="tspan19243-7-6">Zenith angle</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:0.705556px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="79.803566"
+       y="108.14465"
+       id="text15875-9"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484"><tspan
+         sodipodi:role="line"
+         style="font-size:0.705556px;stroke-width:0.264583"
+         x="79.803566"
+         y="108.14465"
+         id="tspan19243-2">Sight line</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:0.705556px;line-height:0.95;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="84.662018"
+       y="111.39648"
+       id="text15875-9-3"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484"><tspan
+         sodipodi:role="line"
+         style="font-size:0.705556px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="84.662018"
+         y="111.39648"
+         id="tspan19243-2-5">Horizontal projection</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:0.705556px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="84.662018"
+         y="112.06676"
+         id="tspan23238">of sight line</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:0.705556px;line-height:0.95;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="66.085205"
+       y="104.21621"
+       id="text15875-7"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484"><tspan
+         sodipodi:role="line"
+         style="font-size:0.705556px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="66.085205"
+         y="104.21621"
+         id="tspan19243-9">Instrument z axis</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:0.705556px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="66.085205"
+         y="104.88649"
+         id="tspan71804">zenith angle origin</tspan></text>
+    <path
+       style="fill:none;fill-opacity:1;stroke:#e31c1c;stroke-width:0.105833;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.993571;marker-end:url(#marker40979)"
+       id="path39537"
+       sodipodi:type="arc"
+       sodipodi:cx="69.849998"
+       sodipodi:cy="110.9927"
+       sodipodi:rx="4.4979138"
+       sodipodi:ry="4.1010342"
+       sodipodi:start="4.7202242"
+       sodipodi:end="6.1322922"
+       sodipodi:open="true"
+       sodipodi:arc-type="arc"
+       d="m 69.88524,106.89179 a 4.4979138,4.1010342 0 0 1 4.411564,3.48444"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <path
+       id="path965-2"
+       style="fill:none;stroke:#e12b00;stroke-width:0.0881944;stroke-linecap:round;marker-start:url(#Arrow1Mstart)"
+       d="m 76.750922,111.27964 c 0.242828,1.16828 -0.286339,1.69745 -2.209677,1.95053"
+       sodipodi:nodetypes="cc" />
+    <rect
+       style="fill:#5b843c;fill-opacity:1;stroke:none;stroke-width:0.0881943;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect6155"
+       width="1.3229141"
+       height="3.96875"
+       x="70.114586"
+       y="111.125"
+       ry="0.66145831" />
+    <path
+       id="rect9617-5"
+       style="fill:#3f5c2a;stroke-width:0.176389;stroke-linecap:round"
+       d="m 68.130202,114.03541 h 3.439605 c 0.146573,0 0.264575,0.118 0.264573,0.26457 l -1.1e-5,1.05835 h -3.96875 l 1e-5,-1.05835 c 10e-7,-0.14657 0.117999,-0.26457 0.264573,-0.26457 z"
+       sodipodi:nodetypes="sssccss"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <path
+       style="fill:none;stroke:#e12b00;stroke-width:0.0705556;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend)"
+       d="m 69.849999,111.65417 6.879168,2.38125"
+       id="path11673"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <path
+       style="fill:none;stroke:#e12b00;stroke-width:0.0705556;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend)"
+       d="m 69.85,111.65417 0,-8.20209"
+       id="path10839"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:0.705556px;line-height:0.95;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="79.093018"
+       y="114.83606"
+       id="text15875"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484"><tspan
+         sodipodi:role="line"
+         id="tspan15873"
+         style="font-size:0.705556px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="79.093018"
+         y="114.83606">Instrument x axis</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:0.705556px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="79.093018"
+         y="115.50634"
+         id="tspan19243">horizontal origin</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:0.705556px;line-height:0.95;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="117.41438"
+       y="112.12353"
+       id="text15875-7-3"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484"><tspan
+         sodipodi:role="line"
+         style="font-size:0.705556px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="117.41438"
+         y="112.12353"
+         id="tspan19243-9-1">Instrument z axis</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:0.705556px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="117.41438"
+         y="112.79381"
+         id="tspan71804-4">zenith angle origin</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:0.705556px;line-height:0.95;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="126.71806"
+       y="122.74338"
+       id="text15875-92"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484"><tspan
+         sodipodi:role="line"
+         id="tspan15873-0"
+         style="font-size:0.705556px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="126.71806"
+         y="122.74338">Instrument x axis</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:0.705556px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="126.71806"
+         y="123.41366"
+         id="tspan19243-6">horizontal origin</tspan></text>
+    <path
+       style="fill:none;stroke:#5b843c;stroke-width:0.088;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.088, 0.088;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#marker51832)"
+       d="m 69.85,111.65417 13.229167,-1.05834"
+       id="path5537-2"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <ellipse
+       style="fill:#ff0707;fill-opacity:1;stroke:none;stroke-width:0.211664;stroke-linecap:round"
+       id="path50241"
+       cx="69.849998"
+       cy="111.65417"
+       rx="0.26458079"
+       ry="0.26458588" />
+    <path
+       style="fill:none;stroke:#c26719;stroke-width:0.57477px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 115.69605,137.13594 5.74771,-14.36927 5.74771,14.36927"
+       id="path861-9"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <path
+       id="rect9617-5-3-2"
+       style="fill:#3f5c2a;stroke-width:0.176389;stroke-linecap:round"
+       d="m 119.72396,124.35417 h 3.43961 c 0.14657,0 0.26457,-0.118 0.26457,-0.26457 l -1e-5,-1.05835 h -3.96875 l 1e-5,1.05835 c 0,0.14657 0.118,0.26457 0.26457,0.26457 z"
+       sodipodi:nodetypes="sssccss"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <rect
+       style="fill:#3f5c2a;fill-opacity:1;stroke:none;stroke-width:0.0881943;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect6155-7-8"
+       width="1.3229141"
+       height="3.96875"
+       x="119.85625"
+       y="118.93021"
+       ry="0.66145831"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <path
+       style="fill:#d89f0c;fill-opacity:1;stroke:#dca10c;stroke-width:0.176389;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 118.75977,118.93856 4.98469,-2.06751 1.13888,1.66228 -0.4183,1.97111 -5.39645,-0.009 z"
+       id="path6946-9"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <ellipse
+       style="fill:#0c17da;fill-opacity:1;stroke:#daa00c;stroke-width:0.176389;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path3270-7"
+       cx="93.335869"
+       cy="140.56279"
+       rx="0.51152748"
+       ry="0.79374999"
+       transform="rotate(-11.217441)"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <path
+       style="fill:#da9f0c;fill-opacity:1;stroke:#daa00c;stroke-width:0.176389;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path3272-3"
+       sodipodi:type="arc"
+       sodipodi:cx="98.662811"
+       sodipodi:cy="140.56279"
+       sodipodi:rx="1.3229141"
+       sodipodi:ry="1.8520833"
+       sodipodi:start="4.704987"
+       sodipodi:end="1.5934553"
+       sodipodi:open="true"
+       sodipodi:arc-type="arc"
+       transform="rotate(-11.217441)"
+       d="m 98.653019,138.71076 a 1.3229141,1.8520833 0 0 1 1.157198,0.93019 1.3229141,1.8520833 0 0 1 -0.01018,1.86808 1.3229141,1.8520833 0 0 1 -1.167199,0.90537"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <rect
+       style="fill:#5b843c;fill-opacity:1;stroke:none;stroke-width:0.0881943;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect6155-0"
+       width="1.3229141"
+       height="3.96875"
+       x="121.70834"
+       y="119.0625"
+       ry="0.66145831"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <path
+       id="rect9617-5-6"
+       style="fill:#3f5c2a;stroke-width:0.176389;stroke-linecap:round"
+       d="m 119.72396,121.97291 h 3.43961 c 0.14657,0 0.26457,0.118 0.26457,0.26457 l -1e-5,1.05835 h -3.96875 l 1e-5,-1.05835 c 0,-0.14657 0.118,-0.26457 0.26457,-0.26457 z"
+       sodipodi:nodetypes="sssccss"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <path
+       style="fill:none;stroke:#c26719;stroke-width:0.57477px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 149.95958,129.72759 5.74771,-14.36927 5.74771,14.36927"
+       id="path861-9-4"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <rect
+       style="fill:#3f5c2a;fill-opacity:1;stroke:none;stroke-width:0.0881943;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect6155-7-8-6"
+       width="1.3229141"
+       height="3.96875"
+       x="154.1198"
+       y="111.52187"
+       ry="0.66145831"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <g
+       id="g73529"
+       transform="rotate(-25.872991,151.94038,114.57259)"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484">
+      <path
+         style="fill:#836007;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 155.575,112.44792 c 1.05833,0 1.5875,1.32291 1.5875,1.32291 0,0 -0.52917,1.32292 -1.5875,1.32292 z"
+         id="path72358"
+         sodipodi:nodetypes="cccc" />
+      <ellipse
+         style="fill:#9e7408;fill-opacity:1;stroke:#6a390e;stroke-width:0.088;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         id="path72323"
+         cx="155.575"
+         cy="113.77083"
+         rx="0.79374999"
+         ry="1.3229166" />
+    </g>
+    <rect
+       style="fill:#5b843c;fill-opacity:1;stroke:none;stroke-width:0.0881943;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect6155-0-5"
+       width="1.3229141"
+       height="3.96875"
+       x="155.97189"
+       y="111.65415"
+       ry="0.66145831"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <path
+       id="rect9617-5-6-6"
+       style="fill:#3f5c2a;stroke-width:0.176389;stroke-linecap:round"
+       d="m 153.98749,114.56456 h 3.43961 c 0.14657,0 0.26457,0.118 0.26457,0.26457 l -10e-6,1.05835 h -3.96875 l 10e-6,-1.05835 c 0,-0.14657 0.118,-0.26457 0.26457,-0.26457 z"
+       sodipodi:nodetypes="sssccss"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <path
+       style="fill:none;stroke:#e12b00;stroke-width:0.0705556;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend-18)"
+       d="m 121.44376,119.59167 6.87916,2.38125"
+       id="path11673-3"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <path
+       style="fill:none;stroke:#e12b00;stroke-width:0.0705556;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend-18)"
+       d="m 121.44376,119.59167 v -8.20209"
+       id="path10839-2"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <path
+       style="fill:none;stroke:#5b843c;stroke-width:0.0881944;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend-18)"
+       d="m 121.44375,119.59167 32.54375,-7.14375"
+       id="path5537-6"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <path
+       style="fill:none;stroke:#5b843c;stroke-width:0.0881944;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend-18-0)"
+       d="m 121.44375,119.59167 23.28333,2.64583"
+       id="path5537-6-8"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <path
+       id="rect9617-5-3-2-9"
+       style="fill:#3f5c2a;stroke-width:0.176389;stroke-linecap:round"
+       d="m 153.98749,116.81352 h 3.43961 c 0.14657,0 0.26457,-0.118 0.26457,-0.26457 l -10e-6,-1.05835 h -3.96875 l 10e-6,1.05835 c 0,0.14657 0.118,0.26457 0.26457,0.26457 z"
+       sodipodi:nodetypes="sssccss"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <path
+       style="fill:none;stroke:#6a390e;stroke-width:0.57477px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 146.44685,137.45104 0.0709,-11.87818"
+       id="path861-6-2-7-7"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:none;stroke:#c26719;stroke-width:0.57477px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 140.69914,139.91406 5.74771,-14.36927 5.74771,14.36927"
+       id="path861-9-4-4"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <rect
+       style="fill:#3f5c2a;fill-opacity:1;stroke:none;stroke-width:0.0881943;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect6155-7-8-6-5-3"
+       width="1.3229141"
+       height="3.96875"
+       x="146.57916"
+       y="121.84064"
+       ry="0.66145831"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <ellipse
+       style="fill:#836007;fill-opacity:1;stroke:#6a390e;stroke-width:0.088;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="path72323-4"
+       cx="175.85535"
+       cy="72.413498"
+       rx="0.79374999"
+       ry="1.3229166"
+       transform="rotate(17.634804)"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <path
+       style="fill:#836007;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 146.05454,121.02499 c 1.0086,0.32062 1.11213,1.74167 1.11213,1.74167 0,0 -0.90508,1.10044 -1.91368,0.77982 z"
+       id="path72358-5"
+       sodipodi:nodetypes="cccc"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <rect
+       style="fill:#5b843c;fill-opacity:1;stroke:none;stroke-width:0.0881943;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect6155-0-5-7"
+       width="1.3229141"
+       height="3.96875"
+       x="144.99165"
+       y="121.84064"
+       ry="0.66145831"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <path
+       id="rect9617-5-6-6-4"
+       style="fill:#3f5c2a;stroke-width:0.176389;stroke-linecap:round"
+       d="m 144.72705,124.75103 h 3.43961 c 0.14657,0 0.26457,0.118 0.26457,0.26457 l -1e-5,1.05835 h -3.96875 l 1e-5,-1.05835 c 0,-0.14657 0.118,-0.26457 0.26457,-0.26457 z"
+       sodipodi:nodetypes="sssccss"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <path
+       id="rect9617-5-3-2-9-4"
+       style="fill:#3f5c2a;stroke-width:0.176389;stroke-linecap:round"
+       d="m 144.72705,126.99999 h 3.43961 c 0.14657,0 0.26457,-0.118 0.26457,-0.26457 l -1e-5,-1.05835 h -3.96875 l 1e-5,1.05835 c 0,0.14657 0.118,0.26457 0.26457,0.26457 z"
+       sodipodi:nodetypes="sssccss"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <ellipse
+       style="fill:#ff0707;fill-opacity:1;stroke:none;stroke-width:0.211664;stroke-linecap:round"
+       id="path50241-5"
+       cx="121.44374"
+       cy="119.59167"
+       rx="0.26458079"
+       ry="0.26458588"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <ellipse
+       style="fill:#ff0707;fill-opacity:1;stroke:none;stroke-width:0.211664;stroke-linecap:round"
+       id="path50241-5-2"
+       cx="146.31459"
+       cy="122.50208"
+       rx="0.26458079"
+       ry="0.26458588"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:2.82223px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="115.43"
+       y="117.43504"
+       id="text77047"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484"><tspan
+         sodipodi:role="line"
+         id="tspan77045"
+         style="stroke-width:0.264583"
+         x="115.43"
+         y="117.43504">PtA</tspan></text>
+    <path
+       style="fill:none;stroke:#6a390e;stroke-width:0.57477px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 108.21458,147.9021 0.0709,-11.87818"
+       id="path861-6-2-1"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:none;stroke:#c26719;stroke-width:0.57477px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 102.46687,150.36512 5.74771,-14.36927 5.74771,14.36927"
+       id="path861-9-1"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <path
+       id="rect9617-5-3-2-5"
+       style="fill:#3f5c2a;stroke-width:0.176389;stroke-linecap:round"
+       d="m 106.49478,137.58335 h 3.43961 c 0.14657,0 0.26457,-0.118 0.26457,-0.26457 l -1e-5,-1.05835 h -3.96875 l 1e-5,1.05835 c 0,0.14657 0.118,0.26457 0.26457,0.26457 z"
+       sodipodi:nodetypes="sssccss"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <rect
+       style="fill:#3f5c2a;fill-opacity:1;stroke:none;stroke-width:0.0881943;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect6155-7-8-9"
+       width="1.3229141"
+       height="3.96875"
+       x="106.62708"
+       y="132.15936"
+       ry="0.66145831"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <path
+       style="fill:#d89f0c;fill-opacity:1;stroke:#dca10c;stroke-width:0.176389;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 105.53059,132.16774 4.98469,-2.06751 1.13888,1.66228 -0.4183,1.97111 -5.39645,-0.009 z"
+       id="path6946-9-7"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <ellipse
+       style="fill:#0c17da;fill-opacity:1;stroke:#daa00c;stroke-width:0.176389;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path3270-7-7"
+       cx="77.785927"
+       cy="150.9657"
+       rx="0.51152748"
+       ry="0.79374999"
+       transform="rotate(-11.217441)"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <path
+       style="fill:#da9f0c;fill-opacity:1;stroke:#daa00c;stroke-width:0.176389;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path3272-3-6"
+       sodipodi:type="arc"
+       sodipodi:cx="83.112862"
+       sodipodi:cy="150.9657"
+       sodipodi:rx="1.3229141"
+       sodipodi:ry="1.8520833"
+       sodipodi:start="4.704987"
+       sodipodi:end="1.5934553"
+       sodipodi:open="true"
+       sodipodi:arc-type="arc"
+       transform="rotate(-11.217441)"
+       d="m 83.10307,149.11367 a 1.3229141,1.8520833 0 0 1 1.157197,0.93019 1.3229141,1.8520833 0 0 1 -0.01018,1.86808 1.3229141,1.8520833 0 0 1 -1.1672,0.90537"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <rect
+       style="fill:#5b843c;fill-opacity:1;stroke:none;stroke-width:0.0881943;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect6155-0-7"
+       width="1.3229141"
+       height="3.96875"
+       x="108.47919"
+       y="132.29164"
+       ry="0.66145831"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <path
+       id="rect9617-5-6-3"
+       style="fill:#3f5c2a;stroke-width:0.176389;stroke-linecap:round"
+       d="m 106.49478,135.20209 h 3.43961 c 0.14657,0 0.26457,0.118 0.26457,0.26457 l -1e-5,1.05835 h -3.96875 l 1e-5,-1.05835 c 0,-0.14657 0.118,-0.26457 0.26457,-0.26457 z"
+       sodipodi:nodetypes="sssccss"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <path
+       style="fill:none;stroke:#5b843c;stroke-width:0.0881944;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend-18-09)"
+       d="M 108.21458,132.82085 153.9875,112.97708"
+       id="path5537-6-6"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <path
+       style="fill:none;stroke:#5b843c;stroke-width:0.0881944;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend-18-0-7)"
+       d="M 108.21457,132.82085 144.4625,122.76667"
+       id="path5537-6-8-3"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <ellipse
+       style="fill:#ff0707;fill-opacity:1;stroke:none;stroke-width:0.211664;stroke-linecap:round"
+       id="path50241-5-9"
+       cx="108.21458"
+       cy="132.82083"
+       rx="0.26458079"
+       ry="0.26458588"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:2.82223px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="102.20083"
+       y="130.66418"
+       id="text77047-4"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484"><tspan
+         sodipodi:role="line"
+         id="tspan77045-81"
+         style="stroke-width:0.264583"
+         x="102.20083"
+         y="130.66418">PtD</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:2.82223px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="146.26772"
+       y="120.09121"
+       id="text77047-6"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484"><tspan
+         sodipodi:role="line"
+         id="tspan77045-8"
+         style="stroke-width:0.264583"
+         x="146.26772"
+         y="120.09121">PtB</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:2.82223px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="156.29846"
+       y="110.57379"
+       id="text77047-6-8"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484"><tspan
+         sodipodi:role="line"
+         id="tspan77045-8-4"
+         style="stroke-width:0.264583"
+         x="156.29846"
+         y="110.57379">PtC</tspan></text>
+    <ellipse
+       style="fill:#ff0707;fill-opacity:1;stroke:none;stroke-width:0.211664;stroke-linecap:round"
+       id="path50241-5-93"
+       cx="155.575"
+       cy="111.91875"
+       rx="0.26458079"
+       ry="0.26458588"
+       inkscape:export-filename="/home/JMMuller/micmac/MMVII/Doc/CommandReferences/ImagesComRef/topo2.png"
+       inkscape:export-xdpi="1000.3484"
+       inkscape:export-ydpi="1000.3484" />
+  </g>
+</svg>

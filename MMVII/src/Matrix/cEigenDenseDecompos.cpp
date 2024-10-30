@@ -113,7 +113,7 @@ template <class Type> Type  cResulSymEigenValue<Type>::Cond(Type aDef) const
    }
    if (aIMM.Max().ValExtre() == Type(0.0))
    {
-       MMVII_INTERNAL_ASSERT_strong(aDef>=0,"Conditionning of null eigen value without default");
+       MMVII_INTERNAL_ASSERT_strong(aDef>=0,"Conditioning of null eigen value without default");
        return aDef;
    }
    return  aIMM.Min().ValExtre() / aIMM.Max().ValExtre() ;

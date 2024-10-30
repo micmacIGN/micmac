@@ -1,4 +1,5 @@
 #include "MMVII_memory.h"
+#include "cMMVII_Appli.h"
 
 
 namespace MMVII
@@ -78,11 +79,28 @@ bool  cMemManager::IsOkCheckRestoration(const cMemState & aSt)  {return aSt==mSt
 
 void cMemManager::CheckRestoration(const cMemState & aState) 
 {
-   MMVII_INTERNAL_ASSERT_always
-   (
-        IsOkCheckRestoration(aState),
-        "Allocates memory were not correctly freed"
-   );
+   if (!IsOkCheckRestoration(aState))
+   {
+        const std::vector<bool> * aVF = cMemCountable::AdrTheVectFreeed();
+	if (aVF)
+	{
+	   bool First=true;
+	   for (size_t aK=0 ; aK<aVF->size() ; aK++)
+	   {
+               if ((!aVF->at(aK)) && First)
+		{
+                   std::cout <<   "========================== Ident of Non Freed object  " << aK << "\n";
+		   First=false;
+		}
+	   }
+	}
+
+        MMVII_INTERNAL_ASSERT_always
+        (
+             false,
+             "Allocates memory were not correctly freed"
+        );
+   }
 }
 
 
@@ -240,6 +258,20 @@ int     cMemCountable::NbObjLive() {return TheNbObjLive;}
 
 int     cMemCountable::TheNbObjLive=0;
 int     cMemCountable::TheCptObj = 0;
+int  cMemCountable::TheNumObjTagged = -1;
+#if (The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_micro)
+std::vector<bool>  cMemCountable::TheVectFreeed;
+const std::vector<bool> * cMemCountable::AdrTheVectFreeed() {return &TheVectFreeed;}
+#else
+const std::vector<bool> * cMemCountable::AdrTheVectFreeed() {return nullptr;}
+#endif
+
+void  cMemCountable::SetTaggedObjectAtCreation(int aNum)
+{
+	TheNumObjTagged = aNum;
+}
+
+
 
 
 

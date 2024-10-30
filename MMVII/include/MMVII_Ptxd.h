@@ -169,6 +169,13 @@ template <class Type,const int Dim> class cPtxd
 	/// Used for "generik" object that must describes its box
 	cTplBox<Type,Dim>  GetBoxEnglob() const;
 	bool  InfEqDist(const tPt &,tREAL8) const;
+
+    bool IsValid() const {
+        for (int aK=0 ; aK<Dim; aK++)
+             if  (!tNumTrait<Type>::ValueOk(mCoords[aK]))
+                 return false;
+        return true;
+    }
     protected :
        Type mCoords[Dim];
 };
@@ -203,6 +210,11 @@ typedef cPtxd<float,3>   cPt3df ;
 // If dim =2 aNbVois->1 create the 4 neigh, NbVois-> 2 create the 8 neigh
 // If Dim=3   1-> 6  2->    3->26 ( 3^3 -1)
 template <const int Dim>  const std::vector<cPtxd<int,Dim>> & AllocNeighbourhood(int aNbVois);
+
+//  classical  8-Neighbourhood
+const std::vector<cPt2di> & Alloc8Neighbourhood();
+//  classical  4-Neighbourhood
+const std::vector<cPt2di> & Alloc4Neighbourhood();
 
 //  Create a tab where K entrie represent vectors having NormInf equal to K
 //  !! =>  Entry go from 0 to aDistMax included
@@ -383,6 +395,7 @@ template <class T,const int Dim> typename tNumTrait<T>::tBig Scal(const cPtxd<T,
 template <class T,const int Dim> typename tNumTrait<T>::tBig MulCoord(const cPtxd<T,Dim> & aP);
 
 template <class T,const int Dim> T Cos(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);
+template <class T,const int Dim> T CosWDef(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &,const T&);
 template <class T,const int Dim> T AbsAngle(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);
 //  Trunk cos in [-1,1] if necessary
 template <class T,const int Dim> T AbsAngleTrnk(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);
@@ -836,6 +849,8 @@ template <class Type,const int Dim> class cSegment
        void CompileFoncLinear(Type & aVal,tPt & aVec,const Type  &aV1,const Type  & aV2) const;
        const tPt&  P1() const; ///< Accessor
        const tPt&  P2() const; ///< Accessor
+       tPt&  P1() ; ///< Accessor
+       tPt&  P2() ; ///< Accessor
 
        tPt  V12() const;   ///<  Vector  P1->P2
        tPt  PMil() const;  ///<  P middle
@@ -853,7 +868,8 @@ template <class Type,const int Dim> class cSegmentCompiled : public cSegment<Typ
        cSegmentCompiled(const tPt& aP1,const tPt& aP2);
        cSegmentCompiled(const cSegment<Type,Dim>&);
        tPt  Proj(const tPt &) const;
-       Type Dist(const tPt &) const;
+       Type Dist(const tPt &) const; // dist to full line
+       Type Abscissa(const tPt& aPt) const;
 
        const Type & N2 () const;
        const tPt  & Tgt() const;

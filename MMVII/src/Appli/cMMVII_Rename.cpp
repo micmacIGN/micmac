@@ -267,7 +267,7 @@ void cAppli_Rename::TestSet(const std::string & aNameOut)
 
 std::vector<std::string>  cAppli_Rename::Samples() const
 {
-  return {"MMVII UtiRename \"948_(.*).JPG\" \"\\$0\" AR=[-,1,1] DoReplace=true"};
+  return {"MMVII UtiRename \"948_(.*).JPG\" \"\\$&\" AR=[-,1,1] DoReplace=true"};
 }
 
 int cAppli_Rename::Exe()

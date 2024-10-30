@@ -1,4 +1,4 @@
-#include "MMVII_Matrix.h"
+#include "MMVII_SysSurR.h"
 #include "MMVII_Geom3D.h"
 
 namespace MMVII
@@ -282,6 +282,7 @@ cPlane3D cPlane3D::FromPtAndNormal(const cPt3dr & aP0,const cPt3dr& aNormal)
 const cPt3dr& cPlane3D::AxeI() const {return mAxeI;}
 const cPt3dr& cPlane3D::AxeJ() const {return mAxeJ;}
 const cPt3dr& cPlane3D::AxeK() const {return mAxeK;}
+const cPt3dr& cPlane3D::P0()   const {return mP0;  }
 
 cPt3dr  cPlane3D::ToLocCoord(const cPt3dr & aPGlob) const
 {
@@ -320,8 +321,165 @@ std::vector<cPt3dr>  cPlane3D::RandParam()
     return std::vector<cPt3dr>{aP0,v1,v2};
 }
 
+/**  Compute the direction of intersection, algorithm :
+ *
+ *      - compute the quadratic form  E(Pt) =  Sum(D^2(Plk,Pt))
+ *      - search the minimum on unity sphere
+ *      - the minimum is reached for the eigen vector corresponding to the lowest eigen-value
+ */
+
+
+cPt3dr cPlane3D::DirInterPlane(const std::vector<const cPlane3D*>& aVPlanes,int aSzMin)
+{
+    MMVII_INTERNAL_ASSERT_tiny((int)aVPlanes.size()>=aSzMin,"DirInterPlane not enough planes");
+
+    // compute the quadratic form
+    cStrStat2<tREAL8>  aCov(3);
+    for (const auto & aPlanePtr : aVPlanes)
+    {
+        aCov.Add(aPlanePtr->AxeK().ToVect());
+    }
+
+    // extract the diagonalisation
+    const cResulSymEigenValue<tREAL8> & aResE = aCov.DoEigen();
+
+    // extract the eigen-vector corresponding to lowest eigen value (they are in growing order)
+    cPt3dr aRes;
+    GetCol(aRes,aResE.EigenVectors(),0);
+
+    return aRes;
+}
+
+cPt3dr cPlane3D::DirInterPlane(const std::vector<cPlane3D>& aVPlanes,int aSzMin)
+{
+    return DirInterPlane(VecObj2VecPtr(aVPlanes),aSzMin);
+}
+/**  Compute the line of intersection of N Plane , Method :
+ *
+ *    - 1 compute the direction "DIR"
+ *    - 2 compute "the" point
+ *
+ *    The problem arrise when the direction of intersection is almost perfect, in this
+ *    case the position is undetermined.  This is obviously the case when N=2.  This here
+ *    where the stabilizer is used, it fix with some weight, the position on  "DIR" to be
+ *    closed to average of P0() of all plane.
+ */
+
+tSeg3dr  cPlane3D::InterPlane(const std::vector<const cPlane3D*>& aVPlanes,int aSzMin,tREAL8 aWeightStabRel)
+{
+   cPt3dr aDir = DirInterPlane(aVPlanes,aSzMin);
+   int aNbPl = aVPlanes.size();
+
+   if (aNbPl<=1)
+   {
+       cPt3dr aP0 = aVPlanes.empty() ? cPt3dr::PRandC() : aVPlanes.at(0)->P0();
+       return tSeg3dr(aP0,aP0+aDir);
+   }
+
+   cLeasSqtAA<tREAL8> aSys(3);
+
+   cPt3dr aAvgP0(0,0,0);
+   tREAL8 aSomDPl = 0;
+   for (const auto & aPlanePtr : aVPlanes)
+   {
+       const cPt3dr & aK = aPlanePtr->AxeK();
+       aSys.PublicAddObservation(1.0,aK.ToVect(),Scal(aPlanePtr->P0(),aK));
+       aAvgP0 += aPlanePtr->P0();
+       aSomDPl +=  std::abs(Scal(aK,aDir));
+   }
+
+   if (aWeightStabRel != 0)
+   {
+       aAvgP0 = aAvgP0 / tREAL8(aNbPl);
+       aSomDPl /=  aNbPl;
+
+       tREAL8 aWeightStab = aWeightStabRel / (aSomDPl+aWeightStabRel);
+       aSys.PublicAddObservation(aWeightStab,aDir.ToVect(),Scal(aDir,aAvgP0));
+   }
+
+   cPt3dr aP0 = cPt3dr::FromVect(aSys.PublicSolve());
+   return tSeg3dr(aP0,aP0+aDir);
+}
+
+tSeg3dr  cPlane3D::InterPlane(const std::vector<cPlane3D>& aVPlanes,int aSzMin,tREAL8 aWeightStabRel)
+{
+    return InterPlane(VecObj2VecPtr(aVPlanes),aSzMin,aWeightStabRel);
+}
+
+
+void BenchPlaneInter()
+{
+    for (int aKPlane=0 ; aKPlane<100 ; aKPlane++)
+    {
+        cPt3dr aAxeSym  =  cPt3dr::PRandUnit();
+        tRotR aR = tRotR::CompleteRON(aAxeSym );
+        int aNbTeta = 0 + (aKPlane%7);
+        tREAL8 aTeta0 = RandUnif_C() *10.0;
+        std::vector<cPlane3D> aVPlanes;
+
+        cPt3dr aP0 = cPt3dr::PRandC();
+
+        tREAL8 aEps = 0.1 * RandUnif_C_NotNull(0.1);
+       // force a perfect intersec to test stabilization
+        if ( (aNbTeta>2) && (aKPlane%3==0))
+            aEps = 0;
+
+        for (int aKTeta=0 ; aKTeta<aNbTeta ; aKTeta++)
+        {
+            tREAL8 aTeta = aTeta0 + (2*M_PI*aKTeta) / aNbTeta;
+            cPt3dr aPNorm = aR.Value(cPt3dr(aEps,std::cos(aTeta),std::sin(aTeta)));
+
+            aVPlanes.push_back(cPlane3D::FromPtAndNormal(aP0,aPNorm));
+        }
+        cPt3dr  aDirInter = cPlane3D::DirInterPlane(aVPlanes,0);
+        tSeg3dr aLineInter = cPlane3D::InterPlane(aVPlanes,0);
+
+        // Juste check that dir are identic
+        tREAL8 aDifDir = Norm2(aDirInter- aLineInter.V12());
+        MMVII_INTERNAL_ASSERT_bench(aDifDir<1e-10,"Diff of direction in interplane");
+
+        if (Cos(aDirInter,aAxeSym)<0)
+           aAxeSym = - aAxeSym;
+
+        for (const auto & aPl : aVPlanes)
+        {
+               tREAL8 aVCos = std::abs(Cos(aDirInter,aPl.AxeK()));
+               tREAL8 aZ1 = std::abs(aPl.ToLocCoord(aLineInter.P1()).z());
+               tREAL8 aZ2 = std::abs(aPl.ToLocCoord(aLineInter.P2()).z());
+               if (aNbTeta<=2)
+               {
+                  // if NbPlane is 2, then the intersection is perfect => Test that the intersection is orthog to normal
+                  MMVII_INTERNAL_ASSERT_bench(aVCos<1e-5,"Dir Inter Plane, Case 2");
+		  // Test point P1 and P2  belongs to all plane
+                  MMVII_INTERNAL_ASSERT_bench((aZ1<1e-5) && (aZ2<1e-5),"Z-Inter Plane, Case <= 2");
+               }
+               else
+               {
+                  // just test that inter is not  perfect
+                  // StdOut() << "CCCc" << aVCos << " " << aDirInter << aPl.AxeK() << "\n";
+
+                  if (aEps>0)
+                  {
+                      MMVII_INTERNAL_ASSERT_bench(aVCos>std::abs(aEps/2.0),"Dir Inter Plane, Case > 2");
+                  }
+		  // Test point P1 belongs to all plane
+                  MMVII_INTERNAL_ASSERT_bench((aZ1<1e-5) ,"Z-Inter Plane, Case 2");
+               }
+        }
+        if (aNbTeta>2)
+        {
+            tREAL8 aDist =  Norm2(aDirInter - aAxeSym);
+            MMVII_INTERNAL_ASSERT_bench(aDist<1e-5,"Dir Inter Plane, Case > 2");
+        }
+
+    }
+}
+
+
 void BenchPlane3D()
 {
+    BenchPlaneInter();
+
     for  (int aK=0 ;aK<100 ;aK++)
     {
          std::vector<cPt3dr>  aVP = cPlane3D::RandParam();
@@ -390,8 +548,9 @@ tREAL8 L2_DegenerateIndex(const std::vector<cPt3dr> & aVPt,size_t aNumEigV)
             aStat.Add(aP3.ToVect());
     aStat.Normalise();
     const cDenseVect<tREAL8> anEV = aStat.DoEigen().EigenValues() ;
-
-    if (anEV(2)==0)  return 0.0;
+    // theoretically eigenvalues can't be negavive => treat <0 as =0
+    if (anEV(2)<=0)  return 0.0;
+    if (anEV(aNumEigV)<0)  return 0.0;
 
     return Sqrt(SafeDiv(anEV(aNumEigV),anEV(2)));
 }

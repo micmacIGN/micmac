@@ -1,6 +1,7 @@
 #include "SymbDer/SymbDer_Common.h"
 #include "MMVII_Geom2D.h"
 #include "MMVII_PhgrDist.h"
+#include "MMVII_Interpolators.h"
 
 
 using namespace NS_SymbolicDerivative;
@@ -93,6 +94,57 @@ template <class Type,const int Dim>
     return  mMapToInv->Inverses(aVOut,aVIn);
 }
 
+
+/* **************************** */
+/*   BENCH on cTabulatMap2D_Id  */
+/*   BENCH on cTabulatMap2D_Id  */
+/*   BENCH on cTabulatMap2D_Id  */
+/* **************************** */
+
+template <class Type> void   Tpl_BenchTabMap2D(cPt2dr aFreqX,cPt2dr aFreqY,tREAL8 aMul,tREAL8 aOfs,const cPt2di aSz)
+{
+    cIm2D<Type> aImX(aSz);
+    cIm2D<Type> aImY(aSz);
+
+    for (const auto & aPix : aImX.DIm())
+    {
+        tREAL8 aDX =   aOfs  + aMul * cos(aPix.x()/aFreqX.x()) * sin(aPix.y()/aFreqX.y());
+        tREAL8 aDY =   aOfs  + aMul * cos(aPix.x()/aFreqY.x()) * sin(aPix.y()/aFreqY.y());
+
+        aImX.DIm().SetV(aPix, aDX);
+        aImY.DIm().SetV(aPix, aDY);
+    }
+
+    cCubicInterpolator aC3(-0.5);
+    cTabulatMap2D_Id  aTabM(aImX,aImY,&aC3);
+
+    cBox2dr aBox = aImX.DIm().Dilate(-10).ToR();
+
+
+    for (int aKTest=0 ; aKTest<1000 ; aKTest++)
+    {
+        cPt2dr aPt = aBox.GeneratePointInside();
+
+	cPt2dr aPIm = aTabM.Value(aPt);
+	cPt2dr aPInv = aTabM.Inverse(aPIm);
+
+        tREAL8 aDX =   aOfs  + aMul * cos(aPt.x()/aFreqX.x()) * sin(aPt.y()/aFreqX.y());
+        tREAL8 aDY =   aOfs  + aMul * cos(aPt.x()/aFreqY.x()) * sin(aPt.y()/aFreqY.y());
+	// cPt2dr aPIm2 = Ofs  + aMul * cos(aPix.x()/aFreqX.x()) * sin(aPix.y()/aFreqX.y())
+
+	tREAL8 aCheckDir = Norm2(aPt + cPt2dr(aDX,aDY)-aPIm);
+        MMVII_INTERNAL_ASSERT_bench(aCheckDir<1e-3 ,"Direct cTabulatMap2D_Id");
+	tREAL8 aCheckInv = Norm2(aPt-aPInv);
+	//  StdOut() << "JJJJ " << aCheckDir << "   " << aCheckInv << " " << aTabM.EpsInv() << "\n";
+        MMVII_INTERNAL_ASSERT_bench(aCheckInv<2*aTabM.EpsInv() ,"invver cTabulatMap2D_Id");
+    }
+
+}
+
+void   BenchTabMap2D()
+{
+       Tpl_BenchTabMap2D<tREAL4>(cPt2dr(10.0,13.0),cPt2dr(15.0,11.0),1.0,0.0,cPt2di(300,400));
+}
 
 /* ============================================= */
 /*            cInvertByIter<Type,Dim>            */
@@ -1080,6 +1132,8 @@ class cTestMapInv : public cDataIterInvertMapping<tREAL8,3>
 void BenchInvertMapping(cParamExeBench & aParam)
 {
     {
+       BenchTabMap2D();
+
        OneBench_CMI(1.1,false);
        OneBench_CMI(1.1,true);
        OneBench_CMI(0.7,true);

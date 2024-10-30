@@ -50,6 +50,18 @@ std::vector<std::string> FormalBilinIm2D_NameObs(const std::string & aPrefix)
           };
 }
 
+std::vector<std::string> FormalGradInterpol_NameObs(const std::string & aPrefix)
+{
+   return std::vector<std::string> 
+          {
+              "PtX0_" + aPrefix,
+              "PtY0_" + aPrefix,
+              "Im_"   + aPrefix,
+              "Gx_"   + aPrefix,
+              "Gy_"   + aPrefix
+          };
+}
+
 /* ******************************** */
 /*                                  */
 /*         cDescOneFuncDist         */

@@ -5,6 +5,12 @@
 namespace MMVII
 {
 
+const  cPt2di FreemanV8[8]   {{1,0},{1,1},{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1}};
+const  cPt2di FreemanV10[10] {{1,0},{1,1},{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1},{1,0},{1,1}};
+
+const std::vector<cPt2di> & Alloc4Neighbourhood() { return AllocNeighbourhood<2>(1); }
+const std::vector<cPt2di> & Alloc8Neighbourhood() { return AllocNeighbourhood<2>(2); }
+
 /* ========================== */
 /*         cBox2di            */
 /* ========================== */
@@ -46,6 +52,21 @@ template <class Type> cSegment2DCompiled<Type>::cSegment2DCompiled(const tPt& aP
 {
 }
 
+template <class Type> cSegment2DCompiled<Type>::cSegment2DCompiled(const cSegment<Type,2>& aSeg) :
+    cSegment2DCompiled<Type>(aSeg.P1(),aSeg.P2())
+{
+}
+
+template <class Type> Type cSegment2DCompiled<Type>::SignedDist(const tPt& aPt) const
+{
+    return Scal(mNorm,aPt - this->mP1);
+}
+template <class Type> Type cSegment2DCompiled<Type>::Dist(const tPt& aPt) const
+{
+    return std::abs(SignedDist(aPt));
+}
+
+
 template <class Type> cPtxd<Type,2> cSegment2DCompiled<Type>::ToCoordLoc(const tPt& aPt) const
 {
     tPt   aV1P = aPt - this->mP1;
@@ -61,6 +82,80 @@ template <class Type> Type cSegment2DCompiled<Type>::DistLine(const tPt& aPt) co
 {
     return std::abs(Scal(mNorm,aPt - this->mP1));
 }
+
+
+template <class Type> Type cSegment2DCompiled<Type>::DistClosedSeg(const tPt& aPt) const
+{
+    tPt aPL = ToCoordLoc(aPt);
+
+    if (aPL.x() < 0)
+       return  Norm2(aPL);
+
+    if (aPL.x() >  this->mN2)
+      return  Norm2(aPt-this->mP2);
+
+    return std::abs(aPL.y());
+}
+
+template <class Type> 
+    cPtxd<Type,2>  cSegment2DCompiled<Type>::InterSeg
+                   (
+		        const cSegment2DCompiled<Type> & aSeg2,
+			tREAL8 aMinAngle,
+			bool *IsOk
+                   )
+{
+      //  (aM1 + L1 T1) . N2 = M2 . N2
+      //  L1 (T1.N2)  = N2. (aM2-aM1) 
+      tPt aM1 = this->PMil();
+      tPt aM2 = aSeg2.PMil();
+
+      Type aScalT1N2 = Scal(this->mTgt,aSeg2.mNorm);
+
+      if (std::abs(aScalT1N2) <= aMinAngle)
+      {
+          if (IsOk)
+	  {
+		  *IsOk = false;
+		  return cPtxd<Type,2>::Dummy();
+	  }
+	  MMVII_INTERNAL_ERROR("Segment2DCompiled<Type>::InterSeg  : almost parallel");
+      }
+
+      if (IsOk) 
+          *IsOk = true;
+
+      Type aLambda = Scal(aM2-aM1,aSeg2.mNorm) / aScalT1N2 ;
+
+      return aM1 + this->mTgt * aLambda;
+}
+
+
+/* ========================== */
+/*         cClosedSeg2D       */
+/* ========================== */
+
+
+
+cClosedSeg2D::cClosedSeg2D(const cPt2dr & aP0,const cPt2dr & aP1) :
+    mSeg (aP0,aP1)
+{
+}
+
+bool  cClosedSeg2D::InfEqDist(const cPt2dr & aPt,tREAL8 aDist) const
+{
+      return mSeg.DistClosedSeg(aPt) < aDist;
+}
+
+cBox2dr cClosedSeg2D::GetBoxEnglob() const
+{
+   //  return cBox 2dr(mSeg.P1(),mSeg.P2(),true); => does not work  because P1,P2 are not "min-max-ed" 
+   cTplBoxOfPts<tREAL8,2> aBox =   cTplBoxOfPts<tREAL8,2>::FromVect({mSeg.P1(),mSeg.P2()});
+   return aBox.CurBox(true);
+}
+
+const cSegment2DCompiled<tREAL8> & cClosedSeg2D::Seg() const {return mSeg;}
+
 
 /* ========================== */
 /*         cMapEstimate       */
@@ -133,7 +228,7 @@ template <class TypeMap>
         aSys.PublicAddObservation(aWeight,aVX,aRHS.x());
         aSys.PublicAddObservation(aWeight,aVY,aRHS.y());
    }
-   cDenseVect<tTypeElem> aSol =  aSys.Solve();
+   cDenseVect<tTypeElem> aSol =  aSys.PublicSolve();
    TypeMap aMap =  TypeMap::FromParam(aSol);
 
    if (aRes2)
@@ -1016,7 +1111,7 @@ template <class Type>   cHomogr2D<Type>  cHomogr2D<Type>::LeastSqParalPlaneShift
        aSys.PublicAddObservation(1.0,aVec,yo*aHz-aHy);
    }
 
-   cDenseVect<Type>  aSol = aSys.Solve();
+   cDenseVect<Type>  aSol = aSys.PublicSolve();
    tTypeMap  aRes 
 	     (
 	         mHX + tElemH(0,0,aSol(0)),
@@ -1178,6 +1273,13 @@ template <class Type,class tMap>  cTriangle<Type,2>  ImageOfTri(const cTriangle<
      return  cTriangle<Type,2>(aMap.Value(aTri.Pt(0)),aMap.Value(aTri.Pt(1)),aMap.Value(aTri.Pt(2)));
 }
 
+template <class T>  T LineAngles(const cPtxd<T,2> & aDir1,const cPtxd<T,2> & aDir2)
+{
+     T aRes = std::abs(Teta(aDir1* conj(aDir2)));  // Angle Dir1/Dir2
+     return std::min(aRes,(T)M_PI - aRes);
+}
+
+
 
 /* ========================== */
 /*       INSTANTIATION        */
@@ -1190,7 +1292,8 @@ template std::pair<std::vector<cPtxd<TYPE,2> >,std::vector<cPtxd<TYPE,2>>> Rando
 template class cSegment2DCompiled<TYPE>;\
 template class  cAffin2D<TYPE>;\
 template class  cHomogr2D<TYPE>;\
-template   cHomogr2D<TYPE> RandomMapId(TYPE);
+template   cHomogr2D<TYPE> RandomMapId(TYPE);\
+template TYPE LineAngles(const cPtxd<TYPE,2> & aDir1,const cPtxd<TYPE,2> & aDir2);
 
 INSTANTIATE_GEOM_REAL(tREAL4)
 INSTANTIATE_GEOM_REAL(tREAL8)

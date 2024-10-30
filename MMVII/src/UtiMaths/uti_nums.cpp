@@ -20,6 +20,16 @@ tREAL8 AngleInRad(eTyUnitAngle aUnit)
     return 0.0;
 }
 
+bool AssertRadAngleInOneRound(tREAL8 aAngleRad, bool makeError)
+{
+    if ((aAngleRad>=-2*M_PI)&&(aAngleRad<=2*M_PI))
+        return true;
+
+    if (makeError)
+        MMVII_INTERNAL_ERROR("Angle out of [-2 pi;2 pi]");
+    return false;
+}
+
 
 /* ****************  cDecomposPAdikVar *************  */
 
@@ -513,6 +523,16 @@ void Bench_Nums(cParamExeBench & aParam)
         MMVII_INTERNAL_ASSERT_bench( std::abs(aR12+aR21)<1e-5,"Bench NormRat");
         MMVII_INTERNAL_ASSERT_bench( std::abs(aR12-aRM12)<1e-5,"Bench NormRat");
         MMVII_INTERNAL_ASSERT_bench( aR1G2>aR12,"Bench NormRat");
+   }
+
+   for (int aK=0 ; aK<100 ; aK++)
+   {
+        double aAngOk = RandInInterval(-M_PI,M_PI);
+        double aAngBig = aAngOk + 2*M_PI * (RandUnif_N(2000)-1000);
+        double aAngFixed = DiffAngMod(aAngBig,0.);
+        if (aAngFixed>M_PI)
+            aAngFixed-=2*M_PI; // DiffAngMod returns angle in [-pi;+2pi]
+        MMVII_INTERNAL_ASSERT_bench( std::abs(aAngFixed-aAngOk)<1e-8, "Bench DiffAngMod");
    }
 
    aParam.EndBench();

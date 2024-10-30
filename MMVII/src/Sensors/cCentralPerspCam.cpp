@@ -77,20 +77,21 @@ cDataPerspCamIntrCalib::cDataPerspCamIntrCalib
 ) :
     cDataPerspCamIntrCalib
     (
-	         aName,
-	         aTypeProj, 
-	         aDeg,
-	         std::vector<double>(),
-                 cMapPProj2Im(aFoc, PPIsRel ? MulCByC(ToR(aNbPix), aPP) : aPP),
-                 cDataPixelDomain(aNbPix),
-	         aDeg,
-	         aSzBuf,
-                 isFraserModel
+        aName,
+        aTypeProj, 
+        aDeg,
+        std::vector<double>(),
+        cMapPProj2Im(aFoc, PPIsRel ? MulCByC(ToR(aNbPix), aPP) : aPP),
+        cDataPixelDomain(aNbPix),
+        aDeg,
+        aSzBuf,
+        isFraserModel
     )
 {
 
 }
 
+const std::string & cDataPerspCamIntrCalib::Name() const {return mName;}
     
 void cDataPerspCamIntrCalib::AddData(const cAuxAr2007 & anAux0)
 {
@@ -100,12 +101,12 @@ void cDataPerspCamIntrCalib::AddData(const cAuxAr2007 & anAux0)
 
     {
         MMVII::EnumAddData(anAux,mTypeProj,"Projection");
-	    /*  MODIF MPD, has "rediscover" the "EnumAddData"  function ...
+  /*  MODIF MPD, has "rediscover" the "EnumAddData"  function ...
         std::string aNameProj= E2Str(mTypeProj);
         MMVII::AddData(cAuxAr2007("Projection",anAux),aNameProj);
         if (anAux.Input())
-	   mTypeProj = Str2E<eProjPC>(aNameProj);
-	   */
+ mTypeProj = Str2E<eProjPC>(aNameProj);
+ */
     }
     {
            cAuxAr2007 aAuxAux("Auxiliary",anAux);
@@ -124,6 +125,7 @@ void cDataPerspCamIntrCalib::AddData(const cAuxAr2007 & anAux0)
            cAuxAr2007 aAuxSten("PerfectProj",anAux);
            MMVII::AddData(cAuxAr2007("F",aAuxSten),mMapPProj2Im.F());
            MMVII::AddData(cAuxAr2007("PP",aAuxSten),mMapPProj2Im.PP());
+
 
 	   // Just in case redo a coherent object
 	   if (anAux.Input())
@@ -210,7 +212,8 @@ cPerspCamIntrCalib::cPerspCamIntrCalib(const cDataPerspCamIntrCalib & aData) :
 			            true                                   // equations are "adopted" (i.e will be deleted in destuctor)
                                )
 		         ),
-    mInvIsUpToDate       (false)
+    mInvIsUpToDate       (false),
+    mTabulDUD            (nullptr)
 {
     mVTmpCopyParams.clear();
 }
@@ -279,6 +282,7 @@ cPerspCamIntrCalib::~cPerspCamIntrCalib()
      delete mInv_CalcLSQ;
      delete mDist_DirInvertible;
      delete mInv_Proj;
+     delete mTabulDUD;
 }
 
 void cPerspCamIntrCalib::UpdateLSQDistInv()
@@ -514,18 +518,34 @@ cPt3dr  cPerspCamIntrCalib::DirBundle(const tPtOut & aPt) const
 
 cPt2dr  cPerspCamIntrCalib::Undist(const tPtOut & aP0) const
 {
+    if (mTabulDUD && mTabulDUD->OkDirect(aP0))
+       return mTabulDUD->Value(aP0);
+
     cPt3dr aPt = DirBundle(aP0);
     cPt2dr aP1 = Proj(aPt) / aPt.z();
+
     return mMapPProj2Im.Value(aP1);
 }
 
 cPt2dr  cPerspCamIntrCalib::Redist(const tPtOut & aP0) const
 {
+    if (mTabulDUD && mTabulDUD->OkInverse(aP0))
+       return mTabulDUD->Inverse(aP0);
+
      cPt2dr aP1 =  mMapIm2PProj.Value(aP0);
      cPt3dr aP2(aP1.x(),aP1.y(),1.0);
 
      return Value(aP2);
 }
+
+cPt2dr cPerspCamIntrCalib::InterpolOnUDLine(const tSeg2dr& aSeg,tREAL8 aWeightP1) const
+{
+     cPt2dr  aPU1 = Undist(aSeg.P1());
+     cPt2dr  aPU2 = Undist(aSeg.P2());
+
+     return Redist(Centroid(aWeightP1,aPU1,1.0-aWeightP1,aPU2));
+}
+
 
 
 
@@ -562,6 +582,9 @@ void cPerspCamIntrCalib::PutUknowsInSetInterval()
 
 void  cPerspCamIntrCalib::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 {
+   aGAIP.SetNameType("CalibCamPC");
+   aGAIP.SetIdObj(mName);
+
    aGAIP.TestParam(this,&(mMapPProj2Im.F()),"F");
    aGAIP.TestParam(this,&(mMapPProj2Im.PP().x()),"PPx");
    aGAIP.TestParam(this,&(mMapPProj2Im.PP().y()),"PPy");
@@ -816,7 +839,7 @@ void cPerspCamIntrCalib::InitRandom(double aAmpl)
 }
  
 
-cPerspCamIntrCalib * cPerspCamIntrCalib::RandomCalib(eProjPC aTypeProj,int aKDeg)
+cPerspCamIntrCalib * cPerspCamIntrCalib::RandomCalib(eProjPC aTypeProj,int aKDeg,tREAL8 anAmpl)
 {
 
     tREAL8 aDiag = 1000 * (1+10*RandUnif_0_1());
@@ -854,13 +877,63 @@ cPerspCamIntrCalib * cPerspCamIntrCalib::RandomCalib(eProjPC aTypeProj,int aKDeg
        if (BUGCAL)
            StdOut() << "RrrrAtio="  << Norm2(aPP-aMidle) / aFoc << " TTTt=" << E2Str(aTypeProj)  << std::endl;
 
-       aCam->InitRandom(0.1);
+       aCam->InitRandom(anAmpl);
 
        if (BUGCAL)
            StdOut() << "Kkkkkkkkkkkkkkkkk" << std::endl;
 
        return aCam;
 }
+
+tSeg2dr  cPerspCamIntrCalib::ExtenSegUndistIncluded
+         (
+             bool   doRedist,
+             const tSeg2dr & aSegInit,
+             tREAL8 aStepInitRel,
+             tREAL8 aStepEnd,
+             tREAL8 aRetract
+         ) const
+{
+      std::vector<cPt2dr> aVPts;
+      for (tREAL8 aSign : {-1.0,1.0})
+      {
+          cPt2dr aPt = aSegInit.PMil();
+          cPt2dr aTgt = VUnit(aSegInit.V12()) * aSign;
+	  tREAL8 aStep= aStepInitRel * Norm2(SzPix());
+	  while (aStep >= aStepEnd)
+	  {
+	      while (DegreeVisibilityOnImFrame(Redist(aPt))>=0)
+	           aPt += aTgt* aStep;
+	      aPt += aTgt* (-aStep);
+	      aStep /= 2.0;
+	  }
+	  aPt += aTgt * (-aRetract);
+	  if (doRedist)
+             aPt = Redist(aPt);
+	  aVPts.push_back(aPt);
+      }
+      return tSeg2dr(aVPts.at(0),aVPts.at(1));
+}
+
+
+cTabuMapInv<2>* cPerspCamIntrCalib::AllocTabulDUD(int aNb) const
+{
+      cPt2dr aSzPix = ToR(SzPix());
+
+      return new cTabuMapInv<2>
+                 (
+                          cCamUDReD_Map(this) , 
+                          cBox2dr(aSzPix).Dilate(1.0)  ,
+                          Pt_round_up(  aSzPix  / (NormInf(aSzPix)/aNb)  )
+                 );
+}
+
+void cPerspCamIntrCalib::SetTabulDUD(int aNb)
+{
+   delete mTabulDUD;
+   mTabulDUD = AllocTabulDUD(aNb);
+}
+
 
 
 
@@ -905,6 +978,36 @@ void BenchImAndZ()
 
 void BenchCentralePerspective(cParamExeBench & aParam)
 {
+
+   // Test the accuracy of tabulation on dist/undist
+   for (int aKTest =0 ; aKTest <100; aKTest++)
+   {
+       int aNumDist = aKTest%4;
+       bool WithDist = (aNumDist==1) || (aNumDist==2);
+       cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::RandomCalib(eProjPC::eStenope,aNumDist,WithDist ? 0.01 : 0.1);
+       
+       int aNb = 50 + (11*aKTest) % 50;
+       cTabuMapInv<2>*   aTabul = aCalib->AllocTabulDUD(aNb);
+
+       std::vector<cPt2dr>  aVPt = aCalib->PtsSampledOnSensor(10,true); // true=InPixel
+       cStdStatRes aStatRes;
+       for (const auto & aP0 : aVPt)
+       {
+           cPt2dr aP1 = aCalib->Undist(aP0);
+           cPt2dr aQ1 = aTabul->Value(aP0);
+           cPt2dr aP2 = aCalib->Redist(aP1);
+           cPt2dr aQ2 = aTabul->Inverse(aP1);
+           aStatRes.Add(Norm2(aP1-aQ1) + Norm2(aP2-aQ2) + Norm2(aP2-aP0));
+       }
+       // StdOut() << "AVGGTAbuu " << aStatRes.Avg() * aNb<< " Max=" << aStatRes.Max() * aNb << "\n";
+       MMVII_INTERNAL_ASSERT_bench(aStatRes.Max() * aNb < 8 ,"Norm2 in BenchImAndZ");
+       MMVII_INTERNAL_ASSERT_bench(aStatRes.Avg() * aNb < 2 ,"Norm2 in BenchImAndZ");
+
+       delete aTabul;
+       delete aCalib;
+   }
+
+
     BenchCentralePerspective(aParam,eProjPC::eOrthoGraphik);
 
     if (! aParam.NewBench("CentralPersp")) return;
@@ -932,16 +1035,13 @@ void BenchCentralePerspective(cParamExeBench & aParam)
         }
     }
 
-
-
     aParam.EndBench();
 }
 
 
-
 /* ******************************************************* */
 /*                                                         */
-/*                 cMapPProj2Im                       */
+/*                 cMapPProj2Im                            */
 /*                                                         */
 /* ******************************************************* */
 
@@ -975,6 +1075,21 @@ cMapIm2PProj::cMapIm2PProj(const cHomot2D<tREAL8> & aH) :
     cInvertMappingFromElem<cHomot2D<tREAL8> >(aH)
 {
 }
+
+/* *********************************** */
+/*                                     */
+/*           cCamUDReD_Map             */
+/*                                     */
+/* *********************************** */
+
+cCamUDReD_Map::tPt cCamUDReD_Map::Value(const tPt & aPt) const {return mCalib->Undist(aPt);}
+cCamUDReD_Map::tPt cCamUDReD_Map::Inverse(const tPt & aPt) const {return mCalib->Redist(aPt);}
+
+cCamUDReD_Map::cCamUDReD_Map(const cPerspCamIntrCalib * aCalib) :
+   mCalib (aCalib)
+{
+}
+
 
 
 }; // MMVII

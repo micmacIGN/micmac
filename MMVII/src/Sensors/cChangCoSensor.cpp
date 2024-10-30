@@ -179,7 +179,7 @@ class cChSysSensImage : public cChangCoordSensImage
 {
 	public :
            cChSysSensImage();
-           cChSysSensImage(const cSensorImage *,const std::string& aDirSens,const cChangSysCoordV2 &);
+           cChSysSensImage(const cSensorImage *,const std::string& aDirSens,const cChangeSysCo &);
 	   void FinishInit(const cPhotogrammetricProject & aPhProj);
 
 	   static std::string    StaticPrefixName() ;
@@ -195,7 +195,7 @@ class cChSysSensImage : public cChangCoordSensImage
               std::string         mNameImage;
               std::string         mSysCoOri;
 	   // -----------------------  End data -------------------
-	   cChangSysCoordV2 *  mChSys;
+	   cChangeSysCo *  mChSys;
 };
 
 
@@ -206,19 +206,18 @@ cChSysSensImage::cChSysSensImage() :
 }
 
 cChSysSensImage::cChSysSensImage
-(
-     const cSensorImage *           aSensInit,
+(const cSensorImage *           aSensInit,
      const std::string&       aDirSens,
-     const cChangSysCoordV2 & aChSys
+     const cChangeSysCo &aChSys
 ) :
      cChangCoordSensImage  ()
 {
     mDirSensInit = aDirSens;
     mNameImage   = aSensInit->NameImage();
-    mSysCoOri    = aChSys.SysInit()->Name();
-    SetCoordinateSystem(aChSys.SysTarget()->Name());
+    mSysCoOri    = aChSys.SysOrigin()->Def();
+    SetCoordinateSystem(aChSys.SysTarget()->Def());
 
-    cChangCoordSensImage::CCSI_SetSensorAndMap(aSensInit,new cChangSysCoordV2(aChSys),false /* delete sens*/);
+    cChangCoordSensImage::CCSI_SetSensorAndMap(aSensInit,new cChangeSysCo(aChSys),false /* delete sens*/);
 }
 
 void cChSysSensImage::AddData(const  cAuxAr2007 & anAux0)
@@ -253,7 +252,7 @@ std::string cChSysSensImage::V_PrefixName() const {return StaticPrefixName();}
 
 void cChSysSensImage::FinishInit(const cPhotogrammetricProject & aPhProj)
 {
-     mChSys = new cChangSysCoordV2(aPhProj.ChangSys(mSysCoOri,GetCoordinateSystem()));
+     mChSys = new cChangeSysCo(aPhProj.ChangSysCo(mSysCoOri,GetCoordinateSystem()));
      cSensorImage* aSensor = aPhProj.ReadSensorFromFolder(mDirSensInit,mNameImage,true,false);
      cChangCoordSensImage::CCSI_SetSensorAndMap(aSensor,mChSys,false /*DeleteSens*/);
 }
@@ -283,7 +282,7 @@ cSensorImage * SensorTryReasChSys(const cPhotogrammetricProject & aPhProj,const 
 /*                                                     */
 /* *************************************************** */
 
-cSensorImage * cSensorImage::SensorChangSys(const std::string & aDir,cChangSysCoordV2 & aChSys) const
+cSensorImage * cSensorImage::SensorChangSys(const std::string & aDir,cChangeSysCo & aChSys) const
 {
     return new cChSysSensImage(this,aDir,aChSys);
 } 

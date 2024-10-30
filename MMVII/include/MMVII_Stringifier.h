@@ -3,6 +3,7 @@
 
 #include "MMVII_memory.h"
 #include "MMVII_Ptxd.h"
+#include <sstream>
 
 namespace MMVII
 {
@@ -118,7 +119,7 @@ template <>  const std::string cStrIO<eDCTFilters>::msNameType;
 
 template <>  const std::string cStrIO<eTypeSerial>::msNameType;
 template <>  const std::string cStrIO<eTyCodeTarget>::msNameType;
-template <>  const std::string cStrIO<eSysCoGeo>::msNameType;
+template <>  const std::string cStrIO<eSysCo>::msNameType;
 template <>  const std::string cStrIO<eMTDIm>::msNameType;
 
 template <>  const std::string cStrIO<eTypeSensor>::msNameType;
@@ -126,6 +127,7 @@ template <>  const std::string cStrIO<eFormatSensor>::msNameType;
 
 template <>  const std::string cStrIO<eTopoObsType>::msNameType;
 template <>  const std::string cStrIO<eTopoObsSetType>::msNameType;
+template <>  const std::string cStrIO<eTopoStOriStat>::msNameType;
 #endif
 
 /** These functions offer an"easy" interface to cStrIO, however I think
@@ -532,6 +534,18 @@ class cCmpSerializer
          virtual bool Cmp(const int& aV1, const int &aV2) {return Cmp(double(aV1),double(aV2));}
 };
 */
+
+template<class Type> inline Type GetV(std::istringstream & iss, const std::string& aSrcFile, int aSrcLine)
+{
+    Type aNum;
+    iss >> aNum;
+    if ( ! iss)
+    {
+       MMVII_UnclasseUsEr("Bad reading at line  " + std::to_string(aSrcLine+1)+ " of file [" + aSrcFile + "]. (rdstate=" + ToStr((size_t)iss.rdstate()) + ')');
+    }
+    return aNum;
+}
+
 
 
 

@@ -1,7 +1,7 @@
 #include "BundleAdjustment.h"
 #include "MMVII_util_tpl.h"
 
-#include "../Topo/Topo.h"
+#include "MMVII_Topo.h"
 
 /**
    \file cAppliBundAdj.cpp
@@ -87,9 +87,11 @@ cMMVII_BundleAdj::cMMVII_BundleAdj(cPhotogrammetricProject * aPhp) :
     mPatParamFrozenCalib (""),
     mPatFrozenCenter (""),
     mPatFrozenOrient (""),
+    mPatFrozenClinos (""),
     //mMesGCP           (nullptr),
     //mSigmaGCP         (-1),
     mBlRig            (nullptr),
+    mBlClino            (nullptr),
     mTopo             (nullptr),
     mFolderRefCam     (""),
     mSigmaTrRefCam    (-1.0),
@@ -98,7 +100,8 @@ cMMVII_BundleAdj::cMMVII_BundleAdj(cPhotogrammetricProject * aPhp) :
     mDirRefCam        (nullptr),
     mSigmaViscAngles  (-1.0),
     mSigmaViscCenter  (-1.0),
-    mNbIter           (0)
+    mNbIter           (0),
+    mVerbose    (true)
 {
 }
 
@@ -110,9 +113,37 @@ cMMVII_BundleAdj::~cMMVII_BundleAdj()
     DeleteAllAndClear(mVTieP);
     delete mBlRig;
     delete mTopo;
+    delete mBlClino;
     // DeleteAllAndClear(mGCP_UK);
     DeleteAllAndClear(mVGCP);
 }
+
+void cMMVII_BundleAdj::ShowUKNames() 
+{
+     StdOut() << "=================== ShowUKNamesShowUKNames ===============\n";
+
+
+     cDenseVect<tREAL8>   aVUk = mSetIntervUK.GetVUnKnowns() ;
+     StdOut() << "====== NBUK=" << aVUk.Sz() << "\n";
+     size_t aKUk=0;
+     for (size_t aKObj=0 ; aKObj<  mSetIntervUK.NumberObject() ; aKObj++)
+     {
+         cObjWithUnkowns<tREAL8> & anObj = mSetIntervUK.KthObj(aKObj);
+
+	 cGetAdrInfoParam<tREAL8> aGIP (".*",anObj,false);
+         StdOut() << "    ************ " <<  aGIP.NameType() << " : " << aGIP.IdObj()  << "\n";
+	 for (const auto & aN : aGIP.VNames())
+	 {
+             StdOut() << "      # " << aN  << " : " << aVUk(aKUk) << "\n";
+	     aKUk++;
+	 }
+	// virtual  void  GetAdrInfoParam(cGetAdrInfoParam<Type> &);
+
+     }
+     getchar();
+	// mSetIntervUK
+}
+
 
 
 void cMMVII_BundleAdj::AssertPhaseAdd() 
@@ -151,6 +182,7 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM)
     if (mPhaseAdd)
     {
         InitIteration();
+        CheckGCPConstraints();
     }
 
 
@@ -193,6 +225,12 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM)
         }
     }
 
+    if (mPatFrozenClinos != "" && mBlClino)
+    {
+        mBlClino->SetFrozenVar(*mR8_Sys, mPatFrozenClinos);
+    }
+    
+
     if (mBlRig) // RIGIDBLOC
     {
         mBlRig->SetFrozenVar(*mR8_Sys);
@@ -229,17 +267,69 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM)
     }
     // StdOut() << "SYS=" << mR8_Sys->GetNbObs() << " " <<  mR8_Sys->NbVar() << std::endl;
 
+    if (mBlClino)
+    {
+        mBlClino->addEquations(*mR8_Sys);
+        if (mVerbose)
+        {
+            mBlClino->printRes();
+        }
+    }
+
 
     if (mTopo) // TOPO
     {
         mTopo->AddTopoEquations(*mR8_Sys);
-        mTopo->printObs(true);
+    #ifdef VERBOSE_TOPO
+        mTopo->print();
+    #endif
+        mTopo->printObs(false);
     }
 
     const auto & aVectSol = mSys->R_SolveUpdateReset(aLVM);
     mSetIntervUK.SetVUnKnowns(aVectSol);
 
-    StdOut() << "---------------------------" << std::endl;
+    if(mVerbose)
+    {
+        StdOut() << "---------------------------" << std::endl;
+    }
+    mNbIter++;
+}
+
+
+
+void cMMVII_BundleAdj::OneIterationTopoOnly(tREAL8 aLVM, bool verbose)
+{
+    if (verbose)
+        StdOut() << "-------- Iter " << mNbIter << "-----------" << std::endl;
+
+    MMVII_INTERNAL_ASSERT_tiny(mTopo,"OneIterationTopoOnly: no topo??");
+
+    // if it's first step, alloc ressources
+    if (mPhaseAdd)
+    {
+        InitIteration();
+        CheckGCPConstraints();
+    }
+
+    mTopo->SetFrozenAndSharedVars(*mR8_Sys);
+
+    // ================================================
+    //  [3]   Add compensation measures
+    // ================================================
+
+
+    OneItere_GCP(verbose);   // add GCP informations
+
+    mTopo->AddTopoEquations(*mR8_Sys);
+    if (verbose)
+        mTopo->print();
+
+    const auto & aVectSol = mSys->R_SolveUpdateReset(aLVM);
+    mSetIntervUK.SetVUnKnowns(aVectSol);
+
+    if (verbose)
+        StdOut() << "---------------------------" << std::endl;
     mNbIter++;
 }
 
@@ -253,6 +343,11 @@ void cMMVII_BundleAdj::AddCalib(cPerspCamIntrCalib * aCalib)
 	  mVPCIC.push_back(aCalib);
 	  mSetIntervUK.AddOneObj(aCalib);
     }
+}
+
+void  cMMVII_BundleAdj::AddBenchSensor(cSensorCamPC * aSI){
+    mVSCPC.push_back(aSI);
+    AddSensor(aSI);
 }
 
 void cMMVII_BundleAdj::AddSensor(cSensorImage* aSI)
@@ -340,6 +435,11 @@ void cMMVII_BundleAdj::SetFrozenOrients(const std::string & aPattern)
     mPatFrozenOrient = aPattern;
 }
 
+void cMMVII_BundleAdj::SetFrozenClinos(const std::string & aPattern)
+{    
+    mPatFrozenClinos = aPattern;
+}
+
 void cMMVII_BundleAdj::SetSharedIntrinsicParams(const std::vector<std::string> & aVParams)
 {
     mVPatShared = aVParams;
@@ -364,7 +464,7 @@ void cMMVII_BundleAdj::CompileSharedIntrinsicParams(bool ForAvg)
             if (MatchRegex(aPtrCal->Name(),mVPatShared[aKPat]))
             {
                 // Extract information on parameter macthing the pattern of params
-                cGetAdrInfoParam<tREAL8>  aGIP(mVPatShared[aKPat+1],*aPtrCal);  
+                cGetAdrInfoParam<tREAL8>  aGIP(mVPatShared[aKPat+1],*aPtrCal,false);  
                 for (size_t aKParam=0 ; aKParam<aGIP.VAdrs().size() ; aKParam++)
                 {
                     tREAL8 * aAdr                 = aGIP.VAdrs().at(aKParam);
@@ -438,6 +538,38 @@ void cMMVII_BundleAdj::CompileSharedIntrinsicParams(bool ForAvg)
         }
 */
     }
+}
+
+
+bool cMMVII_BundleAdj::CheckGCPConstraints() const
+{
+    std::string aNames;
+    for (const auto & aBA_GCP_Ptr : mVGCP)
+    {
+        for (const auto & aMesGCP : aBA_GCP_Ptr->mMesGCP->MesGCP())
+        {
+            if (aMesGCP.isFree())
+            {
+
+                int aNbImObs = aBA_GCP_Ptr->mMesGCP->GetNbImMesForPoint(aMesGCP.mNamePt);
+                int aNbTopoElementObs = 0;
+                if (mTopo)
+                {
+                    for (auto & obs: mTopo->GetObsPoint(aMesGCP.mNamePt))
+                    {
+                        aNbTopoElementObs += obs->getMeasures().size();
+                    }
+                }
+                if (aNbImObs*2+aNbTopoElementObs<3)
+                    aNames += aMesGCP.mNamePt + " ";
+            }
+        }
+    }
+    if (aNames.size())
+        MMVII_UserError(eTyUEr::eConstraintsError,
+                          "Not enough observations for points: "+aNames);
+
+    return true;
 }
 
     /* ---------------------------------------- */
@@ -532,24 +664,53 @@ void cMMVII_BundleAdj::SaveBlocRigid()
        mBlRig->Save();
     }
 }
-void cMMVII_BundleAdj::SaveTopo()
+
+
+
+    /* ---------------------------------------- */
+    /*            Clino Bloc                    */
+    /* ---------------------------------------- */
+
+void cMMVII_BundleAdj::AddClinoBloc(const std::string aNameClino, const std::string aFormat, std::vector<std::string> aPrePost)
 {
-    if (mTopo)
+    AssertPhpAndPhaseAdd();
+    mBlClino = new cBA_Clino(mPhProj, aNameClino, aFormat, aPrePost);
+
+    mBlClino->AddToSys(mSetIntervUK);
+}
+
+void cMMVII_BundleAdj::AddClinoBloc(cBA_Clino * aBAClino){
+    mBlClino = aBAClino;
+    mBlClino->AddToSys(mSetIntervUK);
+}
+
+void cMMVII_BundleAdj::SaveClino()
+{
+    if (mBlClino)
     {
-       mTopo->ToFile(mTopo->getInFile() + "-out.json");
+       mBlClino->Save();
     }
 }
+
+
 
 /* ---------------------------------------- */
 /*                 Topo                     */
 /* ---------------------------------------- */
 
-bool cMMVII_BundleAdj::AddTopo(const std::string & aTopoFilePath) // TOPO
+void cMMVII_BundleAdj::SaveTopo()
 {
-    mTopo = new cBA_Topo(mPhProj, aTopoFilePath);
-    return true;
+    if (mTopo && mPhProj->DPTopoMes().DirOutIsInit())
+    {
+        mPhProj->SaveTopoMes(*mTopo);
+    }
 }
 
+
+void cMMVII_BundleAdj::AddTopo() // TOPO
+{
+    mTopo = new cBA_Topo(mPhProj);
+}
 
 }; // MMVII
 

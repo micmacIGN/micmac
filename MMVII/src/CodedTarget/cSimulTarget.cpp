@@ -2,6 +2,9 @@
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_Tpl_Images.h"
 #include "MMVII_Interpolators.h"
+#include "MMVII_Sensor.h"
+#include "MMVII_Random.h"
+
 
 
 // Test git branch
@@ -60,22 +63,24 @@ void AddData(const  cAuxAr2007 & anAux,cGeomSimDCT & aGSD)
 /*  *********************************************************** */
 
 cResSimul::cResSimul() :
-    mRayMinMax (15.0,60.0),
+    mRadiusMinMax (15.0,60.0),
     mBorder    (1.0),
-    mRatioMax  (3.0)
+    mRatioMinMax  (0.3,1.0)
 {
 }
 
 double cResSimul::BorderGlob() const
 {
-    return mBorder * mRayMinMax.y();
+    return mBorder * mRadiusMinMax.y();
 }
 
 void AddData(const  cAuxAr2007 & anAux,cResSimul & aRS)
 {
-   MMVII::AddData(cAuxAr2007("Com",anAux),aRS.mCom);
-   MMVII::AddData(cAuxAr2007("RayMinMax",anAux),aRS.mRayMinMax);
-   MMVII::AddData(cAuxAr2007("RatioMax",anAux),aRS.mRatioMax);
+   // Modif MPD, know that commande are quoted, they cannot be used as tag =>  "MMVII  "toto" "b=3" " => PB!!
+   //  MMVII::AddData(cAuxAr2007("Com",anAux),aRS.mCom);
+   anAux.Ar().AddComment(aRS.mCom);
+   MMVII::AddData(cAuxAr2007("RadiusMinMax",anAux),aRS.mRadiusMinMax);
+   MMVII::AddData(cAuxAr2007("RatioMax",anAux),aRS.mRatioMinMax);
    MMVII::AddData(cAuxAr2007("Geoms",anAux),aRS.mVG);
 }
 
@@ -116,15 +121,13 @@ class cAppliSimulCodeTarget : public cMMVII_Appli
 
         // =========== other methods ============
 
-	/// Find a new  position of target, not too close from existing ones, in mRS.mVG 
-        void  AddPosTarget(const cOneEncoding & );  
+	/// Find a new  position of target, not too close from existing ones, in mRS.mVG
+        void  AddPosTarget(const cOneEncoding & );
 
 	/// Put the target in the image
         void  IncrustTarget(cGeomSimDCT & aGSD);
 
-	/// return a random value in the specified interval 
-	double RandomRay() const;
-
+        cPhotogrammetricProject     mPhProj;
 
         // =========== Mandatory args ============
 
@@ -133,15 +136,15 @@ class cAppliSimulCodeTarget : public cMMVII_Appli
 
         // =========== Optionnal args ============
 	cResSimul           mRS;        /// List of result
-        double              mSzKernel;  /// Sz of interpolation kernel 
+        double              mSzKernel;  /// Sz of interpolation kernel
 	std::string         mPatternNames;
 
                 //  --
 	double              mDownScale;       ///< initial downscale of target
-	double              mAttenContrast;         ///< amplitude of (random) gray attenuatio,
-	double              mAttenMul;         ///< Multiplicative attenuation
-	double              mPropSysLin;      ///< amplitude of (random) linear bias
-	double              mAmplWhiteNoise;  ///< amplitud of random white noise
+	cPt2dr              mAttenContrast;         ///< min/max amplitude of (random) gray attenuatio,
+	cPt2dr              mAttenMul;         ///< min/max Multiplicative attenuation
+	cPt2dr              mPropSysLin;      ///< min/max amplitude of (random) linear bias
+	cPt2dr              mAmplWhiteNoise;  ///< min/max amplitude of random white noise
 
         // =========== Internal param ============
         tIm                        mImIn;        ///< Input global image
@@ -159,13 +162,14 @@ class cAppliSimulCodeTarget : public cMMVII_Appli
 
 cAppliSimulCodeTarget::cAppliSimulCodeTarget(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli     (aVArgs,aSpec),
+   mPhProj          (*this),
    mSzKernel        (2.0),
    mPatternNames    (".*"),
    mDownScale       (3.0),
-   mAttenContrast   (0.2),
-   mAttenMul        (0.4),
-   mPropSysLin      (0.2),
-   mAmplWhiteNoise  (0.1),
+   mAttenContrast   (0.,0.2),
+   mAttenMul        (0.0,0.4),
+   mPropSysLin      (0.,0.2),
+   mAmplWhiteNoise  (0.,0.1),
    mImIn            (cPt2di(1,1)),
    mSpec            (nullptr),
    mSuplPref        ("")
@@ -175,8 +179,8 @@ cAppliSimulCodeTarget::cAppliSimulCodeTarget(const std::vector<std::string> & aV
 cCollecSpecArg2007 & cAppliSimulCodeTarget::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
    return  anArgObl
-             <<   Arg2007(mNameIm,"Name of image (first one)",{{eTA2007::MPatFile,"0"},eTA2007::FileImage})
-             <<   Arg2007(mNameSpecif,"Name of target file")
+             <<   Arg2007(mNameIm,"Pattern of files",{{eTA2007::MPatFile,"0"},eTA2007::FileImage})
+             <<   Arg2007(mNameSpecif,"Name of target file specification",{{eTA2007::XmlOfTopTag,cFullSpecifTarget::TheMainTag}})
    ;
 }
 
@@ -185,7 +189,9 @@ cCollecSpecArg2007 & cAppliSimulCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt
 {
    return
 	        anArgOpt
-             <<   AOpt2007(mRS.mRayMinMax,"Rays","Min/Max ray for gen target",{eTA2007::HDV})
+             <<  mPhProj.DPPointsMeasures().ArgDirOutOptWithDef("Simul")
+             <<   AOpt2007(mRS.mRadiusMinMax,"Radius","Min/Max radius for gen target",{eTA2007::HDV})
+             <<   AOpt2007(mRS.mRatioMinMax,"Ratio","Min/Max ratio between target ellipses axis (<=1)",{eTA2007::HDV})
              <<   AOpt2007(mPatternNames,"PatNames","Pattern for selection of names",{eTA2007::HDV})
              <<   AOpt2007(mSzKernel,"SzK","Sz of Kernel for interpol",{eTA2007::HDV})
              <<   AOpt2007(mRS.mBorder,"Border","Border w/o target, prop to R Max",{eTA2007::HDV})
@@ -197,10 +203,6 @@ cCollecSpecArg2007 & cAppliSimulCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt
    ;
 }
 
-double cAppliSimulCodeTarget::RandomRay() const { return RandInInterval(mRS.mRayMinMax.x(),mRS.mRayMinMax.y());}
-
-
-
 void   cAppliSimulCodeTarget::AddPosTarget(const cOneEncoding & anEncod)
 {
      cBox2dr aBoxGenerate = mImIn.DIm().ToR().Dilate(-mRS.BorderGlob());
@@ -208,21 +210,12 @@ void   cAppliSimulCodeTarget::AddPosTarget(const cOneEncoding & anEncod)
      for (int aK=0 ; aK< 200 ; aK++)
      {
         cPt2dr  aC = aBoxGenerate.GeneratePointInside(); // generat a random point inside the box
-        //  Compute two random ray in the given interval
-        double  aR1 = RandomRay() ;
-        double  aR2 = RandomRay() ;
-	OrderMinMax(aR1,aR2);  //   assure  aR1 <= aR2
+        //  Compute two random radii in the given interval
+        double  aRbig = RandInInterval(mRS.mRadiusMinMax);
+        double  aRsmall = aRbig*RandInInterval(mRS.mRatioMinMax);
 
-        // assure that  R2/R1 <= RatioMax
-        // if not "magic" formula to assure R1/R2 = RatioMax  R1R2 = R1Init R2Init
-	if (aR2/aR1 > mRS.mRatioMax)  
-	{
-            double aR = sqrt(aR1*aR2);
-	    aR1 = aR / sqrt(mRS.mRatioMax);
-	    aR2 = aR * sqrt(mRS.mRatioMax);
-	}
-	// check if there is already a selected target overlaping
-        cGeomSimDCT aGSD(anEncod,aC,aR1,aR2);
+        // check if there is already a selected target overlaping
+        cGeomSimDCT aGSD(anEncod,aC,aRsmall,aRbig);
 	bool GotClose = false;
 	for (const auto& aG2 : mRS.mVG)
             GotClose = GotClose || aG2.Intersect(aGSD);
@@ -250,9 +243,9 @@ void  cAppliSimulCodeTarget::IncrustTarget(cGeomSimDCT & aGSD)
 
     cPt2dr aDirModif = FromPolar(1.0,M_PI*RandUnif_C());
     double aDiag = Norm2(aC0);
-    double aAttenContrast = mAttenContrast * RandUnif_0_1();
-    double aAttenMul = (1-mAttenMul) + mAttenMul * RandUnif_0_1();
-    double aAttenLin  = mPropSysLin * RandUnif_0_1();
+    double aAttenContrast = RandInInterval(mAttenContrast);
+    double aAttenMul = (1-mAttenMul.y()) + RandInInterval(mAttenMul);
+    double aAttenLin  = RandInInterval(mPropSysLin);
     for (const auto & aPix : aDImT)
     {
          double aVal = aDImT.GetV(aPix);
@@ -284,29 +277,30 @@ void  cAppliSimulCodeTarget::IncrustTarget(cGeomSimDCT & aGSD)
     for (const auto & aPix : cRect2(aBoxIm)) // ressample image, parse image coordinates
     {
         if ( aDImIn.Inside(aPix))
-	{
-            // compute a weighted coordinate in target coordinates, 
+        {
+            // compute a weighted coordinate in target coordinates,
             cRessampleWeigth  aRW = cRessampleWeigth::GaussBiCub(ToR(aPix),aMapIm2T,mSzKernel);
-	    const std::vector<cPt2di>  & aVPts = aRW.mVPts;
-	    if (!aVPts.empty())
-	    {
+            const std::vector<cPt2di>  & aVPts = aRW.mVPts;
+            if (!aVPts.empty())
+            {
                 double aSomW = 0.0;  // sum of weight
                 double aSomVW = 0.0;  //  weighted sum of vals
-	        for (int aK=0; aK<int(aVPts.size()) ; aK++)
-	        {
+                for (int aK=0; aK<int(aVPts.size()) ; aK++)
+                {
                     if (aDImT.Inside(aVPts[aK]))
                     {
-                       double aW = aRW.mVWeight[aK];
-		       aSomW  += aW;
-		       aSomVW += aW * aDImT.GetV(aVPts[aK]);
+                        double aW = aRW.mVWeight[aK];
+                        aSomW  += aW;
+                        aSomVW += aW * aDImT.GetV(aVPts[aK]);
                     }
-	        }
-		// in cRessampleWeigth =>  Sum(W) is standartized and equals 1
-		aSomVW =  aSomVW * (1- mAmplWhiteNoise) +  mAmplWhiteNoise * 128 * RandUnif_C() * aSomW;
-	        double aVal = aSomVW + (1-aSomW)*aDImIn.GetV(aPix);
-	        aDImIn.SetV(aPix,aVal);
-	    }
-	}
+                }
+                // in cRessampleWeigth =>  Sum(W) is standartized and equals 1
+
+                aSomVW = aSomVW * (1- mAmplWhiteNoise.y()) + RandInInterval_C(mAmplWhiteNoise) * 128 * aSomW;
+                double aVal = aSomVW + (1-aSomW)*aDImIn.GetV(aPix);
+                aDImIn.SetV(aPix,aVal);
+            }
+        }
     }
     // aGSD.mCornEl1 = aMapT2Im.Value(mPCT.mCornEl1/mDownScale);
     // aGSD.mCornEl2 = aMapT2Im.Value(mPCT.mCornEl2/mDownScale);
@@ -319,12 +313,50 @@ void  cAppliSimulCodeTarget::IncrustTarget(cGeomSimDCT & aGSD)
 const std::string ThePrefixSimulTarget = "SimulTarget_";
 const std::string ThePostfixGTSimulTarget = "_GroundTruth.xml";
 
+// make sure that interval.x<interval.y, check if all in [0,1]
+bool orderAndAssertInterval01(cPt2dr & interval, const std::string & aIntervalName)
+{
+    if (interval.y()<interval.x())
+        std::swap(interval.x(), interval.y());
+    if ((interval.x()<0.)||(interval.y()>1.))
+    {
+         MMVII_USER_WARNING(aIntervalName+" must be in [0;1].");
+         return false;
+    }
+    return true;
+}
+
 int  cAppliSimulCodeTarget::Exe()
 {
+   mPhProj.FinishInit();
+
    if (RunMultiSet(0,0))
    {
 	   return ResultMultiSet();
    }
+
+   // generally dont want to add target on target
+   if (starts_with(FileOfPath(mNameIm),ThePrefixSimulTarget))
+   {
+        MMVII_USER_WARNING("File is already a simulation, dont process");
+        return EXIT_SUCCESS;
+   }
+
+   // check that all intervals are in (0;1]
+   if (!orderAndAssertInterval01(mRS.mRatioMinMax, "Ratio"))
+       return EXIT_FAILURE;
+   if (!orderAndAssertInterval01(mAmplWhiteNoise, "NoiseAmpl"))
+       return EXIT_FAILURE;
+   if (!orderAndAssertInterval01(mPropSysLin, "PropLinBias"))
+       return EXIT_FAILURE;
+   if (!orderAndAssertInterval01(mAttenContrast, "ContrastAtten"))
+       return EXIT_FAILURE;
+   if (!orderAndAssertInterval01(mAttenMul, "MulAtten"))
+       return EXIT_FAILURE;
+
+
+   // We want that random is different for each image, but deterministic for one given image
+   cRandGenerator::TheOne()->setSeed(HashValue(mNameIm,true));
 
    mPrefixOut =  ThePrefixSimulTarget +  mSuplPref + LastPrefix(FileOfPath(mNameIm));
    mRS.mCom = CommandOfMain().Com();
@@ -346,9 +378,21 @@ int  cAppliSimulCodeTarget::Exe()
    {
        IncrustTarget(aG);
    }
-   SaveInFile(mRS,mPrefixOut + ThePostfixGTSimulTarget);
 
-   mImIn.DIm().ToFile(mPrefixOut+".tif",eTyNums::eTN_U_INT1);
+   std::string aNameOut = mPrefixOut+".tif";
+   {
+        cSetMesPtOf1Im  aSetM(aNameOut);
+        for (const auto & aGSim : mRS.mVG)
+        {
+            aSetM.AddMeasure(cMesIm1Pt(aGSim.mC,aGSim.mEncod.Name(),1.0));
+        }
+        mPhProj.SaveMeasureIm(aSetM);
+   }
+
+   SaveInFile(mRS,mPhProj.DPPointsMeasures().FullDirOut() + mPrefixOut + ThePostfixGTSimulTarget);
+   // StdOut() <<  "ooo--OOOOO=" << mPhProj.DPPointsMeasures().FullDirOut() + mPrefixOut + ThePostfixGTSimulTarget << "\n";
+
+   mImIn.DIm().ToFile(aNameOut,eTyNums::eTN_U_INT1);
 
 
    delete mSpec;

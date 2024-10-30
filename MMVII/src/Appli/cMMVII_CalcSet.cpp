@@ -178,9 +178,31 @@ int   cAppli_EditSet::ExecuteBench(cParamExeBench & aParam)
 {
    for (int aK=0 ; aK<2 ; aK++)
    {
+	   /*
+        int aNumTest,                // Change test condition
+        const std::string & anOp,    // Operator
+        bool InitInput,              // If true, Input is set to last output
+        const std::string & aPat,    // Pattern of image
+        int aNumAskedOut,            // Required num version
+        int aRealNumOut,             // Real Num Version
+        int ExpectCard,              // Number of element required, useless with ExpSet added
+        const std::string & Interv,  // Interval,
+        const std::string & ExpSet   // Expect set
+				     // */
        std::string C09="0123456789";
      // Basic test, we create the file
-       OneBenchEditSet(aK,"+=",false,".*txt"       ,0,2,10,"",C09); // 
+       OneBenchEditSet
+       (
+             aK,      //  Change test condition : Use or Not Dir Project
+	     "+=",    // operator for mpdi
+	     false,   // If true, Previous OutPut is moved on input, else Input is purged at end of process
+	     ".*txt", // Pattern of used files 
+	     0,       //  Required num version
+	     2,       // Real Num Version
+	     10,      // Number of element expected (become obsolet with expected set)
+	     "",      // Interval modifying the pattern if != ""
+	     C09      //  Ground truth, what the string should be
+       ); // 
        OneBenchEditSet(aK,"+=",false,".*txt"       ,1,1,10,"",C09);
        OneBenchEditSet(aK,"+=",false,".*txt"       ,2,2,10,"",C09);
        OneBenchEditSet(aK,"+=",false,"F[02468].txt",2,2,5,"","02468");
@@ -217,7 +239,7 @@ cCollecSpecArg2007 & cAppli_EditSet::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       anArgOpt
          << AOpt2007(mShow,"Show","Show detail of set before/after, 0->none, (1) modif, (2) all",{{eTA2007::HDV}})
          << AOpt2007(mNameXmlOut,"Out","Destination, def=Input, no save for " + MMVII_NONE,{})
-         << AOpt2007(mChgName,"ChgN","Change name [Pat,Name], for ex \"[(.*),IMU_\\$0]\"  add prefix \"IMU_\" ",{{eTA2007::ISizeV,"[2,2]"}})
+         << AOpt2007(mChgName,"ChgN","Change name [Pat,Name], for ex \"[(.*),IMU_\\$&]\"  add prefix \"IMU_\" ",{{eTA2007::ISizeV,"[2,2]"}})
 	 << mPhProj.DPMulTieP().ArgDirInOpt("TiePF","TieP for filtering on number")
          << AOpt2007(mNbMinTieP,"NbMinTieP","Number min of tie points, if TiePF",{{eTA2007::HDV}})
          << AOpt2007(mPatFilter,"PatF","Pattern to filter on name")
@@ -480,7 +502,7 @@ int cAppli_EditRel::Exe()
    {
       if (m2Set)
       {
-         MMVII_UsersErrror(eTyUEr::e2PatInModeLineEditRel,"In mode Line, cannot use multiple pattern in edit rel");
+         MMVII_UserError(eTyUEr::e2PatInModeLineEditRel,"In mode Line, cannot use multiple pattern in edit rel");
       }
 
       std::vector<const std::string *> aV1;
@@ -508,11 +530,11 @@ int cAppli_EditRel::Exe()
    {
        if (mNbMode==0)
        {
-           MMVII_UsersErrror(eTyUEr::eNoModeInEditRel,"No edit mode selected");
+           MMVII_UserError(eTyUEr::eNoModeInEditRel,"No edit mode selected");
        }
        if (mNbMode>1)
        {
-           MMVII_UsersErrror(eTyUEr::eMultiModeInEditRel,"Multi edit mode :"+mModeUsed);
+           MMVII_UserError(eTyUEr::eMultiModeInEditRel,"Multi edit mode :"+mModeUsed);
        }
    }
 

@@ -68,7 +68,7 @@ class cDist3DParam
      }
 };
 
-/**  Class for generating code relative topometric subframe observation */
+/**  Class for generating code relative topo subframe observation */
 class cTopoSubFrame
 {
   public :

@@ -18,7 +18,9 @@ namespace MMVII
 
 // It generates error that, to my best knowledge, should not. Waiting for better time where
 // I will understand and solve them, they are tagged unresolved
-#define  The_MMVII_DebugLevel_Unresoved     6  
+#define  The_MMVII_DebugLevel_Unresoved     7  
+//  New level added for tracking memory leak, relatively costly in memory
+#define  The_MMVII_DebugLevel_InternalError_micro    6
 // Ce ne sont pas de petite erreurs, mais des erruer couteuse a checker
 #define  The_MMVII_DebugLevel_InternalError_tiny     5  
 #define  The_MMVII_DebugLevel_InternalError_medium   4
@@ -30,6 +32,7 @@ namespace MMVII
 
 
 // extern int  The_MMVII_DebugLevel = The_MMVII_DebugLevel_InternalError_medium;
+//#define The_MMVII_DebugLevel The_MMVII_DebugLevel_BenchError
 #define The_MMVII_DebugLevel The_MMVII_DebugLevel_InternalError_tiny
 // #define The_MMVII_DebugLevel The_MMVII_DebugLevel_BenchError
 // #define The_MMVII_DebugLevel The_MMVII_DebugLevel_UserError
@@ -86,12 +89,14 @@ void MMVII_RestoreDefaultHandle();
  if ((The_MMVII_DebugLevel>=The_MMVII_DebugLevel_BenchError ) && (!(aTest)))\
 {MMVII_INTERNAL_ERROR(aMes);}
 
-void MMVII_UsersErrror(const eTyUEr &,const std::string & aMes);
+void MMVII_UserError(const eTyUEr &,const std::string & aMes);
 #define MMVII_INTERNAL_ASSERT_User(aTest,aRef,aMes)\
  if ((The_MMVII_DebugLevel>=The_MMVII_DebugLevel_UserError) && (!(aTest))) \
-{  MMVII_UsersErrror(aRef,aMes);}
+{  MMVII_UserError(aRef,aMes);}
 void MMVII_UnclasseUsEr(const std::string & aMes);
 
+#define MMVII_INTERNAL_ASSERT_User_UndefE(aTest,aMes)\
+{MMVII_INTERNAL_ASSERT_User(aTest,eTyUEr::eUnClassedError,aMes);}
 
 #define MMVII_INTERNAL_ASSERT_always(aTest,aMes)\
  if  (!(aTest))\
@@ -139,6 +144,7 @@ class cMMVII_Warning
 };
 
 #define MMVII_DEV_WARNING(MES) {static MMVII::cMMVII_Warning aWarn(MES,__LINE__,__FILE__); aWarn.Activate();}
+#define MMVII_USER_WARNING(MES) {MMVII_DEV_WARNING(MES);}
 
 
 #if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )

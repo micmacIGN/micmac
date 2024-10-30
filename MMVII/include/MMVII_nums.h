@@ -15,6 +15,7 @@ double Cst_KthVal(const std::vector<double> &, double aProportion);
 double Average(const std::vector<double> &);
 
 tREAL8 AngleInRad(eTyUnitAngle);
+bool AssertRadAngleInOneRound(tREAL8 aAngleRad, bool makeError=true);
 
 // some time needs a null val for any type with + (neutral for +)
 
@@ -69,6 +70,8 @@ double RandUnif_N(int aN); ///< Uniform disrtibution in [0,N[
 double RandUnif_C_NotNull(double aEps);   ///<  Uniform distribution in  -1 1, but abs > aEps
 double RandUnif_NotNull(double aEps);   ///<  Uniform distribution in  0 1, but abs > aEps
 double RandInInterval(double a,double b); ///<  Uniform distribution in [a,b]
+double RandInInterval(const cPt2dr &interval); ///<  Uniform distribution in [interval.x,interval.y]
+double RandInInterval_C(const cPt2dr &interval); ///<  Uniform distribution in [-interval.y,-interval.x]U[interval.x,interval.y]
 
 /** Class for mapping object R->R */
 class cFctrRR
@@ -455,6 +458,15 @@ template <class Type> class tNumTrait : public tElemNumTrait<Type> ,
                  return MinValue() + RandUnif_0_1() * (int(MaxValue())-int(MinValue())) ;
               return RandUnif_C();
          }
+         static Type AmplRandomValueCenter()
+         {
+              if (tETrait::IsInt())
+                 return  (int(MaxValue())-int(MinValue())) ;
+              return 2.0;
+         }
+
+
+
          static Type Eps()
          {
               if (tETrait::IsInt())
@@ -648,14 +660,17 @@ template <class TypeIndex,class TypeVal,const bool IsMin> class cWhichExtrem
 	 }
 	 bool IsInit() const {return mIsInit;}
 
-         void Add(const TypeIndex & anIndex,const TypeVal & aNewVal)
+	 // return value indicate if modif was done
+         bool Add(const TypeIndex & anIndex,const TypeVal & aNewVal)
          {
               if ( (IsMin?(aNewVal<mValExtre):(aNewVal>=mValExtre)) || (!mIsInit))
               {     
                     mValExtre   = aNewVal;
                     mIndexExtre = anIndex;
+                    mIsInit = true;
+		    return true;
               }
-              mIsInit = true;
+	      return false;
          }
          const TypeIndex & IndexExtre() const {AssertIsInit();return mIndexExtre;}
          const TypeVal   & ValExtre  () const {AssertIsInit();return mValExtre;}
@@ -712,6 +727,9 @@ template <class TypeIndex,class TypeVal> class cWhichMinMax
          }
          const cWhichMin<TypeIndex,TypeVal> & Min() const {return  mMin;}
          const cWhichMax<TypeIndex,TypeVal> & Max() const {return  mMax;}
+
+         const TypeIndex &  IndMin() const {return  mMin.IndexExtre();}
+         const TypeIndex &  IndMax() const {return  mMax.IndexExtre();}
 
      private :
          cWhichMin<TypeIndex,TypeVal> mMin;
@@ -805,6 +823,14 @@ template <typename Type> Type ATan2(const Type & aX,const Type & aY);
 template <typename Type> Type DerX_ATan2(const Type & aX,const Type & aY);
 /// to have it d/dy in code gen
 template <typename Type> Type DerY_ATan2(const Type & aX,const Type & aY);
+
+
+/// to have it in good namespace in code gen
+template <typename Type> Type DiffAngMod(const Type & aA,const Type & aB);
+/// to have it d/dx in code gen
+template <typename Type> Type DerA_DiffAngMod(const Type & aA,const Type & aB);
+/// to have it d/dy in code gen
+template <typename Type> Type DerB_DiffAngMod(const Type & aA,const Type & aB);
 
 
 /// Sinus hyperbolic
@@ -1025,14 +1051,15 @@ class cReadFilesStruct
 
        void Read();
 
-       const std::vector<std::string>         & VNameIm () const; ///< Accessor + Check init
-       const std::vector<std::string>         & VNamePt () const; ///< Accessor + Check init  "N
-       const std::vector<cPt3dr>              & VXYZ () const; ///< Accessor + Check init    "XYZ"
-       const std::vector<cPt2dr>              & Vij () const; ///< Accessor + Check init      "ij"
-       const std::vector<cPt3dr>              & VWPK () const; ///< Accessor + Check init    "WPK"
-       const std::vector<std::vector<double>> & VNums () const; ///< Accessor + Check init   "FF*F"
-       const std::vector<std::vector<int>>    & VInts () const; ///< Accessor + Check init     "EE*E"
-       const std::vector<std::string>         & VLinesInit () const; ///< Accessor + Check init
+       const std::vector<std::string>               & VNameIm () const; ///< Accessor + Check init
+       const std::vector<std::string>               & VNamePt () const; ///< Accessor + Check init  "N"
+       const std::vector<std::vector<std::string>>  & VStrings () const; ///< Accessor + Check init  "S"
+       const std::vector<cPt3dr>                    & VXYZ () const; ///< Accessor + Check init    "XYZ"
+       const std::vector<cPt2dr>                    & Vij () const; ///< Accessor + Check init      "ij"
+       const std::vector<cPt3dr>                    & VWPK () const; ///< Accessor + Check init    "WPK"
+       const std::vector<std::vector<double>>       & VNums () const; ///< Accessor + Check init   "FF*F"
+       const std::vector<std::vector<int>>          & VInts () const; ///< Accessor + Check init     "EE*E"
+       const std::vector<std::string>               & VLinesInit () const; ///< Accessor + Check init
        int NbRead() const;  ///< Number of line read
        void SetMemoLinesInit() ;  ///< Activate the memo of initial lines (false by default)
 
@@ -1062,6 +1089,7 @@ class cReadFilesStruct
          std::vector<std::vector<double>>       mVNums;
          std::vector<std::vector<int>>          mVInts;
          std::vector<std::string>               mVLinesInit;
+         std::vector<std::vector<std::string>>  mVStrings;
 };
 
 /// nuber of occurence of aC0 in aStr

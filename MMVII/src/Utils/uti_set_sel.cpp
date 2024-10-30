@@ -450,9 +450,10 @@ cPatternTransfo::cPatternTransfo(const std::vector<std::string> & aVec) :
      cPatternTransfo 
      (
           GetDef(aVec,0,std::string(".*")),
-          GetDef(aVec,1,std::string("$0"))
+          GetDef(aVec,1,std::string("$&"))
      )
 {
+	// JOE
     if ( (aVec.size()!=0) && (aVec.size() != 2))
        MMVII_UnclasseUsEr("cPatternTransfo bad size");
 }
@@ -1061,7 +1062,7 @@ tNameSet SetNameFromString(const std::string & aName,bool AllowPat)
    // If we are here, we accept  file as empty set, but not file of bad format
    if (ExistFile(aName))
    {
-      MMVII_UsersErrror(eTyUEr::eBadFileSetName,"Set from string, file has bad format for :" +aName);
+      MMVII_UserError(eTyUEr::eBadFileSetName,"Set from string, file has bad format for :" +aName);
    }
    return  tNameSet(); // emty set mode US
 }
@@ -1123,7 +1124,7 @@ tNameRel  RelNameFromFile (const std::string& aNameFile)
 
    if (ExistFile(aNameFile))
    {
-      MMVII_UsersErrror(eTyUEr::eBadFileRelName,"Rel from string, file has bad format for :" +aNameFile);
+      MMVII_UserError(eTyUEr::eBadFileRelName,"Rel from string, file has bad format for :" +aNameFile);
    }
    return  tNameRel(); // emty rel mode US
 }

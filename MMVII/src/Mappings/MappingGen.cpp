@@ -420,6 +420,29 @@ template <class Type,const int Dim>
 {
 }
 
+template <class Type,const int Dim>
+      cPtxd<Type,Dim> cDataNxNMapping<Type,Dim>::InvertQuasiTrans(const tPt& aP2Inv,tPt aGuess,Type aMaxErr,int aNbIterMax) const
+{
+       tREAL8  aSqE = Square(aMaxErr);
+       tREAL8 aD2 = 1e30 + aSqE;
+
+       while ((aD2>aSqE) && (aNbIterMax>0))
+       {
+          tPt aValueGuess = this->Value(aGuess);
+          Type aNextD2  = SqN2(aValueGuess-aP2Inv);
+          if (aNextD2>aD2) return aGuess;
+          aD2 = aNextD2;
+          // We make the taylor expansion assume Correc2InitPix ~Identity
+          //  Value(aGuess+aDelta)  = Value(aGuess) + aDelta = aP2Inv ;
+          //  aDelta =  aP2Inv -  Value(aGuess)
+          aGuess += aP2Inv -  aValueGuess;
+
+          aNbIterMax--;
+       }
+
+       return aGuess;
+}
+
 
 /* ============================================= */
 /*                                               */
@@ -485,7 +508,10 @@ template class cMappingIdentity<double,DIM>;\
 INSTANCE_TWO_DIM_MAPPING(DIM,2);\
 INSTANCE_TWO_DIM_MAPPING(DIM,3);
 
+INSTANCE_TWO_DIM_MAPPING(1,1);
+INSTANCE_TWO_DIM_MAPPING(2,1);
 
+INSTANCE_ONE_DIM_MAPPING(1)
 INSTANCE_ONE_DIM_MAPPING(2)
 INSTANCE_ONE_DIM_MAPPING(3)
 INSTANCE_TWO_DIM_MAPPING(3,1)

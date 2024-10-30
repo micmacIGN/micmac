@@ -2,6 +2,14 @@
 ##        Global configuration
 #######################################################
 cmake_minimum_required(VERSION 3.15)
+
+# VCPKG_MANIFEST_FEATURES must be set before project()
+# It will trigger download and install of QT5 via vcpkg.json if needed
+option(vMMVII_BUILD "Build vMMVII application (require Qt5)" OFF)
+if(vMMVII_BUILD)
+  list(APPEND VCPKG_MANIFEST_FEATURES "vmmvii")
+endif()
+
 project(MMVII VERSION 1.0)
 
 # strict C++17 required
@@ -34,6 +42,20 @@ endif()
 ##        Dependencies
 #######################################################
 
+# PROJ
+find_package(PROJ QUIET)
+if (NOT  PROJ_FOUND)
+  # needed on Ubuntu
+  find_package(PkgConfig)
+  pkg_search_module(PROJ REQUIRED proj)
+endif()
+
+if (PROJ_FOUND AND CMAKE_HOST_WIN32)
+  find_file(PROJ_PROJ_DB_FILE proj.db PATHS ${PROJ_DIR} ${PROJ_BINARY_DIRS}/../share/proj NO_DEFAULT_PATH)
+  file(COPY ${PROJ_PROJ_DB_FILE} DESTINATION ${MMVII_SOURCE_DIR}/share/proj)
+endif()
+
+
 # Threads
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads)
@@ -43,8 +65,6 @@ find_package(OpenMP)
 if((NOT OpenMP_CXX_FOUND) AND (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
    message(STATUS "OpenMP not found: did you install libomp-dev ?")
 endif()
-
-
 
 #######################################################
 ##        Compilation toolchain
@@ -124,8 +144,8 @@ file(GLOB mmv2_headers "${mmv2_include_dir}/*.h" "${mmv2_include_dir}/*/*.h" "${
 ##        libP2007 buid (MMVII library)
 #######################################################
 add_library(P2007 "${mmv2_libsrcs}" "${mmv2_headers}")
-target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH};${mtkahypar_include_dir};${maxflow_src_dir}")#
-target_link_libraries(P2007 PRIVATE MMVII_compiler_flags Threads::Threads)
+target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH};${PROJ_INCLUDE_DIRS};${mtkahypar_include_dir};${maxflow_src_dir}")
+target_link_libraries(P2007 PRIVATE MMVII_compiler_flags Threads::Threads ${PROJ_LIBRARIES})
 
 # Force parallel compilation with MSVC
 if(MSVC)
@@ -144,8 +164,7 @@ else()
 	set(mmv2_extlibs)
 endif()
 
-target_include_directories(MMVII PRIVATE "${MMVII_SOURCE_DIR}/include" ${maxflow_src_dir} ) #
-
+target_include_directories(MMVII PRIVATE "${MMVII_SOURCE_DIR}/include" ${maxflow_src_dir} )
 target_link_libraries(MMVII PRIVATE MMVII_compiler_flags Threads::Threads P2007 ${mmv1_libs} ${mmv2_extlibs} ${mtkahypar_lib})
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION  VERSION_LESS "9.1")
   target_link_libraries(MMVII PRIVATE -lstdc++fs)
@@ -161,8 +180,6 @@ endif()
 #######################################################
 ##        Compile vMMVII if Qt is found
 #######################################################
-
-option(vMMVII_BUILD "Build vMMVII application (require Qt5)" ON)
 
 if (vMMVII_BUILD)
   find_package(QT NAMES Qt5 Qt6 QUIET OPTIONAL_COMPONENTS Widgets)

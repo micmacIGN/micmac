@@ -140,7 +140,7 @@ void pyb_init_cIsometry3D_tpl(py::module_ &m, const std::string& name)
             .def(py::self * py::self)
             .def_static("identity",&tI3D::Identity,DOC(MMVII_cIsometry3D,Identity))
 
-            .def_property("rot",&tI3D::Rot,[](tI3D& i, const tR3D& r){ i.SetRotation(r);})
+            .def_property("rot",py::overload_cast<>(&tI3D::Rot),[](tI3D& i, const tR3D& r){ i.SetRotation(r);})
             .def_property("tr",py::overload_cast<>(&tI3D::Tr, py::const_),[](tI3D& i, const tPt& p){ i.Tr() = p;})
 
             .def("value",&tI3D::Value,"pt3d"_a,DOC(MMVII_cIsometry3D,Value))

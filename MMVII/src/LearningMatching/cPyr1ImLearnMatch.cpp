@@ -30,7 +30,7 @@ cPyr1ImLearnMatch::cPyr1ImLearnMatch
     if (initRand)
         mPyr->ImTop().DIm().InitRandom(0.0,100.0);
     else
-        mPyr->ImTop().Read(cDataFileIm2D::Create(mNameIm,true),mBox.P0());
+        mPyr->ImTop().Read(cDataFileIm2D::Create(mNameIm,eForceGray::Yes),mBox.P0());
 
     mPyr->ComputGaussianFilter();
 

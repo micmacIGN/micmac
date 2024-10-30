@@ -1,5 +1,7 @@
 \usepackage[english]{babel}
 %\usepackage[english,french]{babel}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{mathtools}
@@ -27,7 +29,6 @@
 \usepackage{makeidx}
 %\usepackage{amsmath}
 \usepackage{amssymb}
-
 
 \makeindex
 
@@ -98,6 +99,8 @@
 \newcommand{\Ok}{\ensuremath{{\mathcal O}_{k}}}
 
 \newcommand{\Ess}{\ensuremath{{\mathcal E}}}
+\newcommand{\Interpol}{\ensuremath {\mathcal I}}
+\newcommand{\KernI}{\ensuremath {\mathcal K}}
 
 \newcommand{\DimPx}{\ensuremath{D_{px}}}
 
@@ -128,6 +131,9 @@
 %\newcommand{\DeuxExtre}{\ensuremath{\nabla}}
 \newcommand{\RefFantome}{{\bf ?2Def?}}
 \newcommand{\TOMODIF}[1]{\textcolor{red}{\textbf{#1}}}
+
+\newcommand{\TOIMPROVE}[1]{\textcolor{red}{\textbf{Possible improvement (??)} : [#1]}}
+
 \newcommand{\PourLecteurAverti}{{\Large \bf \emph{Ce paragraphe peut
 facilement \^etre omis
 en premi\`ere lecture.}}}
@@ -149,6 +155,8 @@ en premi\`ere lecture.}}}
 \newcommand{\MMVIDIR}{{\tt MMVII-MainFolder/}}
 \newcommand{\doxy}{\emph{doxygen}}
 \newcommand{\MMNONE}{NONE}
+
+%\includeonly{Methods/Line-Detection-Theory}
 
 %---------------------------------------------
 \begin{document}
@@ -187,6 +195,7 @@ en premi\`ere lecture.}}}
 \include{Methods/PushBroomSensor-Theory}
 \include{Methods/PoseEstimation}
 \include{Methods/CodedTarget-Theory}
+\include{Methods/Line-Detection-Theory}
 \include{Methods/AimeDesc}
 \include{Methods/TiePoints}
 \include{Methods/Vrac}
@@ -210,6 +219,8 @@ en premi\`ere lecture.}}}
 
 \include{Programmer/Mapping}
 
+\include{Programmer/Interpolators}
+
 \include{Programmer/PhgrOrganization}
 
 \include{Programmer/RadiomOrganization}
@@ -217,6 +228,9 @@ en premi\`ere lecture.}}}
 \include{Programmer/PythonAPI}
 
 
+\include{Programmer/ImagesClasses}
+
+\include{Programmer/Clinometers}
 
 \COM
 {
@@ -237,6 +251,7 @@ For now "bloc-note",
 \part{Commands reference-documentation}
 
 \include{CommandReferences/MeshCommands}
+\include{CommandReferences/SysCo}
 
 
 %###########################################################################################################

@@ -1,6 +1,17 @@
 \chapter{Coded target}
 \label{Chap:CodedTarget}
 
+%-----------------------------------------------------------------------
+%-----------------------------------------------------------------------
+%-----------------------------------------------------------------------
+
+\section{Todo}
+
+\begin{itemize}
+      \item  {\tt 2023-12-14-CurTestClino/Calib-1/Processing/}  target partially occluded are recognized as others,
+	      for example {\tt 043\_0078.JPG}, target {\tt 66 (?)} is interpreted as {\tt 34} ;
+\end{itemize}
+
 
 %-----------------------------------------------------------------------
 %-----------------------------------------------------------------------
@@ -451,10 +462,93 @@ of potential coded target, we can now validate it,  we use the following criteri
 \end{figure}
 
 
-
   %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
+%-----------------------------------------------------------------------
+%-----------------------------------------------------------------------
+%-----------------------------------------------------------------------
 
+\section{Checkboard target detection}
+
+This section mixes methologicall aspects and reference to the implementation 
+(names {\tt files}, names of {\tt classes, methods} \dots).
+
+     %-----------------------------------------------------------------------
+
+\subsection{Global architecture}
+
+The main steps of the methods are :
+
+\begin{enumerate}
+       \item find potential center of checkboard , this is done on neigboorhing small enough not
+             to include the limit of ellipse ;
+
+     \item estimate the direction of $2$ axes  (still on neigboorhing small enough) , by sweeping direction arround
+	     the center;
+
+     \item estimate the local value of black and white on small neighbourhood;
+
+     \item estimate the black points of checkboard by a component analyis (of point under gray threshold) ;
+           then estimate  point of ellipse frontier caracterised as frontier point of the connected component  that are not 
+	   close to the axes;
+
+     \item estimate the ellipse (with center fix) from the frontier point by least square, 
+           then estimate the corner of the checkboard by intersection of the ellipse and the axes,
+           then estimate the affinity between image and reference target;
+
+      \item finaly decode \dots 
+             
+\end{enumerate}
+
+
+     %-----------------------------------------------------------------------
+
+\subsection{Find centers}
+
+The computation of potential centers is made by application of successive criteria with
+progressive elimination of candidate  by some thresholdings :
+
+
+\begin{enumerate}
+     \item  compute the points that are "tologically" saddle points (see~\ref{TopoSadlePoint});
+
+     \item  refine the position of these points by fitting a quadratic function  on image,
+	     and extract the null gradient point;
+             compute the curvature;
+
+     \item  use the curvature criteria to select a subset of point on global and local criteria;
+
+     \item  compute a symetry criteria, use-it to refine the position and select point on a thresholds on
+	    this criteria.
+\end{enumerate}
+
+Note the implementation use a series of classes included like \emph{matriochka} (russian dolls) ;
+
+
+\begin{enumerate}
+
+	\item the smallest \emph{doll} is class  {\tt cCdSadle} that represent candidate selected 
+		at first level as saddle point criteria;
+
+	\item the we have {\tt cCdSym} that represent a candidate selected on symetry criteria, 
+              a {\tt cCdSym} is also a {\tt cCdSadle},
+		and we have in the implementation
+		"{\tt cCdSym}  \emph{inherits} of {\tt cCdSadle}"
+		\footnote{what we write  {\tt cCdSadle} $\prec$ {\tt cCdSym} }
+
+        \item the scheme is followed all allong the progression;
+
+	\item globally we have    {\tt cCdSadle} $\prec$ {\tt cCdSym}  $\prec$ {\tt cCdRadiom} 
+		$\prec$ {\tt cCdEllipse } $\prec$ {\tt cCdMerged } .
+
+
+
+\end{enumerate}
+
+
+  %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{tological saddle points}
+\label{TopoSadlePoint}
 
 
 

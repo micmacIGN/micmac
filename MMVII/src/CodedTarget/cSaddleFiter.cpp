@@ -55,10 +55,13 @@ std::pair<tREAL8,std::vector<tREAL8>> cBasisFuncQuad::WeightAndVals(const cPt2dr
 
 
 cCompiledNeighBasisFunc::cCompiledNeighBasisFunc(const cBasisFunc & aBaseF ,const tVNeigh & aVNeigh) :
-    mVNeigh   (aVNeigh),
-    mNbNeigh  (mVNeigh.size()),
-    mSys      (1)
-
+    mVNeigh    (aVNeigh),
+    mNbNeigh   (mVNeigh.size()),
+    mSys       (1),
+    mFisrtFast (true),
+    mMatInvCov (cPt2di(1,1)),
+    mRHS       (1),
+    mSolFast   (1)
 {
      MMVII_INTERNAL_ASSERT_tiny(!mVNeigh.empty(),"Emty neigh cCompiledNeighBasisFunc");
      for (const auto & aNeigh : mVNeigh)
@@ -78,15 +81,43 @@ cCompiledNeighBasisFunc::cCompiledNeighBasisFunc(const cBasisFunc & aBaseF ,cons
 cDenseVect<tREAL8>   cCompiledNeighBasisFunc::SlowCalc(const std::vector<tREAL8> & aVV) 
 {
     AssertValsIsOk(aVV);
-    mSys.Reset();
+    mSys.PublicReset();
 
     for (size_t aK=0 ; aK<mNbNeigh ; aK++)
     {
          mSys.PublicAddObservation(mVWeight[aK],mVFuncs[aK],aVV[aK]);
     }
 
-    return mSys.Solve();
+    cDenseVect<tREAL8>  aRes =  mSys.PublicSolve();
+
+    return aRes;
 }
+
+const cDenseVect<tREAL8> &  cCompiledNeighBasisFunc::FastCalc(const std::vector<tREAL8> & aVV) 
+{
+   if (mFisrtFast)
+   {
+      mFisrtFast = false;
+      cLeasSqtAA<tREAL8>   aSys(mNbFunc);
+      for (size_t aK=0 ; aK<mNbNeigh ; aK++)
+      {
+         aSys.PublicAddObservation(mVWeight[aK],mVFuncs[aK],aVV[aK]);
+      }
+
+      mMatInvCov =  aSys.V_tAA().Inverse();
+      mRHS.Resize(mNbFunc);
+      mSolFast.Resize(mNbFunc);
+   }
+   mRHS.DIm().InitNull();
+   for (size_t aK=0 ; aK<mNbNeigh ; aK++)
+       mRHS.WeightedAddIn(mVWeight[aK]*aVV[aK],mVFuncs[aK]);
+
+   mMatInvCov.MulColInPlace(mSolFast,mRHS);
+
+   return mSolFast;
+}
+
+
 
 /* ******************************************** */
 /*                                              */
@@ -97,22 +128,26 @@ cDenseVect<tREAL8>   cCompiledNeighBasisFunc::SlowCalc(const std::vector<tREAL8>
 cCalcSaddle::cCalcSaddle(double aRay,double aStep) :
 	mRay       (aRay),
         mStep      (aStep),
-	mVINeigh   (SortedVectOfRadius(-1,aRay/aStep)),
+	mVINeigh   (SortedVectOfRadius(-1,mRay/aStep)),
 	mNbNeigh   (mVINeigh.size()),
-	mRNeigh    (ToR(mVINeigh,aStep)),
+	mRNeigh    (ToR(mVINeigh,mStep)),
 	mCalcQuad  (cBasisFuncQuad(),mRNeigh),
 	mVVals     (mNbNeigh)
 {
 }
 
+const std::vector<cPt2di> &   cCalcSaddle::VINeigh() const  {return mVINeigh;}
+
 
 tREAL8  cCalcSaddle::CalcSaddleCrit(const std::vector<tREAL8> & aVVals,bool Show)
 {
-      cDenseVect<tREAL8>   aVect = mCalcQuad.SlowCalc(aVVals);
+       const cDenseVect<tREAL8> &  aVect = mCalcQuad.FastCalc(aVVals);
+      // cDenseVect<tREAL8>   aVect = mCalcQuad.SlowCalc(aVVals);
 
       tREAL8 aXX = aVect(0);
       tREAL8 aXY = aVect(1);
       tREAL8 aYY = aVect(2);
+
 
       if (Show) StdOut() << " dxx=" << aXX << " dxy=" << aXY << " dyy=" << aYY << std::endl;
 
@@ -122,10 +157,22 @@ tREAL8  cCalcSaddle::CalcSaddleCrit(const std::vector<tREAL8> & aVVals,bool Show
       tREAL8 aLapl = aXX+aYY;
       tREAL8 aDiscr=  std::sqrt(Square(aXX-aYY) + 4*Square(aXY));
 
-      tREAL8 aL1 = (aLapl+aDiscr)/2.0;
-      tREAL8 aL2 = (aLapl-aDiscr)/2.0;
+      tREAL8 aL1 = (aLapl+aDiscr)/2.0;  // Highest Eigen Val
+      tREAL8 aL2 = (aLapl-aDiscr)/2.0;  // Smallest Eigen Val
+      // aL1 aL2 = (aLapl^2 - aDiscr^2)/4 = (aXX^2 + aYY^2 + 2 aXX aYY -(aXX^2+aYY^2-aXX aYY+4 aXY^2))
+      // = aXX aYY - aXY ^2 = det
 
       if (Show) StdOut() << " L1=" << aL1 << " L2=" << aL2 << std::endl;
+
+      tREAL8 aRes = std::min(std::abs(aL1),std::abs(aL2));
+
+      if ((aL1>0)!=(aL2>0)) 
+         return aRes; // we are saddle , min abs show how safe we are
+      else
+         return -aRes;  // we are not saddle -min abs show how far we are
+
+
+      /*
       if (aL1>0)
       {
          aL2 = -aL2;
@@ -137,12 +184,28 @@ tREAL8  cCalcSaddle::CalcSaddleCrit(const std::vector<tREAL8> & aVVals,bool Show
       }
 
       return aL2;
+      */
 }
+
+
+tREAL8  cCalcSaddle::CalcSaddleCrit(cDataIm2D<tREAL4>&  aDIm,cPt2di aPix)
+{
+     MMVII_INTERNAL_ASSERT_tiny(mStep==1.0,"Require step 1 for integer CalcSaddleCrit");
+
+     std::vector<tREAL8>  aVVals;
+     for (const auto & aDelta : mVINeigh)
+     {
+            aVVals.push_back(aDIm.GetV(aPix+aDelta));
+     }
+     return CalcSaddleCrit(aVVals);
+}
+
+
 
 
 cPt2dr   cCalcSaddle::RefineSadlPtFromVals(const std::vector<tREAL8> & aVVals,bool Show)
 {
-      cDenseVect<tREAL8>   aVect = mCalcQuad.SlowCalc(aVVals);
+      const cDenseVect<tREAL8>&   aVect = mCalcQuad.FastCalc(aVVals);
 
       tREAL8 dXX = aVect(0);
       tREAL8 dXY = aVect(1);
@@ -163,32 +226,44 @@ cPt2dr   cCalcSaddle::RefineSadlPtFromVals(const std::vector<tREAL8> & aVVals,bo
       return  -cPt2dr(dYY*dX -dXY*dY,-dXY*dX +dXX*dY) / aDet;
 }
 
-void cCalcSaddle::RefineSadlePointFromIm(cIm2D<tREAL4> aIm,cDCT & aDCT)
+bool cCalcSaddle::RefineSadlePointFromIm(cIm2D<tREAL4> aIm,cPt2dr & aPt,bool ResetIfDivg)
 {
      double aThrDiv = 3.0;
-     cPt2dr aP0 = aDCT.mPt;
+     cPt2dr aP0 = aPt;
 
      cDataIm2D<tREAL4> & aDIm = aIm.DIm();
      for (int aK=0 ; aK<4 ; aK++)
      {
           for (size_t aKNeigh=0; aKNeigh<mNbNeigh; aKNeigh++)
           {
-              mVVals[aKNeigh] = aDIm.GetVBL(aDCT.mPt+mRNeigh[aKNeigh]);
+              mVVals[aKNeigh] = aDIm.GetVBL(aPt+mRNeigh[aKNeigh]);
 	  }
           cPt2dr   aDPt =  RefineSadlPtFromVals(mVVals,false);
 
-	  aDCT.mPt += aDPt;
-	  if ((Norm2(aDCT.mPt-aP0) > aThrDiv) || (aDIm.Interiority(ToI(aDCT.mPt))<20))
+	  aPt += aDPt;
+	  if ((Norm2(aPt-aP0) > aThrDiv) || (aDIm.Interiority(ToI(aPt))<20))
 	  {
-              if (aDCT.mGT)  
-	      {
-		      StdOut() << "DIVG  "  << aDCT.mGT->mC << " DPT " << aDPt << std::endl;
-	      }
-              aDCT.mState =  eResDCT::Divg;
-	      return;
+              if (ResetIfDivg) 
+                 aPt = aP0;
+	      return false;
 	  }
 	  if (Norm2(aDPt) < 1e-2)
-             return;
+             return true;
+     }
+     return true;
+}
+
+void cCalcSaddle::RefineSadlePointFromIm(cIm2D<tREAL4> aIm,cDCT & aDCT)
+{
+     bool Ok = RefineSadlePointFromIm(aIm,aDCT.mPt);
+
+     if (!Ok)
+     {
+        if (aDCT.mGT)  
+        {
+           StdOut() << "DIVG  "  << aDCT.mGT->mC  << std::endl;
+        }
+        aDCT.mState =  eResDCT::Divg;
      }
 }
 

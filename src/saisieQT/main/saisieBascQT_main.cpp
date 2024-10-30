@@ -69,7 +69,8 @@ int saisieBascQT_main(int argc, char *argv[])
         argv[0] = (char*) "SaisieBascQT";
     }
 
-    SaisieBasc(argc, argv, aFullName, aDir, aName, anOri, anOut, aSzWin, aNbFen, aForceGray);
+    double aGama=1;
+    SaisieBasc(argc, argv, aFullName, aDir, aName, anOri, anOut, aSzWin, aNbFen, aForceGray,aGama);
 
     if (!MMVisualMode)
     {

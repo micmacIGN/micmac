@@ -98,6 +98,8 @@ template <class Type> class cRotation3D
        typedef cRotation3D<Type>  tTypeMapInv;
        static int NbDOF()   {return 3;}
 
+       /// Create a "dummy" rotation, initialized with null matrix (to force problem if not init later)
+       cRotation3D();
 
        /// RefineIt : if true, assume not fully orthog and compute closest one
        cRotation3D(const cDenseMatrix<Type> &,bool RefineIt);
@@ -135,8 +137,15 @@ template <class Type> class cRotation3D
        //// Compute a normal repair, first vector being colinear to P1, second in the plane P1,P2
       // static cRotation3D<Type> CompleteRON(const tPt & aP0,const tPt & aP1);
 
-       // Extract Axes of a rotation and compute its angle 
-       void ExtractAxe(tPt & anAxe,Type & aTeta);
+       /// Extract Axes of a rotation and compute its angle 
+       void ExtractAxe(tPt & anAxe,Type & aTeta) const;
+       /// More modern interface to ExtractAxe
+       std::pair<tPt,Type> ExtractAxe() const;
+
+       /// Convenient if you only need Angle, but slow else
+       Type Angle() const;
+       /// Convenient if you only need Axe, but slow else
+       tPt    Axe() const;
 
        /// conversion to Omega Phi Kapa
        static cRotation3D<Type>  RotFromWPK(const tPt & aWPK);
@@ -162,6 +171,8 @@ template <class Type> class cRotation3D
 };
 
 typedef cRotation3D<tREAL8> tRotR; 
+void AddData(const  cAuxAr2007 & anAux,tRotR&);
+
 
 /**  Class for 3D "affine" rotation of vector
 
@@ -205,6 +216,7 @@ template <class Type> class cIsometry3D
        void SetRotation(const cRotation3D<Type> &);
 
        const cRotation3D<Type> & Rot() const {return mRot;}  ///< Accessor
+       cRotation3D<Type> & Rot() {return mRot;}  ///< Accessor
        const tPt &Tr() const {return mTr;}  ///< Accessor
        tPt &Tr() {return mTr;}  ///< Accessor
 
@@ -323,13 +335,20 @@ template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
 class cPlane3D
 {
      public :
+	 /* ---------------------  Static constructor ---------------------------*/
+	     /// construct with 1 point inside, and 2 vector inside
          static cPlane3D FromP0And2V(const cPt3dr & aP0,const cPt3dr& aAxeI , const cPt3dr& aAxeJ);
+	     /// construct with 1 point inside, and the normal direction
          static cPlane3D FromPtAndNormal(const cPt3dr & aP0,const cPt3dr& aAxeK);
+	     /// construct with 3 point inside
          static cPlane3D From3Point(const cPt3dr & aP0, const cPt3dr & aP1, const cPt3dr &aP2);
+
+	 /// Estimate from a set of point,
+         static std::pair<cPlane3D,tREAL8> RansacEstimate(const std::vector<cPt3dr> & aP0,bool AvgOrMax,int aNbTest=-1,tREAL8 aRegulMinTri =1e-3);
 	 /// Return the indexes of the "best" plane
          static std::pair<cPt3di,tREAL8>  IndexRansacEstimate(const std::vector<cPt3dr> & aP0,bool AvgOrMax,int aNbTest=-1,tREAL8 aRegulMinTri =1e-3);
-         static std::pair<cPlane3D,tREAL8> RansacEstimate(const std::vector<cPt3dr> & aP0,bool AvgOrMax,int aNbTest=-1,tREAL8 aRegulMinTri =1e-3);
 
+	 ///   Avegrage distance 
 	 tREAL8 AvgDist(const std::vector<cPt3dr> &) const;
 	 tREAL8 MaxDist(const std::vector<cPt3dr> &) const;
 
@@ -341,10 +360,19 @@ class cPlane3D
 
          // return 3 point for random plane
          static std::vector<cPt3dr>  RandParam();
-         const cPt3dr& AxeI() const;
-         const cPt3dr& AxeJ() const;
-         const cPt3dr& AxeK() const;
 
+         const cPt3dr& P0() const; ///< Accessor
+         const cPt3dr& AxeI() const; ///< Accessor
+         const cPt3dr& AxeJ() const; ///< Accessor
+         const cPt3dr& AxeK() const; ///< Accessor
+	 
+	 /** Return the intersection of the planes consider  as vector space , used eigen decomposition
+	  * to get the best solutuob if Nb>2, if Sz=1 or 0 and aSzMin is Ok, return a random acceptable solution */
+	 static cPt3dr DirInterPlane(const std::vector<const cPlane3D*>& aVPlanes,int aSzMin=2);
+	 static cPt3dr DirInterPlane(const std::vector<cPlane3D>& aVPlanes,int aSzMin=2);
+
+	 static tSeg3dr InterPlane(const std::vector<const cPlane3D*>& aVPlanes,int aSzMin=2,tREAL8 aWeithStab=1e-10);
+	 static tSeg3dr InterPlane(const std::vector<cPlane3D>& aVPlanes,int aSzMin=2,tREAL8 aWeithStab=1e-10);
      private :
          cPlane3D(const cPt3dr & aP0,const cPt3dr& aAxeI , const cPt3dr& aAxeJ);
          cPt3dr mP0;

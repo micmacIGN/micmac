@@ -79,7 +79,7 @@ int cAppli_ChSysCoOri::Exe()
     tPtrSysCo aSysIn =  IsInit(&mNameSysIn) ? mPhProj.ReadSysCo(mNameSysIn) :  mPhProj.CurSysCoOri();
     tPtrSysCo aSysOut = mPhProj.ReadSysCo(mNameSysOut);
 
-    cChangSysCoordV2  aChSys(aSysIn,aSysOut);
+    cChangeSysCo  aChSys(aSysIn,aSysOut);
     aChSys.SetEpsJac(cPt3dr::PCste(mEpsDer));
 
 

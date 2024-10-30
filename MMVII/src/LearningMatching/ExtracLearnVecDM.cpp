@@ -246,7 +246,7 @@ int  cAppliExtractLearnVecDM::Exe()
    }
 
 
-   cDataFileIm2D aDFIm1 = cDataFileIm2D::Create(mNameIm1,false);
+   cDataFileIm2D aDFIm1 = cDataFileIm2D::Create(mNameIm1,eForceGray::No);
 
    StdOut() << "IM2=" << mNameIm2 << " " << mNamePx1 << " " << mNameMasq1 << std::endl;
    StdOut() << "Sz=" <<  aDFIm1.Sz() << std::endl;
@@ -394,7 +394,7 @@ void cAppliExtractLearnVecDM::MakeOneBox(const cPt2di & anIndex,const cParseBoxI
                           cPt2di(aP1.x()+round_up(aPxMax)  ,aP1.y())
                       );
 
-         cDataFileIm2D  aFile2 = cDataFileIm2D::Create(mNameIm2,true);
+         cDataFileIm2D  aFile2 = cDataFileIm2D::Create(mNameIm2,eForceGray::Yes);
          mCurBoxIn2 = mCurBoxIn2.Inter(cBox2di(cPt2di(0,0),aFile2.Sz()));
 
          StdOut() << "INDEX " << anIndex << " PX=[" << aPxMin << " : "<< aPxMax << "] B=" <<  mCurBoxIn2 << std::endl;

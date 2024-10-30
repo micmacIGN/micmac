@@ -34,7 +34,8 @@ template <class Type> class cLinearFilter
                       int aNbIter,
                       const cRect2 &,
                       const tFl &aFx,
-                      const  tFl &aFy
+                      const  tFl &aFy,
+		      bool IsExp=true
                   );
 };
 
@@ -51,22 +52,55 @@ template <class TBuf,class TIm,class TFact,class TyNorm> void
        TFact aFact,
        int anX0,
        int anX1,
-       TyNorm * aDataNorm 
+       TyNorm * aDataNorm ,
+       bool    ModeExp
    )
 {
    for (int aKIter=0 ; aKIter<aNbIter ; aKIter++)
    {
-      aDBuf[anX0] = 0;
-      // left to right ,at end  aDBuf  contains "I  @ (Fx^|x| * x<0)"
-      for (int anX = anX0+1; anX<anX1 ; anX++)
+      if (ModeExp)
       {
-          aDBuf[anX] =  aFact *(aDBuf[anX-1] + aLineIm[anX-1]);
+          aDBuf[anX0] = 0;
+          // left to right ,at end  aDBuf  contains "I  @ (Fx^|x| * x<0)"
+           for (int anX = anX0+1; anX<anX1 ; anX++)
+           {
+               aDBuf[anX] =  aFact *(aDBuf[anX-1] + aLineIm[anX-1]);
+           }
+           // right to left, full convolution
+           for (int anX = anX1-2; anX>=anX0 ; anX--)
+           {
+               aLineIm[anX]  +=(TIm)(aFact*aLineIm[anX+1] );  // now Line contains "I @  (Fx^|x| * x>=0)
+               aLineIm[anX+1]+=(TIm)(aDBuf[anX+1] ); // now contains   I  @ Fx^|x|
+           }
       }
-      // right to left, full convolution
-      for (int anX = anX1-2; anX>=anX0 ; anX--)
+      else
       {
-          aLineIm[anX]  +=(TIm)(aFact*aLineIm[anX+1] );  // now Line contains "I @  (Fx^|x| * x>=0)
-          aLineIm[anX+1]+=(TIm)(aDBuf[anX+1] ); // now contains   I  @ Fx^|x|
+           int aNbV = round_ni(aFact);
+	   // specialized case for V=1 because (A) faster ? (B) that's what I need now and I am a lazy guy ...
+	   if (aNbV==1)
+	   {
+             // save value at end / begin of line
+              TIm aVRes0 =    (aLineIm[anX0] +  aLineIm[anX0+1])/2.0;
+              TIm aVRes1 =    (aLineIm[anX1-2] +  aLineIm[anX1-1])/2.0;
+
+              TIm aV0 = aLineIm[anX0]; // Prec value
+              TIm aV1 = aLineIm[anX0+1]; // current value
+
+	      for (int anX = anX0+1; anX<anX1-1 ; anX++)
+              {
+                  TIm aV2 = aLineIm[anX+1]; // next value
+		  aLineIm[anX] = (aV0+aV1+aV2) / 3.0;
+		  aV0 = aV1;
+		  aV1 = aV2;
+              }
+
+	      aLineIm[anX0] = aVRes0;
+	      aLineIm[anX1-1] = aVRes1;
+	   }
+	   else
+           {
+               MMVII_INTERNAL_ERROR("Filter avegrag to implement");
+	   }
       }
    }
    if (aDataNorm)
@@ -82,7 +116,7 @@ template <class Type> Type * ImNormal(int aNbIter,cDataIm1D<Type> & aRes,Type aF
    aRes.InitCste(1.0);
 
    cIm1D<Type>  aBuf(aX0,aX1);
-   OneLineFilterExp(aNbIter,aBuf.DIm().ExtractRawData1D(),aRes.ExtractRawData1D(),aFact,aX0,aX1,(float *)nullptr);
+   OneLineFilterExp(aNbIter,aBuf.DIm().ExtractRawData1D(),aRes.ExtractRawData1D(),aFact,aX0,aX1,(float *)nullptr,true);
  
    return aRes.ExtractRawData1D();
 }
@@ -94,7 +128,8 @@ template <class Type> void  cLinearFilter<Type>::FilterExp
                                  int   aNbIter,
                                  const cRect2 & aRect,
                                  const tFl &aFx,
-                                 const  tFl &aFy
+                                 const  tFl &aFy,
+				 bool IsExp
                             )
 {
    MMVII_INTERNAL_ASSERT_strong(aRect.IncludedIn(aIm),"cLinearFilter Rect is outside");
@@ -118,11 +153,11 @@ template <class Type> void  cLinearFilter<Type>::FilterExp
    if (aFx != 0)
    {
       tBase * aDBuf = aImBuf.DIm().RawDataLin()-anX0;
-      tFl * aDataNorm = Normalise ? ImNormal(aNbIter,aImNormal.DIm(),aFx,anX0,anX1) : nullptr;
+      tFl * aDataNorm = (IsExp && Normalise) ? ImNormal(aNbIter,aImNormal.DIm(),aFx,anX0,anX1) : nullptr;
       
       for (int anY=anY0 ; anY<anY1 ; anY++)
       {
-           OneLineFilterExp(aNbIter,aDBuf,aDIm[anY],aFx,anX0,anX1,aDataNorm);
+           OneLineFilterExp(aNbIter,aDBuf,aDIm[anY],aFx,anX0,anX1,aDataNorm,IsExp);
       }
    }
        //  Filter the Column , I @  Fy^|y| 
@@ -130,7 +165,7 @@ template <class Type> void  cLinearFilter<Type>::FilterExp
    {
        tBase * aDBuf = aImBuf.DIm().RawDataLin()-anY0;
        tVal  * aDupCol = aBufDupCol.DIm().RawDataLin()-anY0;
-       tFl * aDataNorm = Normalise ? ImNormal(aNbIter,aImNormal.DIm(),aFy,anY0,anY1) : nullptr;
+       tFl * aDataNorm = (IsExp && Normalise) ? ImNormal(aNbIter,aImNormal.DIm(),aFy,anY0,anY1) : nullptr;
        for (int anX=anX0 ; anX<anX1 ; anX++)
        {
           // Transferate Column X in line buf aDupCol
@@ -139,7 +174,7 @@ template <class Type> void  cLinearFilter<Type>::FilterExp
              aDupCol[anY] = aDIm[anY][anX];
           }
           // Filter dup col
-          OneLineFilterExp(aNbIter,aDBuf,aDupCol,aFy,anY0,anY1,aDataNorm);
+          OneLineFilterExp(aNbIter,aDBuf,aDupCol,aFy,anY0,anY1,aDataNorm,IsExp);
           // Inverse transfer
           for (int anY=anY0 ; anY<anY1 ; anY++)
           {
@@ -147,6 +182,15 @@ template <class Type> void  cLinearFilter<Type>::FilterExp
           }
        }
    }
+}
+
+template <class Type>
+void  SquareAvgFilter(cDataIm2D<Type> & aDIm,int  aNbIt,int aSzX,int aSzY)
+{
+   if (aSzY<0)  
+      aSzY= aSzX;
+
+   cLinearFilter<Type>::FilterExp(false,aDIm,aNbIt,aDIm,aSzX,aSzY,false);
 }
 
 template <class Type>
@@ -226,6 +270,7 @@ template void  ExpFilterOfStdDev(cDataIm2D<Type> & aIm,int   aNbIter,double aStd
 template void  ExpFilterOfStdDev(cDataIm2D<Type> & aIm,const cDataIm2D<Type> & aImIn,int   aNbIter,double aStdDev);\
 template void  ExponentialFilter(cDataIm1D<Type> & aDI1,int  aNbIt,double aFact);\
 template void  ExpFilterOfStdDev(cDataIm1D<Type> & aDI1,int  aNbIt,double aStdDev);\
+template void  SquareAvgFilter(cDataIm2D<Type> & aDIm,int  aNbIt,int aSzX,int aSzY);
 
 MACRO_INSTANTIATE_ExpoFilter(tREAL4);
 MACRO_INSTANTIATE_ExpoFilter(tREAL8);

@@ -377,7 +377,7 @@ template <class Type>  void cUncalibSpaceRessection<Type>::CalcSolOneVarFixed(in
      aW *= mSumW ;  // now weithed summ
      aSys.AddObsFixVar(aW,aKV,1.0);  // Add a constraint
 
-     cDenseVect<Type>  aSol = aSys.Solve();  // extract the least square sol with constraint
+     cDenseVect<Type>  aSol = aSys.PublicSolve();  // extract the least square sol with constraint
      cHomog2D3D<Type>  aHom(aSol.RawData()); // make an homography of the sol
 
      tREAL8 aScore = AvgReProj(mSet,aHom); // compute the residual
@@ -596,7 +596,7 @@ void OneBenchUnCalibResection(int aKTest)
 
 void BenchUnCalibResection()
 {
-    // Maybe because bad conditionning ? but inversion do not pass eigen test, 
+    // Maybe because bad conditioning ? but inversion do not pass eigen test,
     // BTW they pass "my" test on residual, so ....
     PushErrorEigenErrorLevel(eLevelCheck::Warning);
 
@@ -756,9 +756,10 @@ void cAppli_UncalibSpaceResection::DoMedianCalib()
          else
          {
              // No reason dont exit
-             MMVII_UsersErrror(eTyUEr::eOpenFile,"No calib file found");
+             MMVII_UserError(eTyUEr::eOpenFile,"No calib file found");
          }
      }
+     bool isRecursGAIP = false;
 
      for (const auto & aNameCal : aMapCal)
      {
@@ -766,13 +767,13 @@ void cAppli_UncalibSpaceResection::DoMedianCalib()
           std::string  aName = aNameCal.first;
 	  const tVCal &  aVCal = aNameCal.second;
           cPerspCamIntrCalib & aCal0 = *(aVCal.at(0));
-          cGetAdrInfoParam<tREAL8>  aGAIP0(".*",aCal0); // Structure for extract param by names, all here
+          cGetAdrInfoParam<tREAL8>  aGAIP0(".*",aCal0,isRecursGAIP); // Structure for extract param by names, all here
           size_t aNbParam = aGAIP0.VAdrs().size();
 
           std::vector<std::vector<double> > aVVParam(aNbParam); // will store all the value of a given param
           for (const auto & aPCal : aVCal)
           {
-                cGetAdrInfoParam<tREAL8>  aGAIPK(".*",*(aPCal));
+                cGetAdrInfoParam<tREAL8>  aGAIPK(".*",*(aPCal),isRecursGAIP);
                 for (size_t aKP=0 ; aKP<aNbParam ; aKP++)
                 {
                      aVVParam.at(aKP).push_back(*aGAIPK.VAdrs().at(aKP));
@@ -827,7 +828,7 @@ int cAppli_UncalibSpaceResection::Exe()
     StdOut() <<  "Nb Measures=" << mSet23.NbPair() << std::endl;
 
 
-    cPt2di aSz =  cDataFileIm2D::Create(aNameIm,false).Sz();
+    cPt2di aSz =  cDataFileIm2D::Create(aNameIm,eForceGray::No).Sz();
     cSensorCamPC *  aCam0 =  cSensorCamPC::CreateUCSR(mSet23,aSz,aNameIm,mReal16);
 
      

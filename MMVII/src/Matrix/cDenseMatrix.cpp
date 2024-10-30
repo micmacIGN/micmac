@@ -195,7 +195,7 @@ template <class Type> cResulSVDDecomp<Type>  cDenseMatrix<Type>::RandomSquareReg
        }
     }
 
-    // Set conditionning
+    // Set conditioning
     {
        // Compute max & min of all ABS values (which one get it is of no interest)
        cWhichMinMax<int,Type> aIMM(0,std::abs(aVDiag(0)));
@@ -204,7 +204,7 @@ template <class Type> cResulSVDDecomp<Type>  cDenseMatrix<Type>::RandomSquareReg
           aIMM.Add(aK,std::abs(aVDiag(aK)));
        }
        double aCond = aIMM.Min().ValExtre() / aIMM.Max().ValExtre() ;
-       // if conditionning is too low
+       // if conditioning is too low
        if (aCond <aCondMinAccept)
        {
             //  (ToAdd + VMin) / (Vmax +ToAdd) = Cond : simplify by supresse VMin 

@@ -5,7 +5,8 @@
 #include "MMVII_MMV1Compat.h"
 #include "MMVII_DeclareCste.h"
 #include "MMVII_BundleAdj.h"
-
+#include "MMVII_Clino.h"
+#include "MMVII_SysSurR.h"
 
 using namespace NS_SymbolicDerivative;
 namespace MMVII
@@ -107,6 +108,201 @@ class cBA_BlocRig
 
 };
 
+
+
+class cClinoMes1Cam : public cMemCheck
+{
+     // Object with clino measures for one camera
+     
+     public :
+          cClinoMes1Cam
+          (
+              const cSensorCamPC * aCam,                    // camera-> only the pose is useful
+              const std::vector<std::string> &aVClinoName,  // vector of clinometer names
+              const std::vector<tREAL8> & aVAngles,         // vector of angles of all clinometer
+              const std::vector<tREAL8> & aVWeights,        // vector of weights of all clinometer
+              const cPt3dr &   aVerticAbs = {0,0,-1}        // position of vertical in current "absolut" system
+          );
+
+          // return the camera
+          const cSensorCamPC * Cam() const {return mCam;};
+
+          // push observations : the camera orientation and clinometer measures
+          void pushClinoObs(std::vector<double> & aVObs, const std::string aClinoName);
+
+          // push unknowns : the camera orientation axiator
+          void pushIndex(std::vector<int> & aVInd);
+
+          // push weights
+          void pushClinoWeights(std::vector<double> & aVWeights, const std::string aClinoName);
+
+          // return the clinometers measures
+          const std::map<std::string, double> VDir() const {return mVDir;};   
+
+	
+
+     private :
+          const cSensorCamPC *   mCam;                 // camera , memorization seems useless
+          std::map<std::string, double>     mVDir;     // map : clinometer name, measured position of needle, computed from angles
+          std::map<std::string, double>     mWeights;  // map :  clinometer name, weights on clino measures
+	     cPt3dr                  mVertInLoc;          // Vertical in  camera system, this is the only information usefull of camera orientation
+};
+
+
+class cClinoWithUK :  public cObjWithUnkowns<tREAL8>, public cMemCheck
+{
+     
+     // Object to compute orientation of clinometer in a camera repere
+     // mRot is the rotation matrix
+     // mOmega is the axiator, the computed value by least squares to get a new rotation
+     
+     public :
+
+          // Constructor
+	     cClinoWithUK();
+
+          // Constructor with the initial solution and clino name
+          cClinoWithUK(
+               tRotR aRot,                        // initial solution : relative rotation between clino and camera
+               const std::string & aNameClino     // clino name
+          ); 
+
+          // Fundamental methos :  the object put it sets on unknowns intervals  in the glob struct
+          void PutUknowsInSetInterval() override;
+
+          // update mRot with mOmega
+          void OnUpdate() override; 
+
+          void GetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
+
+          // push index of unknowns
+          void pushIndex(std::vector<int> & aVInd) const;
+
+          // get rotation between one camera and the clinometer
+          tRotR Rot() const {return mRot;};
+
+          // get vector axiator, the unknowns of the least squares
+          cPt3dr Omega() const {return mOmega;}
+
+          // get the clino name
+          const std::string NameClino() const {return mNameClino;}; 
+	
+     private :
+         const std::string    mNameClino;    // Name of the clino
+         tRotR          mRot;                // Rotation between one camera and the clinometer. It is also the initial solution
+         cPt3dr         mOmega;              // Vector axiator, the unknowns of the least squares
+};
+
+
+// CLINOBLOC
+class cBA_Clino : public cMemCheck
+{
+     // Object to compute Bundle Adjustment on clinometers
+     public :
+
+          // Constructor for ClinoBench (set manually clino observations)
+          cBA_Clino(
+               const cPhotogrammetricProject *aPhProj, // photogrammetric project 
+               cCalibSetClino *aCalibSetClino          // set of clino calibration
+          );
+
+          // Constructor for cMMVII_BundleAdj (read a clino observations file)
+          cBA_Clino(
+               const cPhotogrammetricProject *,             // photogrammetric project  
+               const std::string & aNameClino,              // clino name
+               const std::string & aFormat,                 // format of clino observations file
+               const std::vector<std::string> & aPrePost    // values added before and after image names in clino observations 
+                                                            // file to have the same names than in initial solutions file
+          );
+          
+          // Destructor
+          ~cBA_Clino();
+
+          // Add equation with aMeasure observations for one clinometer
+          cPt2dr addOneClinoEquation(cResolSysNonLinear<tREAL8> & aSys, cClinoMes1Cam & aMeasure, const std::string aClinoName);
+
+          // Add equations on two boresight matrix and their initial values
+          cPt2dr addOneRotEquation(cResolSysNonLinear<tREAL8> & aSys, const std::string aClino1, const std::string aClino2);
+
+          // Add all equations with all measures
+          void addEquations(cResolSysNonLinear<tREAL8> & aSys);
+
+          // Add all clino with unknowns to the system
+          void AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet);
+
+          // Froze boresight matrix of clinos described by aPatFrozenClino
+          void SetFrozenVar(cResolSysNonLinear<tREAL8> & aSys, const std::string aPatFrozenClino);
+
+          // Push observations for clino formula : initial values of Boresight matrix (9 values), and the vertical in local repere (3 values)
+          void pushClinoObs(std::vector<double> & aVObs, const cPt3dr & aCamTr, const std::string aClinoName);
+
+          // Push observations for rot formula : values of two Boresight matrix (2*9 values) and initial relative orientation between these two matrix
+          void pushRotObs(std::vector<double> & aVObs, const std::string aClino1, const std::string aClino2);
+
+          // Push index of all clino unknowns for clino formula
+          void pushClinoIndex(std::vector<int> & aVInd, const std::string aClinoName);
+
+          // Push index of all clino unknowns for rot formula
+          void pushRotIndex(std::vector<int> & aVInd, const std::string aClino1, const std::string aClino2);
+
+          // Push weights for rot formula
+          void pushRotWeights(std::vector<double> & aVWeights);
+
+          // Save relative orientation between clinos and reference camera
+          void Save();
+
+          // Add a clino observation
+          void addClinoMes1Cam(const cClinoMes1Cam & aClinoMes1Cam);
+
+          // Add a cClinoWithUK object
+          void addClinoWithUK(const std::string & aClinoName, tRotR & aRot);
+
+          // Get all relative rotations in cClinosWithUK objects. Used in BenchClino only
+          std::vector<tRotR>  ClinosWithUKRot() const;
+
+          // Set aCalibSetClino
+          void setCalibSetClino(cCalibSetClino* aCalibSetClino);
+
+          // Display residuals
+          void printRes() const; 
+
+          // Set vector with clino names
+          void setVNamesClino(std::vector<std::string> aVNamesClino){mVNamesClino=aVNamesClino;};
+
+          // Add a initial rotation for a clino
+          void addInitRotClino(std::string aClinoName, tRotR aRot){mInitRotClino[aClinoName]=aRot;};
+
+          
+     private :
+
+          // Read initial boresight matrices computed by ClinoInit
+          void readMeasures();                    
+
+	     const cPhotogrammetricProject * mPhProj;               // Photogrammetric project
+          const std::string mNameClino;                          // name of clino observations file
+          const std::string mFormat;                             // format of clino observations file
+          const std::vector<std::string> mPrePost;               // values added before and after image names in clino observations 
+                                                                 // file to have the same names than in initial solutions file
+          std::vector<cClinoMes1Cam>  mVMeasures;                // observations for one image and one clino
+          std::vector<std::string> mVNamesClino;                 // clino names
+          cCalculator<double> *        mEqBlUK;                  // calculator for clino formula
+          cCalculator<double> *        mEqBlUKRot;               // calculator for rot formula
+          std::vector<double>          mWeight;                  // weights
+          std::map<std::string, cClinoWithUK>    mClinosWithUK;  // map with {clino name, cClinoWithUK object}
+          cCalibSetClino               *mCalibSetClino;          // clino calibration
+          cPt2dr                        mClinoRes;               // Residuals for clino formula
+          cPt2dr                        mRotRes;                 // Residuals for rot formula
+          std::map<std::string, tRotR>    mInitRotClino;         // map with {clino name, initial rotation}
+          
+};
+
+
+
+
+
+
+
+
 class cBA_GCP
 {
      public :
@@ -151,26 +347,37 @@ class cMMVII_BundleAdj
 
 	  void AddBlocRig(const std::vector<double>& aSigma,const std::vector<double>&  aSigmRat ); // RIGIDBLOC
 	  void AddCamBlocRig(const std::string & aCam); // RIGIDBLOC
+          void AddTopo(); // TOPO
+          cBA_Topo* getTopo() { return mTopo;}
+
+          // Add clino bloc to compute relative orientation between clino and a camera
+          void AddClinoBloc(const std::string aNameClino, const std::string aFormat, std::vector<std::string> aPrePost);
+          void AddClinoBloc(cBA_Clino * aBAClino);
+
           bool AddTopo(const std::string & aTopoFilePath); // TOPO
           ///  =======  Add GCP, can be measure or measure & object
-          void AddGCP(const std::string & aName,tREAL8 aSigmaGCP,const  cStdWeighterResidual& aWeightIm, cSetMesImGCP *);
+          void AddGCP(const std::string & aName, tREAL8 aSigmaGCP, const  cStdWeighterResidual& aWeightIm, cSetMesImGCP *, bool verbose=true);
+          std::vector<cBA_GCP*> & getVGCP() { return mVGCP;}
 
 	  ///  ============  Add multiple tie point ============
 	  void AddMTieP(const std::string & aName,cComputeMergeMulTieP  * aMTP,const cStdWeighterResidual & aWIm);
 
           /// One iteration : add all measure + constraint + Least Square Solve/Udpate/Init
           void OneIteration(tREAL8 aLVM=0.0);
+          void OneIterationTopoOnly(tREAL8 aLVM=0.0, bool verbose=false); //< if no images
 
           const std::vector<cSensorImage *> &  VSIm() const ;  ///< Accessor
           const std::vector<cSensorCamPC *> &  VSCPC() const;   ///< Accessor
 								//
 
+          bool CheckGCPConstraints() const; //< test if free points have enough observations
 	  //  =========  control object free/frozen ===================
 
 	  void SetParamFrozenCalib(const std::string & aPattern);
 	  void SetViscosity(const tREAL8& aViscTr,const tREAL8& aViscAngle);
 	  void SetFrozenCenters(const std::string & aPattern);
 	  void SetFrozenOrients(const std::string & aPattern);
+       void SetFrozenClinos(const std::string & aPattern);
           void SetSharedIntrinsicParams(const std::vector<std::string> &);
            
 
@@ -183,6 +390,14 @@ class cMMVII_BundleAdj
           void Save_newGCP();
           void SaveTopo();
 
+	  void ShowUKNames() ;
+          // Save results of clino bundle adjustment
+          void SaveClino();
+          void  AddBenchSensor(cSensorCamPC *); // Add sensor, used in Bench Clino
+
+          void setVerbose(bool aVerbose){mVerbose=aVerbose;}; // Print or not residuals
+          
+
      private :
 
           //============== Methods =============================
@@ -194,14 +409,14 @@ class cMMVII_BundleAdj
           void AssertPhpAndPhaseAdd() ;  /// Assert both
           void InitIteration();          /// Called at first iteration -> Init things and set we are non longer in Phase Add
           void InitItereGCP();           /// GCP Init => create UK
-          void InitItereTopo();           /// Topo Init => create UK
-          void OneItere_GCP();           /// One iteraion of adding GCP measures
+          void InitItereTopo();          /// Topo Init => create UK
+          void OneItere_GCP(bool verbose=true);           /// One iteraion of adding GCP measures
 
 	  void OneItere_TieP();   /// Iteration on tie points
 	  void OneItere_TieP(const cBA_TieP&);   /// Iteration on tie points
 
           ///  One It for 1 pack of GCP (4 now 1 pack allowed, but this may change)
-          void OneItere_OnePackGCP(cBA_GCP &);
+          void OneItere_OnePackGCP(cBA_GCP &, bool verbose=true);
 
           void CompileSharedIntrinsicParams(bool ForAvg);
 
@@ -227,6 +442,7 @@ class cMMVII_BundleAdj
 	  std::string  mPatParamFrozenCalib;  /// Pattern for name of paramater of internal calibration
 	  std::string  mPatFrozenCenter;      /// Pattern for name of pose with frozen centers
 	  std::string  mPatFrozenOrient;      /// Pattern for name of pose with frozen centers
+       std::string  mPatFrozenClinos;      /// Pattern for name of clino with frozen boresight
 
           std::vector<std::string>  mVPatShared;
 
@@ -247,6 +463,7 @@ class cMMVII_BundleAdj
 
                  // - - - - - - -   Bloc Rigid - - - - - - - -
 	  cBA_BlocRig*              mBlRig;  // RIGIDBLOC
+       cBA_Clino*              mBlClino;  // CLINOBLOC
           cBA_Topo*              mTopo;  // TOPO
 
 	         // - - - - - - -   Reference poses- - - - - - - -
@@ -263,6 +480,7 @@ class cMMVII_BundleAdj
 	  tREAL8   mSigmaViscCenter;  ///< "viscosity"  for centers
 				      //
 	  int      mNbIter;    /// counter of iteration, at least for debug
+       bool     mVerbose; // print residuals
 };
 
 

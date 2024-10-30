@@ -367,6 +367,32 @@ template <class Type> cMatIner2Var<double> StatFromImageDist(const cDataIm2D<Typ
     return aRes;
 }
 
+
+/*  y = a x +B
+ *
+ *  Sum W(ax+b-y)^2 =
+ *                          (Wx2   Wx) (a)      ( Wxy)             ( W1  -Wx )
+ *  Sum W(ax+b-y)^2 = (a b) (Wx    W1) (b)  - 2 ( Wy )   => Inv =  (-Wx   Wx2)
+ *                                                                 -----------
+ *                                                                 (Wx2 W1 -WxXx) 
+ *
+ *
+ *     ( W1  -Wx )    (Wxy)     ( W1 Wxy -Wx Wy)
+ *     (-Wx   Wx2)    (Wy )  =  (-Wx Wxy+ Wx2 Wy)
+ *
+ */
+
+template <class Type> std::pair<Type,Type> cMatIner2Var<Type>::FitLineDirect() const
+{
+    Type aDelta = mS11 * mS0 - Square(mS1);
+
+    Type A = (mS12*mS0 - mS1*mS2) / aDelta;
+    Type B = (-mS1*mS12 + mS11 * mS2) / aDelta;
+
+    return std::pair<Type,Type>(A,B);
+}
+
+
 /* *********************************************** */
 /*                                                 */
 /*          cWeightAv<Type>                        */
@@ -400,6 +426,21 @@ template <class TypeWeight,class TypeVal> cWeightAv<TypeWeight,TypeVal>::cWeight
 {
 }
 
+
+template <class TypeWeight,class TypeVal> cWeightAv<TypeWeight,TypeVal>::cWeightAv(const std::vector<TypeVal> & aVect) :
+   cWeightAv()
+{
+    for (const auto & aVal : aVect)
+        Add(1.0,aVal);
+}
+
+template <class TypeWeight,class TypeVal> TypeVal cWeightAv<TypeWeight,TypeVal>::AvgCst(const std::vector<TypeVal> & aVect) 
+{
+    cWeightAv<TypeWeight,TypeVal> aWA(aVect);
+    return aWA.Average();
+}
+
+
 template <class TypeWeight,class TypeVal> void cWeightAv<TypeWeight,TypeVal>::Add(const TypeWeight & aWeight,const TypeVal & aVal)
 {
    mSW += aWeight;
@@ -410,6 +451,13 @@ template <class TypeWeight,class TypeVal> TypeVal cWeightAv<TypeWeight,TypeVal>:
 {
     MMVII_ASSERT_INVERTIBLE_VALUE(mSW);
     return mSVW / mSW;
+}
+
+template <class TypeWeight,class TypeVal> TypeVal cWeightAv<TypeWeight,TypeVal>::Average(const TypeVal  & aDef) const
+{
+    if (! ValidInvertibleFloatValue(mSW))
+        return aDef;
+    return Average();
 }
 
 template <class TypeWeight,class TypeVal> const TypeVal & cWeightAv<TypeWeight,TypeVal>::SVW () const {return mSVW;}

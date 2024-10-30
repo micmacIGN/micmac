@@ -25,6 +25,7 @@ std::optional<double>  InterpoleExtr(double V1,double V2,double V3)
     return std::optional<double> ((V1-V3) /(2*aDiv));
 }
 
+
 double  StableInterpoleExtr(double V1,double V2,double V3)
 {
     std::optional<double>  aVOpt =  InterpoleExtr(V1,V2,V3);
@@ -36,6 +37,13 @@ double  StableInterpoleExtr(double V1,double V2,double V3)
        return 0.0;
     }
     return 0.0;
+}
+
+double  ValueStableInterpoleExtr(double V1,double V2,double V3)
+{
+    tREAL8 aX = StableInterpoleExtr(V1,V2,V3);
+
+    return  ((V1+V3)/2.0 - V2) * Square(aX) +  ((V3-V1)/2.0) * aX + V2;
 }
 
 /*
@@ -75,7 +83,7 @@ template <class Type> const cDataIm2D<Type>  & cAffineExtremum<Type>::Im() const
 
 template <class Type> cPt2dr cAffineExtremum<Type>::OneIter(const cPt2dr & aP0)
 {    
-   mSysPol.Reset();
+   mSysPol.PublicReset();
    cPt2di aC = ToI(aP0);
 
    // #### 1 #####  fill the Least square sys  to compute the polynomial coeff
@@ -103,7 +111,7 @@ template <class Type> cPt2dr cAffineExtremum<Type>::OneIter(const cPt2dr & aP0)
          return aP0;
    }
    // Compute the polynom
-   cDenseVect<tREAL4>  aSolPol = mSysPol.Solve();
+   cDenseVect<tREAL4>  aSolPol = mSysPol.PublicSolve();
 
    // #### 2 #####   From the polynom get the extremum
    //   P.x  =  (A3 A4)-1  (-A1/2)

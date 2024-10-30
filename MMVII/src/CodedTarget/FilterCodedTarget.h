@@ -4,6 +4,7 @@
 #include "MMVII_Linear2DFiltering.h"
 #include "MMVII_Geom2D.h"
 #include "MMVII_SysSurR.h"
+#include "MMVII_Mappings.h"
 
 
 /** \file  FilterCodedTarget.h
@@ -119,7 +120,7 @@ class cParamAllFilterDCT
 */
 
 
-template <class Type>  class  cFilterDCT : public cMemCheck
+template <class Type>  class  cFilterDCT : public tFunc2DReal
 {
     public :
            typedef cIm2D<Type>     tIm;
@@ -129,6 +130,8 @@ template <class Type>  class  cFilterDCT : public cMemCheck
 
 	   //  ===============  Allocator =============
            static cFilterDCT<Type> * AllocSym(tIm anIm,const cParamAllFilterDCT &);
+	   static cFilterDCT<Type> * AllocSym(tIm anIm,double aR0,double aR1,double aEpsilon);
+
            // static cFilterDCT<Type> * AllocBin(tIm anIm,double aR0,double aR1);
            static cFilterDCT<Type> * AllocRad(const tImGr & aImGr,const cParamAllFilterDCT &);
            static cFilterDCT<Type> * AllocBin(tIm anIm,const cParamAllFilterDCT &);
@@ -144,11 +147,13 @@ template <class Type>  class  cFilterDCT : public cMemCheck
            virtual void UpdateSelected(cDCT & aDC) const ;
 
            double ComputeVal(const cPt2dr & aP);
+	   cPt1dr Value(const cPt2dr&) const;
            tIm    ComputeIm();
            double ComputeValMaxCrown(const cPt2dr & aP,const double& aThreshold);
            tIm    ComputeImMaxCrown(const double& aThreshold);
 
            eDCTFilters  ModeF() const;
+
 
     protected  :
            cFilterDCT(bool IsCumul,eDCTFilters aMode,tIm anIm,bool IsSym,double aR0,double aR1,double aThickN=1.5);
@@ -233,7 +238,8 @@ bool TestDirDCT(cDCT & aDCT,cIm2D<tREAL4> anIm,double aRayCB, double size_factor
 
 
 /**  To be general we use this abstract class for descring a basis of function,
- *   for a given pixel it must return a vector of value for each element of the basis
+ *   Let F1,F2 ... FN be a basis of 2D function,  for a given pixel P,
+ *   "WeightAndVals" must return a vector of value  "FK(p)" for each element of the basis
  */
 class cBasisFunc
 {
@@ -260,8 +266,10 @@ class cCompiledNeighBasisFunc
 
          /** Very basic implementation, slow but safe, will give a fast alternative later
 	  *  Typically a faster implemantation will store for once the var/covar matrix and its inverse
-	  *  (depend only of the neighbourhood */
+	  *  (depend only of the neighbourhood) */
          cDenseVect<tREAL8>   SlowCalc(const std::vector<tREAL8> & );
+
+         const cDenseVect<tREAL8> &  FastCalc(const std::vector<tREAL8> & );
      private  :
          inline void AssertValsIsOk(const std::vector<tREAL8> & aVV)
          {
@@ -274,6 +282,10 @@ class cCompiledNeighBasisFunc
          std::vector<cDenseVect<tREAL8>>   mVFuncs;  ///< for each neighboor contain value on the basis
          size_t                            mNbFunc;  ///< number of functions, commodity
          cLeasSqtAA<tREAL8>                mSys;     ///< least square system
+	 bool                              mFisrtFast;  ///< First time we do Fast => compute mMatInvCov
+	 cDenseMatrix<tREAL8>              mMatInvCov;  ///< Invers of cov as it does not vary
+         cDenseVect<tREAL8>                mRHS;
+         cDenseVect<tREAL8>                mSolFast;
 };
 
 /** Class specific to saddle point computation using a least square fitting of neighbourood by quadratic
@@ -286,16 +298,20 @@ class cCalcSaddle
              cCalcSaddle(double aRay,double aStep);
 
 	     /// not use 4 now, compute criteria/eigen values
-             tREAL8  CalcSaddleCrit(const std::vector<tREAL8> &,bool Show);
+             tREAL8  CalcSaddleCrit(const std::vector<tREAL8> &,bool Show=false);
+
+	     /// Dont use interpol, require step = 1 
+             tREAL8  CalcSaddleCrit(cDataIm2D<tREAL4>& aIm,cPt2di);
 
 	     /// compute refined displacement a  saddle point using values of neihboor
              cPt2dr   RefineSadlPtFromVals(const std::vector<tREAL8> & aVVals,bool Show);
 	     /// optimize position by iteration on  RefineSadlPtFromVals
+             bool RefineSadlePointFromIm(cIm2D<tREAL4> aIm,cPt2dr & aPt,bool ResetIfDivg=false);
              void RefineSadlePointFromIm(cIm2D<tREAL4> aIm,cDCT & aDCT);
 
              double Ray() const { return mRay;}         //CM: avoid mRay unused
              double Step() const { return mStep;}       //CM: avoid mStep unused
-
+             const std::vector<cPt2di> &   VINeigh() const ;  ///<  Accessor
         private :
              double                   mRay;   ///< Radius of neighbourhood
              double                   mStep;  ///< Step for discretization
@@ -317,6 +333,52 @@ class cCalcSaddle
  */
 
 std::pair<cIm2D<tREAL4>,cIm2D<tREAL4>> FastComputeSaddleCriterion(cIm2D<tREAL4>  aIm,double aRay);
+
+
+/**  Class for "fine" optimiization of symetry criterion on a image , the input
+ * are : the image "IM", the interpolator "i", a set of point "Pk", an initial center "C",
+ * it trie to adapt "C" so that the equation  "Eq1" is satisfied
+ *
+ *     IM(Pk) = IM(P'k) =  IM(C + C-Pk)  "Eq1"
+ *
+ *    Note that in Pk, we do not store the symetic points P'K, they are computed "on the fly"
+ *
+ *  It offers 2 "strategy" a "fast" one using gradient and another using heuristik
+ *  (which is maintained because it exists and may be safer, but not really sure ...)
+ *
+ *  Inherit from "cDataMapping" to be usable in heuristik optimization by "cOptimByStep".
+ *
+ *  Generally (at least in B/W target) the points will be located on frontier/gradient for 2 reasons :
+ *
+ *      - efficiency in computation (less point)
+ *      - accuraccy, in theoretically homogeneous region, the un-semitry in radiometry is only due to noise
+ */
+
+template <class Type> class cOptimSymetryOnImage : public cDataMapping<tREAL8,2,1>
+{
+        public :
+           typedef  cDataIm2D<Type> tDIm;
+           ///  return symetry  coefficient
+           cPt1dr Value(const cPt2dr & ) const override;
+
+           /// do one iteration of refined with gradient & least square
+           tREAL8 OneIterLeastSqGrad();
+           /// do N iteration of "OneIterLeastSqGrad" until decreasing is small enough or number max of iter reached
+           int IterLeastSqGrad(tREAL8 aGainMin,int aNbMax);
+
+           const cPt2dr & C0() const {return mC0;} ///< Accessor
+
+           /// Constructor memorize parameters and initializd mPtsOpt empty
+           cOptimSymetryOnImage(const cPt2dr & aC0,const tDIm & ,const cDiffInterpolator1D &);
+           /// Add a pts in mPtsOpt
+           void AddPts(const cPt2dr & aPts);
+        protected :
+
+           cPt2dr                       mC0;     ///<   Centers , can be updated
+           const tDIm &                 mDIm;    ///< Image on which optimization os made
+           const cDiffInterpolator1D &  mInterp; ///< Interpolator, used for sub-pixel refinement
+           std::vector<cPt2dr>          mPtsOpt; ///< set of points used for computation
+};
 
 
 };

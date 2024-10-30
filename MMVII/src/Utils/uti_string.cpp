@@ -97,6 +97,12 @@ cCarLookUpTable::cCarLookUpTable() :
     MEM_RAZ(&mDTable,1);
 }
 
+void cCarLookUpTable::InitIdGlob()
+{
+    InitId(std::numeric_limits<char>::min(),std::numeric_limits<char>::max()-1);
+}
+
+
 /* ************************************************* */
 /*                                                   */
 /*                     MMVII                         */
@@ -459,7 +465,7 @@ bool CreateDirectories(const std::string & aDir,bool SVP)
         }
         else
         {
-            MMVII_UsersErrror(eTyUEr::eCreateDir,"Cannot create directory for arg " + aDir);
+            MMVII_UserError(eTyUEr::eCreateDir,"Cannot create directory for arg " + aDir);
         }
     }
     return Ok;
@@ -660,9 +666,15 @@ bool starts_with(const std::string & aFullStr,const std::string & aPrefix)
     return anItPref==aPrefix.end();
 }
 
+bool contains(const std::string & aFullStr,char aC)
+{
+	return aFullStr.find(aC) != std::string::npos;
+}
+
 bool IsPrefixed(const std::string & aStr,char aSep)
 {
-	return aStr.find(aSep) != std::string::npos;
+	return contains(aStr,aSep);
+	// return aStr.find(aSep) != std::string::npos;
 }
 
 

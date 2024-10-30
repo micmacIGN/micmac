@@ -9,6 +9,10 @@
 namespace MMVII
 {
 
+typedef cSegment<tREAL8,2> tSeg2dr;
+typedef cSegmentCompiled<tREAL8,2> tSegComp2dr;
+
+
 
 /** \file MMVII_Geom2D.h
     \brief contain classes for geometric manipulation, specific to 2D space :
@@ -55,6 +59,10 @@ template <class T>  inline T Teta(const cPtxd<T,2> & aP1)  ///<  From x,y to To 
    return  std::atan2(aP1.y(),aP1.x());
 }
 
+/// return the "line" angle : i.e angle  between 2  non oriented direction, it's always in [0,PI/2] 
+template <class T>  T LineAngles(const cPtxd<T,2> & aDir1,const cPtxd<T,2> & aDir2);
+
+
 template <class T> inline cPtxd<T,2> ToPolar(const cPtxd<T,2> & aP1,T aDefTeta)  ///<  With Def value 4 teta
 {
     return IsNotNull(aP1) ? ToPolar(aP1) : cPtxd<T,2>(0,aDefTeta);
@@ -84,12 +92,37 @@ template <class Type> class cSegment2DCompiled : public cSegmentCompiled<Type,2>
     public :
        typedef cPtxd<Type,2>   tPt;
        cSegment2DCompiled(const tPt& aP1,const tPt& aP2);
+       cSegment2DCompiled(const cSegment<Type,2>&);
        tPt  ToCoordLoc(const tPt&) const;
        tPt  FromCoordLoc(const tPt&) const;
        Type  DistLine(const tPt&) const; ///< distance between the line and the point
+       Type  DistClosedSeg(const tPt&) const; ///< distance between the point and closed segment
+       Type  SignedDist(const tPt& aPt) const; ///< Signed dist to the line (= y of local coordinates)
+       Type  Dist(const tPt& aPt) const; ///< Faster than upper class
+       const tPt & Normal() const {return mNorm;}
+
+
+       tPt InterSeg(const cSegment2DCompiled<Type> &,tREAL8 aMinAngle=1e-5,bool *IsOk=nullptr);
     private :
        tPt     mNorm;
 };
+
+/** this class a represent a "closed" segment , it has same data than cSegment2DCompiled,
+ * but as a set/geometric primitive, it is limited by extremities
+ */
+
+class cClosedSeg2D
+{
+   public :
+      bool  InfEqDist(const cPt2dr & aPt,tREAL8 aDist) const;
+      cClosedSeg2D(const cPt2dr & aP0,const cPt2dr & aP1);
+      cBox2dr GetBoxEnglob() const;
+
+      const cSegment2DCompiled<tREAL8> & Seg() const;
+   private :
+      cSegment2DCompiled<tREAL8>  mSeg;
+};
+
 
 
 /*  Class of 2D mapping having the same interface, usable for ransac & least square */
@@ -553,10 +586,13 @@ class cEllipse
        cEllipse(cDenseVect<tREAL8> aDV,const cPt2dr & aC0);
        ///  A more physicall creation
        cEllipse(const cPt2dr & aCenter,tREAL8 aTeta,tREAL8 aLGa,tREAL8 aLSa);
+       /// Create a circle
+       cEllipse (const cPt2dr & aCenter,tREAL8 aRay);
 
        void AddData(const  cAuxAr2007 & anAux);
 
 
+       double NonEuclidDist(const cPt2dr& aP) const;  /// Dist to non euclid proj (on radius)
        double EuclidDist(const cPt2dr& aP) const;  /// rigourous  distance, use projection (long ?)
        double SignedEuclidDist(const cPt2dr& aP) const;  /// rigourous signed distance
 
@@ -575,11 +611,14 @@ class cEllipse
        const cPt2dr &  VGa() const; ///< Accessor
        const cPt2dr &  VSa() const; ///< Accessor
        double TetaGa() const; /// Teta great axe
+       tREAL8  EVP() const ;  /// Are Eigen value positive
+
 
        cPt2dr  PtOfTeta(tREAL8 aTeta,tREAL8 aMulRho=1.0) const; /// return on ellipse with param A cos(T) + B sin(T)
        cPt2dr  PtAndGradOfTeta(tREAL8 aTeta,cPt2dr &,tREAL8 aMulRho=1.0) const;  /// return also the gradien of belong function
 
        cPt2dr  ToCoordLoc(const cPt2dr &) const; /// in a sys when ellipse is unity circle
+       cPt2dr  VectToCoordLoc(const cPt2dr &) const; ///  for vector (dont use center)
        cPt2dr  FromCoordLoc(const cPt2dr &) const; /// in a sys when ellipse is unity circle
        cPt2dr  VectFromCoordLoc(const cPt2dr &) const; /// for vector (dont use center)in a sys when ellipse is unity circle
        cPt2dr  ToRhoTeta(const cPt2dr &) const; /// Invert function of PtOfTeta
@@ -590,7 +629,15 @@ class cEllipse
        cPt2dr  Tgt(const cPt2dr &) const;
        cPt2dr  NormalInt(const cPt2dr &) const;
 
+       cPt2dr InterSemiLine(tREAL8 aTeta) const;    /// compute the intesection of 1/2 line of direction teta with the ellipse
+
+       /// get points on ellipse that are +- less regularly sampled at a given step
+       void GetTetasRegularSample(std::vector<tREAL8> & aVTetas,const tREAL8 & aDist);
+
+
     private :
+       inline void AssertOk() const;
+
        void OneBenchEllispe();
        cDenseVect<tREAL8>     mV;
        double                 mNorm;
@@ -616,12 +663,14 @@ class cEllipse_Estimate
         cLeasSqtAA<tREAL8> & Sys();
 
         // indicate a rough center, for better numerical accuracy
-        cEllipse_Estimate(const cPt2dr & aC0);
+        cEllipse_Estimate(const cPt2dr & aC0,bool isCenterFree=true,bool isCircle=false);
         void AddPt(cPt2dr aP) ;
 
         cEllipse Compute() ;
         ~cEllipse_Estimate();
       private :
+	 bool               mIsCenterFree;
+	 bool               mIsCircle;
          cLeasSqtAA<tREAL8> *mSys;
          cPt2dr             mC0;
 

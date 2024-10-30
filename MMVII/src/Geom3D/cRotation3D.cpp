@@ -113,7 +113,12 @@ template <class Type> cIsometry3D<Type>::cIsometry3D(const tPt& aTr,const cRotat
  *  any use drive quickly to absurd result if not error
  */
 template <class Type> cIsometry3D<Type>::cIsometry3D() :
-	cIsometry3D(tPt(0,0,0),cRotation3D<Type>(cDenseMatrix<Type>(3,3,eModeInitImage::eMIA_Null),false))
+	cIsometry3D
+	(
+	      tPt(0,0,0),
+	      // cRotation3D<Type>(cDenseMatrix<Type>(3,3,eModeInitImage::eMIA_Null),false)
+	      cRotation3D<Type>()
+        )
 {
 }
 
@@ -202,6 +207,30 @@ template <class Type> cIsometry3D<tREAL8>  ToReal8(const cIsometry3D<Type>  & an
     return cIsometry3D<tREAL8>(  ToR(anIsom.Tr()) , ToReal8(anIsom.Rot())  );
 }
 
+void AddData(const cAuxAr2007 & anAux,tRotR & aRot)
+{
+     cPt3dr aI = aRot.AxeI();
+     cPt3dr aJ = aRot.AxeJ();
+     cPt3dr aK = aRot.AxeK();
+
+     cAuxAr2007 aAuxRot("RotMatrix",anAux);
+     MMVII::AddData(cAuxAr2007("AxeI",aAuxRot),aI);
+     MMVII::AddData(cAuxAr2007("AxeJ",aAuxRot),aJ);
+     MMVII::AddData(cAuxAr2007("AxeK",aAuxRot),aK);
+
+     if (anAux.Input())
+     {
+         aRot = tRotR(MatFromCols(aI,aJ,aK),false);
+     }
+}
+void AddData(const cAuxAr2007 & anAux,tPoseR & aPose)
+{
+     // StdOut() << "AddDataAddData anAux,tPoseR\n";
+     MMVII::AddData(cAuxAr2007("Center",anAux),aPose.Tr());
+     MMVII::AddData(anAux,aPose.Rot());
+} 
+
+/*
 void AddData(const cAuxAr2007 & anAux,tPoseR & aPose)
 {
      cPt3dr aC = aPose.Tr();
@@ -222,6 +251,7 @@ void AddData(const cAuxAr2007 & anAux,tPoseR & aPose)
      }
 }
 
+*/
 
 /* ************************************************* */
 /*                                                   */
@@ -229,12 +259,46 @@ void AddData(const cAuxAr2007 & anAux,tPoseR & aPose)
 /*                                                   */
 /* ************************************************* */
 
+template <class Type> cRotation3D<Type>::cRotation3D() :
+	mMat (3,3,eModeInitImage::eMIA_Null)
+{
+}
+	      // cRotation3D<Type>(cDenseMatrix<Type>(3,3,eModeInitImage::eMIA_Null),false)
+	      
 template <class Type> cRotation3D<Type>::cRotation3D(const cDenseMatrix<Type> & aMat,bool RefineIt) :
    mMat (aMat)
 {
    if (RefineIt)
    {
       mMat = mMat.ClosestOrthog();
+   }
+   else
+   {
+#if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )
+       cPtxd<Type,3> aI = AxeI();
+       cPtxd<Type,3> aJ = AxeJ();
+       cPtxd<Type,3> aK = AxeK();
+
+       // "Epsilon value" set empirically taking into account the value obseved on current bench
+
+       // are the vector unitar, take into account accuracy of type
+       tREAL8 aDifN = (std::abs(SqN2(aI)-1)+std::abs(SqN2(aJ)-1)+std::abs(SqN2(aK)-1)) / tElemNumTrait<Type>::Accuracy() ;
+// StdOut() << "ffffffffff  " << std::abs(SqN2(aI)-1)<< " " << std::abs(SqN2(aJ)-1) << " " << std::abs(SqN2(aK)-1) << "\n";
+       MMVII_INTERNAL_ASSERT_tiny(aDifN<1e-3,"Rotation 3D init non norm w/o RefineIt");
+
+       // are the vector orthognal, take into account accuracy of type
+       tREAL8 aDifS = (std::abs(Scal(aI,aJ))) / tElemNumTrait<Type>::Accuracy() ;
+       MMVII_INTERNAL_ASSERT_tiny(aDifS<1e-4,"Rotation 3D init non orthog w/o RefineIt");
+
+       /*
+       static tREAL8 aMaxDif=0;
+       if (aDifS> aMaxDif)
+       {
+            aMaxDif = aDifS;
+            StdOut() << "*********************** ******************** DIFFSSS=" << tNumTrait<Type>::NameType() <<  " "<< aMaxDif << "\n";
+       }
+       */
+#endif
    }
    // MMVII_INTERNAL_ASSERT_always((! RefineIt),"Refine to write in Rotation ...");
 }
@@ -347,7 +411,7 @@ template <class Type> cRotation3D<Type>  cRotation3D<Type>::RandomRot(const Type
 }
 
 
-template <class Type> void cRotation3D<Type>::ExtractAxe(tPt & anAxe,Type & aTeta)
+template <class Type> void cRotation3D<Type>::ExtractAxe(tPt & anAxe,Type & aTeta) const
 {
     cDenseVect<Type> aDVAxe =  mMat.EigenVect(1.0);
     anAxe =  cPtxd<Type,3>::FromVect(aDVAxe);
@@ -365,6 +429,24 @@ template <class Type> void cRotation3D<Type>::ExtractAxe(tPt & anAxe,Type & aTet
     MMVII_INTERNAL_ASSERT_medium(std::abs(aRhoTeta.x()-1.0)<1e-5,"Axes from rot");
     aTeta = aRhoTeta.y();
 }
+
+template <class Type> std::pair<cPtxd<Type,3>,Type> cRotation3D<Type>::ExtractAxe() const
+{
+    tPt anAxe;
+    Type aTeta;
+    ExtractAxe(anAxe,aTeta);
+    return std::pair<cPtxd<Type,3>,Type> (anAxe,aTeta);
+}
+
+template <class Type> cPtxd<Type,3> cRotation3D<Type>::Axe() const { return ExtractAxe().first; }
+template <class Type> Type cRotation3D<Type>::Angle() const { return ExtractAxe().second; }
+
+
+
+/*
+*/
+
+
 
 /*    WPK = Rx(W) Ry(P) Rz(K)  
  *    YPR = Rz(Y) Ry(P) Rx(R)
@@ -516,7 +598,7 @@ template <class Type> cPtxd<Type,3>  cRotation3D<Type>::ToWPK() const
 
 	}
 
-	cDenseVect<Type> aSol = aSys.Solve();
+	cDenseVect<Type> aSol = aSys.PublicSolve();
 	aWPK += tPt::FromVect(aSol);
     }
 

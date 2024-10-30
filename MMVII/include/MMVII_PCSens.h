@@ -152,6 +152,7 @@ class cDataPerspCamIntrCalib
       std::vector<std::string> & VecInfo() ;
 
       const cMapPProj2Im& MapPProj2Im() const { return mMapPProj2Im;}
+      const std::string & Name() const; ///< Accessor
 
    protected :
       std::string                    mName;
@@ -204,7 +205,7 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 
 	    /**  Generate random calib, with assurance that distorsion will be inverible, 
 	       the KDeg (in 0,1,2)  pick one of the pre-defined degree */
-            static cPerspCamIntrCalib * RandomCalib(eProjPC aTypeProj,int aKDeg);
+            static cPerspCamIntrCalib * RandomCalib(eProjPC aTypeProj,int aKDeg,tREAL8 anAmpl=0.1);
 
 
 	    /** Given a set of 2D-3D correspondance, make a pose estimation using space resection,  
@@ -253,6 +254,8 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
             /** Inverse function of Undist ... */
 	    tPtOut Redist(const tPtOut &) const;
 
+	    /// Interpolate on the curve of un-distorted line
+            cPt2dr InterpolOnUDLine(const tSeg2dr&,tREAL8 WeightP1) const;
 
 
     // ==================   Accessors & Modifiers ===================
@@ -320,6 +323,21 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 	    /// For inversion, or sampling point, we need seed that is +- corresponding of sensor midle, befor dist
 	    cPt2dr PtSeedInv() const;
 
+	    /// Let S be a seg in undist space, extend as much as possible while distorted is include in image
+	    tSeg2dr  ExtenSegUndistIncluded
+		     (
+		          bool  Redist,
+		          const tSeg2dr & aSegInit,
+			  tREAL8 aStepInitRel=0.05,
+			  tREAL8 aStepEnd=1.0,
+			  tREAL8 aRetract=0.0
+                     ) const;
+
+            /// Generate a tabulated version of Undist/Redist
+            cTabuMapInv<2>* AllocTabulDUD(int aNb) const;
+            /// Memorize the tabulation that will be used when calling Undist/Redist
+            void SetTabulDUD(int aNb) ;
+
        private :
 	     ///  big object, no valuable copy
             cPerspCamIntrCalib(const cPerspCamIntrCalib &) = delete;
@@ -364,9 +382,29 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
             cDataIIMFromMap<tREAL8,2> *          mDist_DirInvertible; ///< accurate inverse, use approx + iterative
             cDataMapCalcSymbDer<tREAL8,2,3>*     mInv_Proj;   ///< direct projection  R2->R3
             bool                                 mInvIsUpToDate;        
-
+            cTabuMapInv<2>*                      mTabulDUD;  ///< Possibly store a tabulation of D/UD to replace call Undist/Redist
             // cDataMapCalcSymbDer<tREAL8,3,2>   * mProjInv;
 };
+
+
+
+/**  Interface to describe a "cPerspCamIntrCalib" as a invertible mapping for
+ * the pair Undist/Redist
+ */
+
+class cCamUDReD_Map : public cDataInvertibleMapping<tREAL8,2>
+{
+     public :
+          typedef  cDataInvertibleMapping<tREAL8,2>  tMap;
+          typedef  typename tMap::tPt                tPt;
+
+           tPt Value(const tPt &) const override;      ///< Undist 
+           tPt Inverse(const tPt &) const override;    ///< Redist 
+           cCamUDReD_Map(const cPerspCamIntrCalib * aCalib); ///< Constructor , memo the calib
+     private :
+        const cPerspCamIntrCalib * mCalib;  ///< memorize the calibration
+};
+
 
 void AddData(const cAuxAr2007 & anAux,cPerspCamIntrCalib &);
 
@@ -422,6 +460,7 @@ void AddData(const  cAuxAr2007 & anAux,cPoseWithUK & aPUK);
 class cSensorCamPC : public cSensorImage
 {
      public :
+
 	 typedef cObjWithUnkowns<tREAL8> * tPtrOUK;
          typedef cIsometry3D<tREAL8>  tPose;   /// transformation Cam to Word
 
@@ -430,7 +469,7 @@ class cSensorCamPC : public cSensorImage
 	 /// specialize chang sys 
          cSensorCamPC * PCChangSys(cDataInvertibleMapping<tREAL8,3> &) const ;
 	 /// generic chang sys  (just call specialized)
-         cSensorImage * SensorChangSys(const std::string & aDir,cChangSysCoordV2 &) const override ;
+         cSensorImage * SensorChangSys(const std::string & aDir,cChangeSysCo &) const override ;
 
          /// Create form  Un-Calibrated-Space-Resection
          static cSensorCamPC * CreateUCSR(const cSet2D3D&,const cPt2di & aSzCam,const std::string&,bool Real16=true);
@@ -469,6 +508,14 @@ class cSensorCamPC : public cSensorImage
 	 /// Push the current rotation, as equation are fixed using delta-rot
 	 void PushOwnObsColinearity(std::vector<double> &,const cPt3dr &) override;
 
+	 /// return the 3-d plane crossing the 2-d seg, depth is optionnal as theoretically it define the same plane
+         cPlane3D  SegImage2Ground(const tSeg2dr &,tREAL8 aDepth=1.0) const;
+
+
+	 ///  compute the  ground distance between bundle of PIm and aSeg3
+	 tREAL8  GroundDistBundleSeg(const cPt2dr & aPIm,const cSegmentCompiled<tREAL8,3>  & aSeg3) const;
+	 /// compute the pixel distance  between  PIm and aSeg3
+	 tREAL8  PixDistBundleSeg(const cPt2dr & aPIm,const cSegmentCompiled<tREAL8,3>  & aSeg3) const;
 
 	 /// return the pose of aCam2 relatively to Cam1
 	 tPose RelativePose(const cSensorCamPC& aCame) const;

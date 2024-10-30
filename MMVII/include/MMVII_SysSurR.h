@@ -465,21 +465,28 @@ template <class Type> class cLinearOverCstrSys  : public cMemCheck
              - treat temporary as unknowns and increase the size of their unknowns
 	     - refuse to process =>default is error ...
 	*/
-       virtual void AddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>&);
+       void PublicAddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>&);
 
-       /// "Purge" all accumulated equations
-       virtual void Reset() = 0;
-       /// Compute a solution
-       virtual cDenseVect<Type>  Solve() = 0;
-       ///  May contain a specialization for sparse system, default use generik
-       virtual cDenseVect<Type>  SparseSolve() ;
+       /// Do the common stuff to "Reset", before calling SpecificReset
+       void PublicReset();
+       /// Do the common stuff to "Solve" , befor calling SpecificReset
+       cDenseVect<Type> PublicSolve();
+
+       ///  Do the common stuff to "SparseSolve" , befor calling SpecifiSparseSolve
+       virtual cDenseVect<Type>  PublicSparseSolve() ;
 
        /** Return for a given "solution" the weighted residual of a given observation
            Typically can be square, abs ....
            Usefull for bench at least (check that solution is minimum, or least < to neighboor)
         */
        
-       virtual Type Residual(const cDenseVect<Type> & aVect,const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) const = 0;
+       virtual Type ResidualOf1Eq(const cDenseVect<Type> & aVect,const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) const =0;
+
+
+       /* specialization for sparse vector, defautlt use dense vector */
+       virtual Type ResidualOf1Eq(const cDenseVect<Type> & aVect,const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) const ;
+
+
        
        //  ============ Fix value of variable =============
             ///  Fix value of curent variable, 1 variable
@@ -512,7 +519,15 @@ template <class Type> class cLinearOverCstrSys  : public cMemCheck
     protected :
        int mNbVar;
        cDenseVect<Type>  mLVMW;  // The Levenberg markad weigthing
-    // private :
+    private :
+       /// "Purge" all accumulated equations
+       virtual void SpecificReset() = 0;
+       /// Compute a solution
+       virtual cDenseVect<Type>  SpecificSolve() = 0;
+       ///  May contain a specialization for sparse system, default use generik, (unused at the time being ...)
+       virtual cDenseVect<Type>  SpecificSparseSolve() ;
+
+       virtual void SpecificAddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>&);
 };
 
 template <class Type>  cLinearOverCstrSys<Type> *  AllocL1_Barrodale(size_t aNbVar);
@@ -549,7 +564,8 @@ template <class Type> class  cLeasSq  :  public cLinearOverCstrSys<Type>
 {
     public :
        cLeasSq(int aNbVar);
-       Type Residual(const cDenseVect<Type> & aVect,const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) const override;
+       Type ResidualOf1Eq(const cDenseVect<Type> & aVect,const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) const override;
+       Type ResidualOf1Eq(const cDenseVect<Type> & aVect,const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) const override;
        
        /// Dont use normal equation 
        static cLeasSq<Type>*  AllocSparseGCLstSq(int aNbVar);
@@ -564,7 +580,7 @@ template <class Type> class  cLeasSq  :  public cLinearOverCstrSys<Type>
 };
 
 /**  Implemant least by suming tA A ,  simple and efficient, by the way known to have
-  a conditionning problem 
+  a conditioning problem
 */
 
 template <class Type> class  cLeasSqtAA  :  public cLeasSq<Type>
@@ -574,22 +590,22 @@ template <class Type> class  cLeasSqtAA  :  public cLeasSq<Type>
        cLeasSqtAA<Type> Dup() const;
 
        virtual ~cLeasSqtAA();
-       void Reset() override;
+       void SpecificReset() override;
        /// Compute a solution
-       cDenseVect<Type>  Solve() override;
+       cDenseVect<Type>  SpecificSolve() override;
        /// Use  sparse cholesky , usefull for "sparse dense" system ...
-       cDenseVect<Type>  SparseSolve() override ;
+       cDenseVect<Type>  SpecificSparseSolve() override ;
 
-       void AddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>&) override;
+       void SpecificAddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>&) override;
 
        //  ================  Accessor used in Schur elim ========  :
        
-       const cDenseMatrix<Type> & tAA   () const;   ///< Accessor 
+       const cDenseMatrix<Type> & tAA   () const;   ///< Accessor  , warn not symetrized
        const cDenseVect<Type>   & tARhs () const;   ///< Accessor 
-       cDenseMatrix<Type> & tAA   () ;         ///< Accessor 
+       cDenseMatrix<Type> & tAA   () ;         ///< Accessor  , warn not symetrized
        cDenseVect<Type>   & tARhs () ;         ///< Accessor 
 
-      /// access to tAA via virtual interface
+      /// access to tAA via virtual interface, duplicate then do the symetrization
       cDenseMatrix<Type>  V_tAA() const override;
       /// access to tARhs via virtual interface
       cDenseVect<Type>    V_tARhs() const override;  
@@ -757,6 +773,12 @@ template <class Type> class cSetInterUK_MultipeObj
 	   ///  return a DenseVect filled with all unknowns  as expected to create a cResolSysNonLinear
            cDenseVect<Type>  GetVUnKnowns() const;
 
+	   ///  Nunmber of object
+	   size_t  NumberObject() const;
+	   ///  Access to kth object
+	   const cObjWithUnkowns<Type> & KthObj(size_t) const;
+	   cObjWithUnkowns<Type> & KthObj(size_t) ;
+
 	   ///  fills all unknown of object with a vector as created by cResolSysNonLinear::SolveUpdateReset()
            void  SetVUnKnowns(const cDenseVect<Type> &);
 
@@ -799,23 +821,32 @@ template <class Type> class cGetAdrInfoParam
 	typedef cObjWithUnkowns<Type> tObjWUK;
 
         //  cGetAdrInfoParam(const std::string & aPattern);
-	cGetAdrInfoParam(const std::string & aPattern,tObjWUK & aObj);
+	cGetAdrInfoParam(const std::string & aPattern,tObjWUK & aObj,bool Recurs);
 
 	static void PatternSetToVal(const std::string & aPattern,tObjWUK & aObj,const Type & aVal);
 
         void TestParam(tObjWUK*,Type *,const std::string &);
 
-	const std::vector<Type*>  &      VAdrs()  const;
-	const std::vector<std::string> & VNames() const;
-	const std::vector<tObjWUK*> &    VObjs() const;
+	const std::vector<Type*>  &   VAdrs()  const;
+	const std::vector<std::string> &    VNames() const;
+	const std::vector<tObjWUK*> &       VObjs() const;
 
 	static void ShowAllParam(tObjWUK &);
+
+	void SetNameType(const std::string & aNameType);
+	const std::string &  NameType() const;
+	void SetIdObj(const std::string & aNameType);
+	const std::string &  IdObj() const;
+
+
      private :
 
 	tNameSelector  mPattern;
 	std::vector<tObjWUK*>      mVObjs;
-	std::vector<Type*>         mVAdrs;
+	std::vector<Type*>   mVAdrs;
 	std::vector<std::string>   mVNames;
+	std::string                mNameType;
+	std::string                mIdObj;
 };
 
 template <class Type> class cObjWithUnkowns //  : public cObjOfMultipleObjUk<Type>
@@ -861,8 +892,6 @@ template <class Type> class cObjWithUnkowns //  : public cObjOfMultipleObjUk<Typ
           int   IndUk0() const;   ///< Accessor
           int   IndUk1() const;   ///< Accessor
 
-	  // void GetAllValues(std::vector<Type> & aVRes);
-
        protected :
 	  /// defautl constructor, put non init in all vars
           void OUK_Reset();
@@ -890,14 +919,18 @@ template <const int Dim>  class cPtxdr_UK :  public cObjWithUnkowns<tREAL8>,
    public :
       typedef cPtxd<tREAL8,Dim>  tPt;
 
-      cPtxdr_UK(const tPt &);
+      cPtxdr_UK(const tPt &,const std::string& aName);
       ~cPtxdr_UK();
       void PutUknowsInSetInterval() override;
       const tPt & Pt() const ;
       tPt & Pt() ;
+
+      void  GetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
+
    private :
       cPtxdr_UK(const cPtxdr_UK&) = delete;
       tPt mPt;
+      std::string mName;
 };
 
 typedef cPtxdr_UK<2> cPt2dr_UK ;

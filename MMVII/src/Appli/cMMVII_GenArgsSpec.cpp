@@ -11,7 +11,6 @@ namespace GenArgsInternal
 static const std::vector<eTA2007> prjSubDirList =                           // clazy:exclude=non-pod-global-static
 {
     eTA2007::Orient,
-    eTA2007::OriTriplet,
     eTA2007::RadiomData,
     eTA2007::RadiomModel,
     eTA2007::MeshDev,
@@ -20,17 +19,22 @@ static const std::vector<eTA2007> prjSubDirList =                           // c
     eTA2007::PointsMeasure,
     eTA2007::TieP,
     eTA2007::MulTieP,
-    eTA2007::RigBlock,
+    eTA2007::RigBlock, // RIGIDBLOC
     eTA2007::SysCo,
+    eTA2007::Topo,  // TOPO
+    eTA2007::Clino,
+    eTA2007::MeasureClino
 };
 
 static const std::map<eTA2007,std::vector<std::string>> fileList =          // clazy:exclude=non-pod-global-static
 {
     {eTA2007::FileImage,{".tif",".tiff",".jpg",".jpeg",".png",".cr2",".crw",".nef"}},
     {eTA2007::FileCloud,{".ply"}},
-    {eTA2007::File3DRegion,{".*"}},
+    {eTA2007::File3DRegion,{""}},
     {eTA2007::XmlOfTopTag,{".xml",".json"}},
+    {eTA2007::FileTagged,{".xml",".json"}},
     {eTA2007::FileAny,{""}},
+    {eTA2007::FileTxt,{""}},
 };
 
 } // namespace GenArgsInternal

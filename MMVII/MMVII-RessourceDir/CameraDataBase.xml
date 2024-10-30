@@ -31,6 +31,34 @@
                <NbPixels>6048  4032</NbPixels>
             </V>
          </Pair>
+         <Pair>
+            <K>"SONY A6400"</K>
+            <V>
+               <Name>"SONY A6400"</Name>
+               <SzPix_micron>3.9 3.9 </SzPix_micron>
+               <SzSensor_mm>23.4  15.6</SzSensor_mm>  <!-- 23.5 15.6 in spec => non square pixel -->
+               <NbPixels>6000  4000</NbPixels>
+            </V>
+         </Pair>
+         <Pair>
+            <K>"ILCE-6400"</K>
+            <V>
+               <Name>"ILCE-6400"</Name>
+               <SzPix_micron>3.9 3.9 </SzPix_micron>
+               <SzSensor_mm>23.4  15.6</SzSensor_mm>  <!-- 23.5 15.6 in spec => non square pixel -->
+               <NbPixels>6000  4000</NbPixels>
+            </V>
+         </Pair>
+         <Pair>
+            <K>"DIAG-ILCE-6400"</K>
+            <V>
+               <Name>"DIAG-ILCE-6400"</Name>
+               <SzPix_micron> 5.5 5.5 </SzPix_micron>
+               <SzSensor_mm> 27.6  27.6 </SzSensor_mm>  <!-- 23.5 15.6 in spec => non square pixel -->
+               <NbPixels> 5023   5023</NbPixels>
+            </V>
+         </Pair>
+
       </CamDataBase>
    </Data>
 </Root>

@@ -60,7 +60,7 @@ cCollecSpecArg2007 & cAppliSpecSerial::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
 
 void GenSpec_BitEncoding(const std::string & aDir);
-void GenSpec_SysCoordV1(const std::string & aDir);
+void GenSpec_SysCo(const std::string & aDir);
 
 
 int  cAppliSpecSerial::Exe()
@@ -71,7 +71,7 @@ int  cAppliSpecSerial::Exe()
    // SpecificationSaveInFile<cTestSerial1>(aDir+"cTestSerial1.json");
 
    GenSpec_BitEncoding(aDir);
-   GenSpec_SysCoordV1(aDir);
+   GenSpec_SysCo(aDir);
    SpecificationSaveInFile<tNameSet>(aDir+"SetName.xml");
    SpecificationSaveInFile<cSetMesPtOf1Im>(aDir+"SetMesureIm.xml");
    SpecificationSaveInFile<cSetMesGCP>(aDir+"SetMesureGCP.xml");

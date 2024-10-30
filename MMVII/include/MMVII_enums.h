@@ -48,6 +48,9 @@ enum class eTA2007
                 TieP,          ///< Tie Points
                 MulTieP,       ///< Multiple Tie Points
                 RigBlock,      ///< Rigid bloc    // RIGIDBLOC
+                Clino,         ///< Clinometer
+                MeasureClino,  ///< Clinometer
+                Topo,          ///< Topo
                 SysCo,         ///< System coord
                 Input,         ///< Is this parameter used as input/read
                 Output,        ///< Is this parameter used as output/write
@@ -82,10 +85,11 @@ enum class eApF
                Match,      ///< Dense Matching
                GCP,       ///< Tie-Point processing
                TieP,       ///< Tie-Point processing
+               Lines,       ///< Lines processing
                TiePLearn,    ///< Tie-Point processing  - Learning step
                Cloud,       ///< Cloud processing
                CodedTarget,  ///< Coded target (generate, match )
-               Topo,        ///< Topometry
+               Topo,        ///< Topo survey
                NoGui,        ///< Will not have a GUI frontend
                Perso,      ///< Personnal
                eNbVals     ///< Tag for number of value
@@ -140,12 +144,14 @@ enum class eApDT
               PCar,   ///< Tie Points
               TieP,   ///< Tie Points
               GCP,   ///< Tie Points
+              Lines,   ///< Tie Points
               Image,   ///< Image
               Orient,   ///< Orientations files
               SysCo,   ///< Coordinate system
               Radiom,   ///< Orientations files
               Ply,    ///< Ply file
-              None,     ///< Nothing 
+              Topo,    ///< Topo files
+              None,     ///< Nothing
               ToDef,     ///< still unclassed
               Console,  ///< Console , (i.e printed message have values)
               Xml,      ///< Xml-files
@@ -206,6 +212,7 @@ enum class eTyUEr
               eCreateDir,
               eRemoveFile,
               eEmptyPattern,
+              eBadPattern,
               eBadXmlTopTag,
               eParseBadClose,
               eJSonBadPunct,
@@ -237,6 +244,9 @@ enum class eTyUEr
               eNoFocaleEqui35,
               eNoNumberPixel,
               eNoCameraName,
+              eMultipleTargetInOneImage,
+              eSysCo,
+              eConstraintsError,
               eUnClassedError,
               eNbVals
            };
@@ -532,28 +542,26 @@ enum class eProjPC
      eNbVals
 };
 
-enum class eSysCoGeo
+enum class eSysCo
 {
-     eLambert93,
+     eProj,
+     eLEuc,
      eRTL,
      eGeoC,
-     eWGS84Degrees,
-     eWGS84Rads,
-     eWGS84Meters,
      eLocalSys,
      eNbVals
 };
 
-// topometric observation sets types
+// topo observation sets types
 enum class eTopoObsSetType
 {
+    eSimple,
     eStation,
     //eDistParam,
-    //eSubFrame,
     eNbVals        ///< Tag for number of value
 };
 
-// topometric observations types
+// topo observations types
 enum class eTopoObsType
 {
         eDist,
@@ -562,7 +570,18 @@ enum class eTopoObsType
         eDX,
         eDY,
         eDZ,
+        eDH,
         eNbVals        ///< Tag for number of value
+};
+
+// cTopoObsSetStation orientation freedom status
+enum class eTopoStOriStat
+{
+        eTopoStOriContinue, ///< special case,  used only on obs reading: same as previous ori constraint, just a marker to split stations
+        eTopoStOriFixed,    ///< no rotation
+        eTopoStOriVert,     ///< z rotation
+        eTopoStOriBasc,     ///< 3d rotation
+        eNbVals             ///< Tag for number of value
 };
 
 
@@ -574,6 +593,7 @@ enum class eTyCodeTarget
     eCERN,          ///<  central circle, coding invariant (AICON, METASHAPE ...)
     eNbVals
 };
+bool IsCircularTarge(eTyCodeTarget);
 
 enum class eMTDIm
            {
@@ -596,9 +616,10 @@ const std::string & E2Str(const eFormatExtern &);
 const std::string & E2Str(const eTypeSerial &);
 const std::string & E2Str(const eTAAr &);
 const std::string & E2Str(const eProjPC &);
-const std::string & E2Str(const eSysCoGeo &);         
+const std::string & E2Str(const eSysCo &);
 const std::string & E2Str(const eTopoObsSetType &);
 const std::string & E2Str(const eTopoObsType &);
+const std::string & E2Str(const eTopoStOriStat &);
 const std::string & E2Str(const eDCTFilters &);
 const std::string & E2Str(const eTyCodeTarget &);         
 const std::string & E2Str(const eTySC &);         
@@ -649,6 +670,12 @@ class SVP
    public :
       static constexpr bool Yes = true;
       static constexpr bool No  = false;
+};
+class IO
+{
+   public :
+      static constexpr bool In = true;
+      static constexpr bool Out  = false;
 };
 
 

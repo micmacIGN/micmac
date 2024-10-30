@@ -253,6 +253,11 @@ template<class TCont,class TVal> bool  BoolFind(const TCont & aCont,const TVal &
     return std::find(aCont.begin(),aCont.end(),aVal) != aCont.end();
 }
 
+template<class TCont,class TVal> bool  MapBoolFind(const TCont & aCont,const TVal & aVal)
+{
+    return aCont.find(aVal) != aCont.end();
+}
+
 template <class TV,class TF> void erase_if(TV & aVec,const TF& aFonc)
 {
    aVec.erase(std::remove_if(aVec.begin(),aVec.end(),aFonc),aVec.end());
@@ -323,6 +328,9 @@ template <class Type> void ResizeUp(std::vector<Type> & aV1,size_t aSz,const Typ
    if (aSz>aV1.size())
       aV1.resize(aSz,aVal);
 }
+
+template <class Type> void ResizeDown(std::vector<Type> & aV1,size_t aSz) { aV1.resize(std::min(aV1.size(),aSz)); }
+
 
 template <class Type> void SetAndResize(std::vector<Type> & aVec,size_t aSz,const Type &aVal,const Type & aDef)
 {
@@ -516,6 +524,17 @@ template <class tCont>  typename tCont::value_type *  KthElem(tCont & aCont,int 
 
     return nullptr;
 }
+
+template <class Type> std::vector<const Type*> VecObj2VecPtr(const std::vector<Type> & aVecObj)
+{
+    std::vector<const Type *> aVPtr;
+
+    for (const auto & aObj : aVecObj)
+        aVPtr.push_back(&aObj);
+
+    return aVPtr;
+}
+
 
 
 /**    Used in Metadata, but can be used more generally.
