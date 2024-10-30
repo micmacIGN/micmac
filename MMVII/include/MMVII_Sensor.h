@@ -661,20 +661,6 @@ class cPhotogrammetricProject
 	 const cSysCoordV2 & SysCo() const ;
          bool  SysCoIsInit() const;
          void  AssertSysCoIsInit() const;
-	
-	 //===================================================================
-         //==================   Clinometers           ========================
-	 //===================================================================
-	
-	 /// Standard name for clino file using DPClinoMeters, in or out
-	 std::string NameFileClino(const std::string &aNameCam ,bool Input) const;
-	 /// Save clinometer calib in santdard out folder of DPClinoMeters
-	 void SaveClino(const cCalibSetClino &) const;
-	 /// Is there  clinometer in santdard input folder of DPClinoMeters ?
-	 bool HasClinoCalib(const cPerspCamIntrCalib &) const;
-	 /**  Read the clinometers calib in standard input folder of DPClinoMeters, create a dyn objec because
-	  *  probably "cCalibSetClino" will evolve in a not copiable object*/
-	 cCalibSetClino * GetClino(const cPerspCamIntrCalib &) const;
 
 	 //===================================================================
          //==================   Rigid Bloc           =========================
