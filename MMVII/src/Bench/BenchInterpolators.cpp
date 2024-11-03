@@ -3,8 +3,6 @@
 namespace MMVII
 {
 
-
-
 /**  Basic test on bilinear interpolator :   check that "cLinearInterpolator" works,
  *  "GetValueInterpol" work, and "Tabulated Interpolator" works.
  *
