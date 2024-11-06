@@ -53,6 +53,7 @@ void AddData(const  cAuxAr2007 & anAux,cOneCalibClino & aClino)
 {
     AddData(cAuxAr2007("NameClino",anAux),aClino.mNameClino);
     AddData(cAuxAr2007("Rotation",anAux),aClino.mRot);
+    AddData(cAuxAr2007("NameCamera",anAux),aClino.mCameraName);
     AddOptData(anAux,"RelCalib",aClino.mLinkRel);
 }
 
@@ -442,7 +443,7 @@ int cAppli_ClinoInit::Exe()
 
     for (size_t aKMes = 0 ; aKMes<aNbMeasures ; aKMes++)
     {
-	// for now we process the case where clinos are identic on all lines, maybe to change later
+	    // for now we process the case where clinos are identic on all lines, maybe to change later
         if (IsInit(&mASim))
         {
             auto v1 = RandUnif_C()*mASim[0];
@@ -506,12 +507,13 @@ int cAppli_ClinoInit::Exe()
        cOneCalibClino aCal;
        aCal.mNameClino = aVNamesClino.at(mVKClino.at(aKClino));
        aCal.mRot = OriOfClino(aKClino,aWM0.IndexExtre());
+       aCal.mCameraName = mCalibSetClino.mNameCam;
        if (aKClino != 0)
        {
-          cOneCalibRelClino aCalRel;
-	  aCalRel.mNameRef = aVNamesClino.at(mVKClino.at(0));
-	  aCalRel.mRot = mOriRelClin.at(aKClino);
-          aCal.mLinkRel = aCalRel;
+            cOneCalibRelClino aCalRel;
+	        aCalRel.mNameRef = aVNamesClino.at(mVKClino.at(0));
+	        aCalRel.mRot = mOriRelClin.at(aKClino);
+            aCal.mLinkRel = aCalRel;
        }
        mCalibSetClino.mClinosCal.push_back(aCal);
     }
@@ -561,14 +563,12 @@ int cAppli_ClinoInit::Exe()
     // Save the result in standard file
     mPhProj.SaveClino(mCalibSetClino);
 
-    if (mPhProj.DPClinoMeters().DirInIsInit())
+    /*if (mPhProj.DPClinoMeters().DirInIsInit())
     {
-       cCalibSetClino* aClinoTest = mPhProj.GetClino(*aCalib);
+       cCalibSetClino* aClinoTest = mPhProj.GetClino(*aCalib, );
        SaveInFile(*aClinoTest,"TestReWriteClino.xml");
-
        delete aClinoTest;
-
-    }
+    }*/
 
 
     // Test 2 understand WPK distance / axiator ...

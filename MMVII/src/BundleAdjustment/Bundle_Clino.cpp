@@ -106,19 +106,12 @@ namespace MMVII
 
     cBA_Clino::cBA_Clino
     (
-        const cPhotogrammetricProject *aPhProj,
-        cCalibSetClino *aCalibSetClino
+        const cPhotogrammetricProject *aPhProj
     ):
         mPhProj  (aPhProj),
         mEqBlUK  (EqClinoBloc(true,1,true)),
-        mEqBlUKRot  (EqClinoRot(true,1,true)),
-        mCalibSetClino (aCalibSetClino)
+        mEqBlUKRot  (EqClinoRot(true,1,true))
     {}
-
-    cBA_Clino::~cBA_Clino()
-    {
-        delete mCalibSetClino;
-    }
 
 
     void cBA_Clino::readMeasures()
@@ -183,18 +176,16 @@ namespace MMVII
         {
             MMVII_INTERNAL_ERROR("Not enough measures");
         }
-        
-        // Read initial value for relative orientation between camera and clino
-        if (aCalib)
-        {
-            mCalibSetClino = mPhProj->GetClino(*aCalib);
-        }
-        
+
+        mCameraName = aCalib->Name();
+
         // Create cClinoWithUK objects and add initial rotation in a map
-        for(auto & aClinoCal:mCalibSetClino->ClinosCal())
+        for(auto & aClinoName:mVNamesClino)
         {
-            mClinosWithUK.emplace(std::piecewise_construct, std::make_tuple( aClinoCal.NameClino()), std::make_tuple(aClinoCal.Rot(), aClinoCal.NameClino()));
-            mInitRotClino[aClinoCal.NameClino()] = aClinoCal.Rot();
+            cOneCalibClino* aCalibClino = mPhProj->GetClino(*aCalib, aClinoName);
+            mClinosWithUK.emplace(std::piecewise_construct, std::make_tuple( aCalibClino->NameClino()), std::make_tuple(aCalibClino->Rot(), aCalibClino->NameClino()));
+            mInitRotClino[aCalibClino->NameClino()] = aCalibClino->Rot();
+            delete aCalibClino;
         }
     }
 
@@ -424,22 +415,19 @@ namespace MMVII
 
     void cBA_Clino::Save()
     {
+        // Save relative orientations between clino and reference camera
         
-        // Get all clinos 
-        std::vector<cOneCalibClino> aVOneCalibClino = mCalibSetClino->ClinosCal();
-
-        // For each clino
-        for (auto & aOneCalibClino : aVOneCalibClino)
+        std::vector<cOneCalibClino> aVCalibClino;
+        for (auto & [aClinoName, aClinoWithUK] : mClinosWithUK)
         {
-            // Get its cClinoWithUK object
-            auto aClinoWithUK = mClinosWithUK.find(aOneCalibClino.mNameClino);
-            // Set its rotation with the result of least squares
-            aOneCalibClino.mRot = aClinoWithUK->second.Rot();
+            cOneCalibClino aOneCalibClino = cOneCalibClino(aClinoName);
+            aOneCalibClino.mRot = aClinoWithUK.Rot();
+            aOneCalibClino.mCameraName = mCameraName;
+            aVCalibClino.push_back(aOneCalibClino);
         }
         
-        // Save relative orientations between clino and reference camera
-        mCalibSetClino->setClinosCal(aVOneCalibClino);
-        mPhProj->SaveClino(*mCalibSetClino);
+        cCalibSetClino aCalibSetClino = cCalibSetClino(mCameraName, aVCalibClino);
+        mPhProj->SaveClino(aCalibSetClino);
     }
 
     void cBA_Clino::addClinoMes1Cam(const cClinoMes1Cam & aClinoMes1Cam)
@@ -461,12 +449,6 @@ namespace MMVII
             aVRotR.push_back(aV.Rot());
         }
         return aVRotR;
-    }
-
-
-    void cBA_Clino::setCalibSetClino(cCalibSetClino* aCalibSetClino)
-    {
-        mCalibSetClino = aCalibSetClino;
     }
 
 }

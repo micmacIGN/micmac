@@ -1095,26 +1095,38 @@ void  cPhotogrammetricProject::ReadHomol
 }
         //  =============  Clino meters  =================
 
-std::string cPhotogrammetricProject::NameFileClino(const std::string &aNameCam,bool Input) const
+std::string cPhotogrammetricProject::NameFileClino(const std::string &aNameCam,bool Input, const std::string aClinoName) const
 {
     static const std::string TheClinoPrefix = "ClinoCalib-";
-    return mDPClinoMeters.FullDirInOut(Input) + TheClinoPrefix + aNameCam + "."+ GlobTaggedNameDefSerial();
+    return mDPClinoMeters.FullDirInOut(Input) + TheClinoPrefix + aClinoName + "-" + aNameCam + "."+ GlobTaggedNameDefSerial();
 }
 
 void cPhotogrammetricProject::SaveClino(const cCalibSetClino & aCalib) const
 {
-    SaveInFile(aCalib,NameFileClino(aCalib.mNameCam,false));
+    std::vector<cOneCalibClino> aOneCalibClinoVector = aCalib.mClinosCal;
+    std::string aCameraName = aCalib.mNameCam;
+    for (auto aOneCalibClino : aOneCalibClinoVector)
+    {
+        std::string aClinoName = aOneCalibClino.NameClino();
+        SaveInFile(aOneCalibClino,NameFileClino(aCameraName,false, aClinoName));
+    }
 }
 
-bool cPhotogrammetricProject::HasClinoCalib(const cPerspCamIntrCalib & aCalib) const
+bool cPhotogrammetricProject::HasClinoCalib(const cPerspCamIntrCalib & aCalib, const std::string aClinoName) const
 {
-     return ExistFile(NameFileClino(aCalib.Name(),true));
+    return ExistFile(NameFileClino(aCalib.Name(),true, aClinoName));
 }
 
 
-cCalibSetClino * cPhotogrammetricProject::GetClino(const cPerspCamIntrCalib & aCalib) const
+cOneCalibClino * cPhotogrammetricProject::GetClino(const cPerspCamIntrCalib & aCalib, const std::string aClinoName) const
 {
-    return ObjectFromFile<cCalibSetClino,cCalibSetClino>(NameFileClino(aCalib.Name(),true));
+    std::string aFileName = NameFileClino(aCalib.Name(),true, aClinoName);
+    if (!ExistFile(aFileName))
+    {
+        MMVII_UserError(eTyUEr::eOpenFile, "Clino filename not found : " + aFileName);
+    }
+    
+    return ObjectFromFile<cOneCalibClino,cOneCalibClino>(aFileName);
 }
 
 
