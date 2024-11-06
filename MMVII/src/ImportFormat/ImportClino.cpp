@@ -100,6 +100,7 @@ cOneMesureClino::cOneMesureClino() :
 
 const std::string &  cOneMesureClino::Ident() const {return mIdent; }
 const std::vector<tREAL8> & cOneMesureClino::Angles() const {return mAngles;}
+const std::optional<std::vector<tREAL8>> & cOneMesureClino::VSigma() const {return mVSigma;}
 
 cOneMesureClino::cOneMesureClino
 (

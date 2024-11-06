@@ -272,9 +272,6 @@ class cBA_Clino : public cMemCheck
           void readMeasures();                    
 
 	     const cPhotogrammetricProject * mPhProj;               // Photogrammetric project
-          const std::string mNameClino;                          // name of clino observations file
-          const std::string mFormat;                             // format of clino observations file
-          const std::vector<std::string> mPrePost;               // values added before and after image names in clino observations 
                                                                  // file to have the same names than in initial solutions file
           std::vector<cClinoMes1Cam>  mVMeasures;                // observations for one image and one clino
           std::vector<std::string> mVNamesClino;                 // clino names
@@ -344,7 +341,7 @@ class cMMVII_BundleAdj
           cBA_Topo* getTopo() { return mTopo;}
 
           // Add clino bloc to compute relative orientation between clino and a camera
-          void AddClinoBloc(const std::string aNameClino, const std::string aFormat, std::vector<std::string> aPrePost);
+          void AddClinoBloc();
           void AddClinoBloc(cBA_Clino * aBAClino);
 
           bool AddTopo(const std::string & aTopoFilePath); // TOPO

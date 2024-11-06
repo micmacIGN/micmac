@@ -88,15 +88,9 @@ namespace MMVII
 
     cBA_Clino::cBA_Clino
     (
-        const cPhotogrammetricProject *aPhProj,
-        const std::string & aNameClino,
-        const std::string & aFormat,
-        const std::vector<std::string> & aPrePost
+        const cPhotogrammetricProject *aPhProj
     ):
         mPhProj  (aPhProj),
-        mNameClino   (aNameClino),
-        mFormat   (aFormat),
-        mPrePost  (aPrePost),
         mEqBlUK  (EqClinoBloc(true,1,true)),
         mEqBlUKRot  (EqClinoRot(true,1,true))     
     {
@@ -104,71 +98,45 @@ namespace MMVII
         readMeasures();
     }
 
-    cBA_Clino::cBA_Clino
-    (
-        const cPhotogrammetricProject *aPhProj
-    ):
-        mPhProj  (aPhProj),
-        mEqBlUK  (EqClinoBloc(true,1,true)),
-        mEqBlUKRot  (EqClinoRot(true,1,true))
-    {}
-
 
     void cBA_Clino::readMeasures()
     {
         // Read clino observations file
-        cReadFilesStruct aRFS(mNameClino,mFormat,0,-1,'#');
-        aRFS.Read();
+        cSetMeasureClino aSMC = mPhProj->ReadMeasureClino() ;
 
         // Get clino names
-        mVNamesClino = aRFS.VStrings().at(0);
+        mVNamesClino = aSMC.NamesClino();
 
         // Initialize cameara calibration (to get after its orientation)
         cPerspCamIntrCalib * aCalib = nullptr;
 
-        // For each measure
-        size_t aNbMeasures = aRFS.NbRead();
-        for (size_t aKLine=0 ; aKLine<aNbMeasures ; aKLine++)
+        for (auto aOneMesureClino : aSMC.SetMeasures())
         {
-            // get image name
-            std::string aNameIm =  aRFS.VNameIm().at(aKLine);
-
-            // If prepost is defined, add prepost before and after aNameIm
-            if (mPrePost.size()==2)
-            {
-                aNameIm = mPrePost[0] +  aNameIm + mPrePost[1];
-            }
-            
-            // read camera orientation if files
+            std::string aNameIm = aSMC.NameOfIm(aOneMesureClino);
             cSensorCamPC * aCam = mPhProj->ReadCamPC(aNameIm,true,true);
-            
             if (aCam != nullptr)
             {
                 // Get camera calibration
                 aCalib = aCam->InternalCalib();
-                // Get clino names for this measure
-                std::vector<std::string> aVString = aRFS.VStrings().at(aKLine);
-                // Get clino measures for this measure
-                std::vector<tREAL8> aVNum = aRFS.VNums().at(aKLine);
 
-                // Divide aVNum in clino measures and clino weights                
-                std::vector<tREAL8> aVClino;
-                std::vector<tREAL8> aVWeights;
-                for (size_t aK = 0; aK < aVString.size(); aK++)
+                // Divide aVNum in clino measures and clino weights  
+                std::vector<tREAL8> aVClino = aOneMesureClino.Angles();
+                
+                std::vector<tREAL8> aDefaultVWeight;
+                for (size_t i = 0; i < aVClino.size(); i++)
                 {
-                    aVClino.push_back(aVNum[2*aK]);
-                    aVWeights.push_back(aVNum[2*aK+1]);
+                    aDefaultVWeight.push_back(1.0);
                 }
-
+                
+                std::vector<tREAL8> aVWeights = aOneMesureClino.VSigma().value_or(aDefaultVWeight);
                 // Add measure
-                cClinoMes1Cam aClinoMes1Cam(aCam, aVString, aVClino, aVWeights);
+                cClinoMes1Cam aClinoMes1Cam(aCam, mVNamesClino, aVClino, aVWeights);
                 mVMeasures.push_back(aClinoMes1Cam);
             }
             else
             {
                 StdOut() << "Image " << aNameIm << " not found" << std::endl;
             }
-            
         }
 
         // If no measures, return an error
