@@ -399,6 +399,12 @@ cPt3dr  BundleInters(cPt3dr & aCoeff,const tSeg3dr & aSeg1,const tSeg3dr & aSeg2
 ///   Return point on bundle having given Z Value
 cPt3dr  BundleFixZ(const tSeg3dr & aSeg1,const tREAL8 &);
 
+///  Compute intersection on all pairs, and return the one minimizing sum of euclidian distances
+cPt3dr  RobustBundleInters(const std::vector<tSeg3dr> & aVSeg);
+
+/// Compute bundle intersection using a L1 criteria with barodale, "NbSegCompl" handle to be closer to euclidian distance
+// cPt3dr  L1_BundleInters(const std::vector<tSeg3dr> & aVSeg,int NbSegCompl=0,const std::vector<tREAL8> * aVWeight = nullptr);
+
 
 /**  Class for sampling the space of quaternion/quaternion.  Method :
  *
