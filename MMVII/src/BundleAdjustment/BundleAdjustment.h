@@ -205,15 +205,6 @@ class cBA_Clino : public cMemCheck
                const cPhotogrammetricProject *aPhProj // photogrammetric project 
           );
 
-          // Constructor for cMMVII_BundleAdj (read a clino observations file)
-          cBA_Clino(
-               const cPhotogrammetricProject *,             // photogrammetric project  
-               const std::string & aNameClino,              // clino name
-               const std::string & aFormat,                 // format of clino observations file
-               const std::vector<std::string> & aPrePost    // values added before and after image names in clino observations 
-                                                            // file to have the same names than in initial solutions file
-          );
-
           // Add equation with aMeasure observations for one clinometer
           cPt2dr addOneClinoEquation(cResolSysNonLinear<tREAL8> & aSys, cClinoMes1Cam & aMeasure, const std::string aClinoName);
 

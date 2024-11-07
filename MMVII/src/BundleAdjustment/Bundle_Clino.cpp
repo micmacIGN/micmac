@@ -94,8 +94,11 @@ namespace MMVII
         mEqBlUK  (EqClinoBloc(true,1,true)),
         mEqBlUKRot  (EqClinoRot(true,1,true))     
     {
-        // Read initial values of clinometers computed by ClinoInit 
-        readMeasures();
+        if (mPhProj)
+        {
+            // Read initial values of clinometers computed by ClinoInit 
+            readMeasures();
+        }
     }
 
 
