@@ -218,7 +218,7 @@ The latest version of the documentation can be downloaded directly **[HERE](http
 #### PDF Documentation
 - Ensure you have LaTeX installed (on Ubuntu, you can use the following command):
 	```sh
-	sudo apt install texlive
+	sudo apt install texlive-latex-base texlive-latex-extra texlive-fonts-recommended texlive-fonts-extra texlive-science
 	```
 - Navigate to the `MMVII/Doc` directory:
 	```sh
