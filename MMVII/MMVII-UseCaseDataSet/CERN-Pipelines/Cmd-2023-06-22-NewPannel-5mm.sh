@@ -72,7 +72,7 @@ MMVII OriBundleAdj SetFiltered_GCP_OK_Resec.xml BA_311_A BA_311_B GCPDir=Refined
    #----------------- Rigig Block : Init Calibration  + Adjjust----------------
    #---------------------------------------------------------------------------
 
-MMVII BlockCamInit SetFiltered_GCP_OK_Resec.xml  BA_311_B   "(.*)_(.*).JPG" [1,2]  Rig_311_B
+MMVII BlockCamInit SetFiltered_GCP_OK_Resec.xml  BA_311_B   "(.*)_(.*).JPG" [1,2]  '[(.*)@(.*)\,$1_$2.JPG,@]' Rig_311_B
 MMVII OriBundleAdj SetFiltered_GCP_OK_Resec.xml  BA_311_B BA_311_C GCPDir=Refined GCPW=[1,1,0.5] BRDirIn=Rig_311_B BRW=[1e-2,1e-5]  OutRigBlock=Rig_311_C
 
 
