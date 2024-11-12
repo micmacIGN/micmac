@@ -105,9 +105,9 @@ void cScoreTetaLine::SetLengthCur(tREAL8 aL)
      mStepAbsc =  mLengthCur / mNb;
 }
 
-void cScoreTetaLine::SetCenter(const cPt2dr & aC) 
+void cScoreTetaLine::SetCenter(const cPt2dr & aC)
 {
-   mC = aC; 
+   mC = aC;
 }
 
 /**   For an "oriented" segemet S :
@@ -115,14 +115,14 @@ void cScoreTetaLine::SetCenter(const cPt2dr & aC)
  *    We return how the segement is one of the direction of the checkboard pattern. Let
  *       - T the tangent and N the normal
  *       - A be the absicsse of a point  -L < A < L
- *       - P =  C + A T  a point  of 
+ *       - P =  C + A T  a point  of
  *       - let G be the  gradient of image in P, G' = G/|G| the direction of G
  *    The score depends of two "signs" s1 and s2   (s1,s2 = "+-1")  :
  *       - s1 depends if we have black ofr white a the left of S (which is oriented)
  *       - s2 depends if A>0 or A<0 (because the left colour change when cross C)
  *    So the score is finally :
  *
- *        | G' - s1s2 N| 
+ *        | G' - s1s2 N|
  *
  */
 
@@ -187,7 +187,7 @@ tREAL8  cScoreTetaLine::GetTetasInit(tREAL8 aStepPix,int aCurSign)
       {
            tREAL8 aTeta = aKTeta * mStepTeta;
            tREAL8 aVal = Value(cPt1dr(aTeta)).x();
-           aWMin.Add(aTeta,aVal);  //  update 
+           aWMin.Add(aTeta,aVal);  //  update
 				   //
       }
 
@@ -238,7 +238,7 @@ tREAL8 cScoreTetaLine::Prolongate(tREAL8 aLInit,tREAL8 aLMax,const std::pair<tRE
 
 
      // [1]  Compute, for the existing "small" segment , the value of bl & white
-     
+
      //  [1.1]   Push the values of points theoretically Blak and white in aVBl & aVWh
      std::vector<tREAL8> aVBl;
      std::vector<tREAL8> aVWh;
@@ -249,15 +249,15 @@ tREAL8 cScoreTetaLine::Prolongate(tREAL8 aLInit,tREAL8 aLMax,const std::pair<tRE
 	  {
               cPt2dr aTgt = FromPolar(1.0,aVTeta.at(aKTeta))*double(aSign);
               aVTgt.push_back(aTgt);
-	      // Black direction change with Sign/Side and Teta 
+	      // Black direction change with Sign/Side and Teta
 	      cPt2dr aNormBlack = aTgt * cPt2dr(0, (aKTeta==0)?1:-1 );
 	      aVNormBlack.push_back(aNormBlack);
               aVCurOrd.push_back(0.0);
 
-	      int aNb = round_up(aLInit) ; // (2/pixel) + lenght/2 
+	      int aNb = round_up(aLInit) ; // (2/pixel) + lenght/2
 	      for (int aKA=0 ; aKA<= aNb ; aKA++)
 	      {
-                   tREAL8 aProp = 0.5 + aKA/(2.0*aNb) ;  // Proportion vary in [0.5 , 1.0] 
+                   tREAL8 aProp = 0.5 + aKA/(2.0*aNb) ;  // Proportion vary in [0.5 , 1.0]
                    tREAL8 aAbsc= aLInit * aProp;
 		   cPt2dr aPt = mC + aTgt *aAbsc;
 
@@ -286,11 +286,11 @@ tREAL8 cScoreTetaLine::Prolongate(tREAL8 aLInit,tREAL8 aLMax,const std::pair<tRE
      tREAL8 aMargin = 2.0;  // Margin to substratct to prolongation
      tREAL8 aCurAbsc = aLInit;  // Current abscissa reached untill now
 
-     // aAngleFaisc anihilated for now ??? 
+     // aAngleFaisc anihilated for now ???
      tREAL8 aAngleFaisc = LineAngles(FromPolar(1.0,aVTeta.at(0)), FromPolar(1.0,aVTeta.at(1)));
      aAngleFaisc = std::min(0.1,aAngleFaisc/4.0);
 
-     
+
      cWeightAv<tREAL8> aAvgD;
      while (aGoOn)
      {
@@ -305,6 +305,10 @@ tREAL8 cScoreTetaLine::Prolongate(tREAL8 aLInit,tREAL8 aLMax,const std::pair<tRE
 		{
 	            tREAL8 aDeltaOrd = aKOrd * 0.2;
 		    cPt2dr aNewPt = aPt + aNormBlack * aDeltaOrd;
+            if (!mDIm->InsideInterpolator(mTabInt,aNewPt,0.0))
+            {
+                return aCurAbsc;
+            }
                     auto [aVal,aGrad] = mDIm->GetValueAndGradInterpol(mTabInt,aNewPt);
 		    aWMax.Add(aDeltaOrd,Norm2(aGrad));
 		}
@@ -316,7 +320,7 @@ tREAL8 cScoreTetaLine::Prolongate(tREAL8 aLInit,tREAL8 aLMax,const std::pair<tRE
 
                 tREAL8 aBl = mDIm->GetVBL(aPt + aNormBlack*(aOrdRad));
                 tREAL8 aWh = mDIm->GetVBL(aPt - aNormBlack*(aOrdRad));
-		if ((aBl>aMaxBl) || (aWh<aMinWh)) 
+		if ((aBl>aMaxBl) || (aWh<aMinWh))
 		{
                    if (DebugCB)
 		   {
@@ -346,7 +350,7 @@ tREAL8 cScoreTetaLine::Prolongate(tREAL8 aLInit,tREAL8 aLMax,const std::pair<tRE
            }
 
            if (aCurAbsc  > aLMax+aMargin) aGoOn = false;
-           if (aGoOn) 
+           if (aGoOn)
               aCurAbsc  += 0.5;
      }
      if (aCurAbsc>aLInit+aMargin)
