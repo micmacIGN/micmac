@@ -427,7 +427,8 @@ int  cAppliGenerateEncoding::Exe()
 
           for (size_t aK=0 ; aK<aVCode.size(); aK++)
 	  {
-		 const cCelCC * aCel = mCEC->CellOfCode(aVCode[aK].y());
+		 cCelCC * aCel = mCEC->CellOfCode(aVCode[aK].y());
+                 aCel->mNum = aVCode[aK].x();
                  MMVII_INTERNAL_ASSERT_bench(aCel!=0,"CellOfCode in3D AICON");
                  MMVII_INTERNAL_ASSERT_bench(aVCode[aK].y()==(int)aCel->mLowCode,"CellOfCode in3D AICON");
 	  }
@@ -539,6 +540,9 @@ int  cAppliGenerateEncoding::Exe()
        for (size_t aK1=0 ; aK1<mVOC.size(); aK1++)  
        {
            size_t aNum = aK1 + Num000;
+// StdOut() << "NNNNNnnN= " << aNum  << " " << mVOC[aK1]->mNum << "\n";
+           MMVII_INTERNAL_ASSERT_strong(mVOC[aK1]->mNum>=0,"Num was not correctly set in cCelCC");
+           aNum = mVOC[aK1]->mNum;
 	   size_t aCode = mVOC[aK1]->mLowCode;
            aBE.AddOneEncoding(aNum,aCode);  // add a new encoding
 
