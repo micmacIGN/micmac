@@ -127,10 +127,11 @@ cPt3dr  BundleInters(const std::vector<tSeg3dr> & aVSeg,const std::vector<tREAL8
      return SolveCol(aDM,aRHS);
 }
 
+/*
 cPt3dr  L1_BundleInters(const std::vector<tSeg3dr> & aVSeg,int NbSegCompl,const std::vector<tREAL8> * aVWeight)
 {
-
 }
+*/
 
 
 

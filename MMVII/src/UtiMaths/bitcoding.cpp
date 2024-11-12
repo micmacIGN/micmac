@@ -227,7 +227,8 @@ size_t MaxRun2Length(tU_INT4 aVal,size_t aPow2)
 /* *************************** */
 
 cCelCC::cCelCC(size_t aLowestCode) :
-    mLowCode       (aLowestCode)
+    mLowCode       (aLowestCode),
+    mNum           (-1)
 {
 }
 
@@ -257,7 +258,7 @@ size_t cCelCC::HammingDist(const cCelCC & aC2) const
 cCompEquiCodes::cCompEquiCodes(size_t aNbBits,size_t aPer,bool WithMirror) :
      mNbBits       (aNbBits),
      mPeriod       (aPer),
-    mNbCodeUC     (size_t(1)<<mNbBits),
+     mNbCodeUC     (size_t(1)<<mNbBits),
      mVCodes2Cell  (mNbCodeUC,nullptr)
 {
      MMVII_INTERNAL_ASSERT_strong((aNbBits%aPer)==0,"NbBit not multiple of period in cCompEquiCodes");
@@ -266,6 +267,7 @@ cCompEquiCodes::cCompEquiCodes(size_t aNbBits,size_t aPer,bool WithMirror) :
           if (mVCodes2Cell[aCode] == nullptr)
 	  {
               cCelCC * aNewCel = new cCelCC(aCode);
+              aNewCel->mNum = mVecOfCells.size();
 	      mVecOfCells.push_back(aNewCel);
 
 	      AddCodeWithPermCirc(aCode,aNewCel);
@@ -314,10 +316,14 @@ const cCelCC &  cCompEquiCodes::CellOfCodeOK(size_t aCode) const
 const cCelCC *  cCompEquiCodes::CellOfCode(size_t aCode) const
 {
    if (aCode>=mVCodes2Cell.size()) return nullptr;
-
    return  mVCodes2Cell.at(aCode);
 }
 
+cCelCC *  cCompEquiCodes::CellOfCode(size_t aCode) 
+{
+   if (aCode>=mVCodes2Cell.size()) return nullptr;
+   return  mVCodes2Cell.at(aCode);
+}
 
 
 void cCompEquiCodes::AddCodeWithPermCirc(size_t aCode,cCelCC * aNewCel)
