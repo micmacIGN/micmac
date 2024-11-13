@@ -327,6 +327,7 @@ int  cAppliGenerateEncoding::Exe()
    if (mSpec.mFreqCircEq==0) 
       mSpec.mFreqCircEq  = mSpec.mNbBits;
 
+   bool  mCompactNum = true;
 
    // make all default init that are type-dependant
    if (mSpec.mType==eTyCodeTarget::eIGNIndoor)
@@ -349,6 +350,7 @@ int  cAppliGenerateEncoding::Exe()
    else if (mSpec.mType==eTyCodeTarget::eCERN)
    {
         mUseAiconCode = true;
+        mCompactNum   = false;
         SetIfNotInit(mSpec.mParity,size_t(2));
 	Num000 = 1;
    }
@@ -542,7 +544,12 @@ int  cAppliGenerateEncoding::Exe()
            size_t aNum = aK1 + Num000;
 // StdOut() << "NNNNNnnN= " << aNum  << " " << mVOC[aK1]->mNum << "\n";
            MMVII_INTERNAL_ASSERT_strong(mVOC[aK1]->mNum>=0,"Num was not correctly set in cCelCC");
-           aNum = mVOC[aK1]->mNum;
+           // For AICON-like, with external spec, with maintain the numerotation, for internal MMVII system, we
+           // prefer to "compactify" the numbering
+           if (! mCompactNum)
+           {
+              aNum = mVOC[aK1]->mNum;
+           }
 	   size_t aCode = mVOC[aK1]->mLowCode;
            aBE.AddOneEncoding(aNum,aCode);  // add a new encoding
 
