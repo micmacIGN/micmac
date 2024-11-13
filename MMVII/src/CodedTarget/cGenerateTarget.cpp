@@ -211,11 +211,12 @@ cParamCodedTarget::cParamCodedTarget(int aNbPixBin) :
    mSzGaussDeZoom    (3),
    mNbPixelBin       (-1), // Put fake value, because init is done later
    mSz_CCB           (1),
-   mThickN_WInt      (0.35),
+   mThickN_WInt      (0.5),
    mThickN_Code      (0.35),
-   mThickN_WExt      (0.2),
-   mThickN_Car       (0.5),
-   mThickN_BorderExt (0.05),
+   mThickN_WExt      (0.04),
+   mThickN_Car       (0.7),
+   mThickN_BorderExt (0.04),
+   mFactEnlargeCar   (1.0),
    mChessboardAng    (0.0),
    mWithChessboard   (true),
    mWhiteBackGround  (true),
@@ -252,6 +253,7 @@ void cParamCodedTarget::FinishInitOfSpec(const cSpecBitEncoding & aSpec)
        anAppli.SetIfNotInit(mThickN_WExt,0.0);
        anAppli.SetIfNotInit(mThickN_Car,0.3);
        anAppli.SetIfNotInit(mChessboardAng,-M_PI/4.0);
+       anAppli.SetIfNotInit(mThickN_BorderExt,-0.0);
 
        anAppli.SetIfNotInit(mRadiusOrientTablet,0.1);
        anAppli.SetIfNotInit(mCenterOrientTablet,cPt2dr(0.7,0));
@@ -264,12 +266,18 @@ void cParamCodedTarget::FinishInitOfSpec(const cSpecBitEncoding & aSpec)
        anAppli.SetIfNotInit(mNbRedond,1);
        anAppli.SetIfNotInit(mThickN_WInt,(mNbBit==20) ? 1.5 : 1.0);
        anAppli.SetIfNotInit(mThickN_Code,(mNbBit==20) ? 1.5 : 1.0);
-       anAppli.SetIfNotInit(mThickN_WExt,0.0);
+       anAppli.SetIfNotInit(mThickN_WExt,1.0);
+       anAppli.SetIfNotInit(mThickN_BorderExt,-0.0);
+
        anAppli.SetIfNotInit(mWithChessboard,false);
        anAppli.SetIfNotInit(mWhiteBackGround,false);
        anAppli.SetIfNotInit(mAntiClockWiseBit,false);
    }
-   mThickN_Car *= (aSpec.mNbDigit+1)/2;
+   mSzHalfStr = (aSpec.mNbDigit+1)/2;
+
+  // StdOut() << " mThickN_CarmThickN_Car " << mThickN_Car  << " " << (aSpec.mNbDigit+1)/2 << "\n";
+  //  Split string in 2
+   mThickN_Car *= mSzHalfStr;
 }
 
 cPt2dr cParamCodedTarget::Pix2Norm(const cPt2dr & aPix) const
@@ -321,14 +329,41 @@ void cParamCodedTarget::Finish()
   aCumulThick += mThickN_WExt;
   mRho_3_BeginCar =  mSz_CCB   * aCumulThick;
 
+
+  mThickN_Car = std::min(mThickN_Car, mRho_2_EndCode * (sqrt(2)-1));
+  {
+      std::string aS(mSzHalfStr,'s');
+      cIm2D<tU_INT1>  aImStr = ImageOfString_10x8(aS,1);
+      cPt2dr aSz = ToR(aImStr.DIm().Sz());
+      aSz = aSz / NormInf(aSz);
+
+      //  (l x-R3)^ + (ly-R3)^2 = R3^2
+      //  l^2 (x2+y2) - 2lR3 (x+y) + 2R3^2 - R3^2
+      // For l   : a L2 + b L + C
+      
+      tREAL8 a = SqN2(aSz);
+      tREAL8 b = -2 * mRho_3_BeginCar * Norm1(aSz);
+      tREAL8 c = 2*Square(mRho_3_BeginCar) - Square(mRho_3_BeginCar);
+
+      //  l = (-b +-sqrt(b2-4ac))/2a
+      tREAL8 aDelta =  Square(b) - 4 * a * c;
+      // smallest root
+      tREAL8 aL1 = (-b - sqrt(aDelta)) / (2*a);
+      mPSzCar  = aSz * aL1;
+
+  }
+
+  mRho_4_EndCar = mRho_3_BeginCar;
+/*
   mRho_4_EndCar = std::max
                   (
                         mRho_3_BeginCar,
-                        mRho_3_BeginCar/sqrt(2) + mThickN_Car
+                        mRho_3_BeginCar/sqrt(2) + (mThickN_Car*mSz_CCB)
                   );
+*/
 
 
-  aCumulThick = mRho_4_EndCar;
+  aCumulThick = mRho_4_EndCar / mSz_CCB;
   aCumulThick += mThickN_BorderExt;
   mRho_EndIm = mSz_CCB * aCumulThick; 
 
@@ -361,7 +396,6 @@ void cParamCodedTarget::Finish()
                <<  "r4 : " << mRho_4_EndCar << "\n"
 	       <<  "r5 : " << mRho_EndIm << "\n";
 
-      getchar();
   }
 }
 
@@ -674,6 +708,7 @@ cCodedTargetPatternIm::cCodedTargetPatternIm(cFullSpecifTarget & aSpec) :
      mRayCT      (mRender.mRadiusCenterMiniTarget),
      mRay2CT     (Square(mRayCT))
 {
+
     mDIC.InitCste(tElem(eLPT::eBackGround));
 
     // Structures for computing center of bits
@@ -727,6 +762,7 @@ cCodedTargetPatternIm::cCodedTargetPatternIm(cFullSpecifTarget & aSpec) :
     // compute and memorize the center
     for (size_t aB=0 ; aB< aVWeight.size() ; aB++)
     {
+
        mSpec.SetBitCenter(aB,aVCenters.at(aB) / tREAL8(aVWeight.at(aB) * mSpec.DeZoomIm() ));
     }
 }
@@ -776,10 +812,14 @@ cCodedTargetPatternIm::tIm cCodedTargetPatternIm::MakeOneImTarget(const cOneEnco
 
 	// Corners of string, 
         cPt2di  aP00 = PDiag(mRender.mRho_4_EndCar);
-	cPt2di  aP11 = PDiag(mRender.mRho_4_EndCar-mRender.mThickN_Car) ; // for a 1 length caracr
+	// cPt2di  aP11 = PDiag(mRender.mRho_4_EndCar-mRender.mThickN_Car *mRender.mFactEnlargeCar) ; // for a 1 length caracr
+	cPt2di  aP11 = aP00 + ToI(mRender.mPSzCar*mRender.mScale);
+
+        //StdOut() << " P00=" << aP00 << " P11=" << aP11 << " SzC=" << mRender.mPSzCar << " SC=" << mRender.mScale << "\n";
 
 	// udate highth of string, to adapt to length (aIndSplit is maximal legnt of 2 substrings)
-	int aHigth = (aP11.y()-aP00.y()) / aIndSplit;
+	// int aHigth = (aP11.y()-aP00.y()) / aIndSplit;
+	int aHigth = (aP11.y()-aP00.y()) ;
 	aP11 =  cPt2di(aP11.x(),aP00.y() + aHigth);
 
 	// loop for processing the 2 subsrt string 
@@ -815,8 +855,8 @@ cCodedTargetPatternIm::tIm cCodedTargetPatternIm::MakeOneImTarget(const cOneEnco
 
 		       for (const auto& aPixIm : cRect2(aP0,aP1))
 		       {
-                           mDIT.SetV(aPixIm,aFG_StrCoul);
-                           mDIT.SetV(aP4Sym-aPixIm,aFG_StrCoul);
+                           mDIT.SetVTruncIfInside(aPixIm,aFG_StrCoul);
+                           mDIT.SetVTruncIfInside(aP4Sym-aPixIm,aFG_StrCoul);
 		       }
 	          }
 	     }
