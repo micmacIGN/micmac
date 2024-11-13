@@ -52,7 +52,7 @@ std::string SuppressDirFromNameFile(const std::string & aDir,const std::string &
     // mOriIn.starts_with(aDir);  -> C++20
     // to see if StringDirSeparator() is not a meta carac on window ?
 
-     std::string aPat =  "(.*" + aDir+")?" + "([A-Za-z0-9_-]+)";
+     std::string aPat =  "(.*" + aDir+")?" + "([A-Za-z0-9_.-]+)";
      if (ByDir)
          aPat = aPat + "[\\/]?";
      else
