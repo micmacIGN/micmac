@@ -141,7 +141,7 @@ std::string  cParamCodedTarget::NameOfBinCode(int aNum) const
 }
 
 
-void cParamCodedTarget::AddData(const cAuxAr2007 & anAuxParam)
+void cParamCodedTarget::PCT_AddData(const cAuxAr2007 & anAuxParam,const cSpecBitEncoding * aSpec)
 {
     cAuxAr2007  anAux(TheMainTag,anAuxParam);
 
@@ -169,17 +169,19 @@ void cParamCodedTarget::AddData(const cAuxAr2007 & anAuxParam)
     MMVII::AddData(cAuxAr2007("CenterOrientTablet",anAux),mCenterOrientTablet);
     MMVII::AddData(cAuxAr2007("RayCenterMiniTarget",anAux),mRadiusCenterMiniTarget);
 
-    MMVII::AddData(cAuxAr2007("SzHalfStr",anAux),mSzHalfStr);
+    //  MMVII::AddData(cAuxAr2007("SzHalfStr",anAux),mSzHalfStr);
 
-     if (anAux.Input())
-	Finish();
+    if (anAux.Input())
+    {
+         MMVII_INTERNAL_ASSERT_strong(aSpec!=nullptr," cParamCodedTarget::PCT_AddData no Spec in input mode");
+        FinishInitOfSpec(*aSpec);
+	FinishWoSpec();
+    }
 }
-
 const std::string cParamCodedTarget::TheMainTag = "GeometryCodedTarget";
-
 void AddData(const  cAuxAr2007 & anAux,cParamCodedTarget & aPCT)
 {
-   aPCT.AddData(anAux);
+   aPCT.PCT_AddData(anAux,nullptr);
 }
 
 void cParamCodedTarget::InitFromFile(const std::string & aNameFile)
@@ -305,7 +307,7 @@ cPt2di cParamCodedTarget::Norm2PixI(const cPt2dr & aP) const
 int&    cParamCodedTarget::NbRedond() {return mNbRedond;}
 int&    cParamCodedTarget::NbCircle() {return mNbCircle;}
 
-void cParamCodedTarget::Finish()
+void cParamCodedTarget::FinishWoSpec()
 {
 
   MMVII_INTERNAL_ASSERT_strong(((mNbPixelBin%2)==0),"Require odd pixel 4 binary image");
@@ -1023,7 +1025,7 @@ void cFullSpecifTarget::AddData(const  cAuxAr2007 & anAuxParam)
      cAuxAr2007 anAux(TheMainTag,anAuxParam);
 
      mBE.AddData(anAux);
-     mRender.AddData(anAux);
+     mRender.PCT_AddData(anAux,&(mBE.Specs()));
      StdContAddData(cAuxAr2007("Centers",anAux),mBitsCenters);
 }
 
@@ -1176,7 +1178,7 @@ int  cAppliGenCodedTarget::Exe()
 
    ReadFromFile(mBE,mNameBE);
    mPCT.FinishInitOfSpec(mBE.Specs());
-   mPCT.Finish();
+   mPCT.FinishWoSpec();
 
    cFullSpecifTarget  aFullSpec(mBE,mPCT);
 
