@@ -169,6 +169,8 @@ void cParamCodedTarget::AddData(const cAuxAr2007 & anAuxParam)
     MMVII::AddData(cAuxAr2007("CenterOrientTablet",anAux),mCenterOrientTablet);
     MMVII::AddData(cAuxAr2007("RayCenterMiniTarget",anAux),mRadiusCenterMiniTarget);
 
+    MMVII::AddData(cAuxAr2007("SzHalfStr",anAux),mSzHalfStr);
+
      if (anAux.Input())
 	Finish();
 }
