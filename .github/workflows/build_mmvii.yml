@@ -150,7 +150,7 @@ jobs:
         # dll for GDAL (CGDAL require PROJ too)
         cp blosc.dll cfitsio.dll charset.dll comerr64.dll freetype.dll freexl.dll gdal.dll geos.dll geos_c.dll geotiff.dll gssapi64.dll ${MMVII_BINDIR}/
         cp hdf.dll hdf5.dll hdf5_cpp.dll hdf5_hl.dll ${MMVII_BINDIR}/
-        cp iconv.dll k5sprt64.dll krb5_64.dll lcms2.dll libbz2.dll libexpat.dll libkea.dll liblz4.dll libminizip.dll libpng16.dll ${MMVII_BINDIR}/
+        cp iconv.dll k5sprt64.dll krb5_64.dll lcms2.dll libbz2.dll libexpat.dll libjpeg.dll libkea.dll liblz4.dll libminizip.dll libpng16.dll ${MMVII_BINDIR}/
         cp libpq.dll libsharpyuv.dll libssl-3-x64.dll libwebp.dll libxml2.dll ${MMVII_BINDIR}/
         cp mfhdf.dll netcdf.dll openjp2.dll pcre2-8.dll poppler.dll spatialite.dll tiledb.dll xdr.dll xerces-c_3_2.dll zip.dll ${MMVII_BINDIR}/
 
