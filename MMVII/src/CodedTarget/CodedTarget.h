@@ -386,7 +386,7 @@ class cFullSpecifTarget : public cMemCheck
 	 //  -----------   Creation of images -----------------
 
 	     ///  Generate the image of one encoding
-	 tIm   OneImTarget(const cOneEncoding & aCode);
+	 tIm   OneImTarget(const cOneEncoding & aCode,bool ForTest=false);
 	     /// get the pattern for generating all image 
 	 tIm   ImagePattern();
 
