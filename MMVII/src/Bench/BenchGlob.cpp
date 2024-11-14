@@ -5,6 +5,7 @@
 #include "MMVII_Geom3D.h"
 #include "MMVII_Radiom.h"
 #include "MMVII_Random.h"
+#include "MMVII_Tpl_Images.h"
 #include <cmath>
 #include <functional>
 #ifdef _WIN32
@@ -980,13 +981,47 @@ void ShowAdr(double & anAdr)
 void TTT();
 void TestDNA();
 
+/** A test to experientally check a hypothesis on "quaternion" , maybe obvious, but not at ease with it, and
+better safe than sorry ...  Let RI,RJ and RK be the 3 rotation about mains axes, and Id the identity matrix,
+we check that for any rotation matrix R, there  exist a,b,c,d such than :
+
+    R = a Id + b RI + c RJ + d RK
+
+*/
+
+void TestQuat()
+{
+    std::vector<tRotR> aBQ{tRotR::Identity()} ;
+    for (int aK=0 ; aK< 3; aK++)
+    {
+        aBQ.push_back(tRotR::RotArroundKthAxe(aK));
+
+       aBQ.back().Mat().Show();
+       StdOut() <<  "=======================\n";
+    }
+
+    for (int aKT=0 ; aKT<100 ; aKT++)
+    {
+         cDenseMatrix<tREAL8>  aSum1(3,eModeInitImage::eMIA_Null);
+         for (const auto & aK : {0,1,2,3})
+         {
+             aSum1 = aSum1 +  (aBQ[aK].Mat() * RandUnif_C());
+         }
+
+         cDenseMatrix<tREAL8> aStS = aSum1 * aSum1.Transpose();
+
+         aStS.Show();
+         StdOut() <<  "=======================\n";
+    }
+    StdOut() <<  "TestQuatTestQuat\n"; getchar();
+}
 
 // #include <limits>
 int cAppli_MPDTest::Exe()
 {
-   if (1)
+   if (0)
    {
-	   StdOut() << "cAppli_MPDTest \n";
+	   TestQuat();
 	   return EXIT_SUCCESS;
    }
    if (1)

@@ -308,6 +308,9 @@ class cParamCodedTarget : public cMemCheck
        double    mThickN_Car;  ///< thickness of black border 
        double    mThickN_BorderExt;  ///< thickness of border 
 
+       /**  Factor to empirically make carac larger, probably redundant with other ...*/
+       double    mFactEnlargeCar;
+
        double    mChessboardAng;     ///< Origine angle of chessboard pattern
        bool      mWithChessboard;     ///< do we have a cental chess board, true 4 IGN
        bool      mWhiteBackGround;     ///< black on white, true 4 IGN
@@ -329,6 +332,9 @@ class cParamCodedTarget : public cMemCheck
        double          mRho_4_EndCar;  // radius where begins the coding stuff
        double          mRho_EndIm;  // radius where begins the coding stuff
        double          mSignAngle;
+     
+       size_t          mSzHalfStr; // size of longest of 2 half string
+       cPt2dr          mPSzCar;
 
        cPt2di    mSzBin;
        double    mScale;  // Sz of Pixel in normal coord

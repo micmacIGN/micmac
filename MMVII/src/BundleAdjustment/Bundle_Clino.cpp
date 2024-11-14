@@ -88,94 +88,58 @@ namespace MMVII
 
     cBA_Clino::cBA_Clino
     (
-        const cPhotogrammetricProject *aPhProj,
-        const std::string & aNameClino,
-        const std::string & aFormat,
-        const std::vector<std::string> & aPrePost
+        const cPhotogrammetricProject *aPhProj
     ):
         mPhProj  (aPhProj),
-        mNameClino   (aNameClino),
-        mFormat   (aFormat),
-        mPrePost  (aPrePost),
         mEqBlUK  (EqClinoBloc(true,1,true)),
         mEqBlUKRot  (EqClinoRot(true,1,true))     
     {
-        // Read initial values of clinometers computed by ClinoInit 
-        readMeasures();
-    }
-
-    cBA_Clino::cBA_Clino
-    (
-        const cPhotogrammetricProject *aPhProj,
-        cCalibSetClino *aCalibSetClino
-    ):
-        mPhProj  (aPhProj),
-        mEqBlUK  (EqClinoBloc(true,1,true)),
-        mEqBlUKRot  (EqClinoRot(true,1,true)),
-        mCalibSetClino (aCalibSetClino)
-    {}
-
-    cBA_Clino::~cBA_Clino()
-    {
-        delete mCalibSetClino;
+        if (mPhProj)
+        {
+            // Read initial values of clinometers computed by ClinoInit 
+            readMeasures();
+        }
     }
 
 
     void cBA_Clino::readMeasures()
     {
         // Read clino observations file
-        cReadFilesStruct aRFS(mNameClino,mFormat,0,-1,'#');
-        aRFS.Read();
+        cSetMeasureClino aSMC = mPhProj->ReadMeasureClino() ;
 
         // Get clino names
-        mVNamesClino = aRFS.VStrings().at(0);
+        mVNamesClino = aSMC.NamesClino();
 
         // Initialize cameara calibration (to get after its orientation)
         cPerspCamIntrCalib * aCalib = nullptr;
 
-        // For each measure
-        size_t aNbMeasures = aRFS.NbRead();
-        for (size_t aKLine=0 ; aKLine<aNbMeasures ; aKLine++)
+        for (auto aOneMesureClino : aSMC.SetMeasures())
         {
-            // get image name
-            std::string aNameIm =  aRFS.VNameIm().at(aKLine);
-
-            // If prepost is defined, add prepost before and after aNameIm
-            if (mPrePost.size()==2)
-            {
-                aNameIm = mPrePost[0] +  aNameIm + mPrePost[1];
-            }
-            
-            // read camera orientation if files
+            std::string aNameIm = aSMC.NameOfIm(aOneMesureClino);
             cSensorCamPC * aCam = mPhProj->ReadCamPC(aNameIm,true,true);
-            
             if (aCam != nullptr)
             {
                 // Get camera calibration
                 aCalib = aCam->InternalCalib();
-                // Get clino names for this measure
-                std::vector<std::string> aVString = aRFS.VStrings().at(aKLine);
-                // Get clino measures for this measure
-                std::vector<tREAL8> aVNum = aRFS.VNums().at(aKLine);
 
-                // Divide aVNum in clino measures and clino weights                
-                std::vector<tREAL8> aVClino;
-                std::vector<tREAL8> aVWeights;
-                for (size_t aK = 0; aK < aVString.size(); aK++)
+                // Divide aVNum in clino measures and clino weights  
+                std::vector<tREAL8> aVClino = aOneMesureClino.Angles();
+                
+                std::vector<tREAL8> aDefaultVWeight;
+                for (size_t i = 0; i < aVClino.size(); i++)
                 {
-                    aVClino.push_back(aVNum[2*aK]);
-                    aVWeights.push_back(aVNum[2*aK+1]);
+                    aDefaultVWeight.push_back(1.0);
                 }
-
+                
+                std::vector<tREAL8> aVWeights = aOneMesureClino.VSigma().value_or(aDefaultVWeight);
                 // Add measure
-                cClinoMes1Cam aClinoMes1Cam(aCam, aVString, aVClino, aVWeights);
+                cClinoMes1Cam aClinoMes1Cam(aCam, mVNamesClino, aVClino, aVWeights);
                 mVMeasures.push_back(aClinoMes1Cam);
             }
             else
             {
                 StdOut() << "Image " << aNameIm << " not found" << std::endl;
             }
-            
         }
 
         // If no measures, return an error
@@ -183,18 +147,16 @@ namespace MMVII
         {
             MMVII_INTERNAL_ERROR("Not enough measures");
         }
-        
-        // Read initial value for relative orientation between camera and clino
-        if (aCalib)
-        {
-            mCalibSetClino = mPhProj->GetClino(*aCalib);
-        }
-        
+
+        mCameraName = aCalib->Name();
+
         // Create cClinoWithUK objects and add initial rotation in a map
-        for(auto & aClinoCal:mCalibSetClino->ClinosCal())
+        for(auto & aClinoName:mVNamesClino)
         {
-            mClinosWithUK.emplace(std::piecewise_construct, std::make_tuple( aClinoCal.NameClino()), std::make_tuple(aClinoCal.Rot(), aClinoCal.NameClino()));
-            mInitRotClino[aClinoCal.NameClino()] = aClinoCal.Rot();
+            cOneCalibClino* aCalibClino = mPhProj->GetClino(*aCalib, aClinoName);
+            mClinosWithUK.emplace(std::piecewise_construct, std::make_tuple( aCalibClino->NameClino()), std::make_tuple(aCalibClino->Rot(), aCalibClino->NameClino()));
+            mInitRotClino[aCalibClino->NameClino()] = aCalibClino->Rot();
+            delete aCalibClino;
         }
     }
 
@@ -389,8 +351,8 @@ namespace MMVII
 
     void cBA_Clino::printRes() const
     {
-        StdOut() << "Residual for clino formula : " << mClinoRes.x() << std::endl ;
-        StdOut() << "Residual for rot formula : " << mRotRes.x() << std::endl ;
+        StdOut() << "Residual for clino formula : " << sqrt(mClinoRes.x()) << std::endl ;
+        StdOut() << "Residual for rot formula : " << sqrt(mRotRes.x()) << std::endl ;
     }
     
     
@@ -424,22 +386,19 @@ namespace MMVII
 
     void cBA_Clino::Save()
     {
+        // Save relative orientations between clino and reference camera
         
-        // Get all clinos 
-        std::vector<cOneCalibClino> aVOneCalibClino = mCalibSetClino->ClinosCal();
-
-        // For each clino
-        for (auto & aOneCalibClino : aVOneCalibClino)
+        std::vector<cOneCalibClino> aVCalibClino;
+        for (auto & [aClinoName, aClinoWithUK] : mClinosWithUK)
         {
-            // Get its cClinoWithUK object
-            auto aClinoWithUK = mClinosWithUK.find(aOneCalibClino.mNameClino);
-            // Set its rotation with the result of least squares
-            aOneCalibClino.mRot = aClinoWithUK->second.Rot();
+            cOneCalibClino aOneCalibClino = cOneCalibClino(aClinoName);
+            aOneCalibClino.mRot = aClinoWithUK.Rot();
+            aOneCalibClino.mCameraName = mCameraName;
+            aVCalibClino.push_back(aOneCalibClino);
         }
         
-        // Save relative orientations between clino and reference camera
-        mCalibSetClino->setClinosCal(aVOneCalibClino);
-        mPhProj->SaveClino(*mCalibSetClino);
+        cCalibSetClino aCalibSetClino = cCalibSetClino(mCameraName, aVCalibClino);
+        mPhProj->SaveClino(aCalibSetClino);
     }
 
     void cBA_Clino::addClinoMes1Cam(const cClinoMes1Cam & aClinoMes1Cam)
@@ -461,12 +420,6 @@ namespace MMVII
             aVRotR.push_back(aV.Rot());
         }
         return aVRotR;
-    }
-
-
-    void cBA_Clino::setCalibSetClino(cCalibSetClino* aCalibSetClino)
-    {
-        mCalibSetClino = aCalibSetClino;
     }
 
 }

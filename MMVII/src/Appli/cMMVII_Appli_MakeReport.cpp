@@ -66,6 +66,15 @@ void  cMMVII_Appli::InitReport(const std::string &anId,const std::string &aPost,
        AddHeaderReportCSV(anId,aHeader);
 }
 
+const std::string& cMMVII_Appli::NameFileCSVReport(const std::string & anId) const
+{
+     auto anIt = mMapIdFilesReport.find(anId);
+
+     MMVII_INTERNAL_ASSERT_tiny(anIt!=mMapIdPostReport.end(),"NameFileCSVReport for Id=" + anId);
+
+     return anIt->second;
+}
+
 /*
 void  cMMVII_Appli::AddTopReport(const std::string &anId,const std::string & aMsg)
 {

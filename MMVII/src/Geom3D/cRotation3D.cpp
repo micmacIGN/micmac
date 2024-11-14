@@ -307,6 +307,10 @@ template <class Type> cRotation3D<Type>::cRotation3D(const tPt &aI,const tPt & a
 	cRotation3D<Type>(M3x3FromCol(aI,aJ,aK),RefineIt)
 {
 }
+template <class Type> cRotation3D<Type>  cRotation3D<Type>::RotArroundKthAxe(int aNum)
+{
+   return RotFromAxe(tPt::P1Coord(aNum,1.0),M_PI/2.0);
+}
 
 
 template <class Type> cRotation3D<Type>  cRotation3D<Type>::RotFromCanonicalAxes(const std::string& aName)

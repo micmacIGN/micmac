@@ -202,21 +202,8 @@ class cBA_Clino : public cMemCheck
 
           // Constructor for ClinoBench (set manually clino observations)
           cBA_Clino(
-               const cPhotogrammetricProject *aPhProj, // photogrammetric project 
-               cCalibSetClino *aCalibSetClino          // set of clino calibration
+               const cPhotogrammetricProject *aPhProj // photogrammetric project 
           );
-
-          // Constructor for cMMVII_BundleAdj (read a clino observations file)
-          cBA_Clino(
-               const cPhotogrammetricProject *,             // photogrammetric project  
-               const std::string & aNameClino,              // clino name
-               const std::string & aFormat,                 // format of clino observations file
-               const std::vector<std::string> & aPrePost    // values added before and after image names in clino observations 
-                                                            // file to have the same names than in initial solutions file
-          );
-          
-          // Destructor
-          ~cBA_Clino();
 
           // Add equation with aMeasure observations for one clinometer
           cPt2dr addOneClinoEquation(cResolSysNonLinear<tREAL8> & aSys, cClinoMes1Cam & aMeasure, const std::string aClinoName);
@@ -260,9 +247,6 @@ class cBA_Clino : public cMemCheck
           // Get all relative rotations in cClinosWithUK objects. Used in BenchClino only
           std::vector<tRotR>  ClinosWithUKRot() const;
 
-          // Set aCalibSetClino
-          void setCalibSetClino(cCalibSetClino* aCalibSetClino);
-
           // Display residuals
           void printRes() const; 
 
@@ -279,9 +263,6 @@ class cBA_Clino : public cMemCheck
           void readMeasures();                    
 
 	     const cPhotogrammetricProject * mPhProj;               // Photogrammetric project
-          const std::string mNameClino;                          // name of clino observations file
-          const std::string mFormat;                             // format of clino observations file
-          const std::vector<std::string> mPrePost;               // values added before and after image names in clino observations 
                                                                  // file to have the same names than in initial solutions file
           std::vector<cClinoMes1Cam>  mVMeasures;                // observations for one image and one clino
           std::vector<std::string> mVNamesClino;                 // clino names
@@ -289,10 +270,10 @@ class cBA_Clino : public cMemCheck
           cCalculator<double> *        mEqBlUKRot;               // calculator for rot formula
           std::vector<double>          mWeight;                  // weights
           std::map<std::string, cClinoWithUK>    mClinosWithUK;  // map with {clino name, cClinoWithUK object}
-          cCalibSetClino               *mCalibSetClino;          // clino calibration
           cPt2dr                        mClinoRes;               // Residuals for clino formula
           cPt2dr                        mRotRes;                 // Residuals for rot formula
           std::map<std::string, tRotR>    mInitRotClino;         // map with {clino name, initial rotation}
+          std::string                   mCameraName;              // name of the camera
           
 };
 
@@ -351,7 +332,7 @@ class cMMVII_BundleAdj
           cBA_Topo* getTopo() { return mTopo;}
 
           // Add clino bloc to compute relative orientation between clino and a camera
-          void AddClinoBloc(const std::string aNameClino, const std::string aFormat, std::vector<std::string> aPrePost);
+          void AddClinoBloc();
           void AddClinoBloc(cBA_Clino * aBAClino);
 
           bool AddTopo(const std::string & aTopoFilePath); // TOPO

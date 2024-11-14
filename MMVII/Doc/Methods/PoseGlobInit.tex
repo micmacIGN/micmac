@@ -1,0 +1,235 @@
+\chapter{Global initialisation of pose}
+\label{Chap:PoseGlobInit}
+
+
+%-----------------------------------------------------------------------
+%-----------------------------------------------------------------------
+%-----------------------------------------------------------------------
+
+\section{Introduction}
+
+%-----------------------------------------------------------------------
+
+\subsection{Context and scope}
+
+This draft describe some ideas on a possible method for pose initialisation in \PPP.
+
+Many of the material ideas presented are not (or probablby not) original, but maybe thir carefull use can guide
+to an efficient method, because evil is in detail.
+
+We suppose that in entry have a set of pair, triplet \dots with their relative orientation, and
+optionally the covariaance.
+
+%-----------------------------------------------------------------------
+
+\subsection{Reminder on pose}
+
+We note $\mathcal{P} = [C,R]$ a pose composed from the center and orientation of the camera.
+$\mathcal{P}$ seen as the function that tranformate camera coordinate to \emph{word} coordinates,
+ can be considered as a mapping from $\RR^3$ to $\RR^3$ :
+
+\begin{equation}
+   \mathcal{P}  :  \RR^3 \rightarrow \RR^3,  X \rightarrow \mathcal{P}(X) = C + R X
+   \label{PGI:PoseAsFunc}
+\end{equation}
+
+Using composition of function, equation \ref{PGI:PoseAsFunc} inferate a group structure on pose, and we have :
+
+
+\begin{equation}
+    \mathcal{P}_a  \mathcal{P}_b = [C_a,R_a] [C_b,R_b] = [C_a + R_a C_b , R_a R_b]
+   \label{PGI:PoseCompos}
+\end{equation}
+
+\begin{equation}
+    \mathcal{P}^{-1}  = [C,R] ^{-1} = [- R^{-1} C,R^{-1}]
+   \label{PGI:PoseInv}
+\end{equation}
+
+Let $\mathcal{P}_a,\mathcal{P}_b$ be the pose of camera $a$ and $b$, the pose $\mathcal{P}_{b/a}$,
+a.k.a the pose of $b$ relatively to $a$,
+transforming coorinates $X_a$ to $X_b$ is given by  :
+
+\begin{equation}
+    X_b =  \mathcal{P}^{-1}_b(X) =   \mathcal{P}^{-1}_b(\mathcal{P}_a(X_a))
+   \label{PGI:PoseRel}
+\end{equation}
+
+Then :
+
+\begin{equation}
+    \mathcal{P}_{b/a}  =  \mathcal{P}^{-1}_b \mathcal{P}_a 
+   \label{PGI:PoseRel}
+\end{equation}
+
+If often happend that two pose are equal to up to scale $\lambda$, we write :
+
+\begin{equation}
+    \mathcal{P}_a  \equiv   \mathcal{P}_b  \Leftrightarrow \exists \lambda / [C_a,R_a] = [\lambda  C_b,R_b]
+   \label{PGI:PoseRel}
+\end{equation}
+
+
+Also if $\mathcal{P}_a,\mathcal{P}_b$ are poses relative to a word coordinate $W$,
+and $\mathcal{P}'_a,\mathcal{P}'_b$  are pose ralative to another word coordinate $W'$,
+as they both are relative poses and equal up to a scale factor, we have :
+
+\begin{equation}
+     \mathcal{P}_b ^{-1}  \mathcal{P}_a  \equiv \mathcal{P}'^{-1}_b  \mathcal{P}'_a
+   \label{PGI:InvarPoseRel}
+\end{equation}
+
+
+%-----------------------------------------------------------------------
+
+\subsection{Set of relative poses}
+
+We have a set of $M$ poses to estimate.
+We suppose that we have set of subset (pair, triplet \dots) for which we have computed
+the relative poses. Let note :
+
+%   p_ki ->  Wk   -> W ->PI  :    PI-1 = Wk p_ki 
+%
+
+\begin{itemize}
+    \item  $N$  the number of  subset  and $n_k$ be cardinality of $k_{th}$ subset $S_k$;
+    \item  we write $S_k =\{I^k_1,\dots I^k_{n_k}\} $  where $k \in [1,N]$ , $ i \in [1,n_k]$ , $ I^k_i \in [1 , M] $ ;
+    \item   we suppose that each $S_k$ has been oriented in its own word coordinate $W_k$ ;
+    \item   we note $\mathfrak{p}^k_i=[c^k_i, r^k_i]$ the pose (relative) of $I^k_i$ in $W_k$;
+\end{itemize}
+
+We try to compute the poses in some common word coordinates $W$, all the poses $\mathcal{P}(I)=[C(I),R(I)]$
+taking into account all the  $\mathfrak{p}^k_i$  .  Using equation \ref{PGI:InvarPoseRel}
+we have :
+
+\begin{equation}
+     \forall k \in [1,N]   \forall i,j \in [1,n_k]  :
+     \mathcal{P}^{-1}(I^k_j)  \mathcal{P}(I^k_i)  \equiv  \mathfrak{p}{^k_j}^{-1} \mathfrak{p}^k_i 
+   \label{PGI:PoseRelAb}
+\end{equation}
+
+As all poses in each word are defined up to a global pose we set :
+\begin{equation}
+     \forall k \in [1,N]   
+      \mathfrak{p}^k_1  = Id
+   \label{PGI:FirstPoseId}
+\end{equation}
+
+And we  simplify ~\ref{PGI:PoseRelAb}  by :
+
+\begin{equation}
+     \forall k \in [1,N]   \forall i \in [2,n_k]  :
+         \mathcal{P}^{-1}(I^k_1)  \mathcal{P}(I^k_i)  \equiv   \mathfrak{p}{^k_1}^{-1} \mathfrak{p}^k_i   =\mathfrak{p}^k_i 
+   \label{PGI:PoseRelAb2}
+\end{equation}
+
+Or :
+
+\begin{equation}
+     \forall k \in [1,N]   \forall i \in [2,n_k]  :
+         \mathcal{P}^{-1}(I^k_1)  \mathcal{P}(I^k_i) = [\lambda_k c^k_i, r^k_i]
+   \label{PGI:PoseRelAb2}
+\end{equation}
+
+%-----------------------------------------------------------------------
+
+\subsection{Setting  a linear problem}
+
+In equation ~\ref{PGI:PoseRelAb2}  the $\mathcal{P}(I^k_i)$ and $\lambda_k$ are the unknowns and the $\mathfrak{p}(I^k_1) $
+are observations , to have  a linear formula we write :
+
+
+\begin{equation}
+     \forall k \in [1,N]   \forall i \in [2,n_k]  :
+           \mathcal{P}^{-1}(I^k_1) = [\lambda_k c^k_i, r^k_i]  \mathcal{P}^{-1} (I^k_i)
+   \label{PGI:PoseRelAb3}
+\end{equation}
+
+Now we considers that unknown are not the  $\mathcal{P}(I)$  but rather the $\mathcal{P}^{-1}(I)$ and we write :
+
+\begin{equation}
+      \mathcal{P}^{-1}(I) = [C'(I),R'(I)]
+\end{equation}
+
+We then have :
+
+\begin{equation}
+     \forall k \in [1,N]   \forall i \in [2,n_k]  :
+           [C'(I^k_1),R'(I^k_1)]  = [\lambda_k c^k_i + r^k_i C'(I^k_i) , r^k_i R'(I^k_i)]  
+   \label{PGI:PoseRelAb3}
+\end{equation}
+
+Here the unkwons are the $C'(I),R'(I),\lambda_k$.
+
+We have then two independant set of equations. Equations for translations  with  $3M+N$ unknwons :
+
+\begin{equation}
+     \forall k \in [1,N]   \forall i \in [2,n_k]  :
+     C'(I^k_1) = \lambda_k c^k_i + r^k_i C'(I^k_i)  
+     \label{PGI:EqTrans}
+\end{equation}
+
+If $M \gg N$ and we use least square method with normal matrix, the $\lambda_k $ can be eliminated
+using schurr complement.
+
+
+Equation for rotations :
+
+\begin{equation}
+     \forall k \in [1,N]   \forall i \in [2,n_k]  :
+           R'(I^k_1)  =  r^k_i R'(I^k_i)
+   \label{PGI:PoseRelAb3}
+\end{equation}
+
+
+Going to quaternions, and noting $Q',q$ the quaternion associated to $R',r$ , we can write :
+
+\begin{equation}
+     \forall k \in [1,N]   \forall i \in [2,n_k]  :
+           Q'(I^k_1)  =  q^k_i Q'(I^k_i)
+   \label{PGI:EqQuat1}
+\end{equation}
+
+To the price of having $4M$ unknowns, rather than $3N$, we have a linear problem.
+
+%-----------------------------------------------------------------------
+
+\subsection{Gauge}
+
+$R(I)$, $C(I)$ and $\lambda_k$ are determined up to some arbitary repair (
+a global similitude). So are $R'(I)$, $C'(I)$ and $\lambda_k$.
+We then have to use some gauge in equation \ref{PGI:EqQuat1} and \ref{PGI:EqTrans}.
+
+As a reminder we have $R'(I) = R^{-1}(I)$ and $C'(I) = - R^{-1}(I) C(I) $.
+
+For equation~\ref{PGI:EqQuat1}, $R$ and $R'$ play similar role  in equations,
+and we can simply set arbitrarily the firt pose as identity:
+
+\begin{equation}
+       Q'(1) = 1
+   \label{PGI:GaugeQuat}
+\end{equation}
+
+For equation~\ref{PGI:EqTrans},  for $C$ we usally set $ \sum C(I)=$;
+but due the more complicated relation we cannot set for example 
+$\sum C'(i)=0 $.  By the way an alternative is to set $C(1)=0$,
+and in this case the relarion between $C$ and $C'$ lead to $C'(1)=0$.
+
+And for $\lambda_k$ we can set for example $\lambda_1=1$.
+
+
+
+%-----------------------------------------------------------------------
+
+\subsection{Can it work ?}
+
+The previous method is relatively classical . It's not reputed to  be very stable.
+Why could it work better with our data ?  We hope that adding pairs and triplet
+can make it more robust.
+
+Open question, can we add covariance information on $ r^k_i , c^k_i $ ?  Probably not rigourously,
+as when we already have an approximate solution, but maybe just the uncertaincy can be used in weigthing the equation ?
+
+
+
+

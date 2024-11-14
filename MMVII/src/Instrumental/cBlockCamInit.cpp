@@ -682,7 +682,7 @@ class cAppli_BlockCamInit : public cMMVII_Appli
 std::vector<std::string>  cAppli_BlockCamInit::Samples() const
 {
     return {
-	     "MMVII BlockCamInit SetFiltered_GCP_OK_Resec.xml   BA_311_B   '(.*)_(.*).JPG' [1,2]  Rig_311_B"
+         "MMVII BlockCamInit SetFiltered_GCP_OK_Resec.xml   BA_311_B   '(.*)_(.*).JPG' [1,2] '[(.*)@(.*),$1_$2.tif,@]'  Rig_311_B"
     };
 }
 cAppli_BlockCamInit::cAppli_BlockCamInit

@@ -551,6 +551,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 	void  AddStdHeaderStatCSV(const std::string &anId,const std::string & aNameCol1,const std::vector<int> aVPerc,const std::vector<std::string> & ={});
 	void  AddStdStatCSV(const std::string &anId,const std::string & aCol1,const cStdStatRes &,const std::vector<int> aVPerc,const std::vector<std::string> & ={});
 
+        const std::string & NameFileCSVReport(const std::string & anId) const;
+
         /// if "aPatSubst" was initialized, make a pattern replacement with aPatSubst[0] as pattern and aPatSubst[1] as substitution
 	void ChgName(const std::vector<std::string>& aPatSub,std::string & aName) const;
     private:

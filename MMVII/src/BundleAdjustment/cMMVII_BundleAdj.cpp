@@ -671,10 +671,10 @@ void cMMVII_BundleAdj::SaveBlocRigid()
     /*            Clino Bloc                    */
     /* ---------------------------------------- */
 
-void cMMVII_BundleAdj::AddClinoBloc(const std::string aNameClino, const std::string aFormat, std::vector<std::string> aPrePost)
+void cMMVII_BundleAdj::AddClinoBloc()
 {
     AssertPhpAndPhaseAdd();
-    mBlClino = new cBA_Clino(mPhProj, aNameClino, aFormat, aPrePost);
+    mBlClino = new cBA_Clino(mPhProj);
 
     mBlClino->AddToSys(mSetIntervUK);
 }
