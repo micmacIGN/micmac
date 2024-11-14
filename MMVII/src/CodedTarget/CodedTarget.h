@@ -133,7 +133,7 @@ class cGeomSimDCT
        /// defaut constructor usefull for serialization
        cGeomSimDCT();
        /// constructor used afetr randoming generating parameters
-       cGeomSimDCT(const cOneEncoding & anEncod,const  cPt2dr& aC,const double& aR1,const double& aR2);
+       cGeomSimDCT(const cOneEncoding & anEncod,const  cPt2dr& aC,const double& aR1,const double& aR2, const std::string & aName);
        /// Do to simulated target intersect, used to avoid overlapping target in images
        bool Intersect(const cGeomSimDCT &  aG2) const ;
 
@@ -148,7 +148,7 @@ class cGeomSimDCT
        cPt2dr       mCornEl2;   ///< Theoreticall corner 2 of ellipse
        double       mR1;        ///< "small" size of deformaed rectangle
        double       mR2;        ///<  "big " size ....
-       // std::string  mName;
+       std::string  mName;
 };
 /// method for serializing cGeomSimDCT
 void AddData(const  cAuxAr2007 & anAux,cGeomSimDCT & aGSD);
