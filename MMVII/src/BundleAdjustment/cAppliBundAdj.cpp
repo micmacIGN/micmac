@@ -247,7 +247,6 @@ int cAppliBundlAdj::Exe()
     mPhProj.DPPointsMeasures().SetDirInIfNoInit(mDataDir);
     mPhProj.DPMulTieP().SetDirInIfNoInit(mDataDir);
     mPhProj.DPRigBloc().SetDirInIfNoInit(mDataDir); //  RIGIDBLOC
-    mPhProj.DPClinoMeters().SetDirInIfNoInit(mDataDir); //  CLINOBLOC
 
     mPhProj.FinishInit();
 
