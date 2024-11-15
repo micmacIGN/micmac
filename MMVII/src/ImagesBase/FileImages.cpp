@@ -6,9 +6,9 @@
 #include <gdal_priv.h>
 
 #include "MMVII_Sys.h"  //FIXME CM:  Used by Convert_JPG. Delete when Convert_JPG refactored
-//#ifdef MMVII_KEEP_MMV1_IMAGE   //FIXME CM: Used by code at end of this file. Remove comment when refactored
+#ifdef MMVII_KEEP_MMV1_IMAGE
 # include "V1VII.h"
-//#endif
+#endif
 
 using namespace MMVII;
 
@@ -841,34 +841,6 @@ double DifAbsInVal(const std::string & aN1,const std::string & aN2,double aDef)
     return aSom;
 }
 
-
-// FIXME CM: rewrite ImageOfString_10x8, ImageOfString_DCT from MMV1
-template <const int aNbBit>  cIm2D<tU_INT1>  BitsV1ToV2(const Im2D_Bits<aNbBit> & aImV1)
-{
-    cIm2D<tU_INT1> aImV2(ToMMVII(aImV1.sz()));
-    cDataIm2D<tU_INT1>& aDImV2 = aImV2.DIm();
-
-    for (const auto & aPixV2 : aDImV2)
-    {
-        aDImV2.SetV(aPixV2,aImV1.GetI(ToMMV1(aPixV2)));
-    }
-
-
-    return aImV2;
-}
-
-
-cIm2D<tU_INT1> ImageOfString_10x8(const std::string & aStr ,int aSpace)
-{
-    Im2D_Bits<1> aImV1 =  cElBitmFont::BasicFont_10x8().BasicImageString(aStr,aSpace);
-    return BitsV1ToV2(aImV1);
-}
-
-cIm2D<tU_INT1> ImageOfString_DCT(const std::string & aStr ,int aSpace)
-{
-    Im2D_Bits<1> aImV1 =  cElBitmFont::FontCodedTarget().BasicImageString(aStr,aSpace);
-    return BitsV1ToV2(aImV1);
-}
 
 
 // FIXME CM: Rewrite Convert_JPG with special API from cDataFileIm2D / CDataIm2D.toFile()
