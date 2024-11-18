@@ -259,6 +259,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_ImportTriplet);
         TheVecAll.push_back(&TheSpec_SfmInitFromGraph);
         TheVecAll.push_back(&TheSpec_SfmInitWithPartition);
+        TheVecAll.push_back(&TheSpec_SfmInitGlob);
 
         TheVecAll.push_back(&TheSpec_CERN_ImportClino);
         TheVecAll.push_back(&TheSpec_MMV2_MesIm_2_MMV1);

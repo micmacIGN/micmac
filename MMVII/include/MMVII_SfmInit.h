@@ -352,6 +352,39 @@ class cAppli_SfmInitWithPartition: public cMMVII_Appli
 
 };
 
+/* ********************************************************** */
+/*                                                            */
+/*                 cAppli_SfmInitWithPartition                */
+/*                                                            */
+/* ********************************************************** */
+
+
+class cAppli_SfmInitGlob: public cMMVII_Appli
+{
+  public :
+     typedef cIsometry3D<tREAL8>  tPose;
+
+     cAppli_SfmInitGlob(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
+     int Exe() override;
+     int ExeParallel();
+     cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
+     cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+
+
+ private :
+     cPhotogrammetricProject   mPhProj;
+
+     int                       mSeed;
+
+     void SetVecT(cDenseVect<tREAL8>&,
+                  tU_INT4, tU_INT4, tU_INT4,
+                  const cMatrix<double>&, const cPt3dr&, int);
+     void SetVecQ(cDenseVect<tREAL8>&,
+                  tU_INT4, tU_INT4,
+                  const cPt4dr&, int);
+
+};
+
 };
 #endif // _MMVII_SFMINIT_H_
 
