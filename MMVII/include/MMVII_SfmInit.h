@@ -366,7 +366,7 @@ class cAppli_SfmInitGlob: public cMMVII_Appli
 
      cAppli_SfmInitGlob(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
      int Exe() override;
-     int ExeParallel();
+     int ExeAllAtOnce();
      cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
      cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 

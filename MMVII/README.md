@@ -30,6 +30,7 @@ Some external tools need to be present on your system for **MMVII** to run prope
 - **[make](http://www.gnu.org/software/make)** for parallel processes management
 - **[PROJ](http://trac.osgeo.org/proj/)** for coordinate system conversion and coordinate reference system transformation
 - **[PROJ additional data](https://download.osgeo.org/proj/)** grids for coordinates tranformations (optional, see doc)
+- **[GDAL](https://gdal.org/)** for image files handling
 - **[ccache](https://ccache.dev/)** for recompilation optimization (optional)
 - **[OpenMP](https://www.openmp.org/)** multi-platform parallel programming (optionnal)
 - **[Doxygen](https://www.doxygen.nl/)** documentation generator (optional)
@@ -52,7 +53,7 @@ Under Linux (Ubuntu) distribution the installation procedure is as follows:
 
 - Install dependancies specific to MMVII:
 	```bash
-	sudo apt install pkg-config libproj-dev
+	sudo apt install pkg-config libproj-dev libgdal-dev
 	```
 
 - Access the folder:

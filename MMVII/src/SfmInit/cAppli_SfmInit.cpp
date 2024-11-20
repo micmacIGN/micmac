@@ -1574,7 +1574,8 @@ int cAppli_SfmInitGlob::Exe()
 
     StdOut() << "Number triplets= " << aNbTriplets <<
                 ", vertices=" << aNbVertices <<
-                "unks=" << aNbUnkTr+aNbUnkRot << std::endl;
+                "unks tr and lambda=" << aNbUnkTr <<
+                "unks rot=" << aNbUnkRot << std::endl;
 
     StdOut() << "Poses:\n";
     for (auto aV : aHG.GetMapVertices())
@@ -1841,7 +1842,8 @@ int cAppli_SfmInitGlob::Exe()
     return EXIT_SUCCESS;
 }
 
-int cAppli_SfmInitGlob::ExeParallel()
+//old - combines tr and rot in one system of eqs
+int cAppli_SfmInitGlob::ExeAllAtOnce()
 {
     mPhProj.FinishInit();
 

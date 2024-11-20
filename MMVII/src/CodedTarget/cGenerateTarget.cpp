@@ -169,6 +169,8 @@ void cParamCodedTarget::AddData(const cAuxAr2007 & anAuxParam)
     MMVII::AddData(cAuxAr2007("CenterOrientTablet",anAux),mCenterOrientTablet);
     MMVII::AddData(cAuxAr2007("RayCenterMiniTarget",anAux),mRadiusCenterMiniTarget);
 
+    MMVII::AddData(cAuxAr2007("SzHalfStr",anAux),mSzHalfStr);
+
      if (anAux.Input())
 	Finish();
 }
@@ -641,7 +643,7 @@ enum class eLPT  // Label Pattern Target
            {
               eBackGround,
               eForeGround,
-              eChar,
+              eCircleSepCar,
               eNumB0   // num first bit
            };
 
@@ -656,7 +658,7 @@ class cCodedTargetPatternIm
 
 	  tIm  ImCoding() const;
 
-	  tIm MakeOneImTarget(const cOneEncoding & aCode,bool doMarkC = false);
+	  tIm MakeOneImTarget(const cOneEncoding & aCode,bool is4Test = false);
      private :
 	  cCodedTargetPatternIm(const cCodedTargetPatternIm &) = delete;
 	  cPt2di  PDiag(tREAL8 aRhoNorm) const;
@@ -718,9 +720,12 @@ cCodedTargetPatternIm::cCodedTargetPatternIm(cFullSpecifTarget & aSpec) :
     // structure specifying bits location
     std::unique_ptr<cNormPix2Bit>  aP2B (cNormPix2Bit::Alloc(aSpec));
 
+    tREAL8 aR2Sq = Square(mRender.mRho_2_EndCode);
+    tREAL8 aR3Sq = Square(mRender.mRho_3_BeginCar);
     for (const auto & aPix : mDIC)
     {
        cPt2dr aPN = mSpec.Render().Pix2Norm(aPix);
+       tREAL8 aR2N = SqN2(aPN);
        //  ============  1  Generate the bit coding =======================
        if (aP2B->PNormIsCoding(aPN))  // if point belong to bit-coding space
        {
@@ -731,7 +736,7 @@ cCodedTargetPatternIm::cCodedTargetPatternIm(cFullSpecifTarget & aSpec) :
 	   aVCenters.at(aNumB) += ToR(aPix);  // accumulate for centroid
        }
        //  ============  2  Generate the central circle =======================
-       else if (SqN2(aPN) <mRho2C)
+       else if (aR2N <mRho2C)
        {
            eLPT aLab = eLPT::eForeGround;  // a priori mar circle
            if (mSpec.Render().mWithChessboard)
@@ -757,6 +762,10 @@ cCodedTargetPatternIm::cCodedTargetPatternIm(cFullSpecifTarget & aSpec) :
 	   }
 	   mDIC.SetV(aPix,int(aLab));
        }
+       else if ((aR2N>aR2Sq) && ( aR2N<=aR3Sq))
+       {
+	   mDIC.SetV(aPix,int(eLPT::eCircleSepCar));
+       }
     }
 
     // compute and memorize the center
@@ -769,7 +778,7 @@ cCodedTargetPatternIm::cCodedTargetPatternIm(cFullSpecifTarget & aSpec) :
 
 cCodedTargetPatternIm::tIm cCodedTargetPatternIm::ImCoding() const {return mImCoding;}
 
-cCodedTargetPatternIm::tIm cCodedTargetPatternIm::MakeOneImTarget(const cOneEncoding & anEnCode,bool doMarkC)
+cCodedTargetPatternIm::tIm cCodedTargetPatternIm::MakeOneImTarget(const cOneEncoding & anEnCode,bool is4Test)
 {
    // compute gray level for background & foreground
    int aBG_Coul = mSpec.Render().mWhiteBackGround ? 255 : 0;
@@ -793,13 +802,21 @@ cCodedTargetPatternIm::tIm cCodedTargetPatternIm::MakeOneImTarget(const cOneEnco
            else if (aLab>=eLPT::eNumB0)
            {
                bool BitIs_1 =  (aCode & (size_t(1)<<(int(aLab)-int(eLPT::eNumB0)))) != 0;
-                isBG = BitIs_1 !=  BGIs_0;
+               isBG = BitIs_1 !=  BGIs_0;
            }
 
 	   if (!isBG)
 	   {
                mDIT.SetV(aPix,aFG_Coul);
 	   }
+
+/*
+           if (is4Test)
+           {
+               cPt2dr aPixN = mRender.Norm2PixR(ToR(
+           }
+*/
+
        }
    }
 
@@ -848,15 +865,17 @@ cCodedTargetPatternIm::tIm cCodedTargetPatternIm::MakeOneImTarget(const cOneEnco
 
 	     for (const auto & aPixStr : aDImStr)
 	     {
-                  if (aDImStr.GetV(aPixStr))
+                  bool isCar = aDImStr.GetV(aPixStr);
+                  if (isCar || is4Test)
 	          {
+                       int aCoul = isCar ? aFG_StrCoul : 128;
                        cPt2di aP0 = aPOri+ToI(ToR(aPixStr)*aSzPixStr);
                        cPt2di aP1 = aPOri+ToI(ToR(aPixStr+cPt2di(1,1))*aSzPixStr);
 
 		       for (const auto& aPixIm : cRect2(aP0,aP1))
 		       {
-                           mDIT.SetVTruncIfInside(aPixIm,aFG_StrCoul);
-                           mDIT.SetVTruncIfInside(aP4Sym-aPixIm,aFG_StrCoul);
+                           mDIT.SetVTruncIfInside(aPixIm,aCoul);
+                           mDIT.SetVTruncIfInside(aP4Sym-aPixIm,aCoul);
 		       }
 	          }
 	     }
@@ -868,11 +887,12 @@ cCodedTargetPatternIm::tIm cCodedTargetPatternIm::MakeOneImTarget(const cOneEnco
    tIm aRes = mImTarget.GaussDeZoom(mSpec.DeZoomIm());
 
    // in debug mode, marq with one pixel the center
-   if (doMarkC)
+   if (is4Test)
    {
       for (const auto & aC : mSpec.BitsCenters())
       {
-	      aRes.DIm().SetV(ToI(aC),128);
+          for (const auto aP : cRect2::BoxWindow(2))
+	      aRes.DIm().SetV(ToI(aC)+aP,128);
       }
    }
 
@@ -925,9 +945,10 @@ cFullSpecifTarget::tIm   cFullSpecifTarget::ImagePattern()
 {
 	return AllocCTPI()->ImCoding();
 }
-cFullSpecifTarget::tIm   cFullSpecifTarget::OneImTarget(const cOneEncoding & aCode)
+
+cFullSpecifTarget::tIm   cFullSpecifTarget::OneImTarget(const cOneEncoding & aCode,bool ForTest)
 {
-	return AllocCTPI()->MakeOneImTarget(aCode);
+	return AllocCTPI()->MakeOneImTarget(aCode,ForTest);
 }
 
 
@@ -1091,6 +1112,7 @@ class cAppliGenCodedTarget : public cMMVII_Appli
 	std::string        mPatternDoImage;
 	int                mNbPixBin;
         std::string        mNameOut;
+        bool               mIm4Test;   ///< Do we generate image for inspection (and not for printing)
 };
 
 eTyCodeTarget cAppliGenCodedTarget::Type() {return mBE.Specs().mType ;}
@@ -1101,7 +1123,8 @@ cAppliGenCodedTarget::cAppliGenCodedTarget(const std::vector<std::string> & aVAr
    mPhgrPr       (*this),
    mPerGen       (10),
    mDoMarkC      (false),
-   mNbPixBin     (1800)
+   mNbPixBin     (1800),
+   mIm4Test      (false)
 {
 }
 
@@ -1120,6 +1143,7 @@ cCollecSpecArg2007 & cAppliGenCodedTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return anArgOpt
           << AOpt2007(mPatternDoImage,"PatIm","Pattern for generating image (def no generation)")
+          << AOpt2007(mIm4Test,"I4T","Generate image for test/inspection, not for use",{eTA2007::HDV})
           << AOpt2007(mPCT.mRadiusCenterMiniTarget,"RayMCT","Rayon \"mini\" center target (for topo)",{eTA2007::HDV})
           // << AOpt2007(mPCT.mNbBit,"NbBit","Nb Bit printed",{eTA2007::HDV})
           // << AOpt2007(mPCT.mWithParity,"WPar","With parity bit",{eTA2007::HDV})
@@ -1170,7 +1194,7 @@ int  cAppliGenCodedTarget::Exe()
       {
           if (MatchRegex(anEncode.Name(),mPatternDoImage))
 	  {
-             cCodedTargetPatternIm::tIm anIm = aFullSpec.OneImTarget(anEncode);
+             cCodedTargetPatternIm::tIm anIm = aFullSpec.OneImTarget(anEncode,mIm4Test);
 
              std::string aName = aFullSpec.NameOfEncode(anEncode);
              anIm.DIm().ToFile(aDirVisu+aName);
