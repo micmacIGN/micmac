@@ -1,14 +1,13 @@
-#include "MMVII_Stringifier.h"
 #include "MMVII_util.h"
 #include "MMVII_Image2D.h"
 #include "MMVII_DeclareCste.h"
 #include "MMVII_Ptxd.h"
-#include <gdal_priv.h>
+#include "cGdalApi.h"
 
-#include "MMVII_Sys.h"  //FIXME CM:  Used by Convert_JPG. Delete when Convert_JPG refactored
 #ifdef MMVII_KEEP_MMV1_IMAGE
 # include "V1VII.h"
 #endif
+
 
 using namespace MMVII;
 
@@ -17,353 +16,11 @@ bool mmvii_use_mmv1_image=false;
 extern std::string MM3DFixeByMMVII; // Declared in MMV1 for its own stuff
 #endif
 
-namespace{ // Private
-
-eTyNums TyGdalToMMVII( GDALDataType aType )
-{
-    switch (aType)
-    {
-    case GDT_Byte    : return eTyNums::eTN_U_INT1 ;
-    case GDT_UInt16  : return eTyNums::eTN_U_INT2 ;
-    case GDT_Int16   : return eTyNums::eTN_INT2 ;
-    case GDT_UInt32  : return eTyNums::eTN_U_INT4 ;
-    case GDT_Int32   : return eTyNums::eTN_INT4 ;
-    case GDT_Float32 : return eTyNums::eTN_REAL4 ;
-    case GDT_Float64 : return eTyNums::eTN_REAL8 ;
-
-    case GDT_CInt16   : MMVII_INTERNAL_ERROR("TyGdalToMMVII: GDAL Image type GDT_CInt16 not supported");
-    case GDT_CInt32   : MMVII_INTERNAL_ERROR("TyGdalToMMVII: GDAL Image type GDT_CInt32 not supported");
-    case GDT_CFloat32 : MMVII_INTERNAL_ERROR("TyGdalToMMVII: GDAL Image type GDT_CFloat32 not supported");
-    case GDT_CFloat64 : MMVII_INTERNAL_ERROR("TyGdalToMMVII: GDAL Image type GDT_CFloat64 not supported");
-    case GDT_Unknown  : MMVII_INTERNAL_ERROR("TyGdalToMMVII: GDAL Image type GDT_Unknown not supported");
-    default: MMVII_INTERNAL_ERROR("TyGdalToMMVII: GDAL Image type #" + std::to_string(aType) + " not supported");
-    }
-    return eTyNums::eTN_UnKnown ;
-}
-
-
-GDALDataType TyMMVIIToGdal( eTyNums aType )
-{
-    switch (aType)
-    {
-    case eTyNums::eTN_U_INT1  : return GDT_Byte ;
-    case eTyNums::eTN_INT2    : return GDT_Int16 ;
-    case eTyNums::eTN_U_INT2  : return GDT_UInt16 ;
-    case eTyNums::eTN_INT4    : return GDT_Int32 ;
-    case eTyNums::eTN_U_INT4  : return GDT_UInt32 ;
-    case eTyNums::eTN_REAL4   : return GDT_Float32 ;
-    case eTyNums::eTN_REAL8   : return GDT_Float64 ;
-    case eTyNums::eTN_INT1    :
-    case eTyNums::eTN_INT8    :
-    case eTyNums::eTN_REAL16  :
-    default: MMVII_INTERNAL_ERROR("TyMMVIIToGdal: eTyNums::eTN_" + ToStr(aType) + " not supported by GDAL");
-    }
-    return GDT_Unknown ;
-}
-
-enum class IoMode {Read, Write};
-
-// Global GDal Error Handler. Not multithread safe !
-// Avoid printing of error message => each API call must test and handle error case.
-void GDalErrorHandler(CPLErr aErrorCat, CPLErrorNum aErrorNum, const char *aMesg)
-{
-    if (aErrorCat == CE_Fatal) {
-        MMVII_INTERNAL_ERROR("GDal fatal Error #" + std::to_string(aErrorNum) + ": " +aMesg);
-    }
-}
-
-void InitGDAL()
-{
-    static bool isGdalInitialized = false;
-    if (isGdalInitialized)
-        return;
-    GDALAllRegister();
-    CPLSetErrorHandler(GDalErrorHandler);
-    isGdalInitialized = true;
-}
-
-std::string ExtToGdalDriver( std::string aName )
-{
-    auto aLowerName = ToLower(aName);
-    if (ends_with(aLowerName,".tif") || ends_with(aLowerName,".tiff"))
-        return "GTiff";
-    if (ends_with(aLowerName,".jpg") || ends_with(aLowerName,".jpeg"))
-        return "JPEG";
-    if (ends_with(aLowerName,".png"))
-        return "PNG";
-    MMVII_INTERNAL_ERROR("MMVIITOGDal: Unsupported image format for " + aName);
-    return "";
-}
-
-// Return nullptr if error
-GDALDataset * OpenDataset(std::string aName, GDALAccess aAccess)
-{
-    auto aHandle = GDALOpen( aName.c_str(), aAccess);
-    auto aDataSet = GDALDataset::FromHandle(aHandle);
-    return aDataSet;
-}
-
-void CloseDataset(GDALDataset *aGdalDataset)
-{
-    if (aGdalDataset)
-        GDALClose(GDALDataset::ToHandle(aGdalDataset));
-}
-
-
-template <typename TypeIm, typename TypeFile>
-class GdalIO {
-public:
-    GdalIO()
-        : mDataFile(nullptr)
-        , mGdalDataset(nullptr)
-        , mGdalDataType(GDT_Byte)
-        , mGdalNbChan(0)
-        , mNbImg(0)
-        , mBufferSize(0)
-    {}
-    void operator()(IoMode aMode, const cDataFileIm2D &aDF, std::vector<const cDataIm2D<TypeIm>*>& aVecImV2, const cPt2di & aP0File,double aDyn,const cPixBox<2>& aR2)
-    {
-        mDataFile = &aDF;
-        mGdalDataset = OpenDataset(aDF.Name(), aMode==IoMode::Read ? GA_ReadOnly : GA_Update);
-        mGdalDataType = TyMMVIIToGdal(aDF.Type());
-        mGdalNbChan = mGdalDataset->GetRasterCount();
-        mNbImg = static_cast<int>(aVecImV2.size());
-        auto aIm2D = aVecImV2[0];
-
-        cRect2 aRectFullIm(aIm2D->P0(), aIm2D->P1());
-        cRect2 aRectIm =  (aR2 == cRect2::TheEmptyBox) ? aRectFullIm : aR2;
-        cRect2 aRectFile (aRectIm.Translate(aP0File)) ;
-
-        MMVII_INTERNAL_ASSERT_strong(aRectFile.IncludedIn(aDF), "Read/write out of image file");
-        MMVII_INTERNAL_ASSERT_strong(aRectIm.IncludedIn(aRectFullIm), "Read/write out of Image buffer");
-
-        mBufferSize = sizeof(TypeFile)*aRectIm.Sz().x()*aRectIm.Sz().y();
-
-        if (aMode == IoMode::Read) {
-            if (mGdalNbChan == mNbImg && mNbImg != 0) {
-                GdalReadNtoN(aVecImV2,aRectIm,aRectFile,aDyn);     // file N -> N img channels
-            } else if (mGdalNbChan == 1 && mNbImg != 0) {
-                GdalRead1toN(aVecImV2,aRectIm,aRectFile,aDyn);     // file 1 -> N img channels
-            } else if (mGdalNbChan != 0 && mNbImg == 1) {
-                GdalReadNto1(aVecImV2,aRectIm,aRectFile,aDyn);     // file N -> 1 img channels
-            } else {
-                MMVII_INTERNAL_ERROR("Gdal read: Images vector size: " + std::to_string(mNbImg) + ", file channels: " + std::to_string(mGdalNbChan) + " (" + mDataFile->Name() + ")");
-            }
-        } else {
-            if (mGdalNbChan == mNbImg && mNbImg != 0) {
-                GdalWriteNtoN(aVecImV2,aRectIm,aRectFile,aDyn);
-            } else {
-                MMVII_INTERNAL_ERROR("Gdal write: Images vector size: " + std::to_string(mNbImg) + ", file channels: " + std::to_string(mGdalNbChan) + " (" + mDataFile->Name() + ")");
-            }
-        }
-        CloseDataset(mGdalDataset);
-    }
-
-private:
-    // Helper class: manage N (1 by default) image buffers read from/write to file with GDAL
-    class GDalBuffer
-    {
-    public:
-        GDalBuffer(const cRect2& aRectIm, int nbChan=1)
-            : mBuffer(nbChan)
-            , mRectIm(aRectIm)
-        {
-            auto aSize = sizeof(TypeFile)*aRectIm.Sz().x()*aRectIm.Sz().y();
-            for (auto& aBuf : mBuffer)
-            {
-                aBuf = (TypeFile*) cMemManager::Calloc(1,aSize);
-            }
-        }
-        ~GDalBuffer()
-        {
-            for (auto& aBuf : mBuffer)
-            {
-                cMemManager::Free(aBuf);
-            }
-        }
-        TypeFile operator()(const cPt2di& aPt, int chan=0) const
-        {
-            auto pt0 = aPt-mRectIm.P0();
-            return mBuffer[chan][pt0.y() * mRectIm.Sz().x() + pt0.x()];
-        }
-        TypeFile& operator()(const cPt2di& aPt, int chan=0)
-        {
-            auto pt0 = aPt-mRectIm.P0();
-            return mBuffer[chan][pt0.y() * mRectIm.Sz().x() + pt0.x()];
-        }
-        void *addr(int chan=0)
-        {
-            return mBuffer[chan];
-        }
-
-    private:
-        std::vector<TypeFile*> mBuffer;
-        cRect2 mRectIm;
-    };
-
-
-    // Read: Normal case: map each channel from image file to a corresponding cDataIm2D
-    void GdalReadNtoN(std::vector<const cDataIm2D<TypeIm>*>& aVecImV2, const cRect2& aRectIm, const cRect2& aRectFile, double aDyn)
-    {
-        GDalBuffer aBuffer(aRectIm);
-        for (int aChan = 0; aChan < mGdalNbChan; aChan++)
-        {
-            auto aDataIm2D = const_cast<cDataIm2D<TypeIm>*>(aVecImV2[aChan]); // If IoMode::Read the original parameter was not const, so we can de-const it.
-            GDALRasterBand* aBand = mGdalDataset->GetRasterBand(aChan+1); // GDal channel begins at 1 (not 0)
-            ReadWrite(GF_Read, aBand, aBuffer.addr(), aRectFile);
-            for (const auto &aPt : aRectIm)
-            {
-                aDataIm2D->SetVTrunc(aPt, aBuffer(aPt) * aDyn);
-            }
-        }
-    }
-
-    // Read: Duplicate unique channel in image file to each cDataIm2D
-    void GdalRead1toN(std::vector<const cDataIm2D<TypeIm>*>& aVecImV2, const cRect2& aRectIm, const cRect2& aRectFile, double aDyn)
-    {
-        GDalBuffer aBuffer(aRectIm);
-        GDALRasterBand* aBand = mGdalDataset->GetRasterBand(1); // GDal channel begins at 1 (not 0)
-        ReadWrite(GF_Read, aBand, aBuffer.addr(), aRectFile);
-        for (const auto &aPt : aRectIm)
-        {
-            auto aVal = aBuffer(aPt) * aDyn;
-            for (int aImgNum = 0; aImgNum < mNbImg; aImgNum++)
-            {
-                auto aDataIm2D = const_cast<cDataIm2D<TypeIm>*>(aVecImV2[aImgNum]); // If IoMode::Read the original parameter was not const, so we can de-const it.
-                aDataIm2D->SetVTrunc(aPt, aVal);
-            }
-        }
-    }
-
-    // Read:  Average all channels from image file to the only cDataIm2D
-    void GdalReadNto1(std::vector<const cDataIm2D<TypeIm>*>& aVecImV2, const cRect2& aRectIm, const cRect2& aRectFile, double aDyn)
-    {
-        int nbChan = mGdalNbChan;
-        if (nbChan == 4) // Probably RGBA, use only RGB
-            nbChan = 3;
-        GDalBuffer aBuffer(aRectIm,nbChan);
-        auto aDataIm2D = const_cast<cDataIm2D<TypeIm>*>(aVecImV2[0]); // If IoMode::Read the original parameter was not const, so we can de-const it.
-        for (int i=0; i<nbChan; i++) {
-            GDALRasterBand* aBand = mGdalDataset->GetRasterBand(i+1); // GDal channel begins at 1 (not 0)
-            ReadWrite(GF_Read, aBand, aBuffer.addr(i), aRectFile);
-        }
-
-        for (const auto &aPt : aRectIm)
-        {
-            double sum = 0;
-            for (int i=0; i<nbChan; i++)
-            {
-                sum += aBuffer(aPt,i);
-            }
-            aDataIm2D->SetVTrunc(aPt, (sum * aDyn) / nbChan);
-        }
-    }
-
-    // Write: Normal case: write each cDataIm2D in a separate channel in image file
-    void GdalWriteNtoN(std::vector<const cDataIm2D<TypeIm>*>& aVecImV2, const cRect2& aRectIm, const cRect2& aRectFile, double aDyn)
-    {
-        GDalBuffer aBuffer(aRectIm);
-        for (int aChan = 0; aChan < mGdalNbChan; aChan++)
-        {
-            auto aDataIm2D = aVecImV2[aChan];
-            GDALRasterBand* aBand = mGdalDataset->GetRasterBand(aChan+1); // GDal channel begins at 1 (not 0)
-            for (const auto &aPt : aRectIm)
-            {
-                aBuffer(aPt) = tNumTrait<TypeFile>::Trunc(aDataIm2D->GetV(aPt) * aDyn);
-            }
-            ReadWrite(GF_Write, aBand, aBuffer.addr(), aRectFile);
-        }
-    }
-
-    void ReadWrite(GDALRWFlag aRWFlag, GDALRasterBand *aBand, void *aBuffer, const cRect2& aRectFile)
-    {
-        CPLErr aErr = aBand->RasterIO(aRWFlag, aRectFile.P0().x(), aRectFile.P0().y(), aRectFile.Sz().x(), aRectFile.Sz().y(), aBuffer, aRectFile.Sz().x(), aRectFile.Sz().y(), mGdalDataType, 0, 0 );
-        if (aErr != 0 && aErr != 1)
-        {
-            MMVII_INTERNAL_ERROR(std::string("GDAL Error (") + (aRWFlag == GF_Read ? "read" : "write") + ") : " + CPLGetLastErrorMsg() + " [" + mDataFile->Name() + "]");
-        }
-    }
-
-private:
-    const cDataFileIm2D *mDataFile;
-    GDALDataset *mGdalDataset;
-    GDALDataType mGdalDataType;
-    int mGdalNbChan;
-    int mNbImg;
-    size_t mBufferSize;
-};
-
-
-// FIXME CM: special API to write a full image: Needed for JPEG, avoid empty useless image creation for TIFF (see: cDataFileIm2D::create and cDataIm2D::ToFile)
-template <class Type> void GdalReadWrite
-    (
-        IoMode aMode,
-        std::vector<const cDataIm2D<Type>*>& aVecImV2,
-        const cDataFileIm2D &aDF,
-        const cPt2di & aP0File,
-        double aDyn,
-        const cRect2& aR2Init
-        )
-{
-    MMVII_INTERNAL_ASSERT_strong(aVecImV2.size() > 0,"aVecImV2 is empty in GdalReadWrite");
-    for (int aKIm=1 ; aKIm<int(aVecImV2.size()) ; aKIm++)
-    {
-        MMVII_INTERNAL_ASSERT_strong(aVecImV2.at(0)->Sz()==aVecImV2.at(aKIm)->Sz(),"Diff Sz in GdalReadWrite");
-        MMVII_INTERNAL_ASSERT_strong(aVecImV2.at(0)->P0()==aVecImV2.at(aKIm)->P0(),"Diff P0 in GdalReadWrite");
-    }
-
-    switch (aDF.Type())
-    {
-    case eTyNums::eTN_INT1 : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::ReadWrite : case eTyNums::eTN_INT1") ; break ;
-    case eTyNums::eTN_U_INT1 : GdalIO<Type, tU_INT1>()(aMode, aDF, aVecImV2, aP0File, aDyn, aR2Init)  ; break ;
-    case eTyNums::eTN_INT2 : GdalIO<Type, tINT2>()(aMode, aDF, aVecImV2, aP0File, aDyn, aR2Init) ; break ;
-    case eTyNums::eTN_U_INT2 : GdalIO<Type, tU_INT2>()(aMode, aDF, aVecImV2, aP0File, aDyn, aR2Init)  ; break ;
-    case eTyNums::eTN_INT4 : GdalIO<Type, tINT4>()(aMode, aDF, aVecImV2, aP0File, aDyn, aR2Init)  ;  break ;
-    case eTyNums::eTN_U_INT4 : GdalIO<Type, tU_INT4>()(aMode, aDF, aVecImV2, aP0File, aDyn, aR2Init)  ; break ;
-    case eTyNums::eTN_INT8 : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::ReadWrite : case eTyNums::eTN_INT8") ; break ;
-    case eTyNums::eTN_REAL4 : GdalIO<Type, tREAL4>()(aMode, aDF, aVecImV2, aP0File, aDyn, aR2Init)  ; break ;
-    case eTyNums::eTN_REAL8 : GdalIO<Type, tREAL8>()(aMode, aDF, aVecImV2, aP0File, aDyn, aR2Init)  ; break ;
-    case eTyNums::eTN_REAL16 : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::ReadWrite : case eTyNums::eTN_REAL16") ; break ;
-    case eTyNums::eTN_UnKnown : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::ReadWrite : case eTyNums::eTN_UnKnown") ; break ;
-    case eTyNums::eNbVals : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::ReadWrite : case eTyNums::eNbVals") ; break ;
-    }
-}
-
-template <class Type> void GdalReadWrite(
-    IoMode aMode,
-    const cDataIm2D<Type>& aImV2,
-    const cDataFileIm2D &aDF,
-    const cPt2di & aP0File,
-    double aDyn,
-    const cRect2& aR2Init
-    )
-{
-    std::vector<const cDataIm2D<Type> *> aVIms({&aImV2});
-    GdalReadWrite(aMode,aVIms,aDF,aP0File,aDyn,aR2Init);
-}
-
-template <class Type> void GdalReadWrite(
-    IoMode aMode,
-    const cDataIm2D<Type>& aImV2R,
-    const cDataIm2D<Type>& aImV2G,
-    const cDataIm2D<Type>& aImV2B,
-    const cDataFileIm2D &aDF,
-    const cPt2di & aP0File,
-    double aDyn,
-    const cRect2& aR2Init
-    )
-{
-    std::vector<const cDataIm2D<Type> *> aVIms({&aImV2R,&aImV2G,&aImV2B});
-    GdalReadWrite(aMode,aVIms,aDF,aP0File,aDyn,aR2Init);
-}
-
-} // namespace Private
-
 
 namespace MMVII
 {
 
-// FIXME CM->MPD: A virer ? A mettre dans EpipGenDenseMatch ?
+// FIXME CM->MPD: A virer ? A mettre dans EpipGenDenseMatch ou ImageFilterMMV1 ?
 std::string V1NameMasqOfIm(const std::string & aName)
 {
     return LastPrefix(aName) + "_Masq.tif";
@@ -429,20 +86,21 @@ static void Init_mm3d_In_MMVII()
 /*       cDataFileIm2D         */
 /* =========================== */
 
-cDataFileIm2D::cDataFileIm2D(const std::string & aName,eTyNums aType,const cPt2di & aSz,int aNbChannel,eForceGray isFG) :
+cDataFileIm2D::cDataFileIm2D(const std::string & aName, eTyNums aType, const cPt2di & aSz, int aNbChannel, const tOptions& aOptions, eForceGray isFG, eCreationState aCreationState) :
     cPixBox<2> (cPt2di(0,0),aSz),
     mName       (aName),
     mType       (aType),
     mNbChannel  (aNbChannel),
-    mForceGray  (isFG)
+    mForceGray  (isFG),
+    mCreateOptions  (aOptions),
+    mCreationState  (aCreationState)
 {
-
 }
 
 
 cDataFileIm2D cDataFileIm2D::Empty()
 {
-    return cDataFileIm2D( MMVII_NONE, eTyNums::eNbVals, cPt2di(1,1), -1,eForceGray::No);
+    return cDataFileIm2D( MMVII_NONE, eTyNums::eNbVals, cPt2di(1,1), -1,{},eForceGray::No, eCreationState::Created);
 }
 
 bool cDataFileIm2D::IsEmpty() const
@@ -457,6 +115,7 @@ void cDataFileIm2D::AssertNotEmpty() const
 }
 
 
+// Create a cDataFileIm2D on an existing image
 cDataFileIm2D cDataFileIm2D::Create(const std::string & aName,eForceGray isFG)
 {
 #ifdef MMVII_KEEP_MMV1_IMAGE
@@ -469,28 +128,20 @@ cDataFileIm2D cDataFileIm2D::Create(const std::string & aName,eForceGray isFG)
         std::string aNameTif = NameFileStd(aName,-1,!aForce8B ,true,true);
         Tiff_Im aTF = Tiff_Im::StdConvGen(aNameTif.c_str(),-1,!aForce8B ,true);
 
-        return cDataFileIm2D(aName,ToMMVII(aTF.type_el()),ToMMVII(aTF.sz()), aTF.nb_chan(), isFG);
+        return cDataFileIm2D(aName,ToMMVII(aTF.type_el()),ToMMVII(aTF.sz()), aTF.nb_chan(), {}, isFG, eCreationState::Created);
     } else {
 #endif
-        // Open a first time with gdal to have access to metadata and then to create a cDataFileIm2D object
-        InitGDAL();
-        auto aDataset = OpenDataset(aName, GA_ReadOnly);
-        if (aDataset == nullptr) {
-            MMVII_UserError(eTyUEr::eOpenFile,std::string("Can't open image file: ") + CPLGetLastErrorMsg());
-            return Empty(); // Never executed
-        }
-        cPt2di aSz = cPt2di(aDataset->GetRasterXSize(), aDataset->GetRasterYSize());
-        auto aNbChannel = aDataset->GetRasterCount();
-        auto aType = TyGdalToMMVII( aDataset->GetRasterBand( 1 )->GetRasterDataType());
-        CloseDataset(aDataset);
-            // Create a cDataFileIm2D on an existing image
-        return cDataFileIm2D(aName, aType, aSz, aNbChannel, isFG);
+        cPt2di aSz;
+        int aNbChannel;
+        eTyNums aType;
+        cGdalApi::GetFileInfo(aName, aType, aSz, aNbChannel);
+        return cDataFileIm2D(aName, aType, aSz, aNbChannel, {}, isFG, eCreationState::Created);
 #ifdef MMVII_KEEP_MMV1_IMAGE
     }
 #endif
 }
 
-cDataFileIm2D  cDataFileIm2D::Create(const std::string & aName,eTyNums aType,const cPt2di & aSz,int aNbChan)
+cDataFileIm2D  cDataFileIm2D::Create(const std::string & aName,eTyNums aType,const cPt2di & aSz,const tOptions& aOptions, int aNbChan)
 {
 #ifdef MMVII_KEEP_MMV1_IMAGE
     if (mmvii_use_mmv1_image) {
@@ -521,52 +172,33 @@ cDataFileIm2D  cDataFileIm2D::Create(const std::string & aName,eTyNums aType,con
         {
             MMVII_INTERNAL_ASSERT_strong(false,"Incoherent channel number");
         }
-
-        InitGDAL();
-        auto aDataset = OpenDataset(aName, GA_ReadOnly);
-        if (aDataset != nullptr) {
-            cPt2di fileSz = cPt2di(aDataset->GetRasterXSize(), aDataset->GetRasterYSize());
-            auto fileNbChan = aDataset->GetRasterCount();
-            auto fileType = TyGdalToMMVII( aDataset->GetRasterBand( 1 )->GetRasterDataType());
-            CloseDataset(aDataset);
-            if (fileSz == aSz && fileNbChan == aNbChan && fileType == aType) {
-                return cDataFileIm2D(aName, aType, aSz, aNbChan, eForceGray::No);
-            }
-        }
-        remove(aName.c_str());
-
-        auto pszFormat = ExtToGdalDriver(aName);
-        GDALDriver *aGDALDriver = GetGDALDriverManager()->GetDriverByName(pszFormat.c_str());
-        if (!aGDALDriver) {
-            MMVII_INTERNAL_ERROR(std::string("GDAL can't handle file format : ") + pszFormat);
-            return Empty(); // Never executed
-        }
-        // FIXME CM: Use GdalReadWrite to create the zeroed image file
-        auto aGDALType = TyMMVIIToGdal(aType);
-        aDataset = aGDALDriver->Create( aName.c_str(), aSz.x(), aSz.y(), aNbChan, aGDALType, nullptr );
-        if (!aDataset) {
-            MMVII_UserError(eTyUEr::eOpenFile,std::string("Can't create image file: ") + CPLGetLastErrorMsg() + " '" + aName +"'");
-            return Empty(); // Never executed
-        }
-        size_t aSize = GDALGetDataTypeSizeBytes(aGDALType)*aSz.x()*aSz.y();
-        void *abyRaster = cMemManager::Calloc(1, aSize);
-        memset(abyRaster,0, aSize);          // cMemManager::Calloc fill allocated memory with a constant fixed debug value ...
-
-        // Initialize the dataset
-        GDALRasterBand *aBand;
-        for (int aChan = 0; aChan < aNbChan; aChan++)
-        {
-            aBand = aDataset->GetRasterBand(aChan+1);
-            CPLErr cplErr2 = aBand->RasterIO( GF_Write, 0, 0, aSz.x(), aSz.y(), abyRaster, aSz.x(), aSz.y(), aGDALType, 0, 0 );
-            MMVII_INTERNAL_ASSERT_strong(cplErr2 == 0 || cplErr2 == 1,"Error in writing image");
-        }
-        cMemManager::Free(abyRaster);
-        CloseDataset(aDataset);
-        return cDataFileIm2D(aName, aType, aSz, aNbChan,eForceGray::No);
+        cDataFileIm2D aDataFileIm2D(aName, aType, aSz, aNbChan, aOptions, eForceGray::No, eCreationState::Created);
+        cGdalApi::CreateFileIfNeeded(aDataFileIm2D);
+        return aDataFileIm2D;
 #ifdef MMVII_KEEP_MMV1_IMAGE
     }
 #endif
+}
 
+cDataFileIm2D  cDataFileIm2D::Create(const std::string & aName,eTyNums aType,const cPt2di & aSz, int aNbChan)
+{
+    return Create(aName,aType,aSz,{},aNbChan);
+}
+
+
+cDataFileIm2D  cDataFileIm2D::CreateOnWrite(const std::string & aName,eTyNums aType,const cPt2di & aSz, const tOptions& aOptions, int aNbChan)
+{
+    if (aNbChan!=1 && aNbChan!=3)
+    {
+        MMVII_INTERNAL_ASSERT_strong(false,"Incoherent channel number");
+    }
+    cGdalApi::InitGDAL();
+    return cDataFileIm2D(aName, aType, aSz, aNbChan, aOptions, eForceGray::No, eCreationState::AtFirstWrite);
+}
+
+cDataFileIm2D  cDataFileIm2D::CreateOnWrite(const std::string & aName,eTyNums aType,const cPt2di & aSz, int aNbChan)
+{
+    return CreateOnWrite(aName,aType,aSz,{},aNbChan);
 }
 
 
@@ -578,6 +210,20 @@ const cPt2di &  cDataFileIm2D::Sz() const  {return  cPixBox<2>::Sz();}
 const std::string &  cDataFileIm2D::Name() const { return mName; }
 const int  & cDataFileIm2D::NbChannel ()  const { return mNbChannel; }
 const eTyNums &   cDataFileIm2D::Type ()  const {return mType;}
+bool  cDataFileIm2D::IsCreateAtFirstWrite() const  {return  mCreationState == eCreationState::AtFirstWrite;}
+bool  cDataFileIm2D::IsCreatedNoUpdate() const  {return  mCreationState == eCreationState::CreatedNoUpdate;}
+const cDataFileIm2D::tOptions& cDataFileIm2D::CreateOptions() const { return mCreateOptions; }
+
+void cDataFileIm2D::SetCreated() const
+{
+    mCreationState = eCreationState::Created;
+}
+
+void cDataFileIm2D::SetCreatedNoUpdate() const
+{
+    mCreationState = eCreationState::CreatedNoUpdate;
+}
+
 
 
 bool cDataFileIm2D::IsPostFixNameImage(const std::string & aPost)
@@ -733,7 +379,7 @@ template <class Type>  void  cDataIm2D<Type>::Read(const cDataFileIm2D & aFile,c
         cMMV1_Conv<Type>::ReadWrite(true,*this,aFile,aP0,aDyn,aR2);
     } else {
 #endif
-        GdalReadWrite(IoMode::Read, *this, aFile, aP0, aDyn, aR2);
+        cGdalApi::ReadWrite(cGdalApi::IoMode::Read, *this, aFile, aP0, aDyn, aR2);
 #ifdef MMVII_KEEP_MMV1_IMAGE
     }
 #endif
@@ -746,7 +392,7 @@ template <class Type>  void  cDataIm2D<Type>::Read(const cDataFileIm2D & aFile,t
         cMMV1_Conv<Type>::ReadWrite(true,*this,aImG,aImB,aFile,aP0,aDyn,aR2);
     } else {
 #endif
-        GdalReadWrite(IoMode::Read, *this, aImG, aImB, aFile, aP0, aDyn, aR2);
+        cGdalApi::ReadWrite(cGdalApi::IoMode::Read, *this, aImG, aImB, aFile, aP0, aDyn, aR2);
 #ifdef MMVII_KEEP_MMV1_IMAGE
     }
 #endif
@@ -760,7 +406,7 @@ template <class Type>  void  cDataIm2D<Type>::Write(const cDataFileIm2D & aFile,
         cMMV1_Conv<Type>::ReadWrite(false,*this,aFile,aP0,aDyn,aR2);
     } else {
 #endif
-        GdalReadWrite(IoMode::Write, *this, aFile, aP0, aDyn, aR2);
+        cGdalApi::ReadWrite(cGdalApi::IoMode::Write, *this, aFile, aP0, aDyn, aR2);
 #ifdef MMVII_KEEP_MMV1_IMAGE
     }
 #endif
@@ -773,7 +419,7 @@ template <class Type>  void  cDataIm2D<Type>::Write(const cDataFileIm2D & aFile,
         cMMV1_Conv<Type>::ReadWrite(false,*this,aImG,aImB,aFile,aP0,aDyn,aR2);
     } else {
 #endif
-        GdalReadWrite(IoMode::Write, *this, aImG, aImB, aFile, aP0, aDyn, aR2);
+        cGdalApi::ReadWrite(cGdalApi::IoMode::Write, *this, aImG, aImB, aFile, aP0, aDyn, aR2);
 #ifdef MMVII_KEEP_MMV1_IMAGE
     }
 #endif
@@ -786,7 +432,7 @@ template <>  void  cDataIm2D<tU_INT4>::Read(const cDataFileIm2D & aFile,const cP
     if (mmvii_use_mmv1_image) {
         MMVII_INTERNAL_ASSERT_strong(false,"No read for unsigned int4 now");
     } else {
-        GdalReadWrite(IoMode::Read, *this, aFile, aP0, aDyn, aR2);
+        cGdalApi::ReadWrite(cGdalApi::IoMode::Read, *this, aFile, aP0, aDyn, aR2);
     }
 }
 
@@ -795,7 +441,7 @@ template <>  void  cDataIm2D<tU_INT4>::Write(const cDataFileIm2D & aFile,const c
     if (mmvii_use_mmv1_image) {
         MMVII_INTERNAL_ASSERT_strong(false,"No write for unsigned int4 now");
     } else {
-        GdalReadWrite(IoMode::Write, *this, aFile, aP0, aDyn, aR2);
+        cGdalApi::ReadWrite(cGdalApi::IoMode::Write, *this, aFile, aP0, aDyn, aR2);
     }
 }
 
@@ -804,7 +450,7 @@ template <>  void  cDataIm2D<tU_INT4>::Write(const cDataFileIm2D & aFile,const t
     if (mmvii_use_mmv1_image) {
         MMVII_INTERNAL_ASSERT_strong(false,"No write for unsigned int4 now");
     } else {
-        GdalReadWrite(IoMode::Write, *this, aImG, aImB, aFile, aP0, aDyn, aR2);
+        cGdalApi::ReadWrite(cGdalApi::IoMode::Write, *this, aImG, aImB, aFile, aP0, aDyn, aR2);
     }
 }
 #endif
@@ -839,25 +485,6 @@ double DifAbsInVal(const std::string & aN1,const std::string & aN2,double aDef)
         aSom += std::fabs(aIm1.DIm().GetV(aPt) - aIm2.DIm().GetV(aPt));
     }
     return aSom;
-}
-
-
-
-// FIXME CM: Rewrite Convert_JPG with special API from cDataFileIm2D / CDataIm2D.toFile()
-void Convert_JPG(const std::string &  aNameIm,bool DeleteAfter,tREAL8 aQuality,const std::string & aPost)
-{
-    cParamCallSys aCom("convert","-quality",ToStr(aQuality),
-                       aNameIm,
-                       LastPrefix(aNameIm) + "." + aPost
-                       );
-
-    int aResult = GlobSysCall(aCom,true);
-
-    if ( (aResult==EXIT_SUCCESS) && DeleteAfter)
-    {
-        RemoveFile(aNameIm,false);
-    }
-
 }
 
 
