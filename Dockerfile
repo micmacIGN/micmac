@@ -38,7 +38,7 @@ RUN git clone https://github.com/micmacIGN/micmac.git
 WORKDIR micmac
 RUN mkdir build
 WORKDIR build
-RUN cmake ../ && make install -j8
+RUN cmake ../ && make install -j$(cat /proc/cpuinfo | grep processor | wc -l)
 
 #MicMac add environmental variable to executables
 ENV PATH=$foo"micmac/bin/:${PATH}"
