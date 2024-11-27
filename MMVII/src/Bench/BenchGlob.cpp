@@ -366,20 +366,6 @@ cAppli_MMVII_Bench::cAppli_MMVII_Bench (const std::vector<std::string> & aVArgs,
   mNumBugRecall   (-1),
   mDoBUSD         (false)
 {
-  if (The_MMVII_DebugLevel < The_MMVII_DebugLevel_InternalError_tiny)
-  {
-      StdOut() << "WARNN  MMVII Bench requires highest level of debug " << std::endl ; getchar();
-  }
-  else
-  {
-/*
-      MMVII_INTERNAL_ASSERT_always
-      (
-            The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_tiny,
-            "MMVII Bench requires highest level of debug"
-      );
-*/
-  }
 }
 
 
@@ -394,7 +380,22 @@ cAppliBenchAnswer cAppli_MMVII_Bench::BenchAnswer() const
 
 int  cAppli_MMVII_Bench::Exe()
 {
-   if (!IsInit(&mShow))
+    if (The_MMVII_DebugLevel < The_MMVII_DebugLevel_InternalError_tiny)
+    {
+        StdOut() << "WARNN  MMVII Bench requires highest level of debug " << std::endl ;
+    }
+    else
+    {
+        /*
+      MMVII_INTERNAL_ASSERT_always
+      (
+            The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_tiny,
+            "MMVII Bench requires highest level of debug"
+      );
+ */
+    }
+
+    if (!IsInit(&mShow))
       mShow =  IsInit(&mPat); // Becoz, if mPat init, few bench => we can display msg
 
    cParamExeBench aParam(mPat,mKeyBug,mLevMin,mShow);

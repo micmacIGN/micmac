@@ -132,8 +132,8 @@ int cAppli_ImportGCP::Exe()
     bool withPatternAddInfoFree = IsInit(&mPatternAddInfoFree);
 
     bool wSigmaX       = aNRFS.FieldIsKnown(mFieldSx);
-    bool wSigmaY       = aNRFS.FieldIsKnown(mFieldSy);
-    bool wSigmaZ       = aNRFS.FieldIsKnown(mFieldSz);
+    [[maybe_unused]] bool wSigmaY       = aNRFS.FieldIsKnown(mFieldSy);     // May be unused depending of 'The_MMVII_DebugLevel'
+    [[maybe_unused]] bool wSigmaZ       = aNRFS.FieldIsKnown(mFieldSz);
     bool wSigmaXYZ      = aNRFS.FieldIsKnown(mFieldSxyz);
 
     // too complicate to handle partiall case of fixing sigma, and btw, not pertinent ?
