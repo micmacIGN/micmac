@@ -221,7 +221,7 @@ int cAppli_MesImReport::Exe()
 
     InitReportCSV(mNameReportGlobResidual,"csv",false);
 
-    AddStdHeaderStatCSV(mNameReportGlobResidual,"Image",mPropStat,{"%% Undetected","%% False Detect"});
+    AddStdHeaderStatCSV(mNameReportGlobResidual,"Image",mPropStat,{"% Undetected","% False Detect"});
 
 
     for (const std::string & aName : VectMainSet(0))
