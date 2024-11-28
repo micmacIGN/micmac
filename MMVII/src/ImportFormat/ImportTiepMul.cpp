@@ -55,6 +55,7 @@ class cAppli_ImportTiePMul : public cMMVII_Appli
 	bool                       mWithImFilter;
 	cMMVII_Ofs *               mFiltFile;
         cPt2dr                     mOffset;
+        tREAL8                     mTolDupl;  ///< tolerance for accepting duplicata
 
 };
 
@@ -70,7 +71,8 @@ cAppli_ImportTiePMul::cAppli_ImportTiePMul(const std::vector<std::string> & aVAr
    mNumByConseq  (false),
    mWithImFilter (false),
    mFiltFile     (nullptr),
-   mOffset       (0,0)
+   mOffset       (0,0),
+   mTolDupl      (-1.0)
 {
 }
 
@@ -109,6 +111,7 @@ cCollecSpecArg2007 & cAppli_ImportTiePMul::ArgOpt(cCollecSpecArg2007 & anArgObl)
             ;
    else
       return      aRes
+               << AOpt2007(mTolDupl,"TolDupl","Tolerance for accepting duplicate points",{eTA2007::HDV})
            ;
 }
 
@@ -202,7 +205,9 @@ int cAppli_ImportTiePMul::Exe()
                     {
                         mMapGCP[aNameI] = new cSetMesPtOf1Im(aNameI);
                     }
-                    mMapGCP[aNameI]->AddMeasure(cMesIm1Pt(aP2,aNamePt,1.0));
+                    // mMapGCP[aNameI]->AddMeasure(cMesIm1Pt(aP2,aNamePt,1.0));
+                    // we dont accept duplicate point
+                    mMapGCP[aNameI]->AddMeasureIfNew(cMesIm1Pt(aP2,aNamePt,1.0),mTolDupl);
                 }
              }
          }

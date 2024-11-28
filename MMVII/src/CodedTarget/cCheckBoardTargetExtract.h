@@ -384,6 +384,7 @@ class cAppliCheckBoardTargetExtract : public cMMVII_Appli
 	tREAL8                mCurScale;    /// Memorize the current value of the scale
 	bool                  mMainScale;   /// Is it the first/main scale 
 	cDiffInterpolator1D * mInterpol;
+        std::string           mIdExportCSV;  /// Identifier for handling result as CSV-files
 };
 
 

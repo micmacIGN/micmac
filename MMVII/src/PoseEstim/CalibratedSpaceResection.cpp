@@ -630,7 +630,7 @@ int cAppli_CalibratedSpaceResection::Exe()
     mPhProj.FinishInit();
     mNameReport = "Rejected_Ori-" +   mPhProj.DPOrient().DirIn() + "_Mes-" + mPhProj.DPPointsMeasures().DirIn() ;
 
-    InitReport(mNameReport,"csv",true);
+    InitReportCSV(mNameReport,"csv",true);
 
     bool  aExpFilt = mPhProj.DPPointsMeasures().DirOutIsInit();
 

@@ -158,8 +158,8 @@ template <class Type> void FromCSV(std::vector<Type>& aVect,const std::string & 
 //======================================================================================
 template <class Type> void Tpl_AddHeaderReportCSV(cMMVII_Appli & anAppli,const std::string & anId,bool IsMul)
 {
-    anAppli.InitReport(anId,"csv",IsMul,{});
-    if (anAppli.LevelCall()==0)
+    anAppli.InitReportCSV(anId,"csv",IsMul,{});
+    if ((anAppli.LevelCall()==0) || (!IsMul))
     {
          std::string aNameFile = anAppli.NameFileCSVReport(anId);
          cOCSVFile<Type>(aNameFile,true); // true with header

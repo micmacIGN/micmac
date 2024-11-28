@@ -137,9 +137,9 @@ int cAppli_ImportGCP::Exe()
     bool wSigmaXYZ      = aNRFS.FieldIsKnown(mFieldSxyz);
 
     // too complicate to handle partiall case of fixing sigma, and btw, not pertinent ?
-    MMVII_INTERNAL_ASSERT_tiny((wSigmaX==wSigmaY)&&(wSigmaY==wSigmaZ),"Sigma xyz, must have all or none");
+    MMVII_INTERNAL_ASSERT_User((wSigmaX==wSigmaY)&&(wSigmaY==wSigmaZ),eTyUEr::eUnClassedError,"Sigma xyz, must have all or none");
     // no sens to have both individual and global sigma
-    MMVII_INTERNAL_ASSERT_tiny((wSigmaX+wSigmaXYZ+IsInit(&mDefSigma) <=1 ),"Must choose between :  individual sigma,global sigma, default sigma");
+    MMVII_INTERNAL_ASSERT_User((wSigmaX+wSigmaXYZ+IsInit(&mDefSigma) <=1 ),eTyUEr::eUnClassedError,"Must choose between :  individual sigma,global sigma, default sigma");
 
 
 /*  => JMM, JO : would be better to make a centralized check in "MatchRegex" ?

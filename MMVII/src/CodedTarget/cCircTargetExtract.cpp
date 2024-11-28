@@ -774,6 +774,7 @@ class cAppliExtractCircTarget : public cMMVII_Appli,
 
 	tREAL8                              mStepRefineGrad;
         cDiffInterpolator1D *               mInterpol;
+        std::string                         mIdExportCSV;
 };
 
 
@@ -847,8 +848,14 @@ void cAppliExtractCircTarget::DoExport()
          if (anEE->mCardDetect==1)
 	 {
              std::string aCode = anEE->mWithCode ?  anEE->mEncode.Name() : (MMVII_NONE +"_" + ToStr(aCptUnCoded,mSpec->NbBits()));
-             aSetM.AddMeasure(cMesIm1Pt(anEE->mPt,aCode,1.0));
-             mVSavE.push_back(cSaveExtrEllipe(*anEE,aCode));
+             cMesIm1Pt aMesIm(anEE->mPt,aCode,1.0);
+             aSetM.AddMeasure(aMesIm);
+             Tpl_AddOneObjReportCSV(*this,mIdExportCSV,aMesIm);
+
+             cSaveExtrEllipe anESave(*anEE,aCode);
+
+             mVSavE.push_back(anESave);
+
 
 	     if (! anEE->mWithCode) aCptUnCoded++;
 	 }
@@ -860,6 +867,8 @@ void cAppliExtractCircTarget::DoExport()
      //SaveInFile(mVSavE,mPhProj.DPPointsMeasures().FullDirOut()+ "Attribute-"+  aSetM.StdNameFile());
      SaveInFile(mVSavE,cSaveExtrEllipe::NameFile(mPhProj,aSetM,false));
 }
+
+
 
 void cAppliExtractCircTarget::MakeImageSeed()
 {
@@ -1047,6 +1056,12 @@ void cAppliExtractCircTarget::TestOnSimul()
 
 int cAppliExtractCircTarget::ExeOnParsedBox()
 {
+   mIdExportCSV     = "CircCodedTarget" + mNameIm;
+   //  Create a report with header computed from type
+   Tpl_AddHeaderReportCSV<cMesIm1Pt>(*this,mIdExportCSV,false);
+   // Redirect the reports on folder of result
+   SetReportRedir(mIdExportCSV,mPhProj.DPPointsMeasures().FullDirOut());
+
    mInterpol = new   cTabulatedDiffInterpolator(cSinCApodInterpolator(5.0,5.0));
 
    mPBWT.mDistMinMaxLoc =  mPBWT.mMinDiam * mRatioDMML;
@@ -1200,17 +1215,17 @@ int  cAppliExtractCircTarget::Exe()
    }
 
    mReportMutipleDetec = "MultipleTarget";
-   InitReport(mReportMutipleDetec,"csv",true,{"Image","Target","Mult","x","y"});
+   InitReportCSV(mReportMutipleDetec,"csv",true,{"Image","Target","Mult","x","y"});
+
 
    if (mDoReportSimul)
    {
         mReportSimulDet   =    "SimulDetails" ;
         mReportSimulGlob  =    "SimulGlob"    ;
-        InitReport(mReportSimulDet,"csv",true);
-        InitReport(mReportSimulGlob,"csv",true);
+        InitReportCSV(mReportSimulDet,"csv",true);
+        InitReportCSV(mReportSimulGlob,"csv",true);
    }
    mNbMaxMulTargetTot =  mNbMaxMT_Init + mNbMaxMT_PerIm *  VectMainSet(0).size() ;
-StdOut() << "mNbMaxMulTargetTotmNbMaxMulTargetTotmNbMaxMulTargetTotmNbMaxMulTargetTotmNbMaxMulTargetTotmNbMaxMulTargetTot " << mNbMaxMulTargetTot << "\n";
 
 
    if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set

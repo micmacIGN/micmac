@@ -485,8 +485,8 @@ int cAppli_CheckGCPDist::Exe()
 
     mNameReportErrTarget = "RejectedTarget";
     mNameReportImages = "ReportImage";
-    InitReport(mNameReportErrTarget,"csv",false);
-    InitReport(mNameReportImages,"csv",false);
+    InitReportCSV(mNameReportErrTarget,"csv",false);
+    InitReportCSV(mNameReportImages,"csv",false);
 
     AddOneReportCSV(mNameReportErrTarget,{"Image","GCP","Cause","Err"});
 

@@ -76,7 +76,7 @@ cPt2dr  KthPt(const tPairTiePMult & aPair, int aKIm,int aKPt)
 
 void cAppli_TiePReport::MakeStatByImage()
 {
-   InitReport(mPrefixCSVIma,"csv",false);
+   InitReportCSV(mPrefixCSVIma,"csv",false);
    AddStdHeaderStatCSV(mPrefixCSVIma,"Image",mPropStat,{"AvgX","AvgY"});
 
    const auto & aVII  = mCMTP->IndexeOfImages();

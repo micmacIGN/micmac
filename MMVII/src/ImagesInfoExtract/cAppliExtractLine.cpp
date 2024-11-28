@@ -571,8 +571,8 @@ void cAppliExtractLine::MakeVisu(const std::string & aNameIm)
 int cAppliExtractLine::Exe()
 {
     mPhProj.FinishInit();
-    InitReport(mNameReportByLine,"csv",true,{"NameIm","Paral","Larg","Score","RadHom"});
-    InitReport(mNameReportByIm,"csv",true,{"NameIm","CodeResult"});
+    InitReportCSV(mNameReportByLine,"csv",true,{"NameIm","Paral","Larg","Score","RadHom"});
+    InitReportCSV(mNameReportByIm,"csv",true,{"NameIm","CodeResult"});
 
     //  Create a report with header computed from type
     Tpl_AddHeaderReportCSV<cOneLineAntiParal>(*this,mIdExportCSV,true);

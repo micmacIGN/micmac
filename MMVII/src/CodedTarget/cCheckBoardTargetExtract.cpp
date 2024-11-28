@@ -557,7 +557,9 @@ void  cAppliCheckBoardTargetExtract::DoExport()
          if (aCdtM.Code())
          {
              std::string aCode = aCdtM.Code()->Name() ;
-             aSetM.AddMeasure(cMesIm1Pt(aCdtM.mC0,aCode,1.0));
+             cMesIm1Pt aMesIm(aCdtM.mC0,aCode,1.0);
+             aSetM.AddMeasure(aMesIm);
+             Tpl_AddOneObjReportCSV(*this,mIdExportCSV,aMesIm);
          }
      }
 
@@ -567,6 +569,14 @@ void  cAppliCheckBoardTargetExtract::DoExport()
 
 void cAppliCheckBoardTargetExtract::DoOneImage() 
 {
+   mIdExportCSV       = "CheckBoardCodedTarget-" + mNameIm;
+   //  Create a report with header computed from type
+   Tpl_AddHeaderReportCSV<cMesIm1Pt>(*this,mIdExportCSV,false);
+   // Redirect the reports on folder of result
+   SetReportRedir(mIdExportCSV,mPhProj.DPPointsMeasures().FullDirOut());
+
+
+
     mInterpol = new   cTabulatedDiffInterpolator(cSinCApodInterpolator(5.0,5.0));
 
     mSpecif = cFullSpecifTarget::CreateFromFile(mNameSpecif);
@@ -706,6 +716,8 @@ void cAppliCheckBoardTargetExtract::DoOneImageAndScale(tREAL8 aScale,const  tIm 
 int  cAppliCheckBoardTargetExtract::Exe()
 {
    mPhProj.FinishInit();
+
+
 
    if (RunMultiSet(0,0))
    {

@@ -206,8 +206,8 @@ int  cAppliCorrecDistCircTarget::Exe()
    mPostfixReport  = "_Ori-"+  mPhProj.DPOrient().DirIn() +  "_Mes-"+  mPhProj.DPPointsMeasures().DirIn() ;
    mReportDetail   = "Detail-" +mPostfixReport;
    mReportIm       = "ByImage-" +mPostfixReport;
-   InitReport(mReportDetail,"csv",true);
-   InitReport(mReportIm,"csv",true);
+   InitReportCSV(mReportDetail,"csv",true);
+   InitReportCSV(mReportIm,"csv",true);
 
 
    mSaveMeasure = mPhProj.DPPointsMeasures().DirOutIsInit();
