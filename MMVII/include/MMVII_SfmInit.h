@@ -202,9 +202,12 @@ class cHyperGraph : public cMemCheck
                 AdjMap() const {return mAdjMap;}
 
       cVertex*                  GetVertex(std::string& aN) {return mMapVertices[aN];}
+      //const cVertex*            GetVertex(std::string& aN) const {return mMapVertices[aN];}
 
       tU_INT4                   NbHEdges() {return mVHEdges.size();}
+      const tU_INT4             NbHEdges() const {return mVHEdges.size();}
       tU_INT4                   NbVertices() {return mMapVertices.size();}
+      const tU_INT4             NbVertices() const {return mMapVertices.size();}
       tU_INT4                   NbPins();
 
       void SetVertices(std::unordered_map<std::string,cVertex*>&);
@@ -370,7 +373,6 @@ class cAppli_SfmInitGlob: public cMMVII_Appli
      cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
      cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
-
  private :
      cPhotogrammetricProject   mPhProj;
 
@@ -382,6 +384,10 @@ class cAppli_SfmInitGlob: public cMMVII_Appli
      void SetVecQ(cDenseVect<tREAL8>&,
                   tU_INT4, tU_INT4,
                   const cPt4dr&, int);
+
+     void SolveL1(cHyperGraph&);
+
+     void Bench_SfmInit();
 
 };
 

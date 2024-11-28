@@ -178,7 +178,7 @@ cTripletSet * cTripletSet::FromFile(const std::string &aName)
 {
     StdOut() << aName << std::endl;
     cTripletSet * aRes = new cTripletSet;
-    StdOut() << "Before Readfromfile" << std::endl;
+
     ReadFromFile(aRes->Set(),aName);
 
     return aRes;

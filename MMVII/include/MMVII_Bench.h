@@ -178,7 +178,6 @@ void BenchSampleQuat();
 void BenchcNewReadFilesStruct(cParamExeBench & aParam);  ///< Test the new system for reading structured files on some samples
 
 
-
 };
 
 #endif  //  _MMVII_Bench_H_
