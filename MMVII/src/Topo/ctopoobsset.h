@@ -107,6 +107,7 @@ public:
     cPt3dr PtInstr2SysCo(const cPt3dr &aVect) const;
     eTopoStOriStat getOriStatus() const { return mOriStatus; }
     void setOriStatus(eTopoStOriStat aOriStatus) { mOriStatus = aOriStatus; }
+    cPt3dr obs2InstrVector(const std::string & aPtToName) const; //< find several obs to same point and convert it into a vector in instrument frame. Returns dummy if not enough points
 protected:
     cTopoObsSetStation(cBA_Topo *aBA_Topo);
     //cTopoObsSetStation(cTopoObsSetStation const&) = delete;

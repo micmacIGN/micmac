@@ -57,6 +57,8 @@ public :
     const cTopoPoint & getPoint(std::string name) const;
     cCalculator<double>* getEquation(eTopoObsType tot) const;
     tPtrSysCo getSysCo() const { return mSysCo; }
+    const tStationsMap& getAllStations() const { return mAllStations; }
+    const tSimpleObsMap& gAllSimpleObs() const { return mAllSimpleObs; }
 
     friend void BenchTopoComp1example(const std::pair<cTopoData, cSetMesGCP>& aBenchData, tREAL4 targetSigma0);
 private :
@@ -68,6 +70,14 @@ private :
     double                       mSigma0;
     bool                        mIsReady; //< if data has been read (via FromFile)
     tPtrSysCo                     mSysCo;
+
+    // maps derived from mAllObsSets to simplify searches.
+    tStationsMap mAllStations; //< map of stations from origin names
+    tSimpleObsMap mAllSimpleObs; //< map of obs from simple sets, from origin and target names
+
+    // points initialization methods
+    bool tryInit3Obs1Station(cTopoPoint & aPtToInit);
+    bool tryInitVertStations(cTopoPoint & aPtToInit);
 };
 
 

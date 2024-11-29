@@ -1,95 +1,26 @@
-#include "topoinit.h"
-
-#include "ctopopoint.h"
-#include "ctopoobs.h"
-#include "ctopoobsset.h"
+#include "MMVII_Topo.h"
 
 
 namespace MMVII
 {
 
-// try 3 obs from one station
-bool tryInit3Obs1Station(cTopoPoint & aPtToInit, tStationsMap &stationsMap, tSimpleObsMap &allSimpleObs)
+//< try to initialize a point seen by 3 obs from one station
+bool cBA_Topo::tryInit3Obs1Station(cTopoPoint & aPtToInit)
 {
-    for (auto& [aOriginPt, aStationVect] : stationsMap)
+    for (auto& [aOriginPt, aStationVect] : mAllStations)
     {
         if (!aOriginPt->isInit())
             continue;
-        cTopoObs * obs_dist = nullptr;
-        if (allSimpleObs.count(aOriginPt))
-        {
-            for (auto & aObs: allSimpleObs[aOriginPt])
-            {
-                if ( aObs->getPointName(0)==aPtToInit.getName()
-                     || aObs->getPointName(1)==aPtToInit.getName() )
-                {
-                    switch (aObs->getType()) {
-                    case eTopoObsType::eDist:
-                        obs_dist = aObs;
-                        break;
-                    default:
-                        break;
-                    }
-                }
-            }
-        }
         for (auto & aStation: aStationVect)
         {
             if (!aStation->isInit())
                 continue;
-            cTopoObs * obs_az = nullptr;
-            cTopoObs * obs_zen = nullptr;
-
-            cTopoObs * obs_dx = nullptr;
-            cTopoObs * obs_dy = nullptr;
-            cTopoObs * obs_dz = nullptr;
-            for (const auto & aObs: aStation->getAllObs())
-            {
-                if (aObs->getPointName(1)==aPtToInit.getName())
-                {
-                    switch (aObs->getType()) {
-                    case eTopoObsType::eHz:
-                        obs_az = aObs;
-                        break;
-                    case eTopoObsType::eZen:
-                        obs_zen = aObs;
-                        break;
-                    case eTopoObsType::eDX:
-                        obs_dx = aObs;
-                        break;
-                    case eTopoObsType::eDY:
-                        obs_dy = aObs;
-                        break;
-                    case eTopoObsType::eDZ:
-                        obs_dz = aObs;
-                        break;
-                    default:
-                        break;
-                    }
-                }
-            }
-            if (obs_az && obs_zen && obs_dist)
+            auto a3DVect = aStation->obs2vector(aPtToInit.getName());
+            if (a3DVect.IsValid())
             {
 #ifdef VERBOSE_TOPO
-                StdOut() << "Init as angles and distance from one station on " << aOriginPt->getName() << "\n";
+                StdOut() << "Init from one station on " << aOriginPt->getName() << "\n";
 #endif
-                cPt3dr a3DVect;
-                double d0 = obs_dist->getMeasures()[0]*sin(obs_zen->getMeasures()[0]);
-                a3DVect.x() = d0*sin(obs_az->getMeasures()[0]);
-                a3DVect.y() = d0*cos(obs_az->getMeasures()[0]);
-                a3DVect.z() = obs_dist->getMeasures()[0]*cos(obs_zen->getMeasures()[0]);
-                *aPtToInit.getPt() = aStation->PtInstr2SysCo(a3DVect);
-                return true;
-            }
-            if (obs_dx && obs_dy && obs_dz)
-            {
-#ifdef VERBOSE_TOPO
-                StdOut() << "Init as dx dy dz from one station on " << aOriginPt->getName() << "\n";
-#endif
-                cPt3dr a3DVect( obs_dx->getMeasures()[0],
-                                obs_dy->getMeasures()[0],
-                                obs_dz->getMeasures()[0]
-                        );
                 *aPtToInit.getPt() = aStation->PtInstr2SysCo(a3DVect);
                 return true;
             }
@@ -98,18 +29,18 @@ bool tryInit3Obs1Station(cTopoPoint & aPtToInit, tStationsMap &stationsMap, tSim
     return false;
 }
 
- // try bearing and distance from verticalized stations
-bool tryInitVertStations(cTopoPoint & aPtToInit, tStationsMap &stationsMap, tSimpleObsMap &allSimpleObs)
+//< try to initialize a point seen from bearing and distance from verticalized stations
+bool cBA_Topo::tryInitVertStations(cTopoPoint & aPtToInit)
 {
-    for (auto& [aOriginPt, aStationVect] : stationsMap)
+    for (auto& [aOriginPt, aStationVect] : mAllStations)
     {
         tREAL8 az=NAN, zen=NAN, dist=NAN;
         cTopoObsSetStation * aStationHz = nullptr;
         if (!aOriginPt->isInit())
             continue;
-        if (allSimpleObs.count(aOriginPt))
+        if (mAllSimpleObs.count(aOriginPt))
         {
-            for (auto & aObs: allSimpleObs[aOriginPt])
+            for (auto & aObs: mAllSimpleObs[aOriginPt])
             {
                 if ( aObs->getPointName(0)==aPtToInit.getName()
                      || aObs->getPointName(1)==aPtToInit.getName() )

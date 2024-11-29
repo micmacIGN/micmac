@@ -413,6 +413,66 @@ cPt3dr cTopoObsSetStation::PtInstr2SysCo(const cPt3dr &aVect) const
 {
     return getRotSysCo2Instr().Inverse(aVect) + *mPtOrigin->getPt();
 }
+
+cPt3dr cTopoObsSetStation::obs2InstrVector(const std::string & aPtToName) const
+{
+    // 3d vector from DX/DY/DZ or hz/zen/dist (no combination for now...)
+    cTopoObs * obs_az = nullptr;
+    cTopoObs * obs_zen = nullptr;
+    cTopoObs * obs_dist = nullptr;
+    cTopoObs * obs_dx = nullptr;
+    cTopoObs * obs_dy = nullptr;
+    cTopoObs * obs_dz = nullptr;
+    for (auto & aObs: mObs)
+    {
+        if (aObs->getPointName(1) != aPtToName)
+            continue;
+        switch (aObs->getType()) {
+        case eTopoObsType::eHz:
+            obs_az = aObs;
+            break;
+        case eTopoObsType::eZen:
+            obs_zen = aObs;
+            break;
+        case eTopoObsType::eDX:
+            obs_dx = aObs;
+            break;
+        case eTopoObsType::eDY:
+            obs_dy = aObs;
+            break;
+        case eTopoObsType::eDZ:
+            obs_dz = aObs;
+            break;
+        default:
+            break;
+        }
+    }
+    if (obs_dx && obs_dy && obs_dz)
+        return {obs_dx->getMeasures().front(), obs_dy->getMeasures().front(), obs_dz->getMeasures().front()};
+
+    auto & allSimpleObs = mBA_Topo->gAllSimpleObs();
+    if (allSimpleObs.count(mPtOrigin))
+    {
+        for (auto & aObs: allSimpleObs.at(mPtOrigin))
+        {
+            if ( (aObs->getPointName(1) == aPtToName) && (aObs->getType() == eTopoObsType::eDist) )
+            {
+                obs_dist = aObs;
+                break;
+            }
+        }
+        if (obs_az && obs_zen && obs_dist)
+        {
+            cPt3dr a3DVect;
+            double d0 = obs_dist->getMeasures()[0]*sin(obs_zen->getMeasures()[0]);
+            a3DVect.x() = d0*sin(obs_az->getMeasures()[0]);
+            a3DVect.y() = d0*cos(obs_az->getMeasures()[0]);
+            a3DVect.z() = obs_dist->getMeasures()[0]*cos(obs_zen->getMeasures()[0]);
+            return a3DVect;
+        }
+    }
+    return cPt3dr::Dummy();
+}
 /*
 //----------------------------------------------------------------
 cTopoObsSetDistParam::cTopoObsSetDistParam(cTopoData& aTopoData) :

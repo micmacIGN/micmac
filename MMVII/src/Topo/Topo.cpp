@@ -1,6 +1,5 @@
 #include "MMVII_Topo.h"
 #include "MMVII_PhgrDist.h"
-#include "topoinit.h"
 #include "../BundleAdjustment/BundleAdjustment.h"
 #include "cMMVII_Appli.h"
 #include <algorithm>
@@ -329,10 +328,11 @@ void cBA_Topo::AddTopoEquations(cResolSysNonLinear<tREAL8> & aSys)
 
 bool cBA_Topo::tryInitAll()
 {
-    // get all stations ordered by origin to optimize research
     for (auto & aSet: mAllObsSets)
         aSet->initialize(); // to get origin point for stations
-    tStationsMap allStations;
+
+    // get all stations ordered by origin to optimize research
+    mAllStations.clear();
     for (auto & aSet: mAllObsSets)
     {
         if (aSet->getType() ==  eTopoObsSetType::eStation)
@@ -340,11 +340,12 @@ bool cBA_Topo::tryInitAll()
             cTopoObsSetStation* set = dynamic_cast<cTopoObsSetStation*>(aSet);
             if (!set)
                 MMVII_INTERNAL_ERROR("error set type")
-            allStations[set->getPtOrigin()].push_back(set);
+            mAllStations[set->getPtOrigin()].push_back(set);
         }
     }
 
-    tSimpleObsMap allSimpleObs; // obs from simple sets, in all directions
+    // get all obs from simple stations in both directions
+    mAllSimpleObs.clear();
     for (auto & aSet: mAllObsSets)
     {
         if (aSet->getType() ==  eTopoObsSetType::eSimple)
@@ -357,8 +358,8 @@ bool cBA_Topo::tryInitAll()
                 if (aObs->getPointNames().size()==2)
                 {
                     // those 2-point obs are recorded for both points
-                    allSimpleObs[&getPoint(aObs->getPointName(0))].push_back( aObs );
-                    allSimpleObs[&getPoint(aObs->getPointName(1))].push_back( aObs );
+                    mAllSimpleObs[&getPoint(aObs->getPointName(0))].push_back( aObs );
+                    mAllSimpleObs[&getPoint(aObs->getPointName(1))].push_back( aObs );
                 }
             }
         }
@@ -381,7 +382,7 @@ bool cBA_Topo::tryInitAll()
 
         for (auto& [aName, aTopoPt] : mAllPts)
             if (!aTopoPt.isInit())
-                tryInit(aTopoPt, allStations, allSimpleObs);
+                tryInit(aTopoPt, mAllStations, mAllSimpleObs);
         for (auto & aSet: mAllObsSets)
             if (!aSet->isInit())
                 aSet->initialize();
@@ -405,8 +406,8 @@ bool cBA_Topo::tryInit(cTopoPoint & aPtToInit, tStationsMap &stationsMap, tSimpl
 #ifdef VERBOSE_TOPO
     StdOut() << "tryInit: " << aPtToInit.getName() <<".\n";
 #endif
-    bool ok =    tryInit3Obs1Station(aPtToInit, stationsMap, allSimpleObs)
-              || tryInitVertStations(aPtToInit, stationsMap, allSimpleObs)
+    bool ok =    tryInit3Obs1Station(aPtToInit)
+              || tryInitVertStations(aPtToInit)
                  ;
 #ifdef VERBOSE_TOPO
     if (ok)
