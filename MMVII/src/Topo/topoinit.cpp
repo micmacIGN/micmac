@@ -15,7 +15,7 @@ bool cBA_Topo::tryInit3Obs1Station(cTopoPoint & aPtToInit)
         {
             if (!aStation->isInit())
                 continue;
-            auto a3DVect = aStation->obs2vector(aPtToInit.getName());
+            auto a3DVect = aStation->obs2InstrVector(aPtToInit.getName());
             if (a3DVect.IsValid())
             {
 #ifdef VERBOSE_TOPO

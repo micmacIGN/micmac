@@ -266,6 +266,7 @@ bool cTopoObsSetStation::initialize()
         return true; // nothing to do
     case(eTopoStOriStat::eTopoStOriVert):
     {
+        // initialize G0 for verticalized stations
         if (!mPtOrigin->isInit())
             return false;
         tREAL8 G0 = NAN;
@@ -354,10 +355,43 @@ bool cTopoObsSetStation::initialize()
         return false;
     }
     case(eTopoStOriStat::eTopoStOriBasc):
-        MMVII_DEV_WARNING("cTopoObsSetStation rotation initialization not ready.")
-        // TODO: T-S?
-        mInit = mPtOrigin->isInit();
-        return true;
+    {
+        // Initialize orientation from 3 3d measures
+                // 1. get all 3d vectors from this station
+        tPointToVectorMap aToInstrVectorMap = toInstrVectorMap();
+                // 2. find 3 points init on ground and in previous map
+        std::vector<std::pair<cPt3dr,cPt3dr> > a3DcoordPairs; // (ground, instr) only for init points
+        for (auto const& [aPt, aInstrVect] : aToInstrVectorMap)
+        {
+            if (aPt->isInit())
+                a3DcoordPairs.push_back({*aPt->getPt(), aToInstrVectorMap[aPt]});
+        }
+        // TODO JM: improve with a better selection of points
+        if (a3DcoordPairs.size()>=3)
+        {
+            tTri3dr aTriInstr = cTriangle(a3DcoordPairs[0].second, a3DcoordPairs[1].second, a3DcoordPairs[2].second);
+            tTri3dr aTriGround = cTriangle(a3DcoordPairs[0].first, a3DcoordPairs[1].first, a3DcoordPairs[2].first);
+            auto anIso = tPoseR::FromTriInAndOut(0, aTriGround, 0, aTriInstr);
+            mRotVert2Instr = anIso.Rot();
+            anIso.Tr() = -(anIso.Rot().Mat().Transpose()*anIso.Tr()); // Tr = origin coords
+        #ifdef VERBOSE_TOPO
+            StdOut() << "Station rotation init:\n";
+            StdOut() << "(" << aTriInstr.Pt(0) << ", " << aTriInstr.Pt(1) << ", " << aTriInstr.Pt(2) << ") / ";
+            StdOut() << "(" << aTriGround.Pt(0) << ", " << aTriGround.Pt(1) << ", " << aTriGround.Pt(2) << ")\n  => ";
+            StdOut() << anIso.Tr()  << "\n";
+            StdOut() << "    "<<anIso.Rot().AxeI()<<"\n";
+            StdOut() << "    "<<anIso.Rot().AxeJ()<<"\n";
+            StdOut() << "    "<<anIso.Rot().AxeK()<<"\n";
+        #endif
+            if (!mPtOrigin->isInit()) // do not replace already-initialized center?
+            {
+                *mPtOrigin->getPt() = anIso.Tr();
+            }
+            mInit = true;
+            return true;
+        }
+        return false;
+    }
     case(eTopoStOriStat::eNbVals):
         MMVII_INTERNAL_ASSERT_strong(false, "cTopoObsSetStation::initialize: incorrect ori status")
         return false;
@@ -472,6 +506,23 @@ cPt3dr cTopoObsSetStation::obs2InstrVector(const std::string & aPtToName) const
         }
     }
     return cPt3dr::Dummy();
+}
+
+tPointToVectorMap cTopoObsSetStation::toInstrVectorMap()
+{
+    tPointToVectorMap aMapPts2InstrVector;
+    for (auto & aObs: getAllObs())
+    {
+        const std::string & aPtToName = aObs->getPointName(1);
+        auto * aPtTo = &mBA_Topo->getPoint(aPtToName);
+        if (aMapPts2InstrVector.count(aPtTo)==0)
+        {
+            auto aInstrVect = obs2InstrVector(aPtToName);
+            if (aInstrVect.IsValid())
+                aMapPts2InstrVector[aPtTo] = aInstrVect;
+        }
+    }
+    return aMapPts2InstrVector;
 }
 /*
 //----------------------------------------------------------------

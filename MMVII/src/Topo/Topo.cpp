@@ -445,7 +445,7 @@ void BenchTopoComp1example(const std::pair<cTopoData, cSetMesGCP>& aBenchData, t
 
     aTopo->ToFile(cMMVII_Appli::TmpDirTestMMVII()+"bench-out.json");
 
-    // StdOut() << "TOPOOOERR=" << std::abs(aTopo.Sigma0()-targetSigma0) << "\n";
+    // StdOut() << "TOPOOOERR=" << std::abs(aTopo->Sigma0()-targetSigma0) << "\n";
     MMVII_INTERNAL_ASSERT_bench(std::abs(aTopo->Sigma0()-targetSigma0)<1e-5,"TopoComp sigma0 final");
 }
 

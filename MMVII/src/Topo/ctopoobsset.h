@@ -12,6 +12,8 @@ namespace MMVII
 {
 class cTopoObsSetData;
 
+typedef std::map<const cTopoPoint*, cPt3dr> tPointToVectorMap;
+
 /**
  * @brief The cTopoObsSet class represents a set of observations sharing the same set of parameters.
  */
@@ -108,6 +110,8 @@ public:
     eTopoStOriStat getOriStatus() const { return mOriStatus; }
     void setOriStatus(eTopoStOriStat aOriStatus) { mOriStatus = aOriStatus; }
     cPt3dr obs2InstrVector(const std::string & aPtToName) const; //< find several obs to same point and convert it into a vector in instrument frame. Returns dummy if not enough points
+    tPointToVectorMap toInstrVectorMap(); //< compute the instrument vectors for each seen points
+
 protected:
     cTopoObsSetStation(cBA_Topo *aBA_Topo);
     //cTopoObsSetStation(cTopoObsSetStation const&) = delete;
