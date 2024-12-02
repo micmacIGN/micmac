@@ -360,18 +360,18 @@ bool cTopoObsSetStation::initialize()
                 // 1. get all 3d vectors from this station
         tPointToVectorMap aToInstrVectorMap = toInstrVectorMap();
                 // 2. find 3 points init on ground and in previous map
-        std::vector<std::pair<cPt3dr,cPt3dr> > a3DcoordPairs; // (ground, instr) only for init points
+        std::vector<cPt3dr> aVectPtsGnd, aVectPtsInstr;
         for (auto const& [aPt, aInstrVect] : aToInstrVectorMap)
         {
             if (aPt->isInit())
-                a3DcoordPairs.push_back({*aPt->getPt(), aToInstrVectorMap[aPt]});
+            {
+                aVectPtsGnd.push_back(*aPt->getPt());
+                aVectPtsInstr.push_back(aToInstrVectorMap[aPt]);
+            };
         }
-        // TODO JM: improve with a better selection of points
-        if (a3DcoordPairs.size()>=3)
+        if (aVectPtsGnd.size()>=3)
         {
-            tTri3dr aTriInstr = cTriangle(a3DcoordPairs[0].second, a3DcoordPairs[1].second, a3DcoordPairs[2].second);
-            tTri3dr aTriGround = cTriangle(a3DcoordPairs[0].first, a3DcoordPairs[1].first, a3DcoordPairs[2].first);
-            auto anIso = tPoseR::FromTriInAndOut(0, aTriGround, 0, aTriInstr);
+            auto anIso = RobustIsometry(aVectPtsGnd, aVectPtsInstr);
             mRotVert2Instr = anIso.Rot();
             anIso.Tr() = -(anIso.Rot().Mat().Transpose()*anIso.Tr()); // Tr = origin coords
         #ifdef VERBOSE_TOPO

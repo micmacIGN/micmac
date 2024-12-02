@@ -136,7 +136,7 @@ cPt3dr  L1_BundleInters(const std::vector<tSeg3dr> & aVSeg,int NbSegCompl,const 
 
 
 cPt3dr  RobustBundleInters(const std::vector<tSeg3dr> & aVSeg)
-{		     
+{
      if (aVSeg.size() == 2)
         return BundleInters(aVSeg[0],aVSeg[1],0.5);
 
@@ -158,11 +158,11 @@ cPt3dr  RobustBundleInters(const std::vector<tSeg3dr> & aVSeg)
              for (size_t  aKSeg3=0 ;  aKSeg3<aVSeg.size() ; aKSeg3++)
              {
                  if ((aKSeg3!=aKSeg1) && (aKSeg3!=aKSeg2))
-		 {
+                 {
                     aSum += aVSC[aKSeg3].Dist(aInt);
-		 }
+                 }
              }
-	     aWMin.Add(aInt,aSum);
+             aWMin.Add(aInt,aSum);
          }
      }
 
@@ -177,6 +177,31 @@ cPt3dr  BundleFixZ(const tSeg3dr & aSeg,const tREAL8 & aZ)
 }
 
 
+tPoseR RobustIsometry(const std::vector<cPt3dr> & aPtsA, const std::vector<cPt3dr> & aPtsB)
+{
+    MMVII_INTERNAL_ASSERT_strong(aPtsA.size()>2, "Isometry initialization needs at least 3 points")
+    MMVII_INTERNAL_ASSERT_strong(aPtsA.size()==aPtsB.size(), "Isometry initialization needs two sets with same number of points")
+    if (aPtsA.size() == 3)
+        return tPoseR::FromTriInAndOut(0, {aPtsA[0], aPtsA[1], aPtsA[2]}, 0, {aPtsB[0], aPtsB[1], aPtsB[2]});
+
+    // find the best 3 points
+    cWhichMin<tPoseR,tREAL8>  aIsoWMin(tPoseR(), INFINITY);
+    for (unsigned int i = 0; i < aPtsA.size()-2; ++i)
+        for (unsigned int j = i+1; j < aPtsA.size()-1; ++j)
+            for (unsigned int k = j+1; k < aPtsA.size(); ++k)
+            {
+                tTri3dr aTriA = cTriangle(aPtsA[i], aPtsA[j], aPtsA[k]);
+                tTri3dr aTriB = cTriangle(aPtsB[i], aPtsB[j], aPtsB[k]);
+                auto anIso = tPoseR::FromTriInAndOut(0, aTriA, 0, aTriB);
+                tREAL8 score = 0.;
+                for (unsigned int l = 0; l < aPtsA.size(); ++l)
+                {
+                    score += SqN2(anIso.Value(aPtsA[l])-aPtsB[l]);
+                }
+                aIsoWMin.Add(anIso, score);
+            }
+    return aIsoWMin.IndexExtre();
+}
 
 /*  *********************************************************** */
 /*                                                              */

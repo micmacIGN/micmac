@@ -405,6 +405,8 @@ cPt3dr  RobustBundleInters(const std::vector<tSeg3dr> & aVSeg);
 /// Compute bundle intersection using a L1 criteria with barodale, "NbSegCompl" handle to be closer to euclidian distance
 // cPt3dr  L1_BundleInters(const std::vector<tSeg3dr> & aVSeg,int NbSegCompl=0,const std::vector<tREAL8> * aVWeight = nullptr);
 
+/// Compute isometry between two 3D points vectors. at least 3 points
+tPoseR RobustIsometry(const std::vector<cPt3dr> & aPtsA, const std::vector<cPt3dr> & aPtsB);
 
 /**  Class for sampling the space of quaternion/quaternion.  Method :
  *
