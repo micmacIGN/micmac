@@ -75,6 +75,7 @@ private:
     // Avoid printing of error message => each API call must test and handle error case.
     static void GdalErrorHandler(CPLErr aErrorCat, CPLErrorNum aErrorNum, const char *aMesg);
     static GDALDriver* GetDriver(const std::string& aName);
+    static bool GDalDriverCanCreate(GDALDriver *aGdalDriver);
 
     static CPLStringList GetCreateOptions(GDALDriver* aGdalDriver, const cDataFileIm2D::tOptions& aOptions);
 
@@ -382,7 +383,6 @@ void cGdalApi::GetFileInfo(const std::string& aName, eTyNums& aType, cPt2di& aSz
 }
 
 
-// FIXME CM: rendre possible +ieurs ecriture pour un tiff meme avec CreateWriteOn (i.e. si GDAL_DCAP_CREATE est true)
 GDALDataset* cGdalApi::CreateDataset(const cDataFileIm2D& aDataFileIm2D, bool *createdInMemory)
 {
     auto aName = aDataFileIm2D.Name();
@@ -395,10 +395,11 @@ GDALDataset* cGdalApi::CreateDataset(const cDataFileIm2D& aDataFileIm2D, bool *c
     GDALDataset* aGdalDataset;
     auto aGdalDriver = cGdalApi::GetDriver(aName);
 
+    // Determinine if we can create the file and then write to it
+    //  or if we must use an intermiediate in memory image in GDAL format.
     bool createFileNow = true;
     if (aDataFileIm2D.IsCreateAtFirstWrite() || aDataFileIm2D.IsCreatedNoUpdate()) {
-        auto capabilityCreate = aGdalDriver->GetMetadataItem(GDAL_DCAP_CREATE);
-        createFileNow = (capabilityCreate != nullptr) && (strcmp(capabilityCreate,"YES") == 0);
+        createFileNow = GDalDriverCanCreate(aGdalDriver);
     }
 
     if (createFileNow) {
@@ -425,6 +426,7 @@ GDALDataset* cGdalApi::CreateDataset(const cDataFileIm2D& aDataFileIm2D, bool *c
 void cGdalApi::CreateFileIfNeeded(const cDataFileIm2D& aDataFileIm2D)
 {
     InitGDAL();
+    MMVII_INTERNAL_ASSERT_always(aDataFileIm2D.IsCreateAtFirstWrite(),"GDAL: Invalid use of GDAL API for image file creation");
     auto aName = aDataFileIm2D.Name();
     auto aType = aDataFileIm2D.Type();
     auto aSz = aDataFileIm2D.Sz();
@@ -434,18 +436,20 @@ void cGdalApi::CreateFileIfNeeded(const cDataFileIm2D& aDataFileIm2D)
         cPt2di fileSz = cPt2di(aDataset->GetRasterXSize(), aDataset->GetRasterYSize());
         auto fileNbChan = aDataset->GetRasterCount();
         auto fileType = ToMMVII( aDataset->GetRasterBand( 1 )->GetRasterDataType());
+        auto aGdalDriver = aDataset->GetDriver();
         CloseDataset(aDataset);
         if (fileSz == aSz && fileNbChan == aNbChannel && fileType == aType) {
+            if (GDalDriverCanCreate(aGdalDriver)) {
+                aDataFileIm2D.SetCreated();
+            } else {
+                aDataFileIm2D.SetCreatedNoUpdate();
+            }
             return;     // No need to create
         }
     }
-    // aDataset is null here, no need to close it
+    // aDataset is either null here either already closed, no need to close it
 
-    // Create the file
-    aDataset = CreateDataset(aDataFileIm2D, nullptr);
-    CloseDataset(aDataset);
-
-    // Init the image file with a blank image
+    // Create and Init the image file with a blank image
     cIm2D<tU_INT1> anEmptyImg(aSz,nullptr,eModeInitImage::eMIA_Null);
     cGdalApi::ReadWrite(IoMode::Write,anEmptyImg.DIm(),aDataFileIm2D,cPt2di(0,0),1,cRect2::TheEmptyBox);
 }
@@ -632,6 +636,13 @@ GDALDriver* cGdalApi::GetDriver(const std::string& aName)
         return nullptr; // never happens
     }
     return aGdalDriver;
+}
+
+
+bool  cGdalApi::GDalDriverCanCreate(GDALDriver* aGdalDriver)
+{
+    auto capabilityCreate = aGdalDriver->GetMetadataItem(GDAL_DCAP_CREATE);
+    return (capabilityCreate != nullptr) && (strcmp(capabilityCreate,"YES") == 0);
 }
 
 

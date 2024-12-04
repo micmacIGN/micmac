@@ -172,7 +172,8 @@ cDataFileIm2D  cDataFileIm2D::Create(const std::string & aName,eTyNums aType,con
         {
             MMVII_INTERNAL_ASSERT_strong(false,"Incoherent channel number");
         }
-        cDataFileIm2D aDataFileIm2D(aName, aType, aSz, aNbChan, aOptions, eForceGray::No, eCreationState::Created);
+        // eCreationState::AtFirstWrite: If needed, file will be created with a null image and new state will be Created or CreatedNoUpdate
+        cDataFileIm2D aDataFileIm2D(aName, aType, aSz, aNbChan, aOptions, eForceGray::No, eCreationState::AtFirstWrite);
         cGdalApi::CreateFileIfNeeded(aDataFileIm2D);
         return aDataFileIm2D;
 #ifdef MMVII_KEEP_MMV1_IMAGE
