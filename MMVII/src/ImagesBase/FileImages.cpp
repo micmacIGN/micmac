@@ -20,11 +20,6 @@ extern std::string MM3DFixeByMMVII; // Declared in MMV1 for its own stuff
 namespace MMVII
 {
 
-// FIXME CM->MPD: A virer ? A mettre dans EpipGenDenseMatch ou ImageFilterMMV1 ?
-std::string V1NameMasqOfIm(const std::string & aName)
-{
-    return LastPrefix(aName) + "_Masq.tif";
-}
 
 #ifdef MMVII_KEEP_MMV1_IMAGE
 static GenIm::type_el ToMMV1(eTyNums aV2)
@@ -186,7 +181,6 @@ cDataFileIm2D  cDataFileIm2D::Create(const std::string & aName,eTyNums aType,con
     return Create(aName,aType,aSz,{},aNbChan);
 }
 
-
 cDataFileIm2D  cDataFileIm2D::CreateOnWrite(const std::string & aName,eTyNums aType,const cPt2di & aSz, const tOptions& aOptions, int aNbChan)
 {
     if (aNbChan!=1 && aNbChan!=3)
@@ -229,9 +223,7 @@ void cDataFileIm2D::SetCreatedNoUpdate() const
 
 bool cDataFileIm2D::IsPostFixNameImage(const std::string & aPost)
 {
-    static std::vector<std::string> aVNames({"jpg","jpeg","tif","tiff"});
-
-    return UCaseMember(aVNames,aPost);
+    return cGdalApi::IsPostFixNameImage(aPost);
 }
 
 bool cDataFileIm2D::IsNameWith_PostFixImage(const std::string & aName)
@@ -468,13 +460,15 @@ template <class Type>  void  cIm2D<Type>::Write(const cDataFileIm2D & aFile,cons
 
 
 
-// FIXME CM->MPD: check correctness
 double DifAbsInVal(const std::string & aN1,const std::string & aN2,double aDef)
 {
     auto  aIm1 = cIm2D<tREAL8>::FromFile(aN1);
     auto  aIm2 = cIm2D<tREAL8>::FromFile(aN2);
     double aSom = 0;
-
+    
+    
+//    ELISE_COPY(aF1.all_pts(),Abs(aF1.in()-aF2.in()),sigma(aSom));
+    
     if (aIm1.DIm().Sz()!=aIm2.DIm().Sz())
     {
         MMVII_INTERNAL_ASSERT_always(aDef!=0.0,"Diff sz and bad def in DifAbsInVal");

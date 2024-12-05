@@ -31,6 +31,8 @@ public:
 
     static void InitGDAL();
 
+    static bool IsPostFixNameImage(const std::string& aPost);
+
     static void GetFileInfo(const std::string& aName, eTyNums& aType, cPt2di& aSz, int& aNbChannel);
     static void CreateFileIfNeeded(const cDataFileIm2D& aDataFileIm2D);
 
@@ -75,6 +77,7 @@ private:
     // Avoid printing of error message => each API call must test and handle error case.
     static void GdalErrorHandler(CPLErr aErrorCat, CPLErrorNum aErrorNum, const char *aMesg);
     static GDALDriver* GetDriver(const std::string& aName);
+    static const std::map<std::string, std::string> &SupportedDrivers();
     static bool GDalDriverCanCreate(GDALDriver *aGdalDriver);
 
     static CPLStringList GetCreateOptions(GDALDriver* aGdalDriver, const cDataFileIm2D::tOptions& aOptions);
@@ -608,9 +611,10 @@ void cGdalApi::CloseDataset(GDALDataset *aGdalDataset)
         GDALClose(GDALDataset::ToHandle(aGdalDataset));
 }
 
-GDALDriver* cGdalApi::GetDriver(const std::string& aName)
+
+const std::map<std::string, std::string> &cGdalApi::SupportedDrivers()
 {
-    static std::map<std::string, std::string> DriverNames = {
+    static std::map<std::string, std::string> cSupportedDrivers= {
         {"tif", "GTiff"},
         {"tiff", "GTiff"},
         {"dng", "GTiff"},
@@ -622,9 +626,22 @@ GDALDriver* cGdalApi::GetDriver(const std::string& aName)
         {"pnm","PNM"},
         {"gif","GIF"},
     };
+    return cSupportedDrivers;
+}
 
-    auto aDriverIt = DriverNames.find(ToLower(LastPostfix(aName,'.')));
-    if (aDriverIt == DriverNames.end())
+bool cGdalApi::IsPostFixNameImage(const std::string &aPost)
+{
+    const auto aDriverList = SupportedDrivers();
+    auto aDriverIt = aDriverList.find(ToLower(aPost));
+    return aDriverIt != aDriverList.end();
+}
+
+
+GDALDriver* cGdalApi::GetDriver(const std::string& aName)
+{
+    const auto aDriverList = SupportedDrivers();
+    auto aDriverIt = aDriverList.find(ToLower(LastPostfix(aName,'.')));
+    if (aDriverIt == aDriverList.end())
     {
         MMVII_INTERNAL_ERROR("MMVIITOGDal: Unsupported image format for " + aName);
         return nullptr; // never happens
