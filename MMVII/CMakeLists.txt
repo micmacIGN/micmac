@@ -59,8 +59,8 @@ if (PROJ_FOUND AND CMAKE_HOST_WIN32)
   file(COPY ${PROJ_PROJ_DB_FILE} DESTINATION ${MMVII_SOURCE_DIR}/share/proj)
 endif()
 
-############################# libtorch  ###############
-set(TORCH_INSTALL_PREFIX "${MMVII_SOURCE_DIR}/libtorch")
+    ############################# libtorch  ###############
+    set(TORCH_INSTALL_PREFIX "${MMVII_SOURCE_DIR}/libtorch")
 #find_package(Torch REQUIRED)
 set(TORCH_INCLUDE_DIRS
     ${TORCH_INSTALL_PREFIX}/include

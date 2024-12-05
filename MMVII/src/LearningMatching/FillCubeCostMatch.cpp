@@ -949,7 +949,11 @@ int  cAppliFillCubeCost::Exe()
 
                             // CONDITIONS ON CUBE LIMITS
                             // CONDITIONS ON CUBE LIMITS
-                            if(lim_inf<0 && lim_sup>aSzR.x())
+                            if ((lim_inf<0 && lim_sup<0) || (lim_inf>aSzR.x() && lim_sup>aSzR.x()) )
+                              {
+
+                              }
+                            else if(lim_inf<0 && lim_sup>aSzR.x())
                               {
                                 auto aSlcR=LREmbeddingsR.index({Slice(0,FeatSize,1),
                                                                    Slice(aPix.y()+mP0Z.y()-mBoxGlob2.P0().y()
@@ -1138,7 +1142,11 @@ int  cAppliFillCubeCost::Exe()
                     int lim_sup=round_ni(mP0Z.x()-mBoxGlob2.P0().x()+dd+aMinZmin+aSzL.x());
 
                     // CONDITIONS ON CUBE LIMITS
-                    if(lim_inf<0 && lim_sup>aSzR.x())
+                    if ((lim_inf<0 && lim_sup<0) || (lim_inf>aSzR.x() && lim_sup>aSzR.x()) )
+                      {
+
+                      }
+                    else if(lim_inf<0 && lim_sup>aSzR.x())
                       {
                         auto aSlcR=LREmbeddingsR.index({Slice(0,FeatSize,1),
                                                            Slice(aPix.y()+mP0Z.y()-mBoxGlob2.P0().y()
@@ -1295,6 +1303,7 @@ int  cAppliFillCubeCost::Exe()
                                 if (aDZMin.GetV(aPix)<aMinZmin) aMinZmin=aDZMin.GetV(aPix);
                                 if (aDZMax.GetV(aPix)>aMaxZmax) aMaxZmax=aDZMax.GetV(aPix);
                         }
+                        //std::cout<<"aMINZMIN "<<aMinZmin<<" aMAXZMAX "<<aMaxZmax<<std::endl;
                         // FILL COST VOLUME SLICE ON ONE LINE
                         //auto cuda_available = torch::cuda::is_available();
                         torch::Device TheAvailDevice(mUseCuda ? torch::kCUDA : torch::kCPU);
@@ -1324,8 +1333,13 @@ int  cAppliFillCubeCost::Exe()
                                 int lim_inf=round_ni(mP0Z.x()-mBoxGlob2.P0().x()+dd+aMinZmin);
                                 int lim_sup=round_ni(mP0Z.x()-mBoxGlob2.P0().x()+dd+aMinZmin+aSzL.x());
 
+                                //std::cout<<"lim_inf "<<lim_inf<<" lim_sup "<<lim_sup<<std::endl;
                                 // CONDITIONS ON CUBE LIMITS
-                                if(lim_inf<0 && lim_sup>aSzR.x())
+                                if ((lim_inf<0 && lim_sup<0) || (lim_inf>aSzR.x() && lim_sup>aSzR.x()) )
+                                  {
+
+                                  }
+                                else if(lim_inf<0 && lim_sup>aSzR.x())
                                   {
                                     auto aSlcR=LREmbeddingsR.index({Slice(0,FeatSize,1),
                                                                        Slice(aPix.y()+mP0Z.y()-mBoxGlob2.P0().y()

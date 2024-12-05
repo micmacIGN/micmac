@@ -44,7 +44,7 @@ parser.add_argument('--seed', type=int, default=1, metavar='S',
 
 args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
-
+args.cuda=False #args.no_cuda
 torch.manual_seed(args.seed)
 if args.cuda:
     torch.cuda.manual_seed(args.seed)
@@ -59,9 +59,9 @@ else:
 model = nn.DataParallel(model)
 if args.cuda:
     model.cuda()
-
+print("CUDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA   ",args.cuda)
 # ERupnik modif to adapt to cpu
-device = torch.device(torch.cuda.current_device() if torch.cuda.is_available() else "cpu")
+device ="cpu" # torch.device(torch.cuda.current_device() if torch.cuda.is_available() else "cpu")
 if args.loadmodel is not None:
     print('load PSMNet')
     state_dict = torch.load(args.loadmodel,map_location=device)

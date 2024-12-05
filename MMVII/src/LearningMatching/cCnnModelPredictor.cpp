@@ -366,8 +366,11 @@ torch::Tensor aCnnModelPredictor::PredictMSNetTileFeatures(torch::jit::script::M
     // Normalize The tile with respect to the dataset configuration
     // print image content
     //std::cout<<"TILE CONTENT  ========= >  "<<aPL<<std::endl;
-    aPL=aPL.div(255.0);
-    aPL=(aPL.sub(0.4357159999)).div(0.1951853861);
+    aPL=aPL.div(255.0).sub(0.5);
+    //StdOut()<< "MIN MAX OF aPL "<<torch::max(aPL)<<" "<<torch::min(aPL)<<"\n";
+
+    // legacy 31/10/2024 trained on all data
+    //aPL=(aPL.sub(0.4357159999)).div(0.1951853861);
     //aPL=(aPL.sub(at::min(aPL))).div(at::max(aPL)-at::min(aPL));
     //***********************************aPL=(aPL.sub(0.4357159999)).div(0.1951853861); //0.4357159999,0.1951853861 0.434583236,0.1948717255
 

@@ -2,11 +2,60 @@
 #include "general/PlyFile.h"
 //#include "../src/saisieQT/include_QT/Cloud.h"
 #include <StdAfx.h>
+#include <fstream>
+#include <iostream>
+static int NODATA=-9999;
 
 namespace  MMVII {
 
 namespace  cNS_MMGenDepthMV
 {
+
+  class cWorldCoordinates
+  {
+
+  public:
+    cWorldCoordinates(std::string tfw_file)
+    {
+      ifstream input_tfw(tfw_file);
+      string aline;
+      std::vector< string > acontent;
+      while(std::getline(input_tfw,aline))
+        {
+          acontent.push_back(aline);
+        }
+      input_tfw.close();
+
+      gsd_x=stof(acontent.at(0));
+      gsd_y=stof(acontent.at(3));
+      x_ul=stof(acontent.at(4));
+      y_ul=stof(acontent.at(5));
+
+      acontent.clear();
+    };
+
+    void to_world_coordinates(const cPt2dr & aPx, cPt2dr & aWPx);
+    void to_pixel_coordinates(cPt2dr & aWPx, cPt2dr & aPx);
+
+    tREAL4 gsd_x=0;
+    tREAL4 gsd_y=0;
+    tREAL4 x_ul=0;
+    tREAL4 y_ul=0;
+  };
+
+
+ void cWorldCoordinates::to_world_coordinates(const cPt2dr & aPx, cPt2dr & aWPx)
+ {
+  aWPx.x()=x_ul+aPx.x()*gsd_x;
+  aWPx.y()=y_ul+aPx.y()*gsd_y;
+ }
+
+ void cWorldCoordinates::to_pixel_coordinates(cPt2dr & aWPx, cPt2dr & aPx)
+ {
+  aPx.x()=(aWPx.x()-x_ul)/gsd_x;
+  aPx.y()=(aWPx.y()-y_ul)/gsd_y;
+ }
+
 
   class cAppliMMGenDepthMV;
 
@@ -31,9 +80,11 @@ namespace  cNS_MMGenDepthMV
     cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
     //GlCloud * ReadPlyFile(std::string i_filename);
     void GenerateDepthCloud(CamStenope * aCam, std::string & aFile2Store,sPlyOrientedColoredAlphaVertex **glist, int num_elements);
+    string NameImOri(string NameIM,std::string OriFolder, string SuffOri);
     void GenerateProfondeurDeChamps(CamStenope * aCam, std::ofstream & aFile2Store,sPlyOrientedColoredAlphaVertex **glist, int num_elements);
 
     int Exe() override;
+    int Exe_sparse();
 
     std::string mPatternImages;
     std::string mMasterImage;
@@ -131,6 +182,11 @@ namespace  cNS_MMGenDepthMV
 
   }
 
+  string cAppliMMGenDepthMV::NameImOri(string NameIM,std::string OriFolder, string SuffOri)
+  {
+    return OriFolder+"/"+SuffOri+NameIM+".xml";
+  }
+
 
 void cAppliMMGenDepthMV::GenerateProfondeurDeChamps(CamStenope * aCam, std::ofstream & File,sPlyOrientedColoredAlphaVertex **glist, int num_elements)
 {
@@ -159,7 +215,115 @@ void cAppliMMGenDepthMV::GenerateProfondeurDeChamps(CamStenope * aCam, std::ofst
       }
 }
 
-  int cAppliMMGenDepthMV::Exe()
+
+
+int cAppliMMGenDepthMV::Exe()
+{
+  // Read information patterns images, lidar and geometry
+  std::string aDirLidar,aPatLidar;
+  std:: string aDirOris,aPatOri;
+  std::string aDirImages,aPatImages;
+
+  SplitDirAndFile(aDirLidar,aPatLidar,mPointCloud,false);
+  SplitDirAndFile(aDirOris,aPatOri,mOriFolder,false);
+  SplitDirAndFile(aDirImages,aPatImages,mPatternImages,false);
+  std::cout<<"Cloud Pattern ==> "<<aPatLidar<<std::endl;
+  std::cout<<"Orientation pattern "<<aPatOri<<std::endl;
+  cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
+  cInterfChantierNameManipulateur * aICNMLD=cInterfChantierNameManipulateur::BasicAlloc(aDirLidar);
+  cInterfChantierNameManipulateur * aICNMOris=cInterfChantierNameManipulateur::BasicAlloc(aDirOris);
+
+  // Compute depth images with respect to the master image
+  mSetOfLidarClouds = *(aICNMLD->Get(aPatLidar));
+  mSetOfOris = *(aICNMOris->Get(aPatOri));
+  mSetOfImages= * (aICNM->Get(aPatImages));
+
+
+  // loading orientations
+
+  //std::vector<CamStenope*> aSetOfCameras =new std::vector<CamStenope*>;
+  std::vector<std::string>::iterator itIma=mSetOfImages.begin();
+  for (; itIma != mSetOfImages.end();itIma++)
+    {
+      std::cout<<"Image "<<(*itIma)<<std::endl;
+      std::string NameOri=NameImOri((*itIma),aDirOris,"Orientation-");
+      std::cout<<"Name Orientation ==> "<<NameOri<<std::endl;
+      CamStenope * aCamV1 = CamOrientGenFromFile(NameOri,aICNMOris);
+
+      // initialize empty image to compute depth
+      mSzIms=cPt2di(aCamV1->Sz().x,aCamV1->Sz().y);
+      mImDepthImage=tImDepth(mSzIms,nullptr,eModeInitImage::eMIA_V1);
+      mImMasqVisib =tImMasq(mSzIms,nullptr,eModeInitImage::eMIA_Null);
+      tDImDepth & aDImDepth = mImDepthImage.DIm();
+      tDImMasq  & aDImMasqVisib= mImMasqVisib.DIm();
+
+      std::vector<std::string>::iterator itCld;
+      //Initialisze with no data
+      for (const auto & aPix : aDImDepth)
+      {
+        aDImDepth.SetV(aPix,NODATA);
+      }
+
+      for (itCld=mSetOfLidarClouds.begin();itCld != mSetOfLidarClouds.end();itCld++)
+        {
+          // get image world coordinates using proj
+          std::string aFullNameCld=aDirLidar + ELISE_CAR_DIR + (*itCld);
+          cIm2D<tREAL4> aImGround =  cIm2D<tREAL4>::FromFile(aFullNameCld);
+          //std::cout<<"TFW "<<aFullNameCld.replace(itCld->find("tif"),3,"tfw")<<"  "<<(itCld->find("tif"))<<std::endl;
+          cWorldCoordinates aImWorldTransform(aFullNameCld.replace(aFullNameCld.find("tif"),3,"tfw"));
+          cDataIm2D<tREAL4> & aDImGnd = aImGround.DIm();
+
+          // Raster World bornes
+          /*cPt2dr aPixUl(0,0);
+          cPt2dr aPixLr=ToR(aDImGnd.Sz());
+          cPt2dr aWPixUl,aWPixLr;
+          aImWorldTransform.to_world_coordinates(aPixUl,aWPixUl);
+          aImWorldTransform.to_world_coordinates(aPixLr,aWPixLr);
+
+          cBox2dr aEnveloppe(aWPixUl,aPixLr);*/
+          cPt2dr aPixW(0,0);
+          for (const auto & aPix : aDImGnd)
+          {
+              // To world coordinates
+              aImWorldTransform.to_world_coordinates(ToR(aPix),aPixW);
+              Pt3dr aTer(aPixW.x(),aPixW.y(),aDImGnd.GetV(aPix));
+              bool IsVisibleInSensorCamera=aCamV1->PIsVisibleInImage(aTer);
+              if (IsVisibleInSensorCamera)
+                {
+                  Pt2dr PtCam1=aCamV1->Ter2Capteur(aTer);
+                      // condition on visibility with normals information
+                      tElemDepth PtCamProfondeur =aCamV1->ProfondeurDeChamps(aTer);
+                      cPt2di PtCamInt((int)PtCam1.x,(int)PtCam1.y);
+                      tREAL4 aCurDepth=aDImDepth.GetV(PtCamInt);
+                      //std::cout<<PtCamInt<<std::endl;
+
+                      if (aDImDepth.DefGetV(PtCamInt,0))
+                        {
+                            if (aCurDepth==NODATA)
+                              {
+                                aDImDepth.SetV(PtCamInt,PtCamProfondeur);
+                                aDImMasqVisib.SetV(PtCamInt,1);
+                              }
+                            else
+                              {
+                                if (aCurDepth>PtCamProfondeur)
+                                  {
+                                    aDImDepth.SetV(PtCamInt,PtCamProfondeur);
+                                    aDImMasqVisib.SetV(PtCamInt,1);
+                                  }
+                              }
+                        }
+                }
+            }
+        }
+      // Save depth and mask image
+      aDImDepth.ToFile((*itIma)+"_Depth.tif");
+      aDImMasqVisib.ToFile((*itIma)+"_Masq.tif");
+    }
+  return EXIT_SUCCESS;
+}
+
+  int cAppliMMGenDepthMV::Exe_sparse()
   {
     // Read information patterns images, lidar and geometry
     std::string aDirLidar,aPatLidar;
