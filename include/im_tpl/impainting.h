@@ -111,7 +111,6 @@ template  <class Type,class Type_Base>
 
     for (int aKIter=0 ; aKIter< 6 ; aKIter++)
    {
-       int aNbUpdate = 0;
        bool Pair= ((aKIter%2)==0);
 
        int IndDeb = Pair ? 0       : (mNbPts-1);
@@ -133,14 +132,12 @@ template  <class Type,class Type_Base>
                      {
                           aZMin = aZAugm;
                           aValOfZMin = (Type)mTImVal.get(aPVois);
-                          aNbUpdate++;
                      }
                 }
             }
             mTImVal.oset(aP2Cur,aValOfZMin);
             mTImBuf.oset(aP2Cur,aZMin);
        }
-       // std::cout << "NNNbUodta " << aNbUpdate << "\n";
    }
 }
 

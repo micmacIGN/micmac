@@ -1727,7 +1727,7 @@ cParamCallSys  cMMVII_Appli::StrCallMMVII
 
    // std::string aComGlob = mFullBin + " ";
    aRes.AddArgs(mFullBin);
-   int aNbSubst=0;
+   [[maybe_unused]] int aNbSubst=0;
    std::vector<bool>  aVUsedSubst(aSubst.V().size(),false);
 /*
    cSpecMMVII_Appli*  aSpec = cSpecMMVII_Appli::SpecOfName(aCom2007,false); // false => dont accept no match

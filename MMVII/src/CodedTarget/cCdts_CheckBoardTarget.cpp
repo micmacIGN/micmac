@@ -150,8 +150,6 @@ cCdRadiom::cCdRadiom
        mCostCorrel (2.001),   // over maximal theoreticall value
        mRatioBW    (0)
 {
-    static int aCpt=0 ; aCpt++;
-
     int aNbIn0=0,aNbIn1=0;
 
     cMatIner2Var<tREAL8> aCorGrayAll;

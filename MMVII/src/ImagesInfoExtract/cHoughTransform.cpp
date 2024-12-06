@@ -162,7 +162,6 @@ void ShowImProfile(const cDataIm1D<tREAL8> &  anIm,const std::string & aName)
 void  cParalLine::ComputeRadiomHomog(const cDataGenUnTypedIm<2> & anIm,cPerspCamIntrCalib * aCalib,const std::string & aNameFile) 
 {
 // StdOut() << "aNameFileaNameFileaNameFileaNameFile " << aNameFile << "\n";
-    static int aCPT=0; aCPT++;
 
     cSegment2DCompiled<tREAL8>  aSegFull = aCalib->ExtenSegUndistIncluded(false,mMidleSeg,0.05,1.0,5.0);
 

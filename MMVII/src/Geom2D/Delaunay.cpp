@@ -354,7 +354,7 @@ Delaunator::Delaunator(SafeVector<double> const& in_coords)
 
     hull_start = i0;
 
-    size_t hull_size = 3;
+    [[maybe_unused]] size_t hull_size = 3;
 
     hull_next[i0] = hull_prev[i2] = i1;
     hull_next[i1] = hull_prev[i0] = i2;
