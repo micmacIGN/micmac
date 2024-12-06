@@ -804,6 +804,17 @@ void cPhotogrammetricProject::LoadGCP(cSetMesImGCP& aSetMes,const std::string & 
 }
 
 
+cSetMesGCP cPhotogrammetricProject::LoadGCP() const
+{
+    cSetMesImGCP  aSetMesIm;
+    LoadGCP(aSetMesIm);
+    return aSetMesIm.AllMesGCP();
+}
+cSetMesGCP cPhotogrammetricProject::LoadGCPFromFolder(const std::string & aFolder) const
+{
+     cAutoChgRestoreDefFolder  aCRDF(aFolder,DPPointsMeasures()); // Chg Folder and restore at destruction
+     return  LoadGCP();
+}
 
 
 

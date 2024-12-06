@@ -573,6 +573,8 @@ class cPhotogrammetricProject
 	  void LoadIm(cSetMesImGCP&,cSensorImage & ) const;
 
 	  void SaveGCP(const cSetMesGCP&) const;
+	  cSetMesGCP LoadGCPFromFolder(const std::string &) const;
+	  cSetMesGCP LoadGCP() const;
 
 	  /// Name of the file, usefull if we need to test existence before doing anything
 	  std::string NameMeasureGCPIm(const std::string & aNameIm,bool isIn) const;

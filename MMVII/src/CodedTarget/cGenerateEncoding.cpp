@@ -5,6 +5,8 @@
 #include "CodedTarget.h"
 #include "MMVII_Stringifier.h"
 #include "MMVII_MeasuresIm.h"
+#include "MMVII_Sensor.h"
+
 
 namespace MMVII
 {
@@ -215,6 +217,8 @@ class cAppliGenerateEncoding : public cMMVII_Appli
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
 	cPrioCC * GetBest();
+        cPhotogrammetricProject     mPhProj;
+
 
 	// tREAL8  ScoreOfCodeAndDist(,int aHamingDist);
 
@@ -241,6 +245,7 @@ cAppliGenerateEncoding::cAppliGenerateEncoding
     const cSpecMMVII_Appli & aSpec
 ) :
    cMMVII_Appli   (aVArgs,aSpec),
+   mPhProj        (*this),
    mMiror         (false),
    mCEC           (nullptr)
 {
@@ -271,6 +276,7 @@ cCollecSpecArg2007 & cAppliGenerateEncoding::ArgOpt(cCollecSpecArg2007 & anArgOp
                << AOpt2007(mSpec.mPrefix,"Prefix","Prefix for output files")
                << AOpt2007(mMiror,"Mir","Unify mirro codes")
                << AOpt2007(mNameOut,"Out","Name for output file")
+              <<   mPhProj.DPPointsMeasures().ArgDirInOpt("GCPNames","Dir GCP for code selection on names")
           ;
 }
 
@@ -320,6 +326,7 @@ void MakeFile3DCern3DTargt(size_t aNBB,size_t aNbD)
 
 int  cAppliGenerateEncoding::Exe()
 {
+   mPhProj.FinishInit();
    int Num000 = 0;
    //  [0]  ========  Finish initialization and checking ==================
    
@@ -437,6 +444,27 @@ int  cAppliGenerateEncoding::Exe()
 
 
        }
+   }
+
+   if (mPhProj.DPPointsMeasures().DirInIsInit())
+   {
+      cSetMesGCP aSetGCP =  mPhProj.LoadGCP();
+      std::set<int>   aLInt;
+      for (const auto & aGCP : aSetGCP.Measures())
+          aLInt.insert(cStrIO<int>::FromStr(aGCP.mNamePt));
+      //  StdOut() << "VOOOCSIZE= " << mVOC.size()  << " "  << aSetGCP.Measures().size() << "\n";
+      erase_if
+      (
+             mVOC,
+             [aLInt] (const auto & aPtr) {return  ! MapBoolFind(aLInt,aPtr->mNum);}
+      );
+      //  StdOut() << "VOOOCSIZE= " << mVOC.size()  << " "  << aSetGCP.Measures().size() << "\n";
+      //  getchar();
+      // std::vector<cCelCC*>  mVOC;
+
+      //  StdOut() << "VOOOCSIZE= " << mVOC.size()  << "\n";
+      //  StdOut() <<  "  * N0=" <<  mVOC.at(0)->mNum << "\n";
+      //  StdOut() <<  "  * N1=" <<  mVOC.at(1)->mNum << "\n";
    }
   
    // [3.0]  if we use hamming code, not all numbers are possible

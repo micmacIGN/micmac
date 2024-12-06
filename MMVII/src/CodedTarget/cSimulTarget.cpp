@@ -236,6 +236,14 @@ void  cAppliSimulCodeTarget::IncrustTarget(cGeomSimDCT & aGSD)
 
     // [1] -- Load and scale image of target
     tIm aImT =  Convert((tElem*)nullptr,mSpec->OneImTarget(aGSD.mEncod).DIm());
+
+/*
+    static bool isFirst = false;
+    if (isFirst && mShowFirst)
+    {
+       isFirst = true;
+   }
+*/
     aImT =  aImT.GaussDeZoom(mDownScale,5);
     
 
@@ -366,6 +374,7 @@ int  cAppliSimulCodeTarget::Exe()
    mRS.mCom = CommandOfMain().Com();
    // mPCT.InitFromFile(mNameSpecif);
    mSpec =  cFullSpecifTarget::CreateFromFile(mNameSpecif);
+
 
    mImIn = tIm::FromFile(mNameIm);
 

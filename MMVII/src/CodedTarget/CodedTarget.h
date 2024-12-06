@@ -262,8 +262,9 @@ class cParamCodedTarget : public cMemCheck
        /// fix number of pixel 4 draw
        void SetNbPixBin(int aNbPixBin);
 
-       /// Set default value that depend from the type , used only in create target
-       void      FinishInitOfSpec(const cSpecBitEncoding & aSpec);
+       /** Set default value that depend from the type , used only in create target, 
+          createInit : in mode read we dont do def init (would overwrite user's modif) */
+       void      FinishInitOfSpec(const cSpecBitEncoding & aSpec,bool createInit);
 
 
        int NbCodeAvalaible() const;                           // Number of different code we can generate
@@ -449,6 +450,8 @@ class cFullSpecifTarget : public cMemCheck
          cParamRenderingTarget    mRender;
          std::vector<cPt2dr>      mBitsCenters;
 };
+void AddData(const  cAuxAr2007 & anAux,cFullSpecifTarget & aSpecif);
+
 
 /** Helper class for computing an encoding from the colours affected to different bits */
 class cDecodeFromCoulBits

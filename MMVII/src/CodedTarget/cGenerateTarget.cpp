@@ -171,11 +171,15 @@ void cParamCodedTarget::PCT_AddData(const cAuxAr2007 & anAuxParam,const cSpecBit
 
     //  MMVII::AddData(cAuxAr2007("SzHalfStr",anAux),mSzHalfStr);
 
+
     if (anAux.Input())
     {
-         MMVII_INTERNAL_ASSERT_strong(aSpec!=nullptr," cParamCodedTarget::PCT_AddData no Spec in input mode");
-        FinishInitOfSpec(*aSpec);
+StdOut()  <<  "ADDDDD ThickN_Code " << mThickN_Code << "\n";
+        MMVII_INTERNAL_ASSERT_strong(aSpec!=nullptr," cParamCodedTarget::PCT_AddData no Spec in input mode");
+        FinishInitOfSpec(*aSpec,false);
+StdOut()  <<  "ADDDDD ThickN_Code " << mThickN_Code << "\n";
 	FinishWoSpec();
+StdOut()  <<  "ADDDDD ThickN_Code " << mThickN_Code << "\n";
     }
 }
 const std::string cParamCodedTarget::TheMainTag = "GeometryCodedTarget";
@@ -236,7 +240,7 @@ cParamCodedTarget::cParamCodedTarget(int aNbPixBin) :
     SetNbPixBin(aNbPixBin);
 }
 
-void cParamCodedTarget::FinishInitOfSpec(const cSpecBitEncoding & aSpec)
+void cParamCodedTarget::FinishInitOfSpec(const cSpecBitEncoding & aSpec,bool createInit)
 {
    mType = aSpec.mType;
    cMMVII_Appli & anAppli = cMMVII_Appli::CurrentAppli();
@@ -244,38 +248,43 @@ void cParamCodedTarget::FinishInitOfSpec(const cSpecBitEncoding & aSpec)
    mNbBit = aSpec.mNbBits;
    mWithParity = aSpec.mParity;
 
-   if (aSpec.mType==eTyCodeTarget::eIGNIndoor)
+   // if we are not in initial creation (i.e we reading existing file) all these modif that are related
+   // to the fact that user did or didnt specify are meaningless, value read must not be changed
+   if (createInit)
    {
-         // Nothingto do all default value have been setled for this case
-   }
-   else if ((aSpec.mType==eTyCodeTarget::eIGNDroneSym) || (aSpec.mType==eTyCodeTarget::eIGNDroneTop))
-   {
-       anAppli.SetIfNotInit(mModeFlight,true);
-       anAppli.SetIfNotInit(mCBAtTop,(aSpec.mType==eTyCodeTarget::eIGNDroneTop));
-       anAppli.SetIfNotInit(mThickN_WInt,0.05);
-       anAppli.SetIfNotInit(mThickN_Code,0.0);
-       anAppli.SetIfNotInit(mThickN_WExt,0.0);
-       anAppli.SetIfNotInit(mThickN_Car,0.3);
-       anAppli.SetIfNotInit(mChessboardAng,-M_PI/4.0);
-       anAppli.SetIfNotInit(mThickN_BorderExt,0.05);
+       if (aSpec.mType==eTyCodeTarget::eIGNIndoor)
+       {
+             // Nothingto do all default value have been setled for this case
+       }
+       else if ((aSpec.mType==eTyCodeTarget::eIGNDroneSym) || (aSpec.mType==eTyCodeTarget::eIGNDroneTop))
+       {
+           anAppli.SetIfNotInit(mModeFlight,true);
+           anAppli.SetIfNotInit(mCBAtTop,(aSpec.mType==eTyCodeTarget::eIGNDroneTop));
+           anAppli.SetIfNotInit(mThickN_WInt,0.05);
+           anAppli.SetIfNotInit(mThickN_Code,0.0);
+           anAppli.SetIfNotInit(mThickN_WExt,0.0);
+           anAppli.SetIfNotInit(mThickN_Car,0.3);
+           anAppli.SetIfNotInit(mChessboardAng,-M_PI/4.0);
+           anAppli.SetIfNotInit(mThickN_BorderExt,0.05);
 
-       anAppli.SetIfNotInit(mRadiusOrientTablet,0.1);
-       anAppli.SetIfNotInit(mCenterOrientTablet,cPt2dr(0.7,0));
-   }
-   else if (aSpec.mType==eTyCodeTarget::eCERN)
-   {
-      //  anAppli.SetIfNotInit(mNbBit,20);
-       // anAppli.SetIfNotInit(mWithParity,false);
+           anAppli.SetIfNotInit(mRadiusOrientTablet,0.1);
+           anAppli.SetIfNotInit(mCenterOrientTablet,cPt2dr(0.7,0));
+       }
+       else if (aSpec.mType==eTyCodeTarget::eCERN)
+       {
+          //  anAppli.SetIfNotInit(mNbBit,20);
+           // anAppli.SetIfNotInit(mWithParity,false);
 
-       anAppli.SetIfNotInit(mNbRedond,1);
-       anAppli.SetIfNotInit(mThickN_WInt,(mNbBit==20) ? 1.5 : 1.0);
-       anAppli.SetIfNotInit(mThickN_Code,(mNbBit==20) ? 1.5 : 1.0);
-       anAppli.SetIfNotInit(mThickN_WExt,0.9);
-       anAppli.SetIfNotInit(mThickN_BorderExt,0.10);
+           anAppli.SetIfNotInit(mNbRedond,1);
+           anAppli.SetIfNotInit(mThickN_WInt,(mNbBit==20) ? 1.5 : 1.0);
+           anAppli.SetIfNotInit(mThickN_Code,(mNbBit==20) ? 1.5 : 1.0);
+           anAppli.SetIfNotInit(mThickN_WExt,0.9);
+           anAppli.SetIfNotInit(mThickN_BorderExt,0.10);
 
-       anAppli.SetIfNotInit(mWithChessboard,false);
-       anAppli.SetIfNotInit(mWhiteBackGround,false);
-       anAppli.SetIfNotInit(mAntiClockWiseBit,false);
+           anAppli.SetIfNotInit(mWithChessboard,false);
+           anAppli.SetIfNotInit(mWhiteBackGround,false);
+           anAppli.SetIfNotInit(mAntiClockWiseBit,false);
+       }
    }
    mSzHalfStr = (aSpec.mNbDigit+1)/2;
 
@@ -1052,6 +1061,7 @@ cFullSpecifTarget *  cFullSpecifTarget::CreateFromFile(const std::string & aName
     cFullSpecifTarget * aRes = new cFullSpecifTarget;
     ReadFromFile(*aRes,aName);
 
+
     if (0)  // we dont reset nb of bit, because don want do generate comments as 100100111
     {
         for (auto & anEncod : aRes->mBE.Encodings())
@@ -1125,6 +1135,7 @@ class cAppliGenCodedTarget : public cMMVII_Appli
 	cParamCodedTarget  mPCT;
 	bool               mDoMarkC;
 	std::string        mPatternDoImage;
+	std::string        mPrefixVisu;
 	int                mNbPixBin;
         std::string        mNameOut;
         bool               mIm4Test;   ///< Do we generate image for inspection (and not for printing)
@@ -1138,6 +1149,7 @@ cAppliGenCodedTarget::cAppliGenCodedTarget(const std::vector<std::string> & aVAr
    mPhgrPr       (*this),
    mPerGen       (10),
    mDoMarkC      (false),
+   mPrefixVisu   (""),
    mNbPixBin     (1800),
    mIm4Test      (false)
 {
@@ -1158,6 +1170,7 @@ cCollecSpecArg2007 & cAppliGenCodedTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return anArgOpt
           << AOpt2007(mPatternDoImage,"PatIm","Pattern for generating image (def no generation)")
+          << AOpt2007(mPrefixVisu,"PrefixVisu","To add in image name when PatIm is used",{eTA2007::HDV})
           << AOpt2007(mIm4Test,"I4T","Generate image for test/inspection, not for use",{eTA2007::HDV})
           << AOpt2007(mPCT.mRadiusCenterMiniTarget,"RayMCT","Rayon \"mini\" center target (for topo)",{eTA2007::HDV})
           // << AOpt2007(mPCT.mNbBit,"NbBit","Nb Bit printed",{eTA2007::HDV})
@@ -1190,19 +1203,19 @@ int  cAppliGenCodedTarget::Exe()
    mPCT.SetNbPixBin(mNbPixBin);
 
    ReadFromFile(mBE,mNameBE);
-   mPCT.FinishInitOfSpec(mBE.Specs());
+   mPCT.FinishInitOfSpec(mBE.Specs(),true);
    mPCT.FinishWoSpec();
 
    cFullSpecifTarget  aFullSpec(mBE,mPCT);
 
    // Activate the computaion of centers
    aFullSpec.ImagePattern();
-   std::string aDirVisu = mPhgrPr.DirVisu();
+   std::string aDirVisu = mPhgrPr.DirVisuAppli();
 
    if (IsInit(&mPatternDoImage))
    {
       //  generate the pattern image
-      aFullSpec.ImagePattern().DIm().ToFile(aDirVisu+aFullSpec.NameOfImPattern());
+      aFullSpec.ImagePattern().DIm().ToFile(aDirVisu+mPrefixVisu + aFullSpec.NameOfImPattern());
 
       // parse all encodings
       for (const auto & anEncode : aFullSpec.Encodings())
@@ -1212,7 +1225,7 @@ int  cAppliGenCodedTarget::Exe()
              cCodedTargetPatternIm::tIm anIm = aFullSpec.OneImTarget(anEncode,mIm4Test);
 
              std::string aName = aFullSpec.NameOfEncode(anEncode);
-             anIm.DIm().ToFile(aDirVisu+aName);
+             anIm.DIm().ToFile(aDirVisu+mPrefixVisu +aName);
              StdOut() << aName << std::endl;
 	  }
       }
