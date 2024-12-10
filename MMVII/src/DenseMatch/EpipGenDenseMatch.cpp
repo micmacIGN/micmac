@@ -293,6 +293,12 @@ struct cParam1Match
 /*                                                 */
 /*  ============================================== */
 
+static std::string V1NameMasqOfIm(const std::string & aName)
+{
+    return LastPrefix(aName) + "_Masq.tif";
+}
+
+
 std::string cOneLevel::StdFullName(const std::string & aName) const
 {
     return  (mLevel==0)                                                      ?

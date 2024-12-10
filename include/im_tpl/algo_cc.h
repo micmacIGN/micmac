@@ -72,8 +72,6 @@ template <class T1,class T2,class Action> int OneZC
       aVCur->push_back(aPGerm);
       aOnNewPt.OnNewPt(aPGerm);
    }
-   int aNbStep = 1;
-
    int aNbTot = 0;
    while (! aVCur->empty())
    {
@@ -100,7 +98,6 @@ template <class T1,class T2,class Action> int OneZC
 
        ElSwap(aVNext,aVCur);
        aVNext->clear();
-       aNbStep++;
    }
 
    return aNbTot;

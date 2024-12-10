@@ -33,32 +33,59 @@ enum class eForceGray
 class cDataFileIm2D : public cRect2
 {
      public :
+    // Vector of string that are passed to the image file driver as options
+    // See GDAL drivers documentation
+    // Example for jpeg driver : {"QUALITY=90"}
+    // Example for tiff driver : {"TILED=YES","BLOCKXSIZE=256","BLOCKYSIZE=256"}
+        typedef std::vector<std::string> tOptions;
+
         const cPt2di & Sz() const ;  ///< From cRect2
         const int  & NbChannel ()  const ;  ///< std accessor
         const eTyNums &   Type ()  const ;  ///< std accessor
         const std::string &  Name() const;  ///< std accessor
 	bool IsEmpty() const;
 	void AssertNotEmpty() const;
+
         /// Create a descriptor on existing file
         static cDataFileIm2D Create(const std::string & aName,eForceGray);
         /// Create the file before returning the descriptor
-        static cDataFileIm2D Create(const std::string & aName,eTyNums,const cPt2di & aSz,int aNbChan=1);
+        static cDataFileIm2D Create(const std::string & aName,eTyNums,const cPt2di & aSz, int aNbChan=1);
+        /// Options depends on each format driver and may be not applied if the file already exits ...
+        static cDataFileIm2D Create(const std::string & aName,eTyNums,const cPt2di & aSz, const tOptions& aOptions, int aNbChan=1);
+
+        // Special creation for fully write format : jpeg, png, ... File will be (re)created on each write and the full file must be written at once
+        // This function guarantees that the options will be applied (if driver allows them ...)
+        static cDataFileIm2D CreateOnWrite(const std::string & aName,eTyNums,const cPt2di & aSz, const tOptions& aOptions={}, int aNbChan=1);
+        static cDataFileIm2D CreateOnWrite(const std::string & aName,eTyNums,const cPt2di & aSz, int aNbChan=1);
 
         static cDataFileIm2D Empty();
 
+        bool IsCreateAtFirstWrite() const;     // Set by CreateOnWrite, must then be fully write and only one time
+        bool IsCreatedNoUpdate() const;
+
+        const tOptions& CreateOptions() const;
+
         virtual ~cDataFileIm2D();
-        
+
 	static bool IsPostFixNameImage(const std::string & aPost);
 	static bool IsNameWith_PostFixImage(const std::string & aPost);
         eForceGray ForceGray() const; ///< Accessor
-     private :
-        cDataFileIm2D(const std::string &,eTyNums,const cPt2di & aSz,int aNbChannel,eForceGray) ;
 
-        cMemCheck    mMemCheck;  ///< Inheritage may be multiple, member will have the same effect
-        std::string  mName;      ///< Name on the disk
-        eTyNums      mType;      ///< Type of value for pixel
-        int          mNbChannel; ///< Number of channels
-        eForceGray   mForceGray;
+     private :
+        friend class cGdalApi;
+        enum class eCreationState {Created, AtFirstWrite, CreatedNoUpdate};
+        cDataFileIm2D(const std::string &,eTyNums,const cPt2di & aSz,int aNbChannel, const tOptions& aOptions, eForceGray, eCreationState) ;
+
+        void SetCreated() const;
+        void SetCreatedNoUpdate() const;
+
+        cMemCheck   mMemCheck;  ///< Inheritage may be multiple, member will have the same effect
+        std::string mName;      ///< Name on the disk
+        eTyNums     mType;      ///< Type of value for pixel
+        int         mNbChannel; ///< Number of channels
+        eForceGray  mForceGray;
+        tOptions    mCreateOptions; ///< GDAL Creations options, depend of output driver (JPEG, TIFF, ...)
+        mutable eCreationState mCreationState;  ///< support for creation of non updatable file image (create/write at once: .png, .jpg, ...)
 };
 
 /// Size differnce of associated file images
@@ -90,6 +117,8 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         typedef cPixBox<2>               tPB;
         typedef typename tBI::tBase  tBase;
         typedef cDataIm2D<Type>      tIm;
+        
+        typedef cDataFileIm2D::tOptions tFileOptions;
 
 	void CropIn(const cPt2di & aP0,const tIm &);
 
@@ -239,12 +268,11 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox) const;  // 1 to 1
         void Write(const cDataFileIm2D &,const tIm &aIG,const tIm &aIB,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox) const;  // 1 to 1
         virtual ~cDataIm2D();  ///< will delete mRawData2D
-
-        void ToFile(const std::string& aName) const; ///< Create a File having same size/type ...
-        void ToJpgFile(const std::string& aName) const; ///< Make a Jpg file of image
-        void ToFile(const std::string& aName,eTyNums) const; ///< Create a File of given type, having same size ...
-        void ClipToFile(const std::string& aName,const cRect2&) const; ///< Create a Clip File of Box
-        void ToFile(const std::string& aName,const tIm &aIG,const tIm &aIB) const; ///< Create a File having same size/type ...
+        
+        void ToFile(const std::string& aName, const tFileOptions& aOptions={}) const; ///< Create a File having same size/type ...
+        void ToFile(const std::string& aName,eTyNums, const tFileOptions& aOptions={}) const; ///< Create a File of given type, having same size ...
+        void ClipToFile(const std::string& aName,const cRect2&, const tFileOptions& aOptions={}) const; ///< Create a Clip File of Box
+        void ToFile(const std::string& aName,const tIm &aIG,const tIm &aIB, const tFileOptions& aOptions={}) const; ///< Create a File having same size/type ...
         
         /// Raw image, lost all waranty is you use it...
         tVal ** ExtractRawData2D() {return mRawData2D;}
@@ -339,8 +367,6 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         int     mSzYMax;     ///< For resize
         tPVal * mRawData2D;  ///< Pointers on DataLin
 };
-
-void Convert_JPG(const std::string &  aNameIm,bool DeleteAfter,tREAL8 aQuality,const std::string & aPost);
 
 
 
@@ -502,12 +528,13 @@ class cRGBImage
 {
      public :
         typedef cIm2D<tU_INT1>   tIm1C;  // Type of image for 1 chanel
+        typedef cDataFileIm2D::tOptions tFileOptions;
 
         cRGBImage(const cPt2di & aSz,int aZoom=1);
         cRGBImage(const cPt2di & aSz,const cPt3di & aCoul,int aZoom=1);
-        void ToFile(const std::string & aName);
-	void ToFileDeZoom(const std::string & aName,int aDeZoom);
-	void ToJpgFileDeZoom(const std::string & aName,int aDeZoom);
+        void ToFile(const std::string & aName, const tFileOptions& aOptions={});
+        void ToFileDeZoom(const std::string & aName,int aDeZoom, const tFileOptions& aOptions={});
+        void ToJpgFileDeZoom(const std::string & aName,int aDeZoom, const tFileOptions& aOptions={});
 
 
         static cRGBImage FromFile(const std::string& aName,int aZoom=1);  ///< Allocate and init from file

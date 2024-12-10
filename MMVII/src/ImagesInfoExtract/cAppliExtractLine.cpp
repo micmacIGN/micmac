@@ -510,14 +510,12 @@ void cAppliExtractLine::MakeVisu(const std::string & aNameIm)
     if (mGenVisu>=3)
     {
          cRGBImage  aVisAccum =  RGBImFromGray(aDAccum,255.0/aVMax);
-	 int aK=0;
          for (const auto & aPS : mVPS)
          {
              //aVisAccum.SetRGBrectWithAlpha(ToI(aPS->IndTetaRho())  ,15,cRGBImage::Red,0.5);
 	     cPt2dr aC=aPS.IndTetaRho();
 	     cPt2dr aSz(7,7);
              aVisAccum.FillRectangle(cRGBImage::Red,ToI(aC-aSz),ToI(aC+aSz),cPt3dr(0.5,1.0,1.0));
-	     aK++;
          }
          aVisAccum.ToJpgFileDeZoom(mPhProj.DirVisuAppli() + "Accum_" + aNameTif,1);
          aDAccum.ToFile(mPhProj.DirVisuAppli() + "RawAccum_" + aNameTif);
@@ -571,8 +569,8 @@ void cAppliExtractLine::MakeVisu(const std::string & aNameIm)
 int cAppliExtractLine::Exe()
 {
     mPhProj.FinishInit();
-    InitReport(mNameReportByLine,"csv",true,{"NameIm","Paral","Larg","Score","RadHom"});
-    InitReport(mNameReportByIm,"csv",true,{"NameIm","CodeResult"});
+    InitReportCSV(mNameReportByLine,"csv",true,{"NameIm","Paral","Larg","Score","RadHom"});
+    InitReportCSV(mNameReportByIm,"csv",true,{"NameIm","CodeResult"});
 
     //  Create a report with header computed from type
     Tpl_AddHeaderReportCSV<cOneLineAntiParal>(*this,mIdExportCSV,true);

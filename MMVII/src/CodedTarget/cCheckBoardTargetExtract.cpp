@@ -359,7 +359,7 @@ void cAppliCheckBoardTargetExtract::SetLabel(const cPt2dr& aPt,tU_INT1 aLabel)
 cCdRadiom cAppliCheckBoardTargetExtract::MakeCdtRadiom(cScoreTetaLine & aSTL,const cCdSym & aCdSym,tREAL8 aThickness)
 {
     bool IsMarqed = IsPtTest(aCdSym.mC);
-    static int aCptGlob=0 ; aCptGlob++;
+//    static int aCptGlob=0 ; aCptGlob++;
     static int aCptMarq=0 ; if (IsMarqed) aCptMarq++;
     DebugCB = (aCptMarq == mNumDebugMT) && IsMarqed;
 
@@ -431,7 +431,6 @@ void cAppliCheckBoardTargetExtract::ComputeTopoSadles()
 	 // select 1 point in conected component
 
     cAutoTimerSegm aTSMaxCC(mTimeSegm,"2.1-MaxCCSad");
-    int aNbCCSad=0;
     std::vector<cPt2di>  aVCC;
     const std::vector<cPt2di> & aV8 = Alloc8Neighbourhood();
 
@@ -439,7 +438,6 @@ void cAppliCheckBoardTargetExtract::ComputeTopoSadles()
     {
          if (mDImLabel->GetV(aPix)==eTopo0)
 	 {
-             aNbCCSad++;
              ConnectedComponent(aVCC,*mDImLabel,aV8,aPix,eTopo0,eTopoTmpCC);
 	     cWhichMax<cPt2di,tREAL8> aBestPInCC;
 	     for (const auto & aPixCC : aVCC)
@@ -557,7 +555,9 @@ void  cAppliCheckBoardTargetExtract::DoExport()
          if (aCdtM.Code())
          {
              std::string aCode = aCdtM.Code()->Name() ;
-             aSetM.AddMeasure(cMesIm1Pt(aCdtM.mC0,aCode,1.0));
+             cMesIm1Pt aMesIm(aCdtM.mC0,aCode,1.0);
+             aSetM.AddMeasure(aMesIm);
+             Tpl_AddOneObjReportCSV(*this,mIdExportCSV,aMesIm);
          }
      }
 
@@ -567,6 +567,14 @@ void  cAppliCheckBoardTargetExtract::DoExport()
 
 void cAppliCheckBoardTargetExtract::DoOneImage() 
 {
+   mIdExportCSV       = "CheckBoardCodedTarget-" + mNameIm;
+   //  Create a report with header computed from type
+   Tpl_AddHeaderReportCSV<cMesIm1Pt>(*this,mIdExportCSV,false);
+   // Redirect the reports on folder of result
+   SetReportRedir(mIdExportCSV,mPhProj.DPPointsMeasures().FullDirOut());
+
+
+
     mInterpol = new   cTabulatedDiffInterpolator(cSinCApodInterpolator(5.0,5.0));
 
     mSpecif = cFullSpecifTarget::CreateFromFile(mNameSpecif);
@@ -654,7 +662,6 @@ void cAppliCheckBoardTargetExtract::DoOneImageAndScale(tREAL8 aScale,const  tIm 
     int aNbEllWCode = 0;
     cAutoTimerSegm aTSEllipse(mTimeSegm,"Ellipse");
     {
-        int aCpt=0;
         for (const auto & aCdtRad : aVCdtRad)
         {
            std::vector<bool>  TryCE = {false}; // Do we do the try in circle or ellipse mode
@@ -678,7 +685,6 @@ void cAppliCheckBoardTargetExtract::DoOneImageAndScale(tREAL8 aScale,const  tIm 
 		  AddCdtE(aCDE);
 	       }
 	   }
-           aCpt++;
         }
     }
 
@@ -706,6 +712,8 @@ void cAppliCheckBoardTargetExtract::DoOneImageAndScale(tREAL8 aScale,const  tIm 
 int  cAppliCheckBoardTargetExtract::Exe()
 {
    mPhProj.FinishInit();
+
+
 
    if (RunMultiSet(0,0))
    {

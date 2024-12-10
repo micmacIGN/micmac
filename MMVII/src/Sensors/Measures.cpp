@@ -448,6 +448,28 @@ void cSetMesPtOf1Im::AddMeasure(const cMesIm1Pt & aMeasure)
      mMeasures.push_back(aMeasure);
 }
 
+void cSetMesPtOf1Im::AddMeasureIfNew(const cMesIm1Pt & aNewM,tREAL8 aTolDupl)
+{
+    for (const auto & aM : mMeasures)
+    {
+         if (aM.mNamePt == aNewM.mNamePt)
+         {
+            if (Norm2(aM.mPt- aNewM.mPt) <= aTolDupl)
+            {
+                // point are just identic up to tolerance, nothing to do
+                return;
+            }
+            else
+            {
+                StdOut() << "PTS=" << aM.mPt << " " << aNewM.mPt << "\n";
+                MMVII_UnclasseUsEr("Duplicate measure added for point : " + aM.mNamePt + " in Image " +mNameIm);
+            }
+         }
+    }
+    // Ok point doesnt exist, just add
+    AddMeasure(aNewM);
+}
+
 
 void cSetMesPtOf1Im::AddSetMeasure(const cSetMesPtOf1Im & aSet,bool SuprNone,bool OkDupl)
 {

@@ -219,7 +219,7 @@ int cAppli_MesImReport::Exe()
     SetReportSubDir(mNameSubDir);
 
 
-    InitReport(mNameReportGlobResidual,"csv",false);
+    InitReportCSV(mNameReportGlobResidual,"csv",false);
 
     AddStdHeaderStatCSV(mNameReportGlobResidual,"Image",mPropStat,{"% Undetected","% False Detect"});
 
@@ -244,39 +244,6 @@ int cAppli_MesImReport::Exe()
                     <<  "\n";
 
 
-    /*
-   if (IsInit(&mSuffixReportSubDir))
-       nameSubDir += "_" + mSuffixReportSubDir;
-   SetReportSubDir(nameSubDir);
-
-   mNameReportIm   =  "ByImage" ;
-   mNameReportDetail   =  "Detail" ;
-   mNameReportGCP  =  "ByGCP"   ;
-   mNameReportCam   =  "ByCam"   ;
-
-   mNameReportGCP_Ground   =  "ByGCP_3D"   ;
-   mNameReportGCP_Ground_Glob   =  "ByGCP_3D_Stat"   ;
-
-   mNameReportMissed   =  "MissedPoint"   ;
-
-   InitReport(mNameReportIm,"csv",true);
-   InitReport(mNameReportDetail,"csv",true);
-   InitReport(mNameReportMissed,"csv",true);
-
-   if (LevelCall()==0)
-   {
-       AddStdHeaderStatCSV(mNameReportIm,"Image",mPropStat,{"AvgX","AvgY"});
-       AddOneReportCSV(mNameReportDetail,{"Image","GCP","Err","Dx","Dy"});
-       AddOneReportCSV(mNameReportMissed,{"Image","GCP","XTh","YTh"});
-   }
-   if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
-   {
-      int aRes = ResultMultiSet();
-
-
-      return aRes;
-   }
-   */
 
 
     return EXIT_SUCCESS;

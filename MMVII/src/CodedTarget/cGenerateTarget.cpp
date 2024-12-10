@@ -141,7 +141,7 @@ std::string  cParamCodedTarget::NameOfBinCode(int aNum) const
 }
 
 
-void cParamCodedTarget::AddData(const cAuxAr2007 & anAuxParam)
+void cParamCodedTarget::PCT_AddData(const cAuxAr2007 & anAuxParam,const cSpecBitEncoding * aSpec)
 {
     cAuxAr2007  anAux(TheMainTag,anAuxParam);
 
@@ -169,17 +169,19 @@ void cParamCodedTarget::AddData(const cAuxAr2007 & anAuxParam)
     MMVII::AddData(cAuxAr2007("CenterOrientTablet",anAux),mCenterOrientTablet);
     MMVII::AddData(cAuxAr2007("RayCenterMiniTarget",anAux),mRadiusCenterMiniTarget);
 
-    MMVII::AddData(cAuxAr2007("SzHalfStr",anAux),mSzHalfStr);
+    //  MMVII::AddData(cAuxAr2007("SzHalfStr",anAux),mSzHalfStr);
 
-     if (anAux.Input())
-	Finish();
+    if (anAux.Input())
+    {
+         MMVII_INTERNAL_ASSERT_strong(aSpec!=nullptr," cParamCodedTarget::PCT_AddData no Spec in input mode");
+        FinishInitOfSpec(*aSpec);
+	FinishWoSpec();
+    }
 }
-
 const std::string cParamCodedTarget::TheMainTag = "GeometryCodedTarget";
-
 void AddData(const  cAuxAr2007 & anAux,cParamCodedTarget & aPCT)
 {
-   aPCT.AddData(anAux);
+   aPCT.PCT_AddData(anAux,nullptr);
 }
 
 void cParamCodedTarget::InitFromFile(const std::string & aNameFile)
@@ -250,12 +252,12 @@ void cParamCodedTarget::FinishInitOfSpec(const cSpecBitEncoding & aSpec)
    {
        anAppli.SetIfNotInit(mModeFlight,true);
        anAppli.SetIfNotInit(mCBAtTop,(aSpec.mType==eTyCodeTarget::eIGNDroneTop));
-       anAppli.SetIfNotInit(mThickN_WInt,0.1);
+       anAppli.SetIfNotInit(mThickN_WInt,0.05);
        anAppli.SetIfNotInit(mThickN_Code,0.0);
        anAppli.SetIfNotInit(mThickN_WExt,0.0);
        anAppli.SetIfNotInit(mThickN_Car,0.3);
        anAppli.SetIfNotInit(mChessboardAng,-M_PI/4.0);
-       anAppli.SetIfNotInit(mThickN_BorderExt,-0.0);
+       anAppli.SetIfNotInit(mThickN_BorderExt,0.05);
 
        anAppli.SetIfNotInit(mRadiusOrientTablet,0.1);
        anAppli.SetIfNotInit(mCenterOrientTablet,cPt2dr(0.7,0));
@@ -268,8 +270,8 @@ void cParamCodedTarget::FinishInitOfSpec(const cSpecBitEncoding & aSpec)
        anAppli.SetIfNotInit(mNbRedond,1);
        anAppli.SetIfNotInit(mThickN_WInt,(mNbBit==20) ? 1.5 : 1.0);
        anAppli.SetIfNotInit(mThickN_Code,(mNbBit==20) ? 1.5 : 1.0);
-       anAppli.SetIfNotInit(mThickN_WExt,1.0);
-       anAppli.SetIfNotInit(mThickN_BorderExt,-0.0);
+       anAppli.SetIfNotInit(mThickN_WExt,0.9);
+       anAppli.SetIfNotInit(mThickN_BorderExt,0.10);
 
        anAppli.SetIfNotInit(mWithChessboard,false);
        anAppli.SetIfNotInit(mWhiteBackGround,false);
@@ -305,7 +307,7 @@ cPt2di cParamCodedTarget::Norm2PixI(const cPt2dr & aP) const
 int&    cParamCodedTarget::NbRedond() {return mNbRedond;}
 int&    cParamCodedTarget::NbCircle() {return mNbCircle;}
 
-void cParamCodedTarget::Finish()
+void cParamCodedTarget::FinishWoSpec()
 {
 
   MMVII_INTERNAL_ASSERT_strong(((mNbPixelBin%2)==0),"Require odd pixel 4 binary image");
@@ -644,6 +646,7 @@ enum class eLPT  // Label Pattern Target
               eBackGround,
               eForeGround,
               eCircleSepCar,
+              eBorderExt,
               eNumB0   // num first bit
            };
 
@@ -726,6 +729,7 @@ cCodedTargetPatternIm::cCodedTargetPatternIm(cFullSpecifTarget & aSpec) :
     {
        cPt2dr aPN = mSpec.Render().Pix2Norm(aPix);
        tREAL8 aR2N = SqN2(aPN);
+       tREAL8 aNormInf = NormInf(aPN);
        //  ============  1  Generate the bit coding =======================
        if (aP2B->PNormIsCoding(aPN))  // if point belong to bit-coding space
        {
@@ -766,6 +770,11 @@ cCodedTargetPatternIm::cCodedTargetPatternIm(cFullSpecifTarget & aSpec) :
        {
 	   mDIC.SetV(aPix,int(eLPT::eCircleSepCar));
        }
+
+       if ((aNormInf>mRender.mRho_4_EndCar) && (aNormInf<=mRender.mRho_EndIm))
+       {
+            mDIC.SetV(aPix,int(eLPT::eBorderExt));
+       }
     }
 
     // compute and memorize the center
@@ -784,6 +793,10 @@ cCodedTargetPatternIm::tIm cCodedTargetPatternIm::MakeOneImTarget(const cOneEnco
    int aBG_Coul = mSpec.Render().mWhiteBackGround ? 255 : 0;
    int aFG_Coul =  255-aBG_Coul;
 
+   tREAL8 aWSC = 0.9;
+
+   int aColSepCirc = aFG_Coul*(1-aWSC) + aBG_Coul*aWSC;
+
    // by default all is backgrounf
    mDIT.InitCste(aBG_Coul);
 
@@ -792,6 +805,7 @@ cCodedTargetPatternIm::tIm cCodedTargetPatternIm::MakeOneImTarget(const cOneEnco
    for (const auto & aPix : mDIC)
    {
        eLPT aLab =  eLPT(mDIC.GetV(aPix));
+
        if (aLab!=eLPT::eBackGround)
        {
            bool isBG = true;
@@ -809,14 +823,15 @@ cCodedTargetPatternIm::tIm cCodedTargetPatternIm::MakeOneImTarget(const cOneEnco
 	   {
                mDIT.SetV(aPix,aFG_Coul);
 	   }
+       }
 
-/*
-           if (is4Test)
-           {
-               cPt2dr aPixN = mRender.Norm2PixR(ToR(
-           }
-*/
-
+       if (is4Test &&  (aLab== eLPT::eCircleSepCar))
+       {
+	   mDIT.SetV(aPix,aColSepCirc);
+       }
+       if (is4Test &&  (aLab== eLPT::eBorderExt))
+       {
+	   mDIT.SetV(aPix,aColSepCirc);
        }
    }
 
@@ -1023,7 +1038,7 @@ void cFullSpecifTarget::AddData(const  cAuxAr2007 & anAuxParam)
      cAuxAr2007 anAux(TheMainTag,anAuxParam);
 
      mBE.AddData(anAux);
-     mRender.AddData(anAux);
+     mRender.PCT_AddData(anAux,&(mBE.Specs()));
      StdContAddData(cAuxAr2007("Centers",anAux),mBitsCenters);
 }
 
@@ -1176,7 +1191,7 @@ int  cAppliGenCodedTarget::Exe()
 
    ReadFromFile(mBE,mNameBE);
    mPCT.FinishInitOfSpec(mBE.Specs());
-   mPCT.Finish();
+   mPCT.FinishWoSpec();
 
    cFullSpecifTarget  aFullSpec(mBE,mPCT);
 

@@ -453,7 +453,7 @@ std::pair<cTopoData, cSetMesGCP>  cTopoData::createEx3()
 
 std::pair<cTopoData, cSetMesGCP> cTopoData::createEx4()
 {
-    std::array aVectPoints = {cPt3dr(-50,0,0), cPt3dr(0,-50,0), cPt3dr(50,0,0), cPt3dr(0,50,0)};
+    std::array aVectPoints = {cPt3dr(-10,0,0), cPt3dr(0,-50,0), cPt3dr(20,0,0), cPt3dr(0,50,0)};
 
     cSetMesGCP aSetPts;
     cTopoData aTopoData;
@@ -464,7 +464,7 @@ std::pair<cTopoData, cSetMesGCP> cTopoData::createEx4()
     {
         aSetPts.AddMeasure( cMes1GCP(aVectPoints[i]+aTr, std::string("Pt")+(char)('1'+i), 0.001) );
     }
-    aSetPts.AddMeasure( cMes1GCP(cPt3dr(0.,0.,0.), "St") ); // the station is free
+    // do not add station origin, to let automatic initialization set a correct value
 
     // create x y z obs with a random rotation
     cTopoObsSetStationData aSet1;

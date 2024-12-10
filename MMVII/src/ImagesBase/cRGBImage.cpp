@@ -300,31 +300,34 @@ void cRGBImage::Read(const std::string & aName,const cPt2di & aP0,double aDyn,co
 
                //  file  create/write
 
-void cRGBImage::ToFile(const std::string & aName)
+void cRGBImage::ToFile(const std::string & aName, const tFileOptions& aOptions)
 {
-    mImR.DIm().ToFile(aName,mImG.DIm(),mImB.DIm());
+    mImR.DIm().ToFile(aName,mImG.DIm(),mImB.DIm(),aOptions);
 }
 
-void cRGBImage::ToFileDeZoom(const std::string & aName,int aDeZoom)
+void cRGBImage::ToFileDeZoom(const std::string & aName,int aDeZoom, const tFileOptions& aOptions)
 {
   if (aDeZoom==1)
   {
-      ToFile(aName);
+      ToFile(aName,aOptions);
       return;
   }
   tIm1C  aImR = mImR.GaussDeZoom(aDeZoom);
   tIm1C  aImG = mImG.GaussDeZoom(aDeZoom);
   tIm1C  aImB = mImB.GaussDeZoom(aDeZoom);
 
-  aImR.DIm().ToFile(aName,aImG.DIm(),aImB.DIm());
+  aImR.DIm().ToFile(aName,aImG.DIm(),aImB.DIm(),aOptions);
 }
 
-void cRGBImage::ToJpgFileDeZoom(const std::string & aName,int aDeZoom)
+void cRGBImage::ToJpgFileDeZoom(const std::string & aName,int aDeZoom, const tFileOptions& aOptions)
 {
-    ToFileDeZoom(aName,aDeZoom);
-    
-    //  StdOut() << "ToJpgFileDeZoomToJpgFileDeZoom=" << aName << "\n"; getchar();
-    Convert_JPG(aName,true,90,"jpg");
+    auto aNameJPG = LastPrefix(aName) + ".jpg";
+    auto options = aOptions;
+    if (options.empty())
+    {
+        options.push_back("QUALITY=90");
+    }
+    ToFileDeZoom(aNameJPG,aDeZoom,options);
 }
 
 

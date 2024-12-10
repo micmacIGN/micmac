@@ -1150,7 +1150,10 @@ void cMMVII_Appli::LogCommandOut(const std::string & aName,bool MainLogFile)
       return;
    cMMVII_Ofs  aOfs(aName,eFileModeOut::AppendText);
    // Add id, if several process were throw in // there is a mix and we no longer know which was closed
-   aOfs.Ofs() << "  ending correctly at : " <<  StrDateCur()  << " (Id=" << mPrefixNameAppli << ")\n\n";
+   aOfs.Ofs() << "  ending correctly at : " <<  StrDateCur()  
+              << " Time=" << SecFromT0() - TimeSegm().CurBeginTime()
+              << " TTT=" << SecFromT0() 
+              << " (Id=" << mPrefixNameAppli << ")\n\n";
    aOfs.Ofs().close();
 }
 
@@ -1724,7 +1727,7 @@ cParamCallSys  cMMVII_Appli::StrCallMMVII
 
    // std::string aComGlob = mFullBin + " ";
    aRes.AddArgs(mFullBin);
-   int aNbSubst=0;
+   [[maybe_unused]] int aNbSubst=0;
    std::vector<bool>  aVUsedSubst(aSubst.V().size(),false);
 /*
    cSpecMMVII_Appli*  aSpec = cSpecMMVII_Appli::SpecOfName(aCom2007,false); // false => dont accept no match

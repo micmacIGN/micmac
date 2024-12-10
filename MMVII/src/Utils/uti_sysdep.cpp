@@ -156,7 +156,7 @@ int GlobParalSysCallByMkF(const std::string & aNameMkF,const std::list<cParamCal
        StdOut() << aCom << std::endl;
        int aRes= system(aCom.c_str());
        StdOut() << "KKKKKKKK " << aRes <<  std::endl;
-       getchar();
+       // getchar();
        RemoveFile(aNameMkF,true);
        return aRes;
    }

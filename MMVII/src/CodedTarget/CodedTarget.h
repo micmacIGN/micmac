@@ -258,7 +258,7 @@ class cParamCodedTarget : public cMemCheck
        cPt2di ToMultiple_2DeZoom(const cPt2di&) const;
 
        /// Set value that are computed from other like mRho_0... , mRho_1...
-       void      Finish();
+       void      FinishWoSpec();
        /// fix number of pixel 4 draw
        void SetNbPixBin(int aNbPixBin);
 
@@ -270,7 +270,7 @@ class cParamCodedTarget : public cMemCheck
        int BaseForNum() const;                                // Base used for converting integer to string
 							      //
        std::string  NameOfBinCode(int aNum) const; // -1 if bad code
-       void AddData(const cAuxAr2007 & anAux);
+       void PCT_AddData(const cAuxAr2007 & anAux,const cSpecBitEncoding *);
 
 
        std::string NameOfNum(int) const; ///  Juste the apha num
