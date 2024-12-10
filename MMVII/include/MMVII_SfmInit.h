@@ -224,6 +224,9 @@ class cHyperGraph : public cMemCheck
       void DFS(int, std::vector<bool>&,
                std::map<int,std::vector<int>>&);
       bool CheckConnectivity(std::map<int,std::vector<int>>&);
+      std::map<int,std::vector<int>> CreateAdjGr(bool );
+
+      cTripletSet ReduceGraph(std::string&);
 
       template <typename tObj,typename tCmp>
       void FindTerminals (cIndexedHeap<tObj,tCmp>&,
@@ -357,7 +360,7 @@ class cAppli_SfmInitWithPartition: public cMMVII_Appli
 
 /* ********************************************************** */
 /*                                                            */
-/*                 cAppli_SfmInitWithPartition                */
+/*                 cAppli_SfmInitGlob                         */
 /*                                                            */
 /* ********************************************************** */
 
@@ -377,6 +380,7 @@ class cAppli_SfmInitGlob: public cMMVII_Appli
      cPhotogrammetricProject   mPhProj;
 
      int                       mSeed;
+     int                       mNbTriEdge;
 
      void SetVecT(cDenseVect<tREAL8>&,
                   tU_INT4, tU_INT4, tU_INT4,
@@ -385,9 +389,12 @@ class cAppli_SfmInitGlob: public cMMVII_Appli
                   tU_INT4, tU_INT4,
                   const cPt4dr&, int);
 
-     void SolveL1(cHyperGraph&);
+     void SolveL1(cHyperGraph&); //P0^-1 * P1 = p01
+     //void SolveL1Parallel(cHyperGraph&);
 
      void Bench_SfmInit();
+     void CheckRelOri(cHyperGraph&);
+
 
 };
 

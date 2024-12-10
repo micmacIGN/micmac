@@ -58,7 +58,7 @@ template <class Type>  class cLinearMemoEq  : public cLinearOverCstrSys<Type>
 template <class Type>  class cCraig_Barrodale_Roberts_l1 : public cLinearMemoEq<Type>
 {
 	public :
-	    static constexpr Type mTol=1e-8;
+        static constexpr Type mTol=1e-8;
 
             typedef tINT4   INT;
 	    cDenseVect<Type>  SpecificSolve() override;
@@ -402,7 +402,7 @@ loop1:	if (stage) {
 			*(a+m1*n2+n) = 0.0;
 			if (kr == 0) {
 				for (j=0, ptr=a+m*n2; j<n; j++, ptr++) {
-					d = fabs(*ptr);
+                    d = fabs(*ptr);
 					if (d <= toler || 2.0-d <= toler)
 						goto end;
 				}
@@ -429,7 +429,7 @@ loop1:	if (stage) {
 	}
 loop2:	if (k <= -1)
 		test = false;
-	else {
+    else {
 		min = BIG;
 		for (i=0; i<=k; i++)
 			if (b[i] < min) {
@@ -442,7 +442,7 @@ loop2:	if (k <= -1)
 		k--;
 	}
 
-	/* check for linear dependence in stage I */
+    /* check for linear dependence in stage I */
 
 	if (!test && stage) {
 		for (i=0, ptr=a+kr, ptr1=a+in; i<m2; i++, ptr += n2,
@@ -456,7 +456,7 @@ loop2:	if (k <= -1)
 		*(a+m1*n2+n) = 2.0;
 		goto end;
 	} else {
-		pivot = *(a+out*n2+in);
+        pivot = *(a+out*n2+in);
 		if (*(a+m*n2+in) - pivot - pivot > toler) {
 			for (j=kr, ptr=a+out*n2+kr, ptr1=a+m*n2+kr; j<n1; j++,
 				ptr++, ptr1++) {
