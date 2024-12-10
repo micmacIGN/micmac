@@ -24,10 +24,9 @@ cBA_GCP::~cBA_GCP()
 /*                cMMVII_BundleAdj::GCP                           */
 /* -------------------------------------------------------------- */
 
-void cMMVII_BundleAdj::AddGCP(const std::string & aName,tREAL8 aSigmaGCP,const  cStdWeighterResidual & aWeighter, cSetMesGndPt *  aMesGCP, bool verbose)
+void cMMVII_BundleAdj::AddGCP3D(const std::string & aName, tREAL8 aSigmaFactor3D, cSetMesGnd3D *aSetMesGnd3D, bool verbose);
 {
-    if (!mGCP)
-        mGCP = new cBA_GCP;
+    mGCP.mMesGCP.AddMes3D(*aSetMesGndPt);
 
     mGCP->mName           = aName;
     mGCP->mMesGCP         = aMesGCP;
@@ -43,6 +42,12 @@ void cMMVII_BundleAdj::AddGCP(const std::string & aName,tREAL8 aSigmaGCP,const  
         StdOut()<<  "MESIM=" << mGCP->mMesGCP->MesImOfPt().size() << " MesGCP=" << mGCP->mMesGCP->MesGCP().size()  << std::endl;
     }
 }
+
+void cMMVII_BundleAdj::AddGCP2D(const std::string & aName, tREAL8 aSigmaGCP, const  cStdWeighterResidual& aWeightIm, cSetMesPtOf1Im * aSetMesPtOf1Im, bool verbose)
+{
+
+}
+
 
 void cMMVII_BundleAdj::InitItereGCP()
 {

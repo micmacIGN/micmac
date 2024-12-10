@@ -237,7 +237,7 @@ class cSetMesGndPt : public cMemCheck
 	    // cSetMesImGCP(const cComputeMergeMulTieP  &);
 
             ///  Add one set of 3D measures (often called only once), all calls must occur before AddMes2D
-            void AddMes3D(const cSetMesGnd3D &);
+            void AddMes3D(const std::string &aSetName, tREAL4 aSigmaFactor, const cSetMesGnd3D &);
 	    /// For a single GCP (called by AddMes3D)
 	    void Add1GCP(const cMes1Gnd3D &);
 	    ///  Add mesure on 1 images, close the possibility for further call to AddMes3D

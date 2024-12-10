@@ -430,7 +430,7 @@ class cMMVII_BundleAdj
           // ===================  Information to use ==================
 	     
 	          // - - - - - - - - GCP  - - - - - - - - - - -
-          cBA_GCP*        mGCP;
+          cBA_GCP        mGCP;
 
 	         // - - - - - - - - MTP  - - - - - - - - - - -
           std::vector<cBA_TieP*>   mVTieP;
