@@ -1152,7 +1152,6 @@ void cMMVII_Appli::LogCommandOut(const std::string & aName,bool MainLogFile)
    // Add id, if several process were throw in // there is a mix and we no longer know which was closed
    aOfs.Ofs() << "  ending correctly at : " <<  StrDateCur()  
               << " Time=" << SecFromT0() - TimeSegm().CurBeginTime()
-              << " TTT=" << SecFromT0() 
               << " (Id=" << mPrefixNameAppli << ")\n\n";
    aOfs.Ofs().close();
 }

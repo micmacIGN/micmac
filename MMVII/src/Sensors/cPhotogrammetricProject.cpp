@@ -804,6 +804,17 @@ void cPhotogrammetricProject::LoadGCP(cSetMesImGCP& aSetMes,const std::string & 
 }
 
 
+cSetMesGCP cPhotogrammetricProject::LoadGCP() const
+{
+    cSetMesImGCP  aSetMesIm;
+    LoadGCP(aSetMesIm);
+    return aSetMesIm.AllMesGCP();
+}
+cSetMesGCP cPhotogrammetricProject::LoadGCPFromFolder(const std::string & aFolder) const
+{
+     cAutoChgRestoreDefFolder  aCRDF(aFolder,DPPointsMeasures()); // Chg Folder and restore at destruction
+     return  LoadGCP();
+}
 
 
 
@@ -1145,15 +1156,19 @@ void cPhotogrammetricProject::SaveMeasureClino(const cSetMeasureClino & aSetM) c
      SaveInFile(const_cast<cSetMeasureClino&>(aSetM),NameFileMeasuresClino(false));
 }
 
-void cPhotogrammetricProject::ReadMeasureClino(cSetMeasureClino & aSet) const
+void cPhotogrammetricProject::ReadMeasureClino(cSetMeasureClino & aSet,const std::string * aPat) const
 {
    ReadFromFile(aSet,NameFileMeasuresClino(true));
+   if (aPat!=nullptr)
+   {
+      aSet.FilterByPatIdent(*aPat);
+   }
 }
 
-cSetMeasureClino  cPhotogrammetricProject::ReadMeasureClino() const
+cSetMeasureClino  cPhotogrammetricProject::ReadMeasureClino(const std::string * aPat) const
 {
     cSetMeasureClino aRes;
-    ReadMeasureClino(aRes);
+    ReadMeasureClino(aRes,aPat);
 
     return aRes;
 }

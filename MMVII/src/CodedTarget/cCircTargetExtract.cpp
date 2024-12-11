@@ -742,6 +742,7 @@ class cAppliExtractCircTarget : public cMMVII_Appli,
         int                   mZoomVisuLabel;
         int                   mZoomVisuSeed;
         int                   mZoomVisuElFinal;
+        bool                  mShowOnlyMul;
         cExtract_BW_Ellipse * mExtrEll;
         cParamBWTarget  mPBWT;
 
@@ -790,6 +791,7 @@ cAppliExtractCircTarget::cAppliExtractCircTarget
    mZoomVisuLabel    (0),
    mZoomVisuSeed     (0),
    mZoomVisuElFinal  (0),
+   mShowOnlyMul      (false),
    mExtrEll          (nullptr),
    mImMarq           (cPt2di(1,1)),
    mPhProj           (*this),
@@ -827,6 +829,7 @@ cCollecSpecArg2007 & cAppliExtractCircTarget::ArgOpt(cCollecSpecArg2007 & anArgO
              << AOpt2007(mZoomVisuLabel,"ZoomVisuLabel","Make a visualisation of labeled image",{eTA2007::HDV})
              << AOpt2007(mZoomVisuSeed,"ZoomVisuSeed","Make a visualisation of seed point",{eTA2007::HDV})
              << AOpt2007(mZoomVisuElFinal,"ZoomVisuEllipse","Make a visualisation extracted ellispe & target",{eTA2007::HDV})
+             << AOpt2007(mShowOnlyMul,"ShowOnlyMul","Show Only Mutlipe detectection",{eTA2007::HDV})
              << AOpt2007(mPatHihlight,"PatHL","Pattern for highliting targets in visu",{eTA2007::HDV})
 
              << AOpt2007(mNbMaxMT_Init,"NbMMT0","Nb max of multiple target acceptable initial (for 0 image)",{eTA2007::HDV})
@@ -894,13 +897,16 @@ void cAppliExtractCircTarget::MakeImageFinalEllispe()
    cPt2dr  aSz(50,50);
    cPt3dr aAlpha(0.7,0.7,0.7);
 
+   // In the case of simulation we know the ground truch
    if (mUseSimul)
    {
+      //  show the missed target
       for (const auto & aGT :  mGTMissed)
       {
           if (aGT->mResExtr ==nullptr)
              aImVisu.FillRectangle(cRGBImage::Red,ToI(aGT->mC-aSz),ToI(aGT->mC+aSz),aAlpha);
       }
+      //  show the wrong detection
       for (const auto & anEE : mVCTE)
       {
           if ((anEE->mWithCode)  && (anEE->mGT ==nullptr))
@@ -912,28 +918,32 @@ void cAppliExtractCircTarget::MakeImageFinalEllispe()
 
    for (const auto & anEE : mVCTE)
    {
-        const cEllipse &   anEl  = anEE->mEllipse;
-	bool doHL = MatchRegex(anEE->mEncode.Name(),mPatHihlight);
-        for (tREAL8 aMul = 1.0; aMul < (doHL ? 4.0 : 2.5); aMul += (doHL ? 0.05 : 0.4))
-        {
-            aImVisu.DrawEllipse
-            (
-               (anEE->mCardDetect==1) ? cRGBImage::Green : cRGBImage::Red  ,  // anEE.mWithCode ? cRGBImage::Blue : cRGBImage::Red,
-               anEl.Center(),
-               anEl.LGa()*aMul , anEl.LSa()*aMul , anEl.TetaGa()
-            );
-        }
+       if ((!mShowOnlyMul) || (anEE->mCardDetect!=1))
+       {
+           const cEllipse &   anEl  = anEE->mEllipse;
+	   bool doHL = MatchRegex(anEE->mEncode.Name(),mPatHihlight);
+           for (tREAL8 aMul = 1.0; aMul < (doHL ? 4.0 : 2.5); aMul += (doHL ? 0.05 : 0.4))
+           {
+               aImVisu.DrawEllipse
+               (
+                  (anEE->mCardDetect==1) ? cRGBImage::Green : cRGBImage::Red  ,  
+                  anEl.Center(),
+                  anEl.LGa()*aMul , anEl.LSa()*aMul , anEl.TetaGa()
+               );
+
+           }
 	//BF
-	if (anEE->mWithCode)
-        {
-             aImVisu.DrawString
-             (
+	   if (anEE->mWithCode)
+           {
+                aImVisu.DrawString
+                (
                   anEE->mEncode.Name(),cRGBImage::Red,
 		  anEl.Center(),cPt2dr(0.5,0.5),
 		  3
-             );
+                );
 
-	}
+	   }
+       }
    }
 
     aImVisu.ToJpgFileDeZoom(mPhProj.DirVisuAppli()+mPrefixOut + "_Ellipses.tif",mZoomVisuElFinal);

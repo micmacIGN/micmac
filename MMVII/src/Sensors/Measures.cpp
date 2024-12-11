@@ -209,6 +209,15 @@ cMes1GCP &  cSetMesImGCP::MesGCPOfName(const std::string & aNamePt)
 }
 
 
+cSetMesGCP cSetMesImGCP::AllMesGCP() const
+{
+   cSetMesGCP aRes;
+   for (const auto &  aGCP : mMesGCP)
+      aRes.AddMeasure(aGCP);
+
+   return aRes;
+}
+
 
 
 const cMes1GCP &  cSetMesImGCP::MesGCPOfNum(int aNum) const
@@ -654,6 +663,15 @@ cSetMesGCP::cSetMesGCP(const std::string &aNameSet) :
 cSetMesGCP::cSetMesGCP() :
     cSetMesGCP("???")
 {
+}
+
+std::list<std::string>  cSetMesGCP::ListOfNames() const
+{
+    std::list<std::string> aRes;
+    for (const auto & aGCP : mMeasures)
+        aRes.push_back(aGCP.mNamePt);
+
+   return aRes;
 }
 
 

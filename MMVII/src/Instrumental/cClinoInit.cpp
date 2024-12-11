@@ -258,6 +258,7 @@ class cAppli_ClinoInit : public cMMVII_Appli
         std::vector<tRotR>             mOriRelClin; ///< vector of relative orientations Clino[0]/Clino[K]
 	bool                           mShowAll;    ///< Do we show all the msg relative to residuals
         cCalibSetClino                 mCalibSetClino; ///< Result of the calibration
+        std::string                    mPatFilter;
 };
 
 cAppli_ClinoInit::cAppli_ClinoInit
@@ -272,7 +273,8 @@ cAppli_ClinoInit::cAppli_ClinoInit
      mNbIter       (50),
      mNameRel12    ("i-kj"),
      isOkNoCam     (false),
-     mShowAll      (false)
+     mShowAll      (false),
+     mPatFilter    (".*")
 {
 }
 
@@ -298,6 +300,7 @@ cCollecSpecArg2007 & cAppli_ClinoInit::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 	    << AOpt2007(mNameRel12,"Rel12","orientation relative 2 to 1, if several clino",{eTA2007::HDV})
 	    << AOpt2007(isOkNoCam,"OkNoCam","is it OK if some cam dont exist",{eTA2007::HDV})
             <<  mPhProj.DPClinoMeters().ArgDirInOpt()  // Just for temporart test we can re-read, to supress later
+	    << AOpt2007(mPatFilter,"PatFilter","Pattern for filtering measure on ident",{eTA2007::HDV})
     ;
 }
 
@@ -418,8 +421,9 @@ int cAppli_ClinoInit::Exe()
 
 
     // --------- Read formated file ----------------
-    cSetMeasureClino aSMC = mPhProj.ReadMeasureClino() ;
-    const std::vector<cOneMesureClino>&  aVMC =  aSMC.SetMeasures();
+    cSetMeasureClino aSMC = mPhProj.ReadMeasureClino(&mPatFilter) ;
+    // const std::vector<cOneMesureClino>&  aVMC =  aSMC.SetMeasures();
+    std::vector<cOneMesureClino>  aVMC =  aSMC.SetMeasures();
 
     // ------------- Compute vector ofrelative position  : usefull only when we have 2 clino
     tRotR aRSim = tRotR::Identity();  // Rotation for simulation
@@ -491,6 +495,7 @@ int cAppli_ClinoInit::Exe()
     tREAL8 aStep = 2.0/mNbStep0;
     tREAL8 aDiv = 1.25;
     
+    tREAL8 aInitRes = std::sqrt(aWM0.ValExtre());
     for (int aK=0 ; aK<mNbIter ; aK++)
     {
          aWM0 =  OneIter(aWM0.IndexExtre(), (2*aStep)/mNbStepIter,mNbStepIter);
@@ -500,6 +505,7 @@ int cAppli_ClinoInit::Exe()
     StdOut() <<  "=============== Result of global optimization  =============" << std::endl;
     StdOut() << "Residual=" << std::sqrt(aWM0.ValExtre()) 
             << " Cond=" << ComputeCond(aWM0.IndexExtre())
+            << " Resid Init=" << aInitRes
 	    << std::endl;
 
     for (size_t aKClino=0 ; aKClino<mVKClino.size() ; aKClino++)

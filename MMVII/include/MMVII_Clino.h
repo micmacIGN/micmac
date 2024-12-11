@@ -65,6 +65,8 @@ class cSetMeasureClino
 
           void SetNames(const  std::vector<std::string> &);
 
+          void FilterByPatIdent(const std::string& aPat);
+
        private :
           std::vector<std::string>      mNamesClino;
           std::string                   mPatMatch;

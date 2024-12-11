@@ -189,6 +189,8 @@ class cSetMesGCP : public cMemCheck
           const std::vector<cMes1GCP> &   Measures() const;  ///< Accessor
 	  static  const std::string ThePrefixFiles;
 
+          std::list<std::string>  ListOfNames() const;
+
     private :
 	  std::string              mNameSet;
           std::vector<cMes1GCP>    mMeasures;
@@ -258,6 +260,7 @@ class cSetMesImGCP : public cMemCheck
 	    cMes1GCP &              MesGCPOfName(const std::string &) ;
 	    const cMes1GCP &        MesGCPOfNum(int) const;
 	    const cMes1GCP &        MesGCPOfMulIm(const cMultipleImPt &) const;
+            cSetMesGCP AllMesGCP() const;
 
 	    bool  NameIsGCP(const std::string &) const;
 	    cSetMesGCP  ExtractSetGCP(const std::string & aNameSet) const;
