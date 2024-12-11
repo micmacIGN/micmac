@@ -174,12 +174,9 @@ void cParamCodedTarget::PCT_AddData(const cAuxAr2007 & anAuxParam,const cSpecBit
 
     if (anAux.Input())
     {
-StdOut()  <<  "ADDDDD ThickN_Code " << mThickN_Code << "\n";
         MMVII_INTERNAL_ASSERT_strong(aSpec!=nullptr," cParamCodedTarget::PCT_AddData no Spec in input mode");
         FinishInitOfSpec(*aSpec,false);
-StdOut()  <<  "ADDDDD ThickN_Code " << mThickN_Code << "\n";
 	FinishWoSpec();
-StdOut()  <<  "ADDDDD ThickN_Code " << mThickN_Code << "\n";
     }
 }
 const std::string cParamCodedTarget::TheMainTag = "GeometryCodedTarget";

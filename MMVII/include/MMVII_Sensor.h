@@ -714,8 +714,8 @@ class cPhotogrammetricProject
 	 /// Standard name for file of measures clino 
 	 std::string NameFileMeasuresClino(bool Input,const std::string & aNameFile="" ) const;
 	 void SaveMeasureClino(const cSetMeasureClino &) const;
-	 void ReadMeasureClino(cSetMeasureClino &) const;
-	 cSetMeasureClino ReadMeasureClino() const;
+	 void ReadMeasureClino(cSetMeasureClino &,const std::string * aPatSel=nullptr) const;
+	 cSetMeasureClino ReadMeasureClino(const std::string * aPatSel=nullptr) const;
 
 	 //===================================================================
          //==================   Rigid Bloc           =========================

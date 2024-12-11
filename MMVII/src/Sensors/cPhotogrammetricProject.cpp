@@ -1156,15 +1156,19 @@ void cPhotogrammetricProject::SaveMeasureClino(const cSetMeasureClino & aSetM) c
      SaveInFile(const_cast<cSetMeasureClino&>(aSetM),NameFileMeasuresClino(false));
 }
 
-void cPhotogrammetricProject::ReadMeasureClino(cSetMeasureClino & aSet) const
+void cPhotogrammetricProject::ReadMeasureClino(cSetMeasureClino & aSet,const std::string * aPat) const
 {
    ReadFromFile(aSet,NameFileMeasuresClino(true));
+   if (aPat!=nullptr)
+   {
+      aSet.FilterByPatIdent(*aPat);
+   }
 }
 
-cSetMeasureClino  cPhotogrammetricProject::ReadMeasureClino() const
+cSetMeasureClino  cPhotogrammetricProject::ReadMeasureClino(const std::string * aPat) const
 {
     cSetMeasureClino aRes;
-    ReadMeasureClino(aRes);
+    ReadMeasureClino(aRes,aPat);
 
     return aRes;
 }
