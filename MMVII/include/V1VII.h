@@ -37,7 +37,7 @@ void MakeStdIm8BIts(cIm2D<tREAL4> aImIn,const std::string& aName);
 
 
 
-//FIXME CM->MPD: Must replace cMMV1_Conv::ImToMMV1
+//FIXME CM->MPD: Mail MPD fichier xmmlV1.cpp Must replace cMMV1_Conv::ImToMMV1
 template <class Type> class cMMV1_Conv
 {
     public :
@@ -63,8 +63,6 @@ template <class Type> class cMMV1_Conv
      static void ReadWrite(bool ReadMode,const std::vector<const tImMMVII*>& ,const cDataFileIm2D &aDF,const cPt2di & aP0File,double aDyn,const cRect2& aR2Init);
 #endif
 };
-
-std::string V1NameMasqOfIm(const std::string & aName);
 
 // Call V1 Fast kth value extraction
 double KthVal(std::vector<double> &, double aProportion);

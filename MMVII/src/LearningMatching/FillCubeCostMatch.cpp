@@ -478,8 +478,6 @@ int  cAppliFillCubeCost::Exe()
    cPt2di aSz = aDZMin.Sz();
    cPt2di aPix;
 
-   int aCpt=0;
-
    for (aPix.y()=0 ; aPix.y()<aSz.y() ; aPix.y()++)
    {
        StdOut() << "Line " << aPix.y() << " on " << aSz.y()  << std::endl;
@@ -496,7 +494,6 @@ int  cAppliFillCubeCost::Exe()
                bool   aTabOk[2];
 	       for (int aK=0 ; aK<int(aVMods.size()) ; aK++)
                     aTabCost[aK] = aVMods[aK]->ComputeCost(aTabOk[aK],aPC1,aPC20,aDz);
-               aCpt++;
                PushCost(aTabCost[0]);
 
 	       if (mCmpCorLearn && aTabOk[0] && aTabOk[1])

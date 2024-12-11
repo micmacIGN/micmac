@@ -50,9 +50,11 @@ class cDataFileIm2D : public cRect2
         static cDataFileIm2D Create(const std::string & aName,eForceGray);
         /// Create the file before returning the descriptor
         static cDataFileIm2D Create(const std::string & aName,eTyNums,const cPt2di & aSz, int aNbChan=1);
+        /// Options depends on each format driver and may be not applied if the file already exits ...
         static cDataFileIm2D Create(const std::string & aName,eTyNums,const cPt2di & aSz, const tOptions& aOptions, int aNbChan=1);
 
-        // Special creation for full write (non updatable) format : jpeg, png, ...
+        // Special creation for fully write format : jpeg, png, ... File will be (re)created on each write and the full file must be written at once
+        // This function guarantees that the options will be applied (if driver allows them ...)
         static cDataFileIm2D CreateOnWrite(const std::string & aName,eTyNums,const cPt2di & aSz, const tOptions& aOptions={}, int aNbChan=1);
         static cDataFileIm2D CreateOnWrite(const std::string & aName,eTyNums,const cPt2di & aSz, int aNbChan=1);
 

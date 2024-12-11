@@ -253,7 +253,6 @@ template <class Type> cIsometry3D<Type> cElemSpaceResection<Type>::BC2Pose(const
 
 template <class Type> void  cElemSpaceResection<Type>::OneTestCorrectness()
 {
-   static int aCpt=0; aCpt++;
    {
        // generate 3 bundle not too degenared => 0,P0,P1,P2 cot coplanar
        cTriangle<Type,3> aTriBund = RandomTetraTriangRegul<Type>(1e-2,1e2);
