@@ -28,7 +28,7 @@ static const std::vector<eTA2007> prjSubDirList =                           // c
 
 static const std::map<eTA2007,std::vector<std::string>> fileList =          // clazy:exclude=non-pod-global-static
 {
-    {eTA2007::FileImage,{".tif",".tiff",".jpg",".jpeg",".png",".cr2",".crw",".nef"}},
+    {eTA2007::FileImage,{".tif",".tiff",".jpg",".jpeg",".png",".jp2",".bmp",".cr2",".crw",".nef"}},
     {eTA2007::FileCloud,{".ply"}},
     {eTA2007::File3DRegion,{""}},
     {eTA2007::XmlOfTopTag,{".xml",".json"}},

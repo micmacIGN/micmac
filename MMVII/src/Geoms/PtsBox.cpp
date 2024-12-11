@@ -746,6 +746,13 @@ template <const int Dim> cBorderPixBox<Dim>  cPixBox<Dim>::Border(int aSz) const
    return  cBorderPixBox<Dim>(*this,aSz);
 }
 
+template <const int Dim> cPixBox<Dim>  cPixBox<Dim>::Interior(int aSz) const
+{
+   return  cPixBox<Dim>(this->Dilate(-aSz));
+}
+
+
+
 template <const int Dim> cPtxd<int,Dim>  cPixBox<Dim>::CircNormProj(const tPt & aPt) const
 {
     cPtxd<int,Dim>  aRes;

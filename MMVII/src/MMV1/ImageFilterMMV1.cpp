@@ -2,7 +2,7 @@
 #include "MMVII_Matrix.h"
 #include "MMVII_Linear2DFiltering.h"
 
-// FIXME CM->MPD: Qu'est ce qu'on fait ici pour remplacer ELISE_COPY ?
+// FIXME CM->MPD: Mail a MPD ! Qu'est ce qu'on fait ici pour remplacer ELISE_COPY ?
 
 /** \file ImageFilterMMV1.cpp
     \brief file for using MMV1 filters
@@ -17,9 +17,89 @@
 
 namespace MMVII
 {
+/*
+ * 
+    REAL** i0 = in[0]; // Image
+    REAL** p0 = in[1]; // power
+    REAL*  o0 = out[0];
+
+    for (INT x=arg.x0() ;  x<arg.x1() ; x++)
+    {
+       REAL gx = (i0[0][x+1] - i0[0][x-1]) / 2;
+       REAL gy = (i0[1][x]   - i0[-1][x] ) / 2;
+       REAL g2 = (gx * gx + gy * gy);
+
+       if (g2 == 0)
+       {
+          o0[x] = 0;
+       }
+       else
+       {
+          double p = p0[0][x];
+          if (p !=1)
+             g2 = pow(g2,p);
+          REAL c_xx = (i0[0][x+1] + i0[0][x-1]  - 2 * i0[0][x]);
+          REAL c_yy = (i0[1][x]   + i0[-1][x]   - 2 * i0[0][x]);
+          REAL c_xy = (i0[1][x+1] + i0[-1][x-1] - i0[1][x-1] - i0[-1][x+1]) / 4;
+
+          o0[x] =     ( c_xx * gy * gy - 2 * c_xy * gx * gy + c_yy * gx * gx) / g2;
+        }
+   }
+
+ */
+
+/// Make a functor for an image, giving standard access to its value
+template<class Type> class cImAccesStd
+{
+     public :
+        cImAccesStd(const cDataIm2D<Type> & aIm) : mIm (aIm) {}
+	Type operator() (const cPt2di & aP) {return mIm.GetV(aP);}
+	typedef Type  tVal;
+     private :
+        const cDataIm2D<Type>&  mIm;
+};
+/// Make a "safe" functor for an image, giving standard access to its value
+template<class Type> class cImAccesProj
+{
+     public :
+        cImAccesProj(const cDataIm2D<Type> & aIm) : mIm (aIm) {}
+	Type operator() (const cPt2di & aP) {return mIm.GetV(mIm.Proj(aP));}
+	typedef Type  tVal;
+     private :
+        const cDataIm2D<Type>&  mIm;
+};
+
+
+/*
+template <class tFunc>  typename tFunc::tVal  NewCourbTgt(const tFunc & aFunc,const cPt2di & aPt)
+{
+}
+*/
+
+
+
+
+template<class Type> cIm2D<Type> MMVII_CourbTgt(const cIm2D<Type> & aImIn)
+{
+    const cDataIm2D<Type> & aDImIn(aImIn.DIm());
+
+    cImAccesStd<Type>   aIAStd (aDImIn);
+    cImAccesProj<Type>  aIAProj(aDImIn);
+
+    cIm2D<Type> aRes(aDImIn.Sz());
+    for (const auto & aPt : aDImIn.Interior(1) )
+    {
+        aRes.DIm().SetV(aPt,aIAStd(aPt)+aIAProj(aPt));
+    }
+
+
+    return aRes;
+}
 
 template<class Type> cIm2D<Type> CourbTgt(cIm2D<Type> aImIn)
 {
+MMVII_CourbTgt(aImIn);
+
     cIm2D<Type> aRes(aImIn.DIm().Sz());
 
     auto  aV1In  = cMMV1_Conv<Type>::ImToMMV1(aImIn.DIm());

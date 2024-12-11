@@ -1155,7 +1155,7 @@ void OneBench(int aNbImage,int aNbPts,int aMaxCard,bool DoIt)
     cSimulHom aSimH(aNbImage,aNbPts,aMaxCard,false);
     cComputeMergeMulTieP aSetMTP1(aSimH.VNames());
 
-    int aCptErr = 0;
+    [[maybe_unused]] int aCptErr = 0;
     for (int aKPts=0 ; aKPts<aNbPts ; aKPts++)
     {
         cMultiplePt aMTP = aSimH.GenMulTieP();
