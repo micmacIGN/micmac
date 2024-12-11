@@ -87,6 +87,7 @@ template <const int Dim>  class cPixBox : public cTplBox<int,Dim>
         tPt  CircNormProj(const tPt &) const;
 
         cBorderPixBox<Dim>  Border(int aSz) const;
+        cPixBox<Dim>  Interior(int aSz) const;
 
         inline bool InsideBL(const cPtxd<double,Dim> & aP) const; ///< Inside for Bilin
         bool InsideInterpolator(const cInterpolator1D &,const cPtxd<double,Dim> & aP,tREAL8 aMargin=0.0) const; ///< Inside for Bilin
