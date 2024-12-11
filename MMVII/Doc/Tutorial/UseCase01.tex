@@ -724,7 +724,7 @@ The file with clinometers measures must have :
 \begin{itemize}
      \item one line per camera
      \item in each line, the image name
-     \item in each line, the measures of the two clinometers
+     \item in each line, the measures of the clinometers
      \item each clinometer measure has the name of the clinometer, its measure and its sigma  
 \end{itemize}
 
@@ -737,26 +737,39 @@ image3 clino1 +0.064786 +0.00001 clino2 +0.014629 +0.00002
 \end{lstlisting}
 
 
+\subsection{ImportMeasuresClino}
+
+First step is to import clino measures.
+
+\begin{lstlisting}
+     MMVII ImportMeasuresClino ClinoValue.txt "ImNASNASNASNAS" clinoMeasures [043_,.tif]
+\end{lstlisting}
+
+Parameters of {\tt ImportMeasuresClino} are :
+\begin{itemize}
+     \item ClinoValue.txt : file with clinometers measures.
+     \item "ImNASNASNASNAS" : structure of ClinoValue.txt : Im for image name, N for clinometer name, A for clinometer measure, S for sigma measure
+     \item clinoMeasures : directory with the imported values : MMVII-PhgrProj/MeasureClino/clinoMeasures
+     \item $[$043$\_$,.tif$]$ : values added before and after image names in ClinoValue.txt to have the correct names of camera
+\end{itemize}
+
 
 \subsection{ClinoInit}
 
 The first step is to find approximation of the Boresight matrixes with {\tt ClinoInit}.
 
 \begin{lstlisting}
-     MMVII ClinoInit Data-Input/ClinoMeasures.txt "ISF#SF#" [1,0] BA_Clino_B  INIT_CLINO Rel12="i-kj" OkNoCam=true PrePost=[949_,.JPG]
+     MMVII ClinoInit clinoMeasures [1,0] BA_Br INIT_CLINO Rel12="i-kj"
 \end{lstlisting}
 
 
 Parameters of {\tt ClinoInit} are :
 \begin{itemize}
-     \item Data-Input/ClinoMeasures.txt : file with clinometers measures.
-     \item "ISF\#SF\#" : structure of ClinoMeasures.txt : I for image name, S for clinometer name, F for a value, \# for a not used column. In {\tt ClinoInit}, sigma are not used
-     \item $[$1,0$]$ : index of clinometers in ClinoMeasures.txt
-     \item BA$\_$Clino$\_$B : orientation of camera
+     \item clinoMeasures : directory with imported clinometers measures
+     \item $[$1,0$]$ : index of clinometers to use
+     \item BA$\_$Br : orientation of camera
      \item INIT$\_$CLINO : name of directory where approximation of clinometers calibrations will be saved
      \item Rel12="i-kj" : an approximation of the relative orientation between the two clinometers systems ($\Vec{i_2}=\Vec{i_1}, \Vec{j_2}=-\Vec{k_1}, \Vec{k_2}=\Vec{j_1}$)
-     \item OkNoCam=true : if true, do not raise error if an image in ClinoMeasures.txt is not in BA$\_$Clino$\_$B
-     \item PrePost=[949$\_$,.JPG] : values added before and after image names in ClinoMeasures.txt to have the same names than in BA$\_$Clino$\_$B
 \end{itemize}
 
 In INIT$\_$CLINO, there are the clinometers name with their approximate Boresight matrix. There is also the approximation of the relative orientation between the two clinometers system.
@@ -765,25 +778,23 @@ In INIT$\_$CLINO, there are the clinometers name with their approximate Boresigh
 
 \subsection{OriBundleAdj}
 
-Then, you can compute the Boresight matrixes with {\tt OriBundleAdj}. You need to complete the parameter NameClino to compute the clinometers calibration
+Then, you can compute the Boresight matrixes with {\tt OriBundleAdj}. You need to complete the parameter ClinoDirIn to compute the clinometers calibration
 
 \begin{lstlisting}
-     MMVII  OriBundleAdj  AllImClino.xml  BA_Clino_B   BA_Clino_C   GCPDir=ClinoCompl  GCPW=[1,1,0.5]  PPFzCal=.* ClinoDirIn=INIT_CLINO ClinoDirOut=CALIB_CLINO NameClino=Data-Input/ClinoMeasures.txt Format=ISFFSFF PrePost=[949_,.JPG]
+     MMVII  OriBundleAdj  AllImClino.xml  BA_Br   BA_Clino   GCPDir=Clino_Filtered  GCPW=[1,0.1]  PPFzCal=.* ClinoDirIn=INIT_CLINO ClinoDirOut=CALIB_CLINO InMeasureClino=clinoMeasures
 \end{lstlisting}
 
 Parameters of {\tt ClinoInit} are :
 \begin{itemize}
      \item AllImClino.xml : name of images
-     \item BA$\_$Clino$\_$B : orientation of camera
-     \item BA$\_$Clino$\_$C : orientation of camera after the bundle adjustment
-     \item GCPDir=ClinoCompl : directory for GCP
-     \item GCPW=[1,1,0.5] : GCP weights
+     \item BA$\_$Br : orientation of camera
+     \item BA$\_$Clino : orientation of camera after the bundle adjustment
+     \item GCPDir=Clino$\_$Filtered : directory for GCP
+     \item GCPW=[1,0.1] : GCP weights
      \item PPFzCal=.* : freeze internal calibration
      \item ClinoDirIn=INIT$\_$CLINO : approximation of the two Boresight matrixes computed with {\tt ClinoInit}
      \item ClinoDirOut=CALIB$\_$CLINO : name of directory where clinometers calibrations will be saved
-     \item NameClino=Data-Input/ClinoMeasures.txt : file with clinometers measures.
-     \item "ISFFSFF" : structure of ClinoMeasures.txt. This time, sigmas are used
-     \item PrePost=[949$\_$,.JPG] : see {\tt ClinoInit}
+     \item InMeasureClino=clinoMeasures : directory with imported clinometers measures
 \end{itemize}
 
 The output clinometers orientations are the same than for {\tt ClinoInit}.

@@ -35,13 +35,14 @@ void cGeomSimDCT::Translate(const cPt2dr & aTr)
 }
 
 
-cGeomSimDCT::cGeomSimDCT(const cOneEncoding & anEncod,const  cPt2dr& aC,const double& aR1,const double& aR2):
+cGeomSimDCT::cGeomSimDCT(const cOneEncoding & anEncod, const  cPt2dr& aC, const double& aR1, const double& aR2, const std::string &aName):
     mResExtr (nullptr),
     mEncod   (anEncod),
     //  mNum (aNum),
     mC   (aC),
     mR1  (aR1),
-    mR2  (aR2)
+    mR2  (aR2),
+    mName(aName)
 {
 }
 
@@ -215,7 +216,7 @@ void   cAppliSimulCodeTarget::AddPosTarget(const cOneEncoding & anEncod)
         double  aRsmall = aRbig*RandInInterval(mRS.mRatioMinMax);
 
         // check if there is already a selected target overlaping
-        cGeomSimDCT aGSD(anEncod,aC,aRsmall,aRbig);
+        cGeomSimDCT aGSD(anEncod,aC,aRsmall,aRbig,anEncod.Name());
 	bool GotClose = false;
 	for (const auto& aG2 : mRS.mVG)
             GotClose = GotClose || aG2.Intersect(aGSD);
@@ -230,8 +231,19 @@ void   cAppliSimulCodeTarget::AddPosTarget(const cOneEncoding & anEncod)
 
 void  cAppliSimulCodeTarget::IncrustTarget(cGeomSimDCT & aGSD)
 {
+    // We want that random is different for each image, but deterministic, independent of number of pixel noise drawn
+    cRandGenerator::TheOne()->setSeed(HashValue(mNameIm+"*"+aGSD.mName,true));
+
     // [1] -- Load and scale image of target
     tIm aImT =  Convert((tElem*)nullptr,mSpec->OneImTarget(aGSD.mEncod).DIm());
+
+/*
+    static bool isFirst = false;
+    if (isFirst && mShowFirst)
+    {
+       isFirst = true;
+   }
+*/
     aImT =  aImT.GaussDeZoom(mDownScale,5);
     
 
@@ -363,16 +375,22 @@ int  cAppliSimulCodeTarget::Exe()
    // mPCT.InitFromFile(mNameSpecif);
    mSpec =  cFullSpecifTarget::CreateFromFile(mNameSpecif);
 
+
    mImIn = tIm::FromFile(mNameIm);
 
    for (const auto & anEncod : mSpec->Encodings())
    {
         if (MatchRegex(anEncod.Name(),mPatternNames))
 	{
+            // We want that random is different for each image, but deterministic for one given image
+            cRandGenerator::TheOne()->setSeed(HashValue(mNameIm+"/"+anEncod.Name(),true));
             AddPosTarget(anEncod);
-            StdOut() <<  "Target " << anEncod.Name() << " " << mRS.mVG.back().mC << std::endl;
+            //StdOut() <<  "Target " << anEncod.Name() << " " << mRS.mVG.back().mC << std::endl;
 	}
    }
+
+   if (!mRS.mVG.empty())
+       StdOut() <<  "1st target " << mRS.mVG[0].mName << " " << mRS.mVG[0].mC << std::endl;
 
    for (auto  & aG : mRS.mVG)
    {

@@ -122,7 +122,7 @@ int cAppli_SegImReport::Exe()
    std::string aN2 =  mFolder2;
 
    mPrefixCSV = "CmpLines_"+  aN1  + "_" + aN2 ;
-   InitReport(mPrefixCSV,"csv",false);
+   InitReportCSV(mPrefixCSV,"csv",false);
    AddHeaderReportCSV(mPrefixCSV,{"Image","Nb " + aN1 ,"Nb " + aN2,"Dist"});
 
 

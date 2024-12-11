@@ -27,7 +27,7 @@ MMVII  EditCalcMTDI  Std Focalmm ImTest=21FD244720x00015_00614.tif Modif=[21FD24
 
 # Import Calibration & Orientations
 MMVII OriCreateCalib ImAerien.xml  CalibInit Degree=[3,1,1]
-MMVII  ImportOri  ExternalData/trajectograhie.opk   NXYZWPK  CalibInit  InitL93Up   NumL0=5 ChgN=[".*","\$&.tif"]   "AngU=degree" "KIsUp=true" FilterImIn=ImAerien.xml SysCo=L93
+MMVII  ImportOri  ExternalData/trajectograhie.opk   NXYZWPKBla  CalibInit  InitL93Up   NumL0=5 ChgN=[".*","\$&.tif"]   "AngU=degree" "KIsUp=true" FilterImIn=ImAerien.xml SysCo=L93
 
 # Import Tie Poins
 MMVII ImportTiePMul ExternalData/Filtered_all_liaisons.mes NIXY Vexcell NumL0=0 'PatIm=[.*,$&.tif]' NumByConseq=1

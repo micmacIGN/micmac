@@ -16,13 +16,13 @@ jobs:
     - name: Install Qt and clang
       run: |
         sudo apt update
-        sudo apt install qtbase5-dev clang-14
+        sudo apt install qtbase5-dev clang-14 libgdal-dev
 
     - name: Install libproj
       run: sudo apt install libproj-dev proj-data
 
     - name: Install pdflatex
-      run: sudo apt install texlive-latex-base texlive-latex-extra texlive-fonts-recommended texlive-fonts-extra
+      run: sudo apt install texlive-latex-base texlive-latex-extra texlive-fonts-recommended texlive-fonts-extra texlive-science
 
     - name: Build MMVII documentation
       run: make -C MMVII/Doc a4
@@ -85,8 +85,8 @@ jobs:
       with:
          auto-update-conda: true
           
-    - name: Install PROJ with miniconda
-      run: conda install -y proj
+    - name: Install GDAL,PROJ with miniconda
+      run: conda install -y proj gdal
       if: steps.cache-conda-gdal.outputs.cache-hit != 'true'
 
     - name: Install Qt
@@ -144,7 +144,16 @@ jobs:
         MM3D_BINDIR=$(pwd)/micmac/bin
         cp ${Qt5_Dir}/plugins/platforms/qwindows.dll ${MMVII_BINDIR}/platforms/
         cd /C/Miniconda/envs/test/Library/bin/
+        # dll for PROJ
         cp deflate.dll Lerc.dll libcrypto-3-x64.dll libcurl.dll liblzma.dll libssh2.dll proj_9_3.dll sqlite3.dll tiff.dll zlib.dll zstd.dll ${MMVII_BINDIR}/
+        
+        # dll for GDAL (CGDAL require PROJ too)
+        cp blosc.dll cfitsio.dll charset.dll comerr64.dll freetype.dll freexl.dll gdal.dll geos.dll geos_c.dll geotiff.dll gssapi64.dll ${MMVII_BINDIR}/
+        cp hdf.dll hdf5.dll hdf5_cpp.dll hdf5_hl.dll ${MMVII_BINDIR}/
+        cp iconv.dll k5sprt64.dll krb5_64.dll lcms2.dll libbz2.dll libexpat.dll libjpeg.dll libkea.dll liblz4.dll libminizip.dll libpng16.dll ${MMVII_BINDIR}/
+        cp libpq.dll libsharpyuv.dll libssl-3-x64.dll libwebp.dll libxml2.dll ${MMVII_BINDIR}/
+        cp mfhdf.dll netcdf.dll openjp2.dll pcre2-8.dll poppler.dll spatialite.dll tiledb.dll xdr.dll xerces-c_3_2.dll zip.dll ${MMVII_BINDIR}/
+
         cd $Qt5_Dir/bin
         cp Qt5Core.dll Qt5Gui.dll Qt5Xml.dll Qt5OpenGL.dll Qt5Widgets.dll ${MM3D_BINDIR}/
         cd $Qt5_Dir/plugins

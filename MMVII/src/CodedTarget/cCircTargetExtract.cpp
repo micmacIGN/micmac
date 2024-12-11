@@ -742,6 +742,7 @@ class cAppliExtractCircTarget : public cMMVII_Appli,
         int                   mZoomVisuLabel;
         int                   mZoomVisuSeed;
         int                   mZoomVisuElFinal;
+        bool                  mShowOnlyMul;
         cExtract_BW_Ellipse * mExtrEll;
         cParamBWTarget  mPBWT;
 
@@ -774,6 +775,7 @@ class cAppliExtractCircTarget : public cMMVII_Appli,
 
 	tREAL8                              mStepRefineGrad;
         cDiffInterpolator1D *               mInterpol;
+        std::string                         mIdExportCSV;
 };
 
 
@@ -789,6 +791,7 @@ cAppliExtractCircTarget::cAppliExtractCircTarget
    mZoomVisuLabel    (0),
    mZoomVisuSeed     (0),
    mZoomVisuElFinal  (0),
+   mShowOnlyMul      (false),
    mExtrEll          (nullptr),
    mImMarq           (cPt2di(1,1)),
    mPhProj           (*this),
@@ -826,6 +829,7 @@ cCollecSpecArg2007 & cAppliExtractCircTarget::ArgOpt(cCollecSpecArg2007 & anArgO
              << AOpt2007(mZoomVisuLabel,"ZoomVisuLabel","Make a visualisation of labeled image",{eTA2007::HDV})
              << AOpt2007(mZoomVisuSeed,"ZoomVisuSeed","Make a visualisation of seed point",{eTA2007::HDV})
              << AOpt2007(mZoomVisuElFinal,"ZoomVisuEllipse","Make a visualisation extracted ellispe & target",{eTA2007::HDV})
+             << AOpt2007(mShowOnlyMul,"ShowOnlyMul","Show Only Mutlipe detectection",{eTA2007::HDV})
              << AOpt2007(mPatHihlight,"PatHL","Pattern for highliting targets in visu",{eTA2007::HDV})
 
              << AOpt2007(mNbMaxMT_Init,"NbMMT0","Nb max of multiple target acceptable initial (for 0 image)",{eTA2007::HDV})
@@ -847,18 +851,27 @@ void cAppliExtractCircTarget::DoExport()
          if (anEE->mCardDetect==1)
 	 {
              std::string aCode = anEE->mWithCode ?  anEE->mEncode.Name() : (MMVII_NONE +"_" + ToStr(aCptUnCoded,mSpec->NbBits()));
-             aSetM.AddMeasure(cMesIm1Pt(anEE->mPt,aCode,1.0));
-             mVSavE.push_back(cSaveExtrEllipe(*anEE,aCode));
+             cMesIm1Pt aMesIm(anEE->mPt,aCode,1.0);
+             aSetM.AddMeasure(aMesIm);
+             Tpl_AddOneObjReportCSV(*this,mIdExportCSV,aMesIm);
+
+             cSaveExtrEllipe anESave(*anEE,aCode);
+
+             mVSavE.push_back(anESave);
+
 
 	     if (! anEE->mWithCode) aCptUnCoded++;
 	 }
      }
 
+     aSetM.SortMes();
      mPhProj.SaveMeasureIm(aSetM);
 
      //SaveInFile(mVSavE,mPhProj.DPPointsMeasures().FullDirOut()+ "Attribute-"+  aSetM.StdNameFile());
      SaveInFile(mVSavE,cSaveExtrEllipe::NameFile(mPhProj,aSetM,false));
 }
+
+
 
 void cAppliExtractCircTarget::MakeImageSeed()
 {
@@ -884,13 +897,16 @@ void cAppliExtractCircTarget::MakeImageFinalEllispe()
    cPt2dr  aSz(50,50);
    cPt3dr aAlpha(0.7,0.7,0.7);
 
+   // In the case of simulation we know the ground truch
    if (mUseSimul)
    {
+      //  show the missed target
       for (const auto & aGT :  mGTMissed)
       {
           if (aGT->mResExtr ==nullptr)
              aImVisu.FillRectangle(cRGBImage::Red,ToI(aGT->mC-aSz),ToI(aGT->mC+aSz),aAlpha);
       }
+      //  show the wrong detection
       for (const auto & anEE : mVCTE)
       {
           if ((anEE->mWithCode)  && (anEE->mGT ==nullptr))
@@ -902,28 +918,32 @@ void cAppliExtractCircTarget::MakeImageFinalEllispe()
 
    for (const auto & anEE : mVCTE)
    {
-        const cEllipse &   anEl  = anEE->mEllipse;
-	bool doHL = MatchRegex(anEE->mEncode.Name(),mPatHihlight);
-        for (tREAL8 aMul = 1.0; aMul < (doHL ? 4.0 : 2.5); aMul += (doHL ? 0.05 : 0.4))
-        {
-            aImVisu.DrawEllipse
-            (
-               (anEE->mCardDetect==1) ? cRGBImage::Green : cRGBImage::Red  ,  // anEE.mWithCode ? cRGBImage::Blue : cRGBImage::Red,
-               anEl.Center(),
-               anEl.LGa()*aMul , anEl.LSa()*aMul , anEl.TetaGa()
-            );
-        }
+       if ((!mShowOnlyMul) || (anEE->mCardDetect!=1))
+       {
+           const cEllipse &   anEl  = anEE->mEllipse;
+	   bool doHL = MatchRegex(anEE->mEncode.Name(),mPatHihlight);
+           for (tREAL8 aMul = 1.0; aMul < (doHL ? 4.0 : 2.5); aMul += (doHL ? 0.05 : 0.4))
+           {
+               aImVisu.DrawEllipse
+               (
+                  (anEE->mCardDetect==1) ? cRGBImage::Green : cRGBImage::Red  ,  
+                  anEl.Center(),
+                  anEl.LGa()*aMul , anEl.LSa()*aMul , anEl.TetaGa()
+               );
+
+           }
 	//BF
-	if (anEE->mWithCode)
-        {
-             aImVisu.DrawString
-             (
+	   if (anEE->mWithCode)
+           {
+                aImVisu.DrawString
+                (
                   anEE->mEncode.Name(),cRGBImage::Red,
 		  anEl.Center(),cPt2dr(0.5,0.5),
 		  3
-             );
+                );
 
-	}
+	   }
+       }
    }
 
     aImVisu.ToJpgFileDeZoom(mPhProj.DirVisuAppli()+mPrefixOut + "_Ellipses.tif",mZoomVisuElFinal);
@@ -1046,6 +1066,12 @@ void cAppliExtractCircTarget::TestOnSimul()
 
 int cAppliExtractCircTarget::ExeOnParsedBox()
 {
+   mIdExportCSV     = "CircCodedTarget" + mNameIm;
+   //  Create a report with header computed from type
+   Tpl_AddHeaderReportCSV<cMesIm1Pt>(*this,mIdExportCSV,false);
+   // Redirect the reports on folder of result
+   SetReportRedir(mIdExportCSV,mPhProj.DPPointsMeasures().FullDirOut());
+
    mInterpol = new   cTabulatedDiffInterpolator(cSinCApodInterpolator(5.0,5.0));
 
    mPBWT.mDistMinMaxLoc =  mPBWT.mMinDiam * mRatioDMML;
@@ -1199,17 +1225,17 @@ int  cAppliExtractCircTarget::Exe()
    }
 
    mReportMutipleDetec = "MultipleTarget";
-   InitReport(mReportMutipleDetec,"csv",true,{"Image","Target","Mult","x","y"});
+   InitReportCSV(mReportMutipleDetec,"csv",true,{"Image","Target","Mult","x","y"});
+
 
    if (mDoReportSimul)
    {
         mReportSimulDet   =    "SimulDetails" ;
         mReportSimulGlob  =    "SimulGlob"    ;
-        InitReport(mReportSimulDet,"csv",true);
-        InitReport(mReportSimulGlob,"csv",true);
+        InitReportCSV(mReportSimulDet,"csv",true);
+        InitReportCSV(mReportSimulGlob,"csv",true);
    }
    mNbMaxMulTargetTot =  mNbMaxMT_Init + mNbMaxMT_PerIm *  VectMainSet(0).size() ;
-StdOut() << "mNbMaxMulTargetTotmNbMaxMulTargetTotmNbMaxMulTargetTotmNbMaxMulTargetTotmNbMaxMulTargetTotmNbMaxMulTargetTot " << mNbMaxMulTargetTot << "\n";
 
 
    if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set

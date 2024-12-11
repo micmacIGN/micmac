@@ -137,6 +137,8 @@ cTimerSegm::cTimerSegm(cMMVII_Ap_CPU * anAppli) :
 {
 }
 
+double cTimerSegm::CurBeginTime() const {return  mCurBeginTime;}
+
 void  cTimerSegm::SetNoShowAtDel()
 {
     mShowAtDel = false;

@@ -48,9 +48,9 @@ void PutLineCSV(cMMVII_Ofs &,const std::vector<std::string>  &) ;
 template <class Type>  class cOCSVFile :  public cCSVFile<Type>
 {
      public  :
-          cOCSVFile<Type>(const std::string & aName,bool WithHeader) :
+          cOCSVFile<Type>(const std::string & aName,bool WithHeader,bool  isModeAppend=false) :
               cCSVFile<Type> (),
-              mOfs           (aName,eFileModeOut::CreateText)
+              mOfs           (aName,(isModeAppend ?  eFileModeOut::AppendText : eFileModeOut::CreateText))
           {
               if (WithHeader)
                   PutLineCSV(mOfs,this->mHeader);
@@ -153,6 +153,24 @@ template <class Type> void FromCSV(std::vector<Type>& aVect,const std::string & 
 	// StdOut() << "FromCSVFromCSV " << aNameFile << " " << ExistFile(aNameFile) << std::endl;
     cICSVFile<Type> aCvsIn1(aNameFile,WithHeader);
     aCvsIn1.ReadFromFile(aVect);
+}
+
+//======================================================================================
+template <class Type> void Tpl_AddHeaderReportCSV(cMMVII_Appli & anAppli,const std::string & anId,bool IsMul)
+{
+    anAppli.InitReportCSV(anId,"csv",IsMul,{});
+    if ((anAppli.LevelCall()==0) || (!IsMul))
+    {
+         std::string aNameFile = anAppli.NameFileCSVReport(anId);
+         cOCSVFile<Type>(aNameFile,true); // true with header
+   }
+}
+
+template <class Type> void Tpl_AddOneObjReportCSV(cMMVII_Appli & anAppli,const std::string & anId,const Type & anObj)
+{
+    std::string aNameFile = anAppli.NameFileCSVReport(anId);
+    cOCSVFile<Type> aOCsvF(aNameFile,false,true); // false with header , true mode append
+    aOCsvF.AddObj(anObj);
 }
 
 

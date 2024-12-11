@@ -818,6 +818,11 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
                 {
                    MMVII_UserError(eTyUEr::eEmptyPattern,"Specified set of files was empty");
                 }
+            } else if (mVMainSets.at(aNum).size() == 1){
+                // If only 1 file matches the pattern, we replace the pattern in this arg by the matched file
+                // If RunMultiSet is called, the Appli can use this arg name to retrieve the file
+                // (if not doing this, arg will be the pattern (i.e ".*.tif") and the appli will fail to open that)
+                aVSpec.at(aK)->InitParam(UniqueStr(aNum));
             }
             // StdOut() << "cAaaaPPlii  " <<  __LINE__ << ToVect(mVMainSets.at(aNum)) << "\n";
          }
@@ -1145,7 +1150,9 @@ void cMMVII_Appli::LogCommandOut(const std::string & aName,bool MainLogFile)
       return;
    cMMVII_Ofs  aOfs(aName,eFileModeOut::AppendText);
    // Add id, if several process were throw in // there is a mix and we no longer know which was closed
-   aOfs.Ofs() << "  ending correctly at : " <<  StrDateCur()  << " (Id=" << mPrefixNameAppli << ")\n\n";
+   aOfs.Ofs() << "  ending correctly at : " <<  StrDateCur()  
+              << " Time=" << SecFromT0() - TimeSegm().CurBeginTime()
+              << " (Id=" << mPrefixNameAppli << ")\n\n";
    aOfs.Ofs().close();
 }
 

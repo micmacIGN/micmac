@@ -122,7 +122,7 @@ applies  is traduced by equation (where $\delta_x$ is kronecker's symbol) meanin
 be null for any non null integer value, and must value $1$ for $k=0$ :
 
 \begin{equation}
-    \forall x \in \ZZ :  \KernI(k) =   \delta_0 \label{KernIntDelta0}
+    \forall k \in \ZZ :  \KernI(k) =   \delta_0 \label{KernIntDelta0}
 \end{equation}
 
 For practicall reason, we cannot compute infinite sum like in equation~\ref{KernIntDef}, and we 
@@ -526,6 +526,150 @@ Having seen that the lost is low, see now what is the gain :
     % = = = = = = = = = = = = = = = = = = = = = = =
     % = = = = = = = = = = = = = = = = = = = = = = =
 
+\section{Choice of an Interpolator}
+
+    % = = = = = = = = = = = = = = = = = = = = = = =
+
+\subsection{Interpolator for image up-izing}
+
+Interpolator are mainly usefull for image resampling.  When the resampling is done
+to a higher resolution, or a resolution equivalent the choice of an interpolator,
+there is no so much to say, and it is mainly an affair of trade-off between accuracy and efficiency :
+
+\begin{itemize}
+   \item for fast computation and low accuracry, bi-linear can be a good choice;
+         it's not recommanded when derivative are required;
+
+   \item bi-cubic can be a good compromize quality/efficiency, the default recommander
+         parameter being $P=-\frac{1}{2}$, but higher value can be used for image enhancing
+         when used at high zooming;
+
+   \item for "best" ressampling, with minimal aliazing, according to signal theory, the sinus cardinal
+         can be used;
+
+   \item finally, in image correlation the non standard interpolator \ref{MMVIIInterpol}, especially $M_2$,
+         can be interesting compromize.
+
+\end{itemize}
+
+    % = = = = = = = = = = = = = = = = = = = = = = =
+
+\subsection{Interpolator for image downsizing}
+
+   %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsubsection{No aliasing property}
+
+In image downsizing, we can still use interpolator and formula~\ref{KernIntDef},
+however we need to take some precaution to  avoid aliazing. We make the analyis
+in $1d$, the generalization to $Nd$ being direct.
+
+When computing an image $I_S$ from an image $I$ with a  
+down sizing of size $S$, with a kernem $\KernI_S$, we write formula~\ref{KernIntDef}  this way :
+
+\begin{equation}
+     I_S(k') =   \sum_{k}  I(k)  \KernI_S(S k'-k)   
+\end{equation}
+
+To avoid aliasing, we must take care that each $v_k$ contributes equally to the final result :
+
+\begin{equation}
+    \sum_{k'}  \KernI_S(S k'-k)  = 1 \label{Interp:DS1}
+\end{equation}
+
+If we consider an initial kernel $\KernI$ and define :
+
+\begin{equation}
+    \KernI_S(x) = \frac{\KernI(\frac{x}{S})}{S}
+\end{equation}
+
+
+Then property~\ref{Interp:DS1} is  satistied if initial kernel $\KernI$ is
+a partition of unity :
+
+\begin{equation}
+    \sum_{k'}  \KernI_S(S k'-k)  =  \sum_{k'}  \KernI( k'-\frac{k}{S})  = 1
+\end{equation}
+
+All interpolator used in \PPP are partition of unity (at least once tabulated).
+For downsizing is seems  \emph{"Natural"} to select an interpolator with only positive
+coefficient, it we want to take as model the physcical sensor.  An also a smooth
+function seems preferable :
+
+\begin{itemize}
+    \item $SinC$ and cubic for  $p \neq 0$ are non postive interpolator ;
+    \item  nearest neighboor is certainly not smooth;
+    \item  linear interpolator, cubic interpolator for $p=0$ are continous interporlator;
+    \item  $M_2$ interpolator can also be used, it's draw back is to be non standard,
+           and maybe to have a slight blurring effect
+\end{itemize}
+
+
+   %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsubsection{"No spatial bias" property}
+
+Someway,  cubic interpolator  with $p=0$, may seems the best choice : smooth (differentiable), positive and support
+reduced to $[-1,1]$.  But there  is another criteria that we need to take care.   We want that the
+downsampling does not create any spatial bias. By that we define the centroid $C(I)$ of $I$
+as  :
+
+\begin{equation}
+    C(I)  =  \frac{\sum_k k I(k)} {\sum_k I(k)}
+\end{equation}
+
+Considering that $I$ is already normalised such $\sum_k I(k)=1$, we have
+$C(I) = \sum_k k I(k)$. By no spatial bias, we mean formally :
+
+
+\begin{equation}
+    C(I_S)  =  \frac{C(I)}{S} \label{Interp:Eq:Centroid}
+\end{equation}
+
+Due to linearity, it is sufficient that equation \ref{Interp:Eq:Centroid} is satisfied
+for functions kroneckers's function $\delta^x$. We obviously have $C(\delta^x) = x$.
+We have :
+
+\begin{equation}
+    \delta^x_S(k') = \frac{1}{S} *  \sum_{k}  \delta_x(k)  \KernI_S(S k'-k ) =  \frac{1}{S} \KernI_S(S k'-x)
+\end{equation}
+
+So we have :
+
+\begin{equation}
+    C(\delta^x_S) =  \sum_{k'}  \KernI(k'-\frac{x}{S}) k'  
+\end{equation}
+
+
+So we finnally have the equation for non spatially biased interpolator :
+
+\begin{equation}
+   \forall x     \sum_{k'}  \KernI(k'-\frac{x}{S}) k'  = \frac{x}{S} \label{Interp:NoSpatialBias}
+\end{equation}
+
+
+The function {\tt TestBiasInterpolator} of \PPP make an experimental test on formula
+\ref{Interp:NoSpatialBias}. The results of this test is the following :
+
+\begin{itemize}
+    \item  linear, $SinC$ and   $M_2$  are not spatially biased;
+
+    \item  cubic interpolator for $p=-0.5$ is not spatially biased (this is the interpolator that
+           transformat lines in lines);
+
+    \item  other cubic interpolator are spatially biased .
+\end{itemize}
+
+So finally, the cubic interpolator is not such a goof choice for image down sampling, 
+because the only  non negative  is biased.  This used to be the default choice for
+image down sampling, but it's no longer the case. For now the default is the linear
+interpolator, maybe coud be replaced by $M_2$ ?
+
+
+    % = = = = = = = = = = = = = = = = = = = = = = =
+    % = = = = = = = = = = = = = = = = = = = = = = =
+    % = = = = = = = = = = = = = = = = = = = = = = =
+
 \section{Users's view}
 
 \label{InterpUserView}
@@ -656,6 +800,8 @@ the image. So if there is any doubt, a test of {\tt InsideInterpolator} will be 
    %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
 \subsubsection{{\tt GetValueAndGradInterpol}}
+
+\label{Method:GetValueAndGradInterpol}
 
 {\tt std::pair<tREAL8,cPt2dr> GetValueAndGradInterpol(const cDiffInterpolator1D \&,const cPt2dr \& aP) const ;}
 

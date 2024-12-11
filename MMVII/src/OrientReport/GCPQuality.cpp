@@ -226,10 +226,10 @@ void cAppli_CGPReport::ReportsByGCP()
 
    const std::vector<cSensorImage*> &  aVSens =  aSetMes.VSens() ;
 
-   InitReport(mNameReportGCP,"csv",false);
+   InitReportCSV(mNameReportGCP,"csv",false);
    AddStdHeaderStatCSV(mNameReportGCP,"GCP",mPropStat);
 
-   InitReport(mNameReportGCP_Ground,"csv",false);
+   InitReportCSV(mNameReportGCP_Ground,"csv",false);
    AddOneReportCSV(mNameReportGCP_Ground,{"Name","Dx","Dy","Dz"});
 
    std::vector<cStdStatRes> aVStatXYZ{cStdStatRes(),cStdStatRes(),cStdStatRes()};
@@ -257,7 +257,7 @@ void cAppli_CGPReport::ReportsByGCP()
        AddOneReportCSV(mNameReportGCP_Ground,{aGCP.mNamePt,"xxx","yyy","zzz"});
    }
 
-   InitReport(mNameReportGCP_Ground_Glob,"csv",false);
+   InitReportCSV(mNameReportGCP_Ground_Glob,"csv",false);
    AddStdHeaderStatCSV(mNameReportGCP_Ground_Glob,"Coord",{});
    std::vector<std::string> aVCoord{"x","y","z"};
    for (int aKC=0 ; aKC<3 ; aKC++)
@@ -280,7 +280,7 @@ void cAppli_CGPReport::ReportsByCam()
        }
    }
 
-   InitReport(mNameReportCam,"csv",false);
+   InitReportCSV(mNameReportCam,"csv",false);
    AddStdHeaderStatCSV(mNameReportCam,"Cam",mPropStat);
 
    tREAL8 aFactRed = 100.0;
@@ -356,9 +356,9 @@ int cAppli_CGPReport::Exe()
 
    mNameReportMissed   =  "MissedPoint"   ;
 
-   InitReport(mNameReportIm,"csv",true);
-   InitReport(mNameReportDetail,"csv",true);
-   InitReport(mNameReportMissed,"csv",true);
+   InitReportCSV(mNameReportIm,"csv",true);
+   InitReportCSV(mNameReportDetail,"csv",true);
+   InitReportCSV(mNameReportMissed,"csv",true);
 
    if (LevelCall()==0)
    {

@@ -87,6 +87,7 @@ class cMesIm1Pt
         std::string       mNamePt;
         cArray<tREAL4,3>  mSigma2;  // xx xy yy
 };
+void AddData(const  cAuxAr2007 & anAux,cMesIm1Pt & aGCPMI);
 
 /** class for representing a set of measure in an image*/
 class cSetMesPtOf1Im : public cMemCheck
@@ -96,7 +97,10 @@ class cSetMesPtOf1Im : public cMemCheck
           cSetMesPtOf1Im();
 	  static cSetMesPtOf1Im  FromFile(const std::string & aNameFile);
           void AddMeasure(const cMesIm1Pt &);
+          /// Add a measure only if name is new, if not test if dist < tol if not ->error
+          void AddMeasureIfNew(const cMesIm1Pt &,tREAL8 aTol=-1);
           void AddData(const  cAuxAr2007 & anAux);
+          void SortMes(); // sort measures in place with NamePt
 
 
           void AddSetMeasure(const cSetMesPtOf1Im &,bool SuprNone,bool OkDupl);
@@ -185,6 +189,8 @@ class cSetMesGCP : public cMemCheck
           const std::vector<cMes1GCP> &   Measures() const;  ///< Accessor
 	  static  const std::string ThePrefixFiles;
 
+          std::list<std::string>  ListOfNames() const;
+
     private :
 	  std::string              mNameSet;
           std::vector<cMes1GCP>    mMeasures;
@@ -254,6 +260,7 @@ class cSetMesImGCP : public cMemCheck
 	    cMes1GCP &              MesGCPOfName(const std::string &) ;
 	    const cMes1GCP &        MesGCPOfNum(int) const;
 	    const cMes1GCP &        MesGCPOfMulIm(const cMultipleImPt &) const;
+            cSetMesGCP AllMesGCP() const;
 
 	    bool  NameIsGCP(const std::string &) const;
 	    cSetMesGCP  ExtractSetGCP(const std::string & aNameSet) const;

@@ -791,11 +791,154 @@ tREAL8  cMultiScaledInterpolator::DiffWeight(tREAL8  anX) const
      return aRes;
 }
 
+/* **************************************************** */
+/*                                                      */
+/*          Test bias on centroid of interpolator       */
+/*                                                      */
+/* **************************************************** */
 
-// tREAL8  cMultiScaledInterpolator::DiffWeight(tREAL8  anX) const { return 0.0; }
+tREAL8  CentroidDownScale_Interpolator(const cDiffInterpolator1D & anInt,tREAL8 aScale,tREAL8 aPhase)
+{
+
+   //  Down scale is given by
+   //
+   //     IS(x) =  Sum[d]   I(Sx+d) K(d/S)   {1}
+   //    
+   //  Supose that I  is a delta function at phase  A :
+   //    * in {1} the only non null term  is given for Sx+d=A  <=>  d = A-Sx
+   //    * the 
+   //      V(x) = I(A) K(A/S -x)
+   // Now the centroid, C(A)  of V(x) is given by 
+   //     Sum [x] = x I(A) K(A/S -x)
+
+    tREAL8 aAmpl = anInt.SzKernel() +2;
+    tREAL8 aCenter = aPhase / aScale;
+
+    cWeightAv<tREAL8,tREAL8> aAvg;
+    for (int aX=   round_down(aCenter-aAmpl) ; aX<= round_up(aCenter+aAmpl+1e-5) ; aX++)
+    {
+        tREAL8 aW = anInt.Weight(aCenter-aX);
+        if (aW!=0)
+        {
+           aAvg.Add(aW,aX);
+           // StdOut()  << " X=" << aX  << " C-X=" << aCenter-aX<< " W=" << aW << "\n";
+        }
+    }
+    // StdOut() << "CCIII=============== " << aCenter << "\n";
+
+    return aAvg.Average();
+}
+
+tREAL8 TestBiasInterpolator(const cDiffInterpolator1D & anInt,tREAL8 aScale,tREAL8 aP0)
+{
+    tREAL8 aSumDif=0;
+    for (int aK= -aScale-1; aK<=aScale+1 ; aK++)
+    {
+         tREAL8 aC = CentroidDownScale_Interpolator(anInt,aScale,aK+aP0);
+         aSumDif += std::abs(aC -(aK+aP0)/aScale);
+    }
+    StdOut() << " INTERP BIAS=" << aSumDif << " For Scale=" << aScale << " Phase=" << aP0<< "\n";
+    return aSumDif;
+}
+
+
+void TestBiasInterpolator(const cDiffInterpolator1D & anInt)
+{
+   StdOut() << "=====  INTERP : " << anInt.VNames() << "\n";
+   TestBiasInterpolator(anInt,3.0,0.0);
+   TestBiasInterpolator(anInt,5.0,0.0);
+   TestBiasInterpolator(anInt,5.5,0.0);
+   TestBiasInterpolator(anInt,5.0,0.1);
+   TestBiasInterpolator(anInt,5.0,0.5);
+}
+
+void TestBiasInterpolator()
+{
+    //  Not OK
+    TestBiasInterpolator(cCubicInterpolator(-1.0));
+    TestBiasInterpolator(cCubicInterpolator(0.0));
+
+    //  OK
+    TestBiasInterpolator(cLinearInterpolator());
+    TestBiasInterpolator(cMMVII2Inperpol());
+    TestBiasInterpolator(cSinCApodInterpolator(20,20));
+
+    TestBiasInterpolator(cCubicInterpolator(-0.5));
+}
+
+/* **************************************************** */
+/*                                                      */
+/*          Test scale image vs centroid                */
+/*                                                      */
+/* **************************************************** */
+
+
+template <class Type> cPt2dr  Centroid(const cDataIm2D<Type> & aDIm)
+{
+   cWeightAv<tREAL8,cPt2dr> aAvg;
+
+   for (const auto & aPt : aDIm)
+      aAvg.Add(aDIm.GetV(aPt),ToR(aPt));
+
+  return aAvg.Average();
+}
+
+template <class Type> void BenchScaleIm(Type aValC,tREAL8 aEps,const cDiffInterpolator1D & aInt)
+{
+    for (int aK=0 ; aK<50; aK++)
+    {
+          tREAL8 aScale = 2.0 +(aK%4) ;
+
+          cPt2di aSz(round_ni(RandInInterval(50,60)),round_ni(RandInInterval(50,60)));
+          cPt2di aMil = aSz/2;
+
+          cIm2D<Type> aIm(aSz,nullptr,eModeInitImage::eMIA_Null);
+          aIm.DIm().SetV(aMil,aValC);
+
+          std::unique_ptr<cTabulatedDiffInterpolator>  aTabInt ( cScaledInterpolator::AllocTab(aInt,aScale,1000));
+          cIm2D<Type>  aImSc  = aIm.Scale(*aTabInt,aScale);
+
+
+          tREAL8 aDif = Norm2(Centroid(aIm.DIm())  - Centroid(aImSc.DIm()) * aScale);
+          if (aDif>=aEps)
+          {
+              StdOut() << " DIF= " << aDif << " Sc=" << aScale 
+                       << " x:" << aMil.x() %(int)aScale 
+                       << " y:" << aMil.y() %(int)aScale 
+                       << "\n";
+              MMVII_INTERNAL_ASSERT_bench(aDif<aEps,"BenchScaleIm");
+          }
+    }
+}
+
+
 
 void Bench_cMultiScaledInterpolator()
 {
+     // TestBiasInterpolator();
+
+     // just to test that we dont have problem with default interpolator
+     {
+         cIm2D<tREAL4> aIm(cPt2di(100,100));
+         aIm.Scale(10);
+     }
+
+     if (1)
+     {
+        // Dont understand why bicubic[-0.5]  works except sometimes ...
+        BenchScaleIm<tREAL8>(1.0,1e-5,cCubicInterpolator(-0.5));
+     }
+     BenchScaleIm<tREAL8>(1.0,1e-2,cCubicInterpolator(-0.5));
+     
+     BenchScaleIm<tREAL8>(1.0,1e-5,cLinearInterpolator());
+
+     BenchScaleIm<tREAL4>(1.0,1e-5,cMMVII2Inperpol());
+     BenchScaleIm<tU_INT2>(50000,1e-2,cMMVII2Inperpol());
+     BenchScaleIm<tINT4>(100000000,1e-4,cMMVII2Inperpol());
+     // BenchScaleIm<tREAL8>(1.0,1e-5,cSinCApodInterpolator(10,10));
+     // BenchScaleIm<tREAL8>(1.0);
+
+
      for (int aK=0 ; aK<10 ; aK++)
      {
           tREAL8 aS0 = 0.7 + RandUnif_0_1() * 2;
@@ -813,16 +956,6 @@ void Bench_cMultiScaledInterpolator()
               aMSI.SetScale(aS);
           }
      }
-
-     /*
-     cPt2di  aSz(100,120);
-     cPt2di  aPMil = aSz/2;
-     cIm2d<tU_INT1>  aImDirac(aSz);
-     aImDirac.aImDirac(aPMil,1);
-     */
 }
-
-
-
 
 };

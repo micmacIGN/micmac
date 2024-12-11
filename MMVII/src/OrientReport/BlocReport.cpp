@@ -29,11 +29,11 @@ namespace MMVII
 /*                                                      */
 /* ==================================================== */
 
-class cAppli_Wire3DInit : public cMMVII_Appli
+class cAppli_ReportBlock : public cMMVII_Appli
 {
      public :
 
-        cAppli_Wire3DInit(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli &);
+        cAppli_ReportBlock(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli &);
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
@@ -55,10 +55,14 @@ class cAppli_Wire3DInit : public cMMVII_Appli
         std::string                  mRepW;
         std::string                  mRepPt;
         std::string                  mPatNameGCP;
+
+        std::string                  mStrM2T;  /// String of measure to test
+        std::string                  mAddExReport;
+        cWeightAv<tREAL8,tREAL8>     mAvgGlobRes;
 };
 
 /*
-std::vector<std::string>  cAppli_Wire3DInit::Samples() const
+std::vector<std::string>  cAppli_Repo&mAddExReportrtBlock::Samples() const
 {
     return {
 	     "MMVII BlockCamInit SetFiltered_GCP_OK_Resec.xml   BA_311_B   '(.*)_(.*).JPG' [1,2]  Rig_311_B"
@@ -67,7 +71,7 @@ std::vector<std::string>  cAppli_Wire3DInit::Samples() const
 */
 
 
-cAppli_Wire3DInit::cAppli_Wire3DInit
+cAppli_ReportBlock::cAppli_ReportBlock
 (
      const std::vector<std::string> &  aVArgs,
      const cSpecMMVII_Appli & aSpec
@@ -76,12 +80,13 @@ cAppli_Wire3DInit::cAppli_Wire3DInit
      mPhProj       (*this),
      mRepW         ("Wire"),
      mRepPt        ("Pt"),
-     mPatNameGCP   (".*")
+     mPatNameGCP   (".*"),
+     mStrM2T       ("TW")
 {
 }
 
 
-cCollecSpecArg2007 & cAppli_Wire3DInit::ArgObl(cCollecSpecArg2007 & anArgObl)
+cCollecSpecArg2007 & cAppli_ReportBlock::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
       return anArgObl
              <<  Arg2007(mSpecImIn,"Pattern/file for images", {{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}}  )
@@ -92,17 +97,19 @@ cCollecSpecArg2007 & cAppli_Wire3DInit::ArgObl(cCollecSpecArg2007 & anArgObl)
 }
 
 
-cCollecSpecArg2007 & cAppli_Wire3DInit::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+cCollecSpecArg2007 & cAppli_ReportBlock::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
 
     return      anArgOpt
              << AOpt2007(mPatNameGCP,"PatFiltGCP","Pattern to filter name of GCP",{{eTA2007::HDV}})
+             << AOpt2007(mStrM2T,"M2T","Measure to test : T-arget W-ire",{{eTA2007::HDV}})
+             << AOpt2007(mAddExReport,"AddExRep","Addditional Extension in Report Name",{{eTA2007::HDV}})
     ;
 }
 
 
 
-void cAppli_Wire3DInit::TestWire3D(const std::string & anIdSync,const std::vector<cSensorCamPC *> & aVCam)
+void cAppli_ReportBlock::TestWire3D(const std::string & anIdSync,const std::vector<cSensorCamPC *> & aVCam)
 {
 
      std::vector<cPlane3D>  aVPlane;
@@ -170,9 +177,10 @@ void cAppli_Wire3DInit::TestWire3D(const std::string & anIdSync,const std::vecto
 typedef std::pair<cSensorCamPC *,cMesIm1Pt> tPairCamPt;
 
 
-void cAppli_Wire3DInit::TestPoint3D(const std::string & anIdSync,const std::vector<cSensorCamPC *> & aVCam)
+void cAppli_ReportBlock::TestPoint3D(const std::string & anIdSync,const std::vector<cSensorCamPC *> & aVCam)
 {
      std::map<std::string,std::list<tPairCamPt>> aMapMatch;
+     cWeightAv<tREAL8,tREAL8>  aAvgRes;
 
      for (const auto & aCam : aVCam)
      {
@@ -212,31 +220,40 @@ void cAppli_Wire3DInit::TestPoint3D(const std::string & anIdSync,const std::vect
 	     }
              tREAL8 aDistPix = aWPix.Average() * (aNbPt*2.0) / (aNbPt*2.0 -3.0);
              AddOneReportCSV(mRepPt,{anIdSync,ToStr(aNbPt),ToStr(aDistPix)});
+             aAvgRes.Add(aNbPt,aDistPix);
          }
      }
-		  
+
+     AddOneReportCSV(mRepPt,{"AVG "+anIdSync,ToStr(aAvgRes.SW()),ToStr(aAvgRes.Average())});
+
+     mAvgGlobRes.Add(aAvgRes.SW(),aAvgRes.Average());
 }
 
 
-void cAppli_Wire3DInit::MakeOneBloc(const std::vector<cSensorCamPC *> & aVCam)
+
+void cAppli_ReportBlock::MakeOneBloc(const std::vector<cSensorCamPC *> & aVCam)
 {
      std::string anIdSync = mTheBloc->IdSync(aVCam.at(0)->NameImage());
-     TestWire3D(anIdSync,aVCam);
-     TestPoint3D(anIdSync,aVCam);
+     if (contains(mStrM2T,'W'))
+        TestWire3D(anIdSync,aVCam);
+     if (contains(mStrM2T,'T'))
+        TestPoint3D(anIdSync,aVCam);
 }
 
-int cAppli_Wire3DInit::Exe()
+int cAppli_ReportBlock::Exe()
 {
     mPhProj.FinishInit();  // the final construction of  photogrammetric project manager can only be done now
 
     std::string aDirRep =          mPhProj.DPOrient().DirIn() 
                            + "-" + mPhProj.DPPointsMeasures().DirIn() 
                            + "-" + mPhProj.DPRigBloc().DirIn() ;
+    if (IsInit(&mAddExReport))
+       aDirRep =  mAddExReport + "-" + aDirRep;
     SetReportSubDir(aDirRep);
 
 
-    InitReport(mRepW,"csv",false);
-    InitReport(mRepPt,"csv",false);
+    InitReportCSV(mRepW,"csv",false);
+    InitReportCSV(mRepPt,"csv",false);
     AddOneReportCSV(mRepW,{"TimeBloc","NbPlane","Dist Ground","Dist Pix"});
     AddOneReportCSV(mRepPt,{"TimeBloc","NbPt","Dist Pix"});
 
@@ -252,6 +269,7 @@ int cAppli_Wire3DInit::Exe()
         MakeOneBloc(aVC);
         DeleteAllAndClear(aVC);
     }
+    AddOneReportCSV(mRepPt,{"AVG Glob",ToStr(mAvgGlobRes.SW()),ToStr(mAvgGlobRes.Average())});
 
     DeleteAllAndClear(mListBloc);
     return EXIT_SUCCESS;
@@ -263,16 +281,16 @@ int cAppli_Wire3DInit::Exe()
 /*                                                      */
 /* ==================================================== */
 
-tMMVII_UnikPApli Alloc_Wire3DInit(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
+tMMVII_UnikPApli Alloc_ReportBlock(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppli_Wire3DInit(aVArgs,aSpec));
+   return tMMVII_UnikPApli(new cAppli_ReportBlock(aVArgs,aSpec));
 }
 
 cSpecMMVII_Appli  TheSpec_Wire3DInit
 (
-      "Wire3DInit",
-      Alloc_Wire3DInit,
-      "Compute 3D position of wire",
+     "ReportBlock",
+      Alloc_ReportBlock,
+     "Report different measures relative to a block of cam",
       {eApF::Ori},
       {eApDT::Orient}, 
       {eApDT::Xml}, 

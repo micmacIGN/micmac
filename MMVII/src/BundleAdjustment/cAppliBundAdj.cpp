@@ -83,9 +83,6 @@ class cAppliBundlAdj : public cMMVII_Appli
 	std::vector<double>       mBRSigma; // RIGIDBLOC
 	std::vector<double>       mBRSigma_Rat; // RIGIDBLOC
         std::vector<std::string>  mParamRefOri;  // Force Poses to be +- equals to this reference
-    std::string                    mNameClino;  ///<  Pattern of xml file  // CLINOBLOC
-    std::string                    mFormat;  // CLINOBLOC
-    std::vector<std::string>       mPrePost;  // CLINOBLOC
 
 	int                       mNbIter;
 
@@ -161,9 +158,7 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mLVM,"LVM","Levenberg–Marquardt parameter (to have better conditioning of least squares)",{eTA2007::HDV})
       << AOpt2007(mBRSigma,"BRW","Bloc Rigid Weighting [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})  // RIGIDBLOC
       << AOpt2007(mBRSigma_Rat,"BRW_Rat","Rattachment fo Bloc Rigid Weighting [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})  // RIGIDBLOC
-      << AOpt2007(mNameClino, "NameClino", "Name of inclination file") // ,{eTA2007::FileDirProj})
-      << AOpt2007(mFormat, "Format", "Format of file  like ISFSSFSSFSSFS ")
-      << AOpt2007(mPrePost,"PrePost","[Prefix,PostFix] to compute image name",{{eTA2007::ISizeV,"[2,2]"}})
+      << mPhProj.DPMeasuresClino().ArgDirInOpt()
 
       << AOpt2007(mParamRefOri,"RefOri","Reference orientation [Ori,SimgaTr,SigmaRot?,PatApply?]",{{eTA2007::ISizeV,"[2,4]"}})  
       << AOpt2007(mVSharedIP,"SharedIP","Shared intrinc parmaters [Pat1Cam,Pat1Par,Pat2Cam...] ",{{eTA2007::ISizeV,"[2,20]"}})    // ]]
@@ -252,7 +247,6 @@ int cAppliBundlAdj::Exe()
     mPhProj.DPPointsMeasures().SetDirInIfNoInit(mDataDir);
     mPhProj.DPMulTieP().SetDirInIfNoInit(mDataDir);
     mPhProj.DPRigBloc().SetDirInIfNoInit(mDataDir); //  RIGIDBLOC
-    mPhProj.DPClinoMeters().SetDirInIfNoInit(mDataDir); //  CLINOBLOC
 
     mPhProj.FinishInit();
 
@@ -324,9 +318,10 @@ int cAppliBundlAdj::Exe()
             mBA.AddCamBlocRig(aNameIm);
     }
 
-    if (IsInit(&mNameClino))
+    
+    if (mPhProj.DPClinoMeters().DirInIsInit())
     {
-        mBA.AddClinoBloc(mNameClino, mFormat, mPrePost);
+        mBA.AddClinoBloc();
     }
 
     if (IsInit(&mPatFrosenClino))

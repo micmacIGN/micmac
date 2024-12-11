@@ -234,6 +234,7 @@ template <class Type>
 template <class Type>  
        cIm2D<Type>  cIm2D<Type>::Scale(const cInterpolator1D & anInterpol,tREAL8 aFX,tREAL8 aFY) const
 {
+
      // By Defaut SzY==SzX
      if (aFY<0) aFY = aFX;
 
@@ -257,7 +258,11 @@ template <class Type>
 
 
 template <class Type>  
-       cIm2D<Type>  cIm2D<Type>::Scale(tREAL8 aFX,tREAL8 aFY,tREAL8 aSzSinC,tREAL8 aDilateKernel) const
+       cIm2D<Type>  cIm2D<Type>::Scale
+                    (
+                         tREAL8 aFX,tREAL8 aFY,tREAL8 aSzSinC,tREAL8 aDilateKernel,
+                         const std::vector<std::string> & aVNameKernI 
+                    ) const
 {
      if (aFY<0) aFY = aFX;
 
@@ -268,27 +273,43 @@ template <class Type>
 
      tREAL8 aF = std::sqrt(aFX*aFY);
 
-     cInterpolator1D * aInt = nullptr;
+     cInterpolator1D * aTabInt = nullptr; // tabulated interpolator
 
 
      if (aF>1.0)
      {
-          // if we shrink the image, we must be carefull to do it w/o aliasing, so we will use
-	  // a scaled version of bicubik interpol,  for scale close to "1.0" we 
            tREAL8 aFactCub = std::min(-0.5 + (aF-1)/2.0,0.0);
-	   aInt = cScaledInterpolator::AllocTab(cCubicInterpolator(aFactCub),aF*aDilateKernel,100);
 
-	   /*
-for (tREAL8 aV=-10 ; aV<10 ; aV+=0.5)
-	StdOut() <<  "KKK= " << aV  << " => " << aInt->Weight(aV) << "\n";
-StdOut() << "FFFactCuub=" << aFactCub << " D=" << aDilateKernel << " SzK=" << aInt->SzKernel() << "\n";
-*/
+	   // aInt = cScaledInterpolator::AllocTab(cCubicInterpolator(aFactCub),aF*aDilateKernel,100);
+            cDiffInterpolator1D * aInt = cDiffInterpolator1D::AllocFromNames(aVNameKernI);
+
+	   aTabInt = cScaledInterpolator::AllocTab(*aInt,aF*aDilateKernel,1000);
+           delete aInt;
+
+           if (0)
+           {
+                StdOut() << "SCALEIT FZoom= " << aF  << " FCub=" << aFactCub 
+                         << " D=" << aDilateKernel << " SzK=" << aTabInt->SzKernel()
+                         << " \n   ";
+                for (int aK=0 ; aK<= aF+2 ; aK++)
+                    StdOut() <<  " [K=" << aK  << " I=" << aTabInt->Weight(aK) << "]" ;
+                 StdOut()  << "\n";
+
+                 for (tREAL8 aPh=-0.1 ; aPh<aF ; aPh+=0.234)
+                 {
+                      tREAL8 aSum =0;
+                      for (int aK=-20 ; aK<=20 ; aK++)
+                          aSum += aTabInt->Weight(aK*aF+aPh);
+                      StdOut() << "  S="  << aSum  ;  // << "," << aPh ;
+                 }
+                 StdOut()  << "\n";
+           }
      }
      else // if we enlarge the image, we must use standard interpolation
      {
 	 if (aSzSinC>0)   // sincard is theoretically "the best" but costly
          {
-	     aInt = new cTabulatedInterpolator(cSinCApodInterpolator(aSzSinC,aSzSinC),100,true);
+	     aTabInt = new cTabulatedInterpolator(cSinCApodInterpolator(aSzSinC,aSzSinC),100,true);
          }
          else  // bi cubic is a compromise
          {
@@ -297,13 +318,13 @@ StdOut() << "FFFactCuub=" << aFactCub << " D=" << aDilateKernel << " SzK=" << aI
              // tREAL8 aFactCub = aF-1.5
              tREAL8 aFactCub = std::max(-1.0,aF-1.5);
 
-             aInt = new cTabulatedInterpolator(cCubicInterpolator(aFactCub),100,true);
+             aTabInt = new cTabulatedInterpolator(cCubicInterpolator(aFactCub),100,true);
          }
      }
 
-      cIm2D<Type> aResult =  Scale(*aInt,aFX,aFY);
+      cIm2D<Type> aResult =  Scale(*aTabInt,aFX,aFY);
 
-      delete aInt;
+      delete aTabInt;
 
       return aResult;
 }

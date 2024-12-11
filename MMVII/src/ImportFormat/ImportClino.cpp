@@ -87,6 +87,13 @@ std::string cSetMeasureClino::NameOfIm(const cOneMesureClino &  aMes) const
 	return ReplacePattern(mPatMatch,mPatReplace,aMes.Ident());
 }
 
+void cSetMeasureClino::FilterByPatIdent(const std::string & aPat)
+{
+    erase_if(mSetMeasures,[aPat](const cOneMesureClino &aMes){return ! MatchRegex(aMes.Ident(),aPat);});
+}
+
+
+
 /* **************************************************************** */
 /*                                                                  */
 /*                          cOneMesureClino                         */
@@ -100,6 +107,7 @@ cOneMesureClino::cOneMesureClino() :
 
 const std::string &  cOneMesureClino::Ident() const {return mIdent; }
 const std::vector<tREAL8> & cOneMesureClino::Angles() const {return mAngles;}
+const std::optional<std::vector<tREAL8>> & cOneMesureClino::VSigma() const {return mVSigma;}
 
 cOneMesureClino::cOneMesureClino
 (

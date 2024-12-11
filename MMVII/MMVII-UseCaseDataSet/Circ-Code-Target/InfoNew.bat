@@ -12,7 +12,7 @@ REM   CREATE an initial calibration with default param
 MMVII  OriCreateCalib ".*tif" CalibInit
 
 REM   Import GCP , we fix a coordinate system "Pannel", purely local, mainly for documentation
-MMVII  ImportGCP  Data-Aux/Positions-3D-14bit_lookup.txt NXYZ Test NbDigName=3 ChSys=[LocalPannel]
+MMVII  ImportGCP  Data-Aux/Positions-3D-14bit_lookup.txt NXYZBla Test NbDigName=3 ChSys=[LocalPannel]
 MMVII  CodedTargetCircExtract ".*_Scaled.tif" CERN_Nbb14_Freq14_Hamm1_Run1000_1000_FullSpecif.xml DiamMin=8  OutPointsMeasure=Test
 
 REM   pose estimation init : resection + bundle
@@ -27,7 +27,7 @@ REM    Generate a report on GCP quality
 MMVII  ReportGCP .*tif  Completed BA2
 
 REM   compute an initial value of the block
-MMVII BlockCamInit .*tif BA2 "(.*)_(.*)_Scaled.tif" [1,2]  Rig
+MMVII BlockCamInit .*tif BA2 "(.*)_(.*)_Scaled.tif" [1,2]  "[(.*)@(.*),$1_$2_Scaled.tif,@]" Rig
 
 REM  make a compensation with rigid block
 MMVII  OriBundleAdj .*tif  BA2 BA3 GCPW=[1,1,1,5]  GCPDir=Completed/   BRDirIn=Rig BRW=[1e-2,1e-5]

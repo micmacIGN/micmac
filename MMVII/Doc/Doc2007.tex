@@ -151,12 +151,21 @@ en premi\`ere lecture.}}}
 \newcommand{\UNCLEAR}{}
 \newcommand{\ISITCLEAR}{}
 \newcommand{\PPP}{MMVII}
+
+\newcommand{\MmVii}
+{
+\ensuremath{ \mbox{
+     {\bf $\mathcal{M}$}\hspace{-0.15em}\raisebox{-0.4ex}{$m$}\hspace{-0.3em}\raisebox{0.3ex}{$V$}\raisebox{-0.4ex}{$2$}
+}}}
+
 \newcommand{\CdPPP}{{\tt MMVII}}
 \newcommand{\MMVIDIR}{{\tt MMVII-MainFolder/}}
 \newcommand{\doxy}{\emph{doxygen}}
 \newcommand{\MMNONE}{NONE}
 
-%\includeonly{Methods/Line-Detection-Theory}
+%\includeonly{Methods/PoseGlobInit}
+%\includeonly{Programmer/Interpolators}
+\includeonly{Methods/LidarImageRegistration}
 
 %---------------------------------------------
 \begin{document}
@@ -194,6 +203,8 @@ en premi\`ere lecture.}}}
 \include{Methods/PerspCamModelization}
 \include{Methods/PushBroomSensor-Theory}
 \include{Methods/PoseEstimation}
+\include{Methods/PoseGlobInit}
+\include{Methods/LidarImageRegistration}
 \include{Methods/CodedTarget-Theory}
 \include{Methods/Line-Detection-Theory}
 \include{Methods/AimeDesc}

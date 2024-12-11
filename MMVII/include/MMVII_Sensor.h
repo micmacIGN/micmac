@@ -573,6 +573,8 @@ class cPhotogrammetricProject
 	  void LoadIm(cSetMesImGCP&,cSensorImage & ) const;
 
 	  void SaveGCP(const cSetMesGCP&) const;
+	  cSetMesGCP LoadGCPFromFolder(const std::string &) const;
+	  cSetMesGCP LoadGCP() const;
 
 	  /// Name of the file, usefull if we need to test existence before doing anything
 	  std::string NameMeasureGCPIm(const std::string & aNameIm,bool isIn) const;
@@ -700,20 +702,20 @@ class cPhotogrammetricProject
 	 //===================================================================
 	
 	 /// Standard name for clino file using DPClinoMeters, in or out
-	 std::string NameFileClino(const std::string &aNameCam ,bool Input) const;
+	 std::string NameFileClino(const std::string &aNameCam ,bool Input, const std::string aClinoName) const;
 	 /// Save clinometer calib in santdard out folder of DPClinoMeters
 	 void SaveClino(const cCalibSetClino &) const;
 	 /// Is there  clinometer in santdard input folder of DPClinoMeters ?
-	 bool HasClinoCalib(const cPerspCamIntrCalib &) const;
+	 bool HasClinoCalib(const cPerspCamIntrCalib &, const std::string aClinoName) const;
 	 /**  Read the clinometers calib in standard input folder of DPClinoMeters, create a dyn objec because
 	  *  probably "cCalibSetClino" will evolve in a not copiable object*/
-	 cCalibSetClino * GetClino(const cPerspCamIntrCalib &) const;
+	 cOneCalibClino * GetClino(const cPerspCamIntrCalib &, const std::string aClinoName) const;
 
 	 /// Standard name for file of measures clino 
 	 std::string NameFileMeasuresClino(bool Input,const std::string & aNameFile="" ) const;
 	 void SaveMeasureClino(const cSetMeasureClino &) const;
-	 void ReadMeasureClino(cSetMeasureClino &) const;
-	 cSetMeasureClino ReadMeasureClino() const;
+	 void ReadMeasureClino(cSetMeasureClino &,const std::string * aPatSel=nullptr) const;
+	 cSetMeasureClino ReadMeasureClino(const std::string * aPatSel=nullptr) const;
 
 	 //===================================================================
          //==================   Rigid Bloc           =========================

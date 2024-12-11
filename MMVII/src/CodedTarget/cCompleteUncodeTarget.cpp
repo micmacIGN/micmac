@@ -186,7 +186,7 @@ int  cAppliCompletUncodedTarget::Exe()
    mPhProj.FinishInit();
 
    mNameReportEllipse = "EllipsesDim";
-   InitReport(mNameReportEllipse,"csv",true);
+   InitReportCSV(mNameReportEllipse,"csv",true);
 
 
    AddHeaderReportCSV(mNameReportEllipse,{"Image","Pt","Ray","Ratio"});

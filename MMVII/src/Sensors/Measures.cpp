@@ -209,6 +209,15 @@ cMes1GCP &  cSetMesImGCP::MesGCPOfName(const std::string & aNamePt)
 }
 
 
+cSetMesGCP cSetMesImGCP::AllMesGCP() const
+{
+   cSetMesGCP aRes;
+   for (const auto &  aGCP : mMesGCP)
+      aRes.AddMeasure(aGCP);
+
+   return aRes;
+}
+
 
 
 const cMes1GCP &  cSetMesImGCP::MesGCPOfNum(int aNum) const
@@ -448,6 +457,28 @@ void cSetMesPtOf1Im::AddMeasure(const cMesIm1Pt & aMeasure)
      mMeasures.push_back(aMeasure);
 }
 
+void cSetMesPtOf1Im::AddMeasureIfNew(const cMesIm1Pt & aNewM,tREAL8 aTolDupl)
+{
+    for (const auto & aM : mMeasures)
+    {
+         if (aM.mNamePt == aNewM.mNamePt)
+         {
+            if (Norm2(aM.mPt- aNewM.mPt) <= aTolDupl)
+            {
+                // point are just identic up to tolerance, nothing to do
+                return;
+            }
+            else
+            {
+                StdOut() << "PTS=" << aM.mPt << " " << aNewM.mPt << "\n";
+                MMVII_UnclasseUsEr("Duplicate measure added for point : " + aM.mNamePt + " in Image " +mNameIm);
+            }
+         }
+    }
+    // Ok point doesnt exist, just add
+    AddMeasure(aNewM);
+}
+
 
 void cSetMesPtOf1Im::AddSetMeasure(const cSetMesPtOf1Im & aSet,bool SuprNone,bool OkDupl)
 {
@@ -499,6 +530,16 @@ void AddData(const  cAuxAr2007 & anAux,cSetMesPtOf1Im & aGCPMI)
 void cSetMesPtOf1Im::ToFile(const std::string & aName) const
 {
     SaveInFile(*this,aName);
+}
+
+void cSetMesPtOf1Im::SortMes()
+{
+    std::sort(mMeasures.begin(), mMeasures.end(),
+              [](const cMesIm1Pt &a, const cMesIm1Pt &b)
+                {
+                    return a.mNamePt < b.mNamePt;
+                }
+    );
 }
 
 const std::string  cSetMesPtOf1Im::ThePrefixFiles = "MesIm-";
@@ -622,6 +663,15 @@ cSetMesGCP::cSetMesGCP(const std::string &aNameSet) :
 cSetMesGCP::cSetMesGCP() :
     cSetMesGCP("???")
 {
+}
+
+std::list<std::string>  cSetMesGCP::ListOfNames() const
+{
+    std::list<std::string> aRes;
+    for (const auto & aGCP : mMeasures)
+        aRes.push_back(aGCP.mNamePt);
+
+   return aRes;
 }
 
 

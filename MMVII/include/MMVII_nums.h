@@ -902,7 +902,8 @@ class cCelCC : public cMemCheck
      public :
         std::vector<size_t>  mEquivCode;  /// all codes equivalent
         size_t               mLowCode;    ///< lower representant
-        bool                 mTmp;        /// some marker to use when convenient
+        bool                 mTmp;        ///< some marker to use when convenient
+        int                  mNum;        ///< Num used so that names is alway the same whatever maybe the selection
 
 	size_t HammingDist(const cCelCC &) const;
 
@@ -930,6 +931,7 @@ class cCompEquiCodes : public cMemCheck
        const std::vector<cCelCC*>  & VecOfCells() const; ///< Accessor
        const cCelCC &  CellOfCodeOK(size_t aCode) const;  ///< Error if null
        const cCelCC *  CellOfCode(size_t) const;  ///< nullptr if bad range or no cell
+       cCelCC *  CellOfCode(size_t) ;  ///< nullptr if bad range or no cell
 
        ~cCompEquiCodes();
        static void Bench(size_t aNBB,size_t aPer,bool Miror);

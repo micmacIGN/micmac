@@ -28,7 +28,7 @@ void cMMVII_Appli::SetReportSubDir(const std::string & aSubDir)
 void  cMMVII_Appli::SetReportRedir(const std::string &anId,const std::string & aNewDir)
 {
     CreateDirectories(aNewDir,false);
-    mMapIdRedirect[anId] = aNewDir;
+    mMapAttrReport[anId].mDirRedirect  = aNewDir;
 }
 
 
@@ -38,32 +38,40 @@ std::string  cMMVII_Appli::DirSubPReport(const std::string &anId)
 }
 
 
-void  cMMVII_Appli::InitReport(const std::string &anId,const std::string &aPost,bool IsMul,const std::vector<std::string> & aHeader)
+void  cMMVII_Appli::InitReportCSV(const std::string &anId,const std::string &aPost,bool IsMul,const std::vector<std::string> & aHeader)
 {
-    if (IsMul && (LevelCall()==0))
-    {
-       mReport2Merge.insert(anId);
-    }
+    cAttrReport & anAttr = mMapAttrReport[anId];
+    anAttr.mIsMul = IsMul;
+    anAttr.m2Merge = IsMul && (LevelCall()==0);
+    anAttr.mPost = aPost;
 
-    if (LevelCall()==0)
+    if ((LevelCall()==0) || (!IsMul))
     {
          CreateDirectories(DirReport(),true);
-	 mMapIdFilesReport[anId] = DirReport()+anId + "." + aPost;
+         anAttr.mFile = DirReport()+anId + "." + aPost;
 	 if (IsMul)
             CreateDirectories(DirSubPReport(anId),true);
     }
     else if (LevelCall()==1)
     {
-        mMapIdFilesReport[anId]  = DirSubPReport(anId) + FileOfPath(UniqueStr(0),false)  +"." + aPost;
+        anAttr.mFile = DirSubPReport(anId) + FileOfPath(UniqueStr(0),false)  +"." + aPost;
     }
     else
         return;
-    mMapIdPostReport[anId] = aPost;
 
-    cMMVII_Ofs(mMapIdFilesReport[anId], eFileModeOut::CreateText);
+    cMMVII_Ofs(anAttr.mFile, eFileModeOut::CreateText);
 
     if (! aHeader.empty())
        AddHeaderReportCSV(anId,aHeader);
+}
+
+const std::string& cMMVII_Appli::NameFileCSVReport(const std::string & anId) const
+{
+     auto anIt = mMapAttrReport.find(anId);
+
+     MMVII_INTERNAL_ASSERT_tiny(anIt!=mMapAttrReport.end(),"NameFileCSVReport for Id=" + anId);
+
+     return anIt->second.mFile;
 }
 
 /*
@@ -78,8 +86,7 @@ void  cMMVII_Appli::AddTopReport(const std::string &anId,const std::string & aMs
 
 void  cMMVII_Appli::AddOneReport(const std::string &anId,const std::string & aMsg)
 {
-    std::string  aName = mMapIdFilesReport[anId];
-    MMVII_INTERNAL_ASSERT_tiny(aName!="","No file in AddOneMesCSV");
+    std::string  aName = NameFileCSVReport(anId);
     cMMVII_Ofs aFile(aName, eFileModeOut::AppendText);
 
     aFile.Ofs() << aMsg;
@@ -139,24 +146,22 @@ void  cMMVII_Appli:: AddStdStatCSV(const std::string &anId,const std::string & a
 }
 
 
-
 void  cMMVII_Appli::DoMergeReport()
 {
-     for (const auto & anIt : mMapIdFilesReport)
+     for (const auto & [anId,anAttr] : mMapAttrReport)
      {
-        if (BoolFind(mReport2Merge,anIt.first))
+        if (anAttr.m2Merge)
 	{
 	     int aNbLines = 0;
              // Put aFileGlob in {} to create destruction before OnCloseReport that may generat error
              {
-                 cMMVII_Ofs aFileGlob(anIt.second, eFileModeOut::AppendText);
-                 const std::string & anId = anIt.first;
+                 cMMVII_Ofs aFileGlob(anAttr.mFile, eFileModeOut::AppendText);
 
 	         if (mRMSWasUsed)
 	         {
 	            for (const auto & aNameIm : VectMainSet(0))
 	            {
-                        std::string aNameIn = DirSubPReport(anId) + FileOfPath(aNameIm,false) + "." + mMapIdPostReport[anId];
+                        std::string aNameIn = DirSubPReport(anId) + FileOfPath(aNameIm,false) + "." + anAttr.mPost;
 	                cMMVII_Ifs aIn(aNameIn, eFileModeIn::Text);
 
 	                std::string aLine;
@@ -170,15 +175,22 @@ void  cMMVII_Appli::DoMergeReport()
                  RemoveRecurs(DirSubPReport(anId),false,false);
 
              }
-	     OnCloseReport(aNbLines,anIt.first,anIt.second);
+	     OnCloseReport(aNbLines,anId,anAttr.mFile);
 	}
-        if (MapBoolFind(mMapIdRedirect,anIt.first) && (LevelCall()==0))
+/*
+if (MapBoolFind(mMapIdRedirect,anIt.first))
+{
+StdOut() <<  "WWftR78::: " <<   anIt.second << " => " <<   mMapIdRedirect[anIt.first] + FileOfPath(anIt.second) << "\n";
+}
+*/
+        if ( (anAttr.mDirRedirect!="")  && ( (LevelCall()==0) || (! anAttr.mIsMul)))
         {
-            std::string aNewFile = mMapIdRedirect[anIt.first] + FileOfPath(anIt.second);
-            RenameFiles(anIt.second,aNewFile);
+            std::string aNewFile = anAttr.mDirRedirect + FileOfPath(anAttr.mFile);
+            RenameFiles(anAttr.mFile,aNewFile);
         }
      }
 }
+
 
 // By default nothing to do
 void  cMMVII_Appli::OnCloseReport(int aNbLine,const std::string & anIdent,const std::string & aNameFile) const

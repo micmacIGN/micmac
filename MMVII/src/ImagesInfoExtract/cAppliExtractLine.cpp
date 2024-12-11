@@ -1,6 +1,9 @@
 #include "MMVII_PCSens.h"
 #include "MMVII_ImageInfoExtract.h"
 #include "MMVII_ExtractLines.h"
+#include "MMVII_2Include_CSV_Serial_Tpl.h"
+
+
 
 /*    ========  HOUGH ==========================
 
@@ -431,16 +434,8 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
 
         for  (const auto & aLine : aExAllLines.mLines)
         {
-             cPt2dr aP1 = aLine.mSeg.P1();
-             cPt2dr aP2 = aLine.mSeg.P2();
-             std::vector<std::string> aVS {        aNameIm,
-                                                   ToStr(aP1.x()),ToStr(aP1.y()),ToStr(aP2.x()),ToStr(aP2.y()),
-                                                   ToStr(aLine.mWidth),ToStr(aLine.mSigmaLine)
-                                          };
-             AddOneReportCSV(mIdExportCSV,aVS);
+             Tpl_AddOneObjReportCSV(*this,mIdExportCSV,aLine);
         }
-    // InitReport(mIdExportCSV,"csv",true,{"NameIm","X1","Y1","X2","Y2","Witdh","Sigma"});
-        // AddOneReportCSV(mNameReportByLine,{mNameCurIm,ToStr(aEx1L.mAng),ToStr(aEx1L.mWidth),ToStr(aEx1L.mCumul),ToStr(aHS1->RadHom())});
     }
 
 #if (0)
@@ -576,14 +571,14 @@ void cAppliExtractLine::MakeVisu(const std::string & aNameIm)
 int cAppliExtractLine::Exe()
 {
     mPhProj.FinishInit();
-    InitReport(mNameReportByLine,"csv",true,{"NameIm","Paral","Larg","Score","RadHom"});
-    InitReport(mNameReportByIm,"csv",true,{"NameIm","CodeResult"});
+    InitReportCSV(mNameReportByLine,"csv",true,{"NameIm","Paral","Larg","Score","RadHom"});
+    InitReportCSV(mNameReportByIm,"csv",true,{"NameIm","CodeResult"});
 
-    InitReport(mIdExportCSV,"csv",true,{"NameIm","X1","Y1","X2","Y2","Witdh","Sigma"});
+    //  Create a report with header computed from type
+    Tpl_AddHeaderReportCSV<cOneLineAntiParal>(*this,mIdExportCSV,true);
+    // Redirect the reports on folder of result
     SetReportRedir(mIdExportCSV,mPhProj.DPPointsMeasures().FullDirOut());
 
-    // AddHeaderReportCSV(mNameReportByLine,{"NameIm","Paral","Larg","Cumul"});
-    // AddHeaderReportCSV(mNameReportByIm,{"NameIm","CodeResult"});
     if (RunMultiSet(0,0))
     {
        return ResultMultiSet();

@@ -431,7 +431,7 @@ tPoseR  cBlocOfCamera::EstimatePoseRel1Cple(size_t aKB1,size_t aKB2,cMMVII_Appli
     if (anAppli)
     {
          //  Init the raport,  false mean that we are doin it in the main application, not in a sub-process
-         anAppli->InitReport(anIdReport,"csv",false);
+         anAppli->InitReportCSV(anIdReport,"csv",false);
          //  Add one header  "SyncId","x","y","z","w","p","k"
          anAppli->AddOneReportCSV(anIdReport,{"SyncId","x","y","z","w","p","k"});
     }
@@ -521,7 +521,7 @@ tPoseR  cBlocOfCamera::EstimatePoseRel1Cple(size_t aKB1,size_t aKB2,cMMVII_Appli
 void  cBlocOfCamera::StatAllCples(cMMVII_Appli * anAppli)
 {
      std::string  anIdGlob =  "Glob";
-     anAppli->InitReport(anIdGlob,"csv",false);
+     anAppli->InitReportCSV(anIdGlob,"csv",false);
      anAppli->AddOneReportCSV(anIdGlob,{"Id1","Id2","SigmaTr","SigmaRot"});
 
      for (size_t aKB1=0 ; aKB1<NbInBloc() ; aKB1++)
@@ -682,7 +682,7 @@ class cAppli_BlockCamInit : public cMMVII_Appli
 std::vector<std::string>  cAppli_BlockCamInit::Samples() const
 {
     return {
-	     "MMVII BlockCamInit SetFiltered_GCP_OK_Resec.xml   BA_311_B   '(.*)_(.*).JPG' [1,2]  Rig_311_B"
+         "MMVII BlockCamInit SetFiltered_GCP_OK_Resec.xml   BA_311_B   '(.*)_(.*).JPG' [1,2] '[(.*)@(.*),$1_$2.tif,@]'  Rig_311_B"
     };
 }
 cAppli_BlockCamInit::cAppli_BlockCamInit

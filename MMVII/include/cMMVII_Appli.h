@@ -231,6 +231,7 @@ class cTimerSegm
        ~cTimerSegm();
        /// Force to have no show at del, usefull for handling parameter in bench
        void SetNoShowAtDel();
+       double  CurBeginTime() const ; ///< Accessor
    private :
        tTableIndTS          mTimers;
        tIndTS               mLastIndex;
@@ -395,6 +396,16 @@ enum class eModeCall
               eMulSubP
            };
 
+struct  cAttrReport
+{
+    public :
+        std::string    mPost;
+        std::string    mFile;
+        std::string    mDirRedirect;
+        bool           mIsMul;
+        bool           m2Merge;
+};
+
 
 class cMMVII_Appli : public cMMVII_Ap_NameManip,
                      public cMMVII_Ap_CPU
@@ -540,7 +551,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 	virtual void OnCloseReport(int aNbLine,const std::string & anIdent,const std::string & aNameFile) const;
 
         /// Generate a new entry for report "anId",  IsMul -> indicate if we are in multi process (for merge at end)
-	void  InitReport(const std::string &anId,const std::string & aPostfix,bool IsMul,const std::vector<std::string> & aHeader={});
+	void  InitReportCSV(const std::string &anId,const std::string & aPostfix,bool IsMul,const std::vector<std::string> & aHeader={});
 	//  void  AddTopReport(const std::string &anId,const std::string & VecMsg);
 
 
@@ -550,6 +561,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
 	void  AddStdHeaderStatCSV(const std::string &anId,const std::string & aNameCol1,const std::vector<int> aVPerc,const std::vector<std::string> & ={});
 	void  AddStdStatCSV(const std::string &anId,const std::string & aCol1,const cStdStatRes &,const std::vector<int> aVPerc,const std::vector<std::string> & ={});
+
+        const std::string & NameFileCSVReport(const std::string & anId) const;
 
         /// if "aPatSubst" was initialized, make a pattern replacement with aPatSubst[0] as pattern and aPatSubst[1] as substitution
 	void ChgName(const std::vector<std::string>& aPatSub,std::string & aName) const;
@@ -732,11 +745,11 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         bool                                      mIsInBenchMode;   ///< is the command executed for bench (will probably make specific test)
 
 	char                               mCSVSep;    ///< separator in csv file, for now hard coded to ","
-	std::map<std::string,std::string>  mMapIdFilesReport; ///< For a given id memorize the post fix, as "csv"
-	std::map<std::string,std::string>  mMapIdPostReport; ///< For a given id , memorize the file (Global of Tmp in sub process)
+	std::map<std::string,cAttrReport>  mMapAttrReport; ///< For a given id memorize the post fix, as "csv"
+	// std::map<std::string,std::pair<bool,std::string>>  mMapIdPostReport; ///< For a given id , memorize IsMul + Post
         /// If finally, we want to store finall result is another Dir (when report is used for generating data in csv as export)
-	std::map<std::string,std::string>  mMapIdRedirect; 
-	std::set<std::string>              mReport2Merge;  ///< Memorize all the report identifier that must be merged
+	// std::map<std::string,std::string>  mMapIdRedirect; 
+	// std::set<std::string>              mReport2Merge;  ///< Memorize all the report identifier that must be merged
         std::string                        mReportSubDir;  ///< In case we want to write in separate subdir (like with GCP)
 
 	std::string                        mPatternInitGMA;

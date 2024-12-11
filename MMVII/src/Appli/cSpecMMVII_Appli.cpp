@@ -179,6 +179,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecMatchTieP);
 	TheVecAll.push_back(&TheSpec_TiePConv);
 	TheVecAll.push_back(&TheSpec_ToTiePMul);
+        TheVecAll.push_back(&TheSpec_PseudoIntersect);
         TheVecAll.push_back(&TheSpecEpipGenDenseMatch);
         TheVecAll.push_back(&TheSpecEpipDenseMatchEval);
         TheVecAll.push_back(&TheSpecGenSymbDer);
