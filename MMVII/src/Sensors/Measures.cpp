@@ -188,7 +188,7 @@ void cSetMesGndPt::Add1GCP(const cMes1Gnd3D & aMes)
 }
 
 void cSetMesGndPt::AddMes3D(const std::string &aSetName, tREAL4 aSigmaFactor, const cSetMesGnd3D &  aSet)
-{aSetName? aSigmaFactor?
+{
     for (const auto & aMes  : aSet.Measures())
         Add1GCP(aMes);
 }
@@ -390,17 +390,16 @@ cSetMesGnd3D  cSetMesGndPt::ExtractSetGCP(const std::string & aName) const
 /*                                               */
 /* ********************************************* */
         
-cMesIm1Pt::cMesIm1Pt(const cPt2dr & aPt, const std::string & aNamePt, const std::string &aSetName, tREAL4 aS2, tREAL4 aSigmaFactor) :
+cMesIm1Pt::cMesIm1Pt(const cPt2dr & aPt, const std::string & aNamePt, tREAL4 aS2, MMVII::cMesDirInfo *aMesDirInfo) :
      mPt      (aPt),
      mNamePt  (aNamePt),
      mSigma2   {aS2,0,aS2},
-     mSetName  (aSetName),
-     mSigmaFactor(aSigmaFactor)
+     mMesDirInfo  (aMesDirInfo)
 {
 }
 
 cMesIm1Pt::cMesIm1Pt() :
-    cMesIm1Pt(cPt2dr(0,0),"???","??",-1,1.)
+    cMesIm1Pt(cPt2dr(0,0),"???",-1,nullptr)
 {
 }
 
@@ -575,12 +574,12 @@ bool cSetMesPtOf1Im::NameHasMeasure(const std::string & aN) const {return Privat
 /*                                               */
 /* ********************************************* */
 
-cMes1Gnd3D::cMes1Gnd3D(const cPt3dr & aPt, const std::string & aNamePt, const std::string &aSetName, tREAL4 aSigma,
+cMes1Gnd3D::cMes1Gnd3D(const cPt3dr & aPt, const std::string & aNamePt, cMesDirInfo* aMesDirInfo, tREAL4 aSigma,
                    const std::string &aAdditionalInfo) :
     mPt       (aPt),
     mNamePt   (aNamePt),
     mAdditionalInfo(aAdditionalInfo),
-    mSetName(aSetName),
+    mMesDirInfo(aMesDirInfo),
     mOptSigma2(std::nullopt)
 {
     if (aSigma>=0.)
@@ -588,7 +587,7 @@ cMes1Gnd3D::cMes1Gnd3D(const cPt3dr & aPt, const std::string & aNamePt, const st
 }
 
 cMes1Gnd3D::cMes1Gnd3D() :
-    cMes1Gnd3D (cPt3dr::Dummy(),"??","??")
+    cMes1Gnd3D (cPt3dr::Dummy(),"??",nullptr)
 {
 }
 

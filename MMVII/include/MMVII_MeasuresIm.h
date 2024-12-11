@@ -28,6 +28,8 @@ class cSetMesGndPt;
 
 class cComputeMergeMulTieP;
 
+class cMesDirInfo;
+
 
 /** class for representing  a 3D point paired with it 2d image projection */
  
@@ -80,15 +82,13 @@ struct cSet2D3D : public cMemCheck
 class cMesIm1Pt
 {
      public :
-        cMesIm1Pt(const cPt2dr & aPt,const std::string & aNamePt,const std::string & aSetName,tREAL4 aSigma2,tREAL4 aSigmaFactor=1.);
+        cMesIm1Pt(const cPt2dr & aPt,const std::string & aNamePt,tREAL4 aSigma2,cMesDirInfo* aMesDirInfo);
         cMesIm1Pt();
 
         cPt2dr            mPt;
         std::string       mNamePt;
         cArray<tREAL4,3>  mSigma2;  //< xx xy yy
-        std::string       mSetName; //< to export image coords by sets
-        tREAL4            mSigmaFactor; //< sigma factor in adjustment, not recorded, not affecting original sigmas
-
+        cMesDirInfo* mMesDirInfo; //< to recover dir in/out name and weighter
 };
 void AddData(const  cAuxAr2007 & anAux,cMesIm1Pt & aGCPMI);
 
@@ -137,8 +137,8 @@ class cMes1Gnd3D
      public :
         
         // aSigma==-1 for free point
-        cMes1Gnd3D(const cPt3dr & aPt,const std::string & aNamePt, const std::string & aSetName, tREAL4 aSigma=-1,
-                 tREAL4 aSigmaFactor=1., const std::string &aAdditionalInfo="");
+        cMes1Gnd3D(const cPt3dr & aPt,const std::string & aNamePt, cMesDirInfo* aMesDirInfo,
+                   tREAL4 aSigma=-1, const std::string &aAdditionalInfo="");
 
         cMes1Gnd3D();
 	/// change the coordinate with mapping ! For now dont update sigma using the jacobian, maybe later ...
@@ -152,8 +152,7 @@ class cMes1Gnd3D
         static constexpr int IndYY = 3;
         static constexpr int IndZZ = 5;
         std::string mAdditionalInfo;
-        std::string mSetName; //< to export ground coords by sets
-        tREAL4      mSigmaFactor; //< sigma factor in adjustment, not recorded, not affecting original sigmas
+        cMesDirInfo* mMesDirInfo; //< to recover dir in/out name and weighter
 
         bool isInit() const {return mPt.IsValid();}
 

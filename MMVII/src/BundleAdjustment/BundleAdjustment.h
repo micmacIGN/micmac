@@ -279,8 +279,15 @@ class cBA_Clino : public cMemCheck
 
 
 
-
-
+// class to record data specific to a measurement directory : In/out nam, weighter
+class cMesDirInfo
+{
+public:
+    cMesDirInfo(const std::string &aDirNameIn, const std::string &aDirNameOut, const cStdWeighterResidual &aWeighter);
+    std::string mDirNameIn;
+    std::string mDirNameOut;
+    cStdWeighterResidual mWeighter;
+};
 
 
 
@@ -290,12 +297,16 @@ class cBA_GCP
 	          // - - - - - - - - GCP  - - - - - - - - - - -
           cBA_GCP();
           ~cBA_GCP();
+          cBA_GCP(cBA_GCP const&) = delete;
+          cBA_GCP& operator=(cBA_GCP const&) = delete;
 
           cSetMesGndPt             mMesGCP; //< initial
           cSetMesGndPt             mNewGCP; //< set of gcp after adjust
-          tREAL8                   mSigmaGCP;
-          cStdWeighterResidual     mGCPIm_Weighter;
           std::vector<cPt3dr_UK*>  mGCP_UK;
+          cMesDirInfo* addMesDirInfo(const std::string & aDirNameIn, const std::string & aDirNameOut,
+                                     tREAL8 aSGlob,tREAL8 aSigAtt,tREAL8 aThr,tREAL8 aExp);
+          std::vector<cMesDirInfo*> mAllMesDirInfo;
+
 };
 
 class cBA_TieP
@@ -338,7 +349,7 @@ class cMMVII_BundleAdj
           ///  =======  Add GCP, can be measure or measure & object
           void AddGCP3D(const std::string & aName, tREAL8 aSigmaGCP, const  cStdWeighterResidual& aWeightIm, cSetMesGndPt *, bool verbose=true);
           void AddGCP2D(const std::string & aName, tREAL8 aSigmaGCP, const  cStdWeighterResidual& aWeightIm, cSetMesGndPt *, bool verbose=true);
-          cBA_GCP* getVGCP() { return mGCP;}
+          cBA_GCP& getVGCP() { return mGCP;}
 
 	  ///  ============  Add multiple tie point ============
 	  void AddMTieP(const std::string & aName,cComputeMergeMulTieP  * aMTP,const cStdWeighterResidual & aWIm);

@@ -5,19 +5,34 @@ namespace MMVII
 {
 
 /* -------------------------------------------------------------- */
+/*                cMesDirInfo                                     */
+/* -------------------------------------------------------------- */
+
+cMesDirInfo::cMesDirInfo (const std::string &aDirNameIn, const std::string &aDirNameOut, const cStdWeighterResidual &aWeighter) :
+    mDirNameIn(aDirNameIn), mDirNameOut(aDirNameOut), mWeighter(aWeighter)
+{
+
+}
+
+/* -------------------------------------------------------------- */
 /*                cBA_GCP                                         */
 /* -------------------------------------------------------------- */
 
-cBA_GCP::cBA_GCP() :
-    mMesGCP           (nullptr),
-    mSigmaGCP         (-1)
+cBA_GCP::cBA_GCP()
 {
 }
 
 cBA_GCP::~cBA_GCP() 
 {
     DeleteAllAndClear(mGCP_UK);
-    delete mMesGCP;
+    DeleteAllAndClear(mAllMesDirInfo);
+}
+
+cMesDirInfo* cBA_GCP::addMesDirInfo(const std::string & aDirNameIn, const std::string & aDirNameOut,
+                                    tREAL8 aSGlob,tREAL8 aSigAtt,tREAL8 aThr,tREAL8 aExp)
+{
+    mAllMesDirInfo.push_back(new cMesDirInfo(aDirNameIn,aDirNameOut,cStdWeighterResidual(aSGlob, aSigAtt, aThr, aExp)));
+    return mAllMesDirInfo.back();
 }
 
 /* -------------------------------------------------------------- */
