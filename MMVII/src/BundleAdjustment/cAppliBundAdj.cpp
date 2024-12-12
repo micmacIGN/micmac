@@ -204,7 +204,7 @@ void  cAppliBundlAdj::AddOneSetGCP(const std::vector<std::string> & aVParStd, bo
     //  load the GCP
     cSetMesGndPt  aFullMesGCP;
     mPhProj.LoadGCP3DFromFolder(aFolder, aFullMesGCP,
-                              {aDoAddNewTopoPoints?mBA.getTopo():nullptr, aDoAddNewTopoPoints?&mBA.getVGCP():nullptr},
+                              {aDoAddNewTopoPoints?mBA.getTopo():nullptr, aDoAddNewTopoPoints?&mBA.getGCP():nullptr},
                               "", mGCPFilter, mGCPFilterAdd);
 
     for (const auto  & aSens : mBA.VSIm())

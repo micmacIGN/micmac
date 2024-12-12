@@ -1,5 +1,6 @@
 #include "BundleAdjustment.h"
 
+#include "MMVII_MeasuresIm.h"
 
 namespace MMVII
 {
@@ -29,32 +30,28 @@ cBA_GCP::~cBA_GCP()
 }
 
 cMesDirInfo* cBA_GCP::addMesDirInfo(const std::string & aDirNameIn, const std::string & aDirNameOut,
-                                    tREAL8 aSGlob,tREAL8 aSigAtt,tREAL8 aThr,tREAL8 aExp)
+                                    const cStdWeighterResidual & aStdWeighterResidual)
 {
-    mAllMesDirInfo.push_back(new cMesDirInfo(aDirNameIn,aDirNameOut,cStdWeighterResidual(aSGlob, aSigAtt, aThr, aExp)));
+    mAllMesDirInfo.push_back(new cMesDirInfo(aDirNameIn,aDirNameOut,aStdWeighterResidual));
     return mAllMesDirInfo.back();
+}
+
+void cBA_GCP::AddGCP3D(cMesDirInfo * aMesDirInfo, cSetMesGnd3D *aSetMesGnd3D, bool verbose)
+{
+    mMesGCP.AddMes3D(*aSetMesGnd3D, aMesDirInfo);
 }
 
 /* -------------------------------------------------------------- */
 /*                cMMVII_BundleAdj::GCP                           */
 /* -------------------------------------------------------------- */
 
-void cMMVII_BundleAdj::AddGCP3D(const std::string & aName, tREAL8 aSigmaFactor3D, cSetMesGnd3D *aSetMesGnd3D, bool verbose);
+void cMMVII_BundleAdj::AddGCP3D(cMesDirInfo * aMesDirInfo, cSetMesGnd3D *aSetMesGnd3D, bool verbose)
 {
-    mGCP.mMesGCP.AddMes3D(*aSetMesGndPt);
-
-    mGCP->mName           = aName;
-    mGCP->mMesGCP         = aMesGCP;
-    mGCP->mSigmaGCP       = aSigmaGCP;
-    mGCP->mGCPIm_Weighter = aWeighter;
-
-    //  mMesGCP = aMesGCP;
-    //  mSigmaGCP = aSigmaGCP;
-    //  mGCPIm_Weighter = aWeighter;
+    mGCP.AddGCP3D(aMesDirInfo, aSetMesGnd3D, verbose);
 
     if (verbose && mVerbose)
     {
-        StdOut()<<  "MESIM=" << mGCP->mMesGCP->MesImOfPt().size() << " MesGCP=" << mGCP->mMesGCP->MesGCP().size()  << std::endl;
+        StdOut()<<  "MESIM=" << mGCP.getMesGCP().MesImOfPt().size() << " MesGCP=" << mGCP.getMesGCP().MesGCP().size()  << std::endl;
     }
 }
 

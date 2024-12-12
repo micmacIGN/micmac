@@ -82,7 +82,7 @@ struct cSet2D3D : public cMemCheck
 class cMesIm1Pt
 {
      public :
-        cMesIm1Pt(const cPt2dr & aPt,const std::string & aNamePt,tREAL4 aSigma2,cMesDirInfo* aMesDirInfo);
+        cMesIm1Pt(const cPt2dr & aPt,const std::string & aNamePt,tREAL4 aSigma2);
         cMesIm1Pt();
 
         cPt2dr            mPt;
@@ -137,7 +137,7 @@ class cMes1Gnd3D
      public :
         
         // aSigma==-1 for free point
-        cMes1Gnd3D(const cPt3dr & aPt,const std::string & aNamePt, cMesDirInfo* aMesDirInfo,
+        cMes1Gnd3D(const cPt3dr & aPt,const std::string & aNamePt,
                    tREAL4 aSigma=-1, const std::string &aAdditionalInfo="");
 
         cMes1Gnd3D();
@@ -236,7 +236,7 @@ class cSetMesGndPt : public cMemCheck
 	    // cSetMesImGCP(const cComputeMergeMulTieP  &);
 
             ///  Add one set of 3D measures (often called only once), all calls must occur before AddMes2D
-            void AddMes3D(const std::string &aSetName, tREAL4 aSigmaFactor, const cSetMesGnd3D &);
+            void AddMes3D(const cSetMesGnd3D &, cMesDirInfo * aMesDirInfo=nullptr);
 	    /// For a single GCP (called by AddMes3D)
 	    void Add1GCP(const cMes1Gnd3D &);
 	    ///  Add mesure on 1 images, close the possibility for further call to AddMes3D

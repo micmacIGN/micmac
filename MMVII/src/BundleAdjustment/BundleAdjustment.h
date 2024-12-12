@@ -300,11 +300,14 @@ class cBA_GCP
           cBA_GCP(cBA_GCP const&) = delete;
           cBA_GCP& operator=(cBA_GCP const&) = delete;
 
+          cMesDirInfo* addMesDirInfo(const std::string & aDirNameIn, const std::string & aDirNameOut,
+                                     const cStdWeighterResidual & aStdWeighterResidual);
+          void AddGCP3D(cMesDirInfo * aMesDirInfo, cSetMesGnd3D *aSetMesGnd3D, bool verbose);
+          const cSetMesGndPt & getMesGCP() const {return mMesGCP;}
+    protected:
           cSetMesGndPt             mMesGCP; //< initial
           cSetMesGndPt             mNewGCP; //< set of gcp after adjust
           std::vector<cPt3dr_UK*>  mGCP_UK;
-          cMesDirInfo* addMesDirInfo(const std::string & aDirNameIn, const std::string & aDirNameOut,
-                                     tREAL8 aSGlob,tREAL8 aSigAtt,tREAL8 aThr,tREAL8 aExp);
           std::vector<cMesDirInfo*> mAllMesDirInfo;
 
 };
@@ -347,9 +350,9 @@ class cMMVII_BundleAdj
 
           bool AddTopo(const std::string & aTopoFilePath); // TOPO
           ///  =======  Add GCP, can be measure or measure & object
-          void AddGCP3D(const std::string & aName, tREAL8 aSigmaGCP, const  cStdWeighterResidual& aWeightIm, cSetMesGndPt *, bool verbose=true);
-          void AddGCP2D(const std::string & aName, tREAL8 aSigmaGCP, const  cStdWeighterResidual& aWeightIm, cSetMesGndPt *, bool verbose=true);
-          cBA_GCP& getVGCP() { return mGCP;}
+          void AddGCP3D(cMesDirInfo * aMesDirInfo, cSetMesGnd3D *aSetMesGnd3D, bool verbose=true); //< wrapper for cSetMesGnd3D
+          void AddGCP2D(cMesDirInfo * aMesDirInfo, cSetMesPtOf1Im *, bool verbose=true);
+          cBA_GCP& getGCP() { return mGCP;}
 
 	  ///  ============  Add multiple tie point ============
 	  void AddMTieP(const std::string & aName,cComputeMergeMulTieP  * aMTP,const cStdWeighterResidual & aWIm);
@@ -406,9 +409,6 @@ class cMMVII_BundleAdj
 
 	  void OneItere_TieP();   /// Iteration on tie points
 	  void OneItere_TieP(const cBA_TieP&);   /// Iteration on tie points
-
-          ///  One It for 1 pack of GCP (4 now 1 pack allowed, but this may change)
-          void OneItere_OnePackGCP(cBA_GCP &, bool verbose=true);
 
           void CompileSharedIntrinsicParams(bool ForAvg);
 

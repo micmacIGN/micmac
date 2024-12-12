@@ -187,10 +187,13 @@ void cSetMesGndPt::Add1GCP(const cMes1Gnd3D & aMes)
      m2MapPtInt.Add(aMes.mNamePt,false,"GCP-3D : " + aMes.mNamePt);
 }
 
-void cSetMesGndPt::AddMes3D(const std::string &aSetName, tREAL4 aSigmaFactor, const cSetMesGnd3D &  aSet)
+void cSetMesGndPt::AddMes3D(const cSetMesGnd3D &  aSet, MMVII::cMesDirInfo *aMesDirInfo)
 {
     for (const auto & aMes  : aSet.Measures())
+    {
         Add1GCP(aMes);
+        mMesGCP.back().mMesDirInfo = aMesDirInfo;
+    }
 }
 
 const cSetMesPtOf1Im  & cSetMesGndPt::MesImInitOfName(const std::string & aNameIm) const
@@ -244,7 +247,7 @@ cPt3dr  cSetMesGndPt::BundleInter(const cMultipleImPt & aMPT) const
 
 
 
-void cSetMesGndPt::AddMes2D(const cSetMesPtOf1Im & aSetMesIm,cSensorImage* aSens,eLevelCheck aOnNonExistGCP)
+void cSetMesGndPt::AddMes2D(const cSetMesPtOf1Im & aSetMesIm, cSensorImage* aSens, eLevelCheck aOnNonExistGCP)
 {
     //  Are we beginning  the  image measurement phase
     {
@@ -252,7 +255,7 @@ void cSetMesGndPt::AddMes2D(const cSetMesPtOf1Im & aSetMesIm,cSensorImage* aSens
         {
             mMesImOfPt.reserve(mMesGCP.size());
 
-	    for (size_t aKp=0 ;  aKp<mMesGCP.size() ; aKp++)
+            for (size_t aKp=0 ;  aKp<mMesGCP.size() ; aKp++)
                 mMesImOfPt.push_back( cMultipleImPt(aKp));
         }
         mPhaseGCPFinished = true;
@@ -261,8 +264,8 @@ void cSetMesGndPt::AddMes2D(const cSetMesPtOf1Im & aSetMesIm,cSensorImage* aSens
     int aNumIm = m2MapImInt.Add(aSetMesIm.NameIm());
     if (aNumIm==(int)mMesImInit.size())
     {
-       mMesImInit.push_back(cSetMesPtOf1Im(aSetMesIm.NameIm()));
-       mVSens.push_back(aSens);
+        mMesImInit.push_back(cSetMesPtOf1Im(aSetMesIm.NameIm()));
+        mVSens.push_back(aSens);
     }
     else
     {
@@ -273,15 +276,15 @@ void cSetMesGndPt::AddMes2D(const cSetMesPtOf1Im & aSetMesIm,cSensorImage* aSens
     for (const auto & aMes : aSetMesIm.Measures())
     {
         int aNumPt = m2MapPtInt.Obj2I(aMes.mNamePt,true);
-	if (aNumPt>=0)
-	{
-	    mMesImOfPt.at(aNumPt).Add(aMes,aNumIm,false);
+        if (aNumPt>=0)
+        {
+            mMesImOfPt.at(aNumPt).Add(aMes,aNumIm,false);
             mMesImInit.at(aNumIm).AddMeasure(aMes);
-	}
-	else
-	{
-             ErrorWarnNone(aOnNonExistGCP,"Measure Im w/o Ground, first occur Im=" + aSetMesIm.NameIm() + " Pt="  + aMes.mNamePt);
-	}
+        }
+        else
+        {
+            ErrorWarnNone(aOnNonExistGCP,"Measure Im w/o Ground, first occur Im=" + aSetMesIm.NameIm() + " Pt="  + aMes.mNamePt);
+        }
     }
 }
 
@@ -390,16 +393,16 @@ cSetMesGnd3D  cSetMesGndPt::ExtractSetGCP(const std::string & aName) const
 /*                                               */
 /* ********************************************* */
         
-cMesIm1Pt::cMesIm1Pt(const cPt2dr & aPt, const std::string & aNamePt, tREAL4 aS2, MMVII::cMesDirInfo *aMesDirInfo) :
+cMesIm1Pt::cMesIm1Pt(const cPt2dr & aPt, const std::string & aNamePt, tREAL4 aS2) :
      mPt      (aPt),
      mNamePt  (aNamePt),
      mSigma2   {aS2,0,aS2},
-     mMesDirInfo  (aMesDirInfo)
+     mMesDirInfo  (nullptr)
 {
 }
 
 cMesIm1Pt::cMesIm1Pt() :
-    cMesIm1Pt(cPt2dr(0,0),"???",-1,nullptr)
+    cMesIm1Pt(cPt2dr(0,0),"???",-1)
 {
 }
 
@@ -574,12 +577,12 @@ bool cSetMesPtOf1Im::NameHasMeasure(const std::string & aN) const {return Privat
 /*                                               */
 /* ********************************************* */
 
-cMes1Gnd3D::cMes1Gnd3D(const cPt3dr & aPt, const std::string & aNamePt, cMesDirInfo* aMesDirInfo, tREAL4 aSigma,
+cMes1Gnd3D::cMes1Gnd3D(const cPt3dr & aPt, const std::string & aNamePt, tREAL4 aSigma,
                    const std::string &aAdditionalInfo) :
     mPt       (aPt),
     mNamePt   (aNamePt),
     mAdditionalInfo(aAdditionalInfo),
-    mMesDirInfo(aMesDirInfo),
+    mMesDirInfo(nullptr),
     mOptSigma2(std::nullopt)
 {
     if (aSigma>=0.)
@@ -587,7 +590,7 @@ cMes1Gnd3D::cMes1Gnd3D(const cPt3dr & aPt, const std::string & aNamePt, cMesDirI
 }
 
 cMes1Gnd3D::cMes1Gnd3D() :
-    cMes1Gnd3D (cPt3dr::Dummy(),"??",nullptr)
+    cMes1Gnd3D (cPt3dr::Dummy(),"??")
 {
 }
 
