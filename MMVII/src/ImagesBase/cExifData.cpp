@@ -313,11 +313,12 @@ std::vector<std::string> cExifData::StringListFromFile(const std::string &aName,
     auto aMetadataList = GetExifMetadataRaw(aName,SVP);
 
     std::vector<std::string> anExifList;
-    for (const auto& aMetadata: aMetadataList)
+    for (int i=0; i<aMetadataList.Count(); i++)
     {
-        if (UCaseBegin("EXIF_",aMetadata))
+        const auto& aMetaData = aMetadataList[i];
+        if (UCaseBegin("EXIF_",aMetaData))
         {
-            anExifList.push_back(aMetadata);
+            anExifList.push_back(aMetaData);
         }
     }
     return anExifList;
