@@ -51,10 +51,12 @@ int cAppli_ExifData::Exe()
             auto anExifList = cExifData::StringListFromFile(aName);
             for (const auto &s : anExifList)
                 std::cout << s << std::endl;
-        }
-
-        if (mDisp == 0 || mDisp == 1) {
-            auto anExif = cExifData::CreateFromFile(aName);
+        } else {
+            cExifData anExif;
+            if (mDisp == 0)
+                anExif = cExifData::CreateFromFile(aName);
+            else
+                anExif = cExifData::CreateFromFileMainOnly(aName);
             std::cout << std::setprecision(17);
 
 #define DISP_EXIF(key) std::cout << #key << ": " << anExif.m##key << std::endl;
