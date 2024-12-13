@@ -260,6 +260,8 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_MMV2_MesIm_2_MMV1);
 
         TheVecAll.push_back(&TheSpec_MergeMesImGCP);
+
+        TheVecAll.push_back(&TheSpec_ExifData);
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }
    
