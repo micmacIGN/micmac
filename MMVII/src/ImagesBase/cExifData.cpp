@@ -267,9 +267,9 @@ CPLStringList GetExifMetadataRaw(const std::string &aName, bool SVP)
 
     if (aMetadataDomainList.FindString("") < 0) // Add empty domain if not already present
         aMetadataDomainList.AddString("");
-    for (const auto& aMetadataDomain: aMetadataDomainList)
+    for (int i=0; i<aMetadataDomainList.Count(); i++)
     {
-        auto aMetadataList = CPLStringList((CSLConstList)aDataSet->GetMetadata(aMetadataDomain));
+        auto aMetadataList = CPLStringList((CSLConstList)aDataSet->GetMetadata(aMetadataDomainList[i]));
         if (aMetadataList.FindName("EXIF_ExifVersion") >= 0) {
             aMetadataList.Sort();
             cGdalApi::CloseDataset(aDataSet);
