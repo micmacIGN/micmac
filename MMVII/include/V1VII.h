@@ -33,7 +33,7 @@ template <class Type> std::string ToStrComMMV1(const cTplBox<Type,2> & aBox)
 void ExportHomMMV1(const std::string & aIm1,const std::string & aIm2,const std::string & SH,const std::vector<cPt2di> & aVP);
 void ExportHomMMV1(const std::string & aIm1,const std::string & aIm2,const std::string & SH,const std::vector<cPt2dr> & aVP);
 
-void MakeStdIm8BIts(cIm2D<tREAL4> aImIn,const std::string& aName);
+void MakeStdIm8BIts(const cIm2D<tREAL4> &aImIn,const std::string& aName);
 
 
 

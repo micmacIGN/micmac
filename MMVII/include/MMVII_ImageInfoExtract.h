@@ -31,7 +31,7 @@ double  ValueStableInterpoleExtr(double V1,double V2,double V3);
 
 
 template <class Type> double  MoyAbs(cIm2D<Type> aImIn); ///< Compute  average of Abs of Image
-template <class Type> cPt2dr   ValExtre(cIm2D<Type> aImIn); ///< X -> Min, Y -> Max
+template <class Type> std::pair<Type,Type>   ValExtre(cIm2D<Type> aImIn); ///< X -> Min, Y -> Max
 
 /// Class to store results of extremum
 struct cResultExtremum  
