@@ -1,3 +1,5 @@
+#define WITH_MMV1_FUNCTION false
+
 #include "V1VII.h"
 #include "MMVII_Geom2D.h"
 
@@ -35,6 +37,10 @@ Neighbourhood DiscNeich(const tREAL8 & aRay)
 
 void  FluxToV2Points(tResFlux & aRes,Flux_Pts aFlux)
 {
+//StdOut() << "FluxToV2PointsFluxToV2PointsFluxToV2PointsuuuuuuuuuuuuFluxToV2PointsFluxToV2PointsFluxToV2PointsFluxToV2PointsFluxToV2Points\n";
+//getchar();
+
+
     aRes.clear();
     Liste_Pts<int,int> aLV1(2);
 
@@ -80,7 +86,6 @@ void  GetPts_Ellipse(tResFlux & aRes,const cPt2dr & aC,double aRayA,double aRayB
 }
 
 
-
 void  GetPts_Line(tResFlux & aRes,const cPt2dr & aP1,const cPt2dr &aP2,tREAL8 aDil)
 {
      Flux_Pts aFlux = line(ToMMV1(ToI(aP1)),ToMMV1(ToI(aP2)));
@@ -94,15 +99,6 @@ void  GetPts_Line(tResFlux & aRes,const cPt2dr & aP1,const cPt2dr &aP2)
 	GetPts_Line(aRes,aP1,aP2,-1.0);
 }
 
-
-/*
-void Txxxxxxxxx()
-{
-	Flux_Pts disc(Pt2dr,REAL,bool front = true);
-
-	Neighbourhood
-}
-*/
 
 
 };

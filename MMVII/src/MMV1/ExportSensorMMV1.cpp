@@ -1,9 +1,15 @@
+#define WITH_MMV1_FUNCTION false
+
+#if (WITH_MMV1_FUNCTION)
 #include "V1VII.h"
-#include "MMVII_util.h"
+#endif
+
+#include "MMVII_MMV1Compat.h"
 
 namespace MMVII
 {
 
+#if (WITH_MMV1_FUNCTION)
 /*   ************************************************* */
 /*                                                     */
 /*         cExportV1StenopeCalInterne                  */
@@ -154,5 +160,20 @@ cExportV1StenopeCalInterne::cExportV1StenopeCalInterne
    if ((aNbLayer>0) && (aNbPointPerDim>0))
       DoCorresp(mCorresp,aCamV1,aNbPointPerDim,aNbLayer,aDS);
 }
+#else
+cExportV1StenopeCalInterne::cExportV1StenopeCalInterne
+(
+        bool isForCalib,
+        const std::string& aFile,
+        int aNbPointPerDim,
+        int aNbLayer,
+        tREAL8 aDS,
+        const std::string& aFileInterneCalib
+) :
+   mPose (cIsometry3D<tREAL8>::Identity())
+{
+      MMVII_INTERNAL_ERROR("Reading of MMV1  Camera is deprecated");
+}
+#endif
 
 };
