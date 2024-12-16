@@ -1,4 +1,9 @@
+#define WITH_MMV1_FUNCTION  false
+
+#if (WITH_MMV1_FUNCTION)
 #include "V1VII.h"
+#endif
+
 #include "MMVII_util.h"
 #include "MMVII_MeasuresIm.h"
 
@@ -9,6 +14,8 @@ namespace MMVII
 /*                                                     */
 /*                                                     */
 /*   ************************************************* */
+
+#if (WITH_MMV1_FUNCTION)
 
 void ImportMesImV1(std::list<cSetMesPtOf1Im>  & aResult,const std::string & aNameFileMesImV1)
 {
@@ -36,13 +43,6 @@ cSetMesGCP ImportMesGCPV1(const std::string & aNameFileMesGCPV1,const std::strin
         cMes1GCP  aMesV2(ToMMVII(aMesV1.Pt()),aMesV1.NamePt(),1.0);
 
 	aMesV2.SetSigma2(ToMMVII(aMesV1.Incertitude()));
-	/*
-        aMesV2.Sigma2() = {0,0,0,0,0,0};
-	
-        (aMesV2.Sigma2())[cMes1GCP::IndXX] =  Square(aMesV1.Incertitude().x);
-        (aMesV2.Sigma2())[cMes1GCP::IndYY] =  Square(aMesV1.Incertitude().y);
-        (aMesV2.Sigma2())[cMes1GCP::IndZZ] =  Square(aMesV1.Incertitude().z);
-	*/
 
         aResult.AddMeasure(aMesV2);
     }
@@ -50,6 +50,17 @@ cSetMesGCP ImportMesGCPV1(const std::string & aNameFileMesGCPV1,const std::strin
     return aResult;
 }
 
+#else
+void ImportMesImV1(std::list<cSetMesPtOf1Im>  & aResult,const std::string & aNameFileMesImV1)
+{
+    MMVII_INTERNAL_ERROR("No ImportMesImV1 ");
+}
+cSetMesGCP ImportMesGCPV1(const std::string & aNameFileMesGCPV1,const std::string & aNameSet)
+{
+    MMVII_INTERNAL_ERROR("No ImportMesGCPV1");
+    return cSetMesGCP  (aNameSet);
+}
+#endif
 
 
 
