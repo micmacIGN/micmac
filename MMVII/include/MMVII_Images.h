@@ -379,6 +379,7 @@ template <class Type,const int Dim> class cDataTypedIm : public cDataGenUnTypedI
         double L2Dist(const cDataTypedIm<Type,Dim> & aV,bool Avg=true) const;  ///< Dist som square
         double SqL2Dist(const cDataTypedIm<Type,Dim> & aV,bool Avg=true) const;  ///< Square L2Dist
         double LInfDist(const cDataTypedIm<Type,Dim> & aV) const; ///< Dist max
+        double SafeMaxRelDif(const cDataTypedIm<Type,Dim> & aV,tREAL8 aEps) const;  ///<  Maximal safe relative dif
         double L1Norm(bool Avg=true) const;   ///< Norm som abs
         double L2Norm(bool Avg=true) const;   ///< Norm square
         double LInfNorm() const; ///< Nomr max

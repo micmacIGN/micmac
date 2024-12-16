@@ -73,6 +73,8 @@ double RandInInterval(double a,double b); ///<  Uniform distribution in [a,b]
 double RandInInterval(const cPt2dr &interval); ///<  Uniform distribution in [interval.x,interval.y]
 double RandInInterval_C(const cPt2dr &interval); ///<  Uniform distribution in [-interval.y,-interval.x]U[interval.x,interval.y]
 
+int RandUnif_M_N(int aM,int aN); ///< Uniform disrtibution in [M,N] 
+
 /** Class for mapping object R->R */
 class cFctrRR
 {  
@@ -324,6 +326,8 @@ template <> class tElemNumTrait<tINT2> : public tBaseNumTrait<tStdInt>
 {
     public :
         static tINT2 DummyVal() {MMVII_INTERNAL_ERROR("No DummyVal for type");return 0;}
+        static tINT2 MaxVal() {return  std::numeric_limits<tINT2>::max();}
+        static tINT2 MinVal() {return  std::numeric_limits<tINT2>::min();}
         static bool   Signed() {return true;}
         static eTyNums   TyNum() {return eTyNums::eTN_INT2;}
         typedef tREAL4   tFloatAssoc;
@@ -353,6 +357,8 @@ template <> class tElemNumTrait<tINT8> : public tBaseNumTrait<tINT8>
 template <> class tElemNumTrait<tREAL4> : public tBaseNumTrait<tStdDouble>
 {
     public :
+        static tREAL4 MaxVal() {return  std::numeric_limits<tREAL4>::max();}
+        static tREAL4 MinVal() {return  std::numeric_limits<tREAL4>::min();}
         static tREAL4 DummyVal() {return std::nanf("");}
         static tREAL4 Accuracy() {return 1e-2f;}
         static bool   Signed() {return true;} ///< Not usefull but have same interface

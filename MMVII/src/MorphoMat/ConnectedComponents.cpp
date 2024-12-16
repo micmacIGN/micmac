@@ -61,4 +61,15 @@ void ConnectedComponent
     ConnectedComponent(aVPts,aDIm,aNeighbourhood,aVSeed,aMarqInit,aNewMarq,Restore);
 }
 
+void MakeImageDist(cIm2D<tU_INT1> aImIn,const std::string & aNameChamfer)
+{
+     // Apparently Distance image are not used for now, will write it if needed
+     MMVII_INTERNAL_ERROR("No MakeImageDist");
+     // const Chamfer & aChamf = Chamfer::ChamferFromName(aNameChamfer);
+     // aChamf.im_dist(cMMV1_Conv<tU_INT1>::ImToMMV1(aImIn.DIm())) ;
+}
+/*
+*/
+
+
 };

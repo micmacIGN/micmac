@@ -233,6 +233,11 @@ double RandUnif_N(int aN)
    return cRandGenerator::TheOne()->Unif_N(aN);
 }
 
+int RandUnif_M_N(int aM,int aN)
+{
+   return RandUnif_N(1+aN-aM) + aM;
+}
+
 bool HeadOrTail()
 {
      return  RandUnif_0_1() > 0.5;
