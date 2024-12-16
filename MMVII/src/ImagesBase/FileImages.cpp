@@ -88,6 +88,7 @@ cDataFileIm2D::cDataFileIm2D(const std::string & aName, eTyNums aType, const cPt
     mNbChannel  (aNbChannel),
     mForceGray  (isFG),
     mCreateOptions  (aOptions),
+    mExifState      (eExifState::NotRead),
     mCreationState  (aCreationState)
 {
 }
@@ -217,6 +218,32 @@ void cDataFileIm2D::SetCreated() const
 void cDataFileIm2D::SetCreatedNoUpdate() const
 {
     mCreationState = eCreationState::CreatedNoUpdate;
+}
+
+const cExifData& cDataFileIm2D::ExifDataAll(bool SVP) const
+{
+    if (mExifState != eExifState::AllTagsRead)
+    {
+        mExifData.FromFile(mName,SVP);
+        mExifState = eExifState::AllTagsRead;
+
+    }
+    return mExifData;
+}
+
+const cExifData& cDataFileIm2D::ExifDataMain(bool SVP) const
+{
+    if (mExifState != eExifState::MainTagsRead && mExifState != eExifState::AllTagsRead)
+    {
+        mExifData.FromFileMainOnly(mName,SVP);
+        mExifState = eExifState::MainTagsRead;
+    }
+    return mExifData;
+}
+
+std::vector<std::string> cDataFileIm2D::ExifStrings(bool SVP) const
+{
+    return cExifData::StringListFromFile(mName,SVP);
 }
 
 

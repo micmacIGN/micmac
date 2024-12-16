@@ -9,14 +9,12 @@
 namespace MMVII {
 
 
-// FIXME CM: interface that with cDataFileIm2D (cache lazy read ?)
-
 class cExifData {
 public:
     cExifData() {}
-    void reset();
+    void reset();   // Reset all tags to nullopt
 
-    std::optional<std::string> mExifVersion;
+// Main Tags
     std::optional<unsigned> mPixelXDimension;
     std::optional<unsigned> mPixelYDimension;
 
@@ -25,12 +23,15 @@ public:
 
     std::optional<double> mFNumber;
     std::optional<double> mExposureTime_s;
-    std::optional<double> mOrientation;
 
     std::optional<std::string> mMake;
     std::optional<std::string> mModel;
     std::optional<std::string> mLensMake;
     std::optional<std::string> mLensModel;
+
+// Other Tags
+    std::optional<std::string> mExifVersion;
+    std::optional<double> mOrientation;
 
     std::optional<double> mXResolution;
     std::optional<double> mYResolution;
@@ -51,21 +52,33 @@ public:
     std::optional<double> mGPSLatitude_deg;
     std::optional<std::string> mGPSTimeStamp;
     std::optional<std::string> mGPSDateStamp;
-    std::optional<uint64_t> mGPSTimeUTC_s;
+    std::optional<uint64_t> mGPSTimeUTC_s;                  // Unix UTC time from GPS receiver
     std::optional<uint64_t> mGPSTimeUTC_ns;
 
     std::optional<double> mDateTimeNumber_s;                // Not Unix Epoch, but related to. Can be used to sort images.
     std::optional<double> mDateTimeDigitizedNumber_s;
     std::optional<double> mDateTimeOriginalNumber_s;
 
+// Fill this structure from file aName (SVP: true: return false on error, false: halt program with error message)
     bool FromFile(const std::string &aName, bool SVP=true);
+// Fill only main tags
     bool FromFileMainOnly(const std::string &aName, bool SVP=true);
 
-    static std::vector<std::string> StringListFromFile(const std::string &aName, bool SVP=true);
+/*
+* static methods
+*/
+
+// Fill argument anExif
     static bool FromFile(const std::string &aName, cExifData &anExif, bool SVP=true);
+// Return a struct
     static cExifData CreateFromFile(const std::string &aName, bool SVP=true);
+
+// Idem for main tags only
     static bool FromFileMainOnly(const std::string &aName, cExifData &anExif, bool SVP=true);
     static cExifData CreateFromFileMainOnly(const std::string &aName, bool SVP=true);
+
+// Return a list of ALL exif tags found from file
+    static std::vector<std::string> StringListFromFile(const std::string &aName, bool SVP=true);
 };
 
 

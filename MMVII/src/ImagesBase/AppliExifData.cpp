@@ -1,4 +1,5 @@
 #include "MMVII_ExifData.h"
+#include "MMVII_Image2D.h"
 #include "cMMVII_Appli.h"
 
 namespace MMVII
@@ -44,24 +45,21 @@ std::ostream& operator<<(std::ostream& os, std::optional<T> const& opt)
 
 int cAppli_ExifData::Exe()
 {
+    const auto default_precision{std::cout.precision()};
+    constexpr auto max_precision{std::numeric_limits<long double>::digits10};
+
     for (const auto & aName : VectMainSet(0))
     {
-        std::cout << "####### " << aName <<":" << std::endl;
+        auto aDataFileIm=cDataFileIm2D::Create(aName,eForceGray::No);
+        std::cout << "####### " << aDataFileIm.Name() <<":" << std::endl;
         if (mDisp == 2) {
-            auto anExifList = cExifData::StringListFromFile(aName);
+            auto anExifList = aDataFileIm.ExifStrings();
             for (const auto &s : anExifList)
                 std::cout << s << std::endl;
         } else {
-            cExifData anExif;
-            if (mDisp == 0)
-                anExif = cExifData::CreateFromFile(aName);
-            else
-                anExif = cExifData::CreateFromFileMainOnly(aName);
-            std::cout << std::setprecision(17);
+            cExifData anExif = mDisp == 0 ? aDataFileIm.ExifDataAll() : aDataFileIm.ExifDataMain();
 
 #define DISP_EXIF(key) std::cout << #key << ": " << anExif.m##key << std::endl;
-
-            DISP_EXIF(ExifVersion);
 
             DISP_EXIF(PixelXDimension);
             DISP_EXIF(PixelYDimension);
@@ -75,6 +73,7 @@ int cAppli_ExifData::Exe()
             DISP_EXIF(Model);
             DISP_EXIF(LensMake);
             DISP_EXIF(LensModel);
+
             if (mDisp == 0) {
                 DISP_EXIF(XResolution);
                 DISP_EXIF(YResolution);
@@ -90,6 +89,7 @@ int cAppli_ExifData::Exe()
                 DISP_EXIF(DateTimeDigitized);
                 DISP_EXIF(SubSecTimeDigitized);
 
+                std::cout << std::setprecision(max_precision);
                 DISP_EXIF(DateTimeNumber_s);
                 DISP_EXIF(DateTimeOriginalNumber_s);
                 DISP_EXIF(DateTimeDigitizedNumber_s);
@@ -97,6 +97,7 @@ int cAppli_ExifData::Exe()
                 DISP_EXIF(GPSLongitude_deg);
                 DISP_EXIF(GPSLatitude_deg);
                 DISP_EXIF(GPSAltitude_m);
+                std::cout << std::setprecision(default_precision);
 
                 DISP_EXIF(GPSDateStamp);
                 DISP_EXIF(GPSTimeStamp);
@@ -105,6 +106,8 @@ int cAppli_ExifData::Exe()
 
                 DISP_EXIF(ExifVersion);
             }
+            std::cout << std::setprecision(default_precision);
+#undef DISP_EXIF
        }
         std::cout << std::endl;
     }
