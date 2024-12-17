@@ -303,9 +303,9 @@ class cBA_GCP
           cBA_GCP& operator=(cBA_GCP const&) = delete;
 
           cMesDirInfo* addMesDirInfo(const std::string & aDirNameIn, const std::string & aDirNameOut,
-                                     const cStdWeighterResidual & aStdWeighterResidual);
+                                     const cStdWeighterResidual & aStdWeighterResidual, tREAL8 aSGlob);
           void AddGCP3D(cMesDirInfo * aMesDirInfo, cSetMesGnd3D *aSetMesGnd3D, bool verbose);
-          void AddMes2D(cSetMesPtOf1Im &, cMesDirInfo * aMesDirInfo, cSensorImage*, eLevelCheck OnNonExistP);
+          void AddMes2D(cSetMesPtOf1Im &, cMesDirInfo * aMesDirInfo, cSensorImage*, eLevelCheck OnNonExistP=eLevelCheck::Warning);
           const cSetMesGndPt & getMesGCP() const {return mMesGCP;}
     protected:
           cSetMesGndPt             mMesGCP; //< initial
@@ -353,8 +353,8 @@ class cMMVII_BundleAdj
 
           bool AddTopo(const std::string & aTopoFilePath); // TOPO
           ///  =======  Add GCP, can be measure or measure & object
-          void AddGCP3D(cMesDirInfo * aMesDirInfo, cSetMesGnd3D *aSetMesGnd3D, bool verbose=true);
-          void AddGCP2D(cSetMesPtOf1Im & aSetMesIm, cMesDirInfo * aMesDirInfo, cSensorImage* aSens, eLevelCheck aOnNonExistGCP, bool verbose=true);
+          void AddGCP3D(cMesDirInfo * aMesDirInfo, cSetMesGnd3D &aSetMesGnd3D, bool verbose=true);
+          void AddGCP2D(cMesDirInfo * aMesDirInfo, cSetMesPtOf1Im & aSetMesIm, cSensorImage* aSens, eLevelCheck aOnNonExistGCP=eLevelCheck::Warning, bool verbose=true);
           cBA_GCP& getGCP() { return mGCP;}
 
 	  ///  ============  Add multiple tie point ============

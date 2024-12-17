@@ -284,14 +284,10 @@ namespace MMVII
         {
             AddGCP(aPName, aCoords, aSensorCamPC, aSetMesGCP, aSetMesPtOf1Im, aGCPSigma);
         }
-        cSetMesGndPt* aSetMesImGCP = new cSetMesGndPt();
-        aSetMesImGCP->AddMes3D(aSetMesGCP);
-        aSetMesImGCP->AddMes2D(aSetMesPtOf1Im, &aNewSensorCamPC);
-        
         // Solve least squares
-        cMesDirInfo * aMesDirInfo = aBundleAdj->getGCP().addMesDirInfo("in","out",cStdWeighterResidual());
-        cStdWeighterResidual aStdWeighterResidual = cStdWeighterResidual();
-        aBundleAdj->AddGCP("aGCP", 0.0, aStdWeighterResidual, aSetMesImGCP);
+        cMesDirInfo * aMesDirInfo = aBundleAdj->getGCP().addMesDirInfo("in","out",cStdWeighterResidual(),0.0); // fixed 3d
+        aBundleAdj->AddGCP3D(aMesDirInfo, aSetMesGCP);
+        aBundleAdj->AddGCP2D(aMesDirInfo, aSetMesPtOf1Im,&aNewSensorCamPC);
 
         for (int aKIter=0 ; aKIter<20 ; aKIter++)
         {
@@ -407,13 +403,12 @@ namespace MMVII
             AddGCP(aPName, aCoords, aSensorCamPC, aSetMesGCP, aSetMesPtOf1Im, aGCPSigma);
         }
         
-        cSetMesGndPt* aSetMesImGCP = new cSetMesGndPt();
-        aSetMesImGCP->AddMes3D(aSetMesGCP);
-        aSetMesImGCP->AddMes2D(aSetMesPtOf1Im, &aNewSensorCamPC);
         
         // Solve least squares
-        cStdWeighterResidual aStdWeighterResidual = cStdWeighterResidual();
-        aBundleAdj->AddGCP("aGCP", 0.0, aStdWeighterResidual, aSetMesImGCP);
+        cMesDirInfo * aMesDirInfo = aBundleAdj->getGCP().addMesDirInfo("in","out",cStdWeighterResidual(),0.);
+        aBundleAdj->AddGCP3D(aMesDirInfo, aSetMesGCP);
+        aBundleAdj->AddGCP2D(aMesDirInfo, aSetMesPtOf1Im,&aNewSensorCamPC);
+
 
         for (int aKIter=0 ; aKIter<20 ; aKIter++)
         {
