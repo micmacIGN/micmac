@@ -247,7 +247,7 @@ cPt3dr  cSetMesGndPt::BundleInter(const cMultipleImPt & aMPT) const
 
 
 
-void cSetMesGndPt::AddMes2D(const cSetMesPtOf1Im & aSetMesIm, cSensorImage* aSens, eLevelCheck aOnNonExistGCP)
+void cSetMesGndPt::AddMes2D(cSetMesPtOf1Im & aSetMesIm, cMesDirInfo * aMesDirInfo, cSensorImage* aSens, eLevelCheck aOnNonExistGCP)
 {
     //  Are we beginning  the  image measurement phase
     {
@@ -273,8 +273,9 @@ void cSetMesGndPt::AddMes2D(const cSetMesPtOf1Im & aSetMesIm, cSensorImage* aSen
         MMVII_INTERNAL_ASSERT_tiny(mVSens.at(aNumIm) == aSens,"Variable sensor in cSetMesImGCP::AddMes2D");
     }
 
-    for (const auto & aMes : aSetMesIm.Measures())
+    for (auto & aMes : aSetMesIm.Measures())
     {
+        aMes.mMesDirInfo = aMesDirInfo;
         int aNumPt = m2MapPtInt.Obj2I(aMes.mNamePt,true);
         if (aNumPt>=0)
         {

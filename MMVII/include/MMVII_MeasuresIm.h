@@ -240,7 +240,7 @@ class cSetMesGndPt : public cMemCheck
 	    /// For a single GCP (called by AddMes3D)
 	    void Add1GCP(const cMes1Gnd3D &);
 	    ///  Add mesure on 1 images, close the possibility for further call to AddMes3D
-            void AddMes2D(const cSetMesPtOf1Im &,cSensorImage* =nullptr,eLevelCheck OnNonExistP=eLevelCheck::Warning);
+            void AddMes2D(cSetMesPtOf1Im &, cMesDirInfo * aMesDirInfo=nullptr, cSensorImage* =nullptr, eLevelCheck OnNonExistP=eLevelCheck::Warning);
 
 	    /// return a set of mesure as 2d/3d corresp : if SVP accept image absent and returns empty
             void ExtractMes1Im(cSet2D3D&,const std::string &aNameIm,bool SVP=false) const;

@@ -283,16 +283,18 @@ class cBA_Clino : public cMemCheck
 class cMesDirInfo
 {
 public:
-    cMesDirInfo(const std::string &aDirNameIn, const std::string &aDirNameOut, const cStdWeighterResidual &aWeighter);
+    cMesDirInfo(const std::string &aDirNameIn, const std::string &aDirNameOut, const cStdWeighterResidual &aWeighter, tREAL8 aSGlob);
     std::string mDirNameIn;
     std::string mDirNameOut;
     cStdWeighterResidual mWeighter;
+    tREAL8 mSGlob; // just to record 1st argument of weight (for 3d coords, to know if shurred or fixed)
 };
 
 
 
 class cBA_GCP
 {
+    friend class cMMVII_BundleAdj;
      public :
 	          // - - - - - - - - GCP  - - - - - - - - - - -
           cBA_GCP();
@@ -303,6 +305,7 @@ class cBA_GCP
           cMesDirInfo* addMesDirInfo(const std::string & aDirNameIn, const std::string & aDirNameOut,
                                      const cStdWeighterResidual & aStdWeighterResidual);
           void AddGCP3D(cMesDirInfo * aMesDirInfo, cSetMesGnd3D *aSetMesGnd3D, bool verbose);
+          void AddMes2D(cSetMesPtOf1Im &, cMesDirInfo * aMesDirInfo, cSensorImage*, eLevelCheck OnNonExistP);
           const cSetMesGndPt & getMesGCP() const {return mMesGCP;}
     protected:
           cSetMesGndPt             mMesGCP; //< initial
@@ -350,8 +353,8 @@ class cMMVII_BundleAdj
 
           bool AddTopo(const std::string & aTopoFilePath); // TOPO
           ///  =======  Add GCP, can be measure or measure & object
-          void AddGCP3D(cMesDirInfo * aMesDirInfo, cSetMesGnd3D *aSetMesGnd3D, bool verbose=true); //< wrapper for cSetMesGnd3D
-          void AddGCP2D(cMesDirInfo * aMesDirInfo, cSetMesPtOf1Im *, bool verbose=true);
+          void AddGCP3D(cMesDirInfo * aMesDirInfo, cSetMesGnd3D *aSetMesGnd3D, bool verbose=true);
+          void AddGCP2D(cSetMesPtOf1Im & aSetMesIm, cMesDirInfo * aMesDirInfo, cSensorImage* aSens, eLevelCheck aOnNonExistGCP, bool verbose=true);
           cBA_GCP& getGCP() { return mGCP;}
 
 	  ///  ============  Add multiple tie point ============
