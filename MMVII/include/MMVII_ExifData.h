@@ -5,6 +5,7 @@
 #include <string>
 #include <optional>
 #include <cstdint>
+#include <map>
 
 namespace MMVII {
 
@@ -59,26 +60,30 @@ public:
     std::optional<double> mDateTimeDigitizedNumber_s;
     std::optional<double> mDateTimeOriginalNumber_s;
 
-// Fill this structure from file aName (SVP: true: return false on error, false: halt program with error message)
-    bool FromFile(const std::string &aName, bool SVP=true);
+// Fill this structure from file aFileName (SVP: true: return false on error, false: halt program with error message)
+    bool FromFile(const std::string &aFileName, bool SVP=true);
 // Fill only main tags
-    bool FromFileMainOnly(const std::string &aName, bool SVP=true);
+    bool FromFileMainOnly(const std::string &aFileName, bool SVP=true);
 
 /*
 * static methods
 */
 
 // Fill argument anExif
-    static bool FromFile(const std::string &aName, cExifData &anExif, bool SVP=true);
+    static bool FromFile(const std::string &aFileName, cExifData &anExif, bool SVP=true);
 // Return a struct
-    static cExifData CreateFromFile(const std::string &aName, bool SVP=true);
+    static cExifData CreateFromFile(const std::string &aFileName, bool SVP=true);
 
 // Idem for main tags only
-    static bool FromFileMainOnly(const std::string &aName, cExifData &anExif, bool SVP=true);
-    static cExifData CreateFromFileMainOnly(const std::string &aName, bool SVP=true);
+    static bool FromFileMainOnly(const std::string &aFileName, cExifData &anExif, bool SVP=true);
+    static cExifData CreateFromFileMainOnly(const std::string &aFileName, bool SVP=true);
 
 // Return a list of ALL exif tags found from file
     static std::vector<std::string> StringListFromFile(const std::string &aName, bool SVP=true);
+
+// Return a dict of all metadata strings stored by domain (contains exif if present but other metadata too)
+    static std::map<std::string, std::vector<std::string>> AllMetadataFromFile(const std::string &aFileName, bool SVP=true);
+
 };
 
 

@@ -40,6 +40,9 @@ public:
     static GDALDataset * OpenDataset(const std::string &aName, GDALAccess aAccess, eOnError onError);  // return nnullptr on error
     static void CloseDataset(GDALDataset *aGdalDataset);
 
+    static std::map<std::string, std::vector<std::string>> GetMetadata(const std::string &aName, eOnError onError);
+    static CPLStringList GetExifMetadata(const std::string &aName, eOnError onError);
+
     template <class TypeIm>
     static void ReadWrite(IoMode aMode,
                           const cDataIm2D<TypeIm>& aImV2,

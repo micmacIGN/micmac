@@ -246,6 +246,11 @@ std::vector<std::string> cDataFileIm2D::ExifStrings(bool SVP) const
     return cExifData::StringListFromFile(mName,SVP);
 }
 
+std::map<std::string, std::vector<std::string>> cDataFileIm2D::AllMetadata(bool SVP) const
+{
+    return cExifData::AllMetadataFromFile(mName,SVP);
+}
+
 
 
 bool cDataFileIm2D::IsPostFixNameImage(const std::string & aPost)

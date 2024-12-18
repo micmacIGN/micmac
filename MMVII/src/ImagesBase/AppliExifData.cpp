@@ -30,7 +30,7 @@ cCollecSpecArg2007 & cAppli_ExifData::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
     return
         anArgOpt
-        <<   AOpt2007(mDisp,"Disp","0->All known tags , 1->Main tags, 2->Raw strings",{eTA2007::HDV,{eTA2007::Range,"[0,2]"}})
+        <<   AOpt2007(mDisp,"Disp","0:All known tags, 1:Main tags, 2:exif strings, 3:all metadata",{eTA2007::HDV,{eTA2007::Range,"[0,3]"}})
         ;
 }
 
@@ -52,7 +52,15 @@ int cAppli_ExifData::Exe()
     {
         auto aDataFileIm=cDataFileIm2D::Create(aName,eForceGray::No);
         std::cout << "####### " << aDataFileIm.Name() <<":" << std::endl;
-        if (mDisp == 2) {
+        if (mDisp == 3) {
+            auto allMetadata = aDataFileIm.AllMetadata();
+            for (const auto& aDomain : allMetadata ) {
+                std::cout << "- Domain : " << (aDomain.first.empty() ? "<NULL>" : "\"" + aDomain.first + "\"") << "\n";
+                for (const auto& aMetadata : aDomain.second) {
+                    std::cout << "  . \"" << aMetadata << "\"\n";
+                }
+            }
+        } else if (mDisp == 2) {
             auto anExifList = aDataFileIm.ExifStrings();
             for (const auto &s : anExifList)
                 std::cout << s << std::endl;

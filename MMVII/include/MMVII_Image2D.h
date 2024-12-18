@@ -49,6 +49,7 @@ class cDataFileIm2D : public cRect2
         const cExifData& ExifDataAll(bool SVP=true) const;
         const cExifData& ExifDataMain(bool SVP=true) const;
         std::vector<std::string> ExifStrings(bool SVP=true) const;
+        std::map<std::string, std::vector<std::string>> AllMetadata(bool SVP=true) const;
 
         /// Create a descriptor on existing file
         static cDataFileIm2D Create(const std::string & aName,eForceGray);

@@ -185,6 +185,57 @@ void cGdalApi::CloseDataset(GDALDataset *aGdalDataset)
         GDALClose(GDALDataset::ToHandle(aGdalDataset));
 }
 
+std::map<std::string, std::vector<std::string>> cGdalApi::GetMetadata(const std::string &aName, eOnError onError)
+{
+    std::map<std::string, std::vector<std::string>> aMetadataMap;
+
+    auto aDataSet = cGdalApi::OpenDataset(aName,GA_ReadOnly,onError);
+    if (aDataSet == nullptr)
+    {
+        return aMetadataMap;
+    }
+    auto aMetadataDomainList = CPLStringList(aDataSet->GetMetadataDomainList(),TRUE);
+
+    if (aMetadataDomainList.FindString("") < 0) // Add empty domain if not already present
+        aMetadataDomainList.AddString("");
+    for (int i=0; i<aMetadataDomainList.Count(); i++)
+    {
+        auto [it,ok] = aMetadataMap.emplace(aMetadataDomainList[i],std::vector<std::string>());
+        auto aMetadataList = CPLStringList((CSLConstList)aDataSet->GetMetadata(aMetadataDomainList[i]));
+        for (int i=0; i<aMetadataList.Count(); i++)
+        {
+            it->second.push_back(aMetadataList[i]);
+        }
+    }
+    cGdalApi::CloseDataset(aDataSet);
+    return aMetadataMap;
+}
+
+
+CPLStringList cGdalApi::GetExifMetadata(const std::string &aName, eOnError onError)
+{
+    auto aDataSet = cGdalApi::OpenDataset(aName,GA_ReadOnly,onError);
+    if (aDataSet == nullptr)
+    {
+        return CPLStringList();
+    }
+    auto aMetadataDomainList = CPLStringList(aDataSet->GetMetadataDomainList(),TRUE);
+
+    if (aMetadataDomainList.FindString("") < 0) // Add empty domain if not already present
+        aMetadataDomainList.AddString("");
+    for (int i=0; i<aMetadataDomainList.Count(); i++)
+    {
+        auto aMetadataList = CPLStringList((CSLConstList)aDataSet->GetMetadata(aMetadataDomainList[i]));
+        if (aMetadataList.FindName("EXIF_ExifVersion") >= 0) {
+            aMetadataList.Sort();
+            cGdalApi::CloseDataset(aDataSet);
+            return aMetadataList;
+        }
+    }
+    cGdalApi::CloseDataset(aDataSet);
+    return CPLStringList();
+}
+
 
 const std::map<std::string, std::string> &cGdalApi::SupportedDrivers()
 {
