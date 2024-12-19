@@ -286,7 +286,7 @@ namespace MMVII
         }
         // Solve least squares
         cMesDirInfo * aMesDirInfo = aBundleAdj->getGCP().addMesDirInfo("in","out",cStdWeighterResidual(),0.0); // fixed 3d
-        aBundleAdj->AddGCP3D(aMesDirInfo, aSetMesGCP);
+        aBundleAdj->AddGCP3D(aMesDirInfo, &aSetMesGCP);
         aBundleAdj->AddGCP2D(aMesDirInfo, aSetMesPtOf1Im,&aNewSensorCamPC);
 
         for (int aKIter=0 ; aKIter<20 ; aKIter++)
@@ -406,7 +406,7 @@ namespace MMVII
         
         // Solve least squares
         cMesDirInfo * aMesDirInfo = aBundleAdj->getGCP().addMesDirInfo("in","out",cStdWeighterResidual(),0.);
-        aBundleAdj->AddGCP3D(aMesDirInfo, aSetMesGCP);
+        aBundleAdj->AddGCP3D(aMesDirInfo, &aSetMesGCP);
         aBundleAdj->AddGCP2D(aMesDirInfo, aSetMesPtOf1Im,&aNewSensorCamPC);
 
 

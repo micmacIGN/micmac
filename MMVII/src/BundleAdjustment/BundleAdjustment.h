@@ -280,6 +280,7 @@ class cBA_Clino : public cMemCheck
 
 
 // class to record data specific to a measurement directory : In/out nam, weighter
+// TODO JMMMM: make different versions for 2d (cStdWeighterResidual) and 3d (mSGlob)?
 class cMesDirInfo
 {
 public:
@@ -310,7 +311,7 @@ class cBA_GCP
     protected:
           cSetMesGndPt             mMesGCP; //< initial
           cSetMesGndPt             mNewGCP; //< set of gcp after adjust
-          std::vector<cPt3dr_UK*>  mGCP_UK;
+          std::vector<cPt3dr_UK*>  mGCP_UK; //< as many elements as mMesGCP, nullptr for shurred points
           std::vector<cMesDirInfo*> mAllMesDirInfo;
 
 };
@@ -353,7 +354,7 @@ class cMMVII_BundleAdj
 
           bool AddTopo(const std::string & aTopoFilePath); // TOPO
           ///  =======  Add GCP, can be measure or measure & object
-          void AddGCP3D(cMesDirInfo * aMesDirInfo, cSetMesGnd3D &aSetMesGnd3D, bool verbose=true);
+          void AddGCP3D(cMesDirInfo * aMesDirInfo, cSetMesGnd3D *aSetMesGnd3D, bool verbose=true);
           void AddGCP2D(cMesDirInfo * aMesDirInfo, cSetMesPtOf1Im & aSetMesIm, cSensorImage* aSens, eLevelCheck aOnNonExistGCP=eLevelCheck::Warning, bool verbose=true);
           cBA_GCP& getGCP() { return mGCP;}
 

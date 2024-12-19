@@ -147,11 +147,11 @@ cMultipleImPt::cMultipleImPt(int aNumPt) :
 {
 }
 
-void cMultipleImPt::Add(const cMesIm1Pt & aMes,int aNumIm,bool WithSigma)
+void cMultipleImPt::Add(const cMesIm1Pt & aMes,int aNumIm,cMesDirInfo *aMesDirInfo)
 {
-    MMVII_INTERNAL_ASSERT_tiny(!WithSigma,"4 now dont handle sigma in cMultipleImPt");
     mVMeasures.push_back(aMes.mPt);
     mVImages.push_back(aNumIm);
+    mVMesDirInfo.push_back(aMesDirInfo);
 }
 
 const cPt2dr * cMultipleImPt::PtOfIm(int aIndIm) const
@@ -279,7 +279,7 @@ void cSetMesGndPt::AddMes2D(cSetMesPtOf1Im & aSetMesIm, cMesDirInfo * aMesDirInf
         int aNumPt = m2MapPtInt.Obj2I(aMes.mNamePt,true);
         if (aNumPt>=0)
         {
-            mMesImOfPt.at(aNumPt).Add(aMes,aNumIm,false);
+            mMesImOfPt.at(aNumPt).Add(aMes,aNumIm,aMesDirInfo);
             mMesImInit.at(aNumIm).AddMeasure(aMes);
         }
         else

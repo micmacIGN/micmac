@@ -205,22 +205,23 @@ void AddData(const  cAuxAr2007 & anAux,cSetMesGnd3D & aSet);
 class cMultipleImPt 
 {
       public :
-              cMultipleImPt(int aNum3DP);   ///< Cstr, num of GCP of -1 for tie point
+    cMultipleImPt(int aNum3DP);   ///< Cstr, num of GCP of -1 for tie point
 
-              /// Add One image measurement, 4 now WithSigma must be false
-              void Add(const cMesIm1Pt & ,int aNumIm,bool WithSigma);
+    /// Add One image measurement, 4 now WithSigma must be false
+    void Add(const cMesIm1Pt & ,int aNumIm, cMesDirInfo *aMesDirInfo);
 
-              ///  Return if any the point of one image
-              const cPt2dr * PtOfIm(int) const;
+    ///  Return if any the point of one image
+    const cPt2dr * PtOfIm(int) const;
 
-	      const std::vector<cPt2dr> & VMeasures() const;  ///< Accessor
-              const std::vector<int>    & VImages()   const;  ///< Accessor
-	      int NumPt() const;
-      private :
-              int                             mNumPt;
-              std::vector<cPt2dr>             mVMeasures;
-              std::vector<tREAL4>             mVSigma;  // optionnal
-              std::vector<int>                mVImages;
+    const std::vector<cPt2dr> & VMeasures() const;  ///< Accessor
+    const std::vector<int>    & VImages()   const;  ///< Accessor
+    const std::vector<cMesDirInfo*> & VMesDirInfo() const;  ///< Accessor
+    int NumPt() const;
+private :
+    int                             mNumPt;
+    std::vector<cPt2dr>             mVMeasures;
+    std::vector<cMesDirInfo*>       mVMesDirInfo;
+    std::vector<int>                mVImages;
 };
 
 
