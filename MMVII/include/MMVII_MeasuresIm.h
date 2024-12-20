@@ -32,7 +32,7 @@ class cMesDirInfo;
 
 
 /** class for representing  a 3D point paired with it 2d image projection */
- 
+
 struct  cPair2D3D
 {
      public :
@@ -40,7 +40,7 @@ struct  cPair2D3D
           cPt2dr mP2;
           cPt3dr mP3;
 };
- 
+
 /** A cPair2D3D + a Weight */
 struct  cWeightedPair2D3D : public cPair2D3D
 {
@@ -99,7 +99,7 @@ class cSetMesPtOf1Im : public cMemCheck
           cSetMesPtOf1Im(const std::string & aNameIm);
           cSetMesPtOf1Im();
 	  static cSetMesPtOf1Im  FromFile(const std::string & aNameFile);
-          void AddMeasure(const cMesIm1Pt &);
+          void AddMeasure(const cMesIm1Pt &, cMesDirInfo *aMesDirInfo=nullptr); //aMesDirInfo==nullptr means keep original MesDirInfo
           /// Add a measure only if name is new, if not test if dist < tol if not ->error
           void AddMeasureIfNew(const cMesIm1Pt &,tREAL8 aTol=-1);
           void AddData(const  cAuxAr2007 & anAux);
@@ -135,7 +135,7 @@ void AddData(const  cAuxAr2007 & anAux,cSetMesPtOf1Im & aGCPMI);
 class cMes1Gnd3D
 {
      public :
-        
+
         // aSigma==-1 for free point
         cMes1Gnd3D(const cPt3dr & aPt,const std::string & aNamePt,
                    tREAL4 aSigma=-1, const std::string &aAdditionalInfo="");
@@ -164,7 +164,7 @@ class cMes1Gnd3D
 	///
 	bool  Sigma2IsInit() const;
 
-	/// Serialization 
+	/// Serialization
 	void AddData(const  cAuxAr2007 & anAux);
 
      private :
@@ -204,7 +204,7 @@ void AddData(const  cAuxAr2007 & anAux,cSetMesGnd3D & aSet);
 /**  Class for reprenting the same point in different image, maybe same class
  * used for GCP and tie points */
 
-class cMultipleImPt 
+class cMultipleImPt
 {
       public :
     cMultipleImPt(int aNum3DP);   ///< Cstr, num of GCP of -1 for tie point
@@ -230,7 +230,7 @@ private :
 /**  Class for storing a data base of GCP :  3D measures + 2D image measure
  *   The link between different measures is done using name of points.
  *
- *   The mMesGCP  and mMesIm are corresponinf i.e  mMesGCP[k] <-> mMesIm[k] 
+ *   The mMesGCP  and mMesIm are corresponinf i.e  mMesGCP[k] <-> mMesIm[k]
  */
 class cSetMesGndPt : public cMemCheck
 {
@@ -243,7 +243,7 @@ class cSetMesGndPt : public cMemCheck
 	    /// For a single GCP (called by AddMes3D)
 	    void Add1GCP(const cMes1Gnd3D &);
 	    ///  Add mesure on 1 images, close the possibility for further call to AddMes3D
-            void AddMes2D(cSetMesPtOf1Im &, cMesDirInfo * aMesDirInfo=nullptr, cSensorImage* =nullptr, eLevelCheck OnNonExistP=eLevelCheck::Warning);
+            void AddMes2D(const cSetMesPtOf1Im &, cMesDirInfo * aMesDirInfo=nullptr, cSensorImage* =nullptr, eLevelCheck OnNonExistP=eLevelCheck::Warning);
 
 	    /// return a set of mesure as 2d/3d corresp : if SVP accept image absent and returns empty
             void ExtractMes1Im(cSet2D3D&,const std::string &aNameIm,bool SVP=false) const;
@@ -253,10 +253,10 @@ class cSetMesGndPt : public cMemCheck
             const std::vector<cMultipleImPt> &   MesImOfPt() const ;  ///< Accessor
 	    const std::vector<cSensorImage*> &   VSens() const ;  ///< Accessor
             const std::vector<cSetMesPtOf1Im> &  MesImInit() const;  ///< Accessor
-								
+
 	    tREAL8 AvgSqResidual() const;
-								  
-	    /// suppress mMesGCP & mMesIm with no images measure (eventually can give higher threshold) 
+
+	    /// suppress mMesGCP & mMesIm with no images measure (eventually can give higher threshold)
 	    cSetMesGndPt * FilterNonEmptyMeasure(int NbMeasureMin=1) const;
 	    int GetNbImMesForPoint(const std::string & aGCPName, bool SVP=false) const;
 
@@ -342,7 +342,7 @@ class cInterfImportHom : public cMemCheck
 };
 
 
-/**   This class store multiple homologous point, ie after fusion of  
+/**   This class store multiple homologous point, ie after fusion of
  *    points computed by pair of images
  */
 
@@ -399,9 +399,9 @@ cPt3dr BundleInter(const tPairTiePMult &,size_t aKPts,const std::vector<cSensorI
 void   MakePGround(tPairTiePMult &,const std::vector<cSensorImage *>&);
 
 
-/**   This class store multiple homologous point, 
+/**   This class store multiple homologous point,
  *    it can be created (initially) after fusion of    points computed by pair of images in folder "TieP"
- *    or by loading the result of folder "MulTieP" 
+ *    or by loading the result of folder "MulTieP"
  */
 
 class cComputeMergeMulTieP : public cMemCheck
@@ -441,14 +441,14 @@ class cComputeMergeMulTieP : public cMemCheck
 
 	const std::vector<std::list<std::pair<size_t,tPairTiePMult*>>> & IndexeOfImages()  const;
 	void SetImageIndexe();
-	/// compute the Ground coordinates 
+	/// compute the Ground coordinates
 	void SetPGround();
      private  :
         std::vector<std::string>               mVNames;    /// Vector of names of images
         std::vector<cSensorImage *>            mVSensors;  ///< optionnal, when point are used in 3D
         std::map<tConfigIm,cVal1ConfTPM>       mPts;       /// Map VectInd ->  points in raw format
         /** Usefull if we need to recover for one image the configuration it belongs to, for image K
-	 *  mImageIndexes[K] will contain all its configuration + the number it has in this config*/							 
+	 *  mImageIndexes[K] will contain all its configuration + the number it has in this config*/
 	std::vector<std::list<std::pair<size_t,tPairTiePMult*>>> mImageIndexes;
 };
 
@@ -516,7 +516,7 @@ class cFilterMesIm
          const cSetMesGndPt &   SetMesImGCP(); ///< acessor
          const cSetMesPtOf1Im & SetMesIm();    ///< accessor
          void Save();                          ///< save image measure + eventual secondary ettributes
-         void SetFinished();                   ///< 
+         void SetFinished();                   ///<
       private :
 
          cPhotogrammetricProject &  mPhProj;

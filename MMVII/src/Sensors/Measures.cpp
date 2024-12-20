@@ -247,7 +247,7 @@ cPt3dr  cSetMesGndPt::BundleInter(const cMultipleImPt & aMPT) const
 
 
 
-void cSetMesGndPt::AddMes2D(cSetMesPtOf1Im & aSetMesIm, cMesDirInfo * aMesDirInfo, cSensorImage* aSens, eLevelCheck aOnNonExistGCP)
+void cSetMesGndPt::AddMes2D(const cSetMesPtOf1Im & aSetMesIm, cMesDirInfo * aMesDirInfo, cSensorImage* aSens, eLevelCheck aOnNonExistGCP)
 {
     //  Are we beginning  the  image measurement phase
     {
@@ -275,12 +275,11 @@ void cSetMesGndPt::AddMes2D(cSetMesPtOf1Im & aSetMesIm, cMesDirInfo * aMesDirInf
 
     for (auto & aMes : aSetMesIm.Measures())
     {
-        aMes.mMesDirInfo = aMesDirInfo;
         int aNumPt = m2MapPtInt.Obj2I(aMes.mNamePt,true);
         if (aNumPt>=0)
         {
             mMesImOfPt.at(aNumPt).Add(aMes,aNumIm,aMesDirInfo);
-            mMesImInit.at(aNumIm).AddMeasure(aMes);
+            mMesImInit.at(aNumIm).AddMeasure(aMes,aMesDirInfo);
         }
         else
         {
@@ -345,7 +344,7 @@ cSetMesGndPt *  cSetMesGndPt::FilterNonEmptyMeasure(int aNbMeasureMin) const
 
   for (size_t aKIm=0 ; aKIm<mMesImInit.size() ; aKIm++)
   {
-     aRes->AddMes2D(mMesImInit.at(aKIm),mVSens.at(aKIm));
+     aRes->AddMes2D(mMesImInit.at(aKIm),nullptr,mVSens.at(aKIm)); //aMesDirInfo=nullptr means keep original MesDirInfo
   }
 
    return aRes;
@@ -381,7 +380,7 @@ tREAL8 cSetMesGndPt::AvgSqResidual() const
 cSetMesGnd3D  cSetMesGndPt::ExtractSetGCP(const std::string & aName) const
 {
     cSetMesGnd3D aRes(aName);
-    for (const auto &  aMesGCP : mMesGCP)
+    for (const auto &  aMesGCP : mMesGCP3D)
         aRes.AddMeasure3D(aMesGCP);
 
     return aRes;
@@ -447,9 +446,11 @@ void cSetMesPtOf1Im::SetNameIm(const std::string & aNameIm)
     mNameIm = aNameIm;
 }
 
-void cSetMesPtOf1Im::AddMeasure(const cMesIm1Pt & aMeasure)
+void cSetMesPtOf1Im::AddMeasure(const cMesIm1Pt & aMeasure, cMesDirInfo *aMesDirInfo)
 {
      mMeasures.push_back(aMeasure);
+     if (aMesDirInfo)
+        mMeasures.back().mMesDirInfo = aMesDirInfo;
 }
 
 void cSetMesPtOf1Im::AddMeasureIfNew(const cMesIm1Pt & aNewM,tREAL8 aTolDupl)
