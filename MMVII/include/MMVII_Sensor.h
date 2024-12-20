@@ -560,7 +560,7 @@ class cPhotogrammetricProject
 	  /// Load the measure image from a specified folder, usefull when multiple folder
 	  cSetMesPtOf1Im LoadMeasureImFromFolder(const std::string & aFolder,const std::string &) const;
 
-         void LoadGCP(cSetMesGndPt&,const std::string & aPatFiltrFile="",const std::string & aFiltrNameGCP="",
+         void LoadGCP3D(cSetMesGndPt&,const std::string & aPatFiltrFile="",const std::string & aFiltrNameGCP="",
                       const std::string & aFiltrAdditionalInfoGCP="") const;
 	 ///  For reading GCP from folder potentially != of standard input measures, can add missing points from topo obs
          void LoadGCP3DFromFolder(const std::string & aFolder,cSetMesGndPt&,
@@ -574,7 +574,7 @@ class cPhotogrammetricProject
                                 cSensorImage * =nullptr,bool SVP=false) const;
 	  void LoadIm(cSetMesGndPt&,cSensorImage & ) const;
 
-	  void SaveGCP3D(const cSetMesGnd3D&) const;
+	  void SaveGCP3D(const cSetMesGnd3D&aMGCP3D) const;
 
 	  /// Name of the file, usefull if we need to test existence before doing anything
 	  std::string NameMeasureGCPIm(const std::string & aNameIm,bool isIn) const;

@@ -1,7 +1,7 @@
 #include "MMVII_PCSens.h"
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_util_tpl.h"
-
+#include "../BundleAdjustment/BundleAdjustment.h"
 
 /**
    \file Measures.cpp
@@ -183,7 +183,7 @@ cSetMesGndPt::cSetMesGndPt() :
 void cSetMesGndPt::Add1GCP(const cMes1Gnd3D & aMes)
 {
      MMVII_INTERNAL_ASSERT_medium(!mPhaseGCPFinished,"cSetMesImGCP cannot add GCP after image");
-     mMesGCP.push_back(aMes);
+     mMesGCP3D.push_back(aMes);
      m2MapPtInt.Add(aMes.mNamePt,false,"GCP-3D : " + aMes.mNamePt);
 }
 
@@ -192,7 +192,7 @@ void cSetMesGndPt::AddMes3D(const cSetMesGnd3D &  aSet, MMVII::cMesDirInfo *aMes
     for (const auto & aMes  : aSet.Measures())
     {
         Add1GCP(aMes);
-        mMesGCP.back().mMesDirInfo = aMesDirInfo;
+        mMesGCP3D.back().mMesDirInfo = aMesDirInfo;
     }
 }
 
@@ -203,12 +203,12 @@ const cSetMesPtOf1Im  & cSetMesGndPt::MesImInitOfName(const std::string & aNameI
 
 const cMes1Gnd3D &  cSetMesGndPt::MesGCPOfName(const std::string & aNamePt) const
 {
-    return mMesGCP.at(m2MapPtInt.Obj2IWithMsg(aNamePt,"GCP : " + aNamePt));
+    return mMesGCP3D.at(m2MapPtInt.Obj2IWithMsg(aNamePt,"GCP : " + aNamePt));
 }
 
 cMes1Gnd3D &  cSetMesGndPt::MesGCPOfName(const std::string & aNamePt)
 {
-    return mMesGCP.at(m2MapPtInt.Obj2I(aNamePt));
+    return mMesGCP3D.at(m2MapPtInt.Obj2I(aNamePt));
 }
 
 
@@ -216,7 +216,7 @@ cMes1Gnd3D &  cSetMesGndPt::MesGCPOfName(const std::string & aNamePt)
 
 const cMes1Gnd3D &  cSetMesGndPt::MesGCPOfNum(int aNum) const
 {
-    return mMesGCP.at(aNum);
+    return mMesGCP3D.at(aNum);
 }
 
 const cMes1Gnd3D & cSetMesGndPt::MesGCPOfMulIm(const cMultipleImPt & aMIP) const
@@ -253,9 +253,9 @@ void cSetMesGndPt::AddMes2D(cSetMesPtOf1Im & aSetMesIm, cMesDirInfo * aMesDirInf
     {
         if (! mPhaseGCPFinished)
         {
-            mMesImOfPt.reserve(mMesGCP.size());
+            mMesImOfPt.reserve(mMesGCP3D.size());
 
-            for (size_t aKp=0 ;  aKp<mMesGCP.size() ; aKp++)
+            for (size_t aKp=0 ;  aKp<mMesGCP3D.size() ; aKp++)
                 mMesImOfPt.push_back( cMultipleImPt(aKp));
         }
         mPhaseGCPFinished = true;
@@ -289,12 +289,12 @@ void cSetMesGndPt::AddMes2D(cSetMesPtOf1Im & aSetMesIm, cMesDirInfo * aMesDirInf
     }
 }
 
-const std::vector<cMes1Gnd3D> &        cSetMesGndPt::MesGCP()    const  {return mMesGCP; }
+const std::vector<cMes1Gnd3D> &        cSetMesGndPt::MesGCP()    const  {return mMesGCP3D; }
 const std::vector<cMultipleImPt> &   cSetMesGndPt::MesImOfPt() const  {return mMesImOfPt;  }
 const std::vector<cSensorImage*> &   cSetMesGndPt::VSens()     const  {return mVSens;}
 const std::vector<cSetMesPtOf1Im> &  cSetMesGndPt::MesImInit() const  {return mMesImInit;}
 
-std::vector<cMes1Gnd3D> &        cSetMesGndPt::MesGCP()   {return mMesGCP; }
+std::vector<cMes1Gnd3D> &        cSetMesGndPt::MesGCP()   {return mMesGCP3D; }
 
 void cSetMesGndPt::ExtractMes1Im(cSet2D3D&  aS23,const std::string &aNameIm,bool SVP) const
 {
@@ -305,11 +305,11 @@ void cSetMesGndPt::ExtractMes1Im(cSet2D3D&  aS23,const std::string &aNameIm,bool
 
     if (aNumIm<0) return;
 
-    for (size_t aKp=0 ;  aKp<mMesGCP.size() ; aKp++)
+    for (size_t aKp=0 ;  aKp<mMesGCP3D.size() ; aKp++)
     {
          const cPt2dr * aP2 = mMesImOfPt[aKp].PtOfIm(aNumIm);
 	 if (aP2)
-            aS23.AddPair(*aP2,mMesGCP[aKp].mPt);
+            aS23.AddPair(*aP2,mMesGCP3D[aKp].mPt);
     }
 }
 
@@ -334,12 +334,12 @@ cSetMesGndPt *  cSetMesGndPt::FilterNonEmptyMeasure(int aNbMeasureMin) const
 
   cSetMesGndPt * aRes = new cSetMesGndPt;
 
-  for (size_t aKGCP=0 ; aKGCP<mMesGCP.size() ; aKGCP++)
+  for (size_t aKGCP=0 ; aKGCP<mMesGCP3D.size() ; aKGCP++)
   {
 
        if ( int(mMesImOfPt[aKGCP].VImages().size()) >= aNbMeasureMin)
        {
-             aRes->Add1GCP(mMesGCP[aKGCP]);
+             aRes->Add1GCP(mMesGCP3D[aKGCP]);
        }
    }
 
@@ -355,9 +355,9 @@ tREAL8 cSetMesGndPt::AvgSqResidual() const
 {
      cWeightAv<tREAL8>  aWA;
 
-     for (size_t aKPt=0 ; aKPt<mMesGCP.size() ; aKPt++)
+     for (size_t aKPt=0 ; aKPt<mMesGCP3D.size() ; aKPt++)
      {
-         const cPt3dr & aPGr = mMesGCP.at(aKPt).mPt;
+         const cPt3dr & aPGr = mMesGCP3D.at(aKPt).mPt;
          const  cMultipleImPt & aMMIm = mMesImOfPt.at(aKPt);
          size_t aNbMes = aMMIm.VMeasures().size();
          for (size_t aKMes=0 ; aKMes<aNbMes ; aKMes++)
@@ -386,7 +386,6 @@ cSetMesGnd3D  cSetMesGndPt::ExtractSetGCP(const std::string & aName) const
 
     return aRes;
 }
-
 
 /* ********************************************* */
 /*                                               */
@@ -737,6 +736,17 @@ cSetMesGnd3D  cSetMesGnd3D::Filter(const std::string &aFilter, const std::string
     return aRes;
 }
 
+std::map<std::string, MMVII::cSetMesGnd3D> cSetMesGnd3D::SplitPerOutDir() const
+{
+    std::map<std::string, MMVII::cSetMesGnd3D> output;
+    for (const auto & aPt : mMeasures)
+    {
+        if (!aPt.mMesDirInfo)
+            continue;
+        output[aPt.mMesDirInfo->mDirNameOut].AddMeasure3D(aPt);
+    }
+    return output;
+}
 
 
 /**********************************************/
@@ -839,7 +849,7 @@ cFilterMesIm::cFilterMesIm(cPhotogrammetricProject & aPhProj,const std::string &
     mMesIm       (aNameIm),
     mFinished    (false)
 {
-    mPhProj.LoadGCP(mImGCP);  // init new GCP/IM with GCP
+    mPhProj.LoadGCP3D(mImGCP);  // init new GCP/IM with GCP
 }
 
 void cFilterMesIm::AddInOrOut(const cPt2dr & aPtIm,const std::string & aNamePt,bool isIn)

@@ -95,9 +95,6 @@ int cAppli_ChSysCoGCP::Exe()
     // copy the System of coordinate in the GCP-folder
     mPhProj.SaveCurSysCoGCP(aSysOut);
 
-    //  copy the image measure to be complete
-    mPhProj.CpMeasureIm();
-
     return EXIT_SUCCESS;
 }
 

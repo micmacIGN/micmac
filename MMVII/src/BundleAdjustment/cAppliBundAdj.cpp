@@ -348,7 +348,7 @@ int cAppliBundlAdj::Exe()
     mPhProj.CpSysIn2Out(true,true);
 
     mBA.SaveBlocRigid();  // RIGIDBLOC
-    mBA.Save_newGCP();
+    mBA.Save_newGCP3D();
     mBA.SaveTopo(); // just for debug for now
     mBA.SaveClino();
 

@@ -26,23 +26,31 @@ namespace MMVII
  * the input directory of cDirsPhProj, use the destructor to automatically restor initial context */
 class cAutoChgRestoreDefFolder
 {
-     public :
-         cAutoChgRestoreDefFolder(const std::string & aFolder,const cDirsPhProj & aDP);
-	 ~cAutoChgRestoreDefFolder();
-     private :
-	 cDirsPhProj & mDP;
-	 std::string   mCurDirIn;
+public :
+    cAutoChgRestoreDefFolder(const std::string & aFolder,const cDirsPhProj & aDP, bool aIsIn);
+    ~cAutoChgRestoreDefFolder();
+private :
+    cDirsPhProj & mDP;
+    bool mIsIn;
+    std::string   mCurDir;
 };
 
-cAutoChgRestoreDefFolder::cAutoChgRestoreDefFolder(const std::string & aFolder,const cDirsPhProj & aDP) :
-	mDP          (const_cast<cDirsPhProj&> (aDP)),
-	mCurDirIn    (mDP.DirIn())
+cAutoChgRestoreDefFolder::cAutoChgRestoreDefFolder(const std::string & aFolder,const cDirsPhProj & aDP, bool aIsIn) :
+    mDP          (const_cast<cDirsPhProj&> (aDP)),
+    mIsIn        (aIsIn),
+    mCurDir      (mIsIn?mDP.DirIn():mDP.DirOut())
 {
-	mDP.SetDirIn(aFolder);
+    if (mIsIn)
+        mDP.SetDirIn(aFolder);
+    else
+        mDP.SetDirOut(aFolder);
 }
 cAutoChgRestoreDefFolder::~cAutoChgRestoreDefFolder() 
 {
-     mDP.SetDirIn(mCurDirIn);
+    if (mIsIn)
+        mDP.SetDirIn(mCurDir);
+    else
+        mDP.SetDirOut(mCurDir);
 }
 
     // =============================================================================
@@ -754,7 +762,7 @@ bool cPhotogrammetricProject::HasMeasureIm(const std::string & aNameIm,bool InDi
 
 bool cPhotogrammetricProject::HasMeasureImFolder(const std::string & aFolder,const std::string & aNameIm) const
 {
-     cAutoChgRestoreDefFolder  aCRDF(aFolder,DPGndPt2D()); // Chg Folder and restore at destruction
+     cAutoChgRestoreDefFolder  aCRDF(aFolder,DPGndPt2D(), true); // Chg Folder and restore at destruction
      return HasMeasureIm(aNameIm,true);
 }
 
@@ -767,10 +775,14 @@ cSetMesPtOf1Im cPhotogrammetricProject::LoadMeasureIm(const std::string & aNameI
    return cSetMesPtOf1Im::FromFile(NameMeasureGCPIm(aNameIm,isIn));
 }
 
-void cPhotogrammetricProject::SaveGCP3D(const cSetMesGnd3D & aMGCP) const
+void cPhotogrammetricProject::SaveGCP3D(const cSetMesGnd3D & aMGCP3D) const
 {
-     aMGCP.ToFile(mDPGndPt3D.FullDirOut() + aMGCP.StdNameFile());
-     // aMGCP.ToFile(mDPPointsMeasures.FullDirOut() + cSetMesGCP::ThePrefixFiles + aMGCP.Name() + "." + TaggedNameDefSerial());
+    std::map<std::string, MMVII::cSetMesGnd3D> aSplittedGCP3D = aMGCP3D.SplitPerOutDir();
+    for (const auto& [aDirName, aSetMesGnd3D] : aSplittedGCP3D)
+    {
+        cAutoChgRestoreDefFolder  aCRDF(aDirName,DPGndPt3D(),false); // Chg output Folder and restore at destruction
+        aSetMesGnd3D.ToFile(mDPGndPt3D.FullDirOut() + aMGCP3D.StdNameFile());
+    }
 }
 
 std::string cPhotogrammetricProject::GCPPattern(const std::string & aArgPatFiltr) const
@@ -781,7 +793,7 @@ std::string cPhotogrammetricProject::GCPPattern(const std::string & aArgPatFiltr
 std::vector<std::string>  cPhotogrammetricProject::ListFileGCP(const std::string & aArgPatFiltr) const
 {
    std::string aPatFiltr = GCPPattern(aArgPatFiltr);
-   std::string aDir = mDPPointsMeasures.FullDirIn();
+   std::string aDir = mDPGndPt3D.FullDirIn();
    std::vector<std::string> aRes;
 
    GetFilesFromDir(aRes,aDir,AllocRegex(aPatFiltr));
@@ -792,7 +804,7 @@ std::vector<std::string>  cPhotogrammetricProject::ListFileGCP(const std::string
    return aRes;
 }
 
-void cPhotogrammetricProject::LoadGCP(cSetMesGndPt& aSetMes,const std::string & aArgPatFiltr,const std::string & aFiltrNameGCP,
+void cPhotogrammetricProject::LoadGCP3D(cSetMesGndPt& aSetMes,const std::string & aArgPatFiltr,const std::string & aFiltrNameGCP,
                                       const std::string & aFiltrAdditionalInfoGCP) const
 {
    std::vector<std::string> aListFileGCP = ListFileGCP(aArgPatFiltr);
@@ -800,10 +812,10 @@ void cPhotogrammetricProject::LoadGCP(cSetMesGndPt& aSetMes,const std::string & 
 
    for (const auto  & aNameFile : aListFileGCP)
    {
-       cSetMesGnd3D aMesGCP = cSetMesGnd3D::FromFile(aNameFile);
+       cSetMesGnd3D aMesGCP3D = cSetMesGnd3D::FromFile(aNameFile);
        if ( (!aFiltrNameGCP.empty()) || (!aFiltrAdditionalInfoGCP.empty()) )
-          aMesGCP = aMesGCP.Filter(aFiltrNameGCP, aFiltrAdditionalInfoGCP);
-       aSetMes.AddMes3D(aMesGCP);
+          aMesGCP3D = aMesGCP3D.Filter(aFiltrNameGCP, aFiltrAdditionalInfoGCP);
+       aSetMes.AddMes3D(aMesGCP3D);
    }
 }
 
@@ -848,7 +860,7 @@ void cPhotogrammetricProject::LoadGCP3DFromFolder
      std::string aDirInit = aDPPM.DirIn();
      aDPPM.SetDirIn(aFolder);
 
-     LoadGCP(aSetMes,aArgPatFiltr,aFiltrNameGCP,aFiltrAdditionalInfoGCP);
+     LoadGCP3D(aSetMes,aArgPatFiltr,aFiltrNameGCP,aFiltrAdditionalInfoGCP);
      // Restore initial current orientation
      aDPPM.SetDirIn(aDirInit);
 
@@ -922,7 +934,7 @@ cSet2D3D  cPhotogrammetricProject::LoadSet32(const std::string & aNameIm) const
 {
     cSetMesGndPt aSetMes;
 
-    LoadGCP(aSetMes);
+    LoadGCP3D(aSetMes);
     LoadIm(aSetMes,aNameIm);
 
     cSet2D3D aSet23;

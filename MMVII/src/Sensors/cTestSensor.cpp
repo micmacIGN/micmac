@@ -101,7 +101,7 @@ void cAppliTestSensor::TestGroundTruth(const  cSensorImage & aSI) const
 {
     // Load mesure from standard MMVII project
     cSetMesGndPt aSetMes;
-    mPhProj.LoadGCP(aSetMes);
+    mPhProj.LoadGCP3D(aSetMes);
     mPhProj.LoadIm(aSetMes,aSI.NameImage());
     cSet2D3D aSetM23;
     aSetMes.ExtractMes1Im(aSetM23,aSI.NameImage());

@@ -167,7 +167,7 @@ int cAppliTopoAdj::Exe()
         mBA.OneIterationTopoOnly(mLVM, true);
     }
 
-    mBA.Save_newGCP();
+    mBA.Save_newGCP3D();
     mBA.SaveTopo(); // just for debug for now
 
     return EXIT_SUCCESS;

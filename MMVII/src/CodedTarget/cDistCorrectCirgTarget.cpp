@@ -223,7 +223,7 @@ int  cAppliCorrecDistCircTarget::Exe()
    mNameIm = FileOfPath(mSpecImIn);
    mPhProj.ReadSensor(mNameIm,mSensor,mCamPC,true,false);
 
-   mPhProj.LoadGCP(mMesImGCP);
+   mPhProj.LoadGCP3D(mMesImGCP);
    mPhProj.LoadIm(mMesImGCP,*mSensor);
 
    // mCamPC = mPhProj.AllocCamPC(FileOfPath(mSpecImIn),true);

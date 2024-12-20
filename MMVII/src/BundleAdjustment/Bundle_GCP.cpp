@@ -240,15 +240,10 @@ void cMMVII_BundleAdj::OneItere_GCP(bool verbose)
 }
 
 
-void cMMVII_BundleAdj::Save_newGCP()
+void cMMVII_BundleAdj::Save_newGCP3D()
 {
-    if (mGCP.mMesGCP  && mPhProj->DPGndPt3D().DirOutIsInit())
-    {
-        mPhProj->SaveGCP3D(mGCP.mNewGCP.ExtractSetGCP("NewGCP"));
-        for (const auto & aMes1Im : mGCP.mMesGCP.MesImInit())
-             mPhProj->SaveMeasureIm(aMes1Im);
-        mPhProj->SaveCurSysCoGCP(mPhProj->CurSysCo(mPhProj->DPGndPt3D()));
-    }
+    mPhProj->SaveGCP3D(mGCP.mNewGCP.ExtractSetGCP("NewGCP"));
+    mPhProj->SaveCurSysCoGCP(mPhProj->CurSysCo(mPhProj->DPGndPt3D()));
 }
 
     /* ---------------------------------------- */

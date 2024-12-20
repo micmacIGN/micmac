@@ -121,7 +121,7 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
        return ;
 
     cSetMesGndPt             aSetMes;
-    mPhProj.LoadGCP(aSetMes,"",mFilterName,mFilterAdd);
+    mPhProj.LoadGCP3D(aSetMes,"",mFilterName,mFilterAdd);
     mPhProj.LoadIm(aSetMes,aNameIm);
     const cSetMesPtOf1Im  &  aSetMesIm = aSetMes.MesImInitOfName(aNameIm);
 
@@ -218,7 +218,7 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
 void cAppli_CGPReport::ReportsByGCP()
 {
    cSetMesGndPt             aSetMes;
-   mPhProj.LoadGCP(aSetMes,"",mFilterName,mFilterAdd);
+   mPhProj.LoadGCP3D(aSetMes,"",mFilterName,mFilterAdd);
 
    for (const auto & aNameIm : VectMainSet(0))
    {
@@ -269,7 +269,7 @@ void cAppli_CGPReport::ReportsByCam()
 {
    std::map<cPerspCamIntrCalib*,std::vector<cSensorCamPC*>>  aMapCam;
    cSetMesGndPt             aSetMes;
-   mPhProj.LoadGCP(aSetMes,"",mFilterName,mFilterAdd);
+   mPhProj.LoadGCP3D(aSetMes,"",mFilterName,mFilterAdd);
 
    for (const auto & aNameIm : VectMainSet(0))
    {

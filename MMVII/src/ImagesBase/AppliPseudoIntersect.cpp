@@ -265,8 +265,6 @@ int cAppli_PseudoIntersect::Exe()
     if (aSysCo)
         mPhProj.SaveCurSysCoGCP(aSysCo);
 
-    //  copy the image measure to be complete
-    mPhProj.CpMeasureIm();
     return EXIT_SUCCESS;
 }
 

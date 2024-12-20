@@ -365,7 +365,7 @@ void cAppli_CheckGCPDist::MakeOneIm(const std::string & aNameIm)
     mCurNameIm = aNameIm;
 
     cSetMesGndPt  aSetMes;
-    mPhProj.LoadGCP(aSetMes);
+    mPhProj.LoadGCP3D(aSetMes);
     mPhProj.LoadIm(aSetMes,aNameIm);
 
     if (mPhProj.DPOrient().DirInIsInit())

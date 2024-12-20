@@ -657,7 +657,7 @@ int cAppli_CalibratedSpaceResection::Exe()
 
     mNameIm =FileOfPath(mSpecImIn);
 
-    mPhProj.LoadGCP(mSetMes);
+    mPhProj.LoadGCP3D(mSetMes);
     mPhProj.LoadIm(mSetMes,mNameIm);
     
     mSetMes.ExtractMes1Im(mSet23,mNameIm);

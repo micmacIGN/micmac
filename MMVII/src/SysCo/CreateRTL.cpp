@@ -112,7 +112,7 @@ int cAppli_CreateRTL::Exe()
         if (aSysIn.get())
             aDefSysCoIn = aSysIn->Def();
 
-        mPhProj.LoadGCP(aMesIm);
+        mPhProj.LoadGCP3D(aMesIm);
         for (const auto & aGCP : aMesIm.MesGCP())
         {
             aAvgGCP.Add(1,aGCP.mPt);

@@ -62,7 +62,7 @@ int cAppli_ExportUndistMesIm::Exe()
 		cPerspCamIntrCalib * aCal = mPhProj.InternalCalibFromStdName(aCImage);
 
 		//load GCPs
-		mPhProj.LoadGCP(aSetMes);
+		mPhProj.LoadGCP3D(aSetMes);
 
 		//load image measurements
 		mPhProj.LoadIm(aSetMes,aCImage);

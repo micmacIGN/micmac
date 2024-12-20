@@ -193,6 +193,8 @@ class cSetMesGnd3D : public cMemCheck
           const std::vector<cMes1Gnd3D> &   Measures() const;  ///< Accessor
 	  static  const std::string ThePrefixFiles;
 
+      std::map<std::string, cSetMesGnd3D> SplitPerOutDir() const;
+
     private :
 	  std::string              mNameSet;
           std::vector<cMes1Gnd3D>    mMeasures;
@@ -275,7 +277,7 @@ class cSetMesGndPt : public cMemCheck
             cSetMesGndPt(const  cSetMesGndPt & ) = delete;
 
             bool                         mPhaseGCPFinished;
-            std::vector<cMes1Gnd3D>        mMesGCP;
+            std::vector<cMes1Gnd3D>      mMesGCP3D;
             std::vector<cMultipleImPt>   mMesImOfPt;  ///< after compilation, sorted by point
             std::vector<cSetMesPtOf1Im>  mMesImInit;  ///< initial structuration, sorted by image
 

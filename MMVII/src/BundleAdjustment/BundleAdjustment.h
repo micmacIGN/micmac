@@ -386,7 +386,7 @@ class cMMVII_BundleAdj
 
 
 	  void SaveBlocRigid();
-          void Save_newGCP();
+          void Save_newGCP3D();
           void SaveTopo();
 
 	  void ShowUKNames() ;
