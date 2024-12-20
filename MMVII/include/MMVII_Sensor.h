@@ -560,19 +560,19 @@ class cPhotogrammetricProject
 	  /// Load the measure image from a specified folder, usefull when multiple folder
 	  cSetMesPtOf1Im LoadMeasureImFromFolder(const std::string & aFolder,const std::string &) const;
 
-         void LoadGCP3D(cSetMesGndPt&,const std::string & aPatFiltrFile="",const std::string & aFiltrNameGCP="",
+         void LoadGCP3D(cSetMesGndPt&, cMes3DDirInfo *aMesDirInfo=nullptr, const std::string & aPatFiltrFile="", const std::string & aFiltrNameGCP="",
                       const std::string & aFiltrAdditionalInfoGCP="") const;
 	 ///  For reading GCP from folder potentially != of standard input measures, can add missing points from topo obs
-         void LoadGCP3DFromFolder(const std::string & aFolder,cSetMesGndPt&,
-                                std::pair<cBA_Topo *, std::vector<cBA_GCP*>*> aTopoAddPointsInfo,
+         void LoadGCP3DFromFolder(const std::string & aFolder, cSetMesGndPt&,
+                                  cMes3DDirInfo * aMesDirInfo,
                                 const std::string & aPatFiltrFile="", const std::string & aFiltrNameGCP="",
                                 const std::string & aFiltrAdditionalInfoGCP="" ) const;
           // if SVP && file doesnt exist, do nothing
-	  void LoadIm(cSetMesGndPt&,const std::string & aNameIm,cSensorImage * =nullptr,bool SVP=false) const;
+	  void LoadIm(cSetMesGndPt&,const std::string & aNameIm,cMes2DDirInfo * aMesDirInfo=nullptr, cSensorImage * =nullptr,bool SVP=false) const;
           ///  When dont read from the standard input 
-	  void LoadImFromFolder(const std::string & aFolder,cSetMesGndPt&,const std::string & aNameIm,
-                                cSensorImage * =nullptr,bool SVP=false) const;
-	  void LoadIm(cSetMesGndPt&,cSensorImage & ) const;
+	  void LoadImFromFolder(const std::string & aFolder, cSetMesGndPt&, cMes2DDirInfo *aMesDirInfo, const std::string & aNameIm,
+                                cSensorImage * =nullptr, bool SVP=false) const;
+	  void LoadIm(cSetMesGndPt&, cMes2DDirInfo *aMesDirInfo, cSensorImage & ) const;
 
 	  void SaveGCP3D(const cSetMesGnd3D&aMGCP3D) const;
 
@@ -681,7 +681,7 @@ class cPhotogrammetricProject
          void SaveCurSysCoOri(tPtrSysCo) const ;
          void SaveCurSysCoGCP(tPtrSysCo) const ;
          void SaveStdCurSysCo(bool IsOri) const; /// save the Cur Sysco in Orient/GCP
-         void CpSysIn2Out(bool OriIn,bool OriOut) const;  // bool : Ori/GCP   do it only if exist, else no error
+         void CpSysCoIn2Out(bool OriIn,bool OriOut) const;  // bool : Ori/GCP   do it only if exist, else no error
          std::string  getDirSysCo() const { return mDirSysCo; }
 
          const cChangeSysCo & ChSysCo() const;

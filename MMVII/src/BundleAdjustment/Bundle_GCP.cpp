@@ -6,11 +6,21 @@ namespace MMVII
 {
 
 /* -------------------------------------------------------------- */
-/*                cMesDirInfo                                     */
+/*                cMes2DDirInfo                                     */
 /* -------------------------------------------------------------- */
 
-cMesDirInfo::cMesDirInfo (const std::string &aDirNameIn, const std::string &aDirNameOut, const cStdWeighterResidual &aWeighter, tREAL8 aSGlob) :
-    mDirNameIn(aDirNameIn), mDirNameOut(aDirNameOut), mWeighter(aWeighter), mSGlob(aSGlob)
+cMes2DDirInfo::cMes2DDirInfo (const std::string &aDirNameIn, const cStdWeighterResidual &aWeighter) :
+    mDirNameIn(aDirNameIn), mWeighter(aWeighter)
+{
+
+}
+
+/* -------------------------------------------------------------- */
+/*                cMes3DDirInfo                                     */
+/* -------------------------------------------------------------- */
+
+cMes3DDirInfo::cMes3DDirInfo (const std::string &aDirNameIn, const std::string &aDirNameOut, tREAL8 aSGlob) :
+    mDirNameIn(aDirNameIn), mDirNameOut(aDirNameOut), mSGlob(aSGlob)
 {
 
 }
@@ -26,23 +36,32 @@ cBA_GCP::cBA_GCP()
 cBA_GCP::~cBA_GCP() 
 {
     DeleteAllAndClear(mGCP_UK);
-    DeleteAllAndClear(mAllMesDirInfo);
+    DeleteAllAndClear(mAllMes2DDirInfo);
+    DeleteAllAndClear(mAllMes3DDirInfo);
 }
 
-cMesDirInfo* cBA_GCP::addMesDirInfo(const std::string & aDirNameIn, const std::string & aDirNameOut,
-                                    const cStdWeighterResidual & aStdWeighterResidual, tREAL8 aSGlob)
+cMes2DDirInfo* cBA_GCP::addMes2DDirInfo(const std::string & aDirNameIn,
+                                    const cStdWeighterResidual & aStdWeighterResidual)
 {
-    mAllMesDirInfo.push_back(new cMesDirInfo(aDirNameIn,aDirNameOut,aStdWeighterResidual, aSGlob));
-    return mAllMesDirInfo.back();
+    mAllMes2DDirInfo.push_back(new cMes2DDirInfo(aDirNameIn,aStdWeighterResidual));
+    return mAllMes2DDirInfo.back();
 }
 
-void cBA_GCP::AddGCP3D(cMesDirInfo * aMesDirInfo, cSetMesGnd3D *aSetMesGnd3D, bool verbose)
+cMes3DDirInfo* cBA_GCP::addMes3DDirInfo(const std::string & aDirNameIn,
+                                        const std::string & aDirNameOut, tREAL8 aSGlob)
+{
+    mAllMes3DDirInfo.push_back(new cMes3DDirInfo(aDirNameIn,aDirNameOut, aSGlob));
+    return mAllMes3DDirInfo.back();
+}
+
+
+void cBA_GCP::AddGCP3D(cMes3DDirInfo * aMesDirInfo, cSetMesGnd3D *aSetMesGnd3D, bool verbose)
 {
     mMesGCP.AddMes3D(*aSetMesGnd3D, aMesDirInfo);
 }
 
 
-void cBA_GCP::AddMes2D(cSetMesPtOf1Im &aSetMesIm, cMesDirInfo * aMesDirInfo, cSensorImage* cSensorImage, eLevelCheck OnNonExistP)
+void cBA_GCP::AddMes2D(cSetMesPtOf1Im &aSetMesIm, cMes2DDirInfo *aMesDirInfo, cSensorImage* cSensorImage, eLevelCheck OnNonExistP)
 {
     mMesGCP.AddMes2D(aSetMesIm, aMesDirInfo, cSensorImage, OnNonExistP);
 }
@@ -51,7 +70,7 @@ void cBA_GCP::AddMes2D(cSetMesPtOf1Im &aSetMesIm, cMesDirInfo * aMesDirInfo, cSe
 /*                cMMVII_BundleAdj::GCP                           */
 /* -------------------------------------------------------------- */
 
-void cMMVII_BundleAdj::AddGCP3D(cMesDirInfo * aMesDirInfo, cSetMesGnd3D *aSetMesGnd3D, bool verbose)
+void cMMVII_BundleAdj::AddGCP3D(cMes3DDirInfo * aMesDirInfo, cSetMesGnd3D *aSetMesGnd3D, bool verbose)
 {
     mGCP.AddGCP3D(aMesDirInfo, aSetMesGnd3D, verbose);
 
@@ -61,7 +80,7 @@ void cMMVII_BundleAdj::AddGCP3D(cMesDirInfo * aMesDirInfo, cSetMesGnd3D *aSetMes
     }
 }
 
-void cMMVII_BundleAdj::AddGCP2D(cMesDirInfo * aMesDirInfo, cSetMesPtOf1Im & aSetMesIm, cSensorImage* aSens, eLevelCheck aOnNonExistGCP, bool verbose)
+void cMMVII_BundleAdj::AddGCP2D(cMes2DDirInfo *aMesDirInfo, cSetMesPtOf1Im & aSetMesIm, cSensorImage* aSens, eLevelCheck aOnNonExistGCP, bool verbose)
 {
     mGCP.AddMes2D(aSetMesIm, aMesDirInfo, aSens, aOnNonExistGCP);
     if (verbose && mVerbose)

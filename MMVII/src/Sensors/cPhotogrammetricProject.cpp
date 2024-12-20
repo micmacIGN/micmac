@@ -804,7 +804,7 @@ std::vector<std::string>  cPhotogrammetricProject::ListFileGCP(const std::string
    return aRes;
 }
 
-void cPhotogrammetricProject::LoadGCP3D(cSetMesGndPt& aSetMes,const std::string & aArgPatFiltr,const std::string & aFiltrNameGCP,
+void cPhotogrammetricProject::LoadGCP3D(cSetMesGndPt& aSetMes,cMes3DDirInfo * aMesDirInfo, const std::string & aArgPatFiltr,const std::string & aFiltrNameGCP,
                                       const std::string & aFiltrAdditionalInfoGCP) const
 {
    std::vector<std::string> aListFileGCP = ListFileGCP(aArgPatFiltr);
@@ -815,7 +815,7 @@ void cPhotogrammetricProject::LoadGCP3D(cSetMesGndPt& aSetMes,const std::string 
        cSetMesGnd3D aMesGCP3D = cSetMesGnd3D::FromFile(aNameFile);
        if ( (!aFiltrNameGCP.empty()) || (!aFiltrAdditionalInfoGCP.empty()) )
           aMesGCP3D = aMesGCP3D.Filter(aFiltrNameGCP, aFiltrAdditionalInfoGCP);
-       aSetMes.AddMes3D(aMesGCP3D);
+       aSetMes.AddMes3D(aMesGCP3D, aMesDirInfo);
    }
 }
 
@@ -825,7 +825,7 @@ void cPhotogrammetricProject::LoadGCP3D(cSetMesGndPt& aSetMes,const std::string 
 
 cSetMesPtOf1Im cPhotogrammetricProject::LoadMeasureImFromFolder(const std::string & aFolder,const std::string & aNameIm) const
 {
-     cAutoChgRestoreDefFolder  aCRDF(aFolder,DPPointsMeasures()); // Chg Folder and restore at destruction
+     cAutoChgRestoreDefFolder  aCRDF(aFolder,DPGndPt2D(),true); // Chg Folder and restore at destruction
      return  LoadMeasureIm(aNameIm);
      
      // auto aRes  = LoadMeasureIm(aNameIm);
@@ -850,23 +850,13 @@ cSetMesPtOf1Im cPhotogrammetricProject::LoadMeasureImFromFolder(const std::strin
 void cPhotogrammetricProject::LoadGCP3DFromFolder
      (const std::string & aFolder,
           cSetMesGndPt& aSetMes,
-          std::pair<cBA_Topo *, std::vector<cBA_GCP*>*> aTopoAddPointsInfo,
+          MMVII::cMes3DDirInfo *aMesDirInfo,
           const std::string & aArgPatFiltr,
           const std::string & aFiltrNameGCP,
           const std::string & aFiltrAdditionalInfoGCP) const
 {
-     cDirsPhProj& aDPPM = const_cast<cPhotogrammetricProject *>(this)->DPGndPt3D();
-     // Save current orientation and fix new
-     std::string aDirInit = aDPPM.DirIn();
-     aDPPM.SetDirIn(aFolder);
-
-     LoadGCP3D(aSetMes,aArgPatFiltr,aFiltrNameGCP,aFiltrAdditionalInfoGCP);
-     // Restore initial current orientation
-     aDPPM.SetDirIn(aDirInit);
-
-     auto [aBATopo, aVectBA_GCP] = aTopoAddPointsInfo;
-     if (aBATopo) // new points have to be added here to benefit from gcp unknown creation
-         aBATopo->AddPointsFromDataToGCP(aSetMes, aVectBA_GCP);
+     cAutoChgRestoreDefFolder  aCRDF(aFolder,DPGndPt3D(), true); // Chg Folder and restore at destruction
+     LoadGCP3D(aSetMes,aMesDirInfo,aArgPatFiltr,aFiltrNameGCP,aFiltrAdditionalInfoGCP);
 }
 
 void cPhotogrammetricProject::CpGCPPattern(const std::string & aDirIn,const std::string & aDirOut,const std::string & aArgPatFiltr) const
@@ -893,7 +883,7 @@ void cPhotogrammetricProject::CpMeasureIm() const
 
 
 
-void cPhotogrammetricProject::LoadIm(cSetMesGndPt& aSetMes,const std::string & aNameIm,cSensorImage * aSIm,bool SVP) const
+void cPhotogrammetricProject::LoadIm(cSetMesGndPt& aSetMes, const std::string & aNameIm, MMVII::cMes2DDirInfo *aMesDirInfo, cSensorImage * aSIm, bool SVP) const
 {
 //    std::string aDir = mDPPointsMeasures.FullDirIn();
    //cSetMesPtOf1Im  aSetIm = cSetMesPtOf1Im::FromFile(aDir+cSetMesPtOf1Im::StdNameFileOfIm(aNameIm));
@@ -904,30 +894,25 @@ void cPhotogrammetricProject::LoadIm(cSetMesGndPt& aSetMes,const std::string & a
    }
       //  StdOut() << "LoadImLoadIm " << aNameIm << "\n";
    cSetMesPtOf1Im  aSetIm = LoadMeasureIm(aNameIm);
-   aSetMes.AddMes2D(aSetIm,aSIm);
+   aSetMes.AddMes2D(aSetIm,aMesDirInfo,aSIm);
 }
 
 void cPhotogrammetricProject::LoadImFromFolder
      (
            const std::string & aFolder,
            cSetMesGndPt& aSetMes,
+           cMes2DDirInfo * aMesDirInfo,
            const std::string & aNameIm,
            cSensorImage * aSIm,bool SVP
      ) const
 {
-     cDirsPhProj& aDPPM = const_cast<cPhotogrammetricProject *>(this)->DPPointsMeasures();
-     // Save current orientation and fix new
-     std::string aDirInit = aDPPM.DirIn();
-     aDPPM.SetDirIn(aFolder);
-
-     LoadIm(aSetMes,aNameIm,aSIm,SVP);
-     // Restore initial current orientation
-     aDPPM.SetDirIn(aDirInit);
+    cAutoChgRestoreDefFolder  aCRDF(aFolder,DPGndPt2D(), true); // Chg Folder and restore at destruction
+    LoadIm(aSetMes,aNameIm,aMesDirInfo,aSIm,SVP);
 }
 
-void cPhotogrammetricProject::LoadIm(cSetMesGndPt& aSetMes,cSensorImage & aSIm) const
+void cPhotogrammetricProject::LoadIm(cSetMesGndPt& aSetMes,MMVII::cMes2DDirInfo *aMesDirInfo, cSensorImage & aSIm) const
 {
-     LoadIm(aSetMes,aSIm.NameImage(),&aSIm);
+     LoadIm(aSetMes,aSIm.NameImage(),aMesDirInfo,&aSIm);
 }
 
 cSet2D3D  cPhotogrammetricProject::LoadSet32(const std::string & aNameIm) const
@@ -964,7 +949,7 @@ void cPhotogrammetricProject::SaveAndFilterAttrEll(const cSetMesPtOf1Im &  aSetM
 
 std::string  cPhotogrammetricProject::NameFileLines(const std::string & aNameIm,bool isIn) const
 {
-    return DPPointsMeasures().FullDirInOut(isIn) + "SegsAntiParal-"+ aNameIm + "."+ GlobTaggedNameDefSerial();
+    return DPGndPt2D().FullDirInOut(isIn) + "SegsAntiParal-"+ aNameIm + "."+ GlobTaggedNameDefSerial();
 }
 
 bool   cPhotogrammetricProject::HasFileLines(const std::string & aNameIm)  const
@@ -974,7 +959,7 @@ bool   cPhotogrammetricProject::HasFileLines(const std::string & aNameIm)  const
 
 bool   cPhotogrammetricProject::HasFileLinesFolder(const std::string & aFolder,const std::string & aNameIm)  const
 {
-    cAutoChgRestoreDefFolder  aCRDF(aFolder,DPPointsMeasures()); // Chg Folder and restore at destruction
+    cAutoChgRestoreDefFolder  aCRDF(aFolder,DPGndPt2D(),true); // Chg Folder and restore at destruction
     return HasFileLines(aNameIm);
 }
 
@@ -995,7 +980,7 @@ cLinesAntiParal1Im  cPhotogrammetricProject::ReadLines(const std::string & aName
 
 cLinesAntiParal1Im  cPhotogrammetricProject::ReadLinesFolder(const std::string & aFolder,const std::string & aNameIm) const
 {
-    cAutoChgRestoreDefFolder  aCRDF(aFolder,DPPointsMeasures()); // Chg Folder and restore at destruction
+    cAutoChgRestoreDefFolder  aCRDF(aFolder,DPGndPt2D(),true); // Chg Folder and restore at destruction
     return ReadLines(aNameIm);
 }
 

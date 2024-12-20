@@ -115,7 +115,6 @@ cMMVII_BundleAdj::~cMMVII_BundleAdj()
     delete mTopo;
     delete mBlClino;
     // DeleteAllAndClear(mGCP_UK);
-    DeleteAllAndClear(mGCP);
 }
 
 void cMMVII_BundleAdj::ShowUKNames() 
@@ -544,25 +543,23 @@ void cMMVII_BundleAdj::CompileSharedIntrinsicParams(bool ForAvg)
 bool cMMVII_BundleAdj::CheckGCPConstraints() const
 {
     std::string aNames;
-    for (const auto & aBA_GCP_Ptr : mGCP)
-    {
-        for (const auto & aMesGCP : aBA_GCP_Ptr->mMesGCP->MesGCP())
-        {
-            if (aMesGCP.isFree())
-            {
 
-                int aNbImObs = aBA_GCP_Ptr->mMesGCP->GetNbImMesForPoint(aMesGCP.mNamePt);
-                int aNbTopoElementObs = 0;
-                if (mTopo)
+    for (const auto & aMesGCP : mGCP.getMesGCP().MesGCP())
+    {
+        if (aMesGCP.isFree())
+        {
+
+            int aNbImObs =  mGCP.getMesGCP().GetNbImMesForPoint(aMesGCP.mNamePt);
+            int aNbTopoElementObs = 0;
+            if (mTopo)
+            {
+                for (auto & obs: mTopo->GetObsPoint(aMesGCP.mNamePt))
                 {
-                    for (auto & obs: mTopo->GetObsPoint(aMesGCP.mNamePt))
-                    {
-                        aNbTopoElementObs += obs->getMeasures().size();
-                    }
+                    aNbTopoElementObs += obs->getMeasures().size();
                 }
-                if (aNbImObs*2+aNbTopoElementObs<3)
-                    aNames += aMesGCP.mNamePt + " ";
             }
+            if (aNbImObs*2+aNbTopoElementObs<3)
+                aNames += aMesGCP.mNamePt + " ";
         }
     }
     if (aNames.size())

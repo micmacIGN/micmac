@@ -83,7 +83,8 @@ cCollecSpecArg2007 & cAppli_ImportOrgi::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
 int cAppli_ImportOrgi::Exe()
 {
-    mPhProj.DPPointsMeasures().SetDirOut(mNameOut);
+    mPhProj.DPGndPt2D().SetDirOut(mNameOut);
+    mPhProj.DPGndPt3D().SetDirOut(mNameOut);
     mPhProj.DPMulTieP().SetDirOut(mNameOut);
 
     mPhProj.FinishInit();
@@ -189,7 +190,7 @@ cSpecMMVII_Appli  TheSpec_ImportORGI
       "Import data coming from \"ORGI\" format",
       {eApF::GCP,eApF::TieP},
       {eApDT::FileSys},
-      {eApDT::TieP,eApDT::GCP,},
+      {eApDT::TieP,eApDT::GndPt2D,eApDT::GndPt3D},
       __FILE__
 );
 

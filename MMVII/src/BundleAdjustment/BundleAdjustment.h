@@ -279,17 +279,25 @@ class cBA_Clino : public cMemCheck
 
 
 
-// class to record data specific to a measurement directory : In/out nam, weighter
-// TODO JMMMM: make different versions for 2d (cStdWeighterResidual) and 3d (mSGlob)?
-class cMesDirInfo
+// class to record data specific to a measurement directory : In/out name, w factor
+class cMes3DDirInfo
 {
 public:
-    cMesDirInfo(const std::string &aDirNameIn, const std::string &aDirNameOut, const cStdWeighterResidual &aWeighter, tREAL8 aSGlob);
+    cMes3DDirInfo(const std::string &aDirNameIn, const std::string &aDirNameOut, tREAL8 aSGlob);
     std::string mDirNameIn;
     std::string mDirNameOut;
-    cStdWeighterResidual mWeighter;
-    tREAL8 mSGlob; // just to record 1st argument of weight (for 3d coords, to know if shurred or fixed)
+    tREAL8 mSGlob; // factor, shurred or fixed
 };
+
+// class to record data specific to a measurement directory : In name, weighter
+class cMes2DDirInfo
+{
+public:
+    cMes2DDirInfo(const std::string &aDirNameIn, const cStdWeighterResidual &aWeighter);
+    std::string mDirNameIn;
+    cStdWeighterResidual mWeighter;
+};
+
 
 
 
@@ -303,16 +311,18 @@ class cBA_GCP
           cBA_GCP(cBA_GCP const&) = delete;
           cBA_GCP& operator=(cBA_GCP const&) = delete;
 
-          cMesDirInfo* addMesDirInfo(const std::string & aDirNameIn, const std::string & aDirNameOut,
-                                     const cStdWeighterResidual & aStdWeighterResidual, tREAL8 aSGlob);
-          void AddGCP3D(cMesDirInfo * aMesDirInfo, cSetMesGnd3D *aSetMesGnd3D, bool verbose);
-          void AddMes2D(cSetMesPtOf1Im &, cMesDirInfo * aMesDirInfo, cSensorImage*, eLevelCheck OnNonExistP=eLevelCheck::Warning);
+          cMes2DDirInfo* addMes2DDirInfo(const std::string & aDirNameIn, const cStdWeighterResidual & aStdWeighterResidual);
+          cMes3DDirInfo* addMes3DDirInfo(const std::string & aDirNameIn, const std::string & aDirNameOut, tREAL8 aSGlob);
+          void AddGCP3D(cMes3DDirInfo * aMesDirInfo, cSetMesGnd3D *aSetMesGnd3D, bool verbose);
+          void AddMes2D(cSetMesPtOf1Im &, cMes2DDirInfo * aMesDirInfo, cSensorImage*, eLevelCheck OnNonExistP=eLevelCheck::Warning);
           const cSetMesGndPt & getMesGCP() const {return mMesGCP;}
+          cSetMesGndPt & getMesGCP() {return mMesGCP;}
     protected:
           cSetMesGndPt             mMesGCP; //< initial
           cSetMesGndPt             mNewGCP; //< set of gcp after adjust
           std::vector<cPt3dr_UK*>  mGCP_UK; //< as many elements as mMesGCP, nullptr for shurred points
-          std::vector<cMesDirInfo*> mAllMesDirInfo;
+          std::vector<cMes2DDirInfo*> mAllMes2DDirInfo;
+          std::vector<cMes3DDirInfo*> mAllMes3DDirInfo;
 
 };
 
@@ -354,8 +364,8 @@ class cMMVII_BundleAdj
 
           bool AddTopo(const std::string & aTopoFilePath); // TOPO
           ///  =======  Add GCP, can be measure or measure & object
-          void AddGCP3D(cMesDirInfo * aMesDirInfo, cSetMesGnd3D *aSetMesGnd3D, bool verbose=true);
-          void AddGCP2D(cMesDirInfo * aMesDirInfo, cSetMesPtOf1Im & aSetMesIm, cSensorImage* aSens, eLevelCheck aOnNonExistGCP=eLevelCheck::Warning, bool verbose=true);
+          void AddGCP3D(cMes3DDirInfo * aMesDirInfo, cSetMesGnd3D *aSetMesGnd3D, bool verbose=true);
+          void AddGCP2D(cMes2DDirInfo * aMesDirInfo, cSetMesPtOf1Im & aSetMesIm, cSensorImage* aSens, eLevelCheck aOnNonExistGCP=eLevelCheck::Warning, bool verbose=true);
           cBA_GCP& getGCP() { return mGCP;}
 
 	  ///  ============  Add multiple tie point ============

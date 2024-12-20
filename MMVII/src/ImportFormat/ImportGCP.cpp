@@ -90,7 +90,7 @@ cCollecSpecArg2007 & cAppli_ImportGCP::ArgObl(cCollecSpecArg2007 & anArgObl)
     return anArgObl
 	      <<  Arg2007(mNameFile ,"Name of Input File",{eTA2007::FileAny})
               <<  Arg2007(mFormat,cNewReadFilesStruct::MsgFormat(mSpecFormatTot))
-              << mPhProj.DPPointsMeasures().ArgDirOutMand()
+              << mPhProj.DPGndPt3D().ArgDirOutMand()
            ;
 }
 
@@ -222,8 +222,8 @@ cSpecMMVII_Appli  TheSpec_ImportGCP
       Alloc_ImportGCP,
       "Import/Convert basic GCP file in MMVII format",
       {eApF::GCP},
-      {eApDT::GCP},
-      {eApDT::GCP},
+      {eApDT::GndPt3D},
+      {eApDT::GndPt3D},
       __FILE__
 );
 

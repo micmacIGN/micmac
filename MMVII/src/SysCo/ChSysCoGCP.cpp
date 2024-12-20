@@ -50,8 +50,8 @@ cCollecSpecArg2007 & cAppli_ChSysCoGCP::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
     return anArgObl
 	      <<  Arg2007(mNameSysOut ,"Output SysCo definition")
-              <<  mPhProj.DPPointsMeasures().ArgDirInMand()
-              <<  mPhProj.DPPointsMeasures().ArgDirOutMand()
+              <<  mPhProj.DPGndPt3D().ArgDirInMand()
+              <<  mPhProj.DPGndPt3D().ArgDirOutMand()
            ;
 }
 

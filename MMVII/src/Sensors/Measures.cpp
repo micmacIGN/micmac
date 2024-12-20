@@ -147,7 +147,7 @@ cMultipleImPt::cMultipleImPt(int aNumPt) :
 {
 }
 
-void cMultipleImPt::Add(const cMesIm1Pt & aMes,int aNumIm,cMesDirInfo *aMesDirInfo)
+void cMultipleImPt::Add(const cMesIm1Pt & aMes, int aNumIm, MMVII::cMes2DDirInfo *aMesDirInfo)
 {
     mVMeasures.push_back(aMes.mPt);
     mVImages.push_back(aNumIm);
@@ -187,7 +187,7 @@ void cSetMesGndPt::Add1GCP(const cMes1Gnd3D & aMes)
      m2MapPtInt.Add(aMes.mNamePt,false,"GCP-3D : " + aMes.mNamePt);
 }
 
-void cSetMesGndPt::AddMes3D(const cSetMesGnd3D &  aSet, MMVII::cMesDirInfo *aMesDirInfo)
+void cSetMesGndPt::AddMes3D(const cSetMesGnd3D &  aSet, MMVII::cMes3DDirInfo *aMesDirInfo)
 {
     for (const auto & aMes  : aSet.Measures())
     {
@@ -247,7 +247,7 @@ cPt3dr  cSetMesGndPt::BundleInter(const cMultipleImPt & aMPT) const
 
 
 
-void cSetMesGndPt::AddMes2D(const cSetMesPtOf1Im & aSetMesIm, cMesDirInfo * aMesDirInfo, cSensorImage* aSens, eLevelCheck aOnNonExistGCP)
+void cSetMesGndPt::AddMes2D(const cSetMesPtOf1Im & aSetMesIm, MMVII::cMes2DDirInfo *aMesDirInfo, cSensorImage* aSens, eLevelCheck aOnNonExistGCP)
 {
     //  Are we beginning  the  image measurement phase
     {
@@ -446,7 +446,7 @@ void cSetMesPtOf1Im::SetNameIm(const std::string & aNameIm)
     mNameIm = aNameIm;
 }
 
-void cSetMesPtOf1Im::AddMeasure(const cMesIm1Pt & aMeasure, cMesDirInfo *aMesDirInfo)
+void cSetMesPtOf1Im::AddMeasure(const cMesIm1Pt & aMeasure, MMVII::cMes2DDirInfo *aMesDirInfo)
 {
      mMeasures.push_back(aMeasure);
      if (aMesDirInfo)

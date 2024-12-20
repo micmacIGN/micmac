@@ -89,7 +89,7 @@ cCollecSpecArg2007 & cAppli_ReportBlock::ArgObl(cCollecSpecArg2007 & anArgObl)
       return anArgObl
              <<  Arg2007(mSpecImIn,"Pattern/file for images", {{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}}  )
              <<  mPhProj.DPOrient().ArgDirInMand()
-             <<  mPhProj.DPPointsMeasures().ArgDirInMand()
+             <<  mPhProj.DPGndPt2D().ArgDirInMand()
              <<  mPhProj.DPRigBloc().ArgDirInMand()
            ;
 }
@@ -236,7 +236,7 @@ int cAppli_ReportBlock::Exe()
     mPhProj.FinishInit();  // the final construction of  photogrammetric project manager can only be done now
 
     std::string aDirRep =          mPhProj.DPOrient().DirIn() 
-                           + "-" + mPhProj.DPPointsMeasures().DirIn() 
+                           + "-" + mPhProj.DPGndPt2D().DirIn()
                            + "-" + mPhProj.DPRigBloc().DirIn() ;
     SetReportSubDir(aDirRep);
 

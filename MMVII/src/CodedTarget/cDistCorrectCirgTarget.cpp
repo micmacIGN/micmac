@@ -86,7 +86,7 @@ cCollecSpecArg2007 & cAppliCorrecDistCircTarget::ArgObl(cCollecSpecArg2007 & anA
    return
             anArgObl
          << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
-         << mPhProj.DPPointsMeasures().ArgDirInMand()
+         << mPhProj.DPGndPt2D().ArgDirInMand()
 	 << mPhProj.DPOrient().ArgDirInMand()
 
    ;
@@ -97,7 +97,7 @@ cCollecSpecArg2007 & cAppliCorrecDistCircTarget::ArgOpt(cCollecSpecArg2007 & anA
    return 
                   anArgOpt
              << AOpt2007(mRayTarget,"RayTarget","Ray for target (else estimate automatically)")
-             << mPhProj.DPPointsMeasures().ArgDirOutOpt()
+             << mPhProj.DPGndPt2D().ArgDirOutOpt()
 		/*
              << AOpt2007(mB,"VisuEllipse","Make a visualisation extracted ellispe & target",{eTA2007::HDV})
              << mPhProj.DPMask().ArgDirInOpt("TestMask","Mask for selecting point used in detailed mesg/output")
@@ -203,14 +203,14 @@ int  cAppliCorrecDistCircTarget::Exe()
 {
    mPhProj.FinishInit();
 
-   mPostfixReport  = "_Ori-"+  mPhProj.DPOrient().DirIn() +  "_Mes-"+  mPhProj.DPPointsMeasures().DirIn() ;
+   mPostfixReport  = "_Ori-"+  mPhProj.DPOrient().DirIn() +  "_Mes-"+  mPhProj.DPGndPt2D().DirIn() ;
    mReportDetail   = "Detail-" +mPostfixReport;
    mReportIm       = "ByImage-" +mPostfixReport;
    InitReportCSV(mReportDetail,"csv",true);
    InitReportCSV(mReportIm,"csv",true);
 
 
-   mSaveMeasure = mPhProj.DPPointsMeasures().DirOutIsInit();
+   mSaveMeasure = mPhProj.DPGndPt2D().DirOutIsInit();
 
    if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
    {
@@ -224,7 +224,7 @@ int  cAppliCorrecDistCircTarget::Exe()
    mPhProj.ReadSensor(mNameIm,mSensor,mCamPC,true,false);
 
    mPhProj.LoadGCP3D(mMesImGCP);
-   mPhProj.LoadIm(mMesImGCP,*mSensor);
+   mPhProj.LoadIm(mMesImGCP,nullptr,*mSensor);
 
    // mCamPC = mPhProj.AllocCamPC(FileOfPath(mSpecImIn),true);
 

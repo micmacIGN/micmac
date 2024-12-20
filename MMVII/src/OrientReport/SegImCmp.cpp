@@ -50,8 +50,8 @@ cCollecSpecArg2007 & cAppli_SegImReport::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
       return     anArgObl
               << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
-              << mPhProj.DPPointsMeasures().ArgDirInMand()
-	      << mPhProj.DPPointsMeasures().ArgDirInMand("Folder for refernce data",&mFolder2)
+              << mPhProj.DPGndPt2D().ArgDirInMand()
+              << mPhProj.DPGndPt2D().ArgDirInMand("Folder for refernce data",&mFolder2)
               << mPhProj.DPOrient().ArgDirInMand()
       ;
 }
@@ -118,7 +118,7 @@ int cAppli_SegImReport::Exe()
    mPhProj.FinishInit();
    mSetNames = VectMainSet(0);
 
-   std::string aN1 =  mPhProj.DPPointsMeasures().DirIn() ;
+   std::string aN1 =  mPhProj.DPGndPt2D().DirIn() ;
    std::string aN2 =  mFolder2;
 
    mPrefixCSV = "CmpLines_"+  aN1  + "_" + aN2 ;

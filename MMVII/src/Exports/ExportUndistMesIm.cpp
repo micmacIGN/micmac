@@ -33,7 +33,8 @@ cCollecSpecArg2007 & cAppli_ExportUndistMesIm::ArgObl(cCollecSpecArg2007 & anArg
       return anArgObl
              << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
              << mPhProj.DPOrient().ArgDirInMand()
-             << mPhProj.DPPointsMeasures().ArgDirInMand()
+             << mPhProj.DPGndPt3D().ArgDirInMand()
+             << mPhProj.DPGndPt2D().ArgDirInMand()
       ;
 }
 
@@ -41,7 +42,7 @@ cCollecSpecArg2007 & cAppli_ExportUndistMesIm::ArgObl(cCollecSpecArg2007 & anArg
 cCollecSpecArg2007 & cAppli_ExportUndistMesIm::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
     return anArgOpt
-               <<  mPhProj.DPPointsMeasures().ArgDirOutOptWithDef("Undist")
+               <<  mPhProj.DPGndPt2D().ArgDirOutOptWithDef("Undist")
                << AOpt2007(mShow,"ShowD","Show details",{eTA2007::HDV})
             ;
 }

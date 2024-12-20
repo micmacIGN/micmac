@@ -121,7 +121,7 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
        return ;
 
     cSetMesGndPt             aSetMes;
-    mPhProj.LoadGCP3D(aSetMes,"",mFilterName,mFilterAdd);
+    mPhProj.LoadGCP3D(aSetMes,nullptr,"",mFilterName,mFilterAdd);
     mPhProj.LoadIm(aSetMes,aNameIm);
     const cSetMesPtOf1Im  &  aSetMesIm = aSetMes.MesImInitOfName(aNameIm);
 
@@ -218,11 +218,11 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
 void cAppli_CGPReport::ReportsByGCP()
 {
    cSetMesGndPt             aSetMes;
-   mPhProj.LoadGCP3D(aSetMes,"",mFilterName,mFilterAdd);
+   mPhProj.LoadGCP3D(aSetMes,nullptr,"",mFilterName,mFilterAdd);
 
    for (const auto & aNameIm : VectMainSet(0))
    {
-       mPhProj.LoadIm(aSetMes,aNameIm,mPhProj.ReadSensor(aNameIm,true,false),true);
+       mPhProj.LoadIm(aSetMes,aNameIm,nullptr,mPhProj.ReadSensor(aNameIm,true,false),true);
    }
 
    const std::vector<cSensorImage*> &  aVSens =  aSetMes.VSens() ;
@@ -269,14 +269,14 @@ void cAppli_CGPReport::ReportsByCam()
 {
    std::map<cPerspCamIntrCalib*,std::vector<cSensorCamPC*>>  aMapCam;
    cSetMesGndPt             aSetMes;
-   mPhProj.LoadGCP3D(aSetMes,"",mFilterName,mFilterAdd);
+   mPhProj.LoadGCP3D(aSetMes,nullptr,"",mFilterName,mFilterAdd);
 
    for (const auto & aNameIm : VectMainSet(0))
    {
        cSensorCamPC *  aCam = mPhProj.ReadCamPC(aNameIm,true,true);
        if (aCam)
        {
-            mPhProj.LoadIm(aSetMes,aNameIm,aCam,true);
+            mPhProj.LoadIm(aSetMes,aNameIm,nullptr,aCam,true);
             aMapCam[aCam->InternalCalib()].push_back(aCam);
        }
    }

@@ -89,7 +89,7 @@ cCollecSpecArg2007 & cAppli_ImportTiePMul::ArgObl(cCollecSpecArg2007 & anArgObl)
               <<  mPhProj.DPMulTieP().ArgDirOutMand();
    else
       return      aRes
-              <<  mPhProj.DPPointsMeasures().ArgDirOutMand();
+              <<  mPhProj.DPGndPt2D().ArgDirOutMand();
 }
 
 cCollecSpecArg2007 & cAppli_ImportTiePMul::ArgOpt(cCollecSpecArg2007 & anArgObl) 

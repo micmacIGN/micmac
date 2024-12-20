@@ -306,7 +306,7 @@ cCollecSpecArg2007 & cAppliExtractCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgO
                     << AOpt2007(mLineWidthDebug, "Line", "Size of lines in debug plot", {eTA2007::HDV})
                     << AOpt2007(mLetter, "Letter", "Size of letters in debug plot", {eTA2007::HDV})
                     << AOpt2007(mGroundTruthFile, "GT", "Ground truth file (if any)", {eTA2007::HDV})
-                    << mPhProj.DPPointsMeasures().ArgDirOutOptWithDef("Std")
+                    << mPhProj.DPGndPt2D().ArgDirOutOptWithDef("Std")
 	  );
    ;
 }

@@ -35,10 +35,11 @@ cAppli_ConvertV1V2_GCPIM::cAppli_ConvertV1V2_GCPIM(const std::vector<std::string
 cCollecSpecArg2007 & cAppli_ConvertV1V2_GCPIM::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
     return anArgObl
-	      <<  Arg2007(mNameIm  ,"Name of V1-image-measure file (\""+MMVII_NONE +"\" if none !)",{eTA2007::FileTagged})
-	      <<  Arg2007(mNameGCP ,"Name of V1-GCP file (\""+MMVII_NONE +"\")if none !)",{eTA2007::FileTagged})
-              <<  mPhProj.DPPointsMeasures().ArgDirOutMand()
-           ;
+          <<  Arg2007(mNameIm  ,"Name of V1-image-measure file (\""+MMVII_NONE +"\" if none !)",{eTA2007::FileTagged})
+          <<  Arg2007(mNameGCP ,"Name of V1-GCP file (\""+MMVII_NONE +"\")if none !)",{eTA2007::FileTagged})
+          <<  mPhProj.DPGndPt3D().ArgDirOutMand()
+          <<  mPhProj.DPGndPt2D().ArgDirOutMand()
+          ;
 }
 
 cCollecSpecArg2007 & cAppli_ConvertV1V2_GCPIM::ArgOpt(cCollecSpecArg2007 & anArgOpt) 
@@ -83,7 +84,7 @@ int cAppli_ConvertV1V2_GCPIM::Exe()
           {
                std::string aNameIm =  aMesIm.NameIm();
                cSensorCamPC * aCamPC =  mPhProj.ReadCamPC(aNameIm,true);
-               aMesImGCP.AddMes2D(aMesIm,aCamPC);
+               aMesImGCP.AddMes2D(aMesIm,nullptr,aCamPC);
                // StdOut() << " Nom Im " << aNameIm << " " << aCamPC->InternalCalib()->F() << std::endl;
           }
 
@@ -116,8 +117,8 @@ cSpecMMVII_Appli  TheSpec_ConvertV1V2_GCPIM
       Alloc_ConvertV1V2_GCPIM,
       "Convert image & gound measures from v1 to v2 format",
       {eApF::GCP, eApF::TieP},
-      {eApDT::GCP, eApDT::TieP},
-      {eApDT::GCP, eApDT::TieP},
+      {eApDT::GndPt3D, eApDT::GndPt2D, eApDT::TieP},
+      {eApDT::GndPt3D, eApDT::GndPt2D, eApDT::TieP},
       __FILE__
 );
 

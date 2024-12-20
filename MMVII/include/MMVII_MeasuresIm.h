@@ -28,7 +28,8 @@ class cSetMesGndPt;
 
 class cComputeMergeMulTieP;
 
-class cMesDirInfo;
+class cMes2DDirInfo;
+class cMes3DDirInfo;
 
 
 /** class for representing  a 3D point paired with it 2d image projection */
@@ -88,7 +89,7 @@ class cMesIm1Pt
         cPt2dr            mPt;
         std::string       mNamePt;
         cArray<tREAL4,3>  mSigma2;  //< xx xy yy
-        cMesDirInfo* mMesDirInfo; //< to recover dir in/out name and weighter
+        cMes2DDirInfo* mMesDirInfo; //< to recover dir in name and weighter
 };
 void AddData(const  cAuxAr2007 & anAux,cMesIm1Pt & aGCPMI);
 
@@ -99,7 +100,7 @@ class cSetMesPtOf1Im : public cMemCheck
           cSetMesPtOf1Im(const std::string & aNameIm);
           cSetMesPtOf1Im();
 	  static cSetMesPtOf1Im  FromFile(const std::string & aNameFile);
-          void AddMeasure(const cMesIm1Pt &, cMesDirInfo *aMesDirInfo=nullptr); //aMesDirInfo==nullptr means keep original MesDirInfo
+          void AddMeasure(const cMesIm1Pt &, cMes2DDirInfo *aMesDirInfo=nullptr); //aMesDirInfo==nullptr means keep original MesDirInfo
           /// Add a measure only if name is new, if not test if dist < tol if not ->error
           void AddMeasureIfNew(const cMesIm1Pt &,tREAL8 aTol=-1);
           void AddData(const  cAuxAr2007 & anAux);
@@ -152,7 +153,7 @@ class cMes1Gnd3D
         static constexpr int IndYY = 3;
         static constexpr int IndZZ = 5;
         std::string mAdditionalInfo;
-        cMesDirInfo* mMesDirInfo; //< to recover dir in/out name and weighter
+        cMes3DDirInfo* mMesDirInfo; //< to recover dir in/out name and w factor
 
         bool isInit() const {return mPt.IsValid();}
 
@@ -210,19 +211,19 @@ class cMultipleImPt
     cMultipleImPt(int aNum3DP);   ///< Cstr, num of GCP of -1 for tie point
 
     /// Add One image measurement, 4 now WithSigma must be false
-    void Add(const cMesIm1Pt & ,int aNumIm, cMesDirInfo *aMesDirInfo);
+    void Add(const cMesIm1Pt & ,int aNumIm, cMes2DDirInfo *aMesDirInfo);
 
     ///  Return if any the point of one image
     const cPt2dr * PtOfIm(int) const;
 
     const std::vector<cPt2dr> & VMeasures() const;  ///< Accessor
     const std::vector<int>    & VImages()   const;  ///< Accessor
-    const std::vector<cMesDirInfo*> & VMesDirInfo() const;  ///< Accessor
+    const std::vector<cMes2DDirInfo*> & VMesDirInfo() const;  ///< Accessor
     int NumPt() const;
 private :
     int                             mNumPt;
     std::vector<cPt2dr>             mVMeasures;
-    std::vector<cMesDirInfo*>       mVMesDirInfo;
+    std::vector<cMes2DDirInfo*>     mVMesDirInfo;
     std::vector<int>                mVImages;
 };
 
@@ -239,11 +240,11 @@ class cSetMesGndPt : public cMemCheck
 	    // cSetMesImGCP(const cComputeMergeMulTieP  &);
 
             ///  Add one set of 3D measures (often called only once), all calls must occur before AddMes2D
-            void AddMes3D(const cSetMesGnd3D &, cMesDirInfo * aMesDirInfo=nullptr);
+            void AddMes3D(const cSetMesGnd3D &, cMes3DDirInfo * aMesDirInfo=nullptr);
 	    /// For a single GCP (called by AddMes3D)
 	    void Add1GCP(const cMes1Gnd3D &);
 	    ///  Add mesure on 1 images, close the possibility for further call to AddMes3D
-            void AddMes2D(const cSetMesPtOf1Im &, cMesDirInfo * aMesDirInfo=nullptr, cSensorImage* =nullptr, eLevelCheck OnNonExistP=eLevelCheck::Warning);
+            void AddMes2D(const cSetMesPtOf1Im &, cMes2DDirInfo * aMesDirInfo=nullptr, cSensorImage* =nullptr, eLevelCheck OnNonExistP=eLevelCheck::Warning);
 
 	    /// return a set of mesure as 2d/3d corresp : if SVP accept image absent and returns empty
             void ExtractMes1Im(cSet2D3D&,const std::string &aNameIm,bool SVP=false) const;

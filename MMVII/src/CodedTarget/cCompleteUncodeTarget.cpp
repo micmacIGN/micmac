@@ -99,8 +99,8 @@ cCollecSpecArg2007 & cAppliCompletUncodedTarget::ArgOpt(cCollecSpecArg2007 & anA
 {
    return 
                   anArgOpt
-	     <<   mPhProj.DPPointsMeasures().ArgDirInputOptWithDef("Std")
-	     <<   mPhProj.DPPointsMeasures().ArgDirOutOptWithDef("Completed")
+	     <<   mPhProj.DPGndPt2D().ArgDirInputOptWithDef("Std")
+	     <<   mPhProj.DPGndPt2D().ArgDirOutOptWithDef("Completed")
              <<   AOpt2007(mThreshRay,"ThRay","Threshold for ray [RatioMax,RMin,RMax]",{{eTA2007::ISizeV,"[3,3]"}})
              <<   AOpt2007(mPatternNormal,"PatNorm","If estimate normal, pattern for point involved")
           ;
@@ -205,7 +205,7 @@ int  cAppliCompletUncodedTarget::Exe()
 
    //   load CGP
    mPhProj.LoadGCP3D(mMesImGCP);
-   mPhProj.LoadIm(mMesImGCP,*mSensor);
+   mPhProj.LoadIm(mMesImGCP,nullptr,*mSensor);
    mImageM = mPhProj.LoadMeasureIm(mNameIm);
 
 
