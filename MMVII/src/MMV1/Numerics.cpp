@@ -54,16 +54,6 @@ INST_V1ROOTS(tREAL8)
 INST_V1ROOTS(tREAL16)
 
 
-/*
-template <class Type> void
-     RealRootsOfRealPolynome
-     (
-         ElSTDNS vector<Type> &  Sols,
-         const ElPolynome<Type>  &aPol,
-         Type                    tol,
-         INT                     ItMax
-     )
-     */
 
 
 };
