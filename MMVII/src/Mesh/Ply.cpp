@@ -2074,7 +2074,7 @@ template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & a
       }
   }
 
-  // Read faces 
+  // Read faces
   {
       std::vector<std::vector<size_t>> aVFace =   aPlyF.getFaceIndices<size_t>();
       for (const auto & aFace : aVFace)

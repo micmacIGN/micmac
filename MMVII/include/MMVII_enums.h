@@ -148,6 +148,7 @@ enum class eApDT
               SysCo,   ///< Coordinate system
               Radiom,   ///< Orientations files
               Ply,    ///< Ply file
+              Laz,    /// < Laz/las file
               Topo,    ///< Topo files
               None,     ///< Nothing
               ToDef,     ///< still unclassed

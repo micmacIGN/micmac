@@ -215,6 +215,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_OriCheckGCPDist);
         TheVecAll.push_back(&TheSpec_OriBundlAdj);
         TheVecAll.push_back(&TheSpec_TopoAdj);
+        TheVecAll.push_back(&TheSpecSample3DpointsFromCloudIntoImage);
 
         TheVecAll.push_back(&TheSpec_OriRel2Im);
         TheVecAll.push_back(&TheSpecMeshCheck);
@@ -261,6 +262,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecAppliExtractLine);
         TheVecAll.push_back(&TheSpec_CERN_ImportClino);
         TheVecAll.push_back(&TheSpec_MMV2_MesIm_2_MMV1);
+
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }

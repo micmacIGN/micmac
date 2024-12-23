@@ -59,7 +59,11 @@ if (PROJ_FOUND AND CMAKE_HOST_WIN32)
   file(COPY ${PROJ_PROJ_DB_FILE} DESTINATION ${MMVII_SOURCE_DIR}/share/proj)
 endif()
 
-    ############################# libtorch  ###############
+##### PDAL
+
+find_package(PDAL REQUIRED)
+
+    ############################ libtorch  ###############
     set(TORCH_INSTALL_PREFIX "${MMVII_SOURCE_DIR}/libtorch")
 #find_package(Torch REQUIRED)
 set(TORCH_INCLUDE_DIRS
@@ -139,7 +143,11 @@ set(mmv2_src_dir "${MMVII_SOURCE_DIR}/src")
 set(mmv2_gencode_dir "${mmv2_src_dir}/GeneratedCodes")
 set(mmv2_gencode_main_src "${mmv2_gencode_dir}/cName2CalcRegisterAll.cpp")
 set(EIGEN3_INCLUDE_PATH  "${mmv2_external_include_dir}/eigen-3.4.0")
+#set(PDAL281_INCLUDE_PATH  "${mmv2_external_include_dir}/pdal-2.8.1")
 
+#if(UNIX)
+#    file(GLOB PDAL_LIBRARIES "${PDAL281_INCLUDE_PATH}/build/lib/libpdalcpp.so")
+#endif()
 
 # Here we initialize the generated code with en empty template if working dir is clean (first checkout or after make distclean)
 if (NOT EXISTS "${mmv2_gencode_main_src}")
@@ -155,8 +163,8 @@ file(GLOB mmv2_headers "${mmv2_include_dir}/*.h" "${mmv2_include_dir}/*/*.h" "${
 ##        libP2007 buid (MMVII library)
 #######################################################
 add_library(P2007 "${mmv2_libsrcs}" "${mmv2_headers}")
-target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH};${PROJ_INCLUDE_DIRS};${TORCH_INCLUDE_DIRS}")
-target_link_libraries(P2007 PRIVATE MMVII_compiler_flags Threads::Threads ${PROJ_LIBRARIES} ${TORCH_LIBRARIES})
+target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH};${PDAL_INCLUDE_DIRS};${PROJ_INCLUDE_DIRS};${TORCH_INCLUDE_DIRS}")
+target_link_libraries(P2007 PRIVATE MMVII_compiler_flags Threads::Threads ${PROJ_LIBRARIES} ${TORCH_LIBRARIES} ${PDAL_LIBRARIES})
 
 # Force parallel compilation with MSVC
 if(MSVC)
@@ -176,7 +184,7 @@ else()
 endif()
 
 target_include_directories(MMVII PRIVATE "${mmv2_include_dir};${TORCH_INCLUDE_DIRS}")
-target_link_libraries(MMVII PRIVATE MMVII_compiler_flags Threads::Threads P2007 ${mmv1_libs} ${mmv2_extlibs} ${TORCH_LIBRARIES})
+target_link_libraries(MMVII PRIVATE MMVII_compiler_flags Threads::Threads P2007 ${mmv1_libs} ${mmv2_extlibs} ${TORCH_LIBRARIES} ${PDAL_LIBRARIES})
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION  VERSION_LESS "9.1")
   target_link_libraries(MMVII PRIVATE -lstdc++fs)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION  VERSION_LESS "9.0")
