@@ -1395,6 +1395,17 @@ std::string FixDigToStr(double aSignedVal,int aNbBef,int aNbAfter)
    return aBuf;
 }
 
+   // ================  double ==============================================
+
+template <>  std::string cStrIO<tREAL16>::ToStr(const tREAL16 & aD)
+{
+    return cStrIO<tREAL8>::ToStr((tREAL8) (aD));
+}
+
+template <>  std::string cStrIO<tREAL4>::ToStr(const tREAL4 & aD)
+{
+    return cStrIO<tREAL8>::ToStr((tREAL8) (aD));
+}
 
 
    // ================  std::string ==============================================

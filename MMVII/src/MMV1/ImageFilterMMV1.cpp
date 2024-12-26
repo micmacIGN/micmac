@@ -1,6 +1,6 @@
-#define WITH_MMV1_BENCH false
+#define WITH_MMV1_FUNCTION false
 
-#if (WITH_MMV1_BENCH)
+#if (WITH_MMV1_FUNCTION)
 #include "V1VII.h"
 #endif 
 
@@ -61,10 +61,17 @@ void Bench_LabMaj()
 }
 
 
-#if (WITH_MMV1_BENCH)
+#if (WITH_MMV1_FUNCTION)
+
+/*  ************************************************* */
+/*                                                    */
+/*                 UNUSED                             */
+/*                                                    */
+/*  ************************************************* */
+
+    // Stuffs  not implemanted because not used in MMVII 4 now
 
 
-// Not implemanted/used in MMVII 4 now
 void MMV1_MakeImageDist(cIm2D<tU_INT1> aImIn,const std::string & aNameChamfer)
 {
      const Chamfer & aChamf = Chamfer::ChamferFromName(aNameChamfer);
@@ -97,8 +104,16 @@ void ExportHomMMV1(const std::string & aIm1,const std::string & aIm2,const std::
     ExportHomMMV1(aIm1,aIm2,SH,aVR);
 }
  
+/*  ************************************************* */
+/*                                                    */
+/*              DEPRECATED V1 SOLUTION                */
+/*                                                    */
+/*  ************************************************* */
 
-    //=================  V1 Solution ==================
+   //  implemantation of methods that used to do be done unsing  MMV1
+   //  Activated with WITH_MMV1_FUNCTION , to check correctness 
+
+    //=================  Curvature of tangent line -> Courb Tgt ==================
 
 template<class Type> cIm2D<Type> MMV1_CourbTgt(cIm2D<Type> aImIn)
 {
@@ -117,6 +132,8 @@ template<class Type> void MMV1_SelfCourbTgt(cIm2D<Type> aImIn)
     ELISE_COPY(aV1In.all_pts(),courb_tgt(aV1In.in_proj(),0.5),aV1In.out());
 }
 
+    //=================  Laplacian ==================
+
 cIm2D<tREAL4> MMV1_Lapl(cIm2D<tREAL4> aImIn)
 {
     cIm2D<tREAL4> aRes(aImIn.DIm().Sz());
@@ -130,19 +147,9 @@ cIm2D<tREAL4> MMV1_Lapl(cIm2D<tREAL4> aImIn)
 }
 
 
-    //=================  Global Solution ==================
 
 
-template<class Type> void  BenchImFilterV1V2(cIm2D<Type> anI1,cIm2D<Type> anI2,tREAL8 aEps)
-{
-
-    tREAL8  aRD =   anI1.DIm().SafeMaxRelDif(anI2.DIm(),1e-2);
-    if ( aRD > aEps )
-    {
-        MMVII_INTERNAL_ASSERT_bench( false,"BenchImFilterV1V2 RD="+ToStr(aRD));
-    }
-  
-}
+    //=================  Extremal value of image ==================
 
 template <class Type> std::pair<Type,Type>   MMV1_ValExtre(cIm2D<Type> aImIn)
 {
@@ -151,6 +158,7 @@ template <class Type> std::pair<Type,Type>   MMV1_ValExtre(cIm2D<Type> aImIn)
     ELISE_COPY(aV1In.all_pts(),aV1In.in(),VMin(aVMin)|VMax(aVMax));
     return std::pair<Type,Type>((Type)aVMin,(Type)aVMax);
 }
+    //=================  Average of absolute value ==================
 
 template<class Type> double  MMV1_MoyAbs(cIm2D<Type> aImIn)
 {
@@ -159,6 +167,8 @@ template<class Type> double  MMV1_MoyAbs(cIm2D<Type> aImIn)
     ELISE_COPY(aV1In.all_pts(),Virgule(Abs(aV1In.in()),1),sigma(aSom,2));
     return aSom[0] / aSom[1];
 }
+
+    //=================  Deriche gradient  ==================
 
 template<class Type> void MMV1_ComputeDeriche(cImGrad<Type> & aResGrad,const cDataIm2D<Type> & aImIn,double aAlpha)
 {
@@ -179,6 +189,8 @@ template<class Type> cImGrad<Type> MMV1_Deriche(const cDataIm2D<Type> & aImIn,do
     MMV1_ComputeDeriche(aResGrad,aImIn,aAlpha);
     return aResGrad;
 }
+
+    //=================   Make a visualisable image with adapative dyn  ==================
 
 void MMV1_MakeStdIm8BIts(cIm2D<tREAL4> aImIn,const std::string& aName)
 {
@@ -203,6 +215,17 @@ void MMV1_MakeStdIm8BIts(cIm2D<tREAL4> aImIn,const std::string& aName)
     );
 }
 
+
+    //==============   BENCH with old MMV1 implementation and new one  ===============
+
+template<class Type> void  BenchImFilterV1V2(cIm2D<Type> anI1,cIm2D<Type> anI2,tREAL8 aEps)
+{
+    tREAL8  aRD =   anI1.DIm().SafeMaxRelDif(anI2.DIm(),1e-2);
+    if ( aRD > aEps )
+    {
+        MMVII_INTERNAL_ASSERT_bench( false,"BenchImFilterV1V2 RD="+ToStr(aRD));
+    }
+}
 
 
 template <class Type> void  Tpl_BenchImFilterV1V2(const cPt2di& aSz)

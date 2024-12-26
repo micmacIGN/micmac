@@ -93,9 +93,13 @@ void Bench_EigenDecompos(cParamExeBench & aParam)
      Tpl_Bench_EigenDecompos<tREAL8>(aParam);
 }
 
+#define INSTANTIATE_EIGEN_DECOMP(TYPE)\
+template class cResulEigenDecomp<TYPE>;\
+template class cDenseMatrix<TYPE>;
 
-template class cResulEigenDecomp<tREAL8>;
-template class cDenseMatrix<tREAL8>;
+INSTANTIATE_EIGEN_DECOMP(tREAL4);
+INSTANTIATE_EIGEN_DECOMP(tREAL8);
+INSTANTIATE_EIGEN_DECOMP(tREAL16);
 
 
 };

@@ -993,6 +993,7 @@ template <class Type> class  cPolynom
 {
         public :
            typedef std::vector<Type>  tCoeffs;
+           typedef cPtxd<Type,2>      tCompl;
            cPolynom(const tCoeffs &);
            cPolynom(const cPolynom &);
            cPolynom(size_t aDegre);
@@ -1007,13 +1008,19 @@ template <class Type> class  cPolynom
            static cPolynom<Type>  RandomPolyg(std::vector<Type> & aVRoots,int aNbRoot,int aNbNoRoot,Type Interv,Type MinDist);
 
 
-           Type  Value(const Type & aVal) const;
+           Type    Value(const Type & aVal) const;
+           tCompl  Value(const tCompl & aVal) const;
+           /// return som(|a_k x^k|) , used for some bounding stuffs
+           Type  AbsValue(const Type & aVal) const;
+
 
            cPolynom<Type> operator * (const cPolynom<Type> & aP2) const;
            cPolynom<Type> operator + (const cPolynom<Type> & aP2) const;
            cPolynom<Type> operator - (const cPolynom<Type> & aP2) const;
            cPolynom<Type> operator * (const  Type & aVal) const;
-           std::vector<Type> RealRoots(const Type & aTol,int ItMax);
+           cPolynom<Type> Deriv() const;
+
+           std::vector<Type> RealRoots(const Type & aTol,int ItMax) const;
 
 
            Type&   operator [] (size_t aK) {return mVCoeffs[aK];}

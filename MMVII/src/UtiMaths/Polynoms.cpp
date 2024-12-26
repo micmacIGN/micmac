@@ -1,16 +1,265 @@
-#include "cMMVII_Appli.h"
+#define WITH_MMV1_FUNCTION  true
+
+// #include "cMMVII_Appli.h"
+#include "MMVII_Matrix.h"
+
+#if (WITH_MMV1_FUNCTION)
 #include "V1VII.h"
-
-
-/*
-    // #include "include/MMVII_nums.h"
-    // #include "include/MMVII_Bench.h"
-     //#include "Eigen/unsupported/Eigen/Polynomials"
- */
+#endif 
 
 
 namespace MMVII
 {
+
+/**
+    Class for extraction of roots of polynoms using "Companion matrix method"
+
+  See  https://en.wikipedia.org/wiki/Companion_matrix
+*/
+
+
+template <class Type> class cEigenPolynRoots
+{
+    public :
+       
+        typedef cDenseMatrix<Type>             tMatComp;
+        typedef cPtxd<Type,2>                  tCompl;
+
+        cEigenPolynRoots(const cPolynom<Type> &,Type aEps,int aNbIterMax) ;
+        bool  RootIsReal(const tCompl & ,std::string * sayWhy=nullptr);
+
+        const std::vector<Type> &    RealRoots() const {return mRR;}
+        const std::vector<tCompl> &  ComplexRoots() const {return mCR;}
+        const tMatComp & CompM() const             {return mCompM;}
+
+        tCompl  Refine(const tCompl & aV0,Type  aEps,int aNbIter) const;
+
+    private :
+        static Type PolRelAccuracy() ;
+        static Type PolAbsAccuracy() ;
+        static Type ComplRelAccuracy() ;
+        static Type ComplAbsAccuracy() ;
+
+        cPolynom<Type>     mPol;
+        cPolynom<Type>     mDPol;
+        size_t             mDeg;
+        size_t             mSzMat;   /// to avoid size 0
+        tMatComp           mCompM;   ///< companion matrix
+        std::vector<Type>  mRR;      ///< Real roots
+        std::vector<tCompl>  mCR;      ///< Real roots
+
+};
+
+
+template <class Type> cEigenPolynRoots<Type>::cEigenPolynRoots(const cPolynom<Type> & aPol,Type  aEps,int aNbIter)  :
+    mPol   (aPol),
+    mDPol  (aPol.Deriv()),
+    mDeg   (mPol.Degree()),
+    mSzMat (std::max((size_t)1,mDeg)),
+    mCompM (mSzMat,mSzMat,eModeInitImage::eMIA_Null)
+{
+
+    if (mDeg==0)
+       return;
+
+    // fill the diagonal up the principal diag
+    for (size_t aK = 0; aK < mDeg-1; ++aK) 
+    {
+        mCompM.SetElem(aK+1, aK,1); 
+    }
+
+    const Type & aHighCoeff = mPol[mDeg];
+    // Fill last line with normalized coeff
+    for (size_t aK = 0; aK < mDeg; ++aK) 
+    {
+        mCompM.SetElem(aK, mDeg - 1, -mPol[aK] / aHighCoeff);
+    }
+
+    cResulEigenDecomp<Type> aRED =  mCompM.Eigen_Decomposition() ;
+
+
+    for (size_t aK = 0; aK < mDeg; ++aK) 
+    {
+        tCompl aCR(aRED.mEigenVal_R(aK),aRED.mEigenVal_I(aK));
+
+        aCR = Refine(aCR,aEps*PolAbsAccuracy(),aNbIter);
+        mCR.push_back(aCR);
+
+        if (RootIsReal(aCR))
+           mRR.push_back(aCR.x());
+    }
+    std::sort(mRR.begin(),mRR.end());
+}
+
+template <class Type> cPtxd<Type,2>  cEigenPolynRoots<Type>::Refine(const tCompl & aVal0,Type  aEps,int aNbIter) const
+{
+    Type aSqEps = Square(aEps);
+    tCompl aLastVal = aVal0;
+    tCompl aLastEval =   mPol.Value(aLastVal);
+    Type   aLastSqN2 = SqN2(aLastEval);
+
+    for (int aKIt=0  ; aKIt<aNbIter ; aKIt++)
+    {
+        tCompl aDeriv = mDPol.Value(aLastVal);
+        if (IsNotNull(aDeriv))
+        {
+            tCompl aNewVal = aLastVal - aLastEval/aDeriv;
+            tCompl aNewEval = mPol.Value(aNewVal);
+            Type aNewSqN2 = SqN2(aNewEval);
+            if (aNewSqN2 < aSqEps)
+               return aNewVal;
+            else if (aNewSqN2<aLastSqN2)
+            {
+
+                aLastVal = aNewVal;
+                aLastEval = aNewEval;
+                aLastSqN2 = aNewSqN2;
+            }
+            else
+                return aLastVal;
+        }
+        else
+            return aLastVal;
+    }
+    return aLastVal;
+}
+
+    //     tCompl  Refine(const tCompl & aV0,int aNbIter=5);
+
+
+
+/**  Also the question seems pretty basic, it becomes more complicated due to numericall approximation */
+
+template <>  tREAL4   cEigenPolynRoots<tREAL4>::PolRelAccuracy() {return 1e-5;}
+template <>  tREAL8   cEigenPolynRoots<tREAL8>::PolRelAccuracy() {return 1e-9;}
+template <>  tREAL16  cEigenPolynRoots<tREAL16>::PolRelAccuracy(){return 1e-11;}
+
+template <>  tREAL4   cEigenPolynRoots<tREAL4>::ComplRelAccuracy()  {return 1e-8;}
+template <>  tREAL8   cEigenPolynRoots<tREAL8>::ComplRelAccuracy()  {return 1e-8;}
+template <>  tREAL16  cEigenPolynRoots<tREAL16>::ComplRelAccuracy() {return 1e-8;}
+
+template <>  tREAL4   cEigenPolynRoots<tREAL4>::PolAbsAccuracy() {return 0.01;}
+template <>  tREAL8   cEigenPolynRoots<tREAL8>::PolAbsAccuracy() {return 1e-5;}
+template <>  tREAL16  cEigenPolynRoots<tREAL16>::PolAbsAccuracy() {return 1e-7;}
+        //static Type ComplRelAccuracy() ;
+        //static Type ComplAbsAccuracy() ;
+
+
+template <class Type> bool cEigenPolynRoots<Type>::RootIsReal(const tCompl & aC,std::string * sayWhy)
+{
+
+   // [1]  Test is "aC" is a real number 
+   Type C_i =aC.y();
+
+   // [1.1]  if absolute value of imaginary part is "big" it's not
+   if (std::abs(C_i) > 1e-5)
+   {
+      if (sayWhy)
+         *sayWhy =  "ABS REAL COMPLEX=" + ToStr(std::abs(C_i));
+      return false;
+   }
+
+   Type C_r =aC.x();
+   // [1.1]  if relative imaginary part is "big"
+   if (std::abs(C_i) > ComplRelAccuracy() * (std::abs(C_r)+1e-5))
+   {
+      if (sayWhy)
+         *sayWhy =  "RELAT REAL COMPLEX=" + ToStr(std::abs(C_i)/(std::abs(C_r)+1e-5));
+      return false;
+   }
+
+   // [2]  Test 
+   Type aAbsVP = std::abs(mPol.Value(C_r));
+   // [2.1]  if absolute value of polynom is big
+   if (aAbsVP > PolAbsAccuracy())
+   {
+      if (sayWhy)
+         *sayWhy =  "ABS VALUE POL " + ToStr(aAbsVP);
+      return false;
+   }
+
+   Type aAVA = mPol.AbsValue(C_r);
+   // [2.1]  if absolute value of polynom is big relatively to norm 
+   if (aAbsVP > PolRelAccuracy() * (aAVA+1e-5))
+   {
+      if (sayWhy)
+         *sayWhy =  "RELATIVE VALUE POL " + ToStr(aAbsVP/(aAVA+1e-5));
+      return false;
+   }
+
+   if (sayWhy)
+         *sayWhy =  "is real";
+
+    return true;
+}
+
+template class cEigenPolynRoots<tREAL4>;
+template class cEigenPolynRoots<tREAL8>;
+template class cEigenPolynRoots<tREAL16>;
+
+
+template<class Type> void My_Roots(const  cPolynom<Type> & aPol1) 
+{
+     // 4 => low accuracy
+     // 16 => low timing
+     // As we just want to see that there is no regression for standard double
+     if (sizeof(Type) != 8) return;
+
+
+// StdOut() << "DDDD " << aPol1.Degree() << "\n";
+      // (X2+1)(X-1) = X3-X2+X-1
+      int aNb=300;
+      // vector<double> aCoeffs1 = {-1,1,-1,1,5,-2,0.12};
+      // cPolynom<tREAL8>  aPol1(aCoeffs1);
+
+      cAutoTimerSegm aTimeEigen(GlobAppTS(),"Eigen");
+      for (int aK=0 ; aK<aNb ; aK++)
+      {
+          cEigenPolynRoots<Type> aEPR(aPol1,1e-3,10);
+      }
+
+      cAutoTimerSegm aTimeV1(GlobAppTS(),"V1");
+      for (int aK=0 ; aK<aNb ; aK++)
+      {
+            aPol1.RealRoots(1e-20,60);
+      }
+      cAutoTimerSegm aTimeOthers(GlobAppTS(),"Others");
+
+      cEigenPolynRoots<Type> aEPR(aPol1,1e-3,10);
+      auto aV2 = aEPR.RealRoots();
+      auto aV1 = aPol1.RealRoots(1e-20,60);
+      if  (aV1.size() != aV2.size())
+      {
+          StdOut()  << " SZzzzZ= "  << aV1.size() << " " << aV2.size() << " SIZOFTYPE=" << sizeof(Type) << "\n";
+          StdOut() << aV1  << aV2 << "\n";
+          StdOut() << "Coeffs=" << aPol1.VCoeffs() << "\n";
+          StdOut() << "V1=" << aV1 << "\n";
+          StdOut() << "V2=" << aV2 << "\n";
+          for (const auto & aC : aEPR.ComplexRoots())
+          {
+              std::string strWhy;
+              bool isR = aEPR.RootIsReal(aC,&strWhy);
+              StdOut() << "R=" << isR << " C=" << aC  << " W=" << strWhy << "\n";
+          }
+
+          StdOut() << " ------------------  MAT  ---------------------\n";
+          StdOut() << aEPR.CompM() << "\n";
+getchar();
+      }
+      // (X2+1)(X-1) = X3-X2+X-1
+      // vector<double> coeffs = {-1,1,-1,1};
+}
+
+
+    // return V1RealRoots(mVCoeffs,aTol,ItMax);
+
+
+template <class Type> std::vector<Type>  V2RealRoots(const cPolynom<Type> &  aPol, Type aTol,int aNbMaxIter)
+{
+    cEigenPolynRoots<Type> aEPR(aPol,aTol,aNbMaxIter);
+
+    return aEPR.RealRoots();
+}
 
 
 /* ************************************************************************ */
@@ -24,7 +273,7 @@ namespace MMVII
 template <class Type> cPolynom<Type>::cPolynom(const tCoeffs & aVCoeffs) :
 	mVCoeffs (aVCoeffs)
 {
-	MMVII_INTERNAL_ASSERT_tiny(!mVCoeffs.empty(),"Empty polynom not handled");
+	// MMVII_INTERNAL_ASSERT_tiny(!mVCoeffs.empty(),"Empty polynom not handled");
 }
 template <class Type> cPolynom<Type>::cPolynom(const cPolynom<Type> & aPol) :
 	cPolynom<Type>(aPol.mVCoeffs)
@@ -96,15 +345,16 @@ template <class Type>
 	return aRes;
 }
 
-template <class Type> std::vector<Type> cPolynom<Type>::RealRoots(const Type & aTol,int ItMax)
+template <class Type> std::vector<Type> cPolynom<Type>::RealRoots(const Type & aTol,int ItMax) const
 {
-    return V1RealRoots(mVCoeffs,aTol,ItMax);
+//  StdOut() << "RealRootsRealRootsRealRootsRealRootsRealRootsRealRootsRealRootsRealRoots \n"; getchar();
+    // return V1RealRoots(mVCoeffs,aTol,ItMax);
+    return V2RealRoots(*this,aTol,ItMax);
 }
 
      // ===========    others =========================
 
 template <class Type> size_t cPolynom<Type>::Degree() const { return mVCoeffs.size() - 1; }
-
 
 
 template <class Type> Type cPolynom<Type>::Value(const Type & aVal) const
@@ -118,6 +368,38 @@ template <class Type> Type cPolynom<Type>::Value(const Type & aVal) const
     }
     return aResult;
 }
+
+template <class Type> cPtxd<Type,2> cPolynom<Type>::Value(const tCompl & aVal) const
+{
+    tCompl aResult (0.0,0.0);
+    tCompl aPowV   (1.0,0.0);
+    for (const auto & aCoef : mVCoeffs)
+    {
+         aResult +=  aCoef * aPowV;
+	 aPowV = aVal * aPowV;
+    }
+    return aResult;
+}
+
+
+
+
+
+template <class Type> Type cPolynom<Type>::AbsValue(const Type & aVal) const
+{
+    Type aResult = 0.0;
+    Type aPowV   = 1.0;
+    for (const auto & aCoef : mVCoeffs)
+    {
+         aResult +=  std::abs(aCoef * aPowV);
+	 aPowV *= aVal;
+    }
+    return aResult;
+}
+
+
+
+
 
 template <class Type> cPolynom<Type>  cPolynom<Type>::operator * (const cPolynom<Type> & aP2) const
 {
@@ -157,6 +439,15 @@ template <class Type> cPolynom<Type>  cPolynom<Type>::operator - (const cPolynom
           aRes[aDeg] = this->KthDef(aDeg) - aP2.KthDef(aDeg);
 
       return aRes;
+}
+
+template<class Type> cPolynom<Type>  cPolynom<Type>::Deriv() const
+{
+   std::vector<Type> aVCD;  // Vector Coeff Derivates
+   for (size_t aDeg=1 ; aDeg<mVCoeffs.size() ; aDeg++)
+       aVCD.push_back(mVCoeffs[aDeg]*aDeg);
+
+   return cPolynom<Type>(aVCD);
 }
 
 
@@ -201,6 +492,10 @@ template<class Type> void TplBenchPolynome()
      cPolynom<Type> aP1min2 = aPol1 - aPol2;
      cPolynom<Type> aP2min1 = aPol2 - aPol1;
 
+     cPolynom<Type> aDerP1P2_A = aP1mul2.Deriv();
+     cPolynom<Type> aDerP1P2_B = aPol1.Deriv() * aPol2 + aPol1*aPol2.Deriv();
+
+
      Type aEps = tElemNumTrait<Type> ::Accuracy();
 
      for (int aK=0 ; aK< 20 ; aK++)
@@ -209,6 +504,10 @@ template<class Type> void TplBenchPolynome()
 	 Type aChekMul  = aPol1.Value(aV) * aPol2.Value(aV);
 	 Type aChekP  = aPol1.Value(aV) + aPol2.Value(aV);
 	 Type aChekMin  = aPol1.Value(aV) - aPol2.Value(aV);
+
+         Type aDerA =  aDerP1P2_A.Value(aV) ;
+         Type aDerB =  aDerP1P2_B.Value(aV) ;
+         MMVII_INTERNAL_ASSERT_bench(std::abs(aDerA-aDerB) <aEps,"Polyn  mul");
 
          MMVII_INTERNAL_ASSERT_bench(std::abs(RelativeSafeDifference(aChekMul,aP1mul2.Value(aV)))<aEps,"Polyn  mul");
          MMVII_INTERNAL_ASSERT_bench(std::abs(RelativeSafeDifference(aChekMul,aP2mul1.Value(aV)))<aEps,"Polyn  mul");
@@ -219,7 +518,7 @@ template<class Type> void TplBenchPolynome()
          MMVII_INTERNAL_ASSERT_bench(std::abs(RelativeSafeDifference(-aChekMin,aP2min1.Value(aV)))<aEps,"Polyn  mul");
      }
 
-     for (int aK=0 ; aK< 200 ; aK++)
+     for (int aK=0 ; aK< 600 ; aK++)
      {
          std::vector<Type>  aVRootsGen;
 	 Type aAmpl = 10*RandUnif_NotNull(1e-2);
@@ -247,6 +546,7 @@ template<class Type> void TplBenchPolynome()
              Type aDif = RelativeSafeDifference(aVRootsGen[aK],aVRootsCalc[aK]);
              MMVII_INTERNAL_ASSERT_bench(aDif<aEps,"roots size check");
 	 }
+         // My_Roots(aPol);
 
      }
 }
@@ -255,7 +555,9 @@ void BenchPolynome(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("Polynom")) return;
 
-    TplBenchPolynome<tREAL4>();
+    // TestPolynEigen();
+
+    // TplBenchPolynome<tREAL4>();  // =>  with eigen , impossible to have always acceptable accuracy
     TplBenchPolynome<tREAL8>();
     TplBenchPolynome<tREAL16>();
 

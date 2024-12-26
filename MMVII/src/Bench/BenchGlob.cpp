@@ -1056,88 +1056,11 @@ int cAppli_MPDTest::Exe()
       return EXIT_SUCCESS;
    }
    TTT ();
-#if 1
    {
      StdOut() << "T0:" << cName2Calc<double>::CalcFromName("toto",10,true) << std::endl;
      StdOut() << "T1:" << cName2Calc<double>::CalcFromName("EqDist_Dist_Rad3_Dec1_XY1",10) << std::endl;
       return EXIT_SUCCESS;
    }
-#else
-   if (mMMV1_GenCodeTestCam)
-   {
-       //StdOut() << "kkk=[" << mTopDirMMVII <<"]" << std::endl;
-       MMV1_GenerateCodeTestCam();
-       return EXIT_SUCCESS;
-   }
-   {
-       // Si on le met a 10h => reveil a 6h20
-       double t = 8.0;
-       //sleep(3600.0 * t);
-       sleepcp(3600.0 * t * 1000);
-       std::string aName= "/home/mpd/Bureau/Perso1/Musik/Bach/bach-goldberg-variations-bwv-988-glenn-gould-1981.mp3";
-       aName = "cvlc " + aName;
-       StdOut() << system(aName.c_str()) << std::endl;;
-   }
-   {
-       cPt3dr * anAdr = nullptr;
-       StdOut () <<  "ADDDDDr  " << anAdr << "\n";
-       StdOut () <<  "ADDDDDrx " << &(anAdr->x()) << "\n";
-       StdOut () <<  "ADDDDDry " << &(anAdr->y()) << "\n";
-       StdOut () <<  "ADDDDDrz " << &(anAdr->z()) << "\n";
-       ShowAdr(anAdr->y());
-   }
-   {
-      double aV= 3.3333;
-      printf("VVVVV=%05.2f\n",aV);
-   
-   }
-    if ((UN>DEUX) && PrintAndTrue("aaaa"))
-    {
-       PrintAndTrue("bbbb");
-    }
-    PrintAndTrue("ccccc");
-    cRotation3D<double>::RandomRot();
-   
-/*
-   cSparseVect<float>  aSV;
-   for (const auto & aP : aSV)
-   {
-        StdOut() << aP.mI << std::endl;
-   }
-*/
-
-/*
-   cIm2D<tU_INT1> aIm(cPt2di(3,3));
-   aIm.DIm().SetV(cPt2di(0,0),13);
-   // aIm.DIm().SetV(cPt2di(0,0),1000);
-   // aIm.DIm().SetV(cPt2di(-1,0),1);
-   // new cIm2D<tU_INT1>(cPt2di(3,3));
-   cDataIm2D<tU_INT1> & aDIm = aIm.DIm();
-   tU_INT1*  aPtr = aDIm.RawDataLin();
-   StdOut() << "aIm=" << int(aPtr[0]) <<  std::endl;
-   aPtr[0] = 14;
-   StdOut() << "aIm=" << (int)aDIm.GetV(cPt2di(0,0)) <<  std::endl;
-   // aPtr[-1] = 0;
-*/
-
-/*
-    TestVectBool();
-   cMMVII_Ofs aOs1("toto1.txt");
-   cMMVII_Ofs aOs2("toto2.txt");
-
-    
-   cMultipleOfs amOs; // (aOs1.Ofs(),aOs2.Ofs());
-   amOs.Add(aOs1.Ofs());
-   amOs.Add(aOs2.Ofs());
-   amOs << "1+1=" << 1+1 << "\n";
-   cMMVII_Ofs aFile("toto.txt");
-   std::ostream & anOFS =  aFile.Ofs();
-   anOFS << "TEST OFFFSSSSSSSSSSSS\n";
-*/
-
-   return EXIT_SUCCESS;
-    
-#endif
 }
 
 tMMVII_UnikPApli Alloc_MPDTest(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
