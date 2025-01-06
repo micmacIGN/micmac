@@ -12,7 +12,9 @@ namespace MMVII
 // Call V1 Fast kth value extraction
 double NC_KthVal(std::vector<double> &, double aProportion);
 double Cst_KthVal(const std::vector<double> &, double aProportion);
-double Average(const std::vector<double> &);
+template <class Type> Type Average(const Type * aTab,size_t aNb);
+template <class Type> Type Average(const std::vector<Type> &);
+
 
 tREAL8 AngleInRad(eTyUnitAngle);
 bool AssertRadAngleInOneRound(tREAL8 aAngleRad, bool makeError=true);
@@ -496,6 +498,16 @@ template <> class tMergeF<tREAL8,tREAL4> { public : typedef tREAL8  tMax; };
 template <> class tMergeF<tREAL4,tREAL8> { public : typedef tREAL8  tMax; };
 template <> class tMergeF<tREAL8,tREAL8> { public : typedef tREAL8  tMax; };
 
+template <class Type>  void AssertTabValueOk(const Type * aTab,size_t aNb)
+{
+    for (size_t aK=0 ; aK<aNb ; aK++)
+        tNumTrait<Type>::AssertValueOk(aTab[aK]);
+}
+
+template <class Type> void  AssertTabValueOk(const std::vector<Type> & aVec)
+{
+    AssertTabValueOk(aVec.data(),aVec.size());
+} 
 
 
 
@@ -751,6 +763,20 @@ template <class TypeVal> void UpdateMinMax(TypeVal & aVarMin,TypeVal & aVarMax,c
     if (aValue<aVarMin) aVarMin = aValue;
     if (aValue>aVarMax) aVarMax = aValue;
 }
+
+template <class TVal> TVal MinTab(TVal * Data,int aNb)
+{
+    MMVII_INTERNAL_ASSERT_tiny(aNb!=0,"No values in MinTab");
+    TVal aMin=Data[0];
+    for (int aK=1 ; aK<aNb ; aK++)
+        if (Data[aK]< aMin)
+           aMin = Data[aK];
+
+    return aMin;
+}
+
+
+
 
 /// Class to store min and max values
 template <class TypeVal> class cBoundVals

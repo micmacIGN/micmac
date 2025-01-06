@@ -581,7 +581,7 @@ class cRGBImage
 	/// draw only 1 pixel , use zoom for change geom
 	void SetRGBPoint(const cPt2dr & aPoint,const cPt3di & aCoul);  
 	void DrawLine(const cPt2dr & aP1,const cPt2dr & aP2,const cPt3di & aCoul,tREAL8 aWitdh=-1);
-	void DrawEllipse(const cPt3di& aCoul,const cPt2dr & aCenter,tREAL8 aGA,tREAL8 aSA,tREAL8 aTeta,tREAL8 aWitdh=-1);
+	void DrawEllipse(const cPt3di& aCoul,const cPt2dr & aCenter,tREAL8 aGA,tREAL8 aSA,tREAL8 aTeta);
 	void DrawCircle (const cPt3di& aCoul,const cPt2dr & aCenter,tREAL8 aRay);
 	void FillRectangle (const cPt3di& aCoul,const cPt2di & aP1,const cPt2di & aP2,const cPt3dr & aAlpha);
 

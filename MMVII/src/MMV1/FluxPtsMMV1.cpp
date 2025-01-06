@@ -15,6 +15,23 @@
 namespace MMVII
 {
 
+class cAbsCurv2Pts
+{
+     public :
+         cAbsCurv2Pts();
+         void  Compute(int aNb,bool V8);
+     private :
+         virtual cPt2dr  PtOfAC(tREAL8 aAbs) const =0;
+         int     mNb;
+};
+
+
+void cAbsCurv2Pts::Compute(int aNb,bool V8)
+{
+}
+
+
+
 Neighbourhood DiscNeich(const tREAL8 & aRay)
 {
     std::vector<Pt2di> aVPts;
@@ -70,19 +87,11 @@ tResFlux  GetPts_Circle(const cPt2dr & aC,double aRay,bool with8Neigh)
      return aRes;
 }
 
-// extern Flux_Pts ellipse(Pt2dr c,REAL A,REAL B,REAL teta,bool v8 = true);
-void  GetPts_Ellipse(tResFlux & aRes,const cPt2dr & aC,double aRayA,double aRayB, double aTeta,bool with8Neigh,tREAL8 aDil)
-{
-     Flux_Pts aFlux = ellipse(ToMMV1(aC),aRayA,aRayB,aTeta,with8Neigh);
-     if (aDil>0)
-        aFlux = dilate(aFlux,DiscNeich(aDil));
-
-     FluxToV2Points(aRes,aFlux);
-}
 
 void  GetPts_Ellipse(tResFlux & aRes,const cPt2dr & aC,double aRayA,double aRayB, double aTeta,bool with8Neigh)
 {
-	GetPts_Ellipse(aRes,aC,aRayA,aRayB,aTeta,with8Neigh,-1);
+     Flux_Pts aFlux = ellipse(ToMMV1(aC),aRayA,aRayB,aTeta,with8Neigh);
+     FluxToV2Points(aRes,aFlux);
 }
 
 
