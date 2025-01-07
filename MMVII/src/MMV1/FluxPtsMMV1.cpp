@@ -109,6 +109,7 @@ StdOut() << "*****************\n";
                  aVK.push_back(aK);
 	     }
          }
+         StdOut() << "=======================================  Vk=" << aVK << "\n";
 	 // if we have no point, or multiple point, we have a problem ...
          MMVII_INTERNAL_ASSERT_tiny(aVK.size()== 1,"Topolgical problem in cCurveBySet::Compute");
 StdOut() << "KKKKKK " << aVK  << " "<< aVNeigh[aVK.at(0)] << "\n";
@@ -170,8 +171,9 @@ for (const auto & aPt : aIm.DIm())
 }
 aIm.DIm().ToFile("CurveDigit.tif");
 
-     for (const auto aV8 : {true,false})
+     for (const auto aV8 : {true})
      {
+StdOut() << "------------------------------------------------------------------------------------------------\n";
 StdOut() << "JJJJJJJJJJ  " << aC << " " << aRay << " " << aV8 << " Dec=" << aDec << "\n";
          aCCS.Compute(aV8);
      }
