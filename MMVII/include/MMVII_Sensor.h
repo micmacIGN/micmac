@@ -433,7 +433,8 @@ class cPhotogrammetricProject
 	  cDirsPhProj &   DPRadiomModel(); ///< Accessor
 	  cDirsPhProj &   DPMeshDev(); ///< Accessor
 	  cDirsPhProj &   DPMask(); ///< Accessor
-	  cDirsPhProj &   DPPointsMeasures(); ///< Accessor
+	  cDirsPhProj &   DPGndPt3D(); ///< Accessor
+	  cDirsPhProj &   DPGndPt2D(); ///< Accessor
 	  cDirsPhProj &   DPMetaData();    ///<  Accessor
 	  cDirsPhProj &   DPTieP();    ///<  Accessor
 	  cDirsPhProj &   DPMulTieP();    ///<  Accessor
@@ -447,7 +448,8 @@ class cPhotogrammetricProject
 	  const cDirsPhProj &   DPRadiomModel() const; ///< Accessor
 	  const cDirsPhProj &   DPMeshDev() const; ///< Accessor
 	  const cDirsPhProj &   DPMask() const; ///< Accessor
-	  const cDirsPhProj &   DPPointsMeasures() const; ///< Accessor
+	  const cDirsPhProj &   DPGndPt3D() const; ///< Accessor
+	  const cDirsPhProj &   DPGndPt2D() const; ///< Accessor
 	  const cDirsPhProj &   DPMetaData() const;    ///<  Accessor
 	  const cDirsPhProj &   DPTieP() const;    ///<  Accessor
 	  const cDirsPhProj &   DPMulTieP() const;    ///<  Accessor
@@ -558,23 +560,23 @@ class cPhotogrammetricProject
 	  /// Load the measure image from a specified folder, usefull when multiple folder
 	  cSetMesPtOf1Im LoadMeasureImFromFolder(const std::string & aFolder,const std::string &) const;
 
-         void LoadGCP(cSetMesImGCP&,const std::string & aPatFiltrFile="",const std::string & aFiltrNameGCP="",
+         void LoadGCP3D(cSetMesGndPt&, cMes3DDirInfo *aMesDirInfo=nullptr, const std::string & aPatFiltrFile="", const std::string & aFiltrNameGCP="",
                       const std::string & aFiltrAdditionalInfoGCP="") const;
 	 ///  For reading GCP from folder potentially != of standard input measures, can add missing points from topo obs
-         void LoadGCPFromFolder(const std::string & aFolder,cSetMesImGCP&,
-                                std::pair<cBA_Topo *, std::vector<cBA_GCP*>*> aTopoAddPointsInfo,
+         void LoadGCP3DFromFolder(const std::string & aFolder, cSetMesGndPt&,
+                                  cMes3DDirInfo * aMesDirInfo,
                                 const std::string & aPatFiltrFile="", const std::string & aFiltrNameGCP="",
                                 const std::string & aFiltrAdditionalInfoGCP="" ) const;
           // if SVP && file doesnt exist, do nothing
-	  void LoadIm(cSetMesImGCP&,const std::string & aNameIm,cSensorImage * =nullptr,bool SVP=false) const;
+	  void LoadIm(cSetMesGndPt&,const std::string & aNameIm,cMes2DDirInfo * aMesDirInfo=nullptr, cSensorImage * =nullptr,bool SVP=false) const;
           ///  When dont read from the standard input 
-	  void LoadImFromFolder(const std::string & aFolder,cSetMesImGCP&,const std::string & aNameIm,
-                                cSensorImage * =nullptr,bool SVP=false) const;
-	  void LoadIm(cSetMesImGCP&,cSensorImage & ) const;
+	  void LoadImFromFolder(const std::string & aFolder, cSetMesGndPt&, cMes2DDirInfo *aMesDirInfo, const std::string & aNameIm,
+                                cSensorImage * =nullptr, bool SVP=false) const;
+	  void LoadIm(cSetMesGndPt&, cMes2DDirInfo *aMesDirInfo, cSensorImage & ) const;
 
-	  void SaveGCP(const cSetMesGCP&) const;
-	  cSetMesGCP LoadGCPFromFolder(const std::string &) const;
-	  cSetMesGCP LoadGCP() const;
+	  void SaveGCP3D(const cSetMesGnd3D&aMGCP3D, const std::string &aDefaultOutName="", bool aDoAddCurSysCo=false) const; // default out name for measures without cMes3DDirInfo
+	  cSetMesGnd3D LoadGCP3DFromFolder(const std::string &) const;
+	  cSetMesGnd3D LoadGCP3D() const;
 
 	  /// Name of the file, usefull if we need to test existence before doing anything
 	  std::string NameMeasureGCPIm(const std::string & aNameIm,bool isIn) const;
@@ -681,7 +683,7 @@ class cPhotogrammetricProject
          void SaveCurSysCoOri(tPtrSysCo) const ;
          void SaveCurSysCoGCP(tPtrSysCo) const ;
          void SaveStdCurSysCo(bool IsOri) const; /// save the Cur Sysco in Orient/GCP
-         void CpSysIn2Out(bool OriIn,bool OriOut) const;  // bool : Ori/GCP   do it only if exist, else no error
+         void CpSysCoIn2Out(bool OriIn,bool OriOut) const;  // bool : Ori/GCP   do it only if exist, else no error
          std::string  getDirSysCo() const { return mDirSysCo; }
 
          const cChangeSysCo & ChSysCo() const;
@@ -762,7 +764,8 @@ class cPhotogrammetricProject
 	  cDirsPhProj     mDPRadiomModel;
 	  cDirsPhProj     mDPMeshDev;
 	  cDirsPhProj     mDPMask;
-	  cDirsPhProj     mDPPointsMeasures;  ///<  For GCP measures  Image + Grounds
+	  cDirsPhProj     mDPGndPt3D;         ///<  For ground point, measures/coords in image frame
+	  cDirsPhProj     mDPGndPt2D;         ///<  For ground point, measures/coords in ground frame
 	  cDirsPhProj     mDPTieP;            ///<  For Homologous point
 	  cDirsPhProj     mDPMulTieP;         ///<  For multiple Homologous point
 	  cDirsPhProj     mDPMetaData;

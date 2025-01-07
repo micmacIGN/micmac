@@ -375,17 +375,17 @@ void cTopoData::addObsSets(std::vector<cTopoObsSetStationData> &aCurrentVectObsS
     aCurrentVectObsSets.clear();
 }
 
-std::pair<cTopoData, cSetMesGCP> cTopoData::createEx1()
+std::pair<cTopoData, cSetMesGnd3D> cTopoData::createEx1()
 {
     //verbose = true;
 
     //create fixed points
-    cSetMesGCP aSetPts;
-    aSetPts.AddMeasure( cMes1GCP(cPt3dr(10,10,10), "ptA", 0.001) );
-    aSetPts.AddMeasure( cMes1GCP(cPt3dr(20,10,10), "ptB", 0.001) );
-    aSetPts.AddMeasure( cMes1GCP(cPt3dr(15,20,10), "ptC", 0.001) );
+    cSetMesGnd3D aSetPts;
+    aSetPts.AddMeasure3D( cMes1Gnd3D(cPt3dr(10,10,10), "ptA", 0.001) );
+    aSetPts.AddMeasure3D( cMes1Gnd3D(cPt3dr(20,10,10), "ptB", 0.001) );
+    aSetPts.AddMeasure3D( cMes1Gnd3D(cPt3dr(15,20,10), "ptC", 0.001) );
     // unknown point
-    aSetPts.AddMeasure( cMes1GCP(cPt3dr(14,14,14), "ptD") );
+    aSetPts.AddMeasure3D( cMes1Gnd3D(cPt3dr(14,14,14), "ptD") );
 
 
 #define WW 0.01
@@ -418,11 +418,11 @@ void cTopoData::createEx2()
 
 }*/
 
-std::pair<cTopoData, cSetMesGCP>  cTopoData::createEx3()
+std::pair<cTopoData, cSetMesGnd3D>  cTopoData::createEx3()
 {
-    cSetMesGCP aSetPts;
-    aSetPts.AddMeasure( cMes1GCP(cPt3dr(100,110,100), "Ori1", 0.001) );
-    aSetPts.AddMeasure( cMes1GCP(cPt3dr(100,100,100), "St1", 0.001) );
+    cSetMesGnd3D aSetPts;
+    aSetPts.AddMeasure3D( cMes1Gnd3D(cPt3dr(100,110,100), "Ori1", 0.001) );
+    aSetPts.AddMeasure3D( cMes1Gnd3D(cPt3dr(100,100,100), "St1", 0.001) );
     //aSetPts.AddMeasure( cMes1GCP(cPt3dr(105,115,105), "Tr1") ); // init not needed. Final: 107.072, 107.072, 100
 
     double g0 = 2.2;
@@ -451,18 +451,18 @@ std::pair<cTopoData, cSetMesGCP>  cTopoData::createEx3()
 }
 
 
-std::pair<cTopoData, cSetMesGCP> cTopoData::createEx4()
+std::pair<cTopoData, cSetMesGnd3D> cTopoData::createEx4()
 {
     std::array aVectPoints = {cPt3dr(-10,0,0), cPt3dr(0,-50,0), cPt3dr(20,0,0), cPt3dr(0,50,0)};
 
-    cSetMesGCP aSetPts;
+    cSetMesGnd3D aSetPts;
     cTopoData aTopoData;
 
     // create points with an random translation
     cPt3dr aTr = cPt3dr::PRandC()*1000.;
     for (unsigned int i=0;i<aVectPoints.size();++i)
     {
-        aSetPts.AddMeasure( cMes1GCP(aVectPoints[i]+aTr, std::string("Pt")+(char)('1'+i), 0.001) );
+        aSetPts.AddMeasure3D( cMes1Gnd3D(aVectPoints[i]+aTr, std::string("Pt")+(char)('1'+i), 0.001) );
     }
     // do not add station origin, to let automatic initialization set a correct value
 

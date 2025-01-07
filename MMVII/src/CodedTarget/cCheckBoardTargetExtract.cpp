@@ -100,7 +100,7 @@ cCollecSpecArg2007 & cAppliCheckBoardTargetExtract::ArgOpt(cCollecSpecArg2007 & 
 {
    return
 	        anArgOpt
-             <<  mPhProj.DPPointsMeasures().ArgDirOutOptWithDef("Std")
+             <<  mPhProj.DPGndPt2D().ArgDirOutOptWithDef("Std")
              <<  mPhProj.DPMask().ArgDirInOpt("TestMask","Mask for selecting point used in detailed mesg/output")
              <<  AOpt2007(mThickness,"Thickness","Thickness for modelizaing line-blur in fine radiom model",{eTA2007::HDV})
              <<  AOpt2007(mLInitTeta,"LSIT","Length Segment Init, for teta",{eTA2007::HDV})
@@ -571,7 +571,7 @@ void cAppliCheckBoardTargetExtract::DoOneImage()
    //  Create a report with header computed from type
    Tpl_AddHeaderReportCSV<cMesIm1Pt>(*this,mIdExportCSV,false);
    // Redirect the reports on folder of result
-   SetReportRedir(mIdExportCSV,mPhProj.DPPointsMeasures().FullDirOut());
+   SetReportRedir(mIdExportCSV,mPhProj.DPGndPt2D().FullDirOut());
 
 
 

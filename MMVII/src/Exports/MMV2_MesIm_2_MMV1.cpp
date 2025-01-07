@@ -36,7 +36,7 @@ cCollecSpecArg2007 & cAppli_MMV2_MesIm_2_MMV1::ArgObl(cCollecSpecArg2007 & anArg
 {
       return anArgObl
              << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
-             << mPhProj.DPPointsMeasures().ArgDirInMand()
+             << mPhProj.DPGndPt2D().ArgDirInMand()
              << Arg2007(mNameFile  ,"Name of V1-image-measure file (\""+MMVII_NONE +"\" if none !)",{eTA2007::FileTagged})
       ;
 }
@@ -63,10 +63,10 @@ int cAppli_MMV2_MesIm_2_MMV1::Exe()
     for (const std::string& aCImage : aVecIm)
     {
 
-		cSetMesImGCP aSetMes;
+		cSetMesGndPt aSetMes;
 
 		//load GCPs
-		mPhProj.LoadGCP(aSetMes);
+		mPhProj.LoadGCP3D(aSetMes);
 
 		//load image measurements
 		mPhProj.LoadIm(aSetMes,aCImage);
@@ -139,8 +139,8 @@ cSpecMMVII_Appli  TheSpec_MMV2_MesIm_2_MMV1
       Alloc_Test_MMV2_MesIm_2_MMV1,
       "Export image measurements format from MicMac v2 to MicMac v1",
       {eApF::GCP},
-      {eApDT::GCP},
-      {eApDT::GCP},
+      {eApDT::GndPt2D},
+      {eApDT::GndPt2D},
       __FILE__
 );
 

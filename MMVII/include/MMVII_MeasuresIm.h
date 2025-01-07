@@ -20,17 +20,20 @@ class cSetMesPtOf1Im;
 
 class cMesIm1Pt;
 class cSetMesPtOf1Im;
-class cMes1GCP;
-class cSetMesGCP;
+class cMes1Gnd3D;
+class cSetMesGnd3D;
 
 class cMultipleImPt;
-class cSetMesImGCP;
+class cSetMesGndPt;
 
 class cComputeMergeMulTieP;
 
+class cMes2DDirInfo;
+class cMes3DDirInfo;
+
 
 /** class for representing  a 3D point paired with it 2d image projection */
- 
+
 struct  cPair2D3D
 {
      public :
@@ -38,7 +41,7 @@ struct  cPair2D3D
           cPt2dr mP2;
           cPt3dr mP3;
 };
- 
+
 /** A cPair2D3D + a Weight */
 struct  cWeightedPair2D3D : public cPair2D3D
 {
@@ -85,7 +88,8 @@ class cMesIm1Pt
 
         cPt2dr            mPt;
         std::string       mNamePt;
-        cArray<tREAL4,3>  mSigma2;  // xx xy yy
+        cArray<tREAL4,3>  mSigma2;  //< xx xy yy
+        cMes2DDirInfo* mMesDirInfo; //< to recover dir in name and weighter
 };
 void AddData(const  cAuxAr2007 & anAux,cMesIm1Pt & aGCPMI);
 
@@ -96,7 +100,7 @@ class cSetMesPtOf1Im : public cMemCheck
           cSetMesPtOf1Im(const std::string & aNameIm);
           cSetMesPtOf1Im();
 	  static cSetMesPtOf1Im  FromFile(const std::string & aNameFile);
-          void AddMeasure(const cMesIm1Pt &);
+          void AddMeasure(const cMesIm1Pt &, cMes2DDirInfo *aMesDirInfo=nullptr); //aMesDirInfo==nullptr means keep original MesDirInfo
           /// Add a measure only if name is new, if not test if dist < tol if not ->error
           void AddMeasureIfNew(const cMesIm1Pt &,tREAL8 aTol=-1);
           void AddData(const  cAuxAr2007 & anAux);
@@ -129,15 +133,15 @@ void AddData(const  cAuxAr2007 & anAux,cSetMesPtOf1Im & aGCPMI);
 
 
 /**  class for representing  the measure of a 3D point (Ground Control Point) */
-class cMes1GCP
+class cMes1Gnd3D
 {
      public :
-        
-        // aSigma==-1 for free point
-        cMes1GCP(const cPt3dr & aPt,const std::string & aNamePt,tREAL4 aSigma=-1,
-                 const std::string &aAdditionalInfo="");
 
-        cMes1GCP();
+        // aSigma==-1 for free point
+        cMes1Gnd3D(const cPt3dr & aPt,const std::string & aNamePt,
+                   tREAL4 aSigma=-1, const std::string &aAdditionalInfo="");
+
+        cMes1Gnd3D();
 	/// change the coordinate with mapping ! For now dont update sigma using the jacobian, maybe later ...
         void  ChangeCoord(const cDataMapping<tREAL8,3,3>&);
         bool isFree() const {return !mOptSigma2;}
@@ -149,6 +153,7 @@ class cMes1GCP
         static constexpr int IndYY = 3;
         static constexpr int IndZZ = 5;
         std::string mAdditionalInfo;
+        cMes3DDirInfo* mMesDirInfo; //< to recover dir in/out name and w factor
 
         bool isInit() const {return mPt.IsValid();}
 
@@ -160,120 +165,123 @@ class cMes1GCP
 	///
 	bool  Sigma2IsInit() const;
 
-	/// Serialization 
+	/// Serialization
 	void AddData(const  cAuxAr2007 & anAux);
 
      private :
         std::optional<cArray<tREAL4,6> >  mOptSigma2;  //  xx xy xz yy yz zz
 };
 
-/**  A set of cMes1GCP */
-class cSetMesGCP : public cMemCheck
+/**  A set of cMes1Gnd3D */
+class cSetMesGnd3D : public cMemCheck
 {
     public :
-          cSetMesGCP();
-          cSetMesGCP(const std::string &aNameSet);
-          cSetMesGCP  Filter(const std::string &aFilter, const std::string &aFiltrAdditionalInfo) const;
+          cSetMesGnd3D();
+          cSetMesGnd3D(const std::string &aNameSet);
+          cSetMesGnd3D  Filter(const std::string &aFilter, const std::string &aFiltrAdditionalInfo) const;
 	 /// change the coordinate of all points
           void  ChangeCoord(const cDataMapping<tREAL8,3,3>&);
-	  static cSetMesGCP  FromFile(const std::string & aNameFile);
+	  static cSetMesGnd3D  FromFile(const std::string & aNameFile);
 	  void    ToFile(const std::string & aNameFile);
 
-          void AddMeasure(const cMes1GCP &);
+          void AddMeasure3D(const cMes1Gnd3D &);
           void AddData(const  cAuxAr2007 & anAux);
 
 	  void ToFile(const std::string & aNameFile) const;
 	  static std::string StdNameFileOfSet(const std::string &);
 	  std::string StdNameFile() const;
 
-          const std::vector<cMes1GCP> &   Measures() const;  ///< Accessor
+          const std::vector<cMes1Gnd3D> &   Measures() const;  ///< Accessor
 	  static  const std::string ThePrefixFiles;
 
-          std::list<std::string>  ListOfNames() const;
+      std::list<std::string>  ListOfNames() const;
+      std::map<std::string, cSetMesGnd3D> SplitPerOutDir(const std::string &aDefaultOutName="") const; // default out name for measures without cMes3DDirInfo
 
     private :
 	  std::string              mNameSet;
-          std::vector<cMes1GCP>    mMeasures;
+          std::vector<cMes1Gnd3D>    mMeasures;
 };
-void AddData(const  cAuxAr2007 & anAux,cSetMesGCP & aSet);
+void AddData(const  cAuxAr2007 & anAux,cSetMesGnd3D & aSet);
 
 /**  Class for reprenting the same point in different image, maybe same class
  * used for GCP and tie points */
 
-class cMultipleImPt 
+class cMultipleImPt
 {
       public :
-              cMultipleImPt(int aNum3DP);   ///< Cstr, num of GCP of -1 for tie point
+    cMultipleImPt(int aNum3DP);   ///< Cstr, num of GCP of -1 for tie point
 
-              /// Add One image measurement, 4 now WithSigma must be false
-              void Add(const cMesIm1Pt & ,int aNumIm,bool WithSigma);
+    /// Add One image measurement, 4 now WithSigma must be false
+    void Add(const cMesIm1Pt & ,int aNumIm, cMes2DDirInfo *aMesDirInfo);
 
-              ///  Return if any the point of one image
-              const cPt2dr * PtOfIm(int) const;
+    ///  Return if any the point of one image
+    const cPt2dr * PtOfIm(int) const;
 
-	      const std::vector<cPt2dr> & VMeasures() const;  ///< Accessor
-              const std::vector<int>    & VImages()   const;  ///< Accessor
-	      int NumPt() const;
-      private :
-              int                             mNumPt;
-              std::vector<cPt2dr>             mVMeasures;
-              std::vector<tREAL4>             mVSigma;  // optionnal
-              std::vector<int>                mVImages;
+    const std::vector<cPt2dr> & VMeasures() const;  ///< Accessor
+    const std::vector<int>    & VImages()   const;  ///< Accessor
+    const std::vector<cMes2DDirInfo*> & VMesDirInfo() const { return mVMesDirInfo; }  ///< Accessor
+    int NumPt() const;
+private :
+    int                             mNumPt;
+    std::vector<cPt2dr>             mVMeasures;
+    std::vector<cMes2DDirInfo*>     mVMesDirInfo;
+    std::vector<int>                mVImages;
 };
 
 
 /**  Class for storing a data base of GCP :  3D measures + 2D image measure
  *   The link between different measures is done using name of points.
  *
- *   The mMesGCP  and mMesIm are corresponinf i.e  mMesGCP[k] <-> mMesIm[k] 
+ *   The mMesGCP  and mMesIm are corresponinf i.e  mMesGCP[k] <-> mMesIm[k]
  */
-class cSetMesImGCP : public cMemCheck
+class cSetMesGndPt : public cMemCheck
 {
     public :
-            cSetMesImGCP();
+            cSetMesGndPt();
 	    // cSetMesImGCP(const cComputeMergeMulTieP  &);
 
             ///  Add one set of 3D measures (often called only once), all calls must occur before AddMes2D
-            void AddMes3D(const cSetMesGCP &);
+            void AddMes3D(const cSetMesGnd3D &, cMes3DDirInfo * aMesDirInfo=nullptr);
 	    /// For a single GCP (called by AddMes3D)
-	    void Add1GCP(const cMes1GCP &);
+	    void Add1GCP(const cMes1Gnd3D &);
 	    ///  Add mesure on 1 images, close the possibility for further call to AddMes3D
-            void AddMes2D(const cSetMesPtOf1Im &,cSensorImage* =nullptr,eLevelCheck OnNonExistP=eLevelCheck::Warning);
+            void AddMes2D(const cSetMesPtOf1Im &, cMes2DDirInfo * aMesDirInfo=nullptr, cSensorImage* =nullptr, eLevelCheck OnNonExistP=eLevelCheck::Warning);
 
 	    /// return a set of mesure as 2d/3d corresp : if SVP accept image absent and returns empty
             void ExtractMes1Im(cSet2D3D&,const std::string &aNameIm,bool SVP=false) const;
 
-            const std::vector<cMes1GCP> &        MesGCP() const ; ///< Accessor
-            std::vector<cMes1GCP> &        MesGCP() ; ///< Accessor
+            const std::vector<cMes1Gnd3D> &        MesGCP() const ; ///< Accessor
+            std::vector<cMes1Gnd3D> &        MesGCP() ; ///< Accessor
             const std::vector<cMultipleImPt> &   MesImOfPt() const ;  ///< Accessor
 	    const std::vector<cSensorImage*> &   VSens() const ;  ///< Accessor
             const std::vector<cSetMesPtOf1Im> &  MesImInit() const;  ///< Accessor
-								
+
 	    tREAL8 AvgSqResidual() const;
-								  
-	    /// suppress mMesGCP & mMesIm with no images measure (eventually can give higher threshold) 
-	    cSetMesImGCP * FilterNonEmptyMeasure(int NbMeasureMin=1) const;
+
+	    /// suppress mMesGCP & mMesIm with no images measure (eventually can give higher threshold)
+	    cSetMesGndPt * FilterNonEmptyMeasure(int NbMeasureMin=1) const;
 	    int GetNbImMesForPoint(const std::string & aGCPName, bool SVP=false) const;
 
             const cSetMesPtOf1Im  & MesImInitOfName(const std::string &) const;
-	    const cMes1GCP &        MesGCPOfName(const std::string &) const;
-	    cMes1GCP &              MesGCPOfName(const std::string &) ;
-	    const cMes1GCP &        MesGCPOfNum(int) const;
-	    const cMes1GCP &        MesGCPOfMulIm(const cMultipleImPt &) const;
-            cSetMesGCP AllMesGCP() const;
+
+	    const cMes1Gnd3D &        MesGCPOfName(const std::string &) const;
+	    cMes1Gnd3D &              MesGCPOfName(const std::string &) ;
+	    const cMes1Gnd3D &        MesGCPOfNum(int) const;
+	    const cMes1Gnd3D &        MesGCPOfMulIm(const cMultipleImPt &) const;
+	    cSetMesGnd3D AllMesGCP() const;
 
 	    bool  NameIsGCP(const std::string &) const;
-	    cSetMesGCP  ExtractSetGCP(const std::string & aNameSet) const;
+	    cSetMesGnd3D  ExtractSetGCP(const std::string & aNameSet) const;
 
 	    cPt3dr  BundleInter(const cMultipleImPt & aMPT) const;
 
     private :
            void AsserGCPFinished() const;
 
-            cSetMesImGCP(const  cSetMesImGCP & ) = delete;
+            cSetMesGndPt(const  cSetMesGndPt & ) = delete;
 
             bool                         mPhaseGCPFinished;
-            std::vector<cMes1GCP>        mMesGCP;      
+            std::vector<cMes1Gnd3D>      mMesGCP3D;
             std::vector<cMultipleImPt>   mMesImOfPt;  ///< after compilation, sorted by point
             std::vector<cSetMesPtOf1Im>  mMesImInit;  ///< initial structuration, sorted by image
 
@@ -338,7 +346,7 @@ class cInterfImportHom : public cMemCheck
 };
 
 
-/**   This class store multiple homologous point, ie after fusion of  
+/**   This class store multiple homologous point, ie after fusion of
  *    points computed by pair of images
  */
 
@@ -395,9 +403,9 @@ cPt3dr BundleInter(const tPairTiePMult &,size_t aKPts,const std::vector<cSensorI
 void   MakePGround(tPairTiePMult &,const std::vector<cSensorImage *>&);
 
 
-/**   This class store multiple homologous point, 
+/**   This class store multiple homologous point,
  *    it can be created (initially) after fusion of    points computed by pair of images in folder "TieP"
- *    or by loading the result of folder "MulTieP" 
+ *    or by loading the result of folder "MulTieP"
  */
 
 class cComputeMergeMulTieP : public cMemCheck
@@ -437,14 +445,14 @@ class cComputeMergeMulTieP : public cMemCheck
 
 	const std::vector<std::list<std::pair<size_t,tPairTiePMult*>>> & IndexeOfImages()  const;
 	void SetImageIndexe();
-	/// compute the Ground coordinates 
+	/// compute the Ground coordinates
 	void SetPGround();
      private  :
         std::vector<std::string>               mVNames;    /// Vector of names of images
         std::vector<cSensorImage *>            mVSensors;  ///< optionnal, when point are used in 3D
         std::map<tConfigIm,cVal1ConfTPM>       mPts;       /// Map VectInd ->  points in raw format
         /** Usefull if we need to recover for one image the configuration it belongs to, for image K
-	 *  mImageIndexes[K] will contain all its configuration + the number it has in this config*/							 
+	 *  mImageIndexes[K] will contain all its configuration + the number it has in this config*/
 	std::vector<std::list<std::pair<size_t,tPairTiePMult*>>> mImageIndexes;
 };
 
@@ -461,7 +469,7 @@ class cInterfParsePMulGCP : public cMemCheck
 
          const cPMulGCPIm & CurP() const;
          static cInterfParsePMulGCP *  Alloc_CMTP(const cComputeMergeMulTieP &,bool WithPGround);
-         static cInterfParsePMulGCP *  Alloc_ImGCP(const cSetMesImGCP &);
+         static cInterfParsePMulGCP *  Alloc_ImGCP(const cSetMesGndPt &);
 
 	 virtual ~cInterfParsePMulGCP();
 
@@ -509,14 +517,14 @@ class cFilterMesIm
 	 /// memorize a measure  as in or Out
          void AddInOrOut(const cPt2dr & aPIm,const std::string & aNamePt,bool isIn);
 
-         const cSetMesImGCP &   SetMesImGCP(); ///< acessor
+         const cSetMesGndPt &   SetMesImGCP(); ///< acessor
          const cSetMesPtOf1Im & SetMesIm();    ///< accessor
          void Save();                          ///< save image measure + eventual secondary ettributes
-         void SetFinished();                   ///< 
+         void SetFinished();                   ///<
       private :
 
          cPhotogrammetricProject &  mPhProj;
-         cSetMesImGCP               mImGCP;  // new set GCP/IM
+         cSetMesGndPt               mImGCP;  // new set GCP/IM
          cSetMesPtOf1Im             mMesIm;
          cSetMesPtOf1Im             mMesImSupr;
          std::list<std::string>     mSupr;

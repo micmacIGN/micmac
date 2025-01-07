@@ -87,7 +87,7 @@ class  cPtCheck
        const cMultipleImPt *  mIm;
        cPt2dr                 mP2ImInit;
        cPt2dr                 mP2ImCorr;
-       const cMes1GCP *       mGr;
+       const cMes1Gnd3D *       mGr;
        cPt2di                 mId;
        bool                   mIsOk;
        bool                   mIsZ0;
@@ -106,7 +106,7 @@ class cAppli_CheckGCPDist : public cMMVII_Appli
      private :
 
 	/// give the point their grid Id, init IsZ0,  init Nb0, Nb1
-        void   ComputeGridId(const cSetMesImGCP & aSetMes);
+        void   ComputeGridId(const cSetMesGndPt & aSetMes);
 	///  compute homography Plane -> Im for point in the main plane (Z~0 in CERN-pannel)
         bool   ComputeMainHomogr(cHomogr2D<tREAL8> &);
 	///  for the point up (Z~200 in CERN pannel), compute the homography as a perturbation to previous one
@@ -173,7 +173,8 @@ cCollecSpecArg2007 & cAppli_CheckGCPDist::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
       return anArgObl
               << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
-              <<  mPhProj.DPPointsMeasures().ArgDirInMand()
+              <<  mPhProj.DPGndPt3D().ArgDirInMand()
+              <<  mPhProj.DPGndPt2D().ArgDirInMand()
            ;
 }
 
@@ -191,14 +192,14 @@ cCollecSpecArg2007 & cAppli_CheckGCPDist::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 	      << AOpt2007(mVSpecCernPanel,"SpecCernPan","[H0 H1 Delta Nb Tile Dx Dy] : spec CERN for 11P",
                           {{eTA2007::ISizeV,"[8,8]"}})
 	      << AOpt2007(mGenSpecCERN,"GenarateSpecfifCERNPannel","for editing to a usable value",{eTA2007::HDV})
-              << mPhProj.DPPointsMeasures().ArgDirOutOpt("DirFiltered","Directory for filtered point")
+              << mPhProj.DPGndPt2D().ArgDirOutOpt("DirFiltered","Directory for filtered point")
               << mPhProj.DPOrient().ArgDirInOpt("Calib","Internal calibration folder is any")
     ;
 }
 
 
 
-void   cAppli_CheckGCPDist::ComputeGridId(const cSetMesImGCP & aSetMes)  
+void   cAppli_CheckGCPDist::ComputeGridId(const cSetMesGndPt & aSetMes)  
 {
     mSupId = cPt2di(-1000,-1000);
     cHomogr2D<tREAL8> aHNum ;
@@ -208,7 +209,7 @@ void   cAppli_CheckGCPDist::ComputeGridId(const cSetMesImGCP & aSetMes)
     {
         aVNum.push_back(ToR(aPair.second));
 	SetSupEq(mSupId,aPair.second);
-        const cMes1GCP & aGCP = aSetMes.MesGCPOfName(aPair.first);
+        const cMes1Gnd3D & aGCP = aSetMes.MesGCPOfName(aPair.first);
         aVPlani.push_back(Proj(aGCP.mPt));
     }
     mSupId += cPt2di(1,1);
@@ -364,8 +365,8 @@ void cAppli_CheckGCPDist::MakeOneIm(const std::string & aNameIm)
 {
     mCurNameIm = aNameIm;
 
-    cSetMesImGCP  aSetMes;
-    mPhProj.LoadGCP(aSetMes);
+    cSetMesGndPt  aSetMes;
+    mPhProj.LoadGCP3D(aSetMes);
     mPhProj.LoadIm(aSetMes,aNameIm);
 
     if (mPhProj.DPOrient().DirInIsInit())
@@ -471,8 +472,8 @@ void cAppli_CheckGCPDist::MakeOneIm(const std::string & aNameIm)
           {          
                aFMIM.AddInOrOut(aPC.mP2ImInit,aPC.mGr->mNamePt,aPC.mIsOk);
           }
-	  aFMIM.SetFinished();
-	  aFMIM.Save();
+          aFMIM.SetFinished();
+          aFMIM.Save();
        }
     }
 }
@@ -506,7 +507,7 @@ int cAppli_CheckGCPDist::Exe()
        ReadFromFile(mPannel,mNameGCP);
     }
 
-    mSaveMeasures = mPhProj.DPPointsMeasures().DirOutIsInit();
+    mSaveMeasures = mPhProj.DPGndPt2D().DirOutIsInit();
     // For now this case woul be probably not coherent , but I dont see how avoid it before, so test it now
     if (mUseGCP!=mSaveMeasures)
     {
@@ -524,9 +525,6 @@ int cAppli_CheckGCPDist::Exe()
 
     SaveInFile(mSetOK11,mPrefSave+"_OK_11Param.xml");
     SaveInFile(mSetOKResec,mPrefSave+"_OK_Resec.xml");
-
-    if (mSaveMeasures)
-	  mPhProj.CpGCP();
 
     return EXIT_SUCCESS;
 }                                       
@@ -549,7 +547,7 @@ cSpecMMVII_Appli  TheSpec_OriCheckGCPDist
       Alloc_CheckGCPDist,
       "Check GCP distribution for pose estimation",
       {eApF::Ori},
-      {eApDT::GCP},
+      {eApDT::GndPt2D, eApDT::GndPt3D},
       {eApDT::Orient},
       __FILE__
 );

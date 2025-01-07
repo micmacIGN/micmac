@@ -193,7 +193,7 @@ void AddData(const  cAuxAr2007 & anAux, cSaveExtrEllipe & aCTE)
 
 std::string cSaveExtrEllipe::NameFile(const cPhotogrammetricProject & aPhp,const cSetMesPtOf1Im &  aSetM,bool Input)
 {
-    return  (Input ? aPhp.DPPointsMeasures().FullDirIn() :   aPhp.DPPointsMeasures().FullDirOut() )
+    return  (Input ? aPhp.DPGndPt2D().FullDirIn() :   aPhp.DPGndPt2D().FullDirOut() )
 	    + "Attribute-"
 	    +  aSetM.StdNameFile()
     ;
@@ -836,7 +836,7 @@ cCollecSpecArg2007 & cAppliExtractCircTarget::ArgOpt(cCollecSpecArg2007 & anArgO
              << AOpt2007(mNbMaxMT_PerIm,"NbMMT1","Nb max of multiple target acceptable per image",{eTA2007::HDV})
 
              << AOpt2007(mStepRefineGrad,"StepRefineGrad","Step Refine Sym Grad",{eTA2007::HDV})
-	     <<   mPhProj.DPPointsMeasures().ArgDirOutOptWithDef("Std")
+             <<   mPhProj.DPGndPt2D().ArgDirOutOptWithDef("Std")
           );
 }
 
@@ -1070,7 +1070,7 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
    //  Create a report with header computed from type
    Tpl_AddHeaderReportCSV<cMesIm1Pt>(*this,mIdExportCSV,false);
    // Redirect the reports on folder of result
-   SetReportRedir(mIdExportCSV,mPhProj.DPPointsMeasures().FullDirOut());
+   SetReportRedir(mIdExportCSV,mPhProj.DPGndPt2D().FullDirOut());
 
    mInterpol = new   cTabulatedDiffInterpolator(cSinCApodInterpolator(5.0,5.0));
 

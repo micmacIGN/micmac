@@ -88,7 +88,7 @@ cCollecSpecArg2007 & cAppli_ImportTiePMul::ArgObl(cCollecSpecArg2007 & anArgObl)
               <<  mPhProj.DPMulTieP().ArgDirOutMand();
    else
       return      aRes
-              <<  mPhProj.DPPointsMeasures().ArgDirOutMand();
+              <<  mPhProj.DPGndPt2D().ArgDirOutMand();
 }
 
 cCollecSpecArg2007 & cAppli_ImportTiePMul::ArgOpt(cCollecSpecArg2007 & anArgObl) 
@@ -275,23 +275,23 @@ cSpecMMVII_Appli  TheSpec_ImportTiePMul
 
 /*********************************************************************/
 /*                                                                   */
-/*                       ImportMesImGCP                              */
+/*                       ImportMesGndPt2D                            */
 /*                                                                   */
 /*********************************************************************/
 
-tMMVII_UnikPApli Alloc_ImportMesImGCP(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
+tMMVII_UnikPApli Alloc_ImportMesGndPt2D(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
 {
    return tMMVII_UnikPApli(new cAppli_ImportTiePMul(aVArgs,aSpec,false));
 }
 
-cSpecMMVII_Appli  TheSpec_ImportMesImGCP
+cSpecMMVII_Appli  TheSpec_ImportMesGndPt2D
 (
-     "ImportMesImGCP",
-      Alloc_ImportMesImGCP,
-      "Import/Convert basic Mes Im GCP MMVII format",
+     "ImportMesGndPt2D",
+      Alloc_ImportMesGndPt2D,
+      "Import/Convert basic image point measures into MMVII format",
       {eApF::GCP},
-      {eApDT::GCP},
-      {eApDT::GCP},
+      {eApDT::GndPt2D},
+      {eApDT::GndPt2D},
       __FILE__
 );
 

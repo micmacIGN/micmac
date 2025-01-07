@@ -43,7 +43,8 @@ enum class eTA2007
                 MeshDev,       ///< Mesh Devlopment
                 Mask,          ///< Mask of image
                 MetaData,      ///< Meta data images
-                PointsMeasure, ///< Measure of point , 2D or 3D
+                GndPt3D,       ///< 3D Measure/coords of ground points
+                GndPt2D,       ///< 2D Measure/coords of ground points
                 TieP,          ///< Tie Points
                 MulTieP,       ///< Multiple Tie Points
                 RigBlock,      ///< Rigid bloc    // RIGIDBLOC
@@ -82,7 +83,7 @@ enum class eApF
                SysCo,        ///< Coordinate system
                Ori,        ///< Orientation
                Match,      ///< Dense Matching
-               GCP,       ///< Tie-Point processing
+               GCP,        ///< Ground point processing
                TieP,       ///< Tie-Point processing
                Lines,       ///< Lines processing
                TiePLearn,    ///< Tie-Point processing  - Learning step
@@ -142,7 +143,8 @@ enum class eApDT
               Ori,    ///< Orientation
               PCar,   ///< Tie Points
               TieP,   ///< Tie Points
-              GCP,   ///< Tie Points
+              GndPt2D,  ///< Ground Points image coords
+              GndPt3D,  ///< Ground Points ground coords
               Lines,   ///< Tie Points
               Image,   ///< Image
               Orient,   ///< Orientations files

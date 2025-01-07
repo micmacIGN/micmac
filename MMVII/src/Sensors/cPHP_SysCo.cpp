@@ -172,7 +172,7 @@ tPtrSysCo  cPhotogrammetricProject::CurSysCo(const cDirsPhProj & aDP,bool SVP) c
 
 
 tPtrSysCo  cPhotogrammetricProject::CurSysCoOri(bool SVP) const {return CurSysCo(mDPOrient,SVP);}
-tPtrSysCo  cPhotogrammetricProject::CurSysCoGCP(bool SVP) const {return CurSysCo(mDPPointsMeasures,SVP);}
+tPtrSysCo  cPhotogrammetricProject::CurSysCoGCP(bool SVP) const {return CurSysCo(mDPGndPt3D,SVP);}
 
 void cPhotogrammetricProject::SaveCurSysCo(const cDirsPhProj & aDP,tPtrSysCo aSysCo) const
 {
@@ -181,21 +181,21 @@ void cPhotogrammetricProject::SaveCurSysCo(const cDirsPhProj & aDP,tPtrSysCo aSy
 
 
 void cPhotogrammetricProject::SaveCurSysCoOri(tPtrSysCo aSysCo) const { SaveCurSysCo(mDPOrient,aSysCo); }
-void cPhotogrammetricProject::SaveCurSysCoGCP(tPtrSysCo aSysCo) const { SaveCurSysCo(mDPPointsMeasures,aSysCo); }
+void cPhotogrammetricProject::SaveCurSysCoGCP(tPtrSysCo aSysCo) const { SaveCurSysCo(mDPGndPt3D,aSysCo); }
 
 void cPhotogrammetricProject::SaveStdCurSysCo(bool IsOri) const
 {
      AssertSysCoIsInit();
-     SaveCurSysCo((IsOri ? mDPOrient : mDPPointsMeasures),mCurSysCo);
+     SaveCurSysCo((IsOri ? mDPOrient : mDPGndPt3D),mCurSysCo);
 }
 
 
-void cPhotogrammetricProject::CpSysIn2Out(bool  OriIn,bool OriOut) const
+void cPhotogrammetricProject::CpSysCoIn2Out(bool  OriIn,bool OriOut) const
 {
-   StdOut() << "ENTER_CpSysIn2Out\n";
+   //StdOut() << "ENTER_CpSysIn2Out\n";
    tPtrSysCo aSysIn = OriIn ?  CurSysCoOri(true) : CurSysCoGCP(true);
 
-   StdOut() << "CpSysIn2OutCpSysIn2Out " << OriIn << " " << OriOut << " PTR=" << aSysIn.get() << "\n";
+   //StdOut() << "CpSysIn2OutCpSysIn2Out " << OriIn << " " << OriOut << " PTR=" << aSysIn.get() << "\n";
 
    if (aSysIn.get() == nullptr)
       return;

@@ -98,8 +98,8 @@ cSpecMMVII_Appli  TheSpec_TestProj
         Alloc_TestProj,
         "Test Proj",
         {eApF::SysCo},
-        {eApDT::GCP,eApDT::SysCo},
-        {eApDT::GCP,eApDT::SysCo},
+        {eApDT::GndPt3D,eApDT::SysCo},
+        {eApDT::GndPt3D,eApDT::SysCo},
         __FILE__
         );
 

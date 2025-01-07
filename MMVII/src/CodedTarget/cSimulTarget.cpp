@@ -190,7 +190,7 @@ cCollecSpecArg2007 & cAppliSimulCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt
 {
    return
 	        anArgOpt
-             <<  mPhProj.DPPointsMeasures().ArgDirOutOptWithDef("Simul")
+             <<   mPhProj.DPGndPt2D().ArgDirOutOptWithDef("Simul")
              <<   AOpt2007(mRS.mRadiusMinMax,"Radius","Min/Max radius for gen target",{eTA2007::HDV})
              <<   AOpt2007(mRS.mRatioMinMax,"Ratio","Min/Max ratio between target ellipses axis (<=1)",{eTA2007::HDV})
              <<   AOpt2007(mPatternNames,"PatNames","Pattern for selection of names",{eTA2007::HDV})
@@ -407,7 +407,7 @@ int  cAppliSimulCodeTarget::Exe()
         mPhProj.SaveMeasureIm(aSetM);
    }
 
-   SaveInFile(mRS,mPhProj.DPPointsMeasures().FullDirOut() + mPrefixOut + ThePostfixGTSimulTarget);
+   SaveInFile(mRS,mPhProj.DPGndPt2D().FullDirOut() + mPrefixOut + ThePostfixGTSimulTarget);
    // StdOut() <<  "ooo--OOOOO=" << mPhProj.DPPointsMeasures().FullDirOut() + mPrefixOut + ThePostfixGTSimulTarget << "\n";
 
    mImIn.DIm().ToFile(aNameOut,eTyNums::eTN_U_INT1);

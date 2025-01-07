@@ -162,8 +162,8 @@ cCollecSpecArg2007 & cAppli_PseudoIntersect::ArgObl(cCollecSpecArg2007 & anArgOb
     return     anArgObl
             <<  Arg2007(mSpecImIn,"Pattern/file for images", {{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}}  )
              <<  mPhProj.DPOrient().ArgDirInMand()
-              <<  mPhProj.DPPointsMeasures().ArgDirInMand()
-              <<  mPhProj.DPPointsMeasures().ArgDirOutMand()
+              <<  mPhProj.DPGndPt2D().ArgDirInMand()
+              <<  mPhProj.DPGndPt3D().ArgDirOutMand()
                   ;
 }
 
@@ -224,7 +224,7 @@ int cAppli_PseudoIntersect::Exe()
         }
     }
 
-    cSetMesGCP aMesGCP("PseudoIntersect");
+    cSetMesGnd3D aMesGCP("PseudoIntersect");
     for (const auto & [aStr,aList] : aMapMatch )
     {
         if (aList.size()>=2)
@@ -250,14 +250,14 @@ int cAppli_PseudoIntersect::Exe()
                 StdOut() << "\n";
             }
             if (std::isfinite(aBundleDebugged.mDistPix))
-                aMesGCP.AddMeasure( cMes1GCP(aBundleDebugged.mPG, aStr, -1., "From pseudo-intersection") );
+                aMesGCP.AddMeasure3D( cMes1Gnd3D(aBundleDebugged.mPG, aStr, -1., "From pseudo-intersection") );
             //StdOut() << "\n";
         }
     }
 
     StdOut() << "Total: " << aMesGCP.Measures().size() << " successfully intersected\n";
 
-    mPhProj.SaveGCP(aMesGCP);
+    mPhProj.SaveGCP3D(aMesGCP);
 
     tPtrSysCo aSysCo = mPhProj.CurSysCoOri(true);
     if (!aSysCo)
@@ -265,8 +265,6 @@ int cAppli_PseudoIntersect::Exe()
     if (aSysCo)
         mPhProj.SaveCurSysCoGCP(aSysCo);
 
-    //  copy the image measure to be complete
-    mPhProj.CpMeasureIm();
     return EXIT_SUCCESS;
 }
 
