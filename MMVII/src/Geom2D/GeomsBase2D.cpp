@@ -6,6 +6,7 @@ namespace MMVII
 {
 
 const  cPt2di FreemanV8[8]   {{1,0},{1,1},{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1}};
+const  cPt2di FreemanV4[4]   {{1,0},{0,1},{-1,0},{0,-1}};
 const  cPt2di FreemanV10[10] {{1,0},{1,1},{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1},{1,0},{1,1}};
 
 const std::vector<cPt2di> & Alloc4Neighbourhood() { return AllocNeighbourhood<2>(1); }

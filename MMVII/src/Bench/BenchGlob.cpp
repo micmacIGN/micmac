@@ -472,6 +472,7 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         this->BenchFiles(aParam); // Creation deletion of file
         Bench_Nums(aParam); // Basic numericall services
         BenchKTHVal(aParam);
+        BenchCurveDigit(aParam);
         BenchHamming(aParam);
         BenchPolynome(aParam);
         BenchInterpol(aParam);
