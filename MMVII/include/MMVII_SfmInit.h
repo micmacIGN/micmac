@@ -371,16 +371,23 @@ class cAppli_SfmInitGlob: public cMMVII_Appli
      typedef cIsometry3D<tREAL8>  tPose;
 
      cAppli_SfmInitGlob(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
+     ~cAppli_SfmInitGlob() { delete mEqTr; delete mSys;}
+
      int Exe() override;
      int ExeAllAtOnce();
      cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
      cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+
+     static cSimilitud3D<double> Loc2GlobTrafo(const std::vector<tPose>&,const std::vector<tPose>&);
+
 
  private :
      cPhotogrammetricProject   mPhProj;
 
      int                       mSeed;
      int                       mNbTriEdge;
+
+     bool                      mRunL2;
 
      void SetVecT(cDenseVect<tREAL8>&,
                   tU_INT4, tU_INT4, tU_INT4,
@@ -389,11 +396,12 @@ class cAppli_SfmInitGlob: public cMMVII_Appli
                   tU_INT4, tU_INT4,
                   const cPt4dr&, int);
 
-     void SolveL1(cHyperGraph&); //P0^-1 * P1 = p01
+     void Solve(cHyperGraph&);
      //void SolveL1Parallel(cHyperGraph&);
 
      void Bench_SfmInit();
      void CheckRelOri(cHyperGraph&);
+     void RobustTriplets(cHyperGraph&);
 
 
 };

@@ -494,7 +494,8 @@ void cHyperGraph::CoherencyOfHyperEdges()
                 ///
                 double aCohScore = 0.0;
                 for (auto aI : {0,1,2})
-                {
+                {                          //  r = R * rotation.T
+                                           // tr = translation + L * rotation C
                     cDenseMatrix<double> aRotGInL =  aVPoseGlob[aI].Rot().Mat() * aSimGlob2Loc.Rot().Mat().Transpose();
                     cPt3dr aTrGInL = aSimGlob2Loc.Tr() + aSimGlob2Loc.Scale() * aSimGlob2Loc.Rot().Mat()  * aVPoseGlob[aI].Tr();
 
@@ -891,6 +892,7 @@ void cAppli_SfmInitFromGraph::DoOneSolutionRandom(cHyperGraph& aGraph,cIndexedHe
     cHyperEdge* aSeedTrip = aGraph.GetHyperEdge(aSeedTriplet);
 
     DoOneSolution(aGraph,aHeap,aSeedTrip);
+
 }
 
 template <typename tObj,typename tCmp,typename tInd>
@@ -913,12 +915,23 @@ void cAppli_SfmInitFromGraph::DoOneSolution(cHyperGraph& aGraph,
                       << aPose1Seed.Name() << " "
                       << aPose2Seed.Name() << std::endl;
 
+    cDenseMatrix<double> aZRot(3,3,eModeInitImage::eMIA_Null);
+    aZRot.SetElem(0,0,1);
+    aZRot.SetElem(1,1,-1);
+    aZRot.SetElem(2,2,-1);
+
     /// initialise the global poses of the seed triplet
-    aGraph.GetVertex(aPose0Seed.Name())->Pose().Pose() = aPose0Seed.Pose(); //< set the global pose to be the local pose
+    aGraph.GetVertex(aPose0Seed.Name())->Pose().Pose() =
+            tPose(aPose0Seed.Pose().Tr() ,
+            cRotation3D<double>(aPose0Seed.Pose().Rot().Mat() ,false)); //< set the global pose to be the local pose
     aGraph.GetVertex(aPose0Seed.Name())->FlagOriented() = true;
-    aGraph.GetVertex(aPose1Seed.Name())->Pose().Pose() = aPose1Seed.Pose();
+    aGraph.GetVertex(aPose1Seed.Name())->Pose().Pose() =
+            tPose(aPose1Seed.Pose().Tr() ,
+            cRotation3D<double>(aPose1Seed.Pose().Rot().Mat(),false));
     aGraph.GetVertex(aPose1Seed.Name())->FlagOriented() = true;
-    aGraph.GetVertex(aPose2Seed.Name())->Pose().Pose() = aPose2Seed.Pose();
+    aGraph.GetVertex(aPose2Seed.Name())->Pose().Pose() =
+            tPose(aPose2Seed.Pose().Tr() ,
+            cRotation3D<double>(aPose2Seed.Pose().Rot().Mat(),false));;
     aGraph.GetVertex(aPose2Seed.Name())->FlagOriented() = true;
 
     /// add all neighbouring hyperedges to the heap
@@ -1008,31 +1021,19 @@ void cAppli_SfmInitFromGraph::DoOneSolution(cHyperGraph& aGraph,
             ///
             if (IsUnknownPose)
             {
-                // StdOut() << aCurBestHE->Quality() << std::endl;
-                ///
-                /// 4- Calculate the transformation that takes from local to global frame
-                ///  C = Tr + lambda * M * c   ==>  Tr = C - lambda * M * c
-                ///  M = R^t * r
-                ///  lambda = distnace_global / distance_local
-                ///
-                cDenseMatrix<double> aM_  =  aCurP1Glob.Rot().Mat().Transpose() * aCurBestHE->RelPose(aIdCurP1Glob).Pose().Rot().Mat();
-                cDenseMatrix<double> aM__ =  aCurP2Glob.Rot().Mat().Transpose() * aCurBestHE->RelPose(aIdCurP2Glob).Pose().Rot().Mat();
-                cDenseMatrix<double> aM = (0.5*(aM_+aM__)).ClosestOrthog();//
-
-                double aLambda = Norm2( aCurP2Glob.Tr() - aCurP1Glob.Tr() ) /
-                                 Norm2( aCurBestHE->RelPose(aIdCurP2Glob).Pose().Tr() - aCurBestHE->RelPose(aIdCurP1Glob).Pose().Tr());
-
-
-                cPt3dr aTr_  = aCurP1Glob.Tr() - aLambda * aM * aCurBestHE->RelPose(aIdCurP1Glob).Pose().Tr();
-                cPt3dr aTr__ = aCurP2Glob.Tr() - aLambda * aM * aCurBestHE->RelPose(aIdCurP2Glob).Pose().Tr();
-                cPt3dr aTr = 0.5*(aTr_+aTr__);
+                std::vector<tPose> VPLoc = {aCurBestHE->RelPose(aIdCurP1Glob).Pose(),
+                                            aCurBestHE->RelPose(aIdCurP2Glob).Pose()};
+                std::vector<tPose> VPGlob = {aCurP1Glob,aCurP2Glob};
+                cSimilitud3D<double> aSim = cAppli_SfmInitGlob::Loc2GlobTrafo(VPLoc,VPGlob);
 
 
                 ///
                 /// 5- Set the new global pose
                 ///
-                cRotation3D<double> aNewRot(   aCurBestHE->RelPose(aIdCurP3Glob).Pose().Rot().Mat() * aM.Transpose(), true );
-                cPt3dr aNewCenter = aTr + aLambda * aM * aCurBestHE->RelPose(aIdCurP3Glob).Pose().Tr();
+                // R = r M^t
+                cRotation3D<double> aNewRot( aCurBestHE->RelPose(aIdCurP3Glob).Pose().Rot().Mat() * aSim.Rot().Mat().Transpose() , true );
+                cPt3dr aNewCenter = aSim.Tr() + aSim.Scale() * aSim.Rot().Mat() * aCurBestHE->RelPose(aIdCurP3Glob).Pose().Tr();
+
 
                 std::string aNewPoseName = aCurBestHE->RelPose(aIdCurP3Glob).Name();
                 aGraph.GetVertex(aNewPoseName)->Pose().Pose() = tPose(aNewCenter,aNewRot);
@@ -1043,7 +1044,7 @@ void cAppli_SfmInitFromGraph::DoOneSolution(cHyperGraph& aGraph,
                                                << aCurBestHE->Vertices()[1]->Pose().Name() << " "
                                                << aCurBestHE->Vertices()[2]->Pose().Name() << std::endl;*/
 
-                        if (true)
+                        if (false)
                         {
                             StdOut() << "paerents: " <<  aCurBestHE->RelPose(aIdCurP1Glob).Name() << " "
                                                      <<  aCurBestHE->RelPose(aIdCurP2Glob).Name() << std::endl;
@@ -1125,8 +1126,8 @@ void cAppli_SfmInitFromGraph::DoOneSolution(cHyperGraph& aGraph,
                                                 << aCurP2Glob.Tr().z() << "]" << std::endl;
 
                             StdOut() << "=====similarity" << std::endl;
-                            aM.Show();
-                            StdOut() << "Tr=" << aTr << ", L=" << aLambda << std::endl;
+                            aSim.Rot().Mat().Show();
+                            StdOut() << "Tr=" << aSim.Tr() << ", L=" << aSim.Scale() << std::endl;
                             StdOut() << "=====new pose" << std::endl;
                             //aNewRot.Mat().Show();
                             StdOut() << "[";
@@ -1142,7 +1143,10 @@ void cAppli_SfmInitFromGraph::DoOneSolution(cHyperGraph& aGraph,
                             StdOut() << "Q=" << aNewRot.ToWPK() << std::endl;
                             StdOut() << "tr=" << aNewCenter << std::endl;
 
-                            getchar();
+                            if( (aCurBestHE->RelPose(aIdCurP1Glob).Name() == "image_002_00103.tif") &&
+                                (aCurBestHE->RelPose(aIdCurP2Glob).Name() == "image_002_00104.tif") &&
+                                    (aNewPoseName=="image_002_00105.tif"))
+                                getchar();
 
                         }
                    // }
@@ -1182,15 +1186,24 @@ void cAppli_SfmInitFromGraph::DoOneSolution(cHyperGraph& aGraph,
 
     }
 
+    int CntUnOri=0;
+    StdOut() << "#F=N X Y Z W P K" << std::endl;
     const std::unordered_map<std::string,cVertex*> aMapV = aGraph.GetMapVertices();
     for (auto aV : aMapV)
     {
         if (aV.second->FlagOriented())
-            StdOut() << aV.first << " " << aV.second->Pose().Pose().Tr().x() << " "
-                     << aV.second->Pose().Pose().Tr().y() << " "
-                     << aV.second->Pose().Pose().Tr().z() << std::endl;
+        {
+            cPt3dr aFlippedC = aV.second->Pose().Pose().Tr() * aZRot; //micmac convention
+            cPt3dr aWPK = aV.second->Pose().Pose().Rot().ToWPK();
+            StdOut() << aV.first << " " << aFlippedC.x() << " "
+                     << aFlippedC.y() << " "
+                     << aFlippedC.z() << " "
+                     << aWPK[0] << " " << aWPK[1] << " " << aWPK[2] << std::endl;
+        }
+        else
+            CntUnOri++;
     }
-
+    StdOut() << "# Unoriented " << CntUnOri << std::endl;
     StdOut() << "==END==" << std::endl;
 
 
@@ -1241,6 +1254,8 @@ int cAppli_SfmInitFromGraph::Exe()
 
      //aHG.ShowHyperEdgeVQual();
 
+
+
      /// 3- get the best solution
      ///
      //update the quality
@@ -1256,6 +1271,7 @@ int cAppli_SfmInitFromGraph::Exe()
      cIndexedHeap<cHyperEdge*,cCmpEdge,cIndexEdgeOnId> aH(aCm);
      DoOneSolution(aHG,aH,aSeed);
 
+     StdOut() << "END OF PRGM" << std::endl;
 
      //< save the graph in dot format
      //std::string aDotName = mPhProj.DirPhp() + "test.dot";
@@ -1265,7 +1281,6 @@ int cAppli_SfmInitFromGraph::Exe()
      for (auto aIt : aMapIm2V)
          delete aIt.second;*/
 
-     delete aSeed;
      delete aTriSet;
 
      return EXIT_SUCCESS;
@@ -1617,7 +1632,10 @@ cAppli_SfmInitGlob::cAppli_SfmInitGlob(const std::vector<std::string> & aVArgs,c
     cMMVII_Appli (aVArgs,aSpec),
     mPhProj      (*this),
     mSeed        (1),
-    mNbTriEdge   (2)
+    mNbTriEdge   (2),
+    mEqTr        (nullptr),
+    mSys         (nullptr),
+    mRunL2       (false)
 {
 }
 
@@ -1635,6 +1653,7 @@ cCollecSpecArg2007 & cAppli_SfmInitGlob::ArgOpt(cCollecSpecArg2007 & anArgOpt)
    return    anArgOpt
            << AOpt2007(mSeed,"Seed", "Triplet that sets the origin (gauge); def=random")
            << AOpt2007(mNbTriEdge,"NbEdge", "Number of triplet edges used (1 or 2); def=2")
+           << AOpt2007(mRunL2,"L2", "L2 optimisation, by default L1")
            << mPhProj.DPOriTriplets().ArgDirOutOpt("OriOut","Output triplets",true)
               ;
 }
@@ -1648,12 +1667,13 @@ void cAppli_SfmInitGlob::SetVecT(cDenseVect<tREAL8>& aVC,
 
     aVC(aIdLambda) = -tr[coord];
 
+    // in MM convention, the 1st coordinate is the col
     aVC(aId2) = -rot(0,coord);
     aVC(aId2+1) = -rot(1,coord);
     aVC(aId2+2) = -rot(2,coord);
-    //aVC(aId2) = -rot(coord,0);
-    //aVC(aId2+1) = -rot(coord,1);
-    //aVC(aId2+2) = -rot(coord,2);
+  /*  aVC(aId2) = -rot(coord,0);
+    aVC(aId2+1) = -rot(coord,1);
+    aVC(aId2+2) = -rot(coord,2); */
 
 }
 
@@ -1707,6 +1727,8 @@ int cAppli_SfmInitGlob::Exe()
     cHyperGraph aHG;
     aHG.InitFromTriSet(aTriSet);
 
+    //RobustTriplets(aHG);
+
     //std::string aNSetName = mPhProj.DirPhp() + mPhProj.DPOriTriplets().DirOut() + "/RedGraph";
     //cTripletSet aRedSet = aHG.ReduceGraph(aNSetName);
     //aRedSet.ToFile(aNSetName+".xml");
@@ -1714,7 +1736,7 @@ int cAppli_SfmInitGlob::Exe()
     getchar();
 
     //CheckRelOri(aHG);
-    SolveL1(aHG);
+    Solve(aHG);
 
     /// Print output poses
     for (auto aV : aHG.GetMapVertices())
@@ -1724,6 +1746,7 @@ int cAppli_SfmInitGlob::Exe()
                  << aV.second->Pose().Pose().Tr().y() << " "
                  << aV.second->Pose().Pose().Tr().z() << " "
                  << aWPK[0] << " " << aWPK[1] << " " << aWPK[2] << std::endl;
+       // aV.second->Pose().Pose().Rot().Mat().Show();
     }
 
     delete aTriSet;
@@ -1731,7 +1754,128 @@ int cAppli_SfmInitGlob::Exe()
     return EXIT_SUCCESS;
 }
 
+cSimilitud3D<double> cAppli_SfmInitGlob::Loc2GlobTrafo(const std::vector<tPose>& VPLoc,const std::vector<tPose>& VPGlob)
+{
 
+
+    ///
+    /// 4- Calculate the transformation that takes from local to global frame
+    ///  C = Tr + lambda * M * c   ==>  Tr = C - lambda * M * c
+    ///  M = R^t * r => R = r * M^t
+    ///  lambda = distnace_global / distance_local
+    ///
+    cDenseMatrix<double> aM_  =  VPGlob[0].Rot().Mat().Transpose() * VPLoc[0].Rot().Mat();
+    cDenseMatrix<double> aM__ =  VPGlob[1].Rot().Mat().Transpose() * VPLoc[1].Rot().Mat();
+    cDenseMatrix<double> aM = (0.5*(aM_+aM__)).ClosestOrthog();//
+
+    double aLambda = Norm2( VPGlob[1].Tr() - VPGlob[0].Tr() ) /
+                     Norm2( VPLoc[1].Tr() - VPLoc[0].Tr());
+
+    cPt3dr aTr_  =   VPGlob[0].Tr() - aLambda * aM * VPLoc[0].Tr();
+    cPt3dr aTr__ =   VPGlob[1].Tr() - aLambda * aM * VPLoc[1].Tr();
+    cPt3dr aTr = 0.5*(aTr_+aTr__);
+
+    cSimilitud3D<double> aSimil(aLambda,aTr,cRotation3D<double>(aM,false));
+
+
+    return aSimil;
+}
+
+/*
+    for every edge:
+        find reference triplet/edge
+            for every adjacent triplet
+                comptute the distance between all other triplets in that edge
+        take the triplet with best score as reference
+        you can save this one triplet per edge as a minim graph
+        otherwise, compute again scores of all triplets to the refernece triplpet
+        save first two or three triplets conditioned on error
+
+
+*/
+
+void cAppli_SfmInitGlob::RobustTriplets(cHyperGraph& aHG)
+{
+    for (auto edge : aHG.AdjMap())
+    {
+        int aNbTri =  edge.second.size();
+        double TotalRotDist=0;
+        double TotalTrDist=0;
+
+        int edgeId0 = edge.first.StartVertex()->Id();
+        int edgeId1 = edge.first.EndVertex()->Id();
+
+        StdOut() << edgeId0 << " " << edge.first.StartVertex()->Pose().Name() << " "
+                 << edgeId1 << " " << edge.first.EndVertex()->Pose().Name()
+                 << ", # triplets= " << aNbTri << " ";
+
+        // pick a random reference edge
+        int aRandTri = round_down(RandUnif_0_1()*aNbTri);
+        std::vector<tPose> VPGlob(2);
+        for (int aV : {0,1,2})
+        {
+            if (edge.second[aRandTri]->Vertices()[aV]->Id()==edgeId0)
+                VPGlob[0] = edge.second[aRandTri]->RelPose(aV).Pose();
+            else if (edge.second[aRandTri]->Vertices()[aV]->Id()==edgeId1)
+                VPGlob[1] = edge.second[aRandTri]->RelPose(aV).Pose();
+        }
+
+
+        /// iterate over all triplets adjacent to the current edge
+        ///
+        int triCnt=0;
+        for (auto aT : edge.second)
+        {
+
+            //identify sommets in aT that correspond to the current edge
+            int VId0=1e5;
+            int VId1=1e5;
+            for (int aV : {0,1,2})
+            {
+                if (aT->Vertices()[aV]->Id()==edgeId0)
+                    VId0 = aV;
+                else if (aT->Vertices()[aV]->Id()==edgeId1)
+                    VId1 = aV;
+            }
+
+            //compute relative orientation between VId0 and VId1
+            //
+            std::vector<tPose> VPLoc = {aT->RelPose(VId0).Pose(),
+                                        aT->RelPose(VId1).Pose()};
+
+
+            cSimilitud3D<double> aSim = cAppli_SfmInitGlob::Loc2GlobTrafo(VPLoc,VPGlob);
+
+
+
+            double RotDist = 0.0;
+            double TrDist = 0.0;
+
+            //accumulate errors for each vertex of the edge
+            for (auto i : {0,1})
+            {
+
+                cDenseMatrix<double> RLocInGlob = VPLoc[i].Rot().Mat() * aSim.Rot().Mat().Transpose();
+                cPt3dr TrLocInGlob = aSim.Tr() + aSim.Scale() * aSim.Rot().Mat() * VPLoc[i].Tr();
+
+                RotDist += RLocInGlob.L2Dist(VPGlob[i].Rot().Mat());
+
+                if ( (TrLocInGlob!=cPt3dr(0,0,0)) && VPGlob[i].Tr()!=cPt3dr(0,0,0))
+                    TrDist += DistBase(TrLocInGlob,VPGlob[i].Tr());  //DistBase(aTrGInL,aVPoseLoc[aI].Tr()) * aTri->BsurH();
+            }
+
+           // StdOut() << "\t" << triCnt << " RotDist=" << RotDist << ", TrDist=" << TrDist << std::endl;
+
+            TotalRotDist+=RotDist;
+            TotalTrDist+=TrDist;
+
+            triCnt++;
+        }
+        StdOut() << "\t" << " RotDist=" << TotalRotDist << ", TrDist=" << TotalTrDist << std::endl;
+
+    }
+
+}
 
 void cAppli_SfmInitGlob::CheckRelOri(cHyperGraph& aHG)
 {
@@ -1800,7 +1944,7 @@ void cAppli_SfmInitGlob::CheckRelOri(cHyperGraph& aHG)
 }
 
 
-void cAppli_SfmInitGlob::SolveL1(cHyperGraph& aHG)
+void cAppli_SfmInitGlob::Solve(cHyperGraph& aHG)
 {
     tU_INT4 aNbTriplets = aHG.NbHEdges();
     tU_INT4 aNbVertices = aHG.NbVertices();
@@ -1817,10 +1961,23 @@ void cAppli_SfmInitGlob::SolveL1(cHyperGraph& aHG)
     StdOut() << "# triplets " << aNbTriplets << ", vertices " <<  aNbVertices << std::endl;
     StdOut() << "# unknows related to Tr=" << aNbUnkTr << ", rot=" << aNbUnkRot << std::endl;
     StdOut() << "# obs related to Tr=" << aNbObsTr << ", rot=" << aNbObsRot << std::endl;
-    cLinearOverCstrSys<tREAL8> *  aSysTr = AllocL1_Barrodale<tREAL8>(aNbUnkTr);
+
+    cLinearOverCstrSys<tREAL8> *  aSysTr = nullptr;
+
+    if (mRunL2)
+        aSysTr = cLinearOverCstrSys<tREAL8>::AllocSSR(eModeSSR::eSSR_LsqNormSparse,aNbUnkTr);
+    else
+        aSysTr = AllocL1_Barrodale<tREAL8>(aNbUnkTr);
     aSysTr->PublicReset();
-    cLinearOverCstrSys<tREAL8> *  aSysRot = AllocL1_Barrodale<tREAL8>(aNbUnkRot);
+
+    cLinearOverCstrSys<tREAL8> *  aSysRot = nullptr;
+    if (mRunL2)
+        aSysRot = cLinearOverCstrSys<tREAL8>::AllocSSR(eModeSSR::eSSR_LsqNormSparse,aNbUnkRot);
+    else
+        aSysRot = AllocL1_Barrodale<tREAL8>(aNbUnkRot);
     aSysRot->PublicReset();
+
+    //mSys
 
     // M poses, N triplets
     // vector of unknowns for translation:
@@ -1831,6 +1988,10 @@ void cAppli_SfmInitGlob::SolveL1(cHyperGraph& aHG)
     //        image1             image M
     // [ Q1w Q1x Q1y Q1z ... QMw QMx QMy QMz ]
 
+    // P0 = p01 * P1
+    //     = [lambda c, r] [C1, R1]
+    //     = [lambda c + r * C1, r * R1 ]
+
     cDenseVect<tREAL8> aSolTr(aNbUnkTr,eModeInitImage::eMIA_Null);
     cDenseVect<tREAL8> aSolRot(aNbUnkRot,eModeInitImage::eMIA_Null);
 
@@ -1839,7 +2000,7 @@ void cAppli_SfmInitGlob::SolveL1(cHyperGraph& aHG)
 
     std::vector<int> EdgeNums = (mNbTriEdge==1) ? std::vector<int>{1} : std::vector<int>{1,2};
 
-
+    std::map<std::string,int> AVOIDDUPL;
 
     cDenseVect<tREAL8> aVectCoefTr(aNbUnkTr,eModeInitImage::eMIA_Null);
     cDenseVect<tREAL8> aVectCoefR(aNbUnkRot,eModeInitImage::eMIA_Null);
@@ -1861,15 +2022,21 @@ void cAppli_SfmInitGlob::SolveL1(cHyperGraph& aHG)
         for (auto aEdge : EdgeNums) //  add an edge of the triplet
         {
 
+            cPt3dr tr = aHG.GetHyperEdge(aT)->RelPose(aEdge).Pose().Tr();
+            cDenseMatrix<double> rot = aHG.GetHyperEdge(aT)->RelPose(aEdge).Pose().Rot().Mat().Transpose();
+            cPt4dr q = MatrRot2Quat(rot);
+
+
             for (auto aC : {0,1,2}) //add each translation coordinate
             {
+
                 // fill the vector of coefficients
                 SetVecT(aVectCoefTr,
                         aIdGlobVec[0]*TR_UNK_SZ,
                         aIdGlobVec[aEdge]*TR_UNK_SZ,
                         aNbVertices*TR_UNK_SZ+aT,
-                        aHG.GetHyperEdge(aT)->RelPose(aEdge).Pose().Rot().Mat().Inverse(),
-                        aHG.GetHyperEdge(aT)->RelPose(aEdge).Pose().Tr(),
+                        rot,
+                        tr,
                         aC);
 
                 // for (auto i : aVectCoef.ToStdVect())
@@ -1883,26 +2050,32 @@ void cAppli_SfmInitGlob::SolveL1(cHyperGraph& aHG)
 
 
             }
-
-            cPt4dr q_rel = MatrRot2Quat(aHG.GetHyperEdge(aT)->RelPose(aEdge).Pose().Rot().Mat().Inverse());//.Inverse()
-
-            for (auto aC : {0,1,2,3}) //add each quaternion coordinate
+            // avoid duplicates for angles Barrodale does not like it
+            //std::string CurEdg = aHG.GetHyperEdge(aT)->RelPose(0).Name()+
+            //                     aHG.GetHyperEdge(aT)->RelPose(aEdge).Name();
+            //if (AVOIDDUPL.find(CurEdg)==AVOIDDUPL.end())
             {
+            //    AVOIDDUPL[CurEdg] = 1;
+                for (auto aC : {0,1,2,3}) //add each quaternion coordinate
+                {
 
-                SetVecQ(aVectCoefR,
-                        aIdGlobVec[0]*ROT_UNK_SZ,
-                        aIdGlobVec[aEdge]*ROT_UNK_SZ,
-                        q_rel, aC);
+                    SetVecQ(aVectCoefR,
+                            aIdGlobVec[0]*ROT_UNK_SZ,
+                            aIdGlobVec[aEdge]*ROT_UNK_SZ,
+                            q, aC);
 
-                // for (auto i : aVectCoef.ToStdVect())
-                //     StdOut() << i << std::endl;
-                // getchar();
+                    // for (auto i : aVectCoef.ToStdVect())
+                    //     StdOut() << i << std::endl;
+                    // getchar();
 
-                //add equation
-                aSysRot->PublicAddObservation(1,aVectCoefR,0.0);
-                //reset coeff
-                aVectCoefR.DIm().InitNull();
+                    //add equation
+                    aSysRot->PublicAddObservation(1,aVectCoefR,0.0);
+                    //reset coeff
+                    aVectCoefR.DIm().InitNull();
+                }
             }
+           // else
+           //     StdOut() << "rot dupl" << std::endl;
         }
     }
     // fix origin origin
@@ -1950,7 +2123,7 @@ void cAppli_SfmInitGlob::SolveL1(cHyperGraph& aHG)
     {
 
         // retrieve the solution
-        cPt3dr aC = {aSolTr(aV.second->Id()*TR_UNK_SZ),
+        cPt3dr aTr = {aSolTr(aV.second->Id()*TR_UNK_SZ),
                     aSolTr(aV.second->Id()*TR_UNK_SZ+1),
                     aSolTr(aV.second->Id()*TR_UNK_SZ+2)};
         cPt4dr aQ = {aSolRot(aV.second->Id()*ROT_UNK_SZ),
@@ -1959,19 +2132,31 @@ void cAppli_SfmInitGlob::SolveL1(cHyperGraph& aHG)
                      aSolRot(aV.second->Id()*ROT_UNK_SZ+3)};
 
         // compute the inverse of rot and tr
-        // tr = -R^-1 C
-        //rot = R^-1
+        // tr = -R^-1 C => C = -R * tr = -rot^-1 * tr
+        //rot = R^-1    => R = rot^-1
         cDenseMatrix<double> aZRot(3,3,eModeInitImage::eMIA_Null);
         aZRot.SetElem(0,0,1);
         aZRot.SetElem(1,1,-1);
         aZRot.SetElem(2,2,-1);
 
 
-        cRotation3D<double> aRotInv(Quat2MatrRot(aQ).Inverse(),true);
+/*       micmac worked with that before changing inverse for mats and order in SetT
+ *
+ *        cRotation3D<double> aRotInv(Quat2MatrRot(aQ).Inverse(),true);
         cRotation3D<double> aRot(aRotInv.Mat().Transpose(),true);
 
         cPt3dr aCInv = -aRotInv.Mat() * aC;
-        aCInv = aCInv * aZRot;
+        aCInv = aCInv *  aZRot;  //for viabon
+
+        // save the output pose
+        cView aOutPose( tPose(aCInv,aRot), aV.second->Pose().Name() );
+        aV.second->SetPose(aOutPose);*/
+        cRotation3D<double> aRotInv(Quat2MatrRot(aQ).Inverse(),true);
+        cRotation3D<double> aRot(aRotInv.Mat().Transpose(),true);
+
+        cPt3dr aCInv = -aRotInv.Mat() * aTr;
+        //flip the pose
+        aCInv = aCInv *  aZRot;
 
         // save the output pose
         cView aOutPose( tPose(aCInv,aRot), aV.second->Pose().Name() );
@@ -2245,7 +2430,7 @@ void cAppli_SfmInitGlob::Bench_SfmInit()
         if (p!=0) //p==0 is set to identify to be coherent with SolveL1 setting
         {
             aR = cRotation3D<tREAL8>::RandomRot();
-            aC = cPt3dr::PRandUnit();
+            aC = cPt3dr::PRandUnit() ;
         }
 
         aGlobPosesRef.push_back(tPose(aC,aR));
@@ -2298,9 +2483,19 @@ void cAppli_SfmInitGlob::Bench_SfmInit()
 
         // Pa Pb = [Ca,Ra] [Cb,Rb] = [Ca + Ra * Cb, Ra * Rb]
 
-        //  P1 * P0^-1 = p01
+        // P0 * P1^-1   OKKKKKKK
+        //  [ C0, R0 ] [-R1^-1 * C1, R1^-1]       = [lambda * c01,r01]
+        //  [ C0 + R0 * (-R1^-1 * C1), R0 * R1^-1]= [lambda * c01,r01]
+
+        // P1 * P0^-1 = p01
         //  [C1 , R1] [-R0^-1 * C0   , R0^-1]       = [lambda * c01,r01]
         //  [ C1 + R1 * (-R0^-1 * C0), R1 * R0^-1 ] = [lambda * c01,r01]
+        // P0^-1 * P1
+        //  [-R0^-1 * C0   , R0^-1] [C1 , R1]
+        //  [-R0^-1 * C0 + R0^-1 * C1, R0^-1 * R1 ]
+        // P1^-1 * P0
+        //  [-R1^-1 * C1, R1^-1]  [ C0, R0 ]
+        //  [ -R1^-1 * C1 + -R1^-1 * C0, R1^-1 * R0 ]
 
         for (auto i : {aT.second[1],aT.second[2]})
         {
@@ -2314,22 +2509,29 @@ void cAppli_SfmInitGlob::Bench_SfmInit()
             cPt3dr c01  = 1/aLambda* (R0Inv * (C1-C0));
 
             EdgeVec.push_back(cView(tPose(c01,cRotation3D<double>(r01.Transpose(),false)), // works with .inverse()
-                                                "image_"+ToStr(i)));
-*/
+                                                "image_"+ToStr(i)));*/
+
             cDenseMatrix<double> R0 = aGlobPosesRef[aT.second[0]].Rot().Mat();
             cDenseMatrix<double> R0Inv = R0.Inverse();
             cPt3dr C0 = aGlobPosesRef[aT.second[0]].Tr();
 
             cDenseMatrix<double> R1 = aGlobPosesRef[i].Rot().Mat();
+            cDenseMatrix<double> R1Inv = R1.Inverse();
             cPt3dr C1 =  aGlobPosesRef[i].Tr();
 
+            // P0 * P1^-1
+            //  [ C0, R0 ] [-R1^-1 * C1, R1^-1]       = [lambda * c01,r01]
+            //  [ C0 + R0 * (-R1^-1 * C1), R0 * R1^-1]= [lambda * c01,r01]
 
-            cDenseMatrix<double> r01 = R1 * R0Inv ;
+            // P0^-1 * P1
+            //  [-R0^-1 * C0   , R0^-1] [C1 , R1]
+            //[-R0^-1 * C0 + R0^-1 * C1, R0^-1 * R1 ]^Transpose
+            cDenseMatrix<double> r01 =   R0 * R1Inv;//  ; //worked
+            //cPt3dr c01  = 1/aLambda * (-R0 * C0 + R0 * C1);     //worked
             cPt3dr c01  = 1/aLambda * (-R0 * C0 + R0 * C1);
 
 
-
-            EdgeVec.push_back(cView(tPose(c01,cRotation3D<double>(r01,false)), //
+            EdgeVec.push_back(cView(tPose(c01,cRotation3D<double>(r01.Transpose(),false)), //
                                               "image_"+ToStr(i)));
         }
 
@@ -2344,7 +2546,7 @@ void cAppli_SfmInitGlob::Bench_SfmInit()
     aHG.InitFromTriSet(TriSet);
 
     // solve  L1
-    SolveL1(aHG);
+    Solve(aHG);
 
     // compare with the reference poses
     for (int i=0; i<N; i++)
@@ -2353,10 +2555,12 @@ void cAppli_SfmInitGlob::Bench_SfmInit()
         cPt3dr aCRef = aGlobPosesRef[i].Tr();
         cDenseMatrix<double> aRRef = aGlobPosesRef[i].Rot().Mat();
 
-        cPt3dr aC = aHG.GetVertex(aN1)->Pose().Pose().Tr() * aZRot; // rotate around Z to comply with MicMac convention
+        cPt3dr aC = aHG.GetVertex(aN1)->Pose().Pose().Tr() * aZRot  ; //
         cDenseMatrix<double> aR = aHG.GetVertex(aN1)->Pose().Pose().Rot().Mat();
 
         double aResC = Norm2(aCRef - aC);
+        StdOut() << aCRef << std::endl;
+        StdOut() << aC << std::endl;
 
         double aResR = aRRef.SqL2Dist(aR,true);
 

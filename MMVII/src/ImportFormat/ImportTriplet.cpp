@@ -150,10 +150,6 @@ int cAppli_ImportTriplet::Exe()
         //StdOut() << aTriXML.Name1() << " " << aTriXML.Name2() << " " << aTriXML.Name3() << std::endl;
         //StdOut() << "centers: " << aCenter21 << " " << aCenter31 << std::endl;
 
-        tPose aPose1 = cIsometry3D<tREAL8>::Identity();
-        tPose aPose21(aCenter21,aR21);
-        tPose aPose31(aCenter31,aR31);
-
         cTriplet aTri;
 
         aTri.Id() = aId++;
