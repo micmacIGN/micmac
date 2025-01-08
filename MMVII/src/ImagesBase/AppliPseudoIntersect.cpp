@@ -257,11 +257,9 @@ int cAppli_PseudoIntersect::Exe()
 
     StdOut() << "Total: " << aMesGCP.Measures().size() << " successfully intersected\n";
 
-    mPhProj.SaveGCP3D(aMesGCP);
+    mPhProj.SaveGCP3D(aMesGCP,mPhProj.DPGndPt3D().DirOut());
 
     tPtrSysCo aSysCo = mPhProj.CurSysCoOri(true);
-    if (!aSysCo)
-        aSysCo = mPhProj.CurSysCoGCP(true);
     if (aSysCo)
         mPhProj.SaveCurSysCoGCP(aSysCo);
 
