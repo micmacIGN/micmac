@@ -753,7 +753,19 @@ int cAppli_CalibratedSpaceResection::Exe()
 
     }
 
-    mPhProj.SaveCamPC(aCam);
+    auto aSysCoGCP = mPhProj.CurSysCoGCP(true);
+    if (aSysCoGCP)
+    {
+        // check that output ori current sysco is the same
+        tPtrSysCo aSysCoOri = mPhProj.CurSysCoOri(true, false);
+        if (aSysCoOri)
+        {
+            MMVII_INTERNAL_ASSERT_User(aSysCoOri->Def() == aSysCoGCP->Def(), eTyUEr::eSysCo,
+                                       "Incoherence between already existing Ori SysCo and GCP SysCo");
+        } else
+            mPhProj.SaveCurSysCoOri(aSysCoGCP);
+    }
+    mPhProj.SaveCamPC(aCam);;
 
 
     return EXIT_SUCCESS;

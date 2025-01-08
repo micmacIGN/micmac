@@ -157,13 +157,13 @@ std::string  cPhotogrammetricProject::NameCurSysCo(const cDirsPhProj & aDP,bool 
 
 }
 
-tPtrSysCo  cPhotogrammetricProject::CurSysCo(const cDirsPhProj & aDP,bool SVP) const
+tPtrSysCo  cPhotogrammetricProject::CurSysCo(const cDirsPhProj & aDP,bool SVP, bool IsIn) const
 {
-    std::string aPath = NameCurSysCo(aDP,true);
+    std::string aPath = NameCurSysCo(aDP,IsIn);
     if (! ExistFile(aPath))
     {
        if (! SVP)
-           MMVII_UnclasseUsEr("CurSysCo dont exist : " + aPath);
+           MMVII_UnclasseUsEr("CurSysCo does not exist : " + aPath);
        return tPtrSysCo(nullptr);
     }
 
@@ -171,8 +171,8 @@ tPtrSysCo  cPhotogrammetricProject::CurSysCo(const cDirsPhProj & aDP,bool SVP) c
 }
 
 
-tPtrSysCo  cPhotogrammetricProject::CurSysCoOri(bool SVP) const {return CurSysCo(mDPOrient,SVP);}
-tPtrSysCo  cPhotogrammetricProject::CurSysCoGCP(bool SVP) const {return CurSysCo(mDPGndPt3D,SVP);}
+tPtrSysCo  cPhotogrammetricProject::CurSysCoOri(bool SVP, bool IsIn) const {return CurSysCo(mDPOrient, SVP, IsIn);}
+tPtrSysCo  cPhotogrammetricProject::CurSysCoGCP(bool SVP, bool IsIn) const {return CurSysCo(mDPGndPt3D, SVP, IsIn);}
 
 void cPhotogrammetricProject::SaveCurSysCo(const cDirsPhProj & aDP,tPtrSysCo aSysCo) const
 {

@@ -676,9 +676,9 @@ class cPhotogrammetricProject
 
                   //  ======== [1]  Sysco saved in "MMVII-PhgrProj/Ori/"  or "MMVII-PhgrProj/PointsMeasure//"
          std::string  NameCurSysCo(const cDirsPhProj &,bool IsIn) const;
-         tPtrSysCo  CurSysCo(const cDirsPhProj &,bool SVP=false) const;
-         tPtrSysCo  CurSysCoOri(bool SVP=false) const;
-         tPtrSysCo  CurSysCoGCP(bool SVP=false) const;
+         tPtrSysCo  CurSysCo(const cDirsPhProj &,bool SVP=false, bool IsIn=true) const;
+         tPtrSysCo  CurSysCoOri(bool SVP=false, bool IsIn=true) const;
+         tPtrSysCo  CurSysCoGCP(bool SVP=false, bool IsIn=true) const;
          void SaveCurSysCo(const cDirsPhProj &,tPtrSysCo) const ;
          void SaveCurSysCoOri(tPtrSysCo) const ;
          void SaveCurSysCoGCP(tPtrSysCo) const ;
