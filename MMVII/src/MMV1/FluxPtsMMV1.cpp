@@ -15,6 +15,46 @@
 namespace MMVII
 {
 
+class cConfig_Freeman_Or
+{
+   public :
+      cConfig_Freeman_Or(bool v8,bool trigo);
+/*
+      inline Pt2di kth_p(INT k) const   { return _pts[k];}
+      inline INT    succ(INT k) const   { return _succ[k];}
+      inline INT    prec(INT k) const   { return _prec[k];}
+      inline INT     sym(INT k) const   { return _sym[k];}
+      inline INT    nb_pts()    const   { return _nb_pts;}
+
+      inline INT  num_pts(Pt2di p)  const
+                  {return compute_freem_code(*_mat_code,p);}
+*/
+
+   private :
+      bool                 mV8;
+      bool                 mTrigo;
+      size_t               mNbPts;
+      const cPt2di *       mRawPts;
+      std::vector<cPt2di>  mVPts;
+/*
+      Pt2di           *  _pts ;
+      INT                _nb_pts;
+      INT             * _succ ;
+      INT             * _prec ;
+      INT             * _sym ;
+      MAT_CODE_FREEM  * _mat_code;
+*/
+};
+
+
+cConfig_Freeman_Or::cConfig_Freeman_Or(bool v8,bool trigo) :
+  mV8     (v8),
+  mTrigo  (trigo),
+  mNbPts  (mV8 ? 8 : 4),
+  mRawPts (
+
+
+
 class cAbsCurv2Pts
 {
      public :
