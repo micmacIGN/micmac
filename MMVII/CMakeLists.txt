@@ -65,6 +65,9 @@ endif()
 # GDAL
 find_package(GDAL 3.4 REQUIRED)
 
+# PDAL
+find_package(PDAL REQUIRED)
+
 # Threads
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads)
@@ -140,8 +143,8 @@ file(GLOB mmv2_headers "${mmv2_include_dir}/*.h" "${mmv2_include_dir}/*/*.h" "${
 ##        libP2007 buid (MMVII library)
 #######################################################
 add_library(P2007 "${mmv2_libsrcs}" "${mmv2_headers}")
-target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH};${PROJ_INCLUDE_DIRS};${GDAL_INCLUDE_DIRS}")
-target_link_libraries(P2007 PRIVATE MMVII_compiler_flags Threads::Threads ${PROJ_LIBRARIES} ${GDAL_LIBRARIES})
+target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH};${PDAL_INCLUDE_DIRS};${PROJ_INCLUDE_DIRS};${GDAL_INCLUDE_DIRS}")
+target_link_libraries(P2007 PRIVATE MMVII_compiler_flags Threads::Threads ${PROJ_LIBRARIES} ${GDAL_LIBRARIES} ${PDAL_LIBRARIES})
 
 # Force parallel compilation with MSVC
 if(MSVC)
