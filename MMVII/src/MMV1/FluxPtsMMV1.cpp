@@ -18,9 +18,20 @@ namespace MMVII
 class cConfig_Freeman_Or
 {
    public :
+      typedef size_t tIndex;
+
       cConfig_Freeman_Or(bool v8,bool trigo);
+      const cPt2di & KPt(tIndex aK) const   { return mVPts.at(aK);}
+      size_t NbPts() const {return mNbPts;}
+      tIndex   IndSucc(tIndex aK) const {return mSucc.at(aK);}
+      tIndex   IndPred(tIndex aK) const {return mPred.at(aK);}
+      tIndex   IndSym(tIndex aK) const  {return mSym.at(aK);}
+
+      const tIndex  Pt2Ind(const cPt2di & aPt) const
+      {
+            return  const_cast<cConfig_Freeman_Or*>(this)->AddrP2I(aPt);
+      }
 /*
-      inline Pt2di kth_p(INT k) const   { return _pts[k];}
       inline INT    succ(INT k) const   { return _succ[k];}
       inline INT    prec(INT k) const   { return _prec[k];}
       inline INT     sym(INT k) const   { return _sym[k];}
@@ -31,13 +42,18 @@ class cConfig_Freeman_Or
 */
 
    private :
-      bool                 mV8;
-      bool                 mTrigo;
-      size_t               mNbPts;
-      const cPt2di *       mRawPts;
-      std::vector<cPt2di>  mVPts;
-      std::vector<int>     mSucc;
-      std::vector<int>     mPred;
+      tIndex & AddrP2I(const cPt2di & aPt) {return  mPt2Ind.at(aPt.x()+1).at(aPt.y()+1);}
+
+      bool                               mV8;
+      bool                               mTrigo;
+      size_t                             mNbPts;
+      tIndex                             mIndex00;
+      const cPt2di *                     mRawPts;
+      std::vector<cPt2di>                mVPts;
+      std::vector<tIndex>                mSucc;
+      std::vector<tIndex>                mPred;
+      std::vector<tIndex>                mSym;
+      std::vector<std::vector<size_t>>   mPt2Ind;
 /*
       INT             * _succ ;
       INT             * _prec ;
@@ -48,21 +64,29 @@ class cConfig_Freeman_Or
 
 
 cConfig_Freeman_Or::cConfig_Freeman_Or(bool v8,bool trigo) :
-  mV8     (v8),
-  mTrigo  (trigo),
-  mNbPts  (mV8 ? 8 : 4),
-  mRawPts (mV8 ? &FreemanV8[0] :  &FreemanV4[0] ),
-  mVPts   (mRawPts,mRawPts+mNbPts),
-  mSucc   (mNbPts),
-  mPred   (mNbPts)
+  mV8      (v8),
+  mTrigo   (trigo),
+  mNbPts   (mV8 ? 8 : 4),
+  mIndex00 (mNbPts),
+  mRawPts  (mV8 ? &FreemanV8[0] :  &FreemanV4[0] ),
+  mVPts    (mRawPts,mRawPts+mNbPts),
+  mSucc    (mNbPts),
+  mPred    (mNbPts),
+  mSym     (mNbPts),
+  mPt2Ind  (3,std::vector<size_t>(3))
 {
-     for (size_t aK=0 ; aK<mNbPts ; aK++)
-     {
-          mSucc[aK] = (aK+1) % mNbPts;
-          mPred[(aK+1) % mNbPts ] = aK;
-     }
-     if (mTrigo)
-        std::swap(mSucc,mPred);
+    AddrP2I(cPt2di(0,0)) = mIndex00;
+
+    for (size_t aK=0 ; aK<mNbPts ; aK++)
+    {
+        AddrP2I(mVPts.at(aK)) = aK;
+        mSucc[aK] = (aK+1) % mNbPts;
+        mPred[(aK+1) % mNbPts ] = aK;
+    }
+    for (size_t aK=0 ; aK<mNbPts ; aK++)
+        mSym.at(aK) = AddrP2I(-KPt(aK));
+    if (mTrigo)
+       std::swap(mSucc,mPred);
 }
 
 
@@ -77,59 +101,158 @@ cConfig_Freeman_Or::cConfig_Freeman_Or(bool v8,bool trigo) :
 class cCurveBySet
 {
      public :
-         cCurveBySet();
-	 std::vector<cPt2di>  Compute(cPt2di  aP0,cPt2di  aDir0,bool EightDir,std::optional<cPt2di>);
+         cCurveBySet(cPt2di  aP0,size_t  aKDir0,bool EightDir,bool Trigo,std::optional<cPt2di>);
+	 std::vector<cPt2di>  Compute();
+
      private :
+         /// Correc Direction if not coherent to reach the frontier
+         void  CorrecSenseDir();
+
+         /// Research a pair or point where we reach transition outside/inside
+         void ResearchFrontier();
+
+         void InitFirstDir();
+
 	 // convention InsideNess <0 when we are inside the bounded set
 	 //  like "D(C)-R" for a circle of center C and ray R
          virtual tREAL8  InsideNess(const cPt2di & aPt) const = 0;
 
-};
+         cPt2di  mP0;
+         size_t  mKDir0;
+         cConfig_Freeman_Or mCFO;
+         cPt2di  mDir0;
+         cPt2di  mP1;
+         tREAL8  mIn0;
+         tREAL8  mIn1;
 
-cCurveBySet::cCurveBySet()
+         cPt2di mCurPt;
+         size_t mDirPrec;
+};
+/*
+     cPt2di aDir0 = aCFO.KPt(aKDir0);
+     cPt2di aP0 = aPGuess0;
+     cPt2di aP1 = aP0 + aDir0;
+*/
+
+cCurveBySet::cCurveBySet(cPt2di  aPGuess0,size_t aKDir0,bool EightDir,bool Trigo,std::optional<cPt2di> aEndPoint) :
+   mP0       (aPGuess0),
+   mKDir0    (aKDir0),
+   mCFO      (EightDir,Trigo),
+   mDir0     (mCFO.KPt(aKDir0)),
+   mP1       (mP0+mDir0)
 {
 }
 
-std::vector<cPt2di> cCurveBySet::Compute(cPt2di  aPGuess0,cPt2di  aDir0,bool   EightDir,std::optional<cPt2di> aEndPoint)
+/*
+INT Flux_By_Contour::k_next_pts(INT *x,INT *y,INT nb,bool & end)
 {
-     std::vector<cPt2di>  aVPts;
+    end = false;
+    ASSERT_INTERNAL(_init,"INIT probk in Flux_By_Contour");
+    if (_first)
+    {
+         _first = false;
+         while (inside(_p_cur+_freem.kth_p(_k_prec)))
+           _k_prec = _freem.succ(_k_prec);
+    }
+   for (INT i=0; i<nb ; i++)
+    {
+        _nb_max--;
+        x[i] = _p_cur.x;
+        y[i] = _p_cur.y;
+        // count  turn for special cas of 4 neigh (when all 4 neigh are outside)
+        INT nb;
+        for
+        (
+            nb =0;
+            (nb<_freem.nb_pts()) && (!inside(_p_cur+_freem.kth_p(_k_prec)));
+            nb++
+        )
+            _k_prec = _freem.succ(_k_prec);
+        _k_prec =  _freem.prec(_k_prec);
+        _p_cur = _p_cur+_freem.kth_p(_k_prec);
+        _k_prec =  _freem.sym(_k_prec);
+        if ((_p_cur == _p_end) || (! _nb_max))
+        {
+           end = true;
+           return (i+1);
+        }
+    }
+    return nb;
+}
+*/
 
-     cPt2di aP0 = aPGuess0;
-     cPt2di aP1 = aP0 + aDir0;
-     tREAL8 aIn0 = InsideNess(aP0);
-     tREAL8 aIn1 = InsideNess(aP1);
 
-
-     // are we looking in the good direction for searching
-     bool aGoodDir = ((aIn0<0) == (aIn1>aIn0)) && (aIn0!=aIn1);
+void cCurveBySet::CorrecSenseDir()
+{
+     // are we looking in the good direction for searching (i.e if we are inside with In<0 , are we growing , and vice-versa)
+     bool aGoodDir = ((mIn0<0) == (mIn1>mIn0)) && (mIn0!=mIn1);
 
      // if not , invert direction
      if (! aGoodDir)
      {
-	aDir0 = -aDir0;
-	aP1 = aP0 + aDir0;
-	aIn1 = InsideNess(aP1);
+	mDir0 = -mDir0;
+        mKDir0 = mCFO.IndSym(mKDir0);
+	mP1 = mP0 + mDir0;
+	mIn1 = InsideNess(mP1);
     
         // if does not vary, we dont know what to do ...
-        MMVII_INTERNAL_ASSERT_tiny(aIn0!=aIn1,"InsideNess not varying in cCurveBySet");
+        MMVII_INTERNAL_ASSERT_tiny(mIn0!=mIn1,"InsideNess not varying in cCurveBySet");
      }
+}
 
-     // research for a transition of sign, when we "cross" the frontier
+void cCurveBySet::ResearchFrontier()
+{
+     int aCpt=0;
+
+     // advance untill we cross the frontier
+     while ((mIn0>=0) == (mIn1>=0))
      {
-        int aCpt=0;
-// StdOut() << "INNN00 " << aIn0 << " "<< aIn1 << " " << aP0 << " " << aP1 << "\n";
-        while ((aIn0>=0) == (aIn1>=0))
-        {
-	   aP0 = aP1;
-	   aIn0 = aIn1;
-
-	   aP1 = aP1 + aDir0;
-           aIn1 = InsideNess(aP1);
+           // Curent point is set to next point
+	   mP0 = mP1;
+	   mIn0 = mIn1;
+           // next point is incremented
+	   mP1 = mP1 + mDir0;
+           mIn1 = InsideNess(mP1);
+           // avoid infinite search,  threshold purely empirical
 	   aCpt++;
-//StdOut() << "INNNKKK " << aIn0 << " "<< aIn1 << " " << aP0 << " " << aP1 << "\n"; getchar();
-           MMVII_INTERNAL_ASSERT_tiny(aCpt<1e5,"Cannot find frontier in cCurveBySet::Compute");
-        }
+           MMVII_INTERNAL_ASSERT_tiny(aCpt<1e6,"Cannot find frontier in cCurveBySet::Compute");
+           MMVII_INTERNAL_ASSERT_tiny(mIn0!=mIn1,"InsideNess not varying in cCurveBySet");
      }
+}
+
+void cCurveBySet::InitFirstDir()
+{
+     if (mIn0>0)
+     {
+         mCurPt  = mP0;
+         mDirPrec = mCFO.IndSym(mKDir0);
+     }
+     else
+     {
+         mCurPt  = mP1;
+         mDirPrec = mKDir0;
+     }
+
+     size_t aCpt=0;
+     while (InsideNess(mCurPt+mCFO.KPt(mDirPrec)) < 0)
+     {
+          mDirPrec = mCFO.IndPred(mDirPrec);
+          aCpt++;
+          MMVII_INTERNAL_ASSERT_tiny(aCpt < mCFO.NbPts(),"Cannot find frontier in cCurveBySet::Compute");
+     }
+}
+
+std::vector<cPt2di> cCurveBySet::Compute()
+{
+     mIn0 = InsideNess(mP0);
+     mIn1 = InsideNess(mP1);
+
+     CorrecSenseDir();
+     ResearchFrontier();
+
+     InitFirstDir();
+#if (0)
+
 
      // we follow (conventionnaly) the exterior frontier
      cPt2di aCurPt  = (aIn0>=0) ? aP0 : aP1;
@@ -170,6 +293,8 @@ StdOut() << "KKKKKK " << aVK  << " "<< aVNeigh[aVK.at(0)] << "\n";
 	 goOn = (aCurPt != aEndPoint);
      }
 
+#endif
+     std::vector<cPt2di>  aVPts;
      return aVPts;
 }
 
@@ -185,17 +310,20 @@ class cCircle_CurveBySet : public cCurveBySet
 {
      public :
        cCircle_CurveBySet(const cPt2dr & aC,tREAL8 aRay) :
-            cCurveBySet (),
+            cCurveBySet (ToI(mC),0,true,true,std::optional<cPt2di>()),
             mC          (aC),
             mRay        (aRay),
             mR2         (Square(mRay))
 	{
 	}
 
+/*
+cCurveBySet::cCurveBySet(cPt2di  aPGuess0,size_t aKDir0,bool EightDir,std::optional<cPt2di> aEndPoint)
        std::vector<cPt2di>  Compute(bool EightDir)
        {
-            return cCurveBySet::Compute(ToI(mC),cPt2di(0,1),EightDir,std::optional<cPt2di>());
+            return cCurveBySet::Compute(ToI(mC),0,EightDir,std::optional<cPt2di>());
        }
+*/
        tREAL8  InsideNess(const cPt2di & aPt) const override 
        {
 	        return Norm2(ToR(aPt)-mC) - mRay;
@@ -211,6 +339,7 @@ class cCircle_CurveBySet : public cCurveBySet
 void BenchCircle_CurveDigit(cPt2dr  aC,double aRay)
 {
 
+/*
 cPt2di aDec = cPt2di(5,5) +ToI(cPt2dr(aRay,aRay));
 aC = aC - ToR(ToI(aC)) + ToR(aDec);
      cCircle_CurveBySet aCCS(aC,aRay);
@@ -228,6 +357,7 @@ StdOut() << "-------------------------------------------------------------------
 StdOut() << "JJJJJJJJJJ  " << aC << " " << aRay << " " << aV8 << " Dec=" << aDec << "\n";
          aCCS.Compute(aV8);
      }
+*/
 }
 
 void BenchCurveDigit(cParamExeBench & aParam)
