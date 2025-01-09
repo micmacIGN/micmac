@@ -156,15 +156,75 @@ int cAppliSample3DpointsFromCloudIntoImage::Exe()
             std::cout<<"CLd SIZE >>>>  "<<mTri3DLas->NbPts()<<std::endl;
 
             // Sample points on ground and buildings' rooftops
-            mTri3DLas->SamplePts(true,1.0);
+            mTri3DLas->SamplePts(true,5.0);
+            std::cout<<"Sampled Pts "<<std::endl;
             for (auto & anId: mTri3DLas->SelectedIds())
               {
                 mV3DCld.push_back(mTri3DLas->VPts()[anId]);
               }
             mTri3DLas=nullptr;
         }
+
     // parse all selected  3D cloud points and find their reprojection if they exist in sensors
 
+
+
+    std::vector<cPt2dr> aVec2DMeas;
+    std::vector<bool> IsVecVisible;
+
+    for (auto & a3DPt:mV3DCld)
+      {
+        for (const std::string & aSensorName: aVecIm)
+          {
+
+            mCamPC = mPhProj.ReadCamPC(aSensorName,true);
+
+            if (mCamPC->IsVisible(a3DPt))
+            {
+              aVec2DMeas.push_back(mCamPC->Ground2Image(a3DPt));
+              IsVecVisible.push_back(true);
+            }
+            else
+            {
+              aVec2DMeas.push_back(cPt2dr(-1,-1));
+              IsVecVisible.push_back(false);
+            }
+            mCamPC=nullptr;
+          }
+
+        mProj2Im.push_back(aVec2DMeas);
+        mVis2Im.push_back(IsVecVisible);
+
+        aVec2DMeas.clear();
+        IsVecVisible.clear();
+      }
+
+    // Evaluate likelihood at pixel reprojected 2d coordinates
+    // Later ......Later .......Later
+
+    // TEST: generate images of 2D reprojections
+    int anId=0;
+    for (const std::string & aSensorName: aVecIm)
+      {
+        mCamPC = mPhProj.ReadCamPC(aSensorName,true);
+        cIm2D<tU_INT1> anImSample=cIm2D<tU_INT1>(mCamPC->SzPix(),
+                                                 nullptr,
+                                                 eModeInitImage::eMIA_Null);
+        cDataIm2D<tU_INT1> & aDImSample = anImSample.DIm();
+        for(size_t aIt3D=0;
+            aIt3D<mProj2Im.size();
+            aIt3D++)
+          {
+            if (mVis2Im[aIt3D][anId])
+              {
+                aDImSample.AddVal(ToI(mProj2Im[aIt3D][anId]),1);
+              }
+          }
+        aDImSample.ToFile(aSensorName+"Sample.tif");
+        // mCamPC delete
+        mCamPC=nullptr;
+        anId++;
+      }
    return EXIT_SUCCESS;
 }
 

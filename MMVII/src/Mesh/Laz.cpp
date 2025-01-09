@@ -96,7 +96,7 @@ template <class Type> void cTriangulation3DLas<Type>::SamplePts(const bool & tar
         * |----- |  -----  | -------|
         */
        // Random Ordering of points
-       this->mVPts=RandomOrder(this->mVPts);
+       //this->mVPts=RandomOrder(this->mVPts);
 
        // Empty grid of points to sample with size bbox/aStep
        cDataTypedIm<tU_INT1,2> aD_Grid(cPt2di(0,0),
@@ -104,24 +104,31 @@ template <class Type> void cTriangulation3DLas<Type>::SamplePts(const bool & tar
                                      );
        aD_Grid.InitCste(0);
 
+       std::cout<<"Grid Size "<<aD_Grid.Sz()<<std::endl;
        // fill grid
        size_t it=0;
-       int allCellsFilled=aD_Grid.NbElem();
-       while(it<this->mVPts.size() || allCellsFilled)
+       int AreallCellsFilled=aD_Grid.NbElem();
+       std::cout<<"Nb Elem "<<AreallCellsFilled<<std::endl;
+       std::cout<<mDelimitBox.P0()<<"  "<<mDelimitBox.P1()<<std::endl;
+       while((it<this->mVPts.size()) && AreallCellsFilled)
          {
-            tPt aPt=this->mVPts[it];
-            cPt2di aPix=cPt2di(aPt.x()/aStep,aPt.y()/aStep);
-            if (aD_Grid.VI_GetV(aPix)==tU_INT1(eLabelIm_MASQ::eReached))
+            tPt aPt=this->mVPts.at(it);
+            //std::cout<<aPt<<std::endl;
+            cPt2di aPix=cPt2di((aPt.x()-mDelimitBox.P0().x())/aStep,
+                               (aPt.y()-mDelimitBox.P0().y())/aStep);
+            //std::cout<<aPix<<std::endl;
+            if(aD_Grid.Inside(aPix))
               {
-                continue;
+                if (aD_Grid.VI_GetV(aPix)==tU_INT1(eLabelIm_MASQ::eFree))
+                  {
+                    //std::cout<<"  "<<" cell "<<allCellsFilled<<" c"<<eLabelIm_MASQ::eFree<<std::endl;
+                    aD_Grid.VI_SetV(aPix,1);
+                    mVSelectedIds.push_back(it);
+                    AreallCellsFilled--;
+                  }
               }
-            else
-              {
-                aD_Grid.VI_SetV(aPix,1);
-                mVSelectedIds.push_back(it);
-                allCellsFilled-=1;
-              }
-            it+=1;
+            std::cout<<it<<std::endl;
+            it++;
          }
      }
    else
@@ -169,6 +176,7 @@ template <class Type> void cTriangulation3DLas<Type>::LasInit(const std::string 
 
   if (HasDsmMarker) // read points tagged as useful for DSM generation and not on trees
     {
+      std::cout<<"HAS DSM MARKER "<<std::endl;
       for (pdal::PointId idx = 0; idx < point_view->size(); ++idx)
       {
          using namespace pdal::Dimension;
@@ -190,6 +198,7 @@ template <class Type> void cTriangulation3DLas<Type>::LasInit(const std::string 
     }
   else  // assume point cloud is classified -> if there is not a tag dsm marker get points in GROUND, BUILDINGS
     {
+
         using namespace pdal::Dimension;
 
       for (pdal::PointId idx = 0; idx < point_view->size(); ++idx)
