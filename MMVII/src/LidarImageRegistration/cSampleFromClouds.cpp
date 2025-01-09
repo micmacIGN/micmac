@@ -10,7 +10,6 @@
 #include "MMVII_Radiom.h"
 #include <fstream>
 #include <iostream>
-#include <StdAfx.h>
 
 
 
@@ -26,9 +25,9 @@ class cWorldCoordinates
 public:
   cWorldCoordinates(std::string tfw_file)
   {
-    ifstream input_tfw(tfw_file);
-    string aline;
-    std::vector< string > acontent;
+    std::ifstream input_tfw(tfw_file);
+    std::string aline;
+    std::vector< std::string > acontent;
     while(std::getline(input_tfw,aline))
       {
         acontent.push_back(aline);
