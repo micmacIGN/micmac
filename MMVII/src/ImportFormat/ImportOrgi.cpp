@@ -189,7 +189,7 @@ cSpecMMVII_Appli  TheSpec_ImportORGI
       "Import data coming from \"ORGI\" format",
       {eApF::GCP,eApF::TieP},
       {eApDT::FileSys},
-      {eApDT::TieP,eApDT::GndPt2D,eApDT::GndPt3D},
+      {eApDT::TieP,eApDT::ObjMesInstr,eApDT::ObjCoordWorld},
       __FILE__
 );
 

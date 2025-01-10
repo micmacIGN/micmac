@@ -117,8 +117,8 @@ cSpecMMVII_Appli  TheSpec_ConvertV1V2_GCPIM
       Alloc_ConvertV1V2_GCPIM,
       "Convert image & gound measures from v1 to v2 format",
       {eApF::GCP, eApF::TieP},
-      {eApDT::GndPt3D, eApDT::GndPt2D, eApDT::TieP},
-      {eApDT::GndPt3D, eApDT::GndPt2D, eApDT::TieP},
+      {eApDT::ObjCoordWorld, eApDT::ObjMesInstr, eApDT::TieP},
+      {eApDT::ObjCoordWorld, eApDT::ObjMesInstr, eApDT::TieP},
       __FILE__
 );
 

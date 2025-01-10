@@ -163,8 +163,8 @@ cSpecMMVII_Appli  TheSpec_CreateRTL
         Alloc_CreateRTL,
         "Create RTL (local tangent repair)",
         {eApF::SysCo},
-        {eApDT::GndPt3D,eApDT::Ori,eApDT::SysCo},
-        {eApDT::GndPt3D,eApDT::Ori,eApDT::SysCo},
+        {eApDT::ObjCoordWorld,eApDT::Ori,eApDT::SysCo},
+        {eApDT::ObjCoordWorld,eApDT::Ori,eApDT::SysCo},
         __FILE__
         );
 

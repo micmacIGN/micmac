@@ -318,7 +318,7 @@ cSpecMMVII_Appli  TheSpecTestSensor
       Alloc_TestImportSensors,
       "Test orientation functions of a sensor : coherence Direct/Inverse, ground truth 2D/3D correspondance, generate 3d-2d corresp",
       {eApF::Ori},
-      {eApDT::Ori,eApDT::GndPt2D,eApDT::GndPt3D},
+      {eApDT::Ori,eApDT::ObjMesInstr,eApDT::ObjCoordWorld},
       {eApDT::Console},
       __FILE__
 );

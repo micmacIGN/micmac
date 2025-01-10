@@ -789,7 +789,7 @@ cSpecMMVII_Appli  TheSpec_OriCalibratedSpaceResection
       Alloc_CalibratedSpaceResection,
       "Pose estimation from GCP, calibrated case",
       {eApF::Ori},
-      {eApDT::GndPt3D, eApDT::GndPt2D},
+      {eApDT::ObjCoordWorld, eApDT::ObjMesInstr},
       {eApDT::Orient},
       __FILE__
 );

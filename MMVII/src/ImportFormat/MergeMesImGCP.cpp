@@ -114,8 +114,8 @@ cSpecMMVII_Appli  TheSpec_MergeMesImGCP
       Alloc_MergeMesImGCP,
       "Merge different files of image measur of GCP",
       {eApF::GCP},
-      {eApDT::GndPt2D},
-      {eApDT::GndPt2D},
+      {eApDT::ObjMesInstr},
+      {eApDT::ObjMesInstr},
       __FILE__
 );
 

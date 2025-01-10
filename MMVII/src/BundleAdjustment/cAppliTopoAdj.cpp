@@ -140,8 +140,8 @@ cSpecMMVII_Appli  TheSpec_TopoAdj
       Alloc_TopoAdj,
       "Topo adjustment",
       {eApF::Topo},
-      {eApDT::GndPt3D, eApDT::Topo},
-      {eApDT::GndPt3D},
+      {eApDT::ObjCoordWorld, eApDT::Topo},
+      {eApDT::ObjCoordWorld},
       __FILE__
 );
 

@@ -547,7 +547,7 @@ cSpecMMVII_Appli  TheSpec_OriCheckGCPDist
       Alloc_CheckGCPDist,
       "Check GCP distribution for pose estimation",
       {eApF::Ori},
-      {eApDT::GndPt2D, eApDT::GndPt3D},
+      {eApDT::ObjMesInstr, eApDT::ObjCoordWorld},
       {eApDT::Orient},
       __FILE__
 );

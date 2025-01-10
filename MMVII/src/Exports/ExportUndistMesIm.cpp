@@ -115,7 +115,7 @@ cSpecMMVII_Appli  TheSpec_ExportUndistMesIm
       Alloc_Test_ExportUndistMesIm,
       "Export image points measurements corrected from distorsion",
       {eApF::Ori,eApF::GCP},
-      {eApDT::Ori,eApDT::GndPt2D},
+      {eApDT::Ori,eApDT::ObjMesInstr},
       {eApDT::Console},
       __FILE__
 );

@@ -221,8 +221,8 @@ cSpecMMVII_Appli  TheSpec_ImportGCP
       Alloc_ImportGCP,
       "Import/Convert basic GCP file in MMVII format",
       {eApF::GCP},
-      {eApDT::GndPt3D},
-      {eApDT::GndPt3D},
+      {eApDT::ObjCoordWorld},
+      {eApDT::ObjCoordWorld},
       __FILE__
 );
 

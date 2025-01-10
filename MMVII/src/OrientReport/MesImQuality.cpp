@@ -267,7 +267,7 @@ cSpecMMVII_Appli  TheSpec_MesImReport
         Alloc_MesImReport,
         "Reports on Images measures compared to a reference",
         {eApF::GCP,eApF::Ori},
-        {eApDT::GndPt2D,eApDT::Orient},
+        {eApDT::ObjMesInstr,eApDT::Orient},
         {eApDT::Image,eApDT::Xml},
         __FILE__
         );

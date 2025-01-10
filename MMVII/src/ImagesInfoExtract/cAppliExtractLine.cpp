@@ -598,7 +598,7 @@ cSpecMMVII_Appli  TheSpecAppliExtractLine
       Alloc_AppliExtractLine,
       "Extraction of lines",
       {eApF::Ori},
-      {eApDT::Ori,eApDT::GndPt2D},
+      {eApDT::Ori,eApDT::ObjMesInstr},
       {eApDT::Console},
       __FILE__
 );

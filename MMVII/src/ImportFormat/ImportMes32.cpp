@@ -146,8 +146,8 @@ cSpecMMVII_Appli  TheSpec_ImportM32
       Alloc_ImportM32,
       "Import/Convert Set of 3d-2d corresspondances",
       {eApF::GCP},
-      {eApDT::GndPt3D, eApDT::GndPt2D},
-      {eApDT::GndPt3D, eApDT::GndPt2D},
+      {eApDT::ObjCoordWorld, eApDT::ObjMesInstr},
+      {eApDT::ObjCoordWorld, eApDT::ObjMesInstr},
       __FILE__
 );
 #if (0)

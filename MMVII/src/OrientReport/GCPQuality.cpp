@@ -406,7 +406,7 @@ cSpecMMVII_Appli  TheSpec_CGPReport
       Alloc_CGPReport,
       "Reports on GCP projection",
       {eApF::GCP, eApF::Ori},
-      {eApDT::GndPt3D, eApDT::GndPt2D, eApDT::Orient},
+      {eApDT::ObjCoordWorld, eApDT::ObjMesInstr, eApDT::Orient},
       {eApDT::Image,eApDT::Xml},
       __FILE__
 );

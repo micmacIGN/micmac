@@ -290,8 +290,8 @@ cSpecMMVII_Appli  TheSpec_ImportMesGndPt2D
       Alloc_ImportMesGndPt2D,
       "Import/Convert basic image point measures into MMVII format",
       {eApF::GCP},
-      {eApDT::GndPt2D},
-      {eApDT::GndPt2D},
+      {eApDT::ObjMesInstr},
+      {eApDT::ObjMesInstr},
       __FILE__
 );
 
