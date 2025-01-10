@@ -247,7 +247,7 @@ template <class Type> cIsometry3D<Type> cElemSpaceResection<Type>::BC2Pose(const
 {
      cTriangle<Type,3> aTri = BC2LocCoord(aRBC);
 
-     return cIsometry3D<Type>::FromTriInAndOut(0,aTri,0,mTriG);
+     return cIsometry3D<Type>::FromTriInAndOut(0,aTri,0,mTriG,true);
 }
 
 
