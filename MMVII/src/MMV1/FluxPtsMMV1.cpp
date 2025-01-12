@@ -15,6 +15,19 @@
 namespace MMVII
 {
 
+class cConfig_Freeman_Or;
+class cCurveBySet;
+class cCircle_CurveBySet;
+class cEllipse_CurveBySetc;
+class cLine_CurveBySet;
+class cDilateSetPoints;
+
+/* ********************************************************* */
+/*                                                           */
+/*                    cConfig_Freeman_Or                     */
+/*                                                           */
+/* ********************************************************* */
+
 class cConfig_Freeman_Or
 {
    public :
@@ -41,15 +54,6 @@ class cConfig_Freeman_Or
 
       /// return aK  such that aPt is between   P(K)  and P(K+1)
       size_t  IndexEnglob(const cPt2dr &) const;
-/*
-      inline INT    succ(INT k) const   { return _succ[k];}
-      inline INT    prec(INT k) const   { return _prec[k];}
-      inline INT     sym(INT k) const   { return _sym[k];}
-      inline INT    nb_pts()    const   { return _nb_pts;}
-
-      inline INT  num_pts(Pt2di p)  const
-                  {return compute_freem_code(*_mat_code,p);}
-*/
 
        void Bench() const;
 
@@ -67,12 +71,6 @@ class cConfig_Freeman_Or
       std::vector<tIndex>                mPred;
       std::vector<tIndex>                mSym;
       std::vector<std::vector<size_t>>   mPt2Ind;
-/*
-      INT             * _succ ;
-      INT             * _prec ;
-      INT             * _sym ;
-      MAT_CODE_FREEM  * _mat_code;
-*/
 };
 
 cConfig_Freeman_Or::cConfig_Freeman_Or(bool v8,bool trigo) :
@@ -195,11 +193,6 @@ class cCurveBySet
          cPt2di mCurPt;
          size_t mDir2Pred;
 };
-/*
-     cPt2di aDir0 = aCFO.KPt(aKDir0);
-     cPt2di aP0 = aPGuess0;
-     cPt2di aP1 = aP0 + aDir0;
-*/
 
 cCurveBySet::cCurveBySet(cPt2di  aPGuess0,size_t aKDir0,bool EightDir,bool Trigo,std::optional<cPt2di> aEndPoint) :
    mP0       (aPGuess0),
@@ -240,43 +233,6 @@ tREAL8  cCurveBySet::EuclidInsideNess(const cPt2di & aPt) const
     return InsideNess(aPt);
 }
 
-/*
-INT Flux_By_Contour::k_next_pts(INT *x,INT *y,INT nb,bool & end)
-{
-    end = false;
-    ASSERT_INTERNAL(_init,"INIT probk in Flux_By_Contour");
-    if (_first)
-    {
-         _first = false;
-         while (inside(_p_cur+_freem.kth_p(_k_prec)))
-           _k_prec = _freem.succ(_k_prec);
-    }
-   for (INT i=0; i<nb ; i++)
-    {
-        _nb_max--;
-        x[i] = _p_cur.x;
-        y[i] = _p_cur.y;
-        // count  turn for special cas of 4 neigh (when all 4 neigh are outside)
-        INT nb;
-        for
-        (
-            nb =0;
-            (nb<_freem.nb_pts()) && (!inside(_p_cur+_freem.kth_p(_k_prec)));
-            nb++
-        )
-            _k_prec = _freem.succ(_k_prec);
-        _k_prec =  _freem.prec(_k_prec);
-        _p_cur = _p_cur+_freem.kth_p(_k_prec);
-        _k_prec =  _freem.sym(_k_prec);
-        if ((_p_cur == _p_end) || (! _nb_max))
-        {
-           end = true;
-           return (i+1);
-        }
-    }
-    return nb;
-}
-*/
 
 
 void cCurveBySet::CorrecSenseDir()
@@ -536,21 +492,25 @@ class cDilateSetPoints
          cDilateSetPoints(tREAL8 aRay);
          const std::vector<cPt2di> &  Disk0() const {return mDisk0;}
          const std::vector<cPt2di> &  Trans(const cPt2di &) const ;
+         void  DilateSet(std::vector<cPt2di> & aRes,const std::vector<cPt2di> & aSet0);
+         
     private :
-         tREAL8                             mR2;
+         tREAL8                             mRay;
+         tREAL8                             mRAR;
          std::vector<cPt2di>                mDisk0;
          mutable std::vector<std::vector<cPt2di>>   mTrans;
          cConfig_Freeman_Or                 mCFO;
 };
 
 cDilateSetPoints::cDilateSetPoints(tREAL8 aRay) :
-    mR2     (Square(aRay)),
+    mRay    (aRay),
+    mRAR     (aRay * std::abs(aRay)),
     mTrans  (8),
     mCFO    (true,true)
 {
      for (const auto & aPix : cRect2::BoxWindow(round_up(aRay)))
      {
-         if (SqN2(aPix) <= mR2)
+         if (SqN2(aPix) <= mRAR)
             mDisk0.push_back(aPix);
      }
 }
@@ -561,34 +521,68 @@ const std::vector<cPt2di> &  cDilateSetPoints::Trans(const cPt2di & aDelta) cons
 
     if (aRes.empty())
     {
+         for (const auto & aPix : mDisk0)
+         {
+             if (SqN2(aPix+aDelta) > mRAR)
+                aRes.push_back(aPix+aDelta);
+         }
     }
 
     return aRes;
 }
 
-std::vector<cPt2di>  DilateSetPoints(const std::vector<cPt2di> & aSet0,tREAL8 aRay)
+void  cDilateSetPoints::DilateSet(std::vector<cPt2di> &aRes,const std::vector<cPt2di> & aSet0)
 {
-     std::vector<cPt2di> aRes;
+     aRes.clear();
      if (aSet0.empty())
-        return aRes;
+        return ;
 
-     tREAL8 aR2 = Square(aRay);
      cPt2di aP0 = aSet0.at(0);
-
-     for (const auto & aPix : cRect2::BoxWindow(round_up(aRay)))
-     {
-         if (SqN2(aPix) <= aR2)
+     for (const auto & aPix : mDisk0)
             aRes.push_back(aP0+aPix);
-     }
 
      for (size_t aKP=1 ; aKP<aSet0.size() ; aKP++)
      {
-      //cConfig_Freeman_Or(bool v8,bool trigo);
+         cPt2di aPPrec = aSet0.at(aKP-1);
+         for (const auto & aDelta : Trans( (aSet0.at(aKP)-aPPrec) )    )
+             aRes.push_back(aPPrec+aDelta);
      }
-
-    
-     return aRes;
 }
+
+
+/* ********************************************************* */
+/*                                                           */
+/*                    MMVII::                                */
+/*                                                           */
+/* ********************************************************* */
+
+void ShowCurveBySet(cCurveBySet & aSet,tREAL8 aRay,const std::string & aName)
+{
+     StdOut() << "=============== ShowCurveBySet : " << aName << " ================================\n";
+     auto aVPts = aSet.Compute();
+     auto aVDil = aVPts;
+     if (aRay>=0)
+     {
+         cDilateSetPoints aDil(aRay);
+         aDil.DilateSet(aVDil,aVPts);
+     }
+     cBox2di aBox = cBox2di::FromVect(aVDil).Dilate(5);
+
+     cRGBImage aIm(aBox.Sz(),cRGBImage::White);
+
+     for (const auto aPix : aVDil)
+        aIm.SetRGBPix(aPix-aBox.P0(),cRGBImage::Red);
+
+     for (const auto aPix : aVPts)
+        aIm.SetRGBPix(aPix-aBox.P0(),cRGBImage::Black);
+
+     aIm.ToFile("TEST-DIGICURVE-"+aName);
+}
+
+/*
+        static tBox FromVect(const std::vector<tPt> & aVecPt,bool AllowEmpty=false);
+
+*/
 
 void BenchCircle_CurveDigit(cPt2dr  aC,double aRayA,double aRayB,double aTeta)
 {
@@ -614,6 +608,16 @@ void BenchCurveDigit(cParamExeBench & aParam)
      cConfig_Freeman_Or(false,false).Bench();
 
 
+     if (0)
+     {
+         cLine_CurveBySet aLCS(cPt2di(-11,12),cPt2di(21,-6));
+         ShowCurveBySet(aLCS,1.0,"Line_1.tif");
+         ShowCurveBySet(aLCS,2.0,"Line_2.tif");
+         ShowCurveBySet(aLCS,5.0,"Line_5.tif");
+
+         cEllipse_CurveBySetc anElCS(cPt2dr(20.5,-10.3),40.0,15.0,0.3,true,true);
+         ShowCurveBySet(anElCS,3.0,"El_3.tif");
+     }
      for (int aKC=0 ; aKC<200 ; aKC++)
      {
          cPt2di aP1 = ToI(cPt2dr::PRandC() * 100.0);

@@ -14,6 +14,7 @@ const cPt3di cRGBImage::Magenta(255,0,255);
 const cPt3di cRGBImage::Cyan(0,255,255);
 const cPt3di cRGBImage::Orange(255,128,0);
 const cPt3di cRGBImage::White(255,255,255);
+const cPt3di cRGBImage::Black(0,0,0);
 const cPt3di cRGBImage::Gray128(128,128,128);
 // const cPt3di cRGBImage::Black(0,0,0);
 

@@ -610,6 +610,7 @@ class cRGBImage
         static const  cPt3di  Cyan;
         static const  cPt3di  Orange;
         static const  cPt3di  White;
+        static const  cPt3di  Black;
         static const  cPt3di  Gray128;
 
 	/// return a lut adapted to visalise label in one chanel (blue), an maximize constrat in 2 other
