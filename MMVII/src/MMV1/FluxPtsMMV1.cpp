@@ -1,6 +1,9 @@
 #define WITH_MMV1_FUNCTION false
 
+#if (WITH_MMV1_FUNCTION)
 #include "V1VII.h"
+#endif
+
 #include "MMVII_Geom2D.h"
 
 /** \file  FluxPtsMMV1.cpp
@@ -647,6 +650,7 @@ void BenchCurveDigit(cParamExeBench & aParam)
 
 /*************************************************/
 
+#if (WITH_MMV1_FUNCTION)
 Neighbourhood DiscNeich(const tREAL8 & aRay)
 {
     std::vector<Pt2di> aVPts;
@@ -722,6 +726,35 @@ void  GetPts_Line(tResFlux & aRes,const cPt2dr & aP1,const cPt2dr &aP2)
 {
 	GetPts_Line(aRes,aP1,aP2,-1.0);
 }
+#else //  (WITH_MMV1_FUNCTION)
+void  GetPts_Line(tResFlux & aResLine,const cPt2dr & aP1,const cPt2dr &aP2)
+{
+      cLine_CurveBySet aLCS(ToI(aP1),ToI(aP2));
+      aResLine = aLCS.Compute();
+}
+
+void  GetPts_Line(tResFlux & aResDilatLine,const cPt2dr & aP1,const cPt2dr &aP2,tREAL8 aRayDilate)
+{
+    tResFlux aThinLine;
+    GetPts_Line(aThinLine,aP1,aP2);
+
+    cDilateSetPoints aDil(aRayDilate);
+    aDil.DilateSet(aResDilatLine,aThinLine);
+}
+
+void  GetPts_Ellipse(tResFlux & aResEllipse,const cPt2dr & aC,double aRayA,double aRayB, double aTeta,bool with8Neigh)
+{
+   cEllipse_CurveBySetc anElCS(aC,aRayA,aRayB,aTeta,with8Neigh,true);
+   aResEllipse = anElCS.Compute();
+}
+
+tResFlux  GetPts_Circle(const cPt2dr & aC,double aRay,bool with8Neigh)
+{
+    cCircle_CurveBySet aCCS(aC,aRay,with8Neigh,true);
+    return aCCS.Compute();
+}
+
+#endif //  (WITH_MMV1_FUNCTION)
 
 
 

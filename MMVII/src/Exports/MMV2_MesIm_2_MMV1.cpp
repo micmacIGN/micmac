@@ -1,6 +1,13 @@
+#define WITH_MMV1_FUNCTION false
+
 #include "cMMVII_Appli.h"
 #include "MMVII_PCSens.h"
+
+
+#if (WITH_MMV1_FUNCTION)
 #include "V1VII.h"
+#endif
+
 
 namespace MMVII
 {
@@ -54,6 +61,7 @@ int cAppli_MMV2_MesIm_2_MMV1::Exe()
     //read the image pattern
     std::vector<std::string> aVecIm = VectMainSet(0);//interface to MainSet
     
+#if (WITH_MMV1_FUNCTION)
     //MicMac v1
     cSetOfMesureAppuisFlottants aDico;
     
@@ -114,6 +122,13 @@ int cAppli_MMV2_MesIm_2_MMV1::Exe()
 	
 	//write image measure in MicMac v1 .xml format
 	MakeFileXML(aDico,mNameFile);
+#else //  (WITH_MMV1_FUNCTION)
+     StdOut()  << " \n\n";
+     StdOut()  << " ********************************************************************************************************\n";
+     StdOut()  << " * Use of MMV1 Library is deprecated in this distrib, see with MicMac's administrator how to install it *\n";
+     StdOut()  << " ********************************************************************************************************\n";
+     MMVII_INTERNAL_ERROR("Deprecated use of MMV1's library");
+#endif //  (WITH_MMV1_FUNCTION)
 
     return EXIT_SUCCESS;
 }

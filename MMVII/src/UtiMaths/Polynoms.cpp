@@ -1,7 +1,10 @@
-#define WITH_MMV1_FUNCTION  true
+#define WITH_MMV1_FUNCTION  false
 
-// #include "cMMVII_Appli.h"
 #include "MMVII_Matrix.h"
+#include "MMVII_Ptxd.h"
+#include "MMVII_Stringifier.h"
+#include "MMVII_Geom2D.h"
+
 
 #if (WITH_MMV1_FUNCTION)
 #include "V1VII.h"
