@@ -26,11 +26,21 @@ class cConfig_Freeman_Or
       tIndex   IndSucc(tIndex aK) const {return mSucc.at(aK);}
       tIndex   IndPred(tIndex aK) const {return mPred.at(aK);}
       tIndex   IndSym(tIndex aK) const  {return mSym.at(aK);}
+      bool Trigo() const {return mTrigo;}
 
       const tIndex  Pt2Ind(const cPt2di & aPt) const
       {
             return  const_cast<cConfig_Freeman_Or*>(this)->AddrP2I(aPt);
       }
+
+      ///  Such that =1 between 2 successive neighbour
+      int  NormNeighSucc(const cPt2di &) const;
+
+      ///  Such that =1 for each point
+      int  NormSphere(const cPt2di &) const;
+
+      /// return aK  such that aPt is between   P(K)  and P(K+1)
+      size_t  IndexEnglob(const cPt2dr &) const;
 /*
       inline INT    succ(INT k) const   { return _succ[k];}
       inline INT    prec(INT k) const   { return _prec[k];}
@@ -41,11 +51,14 @@ class cConfig_Freeman_Or
                   {return compute_freem_code(*_mat_code,p);}
 */
 
+       void Bench() const;
+
    private :
       tIndex & AddrP2I(const cPt2di & aPt) {return  mPt2Ind.at(aPt.x()+1).at(aPt.y()+1);}
 
       bool                               mV8;
       bool                               mTrigo;
+      int                                mSignOri ;
       size_t                             mNbPts;
       tIndex                             mIndex00;
       const cPt2di *                     mRawPts;
@@ -62,10 +75,10 @@ class cConfig_Freeman_Or
 */
 };
 
-
 cConfig_Freeman_Or::cConfig_Freeman_Or(bool v8,bool trigo) :
   mV8      (v8),
   mTrigo   (trigo),
+  mSignOri (mTrigo ? 1 : -1),
   mNbPts   (mV8 ? 8 : 4),
   mIndex00 (mNbPts),
   mRawPts  (mV8 ? &FreemanV8[0] :  &FreemanV4[0] ),
@@ -85,8 +98,54 @@ cConfig_Freeman_Or::cConfig_Freeman_Or(bool v8,bool trigo) :
     }
     for (size_t aK=0 ; aK<mNbPts ; aK++)
         mSym.at(aK) = AddrP2I(-KPt(aK));
-    if (mTrigo)
-       std::swap(mSucc,mPred);
+
+    if (!mTrigo)
+    {
+         for (size_t aK=1 ; aK<mNbPts-(aK) ; aK++)
+         {
+              std::swap(mVPts.at(aK),mVPts.at(mNbPts-aK));
+         }
+    }
+}
+
+int  cConfig_Freeman_Or::NormNeighSucc(const cPt2di & aP) const
+{
+    return mV8 ? Norm1(aP) : NormInf(aP);
+}
+int  cConfig_Freeman_Or::NormSphere(const cPt2di & aP) const
+{
+    return mV8 ? NormInf(aP) : Norm1(aP);
+}
+
+size_t  cConfig_Freeman_Or::IndexEnglob(const cPt2dr &aP) const
+{
+    MMVII_INTERNAL_ASSERT_tiny(mTrigo,"Have to decide what is the meaning of IndexEnglob for anti-trigo");
+
+    for (size_t aK=0 ; aK<mNbPts ; aK++)
+        if ( ((ToR(mVPts.at(aK))^aP)>=0) && ((ToR(mVPts.at(IndSucc(aK)))^aP)<0)  )
+           return aK;
+
+    MMVII_INTERNAL_ERROR("cConfig_Freeman_Or::IndexEnglob");
+    return mNbPts;
+}
+
+void cConfig_Freeman_Or::Bench() const
+{
+    // StdOut() << " cConfig_Freeman_Or::bbBench " << mVPts << "  A="<< DbleAreaPolygOriented(mVPts) << "\n";
+    MMVII_INTERNAL_ASSERT_bench(DbleAreaPolygOriented(mVPts)== mSignOri * (int)mNbPts ,"Norm in cConfig_Freeman_Or::Bench");
+    for (size_t aK=0 ; aK<mNbPts ; aK++)
+    {
+        cPt2di aP1 =  KPt(aK);
+        cPt2di aP2 =  KPt(IndSucc(aK));
+        MMVII_INTERNAL_ASSERT_bench(NormNeighSucc(aP1-aP2)==1,"Norm in cConfig_Freeman_Or::Bench");
+        MMVII_INTERNAL_ASSERT_bench(NormSphere(aP1)==1,"Norm in cConfig_Freeman_Or::Bench");
+
+        if (mTrigo)
+        {
+            MMVII_INTERNAL_ASSERT_bench( IndexEnglob(ToR(aP1))==aK,"Norm in cConfig_Freeman_Or::Bench");
+            MMVII_INTERNAL_ASSERT_bench( IndexEnglob(ToR(aP1+aP2))==aK,"Norm in cConfig_Freeman_Or::Bench");
+        }
+    }
 }
 
 
@@ -102,9 +161,10 @@ class cCurveBySet
 {
      public :
          cCurveBySet(cPt2di  aP0,size_t  aKDir0,bool EightDir,bool Trigo,std::optional<cPt2di>);
-	 std::vector<cPt2di>  Compute();
+	 virtual std::vector<cPt2di>  Compute();
 
-     private :
+         void Bench(const std::vector<cPt2di> &,tREAL8 aDMin,tREAL8 aDMax) const;
+     protected :
          /// Correc Direction if not coherent to reach the frontier
          void  CorrecSenseDir();
 
@@ -117,8 +177,15 @@ class cCurveBySet
 	 //  like "D(C)-R" for a circle of center C and ray R
          virtual tREAL8  InsideNess(const cPt2di & aPt) const = 0;
 
+         /**  If defined, is more sophisticated version of InsideNess, +- equal to signed euclidean distance
+              to frontier, can be slower, used in bench (so optional in some way); default error
+         */
+         virtual tREAL8  EuclidInsideNess(const cPt2di & aPt) const ;
+
          cPt2di  mP0;
          size_t  mKDir0;
+         std::optional<cPt2di> mEndPoint;
+         bool                  mClosed;
          cConfig_Freeman_Or mCFO;
          cPt2di  mDir0;
          cPt2di  mP1;
@@ -126,7 +193,7 @@ class cCurveBySet
          tREAL8  mIn1;
 
          cPt2di mCurPt;
-         size_t mDirPrec;
+         size_t mDir2Pred;
 };
 /*
      cPt2di aDir0 = aCFO.KPt(aKDir0);
@@ -137,10 +204,40 @@ class cCurveBySet
 cCurveBySet::cCurveBySet(cPt2di  aPGuess0,size_t aKDir0,bool EightDir,bool Trigo,std::optional<cPt2di> aEndPoint) :
    mP0       (aPGuess0),
    mKDir0    (aKDir0),
+   mEndPoint (aEndPoint),
+   mClosed   (!mEndPoint.has_value()),
    mCFO      (EightDir,Trigo),
    mDir0     (mCFO.KPt(aKDir0)),
    mP1       (mP0+mDir0)
 {
+}
+
+void cCurveBySet::Bench(const std::vector<cPt2di> & aVPts,tREAL8 aDMin,tREAL8 aDMax) const
+{
+    static tREAL8 aMaxD = 0;
+    size_t aNbPC = aVPts.size();
+    for (size_t aK=0 ; aK<aVPts.size()  ; aK++)
+    {
+        if (mClosed || (aK+1<aNbPC))
+        {
+             cPt2di aP0 = aVPts.at(aK);
+             cPt2di aP1 = aVPts.at((aK+1)%aNbPC);
+             tREAL8 aEI = EuclidInsideNess(aP0);
+             UpdateMax(aMaxD,aEI);
+             MMVII_INTERNAL_ASSERT_bench(mCFO.NormSphere(aP0-aP1)==1,"Bad consecutive points in cCurveBySet");
+             MMVII_INTERNAL_ASSERT_bench(aEI>=aDMin,"Point inside domain in cCurveBySet::Bench");
+             // Not sure to be able to establish theorericall bound, put empiricall one ..
+             MMVII_INTERNAL_ASSERT_bench(aEI<=aDMax,"Point to far from domain in cCurveBySet::Bench");
+        }
+    }
+
+    if (mClosed)
+       MMVII_INTERNAL_ASSERT_bench((DbleAreaPolygOriented(aVPts)>0)==mCFO.Trigo() ,"Badly oriented");
+}
+
+tREAL8  cCurveBySet::EuclidInsideNess(const cPt2di & aPt) const 
+{
+    return InsideNess(aPt);
 }
 
 /*
@@ -222,23 +319,25 @@ void cCurveBySet::ResearchFrontier()
 
 void cCurveBySet::InitFirstDir()
 {
+     // Point must be (conventionnaly) on side >0
      if (mIn0>0)
      {
-         mCurPt  = mP0;
-         mDirPrec = mCFO.IndSym(mKDir0);
+         mCurPt  = mP0;    
+         mDir2Pred = mKDir0;
      }
      else
      {
          mCurPt  = mP1;
-         mDirPrec = mKDir0;
+         mDir2Pred = mCFO.IndSym(mKDir0); 
      }
 
+     // Dir prec goes for now inside, we turn in the reverse sens, untill we are outside
      size_t aCpt=0;
-     while (InsideNess(mCurPt+mCFO.KPt(mDirPrec)) < 0)
+     while (InsideNess(mCurPt+mCFO.KPt(mDir2Pred)) < 0)
      {
-          mDirPrec = mCFO.IndPred(mDirPrec);
+          mDir2Pred = mCFO.IndPred(mDir2Pred);
           aCpt++;
-          MMVII_INTERNAL_ASSERT_tiny(aCpt < mCFO.NbPts(),"Cannot find frontier in cCurveBySet::Compute");
+          MMVII_INTERNAL_ASSERT_tiny(aCpt <= mCFO.NbPts(),"Cannot find frontier in cCurveBySet::Compute");
      }
 }
 
@@ -251,52 +350,40 @@ std::vector<cPt2di> cCurveBySet::Compute()
      ResearchFrontier();
 
      InitFirstDir();
-#if (0)
 
+     std::vector<cPt2di>  aVPts;
+     // if end point was not specified -> set it to begining point, its a closed curve
+     if (mClosed)
+     {
+        mEndPoint = mCurPt;
+     }
+     else  // else add first point, as it wont be added at end
+        aVPts.push_back(mCurPt);
 
-     // we follow (conventionnaly) the exterior frontier
-     cPt2di aCurPt  = (aIn0>=0) ? aP0 : aP1;
-     // if end point was not specified -> set it to begining point
-     if (!aEndPoint.has_value())
-        aEndPoint = aCurPt;
-     // initialize adequate neighbourhood
-     const cPt2di* aVNeigh = (EightDir ? &FreemanV8[0] :  &FreemanV4[0] );
-     size_t aNbN = EightDir ? 8 : 4;
-
-     int aCpt=0;
+     int aCptPts=0;
      bool  goOn  = true;
      while (goOn)
      {
-         aCpt++;
-         MMVII_INTERNAL_ASSERT_tiny(aCpt<1e6,"Cannot stop iteration cCurveBySet::Compute");
-	 // try to follow the surface with the condition interior (<0) to the left
-         std::vector<size_t> aVK;
-StdOut() << "CurPt" << aCurPt << " " << InsideNess(aCurPt) << "\n";
-         for (size_t aK=0 ; aK<aNbN ; aK++)
-         {
-             cPt2di aP0 = aCurPt + aVNeigh[aK] ;
-             cPt2di aP1 = aCurPt + aVNeigh[(aK+1)%aNbN] ;
-StdOut() << "KKK " << aK <<  " I0=" << InsideNess(aP0) << " I1=" << InsideNess(aP1) << "\n";
-	     if ( (InsideNess(aP0)>=0) && (InsideNess(aP1)<0) )  
-	     {
-StdOut() << "*****************\n";
-                 aVK.push_back(aK);
-	     }
-         }
-         StdOut() << "=======================================  Vk=" << aVK << "\n";
-	 // if we have no point, or multiple point, we have a problem ...
-         MMVII_INTERNAL_ASSERT_tiny(aVK.size()== 1,"Topolgical problem in cCurveBySet::Compute");
-StdOut() << "KKKKKK " << aVK  << " "<< aVNeigh[aVK.at(0)] << "\n";
+         aCptPts++;
+         MMVII_INTERNAL_ASSERT_tiny(aCptPts<1e6,"Cannot stop iteration cCurveBySet::Compute");
 
-	 aVPts.push_back(aCurPt);
-	 aCurPt  = aCurPt + aVNeigh[aVK.at(0)];
-	 goOn = (aCurPt != aEndPoint);
+         size_t aCptDir=0;
+         while (InsideNess(mCurPt+mCFO.KPt(mDir2Pred)) >= 0)
+         {
+              mDir2Pred = mCFO.IndSucc(mDir2Pred);
+              aCptDir++;
+              MMVII_INTERNAL_ASSERT_tiny(aCptDir <= mCFO.NbPts(),"Cannot find frontier in cCurveBySet::Compute");
+         }
+         mDir2Pred = mCFO.IndPred(mDir2Pred);
+         mCurPt = mCurPt+mCFO.KPt(mDir2Pred);
+	 aVPts.push_back(mCurPt);
+	 goOn = (mCurPt != mEndPoint.value());
      }
 
-#endif
-     std::vector<cPt2di>  aVPts;
      return aVPts;
 }
+
+
 
 /* ********************************************************* */
 /*                                                           */
@@ -304,27 +391,25 @@ StdOut() << "KKKKKK " << aVK  << " "<< aVNeigh[aVK.at(0)] << "\n";
 /*                                                           */
 /* ********************************************************* */
 
-/** Base class for computing digital curves as frontiers of set defined by it level */
+/** Class for tracing a digital circle */
 
 class cCircle_CurveBySet : public cCurveBySet
 {
      public :
-       cCircle_CurveBySet(const cPt2dr & aC,tREAL8 aRay) :
-            cCurveBySet (ToI(mC),0,true,true,std::optional<cPt2di>()),
+       cCircle_CurveBySet(const cPt2dr & aC,tREAL8 aRay,bool V8,bool Trigo) :
+            cCurveBySet (ToI(aC),0,V8,Trigo,std::optional<cPt2di>()),
             mC          (aC),
             mRay        (aRay),
             mR2         (Square(mRay))
-	{
-	}
-
-/*
-cCurveBySet::cCurveBySet(cPt2di  aPGuess0,size_t aKDir0,bool EightDir,std::optional<cPt2di> aEndPoint)
-       std::vector<cPt2di>  Compute(bool EightDir)
        {
-            return cCurveBySet::Compute(ToI(mC),0,EightDir,std::optional<cPt2di>());
        }
-*/
+
        tREAL8  InsideNess(const cPt2di & aPt) const override 
+       {
+	        // return Norm2(ToR(aPt)-mC) - mRay;
+	        return SqN2(ToR(aPt)-mC) - mR2;
+       }
+       tREAL8  EuclidInsideNess(const cPt2di & aPt) const override 
        {
 	        return Norm2(ToR(aPt)-mC) - mRay;
 	        // return SqN2(ToR(aPt)-mC) - mR2;
@@ -335,41 +420,220 @@ cCurveBySet::cCurveBySet(cPt2di  aPGuess0,size_t aKDir0,bool EightDir,std::optio
        tREAL8  mR2;
 };
 
+/* ********************************************************* */
+/*                                                           */
+/*                    cEllipse_CurveBySetc                   */
+/*                                                           */
+/* ********************************************************* */
 
-void BenchCircle_CurveDigit(cPt2dr  aC,double aRay)
+/** Class for tracing a digital ellipse */
+
+class cEllipse_CurveBySetc : public cCurveBySet
 {
+     public :
+       cEllipse_CurveBySetc(const cPt2dr & aC,tREAL8 aRayA,tREAL8 aRayB,double aTeta,bool V8,bool Trigo) :
+            cCurveBySet (ToI(aC),0,V8,Trigo,std::optional<cPt2di>()),
+            mEllipse    (aC,aTeta,aRayA,aRayB)
+       {
+       }
 
-/*
-cPt2di aDec = cPt2di(5,5) +ToI(cPt2dr(aRay,aRay));
-aC = aC - ToR(ToI(aC)) + ToR(aDec);
-     cCircle_CurveBySet aCCS(aC,aRay);
+       tREAL8  InsideNess(const cPt2di & aPt) const override 
+       {
+	        return mEllipse.SignedQF_D2(ToR(aPt));
+       }
+       tREAL8  EuclidInsideNess(const cPt2di & aPt) const override 
+       {
+	        return mEllipse.SignedEuclidDist(ToR(aPt));
+	        // return SqN2(ToR(aPt)-mC) - mR2;
+       }
+     private :
+      cEllipse  mEllipse;
+};
 
-cIm2D<tU_INT1> aIm(2*aDec);
-for (const auto & aPt : aIm.DIm())
+
+/* ********************************************************* */
+/*                                                           */
+/*                    cLine_CurveBySet                       */
+/*                                                           */
+/* ********************************************************* */
+
+/** Class for tracing a digital ellipse */
+
+
+class  cLine_CurveBySet : public cCurveBySet
 {
-   aIm.DIm().SetV(aPt,255*(aCCS.InsideNess(aPt)>0));
+     public :
+        cLine_CurveBySet(const cPt2di & aP1,const cPt2di & aP2) :
+            cCurveBySet (aP1,0,true,true,aP2),
+            mSeg        (ToR(aP1),ToR(aP2))
+       {
+       }
+       std::vector<cPt2di>  Compute() override;
+
+       tREAL8  InsideNess(const cPt2di & aPt) const override 
+       {
+          return mSeg.ToCoordLoc(ToR(aPt)).y();
+       }
+     private :
+       cSegment2DCompiled<tREAL8>   mSeg;
+};
+
+
+std::vector<cPt2di>  cLine_CurveBySet::Compute() 
+{
+    // A standard bresenham algorithm
+    std::vector<cPt2di> aRes;
+
+    size_t aK1 = mCFO.IndexEnglob(mSeg.V12());
+    size_t aK2 = mCFO.IndSucc(aK1);
+
+    cPt2di aDP1 = mCFO.KPt(aK1);
+    cPt2di aDP2 = mCFO.KPt(aK2);
+
+    tREAL8 aD1 = Scal(ToR(aDP1),mSeg.Normal());
+    tREAL8 aD2 = Scal(ToR(aDP2),mSeg.Normal());
+
+    mCurPt = ToI(mSeg.P1());
+    aRes.push_back(mCurPt);
+   
+    tREAL8 aSignD = 0;
+
+    cPt2di aTarget = ToI(mSeg.P2());
+
+
+    int aCpt = 1  + round_up(NormInf(mSeg.V12()));
+
+    while (mCurPt != aTarget)
+    {
+         if (std::abs(aSignD+aD1) < std::abs(aSignD+aD2))
+         {
+             mCurPt += aDP1;
+             aSignD += aD1;
+         }
+         else
+         {
+             mCurPt += aDP2;
+             aSignD += aD2;
+         }
+         aRes.push_back(mCurPt);
+
+         MMVII_INTERNAL_ASSERT_tiny(aCpt!=0,"Bresenham infinite loop");
+         aCpt--;
+    }
+    return aRes;
 }
-aIm.DIm().ToFile("CurveDigit.tif");
 
-     for (const auto aV8 : {true})
+/* ********************************************************* */
+/*                                                           */
+/*                    DilateSetPoints                        */
+/*                                                           */
+/* ********************************************************* */
+
+
+class cDilateSetPoints
+{
+    public :
+         cDilateSetPoints(tREAL8 aRay);
+         const std::vector<cPt2di> &  Disk0() const {return mDisk0;}
+         const std::vector<cPt2di> &  Trans(const cPt2di &) const ;
+    private :
+         tREAL8                             mR2;
+         std::vector<cPt2di>                mDisk0;
+         mutable std::vector<std::vector<cPt2di>>   mTrans;
+         cConfig_Freeman_Or                 mCFO;
+};
+
+cDilateSetPoints::cDilateSetPoints(tREAL8 aRay) :
+    mR2     (Square(aRay)),
+    mTrans  (8),
+    mCFO    (true,true)
+{
+     for (const auto & aPix : cRect2::BoxWindow(round_up(aRay)))
      {
-StdOut() << "------------------------------------------------------------------------------------------------\n";
-StdOut() << "JJJJJJJJJJ  " << aC << " " << aRay << " " << aV8 << " Dec=" << aDec << "\n";
-         aCCS.Compute(aV8);
+         if (SqN2(aPix) <= mR2)
+            mDisk0.push_back(aPix);
      }
-*/
+}
+
+const std::vector<cPt2di> &  cDilateSetPoints::Trans(const cPt2di & aDelta) const 
+{
+    std::vector<cPt2di> & aRes = mTrans.at(mCFO.Pt2Ind(aDelta));
+
+    if (aRes.empty())
+    {
+    }
+
+    return aRes;
+}
+
+std::vector<cPt2di>  DilateSetPoints(const std::vector<cPt2di> & aSet0,tREAL8 aRay)
+{
+     std::vector<cPt2di> aRes;
+     if (aSet0.empty())
+        return aRes;
+
+     tREAL8 aR2 = Square(aRay);
+     cPt2di aP0 = aSet0.at(0);
+
+     for (const auto & aPix : cRect2::BoxWindow(round_up(aRay)))
+     {
+         if (SqN2(aPix) <= aR2)
+            aRes.push_back(aP0+aPix);
+     }
+
+     for (size_t aKP=1 ; aKP<aSet0.size() ; aKP++)
+     {
+      //cConfig_Freeman_Or(bool v8,bool trigo);
+     }
+
+    
+     return aRes;
+}
+
+void BenchCircle_CurveDigit(cPt2dr  aC,double aRayA,double aRayB,double aTeta)
+{
+     for (bool Trigo : {false,true})
+     {
+         cCircle_CurveBySet aCCS(aC,aRayA,true,Trigo);
+         auto  aVPts = aCCS.Compute();
+         aCCS.Bench(aVPts,0,1);
+
+         cEllipse_CurveBySetc aECS(aC,aRayA,aRayB,aTeta,true,Trigo);
+         aVPts = aECS.Compute();
+         aECS.Bench(aVPts,0,1);
+     }
 }
 
 void BenchCurveDigit(cParamExeBench & aParam)
 {
      if (! aParam.NewBench("CurveDigit")) return;
 
+     cConfig_Freeman_Or(true ,true ).Bench();
+     cConfig_Freeman_Or(false,true ).Bench();
+     cConfig_Freeman_Or(true ,false).Bench();
+     cConfig_Freeman_Or(false,false).Bench();
+
+
+     for (int aKC=0 ; aKC<200 ; aKC++)
+     {
+         cPt2di aP1 = ToI(cPt2dr::PRandC() * 100.0);
+         cPt2di aP2 = aP1;
+         while (aP2==aP1)
+               aP2 = ToI(cPt2dr::PRandC() * 100.0);
+
+        cLine_CurveBySet aLCS(aP1,aP2);
+        auto aVPts = aLCS.Compute();
+        aLCS.Bench(aVPts,-0.5,0.5);
+     }
+
      for (int aKC=0 ; aKC<30 ; aKC++)
      {
 	 cPt2dr aC = cPt2dr::PRandC() * 1000.0 ;
-         tREAL8 aRay = RandInInterval(3.0,20.0);
+         tREAL8 aRayA = RandInInterval(3.0,20.0);
+         tREAL8 aRayB = RandInInterval(3.0,20.0);
+         tREAL8 aTeta = RandInInterval(-100,100);
 
-	 BenchCircle_CurveDigit(aC,aRay);
+	 BenchCircle_CurveDigit(aC,aRayA,aRayB,aTeta);
      }
 
      aParam.EndBench();

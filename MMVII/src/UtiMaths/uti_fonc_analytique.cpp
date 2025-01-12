@@ -4,6 +4,11 @@
 namespace MMVII
 {
 
+template <typename Type> Type SignedSqrt(const Type & aX)
+{
+   return SignSupEq0(aX) * std::sqrt(std::abs(aX));
+}
+
 	/*
 template  TYPE Sqrt(const TYPE & aSin);
 template <typename Type> Type Sqrt(const Type & aX)
@@ -193,6 +198,7 @@ template <typename Type> Type cosH(const Type & aX) {return std::exp(aX)+std::ex
 
 
 #define INSTATIATE_FUNC_ANALYTIQUE(TYPE)\
+template  TYPE SignedSqrt(const TYPE & aSin);\
 template  TYPE DerSqrt(const TYPE & aSin);\
 template  TYPE DerASin(const TYPE & aSin);\
 template  TYPE ASin(const TYPE & aSin);\

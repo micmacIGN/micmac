@@ -887,6 +887,12 @@ template <typename Type> Type AtanXsY_sX(const Type & X,const Type & Y,const Typ
    /// Same as DerXAtanXY_sX ...  ... bench
 template <typename Type> Type DerXAtanXsY_sX(const Type & X,const Type & Y,const Type & aEps);
 
+      //   -------------- miscelaneaous functions ------------------------
+/// Reciprocal function of X-> X|X|
+template <typename Type> Type SignedSqrt(const Type & aTeta); 
+
+
+
 /*  ****************************************** */
 /*     REPRESENTATION of num on a base         */
 /* ******************************************* */

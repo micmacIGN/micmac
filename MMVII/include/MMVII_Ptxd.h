@@ -545,7 +545,8 @@ template <class T,const int Dim> inline double RatioMax(const cPtxd<T,Dim> & aP1
    return NormInf(RDivCByC(aP1,aP2));
 }
 
-template <class Type,const int Dim>  Type AbsSurfParalogram(const cPtxd<Type,Dim>&,const cPtxd<Type,Dim>&);
+/// Absolute value of surface of the parallelograp OP1 OP2, defined for dim=2&3
+template <class Type,const int Dim>  Type AbsSurfParalogram(const cPtxd<Type,Dim>&aP1,const cPtxd<Type,Dim>&aP2);
 
 
 

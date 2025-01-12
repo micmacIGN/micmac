@@ -12,6 +12,20 @@ const  cPt2di FreemanV10[10] {{1,0},{1,1},{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,
 const std::vector<cPt2di> & Alloc4Neighbourhood() { return AllocNeighbourhood<2>(1); }
 const std::vector<cPt2di> & Alloc8Neighbourhood() { return AllocNeighbourhood<2>(2); }
 
+template <class Type> Type DbleAreaPolygOriented(const std::vector<cPtxd<Type,2>>& aPolyg)
+{
+    Type aRes = 0;
+    size_t aNb = aPolyg.size() ;
+    if (aNb)
+    {
+        // substract origin, avoid overflow, better accuracy
+        cPtxd<Type,2> aP0 = aPolyg.at(0);
+        for (size_t aK=0 ; aK<aNb ; aK++)
+            aRes += (aPolyg.at(aK) -aP0)  ^ (aPolyg.at((aK+1)%aNb) -aP0);
+    }
+    return aRes;
+}
+
 /* ========================== */
 /*         cBox2di            */
 /* ========================== */
@@ -1331,7 +1345,8 @@ template  cSim2D<TYPE> cSim2D<TYPE>::RandomSimInv(const TYPE & AmplTr,const TYPE
 template  cHomot2D<TYPE> cHomot2D<TYPE>::RandomHomotInv(const TYPE &,const TYPE &,const TYPE &);\
 template  cSim2D<TYPE> cSim2D<TYPE>::FromMinimalSamples(const tPt & aP0In,const tPt & aP1In,const tPt & aP0Out,const tPt & aP1Out )  ;\
 template  cSimilitud3D<TYPE> cSim2D<TYPE>::Ext3D() const;\
-template  cDenseMatrix<TYPE> MatOfMul (const cPtxd<TYPE,2> & aP);
+template  cDenseMatrix<TYPE> MatOfMul (const cPtxd<TYPE,2> & aP);\
+template TYPE DbleAreaPolygOriented(const std::vector<cPtxd<TYPE,2>> & aPolyg);
 
 
 //  MACRO_INSTATIATE_LINEAR_GEOM2D_MAPPING(TYPE,cHomogr2D<TYPE>,2);
@@ -1341,6 +1356,7 @@ MACRO_INSTATIATE_GEOM2D(tREAL4)
 MACRO_INSTATIATE_GEOM2D(tREAL8)
 MACRO_INSTATIATE_GEOM2D(tREAL16)
 
+template int DbleAreaPolygOriented(const std::vector<cPtxd<int,2>> & aPolyg);
 
 
 };

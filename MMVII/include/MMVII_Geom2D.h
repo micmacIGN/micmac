@@ -81,6 +81,9 @@ template <class Type> inline cPtxd<Type,2> PSymXY (const cPtxd<Type,2> & aP)
     return cPtxd<Type,2>(aP.y(),aP.x()); 
 }
 
+/// return twice the oriented area of the polygon
+template <class Type> Type DbleAreaPolygOriented(const std::vector<cPtxd<Type,2>> &aPolyg);
+
 ///  matrix of  linear function  q -> q * aP
 template <class Type> cDenseMatrix<Type> MatOfMul (const cPtxd<Type,2> & aP);
 
