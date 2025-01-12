@@ -1,8 +1,4 @@
-#define WITH_MMV1_FUNCTION false
-
-#if (WITH_MMV1_FUNCTION)
 #include "V1VII.h"
-#endif 
 
 #include "MMVII_Matrix.h"
 #include "MMVII_Linear2DFiltering.h"
@@ -61,7 +57,7 @@ void Bench_LabMaj()
 }
 
 
-#if (WITH_MMV1_FUNCTION)
+#if (MMVII_KEEP_LIBRARY_MMV1)
 
 /*  ************************************************* */
 /*                                                    */
@@ -111,7 +107,7 @@ void ExportHomMMV1(const std::string & aIm1,const std::string & aIm2,const std::
 /*  ************************************************* */
 
    //  implemantation of methods that used to do be done unsing  MMV1
-   //  Activated with WITH_MMV1_FUNCTION , to check correctness 
+   //  Activated with MMVII_KEEP_LIBRARY_MMV1 , to check correctness 
 
     //=================  Curvature of tangent line -> Courb Tgt ==================
 
@@ -306,12 +302,12 @@ void  BenchImFilterV1V2()
     Tpl_BenchDericheV1V2<tREAL4>(cPt2di(240,220),2.0);
 }
 
-#else
+#else // MMVII_KEEP_LIBRARY_MMV1
 void  BenchImFilterV1V2()
 {
     Bench_LabMaj();
 }
-#endif
+#endif // MMVII_KEEP_LIBRARY_MMV1
 
 
 //==============================

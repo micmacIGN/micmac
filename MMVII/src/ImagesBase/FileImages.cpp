@@ -4,6 +4,7 @@
 #include "MMVII_Ptxd.h"
 #include "cGdalApi.h"
 
+#define MMVII_KEEP_LIBRARY_MMV1 true
 #ifdef MMVII_KEEP_MMV1_IMAGE
 # include "V1VII.h"
 #endif

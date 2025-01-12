@@ -1,15 +1,10 @@
-#define WITH_MMV1_FUNCTION  false
-
 #include "MMVII_Matrix.h"
 #include "MMVII_Ptxd.h"
 #include "MMVII_Stringifier.h"
 #include "MMVII_Geom2D.h"
 
 
-#if (WITH_MMV1_FUNCTION)
 #include "V1VII.h"
-#endif 
-
 
 namespace MMVII
 {
@@ -61,7 +56,6 @@ template <class Type> cEigenPolynRoots<Type>::cEigenPolynRoots(const cPolynom<Ty
     mSzMat (std::max((size_t)1,mDeg)),
     mCompM (mSzMat,mSzMat,eModeInitImage::eMIA_Null)
 {
-
     if (mDeg==0)
        return;
 

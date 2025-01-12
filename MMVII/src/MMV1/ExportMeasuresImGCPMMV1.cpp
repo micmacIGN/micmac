@@ -1,8 +1,4 @@
-#define WITH_MMV1_FUNCTION  false
-
-#if (WITH_MMV1_FUNCTION)
 #include "V1VII.h"
-#endif
 
 #include "MMVII_util.h"
 #include "MMVII_MeasuresIm.h"
@@ -15,7 +11,7 @@ namespace MMVII
 /*                                                     */
 /*   ************************************************* */
 
-#if (WITH_MMV1_FUNCTION)
+#if (MMVII_KEEP_LIBRARY_MMV1)
 
 void ImportMesImV1(std::list<cSetMesPtOf1Im>  & aResult,const std::string & aNameFileMesImV1)
 {
@@ -50,7 +46,7 @@ cSetMesGCP ImportMesGCPV1(const std::string & aNameFileMesGCPV1,const std::strin
     return aResult;
 }
 
-#else
+#else //  MMVII_KEEP_LIBRARY_MMV1
 void ImportMesImV1(std::list<cSetMesPtOf1Im>  & aResult,const std::string & aNameFileMesImV1)
 {
     MMVII_INTERNAL_ERROR("No ImportMesImV1 ");
@@ -60,7 +56,7 @@ cSetMesGCP ImportMesGCPV1(const std::string & aNameFileMesGCPV1,const std::strin
     MMVII_INTERNAL_ERROR("No ImportMesGCPV1");
     return cSetMesGCP  (aNameSet);
 }
-#endif
+#endif //  MMVII_KEEP_LIBRARY_MMV1
 
 
 

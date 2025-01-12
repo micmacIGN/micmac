@@ -1,8 +1,4 @@
-#define WITH_MMV1_FUNCTION false
-
-#if (WITH_MMV1_FUNCTION)
 #include "V1VII.h"
-#endif
 
 #include "MMVII_Geom2D.h"
 
@@ -650,7 +646,7 @@ void BenchCurveDigit(cParamExeBench & aParam)
 
 /*************************************************/
 
-#if (WITH_MMV1_FUNCTION)
+#if (MMVII_KEEP_LIBRARY_MMV1)
 Neighbourhood DiscNeich(const tREAL8 & aRay)
 {
     std::vector<Pt2di> aVPts;
@@ -726,7 +722,7 @@ void  GetPts_Line(tResFlux & aRes,const cPt2dr & aP1,const cPt2dr &aP2)
 {
 	GetPts_Line(aRes,aP1,aP2,-1.0);
 }
-#else //  (WITH_MMV1_FUNCTION)
+#else //  (MMVII_KEEP_LIBRARY_MMV1)
 void  GetPts_Line(tResFlux & aResLine,const cPt2dr & aP1,const cPt2dr &aP2)
 {
       cLine_CurveBySet aLCS(ToI(aP1),ToI(aP2));
@@ -754,7 +750,7 @@ tResFlux  GetPts_Circle(const cPt2dr & aC,double aRay,bool with8Neigh)
     return aCCS.Compute();
 }
 
-#endif //  (WITH_MMV1_FUNCTION)
+#endif //  (MMVII_KEEP_LIBRARY_MMV1)
 
 
 

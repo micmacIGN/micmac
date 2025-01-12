@@ -1,7 +1,5 @@
-#define WITH_MMV1_FUNCTION false
-
-#if (WITH_MMV1_FUNCTION)
 #include "V1VII.h"
+#if (MMVII_KEEP_LIBRARY_MMV1)
 #include "ext_stl/numeric.h"
 #endif
 
@@ -188,7 +186,7 @@ void BenchKTHVal(cParamExeBench & aParam)
 
 /* ***************************************** */
 
-#if (WITH_MMV1_FUNCTION)
+#if (MMVII_KEEP_LIBRARY_MMV1)
 template <class Type>  
     std::vector<Type>  V1RealRoots(const std::vector<Type> &  aVCoef, Type aTol,int aNbMaxIter)
 {
@@ -201,14 +199,14 @@ template <class Type>
 
     return aVRoots;
 }
-#else
+#else // MMVII_KEEP_LIBRARY_MMV1
 template <class Type>  
     std::vector<Type>  V1RealRoots(const std::vector<Type> &  aVCoef, Type aTol,int aNbMaxIter)
 {
     MMVII_INTERNAL_ERROR("No V1RealRoots");
     return std::vector<Type>();
 }
-#endif
+#endif // MMVII_KEEP_LIBRARY_MMV1
 
 #define INST_V1ROOTS(TYPE)\
 template std::vector<TYPE>  V1RealRoots(const std::vector<TYPE> &  aVCoef, TYPE aTol,int aNbMaxIter);
