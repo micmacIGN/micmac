@@ -382,7 +382,10 @@ void cLoadImDist::Load(int argc,char ** argv)
 	    mPts.push_back(cPtLaser(Pt3dr(Rho,Teta,Phi)));
             cPtLaser & aP = mPts.back();
 
-            for (INT aK=0; aK <mNbAux ; aK++)
+        // CM: g++ 13.3 (mode Release) warns with "writing 1 byte into a region of size 0 [-Werror=stringop-overflow=]"
+        // on: aP.mCols[aK] = (U_INT1)mCols[mCanalAux[aK]];
+        // I replaced [aK <mNbAux] with [aK <std::min(mNbAux,TheNbMax)]. Not sure about that ...
+            for (INT aK=0; aK <std::min(mNbAux,TheNbMax) ; aK++)
                 aP.mCols[aK] = (U_INT1)mCols[mCanalAux[aK]];
 
 	    mNbP++;

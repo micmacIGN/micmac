@@ -128,74 +128,69 @@ void HistoryManager::save()
 
         const selectInfos &SInfo = _infos[i];
 
-        if ((SInfo.mvmatrix != NULL) && (SInfo.projmatrix != NULL) && (SInfo.glViewport != NULL))
+        QString text1, text2;
+
+        text1 = QString::number(SInfo.mvmatrix[0], 'f');
+        text2 = QString::number(SInfo.projmatrix[0], 'f');
+
+        for (int aK=1; aK < 16;++aK)
         {
-            QString text1, text2;
+            text1 += " " + QString::number(SInfo.mvmatrix[aK], 'f');
+            text2 += " " + QString::number(SInfo.projmatrix[aK], 'f');
+        }
 
-            text1 = QString::number(SInfo.mvmatrix[0], 'f');
-            text2 = QString::number(SInfo.projmatrix[0], 'f');
+        t = doc.createTextNode(text1);
+        mvMatrixElem.appendChild(t);
 
-            for (int aK=1; aK < 16;++aK)
-            {
-                text1 += " " + QString::number(SInfo.mvmatrix[aK], 'f');
-                text2 += " " + QString::number(SInfo.projmatrix[aK], 'f');
-            }
+        t = doc.createTextNode(text2);
+        ProjMatrixElem.appendChild(t);
 
-            t = doc.createTextNode(text1);
-            mvMatrixElem.appendChild(t);
+        text1 = QString::number(SInfo.glViewport[0]) ;
+        for (int aK=1; aK < 4;++aK)
+            text1 += " " + QString::number(SInfo.glViewport[aK]);
 
-            t = doc.createTextNode(text2);
-            ProjMatrixElem.appendChild(t);
+        t = doc.createTextNode(text1);
+        glViewportElem.appendChild(t);
 
-            text1 = QString::number(SInfo.glViewport[0]) ;
-            for (int aK=1; aK < 4;++aK)
-                text1 += " " + QString::number(SInfo.glViewport[aK]);
+        SII.appendChild(mvMatrixElem);
+        SII.appendChild(ProjMatrixElem);
+        SII.appendChild(glViewportElem);
 
-            t = doc.createTextNode(text1);
-            glViewportElem.appendChild(t);
+        QVector <QPointF> pts = SInfo.poly;
 
-            SII.appendChild(mvMatrixElem);
-            SII.appendChild(ProjMatrixElem);
-            SII.appendChild(glViewportElem);
+        for (int aK=0; aK < pts.size(); ++aK)
+        {
+            QDomElement Point    = doc.createElement("Pt");
+            QDomElement Pt3D     = doc.createElement("Pt");
+            QString str = QString::number(pts[aK].x(), 'f',0) + " " + QString::number(pts[aK].y(), 'f',0);
 
-            QVector <QPointF> pts = SInfo.poly;
+            t = doc.createTextNode( str );
+            Point.appendChild(t);
+            SII.appendChild(Point);
 
-            for (int aK=0; aK < pts.size(); ++aK)
-            {
-                QDomElement Point    = doc.createElement("Pt");
-                QDomElement Pt3D     = doc.createElement("Pt");
-                QString str = QString::number(pts[aK].x(), 'f',0) + " " + QString::number(pts[aK].y(), 'f',0);
-
-                t = doc.createTextNode( str );
-                Point.appendChild(t);
-                SII.appendChild(Point);
-
-                //Export points 3D
+            //Export points 3D
 				QVector3D pt3d;
-                MatrixManager *MM = new MatrixManager();
-                MM->importMatrices(SInfo);
-                MM->getInverseProjection(pt3d, pts[aK], 0.f);
+            MatrixManager *MM = new MatrixManager();
+            MM->importMatrices(SInfo);
+            MM->getInverseProjection(pt3d, pts[aK], 0.f);
 				// str = QString::number(pt3d.x(), 'f') + " " + QString::number(pt3d.y(), 'f') + " " + QString::number(pt3d.z(), 'f');
 //  MPD : tentative de ne pas perdre betement de la precision qui peut etre genant avec les grande coordonnees ? 
 	        str = QString::number(pt3d.x(), 'f',20) + " " + QString::number(pt3d.y(), 'f',20) + " " + QString::number(pt3d.z(), 'f',20);
-                t = doc2.createTextNode( str );
-                Pt3D.appendChild(t);
-                SIt.appendChild(Pt3D);
-            }
-
-            t = doc.createTextNode(QString::number(SInfo.selection_mode));
-            Mode.appendChild(t);
-            SII.appendChild(Mode);
-
-            t = doc2.createTextNode(QString::number(SInfo.selection_mode));
-            Mode2.appendChild(t);
-            SIt.appendChild(Mode2);
-
-            SI.appendChild(SII);
-            SI2.appendChild(SIt);
+            t = doc2.createTextNode( str );
+            Pt3D.appendChild(t);
+            SIt.appendChild(Pt3D);
         }
-        else
-            std::cerr << "saveSelectInfos: null matrix";
+
+        t = doc.createTextNode(QString::number(SInfo.selection_mode));
+        Mode.appendChild(t);
+        SII.appendChild(Mode);
+
+        t = doc2.createTextNode(QString::number(SInfo.selection_mode));
+        Mode2.appendChild(t);
+        SIt.appendChild(Mode2);
+
+        SI.appendChild(SII);
+        SI2.appendChild(SIt);
     }
 
     doc.appendChild(SI);
