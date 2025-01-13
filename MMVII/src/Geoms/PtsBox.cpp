@@ -1,6 +1,6 @@
 #include "MMVII_Images.h"
 #include "MMVII_Geom2D.h"
-#include "MMVII_MMV1Compat.h"
+#include "MMVII_Geom3D.h"
 
 namespace MMVII
 {
