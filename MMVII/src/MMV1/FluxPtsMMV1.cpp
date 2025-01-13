@@ -494,7 +494,7 @@ class cDilateSetPoints
          void  DilateSet(std::vector<cPt2di> & aRes,const std::vector<cPt2di> & aSet0);
          
     private :
-         tREAL8                             mRay;
+         tREAL8                             mRay [[maybe_unused]];
          tREAL8                             mRAR;
          std::vector<cPt2di>                mDisk0;
          mutable std::vector<std::vector<cPt2di>>   mTrans;
