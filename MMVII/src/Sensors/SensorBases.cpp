@@ -446,6 +446,21 @@ void cSensorImage::TransferateCoordSys(const cSensorImage & aSI)
 }
 const std::string cSensorImage::TagCoordSys = "CoordinateSys";
 
+bool  cSensorImage::IsSensorCamPC() const  
+{
+   return false;
+}
+const cSensorCamPC * cSensorImage::GetSensorCamPC() const
+{
+    MMVII_INTERNAL_ERROR("impossible required cast to cSensorCamPC");
+    return nullptr;
+}
+cSensorCamPC * cSensorImage::GetSensorCamPC() 
+{
+    MMVII_INTERNAL_ERROR("impossible required cast to cSensorCamPC");
+    return nullptr;
+}
+
 
 
 /* ******************************************************* */

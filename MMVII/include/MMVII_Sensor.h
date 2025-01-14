@@ -243,6 +243,11 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	 void TransferateCoordSys(const cSensorImage & aSI); ///< Transferat coordinate sys  aSI if it has any
          static const std::string TagCoordSys;
 	 						   
+         //  Cast to possible heriting class
+         virtual bool  IsSensorCamPC() const  ;
+         virtual const cSensorCamPC * GetSensorCamPC() const;
+         virtual cSensorCamPC * GetSensorCamPC() ;
+
      private :
 
 	 std::string                                   mNameImage;

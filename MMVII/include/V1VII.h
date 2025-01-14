@@ -2,7 +2,7 @@
 #define _V1V2_H_
 
 #ifndef MMVII_KEEP_LIBRARY_MMV1
-#define MMVII_KEEP_LIBRARY_MMV1 false
+#define MMVII_KEEP_LIBRARY_MMV1 true
 #endif 
 
 #if (MMVII_KEEP_LIBRARY_MMV1)

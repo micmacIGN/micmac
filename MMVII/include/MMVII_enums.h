@@ -89,6 +89,7 @@ enum class eApF
                Cloud,       ///< Cloud processing
                CodedTarget,  ///< Coded target (generate, match )
                Topo,        ///< Topo survey
+               Simul,       ///< Simulation of datas
                NoGui,        ///< Will not have a GUI frontend
                Perso,      ///< Personnal
                eNbVals     ///< Tag for number of value

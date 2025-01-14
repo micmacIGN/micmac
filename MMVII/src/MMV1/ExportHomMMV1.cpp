@@ -89,11 +89,13 @@ cInterfImportHom * cInterfImportHom::CreateImportV1(const std::string&aDir,const
         MMVII_INTERNAL_ERROR("No CreateImportV1 ");
 	return nullptr;
 }
+#endif // MMVII_KEEP_LIBRARY_MMV1
+
+
 cInterfImportHom::~cInterfImportHom()
 {
 }
 
-#endif // MMVII_KEEP_LIBRARY_MMV1
 
 
 

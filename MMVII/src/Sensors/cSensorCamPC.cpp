@@ -584,6 +584,13 @@ void cSensorCamPC::BenchOneCalib(cPerspCamIntrCalib * aCalib)
     aCam.Bench();
 }
 
+     // =================  Cast ===================
+
+bool  cSensorCamPC::IsSensorCamPC() const  { return true; }
+const cSensorCamPC * cSensorCamPC::GetSensorCamPC() const { return this; }
+cSensorCamPC * cSensorCamPC::GetSensorCamPC() { return this; }
+
+
 
 }; // MMVII
 
