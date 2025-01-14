@@ -40,7 +40,7 @@ class cConfig_Freeman_Or
       tIndex   IndSym(tIndex aK) const  {return mSym.at(aK);}
       bool Trigo() const {return mTrigo;}
 
-      const tIndex  Pt2Ind(const cPt2di & aPt) const
+      tIndex  Pt2Ind(const cPt2di & aPt) const
       {
             return  const_cast<cConfig_Freeman_Or*>(this)->AddrP2I(aPt);
       }
@@ -493,8 +493,9 @@ class cDilateSetPoints
          const std::vector<cPt2di> &  Trans(const cPt2di &) const ;
          void  DilateSet(std::vector<cPt2di> & aRes,const std::vector<cPt2di> & aSet0);
          
+         tREAL8 Ray() const { return mRay;}
     private :
-         tREAL8                             mRay [[maybe_unused]];
+         tREAL8                             mRay;
          tREAL8                             mRAR;
          std::vector<cPt2di>                mDisk0;
          mutable std::vector<std::vector<cPt2di>>   mTrans;
