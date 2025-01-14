@@ -2,6 +2,7 @@
 #define _V1V2_H_
 
 #ifndef MMVII_KEEP_LIBRARY_MMV1
+// Maintain it for now, require for converting V1 TiePoints...
 #define MMVII_KEEP_LIBRARY_MMV1 true
 #endif 
 
