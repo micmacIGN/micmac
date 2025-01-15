@@ -195,7 +195,7 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 {
         public :
 
-void Tmp_TestDerivate();
+void Bench_CalcDiff();
 
 
             typedef tREAL8               tScal;
@@ -245,6 +245,10 @@ void Tmp_TestDerivate();
 
     // ==================   geometric points computation ===================
             const  tVecOut &  Values(tVecOut &,const tVecIn & ) const override;
+
+            std::pair<cPt2dr,cDenseMatrix<tREAL8>>  Jacobian(const cPt3dr &) const override;  /// overides cDataMapping
+            tProjImAndGrad  DiffGround2Im(const cPt3dr &) const;  // signature ~ to DiffGround2Im of sensor
+
             const  tVecIn  &  DirBundles(tVecIn &,const tVecOut & ) const;
 	    tPtIn  DirBundle(const tPtOut &) const;
 
