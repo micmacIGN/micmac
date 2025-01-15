@@ -85,7 +85,8 @@ void cAppli_PerturbRandomOri::TestPly()
     }
 
     cStdStatRes aStatRes;
-    cCubicInterpolator aInterpol(-0.5);
+    // cCubicInterpolator aInterpol(-0.5);
+    cSinCApodInterpolator aInterpol(10,10);
 
     for (size_t aKP=0 ; aKP<mTri->NbPts() ; aKP++)
     {
