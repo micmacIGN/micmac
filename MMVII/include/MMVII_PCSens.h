@@ -194,6 +194,10 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 			   public cDataPerspCamIntrCalib
 {
         public :
+
+void Tmp_TestDerivate();
+
+
             typedef tREAL8               tScal;
             typedef cPtxd<tScal,2>       tPtOut;
             typedef cPtxd<tScal,3>       tPtIn;

@@ -2,6 +2,9 @@
 #include "MMVII_PCSens.h"
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_Geom2D.h"
+#include "MMVII_Tpl_Images.h"
+
+
 // #include <set>
 
 #ifdef _OPENMP
@@ -410,6 +413,7 @@ std::vector<cPt2dr>  cPerspCamIntrCalib::PtsSampledOnSensor(int aNbByDim,bool In
 
 const  std::vector<cPt2dr> &  cPerspCamIntrCalib::Values(tVecOut & aV3 ,const tVecIn & aV0 ) const 
 {
+  // StdOut() <<  "VALUUUUUU \n";
      static tVecOut aV1,aV2;
      mDir_Proj->Values(aV1,aV0);
      mDir_Dist->Values(aV2,aV1);
@@ -934,6 +938,38 @@ void cPerspCamIntrCalib::SetTabulDUD(int aNb)
    mTabulDUD = AllocTabulDUD(aNb);
 }
 
+void cPerspCamIntrCalib::Tmp_TestDerivate()
+{
+   static int aCpt=0; aCpt++;
+   if (mTypeProj==eProjPC::eOrthoGraphik)
+      return;
+   cSensorCamPC aCamId("toto.tif",tPoseR::Identity(),this);
+
+   StdOut() << "Tmp_TestDerivateTmp_TestDerivate  " << aCpt << " Proj=" << E2Str(mTypeProj) << "\n";
+
+   const cDataMapping<tREAL8,3,2> * aDmProj = mDir_Proj;
+   const cDataMapping<tREAL8,2,2> * aDmDist = mDir_Dist; 
+
+  for (int aK=0 ; aK<100 ; aK++)
+  {
+      tREAL8 aPMin = 0.5;
+      tREAL8 aPMax = 2.0;
+      cPt3dr aPGround  = aCamId.RandomVisiblePGround(aPMin,aPMax);
+      auto [aPProj,aJacProj] = aDmProj->Jacobian(aPGround);
+      auto [aPDist,aJacDist] = aDmDist->Jacobian(aPProj);
+
+      auto aJac = aJacDist * aJacProj * F();
+     // aJacProj * aJacDist;
+
+/*
+      //tREAL8 aEps = aPMin * 1e-5;
+      for (int aK=0 ; aK<3 ; aK++)
+      {
+      }
+*/
+  }
+}
+
 
 
 
@@ -942,6 +978,9 @@ void BenchCentralePerspective(cParamExeBench & aParam,eProjPC aTypeProj)
     for (size_t aK=0 ; aK<4 ; aK++)
     {
        cPerspCamIntrCalib * aCam = cPerspCamIntrCalib::RandomCalib(aTypeProj,aK);
+aCam->Tmp_TestDerivate();
+
+
        aCam->TestInvInit((aK==0) ? 1e-3 : 1e-2, 1e-4);
 
        cSensorCamPC::BenchOneCalib(aCam);
