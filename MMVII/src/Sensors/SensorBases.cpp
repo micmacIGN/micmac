@@ -313,7 +313,10 @@ cPt3dr cSensorImage::RandomVisiblePGround(tREAL8 aDepMin,tREAL8 aDepMax)
 {
      cPt2dr aPIm   = RandomVisiblePIm();
      tREAL8 aDepth = RandInInterval(aDepMin,aDepMax);
-     return  Ground2ImageAndDepth(cPt3dr(aPIm.x(),aPIm.y(),aDepth));
+
+     // MPD : big bug, but never catched as it was random simul ...
+     // return  Ground2ImageAndDepth(cPt3dr(aPIm.x(),aPIm.y(),aDepth));
+     return  ImageAndDepth2Ground(cPt3dr(aPIm.x(),aPIm.y(),aDepth));
 }
 
 
