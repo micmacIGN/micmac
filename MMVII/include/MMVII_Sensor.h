@@ -247,6 +247,9 @@ class cSensorImage  :   public cObj2DelAtEnd,
          virtual bool  IsSensorCamPC() const  ;
          virtual const cSensorCamPC * GetSensorCamPC() const;
          virtual cSensorCamPC * GetSensorCamPC() ;
+         /// generete a user error 
+         const cSensorCamPC * UserGetSensorCamPC() const;
+         cSensorCamPC * UserGetSensorCamPC() ;
 
      private :
 

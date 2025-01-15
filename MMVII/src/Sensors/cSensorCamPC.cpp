@@ -41,6 +41,7 @@ const cPt3dr &   cPoseWithUK::Tr() const {return mPose.Tr();}
 cPt3dr &  cPoseWithUK::Tr()  {return mPose.Tr();}
 
 
+
 cPt3dr &  cPoseWithUK::Omega()  {return mOmega;}
 const cPt3dr &  cPoseWithUK::Omega() const {return mOmega;}
 
@@ -156,7 +157,17 @@ void cSensorCamPC::SetPose(const tPose & aPose)
    mPose_WU.SetPose(aPose);
 }
 
+         // void SetCenter(const cPt3dr & aC);
 
+void cSensorCamPC::SetOrient(const tRotR & anOrient)
+{
+     SetPose(tPose(Center(),anOrient));
+}
+
+void cSensorCamPC::SetCenter(const cPt3dr & aC)
+{
+     SetPose(tPose(aC,Orient()));
+}
 
 
 #if (1)
@@ -307,7 +318,9 @@ const cPixelDomain & cSensorCamPC::PixelDomain() const
 
 cPerspCamIntrCalib * cSensorCamPC::InternalCalib() const {return mInternalCalib;}
 
-const cPt3dr & cSensorCamPC::Center() const {return mPose_WU.Tr();}
+const cPt3dr & cSensorCamPC::Center()  const {return mPose_WU.Tr();}
+const tRotR &   cSensorCamPC::Orient() const {return mPose_WU.Pose().Rot();}
+
 const cPt3dr & cSensorCamPC::Omega()  const {return mPose_WU.Omega();}
 cPt3dr & cSensorCamPC::Center() {return mPose_WU.Tr();}
 cPt3dr & cSensorCamPC::Omega()  {return mPose_WU.Omega();}
