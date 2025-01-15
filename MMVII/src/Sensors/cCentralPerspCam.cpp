@@ -959,7 +959,10 @@ void cPerspCamIntrCalib::Tmp_TestDerivate()
       auto [aPDist,aJacDist] = aDmDist->Jacobian(aPProj);
 
       auto aJac = aJacDist * aJacProj * F();
-     // aJacProj * aJacDist;
+
+      tProjImAndGrad   aPP = DiffGround2Im(aPGround);
+
+      StdOut() << aPP.mGradI << aPP.mGradJ << "\n";
 
 /*
       //tREAL8 aEps = aPMin * 1e-5;
