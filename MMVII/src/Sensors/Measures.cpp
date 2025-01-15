@@ -270,14 +270,13 @@ void cSetMesGndPt::AddMes2D(const cSetMesPtOf1Im & aSetMesIm, MMVII::cMes2DDirIn
         mPhaseGCPFinished = true;
     }
 
-    int aNumIm = m2MapImInt.Add(aSetMesIm.NameIm());
-    if (aNumIm==(int)mMesImInit.size())
+    int aNumIm = m2MapImInt.Obj2I(aSetMesIm.NameIm(), true);
+    if (aNumIm<0)
     {
+        aNumIm = m2MapImInt.Add(aSetMesIm.NameIm(), true);
         mMesImInit.push_back(cSetMesPtOf1Im(aSetMesIm.NameIm()));
         mVSens.push_back(aSens);
-    }
-    else
-    {
+    } else {
         MMVII_INTERNAL_ASSERT_tiny(aNumIm<int(mMesImInit.size()),"Incoherence in cSetMesImGCP::AddMes2D");
         MMVII_INTERNAL_ASSERT_tiny(mVSens.at(aNumIm) == aSens,"Variable sensor in cSetMesImGCP::AddMes2D");
     }
