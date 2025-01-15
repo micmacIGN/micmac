@@ -14,6 +14,7 @@
 #include "MMVII_Geom2D.h"
 #include "Formulas_ClinoBloc.h"
 #include "Formulas_ClinoRot.h"
+#include "Formulas_Lidar.h"
 
 #include "MMVII_PCSens.h"
 #include "MMVII_2Include_Serial_Tpl.h"
