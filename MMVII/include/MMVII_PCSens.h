@@ -485,6 +485,8 @@ class cSensorCamPC : public cSensorImage
 	 const cPixelDomain & PixelDomain() const override;
 
          void SetPose(const tPose & aPose);
+         void SetOrient(const tRotR & anOrient);
+         void SetCenter(const cPt3dr & aC);
 
 	 bool  HasImageAndDepth() const override;  // true
          cPt3dr Ground2ImageAndDepth(const cPt3dr &) const override;
@@ -523,6 +525,7 @@ class cSensorCamPC : public cSensorImage
 
 	 // different accessor to the pose
          const tPose &   Pose()   const;
+         const tRotR &   Orient()   const;
          const cPt3dr &  Center() const;
          cPt3dr &  Center() ;
          cPt3dr  AxeI()   const;
@@ -567,6 +570,11 @@ class cSensorCamPC : public cSensorImage
 	 cPt3dr  Pt_W2L(const cPt3dr &) const;  ///< Coordinat word to coordinate local of cam for a "point"
 	 cPt3dr  Vec_L2W(const cPt3dr &) const;  ///< Coordinat local of cam to coordinate word for a "vector"
 	 cPt3dr  Vec_W2L(const cPt3dr &) const;  ///< Coordinat word to coordinate local of cam for a "vector"
+
+         //  Cast to possible heriting class
+         bool  IsSensorCamPC() const  override ;
+         const cSensorCamPC * GetSensorCamPC() const override;
+         cSensorCamPC * GetSensorCamPC()  override;
 
      private :
         void Bench();

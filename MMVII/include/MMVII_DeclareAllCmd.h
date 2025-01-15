@@ -112,10 +112,11 @@ extern cSpecMMVII_Appli  TheSpec_ExportUndistMesIm;
 extern cSpecMMVII_Appli  TheSpecAppliExtractLine;
 extern cSpecMMVII_Appli  TheSpec_CERN_ImportClino;
 extern cSpecMMVII_Appli  TheSpec_MMV2_MesIm_2_MMV1;
-
 extern cSpecMMVII_Appli TheSpec_MergeMesImGCP;
-
 extern cSpecMMVII_Appli  TheSpec_ExifData;
+
+extern cSpecMMVII_Appli  TheSpec_PerturbRandomOri;
+
 };
 
 #endif  //  _MMVII_DeclareAllCmd_H_

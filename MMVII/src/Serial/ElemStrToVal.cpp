@@ -271,6 +271,7 @@ template<> cE2Str<eApF>::tMapE2Str cE2Str<eApF>::mE2S
                 {eApF::Cloud,"Cloud"},
                 {eApF::CodedTarget,"CodedTarget"},
                 {eApF::Topo,"Topo"},
+                {eApF::Simul,"Simul"},
                 {eApF::NoGui,"NoGui"},
                 {eApF::Perso,"Perso"}
            };
