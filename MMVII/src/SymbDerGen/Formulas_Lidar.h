@@ -1,10 +1,14 @@
 #ifndef _FORMULA_LIDAR_H_
 #define _FORMULA_LIDAR_H_
 
+// PUSHB
+
+
 #include "SymbDer/SymbDer_Common.h"
 #include "MMVII_Ptxd.h"
 #include "MMVII_Stringifier.h"
 #include "MMVII_DeclareCste.h"
+#include "MMVII_PhgrDist.h"
 
 #include "ComonHeaderSymb.h"
 
@@ -14,292 +18,189 @@ using namespace NS_SymbolicDerivative;
 namespace MMVII
 {
 
-/*
-class cRadiomFormulas
-{
-      public :
-          static std::vector<std::string> VNamesObs()  { return {"xIm","yIm","Cx","Cy","NormR"}; }
+#if (0)
 
-          template <typename tObs> std::vector<tObs> CoordNom ( const std::vector<tObs> & aVObs,int aK0Obs)  const
-          {
-                const auto & xIm   = aVObs[aK0Obs+0];
-                const auto & yIm   = aVObs[aK0Obs+1];
-                const auto & Cx    = aVObs[aK0Obs+2];
-                const auto & Cy    = aVObs[aK0Obs+3];
-                const auto & NormR = aVObs[aK0Obs+4];
+class cDistPolyn2D;            // helper class for generating polynoms
+class cEqColinSensGenPolyn2D;  // class for handling colinearitry equation wit 2D polyn + 
+class cEqDistPolyn2D;          // class for handling 2d-distorsion
 
-		auto aXRed =(xIm-Cx) / NormR;
-		auto aYRed =(yIm-Cy) / NormR;
+/* 
+GLOBAL SCOPE and HYPOTHESIS, LIMITATION :
 
-                return  {aXRed,aYRed};
-          }
-};
+ Classes used for defining bundle adjusment of  "generic" model of sensor, i.e a model for wich we dont
+have access to the physicall model that would allow a rigourous implementation. We suppose we only have access to :
+
+    - the projection function  Pi(x,y,z) =>  i,j
+    - the derivative of Pi  :   d Pi/dx ... , that can be computed by anyway (handcraft, formal, finit diff) does matter
+
+This function are regarded has black box, and at the level of this classes, what will be communicated is only values of these
+functions in some points.  Also in this file we make the hypthesis that the correction between initial model and adjusted model
+is just a  2D deformations "D2"  so that :
+
+         Pi' =   D2 o Pi
+
+More precisely we assume that D2 is a polynomial a total degree N
+
+    D2(x,y) = Sum_{i+j<=N}  a_ij x^i y^j + b_ij x^i y^j
+
+The limitation 
+
 */
 
-/*
-class cRadiomCalibPolIma  : public cRadiomFormulas
-{
-      public :
-          cRadiomCalibPolIma  (int aDegIm,int aDegRadElim=-1) :
-               mDegIm         (aDegIm),
-	       mDegRadElim    (aDegRadElim)
-          {
-          }
-	  std::vector<cDescOneFuncDist> VDesc() const
-	  {
-	      std::vector<cDescOneFuncDist> aRes;
+/** "Helper" class for generating the distorsion, it can be used in 3 contexts :
 
-              for (int aDx=0 ; aDx<= mDegIm ; aDx++)
-	      {
-                  for (int aDy=0 ; (aDy+aDx)<= mDegIm ; aDy++)
-		  {
-                       //int aDTot = aDx+aDy;
-		       // we avoid  1 X2 X4 ... if they are redundant with radial
-		       if (   ((aDx+aDy)>mDegRadElim) || (aDy!=0) || (aDx%2!=0))
-                           aRes.push_back(cDescOneFuncDist(eTypeFuncDist::eMonom, cPt2di(aDx,aDy),eModeDistMonom::eModeStd));
-		  }
-	      }
-	      return aRes;
-	  }
+      - generate a calculator for computing the distorsion itself
+      - generate a caculator for computing the colinearity equation
+      - generate the base of functions  used to compute by least square such function from a set of samples,
+        i.e given  pair of points {p_k,q_k}, compute the  D2  such that D2(p_k) = q_k, it is used typicall for
+        computing an invers mapping
 
-          std::vector<std::string> VNamesUnknowns() const 
-          {
-	      std::vector<std::string>  aRes ;
-              for (const auto & aDesc : VDesc())
-                  aRes.push_back( ((mDegRadElim<0) ? std::string("") : std::string("Sens_"))+aDesc.mName);
-              return aRes;
-          }
+     The fact of using this helper class, assure the coherence in convention in the 3 context.  
 
-          std::string FormulaName() const { return "RadiomCalibPolIm_" + ToStr(mDegIm);}
+     For example with degree "1" :
 
-          template <typename tUk,typename tObs> 
-             std::vector<tUk> formula
-                  (
-                      const std::vector<tUk> & aVUk,
-                      const std::vector<tObs> & aVObs,
-                      int   aK0Uk  = 0,
-                      int   aK0Obs = 0
-                  )  const
-          {
-                auto  aVec = CoordNom (aVObs,aK0Obs);
-                const auto & aXRed = aVec.at(0);
-                const auto & aYRed = aVec.at(1);
-	        tUk aCst0         = CreateCste(0.0,aXRed);  // create a symbolic formula for constant 1
-		tUk  aCorrec      = aCst0;
+      in mode standard(no base) "Func"  we will return :
 
-		auto aVDesc = VDesc() ;
-                for (size_t aKPol=0 ; aKPol<aVDesc.size() ; aKPol++)
-		{
-                    auto aDeg = aVDesc[aKPol].mDegMon;
-                    aCorrec = aCorrec + aVUk[aKPol+aK0Uk] * powI(aXRed,aDeg.x()) *  powI(aYRed,aDeg.y()) ;
-		}
+           { a_00+a_10*x+a_01*y , b_00+b_10*x+b_01*y} 
 
-		return {aCorrec};
-	  }
-          int DegIm () const {return mDegIm;}
+      while in mode Base "Funcs" we will return :
 
+           {  a_00 , 0    ,  a_10*x ,  0      ,   a_01*y ,  0
+              0    , b_00 ,  0      ,  b_10*x ,   0      ,  b_01*y}
 
-      private :
-          int mDegIm;
-          int mDegRadElim;
-};
+     The class construct an explict representation of base of polynom "mVDesc", which is more descriptive.
 */
 
-
-/*
-class cRadiomCalibRadSensor : public cRadiomFormulas
+class cDistPolyn2D
 {
-      public :
-          cRadiomCalibRadSensor(int aDegRad,bool  WithCsteAdd=false,int aDegPol=-1) :
-             mDegRad      (aDegRad),
-             mWithCsteAdd (WithCsteAdd),
-	     mDegPol      (aDegPol)
+   public :
+
+      /// constructor : memorise parameter and build the explicit representation of base functions (nomoms)
+      cDistPolyn2D(int aDegree,bool ForBase,bool InitDesc=true) :
+         mDegree      (aDegree),
+         mForBase     (ForBase)
+      {
+          if (InitDesc)
           {
+             for (int aDegX=0 ; aDegX<= mDegree; aDegX++)
+	     {
+                 for (int aDegY=0 ; (aDegX+aDegY) <= mDegree; aDegY++)
+	         {
+                     //  Add    Dx = X^i Y^j
+		     mVDesc.push_back(cDescOneFuncDist(eTypeFuncDist::eMonX,cPt2di(aDegX,aDegY),eModeDistMonom::eModeStd));
+                     //  Add    Dy = X^i Y^j
+		     mVDesc.push_back(cDescOneFuncDist(eTypeFuncDist::eMonY,cPt2di(aDegX,aDegY),eModeDistMonom::eModeStd));
+	         }
+	     }
+	  }
+      }
+      // create an identifier that will be used for naming code generation
+      std::string  NamesDist() const
+      {
+            return std::string(mForBase?"Base" : "Dist") +  "_Polyn2D_Degree_" +ToStr(mDegree) ;
+      }
+      //  std::string  NamesDist() const {return NamesDist(mDegree,mForBase);}
+
+
+      // vector of name that can be used as unknown or as observation
+      std::vector<std::string> VNamesParam()  const
+      { 
+           std::vector<std::string> aRes ;
+           for (const auto & aDesc : mVDesc) 
+	   {
+               aRes.push_back(aDesc.mName);
+	   }
+           return aRes;
+      }
+
+      // compute the set of functions
+      template<typename tScal> std::vector<tScal>
+                Funcs
+                (
+                     const tScal & xIn,const tScal & yIn,
+                     const std::vector<tScal> &  aVParam,
+                     unsigned int              aK0P
+                ) const
+       {
+          tScal  aFunc0 = CreateCste(0.0,xIn);
+          tScal  aSumX =  aFunc0;
+          tScal  aSumY =  aFunc0;
+          std::vector<tScal>  aVBaseX;
+          std::vector<tScal>  aVBaseY;
+
+          for (size_t aKDesc=0 ; aKDesc<mVDesc.size() ; aKDesc++)
+          {
+              const cDescOneFuncDist & aDesc = mVDesc[aKDesc];
+              tScal aMon = aVParam[aK0P+aKDesc] * powI(xIn,aDesc.mDegMon.x()) * powI(yIn,aDesc.mDegMon.y()) ;
+
+              if (aDesc.mType == eTypeFuncDist::eMonX)
+              {
+                   aSumX = aSumX + aMon;
+                   aVBaseX.push_back(aMon);
+                   aVBaseY.push_back(aFunc0);
+              }
+              else if (aDesc.mType == eTypeFuncDist::eMonY)
+              {
+                   aSumY = aSumY + aMon;
+                   aVBaseX.push_back(aFunc0);
+                   aVBaseY.push_back(aMon);
+              }
+              else
+              {
+                   MMVII_INTERNAL_ERROR("cEqColinSensGenPolyn2D  : should not be here");
+              }
           }
 
-          std::vector<std::string> VNamesUnknowns() const 
+          if (mForBase)
           {
-	      std::vector<std::string>  aRes ;
-	      if (mWithCsteAdd)
-                 aRes.push_back("DarkCurrent");
-              for (int aK=0 ; aK< mDegRad ; aK++)
-                  aRes.push_back("K"+ToStr(aK));
-	      if (mDegPol>0)
-	      {
-                  AppendIn(aRes,cRadiomCalibPolIma(mDegPol,mDegRad).VNamesUnknowns());
-	      }
-              return aRes;
+              return Append(aVBaseX,aVBaseY);
           }
-          // static std::vector<std::string> VNamesObs()  { return RF_NameObs();}
+          return  {aSumX,aSumY};
 
-          std::string FormulaAddName() const 
-	  {
-              std::string aRes =   std::string("_DRad") + ToStr(mDegRad);
-	      if (mWithCsteAdd) aRes = aRes + "_WCste";
-	      if (mDegPol>=0) aRes = aRes + "_DPolSens" + ToStr(mDegPol);
-
-              return aRes;
-	  }
-
-          std::string FormulaName() const 
-	  { 
-              return "RadiomCalibRadSensor" +  FormulaAddName();
-	  }
-
-          template <typename tUk,typename tObs> 
-             std::vector<tUk> formula
-                  (
-                      const std::vector<tUk> & aVUk,
-                      const std::vector<tObs> & aVObs,
-                      int   aK0Uk   = 0,
-                      int   aK0Obs  = 0
-                  )  const
-          {
-
-                auto xyNorm = CoordNom (aVObs,aK0Obs);
-		auto aR2N   = Square(xyNorm.at(0))+Square(xyNorm.at(1)) ;
-
-	        tUk aCst1         = CreateCste(1.0,xyNorm.at(0));  // create a symbolic formula for constant 1
-	        tUk aCst0         = CreateCste(0.0,xyNorm.at(0));  // create a symbolic formula for constant 1
-	        tUk aPowR2        = aCst1;
-		tUk  aCorrecMul   = aCst1;
-
-	        for  (int aK=0 ; aK<mDegRad ; aK++)
-	        {
-                    aPowR2 = aPowR2 * aR2N;
-                    aCorrecMul = aCorrecMul + aPowR2*aVUk[aK0Uk+mWithCsteAdd+aK];
-	        }
-
-		if (mDegPol>0)
-		{
-                     cRadiomCalibPolIma  aRCPI(mDegPol,mDegRad);
-		     aCorrecMul  = aCorrecMul + aRCPI.formula(aVUk,aVObs,aK0Uk+mDegRad,aK0Obs).at(0);
-		}
-
-		tUk  aCorrecAdd =  mWithCsteAdd ? aVUk[aK0Uk] : aCst0;
-
-		return  {aCorrecAdd,aCorrecMul};
-	  }
+       }
 
 
-          int DegRad() const {return mDegRad;}
-
-
-      private :
-         int  mDegRad;
-         int  mWithCsteAdd;
-         int  mDegPol;
+      int                             mDegree;   ///< Total degree max of monoms
+      std::vector<cDescOneFuncDist>   mVDesc;    ///< descripteur de tous les monoms
+      bool                            mForBase;  ///< is it for computing a base of functions
 };
+
+
+/**  Class to generate the colinearity equation of a generic sensor with 2D polynomial conversion
 */
 
-
-/*
-class cRadiomEqualisation 
-{
-      public :
-          typedef std::vector<std::string> tVStr;
-
-          cRadiomEqualisation(bool is4Eq,int aDegSens,int aDegIm,bool WithCste=false,int aDegSensPol=-1) :
-              m4Eq        (is4Eq),
-              mOwnUK      (m4Eq ? tVStr({"Albedo"}) : tVStr() ),
-              mOwnObs     (tVStr({"RadIm"})),
-              mK0Sens     (mOwnUK.size()),
-              mCalSens    (aDegSens,WithCste,aDegSensPol),
-              mK0CalIm    (mK0Sens+mCalSens.VNamesUnknowns().size()),
-              mCalIm      (aDegIm),
-              mK0Obs      (mOwnObs.size())
-          {
-          }
-
-          tVStr VNamesUnknowns() const 
-          {
-              //  Albedo?   K0 K1 K2 ...   D_Im00  D_Im01 ... 
-              return Append(mOwnUK,Append(mCalSens.VNamesUnknowns(),mCalIm.VNamesUnknowns()));
-          }
-          tVStr VNamesObs()  const
-          { 
-              //  RadIm?    xIm  yIm Cx Cy R
-              return Append(mOwnObs,cRadiomFormulas::VNamesObs());
-          }
-
-          std::string FormulaName() const 
-          { 
-                 return   (m4Eq ? "RadiomEqualisation"  : "RadiomStabilized") 
-                        + mCalSens.FormulaAddName()
-                        + std::string("_DegIm") + ToStr(mCalIm.DegIm())
-			
-                 ;
-          }
-
-          template <typename tUk,typename tObs> 
-             std::vector<tUk> formula
-                  (
-                      const std::vector<tUk> & aVUk,
-                      const std::vector<tObs> & aVObs
-                  )  const
-          {
-               auto aCorrecIm   = mCalIm.formula  (aVUk,aVObs,mK0CalIm,mK0Obs).at(0);
-               const auto & aRadIm = aVObs[0];
-               if (m4Eq)
-               {
-                    auto aVCorrSens = mCalSens.formula(aVUk,aVObs,mK0Sens ,mK0Obs);
-		    auto aCorSensAdd = aVCorrSens.at(0);
-		    auto aCorSensMul = aVCorrSens.at(1);
-
-                    const auto & aAlbedo = aVUk[0];
-
-                    return {aRadIm -  aCorrecIm * (aAlbedo*aCorSensMul+aCorSensAdd)}; // 3.69312
-                    // return {CreateCste(1.0,aAlbedo) - (aAlbedo * aCorrecIm * aCorrecSens)/aRadIm};  NAN
-                    //  return {aRadIm/aCorrecSens - aAlbedo * aCorrecIm };     //3.73095
-                    //  return {aRadIm/(aCorrecSens*aCorrecIm) - aAlbedo  };   // 3.7714
-                    // return {aRadIm/aAlbedo -  aCorrecIm * aCorrecSens}; // 3.94555
-               }
-               else
-               {
-                     return {aRadIm*(aVUk[mK0CalIm]-aCorrecIm )};
-               }
-          }
-      private :
-          bool                       m4Eq;
-          tVStr                      mOwnUK;
-          tVStr                      mOwnObs;
-          int                        mK0Sens;
-          cRadiomCalibRadSensor      mCalSens;
-          int                        mK0CalIm;
-          cRadiomCalibPolIma         mCalIm;
-          int                        mK0Obs;
-};
-*/
-
-
-// static std::vector<std::string> VNamesObs()  { return {"xIm","yIm","Cx","Cy","NormR"}; }
-
-/**  Class for calibration of radiometry 
- *
- *    Rad/F (1+K1 r2 + K2 r2 ^2 ...) = Albedo
- *
- *
- * */
-
-/*
-class cRadiomVignettageLinear
+class cEqColinSensGenPolyn2D
 {
   public :
-    cRadiomVignettageLinear(int aNb)  :
-	    mNb (aNb)
+    cEqColinSensGenPolyn2D(int aDegree,bool InitDesc=true) :
+       mDistPol2D (aDegree,false,InitDesc)
     {
     }
 
-    std::vector<std::string> VNamesUnknowns() const 
-    {
-	   std::vector<std::string>  aRes  { "Albedo","MulIm"};
-	   for (int aK=0 ; aK< mNb ; aK++)
-               aRes.push_back("K"+ToStr(aK));
-	   return aRes;
+    //  The unknown are constitued of coordinate of ground -point (which is the base of bundle adjustment theory) and
+    //  the parameter of sensor which, here, is made of 2D corrective polynomial
+    std::vector<std::string> VNamesUnknowns()  const
+    { 
+         std::vector<std::string> aRes {"XGround","YGround","ZGround"};
+         return Append(aRes,mDistPol2D.VNamesParam());
     }
-    std::vector<std::string> VNamesObs()  const     { return {"RadIm","Rho2"}; }
 
-    std::string FormulaName() const { return "RadiomVignetLin_" + ToStr(mNb);}
+    //    As the class know nothing on the sensor , all the information must be passed for a given point
+    //  as data (observation/context) describing the "tangent" application,  more precicsely we must give :
+    // 
+    //      * the value of grounf point "P0x, P0y, P0z"
+    //      * the projection of ground point "IP0,JP0"
+    //      * the gradient of projection for I    "dIdX,dIDY,dIdZ"  and J "dJdX,dJDY,dJdZ"
+    // 
+    //    Also the vector of observation contains as usual the measure of the point in image "IObs","JObs"
+
+    std::vector<std::string> VNamesObs() const      
+    { 
+                // 0              2                   5                7                      10
+         return {"IObs","JObs",  "P0x","P0y","P0z" ,  "IP0","JP0",    "dIdX","dIDY","dIdZ",   "dJdX","dJDY","dJdZ"};
+    }
+
+    std::string FormulaName() const { return  mDistPol2D.NamesDist() + "_EqColin";}
 
     template <typename tUk,typename tObs> 
              std::vector<tUk> formula
@@ -308,31 +209,70 @@ class cRadiomVignettageLinear
                       const std::vector<tObs> & aVObs
                   )  const
     {
-          const auto & aAlbedo = aVUk[0];
-          const auto & aMulIm  = aVUk[1];
-          const auto & aRadIm = aVObs[0];
-          const auto & aRho2 = aVObs[1];
+          //  The 3D point is an unknown
+          cPtxd<tUk,3>  aPUk = VtoP3(aVUk,0);
 
-	  tUk aCst1         = CreateCste(1.0,aAlbedo);  // create a symbolic formula for constant 1
-	  tUk aCorrecRadial = aCst1;
-	  tUk aPowR2        = aCst1;
+          // we compute the formal expression that gives the projection taking into account the differential of
+          // projection that is given as obsevations 
 
-	  for  (int aK=0 ; aK<mNb ; aK++)
-	  {
-                aPowR2 = aPowR2 * aRho2;
-		aCorrecRadial = aCorrecRadial + aPowR2*aVUk[aK+2];
-	  }
+          cPtxd<tObs,2>  aPixObs = VtoP2(aVObs,0);  // extract the measurement (like tie point)
 
-          // return {aRadIm * aCorrecRadial - aAlbedo * aMulIm};
-          return {aRadIm / aCorrecRadial - aAlbedo * aMulIm };
-	   
+          cPtxd<tObs,3>   aP0  = VtoP3(aVObs,2);     //  Estimation of point, where the linearisation was made
+          cPtxd<tObs,2>   aPix0   = VtoP2(aVObs,5);  // extract projection of estimation
+          cPtxd<tUk,3>  aDP = aPUk-aP0;              //  differnce between unknonw and estimatio,
+          cPtxd<tObs,3>   aGradI = VtoP3(aVObs,7);   //  extract gradient of "I"
+          cPtxd<tObs,3>   aGradJ = VtoP3(aVObs,10);  //  extract gradient of "J"
+          tUk  aDI =  PScal(aDP,aGradI);             //   formula giving I difference between unkonwn & estimatation
+          tUk  aDJ =  PScal(aDP,aGradJ);             //   formula giving J difference between unkonwn & estimatation
+
+          cPtxd<tUk,2> aPix = aPix0 + cPtxd<tUk,2>(aDI,aDJ);  // formula giving  the  exact projection of unknown point
+
+          cPtxd<tUk,2>   aDist =   VtoP2(mDistPol2D.Funcs(aPix.x(),aPix.y(),aVUk,3)) ;
+
+
+          cPtxd<tUk,2>  aResidual = aPix +  aDist -  aPixObs;
+
+          return ToVect(aResidual);
      }
 
   private :
-     int mNb;
+     cDistPolyn2D                    mDistPol2D;
 };
-*/
+
+#endif
+class cEqLidarImPct
+{
+  public :
+    cEqLidarImPct() 
+    {
+    }
+/*
+    std::vector<std::string>  VNamesUnknowns()  const
+    {
+            return {"xPix","yPix"};
+    }
+    const std::vector<std::string>    VNamesObs() const {return mDistPol2D.VNamesParam();}
+     
+    std::string FormulaName() const { return  mDistPol2D.NamesDist() + "_EqDist";}
+
+    template <typename tUk> 
+             std::vector<tUk> formula
+                  (
+                      const std::vector<tUk> & aVUk,
+                      const std::vector<tUk> & aVObs
+                  ) const
+    {
+         auto  aDist =   mDistPol2D.Funcs(aVUk.at(0),aVUk.at(1),aVObs,0);
+
+         return  {  aVUk.at(0)+aDist.at(0)  ,  aVUk.at(1)+aDist.at(1) } ;
+    }
+  private :
+     cDistPolyn2D                    mDistPol2D;
+   */
+};
+
 
 
 };//  namespace MMVII
+
 #endif // _FORMULA_LIDAR_H_
