@@ -38,7 +38,67 @@ namespace MMVII
 
 */
 
-class cFormulaRadiomPerpCentrIntrFix
+class cRadiomLidarIma
+{
+   protected :
+     template <typename tUk,typename tObs> 
+          tUk Radiom_PerpCentrIntrFix
+          (
+               const std::vector<tUk> &  aVUk,
+	       size_t                 &  aIndUk,
+               const std::vector<tObs>&  aVObs,
+	       size_t                 &  aIndObs
+          ) const 
+     {
+        // read the unknowns
+        cPtxd<tUk,3>  aCCcam   = VtoP3AuoIncr(aVUk,&aIndUk);
+        cPtxd<tUk,3>  aW       = VtoP3AuoIncr(aVUk,&aIndUk);
+     
+        // read the observation
+        cPtxd<tUk,3>  aPGround  = VtoP3AuoIncr(aVObs,&aIndObs);  //  PGround
+        cMatF<tUk>    aRotInit (3,3,&aIndObs,aVObs);             // Curent value of rotatuin
+								
+        cPtxd<tUk,3>  aPCamInit = VtoP3AuoIncr(aVObs,&aIndObs);  // Current value of PGround in camera coordinate
+        cPtxd<tUk,3>  aGradI  = VtoP3AuoIncr(aVObs,&aIndObs);    // gradient / PCam  of abscisse of projection in image
+        cPtxd<tUk,3>  aGradJ  = VtoP3AuoIncr(aVObs,&aIndObs);    // gradient / PCam  of ordonate of projection in image
+								
+        tUk  aRadiom0 = aVObs.at(aIndObs++);                     // radiometry in image of current proj
+        cPtxd<tUk,2>  aGradR = VtoP2AuoIncr(aVObs,&aIndObs);     // gradient of radiometry in image
+
+        // compute the position of the point in camera coordinates
+        cPtxd<tUk,3>  aVCP = aPGround - aCCcam;             // vector  CamCenter -> PGround
+        cMatF<tUk> aDeltaRot =  cMatF<tUk>::MatAxiator(aW); // unknown "small rotation"
+        cPtxd<tUk,3> aPCam =  aDeltaRot * (aRotInit * aVCP); // point in camera coordinate, taking into account the unknowns
+
+        // compute the position of projected point
+        cPtxd<tUk,3>  aDPCam = aPCam-aPCamInit;                //  difference Unknown/Curent of point in camera coordinate
+        tUk  aDI = PScal(aGradI,aDPCam);                       // variation of abscissa of projection
+        tUk  aDJ = PScal(aGradJ,aDPCam);                       // variation of ordinate of projection
+                    
+        // compute the radiometry
+        return aRadiom0 + PScal(aGradR,cPtxd<tUk,2>(aDI,aDJ));
+     }
+
+     std::vector<std::string>  NamesPoseUK() const {return Append(NamesP3("mCCam"),NamesP3("mOmega"));}
+
+     std::vector<std::string>  VectObsPPose() const 
+     {
+          return Append(NamesP3("mPGround"),NamesMatr("mRot0",cPt2di(3,3)));
+     }
+
+     std::vector<std::string>  VectObsPCam() const 
+     {
+          return Append(NamesP3("mPCam0"),NamesP3("mGradPCam_i"),NamesP3("mGradPCam_j")) ;
+     }
+
+     std::vector<std::string>  VectObsRadiom() const 
+     {
+	     return Append({"Rad0"},NamesP2("GradRad"));
+     }
+};
+
+
+class cEqLidarImPonct : public cRadiomLidarIma
 {
      public :
             template <typename tUk,typename tObs> 
@@ -49,293 +109,24 @@ class cFormulaRadiomPerpCentrIntrFix
                   )  const
             {
                  // read the unknowns
-                 cPtxd<tUk,3>  aCCcam   = VtoP3(aVUk,0);
-                 cPtxd<tUk,3>  aW       = VtoP3(aVUk,3);
+		 size_t aIndUk = 0;
+		 size_t aIndObs = 0;
 
-                 // read the observation
-                 cPtxd<tUk,3>  aPGround = VtoP3(aVObs,0);
-                 cMatF<tUk>    aRotInit (3,3,aVObs,2);
+		 tUk aRadiom = Radiom_PerpCentrIntrFix(aVUk,aIndUk,aVObs,aIndObs);
+		 tUk  aRadiomTarget = aVUk.at(aIndUk++);
 
-/*
-                 cPtxd<tUk,2>  aProjInit = VtoP2(aVObs,11);
-                 cPtxd<tUk,3>  aGradI  = VtoP3(aVObs,13);
-                 cPtxd<tUk,3>  aGradJ  = VtoP3(aVObs,16);
-*/
+		 return {aRadiom- aRadiomTarget};
+             }
 
-                 // compute the position of the point in camera coordinates
-                 cPtxd<tUk,3>  aVCP = aPGround - aCCcam; 
-                 cMatF<tUk> aDeltaRot =  cMatF<tUk>::MatAxiator(aW);
-                 cPtxd<tUk,3> aPCam =  aDeltaRot * (aRotInit * aVCP);
-
-/*
-
-                 // compute the projection
-                 cPtxd<tUk,2>  aProjInit = VtoP2(aVObs,11);
-          cPtxd<tUk,3>  aDP = aPUk-aP0;              //  differnce between unknonw and estimatio,
-          cPtxd<tObs,3>   aGradI = VtoP3(aVObs,7);   //  extract gradient of "I"
-          cPtxd<tObs,3>   aGradJ = VtoP3(aVObs,10);  //  extract gradient of "J"
-          tUk  aDI =  PScal(aDP,aGradI);             //   formula giving I difference between unkonwn & estimatation
-          tUk  aDJ =  PScal(aDP,aGradJ);             //   formula giving J difference between unkonwn & estimatation
-*/
-                    
-                 return {aPCam.x()};
+            std::vector<std::string> VNamesUnknowns()  const {return Append(NamesPoseUK(),{"TargetRad"});}
+            std::vector<std::string> VNamesObs() const      
+            {
+		    return Append(VectObsPPose() , VectObsPCam() , VectObsRadiom());
             }
+            std::string FormulaName() const { return  "EqLidarImPonct";}
+
      private :
 };
-
-#if (0)
-
-class cDistPolyn2D;            // helper class for generating polynoms
-class cEqColinSensGenPolyn2D;  // class for handling colinearitry equation wit 2D polyn + 
-class cEqDistPolyn2D;          // class for handling 2d-distorsion
-
-/* 
-GLOBAL SCOPE and HYPOTHESIS, LIMITATION :
-
- Classes used for defining bundle adjusment of  "generic" model of sensor, i.e a model for wich we dont
-have access to the physicall model that would allow a rigourous implementation. We suppose we only have access to :
-
-    - the projection function  Pi(x,y,z) =>  i,j
-    - the derivative of Pi  :   d Pi/dx ... , that can be computed by anyway (handcraft, formal, finit diff) does matter
-
-This function are regarded has black box, and at the level of this classes, what will be communicated is only values of these
-functions in some points.  Also in this file we make the hypthesis that the correction between initial model and adjusted model
-is just a  2D deformations "D2"  so that :
-
-         Pi' =   D2 o Pi
-
-More precisely we assume that D2 is a polynomial a total degree N
-
-    D2(x,y) = Sum_{i+j<=N}  a_ij x^i y^j + b_ij x^i y^j
-
-The limitation 
-
-*/
-
-/** "Helper" class for generating the distorsion, it can be used in 3 contexts :
-
-      - generate a calculator for computing the distorsion itself
-      - generate a caculator for computing the colinearity equation
-      - generate the base of functions  used to compute by least square such function from a set of samples,
-        i.e given  pair of points {p_k,q_k}, compute the  D2  such that D2(p_k) = q_k, it is used typicall for
-        computing an invers mapping
-
-     The fact of using this helper class, assure the coherence in convention in the 3 context.  
-
-     For example with degree "1" :
-
-      in mode standard(no base) "Func"  we will return :
-
-           { a_00+a_10*x+a_01*y , b_00+b_10*x+b_01*y} 
-
-      while in mode Base "Funcs" we will return :
-
-           {  a_00 , 0    ,  a_10*x ,  0      ,   a_01*y ,  0
-              0    , b_00 ,  0      ,  b_10*x ,   0      ,  b_01*y}
-
-     The class construct an explict representation of base of polynom "mVDesc", which is more descriptive.
-*/
-
-class cDistPolyn2D
-{
-   public :
-
-      /// constructor : memorise parameter and build the explicit representation of base functions (nomoms)
-      cDistPolyn2D(int aDegree,bool ForBase,bool InitDesc=true) :
-         mDegree      (aDegree),
-         mForBase     (ForBase)
-      {
-          if (InitDesc)
-          {
-             for (int aDegX=0 ; aDegX<= mDegree; aDegX++)
-	     {
-                 for (int aDegY=0 ; (aDegX+aDegY) <= mDegree; aDegY++)
-	         {
-                     //  Add    Dx = X^i Y^j
-		     mVDesc.push_back(cDescOneFuncDist(eTypeFuncDist::eMonX,cPt2di(aDegX,aDegY),eModeDistMonom::eModeStd));
-                     //  Add    Dy = X^i Y^j
-		     mVDesc.push_back(cDescOneFuncDist(eTypeFuncDist::eMonY,cPt2di(aDegX,aDegY),eModeDistMonom::eModeStd));
-	         }
-	     }
-	  }
-      }
-      // create an identifier that will be used for naming code generation
-      std::string  NamesDist() const
-      {
-            return std::string(mForBase?"Base" : "Dist") +  "_Polyn2D_Degree_" +ToStr(mDegree) ;
-      }
-      //  std::string  NamesDist() const {return NamesDist(mDegree,mForBase);}
-
-
-      // vector of name that can be used as unknown or as observation
-      std::vector<std::string> VNamesParam()  const
-      { 
-           std::vector<std::string> aRes ;
-           for (const auto & aDesc : mVDesc) 
-	   {
-               aRes.push_back(aDesc.mName);
-	   }
-           return aRes;
-      }
-
-      // compute the set of functions
-      template<typename tScal> std::vector<tScal>
-                Funcs
-                (
-                     const tScal & xIn,const tScal & yIn,
-                     const std::vector<tScal> &  aVParam,
-                     unsigned int              aK0P
-                ) const
-       {
-          tScal  aFunc0 = CreateCste(0.0,xIn);
-          tScal  aSumX =  aFunc0;
-          tScal  aSumY =  aFunc0;
-          std::vector<tScal>  aVBaseX;
-          std::vector<tScal>  aVBaseY;
-
-          for (size_t aKDesc=0 ; aKDesc<mVDesc.size() ; aKDesc++)
-          {
-              const cDescOneFuncDist & aDesc = mVDesc[aKDesc];
-              tScal aMon = aVParam[aK0P+aKDesc] * powI(xIn,aDesc.mDegMon.x()) * powI(yIn,aDesc.mDegMon.y()) ;
-
-              if (aDesc.mType == eTypeFuncDist::eMonX)
-              {
-                   aSumX = aSumX + aMon;
-                   aVBaseX.push_back(aMon);
-                   aVBaseY.push_back(aFunc0);
-              }
-              else if (aDesc.mType == eTypeFuncDist::eMonY)
-              {
-                   aSumY = aSumY + aMon;
-                   aVBaseX.push_back(aFunc0);
-                   aVBaseY.push_back(aMon);
-              }
-              else
-              {
-                   MMVII_INTERNAL_ERROR("cEqColinSensGenPolyn2D  : should not be here");
-              }
-          }
-
-          if (mForBase)
-          {
-              return Append(aVBaseX,aVBaseY);
-          }
-          return  {aSumX,aSumY};
-
-       }
-
-
-      int                             mDegree;   ///< Total degree max of monoms
-      std::vector<cDescOneFuncDist>   mVDesc;    ///< descripteur de tous les monoms
-      bool                            mForBase;  ///< is it for computing a base of functions
-};
-
-
-/**  Class to generate the colinearity equation of a generic sensor with 2D polynomial conversion
-*/
-
-class cEqColinSensGenPolyn2D
-{
-  public :
-    cEqColinSensGenPolyn2D(int aDegree,bool InitDesc=true) :
-       mDistPol2D (aDegree,false,InitDesc)
-    {
-    }
-
-    //  The unknown are constitued of coordinate of ground -point (which is the base of bundle adjustment theory) and
-    //  the parameter of sensor which, here, is made of 2D corrective polynomial
-    std::vector<std::string> VNamesUnknowns()  const
-    { 
-         std::vector<std::string> aRes {"XGround","YGround","ZGround"};
-         return Append(aRes,mDistPol2D.VNamesParam());
-    }
-
-    //    As the class know nothing on the sensor , all the information must be passed for a given point
-    //  as data (observation/context) describing the "tangent" application,  more precicsely we must give :
-    // 
-    //      * the value of grounf point "P0x, P0y, P0z"
-    //      * the projection of ground point "IP0,JP0"
-    //      * the gradient of projection for I    "dIdX,dIDY,dIdZ"  and J "dJdX,dJDY,dJdZ"
-    // 
-    //    Also the vector of observation contains as usual the measure of the point in image "IObs","JObs"
-
-    std::vector<std::string> VNamesObs() const      
-    { 
-                // 0              2                   5                7                      10
-         return {"IObs","JObs",  "P0x","P0y","P0z" ,  "IP0","JP0",    "dIdX","dIDY","dIdZ",   "dJdX","dJDY","dJdZ"};
-    }
-
-    std::string FormulaName() const { return  mDistPol2D.NamesDist() + "_EqColin";}
-
-    template <typename tUk,typename tObs> 
-             std::vector<tUk> formula
-                  (
-                      const std::vector<tUk> & aVUk,
-                      const std::vector<tObs> & aVObs
-                  )  const
-    {
-          //  The 3D point is an unknown
-          cPtxd<tUk,3>  aPUk = VtoP3(aVUk,0);
-
-          // we compute the formal expression that gives the projection taking into account the differential of
-          // projection that is given as obsevations 
-
-          cPtxd<tObs,2>  aPixObs = VtoP2(aVObs,0);  // extract the measurement (like tie point)
-
-          cPtxd<tObs,3>   aP0  = VtoP3(aVObs,2);     //  Estimation of point, where the linearisation was made
-          cPtxd<tObs,2>   aPix0   = VtoP2(aVObs,5);  // extract projection of estimation
-          cPtxd<tUk,3>  aDP = aPUk-aP0;              //  differnce between unknonw and estimatio,
-          cPtxd<tObs,3>   aGradI = VtoP3(aVObs,7);   //  extract gradient of "I"
-          cPtxd<tObs,3>   aGradJ = VtoP3(aVObs,10);  //  extract gradient of "J"
-          tUk  aDI =  PScal(aDP,aGradI);             //   formula giving I difference between unkonwn & estimatation
-          tUk  aDJ =  PScal(aDP,aGradJ);             //   formula giving J difference between unkonwn & estimatation
-
-          cPtxd<tUk,2> aPix = aPix0 + cPtxd<tUk,2>(aDI,aDJ);  // formula giving  the  exact projection of unknown point
-
-          cPtxd<tUk,2>   aDist =   VtoP2(mDistPol2D.Funcs(aPix.x(),aPix.y(),aVUk,3)) ;
-
-
-          cPtxd<tUk,2>  aResidual = aPix +  aDist -  aPixObs;
-
-          return ToVect(aResidual);
-     }
-
-  private :
-     cDistPolyn2D                    mDistPol2D;
-};
-
-#endif
-class cEqLidarImPct
-{
-  public :
-    cEqLidarImPct() 
-    {
-    }
-/*
-    std::vector<std::string>  VNamesUnknowns()  const
-    {
-            return {"xPix","yPix"};
-    }
-    const std::vector<std::string>    VNamesObs() const {return mDistPol2D.VNamesParam();}
-     
-    std::string FormulaName() const { return  mDistPol2D.NamesDist() + "_EqDist";}
-
-    template <typename tUk> 
-             std::vector<tUk> formula
-                  (
-                      const std::vector<tUk> & aVUk,
-                      const std::vector<tUk> & aVObs
-                  ) const
-    {
-         auto  aDist =   mDistPol2D.Funcs(aVUk.at(0),aVUk.at(1),aVObs,0);
-
-         return  {  aVUk.at(0)+aDist.at(0)  ,  aVUk.at(1)+aDist.at(1) } ;
-    }
-  private :
-     cDistPolyn2D                    mDistPol2D;
-   */
-};
-
 
 
 };//  namespace MMVII
