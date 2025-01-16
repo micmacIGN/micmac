@@ -57,7 +57,7 @@ For those who really need it, you can reactivate use of the MicMac V1 lib  :
         ```
 
 
-## Linux Ubuntu distribution
+## Linux Ubuntu distribution (until 22.04, for Ubuntu 24.04 see below)
 
 Under Linux (Ubuntu) distribution the installation procedure is as follows:
 
@@ -79,6 +79,50 @@ Under Linux (Ubuntu) distribution the installation procedure is as follows:
 - Configure CMAKE and generate makefiles:
 	```bash
 	cmake ../
+	```
+- Compile **MMVII**:
+	```bash
+	make full -j N
+	```
+	- N is the number of CPUs on the machine and can be retrieved by typing `nproc --all`
+
+- Add binaries to the `PATH` (**adapt the path**):
+	```bash
+	echo 'export PATH=/home/src/micmac/MMVII/bin:$PATH' >> ~/.bashrc
+	```
+
+## Linux Ubuntu 24.04 distribution
+There is no Ubuntu 24.04 deb package for library PDAL. We will have to use **conda** to install external libraries.
+
+Under Ubuntu 24.04 the installation procedure is as follows:
+
+- Open a terminal
+
+- Install Miniconda:
+	```bash
+	mkdir -p ~/miniconda3
+	wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
+	bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
+	rm ~/miniconda3/miniconda.sh
+	```
+
+- Install dependancies specific to MMVII:
+	```bash
+	sudo apt install pkg-config
+	~/miniconda3/condabin/conda install -c conda-forge -y proj gdal pdal
+	```
+
+- Access the folder:
+	```bash
+	cd micmac/MMVII
+	```
+- Create a directory for building intermediate files and access it:
+	```bash
+	mkdir build && cd build
+	```
+- Configure CMAKE and generate makefiles:
+	```bash
+	cmake .. -DCMAKE_PREFIX_PATH=~/miniconda3
 	```
 - Compile **MMVII**:
 	```bash
