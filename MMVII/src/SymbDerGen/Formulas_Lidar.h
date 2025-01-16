@@ -1,8 +1,6 @@
 #ifndef _FORMULA_LIDAR_H_
 #define _FORMULA_LIDAR_H_
 
-// PUSHB
-
 
 #include "SymbDer/SymbDer_Common.h"
 #include "MMVII_Ptxd.h"
@@ -17,6 +15,73 @@ using namespace NS_SymbolicDerivative;
 
 namespace MMVII
 {
+
+/*
+      Let I be an image , Intr the intrinsic paramater of the camera, P=(R,C) the pose ,
+      Q=(x,y,z) a point , q=(i,j) the projection of q in I.  We write :
+
+          -  q  = Intr (tR (Q-C)) 
+
+      As  in this first approach we impose that intrinsiq parameter are fixed, we set  :
+
+                            d Intr
+           Intr(Q) = q0 + x ------  + ...   =  q0 + Jac(Intr) * Q = q0 + JI * Q
+                             dx
+
+      The value of JI will have been  computed from method  DiffGround2Im
+
+      Identically for the  the radiometry of I, to have the image derivable we will write  :
+
+          I(q) =  I0 +  x (dI/dx) ....
+
+      The value here will have been computed using the method GetValueAndGradInterpol
+
+*/
+
+class cFormulaRadiomPerpCentrIntrFix
+{
+     public :
+            template <typename tUk,typename tObs> 
+                  std::vector<tUk> formula
+                  (
+                      const std::vector<tUk> & aVUk,
+                      const std::vector<tObs> & aVObs
+                  )  const
+            {
+                 // read the unknowns
+                 cPtxd<tUk,3>  aCCcam   = VtoP3(aVUk,0);
+                 cPtxd<tUk,3>  aW       = VtoP3(aVUk,3);
+
+                 // read the observation
+                 cPtxd<tUk,3>  aPGround = VtoP3(aVObs,0);
+                 cMatF<tUk>    aRotInit (3,3,aVObs,2);
+
+/*
+                 cPtxd<tUk,2>  aProjInit = VtoP2(aVObs,11);
+                 cPtxd<tUk,3>  aGradI  = VtoP3(aVObs,13);
+                 cPtxd<tUk,3>  aGradJ  = VtoP3(aVObs,16);
+*/
+
+                 // compute the position of the point in camera coordinates
+                 cPtxd<tUk,3>  aVCP = aPGround - aCCcam; 
+                 cMatF<tUk> aDeltaRot =  cMatF<tUk>::MatAxiator(aW);
+                 cPtxd<tUk,3> aPCam =  aDeltaRot * (aRotInit * aVCP);
+
+/*
+
+                 // compute the projection
+                 cPtxd<tUk,2>  aProjInit = VtoP2(aVObs,11);
+          cPtxd<tUk,3>  aDP = aPUk-aP0;              //  differnce between unknonw and estimatio,
+          cPtxd<tObs,3>   aGradI = VtoP3(aVObs,7);   //  extract gradient of "I"
+          cPtxd<tObs,3>   aGradJ = VtoP3(aVObs,10);  //  extract gradient of "J"
+          tUk  aDI =  PScal(aDP,aGradI);             //   formula giving I difference between unkonwn & estimatation
+          tUk  aDJ =  PScal(aDP,aGradJ);             //   formula giving J difference between unkonwn & estimatation
+*/
+                    
+                 return {aPCam.x()};
+            }
+     private :
+};
 
 #if (0)
 

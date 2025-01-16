@@ -491,6 +491,9 @@ template<class TyProj> void OneBenchProjToDirBundle(cParamExeBench & aParam)
 
        aPropPt.ToDirBundle(aP);
        aPropPt.Proj(aPropPt.ToDirBundle(aP));
+ 
+       cFormulaRadiomPerpCentrIntrFix  aFFF;
+       aFFF.formula(aVF,aVF);
    }
    // Generate random point aPt0, project aVIm0, inverse aPt1, and check collinearity between Pt1 and Pt0
    cPt3dr AxeK(0,0,1);
@@ -934,6 +937,7 @@ int  cAppliGenCode::ExecuteBench(cParamExeBench & aParam)
 {
    BenchProjToDirBundle(aParam);
    return EXIT_SUCCESS;
+
 }
 
 tMMVII_UnikPApli Alloc_GenCode(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
