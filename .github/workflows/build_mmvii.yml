@@ -85,8 +85,8 @@ jobs:
       with:
          auto-update-conda: true
           
-    - name: Install GDAL,PROJ with miniconda
-      run: conda install -y proj gdal
+    - name: Install PROJ, GDAL et PDAL with miniconda
+      run: conda install -c conda-forge -q -y proj gdal pdal
       if: steps.cache-conda-gdal.outputs.cache-hit != 'true'
 
     - name: Install Qt
@@ -142,18 +142,14 @@ jobs:
         mkdir -p micmac/bin/platforms micmac/bin/imageformats micmac/MMVII/bin/platforms
         MMVII_BINDIR=$(pwd)/micmac/MMVII/bin
         MM3D_BINDIR=$(pwd)/micmac/bin
-        cp ${Qt5_Dir}/plugins/platforms/qwindows.dll ${MMVII_BINDIR}/platforms/
+        # dll for PROJ, GDAL and PDAL
         cd /C/Miniconda/envs/test/Library/bin/
-        # dll for PROJ
-        cp deflate.dll Lerc.dll libcrypto-3-x64.dll libcurl.dll liblzma.dll libssh2.dll proj_9_3.dll sqlite3.dll tiff.dll zlib.dll zstd.dll ${MMVII_BINDIR}/
-        
-        # dll for GDAL (CGDAL require PROJ too)
-        cp blosc.dll cfitsio.dll charset.dll comerr64.dll freetype.dll freexl.dll gdal.dll geos.dll geos_c.dll geotiff.dll gssapi64.dll ${MMVII_BINDIR}/
-        cp hdf.dll hdf5.dll hdf5_cpp.dll hdf5_hl.dll ${MMVII_BINDIR}/
-        cp iconv.dll k5sprt64.dll krb5_64.dll lcms2.dll libbz2.dll libexpat.dll libjpeg.dll libkea.dll liblz4.dll libminizip.dll libpng16.dll ${MMVII_BINDIR}/
-        cp libpq.dll libsharpyuv.dll libssl-3-x64.dll libwebp.dll libxml2.dll ${MMVII_BINDIR}/
-        cp mfhdf.dll netcdf.dll openjp2.dll pcre2-8.dll poppler.dll spatialite.dll tiledb.dll xdr.dll xerces-c_3_2.dll zip.dll ${MMVII_BINDIR}/
-
+        cp -a archive.dll blosc.dll charset.dll deflate.dll freexl.dll gdal.dll geos.dll geos_c.dll geotiff.dll iconv.dll jpeg8.dll ${MMVII_BINDIR}/
+        cp -a Lerc.dll libbz2.dll libcrypto-3-x64.dll libcurl.dll libexpat.dll liblzma.dll libminizip.dll libpng16.dll libsharpyuv.dll ${MMVII_BINDIR}/
+        cp -a libssh2.dll libssl-3-x64.dll libwebp.dll libxml2.dll lz4.dll pcre2-8.dll pdalcpp.dll proj_9.dll snappy.dll spatialite.dll ${MMVII_BINDIR}/
+        cp -a sqlite3.dll tiff.dll xerces-c_3_2.dll zlib.dll zstd.dll ${MMVII_BINDIR}/
+        # dlls for QT5
+        cp ${Qt5_Dir}/plugins/platforms/qwindows.dll ${MMVII_BINDIR}/platforms/
         cd $Qt5_Dir/bin
         cp Qt5Core.dll Qt5Gui.dll Qt5Xml.dll Qt5OpenGL.dll Qt5Widgets.dll ${MM3D_BINDIR}/
         cd $Qt5_Dir/plugins
