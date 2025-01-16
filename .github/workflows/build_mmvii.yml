@@ -13,13 +13,19 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Install Miniconda
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        auto-update-conda: true
+
+    - name: Install PROJ, GDAL et PDAL with miniconda
+      run: conda install -c conda-forge -q -y proj gdal pdal
+      if: steps.cache-conda-gdal.outputs.cache-hit != 'true'
+
     - name: Install Qt and clang
       run: |
         sudo apt update
         sudo apt install qtbase5-dev clang-18 libomp-18-dev
-
-    - name: Install libproj and libgdal
-      run: sudo apt install libproj-dev proj-data libgdal-dev
 
     - name: Install pdflatex
       run: sudo apt install texlive-latex-base texlive-latex-extra texlive-fonts-recommended texlive-fonts-extra texlive-science
@@ -60,7 +66,7 @@ jobs:
       run: make -C build install -j 4 -k
 
     - name: Configure CMake for MMVII
-      run: cmake -S MMVII -B MMVII/build -DCMAKE_BUILD_TYPE=Release
+      run: cmake -S MMVII -B MMVII/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/usr/share/miniconda
       env:
         CXX: clang++-18
         CC: clang-18
