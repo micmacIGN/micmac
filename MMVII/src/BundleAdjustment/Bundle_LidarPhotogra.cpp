@@ -4,35 +4,54 @@
 namespace MMVII
 {
 
-class cBA_LidarPhotogra
+cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std::string>& aParam) :
+    mBA         (aBA),
+    mTri        (aParam.at(0)),
+    mInterp     (new cCubicInterpolator(-0.5)),
+    mEqLidPhgr  (EqEqLidarImPonct(true,1))
 {
-    public :
+   for (const auto aPtrCam : aBA.VSIm())
+   {
+       if (aPtrCam->IsSensorCamPC())
+       {
+           mVCam.push_back(aPtrCam->GetSensorCamPC());
+           mVIms.push_back(cIm2D<tU_INT1>::FromFile(aPtrCam->NameImage()));
+       }
+       else
+       {
+          MMVII_UnclasseUsEr("cBA_LidarPhotogra : sensor is not central perspective");
+       }
+   }
+}
 
-       void AddObs(tREAL8 aW);
-
-    private :
-
-        void AddObs(tREAL8 aW,const cPt3dr & aPt);
-
-        std::vector<cPt3dr>             mPts;
-        std::vector<cSensorCamPC *>     mVCam;
-        cDiffInterpolator1D *           mInterp;
-        std::vector<cIm2D<tU_INT1>>     mImages;
-        cCalculator<double>  *          mEqLidPhgr;
-        cResolSysNonLinear<tREAL8> *    mSys;
-};
-
-class cData1ImLidPhgr
+cBA_LidarPhotogra::~cBA_LidarPhotogra() 
 {
-   public :
-     size_t mKIm;
-     tREAL8 mValIm;
-     cPt2dr mGradIm;
-};
+    delete mEqLidPhgr;
+    delete mInterp;
+}
 
 
-void  cBA_LidarPhotogra::AddObs(tREAL8 aW,const cPt3dr & aPGround)
+void cBA_LidarPhotogra::AddObs(tREAL8 aW)
 {
+    for (size_t aKP=0 ; aKP<mTri.NbPts() ; aKP++)
+    {
+        cPt3df aPF  = mTri.KthPts(aKP);
+        AddObs(aW,cPt3dr(aPF.x(),aPF.y(),aPF.z()));
+    }
+}
+
+
+void  cBA_LidarPhotogra::AddObs(tREAL8 aWeight,const cPt3dr & aPGround)
+{
+    cResolSysNonLinear<tREAL8> *  aSys = mBA.Sys();
+
+     class cData1ImLidPhgr
+     {
+        public :
+          size_t mKIm;
+          tREAL8 mValIm;
+          cPt2dr mGradIm;
+     };
      std::vector<cData1ImLidPhgr> aVData;
      cWeightAv<tREAL8,tREAL8> aWAv;
 
@@ -41,7 +60,7 @@ void  cBA_LidarPhotogra::AddObs(tREAL8 aW,const cPt3dr & aPGround)
           if (mVCam[aKIm]->IsVisible(aPGround))
           {
               cPt2dr aPIm = mVCam[aKIm]->Ground2Image(aPGround);
-              cDataIm2D<tU_INT1> & aDIm = mImages[aKIm].DIm();
+              cDataIm2D<tU_INT1> & aDIm = mVIms[aKIm].DIm();
               if (aDIm.InsideInterpolator(*mInterp,aPIm,1.0))
               {
                   auto [aVal,aGrad] = aDIm.GetValueAndGradInterpol(*mInterp,aPIm);
@@ -58,24 +77,37 @@ void  cBA_LidarPhotogra::AddObs(tREAL8 aW,const cPt3dr & aPGround)
 
      if (aVData.size()<2) return;
 
-     std::vector<int>  aVIndUk {-1} ;   // Index for temporary radiom
+     std::vector<tREAL8> aVTmpAvg({aWAv.Average()});
+     cSetIORSNL_SameTmp<tREAL8>  aStrSubst(aVTmpAvg);
+
+
      for (const auto & aData : aVData)
      {
+        std::vector<int>  aVIndUk {-1} ;   // Index for temporary radiom
         cSensorCamPC * aCam = mVCam.at(aData.mKIm);
-        aCam->Pose_WU().PushIndexes(aVIndUk);
+        cPt3dr aPCam = aCam->Pt_W2L(aPGround);
+        tProjImAndGrad aPImGr = aCam->InternalCalib()->DiffGround2Im(aPCam);
+
+        cPoseWithUK& aPUK = aCam->Pose_WU();
+        aPUK.PushIndexes(aVIndUk);
+        // void PutUknowsInSetInterval(cSetInterUK_MultipeObj<tREAL8> * aSetInterv) ;
 
         std::vector<tREAL8>  aVObs;
         aPGround.PushInStdVector(aVObs);
-/*
-   for (auto & anObj : aSens->GetAllUK())
-                anObj->PushIndexes(aVIndGlob);
-*/
+        aPUK.PushObs(aVObs,true);  // true this is the W->C, wich the transposition of IJK : C->W
 
-FakeUseIt(aData);
+        aPCam.PushInStdVector(aVObs);
+        aPImGr.mGradI.PushInStdVector(aVObs);
+        aPImGr.mGradJ.PushInStdVector(aVObs);
 
-          
+        aVObs.push_back(aData.mValIm);
+        aData.mGradIm.PushInStdVector(aVObs);
+
+StdOut() << "VUKKKK " << aVIndUk << "\n";
+        aSys->R_AddEq2Subst(aStrSubst,mEqLidPhgr,aVIndUk,aVObs,aWeight);
      }
 
+     aSys->R_AddObsWithTmpUK(aStrSubst);
 }
 
 };

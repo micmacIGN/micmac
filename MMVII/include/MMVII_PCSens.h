@@ -195,7 +195,7 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 {
         public :
 
-void Bench_CalcDiff();
+            void Bench_CalcDiff();
 
 
             typedef tREAL8               tScal;
@@ -425,6 +425,10 @@ class cPoseWithUK :  public cObjWithUnkowns<tREAL8>
          /// Fill with dummy value for case where default constructor is required
 	 cPoseWithUK();
 
+        /** TransposeMatr  if true,  this is the matrix Word -> Cam that is used, else the matrix of axes IJK. For ex :
+               - set to true when computing projection 
+               - set to false in block rigid where we manipulate directly the axes
+        */
 	 void PushObs(std::vector<double> &,bool TransposeMatr);
 
 	 cPoseWithUK(const tPoseR & aPose);

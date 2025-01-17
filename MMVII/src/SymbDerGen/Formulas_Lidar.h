@@ -112,13 +112,13 @@ class cEqLidarImPonct : public cRadiomLidarIma
 		 size_t aIndUk = 0;
 		 size_t aIndObs = 0;
 
-		 tUk aRadiom = Radiom_PerpCentrIntrFix(aVUk,aIndUk,aVObs,aIndObs);
 		 tUk  aRadiomTarget = aVUk.at(aIndUk++);
+		 tUk aRadiom = Radiom_PerpCentrIntrFix(aVUk,aIndUk,aVObs,aIndObs);
 
 		 return {aRadiom- aRadiomTarget};
              }
 
-            std::vector<std::string> VNamesUnknowns()  const {return Append(NamesPoseUK(),{"TargetRad"});}
+            std::vector<std::string> VNamesUnknowns()  const {return Append({"TargetRad"},NamesPoseUK());}
             std::vector<std::string> VNamesObs() const      
             {
 		    return Append(VectObsPPose() , VectObsPCam() , VectObsRadiom());
