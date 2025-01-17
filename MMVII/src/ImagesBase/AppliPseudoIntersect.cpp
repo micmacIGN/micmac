@@ -4,7 +4,6 @@
 #include "MMVII_PCSens.h"
 #include "MMVII_Tpl_Images.h"
 
-
 /**
    \file AppliPseudoIntersect.cpp
 
@@ -140,7 +139,7 @@ private :
     std::vector<std::string> mSetNames;
     std::string              mPatNameGCP;
     double                   mIntersectTolerance;
-    bool                     mDoFixMes2D;
+    bool                     mKeepOnlyIntersectableInFiltered;
     void MakeStatByImage();
 };
 
@@ -153,7 +152,7 @@ cAppli_PseudoIntersect::cAppli_PseudoIntersect
     mPhProj       (*this),
     mPatNameGCP   (".*"),
     mIntersectTolerance (10.),
-    mDoFixMes2D   (false)
+    mKeepOnlyIntersectableInFiltered   (false)
 {
 }
 
@@ -174,7 +173,8 @@ cCollecSpecArg2007 & cAppli_PseudoIntersect::ArgOpt(cCollecSpecArg2007 & anArgOp
     return   anArgOpt
             << AOpt2007(mPatNameGCP,"PatFiltGCP","Pattern to filter name of GCP",{{eTA2007::HDV}})
             << AOpt2007(mIntersectTolerance,"Tolerance","Maximal pixel error before removing bundle",{{eTA2007::HDV}})
-            //<< AOpt2007(mDoFixMes2D,"DoFixMes2D","Automatically remove errors in output 2D measures",{{eTA2007::HDV}})
+            << mPhProj.DPGndPt2D().ArgDirOutOpt() // filtered 2d mes
+            << AOpt2007(mKeepOnlyIntersectableInFiltered,"KeepOnlyIntersectableInFiltered","Keep only intersectable measures in filtered output",{{eTA2007::HDV}})
                ;
 }
 
@@ -197,6 +197,11 @@ int cAppli_PseudoIntersect::Exe()
 {
     mPhProj.FinishInit();
 
+    MMVII_INTERNAL_ASSERT_User((!mKeepOnlyIntersectableInFiltered)||mPhProj.DPGndPt2D().DirOutIsInit(),
+                               eTyUEr::eBadOptParam, "KeepOnlyIntersectableInFiltered needs output 2D mes dir to be set!");
+
+
+
     mSetNames = VectMainSet(0);
 
     std::vector<cSensorCamPC *> aVCam;
@@ -206,7 +211,7 @@ int cAppli_PseudoIntersect::Exe()
         aVCam.push_back(mPhProj.ReadCamPC(aNameIm,true,false));
     }
 
-    std::map<std::string,std::list<tPairCamPt>> aMapMatch;
+    std::map<std::string,std::list<tPairCamPt>> aMapMatch; // for each point name, list of camera and 2d mes for intersection
 
     for (const auto & aCam : aVCam)
     {
@@ -224,6 +229,7 @@ int cAppli_PseudoIntersect::Exe()
         }
     }
 
+    std::map<std::string, std::set<std::string>> aMapWrongMesPerImage;
     cSetMesGnd3D aMesGCP("PseudoIntersect");
     for (const auto & [aStr,aList] : aMapMatch )
     {
@@ -233,6 +239,9 @@ int cAppli_PseudoIntersect::Exe()
             if (!std::isfinite(aBundleDebugged.mDistPix))
             {
                 StdOut() << "Point " << aStr << " can't be intersected.\n";
+                if (mKeepOnlyIntersectableInFiltered)
+                    for (const auto & [aCam,aMes] : aList)
+                        aMapWrongMesPerImage[aCam->NameImage()].insert(aStr);
                 continue;
             }
             //StdOut() << aStr << " " << aBundleDebugged.mDistPix << " ";
@@ -244,7 +253,10 @@ int cAppli_PseudoIntersect::Exe()
                 for (const auto & [aCam,aMes] : aList)
                 {
                     if (aBundleDebugged.mUsedBundles[i]==0)
+                    {
                         StdOut() << " " << aCam->NameImage();
+                        aMapWrongMesPerImage[aCam->NameImage()].insert(aStr);
+                    }
                     ++i;
                 }
                 StdOut() << "\n";
@@ -252,6 +264,10 @@ int cAppli_PseudoIntersect::Exe()
             if (std::isfinite(aBundleDebugged.mDistPix))
                 aMesGCP.AddMeasure3D( cMes1Gnd3D(aBundleDebugged.mPG, aStr, -1., "From pseudo-intersection") );
             //StdOut() << "\n";
+        } else {
+            if (mKeepOnlyIntersectableInFiltered)
+                for (const auto & [aCam,aMes] : aList)
+                    aMapWrongMesPerImage[aCam->NameImage()].insert(aStr);
         }
     }
 
@@ -263,6 +279,26 @@ int cAppli_PseudoIntersect::Exe()
     if (aSysCo)
         mPhProj.SaveCurSysCoGCP(aSysCo);
 
+    // export a filtered version of 2d mes
+    if (mPhProj.DPGndPt2D().DirOutIsInit())
+    {
+        std::vector<std::string> aListMesFileIN;
+        GetFilesFromDir(aListMesFileIN,mPhProj.DPGndPt2D().FullDirIn(),AllocRegex(""));
+        for (const auto & aNameFile : aListMesFileIN)
+        {
+            cSetMesPtOf1Im aSetIn = cSetMesPtOf1Im::FromFile(mPhProj.DPGndPt2D().FullDirIn()+aNameFile);
+            cSetMesPtOf1Im aSetOut(aSetIn.NameIm());
+            auto aSetOfWrongMes = aMapWrongMesPerImage.find(aSetIn.NameIm());
+
+            for (const auto & aMes : aSetIn.Measures())
+            {
+                if ( (aSetOfWrongMes==aMapWrongMesPerImage.end())
+                    || (aSetOfWrongMes->second.count(aMes.mNamePt) == 0)) // add only if not a reported error
+                        aSetOut.AddMeasure(aMes);
+            }
+            mPhProj.SaveMeasureIm(aSetOut);
+        }
+    }
     return EXIT_SUCCESS;
 }
 
