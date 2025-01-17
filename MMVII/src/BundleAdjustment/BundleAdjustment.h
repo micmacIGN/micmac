@@ -453,7 +453,7 @@ class cMMVII_BundleAdj
 	  std::string  mPatParamFrozenCalib;  /// Pattern for name of paramater of internal calibration
 	  std::string  mPatFrozenCenter;      /// Pattern for name of pose with frozen centers
 	  std::string  mPatFrozenOrient;      /// Pattern for name of pose with frozen centers
-       std::string  mPatFrozenClinos;      /// Pattern for name of clino with frozen boresight
+          std::string  mPatFrozenClinos;      /// Pattern for name of clino with frozen boresight
 
           std::vector<std::string>  mVPatShared;
 
@@ -467,7 +467,7 @@ class cMMVII_BundleAdj
 
                  // - - - - - - -   Bloc Rigid - - - - - - - -
 	  cBA_BlocRig*              mBlRig;  // RIGIDBLOC
-       cBA_Clino*              mBlClino;  // CLINOBLOC
+          cBA_Clino*              mBlClino;  // CLINOBLOC
           cBA_Topo*              mTopo;  // TOPO
 
 	         // - - - - - - -   Reference poses- - - - - - - -
@@ -484,7 +484,7 @@ class cMMVII_BundleAdj
 	  tREAL8   mSigmaViscCenter;  ///< "viscosity"  for centers
 				      //
 	  int      mNbIter;    /// counter of iteration, at least for debug
-       bool     mVerbose; // print residuals
+          bool     mVerbose; // print residuals
 };
 
 

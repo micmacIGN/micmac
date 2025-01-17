@@ -14,6 +14,13 @@ using namespace NS_SymbolicDerivative;
 
 namespace MMVII
 {
+
+inline size_t IndexAutoIncr(size_t * aIndex,size_t aIncr)
+{
+      *aIndex += aIncr;
+      return (*aIndex) - aIncr;
+}
+
 /// required so that we can define points on formula ...
 
 template <> class tNumTrait<cFormula <tREAL8> >
@@ -80,6 +87,11 @@ template <class Type> class cMatF
 		      (*this)(aKx,aKy) = aVal.at(anInd0++);
 	      }
 	  }
+      }
+      // put paremeter in this order to avoid ambiguity because 0 ~ nullptr !
+      cMatF(size_t aSzX,size_t aSzY, size_t * anIndAutoIncr, const std::vector<Type> & aVal) :
+         cMatF(aSzX,aSzY,aVal,IndexAutoIncr(anIndAutoIncr,aSzX*aSzY))
+      {
       }
 
       cMatF<Type> Transpose() const
@@ -210,19 +222,43 @@ template  <typename tScal> std::vector<tScal> ToVect(const cPtxd<tScal,2> & aPt)
 }
 
 
-
 template  <typename tScal> tScal PScal(const cPtxd<tScal,3> & aP1,const cPtxd<tScal,3> & aP2)
 {
-         return aP1.x()*aP2.x() + aP1.y() *aP2.y() + aP1.z() * aP2.z();
+    return aP1.x()*aP2.x() + aP1.y() *aP2.y() + aP1.z() * aP2.z();
 }
+template  <typename tScal> tScal PScal(const cPtxd<tScal,2> & aP1,const cPtxd<tScal,2> & aP2)
+{
+    return aP1.x()*aP2.x() + aP1.y() *aP2.y() ;
+}
+
+
 template  <typename tScal> cPtxd<tScal,3>  VtoP3(const  std::vector<tScal> & aV,size_t aInd=0)
 {
         return cPtxd<tScal,3>(aV.at(aInd),aV.at(aInd+1),aV.at(aInd+2));
 }
+template  <typename tScal> cPtxd<tScal,3>  VtoP3AuoIncr(const  std::vector<tScal> & aV,size_t *aInd)
+{
+	 return VtoP3(aV,IndexAutoIncr(aInd,3));
+}
+
 template  <typename tScal> cPtxd<tScal,2>  VtoP2(const  std::vector<tScal> & aV,size_t aInd=0)
 {
         return cPtxd<tScal,2>(aV.at(aInd),aV.at(aInd+1));
 }
+template  <typename tScal> cPtxd<tScal,2>  VtoP2AuoIncr(const  std::vector<tScal> & aV,size_t *aInd)
+{
+	 return VtoP2(aV,IndexAutoIncr(aInd,2));
+}
+
+/*
+template  <typename tScal> cPtxd<tScal,2>  VtoP2(const  std::vector<tScal> & aV,size_t * aIndAutoIncr)
+{
+     *aIndAutoIncr +=2;
+     return VtoP2(aV,*aIndAutoIncr-2);
+}
+*/
+
+
 
 template  <typename tScal> cPtxd<tScal,3>   MulMat(const std::vector<tScal> & aV,size_t aInd,const  cPtxd<tScal,3> & aP)
 {

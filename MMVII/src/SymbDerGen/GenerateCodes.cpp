@@ -14,10 +14,10 @@
 #include "MMVII_Geom2D.h"
 #include "Formulas_ClinoBloc.h"
 #include "Formulas_ClinoRot.h"
-#include "Formulas_Lidar.h"
 
 #include "MMVII_PCSens.h"
 #include "MMVII_2Include_Serial_Tpl.h"
+#include "Formulas_Lidar.h"
 
 
       //  cPt3di  Deg.x=Rad  Deg.y=Dec  Deg.z=Gen
@@ -274,6 +274,7 @@ cCalculator<double> * EqConsDist(bool WithDerive,int aSzBuf)
     return TplEqConsDist<double>(WithDerive,aSzBuf);
 }
 
+
      //  cons ratio dist
 cCalculator<double> * EqConsRatioDist(bool WithDerive,int aSzBuf)
 { 
@@ -445,11 +446,19 @@ cCalculator<double> * EqTopoDH(bool WithDerive,int aSzBuf)
 
 
 
-
 cCalculator<double> * EqSumSquare(int aNb,bool WithDerive,int aSzBuf,bool ReUse)
 {
     return StdAllocCalc(NameFormula(cFormulaSumSquares(8),WithDerive),aSzBuf,false,ReUse);
 }
+
+
+  // Projection image lidar 
+
+cCalculator<double> * EqEqLidarImPonct(bool WithDerive,int aSzBuf)
+{
+    return StdAllocCalc(NameFormula(cEqLidarImPonct(),WithDerive),aSzBuf);
+}
+
 
 /* **************************** */
 /*      BENCH  PART             */
@@ -492,8 +501,6 @@ template<class TyProj> void OneBenchProjToDirBundle(cParamExeBench & aParam)
        aPropPt.ToDirBundle(aP);
        aPropPt.Proj(aPropPt.ToDirBundle(aP));
  
-       cFormulaRadiomPerpCentrIntrFix  aFFF;
-       aFFF.formula(aVF,aVF);
    }
    // Generate random point aPt0, project aVIm0, inverse aPt1, and check collinearity between Pt1 and Pt0
    cPt3dr AxeK(0,0,1);
@@ -815,6 +822,8 @@ int cAppliGenCode::Exe()
 
    for (const auto WithDer : {true,false})
    {
+       GenCodesFormula((tREAL8*)nullptr,cEqLidarImPonct(),WithDer); // RIGIDBLOC
+								      //
        GenCodesFormula((tREAL8*)nullptr,cFormulaSumSquares(8),WithDer); // example for contraint
 
        GenCodesFormula((tREAL8*)nullptr,cFormulaBlocRigid(),WithDer); // RIGIDBLOC
