@@ -668,15 +668,8 @@ void cPhotogrammetricProject::ReadSensor(const std::string  &aNameIm,cSensorImag
 
 cSensorImage* cPhotogrammetricProject::ReadSensorFromFolder(const std::string  & aFolder,const std::string  &aNameIm,bool ToDeleteAutom,bool SVP) const
 {
-     cDirsPhProj& aDPO = const_cast<cPhotogrammetricProject *>(this)->DPOrient();
-     // Save current orientation and fix new
-     std::string aDirInit = aDPO.DirIn();
-     aDPO.SetDirIn(aFolder);
-
+     cAutoChgRestoreDefFolder  aCRDF(aFolder,DPOrient(),true); // Chg Folder and restore at destruction
      cSensorImage* aSensor = ReadSensor(aNameIm,true/*ToDelAutom*/);
-     // Restore initial current orientation
-     aDPO.SetDirIn(aDirInit);
-
      return aSensor;
 }
 
@@ -1044,14 +1037,8 @@ void  cPhotogrammetricProject::ReadMultipleTieP(cVecTiePMul& aVPm,const std::str
 
 void  cPhotogrammetricProject::ReadMultipleTiePFromFolder(const std::string &  aFolder,cVecTiePMul& aVPm,const std::string & aNameIm,bool SVP) const
 {
-     cDirsPhProj& aDPMTP = const_cast<cPhotogrammetricProject *>(this)->DPMulTieP();
-     // Save current orientation and fix new
-     std::string aDirInit = aDPMTP.DirIn();
-     aDPMTP.SetDirIn(aFolder);
-
+     cAutoChgRestoreDefFolder  aCRDF(aFolder,DPMulTieP(),true); // Chg Folder and restore at destruction
      ReadMultipleTieP(aVPm,aNameIm,SVP);
-     // Restore initial current orientation
-     aDPMTP.SetDirIn(aDirInit);
 }
 
 
