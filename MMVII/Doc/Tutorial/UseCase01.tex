@@ -356,7 +356,7 @@ MMVII  CodedTargetCircExtract 043_0005_Scaled.tif CERN_Nbb14_Freq14_Hamm1_Run100
 \end{lstlisting}
 
 Note the parameter {\tt DiamMin=8} necessary here because downscaling has created relatively small targets. 
-The result are written in a subfolder of {\tt MMVII-PhgrProj/PointsMeasure/}, by default it's the subfolder
+The result are written in a subfolder of {\tt MMVII-PhgrProj/ObjMesInstr/}, by default it's the subfolder
 {\tt Std/}, that contains now $2$ files :
 
 \begin{itemize}
@@ -382,13 +382,13 @@ An example of result is shown on figure~\ref{fig:CodeT:Panel}.
 \label{fig:CodeT:Panel}
 \end{figure}
 
-It's possible, to change the destination of result using parameter {\tt OutPointsMeasure}.
+It's possible, to change the destination of result using parameter {\tt OutObjMesInstr}.
 Using pattern, its possible to run the research on all the image of the dataset, computation will be parelized .
 Like every command {\tt MMVII}, it's possible to restrict the number of processor using the optionnal parameter
 {\tt NbProc} :
 
 \begin{lstlisting}
-MMVII  CodedTargetCircExtract ".*_Scaled.tif" CERN_Nbb14_Freq14_Hamm1_Run1000_1000_FullSpecif.xml DiamMin=8 NbProc=2 OutPointsMeasure=Test
+MMVII  CodedTargetCircExtract ".*_Scaled.tif" CERN_Nbb14_Freq14_Hamm1_Run1000_1000_FullSpecif.xml DiamMin=8 NbProc=2 OutObjMesInstr=Test
 \end{lstlisting}
 
 
@@ -413,7 +413,7 @@ These measures are stored in folder {\tt DataAux}, so we have first to do
 something like :
 
 \begin{lstlisting}
-cp Data-Aux/MesGCP-AICON-CERN-Pannel.xml MMVII-PhgrProj/PointsMeasure/Test/
+cp Data-Aux/MesGCP-AICON-CERN-Pannel.xml MMVII-PhgrProj/ObjCoordWorld/Test/
 \end{lstlisting}
 
 And now we can write again:
@@ -613,7 +613,7 @@ Now that we have computed reliable  orientation, we can use it to identify and
 validate the uncoded targets :
 
 \begin{lstlisting}
-MMVII CodedTargetCompleteUncoded .*_Scaled.tif BA 1.0 InPointsMeasure=Test
+MMVII CodedTargetCompleteUncoded .*_Scaled.tif BA 1.0 InObjMesInstr=Test
 \end{lstlisting}
 
 All the measure are stored in the  folder {\tt Completed} (by default). We can make a
