@@ -51,6 +51,7 @@ class cFormulaRadiomPerpCentrIntrFix
                  // read the unknowns
                  cPtxd<tUk,3>  aCCcam   = VtoP3(aVUk,0);
                  cPtxd<tUk,3>  aW       = VtoP3(aVUk,3);
+FakeUseIt(aW);
 
                  // read the observation
                  cPtxd<tUk,3>  aPGround = VtoP3(aVObs,0);
