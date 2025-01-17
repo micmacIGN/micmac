@@ -80,7 +80,7 @@ extern cSpecMMVII_Appli  TheSpec_ImportGCP;
 extern cSpecMMVII_Appli  TheSpec_ImportOBS;
 extern cSpecMMVII_Appli  TheSpec_ImportORGI;
 extern cSpecMMVII_Appli  TheSpec_ImportTiePMul;
-extern cSpecMMVII_Appli  TheSpec_ImportMesGndPt2D;
+extern cSpecMMVII_Appli  TheSpec_ImportMesImGCP;
 extern cSpecMMVII_Appli  TheSpec_ImportM32;
 extern cSpecMMVII_Appli  TheSpec_ConvertV1V2_GCPIM;
 extern cSpecMMVII_Appli  TheSpec_SpecSerial;

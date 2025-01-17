@@ -275,19 +275,19 @@ cSpecMMVII_Appli  TheSpec_ImportTiePMul
 
 /*********************************************************************/
 /*                                                                   */
-/*                       ImportMesGndPt2D                            */
+/*                         ImportMesImGCP                            */
 /*                                                                   */
 /*********************************************************************/
 
-tMMVII_UnikPApli Alloc_ImportMesGndPt2D(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
+tMMVII_UnikPApli Alloc_ImportMesImGCP(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
 {
    return tMMVII_UnikPApli(new cAppli_ImportTiePMul(aVArgs,aSpec,false));
 }
 
-cSpecMMVII_Appli  TheSpec_ImportMesGndPt2D
+cSpecMMVII_Appli  TheSpec_ImportMesImGCP
 (
-     "ImportMesGndPt2D",
-      Alloc_ImportMesGndPt2D,
+     "ImportMesImGCP",
+      Alloc_ImportMesImGCP,
       "Import/Convert basic image point measures into MMVII format",
       {eApF::GCP},
       {eApDT::ObjMesInstr},
