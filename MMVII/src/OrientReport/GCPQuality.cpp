@@ -1,4 +1,4 @@
-#include "MMVII_Ptxd.h"
+﻿#include "MMVII_Ptxd.h"
 #include "cMMVII_Appli.h"
 #include "MMVII_Geom3D.h"
 #include "MMVII_PCSens.h"
@@ -342,7 +342,11 @@ int cAppli_CGPReport::Exe()
 {
    mPhProj.FinishInit();
 
-   auto nameSubDir = mPhProj.DPOrient().DirIn() +  "_Mes-"+  mPhProj.DPGndPt2D().DirIn();
+   mPhProj.DPGndPt3D().CheckDirExists(true, true);
+   mPhProj.DPGndPt2D().CheckDirExists(true, true);
+
+   auto nameSubDir = mPhProj.DPOrient().DirIn() +  "_Mes-"+  mPhProj.DPGndPt3D().DirIn()
+                                                +  "-"+  mPhProj.DPGndPt2D().DirIn();
    if (IsInit(&mSuffixReportSubDir))
        nameSubDir += "_" + mSuffixReportSubDir;
    SetReportSubDir(nameSubDir);

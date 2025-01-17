@@ -190,6 +190,17 @@ tPtrArg2007    cDirsPhProj::ArgDirOutOptWithDef(const std::string & aDef,const s
     return ArgDirOutOpt(aNameVar,aMsg,true);
 }
 
+bool cDirsPhProj::CheckDirExists(bool In, bool DoError) const
+{
+    std::string aPath = In?mFullDirIn:mFullDirOut;
+    bool aExists = IsDirectory(aPath);
+    if (DoError)
+    {
+        MMVII_INTERNAL_ASSERT_User(aExists, eTyUEr::eOpenFile, aPath+" is not a directory!");
+    }
+    return aExists;
+}
+
 
         //   ======================  Initialization =======================================
 
@@ -927,6 +938,7 @@ void cPhotogrammetricProject::LoadImFromFolder
      ) const
 {
     cAutoChgRestoreDefFolder  aCRDF(aFolder,DPGndPt2D(), true); // Chg Folder and restore at destruction
+    DPGndPt2D().CheckDirExists(true, true);
     LoadIm(aSetMes,aNameIm,aMesDirInfo,aSIm,SVP);
 }
 

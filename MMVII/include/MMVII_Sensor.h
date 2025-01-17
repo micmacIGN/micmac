@@ -386,6 +386,7 @@ class cDirsPhProj : public cMemCheck
 	  bool  DirOutIsInit() const;
           void  AssertDirInIsInit() const;
           void  AssertDirOutIsInit() const;
+          bool CheckDirExists(bool In, bool DoError=false) const;
 
 	  void SetDirOutInIfNotInit(); ///< If Dir Out is not init, set it to same value than In
      private :

@@ -274,7 +274,7 @@ class cSetMesGndPt : public cMemCheck
 	    cSetMesGnd3D  ExtractSetGCP(const std::string & aNameSet) const;
 
 	    cPt3dr  BundleInter(const cMultipleImPt & aMPT) const;
-
+            bool IsPhaseGCPFinished() const { return mPhaseGCPFinished; }
     private :
            void AsserGCPFinished() const;
 

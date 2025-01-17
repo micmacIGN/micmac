@@ -105,6 +105,8 @@ void cMMVII_BundleAdj::InitItereGCP()
 void cMMVII_BundleAdj::OneItere_GCP(bool verbose)
 {
     auto & aSet                           = mGCP.getMesGCP();
+    if (!aSet.IsPhaseGCPFinished())
+        return;
     cSetMesGndPt&   aNewGCP               = mGCP.mNewGCP;
     std::vector<cPt3dr_UK*> & aGCP_UK     = mGCP.mGCP_UK;
 
