@@ -1,4 +1,3 @@
-
 #include "MMVII_Ptxd.h"
 
 namespace MMVII
@@ -42,7 +41,7 @@ constexpr int Fact3 = 2 * 3;
 constexpr int Fact5 = 2 * 3 * 4 * 5;  // Dont use Fact3, we dont control order of creation
 constexpr int Fact7 = 2 * 3 * 4 * 5 * 6 * 7 ;
 constexpr int Fact9 = 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9;
-constexpr int Fact11 = 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9;
+constexpr int Fact11 = 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11;
 
 
 template <typename Type> Type DerSinC(const Type & aTeta,const Type & aEps)

@@ -293,11 +293,11 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM)
     const auto & aVectSol = mSys->R_SolveUpdateReset(aLVM);
     mSetIntervUK.SetVUnKnowns(aVectSol);
 
+    mNbIter++;
     if(mVerbose)
     {
-        StdOut() << "---------------------------" << std::endl;
+        StdOut() << "--------------------------- End Iter" << mNbIter   << " ---------------" << std::endl;
     }
-    mNbIter++;
 }
 
 

@@ -458,6 +458,7 @@ class cPoseWithUK :  public cObjWithUnkowns<tREAL8>
 
 
      private :
+	 cPoseWithUK(const cPoseWithUK&) = delete;
          void PutUknowsInSetInterval() override ;  // add the interval on udpate
 
          tPoseR     mPose;   ///< transformation Cam to Word

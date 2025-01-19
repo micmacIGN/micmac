@@ -177,7 +177,9 @@ void cMMVII_BundleAdj::OneItere_GCP(bool verbose)
             }
             //  Add index of sensor (Pose+Calib for PC Cam)
             for (auto & anObj : aSens->GetAllUK())
+            {
                 anObj->PushIndexes(aVIndGlob);
+            }
 
             /*StdOut() << "VISSSS " << aSens->IsVisibleOnImFrame(aPIm)
                 << " " << aPGr

@@ -349,6 +349,14 @@ class cBA_TieP
 };
 
 
+class cData1ImLidPhgr
+{
+     public :
+        size_t mKIm;
+        std::vector<std::pair<tREAL8,cPt2dr>> mVGr;
+};
+
+
 class cBA_LidarPhotogra
 {
     public :
@@ -356,15 +364,28 @@ class cBA_LidarPhotogra
        ~cBA_LidarPhotogra();
 
        void AddObs(tREAL8 aW);
+
     private :
-       void AddObs(tREAL8 aW,const cPt3dr & aPt);
+       void Add1Patch(tREAL8 aW,const std::vector<cPt3dr> & aPatch);
+       void SetVUkVObs
+       (
+            const cPt3dr&           aPGround,
+            std::vector<int> *      aVIndUk,
+            std::vector<tREAL8> &   aVObs,
+            const cData1ImLidPhgr & aData,
+            int                     aKPt
+       );
+
 
        cMMVII_BundleAdj&               mBA;
+       int                             mNumMode;
        cTriangulation3D<tREAL4>        mTri;
        cDiffInterpolator1D *           mInterp;
        cCalculator<double>  *          mEqLidPhgr;
        std::vector<cSensorCamPC *>     mVCam;
        std::vector<cIm2D<tU_INT1>>     mVIms;
+       cWeightAv<tREAL8,tREAL8>        mLastResidual;
+       std::list<std::vector<int> >    mLPatches;
 };
 
 
