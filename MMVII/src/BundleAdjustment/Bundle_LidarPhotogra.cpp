@@ -54,8 +54,10 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
        }
    }
 
+   // Creation of the patches, to comment ...
    if (1)
    {
+/*
         cTplBoxOfPts<tREAL8,2> aBoxObj;
         int aNbPtsByPtch = 32;
 
@@ -109,6 +111,7 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
                 << " NbPts=" << mTri.NbPts() << " => " << aCpt 
                 << " NbPatch=" << mLPatches.size() << " NbAvg => " <<  aCpt / double(mLPatches.size())
                 << "\n";
+*/
    }
 }
 
@@ -125,8 +128,6 @@ void cBA_LidarPhotogra::AddObs(tREAL8 aW)
     {
        for (size_t aKP=0 ; aKP<mTri.NbPts() ; aKP++)
        {
-           // cPt3df aPF  = mTri.KthPts(aKP);
-           // AddObs(aW,cPt3dr(aPF.x(),aPF.y(),aPF.z()));
            Add1Patch(aW,{ToR(mTri.KthPts(aKP))});
        }
     }
@@ -155,41 +156,20 @@ void cBA_LidarPhotogra::SetVUkVObs
          int                     aKPt
      )
 {
-
-   cSensorCamPC * aCam = mVCam.at(aData.mKIm);
-   cPt3dr aPCam = aCam->Pt_W2L(aPGround);
-   tProjImAndGrad aPImGr = aCam->InternalCalib()->DiffGround2Im(aPCam);
-
-   if (aVIndUk)
-   {
-       // *aVIndUk = std::vector<int>  {-1} ;   // Index for temporary radiom
-       aCam->PushIndexes(*aVIndUk);
-   }
-
-   cPoseWithUK& aPUK = aCam->Pose_WU();
-
-
-   aPUK.PushObs(aVObs,true);  // true this is the W->C, wich the transposition of IJK : C->W
-   aPGround.PushInStdVector(aVObs);
-
-   aPCam.PushInStdVector(aVObs);
-   aPImGr.mGradI.PushInStdVector(aVObs);
-   aPImGr.mGradJ.PushInStdVector(aVObs);
-
-   aVObs.push_back(aData.mVGr.at(aKPt).first);
-   aData.mVGr.at(aKPt).second.PushInStdVector(aVObs);
+            // to complete ....
 }
 
 
 
 void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aVPatchGr)
 {
-     cResolSysNonLinear<tREAL8> *  aSys = mBA.Sys();
+     // cResolSysNonLinear<tREAL8> *  aSys = mBA.Sys();
      std::vector<cData1ImLidPhgr> aVData;
      cWeightAv<tREAL8,tREAL8> aWAv;
 
      cComputeStdDev<tREAL8> aStdDev;
 
+     //  to comment .....
      for (size_t aKIm=0 ; aKIm<mVCam.size() ; aKIm++)
      {
           cSensorCamPC * aCam = mVCam[aKIm];
@@ -223,7 +203,6 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
           }
      }
 
-
      if (aVData.size()<2) return;
 
      mLastResidual.Add(1.0,  (aStdDev.StdDev(1e-5) *aVData.size()) / (aVData.size()-1.0));
@@ -232,44 +211,12 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
 
      if (mNumMode==0)
      {
-        std::vector<tREAL8> aVTmpAvg({aWAv.Average()});
-        cSetIORSNL_SameTmp<tREAL8>  aStrSubst(aVTmpAvg);
-        for (const auto & aData : aVData)
-        {
-           std::vector<int>  aVIndUk{-1} ;
-           std::vector<tREAL8>  aVObs;
-           SetVUkVObs(aVPatchGr.at(0),&aVIndUk,aVObs,aData,0);
-           aSys->R_AddEq2Subst(aStrSubst,mEqLidPhgr,aVIndUk,aVObs,aWeight);
-        }
-        aSys->R_AddObsWithTmpUK(aStrSubst);
-    }
-    else if (mNumMode==1)
-    {
-        for (size_t aKPt=1; aKPt<aVPatchGr.size() ; aKPt++)
-        {
-             cWeightAv<tREAL8,tREAL8> aAvRatio;
-             for (const auto & aData : aVData)
-             {
-                 tREAL8 aV0 = aData.mVGr.at(0).first;
-                 tREAL8 aVK = aData.mVGr.at(aKPt).first;
-                 aAvRatio.Add(1.0,NormalisedRatioPos(aV0,aVK)) ;
-             }
-             std::vector<tREAL8> aVTmpAvg({aAvRatio.Average()});
-             cSetIORSNL_SameTmp<tREAL8>  aStrSubst(aVTmpAvg);
-             for (const auto & aData : aVData)
-             {
-                std::vector<int>  aVIndUk{-1} ;
-                std::vector<tREAL8>  aVObs;
-
-                SetVUkVObs(aVPatchGr.at(0)  ,&aVIndUk,aVObs,aData,0);
-                SetVUkVObs(aVPatchGr.at(aKPt),nullptr ,aVObs,aData,aKPt);
-                aSys->R_AddEq2Subst(aStrSubst,mEqLidPhgr,aVIndUk,aVObs,aWeight);
-            }
-        aSys->R_AddObsWithTmpUK(aStrSubst);
-        }
-    }
-
-
+            // to complete ....
+     }
+     else if (mNumMode==1)
+     {
+            // to complete ...
+     }
 }
 
 };
