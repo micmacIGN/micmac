@@ -136,6 +136,10 @@ template <>  const std::string cStrIO<eTopoStOriStat>::msNameType;
 template  <class Type> std::string ToS(const Type & aV) {return cStrIO<Type>::ToStr(aV);}
 template  <class Type> void FromS(const std::string & aStr,Type & aV) { aV= cStrIO<Type>::FromStr(aStr);}
 
+/// synomym of  cStrIO<std::vector<std::string>>::FromStr
+std::vector<std::string> Str2VStr(const std::string & aS);
+
+
 /*  ================================================== */
 /*                                                     */
 /*          MMVII ARGS                                 */

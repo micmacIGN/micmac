@@ -123,7 +123,7 @@ void cMMVII_BundleAdj::OneItere_GCP(bool verbose)
     int aNbGCPVis = 0;
     int aAvgVis = 0;
     int aAvgNonVis = 0;
-    if (verbose && mVerbose)
+    if (verbose && mVerbose & (aNbGCP!=0) )
     {
         StdOut() << "  * Gcp0=" << aSet.AvgSqResidual() ;
         aNewGCP = aSet; //copy
@@ -179,7 +179,9 @@ void cMMVII_BundleAdj::OneItere_GCP(bool verbose)
             }
             //  Add index of sensor (Pose+Calib for PC Cam)
             for (auto & anObj : aSens->GetAllUK())
+            {
                 anObj->PushIndexes(aVIndGlob);
+            }
 
             /*StdOut() << "VISSSS " << aSens->IsVisibleOnImFrame(aPIm)
                 << " " << aPGr
@@ -246,7 +248,7 @@ void cMMVII_BundleAdj::OneItere_GCP(bool verbose)
         }
     }
 
-    if (verbose && mVerbose)
+    if (verbose && mVerbose && (aNbGCP!=0))
     {
         StdOut() << " PropVis1Im=" << aNbGCPVis /double(aNbGCP)
                  << " AvgVis=" << aAvgVis/double(aNbGCP)

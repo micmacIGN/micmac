@@ -1076,6 +1076,12 @@ MACRO_INSTANTITATE_STRIO_VECT_TYPE(int)
 MACRO_INSTANTITATE_STRIO_VECT_TYPE(double)
 MACRO_INSTANTITATE_STRIO_VECT_TYPE(cPt2di)
 
+
+std::vector<std::string> Str2VStr(const std::string & aS)
+{
+   return cStrIO<std::vector<std::string>>::FromStr(aS);
+}
+
 /* ==================================== */
 /*                                      */
 /*         cPtxd                        */

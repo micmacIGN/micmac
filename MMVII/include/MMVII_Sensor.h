@@ -252,6 +252,7 @@ class cSensorImage  :   public cObj2DelAtEnd,
          cSensorCamPC * UserGetSensorCamPC() ;
 
      private :
+          cSensorImage(const cSensorImage &) = delete;
 
 	 std::string                                   mNameImage;
          cCalculator<double> *                         mEqColinearity;  // memo equation, can be nullptr (for pure pose)

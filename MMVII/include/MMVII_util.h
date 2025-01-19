@@ -167,6 +167,8 @@ int  FromHexaCode(char aC);
 
 std::string replaceFirstOccurrence(const std::string& s,const std::string& toRep,const std::string& Rep,bool SVP=false);
 
+std::vector<std::string >  AddPostFix(const std::vector<std::string>  & aV,const std::string  & aPost);
+
 
 
 /*=============================================*/

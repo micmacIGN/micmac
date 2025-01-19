@@ -27,6 +27,14 @@ namespace fs=std::filesystem;
 namespace MMVII
 {
 
+std::vector<std::string >  AddPostFix(const std::vector<std::string>  & aV,const std::string  & aPost)
+{
+    std::vector<std::string > aRes;
+    for (const auto & aStr :aV)
+        aRes.push_back(aStr+aPost);
+    return aRes;
+}
+
 /* ************************************************* */
 /*                                                   */
 /*                cCarLookUpTable                    */

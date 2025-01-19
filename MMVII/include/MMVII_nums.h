@@ -558,6 +558,10 @@ template<class Type> Type DivSup(const Type & a,const Type & b)
 /// Return a value depending only of ratio, in [-1,1], eq 0 if I1=I2, and invert sign when swap I1,I2
 double NormalisedRatio(double aI1,double aI2);
 double NormalisedRatioPos(double aI1,double aI2);
+double Der_NormalisedRatio_I1(double aI1,double aI2);
+double Der_NormalisedRatio_I2(double aI1,double aI2);
+double Der_NormalisedRatio_I1Pos(double aI1,double aI2);
+double Der_NormalisedRatio_I2Pos(double aI1,double aI2);
 
 
 tINT4 HCF(tINT4 a,tINT4 b); ///< = PGCD = Highest Common Factor

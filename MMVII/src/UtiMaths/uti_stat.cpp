@@ -426,6 +426,11 @@ template <class TypeWeight,class TypeVal> cWeightAv<TypeWeight,TypeVal>::cWeight
 {
 }
 
+template <class TypeWeight,class TypeVal> void cWeightAv<TypeWeight,TypeVal>::Reset()
+{
+   mSW = 0;
+   mSVW =cNV<TypeVal>::V0();
+}
 
 template <class TypeWeight,class TypeVal> cWeightAv<TypeWeight,TypeVal>::cWeightAv(const std::vector<TypeVal> & aVect) :
    cWeightAv()

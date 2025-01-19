@@ -115,6 +115,7 @@ cMMVII_BundleAdj::~cMMVII_BundleAdj()
     delete mTopo;
     delete mBlClino;
     // DeleteAllAndClear(mGCP_UK);
+    DeleteAllAndClear(mVBA_Lidar);
 }
 
 void cMMVII_BundleAdj::ShowUKNames() 
@@ -285,14 +286,18 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM)
         mTopo->printObs(false);
     }
 
+    for (const auto & aLidarPh : mVBA_Lidar )
+       aLidarPh->AddObs(1.0);
+
+
     const auto & aVectSol = mSys->R_SolveUpdateReset(aLVM);
     mSetIntervUK.SetVUnKnowns(aVectSol);
 
+    mNbIter++;
     if(mVerbose)
     {
-        StdOut() << "---------------------------" << std::endl;
+        StdOut() << "--------------------------- End Iter" << mNbIter   << " ---------------" << std::endl;
     }
-    mNbIter++;
 }
 
 
@@ -414,6 +419,8 @@ void  cMMVII_BundleAdj::AddCam(const std::string & aNameIm)
 }
 const std::vector<cSensorImage *> &  cMMVII_BundleAdj::VSIm() const  {return mVSIm;}
 const std::vector<cSensorCamPC *> &  cMMVII_BundleAdj::VSCPC() const {return mVSCPC;}
+cResolSysNonLinear<tREAL8> *  cMMVII_BundleAdj::Sys() {return mR8_Sys;}
+
 
     /* ---------------------------------------- */
     /*            Frozen/Shared                 */
@@ -689,7 +696,14 @@ void cMMVII_BundleAdj::SaveClino()
     }
 }
 
+/* ---------------------------------------- */
+/*                 Lidar                    */
+/* ---------------------------------------- */
 
+void cMMVII_BundleAdj::Add1AdjLidarPhotogra(const std::vector<std::string> &aParam)
+{
+   mVBA_Lidar.push_back(new cBA_LidarPhotogra(*this,aParam));
+}
 
 /* ---------------------------------------- */
 /*                 Topo                     */

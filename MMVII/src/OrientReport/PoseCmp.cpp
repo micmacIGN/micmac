@@ -31,6 +31,7 @@ class cAppli_PoseCmp : public cMMVII_Appli
 
 	     std::string              mOri2;
 	     std::vector<std::string> mPatBand;
+             bool                     mDoRel;
 
              // std::string              mPrefixCSV;
              // std::string              mPrefixCSVIma;
@@ -45,7 +46,8 @@ cAppli_PoseCmp::cAppli_PoseCmp
 ) :
      cMMVII_Appli  (aVArgs,aSpec),
      mPhProj       (*this),
-     mPropStat     ({50,75})
+     mPropStat     ({50,75}),
+     mDoRel        (false)
 {
 }
 
@@ -65,6 +67,7 @@ cCollecSpecArg2007 & cAppli_PoseCmp::ArgOpt(cCollecSpecArg2007 & anArgOpt)
     return   anArgOpt
           << AOpt2007(mPropStat,"Perc","Percentil for stat exp",{eTA2007::HDV})
           << AOpt2007(mPatBand,"PatBand","Pattern for band [Patter,Subts]")
+          << AOpt2007(mDoRel,"DoRel","Do relative computaion between consecutive images")
     ;
 }
 
@@ -86,8 +89,9 @@ int cAppli_PoseCmp::Exe()
    std::string aLastBand = "Xy#@Z-4lj";
 
    cPt3dr aLastWPK;
-   cWeightAv<tREAL8>  aAvgDif;
-   cWeightAv<tREAL8>  aAvgRelDif;
+   cWeightAv<tREAL8>  aAvgDif_Ori;
+   cWeightAv<tREAL8>  aAvgDif_Center;
+   cWeightAv<tREAL8>  aAvgRelDif_Ori;
    cWeightAv<tREAL8>  aAvgBandRelDif;
 
    for (size_t aK=0 ; aK<mSetNames.size() ; aK++)
@@ -101,10 +105,11 @@ int cAppli_PoseCmp::Exe()
 
 	auto aP2In1 = aCam1->RelativePose(*aCam2);
 	cPt3dr aWPK = aP2In1.Rot().ToWPK() ;
-	aAvgDif.Add(1.0,Norm2(aWPK));
+	aAvgDif_Ori.Add(1.0,Norm2(aWPK));
+	aAvgDif_Center.Add(1.0,Norm2(aP2In1.Tr()));
 
 	if (aK!=0)
-           aAvgRelDif.Add(1.0,Norm2(aWPK-aLastWPK));
+           aAvgRelDif_Ori.Add(1.0,Norm2(aWPK-aLastWPK));
 
         if (IsInit(&mPatBand))
 	{
@@ -124,8 +129,9 @@ int cAppli_PoseCmp::Exe()
 
    // mPrefixCSV =  "_Ori-"+  mPhProj.DPOrient().DirIn() +  "_Mes-"+  mPhProj.DPMulTieP().DirIn() ;
    //
-   StdOut() << "AVG DIFF=" << aAvgDif.Average() << std::endl;
-   StdOut() << "AVG REL DIFF=" << aAvgRelDif.Average() << std::endl;
+   StdOut() << "AVG DIFF, Ori=" << aAvgDif_Ori.Average() << " Center=" << aAvgDif_Center.Average() << std::endl;
+   if (mDoRel)
+      StdOut() << "AVG REL DIFF=" << aAvgRelDif_Ori.Average() << std::endl;
    if (aAvgBandRelDif.SW() > 0)
       StdOut() << "AVG BAND REL DIFF=" << aAvgBandRelDif.Average() << std::endl;
 

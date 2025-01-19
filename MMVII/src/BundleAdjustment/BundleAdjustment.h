@@ -13,6 +13,12 @@ namespace MMVII
 {
 
 class cBA_Topo;
+class cMMVII_BundleAdj;
+class cBA_LidarPhotogra;
+class cBA_TieP;
+class cBA_GCP;
+class cBA_Clino;
+class cBA_BlocRig;
 
 /**   Class for representing a Pt of R3 in bundle adj, when it is considered as
  *   unknown.
@@ -343,8 +349,46 @@ class cBA_TieP
 };
 
 
-/**  
- */
+class cData1ImLidPhgr
+{
+     public :
+        size_t mKIm;
+        std::vector<std::pair<tREAL8,cPt2dr>> mVGr;
+};
+
+
+class cBA_LidarPhotogra
+{
+    public :
+       cBA_LidarPhotogra(cMMVII_BundleAdj&,const std::vector<std::string> & aParam);
+       ~cBA_LidarPhotogra();
+
+       void AddObs(tREAL8 aW);
+
+    private :
+       void Add1Patch(tREAL8 aW,const std::vector<cPt3dr> & aPatch);
+       void SetVUkVObs
+       (
+            const cPt3dr&           aPGround,
+            std::vector<int> *      aVIndUk,
+            std::vector<tREAL8> &   aVObs,
+            const cData1ImLidPhgr & aData,
+            int                     aKPt
+       );
+
+
+       cMMVII_BundleAdj&               mBA;
+       int                             mNumMode;
+       cTriangulation3D<tREAL4>        mTri;
+       cDiffInterpolator1D *           mInterp;
+       cCalculator<double>  *          mEqLidPhgr;
+       std::vector<cSensorCamPC *>     mVCam;
+       std::vector<cIm2D<tU_INT1>>     mVIms;
+       cWeightAv<tREAL8,tREAL8>        mLastResidual;
+       std::list<std::vector<int> >    mLPatches;
+};
+
+
 
 class cMMVII_BundleAdj
 {
@@ -372,6 +416,9 @@ class cMMVII_BundleAdj
           void AddGCP3D(cMes3DDirInfo * aMesDirInfo, cSetMesGnd3D &aSetMesGnd3D, bool verbose=true);
           void AddGCP2D(cMes2DDirInfo * aMesDirInfo, cSetMesPtOf1Im & aSetMesIm, cSensorImage* aSens, eLevelCheck aOnNonExistGCP=eLevelCheck::Warning, bool verbose=true);
           cBA_GCP& getGCP() { return mGCP;}
+
+          ///  ============  Add Lidar/Photogra ===============
+          void Add1AdjLidarPhotogra(const std::vector<std::string> &);
 
 	  ///  ============  Add multiple tie point ============
 	  void AddMTieP(const std::string & aName,cComputeMergeMulTieP  * aMTP,const cStdWeighterResidual & aWIm);
@@ -411,6 +458,7 @@ class cMMVII_BundleAdj
 
           void setVerbose(bool aVerbose){mVerbose=aVerbose;}; // Print or not residuals
           
+          cResolSysNonLinear<tREAL8> *  Sys();  /// Real object, will disapear when fully interfaced for mSys
 
      private :
 
@@ -453,7 +501,7 @@ class cMMVII_BundleAdj
 	  std::string  mPatParamFrozenCalib;  /// Pattern for name of paramater of internal calibration
 	  std::string  mPatFrozenCenter;      /// Pattern for name of pose with frozen centers
 	  std::string  mPatFrozenOrient;      /// Pattern for name of pose with frozen centers
-       std::string  mPatFrozenClinos;      /// Pattern for name of clino with frozen boresight
+          std::string  mPatFrozenClinos;      /// Pattern for name of clino with frozen boresight
 
           std::vector<std::string>  mVPatShared;
 
@@ -467,8 +515,10 @@ class cMMVII_BundleAdj
 
                  // - - - - - - -   Bloc Rigid - - - - - - - -
 	  cBA_BlocRig*              mBlRig;  // RIGIDBLOC
-       cBA_Clino*              mBlClino;  // CLINOBLOC
+          cBA_Clino*              mBlClino;  // CLINOBLOC
           cBA_Topo*              mTopo;  // TOPO
+
+          std::vector<cBA_LidarPhotogra*>  mVBA_Lidar;
 
 	         // - - - - - - -   Reference poses- - - - - - - -
           std::vector<cSensorCamPC *>        mVCamRefPoses;      ///< vector of reference  poses if they exist
@@ -484,7 +534,7 @@ class cMMVII_BundleAdj
 	  tREAL8   mSigmaViscCenter;  ///< "viscosity"  for centers
 				      //
 	  int      mNbIter;    /// counter of iteration, at least for debug
-       bool     mVerbose; // print residuals
+          bool     mVerbose; // print residuals
 };
 
 

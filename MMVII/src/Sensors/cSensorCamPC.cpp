@@ -106,8 +106,10 @@ void  cPoseWithUK::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 
 void cPoseWithUK::PutUknowsInSetInterval(cSetInterUK_MultipeObj<tREAL8> * aSetInterv) 
 {
+//StdOut() << " *PUK0 :PutUknowsInSetIntervalPutUknowsInSetInterval " << mIndUk0 << " " << mIndUk1 << "\n";
     aSetInterv->AddOneInterv(mPose.Tr());
     aSetInterv->AddOneInterv(mOmega);
+//StdOut() << " *PUK1   PutUknowsInSetIntervalPutUknowsInSetInterval " << mIndUk0 << " " << mIndUk1 << "\n";
 }
 
 void cPoseWithUK::PutUknowsInSetInterval()
