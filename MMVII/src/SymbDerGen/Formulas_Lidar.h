@@ -60,15 +60,34 @@ class cRadiomLidarIma
                  // to complete
 
         // read the unknowns
-     
+        cPtxd<tUk,3>  aCCam   = VtoP3AuoIncr(aVUk,&aIndUk);  // camera center
+        cPtxd<tUk,3>  aW      = VtoP3AuoIncr(aVUk,&aIndUk);  // camera infinitesimal rotation
+
         // read the observation
+        cMatF<tObs>    aRotInit (3,3,&aIndObs,aVObs);       // Curent value of rotation
+        cPtxd<tObs,3>  aPGround   = VtoP3AuoIncr(aVObs,&aIndObs);  // Value of 3D ground point 
+        cPtxd<tObs,3>  aPCamInit   = VtoP3AuoIncr(aVObs,&aIndObs);  // Current value of 3D point in camera system
+        cPtxd<tObs,3>  aGradProjI  = VtoP3AuoIncr(aVObs,&aIndObs);  // I(abscissa) of gradient / PCamera of projection 
+        cPtxd<tObs,3>  aGradProjJ  = VtoP3AuoIncr(aVObs,&aIndObs);  // J(ordinate) of gradient / PCamera of projection
+
+        tUk aRadiomInit  = aVObs.at(aIndObs++); // extract the radiometry of image
+        cPtxd<tObs,2>  aGradIm  = VtoP2AuoIncr(aVObs,&aIndObs);  // extract the gradient of image
 
         // compute the position of the point in camera coordinates
+        cPtxd<tUk,3> aVCP = aPGround - aCCam;  // "vector"  Center -> PGround
+        cMatF<tUk>   aDeltaRot =  cMatF<tUk>::MatAxiator(aW); // small rotation associated to W
+        cPtxd<tUk,3> aPCoordCam = aDeltaRot * aRotInit * aVCP;
 
-        // compute the position of projected point
+        //                                       d Intr 
+        // Intr(Pose(Pground)) =  Intr(PCam0)  + ------- * (Pose(Pground) - PCam0)
+        //                                       dcam
+        //                                          
+        cPtxd<tUk,3> aDeltaPCam = aPCoordCam-aPCamInit;  // difference Unknown point in cam coord, vs its current value
+        tUk aDelta_I = PScal(aDeltaPCam,aGradProjI); // scalar product gradient with diff
+        tUk aDelta_J = PScal(aDeltaPCam,aGradProjJ); // scalar product gradient with diff
                     
         // compute the radiometry
-        return 0;
+        return  aRadiomInit + PScal(aGradIm,cPtxd<tObs,2>(aDelta_I,aDelta_J));
      }
 
      static std::vector<std::string>  NamesPoseUK()  {return Append(NamesP3("mCCam"),NamesP3("mOmega"));}
@@ -80,11 +99,18 @@ class cRadiomLidarIma
 
      static std::vector<std::string>  VectObsPCam() 
      {
-          return Append(NamesP3("mPGround"),NamesP3("mPCam0"),NamesP3("mGradPCam_i"),NamesP3("mGradPCam_j")) ;
+          return Append
+                 (
+                      NamesP3("mPGround"),  // Ground point 
+                      NamesP3("mPCam0"),    // initial current value of PGround in camera system
+                      NamesP3("mGradPCam_i"),   //  (d PIm / d PCam ).i
+                      NamesP3("mGradPCam_j")    //  (d PIm / d PCam) .j
+                 ) ;
      }
 
      static std::vector<std::string>  VectObsRadiom()  
      {
+             // Radiom + grad /i,j
 	     return Append({"Rad0"},NamesP2("GradRad"));
      }
 };
@@ -101,14 +127,13 @@ class cEqLidarImPonct : public cRadiomLidarIma
                   )  const
             {
                  // read the unknowns
-		// size_t aIndUk = 0;
-		// size_t aIndObs = 0;
+		size_t aIndUk = 0;
+		size_t aIndObs = 0;
 
-		 //tUk  aRadiomTarget = aVUk.at(aIndUk++);
-		 //tUk aRadiom = Radiom_PerpCentrIntrFix(aVUk,aIndUk,aVObs,aIndObs);
+		tUk aRadiomTarget = aVUk.at(aIndUk++);
+		tUk aRadiom = Radiom_PerpCentrIntrFix(aVUk,aIndUk,aVObs,aIndObs);
 
-		//  return {NormalisedRatioPos(aRadiom , aRadiomTarget)};
-		 return {aVUk.at(0)} ; // {aRadiom- aRadiomTarget};
+		 return {aRadiom - aRadiomTarget};
              }
 
             std::vector<std::string> VNamesUnknowns()  const {return Append({"TargetRad"},NamesPoseUK());}

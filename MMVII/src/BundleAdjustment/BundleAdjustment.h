@@ -349,11 +349,12 @@ class cBA_TieP
 };
 
 
+/** For a given patch in one image, will store all the data on the points*/
 class cData1ImLidPhgr
 {
      public :
-        size_t mKIm;
-        std::vector<std::pair<tREAL8,cPt2dr>> mVGr;
+        size_t mKIm;  // num of images where the patch is seen
+        std::vector<std::pair<tREAL8,cPt2dr>> mVGr; // pair of radiometry/gradient values in each image for each point of the patch
 };
 
 
