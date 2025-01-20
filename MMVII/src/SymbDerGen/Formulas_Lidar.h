@@ -57,33 +57,18 @@ class cRadiomLidarIma
 	       size_t                 &  aIndObs
           ) const 
      {
+                 // to complete
+
         // read the unknowns
-        cPtxd<tUk,3>  aCCcam   = VtoP3AuoIncr(aVUk,&aIndUk);
-        cPtxd<tUk,3>  aW       = VtoP3AuoIncr(aVUk,&aIndUk);
      
         // read the observation
-        cMatF<tUk>    aRotInit (3,3,&aIndObs,aVObs);             // Curent value of rotatuin
-
-        cPtxd<tUk,3>  aPGround  = VtoP3AuoIncr(aVObs,&aIndObs);  //  PGround
-        cPtxd<tUk,3>  aPCamInit = VtoP3AuoIncr(aVObs,&aIndObs);  // Current value of PGround in camera coordinate
-        cPtxd<tUk,3>  aGradI  = VtoP3AuoIncr(aVObs,&aIndObs);    // gradient / PCam  of abscisse of projection in image
-        cPtxd<tUk,3>  aGradJ  = VtoP3AuoIncr(aVObs,&aIndObs);    // gradient / PCam  of ordonate of projection in image
-								
-        tUk  aRadiom0 = aVObs.at(aIndObs++);                     // radiometry in image of current proj
-        cPtxd<tUk,2>  aGradR = VtoP2AuoIncr(aVObs,&aIndObs);     // gradient of radiometry in image
 
         // compute the position of the point in camera coordinates
-        cPtxd<tUk,3>  aVCP = aPGround - aCCcam;             // vector  CamCenter -> PGround
-        cMatF<tUk> aDeltaRot =  cMatF<tUk>::MatAxiator(aW); // unknown "small rotation"
-        cPtxd<tUk,3> aPCam =  aDeltaRot * (aRotInit * aVCP); // point in camera coordinate, taking into account the unknowns
 
         // compute the position of projected point
-        cPtxd<tUk,3>  aDPCam = aPCam-aPCamInit;                //  difference Unknown/Curent of point in camera coordinate
-        tUk  aDI = PScal(aGradI,aDPCam);                       // variation of abscissa of projection
-        tUk  aDJ = PScal(aGradJ,aDPCam);                       // variation of ordinate of projection
                     
         // compute the radiometry
-        return aRadiom0 + PScal(aGradR,cPtxd<tUk,2>(aDI,aDJ));
+        return 0;
      }
 
      static std::vector<std::string>  NamesPoseUK()  {return Append(NamesP3("mCCam"),NamesP3("mOmega"));}
@@ -116,14 +101,14 @@ class cEqLidarImPonct : public cRadiomLidarIma
                   )  const
             {
                  // read the unknowns
-		 size_t aIndUk = 0;
-		 size_t aIndObs = 0;
+		// size_t aIndUk = 0;
+		// size_t aIndObs = 0;
 
-		 tUk  aRadiomTarget = aVUk.at(aIndUk++);
-		 tUk aRadiom = Radiom_PerpCentrIntrFix(aVUk,aIndUk,aVObs,aIndObs);
+		 //tUk  aRadiomTarget = aVUk.at(aIndUk++);
+		 //tUk aRadiom = Radiom_PerpCentrIntrFix(aVUk,aIndUk,aVObs,aIndObs);
 
 		//  return {NormalisedRatioPos(aRadiom , aRadiomTarget)};
-		 return {aRadiom- aRadiomTarget};
+		 return {aVUk.at(0)} ; // {aRadiom- aRadiomTarget};
              }
 
             std::vector<std::string> VNamesUnknowns()  const {return Append({"TargetRad"},NamesPoseUK());}
@@ -154,19 +139,9 @@ class cEqLidarImCensus : public cRadiomLidarIma
                       const std::vector<tObs> & aVObs
                   )  const
             {
-                 // read the unknowns
-		 size_t aIndUk   = 0;
-		 size_t aIndObs   = 0;
+                 // to complete
 
-		 tUk  aRatioTarget = aVUk.at(aIndUk++);
-
-		 tUk aRadiom0 = Radiom_PerpCentrIntrFix(aVUk,aIndUk,aVObs,aIndObs);
-                 aIndUk = 1;
-		 tUk aRadiom1 = Radiom_PerpCentrIntrFix(aVUk,aIndUk,aVObs,aIndObs);
-
-
-		//  return {NormalisedRatioPos(aRadiom , aRadiomTarget)};
-		 return {NormalisedRatioPos(aRadiom0,aRadiom1) - aRatioTarget};
+		 return {aVUk.at(0)};
             }
 
             std::vector<std::string> VNamesUnknowns()  const {return Append({"TargetRatio"},NamesPoseUK());}
