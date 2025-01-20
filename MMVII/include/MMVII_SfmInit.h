@@ -20,6 +20,9 @@
 //#undef ASSERT
 //#undef HEAVY_ASSERT0
 
+#include "Solver_homotopy.hpp"
+#include "DS_homotopy.h"
+#include "BPDN_homotopy.h"
 
 namespace MMVII
 {
@@ -184,7 +187,8 @@ class cHyperGraph : public cMemCheck
       cHyperGraph() : IS_INIT(false) {};
       ~cHyperGraph();
 
-      void InitFromTriSet(const cTripletSet*);
+      void InitFromTriSet(const cTripletSet*,std::string aPatIm="");
+
 
       void                      AddHyperedge(cHyperEdge*);
       std::vector<cHyperEdge*>& GetAdjacentHyperedges(cEdge*);
@@ -226,7 +230,9 @@ class cHyperGraph : public cMemCheck
       bool CheckConnectivity(std::map<int,std::vector<int>>&);
       std::map<int,std::vector<int>> CreateAdjGr(bool );
 
-      cTripletSet ReduceGraph(std::string&);
+      cTripletSet ReduceGraphRand(std::string&);
+      cTripletSet ReduceGraphNoDupl(std::string&);
+      cTripletSet ReduceGraphMoy(std::string&);
 
       template <typename tObj,typename tCmp>
       void FindTerminals (cIndexedHeap<tObj,tCmp>&,
@@ -248,6 +254,7 @@ class cHyperGraph : public cMemCheck
      std::vector<cHyperEdge*>                    mVHEdges;
      std::unordered_map<cEdge, std::vector<cHyperEdge*>,
                            typename cEdge::Hash> mAdjMap;
+     cExtSet<std::string>                        mPatImSet;
 
      bool                                        IS_INIT;
 
@@ -371,7 +378,7 @@ class cAppli_SfmInitGlob: public cMMVII_Appli
      typedef cIsometry3D<tREAL8>  tPose;
 
      cAppli_SfmInitGlob(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
-     ~cAppli_SfmInitGlob() { delete mEqTr; delete mSys;}
+     ~cAppli_SfmInitGlob() {}
 
      int Exe() override;
      int ExeAllAtOnce();
@@ -389,19 +396,33 @@ class cAppli_SfmInitGlob: public cMMVII_Appli
 
      bool                      mRunL2;
 
+     std::string               mPatIm;
+
+     void SetMatRowT(Eigen::MatrixXd&,
+                     tU_INT4, tU_INT4, tU_INT4,
+                     const cMatrix<double>&, const cPt3dr&, int, int);
      void SetVecT(cDenseVect<tREAL8>&,
                   tU_INT4, tU_INT4, tU_INT4,
                   const cMatrix<double>&, const cPt3dr&, int);
+     void SetMatRowQ(Eigen::MatrixXd&,
+                  tU_INT4, tU_INT4,
+                  const cPt4dr&, int,int);
      void SetVecQ(cDenseVect<tREAL8>&,
                   tU_INT4, tU_INT4,
                   const cPt4dr&, int);
+     void SetRandQ(cDenseVect<tREAL8>&,double);
 
      void Solve(cHyperGraph&);
+     void SolveL1(cHyperGraph&);
      //void SolveL1Parallel(cHyperGraph&);
 
+     void FixGaugeRot(Eigen::MatrixXd&,tU_INT4,tU_INT4,tU_INT4);
+
+     //for debug
      void Bench_SfmInit();
      void CheckRelOri(cHyperGraph&);
      void RobustTriplets(cHyperGraph&);
+
 
 
 };

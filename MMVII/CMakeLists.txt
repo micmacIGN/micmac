@@ -128,9 +128,15 @@ set(maxflow_src_dir "/etc/opt/maxflow-v3.04.src/")
 set(mtkahypar_dir "/etc/opt/mt-kahypar/")
 set(mtkahypar_include_dir "${mtkahypar_dir};${mtkahypar_dir}/include;${mtkahypar_dir}external_tools/kahypar-shared-resources")
 set(mtkahypar_src_dir "${mtkahypar_dir}/mt-kahypar/")
-set(mtkahypar_lib_dir "${mtkahypar_dir}/lib")
-find_library(mtkahypar_lib NAME mtkahypar PATHS "${mtkahypar_dir}" NO_DEFAULT_PATH)
+set(mtkahypar_lib_dir "${mtkahypar_dir}/build/lib")
+find_library(mtkahypar_lib NAME mtkahypar PATHS "${mtkahypar_lib_dir}" NO_DEFAULT_PATH)
 
+# L1Homotopy
+set(l1homotopy_dir "/home/er/Documents/d_development/L1Homotopy_cpp/")
+set(l1homotopy_include_dir "${l1homotopy_dir};${l1homotopy_dir}/include")
+set(l1homotopy_src_dir "${l1homotopy_dir}/src/")
+set(l1homotopy_lib_dir "${l1homotopy_dir}/lib")
+find_library(l1homotopy_lib NAME l1homotopy_cpp PATHS "${l1homotopy_lib_dir}" NO_DEFAULT_PATH)
 
 # Here we initialize the generated code with en empty template if working dir is clean (first checkout or after make distclean)
 if (NOT EXISTS "${mmv2_gencode_main_src}")
@@ -146,7 +152,7 @@ file(GLOB mmv2_headers "${mmv2_include_dir}/*.h" "${mmv2_include_dir}/*/*.h" "${
 ##        libP2007 buid (MMVII library)
 #######################################################
 add_library(P2007 "${mmv2_libsrcs}" "${mmv2_headers}")
-target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH};${PROJ_INCLUDE_DIRS};${GDAL_INCLUDE_DIRS};${mtkahypar_include_dir};${maxflow_src_dir}")
+target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH};${PROJ_INCLUDE_DIRS};${GDAL_INCLUDE_DIRS};${mtkahypar_include_dir};${maxflow_src_dir};${l1homotopy_include_dir}")
 target_link_libraries(P2007 PRIVATE MMVII_compiler_flags Threads::Threads ${PROJ_LIBRARIES} ${GDAL_LIBRARIES})
 
 # Force parallel compilation with MSVC
@@ -172,7 +178,7 @@ else()
 endif()
 
 target_include_directories(MMVII PRIVATE "${MMVII_SOURCE_DIR}/include" ${maxflow_src_dir} )
-target_link_libraries(MMVII PRIVATE MMVII_compiler_flags Threads::Threads P2007 ${mmv1_libs} ${mmv2_extlibs} ${mtkahypar_lib})
+target_link_libraries(MMVII PRIVATE MMVII_compiler_flags Threads::Threads P2007 ${mmv1_libs} ${mmv2_extlibs} ${mtkahypar_lib} ${l1homotopy_lib})
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION  VERSION_LESS "9.1")
   target_link_libraries(MMVII PRIVATE -lstdc++fs)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION  VERSION_LESS "9.0")

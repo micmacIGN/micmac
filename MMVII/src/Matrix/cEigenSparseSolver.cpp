@@ -87,7 +87,6 @@ template<class Type> cDenseVect<Type> EigenSolveCholeskyarseFromV3
 
    Eigen::SparseMatrix<Type> aSpMat(aN,aN);
    aSpMat.setFromTriplets(aV3.begin(), aV3.end());
-
    // Eigen::SimplicialCholesky< Eigen::SparseMatrix<Type>  > aChol(aSpMat);  // performs a Cholesky factorization of A
    Eigen::SimplicialLDLT< Eigen::SparseMatrix<Type>  > aChol(aSpMat);  // performs a Cholesky factorization of A
 

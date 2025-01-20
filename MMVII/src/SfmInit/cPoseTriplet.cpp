@@ -103,7 +103,7 @@ cView::cView(const tPose aPose,const std::string aName) :
 };
 
 cView::cView() :
-    cView(tPose(),"")
+    cView(tPose::Identity(),"NONE")
 {}
 
 void cView::AddData(const cAuxAr2007 &anAuxInit)
