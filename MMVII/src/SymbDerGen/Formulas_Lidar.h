@@ -101,14 +101,14 @@ class cEqLidarImPonct : public cRadiomLidarIma
                   )  const
             {
                  // read the unknowns
-		 size_t aIndUk = 0;
-		 size_t aIndObs = 0;
+		// size_t aIndUk = 0;
+		// size_t aIndObs = 0;
 
-		 tUk  aRadiomTarget = aVUk.at(aIndUk++);
-		 tUk aRadiom = Radiom_PerpCentrIntrFix(aVUk,aIndUk,aVObs,aIndObs);
+		 //tUk  aRadiomTarget = aVUk.at(aIndUk++);
+		 //tUk aRadiom = Radiom_PerpCentrIntrFix(aVUk,aIndUk,aVObs,aIndObs);
 
 		//  return {NormalisedRatioPos(aRadiom , aRadiomTarget)};
-		 return {aRadiom- aRadiomTarget};
+		 return {aVUk.at(0)} ; // {aRadiom- aRadiomTarget};
              }
 
             std::vector<std::string> VNamesUnknowns()  const {return Append({"TargetRad"},NamesPoseUK());}
@@ -141,7 +141,7 @@ class cEqLidarImCensus : public cRadiomLidarIma
             {
                  // to complete
 
-		 return {};
+		 return {aVUk.at(0)};
             }
 
             std::vector<std::string> VNamesUnknowns()  const {return Append({"TargetRatio"},NamesPoseUK());}
