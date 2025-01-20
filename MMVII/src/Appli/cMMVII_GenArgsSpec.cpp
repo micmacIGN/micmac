@@ -16,18 +16,20 @@ static const std::vector<eTA2007> prjSubDirList =                           // c
     eTA2007::MeshDev,
     eTA2007::Mask,
     eTA2007::MetaData,
-    eTA2007::PointsMeasure,
+    eTA2007::ObjCoordWorld,
+    eTA2007::ObjMesInstr,
     eTA2007::TieP,
     eTA2007::MulTieP,
     eTA2007::RigBlock, // RIGIDBLOC
     eTA2007::SysCo,
     eTA2007::Topo,  // TOPO
     eTA2007::Clino,
+    eTA2007::MeasureClino
 };
 
 static const std::map<eTA2007,std::vector<std::string>> fileList =          // clazy:exclude=non-pod-global-static
 {
-    {eTA2007::FileImage,{".tif",".tiff",".jpg",".jpeg",".png",".cr2",".crw",".nef"}},
+    {eTA2007::FileImage,{".tif",".tiff",".jpg",".jpeg",".png",".jp2",".bmp",".cr2",".crw",".nef"}},
     {eTA2007::FileCloud,{".ply"}},
     {eTA2007::File3DRegion,{""}},
     {eTA2007::XmlOfTopTag,{".xml",".json"}},

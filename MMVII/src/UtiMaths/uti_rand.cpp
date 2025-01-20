@@ -203,6 +203,21 @@ double RandInInterval(double a,double b)
    return b+ (a-b) * RandUnif_0_1() ;
 }
 
+double RandInInterval(const cPt2dr &interval)
+{
+    return RandInInterval(interval.y(), interval.x());
+}
+
+double RandInInterval_C(const cPt2dr &interval)
+{
+    auto a = fabs(interval.x());
+    auto b = fabs(interval.y());
+    if (a<b)
+        std::swap(a,b);
+    double rand_C_1 = (RandUnif_0_1()-0.5) * 2.0;
+    return (b+ (a-b) * fabs(rand_C_1)) * (rand_C_1>0?1.:-1.) ;
+}
+
 
 double RandUnif_C_NotNull(double aEps)
 {
@@ -216,6 +231,11 @@ double RandUnif_NotNull(double aEps) {return std::abs(RandUnif_C_NotNull(aEps));
 double RandUnif_N(int aN)
 {
    return cRandGenerator::TheOne()->Unif_N(aN);
+}
+
+int RandUnif_M_N(int aM,int aN)
+{
+   return RandUnif_N(1+aN-aM) + aM;
 }
 
 bool HeadOrTail()

@@ -88,7 +88,9 @@ void cMMVII_BundleAdj::OneItere_TieP(const cBA_TieP& aBA_TieP)
 
                    std::vector<int> aVIndGlob = {-1,-2,-3};  // index of unknown, begins with temporay
                    for (auto & anObj : aSens->GetAllUK())  // now put sensor unknown
+                   {
                       anObj->PushIndexes(aVIndGlob);
+                   }
 
 	           if (aWeightImage>0)
 	           {

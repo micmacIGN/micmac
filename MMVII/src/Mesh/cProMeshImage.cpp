@@ -286,7 +286,7 @@ void cAppliProMeshImage::MakeRadiomData(cZBuffer &  aZB)
     cImageRadiomData aIRD(mNameSingleIm,mNbCh,mWithPt);
 
 
-    cDataFileIm2D aDFI =  cDataFileIm2D::Create(mNameSingleIm,false);
+    cDataFileIm2D aDFI =  cDataFileIm2D::Create(mNameSingleIm,eForceGray::No);
 
     cTplBoxOfPts<int,2> aBoxPtsIm;
 

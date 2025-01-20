@@ -122,7 +122,7 @@ void  cAppli_CalcDiscIm::LoadOneIm(cACDI_Stat1Im & aStat)
      aStat.mIm.DIm().Resize(mSz);
      CalcBox(aStat);
 
-     cDataFileIm2D aDFI = cDataFileIm2D::Create(mNameFile,true);
+     cDataFileIm2D aDFI = cDataFileIm2D::Create(mNameFile,eForceGray::Yes);
 
      aStat.mIm.Read(aDFI,aStat.mP0);
 

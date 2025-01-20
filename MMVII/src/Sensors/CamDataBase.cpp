@@ -152,7 +152,7 @@ cPerspCamIntrCalib * cPhotogrammetricProject::GetCalibInit
         // if the file exist  read the pixel from image
         if (ExistFile(aNameIm))
         {
-            cDataFileIm2D aDF2 = cDataFileIm2D::Create(aNameIm,false);
+            cDataFileIm2D aDF2 = cDataFileIm2D::Create(aNameIm,eForceGray::No);
             aNbPix =  aDF2.Sz();
         }
         else

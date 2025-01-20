@@ -5,6 +5,8 @@
 #include "CodedTarget.h"
 #include "MMVII_Stringifier.h"
 #include "MMVII_MeasuresIm.h"
+#include "MMVII_Sensor.h"
+
 
 namespace MMVII
 {
@@ -215,6 +217,8 @@ class cAppliGenerateEncoding : public cMMVII_Appli
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
 	cPrioCC * GetBest();
+        cPhotogrammetricProject     mPhProj;
+
 
 	// tREAL8  ScoreOfCodeAndDist(,int aHamingDist);
 
@@ -241,6 +245,7 @@ cAppliGenerateEncoding::cAppliGenerateEncoding
     const cSpecMMVII_Appli & aSpec
 ) :
    cMMVII_Appli   (aVArgs,aSpec),
+   mPhProj        (*this),
    mMiror         (false),
    mCEC           (nullptr)
 {
@@ -270,6 +275,8 @@ cCollecSpecArg2007 & cAppliGenerateEncoding::ArgOpt(cCollecSpecArg2007 & anArgOp
                << AOpt2007(mSpec.mUseHammingCode,"UHC","Use Hamming code")
                << AOpt2007(mSpec.mPrefix,"Prefix","Prefix for output files")
                << AOpt2007(mMiror,"Mir","Unify mirro codes")
+               << AOpt2007(mNameOut,"Out","Name for output file")
+              <<   mPhProj.DPGndPt3D().ArgDirInOpt("GCPNames","Dir GCP for code selection on names")
           ;
 }
 
@@ -319,6 +326,7 @@ void MakeFile3DCern3DTargt(size_t aNBB,size_t aNbD)
 
 int  cAppliGenerateEncoding::Exe()
 {
+   mPhProj.FinishInit();
    int Num000 = 0;
    //  [0]  ========  Finish initialization and checking ==================
    
@@ -326,6 +334,7 @@ int  cAppliGenerateEncoding::Exe()
    if (mSpec.mFreqCircEq==0) 
       mSpec.mFreqCircEq  = mSpec.mNbBits;
 
+   bool  mCompactNum = true;
 
    // make all default init that are type-dependant
    if (mSpec.mType==eTyCodeTarget::eIGNIndoor)
@@ -348,6 +357,7 @@ int  cAppliGenerateEncoding::Exe()
    else if (mSpec.mType==eTyCodeTarget::eCERN)
    {
         mUseAiconCode = true;
+        mCompactNum   = false;
         SetIfNotInit(mSpec.mParity,size_t(2));
 	Num000 = 1;
    }
@@ -381,7 +391,8 @@ int  cAppliGenerateEncoding::Exe()
                        + "_Hamm" + ToStr(mSpec.mMinHammingD)
                        + "_Run" + ToStr(mSpec.mMaxRunL.x()) + "_" + ToStr(mSpec.mMaxRunL.y());
    }
-   mNameOut  =   mSpec.mPrefix + "_SpecEncoding." + TaggedNameDefSerial();
+   if (! IsInit(&mNameOut))
+      mNameOut  =   mSpec.mPrefix + "_SpecEncoding." + TaggedNameDefSerial();
 
    // calls method in cMMVII_Appli, to show current value of params, as many transformation have been made
    ShowAllParams();
@@ -425,13 +436,35 @@ int  cAppliGenerateEncoding::Exe()
 
           for (size_t aK=0 ; aK<aVCode.size(); aK++)
 	  {
-		 const cCelCC * aCel = mCEC->CellOfCode(aVCode[aK].y());
+		 cCelCC * aCel = mCEC->CellOfCode(aVCode[aK].y());
+                 aCel->mNum = aVCode[aK].x();
                  MMVII_INTERNAL_ASSERT_bench(aCel!=0,"CellOfCode in3D AICON");
                  MMVII_INTERNAL_ASSERT_bench(aVCode[aK].y()==(int)aCel->mLowCode,"CellOfCode in3D AICON");
 	  }
 
 
        }
+   }
+
+   if (mPhProj.DPGndPt3D().DirInIsInit())
+   {
+      cSetMesGnd3D aSetGCP =  mPhProj.LoadGCP3D();
+      std::set<int>   aLInt;
+      for (const auto & aGCP : aSetGCP.Measures())
+          aLInt.insert(cStrIO<int>::FromStr(aGCP.mNamePt));
+      //  StdOut() << "VOOOCSIZE= " << mVOC.size()  << " "  << aSetGCP.Measures().size() << "\n";
+      erase_if
+      (
+             mVOC,
+             [aLInt] (const auto & aPtr) {return  ! MapBoolFind(aLInt,aPtr->mNum);}
+      );
+      //  StdOut() << "VOOOCSIZE= " << mVOC.size()  << " "  << aSetGCP.Measures().size() << "\n";
+      //  getchar();
+      // std::vector<cCelCC*>  mVOC;
+
+      //  StdOut() << "VOOOCSIZE= " << mVOC.size()  << "\n";
+      //  StdOut() <<  "  * N0=" <<  mVOC.at(0)->mNum << "\n";
+      //  StdOut() <<  "  * N1=" <<  mVOC.at(1)->mNum << "\n";
    }
   
    // [3.0]  if we use hamming code, not all numbers are possible
@@ -537,6 +570,14 @@ int  cAppliGenerateEncoding::Exe()
        for (size_t aK1=0 ; aK1<mVOC.size(); aK1++)  
        {
            size_t aNum = aK1 + Num000;
+// StdOut() << "NNNNNnnN= " << aNum  << " " << mVOC[aK1]->mNum << "\n";
+           MMVII_INTERNAL_ASSERT_strong(mVOC[aK1]->mNum>=0,"Num was not correctly set in cCelCC");
+           // For AICON-like, with external spec, with maintain the numerotation, for internal MMVII system, we
+           // prefer to "compactify" the numbering
+           if (! mCompactNum)
+           {
+              aNum = mVOC[aK1]->mNum;
+           }
 	   size_t aCode = mVOC[aK1]->mLowCode;
            aBE.AddOneEncoding(aNum,aCode);  // add a new encoding
 

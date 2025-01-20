@@ -102,10 +102,10 @@ public:
     void FromFile(const std::string & aFileName);
     bool InsertCompObsFile(const std::string & aFileName);
     void clear();
-    static std::pair<cTopoData, cSetMesGCP>  createEx1();
+    static std::pair<cTopoData, cSetMesGnd3D>  createEx1();
     //static std::pair<cTopoData, cSetMesGCP>  createEx2();
-    static std::pair<cTopoData, cSetMesGCP>  createEx3();
-    static std::pair<cTopoData, cSetMesGCP>  createEx4();
+    static std::pair<cTopoData, cSetMesGnd3D>  createEx3();
+    static std::pair<cTopoData, cSetMesGnd3D>  createEx4();
 
     bool addObs(std::vector<cTopoObsSetStationData> & aCurrentVectObsSetStations, MMVII::eCompObsType code,
                        const std::string & nameFrom, const std::string & nameTo, double val, double sigma, eTopoStOriStat aStationStatus);

@@ -309,7 +309,7 @@ void OneBenchSpatialIndex()
                  aVerif2.Add(aPt->GetPrimGeom(),aDistSegPt);
 	    }
 
-	    int aNbIn=0;
+        [[maybe_unused]] int aNbIn=0;
 	    for (const auto & aPt : aLPt)
 	    {
                 tREAL8 aDistSegPt = aSeg.Seg().DistClosedSeg(aPt) ;

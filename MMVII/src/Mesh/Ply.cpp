@@ -2,6 +2,8 @@
 #include "MMVII_Geom3D.h"
 #include "MMVII_Mappings.h"
 
+#define WITH_MMV1_FUNCTION  false
+
 namespace MMVII
 {
 
@@ -2114,12 +2116,14 @@ template <class Type> void cTriangulation3D<Type>::Bench()
     MMVII_INTERNAL_ASSERT_bench(aTriBin3D.HeuristikAlmostEqual(aNewTriBin3D,1e-5,1e-5),"cTriangulation3D::Bench");
     MMVII_INTERNAL_ASSERT_bench(aTriTxt3D.HeuristikAlmostEqual(aNewTriTxt3D,1e-5,1e-5),"cTriangulation3D::Bench");
 
+#if (WITH_MMV1_FUNCTION)
     cDataBoundedSet<tREAL8,3> * aMasq=  MMV1_Masq(aNewTriBin3D.BoxEngl().ToR(),aDirI+"AperiCloud_Basc_selectionInfo.xml");
     aNewTriBin3D.Filter(*aMasq);
     aNewTriBin3D.WriteFile(aDirTmp+"MeshFilteredBin.ply",true);
 
     //  BREAK_POINT("BENCHTRI");
     delete aMasq;
+#endif
 }
 
 void BenchPly(cParamExeBench & aParam)

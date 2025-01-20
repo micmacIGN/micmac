@@ -1,9 +1,15 @@
 #include "TestDer_cFitCube.h"
 
+
+
 namespace NS_SymbolicDerivative {
 
 void cFitCube::DoEval()
 {
+
+
+
+
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif

@@ -83,8 +83,8 @@ class cAppliFillCubeCost : public cAppliLearningMatch
         const std::string   & NameI1() const {return mNameI1;}  ///< Accessor
         const std::string   & NameI2() const {return mNameI2;}  ///< Accessor
 
-	cBox2di BoxFile1() const {return cDataFileIm2D::Create(mNameI1,false);}
-	cBox2di BoxFile2() const {return cDataFileIm2D::Create(mNameI2,false);}
+	cBox2di BoxFile1() const {return cDataFileIm2D::Create(mNameI1,eForceGray::No);}
+	cBox2di BoxFile2() const {return cDataFileIm2D::Create(mNameI2,eForceGray::No);}
 
 	int  SzW() const {return mSzW;}
 	bool InterpolLearn() const {return mInterpolLearn;}
@@ -478,8 +478,6 @@ int  cAppliFillCubeCost::Exe()
    cPt2di aSz = aDZMin.Sz();
    cPt2di aPix;
 
-   int aCpt=0;
-
    for (aPix.y()=0 ; aPix.y()<aSz.y() ; aPix.y()++)
    {
        StdOut() << "Line " << aPix.y() << " on " << aSz.y()  << std::endl;
@@ -496,7 +494,6 @@ int  cAppliFillCubeCost::Exe()
                bool   aTabOk[2];
 	       for (int aK=0 ; aK<int(aVMods.size()) ; aK++)
                     aTabCost[aK] = aVMods[aK]->ComputeCost(aTabOk[aK],aPC1,aPC20,aDz);
-               aCpt++;
                PushCost(aTabCost[0]);
 
 	       if (mCmpCorLearn && aTabOk[0] && aTabOk[1])

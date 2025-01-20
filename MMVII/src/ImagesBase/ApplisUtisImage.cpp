@@ -76,7 +76,7 @@ int cAppli_ScaleImage::Exe()
 
    if (!IsInit(&mNameOut))
      mNameOut = mPrefOut + Prefix(FileOfPath(mNameIn)) + ".tif";
-   cDataFileIm2D aFileIn= cDataFileIm2D::Create(mNameIn,false);
+   cDataFileIm2D aFileIn= cDataFileIm2D::Create(mNameIn,eForceGray::No);
 
    cIm2D<tREAL4> aImIn(aFileIn.Sz());
    aImIn.Read(aFileIn,cPt2di(0,0));

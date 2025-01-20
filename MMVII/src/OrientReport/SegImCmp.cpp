@@ -31,7 +31,6 @@ class cAppli_SegImReport : public cMMVII_Appli
 	     std::string               mFolder2;
 
              std::string              mPrefixCSV;
-             std::string              mPrefixCSVIma;
 
 	     void AddOneImage(const std::string & aNameIma);
 };
@@ -51,8 +50,8 @@ cCollecSpecArg2007 & cAppli_SegImReport::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
       return     anArgObl
               << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
-              << mPhProj.DPPointsMeasures().ArgDirInMand()
-	      << mPhProj.DPPointsMeasures().ArgDirInMand("Folder for refernce data",&mFolder2)
+              << mPhProj.DPGndPt2D().ArgDirInMand()
+              << mPhProj.DPGndPt2D().ArgDirInMand("Folder for refernce data",&mFolder2)
               << mPhProj.DPOrient().ArgDirInMand()
       ;
 }
@@ -76,84 +75,41 @@ void cAppli_SegImReport::AddOneImage(const std::string & aNameIma)
      bool hasL1 = mPhProj.HasFileLines(aNameIma);
      bool hasL2 = mPhProj.HasFileLinesFolder(mFolder2,aNameIma);
 
-     if (hasL1 && hasL2)
+     std::string aStrDist = "XXXXXXX";
+     int aNb1 = 0;
+     int aNb2 = 0;
+     cLinesAntiParal1Im  aVL1 ;
+     cLinesAntiParal1Im  aVL2 ;
+     if (hasL1)
      {
-        cLinesAntiParal1Im  aVL1 = mPhProj.ReadLines(aNameIma);
-        cLinesAntiParal1Im  aVL2 = mPhProj.ReadLinesFolder(mFolder2,aNameIma);
-
-
-	if ((aVL1.mLines.size()==1) && (aVL2.mLines.size()==1))
-	{
-            cOneLineAntiParal aL1 = aVL1.mLines.at(0);
-	    tSegComp2dr aSeg1 (aL1.mSeg.P1(),aL1.mSeg.P2());
-
-            cOneLineAntiParal aL2 = aVL2.mLines.at(0);
-	    tSegComp2dr aSeg2 (aL2.mSeg.P1(),aL2.mSeg.P2());
-
-	    if (1)
-               aSeg1 = tSegComp2dr(aCal->Undist(aSeg1.P1()), aCal->Undist(aSeg1.P2()));
-	    if (1)
-               aSeg2 = tSegComp2dr(aCal->Undist(aSeg2.P1()), aCal->Undist(aSeg2.P2()));
-
-
-	    StdOut()  << " DDDD=" << aNameIma << " " << aSeg1.Dist(aSeg2.P1())  << " " << aSeg1.Dist(aSeg2.P2()) << "\n";
-
-	}
+        aVL1 = mPhProj.ReadLines(aNameIma);
+        aNb1 = aVL1.mLines.size();
      }
-     else
+     if (hasL2)
      {
-	     StdOut() << "MISSING " << aNameIma  << " Im1=" << hasL1 << " Im2=" << hasL2 << " F=" << aCal->F()  << "\n";
+        aVL2 = mPhProj.ReadLinesFolder(mFolder2,aNameIma);
+        aNb2 = aVL2.mLines.size();
      }
 
-//	          cLinesAntiParal1Im  ReadLines(const std::string & aNameIm) const;
 
-	/*
-   InitReport(mPrefixCSVIma,"csv",false);
-   AddStdHeaderStatCSV(mPrefixCSVIma,"Image",mPropStat,{"AvgX","AvgY"});
+     if ((aNb1==1) && (aNb2==1))
+     {
+        cOneLineAntiParal aL1 = aVL1.mLines.at(0);
+	cSegment2DCompiled<tREAL8> aSeg1 (aL1.mSeg.P1(),aL1.mSeg.P2());
 
-   for (size_t aKImGlob = 0 ; aKImGlob<mSetNames.size() ; aKImGlob++)
-   {
-       const auto & aLInd = aVII.at(aKImGlob);
-       cSensorImage * aSensI = mCMTP->VSensors().at(aKImGlob);
-       // a litle check on indexe for these complexe structures
-       MMVII_INTERNAL_ASSERT_tiny(mSetNames[aKImGlob]==aSensI->NameImage(),"Chek names in Appli_TiePReport::MakeStatByImage");
+        cOneLineAntiParal aL2 = aVL2.mLines.at(0);
+	cSegment2DCompiled<tREAL8> aSeg2 (aL2.mSeg.P1(),aL2.mSeg.P2());
 
-       cWeightAv<tREAL8,cPt2dr>  aAvg2d;
-       cStdStatRes               aStat;
+	if (1)
+           aSeg1 = tSegComp2dr(aCal->Undist(aSeg1.P1()), aCal->Undist(aSeg1.P2()));
+	if (1)
+           aSeg2 = tSegComp2dr(aCal->Undist(aSeg2.P1()), aCal->Undist(aSeg2.P2()));
 
-       for (const auto& aPairKC : aLInd)
-       {
-           size_t aKImLoc =  aPairKC.first;
-           // Unused in mode release
-           [[maybe_unused]] const auto & aConfig = aPairKC.second->first;
-	   // a litle check on indexe for these complexe structures
-           MMVII_INTERNAL_ASSERT_tiny(aKImGlob==(size_t)aConfig.at(aKImLoc),"Check nums in cAppli_SegImReport::MakeStatByImage");
+        tREAL8 aDist = (aSeg1.Dist(aSeg2.P1()) +  aSeg1.Dist(aSeg2.P2())) / 2.0;
+        aStrDist = ToStr(aDist);
+     }
 
-           const auto & aVal = aPairKC.second->second;
-	   size_t aNbP = NbPtsMul(*aPairKC.second);
-           // size_t aMult = Multiplicity(*aPairKC.second);
-
-	   for (size_t aKp=0 ; aKp<aNbP ; aKp++)
-	   {
-               // cPt2dr aPt  = aVal.mVPIm.at(aKImLoc + aMult*aKp);
-               cPt2dr aPt =  KthPt(*aPairKC.second,aKImLoc,aKp);
-               cPt3dr aPGr = aVal.mVPGround.at(aKp);
-               cPt2dr aResidu = aSensI->Ground2Image(aPGr) - aPt;
-
-               aStat.Add(Norm2(aResidu));
-	       aAvg2d.Add(1.0,aResidu);
-	   }
-
-       }
-
-       AddStdStatCSV
-       (
-          mPrefixCSVIma,mSetNames[aKImGlob],aStat,mPropStat,
-          {ToStr(aAvg2d.Average().x()),ToStr(aAvg2d.Average().y())}
-       );
-       StdOut() << mSetNames[aKImGlob]  << " Avg=" << aStat.Avg() << std::endl;
-   }
-   */
+     AddOneReportCSV(mPrefixCSV,{aNameIma,ToStr(aNb1),ToStr(aNb2),aStrDist});
 }
 
 
@@ -162,11 +118,13 @@ int cAppli_SegImReport::Exe()
    mPhProj.FinishInit();
    mSetNames = VectMainSet(0);
 
-   /*
+   std::string aN1 =  mPhProj.DPGndPt2D().DirIn() ;
+   std::string aN2 =  mFolder2;
 
-   mPrefixCSV =  "_Ori-"+  mPhProj.DPOrient().DirIn() +  "_Mes-"+  mPhProj.DPMulTieP().DirIn() ;
-   mPrefixCSVIma =  "ByImages" + mPrefixCSV;
-   */
+   mPrefixCSV = "CmpLines_"+  aN1  + "_" + aN2 ;
+   InitReportCSV(mPrefixCSV,"csv",false);
+   AddHeaderReportCSV(mPrefixCSV,{"Image","Nb " + aN1 ,"Nb " + aN2,"Dist"});
+
 
    for (const auto & aNameIma : mSetNames)
        AddOneImage(aNameIma);

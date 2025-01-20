@@ -33,8 +33,8 @@ namespace MMVII
 
 // extern int  The_MMVII_DebugLevel = The_MMVII_DebugLevel_InternalError_medium;
 //#define The_MMVII_DebugLevel The_MMVII_DebugLevel_BenchError
+// #define The_MMVII_DebugLevel The_MMVII_DebugLevel_InternalError_tiny
 #define The_MMVII_DebugLevel The_MMVII_DebugLevel_InternalError_tiny
-// #define The_MMVII_DebugLevel The_MMVII_DebugLevel_BenchError
 // #define The_MMVII_DebugLevel The_MMVII_DebugLevel_UserError
 
 /**  The error handler can be change , so its a function Ptr of type PtrMMVII_Error_Handler,
@@ -95,6 +95,8 @@ void MMVII_UserError(const eTyUEr &,const std::string & aMes);
 {  MMVII_UserError(aRef,aMes);}
 void MMVII_UnclasseUsEr(const std::string & aMes);
 
+#define MMVII_INTERNAL_ASSERT_User_UndefE(aTest,aMes)\
+{MMVII_INTERNAL_ASSERT_User(aTest,eTyUEr::eUnClassedError,aMes);}
 
 #define MMVII_INTERNAL_ASSERT_always(aTest,aMes)\
  if  (!(aTest))\

@@ -75,8 +75,8 @@ void SparseLUImpl<Scalar,StorageIndex>::heap_relax_snode (const Index n, IndexVe
   // Identify the relaxed supernodes by postorder traversal of the etree
   Index snode_start; // beginning of a snode 
   StorageIndex k;
-  Index nsuper_et_post = 0; // Number of relaxed snodes in postordered etree 
-  Index nsuper_et = 0; // Number of relaxed snodes in the original etree 
+  [[maybe_unused]] Index nsuper_et_post = 0; // Number of relaxed snodes in postordered etree
+  [[maybe_unused]] Index nsuper_et = 0; // Number of relaxed snodes in the original etree
   StorageIndex l; 
   for (j = 0; j < n; )
   {

@@ -228,11 +228,13 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::MeshDev,"MeshDev"},
                 {eTA2007::Mask,"Mask"},
                 {eTA2007::MetaData,"MetaData"},
-                {eTA2007::PointsMeasure,"PointsMeasure"},
+                {eTA2007::ObjMesInstr,"ObjMesInstr"},
+                {eTA2007::ObjCoordWorld,"ObjCoordWorld"},
                 {eTA2007::TieP,"TieP"},
                 {eTA2007::MulTieP,"MulTieP"},
                 {eTA2007::RigBlock,"RigBlock"},
                 {eTA2007::Clino,"Clino"},
+                {eTA2007::MeasureClino,"MeasureClino"},
                 {eTA2007::Topo,"Topo"},
                 {eTA2007::SysCo,"SysCo"},
                 {eTA2007::Input,"In"},
@@ -269,6 +271,7 @@ template<> cE2Str<eApF>::tMapE2Str cE2Str<eApF>::mE2S
                 {eApF::Cloud,"Cloud"},
                 {eApF::CodedTarget,"CodedTarget"},
                 {eApF::Topo,"Topo"},
+                {eApF::Simul,"Simul"},
                 {eApF::NoGui,"NoGui"},
                 {eApF::Perso,"Perso"}
            };
@@ -279,7 +282,8 @@ template<> cE2Str<eApDT>::tMapE2Str cE2Str<eApDT>::mE2S
                 {eApDT::Ori,"Ori"},
                 {eApDT::PCar,"PCar"},
                 {eApDT::TieP,"TieP"},
-                {eApDT::GCP,"GCP"},
+                {eApDT::ObjMesInstr,"ObjMesInstr"},
+                {eApDT::ObjCoordWorld,"ObjCoordWorld"},
                 {eApDT::Lines,"Lines"},
                 {eApDT::Image,"Image"},
                 {eApDT::Orient,"Orient"},
@@ -919,6 +923,7 @@ MACRO_INSTANTIATE_ARG2007(std::vector<std::string>)
 MACRO_INSTANTIATE_ARG2007(std::vector<std::vector<std::string>>)
 MACRO_INSTANTIATE_ARG2007(std::vector<int>)
 MACRO_INSTANTIATE_ARG2007(std::vector<double>)
+MACRO_INSTANTIATE_ARG2007(std::vector<cPt2di>)
 MACRO_INSTANTIATE_ARG2007(cPt2di)
 MACRO_INSTANTIATE_ARG2007(cPt2dr)
 MACRO_INSTANTIATE_ARG2007(cPt3di)
@@ -963,6 +968,7 @@ template <class Type>  std::string Vect2Str(const std::vector<Type>  & aV)
 
 template <class Type>  std::vector<Type> Str2Vec(const std::string & aStrGlob)
 {
+// StdOut() <<  "aStrGlobaStrGlobaStrGlob =" << aStrGlob << "\n";
    std::vector<Type> aRes;
    const char * aC=aStrGlob.c_str();
    if (*aC!='[')
@@ -1068,6 +1074,13 @@ MACRO_INSTANTITATE_STRIO_VECT_TYPE(std::vector<std::string>)
 MACRO_INSTANTITATE_STRIO_VECT_TYPE(std::string)
 MACRO_INSTANTITATE_STRIO_VECT_TYPE(int)
 MACRO_INSTANTITATE_STRIO_VECT_TYPE(double)
+MACRO_INSTANTITATE_STRIO_VECT_TYPE(cPt2di)
+
+
+std::vector<std::string> Str2VStr(const std::string & aS)
+{
+   return cStrIO<std::vector<std::string>>::FromStr(aS);
+}
 
 /* ==================================== */
 /*                                      */
@@ -1391,6 +1404,17 @@ std::string FixDigToStr(double aSignedVal,int aNbBef,int aNbAfter)
    return aBuf;
 }
 
+   // ================  double ==============================================
+
+template <>  std::string cStrIO<tREAL16>::ToStr(const tREAL16 & aD)
+{
+    return cStrIO<tREAL8>::ToStr((tREAL8) (aD));
+}
+
+template <>  std::string cStrIO<tREAL4>::ToStr(const tREAL4 & aD)
+{
+    return cStrIO<tREAL8>::ToStr((tREAL8) (aD));
+}
 
 
    // ================  std::string ==============================================

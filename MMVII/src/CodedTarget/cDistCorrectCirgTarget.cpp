@@ -45,7 +45,7 @@ class cAppliCorrecDistCircTarget : public cMMVII_Appli
 	void EstimateRay();
 	tREAL8  EstimateOneRay(const cSaveExtrEllipe &);
 
-	cSimulProjEllispe  EstimateRealCenter(const cMes1GCP &);
+	cSimulProjEllispe  EstimateRealCenter(const cMes1Gnd3D &);
 	void               EstimateRealCenter();
 
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
@@ -59,7 +59,7 @@ class cAppliCorrecDistCircTarget : public cMMVII_Appli
         std::string                 mNameIm;
         cSensorImage *              mSensor;
         cSensorCamPC *              mCamPC;
-        cSetMesImGCP                mMesImGCP;
+        cSetMesGndPt                mMesImGCP;
 	bool                        mSaveMeasure;
 
 	std::string                 mPostfixReport;
@@ -86,7 +86,7 @@ cCollecSpecArg2007 & cAppliCorrecDistCircTarget::ArgObl(cCollecSpecArg2007 & anA
    return
             anArgObl
          << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
-         << mPhProj.DPPointsMeasures().ArgDirInMand()
+         << mPhProj.DPGndPt2D().ArgDirInMand()
 	 << mPhProj.DPOrient().ArgDirInMand()
 
    ;
@@ -97,7 +97,7 @@ cCollecSpecArg2007 & cAppliCorrecDistCircTarget::ArgOpt(cCollecSpecArg2007 & anA
    return 
                   anArgOpt
              << AOpt2007(mRayTarget,"RayTarget","Ray for target (else estimate automatically)")
-             << mPhProj.DPPointsMeasures().ArgDirOutOpt()
+             << mPhProj.DPGndPt2D().ArgDirOutOpt()
 		/*
              << AOpt2007(mB,"VisuEllipse","Make a visualisation extracted ellispe & target",{eTA2007::HDV})
              << mPhProj.DPMask().ArgDirInOpt("TestMask","Mask for selecting point used in detailed mesg/output")
@@ -114,7 +114,7 @@ cCollecSpecArg2007 & cAppliCorrecDistCircTarget::ArgOpt(cCollecSpecArg2007 & anA
 
 tREAL8  cAppliCorrecDistCircTarget::EstimateOneRay(const cSaveExtrEllipe & aSEE)
 {
-     const cMes1GCP &  aGCP =   mMesImGCP.MesGCPOfName(aSEE.mNameCode);
+     const cMes1Gnd3D &  aGCP =   mMesImGCP.MesGCPOfName(aSEE.mNameCode);
      cPlane3D aPlaneT  = cPlane3D::FromPtAndNormal(aGCP.mPt,mNormal);  // plane of the 3D ground target
 
      cEllipse aEl = mSensor->EllipseIm2Plane(aPlaneT,aSEE.mEllipse,50);
@@ -141,7 +141,7 @@ void cAppliCorrecDistCircTarget::EstimateRay()
 }
 
 
-cSimulProjEllispe cAppliCorrecDistCircTarget::EstimateRealCenter(const cMes1GCP & aGCP)
+cSimulProjEllispe cAppliCorrecDistCircTarget::EstimateRealCenter(const cMes1Gnd3D & aGCP)
 {
     cSimulProjEllispe aRes;
     const cPt3dr & aCenterTarget =  aGCP.mPt;
@@ -182,7 +182,7 @@ void cAppliCorrecDistCircTarget::EstimateRealCenter()
    cStdStatRes aStat;
    for (auto & aMesIm : aSetMesIm.Measures())
    {
-        const cMes1GCP &  aGCP = mMesImGCP.MesGCPOfName(aMesIm.mNamePt);
+        const cMes1Gnd3D &  aGCP = mMesImGCP.MesGCPOfName(aMesIm.mNamePt);
 
         cSimulProjEllispe aSPE = EstimateRealCenter(aGCP);
 
@@ -203,14 +203,14 @@ int  cAppliCorrecDistCircTarget::Exe()
 {
    mPhProj.FinishInit();
 
-   mPostfixReport  = "_Ori-"+  mPhProj.DPOrient().DirIn() +  "_Mes-"+  mPhProj.DPPointsMeasures().DirIn() ;
+   mPostfixReport  = "_Ori-"+  mPhProj.DPOrient().DirIn() +  "_Mes-"+  mPhProj.DPGndPt2D().DirIn() ;
    mReportDetail   = "Detail-" +mPostfixReport;
    mReportIm       = "ByImage-" +mPostfixReport;
-   InitReport(mReportDetail,"csv",true);
-   InitReport(mReportIm,"csv",true);
+   InitReportCSV(mReportDetail,"csv",true);
+   InitReportCSV(mReportIm,"csv",true);
 
 
-   mSaveMeasure = mPhProj.DPPointsMeasures().DirOutIsInit();
+   mSaveMeasure = mPhProj.DPGndPt2D().DirOutIsInit();
 
    if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
    {
@@ -223,8 +223,8 @@ int  cAppliCorrecDistCircTarget::Exe()
    mNameIm = FileOfPath(mSpecImIn);
    mPhProj.ReadSensor(mNameIm,mSensor,mCamPC,true,false);
 
-   mPhProj.LoadGCP(mMesImGCP);
-   mPhProj.LoadIm(mMesImGCP,*mSensor);
+   mPhProj.LoadGCP3D(mMesImGCP);
+   mPhProj.LoadIm(mMesImGCP,nullptr,*mSensor);
 
    // mCamPC = mPhProj.AllocCamPC(FileOfPath(mSpecImIn),true);
 

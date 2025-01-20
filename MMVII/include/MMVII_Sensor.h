@@ -243,7 +243,16 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	 void TransferateCoordSys(const cSensorImage & aSI); ///< Transferat coordinate sys  aSI if it has any
          static const std::string TagCoordSys;
 	 						   
+         //  Cast to possible heriting class
+         virtual bool  IsSensorCamPC() const  ;
+         virtual const cSensorCamPC * GetSensorCamPC() const;
+         virtual cSensorCamPC * GetSensorCamPC() ;
+         /// generete a user error 
+         const cSensorCamPC * UserGetSensorCamPC() const;
+         cSensorCamPC * UserGetSensorCamPC() ;
+
      private :
+          cSensorImage(const cSensorImage &) = delete;
 
 	 std::string                                   mNameImage;
          cCalculator<double> *                         mEqColinearity;  // memo equation, can be nullptr (for pure pose)
@@ -378,6 +387,7 @@ class cDirsPhProj : public cMemCheck
 	  bool  DirOutIsInit() const;
           void  AssertDirInIsInit() const;
           void  AssertDirOutIsInit() const;
+          bool CheckDirExists(bool In, bool DoError=false) const;
 
 	  void SetDirOutInIfNotInit(); ///< If Dir Out is not init, set it to same value than In
      private :
@@ -433,26 +443,30 @@ class cPhotogrammetricProject
 	  cDirsPhProj &   DPRadiomModel(); ///< Accessor
 	  cDirsPhProj &   DPMeshDev(); ///< Accessor
 	  cDirsPhProj &   DPMask(); ///< Accessor
-	  cDirsPhProj &   DPPointsMeasures(); ///< Accessor
+	  cDirsPhProj &   DPGndPt3D(); ///< Accessor
+	  cDirsPhProj &   DPGndPt2D(); ///< Accessor
 	  cDirsPhProj &   DPMetaData();    ///<  Accessor
 	  cDirsPhProj &   DPTieP();    ///<  Accessor
 	  cDirsPhProj &   DPMulTieP();    ///<  Accessor
 	  cDirsPhProj &   DPRigBloc();    ///<  Accessor  // RIGIDBLOC
 	  cDirsPhProj &   DPClinoMeters();    ///<  Accessor  // RIGIDBLOC
 	  cDirsPhProj &   DPTopoMes();    ///<  Accessor  // TOPO
+	  cDirsPhProj &   DPMeasuresClino();    ///<  Accessor  // RIGIDBLOC
 				    
 	  const cDirsPhProj &   DPOrient() const; ///< Accessor
 	  const cDirsPhProj &   DPRadiomData() const; ///< Accessor
 	  const cDirsPhProj &   DPRadiomModel() const; ///< Accessor
 	  const cDirsPhProj &   DPMeshDev() const; ///< Accessor
 	  const cDirsPhProj &   DPMask() const; ///< Accessor
-	  const cDirsPhProj &   DPPointsMeasures() const; ///< Accessor
+	  const cDirsPhProj &   DPGndPt3D() const; ///< Accessor
+	  const cDirsPhProj &   DPGndPt2D() const; ///< Accessor
 	  const cDirsPhProj &   DPMetaData() const;    ///<  Accessor
 	  const cDirsPhProj &   DPTieP() const;    ///<  Accessor
 	  const cDirsPhProj &   DPMulTieP() const;    ///<  Accessor
 	  const cDirsPhProj &   DPRigBloc() const;    ///<  Accessor  // RIGIDBLOC
 	  const cDirsPhProj &   DPClinoMeters() const;    ///<  Accessor  // RIGIDBLOC
 	  const cDirsPhProj &   DPTopoMes() const;    ///<  Accessor  // TOPO
+	  const cDirsPhProj &   DPMeasuresClino() const;    ///<  Accessor  // RIGIDBLOC
 
 
 	  // Sometime we need several dir of the same type, like "ReportPoseCmp", or RefPose in bundle
@@ -547,27 +561,32 @@ class cPhotogrammetricProject
 	  void SaveMeasureIm(const cSetMesPtOf1Im & aSetM) const;
 	  ///  Does the measure exist
 	  bool HasMeasureIm(const std::string & aNameIm,bool InDir=true) const;
+          /// Does it exist for a specific folder
+          bool HasMeasureImFolder(const std::string & aFolder,const std::string & aNameIma) const;
+
           /// return from Std Dir, can be out in case of reload
 	  cSetMesPtOf1Im LoadMeasureIm(const std::string &,bool InDir=true) const;
 
 	  /// Load the measure image from a specified folder, usefull when multiple folder
 	  cSetMesPtOf1Im LoadMeasureImFromFolder(const std::string & aFolder,const std::string &) const;
 
-         void LoadGCP(cSetMesImGCP&,const std::string & aPatFiltrFile="",const std::string & aFiltrNameGCP="",
+         void LoadGCP3D(cSetMesGndPt&, cMes3DDirInfo *aMesDirInfo=nullptr, const std::string & aPatFiltrFile="", const std::string & aFiltrNameGCP="",
                       const std::string & aFiltrAdditionalInfoGCP="") const;
 	 ///  For reading GCP from folder potentially != of standard input measures, can add missing points from topo obs
-         void LoadGCPFromFolder(const std::string & aFolder,cSetMesImGCP&,
-                                std::pair<cBA_Topo *, std::vector<cBA_GCP*>*> aTopoAddPointsInfo,
+         void LoadGCP3DFromFolder(const std::string & aFolder, cSetMesGndPt&,
+                                  cMes3DDirInfo * aMesDirInfo,
                                 const std::string & aPatFiltrFile="", const std::string & aFiltrNameGCP="",
                                 const std::string & aFiltrAdditionalInfoGCP="" ) const;
           // if SVP && file doesnt exist, do nothing
-	  void LoadIm(cSetMesImGCP&,const std::string & aNameIm,cSensorImage * =nullptr,bool SVP=false) const;
+	  void LoadIm(cSetMesGndPt&,const std::string & aNameIm,cMes2DDirInfo * aMesDirInfo=nullptr, cSensorImage * =nullptr,bool SVP=false) const;
           ///  When dont read from the standard input 
-	  void LoadImFromFolder(const std::string & aFolder,cSetMesImGCP&,const std::string & aNameIm,
-                                cSensorImage * =nullptr,bool SVP=false) const;
-	  void LoadIm(cSetMesImGCP&,cSensorImage & ) const;
+	  void LoadImFromFolder(const std::string & aFolder, cSetMesGndPt&, cMes2DDirInfo *aMesDirInfo, const std::string & aNameIm,
+                                cSensorImage * =nullptr, bool SVP=false) const;
+	  void LoadIm(cSetMesGndPt&, cMes2DDirInfo *aMesDirInfo, cSensorImage & ) const;
 
-	  void SaveGCP(const cSetMesGCP&) const;
+	  void SaveGCP3D(const cSetMesGnd3D&aMGCP3D, const std::string &aDefaultOutName="", bool aDoAddCurSysCo=false) const; // default out name for measures without cMes3DDirInfo
+	  cSetMesGnd3D LoadGCP3DFromFolder(const std::string &) const;
+	  cSetMesGnd3D LoadGCP3D() const;
 
 	  /// Name of the file, usefull if we need to test existence before doing anything
 	  std::string NameMeasureGCPIm(const std::string & aNameIm,bool isIn) const;
@@ -667,14 +686,14 @@ class cPhotogrammetricProject
 
                   //  ======== [1]  Sysco saved in "MMVII-PhgrProj/Ori/"  or "MMVII-PhgrProj/PointsMeasure//"
          std::string  NameCurSysCo(const cDirsPhProj &,bool IsIn) const;
-         tPtrSysCo  CurSysCo(const cDirsPhProj &,bool SVP=false) const;
-         tPtrSysCo  CurSysCoOri(bool SVP=false) const;
-         tPtrSysCo  CurSysCoGCP(bool SVP=false) const;
+         tPtrSysCo  CurSysCo(const cDirsPhProj &,bool SVP=false, bool IsIn=true) const;
+         tPtrSysCo  CurSysCoOri(bool SVP=false, bool IsIn=true) const;
+         tPtrSysCo  CurSysCoGCP(bool SVP=false, bool IsIn=true) const;
          void SaveCurSysCo(const cDirsPhProj &,tPtrSysCo) const ;
          void SaveCurSysCoOri(tPtrSysCo) const ;
          void SaveCurSysCoGCP(tPtrSysCo) const ;
          void SaveStdCurSysCo(bool IsOri) const; /// save the Cur Sysco in Orient/GCP
-         void CpSysIn2Out(bool OriIn,bool OriOut) const;  // bool : Ori/GCP   do it only if exist, else no error
+         void CpSysCoIn2Out(bool OriIn,bool OriOut) const;  // bool : Ori/GCP   do it only if exist, else no error
          std::string  getDirSysCo() const { return mDirSysCo; }
 
          const cChangeSysCo & ChSysCo() const;
@@ -687,19 +706,28 @@ class cPhotogrammetricProject
          bool  SysCoIsInit() const;
          void  AssertSysCoIsInit() const;
 
+         /// If ChSys.Target() is not init, set it to RTL, considering center is expressed in SysOrigin
+	 void InitSysCoRTLIfNotReady(const cPt3dr & aCenter);
+
 	 //===================================================================
          //==================   Clinometers           ========================
 	 //===================================================================
 	
 	 /// Standard name for clino file using DPClinoMeters, in or out
-	 std::string NameFileClino(const std::string &aNameCam ,bool Input) const;
+	 std::string NameFileClino(const std::string &aNameCam ,bool Input, const std::string aClinoName) const;
 	 /// Save clinometer calib in santdard out folder of DPClinoMeters
 	 void SaveClino(const cCalibSetClino &) const;
 	 /// Is there  clinometer in santdard input folder of DPClinoMeters ?
-	 bool HasClinoCalib(const cPerspCamIntrCalib &) const;
+	 bool HasClinoCalib(const cPerspCamIntrCalib &, const std::string aClinoName) const;
 	 /**  Read the clinometers calib in standard input folder of DPClinoMeters, create a dyn objec because
 	  *  probably "cCalibSetClino" will evolve in a not copiable object*/
-	 cCalibSetClino * GetClino(const cPerspCamIntrCalib &) const;
+	 cOneCalibClino * GetClino(const cPerspCamIntrCalib &, const std::string aClinoName) const;
+
+	 /// Standard name for file of measures clino 
+	 std::string NameFileMeasuresClino(bool Input,const std::string & aNameFile="" ) const;
+	 void SaveMeasureClino(const cSetMeasureClino &) const;
+	 void ReadMeasureClino(cSetMeasureClino &,const std::string * aPatSel=nullptr) const;
+	 cSetMeasureClino ReadMeasureClino(const std::string * aPatSel=nullptr) const;
 
 	 //===================================================================
          //==================   Rigid Bloc           =========================
@@ -746,13 +774,15 @@ class cPhotogrammetricProject
 	  cDirsPhProj     mDPRadiomModel;
 	  cDirsPhProj     mDPMeshDev;
 	  cDirsPhProj     mDPMask;
-	  cDirsPhProj     mDPPointsMeasures;  ///<  For GCP measures  Image + Grounds
+	  cDirsPhProj     mDPGndPt3D;         ///<  For ground point, measures/coords in image frame
+	  cDirsPhProj     mDPGndPt2D;         ///<  For ground point, measures/coords in ground frame
 	  cDirsPhProj     mDPTieP;            ///<  For Homologous point
 	  cDirsPhProj     mDPMulTieP;         ///<  For multiple Homologous point
 	  cDirsPhProj     mDPMetaData;
 	  cDirsPhProj     mDPRigBloc;         // RIGIDBLOC
-      cDirsPhProj     mDPClinoMeters;         // RIGIDBLOC
-      cDirsPhProj     mDPTopoMes;         // Topo
+          cDirsPhProj     mDPClinoMeters;      // +-  resulta of clino calib (boresight)
+          cDirsPhProj     mDPMeasuresClino;     // measure (angles) of clino
+          cDirsPhProj     mDPTopoMes;         // Topo
 					      //
 
 	  std::vector<cDirsPhProj*> mDirAdded;

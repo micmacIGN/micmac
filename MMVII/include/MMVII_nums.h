@@ -12,7 +12,9 @@ namespace MMVII
 // Call V1 Fast kth value extraction
 double NC_KthVal(std::vector<double> &, double aProportion);
 double Cst_KthVal(const std::vector<double> &, double aProportion);
-double Average(const std::vector<double> &);
+template <class Type> Type Average(const Type * aTab,size_t aNb);
+template <class Type> Type Average(const std::vector<Type> &);
+
 
 tREAL8 AngleInRad(eTyUnitAngle);
 bool AssertRadAngleInOneRound(tREAL8 aAngleRad, bool makeError=true);
@@ -70,6 +72,10 @@ double RandUnif_N(int aN); ///< Uniform disrtibution in [0,N[
 double RandUnif_C_NotNull(double aEps);   ///<  Uniform distribution in  -1 1, but abs > aEps
 double RandUnif_NotNull(double aEps);   ///<  Uniform distribution in  0 1, but abs > aEps
 double RandInInterval(double a,double b); ///<  Uniform distribution in [a,b]
+double RandInInterval(const cPt2dr &interval); ///<  Uniform distribution in [interval.x,interval.y]
+double RandInInterval_C(const cPt2dr &interval); ///<  Uniform distribution in [-interval.y,-interval.x]U[interval.x,interval.y]
+
+int RandUnif_M_N(int aM,int aN); ///< Uniform disrtibution in [M,N] 
 
 /** Class for mapping object R->R */
 class cFctrRR
@@ -322,6 +328,8 @@ template <> class tElemNumTrait<tINT2> : public tBaseNumTrait<tStdInt>
 {
     public :
         static tINT2 DummyVal() {MMVII_INTERNAL_ERROR("No DummyVal for type");return 0;}
+        static tINT2 MaxVal() {return  std::numeric_limits<tINT2>::max();}
+        static tINT2 MinVal() {return  std::numeric_limits<tINT2>::min();}
         static bool   Signed() {return true;}
         static eTyNums   TyNum() {return eTyNums::eTN_INT2;}
         typedef tREAL4   tFloatAssoc;
@@ -351,6 +359,8 @@ template <> class tElemNumTrait<tINT8> : public tBaseNumTrait<tINT8>
 template <> class tElemNumTrait<tREAL4> : public tBaseNumTrait<tStdDouble>
 {
     public :
+        static tREAL4 MaxVal() {return  std::numeric_limits<tREAL4>::max();}
+        static tREAL4 MinVal() {return  std::numeric_limits<tREAL4>::min();}
         static tREAL4 DummyVal() {return std::nanf("");}
         static tREAL4 Accuracy() {return 1e-2f;}
         static bool   Signed() {return true;} ///< Not usefull but have same interface
@@ -488,6 +498,16 @@ template <> class tMergeF<tREAL8,tREAL4> { public : typedef tREAL8  tMax; };
 template <> class tMergeF<tREAL4,tREAL8> { public : typedef tREAL8  tMax; };
 template <> class tMergeF<tREAL8,tREAL8> { public : typedef tREAL8  tMax; };
 
+template <class Type>  void AssertTabValueOk(const Type * aTab,size_t aNb)
+{
+    for (size_t aK=0 ; aK<aNb ; aK++)
+        tNumTrait<Type>::AssertValueOk(aTab[aK]);
+}
+
+template <class Type> void  AssertTabValueOk(const std::vector<Type> & aVec)
+{
+    AssertTabValueOk(aVec.data(),aVec.size());
+} 
 
 
 
@@ -538,6 +558,10 @@ template<class Type> Type DivSup(const Type & a,const Type & b)
 /// Return a value depending only of ratio, in [-1,1], eq 0 if I1=I2, and invert sign when swap I1,I2
 double NormalisedRatio(double aI1,double aI2);
 double NormalisedRatioPos(double aI1,double aI2);
+double Der_NormalisedRatio_I1(double aI1,double aI2);
+double Der_NormalisedRatio_I2(double aI1,double aI2);
+double Der_NormalisedRatio_I1Pos(double aI1,double aI2);
+double Der_NormalisedRatio_I2Pos(double aI1,double aI2);
 
 
 tINT4 HCF(tINT4 a,tINT4 b); ///< = PGCD = Highest Common Factor
@@ -744,6 +768,20 @@ template <class TypeVal> void UpdateMinMax(TypeVal & aVarMin,TypeVal & aVarMax,c
     if (aValue>aVarMax) aVarMax = aValue;
 }
 
+template <class TVal> TVal MinTab(TVal * Data,int aNb)
+{
+    MMVII_INTERNAL_ASSERT_tiny(aNb!=0,"No values in MinTab");
+    TVal aMin=Data[0];
+    for (int aK=1 ; aK<aNb ; aK++)
+        if (Data[aK]< aMin)
+           aMin = Data[aK];
+
+    return aMin;
+}
+
+
+
+
 /// Class to store min and max values
 template <class TypeVal> class cBoundVals
 {
@@ -853,6 +891,12 @@ template <typename Type> Type AtanXsY_sX(const Type & X,const Type & Y,const Typ
    /// Same as DerXAtanXY_sX ...  ... bench
 template <typename Type> Type DerXAtanXsY_sX(const Type & X,const Type & Y,const Type & aEps);
 
+      //   -------------- miscelaneaous functions ------------------------
+/// Reciprocal function of X-> X|X|
+template <typename Type> Type SignedSqrt(const Type & aTeta); 
+
+
+
 /*  ****************************************** */
 /*     REPRESENTATION of num on a base         */
 /* ******************************************* */
@@ -900,7 +944,8 @@ class cCelCC : public cMemCheck
      public :
         std::vector<size_t>  mEquivCode;  /// all codes equivalent
         size_t               mLowCode;    ///< lower representant
-        bool                 mTmp;        /// some marker to use when convenient
+        bool                 mTmp;        ///< some marker to use when convenient
+        int                  mNum;        ///< Num used so that names is alway the same whatever maybe the selection
 
 	size_t HammingDist(const cCelCC &) const;
 
@@ -928,6 +973,7 @@ class cCompEquiCodes : public cMemCheck
        const std::vector<cCelCC*>  & VecOfCells() const; ///< Accessor
        const cCelCC &  CellOfCodeOK(size_t aCode) const;  ///< Error if null
        const cCelCC *  CellOfCode(size_t) const;  ///< nullptr if bad range or no cell
+       cCelCC *  CellOfCode(size_t) ;  ///< nullptr if bad range or no cell
 
        ~cCompEquiCodes();
        static void Bench(size_t aNBB,size_t aPer,bool Miror);
@@ -983,6 +1029,7 @@ template <class Type> class  cPolynom
 {
         public :
            typedef std::vector<Type>  tCoeffs;
+           typedef cPtxd<Type,2>      tCompl;
            cPolynom(const tCoeffs &);
            cPolynom(const cPolynom &);
            cPolynom(size_t aDegre);
@@ -997,13 +1044,19 @@ template <class Type> class  cPolynom
            static cPolynom<Type>  RandomPolyg(std::vector<Type> & aVRoots,int aNbRoot,int aNbNoRoot,Type Interv,Type MinDist);
 
 
-           Type  Value(const Type & aVal) const;
+           Type    Value(const Type & aVal) const;
+           tCompl  Value(const tCompl & aVal) const;
+           /// return som(|a_k x^k|) , used for some bounding stuffs
+           Type  AbsValue(const Type & aVal) const;
+
 
            cPolynom<Type> operator * (const cPolynom<Type> & aP2) const;
            cPolynom<Type> operator + (const cPolynom<Type> & aP2) const;
            cPolynom<Type> operator - (const cPolynom<Type> & aP2) const;
            cPolynom<Type> operator * (const  Type & aVal) const;
-           std::vector<Type> RealRoots(const Type & aTol,int ItMax);
+           cPolynom<Type> Deriv() const;
+
+           std::vector<Type> RealRoots(const Type & aTol,int ItMax) const;
 
 
            Type&   operator [] (size_t aK) {return mVCoeffs[aK];}

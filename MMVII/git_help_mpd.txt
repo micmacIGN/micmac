@@ -1,3 +1,7 @@
+export MMVII_USE_MMV1_IMAGE=1
+export MMVII_USE_MMV1_IMAGE=0
+
+=====================================================
 git config core.editor vim
 
 git fetch origin

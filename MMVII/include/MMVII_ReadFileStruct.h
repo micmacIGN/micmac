@@ -25,6 +25,25 @@ enum class eRFS_TypeField
       eBla       // For bla  bla
 };
 
+class cNRFS_ParamRead
+{
+     public :
+	 cNRFS_ParamRead();
+	 cNRFS_ParamRead(int aL0,int aLast,char aComment,bool noDupL=false);
+
+	 int  L0()      const;
+	 int  LLast()   const;
+	 char Comment() const;
+         bool NoDupLine() const;
+
+	 void   AddArgOpt(cCollecSpecArg2007 &);
+     private :
+         int    mL0;
+         int    mLLast;
+         char   mComment;
+         bool   mNoDupLine;
+};
+
 
 class  cNewReadFilesStruct
 {
@@ -33,17 +52,35 @@ class  cNewReadFilesStruct
 	 const std::map<std::string,std::vector<std::string> >&StdMap(std::string*) const {return  mMapString;}
 
 
-	 // value used to count occurence of "stared" atom like in "A1E*B" , this means that there can be any "E"
+	 /// value used to count occurence of "stared" atom like in "A1E*B" , this means that there can be any "E"
 	 static const int StaredNumber = 10000;
+	 
+         /// Generate a standard message for format
 
      public :
+	 ///  Default constructor  , not fully initialzied
+         cNewReadFilesStruct();
+	 /// initialize the format + check coherence with specification
+	 void SetFormat(const std::string & aFormat,const std::string &  aSpecifFMand,const std::string &  aSpecifFTot);
+
+	 /// Def cst + SetFormat
          cNewReadFilesStruct(const std::string & aFormat,const std::string &  aSpecifFMand,const std::string &  aSpecifFTot);
+
+	 /// if default rules, used in "TypeOfName" are not sufficient, modify them with a system of pattern
+	 void SetPatternAddType(const std::vector<std::string> &  aPatIntFloatString);
+
+
+
+	 /// return a standard msg for Arg2007
+	 static std::string  MsgFormat(const std::string &) ;
 	 
-	 void ReadFile(const std::string & aNameFile,int aL0,int aLL,int aCom);
+	 //   void ReadFile(const std::string & aNameFile,int,int,int);
+	 void ReadFile(const std::string & aNameFile,const cNRFS_ParamRead &);
 
 	 ///  Access to a vector of value from name of field (faster than GetValue, for very big file)
 	 template <class Type> const std::vector<Type> &  GetVect(const std::string & aNameField) const
 	 {
+             AssertInit();
              const std::map<std::string,std::vector<Type> > & aMap = StdMap((Type*) nullptr);
 	     // const auto & anIter = aMap.find(aNameField);
 	     //typename std::map<std::string,std::vector<Type> >::const_iterator  anIter = aMap.find(aNameField);
@@ -60,6 +97,7 @@ class  cNewReadFilesStruct
 	 ///  Access to single value from name of field
          template <class Type> const Type &  GetValue(const std::string & aNameField,size_t aK) const
          {
+		 AssertInit();
                  MMVII_INTERNAL_ASSERT_tiny(MapBoolFind(mCptFields,aNameField),"No such field " +aNameField);
                  MMVII_INTERNAL_ASSERT_tiny(mCptFields.at(aNameField)==1,"Multiple field in line " +aNameField);
 
@@ -70,10 +108,11 @@ class  cNewReadFilesStruct
 	 ///  Access to single value from name of field
          template <class Type> const Type &  GetKthValue(const std::string & aNameField,size_t aKLine,size_t aNumInLine) const
          {
+		 AssertInit();
                  MMVII_INTERNAL_ASSERT_tiny(MapBoolFind(mCptFields,aNameField),"No such field " +aNameField);
 		 size_t aNbInL = mCptFields.at(aNameField);
 
-                 MMVII_INTERNAL_ASSERT_tiny(aKLine<aNbInL,"No so many elem for "+ aNameField);
+                 MMVII_INTERNAL_ASSERT_tiny(aNumInLine<aNbInL,"No so many elem for "+ aNameField);
 
 		 const Type& aRes = GetVect<Type>(aNameField).at(aKLine*aNbInL+aNumInLine);
 		 return aRes;
@@ -86,23 +125,33 @@ class  cNewReadFilesStruct
          const tREAL8 & GetFloat(const std::string & aNameField,size_t aK) const {return GetValue<tREAL8>(aNameField,aK);}
          const int & GetInt(const std::string & aNameField,size_t aK) const {return GetValue<int>(aNameField,aK);}
 
-	 cPt2dr GetPt2dr(const std::string & aN1,const std::string & aN2,size_t aK) const
-	 {
-               return cPt2dr(GetFloat(aN1,aK),GetFloat(aN2,aK));
-	 }
+	 cPt2dr GetPt2dr(size_t aKL,const std::string & aNX,const std::string & aNY) const;
+	 //  Idem but used standard names "XY" or "X8Y8" 
+	 cPt2dr GetPt2dr_XY(size_t aKL,const std::string & aPost="") const;
 
-	 bool  FieldIsKnow(const std::string & aNameField) const
+	 cPt3dr GetPt3dr(size_t aKL,const std::string & aNX,const std::string & aNY,const std::string & aNZ) const;
+	 cPt3dr GetPt3dr_XYZ(size_t aKL,const std::string & aPost="") const;
+
+
+     bool  FieldIsKnown(const std::string & aNameField) const
 	 {
+		 AssertInit();
 		 return BoolFind(mNameFields,aNameField);
 	 }
 
 	 size_t  ArrityField(const std::string & aNameField) const
 	 {
+		 AssertInit();
 		 return std::count(mNameFields.begin(),mNameFields.end(),aNameField);
 	 }
 
 	 size_t NbLineRead() const {return mNbLineRead;} /// Accessor
+							 //
+         static int DefCommentChar(); /// return something like '#'
+         static std::string MakeSpecTot(const std::string& aMandatory,const std::string& aOpt); /// "A" "B" =>  "A/B"
      private :
+
+	 void AssertInit() const;
          
          // Add a value "Val" in field "Fied" to dictionnary of corresponding type ("String/Int/Float")
 	 template <class Type> void AddVal
@@ -128,8 +177,9 @@ class  cNewReadFilesStruct
 	 /// Parse a format specif to split in token and count the occurence of each token
          static void  ParseFormat(bool IsSpec,const std::string & aFormat,std::map<std::string,size_t>  & aMap,std::vector<std::string> & );
 
+	 bool                            mDebug;
+	 bool                            mIsInit;
          std::string                     mFormat;      ///< Format used to parse the file 
-	 bool mDebug;
 
 	 std::map<std::string,size_t>    mCptFields;   ///< count the occurence of each token in the format
 	 std::vector<std::string>        mNameFields;  ///< list of token
@@ -143,6 +193,8 @@ class  cNewReadFilesStruct
 	 std::map<std::string,std::vector<std::string> >  mMapString;
 
 	 size_t                                           mNbLineRead;
+
+	 std::vector<std::string>                         mPatIntFloatString;
 
 };
 

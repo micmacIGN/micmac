@@ -1,138 +1,158 @@
 #include "BundleAdjustment.h"
 
+#include "MMVII_MeasuresIm.h"
 
 namespace MMVII
 {
 
 /* -------------------------------------------------------------- */
+/*                cMes2DDirInfo                                     */
+/* -------------------------------------------------------------- */
+
+cMes2DDirInfo::cMes2DDirInfo (const std::string &aDirNameIn, const cStdWeighterResidual &aWeighter) :
+    mDirNameIn(aDirNameIn), mWeighter(aWeighter)
+{
+
+}
+
+cMes2DDirInfo* cMes2DDirInfo::addMes2DDirInfo(cBA_GCP &aBA_GCP, const std::string & aDirNameIn,
+                                    const cStdWeighterResidual & aStdWeighterResidual)
+{
+    aBA_GCP.mAllMes2DDirInfo.push_back(new cMes2DDirInfo(aDirNameIn,aStdWeighterResidual));
+    return aBA_GCP.mAllMes2DDirInfo.back();
+}
+
+
+/* -------------------------------------------------------------- */
+/*                cMes3DDirInfo                                     */
+/* -------------------------------------------------------------- */
+
+cMes3DDirInfo::cMes3DDirInfo (const std::string &aDirNameIn, const std::string &aDirNameOut, tREAL8 aSGlob) :
+    mDirNameIn(aDirNameIn), mDirNameOut(aDirNameOut), mSGlob(aSGlob)
+{
+
+}
+
+cMes3DDirInfo* cMes3DDirInfo::addMes3DDirInfo(cBA_GCP &aBA_GCP, const std::string & aDirNameIn,
+                                        const std::string & aDirNameOut, tREAL8 aSGlob)
+{
+    aBA_GCP.mAllMes3DDirInfo.push_back(new cMes3DDirInfo(aDirNameIn,aDirNameOut, aSGlob));
+    return aBA_GCP.mAllMes3DDirInfo.back();
+}
+
+/* -------------------------------------------------------------- */
 /*                cBA_GCP                                         */
 /* -------------------------------------------------------------- */
 
-cBA_GCP::cBA_GCP() :
-    mMesGCP           (nullptr),
-    mSigmaGCP         (-1)
+cBA_GCP::cBA_GCP()
 {
 }
 
 cBA_GCP::~cBA_GCP() 
 {
     DeleteAllAndClear(mGCP_UK);
-    delete mMesGCP;
+    DeleteAllAndClear(mAllMes2DDirInfo);
+    DeleteAllAndClear(mAllMes3DDirInfo);
+}
+
+void cBA_GCP::AddGCP3D(cMes3DDirInfo * aMesDirInfo, cSetMesGnd3D &aSetMesGnd3D, bool verbose)
+{
+    mMesGCP.AddMes3D(aSetMesGnd3D, aMesDirInfo);
+}
+
+
+void cBA_GCP::AddMes2D(cSetMesPtOf1Im &aSetMesIm, cMes2DDirInfo *aMesDirInfo, cSensorImage* cSensorImage, eLevelCheck OnNonExistP)
+{
+    mMesGCP.AddMes2D(aSetMesIm, aMesDirInfo, cSensorImage, OnNonExistP);
 }
 
 /* -------------------------------------------------------------- */
 /*                cMMVII_BundleAdj::GCP                           */
 /* -------------------------------------------------------------- */
 
-void cMMVII_BundleAdj::AddGCP(const std::string & aName,tREAL8 aSigmaGCP,const  cStdWeighterResidual & aWeighter, cSetMesImGCP *  aMesGCP, bool verbose)
+void cMMVII_BundleAdj::AddGCP3D(cMes3DDirInfo * aMesDirInfo, cSetMesGnd3D &aSetMesGnd3D, bool verbose)
 {
-    //mVGCP.push_back(cBA_GCP());
-    cBA_GCP * aBA_GCP = new cBA_GCP;
-    mVGCP.push_back(aBA_GCP);
-
-    mVGCP.back()->mName           = aName;
-    mVGCP.back()->mMesGCP         = aMesGCP;
-    mVGCP.back()->mSigmaGCP       = aSigmaGCP;
-    mVGCP.back()->mGCPIm_Weighter = aWeighter;
-
-    //  mMesGCP = aMesGCP;
-    //  mSigmaGCP = aSigmaGCP;
-    //  mGCPIm_Weighter = aWeighter;
+    mGCP.AddGCP3D(aMesDirInfo, aSetMesGnd3D, verbose);
 
     if (verbose && mVerbose)
     {
-        StdOut()<<  "MESIM=" << aBA_GCP->mMesGCP->MesImOfPt().size() << " MesGCP=" << aBA_GCP->mMesGCP->MesGCP().size()  << std::endl;
+        StdOut()<< " MesGCP=" << mGCP.getMesGCP().MesGCP().size()  << std::endl;
     }
 }
+
+void cMMVII_BundleAdj::AddGCP2D(cMes2DDirInfo *aMesDirInfo, cSetMesPtOf1Im & aSetMesIm, cSensorImage* aSens, eLevelCheck aOnNonExistGCP, bool verbose)
+{
+    mGCP.AddMes2D(aSetMesIm, aMesDirInfo, aSens, aOnNonExistGCP);
+}
+
 
 void cMMVII_BundleAdj::InitItereGCP()
 {
-    for (auto & aPtr_BA_GCP : mVGCP)
+    for (const auto & aGCP : mGCP.getMesGCP().MesGCP())
     {
-        //  This should no longer exist with new GCP handling
-        MMVII_INTERNAL_ASSERT_strong(aPtr_BA_GCP->mMesGCP!=nullptr,"aPtr_BA_GCP->mMesGCP");
-        if (aPtr_BA_GCP->mSigmaGCP>0)
+        if (aGCP.mMesDirInfo->mSGlob>0)
         {
-            for (const auto & aGCP : aPtr_BA_GCP->mMesGCP->MesGCP())
-            {
-                cPt3dr_UK * aPtrUK = new cPt3dr_UK(aGCP.mPt,aGCP.mNamePt);
-                aPtr_BA_GCP->mGCP_UK.push_back(aPtrUK);
-                mSetIntervUK.AddOneObj(aPtrUK);
-            }
+            cPt3dr_UK * aPtrUK = new cPt3dr_UK(aGCP.mPt,aGCP.mNamePt);
+            mGCP.mGCP_UK.push_back(aPtrUK);
+            mSetIntervUK.AddOneObj(aPtrUK);
+        } else {
+            mGCP.mGCP_UK.push_back(nullptr); // to keep as many elements as mMesGCP
         }
     }
-/*
-    if (
-            (mMesGCP!=nullptr)   //  if GCP where initialized
-         && (mSigmaGCP > 0)  // is GGP are unknown
-       )
-    {
-        for (const auto & aGCP : mMesGCP->MesGCP())
-	{
-            cPt3dr_UK * aPtrUK = new cPt3dr_UK(aGCP.mPt);
-            mGCP_UK.push_back(aPtrUK);
-	    mSetIntervUK.AddOneObj(aPtrUK);
-	}
-    }
-*/
 }
 
 
-void cMMVII_BundleAdj::OneItere_OnePackGCP(cBA_GCP & aBA, bool verbose)
+void cMMVII_BundleAdj::OneItere_GCP(bool verbose)
 {
-    const cSetMesImGCP   * aSet           = aBA.mMesGCP;
-    const tREAL8 & aSigmaGCP              = aBA.mSigmaGCP;
-    cSetMesImGCP&   aNewGCP               = aBA.mNewGCP;
-    std::vector<cPt3dr_UK*> & aGCP_UK     = aBA.mGCP_UK;
-    cStdWeighterResidual& aGCPIm_Weighter = aBA.mGCPIm_Weighter;
+    auto & aSet                           = mGCP.getMesGCP();
+    if (!aSet.IsPhaseGCPFinished())
+        return;
+    cSetMesGndPt&   aNewGCP               = mGCP.mNewGCP;
+    std::vector<cPt3dr_UK*> & aGCP_UK     = mGCP.mGCP_UK;
 
-    
+    const std::vector<cMes1Gnd3D> &    aVMesGCP = aSet.MesGCP();
+    const std::vector<cMultipleImPt> & aVMesIm  = aSet.MesImOfPt() ;
+    const std::vector<cSensorImage*> & aVSens   = aSet.VSens() ;
 
-    // MMVII_DEV_WARNING("std::cout.precision(15) JkUiiuoiu");
-    // std::cout.precision(15);
-    if (aSet==nullptr) return;
-    //   W>0  obs is an unknown "like others"
-    //   W=0 , obs is fix , use schurr subst and fix the variables
-    //   W<0 , obs is substitued
-    const std::vector<cMes1GCP> &      aVMesGCP = aSet->MesGCP();
-    const std::vector<cMultipleImPt> & aVMesIm  = aSet->MesImOfPt() ;
-    const std::vector<cSensorImage*> & aVSens   = aSet->VSens() ;
 
     // StdOut() << "GCP " << aVMesGCP.size() << " " << aVMesIm.size() << " " << aVSens.size() << std::endl;
 
     size_t aNbGCP = aVMesGCP.size();
 
-    bool  aGcpUk = (aSigmaGCP>0);  // are GCP unknowns
-    bool  aGcpFix = (aSigmaGCP==0);  // is GCP just an obervation
 
     int aNbGCPVis = 0;
     int aAvgVis = 0;
     int aAvgNonVis = 0;
-    if (verbose && mVerbose)
+    if (verbose && mVerbose & (aNbGCP!=0) )
     {
-        StdOut() << "  * " <<  aBA.mName << " : Gcp0=" << aSet->AvgSqResidual() ;
-        if (aGcpUk)
+        StdOut() << "  * Gcp0=" << aSet.AvgSqResidual() ;
+        aNewGCP = aSet; //copy
+        for (size_t aK=0 ; aK< aNbGCP ; aK++)
         {
-            aNewGCP = *aSet;
-            for (size_t aK=0 ; aK< aNbGCP ; aK++)
-            {
-                // cPt3dr aDif = mNewGCP.MesGCP()[aK].mPt -  aGCP_UK[aK]->Pt();
-                // StdOut() << " DIFF=" << aDif  << " DDD= "  << (aDif.x()==0)  <<" " << (aDif.y()==0)  <<" " << (aDif.z()==0)  <<" " << "\n";
-                aNewGCP.MesGCP()[aK].mPt = aGCP_UK[aK]->Pt();
-            }
-            StdOut() << " , GcpNew=" << aNewGCP.AvgSqResidual() ; // getchar();
+            if (!aGCP_UK[aK]) continue;
+            // cPt3dr aDif = mNewGCP.MesGCP()[aK].mPt -  aGCP_UK[aK]->Pt();
+            // StdOut() << " DIFF=" << aDif  << " DDD= "  << (aDif.x()==0)  <<" " << (aDif.y()==0)  <<" " << (aDif.z()==0)  <<" " << "\n";
+            aNewGCP.MesGCP()[aK].mPt = aGCP_UK[aK]->Pt();
         }
+        StdOut() << " , GcpNew=" << aNewGCP.AvgSqResidual() ; // getchar();
     }
 
     // MMVII_INTERNAL_ASSERT_tiny(!aGcpUk,"Dont handle GCP UK 4 Now");
 
-    //  Three temporary unknowns for x-y-z of the 3d point
     std::vector<int> aVIndGround = {-1,-2,-3};
-    std::vector<int> aVIndFix = (aGcpFix ? aVIndGround : std::vector<int>());
 
     //  Parse all GCP
     for (size_t aKp=0 ; aKp < aNbGCP ; aKp++)
     {
+        const tREAL8 & aSigmaGCP              = aVMesGCP.at(aKp).mMesDirInfo->mSGlob;
+        //   W>0  obs is an unknown "like others"
+        //   W=0 , obs is fix , use schurr subst and fix the variables
+        //   W<0 , obs is substitued
+        bool  aGcpUk = (aSigmaGCP>0);  // are GCP unknowns
+        bool  aGcpFix = (aSigmaGCP==0);  // is GCP just an obervation
+        //  Three temporary unknowns for x-y-z of the 3d point
+        std::vector<int> aVIndFix = (aGcpFix ? aVIndGround : std::vector<int>());
+
         const cPt3dr & aPGr = aVMesGCP.at(aKp).mPt;
         const cPt3dr & aPtSigmas = aVMesGCP.at(aKp).SigmasXYZ();
         cPt3dr_UK * aPtrGcpUk =  aGcpUk ? aGCP_UK[aKp] : nullptr;
@@ -145,6 +165,7 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(cBA_GCP & aBA, bool verbose)
         // Parse all image having a measure with this GCP
         for (size_t aKIm=0 ; aKIm<aVPIm.size() ; aKIm++)
         {
+            cStdWeighterResidual& aGCPIm_Weighter = aVMesIm.at(aKp).VMesDirInfo().at(aKIm)->mWeighter;
             int aIndIm = aVIndIm.at(aKIm);
             cSensorImage * aSens = aVSens.at(aIndIm);
             const cPt2dr & aPIm = aVPIm.at(aKIm);
@@ -158,7 +179,9 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(cBA_GCP & aBA, bool verbose)
             }
             //  Add index of sensor (Pose+Calib for PC Cam)
             for (auto & anObj : aSens->GetAllUK())
+            {
                 anObj->PushIndexes(aVIndGlob);
+            }
 
             /*StdOut() << "VISSSS " << aSens->IsVisibleOnImFrame(aPIm)
                 << " " << aPGr
@@ -225,44 +248,20 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(cBA_GCP & aBA, bool verbose)
         }
     }
 
-     if (verbose && mVerbose)
-     {
-        StdOut() << " PropVis1Im=" << aNbGCPVis /double(aNbGCP)  
-		<< " AvgVis=" << aAvgVis/double(aNbGCP) 
-		<< " NonVis=" << aAvgNonVis/double(aNbGCP) 
-        ;
-        StdOut() << std::endl;
-     }
-}
-
-
-void cMMVII_BundleAdj::OneItere_GCP(bool verbose)
-{
-     for (const auto & aBA_GCP_Ptr : mVGCP)
-     {
-         MMVII_INTERNAL_ASSERT_strong(aBA_GCP_Ptr->mMesGCP!=nullptr,"aPtr_BA_GCP->mMesGCP");
-         OneItere_OnePackGCP(*aBA_GCP_Ptr, verbose);
-     }
-}
-
-void cMMVII_BundleAdj::Save_newGCP()
-{
-    if (mVGCP.size()>1)
-       MMVII_DEV_WARNING("For now dont handle save of multiple GCP");
-
-    if ( mVGCP.empty())
-       return;
-    // for (const auto & aBA_GCP_Ptr : mVGCP)
-    const auto & aBA_GCP_Ptr = mVGCP.at(0);
+    if (verbose && mVerbose && (aNbGCP!=0))
     {
-        if (aBA_GCP_Ptr->mMesGCP  && mPhProj->DPPointsMeasures().DirOutIsInit())
-        {
-            mPhProj->SaveGCP(aBA_GCP_Ptr->mNewGCP.ExtractSetGCP("NewGCP"));
-            for (const auto & aMes1Im : aBA_GCP_Ptr->mMesGCP->MesImInit())
-                 mPhProj->SaveMeasureIm(aMes1Im);
-            mPhProj->SaveCurSysCoGCP(mPhProj->CurSysCo(mPhProj->DPPointsMeasures()));
-        }
+        StdOut() << " PropVis1Im=" << aNbGCPVis /double(aNbGCP)
+                 << " AvgVis=" << aAvgVis/double(aNbGCP)
+                 << " NonVis=" << aAvgNonVis/double(aNbGCP)
+                    ;
+        StdOut() << std::endl;
     }
+}
+
+
+void cMMVII_BundleAdj::Save_newGCP3D()
+{
+    mPhProj->SaveGCP3D(mGCP.mNewGCP.ExtractSetGCP("NewGCP"), "", true);
 }
 
     /* ---------------------------------------- */

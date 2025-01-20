@@ -46,7 +46,7 @@ class cAppliCompletUncodedTarget : public cMMVII_Appli
 
 
 	void CompleteAll();
-	void CompleteOneGCP(const cMes1GCP & aGCP);
+	void CompleteOneGCP(const cMes1Gnd3D & aGCP);
 
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
@@ -65,7 +65,7 @@ class cAppliCompletUncodedTarget : public cMMVII_Appli
         std::string                    mNameIm;
         cSensorImage *                 mSensor;
         cSensorCamPC *                 mCamPC;
-        cSetMesImGCP                   mMesImGCP;
+        cSetMesGndPt                   mMesImGCP;
         cSetMesPtOf1Im                 mImageM;
         std::vector<cSaveExtrEllipe>   mVSEE;
 	std::string                    mNameReportEllipse;
@@ -99,14 +99,14 @@ cCollecSpecArg2007 & cAppliCompletUncodedTarget::ArgOpt(cCollecSpecArg2007 & anA
 {
    return 
                   anArgOpt
-	     <<   mPhProj.DPPointsMeasures().ArgDirInputOptWithDef("Std")
-	     <<   mPhProj.DPPointsMeasures().ArgDirOutOptWithDef("Completed")
+	     <<   mPhProj.DPGndPt2D().ArgDirInputOptWithDef("Std")
+	     <<   mPhProj.DPGndPt2D().ArgDirOutOptWithDef("Completed")
              <<   AOpt2007(mThreshRay,"ThRay","Threshold for ray [RatioMax,RMin,RMax]",{{eTA2007::ISizeV,"[3,3]"}})
              <<   AOpt2007(mPatternNormal,"PatNorm","If estimate normal, pattern for point involved")
           ;
 }
 
-void cAppliCompletUncodedTarget::CompleteOneGCP(const cMes1GCP & aGCP)
+void cAppliCompletUncodedTarget::CompleteOneGCP(const cMes1Gnd3D & aGCP)
 {
     // if has already been selected, nothing to do
     if (mImageM.NameHasMeasure(aGCP.mNamePt))
@@ -186,7 +186,7 @@ int  cAppliCompletUncodedTarget::Exe()
    mPhProj.FinishInit();
 
    mNameReportEllipse = "EllipsesDim";
-   InitReport(mNameReportEllipse,"csv",true);
+   InitReportCSV(mNameReportEllipse,"csv",true);
 
 
    AddHeaderReportCSV(mNameReportEllipse,{"Image","Pt","Ray","Ratio"});
@@ -204,8 +204,8 @@ int  cAppliCompletUncodedTarget::Exe()
    mPhProj.ReadSensor(mNameIm,mSensor,mCamPC,true,false);
 
    //   load CGP
-   mPhProj.LoadGCP(mMesImGCP);
-   mPhProj.LoadIm(mMesImGCP,*mSensor);
+   mPhProj.LoadGCP3D(mMesImGCP);
+   mPhProj.LoadIm(mMesImGCP,nullptr,*mSensor);
    mImageM = mPhProj.LoadMeasureIm(mNameIm);
 
 

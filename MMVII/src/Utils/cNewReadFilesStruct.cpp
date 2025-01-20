@@ -1,18 +1,67 @@
 #include "cMMVII_Appli.h"
 #include "MMVII_ReadFileStruct.h"
 #include "MMVII_Bench.h"
+#include "MMVII_2Include_Serial_Tpl.h"
 
 
 
 /**
-   \file cConvCalib.cpp  testgit
+ * Minitopo
+ *   MMVII ImportGCP inputs/coords.cor ANXYZBla InitL93 Sigma=0.001 AddInfoFree=0 "ChSys=[L93]"
+ *   MMVII ImportGCP inputs/coords.cor ANXYZSxSySz InitL93  AddInfoFree=0 "ChSys=[L93]"
+ *   MMVII ImportGCP inputs/coords.cor ANXYZSxyz InitL93  AddInfoFree=0 "ChSys=[L93]"
+ *   MMVII ImportGCP inputs/coords.cor ANXYZSxyz?? InitL93  AddInfoFree=0 "ChSys=[L93,RTL]"
 
-   \brief file for conversion between calibration (change format, change model) and tests
+
+  MMVII ImportGCP inputs/coord.cor ANXYZBla InitTopoRTL ChSys=[L93,"RTL*657700*6860700*0*IGNF:LAMB93"] AddInfoFree=0  Comment='*' Sigma=0.001
+mais pas (pk cerain SxSySz manquent)
+  MMVII ImportGCP inputs/coord.cor ANXYZSxSySz InitTopoRTL ChSys=[L93,"RTL*657700*6860700*0*IGNF:LAMB93"] AddInfoFree=0  Comment='*'
+
+
+
+ *
+   \file cNewReadFilesStruct.cpp
+
+   \brief file parsing files with globally homogeneaus line
 */
 
 
 namespace MMVII
 {
+
+/* ************************************************************************************ */
+/*                                                                                      */
+/*                                cNRFS_ParamRead                                       */
+/*                                                                                      */
+/* ************************************************************************************ */
+
+cNRFS_ParamRead::cNRFS_ParamRead(int aL0,int aLast,char aComment,bool noDupL) :
+   mL0        (aL0),
+   mLLast     (aLast),
+   mComment   (aComment),
+   mNoDupLine (noDupL)
+{
+}
+
+cNRFS_ParamRead::cNRFS_ParamRead() :
+    cNRFS_ParamRead (0,1e9,cNewReadFilesStruct::DefCommentChar())
+{
+}
+
+int  cNRFS_ParamRead::L0()        const {return mL0;}
+int  cNRFS_ParamRead::LLast()     const {return mLLast;}
+char cNRFS_ParamRead::Comment()   const {return mComment;}
+bool cNRFS_ParamRead::NoDupLine() const {return mNoDupLine;}
+
+void   cNRFS_ParamRead::AddArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+    anArgOpt
+            <<  AOpt2007(mL0,"NumL0","Num of first line to read",{eTA2007::HDV})
+            <<  AOpt2007(mLLast,"NumLast","Num of last line to read (-1 if at end of file)",{eTA2007::HDV})
+            <<  AOpt2007(mComment,"Comment","Carac for comment")
+            <<  AOpt2007(mNoDupLine,"NoDupL","Supress duplicated lines")
+    ;
+}
 
 /* ***************************************************************************************** */
 /*                                                                                           */
@@ -20,11 +69,75 @@ namespace MMVII
 /*                                                                                           */
 /* ***************************************************************************************** */
 
+cNewReadFilesStruct::cNewReadFilesStruct(const std::string & aFormat,const std::string & aSpecifFMand,const std::string & aSpecifTot) :
+    cNewReadFilesStruct ()
+{
+    SetFormat(aFormat,aSpecifFMand,aSpecifTot);
+}
 
 
+cNewReadFilesStruct::cNewReadFilesStruct() :
+    mDebug   (false),
+    mIsInit  (false)
+{
+}
+
+void cNewReadFilesStruct::AssertInit() const
+{
+   MMVII_INTERNAL_ASSERT_always(mIsInit,"cNewReadFilesStruct::AssertInit");
+}
+
+void cNewReadFilesStruct::SetPatternAddType(const std::vector<std::string> &  aPatIntFloatString)
+{
+    mPatIntFloatString = aPatIntFloatString;
+}
+
+
+void   cNewReadFilesStruct::SetFormat(const std::string & aFormat,const std::string &  aSpecifFMand,const std::string &  aSpecifTot)
+{
+   mIsInit = true;
+   mFormat = aFormat;
+   ParseFormat(false,mFormat,mCptFields,mNameFields);
+   for (const auto & aStr: mNameFields)
+   {
+        mTypes.push_back(TypeOfName(aStr));
+	if (mTypes.back() == eRFS_TypeField::eBla && (mTypes.size()!=mNameFields.size()))
+	{
+           MMVII_UserError(eTyUEr::eUnClassedError,"\"Bla\" specification can only happen at end");
+	}
+   }
+
+   // Check that all the field of Format are in spec tot
+   {
+      std::map<std::string,size_t>    aCptSpecTot;
+      std::vector<std::string>        aNameSpecTot;
+      ParseFormat(true,aSpecifTot,aCptSpecTot,aNameSpecTot);
+
+      // StdOut() << "LLLL " << __LINE__ << "\n";
+      Check(mCptFields,aCptSpecTot,false);
+   }
+   // Check that all the field of spec mandatory are in Format 
+   {
+      std::map<std::string,size_t>    aCptSpecMand;
+      std::vector<std::string>        aNameSpecMand;
+      ParseFormat(true,aSpecifFMand,aCptSpecMand,aNameSpecMand);
+
+      // dOut() << "LLLL " << __LINE__ << "\n";
+      Check(aCptSpecMand,mCptFields,true);
+   }
+}
+
+void ShowMap(const std::map<std::string,size_t> & aMap)
+{
+    for (const auto & [aName,aCpt] : aMap)
+        StdOut() << " N=[" << aName << "] C=" << aCpt << "\n";
+
+}
+	
 
 void cNewReadFilesStruct::Check(std::map<std::string,size_t> & aMap1,std::map<std::string,size_t> & aMap2,bool RefIsI1)
 {
+
      for (const auto & [aStr1,aCpt1] :  aMap1)
      {
 	 if ( (TypeOfName(aStr1) ==  eRFS_TypeField::eUnused) || (TypeOfName(aStr1) ==  eRFS_TypeField::eBla))
@@ -54,7 +167,7 @@ void cNewReadFilesStruct::Check(std::map<std::string,size_t> & aMap1,std::map<st
                       MMVII_UserError
                       (
 		          eTyUEr::eUnClassedError,
-			  "dif bewteen specif & format for token="+aStr1 + " Cpt1=" + ToStr(aCpt1) + " Cpt2=" + ToStr(aCpt2)
+			  "dif between specif & format for token="+aStr1 + " Cpt1=" + ToStr(aCpt1) + " Cpt2=" + ToStr(aCpt2)
                      );
 		   }
 	      }
@@ -64,14 +177,21 @@ void cNewReadFilesStruct::Check(std::map<std::string,size_t> & aMap1,std::map<st
 
 eRFS_TypeField cNewReadFilesStruct::TypeOfName(const std::string & aName)
 {
+     // First test the specific user's defined rules if they exist
+     for (size_t aKPat = 0 ; aKPat<mPatIntFloatString.size() ; aKPat++)
+         if (MatchRegex(aName,mPatIntFloatString.at(aKPat)))
+            return eRFS_TypeField (aKPat);
+
+     // Two specific cases 
      if (aName== "?")
         return eRFS_TypeField::eUnused;
 
      if (aName== "Bla")
         return eRFS_TypeField::eBla;
 
+     // Now rules by prefix for Float, String, Int
      std::string aBeginF = "XYZWPKFS";
-     std::string aBeginS = "NI";
+     std::string aBeginS = "ANI";
      std::string aBeginI = "E";
 
      if (contains(aBeginF,aName.at(0))  )
@@ -137,52 +257,20 @@ void  cNewReadFilesStruct::ParseFormat(bool isSpec,const std::string & aFormat,s
     }
 }
 
-cNewReadFilesStruct::cNewReadFilesStruct(const std::string & aFormat,const std::string & aSpecifFMand,const std::string & aSpecifTot) :
-    mFormat  (aFormat),
-    mDebug   (false)
+
+
+// void cNewReadFilesStruct::ReadFile(const std::string & aNameFile,int aL0,int aNumLastL ,int aComment)
+
+
+void cNewReadFilesStruct::ReadFile(const std::string & aNameFile,const  cNRFS_ParamRead & aParam)
 {
-   ParseFormat(false,mFormat,mCptFields,mNameFields);
-   for (const auto & aStr: mNameFields)
-   {
-        mTypes.push_back(TypeOfName(aStr));
-	if (mTypes.back() == eRFS_TypeField::eBla && (mTypes.size()!=mNameFields.size()))
-	{
-           MMVII_UserError(eTyUEr::eUnClassedError,"\"Bla\" specification can only happen at end");
-	}
-   }
-
-
-   // Check that all the field of Format are in spec tot
-   {
-      std::map<std::string,size_t>    aCptSpecTot;
-      std::vector<std::string>        aNameSpecTot;
-      ParseFormat(true,aSpecifTot,aCptSpecTot,aNameSpecTot);
-
-      // StdOut() << "LLLL " << __LINE__ << "\n";
-      Check(mCptFields,aCptSpecTot,false);
-   }
-   // Check that all the field of spec mandatory are in Format 
-   {
-      std::map<std::string,size_t>    aCptSpecMand;
-      std::vector<std::string>        aNameSpecMand;
-      ParseFormat(true,aSpecifFMand,aCptSpecMand,aNameSpecMand);
-
-      // dOut() << "LLLL " << __LINE__ << "\n";
-      Check(aCptSpecMand,mCptFields,true);
-   }
-}
-
-void cNewReadFilesStruct::ReadFile(const std::string & aNameFile,int aL0,int aNumLastL ,int aComment)
-{
+   std::set<size_t>  aSetHCode;
 	 // std::map<std::string,std::vector<int> >          mMapInt;
 	 // std::map<std::string,std::vector<tREAL8> >       mMapFloat;
 	 // std::map<std::string,std::vector<std::string> >  mMapString;
     mMapInt.clear();
     mMapFloat.clear();
     mMapString.clear();
-
-    if (aNumLastL<=0)  
-       aNumLastL = 1e9;
 
     mNameFile = aNameFile;
     if (! ExistFile(mNameFile))
@@ -199,7 +287,12 @@ void cNewReadFilesStruct::ReadFile(const std::string & aNameFile,int aL0,int aNu
 
     while (std::getline(infile, line))
     {
-         if ((aNumL>=aL0) && (aNumL< aNumLastL))
+         size_t aHashCode = HashValue(line,true);
+         // must we skeep the line for duplicata reason
+         bool toSkip4Dupl = aParam.NoDupLine() && MapBoolFind(aSetHCode,aHashCode);
+
+
+         if ((aNumL>=aParam.L0()) && (aNumL< aParam.LLast())  && (!toSkip4Dupl) )
 	 {
              const char * aC = line.c_str();
              bool  GoOn = true;
@@ -207,7 +300,7 @@ void cNewReadFilesStruct::ReadFile(const std::string & aNameFile,int aL0,int aNu
 	     while (GoOn)
 	     {
                  while ( (isspace(*aC))  || (*aC==',')   ) aC++;
-                 if ((*aC==aComment) || (*aC==0))
+                 if ((*aC==aParam.Comment()) || (*aC==0))
 		 {
 		     GoOn= false;
 		     if ((aNbToken!=0) &&  (aNbToken != mTypes.size()))
@@ -224,10 +317,11 @@ void cNewReadFilesStruct::ReadFile(const std::string & aNameFile,int aL0,int aNu
                          MMVII_UserError(eTyUEr::eUnClassedError,"Too much token ");
 		      }
                       const char * aC0 = aC;
-		      while (*aC && (!isspace(*aC)) && (*aC!=aComment)  && (*aC!=','))
+		      while (*aC && (!isspace(*aC)) && (*aC!=aParam.Comment())  && (*aC!=','))
                             aC++;
 
 	              std::string aToken(aC0,size_t(aC-aC0));
+                      
 		      std::string aNameField = mNameFields.at(aNbToken);
 		      switch (mTypes.at(aNbToken))
 		      {
@@ -257,11 +351,52 @@ void cNewReadFilesStruct::ReadFile(const std::string & aNameFile,int aL0,int aNu
 	     }
 	     if (aNbToken>0)
 	        mNbLineRead++;
+             
+             aSetHCode.insert(aHashCode);
 	 }
 	 if (mDebug)
 	    StdOut() << "-------------------------------------------\n";
          aNumL++;
     }
+}
+
+
+cPt2dr cNewReadFilesStruct::GetPt2dr(size_t aKL,const std::string & aNX,const std::string & aNY) const
+{
+       AssertInit();
+       return cPt2dr(GetFloat(aNX,aKL),GetFloat(aNY,aKL));
+}
+
+cPt2dr cNewReadFilesStruct::GetPt2dr_XY(size_t aKL,const std::string & aPost) const
+{
+   return GetPt2dr(aKL,"X"+aPost,"Y"+aPost);
+}
+
+cPt3dr cNewReadFilesStruct::GetPt3dr(size_t aKL,const std::string & aNX,const std::string & aNY,const std::string & aNZ) const
+{
+       AssertInit();
+       return cPt3dr(GetFloat(aNX,aKL),GetFloat(aNY,aKL),GetFloat(aNZ,aKL));
+}
+
+cPt3dr cNewReadFilesStruct::GetPt3dr_XYZ(size_t aKL,const std::string & aPost) const
+{
+   return GetPt3dr(aKL,"X"+aPost,"Y"+aPost,"Z"+aPost);
+}
+
+
+
+std::string  cNewReadFilesStruct::MsgFormat(const std::string & aFormat)
+{
+    return "Format of file, according to specification :  " + Quote(aFormat ) ;
+}
+
+int cNewReadFilesStruct::DefCommentChar() {return '#';}
+
+std::string cNewReadFilesStruct::MakeSpecTot(const std::string& aMandatory,const std::string& aOpt)
+{
+  if (aOpt=="") 
+     return aMandatory;
+  return  aMandatory + " / " + aOpt;
 }
 
 /* ***************************************************************************************** */
@@ -283,23 +418,22 @@ class cBenchcNewReadFilesStruct
 		   const std::string& aSpecOpt,  // specification of all fields (mandatory+optionnal)
 		   int aFlagFields               // specify the fields that must be read
               );
-         void ReadFile(cNewReadFilesStruct & aNRFS) { aNRFS.ReadFile(mNameFile,mL0,mLLast ,mComment);}
+         void ReadFile(cNewReadFilesStruct & aNRFS) 
+	 { 
+	      aNRFS.ReadFile(mNameFile,mParamRead);
+	 }
 
       private :
-          std::string mNameFile;  ///<  name of file in MMVII test folders
-	  int         mL0;        ///< first line to read
-	  int         mLLast;     ///< last line to read
-	  int         mComment;   ///< comment char
 
+          std::string      mNameFile;  ///<  name of file in MMVII test folders
+          cNRFS_ParamRead  mParamRead;
 };
 
 
 
 cBenchcNewReadFilesStruct::cBenchcNewReadFilesStruct(int aNum) :
      mNameFile  (cMMVII_Appli::InputDirTestMMVII() + "TestParseFile"+ToStr(aNum) + ".txt"),
-     mL0        (2),
-     mLLast     (21),
-     mComment   ('#')
+     mParamRead (2,21,'#',true)
 {
 }
 
@@ -317,6 +451,7 @@ static const int FlagFc3 =  1<<7;
 static const int FlagFl3 =  1<<8;
 static const int FlagEL2 =  1<<9;
 
+static std::vector<std::string> TheVNames = {"Zero","One","Two"};  // "truth" to check the string values 
 
 
 void cBenchcNewReadFilesStruct::OneTest
@@ -329,10 +464,9 @@ void cBenchcNewReadFilesStruct::OneTest
 {
     // Test that we can create the  file, read the format, and test the number of line read
     cNewReadFilesStruct aNRFS(aFormat,aSpecMand,aSpecOpt);
-    aNRFS.ReadFile(mNameFile,mL0,mLLast ,mComment);
+    aNRFS.ReadFile(mNameFile,mParamRead);
     MMVII_INTERNAL_ASSERT_bench(aNRFS.NbLineRead()==3,"Bad nb lines in cBenchcNewReadFilesStruct");
 
-    std::vector<std::string> aVNames={"Zero","One","Two"};  // "truth" to check the string values 
 
     for (size_t aKLine=0 ; aKLine<aNRFS.NbLineRead() ; aKLine++)  // parse all lines
     {
@@ -341,14 +475,14 @@ void cBenchcNewReadFilesStruct::OneTest
            MMVII_INTERNAL_ASSERT_bench(aNRFS.GetValue<int>("El1",aKLine)==(int)aKLine,"BenchcNewReadF El0");
 
         if (aFlagT & FlagName)
-           MMVII_INTERNAL_ASSERT_bench(aNRFS.GetValue<std::string>("Name",aKLine)==aVNames.at(aKLine),"BenchcNewReadF Names");
+           MMVII_INTERNAL_ASSERT_bench(aNRFS.GetValue<std::string>("Name",aKLine)==TheVNames.at(aKLine),"BenchcNewReadF Names");
 
         if (aFlagT & FlagPi)
            MMVII_INTERNAL_ASSERT_bench(std::abs(aNRFS.GetValue<tREAL8>("Fpi",aKLine)-3.14)<1e-10,"BenchcNewReadF Pi");
 
         if (aFlagT & FlagFl1)
            MMVII_INTERNAL_ASSERT_bench(aNRFS.GetValue<tREAL8>("Fl1",aKLine)==aKLine,"BenchcNewReadF FL1");
-        MMVII_INTERNAL_ASSERT_bench(aNRFS.FieldIsKnow("Fl1")==((aFlagT & FlagFl1)!=0),"BenchcNewReadF FielIsKnos Fl1 ");
+        MMVII_INTERNAL_ASSERT_bench(aNRFS.FieldIsKnown("Fl1")==((aFlagT & FlagFl1)!=0),"BenchcNewReadF FielIsKnos Fl1 ");
 
 
         if (aFlagT & FlagFl2)
@@ -359,7 +493,7 @@ void cBenchcNewReadFilesStruct::OneTest
 
         if (aFlagT & FlagFc2)
            MMVII_INTERNAL_ASSERT_bench(aNRFS.GetValue<tREAL8>("Fc2",aKLine)==2,"BenchcNewReadF Fc1");
-        MMVII_INTERNAL_ASSERT_bench(aNRFS.FieldIsKnow("Fc2")==((aFlagT & FlagFc2)!=0),"BenchcNewReadF FielIsKnos Fc2 ");
+        MMVII_INTERNAL_ASSERT_bench(aNRFS.FieldIsKnown("Fc2")==((aFlagT & FlagFc2)!=0),"BenchcNewReadF FielIsKnos Fc2 ");
 
         if (aFlagT & FlagFc3)
            MMVII_INTERNAL_ASSERT_bench(aNRFS.GetValue<tREAL8>("Fc3",aKLine)==3,"BenchcNewReadF Fc1");
@@ -422,10 +556,16 @@ void BenchcNewReadFilesStruct(cParamExeBench & aParam)
         aBRNF.ReadFile(aNRFSAll);
         MMVII_INTERNAL_ASSERT_bench(aNRFSX6.NbLineRead()==3,"Bad nb lines in cBenchcNewReadFilesStruct");
 
-	//  Now Test the extension "Bla"
+	//  Now Test the extension "Bla" + the modification of typing by "SetPatternAddType"
         cBenchcNewReadFilesStruct  aBRNF2(2);  // Acces to second file
-        std::string aFormatXBla   ("X Name X ?? Fc1 Fc2 Fc3  XX Bla");
-	cNewReadFilesStruct aNRFSBla(aFormatXBla,aFormatXStar,aFormatXStarOpt);
+        std::string aFormatXBla   ("X Stringofthename  X ?? Fc1 Fc2 Fc3  XX Bla");
+
+	cNewReadFilesStruct aNRFSBla;
+	aNRFSBla.SetPatternAddType({"^$","^$","String.*"});
+        std::string aFormatXStarStr   ("X* Stringofthename  Fc1 Fc2 Fc3 ");
+        std::string aFormatXStarStrOpt  =  aFormatXStarStr + "Xtoto";
+        aNRFSBla.SetFormat(aFormatXBla,aFormatXStarStr,aFormatXStarStrOpt);
+
 	aBRNF2.ReadFile(aNRFSBla);
         MMVII_INTERNAL_ASSERT_bench(aNRFSBla.NbLineRead()==3,"Bad nb lines in cBenchcNewReadFilesStruct");
 
@@ -438,6 +578,8 @@ void BenchcNewReadFilesStruct(cParamExeBench & aParam)
             MMVII_INTERNAL_ASSERT_bench((aNRFSAll.GetValue<int>("El2",aKL)==aNRFSX6.GetKthValue<tREAL8>("X",aKL,5)),"BenchcNewReadF El0");
 
             MMVII_INTERNAL_ASSERT_bench((aNRFSAll.GetValue<tREAL8>("Fpi",aKL)==aNRFSBla.GetKthValue<tREAL8>("X",aKL,1)),"BenchcNewReadF El0");
+
+            MMVII_INTERNAL_ASSERT_bench(aNRFSBla.GetValue<std::string>("Stringofthename",aKL)==TheVNames.at(aKL),"BenchcNewReadF Stringofthename");
         }
     }
     aParam.EndBench();

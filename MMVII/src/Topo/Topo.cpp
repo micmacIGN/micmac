@@ -1,6 +1,5 @@
 #include "MMVII_Topo.h"
 #include "MMVII_PhgrDist.h"
-#include "topoinit.h"
 #include "../BundleAdjustment/BundleAdjustment.h"
 #include "cMMVII_Appli.h"
 #include <algorithm>
@@ -12,14 +11,14 @@ void cMMVII_BundleAdj::InitItereTopo()
 {
     if (mTopo)
     {
-        mTopo->FromData(mVGCP, mPhProj);
+        mTopo->FromData(mGCP, mPhProj);
         mTopo->AddToSys(mSetIntervUK); //after all is created
     }
 }
 
 
 cBA_Topo::cBA_Topo
-(cPhotogrammetricProject *aPhProj, cMMVII_BundleAdj* aBA)  :
+(cPhotogrammetricProject *aPhProj)  :
     mPhProj  (aPhProj),
     mTopoObsType2equation
     {
@@ -78,11 +77,11 @@ void cBA_Topo::clear()
     mIsReady = false;
 }
 
-void cBA_Topo::findPtsUnknowns(const std::vector<cBA_GCP*> & vGCP, cPhotogrammetricProject *aPhProj)
+void cBA_Topo::findPtsUnknowns(const cBA_GCP & aBA_GCP, cPhotogrammetricProject *aPhProj)
 {
     for (auto & [aName, aTopoPt] : getAllPts())
     {
-        aTopoPt.findUK(vGCP, aPhProj, aTopoPt.getInitCoord());
+        aTopoPt.findUK(aBA_GCP, aPhProj);
     }
 }
 
@@ -93,7 +92,7 @@ void cBA_Topo::ToFile(const std::string & aName) const
 }
 
 
-void cBA_Topo::AddPointsFromDataToGCP(cSetMesImGCP &aFullMesGCP, std::vector<cBA_GCP *> *aVGCP)
+void cBA_Topo::AddPointsFromDataToGCP(cBA_GCP &aBA_GCP)
 {
     // fill every ObsSet types
     if (!mAllTopoDataIn.mObsSetSimple.mObs.empty())
@@ -118,7 +117,6 @@ void cBA_Topo::AddPointsFromDataToGCP(cSetMesImGCP &aFullMesGCP, std::vector<cBA
         }
     }
 
-
     std::set<std::string> aAllPointsNames; //< will create cTopoPoints for all points refered to in observations
     for (const auto & aSet: mAllObsSets)
         for (const auto & aObs: aSet->getAllObs())
@@ -135,19 +133,7 @@ void cBA_Topo::AddPointsFromDataToGCP(cSetMesImGCP &aFullMesGCP, std::vector<cBA
     for (auto & aPointName: aAllPointsNames)
     {
         bool found = false;
-        if (aVGCP) // search for the point in all existing cBA_GCP
-            for (auto &aBA_GCP: *aVGCP)
-            {
-                for (auto &aMesGCP: aBA_GCP->mMesGCP->MesGCP())
-                {
-                    if (aMesGCP.mNamePt == aPointName)
-                    {
-                       found = true;
-                       break;
-                    }
-                }
-            }
-        for (auto &aMesGCP: aFullMesGCP.MesGCP()) // search in current MesGCP
+        for (auto &aMesGCP: aBA_GCP.getMesGCP().MesGCP())
         {
             if (aMesGCP.mNamePt == aPointName)
             {
@@ -159,17 +145,26 @@ void cBA_Topo::AddPointsFromDataToGCP(cSetMesImGCP &aFullMesGCP, std::vector<cBA
             aAllPointsNamesNotFound.insert(aPointName);
     }
 
+    cMes3DDirInfo * aMes3DDirInfo = nullptr;
+    if (!aAllPointsNamesNotFound.empty())
+    {
+        aMes3DDirInfo = cMes3DDirInfo::addMes3DDirInfo(aBA_GCP, "newTopoIn",
+                                          mPhProj?mPhProj->DPTopoMes().DirIn():"newTopoOut",1.0); // aDirNameIn and aSGlob are not used
+    }
+
     for (auto & aPointName: aAllPointsNamesNotFound)
     {
-        aFullMesGCP.Add1GCP( cMes1GCP(cPt3dr::Dummy(), aPointName) ); // points non-init
+        auto aMes3D = cMes1Gnd3D(cPt3dr::Dummy(), aPointName);
+        aMes3D.mMesDirInfo = aMes3DDirInfo;
+        aBA_GCP.getMesGCP().Add1GCP( aMes3D ); // points non-init
     }
 
     mAllTopoDataIn.clear(); // if this function is called again, nothing more to add
 }
 
-void cBA_Topo::FromData(const std::vector<cBA_GCP *> & vGCP, cPhotogrammetricProject *aPhProj)
+void cBA_Topo::FromData(const cBA_GCP & aBA_GCP, cPhotogrammetricProject *aPhProj)
 {
-    findPtsUnknowns(vGCP, aPhProj);
+    findPtsUnknowns(aBA_GCP, aPhProj);
 
     // initialization
     tryInitAll();
@@ -236,7 +231,7 @@ void cBA_Topo::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSetInterUK)
         aSetInterUK.AddOneObj(anObsSet);
 }
 
-bool cBA_Topo::mergeUnknowns(cResolSysNonLinear<tREAL8> &aSys)
+bool cBA_Topo::mergeUnknowns()
 {
     bool ok = true;
     for (auto &set: mAllObsSets)
@@ -291,7 +286,7 @@ const cTopoPoint & cBA_Topo::getPoint(std::string name) const
 void cBA_Topo::SetFrozenAndSharedVars(cResolSysNonLinear<tREAL8> & aSys)
 {
      // create unknowns for all stations
-     mergeUnknowns(aSys); //
+     mergeUnknowns(); //
      makeConstraints(aSys);
 }
 
@@ -329,10 +324,11 @@ void cBA_Topo::AddTopoEquations(cResolSysNonLinear<tREAL8> & aSys)
 
 bool cBA_Topo::tryInitAll()
 {
-    // get all stations ordered by origin to optimize research
     for (auto & aSet: mAllObsSets)
         aSet->initialize(); // to get origin point for stations
-    tStationsMap allStations;
+
+    // get all stations ordered by origin to optimize research
+    mAllStations.clear();
     for (auto & aSet: mAllObsSets)
     {
         if (aSet->getType() ==  eTopoObsSetType::eStation)
@@ -340,11 +336,12 @@ bool cBA_Topo::tryInitAll()
             cTopoObsSetStation* set = dynamic_cast<cTopoObsSetStation*>(aSet);
             if (!set)
                 MMVII_INTERNAL_ERROR("error set type")
-            allStations[set->getPtOrigin()].push_back(set);
+            mAllStations[set->getPtOrigin()].push_back(set);
         }
     }
 
-    tSimpleObsMap allSimpleObs; // obs from simple sets, in all directions
+    // get all obs from simple stations in both directions
+    mAllSimpleObs.clear();
     for (auto & aSet: mAllObsSets)
     {
         if (aSet->getType() ==  eTopoObsSetType::eSimple)
@@ -357,8 +354,8 @@ bool cBA_Topo::tryInitAll()
                 if (aObs->getPointNames().size()==2)
                 {
                     // those 2-point obs are recorded for both points
-                    allSimpleObs[&getPoint(aObs->getPointName(0))].push_back( aObs );
-                    allSimpleObs[&getPoint(aObs->getPointName(1))].push_back( aObs );
+                    mAllSimpleObs[&getPoint(aObs->getPointName(0))].push_back( aObs );
+                    mAllSimpleObs[&getPoint(aObs->getPointName(1))].push_back( aObs );
                 }
             }
         }
@@ -381,7 +378,7 @@ bool cBA_Topo::tryInitAll()
 
         for (auto& [aName, aTopoPt] : mAllPts)
             if (!aTopoPt.isInit())
-                tryInit(aTopoPt, allStations, allSimpleObs);
+                tryInit(aTopoPt, mAllStations, mAllSimpleObs);
         for (auto & aSet: mAllObsSets)
             if (!aSet->isInit())
                 aSet->initialize();
@@ -405,8 +402,8 @@ bool cBA_Topo::tryInit(cTopoPoint & aPtToInit, tStationsMap &stationsMap, tSimpl
 #ifdef VERBOSE_TOPO
     StdOut() << "tryInit: " << aPtToInit.getName() <<".\n";
 #endif
-    bool ok =    tryInit3Obs1Station(aPtToInit, stationsMap, allSimpleObs)
-              || tryInitVertStations(aPtToInit, stationsMap, allSimpleObs)
+    bool ok =    tryInit3Obs1Station(aPtToInit)
+              || tryInitVertStations(aPtToInit)
                  ;
 #ifdef VERBOSE_TOPO
     if (ok)
@@ -417,7 +414,7 @@ bool cBA_Topo::tryInit(cTopoPoint & aPtToInit, tStationsMap &stationsMap, tSimpl
 
 //-------------------------------------------------------------------
 
-void BenchTopoComp1example(const std::pair<cTopoData, cSetMesGCP>& aBenchData, tREAL4 targetSigma0)
+void BenchTopoComp1example(const std::pair<cTopoData, cSetMesGnd3D>& aBenchData, tREAL4 targetSigma0)
 {
     double aLVM = 0.;
     int aNbIter = 15;
@@ -427,15 +424,14 @@ void BenchTopoComp1example(const std::pair<cTopoData, cSetMesGCP>& aBenchData, t
     cBA_Topo * aTopo = aBA.getTopo();
     aTopo->mAllTopoDataIn.InsertTopoData(aBenchData.first);
 
-    cSetMesImGCP aMesGCPtmp;
-    aMesGCPtmp.AddMes3D(aBenchData.second);
-    aTopo->AddPointsFromDataToGCP(aMesGCPtmp, nullptr);
+    cSetMesGnd3D aMesGCP3Dtmp = aBenchData.second;
+    cMes3DDirInfo * aMes3DDirInfo = cMes3DDirInfo::addMes3DDirInfo(aBA.getGCP(), "in","out",1.0);
+    aBA.AddGCP3D(aMes3DDirInfo, aMesGCP3Dtmp, false);
+    aTopo->AddPointsFromDataToGCP(aBA.getGCP());
     //here no 2d mes, fake it
-    cSetMesPtOf1Im aSetMesIm;
-    aMesGCPtmp.AddMes2D(aSetMesIm);
-    cSetMesImGCP * aMesGCP = aMesGCPtmp.FilterNonEmptyMeasure(0);
-
-    aBA.AddGCP("topo", 1., {}, aMesGCP, false);
+    cMes2DDirInfo * aMes2DDirInfo = cMes2DDirInfo::addMes2DDirInfo(aBA.getGCP(), "in",cStdWeighterResidual());
+    cSetMesPtOf1Im aSetMesPtOf1Im;
+    aBA.AddGCP2D(aMes2DDirInfo, aSetMesPtOf1Im, nullptr, eLevelCheck::NoCheck);
 
     for (int aKIter=0 ; aKIter<aNbIter ; aKIter++)
     {
@@ -444,7 +440,7 @@ void BenchTopoComp1example(const std::pair<cTopoData, cSetMesGCP>& aBenchData, t
 
     aTopo->ToFile(cMMVII_Appli::TmpDirTestMMVII()+"bench-out.json");
 
-    // StdOut() << "TOPOOOERR=" << std::abs(aTopo.Sigma0()-targetSigma0) << "\n";
+    // StdOut() << "TOPOOOERR=" << std::abs(aTopo->Sigma0()-targetSigma0) << "\n";
     MMVII_INTERNAL_ASSERT_bench(std::abs(aTopo->Sigma0()-targetSigma0)<1e-5,"TopoComp sigma0 final");
 }
 

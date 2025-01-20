@@ -179,10 +179,10 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecMatchTieP);
 	TheVecAll.push_back(&TheSpec_TiePConv);
 	TheVecAll.push_back(&TheSpec_ToTiePMul);
+        TheVecAll.push_back(&TheSpec_PseudoIntersect);
         TheVecAll.push_back(&TheSpecEpipGenDenseMatch);
         TheVecAll.push_back(&TheSpecEpipDenseMatchEval);
         TheVecAll.push_back(&TheSpecGenSymbDer);
-        TheVecAll.push_back(&TheSpecKapture);
         TheVecAll.push_back(&TheSpecFormatTDEDM_WT);
         TheVecAll.push_back(&TheSpecFormatTDEDM_MDLB);
         TheVecAll.push_back(&TheSpecExtractLearnVecDM);
@@ -234,6 +234,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_TiePReport);
         TheVecAll.push_back(&TheSpec_SegImReport);
         TheVecAll.push_back(&TheSpec_BlockCamInit);  // RIGIDBLOC    RB_0_0
+        TheVecAll.push_back(&TheSpec_Wire3DInit);
         TheVecAll.push_back(&TheSpec_ClinoInit);
         TheVecAll.push_back(&TheSpecRename);
         TheVecAll.push_back(&TheSpec_V2ImportCalib);
@@ -246,6 +247,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_CreateCalib);
         TheVecAll.push_back(&TheSpec_ImportTiePMul);
         TheVecAll.push_back(&TheSpec_ImportMesImGCP);
+        TheVecAll.push_back(&TheSpec_ImportClino);
         TheVecAll.push_back(&TheSpecImportExtSens);
         TheVecAll.push_back(&TheSpecTestSensor);
         TheVecAll.push_back(&TheSpecParametrizeSensor);
@@ -256,6 +258,10 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecAppliExtractLine);
         TheVecAll.push_back(&TheSpec_CERN_ImportClino);
         TheVecAll.push_back(&TheSpec_MMV2_MesIm_2_MMV1);
+        TheVecAll.push_back(&TheSpec_MergeMesImGCP);
+        TheVecAll.push_back(&TheSpec_ExifData);
+        TheVecAll.push_back(&TheSpec_PerturbRandomOri);
+
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }

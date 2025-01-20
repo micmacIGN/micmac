@@ -654,7 +654,8 @@ cCollecSpecArg2007 & cAppli_UncalibSpaceResection::ArgObl(cCollecSpecArg2007 & a
 {
       return anArgObl
               << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
-              <<  mPhProj.DPPointsMeasures().ArgDirInMand()
+              <<  mPhProj.DPGndPt3D().ArgDirInMand()
+              <<  mPhProj.DPGndPt2D().ArgDirInMand()
               <<  mPhProj.DPOrient().ArgDirOutMand()
            ;
 }
@@ -816,7 +817,7 @@ int cAppli_UncalibSpaceResection::Exe()
 	{
             DoMedianCalib();
 	}
-        mPhProj.CpSysIn2Out(false,true);
+        mPhProj.CpSysCoIn2Out(false,true);
 
         return EXIT_SUCCESS;
     }
@@ -828,7 +829,7 @@ int cAppli_UncalibSpaceResection::Exe()
     StdOut() <<  "Nb Measures=" << mSet23.NbPair() << std::endl;
 
 
-    cPt2di aSz =  cDataFileIm2D::Create(aNameIm,false).Sz();
+    cPt2di aSz =  cDataFileIm2D::Create(aNameIm,eForceGray::No).Sz();
     cSensorCamPC *  aCam0 =  cSensorCamPC::CreateUCSR(mSet23,aSz,aNameIm,mReal16);
 
      
@@ -840,7 +841,7 @@ int cAppli_UncalibSpaceResection::Exe()
     mPhProj.SaveCamPC(*aCam0);
 
     if (LevelCall()==0)
-        mPhProj.CpSysIn2Out(false,true);
+        mPhProj.CpSysCoIn2Out(false,true);
     delete aCam0;
     return EXIT_SUCCESS;
 };
@@ -863,7 +864,7 @@ cSpecMMVII_Appli  TheSpec_OriUncalibSpaceResection
       Alloc_UncalibSpaceResection,
       "Pose estimation from GCP, uncalibrated case",
       {eApF::Ori},
-      {eApDT::GCP},
+      {eApDT::ObjCoordWorld, eApDT::ObjMesInstr},
       {eApDT::Orient},
       __FILE__
 );

@@ -1127,9 +1127,9 @@ cInterpolSinusCardinal<TypeEl>::cInterpolSinusCardinal(int sizeOfWindow, bool ap
 template <class TypeEl>
 cInterpolSinusCardinal<TypeEl>::~cInterpolSinusCardinal()
 {
-  delete m_tabX;
-  delete m_tabY;
-  delete m_tabTemp;
+  delete [] m_tabX;
+  delete [] m_tabY;
+  delete [] m_tabTemp;
 }
 
 

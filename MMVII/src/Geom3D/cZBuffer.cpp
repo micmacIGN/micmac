@@ -128,14 +128,10 @@ cZBuffer::cZBuffer(cTri3DIterator & aMesh,const tSet &  aSetIn,const tMap & aMap
     cPt3dr aPIn;
 
     mMesh.ResetAll();
-    int aCptTot=0;
-    int aCptIn=0;
     while (mMesh.GetNextPoint(aPIn))
     {
-        aCptTot++;
         if (mSetIn.InsideWithBox(aPIn))
         {
-            aCptIn++;
             cPt3dr aPOut = mMapI2O.Value(aPIn);
 
             if (mSetOut.InsideWithBox(aPOut))

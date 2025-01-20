@@ -19,7 +19,7 @@ namespace {
         if ((aPJ==nullptr) || (proj_errno(aPJ)))
         {
             int aProjErrorNo = proj_errno(aPJ);
-            std::string aStrErrorDescr = aProjErrorNo>0 ? proj_errno_string(proj_errno(aPJ)): " Panic! Check your proj installation.";
+            std::string aStrErrorDescr = aProjErrorNo>0 ? proj_errno_string(proj_errno(aPJ)): " Panic! Check your definition or proj installation.";
             MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eSysCo,
                                        std::string("Error in SysCo conversion creation from \"")
                                        +aDefFrom+"\" to \""+aDefTo+"\": "+aStrErrorDescr)

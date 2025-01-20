@@ -66,8 +66,7 @@ namespace MMVII
         std::string aCameraName = "001";
 
         // Create aCalibSetClino
-        cCalibSetClino* aCalibSetClino = new cCalibSetClino(aCameraName, aVCalibClino);
-        cBA_Clino aBAClino(nullptr, aCalibSetClino);
+        cBA_Clino aBAClino(nullptr);
 
         aBAClino.setVNamesClino({"C1", "C2"});
         
@@ -170,9 +169,9 @@ namespace MMVII
         }
     }
 
-    void AddGCP(const std::string& aPName, const cPt3dr& aCoords, const cSensorCamPC& aSensorCamPC, cSetMesGCP& aSetMesGCP, cSetMesPtOf1Im& aSetMesPtOf1Im, const tREAL8& aSigma){
+    void AddGCP(const std::string& aPName, const cPt3dr& aCoords, const cSensorCamPC& aSensorCamPC, cSetMesGnd3D& aSetMesGCP, cSetMesPtOf1Im& aSetMesPtOf1Im, const tREAL8& aSigma){
         cPt2dr aP1Image = aSensorCamPC.Ground2Image(aCoords);
-        aSetMesGCP.AddMeasure(cMes1GCP(aCoords, aPName, 0.0));
+        aSetMesGCP.AddMeasure3D(cMes1Gnd3D(aCoords, aPName, 0.0));
         aSetMesPtOf1Im.AddMeasure(cMesIm1Pt(aP1Image, aPName, aSigma));
     }
 
@@ -252,8 +251,7 @@ namespace MMVII
         std::string aClinoName = "aClino1";
         cOneCalibClino aCalibClino(aClinoName);
         std::vector<cOneCalibClino>aVCalibClino({aCalibClino});
-        cCalibSetClino* aCalibSetClino = new cCalibSetClino(aCameraName, aVCalibClino);
-        cBA_Clino* aBAClino = new cBA_Clino(nullptr, aCalibSetClino);
+        cBA_Clino* aBAClino = new cBA_Clino(nullptr);
         
         // Create clino measures
         std::vector<std::string>aVClinoName({aCalibClino.NameClino()});
@@ -279,21 +277,18 @@ namespace MMVII
         // Now, only orientation of camera is not frozen
 
         // Add GCPs
-        cSetMesGCP aSetMesGCP = cSetMesGCP();
+        cSetMesGnd3D aSetMesGCP = cSetMesGnd3D();
         cSetMesPtOf1Im aSetMesPtOf1Im = cSetMesPtOf1Im();
 
         for (auto & [aPName, aCoords] : mVPoints)
         {
             AddGCP(aPName, aCoords, aSensorCamPC, aSetMesGCP, aSetMesPtOf1Im, aGCPSigma);
         }
-        
-        cSetMesImGCP* aSetMesImGCP = new cSetMesImGCP();
-        aSetMesImGCP->AddMes3D(aSetMesGCP);
-        aSetMesImGCP->AddMes2D(aSetMesPtOf1Im, &aNewSensorCamPC);
-        
         // Solve least squares
-        cStdWeighterResidual aStdWeighterResidual = cStdWeighterResidual();
-        aBundleAdj->AddGCP("aGCP", 0.0, aStdWeighterResidual, aSetMesImGCP);
+        cMes3DDirInfo * aMes3DDirInfo = cMes3DDirInfo::addMes3DDirInfo(aBundleAdj->getGCP(),"in","out",0.0); // fixed 3d
+        aBundleAdj->AddGCP3D(aMes3DDirInfo, aSetMesGCP);
+        cMes2DDirInfo * aMes2DDirInfo = cMes2DDirInfo::addMes2DDirInfo(aBundleAdj->getGCP(),"in",cStdWeighterResidual());
+        aBundleAdj->AddGCP2D(aMes2DDirInfo, aSetMesPtOf1Im,&aNewSensorCamPC);
 
         for (int aKIter=0 ; aKIter<20 ; aKIter++)
         {
@@ -374,8 +369,7 @@ namespace MMVII
         std::string aClinoName2 = "aClino2";
         cOneCalibClino aCalibClino2(aClinoName2);
         std::vector<cOneCalibClino>aVCalibClino({aCalibClino, aCalibClino2});
-        cCalibSetClino* aCalibSetClino = new cCalibSetClino(aCameraName, aVCalibClino);
-        cBA_Clino* aBAClino = new cBA_Clino(nullptr, aCalibSetClino);
+        cBA_Clino* aBAClino = new cBA_Clino(nullptr);
         
         // Create clino measures
         std::vector<std::string>aVClinoName({aCalibClino.NameClino(), aCalibClino2.NameClino()});
@@ -402,7 +396,7 @@ namespace MMVII
         // Now, only orientation and position of camera are not frozen
 
         // Add GCPs
-        cSetMesGCP aSetMesGCP = cSetMesGCP();
+        cSetMesGnd3D aSetMesGCP = cSetMesGnd3D();
         cSetMesPtOf1Im aSetMesPtOf1Im = cSetMesPtOf1Im();
 
         for (auto & [aPName, aCoords] : mVPoints)
@@ -410,13 +404,13 @@ namespace MMVII
             AddGCP(aPName, aCoords, aSensorCamPC, aSetMesGCP, aSetMesPtOf1Im, aGCPSigma);
         }
         
-        cSetMesImGCP* aSetMesImGCP = new cSetMesImGCP();
-        aSetMesImGCP->AddMes3D(aSetMesGCP);
-        aSetMesImGCP->AddMes2D(aSetMesPtOf1Im, &aNewSensorCamPC);
         
         // Solve least squares
-        cStdWeighterResidual aStdWeighterResidual = cStdWeighterResidual();
-        aBundleAdj->AddGCP("aGCP", 0.0, aStdWeighterResidual, aSetMesImGCP);
+        cMes3DDirInfo * aMes3DDirInfo = cMes3DDirInfo::addMes3DDirInfo(aBundleAdj->getGCP(),"in","out",0.0); // fixed 3d
+        aBundleAdj->AddGCP3D(aMes3DDirInfo, aSetMesGCP);
+        cMes2DDirInfo * aMes2DDirInfo = cMes2DDirInfo::addMes2DDirInfo(aBundleAdj->getGCP(),"in",cStdWeighterResidual());
+        aBundleAdj->AddGCP2D(aMes2DDirInfo, aSetMesPtOf1Im,&aNewSensorCamPC);
+
 
         for (int aKIter=0 ; aKIter<20 ; aKIter++)
         {

@@ -49,7 +49,7 @@ struct  cExportV1StenopeCalInterne
 void ImportMesImV1(std::list<cSetMesPtOf1Im>  &,const std::string & aNameFileMesImV1);
 
 ///  Import a file of measures ground-control-points in V1 format in a V2 structure
-cSetMesGCP ImportMesGCPV1(const std::string & aNameFileMesGCPV1,const std::string & aNameSet);
+cSetMesGnd3D ImportMesGCPV1(const std::string & aNameFileMesGCPV1,const std::string & aNameSet);
 
 
 

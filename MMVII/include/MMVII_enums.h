@@ -43,11 +43,13 @@ enum class eTA2007
                 MeshDev,       ///< Mesh Devlopment
                 Mask,          ///< Mask of image
                 MetaData,      ///< Meta data images
-                PointsMeasure, ///< Measure of point , 2D or 3D
+                ObjCoordWorld,       ///< 3D Measure/coords of ground points
+                ObjMesInstr,       ///< 2D Measure/coords of ground points
                 TieP,          ///< Tie Points
                 MulTieP,       ///< Multiple Tie Points
                 RigBlock,      ///< Rigid bloc    // RIGIDBLOC
                 Clino,         ///< Clinometer
+                MeasureClino,  ///< Clinometer
                 Topo,          ///< Topo
                 SysCo,         ///< System coord
                 Input,         ///< Is this parameter used as input/read
@@ -81,13 +83,14 @@ enum class eApF
                SysCo,        ///< Coordinate system
                Ori,        ///< Orientation
                Match,      ///< Dense Matching
-               GCP,       ///< Tie-Point processing
+               GCP,        ///< Ground point processing
                TieP,       ///< Tie-Point processing
                Lines,       ///< Lines processing
                TiePLearn,    ///< Tie-Point processing  - Learning step
                Cloud,       ///< Cloud processing
                CodedTarget,  ///< Coded target (generate, match )
                Topo,        ///< Topo survey
+               Simul,       ///< Simulation of datas
                NoGui,        ///< Will not have a GUI frontend
                Perso,      ///< Personnal
                eNbVals     ///< Tag for number of value
@@ -141,7 +144,8 @@ enum class eApDT
               Ori,    ///< Orientation
               PCar,   ///< Tie Points
               TieP,   ///< Tie Points
-              GCP,   ///< Tie Points
+              ObjMesInstr,  ///< Ground Points image coords
+              ObjCoordWorld,  ///< Ground Points ground coords
               Lines,   ///< Tie Points
               Image,   ///< Image
               Orient,   ///< Orientations files

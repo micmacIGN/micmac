@@ -1,5 +1,4 @@
 #include "MMVII_PCSens.h"
-#include "MMVII_MMV1Compat.h"
 #include "MMVII_DeclareCste.h"
 #include "MMVII_BundleAdj.h"
 #include "MMVII_2Include_Serial_Tpl.h"
@@ -54,6 +53,8 @@ class cAppli_ImportTiePMul : public cMMVII_Appli
         tNameSet                   mSetFilterIm;
 	bool                       mWithImFilter;
 	cMMVII_Ofs *               mFiltFile;
+        cPt2dr                     mOffset;
+        tREAL8                     mTolDupl;  ///< tolerance for accepting duplicata
 
 };
 
@@ -68,7 +69,9 @@ cAppli_ImportTiePMul::cAppli_ImportTiePMul(const std::vector<std::string> & aVAr
    mFileSelIm    ("ImagesWithTieP"),
    mNumByConseq  (false),
    mWithImFilter (false),
-   mFiltFile     (nullptr)
+   mFiltFile     (nullptr),
+   mOffset       (0,0),
+   mTolDupl      (-1.0)
 {
 }
 
@@ -85,7 +88,7 @@ cCollecSpecArg2007 & cAppli_ImportTiePMul::ArgObl(cCollecSpecArg2007 & anArgObl)
               <<  mPhProj.DPMulTieP().ArgDirOutMand();
    else
       return      aRes
-              <<  mPhProj.DPPointsMeasures().ArgDirOutMand();
+              <<  mPhProj.DPGndPt2D().ArgDirOutMand();
 }
 
 cCollecSpecArg2007 & cAppli_ImportTiePMul::ArgOpt(cCollecSpecArg2007 & anArgObl) 
@@ -97,6 +100,7 @@ cCollecSpecArg2007 & cAppli_ImportTiePMul::ArgOpt(cCollecSpecArg2007 & anArgObl)
             << AOpt2007(mPatIm,"PatIm","Pattern for transforming name [Pat,Replace]",{{eTA2007::ISizeV,"[2,2]"}})
             << AOpt2007(mPatPt,"PatPt","Pattern for transforming/select pt [Pat,Replace] ",{{eTA2007::ISizeV,"[2,2]"}})
             << AOpt2007(mImFilter,"ImFilter","File/Pattern for selecting images")
+            << AOpt2007(mOffset,"Offset","Offset to add to image measures",{eTA2007::HDV})
    ;
    if (mModeTieP)
       return      aRes
@@ -106,6 +110,7 @@ cCollecSpecArg2007 & cAppli_ImportTiePMul::ArgOpt(cCollecSpecArg2007 & anArgObl)
             ;
    else
       return      aRes
+               << AOpt2007(mTolDupl,"TolDupl","Tolerance for accepting duplicate points",{eTA2007::HDV})
            ;
 }
 
@@ -162,7 +167,7 @@ int cAppli_ImportTiePMul::Exe()
                 aNameI = ReplacePattern(mPatIm.at(0),mPatIm.at(1),aNameI);
 
 
-             cPt2dr aP2 = Proj(aVXYZ.at(aK));
+             cPt2dr aP2 = Proj(aVXYZ.at(aK)) + mOffset;
              bool  ImIsSel = true;
              if (mWithImFilter)
                  ImIsSel =  mSetFilterIm.Match(aNameI);
@@ -199,7 +204,9 @@ int cAppli_ImportTiePMul::Exe()
                     {
                         mMapGCP[aNameI] = new cSetMesPtOf1Im(aNameI);
                     }
-                    mMapGCP[aNameI]->AddMeasure(cMesIm1Pt(aP2,aNamePt,1.0));
+                    // mMapGCP[aNameI]->AddMeasure(cMesIm1Pt(aP2,aNamePt,1.0));
+                    // we dont accept duplicate point
+                    mMapGCP[aNameI]->AddMeasureIfNew(cMesIm1Pt(aP2,aNamePt,1.0),mTolDupl);
                 }
              }
          }
@@ -268,7 +275,7 @@ cSpecMMVII_Appli  TheSpec_ImportTiePMul
 
 /*********************************************************************/
 /*                                                                   */
-/*                       ImportMesImGCP                              */
+/*                         ImportMesImGCP                            */
 /*                                                                   */
 /*********************************************************************/
 
@@ -281,10 +288,10 @@ cSpecMMVII_Appli  TheSpec_ImportMesImGCP
 (
      "ImportMesImGCP",
       Alloc_ImportMesImGCP,
-      "Import/Convert basic Mes Im GCP MMVII format",
+      "Import/Convert basic image point measures into MMVII format",
       {eApF::GCP},
-      {eApDT::GCP},
-      {eApDT::GCP},
+      {eApDT::ObjMesInstr},
+      {eApDT::ObjMesInstr},
       __FILE__
 );
 

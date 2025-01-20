@@ -41,6 +41,7 @@ cOneLineAntiParal cParalLine::GetLAP(const cPerspCamIntrCalib & aCalib) const
    aOLAP.mRadHom = mRadHom;
    aOLAP.mWidth  = mWidth;
    aOLAP.mCumul  = mScoreMatch;
+   aOLAP.mSigmaLine = (mVHS.at(0).SigmaL() + mVHS.at(1).SigmaL()) / 2.0;
    
    return aOLAP;
 }
@@ -161,7 +162,6 @@ void ShowImProfile(const cDataIm1D<tREAL8> &  anIm,const std::string & aName)
 void  cParalLine::ComputeRadiomHomog(const cDataGenUnTypedIm<2> & anIm,cPerspCamIntrCalib * aCalib,const std::string & aNameFile) 
 {
 // StdOut() << "aNameFileaNameFileaNameFileaNameFile " << aNameFile << "\n";
-    static int aCPT=0; aCPT++;
 
     cSegment2DCompiled<tREAL8>  aSegFull = aCalib->ExtenSegUndistIncluded(false,mMidleSeg,0.05,1.0,5.0);
 
@@ -231,14 +231,16 @@ cHoughPS::cHoughPS(const cHoughTransform * aHT,const cPt2dr & aTR,tREAL8 aCumul,
     mHT          (aHT),
     mTetaRho     (aTR),
     mCumul       (aCumul),
+    mSigmaL      (-1),     // undef
     mSegE        (aP1,aP2),
     mCode        (eCodeHPS::Ok)
 {
 }
 
-void cHoughPS::UpdateSegImage(const tSeg & aNewSeg,tREAL8 aNewCumul)
+void cHoughPS::UpdateSegImage(const tSeg & aNewSeg,tREAL8 aNewCumul,tREAL8 aSigma)
 {
     mCumul = aNewCumul;
+    mSigmaL = aSigma;
     mSegE = aNewSeg;
     mTetaRho = mHT->Line2PtInit(aNewSeg);
 }
@@ -260,6 +262,7 @@ const cPt2dr & cHoughPS::TetaRho() const {return mTetaRho;}
 const tREAL8 & cHoughPS::Teta()    const {return mTetaRho.x();}
 const tREAL8 & cHoughPS::Rho()     const {return mTetaRho.y();}
 const tREAL8 & cHoughPS::Cumul()     const {return mCumul;}
+const tREAL8 & cHoughPS::SigmaL()     const {return mSigmaL;}
 // cHoughPS * cHoughPS::Matched() const {return mMatched;}
 eCodeHPS  cHoughPS::Code() const  {return mCode;}
 void cHoughPS::SetCode(eCodeHPS aCode) {  mCode = aCode;}
@@ -307,9 +310,9 @@ bool cHoughPS::Match(const cHoughPS & aPS2,bool IsLight,tREAL8 aMaxTeta,tREAL8 a
 }
 
 
-std::vector<cPt2di> cHoughPS::GetMatches(std::vector<cHoughPS>&  aVPS,bool IsLight,tREAL8 aMaxTeta,tREAL8 aDMin,tREAL8 aDMax)
+std::vector<std::pair<int,int>> cHoughPS::GetMatches(const std::vector<cHoughPS>&  aVPS,bool IsLight,tREAL8 aMaxTeta,tREAL8 aDMin,tREAL8 aDMax)
 {
-     std::vector<cPt2di>    aVMatches;
+     std::vector<std::pair<int,int>>    aVMatches;
      std::vector<int>       aIndM( aVPS.size(),-1);
      std::vector<tREAL8>    aCostM( aVPS.size(),1e30);
 
@@ -341,7 +344,7 @@ std::vector<cPt2di> cHoughPS::GetMatches(std::vector<cHoughPS>&  aVPS,bool IsLig
           // test to get only one way && reciprocity
           if ((aIndM[aK] > aK) && (aIndM[aIndM[aK]] == aK))
           {
-              aVMatches.push_back(cPt2di(aK,aIndM[aK]));
+              aVMatches.push_back(std::pair<int,int>(aK,aIndM[aK]));
           }
      }
      return aVMatches;

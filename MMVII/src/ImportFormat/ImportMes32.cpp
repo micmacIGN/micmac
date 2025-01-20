@@ -1,5 +1,4 @@
 #include "MMVII_PCSens.h"
-#include "MMVII_MMV1Compat.h"
 #include "MMVII_DeclareCste.h"
 #include "MMVII_BundleAdj.h"
 #include "MMVII_2Include_Serial_Tpl.h"
@@ -63,10 +62,11 @@ cAppli_ImportM32::cAppli_ImportM32(const std::vector<std::string> & aVArgs,const
 cCollecSpecArg2007 & cAppli_ImportM32::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
     return anArgObl
-	      <<  Arg2007(mNameFile ,"Name of Input File",{eTA2007::FileAny})
-	      <<  Arg2007(mFormat   ,"Format of file as for ex \"SijXYZS\" ")
-              <<  mPhProj.DPPointsMeasures().ArgDirOutMand()
-           ;
+          <<  Arg2007(mNameFile ,"Name of Input File",{eTA2007::FileAny})
+          <<  Arg2007(mFormat   ,"Format of file as for ex \"SijXYZS\" ")
+          <<  mPhProj.DPGndPt3D().ArgDirOutMand()
+          <<  mPhProj.DPGndPt2D().ArgDirOutMand()
+          ;
 }
 
 cCollecSpecArg2007 & cAppli_ImportM32::ArgOpt(cCollecSpecArg2007 & anArgObl) 
@@ -95,7 +95,7 @@ int cAppli_ImportM32::Exe()
        // create structur to import in MMVII representation
     if (mAddIm2NamePt)
         mNameGCP = mNameGCP + mNameImage;
-    cSetMesGCP aSetGCP(mNameGCP);
+    cSetMesGnd3D aSetGCP(mNameGCP);
     cSetMesPtOf1Im aSetIm(mNameImage);
 
        // parse all object to push them in low MVVII
@@ -109,15 +109,15 @@ int cAppli_ImportM32::Exe()
          {
             aNamePt = aNamePt + "_" + mNameImage;
          }
-	 cMes1GCP aMesGCP(aP3,aNamePt,1.0);
+	 cMes1Gnd3D aMesGCP(aP3,aNamePt,1.0);
 	 cMesIm1Pt aMesIm(aP2,aNamePt,1.0);
 
-	 aSetGCP.AddMeasure(aMesGCP);
+	 aSetGCP.AddMeasure3D(aMesGCP);
          aSetIm.AddMeasure(aMesIm);
     }
 
        // save object
-    mPhProj.SaveGCP(aSetGCP);
+    mPhProj.SaveGCP3D(aSetGCP);
     mPhProj.SaveMeasureIm(aSetIm);
 
     if (mPhProj.SysCoIsInit())
@@ -146,8 +146,8 @@ cSpecMMVII_Appli  TheSpec_ImportM32
       Alloc_ImportM32,
       "Import/Convert Set of 3d-2d corresspondances",
       {eApF::GCP},
-      {eApDT::GCP},
-      {eApDT::GCP},
+      {eApDT::ObjCoordWorld, eApDT::ObjMesInstr},
+      {eApDT::ObjCoordWorld, eApDT::ObjMesInstr},
       __FILE__
 );
 #if (0)

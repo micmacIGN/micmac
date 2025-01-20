@@ -1,9 +1,12 @@
 #include "V1VII.h"
+
 #include "MMVII_util.h"
 #include "MMVII_MeasuresIm.h"
 
 namespace MMVII
 {
+
+#if (MMVII_KEEP_LIBRARY_MMV1)
 cHomogCpleIm  ToMMVII(const cNupletPtsHomologues &  aNUp) 
 {
 
@@ -75,13 +78,26 @@ void  cImportHomV1::GetHom(cSetHomogCpleIm & aPackV2,const std::string & aNameIm
 /*                                                     */
 /*   ************************************************* */
 
-cInterfImportHom::~cInterfImportHom()
-{
-}
-
 cInterfImportHom * cInterfImportHom::CreateImportV1(const std::string&aDir,const std::string&aSubDir,const std::string&aExt)
 {
 	return new cImportHomV1(aDir,aSubDir,aExt);
 }
+#else // MMVII_KEEP_LIBRARY_MMV1
+
+cInterfImportHom * cInterfImportHom::CreateImportV1(const std::string&aDir,const std::string&aSubDir,const std::string&aExt)
+{
+        MMVII_INTERNAL_ERROR("No CreateImportV1 ");
+	return nullptr;
+}
+#endif // MMVII_KEEP_LIBRARY_MMV1
+
+
+cInterfImportHom::~cInterfImportHom()
+{
+}
+
+
+
+
 
 };

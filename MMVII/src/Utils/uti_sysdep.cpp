@@ -1,7 +1,6 @@
 #include "cMMVII_Appli.h"
 #include "MMVII_Sys.h"
 #include "MMVII_DeclareCste.h"
-#include "MMVII_MMV1Compat.h"
 #include "MMVII_2Include_Serial_Tpl.h"
 
 #include <filesystem>
@@ -156,7 +155,7 @@ int GlobParalSysCallByMkF(const std::string & aNameMkF,const std::list<cParamCal
        StdOut() << aCom << std::endl;
        int aRes= system(aCom.c_str());
        StdOut() << "KKKKKKKK " << aRes <<  std::endl;
-       getchar();
+       // getchar();
        RemoveFile(aNameMkF,true);
        return aRes;
    }

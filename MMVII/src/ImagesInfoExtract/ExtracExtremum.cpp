@@ -802,5 +802,33 @@ void BenchExtre(cParamExeBench & aParam)
      aParam.EndBench();
 }
 
+template <class Type> std::pair<Type,Type>   ValExtre(cIm2D<Type> aImIn)
+{
+    Type aVMin = tElemNumTrait<Type>::MaxVal();
+    Type aVMax = tElemNumTrait<Type>::MinVal();
+    const cDataIm2D<Type> & aDIm = aImIn.DIm();
+
+    for (const auto & aPt : aDIm)
+        UpdateMinMax(aVMin,aVMax,aDIm.GetV(aPt));
+
+    return std::pair<Type,Type>(aVMin,aVMax);
+}
+template<class Type> double  MoyAbs(cIm2D<Type> aImIn)
+{
+    cWeightAv<tREAL8,tREAL8> aAvg;
+    const cDataIm2D<Type> & aDIm = aImIn.DIm();
+    for (const auto & aPt : aDIm)
+       aAvg.Add(1.0,std::fabs(aDIm.GetV(aPt)));
+
+    return aAvg.Average();
+}
+
+template double  MoyAbs(cIm2D<tINT2> aImIn);
+template double  MoyAbs(cIm2D<tREAL4> aImIn);
+
+template std::pair<tINT2,tINT2> ValExtre(cIm2D<tINT2> aImIn);
+template std::pair<tREAL4,tREAL4> ValExtre(cIm2D<tREAL4> aImIn);
+
+
 
 };

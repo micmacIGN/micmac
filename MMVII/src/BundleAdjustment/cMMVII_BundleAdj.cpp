@@ -1,4 +1,4 @@
-#include "BundleAdjustment.h"
+﻿#include "BundleAdjustment.h"
 #include "MMVII_util_tpl.h"
 
 #include "MMVII_Topo.h"
@@ -115,7 +115,7 @@ cMMVII_BundleAdj::~cMMVII_BundleAdj()
     delete mTopo;
     delete mBlClino;
     // DeleteAllAndClear(mGCP_UK);
-    DeleteAllAndClear(mVGCP);
+    DeleteAllAndClear(mVBA_Lidar);
 }
 
 void cMMVII_BundleAdj::ShowUKNames() 
@@ -286,14 +286,18 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM)
         mTopo->printObs(false);
     }
 
+    for (const auto & aLidarPh : mVBA_Lidar )
+       aLidarPh->AddObs(1.0);
+
+
     const auto & aVectSol = mSys->R_SolveUpdateReset(aLVM);
     mSetIntervUK.SetVUnKnowns(aVectSol);
 
+    mNbIter++;
     if(mVerbose)
     {
-        StdOut() << "---------------------------" << std::endl;
+        StdOut() << "--------------------------- End Iter" << mNbIter   << " ---------------" << std::endl;
     }
-    mNbIter++;
 }
 
 
@@ -415,6 +419,8 @@ void  cMMVII_BundleAdj::AddCam(const std::string & aNameIm)
 }
 const std::vector<cSensorImage *> &  cMMVII_BundleAdj::VSIm() const  {return mVSIm;}
 const std::vector<cSensorCamPC *> &  cMMVII_BundleAdj::VSCPC() const {return mVSCPC;}
+cResolSysNonLinear<tREAL8> *  cMMVII_BundleAdj::Sys() {return mR8_Sys;}
+
 
     /* ---------------------------------------- */
     /*            Frozen/Shared                 */
@@ -544,25 +550,23 @@ void cMMVII_BundleAdj::CompileSharedIntrinsicParams(bool ForAvg)
 bool cMMVII_BundleAdj::CheckGCPConstraints() const
 {
     std::string aNames;
-    for (const auto & aBA_GCP_Ptr : mVGCP)
-    {
-        for (const auto & aMesGCP : aBA_GCP_Ptr->mMesGCP->MesGCP())
-        {
-            if (aMesGCP.isFree())
-            {
 
-                int aNbImObs = aBA_GCP_Ptr->mMesGCP->GetNbImMesForPoint(aMesGCP.mNamePt);
-                int aNbTopoElementObs = 0;
-                if (mTopo)
+    for (const auto & aMesGCP : mGCP.getMesGCP().MesGCP())
+    {
+        if (aMesGCP.isFree())
+        {
+
+            int aNbImObs =  mGCP.getMesGCP().GetNbImMesForPoint(aMesGCP.mNamePt);
+            int aNbTopoElementObs = 0;
+            if (mTopo)
+            {
+                for (auto & obs: mTopo->GetObsPoint(aMesGCP.mNamePt))
                 {
-                    for (auto & obs: mTopo->GetObsPoint(aMesGCP.mNamePt))
-                    {
-                        aNbTopoElementObs += obs->getMeasures().size();
-                    }
+                    aNbTopoElementObs += obs->getMeasures().size();
                 }
-                if (aNbImObs*2+aNbTopoElementObs<3)
-                    aNames += aMesGCP.mNamePt + " ";
             }
+            if (aNbImObs*2+aNbTopoElementObs<3)
+                aNames += aMesGCP.mNamePt + " ";
         }
     }
     if (aNames.size())
@@ -671,10 +675,10 @@ void cMMVII_BundleAdj::SaveBlocRigid()
     /*            Clino Bloc                    */
     /* ---------------------------------------- */
 
-void cMMVII_BundleAdj::AddClinoBloc(const std::string aNameClino, const std::string aFormat, std::vector<std::string> aPrePost)
+void cMMVII_BundleAdj::AddClinoBloc()
 {
     AssertPhpAndPhaseAdd();
-    mBlClino = new cBA_Clino(mPhProj, aNameClino, aFormat, aPrePost);
+    mBlClino = new cBA_Clino(mPhProj);
 
     mBlClino->AddToSys(mSetIntervUK);
 }
@@ -692,7 +696,14 @@ void cMMVII_BundleAdj::SaveClino()
     }
 }
 
+/* ---------------------------------------- */
+/*                 Lidar                    */
+/* ---------------------------------------- */
 
+void cMMVII_BundleAdj::Add1AdjLidarPhotogra(const std::vector<std::string> &aParam)
+{
+   mVBA_Lidar.push_back(new cBA_LidarPhotogra(*this,aParam));
+}
 
 /* ---------------------------------------- */
 /*                 Topo                     */
@@ -709,7 +720,8 @@ void cMMVII_BundleAdj::SaveTopo()
 
 void cMMVII_BundleAdj::AddTopo() // TOPO
 {
-    mTopo = new cBA_Topo(mPhProj, this);
+    mTopo = new cBA_Topo(mPhProj);
+    mTopo->AddPointsFromDataToGCP(mGCP);
 }
 
 }; // MMVII

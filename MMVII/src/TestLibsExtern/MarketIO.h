@@ -94,11 +94,9 @@ bool saveMarket(const SparseMatrixType& mat, const std::string& filename)
   out.flags(std::ios_base::scientific);
   out.precision(64);
   out << mat.rows() << " " << mat.cols() << " " << mat.nonZeros() << "\n";
-  int count = 0;
   for(int j=0; j<mat.outerSize(); ++j)
     for(typename SparseMatrixType::InnerIterator it(mat,j); it; ++it)
     {
-      ++ count;
       out << it.row()+1 << " " << it.col()+1 << " " << it.value() << "\n";
     }
   out.close();

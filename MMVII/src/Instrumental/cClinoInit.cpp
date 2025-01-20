@@ -3,6 +3,7 @@
 #include "MMVII_Geom3D.h"
 #include "MMVII_PCSens.h"
 #include "MMVII_Clino.h"
+#include "MMVII_Tpl_Images.h"
 
 
 /**
@@ -52,6 +53,7 @@ void AddData(const  cAuxAr2007 & anAux,cOneCalibClino & aClino)
 {
     AddData(cAuxAr2007("NameClino",anAux),aClino.mNameClino);
     AddData(cAuxAr2007("Rotation",anAux),aClino.mRot);
+    AddData(cAuxAr2007("NameCamera",anAux),aClino.mCameraName);
     AddOptData(anAux,"RelCalib",aClino.mLinkRel);
 }
 
@@ -237,9 +239,6 @@ class cAppli_ClinoInit : public cMMVII_Appli
 
         cPhotogrammetricProject        mPhProj;     ///<  Classical structure for photogrammetric project
         std::string                    mNameClino;  ///<  Pattern of xml file
-	std::string                    mFormat;
-	std::vector<std::string>       mPrePost;    ///<  Pattern of xml file
-	tREAL8                         mPCCE;
         int                            mNbStep0;    ///<  Number of step in initial  first round
         int                            mNbStepIter; ///< Number of step in each iteration
         int                            mNbIter;     ///< Number of iteration
@@ -259,6 +258,7 @@ class cAppli_ClinoInit : public cMMVII_Appli
         std::vector<tRotR>             mOriRelClin; ///< vector of relative orientations Clino[0]/Clino[K]
 	bool                           mShowAll;    ///< Do we show all the msg relative to residuals
         cCalibSetClino                 mCalibSetClino; ///< Result of the calibration
+        std::string                    mPatFilter;
 };
 
 cAppli_ClinoInit::cAppli_ClinoInit
@@ -273,7 +273,8 @@ cAppli_ClinoInit::cAppli_ClinoInit
      mNbIter       (50),
      mNameRel12    ("i-kj"),
      isOkNoCam     (false),
-     mShowAll      (false)
+     mShowAll      (false),
+     mPatFilter    (".*")
 {
 }
 
@@ -281,8 +282,7 @@ cAppli_ClinoInit::cAppli_ClinoInit
 cCollecSpecArg2007 & cAppli_ClinoInit::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
       return anArgObl
-              <<  Arg2007(mNameClino,"Name of inclination file",{eTA2007::FileAny}) // ,{eTA2007::FileDirProj})
-              <<  Arg2007(mFormat,"Format of file  like ISFSSFSSFSSFS ")
+	      <<  mPhProj.DPMeasuresClino().ArgDirInMand()
               <<  Arg2007(mVKClino,"Index of clinometer",{{eTA2007::ISizeV,"[1,2]"}})
               <<  mPhProj.DPOrient().ArgDirInMand()
               <<  mPhProj.DPClinoMeters().ArgDirOutMand()
@@ -300,8 +300,7 @@ cCollecSpecArg2007 & cAppli_ClinoInit::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 	    << AOpt2007(mNameRel12,"Rel12","orientation relative 2 to 1, if several clino",{eTA2007::HDV})
 	    << AOpt2007(isOkNoCam,"OkNoCam","is it OK if some cam dont exist",{eTA2007::HDV})
             <<  mPhProj.DPClinoMeters().ArgDirInOpt()  // Just for temporart test we can re-read, to supress later
-            <<  AOpt2007(mPrePost,"PrePost","[Prefix,PostFix] to compute image name",{{eTA2007::ISizeV,"[2,2]"}})
-            <<  AOpt2007(mPCCE,"EAPCC","Empirical Angle Power Cosinus Correction",{{eTA2007::HDV}})
+	    << AOpt2007(mPatFilter,"PatFilter","Pattern for filtering measure on ident",{eTA2007::HDV})
     ;
 }
 
@@ -422,10 +421,9 @@ int cAppli_ClinoInit::Exe()
 
 
     // --------- Read formated file ----------------
-    //  std::string mFormat = "ISFSF";
-    cReadFilesStruct aRFS(mNameClino,mFormat,0,-1,'#');
-    aRFS.Read();
-    size_t aNbMeasures = aRFS.NbRead();
+    cSetMeasureClino aSMC = mPhProj.ReadMeasureClino(&mPatFilter) ;
+    // const std::vector<cOneMesureClino>&  aVMC =  aSMC.SetMeasures();
+    std::vector<cOneMesureClino>  aVMC =  aSMC.SetMeasures();
 
     // ------------- Compute vector ofrelative position  : usefull only when we have 2 clino
     tRotR aRSim = tRotR::Identity();  // Rotation for simulation
@@ -433,27 +431,23 @@ int cAppli_ClinoInit::Exe()
     mOriRelClin.push_back(tRotR::RotFromCanonicalAxes(mNameRel12));  // Relative 2 to 1 
 
     //  if we do simulation, generate 
+    size_t aNbMeasures = aVMC.size();
     if (IsInit(&mASim))
     {
        aRSim = tRotR::RandomRot(mASim[3]);
        aNbMeasures = size_t (mASim[4]);
     }
-    std::vector<std::string> aVNamesClino = aRFS.VStrings().at(0);
+    std::vector<std::string> aVNamesClino = aSMC.NamesClino();
 
     StdOut() << "ExeExe " << aVNamesClino << "\n";
 
     std::string aNameCalibCam;
     cPerspCamIntrCalib * aCalib = nullptr;
     //  put low level in a more structured data
-    for (size_t aKLine=0 ; aKLine<aNbMeasures ; aKLine++)
-    {
-        std::vector<std::string> aVNamesCl2 = aRFS.VStrings().at(aKLine);
 
-	// for now we process the case where clinos are identic on all lines, maybe to change later
-        if (aVNamesClino!=aVNamesCl2) 
-        {
-           MMVII_UnclasseUsEr("Names of clinmeter vary with line");
-        }
+    for (size_t aKMes = 0 ; aKMes<aNbMeasures ; aKMes++)
+    {
+	    // for now we process the case where clinos are identic on all lines, maybe to change later
         if (IsInit(&mASim))
         {
             auto v1 = RandUnif_C()*mASim[0];
@@ -473,27 +467,14 @@ int cAppli_ClinoInit::Exe()
         }
 	else 
         {
-            std::string aNameIm =  aRFS.VNameIm().at(aKLine) ;
-	    if (IsInit(&mPrePost))
-                aNameIm = mPrePost[0] +  aNameIm + mPrePost[1];
+            const cOneMesureClino &  aMes = aVMC.at(aKMes);
+            std::string aNameIm =  aSMC.NameOfIm(aMes);
 
 	    cSensorCamPC * aCam = mPhProj.ReadCamPC(aNameIm,true,isOkNoCam);
 	    if (aCam != nullptr)
 	    {
 
-		 std::vector<double>  aVAngles = aRFS.VNums().at(aKLine);
-		 if (mPCCE !=0)
-		 {
-                     if (mVKClino.size() !=2)
-                        MMVII_UnclasseUsEr("Cos corr with szclino !=2");
-
-		     tREAL8 aTeta0 = aVAngles.at(mVKClino.at(0));
-		     tREAL8 aTeta1 = aVAngles.at(mVKClino.at(1));
-		     aVAngles.at(mVKClino.at(0)) = aTeta0 * pow(std::abs(cos(aTeta1)),mPCCE);
-		     aVAngles.at(mVKClino.at(1)) = aTeta1 * pow(std::abs(cos(aTeta0)),mPCCE);
-
-		 }
-
+		 std::vector<double>  aVAngles = aMes.Angles();
 
                  mVMeasures.push_back(cClinoCalMes1Cam(aCam,aVAngles));
 
@@ -514,6 +495,7 @@ int cAppli_ClinoInit::Exe()
     tREAL8 aStep = 2.0/mNbStep0;
     tREAL8 aDiv = 1.25;
     
+    tREAL8 aInitRes = std::sqrt(aWM0.ValExtre());
     for (int aK=0 ; aK<mNbIter ; aK++)
     {
          aWM0 =  OneIter(aWM0.IndexExtre(), (2*aStep)/mNbStepIter,mNbStepIter);
@@ -523,6 +505,7 @@ int cAppli_ClinoInit::Exe()
     StdOut() <<  "=============== Result of global optimization  =============" << std::endl;
     StdOut() << "Residual=" << std::sqrt(aWM0.ValExtre()) 
             << " Cond=" << ComputeCond(aWM0.IndexExtre())
+            << " Resid Init=" << aInitRes
 	    << std::endl;
 
     for (size_t aKClino=0 ; aKClino<mVKClino.size() ; aKClino++)
@@ -530,12 +513,13 @@ int cAppli_ClinoInit::Exe()
        cOneCalibClino aCal;
        aCal.mNameClino = aVNamesClino.at(mVKClino.at(aKClino));
        aCal.mRot = OriOfClino(aKClino,aWM0.IndexExtre());
+       aCal.mCameraName = mCalibSetClino.mNameCam;
        if (aKClino != 0)
        {
-          cOneCalibRelClino aCalRel;
-	  aCalRel.mNameRef = aVNamesClino.at(mVKClino.at(0));
-	  aCalRel.mRot = mOriRelClin.at(aKClino);
-          aCal.mLinkRel = aCalRel;
+            cOneCalibRelClino aCalRel;
+	        aCalRel.mNameRef = aVNamesClino.at(mVKClino.at(0));
+	        aCalRel.mRot = mOriRelClin.at(aKClino);
+            aCal.mLinkRel = aCalRel;
        }
        mCalibSetClino.mClinosCal.push_back(aCal);
     }
@@ -546,6 +530,7 @@ int cAppli_ClinoInit::Exe()
     if (mVKClino.size() > 1)
     {
         StdOut() <<  "=============== Result of individual  optimization  =============" << std::endl;
+        std::vector<tRotR>  aREnd;
         for (size_t aKCSel=0 ; aKCSel<mVKClino.size() ; aKCSel++)
 	{
             StdOut() << "   ----- OPTIMIZE CLINO " << mVKClino[aKCSel] << "   -------- " << std::endl;
@@ -563,20 +548,62 @@ int cAppli_ClinoInit::Exe()
             StdOut() << "Residual=" << std::sqrt(aWMK.ValExtre()) 
                      << " Cond=" << ComputeCond(aWMK.IndexExtre())
 		     << std::endl;
+
+           aREnd.push_back(aWMK.IndexExtre());
 	}
+        /* compute Orthogonality between solution of independant clinos,  Let O be the ortognality matrix, what we optimize
+            when using the 2 clino and applying the orthognality is (see  "OriOfClino") :
+
+                 F(R) + F(O R)
+
+            So  R2 R-1 = O is how much clino are Ortho
+            
+        */
+        tRotR  aR1 = aREnd.at(0);
+        tRotR  aR2 = aREnd.at(1);
+        tRotR  aR12  = aR2 * aR1.MapInverse() ;
+
+        StdOut() << " Orthogonality diff   N="   <<  aR12.Angle() << "\n";
     }
 
     // Save the result in standard file
     mPhProj.SaveClino(mCalibSetClino);
 
-    if (mPhProj.DPClinoMeters().DirInIsInit())
+    /*if (mPhProj.DPClinoMeters().DirInIsInit())
     {
-       cCalibSetClino* aClinoTest = mPhProj.GetClino(*aCalib);
+       cCalibSetClino* aClinoTest = mPhProj.GetClino(*aCalib, );
        SaveInFile(*aClinoTest,"TestReWriteClino.xml");
-
        delete aClinoTest;
+    }*/
 
+
+    // Test 2 understand WPK distance / axiator ...
+    if (0)
+    {
+        tREAL8 aEps = 1e-2;
+
+        for (int aKW=-1 ; aKW<=1 ; aKW++)
+             for (int aKP=-1 ; aKP<=1 ; aKP++)
+                 for (int aKK=-1 ; aKK<=1 ; aKK++)
+                     if ((aKW!=0) || (aKP!=0) || (aKK !=0))
+                     {
+                        cPt3dr aWPK = cPt3dr(aKW,aKP,aKK) * aEps;
+                        tRotR aRot = tRotR::RotFromWPK(aWPK);
+                        auto aDifId = aRot.Mat() - cDenseMatrix<tREAL8>::Identity(3);
+                        tREAL8 aDwpk = Norm2(aWPK);
+                        tREAL8 aDId =  aDifId.DIm().L2Norm(false);
+                        StdOut() << " R=" << aDwpk / aDId   
+                                          << " DW" << aDwpk/aEps   
+                                          << " DA=" << aRot.Angle()/aEps
+                                          << " DId="  << aDId/aEps << "\n";
+                        if ((aKW==1) && (aKP==0) && (aKK==0))
+                        {
+                              aDifId.Show() ;
+                        }
+                     }
     }
+
+
     /*
     std::string aNameOut = mPhProj.DPClinoMeters().FullDirOut() + "ClinoCalib-" + aNameCalibCam + "."+ GlobTaggedNameDefSerial();
     SaveInFile(mCalibSetClino,aNameOut);

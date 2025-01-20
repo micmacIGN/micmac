@@ -1361,7 +1361,8 @@ void cOMakeTreeAr::RawAddDataTerm(cRawData4Serial & aRDS)
 { 
    if (mTypeS == eTypeSerial::ecsv)
    {
-       MMVII_INTERNAL_ERROR("No cRawData4Serial for CSV file");
+        // StdOut() << " ====================== cOMakeTreeAr::RawAddDataTermCSV\n";
+        MMVII_INTERNAL_ERROR("No cRawData4Serial for CSV file");
    }
    std::string aStr ="\"";  // quote the string because of json
    tU_INT1 * aPtr = static_cast<tU_INT1*>(aRDS.Adr());

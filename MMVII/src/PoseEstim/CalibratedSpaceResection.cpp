@@ -247,13 +247,12 @@ template <class Type> cIsometry3D<Type> cElemSpaceResection<Type>::BC2Pose(const
 {
      cTriangle<Type,3> aTri = BC2LocCoord(aRBC);
 
-     return cIsometry3D<Type>::FromTriInAndOut(0,aTri,0,mTriG);
+     return cIsometry3D<Type>::FromTriInAndOut(0,aTri,0,mTriG,true);
 }
 
 
 template <class Type> void  cElemSpaceResection<Type>::OneTestCorrectness()
 {
-   static int aCpt=0; aCpt++;
    {
        // generate 3 bundle not too degenared => 0,P0,P1,P2 cot coplanar
        cTriangle<Type,3> aTriBund = RandomTetraTriangRegul<Type>(1e-2,1e2);
@@ -567,7 +566,7 @@ class cAppli_CalibratedSpaceResection : public cMMVII_Appli
 
         std::string              mSpecImIn;   ///  Pattern of xml file
         cPhotogrammetricProject  mPhProj;
-        cSetMesImGCP             mSetMes;
+        cSetMesGndPt             mSetMes;
         cSet2D3D                 mSet23 ;
 
 	int                      mNbTriplets;
@@ -604,7 +603,8 @@ cCollecSpecArg2007 & cAppli_CalibratedSpaceResection::ArgObl(cCollecSpecArg2007 
 {
       return anArgObl
               << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
-              <<  mPhProj.DPPointsMeasures().ArgDirInMand()
+              <<  mPhProj.DPGndPt3D().ArgDirInMand()
+              <<  mPhProj.DPGndPt2D().ArgDirInMand()
               <<  mPhProj.DPOrient().ArgDirInMand()
               <<  mPhProj.DPOrient().ArgDirOutMand()
            ;
@@ -619,7 +619,7 @@ cCollecSpecArg2007 & cAppli_CalibratedSpaceResection::ArgOpt(cCollecSpecArg2007 
 	   << AOpt2007(mShowBundle,"ShowBundle","Show detail of bundle results",{eTA2007::HDV})
 	   << AOpt2007(mThrsReject,"ThrRej","Threshold for rejection of outlayer, in pixel",{eTA2007::HDV})
 	   << AOpt2007(mMaxErrOK,"MaxErr","Max error acceptable for initial resection",{eTA2007::HDV})
-	   <<  mPhProj.DPPointsMeasures().ArgDirOutOpt("DirFiltered","Directory for filtered point")
+	   <<  mPhProj.DPGndPt2D().ArgDirOutOpt("DirFiltered","Directory for filtered point")
     ;
 }
 
@@ -628,11 +628,11 @@ cCollecSpecArg2007 & cAppli_CalibratedSpaceResection::ArgOpt(cCollecSpecArg2007 
 int cAppli_CalibratedSpaceResection::Exe()
 {
     mPhProj.FinishInit();
-    mNameReport = "Rejected_Ori-" +   mPhProj.DPOrient().DirIn() + "_Mes-" + mPhProj.DPPointsMeasures().DirIn() ;
+    mNameReport = "Rejected_Ori-" +   mPhProj.DPOrient().DirIn() + "_Mes-" + mPhProj.DPGndPt3D().DirIn() + "-" + mPhProj.DPGndPt2D().DirIn() ;
 
-    InitReport(mNameReport,"csv",true);
+    InitReportCSV(mNameReport,"csv",true);
 
-    bool  aExpFilt = mPhProj.DPPointsMeasures().DirOutIsInit();
+    bool  aExpFilt = mPhProj.DPGndPt2D().DirOutIsInit();
 
     if (RunMultiSet(0,0))
     {
@@ -643,11 +643,7 @@ int cAppli_CalibratedSpaceResection::Exe()
         if (aResult != EXIT_SUCCESS)
            return aResult;
 
-	if (aExpFilt)
-	{
-           mPhProj.CpGCP(); // Save GCP from StdIn to StdOut
-        }
-        mPhProj.CpSysIn2Out(false,true);
+        //mPhProj.CpSysCoIn2Out(false,true);
 
         return EXIT_SUCCESS;
     }
@@ -657,7 +653,7 @@ int cAppli_CalibratedSpaceResection::Exe()
 
     mNameIm =FileOfPath(mSpecImIn);
 
-    mPhProj.LoadGCP(mSetMes);
+    mPhProj.LoadGCP3D(mSetMes);
     mPhProj.LoadIm(mSetMes,mNameIm);
     
     mSetMes.ExtractMes1Im(mSet23,mNameIm);
@@ -711,7 +707,7 @@ int cAppli_CalibratedSpaceResection::Exe()
              if (! aMes.VMeasures().empty())
 	     {
                  cPt2dr aPtIm  = aMes.VMeasures().at(0);
-	         cMes1GCP      aGCP =  mSetMes.MesGCP().at(aMes.NumPt());
+	         cMes1Gnd3D      aGCP =  mSetMes.MesGCP().at(aMes.NumPt());
 
 	         tREAL8 aRes = aCam.AngularProjResiudal(cPair2D3D(aPtIm,aGCP.mPt)) * aCal->F();
 
@@ -757,7 +753,19 @@ int cAppli_CalibratedSpaceResection::Exe()
 
     }
 
-    mPhProj.SaveCamPC(aCam);
+    auto aSysCoGCP = mPhProj.CurSysCoGCP(true);
+    if (aSysCoGCP)
+    {
+        // check that output ori current sysco is the same
+        tPtrSysCo aSysCoOri = mPhProj.CurSysCoOri(true, false);
+        if (aSysCoOri)
+        {
+            MMVII_INTERNAL_ASSERT_User(aSysCoOri->Def() == aSysCoGCP->Def(), eTyUEr::eSysCo,
+                                       "Incoherence between already existing Ori SysCo and GCP SysCo");
+        } else
+            mPhProj.SaveCurSysCoOri(aSysCoGCP);
+    }
+    mPhProj.SaveCamPC(aCam);;
 
 
     return EXIT_SUCCESS;
@@ -781,7 +789,7 @@ cSpecMMVII_Appli  TheSpec_OriCalibratedSpaceResection
       Alloc_CalibratedSpaceResection,
       "Pose estimation from GCP, calibrated case",
       {eApF::Ori},
-      {eApDT::GCP},
+      {eApDT::ObjCoordWorld, eApDT::ObjMesInstr},
       {eApDT::Orient},
       __FILE__
 );

@@ -1,7 +1,11 @@
+#define WITH_MMV1_FUNCTION false
+
 #include "MMVII_PCSens.h"
-#include "MMVII_MMV1Compat.h"
+#include "MMVII_MMV1Compat.h" // TO SEE
 #include "MMVII_DeclareCste.h"
 #include "MMVII_BundleAdj.h"
+
+
 
 /**
    \file cConvCalib.cpp  testgit
@@ -298,6 +302,9 @@ void BenchPoseImportV1(const std::string & aNameOriV1,double anAccuracy)
 
 void BenchCentralePerspective_ImportV1(cParamExeBench & aParam)
 {
+#if (!WITH_MMV1_FUNCTION)
+    return;
+#endif
     BenchPoseImportV1("Orientation-_DSC8385.tif.xml" ,1e-5);
     BenchPoseImportV1("Orientation-Img0937.tif.xml"  ,1e-5);
 

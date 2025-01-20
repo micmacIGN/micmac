@@ -74,7 +74,7 @@ int  cAppliSpecSerial::Exe()
    GenSpec_SysCo(aDir);
    SpecificationSaveInFile<tNameSet>(aDir+"SetName.xml");
    SpecificationSaveInFile<cSetMesPtOf1Im>(aDir+"SetMesureIm.xml");
-   SpecificationSaveInFile<cSetMesGCP>(aDir+"SetMesureGCP.xml");
+   SpecificationSaveInFile<cSetMesGnd3D>(aDir+"SetMesureGCP.xml");
 
    SpecificationSaveInFile<cComputeAssociation>(aDir+"ComputeAssociation.xml");
 

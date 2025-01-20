@@ -2,6 +2,9 @@
 #include "MMVII_PCSens.h"
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_Geom2D.h"
+#include "MMVII_Tpl_Images.h"
+
+
 // #include <set>
 
 #ifdef _OPENMP
@@ -77,15 +80,15 @@ cDataPerspCamIntrCalib::cDataPerspCamIntrCalib
 ) :
     cDataPerspCamIntrCalib
     (
-	         aName,
-	         aTypeProj, 
-	         aDeg,
-	         std::vector<double>(),
-                 cMapPProj2Im(aFoc, PPIsRel ? MulCByC(ToR(aNbPix), aPP) : aPP),
-                 cDataPixelDomain(aNbPix),
-	         aDeg,
-	         aSzBuf,
-                 isFraserModel
+        aName,
+        aTypeProj, 
+        aDeg,
+        std::vector<double>(),
+        cMapPProj2Im(aFoc, PPIsRel ? MulCByC(ToR(aNbPix), aPP) : aPP),
+        cDataPixelDomain(aNbPix),
+        aDeg,
+        aSzBuf,
+        isFraserModel
     )
 {
 
@@ -101,12 +104,12 @@ void cDataPerspCamIntrCalib::AddData(const cAuxAr2007 & anAux0)
 
     {
         MMVII::EnumAddData(anAux,mTypeProj,"Projection");
-	    /*  MODIF MPD, has "rediscover" the "EnumAddData"  function ...
+  /*  MODIF MPD, has "rediscover" the "EnumAddData"  function ...
         std::string aNameProj= E2Str(mTypeProj);
         MMVII::AddData(cAuxAr2007("Projection",anAux),aNameProj);
         if (anAux.Input())
-	   mTypeProj = Str2E<eProjPC>(aNameProj);
-	   */
+ mTypeProj = Str2E<eProjPC>(aNameProj);
+ */
     }
     {
            cAuxAr2007 aAuxAux("Auxiliary",anAux);
@@ -125,6 +128,7 @@ void cDataPerspCamIntrCalib::AddData(const cAuxAr2007 & anAux0)
            cAuxAr2007 aAuxSten("PerfectProj",anAux);
            MMVII::AddData(cAuxAr2007("F",aAuxSten),mMapPProj2Im.F());
            MMVII::AddData(cAuxAr2007("PP",aAuxSten),mMapPProj2Im.PP());
+
 
 	   // Just in case redo a coherent object
 	   if (anAux.Input())
@@ -409,6 +413,7 @@ std::vector<cPt2dr>  cPerspCamIntrCalib::PtsSampledOnSensor(int aNbByDim,bool In
 
 const  std::vector<cPt2dr> &  cPerspCamIntrCalib::Values(tVecOut & aV3 ,const tVecIn & aV0 ) const 
 {
+  // StdOut() <<  "VALUUUUUU \n";
      static tVecOut aV1,aV2;
      mDir_Proj->Values(aV1,aV0);
      mDir_Dist->Values(aV2,aV1);
@@ -536,6 +541,15 @@ cPt2dr  cPerspCamIntrCalib::Redist(const tPtOut & aP0) const
 
      return Value(aP2);
 }
+
+cPt2dr cPerspCamIntrCalib::InterpolOnUDLine(const tSeg2dr& aSeg,tREAL8 aWeightP1) const
+{
+     cPt2dr  aPU1 = Undist(aSeg.P1());
+     cPt2dr  aPU2 = Undist(aSeg.P2());
+
+     return Redist(Centroid(aWeightP1,aPU1,1.0-aWeightP1,aPU2));
+}
+
 
 
 
@@ -924,6 +938,74 @@ void cPerspCamIntrCalib::SetTabulDUD(int aNb)
    mTabulDUD = AllocTabulDUD(aNb);
 }
 
+std::pair<cPt2dr,cDenseMatrix<tREAL8>>  cPerspCamIntrCalib::Jacobian(const cPt3dr & aPGround) const
+{
+   const cDataMapping<tREAL8,3,2> * aDmProj = mDir_Proj;
+   const cDataMapping<tREAL8,2,2> * aDmDist = mDir_Dist; 
+
+   auto [aPProj,aJacProj] = aDmProj->Jacobian(aPGround);
+   auto [aPDist,aJacDist] = aDmDist->Jacobian(aPProj);
+
+   auto aJacEnd = aJacDist * aJacProj * F();
+   auto aPEnd   = aPDist * F() + PP();
+
+   return std::pair<cPt2dr,cDenseMatrix<tREAL8>> (aPEnd,aJacEnd);
+}
+
+tProjImAndGrad  cPerspCamIntrCalib::DiffGround2Im(const cPt3dr & aPGround) const
+{
+    auto [aPEnd,aJacEnd] =  Jacobian(aPGround);
+    tProjImAndGrad aRes;
+
+    aRes.mPIJ = aPEnd;
+    GetLine(aRes.mGradI,0,aJacEnd);
+    GetLine(aRes.mGradJ,1,aJacEnd);
+    // GetLine(aJacEnd,aRes.mGradI,0);
+
+    return aRes;
+}
+
+
+
+
+
+void cPerspCamIntrCalib::Bench_CalcDiff()
+{
+   static int aCpt=0; aCpt++;
+   if (mTypeProj!=eProjPC::eStenope)
+      return;
+   cSensorCamPC aCamId("toto.tif",tPoseR::Identity(),this);
+
+
+  for (int aK=0 ; aK<3 ; aK++)
+  {
+      tREAL8 aPMin = 0.5;
+      tREAL8 aPMax = 2.0;
+      cPt3dr aPGround  = aCamId.RandomVisiblePGround(aPMin,aPMax);
+      // auto [aPEnd,aJacEnd] =  Jacques(aPGround);
+      // aJacEnd.Show();
+// EpsDiffGround2Im
+
+      // tProjImAndGrad   aPP = aCamId.DiffGround2Im(aPGround);
+      tProjImAndGrad   aPP = DiffGround2Im(aPGround);
+      tProjImAndGrad aPP2 = aCamId.DiffG2IByFiniteDiff(aPGround);
+
+
+/*
+      StdOut() << Norm2(aPP.mGradI -aPP2.mGradI ) /F() << " " 
+               << Norm2(aPP.mGradJ -aPP2.mGradJ ) /F() << " " 
+               << Norm2(aPP.mPIJ -aPP2.mPIJ ) /F()
+               << "\n";
+*/
+
+      MMVII_INTERNAL_ASSERT_bench(Norm2(aPP.mGradI -aPP2.mGradI ) /F() < 1e-2,"Bench_CalcDiff");
+      MMVII_INTERNAL_ASSERT_bench(Norm2(aPP.mGradJ -aPP2.mGradJ ) /F() < 1e-2,"Bench_CalcDiff");
+      MMVII_INTERNAL_ASSERT_bench(Norm2(aPP.mPIJ -aPP2.mPIJ ) /F() < 1e-5,"Bench_CalcDiff");
+
+  }
+  // getchar();
+}
+
 
 
 
@@ -932,6 +1014,9 @@ void BenchCentralePerspective(cParamExeBench & aParam,eProjPC aTypeProj)
     for (size_t aK=0 ; aK<4 ; aK++)
     {
        cPerspCamIntrCalib * aCam = cPerspCamIntrCalib::RandomCalib(aTypeProj,aK);
+       aCam->Bench_CalcDiff();
+
+
        aCam->TestInvInit((aK==0) ? 1e-3 : 1e-2, 1e-4);
 
        cSensorCamPC::BenchOneCalib(aCam);

@@ -150,8 +150,6 @@ cCdRadiom::cCdRadiom
        mCostCorrel (2.001),   // over maximal theoreticall value
        mRatioBW    (0)
 {
-    static int aCpt=0 ; aCpt++;
-
     int aNbIn0=0,aNbIn1=0;
 
     cMatIner2Var<tREAL8> aCorGrayAll;
@@ -660,9 +658,9 @@ tREAL8 cCdEllipse::ComputeThresholdsByRLE(const std::vector<std::pair<int,tREAL8
    size_t aKBit = 0;
    while ((aMaxWL<aRunLE)  && (aKBit<aVBR.size()))
    {
-	aFlag |= (1<<aVBR.at(aKBit).first);
+	aFlag |= ((size_t)1<<aVBR.at(aKBit).first);
         aKBit++;
-	aRunLE = MaxRunLength(aFlag,1<<mSpec->NbBits()).x();
+	aRunLE = MaxRunLength(aFlag,(size_t)1<<mSpec->NbBits()).x();
    }
 
    return aVBR.at(aKBit-1).second * 1.2;

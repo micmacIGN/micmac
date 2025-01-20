@@ -266,6 +266,7 @@ bool cTopoObsSetStation::initialize()
         return true; // nothing to do
     case(eTopoStOriStat::eTopoStOriVert):
     {
+        // initialize G0 for verticalized stations
         if (!mPtOrigin->isInit())
             return false;
         tREAL8 G0 = NAN;
@@ -354,10 +355,43 @@ bool cTopoObsSetStation::initialize()
         return false;
     }
     case(eTopoStOriStat::eTopoStOriBasc):
-        MMVII_DEV_WARNING("cTopoObsSetStation rotation initialization not ready.")
-        // TODO: T-S?
-        mInit = mPtOrigin->isInit();
-        return true;
+    {
+        // Initialize orientation from 3 3d measures
+                // 1. get all 3d vectors from this station
+        tPointToVectorMap aToInstrVectorMap = toInstrVectorMap();
+                // 2. find 3 points init on ground and in previous map
+        std::vector<cPt3dr> aVectPtsGnd, aVectPtsInstr;
+        for (auto const& [aPt, aInstrVect] : aToInstrVectorMap)
+        {
+            if (aPt->isInit())
+            {
+                aVectPtsGnd.push_back(*aPt->getPt());
+                aVectPtsInstr.push_back(aToInstrVectorMap[aPt]);
+            };
+        }
+        if (aVectPtsGnd.size()>=3)
+        {
+            auto anIso = RobustIsometry(aVectPtsGnd, aVectPtsInstr);
+            mRotVert2Instr = anIso.Rot();
+            anIso.Tr() = -(anIso.Rot().Mat().Transpose()*anIso.Tr()); // Tr = origin coords
+        #ifdef VERBOSE_TOPO
+            StdOut() << "Station rotation init:\n";
+            StdOut() << "(" << aVectPtsInstr.at(0) << ", " << aVectPtsInstr.at(1) << ", " << aVectPtsInstr.at(2) << ") / ";
+            StdOut() << "(" << aVectPtsGnd.at(0) << ", " << aVectPtsGnd.at(1) << ", " << aVectPtsGnd.at(2) << ")\n  => ";
+            StdOut() << anIso.Tr()  << "\n";
+            StdOut() << "    "<<anIso.Rot().AxeI()<<"\n";
+            StdOut() << "    "<<anIso.Rot().AxeJ()<<"\n";
+            StdOut() << "    "<<anIso.Rot().AxeK()<<"\n";
+        #endif
+            if (!mPtOrigin->isInit()) // do not replace already-initialized center?
+            {
+                *mPtOrigin->getPt() = anIso.Tr();
+            }
+            mInit = true;
+            return true;
+        }
+        return false;
+    }
     case(eTopoStOriStat::eNbVals):
         MMVII_INTERNAL_ASSERT_strong(false, "cTopoObsSetStation::initialize: incorrect ori status")
         return false;
@@ -412,6 +446,83 @@ cPt3dr cTopoObsSetStation::PtSysCo2Instr(const cTopoPoint &aPt) const
 cPt3dr cTopoObsSetStation::PtInstr2SysCo(const cPt3dr &aVect) const
 {
     return getRotSysCo2Instr().Inverse(aVect) + *mPtOrigin->getPt();
+}
+
+cPt3dr cTopoObsSetStation::obs2InstrVector(const std::string & aPtToName) const
+{
+    // 3d vector from DX/DY/DZ or hz/zen/dist (no combination for now...)
+    cTopoObs * obs_az = nullptr;
+    cTopoObs * obs_zen = nullptr;
+    cTopoObs * obs_dist = nullptr;
+    cTopoObs * obs_dx = nullptr;
+    cTopoObs * obs_dy = nullptr;
+    cTopoObs * obs_dz = nullptr;
+    for (auto & aObs: mObs)
+    {
+        if (aObs->getPointName(1) != aPtToName)
+            continue;
+        switch (aObs->getType()) {
+        case eTopoObsType::eHz:
+            obs_az = aObs;
+            break;
+        case eTopoObsType::eZen:
+            obs_zen = aObs;
+            break;
+        case eTopoObsType::eDX:
+            obs_dx = aObs;
+            break;
+        case eTopoObsType::eDY:
+            obs_dy = aObs;
+            break;
+        case eTopoObsType::eDZ:
+            obs_dz = aObs;
+            break;
+        default:
+            break;
+        }
+    }
+    if (obs_dx && obs_dy && obs_dz)
+        return {obs_dx->getMeasures().front(), obs_dy->getMeasures().front(), obs_dz->getMeasures().front()};
+
+    auto & allSimpleObs = mBA_Topo->gAllSimpleObs();
+    if (allSimpleObs.count(mPtOrigin))
+    {
+        for (auto & aObs: allSimpleObs.at(mPtOrigin))
+        {
+            if ( (aObs->getPointName(1) == aPtToName) && (aObs->getType() == eTopoObsType::eDist) )
+            {
+                obs_dist = aObs;
+                break;
+            }
+        }
+        if (obs_az && obs_zen && obs_dist)
+        {
+            cPt3dr a3DVect;
+            double d0 = obs_dist->getMeasures()[0]*sin(obs_zen->getMeasures()[0]);
+            a3DVect.x() = d0*sin(obs_az->getMeasures()[0]);
+            a3DVect.y() = d0*cos(obs_az->getMeasures()[0]);
+            a3DVect.z() = obs_dist->getMeasures()[0]*cos(obs_zen->getMeasures()[0]);
+            return a3DVect;
+        }
+    }
+    return cPt3dr::Dummy();
+}
+
+tPointToVectorMap cTopoObsSetStation::toInstrVectorMap()
+{
+    tPointToVectorMap aMapPts2InstrVector;
+    for (auto & aObs: getAllObs())
+    {
+        const std::string & aPtToName = aObs->getPointName(1);
+        auto * aPtTo = &mBA_Topo->getPoint(aPtToName);
+        if (aMapPts2InstrVector.count(aPtTo)==0)
+        {
+            auto aInstrVect = obs2InstrVector(aPtToName);
+            if (aInstrVect.IsValid())
+                aMapPts2InstrVector[aPtTo] = aInstrVect;
+        }
+    }
+    return aMapPts2InstrVector;
 }
 /*
 //----------------------------------------------------------------

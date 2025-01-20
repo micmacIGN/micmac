@@ -162,8 +162,10 @@ void BenchBaseImage(); ///< Global bench on image
 void BenchImNDim();
 void BenchIm3D(); ///<  Bench on fulll 3D Images +  "Layer" images
 
+
 void BenchGlobImage2d(); ///< Global bench on image
 void BenchFileImage(); ///< Global bench on image
+void BenchImFilterV1V2();  ///< Temporary, check that new implementation are close enough to V1's
 
 
 void TestTimeV1V2(); ///< Not a formal Bench, require visual inspection
@@ -177,7 +179,8 @@ void BenchSampleQuat();
 
 void BenchcNewReadFilesStruct(cParamExeBench & aParam);  ///< Test the new system for reading structured files on some samples
 
-
+void BenchKTHVal(cParamExeBench & aParam);
+void BenchCurveDigit(cParamExeBench & aParam);
 
 };
 

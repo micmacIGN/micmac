@@ -75,8 +75,8 @@ cCollecSpecArg2007 & cAppli_DicoRename::ArgOpt(cCollecSpecArg2007 & anArgObl)
        <<   mPhProj.DPMulTieP().ArgDirInOpt()
        <<   mPhProj.DPMulTieP().ArgDirOutOpt()
 
-       <<   mPhProj.DPPointsMeasures().ArgDirInOpt()
-       <<   mPhProj.DPPointsMeasures().ArgDirOutOpt()
+       <<   mPhProj.DPGndPt2D().ArgDirInOpt()
+       <<   mPhProj.DPGndPt2D().ArgDirOutOpt()
      ;
 }
 
@@ -167,9 +167,9 @@ int cAppli_DicoRename::Exe()
     SaveInFile(aSetIn ,mNameFilesListIm.at(0));
     SaveInFile(aSetOut,mNameFilesListIm.at(1));
 
-    if (mPhProj.DPPointsMeasures().DirInIsInit())
+    if (mPhProj.DPGndPt2D().DirInIsInit())
     {
-       MMVII_INTERNAL_ASSERT_User(mPhProj.DPPointsMeasures().DirOutIsInit(),eTyUEr::eUnClassedError,"Measure In w/o Out");
+       MMVII_INTERNAL_ASSERT_User(mPhProj.DPGndPt2D().DirOutIsInit(),eTyUEr::eUnClassedError,"Measure In w/o Out");
        for (const auto & aPair :  aDico)
        {
            if (ExistFile(mPhProj.NameMeasureGCPIm(aPair.first,true)))

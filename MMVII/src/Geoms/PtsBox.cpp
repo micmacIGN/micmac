@@ -1,6 +1,6 @@
 #include "MMVII_Images.h"
 #include "MMVII_Geom2D.h"
-#include "MMVII_MMV1Compat.h"
+#include "MMVII_Geom3D.h"
 
 namespace MMVII
 {
@@ -347,7 +347,13 @@ template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::P1Coord(si
 
 template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::Dummy()
 {
-  return PCste(tElemNumTrait<Type>::DummyVal());// NAN);
+  cPtxd<Type,Dim> aRes = PCste(0);
+  for (size_t aK=0 ; aK<Dim ; aK++)
+      aRes.mCoords[aK] = tElemNumTrait<Type>::DummyVal();
+
+  return aRes;
+      
+  // return PCste(tElemNumTrait<Type>::DummyVal());  no longer work, because value are tested tobe OK
 }
 
 template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::FromPtInt(const cPtxd<int,Dim> & aPInt)
@@ -745,6 +751,13 @@ template <const int Dim> cBorderPixBox<Dim>  cPixBox<Dim>::Border(int aSz) const
 {
    return  cBorderPixBox<Dim>(*this,aSz);
 }
+
+template <const int Dim> cPixBox<Dim>  cPixBox<Dim>::Interior(int aSz) const
+{
+   return  cPixBox<Dim>(this->Dilate(-aSz));
+}
+
+
 
 template <const int Dim> cPtxd<int,Dim>  cPixBox<Dim>::CircNormProj(const tPt & aPt) const
 {

@@ -16,6 +16,8 @@ this one also
 # blabla
 # blabla again 
 
+#  here we add a line identic to already done, will ne skiped
+0  Zero 3.14 0.0  0.0  1.0  2.0 3.0  0.0 0 #   some comment after line
 2  Two  3.14 2.0  2.0  1.0  2.0 3.0  2.0 2
 
 

@@ -1,14 +1,7 @@
-
-#include "V1VII.h"
 #include "MMVII_Tpl_Images.h"
-
-// #include "include/V1VII.h"
-
 
 namespace MMVII
 {
-
-
 
 class cAppliEpipDMEval : public cMMVII_Appli,
                          public cAppliParseBoxIm<tREAL4>
@@ -89,7 +82,7 @@ cAppliEpipDMEval::cAppliEpipDMEval
     const cSpecMMVII_Appli &          aSpec
 )  :
    cMMVII_Appli               (aVArgs,aSpec) ,
-   cAppliParseBoxIm<tREAL4>   (*this,true,cPt2di(2000,2000),cPt2di(150,50),true),
+   cAppliParseBoxIm<tREAL4>   (*this,eForceGray::Yes,cPt2di(2000,2000),cPt2di(150,50),true),
    mPropIntervPx              (0.1),
    mIm2Rect                   (cPt2di(1,1)),
    mImPx1                     (cPt2di(1,1)),

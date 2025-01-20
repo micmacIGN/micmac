@@ -41,6 +41,7 @@ const cPt3dr &   cPoseWithUK::Tr() const {return mPose.Tr();}
 cPt3dr &  cPoseWithUK::Tr()  {return mPose.Tr();}
 
 
+
 cPt3dr &  cPoseWithUK::Omega()  {return mOmega;}
 const cPt3dr &  cPoseWithUK::Omega() const {return mOmega;}
 
@@ -105,8 +106,10 @@ void  cPoseWithUK::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 
 void cPoseWithUK::PutUknowsInSetInterval(cSetInterUK_MultipeObj<tREAL8> * aSetInterv) 
 {
+//StdOut() << " *PUK0 :PutUknowsInSetIntervalPutUknowsInSetInterval " << mIndUk0 << " " << mIndUk1 << "\n";
     aSetInterv->AddOneInterv(mPose.Tr());
     aSetInterv->AddOneInterv(mOmega);
+//StdOut() << " *PUK1   PutUknowsInSetIntervalPutUknowsInSetInterval " << mIndUk0 << " " << mIndUk1 << "\n";
 }
 
 void cPoseWithUK::PutUknowsInSetInterval()
@@ -156,7 +159,17 @@ void cSensorCamPC::SetPose(const tPose & aPose)
    mPose_WU.SetPose(aPose);
 }
 
+         // void SetCenter(const cPt3dr & aC);
 
+void cSensorCamPC::SetOrient(const tRotR & anOrient)
+{
+     SetPose(tPose(Center(),anOrient));
+}
+
+void cSensorCamPC::SetCenter(const cPt3dr & aC)
+{
+     SetPose(tPose(aC,Orient()));
+}
 
 
 #if (1)
@@ -201,6 +214,42 @@ cPt2dr cSensorCamPC::Ground2Image(const cPt3dr & aP) const
 {
      return mInternalCalib->Value(Pt_W2L(aP));
 }
+
+
+cPlane3D  cSensorCamPC::SegImage2Ground(const tSeg2dr & aSeg,tREAL8 aDepth) const
+{
+     cPt3dr aPG1 = cSensorImage::ImageAndDepth2Ground(aSeg.P1(),aDepth);
+     cPt3dr aPG2 = cSensorImage::ImageAndDepth2Ground(aSeg.P2(),aDepth);
+     cPt3dr aPG0 = Center();
+
+     return cPlane3D::From3Point(aPG0,aPG1,aPG2);
+}
+
+tREAL8  cSensorCamPC::GroundDistBundleSeg(const cPt2dr & aPIm,const cSegmentCompiled<tREAL8,3>  & aSeg3) const
+{
+   cSegmentCompiled<tREAL8,3> aBundIm = Image2Bundle(aPIm);
+   cPt3dr  aPWire =  BundleInters(aSeg3,aBundIm,1.0);
+
+   return aBundIm.Dist(aPWire);
+}
+
+tREAL8  cSensorCamPC::PixDistBundleSeg(const cPt2dr & aPIm,const cSegmentCompiled<tREAL8,3>  & aSeg3) const
+{
+   cSegmentCompiled<tREAL8,3> aBundIm = Image2Bundle(aPIm);
+   cPt3dr  aPWire =  BundleInters(aSeg3,aBundIm,1.0);
+   cPt3dr  aPBund =  BundleInters(aSeg3,aBundIm,0.0);
+
+   tREAL8 aEps = Norm2(aPBund-Center()) / mInternalCalib->F(); // +or- the epsilon 3D correspond to 1 pixel
+
+   cPt2dr aPIm1 = Ground2Image(aPBund + aSeg3.Tgt() * aEps);
+   cPt2dr aPIm2 = Ground2Image(aPBund - aSeg3.Tgt() * aEps);
+   cPt2dr aDirIm = aPIm2-aPIm1;
+
+   cSegment2DCompiled aSeg(aPIm,aPIm+aDirIm);
+
+   return aSeg.DistLine(Ground2Image(aPWire));
+}
+
 
 
         //  Local(0,0,0) = Center, then mPose Cam->Word, then we use Inverse, BTW Inverse is as efficient as direct
@@ -271,7 +320,9 @@ const cPixelDomain & cSensorCamPC::PixelDomain() const
 
 cPerspCamIntrCalib * cSensorCamPC::InternalCalib() const {return mInternalCalib;}
 
-const cPt3dr & cSensorCamPC::Center() const {return mPose_WU.Tr();}
+const cPt3dr & cSensorCamPC::Center()  const {return mPose_WU.Tr();}
+const tRotR &   cSensorCamPC::Orient() const {return mPose_WU.Pose().Rot();}
+
 const cPt3dr & cSensorCamPC::Omega()  const {return mPose_WU.Omega();}
 cPt3dr & cSensorCamPC::Center() {return mPose_WU.Tr();}
 cPt3dr & cSensorCamPC::Omega()  {return mPose_WU.Omega();}
@@ -297,6 +348,8 @@ void cSensorCamPC::OnUpdate()
 }
 
 
+
+
 cSensorCamPC * cSensorCamPC::PCChangSys(cDataInvertibleMapping<tREAL8,3> & aMap) const 
 {
     cDataNxNMapping<tREAL8,3>::tResJac aCJac = aMap.Jacobian(Center());
@@ -309,12 +362,6 @@ cSensorCamPC * cSensorCamPC::PCChangSys(cDataInvertibleMapping<tREAL8,3> & aMap)
         cPt3dr  aIJac ; GetCol(aIJac,aJac,0);
         cPt3dr  aJJac ; GetCol(aJJac,aJac,1);
         cPt3dr  aKJac ; GetCol(aKJac,aJac,2);
-        static int aCpt=0;
-        //CM: unused: static tREAL8 aSNorm=0;
-        //CM: unused: tREAL8 aNorm = std::abs(Norm2(aIJac)-Norm2(aJJac));
-        aCpt++;
-        //CM: unused: aSNorm += aNorm;
-	// StdOut()  <<   "DNorm=" <<  aNorm << " Avg=" << aSNorm / aCpt << std::endl;
         aJac = M3x3FromCol(VUnit(aIJac),VUnit(aJJac),VUnit(aKJac));
     }
     cDenseMatrix<tREAL8>  aNewMatNonR  = aJac *  Pose().Rot().Mat();
@@ -551,6 +598,13 @@ void cSensorCamPC::BenchOneCalib(cPerspCamIntrCalib * aCalib)
     cSensorCamPC aCam("BenchCam",aPose,aCalib);
     aCam.Bench();
 }
+
+     // =================  Cast ===================
+
+bool  cSensorCamPC::IsSensorCamPC() const  { return true; }
+const cSensorCamPC * cSensorCamPC::GetSensorCamPC() const { return this; }
+cSensorCamPC * cSensorCamPC::GetSensorCamPC() { return this; }
+
 
 
 }; // MMVII

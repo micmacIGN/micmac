@@ -145,7 +145,7 @@ void cAppliMeshImageDevlp::DoAnIm(size_t aKIm)
        aRadIma = mPhProj.ReadCalibRadiomIma(aNameIm);
    }
 
-   cDataFileIm2D aDFIIm = cDataFileIm2D::Create(aNameIm,false);
+   cDataFileIm2D aDFIIm = cDataFileIm2D::Create(aNameIm,eForceGray::No);
 
    cSensorCamPC * aCamPC = mPhProj.ReadCamPC(aNameIm,false);
 

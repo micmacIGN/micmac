@@ -14,6 +14,7 @@ const cPt3di cRGBImage::Magenta(255,0,255);
 const cPt3di cRGBImage::Cyan(0,255,255);
 const cPt3di cRGBImage::Orange(255,128,0);
 const cPt3di cRGBImage::White(255,255,255);
+const cPt3di cRGBImage::Black(0,0,0);
 const cPt3di cRGBImage::Gray128(128,128,128);
 // const cPt3di cRGBImage::Black(0,0,0);
 
@@ -219,14 +220,14 @@ template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm,c
 cRGBImage cRGBImage::FromFile(const std::string& aName,const cBox2di & aBox,int aZoom)
 {
      cRGBImage aRes(aBox.Sz(),aZoom);
-     aRes.Read(cDataFileIm2D::Create(aName,false),aBox.P0());
+     aRes.Read(cDataFileIm2D::Create(aName,eForceGray::No),aBox.P0());
 
      return aRes;
 }
 
 cRGBImage cRGBImage::FromFile(const std::string& aName,int aZoom)
 {
-     cRect2 aRect = cDataFileIm2D::Create(aName,false);
+     cRect2 aRect = cDataFileIm2D::Create(aName,eForceGray::No);
      return FromFile(aName,aRect,aZoom);
 }
 
@@ -295,36 +296,39 @@ void cRGBImage::ReplicateForZoom(const cRect2 & aRect1Z)
 
 void cRGBImage::Read(const std::string & aName,const cPt2di & aP0,double aDyn,const cRect2& aRect) 
 {
-     Read(cDataFileIm2D::Create(aName,false),aP0,aDyn,aRect);
+     Read(cDataFileIm2D::Create(aName,eForceGray::No),aP0,aDyn,aRect);
 }
 
                //  file  create/write
 
-void cRGBImage::ToFile(const std::string & aName)
+void cRGBImage::ToFile(const std::string & aName, const tFileOptions& aOptions)
 {
-    mImR.DIm().ToFile(aName,mImG.DIm(),mImB.DIm());
+    mImR.DIm().ToFile(aName,mImG.DIm(),mImB.DIm(),aOptions);
 }
 
-void cRGBImage::ToFileDeZoom(const std::string & aName,int aDeZoom)
+void cRGBImage::ToFileDeZoom(const std::string & aName,int aDeZoom, const tFileOptions& aOptions)
 {
   if (aDeZoom==1)
   {
-      ToFile(aName);
+      ToFile(aName,aOptions);
       return;
   }
   tIm1C  aImR = mImR.GaussDeZoom(aDeZoom);
   tIm1C  aImG = mImG.GaussDeZoom(aDeZoom);
   tIm1C  aImB = mImB.GaussDeZoom(aDeZoom);
 
-  aImR.DIm().ToFile(aName,aImG.DIm(),aImB.DIm());
+  aImR.DIm().ToFile(aName,aImG.DIm(),aImB.DIm(),aOptions);
 }
 
-void cRGBImage::ToJpgFileDeZoom(const std::string & aName,int aDeZoom)
+void cRGBImage::ToJpgFileDeZoom(const std::string & aName,int aDeZoom, const tFileOptions& aOptions)
 {
-    ToFileDeZoom(aName,aDeZoom);
-    
-    //  StdOut() << "ToJpgFileDeZoomToJpgFileDeZoom=" << aName << "\n"; getchar();
-    Convert_JPG(aName,true,90,"jpg");
+    auto aNameJPG = LastPrefix(aName) + ".jpg";
+    auto options = aOptions;
+    if (options.empty())
+    {
+        options.push_back("QUALITY=90");
+    }
+    ToFileDeZoom(aNameJPG,aDeZoom,options);
 }
 
 
@@ -337,15 +341,15 @@ void cRGBImage::Write(const cDataFileIm2D & aDFI,const cPt2di & aP0,double aDyn,
 void cRGBImage::Write(const std::string & aName,const cPt2di & aP0,double aDyn,const cRect2& aRect) const
 {
     AssertZ1();
-     Write(cDataFileIm2D::Create(aName,false),aP0,aDyn,aRect);
+     Write(cDataFileIm2D::Create(aName,eForceGray::No),aP0,aDyn,aRect);
 }
 
-void cRGBImage::DrawEllipse(const cPt3di& aCoul,const cPt2dr & aCenter,tREAL8 aGA,tREAL8 aSA,tREAL8 aTeta,tREAL8 aWitdh)
+void cRGBImage::DrawEllipse(const cPt3di& aCoul,const cPt2dr & aCenter,tREAL8 aGA,tREAL8 aSA,tREAL8 aTeta)
 {
     cPt2dr aCenterLoc = PointToRPix(aCenter);
 
     std::vector<cPt2di> aVPts;
-    GetPts_Ellipse(aVPts,aCenterLoc,aGA*mRZoom,aSA*mRZoom,aTeta,true,aWitdh);
+    GetPts_Ellipse(aVPts,aCenterLoc,aGA*mRZoom,aSA*mRZoom,aTeta,true);
     for (const auto & aPix : aVPts)
     {
          RawSetPoint(aPix,aCoul);
@@ -394,7 +398,7 @@ void cRGBImage::DrawCircle(const cPt3di& aCoul,const cPt2dr & aCenter,tREAL8  aR
 	DrawEllipse(aCoul,aCenter,aRay,aRay,0.0);
 }
 
-void cRGBImage:: DrawLine(const cPt2dr & aP1,const cPt2dr & aP2,const cPt3di & aCoul,tREAL8 aWidth)
+void cRGBImage::DrawLine(const cPt2dr & aP1,const cPt2dr & aP2,const cPt3di & aCoul,tREAL8 aWidth)
 {
     std::vector<cPt2di> aVPts;
     GetPts_Line(aVPts,PointToRPix(aP1),PointToRPix(aP2),aWidth);

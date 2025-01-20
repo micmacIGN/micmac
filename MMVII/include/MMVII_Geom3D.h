@@ -122,7 +122,7 @@ template <class Type> class cRotation3D
        /// Compute a normal repair, first vector being colinear to Pt
        static cRotation3D<Type> CompleteRON(const tPt & aPt);
        /// Compute a normal repair, first vector being colinear to P1, second in the plane P1,P2
-       static cRotation3D<Type> CompleteRON(const tPt & aP0,const tPt & aP1);
+       static cRotation3D<Type> CompleteRON(const tPt & aP0, const tPt & aP1, bool SVP=false); // SVP=return Identity if impossible
        /// Compute a rotation arround a given axe and with a given angle
        static cRotation3D<Type> RotFromAxe(const tPt & anAxe,Type aTeta);
        ///  Axiator close to Rot From but teta=Norm !!  exp(Mat(^Axe))
@@ -133,12 +133,22 @@ template <class Type> class cRotation3D
        static cRotation3D<Type> RandomRot(const Type & aAmpl);
        /// create rotation from  string like "ijk" "i-kj" ... if sth like "ikj" => error !, so last is redundant but necessary
        static cRotation3D RotFromCanonicalAxes(const std::string&);
+
+       //  0-> arround I, 1->arround J ...
+       static cRotation3D RotArroundKthAxe(int aNum);
        
        //// Compute a normal repair, first vector being colinear to P1, second in the plane P1,P2
       // static cRotation3D<Type> CompleteRON(const tPt & aP0,const tPt & aP1);
 
-       // Extract Axes of a rotation and compute its angle 
-       void ExtractAxe(tPt & anAxe,Type & aTeta);
+       /// Extract Axes of a rotation and compute its angle 
+       void ExtractAxe(tPt & anAxe,Type & aTeta) const;
+       /// More modern interface to ExtractAxe
+       std::pair<tPt,Type> ExtractAxe() const;
+
+       /// Convenient if you only need Angle, but slow else
+       Type Angle() const;
+       /// Convenient if you only need Axe, but slow else
+       tPt    Axe() const;
 
        /// conversion to Omega Phi Kapa
        static cRotation3D<Type>  RotFromWPK(const tPt & aWPK);
@@ -195,9 +205,9 @@ template <class Type> class cIsometry3D
        /// Return Isometrie with given Rot such I(PTin) = I(PTout)
        static cIsometry3D<Type> FromRotAndInOut(const cRotation3D<Type> &,const tPt& aPtIn,const tPt& aPtOut );
        /// Return Isome such thqt I(InJ) = OutK ;  In(InJJp1) // OutKKp1 ; In(Norm0) = NormOut
-       static cIsometry3D<Type> FromTriInAndOut(int aKIn,const tTri  & aTriIn,int aKOut,const tTri  & aTriOut);
+       static cIsometry3D<Type> FromTriInAndOut(int aKIn, const tTri  & aTriIn, int aKOut, const tTri  & aTriOut, bool SVP=false); // SVP: do not crash if impossible, return Id
        /// Idem put use canonique tri = 0,I,J as input
-       static cIsometry3D<Type> FromTriOut(int aKOut,const tTri  & aTriOut,bool Direct=true);
+       static cIsometry3D<Type> FromTriOut(int aKOut, const tTri  & aTriOut, bool Direct=true, bool SVP=false); // SVP: do not crash if impossible, return Id
 
        /// return a 2D triangle isometric to 3d, PK in 0,0  PK->PK1 // to Ox
        static tTri2d ToPlaneZ0(int aKOut,const tTri  & aTriOut,bool Direct=true);
@@ -389,6 +399,14 @@ cPt3dr  BundleInters(cPt3dr & aCoeff,const tSeg3dr & aSeg1,const tSeg3dr & aSeg2
 ///   Return point on bundle having given Z Value
 cPt3dr  BundleFixZ(const tSeg3dr & aSeg1,const tREAL8 &);
 
+///  Compute intersection on all pairs, and return the one minimizing sum of euclidian distances
+cPt3dr  RobustBundleInters(const std::vector<tSeg3dr> & aVSeg);
+
+/// Compute bundle intersection using a L1 criteria with barodale, "NbSegCompl" handle to be closer to euclidian distance
+// cPt3dr  L1_BundleInters(const std::vector<tSeg3dr> & aVSeg,int NbSegCompl=0,const std::vector<tREAL8> * aVWeight = nullptr);
+
+/// Compute isometry between two 3D points vectors. at least 3 points
+tPoseR RobustIsometry(const std::vector<cPt3dr> & aPtsA, const std::vector<cPt3dr> & aPtsB);
 
 /**  Class for sampling the space of quaternion/quaternion.  Method :
  *

@@ -194,6 +194,10 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 			   public cDataPerspCamIntrCalib
 {
         public :
+
+            void Bench_CalcDiff();
+
+
             typedef tREAL8               tScal;
             typedef cPtxd<tScal,2>       tPtOut;
             typedef cPtxd<tScal,3>       tPtIn;
@@ -241,6 +245,10 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 
     // ==================   geometric points computation ===================
             const  tVecOut &  Values(tVecOut &,const tVecIn & ) const override;
+
+            std::pair<cPt2dr,cDenseMatrix<tREAL8>>  Jacobian(const cPt3dr &) const override;  /// overides cDataMapping
+            tProjImAndGrad  DiffGround2Im(const cPt3dr &) const;  // signature ~ to DiffGround2Im of sensor
+
             const  tVecIn  &  DirBundles(tVecIn &,const tVecOut & ) const;
 	    tPtIn  DirBundle(const tPtOut &) const;
 
@@ -254,6 +262,8 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
             /** Inverse function of Undist ... */
 	    tPtOut Redist(const tPtOut &) const;
 
+	    /// Interpolate on the curve of un-distorted line
+            cPt2dr InterpolOnUDLine(const tSeg2dr&,tREAL8 WeightP1) const;
 
 
     // ==================   Accessors & Modifiers ===================
@@ -415,6 +425,10 @@ class cPoseWithUK :  public cObjWithUnkowns<tREAL8>
          /// Fill with dummy value for case where default constructor is required
 	 cPoseWithUK();
 
+        /** TransposeMatr  if true,  this is the matrix Word -> Cam that is used, else the matrix of axes IJK. For ex :
+               - set to true when computing projection 
+               - set to false in block rigid where we manipulate directly the axes
+        */
 	 void PushObs(std::vector<double> &,bool TransposeMatr);
 
 	 cPoseWithUK(const tPoseR & aPose);
@@ -444,6 +458,7 @@ class cPoseWithUK :  public cObjWithUnkowns<tREAL8>
 
 
      private :
+	 cPoseWithUK(const cPoseWithUK&) = delete;
          void PutUknowsInSetInterval() override ;  // add the interval on udpate
 
          tPoseR     mPose;   ///< transformation Cam to Word
@@ -458,6 +473,7 @@ void AddData(const  cAuxAr2007 & anAux,cPoseWithUK & aPUK);
 class cSensorCamPC : public cSensorImage
 {
      public :
+
 	 typedef cObjWithUnkowns<tREAL8> * tPtrOUK;
          typedef cIsometry3D<tREAL8>  tPose;   /// transformation Cam to Word
 
@@ -482,6 +498,8 @@ class cSensorCamPC : public cSensorImage
 	 const cPixelDomain & PixelDomain() const override;
 
          void SetPose(const tPose & aPose);
+         void SetOrient(const tRotR & anOrient);
+         void SetCenter(const cPt3dr & aC);
 
 	 bool  HasImageAndDepth() const override;  // true
          cPt3dr Ground2ImageAndDepth(const cPt3dr &) const override;
@@ -505,6 +523,14 @@ class cSensorCamPC : public cSensorImage
 	 /// Push the current rotation, as equation are fixed using delta-rot
 	 void PushOwnObsColinearity(std::vector<double> &,const cPt3dr &) override;
 
+	 /// return the 3-d plane crossing the 2-d seg, depth is optionnal as theoretically it define the same plane
+         cPlane3D  SegImage2Ground(const tSeg2dr &,tREAL8 aDepth=1.0) const;
+
+
+	 ///  compute the  ground distance between bundle of PIm and aSeg3
+	 tREAL8  GroundDistBundleSeg(const cPt2dr & aPIm,const cSegmentCompiled<tREAL8,3>  & aSeg3) const;
+	 /// compute the pixel distance  between  PIm and aSeg3
+	 tREAL8  PixDistBundleSeg(const cPt2dr & aPIm,const cSegmentCompiled<tREAL8,3>  & aSeg3) const;
 
 	 /// return the pose of aCam2 relatively to Cam1
 	 tPose RelativePose(const cSensorCamPC& aCame) const;
@@ -512,6 +538,7 @@ class cSensorCamPC : public cSensorImage
 
 	 // different accessor to the pose
          const tPose &   Pose()   const;
+         const tRotR &   Orient()   const;
          const cPt3dr &  Center() const;
          cPt3dr &  Center() ;
          cPt3dr  AxeI()   const;
@@ -556,6 +583,11 @@ class cSensorCamPC : public cSensorImage
 	 cPt3dr  Pt_W2L(const cPt3dr &) const;  ///< Coordinat word to coordinate local of cam for a "point"
 	 cPt3dr  Vec_L2W(const cPt3dr &) const;  ///< Coordinat local of cam to coordinate word for a "vector"
 	 cPt3dr  Vec_W2L(const cPt3dr &) const;  ///< Coordinat word to coordinate local of cam for a "vector"
+
+         //  Cast to possible heriting class
+         bool  IsSensorCamPC() const  override ;
+         const cSensorCamPC * GetSensorCamPC() const override;
+         cSensorCamPC * GetSensorCamPC()  override;
 
      private :
         void Bench();
