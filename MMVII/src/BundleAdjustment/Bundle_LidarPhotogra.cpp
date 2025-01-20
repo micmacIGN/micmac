@@ -42,6 +42,8 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
    }
    // create the interpaltor itself
    mInterp  = cDiffInterpolator1D::AllocFromNames(aParamInt);
+// delete mInterp;
+// mInterp = cScaledInterpolator::AllocTab(cCubicInterpolator(-0.5),3,1000);
 
    // parse the camera and create images
    for (const auto aPtrCam : aBA.VSIm())
@@ -161,6 +163,30 @@ void cBA_LidarPhotogra::SetVUkVObs
          int                     aKPt
      )
 {
+    cSensorCamPC * aCam = mVCam.at(aData.mKIm);  // extract the camera
+    cPt3dr aPCam = aCam->Pt_W2L(aPGround);  // coordinate of point in image system
+    tProjImAndGrad aPImGr = aCam->InternalCalib()->DiffGround2Im(aPCam); // compute proj & gradient
+
+    // Vector of indexes of unknwons 
+    if (aVIndUk)
+    {
+       * aVIndUk = std::vector<int> {-1} ;   // first one is a temporary (convention < 0)
+       aCam->PushIndexes(*aVIndUk);       // add the unknowns [C,R] of the camera
+    }
+
+
+    // vector that will contains values of observation at this step
+    aCam->Pose_WU().PushObs(aVObs,true);  // true because we transpose: we use W->C, which is the transposition of IJK : C->W
+
+    aPGround.PushInStdVector(aVObs);   //
+    aPCam.PushInStdVector(aVObs);
+            
+    aPImGr.mGradI.PushInStdVector(aVObs);  // Grad Proj/PCam
+    aPImGr.mGradJ.PushInStdVector(aVObs);
+            
+    auto [aRad0,aGradIm] = aData.mVGr.at(aKPt);  // Radiom & grad
+    aVObs.push_back(aRad0);
+    aGradIm.PushInStdVector(aVObs);
 }
 
 
@@ -225,28 +251,9 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
         // parse the data of the patch
         for (const auto & aData : aVData)
         {
-            cSensorCamPC * aCam = mVCam.at(aData.mKIm);  // extract the camera
-            cPt3dr aPCam = aCam->Pt_W2L(aPGround);  // coordinate of point in image system
-            tProjImAndGrad aPImGr = aCam->InternalCalib()->DiffGround2Im(aPCam); // compute proj & gradient
-
-            // Vector of indexes of unknwons 
-            std::vector<int>  aVIndUk{-1} ;   // first one is a temporary (convention < 0)
-            aCam->PushIndexes(aVIndUk);       // add the unknowns [C,R] of the camera
-
-
-            // vector that will contains values of observation at this step
-            std::vector<tREAL8> aVObs;  
-            aCam->Pose_WU().PushObs(aVObs,true);  // true because we transpose: we use W->C, which is the transposition of IJK : C->W
-
-            aPGround.PushInStdVector(aVObs);   //
-            aPCam.PushInStdVector(aVObs);
-            
-            aPImGr.mGradI.PushInStdVector(aVObs);  // Grad Proj/PCam
-            aPImGr.mGradJ.PushInStdVector(aVObs);
-            
-            auto [aRad0,aGradIm] = aData.mVGr.at(0);  // Radiom & grad
-            aVObs.push_back(aRad0);
-            aGradIm.PushInStdVector(aVObs);
+            std::vector<int>       aVIndUk;
+            std::vector<tREAL8>    aVObs;
+            SetVUkVObs (aPGround,&aVIndUk,aVObs,aData,0);
             
             // accumulate the equation involving the radiom
             aSys->R_AddEq2Subst(aStrSubst,mEqLidPhgr,aVIndUk,aVObs,aWeight);

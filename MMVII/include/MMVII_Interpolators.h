@@ -319,6 +319,7 @@ class cTabulatedDiffInterpolator : public cDiffInterpolator1D
 class cScaledInterpolator : public cInterpolator1D
 {
       public :
+            static const std::string TheNameInterpol;
 
             virtual ~ cScaledInterpolator();
             tREAL8  Weight(tREAL8  anX) const override;
