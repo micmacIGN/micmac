@@ -115,7 +115,6 @@ class cRadiomLidarIma
      }
 };
 
-
 class cEqLidarImPonct : public cRadiomLidarIma
 {
      public :
@@ -179,6 +178,39 @@ class cEqLidarImCensus : public cRadiomLidarIma
 
      private :
 };
+
+class cEqLidarImCorrel : public cRadiomLidarIma
+{
+     public :
+            template <typename tUk,typename tObs> 
+                  std::vector<tUk> formula
+                  (
+                      const std::vector<tUk> & aVUk,
+                      const std::vector<tObs> & aVObs
+                  )  const
+            {
+                 // read the unknowns
+		size_t aIndUk = 0;
+		size_t aIndObs = 0;
+
+		tUk aRadiomTarget = aVUk.at(aIndUk++);
+		tUk aCoefMul      = aVUk.at(aIndUk++);
+		tUk aCoefAdd      = aVUk.at(aIndUk++);
+		tUk aRadiom = Radiom_PerpCentrIntrFix(aVUk,aIndUk,aVObs,aIndObs);
+
+		 return {aCoefAdd + aCoefMul * aRadiom - aRadiomTarget};
+             }
+
+            std::vector<std::string> VNamesUnknowns()  const {return Append({"TargetRad","CoefMul","CoefAdd"},NamesPoseUK());}
+            static std::vector<std::string> VNamesObs() 
+            {
+		    return Append(VectObsPPose() , VectObsPCam() , VectObsRadiom());
+            }
+            std::string FormulaName() const { return  "EqLidarImCorrel";}
+
+     private :
+};
+
 
 
 };//  namespace MMVII

@@ -464,6 +464,11 @@ cCalculator<double> * EqEqLidarImCensus(bool WithDerive,int aSzBuf)
     return StdAllocCalc(NameFormula(cEqLidarImCensus(),WithDerive),aSzBuf);
 }
 
+cCalculator<double> * EqEqLidarImCorrel(bool WithDerive,int aSzBuf)
+{
+    return StdAllocCalc(NameFormula(cEqLidarImCorrel(),WithDerive),aSzBuf);
+}
+
 /* **************************** */
 /*      BENCH  PART             */
 /* **************************** */
@@ -828,6 +833,7 @@ int cAppliGenCode::Exe()
    {
        GenCodesFormula((tREAL8*)nullptr,cEqLidarImPonct(),WithDer); // RIGIDBLOC
        GenCodesFormula((tREAL8*)nullptr,cEqLidarImCensus(),WithDer); // RIGIDBLOC
+       GenCodesFormula((tREAL8*)nullptr,cEqLidarImCorrel(),WithDer); // RIGIDBLOC
 								      //
        GenCodesFormula((tREAL8*)nullptr,cFormulaSumSquares(8),WithDer); // example for contraint
 

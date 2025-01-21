@@ -32,8 +32,12 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
     mNumMode    (cStrIO<int>::FromStr(aParam.at(0))),  // mode of matching (int 4 now) 0 ponct, 1 Census
     mTri        (aParam.at(1)),                        // Lidar point themself, stored as a triangulation
     mInterp     (nullptr),                            // interpolator see bellow
-    mEqLidPhgr  ( (mNumMode==0) ? EqEqLidarImPonct(true,1) : EqEqLidarImCensus(true,1))  // equation of egalisation Lidar/Phgr
+    mEqLidPhgr  (nullptr)  // equation of egalisation Lidar/Phgr
 {
+   if      (mNumMode==0) mEqLidPhgr = EqEqLidarImPonct (true,1);
+   else if (mNumMode==1) mEqLidPhgr = EqEqLidarImCensus(true,1);
+   else if (mNumMode==2) mEqLidPhgr = EqEqLidarImCorrel(true,1);
+
    //  By default  use tabulation of apodized sinus cardinal
    std::vector<std::string> aParamInt {"Tabul","1000","SinCApod","10","10"};
    if (aParam.size() >=3)
@@ -171,7 +175,6 @@ void cBA_LidarPhotogra::SetVUkVObs
     // Vector of indexes of unknwons 
     if (aVIndUk)
     {
-       * aVIndUk = std::vector<int> {-1} ;   // first one is a temporary (convention < 0)
        aCam->PushIndexes(*aVIndUk);       // add the unknowns [C,R] of the camera
     }
 
@@ -251,7 +254,7 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
         // parse the data of the patch
         for (const auto & aData : aVData)
         {
-            std::vector<int>       aVIndUk;
+            std::vector<int>       aVIndUk{-1}; // first one is a temporary (convention < 0)
             std::vector<tREAL8>    aVObs;
             SetVUkVObs (aPGround,&aVIndUk,aVObs,aData,0);
             
@@ -283,6 +286,43 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
          }
 
 	 aVMoy *=  1/ tREAL8(aVData.size());
+         aVMoy =  NormalizeMoyVar(aVMoy);
+
+         std::vector<tREAL8> aVTmp = aVMoy.ToStdVect();
+         size_t aK0Im = aVTmp.size();
+
+         for (const auto &  aVRad : aListVRad)
+         {
+             auto [A,B] =  LstSq_Fit_AxPBEqY(aVRad,aVMoy);
+             aVTmp.push_back(A);
+             aVTmp.push_back(B);
+         }
+         cSetIORSNL_SameTmp<tREAL8>  aStrSubst(aVTmp); // structure for handling schurr eliminatio,
+         std::vector<int> aVIndPt;
+         std::vector<tREAL8> aVFixAvg;
+         std::vector<tREAL8> aVFixVar;
+
+         for (int aKPt=0 ; aKPt <  (int) aNbPt ; aKPt++)
+         {
+             int aIndPt = -(1+aKPt);
+             aVIndPt.push_back(aIndPt);
+             aVFixAvg.push_back(1.0);
+             //  S(R+dR) ^ 2 =1   ;  S (2 R dR ) = 1 - S(R^2)  ; but S(R^2)=1 by construction ...
+             aVFixVar.push_back(2*aVMoy(aKPt));
+
+             for (int aKIm=0 ;  aKIm< (int) aVData.size() ; aKIm++)
+             {
+                 int aIndIm = -(1+aK0Im+2*aKIm);
+                 std::vector<int>       aVIndUk{aIndPt,aIndIm,aIndIm-1} ;
+                 std::vector<tREAL8>    aVObs;
+                 SetVUkVObs (aVPatchGr.at(aKPt),&aVIndUk,aVObs,aVData.at(aKIm),aKPt);
+                 aSys->R_AddEq2Subst(aStrSubst,mEqLidPhgr,aVIndUk,aVObs,aWeight);
+             }
+         }
+         aStrSubst.AddOneLinearObs(aNbPt,aVIndPt,aVFixAvg,0.0);
+         aStrSubst.AddOneLinearObs(aNbPt,aVIndPt,aVFixVar,0.0);
+
+         aSys->R_AddObsWithTmpUK(aStrSubst);
      }
 }
 
