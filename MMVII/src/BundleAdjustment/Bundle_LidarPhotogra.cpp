@@ -1,6 +1,7 @@
 #include "BundleAdjustment.h"
 #include "MMVII_Interpolators.h"
 #include "MMVII_2Include_Tiling.h"
+#include "MMVII_Tpl_Images.h"
 
 namespace MMVII
 {
@@ -190,7 +191,6 @@ void cBA_LidarPhotogra::SetVUkVObs
 }
 
 
-
 void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aVPatchGr)
 {
      // read the solver now, because was not initialized at creation 
@@ -264,6 +264,25 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
      else if (mNumMode==1)
      {
             // to complete ...
+     }
+     else if (mNumMode==2)  // mode correlation
+     {
+         size_t aNbPt = aVPatchGr.size();
+         cDenseVect<tREAL8>  aVMoy(aNbPt,eModeInitImage::eMIA_Null);
+	 std::vector<cDenseVect<tREAL8>>  aListVRad;
+         for (const auto & aData : aVData)
+         {
+              cDenseVect<tREAL8> aV(aNbPt);
+              for (size_t aK=0 ; aK< aNbPt ; aK++)
+              {
+                  aV(aK)  = aData.mVGr.at(aK).first;
+              }
+	      aListVRad.push_back(aV);
+              cDenseVect<tREAL8> aV01 = NormalizeMoyVar(aV);
+	      aVMoy += aV01;
+         }
+
+	 aVMoy *=  1/ tREAL8(aVData.size());
      }
 }
 

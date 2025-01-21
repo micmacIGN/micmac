@@ -65,6 +65,7 @@ template <class Type> cMainNetwork <Type>::cMainNetwork
     mBoxPts     (cBox2dr::Empty()),
     mWeightSetSchur  (aWeightSetSchur)
 {
+
 }
 
 template <class Type> void cMainNetwork <Type>::PostInit()
@@ -390,6 +391,30 @@ template <class Type> Type cMainNetwork<Type>::DoOneIterationCompensation(double
                 std::vector<Type> aVObs{ObsDist(aPN1,aPN2)}; // compute observations=target distance
                 // Add eq in aSetIO, using CalcD intantiated with VInd,aVTmp,aVObs
 		mSys->AddEq2Subst(aSetIO,mCalcD,aVIndMixt,aVObs);
+
+		static int aCpt = 0;
+		aCpt++;
+                if (aCpt%7==3)
+                {
+                   /**  Test the correctness of   aSetIO.AddOneLinearObs, it is added in a context where it is useless, but at least we check that it
+		    * does not perurbates the solution
+		    */
+		    std::vector<Type> aVTheor = Append(aPN1.TheorPt().ToStdVector(),aPN2.TheorPt().ToStdVector());
+		    std::vector<Type> aVCur = Append(aPN1.PCur().ToStdVector(),aPN2.PCur().ToStdVector());
+
+                    std::vector<Type> aVCoeff;
+                    tREAL8 aCste = 0;
+		    //   0 = Coeff . (X-Th) =  Coeff . (X-XCur + XCur-XTh) =>   Coeff .dX = Coeff .(XTh-XCur)
+		    for (int aK=0 ; aK<4 ; aK++)
+                    {
+                        Type aCoeff = RandInInterval(0.1,2.0);
+                        aVCoeff.push_back(aCoeff);
+                        aCste += aCoeff * (aVTheor.at(aK)-aVCur.at(aK));
+                    }
+                    size_t aNbPb = (sizeof(Type)==4) + 2*(mModeSSR==eModeSSR::eSSR_LsqSparseGC);
+                    std::vector<tREAL8> aVWeight {100.0,0.1,0.1,0.001};
+                    aSetIO.AddOneLinearObs(aVWeight.at(aNbPb),aVIndMixt,aVCoeff,aCste);
+                }
 	    }
 	    {
                 if (mWeightSetSchur.at(0)>=0) aSetIO.AddFixVarTmp(-1,aPTh1.x(), mWeightSetSchur.at(0)); // soft constraint-x  on theoreticall
