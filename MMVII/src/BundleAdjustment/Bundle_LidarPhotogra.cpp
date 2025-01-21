@@ -68,7 +68,6 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
    // Creation of the patches, to comment ...
    if (1)
    {
-/*
         cTplBoxOfPts<tREAL8,2> aBoxObj;
         int aNbPtsByPtch = 32;
 
@@ -122,6 +121,7 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
                 << " NbPts=" << mTri.NbPts() << " => " << aCpt 
                 << " NbPatch=" << mLPatches.size() << " NbAvg => " <<  aCpt / double(mLPatches.size())
                 << "\n";
+/*
 */
    }
 }
@@ -144,7 +144,7 @@ void cBA_LidarPhotogra::AddObs(tREAL8 aW)
     }
     else
     {
-        MMVII_UnclasseUsEr("Dont handle Census");
+        // MMVII_UnclasseUsEr("Dont handle Census");
         for (const auto& aPatchIndex : mLPatches)
         {
             std::vector<cPt3dr> aVP;
