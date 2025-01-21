@@ -354,7 +354,7 @@ template <class Type> class cInputOutputRSNL
           tStdVect                mWeights;  ///< Weights of eq, size can equal mVals or be 1 (cste) or 0 (all 1.0) 
           tStdVect                mVals;     ///< values of fctr, i.e. residuals
           std::vector<tStdVect>   mDers;     ///< derivate of fctr
-	  size_t                  mNbTmpUk;
+	  size_t                  mNbTmpUk;  ///< number of tmp unknown, computed at init
 
           // use a s converter from tREAL8, "Fake" is used to separate from copy construtcor when Type == tREAL8
 	  cInputOutputRSNL(bool Fake,const cInputOutputRSNL<tREAL8> &);

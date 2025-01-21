@@ -388,9 +388,10 @@ template <class Type> void  cResolSysNonLinear<Type>::AddObservationLinear
 {
      SetPhaseEq(); 
      Type  aNewRHS    = aRHS;
-     cSparseVect<Type> aNewCoeff;
+     cSparseVect<Type> aNewCoeff;  // we make a copy because SubstituteInSparseLinearEquation modify aCoeff
 
 #if (WithNewLinearCstr)
+      //     Coef . X =Rhs     Coef(X-X0) = R  - Coeff.(X0)
       for (const auto & aPair :aCoeff)
       {
           aNewRHS -=  mCurGlobSol(aPair.mInd) * aPair.mVal;
