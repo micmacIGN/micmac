@@ -212,6 +212,7 @@ NS_SymbolicDerivative::cCalculator<double> * EqNetworkConsDistFixPoints(bool Wit
            // .............   Registration Lidar/Image   .............
 NS_SymbolicDerivative::cCalculator<double> * EqEqLidarImPonct(bool WithDerive,int aSzBuf);
 NS_SymbolicDerivative::cCalculator<double> * EqEqLidarImCensus(bool WithDerive,int aSzBuf);
+NS_SymbolicDerivative::cCalculator<double> * EqEqLidarImCorrel(bool WithDerive,int aSzBuf);
 
 
 };

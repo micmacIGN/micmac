@@ -1,6 +1,7 @@
 #include "BundleAdjustment.h"
 #include "MMVII_Interpolators.h"
 #include "MMVII_2Include_Tiling.h"
+#include "MMVII_Tpl_Images.h"
 
 namespace MMVII
 {
@@ -31,8 +32,12 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
     mNumMode    (cStrIO<int>::FromStr(aParam.at(0))),  // mode of matching (int 4 now) 0 ponct, 1 Census
     mTri        (aParam.at(1)),                        // Lidar point themself, stored as a triangulation
     mInterp     (nullptr),                            // interpolator see bellow
-    mEqLidPhgr  ( (mNumMode==0) ? EqEqLidarImPonct(true,1) : EqEqLidarImCensus(true,1))  // equation of egalisation Lidar/Phgr
+    mEqLidPhgr  (nullptr)  // equation of egalisation Lidar/Phgr
 {
+   if      (mNumMode==0) mEqLidPhgr = EqEqLidarImPonct (true,1);
+   else if (mNumMode==1) mEqLidPhgr = EqEqLidarImCensus(true,1);
+   else if (mNumMode==2) mEqLidPhgr = EqEqLidarImCorrel(true,1);
+
    //  By default  use tabulation of apodized sinus cardinal
    std::vector<std::string> aParamInt {"Tabul","1000","SinCApod","10","10"};
    if (aParam.size() >=3)
@@ -42,6 +47,8 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
    }
    // create the interpaltor itself
    mInterp  = cDiffInterpolator1D::AllocFromNames(aParamInt);
+// delete mInterp;
+// mInterp = cScaledInterpolator::AllocTab(cCubicInterpolator(-0.5),3,1000);
 
    // parse the camera and create images
    for (const auto aPtrCam : aBA.VSIm())
@@ -61,7 +68,6 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
    // Creation of the patches, to comment ...
    if (1)
    {
-/*
         cTplBoxOfPts<tREAL8,2> aBoxObj;
         int aNbPtsByPtch = 32;
 
@@ -115,6 +121,7 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
                 << " NbPts=" << mTri.NbPts() << " => " << aCpt 
                 << " NbPatch=" << mLPatches.size() << " NbAvg => " <<  aCpt / double(mLPatches.size())
                 << "\n";
+/*
 */
    }
 }
@@ -137,7 +144,7 @@ void cBA_LidarPhotogra::AddObs(tREAL8 aW)
     }
     else
     {
-        MMVII_UnclasseUsEr("Dont handle Census");
+        // MMVII_UnclasseUsEr("Dont handle Census");
         for (const auto& aPatchIndex : mLPatches)
         {
             std::vector<cPt3dr> aVP;
@@ -161,8 +168,30 @@ void cBA_LidarPhotogra::SetVUkVObs
          int                     aKPt
      )
 {
-}
+    cSensorCamPC * aCam = mVCam.at(aData.mKIm);  // extract the camera
+    cPt3dr aPCam = aCam->Pt_W2L(aPGround);  // coordinate of point in image system
+    tProjImAndGrad aPImGr = aCam->InternalCalib()->DiffGround2Im(aPCam); // compute proj & gradient
 
+    // Vector of indexes of unknwons 
+    if (aVIndUk)
+    {
+       aCam->PushIndexes(*aVIndUk);       // add the unknowns [C,R] of the camera
+    }
+
+
+    // vector that will contains values of observation at this step
+    aCam->Pose_WU().PushObs(aVObs,true);  // true because we transpose: we use W->C, which is the transposition of IJK : C->W
+
+    aPGround.PushInStdVector(aVObs);   //
+    aPCam.PushInStdVector(aVObs);
+            
+    aPImGr.mGradI.PushInStdVector(aVObs);  // Grad Proj/PCam
+    aPImGr.mGradJ.PushInStdVector(aVObs);
+            
+    auto [aRad0,aGradIm] = aData.mVGr.at(aKPt);  // Radiom & grad
+    aVObs.push_back(aRad0);
+    aGradIm.PushInStdVector(aVObs);
+}
 
 
 void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aVPatchGr)
@@ -225,28 +254,9 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
         // parse the data of the patch
         for (const auto & aData : aVData)
         {
-            cSensorCamPC * aCam = mVCam.at(aData.mKIm);  // extract the camera
-            cPt3dr aPCam = aCam->Pt_W2L(aPGround);  // coordinate of point in image system
-            tProjImAndGrad aPImGr = aCam->InternalCalib()->DiffGround2Im(aPCam); // compute proj & gradient
-
-            // Vector of indexes of unknwons 
-            std::vector<int>  aVIndUk{-1} ;   // first one is a temporary (convention < 0)
-            aCam->PushIndexes(aVIndUk);       // add the unknowns [C,R] of the camera
-
-
-            // vector that will contains values of observation at this step
-            std::vector<tREAL8> aVObs;  
-            aCam->Pose_WU().PushObs(aVObs,true);  // true because we transpose: we use W->C, which is the transposition of IJK : C->W
-
-            aPGround.PushInStdVector(aVObs);   //
-            aPCam.PushInStdVector(aVObs);
-            
-            aPImGr.mGradI.PushInStdVector(aVObs);  // Grad Proj/PCam
-            aPImGr.mGradJ.PushInStdVector(aVObs);
-            
-            auto [aRad0,aGradIm] = aData.mVGr.at(0);  // Radiom & grad
-            aVObs.push_back(aRad0);
-            aGradIm.PushInStdVector(aVObs);
+            std::vector<int>       aVIndUk{-1}; // first one is a temporary (convention < 0)
+            std::vector<tREAL8>    aVObs;
+            SetVUkVObs (aPGround,&aVIndUk,aVObs,aData,0);
             
             // accumulate the equation involving the radiom
             aSys->R_AddEq2Subst(aStrSubst,mEqLidPhgr,aVIndUk,aVObs,aWeight);
@@ -257,6 +267,62 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
      else if (mNumMode==1)
      {
             // to complete ...
+     }
+     else if (mNumMode==2)  // mode correlation
+     {
+         size_t aNbPt = aVPatchGr.size();
+         cDenseVect<tREAL8>  aVMoy(aNbPt,eModeInitImage::eMIA_Null);
+	 std::vector<cDenseVect<tREAL8>>  aListVRad;
+         for (const auto & aData : aVData)
+         {
+              cDenseVect<tREAL8> aV(aNbPt);
+              for (size_t aK=0 ; aK< aNbPt ; aK++)
+              {
+                  aV(aK)  = aData.mVGr.at(aK).first;
+              }
+	      aListVRad.push_back(aV);
+              cDenseVect<tREAL8> aV01 = NormalizeMoyVar(aV);
+	      aVMoy += aV01;
+         }
+
+	 aVMoy *=  1/ tREAL8(aVData.size());
+         aVMoy =  NormalizeMoyVar(aVMoy);
+
+         std::vector<tREAL8> aVTmp = aVMoy.ToStdVect();
+         size_t aK0Im = aVTmp.size();
+
+         for (const auto &  aVRad : aListVRad)
+         {
+             auto [A,B] =  LstSq_Fit_AxPBEqY(aVRad,aVMoy);
+             aVTmp.push_back(A);
+             aVTmp.push_back(B);
+         }
+         cSetIORSNL_SameTmp<tREAL8>  aStrSubst(aVTmp); // structure for handling schurr eliminatio,
+         std::vector<int> aVIndPt;
+         std::vector<tREAL8> aVFixAvg;
+         std::vector<tREAL8> aVFixVar;
+
+         for (int aKPt=0 ; aKPt <  (int) aNbPt ; aKPt++)
+         {
+             int aIndPt = -(1+aKPt);
+             aVIndPt.push_back(aIndPt);
+             aVFixAvg.push_back(1.0);
+             //  S(R+dR) ^ 2 =1   ;  S (2 R dR ) = 1 - S(R^2)  ; but S(R^2)=1 by construction ...
+             aVFixVar.push_back(2*aVMoy(aKPt));
+
+             for (int aKIm=0 ;  aKIm< (int) aVData.size() ; aKIm++)
+             {
+                 int aIndIm = -(1+aK0Im+2*aKIm);
+                 std::vector<int>       aVIndUk{aIndPt,aIndIm,aIndIm-1} ;
+                 std::vector<tREAL8>    aVObs;
+                 SetVUkVObs (aVPatchGr.at(aKPt),&aVIndUk,aVObs,aVData.at(aKIm),aKPt);
+                 aSys->R_AddEq2Subst(aStrSubst,mEqLidPhgr,aVIndUk,aVObs,aWeight);
+             }
+         }
+         aStrSubst.AddOneLinearObs(aNbPt,aVIndPt,aVFixAvg,0.0);
+         aStrSubst.AddOneLinearObs(aNbPt,aVIndPt,aVFixVar,0.0);
+
+         aSys->R_AddObsWithTmpUK(aStrSubst);
      }
 }
 

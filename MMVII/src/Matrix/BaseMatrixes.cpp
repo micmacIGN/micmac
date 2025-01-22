@@ -424,6 +424,53 @@ template <class Type> Type cDenseVect<Type>::ApproxDistBetweenSubspace(const std
 	return std::max(ASymApproxDistBetweenSubspace(aVV1,aVV2),ASymApproxDistBetweenSubspace(aVV2,aVV1));
 }
 
+cDenseVect<tREAL8> NormalizeMoyVar(const cDenseVect<tREAL8> & aV0,tREAL8 aEpsilon)
+{
+    size_t aSz = aV0.Sz();
+
+    cComputeStdDev<tREAL8>  aStdDev;
+    for (size_t aK=0 ; aK<aSz ; aK++)
+        aStdDev.Add(1.0,aV0(aK));
+    aStdDev.SelfNormalize(aEpsilon);
+
+    tREAL8 aSqrtNb = std::sqrt(aSz);
+    cDenseVect<tREAL8> aRes(aSz);
+    for (size_t aK=0 ; aK<aSz ; aK++)
+        aRes(aK) = aStdDev.NormalizedVal(aV0(aK)) / aSqrtNb ;
+
+    return aRes;
+}
+
+std::pair<tREAL8,tREAL8> LstSq_Fit_AxPBEqY(const cDenseVect<tREAL8> & aVX,const cDenseVect<tREAL8> & aVY)
+{
+    MMVII_INTERNAL_ASSERT_tiny(aVX.Sz()==aVY.Sz(),"Different size in LstSq_Fit_AxPBEqY");
+    cLeasSqtAA<tREAL8> aLsq(2);
+
+    cDenseVect<tREAL8> aCoeff(2);
+    aCoeff(1) = 1.0;
+    for (int aK=0 ; aK<aVX.Sz() ; aK++)
+    {
+        aCoeff(0) = aVX(aK);
+	aLsq.PublicAddObservation(1.0,aCoeff, aVY(aK));
+    }
+
+     cDenseVect<tREAL8> aSol = aLsq.SpecificSolve();
+
+     return std::pair<tREAL8,tREAL8>(aSol(0),aSol(1));
+}
+
+cDenseVect<tREAL8> MulAXPB(const cDenseVect<tREAL8> & aV0, tREAL8 A,tREAL8 B)
+{
+    size_t aSz = aV0.Sz();
+    cDenseVect<tREAL8> aRes(aSz);
+    for (size_t aK=0 ; aK<aSz ; aK++)
+        aRes(aK) = A * aV0(aK) + B;
+
+    return aRes;
+}
+
+
+
 /*
 template <class Type> void AddData(const  cAuxAr2007 & anAux, cDenseVect<Type> & aDV)
 {

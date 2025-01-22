@@ -234,6 +234,9 @@ template<class T2,class T3,int Dim>
 template<class T2,class T3,int Dim>  
    void operator *=(cDataTypedIm<T2,Dim> & aI2,const T3 & aV3) {SelfMulImageCsteInPlace(aI2,aV3); }
 
+template<class T2,class T3>  
+   void operator *=(cDenseVect<T2> & aI2,const T3 & aV3) {SelfMulImageCsteInPlace(aI2.DIm(),aV3); }
+
 /*
 template<class T2,class T3> void operator *= (cDenseVect<T2> & aV2,const T3 & aV3) { aV2.DIm() *= aV3; }
 template<class T2,class T3> void operator *= (cDenseMatrix<T2> & aV2,const T3 & aV3) { aV2.DIm() *= aV3; }

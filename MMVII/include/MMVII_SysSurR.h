@@ -11,8 +11,8 @@ namespace MMVII
     \brief Classes for linear redundant system
 */
 
-template <class Type> class  cInputOutputRSNL;
-template <class Type> class  cSetIORSNL_SameTmp;
+template <class Type> class  cInputOutputRSNL; // class for comunication linearized constraint with Non Linear System
+template <class Type> class  cSetIORSNL_SameTmp; // set of cInputOutputRSNL accumulated before schurr-elimination
 template <class Type> class  cLinearOverCstrSys  ;
 template <class Type> class  cLeasSq ;
 template <class Type> class  cLeasSqtAA ;
@@ -339,6 +339,10 @@ template <class Type> class cInputOutputRSNL
 
 	  /// Create Input data w/o temporay
 	  cInputOutputRSNL(const tVectInd&,const tStdVect & aVObs);
+
+	  /// Create an "object" corresponding to  one equation "Coeff . dX = aCste"  for indexes of aVInd, where dX is delta/current sol
+	  static cInputOutputRSNL<Type> CreatFromLinearObs(Type aW,const tVectInd&,const tStdVect & aVCoeffs,Type aCste);
+
 	  /// Create Input data with temporary temporay
 	  // cInputOutputRSNL(const tVectInd&,const tStdVect &aVTmp,const tStdVect & aVObs);
 
@@ -354,7 +358,7 @@ template <class Type> class cInputOutputRSNL
           tStdVect                mWeights;  ///< Weights of eq, size can equal mVals or be 1 (cste) or 0 (all 1.0) 
           tStdVect                mVals;     ///< values of fctr, i.e. residuals
           std::vector<tStdVect>   mDers;     ///< derivate of fctr
-	  size_t                  mNbTmpUk;
+	  size_t                  mNbTmpUk;  ///< number of tmp unknown, computed at init
 
           // use a s converter from tREAL8, "Fake" is used to separate from copy construtcor when Type == tREAL8
 	  cInputOutputRSNL(bool Fake,const cInputOutputRSNL<tREAL8> &);
@@ -405,6 +409,8 @@ template <class Type> class cSetIORSNL_SameTmp
 	    /// To be Ok must have at least 1 eq, and number of eq must be >= to unkwnonw
 	    void  AssertOk() const;
 
+	    ///  Add  one equation "Coeff . dX = aCste"  for indexes of aVInd, where dX is delta/current sol, use CreatFromLinearObs
+	    void  AddOneLinearObs(Type aW,const tVectInd&,const tStdVect & aVCoeffs,Type aCste);
 	    ///  Number of temporary unkown
 	    size_t  NbTmpUk() const;
 	    const tStdVect & ValTmpUk() const;
