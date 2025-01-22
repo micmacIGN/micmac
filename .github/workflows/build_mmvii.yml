@@ -57,7 +57,7 @@ jobs:
 
     - if: ${{ steps.cache-mm3d-linux.outputs.cache-hit != 'true' }}
       name: Build elise.lib and mm3d
-      run: make -C build install -j 4
+      run: make -C build install -j 4 -k
 
     - name: Configure CMake for MMVII
       run: cmake -S MMVII -B MMVII/build -DCMAKE_BUILD_TYPE=Release

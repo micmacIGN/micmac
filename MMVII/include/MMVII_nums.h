@@ -12,7 +12,9 @@ namespace MMVII
 // Call V1 Fast kth value extraction
 double NC_KthVal(std::vector<double> &, double aProportion);
 double Cst_KthVal(const std::vector<double> &, double aProportion);
-double Average(const std::vector<double> &);
+template <class Type> Type Average(const Type * aTab,size_t aNb);
+template <class Type> Type Average(const std::vector<Type> &);
+
 
 tREAL8 AngleInRad(eTyUnitAngle);
 bool AssertRadAngleInOneRound(tREAL8 aAngleRad, bool makeError=true);
@@ -496,6 +498,16 @@ template <> class tMergeF<tREAL8,tREAL4> { public : typedef tREAL8  tMax; };
 template <> class tMergeF<tREAL4,tREAL8> { public : typedef tREAL8  tMax; };
 template <> class tMergeF<tREAL8,tREAL8> { public : typedef tREAL8  tMax; };
 
+template <class Type>  void AssertTabValueOk(const Type * aTab,size_t aNb)
+{
+    for (size_t aK=0 ; aK<aNb ; aK++)
+        tNumTrait<Type>::AssertValueOk(aTab[aK]);
+}
+
+template <class Type> void  AssertTabValueOk(const std::vector<Type> & aVec)
+{
+    AssertTabValueOk(aVec.data(),aVec.size());
+} 
 
 
 
@@ -546,6 +558,10 @@ template<class Type> Type DivSup(const Type & a,const Type & b)
 /// Return a value depending only of ratio, in [-1,1], eq 0 if I1=I2, and invert sign when swap I1,I2
 double NormalisedRatio(double aI1,double aI2);
 double NormalisedRatioPos(double aI1,double aI2);
+double Der_NormalisedRatio_I1(double aI1,double aI2);
+double Der_NormalisedRatio_I2(double aI1,double aI2);
+double Der_NormalisedRatio_I1Pos(double aI1,double aI2);
+double Der_NormalisedRatio_I2Pos(double aI1,double aI2);
 
 
 tINT4 HCF(tINT4 a,tINT4 b); ///< = PGCD = Highest Common Factor
@@ -752,6 +768,20 @@ template <class TypeVal> void UpdateMinMax(TypeVal & aVarMin,TypeVal & aVarMax,c
     if (aValue>aVarMax) aVarMax = aValue;
 }
 
+template <class TVal> TVal MinTab(TVal * Data,int aNb)
+{
+    MMVII_INTERNAL_ASSERT_tiny(aNb!=0,"No values in MinTab");
+    TVal aMin=Data[0];
+    for (int aK=1 ; aK<aNb ; aK++)
+        if (Data[aK]< aMin)
+           aMin = Data[aK];
+
+    return aMin;
+}
+
+
+
+
 /// Class to store min and max values
 template <class TypeVal> class cBoundVals
 {
@@ -860,6 +890,12 @@ template <typename Type> Type DerYAtanXsY_sX(const Type & X,const Type & Y);
 template <typename Type> Type AtanXsY_sX(const Type & X,const Type & Y,const Type & aEps);
    /// Same as DerXAtanXY_sX ...  ... bench
 template <typename Type> Type DerXAtanXsY_sX(const Type & X,const Type & Y,const Type & aEps);
+
+      //   -------------- miscelaneaous functions ------------------------
+/// Reciprocal function of X-> X|X|
+template <typename Type> Type SignedSqrt(const Type & aTeta); 
+
+
 
 /*  ****************************************** */
 /*     REPRESENTATION of num on a base         */

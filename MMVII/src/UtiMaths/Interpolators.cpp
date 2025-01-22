@@ -82,6 +82,15 @@ cDiffInterpolator1D * cDiffInterpolator1D::AllocFromNames(const std::vector<std:
 	 delete anInt;
 	 return aRes;
      }
+     if (aN0== cScaledInterpolator::TheNameInterpol)
+     {
+	 tREAL8 aScale =  cStrIO<tREAL8>::FromStr(Get(aVName,aK+1));
+	 int aNbTabul =  cStrIO<int>::FromStr(Get(aVName,aK+2));
+	 cDiffInterpolator1D * anInt = AllocFromNames(aVName,aK+3);
+         cTabulatedDiffInterpolator *  aRes = cScaledInterpolator::AllocTab(*anInt,aScale,aNbTabul) ;
+         delete anInt;
+         return aRes;
+     }
      if (aN0== cLinearInterpolator::TheNameInterpol)
      {
          AssertEndParse(aVName,aK);
@@ -630,13 +639,16 @@ cScaledInterpolator::cScaledInterpolator
 	cInterpolator1D
 	(
 	      aInterp->SzKernel() * aScale,
-	      Append(std::vector<std::string>{"Scale",ToStr(aScale)},aInterp->VNames())
+	      Append(std::vector<std::string>{TheNameInterpol,ToStr(aScale)},aInterp->VNames())
 	),
 	mInterp     (aInterp),
 	mScale      (aScale),
         mToDelete   (isToDelete)
 {
 }
+
+const std::string cScaledInterpolator::TheNameInterpol("Scale");
+
 
 cScaledInterpolator::~cScaledInterpolator()
 {

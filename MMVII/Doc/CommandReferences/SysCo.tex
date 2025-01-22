@@ -17,7 +17,7 @@ Coordinate systems (\textbf{SysCo}) types supported by \CdPPP\ are:
 \item \textbf{Proj}: any georeferenced system supported by the \href{https://proj.org}{PROJ} library
 \end{itemize}
 
-When SysCo is known, its definition is recorded into the file \texttt{CurSysCo.xml}, in \texttt{Ori} and \texttt{PointsMeasure} directories.
+When SysCo is known, its definition is recorded into the file \texttt{CurSysCo.xml}, in \texttt{Ori} and \texttt{ObjCoordWorld} directories.
 
 %This file can be copied into \texttt{MMVII-PhgrProj/SysCo/} with a short name to be used in next commands.
 %Example: copy \texttt{CurSysCo.xml} as \texttt{MMVII-PhgrProj/SysCo/MyCRS.xml}, to be able to use \texttt{MyCRS} as a SysCo name.
@@ -249,7 +249,7 @@ The coordinates of PtB and PtC are just for initialization.
 \\
 
 To import these coordinates in \CdPPP\ we use the \texttt{ImportGCP} command, where we give the text format
-(additional\_info, name, x, y, z), the name of the resulting \texttt{PointsMeasure} and the coordinates SysCo.
+(additional\_info, name, x, y, z), the name of the resulting \texttt{ObjCoordWorld} and the coordinates SysCo.
 We also specify that the points that have '0' for their additional\_info are free points, that the sigma for
 known points is 0.001m and that lines starting with '*' are comment lines.
 
@@ -257,7 +257,7 @@ known points is 0.001m and that lines starting with '*' are comment lines.
 MMVII ImportGCP inputs/coords.txt ANXYZ InitL93 ChSys=[L93] AddInfoFree=0 Sigma=0.001 Comment=*
 \end{lstlisting}
 
-In the resulting file \texttt{MMVII-PhgrProj/PointsMeasure/InitL93/MesGCP-coords.xml},
+In the resulting file \texttt{MMVII-PhgrProj/ObjCoordWorld/InitL93/MesGCP-coords.xml},
 the points PtA and PtD have a set \texttt{\_\_Opt\_\_Sigma2} equivalent to $\sigma = 0.001 m$ ,
 the points PtB and PtC have no \texttt{\_\_Opt\_\_Sigma2}, making them free points.
 
@@ -293,14 +293,14 @@ MMVII ImportGCP inputs/coords.txt ANXYZ InitL93 ChSys=[L93,RTL] AddInfoFree=0 Si
 
 \begin{comment}
 \subsection{SysCo shortcut}
-The SysCo file \texttt{MMVII-PhgrProj/PointsMeasure/InitRTL/CurSysCo.xml}, created by \texttt{ImportGCP}
+The SysCo file \texttt{MMVII-PhgrProj/ObjCoordWorld/InitRTL/CurSysCo.xml}, created by \texttt{ImportGCP}
 can be used to create a shortcut name for \texttt{RTL*657700*6860700*0*IGNF:LAMB93}.
 
 We just have to copy it as \texttt{MMVII-PhgrProj/SysCo/RTL.xml} to be able to designate this SysCo
 simply as \texttt{RTL} for the rest of the example.
 
 \begin{lstlisting}
-cp MMVII-PhgrProj/PointsMeasure/InitRTL/CurSysCo.xml MMVII-PhgrProj/SysCo/RTL.xml
+cp MMVII-PhgrProj/ObjCoordWorld/InitRTL/CurSysCo.xml MMVII-PhgrProj/SysCo/RTL.xml
 \end{lstlisting}
 \end{comment}
 
@@ -367,25 +367,24 @@ It is used as a substitute to \texttt{OriBundleAdj} when there are no cameras.
 \begin{verbatim}
  == Mandatory unnamed args : ==
   * string [Topo,In] :: Dir for Topo measures
-  * string [PointsMeasure,In] :: Dir for points initial coordinates
   * string [Topo,Out] :: Dir for Topo measures output
-  * string [PointsMeasure,Out] :: Dir for points final coordinates
+  * std::vector<std::vector<std::string>> :: GCP ground coords and sigma factor,
+                        SG=0 fix, SG<0 schurr elim, SG>0
+                        and optional output dir [[Folder,SigG,FOut?],...]]
 
  == Optional named args : ==
-  * [Name=GCPW] double :: Constrained GCP weight factor (default: 1)
   * [Name=DataDir] string :: Default data directories  ,[Default=Std]
   * [Name=NbIter] int :: Number of iterations ,[Default=10]
   * [Name=GCPFilter] string :: Pattern to filter GCP by name
   * [Name=GCPFilterAdd] string :: Pattern to filter GCP by additional info
-  * [Name=GCPDirOut] string [PointsMeasure,Out] :: Dir for output GCP
   * [Name=LVM] double :: Levenberg–Marquardt parameter (to have better conditioning
-                         of least squares) ,[Default=0]
+                        of least squares) ,[Default=0]
 \end{verbatim}
 
-In our example, the input topo directory is \texttt{Obs1} and the input PointsMeasure is \texttt{InitRTL}.
+In our example, the input topo directory is \texttt{Obs1} and the input ObjCoordWorld is \texttt{InitRTL}.
 We give output directories names for topo and points.
 \begin{lstlisting}
-MMVII TopoAdj Obs1 InitRTL Obs1_out FinalRTL
+MMVII TopoAdj Obs1 Obs1_out [[InitRTL,1,FinalRTL]]
 \end{lstlisting}
 
 The final $\sigma_0$ value should be around 1 if everything goes well.

@@ -23,7 +23,7 @@ public:
     cTopoPoint(const std::string & name);
     cTopoPoint();
 
-    void findUK(const std::vector<cBA_GCP *> &vGCP, cPhotogrammetricProject *aPhProj); //< all params can be null
+    void findUK(const cBA_GCP & aBA_GCP, cPhotogrammetricProject *aPhProj); //< all params can be null
     cPt3dr* getPt() const;
     cObjWithUnkowns<tREAL8>* getUK() const;
     bool isReady() const { return mUK!=nullptr; } //< ready after findOrMakeUK. Can't use in equations if not ready

@@ -276,7 +276,7 @@ cCollecSpecArg2007 & cAppliGenerateEncoding::ArgOpt(cCollecSpecArg2007 & anArgOp
                << AOpt2007(mSpec.mPrefix,"Prefix","Prefix for output files")
                << AOpt2007(mMiror,"Mir","Unify mirro codes")
                << AOpt2007(mNameOut,"Out","Name for output file")
-              <<   mPhProj.DPPointsMeasures().ArgDirInOpt("GCPNames","Dir GCP for code selection on names")
+              <<   mPhProj.DPGndPt3D().ArgDirInOpt("GCPNames","Dir GCP for code selection on names")
           ;
 }
 
@@ -446,9 +446,9 @@ int  cAppliGenerateEncoding::Exe()
        }
    }
 
-   if (mPhProj.DPPointsMeasures().DirInIsInit())
+   if (mPhProj.DPGndPt3D().DirInIsInit())
    {
-      cSetMesGCP aSetGCP =  mPhProj.LoadGCP();
+      cSetMesGnd3D aSetGCP =  mPhProj.LoadGCP3D();
       std::set<int>   aLInt;
       for (const auto & aGCP : aSetGCP.Measures())
           aLInt.insert(cStrIO<int>::FromStr(aGCP.mNamePt));

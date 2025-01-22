@@ -1,5 +1,4 @@
 #include "MMVII_PCSens.h"
-#include "MMVII_MMV1Compat.h"
 #include "MMVII_DeclareCste.h"
 #include "MMVII_BundleAdj.h"
 #include <regex>
@@ -90,7 +89,7 @@ cCollecSpecArg2007 & cAppli_ImportGCP::ArgObl(cCollecSpecArg2007 & anArgObl)
     return anArgObl
 	      <<  Arg2007(mNameFile ,"Name of Input File",{eTA2007::FileAny})
               <<  Arg2007(mFormat,cNewReadFilesStruct::MsgFormat(mSpecFormatTot))
-              << mPhProj.DPPointsMeasures().ArgDirOutMand()
+              << mPhProj.DPGndPt3D().ArgDirOutMand()
            ;
 }
 
@@ -119,7 +118,7 @@ int cAppli_ImportGCP::Exe()
        if (IsPrefixed(mNameGCP))
          mNameGCP = LastPrefix(mNameGCP);
     }
-    cSetMesGCP aSetM(mNameGCP);
+    cSetMesGnd3D aSetM(mNameGCP);
 
     //  Extract chang of coordinate, if not set  handled by default
     cChangeSysCo & aChSys = mPhProj.ChSysCo();
@@ -188,12 +187,12 @@ int cAppli_ImportGCP::Exe()
         if (withPatternAddInfoFree && MatchRegex(aAdditionalInfo,mPatternAddInfoFree))
            aSigma = -1;
 
-        cMes1GCP aMesGCP(aChSys.Value(aVPts[aKL]*mMulCoord),aNamePoint,aSigma,aAdditionalInfo);
+        cMes1Gnd3D aMesGCP(aChSys.Value(aVPts[aKL]*mMulCoord),aNamePoint,aSigma,aAdditionalInfo);
         if (wSigmaX && (aSigma>0)) // dont use sigma if point is free
             aMesGCP.SetSigma2(aNRFS.GetPt3dr(aKL,mFieldSx,mFieldSy,mFieldSz));
-        aSetM.AddMeasure(aMesGCP);
+        aSetM.AddMeasure3D(aMesGCP);
     }
-    mPhProj.SaveGCP(aSetM);
+    mPhProj.SaveGCP3D(aSetM, mPhProj.DPGndPt3D().DirOut());
     mPhProj.SaveCurSysCoGCP(aChSys.SysTarget());
 
     return EXIT_SUCCESS;
@@ -222,8 +221,8 @@ cSpecMMVII_Appli  TheSpec_ImportGCP
       Alloc_ImportGCP,
       "Import/Convert basic GCP file in MMVII format",
       {eApF::GCP},
-      {eApDT::GCP},
-      {eApDT::GCP},
+      {eApDT::ObjCoordWorld},
+      {eApDT::ObjCoordWorld},
       __FILE__
 );
 

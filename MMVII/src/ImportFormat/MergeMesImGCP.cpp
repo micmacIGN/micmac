@@ -1,5 +1,4 @@
 #include "MMVII_PCSens.h"
-#include "MMVII_MMV1Compat.h"
 #include "MMVII_DeclareCste.h"
 #include "MMVII_BundleAdj.h"
 #include "MMVII_2Include_Serial_Tpl.h"
@@ -50,9 +49,9 @@ cCollecSpecArg2007 & cAppli_MergeMesImGCP::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
    return      anArgObl
             << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
-            << mPhProj.DPPointsMeasures().ArgDirInMand()
-            << mPhProj.DPPointsMeasures().ArgDirInMand("Folder second set",&mFolder2)
-            << mPhProj.DPPointsMeasures().ArgDirOutMand()
+            << mPhProj.DPGndPt2D().ArgDirInMand()
+            << mPhProj.DPGndPt2D().ArgDirInMand("Folder second set",&mFolder2)
+            << mPhProj.DPGndPt2D().ArgDirOutMand()
    ;
  
 }
@@ -115,8 +114,8 @@ cSpecMMVII_Appli  TheSpec_MergeMesImGCP
       Alloc_MergeMesImGCP,
       "Merge different files of image measur of GCP",
       {eApF::GCP},
-      {eApDT::GCP},
-      {eApDT::GCP},
+      {eApDT::ObjMesInstr},
+      {eApDT::ObjMesInstr},
       __FILE__
 );
 

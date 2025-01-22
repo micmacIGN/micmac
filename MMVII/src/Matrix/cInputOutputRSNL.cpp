@@ -110,6 +110,26 @@ template <class Type> void cInputOutputRSNL<Type>::Show() const
     //StdOut()  << std::endl;
 }
 
+template <class Type>  
+    cInputOutputRSNL<Type>   
+       cInputOutputRSNL<Type>::CreatFromLinearObs 
+       (
+            Type aWeight,
+            const tVectInd& aVecInd,
+            const tStdVect & aVCoeffs,
+            Type aCste
+       )
+{
+    MMVII_INTERNAL_ASSERT_tiny((aVecInd.size()==aVCoeffs.size()) ,"Bad size for fix var tmp");
+    cInputOutputRSNL<Type> aResult(aVecInd,{});
+
+    aResult.mWeights.push_back(aWeight);
+    aResult.mDers.push_back(aVCoeffs);
+    aResult.mVals.push_back(-aCste);
+
+    return aResult;
+}
+
 
 
 /* ************************************************************ */
@@ -219,6 +239,14 @@ template <class Type> void cSetIORSNL_SameTmp<Type>::AddOneEq(const tIO_OneEq & 
     }
 }
 
+/*
+void TrapMultipleInitializer(tREAL8 a)
+{
+	TrapMultipleInitializer(1.0);
+	TrapMultipleInitializer({2.0});  // Compile !!
+}
+*/
+
 template <class Type> void   cSetIORSNL_SameTmp<Type>::AddFixVarTmp (int aInd,const Type& aVal,const Type& aWeight)
 {
      MMVII_INTERNAL_ASSERT_tiny
@@ -232,11 +260,24 @@ template <class Type> void   cSetIORSNL_SameTmp<Type>::AddFixVarTmp (int aInd,co
      cInputOutputRSNL<Type> aIO({aInd},{});
      aIO.mWeights.push_back(aWeight);
      aIO.mDers.push_back({1.0});
+     // Constraint is expressed  in "absolute", i.e not as a delta with current solution
+     // (see AddFixCurVarTmp to be 100% sure of this convention). So we have to  express
+     // it  taking into account the current solution as this the way
+     //
+     // also note it stored as   "A.X + B = 0"  as in taylor expansion of function
      Type aDVal = Val1TmpUk(aInd)-aVal;
-     aIO.mVals.push_back({aDVal});
+     // aIO.mVals.push_back({aDVal});  => ?? , accepted, equivalent to line bellow ...
+     aIO.mVals.push_back(aDVal );
 
      AddOneEq(aIO);
 }
+
+
+template <class Type> void   cSetIORSNL_SameTmp<Type>::AddOneLinearObs(Type aW,const tVectInd& aVInd,const tStdVect & aVCoeffs,Type aCste)
+{
+   AddOneEq(cInputOutputRSNL<Type>::CreatFromLinearObs(aW,aVInd,aVCoeffs,aCste));
+}
+
 
 template <class Type> void   cSetIORSNL_SameTmp<Type>::AddFixCurVarTmp (int aInd,const Type& aWeight)
 {

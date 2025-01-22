@@ -1,8 +1,12 @@
-
 #include "MMVII_Ptxd.h"
 
 namespace MMVII
 {
+
+template <typename Type> Type SignedSqrt(const Type & aX)
+{
+   return SignSupEq0(aX) * std::sqrt(std::abs(aX));
+}
 
 	/*
 template  TYPE Sqrt(const TYPE & aSin);
@@ -37,7 +41,7 @@ constexpr int Fact3 = 2 * 3;
 constexpr int Fact5 = 2 * 3 * 4 * 5;  // Dont use Fact3, we dont control order of creation
 constexpr int Fact7 = 2 * 3 * 4 * 5 * 6 * 7 ;
 constexpr int Fact9 = 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9;
-constexpr int Fact11 = 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9;
+constexpr int Fact11 = 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11;
 
 
 template <typename Type> Type DerSinC(const Type & aTeta,const Type & aEps)
@@ -193,6 +197,7 @@ template <typename Type> Type cosH(const Type & aX) {return std::exp(aX)+std::ex
 
 
 #define INSTATIATE_FUNC_ANALYTIQUE(TYPE)\
+template  TYPE SignedSqrt(const TYPE & aSin);\
 template  TYPE DerSqrt(const TYPE & aSin);\
 template  TYPE DerASin(const TYPE & aSin);\
 template  TYPE ASin(const TYPE & aSin);\

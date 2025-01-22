@@ -92,8 +92,8 @@ cCollecSpecArg2007 & cAppli_MesImReport::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
     return     anArgObl
             << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
-            << mPhProj.DPPointsMeasures().ArgDirInMand("Folder for tested data")
-            << mPhProj.DPPointsMeasures().ArgDirInMand("Folder for refernce data",&mRefFolder)
+            << mPhProj.DPGndPt2D().ArgDirInMand("Folder for tested data")
+            << mPhProj.DPGndPt2D().ArgDirInMand("Folder for reference data",&mRefFolder)
                ;
 }
 
@@ -211,7 +211,7 @@ int cAppli_MesImReport::Exe()
 {
     mPhProj.FinishInit();
 
-    mNameSubDir = mPhProj.DPPointsMeasures().DirIn() +  "_vs_"+  mRefFolder + mSuffix;
+    mNameSubDir = mPhProj.DPGndPt2D().DirIn() +  "_vs_"+  mRefFolder + mSuffix;
     if (mScaleImage != 1.0)
         mNameSubDir += "_Scale" + ToStr(mScaleImage);
     if (IsInit(&mSuffixReportSubDir))
@@ -267,7 +267,7 @@ cSpecMMVII_Appli  TheSpec_MesImReport
         Alloc_MesImReport,
         "Reports on Images measures compared to a reference",
         {eApF::GCP,eApF::Ori},
-        {eApDT::GCP,eApDT::Orient},
+        {eApDT::ObjMesInstr,eApDT::Orient},
         {eApDT::Image,eApDT::Xml},
         __FILE__
         );

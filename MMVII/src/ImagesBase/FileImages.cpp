@@ -4,7 +4,10 @@
 #include "MMVII_Ptxd.h"
 #include "cGdalApi.h"
 
+
+
 #ifdef MMVII_KEEP_MMV1_IMAGE
+#define MMVII_KEEP_LIBRARY_MMV1 true
 # include "V1VII.h"
 #endif
 
@@ -24,6 +27,7 @@ namespace MMVII
 #ifdef MMVII_KEEP_MMV1_IMAGE
 static GenIm::type_el ToMMV1(eTyNums aV2)
 {
+ // StdOut() << "jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj\n";
     switch (aV2)
     {
     case eTyNums::eTN_INT1 : return GenIm::int1  ;

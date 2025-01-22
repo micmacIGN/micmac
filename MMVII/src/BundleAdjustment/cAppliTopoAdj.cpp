@@ -26,10 +26,7 @@ public :
     cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 private :
 
-    std::vector<tREAL8>  ConvParamStandard(const std::vector<std::string> &,size_t aSzMin,size_t aSzMax) ;
-    /// New Method for multiple GCP : each
-    void  AddOneSetGCP(const std::vector<std::string> & aParam);
-    void  AddOneSetTieP(const std::vector<std::string> & aParam);
+    void  AddOneSetGCP3D(const std::string & aFolderIn, const std::string &aFolderOut, tREAL8 aWFactor); // aFolderOut="" if no out
 
     std::string               mSpecImIn;
 
@@ -38,12 +35,9 @@ private :
     cPhotogrammetricProject   mPhProj;
     cMMVII_BundleAdj          mBA;
 
-    double  mGCPW;
-    std::vector<std::vector<std::string>>  mAddGCPW; // In case there is multiple GCP Set
+    std::vector<std::vector<std::string>>  mGCP3D; // gcp ground coords with sigma factor and optional output dir
     std::string               mGCPFilter;  // pattern to filter names of GCP
     std::string               mGCPFilterAdd;  // pattern to filter GCP by additional info
-    std::vector<std::string>  mTiePWeight;
-    std::vector<std::vector<std::string>>  mAddTieP; // In case there is multiple GCP Set
     std::vector<double>       mBRSigma; // RIGIDBLOC
     std::vector<double>       mBRSigma_Rat; // RIGIDBLOC
 
@@ -62,7 +56,6 @@ cAppliTopoAdj::cAppliTopoAdj(const std::vector<std::string> & aVArgs,const cSpec
    mDataDir        ("Std"),
    mPhProj         (*this),
    mBA             (&mPhProj),
-   mGCPW           (1.),
    mGCPFilter      (""),
    mGCPFilterAdd   (""),
    mNbIter         (10),
@@ -74,9 +67,8 @@ cCollecSpecArg2007 & cAppliTopoAdj::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
     return anArgObl
             << mPhProj.DPTopoMes().ArgDirInMand("Dir for Topo measures")
-            << mPhProj.DPPointsMeasures().ArgDirInMand("Dir for initial coordinates")
             << mPhProj.DPTopoMes().ArgDirOutMand("Dir for Topo measures output")
-            << mPhProj.DPPointsMeasures().ArgDirOutMand("Dir for final coordinates")
+            << Arg2007( mGCP3D, "GCP ground coords and sigma factor, SG=0 fix, SG<0 schurr elim, SG>0 and optional output dir [[Folder,SigG,FOut?],...]]")
            ;
 }
 
@@ -85,83 +77,44 @@ cCollecSpecArg2007 & cAppliTopoAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
     
     return 
           anArgOpt
-
-      << AOpt2007(mGCPW,"GCPW", "Constrained GCP weight factor (default: 1)")
       << AOpt2007(mDataDir,"DataDir","Default data directories ",{eTA2007::HDV})
       << AOpt2007(mNbIter,"NbIter","Number of iterations",{eTA2007::HDV})
       << AOpt2007(mGCPFilter,"GCPFilter","Pattern to filter GCP by name")
       << AOpt2007(mGCPFilterAdd,"GCPFilterAdd","Pattern to filter GCP by additional info")
-      << mPhProj.DPPointsMeasures().ArgDirOutOpt("GCPDirOut","Dir for output GCP")
       << AOpt2007(mLVM,"LVM","Levenberg–Marquardt parameter (to have better conditioning of least squares)",{eTA2007::HDV})
     ;
 }
 
-
-
-std::vector<tREAL8>  cAppliTopoAdj::ConvParamStandard(const std::vector<std::string> & aVParStd,size_t aSzMin,size_t aSzMax)
+void  cAppliTopoAdj::AddOneSetGCP3D(const std::string & aFolderIn, const std::string & aFolderOut, tREAL8 aWFactor)
 {
-    if ((aVParStd.size() <aSzMin) || (aVParStd.size() >aSzMax))
-    {
-        MMVII_UnclasseUsEr("Bad size of AddOneSetGCP, exp in [3,6] got : " + ToStr(aVParStd.size()));
-    }
-
-    std::vector<tREAL8>  aRes;  // then weight must be converted from string to double
-    for (size_t aK=1 ; aK<aVParStd.size() ; aK++)
-        aRes.push_back(cStrIO<double>::FromStr(aVParStd.at(aK)));
-
-    return aRes;
-}
-
-// VParam standar is done from  Folder +  weight of size [1]
-void  cAppliTopoAdj::AddOneSetGCP(const std::vector<std::string> & aVParStd)
-{
-    std::string aFolder = aVParStd.at(0);  // folder
-    std::vector<tREAL8>  aGCPW = {cStrIO<double>::FromStr(aVParStd.at(1)), 1.}; // with fake im weight
-
-    MMVII_INTERNAL_ASSERT_User(aGCPW[0]>0., eTyUEr::eUnClassedError, "Error: GCPW must be > 0")
-
-    //  load the GCP
-    cSetMesImGCP  aFullMesGCP; 
-    mPhProj.LoadGCPFromFolder(aFolder,aFullMesGCP,
-                              {mBA.getTopo(),&mBA.getVGCP()},
-                              "",mGCPFilter,mGCPFilterAdd);
-
-    //here no 2d mes, fake it
-    cSetMesPtOf1Im aSetMesIm("none");
-    aFullMesGCP.AddMes2D(aSetMesIm);
-    cSetMesImGCP * aMesGCP = aFullMesGCP.FilterNonEmptyMeasure(0);
-
-    cStdWeighterResidual aWeighter(aGCPW,1);
-    mBA.AddGCP(aFolder,aGCPW.at(0),aWeighter,aMesGCP);
-}
-
-
-void  cAppliTopoAdj::AddOneSetTieP(const std::vector<std::string> & aVParStd)
-{
-    std::string aFolder = aVParStd.at(0);  // folder
-    std::vector<tREAL8>  aTiePW = ConvParamStandard(aVParStd,3,6);
-    cStdWeighterResidual aWeighter(aTiePW,0);
-    mBA.AddMTieP(aFolder,AllocStdFromMTPFromFolder(aFolder,VectMainSet(0),mPhProj,false,true,false),aWeighter);
+    cSetMesGndPt  aFullMesGCP;
+    cMes3DDirInfo * aMesDirInfo = cMes3DDirInfo::addMes3DDirInfo(mBA.getGCP(), aFolderIn, aFolderOut, aWFactor);
+    mPhProj.LoadGCP3DFromFolder(aFolderIn, aFullMesGCP, aMesDirInfo, "", mGCPFilter, mGCPFilterAdd);
+    auto aFullMes3D = aFullMesGCP.ExtractSetGCP("???");
+    mBA.AddGCP3D(aMesDirInfo,aFullMes3D);
 }
 
 
 int cAppliTopoAdj::Exe()
 {
-    mPhProj.DPPointsMeasures().SetDirInIfNoInit(mDataDir);
     mPhProj.FinishInit();
 
+    for (const auto& aVStrGCP : mGCP3D)
+    {
+        // expected: [Folder,SigG,FOut?]
+        if ((aVStrGCP.size() <2) || (aVStrGCP.size() >3))
+        {
+            MMVII_UnclasseUsEr("Bad size of GCP3D, exp in [2,3] got : " + ToStr(aVStrGCP.size()));
+        }
+        AddOneSetGCP3D(aVStrGCP[0],aVStrGCP.size()>2?aVStrGCP[2]:"",cStrIO<double>::FromStr(aVStrGCP[1]));
+    }
 
     mBA.AddTopo();
 
-    std::vector<std::string> aGCPW;
-    aGCPW.push_back(cStrIO<double>::ToStr(mGCPW));
-    std::vector<std::string>  aVParamStdGCP{mPhProj.DPPointsMeasures().DirIn()};
-    AppendIn(aVParamStdGCP,aGCPW);
-    AddOneSetGCP(aVParamStdGCP);
-
-    // Add  the potential suplementary GCP
-    for (const auto& aGCP : mAddGCPW)
-        AddOneSetGCP(aGCP);
+    //here no 2d mes, fake it
+    cMes2DDirInfo * aMes2DDirInfo = cMes2DDirInfo::addMes2DDirInfo(mBA.getGCP(), "in",cStdWeighterResidual());
+    cSetMesPtOf1Im aSetMesPtOf1Im;
+    mBA.AddGCP2D(aMes2DDirInfo, aSetMesPtOf1Im, nullptr, eLevelCheck::NoCheck);
 
 
     for (int aKIter=0 ; aKIter<mNbIter ; aKIter++)
@@ -169,7 +122,7 @@ int cAppliTopoAdj::Exe()
         mBA.OneIterationTopoOnly(mLVM, true);
     }
 
-    mBA.Save_newGCP();
+    mBA.Save_newGCP3D();
     mBA.SaveTopo(); // just for debug for now
 
     return EXIT_SUCCESS;
@@ -187,8 +140,8 @@ cSpecMMVII_Appli  TheSpec_TopoAdj
       Alloc_TopoAdj,
       "Topo adjustment",
       {eApF::Topo},
-      {eApDT::GCP},
-      {eApDT::GCP},
+      {eApDT::ObjCoordWorld, eApDT::Topo},
+      {eApDT::ObjCoordWorld},
       __FILE__
 );
 

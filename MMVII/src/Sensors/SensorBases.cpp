@@ -313,7 +313,10 @@ cPt3dr cSensorImage::RandomVisiblePGround(tREAL8 aDepMin,tREAL8 aDepMax)
 {
      cPt2dr aPIm   = RandomVisiblePIm();
      tREAL8 aDepth = RandInInterval(aDepMin,aDepMax);
-     return  Ground2ImageAndDepth(cPt3dr(aPIm.x(),aPIm.y(),aDepth));
+
+     // MPD : big bug, but never catched as it was random simul ...
+     // return  Ground2ImageAndDepth(cPt3dr(aPIm.x(),aPIm.y(),aDepth));
+     return  ImageAndDepth2Ground(cPt3dr(aPIm.x(),aPIm.y(),aDepth));
 }
 
 
@@ -445,6 +448,33 @@ void cSensorImage::TransferateCoordSys(const cSensorImage & aSI)
        SetCoordinateSystem(aSI.GetCoordinateSystem());
 }
 const std::string cSensorImage::TagCoordSys = "CoordinateSys";
+
+bool  cSensorImage::IsSensorCamPC() const  { return false; }
+const cSensorCamPC * cSensorImage::GetSensorCamPC() const
+{
+    MMVII_INTERNAL_ERROR("impossible required cast to cSensorCamPC");
+    return nullptr;
+}
+cSensorCamPC * cSensorImage::GetSensorCamPC() 
+{
+    MMVII_INTERNAL_ERROR("impossible required cast to cSensorCamPC");
+    return nullptr;
+}
+
+cSensorCamPC * cSensorImage::UserGetSensorCamPC() 
+{
+   if (!IsSensorCamPC())
+   {
+      MMVII_UnclasseUsEr("Camera " +  NameImage() + " was not central perspective");
+   }
+   return GetSensorCamPC();
+}
+
+
+const cSensorCamPC * cSensorImage::UserGetSensorCamPC() const
+{
+    return const_cast<cSensorImage*>(this)->UserGetSensorCamPC();
+}
 
 
 

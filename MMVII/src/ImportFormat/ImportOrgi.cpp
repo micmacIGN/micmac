@@ -1,5 +1,4 @@
 #include "MMVII_PCSens.h"
-#include "MMVII_MMV1Compat.h"
 #include "MMVII_DeclareCste.h"
 #include "MMVII_BundleAdj.h"
 
@@ -83,7 +82,8 @@ cCollecSpecArg2007 & cAppli_ImportOrgi::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
 int cAppli_ImportOrgi::Exe()
 {
-    mPhProj.DPPointsMeasures().SetDirOut(mNameOut);
+    mPhProj.DPGndPt2D().SetDirOut(mNameOut);
+    mPhProj.DPGndPt3D().SetDirOut(mNameOut);
     mPhProj.DPMulTieP().SetDirOut(mNameOut);
 
     mPhProj.FinishInit();
@@ -103,7 +103,7 @@ int cAppli_ImportOrgi::Exe()
 
     // Read the GCPs
     {
-	cSetMesGCP   aMesGCP(mNameOut);
+	cSetMesGnd3D   aMesGCP(mNameOut);
         //  Read the 3D measures of GCP 
         {
              cReadFilesStruct aFileAmers(mOrgiFolder+mNameFileAmer,"NXYZ",0,-1,'#');
@@ -113,12 +113,12 @@ int cAppli_ImportOrgi::Exe()
                  const std::string & aNamePt = aFileAmers.VNamePt().at(aK);
                  cPt3dr  aPt         =  aFileAmers.VXYZ().at(aK);
 	         mVecNum2Pt.push_back(aNamePt);
-	         aMesGCP.AddMeasure(cMes1GCP(aPt,aNamePt,1.0)); 
+	         aMesGCP.AddMeasure3D(cMes1Gnd3D(aPt,aNamePt,1.0)); 
 	     }
         }
 
         //  Read the 2D measures of GCP
-        //  Fichier  APPUIS.TXT  (ORGI)
+        //  Fichier  APPUIS.TXT  (ORGI)
         std::map<int,cSetMesPtOf1Im> aMapMesIm;
         {
              cReadFilesStruct aFileAppuis(mOrgiFolder+mNameFileAppui,"EEXY",0,-1,'#');
@@ -137,7 +137,7 @@ int cAppli_ImportOrgi::Exe()
 	     }
         }
 
-        mPhProj.SaveGCP(aMesGCP);
+        mPhProj.SaveGCP3D(aMesGCP,mNameOut);
         for (const auto & [aNum,aMesIm] : aMapMesIm)
         {
              mPhProj.SaveMeasureIm(aMesIm);
@@ -189,7 +189,7 @@ cSpecMMVII_Appli  TheSpec_ImportORGI
       "Import data coming from \"ORGI\" format",
       {eApF::GCP,eApF::TieP},
       {eApDT::FileSys},
-      {eApDT::TieP,eApDT::GCP,},
+      {eApDT::TieP,eApDT::ObjMesInstr,eApDT::ObjCoordWorld},
       __FILE__
 );
 

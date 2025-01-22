@@ -376,7 +376,7 @@ template<class Type> int cLinearOverCstrSys<Type>::NbVar() const
 
 template<class Type> Type cLinearOverCstrSys<Type>::LVMW(int aK) const
 {
-    if (aK==0)
+    if (false && (aK==0))
 	StdOut() << "========== LVMINIT=" << mNbVar << " " << mLVMW(aK) << "\n";
    return mLVMW(aK);
 }

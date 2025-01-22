@@ -122,7 +122,7 @@ template <class Type> class cRotation3D
        /// Compute a normal repair, first vector being colinear to Pt
        static cRotation3D<Type> CompleteRON(const tPt & aPt);
        /// Compute a normal repair, first vector being colinear to P1, second in the plane P1,P2
-       static cRotation3D<Type> CompleteRON(const tPt & aP0,const tPt & aP1);
+       static cRotation3D<Type> CompleteRON(const tPt & aP0, const tPt & aP1, bool SVP=false); // SVP=return Identity if impossible
        /// Compute a rotation arround a given axe and with a given angle
        static cRotation3D<Type> RotFromAxe(const tPt & anAxe,Type aTeta);
        ///  Axiator close to Rot From but teta=Norm !!  exp(Mat(^Axe))
@@ -205,9 +205,9 @@ template <class Type> class cIsometry3D
        /// Return Isometrie with given Rot such I(PTin) = I(PTout)
        static cIsometry3D<Type> FromRotAndInOut(const cRotation3D<Type> &,const tPt& aPtIn,const tPt& aPtOut );
        /// Return Isome such thqt I(InJ) = OutK ;  In(InJJp1) // OutKKp1 ; In(Norm0) = NormOut
-       static cIsometry3D<Type> FromTriInAndOut(int aKIn,const tTri  & aTriIn,int aKOut,const tTri  & aTriOut);
+       static cIsometry3D<Type> FromTriInAndOut(int aKIn, const tTri  & aTriIn, int aKOut, const tTri  & aTriOut, bool SVP=false); // SVP: do not crash if impossible, return Id
        /// Idem put use canonique tri = 0,I,J as input
-       static cIsometry3D<Type> FromTriOut(int aKOut,const tTri  & aTriOut,bool Direct=true);
+       static cIsometry3D<Type> FromTriOut(int aKOut, const tTri  & aTriOut, bool Direct=true, bool SVP=false); // SVP: do not crash if impossible, return Id
 
        /// return a 2D triangle isometric to 3d, PK in 0,0  PK->PK1 // to Ox
        static tTri2d ToPlaneZ0(int aKOut,const tTri  & aTriOut,bool Direct=true);

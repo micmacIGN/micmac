@@ -155,13 +155,13 @@ template <class Type>
 }
 
 
-template <class Type> cIsometry3D<Type> cIsometry3D<Type>::FromTriOut(int aKOut,const tTri  & aTriOut,bool Direct)
+template <class Type> cIsometry3D<Type> cIsometry3D<Type>::FromTriOut(int aKOut,const tTri  & aTriOut,bool Direct, bool SVP)
 {
     int Delta = Direct ? 1 : 2;
     tTypeMap aRes
 	     (
 	           aTriOut.Pt(aKOut),
-                   cRotation3D<Type>::CompleteRON(aTriOut.KVect(aKOut),aTriOut.KVect((aKOut+Delta)%3))
+                   cRotation3D<Type>::CompleteRON(aTriOut.KVect(aKOut),aTriOut.KVect((aKOut+Delta)%3),SVP)
 	     );
 
 
@@ -186,10 +186,10 @@ template <class Type> cTriangle<Type,2> cIsometry3D<Type>::ToPlaneZ0(int aKOut,c
 
 
 template <class Type> cIsometry3D<Type> cIsometry3D<Type>::FromTriInAndOut
-                        (int aKIn,const tTri  & aTriIn,int aKOut,const tTri  & aTriOut)
+                        (int aKIn,const tTri  & aTriIn,int aKOut,const tTri  & aTriOut, bool SVP)
 {
-     tTypeMap aRefToOut = FromTriOut(aKOut,aTriOut);
-     tTypeMap aInToRef  = FromTriOut(aKIn,aTriIn).MapInverse();
+     tTypeMap aRefToOut = FromTriOut(aKOut,aTriOut,true,SVP);
+     tTypeMap aInToRef  = FromTriOut(aKIn,aTriIn,true,SVP).MapInverse();
 
      return aRefToOut * aInToRef;
 }
@@ -361,10 +361,18 @@ template <class Type> cRotation3D<Type>  cRotation3D<Type>::CompleteRON(const tP
     return  cRotation3D<Type>(MatFromCols(aP0,aP1,aP2),false);
 }
 
-template <class Type> cRotation3D<Type>  cRotation3D<Type>::CompleteRON(const tPt & aP0Init,const tPt & aP1Init)
+template <class Type> cRotation3D<Type>  cRotation3D<Type>::CompleteRON(const tPt & aP0Init,const tPt & aP1Init, bool SVP)
 {
-    cPtxd<Type,3> aP0 = VUnit(aP0Init);
-    cPtxd<Type,3> aP2 = VUnit(aP0 ^ aP1Init);
+    cPtxd<Type,3> aP0 = aP0Init;
+    if (SVP && (Norm2(aP0)==0.))
+        return cRotation3D<Type>::Identity(); // impossible to return a correct matrix
+    aP0 = VUnit(aP0);
+
+    cPtxd<Type,3> aP2 = aP0 ^ aP1Init;
+    if (SVP && (Norm2(aP2)==0.))
+        return cRotation3D<Type>::Identity(); //  impossible to return a correct matrix
+    aP2 = VUnit(aP2);
+
     cPtxd<Type,3> aP1 = aP2 ^ aP0;
 
     return  cRotation3D<Type>(MatFromCols(aP0,aP1,aP2),false);

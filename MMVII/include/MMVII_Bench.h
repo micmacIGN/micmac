@@ -179,7 +179,8 @@ void BenchSampleQuat();
 
 void BenchcNewReadFilesStruct(cParamExeBench & aParam);  ///< Test the new system for reading structured files on some samples
 
-
+void BenchKTHVal(cParamExeBench & aParam);
+void BenchCurveDigit(cParamExeBench & aParam);
 
 };
 

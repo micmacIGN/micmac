@@ -1,8 +1,4 @@
-#define WITH_MMV1_FUNCTION  false
-
-#if (WITH_MMV1_FUNCTION)
 #include "V1VII.h"
-#endif
 
 #include "MMVII_util.h"
 #include "MMVII_MeasuresIm.h"
@@ -10,7 +6,7 @@
 namespace MMVII
 {
 
-#if (WITH_MMV1_FUNCTION)
+#if (MMVII_KEEP_LIBRARY_MMV1)
 cHomogCpleIm  ToMMVII(const cNupletPtsHomologues &  aNUp) 
 {
 
@@ -86,18 +82,20 @@ cInterfImportHom * cInterfImportHom::CreateImportV1(const std::string&aDir,const
 {
 	return new cImportHomV1(aDir,aSubDir,aExt);
 }
-#else
+#else // MMVII_KEEP_LIBRARY_MMV1
 
 cInterfImportHom * cInterfImportHom::CreateImportV1(const std::string&aDir,const std::string&aSubDir,const std::string&aExt)
 {
         MMVII_INTERNAL_ERROR("No CreateImportV1 ");
 	return nullptr;
 }
+#endif // MMVII_KEEP_LIBRARY_MMV1
+
+
 cInterfImportHom::~cInterfImportHom()
 {
 }
 
-#endif
 
 
 

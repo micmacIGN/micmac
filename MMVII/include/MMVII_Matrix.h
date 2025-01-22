@@ -146,7 +146,6 @@ template <class Type> class  cDenseVect
         Type AvgElem() const; ///< Avereage of all elements
         void SetAvg(const Type & anAvg); ///< multiply by a cste to fix the average
 
-        
 
         // operator -= 
         double DotProduct(const cDenseVect &) const; //== scalar product
@@ -187,6 +186,17 @@ template <class Type> class  cDenseVect
 	static  Type ASymApproxDistBetweenSubspace(const std::vector<tDV>  &,const std::vector<tDV>  &);
         tIM mIm;
 };
+
+/// return a vectot with avg=0 and som sq = 1
+cDenseVect<tREAL8> NormalizeMoyVar(const cDenseVect<tREAL8> & aV0,tREAL8 aEpsilon = 1e-5);
+
+///  fit the equation B +A Vx  = Y, return  [A,B]
+std::pair<tREAL8,tREAL8> LstSq_Fit_AxPBEqY(const cDenseVect<tREAL8> & aVX,const cDenseVect<tREAL8> & aVY);
+
+// return A X + B ....
+cDenseVect<tREAL8> MulAXPB(const cDenseVect<tREAL8> & , tREAL8 A,tREAL8 B);
+
+
 /* To come, sparse vector, will be vect<int> + vect<double> */
 
 /** a Interface class , derived class will be :
@@ -755,6 +765,7 @@ template <class TypeWeight,class TypeVal=TypeWeight> class cWeightAv
         TypeVal Average(const TypeVal  & aDef) const;
         const TypeVal & SVW() const;  /// Accessor to sum weighted vals
         const TypeWeight & SW() const;  /// Accessor to sum weighted vals
+        void  Reset();
     private :
         TypeWeight  mSW;   ///< Som of    W
         TypeVal     mSVW;   ///< Som of    VW
@@ -871,8 +882,8 @@ template <class Type>  class cComputeStdDev
          Type  NormalizedVal(const Type &) const;
          cComputeStdDev<Type>  Normalize(const Type & Epsilon = 0.0) const;
 	 Type  StdDev(const Type & Epsilon = 0.0) const;
-     private :
          void  SelfNormalize(const Type & Epsilon = 0.0);
+     private :
          Type mSomW; 
          Type mSomWV; 
          Type mSomWV2; 

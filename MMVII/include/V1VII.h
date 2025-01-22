@@ -1,6 +1,13 @@
 #ifndef _V1V2_H_
 #define _V1V2_H_
 
+#ifndef MMVII_KEEP_LIBRARY_MMV1
+// Maintain it for now, require for converting V1 TiePoints...
+#define MMVII_KEEP_LIBRARY_MMV1 true
+#endif 
+
+#if (MMVII_KEEP_LIBRARY_MMV1)
+
 #include "StdAfx.h"
 #include "MMVII_Ptxd.h"
 #include "MMVII_Stringifier.h"
@@ -21,12 +28,6 @@ cHomogCpleIm  ToMMVII(const cNupletPtsHomologues &  aNUp);
 
 
 template <class Type> Box2d<Type>  ToMMV1(const cTplBox<Type,2> &  aBox) {return  Box2d<Type>(ToMMV1(aBox.P0()),ToMMV1(aBox.P1()));}
-
-template <class Type> std::string ToStrComMMV1(const cPtxd<Type,2> & aP) {return "["+ToStr(aP.x()) + "," + ToStr(aP.y()) + "]";}
-template <class Type> std::string ToStrComMMV1(const cTplBox<Type,2> & aBox) 
-{
-  return "["+ToStr(aBox.P0().x()) + "," + ToStr(aBox.P0().y()) + "," + ToStr(aBox.P1().x()) + "," + ToStr(aBox.P1().y()) +  "]";
-}
 
 
 
@@ -73,9 +74,7 @@ double  IKthVal(std::vector<double> & aV, int aK);
 // Call V1 for roots of polynomials
 template <class Type> std::vector<Type>  V1RealRoots(const std::vector<Type> &  aVCoef, Type aTol,int aNbMaxIter);
 
-
-
-
 };
 
+#endif // MMVII_KEEP_LIBRARY_MMV1
 #endif // _V1V2_H_

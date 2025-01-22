@@ -1,6 +1,8 @@
 #include "cMMVII_Appli.h"
 #include "MMVII_PCSens.h"
+
 #include "V1VII.h"
+
 
 namespace MMVII
 {
@@ -34,7 +36,7 @@ cCollecSpecArg2007 & cAppli_MMV2_MesIm_2_MMV1::ArgObl(cCollecSpecArg2007 & anArg
 {
       return anArgObl
              << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
-             << mPhProj.DPPointsMeasures().ArgDirInMand()
+             << mPhProj.DPGndPt2D().ArgDirInMand()
              << Arg2007(mNameFile  ,"Name of V1-image-measure file (\""+MMVII_NONE +"\" if none !)",{eTA2007::FileTagged})
       ;
 }
@@ -54,16 +56,17 @@ int cAppli_MMV2_MesIm_2_MMV1::Exe()
     //read the image pattern
     std::vector<std::string> aVecIm = VectMainSet(0);//interface to MainSet
     
+#if (MMVII_KEEP_LIBRARY_MMV1)
     //MicMac v1
     cSetOfMesureAppuisFlottants aDico;
     
     for (const std::string& aCImage : aVecIm)
     {
 
-		cSetMesImGCP aSetMes;
+		cSetMesGndPt aSetMes;
 
 		//load GCPs
-		mPhProj.LoadGCP(aSetMes);
+		mPhProj.LoadGCP3D(aSetMes);
 
 		//load image measurements
 		mPhProj.LoadIm(aSetMes,aCImage);
@@ -114,6 +117,13 @@ int cAppli_MMV2_MesIm_2_MMV1::Exe()
 	
 	//write image measure in MicMac v1 .xml format
 	MakeFileXML(aDico,mNameFile);
+#else //  (MMVII_KEEP_LIBRARY_MMV1)
+     StdOut()  << " \n\n";
+     StdOut()  << " ********************************************************************************************************\n";
+     StdOut()  << " * Use of MMV1 Library is deprecated in this distrib, see with MicMac's administrator how to install it *\n";
+     StdOut()  << " ********************************************************************************************************\n";
+     MMVII_INTERNAL_ERROR("Deprecated use of MMV1's library");
+#endif //  (MMVII_KEEP_LIBRARY_MMV1)
 
     return EXIT_SUCCESS;
 }
@@ -129,8 +139,8 @@ cSpecMMVII_Appli  TheSpec_MMV2_MesIm_2_MMV1
       Alloc_Test_MMV2_MesIm_2_MMV1,
       "Export image measurements format from MicMac v2 to MicMac v1",
       {eApF::GCP},
-      {eApDT::GCP},
-      {eApDT::GCP},
+      {eApDT::ObjMesInstr},
+      {eApDT::ObjMesInstr},
       __FILE__
 );
 

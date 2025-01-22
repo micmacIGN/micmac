@@ -33,7 +33,8 @@ cCollecSpecArg2007 & cAppli_ExportUndistMesIm::ArgObl(cCollecSpecArg2007 & anArg
       return anArgObl
              << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
              << mPhProj.DPOrient().ArgDirInMand()
-             << mPhProj.DPPointsMeasures().ArgDirInMand()
+             << mPhProj.DPGndPt3D().ArgDirInMand()
+             << mPhProj.DPGndPt2D().ArgDirInMand()
       ;
 }
 
@@ -41,7 +42,7 @@ cCollecSpecArg2007 & cAppli_ExportUndistMesIm::ArgObl(cCollecSpecArg2007 & anArg
 cCollecSpecArg2007 & cAppli_ExportUndistMesIm::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
     return anArgOpt
-               <<  mPhProj.DPPointsMeasures().ArgDirOutOptWithDef("Undist")
+               <<  mPhProj.DPGndPt2D().ArgDirOutOptWithDef("Undist")
                << AOpt2007(mShow,"ShowD","Show details",{eTA2007::HDV})
             ;
 }
@@ -56,13 +57,13 @@ int cAppli_ExportUndistMesIm::Exe()
     for (const std::string& aCImage : aVecIm)
     {
 
-		cSetMesImGCP aSetMes;
+		cSetMesGndPt aSetMes;
 
 		//load calibration
 		cPerspCamIntrCalib * aCal = mPhProj.InternalCalibFromStdName(aCImage);
 
 		//load GCPs
-		mPhProj.LoadGCP(aSetMes);
+		mPhProj.LoadGCP3D(aSetMes);
 
 		//load image measurements
 		mPhProj.LoadIm(aSetMes,aCImage);
@@ -112,9 +113,9 @@ cSpecMMVII_Appli  TheSpec_ExportUndistMesIm
 (
      "ExportUndistMesIm",
       Alloc_Test_ExportUndistMesIm,
-      "Export image measurements of GCPs corrected from distorsion",
-      {eApF::Ori},
-      {eApDT::Ori,eApDT::GCP},
+      "Export image points measurements corrected from distorsion",
+      {eApF::Ori,eApF::GCP},
+      {eApDT::Ori,eApDT::ObjMesInstr},
       {eApDT::Console},
       __FILE__
 );

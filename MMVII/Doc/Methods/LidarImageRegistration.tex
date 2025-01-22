@@ -1,0 +1,434 @@
+\chapter{Lidar-Image registration}
+\label{Chap:LidImRed}
+
+
+%-----------------------------------------------------------------------
+%-----------------------------------------------------------------------
+%-----------------------------------------------------------------------
+
+\section{Introduction}
+
+\subsection{Scope}
+
+This chapter describe some draft idea for registration  between a Lidar
+acquisition and image acquisition.  It describe not only the theory and equations,
+but also some consideration about how concretely integrate it in \PPP.
+
+The theoreticall hypothesis are :
+
+\begin{itemize}
+   \item  the lidar is the reference (it will not move) and that's the images localisation parameters
+          we will  modify ; doing it in the reverse way would require
+          a model of Lidar transformation, which is not obvious;
+
+   \item  the images are already roughly registered, and what we want to do is a fine 
+          registration (whatever it means, probably between $1$ and $10$ pixels, to see) ;
+ 
+   \item  we work with vertical images (aerial or satellite),  the approach
+          may be extended to terrestrial images, with few or no modification, but that's not our concern for now.
+\end{itemize}
+
+%-----------------------------------------------------------------------
+
+\subsection{General framework}
+
+The general idea of the proposed approach is :
+
+\begin{itemize}
+   \item  consider patches of lidar points (or individual lidar points in simplest variation) ;
+   \item  consider for each patch a set of image where it is visible ;
+   \item  consider the projection of the patch in each image;
+   \item  define a \emph{radiometric} similarity  measurement between radiometric
+          patches;
+   \item  modify the images localisation parameters  for maximizing the global radiometric similarity between 
+          projected patches.
+\end{itemize}
+
+%-----------------------------------------------------------------------
+
+\subsection{Inclusion in MMVII bundle adjusment}
+
+If there is sufficient relief, the maximization of similiarity of projected patches 
+will be sufficient to get a unique solution. However it may be unstable on flat area (if we evaluate internal parameters),
+or in area where there is few valuable patches (maybe in forest), and  by the way in our real
+application we will have other measurement (GCP, GPS on centers, standard tie points \dots ) that we want to
+integrate.
+
+So the equation for similarity measurement will be considered as measures among others that will have
+to be integrated in MMVII bundle adjustement. Part of this chapter will focus on this aspect,
+mainly from practicle aspect, but also from theoreticall aspects (the classical question
+of mixing equation of different nature).
+
+%-----------------------------------------------------------------------
+
+\subsection{Notation}
+\label{LidImReg:Notation}
+
+We have :
+
+\begin{itemize}
+    \item a central $3d$ lidar point $P$ ;
+    \item possibly a set of $M$ neighouring $3d$ points  $p_i, i \in [1,M] $ of $P$;
+    \item a set of $N$ images $I_k, k \in [1,N] $ such that $P$ and $p_i$ are visible in $I_k$;
+    \item if $q$ is a $2d$ point, we note $I_k(q)$ the radiometry of $q$ in $I_k$,
+          for now we consider only gray level image, the generalisation with multi-chanel
+          image being obvious, and probably useless;
+\end{itemize}
+
+For each $I_k$ and each $3d$ point $P$ we note  $\pi_k(P)$ the projection of 
+$P$ in $I_k$. $\pi_k$ depend from a certain number of parameters that will
+be optimized in the bundle adjustment (rotation, pose, internal for perspective
+camera; polynomial additionnal parameter for RPC).
+
+Regarding the image, we will consider it as a function $\RR^2 \rightarrow  \RR$ :
+
+\begin{equation}
+    I_k : \RR^2 \rightarrow  \RR  ,  p    \rightarrow  I_k(p) 
+\end{equation}
+
+%-----------------------------------------------------------------------
+
+\subsection{Image differentiation}
+
+To use $I_k$ in iterative linearized least square minimizations,  we will need
+to consider it as a differentiable function of $q$.  For this, for each point $q$,
+we will assimilate locally $I_k$ to its Taylor expansion at point $q$. Let
+note  $\vec G_k(q)$ the gradient of $I_k$ in $q$, we will write $I^q_k$ the
+taylor expansion defined by :
+
+\begin{equation}
+   I^q_k(q') = I_k(q) + \vec G_k(q) \cdot  \overrightarrow{q q'} 
+\end{equation}
+
+Of course it's questionable, but we will do it \dots by the way, we think that the  high
+redundance of measures will overcome this approximation.
+
+For computing $I_k(q)$ and $\vec G_k(q)$, in a point of $\RR^2$,
+we will select an interpolator and use the method {\tt GetValueAndGradInterpol}
+defined in~\ref{Method:GetValueAndGradInterpol}.
+
+In \PPP's jargon, for linearized system minimization, the values of $I_k$, $\vec G_k$   will be considered as \emph{observation} 
+at the following steps :
+
+\begin{itemize}
+   \item  when adding an equation to the system with {\tt CalcAndAddObs}, simple case,
+          or with {\tt AddEq2Subst}, case with Schurr's complement;
+          
+   \item  when generating the code for automatic differentiation in the method {\tt formula}
+          of the class used for generating code (see~\ref{Class:Specif:Formulas}).
+\end{itemize}
+
+%-----------------------------------------------------------------------
+%-----------------------------------------------------------------------
+%-----------------------------------------------------------------------
+
+\section{Simple formulations}
+
+\label{LIR:SimplF}
+
+%-----------------------------------------------------------------------
+
+\subsection{Simplest case}
+
+The first simplest solution is to consider the radiometric difference as
+similarity measure.
+Of course comparing directly the radiometry of images, may be too simplistic.
+We know in image maching that it does not work with aerial image,  because natural
+surface are not lambertian.   By the way , if the images
+are radiometrically calibrated, which is more or less the case with professional
+aerial images or satellite images, it may work statistically (i.e. say for $70\%$
+of the points the radiometry are similar and for the other, the number of measure will
+generate a non biased error that will average to $0$).
+
+
+This modelisation suppose that there exist a radiometry 
+common to all the images, we introduce this unknown radiometry as a 
+temporary unknown $I^g$ .
+
+Considering a point $P$, with notations of~\ref{LidImReg:Notation},
+for each image $I_k$, we add  the equation :
+
+\begin{equation}
+    I_k(\pi_k(P)) = I^g \label{LIR:Eq1Point}
+\end{equation}
+
+Some detail about the implementation :
+
+\begin{itemize}
+    \item $I^g$ is an unknown, we must estimate its approximate value $I^g_0$,
+          we can do it using the average of th $I_k(\pi_k(P))$ with
+          current value of $\pi_k$;
+
+    \item as there may exist million (billion ?) of equation, we dont
+          want to have huge system, we will use Schurr complement to eliminate
+          $I^g$ after processing point $P$;
+\end{itemize}
+
+Also it may be a problem to add directly equation~\ref{LIR:Eq1Point} in bundle
+adjustment, because it will mix observation on radiometry with observation on
+geometry.  We may prefer a version of~\ref{LIR:Eq1Point} with no dimension,
+we can write :
+
+\begin{equation}
+    \frac{I_k(\pi_k(P))}{I^g} = 1
+\end{equation}
+
+Or if we want to avoid quotient in unknowns :
+
+\begin{equation}
+    \frac{I_k(\pi_k(P))}{I^g_0} = \frac{I_g}{I^g_0} 
+\end{equation}
+
+%-----------------------------------------------------------------------
+
+\subsection{Image pre normalisation}
+
+A possible way to  overcome the non lambertian aspect of images,
+is to make a pre-processing of images, that make them localy invariant
+to different transformation, for example :
+
+\begin{itemize}
+    \item to make it invariant to local scaling and translation, apply a Wallis filter : subsract the average and divide by the
+          standard deviation (computed on given neighboorhood);
+
+    \item   to make it simply invariant to local scaling ,  divided by local standard deviation, maybe more stable than
+            Wallis.
+\end{itemize}
+
+Not sure if it will solve the problem, by the way it's easy to test.  
+In a first approach these filtering, and many others, can be done with
+the {\tt Nikrup}  command of {\tt mmv1}. And, if it turns to be the  "miracle solution",
+a  filtering inside \PPP can be added later.  
+
+
+
+
+%-----------------------------------------------------------------------
+
+\subsection{Slightly more sophisticated similarity}
+
+\label{LIR:CQ}
+
+The next measure to test, is somewhat a variation on the well known
+Census coefficient. My intuition is that in this context, it can be \emph{"the"} good compromize
+simplicity/efficiency.
+
+  %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Quantitative Census}
+
+Now we consider that we have no longer single pixels, but patches, and as
+in Census, we use the central pixel as a normalisation factor. 
+Noting $A = B$, between two boolean the function that values
+$1$ if they have the same value en $0$ else, we define
+Census, $C(V,W)$,  between two patches of radiometry $V_0, \dots$ and $W_0 \dots$ by :
+
+\begin{equation}
+      C(V,W)  = \sum_k (V_k > V_0) = (W_k>W_0)
+\end{equation}
+
+
+The drawback of census is  that because of boolean test $V_k > V_0$ , it'is
+not continous and  (obvioulsy then) very sensitive to small variation and  difficutlt to derivate.
+We make a first modification and define $C_{q0}$, a first quantitative version of census 
+by :
+
+\begin{equation}
+      C_{q0} (V,W)  = \sum_k | \frac{V_k}{V_0} - \frac{W_k}{W_0} |
+\end{equation}
+
+Also the draw back of $C_{q0}$ is that  the ratio it is unbounded,
+to overcome this problem we introduce the normalized ratio $\rho^n$ :
+
+\begin{equation}
+ \rho^n (x,y)  =
+\left\{ \begin{array}{rcl}
+\frac{x}{y} & \mbox{if}  & x<y\\
+\\
+2-\frac{y}{x} & \mbox{if}  & x \geq y
+\end{array}\right.
+\end{equation}
+
+$\rho^n$ is a ratio function because $\rho^n(\lambda x, \lambda y) = \rho^n(x,y)$,
+$\rho^n$ is bounded and  $C^1$ (but not $C^2$) . Many other choice would be possible, like \CPP's function {\tt atan2(x,y)} for
+example who would be $C^{\infty}$; probably all the reasonable choice would be more or less equivalent, the advantage of $\rho^n$
+is to be fast to compute.
+
+We then define Census quantitative as :
+
+\begin{equation}
+      C_{q} (V,W)  = \sum_k | \rho^n(V_k,V_0) -  \rho^n(W_k,W_0)| \label{Eq:Census:Quant}
+\end{equation}
+
+  %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Application to similarity measures}
+
+The equation~\ref{Eq:Census:Quant} can be used directly for example in image matching.  
+For the image-lidar registration we procede this way, using notation of~\ref{LidImReg:Notation} :
+
+
+\begin{itemize}
+    \item for $k\in [1,N] $ , the  $\pi_k(P) $ are the homologous central points;
+    \item for $k\in [1,N], i \in [1,M]  $  ,the $\pi_k(p_i) $ are the homologous peripheral points;
+\end{itemize}
+
+If we had a perfect ratio conservation we should have :
+
+\begin{equation}
+     \forall i \in [1,M] :  \rho_i
+                           =   \rho^n(I_1(\pi_k(P)), I_1(\pi_k(p_i)))
+                           =  \rho^n(I_2(\pi_k(P)), I_2(\pi_k(p_i)))
+                           \dots
+                           =  \rho^n(I_N(\pi_k(P)), I_N(\pi_k(p_i)))
+\end{equation}
+
+Where $\rho_i$ is the theoretical common ratio between $P$ and $p_i$ 
+projected radiometry in all images.
+We proceed now as usual :
+
+
+\begin{itemize}
+    \item we introduce the $M$ temporary unknowns  $\rho_i  \in [1,M] $ , that represent
+          the common ratio between radiometry of projections of $P$ and $p_i$ in all images;
+
+    \item we estimate the initial value of $\rho_i$ by equation ~\ref{Eq:RIM:EstRho};
+
+    \item we now add the $NM$ equation~\ref{Eq:RIM:EqRho} in the bundle adjsustment;
+
+    \item and, as usual, we make a Schurr elimination of $M$ temporary unknowns.
+\end{itemize}
+
+\begin{equation}
+     \rho_i = \frac{1}{N} \sum_k \rho^n(I_k(\pi_k(P)), I_k(\pi_k(p_i)))  \label{Eq:RIM:EstRho}
+\end{equation}
+
+\begin{equation}
+      \forall i,k : \rho_i =  \rho^n(I_k(\pi_k(P)), I_k(\pi_k(p_i)))   \label{Eq:RIM:EqRho}
+\end{equation}
+
+
+
+%-----------------------------------------------------------------------
+
+\section{Other stufs}
+
+\subsection{Other similarity}
+\label{LIR:OthSim}
+
+To do later \dots , for example :
+
+\begin{itemize}
+    \item the "real" correlation coefficient, faisible with automatic differentiation,
+          inconvenient we must generate a different formula for each number of points;
+
+    \item adapt the structure of~\ref{LIR:CQ} to make efficient correlation :
+          estimate a medium   patch of normalized radiometry in average and standard deviation,
+          introduce  for each patch $2$ temporary unknowns, additive $A$ and multiplicative $B$,
+          for each patch to be equal to the medium patch after transformation ;
+          to think \dots
+
+    \item and why not, test similarity coefficient from deep learning, as long as they can
+          be differentiated, it can be injected in the proposed pipeline.
+\end{itemize}
+
+\subsection{Multi scale}
+Maybe a multi-scale approach can be usefull when the initial localisation is not so good. A simple
+way could be to just blurr the image, to be tested on simulated data ?
+
+%-----------------------------------------------------------------------
+
+\section{Correlation}
+
+\subsection{Correlation formulation}
+
+
+Let $X_i, i \in [1,N] $ be a series of values, noting :
+
+\begin{equation}
+     \mu(X) = \frac{\sum_{i=1}^N  X_i}{N}
+\end{equation}
+
+\begin{equation}
+     \widetilde{X} = X - \mu(X)
+\end{equation}
+
+We have : 
+\begin{equation}
+     \mu(\widetilde{X}) = 0
+\end{equation}
+
+Noting :
+
+\begin{equation}
+     \sigma(X) =   \sqrt{\mu(\widetilde{X})^2)   }
+\end{equation}
+
+And  :
+\begin{equation}
+     \widehat {X} =   \frac{\widetilde{X}}{\sigma(X)}
+\end{equation}
+
+We have :
+
+\begin{equation}
+     \mu(\widehat {X}) =0    \; , \; \sigma(\widehat {X}) = 1  \; , \;  X = \mu + \sigma \widehat {X}
+\end{equation}
+
+
+We remind that the normalized centered correlaction coefficient ($N_{CC}$)  between $2$ series $X_i$ and $Y_i$ is defined by :
+
+\begin{equation}
+    N_{CC}(X,Y) = \frac{\sum (X_i-\mu(X)) (Y_i-\mu(X)) }{\sigma(X)\sigma(Y)}   = \widehat {X} \cdot \widehat {Y}
+\end{equation}
+
+
+
+
+
+
+
+%-----------------------------------------------------------------------
+
+\section{Road map}
+
+With MAC=Mohamed,
+
+Some draft idea on the \emph{to do} list , and the  \emph{who do what} list :
+
+\begin{itemize}
+    \item  add a reader of lidar point, probably {\tt pdal}, in \PPP  :  {\bf MAC \& CM}
+
+    \item  make a simulation of perfect data with blunder  (can blunder transformate its model in point cloud) :{\bf MAC \& JMM}
+
+    \item make a firt implementation of~\ref{LIR:SimplF} to have a concrete example of 
+         how to use  \PPP's library in this approach, test it with perfect data, check that  with
+         a small perturbation of the orientation we are able to recover the ground truth :
+         {\bf  MAC \& MPD} and {\bf  others} if interested to this new case of non linear optimisation library;
+
+    \item test on real data equation ~\ref{LIR:SimplF}, then \ref{LIR:CQ} , then \ref{LIR:OthSim}, then \dots  : {\bf MAC} 
+\end{itemize}
+
+On real data an important issue will be  the selection of lidar point  : 
+
+\begin{itemize}
+     \item  obviously  avoid occluded point
+     \item  probably   avoid vegetation, at least trees , maybe existing classif of lidar will be sufficient
+     \item  probably there will far to many measures,  do we take all because it's not a time problem, 
+            or do we make a random selection just to reduce time, or do we make a clever selection (textures \dots).
+\end{itemize}
+
+
+
+
+
+
+%%Different method 1 pixel, wallis filter   , cross pixel, census , correlation
+
+%%Multi Scale
+%%Pixel selection -> texture ? hidden ? relief ?
+%  Road map ->  blender/JMM  , case 0 MPD/MALI ,  case 1, aerial : MALI 1pixel/walis , case 2 : 2 pixel
+
+%\subsection{Generality}
+
+  %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+%\subsubsection{Circular target variant}
+

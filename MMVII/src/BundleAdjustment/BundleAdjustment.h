@@ -13,6 +13,12 @@ namespace MMVII
 {
 
 class cBA_Topo;
+class cMMVII_BundleAdj;
+class cBA_LidarPhotogra;
+class cBA_TieP;
+class cBA_GCP;
+class cBA_Clino;
+class cBA_BlocRig;
 
 /**   Class for representing a Pt of R3 in bundle adj, when it is considered as
  *   unknown.
@@ -279,24 +285,56 @@ class cBA_Clino : public cMemCheck
 
 
 
+// class to record data specific to a measurement directory : In/out name, w factor
+class cMes3DDirInfo
+{
+public:
+    static cMes3DDirInfo* addMes3DDirInfo(cBA_GCP &aBA_GCP, const std::string & aDirNameIn,
+                                            const std::string & aDirNameOut, tREAL8 aSGlob);
+    std::string mDirNameIn;
+    std::string mDirNameOut;
+    tREAL8 mSGlob; // factor, shurred or fixed
+protected:
+    cMes3DDirInfo(const std::string &aDirNameIn, const std::string &aDirNameOut, tREAL8 aSGlob);
+};
 
+// class to record data specific to a measurement directory : In name, weighter
+class cMes2DDirInfo
+{
+public:
+    static cMes2DDirInfo* addMes2DDirInfo(cBA_GCP &aBA_GCP, const std::string & aDirNameIn,
+                                        const cStdWeighterResidual & aStdWeighterResidual);
+    std::string mDirNameIn;
+    cStdWeighterResidual mWeighter;
+protected:
+    cMes2DDirInfo(const std::string &aDirNameIn, const cStdWeighterResidual &aWeighter);
+};
 
 
 
 
 class cBA_GCP
 {
+    friend class cMMVII_BundleAdj;
      public :
 	          // - - - - - - - - GCP  - - - - - - - - - - -
           cBA_GCP();
           ~cBA_GCP();
+          cBA_GCP(cBA_GCP const&) = delete;
+          cBA_GCP& operator=(cBA_GCP const&) = delete;
 
-          std::string              mName;   // Name of folder 
-          cSetMesImGCP *           mMesGCP;
-          cSetMesImGCP             mNewGCP; // set of gcp after adjust
-	  tREAL8                   mSigmaGCP;
-          cStdWeighterResidual     mGCPIm_Weighter;
-          std::vector<cPt3dr_UK*>  mGCP_UK;
+          void AddGCP3D(cMes3DDirInfo * aMesDirInfo, cSetMesGnd3D &aSetMesGnd3D, bool verbose);
+          void AddMes2D(cSetMesPtOf1Im &, cMes2DDirInfo * aMesDirInfo, cSensorImage*, eLevelCheck OnNonExistP=eLevelCheck::Warning);
+          const cSetMesGndPt & getMesGCP() const {return mMesGCP;}
+          cSetMesGndPt & getMesGCP() {return mMesGCP;}
+          std::vector<cMes2DDirInfo*> mAllMes2DDirInfo;
+          std::vector<cMes3DDirInfo*> mAllMes3DDirInfo;
+          const std::vector<cPt3dr_UK*>  & getGCP_UK() const { return mGCP_UK; }
+    protected:
+          cSetMesGndPt             mMesGCP; //< initial
+          cSetMesGndPt             mNewGCP; //< set of gcp after adjust
+          std::vector<cPt3dr_UK*>  mGCP_UK; //< as many elements as mMesGCP, nullptr for shurred points
+
 };
 
 class cBA_TieP
@@ -311,8 +349,49 @@ class cBA_TieP
 };
 
 
-/**  
- */
+/** For a given patch in one image, will store all the data on the points*/
+class cData1ImLidPhgr
+{
+     public :
+        size_t mKIm;  // num of images where the patch is seen
+        std::vector<std::pair<tREAL8,cPt2dr>> mVGr; // pair of radiometry/gradient values in each image for each point of the patch
+};
+
+
+class cBA_LidarPhotogra
+{
+    public :
+       cBA_LidarPhotogra(cMMVII_BundleAdj&,const std::vector<std::string> & aParam);
+       ~cBA_LidarPhotogra();
+
+       void AddObs(tREAL8 aW);
+
+    private :
+       void Add1Patch(tREAL8 aW,const std::vector<cPt3dr> & aPatch);
+       void SetVUkVObs
+       (
+            const cPt3dr&           aPGround,
+            std::vector<int> *      aVIndUk,
+            std::vector<tREAL8> &   aVObs,
+            const cData1ImLidPhgr & aData,
+            int                     aKPt
+       );
+
+
+       cMMVII_BundleAdj&               mBA;
+       int                             mNumMode;
+       cTriangulation3D<tREAL4>        mTri;
+       cDiffInterpolator1D *           mInterp;
+       cCalculator<double>  *          mEqLidPhgr;
+       std::vector<cSensorCamPC *>     mVCam;
+       std::vector<cIm2D<tU_INT1>>     mVIms;
+       cWeightAv<tREAL8,tREAL8>        mLastResidual;
+       std::list<std::vector<int> >    mLPatches;
+
+       bool                            mPertRad;
+};
+
+
 
 class cMMVII_BundleAdj
 {
@@ -337,8 +416,12 @@ class cMMVII_BundleAdj
 
           bool AddTopo(const std::string & aTopoFilePath); // TOPO
           ///  =======  Add GCP, can be measure or measure & object
-          void AddGCP(const std::string & aName, tREAL8 aSigmaGCP, const  cStdWeighterResidual& aWeightIm, cSetMesImGCP *, bool verbose=true);
-          std::vector<cBA_GCP*> & getVGCP() { return mVGCP;}
+          void AddGCP3D(cMes3DDirInfo * aMesDirInfo, cSetMesGnd3D &aSetMesGnd3D, bool verbose=true);
+          void AddGCP2D(cMes2DDirInfo * aMesDirInfo, cSetMesPtOf1Im & aSetMesIm, cSensorImage* aSens, eLevelCheck aOnNonExistGCP=eLevelCheck::Warning, bool verbose=true);
+          cBA_GCP& getGCP() { return mGCP;}
+
+          ///  ============  Add Lidar/Photogra ===============
+          void Add1AdjLidarPhotogra(const std::vector<std::string> &);
 
 	  ///  ============  Add multiple tie point ============
 	  void AddMTieP(const std::string & aName,cComputeMergeMulTieP  * aMTP,const cStdWeighterResidual & aWIm);
@@ -368,7 +451,7 @@ class cMMVII_BundleAdj
 
 
 	  void SaveBlocRigid();
-          void Save_newGCP();
+          void Save_newGCP3D();
           void SaveTopo();
 
 	  void ShowUKNames() ;
@@ -378,6 +461,7 @@ class cMMVII_BundleAdj
 
           void setVerbose(bool aVerbose){mVerbose=aVerbose;}; // Print or not residuals
           
+          cResolSysNonLinear<tREAL8> *  Sys();  /// Real object, will disapear when fully interfaced for mSys
 
      private :
 
@@ -395,9 +479,6 @@ class cMMVII_BundleAdj
 
 	  void OneItere_TieP();   /// Iteration on tie points
 	  void OneItere_TieP(const cBA_TieP&);   /// Iteration on tie points
-
-          ///  One It for 1 pack of GCP (4 now 1 pack allowed, but this may change)
-          void OneItere_OnePackGCP(cBA_GCP &, bool verbose=true);
 
           void CompileSharedIntrinsicParams(bool ForAvg);
 
@@ -423,29 +504,24 @@ class cMMVII_BundleAdj
 	  std::string  mPatParamFrozenCalib;  /// Pattern for name of paramater of internal calibration
 	  std::string  mPatFrozenCenter;      /// Pattern for name of pose with frozen centers
 	  std::string  mPatFrozenOrient;      /// Pattern for name of pose with frozen centers
-       std::string  mPatFrozenClinos;      /// Pattern for name of clino with frozen boresight
+          std::string  mPatFrozenClinos;      /// Pattern for name of clino with frozen boresight
 
           std::vector<std::string>  mVPatShared;
 
           // ===================  Information to use ==================
 	     
 	          // - - - - - - - - GCP  - - - - - - - - - - -
-          std::vector<cBA_GCP*>        mVGCP;
-          //  cSetMesImGCP *           mMesGCP;
-          //  cSetMesImGCP             mNewGCP; // set of gcp after adjust
-	  //  tREAL8                   mSigmaGCP;
-          //  cStdWeighterResidual     mGCPIm_Weighter;
-          //  std::vector<cPt3dr_UK*>  mGCP_UK;
+          cBA_GCP        mGCP;
 
 	         // - - - - - - - - MTP  - - - - - - - - - - -
-	  // cComputeMergeMulTieP *   mMTP;
-          // cStdWeighterResidual     mTieP_Weighter;
           std::vector<cBA_TieP*>   mVTieP;
 
                  // - - - - - - -   Bloc Rigid - - - - - - - -
 	  cBA_BlocRig*              mBlRig;  // RIGIDBLOC
-       cBA_Clino*              mBlClino;  // CLINOBLOC
+          cBA_Clino*              mBlClino;  // CLINOBLOC
           cBA_Topo*              mTopo;  // TOPO
+
+          std::vector<cBA_LidarPhotogra*>  mVBA_Lidar;
 
 	         // - - - - - - -   Reference poses- - - - - - - -
           std::vector<cSensorCamPC *>        mVCamRefPoses;      ///< vector of reference  poses if they exist
@@ -461,7 +537,7 @@ class cMMVII_BundleAdj
 	  tREAL8   mSigmaViscCenter;  ///< "viscosity"  for centers
 				      //
 	  int      mNbIter;    /// counter of iteration, at least for debug
-       bool     mVerbose; // print residuals
+          bool     mVerbose; // print residuals
 };
 
 

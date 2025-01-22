@@ -20,7 +20,7 @@ cTopoPoint::cTopoPoint() :
 }
 
 
-void cTopoPoint::findUK(const std::vector<cBA_GCP *> & vGCP, cPhotogrammetricProject *aPhProj)
+void cTopoPoint::findUK(const cBA_GCP & aBA_GCP, cPhotogrammetricProject *aPhProj)
 {
 #ifdef VERBOSE_TOPO
     StdOut() << "findUK "<<mName<<": ";
@@ -28,29 +28,20 @@ void cTopoPoint::findUK(const std::vector<cBA_GCP *> & vGCP, cPhotogrammetricPro
     MMVII_INTERNAL_ASSERT_strong(!isReady(), "double cTopoPoint::findOrMakeUK for point "+mName);
 
     // search among GCP
-    for (auto & gcp : vGCP)
+    for (unsigned int i=0; i<aBA_GCP.getMesGCP().MesGCP().size(); ++i )
     {
-        for (unsigned int i=0; i<gcp->mMesGCP->MesGCP().size(); ++i )
+        if (mName ==aBA_GCP.getMesGCP().MesGCP()[i].mNamePt)
         {
-            if (mName ==gcp->mMesGCP->MesGCP()[i].mNamePt)
-            {
-                if (gcp->mGCP_UK.size() == gcp->mMesGCP->MesGCP().size())
-                {
-                    mUK = gcp->mGCP_UK.at(i);
-                    mPt = &gcp->mGCP_UK.at(i)->Pt(); //< use existing unknown if available
-                    mInitCoord = *mPt;
+            mUK = aBA_GCP.getGCP_UK().at(i);
+            MMVII_INTERNAL_ASSERT_strong(mUK, "cTopoPoint::findOrMakeUK with shurred GCP not accepted for now");
+            mPt = &aBA_GCP.getGCP_UK().at(i)->Pt(); //< use existing unknown if available
+            mInitCoord = *mPt;
     #ifdef VERBOSE_TOPO
-                    StdOut() << "is a GCP\n";
+            StdOut() << "is a GCP\n";
     #endif
-                    return;
-                } else {
-                    MMVII_INTERNAL_ASSERT_strong(false, "cTopoPoint::findOrMakeUK with shurred GCP not accepted for now");
-                    return;
-                }
-            }
+            return;
         }
     }
-
 
     // search among cameras
     if (aPhProj && aPhProj->IsOriInDirInit())

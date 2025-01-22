@@ -76,6 +76,7 @@ template <class Type,const int Dim> class cPtxd
        static cPtxd<Type,Dim>  PCste(const Type & aVal) 
        {
            cPtxd<Type,Dim> aRes;
+           tNumTrait<Type>::AssertValueOk(aVal);
            for (int aK=0 ; aK<Dim; aK++)
                 aRes.mCoords[aK]= aVal;
            return aRes;
@@ -142,7 +143,11 @@ template <class Type,const int Dim> class cPtxd
        }
 
        /// Contructor for 1 dim point, statically checked
-       explicit cPtxd(const Type * aV)  {MemCopy(&mCoords[0],aV,Dim);}
+        explicit cPtxd(const Type * aV)  
+        {
+           AssertTabValueOk(aV,size_t(Dim));
+           MemCopy(&mCoords[0],aV,Dim);
+        }
 
         inline Type & x()             {static_assert(Dim>=1,"bad dim in cPtxd initializer");return mCoords[0];}
         inline const Type & x() const {static_assert(Dim>=1,"bad dim in cPtxd initializer");return mCoords[0];}
@@ -540,7 +545,8 @@ template <class T,const int Dim> inline double RatioMax(const cPtxd<T,Dim> & aP1
    return NormInf(RDivCByC(aP1,aP2));
 }
 
-template <class Type,const int Dim>  Type AbsSurfParalogram(const cPtxd<Type,Dim>&,const cPtxd<Type,Dim>&);
+/// Absolute value of surface of the parallelograp OP1 OP2, defined for dim=2&3
+template <class Type,const int Dim>  Type AbsSurfParalogram(const cPtxd<Type,Dim>&aP1,const cPtxd<Type,Dim>&aP2);
 
 
 

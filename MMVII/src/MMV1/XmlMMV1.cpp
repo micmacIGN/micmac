@@ -1,14 +1,10 @@
-#define WITH_MMV1_FUNCTION  false
-
-#if (WITH_MMV1_FUNCTION)
 #include "V1VII.h"
-#endif
 
 #include "MMVII_Mappings.h"
 #include "MMVII_AimeTieP.h"
 
 
-#if (WITH_MMV1_FUNCTION)
+#if (MMVII_KEEP_LIBRARY_MMV1)
 #include "../src/uti_image/NewRechPH/cParamNewRechPH.h"
 #include "im_tpl/cPtOfCorrel.h"
 #include "algo_geom/qdt.h"
@@ -27,7 +23,7 @@ namespace MMVII
 /*                                     */	
 /* *********************************** */
 
-#if (WITH_MMV1_FUNCTION)
+#if (MMVII_KEEP_LIBRARY_MMV1)
 /*
     This class is an interface to use in MMV2, the 3d masq produce by SaisieMasqQT of MMV1,
     using the MMV1 library
@@ -63,18 +59,18 @@ cDataBoundedSet<tREAL8,3> *  MMV1_Masq(const cBox3dr &aBox,const std::string & a
 {
     return new cMasq_MMV1asBoundeSet(aBox,aNameFile);
 }
-#else
+#else // MMVII_KEEP_LIBRARY_MMV1
 cDataBoundedSet<tREAL8,3> *  MMV1_Masq(const cBox3dr &aBox,const std::string & aNameFile)
 {
     MMVII_INTERNAL_ERROR("Handling MMV1 3d-Masq is deprecated");
     return nullptr;
 }
-#endif
+#endif // MMVII_KEEP_LIBRARY_MMV1
 
 
 
 //=============  tNameRel ====================
-#if (WITH_MMV1_FUNCTION)
+#if (MMVII_KEEP_LIBRARY_MMV1)
 
 void TestTimeV1V2()
 {
@@ -614,7 +610,7 @@ template <class Type> void cImplem_ExportAimeTiep<Type>::FiltrageSpatialPts()
 
 template class cImplem_ExportAimeTiep<tREAL4>;
 template class cImplem_ExportAimeTiep<tINT2>;
-#else
+#else // MMVII_KEEP_LIBRARY_MMV1
 template <class Type> cInterf_ExportAimeTiep<Type>::~cInterf_ExportAimeTiep()
 {
 }
@@ -645,7 +641,7 @@ tNameRel  MMV1InitRel(const std::string & aName)
    MMVII_INTERNAL_ERROR("Handling reaing of MMV1 Rels is deprecated");
    return tNameRel();
 }
-#endif
+#endif // MMVII_KEEP_LIBRARY_MMV1
 
 // ============  INSTANTIATION ======================
 

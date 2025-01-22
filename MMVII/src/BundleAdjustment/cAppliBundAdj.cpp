@@ -63,8 +63,9 @@ class cAppliBundlAdj : public cMMVII_Appli
      private :
 
         std::vector<tREAL8>  ConvParamStandard(const std::vector<std::string> &,size_t aSzMin,size_t aSzMax) ;
-        /// New Method for multiple GCP : each 
-        void  AddOneSetGCP(const std::vector<std::string> & aParam, bool aDoAddNewTopoPoints); //< Add topo new points only on last gcp set
+
+        void  AddOneSetGCP3D(const std::string & aFolderIn, const std::string &aFolderOut, tREAL8 aWFactor); // aFolderOut="" if no out
+        void  AddOneSetGCP2D(const std::vector<std::string> & aVParStd);
         void  AddOneSetTieP(const std::vector<std::string> & aParam);
 
 	std::string               mSpecImIn;
@@ -74,8 +75,8 @@ class cAppliBundlAdj : public cMMVII_Appli
 	cPhotogrammetricProject   mPhProj;
 	cMMVII_BundleAdj          mBA;
 
-	std::vector<std::string>  mGCPW;
-	std::vector<std::vector<std::string>>  mAddGCPW; // In case there is multiple GCP Set
+        std::vector<std::vector<std::string>>  mGCP3D; // gcp ground coords with sigma factor and optional output dir
+        std::vector<std::vector<std::string>>  mGCP2D; // gcp image coords with weight
         std::string               mGCPFilter;  // pattern to filter names of GCP
         std::string               mGCPFilterAdd;  // pattern to filter GCP by additional info
 	std::vector<std::string>  mTiePWeight;
@@ -83,6 +84,8 @@ class cAppliBundlAdj : public cMMVII_Appli
 	std::vector<double>       mBRSigma; // RIGIDBLOC
 	std::vector<double>       mBRSigma_Rat; // RIGIDBLOC
         std::vector<std::string>  mParamRefOri;  // Force Poses to be +- equals to this reference
+
+        std::vector<std::vector<std::string>>  mParamLidarPhgr; // parameters for lidar photogra/lidar
 
 	int                       mNbIter;
 
@@ -129,7 +132,6 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
           anArgOpt
       << AOpt2007(mDataDir,"DataDir","Default data directories ",{eTA2007::HDV})
       << AOpt2007(mNbIter,"NbIter","Number of iterations",{eTA2007::HDV})
-      << mPhProj.DPPointsMeasures().ArgDirInOpt("GCPDir","Dir for GCP if != DataDir")
       << mPhProj.DPMulTieP().ArgDirInOpt("TPDir","Dir for Tie Points if != DataDir")
       << mPhProj.DPRigBloc().ArgDirInOpt("BRDirIn","Dir for Bloc Rigid if != DataDir") //  RIGIDBLOC
       << mPhProj.DPRigBloc().ArgDirOutOpt() //  RIGIDBLOC
@@ -137,19 +139,13 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << mPhProj.DPTopoMes().ArgDirOutOpt("TopoDirOut","Dir for Topo measures output") //  TOPO
       << mPhProj.DPClinoMeters().ArgDirInOpt("ClinoDirIn","Dir for Clino if != DataDir") //  CLINOBLOC
       << mPhProj.DPClinoMeters().ArgDirOutOpt("ClinoDirOut","Dir for Clino if != DataDir") //  CLINOBLOC
-      << AOpt2007
-         (
-            mGCPW,
-            "GCPW",
-            "GCP Weight [SigG,SigI,SigAt?=-1,Thrs?=-1,Exp?=1], SG=0 fix, SG<0 schurr elim, SG>0",
-            {{eTA2007::ISizeV,"[2,5]"}}
-         )
-      << AOpt2007(mAddGCPW,"AddGCPW","For additional GPW, [[Folder,SigG...],[Folder,...]] ")
+      << AOpt2007 ( mGCP3D, "GCP3D", "GCP ground coords and sigma factor, SG=0 fix, SG<0 schurr elim, SG>0 and optional output dir [[Folder,SigG,FOut?],...]]")
+      << AOpt2007 ( mGCP2D, "GCP2D", "GCP image coords and weight [[Folder,SigI,SigAt?=-1,Thrs?=-1,Exp?=1]...]")
       << AOpt2007(mGCPFilter,"GCPFilter","Pattern to filter GCP by name")
       << AOpt2007(mGCPFilterAdd,"GCPFilterAdd","Pattern to filter GCP by additional info")
-      << mPhProj.DPPointsMeasures().ArgDirOutOpt("GCPDirOut","Dir for output GCP")
       << AOpt2007(mTiePWeight,"TiePWeight","Tie point weighting [Sig0,SigAtt?=-1,Thrs?=-1,Exp?=1]",{{eTA2007::ISizeV,"[1,4]"}})
       << AOpt2007(mAddTieP,"AddTieP","For additional TieP, [[Folder,SigG...],[Folder,...]] ")
+      << AOpt2007(mParamLidarPhgr,"LidarPhotogra","Paramaters for adj Lidar/Phgr [[Mode,Ply,Interp?]*]")
       << AOpt2007(mPatParamFrozCalib,"PPFzCal","Pattern for freezing internal calibration parameters")
       << AOpt2007(mPatFrosenCenters,"PatFzCenters","Pattern of images for freezing center of poses")
       << AOpt2007(mPatFrosenOrient,"PatFzOrient","Pattern of images for freezing orientation of poses")
@@ -161,9 +157,10 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << mPhProj.DPMeasuresClino().ArgDirInOpt()
 
       << AOpt2007(mParamRefOri,"RefOri","Reference orientation [Ori,SimgaTr,SigmaRot?,PatApply?]",{{eTA2007::ISizeV,"[2,4]"}})  
-      << AOpt2007(mVSharedIP,"SharedIP","Shared intrinc parmaters [Pat1Cam,Pat1Par,Pat2Cam...] ",{{eTA2007::ISizeV,"[2,20]"}})    // ]]
+      << AOpt2007(mVSharedIP,"SharedIP","Shared intrinc parmaters [Pat1Cam,Pat1Par,Pat2Cam...] ",{{eTA2007::ISizeV,"[2,20]"}})    
 
-      << AOpt2007(mBAShowUKNames,"ShowUKN","Show names of unknowns (tuning) ",{{eTA2007::HDV},{eTA2007::Tuning}})    // ]]
+      << AOpt2007(mBAShowUKNames,"ShowUKN","Show names of unknowns (tuning) ",{{eTA2007::HDV},{eTA2007::Tuning}})    
+
     ;
 }
 
@@ -173,7 +170,7 @@ std::vector<tREAL8>  cAppliBundlAdj::ConvParamStandard(const std::vector<std::st
 {
     if ((aVParStd.size() <aSzMin) || (aVParStd.size() >aSzMax))
     {
-        MMVII_UnclasseUsEr("Bad size of AddOneSetGCP, exp in [3,6] got : " + ToStr(aVParStd.size()));
+        MMVII_UnclasseUsEr("Bad size of AddOneSetGCP, exp in ["+ToStr(aSzMin)+","+ToStr(aSzMax)+"] got : " + ToStr(aVParStd.size()));
     }
     mMeasureAdded = true;  // to avoid message corresponding to trivial error
 
@@ -184,40 +181,29 @@ std::vector<tREAL8>  cAppliBundlAdj::ConvParamStandard(const std::vector<std::st
     return aRes;
 }
 
-// VParam standar is done from  Folder +  weight of size [2,5]
-void  cAppliBundlAdj::AddOneSetGCP(const std::vector<std::string> & aVParStd, bool aDoAddNewTopoPoints)
+void  cAppliBundlAdj::AddOneSetGCP3D(const std::string & aFolderIn, const std::string & aFolderOut, tREAL8 aWFactor)
 {
-    std::string aFolder = aVParStd.at(0);  // folder
-    std::vector<tREAL8>  aGCPW = ConvParamStandard(aVParStd,3,6);
-/*
-    if ((aVParStd.size() <3) || (aVParStd.size() >6))
-    {
-        MMVII_UnclasseUsEr("Bad size of AddOneSetGCP, exp in [3,6] got : " + ToStr(aVParStd.size()));
-    }
-    mMeasureAdded = true;  // to avoid message corresponding to trivial error
+    cSetMesGndPt  aFullMesGCP;
+    cMes3DDirInfo * aMesDirInfo = cMes3DDirInfo::addMes3DDirInfo(mBA.getGCP(), aFolderIn, aFolderOut, aWFactor);
+    mPhProj.LoadGCP3DFromFolder(aFolderIn, aFullMesGCP, aMesDirInfo, "", mGCPFilter, mGCPFilterAdd);
+    auto aFullMes3D = aFullMesGCP.ExtractSetGCP("???");
+    mBA.AddGCP3D(aMesDirInfo,aFullMes3D);
+}
 
-    //  convert the lo level aVParStd in more structured 
-    std::vector<tREAL8>  aGCPW;  // then weight must be converted from string to double
-    for (size_t aK=1 ; aK<aVParStd.size() ; aK++)
-        aGCPW.push_back(cStrIO<double>::FromStr(aVParStd.at(aK)));
-*/
-    
-    //  load the GCP
-    cSetMesImGCP  aFullMesGCP;
-    mPhProj.LoadGCPFromFolder(aFolder, aFullMesGCP,
-                              {aDoAddNewTopoPoints?mBA.getTopo():nullptr, aDoAddNewTopoPoints?&mBA.getVGCP():nullptr},
-                              "", mGCPFilter, mGCPFilterAdd);
 
+// VParam standar is done from  Folder +  weight of size [1,4]
+void  cAppliBundlAdj::AddOneSetGCP2D(const std::vector<std::string> & aVParStd)
+{
+    std::string aFolderIn = aVParStd.at(0);  // folder
+    std::vector<tREAL8>  aGCPW = ConvParamStandard(aVParStd,2,5);
+    cMes2DDirInfo * aMesDirInfo = cMes2DDirInfo::addMes2DDirInfo(mBA.getGCP() ,aFolderIn, cStdWeighterResidual(aGCPW,0));
     for (const auto  & aSens : mBA.VSIm())
     {
-        // Load the images measure + init sens 
-        mPhProj.LoadImFromFolder(aFolder,aFullMesGCP,aSens->NameImage(),aSens,SVP::Yes);
+        // Load the images measure + init sens
+        mPhProj.LoadImFromFolder(aFolderIn,mBA.getGCP().getMesGCP(),aMesDirInfo,aSens->NameImage(),aSens,SVP::Yes);
     }
-    cSetMesImGCP * aMesGCP = aFullMesGCP.FilterNonEmptyMeasure(0);
-
-    cStdWeighterResidual aWeighter(aGCPW,1);
-    mBA.AddGCP(aFolder,aGCPW.at(0),aWeighter,aMesGCP);
 }
+
 
 void  cAppliBundlAdj::AddOneSetTieP(const std::vector<std::string> & aVParStd)
 {
@@ -244,7 +230,6 @@ int cAppliBundlAdj::Exe()
 */
 
     //   ========== [0]   initialisation of def values  =============================
-    mPhProj.DPPointsMeasures().SetDirInIfNoInit(mDataDir);
     mPhProj.DPMulTieP().SetDirInIfNoInit(mDataDir);
     mPhProj.DPRigBloc().SetDirInIfNoInit(mDataDir); //  RIGIDBLOC
 
@@ -285,20 +270,27 @@ int cAppliBundlAdj::Exe()
         mBA.SetSharedIntrinsicParams(mVSharedIP);
     }
 
+    for (const auto& aVStrGCP : mGCP3D)
+    {
+        // expected: [Folder,SigG,FOut?]
+        if ((aVStrGCP.size() <2) || (aVStrGCP.size() >3))
+        {
+            MMVII_UnclasseUsEr("Bad size of GCP3D, exp in [2,3] got : " + ToStr(aVStrGCP.size()));
+        }
+        AddOneSetGCP3D(aVStrGCP[0],aVStrGCP.size()>2?aVStrGCP[2]:"",cStrIO<double>::FromStr(aVStrGCP[1]));
+    }
+
     if (mPhProj.DPTopoMes().DirInIsInit())
     {
         mBA.AddTopo();
     }
 
-    if (IsInit(&mGCPW))  // Add if any first the standard GCP weighting
+    for (const auto& aVStrGCP : mGCP2D)
     {
-        std::vector<std::string>  aVParamStdGCP{mPhProj.DPPointsMeasures().DirIn()};
-        AppendIn(aVParamStdGCP,mGCPW);
-        AddOneSetGCP(aVParamStdGCP, mAddGCPW.empty());
+        // expected: [Folder,SigI,SigAt?=-1,Thrs?=-1,Exp?=1]
+        AddOneSetGCP2D(aVStrGCP);
     }
-    // Add  the potential suplementary GCP
-    for (const auto& aGCP : mAddGCPW)
-        AddOneSetGCP(aGCP, aGCP==mAddGCPW.back());
+
 
     if (IsInit(&mTiePWeight))
     {
@@ -329,6 +321,11 @@ int cAppliBundlAdj::Exe()
         mBA.SetFrozenClinos(mPatFrosenClino);
     }
     
+    for (const auto & aParam : mParamLidarPhgr)
+    {
+        mMeasureAdded = true;
+        mBA.Add1AdjLidarPhotogra(aParam);
+    }
 
     MMVII_INTERNAL_ASSERT_User(mMeasureAdded,eTyUEr::eUnClassedError,"Not any measure added");
 
@@ -347,10 +344,10 @@ int cAppliBundlAdj::Exe()
         mPhProj.SaveCamPC(*aCamPC);
 	*/
 
-    mPhProj.CpSysIn2Out(true,true);
+    mPhProj.CpSysCoIn2Out(true,true);
 
     mBA.SaveBlocRigid();  // RIGIDBLOC
-    mBA.Save_newGCP();
+    mBA.Save_newGCP3D();
     mBA.SaveTopo(); // just for debug for now
     mBA.SaveClino();
 

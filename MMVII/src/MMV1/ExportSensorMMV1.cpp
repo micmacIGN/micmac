@@ -1,15 +1,11 @@
-#define WITH_MMV1_FUNCTION false
-
-#if (WITH_MMV1_FUNCTION)
 #include "V1VII.h"
-#endif
 
-#include "MMVII_MMV1Compat.h"
+#include "MMVII_MMV1Compat.h" // TO SEE
 
 namespace MMVII
 {
 
-#if (WITH_MMV1_FUNCTION)
+#if (MMVII_KEEP_LIBRARY_MMV1)
 /*   ************************************************* */
 /*                                                     */
 /*         cExportV1StenopeCalInterne                  */
@@ -160,7 +156,7 @@ cExportV1StenopeCalInterne::cExportV1StenopeCalInterne
    if ((aNbLayer>0) && (aNbPointPerDim>0))
       DoCorresp(mCorresp,aCamV1,aNbPointPerDim,aNbLayer,aDS);
 }
-#else
+#else // MMVII_KEEP_LIBRARY_MMV1
 cExportV1StenopeCalInterne::cExportV1StenopeCalInterne
 (
         bool isForCalib,
@@ -174,6 +170,6 @@ cExportV1StenopeCalInterne::cExportV1StenopeCalInterne
 {
       MMVII_INTERNAL_ERROR("Reading of MMV1  Camera is deprecated");
 }
-#endif
+#endif // MMVII_KEEP_LIBRARY_MMV1
 
 };
