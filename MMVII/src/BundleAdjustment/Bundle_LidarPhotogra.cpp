@@ -7,20 +7,23 @@ namespace MMVII
 {
 
 
-/**  Class for geometrically indexing the lidars (on 2D point) for patches creation */
+/**  Class for geometrically indexing the lidars (on 2D point) for patches creation , used
+   to instantiate cTilingIndex 
+*/
 
 template <class Type> class cTil2DTri3D
 {
     public :
-        static constexpr int TheDim = 2;
-        typedef cPt2dr             tPrimGeom;
-        typedef cTriangulation3D<Type> *  tArgPG;
+        static constexpr int TheDim = 2;          // Pre-requite for instantite cTilingIndex
+        typedef cPt2dr             tPrimGeom;     // Pre-requite for instantite cTilingIndex
+        typedef cTriangulation3D<Type> *  tArgPG; // Pre-requite for instantite cTilingIndex
+
+        /**  Pre-requite for instantite cTilingIndex : indicate how we extract geometric primitive from one object */
 
         tPrimGeom  GetPrimGeom(tArgPG aPtrTri) const {return Proj(ToR(aPtrTri->KthPts(mInd)));}
 
         cTil2DTri3D(size_t anInd) : mInd(anInd) {}
         size_t  Ind() const {return mInd;}
-       
 
     private :
         size_t  mInd;
@@ -32,7 +35,8 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
     mNumMode    (cStrIO<int>::FromStr(aParam.at(0))),  // mode of matching (int 4 now) 0 ponct, 1 Census
     mTri        (aParam.at(1)),                        // Lidar point themself, stored as a triangulation
     mInterp     (nullptr),                            // interpolator see bellow
-    mEqLidPhgr  (nullptr)  // equation of egalisation Lidar/Phgr
+    mEqLidPhgr  (nullptr), // equation of egalisation Lidar/Phgr
+    mPertRad    (false)
 {
    if      (mNumMode==0) mEqLidPhgr = EqEqLidarImPonct (true,1);
    else if (mNumMode==1) mEqLidPhgr = EqEqLidarImCensus(true,1);
@@ -40,10 +44,15 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
 
    //  By default  use tabulation of apodized sinus cardinal
    std::vector<std::string> aParamInt {"Tabul","1000","SinCApod","10","10"};
-   if (aParam.size() >=3)
+   // if interpolator is not empty
+   if ((aParam.size() >=3) && (!aParam.at(2).empty()))
    {
       // if specified, take user's param
       aParamInt = Str2VStr(aParam.at(2));
+   }
+   if (aParam.size() >=4)
+   {
+       mPertRad = true;
    }
    // create the interpaltor itself
    mInterp  = cDiffInterpolator1D::AllocFromNames(aParamInt);
@@ -58,6 +67,15 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
        {
            mVCam.push_back(aPtrCam->GetSensorCamPC());  // yes get it
            mVIms.push_back(cIm2D<tU_INT1>::FromFile(aPtrCam->NameImage()));  // read the image
+           if (mPertRad)
+           {
+               cDataIm2D<tU_INT1> &  aDIm = mVIms.back().DIm();
+               for (auto  aPix : aDIm)
+               {
+                   tREAL8 aMul =   (3+ sin(aPix.x()/70.0)) / 4.0;
+                   aDIm.SetV(aPix,aDIm.GetV(aPix)*aMul);
+               }
+           }
        }
        else
        {
@@ -66,48 +84,56 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
    }
 
    // Creation of the patches, to comment ...
-   if (1)
+   if (mNumMode!=0)
    {
-        cTplBoxOfPts<tREAL8,2> aBoxObj;
-        int aNbPtsByPtch = 32;
-
+        int aNbPtsByPtch = 32;   // approximative number of point by patch
+        
+        // create the bounding box of all points
+        cTplBoxOfPts<tREAL8,2> aBoxObj;  // Box of object 
         for (size_t aKP=0 ; aKP<mTri.NbPts() ; aKP++)
         {
+             // Proj 3d -> 2d   , ToR  float -> real
              aBoxObj.Add(ToR(Proj(mTri.KthPts(aKP))));
         }
+        // create the "compiled" box from the dynamix
         cBox2dr aBox = aBoxObj.CurBox();
+
+        // estimate the distance for computing patching assuming a uniform  distributio,
         // Pi d^ 2  /NbByP = Surf / NbTot
         tREAL8 aDistMoy = std::sqrt(aNbPtsByPtch *aBox.NbElem()/ (mTri.NbPts()*M_PI));
         tREAL8 aDistReject =  aDistMoy *1.5;
 
-
+        // indexation of all points
         cTiling<cTil2DTri3D<tREAL4> >  aTileAll(aBox,true,mTri.NbPts()/20,&mTri);
-        cTiling<cTil2DTri3D<tREAL4> >  aTileSelect(aBox,true,mTri.NbPts()/20,&mTri);
-
         for (size_t aKP=0 ; aKP<mTri.NbPts() ; aKP++)
         {
              aTileAll.Add(cTil2DTri3D<tREAL4>(aKP));
         }
 
-
         int aCpt=0;
-
+        // indexation of all points selecte as center of patches
+        cTiling<cTil2DTri3D<tREAL4> >  aTileSelect(aBox,true,mTri.NbPts()/20,&mTri);
+        // parse all points
         for (size_t aKP=0 ; aKP<mTri.NbPts() ; aKP++)
         {
              cPt2dr aPt  = ToR(Proj(mTri.KthPts(aKP)));
+             // if the points is not close to an existing center of patch : create a new patch
              if (aTileSelect.GetObjAtDist(aPt,aDistReject).empty())
              {
+                //  Add it in the tiling of select 
                  aTileSelect.Add(cTil2DTri3D<tREAL4>(aKP));
+                 // extract all the point close enough to the center
                  auto aLIptr = aTileAll.GetObjAtDist(aPt,aDistMoy);
-                 std::vector<int> aPatch;
-                 aPatch.push_back(aKP);
+                 std::vector<int> aPatch; // the patch itself = index of points
+                 aPatch.push_back(aKP);  // add the center at begining
                  for (const auto aPtrI : aLIptr)
                  {
-                     if (aPtrI->Ind() !=aKP)
+                     if (aPtrI->Ind() !=aKP) // dont add the center twice
                      {
                         aPatch.push_back(aPtrI->Ind());
                      }
                  }
+                 // some requirement on minimal size
                  if (aPatch.size() > 5)
                  {
                      aCpt += aPatch.size();
@@ -116,13 +142,10 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
              }
         }
 
-
         StdOut() << "Patches: DistReject=" << aDistReject 
                 << " NbPts=" << mTri.NbPts() << " => " << aCpt 
                 << " NbPatch=" << mLPatches.size() << " NbAvg => " <<  aCpt / double(mLPatches.size())
                 << "\n";
-/*
-*/
    }
 }
 
@@ -266,7 +289,32 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
      }
      else if (mNumMode==1)
      {
-            // to complete ...
+        for (size_t aKPt=1; aKPt<aVPatchGr.size() ; aKPt++)
+        {
+             // -------------- [1] Calculate the average ratio on all images --------------------
+             cWeightAv<tREAL8,tREAL8> aAvRatio;  // stuct for averaging ratio
+             for (const auto & aData : aVData)
+             {
+                 tREAL8 aV0 = aData.mVGr.at(0).first;            // radiom of central pixel
+                 tREAL8 aVK = aData.mVGr.at(aKPt).first;         // radiom of neighbour
+                 aAvRatio.Add(1.0,NormalisedRatioPos(aV0,aVK)) ; // acumulate the ratio
+             }
+             std::vector<tREAL8> aVTmpAvg({aAvRatio.Average()});  // vector of value of temporary unknowns
+
+             // -------------- [2] Add the observation --------------------
+             cSetIORSNL_SameTmp<tREAL8>  aStrSubst(aVTmpAvg);  // structure for schur complement
+             for (const auto & aData : aVData) // parse all the images
+             {
+                std::vector<int>  aVIndUk{-1} ;  // indexe of unknown
+                std::vector<tREAL8>  aVObs;      // observation/context
+
+                SetVUkVObs(aVPatchGr.at(0)  ,&aVIndUk,aVObs,aData,0);            // add unkown AND observations
+                SetVUkVObs(aVPatchGr.at(aKPt),nullptr ,aVObs,aData,aKPt);        // add ONLY observations
+                aSys->R_AddEq2Subst(aStrSubst,mEqLidPhgr,aVIndUk,aVObs,aWeight); // add the equation in Schurr structure
+            }
+            // add all the equation to the system with Schurr's elimination
+            aSys->R_AddObsWithTmpUK(aStrSubst);
+        }
      }
      else if (mNumMode==2)  // mode correlation
      {
