@@ -113,6 +113,10 @@ template <const int Dim>  bool EqualPt(const cPtxd<tREAL8,Dim> & aP1,const cPtxd
  *        - Add an object
  *        - list of object in a certain geometric region  (as GetObjAtDist)
  *        - object if any at an exact position (GetObjAtPos)
+ *    Object "Type" will store in Tiling.  Type must also define :
+ *        * Dim  (2 or 3)
+ *        * tPrimGeom  -> geometric primitives (point, segment)
+ *        * tArg -> the type of argument that be used in call back
  */
 
 
@@ -131,7 +135,14 @@ template <class Type>  class  cTiling : public cTilingIndex<Type::TheDim>
            typedef std::list<Type>          tCont1Tile;
            typedef std::vector<tCont1Tile>  tVectTiles;
 
-	   cTiling(const tRBox & aBox,bool WithBoxOut, int aNbCase,const tArgPG & anArg):
+            
+	   cTiling
+           (
+                  const tRBox & aBox,  // bounding box
+                  bool WithBoxOut,     // do we accept object outside bounding box
+                  int aNbCase,         // number total of tiles/cells
+                  const tArgPG & anArg  // parametr that will be uses in call back
+            ):
 	       tTI     (aBox,WithBoxOut,aNbCase),
 	       mVTiles (this->NbElem()),
 	       mArgPG  (anArg)

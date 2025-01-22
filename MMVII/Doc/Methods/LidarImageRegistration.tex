@@ -336,6 +336,58 @@ way could be to just blurr the image, to be tested on simulated data ?
 
 %-----------------------------------------------------------------------
 
+\section{Correlation}
+
+\subsection{Correlation formulation}
+
+
+Let $X_i, i \in [1,N] $ be a series of values, noting :
+
+\begin{equation}
+     \mu(X) = \frac{\sum_{i=1}^N  X_i}{N}
+\end{equation}
+
+\begin{equation}
+     \widetilde{X} = X - \mu(X)
+\end{equation}
+
+We have : 
+\begin{equation}
+     \mu(\widetilde{X}) = 0
+\end{equation}
+
+Noting :
+
+\begin{equation}
+     \sigma(X) =   \sqrt{\mu(\widetilde{X})^2)   }
+\end{equation}
+
+And  :
+\begin{equation}
+     \widehat {X} =   \frac{\widetilde{X}}{\sigma(X)}
+\end{equation}
+
+We have :
+
+\begin{equation}
+     \mu(\widehat {X}) =0    \; , \; \sigma(\widehat {X}) = 1  \; , \;  X = \mu + \sigma \widehat {X}
+\end{equation}
+
+
+We remind that the normalized centered correlaction coefficient ($N_{CC}$)  between $2$ series $X_i$ and $Y_i$ is defined by :
+
+\begin{equation}
+    N_{CC}(X,Y) = \frac{\sum (X_i-\mu(X)) (Y_i-\mu(X)) }{\sigma(X)\sigma(Y)}   = \widehat {X} \cdot \widehat {Y}
+\end{equation}
+
+
+
+
+
+
+
+%-----------------------------------------------------------------------
+
 \section{Road map}
 
 With MAC=Mohamed,

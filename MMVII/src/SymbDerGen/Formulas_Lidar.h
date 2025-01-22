@@ -163,15 +163,26 @@ class cEqLidarImCensus : public cRadiomLidarIma
                       const std::vector<tObs> & aVObs
                   )  const
             {
-                 // to complete
+		size_t aIndUk = 0;
+		size_t aIndObs = 0;
 
-		 return {aVUk.at(0)};
+                // target unknown ratio between central pixel and neighbouring
+		tUk aTargetRatio = aVUk.at(aIndUk++);
+                // radiometry of central pixel
+		tUk aRadiom0 = Radiom_PerpCentrIntrFix(aVUk,aIndUk,aVObs,aIndObs);
+                // !! Carefull !! : aIndUk has been incremented, reset it 
+                aIndUk=1;
+                // radiometry of neighbour pixel
+		tUk aRadiom1 = Radiom_PerpCentrIntrFix(aVUk,aIndUk,aVObs,aIndObs);
+
+                return {NormalisedRatioPos(aRadiom0,aRadiom1) - aTargetRatio};
             }
 
             std::vector<std::string> VNamesUnknowns()  const {return Append({"TargetRatio"},NamesPoseUK());}
             std::vector<std::string> VNamesObs() const      
             {
 		    std::vector<std::string>  aV0 = cEqLidarImPonct::VNamesObs();
+                    // we duplicate the observation for 2 pixels of the pair (central / periph)
 		    return Append(AddPostFix(aV0,"_0"),AddPostFix(aV0,"_1"));
             }
             std::string FormulaName() const { return  "EqLidarImCensus";}
