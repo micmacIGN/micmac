@@ -387,8 +387,8 @@ class cBA_LidarPhotogra
        std::vector<cIm2D<tU_INT1>>     mVIms;
        cWeightAv<tREAL8,tREAL8>        mLastResidual;
        std::list<std::vector<int> >    mLPatches;
-
        bool                            mPertRad;
+       size_t                          mNbPointByPatch;
 };
 
 
