@@ -397,9 +397,8 @@ $||\widehat {X} ,\widehat {Y}||^2  = 2 - 2 \widehat {X} \cdot \widehat {Y} $ and
     N_{CC}(X,Y) = 1-\frac{ D^2(\widehat {X} ,\widehat {Y}}{2}
 \end{equation}
 
-So maximizing $N_{CC}$ is equivalent to mininize $ D^2(\widehat {X} ,\widehat {Y}$. In consequence
-we will consider the following equation of observation :
-
+So maximizing $N_{CC}$ is equivalent to mininize $ D^2(\widehat {X} ,\widehat {Y}$. Consequently,
+for using  $N_{CC}$, we will consider the problem of  solving the following equation of observation :
 
 \begin{equation}
     \widehat {X} =\widehat {Y} \label{Eq:Cor:Pair:Norm}
@@ -409,31 +408,47 @@ Consider now the case where we have $M$ series $X^j_i$ of $N$ values, $j \in [1,
 and that we want to modelize that they all are similar using correlation. We could use
 equation $\ref{Eq:Cor:Pair:Norm}$ for all pair, but this would be un-elagant and un efficient.
 
-Instead of that, we introduce the unknown serie $Y_i$ which modelise the supposed common value
+Instead of that, we introduce the unknown serie $\chi_i$ which modelise the supposed common value
 of all $\widehat X^j_i$. We the proceed this way :
 
 \begin{itemize}
-    \item as $Y$ modelise the common value we impose series verifying equation~\ref{CorrelSig1Avg0}
-          we impose $\mu(Y)=0, \sigma(Y)=1$;
-    \item taking into account \label{CorrelXXHat}, we write the relation between $Y$ and $X^j$ as
-          $A^j X^j + B = Y$, where $A^j,B^j$ are unkwnowns.
+    \item as $\chi$ modelise the common value we impose series verifying equation~\ref{CorrelSig1Avg0}
+          we impose $\mu(\chi)=0, \sigma(\chi)=1$;
+    \item taking into account \ref{CorrelXXHat},  we introduce the unknowns $A^j,B^j$
+          that link $\chi$ and $X^j$ with equation~\ref{Corel:AjBj} ;
 \end{itemize}
+
+\begin{equation}
+	A^j X^j + B = \chi \label{Corel:AjBj}
+\end{equation}
 
 To summerize we try to solve the following system :
 
 \begin{equation}
 \left\{ \begin{array}{rc|l}
-     \mu(Y) = 0         \\ 
-     \sigma(Y) = 1         \\ 
-      \forall i,j : \;  A^j X^j_i + B_j = Y_i
+     \mu(\chi) = 0         \\ 
+     \sigma(\chi) = 1         \\ 
+      \forall i,j : \;  A^j X^j_i + B_j = \chi _i
 \end{array}\right.
 \label{XXXXX}
 \end{equation}
 
 
+In this system we have :
+
+\begin{itemize}
+	\item $2 M + N$ unknowns  $A^j,B^j,\chi _i$
+   \item $2 + N*M$ equations;		 
+\end{itemize}
 
 
+For the initialisation, we can use for example equation  \ref{Correl:Chi0} for  $\chi$ .
+For initialisation of $A^j, B^j$ we can use $\mu^j,\sigma^j$, or solve by least square the
+equation ~\ref{Corel:AjBj}.
 
+\begin{equation}
+	\chi = \widehat {\frac{\sum \widehat {X^j} }{M}} \label{Correl:Chi0}
+\end{equation}
 
 
 %-----------------------------------------------------------------------

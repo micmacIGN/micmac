@@ -32,16 +32,23 @@ template <class Type> class cTil2DTri3D
 
 cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std::string>& aParam) :
     mBA         (aBA),                                 // memorize the bundel adj class itself (access to optimizer)
-    mNumMode    (cStrIO<int>::FromStr(aParam.at(0))),  // mode of matching (int 4 now) 0 ponct, 1 Census
+    mNumMode    (Str2E<eImatchCrit>(aParam.at(0))),    // mode of matching (int 4 now) 0 ponct, 1 Census
     mTri        (aParam.at(1)),                        // Lidar point themself, stored as a triangulation
-    mInterp     (nullptr),                            // interpolator see bellow
-    mEqLidPhgr  (nullptr), // equation of egalisation Lidar/Phgr
+    mInterp     (nullptr),                             // interpolator see bellow
+    mEqLidPhgr  (nullptr),                             // equation of egalisation Lidar/Phgr
     mPertRad    (false),
     mNbPointByPatch (32)
 {
-   if      (mNumMode==0) mEqLidPhgr = EqEqLidarImPonct (true,1);
-   else if (mNumMode==1) mEqLidPhgr = EqEqLidarImCensus(true,1);
-   else if (mNumMode==2) mEqLidPhgr = EqEqLidarImCorrel(true,1);
+   if (mNumMode==eImatchCrit::eDifRad) 
+      mEqLidPhgr = EqEqLidarImPonct (true,1);
+   else if (mNumMode==eImatchCrit::eCensus) 
+      mEqLidPhgr = EqEqLidarImCensus(true,1);
+   else if (mNumMode==eImatchCrit::eCorrel) 
+      mEqLidPhgr = EqEqLidarImCorrel(true,1);
+   else
+   {
+      MMVII_UnclasseUsEr("Bad enum for cBA_LidarPhotogra");
+   }
 
    //  By default  use tabulation of apodized sinus cardinal
    std::vector<std::string> aParamInt {"Tabul","1000","SinCApod","10","10"};
@@ -89,7 +96,7 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
    }
 
    // Creation of the patches, to comment ...
-   if (mNumMode!=0)
+   if (mNumMode!=eImatchCrit::eDifRad)
    {
         // create the bounding box of all points
         cTplBoxOfPts<tREAL8,2> aBoxObj;  // Box of object 
@@ -161,7 +168,7 @@ cBA_LidarPhotogra::~cBA_LidarPhotogra()
 void cBA_LidarPhotogra::AddObs(tREAL8 aW)
 {
     mLastResidual.Reset();
-    if (mNumMode==0)
+    if (mNumMode==eImatchCrit::eDifRad)
     {
        for (size_t aKP=0 ; aKP<mTri.NbPts() ; aKP++)
        {
@@ -272,7 +279,7 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
      mLastResidual.Add(1.0,  (aStdDev.StdDev(1e-5) *aVData.size()) / (aVData.size()-1.0));
 
 
-     if (mNumMode==0)
+     if (mNumMode==eImatchCrit::eDifRad)
      {
         cPt3dr    aPGround = aVPatchGr.at(0);
         std::vector<tREAL8> aVTmpAvg{aWAv.Average()};  // vector for initializingz the temporay (here 1 = average)
@@ -290,7 +297,7 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
         // do the substitution & add the equation reduced (Schurr complement)
         aSys->R_AddObsWithTmpUK(aStrSubst);
      }
-     else if (mNumMode==1)
+     else if (mNumMode==eImatchCrit::eCensus)
      {
         for (size_t aKPt=1; aKPt<aVPatchGr.size() ; aKPt++)
         {
@@ -319,7 +326,7 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
             aSys->R_AddObsWithTmpUK(aStrSubst);
         }
      }
-     else if (mNumMode==2)  // mode correlation
+     else if (mNumMode==eImatchCrit::eCorrel)
      {
          // -------------- [1] Compute the normalized values --------------------
          size_t aNbPt = aVPatchGr.size();

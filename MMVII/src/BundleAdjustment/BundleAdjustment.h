@@ -349,7 +349,7 @@ class cBA_TieP
 };
 
 
-/** For a given patch in one image, will store all the data on the points*/
+/** "Helper" class for cBA_LidarPhotogra : for a given patch in one image, will store all the data on the points*/
 class cData1ImLidPhgr
 {
      public :
@@ -357,6 +357,8 @@ class cData1ImLidPhgr
         std::vector<std::pair<tREAL8,cPt2dr>> mVGr; // pair of radiometry/gradient values in each image for each point of the patch
 };
 
+
+/**  Class for doing the adjsment between Lidar & Photogra, prototype for now */
 
 class cBA_LidarPhotogra
 {
@@ -379,7 +381,7 @@ class cBA_LidarPhotogra
 
 
        cMMVII_BundleAdj&               mBA;
-       int                             mNumMode;
+       eImatchCrit                     mNumMode;
        cTriangulation3D<tREAL4>        mTri;
        cDiffInterpolator1D *           mInterp;
        cCalculator<double>  *          mEqLidPhgr;
