@@ -38,6 +38,13 @@ else()
 	set(CMAKE_CONFIGURATION_TYPES "Release;RelWithDebInfo;Debug" CACHE STRING "" FORCE)
 endif()
 
+
+#######################################################
+##        Options
+#######################################################
+
+option(MMVII_KEEP_LIBRARY_MMV1 "If ON, MMVII will use legacy MMV1 code" OFF)
+
 #######################################################
 ##        Dependencies
 #######################################################
@@ -103,11 +110,13 @@ string(REGEX REPLACE "[-/]D *NDEBUG" "" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_
 #######################################################
 
 # micmac v1 library and headers
+if (MMVII_KEEP_LIBRARY_MMV1)
 set(mmv1_dir "${MMVII_SOURCE_DIR}/..")
 set(mmv1_include_dir "${mmv1_dir}/include")
 set(mmv1_lib_dir "${mmv1_dir}/lib")
 find_library(elise_lib NAME elise PATHS "${mmv1_lib_dir}" NO_DEFAULT_PATH)
 find_library(ANN_lib NAME ANN PATHS "${mmv1_lib_dir}" NO_DEFAULT_PATH)
+endif()
 
 # MMVII dir
 set(mmv2_include_dir "${MMVII_SOURCE_DIR}/include")
@@ -139,21 +148,25 @@ if(MSVC)
  target_compile_options(P2007 PRIVATE "/MP")
 endif()
 
-option(MMVII_KEEP_MMV1_IMAGE "If OFF, MMVII will use GDAL only to read/write image" ON)
-if(MMVII_KEEP_MMV1_IMAGE)
-  target_compile_definitions(P2007 PUBLIC MMVII_KEEP_MMV1_IMAGE)
+if (MMVII_KEEP_LIBRARY_MMV1)
+  target_compile_definitions(P2007 PUBLIC MMVII_KEEP_LIBRARY_MMV1=true MMVII_KEEP_MMV1_IMAGE)
+else()
+  target_compile_definitions(P2007 PUBLIC MMVII_KEEP_LIBRARY_MMV1=false)
 endif()
+
 
 #######################################################
 ##        MMVII build (executable)
 #######################################################
 add_executable(MMVII src/main.cpp)
 
-set(mmv1_libs "${elise_lib};${ANN_lib}")
-if(UNIX)
-	set(mmv2_extlibs -lX11)
-else()	
-	set(mmv2_extlibs)
+set(mmv2_extlibs)
+set(mmv1_libs "")
+if(MMVII_KEEP_LIBRARY_MMV1)
+   set(mmv1_libs "${elise_lib};${ANN_lib}")
+  if(UNIX)
+    set(mmv2_extlibs -lX11)
+  endif()
 endif()
 
 target_include_directories(MMVII PRIVATE "${MMVII_SOURCE_DIR}/include"  )
