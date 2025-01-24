@@ -199,9 +199,17 @@ template <class Type> cLinearOverCstrSys<Type> * cResolSysNonLinear<Type>::SysLi
     SetPhaseEq(); // cautious, if user requires this access he may modify
     return mSysLinear;
 }
+template <class Type> const cLinearOverCstrSys<Type> * cResolSysNonLinear<Type>::SysLinear()  const
+{
+    return mSysLinear;
+}
 
 template <class Type> int cResolSysNonLinear<Type>::NbVar() const {return mNbVar;}
 template <class Type> int cResolSysNonLinear<Type>::R_NbVar() const {return NbVar();}
+
+
+template <class Type> Type cResolSysNonLinear<Type>::VarLastSol() const {return mSysLinear->VarLastSol() ;}
+template <class Type> Type cResolSysNonLinear<Type>::VarCurSol() const {return mSysLinear->VarCurSol() ;}
 
       // =====    handling of frozen vars ================
 

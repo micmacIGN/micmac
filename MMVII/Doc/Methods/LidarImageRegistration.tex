@@ -394,11 +394,11 @@ $||\widehat {X} ,\widehat {Y}||^2  = 2 - 2 \widehat {X} \cdot \widehat {Y} $ and
 
 
 \begin{equation}
-    N_{CC}(X,Y) = 1-\frac{ D^2(\widehat {X} ,\widehat {Y}}{2}
+    N_{CC}(X,Y) = 1-\frac{ D^2(\widehat {X} ,\widehat {Y})}{2}
 \end{equation}
 
-So maximizing $N_{CC}$ is equivalent to mininize $ D^2(\widehat {X} ,\widehat {Y}$. Consequently,
-for using  $N_{CC}$, we will consider the problem of  solving the following equation of observation :
+So maximizing $N_{CC}$ is equivalent to mininize $ D^2(\widehat {X} ,\widehat {Y})$. Consequently,
+for using  $N_{CC}$ as a similarity measure, we will consider the problem of  solving the following equation of observation :
 
 \begin{equation}
     \widehat {X} =\widehat {Y} \label{Eq:Cor:Pair:Norm}
@@ -406,20 +406,20 @@ for using  $N_{CC}$, we will consider the problem of  solving the following equa
 
 Consider now the case where we have $M$ series $X^j_i$ of $N$ values, $j \in [1,M], i \in [1,N]$
 and that we want to modelize that they all are similar using correlation. We could use
-equation $\ref{Eq:Cor:Pair:Norm}$ for all pair, but this would be un-elagant and un efficient.
+equation $\ref{Eq:Cor:Pair:Norm}$ for all pair, but this would be un-elegant and un-efficient.
 
-Instead of that, we introduce the unknown serie $\chi_i$ which modelise the supposed common value
-of all $\widehat X^j_i$. We the proceed this way :
+Instead of that, we introduce the unknown serie $\chi = \chi_i, i \in [1,N]$ which modelise the supposed common value
+of all $\widehat X^j_i$. We then proceed this way :
 
 \begin{itemize}
-    \item as $\chi$ modelise the common value we impose series verifying equation~\ref{CorrelSig1Avg0}
+    \item as $\chi$ modelise the common value of normalised series (i.e. verifying equation~\ref{CorrelSig1Avg0});
           we impose $\mu(\chi)=0, \sigma(\chi)=1$;
     \item taking into account \ref{CorrelXXHat},  we introduce the unknowns $A^j,B^j$
           that link $\chi$ and $X^j$ with equation~\ref{Corel:AjBj} ;
 \end{itemize}
 
 \begin{equation}
-	A^j X^j + B = \chi \label{Corel:AjBj}
+	A^j X^j + B^j = \chi \label{Corel:AjBj}
 \end{equation}
 
 To summerize we try to solve the following system :
@@ -434,7 +434,7 @@ To summerize we try to solve the following system :
 \end{equation}
 
 
-In this system we have :
+where we have :
 
 \begin{itemize}
 	\item $2 M + N$ unknowns  $A^j,B^j,\chi _i$
@@ -442,7 +442,7 @@ In this system we have :
 \end{itemize}
 
 
-For the initialisation, we can use for example equation  \ref{Correl:Chi0} for  $\chi$ .
+For the initialisation of unknowns, we can use for example equation  \ref{Correl:Chi0} for  $\chi$ .
 For initialisation of $A^j, B^j$ we can use $\mu^j,\sigma^j$, or solve by least square the
 equation ~\ref{Corel:AjBj}.
 

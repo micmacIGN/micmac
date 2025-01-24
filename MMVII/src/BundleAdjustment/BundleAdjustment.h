@@ -20,30 +20,6 @@ class cBA_GCP;
 class cBA_Clino;
 class cBA_BlocRig;
 
-/**   Class for representing a Pt of R3 in bundle adj, when it is considered as
- *   unknown.
- *      +  we have the exact value and uncertainty of the point is covariance is used
- *      -  it add (potentially many)  unknowns and then  it take more place in  memory & time
- */
-
-/*
-template <const int Dim>  class cPtxdr_UK :  public cObjWithUnkowns<tREAL8>,
-                                             public cMemCheck
-{
-   public :
-      typedef cPtxd<tREAL8,Dim>  tPt;
-
-      cPtxdr_UK(const tPt &);
-      ~cPtxdr_UK();
-      void PutUknowsInSetInterval() override;
-      const tPt & Pt() const ;
-   private :
-      cPtxdr_UK(const cPtxdr_UK&) = delete;
-      tPt mPt;
-};
-
-typedef cPtxdr_UK<3> cPt3dr_UK ;
-*/
 
 /**  "Standard" weighting classes, used the following formula
  *
@@ -353,23 +329,39 @@ class cBA_TieP
 class cData1ImLidPhgr
 {
      public :
-        size_t mKIm;  // num of images where the patch is seen
-        std::vector<std::pair<tREAL8,cPt2dr>> mVGr; // pair of radiometry/gradient values in each image for each point of the patch
+        size_t mKIm;  ///< num of images where the patch is seen
+        std::vector<std::pair<tREAL8,cPt2dr>> mVGr; ///< pair of radiometry/gradient, in image,  for each point of the patch
 };
 
 
-/**  Class for doing the adjsment between Lidar & Photogra, prototype for now */
+/**  Class for doing the adjsment between Lidar & Photogra, prototype for now, what will most certainly will need
+     to evolve is the weighting policy.
+ */
 
 class cBA_LidarPhotogra
 {
     public :
+       /// constructor, take the global bundle struct + one vector of param
        cBA_LidarPhotogra(cMMVII_BundleAdj&,const std::vector<std::string> & aParam);
+       /// destuctor, free interopaltor, calculator ....
        ~cBA_LidarPhotogra();
 
+       /// add observation with weigh W
        void AddObs(tREAL8 aW);
 
     private :
+       /**  Add observation for 1 Patch of point */
        void Add1Patch(tREAL8 aW,const std::vector<cPt3dr> & aPatch);
+
+       /// Method for adding observations with radiometric differences as similatity criterion
+       void AddPatchDifRad(tREAL8 aW,const std::vector<cPt3dr> & aPatch,const std::vector<cData1ImLidPhgr> &aVData) ;
+
+       /// Method for adding observations with Census Coeff as similatity criterion
+       void AddPatchCensus(tREAL8 aW,const std::vector<cPt3dr> & aPatch,const std::vector<cData1ImLidPhgr> &aVData) ;
+
+       /// Method for adding observations with Normalized Centred Coefficent Correlation as similatity criterion
+       void AddPatchCorrel(tREAL8 aW,const std::vector<cPt3dr> & aPatch,const std::vector<cData1ImLidPhgr> &aVData) ;
+
        void SetVUkVObs
        (
             const cPt3dr&           aPGround,
@@ -380,17 +372,17 @@ class cBA_LidarPhotogra
        );
 
 
-       cMMVII_BundleAdj&               mBA;
-       eImatchCrit                     mNumMode;
-       cTriangulation3D<tREAL4>        mTri;
-       cDiffInterpolator1D *           mInterp;
-       cCalculator<double>  *          mEqLidPhgr;
-       std::vector<cSensorCamPC *>     mVCam;
-       std::vector<cIm2D<tU_INT1>>     mVIms;
-       cWeightAv<tREAL8,tREAL8>        mLastResidual;
-       std::list<std::vector<int> >    mLPatches;
-       bool                            mPertRad;
-       size_t                          mNbPointByPatch;
+       cMMVII_BundleAdj&              mBA;             ///< The global bundle adj structure
+       eImatchCrit                    mModeSim;        ///< type of similarity used
+       cTriangulation3D<tREAL4>       mTri;            ///< Triangulation, in fact used only for points 
+       cDiffInterpolator1D *          mInterp;         ///< Interpolator, used to extract  Value & Grad of images
+       cCalculator<double>  *         mEqLidPhgr;      ///< Calculator used for constrain the pose from image obs
+       std::vector<cSensorCamPC *>    mVCam;           ///< Vector of central perspective camera
+       std::vector<cIm2D<tU_INT1>>    mVIms;           ///< Vector of images associated to each cam
+       cWeightAv<tREAL8,tREAL8>       mLastResidual;   ///< Accumulate the radiometric residual
+       std::list<std::vector<int> >   mLPatches;       ///< set of 3D patches
+       bool                           mPertRad;        ///< do we pertubate the radiometry (simulation & test)
+       size_t                         mNbPointByPatch; ///< (approximate) required number of point /patch
 };
 
 
