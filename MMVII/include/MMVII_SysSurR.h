@@ -231,6 +231,7 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
           void R_SetCurSol(int aNumV,const tREAL8&) override; ///< tREAL8 Equivalent
 
           tLinearSysSR *  SysLinear() ; ///< Accessor
+          const tLinearSysSR *  SysLinear() const ; ///< Accessor
 
           /// Solve solution,  update the current solution, Reset the least square system
           const tDVect  &    SolveUpdateReset(const Type & aLVM =0.0) ;
@@ -299,6 +300,9 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
           void  AddConstr(const tSVect & aVect,const Type & aCste,bool OnlyIfFirstIter=true);
           void SupressAllConstr();
           int GetNbLinearConstraints() const;
+
+          Type  VarLastSol() const;  ///< Call equiv method of SysLinear
+          Type  VarCurSol()  const;  ///< Call equiv method of SysLinear
      private :
           cResolSysNonLinear(const tRSNL & ) = delete;
 
@@ -514,18 +518,40 @@ template <class Type> class cLinearOverCstrSys  : public cMemCheck
 
 
       virtual void   AddCov(const cDenseMatrix<Type> &,const cDenseVect<Type>& ,const std::vector<int> &aVInd);
-      //
+
+      Type LVMW(int aK) const;
+      
+      Type  VarLastSol() const;
+      Type  VarCurSol()  const;
+
+    protected :
+       int mNbVar;
+
+       /// method possibi=ly used by heriting class (sparse will do it) to do it by conversion to a dense vector
+       void SpecificAddObs_UsingCast2Sparse(const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) ;
+
+       void AddWRHS(Type aW,Type aRHS);
+
+    private :
+
+       cDenseVect<Type>  mLVMW;             ///< The Levenberg markad weigthing
+       // mSumWCoeffRHS are update at PublicAddObs, reseted at PublicReset, used at PublicSolve
+       cDenseVect<Type>  mSumWCoeffRHS;     ///< accumulate the weighted sum of Coeff * RHS for computing residual
+       Type              mSumWRHS2;         ///< accumulate the weighted sum of  RHS^2 for computing residual
+       Type              mSumW;             ///< accumulate the weighted sum of  weight
+       Type              mLastSumW;             ///< accumulate the weighted sum of  weight
+       Type              mLastSumWRHS2;     ///< memorize mSumWRHS2 before reset (see discusion & pb with Schurr)
+       bool              mLastResComp;      ///< Has last residual been computed ?
+       Type              mLastResidual;     ///< Value of last residual (set when PublicSolve is called)
+       bool              mSchurrWasUsed;    ///< Was Schurr complement used ?
+
+
        /// Add  aPds (  aCoeff .X = aRHS) 
        virtual void SpecificAddObservation(const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) = 0;
        /// Add  aPds (  aCoeff .X = aRHS) , version sparse
        virtual void SpecificAddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) = 0;
 
-       Type LVMW(int aK) const;
 
-    protected :
-       int mNbVar;
-       cDenseVect<Type>  mLVMW;  // The Levenberg markad weigthing
-    private :
        /// "Purge" all accumulated equations
        virtual void SpecificReset() = 0;
        /// Compute a solution

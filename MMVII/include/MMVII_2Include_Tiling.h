@@ -289,6 +289,31 @@ template <const int Dim> class cPointSpInd
 };
 
 
+/**  Class for geometrically indexing the lidars (on 2D point) for patches creation , used
+   to instantiate cTilingIndex 
+*/
+
+template <class Type> class cTil2DTri3D
+{
+    public :
+        static constexpr int TheDim = 2;          // Pre-requite for instantite cTilingIndex
+        typedef cPt2dr             tPrimGeom;     // Pre-requite for instantite cTilingIndex
+        typedef const cTriangulation3D<Type> *  tArgPG; // Pre-requite for instantite cTilingIndex
+
+        /**  Pre-requite for instantite cTilingIndex : indicate how we extract geometric primitive from one object */
+
+        tPrimGeom  GetPrimGeom(tArgPG aPtrTri) const {return Proj(ToR(aPtrTri->KthPts(mInd)));}
+
+        cTil2DTri3D(size_t anInd) : mInd(anInd) {}
+        size_t  Ind() const {return mInd;}
+
+    private :
+        size_t  mInd;
+};
+
+
+
+
 /** Class for generating point such that all pairs are at distance > given value */
 template <const int TheDim> class cGeneratePointDiff
 {
@@ -370,6 +395,7 @@ template <class TypePrim,class TypeObj,class TypeCalcP2 >
               aRes.push_back(aVPt.at(aInd));
       return aRes;
 }
+
 
 
 

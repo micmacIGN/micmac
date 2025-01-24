@@ -329,11 +329,18 @@ template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
 
 	   cTriangle<Type,2>     TriDevlpt(int aKF,int aNumSom) const;  // aNumSom in [0,1,2]
 	   cDevBiFaceMesh<Type>  DoDevBiFace(int aKF1,int aNumSom) const;  // aNumSom in [0,1,2]
+
+           cBox2dr  Box2D() const;
+
+           void MakePatches(std::list<std::vector<int> > & ,tREAL8 aDistNeigh,tREAL8 aDistReject,int aSzMin) const;
+
+
         private :
            /// Read/Write in ply format using
            void PlyInit(const std::string &);
            void PlyWrite(const std::string &,bool isBinary) const;
 };
+
 
 class cPlane3D
 {
