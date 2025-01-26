@@ -65,6 +65,7 @@ string g_toolsOptions; // contains arguments to pass to Pastis concerning detect
 std::string aDir,aPat,aPatOri;
 std::string aPat2="";
 std::string aFullDir;
+std::string aFileType;
 int aFullRes = -1;
 cInterfChantierNameManipulateur * anICNM =0;
 std::string BinPastis;
@@ -79,8 +80,8 @@ bool ignoreMin = false,
 
 std::string StrMkT() { return (ByP ? (" \"MkF=" + MkFT +"\" ") : "") ; }
 
-#define aNbType 6
-std::string  Type[aNbType] = {"MulScale","All","Line","File","Graph","Georef"};
+#define aNbType 7
+std::string  Type[aNbType] = {"MulScale","All","Line","File","Graph","Georef","MulScaleFile"};
 
 /*
 void StdAdapt2Crochet(std::string & aStr)
@@ -263,6 +264,96 @@ void check_detect_and_match_tools( string &detectingTool, string &matchingTool, 
     if ( ignoreMax ) ignoreMinMaxStr += space + PASTIS_IGNORE_MAX_NAME + "=1";
     if ( ignoreMin ) ignoreMinMaxStr += space + PASTIS_IGNORE_MIN_NAME + "=1";
     if ( ignoreUnknown ) ignoreMinMaxStr += space + PASTIS_IGNORE_UNKNOWN_NAME + "=1";
+}
+
+
+int MultiEchFile(int argc, char ** argv, const std::string &aArg = "")
+{
+	int aSsRes = 300;
+	int aNbMinPt = 10;
+	int DoLowRes = 1;
+	string detectingTool, matchingTool, ignoreMinMaxStr;
+	double ann_closeness_ratio = SIFT_ANN_DEFAULT_CLOSENESS_RATIO;
+
+	ElInitArgMain
+	(
+		argc, argv,
+		LArgMain() << EAMC(aFullDir, "XML File of Image Pairs", eSAM_IsExistFile)
+		<< EAMC(aFileType, "File Type (Dir+Pat)", eSAM_IsPatFile)
+		<< EAMC(aSsRes, "Size of Low Resolution Images")
+		<< EAMC(aFullRes, "Size of High Resolution Images"),
+		LArgMain() << EAM(ExpTxt, "ExpTxt", true, "Export files in text format (Def=false means binary)", eSAM_IsBool)
+		<< EAM(ByP, "ByP", true, "By process")
+		<< EAM(PostFix, "PostFix", false, "Add postfix in directory")
+		<< EAM(aNbMinPt, "NbMinPt", true, "Minimum number of points")
+		<< EAM(DoLowRes, "DLR", true, "Do Low Resolution")
+		<< EAM(aPat2, "Pat2", true, "Second pattern", eSAM_IsPatFile)
+
+		<< EAM(detectingTool, PASTIS_DETECT_ARGUMENT_NAME.c_str(), false)
+		<< EAM(matchingTool, PASTIS_MATCH_ARGUMENT_NAME.c_str(), false)
+
+		<< EAM(ignoreMax, PASTIS_IGNORE_MAX_NAME.c_str(), true)
+		<< EAM(ignoreMin, PASTIS_IGNORE_MIN_NAME.c_str(), true)
+		<< EAM(ignoreUnknown, PASTIS_IGNORE_UNKNOWN_NAME.c_str(), true)
+		<< EAM(ann_closeness_ratio, "Ratio", true, "ANN closeness ration (default=" + ToString(ann_closeness_ratio) + "), lower is more exigeant)"),
+		aArg
+	);
+
+	if (!MMVisualMode)
+	{
+		check_detect_and_match_tools(detectingTool, matchingTool, ignoreMax, ignoreMin, ignoreUnknown, ignoreMinMaxStr);
+
+		if (aFullRes != -1)
+		{
+			std::cout << "Ss-RES = " << aSsRes << " ; Full-Res=" << aFullRes << "\n";
+			ELISE_ASSERT(aFullRes > aSsRes, "High Res < Low Res, Probably 2 swap !!");
+		}
+
+		//StdAdapt2Crochet(aPat2);
+		//DoDevelopp(aSsRes, aFullRes);
+
+		if (DoLowRes)
+		{
+			std::string aSsR =
+				BinPastis
+				+ aDir + std::string(" ")
+				+ QUOTE(std::string("NKS-Rel-ByFile@") + aPat) + std::string(" ")
+				+ ToString(aSsRes) + std::string(" ")
+				+ std::string(" NKS=NKS-Assoc-CplIm2Hom@_SRes@dat")
+				+ StrMkT()
+				+ std::string("NbMinPtsExp=2 ")
+				+ std::string("SsRes=1 ")
+				+ std::string("ForceByDico=1 ")
+				+ g_toolsOptions
+				/*+  ignoreMinMaxStr*/; // using only min or max in low resolution may not produce enough point
+
+			if (TheGlobSFS != "")
+				aSsR += " isSFS=true";
+
+			System(aSsR, true);
+			DoMkT();
+		}
+
+		std::string aSFR = BinPastis
+			+ aDir + std::string(" ")
+			+ QUOTE(std::string("NKS-Rel-SsECh@") + aFileType + std::string("@") + ToString(aNbMinPt)) + std::string(" ")
+			+ ToString(aFullRes) + std::string(" ")
+			+ StrMkT()
+			+ std::string("NbMinPtsExp=2 ")
+			+ std::string("ForceByDico=1 ")
+			+ g_toolsOptions
+			+ ignoreMinMaxStr + ' '
+			+ " ratio=" + ToString(ann_closeness_ratio);
+
+		if (TheGlobSFS != "")
+			aSFR += " isSFS=true";
+
+		aSFR += " " + NKS();
+
+		System(aSFR, true);
+		DoMkT();
+	}
+	return 0;
 }
 
 
@@ -1090,6 +1181,13 @@ int Tapioca_main(int argc,char ** argv)
     else if (TheType == Type[5])
     {
         int aRes = Georef(argc, argv, TheType);
+        Del_MkTapioca(MkFT);
+        BanniereMM3D();
+        return aRes;
+    }
+    else if (TheType == Type[6])
+    {
+        int aRes = MultiEchFile(argc, argv, TheType);
         Del_MkTapioca(MkFT);
         BanniereMM3D();
         return aRes;
