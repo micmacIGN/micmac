@@ -170,7 +170,7 @@ std::vector<tREAL8>  cAppliBundlAdj::ConvParamStandard(const std::vector<std::st
 {
     if ((aVParStd.size() <aSzMin) || (aVParStd.size() >aSzMax))
     {
-        MMVII_UnclasseUsEr("Bad size of AddOneSetGCP, exp in ["+ToStr(aSzMin)+","+ToStr(aSzMax)+"] got : " + ToStr(aVParStd.size()));
+        MMVII_UnclasseUsEr("Bad size of AddOneSetGCP/TieP, exp in ["+ToStr(aSzMin)+","+ToStr(aSzMax)+"] got : " + ToStr(aVParStd.size()));
     }
     mMeasureAdded = true;  // to avoid message corresponding to trivial error
 
@@ -208,7 +208,7 @@ void  cAppliBundlAdj::AddOneSetGCP2D(const std::vector<std::string> & aVParStd)
 void  cAppliBundlAdj::AddOneSetTieP(const std::vector<std::string> & aVParStd)
 {
     std::string aFolder = aVParStd.at(0);  // folder
-    std::vector<tREAL8>  aTiePW = ConvParamStandard(aVParStd,3,6);
+    std::vector<tREAL8>  aTiePW = ConvParamStandard(aVParStd,2,5);
     cStdWeighterResidual aWeighter(aTiePW,0);
     mBA.AddMTieP(aFolder,AllocStdFromMTPFromFolder(aFolder,VectMainSet(0),mPhProj,false,true,false),aWeighter);
 }

@@ -117,7 +117,7 @@ int cAppli_ImportM32::Exe()
     }
 
        // save object
-    mPhProj.SaveGCP3D(aSetGCP);
+    mPhProj.SaveGCP3D(aSetGCP,mPhProj.DPGndPt3D().FullDirOut());
     mPhProj.SaveMeasureIm(aSetIm);
 
     if (mPhProj.SysCoIsInit())
