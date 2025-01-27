@@ -100,7 +100,7 @@ int cAppli_ChSysCoGCP::Exe()
 
 std::vector<std::string>  cAppli_ChSysCoGCP::Samples() const
 {
-   return {"MMVII SysCoCreateRTL "};
+   return {"MMVII GCPChSysCo RTL ORGI RTLSat SysIn=Geog"};
 }
 
 

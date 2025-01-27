@@ -1,8 +1,8 @@
 set -e
 
-MMVII EditSet Satellite.xml += Crop.*tif
-MMVII EditSet Aerial.xml += OIS-Reech_.*tif
-MMVII EditSet AllIm.xml += .*tif
+#MMVII EditSet Satellite.xml += Crop.*tif
+#MMVII EditSet Aerial.xml += OIS-Reech_.*tif
+#MMVII EditSet AllIm.xml += .*tif
 
 # Import V1 points : 
 #MMVII TiePConvert  ".*tif" MMV1 V1 V1Ext=_Merged-SuperGlue Post=dat
@@ -29,26 +29,22 @@ MMVII OriChSysCo Satellite.xml RTL V1Sat SatRTL
 MMVII OriParametrizeSensor Satellite.xml SatRTL RTL 0 
 
 #   MMVII OriChSysCo "OIS.*tif" RTL V1Conik  RTL
-#MMVII OriChSysCo "OIS.*tif" RTL V1Conik  RTL SysIn=Lambert93
-MMVII OriChSysCo Aerial.xml RTL V1Conik  RTL SysIn=Lambert93
+#MMVII OriChSysCo "OIS.*tif" RTL V1Conik  RTL SysIn=L93
+MMVII OriChSysCo Aerial.xml RTL V1Conik  RTL SysIn=L93
 
  
-#MMVII TestSensor  .*tif       RTL NbProc=1 OutPointsMeasure=RTLRef SzGen=[7,3]
-#MMVII TestSensor  OIS-.*.tif  RTL NbProc=1 OutPointsMeasure=Conik-RTLRef SzGen=[7,3]
-#MMVII TestSensor  Crop.*tif   RTL NbProc=1 OutPointsMeasure=Sat-RTLRef SzGen=[7,3]
-MMVII TestSensor  AllIm.xml       RTL NbProc=1 OutPointsMeasure=RTLRef SzGen=[7,3]
-MMVII TestSensor  Aerial.xml  RTL NbProc=1 OutPointsMeasure=Conik-RTLRef SzGen=[7,3]
-MMVII TestSensor  Satellite.xml  RTL NbProc=1 OutPointsMeasure=Sat-RTLRef SzGen=[7,3]
+MMVII TestSensor  AllIm.xml       RTL NbProc=1 OutObjCoordWorld=RTLRef OutObjMesInstr=RTLRef SzGen=[7,3]
+MMVII TestSensor  Aerial.xml  RTL NbProc=1 OutObjCoordWorld=Conik-RTLRef OutObjMesInstr=Conik-RTLRef SzGen=[7,3]
+MMVII TestSensor  Satellite.xml  RTL NbProc=1 OutObjCoordWorld=Sat-RTLRef OutObjMesInstr=Sat-RTLRef SzGen=[7,3]
 
 
-#MMVII OriBundleAdj   ".*tif" RTL  AdjRTL GCPDir=Conik-RTLRef GCPW=[0,1] TPDir=V1 TiePWeight=[0.1,0.5]
-MMVII OriBundleAdj  AllIm.xml RTL  AdjRTL GCPDir=Conik-RTLRef GCPW=[0,1] TPDir=V1 TiePWeight=[0.1,0.5]
+MMVII OriBundleAdj  AllIm.xml RTL  AdjRTL GCP2D=[[Conik-RTLRef,1]] GCP3D=[[Conik-RTLRef,0]] TPDir=V1 TiePWeight=[0.1,0.5]
 
 
 #MMVII OriParametrizeSensor "Crop.*" SatRTL RTL 0  RandomPerturb=0.001
 #MMVII OriBundleAdj   ".*tif" RTL  AdjRTL GCPDir=Conik-RTLRef GCPW=[0,1] TPDir=V1 TiePWeight=[0.1,0.5]
 MMVII OriParametrizeSensor Satellite.xml SatRTL RTL 0  RandomPerturb=0.001
-MMVII OriBundleAdj  AllIm.xml RTL  AdjRTL GCPDir=RTLRef GCPW=[0,1] TPDir=V1 TiePWeight=[0.1,0.5]
+MMVII OriBundleAdj  AllIm.xml RTL  AdjRTL GCP2D=[[RTLRef,1]] GCP3D=[[RTLRef,0]] TPDir=V1 TiePWeight=[0.1,0.5]
 
 
 
