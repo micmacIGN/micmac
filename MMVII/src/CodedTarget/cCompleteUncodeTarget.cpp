@@ -99,6 +99,7 @@ cCollecSpecArg2007 & cAppliCompletUncodedTarget::ArgOpt(cCollecSpecArg2007 & anA
 {
    return 
                   anArgOpt
+	     <<   mPhProj.DPGndPt3D().ArgDirInputOptWithDef("Std")
 	     <<   mPhProj.DPGndPt2D().ArgDirInputOptWithDef("Std")
 	     <<   mPhProj.DPGndPt2D().ArgDirOutOptWithDef("Completed")
              <<   AOpt2007(mThreshRay,"ThRay","Threshold for ray [RatioMax,RMin,RMax]",{{eTA2007::ISizeV,"[3,3]"}})
@@ -238,12 +239,6 @@ int  cAppliCompletUncodedTarget::Exe()
 
 
    mPhProj.SaveMeasureIm(mImageM);
-   // Save GCP because they will probaly be re-used, but do it only once at first call, else risk of simultaneaous writting
-   if (KthCall()==0)
-   {
-       //mPhProj.SaveGCP(mMesImGCP,"");
-       mPhProj.CpGCP();
-   }
 
    aNameE = cSaveExtrEllipe::NameFile(mPhProj,mMesImGCP.MesImInitOfName(mNameIm),false);
    SaveInFile(mVSEE,aNameE);
