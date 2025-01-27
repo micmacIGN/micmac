@@ -473,6 +473,7 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         Bench_Nums(aParam); // Basic numericall services
         BenchKTHVal(aParam);
         BenchCurveDigit(aParam);
+        BenchLstSqEstimUncert (aParam);
         BenchHamming(aParam);
         BenchPolynome(aParam);
         BenchInterpol(aParam);

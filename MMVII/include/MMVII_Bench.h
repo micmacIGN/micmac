@@ -181,6 +181,8 @@ void BenchcNewReadFilesStruct(cParamExeBench & aParam);  ///< Test the new syste
 
 void BenchKTHVal(cParamExeBench & aParam);
 void BenchCurveDigit(cParamExeBench & aParam);
+void BenchLstSqEstimUncert(cParamExeBench & aParam);
+
 
 };
 

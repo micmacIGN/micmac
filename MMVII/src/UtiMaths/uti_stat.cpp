@@ -244,6 +244,18 @@ template <class Type> Type  cComputeStdDev<Type>::StdDev(const Type&  Epsilon) c
      return aRes.mStdDev;
 }
 
+template <class Type> Type  cComputeStdDev<Type>::UB_Variance(const Type&  Epsilon) const
+{
+   cComputeStdDev<Type> aRes = Normalize(Epsilon);
+   return aRes.mSomWV2 * mSomWV / (mSomWV-1.0);
+}
+
+template <class Type> Type  cComputeStdDev<Type>::UB_StdDev(const Type&  Epsilon) const
+{
+    return std::sqrt(UB_Variance(Epsilon)); 
+}
+
+
 
 /* ============================================= */
 /*      cMatIner2Var<Type>                       */

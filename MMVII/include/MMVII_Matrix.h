@@ -158,6 +158,18 @@ template <class Type> class  cDenseVect
 
            /*  =========  Othognalization & projection stuff =========== */
 
+        /// test all vector have same dimension an return it
+        static int  AllDimComon(const std::vector<tDV>  & aVVect) ;
+        /**  if Number of               =>  (A 0)  or  (A B)
+             Vect != dim, pad with 0        (B 0)      (0 0) */
+        static cDenseMatrix<Type>  MatLineOfVect(const std::vector<tDV>  & aVVect) ;
+
+        /**   */
+        static std::vector<tDV>   GenerateVectNonColin(int aDim,int aNbVect,tREAL8 aMaxDeg);
+
+        /** Degeneresence degree */
+        static Type  DegenDegree(const std::vector<tDV>  & aVVect) ;
+
                         //   ----------  Projection, Dist to space ------------------
         /// return orthognal projection on subspace defined by aVVect, use least square (slow ? At least good enough for bench )
         tDV    ProjOnSubspace(const std::vector<tDV>  & aVVect) const;
@@ -243,7 +255,8 @@ template <class Type> class cMatrix  : public cRect2
          tDV  MulLine(const tDV &) const;
          virtual void ReadLineInPlace(int aY,tDV &) const;
          virtual tDV ReadLine(int aY) const;
-         virtual void WriteLine(int aY,const tDV &) ;
+         // If OkPartial=true accept size of vect <= size of mat, it will be "partially" modified
+         virtual void WriteLine(int aY,const tDV &,bool OkPartial=false) ;
          std::vector<tDV>  MakeLines() const;  // generate all the lines
 
 
@@ -272,6 +285,12 @@ template <class Type> class cMatrix  : public cRect2
          {
             MMVII_INTERNAL_ASSERT_medium(Sz().x()== aV.Sz(),"Bad size for vect line multiplication")
          }
+         /// Check that  aVx  can be writen in Mat
+         void TplCheckSizeX_SupEq(const tDV & aV) const
+         {
+            MMVII_INTERNAL_ASSERT_medium(Sz().x()>= aV.Sz(),"Bad size for vect line write");
+         }
+
          /// Check that aVY * this * aVX  is valide, VY line vector of size SzY, VX Col vector
          void TplCheckSizeYandX(const tDV & aVY,const tDV & aVX) const
          {
@@ -883,6 +902,11 @@ template <class Type>  class cComputeStdDev
          cComputeStdDev<Type>  Normalize(const Type & Epsilon = 0.0) const;
 	 Type  StdDev(const Type & Epsilon = 0.0) const;
          void  SelfNormalize(const Type & Epsilon = 0.0);
+
+         /// standard unbiased estimator of variance, works iff all weights where 1.0 (else try cUB_ComputeStdDev)
+	 Type  UB_Variance(const Type & Epsilon = 0.0) const;
+	 Type  UB_StdDev(const Type & Epsilon = 0.0) const;
+
      private :
          Type mSomW; 
          Type mSomWV; 
