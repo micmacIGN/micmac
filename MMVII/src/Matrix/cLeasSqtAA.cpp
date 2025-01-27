@@ -380,6 +380,13 @@ template<class Type> void cLinearOverCstrSys<Type>::PublicReset()
 template<class Type> cDenseVect<Type> cLinearOverCstrSys<Type>::PublicSolve()
 {
      cDenseVect<Type> aSol =  SpecificSolve();
+/*
+StdOut() << "PSol, W=" << mSumW 
+         << " RW2=" << mSumWRHS2 
+         << " Scal=" <<  mSumWCoeffRHS.DotProduct(aSol) 
+         << "\n";
+*/
+
      mLastResidual = mSumWRHS2 - mSumWCoeffRHS.DotProduct(aSol);
      mLastSumWRHS2 = mSumWRHS2;
      mLastSumW     = mSumW;
@@ -395,7 +402,7 @@ template<class Type> Type cLinearOverCstrSys<Type>::VarLastSol() const
 
 template<class Type> Type cLinearOverCstrSys<Type>::VarCurSol()  const
 {
-   return mLastResidual / mLastSumW;
+   return std::max( Type(0.0),mLastResidual / mLastSumW);
 }
 
 
