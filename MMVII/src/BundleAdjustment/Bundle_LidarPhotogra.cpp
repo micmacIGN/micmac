@@ -11,36 +11,27 @@ namespace MMVII
    to instantiate cTilingIndex 
 */
 
-template <class Type> class cTil2DTri3D
-{
-    public :
-        static constexpr int TheDim = 2;          // Pre-requite for instantite cTilingIndex
-        typedef cPt2dr             tPrimGeom;     // Pre-requite for instantite cTilingIndex
-        typedef cTriangulation3D<Type> *  tArgPG; // Pre-requite for instantite cTilingIndex
-
-        /**  Pre-requite for instantite cTilingIndex : indicate how we extract geometric primitive from one object */
-
-        tPrimGeom  GetPrimGeom(tArgPG aPtrTri) const {return Proj(ToR(aPtrTri->KthPts(mInd)));}
-
-        cTil2DTri3D(size_t anInd) : mInd(anInd) {}
-        size_t  Ind() const {return mInd;}
-
-    private :
-        size_t  mInd;
-};
 
 
 cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std::string>& aParam) :
     mBA         (aBA),                                 // memorize the bundel adj class itself (access to optimizer)
-    mNumMode    (cStrIO<int>::FromStr(aParam.at(0))),  // mode of matching (int 4 now) 0 ponct, 1 Census
+    mModeSim    (Str2E<eImatchCrit>(aParam.at(0))),    // mode of matching (int 4 now) 0 ponct, 1 Census
     mTri        (aParam.at(1)),                        // Lidar point themself, stored as a triangulation
-    mInterp     (nullptr),                            // interpolator see bellow
-    mEqLidPhgr  (nullptr), // equation of egalisation Lidar/Phgr
-    mPertRad    (false)
+    mInterp     (nullptr),                             // interpolator see bellow
+    mEqLidPhgr  (nullptr),                             // equation of egalisation Lidar/Phgr
+    mPertRad    (false),
+    mNbPointByPatch (32)
 {
-   if      (mNumMode==0) mEqLidPhgr = EqEqLidarImPonct (true,1);
-   else if (mNumMode==1) mEqLidPhgr = EqEqLidarImCensus(true,1);
-   else if (mNumMode==2) mEqLidPhgr = EqEqLidarImCorrel(true,1);
+   if (mModeSim==eImatchCrit::eDifRad) 
+      mEqLidPhgr = EqEqLidarImPonct (true,1);
+   else if (mModeSim==eImatchCrit::eCensus) 
+      mEqLidPhgr = EqEqLidarImCensus(true,1);
+   else if (mModeSim==eImatchCrit::eCorrel) 
+      mEqLidPhgr = EqEqLidarImCorrel(true,1);
+   else
+   {
+      MMVII_UnclasseUsEr("Bad enum for cBA_LidarPhotogra");
+   }
 
    //  By default  use tabulation of apodized sinus cardinal
    std::vector<std::string> aParamInt {"Tabul","1000","SinCApod","10","10"};
@@ -52,7 +43,11 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
    }
    if (aParam.size() >=4)
    {
-       mPertRad = true;
+       mPertRad = (aParam.at(3) != "");
+   }
+   if (aParam.size() >=5)
+   {
+        mNbPointByPatch = cStrIO<size_t>::FromStr(aParam.at(4));
    }
    // create the interpaltor itself
    mInterp  = cDiffInterpolator1D::AllocFromNames(aParamInt);
@@ -84,67 +79,20 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
    }
 
    // Creation of the patches, to comment ...
-   if (mNumMode!=0)
+   if (mModeSim!=eImatchCrit::eDifRad)
    {
-        int aNbPtsByPtch = 32;   // approximative number of point by patch
-        
-        // create the bounding box of all points
-        cTplBoxOfPts<tREAL8,2> aBoxObj;  // Box of object 
-        for (size_t aKP=0 ; aKP<mTri.NbPts() ; aKP++)
-        {
-             // Proj 3d -> 2d   , ToR  float -> real
-             aBoxObj.Add(ToR(Proj(mTri.KthPts(aKP))));
-        }
-        // create the "compiled" box from the dynamix
-        cBox2dr aBox = aBoxObj.CurBox();
-
+        // cBox2dr aBox = BoxOfTri(mTri);
+        cBox2dr aBox = mTri.Box2D();
         // estimate the distance for computing patching assuming a uniform  distributio,
         // Pi d^ 2  /NbByP = Surf / NbTot
-        tREAL8 aDistMoy = std::sqrt(aNbPtsByPtch *aBox.NbElem()/ (mTri.NbPts()*M_PI));
+        tREAL8 aDistMoy = std::sqrt(mNbPointByPatch *aBox.NbElem()/ (mTri.NbPts()*M_PI));
         tREAL8 aDistReject =  aDistMoy *1.5;
 
-        // indexation of all points
-        cTiling<cTil2DTri3D<tREAL4> >  aTileAll(aBox,true,mTri.NbPts()/20,&mTri);
-        for (size_t aKP=0 ; aKP<mTri.NbPts() ; aKP++)
-        {
-             aTileAll.Add(cTil2DTri3D<tREAL4>(aKP));
-        }
-
-        int aCpt=0;
-        // indexation of all points selecte as center of patches
-        cTiling<cTil2DTri3D<tREAL4> >  aTileSelect(aBox,true,mTri.NbPts()/20,&mTri);
-        // parse all points
-        for (size_t aKP=0 ; aKP<mTri.NbPts() ; aKP++)
-        {
-             cPt2dr aPt  = ToR(Proj(mTri.KthPts(aKP)));
-             // if the points is not close to an existing center of patch : create a new patch
-             if (aTileSelect.GetObjAtDist(aPt,aDistReject).empty())
-             {
-                //  Add it in the tiling of select 
-                 aTileSelect.Add(cTil2DTri3D<tREAL4>(aKP));
-                 // extract all the point close enough to the center
-                 auto aLIptr = aTileAll.GetObjAtDist(aPt,aDistMoy);
-                 std::vector<int> aPatch; // the patch itself = index of points
-                 aPatch.push_back(aKP);  // add the center at begining
-                 for (const auto aPtrI : aLIptr)
-                 {
-                     if (aPtrI->Ind() !=aKP) // dont add the center twice
-                     {
-                        aPatch.push_back(aPtrI->Ind());
-                     }
-                 }
-                 // some requirement on minimal size
-                 if (aPatch.size() > 5)
-                 {
-                     aCpt += aPatch.size();
-                     mLPatches.push_back(aPatch);
-                }
-             }
-        }
+        mTri.MakePatches(mLPatches,aDistMoy,aDistReject,5);
 
         StdOut() << "Patches: DistReject=" << aDistReject 
-                << " NbPts=" << mTri.NbPts() << " => " << aCpt 
-                << " NbPatch=" << mLPatches.size() << " NbAvg => " <<  aCpt / double(mLPatches.size())
+                << " NbPts=" << mTri.NbPts() 
+                << " NbPatch=" << mLPatches.size() 
                 << "\n";
    }
 }
@@ -158,7 +106,7 @@ cBA_LidarPhotogra::~cBA_LidarPhotogra()
 void cBA_LidarPhotogra::AddObs(tREAL8 aW)
 {
     mLastResidual.Reset();
-    if (mNumMode==0)
+    if (mModeSim==eImatchCrit::eDifRad)
     {
        for (size_t aKP=0 ; aKP<mTri.NbPts() ; aKP++)
        {
@@ -216,14 +164,165 @@ void cBA_LidarPhotogra::SetVUkVObs
     aGradIm.PushInStdVector(aVObs);
 }
 
-
-void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aVPatchGr)
+void cBA_LidarPhotogra::AddPatchDifRad
+     (
+           tREAL8 aWeight,
+           const std::vector<cPt3dr> & aVPatchGr,
+           const std::vector<cData1ImLidPhgr> &aVData
+     )
 {
      // read the solver now, because was not initialized at creation 
      cResolSysNonLinear<tREAL8> *  aSys = mBA.Sys();
 
-     std::vector<cData1ImLidPhgr> aVData; // for each image where patch is visible will store the data
      cWeightAv<tREAL8,tREAL8> aWAv;       // compute average of image for radiom unknown
+     for (const auto & aData : aVData)
+         aWAv.Add(1.0,aData.mVGr.at(0).first);
+
+     cPt3dr    aPGround = aVPatchGr.at(0);
+     std::vector<tREAL8> aVTmpAvg{aWAv.Average()};  // vector for initializingz the temporay (here 1 = average)
+     cSetIORSNL_SameTmp<tREAL8>  aStrSubst(aVTmpAvg); // structure for handling schurr eliminatio,
+     // parse the data of the patch
+     for (const auto & aData : aVData)
+     {
+         std::vector<int>       aVIndUk{-1}; // first one is a temporary (convention < 0)
+         std::vector<tREAL8>    aVObs;
+         SetVUkVObs (aPGround,&aVIndUk,aVObs,aData,0);
+            
+         // accumulate the equation involving the radiom
+         aSys->R_AddEq2Subst(aStrSubst,mEqLidPhgr,aVIndUk,aVObs,aWeight);
+     }
+     // do the substitution & add the equation reduced (Schurr complement)
+     aSys->R_AddObsWithTmpUK(aStrSubst);
+}
+
+void cBA_LidarPhotogra::AddPatchCensus
+     (
+           tREAL8 aWeight,
+           const std::vector<cPt3dr> & aVPatchGr,
+           const std::vector<cData1ImLidPhgr> &aVData
+     )
+{
+     // read the solver now, because was not initialized at creation 
+     cResolSysNonLinear<tREAL8> *  aSys = mBA.Sys();
+     for (size_t aKPt=1; aKPt<aVPatchGr.size() ; aKPt++)
+     {
+         // -------------- [1] Calculate the average ratio on all images --------------------
+         cWeightAv<tREAL8,tREAL8> aAvRatio;  // stuct for averaging ratio
+         for (const auto & aData : aVData)
+         {
+             tREAL8 aV0 = aData.mVGr.at(0).first;            // radiom of central pixel
+             tREAL8 aVK = aData.mVGr.at(aKPt).first;         // radiom of neighbour
+             aAvRatio.Add(1.0,NormalisedRatioPos(aV0,aVK)) ; // acumulate the ratio
+         }
+         std::vector<tREAL8> aVTmpAvg({aAvRatio.Average()});  // vector of value of temporary unknowns
+
+         // -------------- [2] Add the observation --------------------
+         cSetIORSNL_SameTmp<tREAL8>  aStrSubst(aVTmpAvg);  // structure for schur complement
+         for (const auto & aData : aVData) // parse all the images
+         {
+             std::vector<int>  aVIndUk{-1} ;  // indexe of unknown
+             std::vector<tREAL8>  aVObs;      // observation/context
+
+             SetVUkVObs(aVPatchGr.at(0)  ,&aVIndUk,aVObs,aData,0);            // add unkown AND observations
+             SetVUkVObs(aVPatchGr.at(aKPt),nullptr ,aVObs,aData,aKPt);        // add ONLY observations
+             aSys->R_AddEq2Subst(aStrSubst,mEqLidPhgr,aVIndUk,aVObs,aWeight); // add the equation in Schurr structure
+         }
+         // add all the equation to the system with Schurr's elimination
+         aSys->R_AddObsWithTmpUK(aStrSubst);
+     }
+}
+
+void cBA_LidarPhotogra::AddPatchCorrel
+     (
+           tREAL8 aWeight,
+           const std::vector<cPt3dr> & aVPatchGr,
+           const std::vector<cData1ImLidPhgr> &aVData
+     )
+{
+     // read the solver now, because was not initialized at creation 
+     cResolSysNonLinear<tREAL8> *  aSys = mBA.Sys();
+     // -------------- [1] Compute the normalized values --------------------
+     size_t aNbPt = aVPatchGr.size();
+     //  vector that will store the normalized value (Avg=0, Sigma=1)
+     cDenseVect<tREAL8>  aVMoy(aNbPt,eModeInitImage::eMIA_Null);
+
+     //  memorize the radiometries of images as vector
+     std::vector<cDenseVect<tREAL8>>  aListVRad;
+     for (const auto & aData : aVData)
+     {
+         // change to vecor format
+         cDenseVect<tREAL8> aV(aNbPt);
+         for (size_t aK=0 ; aK< aNbPt ; aK++)
+         {
+             aV(aK)  = aData.mVGr.at(aK).first;
+         }
+         aListVRad.push_back(aV);
+         cDenseVect<tREAL8> aV01 = NormalizeMoyVar(aV);  // noramlize value
+         aVMoy += aV01;  //  accumulate in a vector
+     }
+
+     aVMoy *=  1/ tREAL8(aVData.size()); // make VMoy, average of normalized
+     aVMoy =  NormalizeMoyVar(aVMoy);  // re normalized  
+       
+     // -------------- [2] Intialize the temporary  --------------------
+
+     /*  Say we have N points, M images,  tempory values will be stored "a la queue leu-leu" as :
+               R1 .. RN  A0  B0 A1 B1 ... AM BM
+             * where Ri are the unknown radiometry of the normalize patch
+             * where Aj are the unkonw for tranfering radiom of image j to normalize patch such that
+
+                 Ri =  Aj Imj(pij) + Bj
+
+             Noting pij the projection of Pi in Imj
+     */
+
+     std::vector<tREAL8> aVTmp = aVMoy.ToStdVect(); // push first values of normalized patch
+     size_t aK0Im = aVTmp.size();
+
+     // push the initial values of Aj Bj
+     for (const auto &  aVRad : aListVRad)
+     {
+         auto [A,B] =  LstSq_Fit_AxPBEqY(aVRad,aVMoy);  // solve  Ri = Aj Imj + Bj
+         aVTmp.push_back(A); // add tmp unknown for Aj
+         aVTmp.push_back(B); // add tmp unknown for Bj
+     }
+     cSetIORSNL_SameTmp<tREAL8>  aStrSubst(aVTmp); // structure for handling schurr eliminatio,
+
+             // three structure for forcing conservation of normalizattion (Avg,Sigma) for VMoy
+     std::vector<int> aVIndPt;       // indexe of unkown of norm radiom
+     std::vector<tREAL8> aVFixAvg;   // vector for forcing average
+     std::vector<tREAL8> aVFixVar;   // vector for forcing std dev
+
+     // -------------- [3] Add the equation  --------------------
+
+
+     for (int aKPt=0 ; aKPt <  (int) aNbPt ; aKPt++)  // parse all points
+     {
+         int aIndPt = -(1+aKPt);     // indexe of point are {-1,-2,....}
+         aVIndPt.push_back(aIndPt);  // accumulat set of global indexe of unknown patch
+         aVFixAvg.push_back(1.0);     //  Sum Rk = 0 => all weight = 1
+         //  S(R+dR) ^ 2 =1   ;  S (2 R dR ) = 1 - S(R^2)  ; but S(R^2)=1 by construction ...
+         aVFixVar.push_back(2*aVMoy(aKPt));
+
+         for (int aKIm=0 ;  aKIm< (int) aVData.size() ; aKIm++)
+         {
+             int aIndIm = -(1+aK0Im+2*aKIm);  // compute indexe assumming "a la queue leu-leu"
+             std::vector<int>       aVIndUk{aIndPt,aIndIm,aIndIm-1} ;  // indexes of 3 unknown
+             std::vector<tREAL8>    aVObs;  // vector of observations 
+             SetVUkVObs (aVPatchGr.at(aKPt),&aVIndUk,aVObs,aVData.at(aKIm),aKPt);  // read obs & global Uk
+             aSys->R_AddEq2Subst(aStrSubst,mEqLidPhgr,aVIndUk,aVObs,aWeight);  // add equation in tmp struct
+         }
+     }
+
+     aStrSubst.AddOneLinearObs(aNbPt,aVIndPt,aVFixAvg,0.0);  // force average
+     aStrSubst.AddOneLinearObs(aNbPt,aVIndPt,aVFixVar,0.0);  // force standard dev
+
+     aSys->R_AddObsWithTmpUK(aStrSubst);
+}
+
+void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aVPatchGr)
+{
+     std::vector<cData1ImLidPhgr> aVData; // for each image where patch is visible will store the data
      cComputeStdDev<tREAL8>   aStdDev;    // compute the standard deviation of projected radiometry (indicator) 
 
      //  Parse all the image, we will select the images where all point of a patch are visible
@@ -255,7 +354,7 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
                   aVData.push_back(aData); // memorize the data for this image
 
                   tREAL8 aValIm = aData.mVGr.at(0).first;   // value of first/central pixel in this image
-                  aWAv.Add(1.0,aValIm);     // compute average
+                  // aWAv.Add(1.0,aValIm);     // compute average
                   aStdDev.Add(1.0,aValIm);  // compute std deviation
               }
 
@@ -269,108 +368,17 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
      mLastResidual.Add(1.0,  (aStdDev.StdDev(1e-5) *aVData.size()) / (aVData.size()-1.0));
 
 
-     if (mNumMode==0)
+     if (mModeSim==eImatchCrit::eDifRad)
      {
-        cPt3dr    aPGround = aVPatchGr.at(0);
-        std::vector<tREAL8> aVTmpAvg{aWAv.Average()};  // vector for initializingz the temporay (here 1 = average)
-        cSetIORSNL_SameTmp<tREAL8>  aStrSubst(aVTmpAvg); // structure for handling schurr eliminatio,
-        // parse the data of the patch
-        for (const auto & aData : aVData)
-        {
-            std::vector<int>       aVIndUk{-1}; // first one is a temporary (convention < 0)
-            std::vector<tREAL8>    aVObs;
-            SetVUkVObs (aPGround,&aVIndUk,aVObs,aData,0);
-            
-            // accumulate the equation involving the radiom
-            aSys->R_AddEq2Subst(aStrSubst,mEqLidPhgr,aVIndUk,aVObs,aWeight);
-        }
-        // do the substitution & add the equation reduced (Schurr complement)
-        aSys->R_AddObsWithTmpUK(aStrSubst);
+        AddPatchDifRad(aWeight,aVPatchGr,aVData);
      }
-     else if (mNumMode==1)
+     else if (mModeSim==eImatchCrit::eCensus)
      {
-        for (size_t aKPt=1; aKPt<aVPatchGr.size() ; aKPt++)
-        {
-             // -------------- [1] Calculate the average ratio on all images --------------------
-             cWeightAv<tREAL8,tREAL8> aAvRatio;  // stuct for averaging ratio
-             for (const auto & aData : aVData)
-             {
-                 tREAL8 aV0 = aData.mVGr.at(0).first;            // radiom of central pixel
-                 tREAL8 aVK = aData.mVGr.at(aKPt).first;         // radiom of neighbour
-                 aAvRatio.Add(1.0,NormalisedRatioPos(aV0,aVK)) ; // acumulate the ratio
-             }
-             std::vector<tREAL8> aVTmpAvg({aAvRatio.Average()});  // vector of value of temporary unknowns
-
-             // -------------- [2] Add the observation --------------------
-             cSetIORSNL_SameTmp<tREAL8>  aStrSubst(aVTmpAvg);  // structure for schur complement
-             for (const auto & aData : aVData) // parse all the images
-             {
-                std::vector<int>  aVIndUk{-1} ;  // indexe of unknown
-                std::vector<tREAL8>  aVObs;      // observation/context
-
-                SetVUkVObs(aVPatchGr.at(0)  ,&aVIndUk,aVObs,aData,0);            // add unkown AND observations
-                SetVUkVObs(aVPatchGr.at(aKPt),nullptr ,aVObs,aData,aKPt);        // add ONLY observations
-                aSys->R_AddEq2Subst(aStrSubst,mEqLidPhgr,aVIndUk,aVObs,aWeight); // add the equation in Schurr structure
-            }
-            // add all the equation to the system with Schurr's elimination
-            aSys->R_AddObsWithTmpUK(aStrSubst);
-        }
+        AddPatchCensus(aWeight,aVPatchGr,aVData);
      }
-     else if (mNumMode==2)  // mode correlation
+     else if (mModeSim==eImatchCrit::eCorrel)
      {
-         size_t aNbPt = aVPatchGr.size();
-         cDenseVect<tREAL8>  aVMoy(aNbPt,eModeInitImage::eMIA_Null);
-	 std::vector<cDenseVect<tREAL8>>  aListVRad;
-         for (const auto & aData : aVData)
-         {
-              cDenseVect<tREAL8> aV(aNbPt);
-              for (size_t aK=0 ; aK< aNbPt ; aK++)
-              {
-                  aV(aK)  = aData.mVGr.at(aK).first;
-              }
-	      aListVRad.push_back(aV);
-              cDenseVect<tREAL8> aV01 = NormalizeMoyVar(aV);
-	      aVMoy += aV01;
-         }
-
-	 aVMoy *=  1/ tREAL8(aVData.size());
-         aVMoy =  NormalizeMoyVar(aVMoy);
-
-         std::vector<tREAL8> aVTmp = aVMoy.ToStdVect();
-         size_t aK0Im = aVTmp.size();
-
-         for (const auto &  aVRad : aListVRad)
-         {
-             auto [A,B] =  LstSq_Fit_AxPBEqY(aVRad,aVMoy);
-             aVTmp.push_back(A);
-             aVTmp.push_back(B);
-         }
-         cSetIORSNL_SameTmp<tREAL8>  aStrSubst(aVTmp); // structure for handling schurr eliminatio,
-         std::vector<int> aVIndPt;
-         std::vector<tREAL8> aVFixAvg;
-         std::vector<tREAL8> aVFixVar;
-
-         for (int aKPt=0 ; aKPt <  (int) aNbPt ; aKPt++)
-         {
-             int aIndPt = -(1+aKPt);
-             aVIndPt.push_back(aIndPt);
-             aVFixAvg.push_back(1.0);
-             //  S(R+dR) ^ 2 =1   ;  S (2 R dR ) = 1 - S(R^2)  ; but S(R^2)=1 by construction ...
-             aVFixVar.push_back(2*aVMoy(aKPt));
-
-             for (int aKIm=0 ;  aKIm< (int) aVData.size() ; aKIm++)
-             {
-                 int aIndIm = -(1+aK0Im+2*aKIm);
-                 std::vector<int>       aVIndUk{aIndPt,aIndIm,aIndIm-1} ;
-                 std::vector<tREAL8>    aVObs;
-                 SetVUkVObs (aVPatchGr.at(aKPt),&aVIndUk,aVObs,aVData.at(aKIm),aKPt);
-                 aSys->R_AddEq2Subst(aStrSubst,mEqLidPhgr,aVIndUk,aVObs,aWeight);
-             }
-         }
-         aStrSubst.AddOneLinearObs(aNbPt,aVIndPt,aVFixAvg,0.0);
-         aStrSubst.AddOneLinearObs(aNbPt,aVIndPt,aVFixVar,0.0);
-
-         aSys->R_AddObsWithTmpUK(aStrSubst);
+        AddPatchCorrel(aWeight,aVPatchGr,aVData);
      }
 }
 

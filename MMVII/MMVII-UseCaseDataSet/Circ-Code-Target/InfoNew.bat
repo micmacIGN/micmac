@@ -13,24 +13,24 @@ MMVII  OriCreateCalib ".*tif" CalibInit
 
 REM   Import GCP , we fix a coordinate system "Pannel", purely local, mainly for documentation
 MMVII  ImportGCP  Data-Aux/Positions-3D-14bit_lookup.txt NXYZBla Test NbDigName=3 ChSys=[LocalPannel]
-MMVII  CodedTargetCircExtract ".*_Scaled.tif" CERN_Nbb14_Freq14_Hamm1_Run1000_1000_FullSpecif.xml DiamMin=8  OutPointsMeasure=Test
+MMVII  CodedTargetCircExtract ".*_Scaled.tif" CERN_Nbb14_Freq14_Hamm1_Run1000_1000_FullSpecif.xml DiamMin=8  OutObjMesInstr=Test
 
 REM   pose estimation init : resection + bundle
-MMVII OriPoseEstimSpaceResection .*tif Test CalibInit Resec ThrRej=10  DirFiltered=Filt
-MMVII  OriBundleAdj .*tif Resec BA GCPW=[1,1]  GCPDir=Filt
+MMVII OriPoseEstimSpaceResection .*tif Test Test CalibInit Resec ThrRej=10  DirFiltered=Filt
+MMVII  OriBundleAdj .*tif Resec BA GCP2D=[[Filt,1]] GCP3D=[[Test,1]]
 
 REM   research uncoded target + new bundle
-MMVII CodedTargetCompleteUncoded .*_Scaled.tif BA 1.0 InPointsMeasure=Test ThRay=[1.05,4.7,5.3]
-MMVII  OriBundleAdj .*tif  BA BA2 GCPW=[1,1,1,5]  GCPDir=Completed/
+MMVII CodedTargetCompleteUncoded .*_Scaled.tif BA 1.0 InObjMesInstr=Test InObjCoordWorld=Test ThRay=[1.05,4.7,5.3]
+MMVII  OriBundleAdj .*tif  BA BA2 GCP2D=[[Completed,1,1,5]] GCP3D=[[Test,1]]
 
 REM    Generate a report on GCP quality
-MMVII  ReportGCP .*tif  Completed BA2
+MMVII  ReportGCP .*tif Test Completed BA2
 
 REM   compute an initial value of the block
 MMVII BlockCamInit .*tif BA2 "(.*)_(.*)_Scaled.tif" [1,2]  "[(.*)@(.*),$1_$2_Scaled.tif,@]" Rig
 
 REM  make a compensation with rigid block
-MMVII  OriBundleAdj .*tif  BA2 BA3 GCPW=[1,1,1,5]  GCPDir=Completed/   BRDirIn=Rig BRW=[1e-2,1e-5]
+MMVII  OriBundleAdj .*tif  BA2 BA3 GCP2D=[[Completed,1,1,5]] GCP3D=[[Test,1]] BRDirIn=Rig BRW=[1e-2,1e-5]
 
 
 

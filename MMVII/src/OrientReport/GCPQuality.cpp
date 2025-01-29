@@ -344,6 +344,7 @@ int cAppli_CGPReport::Exe()
 
    mPhProj.DPGndPt3D().CheckDirExists(true, true);
    mPhProj.DPGndPt2D().CheckDirExists(true, true);
+   mPhProj.DPOrient().CheckDirExists(true, true);
 
    auto nameSubDir = mPhProj.DPOrient().DirIn() +  "_Mes-"+  mPhProj.DPGndPt3D().DirIn()
                                                 +  "-"+  mPhProj.DPGndPt2D().DirIn();

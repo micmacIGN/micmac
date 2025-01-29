@@ -84,6 +84,7 @@ int cAppli_CreateRTL::Exe()
     std::string aDefSysCoIn;
     if (mPhProj.DPOrient().DirInIsInit())
     {
+        mPhProj.DPOrient().CheckDirExists(true, true);
         auto aSysIn = mPhProj.CurSysCoOri(true);
         if (aSysIn.get())
             aDefSysCoIn = aSysIn->Def();

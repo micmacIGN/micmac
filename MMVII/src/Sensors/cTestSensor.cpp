@@ -140,7 +140,7 @@ void cAppliTestSensor::ExportMeasures(const  cSensorImage & aSI) const
         aSet3D.AddMeasure3D(cMes1Gnd3D(aPair.mP3,aName,1.0));
 
     }
-    mPhProj.SaveGCP3D(aSet3D);
+    mPhProj.SaveGCP3D(aSet3D,mPhProj.DPGndPt3D().FullDirOut());
     mPhProj.SaveMeasureIm(aSet2D);
 }
 

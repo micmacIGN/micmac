@@ -971,7 +971,7 @@ tProjImAndGrad  cPerspCamIntrCalib::DiffGround2Im(const cPt3dr & aPGround) const
 
 void cPerspCamIntrCalib::Bench_CalcDiff()
 {
-   static int aCpt=0; aCpt++;
+   [[maybe_unused]] static int aCpt=0; aCpt++;
    if (mTypeProj!=eProjPC::eStenope)
       return;
    cSensorCamPC aCamId("toto.tif",tPoseR::Identity(),this);

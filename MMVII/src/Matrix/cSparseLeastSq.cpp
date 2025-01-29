@@ -124,7 +124,9 @@ template <class Type> void cSMLineTransf<Type>::TransfertInTriplet
 template<class Type>  class cSparseLeasSq : public cLeasSq<Type>
 {
       public :
-       /// Here genereate an error, no need to handle dense vector in sparse systems
+       /**  Used to  genereate an error, no need to handle dense vector in sparse systems
+            Now less extremist, implement it by convesrsion to sparse vector, btw no need to be efficient
+       */
          void SpecificAddObservation(const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) override;
          cSparseLeasSq(int  aNbVar);
 };
@@ -133,7 +135,9 @@ template<class Type> void cSparseLeasSq<Type>::SpecificAddObservation
                       (const Type& aW ,const cDenseVect<Type> & aDV ,const Type & aVal ) 
 {
    // call to virtual  method, dont know why, compiler dont agre w/o cast 
-    static_cast<cLinearOverCstrSys<Type> *>(this)-> SpecificAddObservation(aW,cSparseVect(aDV),aVal);
+    // static_cast<cLinearOverCstrSys<Type> *>(this)-> SpecificAddObservation(aW,cSparseVect(aDV),aVal);
+    this->SpecificAddObs_UsingCast2Sparse(aW,cSparseVect(aDV),aVal);
+
 }
 
 template<class Type> 

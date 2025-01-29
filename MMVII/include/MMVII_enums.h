@@ -406,6 +406,16 @@ enum class eModePaddingEpip
    eNbVals
 };
 
+/** Mode  for image matching criteria */
+
+enum class eImatchCrit
+{
+   eDifRad,    // Difference of radiom
+   eCensus,  // Census coefficient
+   eCorrel,  // Correlation
+   eNbVals
+};
+
 /** Mode  caracteristic for matching */
 
 enum class eModeCaracMatch

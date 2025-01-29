@@ -370,8 +370,17 @@ And  :
 We have :
 
 \begin{equation}
-     \mu(\widehat {X}) =0    \; , \; \sigma(\widehat {X}) = 1  \; , \;  X = \mu + \sigma \widehat {X}
+     \mu(\widehat {X}) =0    \; , \; \sigma(\widehat {X}) = 1  
+    \label{CorrelSig1Avg0}
 \end{equation}
+
+and :
+
+\begin{equation}
+     X = \mu + \sigma \widehat {X}
+    \label{CorrelXXHat}
+\end{equation}
+
 
 
 We remind that the normalized centered correlaction coefficient ($N_{CC}$)  between $2$ series $X_i$ and $Y_i$ is defined by :
@@ -380,10 +389,66 @@ We remind that the normalized centered correlaction coefficient ($N_{CC}$)  betw
     N_{CC}(X,Y) = \frac{\sum (X_i-\mu(X)) (Y_i-\mu(X)) }{\sigma(X)\sigma(Y)}   = \widehat {X} \cdot \widehat {Y}
 \end{equation}
 
+As $\widehat {X}$ and $\widehat {Y}$ are unitary vector ($\sigma = 1$), we have
+$||\widehat {X} ,\widehat {Y}||^2  = 2 - 2 \widehat {X} \cdot \widehat {Y} $ and then :
 
 
+\begin{equation}
+    N_{CC}(X,Y) = 1-\frac{ D^2(\widehat {X} ,\widehat {Y})}{2}
+\end{equation}
+
+So maximizing $N_{CC}$ is equivalent to mininize $ D^2(\widehat {X} ,\widehat {Y})$. Consequently,
+for using  $N_{CC}$ as a similarity measure, we will consider the problem of  solving the following equation of observation :
+
+\begin{equation}
+    \widehat {X} =\widehat {Y} \label{Eq:Cor:Pair:Norm}
+\end{equation}
+
+Consider now the case where we have $M$ series $X^j_i$ of $N$ values, $j \in [1,M], i \in [1,N]$
+and that we want to modelize that they all are similar using correlation. We could use
+equation $\ref{Eq:Cor:Pair:Norm}$ for all pair, but this would be un-elegant and un-efficient.
+
+Instead of that, we introduce the unknown serie $\chi = \chi_i, i \in [1,N]$ which modelise the supposed common value
+of all $\widehat X^j_i$. We then proceed this way :
+
+\begin{itemize}
+    \item as $\chi$ modelise the common value of normalised series (i.e. verifying equation~\ref{CorrelSig1Avg0});
+          we impose $\mu(\chi)=0, \sigma(\chi)=1$;
+    \item taking into account \ref{CorrelXXHat},  we introduce the unknowns $A^j,B^j$
+          that link $\chi$ and $X^j$ with equation~\ref{Corel:AjBj} ;
+\end{itemize}
+
+\begin{equation}
+	A^j X^j + B^j = \chi \label{Corel:AjBj}
+\end{equation}
+
+To summerize we try to solve the following system :
+
+\begin{equation}
+\left\{ \begin{array}{rc|l}
+     \mu(\chi) = 0         \\ 
+     \sigma(\chi) = 1         \\ 
+      \forall i,j : \;  A^j X^j_i + B_j = \chi _i
+\end{array}\right.
+\label{XXXXX}
+\end{equation}
 
 
+where we have :
+
+\begin{itemize}
+	\item $2 M + N$ unknowns  $A^j,B^j,\chi _i$
+   \item $2 + N*M$ equations;		 
+\end{itemize}
+
+
+For the initialisation of unknowns, we can use for example equation  \ref{Correl:Chi0} for  $\chi$ .
+For initialisation of $A^j, B^j$ we can use $\mu^j,\sigma^j$, or solve by least square the
+equation ~\ref{Corel:AjBj}.
+
+\begin{equation}
+	\chi = \widehat {\frac{\sum \widehat {X^j} }{M}} \label{Correl:Chi0}
+\end{equation}
 
 
 %-----------------------------------------------------------------------
