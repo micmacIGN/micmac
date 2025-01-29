@@ -60,6 +60,7 @@ template <class Type>  cTriangulation3DLas<Type>::cTriangulation3DLas(const std:
     }
 }
 
+
 template <class Type> unsigned int cTriangulation3DLas<Type>::NbPts()
   {
     return this->mVPts.size();
@@ -127,7 +128,6 @@ template <class Type> void cTriangulation3DLas<Type>::SamplePts(const bool & tar
                     AreallCellsFilled--;
                   }
               }
-            std::cout<<it<<std::endl;
             it++;
          }
      }
@@ -229,6 +229,7 @@ template <class Type> void cTriangulation3DLas<Type>::LasInit(const std::string 
   }*/
 
 }
+
 
 
 

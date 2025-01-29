@@ -332,8 +332,10 @@ template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
         private :
            /// Read/Write in ply format using
            void PlyInit(const std::string &);
+           void LasInit(const std::string &);
            void PlyWrite(const std::string &,bool isBinary) const;
 };
+
 
 template <class Type> class cTriangulation3DLas : public cTriangulation<Type,3>
 {
