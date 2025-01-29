@@ -296,7 +296,13 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM)
     mNbIter++;
     if(mVerbose)
     {
-        StdOut() << "--------------------------- End Iter" << mNbIter   << " ---------------" << std::endl;
+        StdOut() << "---------------------- "
+                 << " End Iter" << mNbIter   
+                  << " StdDevLast=" << std::sqrt(mR8_Sys->VarLastSol())
+                  << " StdDevCur=" << std::sqrt(mR8_Sys->VarCurSol())
+                  //<< " VarLast=" << mR8_Sys->VarLastSol()
+                 //<< " ?VarCur?=" << mR8_Sys->VarCurSol()
+                 << " ---------------" << std::endl;
     }
 }
 

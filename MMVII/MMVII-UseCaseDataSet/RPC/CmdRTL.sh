@@ -3,21 +3,21 @@ set -e
 # CREATE RTL SYSTEM / Orient Init in RTL /  Ref Data in RTL
 #=======================================================================================
 
-#  ------------ Parameter WGS84Degrees is redundant (but required for now with central perspective)
-MMVII SysCoCreateRTL  AllIm.xml  WGS84Degrees RTL InOri=SPOT_Init Z0=0
-MMVII  OriParametrizeSensor AllIm.xml SPOT_Init SPOT_INIT_RTL  0   TargetSysCo=RTL
-MMVII TestSensor AllIm.xml SPOT_INIT_RTL    TestCDI=true   OutPointsMeasure=RefInit_RTL   NbProc=1
+MMVII SysCoCreateRTL  AllIm.xml  RTL InOri=SPOT_Init Z0=0
+MMVII  OriParametrizeSensor AllIm.xml SPOT_Init SPOT_INIT_RTL  0
+MMVII TestSensor AllIm.xml SPOT_INIT_RTL    TestCDI=true  OutObjCoordWorld=RefInit_RTL OutObjMesInstr=RefInit_RTL   NbProc=1
+
 
 #=======================================================================================
 # IMPORT REFERENCE SENSOR test them and generate virtual GCP
 #=======================================================================================
 #
 
-MMVII  OriParametrizeSensor AllIm.xml SPOT_Init SPOT_Perturb_D2_RTL  2  RandomPerturb=0.003 TargetSysCo=RTL
+MMVII  OriParametrizeSensor AllIm.xml SPOT_Init SPOT_Perturb_D2_RTL  2  RandomPerturb=0.003
 
 MMVII TestSensor AllIm.xml SPOT_Perturb_D2_RTL    TestCDI=true      NbProc=1
 
-MMVII OriBundleAdj AllIm.xml SPOT_Perturb_D2_RTL   Adj_SPOT_RTL_Deg2 GCPDir=RefInit_RTL  GCPW=[0,1]   NbIter=5
+MMVII OriBundleAdj AllIm.xml SPOT_Perturb_D2_RTL   Adj_SPOT_RTL_Deg2 GCP2D=[[RefInit_RTL,1]] GCP3D=[[RefInit_RTL,0]]  NbIter=5
 
 
 #=======================================================================================

@@ -1,6 +1,9 @@
 #include "cMMVII_Appli.h"
+#include "MMVII_Geom2D.h"
 #include "MMVII_Geom3D.h"
 #include "MMVII_Mappings.h"
+#include "MMVII_2Include_Tiling.h"
+
 
 #include <pdal/PointTable.hpp>
 #include <pdal/PointView.hpp>
@@ -2382,6 +2385,70 @@ template <class Type> void cTriangulation3D<Type>::CheckOri2D()
 
      int aNbBadOri = std::min(aNbOriP,aNbOriM);
      StdOut() << " 2D-Bad Orientation " << aNbBadOri << " on " << this->NbFace() <<  "\n" << std::endl;
+}
+
+template <class Type> cBox2dr  cTriangulation3D<Type>::Box2D() const
+{
+    // create the bounding box of all points
+    cTplBoxOfPts<tREAL8,2> aBoxObj;  // Box of object 
+    for (size_t aKP=0 ; aKP<this->NbPts() ; aKP++)
+    {
+        aBoxObj.Add(ToR(Proj(this->KthPts(aKP))));
+    }
+    // create the "compiled" box from the dynamix
+    return aBoxObj.CurBox();
+}
+
+template <class Type> 
+   void cTriangulation3D<Type>::MakePatches
+        (
+             std::list<std::vector<int> > & aLPatches,
+             tREAL8 aDistNeigh,
+             tREAL8 aDistReject,
+             int    aSzMin
+         ) const
+{
+    cBox2dr aBox = Box2D();
+
+    // indexation of all points
+    cTiling<cTil2DTri3D<Type> >  aTileAll(aBox,true,this->NbPts()/20,this);
+    for (size_t aKP=0 ; aKP<this->NbPts() ; aKP++)
+    {
+        aTileAll.Add(cTil2DTri3D<Type>(aKP));
+    }
+
+    // int aCpt=0;
+    // indexation of all points selecte as center of patches
+    cTiling<cTil2DTri3D<Type> >  aTileSelect(aBox,true,this->NbPts()/20,this);
+
+    // parse all points
+    for (size_t aKP=0 ; aKP<this->NbPts() ; aKP++)
+    {
+        cPt2dr aPt  = ToR(Proj(this->KthPts(aKP)));
+        // if the points is not close to an existing center of patch : create a new patch
+        if (aTileSelect.GetObjAtDist(aPt,aDistReject).empty())
+        {
+           //  Add it in the tiling of select 
+           aTileSelect.Add(cTil2DTri3D<Type>(aKP));
+           // extract all the point close enough to the center
+           auto aLIptr = aTileAll.GetObjAtDist(aPt,aDistNeigh);
+           std::vector<int> aPatch; // the patch itself = index of points
+           aPatch.push_back(aKP);  // add the center at begining
+           for (const auto aPtrI : aLIptr)
+           {
+               if (aPtrI->Ind() !=aKP) // dont add the center twice
+               {
+                  aPatch.push_back(aPtrI->Ind());
+               }
+           }
+           // some requirement on minimal size
+           if ((int)aPatch.size() > aSzMin)
+           {
+              // aCpt += aPatch.size();
+              aLPatches.push_back(aPatch);
+           }
+        }
+    }
 }
 
 /* ********************************************************** */

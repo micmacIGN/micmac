@@ -614,7 +614,7 @@ template <typename captype, typename tcaptype, typename flowtype>
 	node *i;
 	arc *a;
 	int r;
-	int num1 = 0, num2 = 0;
+	[[maybe_unused]] int num1 = 0, num2 = 0;
 
 	// test whether all nodes i with i->next!=NULL are indeed in the queue
 	for (i=nodes; i<node_last; i++)

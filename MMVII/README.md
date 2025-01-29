@@ -37,15 +37,27 @@ Some external tools need to be present on your system for **MMVII** to run prope
 - **[vcpkg](https://github.com/microsoft/vcpkg/blob/master/README.md)** C/C++ library manager (**Windows only**)
 
 # Installation
-This section covers the compilation of **MMVII** source code to generate binaries. Pre-compiled binaries are available **[HERE](https://github.com/micmacIGN/micmac/releases)**.
+This section covers the compilation of **MMVII** source code to generate binaries. (Pre-compiled binaries for Windows are available **[HERE](https://github.com/micmacIGN/micmac/releases)**)
 
 Compilation procedure is discribed below for the 3 main operating systems:
 - **[Linux Ubuntu distribution](#linux-ubuntu-distribution)**
 - **[Windows](#windows)**
 - **[macOS](#macos)** 
 
+
+MMVII does not use **MicMac v1** anymore, so installing **MicMac V1** is not required.
+However some features of MMVII still require calls to the MicMac v1 library and have not yet been rewritten in MMVII. They are disabled. 
+For those who really need it, you can reactivate use of the MicMac V1 lib  :
+
+- Install **MicMac v1** by following the instructions **[HERE](../README.md)**.
+
+- Activate the CMake option **MMVII_KEEP_LIBRARY_MMV1** in the following step '__Configure CMAKE and generate makefiles:__'
+        ```bash
+        cmake ../ -DMMVII_KEEP_LIBRARY_MMV1=on
+        ```
+
+
 ## Linux Ubuntu distribution
-Before starting the installation, it is necessary to install **MicMac v1** by following the instructions **[HERE](../README.md)**.
 
 Under Linux (Ubuntu) distribution the installation procedure is as follows:
 
@@ -80,11 +92,9 @@ Under Linux (Ubuntu) distribution the installation procedure is as follows:
 	```
 
 ## Windows
-Before starting the installation, it is necessary to install **MicMac v1** by following the instructions **[HERE](../README.md)**.
-
 Under Windows the installation procedure is as follows:
 
-### Install vcpkg (if not done for **MicMac v1**)
+### Install vcpkg 
 - Open a **Git Bash** terminal
 - In another working directory, clone the repository:
 	```bash

@@ -465,6 +465,13 @@ template<> cE2Str<eModeSSR>::tMapE2Str cE2Str<eModeSSR>::mE2S
                 {eModeSSR::eSSR_L1Barrodale   , "L1Barrodale"}
 	   };
 
+template<> cE2Str<eImatchCrit>::tMapE2Str cE2Str<eImatchCrit>::mE2S
+           {
+                {eImatchCrit::eDifRad, "DifRad"},
+                {eImatchCrit::eCensus, "Census"},
+                {eImatchCrit::eCorrel, "Correl"}
+	   };
+
 
 
 template<> cE2Str<eTypeSerial>::tMapE2Str cE2Str<eTypeSerial>::mE2S
@@ -633,6 +640,7 @@ void BenchEnum(cParamExeBench & aParam)
     TplBenchEnum<eTypeSensor>();
     TplBenchEnum<eFormatSensor>();
     TplBenchEnum<eModeSSR>();
+    TplBenchEnum<eImatchCrit>();
 
     aParam.EndBench();
 }
@@ -1236,6 +1244,7 @@ MACRO_INSTANTITATE_STRIO_ENUM(eTyUnitAngle,"AngleUnit")
 MACRO_INSTANTITATE_STRIO_ENUM(eTypeSensor,"TypeSensor")
 MACRO_INSTANTITATE_STRIO_ENUM(eFormatSensor,"FormatSensor")
 MACRO_INSTANTITATE_STRIO_ENUM(eModeSSR,"ModeSRR")
+MACRO_INSTANTITATE_STRIO_ENUM(eImatchCrit,"ImatchCrit")
 
 /* ==================================== */
 /*                                      */

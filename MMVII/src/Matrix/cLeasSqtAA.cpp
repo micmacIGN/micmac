@@ -347,20 +347,55 @@ template<class Type> cLeasSq<Type> * cLeasSq<Type>::AllocDenseLstSq(int aNbVar)
 
 
 template<class Type> cLinearOverCstrSys<Type>::cLinearOverCstrSys(int aNbVar) :
-   mNbVar (aNbVar),
-   mLVMW  (aNbVar,eModeInitImage::eMIA_Null)
+   mNbVar           (aNbVar),
+   mLVMW            (aNbVar,eModeInitImage::eMIA_Null),
+   mSumWCoeffRHS    (aNbVar,eModeInitImage::eMIA_Null),
+   mSumWRHS2        (0.0),
+   mSumW            (0.0),
+   mLastSumWRHS2    (0.0),
+   mLastResComp     (false),
+   mLastResidual    (0.0),
+   mSchurrWasUsed   (false)
 {
 }
+
+template<class Type> void cLinearOverCstrSys<Type>::AddWRHS(Type aW,Type aRHS)
+{
+   mSumWRHS2 += aW*Square(aRHS);
+   mSumW     += aW;
+}
+
 
 template<class Type> void cLinearOverCstrSys<Type>::PublicReset()
 {
      SpecificReset();
+
      mLVMW.DIm().InitNull();
+     mSumWCoeffRHS.DIm().InitNull();
+     mSumWRHS2 = 0 ;
+     mSumW     = 0 ;
+     mSchurrWasUsed = false;
 }
 
 template<class Type> cDenseVect<Type> cLinearOverCstrSys<Type>::PublicSolve()
 {
-     return SpecificSolve();
+     cDenseVect<Type> aSol =  SpecificSolve();
+     mLastResidual = mSumWRHS2 - mSumWCoeffRHS.DotProduct(aSol);
+     mLastSumWRHS2 = mSumWRHS2;
+     mLastSumW     = mSumW;
+     return aSol;
+}
+
+
+template<class Type> Type cLinearOverCstrSys<Type>::VarLastSol() const
+{
+    return mLastSumWRHS2 / mLastSumW;
+}
+
+
+template<class Type> Type cLinearOverCstrSys<Type>::VarCurSol()  const
+{
+   return mLastResidual / mLastSumW;
 }
 
 
@@ -407,11 +442,26 @@ template<class Type> Type cLinearOverCstrSys<Type>::ResidualOf1Eq
 }
 
 
+template<class Type> 
+    void cLinearOverCstrSys<Type>::SpecificAddObs_UsingCast2Sparse
+         (
+              const Type& aWeight,
+              const cDenseVect<Type> & aCoeff,
+              const Type &  aRHS
+         ) 
+{
+    SpecificAddObservation(aWeight,cSparseVect(aCoeff),aRHS);
+}
+
+
 
 template<class Type> void cLinearOverCstrSys<Type>::PublicAddObservation (const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS)
 {
      // No harm to do this optimization , even if done elsewhere
      if (aWeight==0)  return;
+
+     AddWRHS(aWeight,aRHS);
+     mSumWCoeffRHS.WeightedAddIn(aWeight*aRHS,aCoeff);
 
      SpecificAddObservation(aWeight,aCoeff,aRHS);
      for (int aKV=0 ; aKV<mNbVar ; aKV++)
@@ -421,6 +471,9 @@ template<class Type> void cLinearOverCstrSys<Type>::PublicAddObservation (const 
 {
      // No harm to do this optimization , even if done elsewhere
      if (aWeight==0)  return;
+
+     AddWRHS(aWeight,aRHS);
+     mSumWCoeffRHS.WeightedAddIn(aWeight*aRHS,aCoeff);
 
      SpecificAddObservation(aWeight,aCoeff,aRHS);
      for (const auto & aPair : aCoeff)
@@ -474,6 +527,7 @@ template<class Type> void cLinearOverCstrSys<Type>::SpecificAddObsWithTmpUK(cons
 template<class Type> void cLinearOverCstrSys<Type>::PublicAddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>& aSetSetEq)
 {
      SpecificAddObsWithTmpUK(aSetSetEq);
+     mSchurrWasUsed = true;
 
      for (const auto & aSetEq : aSetSetEq.AllEq())
      {
@@ -483,14 +537,21 @@ template<class Type> void cLinearOverCstrSys<Type>::PublicAddObsWithTmpUK(const 
                  const std::vector<Type> & aVDer = aSetEq.mDers.at(aKEq);
                  Type aWeight = aSetEq.WeightOfKthResisual(aKEq);
 
+                 Type aVal = aSetEq.mVals.at(aKEq);
+                 AddWRHS(aWeight,aVal);
+                 cSparseVect<Type>  aVNonTmp;
+
                  for (size_t aKGlob=0 ; aKGlob<aSetEq.mGlobVInd.size() ; aKGlob++)
                  {
                      int aInd = aSetEq.mGlobVInd[aKGlob];
                      if (!cSetIORSNL_SameTmp<Type>::IsIndTmp(aInd))
 		     {
-                         mLVMW(aInd) += aWeight * Square(aVDer.at(aKGlob));
+                         Type aDer = aVDer.at(aKGlob);
+                         mLVMW(aInd) += aWeight * Square(aDer);
+                         aVNonTmp.AddIV(aInd,aDer);
 		     }
                  }
+                 mSumWCoeffRHS.WeightedAddIn(aWeight*(-aVal),aVNonTmp);
                  // Note the minus sign because we have a taylor expansion we need to annulate
          }
      }
