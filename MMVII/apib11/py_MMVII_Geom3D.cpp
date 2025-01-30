@@ -78,7 +78,7 @@ void pyb_init_cRotation3D_tpl(py::module_ &m, const std::string& name)
             .def_property_readonly("axeK",&tR3D::AxeK,DOC(MMVII_cRotation3D,AxeK))
 
             .def_static("completeRON",py::overload_cast<const tPt&>(&tR3D::CompleteRON),"pt"_a,DOC(MMVII_cRotation3D,CompleteRON))
-            .def_static("completeRON",py::overload_cast<const tPt&, const tPt&>(&tR3D::CompleteRON),"p0"_a,"p1"_a,DOC(MMVII_cRotation3D,CompleteRON))
+            .def_static("completeRON",py::overload_cast<const tPt&, const tPt&, bool>(&tR3D::CompleteRON),"p0"_a,"p1"_a,"SVP"_a=false,DOC(MMVII_cRotation3D,CompleteRON))
 
             .def_static("rotFromAxe",&tR3D::RotFromAxe,"axe"_a,"theta"_a,DOC(MMVII_cRotation3D,RotFromAxe))
             .def_static("rotFromAxiator",&tR3D::RotFromAxiator,"axe"_a,DOC(MMVII_cRotation3D,RotFromAxiator))
@@ -147,8 +147,8 @@ void pyb_init_cIsometry3D_tpl(py::module_ &m, const std::string& name)
             .def("inverse",&tI3D::Inverse,"pt3d"_a,DOC(MMVII_cIsometry3D,Inverse))
 
             .def_static("fromRotAndInOut",&tI3D::FromRotAndInOut,"rot"_a,"ptIn"_a,"ptOut"_a,DOC(MMVII_cIsometry3D,FromRotAndInOut))
-            .def_static("fromTriInAndOut",&tI3D::FromTriInAndOut,"kIn"_a,"triIn"_a,"kOut"_a,"triOut"_a,DOC(MMVII_cIsometry3D,FromTriInAndOut))
-            .def_static("fromTriOut",&tI3D::FromTriOut,"kOut"_a,"triOut"_a,"direct"_a,DOC(MMVII_cIsometry3D,FromTriOut))
+            .def_static("fromTriInAndOut",&tI3D::FromTriInAndOut,"kIn"_a,"triIn"_a,"kOut"_a,"triOut"_a,"SVP"_a=false,DOC(MMVII_cIsometry3D,FromTriInAndOut))
+            .def_static("fromTriOut",&tI3D::FromTriOut,"kOut"_a,"triOut"_a,"direct"_a,"SVP"_a=false,DOC(MMVII_cIsometry3D,FromTriOut))
 
             .def_static("toPlaneZ0",&tI3D::ToPlaneZ0,"kOut"_a,"triOut"_a,"direct"_a,DOC(MMVII_cIsometry3D,ToPlaneZ0))
 
