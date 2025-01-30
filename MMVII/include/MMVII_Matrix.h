@@ -419,6 +419,7 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         typedef cConst_EigenMatWrap<Type> tConst_EW;
         typedef cNC_EigenMatWrap<Type> tNC_EW;
 
+        cDenseMatrix<Type> Crop(const cPt2di & aP0,const cPt2di & aP1) const;
 
 	tDM  ExtendSquareMat     (int aNewSz,eModeInitImage); ///< Create a square matrix include smaller, mode of extension specified
 	tDM  ExtendSquareMatId   (int aNewSz);   ///<  Extension with identity

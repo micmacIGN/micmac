@@ -184,6 +184,15 @@ class cREAL8_RSNL
 };
 
 
+  /**  Result of Solve-Update-Reset */
+template <class Type> class cResultSUR
+{
+    public :
+        cResultSUR();
+
+        cDenseMatrix<Type>  mtAA;  // normal matrix 
+        cDenseVect<Type>    mtARhs;  // Vector 
+};
 
 /**  Class for solving non linear system of equations
  */
@@ -196,6 +205,7 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
           typedef std::vector<tNumCalc>                         tStdCalcVect;
           typedef cInputOutputRSNL<Type>                        tIO_RSNL;
           typedef cSetIORSNL_SameTmp<Type>                      tSetIO_ST;
+          typedef cResultSUR<Type>                              tRSUR;
 
 
           typedef cLinearOverCstrSys<Type>                      tLinearSysSR;
@@ -234,7 +244,10 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
           const tLinearSysSR *  SysLinear() const ; ///< Accessor
 
           /// Solve solution,  update the current solution, Reset the least square system
-          const tDVect  &    SolveUpdateReset(const Type & aLVM =0.0) ;
+          const tDVect  &    SolveUpdateReset(const Type & aLVM =0.0,tRSUR* = nullptr,tRSUR* = nullptr) ;
+
+
+          /**  First tRSUR => result after constraint, second tRSUR result after LVM */
 	  cREAL8_RSNL::tDVect      R_SolveUpdateReset(const tREAL8& = 0.0) override ;
 
           /// Add 1 equation fixing variable

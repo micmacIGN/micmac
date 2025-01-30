@@ -86,6 +86,17 @@ void cREAL8_RSNL::SetAllUnShared()
      mCurMaxEquiv = 0;
 }
 
+/* ************************************************************ */
+/*                                                              */
+/*                cResultSUR                                    */
+/*                                                              */
+/* ************************************************************ */
+
+template <class Type>  cResultSUR<Type>::cResultSUR() :
+    mtAA   (1),
+    mtARhs (1)
+{
+}
 
 /* ************************************************************ */
 /*                                                              */
@@ -777,7 +788,9 @@ template <> void cResolSysNonLinear<tREAL8>::R_AddObsWithTmpUK (const tR_Up::tSe
 
             //  =========    resolving ==========================
 
-template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUpdateReset(const Type & aLVM) 
+template <class Type> 
+   const cDenseVect<Type> & 
+          cResolSysNonLinear<Type>::SolveUpdateReset(const Type & aLVM,tRSUR* aResCstr,tRSUR* aResLVM) 
 {
     if (mNbVar-GetNbLinearConstraints()>currNbObs)
     {
@@ -798,6 +811,11 @@ template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUp
            AddEqFixVar(aK,mValueFrozenVar[aK],1.0);
     }
 #endif
+   if (aResCstr)
+   {
+         aResCstr->mtAA   = mSysLinear->V_tAA();
+         aResCstr->mtARhs = mSysLinear->V_tARhs();
+   }
 
     for (int aK=0 ; aK<mNbVar ; aK++)
     {
@@ -806,6 +824,12 @@ template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUp
            AddEqFixVar(aK,CurSol(aK),mSysLinear->LVMW(aK)*aLVM);
         }
     }
+
+   if (aResLVM)
+   {
+       aResLVM->mtAA   = mSysLinear->V_tAA();
+       aResLVM->mtARhs = mSysLinear->V_tARhs();
+   }
 
     mCurGlobSol += mSysLinear->PublicSolve();     //  mCurGlobSol += mSysLinear->SparseSolve();
     mSysLinear->PublicReset();
@@ -832,7 +856,8 @@ template <class Type> cDenseVect<tREAL8>  cResolSysNonLinear<Type>::R_SolveUpdat
 // template class  cSetIORSNL_SameTmp<TYPE>;
 
 #define INSTANTIATE_RESOLSYSNL(TYPE)\
-template class  cResolSysNonLinear<TYPE>;
+template class  cResolSysNonLinear<TYPE>;\
+template class  cResultSUR<TYPE>;
 
 INSTANTIATE_RESOLSYSNL(tREAL4)
 INSTANTIATE_RESOLSYSNL(tREAL8)

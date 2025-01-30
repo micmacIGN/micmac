@@ -598,6 +598,14 @@ template <class Type> void cUnOptDenseMatrix<Type>::Resize(const cPt2di & aSz)
      DIm().Resize(aSz);
 }
 
+template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::Crop(const cPt2di & aP0,const cPt2di & aP1) const
+{
+    cDenseMatrix<Type> aRes = cDenseMatrix<Type>(aP1-aP0);
+    aRes.ResizeAndCropIn(aP0,aP1,*this);
+    return aRes;
+}
+
+
 
 
 /* ===================================================== */

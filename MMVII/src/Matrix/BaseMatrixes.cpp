@@ -430,8 +430,8 @@ template <class Type> int cDenseVect<Type>::AllDimComon(const std::vector<tDV>  
    MMVII_INTERNAL_ASSERT_tiny(!aVVect.empty(),"cDenseVect<Type>::AllDimComon");
    int aRes =  aVVect[0].Sz();
 #if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )
-   for (size_t aKV=1 ; aKV<aVVect.size() ; aKV=0)
-       MMVII_INTERNAL_ASSERT_tiny(aRes==aVVect[1].Sz(),"cDenseVect<Type>::AllDimComon");
+   for (size_t aKV=1 ; aKV<aVVect.size() ; aKV++)
+       MMVII_INTERNAL_ASSERT_tiny(aRes==aVVect[aKV].Sz(),"cDenseVect<Type>::AllDimComon");
 #endif
 
    return aRes;
@@ -697,11 +697,16 @@ template <class Type> static void TplReadLineInPlace(const cMatrix<Type> & aMat,
 
 template <class Type> static void TplWriteLine(cMatrix<Type> & aMat,int aY,const cDenseVect<Type>& aV,bool OkPartial=false)
 {
+    int aNb = aMat.Sz().x();
     if (OkPartial)
+    {
+        aNb = aV.Sz();
         aMat.TplCheckSizeX_SupEq(aV);
-     else
+    }
+    else
         aMat.TplCheckSizeX(aV);
-    for (int aX=0 ; aX<aMat.Sz().x() ; aX++)
+
+    for (int aX=0 ; aX<aNb ; aX++)
         aMat.V_SetElem(aX,aY,aV(aX)) ;
 }
 
