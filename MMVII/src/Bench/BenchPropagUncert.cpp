@@ -22,7 +22,7 @@ class cBenchLstSqEstimUncert
 
          /// Constructor, takes the dimension & a vector giving the number of sampling  for each  observation
          cBenchLstSqEstimUncert(int aDim,const std::vector<int> & aVecNbByObs);
-         void DoIt(bool isDemoTest,bool WithUK,bool ShowDifRel);
+         void DoIt(bool isDemoTest,const std::vector<int> & aVFrozen,const std::vector<std::vector<int>> & aVIndCstr);
 
           /// Destructor, free allocated object
          ~cBenchLstSqEstimUncert();
@@ -87,13 +87,39 @@ cBenchLstSqEstimUncert::cBenchLstSqEstimUncert(int aDim,const std::vector<int> &
     MMVII_INTERNAL_ASSERT_bench(mDim<mNbObs,"Not enough ons in cBenchLstSqEstimUncert");
 }
 
-void cBenchLstSqEstimUncert::DoIt(bool isDemoTest,bool WithFixUk,bool ShowDifRel)
+void cBenchLstSqEstimUncert::DoIt(bool isDemoTest,const std::vector<int> & aVFrozen, const std::vector<std::vector<int>> & aVVIndCstr)
 {
-    // ----------- [0] re-initialize the parameters --------------------
+
+    // ----------- [0] initialize the parameters --------------------
+         //- [0.1] re-set global var (simpler ...)
     delete mSys;
     mSys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqDense,mCommonP);
     mStat2 =  cStrStat2<tREAL8>(mDim);
     mMoyUnc     = cDenseMatrix<tREAL8>(mDim,eModeInitImage::eMIA_Null);
+
+         //- [0.2] fix frozen var
+    for (const auto & aIndFrz : aVFrozen)
+    {
+          mSys->SetFrozenVarCurVal(aIndFrz);
+    }
+         //- [0.3] add the constraint
+    for (size_t aNumCstr=0 ; aNumCstr<aVVIndCstr.size() ; aNumCstr++)
+    {
+       auto & aVIndCstr	= aVVIndCstr.at(aNumCstr);
+       tDV  aVecCstr(mDim,eModeInitImage::eMIA_Null);
+       for (const auto & aIndCstr : aVIndCstr)
+       {
+            aVecCstr(aIndCstr) = 1/(1.0+aIndCstr) +RandInInterval(0.1,0.2) + std::sin(aNumCstr+aIndCstr) ;
+        }
+        tREAL8 aCsteCstr = aVecCstr.DotProduct(mCommonP);
+        mSys->AddConstr(aVecCstr,aCsteCstr,true);
+    }
+	 /*
+    */
+
+    int aNbCstrTot = aVFrozen.size() + aVVIndCstr.size();
+    // tREAL8 aRatioUnCstr =     (mNbObs)/double(mNbObs-(mDim)) ; // gauss markov formula
+    tREAL8 aRatioWithCstr =   (mNbObs+aNbCstrTot)/double(mNbObs-(mDim-aNbCstrTot)) ; // gauss markov formula
 
     //  -------- [1] compute the law of each variable, ----------------
     //  it's done in such way that each law has the same variance (see Homoscedasticity in wikipedia)
@@ -103,9 +129,7 @@ void cBenchLstSqEstimUncert::DoIt(bool isDemoTest,bool WithFixUk,bool ShowDifRel
         tREAL8 aAvg = mCommonP.DotProduct(mVects.at(aKObs));  // assure the each equation is centerd of the common point
         mVRHS.push_back(DiscreteRegSampledLaw(aNbVal,aAvg,mStdDev));
     }
-    // bool WithFixUk = true;
-    if (WithFixUk)
-       mSys->SetFrozenVarCurVal(0);
+
 
     // --------- [2] ----------  parse all the possible combination of all the random variable --------
     for (int aK=0 ; aK<mDecompos.MulBase() ;aK++)
@@ -135,14 +159,14 @@ void cBenchLstSqEstimUncert::DoIt(bool isDemoTest,bool WithFixUk,bool ShowDifRel
                 tREAL8 aResidual = aSol.DotProduct(mVects.at(aKObs)) - aRHS;  // compute the residual of solution
                 aWAvResidual.Add(1.0,Square(aResidual)); //  add the value of residual
             }
-            if (!WithFixUk)
+            if  (aNbCstrTot==0)
             {
                MMVII_INTERNAL_ASSERT_bench(std::abs(mSys->VarCurSol()-aWAvResidual.Average() )<1e-5,"Bench on VarInLSqa");
             }
          }
          // [2.3] compute the uncertainty as gigen in the books
-         int aNbCstr = ( WithFixUk ? 1 : 0) ;
-         aMUC = aMUC.Inverse() * mSys->VarCurSol() *  ((mNbObs+aNbCstr)/double(mNbObs-(mDim-aNbCstr))) ; // gauss markov formula
+         // aMUC = aMUC.Inverse() * mSys->VarCurSol() *  ((mNbObs+aNbCstrTot)/double(mNbObs-(mDim-aNbCstrTot))) ; // gauss markov formula
+         aMUC = aMUC.Inverse() * mSys->VarCurSol() *  aRatioWithCstr ; // gauss markov formula
          mMoyUnc = mMoyUnc + aMUC;  // average the estimator
 
          // [2.4] in parallel accumulate for computing moments of the random variable solution
@@ -160,7 +184,27 @@ void cBenchLstSqEstimUncert::DoIt(bool isDemoTest,bool WithFixUk,bool ShowDifRel
 
                // --- [3.3] Finally ...  test the validity of covariance estimatot
     cDenseMatrix<tREAL8> aMatCov = mStat2.Cov();
-    auto aDif = aMatCov-mMoyUnc;
+
+
+    StdOut() << "\n\n ------------------ COV ---- \n";
+    aMatCov.Show() ;
+    StdOut() << " ------------------ UC ---- \n";
+    mMoyUnc.Show() ;
+    // auto aDif = aMatCov-mMoyUnc;
+
+#if (0)
+if (withCstr)
+{
+    StdOut() << "-------------------  RESULT CSTRRRRR  -------------- \n";
+    StdOut() << " ------------------ COV ---- \n";
+    aMatCov.Show() ;
+    StdOut() << " ------------------ UC ---- \n";
+    tREAL8 aR = aMatCov.GetElem(3,3) / mMoyUnc.GetElem(3,3);
+    StdOut() << "RRRRRRRRRRRRR= " << aR << "-------------\n";
+    (mMoyUnc*aR).Show() ;
+
+    getchar();
+}
 
     if (! WithFixUk)
     {
@@ -176,9 +220,12 @@ void cBenchLstSqEstimUncert::DoIt(bool isDemoTest,bool WithFixUk,bool ShowDifRel
          tREAL8 aNUC  =  aMUC1.DIm().L2Norm();
 
          tREAL8 aDifRel = (aMCov1-aMUC1).DIm().L2Norm() /(aNCov+aNUC);
-         StdOut() << "DDDD " << aDifRel << "\n";
          aMCov1.Show();
          StdOut() << "------------------------------\n";
+         StdOut() << "------------------------------\n";
+         StdOut() << "------------------------------\n";
+
+         StdOut() << "DDDD " << aDifRel << "\n";
          (aMUC1 * (aNCov/aNUC)) .Show();
 getchar();
     }
@@ -186,17 +233,20 @@ getchar();
                // --- [3.4] In we are in demo /test, show the matrixes
     if (isDemoTest)
     {
-        StdOut() <<  "\n";
+
     
+	    /*
         StdOut() << " ------------------ Dif ---- \n";
         aDif.Show() ;
 
         StdOut() << " ------------------ COV ---- \n";
         aMatCov.Show() ;
-        StdOut() << " ------------------ UC ---- \n";
+        StdOut() << " --------aRatioWithCstr---------- UC ---- \n";
         mMoyUnc.Show() ;
         getchar();
+	*/
     }
+#endif
 }
 
 cBenchLstSqEstimUncert::~cBenchLstSqEstimUncert()
@@ -208,13 +258,26 @@ void BenchLstSqEstimUncert(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("LstSqUncert")) return;
 
+    {
+// void cBenchLstSqEstimUncert::DoIt(bool isDemoTest,bool WithFixUk,bool ShowDifRel)
+         cBenchLstSqEstimUncert  aLstQ4B(5,{2,2,2,2,2,2,2,2});
+         //aLstQ4B.DoIt(false,{},{});
+         // aLstQ4B.DoIt(false,{0},{});
+         // aLstQ4B.DoIt(false,{1},{});
+         //aLstQ4B.DoIt(false,{0,1},{});
+         aLstQ4B.DoIt(false,{},{{0,1},{0,1}});
+         aLstQ4B.DoIt(false,{2},{{0,1},{0,1}});
+    }
+/*
     // cBenchLstSqEstimUncert  aLstQ5(4,{2,3,3,3,2,2},true);
     cBenchLstSqEstimUncert  aLstQ6(3,{2,3,3,3,2,2});
 
     aLstQ6.DoIt(aParam.DemoTest(),false,false);
     aLstQ6.DoIt(aParam.DemoTest(),true,false);
     aLstQ6.DoIt(aParam.DemoTest(),false,false);
+    */
 
+	    /*
     for (int aK=0 ; aK<1000 ; aK++)
     {
          cBenchLstSqEstimUncert  aLstQ2(2,{2,3,3,3,2,2});
@@ -222,13 +285,13 @@ void BenchLstSqEstimUncert(cParamExeBench & aParam)
 
          cBenchLstSqEstimUncert  aLstQ3(3,{2,3,3,3,2,2});
          aLstQ3.DoIt(false,true,true);
-
          cBenchLstSqEstimUncert  aLstQ4(4,{2,3,3,3,2,2});
          aLstQ4.DoIt(false,true,true);
 
          cBenchLstSqEstimUncert  aLstQ4B(5,{2,2,2,2,2,2,2,2});
          aLstQ4B.DoIt(false,true,true);
     }
+*/
 /*
 */
 
