@@ -382,6 +382,11 @@ template <class Type> cDenseMatrix<Type> operator * (const cDenseMatrix<Type> & 
    return aRes;
 }
 
+template <class Type> Type Bilinear (const cDenseVect<Type> & aV1,const cDenseMatrix<Type> & aMat,const cDenseVect<Type>& aV2)
+{
+   return aV1.DotProduct(aMat*aV2);
+}
+
 // ===============  Add tAB tAA  ================
 
 template <class TM,class TV> 
@@ -620,6 +625,7 @@ template  cDenseVect<T1> operator * (const cDenseMatrix<T2>& aVC,const cDenseVec
 
 
 #define INSTANTIATE_DENSE_MATRICES(Type)\
+template  Type Bilinear(const cDenseVect<Type>&,const cDenseMatrix<Type>&,const cDenseVect<Type>&);\
 template  class  cUnOptDenseMatrix<Type>;\
 template  class  cDenseMatrix<Type>;\
 template  cDenseMatrix<Type> operator * (const cDenseMatrix<Type> &,const cDenseMatrix<Type>&);\

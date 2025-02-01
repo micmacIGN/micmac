@@ -695,6 +695,8 @@ template <class Type> cDenseMatrix<Type> operator * (const cDenseMatrix<Type> &,
 template <class T1,class T2> cDenseVect<T1> operator * (const cDenseVect<T1> &,const cDenseMatrix<T2>&);
 template <class T1,class T2> cDenseVect<T1> operator * (const cDenseMatrix<T2>&,const cDenseVect<T1> &);
 
+/// return aV1 aMat aV2  , so appliction of aMat considered as a bi-linear form
+template <class T1> T1 Bilinear  (const cDenseVect<T1> &aV1,const cDenseMatrix<T1>& aMat,const cDenseVect<T1> & aV2);
 
 // Not usefull  as cUnOptDenseMatrix is not usefull either, but required in bench
 template <class Type> cUnOptDenseMatrix<Type> operator * (const cUnOptDenseMatrix<Type> &,const cUnOptDenseMatrix<Type>&);
@@ -721,8 +723,8 @@ template <class Type> class cStrStat2
        /// Kth Coordinate of previous
        double KthNormalizedCoord(int,const cDenseVect<Type>  & aV2) const;
        // Accessors
-       cDenseMatrix<Type>& Cov() ;
-       double              Pds() const;
+       cDenseMatrix<Type>&       Cov() ;
+       double                    Pds() const;
        const cDenseVect<Type>  & Moy() const;
        const cDenseMatrix<Type>& Cov() const;
     private :

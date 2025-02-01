@@ -361,4 +361,35 @@ template class cSetInterUK_MultipeObj<tREAL8>;
 template class cObjWithUnkowns<tREAL16>;
 template class cSetInterUK_MultipeObj<tREAL16>;
 
+/* ******************************** */
+/*       cVectorUK                  */
+/* ******************************** */
+
+cVectorUK::cVectorUK(const tVect & aVect,const std::string& aName) :
+    mVect  (aVect),
+    mName  (aName)
+{
+}
+cVectorUK::~cVectorUK()
+{
+   OUK_Reset();
+}
+const std::vector<tREAL8> & cVectorUK::Vect() const {return mVect;}
+
+void cVectorUK::PutUknowsInSetInterval()
+{
+    mSetInterv->AddOneInterv(mVect);
+}
+
+void  cVectorUK::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
+{
+    for (size_t aK=0 ; aK<mVect.size() ; aK++)
+    {
+        aGAIP.TestParam(this,&mVect.at(aK),std::string("el_") + ToStr(aK));
+    }
+
+    aGAIP.SetNameType("std::vect");
+    aGAIP.SetIdObj(mName);
+}
+
 };

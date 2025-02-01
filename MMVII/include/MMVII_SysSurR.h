@@ -981,6 +981,26 @@ template <const int Dim>  class cPtxdr_UK :  public cObjWithUnkowns<tREAL8>,
 typedef cPtxdr_UK<2> cPt2dr_UK ;
 typedef cPtxdr_UK<3> cPt3dr_UK ;
 
+class cVectorUK :  public cObjWithUnkowns<tREAL8>,
+                   public cMemCheck
+{
+   public :
+      typedef std::vector<tREAL8>  tVect;
+
+      cVectorUK(const tVect & aVect,const std::string& aName);
+      ~cVectorUK();
+      void PutUknowsInSetInterval() override;
+      const tVect & Vect() const ; ///< Accessor
+      void  GetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
+
+   private :
+      cVectorUK(const cVectorUK&) = delete;
+      tVect        mVect;
+      std::string  mName;
+};
+
+
+
 
 
 
