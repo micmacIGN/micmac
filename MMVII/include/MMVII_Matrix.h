@@ -1079,6 +1079,12 @@ template<class Type> cDenseVect<Type> EigenSolveCholeskyarseFromV3
                                            const std::vector<cEigenTriplet<Type> > & aV3,
                                            const cDenseVect<Type> & aVec
                                       );
+template<class Type> cDenseMatrix<Type> EigenSolveCholeskyarseFromV3
+                                      (
+                                           const std::vector<cEigenTriplet<Type> > & aV3,
+                                           const cDenseMatrix<Type> & aVec
+                                      );
+
 
 // Return least sqaure X sol of  "V3 X = aVec" usign Conjugate Gradient
 

@@ -184,14 +184,24 @@ class cREAL8_RSNL
 };
 
 
-  /**  Result of Solve-Update-Reset */
-template <class Type> class cResultSUR
+  /**  Result Uncertainty of Solve-Update-Reset */
+template <class Type> class cResult_UC_SUR
 {
     public :
-        cResultSUR();
+        cResult_UC_SUR();
 
-        cDenseMatrix<Type>  mtAA;  // normal matrix 
-        cDenseVect<Type>    mtARhs;  // Vector 
+        bool                            mtAA_Compute;
+        bool                            mUncert_Compute;
+
+        std::vector<int>                mIndexUC_2Compute;
+        std::list<cSparseVect<Type>>    mSparseV_2Compute;
+        std::list<cDenseVect<Type>>     mDenseV_2Compute;
+
+        Type                            mVariance;      // Raw variance
+        Type                            mRatioDOF;      // Ratio correction degree of freedom
+        Type                            mFUV;           // "Unitary Factor" of variance
+        cDenseMatrix<Type>              mtAA;           // normal matrix 
+        cDenseMatrix<Type>              mUncertMatrix;  // normal matrix 
 };
 
 /**  Class for solving non linear system of equations
@@ -205,7 +215,8 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
           typedef std::vector<tNumCalc>                         tStdCalcVect;
           typedef cInputOutputRSNL<Type>                        tIO_RSNL;
           typedef cSetIORSNL_SameTmp<Type>                      tSetIO_ST;
-          typedef cResultSUR<Type>                              tRSUR;
+          typedef cResult_UC_SUR<Type>                          tRSUR;
+          typedef std::vector<tRSUR*>                           tVPtr_SUR;
 
 
           typedef cLinearOverCstrSys<Type>                      tLinearSysSR;
@@ -243,11 +254,14 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
           tLinearSysSR *  SysLinear() ; ///< Accessor
           const tLinearSysSR *  SysLinear() const ; ///< Accessor
 
-          /// Solve solution,  update the current solution, Reset the least square system
-          const tDVect  &    SolveUpdateReset(const Type & aLVM =0.0,tRSUR* = nullptr,tRSUR* = nullptr) ;
+          /** Solve solution,  update the current solution, Reset the least square system
+              First tRSUR => result after constraint, second tRSUR result after LVM 
+              Generally, IF we use tVPtr_SUR , we will have a single value, but for bench its
+              convenient to have several values
+           */
+          const tDVect  &    SolveUpdateReset(const Type & aLVM =0.0,tVPtr_SUR AfterCstr = {},tVPtr_SUR AfterLVM = {}) ;
 
 
-          /**  First tRSUR => result after constraint, second tRSUR result after LVM */
 	  cREAL8_RSNL::tDVect      R_SolveUpdateReset(const tREAL8& = 0.0) override ;
 
           /// Add 1 equation fixing variable
@@ -316,8 +330,11 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
 
           Type  VarLastSol() const;  ///< Call equiv method of SysLinear
           Type  VarCurSol()  const;  ///< Call equiv method of SysLinear
+
+          void  SaveStateIn_RSUR(tRSUR *);
      private :
           cResolSysNonLinear(const tRSNL & ) = delete;
+
 
 	  ///  Modify equations to take into account var is frozen
 	  void  ModifyFrozenVar (tIO_RSNL&);
@@ -510,6 +527,9 @@ template <class Type> class cLinearOverCstrSys  : public cMemCheck
        virtual Type ResidualOf1Eq(const cDenseVect<Type> & aVect,const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) const ;
 
 
+       /**  Solve   the equation tAA X  = M, so compte tAA-1 M, but do it w/o extracting dense tAA, nor invering it ,
+            default = error (not meaning full for L1, not implemented by default) */
+       virtual cDenseMatrix<Type> tAA_Solve(const cDenseMatrix<Type> &) const;
        
        //  ============ Fix value of variable =============
             ///  Fix value of curent variable, 1 variable
@@ -649,6 +669,11 @@ template <class Type> class  cLeasSqtAA  :  public cLeasSq<Type>
        const cDenseVect<Type>   & tARhs () const;   ///< Accessor 
        cDenseMatrix<Type> & tAA   () ;         ///< Accessor  , warn not symetrized
        cDenseVect<Type>   & tARhs () ;         ///< Accessor 
+
+
+        
+
+      cDenseMatrix<Type> tAA_Solve(const cDenseMatrix<Type> &) const override;
 
       /// access to tAA via virtual interface, duplicate then do the symetrization
       cDenseMatrix<Type>  V_tAA() const override;

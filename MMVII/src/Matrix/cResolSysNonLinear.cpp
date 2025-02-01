@@ -92,11 +92,23 @@ void cREAL8_RSNL::SetAllUnShared()
 /*                                                              */
 /* ************************************************************ */
 
-template <class Type>  cResultSUR<Type>::cResultSUR() :
-    mtAA   (1),
-    mtARhs (1)
+template <class Type>  cResult_UC_SUR<Type>::cResult_UC_SUR() :
+    mtAA_Compute        (false),
+    mUncert_Compute     (false),
+    mtAA                (1),
+    mUncertMatrix       (1)
 {
 }
+
+template <class Type>  void  cResolSysNonLinear<Type>::SaveStateIn_RSUR(tRSUR * aRS)
+{
+   if (aRS==nullptr) return;
+
+   if (aRS->mtAA_Compute)
+      aRS->mtAA =  mSysLinear->V_tAA();
+   
+}
+
 
 /* ************************************************************ */
 /*                                                              */
@@ -790,7 +802,7 @@ template <> void cResolSysNonLinear<tREAL8>::R_AddObsWithTmpUK (const tR_Up::tSe
 
 template <class Type> 
    const cDenseVect<Type> & 
-          cResolSysNonLinear<Type>::SolveUpdateReset(const Type & aLVM,tRSUR* aResCstr,tRSUR* aResLVM) 
+          cResolSysNonLinear<Type>::SolveUpdateReset(const Type & aLVM,tVPtr_SUR AfterCstr ,tVPtr_SUR AfterLVM)
 {
     if (mNbVar-GetNbLinearConstraints()>currNbObs)
     {
@@ -811,11 +823,8 @@ template <class Type>
            AddEqFixVar(aK,mValueFrozenVar[aK],1.0);
     }
 #endif
-   if (aResCstr)
-   {
-         aResCstr->mtAA   = mSysLinear->V_tAA();
-         aResCstr->mtARhs = mSysLinear->V_tARhs();
-   }
+   for (auto aPtrSur : AfterCstr)
+       SaveStateIn_RSUR(aPtrSur);
 
     for (int aK=0 ; aK<mNbVar ; aK++)
     {
@@ -825,11 +834,8 @@ template <class Type>
         }
     }
 
-   if (aResLVM)
-   {
-       aResLVM->mtAA   = mSysLinear->V_tAA();
-       aResLVM->mtARhs = mSysLinear->V_tARhs();
-   }
+   for (auto aPtrSur : AfterLVM)
+       SaveStateIn_RSUR(aPtrSur);
 
     mCurGlobSol += mSysLinear->PublicSolve();     //  mCurGlobSol += mSysLinear->SparseSolve();
     mSysLinear->PublicReset();
@@ -857,7 +863,7 @@ template <class Type> cDenseVect<tREAL8>  cResolSysNonLinear<Type>::R_SolveUpdat
 
 #define INSTANTIATE_RESOLSYSNL(TYPE)\
 template class  cResolSysNonLinear<TYPE>;\
-template class  cResultSUR<TYPE>;
+template class  cResult_UC_SUR<TYPE>;
 
 INSTANTIATE_RESOLSYSNL(tREAL4)
 INSTANTIATE_RESOLSYSNL(tREAL8)

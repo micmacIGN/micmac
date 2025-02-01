@@ -289,6 +289,11 @@ template<class Type> void cLeasSqtAA<Type>::AddCov
     }
 }
 
+template<class Type> cDenseMatrix<Type> cLeasSqtAA<Type>::tAA_Solve(const cDenseMatrix<Type> & aMat) const
+{
+    return mtAA.Solve(aMat);
+}
+
 
 
 /* *********************************** */
@@ -563,6 +568,13 @@ template<class Type> void cLinearOverCstrSys<Type>::PublicAddObsWithTmpUK(const 
          }
      }
 }
+
+template<class Type> cDenseMatrix<Type> cLinearOverCstrSys<Type>::tAA_Solve(const cDenseMatrix<Type> & aMat) const
+{
+    MMVII_INTERNAL_ERROR("No acces to tAA_Solve for this class");
+    return cDenseMatrix<Type> (0);
+}
+
 
 template<class Type> cDenseMatrix<Type> cLinearOverCstrSys<Type>::V_tAA() const
 {

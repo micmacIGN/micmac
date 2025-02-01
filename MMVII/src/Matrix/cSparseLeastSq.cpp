@@ -334,6 +334,10 @@ template<class Type>  class cSparseLeasSqtAA : public cSparseLeasSq<Type>
           void SpecificReset() override;
           cDenseVect<Type>  SpecificSolve() override;
 
+         void PutInTriplet(std::vector<cEigenTriplet<Type> > & aVCoeff) const;
+         cDenseMatrix<Type>  V_tAA() const override;
+         cDenseMatrix<Type> tAA_Solve(const cDenseMatrix<Type> &) const override;
+
 
          void  SpecificAddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>& aSetSetEq)  override;
 	 /// Put bufferd line in matrixs, used at end or during filling to liberate memorry
@@ -628,12 +632,43 @@ template<class Type> void cSparseLeasSqtAA<Type>::SpecificReset()
 template<class Type> cDenseVect<Type> cSparseLeasSqtAA<Type>::SpecificSolve()
 {
    std::vector<cEigenTriplet<Type> > aVCoeff;            // list of non-zeros coefficients
-   PutBufererEqInNormalMatrix();
+   PutInTriplet(aVCoeff);
+   return EigenSolveCholeskyarseFromV3(aVCoeff,mtARhs);
+}
+
+template<class Type> void cSparseLeasSqtAA<Type>::PutInTriplet(std::vector<cEigenTriplet<Type> > & aVCoeff) const
+{
+   const_cast<cSparseLeasSqtAA<Type>*>(this)->PutBufererEqInNormalMatrix();
    for (auto & aLine : mtAA)
    {
        aLine->TransfertInTriplet(aVCoeff,this->mNbVar);
    }
-   return EigenSolveCholeskyarseFromV3(aVCoeff,mtARhs);
+}
+
+template<class Type> cDenseMatrix<Type> cSparseLeasSqtAA<Type>::V_tAA() const
+{
+   cDenseMatrix<Type> aRes(this->mNbVar,eModeInitImage::eMIA_Null);
+   const_cast<cSparseLeasSqtAA<Type>*>(this)->PutBufererEqInNormalMatrix();
+
+   for (auto & aLine : mtAA)
+   {
+       std::vector<cEigenTriplet<Type> > aVCoeff;            // list of non-zeros coefficients
+       aLine->TransfertInTriplet(aVCoeff,this->mNbVar);
+       for (const auto & aTriplet : aVCoeff)
+       {
+          aRes.SetElem(aTriplet.col(),aTriplet.row(),aTriplet.value());
+          aRes.SetElem(aTriplet.row(),aTriplet.col(),aTriplet.value());
+       }
+   }
+
+   return aRes;
+}
+
+template<class Type> cDenseMatrix<Type> cSparseLeasSqtAA<Type>::tAA_Solve(const cDenseMatrix<Type> & aMat) const 
+{
+   std::vector<cEigenTriplet<Type> > aVCoeff;            // list of non-zeros coefficients
+   PutInTriplet(aVCoeff);
+   return EigenSolveCholeskyarseFromV3(aVCoeff,aMat);
 }
 
 

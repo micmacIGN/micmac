@@ -23,7 +23,7 @@ class cBenchLstSqEstimUncert
 
          /// Constructor, takes the dimension & a vector giving the number of sampling  for each  observation
          cBenchLstSqEstimUncert(int aDim,const std::vector<int> & aVecNbByObs);
-         void DoIt(bool isDemoTest,const std::vector<int> & aVFrozen,const std::vector<std::vector<int>> & aVIndCstr);
+         void DoIt(bool isDemoTest,eModeSSR aMode,const std::vector<int> & aVFrozen,const std::vector<std::vector<int>> & aVIndCstr);
 
           /// Destructor, free allocated object
          ~cBenchLstSqEstimUncert();
@@ -88,14 +88,20 @@ cBenchLstSqEstimUncert::cBenchLstSqEstimUncert(int aDim,const std::vector<int> &
     MMVII_INTERNAL_ASSERT_bench(mDim<mNbObs,"Not enough ons in cBenchLstSqEstimUncert");
 }
 
-void cBenchLstSqEstimUncert::DoIt(bool isDemoTest,const std::vector<int> & aVFrozen, const std::vector<std::vector<int>> & aVVIndCstr)
+void cBenchLstSqEstimUncert::DoIt
+     (
+         bool isDemoTest,
+         eModeSSR aMode,
+         const std::vector<int> & aVFrozen, 
+         const std::vector<std::vector<int>> & aVVIndCstr
+      )
 {
     cSetInterUK_MultipeObj<tREAL8> aSetI;
 
     // ----------- [0] initialize the parameters,  re-set global var (simpler ...) -----------
     delete mSys;
-    mSys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqDense,mCommonP);
-    // mSys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqNormSparse,mCommonP);
+    // mSys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqDense,mCommonP);
+    mSys = new cResolSysNonLinear<tREAL8>(aMode,mCommonP);
     mStat2 =  cStrStat2<tREAL8>(mDim);
     mMoyUnc     = cDenseMatrix<tREAL8>(mDim,eModeInitImage::eMIA_Null);
 
@@ -176,9 +182,17 @@ void cBenchLstSqEstimUncert::DoIt(bool isDemoTest,const std::vector<int> & aVFro
              mSys->AddObservationLinear(1.0,mVects.at(aKObs),aRHS);
          }
 
+if (0)
+{
+StdOut()   <<  " Before tAA ; Mode=" << E2Str(aMode)  << "\n";
+mSys->SysLinear()->V_tAA().Show() ;
+         mSys->SysLinear()->tAA_Solve(aColComb12);
+StdOut()   <<  " After tAA ; Mode=" << E2Str(aMode)  << "\n";
+}
          // cDenseMatrix<tREAL8>  aMUC = mSys->SysLinear()->V_tAA();   // normal matrix , do it before Reset !!
-         cResultSUR<tREAL8> aRSUR;
-         tDV aSol = mSys->SolveUpdateReset(0.0,&aRSUR);  // compute the solution of this config
+         cResult_UC_SUR<tREAL8> aRSUR;
+         aRSUR.mtAA_Compute = true;
+         tDV aSol = mSys->SolveUpdateReset(0.0,{&aRSUR});  // compute the solution of this config
 
          cDenseMatrix<tREAL8> aMatNorm = aRSUR.mtAA;
 
@@ -263,7 +277,13 @@ void cBenchLstSqEstimUncert::DoIt(bool isDemoTest,const std::vector<int> & aVFro
 
     if (isDemoTest)
     {
-        StdOut() << "\n******** TEST with Dim=" << mDim  << " FixV=" << aVFrozen << " VIndCstr=" << aVVIndCstr << " ***************\n";
+        StdOut() << "\n******** TEST with ,"  
+                 <<  " Mode=" << E2Str(aMode) 
+                 << " Dim=" << mDim  
+                 << " FixV=" << aVFrozen 
+                 << " VIndCstr=" << aVVIndCstr 
+                 << " ***************\n";
+
         StdOut() << " ------------------ COV ---- \n";
         aMatCov.Show() ;
         StdOut() << " ------------------ UC ---- \n";
@@ -282,11 +302,15 @@ void BenchLstSqEstimUncert(cParamExeBench & aParam)
 
     {
          cBenchLstSqEstimUncert  aLstQ4B(5,{2,2,2,2,2,2,2,2});
+         //  for (const auto aMode : {eModeSSR::eSSR_LsqDense,eModeSSR::eSSR_LsqNormSparse})
+         for (const auto aMode : {eModeSSR::eSSR_LsqNormSparse,eModeSSR::eSSR_LsqDense})
+         {
 
-         aLstQ4B.DoIt(aParam.DemoTest(),{},{});
-         aLstQ4B.DoIt(aParam.DemoTest(),{},{{0,1},{0,1}});
-         aLstQ4B.DoIt(aParam.DemoTest(),{2},{{0,1},{0,1}});
-         aLstQ4B.DoIt(aParam.DemoTest(),{},{{0,1}});
+             aLstQ4B.DoIt(aParam.DemoTest(),aMode,{},{});
+             aLstQ4B.DoIt(aParam.DemoTest(),aMode,{},{{0,1},{0,1}});
+             aLstQ4B.DoIt(aParam.DemoTest(),aMode,{2},{{0,1},{0,1}});
+             aLstQ4B.DoIt(aParam.DemoTest(),aMode,{},{{0,1}});
+         }
     }
 /*
     // cBenchLstSqEstimUncert  aLstQ5(4,{2,3,3,3,2,2},true);
