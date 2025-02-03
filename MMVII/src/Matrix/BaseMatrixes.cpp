@@ -780,6 +780,11 @@ template <class Type> std::vector<cDenseVect<Type>>  cMatrix<Type>::MakeLines() 
     return aRes;
 }
 
+template <class Type> void cMatrix<Type>::WriteCol(int aX,const tSpV  &aV)  
+{
+    for (const auto & aPair : aV)
+        V_SetElem(aX,aPair.mInd,aPair.mVal);
+}
 
      //    ===   MulMat ====
 

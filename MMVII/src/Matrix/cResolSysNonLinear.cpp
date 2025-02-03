@@ -92,6 +92,8 @@ void cREAL8_RSNL::SetAllUnShared()
 /*                                                              */
 /* ************************************************************ */
 
+#if (0)
+
 template <class Type>  cResult_UC_SUR<Type>::cResult_UC_SUR(tRSNL *aRSNL,bool  AddAllVar) :
     mRSNL               (aRSNL),
     mDebug              (false),
@@ -172,6 +174,7 @@ template <class Type>  void  cResult_UC_SUR<Type>::Compile()
 */
    
 }
+#endif
 
 
 /* ************************************************************ */
@@ -932,8 +935,7 @@ template <class Type> cDenseVect<tREAL8>  cResolSysNonLinear<Type>::R_SolveUpdat
 // template class  cSetIORSNL_SameTmp<TYPE>;
 
 #define INSTANTIATE_RESOLSYSNL(TYPE)\
-template class  cResolSysNonLinear<TYPE>;\
-template class  cResult_UC_SUR<TYPE>;
+template class  cResolSysNonLinear<TYPE>;
 
 INSTANTIATE_RESOLSYSNL(tREAL4)
 INSTANTIATE_RESOLSYSNL(tREAL8)

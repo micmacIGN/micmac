@@ -548,6 +548,17 @@ template <class Type>  void  cDenseMatrix<Type>::Weighted_Add_tAA(Type aWeight,c
 }
 
 
+template <class Type>  Type  cDenseMatrix<Type>:: DotProduct_Col(int aX,const tSpV & aVec) const
+{
+    Type aRes = 0.0;
+    for (const auto & aPairIV : aVec)
+       aRes += GetElem(aX,aPairIV.mInd) * aPairIV.mVal;
+
+   return aRes;
+}
+
+
+
 /* ================================================= */
 /*        cUnOptDenseMatrix                          */
 /* ================================================= */

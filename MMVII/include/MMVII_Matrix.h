@@ -248,6 +248,7 @@ template <class Type> class cMatrix  : public cRect2
          virtual void ReadColInPlace(int aX,tDV &) const;
          virtual tDV  ReadCol(int aX) const;
          virtual void WriteCol(int aX,const tDV &) ;
+         virtual void WriteCol(int aX,const tSpV &) ;
 
          // Line operation
          virtual void  MulLineInPlace(tDV &,const tDV &) const;
@@ -498,6 +499,8 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         tDV  SolveColumn(const tDV &,eTyEigenDec aType=eTyEigenDec::eTED_PHQR) const;
         tDV  SolveLine(const tDV &,eTyEigenDec aType=eTyEigenDec::eTED_PHQR) const;
 
+        /// Add hoc function dot product with colum X
+        Type    DotProduct_Col(int aX,const tSpV & aVec) const;
 
         //  ====  Orthognal matrix
 

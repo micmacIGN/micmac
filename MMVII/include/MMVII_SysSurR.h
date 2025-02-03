@@ -189,42 +189,55 @@ class cREAL8_RSNL
 template <class Type> class cResult_UC_SUR
 {
     public :
-        typedef cResolSysNonLinear<Type>  tRSNL;
-        friend                       tRSNL;
+        typedef cResolSysNonLinear<Type>   tRSNL;
+        friend                             tRSNL;
+        typedef cLinearOverCstrSys<Type>   tLinearSysSR;
 
-        cResult_UC_SUR(tRSNL * aRSNL,bool InitAllVar=false);
+        cResult_UC_SUR
+        (
+               tRSNL *                   aRSNL,
+               bool                      initAllVar=false,
+               bool                      computNormalM=false,
+               const std::vector<int> &  aVIndUC2Compute = {},
+               const std::vector<cSparseVect<Type>> &  aVLinearCstr = {}
+        );
         Type   FUV() const;           ///<  Accessor to  "Unitary Factor" of variance
 
-        void   SetDoComputeNormalMatrix(bool doIt = true);
         cDenseMatrix<Type> NormalMatrix() const;  /// accessor
 
+        
+        Type  UK_VarCovarEstimate(int aK1,int aK2) const;
+        Type  CombLin_VarCovarEstimate(int aK1,int aK2) const;
+
     private:
-        void Compile();
+        void  Compile();
+        void  AssertCompiled() const;
 
 
+        bool                             mCompiled;
         tRSNL *                          mRSNL;
+        int                              mDim;
+        tLinearSysSR *                   mSysL;
         bool                             mDebug;
              //  ---------------- INPUT ------------------
         bool                            mNormalM_Compute;
-        bool                            mUncert_Compute;
-        std::vector<int>                mIndexUC_2Compute;
-        std::list<cSparseVect<Type>>    mSparseV_2Compute;
-        std::list<cDenseVect<Type>>     mDenseV_2Compute;
+        cBijectiveMapI2O<int>           mIndexUC_2Compute;
+        std::vector<cSparseVect<Type>>  mVectCombLin;
 
              //  ---------------- OUTPUT ------------------
-        std::pair<int,int>              mIndSol;
-        std::pair<int,int>              mIndUC;
-        std::pair<int,int>              mIndSparse;
-        std::pair<int,int>              mIndDense;
-        int                             mNbIndexe;
+        int                             mInd0;
+        int                             mIndEndSol;
+        int                             mIndEndUC;
+        int                             mIndEndVect;
+        int                             mIndEndCombLin;
 
         Type                            mVarianceCur;      // Raw variance
-        int                             mDim;
         int                             mNbObs;
         int                             mNbCstr;
         Type                            mRatioDOF;      // Ratio correction degree of freedom
         Type                            mFUV;           // "Unitary Factor" of variance
-        cDenseVect<Type>                mSol;
+        cDenseVect<Type>                mVectSol;       /// The solution to the system
+        cDenseMatrix<Type>              mMatSols;       ///  All the solution  (vect + thoses used for uncertainty)
         cDenseMatrix<Type>              mNormalMatrix;  // normal matrix 
         cDenseMatrix<Type>              mGlobUncertMatrix;  // normal matrix 
 };
