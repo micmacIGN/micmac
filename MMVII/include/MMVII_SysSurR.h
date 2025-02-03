@@ -23,6 +23,7 @@ template <class Type> class cResidualWeighter;
 template <class Type> class cObjWithUnkowns;
 template <class Type> class cSetInterUK_MultipeObj;
 template <class Type>  class  cSetLinearConstraint; // defined in "src/Matrix"
+template <class Type>  class  cResolSysNonLinear; //  The implementation 
 
 
 /**  Class for weighting residuals : compute the vector of weight from a 
@@ -188,20 +189,44 @@ class cREAL8_RSNL
 template <class Type> class cResult_UC_SUR
 {
     public :
-        cResult_UC_SUR();
+        typedef cResolSysNonLinear<Type>  tRSNL;
+        friend                       tRSNL;
 
-        bool                            mtAA_Compute;
+        cResult_UC_SUR(tRSNL * aRSNL,bool InitAllVar=false);
+        Type   FUV() const;           ///<  Accessor to  "Unitary Factor" of variance
+
+        void   SetDoComputeNormalMatrix(bool doIt = true);
+        cDenseMatrix<Type> NormalMatrix() const;  /// accessor
+
+    private:
+        void Compile();
+
+
+        tRSNL *                          mRSNL;
+        bool                             mDebug;
+             //  ---------------- INPUT ------------------
+        bool                            mNormalM_Compute;
         bool                            mUncert_Compute;
-
         std::vector<int>                mIndexUC_2Compute;
         std::list<cSparseVect<Type>>    mSparseV_2Compute;
         std::list<cDenseVect<Type>>     mDenseV_2Compute;
 
-        Type                            mVariance;      // Raw variance
+             //  ---------------- OUTPUT ------------------
+        std::pair<int,int>              mIndSol;
+        std::pair<int,int>              mIndUC;
+        std::pair<int,int>              mIndSparse;
+        std::pair<int,int>              mIndDense;
+        int                             mNbIndexe;
+
+        Type                            mVarianceCur;      // Raw variance
+        int                             mDim;
+        int                             mNbObs;
+        int                             mNbCstr;
         Type                            mRatioDOF;      // Ratio correction degree of freedom
         Type                            mFUV;           // "Unitary Factor" of variance
-        cDenseMatrix<Type>              mtAA;           // normal matrix 
-        cDenseMatrix<Type>              mUncertMatrix;  // normal matrix 
+        cDenseVect<Type>                mSol;
+        cDenseMatrix<Type>              mNormalMatrix;  // normal matrix 
+        cDenseMatrix<Type>              mGlobUncertMatrix;  // normal matrix 
 };
 
 /**  Class for solving non linear system of equations
@@ -323,6 +348,7 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
 	   void  SetUnFrozenVar(tObjWUk & anObj,const  Type & aVal); ///< Unfreeze the value, that must belong to anObj
 
 	   int   GetNbObs() const;                    ///< get number of observations (last iteration if after reset, or current number if after AddObs)
+	   int   GetCurNbObs() const;      ///< get number of observations 
 
           void  AddConstr(const tSVect & aVect,const Type & aCste,bool OnlyIfFirstIter=true);
           void SupressAllConstr();
@@ -556,6 +582,7 @@ template <class Type> class cLinearOverCstrSys  : public cMemCheck
       
       Type  VarLastSol() const;
       Type  VarCurSol()  const;
+      Type  VarOfSol(const cDenseVect<Type> & aSol)  const;
 
     protected :
        int mNbVar;

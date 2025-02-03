@@ -433,7 +433,13 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         static cDenseMatrix Identity(int aSz);  ///< return identity matrix
         static cDenseMatrix Diag(const tDV &);
         static cDenseMatrix FromLines(const std::vector<tDV> &);  // Create from set of "line vector"
+        static cDenseMatrix MatLine(const tDV &);  // Create from set of "line vector"
+        static cDenseMatrix FromCols(const std::vector<tDV> &);  // Create from set of "line vector"
+        static cDenseMatrix MatCol(const tDV &);  // Create from set of "line vector"
         cDenseMatrix ClosestOrthog() const;  ///< return closest 
+
+        // static tDM  MatCol(const tDV & );
+        // static tDM  MatCol(const tDV );
 
         tDM SubMatrix(const cPt2di & aSz) const;
         tDM SubMatrix(const cPt2di & aP0,const cPt2di & aP1) const;

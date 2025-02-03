@@ -291,6 +291,8 @@ template<class Type> void cLeasSqtAA<Type>::AddCov
 
 template<class Type> cDenseMatrix<Type> cLeasSqtAA<Type>::tAA_Solve(const cDenseMatrix<Type> & aMat) const
 {
+    cDenseMatrix<Type> & atAA = const_cast<cLeasSqtAA<Type>* >(this) ->mtAA;
+    atAA.SelfSymetrizeBottom();
     return mtAA.Solve(aMat);
 }
 
@@ -392,12 +394,17 @@ StdOut() << "PSol, W=" << mSumW
          << "\n";
 */
 
+     //mLastResidual = mSumWRHS2 - mSumWCoeffRHS.DotProduct(aSol);
      mLastResidual = mSumWRHS2 - mSumWCoeffRHS.DotProduct(aSol);
      mLastSumWRHS2 = mSumWRHS2;
      mLastSumW     = mSumW;
      return aSol;
 }
 
+template<class Type> Type cLinearOverCstrSys<Type>::VarOfSol(const cDenseVect<Type> & aSol)  const
+{
+    return  (mSumWRHS2 - mSumWCoeffRHS.DotProduct(aSol)) / mSumW;
+}
 
 template<class Type> Type cLinearOverCstrSys<Type>::VarLastSol() const
 {

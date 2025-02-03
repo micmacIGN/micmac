@@ -182,19 +182,13 @@ void cBenchLstSqEstimUncert::DoIt
              mSys->AddObservationLinear(1.0,mVects.at(aKObs),aRHS);
          }
 
-if (0)
-{
-StdOut()   <<  " Before tAA ; Mode=" << E2Str(aMode)  << "\n";
-mSys->SysLinear()->V_tAA().Show() ;
-         mSys->SysLinear()->tAA_Solve(aColComb12);
-StdOut()   <<  " After tAA ; Mode=" << E2Str(aMode)  << "\n";
-}
          // cDenseMatrix<tREAL8>  aMUC = mSys->SysLinear()->V_tAA();   // normal matrix , do it before Reset !!
-         cResult_UC_SUR<tREAL8> aRSUR;
-         aRSUR.mtAA_Compute = true;
+         cResult_UC_SUR<tREAL8> aRSUR(mSys,true);
+         aRSUR.SetDoComputeNormalMatrix(true);
+
          tDV aSol = mSys->SolveUpdateReset(0.0,{&aRSUR});  // compute the solution of this config
 
-         cDenseMatrix<tREAL8> aMatNorm = aRSUR.mtAA;
+         cDenseMatrix<tREAL8> aMatNorm = aRSUR.NormalMatrix();
 
          // [4.2] Test that the variance is correctly estimated in class "cResolSysNonLinear"
          {
@@ -213,6 +207,11 @@ StdOut()   <<  " After tAA ; Mode=" << E2Str(aMode)  << "\n";
          }
          // [4.3] compute the uncertainty as gigen in the books
          tREAL8 aFUV =  mSys->VarCurSol() *  aRatioWithCstr ; // "Facteur unitaire de variance"
+
+         // MMVII_INTERNAL_ASSERT_bench(std::abs(mSys->VarCurSol()-aRSUR.mVarianceCur )<1e-5,"Bench FUV on VarInLSqa");
+         MMVII_INTERNAL_ASSERT_bench(std::abs(aFUV-aRSUR.FUV() )<1e-5,"Bench FUV on VarInLSqa");
+
+
          cDenseMatrix<tREAL8> aMUC = aMatNorm.Inverse() * aFUV ; // gauss markov formula
          mMoyUnc = mMoyUnc + aMUC;  // average the estimator
 
@@ -305,6 +304,9 @@ void BenchLstSqEstimUncert(cParamExeBench & aParam)
          //  for (const auto aMode : {eModeSSR::eSSR_LsqDense,eModeSSR::eSSR_LsqNormSparse})
          for (const auto aMode : {eModeSSR::eSSR_LsqNormSparse,eModeSSR::eSSR_LsqDense})
          {
+
+             aLstQ4B.DoIt(aParam.DemoTest(),aMode,{},{});
+             aLstQ4B.DoIt(aParam.DemoTest(),aMode,{},{});
 
              aLstQ4B.DoIt(aParam.DemoTest(),aMode,{},{});
              aLstQ4B.DoIt(aParam.DemoTest(),aMode,{},{{0,1},{0,1}});

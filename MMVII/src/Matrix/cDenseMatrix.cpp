@@ -81,6 +81,20 @@ template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::FromLines(const std
     return aRes;
 }
 
+template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::MatLine(const tDV & aV) {return FromLines({aV});}
+
+
+template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::FromCols(const std::vector<tDV> & aVV)
+{
+    cDenseMatrix<Type>  aRes(aVV.size(),aVV.at(0).Sz());
+    for (int aX=0 ; aX<int(aVV.size()) ; aX++)
+       aRes.WriteCol(aX,aVV.at(aX));
+
+    return aRes;
+}
+
+template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::MatCol(const tDV & aV) {return FromCols({aV});}
+
 //tDM SubMatrix(const cPt2di & aSz) const
 
 template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::SubMatrix(const cPt2di & aP0,const cPt2di & aP1) const

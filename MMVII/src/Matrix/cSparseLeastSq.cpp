@@ -337,6 +337,8 @@ template<class Type>  class cSparseLeasSqtAA : public cSparseLeasSq<Type>
          void PutInTriplet(std::vector<cEigenTriplet<Type> > & aVCoeff) const;
          cDenseMatrix<Type>  V_tAA() const override;
          cDenseMatrix<Type> tAA_Solve(const cDenseMatrix<Type> &) const override;
+         cDenseVect<Type>    V_tARhs() const override;
+
 
 
          void  SpecificAddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>& aSetSetEq)  override;
@@ -671,6 +673,7 @@ template<class Type> cDenseMatrix<Type> cSparseLeasSqtAA<Type>::tAA_Solve(const 
    return EigenSolveCholeskyarseFromV3(aVCoeff,aMat);
 }
 
+template<class Type> cDenseVect<Type> cSparseLeasSqtAA<Type>::V_tARhs() const {return mtARhs;}
 
 
 template<class Type> void  cSparseLeasSqtAA<Type>::SpecificAddObservation

@@ -163,10 +163,8 @@ template<class Type> cDenseVect<Type> EigenSolveCholeskyarseFromV3
                                            const cDenseVect<Type> & aVecIn
                                       )
 {
-    cDenseMatrix<Type> aMatIn(1,aVecIn.Sz());
-    aMatIn.WriteCol(0,aVecIn);
 
-    cDenseMatrix<Type> aMatRes = EigenSolveCholeskyarseFromV3(aV3,aMatIn);
+    cDenseMatrix<Type> aMatRes = EigenSolveCholeskyarseFromV3(aV3,cDenseMatrix<Type>::MatCol(aVecIn));
 
     return aMatRes.ReadCol(0);
 }
