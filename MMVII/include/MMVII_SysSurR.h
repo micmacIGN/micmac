@@ -23,6 +23,7 @@ template <class Type> class cResidualWeighter;
 template <class Type> class cObjWithUnkowns;
 template <class Type> class cSetInterUK_MultipeObj;
 template <class Type>  class  cSetLinearConstraint; // defined in "src/Matrix"
+template <class Type>  class  cResolSysNonLinear; //  The implementation 
 
 
 /**  Class for weighting residuals : compute the vector of weight from a 
@@ -184,6 +185,70 @@ class cREAL8_RSNL
 };
 
 
+  /**  Result Uncertainty of Solve-Update-Reset */
+template <class Type> class cResult_UC_SUR
+{
+    public :
+        typedef cResolSysNonLinear<Type>   tRSNL;
+        friend                             tRSNL;
+        typedef cLinearOverCstrSys<Type>   tLinearSysSR;
+
+        cResult_UC_SUR
+        (
+               tRSNL *                   aRSNL,
+               bool                      initAllVar=false,
+               bool                      computNormalM=false,
+               const std::vector<int> &  aVIndUC2Compute = {},
+               const std::vector<cSparseVect<Type>> &  aVLinearCstr = {}
+        );
+        Type   FUV() const;           ///<  Accessor to  "Unitary Factor" of variance or "sigma0", rather for test
+
+        cDenseMatrix<Type> NormalMatrix() const;  /// accessor, if was computed
+
+        /** return the estimation of covar between K1 and K2 !! K1 and K2 are "abolute " number
+	    if we pass {1,12,14}  in aVIndUC2Compute   (1,12) will work but (0,1) will fail
+	 */
+        Type  UK_VarCovarEstimate(int aK1,int aK2) const;
+
+	/// return  estimate the covar of two of the linear combination
+        Type  CombLin_VarCovarEstimate(int aK1,int aK2) const;
+
+	///  
+        cDenseMatrix<Type>  MatSols() const;   ///  Accessor, usefull fo covariance between var & linear comb
+        cDenseVect<Type>    VectSol() const;   ///  Accesor, usefull to avoid re-computation
+
+    private:
+        void  Compile();
+        void  AssertCompiled() const;
+
+
+        bool                             mCompiled;
+        tRSNL *                          mRSNL;
+        int                              mDim;
+        tLinearSysSR *                   mSysL;
+        bool                             mDebug;
+             //  ---------------- INPUT ------------------
+        bool                            mNormalM_Compute;
+        cBijectiveMapI2O<int>           mIndexUC_2Compute;
+        std::vector<cSparseVect<Type>>  mVectCombLin;
+
+             //  ---------------- OUTPUT ------------------
+        int                             mInd0;
+        int                             mIndEndSol;
+        int                             mIndEndUC;
+        int                             mIndEndVect;
+        int                             mIndEndCombLin;
+
+        Type                            mVarianceCur;      // Raw variance
+        int                             mNbObs;
+        int                             mNbCstr;
+        Type                            mRatioDOF;      // Ratio correction degree of freedom
+        Type                            mFUV;           // "Unitary Factor" of variance
+        cDenseVect<Type>                mVectSol;       /// The solution to the system, was used for sigma0
+        cDenseMatrix<Type>              mMatSols;       ///  All the solution  (vect + thoses used for uncertainty)
+        cDenseMatrix<Type>              mNormalMatrix;  // normal matrix 
+        cDenseMatrix<Type>              mGlobUncertMatrix;  // normal matrix 
+};
 
 /**  Class for solving non linear system of equations
  */
@@ -196,6 +261,8 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
           typedef std::vector<tNumCalc>                         tStdCalcVect;
           typedef cInputOutputRSNL<Type>                        tIO_RSNL;
           typedef cSetIORSNL_SameTmp<Type>                      tSetIO_ST;
+          typedef cResult_UC_SUR<Type>                          tRSUR;
+          typedef std::vector<tRSUR*>                           tVPtr_SUR;
 
 
           typedef cLinearOverCstrSys<Type>                      tLinearSysSR;
@@ -233,8 +300,14 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
           tLinearSysSR *  SysLinear() ; ///< Accessor
           const tLinearSysSR *  SysLinear() const ; ///< Accessor
 
-          /// Solve solution,  update the current solution, Reset the least square system
-          const tDVect  &    SolveUpdateReset(const Type & aLVM =0.0) ;
+          /** Solve solution,  update the current solution, Reset the least square system
+              First tRSUR => result after constraint, second tRSUR result after LVM 
+              Generally, IF we use tVPtr_SUR , we will have a single value, but for bench its
+              convenient to have several values
+           */
+          const tDVect  &    SolveUpdateReset(const Type & aLVM =0.0,tVPtr_SUR AfterCstr = {},tVPtr_SUR AfterLVM = {}) ;
+
+
 	  cREAL8_RSNL::tDVect      R_SolveUpdateReset(const tREAL8& = 0.0) override ;
 
           /// Add 1 equation fixing variable
@@ -296,6 +369,7 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
 	   void  SetUnFrozenVar(tObjWUk & anObj,const  Type & aVal); ///< Unfreeze the value, that must belong to anObj
 
 	   int   GetNbObs() const;                    ///< get number of observations (last iteration if after reset, or current number if after AddObs)
+	   int   GetCurNbObs() const;      ///< get number of observations 
 
           void  AddConstr(const tSVect & aVect,const Type & aCste,bool OnlyIfFirstIter=true);
           void SupressAllConstr();
@@ -303,8 +377,11 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
 
           Type  VarLastSol() const;  ///< Call equiv method of SysLinear
           Type  VarCurSol()  const;  ///< Call equiv method of SysLinear
+
+          void  SaveStateIn_RSUR(tRSUR *);
      private :
           cResolSysNonLinear(const tRSNL & ) = delete;
+
 
 	  ///  Modify equations to take into account var is frozen
 	  void  ModifyFrozenVar (tIO_RSNL&);
@@ -497,6 +574,9 @@ template <class Type> class cLinearOverCstrSys  : public cMemCheck
        virtual Type ResidualOf1Eq(const cDenseVect<Type> & aVect,const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) const ;
 
 
+       /**  Solve   the equation tAA X  = M, so compte tAA-1 M, but do it w/o extracting dense tAA, nor invering it ,
+            default = error (not meaning full for L1, not implemented by default) */
+       virtual cDenseMatrix<Type> tAA_Solve(const cDenseMatrix<Type> &) const;
        
        //  ============ Fix value of variable =============
             ///  Fix value of curent variable, 1 variable
@@ -523,6 +603,7 @@ template <class Type> class cLinearOverCstrSys  : public cMemCheck
       
       Type  VarLastSol() const;
       Type  VarCurSol()  const;
+      Type  VarOfSol(const cDenseVect<Type> & aSol)  const;
 
     protected :
        int mNbVar;
@@ -636,6 +717,11 @@ template <class Type> class  cLeasSqtAA  :  public cLeasSq<Type>
        const cDenseVect<Type>   & tARhs () const;   ///< Accessor 
        cDenseMatrix<Type> & tAA   () ;         ///< Accessor  , warn not symetrized
        cDenseVect<Type>   & tARhs () ;         ///< Accessor 
+
+
+        
+
+      cDenseMatrix<Type> tAA_Solve(const cDenseMatrix<Type> &) const override;
 
       /// access to tAA via virtual interface, duplicate then do the symetrization
       cDenseMatrix<Type>  V_tAA() const override;
@@ -967,6 +1053,26 @@ template <const int Dim>  class cPtxdr_UK :  public cObjWithUnkowns<tREAL8>,
 
 typedef cPtxdr_UK<2> cPt2dr_UK ;
 typedef cPtxdr_UK<3> cPt3dr_UK ;
+
+class cVectorUK :  public cObjWithUnkowns<tREAL8>,
+                   public cMemCheck
+{
+   public :
+      typedef std::vector<tREAL8>  tVect;
+
+      cVectorUK(const tVect & aVect,const std::string& aName);
+      ~cVectorUK();
+      void PutUknowsInSetInterval() override;
+      const tVect & Vect() const ; ///< Accessor
+      void  GetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
+
+   private :
+      cVectorUK(const cVectorUK&) = delete;
+      tVect        mVect;
+      std::string  mName;
+};
+
+
 
 
 

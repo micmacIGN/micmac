@@ -41,6 +41,8 @@ class cParamExeBench
          bool  GenerateBug(const std::string & aKey);
          void  EndBench(); ///< Application must signal end of the bench
          bool  Show() const;   ///< Show intermediar msg, 
+         bool  DemoTest() const;   ///< Show intermediar msg, 
+         void  SetDemoTest(bool isDemoTest) ;  ///< Show intermediar msg, 
          int   Level() const;  ///< Bench are piped with increasing levels, higher level/ more test
          int   NbExe() const;  ///< Number of execution made
          void  Messg(const std::string &);  ///< Add messg to log file
@@ -56,6 +58,7 @@ class cParamExeBench
          int                       mLevInit;     ///< Current level of test
          int                       mCurLev;     ///< Current level of test
          bool                      mShow;       ///< Do the function print msg on console
+         bool                      mDemoTest;   ///< Maximum msg & eventually breakpoint
          int                       mNbExe;
          std::string               mName;    ///< Exact Name for exact select
          tNameSelector             mPattern;    ///< Pattern for select bench
@@ -181,6 +184,8 @@ void BenchcNewReadFilesStruct(cParamExeBench & aParam);  ///< Test the new syste
 
 void BenchKTHVal(cParamExeBench & aParam);
 void BenchCurveDigit(cParamExeBench & aParam);
+void BenchLstSqEstimUncert(cParamExeBench & aParam);
+
 
 };
 

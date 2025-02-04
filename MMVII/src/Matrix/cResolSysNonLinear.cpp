@@ -86,6 +86,96 @@ void cREAL8_RSNL::SetAllUnShared()
      mCurMaxEquiv = 0;
 }
 
+/* ************************************************************ */
+/*                                                              */
+/*                cResultSUR                                    */
+/*                                                              */
+/* ************************************************************ */
+
+#if (0)
+
+template <class Type>  cResult_UC_SUR<Type>::cResult_UC_SUR(tRSNL *aRSNL,bool  AddAllVar) :
+    mRSNL               (aRSNL),
+    mDebug              (false),
+    mNormalM_Compute    (false),
+    mUncert_Compute     (false),
+    mSol                (1),
+    mNormalMatrix       (1),
+    mGlobUncertMatrix   (1)
+{
+}
+
+template <class Type> Type  cResult_UC_SUR<Type>::FUV() const {return mFUV;}
+
+template <class Type> void cResult_UC_SUR<Type>::SetDoComputeNormalMatrix(bool doIt ) {mNormalM_Compute=doIt;}
+template <class Type>  cDenseMatrix<Type>  cResult_UC_SUR<Type>::NormalMatrix() const
+{
+      MMVII_INTERNAL_ASSERT_tiny(mNormalM_Compute,"NormalMatrix not computed");
+      return mNormalMatrix;
+}
+
+
+
+std::pair<int,int>  IntervalAfter(const std::pair<int,int> & aInt0, int aSz)
+{
+     return std::pair<int,int> (aInt0.second,aInt0.second+aSz);
+}
+
+template <class Type>  void  cResult_UC_SUR<Type>::Compile()
+{
+
+
+   mDim            =  mRSNL->NbVar();
+   mNbObs          =  mRSNL->GetCurNbObs();
+   // mNbCstr         =  mRSNL->LinearConstr()->getNbConstraints();
+   mRatioDOF       =  (mNbObs+mNbCstr)/double(mNbObs-(mDim-mNbCstr)) ;
+
+/*
+   aRS->mIndSol          = std::pair<int,int>(0,1);
+   aRS->mIndUC           = IntervalAfter(aRS->mIndSol    , aRS->mIndexUC_2Compute.size());
+   aRS->mIndSparse       = IntervalAfter(aRS->mIndUC     , aRS->mSparseV_2Compute.size());
+   aRS->mIndDense        = IntervalAfter(aRS->mIndSparse , aRS->mDenseV_2Compute.size());
+   aRS->mNbIndexe        = aRS->mIndDense.second;
+ 
+
+   int aNbCol = aRS->mNbIndexe;
+
+   cDenseMatrix<Type> aM2Solve(aNbCol,mNbVar);
+
+   aM2Solve.WriteCol(0,mSysLinear->V_tARhs());
+   for (int aK = aRS->mIndUC.first ; aK<aRS->mIndUC.second ; aK++)
+   {
+        cDenseVect<Type> aVect(mNbVar,eModeInitImage::eMIA_Null);
+        aVect(aRS->mIndexUC_2Compute.at(aK-aRS->mIndUC.first)) = 1;
+        aM2Solve.WriteCol(aK,aVect);
+   }
+
+
+   cDenseMatrix<Type> aMSol = mSysLinear->tAA_Solve(aM2Solve);
+   aRS->mSol = aMSol.ReadCol(0) ;// + mCurGlobSol ;
+
+
+   aRS->mVarianceCur    =  mSysLinear->VarOfSol(aRS->mSol);
+   aRS->mFUV = aRS->mRatioDOF * aRS->mVarianceCur;
+
+
+
+   if (aRS->mNormalM_Compute)
+   {
+      aRS->mNormalMatrix =  mSysLinear->V_tAA();
+      if (aRS->mUncert_Compute)
+      {
+         
+      }
+   }
+   else if (aRS->mUncert_Compute)
+   {
+   }
+*/
+   
+}
+#endif
+
 
 /* ************************************************************ */
 /*                                                              */
@@ -306,6 +396,10 @@ template <class Type> void   cResolSysNonLinear<Type>::R_AddEqFixVar(const int &
 }
 
 
+template <class Type> int  cResolSysNonLinear<Type>::GetCurNbObs() const
+{
+    return currNbObs;
+}
 
 
 template <class Type> int  cResolSysNonLinear<Type>::GetNbObs() const
@@ -777,7 +871,11 @@ template <> void cResolSysNonLinear<tREAL8>::R_AddObsWithTmpUK (const tR_Up::tSe
 
             //  =========    resolving ==========================
 
-template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUpdateReset(const Type & aLVM) 
+
+
+template <class Type> 
+   const cDenseVect<Type> & 
+          cResolSysNonLinear<Type>::SolveUpdateReset(const Type & aLVM,tVPtr_SUR AfterCstr ,tVPtr_SUR AfterLVM)
 {
     if (mNbVar-GetNbLinearConstraints()>currNbObs)
     {
@@ -798,6 +896,8 @@ template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUp
            AddEqFixVar(aK,mValueFrozenVar[aK],1.0);
     }
 #endif
+   for (auto aPtrSur : AfterCstr)
+       aPtrSur->Compile();
 
     for (int aK=0 ; aK<mNbVar ; aK++)
     {
@@ -806,6 +906,9 @@ template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUp
            AddEqFixVar(aK,CurSol(aK),mSysLinear->LVMW(aK)*aLVM);
         }
     }
+
+   for (auto aPtrSur : AfterLVM)
+       aPtrSur->Compile();
 
     mCurGlobSol += mSysLinear->PublicSolve();     //  mCurGlobSol += mSysLinear->SparseSolve();
     mSysLinear->PublicReset();

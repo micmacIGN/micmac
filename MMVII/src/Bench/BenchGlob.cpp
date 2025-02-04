@@ -75,6 +75,7 @@ cParamExeBench::cParamExeBench(const std::string & aPattern,const std::string &a
    mLevInit     (aLevInit),
    mCurLev      (mLevInit),
    mShow        (Show),
+   mDemoTest    (false),
    mNbExe       (0),
    mName        (aPattern),
    mPattern     (AllocRegex(aPattern)),
@@ -142,8 +143,10 @@ void  cParamExeBench::IncrLevel()
 bool  cParamExeBench::Show() const  { return mShow; }
 int   cParamExeBench::Level() const { return mCurLev; }
 int   cParamExeBench::NbExe() const { return mNbExe; }
+bool  cParamExeBench::DemoTest() const  { return mDemoTest; }
 
 
+void  cParamExeBench::SetDemoTest(bool isDemoTest) { mDemoTest = isDemoTest; }
 
 
 /* ================================================ */
@@ -336,6 +339,7 @@ class cAppli_MMVII_Bench : public cMMVII_Appli
         std::string mKeyBug;    // Pattern for selected bench
         int         mNumBugRecall; ///< Used if we want to force bug generation in recall process
         bool        mDoBUSD;       ///< Do we do  BenchUnbiasedStdDev
+        bool        mDemoTest;
 };
 
 cCollecSpecArg2007 & cAppli_MMVII_Bench::ArgObl(cCollecSpecArg2007 & anArgObl)
@@ -355,6 +359,7 @@ cCollecSpecArg2007 & cAppli_MMVII_Bench::ArgOpt(cCollecSpecArg2007 & anArgOpt)
          << AOpt2007(mShow,"Show","Show mesg, Def=true if PatBench init")
          << AOpt2007(mNumBugRecall,"NBR","Num to Generate a Bug in Recall,(4 manuel inspection of log file)")
          << AOpt2007(mDoBUSD,"DoBUSD","Do BenchUnbiasedStdDev (which currently dont work) ? ",{{eTA2007::HDV}})
+         << AOpt2007(mDemoTest,"DemoTest","If true, print many msg, eventually has stop point (aka as \"getchar\") ",{{eTA2007::HDV}})
   ;
 }
 
@@ -364,7 +369,8 @@ cAppli_MMVII_Bench::cAppli_MMVII_Bench (const std::vector<std::string> & aVArgs,
   mShow           (false),
   mPat            (".*"),
   mNumBugRecall   (-1),
-  mDoBUSD         (false)
+  mDoBUSD         (false),
+  mDemoTest       (false)
 {
 }
 
@@ -396,9 +402,10 @@ int  cAppli_MMVII_Bench::Exe()
     }
 
     if (!IsInit(&mShow))
-      mShow =  IsInit(&mPat); // Becoz, if mPat init, few bench => we can display msg
+        mShow =  IsInit(&mPat); // Becoz, if mPat init, few bench => we can display msg
 
    cParamExeBench aParam(mPat,mKeyBug,mLevMin,mShow);
+   aParam.SetDemoTest(mDemoTest);
 
    for (int aLev=mLevMin ; aLev<mLevelMax ; aLev++)
    {
@@ -473,6 +480,7 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         Bench_Nums(aParam); // Basic numericall services
         BenchKTHVal(aParam);
         BenchCurveDigit(aParam);
+        BenchLstSqEstimUncert (aParam);
         BenchHamming(aParam);
         BenchPolynome(aParam);
         BenchInterpol(aParam);
