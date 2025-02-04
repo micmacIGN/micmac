@@ -1,4 +1,4 @@
-\chapter{Leasy square and uncertainty estimation}
+\chapter{Least square and uncertainty estimation}
 \label{Chap:LeastSquare}
 
 %-----------------------------------------------------------------------
@@ -10,7 +10,7 @@
 %-----------------------------------------------------------------------
 \subsection{Notation}
 
-We consider the system of $M$ equation with $N$ unkowns with $M\geq N$:
+We consider the system of $M$ equations with $N$ unkowns with $M\geq N$:
 
 \begin{equation}
 	\forall j : \sum_{i=1}^N l_{i,j} x_i = b_j
@@ -33,7 +33,7 @@ so we replace the exact solving by the minimization of square residual $R(X)$ :
 	R(X)  =  \sum_{j=1}^M (L_j \cdot X - b_j)^2
 \end{equation}
 
-Doing some algebric manipulation , using  $^t b= b$ for scalars and $X \cdot Y= ^t X Y = ^t Y X$ for vectors, we get :
+Doing some algebric manipulation, using properties $^t b= b$ for scalars and $X \cdot Y= ^t X Y = ^t Y X$ for vectors, we get :
 
 \begin{equation}
 \begin{array}{l}
@@ -56,13 +56,13 @@ We get :
 \end{equation}
 
 
-Noting $\overline X$ given by :
+Seting $\overline X$ as :
 
 \begin{equation}
 	\overline X = A^{-1} B \label{LstSq:Sol}
 \end{equation}
 
-And we can see that :
+And get :
 
 \begin{equation}
 	R(X) =  (X-\overline X ) \cdot A  (X-\overline X )   +  C - B \cdot \overline X 
@@ -83,17 +83,17 @@ The minimum of $R(X)$ is then reached for $X=\overline X$ and it is given by:
 
 %-----------------------------------------------------------------------
 \subsection{Gauss-Markov theorem}
-I we consider that each measure $L_j \cdot X - b_j$ is the realisation
+If we consider that each measure $L_j \cdot X - b_j$ is the realisation
 of a random variable  such that :
 
 \begin{itemize}
     \item each variable has an average of $0$ ;
-    \item  the diffrente variable are independant \footnote{in fact un-correlated}
-    \item  the different variable have  the same variance $\sigma ^2$.
+    \item  the different variables are independant \footnote{in fact un-correlated}
+    \item  the different variables have  the same variance $\sigma ^2$.
 \end{itemize}
 
 Then \emph{Gauss-Markov} \footnote{see for example https://en.wikipedia.org/wiki/Gauss-Markov\_theorem}
-theorem indicate that $\overline X$, as given in equation~\ref{LstSq:Sol}, is the 
+theorem indicates that $\overline X$, as given in equation~\ref{LstSq:Sol}, is the 
 best linear unbiased estimator of $X$ , and that $\overline X$ being considered as a random
 variable, its variance-covariance $\Sigma$ can be computed by the un-biased estimator of
 equation ~\ref{LstSq:EstVarCov} :
@@ -106,7 +106,7 @@ equation ~\ref{LstSq:EstVarCov} :
 \subsection{Efficiency consideration}
 
     %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-\subsubsection{Case a single variable}
+\subsubsection{Case of a single variable}
 
 If we are interested in estimating the uncertainty of \emph{all} variables, we can
 compute the matrix $A^{-1}$ and takes the diagonal element. By the way, with "big"
@@ -132,14 +132,14 @@ Similarly, if we are interested in estimating the variance (and possibly covaria
 only a set $S$ of  few variable $S=\{k_1,\dots k_l\}$, noting the matrix $l \times N$
 matrix $\mathcal{C}(S) = [C^{k_1} \dots C^{k_l}]$.
 
-It is suffiient to compute the  matrix $ \mathcal{C}'(S)$ by
+It is suficient to compute the  matrix $ \mathcal{C}'(S)$ by
 solving  the system $A \mathcal{C}'(S) = \mathcal{C}(S)$.
 
     %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 \subsubsection{Case linear combination}
 
-Some time, we are interested in the variance/vovariance  of  different linear combination.
-Note $V_1, \dots ,V_l$ the $l$ vectors, such that  we want to estimate $V_1 \cdot X, \dots V_l \cdot X$.
+Some time, we are interested in the variance/covariance  of  different linear combination.
+Note $V_1, \dots ,V_m$ the $m$ vectors, such that  we want to estimate $V_1 \cdot X, \dots V_m \cdot X$.
 
 For the value itself, due to linearity, the best estimator are simply $\overline{V_k} = V_k \cdot \overline X$.
 For the variance/covariance, going back to equation~\ref{LstSq:EstVarCov}, we have :
@@ -157,7 +157,7 @@ And again \dots we dont need to compute $ A^{-1}$ but only to solve $A V'_{k_2} 
 \label{LstSq:Uncer:AllTog}
 
 Note that to use formulas like~\ref{LstSq:LinCombVarCov}, we need to compute $\sigma_0^2$,  we need to compute $R(\overline(X))$,
-and using equation~\ref{Lst:Res:Min}  we need to compute  $ \overline(X) =  A^{-1} B$.
+and using equation~\ref{Lst:Res:Min}  we need to compute  $ \overline{X} =  A^{-1} B$.
 
 So suppose that at a given step, we need to estimate the uncertainty of $l$ variables, $m$ linear combination , to minise
 the computation cost, we will proceed this way :
