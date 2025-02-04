@@ -340,7 +340,7 @@ void BenchLstSqEstimUncert(cParamExeBench & aParam)
 
     for (int aK=0 ; aK<10 ; aK++)
     {
-         cBenchLstSqEstimUncert  aLstQ4B(5,{2,2,2,2,2,2,2,2});
+         cBenchLstSqEstimUncert  aLstQ4B(5,{2,3,2,2,4,2,2});
          //  for (const auto aMode : {eModeSSR::eSSR_LsqDense,eModeSSR::eSSR_LsqNormSparse})
          for (const auto aMode : {eModeSSR::eSSR_LsqNormSparse,eModeSSR::eSSR_LsqDense})
          {

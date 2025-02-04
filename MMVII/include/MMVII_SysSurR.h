@@ -201,13 +201,21 @@ template <class Type> class cResult_UC_SUR
                const std::vector<int> &  aVIndUC2Compute = {},
                const std::vector<cSparseVect<Type>> &  aVLinearCstr = {}
         );
-        Type   FUV() const;           ///<  Accessor to  "Unitary Factor" of variance
+        Type   FUV() const;           ///<  Accessor to  "Unitary Factor" of variance or "sigma0", rather for test
 
-        cDenseMatrix<Type> NormalMatrix() const;  /// accessor
+        cDenseMatrix<Type> NormalMatrix() const;  /// accessor, if was computed
 
-        
+        /** return the estimation of covar between K1 and K2 !! K1 and K2 are "abolute " number
+	    if we pass {1,12,14}  in aVIndUC2Compute   (1,12) will work but (0,1) will fail
+	 */
         Type  UK_VarCovarEstimate(int aK1,int aK2) const;
+
+	/// return  estimate the covar of two of the linear combination
         Type  CombLin_VarCovarEstimate(int aK1,int aK2) const;
+
+	///  
+        cDenseMatrix<Type>  MatSols() const;   ///  Accessor, usefull fo covariance between var & linear comb
+        cDenseVect<Type>    VectSol() const;   ///  Accesor, usefull to avoid re-computation
 
     private:
         void  Compile();
@@ -236,7 +244,7 @@ template <class Type> class cResult_UC_SUR
         int                             mNbCstr;
         Type                            mRatioDOF;      // Ratio correction degree of freedom
         Type                            mFUV;           // "Unitary Factor" of variance
-        cDenseVect<Type>                mVectSol;       /// The solution to the system
+        cDenseVect<Type>                mVectSol;       /// The solution to the system, was used for sigma0
         cDenseMatrix<Type>              mMatSols;       ///  All the solution  (vect + thoses used for uncertainty)
         cDenseMatrix<Type>              mNormalMatrix;  // normal matrix 
         cDenseMatrix<Type>              mGlobUncertMatrix;  // normal matrix 

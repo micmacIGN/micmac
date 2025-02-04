@@ -1,0 +1,301 @@
+\chapter{Leasy square and uncertainty estimation}
+\label{Chap:LeastSquare}
+
+%-----------------------------------------------------------------------
+%-----------------------------------------------------------------------
+%-----------------------------------------------------------------------
+
+\section{Generality \& notations}
+
+%-----------------------------------------------------------------------
+\subsection{Notation}
+
+We consider the system of $M$ equation with $N$ unkowns with $M\geq N$:
+
+\begin{equation}
+	\forall j : \sum_{i=1}^N l_{i,j} x_i = b_j
+\end{equation}
+
+Noting $L_j =  l_{i,j}$ and $X=x_i$ with $X$ and $L_j$ in $\RR^N$, we write :
+
+\begin{equation}
+	\forall j :  L_j . X = b_j \label{LstQ:EqLXb}
+\end{equation}
+
+%-----------------------------------------------------------------------
+\subsection{Formalisation}
+
+In general $M>N$ and there is no exact solution to equation\ref{LstQ:EqLXb},
+so we replace the exact solving by the minimization of square residual $R(X)$ :
+
+
+\begin{equation}
+	R(X)  =  \sum_{j=1}^M (L_j \cdot X - b_j)^2
+\end{equation}
+
+Doing some algebric manipulation , using  $^t b= b$ for scalars and $X \cdot Y= ^t X Y = ^t Y X$ for vectors, we get :
+
+\begin{equation}
+\begin{array}{l}
+	R(X)  \\
+         =  \sum_j  (\trans X L_j -b_j)  ( \trans L_j  X -b_j) \\
+	 = \trans X  (\sum_j L_j  \trans L_j) X - 2 (\sum_j L_j b_j) \cdot X + \sum_j b_j ^2
+\end{array}
+\end{equation}
+
+Noting $A$ the \emph{normal} matrix and $B$ the ?? vector  with :
+
+\begin{equation}
+	A =   \sum_j L_j  \trans L_j  \; ; \;  B =\sum_j L_j b_j  \; ; \; C =  \sum_j b_j ^2
+\end{equation}
+
+We get :
+
+\begin{equation}
+	R(X) =  X \cdot A X - 2 B \cdot X +  C
+\end{equation}
+
+
+Noting $\overline X$ given by :
+
+\begin{equation}
+	\overline X = A^{-1} B \label{LstSq:Sol}
+\end{equation}
+
+And we can see that :
+
+\begin{equation}
+	R(X) =  (X-\overline X ) \cdot A  (X-\overline X )   +  C - B \cdot \overline X 
+\end{equation}
+
+The minimum of $R(X)$ is then reached for $X=\overline X$ and it is given by:
+
+\begin{equation}
+	R(\overline X) =    C - B \cdot \overline X \label{Lst:Res:Min}
+\end{equation}
+
+
+%-----------------------------------------------------------------------
+%-----------------------------------------------------------------------
+%-----------------------------------------------------------------------
+
+\section{Values and uncertainty estimation}
+
+%-----------------------------------------------------------------------
+\subsection{Gauss-Markov theorem}
+I we consider that each measure $L_j \cdot X - b_j$ is the realisation
+of a random variable  such that :
+
+\begin{itemize}
+    \item each variable has an average of $0$ ;
+    \item  the diffrente variable are independant \footnote{in fact un-correlated}
+    \item  the different variable have  the same variance $\sigma ^2$.
+\end{itemize}
+
+Then \emph{Gauss-Markov} \footnote{see for example https://en.wikipedia.org/wiki/Gauss-Markov\_theorem}
+theorem indicate that $\overline X$, as given in equation~\ref{LstSq:Sol}, is the 
+best linear unbiased estimator of $X$ , and that $\overline X$ being considered as a random
+variable, its variance-covariance $\Sigma$ can be computed by the un-biased estimator of
+equation ~\ref{LstSq:EstVarCov} :
+
+\begin{equation}
+	\Sigma = A^{-1}  \frac{R(\overline X)}{N}  \frac{M}{M-N} = A^{-1} \sigma_0^2 \label{LstSq:EstVarCov}
+\end{equation}
+
+%-----------------------------------------------------------------------
+\subsection{Efficiency consideration}
+
+    %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Case a single variable}
+
+If we are interested in estimating the uncertainty of \emph{all} variables, we can
+compute the matrix $A^{-1}$ and takes the diagonal element. By the way, with "big"
+system this can be un-efficient in time and space; if are
+interested in only one variable, say the $k^{th}$ :
+
+\begin{itemize}
+    \item  we only need to know the element $a^{-1}_{k,k}$
+    \item  so noting $C^k$ the 
+	   vector such that $C^k_i =\delta_k(i)$  (i.e the vector with all coordinates to $0$
+           except  the $k^{th}$ to $1$);
+    \item  it's sufficient to know $A^{-1} C^k$,
+    \item  $A^{-1} C^k$ can computed by computing $C'^k$ such that $A C'^k = C^k$
+    \item  depending on the structure of the sytem (sparsity \dots) and the used
+	    algorithm (for example Cholesky) , solving \emph{only} equation $A C'^k = C^k$
+		can be much more efficient than computing explicitely $A^{-1}$.
+\end{itemize}
+
+    %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Case few variable}
+
+Similarly, if we are interested in estimating the variance (and possibly covariance)  for
+only a set $S$ of  few variable $S=\{k_1,\dots k_l\}$, noting the matrix $l \times N$
+matrix $\mathcal{C}(S) = [C^{k_1} \dots C^{k_l}]$.
+
+It is suffiient to compute the  matrix $ \mathcal{C}'(S)$ by
+solving  the system $A \mathcal{C}'(S) = \mathcal{C}(S)$.
+
+    %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Case linear combination}
+
+Some time, we are interested in the variance/vovariance  of  different linear combination.
+Note $V_1, \dots ,V_l$ the $l$ vectors, such that  we want to estimate $V_1 \cdot X, \dots V_l \cdot X$.
+
+For the value itself, due to linearity, the best estimator are simply $\overline{V_k} = V_k \cdot \overline X$.
+For the variance/covariance, going back to equation~\ref{LstSq:EstVarCov}, we have :
+
+
+\begin{equation}
+	Cov(\overline{V_{k_1}},\overline{V_{k_2}})  =  \trans V_{k_1} A^{-1} V_{k_2}  \sigma_0^2 \label{LstSq:LinCombVarCov}
+\end{equation}
+
+And again \dots we dont need to compute $ A^{-1}$ but only to solve $A V'_{k_2}  = V_{k_2}$ and then use $V_{k_1} \cdot V'_{k_2}$.
+
+    %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Putting everything together}
+
+\label{LstSq:Uncer:AllTog}
+
+Note that to use formulas like~\ref{LstSq:LinCombVarCov}, we need to compute $\sigma_0^2$,  we need to compute $R(\overline(X))$,
+and using equation~\ref{Lst:Res:Min}  we need to compute  $ \overline(X) =  A^{-1} B$.
+
+So suppose that at a given step, we need to estimate the uncertainty of $l$ variables, $m$ linear combination , to minise
+the computation cost, we will proceed this way :
+
+\begin{itemize}
+     \item  compute a $(1+l+m) \times N$ matrix $M$;
+     \item  the first colum of $M$ will be $B$;
+     \item  the $l$ next columns will be the $C_k$;
+     \item  the $m$ next columns will be the $V_k$;
+     \item  solve the  equation $A M' = M$;
+     \item the first colum of $M'$ is $\overline X$, allow to compute $\sigma_0$
+     \item next colums allow to compute the required variance/covariance for variables or their linear combination.
+\end{itemize}
+
+
+%-----------------------------------------------------------------------
+%-----------------------------------------------------------------------
+%-----------------------------------------------------------------------
+
+\section{Uncertainty estimation in MMVII for the programmer}
+
+%-----------------------------------------------------------------------
+\subsection{When doing it ?} 
+
+To do it  in a coherent way, the computation must be done when the matrixes are  complete, 
+that is once we have added all the observations, all the constraints, eventually the
+Levenberg-Markard "stabilisation".
+
+But the moment where this is the case, is inside the method {\tt SolveUpdateReset}. If we do it before,
+the system is not complete, if we do it after it will have been reseted and all the information will
+be lost.  Of course these constraint are consequences of some implementation choices and could
+have been avoided with some consequent re-organisation, which I did not want.
+
+So to do it "at the good time", the way it is done is :
+
+\begin{itemize}
+   \item an optionnal structure must be passed to  {\tt SolveUpdateReset};
+   \item this structure  will be filled inside the call to  {\tt SolveUpdateReset}.
+\end{itemize}
+
+%-----------------------------------------------------------------------
+\subsection{The stucture {\tt cResult\_UC\_SUR}}
+
+The structure {\tt cResult\_UC\_SUR} is the strcuture that will be passed,
+its constructor contains :
+
+\begin{itemize}
+     \item a boolean indicating if we want to compute var/covar all the variable (just an easy way to fit $3^{rd}$ parameter);
+     \item a boolean indicating if we want to compute normal matrix (generally useless)
+     \item a list of indexes of variable for which we want to compute the var/covar
+     \item a list of sparse vector for which we want to compute var/covar.
+\end{itemize}
+
+Inside the computation , the matrix $M$ descrined in ~\ref{LstSq:Uncer:AllTog} is computed
+and the solution $M'$ of $AM' = M$ also.  After computation, what can be asked :
+
+
+\begin{itemize}
+      \item covariance between required variable
+      \item covariance between required linear combination
+      \item sigm0 (for test ?)
+      \item access to $M'$ (just in case).
+\end{itemize}
+
+
+%-----------------------------------------------------------------------
+\subsection{Correction test}
+
+    %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Motivation}
+A relatively consequent test/bench of the implementation has been made. 
+It can be found in {\tt Bench/BenchPropagUncert.cpp} . The motivation
+of this bench is multiple :
+
+\begin{itemize}
+     \item check my understanding of the \emph{Gauss-Markov} theorem;
+     \item check the correctness of the implementation
+     \item check the  validity, or not, of \emph{Gauss-Markov} in some non
+	     standard case (optimization with constraints, optimization with schur complement);
+     \item potentially be used for didactic explanation of \emph{Gauss-Markov}
+	     (but the code would require some simplification).
+\end{itemize}
+
+    %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Formalization}
+
+We have to generate data that are compliant with  gauss markov hypothesis. We do this way :
+
+\begin{itemize}
+     \item we generate $M$ random vector $V_1,V_2 \dots V_M$ of dimension $N$, that will correspond to 
+           observations, assuring that they are not degenerate;
+
+     \item we generate a random point $P$, the "solution" of the system
+
+     \item for each observation  $V_k$, we will generate a discrete uniform law, centered on $V_k \cdot P$
+	    on a small numer of values $n_k$ (typically between between $2$ and $5$) with the same variance $\sigma$
+\end{itemize}
+
+As the individual law of observation must be independant, all their combination are equi-probable. So
+we generate all the $\mathcal{N} = n_1 * n_2 \dots * n_M$ possible combination of the indivual law.  For each
+combination $c$  we compute :
+
+\begin{itemize}
+     \item compute the solution $S_c$  of the system;
+
+     \item accumulate the $S_c$ in the computation of the \emph{empiricall} covariance matrix $\mathcal{C}$ of $S_c$;
+
+     \item compute the estimator $\Sigma_c $ of the covariance for this combination, an accumulate it
+	     to compute the average  $\overline \Sigma$;
+\end{itemize}
+
+More formally :
+
+\begin{equation}
+	\mathcal{C} =  \frac{\sum \trans S_c S_c }{\mathcal{N}} -   \frac{\trans \sum S_c}{\mathcal{N}}  \frac{\sum S_c}{\mathcal{N}}
+\end{equation}
+
+And  :
+
+\begin{equation}
+	\overline \Sigma =  \frac{\Sigma_c }{\mathcal{N}} 
+\end{equation}
+
+
+And if every thing works, then $ \Sigma$ is an unbiased estimator or $ \mathcal{C} $ and we must have :
+
+\begin{equation}
+	\overline \Sigma   = \mathcal{C}
+\end{equation}
+
+And it works, were can conclude that :
+
+\begin{itemize}
+     \item \emph{Gauss-Markov} is right, big news ;-) !
+    \item even bigger news, the micmac implemetation is correct !
+\end{itemize}
+
+%\subsection{Uncertainty and constraint}
+%\subsection{Uncertainty and Schurr complement}
+
+
