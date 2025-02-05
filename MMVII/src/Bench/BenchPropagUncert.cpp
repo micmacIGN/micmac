@@ -181,6 +181,7 @@ void cBenchLstSqEstimUncert::DoIt
             // [3.5]  Matrix for accumulating unbiased estimation Var/Cov on free var
     cDenseMatrix<tREAL8>  aMoyEstimVCV(aVFreeVar.size(),eModeInitImage::eMIA_Null);
 
+    tREAL8 aWGlob =  RandInInterval(0.1,3.0);
     // --------- [4] ----------  parse all the possible combination of all the random variable --------
     for (int aK=0 ; aK<mDecompos.MulBase() ;aK++)
     {
@@ -190,7 +191,7 @@ void cBenchLstSqEstimUncert::DoIt
          {
              int aIndOfObs = aVInd.at(aKObs);
              tREAL8 aRHS =  mVRHS.at(aKObs).at(aIndOfObs);
-             mSys->AddObservationLinear(1.0,mVects.at(aKObs),aRHS);
+             mSys->AddObservationLinear(aWGlob,mVects.at(aKObs),aRHS);
          }
 
          // cDenseMatrix<tREAL8>  aMUC = mSys->SysLinear()->V_tAA();   // normal matrix , do it before Reset !!
@@ -209,7 +210,7 @@ void cBenchLstSqEstimUncert::DoIt
                 int aIndOfObs = aVInd.at(aKObs);
                 tREAL8 aRHS =  mVRHS.at(aKObs).at(aIndOfObs);  // extract the righ-hand-dised
                 tREAL8 aResidual = aSol.DotProduct(mVects.at(aKObs)) - aRHS;  // compute the residual of solution
-                aWAvResidual.Add(1.0,Square(aResidual)); //  add the value of residual
+                aWAvResidual.Add(1.0,Square(aResidual)*aWGlob); //  add the value of residual
             }
             if  (aNbCstrTot==0)
             {
@@ -252,6 +253,13 @@ void cBenchLstSqEstimUncert::DoIt
                // [4.5.3] "Economical" way, dont use explicit inverse of normal matrix but solve  N * Col12 = X
                // then Lin12 * X is Lin12 N-1 Col12
          aMoyCov12 = aMoyCov12 + (aLinComb12 * aMatNorm.Solve(aColComb12)) * aFUV;
+if (0)
+{
+    StdOut()   <<  " FUV="  << aFUV 
+               <<  " MUC=" <<  aMUC(0,0)
+               <<  " UKV="  << aRSUR.UK_VarCovarEstimate(0,0)
+               << "\n";
+}
     }
 
     //-------------------- [5] finally compare the empiricall solution with theory
@@ -278,7 +286,6 @@ void cBenchLstSqEstimUncert::DoIt
                tREAL8 aVUC = mMoyUnc.GetElem(aK1,aK2);
                tREAL8 aVCov = aMatCov.GetElem(aK1,aK2);
 
-StdOut() <<  "K1K2 " << aK1 << " " << aK2 << " " << aVUC << " " << aVCov << "\n";
                MMVII_INTERNAL_ASSERT_bench(std::abs(aVUC-aVCov)<1e-5,"Variance estimator ");
             }
         }
@@ -343,6 +350,7 @@ void BenchLstSqEstimUncert(cParamExeBench & aParam)
          //  for (const auto aMode : {eModeSSR::eSSR_LsqDense,eModeSSR::eSSR_LsqNormSparse})
          for (const auto aMode : {eModeSSR::eSSR_LsqNormSparse,eModeSSR::eSSR_LsqDense})
          {
+             aLstQ4B.DoIt(aParam.DemoTest(),aMode,{},{});
 
              aLstQ4B.DoIt(aParam.DemoTest(),aMode,{0,2},{});
 

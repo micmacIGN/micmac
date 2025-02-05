@@ -369,7 +369,8 @@ template<class Type> cLinearOverCstrSys<Type>::cLinearOverCstrSys(int aNbVar) :
 template<class Type> void cLinearOverCstrSys<Type>::AddWRHS(Type aW,Type aRHS)
 {
    mSumWRHS2 += aW*Square(aRHS);
-   mSumW     += aW;
+   // mSumW     += aW;
+   mSumW        += 1;
 }
 
 
