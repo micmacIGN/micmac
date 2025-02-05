@@ -277,6 +277,8 @@ void cBenchLstSqEstimUncert::DoIt
             {
                tREAL8 aVUC = mMoyUnc.GetElem(aK1,aK2);
                tREAL8 aVCov = aMatCov.GetElem(aK1,aK2);
+
+StdOut() <<  "K1K2 " << aK1 << " " << aK2 << " " << aVUC << " " << aVCov << "\n";
                MMVII_INTERNAL_ASSERT_bench(std::abs(aVUC-aVCov)<1e-5,"Variance estimator ");
             }
         }
