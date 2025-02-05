@@ -38,7 +38,7 @@ class cBenchLstSqEstimUncert
          tREAL8                       mStdDev;      ///< Standard deviation common to all obs
          cDecomposPAdikVar            mDecompos;    ///< help class to parse all combination of 
          cResolSysNonLinear<tREAL8> * mSys;         ///< solver
-         cStrStat2<tREAL8>            mStat2;       ///<  Used for computing covariance of solutions
+         cStrStat2<tREAL8>            mStat2;       ///<  Used for computing empirical covariance of solutions
          cDenseMatrix<tREAL8>         mMoyUnc;      ///< Used to compute average of uncertainty
          std::vector<tDV>             mVects;       ///< vector of all linear part of observation
          std::vector<std::vector<tREAL8>> mVRHS;    ///< vector of all possible RHS values of equations
@@ -96,11 +96,8 @@ void cBenchLstSqEstimUncert::DoIt
          const std::vector<std::vector<int>> & aVVIndCstr
       )
 {
-    cSetInterUK_MultipeObj<tREAL8> aSetI;
-
     // ----------- [0] initialize the parameters,  re-set global var (simpler ...) -----------
     delete mSys;
-    // mSys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqDense,mCommonP);
     mSys = new cResolSysNonLinear<tREAL8>(aMode,mCommonP);
     mStat2 =  cStrStat2<tREAL8>(mDim);
     mMoyUnc     = cDenseMatrix<tREAL8>(mDim,eModeInitImage::eMIA_Null);

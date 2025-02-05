@@ -26,14 +26,14 @@ Noting $L_j =  l_{i,j}$ and $X=x_i$ with $X$ and $L_j$ in $\RR^N$, we write :
 \subsection{Formalisation}
 
 In general $M>N$ and there is no exact solution to equation\ref{LstQ:EqLXb},
-so we replace the exact solving by the minimization of square residual $R(X)$ :
+so we replace the exact solving by the minimization of square of residuals $R(X)$ :
 
 
 \begin{equation}
 	R(X)  =  \sum_{j=1}^M (L_j \cdot X - b_j)^2
 \end{equation}
 
-Doing some algebric manipulation, using properties $^t b= b$ for scalars and $X \cdot Y= ^t X Y = ^t Y X$ for vectors, we get :
+Doing some algebric manipulation, and using properties such tha $^t b= b$ for scalars and $X \cdot Y= ^t X Y = ^t Y X$ for vectors, we get :
 
 \begin{equation}
 \begin{array}{l}
@@ -43,7 +43,7 @@ Doing some algebric manipulation, using properties $^t b= b$ for scalars and $X 
 \end{array}
 \end{equation}
 
-Noting $A$ the \emph{normal} matrix and $B$ the ?? vector  with :
+We note $A$ the \emph{normal} matrix and $B$ the ?? vector  with :
 
 \begin{equation}
 	A =   \sum_j L_j  \trans L_j  \; ; \;  B =\sum_j L_j b_j  \; ; \; C =  \sum_j b_j ^2
@@ -56,13 +56,13 @@ We get :
 \end{equation}
 
 
-Seting $\overline X$ as :
+Setting $\overline X$ as :
 
 \begin{equation}
 	\overline X = A^{-1} B \label{LstSq:Sol}
 \end{equation}
 
-And get :
+We have :
 
 \begin{equation}
 	R(X) =  (X-\overline X ) \cdot A  (X-\overline X )   +  C - B \cdot \overline X 
@@ -110,16 +110,15 @@ equation ~\ref{LstSq:EstVarCov} :
 
 If we are interested in estimating the uncertainty of \emph{all} variables, we can
 compute the matrix $A^{-1}$ and takes the diagonal element. By the way, with "big"
-system this can be un-efficient in time and space; if are
+system this can be un-efficient in time and space; if we are
 interested in only one variable, say the $k^{th}$ :
 
 \begin{itemize}
     \item  we only need to know the element $a^{-1}_{k,k}$
     \item  so noting $C^k$ the 
 	   vector such that $C^k_i =\delta_k(i)$  (i.e the vector with all coordinates to $0$
-           except  the $k^{th}$ to $1$);
-    \item  it's sufficient to know $A^{-1} C^k$,
-    \item  $A^{-1} C^k$ can computed by computing $C'^k$ such that $A C'^k = C^k$
+           except  the $k^{th}$ to $1$), \ it's sufficient to know $A^{-1} C^k$,
+    \item  $A^{-1} C^k$ can be  computed by computing $C'^k$ such that $A C'^k = C^k$
     \item  depending on the structure of the sytem (sparsity \dots) and the used
 	    algorithm (for example Cholesky) , solving \emph{only} equation $A C'^k = C^k$
 		can be much more efficient than computing explicitely $A^{-1}$.
@@ -129,10 +128,9 @@ interested in only one variable, say the $k^{th}$ :
 \subsubsection{Case few variable}
 
 Similarly, if we are interested in estimating the variance (and possibly covariance)  for
-only a set $S$ of  few variable $S=\{k_1,\dots k_l\}$, noting the matrix $l \times N$
-matrix $\mathcal{C}(S) = [C^{k_1} \dots C^{k_l}]$.
-
-It is suficient to compute the  matrix $ \mathcal{C}'(S)$ by
+only a set $S$ of  few variables $S=\{k_1,\dots k_l\}$, noting  $\mathcal{C}(S)$ the  $l \times N$
+matrix  defined by $\mathcal{C}(S) = [C^{k_1} \dots C^{k_l}]$,
+it is suficient to compute the  matrix $ \mathcal{C}'(S)$ by
 solving  the system $A \mathcal{C}'(S) = \mathcal{C}(S)$.
 
     %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
@@ -156,8 +154,8 @@ And again \dots we dont need to compute $ A^{-1}$ but only to solve $A V'_{k_2} 
 
 \label{LstSq:Uncer:AllTog}
 
-Note that to use formulas like~\ref{LstSq:LinCombVarCov}, we need to compute $\sigma_0^2$,  we need to compute $R(\overline(X))$,
-and using equation~\ref{Lst:Res:Min}  we need to compute  $ \overline{X} =  A^{-1} B$.
+Note that to use formulas like~\ref{LstSq:LinCombVarCov} we need to compute $\sigma_0^2$.  This require to compute $R(\overline(X))$,
+and using equation~\ref{Lst:Res:Min} this require   to compute  $ \overline{X} =  A^{-1} B$.
 
 So suppose that at a given step, we need to estimate the uncertainty of $l$ variables, $m$ linear combination , to minise
 the computation cost, we will proceed this way :
@@ -189,9 +187,9 @@ Levenberg-Markard "stabilisation".
 But the moment where this is the case, is inside the method {\tt SolveUpdateReset}. If we do it before,
 the system is not complete, if we do it after it will have been reseted and all the information will
 be lost.  Of course these constraint are consequences of some implementation choices and could
-have been avoided with some consequent re-organisation, which I did not want.
+have been avoided with some consequent re-organisation  \dots which I did not want.
 
-So to do it "at the good time", the way it is done is :
+So to do it "at the good timing", the way it is implemented is :
 
 \begin{itemize}
    \item an optionnal structure must be passed to  {\tt SolveUpdateReset};
@@ -201,24 +199,24 @@ So to do it "at the good time", the way it is done is :
 %-----------------------------------------------------------------------
 \subsection{The stucture {\tt cResult\_UC\_SUR}}
 
-The structure {\tt cResult\_UC\_SUR} is the strcuture that will be passed,
+The structure {\tt cResult\_UC\_SUR} is the structure that will be passed,
 its constructor contains :
 
 \begin{itemize}
      \item a boolean indicating if we want to compute var/covar all the variable (just an easy way to fit $3^{rd}$ parameter);
-     \item a boolean indicating if we want to compute normal matrix (generally useless)
-     \item a list of indexes of variable for which we want to compute the var/covar
+     \item a boolean indicating if we want to compute normal matrix (generally useless);
+     \item a list of indexes of variable for which we want to compute the var/covar;
      \item a list of sparse vector for which we want to compute var/covar.
 \end{itemize}
 
-Inside the computation , the matrix $M$ descrined in ~\ref{LstSq:Uncer:AllTog} is computed
-and the solution $M'$ of $AM' = M$ also.  After computation, what can be asked :
+Inside the computation , the matrix $M$ descrined in ~\ref{LstSq:Uncer:AllTog} is constructed
+and then solution $M'$ of $AM' = M$ is computed.  After computation, what can be asked :
 
 
 \begin{itemize}
-      \item covariance between required variable
-      \item covariance between required linear combination
-      \item sigm0 (for test ?)
+      \item covariance between required variables;
+      \item covariance between required linear combination;
+      \item sigma0 (for test ?);
       \item access to $M'$ (just in case).
 \end{itemize}
 
@@ -258,21 +256,21 @@ We have to generate data that are compliant with  gauss markov hypothesis. We do
 
 As the individual law of observation must be independant, all their combination are equi-probable. So
 we generate all the $\mathcal{N} = n_1 * n_2 \dots * n_M$ possible combination of the indivual law.  For each
-combination $c$  we compute :
+combination $c$  we :
 
 \begin{itemize}
      \item compute the solution $S_c$  of the system;
 
-     \item accumulate the $S_c$ in the computation of the \emph{empiricall} covariance matrix $\mathcal{C}$ of $S_c$;
+     \item accumulate the $S_c$ in the computation of the \emph{empiricall} covariance matrix $\mathcal{E^C}$ of the $S_c$;
 
-     \item compute the estimator $\Sigma_c $ of the covariance for this combination, an accumulate it
+     \item compute the estimator $\Sigma_c $ of the covariance for \emph{this} combination, an accumulate it
 	     to compute the average  $\overline \Sigma$;
 \end{itemize}
 
 More formally :
 
 \begin{equation}
-	\mathcal{C} =  \frac{\sum \trans S_c S_c }{\mathcal{N}} -   \frac{\trans \sum S_c}{\mathcal{N}}  \frac{\sum S_c}{\mathcal{N}}
+	\mathcal{E^C} =  \frac{\sum \trans S_c S_c }{\mathcal{N}} -   \frac{\trans \sum S_c}{\mathcal{N}}  \frac{\sum S_c}{\mathcal{N}}
 \end{equation}
 
 And  :
@@ -282,20 +280,37 @@ And  :
 \end{equation}
 
 
-And if every thing works, then $ \Sigma$ is an unbiased estimator or $ \mathcal{C} $ and we must have :
+And if every thing works, then $ \Sigma$ is an unbiased estimator or $ \mathcal{E^C} $ and we must have :
 
 \begin{equation}
-	\overline \Sigma   = \mathcal{C}
+	\overline \Sigma   = \mathcal{EC}
 \end{equation}
 
-And it works, were can conclude that :
+And it works \dots from which were can conclude that :
 
 \begin{itemize}
      \item \emph{Gauss-Markov} is right, big news ;-) !
     \item even bigger news, the micmac implemetation is correct !
 \end{itemize}
 
-%\subsection{Uncertainty and constraint}
-%\subsection{Uncertainty and Schurr complement}
+    %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Uncertainty and constraint}
+
+When the minimization has been made with  constraint we observe :
+
+\begin{itemize}
+   \item  the var-covar estimator is still correct  for the variable not concerned with the constraint;
+   \item  the result is more complex to analysze for the other ... 
+\end{itemize}
+
+
+    %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Uncertainty and Schurr complement}
+
+Not tested for now. But certainly do not work as is . To be done : test , understand and correct \dots
+
+
+
+
 
 

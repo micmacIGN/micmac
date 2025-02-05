@@ -195,11 +195,11 @@ template <class Type> class cResult_UC_SUR
 
         cResult_UC_SUR
         (
-               tRSNL *                   aRSNL,
-               bool                      initAllVar=false,
-               bool                      computNormalM=false,
-               const std::vector<int> &  aVIndUC2Compute = {},
-               const std::vector<cSparseVect<Type>> &  aVLinearCstr = {}
+               tRSNL *                   aRSNL,             // the system it will be used with
+               bool                      initAllVar=false,    // do we compute var/covar of all vars
+               bool                      computNormalM=false,  // do we compute normal matrix (useless in fact ...)
+               const std::vector<int> &  aVIndUC2Compute = {},  // list of variable  for which we compute variance
+               const std::vector<cSparseVect<Type>> &  aVLinearComb = {} // list of linear combination for variance comp
         );
         Type   FUV() const;           ///<  Accessor to  "Unitary Factor" of variance or "sigma0", rather for test
 
