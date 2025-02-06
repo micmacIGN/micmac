@@ -986,7 +986,7 @@ template <class Type> class cObjWithUnkowns //  : public cObjOfMultipleObjUk<Typ
           virtual void PutUknowsInSetInterval() = 0;
 
 	  ///  Default generate error 4 now
-	  virtual  void  GetAdrInfoParam(cGetAdrInfoParam<Type> &);
+	  virtual  void  FillGetAdrInfoParam(cGetAdrInfoParam<Type> &);
 
 
           /// This callbak method is called after update, used when modification of linear var is not enough (see cSensorCamPC)
@@ -1043,7 +1043,7 @@ template <const int Dim>  class cPtxdr_UK :  public cObjWithUnkowns<tREAL8>,
       const tPt & Pt() const ;
       tPt & Pt() ;
 
-      void  GetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
+      void  FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
 
    private :
       cPtxdr_UK(const cPtxdr_UK&) = delete;
@@ -1064,7 +1064,7 @@ class cVectorUK :  public cObjWithUnkowns<tREAL8>,
       ~cVectorUK();
       void PutUknowsInSetInterval() override;
       const tVect & Vect() const ; ///< Accessor
-      void  GetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
+      void  FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
 
    private :
       cVectorUK(const cVectorUK&) = delete;

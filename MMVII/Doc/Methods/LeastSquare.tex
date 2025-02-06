@@ -296,7 +296,16 @@ And it works \dots from which were can conclude that :
     %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 \subsubsection{Uncertainty and constraint}
 
-When the minimization has been made with  constraint we observe :
+When the minimization has been made with  constraint , we have to modify equation~\ref{LstSq:EstVarCov}
+to ~\ref{LstSq:Cstr:EstVarCov} where $m^C$ is the number of constraints :
+
+
+
+\begin{equation}
+	\Sigma = A^{-1}  \frac{R(\overline X)}{N}  \frac{M+m^C}{M+m^C -N}  \label{LstSq:Cstr:EstVarCov}
+\end{equation}
+
+We observe then :
 
 \begin{itemize}
    \item  the var-covar estimator is still correct  for the variable not concerned with the constraint;

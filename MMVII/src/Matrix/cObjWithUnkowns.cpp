@@ -33,12 +33,12 @@ template <class Type> cGetAdrInfoParam<Type>::cGetAdrInfoParam(const std::string
 
         for (auto  aPtr : aVObj)
         {
-            aPtr->GetAdrInfoParam(*this);
+            aPtr->FillGetAdrInfoParam(*this);
         }
     }
     else
     {
-       aObj.GetAdrInfoParam(*this);
+       aObj.FillGetAdrInfoParam(*this);
     }
 	/*
      std::vector<cObjWithUnkowns<Type> *>  aVObj = aObj.RecursGetAllUK() ;
@@ -186,7 +186,7 @@ template <class Type> size_t cObjWithUnkowns<Type>::IndOfVal(const Type * aVal) 
 }
 
 template <class Type> 
-    void  cObjWithUnkowns<Type>::GetAdrInfoParam(cGetAdrInfoParam<Type> &) 
+    void  cObjWithUnkowns<Type>::FillGetAdrInfoParam(cGetAdrInfoParam<Type> &) 
 {
     MMVII_INTERNAL_ERROR("No default AdrParamFromPattern");
 }
@@ -381,7 +381,7 @@ void cVectorUK::PutUknowsInSetInterval()
     mSetInterv->AddOneInterv(mVect);
 }
 
-void  cVectorUK::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
+void  cVectorUK::FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 {
     for (size_t aK=0 ; aK<mVect.size() ; aK++)
     {

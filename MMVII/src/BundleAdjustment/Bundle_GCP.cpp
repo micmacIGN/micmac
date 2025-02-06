@@ -276,7 +276,7 @@ template <const int Dim> cPtxdr_UK<Dim>::cPtxdr_UK(const tPt & aPt,const std::st
 
 std::vector<std::string> VNameCoordsPt = {"x","y","z","t"};
 
-template <const int Dim>  void cPtxdr_UK<Dim>::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
+template <const int Dim>  void cPtxdr_UK<Dim>::FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 {
     for (int aD=0 ; aD<Dim ; aD++)
     {

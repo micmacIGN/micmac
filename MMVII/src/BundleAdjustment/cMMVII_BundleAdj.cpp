@@ -140,7 +140,8 @@ void cMMVII_BundleAdj::ShowUKNames()
 	// virtual  void  GetAdrInfoParam(cGetAdrInfoParam<Type> &);
 
      }
-     getchar();
+     StdOut() << "NBUK=" << mR8_Sys->NbVar() << "\n";
+     //getchar();
 	// mSetIntervUK
 }
 

@@ -155,7 +155,7 @@ class cClinoWithUK :  public cObjWithUnkowns<tREAL8>, public cMemCheck
           // update mRot with mOmega
           void OnUpdate() override; 
 
-          void GetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
+          void FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
 
           // push index of unknowns
           void pushIndex(std::vector<int> & aVInd) const;

@@ -93,7 +93,7 @@ void cPoseWithUK::OnUpdate()
      mOmega = cPt3dr(0,0,0);
 }
 
-void  cPoseWithUK::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
+void  cPoseWithUK::FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 {
    aGAIP.TestParam(this, &( mPose.Tr().x()),"Cx");
    aGAIP.TestParam(this, &( mPose.Tr().y()),"Cy");
@@ -575,9 +575,9 @@ std::vector<cPt2dr>  cSensorCamPC::PtsSampledOnSensor(int aNbByDim,tREAL8 aEps) 
 std::string  cSensorCamPC::V_PrefixName() const { return PrefixName() ; }
 std::string  cSensorCamPC::PrefixName()  { return "PerspCentral";}
 
-void  cSensorCamPC::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
+void  cSensorCamPC::FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 {
-   mPose_WU.GetAdrInfoParam(aGAIP);
+   mPose_WU.FillGetAdrInfoParam(aGAIP);
    aGAIP.SetNameType("PoseCamPC");
    aGAIP.SetIdObj(NameImage());
 }

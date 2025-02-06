@@ -152,7 +152,7 @@ void cTopoObsSetStation::PushRotObs(std::vector<double> & aVObs) const
     getRotSysCo2Instr().Mat().PushByCol(aVObs);
 }
 
-void  cTopoObsSetStation::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
+void  cTopoObsSetStation::FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 {
     aGAIP.SetNameType("Station");
     aGAIP.SetIdObj(mOriginName);

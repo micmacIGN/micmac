@@ -253,13 +253,6 @@ void cBenchLstSqEstimUncert::DoIt
                // [4.5.3] "Economical" way, dont use explicit inverse of normal matrix but solve  N * Col12 = X
                // then Lin12 * X is Lin12 N-1 Col12
          aMoyCov12 = aMoyCov12 + (aLinComb12 * aMatNorm.Solve(aColComb12)) * aFUV;
-if (0)
-{
-    StdOut()   <<  " FUV="  << aFUV 
-               <<  " MUC=" <<  aMUC(0,0)
-               <<  " UKV="  << aRSUR.UK_VarCovarEstimate(0,0)
-               << "\n";
-}
     }
 
     //-------------------- [5] finally compare the empiricall solution with theory
