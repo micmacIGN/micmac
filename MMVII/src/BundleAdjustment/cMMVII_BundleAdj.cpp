@@ -137,7 +137,7 @@ void cMMVII_BundleAdj::ShowUKNames(const std::vector<std::string> & aParam)
                 int aIndGlob = aBBNV.mIndVar0 + aKV;
                 StdOut() << "      N=" << aBBNV.mNamesVar.at(aKV)  << " V=" << aVUk(aBBNV.mIndVar0 + aKV) ;
                 if (mRUCSUR)
-                   StdOut()  << " UC=" << mRUCSUR->UK_VarCovarEstimate(aIndGlob,aIndGlob);
+                   StdOut()  << " UC=" << std::sqrt(mRUCSUR->UK_VarCovarEstimate(aIndGlob,aIndGlob));
                 StdOut() << "\n";
              }
          }
