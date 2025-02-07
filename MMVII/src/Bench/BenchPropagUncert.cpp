@@ -195,7 +195,8 @@ void cBenchLstSqEstimUncert::DoIt
          }
 
          // cDenseMatrix<tREAL8>  aMUC = mSys->SysLinear()->V_tAA();   // normal matrix , do it before Reset !!
-         cResult_UC_SUR<tREAL8> aRSUR(mSys,false,true,aVFreeVar,aVSpCombBlin);
+         cResult_UC_SUR<tREAL8> * aPtrRSUR = new  cResult_UC_SUR<tREAL8>(false,true,aVFreeVar,aVSpCombBlin);
+         cResult_UC_SUR<tREAL8> aRSUR = *aPtrRSUR;
          // aRSUR.SetDoComputeNormalMatrix(true);
 
          tDV aSol = mSys->SolveUpdateReset(0.0,{&aRSUR});  // compute the solution of this config
@@ -253,6 +254,8 @@ void cBenchLstSqEstimUncert::DoIt
                // [4.5.3] "Economical" way, dont use explicit inverse of normal matrix but solve  N * Col12 = X
                // then Lin12 * X is Lin12 N-1 Col12
          aMoyCov12 = aMoyCov12 + (aLinComb12 * aMatNorm.Solve(aColComb12)) * aFUV;
+
+         delete aPtrRSUR;
     }
 
     //-------------------- [5] finally compare the empiricall solution with theory

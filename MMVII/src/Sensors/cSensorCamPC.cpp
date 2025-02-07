@@ -102,6 +102,8 @@ void  cPoseWithUK::FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
    aGAIP.TestParam(this, &( mOmega.x())    ,"Wx");
    aGAIP.TestParam(this, &( mOmega.y())    ,"Wy");
    aGAIP.TestParam(this, &( mOmega.z())    ,"Wz");
+
+   SetNameTypeId(aGAIP);
 }
 
 void cPoseWithUK::PutUknowsInSetInterval(cSetInterUK_MultipeObj<tREAL8> * aSetInterv) 

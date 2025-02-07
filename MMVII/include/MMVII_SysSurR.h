@@ -195,12 +195,13 @@ template <class Type> class cResult_UC_SUR
 
         cResult_UC_SUR
         (
-               tRSNL *                   aRSNL,             // the system it will be used with
                bool                      initAllVar=false,    // do we compute var/covar of all vars
                bool                      computNormalM=false,  // do we compute normal matrix (useless in fact ...)
                const std::vector<int> &  aVIndUC2Compute = {},  // list of variable  for which we compute variance
                const std::vector<cSparseVect<Type>> &  aVLinearComb = {} // list of linear combination for variance comp
         );
+        ~cResult_UC_SUR();
+
         Type   FUV() const;           ///<  Accessor to  "Unitary Factor" of variance or "sigma0", rather for test
 
         cDenseMatrix<Type> NormalMatrix() const;  /// accessor, if was computed
@@ -218,11 +219,13 @@ template <class Type> class cResult_UC_SUR
         cDenseVect<Type>    VectSol() const;   ///  Accesor, usefull to avoid re-computation
 
     private:
-        void  Compile();
+        void  Compile( tRSNL *);
         void  AssertCompiled() const;
 
 
         bool                             mCompiled;
+        bool                             mAddAllVar;
+        std::vector<int>                 mVIndUC2Compute;
         tRSNL *                          mRSNL;
         int                              mDim;
         tLinearSysSR *                   mSysL;
@@ -1010,6 +1013,8 @@ template <class Type> class cObjWithUnkowns //  : public cObjOfMultipleObjUk<Typ
           int   IndUk0() const;   ///< Accessor
           int   IndUk1() const;   ///< Accessor
 
+          void SetNameType(const std::string &);
+          void SetNameIdObj(const std::string &);
        protected :
 	  /// defautl constructor, put non init in all vars
           void OUK_Reset();
@@ -1021,6 +1026,12 @@ template <class Type> class cObjWithUnkowns //  : public cObjOfMultipleObjUk<Typ
           int   mNumObj;
           int   mIndUk0;
           int   mIndUk1;
+          ///  probably should have existed from the beginnin
+          std::string  mOUK_NameType;
+          std::string  mOUK_IdObj;
+          static std::string  NamesTypeId_NonInit() ;
+          /// fix with mOUK_Name..  if they have been initiated 
+          void SetNameTypeId(cGetAdrInfoParam<tREAL8> & aGAIP) const;
 };
 
 template <class T1,class T2> void ConvertVWD(cInputOutputRSNL<T1> & aIO1 , const cInputOutputRSNL<T2> & aIO2);

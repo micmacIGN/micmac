@@ -18,16 +18,17 @@ namespace MMVII
 template <class Type>  
   cResult_UC_SUR<Type>::cResult_UC_SUR
   (
-       tRSNL *aRSNL,
        bool  addAllVar,
        bool computNormalM,
        const std::vector<int>  & aVIndUC2Compute,
        const std::vector<cSparseVect<Type>> &  aVLinearCstr
   ) :
       mCompiled           (false),
-      mRSNL               (aRSNL),
-      mDim                (mRSNL->NbVar()),
-      mSysL               (mRSNL->SysLinear()),
+      mAddAllVar          (addAllVar),
+      mVIndUC2Compute     (aVIndUC2Compute),
+      mRSNL               (nullptr),
+      mDim                (-1),
+      mSysL               (nullptr),
       mDebug              (false),
       mNormalM_Compute    (computNormalM),
       mVectCombLin        (aVLinearCstr),
@@ -36,17 +37,12 @@ template <class Type>
       mNormalMatrix       (1),
       mGlobUncertMatrix   (1)
 {
-   if (addAllVar)
-   {
-       for (int aK=0; aK<mDim ; aK++)
-           mIndexUC_2Compute.Add(aK);
-   }
-   else 
-   {
-       for (const auto & aK : aVIndUC2Compute)
-           mIndexUC_2Compute.Add(aK);
-   }
 }
+
+template <class Type>  cResult_UC_SUR<Type>::~cResult_UC_SUR()
+{
+}
+
 
 template <class Type> Type  cResult_UC_SUR<Type>::FUV() const {return mFUV;}
 
@@ -79,8 +75,30 @@ template <class Type>  Type  cResult_UC_SUR<Type>::CombLin_VarCovarEstimate(int 
 }
 
 
-template <class Type>  void  cResult_UC_SUR<Type>::Compile()
+template <class Type>  void  cResult_UC_SUR<Type>::Compile(tRSNL * aRSNL)
 {
+   if (mRSNL==nullptr)
+   {
+      mRSNL   = aRSNL;
+      mDim    = mRSNL->NbVar();
+      mSysL   = mRSNL->SysLinear();
+      if (mAddAllVar)
+      {
+           for (int aK=0; aK<mDim ; aK++)
+               mIndexUC_2Compute.Add(aK);
+      }
+      else 
+      {
+           for (const auto & aK : mVIndUC2Compute)
+               mIndexUC_2Compute.Add(aK);
+      }
+   }
+   else
+   {
+      MMVII_INTERNAL_ASSERT_strong(aRSNL==mRSNL,"Variable sys in cResult_UC_SUR<Type>::Compile");
+   }
+
+
    mNbObs          =  mRSNL->GetCurNbObs();
    mNbCstr         =  mRSNL->GetNbLinearConstraints();
    mRatioDOF       =  (mNbObs+mNbCstr)/double(mNbObs-(mDim-mNbCstr)) ;

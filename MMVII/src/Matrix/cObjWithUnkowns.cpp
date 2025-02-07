@@ -98,10 +98,36 @@ template <class Type> void cGetAdrInfoParam<Type>::PatternSetToVal(const std::st
 /* ******************************** */
 
 //  put all value to "bull shit"
-template <class Type> cObjWithUnkowns<Type>::cObjWithUnkowns()
+template <class Type> cObjWithUnkowns<Type>::cObjWithUnkowns() :
+    mOUK_NameType  (NamesTypeId_NonInit()),
+    mOUK_IdObj     (NamesTypeId_NonInit())
 {
    OUK_Reset();
 }
+
+template <class Type> std::string cObjWithUnkowns<Type>::NamesTypeId_NonInit()
+{
+   return MMVII_NONE;
+}
+template <class Type> void cObjWithUnkowns<Type>::SetNameType(const std::string & aName)
+{
+   mOUK_NameType = aName;
+}
+
+template <class Type> void cObjWithUnkowns<Type>::SetNameIdObj(const std::string & aName)
+{
+   mOUK_IdObj = aName;
+}
+
+template <class Type> void cObjWithUnkowns<Type>::SetNameTypeId(cGetAdrInfoParam<tREAL8> & aGAIP) const
+{
+    if (mOUK_NameType != NamesTypeId_NonInit()) 
+       aGAIP.SetNameType(mOUK_NameType);
+
+    if (mOUK_IdObj != NamesTypeId_NonInit()) 
+       aGAIP.SetIdObj(mOUK_IdObj);
+}
+
 
 
 template <class Type> 

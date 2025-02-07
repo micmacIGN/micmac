@@ -386,6 +386,16 @@ class cBA_LidarPhotogra
 };
 
 
+struct  cBundleBlocNamedVar
+{
+    public :
+       std::string mType;
+       std::string mIdObj;
+       int                      mIndVar0;
+       std::vector<std::string> mNamesVar;
+       std::vector<bool>        mActivVar;
+};
+
 
 class cMMVII_BundleAdj
 {
@@ -421,7 +431,7 @@ class cMMVII_BundleAdj
 	  void AddMTieP(const std::string & aName,cComputeMergeMulTieP  * aMTP,const cStdWeighterResidual & aWIm);
 
           /// One iteration : add all measure + constraint + Least Square Solve/Udpate/Init
-          void OneIteration(tREAL8 aLVM=0.0);
+          void OneIteration(tREAL8 aLVM=0.0,bool isLastIter=false);
           void OneIterationTopoOnly(tREAL8 aLVM=0.0, bool verbose=false); //< if no images
 
           const std::vector<cSensorImage *> &  VSIm() const ;  ///< Accessor
@@ -448,7 +458,8 @@ class cMMVII_BundleAdj
           void Save_newGCP3D();
           void SaveTopo();
 
-	  void ShowUKNames() ;
+          void Set_UC_UK(const std::vector<std::string> & aParam);
+	  void ShowUKNames(const std::vector<std::string> & aParam) ;
           // Save results of clino bundle adjustment
           void SaveClino();
           void  AddBenchSensor(cSensorCamPC *); // Add sensor, used in Bench Clino
@@ -532,6 +543,14 @@ class cMMVII_BundleAdj
 				      //
 	  int      mNbIter;    /// counter of iteration, at least for debug
           bool     mVerbose; // print residuals
+
+          std::vector<cBundleBlocNamedVar>  mVBBNamedV;
+
+          bool                      mShow_UC_UK;
+          bool                      mCompute_Uncert;
+          std::vector<std::string>  mParam_UC_UK;
+          std::vector<int>          mIndCompUC;
+          cResult_UC_SUR<tREAL8>*   mRUCSUR;
 };
 
 
