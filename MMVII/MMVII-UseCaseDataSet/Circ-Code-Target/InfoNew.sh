@@ -32,8 +32,13 @@ MMVII  ReportGCP .*tif Test Completed BA2
 #  compute an initial value of the block
 MMVII BlockCamInit .*tif BA2 "(.*)_(.*)_Scaled.tif" [1,2]  '[(.*)@(.*),$1_$2_Scaled.tif,@]' Rig
 
-# make a compensation with rigid block
-MMVII  OriBundleAdj .*tif  BA2 BA3 GCP2D=[[Completed,1,1,5]] GCP3D=[[Test,1]] BRDirIn=Rig BRW=[1e-2,1e-5]
+# make a compensation with rigid block 
+MMVII  OriBundleAdj .*tif  BA2 BA3 GCP2D=[[Completed,1,1,5]] GCP3D=[[Test,1]] BRDirIn=Rig BRW=[1e-2,1e-5] 
+
+# Idem but show uncertainty 
+#  MMVII  OriBundleAdj .*tif  BA2 BA3 GCP2D=[[Completed,1,1,5]] GCP3D=[[Test,1]] BRDirIn=Rig BRW=[1e-2,1e-5] UC_UK="[.*,.*,(F|PP.*),1]"
+
+
 
 
 
