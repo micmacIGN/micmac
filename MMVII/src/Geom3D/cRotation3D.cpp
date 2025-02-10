@@ -344,16 +344,9 @@ template <class Type> cRotation3D<Type>  cRotation3D<Type>::MapInverse() const
 template <class Type> cRotation3D<Type> cRotation3D<Type>::operator * (const tTypeMap & aS2) const
 {
 	// mTr + R (mTr2 +R2*aP)
-/*
-StdOut()  <<  "BEGIN ROTATION \n";
-mMat.Show() ;
-StdOut() << "=====\n";
-aS2.mMat.Show() ;
-*/
 
-	tTypeMap   aRes(mMat*aS2.mMat,false);
-//  StdOut()  <<  "ENDDDD ROTATION \n";
-	return aRes;
+   tTypeMap   aRes(mMat*aS2.mMat,false);
+   return aRes;
 }
 
 template <class Type> cPtxd<Type,3> cRotation3D<Type>::AxeI() const  {return tPt::Col(mMat,0);}
