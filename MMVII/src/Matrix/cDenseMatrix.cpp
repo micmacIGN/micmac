@@ -391,8 +391,33 @@ template <class T1,class T2> cDenseVect<T1> operator * (const cDenseMatrix<T2>& 
 
 template <class Type> cDenseMatrix<Type> operator * (const cDenseMatrix<Type> & aM1,const cDenseMatrix<Type>& aM2)
 {
+bool DEBUG=false;
+if (DEBUG)
+{
+static int aCpt=0 ; aCpt++;
+StdOut() << "BEGINN *MMM1111  CPT=" << aCpt << "\n";
+aM1.Show() ;
+StdOut() <<  " ==\n";
+aM2.Show() ;
+StdOut() <<  "##==\n";
+}
+
    cDenseMatrix<Type> aRes(aM2.Sz().x(),aM1.Sz().y());
+
+if (DEBUG)
+{
+StdOut() << "BEGINN *MMM222\n";
+StdOut() <<  " == " <<   aM1.Sz() << "\n";
+aM2.Show() ;
+StdOut() <<  "##==\n";
+}
+
+
    aRes.MatMulInPlace(aM1,aM2);
+if (DEBUG)
+{
+StdOut() << "ENNN *MMM\n";
+}
    return aRes;
 }
 

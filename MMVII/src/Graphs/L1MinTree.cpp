@@ -100,7 +100,7 @@ template <class TVal>  class cGrpValuatedAttrEdge
           tOneAttr & KthVal (size_t aK) {return mValues.at(aK);}
 
           const tSetAttr & Values () const {return mValues;}
-          //  tSetAttr & Values () {return mValues;}
+          tSetAttr & Values () {return mValues;}
 
     private :
           tSetAttr          mValues;
@@ -201,6 +201,7 @@ class cParamGrpRot
         }
 };
 
+
 template <class TVal,class TParam>  class cGrpValuatedGraph
 {
     public :
@@ -213,12 +214,25 @@ template <class TVal,class TParam>  class cGrpValuatedGraph
           void AddEdge(int aS1,int aS2,const TVal & aVal,tREAL8 aCostAPriori = 1.0);
 
           void MakeTriCostApriori();
+          void MakeLoopCostApriori();
           void MakeMinSpanTree();
 
           /// Return the relative position using  mCurValue
           TVal  Rel_2to1(int aS1,int aS2);
 
     protected :
+          class  cLoop
+          {
+              public :
+                  TVal   mVal;
+                  size_t mSom;
+                  int    mStackI;
+
+                  cLoop (const TVal& aVal,size_t aSom,int aStackI ):  mVal(aVal), mSom(aSom), mStackI (aStackI) {}
+          };
+
+          void  MakeLoopCostApriori(size_t aS1,const tEdge&, tOneAttr &);
+
           void  MakeTriCostApriori(size_t aS1,const tEdge & anE_AB);
           void  MakeTriCostApriori(std::vector<tREAL8> & aVDist,const TVal & aV1to2 ,const tEdge & anE23,const tEdge & anE31);
 
@@ -267,6 +281,93 @@ template <class TVal,class TParam>  TVal  cGrpValuatedGraph<TVal,TParam>::Rel_2t
     // Ori_2->1  = Ori_G->1  o Ori_2->G    ( PL2 -> PG -> PL1)
     return  mVSoms.at(aS1).CurVal().MapInverse() *  mVSoms.at(aS2).CurVal();
 }
+
+template <class TVal,class TParam>  
+    void cGrpValuatedGraph<TVal,TParam>::MakeLoopCostApriori()
+{
+    for (size_t aSom_A=0 ; aSom_A<mNbSom ; aSom_A++)
+    {
+         for (const auto &  aSucc_AB :  SuccOfSom(aSom_A))
+         {
+              // no need to do it 2 way
+              if (aSucc_AB.mDirInit)
+              {
+                 tAttr & aVecAttr_AB  = AttrOfEdge(aSucc_AB);
+                 for (auto & aAttr_AB : aVecAttr_AB.Values())
+                 {
+                    MakeLoopCostApriori(aSom_A,aSucc_AB,aAttr_AB);
+                 }
+              }
+          }
+    }
+}
+
+template <class TVal,class TParam>  
+          void  cGrpValuatedGraph<TVal,TParam>::MakeLoopCostApriori(size_t aSom_A,const tEdge& anE_AB, tOneAttr &aAttr_AB)
+{
+    TVal TheIdent = TVal::Identity();
+    std::vector<cLoop>  aVLoop;
+
+    {
+       size_t aSom_B  = anE_AB.mSucc;
+       TVal aV_B2A  = anE_AB.VRel2_to_1(aAttr_AB.mVal);
+       aVLoop.push_back(cLoop(aV_B2A,aSom_B,-1));
+    }
+    StdOut() << "******************************************************************************\n";
+
+    size_t aInd0 =0;
+    int aDist=1;
+    while (aDist<3)
+    {
+          StdOut() << "  ------------  DGRR= "<< aDist   << " ------------------------------ \n";
+          size_t aInd1 = aVLoop.size();
+          for (size_t aInd= aInd0 ; aInd<aInd1 ; aInd++)
+          {
+              size_t aSom_X = aVLoop.at(aInd).mSom;
+              const TVal & aV_X2A = aVLoop.at(aInd).mVal;
+              for (const auto &  anE_XY :  SuccOfSom(aSom_X))
+              {
+                  size_t aSom_Y = anE_XY.mSucc;
+                  const tAttr &  aAllAttrs_XY = AttrOfEdge(anE_XY);
+
+                  for (const auto & a1Attr_XY : aAllAttrs_XY.Values())
+                  {
+                      TVal aV_Y2X  = anE_XY.VRel2_to_1(a1Attr_XY.mVal);
+/*
+StdOut()  << "BEFORE  MUL \n";
+aV_X2A.Mat().Show();
+StdOut() << "   ==\n";
+aV_Y2X.Mat().Show();
+StdOut() << " ##==\n";
+*/
+                      TVal aV_Y2A  =    aV_X2A * aV_Y2X; // V_X2A (V_Y2X (PY)) = V_X2A(PX) = PA
+/*
+StdOut()  << "----- AFTER  MUL \n";
+*/
+
+                      if (aSom_Y == aSom_A)
+                      {
+                           tREAL8 aDist = mParam.Dist(TheIdent, aV_Y2A);
+                           StdOut() << "        DROT= " << aDist << "\n";
+                      }
+                      else
+                      {
+//aV_Y2A.Mat().Show();
+                           aVLoop.push_back(cLoop(aV_Y2A,aSom_Y,aInd));
+                      }
+                  }
+              }
+          }
+          aDist++;
+          aInd0 = aInd1;
+    }
+     
+/*
+     tAttr & aVecAttr_AB  = AttrOfEdge(anE_AB);
+*/
+     
+}
+
 
 
 template <class TVal,class TParam>  
@@ -350,11 +451,9 @@ template <class TVal,class TParam>
             //  aV_C2B * aV_A2C  (PA) = aV_C2B (PC) = PB = aV_A2B (PA)
             //  So the equation is  aV_C2B * aV_A2C  == aV_A2B
             tREAL8 aDist = mParam.Dist(aV_A2B, aV_C2B * aV_A2C);
-StdOut() << "DDDDD " << aDist << "\n";
             aVDist.push_back(aDist);
         }
     }
-StdOut() << "===================\n";
 }
 
 
@@ -445,7 +544,7 @@ StdOut() << "SOMM-ADDED \n";
        Pt_AddEdge(aPix,aPix+cPt2di(1,-1));
    }
 StdOut() << "EDGE-ADDED \n";
-   this->MakeTriCostApriori();
+   this->MakeLoopCostApriori();
 StdOut() << "TRI-COST DONE\n";
 }
 
@@ -466,8 +565,8 @@ void BenchGrpValuatedGraph(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("GroupGraph")) return;
 
-    // cBenchGrid_GVG  aBGVG(cPt2di(10,20),100.0, 0.0, 0.0,0.0,cPt2di(3,6));
-    cBenchGrid_GVG  aBGVG(cPt2di(10,20),100.0, 0.0, 0.2,0.3,cPt2di(3,3));
+    cBenchGrid_GVG  aBGVG(cPt2di(10,20),100.0, 0.0, 0.0,0.0,cPt2di(3,6));
+    // cBenchGrid_GVG  aBGVG(cPt2di(10,20),100.0, 0.01, 0.2,0.5,cPt2di(3,11));
 
     aParam.EndBench();
 }

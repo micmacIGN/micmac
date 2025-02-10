@@ -313,7 +313,11 @@ template <class Type> class cMatrix  : public cRect2
 
          static void CheckSizeMul(const tMat & aM1,const tMat & aM2)
          {
-            MMVII_INTERNAL_ASSERT_medium(aM1.Sz().x()== aM2.Sz().y() ,"Bad size for mat multiplication")
+            if (aM1.Sz().x()!= aM2.Sz().y() )
+            {
+                StdOut() <<  "    SZZZZZZZ= " << aM1.Sz() << " " <<  aM2.Sz() << "\n";
+                MMVII_INTERNAL_ASSERT_medium(aM1.Sz().x()== aM2.Sz().y() ,"Bad size for mat multiplication")
+            }
          }
          ///  Check that this = aM1 * aM2 is valide
          void CheckSizeMulInPlace(const tMat & aM1,const tMat & aM2) const
