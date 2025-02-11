@@ -414,6 +414,7 @@ template <class TVal,class TParam>
     void  cGrpValuatedGraph<TVal,TParam>::PropagateTreeSol()
 {
      mVSoms.at(0).SetCompVal(TVal::Identity());
+     mVSoms.at(0).SetNumRegion(0);
      Recurs_PropagateTreeSol(0);
 }
 
@@ -424,7 +425,13 @@ template <class TVal,class TParam>
     {
         if (aSucc_AB.mIsTree)
         {
-            // aSom_B = aSucc_AB.mucc
+             size_t aSom_B = aSucc_AB.mSucc;
+             if (mVSoms.at(aSom_B).NumRegion() == -1)
+             {
+                 StdOut() <<  "RPTS " << aSom_A << " " << aSom_B << "\n";
+                 mVSoms.at(aSom_B).SetNumRegion(0);
+                 Recurs_PropagateTreeSol(aSom_B);
+             }
         }
     }
 }
@@ -636,6 +643,8 @@ StdOut() << "EDGE-ADDED \n";
 StdOut() << "LOOP-COST DONE\n";
    this->MakeMinSpanTree();
 StdOut() << "MIN SPAN TREE DONE\n";
+   PropagateTreeSol();
+StdOut() << "PROPAG TREE SOL\n";
 }
 
 
