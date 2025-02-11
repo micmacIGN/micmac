@@ -7,7 +7,94 @@
 
 namespace MMVII
 {
+//  3 declaration of templates classes, parametrise by 
+//
+//    - TA_Vertex : attribute  of vertex
+//    - TA_Oriented : attribute  of oriented edge ( A(S1->S2) !=  A(S2->S1) )
+//
+template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Vertex;
+template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Edge;
+template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Graph;
 
+
+template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Edge
+{
+     public :
+          typedef cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym>  tVertex;
+          typedef cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>   tGraph;
+
+	  inline       tVertex & Succ() ;
+	  inline const tVertex & Succ() const ;
+
+	  inline TA_Oriented & AttrOri()  {return mAttrO;}
+	  inline const TA_Oriented & AttrOri() const {return mAttrO;}
+
+	  inline       TA_Sym & AttrSym() ;
+	  inline const TA_Sym & AttrSym() const ;
+     private :
+	  int             mNumSucc;
+          size_t          mNumAttr;
+          bool            mDirInit;
+	  tGraph *        mGr;
+	  TA_Oriented     mAttrO;
+};
+
+template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Vertex
+{
+	public :
+	        typedef cVG_Edge<TA_Vertex,TA_Oriented,TA_Sym>  tEdge;
+
+		inline TA_Vertex &       Attr()       {return mAttr;}
+		inline const TA_Vertex & Attr() const {return mAttr;}
+	private :
+		TA_Vertex           mAttr;
+		std::vector<tEdge>  mVEdges;
+};
+
+template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Graph
+{
+     public :
+	     typedef cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym>        tVertex;
+	     typedef cVG_Edge<TA_Vertex,TA_Oriented,TA_Sym>          tEdge;
+	     ///typedef cVG_Sym<TA_Vertex,TA_Oriented,TA_Sym>  tSom;
+	     //
+	     
+	     friend tVertex;
+	     friend tEdge;
+
+     protected :
+	     tVertex &  VertexOfNum(size_t aNum) {return mVSom.at(aNum);}
+	     const tVertex &  VertexOfNum(size_t aNum) const {return mVSom.at(aNum);}
+
+	     std::vector<tVertex>  mVSom;
+};
+
+/* ********************************************* */
+/*                                               */
+/*                 cVG_Edge                      */
+/*                                               */
+/* ********************************************* */
+
+template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
+   const cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym> &  cVG_Edge<TA_Vertex,TA_Oriented,TA_Sym>::Succ()  const 
+{
+	return  mGr->VertexOfNum(mNumSucc);
+}
+
+template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
+   cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym> &  cVG_Edge<TA_Vertex,TA_Oriented,TA_Sym>::Succ() 
+{
+	return  mGr->VertexOfNum(mNumSucc);
+}
+
+
+template class cVG_Graph<int,int,int>;
+template class cVG_Vertex<int,int,int>;
+template class cVG_Edge<int,int,int>;
+
+
+
+#if (0)
 /*
     Regarding the notation (supposing it is poses) :
 
@@ -25,7 +112,8 @@ template <class TVal>  class cGrpValuatedEdge;
 template <class TVal>  class cGrpValuatedAttrEdge;
 template <class TVal>  class cGrpValuatedSom;
 template <class TVal,class TParam>  class cGrpValuatedGraph;
-
+gg
+cVG_Edge
 
 
 /* ********************************************************* */
@@ -684,11 +772,12 @@ void BenchGrpValuatedGraph(cParamExeBench & aParam)
     if (! aParam.NewBench("GroupGraph")) return;
 
     // cBenchGrid_GVG  aBGVG(cPt2di(10,20),100.0, 0.0, 0.0,0.0,cPt2di(3,3));
-    // cBenchGrid_GVG  aBGVG(cPt2di(10,20),100.0, 0.01, 0.2,0.5,cPt2di(3,11));
+mNumSucc    // cBenchGrid_GVG  aBGVG(cPt2di(10,20),100.0, 0.01, 0.2,0.5,cPt2di(3,11));
     cBenchGrid_GVG  aBGVG(cPt2di(20,20),100.0, 0.00, 0.2,0.3,cPt2di(2,3));
 
     aParam.EndBench();
 }
+#endif
 
 };
 
