@@ -341,6 +341,43 @@ template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
            void PlyWrite(const std::string &,bool isBinary) const;
 };
 
+template <class Type> class cTriangulation3DLas : public cTriangulation<Type,3>
+{
+public:
+    typedef cPtxd<Type,3>      tPt;
+    typedef cPt3di             tFace;
+    typedef std::vector<tPt>   tVPt;
+    typedef std::vector<tFace> tVFace;
+
+    typedef cTriangulation3DLas<Type>  tTriangulation3DLas;
+
+    /// constructor from file , using las or laz file
+    cTriangulation3DLas(const std::string &);
+
+    /// accessors
+    unsigned int NbPts();
+    const char ProjStr();
+    bool HasTime();
+    bool HasColor();
+    void SamplePts(const bool &, const Type &);
+    std::vector<int> Classif() {return mClassif;}
+    std::vector<int> SelectedIds() {return mVSelectedIds;};
+    std::vector<tPt> VPts() {return this->mVPts;};
+
+private :
+    void LasInit(const std::string & );
+    //void LasWrite(const std::string &);
+    std::vector<int> mClassif;
+    unsigned int mNbPoints;
+    const char * mProjStr=nullptr;
+    bool mHasTime=false;
+    bool mHasColor=false;
+    //cBox2dr mDelimitBox=cBox2dr(cPt2dr(0,0),cPt2dr(1,1));
+    cTplBox<Type,2> mDelimitBox=cTplBox<Type,2>(cPtxd<Type,2>(0,0),
+                                                    cPtxd<Type,2>(1,1));
+    std::vector<int> mVSelectedIds;
+};
+
 
 class cPlane3D
 {
