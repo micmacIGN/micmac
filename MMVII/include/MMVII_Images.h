@@ -87,6 +87,7 @@ template <const int Dim>  class cPixBox : public cTplBox<int,Dim>
         tPt  CircNormProj(const tPt &) const;
 
         cBorderPixBox<Dim>  Border(int aSz) const;
+        cPixBox<Dim>  Interior(int aSz) const;
 
         inline bool InsideBL(const cPtxd<double,Dim> & aP) const; ///< Inside for Bilin
         bool InsideInterpolator(const cInterpolator1D &,const cPtxd<double,Dim> & aP,tREAL8 aMargin=0.0) const; ///< Inside for Bilin
@@ -378,6 +379,7 @@ template <class Type,const int Dim> class cDataTypedIm : public cDataGenUnTypedI
         double L2Dist(const cDataTypedIm<Type,Dim> & aV,bool Avg=true) const;  ///< Dist som square
         double SqL2Dist(const cDataTypedIm<Type,Dim> & aV,bool Avg=true) const;  ///< Square L2Dist
         double LInfDist(const cDataTypedIm<Type,Dim> & aV) const; ///< Dist max
+        double SafeMaxRelDif(const cDataTypedIm<Type,Dim> & aV,tREAL8 aEps) const;  ///<  Maximal safe relative dif
         double L1Norm(bool Avg=true) const;   ///< Norm som abs
         double L2Norm(bool Avg=true) const;   ///< Norm square
         double LInfNorm() const; ///< Nomr max

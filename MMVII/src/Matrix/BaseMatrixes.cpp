@@ -424,6 +424,71 @@ template <class Type> Type cDenseVect<Type>::ApproxDistBetweenSubspace(const std
 	return std::max(ASymApproxDistBetweenSubspace(aVV1,aVV2),ASymApproxDistBetweenSubspace(aVV2,aVV1));
 }
 
+
+template <class Type> int cDenseVect<Type>::AllDimComon(const std::vector<tDV>  & aVVect)
+{
+   MMVII_INTERNAL_ASSERT_tiny(!aVVect.empty(),"cDenseVect<Type>::AllDimComon");
+   int aRes =  aVVect[0].Sz();
+#if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )
+   for (size_t aKV=1 ; aKV<aVVect.size() ; aKV++)
+       MMVII_INTERNAL_ASSERT_tiny(aRes==aVVect[aKV].Sz(),"cDenseVect<Type>::AllDimComon");
+#endif
+
+   return aRes;
+}
+
+
+
+// /template <class Type> Type  DegenDegree(const std::vector<tDV>  & aVVect) ;
+
+
+cDenseVect<tREAL8> NormalizeMoyVar(const cDenseVect<tREAL8> & aV0,tREAL8 aEpsilon)
+{
+    size_t aSz = aV0.Sz();
+
+    cComputeStdDev<tREAL8>  aStdDev;
+    for (size_t aK=0 ; aK<aSz ; aK++)
+        aStdDev.Add(1.0,aV0(aK));
+    aStdDev.SelfNormalize(aEpsilon);
+
+    tREAL8 aSqrtNb = std::sqrt(aSz);
+    cDenseVect<tREAL8> aRes(aSz);
+    for (size_t aK=0 ; aK<aSz ; aK++)
+        aRes(aK) = aStdDev.NormalizedVal(aV0(aK)) / aSqrtNb ;
+
+    return aRes;
+}
+
+std::pair<tREAL8,tREAL8> LstSq_Fit_AxPBEqY(const cDenseVect<tREAL8> & aVX,const cDenseVect<tREAL8> & aVY)
+{
+    MMVII_INTERNAL_ASSERT_tiny(aVX.Sz()==aVY.Sz(),"Different size in LstSq_Fit_AxPBEqY");
+    cLeasSqtAA<tREAL8> aLsq(2);
+
+    cDenseVect<tREAL8> aCoeff(2);
+    aCoeff(1) = 1.0;
+    for (int aK=0 ; aK<aVX.Sz() ; aK++)
+    {
+        aCoeff(0) = aVX(aK);
+	aLsq.PublicAddObservation(1.0,aCoeff, aVY(aK));
+    }
+
+     cDenseVect<tREAL8> aSol = aLsq.SpecificSolve();
+
+     return std::pair<tREAL8,tREAL8>(aSol(0),aSol(1));
+}
+
+cDenseVect<tREAL8> MulAXPB(const cDenseVect<tREAL8> & aV0, tREAL8 A,tREAL8 B)
+{
+    size_t aSz = aV0.Sz();
+    cDenseVect<tREAL8> aRes(aSz);
+    for (size_t aK=0 ; aK<aSz ; aK++)
+        aRes(aK) = A * aV0(aK) + B;
+
+    return aRes;
+}
+
+
+
 /*
 template <class Type> void AddData(const  cAuxAr2007 & anAux, cDenseVect<Type> & aDV)
 {
@@ -630,10 +695,18 @@ template <class Type> static void TplReadLineInPlace(const cMatrix<Type> & aMat,
 
 
 
-template <class Type> static void TplWriteLine(cMatrix<Type> & aMat,int aY,const cDenseVect<Type>& aV)
+template <class Type> static void TplWriteLine(cMatrix<Type> & aMat,int aY,const cDenseVect<Type>& aV,bool OkPartial=false)
 {
-    aMat.TplCheckSizeX(aV);
-    for (int aX=0 ; aX<aMat.Sz().x() ; aX++)
+    int aNb = aMat.Sz().x();
+    if (OkPartial)
+    {
+        aNb = aV.Sz();
+        aMat.TplCheckSizeX_SupEq(aV);
+    }
+    else
+        aMat.TplCheckSizeX(aV);
+
+    for (int aX=0 ; aX<aNb ; aX++)
         aMat.V_SetElem(aX,aY,aV(aX)) ;
 }
 
@@ -680,7 +753,7 @@ template <class Type> Type cMatrix<Type>::MulLineElem(int aX,const tDV & aIn) co
 template <class Type> void cMatrix<Type>::ReadColInPlace(int aX,tDV & aV)  const {TplReadColInPlace(*this,aX,aV);}
 template <class Type> void cMatrix<Type>::WriteCol(int aX,const tDV  &aV)        {TplWriteCol(*this,aX,aV);}
 template <class Type> void cMatrix<Type>::ReadLineInPlace(int aY,tDV & aV) const {TplReadLineInPlace(*this,aY,aV);}
-template <class Type> void cMatrix<Type>::WriteLine(int aY,const tDV  &aV)       {TplWriteLine(*this,aY,aV);}
+template <class Type> void cMatrix<Type>::WriteLine(int aY,const tDV  &aV,bool OkPartial)       {TplWriteLine(*this,aY,aV,OkPartial);}
 
 template <class Type> cDenseVect<Type>  cMatrix<Type>::ReadCol(int aX) const
 {
@@ -707,6 +780,11 @@ template <class Type> std::vector<cDenseVect<Type>>  cMatrix<Type>::MakeLines() 
     return aRes;
 }
 
+template <class Type> void cMatrix<Type>::WriteCol(int aX,const tSpV  &aV)  
+{
+    for (const auto & aPair : aV)
+        V_SetElem(aX,aPair.mInd,aPair.mVal);
+}
 
      //    ===   MulMat ====
 
@@ -865,7 +943,6 @@ INSTANTIATE_BASE_MATRICES(tREAL16)
 
 // INSTANTIATE_DENSE_VECT(tU_INT1)
 INSTANTIATE_DENSE_VECT(tINT4)
-
 
 
 };

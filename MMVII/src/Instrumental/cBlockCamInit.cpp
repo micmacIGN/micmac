@@ -293,12 +293,14 @@ void  cBlocOfCamera::Set4Compute()
 {
     mForInit  = false;
 
-    for (const auto  & [aName, aPoseUk] : mData.mMapPoseUKInBloc)
+    for (auto  & [aName, aPoseUk] : mData.mMapPoseUKInBloc)
     {
         MMVII_INTERNAL_ASSERT_tiny(IsNull(aPoseUk.Omega()),"cBlocOfCamera::TransfertFromUK Omega not null");
         mMapPoseInit[aName] = aPoseUk.Pose();
 	//  we force the creation a new Id in the bloc because later we will not accept new bloc in compute mode
 	mMatBlocSync.NumStringCreate(aName);
+        aPoseUk.SetNameType("PoseBlockRig");
+        aPoseUk.SetNameIdObj(aName);
     }
 }
 

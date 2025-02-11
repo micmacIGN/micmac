@@ -1,4 +1,5 @@
 #include "V1VII.h"
+
 #include "MMVII_util.h"
 #include "MMVII_MeasuresIm.h"
 
@@ -9,6 +10,8 @@ namespace MMVII
 /*                                                     */
 /*                                                     */
 /*   ************************************************* */
+
+#if (MMVII_KEEP_LIBRARY_MMV1)
 
 void ImportMesImV1(std::list<cSetMesPtOf1Im>  & aResult,const std::string & aNameFileMesImV1)
 {
@@ -26,30 +29,34 @@ void ImportMesImV1(std::list<cSetMesPtOf1Im>  & aResult,const std::string & aNam
     }
 }
 
-cSetMesGCP ImportMesGCPV1(const std::string & aNameFileMesGCPV1,const std::string & aNameSet)
+cSetMesGnd3D ImportMesGCPV1(const std::string & aNameFileMesGCPV1,const std::string & aNameSet)
 {
-    cSetMesGCP  aResult(aNameSet);
+    cSetMesGnd3D  aResult(aNameSet);
     cDicoAppuisFlottant  aSetMesV1 =   StdGetFromPCP(aNameFileMesGCPV1,DicoAppuisFlottant);
 
     for (const auto & aMesV1 : aSetMesV1.OneAppuisDAF())
     {
-        cMes1GCP  aMesV2(ToMMVII(aMesV1.Pt()),aMesV1.NamePt(),1.0);
+        cMes1Gnd3D  aMesV2(ToMMVII(aMesV1.Pt()),aMesV1.NamePt(),1.0);
 
 	aMesV2.SetSigma2(ToMMVII(aMesV1.Incertitude()));
-	/*
-        aMesV2.Sigma2() = {0,0,0,0,0,0};
-	
-        (aMesV2.Sigma2())[cMes1GCP::IndXX] =  Square(aMesV1.Incertitude().x);
-        (aMesV2.Sigma2())[cMes1GCP::IndYY] =  Square(aMesV1.Incertitude().y);
-        (aMesV2.Sigma2())[cMes1GCP::IndZZ] =  Square(aMesV1.Incertitude().z);
-	*/
 
-        aResult.AddMeasure(aMesV2);
+        aResult.AddMeasure3D(aMesV2);
     }
 
     return aResult;
 }
 
+#else //  MMVII_KEEP_LIBRARY_MMV1
+void ImportMesImV1(std::list<cSetMesPtOf1Im>  & aResult,const std::string & aNameFileMesImV1)
+{
+    MMVII_INTERNAL_ERROR("No ImportMesImV1 ");
+}
+cSetMesGnd3D ImportMesGCPV1(const std::string & aNameFileMesGCPV1,const std::string & aNameSet)
+{
+    MMVII_INTERNAL_ERROR("No ImportMesGCPV1");
+    return cSetMesGnd3D  (aNameSet);
+}
+#endif //  MMVII_KEEP_LIBRARY_MMV1
 
 
 

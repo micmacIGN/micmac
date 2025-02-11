@@ -81,6 +81,20 @@ template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::FromLines(const std
     return aRes;
 }
 
+template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::MatLine(const tDV & aV) {return FromLines({aV});}
+
+
+template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::FromCols(const std::vector<tDV> & aVV)
+{
+    cDenseMatrix<Type>  aRes(aVV.size(),aVV.at(0).Sz());
+    for (int aX=0 ; aX<int(aVV.size()) ; aX++)
+       aRes.WriteCol(aX,aVV.at(aX));
+
+    return aRes;
+}
+
+template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::MatCol(const tDV & aV) {return FromCols({aV});}
+
 //tDM SubMatrix(const cPt2di & aSz) const
 
 template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::SubMatrix(const cPt2di & aP0,const cPt2di & aP1) const
@@ -382,6 +396,11 @@ template <class Type> cDenseMatrix<Type> operator * (const cDenseMatrix<Type> & 
    return aRes;
 }
 
+template <class Type> Type Bilinear (const cDenseVect<Type> & aV1,const cDenseMatrix<Type> & aMat,const cDenseVect<Type>& aV2)
+{
+   return aV1.DotProduct(aMat*aV2);
+}
+
 // ===============  Add tAB tAA  ================
 
 template <class TM,class TV> 
@@ -529,6 +548,17 @@ template <class Type>  void  cDenseMatrix<Type>::Weighted_Add_tAA(Type aWeight,c
 }
 
 
+template <class Type>  Type  cDenseMatrix<Type>:: DotProduct_Col(int aX,const tSpV & aVec) const
+{
+    Type aRes = 0.0;
+    for (const auto & aPairIV : aVec)
+       aRes += GetElem(aX,aPairIV.mInd) * aPairIV.mVal;
+
+   return aRes;
+}
+
+
+
 /* ================================================= */
 /*        cUnOptDenseMatrix                          */
 /* ================================================= */
@@ -598,6 +628,14 @@ template <class Type> void cUnOptDenseMatrix<Type>::Resize(const cPt2di & aSz)
      DIm().Resize(aSz);
 }
 
+template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::Crop(const cPt2di & aP0,const cPt2di & aP1) const
+{
+    cDenseMatrix<Type> aRes = cDenseMatrix<Type>(aP1-aP0);
+    aRes.ResizeAndCropIn(aP0,aP1,*this);
+    return aRes;
+}
+
+
 
 
 /* ===================================================== */
@@ -612,6 +650,7 @@ template  cDenseVect<T1> operator * (const cDenseMatrix<T2>& aVC,const cDenseVec
 
 
 #define INSTANTIATE_DENSE_MATRICES(Type)\
+template  Type Bilinear(const cDenseVect<Type>&,const cDenseMatrix<Type>&,const cDenseVect<Type>&);\
 template  class  cUnOptDenseMatrix<Type>;\
 template  class  cDenseMatrix<Type>;\
 template  cDenseMatrix<Type> operator * (const cDenseMatrix<Type> &,const cDenseMatrix<Type>&);\

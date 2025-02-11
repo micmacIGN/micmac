@@ -406,7 +406,6 @@ template<class TypeEl> cIm2D<TypeEl> ImScalab(const  cDataIm2D<TypeEl> & aDImIn,
 {
     std::vector<cPt2di>  aVectVois = SortedVectOfRadius(aR0,aR1,true);
 
-    // aVectVois = GetPts_Circle(cPt2dr(0,0),aR0,true);  StdOut() << "SYMMMM" << std::endl;
 
     int aD = round_up(aR1);
     cPt2di aPW(aD,aD);

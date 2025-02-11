@@ -1,5 +1,4 @@
 #include "MMVII_PCSens.h"
-#include "MMVII_MMV1Compat.h"
 #include "MMVII_DeclareCste.h"
 #include "MMVII_BundleAdj.h"
 #include "MMVII_Matrix.h"
@@ -99,8 +98,8 @@ cSpecMMVII_Appli  TheSpec_TestProj
         Alloc_TestProj,
         "Test Proj",
         {eApF::SysCo},
-        {eApDT::GCP,eApDT::SysCo},
-        {eApDT::GCP,eApDT::SysCo},
+        {eApDT::ObjCoordWorld,eApDT::SysCo},
+        {eApDT::ObjCoordWorld,eApDT::SysCo},
         __FILE__
         );
 

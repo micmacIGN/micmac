@@ -585,6 +585,7 @@ void BenchGlobImage(cParamExeBench & aParam)
     BenchRectObj();
     BenchBaseImage();
     BenchGlobImage2d();
+    BenchImFilterV1V2();
 
     aParam.EndBench();
 }

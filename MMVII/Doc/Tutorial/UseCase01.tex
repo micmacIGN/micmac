@@ -356,7 +356,7 @@ MMVII  CodedTargetCircExtract 043_0005_Scaled.tif CERN_Nbb14_Freq14_Hamm1_Run100
 \end{lstlisting}
 
 Note the parameter {\tt DiamMin=8} necessary here because downscaling has created relatively small targets. 
-The result are written in a subfolder of {\tt MMVII-PhgrProj/PointsMeasure/}, by default it's the subfolder
+The result are written in a subfolder of {\tt MMVII-PhgrProj/ObjMesInstr/}, by default it's the subfolder
 {\tt Std/}, that contains now $2$ files :
 
 \begin{itemize}
@@ -382,13 +382,13 @@ An example of result is shown on figure~\ref{fig:CodeT:Panel}.
 \label{fig:CodeT:Panel}
 \end{figure}
 
-It's possible, to change the destination of result using parameter {\tt OutPointsMeasure}.
+It's possible, to change the destination of result using parameter {\tt OutObjMesInstr}.
 Using pattern, its possible to run the research on all the image of the dataset, computation will be parelized .
 Like every command {\tt MMVII}, it's possible to restrict the number of processor using the optionnal parameter
 {\tt NbProc} :
 
 \begin{lstlisting}
-MMVII  CodedTargetCircExtract ".*_Scaled.tif" CERN_Nbb14_Freq14_Hamm1_Run1000_1000_FullSpecif.xml DiamMin=8 NbProc=2 OutPointsMeasure=Test
+MMVII  CodedTargetCircExtract ".*_Scaled.tif" CERN_Nbb14_Freq14_Hamm1_Run1000_1000_FullSpecif.xml DiamMin=8 NbProc=2 OutObjMesInstr=Test
 \end{lstlisting}
 
 
@@ -413,7 +413,7 @@ These measures are stored in folder {\tt DataAux}, so we have first to do
 something like :
 
 \begin{lstlisting}
-cp Data-Aux/MesGCP-AICON-CERN-Pannel.xml MMVII-PhgrProj/PointsMeasure/Test/
+cp Data-Aux/MesGCP-AICON-CERN-Pannel.xml MMVII-PhgrProj/ObjCoordWorld/Test/
 \end{lstlisting}
 
 And now we can write again:
@@ -602,7 +602,7 @@ a real bundle adjustment :
 
 
 \begin{lstlisting}
-MMVII OriBundleAdj ".*_Scaled.tif" Resec BA  GCPW=[1,1] DataDir=Test
+MMVII OriBundleAdj ".*_Scaled.tif" Resec BA GCP2D=[[Test,1]] GCP3D=[[Test,1]]
 \end{lstlisting}
 
 %   ------------------------------------------------------------------
@@ -613,14 +613,14 @@ Now that we have computed reliable  orientation, we can use it to identify and
 validate the uncoded targets :
 
 \begin{lstlisting}
-MMVII CodedTargetCompleteUncoded .*_Scaled.tif BA 1.0 InPointsMeasure=Test
+MMVII CodedTargetCompleteUncoded .*_Scaled.tif BA 1.0 InObjMesInstr=Test InObjCoordWorld=Test
 \end{lstlisting}
 
 All the measure are stored in the  folder {\tt Completed} (by default). We can make a
 bundle adjustment with these new measures :
 
 \begin{lstlisting}
-MMVII OriBundleAdj ".*_Scaled.tif"  BA BA2  GCPW=[1,1] DataDir=Completed
+MMVII OriBundleAdj ".*_Scaled.tif"  BA BA2 GCP2D=[[Completed,1]] GCP3D=[[Test,1]]
 \end{lstlisting}
 
 
@@ -781,7 +781,7 @@ In INIT$\_$CLINO, there are the clinometers name with their approximate Boresigh
 Then, you can compute the Boresight matrixes with {\tt OriBundleAdj}. You need to complete the parameter ClinoDirIn to compute the clinometers calibration
 
 \begin{lstlisting}
-     MMVII  OriBundleAdj  AllImClino.xml  BA_Br   BA_Clino   GCPDir=Clino_Filtered  GCPW=[1,0.1]  PPFzCal=.* ClinoDirIn=INIT_CLINO ClinoDirOut=CALIB_CLINO InMeasureClino=clinoMeasures
+     MMVII  OriBundleAdj  AllImClino.xml  BA_Br   BA_Clino GCP2D=[[Clino_Filtered,0.1]] GCP3D=[[Clino_Filtered,1]]  PPFzCal=.* ClinoDirIn=INIT_CLINO ClinoDirOut=CALIB_CLINO InMeasureClino=clinoMeasures
 \end{lstlisting}
 
 Parameters of {\tt ClinoInit} are :
@@ -789,8 +789,8 @@ Parameters of {\tt ClinoInit} are :
      \item AllImClino.xml : name of images
      \item BA$\_$Br : orientation of camera
      \item BA$\_$Clino : orientation of camera after the bundle adjustment
-     \item GCPDir=Clino$\_$Filtered : directory for GCP
-     \item GCPW=[1,0.1] : GCP weights
+     \item GCP2D: Clino$\_$Filtered is the directory for image measurements of GCPs, with a weight factor of 0.1
+     \item GCP3D: Clino$\_$Filtered is the directory for world coordinates of GCPs, with a weight factor of 1
      \item PPFzCal=.* : freeze internal calibration
      \item ClinoDirIn=INIT$\_$CLINO : approximation of the two Boresight matrixes computed with {\tt ClinoInit}
      \item ClinoDirOut=CALIB$\_$CLINO : name of directory where clinometers calibrations will be saved

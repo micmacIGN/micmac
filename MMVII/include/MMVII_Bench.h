@@ -41,6 +41,8 @@ class cParamExeBench
          bool  GenerateBug(const std::string & aKey);
          void  EndBench(); ///< Application must signal end of the bench
          bool  Show() const;   ///< Show intermediar msg, 
+         bool  DemoTest() const;   ///< Show intermediar msg, 
+         void  SetDemoTest(bool isDemoTest) ;  ///< Show intermediar msg, 
          int   Level() const;  ///< Bench are piped with increasing levels, higher level/ more test
          int   NbExe() const;  ///< Number of execution made
          void  Messg(const std::string &);  ///< Add messg to log file
@@ -56,6 +58,7 @@ class cParamExeBench
          int                       mLevInit;     ///< Current level of test
          int                       mCurLev;     ///< Current level of test
          bool                      mShow;       ///< Do the function print msg on console
+         bool                      mDemoTest;   ///< Maximum msg & eventually breakpoint
          int                       mNbExe;
          std::string               mName;    ///< Exact Name for exact select
          tNameSelector             mPattern;    ///< Pattern for select bench
@@ -162,8 +165,10 @@ void BenchBaseImage(); ///< Global bench on image
 void BenchImNDim();
 void BenchIm3D(); ///<  Bench on fulll 3D Images +  "Layer" images
 
+
 void BenchGlobImage2d(); ///< Global bench on image
 void BenchFileImage(); ///< Global bench on image
+void BenchImFilterV1V2();  ///< Temporary, check that new implementation are close enough to V1's
 
 
 void TestTimeV1V2(); ///< Not a formal Bench, require visual inspection
@@ -177,6 +182,9 @@ void BenchSampleQuat();
 
 void BenchcNewReadFilesStruct(cParamExeBench & aParam);  ///< Test the new system for reading structured files on some samples
 
+void BenchKTHVal(cParamExeBench & aParam);
+void BenchCurveDigit(cParamExeBench & aParam);
+void BenchLstSqEstimUncert(cParamExeBench & aParam);
 
 };
 

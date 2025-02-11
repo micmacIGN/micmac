@@ -1,13 +1,7 @@
 #include "MMVII_PCSens.h"
-#include "MMVII_MMV1Compat.h"
+#include "MMVII_MMV1Compat.h"  // TO SEE
 #include "MMVII_DeclareCste.h"
 #include "MMVII_BundleAdj.h"
-
-/**
-   \file cConvCalib.cpp  testgit
-
-   \brief file for conversion between calibration (change format, change model) and tests
-*/
 
 
 namespace MMVII
@@ -41,10 +35,11 @@ cAppli_ConvertV1V2_GCPIM::cAppli_ConvertV1V2_GCPIM(const std::vector<std::string
 cCollecSpecArg2007 & cAppli_ConvertV1V2_GCPIM::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
     return anArgObl
-	      <<  Arg2007(mNameIm  ,"Name of V1-image-measure file (\""+MMVII_NONE +"\" if none !)",{eTA2007::FileTagged})
-	      <<  Arg2007(mNameGCP ,"Name of V1-GCP file (\""+MMVII_NONE +"\")if none !)",{eTA2007::FileTagged})
-              <<  mPhProj.DPPointsMeasures().ArgDirOutMand()
-           ;
+          <<  Arg2007(mNameIm  ,"Name of V1-image-measure file (\""+MMVII_NONE +"\" if none !)",{eTA2007::FileTagged})
+          <<  Arg2007(mNameGCP ,"Name of V1-GCP file (\""+MMVII_NONE +"\")if none !)",{eTA2007::FileTagged})
+          <<  mPhProj.DPGndPt3D().ArgDirOutMand()
+          <<  mPhProj.DPGndPt2D().ArgDirOutMand()
+          ;
 }
 
 cCollecSpecArg2007 & cAppli_ConvertV1V2_GCPIM::ArgOpt(cCollecSpecArg2007 & anArgOpt) 
@@ -58,13 +53,13 @@ int cAppli_ConvertV1V2_GCPIM::Exe()
 {
     mPhProj.FinishInit();
 
-    cSetMesGCP  aMesGCP;
+    cSetMesGnd3D  aMesGCP;
     bool  useGCP=false;
     if (mNameGCP != MMVII_NONE)
     {
         aMesGCP = ImportMesGCPV1(mNameGCP,"FromV1-"+LastPrefix(mNameGCP));
         useGCP = true;
-	mPhProj.SaveGCP(aMesGCP);
+	mPhProj.SaveGCP3D(aMesGCP);
         // std::string aNameOut = mPhProj.DPPointsMeasures().FullDirOut() + cSetMesGCP::ThePrefixFiles + "_" + mNameGCP;
         // aMesGCP.ToFile(aNameOut);
     }
@@ -82,14 +77,14 @@ int cAppli_ConvertV1V2_GCPIM::Exe()
 
     if (useGCP && useIm && mPhProj.DPOrient().DirInIsInit())
     {
-          cSetMesImGCP aMesImGCP;
+          cSetMesGndPt aMesImGCP;
           aMesImGCP.AddMes3D(aMesGCP);
 
           for (const auto & aMesIm : aLMesIm)
           {
                std::string aNameIm =  aMesIm.NameIm();
                cSensorCamPC * aCamPC =  mPhProj.ReadCamPC(aNameIm,true);
-               aMesImGCP.AddMes2D(aMesIm,aCamPC);
+               aMesImGCP.AddMes2D(aMesIm,nullptr,aCamPC);
                // StdOut() << " Nom Im " << aNameIm << " " << aCamPC->InternalCalib()->F() << std::endl;
           }
 
@@ -120,10 +115,10 @@ cSpecMMVII_Appli  TheSpec_ConvertV1V2_GCPIM
 (
      "V1ConvertGCPIm",
       Alloc_ConvertV1V2_GCPIM,
-      "Convert Im&GCP measure from V1 to VII format",
-      {eApF::GCP},
-      {eApDT::GCP},
-      {eApDT::GCP},
+      "Convert image & gound measures from v1 to v2 format",
+      {eApF::GCP, eApF::TieP},
+      {eApDT::ObjCoordWorld, eApDT::ObjMesInstr, eApDT::TieP},
+      {eApDT::ObjCoordWorld, eApDT::ObjMesInstr, eApDT::TieP},
       __FILE__
 );
 

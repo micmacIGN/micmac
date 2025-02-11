@@ -1,4 +1,4 @@
-#include "MMVII_Ptxd.h"
+﻿#include "MMVII_Ptxd.h"
 #include "cMMVII_Appli.h"
 #include "MMVII_Geom3D.h"
 #include "MMVII_PCSens.h"
@@ -85,12 +85,13 @@ cAppli_CGPReport::cAppli_CGPReport
 
 cCollecSpecArg2007 & cAppli_CGPReport::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
-      return anArgObl
-              << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
-              << (mIsGCP ?  mPhProj.DPPointsMeasures().ArgDirInMand()
-                         :  mPhProj.DPMulTieP().ArgDirInMand())
-              <<  mPhProj.DPOrient().ArgDirInMand()
-           ;
+      anArgObl << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}});
+      if (mIsGCP)
+          anArgObl << mPhProj.DPGndPt3D().ArgDirInMand() << mPhProj.DPGndPt2D().ArgDirInMand();
+      else
+          anArgObl << mPhProj.DPMulTieP().ArgDirInMand();
+      anArgObl <<  mPhProj.DPOrient().ArgDirInMand();
+      return anArgObl;
 }
 
 cCollecSpecArg2007 & cAppli_CGPReport::ArgOpt(cCollecSpecArg2007 & anArgOpt)
@@ -119,8 +120,8 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
     if (! ExistFile(mPhProj.NameMeasureGCPIm(aNameIm,true)) )  
        return ;
 
-    cSetMesImGCP             aSetMes;
-    mPhProj.LoadGCP(aSetMes,"",mFilterName,mFilterAdd);
+    cSetMesGndPt             aSetMes;
+    mPhProj.LoadGCP3D(aSetMes,nullptr,"",mFilterName,mFilterAdd);
     mPhProj.LoadIm(aSetMes,aNameIm);
     const cSetMesPtOf1Im  &  aSetMesIm = aSetMes.MesImInitOfName(aNameIm);
 
@@ -216,12 +217,12 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
 
 void cAppli_CGPReport::ReportsByGCP()
 {
-   cSetMesImGCP             aSetMes;
-   mPhProj.LoadGCP(aSetMes,"",mFilterName,mFilterAdd);
+   cSetMesGndPt             aSetMes;
+   mPhProj.LoadGCP3D(aSetMes,nullptr,"",mFilterName,mFilterAdd);
 
    for (const auto & aNameIm : VectMainSet(0))
    {
-       mPhProj.LoadIm(aSetMes,aNameIm,mPhProj.ReadSensor(aNameIm,true,false),true);
+       mPhProj.LoadIm(aSetMes,aNameIm,nullptr,mPhProj.ReadSensor(aNameIm,true,false),true);
    }
 
    const std::vector<cSensorImage*> &  aVSens =  aSetMes.VSens() ;
@@ -267,15 +268,15 @@ void cAppli_CGPReport::ReportsByGCP()
 void cAppli_CGPReport::ReportsByCam()
 {
    std::map<cPerspCamIntrCalib*,std::vector<cSensorCamPC*>>  aMapCam;
-   cSetMesImGCP             aSetMes;
-   mPhProj.LoadGCP(aSetMes,"",mFilterName,mFilterAdd);
+   cSetMesGndPt             aSetMes;
+   mPhProj.LoadGCP3D(aSetMes,nullptr,"",mFilterName,mFilterAdd);
 
    for (const auto & aNameIm : VectMainSet(0))
    {
        cSensorCamPC *  aCam = mPhProj.ReadCamPC(aNameIm,true,true);
        if (aCam)
        {
-            mPhProj.LoadIm(aSetMes,aNameIm,aCam,true);
+            mPhProj.LoadIm(aSetMes,aNameIm,nullptr,aCam,true);
             aMapCam[aCam->InternalCalib()].push_back(aCam);
        }
    }
@@ -341,7 +342,12 @@ int cAppli_CGPReport::Exe()
 {
    mPhProj.FinishInit();
 
-   auto nameSubDir = mPhProj.DPOrient().DirIn() +  "_Mes-"+  mPhProj.DPPointsMeasures().DirIn();
+   mPhProj.DPGndPt3D().CheckDirExists(true, true);
+   mPhProj.DPGndPt2D().CheckDirExists(true, true);
+   mPhProj.DPOrient().CheckDirExists(true, true);
+
+   auto nameSubDir = mPhProj.DPOrient().DirIn() +  "_Mes-"+  mPhProj.DPGndPt3D().DirIn()
+                                                +  "-"+  mPhProj.DPGndPt2D().DirIn();
    if (IsInit(&mSuffixReportSubDir))
        nameSubDir += "_" + mSuffixReportSubDir;
    SetReportSubDir(nameSubDir);
@@ -404,8 +410,8 @@ cSpecMMVII_Appli  TheSpec_CGPReport
      "ReportGCP",
       Alloc_CGPReport,
       "Reports on GCP projection",
-      {eApF::GCP,eApF::Ori},
-      {eApDT::GCP,eApDT::Orient},
+      {eApF::GCP, eApF::Ori},
+      {eApDT::ObjCoordWorld, eApDT::ObjMesInstr, eApDT::Orient},
       {eApDT::Image,eApDT::Xml},
       __FILE__
 );

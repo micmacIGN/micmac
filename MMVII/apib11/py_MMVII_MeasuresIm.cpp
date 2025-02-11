@@ -1,6 +1,7 @@
 #include "py_MMVII.h"
 
 #include "MMVII_MeasuresIm.h"
+#include "src/BundleAdjustment/BundleAdjustment.h"
 
 using namespace MMVII;
 
@@ -49,34 +50,35 @@ void pyb_init_MeasuresIm(py::module_ &m) {
              })
             ;
 
-    py::class_<cMes1GCP>(m, "Mes1GCP", DOC(MMVII_cMes1GCP))
-            .def(py::init<>(),DOC(MMVII_cMes1GCP,cMes1GCP))
-            .def(py::init<const cPt3dr &,const std::string &,tREAL4>(),DOC(MMVII_cMes1GCP,cMes1GCP))
-            .def_readwrite("pt", &cMes1GCP::mPt,DOC(MMVII_cMes1GCP,mPt))
-            .def_readwrite("namePt", &cMes1GCP::mNamePt,DOC(MMVII_cMes1GCP,mNamePt))
-            .def_property("sXX",[](const cMes1GCP& m){return m.mOptSigma2->at(m.IndXX);},[](cMes1GCP& m, tREAL8 sXX){ m.mOptSigma2->at(m.IndXX) = sXX;},"Sigma2 of x coordinate")
-            .def_property("sYY",[](const cMes1GCP& m){return m.mOptSigma2->at(m.IndYY);},[](cMes1GCP& m, tREAL8 sYY){ m.mOptSigma2->at(m.IndYY) = sYY;},"Sigma2 of y coordinate")
-            .def_property("sZZ",[](const cMes1GCP& m){return m.mOptSigma2->at(m.IndZZ);},[](cMes1GCP& m, tREAL8 sZZ){ m.mOptSigma2->at(m.IndZZ) = sZZ;},"Sigma2 of z coordinate")
+    py::class_<cMes1Gnd3D>(m, "Mes1GCP", DOC(MMVII_cMes1Gnd3D))
+            .def(py::init<>(),DOC(MMVII_cMes1Gnd3D,cMes1Gnd3D))
+            .def(py::init<const cPt3dr &,const std::string &,tREAL4>(),DOC(MMVII_cMes1Gnd3D,cMes1Gnd3D))
+            .def_readwrite("pt", &cMes1Gnd3D::mPt,DOC(MMVII_cMes1Gnd3D,mPt))
+            .def_readwrite("namePt", &cMes1Gnd3D::mNamePt,DOC(MMVII_cMes1Gnd3D,mNamePt))
+            .def_property_readonly("sXX",[](const cMes1Gnd3D& m){return m.Sigma2IsInit()?py::object(py::float_(m.Sigma2().at(m.IndXX))):py::object(pybind11::none());},"Sigma2 of x coordinate")
+            .def_property_readonly("sYY",[](const cMes1Gnd3D& m){return m.Sigma2IsInit()?py::object(py::float_(m.Sigma2().at(m.IndYY))):py::object(pybind11::none());},"Sigma2 of y coordinate")
+            .def_property_readonly("sZZ",[](const cMes1Gnd3D& m){return m.Sigma2IsInit()?py::object(py::float_(m.Sigma2().at(m.IndZZ))):py::object(pybind11::none());},"Sigma2 of z coordinate")
+            .def("SetSigma2",py::overload_cast<const cPt3dr&>(&cMes1Gnd3D::SetSigma2),DOC(MMVII_cMes1Gnd3D,SetSigma2))
             .def("__repr__",
-                 [](const cMes1GCP &m) {
+                 [](const cMes1Gnd3D &m) {
                    std::ostringstream ss;
                    ss.precision(8);
                    ss << "Mes1GCP " << m.mNamePt << " " << m.mPt;
-                   if (m.mOptSigma2.has_value())
-                      ss << ", sigma2 (XX,YY,ZZ): ("<< m.mOptSigma2->at(m.IndXX) << ", " << m.mOptSigma2->at(m.IndYY) << ", " << m.mOptSigma2->at(m.IndZZ) << ")";
+                   if (m.Sigma2IsInit())
+                      ss << ", sigma2 (XX,YY,ZZ): ("<< m.Sigma2().at(m.IndXX) << ", " << m.Sigma2().at(m.IndYY) << ", " << m.Sigma2().at(m.IndZZ) << ")";
                    return ss.str();
              })
             ;
 
-    py::class_<cSetMesGCP>(m, "SetMesGCP", DOC(MMVII_cSetMesGCP))
-            .def(py::init<>(),DOC(MMVII_cSetMesGCP,cSetMesGCP))
-            .def(py::init<const std::string &>(),DOC(MMVII_cSetMesGCP,cSetMesGCP))
-            .def_static("fromFile", &cSetMesGCP::FromFile,DOC(MMVII_cSetMesGCP,FromFile))
-            .def("toFile", py::overload_cast<const std::string &>(&cSetMesGCP::ToFile, py::const_),DOC(MMVII_cSetMesGCP,ToFile))
-            .def("stdNameFile", &cSetMesGCP::StdNameFile,DOC(MMVII_cSetMesGCP,StdNameFile))
-            .def("measures", &cSetMesGCP::Measures, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesGCP,Measures))
+    py::class_<cSetMesGnd3D>(m, "SetMesGCP", DOC(MMVII_cSetMesGnd3D))
+            .def(py::init<>(),DOC(MMVII_cSetMesGnd3D,cSetMesGnd3D))
+            .def(py::init<const std::string &>(),DOC(MMVII_cSetMesGnd3D,cSetMesGnd3D))
+            .def_static("fromFile", &cSetMesGnd3D::FromFile,DOC(MMVII_cSetMesGnd3D,FromFile))
+            .def("toFile", py::overload_cast<const std::string &>(&cSetMesGnd3D::ToFile, py::const_),DOC(MMVII_cSetMesGnd3D,ToFile))
+            .def("stdNameFile", &cSetMesGnd3D::StdNameFile,DOC(MMVII_cSetMesGnd3D,StdNameFile))
+            .def("measures", &cSetMesGnd3D::Measures, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesGnd3D,Measures))
             .def("__repr__",
-                 [](const cSetMesGCP &m) {
+                 [](const cSetMesGnd3D &m) {
                    std::ostringstream ss;
                    ss.precision(8);
                    ss << "SetMesGCP " << m.StdNameFile() << "\n" ;
@@ -127,21 +129,21 @@ void pyb_init_MeasuresIm(py::module_ &m) {
 
 	    
 
-    py::class_<cSetMesImGCP>(m, "SetMesImGCP", DOC(MMVII_cSetMesImGCP))
-            .def(py::init<>(),DOC(MMVII_cSetMesImGCP,cSetMesImGCP))
-            .def("addMes3D", &cSetMesImGCP::AddMes3D, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesImGCP,AddMes3D))
-            .def("add1GCP", &cSetMesImGCP::Add1GCP, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesImGCP,Add1GCP))
-           // .def("addMes2D", &cSetMesImGCP::AddMes2D, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesImGCP,AddMes2D))
-            .def("extractMes1Im", &cSetMesImGCP::ExtractMes1Im, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesImGCP,ExtractMes1Im))
-//          .def("mesGCP", &cSetMesImGCP::MesGCP, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesImGCP,MesGCP))
-            .def("mesImOfPt", &cSetMesImGCP::MesImOfPt, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesImGCP,MesImOfPt))
-            .def("mesImInitOfName", &cSetMesImGCP::MesImInitOfName, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesImGCP,MesImInitOfName))
-	    .def("mesGCPOfName", py::overload_cast<const std::string&>(&cSetMesImGCP::MesGCPOfName, py::const_),DOC(MMVII_cSetMesImGCP,MesGCPOfName))
+    py::class_<cSetMesGndPt>(m, "SetMesImGCP", DOC(MMVII_cSetMesGndPt))
+            .def(py::init<>(),DOC(MMVII_cSetMesGndPt,cSetMesGndPt))
+            .def("addMes3D", &cSetMesGndPt::AddMes3D, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesGndPt,AddMes3D))
+            .def("add1GCP", &cSetMesGndPt::Add1GCP, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesGndPt,Add1GCP))
+           // .def("addMes2D", &cSetMesGndPt::AddMes2D, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesGndPt,AddMes2D))
+            .def("extractMes1Im", &cSetMesGndPt::ExtractMes1Im, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesGndPt,ExtractMes1Im))
+//          .def("mesGCP", &cSetMesGndPt::MesGCP, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesGndPt,MesGCP))
+            .def("mesImOfPt", &cSetMesGndPt::MesImOfPt, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesGndPt,MesImOfPt))
+            .def("mesImInitOfName", &cSetMesGndPt::MesImInitOfName, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesGndPt,MesImInitOfName))
+	    .def("mesGCPOfName", py::overload_cast<const std::string&>(&cSetMesGndPt::MesGCPOfName, py::const_),DOC(MMVII_cSetMesGndPt,MesGCPOfName))
 
-  /*          //.def("vSens", &cSetMesImGCP::VSens, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesImGCP,VSens)) //cSensorImage not defined in api
+  /*          //.def("vSens", &cSetMesGndPt::VSens, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesGndPt,VSens)) //cSensorImage not defined in api
 */
             .def("__repr__",
-                 [](const cSetMesImGCP &m) {
+                 [](const cSetMesGndPt &m) {
                    std::ostringstream ss;
                    ss.precision(8);
                    ss << "SetMesImGCP " << "\n" ;

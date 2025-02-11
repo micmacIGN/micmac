@@ -33,12 +33,12 @@ template <class Type> cGetAdrInfoParam<Type>::cGetAdrInfoParam(const std::string
 
         for (auto  aPtr : aVObj)
         {
-            aPtr->GetAdrInfoParam(*this);
+            aPtr->FillGetAdrInfoParam(*this);
         }
     }
     else
     {
-       aObj.GetAdrInfoParam(*this);
+       aObj.FillGetAdrInfoParam(*this);
     }
 	/*
      std::vector<cObjWithUnkowns<Type> *>  aVObj = aObj.RecursGetAllUK() ;
@@ -98,10 +98,36 @@ template <class Type> void cGetAdrInfoParam<Type>::PatternSetToVal(const std::st
 /* ******************************** */
 
 //  put all value to "bull shit"
-template <class Type> cObjWithUnkowns<Type>::cObjWithUnkowns()
+template <class Type> cObjWithUnkowns<Type>::cObjWithUnkowns() :
+    mOUK_NameType  (NamesTypeId_NonInit()),
+    mOUK_IdObj     (NamesTypeId_NonInit())
 {
    OUK_Reset();
 }
+
+template <class Type> std::string cObjWithUnkowns<Type>::NamesTypeId_NonInit()
+{
+   return MMVII_NONE;
+}
+template <class Type> void cObjWithUnkowns<Type>::SetNameType(const std::string & aName)
+{
+   mOUK_NameType = aName;
+}
+
+template <class Type> void cObjWithUnkowns<Type>::SetNameIdObj(const std::string & aName)
+{
+   mOUK_IdObj = aName;
+}
+
+template <class Type> void cObjWithUnkowns<Type>::SetNameTypeId(cGetAdrInfoParam<tREAL8> & aGAIP) const
+{
+    if (mOUK_NameType != NamesTypeId_NonInit()) 
+       aGAIP.SetNameType(mOUK_NameType);
+
+    if (mOUK_IdObj != NamesTypeId_NonInit()) 
+       aGAIP.SetIdObj(mOUK_IdObj);
+}
+
 
 
 template <class Type> 
@@ -186,7 +212,7 @@ template <class Type> size_t cObjWithUnkowns<Type>::IndOfVal(const Type * aVal) 
 }
 
 template <class Type> 
-    void  cObjWithUnkowns<Type>::GetAdrInfoParam(cGetAdrInfoParam<Type> &) 
+    void  cObjWithUnkowns<Type>::FillGetAdrInfoParam(cGetAdrInfoParam<Type> &) 
 {
     MMVII_INTERNAL_ERROR("No default AdrParamFromPattern");
 }
@@ -360,5 +386,36 @@ template class cObjWithUnkowns<tREAL8>;
 template class cSetInterUK_MultipeObj<tREAL8>;
 template class cObjWithUnkowns<tREAL16>;
 template class cSetInterUK_MultipeObj<tREAL16>;
+
+/* ******************************** */
+/*       cVectorUK                  */
+/* ******************************** */
+
+cVectorUK::cVectorUK(const tVect & aVect,const std::string& aName) :
+    mVect  (aVect),
+    mName  (aName)
+{
+}
+cVectorUK::~cVectorUK()
+{
+   OUK_Reset();
+}
+const std::vector<tREAL8> & cVectorUK::Vect() const {return mVect;}
+
+void cVectorUK::PutUknowsInSetInterval()
+{
+    mSetInterv->AddOneInterv(mVect);
+}
+
+void  cVectorUK::FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
+{
+    for (size_t aK=0 ; aK<mVect.size() ; aK++)
+    {
+        aGAIP.TestParam(this,&mVect.at(aK),std::string("el_") + ToStr(aK));
+    }
+
+    aGAIP.SetNameType("std::vect");
+    aGAIP.SetIdObj(mName);
+}
 
 };

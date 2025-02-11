@@ -44,7 +44,8 @@ enum class eTA2007
                 MeshDev,       ///< Mesh Devlopment
                 Mask,          ///< Mask of image
                 MetaData,      ///< Meta data images
-                PointsMeasure, ///< Measure of point , 2D or 3D
+                ObjCoordWorld,       ///< 3D Measure/coords of ground points
+                ObjMesInstr,       ///< 2D Measure/coords of ground points
                 TieP,          ///< Tie Points
                 MulTieP,       ///< Multiple Tie Points
                 RigBlock,      ///< Rigid bloc    // RIGIDBLOC
@@ -83,13 +84,14 @@ enum class eApF
                SysCo,        ///< Coordinate system
                Ori,        ///< Orientation
                Match,      ///< Dense Matching
-               GCP,       ///< Tie-Point processing
+               GCP,        ///< Ground point processing
                TieP,       ///< Tie-Point processing
                Lines,       ///< Lines processing
                TiePLearn,    ///< Tie-Point processing  - Learning step
                Cloud,       ///< Cloud processing
                CodedTarget,  ///< Coded target (generate, match )
                Topo,        ///< Topo survey
+               Simul,       ///< Simulation of datas
                NoGui,        ///< Will not have a GUI frontend
                Perso,      ///< Personnal
                eNbVals     ///< Tag for number of value
@@ -143,7 +145,8 @@ enum class eApDT
               Ori,    ///< Orientation
               PCar,   ///< Tie Points
               TieP,   ///< Tie Points
-              GCP,   ///< Tie Points
+              ObjMesInstr,  ///< Ground Points image coords
+              ObjCoordWorld,  ///< Ground Points ground coords
               Lines,   ///< Tie Points
               Image,   ///< Image
               Orient,   ///< Orientations files
@@ -388,7 +391,8 @@ enum class eModeSSR
       eSSR_LsqDense,        ///< Least square, normal equation, with dense implementation
       eSSR_LsqNormSparse,   ///< Least square, normal equation, with sparse implementation
       eSSR_LsqSparseGC,     ///< Least square, NO normal equation (Conjugate Gradient) , with sparse implementation
-      eSSR_L1Barrodale      ///< L1 minimization using Barrodale-Method
+      eSSR_L1Barrodale,     ///< L1 minimization using Barrodale-Method
+      eNbVals
 };
 
 
@@ -400,6 +404,16 @@ enum class eModePaddingEpip
    eMPE_PxPos,  // Padding force positive paralax
    eMPE_PxNeg,  // Padding force negative paralax
    eMPE_SzEq,  //  Centerd padding, size equal
+   eNbVals
+};
+
+/** Mode  for image matching criteria */
+
+enum class eImatchCrit
+{
+   eDifRad,    // Difference of radiom
+   eCensus,  // Census coefficient
+   eCorrel,  // Correlation
    eNbVals
 };
 
@@ -635,6 +649,7 @@ const std::string & E2Str(const eModeEpipMatch &);
 const std::string & E2Str(const eModeTestPropCov &);         
 const std::string & E2Str(const eModePaddingEpip &);         
 const std::string & E2Str(const eModeCaracMatch &);         
+const std::string & E2Str(const eModeSSR &);         
 
 template <class Type> Type  Str2E(const std::string &,bool WithDef=false); 
 template <class Type> std::string   StrAllVall();

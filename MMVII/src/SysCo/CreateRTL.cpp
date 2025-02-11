@@ -1,5 +1,4 @@
 #include "MMVII_PCSens.h"
-#include "MMVII_MMV1Compat.h"
 #include "MMVII_DeclareCste.h"
 #include "MMVII_BundleAdj.h"
 #include "MMVII_Matrix.h"
@@ -65,7 +64,7 @@ cCollecSpecArg2007 & cAppli_CreateRTL::ArgOpt(cCollecSpecArg2007 & anArgObl)
     return    anArgObl
               << mPhProj.DPOrient().ArgDirInOpt()
             //  <<  mPhProj.DPOrient().ArgDirOutOpt()
-              << mPhProj.DPPointsMeasures().ArgDirInOpt()
+              << mPhProj.DPGndPt3D().ArgDirInOpt()
               << AOpt2007(mOrigin,"Origin","Force origin of RTL Measures",{{}})
               << AOpt2007(mZ0,"Z0","Force altitute of RTL Measures",{{}})
               << AOpt2007(mEpsDer,"EpsDer","Epislon 4 computing derivative",{{eTA2007::HDV}})
@@ -85,6 +84,7 @@ int cAppli_CreateRTL::Exe()
     std::string aDefSysCoIn;
     if (mPhProj.DPOrient().DirInIsInit())
     {
+        mPhProj.DPOrient().CheckDirExists(true, true);
         auto aSysIn = mPhProj.CurSysCoOri(true);
         if (aSysIn.get())
             aDefSysCoIn = aSysIn->Def();
@@ -104,15 +104,15 @@ int cAppli_CreateRTL::Exe()
         }
     }
 
-    cSetMesImGCP aMesIm;
+    cSetMesGndPt aMesIm;
     cWeightAv<tREAL8,cPt3dr> aAvgGCP;
-    if (mPhProj.DPPointsMeasures().DirInIsInit())
+    if (mPhProj.DPGndPt3D().DirInIsInit())
     {
         auto aSysIn = mPhProj.CurSysCoGCP(true);
         if (aSysIn.get())
             aDefSysCoIn = aSysIn->Def();
 
-        mPhProj.LoadGCP(aMesIm);
+        mPhProj.LoadGCP3D(aMesIm);
         for (const auto & aGCP : aMesIm.MesGCP())
         {
             aAvgGCP.Add(1,aGCP.mPt);
@@ -164,8 +164,8 @@ cSpecMMVII_Appli  TheSpec_CreateRTL
         Alloc_CreateRTL,
         "Create RTL (local tangent repair)",
         {eApF::SysCo},
-        {eApDT::GCP,eApDT::Ori,eApDT::SysCo},
-        {eApDT::GCP,eApDT::Ori,eApDT::SysCo},
+        {eApDT::ObjCoordWorld,eApDT::Ori,eApDT::SysCo},
+        {eApDT::ObjCoordWorld,eApDT::Ori,eApDT::SysCo},
         __FILE__
         );
 

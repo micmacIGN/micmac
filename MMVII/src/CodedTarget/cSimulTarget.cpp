@@ -190,7 +190,7 @@ cCollecSpecArg2007 & cAppliSimulCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt
 {
    return
 	        anArgOpt
-             <<  mPhProj.DPPointsMeasures().ArgDirOutOptWithDef("Simul")
+             <<   mPhProj.DPGndPt2D().ArgDirOutOptWithDef("Simul")
              <<   AOpt2007(mRS.mRadiusMinMax,"Radius","Min/Max radius for gen target",{eTA2007::HDV})
              <<   AOpt2007(mRS.mRatioMinMax,"Ratio","Min/Max ratio between target ellipses axis (<=1)",{eTA2007::HDV})
              <<   AOpt2007(mPatternNames,"PatNames","Pattern for selection of names",{eTA2007::HDV})
@@ -236,6 +236,14 @@ void  cAppliSimulCodeTarget::IncrustTarget(cGeomSimDCT & aGSD)
 
     // [1] -- Load and scale image of target
     tIm aImT =  Convert((tElem*)nullptr,mSpec->OneImTarget(aGSD.mEncod).DIm());
+
+/*
+    static bool isFirst = false;
+    if (isFirst && mShowFirst)
+    {
+       isFirst = true;
+   }
+*/
     aImT =  aImT.GaussDeZoom(mDownScale,5);
     
 
@@ -367,6 +375,7 @@ int  cAppliSimulCodeTarget::Exe()
    // mPCT.InitFromFile(mNameSpecif);
    mSpec =  cFullSpecifTarget::CreateFromFile(mNameSpecif);
 
+
    mImIn = tIm::FromFile(mNameIm);
 
    for (const auto & anEncod : mSpec->Encodings())
@@ -398,7 +407,7 @@ int  cAppliSimulCodeTarget::Exe()
         mPhProj.SaveMeasureIm(aSetM);
    }
 
-   SaveInFile(mRS,mPhProj.DPPointsMeasures().FullDirOut() + mPrefixOut + ThePostfixGTSimulTarget);
+   SaveInFile(mRS,mPhProj.DPGndPt2D().FullDirOut() + mPrefixOut + ThePostfixGTSimulTarget);
    // StdOut() <<  "ooo--OOOOO=" << mPhProj.DPPointsMeasures().FullDirOut() + mPrefixOut + ThePostfixGTSimulTarget << "\n";
 
    mImIn.DIm().ToFile(aNameOut,eTyNums::eTN_U_INT1);

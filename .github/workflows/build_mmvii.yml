@@ -16,10 +16,10 @@ jobs:
     - name: Install Qt and clang
       run: |
         sudo apt update
-        sudo apt install qtbase5-dev clang-14 libgdal-dev
+        sudo apt install qtbase5-dev clang-18 libomp-18-dev
 
-    - name: Install libproj
-      run: sudo apt install libproj-dev proj-data
+    - name: Install libproj and libgdal
+      run: sudo apt install libproj-dev proj-data libgdal-dev
 
     - name: Install pdflatex
       run: sudo apt install texlive-latex-base texlive-latex-extra texlive-fonts-recommended texlive-fonts-extra texlive-science
@@ -57,13 +57,13 @@ jobs:
 
     - if: ${{ steps.cache-mm3d-linux.outputs.cache-hit != 'true' }}
       name: Build elise.lib and mm3d
-      run: make -C build install -j 4
+      run: make -C build install -j 4 -k
 
     - name: Configure CMake for MMVII
       run: cmake -S MMVII -B MMVII/build -DCMAKE_BUILD_TYPE=Release
       env:
-        CXX: clang++-14
-        CC: clang-14
+        CXX: clang++-18
+        CC: clang-18
 
     - name: Build MMVII
       run: cmake --build MMVII/build -j 4 --target full -- -k

@@ -87,6 +87,8 @@ void cREAL8_RSNL::SetAllUnShared()
 }
 
 
+
+
 /* ************************************************************ */
 /*                                                              */
 /*                cResolSysNonLinear                            */
@@ -199,9 +201,17 @@ template <class Type> cLinearOverCstrSys<Type> * cResolSysNonLinear<Type>::SysLi
     SetPhaseEq(); // cautious, if user requires this access he may modify
     return mSysLinear;
 }
+template <class Type> const cLinearOverCstrSys<Type> * cResolSysNonLinear<Type>::SysLinear()  const
+{
+    return mSysLinear;
+}
 
 template <class Type> int cResolSysNonLinear<Type>::NbVar() const {return mNbVar;}
 template <class Type> int cResolSysNonLinear<Type>::R_NbVar() const {return NbVar();}
+
+
+template <class Type> Type cResolSysNonLinear<Type>::VarLastSol() const {return mSysLinear->VarLastSol() ;}
+template <class Type> Type cResolSysNonLinear<Type>::VarCurSol() const {return mSysLinear->VarCurSol() ;}
 
       // =====    handling of frozen vars ================
 
@@ -298,6 +308,10 @@ template <class Type> void   cResolSysNonLinear<Type>::R_AddEqFixVar(const int &
 }
 
 
+template <class Type> int  cResolSysNonLinear<Type>::GetCurNbObs() const
+{
+    return currNbObs;
+}
 
 
 template <class Type> int  cResolSysNonLinear<Type>::GetNbObs() const
@@ -388,9 +402,10 @@ template <class Type> void  cResolSysNonLinear<Type>::AddObservationLinear
 {
      SetPhaseEq(); 
      Type  aNewRHS    = aRHS;
-     cSparseVect<Type> aNewCoeff;
+     cSparseVect<Type> aNewCoeff;  // we make a copy because SubstituteInSparseLinearEquation modify aCoeff
 
 #if (WithNewLinearCstr)
+      //     Coef . X =Rhs     Coef(X-X0) = R  - Coeff.(X0)
       for (const auto & aPair :aCoeff)
       {
           aNewRHS -=  mCurGlobSol(aPair.mInd) * aPair.mVal;
@@ -543,7 +558,7 @@ template <class Type> void   cResolSysNonLinear<Type>::CalcVal
       MMVII_INTERNAL_ASSERT_tiny(aCalcVal->NbInBuf()==0,"Buff not empty");
 
       // Usefull only to test correcness of DoOneEval
-      bool  TestOneVal = aVIO.size()==1;
+      bool  TestOneVal = (aVIO.size()==1);
       // Put input data
       for (const auto & aIO : aVIO)
       {
@@ -768,7 +783,11 @@ template <> void cResolSysNonLinear<tREAL8>::R_AddObsWithTmpUK (const tR_Up::tSe
 
             //  =========    resolving ==========================
 
-template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUpdateReset(const Type & aLVM) 
+
+
+template <class Type> 
+   const cDenseVect<Type> & 
+          cResolSysNonLinear<Type>::SolveUpdateReset(const Type & aLVM,tVPtr_SUR AfterCstr ,tVPtr_SUR AfterLVM)
 {
     if (mNbVar-GetNbLinearConstraints()>currNbObs)
     {
@@ -789,6 +808,9 @@ template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUp
            AddEqFixVar(aK,mValueFrozenVar[aK],1.0);
     }
 #endif
+   for (auto aPtrSur : AfterCstr)
+       if (aPtrSur)
+          aPtrSur->Compile(this);
 
     for (int aK=0 ; aK<mNbVar ; aK++)
     {
@@ -797,6 +819,10 @@ template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUp
            AddEqFixVar(aK,CurSol(aK),mSysLinear->LVMW(aK)*aLVM);
         }
     }
+
+   for (auto aPtrSur : AfterLVM)
+       if (aPtrSur)
+          aPtrSur->Compile(this);
 
     mCurGlobSol += mSysLinear->PublicSolve();     //  mCurGlobSol += mSysLinear->SparseSolve();
     mSysLinear->PublicReset();

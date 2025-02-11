@@ -1,14 +1,7 @@
-
-#include "V1VII.h"
 #include "MMVII_Tpl_Images.h"
-
-// #include "include/V1VII.h"
-
 
 namespace MMVII
 {
-
-
 
 class cAppliEpipDMEval : public cMMVII_Appli,
                          public cAppliParseBoxIm<tREAL4>

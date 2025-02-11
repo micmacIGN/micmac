@@ -1,5 +1,4 @@
 #include "MMVII_PCSens.h"
-#include "MMVII_MMV1Compat.h"
 #include "MMVII_DeclareCste.h"
 #include "MMVII_BundleAdj.h"
 #include "MMVII_2Include_Serial_Tpl.h"
@@ -86,6 +85,13 @@ std::string cSetMeasureClino::NameOfIm(const cOneMesureClino &  aMes) const
 {
 	return ReplacePattern(mPatMatch,mPatReplace,aMes.Ident());
 }
+
+void cSetMeasureClino::FilterByPatIdent(const std::string & aPat)
+{
+    erase_if(mSetMeasures,[aPat](const cOneMesureClino &aMes){return ! MatchRegex(aMes.Ident(),aPat);});
+}
+
+
 
 /* **************************************************************** */
 /*                                                                  */

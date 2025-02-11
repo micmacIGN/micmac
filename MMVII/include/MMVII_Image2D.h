@@ -1,6 +1,7 @@
 #ifndef  _MMVII_Images2D_H_
 #define  _MMVII_Images2D_H_
 
+#include "MMVII_ExifData.h"
 #include "MMVII_Images.h"
 
 namespace MMVII
@@ -43,8 +44,12 @@ class cDataFileIm2D : public cRect2
         const int  & NbChannel ()  const ;  ///< std accessor
         const eTyNums &   Type ()  const ;  ///< std accessor
         const std::string &  Name() const;  ///< std accessor
-	bool IsEmpty() const;
-	void AssertNotEmpty() const;
+        bool IsEmpty() const;
+        void AssertNotEmpty() const;
+        const cExifData& ExifDataAll(bool SVP=true) const;
+        const cExifData& ExifDataMain(bool SVP=true) const;
+        std::vector<std::string> ExifStrings(bool SVP=true) const;
+        std::map<std::string, std::vector<std::string>> AllMetadata(bool SVP=true) const;
 
         /// Create a descriptor on existing file
         static cDataFileIm2D Create(const std::string & aName,eForceGray);
@@ -67,13 +72,14 @@ class cDataFileIm2D : public cRect2
 
         virtual ~cDataFileIm2D();
 
-	static bool IsPostFixNameImage(const std::string & aPost);
-	static bool IsNameWith_PostFixImage(const std::string & aPost);
+        static bool IsPostFixNameImage(const std::string & aPost);
+        static bool IsNameWith_PostFixImage(const std::string & aPost);
         eForceGray ForceGray() const; ///< Accessor
 
      private :
         friend class cGdalApi;
         enum class eCreationState {Created, AtFirstWrite, CreatedNoUpdate};
+        enum class eExifState {NotRead, MainTagsRead, AllTagsRead};
         cDataFileIm2D(const std::string &,eTyNums,const cPt2di & aSz,int aNbChannel, const tOptions& aOptions, eForceGray, eCreationState) ;
 
         void SetCreated() const;
@@ -85,6 +91,8 @@ class cDataFileIm2D : public cRect2
         int         mNbChannel; ///< Number of channels
         eForceGray  mForceGray;
         tOptions    mCreateOptions; ///< GDAL Creations options, depend of output driver (JPEG, TIFF, ...)
+        mutable cExifData  mExifData;
+        mutable eExifState mExifState;
         mutable eCreationState mCreationState;  ///< support for creation of non updatable file image (create/write at once: .png, .jpg, ...)
 };
 
@@ -573,7 +581,7 @@ class cRGBImage
 	/// draw only 1 pixel , use zoom for change geom
 	void SetRGBPoint(const cPt2dr & aPoint,const cPt3di & aCoul);  
 	void DrawLine(const cPt2dr & aP1,const cPt2dr & aP2,const cPt3di & aCoul,tREAL8 aWitdh=-1);
-	void DrawEllipse(const cPt3di& aCoul,const cPt2dr & aCenter,tREAL8 aGA,tREAL8 aSA,tREAL8 aTeta,tREAL8 aWitdh=-1);
+	void DrawEllipse(const cPt3di& aCoul,const cPt2dr & aCenter,tREAL8 aGA,tREAL8 aSA,tREAL8 aTeta);
 	void DrawCircle (const cPt3di& aCoul,const cPt2dr & aCenter,tREAL8 aRay);
 	void FillRectangle (const cPt3di& aCoul,const cPt2di & aP1,const cPt2di & aP2,const cPt3dr & aAlpha);
 
@@ -602,6 +610,7 @@ class cRGBImage
         static const  cPt3di  Cyan;
         static const  cPt3di  Orange;
         static const  cPt3di  White;
+        static const  cPt3di  Black;
         static const  cPt3di  Gray128;
 
 	/// return a lut adapted to visalise label in one chanel (blue), an maximize constrat in 2 other
@@ -639,6 +648,7 @@ template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm,c
 
 /// 8 neighboors stored in order compatible with freeman-numbering
 extern const  cPt2di FreemanV8[8];
+extern const  cPt2di FreemanV4[4];
 /// = FreemanV8 with  FreemanV9[8] = FreemanV9[0]
 extern const  cPt2di FreemanV10[10];
 

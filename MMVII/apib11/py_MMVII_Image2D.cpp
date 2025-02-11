@@ -13,16 +13,17 @@ void pyb_init_cIm2D_tpl(py::module_ &m, const std::string& name) {
 
     typedef cIm2D<T> tIm;
     typedef cDataIm2D<T> tDIm;
+    typedef cDataFileIm2D::tOptions tFileOptions;
 
     auto imd = py::class_<tDIm>(m, ("Data" + name).c_str(),py::buffer_protocol());
     imd.def("sz",&tDIm::Sz);
     imd.def("p0",&tDIm::P0);
     imd.def("p1",&tDIm::P1);
     imd.def("nbPix",&tDIm::NbPix);
-    imd.def("toFile",py::overload_cast<const std::string&>(&tDIm::ToFile,py::const_),"fileName"_a);
-    imd.def("toFile",py::overload_cast<const std::string&,eTyNums>(&tDIm::ToFile,py::const_),"fileName"_a,"type"_a);
-    imd.def("toFile",py::overload_cast<const std::string&,const tDIm&, const tDIm&>(&tDIm::ToFile,py::const_),"fileName"_a,"imG"_a,"imB"_a);
-    imd.def("clipToFile",py::overload_cast<const std::string&,const cRect2&>(&tDIm::ClipToFile,py::const_),"fileName"_a,"rect"_a);
+    imd.def("toFile",py::overload_cast<const std::string&, const tFileOptions&>(&tDIm::ToFile,py::const_),"fileName"_a,"options"_a=tFileOptions());
+    imd.def("toFile",py::overload_cast<const std::string&,eTyNums, const tFileOptions&>(&tDIm::ToFile,py::const_),"fileName"_a,"type"_a,"options"_a=tFileOptions());
+    imd.def("toFile",py::overload_cast<const std::string&,const tDIm&, const tDIm&, const tFileOptions&>(&tDIm::ToFile,py::const_),"fileName"_a,"imG"_a,"imB"_a,"options"_a=tFileOptions());
+    imd.def("clipToFile",py::overload_cast<const std::string&,const cRect2&, const tFileOptions&>(&tDIm::ClipToFile,py::const_),"fileName"_a,"rect"_a,"options"_a=tFileOptions());
     // TODO : a verifier le stride/offset !
     imd.def_buffer([](tDIm &i) -> py::buffer_info {
             return py::buffer_info(

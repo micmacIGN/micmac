@@ -44,7 +44,8 @@ class cPI_Appli;
 
 //structure d'un couple (camera,coord 2d)
 struct CamCoord {
-	CamStenope * Cam;
+	//CamStenope * Cam;
+	cBasicGeomCap3D * Cam;
 	Pt2dr coord2d;
 };
 
@@ -60,7 +61,8 @@ class cPI_Appli
           cPI_Appli(int argc,char ** argv);
           void ShowArgs();
           Pt3dr IntersectionFaisceaux(
-			                          const std::vector<CamStenope *> & aVCS,
+			                          //const std::vector<CamStenope *> & aVCS,
+			                          const std::vector<cBasicGeomCap3D *> & aVCS,
 			                          const std::vector<Pt2dr> & aNPts2D,
 									  double&                    aVRes
 		);
@@ -102,6 +104,8 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 
      mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
      mLFile = mICNM->StdGetListOfFile(mPat);
+
+     mICNM->CorrecNameOrient(aOriIn);
 
      int aK=0;
      for (auto aNameCam : mLFile)
@@ -210,13 +214,21 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
                     //si je tombe sur le point courant je dois ajouter la camera + coord dans cette camera
                     if(namePt == iT2->NamePt())
 					{
-						std::string oriNameFile = aOriIn+"Orientation-"+iT1->NameIm()+".xml";
-                        //std::cout<<"ok "<<oriNameFile<<" ";
+						std::string oriNameFile;
+						std::string oriNameFileSten = "Ori-"+aOriIn+"/Orientation-"+iT1->NameIm()+".xml";
+						std::string oriNameFileGB = "Ori-"+aOriIn+"/GB-Orientation-"+iT1->NameIm()+".xml";
+                                               
+		if (ELISE_fp::exist_file(oriNameFileSten)) oriNameFile=oriNameFileSten;
+		if (ELISE_fp::exist_file(oriNameFileGB)) oriNameFile=oriNameFileGB;
+
                         if (!ELISE_fp::exist_file(oriNameFile)) continue;
-						CamStenope * cameraCourante = CamOrientGenFromFile(oriNameFile,mICNM);
+
+			                        cBasicGeomCap3D * aCamGen = mICNM->StdCamGenerikOfNames(aOriIn,iT1->NameIm());
+						//CamStenope * cameraCourante = CamOrientGenFromFile(oriNameFile,mICNM);
 						Pt2dr coordCourant = iT2->PtIm();
 						CamCoord aCameraEtCoord;
-						aCameraEtCoord.Cam = cameraCourante;
+						//aCameraEtCoord.Cam = cameraCourante;
+						aCameraEtCoord.Cam = aCamGen;
 						aCameraEtCoord.coord2d=coordCourant;
 						vCameraEtCoord.push_back(aCameraEtCoord);
                         //std::cout<<"("<<vCameraEtCoord.size()<<")\n";
@@ -248,14 +260,16 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 	for(unsigned int aHG=0 ; aHG<vPtsAI.size() ; aHG++)
 	{
         //vecteur de cameras
-		std::vector<CamStenope *> vCSPt;
+//		std::vector<CamStenope *> vCSPt;
+		std::vector<cBasicGeomCap3D*> vCSPt;
 		
         //vecteur de coordonnees 2d
 		std::vector<Pt2dr> vC2d;
 		
 		for(unsigned int aHF=0 ; aHF<vPtsAI.at(aHG).CAC.size() ; aHF++)
 		{
-			CamStenope * aCSPtC = vPtsAI.at(aHG).CAC.at(aHF).Cam;
+//			CamStenope * aCSPtC = vPtsAI.at(aHG).CAC.at(aHF).Cam;
+			cBasicGeomCap3D * aCSPtC = vPtsAI.at(aHG).CAC.at(aHF).Cam;
 			vCSPt.push_back(aCSPtC);
 			Pt2dr aCoordPtC = vPtsAI.at(aHG).CAC.at(aHF).coord2d;
 			vC2d.push_back(aCoordPtC);
@@ -327,7 +341,8 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 			cOneAppuisDAF aOAD;
 			aOAD.Pt() = Pts3d[aKP];
 			aOAD.NamePt() = vPtsAI.at(aKP).nom.c_str();
-			aOAD.Incertitude() = aInc;
+			double IncOneCoord = aVRes.at(aKP)/sqrt(3);
+			aOAD.Incertitude() = Pt3dr(IncOneCoord,IncOneCoord,IncOneCoord);//  aInc;
 						
 			aDico.OneAppuisDAF().push_back(aOAD);
 		}
@@ -357,7 +372,8 @@ void cPI_Appli::ShowArgs()
 
 Pt3dr cPI_Appli::IntersectionFaisceaux
 	   (
-			const std::vector<CamStenope *> & aVCS,
+			//const std::vector<CamStenope *> & aVCS,
+			const std::vector<cBasicGeomCap3D *> & aVCS,
 			const std::vector<Pt2dr> & aNPts2D,
 			double &                   aResidu
 		)
@@ -371,9 +387,30 @@ Pt3dr cPI_Appli::IntersectionFaisceaux
 	
 	for (int aKR=0 ; aKR < aNb ; aKR++)
 	{
-		ElSeg3D aSeg = aVCS.at(aKR)->F2toRayonR3(aNPts2D.at(aKR));
-		aVSeg.push_back(aSeg);
+//		if satellite
+		if (aVCS.at(aKR)->IsRPC())
+		{
+
+			Pt2dr aZLim = aVCS.at(aKR)->GetAltiSolMinMax();
+			double aDelta = aZLim.y - aZLim.x;
+			double aZMoy = aZLim.x + 0.5*aDelta;
+
+			Pt3dr aP0 = aVCS.at(aKR)->ImEtZ2Terrain(aNPts2D.at(aKR),aZMoy-0.4*aDelta);
+			Pt3dr aP1 = aVCS.at(aKR)->ImEtZ2Terrain(aNPts2D.at(aKR),aZMoy+0.4*aDelta);
+	
+			ElSeg3D aSeg(aP0,aP1);
+                	aVSeg.push_back(aSeg);
+		}
+		else //if stenope camera
+		{
+
+			ElSeg3D aSeg = aVCS.at(aKR)->Capteur2RayTer(aNPts2D.at(aKR));
+			aVSeg.push_back(aSeg);
+		}
+
+
 	}
+
     std::cout<<"Intersect "<< aNb <<" bundles...\n";
 	Pt3dr aRes =  ElSeg3D::L2InterFaisceaux(0,aVSeg,0);
 

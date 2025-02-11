@@ -97,7 +97,7 @@ static void pyb_init_PerspCamIntrCalib(py::module_ &m)
 DOC(MMVII_cPerspCamIntrCalib,RansacPoseEstimSpaceResection) )
 
             .def("infoParam",[](tPCIC &c) {
-                cGetAdrInfoParam<tREAL8> aGAIP(".*",c);
+                cGetAdrInfoParam<tREAL8> aGAIP(".*",c,true);
                 c.GetAdrInfoParam(aGAIP);
                 auto names  = aGAIP.VNames();
                 auto valptr = aGAIP.VAdrs();

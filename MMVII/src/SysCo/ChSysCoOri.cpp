@@ -1,5 +1,4 @@
 #include "MMVII_PCSens.h"
-#include "MMVII_MMV1Compat.h"
 #include "MMVII_DeclareCste.h"
 #include "MMVII_BundleAdj.h"
 #include "MMVII_Matrix.h"
@@ -103,7 +102,7 @@ int cAppli_ChSysCoOri::Exe()
 
 std::vector<std::string>  cAppli_ChSysCoOri::Samples() const
 {
-   return {"MMVII SysCoCreateRTL "};
+   return {"MMVII OriChSysCo ImAerien.xml RTL  InitL93Up RTLD0"};
 }
 
 

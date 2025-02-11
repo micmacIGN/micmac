@@ -124,7 +124,9 @@ template <class Type> void cSMLineTransf<Type>::TransfertInTriplet
 template<class Type>  class cSparseLeasSq : public cLeasSq<Type>
 {
       public :
-       /// Here genereate an error, no need to handle dense vector in sparse systems
+       /**  Used to  genereate an error, no need to handle dense vector in sparse systems
+            Now less extremist, implement it by convesrsion to sparse vector, btw no need to be efficient
+       */
          void SpecificAddObservation(const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) override;
          cSparseLeasSq(int  aNbVar);
 };
@@ -133,7 +135,9 @@ template<class Type> void cSparseLeasSq<Type>::SpecificAddObservation
                       (const Type& aW ,const cDenseVect<Type> & aDV ,const Type & aVal ) 
 {
    // call to virtual  method, dont know why, compiler dont agre w/o cast 
-    static_cast<cLinearOverCstrSys<Type> *>(this)-> SpecificAddObservation(aW,cSparseVect(aDV),aVal);
+    // static_cast<cLinearOverCstrSys<Type> *>(this)-> SpecificAddObservation(aW,cSparseVect(aDV),aVal);
+    this->SpecificAddObs_UsingCast2Sparse(aW,cSparseVect(aDV),aVal);
+
 }
 
 template<class Type> 
@@ -329,6 +333,12 @@ template<class Type>  class cSparseLeasSqtAA : public cSparseLeasSq<Type>
 
           void SpecificReset() override;
           cDenseVect<Type>  SpecificSolve() override;
+
+         void PutInTriplet(std::vector<cEigenTriplet<Type> > & aVCoeff) const;
+         cDenseMatrix<Type>  V_tAA() const override;
+         cDenseMatrix<Type> tAA_Solve(const cDenseMatrix<Type> &) const override;
+         cDenseVect<Type>    V_tARhs() const override;
+
 
 
          void  SpecificAddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>& aSetSetEq)  override;
@@ -624,14 +634,46 @@ template<class Type> void cSparseLeasSqtAA<Type>::SpecificReset()
 template<class Type> cDenseVect<Type> cSparseLeasSqtAA<Type>::SpecificSolve()
 {
    std::vector<cEigenTriplet<Type> > aVCoeff;            // list of non-zeros coefficients
-   PutBufererEqInNormalMatrix();
+   PutInTriplet(aVCoeff);
+   return EigenSolveCholeskyarseFromV3(aVCoeff,mtARhs);
+}
+
+template<class Type> void cSparseLeasSqtAA<Type>::PutInTriplet(std::vector<cEigenTriplet<Type> > & aVCoeff) const
+{
+   const_cast<cSparseLeasSqtAA<Type>*>(this)->PutBufererEqInNormalMatrix();
    for (auto & aLine : mtAA)
    {
        aLine->TransfertInTriplet(aVCoeff,this->mNbVar);
    }
-   return EigenSolveCholeskyarseFromV3(aVCoeff,mtARhs);
 }
 
+template<class Type> cDenseMatrix<Type> cSparseLeasSqtAA<Type>::V_tAA() const
+{
+   cDenseMatrix<Type> aRes(this->mNbVar,eModeInitImage::eMIA_Null);
+   const_cast<cSparseLeasSqtAA<Type>*>(this)->PutBufererEqInNormalMatrix();
+
+   for (auto & aLine : mtAA)
+   {
+       std::vector<cEigenTriplet<Type> > aVCoeff;            // list of non-zeros coefficients
+       aLine->TransfertInTriplet(aVCoeff,this->mNbVar);
+       for (const auto & aTriplet : aVCoeff)
+       {
+          aRes.SetElem(aTriplet.col(),aTriplet.row(),aTriplet.value());
+          aRes.SetElem(aTriplet.row(),aTriplet.col(),aTriplet.value());
+       }
+   }
+
+   return aRes;
+}
+
+template<class Type> cDenseMatrix<Type> cSparseLeasSqtAA<Type>::tAA_Solve(const cDenseMatrix<Type> & aMat) const 
+{
+   std::vector<cEigenTriplet<Type> > aVCoeff;            // list of non-zeros coefficients
+   PutInTriplet(aVCoeff);
+   return EigenSolveCholeskyarseFromV3(aVCoeff,aMat);
+}
+
+template<class Type> cDenseVect<Type> cSparseLeasSqtAA<Type>::V_tARhs() const {return mtARhs;}
 
 
 template<class Type> void  cSparseLeasSqtAA<Type>::SpecificAddObservation

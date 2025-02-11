@@ -1,5 +1,4 @@
 #include "MMVII_PCSens.h"
-#include "MMVII_MMV1Compat.h"
 #include "MMVII_DeclareCste.h"
 #include "MMVII_BundleAdj.h"
 #include "MMVII_Matrix.h"
@@ -50,8 +49,8 @@ cCollecSpecArg2007 & cAppli_ChSysCoGCP::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
     return anArgObl
 	      <<  Arg2007(mNameSysOut ,"Output SysCo definition")
-              <<  mPhProj.DPPointsMeasures().ArgDirInMand()
-              <<  mPhProj.DPPointsMeasures().ArgDirOutMand()
+              <<  mPhProj.DPGndPt3D().ArgDirInMand()
+              <<  mPhProj.DPGndPt3D().ArgDirOutMand()
            ;
 }
 
@@ -87,16 +86,13 @@ int cAppli_ChSysCoGCP::Exe()
     for (const auto & aNameGPCIN : aListNameGCPIn)
     {
     // StdOut() << "KKKKKKK " <<   aChSys.Value(cPt3dr(0,0,0)) << aChSys.Inverse(cPt3dr(0,0,0))  << "\n";
-        cSetMesGCP aMesGCP = cSetMesGCP::FromFile(aNameGPCIN);
-	aMesGCP.ChangeCoord(aChSys);
-	mPhProj.SaveGCP(aMesGCP);
+        cSetMesGnd3D aMesGCP = cSetMesGnd3D::FromFile(aNameGPCIN);
+        aMesGCP.ChangeCoord(aChSys);
+        mPhProj.SaveGCP3D(aMesGCP, mPhProj.DPGndPt3D().DirOut());
     }
 
     // copy the System of coordinate in the GCP-folder
     mPhProj.SaveCurSysCoGCP(aSysOut);
-
-    //  copy the image measure to be complete
-    mPhProj.CpMeasureIm();
 
     return EXIT_SUCCESS;
 }
@@ -104,7 +100,7 @@ int cAppli_ChSysCoGCP::Exe()
 
 std::vector<std::string>  cAppli_ChSysCoGCP::Samples() const
 {
-   return {"MMVII SysCoCreateRTL "};
+   return {"MMVII GCPChSysCo RTL ORGI RTLSat SysIn=Geog"};
 }
 
 

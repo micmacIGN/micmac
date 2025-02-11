@@ -244,6 +244,18 @@ template <class Type> Type  cComputeStdDev<Type>::StdDev(const Type&  Epsilon) c
      return aRes.mStdDev;
 }
 
+template <class Type> Type  cComputeStdDev<Type>::UB_Variance(const Type&  Epsilon) const
+{
+   cComputeStdDev<Type> aRes = Normalize(Epsilon);
+   return aRes.mSomWV2 * mSomWV / (mSomWV-1.0);
+}
+
+template <class Type> Type  cComputeStdDev<Type>::UB_StdDev(const Type&  Epsilon) const
+{
+    return std::sqrt(UB_Variance(Epsilon)); 
+}
+
+
 
 /* ============================================= */
 /*      cMatIner2Var<Type>                       */
@@ -426,6 +438,11 @@ template <class TypeWeight,class TypeVal> cWeightAv<TypeWeight,TypeVal>::cWeight
 {
 }
 
+template <class TypeWeight,class TypeVal> void cWeightAv<TypeWeight,TypeVal>::Reset()
+{
+   mSW = 0;
+   mSVW =cNV<TypeVal>::V0();
+}
 
 template <class TypeWeight,class TypeVal> cWeightAv<TypeWeight,TypeVal>::cWeightAv(const std::vector<TypeVal> & aVect) :
    cWeightAv()
@@ -462,6 +479,23 @@ template <class TypeWeight,class TypeVal> TypeVal cWeightAv<TypeWeight,TypeVal>:
 
 template <class TypeWeight,class TypeVal> const TypeVal & cWeightAv<TypeWeight,TypeVal>::SVW () const {return mSVW;}
 template <class TypeWeight,class TypeVal> const TypeWeight & cWeightAv<TypeWeight,TypeVal>::SW () const {return mSW;}
+
+template <class Type> Type Average(const Type * aTab,size_t aNb)
+{
+   cWeightAv<Type,Type>  aWA;
+
+   for (size_t aK=0; aK<aNb; aK++)
+       aWA.Add(1.0,aTab[aK]);
+
+   return aWA.Average();
+}
+
+
+template <class Type> Type Average(const std::vector<Type> & aVec)
+{
+   return Average(aVec.data(),aVec.size());
+}
+
 
 /* *************************************** */
 /*                                         */
@@ -791,7 +825,10 @@ template class cSymMeasure<TYPE>;\
 template class cMatIner2Var<TYPE>;\
 template  class cComputeStdDev<TYPE>;\
 template class cWeightAv<TYPE,TYPE>;\
-template  cMatIner2Var<double> StatFromImageDist(const cDataIm2D<TYPE> & aIm);
+template  cMatIner2Var<double> StatFromImageDist(const cDataIm2D<TYPE> & aIm);\
+template TYPE Average(const std::vector<TYPE> & aVec);\
+template TYPE Average(const TYPE * aTab,size_t aNb);
+
 
 
 INSTANTIATE_MAT_INER(tREAL4)

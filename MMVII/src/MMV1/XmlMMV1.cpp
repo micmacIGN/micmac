@@ -4,13 +4,14 @@
 #include "MMVII_AimeTieP.h"
 
 
+#if (MMVII_KEEP_LIBRARY_MMV1)
 #include "../src/uti_image/NewRechPH/cParamNewRechPH.h"
-// #include "../CalcDescriptPCar/AimeTieP.h"
-
 #include "im_tpl/cPtOfCorrel.h"
 #include "algo_geom/qdt.h"
 #include "algo_geom/qdt_implem.h"
 #include "ext_stl/heap.h"
+#endif
+
 
 
 namespace MMVII
@@ -22,7 +23,11 @@ namespace MMVII
 /*                                     */	
 /* *********************************** */
 
-
+#if (MMVII_KEEP_LIBRARY_MMV1)
+/*
+    This class is an interface to use in MMV2, the 3d masq produce by SaisieMasqQT of MMV1,
+    using the MMV1 library
+*/
 class cMasq_MMV1asBoundeSet : public cDataBoundedSet<tREAL8,3> 
 {
     public :
@@ -54,10 +59,18 @@ cDataBoundedSet<tREAL8,3> *  MMV1_Masq(const cBox3dr &aBox,const std::string & a
 {
     return new cMasq_MMV1asBoundeSet(aBox,aNameFile);
 }
+#else // MMVII_KEEP_LIBRARY_MMV1
+cDataBoundedSet<tREAL8,3> *  MMV1_Masq(const cBox3dr &aBox,const std::string & aNameFile)
+{
+    MMVII_INTERNAL_ERROR("Handling MMV1 3d-Masq is deprecated");
+    return nullptr;
+}
+#endif // MMVII_KEEP_LIBRARY_MMV1
 
 
 
 //=============  tNameRel ====================
+#if (MMVII_KEEP_LIBRARY_MMV1)
 
 void TestTimeV1V2()
 {
@@ -595,13 +608,47 @@ template <class Type> void cImplem_ExportAimeTiep<Type>::FiltrageSpatialPts()
      }
 }
 
+template class cImplem_ExportAimeTiep<tREAL4>;
+template class cImplem_ExportAimeTiep<tINT2>;
+#else // MMVII_KEEP_LIBRARY_MMV1
+template <class Type> cInterf_ExportAimeTiep<Type>::~cInterf_ExportAimeTiep()
+{
+}
+
+template <class Type> cInterf_ExportAimeTiep<Type> * cInterf_ExportAimeTiep<Type>::Alloc(const cPt2di& aSzIm0,bool IsMax,eTyPyrTieP ATypePt,const std::string & aName,bool ForInspect,const cGP_Params & aParam )
+{
+
+    MMVII_INTERNAL_ERROR("Creating cInterf_ExportAimeTiep  is deprecated");
+    return nullptr;
+}
+
+template<> void  MMv1_SaveInFile(const tNameRel & aSet,const std::string & aName)
+{
+    MMVII_INTERNAL_ERROR("Handling writing of MMV1 Relations is deprecated");
+}
+template<> void  MMv1_SaveInFile(const tNameSet & aSet,const std::string & aName)
+{
+    MMVII_INTERNAL_ERROR("Handling writing  MMV1 Sets is deprecated");
+}
+tNameSet  MMV1InitSet(const std::string & aName)
+{
+   MMVII_INTERNAL_ERROR("Handling reaing of MMV1 Sets is deprecated");
+   return tNameSet();
+}
+
+tNameRel  MMV1InitRel(const std::string & aName)
+{
+   MMVII_INTERNAL_ERROR("Handling reaing of MMV1 Rels is deprecated");
+   return tNameRel();
+}
+#endif // MMVII_KEEP_LIBRARY_MMV1
 
 // ============  INSTANTIATION ======================
 
 template class cInterf_ExportAimeTiep<tREAL4>;
 template class cInterf_ExportAimeTiep<tINT2>;
-template class cImplem_ExportAimeTiep<tREAL4>;
-template class cImplem_ExportAimeTiep<tINT2>;
-
 
 };
+
+
+

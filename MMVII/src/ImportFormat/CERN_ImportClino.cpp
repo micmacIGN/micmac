@@ -1,5 +1,4 @@
 #include "MMVII_PCSens.h"
-#include "MMVII_MMV1Compat.h"
 #include "MMVII_DeclareCste.h"
 #include "MMVII_BundleAdj.h"
 #include "MMVII_Stringifier.h"
@@ -38,12 +37,16 @@ class cAppli_CERN_ImportClino : public cMMVII_Appli
 	std::vector<std::string>  Samples() const override;
 
 	std::vector<std::string>  mNamesClino;
+        std::string               mNameFile;
+        std::string               mPatIm;
 };
 
 cAppli_CERN_ImportClino::cAppli_CERN_ImportClino(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli  (aVArgs,aSpec),
    mPhProj       (*this),
-   mNamesClino   {"A1","B1","B2","A2"}
+   mNamesClino   {"A1","B1","B2","A2"},
+   mNameFile     ("ClinoValue.json"),
+   mPatIm        ("043.*")
 {
 }
 
@@ -59,7 +62,9 @@ cCollecSpecArg2007 & cAppli_CERN_ImportClino::ArgOpt(cCollecSpecArg2007 & anArgF
 {
     
     return anArgFac
-           << AOpt2007(mNamesClino,"NameClino","Name of Clino")
+           << AOpt2007(mNamesClino,"NameClino","Name of Clino",{eTA2007::HDV})
+           << AOpt2007(mNameFile,"NameFile","Name of file in each folder",{eTA2007::HDV})
+           << AOpt2007(mPatIm,"PatIm","Pattern for extracting image from folder",{eTA2007::HDV})
        //  << AOpt2007(mNbDigName,"NbDigName","Number of digit for name, if fixed size required (only if int)")
        //  << AOpt2007(mL0,"NumL0","Num of first line to read",{eTA2007::HDV})
        //  << AOpt2007(mLLast,"NumLast","Num of last line to read (-1 if at end of file)",{eTA2007::HDV})
@@ -72,10 +77,10 @@ cCollecSpecArg2007 & cAppli_CERN_ImportClino::ArgOpt(cCollecSpecArg2007 & anArgF
 
 void cAppli_CERN_ImportClino::MakeOneDir(const std::string & aDir,cMMVII_Ofs & anOFS) const
 {
-    std::string aNameF = aDir + StringDirSeparator() +  "ClinoValue.json";
+    std::string aNameF = aDir + StringDirSeparator() +  mNameFile;
     std::ifstream infile(aNameF);
 
-    std::vector<std::string>  aVFileIm =  GetFilesFromDir(aDir+StringDirSeparator(),AllocRegex("043.*"));
+    std::vector<std::string>  aVFileIm =  GetFilesFromDir(aDir+StringDirSeparator(),AllocRegex(mPatIm));
 
     MMVII_INTERNAL_ASSERT_tiny(aVFileIm.size()==1,"cAppli_CERN_ImportClino : bad size for image pattern match");
     anOFS.Ofs() << aVFileIm.at(0) ;
@@ -135,7 +140,7 @@ int cAppli_CERN_ImportClino::Exe()
 
 std::vector<std::string>  cAppli_CERN_ImportClino::Samples() const
 {
-	return {"MMVII V2ImportCalib ../../Pannel/ BA_725 CalibInit725"};
+    return {"MMVII CERN_ImportClino  ./ MMC.txt PatIm=\"043.*\" NameClino=[A,B,C,D]  NameFile=ClinoValue.json"};
 }
 
 

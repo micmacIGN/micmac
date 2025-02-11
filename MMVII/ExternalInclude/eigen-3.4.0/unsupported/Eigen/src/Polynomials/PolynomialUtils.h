@@ -53,7 +53,8 @@ T poly_eval( const Polynomials& poly, const T& x )
   {
     T val=poly[0];
     T inv_x = T(1)/x;
-    for( DenseIndex i=1; i<poly.size(); ++i ){
+    // for( DenseIndex i=1; i<poly.size(); ++i ){  MPD::MMVII
+    for( DenseIndex i=1; i<DenseIndex(poly.size()); ++i ){
       val = val*inv_x + poly[i]; }
 
     return numext::pow(x,(T)(poly.size()-1)) * val;

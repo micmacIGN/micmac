@@ -186,7 +186,7 @@ cCollecSpecArg2007 & cAppliExtractLine::ArgObl(cCollecSpecArg2007 & anArgObl)
              <<  Arg2007(mPatImage,"Name of input Image", {eTA2007::FileDirProj,{eTA2007::MPatFile,"0"}})
 	     <<  Arg2007(mLineIsWhite," True : its a light line , false dark ")
              << mPhProj.DPOrient().ArgDirInMand()
-             << mPhProj.DPPointsMeasures().ArgDirOutMand()
+             << mPhProj.DPGndPt2D().ArgDirOutMand()
       ;
 }
 
@@ -199,7 +199,7 @@ cCollecSpecArg2007 & cAppliExtractLine::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 	       << AOpt2007(mParamMatch,"MatchParam","[Angl,DMin,DMax]",{eTA2007::HDV,{eTA2007::ISizeV,"[3,3]"}})
 	       << AOpt2007(mRelThrsCumulLow,"ThrCumLow","Low Thresold relative for cumul in histo",{eTA2007::HDV})
 	       << AOpt2007(mHoughSeuilAng,"HoughThrAng","Angular threshold for hough acummulator",{eTA2007::HDV})
-               << mPhProj.DPPointsMeasures().ArgDirInOpt("","Folder for ground truth measure")
+               << mPhProj.DPGndPt2D().ArgDirInOpt("","Folder for ground truth measure")
             ;
 }
 
@@ -254,7 +254,7 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
 
 
    // [2]  Eventually init ground truth  2D-points
-   if (mPhProj.DPPointsMeasures().DirInIsInit()  && mPhProj.HasMeasureIm(mNameCurIm))
+   if (mPhProj.DPGndPt2D().DirInIsInit()  && mPhProj.HasMeasureIm(mNameCurIm))
    {
       mWithGT = true;
       cSetMesPtOf1Im  aSetMes = mPhProj.LoadMeasureIm(mNameCurIm);
@@ -575,7 +575,7 @@ int cAppliExtractLine::Exe()
     //  Create a report with header computed from type
     Tpl_AddHeaderReportCSV<cOneLineAntiParal>(*this,mIdExportCSV,true);
     // Redirect the reports on folder of result
-    SetReportRedir(mIdExportCSV,mPhProj.DPPointsMeasures().FullDirOut());
+    SetReportRedir(mIdExportCSV,mPhProj.DPGndPt2D().FullDirOut());
 
     if (RunMultiSet(0,0))
     {
@@ -598,7 +598,7 @@ cSpecMMVII_Appli  TheSpecAppliExtractLine
       Alloc_AppliExtractLine,
       "Extraction of lines",
       {eApF::Ori},
-      {eApDT::Ori,eApDT::GCP},
+      {eApDT::Ori,eApDT::ObjMesInstr},
       {eApDT::Console},
       __FILE__
 );

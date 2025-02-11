@@ -27,10 +27,16 @@ template <class Type> void SelfLabMaj(cIm2D<Type> aImIn,const cBox2di &);
 
 
 /// Basic laplacien
-cIm2D<tREAL4> Lapl(cIm2D<tREAL4> aImIn); // Well linear ...
+template  <class Type> cIm2D<Type> Lapl(cIm2D<Type> aImIn); // Well linear ...
+
+/// return the label majoritar in a neighbourhood
+template<class Type> cIm2D<Type> LabMaj(cIm2D<Type>  aImIn,const cBox2di &);
+
+
 
 ///  Extincion function = dist of image (V!=0) to its complementar (V==0)
-void MakeImageDist(cIm2D<tU_INT1> aImIn,const std::string & aNameChamfer="32");
+//  No longer implemented, used MMV1
+//  void MakeImageDist(cIm2D<tU_INT1> aImIn,const std::string & aNameChamfer="32");
 
 
 

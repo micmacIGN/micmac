@@ -1,5 +1,4 @@
 #include "MMVII_PCSens.h"
-#include "MMVII_MMV1Compat.h"
 #include "MMVII_DeclareCste.h"
 #include "MMVII_BundleAdj.h"
 #include "MMVII_2Include_Serial_Tpl.h"
@@ -81,7 +80,7 @@ cCollecSpecArg2007 & cAppli_ImportLines::ArgObl(cCollecSpecArg2007 & anArgObl)
 	      <<  Arg2007(mNameFile ,"Name of Input File",{eTA2007::FileAny})
 	      // <<  Arg2007(mFormat   ,"Format of file as for in spec :  \"" + mSpecFormatTot + "\"")
 	      <<  Arg2007(mFormat   ,cNewReadFilesStruct::MsgFormat(mSpecFormatTot))
-              <<  mPhProj.DPPointsMeasures().ArgDirOutMand()
+              <<  mPhProj.DPGndPt2D().ArgDirOutMand()
            ;
 }
 

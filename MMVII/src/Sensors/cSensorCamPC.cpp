@@ -41,6 +41,7 @@ const cPt3dr &   cPoseWithUK::Tr() const {return mPose.Tr();}
 cPt3dr &  cPoseWithUK::Tr()  {return mPose.Tr();}
 
 
+
 cPt3dr &  cPoseWithUK::Omega()  {return mOmega;}
 const cPt3dr &  cPoseWithUK::Omega() const {return mOmega;}
 
@@ -92,7 +93,7 @@ void cPoseWithUK::OnUpdate()
      mOmega = cPt3dr(0,0,0);
 }
 
-void  cPoseWithUK::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
+void  cPoseWithUK::FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 {
    aGAIP.TestParam(this, &( mPose.Tr().x()),"Cx");
    aGAIP.TestParam(this, &( mPose.Tr().y()),"Cy");
@@ -101,12 +102,16 @@ void  cPoseWithUK::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
    aGAIP.TestParam(this, &( mOmega.x())    ,"Wx");
    aGAIP.TestParam(this, &( mOmega.y())    ,"Wy");
    aGAIP.TestParam(this, &( mOmega.z())    ,"Wz");
+
+   SetNameTypeId(aGAIP);
 }
 
 void cPoseWithUK::PutUknowsInSetInterval(cSetInterUK_MultipeObj<tREAL8> * aSetInterv) 
 {
+//StdOut() << " *PUK0 :PutUknowsInSetIntervalPutUknowsInSetInterval " << mIndUk0 << " " << mIndUk1 << "\n";
     aSetInterv->AddOneInterv(mPose.Tr());
     aSetInterv->AddOneInterv(mOmega);
+//StdOut() << " *PUK1   PutUknowsInSetIntervalPutUknowsInSetInterval " << mIndUk0 << " " << mIndUk1 << "\n";
 }
 
 void cPoseWithUK::PutUknowsInSetInterval()
@@ -156,7 +161,17 @@ void cSensorCamPC::SetPose(const tPose & aPose)
    mPose_WU.SetPose(aPose);
 }
 
+         // void SetCenter(const cPt3dr & aC);
 
+void cSensorCamPC::SetOrient(const tRotR & anOrient)
+{
+     SetPose(tPose(Center(),anOrient));
+}
+
+void cSensorCamPC::SetCenter(const cPt3dr & aC)
+{
+     SetPose(tPose(aC,Orient()));
+}
 
 
 #if (1)
@@ -307,7 +322,9 @@ const cPixelDomain & cSensorCamPC::PixelDomain() const
 
 cPerspCamIntrCalib * cSensorCamPC::InternalCalib() const {return mInternalCalib;}
 
-const cPt3dr & cSensorCamPC::Center() const {return mPose_WU.Tr();}
+const cPt3dr & cSensorCamPC::Center()  const {return mPose_WU.Tr();}
+const tRotR &   cSensorCamPC::Orient() const {return mPose_WU.Pose().Rot();}
+
 const cPt3dr & cSensorCamPC::Omega()  const {return mPose_WU.Omega();}
 cPt3dr & cSensorCamPC::Center() {return mPose_WU.Tr();}
 cPt3dr & cSensorCamPC::Omega()  {return mPose_WU.Omega();}
@@ -560,9 +577,9 @@ std::vector<cPt2dr>  cSensorCamPC::PtsSampledOnSensor(int aNbByDim,tREAL8 aEps) 
 std::string  cSensorCamPC::V_PrefixName() const { return PrefixName() ; }
 std::string  cSensorCamPC::PrefixName()  { return "PerspCentral";}
 
-void  cSensorCamPC::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
+void  cSensorCamPC::FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 {
-   mPose_WU.GetAdrInfoParam(aGAIP);
+   mPose_WU.FillGetAdrInfoParam(aGAIP);
    aGAIP.SetNameType("PoseCamPC");
    aGAIP.SetIdObj(NameImage());
 }
@@ -583,6 +600,13 @@ void cSensorCamPC::BenchOneCalib(cPerspCamIntrCalib * aCalib)
     cSensorCamPC aCam("BenchCam",aPose,aCalib);
     aCam.Bench();
 }
+
+     // =================  Cast ===================
+
+bool  cSensorCamPC::IsSensorCamPC() const  { return true; }
+const cSensorCamPC * cSensorCamPC::GetSensorCamPC() const { return this; }
+cSensorCamPC * cSensorCamPC::GetSensorCamPC() { return this; }
+
 
 
 }; // MMVII

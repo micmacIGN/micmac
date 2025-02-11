@@ -36,13 +36,12 @@ MMVII   OriBundleAdj ImAerien.xml InitL93Up Test TPDir=Vexcell TiePWeight=[1,1] 
 
 
 # Import GCP
-MMVII ImportGCP  ExternalData/Filtered_Terrain.APP 'NIXYZ'  AerRTL  ChSys=[L93,RTL]
+MMVII ImportGCP  ExternalData/Filtered_Terrain.APP 'NAXYZ'  AerRTL  ChSys=[L93,RTL]
 MMVII ImportMesImGCP  ExternalData/Filtered_Terrain.MES NIXY AerRTL  'PatIm=[.*,$&.tif]' 
 MMVII OriChSysCo ImAerien.xml RTL  InitL93Up RTLD0
 
 
-MMVII   OriBundleAdj ImAerien.xml RTLD0 Test TPDir=Vexcell TiePWeight=[1,1]  PatFzCenters=.* PPFzCal='[Kbp].*' GCPDir=AerRTL GCPW=[0,0.1]
-
+MMVII   OriBundleAdj ImAerien.xml RTLD0 Test TPDir=Vexcell TiePWeight=[1,1]  PatFzCenters=.* PPFzCal='[Kbp].*' GCP2D=[[AerRTL,0.1]] GCP3D=[[AerRTL,0]]
 
 
 #  Put everting in local tangent system

@@ -86,8 +86,10 @@ cCollecSpecArg2007 & cAppliTestSensor::ArgObl(cCollecSpecArg2007 & anArgObl)
 cCollecSpecArg2007 & cAppliTestSensor::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
     return anArgOpt
-               << mPhProj.DPPointsMeasures().ArgDirInOpt()
-               << mPhProj.DPPointsMeasures().ArgDirOutOpt()
+               << mPhProj.DPGndPt3D().ArgDirInOpt()
+               << mPhProj.DPGndPt3D().ArgDirOutOpt()
+               << mPhProj.DPGndPt2D().ArgDirInOpt()
+               << mPhProj.DPGndPt2D().ArgDirOutOpt()
                << AOpt2007(mShowDetail,"ShowD","Show detail",{eTA2007::HDV})
                << AOpt2007(mTestCorDirInv,"TestCDI","Test coherence of direct/invers model",{eTA2007::HDV})
                << AOpt2007(mSzGenerate,"SzGen","Sz gen",{eTA2007::HDV,{eTA2007::ISizeV,"[2,2]"}})
@@ -100,8 +102,8 @@ cCollecSpecArg2007 & cAppliTestSensor::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 void cAppliTestSensor::TestGroundTruth(const  cSensorImage & aSI) const
 {
     // Load mesure from standard MMVII project
-    cSetMesImGCP aSetMes;
-    mPhProj.LoadGCP(aSetMes);
+    cSetMesGndPt aSetMes;
+    mPhProj.LoadGCP3D(aSetMes);
     mPhProj.LoadIm(aSetMes,aSI.NameImage());
     cSet2D3D aSetM23;
     aSetMes.ExtractMes1Im(aSetM23,aSI.NameImage());
@@ -127,7 +129,7 @@ void cAppliTestSensor::TestGroundTruth(const  cSensorImage & aSI) const
 
 void cAppliTestSensor::ExportMeasures(const  cSensorImage & aSI) const
 {
-    cSetMesGCP      aSet3D(aSI.NameImage());
+    cSetMesGnd3D      aSet3D(aSI.NameImage());
     cSetMesPtOf1Im  aSet2D(aSI.NameImage());
     int aNb=0;
     for (const auto & aPair : mCurS23.Pairs())
@@ -135,10 +137,10 @@ void cAppliTestSensor::ExportMeasures(const  cSensorImage & aSI) const
         std::string aName = "Pt_"+ ToStr(aNb) + "-" + aSI.NameImage();
         aNb++;
         aSet2D.AddMeasure(cMesIm1Pt(aSI.Ground2Image(aPair.mP3),aName,1.0));
-        aSet3D.AddMeasure(cMes1GCP(aPair.mP3,aName,1.0));
+        aSet3D.AddMeasure3D(cMes1Gnd3D(aPair.mP3,aName,1.0));
 
     }
-    mPhProj.SaveGCP(aSet3D);
+    mPhProj.SaveGCP3D(aSet3D,mPhProj.DPGndPt3D().FullDirOut());
     mPhProj.SaveMeasureIm(aSet2D);
 }
 
@@ -265,13 +267,13 @@ void  cAppliTestSensor::DoOneImage(const std::string & aNameIm)
 
     // cSensorImage *  aSI =  AllocAutoSensorFromFile(mNameRPC,mNameImage);
 
-    if (mPhProj.DPPointsMeasures().DirInIsInit())
+    if (mPhProj.DPGndPt3D().DirInIsInit() && mPhProj.DPGndPt2D().DirInIsInit())
        TestGroundTruth(*aSI);
 
     if (mTestCorDirInv)
        TestCoherenceDirInv(*aSI);
 
-    if (mPhProj.DPPointsMeasures().DirOutIsInit())
+    if (mPhProj.DPGndPt3D().DirOutIsInit() && mPhProj.DPGndPt2D().DirOutIsInit())
        ExportMeasures(*aSI);
 
     if (mDoTestGrad)
@@ -316,7 +318,7 @@ cSpecMMVII_Appli  TheSpecTestSensor
       Alloc_TestImportSensors,
       "Test orientation functions of a sensor : coherence Direct/Inverse, ground truth 2D/3D correspondance, generate 3d-2d corresp",
       {eApF::Ori},
-      {eApDT::Ori,eApDT::GCP},
+      {eApDT::Ori,eApDT::ObjMesInstr,eApDT::ObjCoordWorld},
       {eApDT::Console},
       __FILE__
 );

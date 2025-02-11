@@ -284,8 +284,8 @@ void BenchJetsCam(cParamExeBench & aParam)
    for (int aK=0 ; aK<aNb ; aK++)
    {
       std::vector<double>  aVParam =  StdParamTestCam(1.0);
-      std::vector<double> aValJet,aValV1,aVarValJet;
-      std::vector<std::vector<double> > aDerJet,aDerV1,aVarDerJet;
+      std::vector<double> aValJet,aVarValJet;
+      std::vector<std::vector<double> > aDerJet,aVarDerJet;
 
       cJetsTestCam aCamJet;
       aCamJet.InitFromParams(aVParam);
@@ -295,33 +295,11 @@ void BenchJetsCam(cParamExeBench & aParam)
       aVarCamJet.InitFromParams(aVParam);
       aVarCamJet.Compute(aVarValJet,aVarDerJet);
 
-
-      std::shared_ptr<cInterfaceTestCam>  aCamV1 (cInterfaceTestCam::AllocMMV1());
-      aCamV1->InitFromParams(aVParam);
-      aCamV1->Compute(aValV1,aDerV1);
-
-      for (int aKXY=0 ; aKXY<2 ; aKXY++)
-      {
-           double aDif = aValJet[aKXY]-aValV1[aKXY];
-           MMVII_INTERNAL_ASSERT_bench(std::abs(aDif)<1e-5,"Jets/V1 vals");
-
-           aDif = aVarValJet[aKXY]-aValV1[aKXY];
-
-           // StdOut() << "DDD=" << aDif<< " " << aValJet[aKXY] << " " << aValV1[aKXY] << std::endl;
-           for (int aKD=0 ; aKD<SzJetCam ; aKD++)
-           {
-                double aDif = aDerV1[aKXY][aKD]-aDerJet[aKXY][aKD];
-                MMVII_INTERNAL_ASSERT_bench(std::abs(aDif)<1e-5,"Jets/V1 deriv");
-                aDif = aDerV1[aKXY][aKD]-aVarDerJet[aKXY][aKD];
-                MMVII_INTERNAL_ASSERT_bench(std::abs(aDif)<1e-5,"Jets/V1 deriv");
-                // StdOut() << " Der=" << aDif << " " << aDerV1[aKXY][aKD]  << std::endl;
-           }
-      }
       int aNbTest=1000 * (1+std::min(20,aParam.Level()));
       double aT0 = cMMVII_Appli::CurrentAppli().SecFromT0();
       aCamJet.Compute(aNbTest);
       double aT1 = cMMVII_Appli::CurrentAppli().SecFromT0();
-      aCamV1->Compute(aNbTest);
+      // aCamV1->Compute(aNbTest);
       double aT2 = cMMVII_Appli::CurrentAppli().SecFromT0();
       // Now we now that sparse jets are slow save some time
       double aT3 = aT2;

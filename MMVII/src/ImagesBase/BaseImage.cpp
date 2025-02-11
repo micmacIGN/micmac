@@ -126,6 +126,20 @@ template <class Type,const int Dim>
 }
 
 
+template <class Type,const int Dim>  
+        double cDataTypedIm<Type,Dim>::SafeMaxRelDif(const cDataTypedIm<Type,Dim> & aI2,tREAL8 aEps) const
+{
+    tPB::AssertSameArea(aI2);
+    double aRes = 0;
+    for (int aK=0 ; aK<NbElem() ; aK++)
+    {
+       tREAL8 aV1 = mRawDataLin[aK];
+       tREAL8 aV2 = aI2.mRawDataLin[aK];
+       UpdateMax(aRes,fabs(aV1-aV2)/std::max(aEps,std::max(std::fabs(aV1),std::fabs(aV2))));
+    }
+
+   return aRes;
+}
 
 template <class Type,const int Dim>  
         double cDataTypedIm<Type,Dim>::LInfDist(const cDataTypedIm<Type,Dim> & aI2) const

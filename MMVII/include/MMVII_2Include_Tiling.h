@@ -113,6 +113,10 @@ template <const int Dim>  bool EqualPt(const cPtxd<tREAL8,Dim> & aP1,const cPtxd
  *        - Add an object
  *        - list of object in a certain geometric region  (as GetObjAtDist)
  *        - object if any at an exact position (GetObjAtPos)
+ *    Object "Type" will store in Tiling.  Type must also define :
+ *        * Dim  (2 or 3)
+ *        * tPrimGeom  -> geometric primitives (point, segment)
+ *        * tArg -> the type of argument that be used in call back
  */
 
 
@@ -131,7 +135,14 @@ template <class Type>  class  cTiling : public cTilingIndex<Type::TheDim>
            typedef std::list<Type>          tCont1Tile;
            typedef std::vector<tCont1Tile>  tVectTiles;
 
-	   cTiling(const tRBox & aBox,bool WithBoxOut, int aNbCase,const tArgPG & anArg):
+            
+	   cTiling
+           (
+                  const tRBox & aBox,  // bounding box
+                  bool WithBoxOut,     // do we accept object outside bounding box
+                  int aNbCase,         // number total of tiles/cells
+                  const tArgPG & anArg  // parametr that will be uses in call back
+            ):
 	       tTI     (aBox,WithBoxOut,aNbCase),
 	       mVTiles (this->NbElem()),
 	       mArgPG  (anArg)
@@ -278,6 +289,31 @@ template <const int Dim> class cPointSpInd
 };
 
 
+/**  Class for geometrically indexing the lidars (on 2D point) for patches creation , used
+   to instantiate cTilingIndex 
+*/
+
+template <class Type> class cTil2DTri3D
+{
+    public :
+        static constexpr int TheDim = 2;          // Pre-requite for instantite cTilingIndex
+        typedef cPt2dr             tPrimGeom;     // Pre-requite for instantite cTilingIndex
+        typedef const cTriangulation3D<Type> *  tArgPG; // Pre-requite for instantite cTilingIndex
+
+        /**  Pre-requite for instantite cTilingIndex : indicate how we extract geometric primitive from one object */
+
+        tPrimGeom  GetPrimGeom(tArgPG aPtrTri) const {return Proj(ToR(aPtrTri->KthPts(mInd)));}
+
+        cTil2DTri3D(size_t anInd) : mInd(anInd) {}
+        size_t  Ind() const {return mInd;}
+
+    private :
+        size_t  mInd;
+};
+
+
+
+
 /** Class for generating point such that all pairs are at distance > given value */
 template <const int TheDim> class cGeneratePointDiff
 {
@@ -359,6 +395,7 @@ template <class TypePrim,class TypeObj,class TypeCalcP2 >
               aRes.push_back(aVPt.at(aInd));
       return aRes;
 }
+
 
 
 

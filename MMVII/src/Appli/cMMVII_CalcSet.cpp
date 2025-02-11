@@ -1,3 +1,5 @@
+#define WITH_MMV1_FUNCTION  false
+
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_DeclareAllCmd.h"
 #include "MMVII_Sensor.h"
@@ -90,7 +92,10 @@ static void OneBenchEditSet
         const std::string & ExpSet   // Expect set
     )
 {
-    // StdOut() << "OneBenchEditSet " << anOp << std::endl;
+#if (!WITH_MMV1_FUNCTION)
+    aNumAskedOut = 0;
+    aRealNumOut = 2;
+#endif
 
     cMMVII_Appli &  anAp = cMMVII_Appli::CurrentAppli();
     std::string aDirI = anAp.InputDirTestMMVII() + "Files/" ;
@@ -196,15 +201,15 @@ int   cAppli_EditSet::ExecuteBench(cParamExeBench & aParam)
              aK,      //  Change test condition : Use or Not Dir Project
 	     "+=",    // operator for mpdi
 	     false,   // If true, Previous OutPut is moved on input, else Input is purged at end of process
-	     ".*txt", // Pattern of used files 
+	     "F.*txt", // Pattern of used files 
 	     0,       //  Required num version
 	     2,       // Real Num Version
 	     10,      // Number of element expected (become obsolet with expected set)
 	     "",      // Interval modifying the pattern if != ""
 	     C09      //  Ground truth, what the string should be
        ); // 
-       OneBenchEditSet(aK,"+=",false,".*txt"       ,1,1,10,"",C09);
-       OneBenchEditSet(aK,"+=",false,".*txt"       ,2,2,10,"",C09);
+       OneBenchEditSet(aK,"+=",false,"F.*txt"       ,1,1,10,"",C09);
+       OneBenchEditSet(aK,"+=",false,"F.*txt"       ,2,2,10,"",C09);
        OneBenchEditSet(aK,"+=",false,"F[02468].txt",2,2,5,"","02468");
     // here we init from previous
        OneBenchEditSet(aK,"+=",true ,"F[3-5].txt" ,2,2,7,"","0234568"); // 0234568

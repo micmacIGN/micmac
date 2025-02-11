@@ -2,6 +2,9 @@
 #include "MMVII_PCSens.h"
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_Geom2D.h"
+#include "MMVII_Tpl_Images.h"
+
+
 // #include <set>
 
 #ifdef _OPENMP
@@ -410,6 +413,7 @@ std::vector<cPt2dr>  cPerspCamIntrCalib::PtsSampledOnSensor(int aNbByDim,bool In
 
 const  std::vector<cPt2dr> &  cPerspCamIntrCalib::Values(tVecOut & aV3 ,const tVecIn & aV0 ) const 
 {
+  // StdOut() <<  "VALUUUUUU \n";
      static tVecOut aV1,aV2;
      mDir_Proj->Values(aV1,aV0);
      mDir_Dist->Values(aV2,aV1);
@@ -580,7 +584,7 @@ void cPerspCamIntrCalib::PutUknowsInSetInterval()
     mSetInterv->AddOneInterv(VParamDist());
 }
 
-void  cPerspCamIntrCalib::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
+void  cPerspCamIntrCalib::FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 {
    aGAIP.SetNameType("CalibCamPC");
    aGAIP.SetIdObj(mName);
@@ -934,6 +938,74 @@ void cPerspCamIntrCalib::SetTabulDUD(int aNb)
    mTabulDUD = AllocTabulDUD(aNb);
 }
 
+std::pair<cPt2dr,cDenseMatrix<tREAL8>>  cPerspCamIntrCalib::Jacobian(const cPt3dr & aPGround) const
+{
+   const cDataMapping<tREAL8,3,2> * aDmProj = mDir_Proj;
+   const cDataMapping<tREAL8,2,2> * aDmDist = mDir_Dist; 
+
+   auto [aPProj,aJacProj] = aDmProj->Jacobian(aPGround);
+   auto [aPDist,aJacDist] = aDmDist->Jacobian(aPProj);
+
+   auto aJacEnd = aJacDist * aJacProj * F();
+   auto aPEnd   = aPDist * F() + PP();
+
+   return std::pair<cPt2dr,cDenseMatrix<tREAL8>> (aPEnd,aJacEnd);
+}
+
+tProjImAndGrad  cPerspCamIntrCalib::DiffGround2Im(const cPt3dr & aPGround) const
+{
+    auto [aPEnd,aJacEnd] =  Jacobian(aPGround);
+    tProjImAndGrad aRes;
+
+    aRes.mPIJ = aPEnd;
+    GetLine(aRes.mGradI,0,aJacEnd);
+    GetLine(aRes.mGradJ,1,aJacEnd);
+    // GetLine(aJacEnd,aRes.mGradI,0);
+
+    return aRes;
+}
+
+
+
+
+
+void cPerspCamIntrCalib::Bench_CalcDiff()
+{
+   [[maybe_unused]] static int aCpt=0; aCpt++;
+   if (mTypeProj!=eProjPC::eStenope)
+      return;
+   cSensorCamPC aCamId("toto.tif",tPoseR::Identity(),this);
+
+
+  for (int aK=0 ; aK<3 ; aK++)
+  {
+      tREAL8 aPMin = 0.5;
+      tREAL8 aPMax = 2.0;
+      cPt3dr aPGround  = aCamId.RandomVisiblePGround(aPMin,aPMax);
+      // auto [aPEnd,aJacEnd] =  Jacques(aPGround);
+      // aJacEnd.Show();
+// EpsDiffGround2Im
+
+      // tProjImAndGrad   aPP = aCamId.DiffGround2Im(aPGround);
+      tProjImAndGrad   aPP = DiffGround2Im(aPGround);
+      tProjImAndGrad aPP2 = aCamId.DiffG2IByFiniteDiff(aPGround);
+
+
+/*
+      StdOut() << Norm2(aPP.mGradI -aPP2.mGradI ) /F() << " " 
+               << Norm2(aPP.mGradJ -aPP2.mGradJ ) /F() << " " 
+               << Norm2(aPP.mPIJ -aPP2.mPIJ ) /F()
+               << "\n";
+*/
+
+      MMVII_INTERNAL_ASSERT_bench(Norm2(aPP.mGradI -aPP2.mGradI ) /F() < 1e-2,"Bench_CalcDiff");
+      MMVII_INTERNAL_ASSERT_bench(Norm2(aPP.mGradJ -aPP2.mGradJ ) /F() < 1e-2,"Bench_CalcDiff");
+      MMVII_INTERNAL_ASSERT_bench(Norm2(aPP.mPIJ -aPP2.mPIJ ) /F() < 1e-5,"Bench_CalcDiff");
+
+  }
+  // getchar();
+}
+
 
 
 
@@ -942,6 +1014,9 @@ void BenchCentralePerspective(cParamExeBench & aParam,eProjPC aTypeProj)
     for (size_t aK=0 ; aK<4 ; aK++)
     {
        cPerspCamIntrCalib * aCam = cPerspCamIntrCalib::RandomCalib(aTypeProj,aK);
+       aCam->Bench_CalcDiff();
+
+
        aCam->TestInvInit((aK==0) ? 1e-3 : 1e-2, 1e-4);
 
        cSensorCamPC::BenchOneCalib(aCam);

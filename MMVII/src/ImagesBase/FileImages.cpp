@@ -4,7 +4,10 @@
 #include "MMVII_Ptxd.h"
 #include "cGdalApi.h"
 
+
+
 #ifdef MMVII_KEEP_MMV1_IMAGE
+#define MMVII_KEEP_LIBRARY_MMV1 true
 # include "V1VII.h"
 #endif
 
@@ -24,6 +27,7 @@ namespace MMVII
 #ifdef MMVII_KEEP_MMV1_IMAGE
 static GenIm::type_el ToMMV1(eTyNums aV2)
 {
+ // StdOut() << "jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj\n";
     switch (aV2)
     {
     case eTyNums::eTN_INT1 : return GenIm::int1  ;
@@ -88,6 +92,7 @@ cDataFileIm2D::cDataFileIm2D(const std::string & aName, eTyNums aType, const cPt
     mNbChannel  (aNbChannel),
     mForceGray  (isFG),
     mCreateOptions  (aOptions),
+    mExifState      (eExifState::NotRead),
     mCreationState  (aCreationState)
 {
 }
@@ -217,6 +222,37 @@ void cDataFileIm2D::SetCreated() const
 void cDataFileIm2D::SetCreatedNoUpdate() const
 {
     mCreationState = eCreationState::CreatedNoUpdate;
+}
+
+const cExifData& cDataFileIm2D::ExifDataAll(bool SVP) const
+{
+    if (mExifState != eExifState::AllTagsRead)
+    {
+        mExifData.FromFile(mName,SVP);
+        mExifState = eExifState::AllTagsRead;
+
+    }
+    return mExifData;
+}
+
+const cExifData& cDataFileIm2D::ExifDataMain(bool SVP) const
+{
+    if (mExifState != eExifState::MainTagsRead && mExifState != eExifState::AllTagsRead)
+    {
+        mExifData.FromFileMainOnly(mName,SVP);
+        mExifState = eExifState::MainTagsRead;
+    }
+    return mExifData;
+}
+
+std::vector<std::string> cDataFileIm2D::ExifStrings(bool SVP) const
+{
+    return cExifData::StringListFromFile(mName,SVP);
+}
+
+std::map<std::string, std::vector<std::string>> cDataFileIm2D::AllMetadata(bool SVP) const
+{
+    return cExifData::AllMetadataFromFile(mName,SVP);
 }
 
 

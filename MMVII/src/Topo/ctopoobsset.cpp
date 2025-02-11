@@ -152,7 +152,7 @@ void cTopoObsSetStation::PushRotObs(std::vector<double> & aVObs) const
     getRotSysCo2Instr().Mat().PushByCol(aVObs);
 }
 
-void  cTopoObsSetStation::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
+void  cTopoObsSetStation::FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 {
     aGAIP.SetNameType("Station");
     aGAIP.SetIdObj(mOriginName);
@@ -376,8 +376,8 @@ bool cTopoObsSetStation::initialize()
             anIso.Tr() = -(anIso.Rot().Mat().Transpose()*anIso.Tr()); // Tr = origin coords
         #ifdef VERBOSE_TOPO
             StdOut() << "Station rotation init:\n";
-            StdOut() << "(" << aTriInstr.Pt(0) << ", " << aTriInstr.Pt(1) << ", " << aTriInstr.Pt(2) << ") / ";
-            StdOut() << "(" << aTriGround.Pt(0) << ", " << aTriGround.Pt(1) << ", " << aTriGround.Pt(2) << ")\n  => ";
+            StdOut() << "(" << aVectPtsInstr.at(0) << ", " << aVectPtsInstr.at(1) << ", " << aVectPtsInstr.at(2) << ") / ";
+            StdOut() << "(" << aVectPtsGnd.at(0) << ", " << aVectPtsGnd.at(1) << ", " << aVectPtsGnd.at(2) << ")\n  => ";
             StdOut() << anIso.Tr()  << "\n";
             StdOut() << "    "<<anIso.Rot().AxeI()<<"\n";
             StdOut() << "    "<<anIso.Rot().AxeJ()<<"\n";
