@@ -679,7 +679,7 @@ template class cGrpValuatedSom<tRotR>;
 template class cGrpValuatedGraph<tRotR,cParamGrpRot>;
 
 
-void BenchGrpValuatedGraph(cParamExeBench & aParam)
+void xxx_BenchGrpValuatedGraph(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("GroupGraph")) return;
 
