@@ -42,6 +42,7 @@ template <class TVal>  class cGrpValuatedEdge
           size_t  mSucc;
           size_t  mNumAttr;
           bool    mDirInit;
+          bool    mIsTree;
 
           // The mapping transformating Coord2 to Coord1 associate to a Val
           TVal    VRel2_to_1 (const TVal & aV0) const {return  mDirInit ? aV0 : aV0.MapInverse() ;}
@@ -53,7 +54,8 @@ template <class TVal>
    cGrpValuatedEdge<TVal>::cGrpValuatedEdge(int aSucc,int aNumAttr,bool isDirInit) :
        mSucc      (aSucc),
        mNumAttr   (aNumAttr),
-       mDirInit   (isDirInit)
+       mDirInit   (isDirInit),
+       mIsTree    (false)
 {
 }
 
@@ -68,13 +70,13 @@ template <class TVal>  class cGrpValuated_OneAttrEdge
        public :
           cGrpValuated_OneAttrEdge(const TVal &,std::string aAttrib,tREAL8 aCost);
           TVal         mVal; 
-          std::string  mAttrib;
+          std::string  mAux;
           tREAL8       mCost; 
 };
 
-template <class TVal>  cGrpValuated_OneAttrEdge<TVal>::cGrpValuated_OneAttrEdge(const TVal & aVal,std::string aAttrib,tREAL8 aCost) :
+template <class TVal>  cGrpValuated_OneAttrEdge<TVal>::cGrpValuated_OneAttrEdge(const TVal & aVal,std::string anAux,tREAL8 aCost) :
      mVal    (aVal),
-     mAttrib (aAttrib),
+     mAux    (anAux),
      mCost   (aCost)
 {
 }
@@ -155,7 +157,7 @@ template <class TVal>  class cGrpValuatedSom
           cGrpValuatedSom(int aNumSom) ;  
 
           /// return the adress of Edge such aSom2 is the successor, 0 if none
-          const tEdge * EdgeOfSucc(size_t aSom2) const;
+          tEdge * EdgeOfSucc(size_t aSom2,bool OK0) ;
 
           /**  add a successor for s2, with attribute at adr aNumAttr, DirInit if the attribute is
                relative to way  "S1->S2" (else it's "S2->S1")
@@ -165,8 +167,11 @@ template <class TVal>  class cGrpValuatedSom
           int & HeapIndex() {return mHeapIndex;}
           const std::list<tEdge> &  LSucc() const {return mLSucc;}
 
-          const TVal &  CurVal() const {return mCurValue;}
-          void  SetCurVal(const TVal& aNewV) {mCurValue= aNewV;}
+          const TVal &  RefVal() const {return mRefValue;}
+          void  SetRefVal(const TVal& aNewV) {mRefValue= aNewV;}
+
+          const TVal &  CompVal() const {return mComputedValue;}
+          void  SetCompVal(const TVal& aNewV) {mComputedValue= aNewV;}
 
           const tREAL8 &  HeapCost() const {return mHeapCost;}
           void  SetHeapCost(tREAL8 aNewV)  { mHeapCost=aNewV;}
@@ -177,8 +182,10 @@ template <class TVal>  class cGrpValuatedSom
           int   NumSom() const {return mNumSom;}
 
           void SetHeapFather(int aNewV) {mNumHeapFather = aNewV;}
+          int  NumHeapFather() const {return mNumHeapFather;}
     private :
-          TVal              mCurValue;
+          TVal              mRefValue;
+          TVal              mComputedValue;
           int               mNumSom;
           int               mNumHeapFather;
           tREAL8            mHeapCost;
@@ -188,8 +195,9 @@ template <class TVal>  class cGrpValuatedSom
 };
 
 
-template <class TVal>  cGrpValuatedSom<TVal>::cGrpValuatedSom(const TVal & aValue,int aNumSom) : 
-     mCurValue       (aValue) ,
+template <class TVal>  cGrpValuatedSom<TVal>::cGrpValuatedSom(int aNumSom) : 
+     mRefValue       (),
+     mComputedValue  (),
      mNumSom         (aNumSom),
      mNumHeapFather  (-1),
      mHeapCost       (1e10),
@@ -197,17 +205,16 @@ template <class TVal>  cGrpValuatedSom<TVal>::cGrpValuatedSom(const TVal & aValu
 {
 }
 
-template <class TVal>  cGrpValuatedSom<TVal>::cGrpValuatedSom(int aNumSom) :
-     cGrpValuatedSom(TVal::Identity(),aNumSom)
-{
-}
 
 template <class TVal>  
-     const cGrpValuatedEdge<TVal>  * cGrpValuatedSom<TVal>::EdgeOfSucc(size_t aSucc) const
+     cGrpValuatedEdge<TVal>  * cGrpValuatedSom<TVal>::EdgeOfSucc(size_t aSucc,bool Ok0) 
 {
-   for (const auto &  anEdge : mLSucc)
+   for (auto &  anEdge : mLSucc)
        if (anEdge.mSucc == aSucc)
           return & anEdge;
+
+   MMVII_INTERNAL_ASSERT_tiny(Ok0,"Could not find EdgeOfSucc");
+   
    return nullptr;
 }
 
@@ -270,10 +277,11 @@ template <class TVal,class TParam>  class cGrpValuatedGraph
           void AddEdge(int aS1,int aS2,const TVal & aVal,std::string aAttrib,tREAL8 aCostAPriori);
 
           void MakeLoopCostApriori();
-          void MakeMinSpanTree();
+          std::vector<std::pair<int,int>>  MakeMinSpanTree();
 
-          /// Return the relative position using  mCurValue
-          TVal  Rel_2to1(int aS1,int aS2);
+          void  PropagateTreeSol();
+          /// Return the relative position using  RefValue
+          TVal  RelRef_2to1(int aS1,int aS2);
 
     protected :
           class  cLoop
@@ -285,6 +293,8 @@ template <class TVal,class TParam>  class cGrpValuatedGraph
 
                   cLoop (const TVal& aVal,size_t aSom,int aStackI ):  mVal(aVal), mSom(aSom), mStackI (aStackI) {}
           };
+
+          void  Recurs_PropagateTreeSol(size_t aSom);
 
           void  MakeLoopCostApriori(size_t aS1,const tEdge&, tOneAttr &);
 
@@ -319,7 +329,7 @@ template <class TVal,class TParam>
 template <class TVal,class TParam>  
     void cGrpValuatedGraph<TVal,TParam>::AddEdge(int aS1,int aS2,const TVal & aVal,std::string aAttrib, tREAL8 aCostAPriori)
 {
-    const tEdge * anEdge = mVSoms.at(aS1).EdgeOfSucc(aS2);
+    const tEdge * anEdge = mVSoms.at(aS1).EdgeOfSucc(aS2,SVP::Yes);
     if (anEdge)
     {
        tAttr&  anAttr =  AttrOfEdge(*anEdge); 
@@ -333,47 +343,91 @@ template <class TVal,class TParam>
     mVAttr.push_back(cGrpValuatedAttrEdge(aVal,aAttrib,aCostAPriori));
 }
 
-template <class TVal,class TParam>  TVal  cGrpValuatedGraph<TVal,TParam>::Rel_2to1(int aS1,int aS2)
+template <class TVal,class TParam>  TVal  cGrpValuatedGraph<TVal,TParam>::RelRef_2to1(int aS1,int aS2)
 {
     // Ori_2->1  = Ori_G->1  o Ori_2->G    ( PL2 -> PG -> PL1)
-    return  mVSoms.at(aS1).CurVal().MapInverse() *  mVSoms.at(aS2).CurVal();
+    return  mVSoms.at(aS1).RefVal().MapInverse() *  mVSoms.at(aS2).RefVal();
 }
 
 
 
 template <class TVal,class TParam>  
-    void  cGrpValuatedGraph<TVal,TParam>::MakeMinSpanTree()
+    std::vector<std::pair<int,int>>   cGrpValuatedGraph<TVal,TParam>::MakeMinSpanTree()
 {
+    std::vector<std::pair<int,int>> aTree;
     tCmpHeap   aHCmp;
     cIndexedHeap<tSom*,tCmpHeap,tParamHeap>  aHeap(aHCmp);
 
+    //  -1 not reached , 0 in Heap, already oustside
     aHeap.Push(&mVSoms.at(0));
     mVSoms.at(0).SetNumRegion(0);
   
     tSom * aNewSom = nullptr;
     while (aHeap.Pop(aNewSom))
     {
-         StdOut() << "NEWWWWW " << aNewSom->NumSom() << "\n";
+         aNewSom->SetNumRegion(1);
+         int aNFather = aNewSom->NumHeapFather();
+         if (aNFather>=0)
+         {
+             aTree.push_back(std::pair<int,int>(aNewSom->NumSom(),aNFather));
+         }
          for (const auto &  aSucc :  SuccOfSom(*aNewSom))
          {
              tSom & aSom2Update = S2OfEdge(aSucc);
-             if (aSom2Update.NumRegion() == -1)
+             if (aSom2Update.NumRegion() <=0)
              {
-                 aHeap.Push(&aSom2Update);
-                 aSom2Update.SetNumRegion(0);
-             }
-             tREAL8 aNewCost = AttrOfEdge(aSucc).AttrMinCost().mCost;
+                if (aSom2Update.NumRegion() == -1)
+                {
+                    aHeap.Push(&aSom2Update);
+                    aSom2Update.SetNumRegion(0);
+                }
+                tREAL8 aNewCost = AttrOfEdge(aSucc).AttrMinCost().mCost;
 
-             if (aNewCost<aSom2Update.HeapCost())
-             {
-                  aSom2Update.SetHeapCost(aNewCost);
-                  aSom2Update.SetHeapFather(aNewSom->NumSom());
-                  aHeap.UpDate(&aSom2Update);
+                if (aNewCost<aSom2Update.HeapCost())
+                {
+                    aSom2Update.SetHeapCost(aNewCost);
+                    aSom2Update.SetHeapFather(aNewSom->NumSom());
+                    aHeap.UpDate(&aSom2Update);
+                }
              }
          }
     }
+
+    for (size_t aKS=0 ; aKS<mVSoms.size() ; aKS++)
+    {
+        mVSoms.at(aKS).SetNumRegion(-1);
+        mVSoms.at(aKS).SetHeapFather(-1);
+        mVSoms.at(aKS).SetHeapCost(1e10);
+    }
+
+    for (const auto & [aS1,aS2] : aTree)
+    {
+         tEdge *  anE = mVSoms.at(aS1).EdgeOfSucc(aS2,SVP::No);
+         anE->mIsTree = true;
+         // StdOut() << " TTTT " << aS1 << " " << aS2 << " " << AttrOfEdge(*anE).AttrMinCost().mAux << "\n";
+    }
+
+    return aTree;
 }
 
+template <class TVal,class TParam>  
+    void  cGrpValuatedGraph<TVal,TParam>::PropagateTreeSol()
+{
+     mVSoms.at(0).SetCompVal(TVal::Identity());
+     Recurs_PropagateTreeSol(0);
+}
+
+template <class TVal,class TParam>  
+    void  cGrpValuatedGraph<TVal,TParam>::Recurs_PropagateTreeSol(size_t aSom_A)
+{
+    for (const auto &  aSucc_AB :  SuccOfSom(aSom_A))
+    {
+        if (aSucc_AB.mIsTree)
+        {
+            // aSom_B = aSucc_AB.mucc
+        }
+    }
+}
 
 
 template <class TVal,class TParam>  
@@ -413,14 +467,6 @@ template <class TVal,class TParam>
           }
     }
 
-
-    for (const auto & [aName,aStat] : mStats)
-    {
-        StdOut() << " A=" << aName;
-        for (const auto aProp : {0.01,0.1,0.5,0.9,0.99})
-            StdOut() <<  " " << aProp << "->" << aStat.ErrAtProp(aProp) ;
-        StdOut() << " \n";
-    }
 }
 
 template <class TVal,class TParam>  
@@ -483,7 +529,7 @@ template <class TVal,class TParam>
     aSumCost /= aNbTot;
 
     aAttr_AB.mCost = aSumCost;
-    mStats[aAttr_AB.mAttrib].Add(aSumCost);
+    mStats[aAttr_AB.mAux].Add(aSumCost);
     //StdOut()  << " SSS "  << aSumCost << " " << aAttr_AB.mAttrib << "\n";
 }
 
@@ -534,7 +580,7 @@ void cBenchGrid_GVG::Pt_AddEdge(const cPt2di & aPA,const cPt2di & aPB)
 
     int aSom_A = IndexeLinear(aPA);
     int aSom_B = IndexeLinear(aPB);
-    tRotR aR_B2A_Ref  = Rel_2to1(aSom_A,aSom_B);
+    tRotR aR_B2A_Ref  = RelRef_2to1(aSom_A,aSom_B);
 
     while (aNbEdge)
     {
@@ -567,7 +613,8 @@ cBenchGrid_GVG::cBenchGrid_GVG
     mNbEdge          (aNbEdge)
 {
    for (auto & aSom : mVSoms)
-      aSom.SetCurVal(tRotR::RandomRot(aAmplGlob));
+      aSom.SetRefVal(tRotR::RandomRot(aAmplGlob));
+   mVSoms.at(0).SetRefVal(tRotR::Identity());
 StdOut() << "SOMM-ADDED \n";
 
    for (const auto & aPix : *this)
@@ -579,6 +626,13 @@ StdOut() << "SOMM-ADDED \n";
    }
 StdOut() << "EDGE-ADDED \n";
    this->MakeLoopCostApriori();
+   for (const auto & [aName,aStat] : mStats)
+   {
+        StdOut() << " AttR=" << aName;
+        for (const auto aProp : {0.01,0.1,0.5,0.9,0.99})
+            StdOut() <<  " " << aProp << "->" << aStat.ErrAtProp(aProp) ;
+        StdOut() << " \n";
+    }
 StdOut() << "LOOP-COST DONE\n";
    this->MakeMinSpanTree();
 StdOut() << "MIN SPAN TREE DONE\n";
