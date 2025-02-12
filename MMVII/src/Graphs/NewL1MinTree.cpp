@@ -112,6 +112,7 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Graph : pub
      public :
 	  typedef cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym>        tVertex;
 	  typedef cVG_Edge<TA_Vertex,TA_Oriented,TA_Sym>          tEdge;
+	  typedef cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>         tGraph;
 	     
 	  friend tVertex;
 	  friend tEdge;
@@ -123,6 +124,8 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Graph : pub
           inline cVG_Graph(int aNbSom,const TA_Vertex & anAttr) ;
           inline ~cVG_Graph();
 
+          inline tVertex * NewSom(const TA_Vertex & anAttr) ;
+
           inline void AddEdge(tVertex & aV1,tVertex & aV2,const TA_Oriented &A12,const TA_Oriented &A21,const TA_Sym &,bool OkExist=false);
           void AddEdge(tVertex & aV1,tVertex & aV2,const TA_Oriented &aAOr,const TA_Sym & aASym,bool OkExist) {AddEdge(aV1,aV2,aAOr,aASym,OkExist);}
 
@@ -131,6 +134,7 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Graph : pub
 	  TA_Sym &        AttrSymOfNum(size_t aNum)       {return *mVAttrSym.at(aNum);}
 
      private :
+          cVG_Graph(const tGraph &) = delete;
 	  std::vector<tVertex*>  mVVertexes;
 	  std::vector<TA_Sym*>   mVAttrSym;
 };
@@ -243,6 +247,14 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>
 {
     for (auto & aPtrV : mVVertexes)
        delete aPtrV;
+    for (auto & aPtrA : mVAttrSym)
+       delete aPtrA;
+}
+
+template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
+   cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym>* cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::NewSom(const TA_Vertex & anAttr) 
+{
+    return nullptr;
 }
 
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
@@ -286,6 +298,40 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>
 template class cVG_Graph<int,int,int>;
 template class cVG_Vertex<int,int,int>;
 template class cVG_Edge<int,int,int>;
+
+
+
+/* *********************************************************** */
+
+class cBGG_Vertex
+{
+     public :
+           cPt3di  mPt;
+     private :
+};
+
+class cBGG_EdgeOriented
+{
+     public :
+           tREAL8 mDist;
+     private :
+};
+
+class cBGG_EdgeSym
+{
+     public :
+           tREAL8 mDZ;
+     private :
+};
+
+class  cBGG_Graph : public cVG_Graph<cBGG_Vertex,cBGG_EdgeOriented,cBGG_EdgeSym>
+{
+     public :
+         // cBGG_Graph (cPt2di aSzGrid
+};
+
+
+
 
 
 void BenchGrpValuatedGraph(cParamExeBench & aParam)
