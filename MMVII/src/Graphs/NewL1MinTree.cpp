@@ -83,6 +83,7 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Vertex : pu
           inline const  std::vector<tEdge*> & Succ() const {return mVEdges;}
 
           inline tREAL8  AlgoCost() const {return  mAlgoCost;}
+          inline int &   AlgoIndexHeap() {return  mAlgoIndexHeap;}
      private :
           cVG_Vertex(const tVertex &) = delete;
           inline ~cVG_Vertex();
@@ -94,7 +95,7 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Vertex : pu
           int                        mNum;
 
           cSetISingleFixed<tU_INT4>  mAlgoTmpMark;
-          int                        mAlgoFather;
+          tVertex*                   mAlgoFather;
           int                        mAlgoIndexHeap;
           tREAL8                     mAlgoCost;
 };
@@ -123,34 +124,20 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Graph : pub
           void AddEdge(tVertex & aV1,tVertex & aV2,const TA_Oriented &aAOr,const TA_Sym & aASym,bool OkExist) 
                {AddEdge(aV1,aV2,aAOr,aAOr,aASym,OkExist);}
 
+          inline size_t AllocBitTemp();
+          inline void   FreeBitTemp(size_t);
+
      protected :
 	  const TA_Sym &  AttrSymOfNum(size_t aNum) const {return *mV_AttrSym.at(aNum);}
 	  TA_Sym &        AttrSymOfNum(size_t aNum)       {return *mV_AttrSym.at(aNum);}
 
      private :
           cVG_Graph(const tGraph &) = delete;
-	  std::vector<tVertex*>  mV_Vertices;
-	  std::vector<TA_Sym*>   mV_AttrSym;
+	  std::vector<tVertex*>       mV_Vertices;
+	  std::vector<TA_Sym*>        mV_AttrSym;
+          cSetISingleFixed<tU_INT4>   mBitsAllocaTed;
 };
 
-template <class TGraph>  class cAlgo_SubGr
-{
-        public :
-	     typedef typename TGraph::tVertex  tVertex;
-	     typedef typename TGraph::tEdge    tEdge;
-
-             virtual bool   InsideVertex(const  tVertex &) const {return true;}
-};
-
-template <class TGraph>  class cAlgo_ParamVG : public cAlgo_SubGr<TGraph>
-{
-        public :
-	     typedef typename TGraph::tVertex  tVertex;
-	     typedef typename TGraph::tEdge    tEdge;
-
-             virtual bool   InsideEdge(const    tEdge &) const {return true;}
-             virtual tREAL8 WeightEdge(const    tEdge &) const {return 1.0;}
-};
 
 
 /* ********************************************* */
@@ -246,7 +233,8 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>
 /* ********************************************* */
 
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
-   cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::cVG_Graph()
+   cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::cVG_Graph()   :
+        mBitsAllocaTed (0)
 {
 }
 
@@ -304,11 +292,50 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>
          mV_AttrSym.push_back(new TA_Sym(aASym));
     }
 }
+template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
+    size_t  cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::AllocBitTemp()
+{
+    for (size_t aBit=0 ; aBit<32 ; aBit++)
+    {
+          if (!mBitsAllocaTed.IsInside(aBit))
+          {
+               mBitsAllocaTed.AddElem(aBit);
+               return aBit;
+          }
+    }
+    MMVII_INTERNAL_ERROR("No more bits in AllocBitTemp (forgot to free ?)");
+    return 0;
+}
+
+template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
+    void  cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::FreeBitTemp(size_t aBit)
+{
+    
+    mBitsAllocaTed.SuprElem(aBit);
+}
 
 template class cVG_Graph<int,int,int>;
 template class cVG_Vertex<int,int,int>;
 template class cVG_Edge<int,int,int>;
 
+template <class TGraph>  class cAlgo_SubGr
+{
+        public :
+	     typedef typename TGraph::tVertex  tVertex;
+	     typedef typename TGraph::tEdge    tEdge;
+
+             virtual bool   InsideVertex(const  tVertex &) const {return true;}
+};
+
+template <class TGraph>  class cAlgo_ParamVG : public cAlgo_SubGr<TGraph>
+{
+        public :
+	     typedef typename TGraph::tVertex  tVertex;
+	     typedef typename TGraph::tEdge    tEdge;
+
+             virtual bool   InsideEdge(const    tEdge &) const {return true;}
+             virtual tREAL8 WeightEdge(const    tEdge &) const {return 1.0;}
+};
 
 template <class TGraph>   class cAlgoPCC
 {
@@ -318,21 +345,88 @@ template <class TGraph>   class cAlgoPCC
           {
                  public :
                     typedef tVertex *         tVertexPtr ;
-
                     bool  operator () (const tVertexPtr & aV1,const tVertexPtr & aV2) 
                     {
                        return aV1->AlgoCost() < aV2->AlgoCost();
                     }
           };
+          class cHeapParam
+          {
+              public :
+                 typedef tVertex *         tVertexPtr ;
+                 static void SetIndex(const tVertexPtr & aPtrV,tINT4 i) { aPtrV->AlgoIndexHeap() = i;} 
+                 static int  GetIndex(const tVertexPtr & aPtrV)  { return aPtrV->AlgoIndexHeap(); }
+          };
 
           void MakePCCGen
                (
-                    std::vector<tVertex*>        aSeeds,
-                    const cAlgo_SubGr<TGraph> &  aSubGr,
-                    const cAlgo_ParamVG<TGraph>  & Goal
+                    TGraph &                       aGraph,
+                    const std::vector<tVertex*> &  aVSeeds,
+                    const cAlgo_ParamVG<TGraph> &  aParam,
+                    const cAlgo_SubGr<TGraph>   &  aGoal,
+                    std::vector<tVertex*> &        aVReached
                );
      private :
 };
+
+
+
+template <class TGraph>   
+    void cAlgoPCC<TGraph>::MakePCCGen
+         (
+              TGraph &                      aGraph,
+              const std::vector<tVertex*> & aVSeeds,
+              const cAlgo_ParamVG<TGraph> & aParam,
+              const cAlgo_SubGr<TGraph>   & aGoal,
+              std::vector<tVertex*>       & aVReached
+         )
+{
+    aVReached.clear();
+    size_t aBitMark = aGraph.AllocBitTemp();
+
+    cHeapCmp aCompare;
+    cIndexedHeap<tVertex*,cHeapCmp,cHeapParam> aHeap(aCompare);
+ 
+    for (auto aPtrV : aVSeeds)
+    {
+        if (aParam.InsideVertex(*aPtrV))
+        {
+           aPtrV->mAlgoTmpMark.AddElem(aBitMark);
+           aPtrV->mAlgoCost = 0.0;
+           aPtrV->mAlgoFather = nullptr;
+           aVReached.push_back(aPtrV);
+           aHeap.Push(aPtrV);
+        }
+    }
+
+    bool  GoOn= true;
+    while (GoOn)
+    {
+        if (aHeap.IsEmpty())
+        {
+            GoOn = false;
+        }
+        else
+        {
+/*
+            tVertex * aNewSom =  aHeap.PopVal(nullptr);
+            if (aGoal.InsideVertex(aNewSom))
+            {
+            }
+*/
+        }
+    }
+
+    aGraph.FreeBitTemp(aBitMark);
+}
+
+
+
+template class cAlgoPCC<cVG_Graph<int,int,int>> ;
+
+//template <class TGraph>   class cAlgoPCC
+
+
 
 // template <class TGraph>  class cAlgo_SubGr
 // template <class TGraph>  class cAlgo_ParamVG
@@ -471,7 +565,6 @@ void BenchGrpValuatedGraph(cParamExeBench & aParam)
     aParam.EndBench();
 }
 
-template class cAlgoPCC<cBGG_Graph>;
 
 
 #if (0)
