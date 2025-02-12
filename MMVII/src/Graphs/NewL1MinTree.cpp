@@ -3,6 +3,7 @@
 #include "MMVII_TplHeap.h"
 #include "cMMVII_Appli.h"
 #include "MMVII_SetITpl.h"
+#include "MMVII_Images.h"
 
 //#include "MMVII_nums.h"
 //#include "MMVII_Geom2D.h"
@@ -21,8 +22,8 @@ namespace MMVII
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Vertex;
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Edge;
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Graph;
-template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_ParamAlgo;
-
+template <class TGraph>  class cAlgo_ParamVG;
+template <class TGraph> class cAlgoPCC;
 
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Edge : public cMemCheck
 {
@@ -62,19 +63,26 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Vertex : pu
 	  typedef cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym>    tVertex;
 	  typedef cVG_Edge<TA_Vertex,TA_Oriented,TA_Sym>      tEdge;
           typedef cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>     tGraph;
-          typedef cVG_ParamAlgo<TA_Vertex,TA_Oriented,TA_Sym> tParamAlgo;
+
+          typedef cAlgoPCC<tGraph>                            tAlgoPCC;
+          typedef cAlgo_ParamVG<tGraph>                       tParamAlgo;
 
           friend  tEdge;
           friend  tGraph;
           friend  tParamAlgo;
+          friend  tAlgoPCC;
 
           inline void              SetAttr(const TA_Vertex & anAttr)  {mAttr = anAttr;}
           inline TA_Vertex &       Attr()       {return mAttr;}
           inline const TA_Vertex & Attr() const {return mAttr;}
 
-          const tEdge * EdgeOfSucc(const tVertex  & aS2,bool SVP) const {return const_cast<tVertex*>(this)->EdgeOfSucc(aS2,SVP);}
-          inline tEdge * EdgeOfSucc(const tVertex  & aS2,bool SVP) ;
+          const tEdge * EdgeOfSucc(const tVertex  & aS2,bool SVP=false) const {return const_cast<tVertex*>(this)->EdgeOfSucc(aS2,SVP);}
+          inline tEdge * EdgeOfSucc(const tVertex  & aS2,bool SVP=false) ;
 
+          inline const  std::vector<tEdge*> & Succ()       {return mVEdges;}
+          inline const  std::vector<tEdge*> & Succ() const {return mVEdges;}
+
+          inline tREAL8  AlgoCost() const {return  mAlgoCost;}
      private :
           cVG_Vertex(const tVertex &) = delete;
           inline ~cVG_Vertex();
@@ -84,26 +92,11 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Vertex : pu
           TA_Vertex                  mAttr;
           std::vector<tEdge*>        mVEdges;
           int                        mNum;
-          cSetISingleFixed<tU_INT4>  mSetTmp;
-};
 
-template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_ParamAlgo
-{
-        public :
-	     typedef cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym>  tVertex;
-	     typedef cVG_Edge<TA_Vertex,TA_Oriented,TA_Sym>    tEdge;
-
-             virtual bool   InsideVertex(const  tVertex &) const {return true;}
-             virtual bool   InsideEdge(const    tEdge &) const {return true;}
-             virtual tREAL8 WeightEdge(const    tEdge &) const {return 1.0;}
-
-             virtual bool IsMarked(const  tVertex & aV)  const {return aV.mSetTmp.Inside(mBitMarq);}
-             virtual void SetMarked(tVertex & aV) const        {   aV.mSetTmp.AddElem(mBitMarq);}
-             virtual void SetUnMarked(tVertex & aV) const      {   aV.mSetTmp.SuprElem(mBitMarq);}
-
-             cVG_ParamAlgo(int aBitMarq)  : mBitMarq (aBitMarq) {}
-        private :
-             size_t mBitMarq;
+          cSetISingleFixed<tU_INT4>  mAlgoTmpMark;
+          int                        mAlgoFather;
+          int                        mAlgoIndexHeap;
+          tREAL8                     mAlgoCost;
 };
 
 
@@ -117,26 +110,46 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Graph : pub
 	  friend tVertex;
 	  friend tEdge;
 
-          size_t NbSom()   const {return mVVertexes.size();}
-	  tVertex &        VertexOfNum(size_t aNum)       {return *mVVertexes.at(aNum);}
-	  const tVertex &  VertexOfNum(size_t aNum) const {return *mVVertexes.at(aNum);}
+          size_t NbVertex()   const {return mV_Vertices.size();}
+	  tVertex &        VertexOfNum(size_t aNum)       {return *mV_Vertices.at(aNum);}
+	  const tVertex &  VertexOfNum(size_t aNum) const {return *mV_Vertices.at(aNum);}
 
-          inline cVG_Graph(int aNbSom,const TA_Vertex & anAttr) ;
+          inline cVG_Graph();
           inline ~cVG_Graph();
 
           inline tVertex * NewSom(const TA_Vertex & anAttr) ;
 
           inline void AddEdge(tVertex & aV1,tVertex & aV2,const TA_Oriented &A12,const TA_Oriented &A21,const TA_Sym &,bool OkExist=false);
-          void AddEdge(tVertex & aV1,tVertex & aV2,const TA_Oriented &aAOr,const TA_Sym & aASym,bool OkExist) {AddEdge(aV1,aV2,aAOr,aASym,OkExist);}
+          void AddEdge(tVertex & aV1,tVertex & aV2,const TA_Oriented &aAOr,const TA_Sym & aASym,bool OkExist) 
+               {AddEdge(aV1,aV2,aAOr,aAOr,aASym,OkExist);}
 
      protected :
-	  const TA_Sym &  AttrSymOfNum(size_t aNum) const {return *mVAttrSym.at(aNum);}
-	  TA_Sym &        AttrSymOfNum(size_t aNum)       {return *mVAttrSym.at(aNum);}
+	  const TA_Sym &  AttrSymOfNum(size_t aNum) const {return *mV_AttrSym.at(aNum);}
+	  TA_Sym &        AttrSymOfNum(size_t aNum)       {return *mV_AttrSym.at(aNum);}
 
      private :
           cVG_Graph(const tGraph &) = delete;
-	  std::vector<tVertex*>  mVVertexes;
-	  std::vector<TA_Sym*>   mVAttrSym;
+	  std::vector<tVertex*>  mV_Vertices;
+	  std::vector<TA_Sym*>   mV_AttrSym;
+};
+
+template <class TGraph>  class cAlgo_SubGr
+{
+        public :
+	     typedef typename TGraph::tVertex  tVertex;
+	     typedef typename TGraph::tEdge    tEdge;
+
+             virtual bool   InsideVertex(const  tVertex &) const {return true;}
+};
+
+template <class TGraph>  class cAlgo_ParamVG : public cAlgo_SubGr<TGraph>
+{
+        public :
+	     typedef typename TGraph::tVertex  tVertex;
+	     typedef typename TGraph::tEdge    tEdge;
+
+             virtual bool   InsideEdge(const    tEdge &) const {return true;}
+             virtual tREAL8 WeightEdge(const    tEdge &) const {return 1.0;}
 };
 
 
@@ -219,10 +232,10 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>
 
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
   cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym>::cVG_Vertex(tGraph * aGr,const TA_Vertex & anAttr,int aNum) :
-      mGr     (aGr),
-      mAttr   (anAttr),
-      mNum    (aNum),
-      mSetTmp (0)
+      mGr          (aGr),
+      mAttr        (anAttr),
+      mNum         (aNum),
+      mAlgoTmpMark (0)
 {
 }
 
@@ -233,28 +246,25 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>
 /* ********************************************* */
 
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
-   cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::cVG_Graph(int aNbSom,const TA_Vertex & anAttr) :
-        mVVertexes (aNbSom,nullptr)
+   cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::cVG_Graph()
 {
-   for (size_t aKV=0 ; aKV<mVVertexes.size() ; aKV++)
-   {
-       mVVertexes.at(aKV) = new tVertex(this,anAttr,aKV);
-   }
 }
+
 
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
    cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::~cVG_Graph()
 {
-    for (auto & aPtrV : mVVertexes)
+    for (auto & aPtrV : mV_Vertices)
        delete aPtrV;
-    for (auto & aPtrA : mVAttrSym)
+    for (auto & aPtrA : mV_AttrSym)
        delete aPtrA;
 }
 
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
    cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym>* cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::NewSom(const TA_Vertex & anAttr) 
 {
-    return nullptr;
+    mV_Vertices.push_back(new tVertex(this,anAttr,mV_Vertices.size()));
+    return mV_Vertices.back();
 }
 
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
@@ -288,10 +298,10 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>
     }
     else 
     {
-         aV1.mVEdges.push_back(new tEdge(this,A12,aV2.mNum,mVAttrSym.size(),true));
-         aV2.mVEdges.push_back(new tEdge(this,A21,aV1.mNum,mVAttrSym.size(),false));
+         aV1.mVEdges.push_back(new tEdge(this,A12,aV2.mNum,mV_AttrSym.size(),true));
+         aV2.mVEdges.push_back(new tEdge(this,A21,aV1.mNum,mV_AttrSym.size(),false));
 
-         mVAttrSym.push_back(new TA_Sym(aASym));
+         mV_AttrSym.push_back(new TA_Sym(aASym));
     }
 }
 
@@ -300,57 +310,168 @@ template class cVG_Vertex<int,int,int>;
 template class cVG_Edge<int,int,int>;
 
 
+template <class TGraph>   class cAlgoPCC
+{
+     public :
+	  typedef typename TGraph::tVertex  tVertex;
+          class cHeapCmp
+          {
+                 public :
+                    typedef tVertex *         tVertexPtr ;
+
+                    bool  operator () (const tVertexPtr & aV1,const tVertexPtr & aV2) 
+                    {
+                       return aV1->AlgoCost() < aV2->AlgoCost();
+                    }
+          };
+
+          void MakePCCGen
+               (
+                    std::vector<tVertex*>        aSeeds,
+                    const cAlgo_SubGr<TGraph> &  aSubGr,
+                    const cAlgo_ParamVG<TGraph>  & Goal
+               );
+     private :
+};
+
+// template <class TGraph>  class cAlgo_SubGr
+// template <class TGraph>  class cAlgo_ParamVG
 
 /* *********************************************************** */
 
 class cBGG_Vertex
 {
      public :
-           cPt3di  mPt;
+           cBGG_Vertex(cPt2di  aPt,tREAL8 aZ) :
+               mPt (aPt),
+               mZ  (aZ)
+           {
+           }
+
+           cPt2di mPt;
+           tREAL8 mZ;
      private :
+  
 };
 
 class cBGG_EdgeOriented
 {
      public :
-           tREAL8 mDist;
+           cBGG_EdgeOriented(tREAL8 aDz) : mDz (aDz) {}
+           tREAL8 mDz;
      private :
 };
 
 class cBGG_EdgeSym
 {
      public :
-           tREAL8 mDZ;
+           cBGG_EdgeSym(tREAL8 aDist) : mDist (aDist) {}
+           tREAL8 mDist;
      private :
 };
 
 class  cBGG_Graph : public cVG_Graph<cBGG_Vertex,cBGG_EdgeOriented,cBGG_EdgeSym>
 {
      public :
-         // cBGG_Graph (cPt2di aSzGrid
+          typedef cVG_Graph<cBGG_Vertex,cBGG_EdgeOriented,cBGG_EdgeSym> tGraph;
+          typedef typename tGraph::tVertex                              tVertex;
+          typedef  tVertex*                                             tPtrV;
+
+          cBGG_Graph (cPt2di aSzGrid);
+          tPtrV & VertOfPt(const cPt2di & aPt) {return mGridVertices.at(aPt.y()).at(aPt.x());}
+     private :
+          cPt2di                               mSzGrid;
+          cRect2                               mBox;
+          std::vector<std::vector<tPtrV>>   mGridVertices;
+          void AddEdge(const cPt2di&aP0,const cPt2di & aP1);
 };
 
 
+cBGG_Graph::cBGG_Graph (cPt2di aSzGrid) :
+      cVG_Graph<cBGG_Vertex,cBGG_EdgeOriented,cBGG_EdgeSym>(),
+      mSzGrid        (aSzGrid),
+      mBox           (mSzGrid),
+      mGridVertices  (mSzGrid.y(),std::vector<tVertex*>(mSzGrid.x(),nullptr))
+{
+      for (const auto & aPix : mBox)
+      {
+          cPt2di aPix4Num 
+                 (
+                   (aPix.y()%2) ? (mSzGrid.x()-aPix.x()-1) : aPix.x(),
+                   aPix.y()
+                 );
+          tREAL8 aZ = mBox.IndexeLinear(aPix4Num);
+          VertOfPt(aPix) = NewSom(cBGG_Vertex(aPix,aZ));
+          // if (aPix.x() == 0) StdOut() << "===================\n";
+          // StdOut() << aPix << aZ << "\n";
+      }
 
+      for (const auto & aPix : mBox)
+      {
+           AddEdge(aPix,aPix+cPt2di(0,1));
+           AddEdge(aPix,aPix+cPt2di(1,0));
+           AddEdge(aPix,aPix+cPt2di(1,1));
+           AddEdge(aPix,aPix+cPt2di(-1,1));
+      }
+
+      for (size_t aKV1=0 ; aKV1<NbVertex() ; aKV1++)
+      {
+          tVertex &   aV1 = VertexOfNum(aKV1);
+          cPt2di aP1 = aV1.Attr().mPt;
+          size_t aNbSucc=0;
+          for (const auto aDPt : cRect2::BoxWindow(2))
+          {
+              cPt2di aP2 = aP1+aDPt;
+              bool OkInside =  mBox.Inside(aP2) ;
+              bool OkSucc =  OkInside &&  (NormInf(aDPt)==1);
+              aNbSucc += OkSucc;
+              if (OkSucc)
+              {
+                 tVertex &   aV2 = *VertOfPt(aP2);
+                 const tEdge * anE12=  aV1.EdgeOfSucc(aV2);
+                 MMVII_INTERNAL_ASSERT_bench(std::abs(anE12->AttrSym().mDist-Norm2(aP1-aP2))<1e-10,"Dist in cBGG_Graph");
+                 MMVII_INTERNAL_ASSERT_bench(aV2.Attr().mZ-aV1.Attr().mZ==anE12->AttrOriented().mDz,"Dz in cBGG_Graph");
+              }
+              else if (OkInside)
+              {
+                 tVertex &   aV2 = *VertOfPt(aP2);
+                 MMVII_INTERNAL_ASSERT_bench(aV1.EdgeOfSucc(aV2,SVP::Yes)==nullptr,"EdgeOfSucc in cBGG_Graph");
+              }
+          }
+          MMVII_INTERNAL_ASSERT_bench(aNbSucc==aV1.Succ().size(),"NbSucc in cBGG_Graph");
+      }
+}
+
+void cBGG_Graph::AddEdge(const cPt2di&aP1,const cPt2di & aP2)
+{
+    if ( (!mBox.Inside(aP1)) || (!mBox.Inside(aP2)) )
+       return;
+
+    tVertex * aV1 = VertOfPt(aP1);
+    tVertex * aV2 = VertOfPt(aP2);
+
+    tREAL8 aDist = Norm2(aV1->Attr().mPt-aV2->Attr().mPt);
+    tREAL8 aDZ12 = aV2->Attr().mZ-aV1->Attr().mZ;
+
+    cBGG_EdgeOriented aA12(aDZ12);
+    cBGG_EdgeOriented aA21(-aDZ12);
+
+    cBGG_EdgeSym  aASym(aDist);
+
+    tGraph::AddEdge(*aV1,*aV2,aA12,aA21,aASym);
+}
 
 
 void BenchGrpValuatedGraph(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("GroupGraph")) return;
 
-    cVG_Graph<int,int,int>  aGr(200,-1);
-
-    for (int aK1=0 ; aK1<100 ; aK1++)
-    {
-        for (int aK2=aK1+1 ; aK2< 100 ; aK2++)
-        {
-            aGr.AddEdge(aGr.VertexOfNum(aK1),aGr.VertexOfNum(aK2),aK2,aK2,aK1+aK2);
-        }
-    }
+    cBGG_Graph   aGr(cPt2di(3,7));
 
     aParam.EndBench();
 }
 
+template class cAlgoPCC<cBGG_Graph>;
 
 
 #if (0)
