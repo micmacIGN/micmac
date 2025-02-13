@@ -79,11 +79,16 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Vertex : pu
           const tEdge * EdgeOfSucc(const tVertex  & aS2,bool SVP=false) const {return const_cast<tVertex*>(this)->EdgeOfSucc(aS2,SVP);}
           inline tEdge * EdgeOfSucc(const tVertex  & aS2,bool SVP=false) ;
 
-          inline const  std::vector<tEdge*> & Succ()       {return mVEdges;}
-          inline const  std::vector<tEdge*> & Succ() const {return mVEdges;}
+          inline const  std::vector<tEdge*> & EdgesSucc()       {return mVEdges;}
+          inline const  std::vector<tEdge*> & EdgesSucc() const {return mVEdges;}
 
           inline tREAL8  AlgoCost() const {return  mAlgoCost;}
           inline int &   AlgoIndexHeap() {return  mAlgoIndexHeap;}
+
+          inline void SetBit1(size_t aBit) {mAlgoTmpMark.AddElem(aBit);}
+          inline void SetBit0(size_t aBit) {mAlgoTmpMark.SuprElem(aBit);}
+          inline bool BitTo1(size_t aBit) const {return mAlgoTmpMark.IsInside(aBit);}
+
      private :
           cVG_Vertex(const tVertex &) = delete;
           inline ~cVG_Vertex();
@@ -335,6 +340,11 @@ template <class TGraph>  class cAlgo_ParamVG : public cAlgo_SubGr<TGraph>
 
              virtual bool   InsideEdge(const    tEdge &) const {return true;}
              virtual tREAL8 WeightEdge(const    tEdge &) const {return 1.0;}
+
+             inline bool   InsideEdgeAndSucc(const    tEdge & anEdge) const 
+             {
+                    return InsideEdge(anEdge) && this->InsideVertex(anEdge.Succ());
+             }
 };
 
 template <class TGraph>   class cAlgoPCC
@@ -358,9 +368,10 @@ template <class TGraph>   class cAlgoPCC
                  static int  GetIndex(const tVertexPtr & aPtrV)  { return aPtrV->AlgoIndexHeap(); }
           };
 
-          void MakePCCGen
+          tVertex * MakePCCGen
                (
                     TGraph &                       aGraph,
+                    bool                           aModeMinPCC,
                     const std::vector<tVertex*> &  aVSeeds,
                     const cAlgo_ParamVG<TGraph> &  aParam,
                     const cAlgo_SubGr<TGraph>   &  aGoal,
@@ -372,17 +383,20 @@ template <class TGraph>   class cAlgoPCC
 
 
 template <class TGraph>   
-    void cAlgoPCC<TGraph>::MakePCCGen
+    typename TGraph::tVertex * cAlgoPCC<TGraph>::MakePCCGen
          (
               TGraph &                      aGraph,
+              bool                          aModeMinPCC,
               const std::vector<tVertex*> & aVSeeds,
               const cAlgo_ParamVG<TGraph> & aParam,
               const cAlgo_SubGr<TGraph>   & aGoal,
               std::vector<tVertex*>       & aVReached
          )
 {
+    tVertex * aResult = nullptr;
     aVReached.clear();
-    size_t aBitMark = aGraph.AllocBitTemp();
+    size_t aBitReached = aGraph.AllocBitTemp();
+    size_t aBitOutHeap  = aGraph.AllocBitTemp();
 
     cHeapCmp aCompare;
     cIndexedHeap<tVertex*,cHeapCmp,cHeapParam> aHeap(aCompare);
@@ -391,7 +405,7 @@ template <class TGraph>
     {
         if (aParam.InsideVertex(*aPtrV))
         {
-           aPtrV->mAlgoTmpMark.AddElem(aBitMark);
+           aPtrV->SetBit1(aBitReached);
            aPtrV->mAlgoCost = 0.0;
            aPtrV->mAlgoFather = nullptr;
            aVReached.push_back(aPtrV);
@@ -408,16 +422,57 @@ template <class TGraph>
         }
         else
         {
-/*
-            tVertex * aNewSom =  aHeap.PopVal(nullptr);
-            if (aGoal.InsideVertex(aNewSom))
+            tVertex * aNewVOut =  aHeap.PopVal(nullptr);
+            if (aGoal.InsideVertex(*aNewVOut))
             {
+               GoOn = false;
+               aResult = aNewVOut;
             }
-*/
+            else
+            {
+                 aNewVOut->SetBit1(aBitOutHeap);
+                 for (const auto &  anEdge :  aNewVOut->EdgesSucc())
+                 {
+                      if (aParam.InsideEdgeAndSucc(*anEdge))
+                      {
+                         tVertex & aNewVIn = anEdge->Succ();
+                         if (!aNewVIn.BitTo1(aBitOutHeap))
+                         {
+                            tREAL8 aNewCost =  aParam.WeightEdge(*anEdge);
+                            if (aModeMinPCC)  
+                               aNewCost += aNewVOut->mAlgoCost;
+
+                            if (!aNewVIn.BitTo1(aBitReached))
+                            {
+                               aVReached.push_back(&aNewVIn);
+                               aNewVIn.BitTo1(aBitReached);
+                               aNewVIn.mAlgoCost = aNewCost+1;
+                               aHeap.Push(&aNewVIn);
+                            }
+
+                            if (aNewCost<aNewVIn.mAlgoCost)
+                            {
+                                 aNewVIn.mAlgoCost = aNewCost;
+                                 aHeap.UpDate(&aNewVIn);
+                                 aNewVIn.mAlgoFather = aNewVOut;
+                            }
+                         }
+                      }
+                 }
+            }
         }
     }
 
-    aGraph.FreeBitTemp(aBitMark);
+    for (auto aPtrV : aVReached)
+    {
+         aPtrV->SetBit0(aBitReached);
+         aPtrV->SetBit0(aBitOutHeap);
+    }
+
+    aGraph.FreeBitTemp(aBitReached);
+    aGraph.FreeBitTemp(aBitOutHeap);
+
+    return aResult;
 }
 
 
@@ -473,7 +528,10 @@ class  cBGG_Graph : public cVG_Graph<cBGG_Vertex,cBGG_EdgeOriented,cBGG_EdgeSym>
 
           cBGG_Graph (cPt2di aSzGrid);
           tPtrV & VertOfPt(const cPt2di & aPt) {return mGridVertices.at(aPt.y()).at(aPt.x());}
+
+          void Bench();
      private :
+
           cPt2di                               mSzGrid;
           cRect2                               mBox;
           std::vector<std::vector<tPtrV>>   mGridVertices;
@@ -507,7 +565,10 @@ cBGG_Graph::cBGG_Graph (cPt2di aSzGrid) :
            AddEdge(aPix,aPix+cPt2di(1,1));
            AddEdge(aPix,aPix+cPt2di(-1,1));
       }
+}
 
+void cBGG_Graph::Bench()
+{
       for (size_t aKV1=0 ; aKV1<NbVertex() ; aKV1++)
       {
           tVertex &   aV1 = VertexOfNum(aKV1);
@@ -525,6 +586,7 @@ cBGG_Graph::cBGG_Graph (cPt2di aSzGrid) :
                  const tEdge * anE12=  aV1.EdgeOfSucc(aV2);
                  MMVII_INTERNAL_ASSERT_bench(std::abs(anE12->AttrSym().mDist-Norm2(aP1-aP2))<1e-10,"Dist in cBGG_Graph");
                  MMVII_INTERNAL_ASSERT_bench(aV2.Attr().mZ-aV1.Attr().mZ==anE12->AttrOriented().mDz,"Dz in cBGG_Graph");
+                 MMVII_INTERNAL_ASSERT_bench( (&anE12->Succ() ==  &aV2) ," Adrr in cBGG_Graph");
               }
               else if (OkInside)
               {
@@ -532,7 +594,7 @@ cBGG_Graph::cBGG_Graph (cPt2di aSzGrid) :
                  MMVII_INTERNAL_ASSERT_bench(aV1.EdgeOfSucc(aV2,SVP::Yes)==nullptr,"EdgeOfSucc in cBGG_Graph");
               }
           }
-          MMVII_INTERNAL_ASSERT_bench(aNbSucc==aV1.Succ().size(),"NbSucc in cBGG_Graph");
+          MMVII_INTERNAL_ASSERT_bench(aNbSucc==aV1.EdgesSucc().size(),"NbSucc in cBGG_Graph");
       }
 }
 
@@ -561,6 +623,7 @@ void BenchGrpValuatedGraph(cParamExeBench & aParam)
     if (! aParam.NewBench("GroupGraph")) return;
 
     cBGG_Graph   aGr(cPt2di(3,7));
+    aGr.Bench();
 
     aParam.EndBench();
 }
