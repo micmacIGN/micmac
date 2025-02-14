@@ -240,7 +240,7 @@ int cAppli_ImportClino::Exe()
     }
 
     // Create set, 
-    cSetMeasureClino aSetM("^(.*)$", mPrePost.at(0)+"$0"+mPrePost.at(1) );
+    cSetMeasureClino aSetM("^(.*)$", mPrePost.at(0)+"$&"+mPrePost.at(1) );
 
     std::vector<std::string> aVNames;
     for (size_t aKL=0 ; aKL<aNRFS.NbLineRead() ; aKL++)  // parse all lines
