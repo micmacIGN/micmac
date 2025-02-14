@@ -37,11 +37,11 @@ knowledge of the CeCILL-B license and that you accept its terms.
 ////////////////////////////////////////////////////////////////////////
 
 Dependencies
-  python2.7
+  python3
   gdal-bin
   python-gdal
   python-matplotlib
-  python-qt4
+  python-qt5
   python-scipy
 
 Usage
