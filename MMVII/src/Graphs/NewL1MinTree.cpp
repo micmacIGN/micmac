@@ -1,642 +1,17 @@
 #include "MMVII_util_tpl.h"
 #include "MMVII_Bench.h"
-#include "MMVII_TplHeap.h"
 #include "cMMVII_Appli.h"
-#include "MMVII_SetITpl.h"
 #include "MMVII_Images.h"
 
-//#include "MMVII_nums.h"
-//#include "MMVII_Geom2D.h"
-//#include "MMVII_Geom3D.h"
+#include "MMVII_Tpl_GraphStruct.h"
+#include "MMVII_Tpl_GraphAlgo_SPCC.h"
+
 
 namespace MMVII
 {
 
-//  3 declaration of templates classes for Valuated-Graph (VGà , parametrised by 
-//
-//    - TA_Vertex : attribute  of vertex
-//    - TA_Oriented : attribute  of oriented edge ( A(S1->S2) !=  A(S2->S1) )
-//    - TA_Sym : attribute  of non oriented edge  :  A(S1->S2) and A(S2->S1)  are shared
-//
 
-template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Vertex;
-template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Edge;
-template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Graph;
-template <class TGraph>  class cAlgo_ParamVG;
-template <class TGraph> class cAlgoSP;
 
-template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Edge : public cMemCheck
-{
-     public :
-          typedef cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym>  tVertex;
-          typedef cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>   tGraph;
-          typedef cVG_Edge<TA_Vertex,TA_Oriented,TA_Sym>    tEdge;
-          typedef cAlgo_ParamVG<tGraph>                     tParamAlgo;
-          typedef cAlgoSP<tGraph>                           tAlgoSP;
-
-          friend tAlgoSP;
-          friend tVertex;
-          friend tGraph;
-          //friend tAlgoSP;
-          //friend class cAlgo_ParamVG<cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>>;
-          // template <class> friend class cAlgo_ParamVG;
-          template <class> friend class cAlgoSP;
-
-
-	  inline       tVertex & Succ() ;
-	  inline const tVertex & Succ() const ;
-
-	  inline TA_Oriented & AttrOriented()  {return mAttrO;}
-	  inline const TA_Oriented & AttrOriented() const {return mAttrO;}
-
-	  inline       TA_Sym & AttrSym() ;
-	  inline const TA_Sym & AttrSym() const ;
-
-     private :
-          cVG_Edge(const tEdge&) = delete;
-          inline ~cVG_Edge();
-          inline cVG_Edge(tGraph*,const TA_Oriented &,int aNumSucc,int aNumAttr,bool DirInit);
-          
-
-	  tGraph *        mGr;
-	  TA_Oriented     mAttrO;
-	  int             mNumSucc;
-          size_t          mNumAttr;
-          bool            mDirInit;
-};
-
-template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Vertex : public cMemCheck
-{
-     public :
-	  typedef cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym>    tVertex;
-	  typedef cVG_Edge<TA_Vertex,TA_Oriented,TA_Sym>      tEdge;
-          typedef cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>     tGraph;
-          typedef cAlgoSP<tGraph>                             tAlgoSP;
-
-          friend  tEdge;
-          friend  tGraph;
-          // friend  tAlgoSP;
-          //friend class cAlgoSP<cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>>;
-          template <class> friend class cAlgoSP;
-
-          inline void              SetAttr(const TA_Vertex & anAttr)  {mAttr = anAttr;}
-          inline TA_Vertex &       Attr()       {return mAttr;}
-          inline const TA_Vertex & Attr() const {return mAttr;}
-
-          const tEdge * EdgeOfSucc(const tVertex  & aS2,bool SVP=false) const {return const_cast<tVertex*>(this)->EdgeOfSucc(aS2,SVP);}
-          inline tEdge * EdgeOfSucc(const tVertex  & aS2,bool SVP=false) ;
-
-          inline const  std::vector<tEdge*> & EdgesSucc()       {return mVEdges;}
-          inline const  std::vector<tEdge*> & EdgesSucc() const {return mVEdges;}
-
-          inline tREAL8  AlgoCost() const {return  mAlgoCost;}
-          inline int &   AlgoIndexHeap() {return  mAlgoIndexHeap;}
-
-          inline void SetBit1(size_t aBit) {mAlgoTmpMark.AddElem(aBit);}
-          inline void SetBit0(size_t aBit) {mAlgoTmpMark.SuprElem(aBit);}
-          inline bool BitTo1(size_t aBit) const {return mAlgoTmpMark.IsInside(aBit);}
-
-	  inline void BackTrackFathersPath(std::vector<tVertex*> &) ;
-	  inline std::vector<tVertex*>  BackTrackFathersPath();
-
-     private :
-          cVG_Vertex(const tVertex &) = delete;
-          inline ~cVG_Vertex();
-          inline cVG_Vertex(tGraph * aGr,const TA_Vertex & anAttr,int aNum) ;
-
-          tGraph *                   mGr;             
-          TA_Vertex                  mAttr;
-          std::vector<tEdge*>        mVEdges;
-          int                        mNum;
-
-          cSetISingleFixed<tU_INT4>  mAlgoTmpMark;
-          tVertex*                   mAlgoFather;
-          int                        mAlgoIndexHeap;
-          tREAL8                     mAlgoCost;
-};
-
-
-template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Graph : public cMemCheck
-{
-     public :
-	  typedef cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym>        tVertex;
-	  typedef cVG_Edge<TA_Vertex,TA_Oriented,TA_Sym>          tEdge;
-	  typedef cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>         tGraph;
-          typedef cAlgoSP<tGraph>                                 tAlgoSP;
-	     
-	  friend tVertex;
-	  friend tEdge;
-          template <class> friend class cAlgoSP;
-
-          size_t NbVertex()   const {return mV_Vertices.size();}
-	  tVertex &        VertexOfNum(size_t aNum)       {return *mV_Vertices.at(aNum);}
-	  const tVertex &  VertexOfNum(size_t aNum) const {return *mV_Vertices.at(aNum);}
-
-          inline cVG_Graph();
-          inline ~cVG_Graph();
-
-          inline tVertex * NewSom(const TA_Vertex & anAttr) ;
-
-          inline void AddEdge(tVertex & aV1,tVertex & aV2,const TA_Oriented &A12,const TA_Oriented &A21,const TA_Sym &,bool OkExist=false);
-          void AddEdge(tVertex & aV1,tVertex & aV2,const TA_Oriented &aAOr,const TA_Sym & aASym,bool OkExist) 
-               {AddEdge(aV1,aV2,aAOr,aAOr,aASym,OkExist);}
-
-          inline size_t AllocBitTemp();
-          inline void   FreeBitTemp(size_t);
-
-     protected :
-	  const TA_Sym &  AttrSymOfNum(size_t aNum) const {return *mV_AttrSym.at(aNum);}
-	  TA_Sym &        AttrSymOfNum(size_t aNum)       {return *mV_AttrSym.at(aNum);}
-
-     private :
-          cVG_Graph(const tGraph &) = delete;
-	  std::vector<tVertex*>       mV_Vertices;
-	  std::vector<TA_Sym*>        mV_AttrSym;
-          cSetISingleFixed<tU_INT4>   mBitsAllocaTed;
-};
-
-
-
-/* ********************************************* */
-/*                                               */
-/*                 cVG_Edge                      */
-/*                                               */
-/* ********************************************* */
-
-template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
-    cVG_Edge<TA_Vertex,TA_Oriented,TA_Sym>::~cVG_Edge()
-{
-}
-
-template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
-  cVG_Edge<TA_Vertex,TA_Oriented,TA_Sym>::cVG_Edge
-  (
-         tGraph* aGr,
-         const TA_Oriented & anAttrO,
-         int aNumSucc,
-         int aNumAttr,
-         bool DirInit
-   ) :
-     mGr       (aGr),    
-     mAttrO    (anAttrO),
-     mNumSucc  (aNumSucc),
-     mNumAttr  (aNumAttr),
-     mDirInit  (DirInit)
-{
-}
-
-template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
-   const cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym> &  cVG_Edge<TA_Vertex,TA_Oriented,TA_Sym>::Succ()  const 
-{
-	return  mGr->VertexOfNum(mNumSucc);
-}
-
-template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
-   cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym> &  cVG_Edge<TA_Vertex,TA_Oriented,TA_Sym>::Succ() 
-{
-	return  mGr->VertexOfNum(mNumSucc);
-}
-
-template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
-   TA_Sym &  cVG_Edge<TA_Vertex,TA_Oriented,TA_Sym>::AttrSym() 
-{
-   return mGr->AttrSymOfNum(mNumAttr);
-}
-
-template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
-   const TA_Sym &  cVG_Edge<TA_Vertex,TA_Oriented,TA_Sym>::AttrSym()  const
-{
-   return mGr->AttrSymOfNum(mNumAttr);
-}
-
-/* ********************************************* */
-/*                                               */
-/*                                               */
-/*                                               */
-/* ********************************************* */
-
-template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
-  cVG_Edge<TA_Vertex,TA_Oriented,TA_Sym> * 
-            cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym>::EdgeOfSucc(const tVertex  & aS2,bool SVP) 
-{
-     for (auto & anEdge : mVEdges)
-         if (anEdge->mNumSucc==aS2.mNum)
-            return  anEdge;
-
-      MMVII_INTERNAL_ASSERT_tiny(SVP,"No EdgeOfSucc");
-      return nullptr;
-}
-
-template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
-            cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym>::~cVG_Vertex()
-{
-    for (auto & anE :  mVEdges)
-        delete anE;
-}
-template <class TA_Vertex,class TA_Oriented,class TA_Sym>
-   void cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym>::BackTrackFathersPath(std::vector<tVertex*> & aPath) 
-{
-     aPath.clear();
-     tVertex * aV = this;
-     while (aV!=nullptr)
-     {
-        aPath.push_back(aV);
-	aV = aV->mAlgoFather;
-     }
-}
-template <class TA_Vertex,class TA_Oriented,class TA_Sym>
-   std::vector<cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym> *>  cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym>::BackTrackFathersPath()
-{
-    std::vector<tVertex*> aPath;
-    BackTrackFathersPath(aPath);
-    return aPath;
-}
-
-template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
-  cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym>::cVG_Vertex(tGraph * aGr,const TA_Vertex & anAttr,int aNum) :
-      mGr            (aGr),
-      mAttr          (anAttr),
-      mNum           (aNum),
-      mAlgoTmpMark   (0),
-      mAlgoFather    (nullptr),
-      mAlgoIndexHeap (HEAP_NO_INDEX),
-      mAlgoCost      ( 1e7*std::cos(220+aNum*337.88))
-{
-}
-
-/* ********************************************* */
-/*                                               */
-/*                 cVG_Graph                     */
-/*                                               */
-/* ********************************************* */
-
-template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
-   cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::cVG_Graph()   :
-        mBitsAllocaTed (0)
-{
-}
-
-
-template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
-   cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::~cVG_Graph()
-{
-    for (auto & aPtrV : mV_Vertices)
-       delete aPtrV;
-    for (auto & aPtrA : mV_AttrSym)
-       delete aPtrA;
-}
-
-template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
-   cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym>* cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::NewSom(const TA_Vertex & anAttr) 
-{
-    mV_Vertices.push_back(new tVertex(this,anAttr,mV_Vertices.size()));
-    return mV_Vertices.back();
-}
-
-template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
-  void cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::AddEdge
-      (
-           tVertex & aV1,
-           tVertex & aV2,
-           const TA_Oriented &A12,
-           const TA_Oriented &A21,
-           const TA_Sym & aASym,
-           bool  OkExist
-       )
-{
-    // Not sure can handle this case, at least would require some precaution (duplication ...)
-    MMVII_INTERNAL_ASSERT_tiny((aV1.mNum!=aV2.mNum) ,"Reflexive edge in Add edge");
-    tEdge * anE12 = aV1.EdgeOfSucc(aV2,SVP::Yes);
-
-    if (anE12)
-    {
-        //tEdge * anE21 = aV2.EdgeOfSucc(aV1,SVP::Yes);
-        // to do later, if we accept, we must supress eddges in vertices
-        // + handle dir init 
-        // probably do it after implementing remove edge
-        MMVII_INTERNAL_ASSERT_tiny(false,"Ok exist in AddEdge");
-/*
-        delete anE12;
-        delete anE21;
-        aNumAttr = anE12->mNumAttr;
-        delete 
-*/
-    }
-    else 
-    {
-         aV1.mVEdges.push_back(new tEdge(this,A12,aV2.mNum,mV_AttrSym.size(),true));
-         aV2.mVEdges.push_back(new tEdge(this,A21,aV1.mNum,mV_AttrSym.size(),false));
-
-         mV_AttrSym.push_back(new TA_Sym(aASym));
-    }
-}
-template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
-    size_t  cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::AllocBitTemp()
-{
-    for (size_t aBit=0 ; aBit<32 ; aBit++)
-    {
-          if (!mBitsAllocaTed.IsInside(aBit))
-          {
-               mBitsAllocaTed.AddElem(aBit);
-               return aBit;
-          }
-    }
-    MMVII_INTERNAL_ERROR("No more bits in AllocBitTemp (forgot to free ?)");
-    return 0;
-}
-
-template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
-    void  cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::FreeBitTemp(size_t aBit)
-{
-    
-    mBitsAllocaTed.SuprElem(aBit);
-}
-
-template class cVG_Graph<int,int,int>;
-template class cVG_Vertex<int,int,int>;
-template class cVG_Edge<int,int,int>;
-
-template <class TGraph>  class cAlgo_SubGr
-{
-        public :
-	     typedef typename TGraph::tVertex  tVertex;
-	     typedef typename TGraph::tEdge    tEdge;
-
-             virtual bool   InsideVertex(const  tVertex &) const {return true;}
-};
-
-template <class TGraph>  class cAlgo_SingleSubGr : public cAlgo_SubGr<TGraph>
-{
-        public :
-	     typedef typename TGraph::tVertex  tVertex;
-
-             bool   InsideVertex(const  tVertex & aV) const override {return (mSingleV==&aV);}
-	     cAlgo_SingleSubGr(const tVertex * aV) : mSingleV (aV) {}
-        private :
-	     const tVertex * mSingleV;
-};
-
-
-
-
-template <class TGraph>  class cAlgo_ParamVG : public cAlgo_SubGr<TGraph>
-{
-        public :
-	     typedef typename TGraph::tVertex  tVertex;
-	     typedef typename TGraph::tEdge    tEdge;
-
-             virtual bool   InsideEdge(const tVertex &,const    tEdge &) const {return true;}
-             virtual tREAL8 WeightEdge(const tVertex &,const    tEdge &) const {return 1.0;}
-
-             inline bool   InsideV1AndEdgeAndSucc(const tVertex & aV1,const    tEdge & anEdge) const 
-             {
-                    return InsideEdge(aV1,anEdge) && this->InsideVertex(anEdge.Succ()) && this->InsideVertex(aV1);
-             }
-};
-
-template <class TGraph>   class cAlgoSP
-{
-     public :
-	  typedef typename TGraph::tVertex  tVertex;
-          class cHeapCmp
-          {
-                 public :
-                    typedef tVertex *         tVertexPtr ;
-                    bool  operator () (const tVertexPtr & aV1,const tVertexPtr & aV2) 
-                    {
-                       return aV1->AlgoCost() < aV2->AlgoCost();
-                    }
-          };
-          class cHeapParam
-          {
-              public :
-                 typedef tVertex *         tVertexPtr ;
-                 static void SetIndex(const tVertexPtr & aPtrV,tINT4 i) { aPtrV->AlgoIndexHeap() = i;} 
-                 static int  GetIndex(const tVertexPtr & aPtrV)  { return aPtrV->AlgoIndexHeap(); }
-          };
-
-          static tVertex * MakeShortestPathGen
-                 (
-                    TGraph &                       aGraph,
-                    bool                           aModeMinPCC,
-                    const std::vector<tVertex*> &  aVSeeds,
-                    const cAlgo_ParamVG<TGraph> &  aParam,
-                    const cAlgo_SubGr<TGraph>   &  aGoal
-                 );
-
-	  static std::vector<tVertex *>  ConnectedComponent
-		                  (
-                                      TGraph & aGraph,
-				      tVertex& aSeed,
-                                      const cAlgo_ParamVG<TGraph> & aParam
-				  );
-
-	  static std::list<std::vector<tVertex *>>  Multiple_ConnectedComponent
-		                  (
-                                      TGraph & aGraph,
-				      const std::vector<tVertex*> & aSeed,
-                                      const cAlgo_ParamVG<TGraph> & aParam
-				  );
-
-	  static std::list<std::vector<tVertex *>>  All_ConnectedComponent
-		                  (
-                                      TGraph & aGraph,
-                                      const cAlgo_ParamVG<TGraph> & aParam
-				  );
-
-     private :
-	  static void  Internal_ConnectedComponent
-		                  (
-				      tVertex* aSeed,
-				      std::vector<tVertex *>& aResult,
-                                      const cAlgo_ParamVG<TGraph> & aParam,
-				      size_t aFlag
-				  );
-};
-
-
-template <class TGraph> 
-     void cAlgoSP<TGraph>::Internal_ConnectedComponent
-          (
-              tVertex* aSeed,
-              std::vector<tVertex *>& aResult,
-              const cAlgo_ParamVG<TGraph> & aParam,
-              size_t aFlag
-          )
-{
-    aResult.clear();
-    if (aParam.InsideVertex(*aSeed) &&  (!aSeed->BitTo1(aFlag)))
-    {
-       aSeed->SetBit1(aFlag);
-       aResult.push_back(aSeed);
-    }
-
-    size_t aIndBottom = 0;
-    while (aIndBottom != aResult.size())
-    {
-       tVertex * aVCur =  aResult.at(aIndBottom);
-       for (const auto &  anEdge :  aVCur->EdgesSucc())
-       {
-           if (aParam.InsideV1AndEdgeAndSucc(*aVCur,*anEdge))
-           {
-              tVertex & aVNext = anEdge->Succ();
-	      if (!  aVNext.BitTo1(aFlag))
-	      {
-                  aVNext.SetBit1(aFlag);
-                  aResult.push_back(&aVNext);
-	      }
-           }
-       }
-       aIndBottom++;
-    }
-}
-
-template <class TGraph> 
-     std::vector< typename TGraph::tVertex *> 
-           cAlgoSP<TGraph>::ConnectedComponent
-            (
-                                      TGraph & aGraph,
-				      tVertex& aSeed,
-                                      const cAlgo_ParamVG<TGraph> & aParam
-            )
-{
-    size_t aBitReached = aGraph.AllocBitTemp();
-    std::vector<tVertex*>   aResult;
-
-    Internal_ConnectedComponent(&aSeed,aResult,aParam,aBitReached);
-
-    for (auto aPtrV : aResult)
-         aPtrV->SetBit0(aBitReached);
-    aGraph.FreeBitTemp(aBitReached);
-
-    return aResult;
-}
-
-template <class TGraph> 
-     std::list<std::vector< typename TGraph::tVertex *> >
-           cAlgoSP<TGraph>::Multiple_ConnectedComponent
-           (
-                  TGraph & aGraph,
-                  const std::vector<tVertex*> & aVecSeed,
-                  const cAlgo_ParamVG<TGraph> & aParam
-            )
-{
-    size_t aBitReached = aGraph.AllocBitTemp();
-    std::list<std::vector<tVertex*>>   aResult;
-
-    for (const auto & aSeed : aVecSeed)
-    {
-	    aResult.push_back(aSeed);
-	    Internal_ConnectedComponent(aSeed,&aResult.back(),aParam,aBitReached);
-	    if (aResult.back().empty())
-		    aResult.pop_back();
-    }
-}
-
-
-template <class TGraph>   
-    typename TGraph::tVertex * cAlgoSP<TGraph>::MakeShortestPathGen
-         (
-              TGraph &                      aGraph,
-              bool                          aModeMinPCC,
-              const std::vector<tVertex*> & aVSeeds,
-              const cAlgo_ParamVG<TGraph> & aParam,
-              const cAlgo_SubGr<TGraph>   & aGoal
-         )
-{
-    std::vector<tVertex*>   aVReached;
-    tVertex * aResult = nullptr;
-    size_t aBitReached = aGraph.AllocBitTemp();
-    size_t aBitOutHeap  = aGraph.AllocBitTemp();
-
-    cHeapCmp aCompare;
-    cIndexedHeap<tVertex*,cHeapCmp,cHeapParam> aHeap(aCompare);
- 
-    for (auto aPtrV : aVSeeds)
-    {
-        if (aParam.InsideVertex(*aPtrV))
-        {
-           aPtrV->SetBit1(aBitReached);
-           aPtrV->mAlgoCost = 0.0;
-           aPtrV->mAlgoFather = nullptr;
-           aVReached.push_back(aPtrV);
-           aHeap.Push(aPtrV);
-        }
-    }
-
-    bool  GoOn= true;
-    while (GoOn)
-    {
-        if (aHeap.IsEmpty())
-        {
-            GoOn = false;
-        }
-        else
-        {
-            tVertex * aNewVOut =  aHeap.PopVal(nullptr);
-            if (aGoal.InsideVertex(*aNewVOut))
-            {
-               GoOn = false;
-               aResult = aNewVOut;
-            }
-            else
-            {
-                 aNewVOut->SetBit1(aBitOutHeap);
-                 for (const auto &  anEdge :  aNewVOut->EdgesSucc())
-                 {
-                      if (aParam.InsideV1AndEdgeAndSucc(*aNewVOut,*anEdge))
-                      {
-                         tVertex & aNewVIn = anEdge->Succ();
-
-                         if (!aNewVIn.BitTo1(aBitOutHeap))
-                         {
-                            tREAL8 aNewCost =  aParam.WeightEdge(*aNewVOut,*anEdge);
-                            if (aModeMinPCC)  
-                               aNewCost += aNewVOut->mAlgoCost;
-
-                            if (!aNewVIn.BitTo1(aBitReached))
-                            {
-                               aVReached.push_back(&aNewVIn);
-                               aNewVIn.SetBit1(aBitReached);
-                               aNewVIn.mAlgoCost = aNewCost+1;
-                               aHeap.Push(&aNewVIn);
-                            }
-
-                            if (aNewCost<aNewVIn.mAlgoCost)
-                            {
-                                 aNewVIn.mAlgoCost = aNewCost;
-                                 aHeap.UpDate(&aNewVIn);
-                                 aNewVIn.mAlgoFather = aNewVOut;
-                            }
-                         }
-                      }
-                 }
-            }
-        }
-    }
-
-    for (auto aPtrV : aVReached)
-    {
-         aPtrV->SetBit0(aBitReached);
-         aPtrV->SetBit0(aBitOutHeap);
-    }
-
-    aGraph.FreeBitTemp(aBitReached);
-    aGraph.FreeBitTemp(aBitOutHeap);
-
-    return aResult;
-}
-
-
-
-// template class cAlgoSP<cVG_Graph<int,int,int>> ;
-
-//template <class TGraph>   class cAlgoSP
-
-
-
-// template <class TGraph>  class cAlgo_SubGr
-// template <class TGraph>  class cAlgo_ParamVG
 
 /* *********************************************************** */
 
@@ -670,10 +45,12 @@ class cBGG_EdgeSym
      public :
            cBGG_EdgeSym(tREAL8 aDist) : 
                 mDist     (aDist) ,
-                mRanCost  (RandUnif_C())
+                mRanCost  (RandUnif_C()),
+                mIsOk     (true)
            {}
            tREAL8 mDist;
            tREAL8 mRanCost;
+           bool   mIsOk;
      private :
 };
 
@@ -683,15 +60,23 @@ class  cBGG_Graph : public cVG_Graph<cBGG_Vertex,cBGG_EdgeOriented,cBGG_EdgeSym>
           typedef cVG_Graph<cBGG_Vertex,cBGG_EdgeOriented,cBGG_EdgeSym> tGraph;
           typedef typename tGraph::tVertex                              tVertex;
           typedef  tVertex*                                             tPtrV;
+          typedef  cAlgoSP<cBGG_Graph>                                  tAlgoSP;
+          typedef  typename tAlgoSP::tSetPairVE                         tSetPairVE;
+          typedef  cAlgoCC<cBGG_Graph>                                  tAlgoCC;
+          typedef  tAlgoSP::tForest                                     tForest;
+          typedef  cAlgo_ParamVG<cBGG_Graph>                            tParamA;
+
 
           cBGG_Graph (cPt2di aSzGrid);
           tPtrV & VertOfPt(const cPt2di & aPt) {return mGridVertices.at(aPt.y()).at(aPt.x());}
 
           void Bench_FoncElem();
           void Bench_ShortestPath();
-          void Bench_ConnectedComponent(tVertex * aV0);
+          void Bench_ConnectedComponent(tVertex * aV0,tVertex * aV1);
+          void Bench_MinSpanTree(tVertex * aSeed);
      private :
           void Bench_ShortestPath(tVertex * aV0,tVertex * aV1,int aMode);
+          void Check_MinSpanTree(const tSetPairVE& aSet,const tParamA& );
 
           cPt2di                               mSzGrid;
           cRect2                               mBox;
@@ -804,15 +189,8 @@ void cBGG_Graph::Bench_ShortestPath(tVertex * aV0,tVertex * aV1,int aMode)
     cWDZ2 aParam2;
     if (aMode==2) aParam = & aParam2;
 
-    tVertex * aTarget =
-                cAlgoSP<cBGG_Graph>::MakeShortestPathGen
-                (
-                        *this,
-			true,
-			{aV0},
-			*aParam,
-			cAlgo_SingleSubGr<cBGG_Graph>(aV1)
-		);
+    tVertex *  aTarget =  tAlgoSP::ShortestPath_A2B(*this,*aV0,*aV1,*aParam);
+
     int aDTh = NormInf(aV0->Attr().mPt -aV1->Attr().mPt);
     if (aMode==1) aDTh = Norm1(aV0->Attr().mPt -aV1->Attr().mPt);
     if (aMode==2) aDTh = std::abs(aV0->Attr().mZ -aV1->Attr().mZ);
@@ -833,7 +211,7 @@ void cBGG_Graph::Bench_ShortestPath(tVertex * aV0,tVertex * aV1,int aMode)
      }
 }
 
-void cBGG_Graph::Bench_ConnectedComponent(tVertex * aSeed)
+void cBGG_Graph::Bench_ConnectedComponent(tVertex * aSeed,tVertex * aV1)
 {
     class cGrVert : public  cAlgo_ParamVG<cBGG_Graph>
     {
@@ -844,27 +222,134 @@ void cBGG_Graph::Bench_ConnectedComponent(tVertex * aSeed)
 
     cGrVert aParamVert;
 
-    std::vector<tVertex*>  aCC = cAlgoSP<cBGG_Graph>::ConnectedComponent(*this,*aSeed,aParamVert);
+    std::vector<tVertex*>  aCC = tAlgoCC::ConnectedComponent(*this,*aSeed,aParamVert);
 
     MMVII_INTERNAL_ASSERT_bench(aCC.size()==(size_t)mSzGrid.y(),"Size in Bench_ConnectedComponent");
-    for (auto aVCC : aCC)
-        MMVII_INTERNAL_ASSERT_bench(aSeed->Attr().mPt.x()==aVCC->Attr().mPt.x(),"x-diff in Bench_ConnectedComponent");
+    for (auto aVertex : aCC)
+        MMVII_INTERNAL_ASSERT_bench(aSeed->Attr().mPt.x()==aVertex->Attr().mPt.x(),"x-diff in Bench_ConnectedComponent");
 
+    std::vector<tVertex *> aVecSeed;
+    cPt2di aP0 = aSeed->Attr().mPt;
+    cPt2di aP1 = aV1->Attr().mPt;
+    MakeBox(aP0,aP1);
+    for (int aX=aP0.x() ; aX<aP1.x() ; aX++)
+        for (int aY=aP0.y() ; aY<aP1.y() ; aY++)
+            aVecSeed.push_back(VertOfPt(cPt2di(aX,aY)));
+ 
+    std::list< std::vector<tVertex*>> aVecCC =  tAlgoCC::Multiple_ConnectedComponent(*this,aVecSeed,aParamVert);
+
+    int aThNbCC = (aP1.y()==aP0.y()) ? 0 :(aP1.x()-aP0.x());
+    MMVII_INTERNAL_ASSERT_bench((int)aVecCC.size() == aThNbCC,"NbCC in Multiple_ConnectedComponent");
+
+    aVecCC = tAlgoCC::All_ConnectedComponent(*this,aParamVert);
+
+    MMVII_INTERNAL_ASSERT_bench((int)aVecCC.size() == mSzGrid.x(),"NbCC in All_ConnectedComponent");
+    for (const auto & aCC : aVecCC)
+        MMVII_INTERNAL_ASSERT_bench((int) aCC.size()==mSzGrid.y(),"Size in All_ConnectedComponent");
+}
+
+void cBGG_Graph::Check_MinSpanTree(const tSetPairVE& aSetPair,const tParamA& aParam )
+{
+     class cASymOk : public  cAlgo_ParamVG<cBGG_Graph>
+     {
+       public :
+         bool   InsideEdge(const tVertex & ,const    tEdge & anE) const override {return anE.AttrSym().mIsOk;}
+     };
+
+     for (const auto & aPtrAttrSym : this->AllAttrSym())
+        aPtrAttrSym-> mIsOk = false;
+     for (const auto & [aV1,anE] : aSetPair )
+         anE->AttrSym().mIsOk = true;
+
+     for (const auto & [aV1,anETree] : aSetPair )
+     {
+         anETree->AttrSym().mIsOk = false;
+
+         std::vector<tVertex*>  aCC1 = tAlgoCC::ConnectedComponent(*this,*aV1,cASymOk());
+         std::vector<tVertex*>  aCC2 = tAlgoCC::ConnectedComponent(*this,anETree->Succ(),cASymOk());
+
+         MMVII_INTERNAL_ASSERT_bench(aCC1.size() + aCC2.size()==aSetPair.size()+1,"Sizes in Check_MinSpanTree");
+
+         tREAL8 aCostCut =anETree->AttrSym().mRanCost;
+         for (const auto & aV1 : aCC1)
+         {
+              for (const auto & aV2 : aCC2)
+              {
+                  const tEdge * anE12 = aV1->EdgeOfSucc(*aV2,SVP::Yes);
+                  if (anE12 &&  aParam.InsideEdge(*aV1,*anE12))
+                  {
+                      MMVII_INTERNAL_ASSERT_bench(anE12->AttrSym().mRanCost>= aCostCut,"Sizes in Check_MinSpanTree");
+                  }
+              }
+         }
+         
+
+         anETree->AttrSym().mIsOk = true;
+     }
+
+     for (const auto & aPtrAttrSym : this->AllAttrSym())
+        aPtrAttrSym-> mIsOk = true;
 }
 
 
+void cBGG_Graph::Bench_MinSpanTree(tVertex * aSeed)
+{
+    class cWRanCost : public  cAlgo_ParamVG<cBGG_Graph>
+    {
+       public :
+             tREAL8 WeightEdge(const tVertex &,const    tEdge & anE) const override
+		{ return anE.AttrSym().mRanCost;}
+    };
+
+    class cRC_Thr : public  cWRanCost
+    {
+       public :
+             bool InsideEdge(const tVertex &,const    tEdge & anE) const override
+             { 
+                  return anE.AttrSym().mRanCost > mThreshold;
+             }
+             cRC_Thr(const tREAL8 aThrs) : mThreshold (aThrs) {}
+             tREAL8  mThreshold;
+    };
+
+
+
+ 
+    for (const auto & aPtrAttrSym : this->AllAttrSym())
+        aPtrAttrSym-> mRanCost = RandUnif_C();
+
+    tSetPairVE aSetPair = tAlgoSP::MinimumSpanninTree(*this,*aSeed,cWRanCost());
+    MMVII_INTERNAL_ASSERT_bench((int)aSetPair.size()==(mBox.NbElem()-1),"Size in All_ConnectedComponent");
+    Check_MinSpanTree(aSetPair,cWRanCost());
+
+    cRC_Thr  aRC(1.0 - 2*std::pow(RandUnif_0_1(),2.0));
+    tForest aForest;
+    tAlgoSP::MinimumSpanningForest(aForest,*this,this->AllVertices(), aRC);
+
+    size_t aNbEdge = 0;
+    for (const auto & [aVert,aVPair] : aForest)
+    {
+        Check_MinSpanTree(aVPair,aRC);
+        aNbEdge += aVPair.size();
+    }
+
+    MMVII_INTERNAL_ASSERT_bench(aForest.size()+aNbEdge== (size_t)mBox.NbElem(),"Edge and CC in MinimumSpanningForest");
+}
+
 void cBGG_Graph::Bench_ShortestPath()
 {
-     for (int aKTime=0 ; aKTime<100  ; aKTime++)
+     for (int aKTime=0 ; aKTime<2*mBox.NbElem()  ; aKTime++)
      {
 	 tVertex * aV0 =  VertOfPt(mBox.GeneratePointInside());
 	 tVertex * aV1 =  VertOfPt(mBox.GeneratePointInside());
 
-	 Bench_ConnectedComponent(aV0);
+	 Bench_ConnectedComponent(aV0,aV1);
 
          Bench_ShortestPath(aV0,aV1,0);
          Bench_ShortestPath(aV0,aV1,1);
          Bench_ShortestPath(aV0,aV1,2);
+
+         Bench_MinSpanTree(aV0);
       }
 }
 
@@ -873,7 +358,7 @@ void BenchGrpValuatedGraph(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("GroupGraph")) return;
 
-    cBGG_Graph   aGr(cPt2di(10,17));
+    cBGG_Graph   aGr(cPt2di(8,13));
     aGr.Bench_FoncElem();
     aGr.Bench_ShortestPath();
 
@@ -881,689 +366,6 @@ void BenchGrpValuatedGraph(cParamExeBench & aParam)
 }
 
 
-
-#if (0)
-/*
-    Regarding the notation (supposing it is poses) :
-
-        * In class Som ,  mCurValue is the mapping Cam->Word  (or column of the rotaation are vector IJK)
-
-               Ori_L->G   Local camera coordinates   ->   Global Word coordinate
-                           PG = Ori_L->G (PL)
-
-       *  In class AttrEdge,   Ori_2->1 is pose of Cam2 relatively to Cam 1,   PL2 ->PL1
-
-               Ori_2->1  = Ori_G->1  o Ori_2->G    ( PL2 -> PG -> PL1)
-*/
-
-template <class TVal>  class cGrpValuatedEdge;
-template <class TVal>  class cGrpValuatedAttrEdge;
-template <class TVal>  class cGrpValuatedSom;
-template <class TVal,class TParam>  class cGrpValuatedGraph;
-
-
-/* ********************************************************* */
-/*                                                           */
-/*                cGrpValuateEdge                            */
-/*                                                           */
-/* ********************************************************* */
-
-template <class TVal>  class cGrpValuatedEdge
-{
-    public :
-          cGrpValuatedEdge(int aSucc,int aNumAttr,bool DirInit) ;
-
-          size_t  mSucc;
-          size_t  mNumAttr;
-          bool    mDirInit;
-
-          // The mapping transformating Coord2 to Coord1 associate to a Val
-          TVal    VRel2_to_1 (const TVal & aV0) const {return  mDirInit ? aV0 : aV0.MapInverse() ;}
-          // The mapping transformating Coord1 to Coord2 associate to a Val
-          TVal    VRel1_to_2 (const TVal & aV0) const {return  mDirInit ? aV0.MapInverse() : aV0 ;}
-};
-
-template <class TVal>  
-   cGrpValuatedEdge<TVal>::cGrpValuatedEdge(int aSucc,int aNumAttr,bool isDirInit) :
-       mSucc      (aSucc),
-       mNumAttr   (aNumAttr),
-       mDirInit   (isDirInit)
-{
-}
-
-/* ********************************************************* */
-/*                                                           */
-/*                cGrpValuated_OneAttrEdge                   */
-/*                                                           */
-/* ********************************************************* */
-
-template <class TVal>  class cGrpValuated_OneAttrEdge
-{
-       public :
-          cGrpValuated_OneAttrEdge(const TVal &,std::string aAttrib,tREAL8 aCost);
-          TVal         mVal; 
-          std::string  mAux;
-          tREAL8       mCost; 
-};
-
-template <class TVal>  cGrpValuated_OneAttrEdge<TVal>::cGrpValuated_OneAttrEdge(const TVal & aVal,std::string anAux,tREAL8 aCost) :
-     mVal    (aVal),
-     mAux    (anAux),
-     mCost   (aCost)
-{
-}
-
-/* ********************************************************* */
-/*                                                           */
-/*                cGrpAttrEdge                               */
-/*                                                           */
-/* ********************************************************* */
-
-template <class TVal>  class cGrpValuatedAttrEdge
-{
-    public :
-
-          typedef  cGrpValuated_OneAttrEdge<TVal>  tOneAttr;
-          typedef  std::vector<tOneAttr>           tSetAttr;
-
-          cGrpValuatedAttrEdge();
-          cGrpValuatedAttrEdge(const TVal & aValues,std::string aAttrib,tREAL8 aPrioriCost)  ;
-
-          void   Add(const TVal & aValue,std::string aAttrib,tREAL8 aPrioriCost) ;
-          
-          size_t  NbValues () const {return mValues.size();}
-          const tOneAttr & KthVal (size_t aK) const {return mValues.at(aK);}
-          tOneAttr & KthVal (size_t aK) {return mValues.at(aK);}
-
-          const tSetAttr & Values () const {return mValues;}
-          tSetAttr & Values () {return mValues;}
-
-          void SetIndexMinCost(int aInd) {mIndMinCost=aInd;}
-
-          const tOneAttr & AttrMinCost() const;
-
-	  bool IsTree() const {return mIsTree;}
-          void SetIsTree(bool IsTree);
-    private :
-          tSetAttr          mValues;
-          int               mIndMinCost;
-          bool    mIsTree;
-};
-
-template <class TVal>  
-    cGrpValuatedAttrEdge<TVal>::cGrpValuatedAttrEdge() :
-        mIndMinCost (-1),
-	mIsTree     (false)
-{
-}
-
-template <class TVal>
-    void cGrpValuatedAttrEdge<TVal>::SetIsTree(bool isTree)
-{
-  mIsTree = isTree;
-}
-
-template <class TVal>  
-    cGrpValuatedAttrEdge<TVal>::cGrpValuatedAttrEdge(const TVal & aValue,std::string anAttrib,tREAL8 aPrioriCost)  :
-          cGrpValuatedAttrEdge<TVal>()
-{
-     Add(aValue,anAttrib,aPrioriCost);
-}
-
-template <class TVal> void  cGrpValuatedAttrEdge<TVal>::Add(const TVal & aValue,std::string anAttrib,tREAL8 aCost) 
-{
-   mValues.push_back(tOneAttr(aValue,anAttrib,aCost));
-}
- 
-template <class TVal> 
-    const cGrpValuated_OneAttrEdge<TVal> & cGrpValuatedAttrEdge<TVal>::AttrMinCost() const
-{
-    MMVII_INTERNAL_ASSERT_tiny(mIndMinCost>=0,"AttrMinCost non init");
-
-    return    mValues.at(mIndMinCost);
-}
-
-/* ********************************************************* */
-/*                                                           */
-/*                cGrpValuatedSom                            */
-/*                                                           */
-/* ********************************************************* */
-
-template <class TVal>  class cGrpValuatedSom
-{
-    public :
-          typedef cGrpValuatedEdge<TVal>  tEdge;
-
-          cGrpValuatedSom(const TVal & aValue,int aNum) ;
-          cGrpValuatedSom(int aNumSom) ;  
-
-          /// return the adress of Edge such aSom2 is the successor, 0 if none
-          tEdge * EdgeOfSucc(size_t aSom2,bool Ok0) ;
-
-          /**  add a successor for s2, with attribute at adr aNumAttr, DirInit if the attribute is
-               relative to way  "S1->S2" (else it's "S2->S1")
-          */
-          void AddEdge(int aS2,int aNumAttr,bool DirInit);
-
-          int & HeapIndex() {return mHeapIndex;}
-          const std::list<tEdge> &  LSucc() const {return mLSucc;}
-
-          const TVal &  RefVal() const {return mRefValue;}
-          void  SetRefVal(const TVal& aNewV) {mRefValue= aNewV;}
-
-          const TVal &  CompVal() const {return mComputedValue;}
-          void  SetCompVal(const TVal& aNewV) {mComputedValue= aNewV;}
-
-          const tREAL8 &  HeapCost() const {return mHeapCost;}
-          void  SetHeapCost(tREAL8 aNewV)  { mHeapCost=aNewV;}
-
-          int   NumRegion() const {return mNumRegion;}
-          void  SetNumRegion(int aNewV) {mNumRegion= aNewV;}
-          
-          int   NumSom() const {return mNumSom;}
-
-          void SetHeapFather(int aNewV) {mNumHeapFather = aNewV;}
-          int  NumHeapFather() const {return mNumHeapFather;}
-    private :
-          TVal              mRefValue;
-          TVal              mComputedValue;
-          int               mNumSom;
-          int               mNumHeapFather;
-          tREAL8            mHeapCost;
-          std::list<tEdge>  mLSucc;
-          int               mNumRegion;
-          int               mHeapIndex;
-};
-
-
-template <class TVal>  cGrpValuatedSom<TVal>::cGrpValuatedSom(int aNumSom) : 
-     mRefValue       (),
-     mComputedValue  (),
-     mNumSom         (aNumSom),
-     mNumHeapFather  (-1),
-     mHeapCost       (1e10),
-     mNumRegion      (-1)
-{
-}
-
-
-template <class TVal>  
-     cGrpValuatedEdge<TVal>  * cGrpValuatedSom<TVal>::EdgeOfSucc(size_t aSucc,bool Ok0) 
-{
-   for (auto &  anEdge : mLSucc)
-       if (anEdge.mSucc == aSucc)
-          return & anEdge;
-
-   MMVII_INTERNAL_ASSERT_tiny(Ok0,"Could not find EdgeOfSucc");
-   
-   return nullptr;
-}
-
-template <class TVal>  void cGrpValuatedSom<TVal>::AddEdge(int aS2,int aNumAttr,bool isDirInit)
-{
-   mLSucc.push_back(tEdge(aS2,aNumAttr,isDirInit));
-}
-
-
-template <class TVal>  class cHeapCmpGrpValuatedSom
-{
-    public :
-       typedef cGrpValuatedSom<TVal> *         tSomPtr ;
-
-       bool  operator () (const tSomPtr & aS1,const tSomPtr & aS2) {return aS1->HeapCost() < aS2->HeapCost();}
-};
-
-template <class TVal>  class cParamHeapCmpGrpValuatedSom
-{
-    public :
-        typedef cGrpValuatedSom<TVal> *         tSomPtr ;
-
-        static void SetIndex(const tSomPtr & aSom,tINT4 i) { aSom->HeapIndex() = i;} 
-        static int  GetIndex(const tSomPtr & aSom)  
-        {
-             return aSom->HeapIndex();
-        }
-
-};
-
-
-/* ********************************************************* */
-/*                                                           */
-/*                cGrpValuatedGraph                          */
-/*                                                           */
-/* ********************************************************* */
-
-class cParamGrpRot
-{
-    public :
-        static tREAL8 GrpDist(const tRotR & aR1,const tRotR& aR2)
-        {
-             return   aR1.Mat().L2Dist(aR2.Mat());
-        }
-};
-
-
-template <class TVal,class TParam>  class cGrpValuatedGraph
-{
-    public :
-
-          typedef cParamHeapCmpGrpValuatedSom<TVal> tParamHeap;
-          typedef cHeapCmpGrpValuatedSom<TVal>      tCmpHeap;
-          typedef cGrpValuatedEdge<TVal>            tEdge;
-          typedef cGrpValuatedAttrEdge<TVal>        tAttr;
-          typedef cGrpValuated_OneAttrEdge<TVal>    tOneAttr;
-          typedef cGrpValuatedSom<TVal>             tSom ;
-
-          cGrpValuatedGraph(int aNbSom,const TParam &,int aNbEdge=-1);
-          void AddEdge(int aS1,int aS2,const TVal & aVal,std::string aAttrib,tREAL8 aCostAPriori);
-
-          void MakeLoopCostApriori();
-          std::vector<std::pair<int,int>>  MakeMinSpanTree();
-
-          void  PropagateTreeSol();
-          /// Return the relative position using  RefValue
-          TVal  RelRef_2to1(int aS1,int aS2);
-
-    protected :
-          class  cLoop
-          {
-              public :
-                  TVal   mVal;
-                  size_t mSom;
-                  int    mStackI;
-
-                  cLoop (const TVal& aVal,size_t aSom,int aStackI ):  mVal(aVal), mSom(aSom), mStackI (aStackI) {}
-          };
-
-          void  Recurs_PropagateTreeSol(size_t aSom);
-
-          void  MakeLoopCostApriori(size_t aS1,const tEdge&, tOneAttr &);
-
-
-          const tAttr &  AttrOfEdge(const tEdge & anE) const {return mVAttr.at(anE.mNumAttr);}
-          tAttr &  AttrOfEdge(const tEdge & anE)  {return mVAttr.at(anE.mNumAttr);}
-          tAttr &  AttrOfEdge(size_t aS1,size_t aS2)  {return AttrOfEdge(*mVSoms.at(aS1).EdgeOfSucc(aS2,SVP::No));}
-	
-          const std::list<tEdge> &  SuccOfSom(size_t aKSom) const {return mVSoms.at(aKSom).LSucc();}
-          const std::list<tEdge> &  SuccOfSom(const tSom & aSom) const {return SuccOfSom(aSom.NumSom());}
-          
-          tSom & S2OfEdge(const tEdge & anE) {return  mVSoms.at(anE.mSucc);}
-
-          TParam              mParam;
-          size_t              mNbSom;
-          std::vector<tSom>   mVSoms;
-          std::vector<tAttr>  mVAttr;
-
-          std::map<std::string,cStdStatRes> mStats;
-};
-
-template <class TVal,class TParam> 
-     cGrpValuatedGraph<TVal,TParam>::cGrpValuatedGraph(int aNbSom,const TParam & aParam,int aNbEdge) :
-      mParam   (aParam),
-      mNbSom   (aNbSom)
-{
-    for (int aK=0 ; aK<aNbSom ; aK++)
-    {
-         mVSoms.push_back(tSom(aK));
-    }
-}
-
-template <class TVal,class TParam>  
-    void cGrpValuatedGraph<TVal,TParam>::AddEdge(int aS1,int aS2,const TVal & aVal,std::string aAttrib, tREAL8 aCostAPriori)
-{
-    const tEdge * anEdge = mVSoms.at(aS1).EdgeOfSucc(aS2,SVP::Yes);
-    if (anEdge)
-    {
-       tAttr&  anAttr =  AttrOfEdge(*anEdge); 
-       TVal aValCor = anEdge->VRel2_to_1(aVal);
-       anAttr.Add(aValCor,aAttrib,aCostAPriori);
-       return;
-    }
-    mVSoms.at(aS1).AddEdge(aS2,mVAttr.size(),true);
-    mVSoms.at(aS2).AddEdge(aS1,mVAttr.size(),false);
- 
-    mVAttr.push_back(cGrpValuatedAttrEdge(aVal,aAttrib,aCostAPriori));
-}
-
-template <class TVal,class TParam>  TVal  cGrpValuatedGraph<TVal,TParam>::RelRef_2to1(int aS1,int aS2)
-{
-    // Ori_2->1  = Ori_G->1  o Ori_2->G    ( PL2 -> PG -> PL1)
-    return  mVSoms.at(aS1).RefVal().MapInverse() *  mVSoms.at(aS2).RefVal();
-}
-
-
-
-template <class TVal,class TParam>  
-    std::vector<std::pair<int,int>>   cGrpValuatedGraph<TVal,TParam>::MakeMinSpanTree()
-{
-    std::vector<std::pair<int,int>> aTree;
-    tCmpHeap   aHCmp;
-    cIndexedHeap<tSom*,tCmpHeap,tParamHeap>  aHeap(aHCmp);
-
-    //  -1 not reached , 0 in Heap, already oustside
-    aHeap.Push(&mVSoms.at(0));
-    mVSoms.at(0).SetNumRegion(0);
-  
-    tSom * aNewSom = nullptr;
-    while (aHeap.Pop(aNewSom))
-    {
-         aNewSom->SetNumRegion(1);
-         int aNFather = aNewSom->NumHeapFather();
-         if (aNFather>=0)
-         {
-             aTree.push_back(std::pair<int,int>(aNewSom->NumSom(),aNFather));
-         }
-         for (const auto &  aSucc :  SuccOfSom(*aNewSom))
-         {
-             tSom & aSom2Update = S2OfEdge(aSucc);
-             if (aSom2Update.NumRegion() <=0)
-             {
-                if (aSom2Update.NumRegion() == -1)
-                {
-                    aHeap.Push(&aSom2Update);
-                    aSom2Update.SetNumRegion(0);
-                }
-                tREAL8 aNewCost = AttrOfEdge(aSucc).AttrMinCost().mCost;
-
-                if (aNewCost<aSom2Update.HeapCost())
-                {
-                    aSom2Update.SetHeapCost(aNewCost);
-                    aSom2Update.SetHeapFather(aNewSom->NumSom());
-                    aHeap.UpDate(&aSom2Update);
-                }
-             }
-         }
-    }
-
-    for (size_t aKS=0 ; aKS<mVSoms.size() ; aKS++)
-    {
-        mVSoms.at(aKS).SetNumRegion(-1);
-        mVSoms.at(aKS).SetHeapFather(-1);
-        mVSoms.at(aKS).SetHeapCost(1e10);
-    }
-
-    for (const auto & [aS1,aS2] : aTree)
-    {
-        AttrOfEdge(aS1,aS2).SetIsTree(true);
-    }
-
-    return aTree;
-}
-
-template <class TVal,class TParam>  
-    void  cGrpValuatedGraph<TVal,TParam>::PropagateTreeSol()
-{
-     mVSoms.at(0).SetCompVal(mVSoms.at(0).RefVal());
-   //mVSoms.at(0).SetRefVal(tRotR::Identity());
-     mVSoms.at(0).SetNumRegion(0);
-     Recurs_PropagateTreeSol(0);
-}
-
-template <class TVal,class TParam>  
-    void  cGrpValuatedGraph<TVal,TParam>::Recurs_PropagateTreeSol(size_t aNumSom_A)
-{
-    for (const auto &  aSucc_AB :  SuccOfSom(aNumSom_A))
-    {
-        tAttr&  anAttr = AttrOfEdge(aSucc_AB);
-        if (anAttr.IsTree())
-        {
-             size_t aNumSom_B = aSucc_AB.mSucc;
-	     tSom & aSomB = mVSoms.at(aNumSom_B);
-             if (aSomB.NumRegion() == -1)
-             {
-                 aSomB.SetNumRegion(0);
-		 // Ori_2->G = Ori_1->G o Ori_2->1    2->1->G
-		 TVal aVal_B2A = aSucc_AB.VRel2_to_1(anAttr.AttrMinCost().mVal);
-		 TVal aCompA = mVSoms.at(aNumSom_A).CompVal();
-		 TVal aCompB =  aCompA * aVal_B2A;
-                 aSomB.SetCompVal(aCompB);
-  StdOut()  << "DIST= " << mParam.GrpDist(aCompB,aSomB.RefVal()) << "\n";
-		 // aSom_B.
-                 Recurs_PropagateTreeSol(aNumSom_B);
-             }
-        }
-    }
-}
-/*
-          const TVal &  CompVal() const {return mComputedValue;}
-          void  SetCompVal(const TVal& aNewV) {mComputedValue= aNewV;}
-	  */
-
-
-template <class TVal,class TParam>  
-    void cGrpValuatedGraph<TVal,TParam>::MakeLoopCostApriori()
-{
-    for (size_t aSom_A=0 ; aSom_A<mNbSom ; aSom_A++)
-    {
-         for (const auto &  aSucc_AB :  SuccOfSom(aSom_A))
-         {
-              // no need to do it 2 way
-              if (aSucc_AB.mDirInit)
-              {
-                 tAttr & aVecAttr_AB  = AttrOfEdge(aSucc_AB);
-                 for (auto & aAttr_AB : aVecAttr_AB.Values())
-                 {
-                    MakeLoopCostApriori(aSom_A,aSucc_AB,aAttr_AB);
-                 }
-              }
-          }
-    }
-
-    // now the cost are made, memorize the min one  
-    for (size_t aSom_A=0 ; aSom_A<mNbSom ; aSom_A++)
-    {
-         for (const auto &  aSucc_AB :  SuccOfSom(aSom_A))
-         {
-              if (aSucc_AB.mDirInit)
-              {
-                 tAttr & aVecAttr_AB  = AttrOfEdge(aSucc_AB);
-                 cWhichMin<size_t,tREAL8>  aMinCost;
-                 for (size_t aKV=0 ; aKV<aVecAttr_AB.NbValues() ; aKV++)
-                 {
-                     aMinCost.Add(aKV,aVecAttr_AB.Values().at(aKV).mCost);
-                 }
-                 aVecAttr_AB.SetIndexMinCost(aMinCost.IndexExtre());
-              }
-          }
-    }
-
-}
-
-template <class TVal,class TParam>  
-          void  cGrpValuatedGraph<TVal,TParam>::MakeLoopCostApriori(size_t aSom_A,const tEdge& anE_AB, tOneAttr &aAttr_AB)
-{
-    tREAL8  aEstimOutLayer = 0.1;
-    tREAL8  aNbSignif = 1.0;
-
-    int     aNbTot = aNbSignif;
-    tREAL8  aSumCost = aEstimOutLayer * aNbSignif;
-
-
-    TVal TheIdent = TVal::Identity();
-    std::vector<cLoop>  aVLoop;
-    std::vector<tREAL8> aVDist;
-
-    size_t aSom_B  = anE_AB.mSucc;
-    TVal aV_B2A  = anE_AB.VRel2_to_1(aAttr_AB.mVal);
-    aVLoop.push_back(cLoop(aV_B2A,aSom_B,-1));
-    //StdOut() << "******************************************************************************\n";
-
-    size_t aInd0 =0;
-    int aDist2A=1;
-    while (aDist2A<3)
-    {
-          // StdOut() << "  ------------  DGRR= "<< aDist   << " ------------------------------ \n";
-          size_t aInd1 = aVLoop.size();
-          for (size_t aInd= aInd0 ; aInd<aInd1 ; aInd++)
-          {
-              size_t aSom_X = aVLoop.at(aInd).mSom;
-              const TVal  aV_X2A = aVLoop.at(aInd).mVal;
-              for (const auto &  anE_XY :  SuccOfSom(aSom_X))
-              {
-                  size_t aSom_Y = anE_XY.mSucc;
-                  const tAttr &  aAllAttrs_XY = AttrOfEdge(anE_XY);
-
-                  for (const auto & a1Attr_XY : aAllAttrs_XY.Values())
-                  {
-                      TVal aV_Y2X  = anE_XY.VRel2_to_1(a1Attr_XY.mVal);
-                      TVal aV_Y2A  =    aV_X2A * aV_Y2X; // V_X2A (V_Y2X (PY)) = V_X2A(PX) = PA
-
-                      if (aSom_Y == aSom_A)
-                      {
-                           tREAL8 aDist2Id = mParam.GrpDist(TheIdent, aV_Y2A);
-                           tREAL8 aCost =  (aDist2Id *aEstimOutLayer)  / (aDist2Id + aEstimOutLayer);
-                           aSumCost += aCost;
-                           aNbTot ++;
-                      }
-                      else
-                      {
-                           aVLoop.push_back(cLoop(aV_Y2A,aSom_Y,aInd));
-                      }
-                  }
-              }
-          }
-          aDist2A++;
-          aInd0 = aInd1;
-    }
-
-    aSumCost /= aNbTot;
-
-    aAttr_AB.mCost = aSumCost;
-    mStats[aAttr_AB.mAux].Add(aSumCost);
-    //StdOut()  << " SSS "  << aSumCost << " " << aAttr_AB.mAttrib << "\n";
-}
-
-
-
-
-class cBenchGrid_GVG :  public  cRect2,
-                        public  cGrpValuatedGraph<tRotR,cParamGrpRot>
-{
-    public :
-
-          typedef cGrpValuatedGraph<tRotR,cParamGrpRot>  tGVG;
-          using tGVG::tEdge;
- 
-          cBenchGrid_GVG
-          (
-              cPt2di  aSz,
-              tREAL8  aAmplGlob,
-              tREAL8  aNoiseInlayers,
-              tREAL8  aPropOutLayer,
-              tREAL8  aNoiseOutlayers,
-              cPt2di  aNbEdge
-          );
-
-          tREAL8  mAmplGlob;
-          tREAL8  mNoiseInlayers;
-          tREAL8  mPropOutLayer;
-          tREAL8  mNoiseOutlayers;
-          cPt2di  mNbEdge;
-
-          void Pt_AddEdge(const cPt2di & aP0,const cPt2di & aP1);
-
-/*
-          typedef cGrpValuatedAttrEdge<TVal>      tAttr;
-          typedef cGrpValuated_OneAttrEdge<TVal>  tOneAttr;
-          typedef cGrpValuatedSom<TVal>           tSom ;
-*/
-};
-
-void cBenchGrid_GVG::Pt_AddEdge(const cPt2di & aPA,const cPt2di & aPB)
-{
-    if (! (Inside(aPA) &&  Inside(aPB)))
-    {
-        return;
-    }
-
-    int aNbEdge = RandInInterval(mNbEdge.x(),mNbEdge.y());
-
-    int aSom_A = IndexeLinear(aPA);
-    int aSom_B = IndexeLinear(aPB);
-    tRotR aR_B2A_Ref  = RelRef_2to1(aSom_A,aSom_B);
-
-    while (aNbEdge)
-    {
-         aNbEdge--;
-         bool IsOutLayer =  (RandUnif_0_1()<mPropOutLayer);
-         tREAL8 aAmplNoise = IsOutLayer ? mNoiseOutlayers : mNoiseInlayers;
-         aAmplNoise /= std::sqrt(2.0);
-
-         tRotR aR_B2A  = tRotR::RandomRot(aAmplNoise) * aR_B2A_Ref * tRotR::RandomRot(aAmplNoise);
-
-         AddEdge(aSom_A,aSom_B,aR_B2A,(IsOutLayer?"1":"0"),1.0);
-    }
-}
-
-cBenchGrid_GVG::cBenchGrid_GVG
-(
-    cPt2di aSz,
-    tREAL8  aAmplGlob,
-    tREAL8  aNoiseInlayers,
-    tREAL8  aPropOutLayer,
-    tREAL8  aNoiseOutlayers,
-    cPt2di  aNbEdge
-) :
-    cRect2           (aSz),
-    tGVG             (size_t(cRect2::NbElem()),cParamGrpRot()),
-    mAmplGlob        (aAmplGlob),
-    mNoiseInlayers   (aNoiseInlayers),
-    mPropOutLayer    (aPropOutLayer),
-    mNoiseOutlayers  (aNoiseOutlayers),
-    mNbEdge          (aNbEdge)
-{
-   for (auto & aSom : mVSoms)
-      aSom.SetRefVal(tRotR::RandomRot(aAmplGlob));
-   //mVSoms.at(0).SetRefVal(tRotR::Identity());
-StdOut() << "SOMM-ADDED \n";
-
-   for (const auto & aPix : *this)
-   {
-       Pt_AddEdge(aPix,aPix+cPt2di(0,1));
-       Pt_AddEdge(aPix,aPix+cPt2di(1,0));
-       Pt_AddEdge(aPix,aPix+cPt2di(1,1));
-       Pt_AddEdge(aPix,aPix+cPt2di(1,-1));
-   }
-StdOut() << "EDGE-ADDED \n";
-   this->MakeLoopCostApriori();
-   for (const auto & [aName,aStat] : mStats)
-   {
-        StdOut() << " AttR=" << aName;
-        for (const auto aProp : {0.01,0.1,0.5,0.9,0.99})
-            StdOut() <<  " " << aProp << "->" << aStat.ErrAtProp(aProp) ;
-        StdOut() << " \n";
-    }
-StdOut() << "LOOP-COST DONE\n";
-   this->MakeMinSpanTree();
-StdOut() << "MIN SPAN TREE DONE\n";
-   PropagateTreeSol();
-StdOut() << "PROPAG TREE SOL\n";
-}
-
-
-
-/* ********************************************************* */
-/*                                                           */
-/* ********************************************************* */
-
-
-
-template class cGrpValuatedAttrEdge<tRotR>;
-template class cGrpValuatedSom<tRotR>;
-template class cGrpValuatedGraph<tRotR,cParamGrpRot>;
-
-
-void BenchGrpValuatedGraph(cParamExeBench & aParam)
-{
-    if (! aParam.NewBench("GroupGraph")) return;
-
-    // cBenchGrid_GVG  aBGVG(cPt2di(10,20),100.0, 0.0, 0.0,0.0,cPt2di(3,3));
-mNumSucc    // cBenchGrid_GVG  aBGVG(cPt2di(10,20),100.0, 0.01, 0.2,0.5,cPt2di(3,11));
-    cBenchGrid_GVG  aBGVG(cPt2di(20,20),100.0, 0.00, 0.2,0.3,cPt2di(2,3));
-
-    aParam.EndBench();
-}
-#endif
 
 };
 
