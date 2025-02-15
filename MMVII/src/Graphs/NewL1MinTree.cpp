@@ -318,7 +318,7 @@ void cBGG_Graph::Bench_MinSpanTree(tVertex * aSeed)
     for (const auto & aPtrAttrSym : this->AllAttrSym())
         aPtrAttrSym-> mRanCost = RandUnif_C();
 
-    tSetPairVE aSetPair = tAlgoSP::MinimumSpanninTree(*this,*aSeed,cWRanCost());
+    tSetPairVE aSetPair = tAlgoSP::MinimumSpanninTree(*this,*aSeed,cWRanCost()).second;
     MMVII_INTERNAL_ASSERT_bench((int)aSetPair.size()==(mBox.NbElem()-1),"Size in All_ConnectedComponent");
     Check_MinSpanTree(aSetPair,cWRanCost());
 
