@@ -352,6 +352,7 @@ class cBA_LidarPhotogra
     private :
        /**  Add observation for 1 Patch of point */
        void Add1Patch(tREAL8 aW,const std::vector<cPt3dr> & aPatch);
+       void Add1PatchNotOccluded(tREAL8 aWeight,const std::vector<cPt3dr> & aVPatchGr, const int id_,std::vector<cIm2D<tU_INT4>> & Masqs);
 
        /// Method for adding observations with radiometric differences as similatity criterion
        void AddPatchDifRad(tREAL8 aW,const std::vector<cPt3dr> & aPatch,const std::vector<cData1ImLidPhgr> &aVData) ;

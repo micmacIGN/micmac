@@ -1,6 +1,7 @@
 #include "cMMVII_Appli.h"
 #include "MMVII_Geom2D.h"
 #include "MMVII_Geom3D.h"
+#include "MMVII_PCSens.h"
 #include "MMVII_Mappings.h"
 #include "MMVII_2Include_Tiling.h"
 
@@ -2102,6 +2103,31 @@ template <class Type> void cTriangulation3D<Type>::PlyWrite (const std::string &
    aPlyOut.write(aNameFile,  (isBinary?happly::DataFormat::Binary:happly::DataFormat::ASCII));
 }
 
+template <class Type> void cTriangulation3D<Type>::PlyWriteSelected (const std::string & aNameFile,
+                                                                     std::list<std::vector<int> > & Patches,
+                                                                     bool isBinary) const
+{
+  PLYData aPlyOut;
+  //  convert Pts to array
+  std::vector<std::array<double, 3>> aPlyPts;
+    for (auto & aPatchId: Patches)
+      {
+        for (auto & anId:  aPatchId)
+          {
+            auto aPt=this->mVPts[anId];
+            std::array<double,3> anArray;
+            for (int aK=0 ; aK<3 ; aK++)
+                anArray[aK] = aPt[aK];
+            aPlyPts.push_back(anArray);
+          }
+
+      }
+
+  aPlyOut.addVertexPositions(aPlyPts);
+  // Write data
+  aPlyOut.write(aNameFile,  (isBinary?happly::DataFormat::Binary:happly::DataFormat::ASCII));
+}
+
 template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & aNameFile)
 {
   PLYData  aPlyF(aNameFile,false);
@@ -2117,14 +2143,14 @@ template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & a
   }
 
   // Read faces 
-  {
+  /*{
       std::vector<std::vector<size_t>> aVFace =   aPlyF.getFaceIndices<size_t>();
       for (const auto & aFace : aVFace)
       {
 	  MMVII_INTERNAL_ASSERT_tiny(aFace.size()==3,"Bad face");
 	  this->AddFace(cPt3di(aFace[0],aFace[1],aFace[2]));
       }
-  }
+  }*/
 }
 
 
@@ -2147,6 +2173,8 @@ template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & a
    auto aDsmMarkerDim = table.layout()->findProprietaryDim(ClassificationTags().DSMMarker);
    bool HasDsmMarker=table.layout()->hasDim(aDsmMarkerDim);
 
+   std::cout<<"DSM MARKER "<<pdal::Dimension::description(aDsmMarkerDim)<<std::endl;
+
    if (HasDsmMarker) // read points tagged as useful for DSM generation and not on trees
      {
        std::cout<<"HAS DSM MARKER "<<std::endl;
@@ -2159,15 +2187,18 @@ template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & a
                       (Classif==ClassificationTags().Medium_Vegetation) ||
                       (Classif==ClassificationTags().High_Vegetation)
                       );
+          bool IsBuilding = (Classif==ClassificationTags().Building);
 
-          if (IsForDsm && !IsVeg)
+          if (IsForDsm && !IsVeg && IsBuilding)
             {
+              std::cout<<"Classification tag "<<Classif<<std::endl;
               tPt aP(point_view->getFieldAs<tREAL8>(Id::X, idx),
                      point_view->getFieldAs<tREAL8>(Id::Y, idx),
                      point_view->getFieldAs<tREAL8>(Id::Z, idx));
               this->mVPts.push_back(aP);
             }
        }
+       std::cout<<"integrated points "<<this->mVPts.size()<<std::endl;
      }
    else  // assume point cloud is classified -> if there is not a tag dsm marker get points in GROUND, BUILDINGS
      {
@@ -2178,10 +2209,10 @@ template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & a
        {
          auto Classif=point_view->getFieldAs<int>(Id::Classification, idx);
          bool IsBuilding=(Classif==ClassificationTags().Building);
-         bool IsGround=(Classif==ClassificationTags().Ground);
-         bool IsUnclassified=(Classif==ClassificationTags().Unclassified);
+         //bool IsGround=(Classif==ClassificationTags().Ground);
+         //bool IsUnclassified=(Classif==ClassificationTags().Unclassified);
 
-         if ( IsBuilding || IsGround || IsUnclassified)
+         if ( IsBuilding) // || IsGround || IsUnclassified)
            {
              tPt aP(point_view->getFieldAs<tREAL8>(Id::X, idx),
                     point_view->getFieldAs<tREAL8>(Id::Y, idx),
@@ -2422,7 +2453,7 @@ template <class Type>
     cTiling<cTil2DTri3D<Type> >  aTileSelect(aBox,true,this->NbPts()/20,this);
 
     // parse all points
-    for (size_t aKP=0 ; aKP<this->NbPts() ; aKP++)
+    for (size_t aKP=0 ; aKP<this->NbPts() ; aKP+=1)
     {
         cPt2dr aPt  = ToR(Proj(this->KthPts(aKP)));
         // if the points is not close to an existing center of patch : create a new patch
@@ -2451,6 +2482,153 @@ template <class Type>
     }
 }
 
+template <class Type> void cTriangulation3D<Type>::SamplePts(const bool & targetted,const tREAL8 & aStep)
+ {
+   /// < Sample points either by targetted or by random sampling
+    this->mVSelectedIds.clear();
+   cBox2dr aBox = Box2D();
+  if (targetted)
+    {
+      // sample points in a grid
+
+      /*
+       * |----- |  -----  | -------|
+       * |----- |  -----  | -------|
+       * |----- |  -----  | -------|
+       */
+      // Random Ordering of points
+      //this->mVPts=RandomOrder(this->mVPts);
+
+      // Empty grid of points to sample with size bbox/aStep
+      cDataTypedIm<tU_INT1,2> aD_Grid(cPt2di(0,0),
+                                    cPt2di(Pt_round_down(aBox.Sz()/aStep))
+                                    );
+      aD_Grid.InitCste(0);
+
+      std::cout<<"Grid Size "<<aD_Grid.Sz()<<std::endl;
+      // fill grid
+      size_t it=0;
+      int AreallCellsFilled=aD_Grid.NbElem();
+      while((it<this->NbPts()) && AreallCellsFilled)
+        {
+           cPt2dr aPt  = ToR(Proj(this->KthPts(it)));
+           //std::cout<<aPt<<std::endl;
+           cPt2di aPix=cPt2di((aPt.x()-aBox.P0().x())/aStep,
+                              (aPt.y()-aBox.P0().y())/aStep);
+           //std::cout<<aPix<<std::endl;
+           if(aD_Grid.Inside(aPix))
+             {
+               if (aD_Grid.VI_GetV(aPix)==tU_INT1(eLabelIm_MASQ::eFree))
+                 {
+                   //std::cout<<"  "<<" cell "<<allCellsFilled<<" c"<<eLabelIm_MASQ::eFree<<std::endl;
+                   aD_Grid.VI_SetV(aPix,1);
+                   this->mVSelectedIds.push_back(it);
+                   AreallCellsFilled--;
+                 }
+             }
+           it++;
+        }
+    }
+  else
+    {
+    }
+}
+
+template <class Type>
+ void cTriangulation3D<Type>::MakePatchesTargetted
+      (
+           std::list<std::vector<int> > & aLPatches,
+           tREAL8 aDistNeigh,
+           tREAL8 aDistReject,
+           int    aSzMin,
+           const std::vector<cSensorCamPC * > & aCameras,
+           tREAL8 aThreshold
+       )
+{
+  this->SamplePts(true,15);
+  cBox2dr aBox = Box2D();
+
+  // indexation of all points
+  cTiling<cTil2DTri3D<Type> >  aTileAll(aBox,true,this->NbPts()/20,this);
+  for (size_t aKP=0 ; aKP<this->NbPts() ; aKP++)
+  {
+      aTileAll.Add(cTil2DTri3D<Type>(aKP));
+  }
+
+  // int aCpt=0;
+  // indexation of all points selecte as center of patches
+  cTiling<cTil2DTri3D<Type> >  aTileSelect(aBox,true,this->NbPts()/20,this);
+
+  // parse all selected points
+  for (const auto aKP: mVSelectedIds)
+  {
+      cPt2dr aPt  = ToR(Proj(this->KthPts(aKP)));
+      // if the points is not close to an existing center of patch : create a new patch
+      if (aTileSelect.GetObjAtDist(aPt,aDistReject).empty())
+      {
+         //  Add it in the tiling of select
+         aTileSelect.Add(cTil2DTri3D<Type>(aKP));
+         // extract all the point close enough to the center
+         auto aLIptr = aTileAll.GetObjAtDist(aPt,aDistNeigh);
+         std::vector<int> aPatch; // the patch itself = index of points
+         aPatch.push_back(aKP);  // add the center at begining
+         for (const auto aPtrI : aLIptr)
+         {
+             if (aPtrI->Ind() !=aKP) // dont add the center twice
+             {
+                aPatch.push_back(aPtrI->Ind());
+             }
+         }
+
+         std::vector<cPt3dr> aVP;
+         for (const auto anInd : aPatch)
+             aVP.push_back(ToR(this->KthPts(anInd)));
+
+         // approximate patch as a plan
+         //cPlane3D aPl= cPlane3D::RansacEstimate(aVP,true).first;
+
+         // parse all cameras and compute and filter out patches that are occluded
+         std::vector<bool> aSetVisibs;
+         for (const auto & Camera : aCameras)
+         {
+              std::vector<tREAL8> aPatchDepths;
+              if (Camera->IsVisible(aVP.at(0))) // test if centre of patch is visible in image
+              {
+                  // Visbility of patch center in images
+                  for  ( const auto & aPt: aVP)
+                    {
+                      if (Camera->IsVisible(aPt))
+                        {
+                          aPatchDepths.push_back(Camera->Pose().Inverse(aPt).z());
+                        }
+                    }
+                  tREAL8 aDepthMin = *min_element(aPatchDepths.begin(),aPatchDepths.end());
+                  tREAL8 aDepthMax = *max_element(aPatchDepths.begin(),aPatchDepths.end());
+                  // Compute visibility criterion
+                  tREAL8 aVisibility=exp(-pow((aPatchDepths.at(0)-aDepthMin),2)/pow((aDepthMax-aDepthMin+1e-8),2));
+                  StdOut() << Camera->NameImage() << " Visibility "<<aVisibility << "\n";
+                  if (
+                      (aVisibility > aThreshold)
+                      &&
+                      ((int)aPatchDepths.size()>aSzMin)
+                      )
+                    {
+                        aSetVisibs.push_back(true);
+                    }
+
+              }
+          }
+         // some requirement on minimal size and non-occlusion in more than 2 images
+         if ((int)aPatch.size() > aSzMin && aSetVisibs.size()>1)
+         {
+            // aCpt += aPatch.size();
+            aLPatches.push_back(aPatch);
+         }
+
+      }
+  }
+
+}
 /* ********************************************************** */
 /*                                                            */
 /*                                                            */

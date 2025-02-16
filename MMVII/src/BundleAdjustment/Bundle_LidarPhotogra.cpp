@@ -88,10 +88,15 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
         tREAL8 aDistMoy = std::sqrt(mNbPointByPatch *aBox.NbElem()/ (mTri.NbPts()*M_PI));
         tREAL8 aDistReject =  aDistMoy *1.5;
 
-        mTri.MakePatches(mLPatches,aDistMoy,aDistReject,5);
+        //mTri.MakePatches(mLPatches,aDistMoy,aDistReject,35);
+
+        mTri.MakePatchesTargetted(mLPatches,aDistMoy,aDistReject,35, mVCam,0.75);
+        /*std::string NamePlyOut="./patches.ply";
+        mTri.PlyWriteSelected(NamePlyOut,mLPatches,false);*/
+
 
         StdOut() << "Patches: DistReject=" << aDistReject 
-                << " NbPts=" << mTri.NbPts() 
+                << " NbPts=" << mTri.NbPts()
                 << " NbPatch=" << mLPatches.size() 
                 << "\n";
    }
@@ -108,21 +113,45 @@ void cBA_LidarPhotogra::AddObs(tREAL8 aW)
     mLastResidual.Reset();
     if (mModeSim==eImatchCrit::eDifRad)
     {
-       for (size_t aKP=0 ; aKP<mTri.NbPts() ; aKP++)
+       for (size_t aKP=0 ; aKP<mTri.NbPts() ; aKP+=1)
        {
            Add1Patch(aW,{ToR(mTri.KthPts(aKP))});
        }
     }
     else
     {
+        // parse the camera and create images
+        /*std::vector<cIm2D<tU_INT4>> aVecMasqs;
+        for (const auto aCam: mVCam)
+            {
+                //aVecMasqs.push_back(cIm2D<tU_INT4>::FromFile(aCam->NameImage()+"Sample.tif"));
+                  aVecMasqs.push_back(cIm2D<tU_INT4>(aCam->SzPix(),
+                                                     nullptr,
+                                                     eModeInitImage::eMIA_Null)
+                                      );
+            }*/
+
+
         // MMVII_UnclasseUsEr("Dont handle Census");
+        //int idd=0;
         for (const auto& aPatchIndex : mLPatches)
         {
             std::vector<cPt3dr> aVP;
             for (const auto anInd : aPatchIndex)
                 aVP.push_back(ToR(mTri.KthPts(anInd)));
+            //Add1PatchNotOccluded(aW,aVP,idd,aVecMasqs);
             Add1Patch(aW,aVP);
+            //idd++;
         }
+
+        /*for (size_t aKIm=0; aKIm<mVCam.size();aKIm++)
+            {
+                cSensorCamPC * aCam = mVCam[aKIm]; // extract cam
+                eTyNums aTypeF2 = tElemNumTrait<tU_INT4>::TyNum();
+                cDataFileIm2D  aFileIm = cDataFileIm2D::Create(aCam->NameImage()+"Sample.tif",
+                                                               aTypeF2,aCam->SzPix(),1);
+                aVecMasqs[aKIm].Write(aFileIm,cPt2di(0,0));
+            }*/
     }
 
 
@@ -354,11 +383,91 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
                   aVData.push_back(aData); // memorize the data for this image
 
                   tREAL8 aValIm = aData.mVGr.at(0).first;   // value of first/central pixel in this image
+                  //StdOut()<<aCam->NameImage()<<"    aValIm  "<<aValIm<<"  aRatio "<<aData.mVGr.at(1).first/aValIm<< "\n";
                   // aWAv.Add(1.0,aValIm);     // compute average
                   aStdDev.Add(1.0,aValIm);  // compute std deviation
               }
 
           }
+     }
+
+     // if less than 2 images : nothing valuable to do
+     if (aVData.size()<2) return;
+
+     // accumlulate for computing average of deviation
+     mLastResidual.Add(1.0,  (aStdDev.StdDev(1e-5) *aVData.size()) / (aVData.size()-1.0));
+
+
+     if (mModeSim==eImatchCrit::eDifRad)
+     {
+        AddPatchDifRad(aWeight,aVPatchGr,aVData);
+     }
+     else if (mModeSim==eImatchCrit::eCensus)
+     {
+        AddPatchCensus(aWeight,aVPatchGr,aVData);
+     }
+     else if (mModeSim==eImatchCrit::eCorrel)
+     {
+        AddPatchCorrel(aWeight,aVPatchGr,aVData);
+     }
+}
+
+
+void  cBA_LidarPhotogra::Add1PatchNotOccluded(tREAL8 aWeight,
+                                              const std::vector<cPt3dr> & aVPatchGr,
+                                              const int id_,
+                                              std::vector<cIm2D<tU_INT4>> & Masqs)
+{
+     std::vector<cData1ImLidPhgr> aVData; // for each image where patch is visible will store the data
+     cComputeStdDev<tREAL8>   aStdDev;    // compute the standard deviation of projected radiometry (indicator)
+     //cPlane3D aPl= cPlane3D::RansacEstimate(aVPatchGr,true).first;
+     //  Parse all the image, we will select the images where all point of a patch are visible
+     for (size_t aKIm=0 ; aKIm<mVCam.size() ; aKIm++)
+     {
+          cSensorCamPC * aCam = mVCam[aKIm]; // extract cam
+          cDataIm2D<tU_INT1> & aDIm = mVIms[aKIm].DIm(); // extract image
+          cDataIm2D<tU_INT4> & aDImMasq=Masqs[aKIm].DIm(); // extract masq
+
+
+          if (aCam->IsVisible(aVPatchGr.at(0))) // first test : is central point visible
+          {
+              /*cPt3dr aBundle = aCam->Image2Bundle(
+                          aCam->Ground2Image(aVPatchGr.at(0))
+                          ).V12();
+              std::cout<<" scalar product "<<Scal(aPl.AxeI(),aBundle) <<std::endl;
+              bool IsOccluded=(Scal(aPl.AxeI(),aBundle) > 0.0);*/
+
+              //if (! IsOccluded )
+              //{
+                  cData1ImLidPhgr  aData; // data that will be filled
+                  aData.mKIm = aKIm;
+                  for (size_t aKPt=0 ; aKPt<aVPatchGr.size() ; aKPt++) // parse the points of the patch
+                  {
+                       cPt3dr aPGround = aVPatchGr.at(aKPt);
+                       if (aCam->IsVisible(aPGround))  // is the point visible in the camera
+                       {
+                            cPt2dr aPIm = mVCam[aKIm]->Ground2Image(aPGround); // extract the image  projection
+                            if (aDIm.InsideInterpolator(*mInterp,aPIm,1.0))  // is it sufficiently inside
+                            {
+                                aDImMasq.SetV(ToI(aPIm),id_);
+                                auto aVGr = aDIm.GetValueAndGradInterpol(*mInterp,aPIm); // extract pair Value/Grad of image
+                                aData.mVGr.push_back(aVGr); // push it at end of stack
+                            }
+                       }
+                  }
+                  //  Does all the point of the patch were inside the image ?
+                  if (aData.mVGr.size() == aVPatchGr.size())
+                  {
+                      aVData.push_back(aData); // memorize the data for this image
+
+                      tREAL8 aValIm = aData.mVGr.at(0).first;   // value of first/central pixel in this image
+                      // aWAv.Add(1.0,aValIm);     // compute average
+                      aStdDev.Add(1.0,aValIm);  // compute std deviation
+                  }
+
+              //}
+
+         }
      }
 
      // if less than 2 images : nothing valuable to do

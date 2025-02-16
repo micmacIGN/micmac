@@ -321,6 +321,8 @@ template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
            cTriangulation3D(const std::string &);
            cTriangulation3D(const tVPt&,const tVFace &);
            void WriteFile(const std::string &,bool isBinary) const;
+           void SamplePts(const bool & targetted,const tREAL8 & aStep);
+           size_t NbSelectedPts() const { return mVSelectedIds.size(); }
 
 	   static void Bench();
 
@@ -333,13 +335,21 @@ template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
            cBox2dr  Box2D() const;
 
            void MakePatches(std::list<std::vector<int> > & ,tREAL8 aDistNeigh,tREAL8 aDistReject,int aSzMin) const;
-
+           void MakePatchesTargetted(std::list<std::vector<int> > & , tREAL8 aDistNeigh, tREAL8 aDistReject, int aSzMin,
+                                     const std::vector<cSensorCamPC *> & ,
+                                     tREAL8 aThreshold);
+           void PlyWriteSelected (const std::string & aNameFile,std::list<std::vector<int> > & Patches,bool isBinary) const;
 
         private :
            /// Read/Write in ply format using
            void PlyInit(const std::string &);
            void LasInit(const std::string &);
            void PlyWrite(const std::string &,bool isBinary) const;
+
+
+        protected:
+           std::vector<size_t> mVSelectedIds;
+
 };
 
 template <class Type> class cTriangulation3DLas : public cTriangulation<Type,3>
