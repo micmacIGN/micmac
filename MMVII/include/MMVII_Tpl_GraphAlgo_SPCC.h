@@ -272,7 +272,7 @@ template <class TGraph>
                             // compute cost, in mode spaning tree just the cost  of reaching a vertex by this edge
                             // is just the cost of the edge, in mode shortest path
                             tREAL8 aNewCost =  aParam.WeightEdge(*aNewVOut,*anEdge);
-                            if (aModeMinPCC)  
+                            if (aModeMinPCC)   // @DIF:SP:MST
                                aNewCost += aNewVOut->mAlgoCost;
                             else
                             {

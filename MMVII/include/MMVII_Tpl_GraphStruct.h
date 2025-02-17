@@ -56,6 +56,8 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Edge : publ
 
 	  inline TA_Oriented & AttrOriented()  {return mAttrO;}  ///<  Accessor to oriented attribute
 	  inline const TA_Oriented & AttrOriented() const {return mAttrO;}  ///<  Accessor to oriented attribute
+ 
+          inline bool DirInit()  const {return mDirInit;}
 
 	  inline       TA_Sym & AttrSym() ;  ///< Accessor to symetric attribute
 	  inline const TA_Sym & AttrSym() const ;  ///< Accessor to symetric attribute
@@ -174,7 +176,8 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Graph : pub
 
           inline tVertex * NewSom(const TA_Vertex & anAttr) ;  ///< create a vertex with given attribute
 
-             /// create  Edges  "V1->V2" and "V2->V1" with 2 attribute oriented and 1 attribute sym
+             /** create  Edges  "V1->V2" and "V2->V1" with 2 attribute oriented and 1 attribute sym
+                 for now, error if already exist, to see if it must evolve */
           inline void AddEdge(tVertex & aV1,tVertex & aV2,const TA_Oriented &A12,const TA_Oriented &A21,const TA_Sym &,bool OkExist=false);
 
              /// create Edges, case where initially the 2 oriented attributes are equal
