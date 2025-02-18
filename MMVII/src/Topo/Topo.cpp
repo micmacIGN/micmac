@@ -420,6 +420,7 @@ void BenchTopoComp1example(const std::pair<cTopoData, cSetMesGnd3D>& aBenchData,
     int aNbIter = 15;
 
     cMMVII_BundleAdj  aBA(nullptr);
+    aBA.setVerbose(false);
     aBA.AddTopo();
     cBA_Topo * aTopo = aBA.getTopo();
     aTopo->mAllTopoDataIn.InsertTopoData(aBenchData.first);
@@ -435,7 +436,7 @@ void BenchTopoComp1example(const std::pair<cTopoData, cSetMesGnd3D>& aBenchData,
 
     for (int aKIter=0 ; aKIter<aNbIter ; aKIter++)
     {
-        aBA.OneIterationTopoOnly(aLVM);
+        aBA.OneIteration(aLVM);
     }
 
     aTopo->ToFile(cMMVII_Appli::TmpDirTestMMVII()+"bench-out.json");

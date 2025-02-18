@@ -119,7 +119,8 @@ int cAppliTopoAdj::Exe()
 
     for (int aKIter=0 ; aKIter<mNbIter ; aKIter++)
     {
-        mBA.OneIterationTopoOnly(mLVM, true);
+        bool isLastIter =  (aKIter==(mNbIter-1)) ;
+        mBA.OneIteration(mLVM,isLastIter);
     }
 
     mBA.Save_newGCP3D();

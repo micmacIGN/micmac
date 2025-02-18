@@ -432,7 +432,6 @@ class cMMVII_BundleAdj
 
           /// One iteration : add all measure + constraint + Least Square Solve/Udpate/Init
           void OneIteration(tREAL8 aLVM=0.0,bool isLastIter=false);
-          void OneIterationTopoOnly(tREAL8 aLVM=0.0, bool verbose=false); //< if no images
 
           const std::vector<cSensorImage *> &  VSIm() const ;  ///< Accessor
           const std::vector<cSensorCamPC *> &  VSCPC() const;   ///< Accessor

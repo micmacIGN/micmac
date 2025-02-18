@@ -329,7 +329,8 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter)
     #ifdef VERBOSE_TOPO
         mTopo->print();
     #endif
-        mTopo->printObs(false);
+        if (mVerbose)
+            mTopo->printObs(false);
     }
 
     for (const auto & aLidarPh : mVBA_Lidar )
@@ -355,43 +356,6 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter)
                  //<< " ?VarCur?=" << mR8_Sys->VarCurSol()
                  << " ---------------" << std::endl;
     }
-}
-
-
-
-void cMMVII_BundleAdj::OneIterationTopoOnly(tREAL8 aLVM, bool verbose)
-{
-    if (verbose)
-        StdOut() << "-------- Iter " << mNbIter << "-----------" << std::endl;
-
-    MMVII_INTERNAL_ASSERT_tiny(mTopo,"OneIterationTopoOnly: no topo??");
-
-    // if it's first step, alloc ressources
-    if (mPhaseAdd)
-    {
-        InitIteration();
-        CheckGCPConstraints();
-    }
-
-    mTopo->SetFrozenAndSharedVars(*mR8_Sys);
-
-    // ================================================
-    //  [3]   Add compensation measures
-    // ================================================
-
-
-    OneItere_GCP(verbose);   // add GCP informations
-
-    mTopo->AddTopoEquations(*mR8_Sys);
-    if (verbose)
-        mTopo->print();
-
-    const auto & aVectSol = mSys->R_SolveUpdateReset(aLVM);
-    mSetIntervUK.SetVUnKnowns(aVectSol);
-
-    if (verbose)
-        StdOut() << "---------------------------" << std::endl;
-    mNbIter++;
 }
 
 
