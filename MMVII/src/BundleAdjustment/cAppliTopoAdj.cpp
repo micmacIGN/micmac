@@ -49,6 +49,7 @@ private :
     std::vector<tREAL8>       mViscPose;
     tREAL8                    mLVM;  ///< Levenberk Markard
     std::vector<std::string>  mVSharedIP;  ///< Vector for shared intrinsic param
+    std::vector<std::string>  mParamShow_UK_UC;
 };
 
 cAppliTopoAdj::cAppliTopoAdj(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -82,6 +83,8 @@ cCollecSpecArg2007 & cAppliTopoAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mGCPFilter,"GCPFilter","Pattern to filter GCP by name")
       << AOpt2007(mGCPFilterAdd,"GCPFilterAdd","Pattern to filter GCP by additional info")
       << AOpt2007(mLVM,"LVM","Levenberg–Marquardt parameter (to have better conditioning of least squares)",{eTA2007::HDV})
+
+      << AOpt2007(mParamShow_UK_UC,"UC_UK","Param for uncertainty & Show names of unknowns (tuning)")
     ;
 }
 
@@ -116,6 +119,8 @@ int cAppliTopoAdj::Exe()
     cSetMesPtOf1Im aSetMesPtOf1Im;
     mBA.AddGCP2D(aMes2DDirInfo, aSetMesPtOf1Im, nullptr, eLevelCheck::NoCheck);
 
+    if (IsInit(&mParamShow_UK_UC))
+       mBA.Set_UC_UK(mParamShow_UK_UC);
 
     for (int aKIter=0 ; aKIter<mNbIter ; aKIter++)
     {
@@ -125,6 +130,11 @@ int cAppliTopoAdj::Exe()
 
     mBA.Save_newGCP3D();
     mBA.SaveTopo(); // just for debug for now
+
+    if (IsInit(&mParamShow_UK_UC))
+    {
+        mBA.ShowUKNames(mParamShow_UK_UC);
+    }
 
     return EXIT_SUCCESS;
 }
