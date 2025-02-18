@@ -163,6 +163,16 @@ en premi\`ere lecture.}}}
 \newcommand{\doxy}{\emph{doxygen}}
 \newcommand{\MMNONE}{NONE}
 
+\newcommand{\AttrV}{A_V}
+\newcommand{\AttrEOr}{A_{\vec{e}}}
+\newcommand{\AttrESym}{A_{\overline{E}}}
+
+\newcommand{\ObjGr}[1]{\ensuremath #1<\AttrV,\AttrEOr,\AttrESym>}
+
+\newcommand{\GrEdg}[2]{\ensuremath \overrightarrow{#1 #2}}
+\newcommand{\GrEdgAB}{\GrEdg{v_1}{v_2}}
+\newcommand{\GrEdgBA}{\GrEdg{v_2}{v_1}}
+
 %\includeonly{Methods/PoseGlobInit}
 %\includeonly{Programmer/Interpolators}
 %\includeonly{Methods/LidarImageRegistration}
