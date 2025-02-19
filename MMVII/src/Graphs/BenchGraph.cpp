@@ -252,7 +252,7 @@ void cBGG_Graph::Bench_FoncElem()
                  MMVII_INTERNAL_ASSERT_bench(aV2.Attr().mAbsCurv-aV1.Attr().mAbsCurv==anE12->AttrOriented().mDeltaAC,"Dz in cBGG_Graph");
                  MMVII_INTERNAL_ASSERT_bench( (&anE12->Succ() ==  &aV2) ," Adrr in cBGG_Graph");
 
-		 MMVII_INTERNAL_ASSERT_bench(anE12->IsDirInit()!=anE12->DirInv()->IsDirInit(),"DirInit /DirInv");
+		 MMVII_INTERNAL_ASSERT_bench(anE12->IsDirInit()!=anE12->EdgeInv()->IsDirInit(),"DirInit /DirInv");
 		 MMVII_INTERNAL_ASSERT_bench(anE12->EdgeInitOr()->IsDirInit(),"DirInitOriented");
               }
               else if (OkInside)
@@ -299,9 +299,9 @@ void cBGG_Graph::Bench_ShortestPath(tVertex * aV0,tVertex * aV1,int aMode)
     {
        public :
          // this formula validate the edge iff  |x1-x2|+|y1-y2| <= 1
-         bool   InsideEdge(const tVertex & aV1,const    tEdge & anE) const override 
+         bool   InsideEdge(const    tEdge & anE) const override 
 		{ 
-                     return Norm1(aV1.Attr().mPt-anE.Succ().Attr().mPt)<=1; 
+                     return Norm1(anE.VertexInit().Attr().mPt-anE.Succ().Attr().mPt)<=1; 
                 }
     };
     class cWeighSqDeltaAbs : public  cAlgo_ParamVG<cBGG_Graph>
@@ -380,9 +380,9 @@ void cBGG_Graph::Bench_ConnectedComponent(tVertex * aSeed,tVertex * aV1)
     class cGrVert : public  cAlgo_ParamVG<cBGG_Graph>
     {
        public :
-         bool   InsideEdge(const tVertex & aV1,const    tEdge & anE) const override 
+         bool   InsideEdge(const    tEdge & anE) const override 
 		{ 
-                     return aV1.Attr().mPt.x()==anE.Succ().Attr().mPt.x(); 
+                     return anE.VertexInit().Attr().mPt.x()==anE.Succ().Attr().mPt.x(); 
                 }
     };
 
@@ -462,7 +462,7 @@ void cBGG_Graph::Check_MinSpanTree(const tSetPairVE& aSetPair,const tParamA& aPa
      class cASymOk : public  cAlgo_ParamVG<cBGG_Graph>
      {
        public :
-         bool   InsideEdge(const tVertex & ,const    tEdge & anE) const override {return anE.AttrSym().mIsOk;}
+         bool   InsideEdge(const    tEdge & anE) const override {return anE.AttrSym().mIsOk;}
      };
  
       // ---------------  [0]  set mIsOk iff it belong to tree "aSetPair" ------------
@@ -496,7 +496,7 @@ void cBGG_Graph::Check_MinSpanTree(const tSetPairVE& aSetPair,const tParamA& aPa
               {
                   const tEdge * anE12 = aV1->EdgeOfSucc(*aV2,SVP::Yes);
                   // if it is an Edge AND it is in the subgraph
-                  if (anE12 &&  aParam.InsideEdge(*aV1,*anE12))
+                  if (anE12 &&  aParam.InsideEdge(*anE12))
                   {
                       // [1.3.1] then it cost cannot be better than the cut
                       MMVII_INTERNAL_ASSERT_bench(anE12->AttrSym().mRanCost>= aCostCut,"Sizes in Check_MinSpanTree");
@@ -547,7 +547,7 @@ void cBGG_Graph::Bench_MinSpanTree(tVertex * aSeed)
     class cRC_Thr : public  cWRanCost
     {
        public :
-             bool InsideEdge(const tVertex &,const    tEdge & anE) const override
+             bool InsideEdge(const    tEdge & anE) const override
              { 
                   return anE.AttrSym().mRanCost > mThreshold;
              }
@@ -630,7 +630,14 @@ template <class TGraph>   class cAlgoEnumCycle
 	  cAlgoEnumCycle(TGraph & ,const tSubGr &);
 	  ~cAlgoEnumCycle();
 
+          void DoExplorate(size_t);
+
      private :
+          void ExplorateOneEdge(tEdge & anE,size_t);
+          void RecursiveExplorateOneEdge(tEdge & anE,size_t);
+
+          bool  OkEdge(const tEdge & anE) const;
+          
 	  TGraph &          mGraph;
 	  const tSubGr &    mSubGr;
 	  size_t            mBitEgdeExplored; 
@@ -642,14 +649,63 @@ template <class TGraph>
            TGraph &          aGraph,
            const tSubGr &    aSubGr
      ) :
-         mGraph (aGraph),
-         mSubGr (aSubGr)
+         mGraph           (aGraph),
+         mSubGr           (aSubGr),
+         mBitEgdeExplored (mGraph.Edge_AllocBitTemp())
 {
+}
+
+template <class TGraph>  cAlgoEnumCycle<TGraph>::~cAlgoEnumCycle()
+{
+   mGraph.Edge_FreeBitTemp(mBitEgdeExplored);
+}
+
+template <class TGraph> bool  cAlgoEnumCycle<TGraph>::OkEdge(const tEdge & anE) const
+{
+    return mSubGr.InsideV1AndEdgeAndSucc(anE) && anE.SymBitTo1(mBitEgdeExplored);
+}
+
+
+template <class TGraph> void  cAlgoEnumCycle<TGraph>::ExplorateOneEdge(tEdge & anE,size_t aSz)
+{
+     cAlgoSP<TGraph>::MakeShortestPathGen
+     (
+           mGraph,
+           true,
+           {&anE.VertexInit()},
+           cAlgo_ParamVG<TGraph>(),
+           cAlgo_SubGrCostOver<TGraph>(aSz)
+     );
+
+     anE.SymSetBit1(mBitEgdeExplored);
+}
+
+
+template <class TGraph> void  cAlgoEnumCycle<TGraph>::DoExplorate(size_t aSz)
+{
+    for (auto & aVPTr : mGraph.AllVertices())
+    {
+          if (mSubGr.InsideVertex(*aVPTr))
+          {
+               for (auto & anEdgePtr :  aVPTr->EdgesSucc())
+               {
+                   if (OkEdge(*anEdgePtr))
+                   {
+                         ExplorateOneEdge(*anEdgePtr,aSz);
+                   }
+               }
+          }
+    }
+
+    for (auto & aVPTr : mGraph.AllVertices())
+    {
+        for (auto & anEdgePtr :  aVPTr->EdgesSucc())
+           anEdgePtr->SymSetBit0(mBitEgdeExplored);
+    }
 }
 
 
 typedef cVG_Graph<cBGG_AttrVert,cBGG_AttrEdgOr,cBGG_AttrEdgSym> tBGG;
-
 template class  cAlgoEnumCycle<tBGG>;
 
 

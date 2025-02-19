@@ -38,12 +38,14 @@ template <class TGraph>  class cAlgo_SubGr
              virtual bool   InsideVertex(const  tVertex &) const {return true;}
 
              // take as parameter V1 & edge E=V1->V2 (because we cannot acces V1 from E)
-             virtual bool   InsideEdge(const tVertex &,const    tEdge &) const {return true;}
+             virtual bool   InsideEdge(const    tEdge &) const {return true;}
              
              // method frequently used, so that user only redefines InsideEdge
-             inline bool   InsideV1AndEdgeAndSucc(const tVertex & aV1,const    tEdge & anEdge) const 
+             inline bool   InsideV1AndEdgeAndSucc(const    tEdge & anEdge) const 
              {
-                    return this->InsideEdge(aV1,anEdge) && this->InsideVertex(anEdge.Succ()) && this->InsideVertex(aV1);
+                    return   this->InsideEdge(anEdge) 
+                          && this->InsideVertex(anEdge.Succ()) 
+                          && this->InsideVertex(anEdge.VertexInit());
              }
 
 };
@@ -70,6 +72,23 @@ template <class TGraph>  class cAlgo_SubGrNone : public cAlgo_SubGr<TGraph>
              bool   InsideVertex(const  tVertex &) const override {return false;}
         private :
 };
+
+/**   define a sub-graph that contain as goal the vertex having cost over a threshold, use to
+ have it as goal, to compute the sorhtest path tree up to a distance */
+
+template <class TGraph>  class cAlgo_SubGrCostOver : public cAlgo_SubGr<TGraph>
+{
+        public :
+	     typedef typename TGraph::tVertex  tVertex;
+
+             cAlgo_SubGrCostOver(tREAL8 aThr) : mThreshold (aThr) {}
+             bool   InsideVertex(const  tVertex & aV) const override {return aV.AlgoCost() > mThreshold;}
+             
+        private :
+             tREAL8 mThreshold;
+};
+
+
 
 
 /**   parametrizarion of algorithm */
@@ -263,7 +282,7 @@ template <class TGraph>
                  aNewVOut->SetBit1(aBitOutHeap);  // mark newly outed as an "outed of heap vertex"
                  for (const auto &  anEdge :  aNewVOut->EdgesSucc()) // parse all  neighbours for possible update
                  {
-                      if (aParam.InsideV1AndEdgeAndSucc(*aNewVOut,*anEdge))  // consider only vertex in the sub-graph
+                      if (aParam.InsideV1AndEdgeAndSucc(*anEdge))  // consider only vertex in the sub-graph
                       {
                          tVertex & aNewVIn = anEdge->Succ();  // extract the neighouring vertex
 
@@ -604,7 +623,7 @@ template <class TGraph>
        tVertex * aVCur =  aResult.at(aIndBottom);  // extract next vertex
        for (const auto &  anEdge :  aVCur->EdgesSucc())  // parse all edge V1->V2 neighbours 
        {
-           if (aParam.InsideV1AndEdgeAndSucc(*aVCur,*anEdge))  // check they are in sub-graph
+           if (aParam.InsideV1AndEdgeAndSucc(*anEdge))  // check they are in sub-graph
            {
               tVertex & aVNext = anEdge->Succ();    // extract V2
 	      if (!  aVNext.BitTo1(aBitReached))    // check if V2 has already been visited

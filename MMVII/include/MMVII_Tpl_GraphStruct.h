@@ -56,6 +56,10 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Edge : publ
 	  inline       tVertex & Succ() ;         ///< Accesor to "S2"
 	  inline const tVertex & Succ() const ;   ///< Accesor to "S2"
 
+          
+	  inline       tVertex & VertexInit()       {return mEdgeInv->Succ();}
+	  inline const tVertex & VertexInit() const {return mEdgeInv->Succ();}
+
 	  inline TA_Oriented & AttrOriented()  {return mAttrO;}  ///<  Accessor to oriented attribute
 	  inline const TA_Oriented & AttrOriented() const {return mAttrO;}  ///<  Accessor to oriented attribute
  
@@ -63,12 +67,20 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Edge : publ
 	  inline       TA_Sym & AttrSym() ;  ///< Accessor to symetric attribute
 	  inline const TA_Sym & AttrSym() const ;  ///< Accessor to symetric attribute
 
-          inline bool IsDirInit()  const {return  mBitMarked.IsInside(FlagEdgeDirInit);}
+          inline bool IsDirInit()  const {return  mAlgoTmpMark.IsInside(FlagEdgeDirInit);}
 	  inline tEdge  * EdgeInitOr () {return IsDirInit() ? this : mEdgeInv;}
 	  inline const tEdge  * EdgeInitOr() const {return IsDirInit() ? this : mEdgeInv;}
 
-	  inline tEdge  * DirInv() {return  mEdgeInv;}
-	  inline const tEdge  * DirInv() const {return  mEdgeInv;}
+	  inline tEdge  * EdgeInv() {return  mEdgeInv;}
+	  inline const tEdge  * EdgeInv() const {return  mEdgeInv;}
+
+          inline void SetBit1(size_t aBit) {mAlgoTmpMark.AddElem(aBit);}
+          inline void SetBit0(size_t aBit) {mAlgoTmpMark.SuprElem(aBit);}
+          inline bool BitTo1(size_t aBit) const {return mAlgoTmpMark.IsInside(aBit);}
+
+          inline void SymSetBit1(size_t aBit) {EdgeInitOr()->mAlgoTmpMark.AddElem(aBit);}
+          inline void SymSetBit0(size_t aBit) {EdgeInitOr()->mAlgoTmpMark.SuprElem(aBit);}
+          inline bool SymBitTo1(size_t aBit) const {return EdgeInitOr()->mAlgoTmpMark.IsInside(aBit);}
 
      private :
           cVG_Edge(const tEdge&) = delete;  ///< No copy for graph structures
@@ -82,7 +94,7 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Edge : publ
 	  TA_Oriented     mAttrO;      ///<  Oriented Attribute
 	  int             mNumSucc;    ///<  Num of successor ~ to a pointer 
           size_t          mNumAttr;    ///<  Num of symetric attribute ~ to a pointer
-	  tSet32Bits      mBitMarked;  ///
+	  tSet32Bits      mAlgoTmpMark;  ///
           // bool            mDirInit;    ///<  Is it the 2 of edges that correspond to initial direction
 };
 
@@ -243,11 +255,11 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>
      mAttrO    (anAttrO),
      mNumSucc  (aNumSucc),
      mNumAttr  (aNumAttr),
-     mBitMarked (0)
+     mAlgoTmpMark (0)
      // mDirInit  (DirInit)
 {
        if (isDirInit) 
-           mBitMarked.AddElem(FlagEdgeDirInit);
+           mAlgoTmpMark.AddElem(FlagEdgeDirInit);
 }
 
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
@@ -422,21 +434,16 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>
     }
     return anE12;
 }
+
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
     size_t  cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::Vertex_AllocBitTemp()
 {
-    // look for a bit not already currently allocated
-    for (size_t aBit=0 ; aBit<32 ; aBit++)
-    {
-          if (!mVertex_BitsAllocaTed.IsInside(aBit))
-          {
-               mVertex_BitsAllocaTed.AddElem(aBit);
-               return aBit;
-          }
-    }
-    //  if not : Error
-    MMVII_INTERNAL_ERROR("No more bits in Vertex_AllocBitTemp (forgot to free ?)");
-    return 0;
+    return AllocBit(mVertex_BitsAllocaTed);
+}
+template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
+    size_t  cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::Edge_AllocBitTemp()
+{
+    return AllocBit(mEdge_BitsAllocaTed);
 }
 
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
@@ -445,6 +452,16 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>
     // recycle, the bit is usable again
     mVertex_BitsAllocaTed.SuprElem(aBit);
 }
+template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
+    void  cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::Edge_FreeBitTemp(size_t aBit)
+{
+    // recycle, the bit is usable again
+    mEdge_BitsAllocaTed.SuprElem(aBit);
+}
+
+
+
+
 
 };
 #endif // _MMVII_Tpl_GraphStruct_H_  
