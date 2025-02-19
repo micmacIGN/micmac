@@ -38,6 +38,8 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Graph;   //
                     S1->S2 must be interpreted as G or G-1 
 */
 
+static constexpr int FlagEdgeDirInit = 0;
+
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Edge : public cMemCheck
 {
      public :
@@ -57,22 +59,31 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Edge : publ
 	  inline TA_Oriented & AttrOriented()  {return mAttrO;}  ///<  Accessor to oriented attribute
 	  inline const TA_Oriented & AttrOriented() const {return mAttrO;}  ///<  Accessor to oriented attribute
  
-          inline bool DirInit()  const {return mDirInit;}
 
 	  inline       TA_Sym & AttrSym() ;  ///< Accessor to symetric attribute
 	  inline const TA_Sym & AttrSym() const ;  ///< Accessor to symetric attribute
+
+          inline bool IsDirInit()  const {return  mBitMarked.IsInside(FlagEdgeDirInit);}
+	  inline tEdge  * EdgeInitOr () {return IsDirInit() ? this : mEdgeInv;}
+	  inline const tEdge  * EdgeInitOr() const {return IsDirInit() ? this : mEdgeInv;}
+
+	  inline tEdge  * DirInv() {return  mEdgeInv;}
+	  inline const tEdge  * DirInv() const {return  mEdgeInv;}
 
      private :
           cVG_Edge(const tEdge&) = delete;  ///< No copy for graph structures
           inline ~cVG_Edge();
           inline cVG_Edge(tGraph*,const TA_Oriented &,int aNumSucc,int aNumAttr,bool DirInit);
+	  void SetEdgeInv(tEdge*);
           
 
 	  tGraph *        mGr;         ///<  Graph it's belongin to
+	  tEdge *         mEdgeInv;    ///<  The "invert" edge  if V1->V2 , then V2->V1
 	  TA_Oriented     mAttrO;      ///<  Oriented Attribute
 	  int             mNumSucc;    ///<  Num of successor ~ to a pointer 
           size_t          mNumAttr;    ///<  Num of symetric attribute ~ to a pointer
-          bool            mDirInit;    ///<  Is it the 2 of edges that correspond to initial direction
+	  tSet32Bits      mBitMarked;  ///
+          // bool            mDirInit;    ///<  Is it the 2 of edges that correspond to initial direction
 };
 
 
@@ -127,24 +138,23 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Vertex : pu
           tGraph & Graph()              {return *mGr;}  ///<  Accessor
           const tGraph & Graph() const  {return *mGr;}  ///<  Accessor
 
-
      private :
 
           cVG_Vertex(const tVertex &) = delete;  ///< Nocopy
           inline ~cVG_Vertex();   ///< Free mVEdges
           inline cVG_Vertex(tGraph * aGr,const TA_Vertex & anAttr,int aNum) ; ///< initiales with no neighboor
 
-          tGraph *                   mGr;            ///< graph it belongs to 
-          TA_Vertex                  mAttr;          ///< attribute of the vertex
-          std::vector<tEdge*>        mVEdges;        ///< vector of link to neighboors
-          int                        mNumInGr;       ///< internal numbering
+          tGraph *              mGr;            ///< graph it belongs to 
+          TA_Vertex             mAttr;          ///< attribute of the vertex
+          std::vector<tEdge*>   mVEdges;        ///< vector of link to neighboors
+          int                   mNumInGr;       ///< internal numbering
 
                       //  ------  Data for algorithms ------------ 
 
-          cSetISingleFixed<tU_INT4>  mAlgoTmpMark;       ///<  Set of 32 bits for marking vertices
-          tVertex*                   mAlgoFather;        ///<  link to father in shortest-path like algorithms
-          int                        mAlgoIndexHeap;     ///<  index in heap in some algo
-          tREAL8                     mAlgoCost;          ///< cost of vertex in some algo
+          tSet32Bits            mAlgoTmpMark;       ///<  Set of 32 bits for marking vertices
+          tVertex*              mAlgoFather;        ///<  link to father in shortest-path like algorithms
+          int                   mAlgoIndexHeap;     ///<  index in heap in some algo
+          tREAL8                mAlgoCost;          ///< cost of vertex in some algo
 };
 
 
@@ -185,9 +195,14 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Graph : pub
                {AddEdge(aV1,aV2,aAOr,aAOr,aASym,OkExist);}
 
                   //------------------ Bit marker of vertices  manipulation ------------------
-          inline size_t AllocBitTemp();          ///<  alloc a bit free an return it
-          inline void   FreeBitTemp(size_t);     ///< "Recycle" a bit no longer used
+          inline size_t Vertex_AllocBitTemp();          ///<  alloc a bit free an return it
+          inline void   Vertex_FreeBitTemp(size_t);     ///< "Recycle" a bit no longer used
 
+          inline size_t Edge_AllocBitTemp();          ///<  alloc a bit free an return it
+          inline void   Edge_FreeBitTemp(size_t);     ///< "Recycle" a bit no longer used
+
+          // inline size_t AllocBitTemp();          ///<  alloc a bit free an return it
+          // line void   FreeBitTemp(size_t);     ///< "Recycle" a bit no longer used
      private :
           cVG_Graph(const tGraph &) = delete;  ///< no copy for this type
 
@@ -197,7 +212,8 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Graph : pub
 
 	  std::vector<tVertex*>       mV_Vertices;
 	  std::vector<TA_Sym*>        mV_AttrSym;
-          cSetISingleFixed<tU_INT4>   mBitsAllocaTed;
+          tSet32Bits                  mVertex_BitsAllocaTed;
+          tSet32Bits                  mEdge_BitsAllocaTed;
 };
 
 
@@ -220,15 +236,27 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>
          const TA_Oriented & anAttrO,
          int aNumSucc,
          int aNumAttr,
-         bool DirInit
+         bool isDirInit
    ) :
      mGr       (aGr),    
+     mEdgeInv  (nullptr),
      mAttrO    (anAttrO),
      mNumSucc  (aNumSucc),
      mNumAttr  (aNumAttr),
-     mDirInit  (DirInit)
+     mBitMarked (0)
+     // mDirInit  (DirInit)
 {
+       if (isDirInit) 
+           mBitMarked.AddElem(FlagEdgeDirInit);
 }
+
+template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
+  void cVG_Edge<TA_Vertex,TA_Oriented,TA_Sym>::SetEdgeInv(tEdge* anInv)
+{
+    MMVII_INTERNAL_ASSERT_tiny(mEdgeInv==nullptr,"Multiple SetEdgeInv");
+    mEdgeInv = anInv;
+}
+
 
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
    const cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym> &  cVG_Edge<TA_Vertex,TA_Oriented,TA_Sym>::Succ()  const 
@@ -327,8 +355,10 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>
 
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
    cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::cVG_Graph()   :
-        mBitsAllocaTed (0)
+        mVertex_BitsAllocaTed (0),
+        mEdge_BitsAllocaTed (0)
 {
+    mEdge_BitsAllocaTed.AddElem(FlagEdgeDirInit);
 }
 
 
@@ -379,36 +409,41 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>
     }
     else 
     {
-         aV1.mVEdges.push_back(new tEdge(this,A12,aV2.mNumInGr,mV_AttrSym.size(),true));  // true= dir init
-         aV2.mVEdges.push_back(new tEdge(this,A21,aV1.mNumInGr,mV_AttrSym.size(),false)); // false= NOT dir init
+         anE12 = new tEdge(this,A12,aV2.mNumInGr,mV_AttrSym.size(),true);  // true= dir init
+         aV1.mVEdges.push_back(anE12);
+	 tEdge * anE21 = new tEdge(this,A21,aV1.mNumInGr,mV_AttrSym.size(),false); // false= NOT dir init
+         aV2.mVEdges.push_back(anE21); // false= NOT dir init
+
+	 anE12->SetEdgeInv(anE21);
+	 anE21->SetEdgeInv(anE12);
 
          mV_AttrSym.push_back(new TA_Sym(aASym));
-         anE12 = aV1.mVEdges.back();
+         //anE12 = aV1.mVEdges.back();
     }
     return anE12;
 }
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
-    size_t  cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::AllocBitTemp()
+    size_t  cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::Vertex_AllocBitTemp()
 {
     // look for a bit not already currently allocated
     for (size_t aBit=0 ; aBit<32 ; aBit++)
     {
-          if (!mBitsAllocaTed.IsInside(aBit))
+          if (!mVertex_BitsAllocaTed.IsInside(aBit))
           {
-               mBitsAllocaTed.AddElem(aBit);
+               mVertex_BitsAllocaTed.AddElem(aBit);
                return aBit;
           }
     }
     //  if not : Error
-    MMVII_INTERNAL_ERROR("No more bits in AllocBitTemp (forgot to free ?)");
+    MMVII_INTERNAL_ERROR("No more bits in Vertex_AllocBitTemp (forgot to free ?)");
     return 0;
 }
 
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
-    void  cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::FreeBitTemp(size_t aBit)
+    void  cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::Vertex_FreeBitTemp(size_t aBit)
 {
     // recycle, the bit is usable again
-    mBitsAllocaTed.SuprElem(aBit);
+    mVertex_BitsAllocaTed.SuprElem(aBit);
 }
 
 };

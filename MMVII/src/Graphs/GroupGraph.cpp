@@ -9,6 +9,11 @@
 namespace MMVII
 {
 
+	/*
+	  void ComputeAllNonOrCycles(int aLengthCycle);
+	  void ComputeNonOrCyclesBy1Edge(const tEdge &,int aLengthCycle);
+	  */
+
 /*
     Regarding the notation (supposing it is poses) :
 
@@ -123,7 +128,8 @@ template <class TGroup>  class cGroupGraph
           void AddEdge(tVertex& aN1,tVertex& aN2,const TGroup &,tREAL8 aW);
           void AddEdge(const std::string & aN1,const std::string & aN2,const TGroup &,tREAL8 aW);
 
-          TGroup  ValOrient(const TGroup& aG,const tEdge & anE) { return anE.DirInit() ? aG : aG.MapInverse(); }
+          TGroup  ValOrient(const TGroup& aG,const tEdge & anE) { return anE.IsDirInit() ? aG : aG.MapInverse(); }
+
     protected :
            tGraph mGraph;
            std::map<std::string,tVertex*>  mMapV;
@@ -161,12 +167,9 @@ template <class TGroup>
     void cGroupGraph<TGroup>::AddEdge(tVertex & aV1,tVertex & aV2,const TGroup& aG,tREAL8 aW)
 {
     tEdge * anE = aV1.EdgeOfSucc(aV2,SVP::Yes);
-StdOut() << "EEEE " << anE << "\n";
     if (anE==nullptr)
        anE = mGraph.AddEdge(aV1,aV2,tAEOr(),tAEOr(),tAESym());
-StdOut() << "EEEE " << anE << "\n";
 
-    anE->AttrSym().Add1Value(ValOrient(aG,*anE),aW);
 }
   
 template <class TGroup>  
@@ -175,8 +178,6 @@ template <class TGroup>
    AddEdge(VertexOfName(aN1),VertexOfName(aN2),aG,aW);
 }
 
-
-// template <class TVal,class TParam>  TVal  cGrpValuatedGraph<TVal,TParam>::RelRef_2to1(int aS1,int aS2)
 
 /* ********************************************************* */
 /*                                                           */
@@ -300,6 +301,9 @@ void BenchGroupGraph(cParamExeBench & aParam)
 
     aParam.EndBench();
 }
+
+
+
 
 #if (0)
 
@@ -961,6 +965,7 @@ StdOut() << "MIN SPAN TREE DONE\n";
    PropagateTreeSol();
 StdOut() << "PROPAG TREE SOL\n";
 }
+
 
 
 

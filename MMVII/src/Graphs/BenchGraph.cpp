@@ -251,6 +251,9 @@ void cBGG_Graph::Bench_FoncElem()
                  MMVII_INTERNAL_ASSERT_bench(std::abs(anE12->AttrSym().mDist-Norm2(aP1-aP2))<1e-10,"Dist in cBGG_Graph");
                  MMVII_INTERNAL_ASSERT_bench(aV2.Attr().mAbsCurv-aV1.Attr().mAbsCurv==anE12->AttrOriented().mDeltaAC,"Dz in cBGG_Graph");
                  MMVII_INTERNAL_ASSERT_bench( (&anE12->Succ() ==  &aV2) ," Adrr in cBGG_Graph");
+
+		 MMVII_INTERNAL_ASSERT_bench(anE12->IsDirInit()!=anE12->DirInv()->IsDirInit(),"DirInit /DirInv");
+		 MMVII_INTERNAL_ASSERT_bench(anE12->EdgeInitOr()->IsDirInit(),"DirInitOriented");
               }
               else if (OkInside)
               {
@@ -599,6 +602,7 @@ void cBGG_Graph::BenchAlgos()
 void BenchValuatedGraph(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("ValuatedGraph")) return;
+    //StdOut() << "BenchValuatedGraphBenchValuatedGraph\n";
 
     cBGG_Graph   aGr(cPt2di(8,13));
     aGr.Bench_FoncElem();
@@ -607,6 +611,46 @@ void BenchValuatedGraph(cParamExeBench & aParam)
     aParam.EndBench();
 }
 
+
+/************************************************************/
+/*                                                          */
+/*                                                          */
+/*                                                          */
+/************************************************************/
+
+template <class TGraph>   class cAlgoEnumCycle
+{
+     public :
+          typedef  cAlgo_ParamVG<TGraph>          tParamA;
+          typedef  cAlgo_SubGr<TGraph>            tSubGr;
+          typedef typename TGraph::tVertex        tVertex;
+          typedef typename TGraph::tEdge          tEdge;
+          typedef std::vector<tVertex*>           tVectVertex;
+
+	  cAlgoEnumCycle(TGraph & ,const tSubGr &);
+	  ~cAlgoEnumCycle();
+
+     private :
+	  TGraph &          mGraph;
+	  const tSubGr &    mSubGr;
+	  size_t            mBitEgdeExplored; 
+};
+
+template <class TGraph>  
+     cAlgoEnumCycle<TGraph>::cAlgoEnumCycle
+     (
+           TGraph &          aGraph,
+           const tSubGr &    aSubGr
+     ) :
+         mGraph (aGraph),
+         mSubGr (aSubGr)
+{
+}
+
+
+typedef cVG_Graph<cBGG_AttrVert,cBGG_AttrEdgOr,cBGG_AttrEdgSym> tBGG;
+
+template class  cAlgoEnumCycle<tBGG>;
 
 
 };

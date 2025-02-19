@@ -309,8 +309,8 @@ template <class TGraph>
         tVertex::SetBit0(aVReached,aBitOutHeap);
 
         // recycle flag so that they can be used again
-        aGraph.FreeBitTemp(aBitReached);
-        aGraph.FreeBitTemp(aBitOutHeap);
+        aGraph.Vertex_FreeBitTemp(aBitReached);
+        aGraph.Vertex_FreeBitTemp(aBitOutHeap);
     }
 
     return aResult;
@@ -336,8 +336,8 @@ template <class TGraph>
          )
 {
     std::vector<tVertex*>   aVReached;
-    size_t aBitReached = aGraph.AllocBitTemp();
-    size_t aBitOutHeap  = aGraph.AllocBitTemp();
+    size_t aBitReached = aGraph.Vertex_AllocBitTemp();
+    size_t aBitOutHeap  = aGraph.Vertex_AllocBitTemp();
     tVertex * aResult  = Internal_MakeShortestPathGen
                          (
                             aGraph,aModeMinPCC,aVSeeds,aParam,aGoal,
@@ -428,8 +428,8 @@ template <class TGraph>
                 const cAlgo_ParamVG<TGraph> &  aParam
           )
 {
-    size_t aBitReached = aGraph.AllocBitTemp();
-    size_t aBitOutHeap  = aGraph.AllocBitTemp();
+    size_t aBitReached = aGraph.Vertex_AllocBitTemp();
+    size_t aBitOutHeap  = aGraph.Vertex_AllocBitTemp();
 
      Internal_MinimumSpanninTree 
      (
@@ -468,8 +468,8 @@ template <class TGraph>
 {
     aForest.clear();  // reset, just in case
     // alloc markers
-    size_t aBitReached = aGraph.AllocBitTemp();  
-    size_t aBitOutHeap  = aGraph.AllocBitTemp();
+    size_t aBitReached = aGraph.Vertex_AllocBitTemp();  
+    size_t aBitOutHeap  = aGraph.Vertex_AllocBitTemp();
 
 
     for (const auto & aSeed : aVectSeed)  // parse all seed
@@ -509,8 +509,8 @@ template <class TGraph>
    }
 
    // recycle the bits for future use
-   aGraph.FreeBitTemp(aBitReached);
-   aGraph.FreeBitTemp(aBitOutHeap);
+   aGraph.Vertex_FreeBitTemp(aBitReached);
+   aGraph.Vertex_FreeBitTemp(aBitOutHeap);
 }
 
                   
@@ -628,14 +628,14 @@ template <class TGraph>
                                       const cAlgo_ParamVG<TGraph> & aParam
             )
 {
-    size_t aBitReached = aGraph.AllocBitTemp();  // alloc marker
+    size_t aBitReached = aGraph.Vertex_AllocBitTemp();  // alloc marker
     std::vector<tVertex*>   aResult;
 
     Internal_ConnectedComponent(&aSeed,aResult,aParam,aBitReached);
 
     // clean & free
     tVertex::SetBit0(aResult,aBitReached);
-    aGraph.FreeBitTemp(aBitReached);
+    aGraph.Vertex_FreeBitTemp(aBitReached);
 
     return aResult;
 }
@@ -649,7 +649,7 @@ template <class TGraph>
                  const cAlgo_ParamVG<TGraph> & aParam
             )
 {
-    size_t aBitReached = aGraph.AllocBitTemp();  // alloc marker
+    size_t aBitReached = aGraph.Vertex_AllocBitTemp();  // alloc marker
 
     for (const auto & aSeed : aVecSeed) // parse all seeds
     {
@@ -663,7 +663,7 @@ template <class TGraph>
     for (const auto & aVec : aResult)
          tVertex::SetBit0(aVec,aBitReached);
 
-    aGraph.FreeBitTemp(aBitReached);
+    aGraph.Vertex_FreeBitTemp(aBitReached);
 }
 
 
