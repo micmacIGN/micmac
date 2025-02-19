@@ -596,9 +596,9 @@ void cBGG_Graph::BenchAlgos()
 }
 
 
-void BenchGrpValuatedGraph(cParamExeBench & aParam)
+void BenchValuatedGraph(cParamExeBench & aParam)
 {
-    if (! aParam.NewBench("GroupGraph")) return;
+    if (! aParam.NewBench("ValuatedGraph")) return;
 
     cBGG_Graph   aGr(cPt2di(8,13));
     aGr.Bench_FoncElem();

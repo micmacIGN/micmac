@@ -3,10 +3,306 @@
 #include "MMVII_Geom2D.h"
 #include "MMVII_Geom3D.h"
 
-#include "MMVII_TplHeap.h"
+#include "MMVII_Tpl_GraphAlgo_SPCC.h"
+#include "MMVII_Tpl_GraphStruct.h"
 
 namespace MMVII
 {
+
+/*
+    Regarding the notation (supposing it is poses) :
+
+        * In class Som ,  mCurValue is the mapping Cam->Word  (or column of the rotaation are vector IJK)
+
+               Ori_L->G   Local camera coordinates   ->   Global Word coordinate
+                           PG = Ori_L->G (PL)
+
+       *  In class AttrEdge,   Ori_2->1 is pose of Cam2 relatively to Cam 1,   PL2 ->PL1
+
+               Ori_2->1  = Ori_G->1  o Ori_2->G    ( PL2 -> PG -> PL1)
+*/
+
+template <class TGroup>  class cGGA_EdgeOr;
+template <class TGroup>  class cGGA_EdgeSym;
+template <class TGroup>  class cGGA_Vertex;
+template <class TGroup>  class cGGA_Graph;
+
+/* ********************************************************* */
+/*                                                           */
+/*                     cGGA_EdgeOr                           */
+/*                                                           */
+/* ********************************************************* */
+
+template <class TGroup>  class cGGA_EdgeOr
+{
+     public :
+};
+
+/* ********************************************************* */
+/*                                                           */
+/*                     cGGA_EdgeSym                          */
+/*                                                           */
+/* ********************************************************* */
+
+
+template <class TGroup>  class cGG_1ElemSym
+{
+    public  :
+      TGroup   mVal;
+      tREAL8   mWeight;
+};
+
+
+template <class TGroup>  class cGGA_EdgeSym
+{
+     public :
+          typedef cGG_1ElemSym<TGroup>  t1Elem;
+
+
+          void Add1Value(const TGroup& aVal,tREAL8 aW);
+         
+     private :
+          std::vector<t1Elem>  mValues;
+};
+
+template <class TGroup> void cGGA_EdgeSym<TGroup>::Add1Value(const TGroup& aVal,tREAL8 aW)
+{
+    t1Elem anElem;
+    anElem.mVal = aVal;
+    anElem.mWeight = aW;
+    
+    mValues.push_back(anElem);
+}
+
+/* ********************************************************* */
+/*                                                           */
+/*                     cGGA_Vertex                           */
+/*                                                           */
+/* ********************************************************* */
+
+
+template <class TGroup>  class cGGA_Vertex
+{
+     public :
+          cGGA_Vertex(const std::string & aName);
+          
+     private :
+          std::string         mName;
+          TGroup              mComputedValue;
+};
+
+template <class TGroup>  
+    cGGA_Vertex<TGroup>::cGGA_Vertex(const std::string & aName)  :
+        mName (aName)
+{
+}
+
+/* ********************************************************* */
+/*                                                           */
+/*                     cGGA_Graph                            */
+/*                                                           */
+/* ********************************************************* */
+
+
+template <class TGroup>  class cGroupGraph
+{
+    public :
+          typedef cGGA_EdgeOr<TGroup>  tAEOr;
+          typedef cGGA_EdgeSym<TGroup> tAESym;
+          typedef cGGA_Vertex<TGroup>  tAVert;
+
+          typedef cVG_Graph<tAVert,tAEOr,tAESym> tGraph;
+          typedef typename tGraph::tVertex       tVertex;
+          typedef typename tGraph::tEdge         tEdge;
+
+          cGroupGraph();
+
+          tVertex &  AddVertex(const std::string & aName);
+          tVertex &  VertexOfName(const std::string & aName);
+
+          void AddEdge(tVertex& aN1,tVertex& aN2,const TGroup &,tREAL8 aW);
+          void AddEdge(const std::string & aN1,const std::string & aN2,const TGroup &,tREAL8 aW);
+
+          TGroup  ValOrient(const TGroup& aG,const tEdge & anE) { return anE.DirInit() ? aG : aG.MapInverse(); }
+    protected :
+           tGraph mGraph;
+           std::map<std::string,tVertex*>  mMapV;
+};
+
+
+template <class TGroup>  
+    cGroupGraph<TGroup>::cGroupGraph() :
+        mGraph ()
+{
+}
+
+
+template <class TGroup>  
+    typename cGroupGraph<TGroup>::tVertex &
+        cGroupGraph<TGroup>::AddVertex(const std::string & aName) 
+{
+    MMVII_INTERNAL_ASSERT_tiny(!MapBoolFind(mMapV,aName),"cGroupGraph, name alrady exist :" +aName);
+
+    tVertex * aV = mGraph.NewSom(tAVert(aName));
+    mMapV[aName] = aV;
+    return *aV;
+}
+
+template <class TGroup>  
+    typename cGroupGraph<TGroup>::tVertex &
+        cGroupGraph<TGroup>::VertexOfName(const std::string & aName) 
+{
+    MMVII_INTERNAL_ASSERT_tiny(MapBoolFind(mMapV,aName),"cGroupGraph, does not exist :" +aName);
+
+    return *(mMapV[aName]);
+}
+
+template <class TGroup>  
+    void cGroupGraph<TGroup>::AddEdge(tVertex & aV1,tVertex & aV2,const TGroup& aG,tREAL8 aW)
+{
+    tEdge * anE = aV1.EdgeOfSucc(aV2,SVP::Yes);
+StdOut() << "EEEE " << anE << "\n";
+    if (anE==nullptr)
+       anE = mGraph.AddEdge(aV1,aV2,tAEOr(),tAEOr(),tAESym());
+StdOut() << "EEEE " << anE << "\n";
+
+    anE->AttrSym().Add1Value(ValOrient(aG,*anE),aW);
+}
+  
+template <class TGroup>  
+   void cGroupGraph<TGroup>::AddEdge(const std::string & aN1,const std::string & aN2,const TGroup& aG,tREAL8 aW)
+{
+   AddEdge(VertexOfName(aN1),VertexOfName(aN2),aG,aW);
+}
+
+
+// template <class TVal,class TParam>  TVal  cGrpValuatedGraph<TVal,TParam>::RelRef_2to1(int aS1,int aS2)
+
+/* ********************************************************* */
+/*                                                           */
+/*                     cBench_G3                             */
+/*                                                           */
+/* ********************************************************* */
+
+
+template class cGGA_EdgeOr<tRotR>;
+template class cGGA_EdgeSym<tRotR>;
+template class cGGA_Vertex<tRotR>;
+template class cGroupGraph<tRotR>;
+
+
+
+template <class TGroup>  class cBench_G3  // Grid-Group-Graph
+{
+    public :
+          typedef cGroupGraph<TGroup>     tGG;
+          typedef typename tGG::tVertex   tVertex;
+          typedef tVertex*                tVertPtr;
+
+          class cBG3V
+          {
+               public :
+                  TGroup     mValRef;
+                  tVertex*   mVertex;
+          };
+
+          cBench_G3(const cPt2di & aSz,int aNbMin,int aNbMax,tREAL8 aPropOutLayer,tREAL8 aNoiseInLayer,tREAL8 aNoiseOutLayer);
+
+    private :
+         cBG3V & ValOfPt(const cPt2di & aPt) {return mGridVals.at(aPt.y()).at(aPt.x());}
+         TGroup  RefRel_2To1(const cBG3V & aV1,const cBG3V & aV2)
+         {
+               //  Ori_2->1  = Ori_G->1  o Ori_2->G    ( PL2 -> PG -> PL1)
+               return aV1.mValRef.MapInverse() * aV1.mValRef;
+         }
+
+
+          void Add1Edge(const cPt2di &  aP0,const cPt2di & aP1);
+
+          cPt2di mSz;
+          cRect2 mBox;
+          tGG    mGG;
+          std::vector<std::vector<cBG3V>>        mGridVals;
+
+          int mNbMinE;
+          int mNbMaxE;
+          tREAL8 mPropOutLayer;
+          tREAL8 mNoiseInLayer;
+          tREAL8 mNoiseOutLayer;
+};
+
+template <class TGroup> 
+    cBench_G3<TGroup>::cBench_G3
+    (
+        const cPt2di & aSz,
+        int aNbMinE,int aNbMaxE,
+        tREAL8 aPropOutLayer,tREAL8 aNoiseInLayer,tREAL8 aNoiseOutLayer
+    ) :
+       mSz  (aSz),
+       mBox (cPt2di(0,0),aSz),
+       mGG  (),
+
+       mGridVals       (mSz.y(),std::vector<cBG3V>(mSz.x(),cBG3V())),
+       mNbMinE         (aNbMinE),
+       mNbMaxE         (aNbMinE),
+       mPropOutLayer   (aPropOutLayer),
+       mNoiseInLayer   (aNoiseInLayer),
+       mNoiseOutLayer  (aNoiseOutLayer)
+{
+    for (const auto & aPix : mBox)
+    {
+        std::string aName = ToStr(aPix.x()) + "_" + ToStr(aPix.y());
+        ValOfPt(aPix).mVertex = &mGG.AddVertex(aName);
+        ValOfPt(aPix).mValRef = TGroup::RandomElem();
+    }
+
+    for (const auto & aPix : mBox)
+    {
+          Add1Edge(aPix,aPix+cPt2di(1,0));
+          Add1Edge(aPix,aPix+cPt2di(0,1));
+          Add1Edge(aPix,aPix+cPt2di(1,1));
+          Add1Edge(aPix,aPix+cPt2di(-1,1));
+    }
+
+}
+
+
+template <class TGroup> void cBench_G3<TGroup>::Add1Edge(const cPt2di &  aP0,const cPt2di & aP1)
+{
+   if ((!mBox.Inside(aP0)) || (!mBox.Inside(aP1)))
+      return;
+
+   const cBG3V & aVal0 = ValOfPt(aP0);
+   const cBG3V & aVal1 = ValOfPt(aP1);
+
+   TGroup aRefRel_2To1 = RefRel_2To1(aVal0,aVal1);
+
+   int aNbAdd = RandUnif_M_N(mNbMinE,mNbMaxE);
+   for (int aK=0 ; aK<aNbAdd ; aK++)
+   {
+        bool isInLayer = (RandUnif_0_1() > mPropOutLayer);
+        tREAL8 aNoise = RandUnif_C() * (isInLayer ? mNoiseInLayer : mNoiseOutLayer);
+        TGroup aRel_2To1 =  aRefRel_2To1 * TGroup::RandomSmallElem(aNoise);
+
+        mGG.AddEdge(*(aVal0.mVertex),*(aVal1.mVertex),aRel_2To1,1.0);
+   }
+}
+
+
+template class cBench_G3<tRotR>;
+
+void BenchGroupGraph(cParamExeBench & aParam)
+{
+    if (! aParam.NewBench("GroupGraph")) return;
+
+    cBench_G3<tRotR> aBG3(cPt2di(17,22),2,4,0.1,0.05,0.5);
+
+
+    aParam.EndBench();
+}
+
+#if (0)
+
 
 /*
     Regarding the notation (supposing it is poses) :
@@ -689,6 +985,7 @@ void xxx_BenchGrpValuatedGraph(cParamExeBench & aParam)
 
     aParam.EndBench();
 }
+#endif
 
 };
 

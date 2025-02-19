@@ -178,10 +178,10 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Graph : pub
 
              /** create  Edges  "V1->V2" and "V2->V1" with 2 attribute oriented and 1 attribute sym
                  for now, error if already exist, to see if it must evolve */
-          inline void AddEdge(tVertex & aV1,tVertex & aV2,const TA_Oriented &A12,const TA_Oriented &A21,const TA_Sym &,bool OkExist=false);
+          inline tEdge * AddEdge(tVertex & aV1,tVertex & aV2,const TA_Oriented &A12,const TA_Oriented &A21,const TA_Sym &,bool OkExist=false);
 
              /// create Edges, case where initially the 2 oriented attributes are equal
-          void AddEdge(tVertex & aV1,tVertex & aV2,const TA_Oriented &aAOr,const TA_Sym & aASym,bool OkExist) 
+          tEdge * AddEdge(tVertex & aV1,tVertex & aV2,const TA_Oriented &aAOr,const TA_Sym & aASym,bool OkExist) 
                {AddEdge(aV1,aV2,aAOr,aAOr,aASym,OkExist);}
 
                   //------------------ Bit marker of vertices  manipulation ------------------
@@ -349,7 +349,7 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>
 }
 
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
-  void cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::AddEdge
+  cVG_Edge<TA_Vertex,TA_Oriented,TA_Sym>* cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::AddEdge
       (
            tVertex & aV1,
            tVertex & aV2,
@@ -383,7 +383,9 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>
          aV2.mVEdges.push_back(new tEdge(this,A21,aV1.mNumInGr,mV_AttrSym.size(),false)); // false= NOT dir init
 
          mV_AttrSym.push_back(new TA_Sym(aASym));
+         anE12 = aV1.mVEdges.back();
     }
+    return anE12;
 }
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
     size_t  cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::AllocBitTemp()

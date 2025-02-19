@@ -481,7 +481,10 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         BenchKTHVal(aParam);
         BenchCurveDigit(aParam);
         BenchLstSqEstimUncert (aParam);
-        BenchGrpValuatedGraph (aParam);
+
+        BenchValuatedGraph (aParam);
+        BenchGroupGraph (aParam);
+
         BenchHamming(aParam);
         BenchPolynome(aParam);
         BenchInterpol(aParam);
