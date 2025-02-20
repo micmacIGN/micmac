@@ -293,16 +293,17 @@ class MainWindow(QtWidgets.QMainWindow):
     self.button_okCg.clicked.connect(self.click_okCg)
 
     #data
-    self.filename_imageIn=""
-    self.filename_traceOut=""
-    self.filename_Px1imageInStack=""
-    self.filename_Px2imageInStack=""
-    self.filename_imageWeightStack=""
-    self.filename_traceFaultStack=""
-    self.filename_offsetsOutStack=""
-    self.filename_offsetsInCg=""
-    self.filename_Cg=""
-    self.type_output=[]
+    self.active_dir = "." # active directory
+    self.filename_imageIn = ""
+    self.filename_traceOut = ""
+    self.filename_Px1imageInStack = ""
+    self.filename_Px2imageInStack = ""
+    self.filename_imageWeightStack = ""
+    self.filename_traceFaultStack = ""
+    self.filename_offsetsOutStack = ""
+    self.filename_offsetsInCg = ""
+    self.filename_Cg = ""
+    self.type_output = []
     #self.update_Weight_input()
 
   def initUI(self):
@@ -318,14 +319,20 @@ class MainWindow(QtWidgets.QMainWindow):
     self.move(qr.topLeft())
 
   def ask_imageIn_file(self):
-    self.filename_imageIn=QtWidgets.QFileDialog.getOpenFileName(self,"select image filename",".","Images (*.tif *.tiff *.png *.jpg);;All files (*)")
-    if (self.filename_imageIn!=""):
+    self.filename_imageIn=QtWidgets.QFileDialog.getOpenFileName(self,"select image filename", self.active_dir,
+                                                                "Images (*.tif *.tiff *.png *.jpg);;All files (*)")
+    if (self.filename_imageIn[0]!=""):
       self.edit_filename_imageIn.setText(self.filename_imageIn[0])
+      self.active_dir = os.path.dirname(self.filename_imageIn)
 
   def ask_traceOut_file(self):
-    self.filename_traceOut=QtWidgets.QFileDialog.getSaveFileName(self,"select output filename","trace.txt","Text files (*.txt);;All files (*)")
-    if (self.filename_traceOut!=""):
+    self.filename_traceOut=QtWidgets.QFileDialog.getSaveFileName(self,"select output filename",
+                                                                 os.path.join(self.active_dir, "trace.txt"),
+                                                                 "Text files (*.txt);;All files (*)")
+    #if (self.filename_traceOut[0] != "" and os.path.isfile(self.filename_traceOut[0])):
+    if (self.filename_traceOut[0] != ""):
       self.edit_filename_traceOut.setText(self.filename_traceOut[0])
+      self.active_dir = os.path.dirname(self.filename_traceOut)
 
   def activate_buttonOk(self):
     self.filename_imageIn=str(self.edit_filename_imageIn.text())
@@ -356,15 +363,19 @@ class MainWindow(QtWidgets.QMainWindow):
     return nb_col, nb_lines, nb_b
 
   def ask_Px1imageInStack_file(self):
-    self.filename_Px1imageInStack=QtWidgets.QFileDialog.getOpenFileName(self,"Stacks: Select Px1 Image Filename",".","Images (*.tif *.tiff *.png *.jpg);;All files (*)")
-    if (self.filename_Px1imageInStack!=""):
+    self.filename_Px1imageInStack=QtWidgets.QFileDialog.getOpenFileName(self,"Stacks: Select Px1 Image Filename", self.active_dir,
+                                                                        "Images (*.tif *.tiff *.png *.jpg);;All files (*)")
+    if (self.filename_Px1imageInStack[0] != ""):
       self.edit_filename_Px1imageInStack.setText(self.filename_Px1imageInStack[0])
+      self.active_dir = os.path.dirname(self.filename_Px1imageInStack)
       print("Px1 image: ", self.filename_Px1imageInStack)
 
   def ask_Px2imageInStack_file(self):
-    self.filename_Px2imageInStack=QtWidgets.QFileDialog.getOpenFileName(self,"Stacks: Select Px2 Image Filename",".","Images (*.tif *.tiff *.png *.jpg);;All files (*)")
-    if (self.filename_Px2imageInStack!=""):
+    self.filename_Px2imageInStack=QtWidgets.QFileDialog.getOpenFileName(self,"Stacks: Select Px2 Image Filename", self.active_dir,
+                                                                        "Images (*.tif *.tiff *.png *.jpg);;All files (*)")
+    if (self.filename_Px2imageInStack[0] != ""):
       self.edit_filename_Px2imageInStack.setText(self.filename_Px2imageInStack[0])
+      self.active_dir = os.path.dirname(self.filename_Px2imageInStack)
       print("Px2 image: ", self.filename_Px2imageInStack)
 
   def verif_Pximages(self):
@@ -386,21 +397,29 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
   def ask_imageWeightStack_file(self):
-    self.filename_imageWeightStack=QtWidgets.QFileDialog.getOpenFileName(self,"Stacks: Select Weights Image Filename",".","Images (*.tif *.tiff *.png *.jpg);;All files (*)")
-    if (self.filename_imageWeightStack!=""):
+    self.filename_imageWeightStack=QtWidgets.QFileDialog.getOpenFileName(self,"Stacks: Select Weights Image Filename", self.active_dir,
+                                                                         "Images (*.tif *.tiff *.png *.jpg);;All files (*)")
+    if (self.filename_imageWeightStack[0] != ""):
       self.edit_filename_imageWeightStack.setText(self.filename_imageWeightStack[0])
+      self.active_dir = os.path.dirname(self.filename_imageWeightStack)
       print("Weights image: ", self.filename_imageWeightStack)
 
   def ask_traceFileStack_file(self):
-    self.filename_traceFaultStack=QtWidgets.QFileDialog.getOpenFileName(self,"Stacks: Select Trace Fault Filename","trace.txt","Text files (*.txt);;All files (*)")
-    if (self.filename_traceFaultStack!=""):
+    self.filename_traceFaultStack=QtWidgets.QFileDialog.getOpenFileName(self,"Stacks: Select Trace Fault Filename",
+                                                                        os.path.join(self.active_dir, "trace.txt"),
+                                                                        "Text files (*.txt);;All files (*)")
+    if (self.filename_traceFaultStack[0] != ""):
       self.edit_traceFileStack.setText(self.filename_traceFaultStack[0])
+      self.active_dir = os.path.dirname(self.filename_traceFaultStack)
       print("Trace fault file: ", self.filename_traceFaultStack)
 
   def ask_offsetsOutStack_file(self):
-    self.filename_offsetsOutStack=QtWidgets.QFileDialog.getSaveFileName(self,"Stacks: Select Offsets Output Filename","offsets.txt","Text files (*.txt);;All files (*)")
-    if (self.filename_offsetsOutStack!=""):
+    self.filename_offsetsOutStack=QtWidgets.QFileDialog.getSaveFileName(self,"Stacks: Select Offsets Output Filename",
+                                                                        os.path.join(self.active_dir, "offsets.txt"),
+                                                                        "Text files (*.txt);;All files (*)")
+    if (self.filename_offsetsOutStack[0] != ""):
       self.edit_offsetsOutStack.setText(self.filename_offsetsOutStack[0])
+      self.active_dir = os.path.dirname(self.filename_offsetsOutStack)
       print("Offsets filename: ", self.filename_offsetsOutStack)
 
   def select_typeOutputStack(self):
@@ -500,8 +519,10 @@ class MainWindow(QtWidgets.QMainWindow):
   def ask_offsetsInCg_file(self):
     self.edit_offsetsInCg.clear()
     self.edit_fileOutCg.clear()
-    self.filename_offsetsInCg=QtWidgets.QFileDialog.getOpenFileName(self,"Select Offsets Info File",".","Text files (*.txt);;All files (*)")
-    if (self.filename_offsetsInCg!=""):
+    self.filename_offsetsInCg=QtWidgets.QFileDialog.getOpenFileName(self, "Select Offsets Info File",
+                                                                    self.active_dir,
+                                                                    "Text files (*.txt);;All files (*)")
+    if (self.filename_offsetsInCg[0] != ""):
       self.edit_offsetsInCg.setText(self.filename_offsetsInCg[0])
 
   def ask_Cg_file(self):
@@ -510,7 +531,8 @@ class MainWindow(QtWidgets.QMainWindow):
     tmp_abs=os.path.abspath(self.filename_offsetsInCg)
     tmp=os.path.split(tmp_abs)[1].split('.')
     fname="slip_curve_"+".".join(tmp[0:-1])+".png"
-    self.filename_Cg=QtWidgets.QFileDialog.getSaveFileName(self,"Select name of file for slip-curve",fname,"Images (*.png *.tif *.tiff  *.jpg);;All files (*)")
+    self.filename_Cg=QtWidgets.QFileDialog.getSaveFileName(self, "Select name of file for slip-curve",
+                                                          fname, "Images (*.png *.tif *.tiff  *.jpg);;All files (*)")
     if (self.filename_Cg!=""):
       self.edit_fileOutCg.setText(self.filename_Cg[0])
 
