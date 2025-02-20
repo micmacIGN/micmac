@@ -103,6 +103,13 @@ class ConstructLine:
     if event.inaxes!=self.ax: return
 
     if event.button==1: # draw line segment
+      if event.dblclick: # 2nd click of a double-click is discarded
+        return
+      if len(self.coords) > 0:
+        # check if clicked point is not a duplicate of the previous point
+        if self.coords[-1] == (event.xdata, event.ydata):
+          print("WARNING: Same point clicked twice!! Second occurrence is discarded")
+          return
       self.coords.append((event.xdata, event.ydata))
       print(self.coords)
       self.drawLastSeg(0.7,'red')

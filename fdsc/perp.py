@@ -42,20 +42,21 @@ def set_range_tab(tab_points, marge=20):
 
 def calc_pts_intermed(ptA,ptB,dist,shift):
   """ compute intermediate points between A et B every dist """
-  vectAB=(ptB[0]-ptA[0],ptB[1]-ptA[1])
-  normAB=sqrt(vectAB[0]**2+vectAB[1]**2)
-  nb_pts_intermed=int((normAB+shift)/dist)+1
+  if (ptA != ptB):
+    vectAB=(ptB[0]-ptA[0],ptB[1]-ptA[1])
+    normAB=sqrt(vectAB[0]**2+vectAB[1]**2)
+    nb_pts_intermed=int((normAB+shift)/dist)+1
 
-  tab_pts_intermed=[0]*nb_pts_intermed
-  vect_d=(dist*vectAB[0]/normAB,dist*vectAB[1]/normAB)
+    tab_pts_intermed=[0]*nb_pts_intermed
+    vect_d=(dist*vectAB[0]/normAB,dist*vectAB[1]/normAB)
 
-  pt_start=(ptA[0]-shift*(vectAB[0]/normAB),ptA[1]-shift*(vectAB[1]/normAB))
+    pt_start=(ptA[0]-shift*(vectAB[0]/normAB),ptA[1]-shift*(vectAB[1]/normAB))
 
-  for i in range(nb_pts_intermed):
-    tab_pts_intermed[i]=(pt_start[0]+i*vect_d[0],pt_start[1]+i*vect_d[1])
+    for i in range(nb_pts_intermed):
+      tab_pts_intermed[i]=(pt_start[0]+i*vect_d[0],pt_start[1]+i*vect_d[1])
 
-  shift_next=normAB+shift-nb_pts_intermed*dist
-  return tab_pts_intermed,shift_next
+    shift_next = normAB + shift - nb_pts_intermed * dist
+    return tab_pts_intermed, shift_next
 
 def calc_pts_intermed_tab(tab_pts,dist):
   """ compute intermediate points every dist for all the points in tab_pts """
