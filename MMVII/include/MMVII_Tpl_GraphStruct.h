@@ -7,6 +7,9 @@
 
 namespace MMVII
 {
+static constexpr int    FlagEdgeDirInit = 0;
+static constexpr tREAL8 AlgoCostInitVal = -1e30;
+
 /** \file   MMVII_Tpl_GraphStruct.h
     \brief   Define the 3 classes Vertex/Edge/Graph for implementation of valuated graphs
 */
@@ -38,7 +41,6 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Graph;   //
                     S1->S2 must be interpreted as G or G-1 
 */
 
-static constexpr int FlagEdgeDirInit = 0;
 
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Edge : public cMemCheck
 {
@@ -145,6 +147,7 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Vertex : pu
           inline void SetBit0(size_t aBit) {mAlgoTmpMark.SuprElem(aBit);}
           inline bool BitTo1(size_t aBit) const {return mAlgoTmpMark.IsInside(aBit);}
           static inline void SetBit0(const std::vector<tVertex*> & aVV,size_t aBit) ; // facility 4 applying SetBit0 to a vect
+          static inline void SetBit1(const std::vector<tVertex*> & aVV,size_t aBit) ; // facility 4 applying SetBit0 to a vect
 
           // ------------------------ Miscelaneous accessor ----------------------
           tGraph & Graph()              {return *mGr;}  ///<  Accessor
@@ -347,7 +350,7 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>
       mAlgoTmpMark   (0),
       mAlgoFather    (nullptr),
       mAlgoIndexHeap (HEAP_NO_INDEX),
-      mAlgoCost      ( 1e7*std::cos(220+aNum*337.88))
+      mAlgoCost      (AlgoCostInitVal)
 {
 }
 
@@ -356,6 +359,13 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>
 {
    for (const auto & aV : aVV)
        aV->SetBit0(aBit);
+}
+
+template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
+   void cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym>::SetBit1(const std::vector<tVertex*> & aVV,size_t aBit) 
+{
+   for (const auto & aV : aVV)
+       aV->SetBit1(aBit);
 }
 
 

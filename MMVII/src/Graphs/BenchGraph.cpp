@@ -170,6 +170,7 @@ class  cBGG_Graph : public cVG_Graph<cBGG_AttrVert,cBGG_AttrEdgOr,cBGG_AttrEdgSy
           cRect2                             mBox;          ///< Box associated to the  
           std::vector<std::vector<tPtrV>>    mGridVertices; ///< such the mGridVertices[y][x] -> tVertex *
           void AddEdge(const cPt2di&aP0,const cPt2di & aP1); ///< Add and edge bewteen vertices corresponding to 2 Pix
+          tAlgoSP  mAlgoSP;
 };
 
 
@@ -324,7 +325,7 @@ void cBGG_Graph::Bench_ShortestPath(tVertex * aV0,tVertex * aV1,int aMode)
 
     cAlgo_ParamVG<cBGG_Graph> *aParam = aVParam.at(aMode);
 
-    tVertex *  aTarget =  tAlgoSP::ShortestPath_A2B(*this,*aV0,*aV1,*aParam);
+    tVertex *  aTarget =  mAlgoSP.ShortestPath_A2B(*this,*aV0,*aV1,*aParam);
 
     //  compute the theoreticall distance according to previous discussion
     int aDTh = NormInf(aV0->Attr().mPt -aV1->Attr().mPt);
@@ -560,7 +561,7 @@ void cBGG_Graph::Bench_MinSpanTree(tVertex * aSeed)
         aPtrAttrSym-> mRanCost = RandUnif_C();
 
     // [1]  compute global minimal spaning tree
-    tSetPairVE aSetPair = tAlgoSP::MinimumSpanninTree(*this,*aSeed,cWRanCost()).second;
+    tSetPairVE aSetPair = mAlgoSP.MinimumSpanninTree(*this,*aSeed,cWRanCost()).second;
     MMVII_INTERNAL_ASSERT_bench((int)aSetPair.size()==(mBox.NbElem()-1),"Size in All_ConnectedComponent");
     //  [1.0]  check that it is effectively the minimal spaning tree
     Check_MinSpanTree(aSetPair,cAlgo_ParamVG<cBGG_Graph>());
@@ -568,7 +569,7 @@ void cBGG_Graph::Bench_MinSpanTree(tVertex * aSeed)
     // [2]  compute a minimal spaning forest
     cRC_Thr  aRC(1.0 - 2*std::pow(RandUnif_0_1(),2.0));  // define a sub-graph
     tForest aForest;
-    tAlgoSP::MinimumSpanningForest(aForest,*this,this->AllVertices(), aRC);  // extract the forest
+    mAlgoSP.MinimumSpanningForest(aForest,*this,this->AllVertices(), aRC);  // extract the forest
 
     size_t aNbEdge = 0;
     // check that each tree of the forest complies with Check_MinSpanTree
@@ -622,6 +623,7 @@ template <class TGraph>   class cAlgoEnumCycle
 {
      public :
           typedef  cAlgo_ParamVG<TGraph>          tParamA;
+          typedef  cAlgoSP<TGraph>                tAlgoSP;
           typedef  cAlgo_SubGr<TGraph>            tSubGr;
           typedef typename TGraph::tVertex        tVertex;
           typedef typename TGraph::tEdge          tEdge;
@@ -633,14 +635,27 @@ template <class TGraph>   class cAlgoEnumCycle
           void DoExplorate(size_t);
 
      private :
-          void ExplorateOneEdge(tEdge & anE,size_t);
-          void RecursiveExplorateOneEdge(tEdge & anE,size_t);
+          void ExplorateOneEdge(tEdge & anE);
+          void RecursiveExplorateOneEdge();
 
           bool  OkEdge(const tEdge & anE) const;
+
+          void  OnCycle();
+
           
-	  TGraph &          mGraph;
-	  const tSubGr &    mSubGr;
-	  size_t            mBitEgdeExplored; 
+	  TGraph &             mGraph;
+	  const tSubGr &       mSubGr;
+
+	  size_t               mBitEgdeExplored; 
+	  size_t               mBitVertexCurSphere;
+
+          tAlgoSP              mAlgoSP;
+
+          size_t               mMaxSzCycle;
+
+          std::vector<tEdge*>  mCurPath;
+          tVertex *            mFirstSom;
+          
 };
 
 template <class TGraph>  
@@ -649,15 +664,17 @@ template <class TGraph>
            TGraph &          aGraph,
            const tSubGr &    aSubGr
      ) :
-         mGraph           (aGraph),
-         mSubGr           (aSubGr),
-         mBitEgdeExplored (mGraph.Edge_AllocBitTemp())
+         mGraph              (aGraph),
+         mSubGr              (aSubGr),
+         mBitEgdeExplored    (mGraph.Edge_AllocBitTemp()),
+         mBitVertexCurSphere (mGraph.Vertex_AllocBitTemp())
 {
 }
 
 template <class TGraph>  cAlgoEnumCycle<TGraph>::~cAlgoEnumCycle()
 {
    mGraph.Edge_FreeBitTemp(mBitEgdeExplored);
+   mGraph.Vertex_FreeBitTemp(mBitVertexCurSphere);
 }
 
 template <class TGraph> bool  cAlgoEnumCycle<TGraph>::OkEdge(const tEdge & anE) const
@@ -666,23 +683,54 @@ template <class TGraph> bool  cAlgoEnumCycle<TGraph>::OkEdge(const tEdge & anE) 
 }
 
 
-template <class TGraph> void  cAlgoEnumCycle<TGraph>::ExplorateOneEdge(tEdge & anE,size_t aSz)
+template <class TGraph> void  cAlgoEnumCycle<TGraph>::ExplorateOneEdge(tEdge & anE)
 {
-     cAlgoSP<TGraph>::MakeShortestPathGen
+     mAlgoSP.MakeShortestPathGen
      (
            mGraph,
            true,
            {&anE.VertexInit()},
            cAlgo_ParamVG<TGraph>(),
-           cAlgo_SubGrCostOver<TGraph>(aSz)
+           cAlgo_SubGrCostOver<TGraph>(mMaxSzCycle)
      );
+
+     //mAlgoSP
+
+     mCurPath =  std::vector<tEdge*> {&anE};
+     mFirstSom = &anE.VertexInit();
+     RecursiveExplorateOneEdge();
+
 
      anE.SymSetBit1(mBitEgdeExplored);
 }
 
+template <class TGraph> void  cAlgoEnumCycle<TGraph>::OnCycle()
+{
+}
+
+template <class TGraph> void  cAlgoEnumCycle<TGraph>::RecursiveExplorateOneEdge()
+{
+    tEdge *   aLastEdge  = mCurPath.back();
+    tVertex * aLastSom   = &aLastEdge->Succ();
+
+    if (aLastSom==mFirstSom)
+    {
+        OnCycle();
+    }
+
+    if (mCurPath.size() >= mMaxSzCycle)
+    {
+        return;
+    }
+
+    
+}
+
+
 
 template <class TGraph> void  cAlgoEnumCycle<TGraph>::DoExplorate(size_t aSz)
 {
+    mMaxSzCycle = aSz;
     for (auto & aVPTr : mGraph.AllVertices())
     {
           if (mSubGr.InsideVertex(*aVPTr))
@@ -691,7 +739,7 @@ template <class TGraph> void  cAlgoEnumCycle<TGraph>::DoExplorate(size_t aSz)
                {
                    if (OkEdge(*anEdgePtr))
                    {
-                         ExplorateOneEdge(*anEdgePtr,aSz);
+                         ExplorateOneEdge(*anEdgePtr);
                    }
                }
           }
