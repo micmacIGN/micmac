@@ -386,15 +386,15 @@ class MainWindow(QtWidgets.QMainWindow):
         finfo1=QtCore.QFileInfo(self.filename_Px1imageInStack)
         finfo2=QtCore.QFileInfo(self.filename_Px2imageInStack)
         if (finfo1.fileName()!=finfo2.fileName()):
-          nb_col_im1, nb_lines_im1, nb_b_im1 = self.dimIm(self.filename_Px1imageInStack)
-          nb_col_im2, nb_lines_im2, nb_b_im2 = self.dimIm(self.filename_Px2imageInStack)
-          if (nb_col_im1!=nb_col_im2 or nb_lines_im1!=nb_lines_im2 or nb_b_im1!=nb_b_im2):
+          if (self.dimIm(self.filename_Px1imageInStack) != self.dimIm(self.filename_Px2imageInStack)):
             QtWidgets.QMessageBox.warning(self, 'Error detected',"Different dimensions for the two parallax images!", QtWidgets.QMessageBox.Ok)
+            return False
         else:
           QtWidgets.QMessageBox.warning(self, 'Warning',"Same parallax image given twice?!", QtWidgets.QMessageBox.Ok)
+          return False
     else:
-      QtWidgets.QMessageBox.warning(self, 'Warning',"Two parallax images are expected!", QtWidgets.QMessageBox.Ok)
-
+      return False
+    return True
 
   def ask_imageWeightStack_file(self):
     self.filename_imageWeightStack=QtWidgets.QFileDialog.getOpenFileName(self,"Stacks: Select Weights Image Filename", self.active_dir,
@@ -441,11 +441,12 @@ class MainWindow(QtWidgets.QMainWindow):
     self.filename_imageWeightStack=str(self.edit_filename_imageWeightStack.text())
     self.filename_traceFaultStack=str(self.edit_traceFileStack.text())
     self.filename_offsetsOutStack=str(self.edit_offsetsOutStack.text())
-    if (len(self.filename_Px1imageInStack)>0) and (len(self.filename_Px2imageInStack)>0) and (len(self.filename_traceFaultStack)>0) and (len(self.filename_offsetsOutStack)>0) and (len(self.type_output)>0):
-      self.button_okStack.setEnabled(True)
+    if (len(self.filename_Px1imageInStack)>0) and (len(self.filename_Px2imageInStack)>0) \
+        and (len(self.filename_traceFaultStack)>0) and (len(self.filename_offsetsOutStack)>0) \
+        and (len(self.type_output)>0):
+      self.button_okStack.setEnabled(self.verif_Pximages())
     else:
       self.button_okStack.setEnabled(False)
-    self.verif_Pximages()
 
   def click_okStack(self):
     if (self.spin_lengthStack.value()%2!=0) and (self.spin_widthStack.value()%2!=0):
