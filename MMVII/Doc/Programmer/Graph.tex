@@ -13,24 +13,24 @@
 
 \section{Introduction}
 
-A  graph-libray (basic for now) is present in \PPP.  The main objects that user can
-manipulate are, quite obviously : vertices, edges and graphs, the libray
-furnish classes for this $3$ object, say $V,E,G$.
-There exist also class for algoritmic computation (for example shortest past).
+A  graph-libray (basic, for now) is available in \PPP.  The main objects that a user can
+manipulate are, quite obviously: vertices, edges and graphs, the library
+furnishes classes for those $3$ object, say $V,E,G$.
+There also exist classes for algoritmic analyses (for example, the  shortest past).
 
-To allow the user to associate any data he needs with these object , all these class
-are templatized by $3$ parameters than define the attributes of objects of the graph :
+To allow the user to associate any data they need with these object, the classes
+are templatized by $3$ parameters defining the attributes of objects of the graph:
 
 \begin{itemize}
-      \item  class for attibute en vertices , noted $\AttrV$
-      \item  class for attibute on oriented edges, noted $\AttrEOr$;
-      \item  class for attibute on symetric (\emph{non} oriented) edges, noted $\AttrESym$ (we will detail the difference
+      \item  class for attibute of vertices, denoted as $\AttrV$
+      \item  class for attibute of oriented edges, denoted as $\AttrEOr$;
+      \item  class for attibute of symetric (\emph{non} oriented) edges, denoted $\AttrESym$ (we will detail the difference
              between  $A_{\vec{e}}$ and  $A_{\overline{E}}$ in section~\ref{Gr:Attr:SymOr}).
 \end{itemize}
 
-When the user will create a graph $g$ , he will specify the three types of attributes and create
-an object of type $\ObjGr{G}$.  Then when the user will create
-vertices $v$ of $g$, these object will be of type $\ObjGr{V}$;
+When the user will create a graph $g$, they will specify the three types of attributes and create
+an object of type $\ObjGr{G}$.  Then, when the user will create
+vertices $v$ of $g$, these objects will be of type $\ObjGr{V}$;
 similarly, the edges created and manipulated  will be of type $\ObjGr{E}$.
 
 The code can be found in :
@@ -41,12 +41,11 @@ The code can be found in :
           spaning tree and connected component.
 \end{itemize}
 
-Note that this is a "header only"  library, which is not the default choice in \PPP. Because this seemed
-appropriate to have a sufficiently general library.
+Note that this is a "header only"  library, which is not the default choice in \PPP. However, providing a header-only library ensures its generality, thus it seemed an appropriate choice.
 
-There exists also a file {\tt src/Graphs/BenchGraph.cpp} that contains (almost) extensive test on the library,
-it is densely commented, and it aims also to be a detailed tutorial. Consequently, this chapter will be relatively
-brief, and we invite the user who needs more detail to examine the file {\tt BenchGraph.cpp} .
+There also exists a file {\tt src/Graphs/BenchGraph.cpp} that contains (almost) extensive tests/benchmarks of the library.
+It is densely commented, and it should serve as a detailed tutorial. Consequently, this chapter will be relatively
+brief, and we invite users to deep-dive in the library by examining the file {\tt BenchGraph.cpp} .
 
 %   ------------------------------------------------------------------
 %   ------------------------------------------------------------------
@@ -82,12 +81,12 @@ Creating object is done in $3$ steps  :
 
 \subsection{Attributes and object copy, destruction}
 
-The three kind of objects $G,V,E$ are not copiable. When the user get access
-to vertices and edges  using method of the libray, it is always pointers or reference
+The three kinds of objects $G,V,E$ cannot be copied. When the user gets access
+to vertices and edges  using methods of the libray, they always manipulate pointers or references
 on them. 
 
-For the destruction of objects, it is necessary and sufficient to have a destruction
-of $G$, it will automatically destroy all the $V,E$ created.  Obviously,  user must never
+For the destruction of objects, it is necessary and sufficient to destroy $G$, 
+which will automatically destroy all the $V,E$ created.  Obviously,  user must never
 explicitely destroy $V$ or $E$.
 
 After the creation of $V$ and $E$, the object will contain attributes  of type $\AttrV$, $\AttrEOr$ and $\AttrESym$;
@@ -99,47 +98,47 @@ all these attributes will be copies of the value given by the user.
 
 \label{Gr:Attr:SymOr}
 
-Algoritmic graph theory often distinguish oriented from non oriented graph.  In \PPP  we
-do not really have such distinction by using separate type of graph.  The same
-graph can be considered as oriented or non oriented, this is the usage
-and the algorithm that will make the distinction.
+Algoritmic graph theory often distinguishes oriented from non-oriented graph.  In \PPP~ 
+such distinction does not exist, and we do not use separate graphs types for it.  The same
+graph can be considered as oriented or non-oriented. In practice, this distinction is made through 
+the way the graph is used and through algorithms.
 
 This is why we have two type of attribute for the edges : 
 
 \begin{itemize}
-   \item first for each pair of connected vertices, there exist an edges  $\GrEdgAB$ and
+   \item first, for each pair of connected vertices, there exist an edge  $\GrEdgAB$ and
          and an edge $\GrEdgBA$;
 
    \item the oriented attribute is \emph{physically} different for  $\GrEdgAB$
          and $\GrEdgBA$,  this is why we give $2$ values at creation;  if we
          modif the attribute of  $\GrEdgAB$, it will do nothing to  $\GrEdgBA$'s;
 
-   \item conversely the symetric attribute is   shared between the two edges, it exist
-         \emph{physically} at a single location in memory,  this why a single value is given at creation.
+   \item conversely, the symetric attribute is   shared between the two edges, it exist
+         \emph{physically} at a single location in memory,  and takes a single value at creation.
   
 \end{itemize}
 
-The distinction between oriented and non oriented graph will be done when runing algorithms and their
-parametrisation (see~\ref{Graph:Algo}). Typically, in the computation of shortest path on road network
-with one way road, the parametrisation will use $\AttrEOr$; while when computing minimum spaning tree 
+The distinction between oriented and non-oriented graphs will be done when runing algorithms and through their
+parametrisation (see~\ref{Graph:Algo}). Typically, in the computation of the shortest path on a road network
+with one way roads, the parametrisation will use $\AttrEOr$; while when computing the minimum spaning tree, 
 the parametrization will use  $\AttrESym$.
 
 
 %   ------------------------------------------------------------------
 \subsection{Acces to object}
 
-We dont give all the details, but the main accesses offered by the library are :
+We don't give all the details, but the main accesses offered by the library are :
 
 \begin{itemize}
-    \item for a graph acces to its vertices;
+    \item for a graph, acces to its vertices;
 
-    \item for a vertex $v_1$ access to its attributes, and all its adjacent edges
+    \item for a vertex $v_1$, access to its attributes, and all its adjacent edges
           (all the edges of type  $\GrEdgAB$);
 
-    \item for a pair of vertices $v_1,v_2$ , know if the edge $\GrEdgAB$ exist,
-          and then acces to it;
+    \item for a pair of vertices $v_1,v_2$, knowing if the edge $\GrEdgAB$ exist,
+          and then the acces to it;
 
-    \item for an edge, acces to its oriented and non oriented attribute, access to the vertex it is pointing (i.e. $v_2$).
+    \item for an edge, acces to its oriented and non oriented attributes, access to the vertex it is pointing to (i.e. $v_2$).
 \end{itemize}
 
 %$A_V,\vec{A}_e,\overline{A}_E$,
@@ -148,10 +147,10 @@ We dont give all the details, but the main accesses offered by the library are :
 %   ------------------------------------------------------------------
 \subsection{Access to {\tt DirInit}}
 
-Finaly, to be complete, a tiny complex detail, it may be interesting when manipulating symetric
-attribute of an edge $v_1v_2$ , to know if edge  was  created as $\GrEdgAB$
+Finally, to be complete, a tiny complex detail, when manipulating the symmetric
+attribute of an edge $v_1v_2$, it may be interesting to know if the edge  was  created as $\GrEdgAB$
 or $\GrEdgBA$. This is accessible via the method {\tt DirInit}.  See the (to
-be written) section of graph on group, to see a concrete example .
+be written) section of graph on group, to see a concrete example.
 
 
 %   ------------------------------------------------------------------
@@ -165,42 +164,42 @@ be written) section of graph on group, to see a concrete example .
 
 \subsection{Parametrization of algorithms}
 
-When graph are used for representing data extracted from image analysis, for example road
-network on satelitte image, it often happens that we want to use the \emph{same} graph 
-but with different variant, for example :
+When graphs are used for representing data extracted from image analysis, for example a road
+network in a satellite image, it often happens that we want to use the \emph{same} graph 
+but in different variants, for example :
 
 \begin{itemize}
     \item  consider only a subset of edges or vertices in connected components analysis;
-    \item  consider different weighting for shortest path.
+    \item  consider different weighting for the shortest path computation.
 \end{itemize}
 
-To offer such flexibility, the algorithm of \PPP take two kinds of parameters as object
+To offer such flexibility, the algorithm of \PPP~ takes two kinds of parameters as object
 deriving from base classes :
 
 \begin{itemize}
-    \item   {\tt cAlgo\_SubGr} parametrize a sub-graph, i.e a subset of vertices and edges,
+    \item   {\tt cAlgo\_SubGr} parametrize a sub-graph, i.e. a subset of vertices and edges,
             this is done by the \emph{virtual} methods {\tt bool InsideVertex()} and {\tt bool InsideEdge()};
             default methods return always {\tt true};
 
     \item   {\tt cAlgo\_ParamVG} parametrize a weighted graph, this is done by  \emph{virtual} method
             {\tt tREAL8 WeightEdge()}, default methods return always {\tt 1.0} ;
-            also {\tt cAlgo\_ParamVG} inherits of  {\tt cAlgo\_ParamVG}.
+            also {\tt cAlgo\_ParamVG} inherits from  {\tt cAlgo\_SubGr}.
 \end{itemize}
 
-For example the method {\tt ShortestPath\_A2B}, from class {\tt cAlgoSP}, that compute the shortest path
-between two vertices, takes as fourth parameters an object of type {\tt const cAlgo\_ParamVG \&}.
+For example, the method {\tt ShortestPath\_A2B}, from class {\tt cAlgoSP}, that compute the shortest path
+between two vertices, takes as fourth parameter an object of type {\tt const cAlgo\_ParamVG \&}.
 
 
 %   ------------------------------------------------------------------
 
 \subsection{Connected component algorithms}
 
-The class {\tt cAlgoCC}, compute the connected component of a graph. It offers $3$ public services :
+The class {\tt cAlgoCC} computes the connected component of a graph. It offers $3$ public services :
 
 \begin{itemize}
-    \item computation of the connected component of a single vertex, return the component as vector of vertices;
+    \item computation of the connected component of a single vertex, returns the component as vector of vertices;
 
-    \item computation of the connected components of a set of vertice, return the component as list of vector of vertices;
+    \item computation of the connected components of a set of vertice, returns the components as list of vector of vertices;
 
     \item computation of all the connected components of the graph, just a special case of previous one.
 \end{itemize}
@@ -210,21 +209,21 @@ The $3$ methods take as last paramater an object of type {\tt const cAlgo\_SubGr
 
 %   ------------------------------------------------------------------
 
-\subsection{Mininum spaning tree, forest and shortest pathes}
+\subsection{Mininum spaning tree, forest and shortest paths}
 
 \subsubsection{class {\tt cAlgoSP}}
 
-The class {\tt cAlgoSP} allow to compute mininum spaning tree, forest and shortest pathes.
-It's done by the same clase because algorithmically, the building of a minimum spaning tree
-is very close to the building of the tree of shortest path. 
-The only difference is the agregation of cost; for curious reader, see the
-method {\tt Internal\_MakeShortestPathGen} there is only one more line for
-separating shortest path for minimum spaning tree, this line is tagged by comment {\tt  @DIF:SP:MST} .
+The class {\tt cAlgoSP} allows to compute the mininum spaning tree, forest and the shortest paths.
+All three are done by the same class because algorithmically building a minimum spaning tree
+is very close to building the tree of shortest path. 
+The only difference is the agregation of cost; for curious readers, see the
+method {\tt Internal\_MakeShortestPathGen} and observe there is only one extra 
+line of code for the minimum spaning tree, this line is tagged by comment {\tt  @DIF:SP:MST} .
 
 
 \subsubsection{Methods for shortest path}
 
-There  exists  $2$ public methods for computing shortest path :
+There  exist  $2$ public methods for computing the shortest path :
 
 \begin{itemize}
     \item {\tt ShortestPath\_A2B} the simpler and most common case,
@@ -236,25 +235,25 @@ There  exists  $2$ public methods for computing shortest path :
 
 \subsubsection{Methods for minimum spaning}
 
-There exist $3$ method for minimum spaning tree/forest :
+There exist $3$ methods for minimum spaning tree/forest :
 
 \begin{itemize}
-   \item {\tt MinimumSpanninTree} return the minimum spaning tree containing a single vertex;
+   \item {\tt MinimumSpanninTree} returns the minimum spaning tree containing a single vertex;
 
-   \item {\tt MinimumSpanningForest} return the minimum spaning forest of a set of vertices;
+   \item {\tt MinimumSpanningForest} returns the minimum spaning forest of a set of vertices;
 
 \end{itemize}
 
 
 \subsubsection{Acces to results}
 
-While doing the computation, the algorithm write some fields inside the vertices.
+While doing the computation, the algorithm writes some fields inside the vertices.
 This value written can be of interest :
 
 \begin{itemize}
-   \item  the method {\tt AlgoCost()}  allow to now the tree/path cost
-   \item  the method {\tt BackTrackFathersPath}()  allow to extract the shortest path
-          by back-tracking  the trees build.
+   \item  the method {\tt AlgoCost()}  allows to know the tree/path cost
+   \item  the method {\tt BackTrackFathersPath}()  allows to extract the shortest path
+          by back-tracking  the trees that were previously built.
 \end{itemize}
 
 Not very clear \dots and to complete by adding a way to memorize the vertices that have been reached.
