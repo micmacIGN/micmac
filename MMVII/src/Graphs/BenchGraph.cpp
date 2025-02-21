@@ -5,213 +5,12 @@
 
 #include "MMVII_Tpl_GraphStruct.h"
 #include "MMVII_Tpl_GraphAlgo_SPCC.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_Tpl_GraphAlgo_EnumCycles.h"
 
 
 namespace MMVII
 {
-
-/************************************************************/
-/*                                                          */
-/*                   cAlgoEnumCycle                         */
-/*                                                          */
-/************************************************************/
-
-template <class TGraph> class cActionOnCycle;
-template <class TGraph> class cAlgoEnumCycle;
-
-
-template <class TGraph>   class cActionOnCycle
-{
-      public :
-          typedef typename TGraph::tVertex        tVertex;
-          typedef cAlgoEnumCycle<TGraph>          tAlgoEnum;
-
-          virtual void OnCycle(const tAlgoEnum&) = 0;
-};
-
-template <class TGraph>   class cAlgoEnumCycle
-{
-     public :
-          // typedef  cAlgo_ParamVG<TGraph>          tParamA;
-          typedef  cAlgoSP<TGraph>                tAlgoSP;
-          typedef  cAlgo_SubGr<TGraph>            tSubGr;
-          typedef  cActionOnCycle<TGraph>         tActionC;
-          typedef typename TGraph::tVertex        tVertex;
-          typedef typename TGraph::tEdge          tEdge;
-          typedef std::vector<tVertex*>           tVectVertex;
-
-	  cAlgoEnumCycle(TGraph &,tActionC&,const tSubGr &,size_t aSz);
-	  ~cAlgoEnumCycle();
-
-          void ExplorateAllCycles();
-          void ExplorateCyclesOneEdge(tEdge & anE,bool WithMarker);
-
-          const std::vector<tEdge*> &  CurPath() const {return mCurPath;}
-          size_t  MaxSzCycle() const {return  mMaxSzCycle;}
-	  TGraph &   Graph() {return mGraph;}
-
-     private :
-          void RecExplCycles1Edge();
-
-          bool  OkEdge(const tEdge & anE) const;
-
-          void  OnCycle();
-
-          
-	  TGraph &             mGraph;
-	  tActionC *           mAction;
-	  const tSubGr &       mSubGr;
-
-	  size_t               mBitEgdeExplored; 
-	  size_t               mBitEgdeInCurPath; 
-	  size_t               mBitVertexCurSphere;
-
-          tAlgoSP              mAlgoSP;
-
-          size_t               mMaxSzCycle;
-
-          std::vector<tEdge*>  mCurPath;
-          tVertex *            mFirstSom;
-          
-};
-
-template <class TGraph>  
-     cAlgoEnumCycle<TGraph>::cAlgoEnumCycle
-     (
-           TGraph &          aGraph,
-	   tActionC&         anAction,
-           const tSubGr &    aSubGr,
-           size_t            aSz
-     ) :
-         mGraph              (aGraph),
-         mAction             (&anAction),
-         mSubGr              (aSubGr),
-         mBitEgdeExplored    (mGraph.Edge_AllocBitTemp()),
-         mBitEgdeInCurPath   (mGraph.Edge_AllocBitTemp()),
-         mBitVertexCurSphere (mGraph.Vertex_AllocBitTemp()),
-         mMaxSzCycle         (aSz)
-{
-}
-
-template <class TGraph>  cAlgoEnumCycle<TGraph>::~cAlgoEnumCycle()
-{
-   mGraph.Edge_FreeBitTemp(mBitEgdeExplored);
-   mGraph.Edge_FreeBitTemp(mBitEgdeInCurPath);
-   mGraph.Vertex_FreeBitTemp(mBitVertexCurSphere);
-}
-
-template <class TGraph> bool  cAlgoEnumCycle<TGraph>::OkEdge(const tEdge & anE) const
-{
-    return      mSubGr.InsideV1AndEdgeAndSucc(anE) 
-	    &&  (! anE.SymBitTo1(mBitEgdeExplored))
-	    &&  (! anE.SymBitTo1(mBitEgdeInCurPath))
-    ;
-}
-
-
-template <class TGraph> void  cAlgoEnumCycle<TGraph>::ExplorateCyclesOneEdge(tEdge & anE,bool WithMarker)
-{
-     mAlgoSP.MakeShortestPathGen
-     (
-           mGraph,
-           true,
-           {&anE.VertexInit()},
-           cAlgo_ParamVG<TGraph>(),
-           cAlgo_SubGrCostOver<TGraph>(mMaxSzCycle)
-     );
-
-     //mAlgoSP
-
-     mCurPath =  std::vector<tEdge*> {&anE};
-     mFirstSom = &anE.VertexInit();
-
-     anE.SetBit1(mBitEgdeInCurPath);
-     tVertex::SetBit1(mAlgoSP.VVertexOuted(),mBitVertexCurSphere);
-
-     RecExplCycles1Edge();
-
-     anE.SetBit0(mBitEgdeInCurPath);
-     tVertex::SetBit0(mAlgoSP.VVertexOuted(),mBitVertexCurSphere);
-     if (WithMarker)
-        anE.SymSetBit1(mBitEgdeExplored);
-}
-
-template <class TGraph> void  cAlgoEnumCycle<TGraph>::OnCycle()
-{
-     mAction->OnCycle(*this);
-}
-
-template <class TGraph> void  cAlgoEnumCycle<TGraph>::RecExplCycles1Edge()
-{
-    // StdOut() << "KKKKK " << mCurPath.size() << "\n";
-
-    tEdge &   aLastEdge  = *mCurPath.back();
-    tVertex & aLastSom   = aLastEdge.Succ();
-
-
-    if (! aLastSom.BitTo1(mBitVertexCurSphere))
-    {
-       // StdOut() << "    mBitVertexCurSphere \n";
-       return;
-    }
-
-    if ( aLastSom.AlgoCost() +mCurPath.size() > mMaxSzCycle)
-    {
-       // StdOut() << "    AlgoCost() " <<  aLastSom.AlgoCost() << " \n";
-       return;
-    }
-
-    if (&aLastSom==mFirstSom)
-    {
-        OnCycle();
-    }
-
-    if (mCurPath.size() >= mMaxSzCycle)
-    {
-        return;
-    }
-
-    for (auto & anEdge : aLastSom.EdgesSucc())
-    {
-        if (OkEdge(*anEdge))
-	{
-            anEdge->SymSetBit1(mBitEgdeInCurPath);
-	    mCurPath.push_back(anEdge);
-
-	    RecExplCycles1Edge();
-
-	    mCurPath.pop_back();
-            anEdge->SymSetBit0(mBitEgdeInCurPath);
-	}
-    }
-    
-}
-
-
-
-template <class TGraph> void  cAlgoEnumCycle<TGraph>::ExplorateAllCycles()
-{
-    for (auto & aVPTr : mGraph.AllVertices())
-    {
-          if (mSubGr.InsideVertex(*aVPTr))
-          {
-               for (auto & anEdgePtr :  aVPTr->EdgesSucc())
-               {
-                   if (OkEdge(*anEdgePtr))
-                   {
-                         ExplorateCyclesOneEdge(*anEdgePtr,true);
-                   }
-               }
-          }
-    }
-
-    for (auto & aVPTr : mGraph.AllVertices())
-    {
-        for (auto & anEdgePtr :  aVPTr->EdgesSucc())
-           anEdgePtr->SymSetBit0(mBitEgdeExplored);
-    }
-}
-
 
 
 /**  \file  : BenchGraph.cpp
@@ -324,11 +123,19 @@ class cBGG_AttrEdgSym
            cBGG_AttrEdgSym(tREAL8 aDist) : 
                 mDist     (aDist) ,
                 mRanCost  (RandUnif_C()),
-                mIsOk     (true)
+                mIsOk     (true),
+                mCptPath0 (0),
+                mCptPath1 (0),
+                mHCode0   (0),
+                mHCode1   (0)
            {}
            tREAL8 mDist;      // euclidean distance, not really use 4 now
            tREAL8 mRanCost;   // use to modify the weighting  
            bool   mIsOk;      // use to creat some specific subgraph
+           int    mCptPath0;  // count the number of path
+           int    mCptPath1;  // use to "back up" path counter for check
+           size_t mHCode0;    // h-code of pathes going throuh it
+           size_t mHCode1;    // h-code of pathes going throuh it
      private :
 };
 
@@ -354,14 +161,30 @@ class  cBGG_Graph : public cVG_Graph<cBGG_AttrVert,cBGG_AttrEdgOr,cBGG_AttrEdgSy
           {
                return mGridVertices.at(aPix.y()).at(aPix.x());
           }
+          tEdge&  EdgeOfPts(const cPt2di & aP1,const cPt2di & aP2)
+          {
+                tVertex & aV1 = *VertOfPt(aP1);
+                tVertex & aV2 = *VertOfPt(aP2);
+                return *aV1.EdgeOfSucc(aV2)->EdgeInitOr();
+          }
+          
 
           /// test creation , acces to neighbours, attributes
           void Bench_FoncElem();  
           ///  Test the algorithms
           void BenchAlgos();
+
+          /// use to compute a unique id up to a circular permutation
+          size_t PathHashCode(const std::vector<tEdge *>&) const;
      private :
-	  /// test algorithms on cycle enumeration
-          void Bench_EnumCycle();
+
+	  /// global test algorithms on cycle enumeration
+          void Bench_EnumCycle(bool Is4Cnx);
+	  /// test algorithms on cycle enumeration for a single edg
+          typedef std::pair<size_t,size_t> tPSzH;
+          tPSzH EnumCycle_1Edge(const cPt2di & aP1,const cPt2di & aP2,size_t aSzCycle,int aNbTh,cAlgo_SubGr<cBGG_Graph> &);
+
+
           /// test connected component, for a single pixel or a region
           void Bench_ConnectedComponent(tVertex * aV0,tVertex * aV1);
           /// Test computation of shortest path between 2 vertices, mode-> correspond to different distance/conexion
@@ -377,6 +200,16 @@ class  cBGG_Graph : public cVG_Graph<cBGG_AttrVert,cBGG_AttrEdgOr,cBGG_AttrEdgSy
           std::vector<std::vector<tPtrV>>    mGridVertices; ///< such the mGridVertices[y][x] -> tVertex *
           void AddEdge(const cPt2di&aP0,const cPt2di & aP1); ///< Add and edge bewteen vertices corresponding to 2 Pix
           tAlgoSP  mAlgoSP;
+
+         class cNeigh_4_Connex : public  cAlgo_ParamVG<cBGG_Graph>
+         {
+            public :
+              // this formula validate the edge iff  |x1-x2|+|y1-y2| <= 1
+                   bool   InsideEdge(const    tEdge & anE) const override 
+		   {   
+                     return Norm1(anE.VertexInit().Attr().mPt-anE.Succ().Attr().mPt)<=1; 
+                   }
+         };
 };
 typedef cVG_Graph<cBGG_AttrVert,cBGG_AttrEdgOr,cBGG_AttrEdgSym> tBGG;
 
@@ -437,6 +270,12 @@ void cBGG_Graph::AddEdge(const cPt2di&aP1,const cPt2di & aP2)
     tGraph::AddEdge(*aV1,*aV2,aA12,aA21,aASym);
 }
 
+    /* ========================================================== */
+    /* ========================================================== */
+    /* ===                 Elementary functions               === */
+    /* ========================================================== */
+    /* ========================================================== */
+
 void cBGG_Graph::Bench_FoncElem()
 {
       for (size_t aKV1=0 ; aKV1<NbVertex() ; aKV1++) // parse all vertices
@@ -474,6 +313,13 @@ void cBGG_Graph::Bench_FoncElem()
       }
 }
 
+    /* ========================================================== */
+    /* ========================================================== */
+    /* ===                Shortest Pathes                     === */
+    /* ========================================================== */
+    /* ========================================================== */
+
+
 void cBGG_Graph::Bench_ShortestPath(tVertex * aV0,tVertex * aV1,int aMode)
 {
     /*   We  compute the shortest path between V0 and V1 with 3 variation possible  depending on aMode :
@@ -503,15 +349,6 @@ void cBGG_Graph::Bench_ShortestPath(tVertex * aV0,tVertex * aV1,int aMode)
 
     */
 
-    class cNeigh_4_Connex : public  cAlgo_ParamVG<cBGG_Graph>
-    {
-       public :
-         // this formula validate the edge iff  |x1-x2|+|y1-y2| <= 1
-         bool   InsideEdge(const    tEdge & anE) const override 
-		{ 
-                     return Norm1(anE.VertexInit().Attr().mPt-anE.Succ().Attr().mPt)<=1; 
-                }
-    };
     class cWeighSqDeltaAbs : public  cAlgo_ParamVG<cBGG_Graph>
     {
        public :
@@ -565,6 +402,14 @@ void cBGG_Graph::Bench_ShortestPath(tVertex * aV0,tVertex * aV1,int aMode)
           MMVII_INTERNAL_ASSERT_bench(aD==1,"Succ in BackTrackFathersPath");
      }
 }
+
+
+    /* ========================================================== */
+    /* ========================================================== */
+    /* ===           connected components                     === */
+    /* ========================================================== */
+    /* ========================================================== */
+
 
 /*  Test on connected component extraction,  doing it with the full graph would be "boring", we would
     get the full grid each time.  So we consider the sub-graph defined by :
@@ -648,6 +493,13 @@ void cBGG_Graph::Bench_ConnectedComponent(tVertex * aSeed,tVertex * aV1)
     for (const auto & aCC : aVecCC)
         MMVII_INTERNAL_ASSERT_bench((int) aCC.size()==mSzGrid.y(),"Size in All_ConnectedComponent");
 }
+
+    /* ========================================================== */
+    /* ========================================================== */
+    /* ===            spaning trees                           === */
+    /* ========================================================== */
+    /* ========================================================== */
+
 
 /*    For a given set of pair and a sub graph defined by "aParam", defining a tree "T", check that it is the minimum 
     spaning tree in sub-graph a aParam.  Method used :
@@ -789,28 +641,96 @@ void cBGG_Graph::Bench_MinSpanTree(tVertex * aSeed)
     MMVII_INTERNAL_ASSERT_bench(aForest.size()+aNbEdge== (size_t)mBox.NbElem(),"Edge and CC in MinimumSpanningForest");
 }
 
+    /* ========================================================== */
+    /* ========================================================== */
+    /* ===               cycles enumeration                   === */
+    /* ========================================================== */
+    /* ========================================================== */
 
-class cCheckCycle : public cActionOnCycle<tBGG>
+
+/*  Make the test for correctness of cycle enumeration.  Also it's difficult to make an extensive test like
+we do with previous one, we do the following test :
+
+     - all computed path are effectively closed loops
+     - all computed path are different
+     - for a select number of configuration (where we can count them "by hand"), we get the expected answer
+     - when computing global paths, we get the same results that individual pathes (count and hash code)
+*/
+
+
+/*   We compute a hash code that compare loop up to a shift and the orientation, ie :
+
+            (A B C D E) = (E A B C D) = (E D B  C A)
+
+     Because when comparing loops computed globally or locally we dont fix the origin nor the orientation.
+*/
+
+size_t cBGG_Graph::PathHashCode(const std::vector<tEdge *>& aPath) const
+{
+    // [1]  Transformate vecto of edge in vector of index of points, and extract the min index
+    std::vector<int>  aVInd;
+    cWhichMin<int,int> aWMin;
+    {
+        for (auto & anE : aPath)
+        {
+            aVInd.push_back(mBox.IndexeLinear(anE->Succ().Attr().mPt));  // compute vector of index
+            aWMin.Add(aVInd.size()-1,aVInd.back()); // update to know index min
+        }
+    }
+    size_t aK0 = aWMin.IndexExtre();  
+    // to fix the orientation , select a sens of orientation
+    int aDelta = (ValCirc(aVInd,aK0+1)>ValCirc(aVInd,aK0-1)) ? 1 : -1;
+
+    // [2]  compute a hash-code 
+    size_t aHasKey=0;
+    for (size_t aK=0 ; aK<aVInd.size() ; aK++)
+    {
+        int aV = ValCirc(aVInd,aK0 + aK*aDelta);  // begin with K0, follow the direction select
+        hash_combine(aHasKey,aV);
+    }
+    return aHasKey;
+}
+
+/**  Class to check the cycle enumeration.
+     The  mMode is used to separate 3 variation :
+
+          - in mode 0, we modify   mCptPath0 and mHCode0
+          - in mode 1, we modify   mCptPath1 and mHCode1
+          - in mode 2, we reset    mCptPath1 and mHCode1
+
+    This is necessary because when we compare the global computation  (ExplorateAllCycles()) and the
+  local (ExplorateCyclesOneEdge()), we must save the computation at two different place. Also after
+  each local computation we must re start the computation at each step from a "virgin state". So
+
+      - mode 0 is used for global computation
+      - while local computation do mode 1 then mode 2 
+*/
+
+class cCheckCycle : public cActionOnCycle<cBGG_Graph>
 {
       public :
           typedef typename tBGG::tVertex        tVertex;
-          typedef cAlgoEnumCycle<tBGG>          tAlgoEnum;
-
-	  cCheckCycle(tBGG &);
+          typedef cAlgoEnumCycle<cBGG_Graph>          tAlgoEnum;
+	  cCheckCycle(cBGG_Graph &,int aMode);
 
           void OnCycle(const tAlgoEnum&)  override;
 
-	  tBGG & mBGG;
+	  cBGG_Graph &       mBGG;
+          std::set<size_t>   mSetH;
+          int                mMode;
 };
 
-cCheckCycle:: cCheckCycle(tBGG & aBGG) :
-   mBGG (aBGG)
+cCheckCycle::cCheckCycle(cBGG_Graph & aBGG,int aMode) :
+   mBGG  (aBGG),
+   mMode (aMode)
 {
 }
+
 
 void cCheckCycle::OnCycle(const tAlgoEnum& anAlgo)
 {
     const auto & aPath = anAlgo.CurPath();
+    size_t aHasKey = mBGG.PathHashCode(aPath);
 
     MMVII_INTERNAL_ASSERT_bench(&aPath.front()->VertexInit()==&aPath.back()->Succ(),"OnCycle begin!=end");
     for (size_t aK=1 ; aK<aPath.size() ; aK++)
@@ -818,47 +738,131 @@ void cCheckCycle::OnCycle(const tAlgoEnum& anAlgo)
         MMVII_INTERNAL_ASSERT_bench(&aPath.at(aK-1)->Succ()==&aPath.at(aK)->VertexInit(),"OnCycle not a path");
     }
 
-    size_t aBitMark = mBGG.Vertex_AllocBitTemp();
-    for (auto & anE : aPath)
     {
-        MMVII_INTERNAL_ASSERT_bench(!anE->SymBitTo1(aBitMark),"OnCycle mulltiple edge");
-        anE->SymSetBit1(aBitMark);
+        size_t aBitMark = mBGG.Vertex_AllocBitTemp();
+        for (auto & anE : aPath)
+        {
+            MMVII_INTERNAL_ASSERT_bench(!anE->SymBitTo1(aBitMark),"OnCycle mulltiple edge");
+            anE->SymSetBit1(aBitMark);
+            if (mMode==0) 
+            {
+               anE->AttrSym().mCptPath0++;
+               anE->AttrSym().mHCode0 ^=  aHasKey;
+            }
+            if (mMode==1) 
+            {
+               anE->AttrSym().mCptPath1++;
+               anE->AttrSym().mHCode1 ^=  aHasKey;
+            }
+            if (mMode==2) 
+            {
+               anE->AttrSym().mCptPath1=0;
+               anE->AttrSym().mHCode1 = 0;
+            }
+        }
+        for (auto & anE : aPath)
+            anE->SymSetBit0(aBitMark);
+        mBGG.Vertex_FreeBitTemp(aBitMark);
     }
-    for (auto & anE : aPath)
-        anE->SymSetBit0(aBitMark);
 
-        
-
-    StdOut()  <<  "OnCycle " << aPath.size() << " ";
-    for (const auto & anE : aPath)
-         StdOut()  << anE->VertexInit().Attr().mPt ;
-    StdOut() << "\n";
-
-    mBGG.Vertex_FreeBitTemp(aBitMark);
+    MMVII_INTERNAL_ASSERT_bench(!BoolFind(mSetH,aHasKey),"Path present multiple time");
+    mSetH.insert(aHasKey);
 }
 
-void cBGG_Graph::Bench_EnumCycle()
+cBGG_Graph::tPSzH
+    cBGG_Graph::EnumCycle_1Edge
+    (
+         const cPt2di & aP1,
+         const cPt2di & aP2,
+         size_t aSzCycle,
+         int aNbTh,
+         cAlgo_SubGr<cBGG_Graph> &aSubGr
+    )
 {
-     cAlgo_SubGr<tGraph>  aSubGrAll;
-     cCheckCycle  aCheckCycle(*this);
-     cAlgoEnumCycle<tGraph>  aAlgoEnum(*this,aCheckCycle,aSubGrAll,4);
+     tPSzH aRes (1234568,9999);
+     tEdge&  aE = EdgeOfPts(aP1,aP2);
+      
 
-     cPt2di aP1(3,3);
-     cPt2di aP2(4,3);
+     for (int aMode =1 ; aMode<=2 ; aMode++)
+     {
+         cCheckCycle  aCheckCycle(*this,aMode);
+         cAlgoEnumCycle<cBGG_Graph>  aAlgoEnum(*this,aCheckCycle,aSubGr,aSzCycle);
+         aAlgoEnum.ExplorateCyclesOneEdge(aE);
 
-     tVertex & aV1 = *VertOfPt(aP1);
-     tVertex & aV2 = *VertOfPt(aP2);
+         if (aMode==1)  
+            aRes = tPSzH(aE.AttrSym().mCptPath1,aE.AttrSym().mHCode1);
+     }
+     if (aNbTh!=-1)
+     {
+         MMVII_INTERNAL_ASSERT_bench
+         (
+              aNbTh==(int)aRes.first,
+              "EnumCycle_1Edge : number unexpected Exp="+ToStr(aNbTh)  + ", Got=" +ToStr(aRes.first)
+         );
+     }
+     // StdOut()  << "HHHH " << aRes << " " << aNbTh << "\n";
 
-     tEdge&  aE = *aV1.EdgeOfSucc(aV2)->EdgeInitOr();
+     return aRes;
+}
 
-StdOut() << "Bench_EnumCycleBench_EnumCycle\n";
-     aAlgoEnum.ExplorateCyclesOneEdge(aE,false);
-StdOut() << "Bench_EnumCycleBench_EnumCycle\n";
+void cBGG_Graph::Bench_EnumCycle(bool Is4Cnx)
+{
+     cNeigh_4_Connex aSubGr4;
+     cAlgo_SubGr<cBGG_Graph>  aSubGrAll;
+
+     cAlgo_SubGr<cBGG_Graph> * aSubGr = Is4Cnx ? static_cast<cAlgo_SubGr<cBGG_Graph>*>(&aSubGr4): &aSubGrAll;
+     // cAlgo_ParamVG<cBGG_Graph> * aSubGr = (&aSubGr4);
+
+    int aCptH_3 = Is4Cnx ? 0 : 4; // number of lenght 3 with edge horizontal
+    int aCptH_4 = Is4Cnx ? 2 : 12; // number of lenght 4 with edge horizontal
+    int aCptDiag_3 = Is4Cnx ? 0 : 2; // number of lenght 3 with edge diagonal
+    int aCptDiag_4 = Is4Cnx ? 0 : 12; // number of lenght 3 with edge diagonal
+
+     EnumCycle_1Edge(cPt2di(3,3),cPt2di(4,3),3,aCptH_3   ,*aSubGr);
+     EnumCycle_1Edge(cPt2di(3,3),cPt2di(4,3),4,aCptH_3+aCptH_4,*aSubGr);
+     EnumCycle_1Edge(cPt2di(3,3),cPt2di(4,4),3,aCptDiag_3,*aSubGr);
+     EnumCycle_1Edge(cPt2di(3,4),cPt2di(4,3),3,aCptDiag_3,*aSubGr);
+     EnumCycle_1Edge(cPt2di(3,3),cPt2di(4,4),4,aCptDiag_3+aCptDiag_4,*aSubGr);
+
+     if (Is4Cnx)
+     {
+         size_t aCptH_6 = 6;
+         EnumCycle_1Edge(cPt2di(3,3),cPt2di(4,3),6, aCptH_4 + aCptH_6   ,*aSubGr);
+     }
+
+     size_t  aSizeC =  Is4Cnx ? 6 : 4 ;
+
+// aSizeC =4; StdOut() << "JJJJJJJJJJJJJJJJJ  " << aSizeC << "\n";
+
+     cCheckCycle  aCheckCycle(*this,0);
+     cAlgoEnumCycle<cBGG_Graph>  aAlgoEnum(*this,aCheckCycle,*aSubGr,aSizeC);
+     aAlgoEnum.ExplorateAllCycles();
+
+
+     for (const auto & aPtrE : this->AllEdges_DirInit())
+     {
+          cPt2di aP1 = aPtrE->VertexInit().Attr().mPt;
+          cPt2di aP2 = aPtrE->Succ().Attr().mPt;
+          auto [aSz1,aH1]  =  EnumCycle_1Edge(aP1,aP2,aSizeC,-1,*aSubGr);
+          size_t aSz0 =  aPtrE->AttrSym().mCptPath0;
+          size_t aH0 =  aPtrE->AttrSym().mHCode0;
+          MMVII_INTERNAL_ASSERT_bench(aSz0==aSz1,"EnumCycle_1Edge : number unexpected");
+
+          MMVII_INTERNAL_ASSERT_bench(aH0==aH1,"EnumCycle_1Edge : number unexpected");
+// getchar();
+     }
+
+     for (const auto & aPtrE : this->AllEdges_DirInit())
+     {
+        aPtrE->AttrSym().mCptPath0 =0;
+        aPtrE->AttrSym().mHCode0   =0;
+     }
 }
 
 
 void cBGG_Graph::BenchAlgos()
 {
+
      for (int aKTime=0 ; aKTime<2*mBox.NbElem()  ; aKTime++)
      {
 	 tVertex * aV0 =  VertOfPt(mBox.GeneratePointInside());
@@ -873,9 +877,11 @@ void cBGG_Graph::BenchAlgos()
          Bench_MinSpanTree(aV0);
       }
 
-      Bench_EnumCycle();
-      StdOut() << "===============================================\n";
-      Bench_EnumCycle();
+      for (int aKTime=0 ; aKTime<20  ; aKTime++)
+      {
+         Bench_EnumCycle(true);
+         Bench_EnumCycle(false);
+      }
 }
 
 

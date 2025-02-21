@@ -193,6 +193,11 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Graph : pub
 
 	  const std::vector<tVertex*>  &    AllVertices() const {return mV_Vertices;}  ///< vector of vertices (as input to some algo)
 	  const std::vector<TA_Sym*>   &    AllAttrSym() const  {return mV_AttrSym;}   ///< all atributs, usefull for some global setting
+
+          /// Not very efficient, create a copy, but can be simpler when efficiency is not the priority
+	  std::vector<tEdge*>   AllEdges() const;
+          /// Idem AllEdges
+	  std::vector<tEdge*>   AllEdges_DirInit() const;
            
 
           // ------------------   Creation of objects  (graph/vertices/edges) ----------------
@@ -444,6 +449,35 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>
     }
     return anE12;
 }
+
+template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
+  std::vector<cVG_Edge<TA_Vertex,TA_Oriented,TA_Sym>*> cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::AllEdges() const
+{
+     std::vector<tEdge*> aRes;
+     for (const auto & aV : mV_Vertices)
+         for (const auto & anE : aV->EdgesSucc())
+             aRes.push_back(anE);
+    return aRes;
+}
+
+template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
+  std::vector<cVG_Edge<TA_Vertex,TA_Oriented,TA_Sym>*> cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::AllEdges_DirInit() const
+{
+     std::vector<tEdge*> aRes;
+     for (const auto & aV : mV_Vertices)
+         for (const auto & anE : aV->EdgesSucc())
+             if (anE->IsDirInit())
+                aRes.push_back(anE);
+    return aRes;
+}
+
+/*
+template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
+  cVG_Edge<TA_Vertex,TA_Oriented,TA_Sym>* cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::AddEdge
+	  std::vector<tEdge*>   AllEdges() const;
+          /// Idem AllEdges
+	  std::vector<tEdge*>   AllEdges_DirInit() const;
+*/
 
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
     size_t  cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::Vertex_AllocBitTemp()
