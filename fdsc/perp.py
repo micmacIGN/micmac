@@ -111,23 +111,26 @@ def interpol_ppv(data, col, line):
 
 def interpol_bilin(data, col, line):
   """ compute bilinear interpolation (with gdal, data[line][column]!!) """
-  line_before=int(line)
-  line_after=int(line)+1
-  col_before=int(col)
-  col_after=int(col)+1
-  #start by interpolating in columns
-  dist_a_col_before=col-col_before
-  dist_a_col_after=1-dist_a_col_before
-  #interpolation on "before" line
-  val_interp_line_before=data[line_before][col_before]*dist_a_col_after+data[line_before][col_after]*dist_a_col_before
-  #interpolation on "after" line
-  val_interp_line_after=data[line_after][col_before]*dist_a_col_after+data[line_after][col_after]*dist_a_col_before
-  #interpolation in lines
-  dist_a_line_before=line-line_before
-  dist_a_line_after=1-dist_a_line_before
-  #interpolated value
-  val_interp_final=val_interp_line_before*dist_a_line_after+val_interp_line_after*dist_a_line_before
-  return val_interp_final
+  try:
+      line_before=int(line)
+      line_after=int(line)+1
+      col_before=int(col)
+      col_after=int(col)+1
+      #start by interpolating in columns
+      dist_a_col_before=col-col_before
+      dist_a_col_after=1-dist_a_col_before
+      #interpolation on "before" line
+      val_interp_line_before=data[line_before][col_before]*dist_a_col_after+data[line_before][col_after]*dist_a_col_before
+      #interpolation on "after" line
+      val_interp_line_after=data[line_after][col_before]*dist_a_col_after+data[line_after][col_after]*dist_a_col_before
+      #interpolation in lines
+      dist_a_line_before=line-line_before
+      dist_a_line_after=1-dist_a_line_before
+      #interpolated value
+      val_interp_final=val_interp_line_before*dist_a_line_after+val_interp_line_after*dist_a_line_before
+      return val_interp_final
+  except IndexError:
+      return float('nan')
 
 def draw_profile_interpol(data, tab_all_perp, num_profile, step_perp, interpol):
   """ plot the perpendicular profile with the interpolated points (giving the array
