@@ -85,10 +85,9 @@ class ConstructCG:
     self.pt[2][1]=X2[0][0]*self.pt[2][0]+X2[1][0] #y 3rd point
     self.pt[3][0]=self.profile_absc[-1]-0.5 #x 4th point
     self.pt[3][1]=X2[0][0]*self.pt[3][0]+X2[1][0] #y 4th point
-    self.showText='click on a point to change its position'
+    self.showText= 'Click on a point to change its position'
     self.xText='distance along profile (px)'
     self.yText='offset (m)'
-    self.ax.set_title(self.showText)
     self.ax.set_xlabel(self.xText)
     self.ax.set_ylabel(self.yText)
 
@@ -116,7 +115,9 @@ class ConstructCG:
     """ Redraw & save plot """
     self.fig.clf()
     self.ax = self.fig.add_subplot(111)
-    self.ax.set_title(self.showText)
+    ttl = f'{self.title_fig} - {self.type_dirStack_name} direction'
+    self.fig.suptitle(ttl, fontsize=14)
+    self.ax.set_title(self.showText, fontsize=10, color='red')
     self.ax.set_xlabel(self.xText)
     self.ax.set_ylabel(self.yText)
     self.cid = self.ax.figure.canvas.mpl_connect('button_press_event', self)
@@ -152,7 +153,7 @@ class ConstructCG:
         buff_y=0.01
       if (abs(event.xdata-self.pt[i][0])<=0.8 and abs(event.ydata-self.pt[i][1])<=buff_y):
         print('in the zone of the point ', i)
-        self.showText='click to define the new position of the point'
+        self.showText='Click to define the new position of the point'
         self.ax.set_xlabel(self.xText)
         self.ax.set_ylabel(self.yText)
         self.redraw_pt(self.pt[i][0], self.pt[i][1])
@@ -296,7 +297,7 @@ class ConstructCG:
           print('The point to be modified: ', self.index_ptModif)
       else: #one point already selected
         #move the point
-        self.showText='click on a point to change its position'
+        self.showText='Click on a point to change its position'
         #self.pt[self.index_ptModif][0]=event.xdata
         self.pt[self.index_ptModif][1]=event.ydata
         self.redraw('black')
