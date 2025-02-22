@@ -144,6 +144,7 @@ class cBGG_AttrEdgSym
 class  cBGG_Graph : public cVG_Graph<cBGG_AttrVert,cBGG_AttrEdgOr,cBGG_AttrEdgSym>
 {
      public :
+          // ------------------- typedef part -------------------------------------------------------
           typedef cVG_Graph<cBGG_AttrVert,cBGG_AttrEdgOr,cBGG_AttrEdgSym> tGraph;
           typedef typename tGraph::tVertex                              tVertex;
           typedef  tVertex*                                             tPtrV;
@@ -152,6 +153,8 @@ class  cBGG_Graph : public cVG_Graph<cBGG_AttrVert,cBGG_AttrEdgOr,cBGG_AttrEdgSy
           typedef  cAlgoCC<cBGG_Graph>                                  tAlgoCC;
           typedef  tAlgoSP::tForest                                     tForest;
           typedef  cAlgo_ParamVG<cBGG_Graph>                            tParamA;
+          typedef  cAlgo_SubGr<cBGG_Graph>                              tSubGr;
+          typedef std::pair<size_t,size_t> tPSzH; // used in pair count/hcode
 
 
           cBGG_Graph (cPt2di aSzGrid); /// constructor , take the size of the grid
@@ -180,10 +183,8 @@ class  cBGG_Graph : public cVG_Graph<cBGG_AttrVert,cBGG_AttrEdgOr,cBGG_AttrEdgSy
 
 	  /// global test algorithms on cycle enumeration
           void Bench_EnumCycle(bool Is4Cnx);
-	  /// test algorithms on cycle enumeration for a single edg
-          typedef std::pair<size_t,size_t> tPSzH;
-          tPSzH EnumCycle_1Edge(const cPt2di & aP1,const cPt2di & aP2,size_t aSzCycle,int aNbTh,cAlgo_SubGr<cBGG_Graph> &);
-
+	  /// test algorithms on cycle enumeration going through  a single edge
+          tPSzH EnumCycle_1Edge(const cPt2di & aP1,const cPt2di & aP2,size_t aSzCycle,int aNbTh, tSubGr&);
 
           /// test connected component, for a single pixel or a region
           void Bench_ConnectedComponent(tVertex * aV0,tVertex * aV1);
@@ -658,7 +659,8 @@ we do with previous one, we do the following test :
 */
 
 
-/*   We compute a hash code that compare loop up to a shift and the orientation, ie :
+/*     A hash code is computed on cycles, it is used to checks that set of cycles are identic.
+      We compute a hash code that compare loop up to a shift and the orientation, ie :
 
             (A B C D E) = (E A B C D) = (E D B  C A)
 
@@ -691,8 +693,13 @@ size_t cBGG_Graph::PathHashCode(const std::vector<tEdge *>& aPath) const
     return aHasKey;
 }
 
-/**  Class to check the cycle enumeration.
-     The  mMode is used to separate 3 variation :
+          /* ----------------------------------------- */
+          /*                                           */
+          /*            cCheckCycle                    */
+          /*                                           */
+          /* ----------------------------------------- */
+
+/**  Class to check the cycle enumeration.  The  mMode is used to have 3 variation on use :
 
           - in mode 0, we modify   mCptPath0 and mHCode0
           - in mode 1, we modify   mCptPath1 and mHCode1
@@ -715,9 +722,9 @@ class cCheckCycle : public cActionOnCycle<cBGG_Graph>
 
           void OnCycle(const tAlgoEnum&)  override;
 
-	  cBGG_Graph &       mBGG;
-          std::set<size_t>   mSetH;
-          int                mMode;
+	  cBGG_Graph &       mBGG;  ///< the graph it is working on²
+          std::set<size_t>   mSetH; ///< set of h-code computed 
+          int                mMode; ///< mode of action
 };
 
 cCheckCycle::cCheckCycle(cBGG_Graph & aBGG,int aMode) :
@@ -729,69 +736,83 @@ cCheckCycle::cCheckCycle(cBGG_Graph & aBGG,int aMode) :
 
 void cCheckCycle::OnCycle(const tAlgoEnum& anAlgo)
 {
-    const auto & aPath = anAlgo.CurPath();
-    size_t aHasKey = mBGG.PathHashCode(aPath);
+    const auto & aPath = anAlgo.CurPath();      // extract the current path
+    size_t aHasKey = mBGG.PathHashCode(aPath);  // comput a hash code
 
+   // check it is a loop (i.e begin = end)
     MMVII_INTERNAL_ASSERT_bench(&aPath.front()->VertexInit()==&aPath.back()->Succ(),"OnCycle begin!=end");
+    // check it is a path i.e. all consecutive edges are connected
     for (size_t aK=1 ; aK<aPath.size() ; aK++)
     {
         MMVII_INTERNAL_ASSERT_bench(&aPath.at(aK-1)->Succ()==&aPath.at(aK)->VertexInit(),"OnCycle not a path");
     }
 
+    size_t aBitMark = mBGG.Vertex_AllocBitTemp();  // bit allocated to check unicity of result
+    for (auto & anE : aPath)
     {
-        size_t aBitMark = mBGG.Vertex_AllocBitTemp();
-        for (auto & anE : aPath)
+        // check that marking with aBitMark is done once
+        MMVII_INTERNAL_ASSERT_bench(!anE->SymBitTo1(aBitMark),"OnCycle mulltiple edge");
+        anE->SymSetBit1(aBitMark);
+    
+        switch (mMode)  // execute action corresponding to the mode
         {
-            MMVII_INTERNAL_ASSERT_bench(!anE->SymBitTo1(aBitMark),"OnCycle mulltiple edge");
-            anE->SymSetBit1(aBitMark);
-            if (mMode==0) 
-            {
-               anE->AttrSym().mCptPath0++;
-               anE->AttrSym().mHCode0 ^=  aHasKey;
-            }
-            if (mMode==1) 
-            {
-               anE->AttrSym().mCptPath1++;
-               anE->AttrSym().mHCode1 ^=  aHasKey;
-            }
-            if (mMode==2) 
-            {
-               anE->AttrSym().mCptPath1=0;
-               anE->AttrSym().mHCode1 = 0;
-            }
+           case 0 :  // used in global mode, udpdate "mCptPath0/mHCode0"
+              anE->AttrSym().mCptPath0++;
+              anE->AttrSym().mHCode0 ^=  aHasKey;
+           break;
+           case 1 : // used in local mode, udpdate "mCptPath1/mHCode1"
+              anE->AttrSym().mCptPath1++;
+              anE->AttrSym().mHCode1 ^=  aHasKey;
+           break;
+           case 2 :  // used in local mode, reset "mCptPath1/mHCode1"
+              anE->AttrSym().mCptPath1=0;
+              anE->AttrSym().mHCode1 = 0;
+           break;
+           default :
+               MMVII_INTERNAL_ASSERT_bench(false,"Bas mode in cCheckCycle::OnCycle");
         }
-        for (auto & anE : aPath)
-            anE->SymSetBit0(aBitMark);
-        mBGG.Vertex_FreeBitTemp(aBitMark);
     }
+    // unmark the aBitMark  and free it
+    for (auto & anE : aPath)
+        anE->SymSetBit0(aBitMark);
+    mBGG.Vertex_FreeBitTemp(aBitMark);
 
+    //  check that each loop it visited only once
     MMVII_INTERNAL_ASSERT_bench(!BoolFind(mSetH,aHasKey),"Path present multiple time");
     mSetH.insert(aHasKey);
 }
 
+          /* ----------------------------------------- */
+          /*                                           */
+          /*            cBGG_Graph                     */
+          /*                                           */
+          /* ----------------------------------------- */
+
 cBGG_Graph::tPSzH
     cBGG_Graph::EnumCycle_1Edge
     (
-         const cPt2di & aP1,
-         const cPt2di & aP2,
-         size_t aSzCycle,
-         int aNbTh,
-         cAlgo_SubGr<cBGG_Graph> &aSubGr
+         const cPt2di & aP1,   // first point of edge 
+         const cPt2di & aP2,   // second point of edge,
+         size_t aMaxSzCycle,   // Maximal size of cycle explored
+         int aNbTh,            // number of cycle we expect (-1 if we have no request)
+         tSubGr  &aSubGr       // sub-graph for computing the cycle
     )
 {
-     tPSzH aRes (1234568,9999);
-     tEdge&  aE = EdgeOfPts(aP1,aP2);
-      
+     tPSzH aRes (1234568,9999);  // result, init urbish
+     tEdge&  aE = EdgeOfPts(aP1,aP2);  // extract the edge of graph
 
+     // parse 2 mode :  1=>compute values  , 2=> clean values
      for (int aMode =1 ; aMode<=2 ; aMode++)
      {
-         cCheckCycle  aCheckCycle(*this,aMode);
-         cAlgoEnumCycle<cBGG_Graph>  aAlgoEnum(*this,aCheckCycle,aSubGr,aSzCycle);
-         aAlgoEnum.ExplorateCyclesOneEdge(aE);
+         cCheckCycle  aCheckCycle(*this,aMode);  // object for call back
+         cAlgoEnumCycle<cBGG_Graph>  aAlgoEnum(*this,aCheckCycle,aSubGr,aMaxSzCycle);  // class for enumerating cycles
+         aAlgoEnum.ExplorateCyclesOneEdge(aE); // explorate the cycles going through an edge
 
          if (aMode==1)  
-            aRes = tPSzH(aE.AttrSym().mCptPath1,aE.AttrSym().mHCode1);
+            aRes = tPSzH(aE.AttrSym().mCptPath1,aE.AttrSym().mHCode1);  // mode 1, result computed, store it
      }
+
+     // is the expected number was specified, check tha value equals was what expected
      if (aNbTh!=-1)
      {
          MMVII_INTERNAL_ASSERT_bench
@@ -800,63 +821,68 @@ cBGG_Graph::tPSzH
               "EnumCycle_1Edge : number unexpected Exp="+ToStr(aNbTh)  + ", Got=" +ToStr(aRes.first)
          );
      }
-     // StdOut()  << "HHHH " << aRes << " " << aNbTh << "\n";
 
      return aRes;
 }
 
 void cBGG_Graph::Bench_EnumCycle(bool Is4Cnx)
 {
-     cNeigh_4_Connex aSubGr4;
-     cAlgo_SubGr<cBGG_Graph>  aSubGrAll;
+    cNeigh_4_Connex aSubGr4;  // sub-graph for all connexion
+    tSubGr  aSubGrAll;        // sub-graph for all edges
+    tSubGr & aSubGr = Is4Cnx ? (aSubGr4): aSubGrAll;  // used sub-graphe
 
-     cAlgo_SubGr<cBGG_Graph> * aSubGr = Is4Cnx ? static_cast<cAlgo_SubGr<cBGG_Graph>*>(&aSubGr4): &aSubGrAll;
-     // cAlgo_ParamVG<cBGG_Graph> * aSubGr = (&aSubGr4);
-
-    int aCptH_3 = Is4Cnx ? 0 : 4; // number of lenght 3 with edge horizontal
-    int aCptH_4 = Is4Cnx ? 2 : 12; // number of lenght 4 with edge horizontal
+    // set expected values, for lenght 3 & 4, for edge horizontal & diag
+    int aCptHori_3 = Is4Cnx ? 0 : 4; // number of lenght 3 with edge horizontal
+    int aCptHori_4 = Is4Cnx ? 2 : 12; // number of lenght 4 with edge horizontal
     int aCptDiag_3 = Is4Cnx ? 0 : 2; // number of lenght 3 with edge diagonal
     int aCptDiag_4 = Is4Cnx ? 0 : 12; // number of lenght 3 with edge diagonal
 
-     EnumCycle_1Edge(cPt2di(3,3),cPt2di(4,3),3,aCptH_3   ,*aSubGr);
-     EnumCycle_1Edge(cPt2di(3,3),cPt2di(4,3),4,aCptH_3+aCptH_4,*aSubGr);
-     EnumCycle_1Edge(cPt2di(3,3),cPt2di(4,4),3,aCptDiag_3,*aSubGr);
-     EnumCycle_1Edge(cPt2di(3,4),cPt2di(4,3),3,aCptDiag_3,*aSubGr);
-     EnumCycle_1Edge(cPt2di(3,3),cPt2di(4,4),4,aCptDiag_3+aCptDiag_4,*aSubGr);
+    // for simple configurations, check with the expected number of cycles, name l(n) the number equal to n and
+    // L(n) the number <= to n,  as we have l(0)=l(1)=l(2). We have :
+    //    - L(3) = l(3)
+    //    - L(4) = l(3) + l(4) 
+    EnumCycle_1Edge(cPt2di(3,3),cPt2di(4,3),3, aCptHori_3               ,aSubGr);
+    EnumCycle_1Edge(cPt2di(3,3),cPt2di(4,3),4, aCptHori_3 + aCptHori_4  ,aSubGr);
+    EnumCycle_1Edge(cPt2di(3,3),cPt2di(4,4),3, aCptDiag_3               ,aSubGr);
+    EnumCycle_1Edge(cPt2di(3,4),cPt2di(4,3),3, aCptDiag_3               ,aSubGr);
+    EnumCycle_1Edge(cPt2di(3,3),cPt2di(4,4),4, aCptDiag_3 + aCptDiag_4  ,aSubGr);
 
-     if (Is4Cnx)
-     {
-         size_t aCptH_6 = 6;
-         EnumCycle_1Edge(cPt2di(3,3),cPt2di(4,3),6, aCptH_4 + aCptH_6   ,*aSubGr);
-     }
+    // For 4 connexion we compute also L(6) 
+    if (Is4Cnx)
+    {
+        size_t aCptHori_6 = 6;
+        EnumCycle_1Edge(cPt2di(3,3),cPt2di(4,3),6, aCptHori_4 + aCptHori_6   ,aSubGr);
+    }
 
-     size_t  aSizeC =  Is4Cnx ? 6 : 4 ;
+    size_t  aSizeC =  Is4Cnx ? 6 : 4 ; // number of cycle we do the global computation
 
-// aSizeC =4; StdOut() << "JJJJJJJJJJJJJJJJJ  " << aSizeC << "\n";
+    cCheckCycle  aCheckCycle(*this,0);  //  object for call back, mode 0 => modif  mCptPath0 / mHCode0
+    cAlgoEnumCycle<cBGG_Graph>  aAlgoEnum(*this,aCheckCycle,aSubGr,aSizeC); // class for enumerating cycles
+    aAlgoEnum.ExplorateAllCycles();  // exlporate all the cycles of length <= aSizeC
 
-     cCheckCycle  aCheckCycle(*this,0);
-     cAlgoEnumCycle<cBGG_Graph>  aAlgoEnum(*this,aCheckCycle,*aSubGr,aSizeC);
-     aAlgoEnum.ExplorateAllCycles();
+    // parses all edges to compare local & global computation
+    for (const auto & aPtrE : this->AllEdges_DirInit())
+    {
+        // compute values for a single edge
+         cPt2di aP1 = aPtrE->VertexInit().Attr().mPt;
+         cPt2di aP2 = aPtrE->Succ().Attr().mPt;
+         auto [aSz1,aH1]  =  EnumCycle_1Edge(aP1,aP2,aSizeC,-1,aSubGr);
 
+        // read values from global computation
+         size_t aSz0 =  aPtrE->AttrSym().mCptPath0;
+         size_t aH0 =  aPtrE->AttrSym().mHCode0;
 
-     for (const auto & aPtrE : this->AllEdges_DirInit())
-     {
-          cPt2di aP1 = aPtrE->VertexInit().Attr().mPt;
-          cPt2di aP2 = aPtrE->Succ().Attr().mPt;
-          auto [aSz1,aH1]  =  EnumCycle_1Edge(aP1,aP2,aSizeC,-1,*aSubGr);
-          size_t aSz0 =  aPtrE->AttrSym().mCptPath0;
-          size_t aH0 =  aPtrE->AttrSym().mHCode0;
-          MMVII_INTERNAL_ASSERT_bench(aSz0==aSz1,"EnumCycle_1Edge : number unexpected");
+         // check tey are equal
+         MMVII_INTERNAL_ASSERT_bench(aSz0==aSz1,"EnumCycle_1Edge : number unexpected");
+         MMVII_INTERNAL_ASSERT_bench(aH0==aH1,"EnumCycle_1Edge : number unexpected");
+    }
 
-          MMVII_INTERNAL_ASSERT_bench(aH0==aH1,"EnumCycle_1Edge : number unexpected");
-// getchar();
-     }
-
-     for (const auto & aPtrE : this->AllEdges_DirInit())
-     {
+    // clean valued mCptPath0/mHCode0 for possible re-use
+    for (const auto & aPtrE : this->AllEdges_DirInit())
+    {
         aPtrE->AttrSym().mCptPath0 =0;
         aPtrE->AttrSym().mHCode0   =0;
-     }
+    }
 }
 
 
