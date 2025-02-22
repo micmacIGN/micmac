@@ -38,12 +38,14 @@ template <class TGraph>  class cAlgo_SubGr
              virtual bool   InsideVertex(const  tVertex &) const {return true;}
 
              // take as parameter V1 & edge E=V1->V2 (because we cannot acces V1 from E)
-             virtual bool   InsideEdge(const tVertex &,const    tEdge &) const {return true;}
+             virtual bool   InsideEdge(const    tEdge &) const {return true;}
              
              // method frequently used, so that user only redefines InsideEdge
-             inline bool   InsideV1AndEdgeAndSucc(const tVertex & aV1,const    tEdge & anEdge) const 
+             inline bool   InsideV1AndEdgeAndSucc(const    tEdge & anEdge) const 
              {
-                    return this->InsideEdge(aV1,anEdge) && this->InsideVertex(anEdge.Succ()) && this->InsideVertex(aV1);
+                    return   this->InsideEdge(anEdge) 
+                          && this->InsideVertex(anEdge.Succ()) 
+                          && this->InsideVertex(anEdge.VertexInit());
              }
 
 };
@@ -70,6 +72,23 @@ template <class TGraph>  class cAlgo_SubGrNone : public cAlgo_SubGr<TGraph>
              bool   InsideVertex(const  tVertex &) const override {return false;}
         private :
 };
+
+/**   define a sub-graph that contain as goal the vertex having cost over a threshold, use to
+ have it as goal, to compute the sorhtest path tree up to a distance */
+
+template <class TGraph>  class cAlgo_SubGrCostOver : public cAlgo_SubGr<TGraph>
+{
+        public :
+	     typedef typename TGraph::tVertex  tVertex;
+
+             cAlgo_SubGrCostOver(tREAL8 aThr) : mThreshold (aThr) {}
+             bool   InsideVertex(const  tVertex & aV) const override {return aV.AlgoCost() > mThreshold;}
+             
+        private :
+             tREAL8 mThreshold;
+};
+
+
 
 
 /**   parametrizarion of algorithm */
@@ -126,6 +145,8 @@ template <class TGraph>   class cAlgoSP
 	  typedef std::pair<tVertex*,tSetPairVE>  tTree; 
 	  typedef std::list<tTree>         tForest;   // A Forest = list of element of forest
           
+          const std::vector<tVertex*> & VVertexReached() const {return mVVertexReached;}
+          const std::vector<tVertex*> & VVertexOuted() const   {return mVVertexOuted;}
           /** compute the shotest path between "aBegin" and "aEnd" in graph "aGraph", the length of edges
               and the valide Vertex/Edges are indicated by "aParam".  If the path is succesfully computed
               aEnd is returned, else nullptr
@@ -133,7 +154,7 @@ template <class TGraph>   class cAlgoSP
                     - AlgoCost to know the length of the path
                     - BackTrackFathersPath to compute the path
           */
-          static tVertex * ShortestPath_A2B
+          tVertex * ShortestPath_A2B
                  (
                     TGraph &          aGraph,
                     tVertex &         aBegin,
@@ -143,15 +164,15 @@ template <class TGraph>   class cAlgoSP
 
 
            /** compute the minimum spanning tree starting from  aSeed */
-           static tTree  MinimumSpanninTree (TGraph & aGraph, tVertex &  aSeed, const tParamA &);
+           tTree  MinimumSpanninTree (TGraph & aGraph, tVertex &  aSeed, const tParamA &);
            /** idem, but avoi copy of result */
-           static void  MinimumSpanninTree (tTree&,TGraph & aGraph, tVertex &  aSeed, const tParamA &);
+           void  MinimumSpanninTree (tTree&,TGraph & aGraph, tVertex &  aSeed, const tParamA &);
 
            /** compute the minimal forest (= set of tree) crossing  a set of seeds */
-           static void MinimumSpanningForest(tForest&,TGraph &,const tVectVertex&  aSeed, const tParamA &);
+           void MinimumSpanningForest(tForest&,TGraph &,const tVectVertex&  aSeed, const tParamA &);
 
            /** generic public method for computing shortest path & trees */
-           static tVertex * MakeShortestPathGen
+           tVertex * MakeShortestPathGen
                   (
                       TGraph &              aGraph,     // the graph on which it is computed
                       bool                 aModeMinSP,  // true=shortest path, false= minimum spaning tree
@@ -172,20 +193,19 @@ template <class TGraph>   class cAlgoSP
                     }
               };
 
-              static tVertex * Internal_MakeShortestPathGen
+              tVertex * Internal_MakeShortestPathGen
                  (
                     TGraph &             aGraph,         // graph
                     bool                 aModeMinPCC,    // Shortest Path /Min Span Tree
                     const tVectVertex &  aVSeeds,        // set of seeds
                     const tParamA   &    aParam,         // paramete (sub gr/weitgh)
                     const tSubGr   &     aGoal,          // goal ending computatio,
-                    tVectVertex &        aVReached,      // store all vertex reached (out of heap or still waiting)
                     size_t               aBitReached,    // flag to mark vertices reached
                     size_t               aBitOutHeap,    // flag to mark vertices outed from heap
                     bool                 CleanAnFreeBits // to we 1-un mark the vertices 2-recycle the flag in graph
                  );
 
-              static void  Internal_MinimumSpanninTree 
+              void  Internal_MinimumSpanninTree 
                     (
                           tTree&           aTree,
                           TGraph &         aGraph, 
@@ -195,6 +215,10 @@ template <class TGraph>   class cAlgoSP
                           size_t           aBitOutHeap,
                           bool             CleanAnFreeBits
                     ); 
+
+         std::vector<tVertex*>   mVVertexReached;  ///<  Vertex reached, cost was initialized
+         std::vector<tVertex*>   mVVertexOuted;    ///< Vertex outed of the heap, cost is computed OK
+
 };
 
 
@@ -215,13 +239,15 @@ template <class TGraph>
               const std::vector<tVertex*> &  aVSeeds,
               const cAlgo_ParamVG<TGraph> &  aParam,
               const cAlgo_SubGr<TGraph>   &  aGoal,
-              std::vector<tVertex*> &        aVReached,
               size_t                         aBitReached,
               size_t                         aBitOutHeap,
               bool                           CleanAnFreeBits
          )
 {
     tVertex * aResult = nullptr;  // 4 now we have not reached the goal
+
+    mVVertexReached.clear(); 
+    mVVertexOuted.clear();    
 
     // [0]  Initialize Heap
     cHeapCmp aCompare;
@@ -237,7 +263,7 @@ template <class TGraph>
            aPtrV->SetBit1(aBitReached);   // mark that vertex has been reached
            aPtrV->mAlgoCost = 0.0;        // cost 4 empty path
            aPtrV->mAlgoFather = nullptr;  // no father for seed points
-           aVReached.push_back(aPtrV);    // memorize for clean
+           mVVertexReached.push_back(aPtrV);    // memorize for clean
            aHeap.Push(aPtrV);             // and, of course, initialize the heap
         }
     }
@@ -253,6 +279,7 @@ template <class TGraph>
         else
         {
             tVertex * aNewVOut =  aHeap.PopVal(nullptr); // get best vertex
+            mVVertexOuted.push_back(aNewVOut);
             if (aGoal.InsideVertex(*aNewVOut))  // is we have reached the goal, end of the game
             {
                GoOn = false;
@@ -263,7 +290,7 @@ template <class TGraph>
                  aNewVOut->SetBit1(aBitOutHeap);  // mark newly outed as an "outed of heap vertex"
                  for (const auto &  anEdge :  aNewVOut->EdgesSucc()) // parse all  neighbours for possible update
                  {
-                      if (aParam.InsideV1AndEdgeAndSucc(*aNewVOut,*anEdge))  // consider only vertex in the sub-graph
+                      if (aParam.InsideV1AndEdgeAndSucc(*anEdge))  // consider only vertex in the sub-graph
                       {
                          tVertex & aNewVIn = anEdge->Succ();  // extract the neighouring vertex
 
@@ -281,7 +308,7 @@ template <class TGraph>
                             // if vertex was never reached, initialize its puting in the heap
                             if (!aNewVIn.BitTo1(aBitReached))
                             {
-                               aVReached.push_back(&aNewVIn);  // memorize for clean
+                               mVVertexReached.push_back(&aNewVIn);
                                aNewVIn.SetBit1(aBitReached);   // memorize it is reached
                                aNewVIn.mAlgoCost = aNewCost+1; // trick to make "previous" cost worst than new one
                                aHeap.Push(&aNewVIn);           // put it in the heap
@@ -305,12 +332,12 @@ template <class TGraph>
     if (CleanAnFreeBits)
     {
         // unmark all vertices reached
-        tVertex::SetBit0(aVReached,aBitReached);
-        tVertex::SetBit0(aVReached,aBitOutHeap);
+        tVertex::SetBit0(mVVertexReached,aBitReached);
+        tVertex::SetBit0(mVVertexReached,aBitOutHeap);
 
         // recycle flag so that they can be used again
-        aGraph.FreeBitTemp(aBitReached);
-        aGraph.FreeBitTemp(aBitOutHeap);
+        aGraph.Vertex_FreeBitTemp(aBitReached);
+        aGraph.Vertex_FreeBitTemp(aBitOutHeap);
     }
 
     return aResult;
@@ -335,13 +362,12 @@ template <class TGraph>
               const cAlgo_SubGr<TGraph>   & aGoal
          )
 {
-    std::vector<tVertex*>   aVReached;
-    size_t aBitReached = aGraph.AllocBitTemp();
-    size_t aBitOutHeap  = aGraph.AllocBitTemp();
+    size_t aBitReached = aGraph.Vertex_AllocBitTemp();
+    size_t aBitOutHeap  = aGraph.Vertex_AllocBitTemp();
     tVertex * aResult  = Internal_MakeShortestPathGen
                          (
                             aGraph,aModeMinPCC,aVSeeds,aParam,aGoal,
-                            aVReached,aBitReached,aBitOutHeap,true
+                            aBitReached,aBitOutHeap,true
                          );
 
     return aResult;
@@ -388,7 +414,6 @@ template <class TGraph>
     // write seed in Tree , 0 if the vertex does not belong to sub-graph
     aTree.first = aParam.InsideVertex(aSeed) ? &aSeed : nullptr;
 
-    std::vector<tVertex*>   aVReached;
     tVertex * aResult  = Internal_MakeShortestPathGen
                          (
                             aGraph,
@@ -396,7 +421,6 @@ template <class TGraph>
                             {&aSeed},
                             aParam,
                             cAlgo_SubGrNone<TGraph>(),  // goal is never reached, we want to go as far as possible
-                            aVReached,                  // get reached for computing pairs
                             aBitReached,
                             aBitOutHeap,
                             CleanAnFreeBits
@@ -408,7 +432,7 @@ template <class TGraph>
     {
        tSetPairVE& aSetPair = aTree.second;
        aSetPair.clear();
-       for (const auto aPtrV : aVReached)  // parse reached point
+       for (const auto aPtrV : mVVertexReached)  // parse reached point
        {
            if (aPtrV->mAlgoFather != nullptr)  // avoid seeds
               aSetPair.push_back(tPairVE(aPtrV,aPtrV->EdgeOfSucc(*(aPtrV->mAlgoFather))));
@@ -428,8 +452,8 @@ template <class TGraph>
                 const cAlgo_ParamVG<TGraph> &  aParam
           )
 {
-    size_t aBitReached = aGraph.AllocBitTemp();
-    size_t aBitOutHeap  = aGraph.AllocBitTemp();
+    size_t aBitReached = aGraph.Vertex_AllocBitTemp();
+    size_t aBitOutHeap  = aGraph.Vertex_AllocBitTemp();
 
      Internal_MinimumSpanninTree 
      (
@@ -468,8 +492,8 @@ template <class TGraph>
 {
     aForest.clear();  // reset, just in case
     // alloc markers
-    size_t aBitReached = aGraph.AllocBitTemp();  
-    size_t aBitOutHeap  = aGraph.AllocBitTemp();
+    size_t aBitReached = aGraph.Vertex_AllocBitTemp();  
+    size_t aBitOutHeap  = aGraph.Vertex_AllocBitTemp();
 
 
     for (const auto & aSeed : aVectSeed)  // parse all seed
@@ -509,8 +533,8 @@ template <class TGraph>
    }
 
    // recycle the bits for future use
-   aGraph.FreeBitTemp(aBitReached);
-   aGraph.FreeBitTemp(aBitOutHeap);
+   aGraph.Vertex_FreeBitTemp(aBitReached);
+   aGraph.Vertex_FreeBitTemp(aBitOutHeap);
 }
 
                   
@@ -604,7 +628,7 @@ template <class TGraph>
        tVertex * aVCur =  aResult.at(aIndBottom);  // extract next vertex
        for (const auto &  anEdge :  aVCur->EdgesSucc())  // parse all edge V1->V2 neighbours 
        {
-           if (aParam.InsideV1AndEdgeAndSucc(*aVCur,*anEdge))  // check they are in sub-graph
+           if (aParam.InsideV1AndEdgeAndSucc(*anEdge))  // check they are in sub-graph
            {
               tVertex & aVNext = anEdge->Succ();    // extract V2
 	      if (!  aVNext.BitTo1(aBitReached))    // check if V2 has already been visited
@@ -628,14 +652,14 @@ template <class TGraph>
                                       const cAlgo_ParamVG<TGraph> & aParam
             )
 {
-    size_t aBitReached = aGraph.AllocBitTemp();  // alloc marker
+    size_t aBitReached = aGraph.Vertex_AllocBitTemp();  // alloc marker
     std::vector<tVertex*>   aResult;
 
     Internal_ConnectedComponent(&aSeed,aResult,aParam,aBitReached);
 
     // clean & free
     tVertex::SetBit0(aResult,aBitReached);
-    aGraph.FreeBitTemp(aBitReached);
+    aGraph.Vertex_FreeBitTemp(aBitReached);
 
     return aResult;
 }
@@ -649,7 +673,7 @@ template <class TGraph>
                  const cAlgo_ParamVG<TGraph> & aParam
             )
 {
-    size_t aBitReached = aGraph.AllocBitTemp();  // alloc marker
+    size_t aBitReached = aGraph.Vertex_AllocBitTemp();  // alloc marker
 
     for (const auto & aSeed : aVecSeed) // parse all seeds
     {
@@ -663,7 +687,7 @@ template <class TGraph>
     for (const auto & aVec : aResult)
          tVertex::SetBit0(aVec,aBitReached);
 
-    aGraph.FreeBitTemp(aBitReached);
+    aGraph.Vertex_FreeBitTemp(aBitReached);
 }
 
 

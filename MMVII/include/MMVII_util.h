@@ -138,6 +138,7 @@ const std::string & StringDirSeparator();
 bool IsDirectory(const std::string & aName);
 
 
+//     '$0' =>   '$&'
 
 /// Create a selector associated to a regular expression, by convention return Cste-true selector if string=""
 tNameSelector  AllocRegex(const std::string& aRegEx);

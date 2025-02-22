@@ -419,11 +419,14 @@ template <class Type> cRotation3D<Type>  cRotation3D<Type>::RandomRot()
    return CompleteRON(aP0,aP1);
 }
 
+template <class Type> cRotation3D<Type>  cRotation3D<Type>::RandomElem() {return RandomRot();}
+
 template <class Type> cRotation3D<Type>  cRotation3D<Type>::RandomRot(const Type & aAmpl)
 {
 	return RotFromAxiator(cPtxd<Type,3>::PRandC()*aAmpl);
 }
 
+template <class Type> cRotation3D<Type>  cRotation3D<Type>::RandomSmallElem(const Type & aAmpl) {return RandomRot(aAmpl);}
 
 template <class Type> void cRotation3D<Type>::ExtractAxe(tPt & anAxe,Type & aTeta) const
 {

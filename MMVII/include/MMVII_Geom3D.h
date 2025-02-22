@@ -134,6 +134,15 @@ template <class Type> class cRotation3D
        /// create rotation from  string like "ijk" "i-kj" ... if sth like "ikj" => error !, so last is redundant but necessary
        static cRotation3D RotFromCanonicalAxes(const std::string&);
 
+        // ================  RandomRot, but with standard names for standard group interface ==========
+
+        /// return a random elem,  +or- with uniform density (whatever it means)
+        static cRotation3D<Type> RandomElem();
+
+        /// return a random small elem,  +or- with uniform density on tangent space (whatever it means)
+        static cRotation3D<Type> RandomSmallElem(const Type & aAmpl);
+
+
        //  0-> arround I, 1->arround J ...
        static cRotation3D RotArroundKthAxe(int aNum);
        

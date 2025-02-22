@@ -60,6 +60,9 @@ template <typename tVal> class cSetISingleFixed
 
 typedef cSetISingleFixed<tU_INT4>  tSet32Bits;
 
+size_t  AllocBit(tSet32Bits&);
+
+
 
 // Compute Cardinality, Usable when NbMax (number max of elem in type) is defined
 template  <typename tSet> size_t SetI_CardByNbMax(const tSet & aSet)
