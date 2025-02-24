@@ -349,6 +349,26 @@ template <class Type> cRotation3D<Type> cRotation3D<Type>::operator * (const tTy
    return aRes;
 }
 
+template <class Type> 
+    cRotation3D<Type> 
+        cRotation3D<Type>::Centroid(const std::vector<cRotation3D<Type>> & aVR,const std::vector<double> & aVW)
+{
+    MMVII_INTERNAL_ASSERT_tiny(aVR.size()==aVW.size(),"cRotation3D<Type>::Centroid");
+
+    cDenseMatrix<Type> aMat(3,3,eModeInitImage::eMIA_Null);
+    tREAL8 aSumW = 0;
+    for  (size_t aKRW=0 ; aKRW<aVR.size() ; aKRW++)
+    {
+        aMat = aMat + aVR.at(aKRW).Mat() * aVW.at(aKRW);
+        aSumW += aVW.at(aKRW);
+    }
+
+    aMat = aMat * (1/aSumW);
+
+    return cRotation3D<Type>(aMat,true);
+}
+
+
 template <class Type> cPtxd<Type,3> cRotation3D<Type>::AxeI() const  {return tPt::Col(mMat,0);}
 template <class Type> cPtxd<Type,3> cRotation3D<Type>::AxeJ() const  {return tPt::Col(mMat,1);}
 template <class Type> cPtxd<Type,3> cRotation3D<Type>::AxeK() const  {return tPt::Col(mMat,2);}
@@ -458,6 +478,10 @@ template <class Type> std::pair<cPtxd<Type,3>,Type> cRotation3D<Type>::ExtractAx
 template <class Type> cPtxd<Type,3> cRotation3D<Type>::Axe() const { return ExtractAxe().first; }
 template <class Type> Type cRotation3D<Type>::Angle() const { return ExtractAxe().second; }
 
+template <class Type> Type cRotation3D<Type>::Dist(const cRotation3D<Type> & aR2) const 
+{ 
+   return  Mat().L2Dist(aR2.Mat());
+}
 
 
 /*

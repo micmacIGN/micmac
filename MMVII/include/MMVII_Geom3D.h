@@ -142,9 +142,13 @@ template <class Type> class cRotation3D
         /// return a random small elem,  +or- with uniform density on tangent space (whatever it means)
         static cRotation3D<Type> RandomSmallElem(const Type & aAmpl);
 
+        Type Dist(const  cRotation3D<Type> &) const;
+
+        /// this function must defined for differentiable group considered as variety
+        static cRotation3D<Type>  Centroid(const std::vector<cRotation3D<Type>> & aV,const std::vector<double> &);
 
        //  0-> arround I, 1->arround J ...
-       static cRotation3D RotArroundKthAxe(int aNum);
+        static cRotation3D RotArroundKthAxe(int aNum);
        
        //// Compute a normal repair, first vector being colinear to P1, second in the plane P1,P2
       // static cRotation3D<Type> CompleteRON(const tPt & aP0,const tPt & aP1);

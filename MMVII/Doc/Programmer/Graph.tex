@@ -119,7 +119,7 @@ This is why we have two type of attribute for the edges :
 \end{itemize}
 
 The distinction between oriented and non-oriented graphs will be done when runing algorithms and through their
-parametrisation (see~\ref{Graph:Algo}). Typically, in the computation of the shortest path on a road network
+parametrisation (see~\ref{Graph:AlgoBasic}). Typically, in the computation of the shortest path on a road network
 with one way roads, the parametrisation will use $\AttrEOr$; while when computing the minimum spaning tree, 
 the parametrization will use  $\AttrESym$.
 
@@ -158,7 +158,7 @@ be written) section of graph on group, to see a concrete example.
 %   ------------------------------------------------------------------
 
 \section{The basic algorithms}
-\label{Graph:Algo}
+\label{Graph:AlgoBasic}
 
 %   ------------------------------------------------------------------
 
@@ -259,8 +259,157 @@ This value written can be of interest :
 Not very clear \dots and to complete by adding a way to memorize the vertices that have been reached.
 
 
+%   ------------------------------------------------------------------
+%   ------------------------------------------------------------------
+%   ------------------------------------------------------------------
+
+\section{The cycles-enumeration algorithm}
+
+\label{Graph:AlgoEnumCycles}
+
+%   ------------------------------------------------------------------
+
+\subsection{Introduction}
+
+The file {\tt MMVII\_Tpl\_GraphAlgo\_EnumCycles.h} contains class for computing all the
+cycles of a graph $G$  of lenght inferior or equal to a given threshold $n$. 
+
+Note that the problem is intrisically non polynomial because the size of the solution
+is something like $\mathcal{O}(D^n)$ where $D$ is the average connectivity of $G$. So
+obviously it can be called only with small values of $n$, whatever mean small (depending
+of $D$, $card(G)$, user's patience \dots).  This said, the implementation we provide
+is as efficient as it can be, which means that :
 
 
+\begin{itemize}
+   \item  has a cost no (much ?)  more than $Nb$ where $Nb$ is the size of the solution;
+   \item  don't store explicitely all the computed cycles, which can be memory consuming, but 
+          execute some user action when a cycle is found.
+\end{itemize}
+
+Also, there are is different possible definitions of what we call a cycle of size $n$, we can :
+
+\begin{itemize}
+   \item  accept or not that the cycle goes several times through the same vertex;
+   \item  accept or not that the cycle goes several times through the same edge.
+\end{itemize}
+
+In our current implementation we accept the first but not the second.  Note that if required,
+option  can be easily added to  extend to others possible definition.
+The algorithm we use can be presented in two step : first, given a edge $E=\GrEdgAB$, compute all the
+closed loop of size $\leq n$ which start from $v_2$ and ends to $v_1$.  Then define an algorithm
+that compute all the cycle of graph.
+
+
+%   ------------------------------------------------------------------
+
+\subsection{Computing cycle going through a given edge}
+
+\label{Graph:AlgoEC:OneEdge}
+
+Basically, the algorithm is quite simple, it's just a recursive exlporation. Note
+$Expl(P)$, the function that explorate all the path leading to $v_1$ ,  with the path $P =\{v_1,v_2,\dots,v\}$ ,
+then the recursion is :
+
+\begin{itemize}
+    \item  start with $Expl(\{v_1,v_2\})$  ;
+    \item  if $v_k=v_1$, we have cycle : do whatever must done with it (here call the user's callback method);
+    \item  if $k\geq n$, return we are too far;
+    \item  for all vertices $N^i(v_k)$ neighbours of $v_k$, call recursively  $Expl(\{v_1, \dots v_k,  N^i(v_k)\})$
+\end{itemize}
+
+This said, we must assure efficiently that we go only once throush each edge.  This is done by a marking
+system \footnote{done with bit-flag allocation} such that :
+
+\begin{itemize}
+    \item we never explorate an edge marked;
+    \item before exploring each edge of the neighbour, we mark it;
+    \item after exploration we unmark it.
+\end{itemize}
+
+Another improvement is to avoid to go to far from $v_1$, at distance where there is no longer
+hope to \emph{close the loop}. This is done this way, correctness of these "cuts" being
+a consequence of \emph{triangular inequality} :
+
+\begin{itemize}
+   \item   note $d_G(A,B)$ the lenght of shortest path between $A$ and $B$ in $G$, it's a distance;
+
+   \item  note $S(A,d)$ the \emph{sphere} defined by $ B \in S(A,d) \Leftrightarrow d_G(A,B) \leq d$;
+
+   \item  before begining the recursion we compute $d_G(v_1,V)$ for all vertices in sphere $S_0 = S(v_1,\frac{n}{2})$ and mark them ,
+           this can be done efficiently with shortest pathes methods described bellow;
+
+   \item  in recursive exploration if $v_k \notin  S_0$ , dont explorate, we will never close the loop;
+
+   \item  if $v_k \in  S_0$  but $k + d_G(v_1,v_k) > n$ , dont explorate, we will never close the loop.
+\end{itemize}
+
+%   ------------------------------------------------------------------
+
+\subsection{Computing all the cycle}
+
+\label{Graph:AlgoEC:AllC}
+
+We could use naively the previous algorithm for each edge of the graph. But consider the cycle
+$ABCD$, this naive implementation would extract $4$ times the cycle (begining by $AB$ then $BC$ \dots).
+What we want, is to explorate once and only once this cycle. We start from the following basic remarks :
+
+\begin{itemize}
+   \item the cycle of lenght $n$ can be splited in two subsets : those that contain $AB$ and those
+         that dont contains $AB$;
+
+   \item the exploration of cycles containing $AB$ can be done using the algorithm defined in \ref{Graph:AlgoEC:OneEdge}
+
+   \item once those computed, we can mark $AB$ as a \emph{forbiden} edge and those not containing $AB$ will be "naturally"
+         explorated.
+\end{itemize}
+
+With these remarks,  the implementation for explorating all cycle is quite simple : for all edges $E$, explorated the cycle
+going through $E$ taking into account previous marking, mark temporarilly $E$ as not usable.
+
+
+%   ------------------------------------------------------------------
+
+\subsection{Using the code}
+
+The class implementing these algorithm are located in  {\tt MMVII\_Tpl\_GraphAlgo\_EnumCycles.h}. It mainly
+defines two classes :
+
+\begin{itemize}
+    \item the class {\tt cActionOnCycle}, it's a pure virtual class, it's the base class for user's action
+          to be executed each time a cycle is encountered;
+
+    \item the class {\tt cAlgoEnumCycle}, that containt method to explorate all the cycles going through
+          one edge, or all the cycles of the graph  (with length inferior to a given value);
+
+     \item in the call back of an  {\tt cActionOnCycle}, the user receive the {\tt cAlgoEnumCycle} as parameter,
+           which give access to the current path (and possibly later to others thing).
+\end{itemize}
+
+In the file {\tt BenchGraph.cpp} there is test on the correctness of the implementaion. It can be used
+ as concrete  example of use of theses classes :
+
+\begin{itemize}
+   \item the class {\tt cCheckCycle}, that is a concrete derivate of  {\tt cActionOnCycle}, it action when called by
+          {\tt OnCycle()}, is 
+         \begin{itemize}
+             \item test that the path is in fact a cycle
+             \item accumulate information on all the cycles encountered : count them, accumulate a set of h-code on the cycles
+         \end{itemize}
+
+    \item the method  {\tt cBGG\_Graph::EnumCycle\_1Edge()} enumerate the cycle going trough an edge, and check that the number
+          encountered is equal to some expected values;
+
+    \item the method  {\tt cBGG\_Graph::Bench\_EnumCycle()} 
+         \begin{itemize}
+               \item   call previous one with some simple values (for which it was possible
+                       to make the computation by hand);  
+                \item also call the method {\tt ExplorateAllCycles()} and check that the cycles computed globally, 
+                      using the marking system described in~\ref{Graph:AlgoEC:AllC} , are the same that those obtained
+                       with individual computation.
+         \end{itemize}
+
+\end{itemize}
 
 
     % = = = = = = = = = = = = = = = = = = = = = = =
