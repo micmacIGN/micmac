@@ -38,6 +38,7 @@ class  cCalculMetaDataProject;
 class  cGlobCalculMetaDataProject;
 class  cBA_Topo;
 class  cBA_GCP;
+class  cTripletSet;
 
 /**  helper for cPixelDomain, as the cPixelDomain must be serialisable we must separate the
  * minimal data for description, with def contructor from the more "sophisticated" object  */
@@ -439,6 +440,7 @@ class cPhotogrammetricProject
 	  const std::string & TaggedNameDefSerial() const; /// short to Appli.Nam...
 	  const std::string & VectNameDefSerial() const; /// short to Appli.Nam...
 	  cDirsPhProj &   DPOrient(); ///< Accessor
+      cDirsPhProj &   DPOriTriplets(); ///< Accessor
 	  cDirsPhProj &   DPRadiomData(); ///< Accessor
 	  cDirsPhProj &   DPRadiomModel(); ///< Accessor
 	  cDirsPhProj &   DPMeshDev(); ///< Accessor
@@ -454,6 +456,7 @@ class cPhotogrammetricProject
 	  cDirsPhProj &   DPMeasuresClino();    ///<  Accessor  // RIGIDBLOC
 				    
 	  const cDirsPhProj &   DPOrient() const; ///< Accessor
+      const cDirsPhProj &   DPOriTriplets() const; ///< Accessor
 	  const cDirsPhProj &   DPRadiomData() const; ///< Accessor
 	  const cDirsPhProj &   DPRadiomModel() const; ///< Accessor
 	  const cDirsPhProj &   DPMeshDev() const; ///< Accessor
@@ -514,6 +517,12 @@ class cPhotogrammetricProject
           cPerspCamIntrCalib *  InternalCalibFromImage(const std::string &aNameIm) const;
 	  ///  compute the standard name of calibration before reading it
 	  cPerspCamIntrCalib *  InternalCalibFromStdName (const std::string aNameIm) const;
+
+    //===================================================================
+    //==================   ORIENTATION OF TRIPLETS    ==================
+    //===================================================================
+    void SaveTriplets(const cTripletSet&) const;
+    cTripletSet * ReadTriplets() const;
 
 	 //===================================================================
          //==================   RADIOMETRY       =============================
@@ -770,6 +779,7 @@ class cPhotogrammetricProject
           cChangeSysCo          mChSysCo;
 
 	  cDirsPhProj     mDPOrient;
+      cDirsPhProj     mDPOriTriplets;         ///> For triplets of images
 	  cDirsPhProj     mDPRadiomData;
 	  cDirsPhProj     mDPRadiomModel;
 	  cDirsPhProj     mDPMeshDev;
