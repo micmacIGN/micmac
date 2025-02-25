@@ -136,7 +136,7 @@ template <class TGraph> void  cAlgoEnumCycle<TGraph>::ExplorateCyclesOneEdge(tEd
            true,
            {&anE.VertexInit()},
            cAlgo_ParamVG<TGraph>(),
-           cAlgo_SubGrCostOver<TGraph>(mMaxSzCycle)
+           cAlgo_SubGrCostOver<TGraph>(mMaxSzCycle/2)
      );
 
      mCurPath =  std::vector<tEdge*> {&anE};  // current path  begin with anE
