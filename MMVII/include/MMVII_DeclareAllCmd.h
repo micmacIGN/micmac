@@ -116,6 +116,7 @@ extern cSpecMMVII_Appli TheSpec_MergeMesImGCP;
 extern cSpecMMVII_Appli  TheSpec_ExifData;
 
 extern cSpecMMVII_Appli  TheSpec_PerturbRandomOri;
+extern cSpecMMVII_Appli  TheSpec_ImportTriplet;
 
 };
 

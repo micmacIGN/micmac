@@ -8,7 +8,7 @@
 #include "MMVII_Clino.h"
 #include "cExternalSensor.h"
 #include "MMVII_Topo.h"
-
+#include "MMVII_PoseTriplet.h"
 
 /**
    \file  cPhotogrammetricProject.cpp
@@ -295,6 +295,7 @@ cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
     mCurSysCo         (nullptr),
     mChSysCo          (),
     mDPOrient         (eTA2007::Orient,*this),
+    mDPOriTriplets    (eTA2007::OriTriplet,*this),
     mDPRadiomData     (eTA2007::RadiomData,*this),
     mDPRadiomModel    (eTA2007::RadiomModel,*this),
     mDPMeshDev        (eTA2007::MeshDev,*this),
@@ -334,6 +335,7 @@ void cPhotogrammetricProject::FinishInit()
 
 
     mDPOrient.Finish();
+    mDPOriTriplets.Finish();
     mDPRadiomData.Finish();
     mDPRadiomModel.Finish();
     mDPMeshDev.Finish();
@@ -399,6 +401,7 @@ const std::string & cPhotogrammetricProject::TaggedNameDefSerial() const {return
 const std::string & cPhotogrammetricProject::VectNameDefSerial() const {return mAppli.VectNameDefSerial();}
 
 cDirsPhProj &   cPhotogrammetricProject::DPOrient() {return mDPOrient;}
+cDirsPhProj &   cPhotogrammetricProject::DPOriTriplets() {return mDPOriTriplets;}
 cDirsPhProj &   cPhotogrammetricProject::DPRadiomData() {return mDPRadiomData;}
 cDirsPhProj &   cPhotogrammetricProject::DPRadiomModel() {return mDPRadiomModel;}
 cDirsPhProj &   cPhotogrammetricProject::DPMeshDev() {return mDPMeshDev;}
@@ -414,6 +417,7 @@ cDirsPhProj &   cPhotogrammetricProject::DPMeasuresClino() {return mDPMeasuresCl
 cDirsPhProj &   cPhotogrammetricProject::DPTopoMes() {return mDPTopoMes;} // TOPO
 
 const cDirsPhProj &   cPhotogrammetricProject::DPOrient() const {return mDPOrient;}
+const cDirsPhProj &   cPhotogrammetricProject::DPOriTriplets() const {return mDPOriTriplets;}
 const cDirsPhProj &   cPhotogrammetricProject::DPRadiomData() const {return mDPRadiomData;}
 const cDirsPhProj &   cPhotogrammetricProject::DPRadiomModel() const {return mDPRadiomModel;}
 const cDirsPhProj &   cPhotogrammetricProject::DPMeshDev() const {return mDPMeshDev;}
@@ -1230,6 +1234,23 @@ std::vector<std::string> cPhotogrammetricProject::ReadTopoMes() const
         //  =============  Meta Data =================
 
 //  see cMetaDataImages.cpp
+
+static std::string PrefixTripletSet = "TripletSet_";
+
+void cPhotogrammetricProject::SaveTriplets(const cTripletSet &aSet) const
+{
+    std::string aName =  mDPOriTriplets.FullDirOut() + PrefixTripletSet + aSet.Name() + ".xml";
+    StdOut() << "aName: " << aName << std::endl;
+    aSet.ToFile(aName);
+}
+
+cTripletSet * cPhotogrammetricProject::ReadTriplets() const
+{
+    std::vector<std::string> aVNames = GetFilesFromDir(mDPOriTriplets.FullDirIn(),AllocRegex(PrefixTripletSet+".*"));
+
+    return cTripletSet::FromFile(mDPOriTriplets.FullDirIn()+aVNames[0]);
+
+}
 
 
 }; // MMVII

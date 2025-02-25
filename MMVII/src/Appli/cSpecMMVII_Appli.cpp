@@ -261,6 +261,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_MergeMesImGCP);
         TheVecAll.push_back(&TheSpec_ExifData);
         TheVecAll.push_back(&TheSpec_PerturbRandomOri);
+        TheVecAll.push_back(&TheSpec_ImportTriplet);
 
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
