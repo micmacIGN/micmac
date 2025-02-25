@@ -37,17 +37,17 @@ namespace MMVII
  
        We want to compute (up to a global mapping) the Mk using the relation :
 
-           - Mi  = Mj *  m_ij   ;      i.e  :   Mi (Pi) = Pw = Mj(Pj) = Mj(m_ij(Pi)) 
+           - Mi  = Mj *  m_ij   ;      i.e  :   Mi (Pi) = Pw = Mj(Pj) = Mj(m_ij(Pi))   [#F1]
 
         We have the relation :
 
-              m_jk *  m_ij = m_ij
+              m_jk *  m_ij = m_ij  
 
-       If the estimation were "perferct" we would have :
+       If the estimation were "perferct" we would have for any cycle :
 
-             m_ij 
+            m_da   m_cd   m_bc  m_ab  = "m_aa" = Ident
 
-       In the most general case, we have several estimation of 
+       In the most general case, we have several estimation of  m_ij note it m_ij,k
          
 */
 
@@ -72,7 +72,8 @@ namespace MMVII
 
 template <class TGroup>  class cGGA_EdgeOr;    //  Group-Grap Edge-Oriented Attribute
 template <class TGroup>  class cGGA_EdgeSym;   //  Group-Grap Edge-Symetric Attribute
-template <class TGroup>  class cGG_1ElemSym;   //  1-element of group graph
+template <class TGroup>  class cGG_1HypInit;   //  1-element of group graph
+template <class TGroup>  class cGG_1HypComputed;   //  1-element of group graph
 template <class TGroup>  class cGGA_Vertex;    //  Group-Graph Vertex Attribute
 template <class TGroup>  class cGroupGraph;    //  Group Graph
 
@@ -93,23 +94,32 @@ template <class TGroup>  class cGGA_EdgeOr
 /*                                                           */
 /* ********************************************************* */
 
-
-template <class TGroup>  class cGG_1ElemSym
+template <class TGroup>  class cGG_1HypInit
 {
-    public  :
-      cGG_1ElemSym(const TGroup & aG,tREAL8 aW) : 
+   public :
+      cGG_1HypInit(const TGroup & aG,tREAL8 aW) :
+           mW0       (aW), 
            mMarked   (false) , 
            mVal      (aG), 
-           mW0       (aW), 
-           mWeight   (aW) ,
-           mNoiseSim (0.0)
+           mNoiseSim (0)
       {}
 
-      bool     mMarked;
-      TGroup   mVal;
-      tREAL8   mW0;
+
+      tREAL8   mW0;        // initial weight 
+      bool     mMarked;    // used as temporary mark in clustering
+      TGroup   mVal;       // Value of the map/group
+      tREAL8   mNoiseSim;  // Noise used in/if simulation
+};
+
+template <class TGroup>  class cGG_1HypComputed : public cGG_1HypInit<TGroup>
+{
+    public  :
+      cGG_1HypComputed(const TGroup & aG,tREAL8 aW) : 
+           cGG_1HypInit<TGroup> (aG,aW),
+           mWeight              (aW) // weight = initial weight
+      {}
+
       tREAL8   mWeight;
-      tREAL8   mNoiseSim;
       cWeightAv<tREAL8,tREAL8> mWeightedDist;
 };
 
@@ -117,47 +127,52 @@ template <class TGroup>  class cGG_1ElemSym
 template <class TGroup>  class cGGA_EdgeSym
 {
      public :
-          typedef cGG_1ElemSym<TGroup>  t1Elem;
+          typedef cGG_1HypInit<TGroup>       t1HypInit;
+          typedef cGG_1HypComputed<TGroup>   t1HypComp;
+
           typedef std::pair<TGroup,int> tPairGI;
 
-          std::vector<t1Elem> &  ValuesCur() {return mValuesCur;}
-          t1Elem & Add1Value(const TGroup& aVal,tREAL8 aW);
+          std::vector<t1HypComp> &  ValuesComp() {return mValuesComp;}
+          t1HypInit & Add1Value(const TGroup& aVal,tREAL8 aW);
           void DoCluster(int aNbMax,tREAL8 aDist);
          
      private :
 
           /// for a given center return a score (+- weighted count of element not marked closed enough)
-          tREAL8  CenterClusterScore(const t1Elem &,tREAL8 aDist) const;
+          tREAL8  CenterClusterScore(const TGroup &,tREAL8 aDist) const;
 
           ///  Add the next best center of the cluster
           bool  GetNextBestCCluster(tREAL8 aThDist);
 
 
-          std::vector<t1Elem>  mValuesCur;
-          std::vector<t1Elem>  mValuesInit;
+          std::vector<t1HypComp>  mValuesComp;
+          std::vector<t1HypInit>  mValuesInit;
 };
 
-template <class TGroup> tREAL8 cGGA_EdgeSym<TGroup>::CenterClusterScore(const t1Elem & aC,tREAL8 aThrDist) const
+
+template <class TGroup> tREAL8 cGGA_EdgeSym<TGroup>::CenterClusterScore(const TGroup & aG,tREAL8 aThrDist) const
 {
    tREAL8 aSum = 0.0;
    for (const auto & aVal : mValuesInit)
    {
        if (! aVal.mMarked)
        {
-          tREAL8 aD = aC.mVal.Dist(aVal.mVal);
+          tREAL8 aD = aG.Dist(aVal.mVal);
           aSum += CubAppGaussVal(aD/aThrDist);
        }
    }
    return aSum;
 }
 
+
+
 template <class TGroup> bool  cGGA_EdgeSym<TGroup>::GetNextBestCCluster(tREAL8 aThrDist)
 {
      /// extract the element with best score
-     cWhichMax<t1Elem*,tREAL8> aWMaxEl;
+     cWhichMax<t1HypInit*,tREAL8> aWMaxEl;
      for (auto & aV : mValuesInit)
      {
-           aWMaxEl.Add(&aV,CenterClusterScore(aV,aThrDist));
+           aWMaxEl.Add(&aV,CenterClusterScore(aV.mVal,aThrDist));
      }
 
      TGroup aResult = TGroup::Identity();
@@ -205,19 +220,17 @@ template <class TGroup> bool  cGGA_EdgeSym<TGroup>::GetNextBestCCluster(tREAL8 a
 
      if (aNbOk!=0)
      {
-          mValuesCur.push_back(t1Elem(aResult,aNbOk));
-          mValuesCur.back().mNoiseSim = aSumNoise/aNbOk;
+          mValuesComp.push_back(t1HypComp(aResult,aNbOk));
+          mValuesComp.back().mNoiseSim = aSumNoise/aNbOk;
           return true;
      }
 
      return false;
 }
 
-
-
 template <class TGroup> void cGGA_EdgeSym<TGroup>::DoCluster(int aNbMax,tREAL8 aDist)
 {
-    mValuesCur.clear();
+    mValuesComp.clear();
     for (int aKNew=0 ; aKNew<aNbMax ; aKNew++)
     {
         bool Ok = GetNextBestCCluster(aDist);
@@ -230,9 +243,9 @@ template <class TGroup> void cGGA_EdgeSym<TGroup>::DoCluster(int aNbMax,tREAL8 a
 }
 
 
-template <class TGroup> cGG_1ElemSym<TGroup> & cGGA_EdgeSym<TGroup>::Add1Value(const TGroup& aVal,tREAL8 aW)
+template <class TGroup> cGG_1HypInit<TGroup> & cGGA_EdgeSym<TGroup>::Add1Value(const TGroup& aVal,tREAL8 aW)
 {
-    mValuesInit.push_back(t1Elem(aVal,aW));
+    mValuesInit.push_back(t1HypInit(aVal,aW));
     return mValuesInit.back();
 }
 
@@ -262,13 +275,12 @@ template <class TGroup>
 {
 }
 
+
 /* ********************************************************* */
 /*                                                           */
 /*                     cGroupGraph                           */
 /*                                                           */
 /* ********************************************************* */
-
-//template  <class TGroup>  cGG_OnCycle  : public cActionOnCycle<
 
 
 template <class TGroup>  
@@ -279,7 +291,9 @@ template <class TGroup>
           typedef cGGA_Vertex<TGroup>   tAVert;
           typedef cGGA_EdgeOr<TGroup>   tAEOr;
           typedef cGGA_EdgeSym<TGroup>  tAESym;
-          typedef cGG_1ElemSym<TGroup>  t1ElemSym;
+          //  typedef cGG_1HypInit<TGroup>  t1ElemSym;
+          typedef cGG_1HypInit<TGroup>       t1HypInit;
+          typedef cGG_1HypComputed<TGroup>   t1HypComp;
 
           typedef cVG_Graph<tAVert,tAEOr,tAESym> tGraph;
           typedef typename tGraph::tVertex       tVertex;
@@ -293,8 +307,8 @@ template <class TGroup>
           tVertex &  AddVertex(const std::string & aName);
           tVertex &  VertexOfName(const std::string & aName);
 
-          t1ElemSym & AddEdge(tVertex& aN1,tVertex& aN2,const TGroup &,tREAL8 aW);
-          t1ElemSym & AddEdge(const std::string & aN1,const std::string & aN2,const TGroup &,tREAL8 aW);
+          t1HypInit & AddEdge(tVertex& aN1,tVertex& aN2,const TGroup &,tREAL8 aW);
+          t1HypInit & AddEdge(const std::string & aN1,const std::string & aN2,const TGroup &,tREAL8 aW);
 
           static TGroup  ValOrient(const TGroup& aG,const tEdge & anE) { return anE.IsDirInit() ? aG : aG.MapInverse(); }
 
@@ -303,22 +317,29 @@ template <class TGroup>
           class cGG_OnCycle  : public cActionOnCycle<tGrGr>
           {
              public :
-                void OnCycle(const cAlgoEnumCycle<tGrGr> &) override;
                 cGG_OnCycle();
 
-                void   RecursOnCycle(const TGroup &,size_t aDepth,tREAL8 aW);
+                /// call back for exploring all cycles
+                void OnCycle(const cAlgoEnumCycle<tGrGr> &) override;
 
-                int mNbC;
-                int mNbHyp;
-                std::vector<t1ElemSym*> mVCurHyp;
+                /// method to recusrively explorate all the combination of hypothesis of a given cycle
+                void   RecursOnCycle
+                       (
+                            const TGroup &,
+                            size_t aDepth,
+                            tREAL8 aW
+                       );
+
+                std::vector<t1HypComp*> mVCurHyp;
                 std::vector<tEdge*>     mVCurPath;
           };
 
     protected :
-           tGraph * mGraph;
-           bool     mClusterDone;
-           std::map<std::string,tVertex*>  mMapV;
+           tGraph * mGraph;   // the graph itself
+           bool     mClusterDone; // have we already done the clustering
+           std::map<std::string,tVertex*>  mMapV;  // Map Name->Vertex , for user can access by name
 };
+
 
      /* ********************************************************* */
      /*                                                           */
@@ -327,19 +348,17 @@ template <class TGroup>
      /* ********************************************************* */
 
 template  <class TGroup>  
-  cGroupGraph<TGroup>::cGG_OnCycle::cGG_OnCycle() :
-      mNbC   (0),
-      mNbHyp (0)
+  cGroupGraph<TGroup>::cGG_OnCycle::cGG_OnCycle() 
 {
 }
 
 template  <class TGroup>  
    void cGroupGraph<TGroup>::cGG_OnCycle::OnCycle(const cAlgoEnumCycle<tGrGr> & anAlgo) 
 {
-   mNbC++;
-   mNbHyp=0;
+   // store a local copy of the path
    mVCurPath = anAlgo.CurPath();
    
+   // Throw recursive exploration 
    RecursOnCycle(TGroup::Identity(),0,1.0);
 }
 
@@ -350,19 +369,16 @@ template  <class TGroup>
     if (aDepth==mVCurPath.size())
     {
        tREAL8 aDist = aG.Dist(TGroup::Identity());
-       //  StdOut() << "DDDD "  << aDist  << " W=" << aW << " D=" << aDepth << "\n";
        MMVII_INTERNAL_ASSERT_tiny(mVCurHyp.size()==aDepth,"RecursOnCycle -> Depth");
        for (auto & aPtrH : mVCurHyp)
        {
            aPtrH->mWeightedDist.Add(aW,aDist);
        }
-       // mNbHyp ++;
-       mNbHyp += aW;
        return;
     }
 
     tEdge & anE = * mVCurPath.at(aDepth);
-    for (auto & anElem : anE.AttrSym().ValuesCur())
+    for (auto & anElem : anE.AttrSym().ValuesComp())
     {
         mVCurHyp.push_back(&anElem);
         // Ori_2->1 * Ori_3->2 * Ori_4->3 ...
@@ -408,7 +424,7 @@ template <class TGroup>
 }
 
 template <class TGroup>  
-    cGG_1ElemSym<TGroup>& cGroupGraph<TGroup>::AddEdge(tVertex & aV1,tVertex & aV2,const TGroup& aG,tREAL8 aW)
+    cGG_1HypInit<TGroup>& cGroupGraph<TGroup>::AddEdge(tVertex & aV1,tVertex & aV2,const TGroup& aG,tREAL8 aW)
 {
     tEdge * anE = aV1.EdgeOfSucc(aV2,SVP::Yes);
     if (anE==nullptr)
@@ -418,12 +434,10 @@ template <class TGroup>
 }
   
 template <class TGroup>  
-   cGG_1ElemSym<TGroup>& cGroupGraph<TGroup>::AddEdge(const std::string & aN1,const std::string & aN2,const TGroup& aG,tREAL8 aW)
+   cGG_1HypInit<TGroup>& cGroupGraph<TGroup>::AddEdge(const std::string & aN1,const std::string & aN2,const TGroup& aG,tREAL8 aW)
 {
    return AddEdge(VertexOfName(aN1),VertexOfName(aN2),aG,aW);
 }
-
-
 
 
 template <class TGroup>  
@@ -448,7 +462,7 @@ template <class TGroup>
    cHistoCumul<tREAL8,tREAL8> aHisto(2*aNbVal+1);
    for (const auto & aPtrE : mGraph->AllEdges_DirInit ())
    {
-       for (const auto & anH : aPtrE->AttrSym().ValuesCur())
+       for (const auto & anH : aPtrE->AttrSym().ValuesComp())
        {
            int aInd = round_ni(anH.mWeightedDist.Average()*aNbVal);
            aHisto.AddV(aInd, anH.mWeightedDist.SW());
@@ -460,7 +474,7 @@ template <class TGroup>
    aHisto.MakeCumul();
    for (const auto & aPtrE : mGraph->AllEdges_DirInit ())
    {
-       for (auto & anH : aPtrE->AttrSym().ValuesCur())
+       for (auto & anH : aPtrE->AttrSym().ValuesComp())
        {
            int aInd = round_ni(anH.mWeightedDist.Average()*aNbVal);
            tREAL8 aMul  = 1.0- aHisto.PropCumul(aInd); 
@@ -498,10 +512,12 @@ template <class TGroup>
 /* ********************************************************* */
 
 
+/*
 template class cGGA_EdgeOr<tRotR>;
 template class cGGA_EdgeSym<tRotR>;
 template class cGGA_Vertex<tRotR>;
 template class cGroupGraph<tRotR>;
+*/
 
 
 
@@ -608,7 +624,7 @@ template <class TGroup> void cBench_G3<TGroup>::Add1Edge(const cPt2di &  aP0,con
         tREAL8 aNoise = RandUnif_C() * (isInLayer ? mNoiseInLayer : mNoiseOutLayer);
         TGroup aRel_2To1 =  aRefRel_2To1 * TGroup::RandomSmallElem(aNoise);
 
-        cGG_1ElemSym<TGroup> & aH =mGG.AddEdge(*(aVal0.mVertex),*(aVal1.mVertex),aRel_2To1,1.0);
+        cGG_1HypInit<TGroup> & aH =mGG.AddEdge(*(aVal0.mVertex),*(aVal1.mVertex),aRel_2To1,1.0);
         aH.mNoiseSim = std::abs(aNoise);
    }
 }
@@ -635,6 +651,12 @@ void BenchGroupGraph(cParamExeBench & aParam)
 }
 
 
+template class cGG_1HypInit<tRotR>;
+template class cGG_1HypComputed<tRotR>;
+template class cGGA_EdgeSym<tRotR>;
+template class cGGA_Vertex<tRotR>;
+template class cGGA_EdgeOr<tRotR>;
+template class cGroupGraph<tRotR>;
 
 
 #if (0)
