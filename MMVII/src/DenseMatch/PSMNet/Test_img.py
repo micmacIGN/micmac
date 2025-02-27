@@ -87,6 +87,9 @@ def test(imgL,imgR):
 def main():
     normal_mean_var = {'mean': [0.485, 0.456, 0.406],
                         'std': [0.229, 0.224, 0.225]}
+    
+    #normal_mean_var = {'mean': [0.485, 0.485, 0.485],
+    #                    'std': [0.229, 0.229, 0.229]}
     infer_transform = transforms.Compose([transforms.ToTensor(),
                                           transforms.Normalize(**normal_mean_var)])    
 

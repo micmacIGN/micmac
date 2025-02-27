@@ -7,7 +7,7 @@ CodeDir=${DenseMDir}"RAFT-Stereo/"
 
 # path to your trained model
 MODELPATH=${CodeDir}"models/iraftstereo_rvc.pth"
-
+#MODELPATH=${CodeDir}"models/raftstereo-sceneflow.pth"
 # disparity scale of the trained model
 #DISPSCALE=-256.0
 ########
