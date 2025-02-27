@@ -149,7 +149,7 @@ class  cBGG_Graph : public cVG_Graph<cBGG_AttrVert,cBGG_AttrEdgOr,cBGG_AttrEdgSy
           typedef typename tGraph::tVertex                              tVertex;
           typedef  tVertex*                                             tPtrV;
           typedef  cAlgoSP<cBGG_Graph>                                  tAlgoSP;
-          typedef  typename tAlgoSP::tSetPairVE                         tSetPairVE;
+          typedef  typename tAlgoSP::tSetEdges                          tSetEdges;
           typedef  cAlgoCC<cBGG_Graph>                                  tAlgoCC;
           typedef  tAlgoSP::tForest                                     tForest;
           typedef  cAlgo_ParamVG<cBGG_Graph>                            tParamA;
@@ -194,7 +194,7 @@ class  cBGG_Graph : public cVG_Graph<cBGG_AttrVert,cBGG_AttrEdgOr,cBGG_AttrEdgSy
           /// Test minimum spaning tree & forest
           void Bench_MinSpanTree(tVertex * aSeed);
           /// Check that computed a tree on a subgraph is a minimum spaning
-          void Check_MinSpanTree(const tSetPairVE& aSet,const tParamA& );
+          void Check_MinSpanTree(const tSetEdges& aSet,const tParamA& );
 
           cPt2di                             mSzGrid;       ///< sz of the grid
           cRect2                             mBox;          ///< Box associated to the  
@@ -354,7 +354,7 @@ void cBGG_Graph::Bench_ShortestPath(tVertex * aV0,tVertex * aV1,int aMode)
     {
        public :
              // weighting is square difference of curvilinear absisca
-             tREAL8 WeightEdge(const tVertex &,const    tEdge & anE) const override
+             tREAL8 WeightEdge(const    tEdge & anE) const override
              { 
                      return Square(anE.AttrOriented().mDeltaAC);
              }
@@ -517,7 +517,7 @@ void cBGG_Graph::Bench_ConnectedComponent(tVertex * aSeed,tVertex * aV1)
 */
 
 
-void cBGG_Graph::Check_MinSpanTree(const tSetPairVE& aSetPair,const tParamA& aParam )
+void cBGG_Graph::Check_MinSpanTree(const tSetEdges& aSetPair,const tParamA& aParam )
 {
      // class of subgr containing edge such that mIsOk is true
      class cASymOk : public  cAlgo_ParamVG<cBGG_Graph>
@@ -532,18 +532,18 @@ void cBGG_Graph::Check_MinSpanTree(const tSetPairVE& aSetPair,const tParamA& aPa
      for (const auto & aPtrAttrSym : this->AllAttrSym())
         aPtrAttrSym-> mIsOk = false;
          // [0.1] set edges of tree to true
-     for (const auto & [aV1,anE] : aSetPair )
+     for (const auto & anE : aSetPair )
          anE->AttrSym().mIsOk = true;
 
 
      //  ------------ [1] parse all edge and supress it alternatively ------------------
-     for (const auto & [aV1,anETree] : aSetPair )
+     for (const auto & anETree : aSetPair )
      {
          // [1.0]  supress the edge in subgraph
          anETree->AttrSym().mIsOk = false;
 
          // [1.1] extract the 2 connected components
-         std::vector<tVertex*>  aCC1 = tAlgoCC::ConnectedComponent(*this,*aV1,cASymOk());
+         std::vector<tVertex*>  aCC1 = tAlgoCC::ConnectedComponent(*this,anETree->VertexInit(),cASymOk());
          std::vector<tVertex*>  aCC2 = tAlgoCC::ConnectedComponent(*this,anETree->Succ(),cASymOk());
 
          // [1.2]   check the sum of size of CC that must be equal to total number of vertices of the tree
@@ -598,7 +598,7 @@ void cBGG_Graph::Bench_MinSpanTree(tVertex * aSeed)
     class cWRanCost : public  cAlgo_ParamVG<cBGG_Graph>
     {
        public :
-             tREAL8 WeightEdge(const tVertex &,const    tEdge & anE) const override
+             tREAL8 WeightEdge(const    tEdge & anE) const override
              { 
                  return anE.AttrSym().mRanCost;
              }
@@ -621,7 +621,7 @@ void cBGG_Graph::Bench_MinSpanTree(tVertex * aSeed)
         aPtrAttrSym-> mRanCost = RandUnif_C();
 
     // [1]  compute global minimal spaning tree
-    tSetPairVE aSetPair = mAlgoSP.MinimumSpanninTree(*this,*aSeed,cWRanCost()).second;
+    tSetEdges aSetPair = mAlgoSP.MinimumSpanninTree(*this,*aSeed,cWRanCost()).second;
     MMVII_INTERNAL_ASSERT_bench((int)aSetPair.size()==(mBox.NbElem()-1),"Size in All_ConnectedComponent");
     //  [1.0]  check that it is effectively the minimal spaning tree
     Check_MinSpanTree(aSetPair,cAlgo_ParamVG<cBGG_Graph>());

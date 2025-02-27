@@ -143,7 +143,7 @@ template <class TGroup>  class cGGA_EdgeSym
           void DoCluster(int aNbMax,tREAL8 aDist);
 
           void SetBestH(t1HypComp * aBestH) {mBestH=aBestH;}
-          t1HypComp * BestH() {return mBestH;}
+          const t1HypComp * BestH() const {return mBestH;}
          
      private :
 
@@ -245,7 +245,16 @@ template <class TGroup>
                 std::vector<t1HypComp*> mVCurHyp;  // stack for hypothesis being explored
           };
 
-          void MakeMinStanTree();
+	  class  cWeightOnBestH : public tParamWG
+	  {
+		  public :
+                      tREAL8 WeightEdge(const    tEdge & anE) const override 
+		      {
+			      return anE.AttrSym().BestH()->mWeightedDist.Average();
+		      }
+
+	  };
+          void MakeMinSpanTree();
 
     protected :
            tGraph * mGraph;   // the graph itself
@@ -562,15 +571,25 @@ template <class TGroup>
 }
 
 template <class TGroup>  
-   void cGroupGraph<TGroup>:: MakeMinStanTree()
+   void cGroupGraph<TGroup>::MakeMinSpanTree()
 {
 
     tForest aForest;
     tAlgoSP anAlgoSP;
-    anAlgoSP.MinimumSpanningForest(aForest,*this,this->AllVertices(), tParamWG());  // extract the forest
+    cWeightOnBestH aWBE;
+    anAlgoSP.MinimumSpanningForest(aForest,*this,this->AllVertices(), aWBE);  // extract the forest
+
+    // Theoreitcally this can happen, but dont want to gandle it 4 now
+    MMVII_INTERNAL_ASSERT_tiny(aForest.size()==1,"cGroupGraph::MakeMinSpanTree Forest size");
+
+    for (const auto &   [aV0,aListEdges] : aForest)
+    {
+        for (const auto & aPtrE : aListEdges)
+        {
+		StdOut() << "W=" << aWBE.WeightEdge(*aPtrE) << " N=" << aPtrE->AttrSym().BestH()->mNoiseSim << "\n";
+	}
+    }
 }
-
-
 
 
 /* ********************************************************* */
@@ -578,9 +597,6 @@ template <class TGroup>
 /*                     cBench_G3                             */
 /*                                                           */
 /* ********************************************************* */
-
-
-
 
 template <class TGroup>  class cBench_G3  // Grid-Group-Graph
 {
@@ -664,6 +680,9 @@ template <class TGroup> void cBench_G3<TGroup>::OneItere(int aSzC,tREAL8 aDistCl
     mGG.OneIterCycles(3,aDistCluster,1.0);
     mGG.OneIterCycles(3,aDistCluster,1.0);
 
+    mGG.MakeMinSpanTree();
+
+    /*
     mGG.OneIterCycles(3,aDistCluster,2.0);
     mGG.OneIterCycles(3,aDistCluster,2.0);
     mGG.OneIterCycles(3,aDistCluster,2.0);
@@ -673,6 +692,7 @@ template <class TGroup> void cBench_G3<TGroup>::OneItere(int aSzC,tREAL8 aDistCl
 
     mGG.OneIterCycles(4,aDistCluster,2.0);
     mGG.OneIterCycles(4,aDistCluster,2.0);
+    */
 
 
 /*
@@ -716,7 +736,6 @@ void BenchGroupGraph(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("GroupGraph")) return;
 
-    // cBench_G3<tRotR> aBG3(cPt2di(17,22),2,4,0.1,0.05,0.5);
 
     cBench_G3<tRotR> aBG3
                      (

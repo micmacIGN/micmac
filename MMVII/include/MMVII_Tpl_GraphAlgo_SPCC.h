@@ -99,7 +99,8 @@ template <class TGraph>  class cAlgo_ParamVG : public cAlgo_SubGr<TGraph>
 	     typedef typename TGraph::tVertex  tVertex;
 	     typedef typename TGraph::tEdge    tEdge;
 
-             virtual tREAL8 WeightEdge(const tVertex &,const    tEdge &) const {return 1.0;}
+             // virtual tREAL8 WeightEdge(const tVertex &,const    tEdge &) const {return 1.0;}
+             virtual tREAL8 WeightEdge(const    tEdge &) const {return 1.0;}
 
 };
 
@@ -138,11 +139,12 @@ template <class TGraph>   class cAlgoSP
 
           //  -------  classes used for defining the result of spaning tree/forest --------------
 
-	  typedef std::pair<tVertex*,tEdge*>      tPairVE;     
-	  typedef std::vector<tPairVE>            tSetPairVE;  // tree = set of edge
+	  // typedef std::pair<tVertex*,tEdge*>      tPairVE;     
+	  //typedef std::vector<tPairVE>            tSetPairVE;  // tree = set of edge
+	  typedef std::vector<tEdge*>            tSetEdges;  // tree = set of edge
           // 1 elem of forest = the tree (set of edge) + the seed,  the seed is required in case of emty egde
           // to reconstruct the solution
-	  typedef std::pair<tVertex*,tSetPairVE>  tTree; 
+	  typedef std::pair<tVertex*,tSetEdges>  tTree; 
 	  typedef std::list<tTree>         tForest;   // A Forest = list of element of forest
           
           const std::vector<tVertex*> & VVertexReached() const {return mVVertexReached;}
@@ -298,7 +300,7 @@ template <class TGraph>
                          {
                             // compute cost, in mode spaning tree just the cost  of reaching a vertex by this edge
                             // is just the cost of the edge, in mode shortest path
-                            tREAL8 aNewCost =  aParam.WeightEdge(*aNewVOut,*anEdge);
+                            tREAL8 aNewCost =  aParam.WeightEdge(*anEdge);
                             if (aModeMinPCC)   // @DIF:SP:MST
                                aNewCost += aNewVOut->mAlgoCost;
                             else
@@ -430,12 +432,12 @@ template <class TGraph>
 
     // compute the edge that were use,
     {
-       tSetPairVE& aSetPair = aTree.second;
+       tSetEdges & aSetPair = aTree.second;
        aSetPair.clear();
        for (const auto aPtrV : mVVertexReached)  // parse reached point
        {
            if (aPtrV->mAlgoFather != nullptr)  // avoid seeds
-              aSetPair.push_back(tPairVE(aPtrV,aPtrV->EdgeOfSucc(*(aPtrV->mAlgoFather))));
+              aSetPair.push_back(aPtrV->EdgeOfSucc(*(aPtrV->mAlgoFather)));
        }
     }
 }
@@ -523,10 +525,10 @@ template <class TGraph>
             aSeed->SetBit0(aBitReached);
             aSeed->SetBit0(aBitOutHeap);
         }
-        for (const auto & [aV,anE] : aVPair)
+        for (const auto & anE : aVPair)
         {
-            aV->SetBit0(aBitReached);
-            aV->SetBit0(aBitOutHeap);
+            anE->VertexInit().SetBit0(aBitReached);
+            anE->VertexInit().SetBit0(aBitOutHeap);
             anE->Succ().SetBit0(aBitReached);
             anE->Succ().SetBit0(aBitOutHeap);
         }
