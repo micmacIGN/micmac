@@ -1,13 +1,15 @@
 #include "MMVII_nums.h"
 #include "MMVII_util_tpl.h"
-#include "MMVII_Geom2D.h"
+// #include "MMVII_Geom2D.h"
 #include "MMVII_Geom3D.h"
 
 #include "MMVII_Tpl_GraphAlgo_SPCC.h"
 #include "MMVII_Tpl_GraphStruct.h"
 #include "MMVII_Tpl_GraphAlgo_EnumCycles.h"
-
 #include "MMVII_Interpolators.h"
+#include "MMVII_Sensor.h"
+
+
 
 namespace MMVII
 {
@@ -265,7 +267,7 @@ template <class TGroup>
 		      }
 
 	  };
-          void MakeMinSpanTree();
+          tREAL8 MakeMinSpanTree();
 
     protected :
            tGraph * mGraph;   // the graph itself
@@ -526,7 +528,6 @@ template <class TGroup>
            aH.mWeightedDist.Reset();
 
 
-   StdOut() << "Begin OneIterCycles \n"; // getchar();
 
    cGG_OnCycle aOnC;
    cAlgoEnumCycle<tGrGr>  aAlgoEnum(*this,aOnC,tSubGr(),aSzMaxC); 
@@ -579,12 +580,10 @@ template <class TGroup>
      aIm = aIm.GaussFilter(aNbVisu/100.0);
      aIm.DIm().ToFile("Histo-DistNoise_Cpt"+ ToStr(mCptC) +  "_SzC"+ ToStr(aSzMaxC) + "_Pow" + ToStr(aPow) +".tif");
    }
-
-   StdOut() << "End OneIterCycles \n";
 }
 
 template <class TGroup>  
-   void cGroupGraph<TGroup>::MakeMinSpanTree()
+   tREAL8 cGroupGraph<TGroup>::MakeMinSpanTree()
 {
 
     tForest aForest;
@@ -595,15 +594,18 @@ template <class TGroup>
     // Theoreitcally this can happen, but dont want to gandle it 4 now
     MMVII_INTERNAL_ASSERT_tiny(aForest.size()==1,"cGroupGraph::MakeMinSpanTree Forest size");
 
-/*
+    tREAL8 aMaxCost = -1.0;
+
     for (const auto &   [aV0,aListEdges] : aForest)
     {
         for (const auto & aPtrE : aListEdges)
         {
-		StdOut() << "W=" << aWBE.WeightEdge(*aPtrE) << " N=" << aPtrE->AttrSym().BestH()->mNoiseSim << "\n";
+            UpdateMax(aMaxCost,aPtrE->AttrSym().BestH()->mNoiseSim);
+            // StdOut() << "W=" << aWBE.WeightEdge(*aPtrE) << " N=" << aPtrE->AttrSym().BestH()->mNoiseSim << "\n";
 	}
     }
-*/
+    // StdOut() << "MAX COST = " << aMaxCost << "\n";
+    return aMaxCost;
 }
 
 
@@ -738,12 +740,16 @@ void BenchGroupGraph(cParamExeBench & aParam)
     {
         cBench_G3<tRotR> aBG3
                      (
-                         cPt2di(52,62),
+                         cPt2di(102,162),
                          3,10,
                          0.2,   //  Prop Out layer
                          0.05,0.0,0.5
                      );
 
+         aBG3.GG().OneIterCycles(3,0.15,1.0,true);
+         aBG3.GG().OneIterCycles(3,0.15,1.0,true);
+         aBG3.GG().OneIterCycles(3,0.15,1.0,true);
+         aBG3.GG().OneIterCycles(3,0.15,1.0,true);
          aBG3.GG().OneIterCycles(3,0.15,1.0,true);
          aBG3.GG().OneIterCycles(3,0.15,1.0,true);
          aBG3.GG().OneIterCycles(3,0.15,1.0,true);
@@ -765,21 +771,73 @@ void BenchGroupGraph(cParamExeBench & aParam)
          aBG3.GG().OneIterCycles(3,0.15,1.0,true);
          aBG3.GG().OneIterCycles(3,0.15,1.0,true);
 
-         aBG3.GG().MakeMinSpanTree();
+         tREAL8 aNoiseMax = aBG3.GG().MakeMinSpanTree();
+
+         StdOut() << "NM=" << aParam.Level() << " "<< aNoiseMax << "\n";
+         // It's "highly probable" that with this random generation, the min span tree will
+         // use only unoised edges, but not 100% (at least I cannot prouve it) so do it only for
+         // 100 first, for which, empirically it was tested to be true
+         if  (aParam.Level() <100)
+         {
+             MMVII_INTERNAL_ASSERT_bench(aNoiseMax==0,"Group graph MakeMinSpanTree ");
+         }
      }
-
-
-
 
     aParam.EndBench();
 }
 
-
+/*
 template class cGG_1HypInit<tRotR>;
 template class cGG_1HypComputed<tRotR>;
 template class cGGA_EdgeSym<tRotR>;
 template class cGGA_Vertex<tRotR>;
 template class cGGA_EdgeOr<tRotR>;
 template class cGroupGraph<tRotR>;
+*/
+
+/* ********************************************************* */
+/*                                                           */
+/*                     cAppli_ArboTriplets                   */
+/*                                                           */
+/* ********************************************************* */
+#if (0)
+class cAppli_ArboTriplets : public cMMVII_Appli
+{
+     public :
+
+        cAppli_ArboTriplets(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
+        int Exe() override;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+     private :
+        cPhotogrammetricProject   mPhProj;
+};
+
+
+cAppli_ArboTriplets::cAppli_ArboTriplets(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
+    cMMVII_Appli (aVArgs,aSpec),
+    mPhProj      (*this)
+{
+}
+
+cCollecSpecArg2007 & cAppli_ArboTriplets::ArgObl(cCollecSpecArg2007 & anArgObl)
+{
+    return anArgObl
+/*
+              << Arg2007(mIm1,"name first image")
+              << Arg2007(mIm2,"name second image")
+              <<  mPhProj.DPOrient().ArgDirInMand("Input orientation for calibration")
+              <<  mPhProj.DPTieP().ArgDirInMand()
+*/
+           ;
+}
+#endif
+
+
+
+
+
+
+
 
 };
