@@ -1,13 +1,15 @@
 #include "MMVII_nums.h"
 #include "MMVII_util_tpl.h"
-#include "MMVII_Geom2D.h"
+// #include "MMVII_Geom2D.h"
 #include "MMVII_Geom3D.h"
 
 #include "MMVII_Tpl_GraphAlgo_SPCC.h"
 #include "MMVII_Tpl_GraphStruct.h"
 #include "MMVII_Tpl_GraphAlgo_EnumCycles.h"
-
 #include "MMVII_Interpolators.h"
+#include "MMVII_Sensor.h"
+
+
 
 namespace MMVII
 {
@@ -69,6 +71,17 @@ namespace MMVII
                 Ori_2->1 * Ori_3->2 * Ori_4->3 ...
 */
 
+template <class TGroup>  
+    TGroup  RandomGroupInInterval(tREAL8 aV0,tREAL8 aV1)
+{
+   TGroup aRes = TGroup::Identity();
+   while (aRes.Dist(TGroup::Identity()) <= aV0)
+        aRes = TGroup::RandomSmallElem(aV1);
+
+
+   return aRes;
+}
+
 
 template <class TGroup>  class cGGA_EdgeOr;    //  Group-Grap Edge-Oriented Attribute
 template <class TGroup>  class cGGA_EdgeSym;   //  Group-Grap Edge-Symetric Attribute
@@ -77,28 +90,25 @@ template <class TGroup>  class cGG_1HypComputed;   //  1-element of group graph
 template <class TGroup>  class cGGA_Vertex;    //  Group-Graph Vertex Attribute
 template <class TGroup>  class cGroupGraph;    //  Group Graph
 
-/* ********************************************************* */
-/*                                                           */
-/*                     cGGA_EdgeOr                           */
-/*                                                           */
-/* ********************************************************* */
+
+/*----------------------------------------- cGGA_EdgeOr --------------------------------------------------*/
+
+/** Oriented attributes of graph-group, nothing to do 4 now */
 
 template <class TGroup>  class cGGA_EdgeOr
 {
      public :
 };
 
-/* ********************************************************* */
-/*                                                           */
-/*                     cGGA_EdgeSym                          */
-/*                                                           */
-/* ********************************************************* */
+/*----------------------------------------- cGG_1HypInit --------------------------------------------------*/
+
+/**  Store an initial hypothesis of relative orientation , the containing several hypothesis */
 
 template <class TGroup>  class cGG_1HypInit
 {
    public :
-      cGG_1HypInit(const TGroup & aG,tREAL8 aW) :
-           mW0       (aW), 
+      cGG_1HypInit(const TGroup & aG,tREAL8 aW0) :
+           mW0       (aW0), 
            mMarked   (false) , 
            mVal      (aG), 
            mNoiseSim (0)
@@ -111,6 +121,10 @@ template <class TGroup>  class cGG_1HypInit
       tREAL8   mNoiseSim;  // Noise used in/if simulation
 };
 
+/*----------------------------------------- cGG_1HypComputed -----------------------------------------------*/
+
+/**  Store a "computed" hypothesis, this is an initial hypothesis + some additionnal info*/
+ 
 template <class TGroup>  class cGG_1HypComputed : public cGG_1HypInit<TGroup>
 {
     public  :
@@ -123,6 +137,9 @@ template <class TGroup>  class cGG_1HypComputed : public cGG_1HypInit<TGroup>
       cWeightAv<tREAL8,tREAL8> mWeightedDist;
 };
 
+/*----------------------------------------- cGGA_EdgeSym -----------------------------------------------*/
+
+/** Store the symetric attribute of a "group-graph", essentially a set of hypothesis + some computation */
 
 template <class TGroup>  class cGGA_EdgeSym
 {
@@ -130,24 +147,143 @@ template <class TGroup>  class cGGA_EdgeSym
           typedef cGG_1HypInit<TGroup>       t1HypInit;
           typedef cGG_1HypComputed<TGroup>   t1HypComp;
 
-          typedef std::pair<TGroup,int> tPairGI;
+          cGGA_EdgeSym() :  mBestH (nullptr) {}
 
-          std::vector<t1HypComp> &  ValuesComp() {return mValuesComp;}
+          std::vector<t1HypComp> &  ValuesComp() {return mValuesComp;} ///< Accessor
+	  /// Add 1 initial hypothesis 
           t1HypInit & Add1Value(const TGroup& aVal,tREAL8 aW);
+	  /// Do the clustering to reduce the number of initial hypothesis
           void DoCluster(int aNbMax,tREAL8 aDist);
+
+          void SetBestH(t1HypComp * aBestH) {mBestH=aBestH;}
+          const t1HypComp * BestH() const {return mBestH;}
          
      private :
 
           /// for a given center return a score (+- weighted count of element not marked closed enough)
           tREAL8  CenterClusterScore(const TGroup &,tREAL8 aDist) const;
 
-          ///  Add the next best center of the cluster
+          ///  Add the next best center of the cluster, return true if added something
           bool  GetNextBestCCluster(tREAL8 aThDist);
 
-
-          std::vector<t1HypComp>  mValuesComp;
+          std::vector<t1HypComp>  mValuesComp;  ///
           std::vector<t1HypInit>  mValuesInit;
+          t1HypComp *             mBestH;
 };
+
+/*----------------------------------------- cGGA_Vertex -----------------------------------------------*/
+
+/** Class for storing the attibute of a vertex of graph-group */
+
+template <class TGroup>  class cGGA_Vertex
+{
+     public :
+          cGGA_Vertex(const std::string & aName) :
+               mName (aName)
+           {
+           }
+          
+     private :
+          std::string         mName;   // name, used a convenient id for real case (pose/image)
+          TGroup              mComputedValue;  // computed value
+};
+
+/*----------------------------------------- cGroupGraph -----------------------------------------------*/
+
+/** Class for manipulating the group - graph */
+
+template <class TGroup>  
+     class cGroupGraph :
+             public cVG_Graph<cGGA_Vertex<TGroup>, cGGA_EdgeOr<TGroup>,cGGA_EdgeSym<TGroup>>
+{
+    public :
+          // -------------------------------------- typedef part ---------------------------
+          typedef cGGA_Vertex<TGroup>   tAVert;
+          typedef cGGA_EdgeOr<TGroup>   tAEOr;
+          typedef cGGA_EdgeSym<TGroup>  tAESym;
+          typedef cGG_1HypInit<TGroup>       t1HypInit;
+          typedef cGG_1HypComputed<TGroup>   t1HypComp;
+
+          typedef cVG_Graph<tAVert,tAEOr,tAESym> tGraph;
+          typedef typename tGraph::tVertex       tVertex;
+          typedef typename tGraph::tEdge         tEdge;
+          typedef cGroupGraph<TGroup>            tGrGr;
+          typedef  cAlgo_SubGr<tGrGr>            tSubGr;
+          typedef  cAlgo_ParamVG<tGrGr>          tParamWG;
+
+          typedef  cAlgoSP<tGrGr>                tAlgoSP;
+          typedef  typename tAlgoSP::tForest     tForest;
+
+
+
+          cGroupGraph(bool ForSimul);
+
+	  /// create a vertex with no value
+          tVertex &  AddVertex(const std::string & aName);
+	  /// Accesor to the vertex of given name (must exist) 
+          tVertex &  VertexOfName(const std::string & aName);
+
+	  ///  Add a new hypothesis
+          t1HypInit & AddHyp(tVertex& aN1,tVertex& aN2,const TGroup &,tREAL8 aW);
+	  ///  facicilty to Add new hypothesis by name
+          t1HypInit & AddHyp(const std::string & aN1,const std::string & aN2,const TGroup &,tREAL8 aW);
+
+	  /// return the value of G taking in E=v1->V2 into account that it may have been set in V2->V1
+          static TGroup  ValOrient(const TGroup& aG,const tEdge & anE) { return anE.IsDirInit() ? aG : aG.MapInverse(); }
+
+	  /// execute one iteration of adding cycles  
+          void OneIterCycles(size_t aSzMaxC,tREAL8 aDistClust,tREAL8 aPow,bool Show);
+
+	  /// Make the clustering of all hypothesis is necessary
+          void DoClustering(tREAL8 aDistClust);
+
+	  ///  class for call-back in cycles enumeration
+          class cGG_OnCycle  : public cActionOnCycle<tGrGr>
+          {
+             public :
+                cGG_OnCycle();
+
+                /// call back for exploring all cycles
+                void OnCycle(const cAlgoEnumCycle<tGrGr> &) override;
+
+                /// method to recusrively explorate all the combination of hypothesis of a given cycle
+                void   RecursOnCycle
+                       (
+                            const TGroup &,  // current group accumulated
+                            size_t aDepth,   // current depth
+                            tREAL8 aW        // current weight accumulated
+                       );
+
+                std::vector<tEdge*>     mVCurPath; // make a local copy of current path
+                std::vector<t1HypComp*> mVCurHyp;  // stack for hypothesis being explored
+          };
+
+	  class  cWeightOnBestH : public tParamWG
+	  {
+		  public :
+                      tREAL8 WeightEdge(const    tEdge & anE) const override 
+		      {
+			      return anE.AttrSym().BestH()->mWeightedDist.Average();
+		      }
+
+	  };
+          tREAL8 MakeMinSpanTree();
+
+    protected :
+           tGraph * mGraph;   // the graph itself
+           bool     mClusterDone; // have we already done the clustering
+           std::map<std::string,tVertex*>  mMapV;  // Map Name->Vertex , for user can access by name
+           int                             mNbVHist;
+           bool                            mForSimul;
+           int                             mCptC;
+};
+
+
+/* ********************************************************* */
+/*                                                           */
+/*                     cGGA_EdgeSym                          */
+/*                                                           */
+/* ********************************************************* */
 
 
 template <class TGroup> tREAL8 cGGA_EdgeSym<TGroup>::CenterClusterScore(const TGroup & aG,tREAL8 aThrDist) const
@@ -155,10 +291,10 @@ template <class TGroup> tREAL8 cGGA_EdgeSym<TGroup>::CenterClusterScore(const TG
    tREAL8 aSum = 0.0;
    for (const auto & aVal : mValuesInit)
    {
-       if (! aVal.mMarked)
+       if (! aVal.mMarked)  // only unmarked are of interest
        {
-          tREAL8 aD = aG.Dist(aVal.mVal);
-          aSum += CubAppGaussVal(aD/aThrDist);
+          tREAL8 aD = aG.Dist(aVal.mVal);     // distance to the proposed center
+          aSum += CubAppGaussVal(aD/aThrDist); // weighting function
        }
    }
    return aSum;
@@ -175,13 +311,15 @@ template <class TGroup> bool  cGGA_EdgeSym<TGroup>::GetNextBestCCluster(tREAL8 a
            aWMaxEl.Add(&aV,CenterClusterScore(aV.mVal,aThrDist));
      }
 
-     TGroup aResult = TGroup::Identity();
-     int  aNbOk =0;
-     tREAL8 aSumNoise = 0.0;
+     // initialise 3 variable usefull for result
+     TGroup aCenterClust = TGroup::Identity();   // center of putative cluster
+     tREAL8 aSumNoise = 0.0;  // sum of noise of cluster (used in simulation)
+     tREAL8 aSumW = 0.0;
+
      if (aWMaxEl.ValExtre() >0) // if an element was added
      {
         // make some iteration of refinement 
-        aResult = aWMaxEl.IndexExtre()->mVal;
+        aCenterClust = aWMaxEl.IndexExtre()->mVal;
         int aNbIter = 3;
         for (int aKIter=0 ; aKIter<aNbIter ; aKIter++)
         {
@@ -191,7 +329,7 @@ template <class TGroup> bool  cGGA_EdgeSym<TGroup>::GetNextBestCCluster(tREAL8 a
              {
                  if (! aVal.mMarked) // is not marked
                  {
-                    tREAL8 aD = aResult.Dist(aVal.mVal);
+                    tREAL8 aD = aCenterClust.Dist(aVal.mVal);
                     tREAL8 aW =  CubAppGaussVal(aD/aThrDist);
                     if (aW != 0) // is close enough
                     {
@@ -202,26 +340,27 @@ template <class TGroup> bool  cGGA_EdgeSym<TGroup>::GetNextBestCCluster(tREAL8 a
              }
              // replace by weighted average
              if (aVW.size() > 0)
-                aResult = TGroup::Centroid(aVG,aVW);
+                aCenterClust = TGroup::Centroid(aVG,aVW);
              else
                 aKIter = aNbIter;
         }
         // at the end mark points close enough and count theme
         for (auto & aVal : mValuesInit)
         {
-            if ((! aVal.mMarked)  && ( aResult.Dist(aVal.mVal)<aThrDist))
+            if ((! aVal.mMarked)  && ( aCenterClust.Dist(aVal.mVal)<aThrDist))
             {
-                  aVal.mMarked = true;
-                  aNbOk ++;
-                  aSumNoise += aVal.mNoiseSim;
+                  aVal.mMarked = true;  
+                  aSumNoise += aVal.mNoiseSim * aVal.mW0;
+		  aSumW += aVal.mW0;
             }
         }
      }
 
-     if (aNbOk!=0)
+     // Ok we got a new center, add it in "mValuesComp"
+     if (aSumW!=0)
      {
-          mValuesComp.push_back(t1HypComp(aResult,aNbOk));
-          mValuesComp.back().mNoiseSim = aSumNoise/aNbOk;
+          mValuesComp.push_back(t1HypComp(aCenterClust,aSumW));
+          mValuesComp.back().mNoiseSim = aSumNoise/aSumW;
           return true;
      }
 
@@ -231,6 +370,7 @@ template <class TGroup> bool  cGGA_EdgeSym<TGroup>::GetNextBestCCluster(tREAL8 a
 template <class TGroup> void cGGA_EdgeSym<TGroup>::DoCluster(int aNbMax,tREAL8 aDist)
 {
     mValuesComp.clear();
+    // compute a maximum of aNbMax cluster
     for (int aKNew=0 ; aKNew<aNbMax ; aKNew++)
     {
         bool Ok = GetNextBestCCluster(aDist);
@@ -239,9 +379,7 @@ template <class TGroup> void cGGA_EdgeSym<TGroup>::DoCluster(int aNbMax,tREAL8 a
             aKNew = aNbMax;
         }
     }
-    //  StdOut() << "DO_CLUSTER " << mValuesInit.size() << " => " << mValuesCur.size() << "\n"; getchar();
 }
-
 
 template <class TGroup> cGG_1HypInit<TGroup> & cGGA_EdgeSym<TGroup>::Add1Value(const TGroup& aVal,tREAL8 aW)
 {
@@ -254,91 +392,10 @@ template <class TGroup> cGG_1HypInit<TGroup> & cGGA_EdgeSym<TGroup>::Add1Value(c
 
 /* ********************************************************* */
 /*                                                           */
-/*                     cGGA_Vertex                           */
-/*                                                           */
-/* ********************************************************* */
-
-
-template <class TGroup>  class cGGA_Vertex
-{
-     public :
-          cGGA_Vertex(const std::string & aName);
-          
-     private :
-          std::string         mName;
-          TGroup              mComputedValue;
-};
-
-template <class TGroup>  
-    cGGA_Vertex<TGroup>::cGGA_Vertex(const std::string & aName)  :
-        mName (aName)
-{
-}
-
-
-/* ********************************************************* */
-/*                                                           */
 /*                     cGroupGraph                           */
 /*                                                           */
 /* ********************************************************* */
 
-
-template <class TGroup>  
-     class cGroupGraph :
-             public cVG_Graph<cGGA_Vertex<TGroup>, cGGA_EdgeOr<TGroup>,cGGA_EdgeSym<TGroup>>
-{
-    public :
-          typedef cGGA_Vertex<TGroup>   tAVert;
-          typedef cGGA_EdgeOr<TGroup>   tAEOr;
-          typedef cGGA_EdgeSym<TGroup>  tAESym;
-          //  typedef cGG_1HypInit<TGroup>  t1ElemSym;
-          typedef cGG_1HypInit<TGroup>       t1HypInit;
-          typedef cGG_1HypComputed<TGroup>   t1HypComp;
-
-          typedef cVG_Graph<tAVert,tAEOr,tAESym> tGraph;
-          typedef typename tGraph::tVertex       tVertex;
-          typedef typename tGraph::tEdge         tEdge;
-          typedef cGroupGraph<TGroup>            tGrGr;
-          typedef  cAlgo_SubGr<tGrGr>            tSubGr;
-
-
-          cGroupGraph();
-
-          tVertex &  AddVertex(const std::string & aName);
-          tVertex &  VertexOfName(const std::string & aName);
-
-          t1HypInit & AddEdge(tVertex& aN1,tVertex& aN2,const TGroup &,tREAL8 aW);
-          t1HypInit & AddEdge(const std::string & aN1,const std::string & aN2,const TGroup &,tREAL8 aW);
-
-          static TGroup  ValOrient(const TGroup& aG,const tEdge & anE) { return anE.IsDirInit() ? aG : aG.MapInverse(); }
-
-          void OneIterCycles(size_t aSzMaxC,tREAL8 aDistClust,bool Show,tREAL8 aPow);
-
-          class cGG_OnCycle  : public cActionOnCycle<tGrGr>
-          {
-             public :
-                cGG_OnCycle();
-
-                /// call back for exploring all cycles
-                void OnCycle(const cAlgoEnumCycle<tGrGr> &) override;
-
-                /// method to recusrively explorate all the combination of hypothesis of a given cycle
-                void   RecursOnCycle
-                       (
-                            const TGroup &,
-                            size_t aDepth,
-                            tREAL8 aW
-                       );
-
-                std::vector<t1HypComp*> mVCurHyp;
-                std::vector<tEdge*>     mVCurPath;
-          };
-
-    protected :
-           tGraph * mGraph;   // the graph itself
-           bool     mClusterDone; // have we already done the clustering
-           std::map<std::string,tVertex*>  mMapV;  // Map Name->Vertex , for user can access by name
-};
 
 
      /* ********************************************************* */
@@ -366,10 +423,13 @@ template  <class TGroup>
 template  <class TGroup>  
    void cGroupGraph<TGroup>::cGG_OnCycle::RecursOnCycle(const TGroup & aG,size_t aDepth,tREAL8 aW)
 {
+    // if we have finish the path
     if (aDepth==mVCurPath.size())
     {
+       // compute the distance to identity at the end of the loop, should be 0 with perfect data
        tREAL8 aDist = aG.Dist(TGroup::Identity());
-       MMVII_INTERNAL_ASSERT_tiny(mVCurHyp.size()==aDepth,"RecursOnCycle -> Depth");
+       MMVII_INTERNAL_ASSERT_tiny(mVCurHyp.size()==aDepth,"RecursOnCycle -> Depth");// litle checj
+       // accumulate the scoring in all hypothesis involved in the computation
        for (auto & aPtrH : mVCurHyp)
        {
            aPtrH->mWeightedDist.Add(aW,aDist);
@@ -377,15 +437,15 @@ template  <class TGroup>
        return;
     }
 
+    // if not finish, parse all the hypothesis of current edge
     tEdge & anE = * mVCurPath.at(aDepth);
     for (auto & anElem : anE.AttrSym().ValuesComp())
     {
-        mVCurHyp.push_back(&anElem);
+        mVCurHyp.push_back(&anElem);  // push in the stack of hypothesie
         // Ori_2->1 * Ori_3->2 * Ori_4->3 ...
-        // ValOrient
         TGroup aNewG = aG * ValOrient(anElem.mVal , anE);
         RecursOnCycle(aNewG,aDepth+1,aW*anElem.mWeight);
-        mVCurHyp.pop_back();
+        mVCurHyp.pop_back(); // restore the stack of hypothesis
     }          
 }
 
@@ -396,9 +456,12 @@ template  <class TGroup>
      /* ********************************************************* */
 
 template <class TGroup>  
-    cGroupGraph<TGroup>::cGroupGraph() :
+    cGroupGraph<TGroup>::cGroupGraph(bool forSimul) :
         mGraph        (this),
-        mClusterDone  (false)
+        mClusterDone  (false),
+        mNbVHist      (1000),
+        mForSimul     (forSimul),
+        mCptC         (0)
 {
 }
 
@@ -407,8 +470,8 @@ template <class TGroup>
     typename cGroupGraph<TGroup>::tVertex &
         cGroupGraph<TGroup>::AddVertex(const std::string & aName) 
 {
+    // 1-check dont exist, 2-create, 3-memorize
     MMVII_INTERNAL_ASSERT_tiny(!MapBoolFind(mMapV,aName),"cGroupGraph, name alrady exist :" +aName);
-
     tVertex * aV = mGraph->NewSom(tAVert(aName));
     mMapV[aName] = aV;
     return *aV;
@@ -424,24 +487,25 @@ template <class TGroup>
 }
 
 template <class TGroup>  
-    cGG_1HypInit<TGroup>& cGroupGraph<TGroup>::AddEdge(tVertex & aV1,tVertex & aV2,const TGroup& aG,tREAL8 aW)
+    cGG_1HypInit<TGroup>& cGroupGraph<TGroup>::AddHyp(tVertex & aV1,tVertex & aV2,const TGroup& aG,tREAL8 aW)
 {
+    //  Add edge if does not exist
     tEdge * anE = aV1.EdgeOfSucc(aV2,SVP::Yes);
     if (anE==nullptr)
        anE = mGraph->AddEdge(aV1,aV2,tAEOr(),tAEOr(),tAESym());
 
+    //  now add the hypothesis to existing edge 
     return anE->AttrSym().Add1Value(ValOrient(aG,*anE),aW);
 }
   
 template <class TGroup>  
-   cGG_1HypInit<TGroup>& cGroupGraph<TGroup>::AddEdge(const std::string & aN1,const std::string & aN2,const TGroup& aG,tREAL8 aW)
+   cGG_1HypInit<TGroup>& cGroupGraph<TGroup>::AddHyp(const std::string & aN1,const std::string & aN2,const TGroup& aG,tREAL8 aW)
 {
-   return AddEdge(VertexOfName(aN1),VertexOfName(aN2),aG,aW);
+   return AddHyp(VertexOfName(aN1),VertexOfName(aN2),aG,aW);
 }
 
-
 template <class TGroup>  
-   void cGroupGraph<TGroup>::OneIterCycles(size_t aSzMaxC,tREAL8 aDistClust,bool Show,tREAL8 aPow)
+   void cGroupGraph<TGroup>::DoClustering(tREAL8 aDistClust)
 {
    if (! mClusterDone)
    {
@@ -449,59 +513,99 @@ template <class TGroup>
        for (auto & anEPtr :  mGraph->AllEdges_DirInit ())
            anEPtr->AttrSym().DoCluster(3,aDistClust);
    }
+}
+
+template <class TGroup>  
+   void cGroupGraph<TGroup>::OneIterCycles(size_t aSzMaxC,tREAL8 aDistClust,tREAL8 aPow,bool Show)
+{
+   mCptC++;
+   // cluster the values is not already done
+   DoClustering(aDistClust);
+
+   // Reset the weights
+   for (auto & aPtrE :  mGraph->AllEdges_DirInit ())
+       for (auto & aH : aPtrE->AttrSym().ValuesComp())
+           aH.mWeightedDist.Reset();
 
 
-   StdOut() << "Begin OneIterCycles \n"; // getchar();
 
    cGG_OnCycle aOnC;
    cAlgoEnumCycle<tGrGr>  aAlgoEnum(*this,aOnC,tSubGr(),aSzMaxC); 
    aAlgoEnum.ExplorateAllCycles();
 
 
-   int aNbVal = 1000;
-   cHistoCumul<tREAL8,tREAL8> aHisto(2*aNbVal+1);
+   // compute the histogramm of mWeightedDist to have some normalization of costs
+   cHistoCumul<tREAL8,tREAL8> aHisto(TGroup::MaxDist()*mNbVHist+1);
    for (const auto & aPtrE : mGraph->AllEdges_DirInit ())
    {
        for (const auto & anH : aPtrE->AttrSym().ValuesComp())
        {
-           int aInd = round_ni(anH.mWeightedDist.Average()*aNbVal);
+           int aInd = round_ni(anH.mWeightedDist.Average()*mNbVHist);
            aHisto.AddV(aInd, anH.mWeightedDist.SW());
        }
    }
-   int aNbV= (Show ? 1000 : 1);
-   cIm2D<tREAL8> aIm(cPt2di(aNbV,aNbV),nullptr,eModeInitImage::eMIA_Null);
-
    aHisto.MakeCumul();
+
+   // In simulation, if we make a visualisation of histo-2D  Weigh/Noise
+   int aNbVisu = (Show ? 1000 : 1);
+   cIm2D<tREAL8> aIm(cPt2di(aNbVisu,aNbVisu),nullptr,eModeInitImage::eMIA_Null);
+
    for (const auto & aPtrE : mGraph->AllEdges_DirInit ())
    {
+       cWhichMin<t1HypComp*,tREAL8> aWHypMin;
        for (auto & anH : aPtrE->AttrSym().ValuesComp())
        {
-           int aInd = round_ni(anH.mWeightedDist.Average()*aNbVal);
-           tREAL8 aMul  = 1.0- aHisto.PropCumul(aInd); 
-           aMul = std::pow(aMul,aPow);
-
-           if (Show) 
+           tREAL8 aWDAvg = anH.mWeightedDist.Average();
+           if (Show)  // Acumulate histogram 2D
            {
-              tREAL8 aD = anH.mWeightedDist.Average();
-              tREAL8 aN = anH.mNoiseSim;
-              cPt2dr aPDN(aD*aNbV,aN*aNbV);
+              // tREAL8 aD = anH.mWeightedDist.Average();  // weight dist of cycles
+              tREAL8 aN = anH.mNoiseSim;                // noise of simulation
+              cPt2dr aPDN(aWDAvg*aNbVisu,aN*aNbVisu);       // point to accumulate
               if (aIm.DIm().InsideBL(aPDN))
               {
                  aIm.DIm().AddVBL(aPDN,100.0);
               }
            }
-           anH.mWeight =  anH.mW0 * aMul;
+          
+           tREAL8 aInd = round_ni(aWDAvg*mNbVHist); // index in histo
+           tREAL8 aMul  = 1.0- aHisto.PropCumul(aInd) + 1.0/mNbVHist;    //  Mul = 1-Rank, + eps to avoid 0
+           aMul = std::pow(aMul,aPow);                                   // pow : exagerate good rank
+           anH.mWeight =  anH.mW0 * aMul;                                // weigh = Weightinit * Mul , to not forget pop init
+           aWHypMin.Add(&anH,aWDAvg);
        }
+       aPtrE->AttrSym().SetBestH(aWHypMin.IndexExtre());
    }
    if (Show)
    {
-     aIm = aIm.GaussFilter(aNbV/50.0);
-     aIm.DIm().ToFile("Histo-DistNoise.tif");
+     aIm = aIm.GaussFilter(aNbVisu/100.0);
+     aIm.DIm().ToFile("Histo-DistNoise_Cpt"+ ToStr(mCptC) +  "_SzC"+ ToStr(aSzMaxC) + "_Pow" + ToStr(aPow) +".tif");
    }
-       // StdOut() << " ---------------------------------------------\n";
-           // StdOut()  << "  WD=" << anH.mWeightedDist.Average() << " SW=" << anH.mWeightedDist.SW() << "\n";
+}
 
-   StdOut() << "End OneIterCycles \n";
+template <class TGroup>  
+   tREAL8 cGroupGraph<TGroup>::MakeMinSpanTree()
+{
+
+    tForest aForest;
+    tAlgoSP anAlgoSP;
+    cWeightOnBestH aWBE;
+    anAlgoSP.MinimumSpanningForest(aForest,*this,this->AllVertices(), aWBE);  // extract the forest
+
+    // Theoreitcally this can happen, but dont want to gandle it 4 now
+    MMVII_INTERNAL_ASSERT_tiny(aForest.size()==1,"cGroupGraph::MakeMinSpanTree Forest size");
+
+    tREAL8 aMaxCost = -1.0;
+
+    for (const auto &   [aV0,aListEdges] : aForest)
+    {
+        for (const auto & aPtrE : aListEdges)
+        {
+            UpdateMax(aMaxCost,aPtrE->AttrSym().BestH()->mNoiseSim);
+            // StdOut() << "W=" << aWBE.WeightEdge(*aPtrE) << " N=" << aPtrE->AttrSym().BestH()->mNoiseSim << "\n";
+	}
+    }
+    // StdOut() << "MAX COST = " << aMaxCost << "\n";
+    return aMaxCost;
 }
 
 
@@ -510,16 +614,6 @@ template <class TGroup>
 /*                     cBench_G3                             */
 /*                                                           */
 /* ********************************************************* */
-
-
-/*
-template class cGGA_EdgeOr<tRotR>;
-template class cGGA_EdgeSym<tRotR>;
-template class cGGA_Vertex<tRotR>;
-template class cGroupGraph<tRotR>;
-*/
-
-
 
 template <class TGroup>  class cBench_G3  // Grid-Group-Graph
 {
@@ -535,9 +629,13 @@ template <class TGroup>  class cBench_G3  // Grid-Group-Graph
                   tVertex*   mVertex;
           };
 
-          cBench_G3(const cPt2di & aSz,int aNbMin,int aNbMax,tREAL8 aPropOutLayer,tREAL8 aNoiseInLayer,tREAL8 aNoiseOutLayer);
+          cBench_G3
+          (
+              const cPt2di & aSz,int aNbMin,int aNbMax,tREAL8 aPropOutLayer,
+              tREAL8 aNoiseInLayer,tREAL8 aNoiseMinOutlayer,tREAL8 aNoiseMaxOutLayer
+          );
 
-          void OneItere(int aNbC,tREAL8 aDistC);
+          tGG &    GG() {return mGG;}
 
     private :
          cBG3V & ValOfPt(const cPt2di & aPt) {return mGridVals.at(aPt.y()).at(aPt.x());}
@@ -559,7 +657,8 @@ template <class TGroup>  class cBench_G3  // Grid-Group-Graph
           int mNbMaxE;
           tREAL8 mPropOutLayer;
           tREAL8 mNoiseInLayer;
-          tREAL8 mNoiseOutLayer;
+          tREAL8 mNoiseMinOutLayer;
+          tREAL8 mNoiseMaxOutLayer;
 };
 
 template <class TGroup> 
@@ -567,18 +666,19 @@ template <class TGroup>
     (
         const cPt2di & aSz,
         int aNbMinE,int aNbMaxE,
-        tREAL8 aPropOutLayer,tREAL8 aNoiseInLayer,tREAL8 aNoiseOutLayer
+        tREAL8 aPropOutLayer,tREAL8 aNoiseInLayer,
+        tREAL8 aNoiseMinOutLayer, tREAL8 aNoiseMaxOutLayer
     ) :
-       mSz  (aSz),
-       mBox (cPt2di(0,0),aSz),
-       mGG  (),
-
-       mGridVals       (mSz.y(),std::vector<cBG3V>(mSz.x(),cBG3V())),
-       mNbMinE         (aNbMinE),
-       mNbMaxE         (aNbMaxE),
-       mPropOutLayer   (aPropOutLayer),
-       mNoiseInLayer   (aNoiseInLayer),
-       mNoiseOutLayer  (aNoiseOutLayer)
+       mSz                (aSz),
+       mBox               (cPt2di(0,0),aSz),
+       mGG                (true),
+       mGridVals          (mSz.y(),std::vector<cBG3V>(mSz.x(),cBG3V())),
+       mNbMinE            (aNbMinE),
+       mNbMaxE            (aNbMaxE),
+       mPropOutLayer      (aPropOutLayer),
+       mNoiseInLayer      (aNoiseInLayer),
+       mNoiseMinOutLayer  (aNoiseMinOutLayer),
+       mNoiseMaxOutLayer  (aNoiseMaxOutLayer)
 {
     for (const auto & aPix : mBox)
     {
@@ -595,17 +695,12 @@ template <class TGroup>
           Add1Edge(aPix,aPix+cPt2di(-1,1));
     }
 
+// StdOut() << "Add1EdgeAdd1EdgeAdd1Edge \n"; getchar();
+
 }
 
-template <class TGroup> void cBench_G3<TGroup>::OneItere(int aSzC,tREAL8 aDistCluster)
-{
-    mGG.OneIterCycles(3,aDistCluster,false,1.0);
-    mGG.OneIterCycles(3,aDistCluster,false,2.0);
-    mGG.OneIterCycles(3,aDistCluster,false,3.0);
-    mGG.OneIterCycles(4,aDistCluster,true,3.0);
-    // mGG.OneIterCycles(5,aDistCluster,true,3.0);
-    // mGG.OneIterCycles(6,aDistCluster,true,3.0);
-}
+
+
 
 template <class TGroup> void cBench_G3<TGroup>::Add1Edge(const cPt2di &  aP0,const cPt2di & aP1)
 {
@@ -621,10 +716,16 @@ template <class TGroup> void cBench_G3<TGroup>::Add1Edge(const cPt2di &  aP0,con
    for (int aK=0 ; aK<aNbAdd ; aK++)
    {
         bool isInLayer = (RandUnif_0_1() > mPropOutLayer);
-        tREAL8 aNoise = RandUnif_C() * (isInLayer ? mNoiseInLayer : mNoiseOutLayer);
-        TGroup aRel_2To1 =  aRefRel_2To1 * TGroup::RandomSmallElem(aNoise);
+        TGroup aPerturb = TGroup::RandomSmallElem(mNoiseInLayer);
 
-        cGG_1HypInit<TGroup> & aH =mGG.AddEdge(*(aVal0.mVertex),*(aVal1.mVertex),aRel_2To1,1.0);
+        if (! isInLayer)
+           aPerturb= RandomGroupInInterval<TGroup>(mNoiseMinOutLayer,mNoiseMaxOutLayer);
+        tREAL8 aNoise = aPerturb.Dist(TGroup::Identity());
+
+        TGroup aRel_2To1 =  aRefRel_2To1 * aPerturb;
+
+
+        cGG_1HypInit<TGroup> & aH =mGG.AddHyp(*(aVal0.mVertex),*(aVal1.mVertex),aRel_2To1,1.0);
         aH.mNoiseSim = std::abs(aNoise);
    }
 }
@@ -635,716 +736,108 @@ void BenchGroupGraph(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("GroupGraph")) return;
 
-    // cBench_G3<tRotR> aBG3(cPt2di(17,22),2,4,0.1,0.05,0.5);
-
-    cBench_G3<tRotR> aBG3
+    if (0)
+    {
+        cBench_G3<tRotR> aBG3
                      (
-                         cPt2di(17,22),
+                         cPt2di(102,162),
                          3,10,
-                         0.1,   //  Prop Out layer
-                         0.05,0.5
+                         0.2,   //  Prop Out layer
+                         0.05,0.0,0.5
                      );
-    aBG3.OneItere(3,0.15);
 
+         aBG3.GG().OneIterCycles(3,0.15,1.0,true);
+         aBG3.GG().OneIterCycles(3,0.15,1.0,true);
+         aBG3.GG().OneIterCycles(3,0.15,1.0,true);
+         aBG3.GG().OneIterCycles(3,0.15,1.0,true);
+         aBG3.GG().OneIterCycles(3,0.15,1.0,true);
+         aBG3.GG().OneIterCycles(3,0.15,1.0,true);
+         aBG3.GG().OneIterCycles(3,0.15,1.0,true);
+
+         aBG3.GG().MakeMinSpanTree();
+     }
+
+     if (1)
+     {
+
+         cBench_G3<tRotR> aBG3
+                     (
+                         cPt2di(12,22),
+                         3,10,
+                         0.2,   //  Prop Out layer
+                         0.00,0.2,0.5
+                     );
+         aBG3.GG().OneIterCycles(3,0.15,1.0,true);
+         aBG3.GG().OneIterCycles(3,0.15,1.0,true);
+         aBG3.GG().OneIterCycles(3,0.15,1.0,true);
+
+         tREAL8 aNoiseMax = aBG3.GG().MakeMinSpanTree();
+
+         StdOut() << "NM=" << aParam.Level() << " "<< aNoiseMax << "\n";
+         // It's "highly probable" that with this random generation, the min span tree will
+         // use only unoised edges, but not 100% (at least I cannot prouve it) so do it only for
+         // 100 first, for which, empirically it was tested to be true
+         if  (aParam.Level() <100)
+         {
+             MMVII_INTERNAL_ASSERT_bench(aNoiseMax==0,"Group graph MakeMinSpanTree ");
+         }
+     }
 
     aParam.EndBench();
 }
 
-
+/*
 template class cGG_1HypInit<tRotR>;
 template class cGG_1HypComputed<tRotR>;
 template class cGGA_EdgeSym<tRotR>;
 template class cGGA_Vertex<tRotR>;
 template class cGGA_EdgeOr<tRotR>;
 template class cGroupGraph<tRotR>;
+*/
 
-
+/* ********************************************************* */
+/*                                                           */
+/*                     cAppli_ArboTriplets                   */
+/*                                                           */
+/* ********************************************************* */
 #if (0)
+class cAppli_ArboTriplets : public cMMVII_Appli
+{
+     public :
+
+        cAppli_ArboTriplets(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
+        int Exe() override;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+     private :
+        cPhotogrammetricProject   mPhProj;
+};
 
 
+cAppli_ArboTriplets::cAppli_ArboTriplets(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
+    cMMVII_Appli (aVArgs,aSpec),
+    mPhProj      (*this)
+{
+}
+
+cCollecSpecArg2007 & cAppli_ArboTriplets::ArgObl(cCollecSpecArg2007 & anArgObl)
+{
+    return anArgObl
 /*
-    Regarding the notation (supposing it is poses) :
-
-        * In class Som ,  mCurValue is the mapping Cam->Word  (or column of the rotaation are vector IJK)
-
-               Ori_L->G   Local camera coordinates   ->   Global Word coordinate
-                           PG = Ori_L->G (PL)
-
-       *  In class AttrEdge,   Ori_2->1 is pose of Cam2 relatively to Cam 1,   PL2 ->PL1
-
-               Ori_2->1  = Ori_G->1  o Ori_2->G    ( PL2 -> PG -> PL1)
+              << Arg2007(mIm1,"name first image")
+              << Arg2007(mIm2,"name second image")
+              <<  mPhProj.DPOrient().ArgDirInMand("Input orientation for calibration")
+              <<  mPhProj.DPTieP().ArgDirInMand()
 */
-
-template <class TVal>  class cGrpValuatedEdge;
-template <class TVal>  class cGrpValuatedAttrEdge;
-template <class TVal>  class cGrpValuatedSom;
-template <class TVal,class TParam>  class cGrpValuatedGraph;
-
-
-
-/* ********************************************************* */
-/*                                                           */
-/*                cGrpValuateEdge                            */
-/*                                                           */
-/* ********************************************************* */
-
-template <class TVal>  class cGrpValuatedEdge
-{
-    public :
-          cGrpValuatedEdge(int aSucc,int aNumAttr,bool DirInit) ;
-
-          size_t  mSucc;
-          size_t  mNumAttr;
-          bool    mDirInit;
-
-          // The mapping transformating Coord2 to Coord1 associate to a Val
-          TVal    VRel2_to_1 (const TVal & aV0) const {return  mDirInit ? aV0 : aV0.MapInverse() ;}
-          // The mapping transformating Coord1 to Coord2 associate to a Val
-          TVal    VRel1_to_2 (const TVal & aV0) const {return  mDirInit ? aV0.MapInverse() : aV0 ;}
-};
-
-template <class TVal>  
-   cGrpValuatedEdge<TVal>::cGrpValuatedEdge(int aSucc,int aNumAttr,bool isDirInit) :
-       mSucc      (aSucc),
-       mNumAttr   (aNumAttr),
-       mDirInit   (isDirInit)
-{
-}
-
-/* ********************************************************* */
-/*                                                           */
-/*                cGrpValuated_OneAttrEdge                   */
-/*                                                           */
-/* ********************************************************* */
-
-template <class TVal>  class cGrpValuated_OneAttrEdge
-{
-       public :
-          cGrpValuated_OneAttrEdge(const TVal &,std::string aAttrib,tREAL8 aCost);
-          TVal         mVal; 
-          std::string  mAux;
-          tREAL8       mCost; 
-};
-
-template <class TVal>  cGrpValuated_OneAttrEdge<TVal>::cGrpValuated_OneAttrEdge(const TVal & aVal,std::string anAux,tREAL8 aCost) :
-     mVal    (aVal),
-     mAux    (anAux),
-     mCost   (aCost)
-{
-}
-
-/* ********************************************************* */
-/*                                                           */
-/*                cGrpAttrEdge                               */
-/*                                                           */
-/* ********************************************************* */
-
-template <class TVal>  class cGrpValuatedAttrEdge
-{
-    public :
-
-          typedef  cGrpValuated_OneAttrEdge<TVal>  tOneAttr;
-          typedef  std::vector<tOneAttr>           tSetAttr;
-
-          cGrpValuatedAttrEdge();
-          cGrpValuatedAttrEdge(const TVal & aValues,std::string aAttrib,tREAL8 aPrioriCost)  ;
-
-          void   Add(const TVal & aValue,std::string aAttrib,tREAL8 aPrioriCost) ;
-          
-          size_t  NbValues () const {return mValues.size();}
-          const tOneAttr & KthVal (size_t aK) const {return mValues.at(aK);}
-          tOneAttr & KthVal (size_t aK) {return mValues.at(aK);}
-
-          const tSetAttr & Values () const {return mValues;}
-          tSetAttr & Values () {return mValues;}
-
-          void SetIndexMinCost(int aInd) {mIndMinCost=aInd;}
-
-          const tOneAttr & AttrMinCost() const;
-
-	  bool IsTree() const {return mIsTree;}
-          void SetIsTree(bool IsTree);
-    private :
-          tSetAttr          mValues;
-          int               mIndMinCost;
-          bool    mIsTree;
-};
-
-template <class TVal>  
-    cGrpValuatedAttrEdge<TVal>::cGrpValuatedAttrEdge() :
-        mIndMinCost (-1),
-	mIsTree     (false)
-{
-}
-
-template <class TVal>
-    void cGrpValuatedAttrEdge<TVal>::SetIsTree(bool isTree)
-{
-  mIsTree = isTree;
-}
-
-template <class TVal>  
-    cGrpValuatedAttrEdge<TVal>::cGrpValuatedAttrEdge(const TVal & aValue,std::string anAttrib,tREAL8 aPrioriCost)  :
-          cGrpValuatedAttrEdge<TVal>()
-{
-     Add(aValue,anAttrib,aPrioriCost);
-}
-
-template <class TVal> void  cGrpValuatedAttrEdge<TVal>::Add(const TVal & aValue,std::string anAttrib,tREAL8 aCost) 
-{
-   mValues.push_back(tOneAttr(aValue,anAttrib,aCost));
-}
- 
-template <class TVal> 
-    const cGrpValuated_OneAttrEdge<TVal> & cGrpValuatedAttrEdge<TVal>::AttrMinCost() const
-{
-    MMVII_INTERNAL_ASSERT_tiny(mIndMinCost>=0,"AttrMinCost non init");
-
-    return    mValues.at(mIndMinCost);
-}
-
-/* ********************************************************* */
-/*                                                           */
-/*                cGrpValuatedSom                            */
-/*                                                           */
-/* ********************************************************* */
-
-template <class TVal>  class cGrpValuatedSom
-{
-    public :
-          typedef cGrpValuatedEdge<TVal>  tEdge;
-
-          cGrpValuatedSom(const TVal & aValue,int aNum) ;
-          cGrpValuatedSom(int aNumSom) ;  
-
-          /// return the adress of Edge such aSom2 is the successor, 0 if none
-          tEdge * EdgeOfSucc(size_t aSom2,bool OK0) ;
-
-          /**  add a successor for s2, with attribute at adr aNumAttr, DirInit if the attribute is
-               relative to way  "S1->S2" (else it's "S2->S1")
-          */
-          void AddEdge(int aS2,int aNumAttr,bool DirInit);
-
-          int & HeapIndex() {return mHeapIndex;}
-          const std::list<tEdge> &  LSucc() const {return mLSucc;}
-
-          const TVal &  RefVal() const {return mRefValue;}
-          void  SetRefVal(const TVal& aNewV) {mRefValue= aNewV;}
-
-          const TVal &  CompVal() const {return mComputedValue;}
-          void  SetCompVal(const TVal& aNewV) {mComputedValue= aNewV;}
-
-          const tREAL8 &  HeapCost() const {return mHeapCost;}
-          void  SetHeapCost(tREAL8 aNewV)  { mHeapCost=aNewV;}
-
-          int   NumRegion() const {return mNumRegion;}
-          void  SetNumRegion(int aNewV) {mNumRegion= aNewV;}
-          
-          int   NumSom() const {return mNumSom;}
-
-          void SetHeapFather(int aNewV) {mNumHeapFather = aNewV;}
-          int  NumHeapFather() const {return mNumHeapFather;}
-    private :
-          TVal              mRefValue;
-          TVal              mComputedValue;
-          int               mNumSom;
-          int               mNumHeapFather;
-          tREAL8            mHeapCost;
-          std::list<tEdge>  mLSucc;
-          int               mNumRegion;
-          int               mHeapIndex;
-};
-
-
-template <class TVal>  cGrpValuatedSom<TVal>::cGrpValuatedSom(int aNumSom) : 
-     mRefValue       (),
-     mComputedValue  (),
-     mNumSom         (aNumSom),
-     mNumHeapFather  (-1),
-     mHeapCost       (1e10),
-     mNumRegion      (-1)
-{
-}
-
-
-template <class TVal>  
-     cGrpValuatedEdge<TVal>  * cGrpValuatedSom<TVal>::EdgeOfSucc(size_t aSucc,bool Ok0) 
-{
-   for (auto &  anEdge : mLSucc)
-       if (anEdge.mSucc == aSucc)
-          return & anEdge;
-
-   MMVII_INTERNAL_ASSERT_tiny(Ok0,"Could not find EdgeOfSucc");
-   
-   return nullptr;
-}
-
-template <class TVal>  void cGrpValuatedSom<TVal>::AddEdge(int aS2,int aNumAttr,bool isDirInit)
-{
-   mLSucc.push_back(tEdge(aS2,aNumAttr,isDirInit));
-}
-
-
-template <class TVal>  class cHeapCmpGrpValuatedSom
-{
-    public :
-       typedef cGrpValuatedSom<TVal> *         tSomPtr ;
-
-       bool  operator () (const tSomPtr & aS1,const tSomPtr & aS2) {return aS1->HeapCost() < aS2->HeapCost();}
-};
-
-template <class TVal>  class cParamHeapCmpGrpValuatedSom
-{
-    public :
-        typedef cGrpValuatedSom<TVal> *         tSomPtr ;
-
-        static void SetIndex(const tSomPtr & aSom,tINT4 i) { aSom->HeapIndex() = i;} 
-        static int  GetIndex(const tSomPtr & aSom)  
-        {
-             return aSom->HeapIndex();
-        }
-
-};
-
-
-/* ********************************************************* */
-/*                                                           */
-/*                cGrpValuatedGraph                          */
-/*                                                           */
-/* ********************************************************* */
-
-class cParamGrpRot
-{
-    public :
-        static tREAL8 GrpDist(const tRotR & aR1,const tRotR& aR2)
-        {
-             return   aR1.Mat().L2Dist(aR2.Mat());
-        }
-};
-
-
-template <class TVal,class TParam>  class cGrpValuatedGraph
-{
-    public :
-
-          typedef cParamHeapCmpGrpValuatedSom<TVal> tParamHeap;
-          typedef cHeapCmpGrpValuatedSom<TVal>      tCmpHeap;
-          typedef cGrpValuatedEdge<TVal>            tEdge;
-          typedef cGrpValuatedAttrEdge<TVal>        tAttr;
-          typedef cGrpValuated_OneAttrEdge<TVal>    tOneAttr;
-          typedef cGrpValuatedSom<TVal>             tSom ;
-
-          cGrpValuatedGraph(int aNbSom,const TParam &,int aNbEdge=-1);
-          void AddEdge(int aS1,int aS2,const TVal & aVal,std::string aAttrib,tREAL8 aCostAPriori);
-
-          void MakeLoopCostApriori();
-          std::vector<std::pair<int,int>>  MakeMinSpanTree();
-
-          void  PropagateTreeSol();
-          /// Return the relative position using  RefValue
-          TVal  RelRef_2to1(int aS1,int aS2);
-
-    protected :
-          class  cLoop
-          {
-              public :
-                  TVal   mVal;
-                  size_t mSom;
-                  int    mStackI;
-
-                  cLoop (const TVal& aVal,size_t aSom,int aStackI ):  mVal(aVal), mSom(aSom), mStackI (aStackI) {}
-          };
-
-          void  Recurs_PropagateTreeSol(size_t aSom);
-
-          void  MakeLoopCostApriori(size_t aS1,const tEdge&, tOneAttr &);
-
-
-          const tAttr &  AttrOfEdge(const tEdge & anE) const {return mVAttr.at(anE.mNumAttr);}
-          tAttr &  AttrOfEdge(const tEdge & anE)  {return mVAttr.at(anE.mNumAttr);}
-          tAttr &  AttrOfEdge(size_t aS1,size_t aS2)  {return AttrOfEdge(*mVSoms.at(aS1).EdgeOfSucc(aS2,SVP::No));}
-	
-          const std::list<tEdge> &  SuccOfSom(size_t aKSom) const {return mVSoms.at(aKSom).LSucc();}
-          const std::list<tEdge> &  SuccOfSom(const tSom & aSom) const {return SuccOfSom(aSom.NumSom());}
-          
-          tSom & S2OfEdge(const tEdge & anE) {return  mVSoms.at(anE.mSucc);}
-
-          TParam              mParam;
-          size_t              mNbSom;
-          std::vector<tSom>   mVSoms;
-          std::vector<tAttr>  mVAttr;
-
-          std::map<std::string,cStdStatRes> mStats;
-};
-
-template <class TVal,class TParam> 
-     cGrpValuatedGraph<TVal,TParam>::cGrpValuatedGraph(int aNbSom,const TParam & aParam,int aNbEdge) :
-      mParam   (aParam),
-      mNbSom   (aNbSom)
-{
-    for (int aK=0 ; aK<aNbSom ; aK++)
-    {
-         mVSoms.push_back(tSom(aK));
-    }
-}
-
-template <class TVal,class TParam>  
-    void cGrpValuatedGraph<TVal,TParam>::AddEdge(int aS1,int aS2,const TVal & aVal,std::string aAttrib, tREAL8 aCostAPriori)
-{
-    const tEdge * anEdge = mVSoms.at(aS1).EdgeOfSucc(aS2,SVP::Yes);
-    if (anEdge)
-    {
-       tAttr&  anAttr =  AttrOfEdge(*anEdge); 
-       TVal aValCor = anEdge->VRel2_to_1(aVal);
-       anAttr.Add(aValCor,aAttrib,aCostAPriori);
-       return;
-    }
-    mVSoms.at(aS1).AddEdge(aS2,mVAttr.size(),true);
-    mVSoms.at(aS2).AddEdge(aS1,mVAttr.size(),false);
- 
-    mVAttr.push_back(cGrpValuatedAttrEdge(aVal,aAttrib,aCostAPriori));
-}
-
-template <class TVal,class TParam>  TVal  cGrpValuatedGraph<TVal,TParam>::RelRef_2to1(int aS1,int aS2)
-{
-    // Ori_2->1  = Ori_G->1  o Ori_2->G    ( PL2 -> PG -> PL1)
-    return  mVSoms.at(aS1).RefVal().MapInverse() *  mVSoms.at(aS2).RefVal();
-}
-
-
-
-template <class TVal,class TParam>  
-    std::vector<std::pair<int,int>>   cGrpValuatedGraph<TVal,TParam>::MakeMinSpanTree()
-{
-    std::vector<std::pair<int,int>> aTree;
-    tCmpHeap   aHCmp;
-    cIndexedHeap<tSom*,tCmpHeap,tParamHeap>  aHeap(aHCmp);
-
-    //  -1 not reached , 0 in Heap, already oustside
-    aHeap.Push(&mVSoms.at(0));
-    mVSoms.at(0).SetNumRegion(0);
-  
-    tSom * aNewSom = nullptr;
-    while (aHeap.Pop(aNewSom))
-    {
-         aNewSom->SetNumRegion(1);
-         int aNFather = aNewSom->NumHeapFather();
-         if (aNFather>=0)
-         {
-             aTree.push_back(std::pair<int,int>(aNewSom->NumSom(),aNFather));
-         }
-         for (const auto &  aSucc :  SuccOfSom(*aNewSom))
-         {
-             tSom & aSom2Update = S2OfEdge(aSucc);
-             if (aSom2Update.NumRegion() <=0)
-             {
-                if (aSom2Update.NumRegion() == -1)
-                {
-                    aHeap.Push(&aSom2Update);
-                    aSom2Update.SetNumRegion(0);
-                }
-                tREAL8 aNewCost = AttrOfEdge(aSucc).AttrMinCost().mCost;
-
-                if (aNewCost<aSom2Update.HeapCost())
-                {
-                    aSom2Update.SetHeapCost(aNewCost);
-                    aSom2Update.SetHeapFather(aNewSom->NumSom());
-                    aHeap.UpDate(&aSom2Update);
-                }
-             }
-         }
-    }
-
-    for (size_t aKS=0 ; aKS<mVSoms.size() ; aKS++)
-    {
-        mVSoms.at(aKS).SetNumRegion(-1);
-        mVSoms.at(aKS).SetHeapFather(-1);
-        mVSoms.at(aKS).SetHeapCost(1e10);
-    }
-
-    for (const auto & [aS1,aS2] : aTree)
-    {
-        AttrOfEdge(aS1,aS2).SetIsTree(true);
-    }
-
-    return aTree;
-}
-
-template <class TVal,class TParam>  
-    void  cGrpValuatedGraph<TVal,TParam>::PropagateTreeSol()
-{
-     mVSoms.at(0).SetCompVal(mVSoms.at(0).RefVal());
-   //mVSoms.at(0).SetRefVal(tRotR::Identity());
-     mVSoms.at(0).SetNumRegion(0);
-     Recurs_PropagateTreeSol(0);
-}
-
-template <class TVal,class TParam>  
-    void  cGrpValuatedGraph<TVal,TParam>::Recurs_PropagateTreeSol(size_t aNumSom_A)
-{
-    for (const auto &  aSucc_AB :  SuccOfSom(aNumSom_A))
-    {
-        tAttr&  anAttr = AttrOfEdge(aSucc_AB);
-        if (anAttr.IsTree())
-        {
-             size_t aNumSom_B = aSucc_AB.mSucc;
-	     tSom & aSomB = mVSoms.at(aNumSom_B);
-             if (aSomB.NumRegion() == -1)
-             {
-                 aSomB.SetNumRegion(0);
-		 // Ori_2->G = Ori_1->G o Ori_2->1    2->1->G
-		 TVal aVal_B2A = aSucc_AB.VRel2_to_1(anAttr.AttrMinCost().mVal);
-		 TVal aCompA = mVSoms.at(aNumSom_A).CompVal();
-		 TVal aCompB =  aCompA * aVal_B2A;
-                 aSomB.SetCompVal(aCompB);
-  StdOut()  << "DIST= " << mParam.GrpDist(aCompB,aSomB.RefVal()) << "\n";
-		 // aSom_B.
-                 Recurs_PropagateTreeSol(aNumSom_B);
-             }
-        }
-    }
-}
-/*
-          const TVal &  CompVal() const {return mComputedValue;}
-          void  SetCompVal(const TVal& aNewV) {mComputedValue= aNewV;}
-	  */
-
-
-template <class TVal,class TParam>  
-    void cGrpValuatedGraph<TVal,TParam>::MakeLoopCostApriori()
-{
-    for (size_t aSom_A=0 ; aSom_A<mNbSom ; aSom_A++)
-    {
-         for (const auto &  aSucc_AB :  SuccOfSom(aSom_A))
-         {
-              // no need to do it 2 way
-              if (aSucc_AB.mDirInit)
-              {
-                 tAttr & aVecAttr_AB  = AttrOfEdge(aSucc_AB);
-                 for (auto & aAttr_AB : aVecAttr_AB.Values())
-                 {
-                    MakeLoopCostApriori(aSom_A,aSucc_AB,aAttr_AB);
-                 }
-              }
-          }
-    }
-
-    // now the cost are made, memorize the min one  
-    for (size_t aSom_A=0 ; aSom_A<mNbSom ; aSom_A++)
-    {
-         for (const auto &  aSucc_AB :  SuccOfSom(aSom_A))
-         {
-              if (aSucc_AB.mDirInit)
-              {
-                 tAttr & aVecAttr_AB  = AttrOfEdge(aSucc_AB);
-                 cWhichMin<size_t,tREAL8>  aMinCost;
-                 for (size_t aKV=0 ; aKV<aVecAttr_AB.NbValues() ; aKV++)
-                 {
-                     aMinCost.Add(aKV,aVecAttr_AB.Values().at(aKV).mCost);
-                 }
-                 aVecAttr_AB.SetIndexMinCost(aMinCost.IndexExtre());
-              }
-          }
-    }
-
-}
-
-template <class TVal,class TParam>  
-          void  cGrpValuatedGraph<TVal,TParam>::MakeLoopCostApriori(size_t aSom_A,const tEdge& anE_AB, tOneAttr &aAttr_AB)
-{
-    tREAL8  aEstimOutLayer = 0.1;
-    tREAL8  aNbSignif = 1.0;
-
-    int     aNbTot = aNbSignif;
-    tREAL8  aSumCost = aEstimOutLayer * aNbSignif;
-
-
-    TVal TheIdent = TVal::Identity();
-    std::vector<cLoop>  aVLoop;
-    std::vector<tREAL8> aVDist;
-
-    size_t aSom_B  = anE_AB.mSucc;
-    TVal aV_B2A  = anE_AB.VRel2_to_1(aAttr_AB.mVal);
-    aVLoop.push_back(cLoop(aV_B2A,aSom_B,-1));
-    //StdOut() << "******************************************************************************\n";
-
-    size_t aInd0 =0;
-    int aDist2A=1;
-    while (aDist2A<3)
-    {
-          // StdOut() << "  ------------  DGRR= "<< aDist   << " ------------------------------ \n";
-          size_t aInd1 = aVLoop.size();
-          for (size_t aInd= aInd0 ; aInd<aInd1 ; aInd++)
-          {
-              size_t aSom_X = aVLoop.at(aInd).mSom;
-              const TVal  aV_X2A = aVLoop.at(aInd).mVal;
-              for (const auto &  anE_XY :  SuccOfSom(aSom_X))
-              {
-                  size_t aSom_Y = anE_XY.mSucc;
-                  const tAttr &  aAllAttrs_XY = AttrOfEdge(anE_XY);
-
-                  for (const auto & a1Attr_XY : aAllAttrs_XY.Values())
-                  {
-                      TVal aV_Y2X  = anE_XY.VRel2_to_1(a1Attr_XY.mVal);
-                      TVal aV_Y2A  =    aV_X2A * aV_Y2X; // V_X2A (V_Y2X (PY)) = V_X2A(PX) = PA
-
-                      if (aSom_Y == aSom_A)
-                      {
-                           tREAL8 aDist2Id = mParam.GrpDist(TheIdent, aV_Y2A);
-                           tREAL8 aCost =  (aDist2Id *aEstimOutLayer)  / (aDist2Id + aEstimOutLayer);
-                           aSumCost += aCost;
-                           aNbTot ++;
-                      }
-                      else
-                      {
-                           aVLoop.push_back(cLoop(aV_Y2A,aSom_Y,aInd));
-                      }
-                  }
-              }
-          }
-          aDist2A++;
-          aInd0 = aInd1;
-    }
-
-    aSumCost /= aNbTot;
-
-    aAttr_AB.mCost = aSumCost;
-    mStats[aAttr_AB.mAux].Add(aSumCost);
-    //StdOut()  << " SSS "  << aSumCost << " " << aAttr_AB.mAttrib << "\n";
-}
-
-
-
-
-class cBenchGrid_GVG :  public  cRect2,
-                        public  cGrpValuatedGraph<tRotR,cParamGrpRot>
-{
-    public :
-
-          typedef cGrpValuatedGraph<tRotR,cParamGrpRot>  tGVG;
-          using tGVG::tEdge;
- 
-          cBenchGrid_GVG
-          (
-              cPt2di  aSz,
-              tREAL8  aAmplGlob,
-              tREAL8  aNoiseInlayers,
-              tREAL8  aPropOutLayer,
-              tREAL8  aNoiseOutlayers,
-              cPt2di  aNbEdge
-          );
-
-          tREAL8  mAmplGlob;
-          tREAL8  mNoiseInlayers;
-          tREAL8  mPropOutLayer;
-          tREAL8  mNoiseOutlayers;
-          cPt2di  mNbEdge;
-
-          void Pt_AddEdge(const cPt2di & aP0,const cPt2di & aP1);
-
-/*
-          typedef cGrpValuatedAttrEdge<TVal>      tAttr;
-          typedef cGrpValuated_OneAttrEdge<TVal>  tOneAttr;
-          typedef cGrpValuatedSom<TVal>           tSom ;
-*/
-};
-
-void cBenchGrid_GVG::Pt_AddEdge(const cPt2di & aPA,const cPt2di & aPB)
-{
-    if (! (Inside(aPA) &&  Inside(aPB)))
-    {
-        return;
-    }
-
-    int aNbEdge = RandInInterval(mNbEdge.x(),mNbEdge.y());
-
-    int aSom_A = IndexeLinear(aPA);
-    int aSom_B = IndexeLinear(aPB);
-    tRotR aR_B2A_Ref  = RelRef_2to1(aSom_A,aSom_B);
-
-    while (aNbEdge)
-    {
-         aNbEdge--;
-         bool IsOutLayer =  (RandUnif_0_1()<mPropOutLayer);
-         tREAL8 aAmplNoise = IsOutLayer ? mNoiseOutlayers : mNoiseInlayers;
-         aAmplNoise /= std::sqrt(2.0);
-
-         tRotR aR_B2A  = tRotR::RandomRot(aAmplNoise) * aR_B2A_Ref * tRotR::RandomRot(aAmplNoise);
-
-         AddEdge(aSom_A,aSom_B,aR_B2A,(IsOutLayer?"1":"0"),1.0);
-    }
-}
-
-cBenchGrid_GVG::cBenchGrid_GVG
-(
-    cPt2di aSz,
-    tREAL8  aAmplGlob,
-    tREAL8  aNoiseInlayers,
-    tREAL8  aPropOutLayer,
-    tREAL8  aNoiseOutlayers,
-    cPt2di  aNbEdge
-) :
-    cRect2           (aSz),
-    tGVG             (size_t(cRect2::NbElem()),cParamGrpRot()),
-    mAmplGlob        (aAmplGlob),
-    mNoiseInlayers   (aNoiseInlayers),
-    mPropOutLayer    (aPropOutLayer),
-    mNoiseOutlayers  (aNoiseOutlayers),
-    mNbEdge          (aNbEdge)
-{
-   for (auto & aSom : mVSoms)
-      aSom.SetRefVal(tRotR::RandomRot(aAmplGlob));
-   //mVSoms.at(0).SetRefVal(tRotR::Identity());
-StdOut() << "SOMM-ADDED \n";
-
-   for (const auto & aPix : *this)
-   {
-       Pt_AddEdge(aPix,aPix+cPt2di(0,1));
-       Pt_AddEdge(aPix,aPix+cPt2di(1,0));
-       Pt_AddEdge(aPix,aPix+cPt2di(1,1));
-       Pt_AddEdge(aPix,aPix+cPt2di(1,-1));
-   }
-StdOut() << "EDGE-ADDED \n";
-   this->MakeLoopCostApriori();
-   for (const auto & [aName,aStat] : mStats)
-   {
-        StdOut() << " AttR=" << aName;
-        for (const auto aProp : {0.01,0.1,0.5,0.9,0.99})
-            StdOut() <<  " " << aProp << "->" << aStat.ErrAtProp(aProp) ;
-        StdOut() << " \n";
-    }
-StdOut() << "LOOP-COST DONE\n";
-   this->MakeMinSpanTree();
-StdOut() << "MIN SPAN TREE DONE\n";
-   PropagateTreeSol();
-StdOut() << "PROPAG TREE SOL\n";
-}
-
-
-
-
-/* ********************************************************* */
-/*                                                           */
-/* ********************************************************* */
-
-
-
-template class cGrpValuatedAttrEdge<tRotR>;
-template class cGrpValuatedSom<tRotR>;
-template class cGrpValuatedGraph<tRotR,cParamGrpRot>;
-
-
-void xxx_BenchGrpValuatedGraph(cParamExeBench & aParam)
-{
-    if (! aParam.NewBench("GroupGraph")) return;
-
-    // cBenchGrid_GVG  aBGVG(cPt2di(10,20),100.0, 0.0, 0.0,0.0,cPt2di(3,3));
-    // cBenchGrid_GVG  aBGVG(cPt2di(10,20),100.0, 0.01, 0.2,0.5,cPt2di(3,11));
-    cBenchGrid_GVG  aBGVG(cPt2di(20,20),100.0, 0.00, 0.2,0.3,cPt2di(2,3));
-
-    aParam.EndBench();
+           ;
 }
 #endif
 
-};
 
+
+
+
+
+
+
+};

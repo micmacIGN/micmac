@@ -142,7 +142,10 @@ template <class Type> class cRotation3D
         /// return a random small elem,  +or- with uniform density on tangent space (whatever it means)
         static cRotation3D<Type> RandomSmallElem(const Type & aAmpl);
 
+        /// distance between 2 rotation; uses matrixes
         Type Dist(const  cRotation3D<Type> &) const;
+        /// Max possible distance
+        static Type MaxDist() {return 2.0;}
 
         /// this function must defined for differentiable group considered as variety
         static cRotation3D<Type>  Centroid(const std::vector<cRotation3D<Type>> & aV,const std::vector<double> &);
