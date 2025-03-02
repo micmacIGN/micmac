@@ -8,6 +8,7 @@
 #include "MMVII_Tpl_GraphAlgo_EnumCycles.h"
 #include "MMVII_Interpolators.h"
 #include "MMVII_Sensor.h"
+#include "MMVII_PoseTriplet.h"
 
 
 
@@ -107,18 +108,22 @@ template <class TGroup>  class cGGA_EdgeOr
 template <class TGroup>  class cGG_1HypInit
 {
    public :
-      cGG_1HypInit(const TGroup & aG,tREAL8 aW0) :
+      cGG_1HypInit(const TGroup & aG,tREAL8 aW0,int aNumSet) :
            mW0       (aW0), 
-           mMarked   (false) , 
+           mNumComp  (-1) , 
            mVal      (aG), 
-           mNoiseSim (0)
+           mNoiseSim (0),
+           mNumSet   (aNumSet)
       {}
+
+      bool IsMarked() const {return mNumComp != -1;}
 
 
       tREAL8   mW0;        // initial weight 
-      bool     mMarked;    // used as temporary mark in clustering
+      int      mNumComp;    // used as temporary mark in clustering
       TGroup   mVal;       // Value of the map/group
       tREAL8   mNoiseSim;  // Noise used in/if simulation
+      int      mNumSet;
 };
 
 /*----------------------------------------- cGG_1HypComputed -----------------------------------------------*/
@@ -129,7 +134,7 @@ template <class TGroup>  class cGG_1HypComputed : public cGG_1HypInit<TGroup>
 {
     public  :
       cGG_1HypComputed(const TGroup & aG,tREAL8 aW) : 
-           cGG_1HypInit<TGroup> (aG,aW),
+           cGG_1HypInit<TGroup> (aG,aW,-1),
            mWeight              (aW) // weight = initial weight
       {}
 
@@ -150,14 +155,20 @@ template <class TGroup>  class cGGA_EdgeSym
           cGGA_EdgeSym() :  mBestH (nullptr) {}
 
           std::vector<t1HypComp> &  ValuesComp() {return mValuesComp;} ///< Accessor
+          std::vector<t1HypInit> &  ValuesInit() {return mValuesInit;} ///< Accessor
+          const std::vector<t1HypComp> &  ValuesComp() const {return mValuesComp;} ///< Accessor
+          const std::vector<t1HypInit> &  ValuesInit() const {return mValuesInit;} ///< Accessor
 	  /// Add 1 initial hypothesis 
-          t1HypInit & Add1Value(const TGroup& aVal,tREAL8 aW);
+          t1HypInit & Add1Value(const TGroup& aVal,tREAL8 aW,int aNumSet);
 	  /// Do the clustering to reduce the number of initial hypothesis
           void DoCluster(int aNbMax,tREAL8 aDist);
 
           void SetBestH(t1HypComp * aBestH) {mBestH=aBestH;}
           const t1HypComp * BestH() const {return mBestH;}
          
+
+          const t1HypInit *  HypOfNumSet(int aNum,bool SVP=false) const;
+          const t1HypComp *  HypCompOfH0(const t1HypInit&,bool SVP=false) const;
      private :
 
           /// for a given center return a score (+- weighted count of element not marked closed enough)
@@ -171,6 +182,7 @@ template <class TGroup>  class cGGA_EdgeSym
           t1HypComp *             mBestH;
 };
 
+
 /*----------------------------------------- cGGA_Vertex -----------------------------------------------*/
 
 /** Class for storing the attibute of a vertex of graph-group */
@@ -178,13 +190,11 @@ template <class TGroup>  class cGGA_EdgeSym
 template <class TGroup>  class cGGA_Vertex
 {
      public :
-          cGGA_Vertex(const std::string & aName) :
-               mName (aName)
+          cGGA_Vertex() 
            {
            }
           
      private :
-          std::string         mName;   // name, used a convenient id for real case (pose/image)
           TGroup              mComputedValue;  // computed value
 };
 
@@ -219,23 +229,19 @@ template <class TGroup>
           cGroupGraph(bool ForSimul);
 
 	  /// create a vertex with no value
-          tVertex &  AddVertex(const std::string & aName);
-	  /// Accesor to the vertex of given name (must exist) 
-          tVertex &  VertexOfName(const std::string & aName);
+          tVertex &  AddVertex();
 
 	  ///  Add a new hypothesis
-          t1HypInit & AddHyp(tVertex& aN1,tVertex& aN2,const TGroup &,tREAL8 aW);
-	  ///  facicilty to Add new hypothesis by name
-          t1HypInit & AddHyp(const std::string & aN1,const std::string & aN2,const TGroup &,tREAL8 aW);
+          t1HypInit & AddHyp(tVertex& aN1,tVertex& aN2,const TGroup &,tREAL8 aW,int aSet);
 
 	  /// return the value of G taking in E=v1->V2 into account that it may have been set in V2->V1
           static TGroup  ValOrient(const TGroup& aG,const tEdge & anE) { return anE.IsDirInit() ? aG : aG.MapInverse(); }
 
 	  /// execute one iteration of adding cycles  
-          void OneIterCycles(size_t aSzMaxC,tREAL8 aDistClust,tREAL8 aPow,bool Show);
+          void OneIterCycles(size_t aSzMaxC,tREAL8 aPow,bool Show);
 
 	  /// Make the clustering of all hypothesis is necessary
-          void DoClustering(tREAL8 aDistClust);
+          void DoClustering(size_t aSzMaxCluster,tREAL8 aDistClust);
 
 	  ///  class for call-back in cycles enumeration
           class cGG_OnCycle  : public cActionOnCycle<tGrGr>
@@ -272,7 +278,7 @@ template <class TGroup>
     protected :
            tGraph * mGraph;   // the graph itself
            bool     mClusterDone; // have we already done the clustering
-           std::map<std::string,tVertex*>  mMapV;  // Map Name->Vertex , for user can access by name
+           // std::map<std::string,tVertex*>  mMapV;  // Map Name->Vertex , for user can access by name
            int                             mNbVHist;
            bool                            mForSimul;
            int                             mCptC;
@@ -291,7 +297,7 @@ template <class TGroup> tREAL8 cGGA_EdgeSym<TGroup>::CenterClusterScore(const TG
    tREAL8 aSum = 0.0;
    for (const auto & aVal : mValuesInit)
    {
-       if (! aVal.mMarked)  // only unmarked are of interest
+       if (! aVal.IsMarked())  // only unmarked are of interest
        {
           tREAL8 aD = aG.Dist(aVal.mVal);     // distance to the proposed center
           aSum += CubAppGaussVal(aD/aThrDist); // weighting function
@@ -300,7 +306,24 @@ template <class TGroup> tREAL8 cGGA_EdgeSym<TGroup>::CenterClusterScore(const TG
    return aSum;
 }
 
+template <class TGroup> const cGG_1HypInit<TGroup> *  cGGA_EdgeSym<TGroup>::HypOfNumSet(int aNum,bool SVP) const
+{
+   for (const auto & aVH: mValuesInit)
+      if (aVH.mNumSet== aNum)
+         return &aVH;
+   MMVII_INTERNAL_ASSERT_tiny(SVP,"HypOfNumSet cannot find");// litle checj
+   return nullptr;
+}
 
+template <class TGroup> const cGG_1HypComputed<TGroup> *  cGGA_EdgeSym<TGroup>::HypCompOfH0(const t1HypInit&aH0,bool SVP) const
+{
+   if (!aH0.IsMarked())
+   {
+       MMVII_INTERNAL_ASSERT_tiny(SVP,"HypCompOfH0 cannot find");// litle checj
+       return nullptr;
+   }
+   return  & mValuesComp.at(aH0.mNumComp);
+}
 
 template <class TGroup> bool  cGGA_EdgeSym<TGroup>::GetNextBestCCluster(tREAL8 aThrDist)
 {
@@ -327,7 +350,7 @@ template <class TGroup> bool  cGGA_EdgeSym<TGroup>::GetNextBestCCluster(tREAL8 a
              std::vector<tREAL8>  aVW;  // store the weight
              for (const auto & aVal : mValuesInit)
              {
-                 if (! aVal.mMarked) // is not marked
+                 if (! aVal.IsMarked()) // is not marked
                  {
                     tREAL8 aD = aCenterClust.Dist(aVal.mVal);
                     tREAL8 aW =  CubAppGaussVal(aD/aThrDist);
@@ -347,9 +370,9 @@ template <class TGroup> bool  cGGA_EdgeSym<TGroup>::GetNextBestCCluster(tREAL8 a
         // at the end mark points close enough and count theme
         for (auto & aVal : mValuesInit)
         {
-            if ((! aVal.mMarked)  && ( aCenterClust.Dist(aVal.mVal)<aThrDist))
+            if ((! aVal.IsMarked())  && ( aCenterClust.Dist(aVal.mVal)<aThrDist))
             {
-                  aVal.mMarked = true;  
+                  aVal.mNumComp = mValuesComp.size();
                   aSumNoise += aVal.mNoiseSim * aVal.mW0;
 		  aSumW += aVal.mW0;
             }
@@ -370,20 +393,31 @@ template <class TGroup> bool  cGGA_EdgeSym<TGroup>::GetNextBestCCluster(tREAL8 a
 template <class TGroup> void cGGA_EdgeSym<TGroup>::DoCluster(int aNbMax,tREAL8 aDist)
 {
     mValuesComp.clear();
-    // compute a maximum of aNbMax cluster
-    for (int aKNew=0 ; aKNew<aNbMax ; aKNew++)
+    if (aDist<=0)
     {
-        bool Ok = GetNextBestCCluster(aDist);
-        if (! Ok)
+        for (auto & aH0 : mValuesInit)
         {
-            aKNew = aNbMax;
+           aH0.mNumComp = mValuesComp.size();
+           mValuesComp.push_back(t1HypComp(aH0.mVal,1.0));
+        }
+    }
+    else
+    {
+        // compute a maximum of aNbMax cluster
+        for (int aKNew=0 ; aKNew<aNbMax ; aKNew++)
+        {
+            bool Ok = GetNextBestCCluster(aDist);
+            if (! Ok)
+            {
+                aKNew = aNbMax;
+            }
         }
     }
 }
 
-template <class TGroup> cGG_1HypInit<TGroup> & cGGA_EdgeSym<TGroup>::Add1Value(const TGroup& aVal,tREAL8 aW)
+template <class TGroup> cGG_1HypInit<TGroup> & cGGA_EdgeSym<TGroup>::Add1Value(const TGroup& aVal,tREAL8 aW,int aNumSet)
 {
-    mValuesInit.push_back(t1HypInit(aVal,aW));
+    mValuesInit.push_back(t1HypInit(aVal,aW,aNumSet));
     return mValuesInit.back();
 }
 
@@ -468,26 +502,18 @@ template <class TGroup>
 
 template <class TGroup>  
     typename cGroupGraph<TGroup>::tVertex &
-        cGroupGraph<TGroup>::AddVertex(const std::string & aName) 
+        cGroupGraph<TGroup>::AddVertex()
 {
     // 1-check dont exist, 2-create, 3-memorize
-    MMVII_INTERNAL_ASSERT_tiny(!MapBoolFind(mMapV,aName),"cGroupGraph, name alrady exist :" +aName);
-    tVertex * aV = mGraph->NewSom(tAVert(aName));
-    mMapV[aName] = aV;
+    // MMVII_INTERNAL_ASSERT_tiny(!MapBoolFind(mMapV,aName),"cGroupGraph, name alrady exist :" +aName);
+    tVertex * aV = mGraph->NewSom(tAVert());
+    // mMapV[aName] = aV;
     return *aV;
 }
 
-template <class TGroup>  
-    typename cGroupGraph<TGroup>::tVertex &
-        cGroupGraph<TGroup>::VertexOfName(const std::string & aName) 
-{
-    MMVII_INTERNAL_ASSERT_tiny(MapBoolFind(mMapV,aName),"cGroupGraph, does not exist :" +aName);
-
-    return *(mMapV[aName]);
-}
 
 template <class TGroup>  
-    cGG_1HypInit<TGroup>& cGroupGraph<TGroup>::AddHyp(tVertex & aV1,tVertex & aV2,const TGroup& aG,tREAL8 aW)
+    cGG_1HypInit<TGroup>& cGroupGraph<TGroup>::AddHyp(tVertex & aV1,tVertex & aV2,const TGroup& aG,tREAL8 aW,int aNumSet)
 {
     //  Add edge if does not exist
     tEdge * anE = aV1.EdgeOfSucc(aV2,SVP::Yes);
@@ -495,32 +521,26 @@ template <class TGroup>
        anE = mGraph->AddEdge(aV1,aV2,tAEOr(),tAEOr(),tAESym());
 
     //  now add the hypothesis to existing edge 
-    return anE->AttrSym().Add1Value(ValOrient(aG,*anE),aW);
+    return anE->AttrSym().Add1Value(ValOrient(aG,*anE),aW,aNumSet);
 }
   
-template <class TGroup>  
-   cGG_1HypInit<TGroup>& cGroupGraph<TGroup>::AddHyp(const std::string & aN1,const std::string & aN2,const TGroup& aG,tREAL8 aW)
-{
-   return AddHyp(VertexOfName(aN1),VertexOfName(aN2),aG,aW);
-}
 
 template <class TGroup>  
-   void cGroupGraph<TGroup>::DoClustering(tREAL8 aDistClust)
+   void cGroupGraph<TGroup>::DoClustering(size_t aNbMaxCluster,tREAL8 aDistClust)
 {
    if (! mClusterDone)
    {
        mClusterDone = true;
        for (auto & anEPtr :  mGraph->AllEdges_DirInit ())
-           anEPtr->AttrSym().DoCluster(3,aDistClust);
+           anEPtr->AttrSym().DoCluster(aNbMaxCluster,aDistClust);
    }
 }
 
 template <class TGroup>  
-   void cGroupGraph<TGroup>::OneIterCycles(size_t aSzMaxC,tREAL8 aDistClust,tREAL8 aPow,bool Show)
+   void cGroupGraph<TGroup>::OneIterCycles(size_t aSzMaxC,tREAL8 aPow,bool Show)
 {
    mCptC++;
    // cluster the values is not already done
-   DoClustering(aDistClust);
 
    // Reset the weights
    for (auto & aPtrE :  mGraph->AllEdges_DirInit ())
@@ -683,7 +703,7 @@ template <class TGroup>
     for (const auto & aPix : mBox)
     {
         std::string aName = ToStr(aPix.x()) + "_" + ToStr(aPix.y());
-        ValOfPt(aPix).mVertex = &mGG.AddVertex(aName);
+        ValOfPt(aPix).mVertex = &mGG.AddVertex();
         ValOfPt(aPix).mValRef = TGroup::RandomElem();
     }
 
@@ -725,7 +745,7 @@ template <class TGroup> void cBench_G3<TGroup>::Add1Edge(const cPt2di &  aP0,con
         TGroup aRel_2To1 =  aRefRel_2To1 * aPerturb;
 
 
-        cGG_1HypInit<TGroup> & aH =mGG.AddHyp(*(aVal0.mVertex),*(aVal1.mVertex),aRel_2To1,1.0);
+        cGG_1HypInit<TGroup> & aH =mGG.AddHyp(*(aVal0.mVertex),*(aVal1.mVertex),aRel_2To1,1.0,-1);
         aH.mNoiseSim = std::abs(aNoise);
    }
 }
@@ -736,23 +756,24 @@ void BenchGroupGraph(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("GroupGraph")) return;
 
-    if (0)
+    if (UserIsMPD())
     {
         cBench_G3<tRotR> aBG3
                      (
-                         cPt2di(102,162),
+                         cPt2di(52,62),
                          3,10,
                          0.2,   //  Prop Out layer
                          0.05,0.0,0.5
                      );
+         aBG3.GG().DoClustering(3,0.15);
 
-         aBG3.GG().OneIterCycles(3,0.15,1.0,true);
-         aBG3.GG().OneIterCycles(3,0.15,1.0,true);
-         aBG3.GG().OneIterCycles(3,0.15,1.0,true);
-         aBG3.GG().OneIterCycles(3,0.15,1.0,true);
-         aBG3.GG().OneIterCycles(3,0.15,1.0,true);
-         aBG3.GG().OneIterCycles(3,0.15,1.0,true);
-         aBG3.GG().OneIterCycles(3,0.15,1.0,true);
+         aBG3.GG().OneIterCycles(3,1.0,true);
+         aBG3.GG().OneIterCycles(3,1.0,true);
+         aBG3.GG().OneIterCycles(3,1.0,true);
+         aBG3.GG().OneIterCycles(3,1.0,true);
+         aBG3.GG().OneIterCycles(3,1.0,true);
+         aBG3.GG().OneIterCycles(3,1.0,true);
+         aBG3.GG().OneIterCycles(3,1.0,true);
 
          aBG3.GG().MakeMinSpanTree();
      }
@@ -767,9 +788,10 @@ void BenchGroupGraph(cParamExeBench & aParam)
                          0.2,   //  Prop Out layer
                          0.00,0.2,0.5
                      );
-         aBG3.GG().OneIterCycles(3,0.15,1.0,true);
-         aBG3.GG().OneIterCycles(3,0.15,1.0,true);
-         aBG3.GG().OneIterCycles(3,0.15,1.0,true);
+         aBG3.GG().DoClustering(3,0.15);
+         aBG3.GG().OneIterCycles(3,1.0,true);
+         aBG3.GG().OneIterCycles(3,1.0,true);
+         aBG3.GG().OneIterCycles(3,1.0,true);
 
          tREAL8 aNoiseMax = aBG3.GG().MakeMinSpanTree();
 
@@ -800,7 +822,221 @@ template class cGroupGraph<tRotR>;
 /*                     cAppli_ArboTriplets                   */
 /*                                                           */
 /* ********************************************************* */
-#if (0)
+
+typedef cGroupGraph<tRotR>       tGGRR;
+typedef typename tGGRR::tVertex  tV_GGRR;
+typedef typename tGGRR::tEdge    tE_GGRR;
+typedef tE_GGRR*                 tEdgePtr;
+typedef std::array<tE_GGRR*,3>   t3E_GGRR;
+
+class cTri_GGRR
+{
+   public :
+        cTri_GGRR (const cTriplet* aT0) :
+            mT0         (aT0),
+            mOk         (false),
+            mCostIntr   (1e10) 
+        {
+        }
+
+        const cTriplet*  mT0;
+        t3E_GGRR         mCnxE;      // the 3 edges 
+        bool             mOk;        // for ex, not OK if on of it edges was not clustered
+        tREAL8           mCostIntr;  // intrisiq cost
+};
+
+class cMakeArboTriplet
+{
+     public :
+         
+         cMakeArboTriplet(const cTripletSet & aSet3);
+
+         // make the graph on pose, using triplet as 3 edges
+         void MakeGraphPose();
+
+         /// reduce eventually the number of triplet by clustering them, used in cycle computation
+         void DoClustering(int aNbMax,tREAL8 aDistCluster);
+         ///  compute some quality criteria on triplet by loop closing on rotation
+         void DoIterCycle(int aNbC);
+         void DoTripletWeighting();
+
+         void SetRand(tREAL8 aLevelRand);
+
+         typedef cTri_GGRR * t3CPtr;
+     private :
+
+         int KSom(t3CPtr aTri,int aK123) const;
+
+
+         const cTripletSet  &    mSet3;
+         std::vector<cTri_GGRR>  mVTriC;
+         t2MapStrInt             mMapStrI;
+         tGGRR                   mGGPoses;
+         bool                    mDoRand;
+         tREAL8                  mLevelRand;
+};
+
+
+cMakeArboTriplet::cMakeArboTriplet(const cTripletSet & aSet3) :
+   mSet3      (aSet3),
+   mGGPoses   (false), // false=> not 4 simul
+   mDoRand    (false),
+   mLevelRand (0.0)
+{
+}
+
+void cMakeArboTriplet::SetRand(tREAL8 aLevelRand)
+{
+   mDoRand = true;
+   mLevelRand = aLevelRand;
+}
+
+void cMakeArboTriplet::MakeGraphPose()
+{
+   // fix the size for memory opt
+   mVTriC.reserve(mSet3.Set().size());
+
+   // create mVTriC & compute map NamePose/Int in mMapStrI
+   for (auto & a3 : mSet3.Set())
+   {
+        for (size_t aK3=0 ; aK3<3 ; aK3++)
+        {
+             mMapStrI.Add(a3.Pose(aK3).Name(),true);
+        }
+        mVTriC.push_back(cTri_GGRR(&a3));
+   }
+   StdOut() << "Nb3= " << mSet3.Set().size() << " NBI=" << mMapStrI.size() << "\n";
+
+
+   // In case we want to make some test with random rot, create the "perfect" rot of each pose
+   std::vector<tRotR> aVRandR;
+   for (size_t aKR=0; aKR<mMapStrI.size() ; aKR++)
+       aVRandR.push_back(tRotR::RandomRot());
+
+   //  Add the vertex corresponding to each poses in Graph-Pose
+   for (size_t aKIm=0 ; aKIm<mMapStrI.size() ; aKIm++)
+   {
+       mGGPoses.AddVertex();
+   }
+
+   for (size_t aKT=0; aKT<mSet3.Set().size() ; aKT++)
+   {
+        const cTriplet & a3 = mSet3.Set().at(aKT);
+        for (size_t aK3=0 ; aK3<3 ; aK3++)
+        {
+            const cView&  aView1 = a3.Pose(aK3);
+            const cView&  aView2 = a3.Pose((aK3+1)%3);
+            int aI1 =  mMapStrI.Obj2I(aView1.Name());
+            int aI2 =  mMapStrI.Obj2I(aView2.Name());
+
+            tRotR  aR1toW = aView1.Pose().Rot();
+            tRotR  aR2toW = aView2.Pose().Rot();
+
+            if (mDoRand)
+            {
+               aR1toW = aVRandR.at(aI1) * tRotR::RandomSmallElem(mLevelRand);
+               aR2toW = aVRandR.at(aI2) * tRotR::RandomSmallElem(mLevelRand);
+            }
+
+            //  Ori_2->1  = Ori_G->1  o Ori_2->G    ( PL2 -> PG -> PL1)
+            tRotR aR2to1 = aR1toW.MapInverse() * aR2toW;
+
+            tV_GGRR & aV1  = mGGPoses.VertexOfNum(aI1);
+            tV_GGRR & aV2  = mGGPoses.VertexOfNum(aI2);
+
+            mGGPoses.AddHyp(aV1,aV2,aR2to1,1.0,aKT);
+
+            tE_GGRR * anE = aV1.EdgeOfSucc(aV2)->EdgeInitOr();
+            mVTriC.at(aKT).mCnxE.at(aK3) = anE;
+        }
+   }
+}
+
+
+void cMakeArboTriplet::DoClustering(int aNbMax,tREAL8 aDistCluster)
+{
+   // call the clustering of Graph - group
+   mGGPoses.DoClustering(aNbMax,aDistCluster);
+
+   // print some stat
+   int aNbH0 = 0;
+   int aNbHC = 0;
+   int aNbE = 0;
+   for (const auto & anE : mGGPoses.AllEdges_DirInit())
+   {
+      const  cGGA_EdgeSym<tRotR> & anAttr =  anE->AttrSym();
+      aNbH0 += anAttr.ValuesInit().size();
+      aNbHC += anAttr.ValuesComp().size();
+      aNbE++;
+   }
+
+   StdOut() << "NBH , Init=" << aNbH0 /double(aNbE) << " Comp=" << aNbHC/double(aNbE)  << "\n";
+}
+
+void cMakeArboTriplet::DoIterCycle(int aNbIter)
+{
+     // call the IterCycles-method of graph group, that compute quality on edges-hyp
+     for (int aK=0 ; aK<aNbIter ; aK++)
+     {
+         mGGPoses.OneIterCycles(3,1.0,false);
+         StdOut() << "DONE DoIterCycle \n";
+     }
+
+      cStdStatRes aStat;
+      for (const auto & anE : mGGPoses.AllEdges_DirInit())
+      {
+          const  cGGA_EdgeSym<tRotR> & anAttr =  anE->AttrSym();
+          //StdOut() << "-----------------------------------------------\n";
+          for (const auto & aH : anAttr.ValuesComp())
+          {
+              aStat.Add(aH.mWeightedDist.Average() );
+              //StdOut()  <<  "WWdd="  << aH.mWeightedDist.Average() << "\n";
+          }
+       }
+       if (1)
+       {
+           for (const auto & aProp : {0.1,0.5,0.9})
+               StdOut() << " Prop=" << aProp << " Res=" << aStat.ErrAtProp(aProp) << "\n";
+       }
+
+}
+
+void cMakeArboTriplet::DoTripletWeighting()
+{
+    for (size_t aKT=0 ; aKT<mVTriC.size() ; aKT++)
+    {
+        std::vector<tREAL8>  aVectCost;
+        for (size_t aKE=0 ; aKE<3 ; aKE++)
+        {
+             const auto & anAttr = mVTriC.at(aKT).mCnxE.at(aKE)->AttrSym();
+             const auto aHyp0 = anAttr.HypOfNumSet(aKT);
+             if (aHyp0->IsMarked())
+             {
+                 const auto aHypC =  anAttr.HypCompOfH0(*aHyp0);
+                 aVectCost.push_back(aHypC->mWeightedDist.Average());
+             }
+        }
+        if (aVectCost.size()==3)
+        {
+            std::sort(aVectCost.begin(),aVectCost.end());
+            cWeightAv<tREAL8,tREAL8> aWCost;
+            tREAL8 aExp = 2.0;
+            for (size_t aKP=0 ; aKP<3 ;aKP++)
+                aWCost.Add(std::pow(aExp,aKP),aVectCost.at(aKP));
+            mVTriC.at(aKT).mOk = true;
+            mVTriC.at(aKT).mCostIntr = aWCost.Average() ;
+        }
+        else
+        {
+        }
+    }
+}
+
+int cMakeArboTriplet::KSom(t3CPtr aTriC,int aK123) const
+{
+   return mMapStrI.Obj2I(aTriC->mT0->Pose(aK123).Name());
+}
+
 class cAppli_ArboTriplets : public cMMVII_Appli
 {
      public :
@@ -811,27 +1047,78 @@ class cAppli_ArboTriplets : public cMMVII_Appli
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
      private :
         cPhotogrammetricProject   mPhProj;
+        int                       mNbMaxClust;
+        tREAL8                    mDistClust;
+        int                       mNbIterCycle;
+        tREAL8                    mLevelRand;
 };
 
 
 cAppli_ArboTriplets::cAppli_ArboTriplets(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
     cMMVII_Appli (aVArgs,aSpec),
-    mPhProj      (*this)
+    mPhProj      (*this),
+    mNbMaxClust  (5),
+    mDistClust   (0.02),
+    mNbIterCycle (3)
 {
 }
 
 cCollecSpecArg2007 & cAppli_ArboTriplets::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
     return anArgObl
-/*
-              << Arg2007(mIm1,"name first image")
-              << Arg2007(mIm2,"name second image")
-              <<  mPhProj.DPOrient().ArgDirInMand("Input orientation for calibration")
-              <<  mPhProj.DPTieP().ArgDirInMand()
-*/
+              <<  mPhProj.DPOriTriplets().ArgDirInMand("Input orientation for calibration")
            ;
 }
-#endif
+
+cCollecSpecArg2007 & cAppli_ArboTriplets::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+   return    anArgOpt
+          << AOpt2007(mNbMaxClust,"NbMaxClust","Number max of rot in 1 cluster",{eTA2007::HDV})
+          << AOpt2007(mDistClust,"DistClust","Distance in clustering",{eTA2007::HDV})
+          << AOpt2007(mLevelRand,"LevelRand","Level of random if simulation")
+   ;
+}
+
+int cAppli_ArboTriplets::Exe()
+{
+     mPhProj.FinishInit();
+
+     cTripletSet *  a3Set =  mPhProj.ReadTriplets();
+     cMakeArboTriplet  aMk3(*a3Set);
+     if (IsInit(&mLevelRand))
+        aMk3.SetRand(mLevelRand);
+
+     aMk3.MakeGraphPose();
+
+     aMk3.DoClustering(mNbMaxClust,mDistClust);
+     aMk3.DoIterCycle(mNbIterCycle);
+     aMk3.DoTripletWeighting();
+     //aMk3.MakeTree();
+
+     delete a3Set;
+
+
+     return EXIT_SUCCESS;
+}
+
+tMMVII_UnikPApli Alloc_ArboTriplets(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
+{
+   return tMMVII_UnikPApli(new cAppli_ArboTriplets(aVArgs,aSpec));
+}
+
+cSpecMMVII_Appli  TheSpec_ArboTriplet
+(
+     "___OriPoseArboTriplet",
+      Alloc_ArboTriplets,
+      "Create arborescence of triplet (internal use essentially)",
+      {eApF::Ori},
+      {eApDT::Ori},
+      {eApDT::Orient},
+      __FILE__
+);
+
+
+
 
 
 
