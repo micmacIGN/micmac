@@ -234,7 +234,7 @@ cBGG_Graph::cBGG_Graph (cPt2di aSzGrid) :
           tREAL8 anAbsicsa = mBox.IndexeLinear(aPix4Num);
 
           // create a vertex and put it on the grid
-          VertOfPt(aPix) = NewSom(cBGG_AttrVert(aPix,anAbsicsa));
+          VertOfPt(aPix) = NewVertex(cBGG_AttrVert(aPix,anAbsicsa));
       }
 
       //  ----------- [1]  Create the edges ------------------------

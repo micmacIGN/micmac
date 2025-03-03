@@ -182,6 +182,9 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Graph : pub
 	  typedef cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym>        tVertex;
 	  typedef cVG_Edge<TA_Vertex,TA_Oriented,TA_Sym>          tEdge;
 	  typedef cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>         tGraph;
+          typedef  TA_Vertex                                      tAttrV;
+          typedef  TA_Oriented                                    tAttrO;
+          typedef  TA_Sym                                         tAttrS;
 	     
 	  friend tVertex;
 	  friend tEdge;
@@ -204,7 +207,7 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Graph : pub
           inline cVG_Graph();  ///< constructor does do a lot
           inline ~cVG_Graph();  ///< free memory
 
-          inline tVertex * NewSom(const TA_Vertex & anAttr) ;  ///< create a vertex with given attribute
+          inline tVertex * NewVertex(const TA_Vertex & anAttr) ;  ///< create a vertex with given attribute
 
              /** create  Edges  "V1->V2" and "V2->V1" with 2 attribute oriented and 1 attribute sym
                  for now, error if already exist, to see if it must evolve */
@@ -399,7 +402,7 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>
 }
 
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
-   cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym>* cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::NewSom(const TA_Vertex & anAttr) 
+   cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym>* cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::NewVertex(const TA_Vertex & anAttr) 
 {
     mV_Vertices.push_back(new tVertex(this,anAttr,mV_Vertices.size()));
     return mV_Vertices.back();

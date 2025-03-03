@@ -73,6 +73,89 @@ template <class TGraph>  class cAlgo_SubGrNone : public cAlgo_SubGr<TGraph>
         private :
 };
 
+/**  class for define a subgraph by a set of edges, use flag to have fast access to belonging */
+template <class TGraph>  class cSubGraphOfVertices : public cAlgo_SubGr<TGraph>
+{
+        public :
+             typedef typename TGraph::tVertex  tVertex;
+             typedef std::vector<tVertex*>     tVVPtr;
+
+             cSubGraphOfVertices(TGraph&,const tVVPtr & aVV) ;
+             ~cSubGraphOfVertices();
+
+             bool   InsideVertex(const  tVertex & aV) const override {return aV.BitTo1(mFlagVertex);}
+        private :
+            TGraph&   mGr;
+            tVVPtr    mVVertices;
+            size_t    mFlagVertex;
+};
+
+template <class TGraph> cSubGraphOfVertices<TGraph>::cSubGraphOfVertices(TGraph& aGr,const tVVPtr & aVVertices)  :
+    mGr         (aGr),
+    mVVertices  (aVVertices),
+    mFlagVertex (aGr.Vertex_AllocBitTemp())
+{
+    for (const auto& aV : mVVertices)
+        aV->SetBit1(mFlagVertex);
+}
+template <class TGraph> cSubGraphOfVertices<TGraph>::~cSubGraphOfVertices() 
+{
+    for (const auto& aV : mVVertices)
+        aV->SetBit0(mFlagVertex);
+    mGr.Vertex_FreeBitTemp(mFlagVertex);
+}
+
+
+
+
+
+/**  class for define a subgraph by a set of edges, use flag to have fast access to belonging */
+template <class TGraph>  class cSubGraphOfEdges : public cAlgo_SubGr<TGraph>
+{
+        public :
+             typedef typename TGraph::tVertex tVertex;
+             typedef typename TGraph::tEdge   tEdge;
+             typedef std::vector<tEdge*>      tVEPtr;
+
+             cSubGraphOfEdges(TGraph&,const tVEPtr & aVEdge) ;
+             ~cSubGraphOfEdges();
+
+             bool   InsideVertex(const  tVertex & aV) const override {return aV.BitTo1(mFlagVertex);}
+             bool   InsideEdge(const    tEdge & anE) const override {return anE.BitTo1(mFlagEdge);}
+        private :
+            TGraph&   mGr;
+            tVEPtr    mVEdges;
+            size_t    mFlagVertex;
+            size_t    mFlagEdge;
+};
+
+template <class TGraph> cSubGraphOfEdges<TGraph>::cSubGraphOfEdges(TGraph& aGr,const tVEPtr & aVEdge) :
+    mGr         (aGr),
+    mVEdges     (aVEdge),
+    mFlagVertex (aGr.Vertex_AllocBitTemp()),
+    mFlagEdge   (aGr.Edge_AllocBitTemp())
+{
+    for (const auto& anE : mVEdges)
+    {
+         anE->EdgeInitOr()->SetBit1(mFlagEdge);
+         anE->Succ().SetBit1(mFlagVertex);
+         anE->VertexInit().SetBit1(mFlagVertex);
+    }
+}
+
+template <class TGraph> cSubGraphOfEdges<TGraph>::~cSubGraphOfEdges()
+{
+    for (const auto& anE : mVEdges)
+    {
+         anE->EdgeInitOr()->SetBit0(mFlagEdge);
+         anE->Succ().SetBit0(mFlagVertex);
+         anE->VertexInit().SetBit0(mFlagVertex);
+    }
+    mGr.Vertex_FreeBitTemp(mFlagVertex);
+    mGr.Edge_FreeBitTemp(mFlagEdge);
+}
+
+
 /**   define a sub-graph that contain as goal the vertex having cost over a threshold, use to
  have it as goal, to compute the sorhtest path tree up to a distance */
 
@@ -88,9 +171,6 @@ template <class TGraph>  class cAlgo_SubGrCostOver : public cAlgo_SubGr<TGraph>
              tREAL8 mThreshold;
 };
 
-
-
-
 /**   parametrizarion of algorithm */
 
 template <class TGraph>  class cAlgo_ParamVG : public cAlgo_SubGr<TGraph>
@@ -103,6 +183,24 @@ template <class TGraph>  class cAlgo_ParamVG : public cAlgo_SubGr<TGraph>
              virtual tREAL8 WeightEdge(const    tEdge &) const {return 1.0;}
 
 };
+
+/** Class & function for using func or lambda to create cAlgo_ParamVG */
+
+template <class TGraph,class TFunc>  class cTplAlgo_SubGr : public cAlgo_ParamVG<TGraph>
+{
+      public :
+          typedef typename TGraph::tEdge tEdge;
+          cTplAlgo_SubGr(const TFunc & aFunct) : mFunct (aFunct) {}
+          tREAL8 WeightEdge(const    tEdge & anEdge) const override {return mFunct(anEdge);}
+
+          const TFunc & mFunct;
+};
+template <class TGraph,class TFunc> cTplAlgo_SubGr<TGraph,TFunc> TplAlgo_SubGr(const TGraph *,const TFunc & aFunct)
+{
+   return cTplAlgo_SubGr<TGraph,TFunc>(aFunct);
+}
+
+
 
 /* ********************************************************************************* */
 /*                                                                                   */
@@ -567,7 +665,7 @@ template <class TGraph>   class cAlgoCC
 		                  (
                                       TGraph & aGraph,
 				      tVertex& aSeed,
-                                      const cAlgo_ParamVG<TGraph> & aParam
+                                      const cAlgo_SubGr<TGraph> & aParam
 				  );
 
           // return all the connected component of the set defined by aVectSeed
@@ -575,14 +673,14 @@ template <class TGraph>   class cAlgoCC
 		                  (
                                       TGraph & aGraph,
 				      const std::vector<tVertex*> & aVectSeed,
-                                      const cAlgo_ParamVG<TGraph> & aParam
+                                      const cAlgo_SubGr<TGraph> & aParam
 				  );
 
           // return all the connected component of the graph 
 	  static std::list<std::vector<tVertex *>>  All_ConnectedComponent
 		                  (
                                       TGraph & aGraph,
-                                      const cAlgo_ParamVG<TGraph> & aParam
+                                      const cAlgo_SubGr<TGraph> & aParam
 				  );
 
      private :
@@ -591,7 +689,7 @@ template <class TGraph>   class cAlgoCC
 		                  (
 				      tVertex* aSeed,
 				      std::vector<tVertex *>& aResult,
-                                      const cAlgo_ParamVG<TGraph> & aParam,
+                                      const cAlgo_SubGr<TGraph> & aParam,
 				      size_t aBitReached
 				  );
 
@@ -601,7 +699,7 @@ template <class TGraph>   class cAlgoCC
                                       TGraph & aGraph,
                                       std::list<std::vector<tVertex *>>  & aRes,
 				      const std::vector<tVertex*> & aVectSeed,
-                                      const cAlgo_ParamVG<TGraph> & aParam
+                                      const cAlgo_SubGr<TGraph> & aParam
 				  );
 
 };
@@ -612,7 +710,7 @@ template <class TGraph>
           (
               tVertex* aSeed,                        // seed of the connected component
               std::vector<tVertex *>& aResult,       // data where we write result
-              const cAlgo_ParamVG<TGraph> & aParam,  // param to define sub-graph
+              const cAlgo_SubGr<TGraph> & aParam,  // param to define sub-graph
               size_t aBitReached                     // marker used to avoid multiple visit of one  vertex
           )
 {
@@ -651,7 +749,7 @@ template <class TGraph>
             (
                                       TGraph & aGraph,
 				      tVertex& aSeed,
-                                      const cAlgo_ParamVG<TGraph> & aParam
+                                      const cAlgo_SubGr<TGraph> & aParam
             )
 {
     size_t aBitReached = aGraph.Vertex_AllocBitTemp();  // alloc marker
@@ -672,7 +770,7 @@ template <class TGraph>
                  TGraph & aGraph,
                  std::list<std::vector<tVertex *>>  & aResult,
                  const std::vector<tVertex*> & aVecSeed,
-                 const cAlgo_ParamVG<TGraph> & aParam
+                 const cAlgo_SubGr<TGraph> & aParam
             )
 {
     size_t aBitReached = aGraph.Vertex_AllocBitTemp();  // alloc marker
@@ -699,7 +797,7 @@ template <class TGraph>
            (
                   TGraph & aGraph,
                   const std::vector<tVertex*> & aVecSeed,
-                  const cAlgo_ParamVG<TGraph> & aParam
+                  const cAlgo_SubGr<TGraph> & aParam
             )
 {
     std::list<std::vector<tVertex*>>   aResult;
@@ -712,12 +810,76 @@ template <class TGraph>
                     cAlgoCC<TGraph>::All_ConnectedComponent
 		    (
                                       TGraph & aGraph,
-                                      const cAlgo_ParamVG<TGraph> & aParam
+                                      const cAlgo_SubGr<TGraph> & aParam
                     )
 {
     std::list<std::vector<tVertex*>>   aResult;
     Internal_Multiple_ConnectedComponent(aGraph,aResult,aGraph.AllVertices(),aParam);
     return aResult;
+}
+
+/* ********************************************************************************* */
+/*                                                                                   */
+/*                            cAlgoSuprExtre                                         */
+/*                                                                                   */
+/* ********************************************************************************* */
+
+template <class TGraph> class cAlgoSuprExtre
+{
+    public :
+       typedef typename TGraph::tVertex tVertex;
+       typedef  cAlgo_SubGr<TGraph>     tSubGr;
+
+       cAlgoSuprExtre(TGraph &aGraph,const tSubGr & aSubGr ,const tSubGr &aSubAnchor) ;
+       const std::vector<tVertex*> & Extrem() const {return mExtrem;}
+
+    private :
+       void  TestExtreAndSupr(tVertex *);
+
+       TGraph &               mGraph;
+       const tSubGr &         mSubGr;
+       const tSubGr &         mAnchor;
+       size_t                 mFlagSupr;
+       std::vector<tVertex*>  mExtrem;
+};
+
+template <class TGraph> cAlgoSuprExtre<TGraph>::cAlgoSuprExtre(TGraph &aGraph,const tSubGr & aSubGr ,const tSubGr &aSubAnchor) :
+    mGraph     (aGraph),
+    mSubGr     (aSubGr),
+    mAnchor    (aSubAnchor),
+    mFlagSupr  (mGraph.Vertex_AllocBitTemp())
+{
+   for (auto & aVertex :  aGraph.AllVertices())
+       TestExtreAndSupr(aVertex);
+
+   size_t aInd0 = 0;
+   while (aInd0!=mExtrem.size())
+   {
+         TestExtreAndSupr(mExtrem.at(aInd0));
+         aInd0++;
+   }
+
+   tVertex::SetBit0(mExtrem,mFlagSupr);
+   mGraph.Vertex_FreeBitTemp(mFlagSupr);
+}
+
+template <class TGraph> void  cAlgoSuprExtre<TGraph>::TestExtreAndSupr(tVertex * aVertex)
+{
+    if (mAnchor.InsideVertex(*aVertex) || (!mSubGr.InsideVertex(*aVertex)) || (aVertex->BitTo1(mFlagSupr)) )
+       return ;
+
+    int aNbSucc = 0;
+    for (const auto & anEdge : aVertex->EdgesSucc())
+    {
+        const tVertex & aSucc = anEdge->Succ();
+        if (mSubGr.InsideV1AndEdgeAndSucc(*anEdge) && (! aSucc.BitTo1(mFlagSupr)))
+           aNbSucc++;
+    }
+    if (aNbSucc <=1)
+    {
+        aVertex->SetBit1(mFlagSupr);
+        mExtrem.push_back(aVertex);
+    }
 }
 
 }; // MMVII
