@@ -10,6 +10,10 @@ namespace MMVII
 static constexpr int    FlagEdgeDirInit = 0;
 static constexpr tREAL8 AlgoCostInitVal = -1e30;
 
+/// usefull for different graph class when no attribute is required
+class cEmptyClass {};
+
+
 /** \file   MMVII_Tpl_GraphStruct.h
     \brief   Define the 3 classes Vertex/Edge/Graph for implementation of valuated graphs
 */
@@ -106,6 +110,7 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Edge : publ
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Vertex : public cMemCheck
 {
      public :
+
           // ------------------- typedef & friendship --------------------------------
 	  typedef cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym>    tVertex;
 	  typedef cVG_Edge<TA_Vertex,TA_Oriented,TA_Sym>      tEdge;
@@ -113,6 +118,7 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Vertex : pu
 
           friend  tEdge;
           friend  tGraph;
+
 
                     //  Algorithmd require acces to some internal variables
           template <class> friend class cAlgoSP;
@@ -189,12 +195,21 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Graph : pub
 	  friend tVertex;
 	  friend tEdge;
 
+	  // Function used to simplify default lambda expression in sub-graphs
+	      // Dont konw why this simpler version does not work in Tpl_InsideAndWSubGr
+              // static bool   V_True(const tVertex &) {return true;}
+	      // So we have to use functions that return lamnda ...
+          static auto  V_True() {return [](const tVertex &) {return true;};}
+          static auto  E_True() {return [](const tEdge &) {return true;};}
+          static auto  E_W1()   {return [](const tEdge &) {return 1.0;};}
+
           // ------------------   Different accessors
           size_t NbVertex()   const {return mV_Vertices.size();}       ///<  number total of vertices
 	  tVertex &        VertexOfNum(size_t aNum)       {return *mV_Vertices.at(aNum);} ///< KTh vertex
 	  const tVertex &  VertexOfNum(size_t aNum) const {return *mV_Vertices.at(aNum);} ///< KTh vertex
 
 	  const std::vector<tVertex*>  &    AllVertices() const {return mV_Vertices;}  ///< vector of vertices (as input to some algo)
+	  std::vector<tVertex*>  &    AllVertices() {return mV_Vertices;}  ///< vector of vertices (as input to some algo)
 	  const std::vector<TA_Sym*>   &    AllAttrSym() const  {return mV_AttrSym;}   ///< all atributs, usefull for some global setting
 
           /// Not very efficient, create a copy, but can be simpler when efficiency is not the priority

@@ -171,7 +171,7 @@ template <class TGraph>  class cAlgo_SubGrCostOver : public cAlgo_SubGr<TGraph>
              tREAL8 mThreshold;
 };
 
-/**   parametrizarion of algorithm */
+/**   weighting parametrizarion of algorithm */
 
 template <class TGraph>  class cAlgo_ParamVG : public cAlgo_SubGr<TGraph>
 {
@@ -184,23 +184,69 @@ template <class TGraph>  class cAlgo_ParamVG : public cAlgo_SubGr<TGraph>
 
 };
 
-/** Class & function for using func or lambda to create cAlgo_ParamVG */
+/** Class & function for using func or lambda to weight edges */
 
-template <class TGraph,class TFunc>  class cTplAlgo_SubGr : public cAlgo_ParamVG<TGraph>
+template <class TGraph,class TFunc>  class cTpl_WeithingSubGr : public cAlgo_ParamVG<TGraph>
 {
       public :
           typedef typename TGraph::tEdge tEdge;
-          cTplAlgo_SubGr(const TFunc & aFunct) : mFunct (aFunct) {}
-          tREAL8 WeightEdge(const    tEdge & anEdge) const override {return mFunct(anEdge);}
+          cTpl_WeithingSubGr(const TFunc & aFunc) : mFunc (aFunc) {}
+          tREAL8 WeightEdge(const    tEdge & anEdge) const override {return mFunc(anEdge);}
 
-          const TFunc & mFunct;
+          TFunc  mFunc;
 };
-template <class TGraph,class TFunc> cTplAlgo_SubGr<TGraph,TFunc> TplAlgo_SubGr(const TGraph *,const TFunc & aFunct)
+template <class TGraph,class TFunc> cTpl_WeithingSubGr<TGraph,TFunc> Tpl_WeithingSubGr(const TGraph *,const TFunc & aFunct)
 {
-   return cTplAlgo_SubGr<TGraph,TFunc>(aFunct);
+   return cTpl_WeithingSubGr<TGraph,TFunc>(aFunct);
 }
 
+/** Class & function for using func or lambda to define insideness of vertices & edges */
 
+template <class TGraph,class TFunc_V,class TFunc_E,class TFunc_W>  class cTpl_InsideAndWSubGr : public cAlgo_ParamVG<TGraph>
+{
+      public :
+          typedef typename TGraph::tVertex tVertex;
+          typedef typename TGraph::tEdge   tEdge;
+          cTpl_InsideAndWSubGr
+          (
+              const TFunc_V & aFunc_V,
+              const TFunc_E & aFunc_E ,
+              const TFunc_W & aFunc_W 
+          ) :
+             mFunc_V (aFunc_V),
+             mFunc_E (aFunc_E),
+             mFunc_W (aFunc_W) 
+          {
+          }
+
+          bool   InsideVertex(const  tVertex & aV) const override {return mFunc_V(aV);}
+          bool   InsideEdge  (const  tEdge & anE)  const override {return mFunc_E(anE);}
+          tREAL8 WeightEdge  (const  tEdge & anE)  const override {return mFunc_W(anE);}
+
+          TFunc_V  mFunc_V;
+          TFunc_E  mFunc_E;
+          TFunc_W  mFunc_W;
+};
+
+template <class TGraph,class TFunc_V,class TFunc_E,class TFunc_W> 
+      cTpl_InsideAndWSubGr<TGraph,TFunc_V,TFunc_E,TFunc_W> 
+           Tpl_InsideAndWSubGr
+           (
+	         const TGraph *,
+                 const TFunc_V & aFunc_V,
+                 const TFunc_E & aFunc_E ,
+                 const TFunc_W & aFunc_W 
+           )
+{
+   return cTpl_InsideAndWSubGr<TGraph,TFunc_V,TFunc_E,TFunc_W>(aFunc_V,aFunc_E,aFunc_W);
+}
+
+/*
+             virtual bool   InsideVertex(const  tVertex &) const {return true;}
+             // take as parameter V1 & edge E=V1->V2 (because we cannot acces V1 from E)
+             virtual bool   InsideEdge(const    tEdge &) const {return true;}
+             // method frequently used, so that user only redefines InsideEdge
+*/	     
 
 /* ********************************************************************************* */
 /*                                                                                   */
@@ -820,54 +866,75 @@ template <class TGraph>
 
 /* ********************************************************************************* */
 /*                                                                                   */
-/*                            cAlgoSuprExtre                                         */
+/*                            cAlgoPruningExtre                                      */
 /*                                                                                   */
 /* ********************************************************************************* */
 
-template <class TGraph> class cAlgoSuprExtre
+/** Class for "pruning" algorithm , i.e recursive supression of extremity with conservation
+ * of anchor points */
+
+template <class TGraph> class cAlgoPruningExtre
 {
     public :
        typedef typename TGraph::tVertex tVertex;
        typedef  cAlgo_SubGr<TGraph>     tSubGr;
 
-       cAlgoSuprExtre(TGraph &aGraph,const tSubGr & aSubGr ,const tSubGr &aSubAnchor) ;
-       const std::vector<tVertex*> & Extrem() const {return mExtrem;}
+       cAlgoPruningExtre(TGraph &aGraph,const tSubGr & aSubGr ,const tSubGr &aSubAnchor) ;
+       const std::vector<tVertex*> & Extrem() const {return mExtrem;} ///< accesor to the result
 
     private :
        void  TestExtreAndSupr(tVertex *);
 
-       TGraph &               mGraph;
-       const tSubGr &         mSubGr;
-       const tSubGr &         mAnchor;
-       size_t                 mFlagSupr;
-       std::vector<tVertex*>  mExtrem;
+       TGraph &               mGraph;     ///< graph we are working on
+       const tSubGr &         mSubGr;     ///< subgraph we are working on
+       const tSubGr &         mAnchor;    ///< graph for anchor point that must be maintained
+       size_t                 mFlagSupr;  ///< Flag to memorize supressed vertices
+       std::vector<tVertex*>  mExtrem;	  ///< store the results (recursive extremity)
 };
 
-template <class TGraph> cAlgoSuprExtre<TGraph>::cAlgoSuprExtre(TGraph &aGraph,const tSubGr & aSubGr ,const tSubGr &aSubAnchor) :
+template <class TGraph> cAlgoPruningExtre<TGraph>::cAlgoPruningExtre(TGraph &aGraph,const tSubGr & aSubGr ,const tSubGr &aSubAnchor) :
     mGraph     (aGraph),
     mSubGr     (aSubGr),
     mAnchor    (aSubAnchor),
     mFlagSupr  (mGraph.Vertex_AllocBitTemp())
 {
+   // initialize , compute all the initial extremities
    for (auto & aVertex :  aGraph.AllVertices())
+   {
        TestExtreAndSupr(aVertex);
+   }
 
+   // StdOut() << "-----ITER 0----- " <<  mExtrem.size() << "\n";
+
+   // recursive supression of extremities
    size_t aInd0 = 0;
    while (aInd0!=mExtrem.size())
    {
-         TestExtreAndSupr(mExtrem.at(aInd0));
+         for (const auto & anE : mExtrem.at(aInd0)->EdgesSucc())
+	 {
+             TestExtreAndSupr(&anE->Succ());
+	 }
          aInd0++;
    }
 
-   tVertex::SetBit0(mExtrem,mFlagSupr);
-   mGraph.Vertex_FreeBitTemp(mFlagSupr);
+   tVertex::SetBit0(mExtrem,mFlagSupr);  // unmark all the marked vertices
+   mGraph.Vertex_FreeBitTemp(mFlagSupr); // recycle the bit allocated
 }
 
-template <class TGraph> void  cAlgoSuprExtre<TGraph>::TestExtreAndSupr(tVertex * aVertex)
+template <class TGraph> void  cAlgoPruningExtre<TGraph>::TestExtreAndSupr(tVertex * aVertex)
 {
-    if (mAnchor.InsideVertex(*aVertex) || (!mSubGr.InsideVertex(*aVertex)) || (aVertex->BitTo1(mFlagSupr)) )
+    // eliminate point that "structurally" cannot be extremity
+    if (
+             mAnchor.InsideVertex(*aVertex)     // anchor points must not be eliminated
+          || (!mSubGr.InsideVertex(*aVertex))   // point oustide the graph must not be eliminated
+	  || (aVertex->BitTo1(mFlagSupr))       // point already supressed must not be revisited
+       )
+    {
+       // StdOut() << "OUT " << aVertex->Attr().mPt   <<   "\n";
        return ;
+    }
 
+    // count the number of valid remaining neighboors
     int aNbSucc = 0;
     for (const auto & anEdge : aVertex->EdgesSucc())
     {
@@ -875,8 +942,10 @@ template <class TGraph> void  cAlgoSuprExtre<TGraph>::TestExtreAndSupr(tVertex *
         if (mSubGr.InsideV1AndEdgeAndSucc(*anEdge) && (! aSucc.BitTo1(mFlagSupr)))
            aNbSucc++;
     }
+    //  extremity por single submit must be supressed
     if (aNbSucc <=1)
     {
+        // StdOut() << " IN " << aVertex->Attr().mPt << " NBS=" << aNbSucc   <<   "\n";
         aVertex->SetBit1(mFlagSupr);
         mExtrem.push_back(aVertex);
     }
