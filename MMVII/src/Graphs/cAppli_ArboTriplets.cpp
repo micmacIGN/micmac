@@ -107,7 +107,7 @@ class cMakeArboTriplet
 {
      public :
          
-         cMakeArboTriplet(const cTripletSet & aSet3);
+         cMakeArboTriplet(const cTripletSet & aSet3,bool doCheck);
 
          // make the graph on pose, using triplet as 3 edges
          void MakeGraphPose();
@@ -136,6 +136,7 @@ class cMakeArboTriplet
 
 
          const cTripletSet  &    mSet3;
+         bool                    mDoCheck;
          t2MapStrInt             mMapStrI;
          tGrPoses                mGGPoses;
          tGrTriplet              mGTriC;
@@ -145,8 +146,9 @@ class cMakeArboTriplet
 };
 
 
-cMakeArboTriplet::cMakeArboTriplet(const cTripletSet & aSet3) :
+cMakeArboTriplet::cMakeArboTriplet(const cTripletSet & aSet3,bool doCheck) :
    mSet3      (aSet3),
+   mDoCheck   (doCheck),
    mGGPoses   (false), // false=> not 4 simul
    mDoRand    (false),
    mLevelRand (0.0)
@@ -349,15 +351,17 @@ void cMakeArboTriplet::MakeGraphTriC()
            }
        }
    }
-   auto  aListCC = cAlgoCC<tGrTriplet>::All_ConnectedComponent(mGTriC,cAlgo_SubGr<tGrTriplet>());
+   auto  aListCC = cAlgoCC<tGrTriplet>::All_ConnectedComponent(mGTriC,cAlgo_ParamVG<tGrTriplet>());
    StdOut() << "Number of connected compon Triplet-Graph= " << aListCC.size() << "\n";
    // to see later, we can probably analyse CC by CC, but it would be more complicated (already enough complexity ...)
    MMVII_INTERNAL_ASSERT_tiny(aListCC.size(),"non connected triplet-graph");
 }
 
+int NUMDEBUG = 9;
 
 void cMakeArboTriplet::ComputeMinTri()
 {
+
    for (size_t aKTri=0; aKTri<mGTriC.NbVertex() ; aKTri++)
    {
        auto & aAttrTrip  = mGTriC.VertexOfNum(aKTri).Attr();
@@ -385,27 +389,94 @@ void cMakeArboTriplet::ComputeMinTri()
 
    auto aWeighting = Tpl_WeithingSubGr(&mGTriC,[](const auto & anE) {return anE.AttrSym().mCost2Tri;});
 
-   cAlgoSP<tGrTriplet>::tForest  aForest;
+   cAlgoSP<tGrTriplet>::tForest  aForest(mGTriC);
    cAlgoSP<tGrTriplet>  anAlgo;
    anAlgo.MinimumSpanningForest(aForest,mGTriC,mGTriC.AllVertices(),aWeighting);
    
    // dont handle 4 now
-   MMVII_INTERNAL_ASSERT_tiny(aForest.size()==1,"Not single forest");// litle checj
-   const auto & aTree = *(aForest.begin());
-   StdOut() << "NB TREE=" << aForest.size()  << " SzTree1=" << aTree.second.size() << "\n";
+   MMVII_INTERNAL_ASSERT_tiny(aForest.VTrees().size()==1,"Not single forest");// litle checj
+   const auto & aTree = *(aForest.VTrees().begin());
+   StdOut() << "NB TREE=" << aForest.VTrees().size()  << " SzTree1=" << aTree.Edges().size() << "\n";
 
 
-   StdOut() << "NO  PRRRRR \n";
-   // cSubGraphOfEdges<tGrTriplet>  aSubGrTree(mGTriC,aTree.second)
    
-   cSubGraphOfEdges<tGrTriplet>  aSubGrTree(mGTriC,aTree.second);
-   cSubGraphOfVertices<tGrTriplet>  aSubGrAnchor(mGTriC,aVectTriMin);
+   cSubGraphOfEdges<tGrTriplet>  aSubGrTree(mGTriC,aTree.Edges());
+   cSubGraphOfVertices<tGrTriplet>  aSubGrAnchor(mGTriC,aVectTriMin); 
+
 
    cAlgoPruningExtre<tGrTriplet> aAlgoSupExtr(mGTriC,aSubGrTree,aSubGrAnchor);
    StdOut() <<  "NB EXTR SUPR=" << aAlgoSupExtr.Extrem().size() << "\n";
-  
+
+   std::vector<tEdge3*>  aTreeKernel;
+   cVG_OpBool<tGrTriplet>::EdgesMinusVertices(aTreeKernel,aTree.Edges(),aAlgoSupExtr.Extrem());
+
+
+   StdOut() <<  "NB KERNEL=" << aTreeKernel.size() << "\n";
+
+   if (mDoCheck)
+   {
+        cSubGraphOfEdges<tGrTriplet>  aSubGrKernel(mGTriC,aTreeKernel);
+        // [1]  Check that all the triplet minimal  are belonging to the connection stuff
+        for (const auto & aTriC : aVectTriMin)
+        {
+            MMVII_INTERNAL_ASSERT_always(aSubGrKernel.InsideVertex(*aTriC),"Kernel doesnot contain all  anchors");
+        }
+        // [2]  Check that aTreeKernel is a tree ...
+        std::list<std::vector<tVertex3 *>>  allCC =  cAlgoCC<tGrTriplet>::All_ConnectedComponent(mGTriC,aSubGrKernel);
+        MMVII_INTERNAL_ASSERT_always(allCC.size()==1,"Kernel is not connected");
+        const std::vector<tVertex3 *>& aCC0 =  *(allCC.begin());
+        MMVII_INTERNAL_ASSERT_always(aCC0.size()==(aTreeKernel.size()+1),"Kernel is not tree");
+
+   }
+
+
+// ====================================
+if (0)
+{
+    StdOut() << " TRIMIN=" ;
+    for (const auto & aTriC : aVectTriMin)
+    {
+         StdOut() << " ["  << aTriC->Attr().mKT << ":" << aSubGrAnchor.InsideVertex(*aTriC) << "]";
+    }
+    StdOut() << "\n";
+
+    StdOut() << " KERN=" ;
+    for (const auto & anE : aTreeKernel)
+    {
+          StdOut() << " ["  <<  anE->VertexInit().Attr().mKT << "<->" << anE->Succ().Attr().mKT << "]";
+    }
+    StdOut() << "\n";
+
+    StdOut() << " ALLTREEDBUG=" ;
+    for (const auto & anE : aTree.Edges())
+    {
+        if ((anE->VertexInit().Attr().mKT==NUMDEBUG) || (anE->Succ().Attr().mKT==NUMDEBUG))
+          StdOut() << " ###["  <<  anE->VertexInit().Attr().mKT << "<->" << anE->Succ().Attr().mKT << "]";
+    }
+    StdOut() << "\n";
+
+    StdOut() << " SUPRDEBUG=" ;
+    for (const auto & aVSup : aAlgoSupExtr.Extrem())
+    {
+        if (aVSup->Attr().mKT==NUMDEBUG)
+           StdOut() << " **** " << aVSup->Attr().mKT ;
+    }
+    StdOut() << "\n";
+}
+   
+
+    
+
+/*
+       Spaning Tree - SupExte
+*/
 }
 
+/*
+    9 64 540 190 34 130 550 369 304 271 418 393 403 412 473 507 500 499
+
+
+*/
 
 
 
@@ -429,6 +500,7 @@ class cAppli_ArboTriplets : public cMMVII_Appli
         tREAL8                    mDistClust;
         int                       mNbIterCycle;
         tREAL8                    mLevelRand;
+        bool                      mDoCheck;
 };
 
 
@@ -437,7 +509,8 @@ cAppli_ArboTriplets::cAppli_ArboTriplets(const std::vector<std::string> & aVArgs
     mPhProj      (*this),
     mNbMaxClust  (5),
     mDistClust   (0.02),
-    mNbIterCycle (3)
+    mNbIterCycle (3),
+    mDoCheck     (true)
 {
 }
 
@@ -454,15 +527,34 @@ cCollecSpecArg2007 & cAppli_ArboTriplets::ArgOpt(cCollecSpecArg2007 & anArgOpt)
           << AOpt2007(mNbMaxClust,"NbMaxClust","Number max of rot in 1 cluster",{eTA2007::HDV})
           << AOpt2007(mDistClust,"DistClust","Distance in clustering",{eTA2007::HDV})
           << AOpt2007(mLevelRand,"LevelRand","Level of random if simulation")
+          << AOpt2007(mDoCheck,"DoCheck","do some checking on result",{eTA2007::HDV,eTA2007::Tuning})
    ;
 }
 
 int cAppli_ArboTriplets::Exe()
 {
+if (0)
+{
+   tRotR  aId = tRotR::Identity();
+   tREAL8 aDMax=0;
+   for (int aK=0 ; aK<100000000 ; aK++)
+   {
+        tRotR aR = tRotR::RandomElem();
+        tREAL8 aD = aId.Dist(aR);
+// StdOut() << "dddd " << aD   << " " << aDMax << "\n";
+        if (aD>aDMax)
+        {
+            aDMax =aD;
+            StdOut() << "DMAX== "  << aDMax << "\n";
+            aR.Mat().Show();
+        }
+   }
+
+}
      mPhProj.FinishInit();
 
      cTripletSet *  a3Set =  mPhProj.ReadTriplets();
-     cMakeArboTriplet  aMk3(*a3Set);
+     cMakeArboTriplet  aMk3(*a3Set,mDoCheck);
      if (IsInit(&mLevelRand))
         aMk3.SetRand(mLevelRand);
 

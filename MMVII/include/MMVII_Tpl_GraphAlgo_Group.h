@@ -229,7 +229,7 @@ template <class TGroup,class TAV,class TAO,class TAS,class TAH>
           typedef typename tGraph::tVertex       tVertex;
           typedef typename tGraph::tEdge         tEdge;
           typedef cGroupGraph<TGroup,TAV,TAO,TAS,TAH>    tGrGr;
-          typedef  cAlgo_SubGr<tGrGr>            tSubGr;
+          typedef  cAlgo_ParamVG<tGrGr>            tSubGr;
           typedef  cAlgo_ParamVG<tGrGr>          tParamWG;
 
           typedef  cAlgoSP<tGrGr>                tAlgoSP;
@@ -565,6 +565,7 @@ template <class TGroup,class TAV,class TAO,class TAS,class TAH>
    {
        for (const auto & anH : aPtrE->AttrSym().ValuesComp())
        {
+// StdOut() << " DDDD=" << anH.mWeightedDist.Average() << "\n";
            int aInd = round_ni(anH.mWeightedDist.Average()*mNbVHist);
            aHisto.AddV(aInd, anH.mWeightedDist.SW());
        }
@@ -611,19 +612,19 @@ template <class TGroup,class TAV,class TAO,class TAS,class TAH>
    tREAL8 cGroupGraph<TGroup,TAV,TAO,TAS,TAH>::MakeMinSpanTree()
 {
 
-    tForest aForest;
+    tForest aForest(*this);
     tAlgoSP anAlgoSP;
     cWeightOnBestH aWBE;
     anAlgoSP.MinimumSpanningForest(aForest,*this,this->AllVertices(), aWBE);  // extract the forest
 
     // Theoreitcally this can happen, but dont want to gandle it 4 now
-    MMVII_INTERNAL_ASSERT_tiny(aForest.size()==1,"cGroupGraph::MakeMinSpanTree Forest size");
+    MMVII_INTERNAL_ASSERT_tiny(aForest.VTrees().size()==1,"cGroupGraph::MakeMinSpanTree Forest size");
 
     tREAL8 aMaxCost = -1.0;
 
-    for (const auto &   [aV0,aListEdges] : aForest)
+    for (const auto &   aTree : aForest.VTrees())
     {
-        for (const auto & aPtrE : aListEdges)
+        for (const auto & aPtrE : aTree.Edges())
         {
             UpdateMax(aMaxCost,aPtrE->AttrSym().BestH()->mNoiseSim);
             // StdOut() << "W=" << aWBE.WeightEdge(*aPtrE) << " N=" << aPtrE->AttrSym().BestH()->mNoiseSim << "\n";

@@ -36,7 +36,7 @@ template <class TGraph>   class cAlgoEnumCycle
      public :
           //---------------- typedef  section ---------------------
           typedef  cAlgoSP<TGraph>                tAlgoSP;
-          typedef  cAlgo_SubGr<TGraph>            tSubGr;
+          typedef  cAlgo_ParamVG<TGraph>          tSubGr;
           typedef  cActionOnCycle<TGraph>         tActionC;
           typedef typename TGraph::tVertex        tVertex;
           typedef typename TGraph::tEdge          tEdge;

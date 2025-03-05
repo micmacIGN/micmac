@@ -1,5 +1,6 @@
 #include "MMVII_util_tpl.h"
 #include "MMVII_Bench.h"
+#if (1)
 #include "cMMVII_Appli.h"
 #include "MMVII_Images.h"
 
@@ -150,11 +151,11 @@ class  cBGG_Graph : public cVG_Graph<cBGG_AttrVert,cBGG_AttrEdgOr,cBGG_AttrEdgSy
           typedef typename tGraph::tVertex                              tVertex;
           typedef  tVertex*                                             tPtrV;
           typedef  cAlgoSP<cBGG_Graph>                                  tAlgoSP;
-          typedef  typename tAlgoSP::tSetEdges                          tSetEdges;
+          typedef  typename cVG_Tree<tGraph>::tSetEdges             tSetTreeEdges;
           typedef  cAlgoCC<cBGG_Graph>                                  tAlgoCC;
           typedef  tAlgoSP::tForest                                     tForest;
           typedef  cAlgo_ParamVG<cBGG_Graph>                            tParamA;
-          typedef  cAlgo_SubGr<cBGG_Graph>                              tSubGr;
+          typedef  cAlgo_ParamVG<cBGG_Graph>                             tSubGr;
           typedef std::pair<size_t,size_t> tPSzH; // used in pair count/hcode
 
 
@@ -208,7 +209,7 @@ class  cBGG_Graph : public cVG_Graph<cBGG_AttrVert,cBGG_AttrEdgOr,cBGG_AttrEdgSy
           /// Test minimum spaning tree & forest
           void Bench_MinSpanTree(tVertex * aSeed);
           /// Check that computed a tree on a subgraph is a minimum spaning
-          void Check_MinSpanTree(const tSetEdges& aSet,const tParamA& );
+          void Check_MinSpanTree(const tSetTreeEdges& aSet,const tParamA& );
 
           cPt2di                             mSzGrid;       ///< sz of the grid
           cPt2di                             mMid;          ///< sz of the grid
@@ -575,6 +576,23 @@ void cBGG_Graph::Bench_ConnectedComponent(tVertex * aSeed,tVertex * aV1)
     aVecCC = tAlgoCC::All_ConnectedComponent(*this,cSubGraphOfEdges<cBGG_Graph>(*this,aV_E4Sym));
     MMVII_INTERNAL_ASSERT_bench((int)aVecCC.size() == Square(aNbSector),"NbCC with subgr-edges ");
 
+    {
+        cSubGraphOfVertices<cBGG_Graph>     aSG1(*this,aV_12_3);
+        cSubGraphOfNotVertices<cBGG_Graph>  aSG2(*this,aV_12_3);
+        for (const auto & aV : AllVertices())
+            MMVII_INTERNAL_ASSERT_bench(aSG1.InsideVertex(*aV)==!aSG2.InsideVertex(*aV),"Sub Gr neg");
+
+        std::vector<tEdge *> aVF;
+        cVG_OpBool<tGraph>::EdgesMinusVertices(aVF,AllEdges_DirInit(),aV_12_3);
+
+        for (const auto &anE : aVF)
+        {
+               MMVII_INTERNAL_ASSERT_bench(anE->VertexInit().Attr().mPt.x()%3==0,"EdgesMinusVertices");
+               MMVII_INTERNAL_ASSERT_bench(anE->Succ().Attr().mPt.x()%3==0,"EdgesMinusVertices");
+        }
+        int aNbTh = (mSzGrid.y()-1) * ((mSzGrid.x()+2) /3 );
+        MMVII_INTERNAL_ASSERT_bench((int)aVF.size()==aNbTh,"EdgesMinusVertices::Nb");
+     }
 
 }
 
@@ -600,7 +618,7 @@ void cBGG_Graph::Bench_ConnectedComponent(tVertex * aSeed,tVertex * aV1)
 */
 
 
-void cBGG_Graph::Check_MinSpanTree(const tSetEdges& aSetPair,const tParamA& aParam )
+void cBGG_Graph::Check_MinSpanTree(const tSetTreeEdges& aSetPair,const tParamA& aParam )
 {
      // class of subgr containing edge such that mIsOk is true
      class cASymOk : public  cAlgo_ParamVG<cBGG_Graph>
@@ -704,25 +722,25 @@ void cBGG_Graph::Bench_MinSpanTree(tVertex * aSeed)
         aPtrAttrSym-> mRanCost = RandUnif_C();
 
     // [1]  compute global minimal spaning tree
-    tSetEdges aSetPair = mAlgoSP.MinimumSpanninTree(*this,*aSeed,cWRanCost()).second;
+    tSetTreeEdges aSetPair = mAlgoSP.MinimumSpanninTree(*this,*aSeed,cWRanCost()).Edges();
     MMVII_INTERNAL_ASSERT_bench((int)aSetPair.size()==(mBox.NbElem()-1),"Size in All_ConnectedComponent");
     //  [1.0]  check that it is effectively the minimal spaning tree
     Check_MinSpanTree(aSetPair,cAlgo_ParamVG<cBGG_Graph>());
 
     // [2]  compute a minimal spaning forest
     cRC_Thr  aRC(1.0 - 2*std::pow(RandUnif_0_1(),2.0));  // define a sub-graph
-    tForest aForest;
+    tForest aForest(*this);
     mAlgoSP.MinimumSpanningForest(aForest,*this,this->AllVertices(), aRC);  // extract the forest
 
     size_t aNbEdge = 0;
     // check that each tree of the forest complies with Check_MinSpanTree
-    for (const auto & [aVert,aVPair] : aForest)
+    for (const auto & aTree : aForest.VTrees())
     {
-        Check_MinSpanTree(aVPair,aRC);
-        aNbEdge += aVPair.size();
+        Check_MinSpanTree(aTree.Edges(),aRC);
+        aNbEdge += aTree.Edges().size();
     }
     // check on number of edge, +- Eulers relation for a graph w/o cycle
-    MMVII_INTERNAL_ASSERT_bench(aForest.size()+aNbEdge== (size_t)mBox.NbElem(),"Edge and CC in MinimumSpanningForest");
+    MMVII_INTERNAL_ASSERT_bench(aForest.VTrees().size()+aNbEdge== (size_t)mBox.NbElem(),"Edge and CC in MinimumSpanningForest");
 }
 
     /* ========================================================== */
@@ -808,14 +826,36 @@ void cBGG_Graph::Bench_Pruning()
 		aVV.push_back(VertOfAbsCurv(anA));
 	    }
             cAlgoPruningExtre<cBGG_Graph>  aAlgoP(*this,aSubGr_DA1,cSubGraphOfVertices<cBGG_Graph>(*this,aVV));
-	    StdOut() << aVA << " Min=" << aMinA << " Max=" << aMaxA << " SZE=" << aAlgoP.Extrem().size() << "\n";
-            StdOut() << "NBE " <<  aAlgoP.Extrem().size() + aMaxA-aMinA   << "\n";
+            int aNbNotSupr = aVA.empty() ? 0 : (aMaxA-aMinA+1) ;
+            int aCheck = (int)  aAlgoP.Extrem().size() + aNbNotSupr - (int) NbVertex() ;
+            MMVII_INTERNAL_ASSERT_bench(aCheck==0 ,"Nb vertices of pruning, S-graph");
         }
     }
 
-    getchar();
+    {
+        auto   Comb = [] (const tEdge& anE) 
+                         {
+                             cPt2di aP1 = anE.VertexInit().Attr().mPt;
+                             cPt2di aP2 = anE.Succ().Attr().mPt;
+                             if (aP1.x()== aP2.x()) return true;
+                             if ((aP1.y()>=1)&&(aP1.y()<=2) && (aP2.y()>=1)&&(aP2.y()<=2) ) return true;
+                             return false;
+                         } ;
 
-     // auto  aSubGr_X2 = TplAlgo_SubGr(*this,[](
+        auto aSubGr_Comb  = Tpl_InsideAndWSubGr (this,this->V_True(),  Comb,this->E_W1());
+
+        cAlgoPruningExtre<cBGG_Graph>  aAlgoP0(*this,aSubGr_Comb,cAlgo_SubGrNone<cBGG_Graph>());
+        size_t aNbTh0 = mSzGrid.x() * (mSzGrid.y()-2);
+        MMVII_INTERNAL_ASSERT_bench(aNbTh0== aAlgoP0.Extrem().size() ,"Nb vertices of pruning, Comb-graph");
+
+
+        cPt2di aP1(1,5); cPt2di aP2(5,9);
+        std::vector<tVertex*>  aVV {VertOfPt(aP1),VertOfPt(aP2)};
+        cAlgoPruningExtre<cBGG_Graph>  aAlgoP1(*this,aSubGr_Comb,cSubGraphOfVertices<cBGG_Graph>(*this,aVV));
+        int  aNbTh1 = mSzGrid.x() * (mSzGrid.y()-2)  -(aP1.y()-2) - (aP2.y()-2);
+        MMVII_INTERNAL_ASSERT_bench(aNbTh1==(int)aAlgoP1.Extrem().size()," Nb vertices of pruning, Comb Graph");
+    }
+
 }
 
 
@@ -1056,4 +1096,13 @@ void BenchValuatedGraph(cParamExeBench & aParam)
 //template class  cAlgoEnumCycle<tBGG>;
 
 };
+#else
+namespace MMVII
+{
+void BenchValuatedGraph(cParamExeBench & aParam)
+{
+    MMVII_INTERNAL_ASSERT_bench(false,"NO BenchValuatedGraph");
+}
+};
+#endif
 
