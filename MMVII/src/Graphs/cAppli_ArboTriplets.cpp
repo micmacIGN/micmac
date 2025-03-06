@@ -395,88 +395,45 @@ void cMakeArboTriplet::ComputeMinTri()
    
    // dont handle 4 now
    MMVII_INTERNAL_ASSERT_tiny(aForest.VTrees().size()==1,"Not single forest");// litle checj
-   const auto & aTree = *(aForest.VTrees().begin());
-   StdOut() << "NB TREE=" << aForest.VTrees().size()  << " SzTree1=" << aTree.Edges().size() << "\n";
+   const auto & aGlobalTree = *(aForest.VTrees().begin());
+   StdOut() << "NB TREE=" << aForest.VTrees().size()  << " SzTree1=" << aGlobalTree.Edges().size() << "\n";
 
 
    
-   cSubGraphOfEdges<tGrTriplet>  aSubGrTree(mGTriC,aTree.Edges());
+   cSubGraphOfEdges<tGrTriplet>  aSubGrTree(mGTriC,aGlobalTree.Edges());
    cSubGraphOfVertices<tGrTriplet>  aSubGrAnchor(mGTriC,aVectTriMin); 
 
 
    cAlgoPruningExtre<tGrTriplet> aAlgoSupExtr(mGTriC,aSubGrTree,aSubGrAnchor);
    StdOut() <<  "NB EXTR SUPR=" << aAlgoSupExtr.Extrem().size() << "\n";
 
-   std::vector<tEdge3*>  aTreeKernel;
-   cVG_OpBool<tGrTriplet>::EdgesMinusVertices(aTreeKernel,aTree.Edges(),aAlgoSupExtr.Extrem());
+   std::vector<tEdge3*>  aSetEdgeKern;
+   cVG_OpBool<tGrTriplet>::EdgesMinusVertices(aSetEdgeKern,aGlobalTree.Edges(),aAlgoSupExtr.Extrem());
 
 
-   StdOut() <<  "NB KERNEL=" << aTreeKernel.size() << "\n";
+   StdOut() <<  "NB KERNEL=" << aSetEdgeKern.size() << "\n";
 
    if (mDoCheck)
    {
-        cSubGraphOfEdges<tGrTriplet>  aSubGrKernel(mGTriC,aTreeKernel);
+        cSubGraphOfEdges<tGrTriplet>  aSubGrKernel(mGTriC,aSetEdgeKern);
         // [1]  Check that all the triplet minimal  are belonging to the connection stuff
         for (const auto & aTriC : aVectTriMin)
         {
             MMVII_INTERNAL_ASSERT_always(aSubGrKernel.InsideVertex(*aTriC),"Kernel doesnot contain all  anchors");
         }
-        // [2]  Check that aTreeKernel is a tree ...
+        // [2]  Check that aSetEdgeKern is a tree ...
         std::list<std::vector<tVertex3 *>>  allCC =  cAlgoCC<tGrTriplet>::All_ConnectedComponent(mGTriC,aSubGrKernel);
         MMVII_INTERNAL_ASSERT_always(allCC.size()==1,"Kernel is not connected");
         const std::vector<tVertex3 *>& aCC0 =  *(allCC.begin());
-        MMVII_INTERNAL_ASSERT_always(aCC0.size()==(aTreeKernel.size()+1),"Kernel is not tree");
+        MMVII_INTERNAL_ASSERT_always(aCC0.size()==(aSetEdgeKern.size()+1),"Kernel is not tree");
 
    }
+   cVG_Tree<tGrTriplet>  aTreeKernel(aSetEdgeKern);
 
 
-// ====================================
-if (0)
-{
-    StdOut() << " TRIMIN=" ;
-    for (const auto & aTriC : aVectTriMin)
-    {
-         StdOut() << " ["  << aTriC->Attr().mKT << ":" << aSubGrAnchor.InsideVertex(*aTriC) << "]";
-    }
-    StdOut() << "\n";
 
-    StdOut() << " KERN=" ;
-    for (const auto & anE : aTreeKernel)
-    {
-          StdOut() << " ["  <<  anE->VertexInit().Attr().mKT << "<->" << anE->Succ().Attr().mKT << "]";
-    }
-    StdOut() << "\n";
-
-    StdOut() << " ALLTREEDBUG=" ;
-    for (const auto & anE : aTree.Edges())
-    {
-        if ((anE->VertexInit().Attr().mKT==NUMDEBUG) || (anE->Succ().Attr().mKT==NUMDEBUG))
-          StdOut() << " ###["  <<  anE->VertexInit().Attr().mKT << "<->" << anE->Succ().Attr().mKT << "]";
-    }
-    StdOut() << "\n";
-
-    StdOut() << " SUPRDEBUG=" ;
-    for (const auto & aVSup : aAlgoSupExtr.Extrem())
-    {
-        if (aVSup->Attr().mKT==NUMDEBUG)
-           StdOut() << " **** " << aVSup->Attr().mKT ;
-    }
-    StdOut() << "\n";
-}
-   
-
-    
-
-/*
-       Spaning Tree - SupExte
-*/
 }
 
-/*
-    9 64 540 190 34 130 550 369 304 271 418 393 403 412 473 507 500 499
-
-
-*/
 
 
 

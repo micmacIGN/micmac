@@ -52,16 +52,22 @@ template <class TGraph>   class cVG_Tree
 	  typedef typename TGraph::tVertex        tVertex;
 	  typedef typename TGraph::tEdge          tEdge;
 	  typedef std::vector<tEdge*>             tSetEdges;  // tree = set of edge
+	  typedef cVG_Tree<TGraph>                tTree;  // tree = set of edge
+          typedef std::array<tTree,2>             t2Tree;
           friend class cAlgoSP<TGraph>;
           
           const tSetEdges & Edges() const {return mEdges;}
-      private :
+          inline cVG_Tree(const tSetEdges & aSetE);
           cVG_Tree(TGraph & aGraph,tVertex * aV0=nullptr) :
                 mGraph   (&aGraph),
                 mV0      (aV0)
            {
            }
-           void clear()
+           cVG_Tree() : mGraph(nullptr), mV0(nullptr) {}
+
+           void Split(t2Tree&,tEdge *);
+      private :
+           void Tree_clear()
            {
                mV0 = nullptr;
                mEdges.clear();
@@ -74,6 +80,11 @@ template <class TGraph>   class cVG_Tree
            tVertex *  mV0;
            tSetEdges  mEdges;
 };
+
+
+
+
+
 
 template <class TGraph>   class cVG_Forest
 {
@@ -306,8 +317,8 @@ template <class TGraph>
         tVertex::SetBit0(mVVertexReached,aBitOutHeap);
 
         // recycle flag so that they can be used again
-        aGraph.Vertex_FreeBitTemp(aBitReached);
-        aGraph.Vertex_FreeBitTemp(aBitOutHeap);
+        aGraph.FreeBitTemp(aBitReached);
+        aGraph.FreeBitTemp(aBitOutHeap);
     }
 
     return aResult;
@@ -338,8 +349,8 @@ template <class TGraph>
               const cAlgo_ParamVG<TGraph>   & aGoal
          )
 {
-    size_t aBitReached = aGraph.Vertex_AllocBitTemp();
-    size_t aBitOutHeap  = aGraph.Vertex_AllocBitTemp();
+    size_t aBitReached = aGraph.AllocBitTemp();
+    size_t aBitOutHeap  = aGraph.AllocBitTemp();
     tVertex * aResult  = Internal_MakeShortestPathGen
                          (
                             aGraph,aModeMinPCC,aVSeeds,aParam,aGoal,
@@ -430,8 +441,8 @@ template <class TGraph>
                 const cAlgo_ParamVG<TGraph> &  aParam
           )
 {
-    size_t aBitReached = aGraph.Vertex_AllocBitTemp();
-    size_t aBitOutHeap  = aGraph.Vertex_AllocBitTemp();
+    size_t aBitReached = aGraph.AllocBitTemp();
+    size_t aBitOutHeap  = aGraph.AllocBitTemp();
 
      Internal_MinimumSpanninTree 
      (
@@ -470,8 +481,8 @@ template <class TGraph>
 {
     aForest.Clear();  // reset, just in case
     // alloc markers
-    size_t aBitReached = aGraph.Vertex_AllocBitTemp();  
-    size_t aBitOutHeap  = aGraph.Vertex_AllocBitTemp();
+    size_t aBitReached = aGraph.AllocBitTemp();  
+    size_t aBitOutHeap  = aGraph.AllocBitTemp();
 
 
     for (const auto & aSeed : aVectSeed)  // parse all seed
@@ -511,8 +522,8 @@ template <class TGraph>
    }
 
    // recycle the bits for future use
-   aGraph.Vertex_FreeBitTemp(aBitReached);
-   aGraph.Vertex_FreeBitTemp(aBitOutHeap);
+   aGraph.FreeBitTemp(aBitReached);
+   aGraph.FreeBitTemp(aBitOutHeap);
 }
 
                   
@@ -582,6 +593,32 @@ template <class TGraph>   class cAlgoCC
 
 };
 
+template <class TGraph>   cVG_Tree<TGraph>::cVG_Tree(const tSetEdges & aSetE) :
+    mEdges (aSetE)
+{
+#if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )
+    if (mEdges.empty())
+    {
+       MMVII_INTERNAL_ERROR("Empty edges in cVG_Tree");
+    }
+    mGraph  = &  aSetE.at(0)->Graph();
+    mV0 = &  aSetE.at(0)->Succ();  // any set will be ok
+    cSubGraphOfEdges<TGraph>  aSubGrTree(*mGraph,mEdges);
+       
+    auto aVV = tEdge::VerticesOfEdges(mEdges);
+    auto allCC = cAlgoCC<TGraph>::Multiple_ConnectedComponent(*mGraph,aVV,aSubGrTree);
+    MMVII_INTERNAL_ASSERT_always(allCC.size()==1,"Multi CC in tree");
+    const auto & aCC0 = *allCC.begin();
+    MMVII_INTERNAL_ASSERT_always(aCC0.size()==mEdges.size()+1,"cycle in tree");
+#endif
+}
+
+/*
+template <class TGraph>   
+     std::pair<cVG_Tree<TGraph>,cVG_Tree<TGraph>> cVG_Tree<TGraph>::Split(const tSetEdges & aSetE) 
+{
+}
+*/
 
 template <class TGraph> 
      void cAlgoCC<TGraph>::Internal_ConnectedComponent
@@ -630,14 +667,14 @@ template <class TGraph>
                                       const cAlgo_ParamVG<TGraph> & aParam
             )
 {
-    size_t aBitReached = aGraph.Vertex_AllocBitTemp();  // alloc marker
+    size_t aBitReached = aGraph.AllocBitTemp();  // alloc marker
     std::vector<tVertex*>   aResult;
 
     Internal_ConnectedComponent(&aSeed,aResult,aParam,aBitReached);
 
     // clean & free
     tVertex::SetBit0(aResult,aBitReached);
-    aGraph.Vertex_FreeBitTemp(aBitReached);
+    aGraph.FreeBitTemp(aBitReached);
 
     return aResult;
 }
@@ -651,7 +688,7 @@ template <class TGraph>
                  const cAlgo_ParamVG<TGraph> & aParam
             )
 {
-    size_t aBitReached = aGraph.Vertex_AllocBitTemp();  // alloc marker
+    size_t aBitReached = aGraph.AllocBitTemp();  // alloc marker
 
     for (const auto & aSeed : aVecSeed) // parse all seeds
     {
@@ -665,7 +702,7 @@ template <class TGraph>
     for (const auto & aVec : aResult)
          tVertex::SetBit0(aVec,aBitReached);
 
-    aGraph.Vertex_FreeBitTemp(aBitReached);
+    aGraph.FreeBitTemp(aBitReached);
 }
 
 
@@ -728,7 +765,7 @@ template <class TGraph> cAlgoPruningExtre<TGraph>::cAlgoPruningExtre(TGraph &aGr
     mGraph     (aGraph),
     mSubGr     (aSubGr),
     mAnchor    (aSubAnchor),
-    mFlagSupr  (mGraph.Vertex_AllocBitTemp())
+    mFlagSupr  (mGraph.AllocBitTemp())
 {
    // initialize , compute all the initial extremities
    for (auto & aVertex :  aGraph.AllVertices())
@@ -750,7 +787,7 @@ template <class TGraph> cAlgoPruningExtre<TGraph>::cAlgoPruningExtre(TGraph &aGr
    }
 
    tVertex::SetBit0(mExtrem,mFlagSupr);  // unmark all the marked vertices
-   mGraph.Vertex_FreeBitTemp(mFlagSupr); // recycle the bit allocated
+   mGraph.FreeBitTemp(mFlagSupr); // recycle the bit allocated
 }
 
 template <class TGraph> void  cAlgoPruningExtre<TGraph>::TestExtreAndSupr(tVertex * aVertex)

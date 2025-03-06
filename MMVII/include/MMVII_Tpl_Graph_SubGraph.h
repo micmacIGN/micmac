@@ -6,8 +6,26 @@
 namespace MMVII
 {
 /** \file   MMVII_Tpl_Graph_SubGraph.h
-    \brief  Clases for specialization of cAlgo_ParamVG
+    \brief  Clases for paramatrization of algorithm
 */
+
+/*  cAlgo_ParamVG and its  specialization */
+
+template <class TGraph>  class cAlgo_ParamVG;  // base class for algorithm parametrization
+template <class TGraph>  class cAlgo_SingleSubGr; // sub-graph contain a single vertex
+template <class TGraph>  class cAlgo_SubGrNone;   // sub-graph contain nothing
+template <class TGraph>  class cSubGraphOfVertices ;   // sub-graph containing a given set of vertice
+template <class TGraph>  class cSubGraphOfNotVertices ; // sub-graph containing the COMPLEMENTARU of a given set of vertice
+template <class TGraph>  class cSubGraphOfEdges ; // given set of edges (and restriction to vertices adjacent)
+template <class TGraph>  class cSubGraphOfEdges_Only ; // idem but NO restriction on vertices
+template <class TGraph>  class cAlgo_SubGrCostOver ;  // sub-graph of vertices having cost over given value
+
+/*  class for creating cAlgo_ParamVG specialization with function/lambda */
+template <class TGraph,class TFunc>  class cTpl_WeithingSubGr ;
+template <class TGraph,class TFunc_V,class TFunc_E,class TFunc_W>  class cTpl_InsideAndWSubGr ;
+
+/*  class for realization boolean operation on set of edges, vertices or "mixte  */
+template <class TGraph>  class cVG_OpBool;
 
 template <class TGraph>  class cAlgo_ParamVG
 {
@@ -33,17 +51,6 @@ template <class TGraph>  class cAlgo_ParamVG
 
 
 
-/*
-template <class TGraph>  class cAlgo_SingleSubGr ;  // singleton sub-graph
-template <class TGraph>  class cAlgo_SubGrNone ;    // empty sub-braph
-
-template <class TGraph>  class cSubGraphOfVertices; // sub graph of given set/vector of vertices
-template <class TGraph>  class cSubGraphOfEdges ;   // sub graph of given set/vector of  edges
-template <class TGraph>  class cAlgo_SubGrCostOver ; // sub graph of vertice having internal cost over a threshold
-template <class TGraph,class TFunc>  class cTpl_WeithingSubGr ; // sub-graph of vertice computed with lambda/func 
-// general sub-graphe parametrization with 3 func inside Vertex, inside edge, weight edge
-template <class TGraph,class TFunc_V,class TFunc_E,class TFunc_W>  class cTpl_InsideAndWSubGr ;
-*/
 
 /**   define a sub-graph than contain a single vertex, used for example as a goal in shortest path */
 template <class TGraph>  class cAlgo_SingleSubGr : public cAlgo_ParamVG<TGraph>
@@ -56,6 +63,8 @@ template <class TGraph>  class cAlgo_SingleSubGr : public cAlgo_ParamVG<TGraph>
         private :
 	     const tVertex * mSingleV;
 };
+
+
 
 /**   define a sub-graph than contain nothing, used for example as a goal in minimal spanning tree */
 template <class TGraph>  class cAlgo_SubGrNone : public cAlgo_ParamVG<TGraph>
@@ -87,7 +96,7 @@ template <class TGraph>  class cSubGraphOfVertices : public cAlgo_ParamVG<TGraph
 template <class TGraph> cSubGraphOfVertices<TGraph>::cSubGraphOfVertices(TGraph& aGr,const tVVPtr & aVVertices)  :
     mGr         (aGr),
     mVVertices  (aVVertices),
-    mFlagVertex (aGr.Vertex_AllocBitTemp())
+    mFlagVertex (aGr.AllocBitTemp())
 {
     for (const auto& aV : mVVertices)
         aV->SetBit1(mFlagVertex);
@@ -96,8 +105,11 @@ template <class TGraph> cSubGraphOfVertices<TGraph>::~cSubGraphOfVertices()
 {
     for (const auto& aV : mVVertices)
         aV->SetBit0(mFlagVertex);
-    mGr.Vertex_FreeBitTemp(mFlagVertex);
+    mGr.FreeBitTemp(mFlagVertex);
 }
+
+
+
 
 /*
 template <class TGraph>  class cSubGraph_NegVertex : public cAlgo_ParamVG<TGraph>
@@ -126,6 +138,7 @@ template <class TGraph>  class cSubGraphOfNotVertices : public cAlgo_ParamVG<TGr
 
 
 
+
 /**  class for define a subgraph by a set of edges, use flag to have fast access to belonging */
 template <class TGraph>  class cSubGraphOfEdges : public cAlgo_ParamVG<TGraph>
 {
@@ -146,11 +159,24 @@ template <class TGraph>  class cSubGraphOfEdges : public cAlgo_ParamVG<TGraph>
             size_t    mFlagEdge;
 };
 
+
+/// Idem but no constraint on vertices
+template <class TGraph>  class cSubGraphOfEdges_Only : public cSubGraphOfEdges<TGraph>
+{ 
+     public :
+             typedef typename TGraph::tVertex tVertex;
+             typedef typename TGraph::tEdge   tEdge;
+             typedef std::vector<tEdge*>      tVEPtr;
+
+             bool   InsideVertex(const  tVertex & aV) const override {return true;}
+             cSubGraphOfEdges_Only(TGraph& aGr,const tVEPtr & aVEdge)  : cSubGraphOfEdges<TGraph>(aGr,aVEdge){}
+};
+
 template <class TGraph> cSubGraphOfEdges<TGraph>::cSubGraphOfEdges(TGraph& aGr,const tVEPtr & aVEdge) :
     mGr         (aGr),
     mVEdges     (aVEdge),
-    mFlagVertex (aGr.Vertex_AllocBitTemp()),
-    mFlagEdge   (aGr.Edge_AllocBitTemp())
+    mFlagVertex (aGr.AllocBitTemp()),
+    mFlagEdge   (aGr.AllocBitTemp())
 {
     for (const auto& anE : mVEdges)
     {
@@ -168,8 +194,8 @@ template <class TGraph> cSubGraphOfEdges<TGraph>::~cSubGraphOfEdges()
          anE->Succ().SetBit0(mFlagVertex);
          anE->VertexInit().SetBit0(mFlagVertex);
     }
-    mGr.Vertex_FreeBitTemp(mFlagVertex);
-    mGr.Edge_FreeBitTemp(mFlagEdge);
+    mGr.FreeBitTemp(mFlagVertex);
+    mGr.FreeBitTemp(mFlagEdge);
 }
 
 
@@ -253,7 +279,7 @@ template <class TGraph,class TFunc_V,class TFunc_E,class TFunc_W>
 /* ****************************************************************** */
 
      //   filtering operation on edges / vertices with sub-graph
-     //   "Fast boolean" operation on vertices/edges usin              
+     //   "Fast boolean" operation on vertices/edges using eventually flag of bits              
 
 template <class TGraph>  class cVG_OpBool
 {

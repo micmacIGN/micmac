@@ -13,6 +13,44 @@
 namespace MMVII
 {
 
+template <class TGraph>   
+     void cVG_Tree<TGraph>::Split(t2Tree& a2T ,tEdge *anEdge)
+{
+    anEdge = anEdge->EdgeInitOr();
+
+    std::vector<tEdge*> aVSel;
+    for (const auto & anE : mEdges)
+        if (anE->EdgeInitOr() != anEdge)
+           aVSel.push_back(anE);
+
+    MMVII_INTERNAL_ASSERT_tiny(mEdges.size()==(aVSel.size()+1)," Split: edge not in tree");
+
+    std::vector<tVertex*>  allV = tEdge::VerticesOfEdges(mEdges);
+    cSubGraphOfEdges_Only<TGraph> aSubV(*mGraph,aVSel);
+    std::list<std::vector<tVertex *>>  aListCC = cAlgoCC<TGraph>::Multiple_ConnectedComponent(*mGraph,allV,aSubV);
+
+    MMVII_INTERNAL_ASSERT_tiny(aListCC.size()==2," Split: Bad CC");
+
+    int aNb=0;
+    for (const auto & aCC : aListCC)
+    {
+        //tTree &
+        aNb++;
+           StdOut() << " xxCC=" << aCC.size();
+    }
+    StdOut() << "\n";
+/*
+*/
+
+    // std::vector<tVertex*>  aCC1 = tAlgoCC::ConnectedComponent(*mGraph,anETree->VertexInit(),aSubV):
+//StdOut() << "SplitSplit " << aListCC.size() << " ES=" << mEdges.size()  <<  " " << aCC1.size() << " " << aCC2.size() << "\n";
+
+
+    // return   std::pair<cVG_Tree<TGraph>,cVG_Tree<TGraph>> (*this,*this);
+}
+/*
+*/
+
 
 
 /**  \file  : BenchGraph.cpp
@@ -723,6 +761,16 @@ void cBGG_Graph::Bench_MinSpanTree(tVertex * aSeed)
 
     // [1]  compute global minimal spaning tree
     tSetTreeEdges aSetPair = mAlgoSP.MinimumSpanninTree(*this,*aSeed,cWRanCost()).Edges();
+
+    {
+        cVG_Tree<tGraph> aTree(aSetPair);
+std::array<cVG_Tree<tGraph>,2> aPairT;
+aTree.Split(aPairT,aSetPair.at(0));
+        auto aVV = tEdge::VerticesOfEdges(aSetPair);
+        MMVII_INTERNAL_ASSERT_bench(aSetPair.size()+1==aVV.size(),"VerticesOfEdges");
+    }
+
+    
     MMVII_INTERNAL_ASSERT_bench((int)aSetPair.size()==(mBox.NbElem()-1),"Size in All_ConnectedComponent");
     //  [1.0]  check that it is effectively the minimal spaning tree
     Check_MinSpanTree(aSetPair,cAlgo_ParamVG<cBGG_Graph>());
@@ -913,7 +961,7 @@ void cCheckCycle::OnCycle(const tAlgoEnum& anAlgo)
         MMVII_INTERNAL_ASSERT_bench(&aPath.at(aK-1)->Succ()==&aPath.at(aK)->VertexInit(),"OnCycle not a path");
     }
 
-    size_t aBitMark = mBGG.Vertex_AllocBitTemp();  // bit allocated to check unicity of result
+    size_t aBitMark = mBGG.AllocBitTemp();  // bit allocated to check unicity of result
     for (auto & anE : aPath)
     {
         // check that marking with aBitMark is done once
@@ -941,7 +989,7 @@ void cCheckCycle::OnCycle(const tAlgoEnum& anAlgo)
     // unmark the aBitMark  and free it
     for (auto & anE : aPath)
         anE->SymSetBit0(aBitMark);
-    mBGG.Vertex_FreeBitTemp(aBitMark);
+    mBGG.FreeBitTemp(aBitMark);
 
     //  check that each loop it visited only once
     MMVII_INTERNAL_ASSERT_bench(!BoolFind(mSetH,aHasKey),"Path present multiple time");
