@@ -214,8 +214,12 @@ void SaisieQtWindow::activateLoadImageProgressDialog(int aMin, int aMax)
 	int ax = pos().x() + (_ui->frame_GLWidgets->size().width() * szFactor - _ProgressDialog->size().width())/2;
 	int ay = pos().y() + (_ui->frame_GLWidgets->size().height() * szFactor - _ProgressDialog->size().height())/2;
 
-	_ProgressDialog->move(ax, ay);
-	_ProgressDialog->exec();
+    _ProgressDialog->move(ax, ay);
+    #ifdef __APPLE__
+        // _ProgressDialog->exec();
+    #else
+        _ProgressDialog->exec();
+    #endif
 }
 
 void SaisieQtWindow::runProgressDialog(QFuture<void> aFuture, int aMin, int aMax)
