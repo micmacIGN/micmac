@@ -57,15 +57,20 @@ template <class TGraph>   class cVG_Tree
           friend class cAlgoSP<TGraph>;
           
           const tSetEdges & Edges() const {return mEdges;}
+
+          /// tree with non empty set of edges
           inline cVG_Tree(const tSetEdges & aSetE);
+          /// tree with 0 or 1 edge
           cVG_Tree(TGraph & aGraph,tVertex * aV0=nullptr) :
                 mGraph   (&aGraph),
                 mV0      (aV0)
            {
            }
+           /// Default constructor required for array of tree
            cVG_Tree() : mGraph(nullptr), mV0(nullptr) {}
 
            void Split(t2Tree&,tEdge *);
+           std::vector<tVertex*> Vertices() const {return tEdge::VerticesOfEdges(mEdges);}
       private :
            void Tree_clear()
            {
@@ -593,32 +598,6 @@ template <class TGraph>   class cAlgoCC
 
 };
 
-template <class TGraph>   cVG_Tree<TGraph>::cVG_Tree(const tSetEdges & aSetE) :
-    mEdges (aSetE)
-{
-#if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )
-    if (mEdges.empty())
-    {
-       MMVII_INTERNAL_ERROR("Empty edges in cVG_Tree");
-    }
-    mGraph  = &  aSetE.at(0)->Graph();
-    mV0 = &  aSetE.at(0)->Succ();  // any set will be ok
-    cSubGraphOfEdges<TGraph>  aSubGrTree(*mGraph,mEdges);
-       
-    auto aVV = tEdge::VerticesOfEdges(mEdges);
-    auto allCC = cAlgoCC<TGraph>::Multiple_ConnectedComponent(*mGraph,aVV,aSubGrTree);
-    MMVII_INTERNAL_ASSERT_always(allCC.size()==1,"Multi CC in tree");
-    const auto & aCC0 = *allCC.begin();
-    MMVII_INTERNAL_ASSERT_always(aCC0.size()==mEdges.size()+1,"cycle in tree");
-#endif
-}
-
-/*
-template <class TGraph>   
-     std::pair<cVG_Tree<TGraph>,cVG_Tree<TGraph>> cVG_Tree<TGraph>::Split(const tSetEdges & aSetE) 
-{
-}
-*/
 
 template <class TGraph> 
      void cAlgoCC<TGraph>::Internal_ConnectedComponent
@@ -819,6 +798,33 @@ template <class TGraph> void  cAlgoPruningExtre<TGraph>::TestExtreAndSupr(tVerte
         mExtrem.push_back(aVertex);
     }
 }
+
+/* ********************************************************************************* */
+/*                                                                                   */
+/*                                cVG_Tree                                           */
+/*                                                                                   */
+/* ********************************************************************************* */
+
+template <class TGraph>   cVG_Tree<TGraph>::cVG_Tree(const tSetEdges & aSetE) :
+    mEdges (aSetE)
+{
+#if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )
+    if (mEdges.empty())
+    {
+       MMVII_INTERNAL_ERROR("Empty edges in cVG_Tree");
+    }
+    mGraph  = &  aSetE.at(0)->Graph();
+    mV0 = &  aSetE.at(0)->Succ();  // any set will be ok
+    cSubGraphOfEdges<TGraph>  aSubGrTree(*mGraph,mEdges);
+       
+    auto aVV = tEdge::VerticesOfEdges(mEdges);
+    auto allCC = cAlgoCC<TGraph>::Multiple_ConnectedComponent(*mGraph,aVV,aSubGrTree);
+    MMVII_INTERNAL_ASSERT_always(allCC.size()==1,"Multi CC in tree");
+    const auto & aCC0 = *allCC.begin();
+    MMVII_INTERNAL_ASSERT_always(aCC0.size()==mEdges.size()+1,"cycle in tree");
+#endif
+}
+
 
 }; // MMVII
 #endif  // _MMVII_Tpl_GraphAlgo_SPCC_H_

@@ -14,32 +14,45 @@ namespace MMVII
 {
 
 template <class TGraph>   
-     void cVG_Tree<TGraph>::Split(t2Tree& a2T ,tEdge *anEdge)
+     void cVG_Tree<TGraph>::Split(t2Tree& a2T ,tEdge *aSplitingEdge)
 {
-    anEdge = anEdge->EdgeInitOr();
+    aSplitingEdge = aSplitingEdge->EdgeInitOr();
 
-    std::vector<tEdge*> aVSel;
+    // computed a vector of all edges except aSplitingEdge
+    std::vector<tEdge*> aVEdgesMaintained;
     for (const auto & anE : mEdges)
-        if (anE->EdgeInitOr() != anEdge)
-           aVSel.push_back(anE);
+        if (anE->EdgeInitOr() != aSplitingEdge)
+           aVEdgesMaintained.push_back(anE);
+    MMVII_INTERNAL_ASSERT_tiny(mEdges.size()==(aVEdgesMaintained.size()+1)," Split: edge not in tree");
 
-    MMVII_INTERNAL_ASSERT_tiny(mEdges.size()==(aVSel.size()+1)," Split: edge not in tree");
+    cSubGraphOfEdges_Only<TGraph> aSG_EdM(*mGraph,aVEdgesMaintained); // Sub-graph ~ aVEdgesMaintained
 
-    std::vector<tVertex*>  allV = tEdge::VerticesOfEdges(mEdges);
-    cSubGraphOfEdges_Only<TGraph> aSubV(*mGraph,aVSel);
-    std::list<std::vector<tVertex *>>  aListCC = cAlgoCC<TGraph>::Multiple_ConnectedComponent(*mGraph,allV,aSubV);
+    // recover vertices  associated to edges, use to accelerate Multiple_ConnectedComponent
+    std::vector<tVertex*>  allV = Vertices();
+    std::list<std::vector<tVertex *>>  aListCC = cAlgoCC<TGraph>::Multiple_ConnectedComponent(*mGraph,allV,aSG_EdM);
 
     MMVII_INTERNAL_ASSERT_tiny(aListCC.size()==2," Split: Bad CC");
 
-    int aNb=0;
-    for (const auto & aCC : aListCC)
+    // parse the 2 CC 
+    int aKTree=0;
+    for (const auto & aVerticesCC : aListCC)
     {
-        //tTree &
-        aNb++;
-           StdOut() << " xxCC=" << aCC.size();
+        std::vector<tEdge*>  aEdgesCC;
+        cVG_OpBool<TGraph>::EdgesInterVertices(aEdgesCC,mEdges,aVerticesCC);
+        MMVII_INTERNAL_ASSERT_tiny(aVerticesCC.size()==(aEdgesCC.size()+1)," Split: edge not in tree");
+        if (aEdgesCC.empty())
+        {
+           tVertex * aV0 =  aVerticesCC.at(0);
+           a2T.at(aKTree) = tTree(aV0->Graph(),aV0);
+        }
+        else
+        {
+           a2T.at(aKTree) = tTree(aEdgesCC);
+        }
+        aKTree++;
     }
-    StdOut() << "\n";
 /*
+    StdOut() << "\n";
 */
 
     // std::vector<tVertex*>  aCC1 = tAlgoCC::ConnectedComponent(*mGraph,anETree->VertexInit(),aSubV):
@@ -610,8 +623,13 @@ void cBGG_Graph::Bench_ConnectedComponent(tVertex * aSeed,tVertex * aV1)
     aVecCC = tAlgoCC::All_ConnectedComponent(*this,cSubGraphOfEdges<cBGG_Graph>(*this,aV_E4));
     MMVII_INTERNAL_ASSERT_bench((int)aVecCC.size() == Square(aNbSector),"NbCC with subgr-edges ");
 
-
     aVecCC = tAlgoCC::All_ConnectedComponent(*this,cSubGraphOfEdges<cBGG_Graph>(*this,aV_E4Sym));
+    MMVII_INTERNAL_ASSERT_bench((int)aVecCC.size() == Square(aNbSector),"NbCC with subgr-edges ");
+
+    aVecCC = tAlgoCC::All_ConnectedComponent(*this,cSubGraphOfEdges_Only<cBGG_Graph>(*this,aV_E4));
+    MMVII_INTERNAL_ASSERT_bench((int)aVecCC.size() == Square(aNbSector),"NbCC with subgr-edges ");
+
+    aVecCC = tAlgoCC::All_ConnectedComponent(*this,cSubGraphOfEdges_Only<cBGG_Graph>(*this,aV_E4Sym));
     MMVII_INTERNAL_ASSERT_bench((int)aVecCC.size() == Square(aNbSector),"NbCC with subgr-edges ");
 
     {

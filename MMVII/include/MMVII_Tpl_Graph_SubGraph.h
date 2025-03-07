@@ -309,6 +309,16 @@ template <class TGraph>  class cVG_OpBool
                     FilterEdges(aVOut,aVIn,aSubGr);
                 }
           }
+          static void EdgesInterVertices(tVEdges & aVOut, const tVEdges &  aVIn,const tVVertices & aVV)
+          {
+                if (aVV.empty())
+                   aVOut = aVIn;
+                else
+                {
+                    cSubGraphOfVertices<TGraph> aSubGr(aVV.at(0)->Graph(),aVV);
+                    FilterEdges(aVOut,aVIn,aSubGr);
+                }
+          }
 };
 
 
