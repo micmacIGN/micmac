@@ -13,6 +13,7 @@
 namespace MMVII
 {
 
+/*
 template <class TGraph>   
      void cVG_Tree<TGraph>::Split(t2Tree& a2T ,tEdge *aSplitingEdge)
 {
@@ -51,17 +52,7 @@ template <class TGraph>
         }
         aKTree++;
     }
-/*
-    StdOut() << "\n";
-*/
-
-    // std::vector<tVertex*>  aCC1 = tAlgoCC::ConnectedComponent(*mGraph,anETree->VertexInit(),aSubV):
-//StdOut() << "SplitSplit " << aListCC.size() << " ES=" << mEdges.size()  <<  " " << aCC1.size() << " " << aCC2.size() << "\n";
-
-
-    // return   std::pair<cVG_Tree<TGraph>,cVG_Tree<TGraph>> (*this,*this);
 }
-/*
 */
 
 

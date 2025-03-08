@@ -69,8 +69,12 @@ template <class TGraph>   class cVG_Tree
            /// Default constructor required for array of tree
            cVG_Tree() : mGraph(nullptr), mV0(nullptr) {}
 
-           void Split(t2Tree&,tEdge *);
-           std::vector<tVertex*> Vertices() const {return tEdge::VerticesOfEdges(mEdges);}
+           void Split(t2Tree&,tEdge *) const;
+           std::vector<tVertex*> Vertices() const 
+           {
+               if (mEdges.empty() && (mV0!=nullptr))  return {mV0};// std::vector<tVertex*>{mV0};
+               return tEdge::VerticesOfEdges(mEdges);
+           }
       private :
            void Tree_clear()
            {
@@ -808,15 +812,14 @@ template <class TGraph> void  cAlgoPruningExtre<TGraph>::TestExtreAndSupr(tVerte
 template <class TGraph>   cVG_Tree<TGraph>::cVG_Tree(const tSetEdges & aSetE) :
     mEdges (aSetE)
 {
-#if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )
     if (mEdges.empty())
     {
        MMVII_INTERNAL_ERROR("Empty edges in cVG_Tree");
     }
     mGraph  = &  aSetE.at(0)->Graph();
     mV0 = &  aSetE.at(0)->Succ();  // any set will be ok
+#if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )
     cSubGraphOfEdges<TGraph>  aSubGrTree(*mGraph,mEdges);
-       
     auto aVV = tEdge::VerticesOfEdges(mEdges);
     auto allCC = cAlgoCC<TGraph>::Multiple_ConnectedComponent(*mGraph,aVV,aSubGrTree);
     MMVII_INTERNAL_ASSERT_always(allCC.size()==1,"Multi CC in tree");
@@ -824,6 +827,47 @@ template <class TGraph>   cVG_Tree<TGraph>::cVG_Tree(const tSetEdges & aSetE) :
     MMVII_INTERNAL_ASSERT_always(aCC0.size()==mEdges.size()+1,"cycle in tree");
 #endif
 }
+
+template <class TGraph>
+     void cVG_Tree<TGraph>::Split(t2Tree& a2T ,tEdge *aSplitingEdge) const
+{
+    aSplitingEdge = aSplitingEdge->EdgeInitOr();
+
+    // computed a vector of all edges except aSplitingEdge
+    std::vector<tEdge*> aVEdgesMaintained;
+    for (const auto & anE : mEdges)
+        if (anE->EdgeInitOr() != aSplitingEdge)
+           aVEdgesMaintained.push_back(anE);
+    MMVII_INTERNAL_ASSERT_tiny(mEdges.size()==(aVEdgesMaintained.size()+1)," Split: edge not in tree");
+
+    cSubGraphOfEdges_Only<TGraph> aSG_EdM(*mGraph,aVEdgesMaintained); // Sub-graph ~ aVEdgesMaintained
+
+    // recover vertices  associated to edges, use to accelerate Multiple_ConnectedComponent
+    std::vector<tVertex*>  allV = Vertices();
+    std::list<std::vector<tVertex *>>  aListCC = cAlgoCC<TGraph>::Multiple_ConnectedComponent(*mGraph,allV,aSG_EdM);
+
+    MMVII_INTERNAL_ASSERT_tiny(aListCC.size()==2," Split: Bad CC");
+
+    // parse the 2 CC 
+    int aKTree=0;
+    for (const auto & aVerticesCC : aListCC)
+    {
+        std::vector<tEdge*>  aEdgesCC;
+        cVG_OpBool<TGraph>::EdgesInterVertices(aEdgesCC,mEdges,aVerticesCC);
+        MMVII_INTERNAL_ASSERT_tiny(aVerticesCC.size()==(aEdgesCC.size()+1)," Split: edge not in tree");
+        if (aEdgesCC.empty())
+        {
+           tVertex * aV0 =  aVerticesCC.at(0);
+           a2T.at(aKTree) = tTree(aV0->Graph(),aV0);
+        }
+        else
+        {
+           a2T.at(aKTree) = tTree(aEdgesCC);
+        }
+        aKTree++;
+    }
+}
+
 
 
 }; // MMVII

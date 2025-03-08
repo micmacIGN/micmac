@@ -1,8 +1,6 @@
 #include "MMVII_nums.h"
 #include "MMVII_util_tpl.h"
-// #include "MMVII_Geom2D.h"
 #include "MMVII_Geom3D.h"
-
 #include "MMVII_Tpl_GraphAlgo_SPCC.h"
 #include "MMVII_Tpl_GraphStruct.h"
 #include "MMVII_Tpl_GraphAlgo_EnumCycles.h"
@@ -16,14 +14,15 @@
 namespace MMVII
 {
 
-
 /* ********************************************************* */
 /*                                                           */
-/*                     cAppli_ArboTriplets                   */
+/*                     Graph of poses                        */
 /*                                                           */
 /* ********************************************************* */
 
 
+/**
+*/
 
 
 class cMAT_1Hyp
@@ -43,6 +42,12 @@ class cMAT_Vertex
 
 
 typedef cGroupGraph<tRotR,cMAT_Vertex,cEmptyClass,cEmptyClass,cMAT_1Hyp>       tGrPoses;
+
+/* ********************************************************* */
+/*                                                           */
+/*                     cAppli_ArboTriplets                   */
+/*                                                           */
+/* ********************************************************* */
 
 typedef typename tGrPoses::tAttrS                           tAS_GGRR;
 typedef typename tGrPoses::tVertex                          tV_GGRR;
@@ -97,17 +102,33 @@ class cTri_GGRR
 };
 
 typedef cVG_Graph<cTri_GGRR, cAtOri_3GGRR,cAtSym_3GGRR> tGrTriplet;
+typedef cVG_Tree<tGrTriplet>   tTree;
 
+typedef cTri_GGRR *            t3CPtr;
+typedef tGrTriplet::tEdge      tEdge3;
+typedef tGrTriplet::tVertex    tVertex3;
 
+class  cNodeArborTriplets : public cMemCheck
+{
+    public :
+        typedef cNodeArborTriplets * tNodePtr;
 
+        cNodeArborTriplets(tREAL8 aWBalance,const tTree &,int aLevel);
+        ~cNodeArborTriplets();
+       
 
+    private :
+        tTree     mTree;
+        tNodePtr  mChildren[2];
+};
 
 
 class cMakeArboTriplet
 {
      public :
          
-         cMakeArboTriplet(const cTripletSet & aSet3,bool doCheck);
+         cMakeArboTriplet(const cTripletSet & aSet3,bool doCheck,tREAL8 aWBalance);
+         ~cMakeArboTriplet();
 
          // make the graph on pose, using triplet as 3 edges
          void MakeGraphPose();
@@ -127,9 +148,7 @@ class cMakeArboTriplet
          /// Activate the simulation mode
          void SetRand(tREAL8 aLevelRand);
 
-         typedef cTri_GGRR * t3CPtr;
-         typedef tGrTriplet::tEdge    tEdge3;
-         typedef tGrTriplet::tVertex  tVertex3;
+
      private :
 
          int KSom(t3CPtr aTri,int aK123) const;
@@ -142,19 +161,26 @@ class cMakeArboTriplet
          tGrTriplet              mGTriC;
          bool                    mDoRand;
          tREAL8                  mLevelRand;
-         //cGlobalArborBin         mArbor;
+         cNodeArborTriplets *    mArbor;
+         tREAL8                  mWBalance;
 };
 
 
-cMakeArboTriplet::cMakeArboTriplet(const cTripletSet & aSet3,bool doCheck) :
-   mSet3      (aSet3),
-   mDoCheck   (doCheck),
-   mGGPoses   (false), // false=> not 4 simul
-   mDoRand    (false),
-   mLevelRand (0.0)
+cMakeArboTriplet::cMakeArboTriplet(const cTripletSet & aSet3,bool doCheck,tREAL8 aWBalance) :
+   mSet3        (aSet3),
+   mDoCheck     (doCheck),
+   mGGPoses     (false), // false=> not 4 simul
+   mDoRand      (false),
+   mLevelRand   (0.0),
+   mArbor       (nullptr),
+   mWBalance    (aWBalance)
 {
 }
 
+cMakeArboTriplet::~cMakeArboTriplet()
+{
+   delete mArbor;
+}
 void cMakeArboTriplet::SetRand(tREAL8 aLevelRand)
 {
    mDoRand = true;
@@ -357,7 +383,51 @@ void cMakeArboTriplet::MakeGraphTriC()
    MMVII_INTERNAL_ASSERT_tiny(aListCC.size(),"non connected triplet-graph");
 }
 
-int NUMDEBUG = 9;
+
+cNodeArborTriplets::cNodeArborTriplets( tREAL8 aWBalance,const tTree & aTree,int aLevel) :
+   mTree   (aTree),
+   mChildren  {0,0}
+{
+
+   for (int aK=0 ; aK< aLevel ; aK++)
+       StdOut() << " |" ;
+   for (const auto & aV : mTree.Vertices()) 
+       StdOut()  << " " <<  aV->Attr().mKT;
+   StdOut() << "\n";
+
+   if (aTree.Edges().size() >1)
+   {
+      cWhichMax<tEdge3*,tREAL8> aWME;
+      for (const auto & anE : aTree.Edges())
+      {
+          std::array<tTree,2>  a2T;
+          aTree.Split(a2T,anE);
+          int aN1 = a2T[0].Edges().size();
+          int aN2 = a2T[1].Edges().size();
+          tREAL8 aRatio =  std::min(aN1,aN2) / (1.0+std::max(aN1,aN2));
+          tREAL8  aWeight = aWBalance * aRatio + (1-aWBalance) ;
+          aWME.Add(anE,anE->AttrSym().mCost2Tri * aWeight);
+          //aWME.Add(anE, aRatio);
+      }
+
+      std::array<tTree,2>  a2T;
+      aTree.Split(a2T,aWME.IndexExtre());
+      for (size_t aKT=0 ; aKT<a2T.size() ; aKT++)
+      {
+          mChildren[aKT] = new cNodeArborTriplets(aWBalance,a2T.at(aKT),aLevel+1);
+      }
+   }
+}
+
+
+
+cNodeArborTriplets:: ~cNodeArborTriplets()
+{
+    delete mChildren[0];
+    delete mChildren[1];
+}
+
+
 
 void cMakeArboTriplet::ComputeMinTri()
 {
@@ -428,10 +498,8 @@ void cMakeArboTriplet::ComputeMinTri()
         MMVII_INTERNAL_ASSERT_always(aCC0.size()==(aSetEdgeKern.size()+1),"Kernel is not tree");
 
    }
-   cVG_Tree<tGrTriplet>  aTreeKernel(aSetEdgeKern);
-
-
-
+   tTree  aTreeKernel(aSetEdgeKern);
+   mArbor = new cNodeArborTriplets(mWBalance,aTreeKernel,0);
 }
 
 
@@ -458,6 +526,7 @@ class cAppli_ArboTriplets : public cMMVII_Appli
         int                       mNbIterCycle;
         tREAL8                    mLevelRand;
         bool                      mDoCheck;
+        tREAL8                    mWBalance;
 };
 
 
@@ -467,7 +536,8 @@ cAppli_ArboTriplets::cAppli_ArboTriplets(const std::vector<std::string> & aVArgs
     mNbMaxClust  (5),
     mDistClust   (0.02),
     mNbIterCycle (3),
-    mDoCheck     (true)
+    mDoCheck     (true),
+    mWBalance    (1.0)
 {
 }
 
@@ -485,33 +555,16 @@ cCollecSpecArg2007 & cAppli_ArboTriplets::ArgOpt(cCollecSpecArg2007 & anArgOpt)
           << AOpt2007(mDistClust,"DistClust","Distance in clustering",{eTA2007::HDV})
           << AOpt2007(mLevelRand,"LevelRand","Level of random if simulation")
           << AOpt2007(mDoCheck,"DoCheck","do some checking on result",{eTA2007::HDV,eTA2007::Tuning})
+          << AOpt2007(mWBalance,"WBalance","Weight for balancing trees, 0 NONE, 1 Max",{eTA2007::HDV})
    ;
 }
 
 int cAppli_ArboTriplets::Exe()
 {
-if (0)
-{
-   tRotR  aId = tRotR::Identity();
-   tREAL8 aDMax=0;
-   for (int aK=0 ; aK<100000000 ; aK++)
-   {
-        tRotR aR = tRotR::RandomElem();
-        tREAL8 aD = aId.Dist(aR);
-// StdOut() << "dddd " << aD   << " " << aDMax << "\n";
-        if (aD>aDMax)
-        {
-            aDMax =aD;
-            StdOut() << "DMAX== "  << aDMax << "\n";
-            aR.Mat().Show();
-        }
-   }
-
-}
      mPhProj.FinishInit();
 
      cTripletSet *  a3Set =  mPhProj.ReadTriplets();
-     cMakeArboTriplet  aMk3(*a3Set,mDoCheck);
+     cMakeArboTriplet  aMk3(*a3Set,mDoCheck,mWBalance);
      if (IsInit(&mLevelRand))
         aMk3.SetRand(mLevelRand);
 
