@@ -715,8 +715,13 @@ int  cAppliFillCubeCost::Exe()
              }
         if (aVMods.at(0)->mArchitecture==TheUnetMlpCubeMatcher)
              {
+               auto start = std::chrono::system_clock::now();
                LREmbeddingsL=aVMods.at(0)->mCNNPredictor->PredictMSNetTileFeatures(aVMods.at(0)->mMSNet,this->mIm1,aSzL);
                LREmbeddingsR=aVMods.at(0)->mCNNPredictor->PredictMSNetTileFeatures(aVMods.at(0)->mMSNet,this->mIm2,aSzR);
+               auto end = std::chrono::system_clock::now();
+               std::chrono::duration<double> elapsed_seconds = end-start;
+               std::cout << "feature extraction elapsed time: " << elapsed_seconds.count() << "s"
+                         << std::endl;
              }
 
         StdOut()  <<" EMBEDDING TENSOR SIZE LEFT  "<<LREmbeddingsL.sizes()<<"\n";
@@ -1294,6 +1299,193 @@ int  cAppliFillCubeCost::Exe()
                 //=======================================================================================
                 //LREmbeddingsL=LREmbeddingsL.squeeze(0);
                 //LREmbeddingsR=LREmbeddingsR.squeeze(0);
+
+
+            //*****************************************************************************//
+            //*****************************************************************************//
+            //*****************************************************************************//
+
+            {
+                // CREATE THE COST VOLUME AND PUSH COST AT RELEVANT NAPPE LOCATIONS
+
+                // calculer le min sur les nappes
+                int  aMinZmin=1e8;
+                int  aMaxZmax=-1e8;
+                cPt2di aPix;
+
+                for (aPix.y()=0 ; aPix.y()<aSzL.y() ; aPix.y()++)
+                {
+                    for (aPix.x()=0 ; aPix.x()<aSzL.x() ; aPix.x()++)
+                    {
+                        if (aDZMin.GetV(aPix)<aMinZmin) aMinZmin=aDZMin.GetV(aPix);
+                        if (aDZMax.GetV(aPix)>aMaxZmax) aMaxZmax=aDZMax.GetV(aPix);
+                    }
+                }
+                // Construct a cube of features to be forwarded into the network
+                torch::Device TheAvailDevice(mUseCuda ? torch::kCUDA : torch::kCPU);
+                ELISE_ASSERT(aMaxZmax-aMinZmin, "PAX INTERVAL NULL !");
+
+
+                using namespace torch::indexing;
+
+                auto aSlcL=LREmbeddingsL.index({Slice(0,FeatSize,1),
+                                                  Slice(mP0Z.y()-mBoxGlob1.P0().y()
+                                                        ,aSzL.y()+mP0Z.y()-mBoxGlob1.P0().y(),1),
+                                                  Slice(mP0Z.x()-mBoxGlob1.P0().x(),
+                                                        aSzL.x()+mP0Z.x()-mBoxGlob1.P0().x(),1)}); // FeatSize,H,W
+
+                int Intervalle_DPAX=round_ni(aMaxZmax-aMinZmin);// /this->StepZ());
+                auto start = std::chrono::system_clock::now();
+                torch::Tensor CUBE= torch::ones({2*FeatSize,Intervalle_DPAX,aSzL.y(),aSzL.x()},torch::TensorOptions().dtype(torch::kFloat32).device(TheAvailDevice)).mul(0.5);
+
+                ELISE_ASSERT(Intervalle_DPAX==aMaxZmax-aMinZmin, "ISSUE WITH PAX INTERVAL ");
+
+
+                for (int dd=0;dd<Intervalle_DPAX;dd++)
+                {
+                    // Get relevant right features
+
+                    CUBE.index({Slice(0,FeatSize,1),dd,Slice(0,None,1),Slice(0,None,1)}).copy_(aSlcL);
+
+                    int lim_inf=round_ni(mP0Z.x()-mBoxGlob2.P0().x()+dd+aMinZmin);
+                    int lim_sup=round_ni(mP0Z.x()-mBoxGlob2.P0().x()+dd+aMinZmin+aSzL.x());
+
+                    // CONDITIONS ON CUBE LIMITS
+                    if ((lim_inf<0 && lim_sup<0) || (lim_inf>aSzR.x() && lim_sup>aSzR.x()) )
+                    {
+
+                    }
+                    else if(lim_inf<0 && lim_sup>aSzR.x())
+                    {
+                        auto aSlcR=LREmbeddingsR.index({Slice(0,FeatSize,1),
+                                                          Slice(aPix.y()+mP0Z.y()-mBoxGlob2.P0().y()
+                                                                ,aPix.y()+mP0Z.y()-mBoxGlob2.P0().y()+1,1),
+                                                          Slice(0,aSzR.x(),1)}); // FEatSize,1,W
+                        //std::cout<<"SLICE RIGHT "<<aSlcR.sizes()<<std::endl;
+                        //std::cout<<"liminf <0    "<<lim_inf<<"  limsup    "<<lim_sup<<std::endl;
+                        CUBE.index({Slice(FeatSize,2*FeatSize,1),dd,
+                                    Slice(0,None,1),Slice(-lim_inf,aSzR.x()-lim_inf,1)}).copy_(aSlcR);
+
+                    }
+                    else if (lim_inf<0)
+                    {
+                        auto aSlcR=LREmbeddingsR.index({Slice(0,FeatSize,1),
+                                                          Slice(mP0Z.y()-mBoxGlob2.P0().y()
+                                                                ,aSzL.y()+mP0Z.y()-mBoxGlob2.P0().y(),1),
+                                                          Slice(0,lim_sup,1)}); // FEatSize,H,W
+                        //std::cout<<"liminf <0 "<<std::endl;
+                        CUBE.index({Slice(FeatSize,2*FeatSize,1),dd,Slice(0,None,1),Slice(-lim_inf,CUBE.size(3),1)}).copy_(aSlcR);
+                    }
+                    else if (lim_sup>aSzR.x())
+                    {
+                        auto aSlcR=LREmbeddingsR.index({Slice(0,FeatSize,1),
+                                                          Slice(mP0Z.y()-mBoxGlob2.P0().y()
+                                                                ,aSzL.y()+mP0Z.y()-mBoxGlob2.P0().y(),1),
+                                                          Slice(lim_inf,aSzR.x(),1)}); // FEatSize,H,W
+                        //std::cout<<"limsup sup "<<std::endl;
+                        CUBE.index({Slice(FeatSize,2*FeatSize,1),dd,Slice(0,None,1),Slice(0,aSlcR.size(2),1)}).copy_(aSlcR);
+                    }
+                    else
+                    {
+                        // TAKE USUAL RANGES
+                        auto aSlcR=LREmbeddingsR.index({Slice(0,FeatSize,1),
+                                                          Slice(mP0Z.y()-mBoxGlob2.P0().y()
+                                                                ,aSzL.y()+mP0Z.y()-mBoxGlob2.P0().y(),1),
+                                                          Slice(lim_inf,lim_sup,1)}); // FEatSize,H,W
+                        CUBE.index({Slice(FeatSize,2*FeatSize,1),dd,Slice(0,None,1),Slice(0,None,1)}).copy_(aSlcR);
+                    }
+                }
+
+                std::cout<<"GENERATED CUBE OF FEATURES "<<std::endl;
+                // Clear embeddings
+                LREmbeddingsL.resize_(at::IntArrayRef{0});
+                LREmbeddingsR.resize_(at::IntArrayRef{0});
+
+                auto end = std::chrono::system_clock::now();
+                std::chrono::duration<double> elapsed_seconds = end-start;
+                std::cout << "cost volume reconstruction elapsed time: " << elapsed_seconds.count() << "s"
+                          << std::endl;
+
+
+                start = std::chrono::system_clock::now();
+
+                auto  aSimilCUBE=F::cosine_similarity(CUBE.index({Slice(0,FeatSize,1),Slice(0,None,1),Slice(0,None,1),Slice(0,None,1)}),
+                                                       CUBE.index({Slice(FeatSize,2*FeatSize,1),Slice(0,None,1),Slice(0,None,1),Slice(0,None,1)}),
+                                                       F::CosineSimilarityFuncOptions().dim(0)).squeeze().to(torch::kCPU);
+
+                end = std::chrono::system_clock::now();
+                elapsed_seconds = end-start;
+                std::cout << "similarity computation elapsed time: " << elapsed_seconds.count() << "s"
+                          << std::endl;
+
+
+                CUBE.resize_(at::IntArrayRef{0});
+                std::cout<<" SIMIL CUBE IS GENERATED =====+>   "<<aSimilCUBE.sizes()<<std::endl;
+                /*std::cout<<"A sample of data "<<
+                       aSimilCUBE.slice(0,5,6,1)<<std::endl;*/
+
+                if (aSimilCUBE.dim()==4)
+                {
+                    aSimilCUBE.squeeze();
+                }
+
+                start = std::chrono::system_clock::now();
+                // Refill tables defining layers of NAPPES WITH GENERATED CORREL
+                for (aPix.y()=0 ; aPix.y()<aSzL.y() ; aPix.y()++)
+                {
+                    for (aPix.x()=0 ; aPix.x()<aSzL.x() ; aPix.x()++)
+                    {
+                        cPt2di aPAbs = aPix + mP0Z;
+                        cPt2di aPC1  = aPAbs-mBoxGlob1.P0();
+                        cPt2di aPC20 = aPAbs-mBoxGlob2.P0();
+                        for (int aDz=aDZMin.GetV(aPix) ; aDz<aDZMax.GetV(aPix) ; aDz++)
+                        {
+                            double aTabCost[2]={1.0,1.0};
+                            bool   aTabOk[2]={false,false};
+                            cPt2di aPC2Z(round_ni(aPC20.x()+aDz*this->StepZ()),aPC20.y());  // INTEG FOR NOW
+                            for (int aK=0 ; aK<int(aVMods.size()) ; aK++)
+                            {
+                                bool IsInside=WindInside4BL(this->DI1(),aPC1,aVMods[aK]->mCNNWin) && WindInside4BL(this->DI2(),aPC2Z,aVMods[aK]->mCNNWin);
+                                if(IsInside)
+                                {
+                                    //auto aVecR=LREmbeddingsR.slice(2,aPC2Z.y(),aPC2Z.y()+1).slice(3,aPC2Z.x(),aPC2Z.x()+1);
+                                    using namespace torch::indexing;
+                                    auto aSim=aSimilCUBE.index({Slice(aDz-aMinZmin,aDz-aMinZmin+1,1),
+                                                                  Slice(aPix.y(),aPix.y()+1,1),
+                                                                  Slice(aPix.x(),aPix.x()+1,1)});
+                                    ELISE_ASSERT(aSim.item<float>()<=1.0 && aSim.item<float>()>=-1.01, "Similarity values issue not in bound 0 ,1 ");
+                                    aTabCost[aK] =(1-(double)aSim.item<float>())/2.0;;
+                                    aTabOk[aK]=true;
+                                }
+                            }
+                            PushCost(aTabCost[0]);
+                            if (mCmpCorLearn && aTabOk[0] && aTabOk[1])
+                            {
+                                double aC0 = ToCmpCost(aTabCost[0]);
+                                double aC1 = ToCmpCost(aTabCost[1]);
+                                mImCmp.DIm().AddVBL(cPt2dr(aC1,aC0),1.0);
+                            }
+                        }
+                    }
+                }
+                end = std::chrono::system_clock::now();
+                elapsed_seconds = end-start;
+                std::cout << "passage to mmv1 elapsed time: " << elapsed_seconds.count() << "s"
+                          << std::endl;
+
+
+
+            }
+
+            //*****************************************************************************//
+            //*****************************************************************************//
+            //*****************************************************************************//
+
+
+            if (0)
+            {
+                auto start = std::chrono::system_clock::now();
+                double all_passage_mmv1=0.0;
                 for (aPix.y()=0 ; aPix.y()<aSzL.y() ; aPix.y()++)
                 {
                         int  aMinZmin=1e8;
@@ -1410,6 +1602,9 @@ int  cAppliFillCubeCost::Exe()
                         }*/
                         // Fill cube cost
 
+
+                         auto start = std::chrono::system_clock::now();
+
                         for (aPix.x()=0 ; aPix.x()<aSzL.x() ; aPix.x()++)
                         {
                                 cPt2di aPAbs = aPix + mP0Z;
@@ -1443,9 +1638,20 @@ int  cAppliFillCubeCost::Exe()
                                     }
                                 }
                         }
-
+                        auto end = std::chrono::system_clock::now();
+                        std::chrono::duration<double> elapsed_seconds = end-start;
+                        /*std::cout << "fill cost volume into mmv1 elapsed time: " << elapsed_seconds.count() << "s"
+                                  << std::endl;*/
+                        all_passage_mmv1+=elapsed_seconds.count();
                 }
+                auto end = std::chrono::system_clock::now();
+                std::chrono::duration<double> elapsed_seconds = end-start;
+                std::cout << "cost volume construction time elapsed time: " << elapsed_seconds.count() - all_passage_mmv1 << "s"
+                          << std::endl;
 
+                std::cout << "fill cost volume into mmv1 all elapsed time: " << all_passage_mmv1 << "s"
+                          << std::endl;
+            }
 
         }
         
