@@ -34,8 +34,11 @@ class c3GOP_1Hyp
 class c3GOP_AttrV
 {
     public :
-         c3GOP_AttrV()           {}
+         c3GOP_AttrV(int aKIm,const tPoseR& aGTRand): mKIm (aKIm), mGTRand (aGTRand)          {}
+
          cWhichMin<int,tREAL8>   mWMinTri;   /// for computing the triplet  with minimal cost it belongs to
+	 int                     mKIm;
+	 tPoseR                  mGTRand;   /// Random Ground-truth, for simul/check
 };
 
 /// the symetric  attibute of cGroupGraph
@@ -89,7 +92,7 @@ class c3G3_AttrSym
 class c3G3_AttrV
 {
    public :
-        c3G3_AttrV (const cTriplet* aT0,int aKT) :
+        c3G3_AttrV (cTriplet* aT0,int aKT) :
             mT0         (aT0),
             mKT         (aKT),
             mOk         (false),
@@ -105,7 +108,7 @@ class c3G3_AttrV
              return 3;
         }
 
-        const cTriplet*  mT0;    ///< the initial triplet itself
+        cTriplet*        mT0;    ///< the initial triplet itself
         int              mKT;
         t3E_GOP          mCnxE;      // the 3 edges 
         t3V_GOP           m3V;        // the 3 vertices 

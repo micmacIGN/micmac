@@ -16,27 +16,44 @@ namespace MMVII
 {
 
 
+class cMakeArboTriplet;
+class cNodeArborTriplets;
+
+class  cSolLocNode
+{
+     public :
+        tPoseR mPose;
+	int    mNumPose;
+};
 
 class  cNodeArborTriplets : public cMemCheck
 {
     public :
         typedef cNodeArborTriplets * tNodePtr;
 
-        cNodeArborTriplets(tREAL8 aWBalance,const t3G3_Tree &,int aLevel);
+        cNodeArborTriplets(cMakeArboTriplet &,const t3G3_Tree &,int aLevel);
         ~cNodeArborTriplets();
        
+	void TestMergeRot();
 
     private :
-        t3G3_Tree     mTree;
-        tNodePtr  mChildren[2];
+	void GetPoses(std::vector<int> &); 
+
+	int                       mLevel;
+        t3G3_Tree                 mTree;
+	std::array<tNodePtr,2>    mChildren;
+	cMakeArboTriplet*         mPMAT;
+	std::vector<cSolLocNode>  mLocSols;
 };
+
+
 
 
 class cMakeArboTriplet
 {
      public :
          
-         cMakeArboTriplet(const cTripletSet & aSet3,bool doCheck,tREAL8 aWBalance);
+         cMakeArboTriplet(cTripletSet & aSet3,bool doCheck,tREAL8 aWBalance);
          ~cMakeArboTriplet();
 
          // make the graph on pose, using triplet as 3 edges
@@ -55,23 +72,30 @@ class cMakeArboTriplet
          void ComputeArbor();
 
          /// Activate the simulation mode
-         void SetRand(tREAL8 aLevelRand);
+         void SetRand(const std::vector<tREAL8> &);
 
+	 tREAL8 WBalance() const {return mWBalance;}
+	 tREAL8 & CostMergeTree() {return mCostMergeTree;}
+
+         t3G3_Graph &       GO3() ;
+         t3GOP &            GOP()  {return mGGPoses;}
 
      private :
 
          int KSom(c3G3_AttrV* aTri,int aK123) const;
 
 
-         const cTripletSet  &    mSet3;
+         cTripletSet  &          mSet3;
          bool                    mDoCheck;
          t2MapStrInt             mMapStrI;
          t3GOP                   mGGPoses;
          t3G3_Graph              mGTriC;
          bool                    mDoRand;
-         tREAL8                  mLevelRand;
+	 std::vector<tREAL8>     mLevelRand;
          cNodeArborTriplets *    mArbor;
          tREAL8                  mWBalance;
+
+	 tREAL8                  mCostMergeTree;
 };
 
 /* ********************************************************* */
@@ -80,18 +104,21 @@ class cMakeArboTriplet
 /*                                                           */
 /* ********************************************************* */
 
-cNodeArborTriplets::cNodeArborTriplets( tREAL8 aWBalance,const t3G3_Tree & aTree,int aLevel) :
-   mTree   (aTree),
-   mChildren  {0,0}
+cNodeArborTriplets::cNodeArborTriplets(cMakeArboTriplet & aMAT ,const t3G3_Tree & aTree,int aLevel) :
+   mLevel     (aLevel),
+   mTree      (aTree),
+   mChildren  {0,0},
+   mPMAT      (&aMAT)
 {
 
-   for (int aK=0 ; aK< aLevel ; aK++)
+	/*
        StdOut() << " |" ;
    for (const auto & aV : mTree.Vertices()) 
        StdOut()  << " " <<  aV->Attr().mKT;
    StdOut() << "\n";
+   */
 
-   if (aTree.Edges().size() >1)
+   if (!aTree.Edges().empty())
    {
       cWhichMax<t3G3_Edge*,tREAL8> aWME;
       for (const auto & anE : aTree.Edges())
@@ -101,16 +128,17 @@ cNodeArborTriplets::cNodeArborTriplets( tREAL8 aWBalance,const t3G3_Tree & aTree
           int aN1 = a2T[0].Edges().size();
           int aN2 = a2T[1].Edges().size();
           tREAL8 aRatio =  std::min(aN1,aN2) / (1.0+std::max(aN1,aN2));
-          tREAL8  aWeight = aWBalance * aRatio + (1-aWBalance) ;
+          tREAL8  aWeight = aMAT.WBalance() * aRatio + (1-aMAT.WBalance()) ;
           aWME.Add(anE,anE->AttrSym().mCost2Tri * aWeight);
           //aWME.Add(anE, aRatio);
       }
 
       std::array<t3G3_Tree,2>  a2T;
       aTree.Split(a2T,aWME.IndexExtre());
+      aMAT.CostMergeTree() += a2T.at(0).Edges().size() +  a2T.at(1).Edges().size();
       for (size_t aKT=0 ; aKT<a2T.size() ; aKT++)
       {
-          mChildren[aKT] = new cNodeArborTriplets(aWBalance,a2T.at(aKT),aLevel+1);
+          mChildren[aKT] = new cNodeArborTriplets(aMAT,a2T.at(aKT),aLevel+1);
       }
    }
 }
@@ -123,6 +151,60 @@ cNodeArborTriplets:: ~cNodeArborTriplets()
     delete mChildren[1];
 }
 
+void cNodeArborTriplets::TestMergeRot()
+{
+   MMVII_INTERNAL_ASSERT_tiny((mChildren.at(0) == nullptr) == (mChildren.at(1) == nullptr),"TestMergeRot, assert on desc");
+
+    std::vector<int> aVPose; GetPoses(aVPose);
+    for (int aK=0 ; aK< mLevel ; aK++)
+       StdOut() << " |" ;
+    StdOut() <<  aVPose << "\n";
+
+    if (mChildren.at(0) == nullptr)
+    {
+       auto  aVecTri = mTree.Vertices();
+       MMVII_INTERNAL_ASSERT_tiny(aVecTri.size()==1,"TestMergeRot, assert on desc");
+       c3G3_AttrV & anATri = aVecTri.at(0)->Attr();
+       for (size_t aK3=0 ; aK3<3 ; aK3++)
+       {
+          cSolLocNode aSol;
+	  aSol.mNumPose = anATri.m3V.at(aK3)->Attr().Attr().mKIm;
+	  aSol.mPose = anATri.mT0->Pose(aK3).Pose();
+
+          mLocSols.push_back(aSol);
+       }
+    }
+    else
+    {
+       for (auto & aChild :mChildren)
+           aChild->TestMergeRot();
+    }
+}
+
+void cNodeArborTriplets::GetPoses(std::vector<int> & aResult)
+{
+   aResult.clear();
+   size_t aFlagPose = mPMAT->GOP().AllocBitTemp();
+
+   for (const auto & aVertexTri : mTree.Vertices()) 
+   {
+        auto & anAttr = aVertexTri->Attr();
+	for (auto & aVertexPos : anAttr.m3V)
+	{
+		if (!aVertexPos->BitTo1(aFlagPose))
+		{
+                   aVertexPos->SetBit1(aFlagPose);
+                   aResult.push_back(aVertexPos->Attr().Attr().mKIm);
+		}
+	}
+   }
+   for (const auto aNumPose : aResult)
+   {
+       mPMAT->GOP().VertexOfNum(aNumPose).SetBit0(aFlagPose);
+   }
+   mPMAT->GOP().FreeBitTemp(aFlagPose);
+   std::sort(aResult.begin(),aResult.end());
+}
 
 
 
@@ -133,12 +215,12 @@ cNodeArborTriplets:: ~cNodeArborTriplets()
 /* ********************************************************* */
 
 
-cMakeArboTriplet::cMakeArboTriplet(const cTripletSet & aSet3,bool doCheck,tREAL8 aWBalance) :
+cMakeArboTriplet::cMakeArboTriplet(cTripletSet & aSet3,bool doCheck,tREAL8 aWBalance) :
    mSet3        (aSet3),
    mDoCheck     (doCheck),
    mGGPoses     (), // false=> not 4 simul
    mDoRand      (false),
-   mLevelRand   (0.0),
+   mLevelRand   {0.0,0.0},
    mArbor       (nullptr),
    mWBalance    (aWBalance)
 {
@@ -148,7 +230,7 @@ cMakeArboTriplet::~cMakeArboTriplet()
 {
    delete mArbor;
 }
-void cMakeArboTriplet::SetRand(tREAL8 aLevelRand)
+void cMakeArboTriplet::SetRand(const std::vector<tREAL8> & aLevelRand)
 {
    mDoRand = true;
    mLevelRand = aLevelRand;
@@ -161,7 +243,7 @@ void cMakeArboTriplet::MakeGraphPose()
    // create vertices of mGTriC  & compute map NamePose/Int (in mMapStrI)
    for (size_t aKT=0; aKT<mSet3.Set().size() ; aKT++)
    {
-        const cTriplet & a3 = mSet3.Set().at(aKT);
+        cTriplet & a3 = mSet3.Set().at(aKT);
         mGTriC.NewVertex(c3G3_AttrV(&a3,aKT));
         for (size_t aK3=0 ; aK3<3 ; aK3++)
         {
@@ -179,7 +261,8 @@ void cMakeArboTriplet::MakeGraphPose()
    //  Add the vertex corresponding to each poses in Graph-Pose
    for (size_t aKIm=0 ; aKIm<mMapStrI.size() ; aKIm++)
    {
-       mGGPoses.AddVertex(c3GOP_AttrV());
+       tPoseR aRandGT(cPt3dr::PRandInSphere(),tRotR::RandomRot());
+       mGGPoses.AddVertex(c3GOP_AttrV(aKIm,aRandGT));
    }
 
    //  Parse all the triplet; for each triplet  Add 3 edges of Grap-Pose ;
@@ -187,8 +270,32 @@ void cMakeArboTriplet::MakeGraphPose()
    for (size_t aKT=0; aKT<mGTriC.NbVertex() ; aKT++)
    {
         c3G3_AttrV & aTriC =   mGTriC.VertexOfNum(aKT).Attr();
-        const cTriplet & a3 = *(aTriC.mT0);
-        // parse the 3 pair of consercutive poses
+        cTriplet & a3 = *(aTriC.mT0);
+        if (mDoRand)  
+	{
+	    // in simul we must take into account that each triplet is in its own arbitrary system  W2L , Word -> Loc
+	    tRotR aRandW2L = tRotR::RandomRot();
+	    tREAL8 aScaleW2L = RandInInterval(0.5,1.5);
+	    cPt3dr aTransW2L = cPt3dr::PRandInSphere() * 2.0;
+            // parse the 3 pair of consecutive poses
+	    for (int aK3=0 ; aK3<3 ; aK3++)
+	    {
+                cView&  aView = a3.Pose(aK3);
+                tPoseR & aP = aView.Pose();
+		// initialize local pose to ground truth
+                int aInd =  mMapStrI.Obj2I(aView.Name());
+		t3GOP_Vertex & aPoseV = mGGPoses.VertexOfNum(aInd);
+		aP = aPoseV.Attr().Attr().mGTRand;
+		// Firts create small perturbations of "perfect" values of "Tr/Rot"
+		cPt3dr aTr = aP.Tr() + cPt3dr::PRandInSphere() * mLevelRand.at(1);
+		tRotR aRot = aP.Rot()* tRotR::RandomSmallElem(mLevelRand.at(0));
+		// Now put everyting in the local system
+		aTr = aTransW2L  + aTr*aScaleW2L;
+		aRot =  aRandW2L * aRot;
+                // finally save the result
+		aP = tPoseR(aTr,aRot);
+	    }
+	}
         for (size_t aK3=0 ; aK3<3 ; aK3++)
         {
             // extract  the 2 vertices corresponding to poses
@@ -202,13 +309,9 @@ void cMakeArboTriplet::MakeGraphPose()
             aTriC.m3V[aK3] = &aV1;
 
             // extract relative poses (eventually adapt when simul)
+	 
             tRotR  aR1toW = aView1.Pose().Rot();
             tRotR  aR2toW = aView2.Pose().Rot();
-            if (mDoRand)  // if random : perfect relatives poses with some randomisation
-            {
-               aR1toW = aVRandR.at(aI1) * tRotR::RandomSmallElem(mLevelRand);
-               aR2toW = aVRandR.at(aI2) * tRotR::RandomSmallElem(mLevelRand); 
-            }
             // formula forcomputing relative pose
             //  Ori_2->1  = Ori_G->1  o Ori_2->G    ( PL2 -> PG -> PL1)
             tRotR aR2to1 = aR1toW.MapInverse() * aR2toW;
@@ -422,7 +525,10 @@ void cMakeArboTriplet::ComputeArbor()
 
    }
    t3G3_Tree  aTreeKernel(aSetEdgeKern);
-   mArbor = new cNodeArborTriplets(mWBalance,aTreeKernel,0);
+   mCostMergeTree = 0.0;
+   mArbor = new cNodeArborTriplets(*this,aTreeKernel,0);
+   StdOut() << "CostMerge " << mCostMergeTree << "\n";
+   mArbor->TestMergeRot();
 }
 
 
@@ -447,7 +553,7 @@ class cAppli_ArboTriplets : public cMMVII_Appli
         int                       mNbMaxClust;
         tREAL8                    mDistClust;
         int                       mNbIterCycle;
-        tREAL8                    mLevelRand;
+	std::vector<tREAL8>       mLevelRand;
         bool                      mDoCheck;
         tREAL8                    mWBalance;
 };
@@ -476,7 +582,7 @@ cCollecSpecArg2007 & cAppli_ArboTriplets::ArgOpt(cCollecSpecArg2007 & anArgOpt)
    return    anArgOpt
           << AOpt2007(mNbMaxClust,"NbMaxClust","Number max of rot in 1 cluster",{eTA2007::HDV})
           << AOpt2007(mDistClust,"DistClust","Distance in clustering",{eTA2007::HDV})
-          << AOpt2007(mLevelRand,"LevelRand","Level of random if simulation")
+          << AOpt2007(mLevelRand,"LevelRand","Level of random if simulation [Rot,Trans]", {{eTA2007::ISizeV,"[2,2]"}})
           << AOpt2007(mDoCheck,"DoCheck","do some checking on result",{eTA2007::HDV,eTA2007::Tuning})
           << AOpt2007(mWBalance,"WBalance","Weight for balancing trees, 0 NONE, 1 Max",{eTA2007::HDV})
    ;
