@@ -88,11 +88,11 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
         tREAL8 aDistMoy = std::sqrt(mNbPointByPatch *aBox.NbElem()/ (mTri.NbPts()*M_PI));
         tREAL8 aDistReject =  aDistMoy *1.5;
 
-        mTri.MakePatches(mLPatches,aDistMoy,aDistReject,35);
+        //mTri.MakePatches(mLPatches,aDistMoy,aDistReject,35);
 
-        /*mTri.MakePatchesTargetted(mLPatches,aDistMoy,aDistReject,35, mVCam,0.75);
+        mTri.MakePatchesTargetted(mLPatches,aDistMoy,aDistReject,35, mVCam,0.75);
         std::string NamePlyOut="./patches.ply";
-        mTri.PlyWriteSelected(NamePlyOut,mLPatches,false);*/
+        mTri.PlyWriteSelected(NamePlyOut,mLPatches,false);
 
 
         StdOut() << "Patches: DistReject=" << aDistReject 
