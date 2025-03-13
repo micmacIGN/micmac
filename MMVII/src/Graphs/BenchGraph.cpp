@@ -13,49 +13,6 @@
 namespace MMVII
 {
 
-/*
-template <class TGraph>   
-     void cVG_Tree<TGraph>::Split(t2Tree& a2T ,tEdge *aSplitingEdge)
-{
-    aSplitingEdge = aSplitingEdge->EdgeInitOr();
-
-    // computed a vector of all edges except aSplitingEdge
-    std::vector<tEdge*> aVEdgesMaintained;
-    for (const auto & anE : mEdges)
-        if (anE->EdgeInitOr() != aSplitingEdge)
-           aVEdgesMaintained.push_back(anE);
-    MMVII_INTERNAL_ASSERT_tiny(mEdges.size()==(aVEdgesMaintained.size()+1)," Split: edge not in tree");
-
-    cSubGraphOfEdges_Only<TGraph> aSG_EdM(*mGraph,aVEdgesMaintained); // Sub-graph ~ aVEdgesMaintained
-
-    // recover vertices  associated to edges, use to accelerate Multiple_ConnectedComponent
-    std::vector<tVertex*>  allV = Vertices();
-    std::list<std::vector<tVertex *>>  aListCC = cAlgoCC<TGraph>::Multiple_ConnectedComponent(*mGraph,allV,aSG_EdM);
-
-    MMVII_INTERNAL_ASSERT_tiny(aListCC.size()==2," Split: Bad CC");
-
-    // parse the 2 CC 
-    int aKTree=0;
-    for (const auto & aVerticesCC : aListCC)
-    {
-        std::vector<tEdge*>  aEdgesCC;
-        cVG_OpBool<TGraph>::EdgesInterVertices(aEdgesCC,mEdges,aVerticesCC);
-        MMVII_INTERNAL_ASSERT_tiny(aVerticesCC.size()==(aEdgesCC.size()+1)," Split: edge not in tree");
-        if (aEdgesCC.empty())
-        {
-           tVertex * aV0 =  aVerticesCC.at(0);
-           a2T.at(aKTree) = tTree(aV0->Graph(),aV0);
-        }
-        else
-        {
-           a2T.at(aKTree) = tTree(aEdgesCC);
-        }
-        aKTree++;
-    }
-}
-*/
-
-
 
 /**  \file  : BenchGraph.cpp
 

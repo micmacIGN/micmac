@@ -4,6 +4,7 @@
 #include "MMVII_Tpl_GraphAlgo_SPCC.h"
 #include "MMVII_Tpl_GraphStruct.h"
 #include "MMVII_Tpl_GraphAlgo_EnumCycles.h"
+#include "MMVII_Interpolators.h"
 
 namespace MMVII
 {
@@ -65,6 +66,9 @@ namespace MMVII
                 Ori_2->1 * Ori_3->2 * Ori_4->3 ...
 */
 
+/** Function used in simulation, create a random elemen of group with distance to identity in
+the interval [aV0,aV1] */
+
 template <class TGroup>  
     TGroup  RandomGroupInInterval(tREAL8 aV0,tREAL8 aV1)
 {
@@ -72,17 +76,35 @@ template <class TGroup>
    while (aRes.Dist(TGroup::Identity()) <= aV0)
         aRes = TGroup::RandomSmallElem(aV1);
 
-
    return aRes;
 }
 
+/**   cGroupGraph are a specialisation of cVG_Graph. In a group graph we want to put :
 
-template <class TGroup,class TAO>  class cGGA_EdgeOr;    //  Group-Grap Edge-Oriented Attribute
-template <class TGroup,class TAS,class TAH>  class cGGA_EdgeSym;   //  Group-Grap Edge-Symetric Attribute
-template <class TGroup,class TAH>  class cGG_1HypInit;   //  1-element of group graph
-template <class TGroup,class TAH>  class cGG_1HypComputed;   //  1-element of group graph
-template <class TGroup,class TAV>  class cGGA_Vertex;    //  Group-Graph Vertex Attribute
-template <class TGroup,class TAV,class TAO,class TAS,class TAH>  class cGroupGraph;    //  Group Graph
+     - the data required by the group computation (essentially list of hypothesis of group in the edges)
+     - any supplementary data that the user may need to add  to work after some standar computation has
+       been made
+
+     Considering for example the edge attributes of a cGroupGraph, the symetric part is represented by class 
+    "cGGA_EdgeSym" . This class contains :
+           - the user specific data of the edge
+           - the different hypothesis of group, but each hypothesis can contains also user specific data 
+             (as some info on the triplet it belongs to)
+      So the cGGA_EdgeSym is templetized by 3 class :
+            - the group 
+            - the  used specific attribute of the edge
+            - the user specifici attribute of the hypothesis
+      When manipulating an edge E  of a cGGA_EdgeOr, note that :
+            - E.AttrS()  return the cGGA_EdgeSym
+            - E.AttrS().Attr()  will contain the users specific attribute ....
+*/
+
+template <class TGroup,class TAO>  class cGGA_EdgeOr;    ///  Group-Grap Edge-Oriented Attribute
+template <class TGroup,class TAS,class TAH>  class cGGA_EdgeSym;   ///  Group-Grap Edge-Symetric Attribute
+template <class TGroup,class TAH>  class cGG_1HypInit;       ///  1-element of group graph
+template <class TGroup,class TAH>  class cGG_1HypClustered;   ///  1-element of group graph
+template <class TGroup,class TAV>  class cGGA_Vertex;        ///  Group-Graph Vertex Attribute
+template <class TGroup,class TAV,class TAO,class TAS,class TAH>  class cGroupGraph;    ///  Group Graph
 
 
 /*----------------------------------------- cGGA_EdgeOr --------------------------------------------------*/
@@ -118,27 +140,29 @@ template <class TGroup,class TAH>  class cGG_1HypInit
       bool IsMarked() const {return mNumCluster != -1;}
 
 
-      tREAL8   mW0;        // initial weight 
-      int      mNumCluster;    // used as temporary mark in clustering
-      TGroup   mVal;       // Value of the map/group
-      tREAL8   mNoiseSim;  // Noise used in/if simulation
-      TAH      mAttr;
+      tREAL8   mW0;         /// initial weight , for example, could take into account the number of point 
+      int      mNumCluster; /// the identifier of the cluster
+      TGroup   mVal;        /// Value of the map/group
+      tREAL8   mNoiseSim;   /// Noise used in/if simulation
+      TAH      mAttr;       /// User's specific attribute
 };
 
-/*----------------------------------------- cGG_1HypComputed -----------------------------------------------*/
+/*----------------------------------------- cGG_1HypClustered -----------------------------------------------*/
 
-/**  Store a "computed" hypothesis, this is an initial hypothesis + some additionnal info*/
+/**  Store a "clustered" hypothesis, this is an initial hypothesis + some additionnal info.
+   The clustering of hypothesis is used to reduce the combinatory exlposion of all cycles.
+*/
  
-template <class TGroup,class TAH>  class cGG_1HypComputed : public cGG_1HypInit<TGroup,TAH>
+template <class TGroup,class TAH>  class cGG_1HypClustered : public cGG_1HypInit<TGroup,TAH>
 {
     public  :
-      cGG_1HypComputed(const TGroup & aG,tREAL8 aW) : 
+      cGG_1HypClustered(const TGroup & aG,tREAL8 aW) : 
            cGG_1HypInit<TGroup,TAH> (aG,aW,TAH()),
            mWeight              (aW) // weight = initial weight
       {}
 
-      tREAL8   mWeight;
-      cWeightAv<tREAL8,tREAL8> mWeightedDist;
+      tREAL8                      mWeight;       /// weight of the cluster
+      cWeightAv<tREAL8,tREAL8>    mWeightedDist; /// weighted dist on cycle-closing
 };
 
 /*----------------------------------------- cGGA_EdgeSym -----------------------------------------------*/
@@ -148,27 +172,28 @@ template <class TGroup,class TAH>  class cGG_1HypComputed : public cGG_1HypInit<
 template <class TGroup,class TAS,class TAH>  class cGGA_EdgeSym
 {
      public :
-          typedef cGG_1HypInit<TGroup,TAH>       t1HypInit;
-          typedef cGG_1HypComputed<TGroup,TAH>   t1HypComp;
+          typedef cGG_1HypInit<TGroup,TAH>        t1HypInit;
+          typedef cGG_1HypClustered<TGroup,TAH>   t1HypClust;
 
           cGGA_EdgeSym() :  mBestH (nullptr) {}
 
-          std::vector<t1HypComp> &  ValuesComp() {return mValuesComp;} ///< Accessor
+          std::vector<t1HypClust> &  ValuesClust() {return mValuesClust;} ///< Accessor
           std::vector<t1HypInit> &  ValuesInit() {return mValuesInit;} ///< Accessor
-          const std::vector<t1HypComp> &  ValuesComp() const {return mValuesComp;} ///< Accessor
+          const std::vector<t1HypClust> &  ValuesClust() const {return mValuesClust;} ///< Accessor
           const std::vector<t1HypInit> &  ValuesInit() const {return mValuesInit;} ///< Accessor
 	  /// Add 1 initial hypothesis 
           t1HypInit & Add1Value(const TGroup& aVal,tREAL8 aW,const  TAH &);
 	  /// Do the clustering to reduce the number of initial hypothesis
           void DoCluster(int aNbMax,tREAL8 aDist);
 
-          void SetBestH(t1HypComp * aBestH) {mBestH=aBestH;}
-          const t1HypComp * BestH() const {return mBestH;}
+          void SetBestH(t1HypClust * aBestH) {mBestH=aBestH;} ///< fix the best hypothesis
+          const t1HypClust * BestH() const {return mBestH;}   ///< accessor
          
 
           /// return if possible the clustered hypotheseis associated 
-          const t1HypComp *  HypCompOfH0(const t1HypInit&,bool SVP=false) const;
+          const t1HypClust *  HypCompOfH0(const t1HypInit&,bool SVP=false) const;
 
+          /// extract the hypothesis complying with a certain condition
           template <class FoncTest>  const t1HypInit *  HypOfNumSet(const FoncTest & aFTest,bool SVP=false) const
           {
              for (const auto & aVH: mValuesInit)
@@ -178,6 +203,9 @@ template <class TGroup,class TAS,class TAH>  class cGGA_EdgeSym
              MMVII_INTERNAL_ASSERT_tiny(SVP,"HypOfNumSet cannot find");// litle checj
              return nullptr;
          }
+
+          const TAS & Attr() const {return mAttr;}   ///< Accessor
+          TAS & Attr() {return mAttr;}               ///< Accessor
      private :
 
           /// for a given center return a score (+- weighted count of element not marked closed enough)
@@ -186,9 +214,10 @@ template <class TGroup,class TAS,class TAH>  class cGGA_EdgeSym
           ///  Add the next best center of the cluster, return true if added something
           bool  GetNextBestCCluster(tREAL8 aThDist);
 
-          std::vector<t1HypComp>  mValuesComp;  ///
-          std::vector<t1HypInit>  mValuesInit;
-          t1HypComp *             mBestH;
+          std::vector<t1HypInit>   mValuesInit;  /// set of hypotethic group associated , the rough data given by user
+          std::vector<t1HypClust>  mValuesClust; /// cluster of these hypothesis
+          t1HypClust *             mBestH;       /// the best hypothesis, used in miminal spaning (more for simul)
+          TAS                      mAttr;        /// users part
 };
 
 
@@ -205,8 +234,8 @@ template <class TGroup,class TAV>  class cGGA_Vertex
            TAV & Attr() {return mAttr;}
           
      private :
-          TAV                 mAttr;
-          TGroup              mComputedValue;  // computed value
+          TAV                 mAttr;           ///< User's attribute
+          TGroup              mComputedValue;  ///<  will store estimated value (not used 4 now...)
 };
 
 /*----------------------------------------- cGroupGraph -----------------------------------------------*/
@@ -223,7 +252,7 @@ template <class TGroup,class TAV,class TAO,class TAS,class TAH>
           typedef cGGA_EdgeOr<TGroup,TAO>        tAEOr;
           typedef cGGA_EdgeSym<TGroup,TAS,TAH>   tAESym;
           typedef cGG_1HypInit<TGroup,TAH>       t1HypInit;
-          typedef cGG_1HypComputed<TGroup,TAH>   t1HypComp;
+          typedef cGG_1HypClustered<TGroup,TAH>   t1HypClust;
 
           typedef cVG_Graph<tAVert,tAEOr,tAESym> tGraph;
           typedef typename tGraph::tVertex       tVertex;
@@ -237,7 +266,7 @@ template <class TGroup,class TAV,class TAO,class TAS,class TAH>
 
 
 
-          cGroupGraph(bool ForSimul);
+          cGroupGraph();
 
 	  /// create a vertex with no value
           tVertex &  AddVertex(const TAV&);
@@ -272,9 +301,10 @@ template <class TGroup,class TAV,class TAO,class TAS,class TAH>
                        );
 
                 std::vector<tEdge*>     mVCurPath; // make a local copy of current path
-                std::vector<t1HypComp*> mVCurHyp;  // stack for hypothesis being explored
+                std::vector<t1HypClust*> mVCurHyp;  // stack for hypothesis being explored
           };
 
+          /// Class for computing weight in minimal spaning tree
 	  class  cWeightOnBestH : public tParamWG
 	  {
 		  public :
@@ -284,15 +314,14 @@ template <class TGroup,class TAV,class TAO,class TAS,class TAH>
 		      }
 
 	  };
+          /// Used in bench simul 4 now
           tREAL8 MakeMinSpanTree();
 
     protected :
-           tGraph * mGraph;   // the graph itself
-           bool     mClusterDone; // have we already done the clustering
-           // std::map<std::string,tVertex*>  mMapV;  // Map Name->Vertex , for user can access by name
-           int                             mNbVHist;
-           bool                            mForSimul;
-           int                             mCptC;
+           tGraph * mGraph;       ///< the graph itself
+           bool     mClusterDone; ///< have we already done the clustering
+           int      mNbVHist;     ///< Number of value for normalization- histogram
+           int      mCptC;        ///< Count the iteration of cycles, used for output
 };
 
 
@@ -320,14 +349,14 @@ template <class TGroup,class TAS,class TAH>
 
 
 template <class TGroup,class TAS,class TAH> 
-    const cGG_1HypComputed<TGroup,TAH> *  cGGA_EdgeSym<TGroup,TAS,TAH>::HypCompOfH0(const t1HypInit&aH0,bool SVP) const
+    const cGG_1HypClustered<TGroup,TAH> *  cGGA_EdgeSym<TGroup,TAS,TAH>::HypCompOfH0(const t1HypInit&aH0,bool SVP) const
 {
    if (!aH0.IsMarked())
    {
        MMVII_INTERNAL_ASSERT_tiny(SVP,"HypCompOfH0 cannot find");// litle checj
        return nullptr;
    }
-   return  & mValuesComp.at(aH0.mNumCluster);
+   return  & mValuesClust.at(aH0.mNumCluster);
 }
 
 template <class TGroup,class TAS,class TAH> bool  cGGA_EdgeSym<TGroup,TAS,TAH>::GetNextBestCCluster(tREAL8 aThrDist)
@@ -377,18 +406,18 @@ template <class TGroup,class TAS,class TAH> bool  cGGA_EdgeSym<TGroup,TAS,TAH>::
         {
             if ((! aVal.IsMarked())  && ( aCenterClust.Dist(aVal.mVal)<aThrDist))
             {
-                  aVal.mNumCluster = mValuesComp.size();
+                  aVal.mNumCluster = mValuesClust.size();
                   aSumNoise += aVal.mNoiseSim * aVal.mW0;
 		  aSumW += aVal.mW0;
             }
         }
      }
 
-     // Ok we got a new center, add it in "mValuesComp"
+     // Ok we got a new center, add it in "mValuesClust"
      if (aSumW!=0)
      {
-          mValuesComp.push_back(t1HypComp(aCenterClust,aSumW));
-          mValuesComp.back().mNoiseSim = aSumNoise/aSumW;
+          mValuesClust.push_back(t1HypClust(aCenterClust,aSumW));
+          mValuesClust.back().mNoiseSim = aSumNoise/aSumW;
           return true;
      }
 
@@ -397,14 +426,14 @@ template <class TGroup,class TAS,class TAH> bool  cGGA_EdgeSym<TGroup,TAS,TAH>::
 
 template <class TGroup,class TAS,class TAH> void cGGA_EdgeSym<TGroup,TAS,TAH>::DoCluster(int aNbMax,tREAL8 aDist)
 {
-    mValuesComp.clear();
+    mValuesClust.clear();
     if (aDist<=0)
     {
         // In this case make a cluster of all points
         for (auto & aH0 : mValuesInit)
         {
-           aH0.mNumCluster = mValuesComp.size();
-           mValuesComp.push_back(t1HypComp(aH0.mVal,1.0));
+           aH0.mNumCluster = mValuesClust.size();
+           mValuesClust.push_back(t1HypClust(aH0.mVal,1.0));
         }
     }
     else
@@ -477,7 +506,7 @@ template  <class TGroup,class TAV,class TAO,class TAS,class TAH>
 
     // if not finish, parse all the hypothesis of current edge
     tEdge & anE = * mVCurPath.at(aDepth);
-    for (auto & anElem : anE.AttrSym().ValuesComp())
+    for (auto & anElem : anE.AttrSym().ValuesClust())
     {
         mVCurHyp.push_back(&anElem);  // push in the stack of hypothesie
         // Ori_2->1 * Ori_3->2 * Ori_4->3 ...
@@ -494,11 +523,10 @@ template  <class TGroup,class TAV,class TAO,class TAS,class TAH>
      /* ********************************************************* */
 
 template <class TGroup,class TAV,class TAO,class TAS,class TAH>  
-    cGroupGraph<TGroup,TAV,TAO,TAS,TAH>::cGroupGraph(bool forSimul) :
+    cGroupGraph<TGroup,TAV,TAO,TAS,TAH>::cGroupGraph() :
         mGraph        (this),
         mClusterDone  (false),
         mNbVHist      (1000),
-        mForSimul     (forSimul),
         mCptC         (0)
 {
 }
@@ -508,10 +536,7 @@ template <class TGroup,class TAV,class TAO,class TAS,class TAH>
     typename cGroupGraph<TGroup,TAV,TAO,TAS,TAH>::tVertex &
         cGroupGraph<TGroup,TAV,TAO,TAS,TAH>::AddVertex(const TAV& aTAV)
 {
-    // 1-check dont exist, 2-create, 3-memorize
-    // MMVII_INTERNAL_ASSERT_tiny(!MapBoolFind(mMapV,aName),"cGroupGraph, name alrady exist :" +aName);
     tVertex * aV = mGraph->NewVertex(tAVert(aTAV));
-    // mMapV[aName] = aV;
     return *aV;
 }
 
@@ -549,7 +574,7 @@ template <class TGroup,class TAV,class TAO,class TAS,class TAH>
 
    // Reset the weights
    for (auto & aPtrE :  mGraph->AllEdges_DirInit ())
-       for (auto & aH : aPtrE->AttrSym().ValuesComp())
+       for (auto & aH : aPtrE->AttrSym().ValuesClust())
            aH.mWeightedDist.Reset();
 
 
@@ -563,7 +588,7 @@ template <class TGroup,class TAV,class TAO,class TAS,class TAH>
    cHistoCumul<tREAL8,tREAL8> aHisto(TGroup::MaxDist()*mNbVHist+1);
    for (const auto & aPtrE : mGraph->AllEdges_DirInit ())
    {
-       for (const auto & anH : aPtrE->AttrSym().ValuesComp())
+       for (const auto & anH : aPtrE->AttrSym().ValuesClust())
        {
 // StdOut() << " DDDD=" << anH.mWeightedDist.Average() << "\n";
            int aInd = round_ni(anH.mWeightedDist.Average()*mNbVHist);
@@ -578,8 +603,8 @@ template <class TGroup,class TAV,class TAO,class TAS,class TAH>
 
    for (const auto & aPtrE : mGraph->AllEdges_DirInit ())
    {
-       cWhichMin<t1HypComp*,tREAL8> aWHypMin;
-       for (auto & anH : aPtrE->AttrSym().ValuesComp())
+       cWhichMin<t1HypClust*,tREAL8> aWHypMin;
+       for (auto & anH : aPtrE->AttrSym().ValuesClust())
        {
            tREAL8 aWDAvg = anH.mWeightedDist.Average();
            if (Show)  // Acumulate histogram 2D

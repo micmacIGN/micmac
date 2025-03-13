@@ -84,7 +84,7 @@ template <class TGroup>
     ) :
        mSz                (aSz),
        mBox               (cPt2di(0,0),aSz),
-       mGG                (true),
+       mGG                (),
        mGridVals          (mSz.y(),std::vector<cBG3V>(mSz.x(),cBG3V())),
        mNbMinE            (aNbMinE),
        mNbMaxE            (aNbMaxE),

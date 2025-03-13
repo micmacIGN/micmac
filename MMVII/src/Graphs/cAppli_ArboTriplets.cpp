@@ -1,3 +1,5 @@
+#include "MMVII_GraphTriplets.h"
+
 #include "MMVII_nums.h"
 #include "MMVII_util_tpl.h"
 #include "MMVII_Geom3D.h"
@@ -10,115 +12,22 @@
 #include "MMVII_Tpl_GraphAlgo_Group.h"
 
 
-
 namespace MMVII
 {
 
-/* ********************************************************* */
-/*                                                           */
-/*                     Graph of poses                        */
-/*                                                           */
-/* ********************************************************* */
 
-
-/**
-*/
-
-
-class cMAT_1Hyp
-{
-   public :
-        explicit cMAT_1Hyp(int aNumSet) : mNumSet (aNumSet) {}
-        cMAT_1Hyp() : mNumSet(-1) {}
-        int  mNumSet;
-};
-
-class cMAT_Vertex
-{
-    public :
-         cMAT_Vertex()           {}
-         cWhichMin<int,tREAL8>   mWMinTri;
-};
-
-
-typedef cGroupGraph<tRotR,cMAT_Vertex,cEmptyClass,cEmptyClass,cMAT_1Hyp>       tGrPoses;
-
-/* ********************************************************* */
-/*                                                           */
-/*                     cAppli_ArboTriplets                   */
-/*                                                           */
-/* ********************************************************* */
-
-typedef typename tGrPoses::tAttrS                           tAS_GGRR;
-typedef typename tGrPoses::tVertex                          tV_GGRR;
-typedef typename tGrPoses::tEdge                            tE_GGRR;
-typedef tE_GGRR*                                         tEdgePtr;
-typedef std::array<tE_GGRR*,3>                           t3E_GGRR;
-typedef std::array<tV_GGRR*,3>                           t3V_GGRR;
-
-class cAtOri_3GGRR
-{
-   public :
-        cAtOri_3GGRR(size_t aKE) : mKE(aKE) {}
-        size_t mKE;
-   private :
-};
- 
-class cAtSym_3GGRR
-{
-   public :
-      cAtSym_3GGRR(tREAL8 aCost) : mCost2Tri(aCost) {}
-      tREAL8 mCost2Tri;
-   private :
-};
-
-
-class cTri_GGRR
-{
-   public :
-        cTri_GGRR (const cTriplet* aT0,int aKT) :
-            mT0         (aT0),
-            mKT         (aKT),
-            mOk         (false),
-            mCostIntr   (1e10) 
-        {
-        }
-        size_t GetIndexVertex(const tV_GGRR* aV) const
-        {
-             for (size_t aKV=0 ; aKV<3 ; aKV++)
-                 if (m3V.at(aKV) == aV)
-                    return aKV;
-             MMVII_INTERNAL_ERROR("cTri_GGRR::GetIndexVertex");
-             return 3;
-        }
-
-        const cTriplet*  mT0;
-        int              mKT;
-        t3E_GGRR         mCnxE;      // the 3 edges 
-        t3V_GGRR         m3V;        // the 3 vertices 
-        bool             mOk;        // for ex, not OK if on of it edges was not clustered
-        tREAL8           mCostIntr;  // intrisiq cost
-        std::vector<int> mVPoseMin;  // List of pose consider this a best triplet
-};
-
-typedef cVG_Graph<cTri_GGRR, cAtOri_3GGRR,cAtSym_3GGRR> tGrTriplet;
-typedef cVG_Tree<tGrTriplet>   tTree;
-
-typedef cTri_GGRR *            t3CPtr;
-typedef tGrTriplet::tEdge      tEdge3;
-typedef tGrTriplet::tVertex    tVertex3;
 
 class  cNodeArborTriplets : public cMemCheck
 {
     public :
         typedef cNodeArborTriplets * tNodePtr;
 
-        cNodeArborTriplets(tREAL8 aWBalance,const tTree &,int aLevel);
+        cNodeArborTriplets(tREAL8 aWBalance,const t3G3_Tree &,int aLevel);
         ~cNodeArborTriplets();
        
 
     private :
-        tTree     mTree;
+        t3G3_Tree     mTree;
         tNodePtr  mChildren[2];
 };
 
@@ -143,7 +52,7 @@ class cMakeArboTriplet
          void MakeGraphTriC();
 
          /// For each edge, compute the lowest cost triplet it belongs
-         void ComputeMinTri();
+         void ComputeArbor();
 
          /// Activate the simulation mode
          void SetRand(tREAL8 aLevelRand);
@@ -151,25 +60,83 @@ class cMakeArboTriplet
 
      private :
 
-         int KSom(t3CPtr aTri,int aK123) const;
+         int KSom(c3G3_AttrV* aTri,int aK123) const;
 
 
          const cTripletSet  &    mSet3;
          bool                    mDoCheck;
          t2MapStrInt             mMapStrI;
-         tGrPoses                mGGPoses;
-         tGrTriplet              mGTriC;
+         t3GOP                   mGGPoses;
+         t3G3_Graph              mGTriC;
          bool                    mDoRand;
          tREAL8                  mLevelRand;
          cNodeArborTriplets *    mArbor;
          tREAL8                  mWBalance;
 };
 
+/* ********************************************************* */
+/*                                                           */
+/*                     cNodeArborTriplets                    */
+/*                                                           */
+/* ********************************************************* */
+
+cNodeArborTriplets::cNodeArborTriplets( tREAL8 aWBalance,const t3G3_Tree & aTree,int aLevel) :
+   mTree   (aTree),
+   mChildren  {0,0}
+{
+
+   for (int aK=0 ; aK< aLevel ; aK++)
+       StdOut() << " |" ;
+   for (const auto & aV : mTree.Vertices()) 
+       StdOut()  << " " <<  aV->Attr().mKT;
+   StdOut() << "\n";
+
+   if (aTree.Edges().size() >1)
+   {
+      cWhichMax<t3G3_Edge*,tREAL8> aWME;
+      for (const auto & anE : aTree.Edges())
+      {
+          std::array<t3G3_Tree,2>  a2T;
+          aTree.Split(a2T,anE);
+          int aN1 = a2T[0].Edges().size();
+          int aN2 = a2T[1].Edges().size();
+          tREAL8 aRatio =  std::min(aN1,aN2) / (1.0+std::max(aN1,aN2));
+          tREAL8  aWeight = aWBalance * aRatio + (1-aWBalance) ;
+          aWME.Add(anE,anE->AttrSym().mCost2Tri * aWeight);
+          //aWME.Add(anE, aRatio);
+      }
+
+      std::array<t3G3_Tree,2>  a2T;
+      aTree.Split(a2T,aWME.IndexExtre());
+      for (size_t aKT=0 ; aKT<a2T.size() ; aKT++)
+      {
+          mChildren[aKT] = new cNodeArborTriplets(aWBalance,a2T.at(aKT),aLevel+1);
+      }
+   }
+}
+
+
+
+cNodeArborTriplets:: ~cNodeArborTriplets()
+{
+    delete mChildren[0];
+    delete mChildren[1];
+}
+
+
+
+
+/* ********************************************************* */
+/*                                                           */
+/*                     cAppli_ArboTriplets                   */
+/*                                                           */
+/* ********************************************************* */
+
 
 cMakeArboTriplet::cMakeArboTriplet(const cTripletSet & aSet3,bool doCheck,tREAL8 aWBalance) :
    mSet3        (aSet3),
    mDoCheck     (doCheck),
-   mGGPoses     (false), // false=> not 4 simul
+   mGGPoses     (), // false=> not 4 simul
    mDoRand      (false),
    mLevelRand   (0.0),
    mArbor       (nullptr),
@@ -195,7 +162,7 @@ void cMakeArboTriplet::MakeGraphPose()
    for (size_t aKT=0; aKT<mSet3.Set().size() ; aKT++)
    {
         const cTriplet & a3 = mSet3.Set().at(aKT);
-        mGTriC.NewVertex(cTri_GGRR(&a3,aKT));
+        mGTriC.NewVertex(c3G3_AttrV(&a3,aKT));
         for (size_t aK3=0 ; aK3<3 ; aK3++)
         {
              mMapStrI.Add(a3.Pose(aK3).Name(),true);
@@ -212,14 +179,14 @@ void cMakeArboTriplet::MakeGraphPose()
    //  Add the vertex corresponding to each poses in Graph-Pose
    for (size_t aKIm=0 ; aKIm<mMapStrI.size() ; aKIm++)
    {
-       mGGPoses.AddVertex(cMAT_Vertex());
+       mGGPoses.AddVertex(c3GOP_AttrV());
    }
 
    //  Parse all the triplet; for each triplet  Add 3 edges of Grap-Pose ;
    //  also memorize the edges in the triplet for each, mCnxE
    for (size_t aKT=0; aKT<mGTriC.NbVertex() ; aKT++)
    {
-        cTri_GGRR & aTriC =   mGTriC.VertexOfNum(aKT).Attr();
+        c3G3_AttrV & aTriC =   mGTriC.VertexOfNum(aKT).Attr();
         const cTriplet & a3 = *(aTriC.mT0);
         // parse the 3 pair of consercutive poses
         for (size_t aK3=0 ; aK3<3 ; aK3++)
@@ -229,8 +196,8 @@ void cMakeArboTriplet::MakeGraphPose()
             const cView&  aView2 = a3.Pose((aK3+1)%3);
             int aI1 =  mMapStrI.Obj2I(aView1.Name());
             int aI2 =  mMapStrI.Obj2I(aView2.Name());
-            tV_GGRR & aV1  = mGGPoses.VertexOfNum(aI1);
-            tV_GGRR & aV2  = mGGPoses.VertexOfNum(aI2);
+            t3GOP_Vertex & aV1  = mGGPoses.VertexOfNum(aI1);
+            t3GOP_Vertex & aV2  = mGGPoses.VertexOfNum(aI2);
 
             aTriC.m3V[aK3] = &aV1;
 
@@ -246,9 +213,9 @@ void cMakeArboTriplet::MakeGraphPose()
             //  Ori_2->1  = Ori_G->1  o Ori_2->G    ( PL2 -> PG -> PL1)
             tRotR aR2to1 = aR1toW.MapInverse() * aR2toW;
 
-            mGGPoses.AddHyp(aV1,aV2,aR2to1,1.0,cMAT_1Hyp(aKT));
+            mGGPoses.AddHyp(aV1,aV2,aR2to1,1.0,c3GOP_1Hyp(aKT));
 
-            tE_GGRR * anE = aV1.EdgeOfSucc(aV2)->EdgeInitOr();
+            t3GOP_Edge * anE = aV1.EdgeOfSucc(aV2)->EdgeInitOr();
             aTriC.mCnxE.at(aK3) = anE;
         }
    }
@@ -266,9 +233,9 @@ void cMakeArboTriplet::DoClustering(int aNbMax,tREAL8 aDistCluster)
    int aNbE = 0;
    for (const auto & anE : mGGPoses.AllEdges_DirInit())
    {
-      const  tAS_GGRR & anAttr =  anE->AttrSym();
+      const  t3GOP_EdAttS & anAttr =  anE->AttrSym();
       aNbH0 += anAttr.ValuesInit().size();
-      aNbHC += anAttr.ValuesComp().size();
+      aNbHC += anAttr.ValuesClust().size();
       aNbE++;
    }
 
@@ -287,9 +254,9 @@ void cMakeArboTriplet::DoIterCycle(int aNbIter)
       cStdStatRes aStat;
       for (const auto & anE : mGGPoses.AllEdges_DirInit())
       {
-          const  tAS_GGRR & anAttr =  anE->AttrSym();
+          const  t3GOP_EdAttS & anAttr =  anE->AttrSym();
           //StdOut() << "-----------------------------------------------\n";
-          for (const auto & aH : anAttr.ValuesComp())
+          for (const auto & aH : anAttr.ValuesClust())
           {
               aStat.Add(aH.mWeightedDist.Average() );
           }
@@ -369,67 +336,23 @@ void cMakeArboTriplet::MakeGraphTriC()
                      mGTriC.AddEdge
                      (
                           aVert1,aVert2,
-                          cAtOri_3GGRR(aKE1),cAtOri_3GGRR(aKE2),
-                          cAtSym_3GGRR(aCost12)
+                          c3G3_AttrOriented(aKE1),c3G3_AttrOriented(aKE2),
+                          c3G3_AttrSym(aCost12)
                      );
                   }
                }
            }
        }
    }
-   auto  aListCC = cAlgoCC<tGrTriplet>::All_ConnectedComponent(mGTriC,cAlgo_ParamVG<tGrTriplet>());
+   auto  aListCC = cAlgoCC<t3G3_Graph>::All_ConnectedComponent(mGTriC,cAlgo_ParamVG<t3G3_Graph>());
    StdOut() << "Number of connected compon Triplet-Graph= " << aListCC.size() << "\n";
    // to see later, we can probably analyse CC by CC, but it would be more complicated (already enough complexity ...)
    MMVII_INTERNAL_ASSERT_tiny(aListCC.size(),"non connected triplet-graph");
 }
 
 
-cNodeArborTriplets::cNodeArborTriplets( tREAL8 aWBalance,const tTree & aTree,int aLevel) :
-   mTree   (aTree),
-   mChildren  {0,0}
-{
 
-   for (int aK=0 ; aK< aLevel ; aK++)
-       StdOut() << " |" ;
-   for (const auto & aV : mTree.Vertices()) 
-       StdOut()  << " " <<  aV->Attr().mKT;
-   StdOut() << "\n";
-
-   if (aTree.Edges().size() >1)
-   {
-      cWhichMax<tEdge3*,tREAL8> aWME;
-      for (const auto & anE : aTree.Edges())
-      {
-          std::array<tTree,2>  a2T;
-          aTree.Split(a2T,anE);
-          int aN1 = a2T[0].Edges().size();
-          int aN2 = a2T[1].Edges().size();
-          tREAL8 aRatio =  std::min(aN1,aN2) / (1.0+std::max(aN1,aN2));
-          tREAL8  aWeight = aWBalance * aRatio + (1-aWBalance) ;
-          aWME.Add(anE,anE->AttrSym().mCost2Tri * aWeight);
-          //aWME.Add(anE, aRatio);
-      }
-
-      std::array<tTree,2>  a2T;
-      aTree.Split(a2T,aWME.IndexExtre());
-      for (size_t aKT=0 ; aKT<a2T.size() ; aKT++)
-      {
-          mChildren[aKT] = new cNodeArborTriplets(aWBalance,a2T.at(aKT),aLevel+1);
-      }
-   }
-}
-
-
-
-cNodeArborTriplets:: ~cNodeArborTriplets()
-{
-    delete mChildren[0];
-    delete mChildren[1];
-}
-
-
-
-void cMakeArboTriplet::ComputeMinTri()
+void cMakeArboTriplet::ComputeArbor()
 {
 
    for (size_t aKTri=0; aKTri<mGTriC.NbVertex() ; aKTri++)
@@ -440,7 +363,7 @@ void cMakeArboTriplet::ComputeMinTri()
            aAttrTrip.m3V.at(aKV)->Attr().Attr().mWMinTri.Add(aKTri,aCost);
    }
    int aNbTripInit = 0;
-   std::vector<tVertex3*> aVectTriMin;
+   std::vector<t3G3_Vertex*> aVectTriMin;
    for (size_t aKPose=0 ; aKPose<mGGPoses.NbVertex() ; aKPose++)
    {
        int aKTriplet = mGGPoses.VertexOfNum(aKPose).Attr().Attr().mWMinTri.IndexExtre();
@@ -459,8 +382,8 @@ void cMakeArboTriplet::ComputeMinTri()
 
    auto aWeighting = Tpl_WeithingSubGr(&mGTriC,[](const auto & anE) {return anE.AttrSym().mCost2Tri;});
 
-   cAlgoSP<tGrTriplet>::tForest  aForest(mGTriC);
-   cAlgoSP<tGrTriplet>  anAlgo;
+   cAlgoSP<t3G3_Graph>::tForest  aForest(mGTriC);
+   cAlgoSP<t3G3_Graph>  anAlgo;
    anAlgo.MinimumSpanningForest(aForest,mGTriC,mGTriC.AllVertices(),aWeighting);
    
    // dont handle 4 now
@@ -470,35 +393,35 @@ void cMakeArboTriplet::ComputeMinTri()
 
 
    
-   cSubGraphOfEdges<tGrTriplet>  aSubGrTree(mGTriC,aGlobalTree.Edges());
-   cSubGraphOfVertices<tGrTriplet>  aSubGrAnchor(mGTriC,aVectTriMin); 
+   cSubGraphOfEdges<t3G3_Graph>  aSubGrTree(mGTriC,aGlobalTree.Edges());
+   cSubGraphOfVertices<t3G3_Graph>  aSubGrAnchor(mGTriC,aVectTriMin); 
 
 
-   cAlgoPruningExtre<tGrTriplet> aAlgoSupExtr(mGTriC,aSubGrTree,aSubGrAnchor);
+   cAlgoPruningExtre<t3G3_Graph> aAlgoSupExtr(mGTriC,aSubGrTree,aSubGrAnchor);
    StdOut() <<  "NB EXTR SUPR=" << aAlgoSupExtr.Extrem().size() << "\n";
 
-   std::vector<tEdge3*>  aSetEdgeKern;
-   cVG_OpBool<tGrTriplet>::EdgesMinusVertices(aSetEdgeKern,aGlobalTree.Edges(),aAlgoSupExtr.Extrem());
+   std::vector<t3G3_Edge*>  aSetEdgeKern;
+   cVG_OpBool<t3G3_Graph>::EdgesMinusVertices(aSetEdgeKern,aGlobalTree.Edges(),aAlgoSupExtr.Extrem());
 
 
    StdOut() <<  "NB KERNEL=" << aSetEdgeKern.size() << "\n";
 
    if (mDoCheck)
    {
-        cSubGraphOfEdges<tGrTriplet>  aSubGrKernel(mGTriC,aSetEdgeKern);
+        cSubGraphOfEdges<t3G3_Graph>  aSubGrKernel(mGTriC,aSetEdgeKern);
         // [1]  Check that all the triplet minimal  are belonging to the connection stuff
         for (const auto & aTriC : aVectTriMin)
         {
             MMVII_INTERNAL_ASSERT_always(aSubGrKernel.InsideVertex(*aTriC),"Kernel doesnot contain all  anchors");
         }
         // [2]  Check that aSetEdgeKern is a tree ...
-        std::list<std::vector<tVertex3 *>>  allCC =  cAlgoCC<tGrTriplet>::All_ConnectedComponent(mGTriC,aSubGrKernel);
+        std::list<std::vector<t3G3_Vertex *>>  allCC =  cAlgoCC<t3G3_Graph>::All_ConnectedComponent(mGTriC,aSubGrKernel);
         MMVII_INTERNAL_ASSERT_always(allCC.size()==1,"Kernel is not connected");
-        const std::vector<tVertex3 *>& aCC0 =  *(allCC.begin());
+        const std::vector<t3G3_Vertex *>& aCC0 =  *(allCC.begin());
         MMVII_INTERNAL_ASSERT_always(aCC0.size()==(aSetEdgeKern.size()+1),"Kernel is not tree");
 
    }
-   tTree  aTreeKernel(aSetEdgeKern);
+   t3G3_Tree  aTreeKernel(aSetEdgeKern);
    mArbor = new cNodeArborTriplets(mWBalance,aTreeKernel,0);
 }
 
@@ -506,7 +429,7 @@ void cMakeArboTriplet::ComputeMinTri()
 
 
 
-int cMakeArboTriplet::KSom(t3CPtr aTriC,int aK123) const
+int cMakeArboTriplet::KSom(c3G3_AttrV* aTriC,int aK123) const
 {
    return mMapStrI.Obj2I(aTriC->mT0->Pose(aK123).Name());
 }
@@ -569,12 +492,11 @@ int cAppli_ArboTriplets::Exe()
         aMk3.SetRand(mLevelRand);
 
      aMk3.MakeGraphPose();
-
      aMk3.DoClustering(mNbMaxClust,mDistClust);
      aMk3.DoIterCycle(mNbIterCycle);
      aMk3.DoTripletWeighting();
      aMk3.MakeGraphTriC();
-     aMk3.ComputeMinTri();
+     aMk3.ComputeArbor();
 
      delete a3Set;
      return EXIT_SUCCESS;
@@ -597,57 +519,4 @@ cSpecMMVII_Appli  TheSpec_ArboTriplet
 );
 }; //  namespace MMVII
 
-/*
-class cGlobalArborBin;
-class cNodeArbor
-{
-    public :
-      friend class cGlobalArborBin;
-      static constexpr int  NoNode = -1;
-    private :
-       void Recurs_GetListValues(std::vector<int>&,const std::vector<cNodeArbor> &) const;
-
-       cNodeArbor(int aNum,int aValue);
-
-       int                mNum;
-       int                mValue;
-       int                mAsc;   // mother/father: non gendered name ;-)
-       int                mDesc1;  // son/daugher: non gendered name ;-)
-       int                mDesc2;  // son/daugher: non gendered name ;-)
-};
-
-cNodeArbor::cNodeArbor(int aNum,int aValue) :
-   mNum    (aNum),
-   mValue  (aValue),
-   mAsc    (NoNode),
-   mDesc1  (NoNode),
-   mDesc2  (NoNode)
-{
-}
-
-void cNodeArbor::Recurs_GetListValues(std::vector<int>&,const std::vector<cNodeArbor> &) const;
-{
-   aResult.push_back(mValue);
-   if (mDesc1!=NoNode)
-}
-
-class  cGlobalArborBin
-{
-    public :
-        cNodeArbor  NewTerminalNode(int aVal);
-        const std::vector<cNodeArbor> & Nodes() const {return mNodes;}
-
-        void GetListValues(std::vector<int>&) const;
-        std::vector<int>  GetListValues() const;
-    private :
-        std::vector<cNodeArbor>  mNodes;
-};
-
-cNodeArbor cGlobalArborBin::NewTerminalNode(int aVal)
-{
-    mNodes.push_back(cNodeArbor(mNodes.size(),aVal));
-
-    return mNodes.back();
-}
-*/
 
