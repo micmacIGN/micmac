@@ -3,7 +3,7 @@
 #include "GlExtensions.h"
 
 #ifdef USE_MIPMAP_HANDLER
-	#include "StdAfx.h"
+#include "StdAfx.h"
 #endif
 
 void setStyleSheet(QApplication &app)
@@ -21,19 +21,19 @@ void setStyleSheet(QApplication &app)
 }
 
 SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
-        QMainWindow(parent),
-        _ui(new Ui::SaisieQtWindow),
-        _Engine(new cEngine),
-        _ProgressDialog(NULL),
-        _layout_GLwidgets(new QGridLayout),
-        _zoomLayout(new QGridLayout),
-        _params(new cParameters),
-        _appMode(mode),
-        _bSaved(false),
-        _devIOCamera(NULL),
-        _git_revision("Unknown"),
-        _banniere("No comment"),
-        _workBench(NULL)
+    QMainWindow(parent),
+    _ui(new Ui::SaisieQtWindow),
+    _Engine(new cEngine),
+    _ProgressDialog(NULL),
+    _layout_GLwidgets(new QGridLayout),
+    _zoomLayout(new QGridLayout),
+    _params(new cParameters),
+    _appMode(mode),
+    _bSaved(false),
+    _devIOCamera(NULL),
+    _git_revision("Unknown"),
+    _banniere("No comment"),
+    _workBench(NULL)
 {
     /*#ifdef ELISE_Darwin
         setWindowFlags(Qt::WindowStaysOnTopHint);
@@ -47,10 +47,10 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 
     init(_params, _appMode > MASK3D);
 
-	#ifdef USE_MIPMAP_HANDLER
-		for (int iWidget = 0; iWidget < nbWidgets(); iWidget++)
-			getWidget(iWidget)->setParent(this);
-	#endif
+#ifdef USE_MIPMAP_HANDLER
+    for (int iWidget = 0; iWidget < nbWidgets(); iWidget++)
+        getWidget(iWidget)->setParent(this);
+#endif
 
     setUI();
 
@@ -77,28 +77,28 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 
     tableView_PG()->setContextMenuPolicy(Qt::CustomContextMenu);
     tableView_Images()->setContextMenuPolicy(Qt::CustomContextMenu);
-//    tableView_Objects()->setContextMenuPolicy(Qt::CustomContextMenu);
+    //    tableView_Objects()->setContextMenuPolicy(Qt::CustomContextMenu);
 
     tableView_PG()->setMouseTracking(true);
     tableView_Objects()->setMouseTracking(true);
 
     _helpDialog = new cHelpDlg(QApplication::applicationName() + tr(" shortcuts"), this);
 
-	#ifdef __QT_5_SHORTCUT_PATCH
-		//~ shortcuts do not work under linux (bug or architecture pb)
-		addAction(_ui->menuSelection->menuAction());
-		addAction(_ui->menuFile->menuAction());
-		addAction(_ui->menuView->menuAction());
-		addAction(_ui->menuStandard_views->menuAction());
-		addAction(_ui->menuZoom->menuAction());
-		addAction(_ui->menuHelp->menuAction());
-		addAction(_ui->menuTools->menuAction());
-		addAction(_ui->menuWindows->menuAction());
+#ifdef __QT_5_SHORTCUT_PATCH
+        //~ shortcuts do not work under linux (bug or architecture pb)
+    addAction(_ui->menuSelection->menuAction());
+    addAction(_ui->menuFile->menuAction());
+    addAction(_ui->menuView->menuAction());
+    addAction(_ui->menuStandard_views->menuAction());
+    addAction(_ui->menuZoom->menuAction());
+    addAction(_ui->menuHelp->menuAction());
+    addAction(_ui->menuTools->menuAction());
+    addAction(_ui->menuWindows->menuAction());
 
-		// some shortcuts names do not appear
-	#endif
+    // some shortcuts names do not appear
+#endif
 
-	CHECK_GL_ERROR("SaisieQtWindow::SaisieQtWindow");
+    CHECK_GL_ERROR("SaisieQtWindow::SaisieQtWindow");
 }
 
 SaisieQtWindow::~SaisieQtWindow()
@@ -180,46 +180,42 @@ QString SaisieQtWindow::getPostFix()
 }
 
 ProgressDialogUpdateSignaler::ProgressDialogUpdateSignaler(QProgressDialog &aProgressDialog):
-	_progressDialog(aProgressDialog)
+    _progressDialog(aProgressDialog)
 {
 }
 
 void ProgressDialogUpdateSignaler::operator ()()
 {
-	_progressDialog.setValue(_progressDialog.value() + 1);
+    _progressDialog.setValue(_progressDialog.value() + 1);
 }
 
 void SaisieQtWindow::activateLoadImageProgressDialog(int aMin, int aMax)
 {
-	if (_ProgressDialog == NULL)
-	{
-		_ProgressDialog = new QProgressDialog(tr("Loading files"), tr("Stop"), aMin, aMax,this, Qt::ToolTip);
-		_Engine->setUpdateSignaler(new ProgressDialogUpdateSignaler(*_ProgressDialog));
-	}
+    if (_ProgressDialog == NULL)
+    {
+        _ProgressDialog = new QProgressDialog(tr("Loading files"), tr("Stop"), aMin, aMax,this, Qt::ToolTip);
+        _Engine->setUpdateSignaler(new ProgressDialogUpdateSignaler(*_ProgressDialog));
+    }
 
-	_ProgressDialog->setRange(aMin, aMax);
-	_ProgressDialog->setValue(aMin);
-	_ProgressDialog->setWindowModality(Qt::WindowModal);
-	_ProgressDialog->setCancelButton(NULL);
-	_ProgressDialog->setMinimumDuration(500);
+    _ProgressDialog->setRange(aMin, aMax);
+    _ProgressDialog->setValue(aMin);
+    _ProgressDialog->setWindowModality(Qt::WindowModal);
+    _ProgressDialog->setCancelButton(NULL);
+    _ProgressDialog->setMinimumDuration(500);
 
-	float szFactor = 1.f;
-	if (_params->getFullScreen())
-	{
-		QRect screen = QApplication::desktop()->screenGeometry ( -1 );
+    float szFactor = 1.f;
+    if (_params->getFullScreen())
+    {
+        QRect screen = QApplication::desktop()->screenGeometry ( -1 );
 
-		szFactor = (float) screen.width() / size().width();
-	}
+        szFactor = (float) screen.width() / size().width();
+    }
 
-	int ax = pos().x() + (_ui->frame_GLWidgets->size().width() * szFactor - _ProgressDialog->size().width())/2;
-	int ay = pos().y() + (_ui->frame_GLWidgets->size().height() * szFactor - _ProgressDialog->size().height())/2;
+    int ax = pos().x() + (_ui->frame_GLWidgets->size().width() * szFactor - _ProgressDialog->size().width())/2;
+    int ay = pos().y() + (_ui->frame_GLWidgets->size().height() * szFactor - _ProgressDialog->size().height())/2;
 
     _ProgressDialog->move(ax, ay);
-    #ifdef __APPLE__
-        // _ProgressDialog->exec();
-    #else
-        _ProgressDialog->exec();
-    #endif
+    _ProgressDialog->exec();
 }
 
 void SaisieQtWindow::runProgressDialog(QFuture<void> aFuture, int aMin, int aMax)
@@ -228,7 +224,11 @@ void SaisieQtWindow::runProgressDialog(QFuture<void> aFuture, int aMin, int aMax
     on_actionShow_messages_toggled(false);
 
     //~ _FutureWatcher.setFuture(aFuture);
-	activateLoadImageProgressDialog(aMin, aMax);
+    #ifdef ELISE_Darwin
+        // no progressbar
+    #else
+        activateLoadImageProgressDialog(aMin, aMax);
+    #endif
     aFuture.waitForFinished();
     on_actionShow_messages_toggled(bShowMsgs);
 }
@@ -241,11 +241,11 @@ bool SaisieQtWindow::loadPly(const QStringList& filenames)
 
 bool SaisieQtWindow::loadImages(const QStringList& filenames)
 {
-	#ifdef USE_MIPMAP_HANDLER
-		_Engine->loadImages(filenames);
-	#else
-    	runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadImages, filenames), 0, filenames.size());
-	#endif
+#ifdef USE_MIPMAP_HANDLER
+    _Engine->loadImages(filenames);
+#else
+    runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadImages, filenames), 0, filenames.size());
+#endif
 
     return true;
 }
@@ -260,11 +260,11 @@ bool SaisieQtWindow::loadCameras(const QStringList& filenames)
     cLoader *tmp = _Engine->Loader();
     for (int i=0;i<filenames.size();++i)
     {
-         if (!tmp->loadCamera(filenames[i]))
-         {
-             QMessageBox::critical(this, tr("Error"), tr("Bad file: ") + filenames[i]);
-             return false;
-         }
+        if (!tmp->loadCamera(filenames[i]))
+        {
+            QMessageBox::critical(this, tr("Error"), tr("Bad file: ") + filenames[i]);
+            return false;
+        }
     }
 
     runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadCameras,filenames), 0, filenames.size());
@@ -369,11 +369,11 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
 
                 for (int aK = 0; aK < nbWidgets();++aK)
                 {
-						#ifdef USE_MIPMAP_HANDLER
-							setDataToGLWidget(aK, _Engine->getGLData(aK));
-						#else
-							getWidget(aK)->setGLData(_Engine->getGLData(aK), _ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked(),true,true,_params->eNavigation());
-						#endif
+#ifdef USE_MIPMAP_HANDLER
+                    setDataToGLWidget(aK, _Engine->getGLData(aK));
+#else
+                    getWidget(aK)->setGLData(_Engine->getGLData(aK), _ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked(),true,true,_params->eNavigation());
+#endif
 
                     getWidget(aK)->setParams(_params);
 
@@ -557,19 +557,19 @@ void SaisieQtWindow::on_actionToggleMode_toggled(bool mode)
 
 void SaisieQtWindow::on_actionWorkbench_toggled(bool mode)
 {
-   if(!_workBench)
-   {
-       _workBench = new cWorkBenchWidget;
-       _workBench->setDIOCamera(_devIOCamera);
-       _workBench->setDIOTieFile(_devIOTieFile);
-       _workBench->setDIOImage(_Engine->Loader()->devIOImageAlter());
+    if(!_workBench)
+    {
+        _workBench = new cWorkBenchWidget;
+        _workBench->setDIOCamera(_devIOCamera);
+        _workBench->setDIOTieFile(_devIOTieFile);
+        _workBench->setDIOImage(_Engine->Loader()->devIOImageAlter());
 
-   }
+    }
 
-   if(mode)
-       _workBench->show();
-   else
-       _workBench->hide();
+    if(mode)
+        _workBench->show();
+    else
+        _workBench->hide();
 
 }
 
@@ -597,11 +597,11 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
     shortcuts.push_back(tr("File Menu"));
     actions.push_back("");
 
-    #ifdef ELISE_Darwin
-        QString Ctrl="Cmd+";
-    #else
-        QString Ctrl = "Ctrl+";
-    #endif
+#ifdef ELISE_Darwin
+    QString Ctrl="Cmd+";
+#else
+    QString Ctrl = "Ctrl+";
+#endif
 
     if (_appMode == MASK3D)
     {
@@ -654,10 +654,10 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
     actions.push_back(tr("show messages"));
     if (_appMode > MASK3D)
     {
-         shortcuts.push_back(Ctrl + "N");
-         actions.push_back(tr("show names"));
-         shortcuts.push_back(Ctrl + "R");
-         actions.push_back(tr("show refuted"));
+        shortcuts.push_back(Ctrl + "N");
+        actions.push_back(tr("show names"));
+        shortcuts.push_back(Ctrl + "R");
+        actions.push_back(tr("show refuted"));
     }
 
     if (_appMode == MASK3D)
@@ -672,7 +672,7 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         shortcuts.push_back(tr("Key 9"));
         actions.push_back(tr("zoom fit"));
         shortcuts.push_back("Key 4");
-         actions.push_back(tr("zoom 400%"));
+        actions.push_back(tr("zoom 400%"));
         shortcuts.push_back(tr("Key 2"));
         actions.push_back(tr("zoom 200%"));
         shortcuts.push_back(tr("Key 1"));
@@ -741,19 +741,19 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
             shortcuts.push_back(tr("W+drag"));
             actions.push_back(tr("move polygon"));
 
-    #ifdef ELISE_Darwin
+#ifdef ELISE_Darwin
             shortcuts.push_back(tr("Fn+Space bar"));
             shortcuts.push_back("Fn+D");
             shortcuts.push_back("Fn+U");
             shortcuts.push_back("Fn+Y");
             fillStringList(actions, _appMode);
-    #else
+#else
             shortcuts.push_back(tr("Space bar"));
             shortcuts.push_back(tr("Del"));
             shortcuts.push_back(tr("Ctrl+Space bar"));
             shortcuts.push_back(tr("Ctrl+Del"));
             fillStringList(actions, _appMode);
-    #endif
+#endif
 
             shortcuts.push_back(tr("Shift+drag"));
             actions.push_back(tr("insert vertex in polygon"));
@@ -820,7 +820,7 @@ void SaisieQtWindow::on_actionAbout_triggered()
 
     QString qStr(_banniere);
 #if (ELISE_windows || (defined ELISE_Darwin))
-        qStr.replace( "**", "  " );
+    qStr.replace( "**", "  " );
 #endif
 
     QString adressbit(" " + QString::number(sizeof(int*)*8) + " bits");
@@ -836,11 +836,11 @@ void SaisieQtWindow::on_actionAbout_triggered()
     msgBox->setFont(font);
 
     //trick to enlarge QMessageBox...
-    #if (!ELISE_windows)
-        QSpacerItem* horizontalSpacer = new QSpacerItem(600, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-        QGridLayout* layout = (QGridLayout*)msgBox->layout();
-        layout->addItem(horizontalSpacer, layout->rowCount(), 0, 1, layout->columnCount());
-    #endif
+#if (!ELISE_windows)
+    QSpacerItem* horizontalSpacer = new QSpacerItem(600, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+    QGridLayout* layout = (QGridLayout*)msgBox->layout();
+    layout->addItem(horizontalSpacer, layout->rowCount(), 0, 1, layout->columnCount());
+#endif
 
     msgBox->setWindowModality(Qt::NonModal);
     msgBox->show();
@@ -851,38 +851,38 @@ void SaisieQtWindow::on_actionRule_toggled(bool check)
     for (int i = 0; i < nbWidgets(); ++i)
     {
         if(getWidget(i)->getGLData())
+        {
+            if(getWidget(i)->getGLData()->polygonCount() == 1)
             {
-                if(getWidget(i)->getGLData()->polygonCount() == 1)
-                {
-                    cPolygon* polyg = new cPolygon(2,1.0,Qt::yellow,Qt::yellow, Geom_cross);
-                    polyg->setPointSize(10);
-                    getWidget(i)->getGLData()->addPolygon(polyg);
-                }
-                getWidget(i)->getGLData()->setCurrentPolygonIndex(check ? 1 : 0);
-                //getWidget(i)->getGLData()->polygon(1)->setAllVisible(check);
-
-                getWidget(i)->getGLData()->polygon(1)->setAllVisible(true);
-
-                if(check)
-                    _ui->label_ImagePosition_2->show();
-                else
-                    _ui->label_ImagePosition_2->hide();
+                cPolygon* polyg = new cPolygon(2,1.0,Qt::yellow,Qt::yellow, Geom_cross);
+                polyg->setPointSize(10);
+                getWidget(i)->getGLData()->addPolygon(polyg);
             }
+            getWidget(i)->getGLData()->setCurrentPolygonIndex(check ? 1 : 0);
+            //getWidget(i)->getGLData()->polygon(1)->setAllVisible(check);
+
+            getWidget(i)->getGLData()->polygon(1)->setAllVisible(true);
+
+            if(check)
+                _ui->label_ImagePosition_2->show();
+            else
+                _ui->label_ImagePosition_2->hide();
+        }
     }
 
-//    if(check)
-//        qDebug() << "Rules";
+    //    if(check)
+    //        qDebug() << "Rules";
 
-//	  setEnabled(false);
-//	  QString program = "mm3d";
-//	  QStringList arguments;
-//	  arguments << "vMalt";
+    //	  setEnabled(false);
+    //	  QString program = "mm3d";
+    //	  QStringList arguments;
+    //	  arguments << "vMalt";
 
-//	  QProcess *myProcess = new QProcess(this);
+    //	  QProcess *myProcess = new QProcess(this);
 
-//	  myProcess->waitForFinished(-1);
-//	  myProcess->start(program, arguments);
-      //setEnabled(true);
+    //	  myProcess->waitForFinished(-1);
+    //	  myProcess->start(program, arguments);
+    //setEnabled(true);
 }
 
 void SaisieQtWindow::resizeEvent(QResizeEvent *)
@@ -899,8 +899,8 @@ void SaisieQtWindow::setNavigationType(int val)
 {
     if (_appMode == MASK3D)
     {
-            on_actionShow_grid_toggled(val);
-            _ui->actionShow_grid->setChecked(val);
+        on_actionShow_grid_toggled(val);
+        _ui->actionShow_grid->setChecked(val);
     }
 }
 
@@ -982,7 +982,7 @@ void SaisieQtWindow::on_actionUndo_triggered(){
     }
     else
 
-        emit undoSgnl(true);
+    emit undoSgnl(true);
 
 }
 
@@ -995,7 +995,7 @@ void SaisieQtWindow::on_actionRedo_triggered()
     }
     else
 
-        emit undoSgnl(false);
+    emit undoSgnl(false);
 }
 
 void SaisieQtWindow::on_actionSetViewTop_triggered()
@@ -1255,11 +1255,11 @@ void SaisieQtWindow::setCurrentFile(const QString &fileName)
 
     foreach (QWidget *widget, QApplication::topLevelWidgets())
     {
-        #if WINVER == 0x0601
-            SaisieQtWindow *mainWin = dynamic_cast<SaisieQtWindow *>(widget);
-        #else
-            SaisieQtWindow *mainWin = qobject_cast<SaisieQtWindow *>(widget);
-        #endif
+#if WINVER == 0x0601
+        SaisieQtWindow *mainWin = dynamic_cast<SaisieQtWindow *>(widget);
+#else
+        SaisieQtWindow *mainWin = qobject_cast<SaisieQtWindow *>(widget);
+#endif
         if (mainWin)
             mainWin->updateRecentFileActions();
     }
@@ -1378,11 +1378,11 @@ void SaisieQtWindow::updateUI()
     _ui->actionAdd_outside->setShortcut(QKeySequence(Qt::ControlModifier +Qt::Key_Space));
     _ui->actionRemove_outside->setShortcut(QKeySequence(Qt::ControlModifier +Qt::Key_Delete));
 
-    #ifdef ELISE_Darwin
-        _ui->actionRemove_inside->setShortcut(Qt::Key_D);
-        _ui->actionRemove_outside->setShortcut(Qt::Key_Y);
-        _ui->actionAdd_outside->setShortcut(Qt::Key_U);
-    #endif
+#ifdef ELISE_Darwin
+    _ui->actionRemove_inside->setShortcut(Qt::Key_D);
+    _ui->actionRemove_outside->setShortcut(Qt::Key_Y);
+    _ui->actionAdd_outside->setShortcut(Qt::Key_U);
+#endif
 }
 
 void SaisieQtWindow::setUI()
@@ -1409,10 +1409,10 @@ void SaisieQtWindow::setUI()
         _ui->QFrame_zoom->setLayout(_zoomLayout);
         _ui->QFrame_zoom->setContentsMargins(0,0,0,0);
 
-         QGridLayout*            _tdLayout = new QGridLayout;
+        QGridLayout*            _tdLayout = new QGridLayout;
 
-         _tdLayout->addWidget(threeDWidget());
-         _tdLayout->setContentsMargins(2,2,2,2);
+        _tdLayout->addWidget(threeDWidget());
+        _tdLayout->setContentsMargins(2,2,2,2);
         _ui->frame_preview3D->setLayout(_tdLayout);
         _ui->frame_preview3D->setContentsMargins(0,0,0,0);
         //TEMP: undo ne marche pas du coté Elise (a voir avec Marc)
@@ -1426,7 +1426,7 @@ void SaisieQtWindow::setUI()
         tableView_Objects()->installEventFilter(this);
 
         _ui->tableView_Objects->close();
-       // _ui->splitter_Tools->setContentsMargins(2,0,0,0);
+        // _ui->splitter_Tools->setContentsMargins(2,0,0,0);
     }
     else
     {
@@ -1458,64 +1458,64 @@ void SaisieQtWindow::setUI()
 }
 
 #ifdef USE_MIPMAP_HANDLER
-	void SaisieQtWindow::keyPressEvent( QKeyEvent *aEvent )
-	{
-		switch (aEvent->key())
-		{
-		case Qt::Key_Return:
-			on_actionConfirm_changes_triggered();
-			break;
-		case Qt::Key_PageUp:
-			changeDisplayedImages(false); // false = aForward
-			break;
-		case Qt::Key_PageDown:
-			changeDisplayedImages(true); // true = aForward
-			break;
-		}
-	}
+void SaisieQtWindow::keyPressEvent( QKeyEvent *aEvent )
+{
+    switch (aEvent->key())
+    {
+    case Qt::Key_Return:
+        on_actionConfirm_changes_triggered();
+        break;
+    case Qt::Key_PageUp:
+        changeDisplayedImages(false); // false = aForward
+        break;
+    case Qt::Key_PageDown:
+        changeDisplayedImages(true); // true = aForward
+        break;
+    }
+}
 #else
-	bool SaisieQtWindow::eventFilter( QObject* object, QEvent* event )
-	{
-		if( object == tableView_PG() )
-		{
-		    QAbstractItemView* table    = (QAbstractItemView*)object;
+bool SaisieQtWindow::eventFilter( QObject* object, QEvent* event )
+{
+    if( object == tableView_PG() )
+    {
+        QAbstractItemView* table    = (QAbstractItemView*)object;
 
-		    QItemSelectionModel* sModel = table->selectionModel();
+        QItemSelectionModel* sModel = table->selectionModel();
 
-		    if(sModel)
-		    {
-		        QString pointName = sModel->currentIndex().data(Qt::DisplayRole).toString();
+        if(sModel)
+        {
+            QString pointName = sModel->currentIndex().data(Qt::DisplayRole).toString();
 
-		        if(event->type() == QEvent::KeyRelease )
-		        {
-		            QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+            if(event->type() == QEvent::KeyRelease )
+            {
+                QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
 
-		            if (keyEvent->key() == Qt::Key_Delete)
+                if (keyEvent->key() == Qt::Key_Delete)
 
-		                emit removePoint(pointName); // we send point name, because point has not necessarily a widget index (point non saisi)
+                emit removePoint(pointName); // we send point name, because point has not necessarily a widget index (point non saisi)
 
-		            else if (keyEvent->key() == Qt::Key_Up || keyEvent->key() == Qt::Key_Down)
-		            {
-		                emit selectPoint(pointName);
-		            }
-		        }
-		    }
-		}
+                else if (keyEvent->key() == Qt::Key_Up || keyEvent->key() == Qt::Key_Down)
+                {
+                    emit selectPoint(pointName);
+                }
+            }
+        }
+    }
 
-		return false;
-	}
+    return false;
+}
 
-	void SaisieQtWindow::keyPressEvent(QKeyEvent *event)
-	{
-		switch(event->key())
-		{
-		case Qt::Key_Return:
-		    on_actionConfirm_changes_triggered();
-		    break;
-		default:
-		    return;
-		}
-	}
+void SaisieQtWindow::keyPressEvent(QKeyEvent *event)
+{
+    switch(event->key())
+    {
+    case Qt::Key_Return:
+        on_actionConfirm_changes_triggered();
+        break;
+    default:
+        return;
+    }
+}
 #endif
 
 QTableView *SaisieQtWindow::tableView_PG(){return _ui->tableView_PG;}
@@ -1557,20 +1557,20 @@ void SaisieQtWindow::selectPointAllWGL(QString pointName)
 
 void SaisieQtWindow::setDataToGLWidget(int idGLW, cGLData *glData)
 {
-	if (glData == NULL) return;
+    if (glData == NULL) return;
 
-	#ifdef USE_MIPMAP_HANDLER
-		if (glData->glImageMasked().hasSrcImage()) _Engine->Loader()->loadImage(glData->glImageMasked().srcImage());
-		if (glData->glImageMasked().hasSrcMask() && !_Engine->Loader()->loadImage(glData->glImageMasked().srcMask()))
-		{
-			cout << "ignoring mask image [" << glData->glImageMasked().srcMask().mFilename << "]: cannot be loaded" << endl;
-			glData->glImageMasked().removeSrcMask();
-		}
-	#endif
+#ifdef USE_MIPMAP_HANDLER
+    if (glData->glImageMasked().hasSrcImage()) _Engine->Loader()->loadImage(glData->glImageMasked().srcImage());
+    if (glData->glImageMasked().hasSrcMask() && !_Engine->Loader()->loadImage(glData->glImageMasked().srcMask()))
+    {
+        cout << "ignoring mask image [" << glData->glImageMasked().srcMask().mFilename << "]: cannot be loaded" << endl;
+        glData->glImageMasked().removeSrcMask();
+    }
+#endif
 
-	GLWidget * glW = getWidget(idGLW);
-	glW->setGLData(glData, glData->stateOption(cGLData::OpShow_Mess), glData->stateOption(cGLData::OpShow_Cams));
-	glW->setParams(getParams());
+    GLWidget * glW = getWidget(idGLW);
+    glW->setGLData(glData, glData->stateOption(cGLData::OpShow_Mess), glData->stateOption(cGLData::OpShow_Cams));
+    glW->setParams(getParams());
 }
 
 void SaisieQtWindow::loadPlyIn3DPrev(const QStringList &filenames, cData *dataCache)
@@ -1685,7 +1685,7 @@ void SaisieQtWindow::setImagePosition(QPointF pt)
         if(glW)
             if ( glW->hasDataLoaded() && !glW->getGLData()->is3D() && (glW->isPtInsideIm(pt)))
             {
-				ELISE_DEBUG_ERROR(glW->getGLData()->glImageMasked()._m_image == NULL, " SaisieQtWindow::setImagePosition", "glW->getGLData()->glImageMasked()._m_image == NULL");
+                ELISE_DEBUG_ERROR(glW->getGLData()->glImageMasked()._m_image == NULL, " SaisieQtWindow::setImagePosition", "glW->getGLData()->glImageMasked()._m_image == NULL");
                 int imHeight = glW->getGLData()->glImageMasked()._m_image->height();
 
                 text = QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number((imHeight - pt.y()),'f',1)+" px");
@@ -1898,111 +1898,111 @@ void SaisieQtWindow::labelShowMode(bool state)
 }
 
 #ifdef USE_MIPMAP_HANDLER
-	#ifdef __DEBUG
-		void SaisieQtWindow::dumpGLDataIdSet( const vector<int> &aIdSet, const string &aPrefix, ostream &aStream ) const
-		{
-			for (size_t i = 0; i < aIdSet.size(); i++)
-			{
-				if (aIdSet[i] == -1)
-				{
-					aStream << aPrefix << i << ": -1" << endl;
-					continue;
-				}
+#ifdef __DEBUG
+void SaisieQtWindow::dumpGLDataIdSet( const vector<int> &aIdSet, const string &aPrefix, ostream &aStream ) const
+{
+    for (size_t i = 0; i < aIdSet.size(); i++)
+    {
+        if (aIdSet[i] == -1)
+        {
+            aStream << aPrefix << i << ": -1" << endl;
+            continue;
+        }
 
-				cGLData &data = *_Engine->getGLData(aIdSet[i]);
-				aStream << aPrefix << i << ": " << aIdSet[i];
-				data.dump(" ", aStream);
-			}
-		}
+        cGLData &data = *_Engine->getGLData(aIdSet[i]);
+        aStream << aPrefix << i << ": " << aIdSet[i];
+        data.dump(" ", aStream);
+    }
+}
 
-		void SaisieQtWindow::dumpAllGLData( const string &aPrefix, ostream &aStream ) const
-		{
-			vector<int> idSet((size_t)_Engine->nbGLData());
-			for (int i = 0; i < _Engine->nbGLData(); i++)
-			{
-				aStream << aPrefix << i;
-				_Engine->getGLData(i)->dump(": ", aStream);
-			}
-		}
-	#endif
+void SaisieQtWindow::dumpAllGLData( const string &aPrefix, ostream &aStream ) const
+{
+    vector<int> idSet((size_t)_Engine->nbGLData());
+    for (int i = 0; i < _Engine->nbGLData(); i++)
+    {
+        aStream << aPrefix << i;
+        _Engine->getGLData(i)->dump(": ", aStream);
+    }
+}
+#endif
 
-	void SaisieQtWindow::loadGLDataIdSet( const vector<int> &aIdSet )
-	{
-		ELISE_DEBUG_ERROR(aIdSet.size() != (size_t)nbWidgets(), "SaisieQtWindow::loadGLDataIdSet", "aIdSet.size() = " << aIdSet.size() << " != nbWidgets() = " << nbWidgets());
+void SaisieQtWindow::loadGLDataIdSet( const vector<int> &aIdSet )
+{
+    ELISE_DEBUG_ERROR(aIdSet.size() != (size_t)nbWidgets(), "SaisieQtWindow::loadGLDataIdSet", "aIdSet.size() = " << aIdSet.size() << " != nbWidgets() = " << nbWidgets());
 
-		for (int i = 0; i < nbWidgets(); i++)
-			if (aIdSet[i] != -1) getWidget(i)->setGLData(NULL);
+    for (int i = 0; i < nbWidgets(); i++)
+        if (aIdSet[i] != -1) getWidget(i)->setGLData(NULL);
 
-		for (size_t i = 0; i < aIdSet.size(); i++)
-		{
-			if (aIdSet[i] == -1) continue;
+    for (size_t i = 0; i < aIdSet.size(); i++)
+    {
+        if (aIdSet[i] == -1) continue;
 
-			const int newDataId = aIdSet[i];
-			#ifdef __DEBUG
-				const int nbGLData = _Engine->nbGLData();
-				ELISE_DEBUG_ERROR(newDataId < 0 || newDataId >= nbGLData, "SaisieQtWindow::loadGLDataIdSet", "invalid aIdSet[" << i << "] = " << newDataId << ", nbGLData = " << nbGLData);
-			#endif
-			cGLData &data = *_Engine->getGLData(newDataId);
+        const int newDataId = aIdSet[i];
+#ifdef __DEBUG
+        const int nbGLData = _Engine->nbGLData();
+        ELISE_DEBUG_ERROR(newDataId < 0 || newDataId >= nbGLData, "SaisieQtWindow::loadGLDataIdSet", "invalid aIdSet[" << i << "] = " << newDataId << ", nbGLData = " << nbGLData);
+#endif
+        cGLData &data = *_Engine->getGLData(newDataId);
 
-			ELISE_DEBUG_ERROR( !data.glImageMasked().hasSrcImage(), "SaisieQtWindow::loadGLDataIdSet", "!data.glImageMasked().hasSrcImage()");
-			_Engine->Loader()->loadImage(data.glImageMasked().srcImage());
+        ELISE_DEBUG_ERROR( !data.glImageMasked().hasSrcImage(), "SaisieQtWindow::loadGLDataIdSet", "!data.glImageMasked().hasSrcImage()");
+        _Engine->Loader()->loadImage(data.glImageMasked().srcImage());
 
-			if (data.glImageMasked().hasSrcMask()) _Engine->Loader()->loadImage(data.glImageMasked().srcMask());
+        if (data.glImageMasked().hasSrcMask()) _Engine->Loader()->loadImage(data.glImageMasked().srcMask());
 
-			getWidget((int)i)->setGLData(&data);
-		}
-	}
+        getWidget((int)i)->setGLData(&data);
+    }
+}
 
-	void SaisieQtWindow::changeDisplayedImages( bool aForward )
-	{
-		ELISE_DEBUG_ERROR(_Engine == NULL, "SaisieQtWindow::changeImages", "_Engine == NULL");
+void SaisieQtWindow::changeDisplayedImages( bool aForward )
+{
+    ELISE_DEBUG_ERROR(_Engine == NULL, "SaisieQtWindow::changeImages", "_Engine == NULL");
 
-		if (nbWidgets() >= _Engine->nbImages()) return;
+    if (nbWidgets() >= _Engine->nbImages()) return;
 
-		const int nbGLData = _Engine->nbGLData();
-		vector<int> loadedIds;
-		_Engine->getGLDataIdSet(0, nbGLData - 1, true, nbWidgets(), loadedIds); // true = aIsLoaded
-		ELISE_DEBUG_ERROR(loadedIds.size() != (size_t)nbWidgets(), "SaisieQtWindow::changeImages", "loadedIds.size() = " << loadedIds.size() << " != nbWidgets() = " << nbWidgets());
+    const int nbGLData = _Engine->nbGLData();
+    vector<int> loadedIds;
+    _Engine->getGLDataIdSet(0, nbGLData - 1, true, nbWidgets(), loadedIds); // true = aIsLoaded
+    ELISE_DEBUG_ERROR(loadedIds.size() != (size_t)nbWidgets(), "SaisieQtWindow::changeImages", "loadedIds.size() = " << loadedIds.size() << " != nbWidgets() = " << nbWidgets());
 
-		vector<int> toLoadIds;
-		int i0, i1;
-		if (aForward)
-		{
-			i0 = _Engine->minLoadedGLDataId() + 1;
-			i1 = nbGLData - 1;
-		}
-		else
-		{
-			i0 = _Engine->minLoadedGLDataId() - 1;
-			i1 = 0;
-		}
-		_Engine->getGLDataIdSet(i0, i1, false, nbWidgets(), toLoadIds); // false = aIsLoaded
+    vector<int> toLoadIds;
+    int i0, i1;
+    if (aForward)
+    {
+        i0 = _Engine->minLoadedGLDataId() + 1;
+        i1 = nbGLData - 1;
+    }
+    else
+    {
+        i0 = _Engine->minLoadedGLDataId() - 1;
+        i1 = 0;
+    }
+    _Engine->getGLDataIdSet(i0, i1, false, nbWidgets(), toLoadIds); // false = aIsLoaded
 
-		if (toLoadIds.size() < (size_t)nbWidgets())
-		{
-			size_t nbToLoad = toLoadIds.size();
-			toLoadIds.resize((size_t)nbWidgets());
-			size_t nbToKeep = toLoadIds.size() - nbToLoad;
+    if (toLoadIds.size() < (size_t)nbWidgets())
+    {
+        size_t nbToLoad = toLoadIds.size();
+        toLoadIds.resize((size_t)nbWidgets());
+        size_t nbToKeep = toLoadIds.size() - nbToLoad;
 
-			if (aForward)
-				memcpy(toLoadIds.data() + nbToLoad, loadedIds.data() + nbToLoad, nbToKeep * sizeof(int));
-			else
-				memcpy(toLoadIds.data() + nbToLoad, loadedIds.data(), nbToKeep * sizeof(int));
-		}
+        if (aForward)
+            memcpy(toLoadIds.data() + nbToLoad, loadedIds.data() + nbToLoad, nbToKeep * sizeof(int));
+        else
+            memcpy(toLoadIds.data() + nbToLoad, loadedIds.data(), nbToKeep * sizeof(int));
+    }
 
-		sort(toLoadIds.begin(), toLoadIds.end());
+    sort(toLoadIds.begin(), toLoadIds.end());
 
-		// prevent unchanged widget association to be unload
-		for (size_t i = 0; i < loadedIds.size(); i++)
-			if (toLoadIds[i] == loadedIds[i]) toLoadIds[i] = -1; // -1 is as special value for loadGLDataIdSet meaning do not unload and load GLData
+    // prevent unchanged widget association to be unload
+    for (size_t i = 0; i < loadedIds.size(); i++)
+        if (toLoadIds[i] == loadedIds[i]) toLoadIds[i] = -1; // -1 is as special value for loadGLDataIdSet meaning do not unload and load GLData
 
-		loadGLDataIdSet(toLoadIds);
-	}
+    loadGLDataIdSet(toLoadIds);
+}
 #endif
 
 ModelObjects::ModelObjects(QObject *parent, HistoryManager* hMag)
     :QAbstractTableModel(parent),
-      _hMag(hMag)
+    _hMag(hMag)
 {
 
 }
@@ -2025,12 +2025,12 @@ QVariant ModelObjects::headerData(int section, Qt::Orientation orientation, int 
         {
             switch (section)
             {
-                case 0:
-                    return QString(tr("id"));
-                case 1:
-                    return QString(tr("nb pts"));
-                case 2:
-                    return QString(tr("Mode"));
+            case 0:
+                return QString(tr("id"));
+            case 1:
+                return QString(tr("nb pts"));
+            case 2:
+                return QString(tr("Mode"));
             }
         }
     }
@@ -2060,9 +2060,9 @@ Qt::ItemFlags ModelObjects::flags(const QModelIndex &index) const
 
     switch (index.column())
     {
-        case 2:
+    case 2:
         //if(index.row() < PG_Count())
-            return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
+        return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
     }
 
     return QAbstractTableModel::flags(index);
@@ -2082,19 +2082,19 @@ QVariant ModelObjects::data(const QModelIndex &index, int role) const
 
             switch (index.column())
             {
-                case 0:
-                {
-                    return nonS.number(aK);
-                }
-                case 1:
-                {
+            case 0:
+            {
+                return nonS.number(aK);
+            }
+            case 1:
+            {
 
-                    return nonS.number(info.poly.size());
-                }
-                case 2:
-                {
-                    return QVariant(getSelectionMode()[info.selection_mode]);
-                }
+                return nonS.number(info.poly.size());
+            }
+            case 2:
+            {
+                return QVariant(getSelectionMode()[info.selection_mode]);
+            }
             }
         }
     }
@@ -2134,14 +2134,14 @@ bool ObjectsSFModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourcePa
 
 ComboBoxDelegate::ComboBoxDelegate(QStringList const &listCombo, int size, QObject* parent)
     : QStyledItemDelegate(parent),
-      _size(size),
-      _enumString(listCombo)
+    _size(size),
+    _enumString(listCombo)
 {
 }
 
 QWidget *ComboBoxDelegate::createEditor(QWidget *parent,
-    const QStyleOptionViewItem &/* option */,
-    const QModelIndex &/* index */) const
+                                        const QStyleOptionViewItem &/* option */,
+                                        const QModelIndex &/* index */) const
 {
     QComboBox *editor = new QComboBox(parent);
 
@@ -2163,9 +2163,9 @@ void ComboBoxDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, 
 {
     QComboBox *comboBox = static_cast<QComboBox*>(editor);
 
-      int value = comboBox->currentIndex();
+    int value = comboBox->currentIndex();
 
-      model->setData(index, value, Qt::EditRole);
+    model->setData(index, value, Qt::EditRole);
 }
 
 void ComboBoxDelegate::updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex& index) const
