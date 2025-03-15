@@ -10,6 +10,7 @@
 #include "MMVII_Sensor.h"
 #include "MMVII_PoseTriplet.h"
 #include "MMVII_Tpl_GraphAlgo_Group.h"
+#include "MMVII_Tpl_Images.h"
 
 
 namespace MMVII
@@ -22,9 +23,96 @@ class cNodeArborTriplets;
 class  cSolLocNode
 {
      public :
+        cSolLocNode(tPoseR aPose,int aNumPose) : mPose (aPose), mNumPose (aNumPose) {}
         tPoseR mPose;
 	int    mNumPose;
 };
+
+class cPairEstimTransfer
+{
+    public :
+        cPairEstimTransfer(tREAL8 aW,const tPoseR& aP1,const tPoseR aP2) :
+           mW  (aW),
+           mP1 (aP1),
+           mP2 (aP2)
+        {
+        }
+        static tRotR    EstimateRotTransfert(const std::vector<cPairEstimTransfer> & aVPair);
+        static tSim3dR  EstimateSimTransfert(const std::vector<cPairEstimTransfer> & aVPair,const tRotR &);
+        static tSim3dR  EstimateSimTransfert(const std::vector<cPairEstimTransfer> & aVPair);
+
+        // return tSim3dR(1.0,cPt3dr(0,0,0),tRotR::Identity());
+
+        tREAL8  mW;
+        tPoseR  mP1;
+        tPoseR  mP2;
+};
+
+tRotR  cPairEstimTransfer::EstimateRotTransfert(const std::vector<cPairEstimTransfer> & aVPair)
+{
+    std::vector<tRotR>  aVRot;
+    std::vector<tREAL8> aVWeight;
+
+    for (const auto & aPair : aVPair)
+    {
+        //  Im->W1 * (Im->W2)-1 = W2->W1
+        aVRot.push_back(aPair.mP1.Rot() * aPair.mP2.Rot().MapInverse());
+        aVWeight.push_back(aPair.mW);
+    }
+    return tRotR::Centroid(aVRot,aVWeight);
+}
+
+tSim3dR  cPairEstimTransfer::EstimateSimTransfert(const std::vector<cPairEstimTransfer> & aVPair,const tRotR & aR2To1)
+{
+    //  C1,R1   <->  C2,R2
+    //  C1  <-> R2To1  C2
+    // C1 = lamnda C2 + Tr
+
+    cDenseVect<tREAL8> aVx(4,eModeInitImage::eMIA_Null);
+    cDenseVect<tREAL8> aVy(4,eModeInitImage::eMIA_Null);
+    cDenseVect<tREAL8> aVz(4,eModeInitImage::eMIA_Null);
+
+    cLeasSqtAA<tREAL8> aSys(4);
+    for (const auto & aPair : aVPair)
+    {
+        cPt3dr aC1 = aPair.mP1.Tr();
+        cPt3dr aC2 = aR2To1.Value(aPair.mP2.Tr());
+
+        aVx(0) = 1.0; 
+        aVx(3) = aC2.x();
+        aSys.PublicAddObservation(aPair.mW,aVx,aC1.x());
+
+        aVy(1) = 1.0; 
+        aVy(3) = aC2.y();
+        aSys.PublicAddObservation(aPair.mW,aVy,aC1.y());
+
+        aVz(2) = 1.0; 
+        aVz(3) = aC2.z();
+        aSys.PublicAddObservation(aPair.mW,aVz,aC1.z());
+    }
+
+    cDenseVect<tREAL8> aSol = aSys.PublicSolve();
+    tREAL8 aLambda = aSol(3);
+    cPt3dr aTr(aSol(0),aSol(1),aSol(2));
+
+/*
+    for (const auto & aPair : aVPair)
+    {
+        cPt3dr aC1 = aPair.mP1.Tr();
+        cPt3dr aC2 = aR2To1.Value(aPair.mP2.Tr());
+    }
+*/
+
+    return tSim3dR(aLambda,aTr,aR2To1);
+}
+
+tSim3dR  cPairEstimTransfer::EstimateSimTransfert(const std::vector<cPairEstimTransfer> & aVPair)
+{
+   return EstimateSimTransfert(aVPair,EstimateRotTransfert(aVPair));
+}
+
+
+
 
 class  cNodeArborTriplets : public cMemCheck
 {
@@ -34,16 +122,25 @@ class  cNodeArborTriplets : public cMemCheck
         cNodeArborTriplets(cMakeArboTriplet &,const t3G3_Tree &,int aLevel);
         ~cNodeArborTriplets();
        
-	void TestMergeRot();
+	void Test_RecursiveMerge();
+
+        typedef  std::pair<tPoseR,tPoseR>  tPP;
 
     private :
+	void DoMerge();
+        void MakeIndexSol();
+        void FreeIndexSol();
+        void SortSol();
 	void GetPoses(std::vector<int> &); 
+        
+        cSolLocNode *  SolOfInd(int aNumPose) ;
 
 	int                       mLevel;
         t3G3_Tree                 mTree;
 	std::array<tNodePtr,2>    mChildren;
 	cMakeArboTriplet*         mPMAT;
 	std::vector<cSolLocNode>  mLocSols;
+	std::vector<int>          mVIndexes;
 };
 
 
@@ -141,9 +238,8 @@ cNodeArborTriplets::cNodeArborTriplets(cMakeArboTriplet & aMAT ,const t3G3_Tree 
           mChildren[aKT] = new cNodeArborTriplets(aMAT,a2T.at(aKT),aLevel+1);
       }
    }
+
 }
-
-
 
 cNodeArborTriplets:: ~cNodeArborTriplets()
 {
@@ -151,9 +247,13 @@ cNodeArborTriplets:: ~cNodeArborTriplets()
     delete mChildren[1];
 }
 
-void cNodeArborTriplets::TestMergeRot()
+
+
+
+
+void cNodeArborTriplets::Test_RecursiveMerge()
 {
-   MMVII_INTERNAL_ASSERT_tiny((mChildren.at(0) == nullptr) == (mChildren.at(1) == nullptr),"TestMergeRot, assert on desc");
+   MMVII_INTERNAL_ASSERT_tiny((mChildren.at(0) == nullptr) == (mChildren.at(1) == nullptr),"Test_RecursiveMerge, assert on desc");
 
     std::vector<int> aVPose; GetPoses(aVPose);
     for (int aK=0 ; aK< mLevel ; aK++)
@@ -162,24 +262,141 @@ void cNodeArborTriplets::TestMergeRot()
 
     if (mChildren.at(0) == nullptr)
     {
+       // Terminal node just put the triplet
        auto  aVecTri = mTree.Vertices();
-       MMVII_INTERNAL_ASSERT_tiny(aVecTri.size()==1,"TestMergeRot, assert on desc");
+       MMVII_INTERNAL_ASSERT_tiny(aVecTri.size()==1,"Test_RecursiveMerge, assert on desc");
        c3G3_AttrV & anATri = aVecTri.at(0)->Attr();
        for (size_t aK3=0 ; aK3<3 ; aK3++)
        {
-          cSolLocNode aSol;
-	  aSol.mNumPose = anATri.m3V.at(aK3)->Attr().Attr().mKIm;
-	  aSol.mPose = anATri.mT0->Pose(aK3).Pose();
+	  int aNumPose = anATri.m3V.at(aK3)->Attr().Attr().mKIm;
+	  tPoseR aPose = anATri.mT0->Pose(aK3).Pose();
 
-          mLocSols.push_back(aSol);
+          mLocSols.push_back(cSolLocNode(aPose,aNumPose));
        }
+       MakeIndexSol();
+       //SortSol();
     }
     else
     {
        for (auto & aChild :mChildren)
-           aChild->TestMergeRot();
+           aChild->Test_RecursiveMerge();
+       DoMerge();
     }
 }
+
+/*
+void cNodeArborTriplets::SortSol()
+{
+     std::sort
+     (
+        mLocSols.begin(),
+        mLocSols.end(),
+        [](const auto& aS1,const auto & aS2){return aS1.mNumPose<aS2.mNumPose;}
+     );
+}
+
+int  CmpNode(const void * aV1,const void * aV2)
+{
+   int aNP1 =  static_cast<const cSolLocNode*>(aV1)->mNumPose ;
+   int aNP2 =  static_cast<const cSolLocNode*>(aV2)->mNumPose ;
+
+   if (aNP1<aNP2) return -1;
+   if (aNP1>aNP2) return  1;
+   return 0;
+}
+*/
+
+void cNodeArborTriplets::MakeIndexSol()
+{
+    mVIndexes = std::vector<int>(mPMAT->GOP().NbVertex(),-1);
+    for (size_t aK=0 ; aK<mLocSols.size() ; aK++)
+       mVIndexes.at(mLocSols.at(aK).mNumPose) = aK;
+}
+
+void cNodeArborTriplets::FreeIndexSol()
+{
+   mVIndexes.clear();
+   mLocSols.clear();
+}
+
+void cNodeArborTriplets::DoMerge()
+{
+     cNodeArborTriplets & aN0 = *(mChildren.at(0));
+     cNodeArborTriplets & aN1 = *(mChildren.at(1));
+     std::vector<cPairEstimTransfer>   aVPP;
+
+     for (const auto & aSol0 : aN0.mLocSols)
+     {
+         const auto * aSol1 = aN1.SolOfInd(aSol0.mNumPose);
+         if (aSol1!=nullptr)
+         {
+            cPairEstimTransfer aPair(2.0,aSol0.mPose,aSol1->mPose);
+            aVPP.push_back(aPair);
+         }
+     }
+
+     tSim3dR  aSimTransfer = cPairEstimTransfer::EstimateSimTransfert(aVPP);
+
+     if (1)
+     {
+         StdOut() <<  " NbComon=" << aVPP.size() << "\n";
+         for (const auto & aPair : aVPP)
+         {
+             tPoseR  aQ1 =    TransfoPose(aSimTransfer,aPair.mP2);
+
+             StdOut()  << " Tr=" << Norm2(aPair.mP1.Tr() - aQ1.Tr()) ;
+             StdOut()  << " Rot=" << aPair.mP1.Rot().Mat().L2Dist(aQ1.Rot().Mat()) << "\n";
+         }
+     }
+ 
+     // Put Sol0 that are not in Sol1
+     for (const auto & aSol0 : aN0.mLocSols)
+     {
+         if (aN1.SolOfInd(aSol0.mNumPose)==nullptr)
+         {
+              mLocSols.push_back(aSol0);
+         }
+     }
+
+     // Put Sol1, use transfert, and separate case in Sol0 or not
+     for (const auto & aSol1 : aN1.mLocSols)
+     {
+         tPoseR  aPoseInS0  =    TransfoPose(aSimTransfer,aSol1.mPose);
+         cSolLocNode * aSol0 = aN0.SolOfInd(aSol1.mNumPose);
+         if (aSol0)
+         {
+            aPoseInS0 = tPoseR::Centroid({aPoseInS0,aSol0->mPose},{1.0,1.0});
+         }
+
+         mLocSols.push_back(cSolLocNode(aPoseInS0,aSol1.mNumPose));
+     }
+
+/*
+     StdOut() << "NP=";
+     for (const auto & aSol : mLocSols)
+         StdOut() << " " << aSol.mNumPose;
+     StdOut() << "\n";
+getchar();
+*/
+
+     // --------------------------------------
+     for (auto & aChild :mChildren)
+     {
+          aChild->FreeIndexSol();
+     }
+     MakeIndexSol();
+}
+
+cSolLocNode * cNodeArborTriplets::SolOfInd(int  anIndAbs) 
+{
+   int anIndRel = mVIndexes.at(anIndAbs);
+   if (anIndRel>=0)
+      return  &mLocSols.at(anIndRel);
+
+
+   return nullptr;
+}
+
 
 void cNodeArborTriplets::GetPoses(std::vector<int> & aResult)
 {
@@ -274,9 +491,7 @@ void cMakeArboTriplet::MakeGraphPose()
         if (mDoRand)  
 	{
 	    // in simul we must take into account that each triplet is in its own arbitrary system  W2L , Word -> Loc
-	    tRotR aRandW2L = tRotR::RandomRot();
-	    tREAL8 aScaleW2L = RandInInterval(0.5,1.5);
-	    cPt3dr aTransW2L = cPt3dr::PRandInSphere() * 2.0;
+            tSim3dR   aRandSim= tSim3dR::RandomSim3D(2.0,2.0);
             // parse the 3 pair of consecutive poses
 	    for (int aK3=0 ; aK3<3 ; aK3++)
 	    {
@@ -287,13 +502,10 @@ void cMakeArboTriplet::MakeGraphPose()
 		t3GOP_Vertex & aPoseV = mGGPoses.VertexOfNum(aInd);
 		aP = aPoseV.Attr().Attr().mGTRand;
 		// Firts create small perturbations of "perfect" values of "Tr/Rot"
-		cPt3dr aTr = aP.Tr() + cPt3dr::PRandInSphere() * mLevelRand.at(1);
-		tRotR aRot = aP.Rot()* tRotR::RandomSmallElem(mLevelRand.at(0));
-		// Now put everyting in the local system
-		aTr = aTransW2L  + aTr*aScaleW2L;
-		aRot =  aRandW2L * aRot;
-                // finally save the result
-		aP = tPoseR(aTr,aRot);
+		cPt3dr aTr = aP.Tr() + cPt3dr::PRandInSphere() * mLevelRand.at(0);
+		tRotR aRot = aP.Rot()* tRotR::RandomSmallElem(mLevelRand.at(1));
+		// Now put everyting in the local system and   finally save the result
+		aP = TransfoPose(aRandSim,tPoseR(aTr,aRot));
 	    }
 	}
         for (size_t aK3=0 ; aK3<3 ; aK3++)
@@ -528,7 +740,7 @@ void cMakeArboTriplet::ComputeArbor()
    mCostMergeTree = 0.0;
    mArbor = new cNodeArborTriplets(*this,aTreeKernel,0);
    StdOut() << "CostMerge " << mCostMergeTree << "\n";
-   mArbor->TestMergeRot();
+   mArbor->Test_RecursiveMerge();
 }
 
 
@@ -582,7 +794,7 @@ cCollecSpecArg2007 & cAppli_ArboTriplets::ArgOpt(cCollecSpecArg2007 & anArgOpt)
    return    anArgOpt
           << AOpt2007(mNbMaxClust,"NbMaxClust","Number max of rot in 1 cluster",{eTA2007::HDV})
           << AOpt2007(mDistClust,"DistClust","Distance in clustering",{eTA2007::HDV})
-          << AOpt2007(mLevelRand,"LevelRand","Level of random if simulation [Rot,Trans]", {{eTA2007::ISizeV,"[2,2]"}})
+          << AOpt2007(mLevelRand,"LevelRand","Level of random if simulation [Trans,Rot]", {{eTA2007::ISizeV,"[2,2]"}})
           << AOpt2007(mDoCheck,"DoCheck","do some checking on result",{eTA2007::HDV,eTA2007::Tuning})
           << AOpt2007(mWBalance,"WBalance","Weight for balancing trees, 0 NONE, 1 Max",{eTA2007::HDV})
    ;

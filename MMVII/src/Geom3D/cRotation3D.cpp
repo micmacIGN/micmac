@@ -95,6 +95,23 @@ template <class Type> cSimilitud3D<Type> cSimilitud3D<Type>::FromTriInAndOut
      return aRefToOut * aInToRef;
 }
 
+template <class Type> cSimilitud3D<Type> cSimilitud3D<Type>::RandomSim3D(Type aLevelScale,Type aLevelTr)
+{
+    return tTypeMap
+           (
+               Type(pow(2.0,RandInInterval(-aLevelScale,aLevelScale))),
+               tPt::PRandInSphere() * aLevelTr,
+               cRotation3D<Type>::RandomRot()
+           );
+}
+
+
+
+template <class Type> cIsometry3D<Type>    TransfoPose(const cSimilitud3D<Type> & aSim,const cIsometry3D<Type> & aR)
+{
+    return  cIsometry3D<Type> (aSim.Value(aR.Tr()),aSim.Rot() *aR.Rot());
+}
+
 
 
 /* ************************************************* */
@@ -205,6 +222,23 @@ template <class Type>
 template <class Type> cIsometry3D<tREAL8>  ToReal8(const cIsometry3D<Type>  & anIsom)
 {
     return cIsometry3D<tREAL8>(  ToR(anIsom.Tr()) , ToReal8(anIsom.Rot())  );
+}
+
+template <class Type> cIsometry3D<Type> cIsometry3D<Type>::Centroid(const std::vector<tTypeMap> & aVI,const std::vector<Type> & aVW)
+{
+   std::vector<tRot> aVRot;
+   std::vector<tPt> aVTr;
+
+   for (const auto & anIsom : aVI)
+   {
+       aVRot.push_back(anIsom.mRot);
+       aVTr.push_back(anIsom.mTr);
+   }
+
+   cPt3dr aTr = MMVII::Centroid(aVTr,aVW);
+   tRot aRot = tRot::Centroid(aVRot,aVW);
+
+   return tTypeMap ( tPt(aTr.x(),aTr.y(),aTr.z()) ,aRot);
 }
 
 void AddData(const cAuxAr2007 & anAux,tRotR & aRot)
@@ -349,9 +383,7 @@ template <class Type> cRotation3D<Type> cRotation3D<Type>::operator * (const tTy
    return aRes;
 }
 
-template <class Type> 
-    cRotation3D<Type> 
-        cRotation3D<Type>::Centroid(const std::vector<cRotation3D<Type>> & aVR,const std::vector<double> & aVW)
+template <class Type> cRotation3D<Type> cRotation3D<Type>::Centroid(const std::vector<tTypeMap> & aVR,const std::vector<Type> & aVW)
 {
     MMVII_INTERNAL_ASSERT_tiny(aVR.size()==aVW.size(),"cRotation3D<Type>::Centroid");
 
@@ -891,6 +923,7 @@ void BenchSampleQuat()
 /*
 */
 #define MACRO_INSTATIATE_PTXD(TYPE)\
+template  cIsometry3D<TYPE>    TransfoPose(const cSimilitud3D<TYPE> & aSim,const cIsometry3D<TYPE> & aR);\
 template  cRotation3D<tREAL8>  ToReal8(const cRotation3D<TYPE>  & aRot);\
 template  cIsometry3D<tREAL8>  ToReal8(const cIsometry3D<TYPE>  & anIsom);\
 template class  cSimilitud3D<TYPE>;\
