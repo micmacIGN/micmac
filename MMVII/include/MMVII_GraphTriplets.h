@@ -8,6 +8,12 @@
 
 namespace MMVII
 {
+
+class c3G3_AttrOriented;
+class c3G3_AttrSym;
+class c3G3_AttrV;
+typedef cVG_Vertex<c3G3_AttrV, c3G3_AttrOriented,c3G3_AttrSym> t3G3_Vertex;
+
 /* ********************************************************* */
 /*                                                           */
 /*                     Graph of poses                        */
@@ -36,15 +42,17 @@ class c3GOP_AttrV
     public :
          c3GOP_AttrV(int aKIm,const tPoseR& aGTRand): mKIm (aKIm), mGTRand (aGTRand)          {}
 
-         cWhichMin<int,tREAL8>   mWMinTri;   /// for computing the triplet  with minimal cost it belongs to
-	 int                     mKIm;
-	 tPoseR                  mGTRand;   /// Random Ground-truth, for simul/check
+         cWhichMin<int,tREAL8>      mWMinTri;   /// for computing the triplet  with minimal cost it belongs to
+	 int                        mKIm;
+	 tPoseR                     mGTRand;   /// Random Ground-truth, for simul/check
+         std::vector<int>           mTriBelongs;      /// Triplet it belongs to
 };
 
 /// the symetric  attibute of cGroupGraph
 class c3GOP_AttrSym
 {
    public :
+        std::vector<tPoseR>   mListP;
 };
 
 /// the oriented attribute of cGroupGraph
@@ -53,7 +61,7 @@ class c3GOP_AttrOr
    public :
 };
 
-typedef cGroupGraph<tRotR,c3GOP_AttrV,c3GOP_AttrSym,c3GOP_AttrOr,c3GOP_1Hyp>       t3GOP;
+typedef cGroupGraph<tRotR,c3GOP_AttrV,c3GOP_AttrOr,c3GOP_AttrSym,c3GOP_1Hyp>       t3GOP;
 
 typedef typename t3GOP::tVertex                          t3GOP_Vertex;
 typedef typename t3GOP::tEdge                            t3GOP_Edge;
@@ -66,6 +74,7 @@ typedef typename t3GOP::tAttrS                           t3GOP_EdAttS;
 /* ********************************************************* */
 typedef std::array<t3GOP_Edge*,3>                           t3E_GOP;
 typedef std::array<t3GOP_Vertex*,3>                         t3V_GOP;
+
 
 /// Oriented edge-attribute of graph of triplet
 class c3G3_AttrOriented
@@ -119,9 +128,9 @@ class c3G3_AttrV
 
 typedef cVG_Graph<c3G3_AttrV, c3G3_AttrOriented,c3G3_AttrSym> t3G3_Graph;
 typedef cVG_Tree<t3G3_Graph>   t3G3_Tree;
-
 typedef t3G3_Graph::tEdge      t3G3_Edge;
-typedef t3G3_Graph::tVertex    t3G3_Vertex;
+//typedef cVG_Vertex<c3G3_AttrV, c3G3_AttrOriented,c3G3_AttrSym> t3G3_Vertex;
+//typedef t3G3_Graph::tVertex    t3G3_Vertex;
 
 
 

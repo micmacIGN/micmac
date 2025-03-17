@@ -16,6 +16,7 @@
 namespace MMVII
 {
 
+typedef std::pair<int,int>  tPairI;
 
 class cMakeArboTriplet;
 class cNodeArborTriplets;
@@ -26,6 +27,14 @@ class  cSolLocNode
         cSolLocNode(tPoseR aPose,int aNumPose) : mPose (aPose), mNumPose (aNumPose) {}
         tPoseR mPose;
 	int    mNumPose;
+};
+
+class cOneTripletMerge
+{
+    public :
+
+       std::vector<tPairI>  mVLink;
+       std::vector<tPairI>  mVCommon;
 };
 
 class cPairEstimTransfer
@@ -127,6 +136,10 @@ class  cNodeArborTriplets : public cMemCheck
         typedef  std::pair<tPoseR,tPoseR>  tPP;
 
     private :
+       cOneTripletMerge   MakeTriplet(const t3G3_Vertex & aVTri);
+
+
+        void ShowPose(const std::string & aPrefix) ;
 	void DoMerge();
         void MakeIndexSol();
         void FreeIndexSol();
@@ -171,10 +184,11 @@ class cMakeArboTriplet
          /// Activate the simulation mode
          void SetRand(const std::vector<tREAL8> &);
 
+
 	 tREAL8 WBalance() const {return mWBalance;}
 	 tREAL8 & CostMergeTree() {return mCostMergeTree;}
 
-         t3G3_Graph &       GO3() ;
+         t3G3_Graph &       GO3()  {return mGTriC;}
          t3GOP &            GOP()  {return mGGPoses;}
 
      private :
@@ -188,6 +202,7 @@ class cMakeArboTriplet
          t3GOP                   mGGPoses;
          t3G3_Graph              mGTriC;
          bool                    mDoRand;
+         bool                    mPerfectData;
 	 std::vector<tREAL8>     mLevelRand;
          cNodeArborTriplets *    mArbor;
          tREAL8                  mWBalance;
@@ -249,16 +264,21 @@ cNodeArborTriplets:: ~cNodeArborTriplets()
 
 
 
+void cNodeArborTriplets::ShowPose(const std::string & aPrefix) 
+{
+    std::vector<int> aVPose; GetPoses(aVPose);
+    StdOut() << aPrefix ;
+    for (int aK=0 ; aK< mLevel ; aK++)
+       StdOut() << " |" ;
+    StdOut() <<  aVPose << "\n";
+}
 
 
 void cNodeArborTriplets::Test_RecursiveMerge()
 {
    MMVII_INTERNAL_ASSERT_tiny((mChildren.at(0) == nullptr) == (mChildren.at(1) == nullptr),"Test_RecursiveMerge, assert on desc");
 
-    std::vector<int> aVPose; GetPoses(aVPose);
-    for (int aK=0 ; aK< mLevel ; aK++)
-       StdOut() << " |" ;
-    StdOut() <<  aVPose << "\n";
+    ShowPose("TRM");
 
     if (mChildren.at(0) == nullptr)
     {
@@ -319,11 +339,107 @@ void cNodeArborTriplets::FreeIndexSol()
    mLocSols.clear();
 }
 
+
+cOneTripletMerge  cNodeArborTriplets::MakeTriplet(const t3G3_Vertex & aVTri)
+{
+     cOneTripletMerge aResult;
+
+     cNodeArborTriplets & aN0 = *(mChildren.at(0));
+     cNodeArborTriplets & aN1 = *(mChildren.at(1));
+     std::vector<int>  aV0;
+     std::vector<int>  aV1;
+
+     for (size_t aK=0 ; aK<3 ; aK++)
+     {
+         int aKPose = aVTri.Attr().m3V.at(aK)->Attr().Attr().mKIm;
+         int aI0 =  aN0.mVIndexes.at(aKPose);
+         int aI1 =  aN1.mVIndexes.at(aKPose);
+
+         if ((aI0>=0) || (aI1>=0))
+         {
+             if ((aI0>=0) && (aI1>=0))
+             {
+                 aResult.mVCommon.push_back(tPairI(aI0,aI1));
+             }
+             else if (aI0>=0)
+             {
+                 aV0.push_back(aI0);
+             }
+             else
+             {
+                 aV1.push_back(aI1);
+             }
+         }
+     }
+
+     for (const auto & aI0 : aV0)
+         for (const auto & aI1 : aV1)
+             aResult.mVLink.push_back(tPairI(aI0,aI1));
+
+     return aResult;
+}
+
+
+
 void cNodeArborTriplets::DoMerge()
 {
      cNodeArborTriplets & aN0 = *(mChildren.at(0));
      cNodeArborTriplets & aN1 = *(mChildren.at(1));
+
+         ShowPose("DoMx :");
+     aN0.ShowPose("DoM0 :");
+     aN1.ShowPose("DoM1 :");
+
+
+
+     std::vector<tPairI>  aVPairCommon;  //  Store data for vertex present in 2 children
+     std::vector<tPairI>  aVPairLink2;   // store data for edges between 2 children (the 3 vertex being out)
+     std::vector<bool>               aSetIndexTri(mPMAT->GO3().NbVertex(),false);  // marqer to test triplet once
+     std::vector<bool>               aSetIndComN0(aN0.mLocSols.size(),false);      // marqer to have common vertex once
+     std::vector<cOneTripletMerge>    aVLink3;  // store triplet with 3 vertices doing the link
+
+     for (const auto & aSol0 : aN0.mLocSols)
+     {
+         const auto & aVertexPose = mPMAT->GOP().VertexOfNum(aSol0.mNumPose);
+         const c3GOP_AttrV aAttrPose = aVertexPose.Attr().Attr();
+         for (const auto & aNumTri : aAttrPose.mTriBelongs)
+         {
+             if (!aSetIndexTri.at(aNumTri))
+             {
+                 aSetIndexTri.at(aNumTri) = true;
+                 cOneTripletMerge  a1TM = MakeTriplet(mPMAT->GO3().VertexOfNum(aNumTri));
+                 for (const auto & [aI0,aI1] : a1TM.mVCommon)
+                 {
+                     if  (! aSetIndComN0.at(aI0))
+                     {
+                         aSetIndComN0.at(aI0) = true;
+                         aVPairCommon.push_back(tPairI(aI0,aI1));
+                     }
+                 }
+                 if ((! a1TM.mVLink.empty())  && (a1TM.mVCommon.empty()))
+                 {
+                     if (a1TM.mVLink.size() == 1)
+                     {
+                        aVPairLink2.push_back(a1TM.mVLink.at(0));
+                     }
+                     else
+                     {
+                        aVLink3.push_back(a1TM);
+                     }
+                 }
+             }
+         }
+     }
+     {
+         std::sort(aVPairLink2.begin(),aVPairLink2.end());
+         auto aEndUniqueLnk2 = std::unique(aVPairLink2.begin(),aVPairLink2.end());
+         aVPairLink2.resize(aEndUniqueLnk2 - aVPairLink2.begin());
+         StdOut() << "VVVVLinkKKK " << aVPairLink2 << " NB3=" <<   aVLink3.size() << "\n";
+     }
+
+
      std::vector<cPairEstimTransfer>   aVPP;
+
 
      for (const auto & aSol0 : aN0.mLocSols)
      {
@@ -376,8 +492,8 @@ void cNodeArborTriplets::DoMerge()
      for (const auto & aSol : mLocSols)
          StdOut() << " " << aSol.mNumPose;
      StdOut() << "\n";
-getchar();
 */
+getchar();
 
      // --------------------------------------
      for (auto & aChild :mChildren)
@@ -437,6 +553,7 @@ cMakeArboTriplet::cMakeArboTriplet(cTripletSet & aSet3,bool doCheck,tREAL8 aWBal
    mDoCheck     (doCheck),
    mGGPoses     (), // false=> not 4 simul
    mDoRand      (false),
+   mPerfectData (false),
    mLevelRand   {0.0,0.0},
    mArbor       (nullptr),
    mWBalance    (aWBalance)
@@ -451,6 +568,7 @@ void cMakeArboTriplet::SetRand(const std::vector<tREAL8> & aLevelRand)
 {
    mDoRand = true;
    mLevelRand = aLevelRand;
+   mPerfectData = (aLevelRand.at(0)==0) && ( (aLevelRand.at(1)==0));
 }
 
 
@@ -520,18 +638,22 @@ void cMakeArboTriplet::MakeGraphPose()
 
             aTriC.m3V[aK3] = &aV1;
 
-            // extract relative poses (eventually adapt when simul)
-	 
-            tRotR  aR1toW = aView1.Pose().Rot();
-            tRotR  aR2toW = aView2.Pose().Rot();
-            // formula forcomputing relative pose
+            // extract relative poses 
+            tPoseR  aP1toW = aView1.Pose();
+            tPoseR  aP2toW = aView2.Pose();
             //  Ori_2->1  = Ori_G->1  o Ori_2->G    ( PL2 -> PG -> PL1)
-            tRotR aR2to1 = aR1toW.MapInverse() * aR2toW;
+            tPoseR  aP2to1 = aP1toW.MapInverse()  *  aP2toW;
+	 
+            tRotR aR2to1 = aP2to1.Rot();          
 
             mGGPoses.AddHyp(aV1,aV2,aR2to1,1.0,c3GOP_1Hyp(aKT));
 
-            t3GOP_Edge * anE = aV1.EdgeOfSucc(aV2)->EdgeInitOr();
-            aTriC.mCnxE.at(aK3) = anE;
+            t3GOP_Edge * anE_12 = aV1.EdgeOfSucc(aV2);
+            t3GOP_Edge * anE_DirInit = anE_12->EdgeInitOr();
+            aTriC.mCnxE.at(aK3) = anE_DirInit;
+             
+            tPoseR aPoseEdge =  anE_12->IsDirInit()  ? aP2to1 : aP2to1.MapInverse();
+            anE_DirInit->AttrSym().Attr().mListP.push_back(aPoseEdge);
         }
    }
 }
@@ -552,6 +674,23 @@ void cMakeArboTriplet::DoClustering(int aNbMax,tREAL8 aDistCluster)
       aNbH0 += anAttr.ValuesInit().size();
       aNbHC += anAttr.ValuesClust().size();
       aNbE++;
+
+      const auto & aListP = anAttr.Attr().mListP;
+      if (!aListP.empty())
+      {
+          for (const auto & aP : aListP)
+          {
+              if (mPerfectData)
+              {
+                 tREAL8 aDTr =  Norm2(VUnit(aListP[0].Tr()) - VUnit(aP.Tr()));
+                 tREAL8 aDRot =  aListP[0].Rot().Mat().L2Dist(aP.Rot().Mat());
+
+                 MMVII_INTERNAL_ASSERT_tiny((aDRot<1e-5) && (aDTr<1e-5),"Test_RecursiveMerge, assert on desc");
+              }
+          }
+      }
+
+      StdOut() << " NBE=" << anAttr.Attr().mListP.size() << "\n";
    }
 
    StdOut() << "NBH/Edge , Init=" << aNbH0 /double(aNbE) << " Clustered=" << aNbHC/double(aNbE)  << "\n";
@@ -672,10 +811,15 @@ void cMakeArboTriplet::ComputeArbor()
 
    for (size_t aKTri=0; aKTri<mGTriC.NbVertex() ; aKTri++)
    {
-       auto & aAttrTrip  = mGTriC.VertexOfNum(aKTri).Attr();
-       tREAL8 aCost = aAttrTrip.mCostIntr;
+       auto & aTriVertex  = mGTriC.VertexOfNum(aKTri);
+       c3G3_AttrV & aAttrTriV  = aTriVertex.Attr();
+       tREAL8 aCost = aAttrTriV.mCostIntr;
        for (int aKV=0 ; aKV<3 ; aKV++)
-           aAttrTrip.m3V.at(aKV)->Attr().Attr().mWMinTri.Add(aKTri,aCost);
+       {
+           c3GOP_AttrV & aAttrPose = aAttrTriV.m3V.at(aKV)->Attr().Attr();
+           aAttrPose.mWMinTri.Add(aKTri,aCost);
+           aAttrPose.mTriBelongs.push_back(aKTri);
+       }
    }
    int aNbTripInit = 0;
    std::vector<t3G3_Vertex*> aVectTriMin;
