@@ -748,13 +748,21 @@ if (0)
     //
 
 
-void cAppliMICMAC::GenerateBoxesImEpip_EpipIm(std::vector<cGPU_LoadedImGeom *> & aVLI, std::string & aNameOrig)
+void cAppliMICMAC::GenerateBoxesImEpip_EpipIm(std::vector<cGPU_LoadedImGeom *> & aVLI, std::string & aNameOrig, bool Epip)
 {
   bool IsStenope= (GeomImages()==eGeomImageOri);
   bool IsGen    =  (GeomImages()==eGeomGen);
-
-  //if (IsStenope) GenerateGeoPassage_ImEpip_EpipIm_BBox_Stenope(aVLI,aNameOrig);
-  if (IsStenope) GenerateGeoPassage_Homography_BBox_Stenope(aVLI,aNameOrig);
+  if (IsStenope)
+  {
+      if (Epip)
+      {
+          GenerateGeoPassage_ImEpip_EpipIm_BBox_Stenope(aVLI,aNameOrig);
+      }
+      else
+      {
+          GenerateGeoPassage_Homography_BBox_Stenope(aVLI,aNameOrig);
+      }
+  }
   if (IsGen)     GenerateGeoPassage_ImEpip_EpipIm_BBox(aVLI,aNameOrig);
 }
 
@@ -3904,12 +3912,18 @@ void cAppliMICMAC::DoCorrelAdHoc
                  }
                  if (aMCOE.OrthFileModeleArch().IsInit())
                    {
-                     // save transformations from ORIG images to Epipolar images or homography corrected images
-                     if (
-                         aMCOE.OrthoResol().IsInit())
-                        // && (std::stof(aMCOE.OrthoResol().Val())==1.0)
+                         // save transformations from ORIG images to Epipolar images or homography corrected images
+                         if (aMCOE.OrthoResol().IsInit())
+                         {
+                             bool IsEpip=false;
+                             if (aMCOE.UseEpip().IsInit())
+                                {
+                                 IsEpip=aMCOE.UseEpip().Val();
 
-                     GenerateBoxesImEpip_EpipIm(mVLI,aPrefixGlobIm);
+                                }
+                            std::cout<<"EEPIIPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP   "<<IsEpip<<std::endl;
+                            GenerateBoxesImEpip_EpipIm(mVLI,aPrefixGlobIm,IsEpip);
+                         }
                    }
 
                  // export nappes sup et min
@@ -3929,46 +3943,46 @@ void cAppliMICMAC::DoCorrelAdHoc
 		  std::vector<Box2di>  aVecBoxDil;
 		  std::vector<Box2di>  aVecBoxUti;
 		  bool allOkZ=true;
-                  for (int aZ=aZ0 ; aZ<aZ1 ; aZ++)
-                  {
-                        std::string aPrefixZ =    aPrefixGlob + "_Z" + ToString(aZ-aZ0) ;
-                        bool OkZ= InitZRef(aZ,aZ0, aPrefixGlob,eModeNoMom); // create deformation maps
-                        allOkZ= allOkZ && OkZ;
-                        //std::cout<<"Init Z REF DONE !"<<std::endl;
-                        if (OkZ)
+          for (int aZ=aZ0 ; aZ<aZ1 ; aZ++)
+          {
+                std::string aPrefixZ =    aPrefixGlob + "_Z" + ToString(aZ-aZ0) ;
+                bool OkZ= InitZRef(aZ,aZ0, aPrefixGlob,eModeNoMom); // create deformation maps
+                allOkZ= allOkZ && OkZ;
+                //std::cout<<"Init Z REF DONE !"<<std::endl;
+                if (OkZ)
+                {
+                    Box2di  aBoxDil(Pt2di(mX0UtiDilTer,mY0UtiDilTer),Pt2di(mX1UtiDilTer,mY1UtiDilTer));
+                    Box2di  aBoxUti(Pt2di(mX0UtiTer,mY0UtiTer),Pt2di(mX1UtiTer,mY1UtiTer));
+
+                    // Memorize vector of boxes
+                    aVecBoxDil.push_back(aBoxDil);
+                    aVecBoxUti.push_back(aBoxUti);
+
+                    SaveIm(aPrefixZ+"_OkT.tif",mDOkTer,aBoxUti);
+                    //std::vector<std::vector<cGPU_LoadedImGeom *> > mVScaIm
+                    //  Save ortho and Masks  for all images
+                    for (int aKIm=0 ; aKIm<int(mVLI.size()) ; aKIm++)
                         {
-                            Box2di  aBoxDil(Pt2di(mX0UtiDilTer,mY0UtiDilTer),Pt2di(mX1UtiDilTer,mY1UtiDilTer));
-                            Box2di  aBoxUti(Pt2di(mX0UtiTer,mY0UtiTer),Pt2di(mX1UtiTer,mY1UtiTer));
-
-			    // Memorize vector of boxes
-			    aVecBoxDil.push_back(aBoxDil);
-			    aVecBoxUti.push_back(aBoxUti);
-
-                            SaveIm(aPrefixZ+"_OkT.tif",mDOkTer,aBoxUti);
-                            //std::vector<std::vector<cGPU_LoadedImGeom *> > mVScaIm
-			    //  Save ortho and Masks  for all images
-			    for (int aKIm=0 ; aKIm<int(mVLI.size()) ; aKIm++)
-                            {
-                                 for (int aKScale=0; aKScale<mNbScale ; aKScale++)
-                                 {
-                                     // cGPU_LoadedImGeom & aGLI_0 = *(mVLI[aKIm]);
-                                     cGPU_LoadedImGeom & aGLI_K =  *(mVScaIm[aKScale][aKIm]);
-                                     std::string aPrefixZIm = aPrefixZ + "_I" + ToString(aKIm) + "_S"+ ToString(aKScale);
-                                     //SaveIm(aPrefixZIm+"_O.tif",aGLI_K.DataOrtho(),aBoxDil);
-				     SaveIm(aPrefixZIm+"_M.tif",aGLI_K.DataOKOrtho(),aBoxDil);
-                                 }
-                            }
-
+                             for (int aKScale=0; aKScale<mNbScale ; aKScale++)
+                             {
+                                 // cGPU_LoadedImGeom & aGLI_0 = *(mVLI[aKIm]);
+                                 cGPU_LoadedImGeom & aGLI_K =  *(mVScaIm[aKScale][aKIm]);
+                                 std::string aPrefixZIm = aPrefixZ + "_I" + ToString(aKIm) + "_S"+ ToString(aKScale);
+                                 //SaveIm(aPrefixZIm+"_O.tif",aGLI_K.DataOrtho(),aBoxDil);
+                                 SaveIm(aPrefixZIm+"_M.tif",aGLI_K.DataOKOrtho(),aBoxDil);
+                             }
                         }
-			else
-			{
-                            // Generate information for no data
-			    aVecBoxDil.push_back(aBoxEmpty);
-			    aVecBoxUti.push_back(aBoxEmpty);
-                            std::string aNameNone  = aPrefixZ + "_NoData";
-			    ELISE_fp aFile(aNameNone.c_str(),ELISE_fp::WRITE);
-			    aFile.close();
-			}
+
+                }
+                else
+                {
+                    // Generate information for no data
+                    aVecBoxDil.push_back(aBoxEmpty);
+                    aVecBoxUti.push_back(aBoxEmpty);
+                                std::string aNameNone  = aPrefixZ + "_NoData";
+                    ELISE_fp aFile(aNameNone.c_str(),ELISE_fp::WRITE);
+                    aFile.close();
+                }
 		  }
 
 		  if (allOkZ) // sure to have already writtem images and grids to warp descriptors

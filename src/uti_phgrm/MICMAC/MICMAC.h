@@ -3571,7 +3571,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
            void DoInitAdHoc(const Box2di & aBox);
            void DoEstimWarpersPDVs();
            void DoEstimHomWarpers();
-           void GenerateBoxesImEpip_EpipIm(std::vector<cGPU_LoadedImGeom *> & aVLI, std::string & aNameOrig);
+           void GenerateBoxesImEpip_EpipIm(std::vector<cGPU_LoadedImGeom *> & aVLI, std::string & aNameOrig,bool Epip);
            void GenerateGeoPassage_ImEpip_EpipIm_BBox(std::vector<cGPU_LoadedImGeom *> & aVLI, std::string & aNameOrig);
            void GenerateGeoPassage_ImEpip_EpipIm_BBox_Stenope(std::vector<cGPU_LoadedImGeom *> & aVLI, std::string & aNameOrig);
            void GenerateGeoPassage_Homography_BBox_Stenope(std::vector<cGPU_LoadedImGeom *> & aVLI, std::string & aNameOrig);
