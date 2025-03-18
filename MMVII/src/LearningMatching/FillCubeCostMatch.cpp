@@ -589,6 +589,8 @@ void cAppliFillCubeCost::PushCost(double aCost)
    tU_INT2 aICost = round_ni(1e4*(std::max(0.0,std::min(1.0,aCost))));
    mFileCube->Write(aICost);
 }
+
+
 void cAppliFillCubeCost::PushCostdbl(double aCost)
 {
    mFileCube->Write(aCost);
@@ -1475,7 +1477,7 @@ int  cAppliFillCubeCost::Exe()
             //*****************************************************************************//
             //******************************using Corr1D einsum ***************************//
             //*****************************************************************************//
-            if (1)
+            if (0)
             {
                 // calculer le min sur les nappes
                 int  aMinZmin=1e8;
@@ -1506,8 +1508,6 @@ int  cAppliFillCubeCost::Exe()
                 LREmbeddingsR=F::normalize(LREmbeddingsR,F::NormalizeFuncOptions().p(2).dim(0));
                 auto aCorrelCube=torch::einsum("ijk,ijh->jkh",
                                                  {LREmbeddingsL,LREmbeddingsR}).contiguous();
-                aCorrelCube=aCorrelCube.div(torch::tensor({(float)FeatSize}));
-
 
                 auto end = std::chrono::system_clock::now();
                 std::chrono::duration<double>  elapsed_seconds = end-start;
@@ -1562,12 +1562,90 @@ int  cAppliFillCubeCost::Exe()
                         }
                     }
                 }
-
-
-
             }
 
+            //*****************************************************************************//
+            if (1)
+            {
+                // calculer le min sur les nappes
+                int  aMinZmin=1e8;
+                int  aMaxZmax=-1e8;
+                cPt2di aPix;
+                for (aPix.y()=0 ; aPix.y()<aSzL.y() ; aPix.y()++)
+                {
+                    for (aPix.x()=0 ; aPix.x()<aSzL.x() ; aPix.x()++)
+                    {
+                        if (aDZMin.GetV(aPix)<aMinZmin) aMinZmin=aDZMin.GetV(aPix);
+                        if (aDZMax.GetV(aPix)>aMaxZmax) aMaxZmax=aDZMax.GetV(aPix);
+                    }
+                }
+                // Construct a cube of features to be forwarded into the network
+                torch::Device TheAvailDevice(mUseCuda ? torch::kCUDA : torch::kCPU);
+                ELISE_ASSERT(aMaxZmax-aMinZmin, "PAX INTERVAL NULL !");
 
+                using namespace torch::indexing;
+                namespace F = torch::nn::functional;
+
+                auto start = std::chrono::system_clock::now();
+
+                // compute all possible correlation by dot product between feature vectors
+                LREmbeddingsL=F::normalize(LREmbeddingsL,F::NormalizeFuncOptions().p(2).dim(0));
+                LREmbeddingsR=F::normalize(LREmbeddingsR,F::NormalizeFuncOptions().p(2).dim(0));
+                auto aCorrelCube=torch::einsum("ijk,ijh->jkh",
+                                                 {LREmbeddingsL,LREmbeddingsR}).contiguous();
+                aCorrelCube=aCorrelCube.mul(-1.0).add(1.0).div(2.0);
+
+                auto end = std::chrono::system_clock::now();
+                std::chrono::duration<double>  elapsed_seconds = end-start;
+                std::cout << "similarity computation elapsed time: " << elapsed_seconds.count() << "s"
+                          << std::endl;
+
+                // aCorrelCube: H,W1,W2 : H: height, W1: Width image1, W2: Width image2
+
+                std::cout<<"GENERATED CUBE OF FEATURES "<<std::endl;
+
+                // Clear embeddings
+                LREmbeddingsL.resize_(at::IntArrayRef{0});
+                LREmbeddingsR.resize_(at::IntArrayRef{0});
+
+                // now fill MMV1 cost structure
+
+                // Refill tables defining layers of NAPPES WITH GENERATED CORREL
+                start = std::chrono::system_clock::now();
+                using namespace torch::indexing;
+                for (aPix.y()=0 ; aPix.y()<aSzL.y() ; aPix.y()++)
+                {
+                    for (aPix.x()=0 ; aPix.x()<aSzL.x() ; aPix.x()++)
+                    {
+                        cPt2di aPAbs = aPix + mP0Z;
+                        cPt2di aPC1  = aPAbs-mBoxGlob1.P0();
+                        cPt2di aPC20 = aPAbs-mBoxGlob2.P0();
+                        auto aSim=aCorrelCube.index({Slice(aPix.y(),aPix.y()+1,1),
+                                                       Slice(aPix.x(),aPix.x()+1,1),
+                                                       Slice(aPC20.x()+aDZMin.GetV(aPix),
+                                                             aPC20.x()+aDZMax.GetV(aPix)+1)}).squeeze().contiguous();
+
+                        std::vector<float> aVSim(aSim.data_ptr<float>(),
+                                                 aSim.data_ptr<float>() + aSim.numel());
+                        int id_sim=0;
+                        double aCost;
+                        for (int aDz=aDZMin.GetV(aPix) ; aDz<aDZMax.GetV(aPix) ; aDz++,id_sim++)
+                        {
+                            aCost=1.0;
+                            cPt2di aPC2Z(round_ni(aPC20.x()+aDz*this->StepZ()),aPC20.y());  // INTEG FOR NOW
+                            bool IsInside=WindInside4BL(this->DI1(),aPC1,aVMods[0]->mCNNWin)
+                                            && WindInside4BL(this->DI2(),aPC2Z,aVMods[0]->mCNNWin);
+                            if (IsInside)
+                                aCost=(double)aVSim[id_sim];
+                            PushCost(aCost);
+                        }
+                    }
+                }
+                end = std::chrono::system_clock::now();
+                elapsed_seconds = end-start;
+                std::cout << "cost access and pass to MMv1: " << elapsed_seconds.count() << "s"
+                          << std::endl;
+            }
 
             //*****************************************************************************//
             //*****************************************************************************//
