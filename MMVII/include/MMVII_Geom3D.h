@@ -219,6 +219,12 @@ template <class Type> class cIsometry3D
        tTypeMap  operator* (const tTypeMap &) const;
        static tTypeMap Identity();
 
+       ///  Distance with normalisation to unity on center, W= weight of center dist vs rot
+       Type DistPoseRel(const tTypeMap & aIsom2,const Type & aWTr) const;
+
+       ///  Idem but dont normalize to unity
+       Type DistPose(const tTypeMap & aIsom2,const Type & aWTr) const;
+
        /// Return Isometrie with given Rot such I(PTin) = I(PTout)
        static cIsometry3D<Type> FromRotAndInOut(const tRot &,const tPt& aPtIn,const tPt& aPtOut );
        /// Return Isome such thqt I(InJ) = OutK ;  In(InJJp1) // OutKKp1 ; In(Norm0) = NormOut

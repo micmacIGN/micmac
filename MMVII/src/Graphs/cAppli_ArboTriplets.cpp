@@ -33,8 +33,10 @@ class cOneTripletMerge
 {
     public :
 
-       std::vector<tPairI>  mVLink;
+       std::vector<tPairI>  mVLinkPose;
+       std::vector<tPairI>  mVLinkInTri;
        std::vector<tPairI>  mVCommon;
+       int                  mNumTri;
 };
 
 class cPairEstimTransfer
@@ -136,7 +138,19 @@ class  cNodeArborTriplets : public cMemCheck
         typedef  std::pair<tPoseR,tPoseR>  tPP;
 
     private :
-       cOneTripletMerge   MakeTriplet(const t3G3_Vertex & aVTri);
+        cOneTripletMerge   MakeTriplet(const t3G3_Vertex & aVTri);
+        tSim3dR EstimateSimTransfert
+                (
+                  const std::vector<tPairI>& aVPairCommon,
+                  const std::vector<tPairI>& aVPairLink2,
+                  const std::vector<cOneTripletMerge> &  aVLink3
+                );
+        tRotR EstimateRotTransfert
+              (
+                  const std::vector<tPairI>& aVPairCommon,
+                  const std::vector<tPairI>& aVPairLink2,
+                  const std::vector<cOneTripletMerge> &  aVLink3
+              );
 
 
         void ShowPose(const std::string & aPrefix) ;
@@ -191,6 +205,7 @@ class cMakeArboTriplet
          t3G3_Graph &       GO3()  {return mGTriC;}
          t3GOP &            GOP()  {return mGGPoses;}
 
+         bool  PerfectData() const {return mPerfectData;}
      private :
 
          int KSom(c3G3_AttrV* aTri,int aK123) const;
@@ -206,6 +221,7 @@ class cMakeArboTriplet
 	 std::vector<tREAL8>     mLevelRand;
          cNodeArborTriplets *    mArbor;
          tREAL8                  mWBalance;
+         tREAL8                  mWeightTr;
 
 	 tREAL8                  mCostMergeTree;
 };
@@ -343,11 +359,13 @@ void cNodeArborTriplets::FreeIndexSol()
 cOneTripletMerge  cNodeArborTriplets::MakeTriplet(const t3G3_Vertex & aVTri)
 {
      cOneTripletMerge aResult;
+     aResult.mNumTri = aVTri.Attr().mKT;
 
      cNodeArborTriplets & aN0 = *(mChildren.at(0));
      cNodeArborTriplets & aN1 = *(mChildren.at(1));
-     std::vector<int>  aV0;
-     std::vector<int>  aV1;
+
+     std::vector<tPairI>  aVPair0;
+     std::vector<tPairI>  aVPair1;
 
      for (size_t aK=0 ; aK<3 ; aK++)
      {
@@ -363,22 +381,150 @@ cOneTripletMerge  cNodeArborTriplets::MakeTriplet(const t3G3_Vertex & aVTri)
              }
              else if (aI0>=0)
              {
-                 aV0.push_back(aI0);
+                 aVPair0.push_back(tPairI(aK,aI0));
              }
              else
              {
-                 aV1.push_back(aI1);
+                 aVPair1.push_back(tPairI(aK,aI1));
              }
          }
      }
 
-     for (const auto & aI0 : aV0)
-         for (const auto & aI1 : aV1)
-             aResult.mVLink.push_back(tPairI(aI0,aI1));
+     for (const auto & [aK0,aI0] : aVPair0)
+     {
+         for (const auto & [aK1,aI1] : aVPair1)
+         {
+             aResult.mVLinkPose.push_back(tPairI(aI0,aI1));
+             aResult.mVLinkInTri.push_back(tPairI(aK0,aK1));
+         }
+     }
 
      return aResult;
 }
 
+
+tRotR  cNodeArborTriplets::EstimateRotTransfert
+             (
+                  const std::vector<tPairI>& aVPairCommon,
+                  const std::vector<tPairI>& aVPairLink2,
+                  const std::vector<cOneTripletMerge> &  aVLink3
+             )
+{
+    std::vector<tPoseR>   aVPose;
+    cNodeArborTriplets & aN0 = *(mChildren.at(0));
+    cNodeArborTriplets & aN1 = *(mChildren.at(1));
+
+    for (const auto & [aI0,aI1] : aVPairCommon)
+    {
+         const tPoseR  & aPI_to_W0 = aN0.mLocSols[aI0].mPose;  //  I -> W0
+         const tPoseR  & aPI_to_W1 = aN1.mLocSols[aI1].mPose;  //  I -> W1
+        //  Im->W0 * (Im->W1)-1 = W1->W0
+         tPoseR aP_W1_to_W0 =   aPI_to_W0 * aPI_to_W1.MapInverse();
+         aVPose.push_back(aP_W1_to_W0);
+    }
+
+    for (const auto & [aI0Loc,aI1Loc] : aVPairLink2)
+    {
+         const tPoseR  & aPI0_to_W0 = aN0.mLocSols[aI0Loc].mPose;  //  I0 -> W0
+         const tPoseR  & aPI1_to_W1 = aN1.mLocSols[aI1Loc].mPose;  //  I1 -> W1
+         int aI0Glob = aN0.mLocSols[aI0Loc].mNumPose;
+         int aI1Glob = aN1.mLocSols[aI1Loc].mNumPose;
+
+         t3GOP_Vertex & aV0 = mPMAT->GOP().VertexOfNum(aI0Glob);
+         t3GOP_Vertex & aV1 = mPMAT->GOP().VertexOfNum(aI1Glob);
+
+         t3GOP_Edge & aE01 =  *aV0.EdgeOfSucc(aV1);
+         tPoseR  aP_I1_to_I0 = aE01.AttrSym().Attr().mPoseRef2to1;
+         if (!aE01.IsDirInit())
+            aP_I1_to_I0 = aP_I1_to_I0.MapInverse();
+
+         tPoseR aP_W1_to_W0  =   aPI0_to_W0 *  aP_I1_to_I0   * aPI1_to_W1.MapInverse();
+
+         aVPose.push_back(aP_W1_to_W0);
+    }
+
+    for (const auto & aLnk3: aVLink3)
+    {
+        const cTriplet & a3 = *(mPMAT->GO3().VertexOfNum(aLnk3.mNumTri).Attr().mT0);
+        for (size_t aKL=0 ; aKL< aLnk3.mVLinkPose.size() ; aKL++)
+        {
+             const auto & [aI0Loc,aI1Loc] = aLnk3.mVLinkPose.at(aKL);
+             const auto & [aK0Tri,aK1Tri] = aLnk3.mVLinkInTri.at(aKL);
+             const tPoseR  & aPI0_to_W0 = aN0.mLocSols[aI0Loc].mPose;  //  I0 -> W0
+             const tPoseR  & aPI1_to_W1 = aN1.mLocSols[aI1Loc].mPose;  //  I1 -> W1
+
+             const tPoseR  & aPI0_to_Tri = a3.Pose(aK0Tri).Pose();
+             const tPoseR  & aPI1_to_Tri = a3.Pose(aK1Tri).Pose();
+             tPoseR aP_I1_to_I0 =  aPI0_to_Tri.MapInverse() * aPI1_to_Tri;
+
+             tPoseR aP_W1_to_W0  =   aPI0_to_W0 *  aP_I1_to_I0   * aPI1_to_W1.MapInverse();
+             aVPose.push_back(aP_W1_to_W0);
+        }
+    }
+
+    std::vector<tRotR>  aVRot;
+    std::vector<tREAL8> aVWeight;
+    for (const auto & aP : aVPose)
+    {
+       aVRot.push_back(aP.Rot());
+       aVWeight.push_back(1.0);
+    }
+    tRotR aRotEstim = tRotR::Centroid(aVRot,aVWeight);
+
+    StdOut()<<" COM="<< aVPairCommon <<" Liink= "<< aVPairLink2<<" NB3=" << aVLink3.size() << " R=" << aVPose.size() << "\n";
+    for (const auto & aP : aVPose)
+    {
+         tREAL8 aD = aRotEstim.Dist(aP.Rot());
+         StdOut() << "------ "  << aD << " ----------------\n";
+         if (mPMAT->PerfectData())
+            MMVII_INTERNAL_ASSERT_bench((aD<1e-5),"Rot-estimation on perfect data");
+    }
+
+    return aRotEstim;
+}
+
+
+tSim3dR cNodeArborTriplets::EstimateSimTransfert
+             (
+                  const std::vector<tPairI>& aVPairCommon,
+                  const std::vector<tPairI>& aVPairLink2,
+                  const std::vector<cOneTripletMerge> &  aVLink3
+             )
+{
+    typedef   std::vector<cCplIV<tREAL8>> tVIV;
+    typedef   cSparseVect<tREAL8>         tSV;
+
+
+    // StdOut() << " COM=" << aVPairCommon <<  " Liink= " << aVPairLink2 << " NB3=" <<   aVLink3.size()  << "\n";
+    tRotR aRot_W1_to_W0 = EstimateRotTransfert(aVPairCommon,aVPairLink2,aVLink3);
+
+    int aNbUnk = 4;
+
+    cLeasSqtAA<tREAL8> aSys(aNbUnk);
+    
+
+    cNodeArborTriplets & aN0 = *(mChildren.at(0));
+    cNodeArborTriplets & aN1 = *(mChildren.at(1));
+
+    for (const auto & [aI0,aI1] : aVPairCommon)
+    {
+         const tPoseR  & aPI_to_W0 = aN0.mLocSols[aI0].mPose;  //  I -> W0
+         const tPoseR  & aPI_to_W1 = aN1.mLocSols[aI1].mPose;  //  I -> W1
+
+         cPt3dr aC0 = aPI_to_W0.Tr();
+         cPt3dr aC1 = aRot_W1_to_W0.Value(aPI_to_W1.Tr());
+
+         for (int aKC=0 ; aKC<3 ; aKC++)
+            aSys.PublicAddObservation(1.0, tSV(tVIV {{aKC,1.0},{3,aC1[aKC]}} ),aC0[aKC]);
+    }
+
+
+    cDenseVect<tREAL8> aSol = aSys.PublicSolve();
+    tREAL8 aLambda = aSol(3);
+    cPt3dr aTr(aSol(0),aSol(1),aSol(2));
+
+    return tSim3dR(aLambda,aTr,aRot_W1_to_W0);
+}
 
 
 void cNodeArborTriplets::DoMerge()
@@ -389,8 +535,6 @@ void cNodeArborTriplets::DoMerge()
          ShowPose("DoMx :");
      aN0.ShowPose("DoM0 :");
      aN1.ShowPose("DoM1 :");
-
-
 
      std::vector<tPairI>  aVPairCommon;  //  Store data for vertex present in 2 children
      std::vector<tPairI>  aVPairLink2;   // store data for edges between 2 children (the 3 vertex being out)
@@ -406,6 +550,7 @@ void cNodeArborTriplets::DoMerge()
          {
              if (!aSetIndexTri.at(aNumTri))
              {
+
                  aSetIndexTri.at(aNumTri) = true;
                  cOneTripletMerge  a1TM = MakeTriplet(mPMAT->GO3().VertexOfNum(aNumTri));
                  for (const auto & [aI0,aI1] : a1TM.mVCommon)
@@ -416,11 +561,11 @@ void cNodeArborTriplets::DoMerge()
                          aVPairCommon.push_back(tPairI(aI0,aI1));
                      }
                  }
-                 if ((! a1TM.mVLink.empty())  && (a1TM.mVCommon.empty()))
+                 if ((! a1TM.mVLinkPose.empty())  && (a1TM.mVCommon.empty()))
                  {
-                     if (a1TM.mVLink.size() == 1)
+                     if (a1TM.mVLinkPose.size() == 1)
                      {
-                        aVPairLink2.push_back(a1TM.mVLink.at(0));
+                        aVPairLink2.push_back(a1TM.mVLinkPose.at(0));
                      }
                      else
                      {
@@ -434,9 +579,9 @@ void cNodeArborTriplets::DoMerge()
          std::sort(aVPairLink2.begin(),aVPairLink2.end());
          auto aEndUniqueLnk2 = std::unique(aVPairLink2.begin(),aVPairLink2.end());
          aVPairLink2.resize(aEndUniqueLnk2 - aVPairLink2.begin());
-         StdOut() << "VVVVLinkKKK " << aVPairLink2 << " NB3=" <<   aVLink3.size() << "\n";
      }
 
+     EstimateSimTransfert(aVPairCommon,aVPairLink2,aVLink3);
 
      std::vector<cPairEstimTransfer>   aVPP;
 
@@ -459,9 +604,16 @@ void cNodeArborTriplets::DoMerge()
          for (const auto & aPair : aVPP)
          {
              tPoseR  aQ1 =    TransfoPose(aSimTransfer,aPair.mP2);
+             tREAL8 aDist = aQ1.DistPose(aPair.mP1,1.0);
 
+             if (mPMAT->PerfectData())
+             {
+                 MMVII_INTERNAL_ASSERT_bench((aDist<1e-5),"Sim-Transfer on perfect data");
+             }
+
+             /*StdOut()  << " ddddDIST=" << aDist << "\n";
              StdOut()  << " Tr=" << Norm2(aPair.mP1.Tr() - aQ1.Tr()) ;
-             StdOut()  << " Rot=" << aPair.mP1.Rot().Mat().L2Dist(aQ1.Rot().Mat()) << "\n";
+             StdOut()  << " Rot=" << aPair.mP1.Rot().Mat().L2Dist(aQ1.Rot().Mat()) << "\n"; */
          }
      }
  
@@ -539,6 +691,28 @@ void cNodeArborTriplets::GetPoses(std::vector<int> & aResult)
    std::sort(aResult.begin(),aResult.end());
 }
 
+/* ********************************************************* */
+/*                                                           */
+/*                     c3GOP_AttrSym                         */
+/*                                                           */
+/* ********************************************************* */
+
+void c3GOP_AttrSym::ComputePoseRef(tREAL8 aWTr)
+{
+   cWhichMin<size_t,tREAL8> aWMin;
+
+   for (size_t aK1=0 ; aK1<mListP2to1.size() ; aK1++)
+   {
+       tREAL8 aSum = 0.0;
+       for (size_t aK2=0 ; aK2<mListP2to1.size() ; aK2++)
+       {
+           aSum += mListP2to1.at(aK1).DistPoseRel(mListP2to1.at(aK2),aWTr);
+       }
+       aWMin.Add(aK1,aSum);
+   }
+   mPoseRef2to1 = mListP2to1.at(aWMin.IndexExtre());
+}
+
 
 
 /* ********************************************************* */
@@ -556,7 +730,8 @@ cMakeArboTriplet::cMakeArboTriplet(cTripletSet & aSet3,bool doCheck,tREAL8 aWBal
    mPerfectData (false),
    mLevelRand   {0.0,0.0},
    mArbor       (nullptr),
-   mWBalance    (aWBalance)
+   mWBalance    (aWBalance),
+   mWeightTr    (0.5)
 {
 }
 
@@ -653,7 +828,7 @@ void cMakeArboTriplet::MakeGraphPose()
             aTriC.mCnxE.at(aK3) = anE_DirInit;
              
             tPoseR aPoseEdge =  anE_12->IsDirInit()  ? aP2to1 : aP2to1.MapInverse();
-            anE_DirInit->AttrSym().Attr().mListP.push_back(aPoseEdge);
+            anE_DirInit->AttrSym().Attr().mListP2to1.push_back(aPoseEdge);
         }
    }
 }
@@ -668,29 +843,29 @@ void cMakeArboTriplet::DoClustering(int aNbMax,tREAL8 aDistCluster)
    int aNbH0 = 0;
    int aNbHC = 0;
    int aNbE = 0;
-   for (const auto & anE : mGGPoses.AllEdges_DirInit())
+   for (auto & anE : mGGPoses.AllEdges_DirInit())
    {
-      const  t3GOP_EdAttS & anAttr =  anE->AttrSym();
+      t3GOP_EdAttS & anAttr =  anE->AttrSym();
       aNbH0 += anAttr.ValuesInit().size();
       aNbHC += anAttr.ValuesClust().size();
       aNbE++;
 
-      const auto & aListP = anAttr.Attr().mListP;
+      anAttr.Attr().ComputePoseRef(mWeightTr);
+      const auto & aListP = anAttr.Attr().mListP2to1;
       if (!aListP.empty())
       {
-          for (const auto & aP : aListP)
+          tPoseR aPoseRef = anAttr.Attr().mPoseRef2to1;
+          for (const auto & aPose : aListP)
           {
               if (mPerfectData)
               {
-                 tREAL8 aDTr =  Norm2(VUnit(aListP[0].Tr()) - VUnit(aP.Tr()));
-                 tREAL8 aDRot =  aListP[0].Rot().Mat().L2Dist(aP.Rot().Mat());
-
-                 MMVII_INTERNAL_ASSERT_tiny((aDRot<1e-5) && (aDTr<1e-5),"Test_RecursiveMerge, assert on desc");
+                 tREAL8 aDist = aPoseRef.DistPoseRel(aPose,1.0);
+                 MMVII_INTERNAL_ASSERT_bench((aDist<1e-5),"Pose reference on perfect data");
               }
           }
       }
 
-      StdOut() << " NBE=" << anAttr.Attr().mListP.size() << "\n";
+      StdOut() << " NBE=" << anAttr.Attr().mListP2to1.size() << "\n";
    }
 
    StdOut() << "NBH/Edge , Init=" << aNbH0 /double(aNbE) << " Clustered=" << aNbHC/double(aNbE)  << "\n";

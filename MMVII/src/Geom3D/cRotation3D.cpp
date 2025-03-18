@@ -126,6 +126,17 @@ template <class Type> cIsometry3D<Type>::cIsometry3D(const tPt& aTr,const cRotat
 {
 }
 
+template <class Type> Type cIsometry3D<Type>::DistPoseRel(const tTypeMap & aIsom2,const Type & aWTr) const
+{
+   return (aWTr * Norm2(VUnit(mTr)-VUnit(aIsom2.mTr)) + mRot.Dist(aIsom2.mRot)) / (1+aWTr);
+}
+
+template <class Type> Type cIsometry3D<Type>::DistPose(const tTypeMap & aIsom2,const Type & aWTr) const
+{
+   return (aWTr * Norm2(mTr-aIsom2.mTr) + mRot.Dist(aIsom2.mRot)) / (1+aWTr);
+}
+
+
 /*  As this method is provide on for serialization we initialize the rotation with null matrix so that
  *  any use drive quickly to absurd result if not error
  */

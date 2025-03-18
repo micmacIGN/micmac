@@ -52,7 +52,9 @@ class c3GOP_AttrV
 class c3GOP_AttrSym
 {
    public :
-        std::vector<tPoseR>   mListP;
+        std::vector<tPoseR>   mListP2to1;
+        void ComputePoseRef(tREAL8 aWTr);
+        tPoseR                mPoseRef2to1;
 };
 
 /// the oriented attribute of cGroupGraph
