@@ -17,6 +17,7 @@
 #include <pdal/Streamable.hpp>
 #include <pdal/PointView.hpp>
 #include <pdal/util/ProgramArgs.hpp>
+#include "ogrsf_frmts.h"
 
 #define WITH_MMV1_FUNCTION  false
 
@@ -2207,12 +2208,12 @@ template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & a
 
        for (pdal::PointId idx = 0; idx < point_view->size(); ++idx)
        {
-         auto Classif=point_view->getFieldAs<int>(Id::Classification, idx);
-         bool IsBuilding=(Classif==ClassificationTags().Building);
+         //auto Classif=point_view->getFieldAs<int>(Id::Classification, idx);
+         //bool IsBuilding=(Classif==ClassificationTags().Building);
          //bool IsGround=(Classif==ClassificationTags().Ground);
          //bool IsUnclassified=(Classif==ClassificationTags().Unclassified);
 
-         if ( IsBuilding) // || IsGround || IsUnclassified)
+         if ( 1) // || IsGround || IsUnclassified)
            {
              tPt aP(point_view->getFieldAs<tREAL8>(Id::X, idx),
                     point_view->getFieldAs<tREAL8>(Id::Y, idx),
@@ -2531,6 +2532,64 @@ template <class Type> void cTriangulation3D<Type>::SamplePts(const bool & target
     }
   else
     {
+
+        std::vector<cPt2dr> aVecPatchCenters;
+        // READ GeoJson File containing centers of patches to facilitate patch sampling
+
+        std::string NameGeoJson="/home/MAChebbi/Documents/RecalageLidarImage_MicMac_PDAL/centers.geojson";
+        GDALAllRegister();
+
+        GDALDataset *poDS = static_cast<GDALDataset*>(
+        GDALOpenEx( NameGeoJson.c_str(), GDAL_OF_VECTOR, NULL, NULL, NULL ));
+        if( poDS == NULL )
+        {
+            printf( "Open failed.\n" );
+            exit( 1 );
+        }
+
+        OGRLayer  *poLayer = poDS->GetLayerByName( "centers" );
+        poLayer->ResetReading();
+        OGRFeature *poFeature;
+        while( (poFeature = poLayer->GetNextFeature()) != NULL )
+        {
+            OGRGeometry *poGeometry = poFeature->GetGeometryRef();
+            if( poGeometry != NULL
+                && wkbFlatten(poGeometry->getGeometryType()) == wkbPoint )
+            {
+                OGRPoint *poPoint = (OGRPoint *) poGeometry;
+                cPt2dr aPt(poPoint->getX(), poPoint->getY());
+                aVecPatchCenters.push_back(aPt);
+                printf( "%.3f,%.3f\n", poPoint->getX(), poPoint->getY() );
+            }
+            else
+            {
+                printf( "no point geometry\n" );
+            }
+            OGRFeature::DestroyFeature( poFeature );
+        }
+        GDALClose( poDS );
+
+        // Determine Nearest LidarPoint By Tree Search
+
+        cBox2dr aBox = Box2D();
+
+        // indexation of all points
+        cTiling<cTil2DTri3D<Type> >  aTileAll(aBox,true,this->NbPts()/20,this);
+        for (size_t aKP=0 ; aKP<this->NbPts() ; aKP++)
+        {
+            aTileAll.Add(cTil2DTri3D<Type>(aKP));
+        }
+
+        // find nearest center and save index into mSelectedIds
+        for(const auto aPt: aVecPatchCenters)
+        {
+            auto aLIptr = aTileAll.GetObjAtDist(aPt,1.0);
+            for (const auto aPtr : aLIptr)
+            {
+                this->mVSelectedIds.push_back(aPtr->Ind());
+                break;
+            }
+        }
     }
 }
 
@@ -2545,7 +2604,7 @@ template <class Type>
            tREAL8 aThreshold
        )
 {
-  this->SamplePts(true,15);
+  this->SamplePts(false,15);
   cBox2dr aBox = Box2D();
 
   // indexation of all points

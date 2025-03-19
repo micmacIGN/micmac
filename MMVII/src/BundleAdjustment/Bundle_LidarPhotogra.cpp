@@ -82,17 +82,17 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
    if (mModeSim!=eImatchCrit::eDifRad)
    {
         // cBox2dr aBox = BoxOfTri(mTri);
-        cBox2dr aBox = mTri.Box2D();
+        //cBox2dr aBox = mTri.Box2D();
         // estimate the distance for computing patching assuming a uniform  distributio,
         // Pi d^ 2  /NbByP = Surf / NbTot
-        tREAL8 aDistMoy = std::sqrt(mNbPointByPatch *aBox.NbElem()/ (mTri.NbPts()*M_PI));
+       tREAL8 aDistMoy = 3.0;//std::sqrt(mNbPointByPatch *aBox.NbElem()/ (mTri.NbPts()*M_PI));
         tREAL8 aDistReject =  aDistMoy *1.5;
 
         //mTri.MakePatches(mLPatches,aDistMoy,aDistReject,35);
 
-        mTri.MakePatchesTargetted(mLPatches,aDistMoy,aDistReject,35, mVCam,0.75);
-        std::string NamePlyOut="./patches.ply";
-        mTri.PlyWriteSelected(NamePlyOut,mLPatches,false);
+        mTri.MakePatchesTargetted(mLPatches,aDistMoy,aDistReject,15, mVCam,0.75);
+        /*std::string NamePlyOut="./patches.ply";
+        mTri.PlyWriteSelected(NamePlyOut,mLPatches,false);*/
 
 
         StdOut() << "Patches: DistReject=" << aDistReject 
