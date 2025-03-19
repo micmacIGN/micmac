@@ -149,6 +149,7 @@ template <class Type> class cRotation3D
 
         /// this function must defined for differentiable group considered as variety
         static tTypeMap  Centroid(const std::vector<tTypeMap> & aV,const std::vector<Type> &);
+        tTypeMap  Centroid(const tTypeMap & aR2) const;
 
        //  0-> arround I, 1->arround J ...
         static cRotation3D RotArroundKthAxe(int aNum);

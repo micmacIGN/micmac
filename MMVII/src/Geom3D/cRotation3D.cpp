@@ -411,6 +411,11 @@ template <class Type> cRotation3D<Type> cRotation3D<Type>::Centroid(const std::v
     return cRotation3D<Type>(aMat,true);
 }
 
+template <class Type> cRotation3D<Type> cRotation3D<Type>::Centroid(const tTypeMap & aR2) const
+{
+    return Centroid(std::vector<tTypeMap>({*this,aR2}),std::vector<Type>({1.0,1.0}));
+}
+
 
 template <class Type> cPtxd<Type,3> cRotation3D<Type>::AxeI() const  {return tPt::Col(mMat,0);}
 template <class Type> cPtxd<Type,3> cRotation3D<Type>::AxeJ() const  {return tPt::Col(mMat,1);}
