@@ -546,7 +546,7 @@ tSim3dR cNodeArborTriplets::EstimateSimTransfert
 }
 
 
-tSim3dR   EstimateSimTransfert(const std::vector<tPoseR> & aV1,const std::vector<tPoseR> & aV2)
+std::pair<tREAL8,tSim3dR>   EstimateSimTransfertFromPoses(const std::vector<tPoseR> & aV1,const std::vector<tPoseR> & aV2)
 {
    MMVII_INTERNAL_ASSERT_tiny(aV1.size()==aV2.size(),"Diff size EstimateSimTransfert");
    MMVII_INTERNAL_ASSERT_tiny(aV1.size()>=2,"Not enough poses in EstimateSimTransfert");
@@ -556,7 +556,7 @@ tSim3dR   EstimateSimTransfert(const std::vector<tPoseR> & aV1,const std::vector
    for (size_t aKP=0 ; aKP<aV1.size() ; aKP++)
    {
        //  Sim *V2 ~ aV1  =>  Sim ~ aV1 * V2-1
-       aVR.push_back(aV1.at(aKP).Rot()*aV1.at(aKP).Rot().MapInverse());
+       aVR.push_back(aV1.at(aKP).Rot()*aV2.at(aKP).Rot().MapInverse());
        aVW.push_back(1.0);
    }
    tRotR aRot = tRotR::Centroid(aVR,aVW);
@@ -583,7 +583,10 @@ tSim3dR   EstimateSimTransfert(const std::vector<tPoseR> & aV1,const std::vector
    tREAL8 aLambda = aSol(3);
    cPt3dr aTr(aSol(0),aSol(1),aSol(2));
 */
-   return tSim3dR(aSol(3),cPt3dr(aSol(0),aSol(1),aSol(2)),aRot);
+   tSim3dR aSim(aSol(3),cPt3dr(aSol(0),aSol(1),aSol(2)),aRot);
+
+   return {aSys.VarCurSol(),aSim};
+   // return std::pair<atREAL8,tSim3dRSys.VarCurSol(),aSim>;
 }
  
 
@@ -599,6 +602,15 @@ void cNodeArborTriplets::CmpWithGT()
          aVComp.push_back(aSol.mPose);
          aVGt.push_back(mPMAT->GOP().VertexOfNum(aSol.mNumPose).Attr().Attr().mGTRand);
     }
+    auto [aRes,aSim] =  EstimateSimTransfertFromPoses(aVComp,aVGt);
+
+    for (size_t aKP=0 ; aKP<aVComp.size() ; aKP++)
+    {
+         tREAL8 aD = aVComp.at(aKP).DistPose(TransfoPose(aSim,aVGt.at(aKP)),1.0); 
+         StdOut() << "DDDDD :" << aD << "\n";
+    }
+
+    StdOut() << "CmpWithGTCmpWithGT :" << aRes << "\n";
 }
 
 void cNodeArborTriplets::MergeChildrenSol()
