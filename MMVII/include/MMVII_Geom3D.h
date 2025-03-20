@@ -149,7 +149,17 @@ template <class Type> class cRotation3D
 
         /// this function must defined for differentiable group considered as variety
         static tTypeMap  Centroid(const std::vector<tTypeMap> & aV,const std::vector<Type> &);
+        /// Average of 2 rotation
         tTypeMap  Centroid(const tTypeMap & aR2) const;
+
+        /// Select the pose minimizing the sum of distance to other
+        static tTypeMap  PseudoMediane(const std::vector<tTypeMap> & aV);
+        ///  Make a "robust" weighted average, starting from S0, W=[s0,A,B]-> 1/(1+R/s0^A)^B,defA=2, defB=1/A
+        static tTypeMap  RobustAvg(const std::vector<tTypeMap> & aV,const tTypeMap & , const std::vector<tREAL8> aWeight);
+        ///  Make an iterate robust estimator
+        static tTypeMap  RobustAvg(const std::vector<tTypeMap> & aV,const tTypeMap & , const std::vector<tREAL8> aWeight,int aNbIter);
+        ///  Call robust avh with PseudoMediane initialization
+        static tTypeMap  RobustMedAvg(const std::vector<tTypeMap> & aV,const std::vector<tREAL8> aWeight,int aNbIter);
 
        //  0-> arround I, 1->arround J ...
         static cRotation3D RotArroundKthAxe(int aNum);
@@ -308,6 +318,10 @@ template <class Type> class cSimilitud3D
 };
 typedef cSimilitud3D<tREAL8>  tSim3dR;
 template <class Type> cIsometry3D<Type>    TransfoPose(const cSimilitud3D<Type> & aSim,const cIsometry3D<Type> & aR);
+
+/// V1 and V2 being pose "identic" but in different repair, compute the transfer similitude that best align
+std::pair<tREAL8,tSim3dR>   EstimateSimTransfertFromPoses(const std::vector<tPoseR> & aV1,const std::vector<tPoseR> & aV2);
+
 
 
 /**  Class to store the devlopment planar of two adjacent faces      :          P2

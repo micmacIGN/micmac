@@ -113,6 +113,51 @@ template <class Type> cIsometry3D<Type>    TransfoPose(const cSimilitud3D<Type> 
 }
 
 
+/*  Future evolution , make a robust estimation
+      - ransac or other for rotation
+      - barodale or ransac or other for scale/trans
+*/
+std::pair<tREAL8,tSim3dR>   EstimateSimTransfertFromPoses(const std::vector<tPoseR> & aV1,const std::vector<tPoseR> & aV2)
+{
+   MMVII_INTERNAL_ASSERT_tiny(aV1.size()==aV2.size(),"Diff size EstimateSimTransfert");
+   MMVII_INTERNAL_ASSERT_tiny(aV1.size()>=2,"Not enough poses in EstimateSimTransfert");
+
+   // [1]  Estimate the rotation
+   std::vector<tRotR> aVR;
+   std::vector<tREAL8> aVW;
+   for (size_t aKP=0 ; aKP<aV1.size() ; aKP++)
+   {
+       //  Sim *V2 ~ aV1  =>  Sim ~ aV1 * V2-1
+       aVR.push_back(aV1.at(aKP).Rot()*aV2.at(aKP).Rot().MapInverse());
+       aVW.push_back(1.0);
+   }
+   tRotR aRot = tRotR::Centroid(aVR,aVW);
+
+   // [2] Estimate the scaling and translation
+   cLeasSqtAA<tREAL8> aSys(4);
+
+   for (size_t aKP=0 ; aKP<aV1.size() ; aKP++)
+   {
+         cPt3dr aC0 = aV1.at(aKP).Tr();
+         cPt3dr aC1 = aRot.Value(aV2.at(aKP).Tr());
+
+         //  C0 and C1 are two estimation of the center of the pose, they must be equal up
+         //  to the global transfert (Tr,Lambda) from W1 to W0
+         // 
+         for (int aKC=0 ; aKC<3 ; aKC++)
+         {
+           //  observtuion is :   aC0.x = Tr.x + Lambda aC1.x  (or .y .z)   
+            std::vector<cCplIV<tREAL8>> aVIV {{aKC,1.0},{3,aC1[aKC]}};   //  KC->num of Tr.{x,y,z}  ,  3 num of lambda
+            aSys.PublicAddObservation(1.0, cSparseVect<tREAL8>(aVIV),aC0[aKC]);
+         }
+   }
+   cDenseVect<tREAL8> aSol = aSys.PublicSolve();
+   tSim3dR aSim(aSol(3),cPt3dr(aSol(0),aSol(1),aSol(2)),aRot);
+
+   return {aSys.VarCurSol(),aSim};
+}
+
+
 
 /* ************************************************* */
 /*                                                   */
@@ -355,6 +400,27 @@ template <class Type> cRotation3D<Type>::cRotation3D(const tPt &aI,const tPt & a
 template <class Type> cRotation3D<Type>  cRotation3D<Type>::RotArroundKthAxe(int aNum)
 {
    return RotFromAxe(tPt::P1Coord(aNum,1.0),M_PI/2.0);
+}
+
+template <class Type> cRotation3D<Type> cRotation3D<Type>::PseudoMediane(const std::vector<tTypeMap> & aVI)
+{
+   int aNb = aVI.size();
+   cIm1D<tREAL8>  aIm(aNb,nullptr,eModeInitImage::eMIA_Null);
+   cDataIm1D<tREAL8> & aDIm = aIm.DIm();
+   for (int aX=0 ; aX<aNb; aX++)
+   {
+       for (int aY=0 ; aY<aX; aY++)
+       {
+           tREAL8 aD = aVI.at(aX).Dist( aVI.at(aY));
+           aDIm.AddV(aX,aD);
+           aDIm.AddV(aY,aD);
+       }
+   }
+   cWhichMin<int,tREAL8> aWMin;
+   for (int anX=0 ; anX<aNb; anX++)
+      aWMin.Add(anX,aDIm.GetV(anX));
+
+   return aVI.at(aWMin.IndexExtre());
 }
 
 

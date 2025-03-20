@@ -49,6 +49,8 @@ class  cNodeArborTriplets : public cMemCheck
 {
     public :
         typedef cNodeArborTriplets * tNodePtr;
+        typedef   std::vector<cCplIV<tREAL8>> tVIV;
+        typedef   cSparseVect<tREAL8>         tSV;
         //typedef  std::pair<tPoseR,tPoseR>  tPP;
 
         /// constructor, recursively split the tree, dont parallelize !
@@ -62,6 +64,10 @@ class  cNodeArborTriplets : public cMemCheck
 	void CmpWithGT();
 
     private :
+         void AddEqLink(cLinearOverCstrSys<tREAL8> *, int aKEq,
+                        const cPt3dr &aC0_In_W0, const cPt3dr &aC1_In_W0,
+                        const cPt3dr &aCTri0_In_W0, const cPt3dr &aCTri1_In_W0
+              );
          ///  compute the relative pose associated to pair of local index, eventually adpat to ordering
          tPoseR  PoseRelEdge(int aI0Loc,int aI1Loc) const;
 
@@ -330,14 +336,19 @@ tPoseR  cNodeArborTriplets::PoseRelEdge(int aI0Loc,int aI1Loc) const
     cNodeArborTriplets & aN0 = *(mChildren.at(0));
     cNodeArborTriplets & aN1 = *(mChildren.at(1));
 
-    int aI0Glob = aN0.mLocSols[aI0Loc].mNumPose;
+    // [1]  Extract the edge of the graph
+
+    int aI0Glob = aN0.mLocSols[aI0Loc].mNumPose;  //  Global numbers
     int aI1Glob = aN1.mLocSols[aI1Loc].mNumPose;
 
-    t3GOP_Vertex & aV0 = mPMAT->GOP().VertexOfNum(aI0Glob);
+    t3GOP_Vertex & aV0 = mPMAT->GOP().VertexOfNum(aI0Glob); // Vertices
     t3GOP_Vertex & aV1 = mPMAT->GOP().VertexOfNum(aI1Glob);
 
-    t3GOP_Edge & aE01 =  *aV0.EdgeOfSucc(aV1);
+    t3GOP_Edge & aE01 =  *aV0.EdgeOfSucc(aV1);  // the corresponding edge
+    
+    // [2]  Extract the "Reference" pose *
     tPoseR  aResult = aE01.AttrSym().Attr().mPoseRef2to1;
+    //and eventually correct from sens
     if (!aE01.IsDirInit())
        return aResult.MapInverse();
 
@@ -352,21 +363,25 @@ tRotR  cNodeArborTriplets::EstimateRotTransfert
              )
 {
     // store all the individual transfer, note that as they are defined up to a scale, the translation cannot be used directly
-    std::vector<tPoseR>   aVecTransfPose;  
+    std::vector<tPoseR>   aVecTransf_W1_to_W0;
     cNodeArborTriplets & aN0 = *(mChildren.at(0));
     cNodeArborTriplets & aN1 = *(mChildren.at(1));
 
-    // [1]   Extrac transfer from comon poses
+    // *****************************************************************************
+    //  A :  Compute all the possible "transfer-rotation" using the 3 possibilities
+    // *****************************************************************************
+
+    // [A.1]   Extrac transfer from comon poses
     for (const auto & [aI0,aI1] : aVPairCommon)
     {
          const tPoseR  & aPI_to_W0 = aN0.mLocSols[aI0].mPose;  //  I -> W0
          const tPoseR  & aPI_to_W1 = aN1.mLocSols[aI1].mPose;  //  I -> W1
         //  Im->W0 * (Im->W1)-1 = W1->W0
          tPoseR aP_W1_to_W0 =   aPI_to_W0 * aPI_to_W1.MapInverse();
-         aVecTransfPose.push_back(aP_W1_to_W0);
+         aVecTransf_W1_to_W0.push_back(aP_W1_to_W0);
     }
 
-    // [2]   Extrac transfer from edge-link (pair not included in a triplet fully include)
+    // [A.2]   Extrac transfer from edge-link (pair not included in a triplet fully include)
     for (const auto & [aI0Loc,aI1Loc] : aVPairLink2)
     {
          const tPoseR  & aPI0_to_W0 = aN0.mLocSols[aI0Loc].mPose;  //  I0 -> W0
@@ -376,10 +391,10 @@ tRotR  cNodeArborTriplets::EstimateRotTransfert
          //   (I0-> W0) * (I1->I0) * (W1->I1) =  W1->W0
          tPoseR aP_W1_to_W0  =   aPI0_to_W0 *  aP_I1_to_I0   * aPI1_to_W1.MapInverse();
 
-         aVecTransfPose.push_back(aP_W1_to_W0);
+         aVecTransf_W1_to_W0.push_back(aP_W1_to_W0);
     }
 
-    // [3]  Extract transfer from linking-triplet fully includes in the 2 children
+    // [A.3]  Extract transfer from linking-triplet fully includes in the 2 children
     for (const auto & aLnk3: aVLink3)
     {
         // initial triplet, contain the relative poses
@@ -388,7 +403,7 @@ tRotR  cNodeArborTriplets::EstimateRotTransfert
         {
              // [3.1]  extract the realtive pose , and mapping I1 coord-> I0 Coord
              const auto & [aK0Tri,aK1Tri] = aLnk3.mVLinkInTri.at(aKL); // num in triplet , [0,1,2]
-             const tPoseR  & aPI0_to_Tri = a3.Pose(aK0Tri).Pose();
+             const tPoseR  & aPI0_to_Tri = a3.Pose(aK0Tri).Pose();  // Map Coord Im -> coord triplet
              const tPoseR  & aPI1_to_Tri = a3.Pose(aK1Tri).Pose();
              //  transfer mapping "I1,coord->I0,coord"  :  (Tri->I0) *  (I1->Tri) =  I1->I0
              tPoseR aP_I1_to_I0 =  aPI0_to_Tri.MapInverse() * aPI1_to_Tri;
@@ -400,26 +415,31 @@ tRotR  cNodeArborTriplets::EstimateRotTransfert
 
              // estimation of transfer mapping World1-coord -> Word0-coord
              tPoseR aP_W1_to_W0  =   aPI0_to_W0 *  aP_I1_to_I0   * aPI1_to_W1.MapInverse();
-             aVecTransfPose.push_back(aP_W1_to_W0);
+             aVecTransf_W1_to_W0.push_back(aP_W1_to_W0);
         }
     }
+
+    // *****************************************************************************
+    //  [B]   Compute the global rotation transfer
+    // *****************************************************************************
 
     // extract a global estimation of the rotation, do it basically for now with centroid, 
     // to replace by robust estimation ,
     std::vector<tRotR>  aVRot;
     std::vector<tREAL8> aVWeight;
-    for (const auto & aP : aVecTransfPose)
+    for (const auto & aP : aVecTransf_W1_to_W0)
     {
        aVRot.push_back(aP.Rot());
        aVWeight.push_back(1.0);
     }
-    tRotR aRotEstim = tRotR::Centroid(aVRot,aVWeight);  // averaging estmator ...
+    // tRotR aRotEstim = tRotR::Centroid(aVRot,aVWeight);  // averaging estmator ...
+    tRotR aRotEstim = tRotR::PseudoMediane(aVRot);  // robust estimator
 
-    // some msg and check with perfect data
-    StdOut()<<" COM="<< aVPairCommon <<" Liink= "<< aVPairLink2<<" NB3=" << aVLink3.size() << " NbPose=" << aVecTransfPose.size() << "\n";
+    // some msg and check with perfect data that all rotation estimation are close to each other
+    StdOut()<<" COM="<< aVPairCommon <<" Liink= "<< aVPairLink2<<" NB3=" << aVLink3.size() << " NbTransPose=" << aVecTransf_W1_to_W0.size() << "\n";
     if (mPMAT->PerfectData())
     {
-       for (const auto & aP : aVecTransfPose)
+       for (const auto & aP : aVecTransf_W1_to_W0)
        {
             tREAL8 aD = aRotEstim.Dist(aP.Rot());
             MMVII_INTERNAL_ASSERT_bench((aD<1e-5),"Rot-estimation on perfect data");
@@ -429,6 +449,29 @@ tRotR  cNodeArborTriplets::EstimateRotTransfert
     return aRotEstim;
 }
 
+void cNodeArborTriplets::AddEqLink
+     (
+          cLinearOverCstrSys<tREAL8> * aSys, int aKEq,
+          const cPt3dr &aC0_in_W0, const cPt3dr &aC1_in_W0,
+          const cPt3dr &aCTri0_in_W0, const cPt3dr &aCTri1_in_W0
+     )
+{
+   for (int aKC=0 ; aKC<3 ; aKC++)
+   {
+       // Add the equation that force first center triplet to be equal to C0 after transfering with the unknown of triplet
+       //  TrTri and LambdaTri that are stored at aKEq,aKEq+1,..,aKEq+3
+       //   aC0_in_W0  = TrTri + LambdaTri * aCTri0_In_W0
+       tVIV aSV0 {{aKEq+aKC,1.0},{aKEq+3,aCTri0_in_W0[aKC]}} ;
+       aSys->PublicAddObservation(1.0, tSV(aSV0 ),aC0_in_W0[aKC]);
+
+       // idem for second vertex but must take into account the the transfer W1->W0
+       //   Tr + Lambda * aC1_in_W0  = TrTri + LambdaTri * aCTri1_In_W0
+       tVIV aSV1 {    {aKEq+aKC,1.0},{aKEq+3,aCTri1_in_W0[aKC]},  // TrTri + LambdaTri * aCTri1_In_W0
+                               {aKC,-1.0},{3,-aC1_in_W0[aKC]}              // - (  Tr + Lambda * aC1_in_W0)
+                 };
+       aSys->PublicAddObservation(1.0, tSV(aSV1 ),0.0);
+     }
+}
 
 tSim3dR cNodeArborTriplets::EstimateSimTransfert
              (
@@ -438,9 +481,10 @@ tSim3dR cNodeArborTriplets::EstimateSimTransfert
              )
 {
     // [0]  some preliminary stuff
-    typedef   std::vector<cCplIV<tREAL8>> tVIV;
-    typedef   cSparseVect<tREAL8>         tSV;
+    // typedef   std::vector<cCplIV<tREAL8>> tVIV;
+    // typedef   cSparseVect<tREAL8>         tSV;
     bool  withLnk2=true;
+    bool  withLnk3=true;
 
     cNodeArborTriplets & aN0 = *(mChildren.at(0));
     cNodeArborTriplets & aN1 = *(mChildren.at(1));
@@ -459,28 +503,34 @@ tSim3dR cNodeArborTriplets::EstimateSimTransfert
 
     // [2] initialize the solver
     int aNbUnk = 4;
+    // for each edge, there is 4 unkown to fix arbitrary scale/trans od the edge
     if (withLnk2)
        aNbUnk += aVPairLink2.size() * 4;
-    // cLinearOverCstrSys<tREAL8> * aSys = new cLeasSqtAA<tREAL8>(aNbUnk);
-    cLinearOverCstrSys<tREAL8> * aSys = AllocL1_Barrodale<tREAL8>(aNbUnk);
+    // for each triplet with again 4 unknwon
+    if (withLnk3)
+       aNbUnk += aVLink3.size() * 4;
+
+    cLinearOverCstrSys<tREAL8> * aSys = new cLeasSqtAA<tREAL8>(aNbUnk);
+    //cLinearOverCstrSys<tREAL8> * aSys = AllocL1_Barrodale<tREAL8>(aNbUnk);
     
 
     // [3]   Add the equation corresponding to common pose
     for (const auto & [aI0Loc,aI1Loc] : aVPairCommon)
     {
-         cPt3dr aC0 = aN0.mLocSols[aI0Loc].mPose.Tr();
-         cPt3dr aC1 = aN1.mRotateLS[aI1Loc].mPose.Tr();
+         cPt3dr aC0 = aN0.mLocSols[aI0Loc].mPose.Tr();  // Centre of I in W0
+         cPt3dr aC1 = aN1.mRotateLS[aI1Loc].mPose.Tr(); // centre of I in W1 after rotation W0->W1
 
          //  C0 and C1 are two estimation of the center of the pose, they must be equal up
          //  to the global transfert (Tr,Lambda) from W1 to W0
          // 
          for (int aKC=0 ; aKC<3 ; aKC++)
          {
-           //  observtuion is :   aC0 = Tr + Lambda aC1   
+           //  observauion is :   aC0.{x,y,z} = Tr{x,y,z} + Lambda aC1.{x,y,z}   
             tVIV aVIV {{aKC,1.0},{3,aC1[aKC]}};   //  KC->num of Tr.{x,y,z}  ,  3 num of lambda
             aSys->PublicAddObservation(1.0, tSV(aVIV),aC0[aKC]);
          }
     }
+    // count the current position of equation for edge/triplet
     int aKEq = 4;
 
     // [4]   Add the equation corresponding to edge links, for each pair we have two equation that involves
@@ -489,16 +539,17 @@ tSim3dR cNodeArborTriplets::EstimateSimTransfert
     {
         for (const auto & [aI0Loc,aI1Loc] : aVPairLink2)
         {
-             const tPoseR  & aPI0_to_W0 = aN0.mLocSols[aI0Loc].mPose;  //  I0 -> W0
-             const tPoseR  & aPI1_to_W1 = aN1.mRotateLS[aI1Loc].mPose;  //  I1 -> W1
+             const tPoseR  & aPI0_to_W0 = aN0.mLocSols[aI0Loc].mPose;  //  Pose/Mappoing  I0 -> W0
+             const tPoseR  & aPI1_to_W1 = aN1.mRotateLS[aI1Loc].mPose;  // Pose/Mappoing  I1 -> W1  (after rotation)
 
-             cPt3dr aC0_in_W0  = aPI0_to_W0.Tr();
+             cPt3dr aC0_in_W0  = aPI0_to_W0.Tr();  // extract centers
              cPt3dr aC1_in_W0  = aPI1_to_W1.Tr();
 
-             tPoseR  aPI0_toTri = tPoseR::Identity();  // just to symetrize the process with PI1
-             tPoseR  aPI1_toTri = PoseRelEdge(aI0Loc,aI1Loc);
+             tPoseR  aPI1_toTri = PoseRelEdge(aI0Loc,aI1Loc);  // pose of I1 in triplet
+             tPoseR  aPI0_toTri = tPoseR::Identity();         // just to symetrize the process with PI1
 
-             tRotR aR_Tri_to_W0; // for the center of the edge we must first alignate the orientation of  the pose with W0
+             // for the center of the edge we must first align the orientation of  the pose with W0
+             tRotR aR_Tri_to_W0;   // rotation Triplet/Edge  ->  W0
              {
                   // we can use I0 or I1 for this computation, the result should be equivalent -> do the average
                   tRotR  aR0_Tri_to_W0 = aPI0_to_W0.Rot() * aPI0_toTri.Rot().MapInverse();
@@ -512,28 +563,70 @@ tSim3dR cNodeArborTriplets::EstimateSimTransfert
                   }
              }
 
+
              // "transer" the centers of triplet in the W0
              cPt3dr aCTri0_In_W0 = aR_Tri_to_W0.Value(aPI0_toTri.Tr());
              cPt3dr aCTri1_In_W0 = aR_Tri_to_W0.Value(aPI1_toTri.Tr());
 
-             for (int aKC=0 ; aKC<3 ; aKC++)
-             {
-                // Add the equation that force first center triplet to be equal to C0 after transfering with the unknown of triplet
-                //  TrTri and LambdaTri that are stored at aKEq,aKEq+1,..,aKEq+3
-                //   aC0_in_W0  = TrTri + LambdaTri * aCTri0_In_W0
-                tVIV aSV0 {{aKEq+aKC,1.0},{aKEq+3,aCTri0_In_W0[aKC]}} ;
-                aSys->PublicAddObservation(1.0, tSV(aSV0 ),aC0_in_W0[aKC]);
-
-                // idem for second vertex but must take into account the the transfer W1->W0
-                //   Tr + Lambda * aC1_in_W0  = TrTri + LambdaTri * aCTri1_In_W0
-                tVIV aSV1 {    {aKEq+aKC,1.0},{aKEq+3,aCTri1_In_W0[aKC]},  // TrTri + LambdaTri * aCTri1_In_W0
-                               {aKC,-1.0},{3,-aC1_in_W0[aKC]}              // - (  Tr + Lambda * aC1_in_W0)
-                          };
-                aSys->PublicAddObservation(1.0, tSV(aSV1 ),0.0);
-             }
-
+             AddEqLink(aSys,aKEq,aC0_in_W0,aC1_in_W0,aCTri0_In_W0,aCTri1_In_W0);
              aKEq += 4;
         }
+    }
+
+    // [5]  Add the equation corresponding to triplet
+    if (withLnk3)
+    {
+       for (const auto & aLnk3: aVLink3)
+       {
+           const c3G3_AttrV & anAttr = mPMAT->GO3().VertexOfNum(aLnk3.mNumTri).Attr();
+           // initial triplet, contain the relative poses
+           const cTriplet & a3 = *(anAttr.mT0);
+
+            // [5.1]  Compute the transfer rotation from Tri->W0
+           std::vector<tRotR>  aVEstimTriToV0;
+           for (int aKIn3=0 ; aKIn3<3 ; aKIn3++)
+           {
+               tPoseR aPIK_to_W0;  // Pose Im-> W0
+               int aNumImG = anAttr.m3V.at(aKIn3)->Attr().Attr().mKIm  ;  //  Num Image Glob
+               int aLocNum0 = aN0.mTabGlob2LocInd.at(aNumImG); // Num in W0
+               if (aLocNum0>=0)
+                   aPIK_to_W0 = aN0.mLocSols.at(aLocNum0).mPose;
+               else
+               {
+                   int aLocNum1 = aN1.mTabGlob2LocInd.at(aNumImG);
+                   aPIK_to_W0 = aN1.mRotateLS.at(aLocNum1).mPose;
+               }
+               const tPoseR  & aPIk_to_Tri = a3.Pose(aKIn3).Pose();
+
+               tPoseR  aP_Tri_to_W0 =   aPIK_to_W0 * aPIk_to_Tri.MapInverse();
+               aVEstimTriToV0.push_back(aP_Tri_to_W0.Rot());
+           }
+           tRotR  aR_Tri_to_W0 = tRotR::Centroid(aVEstimTriToV0,{1.0,1.0,1.0});
+
+           if (mPMAT->PerfectData())
+           {
+               for (int aKIn3=0 ; aKIn3<3 ; aKIn3++)
+               {
+                   tREAL8 aD = aR_Tri_to_W0.Dist(aVEstimTriToV0.at(aKIn3));
+                   MMVII_INTERNAL_ASSERT_bench((aD<1e-5),"Transfer Triple->W0 on perfect data");
+               }
+           }
+
+           // [5.2]  now add the equation ...
+           for (size_t aKL=0 ; aKL< aLnk3.mVLinkPose.size() ; aKL++)  // parse the 2 links
+           {
+                 const auto & [aK0Tri,aK1Tri] = aLnk3.mVLinkInTri.at(aKL); // num in triplet , [0,1,2]
+                 cPt3dr aCTri0_In_W0 = aR_Tri_to_W0.Value(a3.Pose(aK0Tri).Pose().Tr());
+                 cPt3dr aCTri1_In_W0 = aR_Tri_to_W0.Value(a3.Pose(aK1Tri).Pose().Tr());
+
+                 const auto & [aI0Loc,aI1Loc] = aLnk3.mVLinkPose.at(aKL);
+                 cPt3dr  aC0_in_W0 = aN0.mLocSols.at (aI0Loc).mPose.Tr();
+                 cPt3dr  aC1_in_W0 = aN1.mRotateLS.at(aI1Loc).mPose.Tr();
+
+                 AddEqLink(aSys,aKEq,aC0_in_W0,aC1_in_W0,aCTri0_In_W0,aCTri1_In_W0);
+           }
+           aKEq += 4;
+       }
     }
 
     cDenseVect<tREAL8> aSol = aSys->PublicSolve();
@@ -546,49 +639,6 @@ tSim3dR cNodeArborTriplets::EstimateSimTransfert
 }
 
 
-std::pair<tREAL8,tSim3dR>   EstimateSimTransfertFromPoses(const std::vector<tPoseR> & aV1,const std::vector<tPoseR> & aV2)
-{
-   MMVII_INTERNAL_ASSERT_tiny(aV1.size()==aV2.size(),"Diff size EstimateSimTransfert");
-   MMVII_INTERNAL_ASSERT_tiny(aV1.size()>=2,"Not enough poses in EstimateSimTransfert");
-
-   std::vector<tRotR> aVR;
-   std::vector<tREAL8> aVW;
-   for (size_t aKP=0 ; aKP<aV1.size() ; aKP++)
-   {
-       //  Sim *V2 ~ aV1  =>  Sim ~ aV1 * V2-1
-       aVR.push_back(aV1.at(aKP).Rot()*aV2.at(aKP).Rot().MapInverse());
-       aVW.push_back(1.0);
-   }
-   tRotR aRot = tRotR::Centroid(aVR,aVW);
-   
-   cLeasSqtAA<tREAL8> aSys(4);
-
-   for (size_t aKP=0 ; aKP<aV1.size() ; aKP++)
-   {
-         cPt3dr aC0 = aV1.at(aKP).Tr();
-         cPt3dr aC1 = aRot.Value(aV2.at(aKP).Tr());
-
-         //  C0 and C1 are two estimation of the center of the pose, they must be equal up
-         //  to the global transfert (Tr,Lambda) from W1 to W0
-         // 
-         for (int aKC=0 ; aKC<3 ; aKC++)
-         {
-           //  observtuion is :   aC0 = Tr + Lambda aC1   
-            std::vector<cCplIV<tREAL8>> aVIV {{aKC,1.0},{3,aC1[aKC]}};   //  KC->num of Tr.{x,y,z}  ,  3 num of lambda
-            aSys.PublicAddObservation(1.0, cSparseVect<tREAL8>(aVIV),aC0[aKC]);
-         }
-   }
-   cDenseVect<tREAL8> aSol = aSys.PublicSolve();
-/*
-   tREAL8 aLambda = aSol(3);
-   cPt3dr aTr(aSol(0),aSol(1),aSol(2));
-*/
-   tSim3dR aSim(aSol(3),cPt3dr(aSol(0),aSol(1),aSol(2)),aRot);
-
-   return {aSys.VarCurSol(),aSim};
-   // return std::pair<atREAL8,tSim3dRSys.VarCurSol(),aSim>;
-}
- 
 
 void cNodeArborTriplets::CmpWithGT()
 {
@@ -607,10 +657,11 @@ void cNodeArborTriplets::CmpWithGT()
     for (size_t aKP=0 ; aKP<aVComp.size() ; aKP++)
     {
          tREAL8 aD = aVComp.at(aKP).DistPose(TransfoPose(aSim,aVGt.at(aKP)),1.0); 
-         StdOut() << "DDDDD :" << aD << "\n";
+         if (mPMAT->PerfectData())
+         {
+            MMVII_INTERNAL_ASSERT_bench((aD<1e-5),"Sim-Transfer on perfect data");
+         }
     }
-
-    StdOut() << "CmpWithGTCmpWithGT :" << aRes << "\n";
 }
 
 void cNodeArborTriplets::MergeChildrenSol()
