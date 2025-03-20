@@ -564,6 +564,7 @@ template <class T> inline cPtxd<tREAL8,4> ToR(const cPtxd<T,4> & aP) {return cPt
 template <class T> inline cPtxd<tREAL4,2> ToF(const cPtxd<T,2> & aP) {return cPtxd<tREAL4,2>(aP.x(),aP.y());}
 
 template <class T,const int Dim> cPtxd<tREAL8,Dim> Centroid(const std::vector<cPtxd<T,Dim> > & aVPts);
+template <class T,const int Dim> cPtxd<tREAL8,Dim> Centroid(const std::vector<cPtxd<T,Dim>>&,const std::vector<T>&);
 template <class T,const int Dim> cPtxd<T,Dim> Centroid(T aW0,const cPtxd<T,Dim> & aP0,const cPtxd<T,Dim> & aP1);
 template <class T,const int Dim> cPtxd<T,Dim> Centroid(T aW0,const cPtxd<T,Dim> & aP0,T aW1,const cPtxd<T,Dim> & aP1);
 

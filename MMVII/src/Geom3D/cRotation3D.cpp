@@ -95,6 +95,68 @@ template <class Type> cSimilitud3D<Type> cSimilitud3D<Type>::FromTriInAndOut
      return aRefToOut * aInToRef;
 }
 
+template <class Type> cSimilitud3D<Type> cSimilitud3D<Type>::RandomSim3D(Type aLevelScale,Type aLevelTr)
+{
+    return tTypeMap
+           (
+               Type(pow(2.0,RandInInterval(-aLevelScale,aLevelScale))),
+               tPt::PRandInSphere() * aLevelTr,
+               cRotation3D<Type>::RandomRot()
+           );
+}
+
+
+
+template <class Type> cIsometry3D<Type>    TransfoPose(const cSimilitud3D<Type> & aSim,const cIsometry3D<Type> & aR)
+{
+    return  cIsometry3D<Type> (aSim.Value(aR.Tr()),aSim.Rot() *aR.Rot());
+}
+
+
+/*  Future evolution , make a robust estimation
+      - ransac or other for rotation
+      - barodale or ransac or other for scale/trans
+*/
+std::pair<tREAL8,tSim3dR>   EstimateSimTransfertFromPoses(const std::vector<tPoseR> & aV1,const std::vector<tPoseR> & aV2)
+{
+   MMVII_INTERNAL_ASSERT_tiny(aV1.size()==aV2.size(),"Diff size EstimateSimTransfert");
+   MMVII_INTERNAL_ASSERT_tiny(aV1.size()>=2,"Not enough poses in EstimateSimTransfert");
+
+   // [1]  Estimate the rotation
+   std::vector<tRotR> aVR;
+   std::vector<tREAL8> aVW;
+   for (size_t aKP=0 ; aKP<aV1.size() ; aKP++)
+   {
+       //  Sim *V2 ~ aV1  =>  Sim ~ aV1 * V2-1
+       aVR.push_back(aV1.at(aKP).Rot()*aV2.at(aKP).Rot().MapInverse());
+       aVW.push_back(1.0);
+   }
+   tRotR aRot = tRotR::Centroid(aVR,aVW);
+
+   // [2] Estimate the scaling and translation
+   cLeasSqtAA<tREAL8> aSys(4);
+
+   for (size_t aKP=0 ; aKP<aV1.size() ; aKP++)
+   {
+         cPt3dr aC0 = aV1.at(aKP).Tr();
+         cPt3dr aC1 = aRot.Value(aV2.at(aKP).Tr());
+
+         //  C0 and C1 are two estimation of the center of the pose, they must be equal up
+         //  to the global transfert (Tr,Lambda) from W1 to W0
+         // 
+         for (int aKC=0 ; aKC<3 ; aKC++)
+         {
+           //  observtuion is :   aC0.x = Tr.x + Lambda aC1.x  (or .y .z)   
+            std::vector<cCplIV<tREAL8>> aVIV {{aKC,1.0},{3,aC1[aKC]}};   //  KC->num of Tr.{x,y,z}  ,  3 num of lambda
+            aSys.PublicAddObservation(1.0, cSparseVect<tREAL8>(aVIV),aC0[aKC]);
+         }
+   }
+   cDenseVect<tREAL8> aSol = aSys.PublicSolve();
+   tSim3dR aSim(aSol(3),cPt3dr(aSol(0),aSol(1),aSol(2)),aRot);
+
+   return {aSys.VarCurSol(),aSim};
+}
+
 
 
 /* ************************************************* */
@@ -108,6 +170,17 @@ template <class Type> cIsometry3D<Type>::cIsometry3D(const tPt& aTr,const cRotat
     mRot (aRot)
 {
 }
+
+template <class Type> Type cIsometry3D<Type>::DistPoseRel(const tTypeMap & aIsom2,const Type & aWTr) const
+{
+   return (aWTr * Norm2(VUnit(mTr)-VUnit(aIsom2.mTr)) + mRot.Dist(aIsom2.mRot)) / (1+aWTr);
+}
+
+template <class Type> Type cIsometry3D<Type>::DistPose(const tTypeMap & aIsom2,const Type & aWTr) const
+{
+   return (aWTr * Norm2(mTr-aIsom2.mTr) + mRot.Dist(aIsom2.mRot)) / (1+aWTr);
+}
+
 
 /*  As this method is provide on for serialization we initialize the rotation with null matrix so that
  *  any use drive quickly to absurd result if not error
@@ -205,6 +278,23 @@ template <class Type>
 template <class Type> cIsometry3D<tREAL8>  ToReal8(const cIsometry3D<Type>  & anIsom)
 {
     return cIsometry3D<tREAL8>(  ToR(anIsom.Tr()) , ToReal8(anIsom.Rot())  );
+}
+
+template <class Type> cIsometry3D<Type> cIsometry3D<Type>::Centroid(const std::vector<tTypeMap> & aVI,const std::vector<Type> & aVW)
+{
+   std::vector<tRot> aVRot;
+   std::vector<tPt> aVTr;
+
+   for (const auto & anIsom : aVI)
+   {
+       aVRot.push_back(anIsom.mRot);
+       aVTr.push_back(anIsom.mTr);
+   }
+
+   cPt3dr aTr = MMVII::Centroid(aVTr,aVW);
+   tRot aRot = tRot::Centroid(aVRot,aVW);
+
+   return tTypeMap ( tPt(aTr.x(),aTr.y(),aTr.z()) ,aRot);
 }
 
 void AddData(const cAuxAr2007 & anAux,tRotR & aRot)
@@ -312,6 +402,27 @@ template <class Type> cRotation3D<Type>  cRotation3D<Type>::RotArroundKthAxe(int
    return RotFromAxe(tPt::P1Coord(aNum,1.0),M_PI/2.0);
 }
 
+template <class Type> cRotation3D<Type> cRotation3D<Type>::PseudoMediane(const std::vector<tTypeMap> & aVI)
+{
+   int aNb = aVI.size();
+   cIm1D<tREAL8>  aIm(aNb,nullptr,eModeInitImage::eMIA_Null);
+   cDataIm1D<tREAL8> & aDIm = aIm.DIm();
+   for (int aX=0 ; aX<aNb; aX++)
+   {
+       for (int aY=0 ; aY<aX; aY++)
+       {
+           tREAL8 aD = aVI.at(aX).Dist( aVI.at(aY));
+           aDIm.AddV(aX,aD);
+           aDIm.AddV(aY,aD);
+       }
+   }
+   cWhichMin<int,tREAL8> aWMin;
+   for (int anX=0 ; anX<aNb; anX++)
+      aWMin.Add(anX,aDIm.GetV(anX));
+
+   return aVI.at(aWMin.IndexExtre());
+}
+
 
 template <class Type> cRotation3D<Type>  cRotation3D<Type>::RotFromCanonicalAxes(const std::string& aName)
 {
@@ -349,9 +460,7 @@ template <class Type> cRotation3D<Type> cRotation3D<Type>::operator * (const tTy
    return aRes;
 }
 
-template <class Type> 
-    cRotation3D<Type> 
-        cRotation3D<Type>::Centroid(const std::vector<cRotation3D<Type>> & aVR,const std::vector<double> & aVW)
+template <class Type> cRotation3D<Type> cRotation3D<Type>::Centroid(const std::vector<tTypeMap> & aVR,const std::vector<Type> & aVW)
 {
     MMVII_INTERNAL_ASSERT_tiny(aVR.size()==aVW.size(),"cRotation3D<Type>::Centroid");
 
@@ -366,6 +475,11 @@ template <class Type>
     aMat = aMat * (1/aSumW);
 
     return cRotation3D<Type>(aMat,true);
+}
+
+template <class Type> cRotation3D<Type> cRotation3D<Type>::Centroid(const tTypeMap & aR2) const
+{
+    return Centroid(std::vector<tTypeMap>({*this,aR2}),std::vector<Type>({1.0,1.0}));
 }
 
 
@@ -891,6 +1005,7 @@ void BenchSampleQuat()
 /*
 */
 #define MACRO_INSTATIATE_PTXD(TYPE)\
+template  cIsometry3D<TYPE>    TransfoPose(const cSimilitud3D<TYPE> & aSim,const cIsometry3D<TYPE> & aR);\
 template  cRotation3D<tREAL8>  ToReal8(const cRotation3D<TYPE>  & aRot);\
 template  cIsometry3D<tREAL8>  ToReal8(const cIsometry3D<TYPE>  & anIsom);\
 template class  cSimilitud3D<TYPE>;\

@@ -36,7 +36,7 @@ template <class TGraph>   class cAlgoEnumCycle
      public :
           //---------------- typedef  section ---------------------
           typedef  cAlgoSP<TGraph>                tAlgoSP;
-          typedef  cAlgo_SubGr<TGraph>            tSubGr;
+          typedef  cAlgo_ParamVG<TGraph>          tSubGr;
           typedef  cActionOnCycle<TGraph>         tActionC;
           typedef typename TGraph::tVertex        tVertex;
           typedef typename TGraph::tEdge          tEdge;
@@ -95,18 +95,18 @@ template <class TGraph>
          mGraph              (aGraph),
          mAction             (&anAction),
          mSubGr              (aSubGr),
-         mBitEgdeExplored    (mGraph.Edge_AllocBitTemp()),
-         mBitEgdeInCurPath   (mGraph.Edge_AllocBitTemp()),
-         mBitVertexCurSphere (mGraph.Vertex_AllocBitTemp()),
+         mBitEgdeExplored    (mGraph.AllocBitTemp()),
+         mBitEgdeInCurPath   (mGraph.AllocBitTemp()),
+         mBitVertexCurSphere (mGraph.AllocBitTemp()),
          mMaxSzCycle         (aSz)
 {
 }
 
 template <class TGraph>  cAlgoEnumCycle<TGraph>::~cAlgoEnumCycle()
 {
-   mGraph.Edge_FreeBitTemp(mBitEgdeExplored);
-   mGraph.Edge_FreeBitTemp(mBitEgdeInCurPath);
-   mGraph.Vertex_FreeBitTemp(mBitVertexCurSphere);
+   mGraph.FreeBitTemp(mBitEgdeExplored);
+   mGraph.FreeBitTemp(mBitEgdeInCurPath);
+   mGraph.FreeBitTemp(mBitVertexCurSphere);
 }
 
 template <class TGraph> bool  cAlgoEnumCycle<TGraph>::OkEdge(const tEdge & anE) const

@@ -31,6 +31,13 @@ template <class Type> cSparseVect<Type>::cSparseVect(int aSzReserve) :
      IV().reserve(aSzReserve);
 }
 
+template <class Type> cSparseVect<Type>::cSparseVect(const tCont &  aCont)  :
+   mIV (new tCont (aCont))
+{
+}
+
+
+
 template <class Type> cSparseVect<Type> cSparseVect<Type>::Dup() const
 {
     tSV aRes(size());
@@ -71,6 +78,7 @@ template <class Type>  void cSparseVect<Type>::AddIV(const tCplIV & aCpl)
 { 
    IV().push_back(aCpl); 
 }
+
 
 
 template <class Type> void cSparseVect<Type>::CumulIV(const tCplIV & aCpl)

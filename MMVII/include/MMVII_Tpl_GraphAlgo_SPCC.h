@@ -3,6 +3,7 @@
 
 #include "MMVII_TplHeap.h"
 #include "MMVII_Tpl_GraphStruct.h"
+#include "MMVII_Tpl_Graph_SubGraph.h"
 
 namespace MMVII
 {
@@ -16,93 +17,10 @@ template <class TGraph>  class cAlgoSP;  //  Class for shortest path & minimum s
 template <class TGraph>  class cAlgoCC;  //  Class for connected components
 
 
-//  -------- class for parametrizing the algorithm : sub-graphs & weithing
-
-template <class TGraph>  class cAlgo_SubGr;         // mother class for sub-graph
-template <class TGraph>  class cAlgo_SingleSubGr ;  // singleton sub-graph
-template <class TGraph>  class cAlgo_SubGrNone ;    // empty sub-braph
-template <class TGraph>  class cAlgo_ParamVG ;      // parameters for algorithm
 
 //  -------- helper classes ---------------------
 template <class TGraph>  class cHeapParam_VG_Graph;
 
-
-/**   interface-class for sub-graph, default  :  all edges &vertices belong to the graph */
-
-template <class TGraph>  class cAlgo_SubGr
-{
-        public :
-	     typedef typename TGraph::tVertex  tVertex;
-	     typedef typename TGraph::tEdge    tEdge;
-
-             virtual bool   InsideVertex(const  tVertex &) const {return true;}
-
-             // take as parameter V1 & edge E=V1->V2 (because we cannot acces V1 from E)
-             virtual bool   InsideEdge(const    tEdge &) const {return true;}
-             
-             // method frequently used, so that user only redefines InsideEdge
-             inline bool   InsideV1AndEdgeAndSucc(const    tEdge & anEdge) const 
-             {
-                    return   this->InsideEdge(anEdge) 
-                          && this->InsideVertex(anEdge.Succ()) 
-                          && this->InsideVertex(anEdge.VertexInit());
-             }
-
-};
-
-
-/**   define a sub-graph than contain a single vertex, used for example as a goal in shortest path */
-template <class TGraph>  class cAlgo_SingleSubGr : public cAlgo_SubGr<TGraph>
-{
-        public :
-	     typedef typename TGraph::tVertex  tVertex;
-
-             bool   InsideVertex(const  tVertex & aV) const override {return (mSingleV==&aV);}
-	     cAlgo_SingleSubGr(const tVertex * aV) : mSingleV (aV) {}
-        private :
-	     const tVertex * mSingleV;
-};
-
-/**   define a sub-graph than contain nothing, used for example as a goal in minimal spanning tree */
-template <class TGraph>  class cAlgo_SubGrNone : public cAlgo_SubGr<TGraph>
-{
-        public :
-	     typedef typename TGraph::tVertex  tVertex;
-
-             bool   InsideVertex(const  tVertex &) const override {return false;}
-        private :
-};
-
-/**   define a sub-graph that contain as goal the vertex having cost over a threshold, use to
- have it as goal, to compute the sorhtest path tree up to a distance */
-
-template <class TGraph>  class cAlgo_SubGrCostOver : public cAlgo_SubGr<TGraph>
-{
-        public :
-	     typedef typename TGraph::tVertex  tVertex;
-
-             cAlgo_SubGrCostOver(tREAL8 aThr) : mThreshold (aThr) {}
-             bool   InsideVertex(const  tVertex & aV) const override {return aV.AlgoCost() > mThreshold;}
-             
-        private :
-             tREAL8 mThreshold;
-};
-
-
-
-
-/**   parametrizarion of algorithm */
-
-template <class TGraph>  class cAlgo_ParamVG : public cAlgo_SubGr<TGraph>
-{
-        public :
-	     typedef typename TGraph::tVertex  tVertex;
-	     typedef typename TGraph::tEdge    tEdge;
-
-             // virtual tREAL8 WeightEdge(const tVertex &,const    tEdge &) const {return 1.0;}
-             virtual tREAL8 WeightEdge(const    tEdge &) const {return 1.0;}
-
-};
 
 /* ********************************************************************************* */
 /*                                                                                   */
@@ -128,11 +46,79 @@ template <class TGraph>  class cHeapParam_VG_Graph
      The other method are simplified interface to it .
 */
 
+template <class TGraph>   class cVG_Tree
+{
+      public :
+	  typedef typename TGraph::tVertex        tVertex;
+	  typedef typename TGraph::tEdge          tEdge;
+	  typedef std::vector<tEdge*>             tSetEdges;  // tree = set of edge
+	  typedef cVG_Tree<TGraph>                tTree;  // tree = set of edge
+          typedef std::array<tTree,2>             t2Tree;
+          friend class cAlgoSP<TGraph>;
+          
+          const tSetEdges & Edges() const {return mEdges;}
+
+          /// tree with non empty set of edges
+          inline cVG_Tree(const tSetEdges & aSetE);
+          /// tree with 0 or 1 edge
+          cVG_Tree(TGraph & aGraph,tVertex * aV0=nullptr) :
+                mGraph   (&aGraph),
+                mV0      (aV0)
+           {
+           }
+           /// Default constructor required for array of tree
+           cVG_Tree() : mGraph(nullptr), mV0(nullptr) {}
+
+           void Split(t2Tree&,tEdge *) const;
+           std::vector<tVertex*> Vertices() const 
+           {
+               if (mEdges.empty() && (mV0!=nullptr))  return {mV0};// std::vector<tVertex*>{mV0};
+               return tEdge::VerticesOfEdges(mEdges);
+           }
+      private :
+           void Tree_clear()
+           {
+               mV0 = nullptr;
+               mEdges.clear();
+           }
+
+           void SetV0(tVertex * aV0) {mV0=aV0;}
+           void AddEdge(tEdge * anE) {mEdges.push_back(anE);}
+
+           TGraph *   mGraph;
+           tVertex *  mV0;
+           tSetEdges  mEdges;
+};
+
+
+
+
+
+
+template <class TGraph>   class cVG_Forest
+{
+    public :
+	  typedef cVG_Tree<TGraph>  tTree;
+          friend class cAlgoSP<TGraph>;
+
+          const std::list<tTree> & VTrees() const {return  mVTrees;}
+          cVG_Forest(TGraph & aGraph) : mGraph(&aGraph) {}
+    private :
+          void Clear() {mVTrees.clear();}
+
+          TGraph *            mGraph;
+          std::list<tTree>    mVTrees;
+};
+
+
+
+
+
 template <class TGraph>   class cAlgoSP
 {
      public :
           typedef  cAlgo_ParamVG<TGraph>          tParamA;
-          typedef  cAlgo_SubGr<TGraph>            tSubGr;
+          typedef  cAlgo_ParamVG<TGraph>          tSubGr;
 	  typedef typename TGraph::tVertex        tVertex;
 	  typedef typename TGraph::tEdge          tEdge;
           typedef std::vector<tVertex*>           tVectVertex;
@@ -141,11 +127,13 @@ template <class TGraph>   class cAlgoSP
 
 	  // typedef std::pair<tVertex*,tEdge*>      tPairVE;     
 	  //typedef std::vector<tPairVE>            tSetPairVE;  // tree = set of edge
-	  typedef std::vector<tEdge*>            tSetEdges;  // tree = set of edge
+	  //typedef std::vector<tEdge*>            tSetEdges;  // tree = set of edge
           // 1 elem of forest = the tree (set of edge) + the seed,  the seed is required in case of emty egde
           // to reconstruct the solution
-	  typedef std::pair<tVertex*,tSetEdges>  tTree; 
-	  typedef std::list<tTree>         tForest;   // A Forest = list of element of forest
+	  //typedef std::pair<tVertex*,tSetEdges>  tTree; 
+	  //typedef std::list<tTree>         tForest;   // A Forest = list of element of forest
+          typedef   cVG_Tree<TGraph>         tTree;
+          typedef   cVG_Forest<TGraph>       tForest;
           
           const std::vector<tVertex*> & VVertexReached() const {return mVVertexReached;}
           const std::vector<tVertex*> & VVertexOuted() const   {return mVVertexOuted;}
@@ -240,7 +228,7 @@ template <class TGraph>
               bool                           aModeMinPCC,
               const std::vector<tVertex*> &  aVSeeds,
               const cAlgo_ParamVG<TGraph> &  aParam,
-              const cAlgo_SubGr<TGraph>   &  aGoal,
+              const cAlgo_ParamVG<TGraph>   &  aGoal,
               size_t                         aBitReached,
               size_t                         aBitOutHeap,
               bool                           CleanAnFreeBits
@@ -338,8 +326,8 @@ template <class TGraph>
         tVertex::SetBit0(mVVertexReached,aBitOutHeap);
 
         // recycle flag so that they can be used again
-        aGraph.Vertex_FreeBitTemp(aBitReached);
-        aGraph.Vertex_FreeBitTemp(aBitOutHeap);
+        aGraph.FreeBitTemp(aBitReached);
+        aGraph.FreeBitTemp(aBitOutHeap);
     }
 
     return aResult;
@@ -354,6 +342,12 @@ template <class TGraph>
            - the goal  is multiple, given by comprehension, it's sub-grap
     */
 
+
+    /* public general interface for computing shortest path:
+           - the seeds is multiple, given by extension,  it's a set of vector
+           - the goal  is multiple, given by comprehension, it's sub-grap
+    */
+
 template <class TGraph>   
     typename TGraph::tVertex * cAlgoSP<TGraph>::MakeShortestPathGen
          (
@@ -361,11 +355,11 @@ template <class TGraph>
               bool                          aModeMinPCC,
               const std::vector<tVertex*> & aVSeeds,
               const cAlgo_ParamVG<TGraph> & aParam,
-              const cAlgo_SubGr<TGraph>   & aGoal
+              const cAlgo_ParamVG<TGraph>   & aGoal
          )
 {
-    size_t aBitReached = aGraph.Vertex_AllocBitTemp();
-    size_t aBitOutHeap  = aGraph.Vertex_AllocBitTemp();
+    size_t aBitReached = aGraph.AllocBitTemp();
+    size_t aBitOutHeap  = aGraph.AllocBitTemp();
     tVertex * aResult  = Internal_MakeShortestPathGen
                          (
                             aGraph,aModeMinPCC,aVSeeds,aParam,aGoal,
@@ -374,6 +368,7 @@ template <class TGraph>
 
     return aResult;
 }
+
 
     /* specific interface for the most common case, shortest path
        between 2 vertices  aBegin->aEnd 
@@ -414,7 +409,8 @@ template <class TGraph>
            )
 {
     // write seed in Tree , 0 if the vertex does not belong to sub-graph
-    aTree.first = aParam.InsideVertex(aSeed) ? &aSeed : nullptr;
+    //## aTree.first = aParam.InsideVertex(aSeed) ? &aSeed : nullptr;
+    aTree.SetV0(aParam.InsideVertex(aSeed) ? &aSeed : nullptr);
 
     tVertex * aResult  = Internal_MakeShortestPathGen
                          (
@@ -432,12 +428,12 @@ template <class TGraph>
 
     // compute the edge that were use,
     {
-       tSetEdges & aSetPair = aTree.second;
-       aSetPair.clear();
+       // ## tSetEdges & aSetPair = aTree.second;
+       aTree.mEdges.clear();
        for (const auto aPtrV : mVVertexReached)  // parse reached point
        {
            if (aPtrV->mAlgoFather != nullptr)  // avoid seeds
-              aSetPair.push_back(aPtrV->EdgeOfSucc(*(aPtrV->mAlgoFather)));
+              aTree.mEdges.push_back(aPtrV->EdgeOfSucc(*(aPtrV->mAlgoFather)));
        }
     }
 }
@@ -454,8 +450,8 @@ template <class TGraph>
                 const cAlgo_ParamVG<TGraph> &  aParam
           )
 {
-    size_t aBitReached = aGraph.Vertex_AllocBitTemp();
-    size_t aBitOutHeap  = aGraph.Vertex_AllocBitTemp();
+    size_t aBitReached = aGraph.AllocBitTemp();
+    size_t aBitOutHeap  = aGraph.AllocBitTemp();
 
      Internal_MinimumSpanninTree 
      (
@@ -475,7 +471,7 @@ template <class TGraph>
                 const cAlgo_ParamVG<TGraph> &  aParam
           )
 {
-       tTree aTree;
+       tTree aTree(aGraph);
        MinimumSpanninTree(aTree,aGraph,aSeed,aParam);
 
        return aTree;
@@ -492,10 +488,10 @@ template <class TGraph>
               const tParamA & aParam
           )
 {
-    aForest.clear();  // reset, just in case
+    aForest.Clear();  // reset, just in case
     // alloc markers
-    size_t aBitReached = aGraph.Vertex_AllocBitTemp();  
-    size_t aBitOutHeap  = aGraph.Vertex_AllocBitTemp();
+    size_t aBitReached = aGraph.AllocBitTemp();  
+    size_t aBitOutHeap  = aGraph.AllocBitTemp();
 
 
     for (const auto & aSeed : aVectSeed)  // parse all seed
@@ -503,12 +499,12 @@ template <class TGraph>
         // avoid  Vertex not in graph  AND  vertex already reached by a previous tree
         if (aParam.InsideVertex(*aSeed) && (!aSeed->BitTo1(aBitReached)))
         {
-           aForest.push_back({aSeed,{}});
+           aForest.mVTrees.push_back(tTree(aGraph,aSeed));
         
            // compute tree with the seed
            Internal_MinimumSpanninTree 
            (
-                 aForest.back(),
+                 aForest.mVTrees.back(),
                  aGraph,*aSeed,aParam,
                  aBitReached,
                  aBitOutHeap,
@@ -518,14 +514,14 @@ template <class TGraph>
    }
 
    // do the cleaning  because it was not made by Internal_MinimumSpanninTree
-   for (const auto & [aSeed,aVPair] :  aForest)
+   for (const auto & aTree :  aForest.mVTrees)
    {
-        if (aSeed)
+        if (aTree.mV0)
         {
-            aSeed->SetBit0(aBitReached);
-            aSeed->SetBit0(aBitOutHeap);
+            aTree.mV0->SetBit0(aBitReached);
+            aTree.mV0->SetBit0(aBitOutHeap);
         }
-        for (const auto & anE : aVPair)
+        for (const auto & anE : aTree.mEdges)
         {
             anE->VertexInit().SetBit0(aBitReached);
             anE->VertexInit().SetBit0(aBitOutHeap);
@@ -535,8 +531,8 @@ template <class TGraph>
    }
 
    // recycle the bits for future use
-   aGraph.Vertex_FreeBitTemp(aBitReached);
-   aGraph.Vertex_FreeBitTemp(aBitOutHeap);
+   aGraph.FreeBitTemp(aBitReached);
+   aGraph.FreeBitTemp(aBitOutHeap);
 }
 
                   
@@ -654,14 +650,14 @@ template <class TGraph>
                                       const cAlgo_ParamVG<TGraph> & aParam
             )
 {
-    size_t aBitReached = aGraph.Vertex_AllocBitTemp();  // alloc marker
+    size_t aBitReached = aGraph.AllocBitTemp();  // alloc marker
     std::vector<tVertex*>   aResult;
 
     Internal_ConnectedComponent(&aSeed,aResult,aParam,aBitReached);
 
     // clean & free
     tVertex::SetBit0(aResult,aBitReached);
-    aGraph.Vertex_FreeBitTemp(aBitReached);
+    aGraph.FreeBitTemp(aBitReached);
 
     return aResult;
 }
@@ -675,7 +671,7 @@ template <class TGraph>
                  const cAlgo_ParamVG<TGraph> & aParam
             )
 {
-    size_t aBitReached = aGraph.Vertex_AllocBitTemp();  // alloc marker
+    size_t aBitReached = aGraph.AllocBitTemp();  // alloc marker
 
     for (const auto & aSeed : aVecSeed) // parse all seeds
     {
@@ -689,7 +685,7 @@ template <class TGraph>
     for (const auto & aVec : aResult)
          tVertex::SetBit0(aVec,aBitReached);
 
-    aGraph.Vertex_FreeBitTemp(aBitReached);
+    aGraph.FreeBitTemp(aBitReached);
 }
 
 
@@ -719,6 +715,160 @@ template <class TGraph>
     Internal_Multiple_ConnectedComponent(aGraph,aResult,aGraph.AllVertices(),aParam);
     return aResult;
 }
+
+/* ********************************************************************************* */
+/*                                                                                   */
+/*                            cAlgoPruningExtre                                      */
+/*                                                                                   */
+/* ********************************************************************************* */
+
+/** Class for "pruning" algorithm , i.e recursive supression of extremity with conservation
+ * of anchor points */
+
+template <class TGraph> class cAlgoPruningExtre
+{
+    public :
+       typedef typename TGraph::tVertex tVertex;
+       typedef  cAlgo_ParamVG<TGraph>     tSubGr;
+
+       cAlgoPruningExtre(TGraph &aGraph,const tSubGr & aSubGr ,const tSubGr &aSubAnchor) ;
+       const std::vector<tVertex*> & Extrem() const {return mExtrem;} ///< accesor to the result
+
+    private :
+       void  TestExtreAndSupr(tVertex *);
+
+       TGraph &               mGraph;     ///< graph we are working on
+       const tSubGr &         mSubGr;     ///< subgraph we are working on
+       const tSubGr &         mAnchor;    ///< graph for anchor point that must be maintained
+       size_t                 mFlagSupr;  ///< Flag to memorize supressed vertices
+       std::vector<tVertex*>  mExtrem;	  ///< store the results (recursive extremity)
+};
+
+template <class TGraph> cAlgoPruningExtre<TGraph>::cAlgoPruningExtre(TGraph &aGraph,const tSubGr & aSubGr ,const tSubGr &aSubAnchor) :
+    mGraph     (aGraph),
+    mSubGr     (aSubGr),
+    mAnchor    (aSubAnchor),
+    mFlagSupr  (mGraph.AllocBitTemp())
+{
+   // initialize , compute all the initial extremities
+   for (auto & aVertex :  aGraph.AllVertices())
+   {
+       TestExtreAndSupr(aVertex);
+   }
+
+   // StdOut() << "-----ITER 0----- " <<  mExtrem.size() << "\n";
+
+   // recursive supression of extremities
+   size_t aInd0 = 0;
+   while (aInd0!=mExtrem.size())
+   {
+         for (const auto & anE : mExtrem.at(aInd0)->EdgesSucc())
+	 {
+             TestExtreAndSupr(&anE->Succ());
+	 }
+         aInd0++;
+   }
+
+   tVertex::SetBit0(mExtrem,mFlagSupr);  // unmark all the marked vertices
+   mGraph.FreeBitTemp(mFlagSupr); // recycle the bit allocated
+}
+
+template <class TGraph> void  cAlgoPruningExtre<TGraph>::TestExtreAndSupr(tVertex * aVertex)
+{
+    // eliminate point that "structurally" cannot be extremity
+    if (
+             mAnchor.InsideVertex(*aVertex)     // anchor points must not be eliminated
+          || (!mSubGr.InsideVertex(*aVertex))   // point oustide the graph must not be eliminated
+	  || (aVertex->BitTo1(mFlagSupr))       // point already supressed must not be revisited
+       )
+    {
+       // StdOut() << "OUT " << aVertex->Attr().mPt   <<   "\n";
+       return ;
+    }
+
+    // count the number of valid remaining neighboors
+    int aNbSucc = 0;
+    for (const auto & anEdge : aVertex->EdgesSucc())
+    {
+        const tVertex & aSucc = anEdge->Succ();
+        if (mSubGr.InsideV1AndEdgeAndSucc(*anEdge) && (! aSucc.BitTo1(mFlagSupr)))
+           aNbSucc++;
+    }
+    //  extremity por single submit must be supressed
+    if (aNbSucc <=1)
+    {
+        // StdOut() << " IN " << aVertex->Attr().mPt << " NBS=" << aNbSucc   <<   "\n";
+        aVertex->SetBit1(mFlagSupr);
+        mExtrem.push_back(aVertex);
+    }
+}
+
+/* ********************************************************************************* */
+/*                                                                                   */
+/*                                cVG_Tree                                           */
+/*                                                                                   */
+/* ********************************************************************************* */
+
+template <class TGraph>   cVG_Tree<TGraph>::cVG_Tree(const tSetEdges & aSetE) :
+    mEdges (aSetE)
+{
+    if (mEdges.empty())
+    {
+       MMVII_INTERNAL_ERROR("Empty edges in cVG_Tree");
+    }
+    mGraph  = &  aSetE.at(0)->Graph();
+    mV0 = &  aSetE.at(0)->Succ();  // any set will be ok
+#if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )
+    cSubGraphOfEdges<TGraph>  aSubGrTree(*mGraph,mEdges);
+    auto aVV = tEdge::VerticesOfEdges(mEdges);
+    auto allCC = cAlgoCC<TGraph>::Multiple_ConnectedComponent(*mGraph,aVV,aSubGrTree);
+    MMVII_INTERNAL_ASSERT_always(allCC.size()==1,"Multi CC in tree");
+    const auto & aCC0 = *allCC.begin();
+    MMVII_INTERNAL_ASSERT_always(aCC0.size()==mEdges.size()+1,"cycle in tree");
+#endif
+}
+
+template <class TGraph>
+     void cVG_Tree<TGraph>::Split(t2Tree& a2T ,tEdge *aSplitingEdge) const
+{
+    aSplitingEdge = aSplitingEdge->EdgeInitOr();
+
+    // computed a vector of all edges except aSplitingEdge
+    std::vector<tEdge*> aVEdgesMaintained;
+    for (const auto & anE : mEdges)
+        if (anE->EdgeInitOr() != aSplitingEdge)
+           aVEdgesMaintained.push_back(anE);
+    MMVII_INTERNAL_ASSERT_tiny(mEdges.size()==(aVEdgesMaintained.size()+1)," Split: edge not in tree");
+
+    cSubGraphOfEdges_Only<TGraph> aSG_EdM(*mGraph,aVEdgesMaintained); // Sub-graph ~ aVEdgesMaintained
+
+    // recover vertices  associated to edges, use to accelerate Multiple_ConnectedComponent
+    std::vector<tVertex*>  allV = Vertices();
+    std::list<std::vector<tVertex *>>  aListCC = cAlgoCC<TGraph>::Multiple_ConnectedComponent(*mGraph,allV,aSG_EdM);
+
+    MMVII_INTERNAL_ASSERT_tiny(aListCC.size()==2," Split: Bad CC");
+
+    // parse the 2 CC 
+    int aKTree=0;
+    for (const auto & aVerticesCC : aListCC)
+    {
+        std::vector<tEdge*>  aEdgesCC;
+        cVG_OpBool<TGraph>::EdgesInterVertices(aEdgesCC,mEdges,aVerticesCC);
+        MMVII_INTERNAL_ASSERT_tiny(aVerticesCC.size()==(aEdgesCC.size()+1)," Split: edge not in tree");
+        if (aEdgesCC.empty())
+        {
+           tVertex * aV0 =  aVerticesCC.at(0);
+           a2T.at(aKTree) = tTree(aV0->Graph(),aV0);
+        }
+        else
+        {
+           a2T.at(aKTree) = tTree(aEdgesCC);
+        }
+        aKTree++;
+    }
+}
+
+
 
 }; // MMVII
 #endif  // _MMVII_Tpl_GraphAlgo_SPCC_H_

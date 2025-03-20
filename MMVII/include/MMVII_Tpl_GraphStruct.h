@@ -10,6 +10,10 @@ namespace MMVII
 static constexpr int    FlagEdgeDirInit = 0;
 static constexpr tREAL8 AlgoCostInitVal = -1e30;
 
+/// usefull for different graph class when no attribute is required
+class cEmptyClass {};
+
+
 /** \file   MMVII_Tpl_GraphStruct.h
     \brief   Define the 3 classes Vertex/Edge/Graph for implementation of valuated graphs
 */
@@ -40,6 +44,9 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Graph;   //
           used for example in group-graph, where the group G value is shared, to know if :
                     S1->S2 must be interpreted as G or G-1 
 */
+
+/// Type can be vertex/edge as long as it complies with 'implicit' pre-requisite
+
 
 
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Edge : public cMemCheck
@@ -84,6 +91,10 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Edge : publ
           inline void SymSetBit0(size_t aBit) {EdgeInitOr()->mAlgoTmpMark.SuprElem(aBit);}
           inline bool SymBitTo1(size_t aBit) const {return EdgeInitOr()->mAlgoTmpMark.IsInside(aBit);}
 
+          inline static std::vector<tVertex*> VerticesOfEdges(const std::vector<tEdge*>&);
+
+          inline tGraph & Graph() {return *mGr;}
+
      private :
           cVG_Edge(const tEdge&) = delete;  ///< No copy for graph structures
           inline ~cVG_Edge();
@@ -106,6 +117,7 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Edge : publ
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Vertex : public cMemCheck
 {
      public :
+
           // ------------------- typedef & friendship --------------------------------
 	  typedef cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym>    tVertex;
 	  typedef cVG_Edge<TA_Vertex,TA_Oriented,TA_Sym>      tEdge;
@@ -113,6 +125,7 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Vertex : pu
 
           friend  tEdge;
           friend  tGraph;
+
 
                     //  Algorithmd require acces to some internal variables
           template <class> friend class cAlgoSP;
@@ -149,6 +162,8 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Vertex : pu
           static inline void SetBit0(const std::vector<tVertex*> & aVV,size_t aBit) ; // facility 4 applying SetBit0 to a vect
           static inline void SetBit1(const std::vector<tVertex*> & aVV,size_t aBit) ; // facility 4 applying SetBit0 to a vect
 
+          static inline std::vector<tVertex*> RmDup(const std::vector<tVertex*> & aVV) ; 
+
           // ------------------------ Miscelaneous accessor ----------------------
           tGraph & Graph()              {return *mGr;}  ///<  Accessor
           const tGraph & Graph() const  {return *mGr;}  ///<  Accessor
@@ -182,9 +197,20 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Graph : pub
 	  typedef cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym>        tVertex;
 	  typedef cVG_Edge<TA_Vertex,TA_Oriented,TA_Sym>          tEdge;
 	  typedef cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>         tGraph;
+          typedef  TA_Vertex                                      tAttrV;
+          typedef  TA_Oriented                                    tAttrO;
+          typedef  TA_Sym                                         tAttrS;
 	     
 	  friend tVertex;
 	  friend tEdge;
+
+	  // Function used to simplify default lambda expression in sub-graphs
+	      // Dont konw why this simpler version does not work in Tpl_InsideAndWSubGr
+              // static bool   V_True(const tVertex &) {return true;}
+	      // So we have to use functions that return lamnda ...
+          static auto  V_True() {return [](const tVertex &) {return true;};}
+          static auto  E_True() {return [](const tEdge &) {return true;};}
+          static auto  E_W1()   {return [](const tEdge &) {return 1.0;};}
 
           // ------------------   Different accessors
           size_t NbVertex()   const {return mV_Vertices.size();}       ///<  number total of vertices
@@ -192,6 +218,7 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Graph : pub
 	  const tVertex &  VertexOfNum(size_t aNum) const {return *mV_Vertices.at(aNum);} ///< KTh vertex
 
 	  const std::vector<tVertex*>  &    AllVertices() const {return mV_Vertices;}  ///< vector of vertices (as input to some algo)
+	  std::vector<tVertex*>  &    AllVertices() {return mV_Vertices;}  ///< vector of vertices (as input to some algo)
 	  const std::vector<TA_Sym*>   &    AllAttrSym() const  {return mV_AttrSym;}   ///< all atributs, usefull for some global setting
 
           /// Not very efficient, create a copy, but can be simpler when efficiency is not the priority
@@ -204,7 +231,7 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Graph : pub
           inline cVG_Graph();  ///< constructor does do a lot
           inline ~cVG_Graph();  ///< free memory
 
-          inline tVertex * NewSom(const TA_Vertex & anAttr) ;  ///< create a vertex with given attribute
+          inline tVertex * NewVertex(const TA_Vertex & anAttr) ;  ///< create a vertex with given attribute
 
              /** create  Edges  "V1->V2" and "V2->V1" with 2 attribute oriented and 1 attribute sym
                  for now, error if already exist, to see if it must evolve */
@@ -215,14 +242,10 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Graph : pub
                {AddEdge(aV1,aV2,aAOr,aAOr,aASym,OkExist);}
 
                   //------------------ Bit marker of vertices  manipulation ------------------
-          inline size_t Vertex_AllocBitTemp();          ///<  alloc a bit free an return it
-          inline void   Vertex_FreeBitTemp(size_t);     ///< "Recycle" a bit no longer used
+          inline size_t AllocBitTemp();          ///<  alloc a bit free an return it
+          inline void   FreeBitTemp(size_t);     ///< "Recycle" a bit no longer used
 
-          inline size_t Edge_AllocBitTemp();          ///<  alloc a bit free an return it
-          inline void   Edge_FreeBitTemp(size_t);     ///< "Recycle" a bit no longer used
-
-          // inline size_t AllocBitTemp();          ///<  alloc a bit free an return it
-          // line void   FreeBitTemp(size_t);     ///< "Recycle" a bit no longer used
+          
      private :
           cVG_Graph(const tGraph &) = delete;  ///< no copy for this type
 
@@ -232,11 +255,11 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>  class cVG_Graph : pub
 
 	  std::vector<tVertex*>       mV_Vertices;
 	  std::vector<TA_Sym*>        mV_AttrSym;
-          tSet32Bits                  mVertex_BitsAllocaTed;
-          tSet32Bits                  mEdge_BitsAllocaTed;
+          tSet32Bits                  mBitsAllocaTed;
+
+          // std::array<tSet32Bits,2>    mVE_BitsAllocaTed;
+          // tSet32Bits                  mVE_BitsAllocaTed
 };
-
-
 
 /* ********************************************* */
 /*                                               */
@@ -300,6 +323,57 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>
    const TA_Sym &  cVG_Edge<TA_Vertex,TA_Oriented,TA_Sym>::AttrSym()  const
 {
    return mGr->AttrSymOfNum(mNumAttr);
+}
+
+/// generic method usable for vertices/edges
+template <class Type> std::vector<Type*> &  GrSelfRmDup(std::vector<Type*> &aInOut)
+{
+    if (aInOut.empty())
+       return aInOut;
+
+    typename Type::tGraph & aGr = aInOut.at(0)->Graph();
+    size_t aFlag = aGr.AllocBitTemp();
+
+    size_t aKEnd=0;
+    for (size_t aKCur=0 ; aKCur<aInOut.size() ; aKCur++)
+    {
+       Type * aV = aInOut[aKCur];
+       if (!aV->BitTo1(aFlag))
+       {
+          aV->SetBit1(aFlag);
+          aInOut[aKEnd++] = aV;
+       }
+    }
+    aInOut.resize(aKEnd);
+
+    Type::SetBit0(aInOut,aFlag);
+    aGr.FreeBitTemp(aFlag);
+
+    return aInOut;
+}
+
+
+template <class TA_Vertex,class TA_Oriented,class TA_Sym>
+   std::vector<cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym>*> 
+     cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym>::RmDup(const std::vector<tVertex*> & aVV) 
+{
+   std::vector<tVertex*> aRes = aVV;
+   GrSelfRmDup(aRes);
+   return aRes;
+}
+
+template <class TA_Vertex,class TA_Oriented,class TA_Sym>
+   std::vector<cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym>*> 
+           cVG_Edge<TA_Vertex,TA_Oriented,TA_Sym>::VerticesOfEdges(const std::vector<tEdge*>& aVE)
+{
+    std::vector<tVertex*> aRes;
+
+    for (auto  anE : aVE)
+    {
+        aRes.push_back(&anE->VertexInit());
+        aRes.push_back(&anE->Succ());
+    }
+    return GrSelfRmDup(aRes);
 }
 
 /* ********************************************* */
@@ -382,10 +456,9 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>
 
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
    cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::cVG_Graph()   :
-        mVertex_BitsAllocaTed (0),
-        mEdge_BitsAllocaTed (0)
+         mBitsAllocaTed          (0)
 {
-    mEdge_BitsAllocaTed.AddElem(FlagEdgeDirInit);
+    mBitsAllocaTed.AddElem(FlagEdgeDirInit);
 }
 
 
@@ -399,7 +472,7 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>
 }
 
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
-   cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym>* cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::NewSom(const TA_Vertex & anAttr) 
+   cVG_Vertex<TA_Vertex,TA_Oriented,TA_Sym>* cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::NewVertex(const TA_Vertex & anAttr) 
 {
     mV_Vertices.push_back(new tVertex(this,anAttr,mV_Vertices.size()));
     return mV_Vertices.back();
@@ -480,31 +553,16 @@ template <class TA_Vertex,class TA_Oriented,class TA_Sym>
 */
 
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
-    size_t  cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::Vertex_AllocBitTemp()
+    size_t  cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::AllocBitTemp()
 {
-    return AllocBit(mVertex_BitsAllocaTed);
-}
-template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
-    size_t  cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::Edge_AllocBitTemp()
-{
-    return AllocBit(mEdge_BitsAllocaTed);
+    return AllocBit(mBitsAllocaTed);
 }
 
 template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
-    void  cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::Vertex_FreeBitTemp(size_t aBit)
+    void  cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::FreeBitTemp(size_t aBit)
 {
-    // recycle, the bit is usable again
-    mVertex_BitsAllocaTed.SuprElem(aBit);
+    mBitsAllocaTed.SuprElem(aBit);
 }
-template <class TA_Vertex,class TA_Oriented,class TA_Sym>  
-    void  cVG_Graph<TA_Vertex,TA_Oriented,TA_Sym>::Edge_FreeBitTemp(size_t aBit)
-{
-    // recycle, the bit is usable again
-    mEdge_BitsAllocaTed.SuprElem(aBit);
-}
-
-
-
 
 
 };

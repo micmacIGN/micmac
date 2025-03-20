@@ -68,6 +68,7 @@ template <class Type> class  cSparseVect  : public cMemCheck
         // cSparseVect(int aSzReserve=-1,int aSzInit=-1) ;  
         cSparseVect(int aSzReserve=-1) ;  
         cSparseVect(const cDenseVect<Type> &);
+        cSparseVect(const tCont &);
 	/// Check the vector can be used in a matrix,vect [0,Nb[, used in the assertions
         bool IsInside(int aNb) const;
 	void Reset();

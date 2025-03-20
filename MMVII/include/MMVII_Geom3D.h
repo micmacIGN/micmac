@@ -145,10 +145,21 @@ template <class Type> class cRotation3D
         /// distance between 2 rotation; uses matrixes
         Type Dist(const  cRotation3D<Type> &) const;
         /// Max possible distance
-        static Type MaxDist() {return 2.0;}
+        static Type MaxDist() {return 2.0 * std::sqrt(2);}
 
         /// this function must defined for differentiable group considered as variety
-        static cRotation3D<Type>  Centroid(const std::vector<cRotation3D<Type>> & aV,const std::vector<double> &);
+        static tTypeMap  Centroid(const std::vector<tTypeMap> & aV,const std::vector<Type> &);
+        /// Average of 2 rotation
+        tTypeMap  Centroid(const tTypeMap & aR2) const;
+
+        /// Select the pose minimizing the sum of distance to other
+        static tTypeMap  PseudoMediane(const std::vector<tTypeMap> & aV);
+        ///  Make a "robust" weighted average, starting from S0, W=[s0,A,B]-> 1/(1+R/s0^A)^B,defA=2, defB=1/A
+        static tTypeMap  RobustAvg(const std::vector<tTypeMap> & aV,const tTypeMap & , const std::vector<tREAL8> aWeight);
+        ///  Make an iterate robust estimator
+        static tTypeMap  RobustAvg(const std::vector<tTypeMap> & aV,const tTypeMap & , const std::vector<tREAL8> aWeight,int aNbIter);
+        ///  Call robust avh with PseudoMediane initialization
+        static tTypeMap  RobustMedAvg(const std::vector<tTypeMap> & aV,const std::vector<tREAL8> aWeight,int aNbIter);
 
        //  0-> arround I, 1->arround J ...
         static cRotation3D RotArroundKthAxe(int aNum);
@@ -202,6 +213,7 @@ template <class Type> class cIsometry3D
     public :
        static constexpr int       TheDim=3;
        typedef cPtxd<Type,3>      tPt;
+       typedef cRotation3D<Type>  tRot;
        typedef cPtxd<Type,2>      tPt2;
        typedef cTriangle<Type,3>  tTri;
        typedef cTriangle<Type,2>  tTri2d;
@@ -213,13 +225,19 @@ template <class Type> class cIsometry3D
        /// Default constructor is only provided for serialization, it initialize with dummy stuff
        cIsometry3D();
 
-       cIsometry3D(const tPt& aTr,const cRotation3D<Type> &);
+       cIsometry3D(const tPt& aTr,const tRot &);
        tTypeMapInv  MapInverse() const; // {return cIsometry3D(-mRot.Inverse(mTr),mRot.MapInverse());}
        tTypeMap  operator* (const tTypeMap &) const;
        static tTypeMap Identity();
 
+       ///  Distance with normalisation to unity on center, W= weight of center dist vs rot
+       Type DistPoseRel(const tTypeMap & aIsom2,const Type & aWTr) const;
+
+       ///  Idem but dont normalize to unity
+       Type DistPose(const tTypeMap & aIsom2,const Type & aWTr) const;
+
        /// Return Isometrie with given Rot such I(PTin) = I(PTout)
-       static cIsometry3D<Type> FromRotAndInOut(const cRotation3D<Type> &,const tPt& aPtIn,const tPt& aPtOut );
+       static cIsometry3D<Type> FromRotAndInOut(const tRot &,const tPt& aPtIn,const tPt& aPtOut );
        /// Return Isome such thqt I(InJ) = OutK ;  In(InJJp1) // OutKKp1 ; In(Norm0) = NormOut
        static cIsometry3D<Type> FromTriInAndOut(int aKIn, const tTri  & aTriIn, int aKOut, const tTri  & aTriOut, bool SVP=false); // SVP: do not crash if impossible, return Id
        /// Idem put use canonique tri = 0,I,J as input
@@ -231,11 +249,13 @@ template <class Type> class cIsometry3D
        /// return a random isometry, amplt fix size of randomization for tr
        static cIsometry3D<Type> RandomIsom3D(const Type & AmplPt);
 
+       /// this function must defined for differentiable group considered as variety
+       static tTypeMap  Centroid(const std::vector<tTypeMap> & aV,const std::vector<Type> &);
 
-       void SetRotation(const cRotation3D<Type> &);
+       void SetRotation(const tRot &);
 
-       const cRotation3D<Type> & Rot() const {return mRot;}  ///< Accessor
-       cRotation3D<Type> & Rot() {return mRot;}  ///< Accessor
+       const tRot & Rot() const {return mRot;}  ///< Accessor
+       tRot & Rot() {return mRot;}  ///< Accessor
        const tPt &Tr() const {return mTr;}  ///< Accessor
        tPt &Tr() {return mTr;}  ///< Accessor
 
@@ -245,8 +265,8 @@ template <class Type> class cIsometry3D
        cSimilitud3D<Type>  ToSimil() const; ///< make a similitude with scale 1
 
     private :
-       tPt                mTr;
-       cRotation3D<Type>  mRot;
+       tPt          mTr;
+       tRot         mRot;
 };
 typedef cIsometry3D<tREAL8> tPoseR; 
 void AddData(const cAuxAr2007 & anAux,tPoseR & aPose);
@@ -278,6 +298,8 @@ template <class Type> class cSimilitud3D
        static tTypeMap FromTriInAndOut(int aKIn,const tTri  & aTriIn,int aKOut,const tTri  & aTriOut);
        /// Idem put use canonique tri = 0,I,J as input
        static tTypeMap FromTriOut(int aKOut,const tTri  & aTriOut);
+       ///  Random similitud
+       static tTypeMap RandomSim3D(Type aLevelScale,Type aLevelTr);
        /*  Create a cIsom that aline seg KKp1 of tri on P1->P2  and the normal oriented on axe Z
        */
        static cSimilitud3D<Type> FromTriInAndSeg(const tPt2&aP1,const tPt2&aP2,int aKIn,const tTri  & aTriIn);
@@ -294,6 +316,13 @@ template <class Type> class cSimilitud3D
        tPt                mTr;
        cRotation3D<Type>  mRot;
 };
+typedef cSimilitud3D<tREAL8>  tSim3dR;
+template <class Type> cIsometry3D<Type>    TransfoPose(const cSimilitud3D<Type> & aSim,const cIsometry3D<Type> & aR);
+
+/// V1 and V2 being pose "identic" but in different repair, compute the transfer similitude that best align
+std::pair<tREAL8,tSim3dR>   EstimateSimTransfertFromPoses(const std::vector<tPoseR> & aV1,const std::vector<tPoseR> & aV2);
+
+
 
 /**  Class to store the devlopment planar of two adjacent faces      :          P2
  * adjacent face . At the end we have two 2Dtriangle   with  P0P1    :         /    \   [T1] 

@@ -1,11 +1,12 @@
 #include "MMVII_util_tpl.h"
 #include "MMVII_Bench.h"
+#if (1)
 #include "cMMVII_Appli.h"
 #include "MMVII_Images.h"
 
 #include "MMVII_Tpl_GraphStruct.h"
 #include "MMVII_Tpl_GraphAlgo_SPCC.h"
-#include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_2Include_Serial_Tpl.h"  // for hash
 #include "MMVII_Tpl_GraphAlgo_EnumCycles.h"
 
 
@@ -149,11 +150,11 @@ class  cBGG_Graph : public cVG_Graph<cBGG_AttrVert,cBGG_AttrEdgOr,cBGG_AttrEdgSy
           typedef typename tGraph::tVertex                              tVertex;
           typedef  tVertex*                                             tPtrV;
           typedef  cAlgoSP<cBGG_Graph>                                  tAlgoSP;
-          typedef  typename tAlgoSP::tSetEdges                          tSetEdges;
+          typedef  typename cVG_Tree<tGraph>::tSetEdges             tSetTreeEdges;
           typedef  cAlgoCC<cBGG_Graph>                                  tAlgoCC;
           typedef  tAlgoSP::tForest                                     tForest;
           typedef  cAlgo_ParamVG<cBGG_Graph>                            tParamA;
-          typedef  cAlgo_SubGr<cBGG_Graph>                              tSubGr;
+          typedef  cAlgo_ParamVG<cBGG_Graph>                             tSubGr;
           typedef std::pair<size_t,size_t> tPSzH; // used in pair count/hcode
 
 
@@ -170,6 +171,17 @@ class  cBGG_Graph : public cVG_Graph<cBGG_AttrVert,cBGG_AttrEdgOr,cBGG_AttrEdgSy
                 tVertex & aV2 = *VertOfPt(aP2);
                 return *aV1.EdgeOfSucc(aV2)->EdgeInitOr();
           }
+
+          tPtrV & VertOfAbsCurv(int aAbsCurv)
+	  {
+		  return FindIf(this->AllVertices(),[aAbsCurv](const auto & aV) {return aV->Attr().mAbsCurv==aAbsCurv;});
+	  }
+
+	  int NumQuad(const cPt2di & aPt,int aNb)
+	  {
+              cPt2dr aSzR = ToR(mSzGrid) / tREAL8(aNb-0.5);
+              return   round_ni(aPt.x()/aSzR.x())  + round_ni((aPt.y()/aSzR.y())) * aNb;
+	  }
           
 
           /// test creation , acces to neighbours, attributes
@@ -180,6 +192,8 @@ class  cBGG_Graph : public cVG_Graph<cBGG_AttrVert,cBGG_AttrEdgOr,cBGG_AttrEdgSy
           /// use to compute a unique id up to a circular permutation
           size_t PathHashCode(const std::vector<tEdge *>&) const;
      private :
+          /// Test minimum spaning tree & forest
+          void Bench_Pruning();
 
 	  /// global test algorithms on cycle enumeration
           void Bench_EnumCycle(bool Is4Cnx);
@@ -194,9 +208,10 @@ class  cBGG_Graph : public cVG_Graph<cBGG_AttrVert,cBGG_AttrEdgOr,cBGG_AttrEdgSy
           /// Test minimum spaning tree & forest
           void Bench_MinSpanTree(tVertex * aSeed);
           /// Check that computed a tree on a subgraph is a minimum spaning
-          void Check_MinSpanTree(const tSetEdges& aSet,const tParamA& );
+          void Check_MinSpanTree(const tSetTreeEdges& aSet,const tParamA& );
 
           cPt2di                             mSzGrid;       ///< sz of the grid
+          cPt2di                             mMid;          ///< sz of the grid
           cRect2                             mBox;          ///< Box associated to the  
           std::vector<std::vector<tPtrV>>    mGridVertices; ///< such the mGridVertices[y][x] -> tVertex *
           void AddEdge(const cPt2di&aP0,const cPt2di & aP1); ///< Add and edge bewteen vertices corresponding to 2 Pix
@@ -218,6 +233,7 @@ typedef cVG_Graph<cBGG_AttrVert,cBGG_AttrEdgOr,cBGG_AttrEdgSym> tBGG;
 cBGG_Graph::cBGG_Graph (cPt2di aSzGrid) :
       cVG_Graph<cBGG_AttrVert,cBGG_AttrEdgOr,cBGG_AttrEdgSym>(),  
       mSzGrid        (aSzGrid),
+      mMid           (mSzGrid/2),
       mBox           (mSzGrid),
       // Allocate the vector of vector
       mGridVertices  (mSzGrid.y(),std::vector<tVertex*>(mSzGrid.x(),nullptr))  
@@ -234,7 +250,7 @@ cBGG_Graph::cBGG_Graph (cPt2di aSzGrid) :
           tREAL8 anAbsicsa = mBox.IndexeLinear(aPix4Num);
 
           // create a vertex and put it on the grid
-          VertOfPt(aPix) = NewSom(cBGG_AttrVert(aPix,anAbsicsa));
+          VertOfPt(aPix) = NewVertex(cBGG_AttrVert(aPix,anAbsicsa));
       }
 
       //  ----------- [1]  Create the edges ------------------------
@@ -348,6 +364,8 @@ void cBGG_Graph::Bench_ShortestPath(tVertex * aV0,tVertex * aV1,int aMode)
 
               The shortest path with this distance follow the "snake" of figure  @FIG:CURV:ABS
 
+        - [3]  we use the same distance then [2] but implement it by a lambda sub-graph 
+
     */
 
     class cWeighSqDeltaAbs : public  cAlgo_ParamVG<cBGG_Graph>
@@ -361,12 +379,14 @@ void cBGG_Graph::Bench_ShortestPath(tVertex * aV0,tVertex * aV1,int aMode)
     };
 
 
+    auto aLamb_SQDA =  [](const auto & aE){return Square(aE.VertexInit().Attr().mAbsCurv-aE.Succ().Attr().mAbsCurv);};
+    auto aParam3  = Tpl_InsideAndWSubGr (this,this->V_True(), this->E_True(), aLamb_SQDA);
 
     cAlgo_ParamVG<cBGG_Graph> aParam0;
     cNeigh_4_Connex           aParam1;
     cWeighSqDeltaAbs          aParam2;
 
-    std::vector<cAlgo_ParamVG<cBGG_Graph>*>  aVParam{&aParam0,&aParam1,&aParam2};
+    std::vector<cAlgo_ParamVG<cBGG_Graph>*>  aVParam{&aParam0,&aParam1,&aParam2,&aParam3};
 
     cAlgo_ParamVG<cBGG_Graph> *aParam = aVParam.at(aMode);
 
@@ -375,7 +395,7 @@ void cBGG_Graph::Bench_ShortestPath(tVertex * aV0,tVertex * aV1,int aMode)
     //  compute the theoreticall distance according to previous discussion
     int aDTh = NormInf(aV0->Attr().mPt -aV1->Attr().mPt);
     if (aMode==1) aDTh = Norm1(aV0->Attr().mPt -aV1->Attr().mPt);
-    if (aMode==2) aDTh = std::abs(aV0->Attr().mAbsCurv -aV1->Attr().mAbsCurv);
+    if ((aMode==2)|| (aMode==3)) aDTh = std::abs(aV0->Attr().mAbsCurv -aV1->Attr().mAbsCurv);
 
 
      // check that cost in V1 is equal to the theoreticall distance in the considered graph
@@ -493,6 +513,91 @@ void cBGG_Graph::Bench_ConnectedComponent(tVertex * aSeed,tVertex * aV1)
     MMVII_INTERNAL_ASSERT_bench((int)aVecCC.size() == mSzGrid.x(),"NbCC in All_ConnectedComponent");
     for (const auto & aCC : aVecCC)
         MMVII_INTERNAL_ASSERT_bench((int) aCC.size()==mSzGrid.y(),"Size in All_ConnectedComponent");
+
+    /* -----------[3] check "Lamda subgraph" (with   All_ConnectedComponent ) --------------------------------*/
+
+       // sub graph of vertices equal, %3, to (1 or 2) 
+    auto aX_12_3 =  [](const auto & aV){return (aV.Attr().mPt.x()%3)!=0;};
+    auto aSubGr_X12_3 = Tpl_InsideAndWSubGr (this, aX_12_3, this->E_True(), this->E_W1() );
+
+    aVecCC = tAlgoCC::All_ConnectedComponent(*this,aSubGr_X12_3);
+    int aNbThCC_12_3 = (mSzGrid.x()+1)/3; // theoritcall number of connected component
+    MMVII_INTERNAL_ASSERT_bench((int)aVecCC.size() == aNbThCC_12_3,"NbCC with Lambda / Hori");
+
+       // now same sub-gr but with additionnal constraint of only considering horizontal edges 
+    auto aEdge_Hori =  [](const auto & anE){return anE.VertexInit().Attr().mPt.y() == anE.Succ().Attr().mPt.y();};
+    auto aHor_SubGr_X12_3 = Tpl_InsideAndWSubGr (this, aX_12_3, aEdge_Hori, this->E_W1() );
+
+    aVecCC = tAlgoCC::All_ConnectedComponent(*this,aHor_SubGr_X12_3);
+    MMVII_INTERNAL_ASSERT_bench((int)aVecCC.size() == aNbThCC_12_3 *  mSzGrid.y(),"NbCC with Lambda / Hori");
+
+
+    /* -----------[4] check sub-graph of extensive set of edges / vertices--------------------------------*/
+
+    std::vector<tVertex*> aV_12_3;  // point with X%3 = 1,2
+    std::vector<tVertex*> aV_12_3_Y; // idem + Y%5 != Sz_Grid.y/2
+
+    std::vector<tEdge*> aV_E4;     // edge that link inside each quarter 
+    std::vector<tEdge*> aV_E4Sym;  // idem but only symetric edges
+    int aNbSector = 3;
+    for (const auto & aV : this->AllVertices())
+    {
+        cPt2di aP1 = aV->Attr().mPt;
+
+        if (aP1.x()%3)
+	{
+	   aV_12_3.push_back(aV);
+	   if (aP1.y() != mSzGrid.y()/2)
+              aV_12_3_Y.push_back(aV);
+	}
+	for (const auto & anE : aV->EdgesSucc())
+	{
+            cPt2di aP2 = anE->Succ().Attr().mPt;
+	    if (NumQuad(aP1,aNbSector) == NumQuad(aP2,aNbSector) )
+	    {
+                aV_E4.push_back(anE);
+	        if (anE->IsDirInit())
+                   aV_E4Sym.push_back(anE);
+	    }
+	}
+    }
+
+    aVecCC = tAlgoCC::All_ConnectedComponent(*this,cSubGraphOfVertices<cBGG_Graph>(*this,aV_12_3));
+    MMVII_INTERNAL_ASSERT_bench((int)aVecCC.size() == aNbThCC_12_3,"NbCC with subgr-vertices ");
+
+    aVecCC = tAlgoCC::All_ConnectedComponent(*this,cSubGraphOfVertices<cBGG_Graph>(*this,aV_12_3_Y));
+    MMVII_INTERNAL_ASSERT_bench((int)aVecCC.size() == aNbThCC_12_3*2,"NbCC with subgr-vertices ");
+
+    aVecCC = tAlgoCC::All_ConnectedComponent(*this,cSubGraphOfEdges<cBGG_Graph>(*this,aV_E4));
+    MMVII_INTERNAL_ASSERT_bench((int)aVecCC.size() == Square(aNbSector),"NbCC with subgr-edges ");
+
+    aVecCC = tAlgoCC::All_ConnectedComponent(*this,cSubGraphOfEdges<cBGG_Graph>(*this,aV_E4Sym));
+    MMVII_INTERNAL_ASSERT_bench((int)aVecCC.size() == Square(aNbSector),"NbCC with subgr-edges ");
+
+    aVecCC = tAlgoCC::All_ConnectedComponent(*this,cSubGraphOfEdges_Only<cBGG_Graph>(*this,aV_E4));
+    MMVII_INTERNAL_ASSERT_bench((int)aVecCC.size() == Square(aNbSector),"NbCC with subgr-edges ");
+
+    aVecCC = tAlgoCC::All_ConnectedComponent(*this,cSubGraphOfEdges_Only<cBGG_Graph>(*this,aV_E4Sym));
+    MMVII_INTERNAL_ASSERT_bench((int)aVecCC.size() == Square(aNbSector),"NbCC with subgr-edges ");
+
+    {
+        cSubGraphOfVertices<cBGG_Graph>     aSG1(*this,aV_12_3);
+        cSubGraphOfNotVertices<cBGG_Graph>  aSG2(*this,aV_12_3);
+        for (const auto & aV : AllVertices())
+            MMVII_INTERNAL_ASSERT_bench(aSG1.InsideVertex(*aV)==!aSG2.InsideVertex(*aV),"Sub Gr neg");
+
+        std::vector<tEdge *> aVF;
+        cVG_OpBool<tGraph>::EdgesMinusVertices(aVF,AllEdges_DirInit(),aV_12_3);
+
+        for (const auto &anE : aVF)
+        {
+               MMVII_INTERNAL_ASSERT_bench(anE->VertexInit().Attr().mPt.x()%3==0,"EdgesMinusVertices");
+               MMVII_INTERNAL_ASSERT_bench(anE->Succ().Attr().mPt.x()%3==0,"EdgesMinusVertices");
+        }
+        int aNbTh = (mSzGrid.y()-1) * ((mSzGrid.x()+2) /3 );
+        MMVII_INTERNAL_ASSERT_bench((int)aVF.size()==aNbTh,"EdgesMinusVertices::Nb");
+     }
+
 }
 
     /* ========================================================== */
@@ -517,7 +622,7 @@ void cBGG_Graph::Bench_ConnectedComponent(tVertex * aSeed,tVertex * aV1)
 */
 
 
-void cBGG_Graph::Check_MinSpanTree(const tSetEdges& aSetPair,const tParamA& aParam )
+void cBGG_Graph::Check_MinSpanTree(const tSetTreeEdges& aSetPair,const tParamA& aParam )
 {
      // class of subgr containing edge such that mIsOk is true
      class cASymOk : public  cAlgo_ParamVG<cBGG_Graph>
@@ -621,25 +726,35 @@ void cBGG_Graph::Bench_MinSpanTree(tVertex * aSeed)
         aPtrAttrSym-> mRanCost = RandUnif_C();
 
     // [1]  compute global minimal spaning tree
-    tSetEdges aSetPair = mAlgoSP.MinimumSpanninTree(*this,*aSeed,cWRanCost()).second;
+    tSetTreeEdges aSetPair = mAlgoSP.MinimumSpanninTree(*this,*aSeed,cWRanCost()).Edges();
+
+    {
+        cVG_Tree<tGraph> aTree(aSetPair);
+std::array<cVG_Tree<tGraph>,2> aPairT;
+aTree.Split(aPairT,aSetPair.at(0));
+        auto aVV = tEdge::VerticesOfEdges(aSetPair);
+        MMVII_INTERNAL_ASSERT_bench(aSetPair.size()+1==aVV.size(),"VerticesOfEdges");
+    }
+
+    
     MMVII_INTERNAL_ASSERT_bench((int)aSetPair.size()==(mBox.NbElem()-1),"Size in All_ConnectedComponent");
     //  [1.0]  check that it is effectively the minimal spaning tree
     Check_MinSpanTree(aSetPair,cAlgo_ParamVG<cBGG_Graph>());
 
     // [2]  compute a minimal spaning forest
     cRC_Thr  aRC(1.0 - 2*std::pow(RandUnif_0_1(),2.0));  // define a sub-graph
-    tForest aForest;
+    tForest aForest(*this);
     mAlgoSP.MinimumSpanningForest(aForest,*this,this->AllVertices(), aRC);  // extract the forest
 
     size_t aNbEdge = 0;
     // check that each tree of the forest complies with Check_MinSpanTree
-    for (const auto & [aVert,aVPair] : aForest)
+    for (const auto & aTree : aForest.VTrees())
     {
-        Check_MinSpanTree(aVPair,aRC);
-        aNbEdge += aVPair.size();
+        Check_MinSpanTree(aTree.Edges(),aRC);
+        aNbEdge += aTree.Edges().size();
     }
     // check on number of edge, +- Eulers relation for a graph w/o cycle
-    MMVII_INTERNAL_ASSERT_bench(aForest.size()+aNbEdge== (size_t)mBox.NbElem(),"Edge and CC in MinimumSpanningForest");
+    MMVII_INTERNAL_ASSERT_bench(aForest.VTrees().size()+aNbEdge== (size_t)mBox.NbElem(),"Edge and CC in MinimumSpanningForest");
 }
 
     /* ========================================================== */
@@ -692,6 +807,71 @@ size_t cBGG_Graph::PathHashCode(const std::vector<tEdge *>& aPath) const
     }
     return aHasKey;
 }
+
+    /* ========================================================== */
+    /* ========================================================== */
+    /* ===               Pruning                              === */
+    /* ========================================================== */
+    /* ========================================================== */
+
+void cBGG_Graph::Bench_Pruning()
+{
+    auto aLamb_Dabs1 =  [](const auto & aE) -> bool {return std::abs(aE.VertexInit().Attr().mAbsCurv-aE.Succ().Attr().mAbsCurv) == 1;}  ;
+    auto aSubGr_DA1  = Tpl_InsideAndWSubGr (this,this->V_True(),  aLamb_Dabs1,this->E_W1());
+
+    {
+        cAlgoPruningExtre<cBGG_Graph>  aAlgoP(*this,aSubGr_DA1,cAlgo_SubGrNone<cBGG_Graph>());
+        // StdOut() << "NBE " <<  aAlgoP.Extrem().size() << "\n";
+        MMVII_INTERNAL_ASSERT_bench(aAlgoP.Extrem().size()== NbVertex() ,"Nb vertices of pruning, all graph");
+    }
+
+    {
+        std::vector<std::vector<int>> aVVA{{1,10},{44},{88,22,45}};
+
+	for (const auto & aVA : aVVA)
+	{
+            int aMinA = 1000;
+            int aMaxA = 0;
+            std::vector<tVertex*>  aVV;
+	    for (const auto anA : aVA)
+	    {
+                UpdateMin(aMinA,anA);
+                UpdateMax(aMaxA,anA);
+		aVV.push_back(VertOfAbsCurv(anA));
+	    }
+            cAlgoPruningExtre<cBGG_Graph>  aAlgoP(*this,aSubGr_DA1,cSubGraphOfVertices<cBGG_Graph>(*this,aVV));
+            int aNbNotSupr = aVA.empty() ? 0 : (aMaxA-aMinA+1) ;
+            int aCheck = (int)  aAlgoP.Extrem().size() + aNbNotSupr - (int) NbVertex() ;
+            MMVII_INTERNAL_ASSERT_bench(aCheck==0 ,"Nb vertices of pruning, S-graph");
+        }
+    }
+
+    {
+        auto   Comb = [] (const tEdge& anE) 
+                         {
+                             cPt2di aP1 = anE.VertexInit().Attr().mPt;
+                             cPt2di aP2 = anE.Succ().Attr().mPt;
+                             if (aP1.x()== aP2.x()) return true;
+                             if ((aP1.y()>=1)&&(aP1.y()<=2) && (aP2.y()>=1)&&(aP2.y()<=2) ) return true;
+                             return false;
+                         } ;
+
+        auto aSubGr_Comb  = Tpl_InsideAndWSubGr (this,this->V_True(),  Comb,this->E_W1());
+
+        cAlgoPruningExtre<cBGG_Graph>  aAlgoP0(*this,aSubGr_Comb,cAlgo_SubGrNone<cBGG_Graph>());
+        size_t aNbTh0 = mSzGrid.x() * (mSzGrid.y()-2);
+        MMVII_INTERNAL_ASSERT_bench(aNbTh0== aAlgoP0.Extrem().size() ,"Nb vertices of pruning, Comb-graph");
+
+
+        cPt2di aP1(1,5); cPt2di aP2(5,9);
+        std::vector<tVertex*>  aVV {VertOfPt(aP1),VertOfPt(aP2)};
+        cAlgoPruningExtre<cBGG_Graph>  aAlgoP1(*this,aSubGr_Comb,cSubGraphOfVertices<cBGG_Graph>(*this,aVV));
+        int  aNbTh1 = mSzGrid.x() * (mSzGrid.y()-2)  -(aP1.y()-2) - (aP2.y()-2);
+        MMVII_INTERNAL_ASSERT_bench(aNbTh1==(int)aAlgoP1.Extrem().size()," Nb vertices of pruning, Comb Graph");
+    }
+
+}
+
 
           /* ----------------------------------------- */
           /*                                           */
@@ -747,7 +927,7 @@ void cCheckCycle::OnCycle(const tAlgoEnum& anAlgo)
         MMVII_INTERNAL_ASSERT_bench(&aPath.at(aK-1)->Succ()==&aPath.at(aK)->VertexInit(),"OnCycle not a path");
     }
 
-    size_t aBitMark = mBGG.Vertex_AllocBitTemp();  // bit allocated to check unicity of result
+    size_t aBitMark = mBGG.AllocBitTemp();  // bit allocated to check unicity of result
     for (auto & anE : aPath)
     {
         // check that marking with aBitMark is done once
@@ -775,7 +955,7 @@ void cCheckCycle::OnCycle(const tAlgoEnum& anAlgo)
     // unmark the aBitMark  and free it
     for (auto & anE : aPath)
         anE->SymSetBit0(aBitMark);
-    mBGG.Vertex_FreeBitTemp(aBitMark);
+    mBGG.FreeBitTemp(aBitMark);
 
     //  check that each loop it visited only once
     MMVII_INTERNAL_ASSERT_bench(!BoolFind(mSetH,aHasKey),"Path present multiple time");
@@ -885,12 +1065,13 @@ void cBGG_Graph::Bench_EnumCycle(bool Is4Cnx)
     }
 }
 
-
 void cBGG_Graph::BenchAlgos()
 {
 
      for (int aKTime=0 ; aKTime<2*mBox.NbElem()  ; aKTime++)
      {
+         Bench_Pruning();
+	
 	 tVertex * aV0 =  VertOfPt(mBox.GeneratePointInside());
 	 tVertex * aV1 =  VertOfPt(mBox.GeneratePointInside());
 
@@ -899,6 +1080,8 @@ void cBGG_Graph::BenchAlgos()
          Bench_ShortestPath(aV0,aV1,0);
          Bench_ShortestPath(aV0,aV1,1);
          Bench_ShortestPath(aV0,aV1,2);
+
+         Bench_ShortestPath(aV0,aV1,3);
 
          Bench_MinSpanTree(aV0);
       }
@@ -924,7 +1107,16 @@ void BenchValuatedGraph(cParamExeBench & aParam)
 }
 
 
-template class  cAlgoEnumCycle<tBGG>;
+//template class  cAlgoEnumCycle<tBGG>;
 
 };
+#else
+namespace MMVII
+{
+void BenchValuatedGraph(cParamExeBench & aParam)
+{
+    MMVII_INTERNAL_ASSERT_bench(false,"NO BenchValuatedGraph");
+}
+};
+#endif
 
