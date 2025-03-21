@@ -2,9 +2,76 @@
 #include "MMVII_Geom2D.h"
 #include "MMVII_Geom3D.h"
 #include "MMVII_SysSurR.h"
+#include "MMVII_Tpl_GraphAlgo_Group.h"
 
 namespace MMVII
 {
+
+/**  Return the index of obj O  that miminise  sum of distance to all other */
+
+
+template <class Type> int  IndexPseudoMediane(const std::vector<Type> & aVObj,const std::vector<int> & aVInd)
+{
+   int aNb = aVInd.size();
+   // image of distance, to avoid double computation d(A,B) and d(B,A)
+   cIm1D<tREAL8>  aIm(aNb,nullptr,eModeInitImage::eMIA_Null);  // I(x) will contain Sum(d(x,y))
+   cDataIm1D<tREAL8> & aDIm = aIm.DIm();
+
+    // compute DIm
+   for (int aX=0 ; aX<aNb; aX++)
+   {
+       for (int aY=0 ; aY<aX; aY++)
+       {
+           tREAL8 aD = aVObj.at(aVInd.at(aX)).Dist( aVObj.at(aVInd.at(aY)));
+           aDIm.AddV(aX,aD);
+           aDIm.AddV(aY,aD);
+       }
+   }
+   // compute min
+   cWhichMin<int,tREAL8> aWMin;
+   for (int anX=0 ; anX<aNb; anX++)
+      aWMin.Add(anX,aDIm.GetV(anX));
+
+   return aWMin.IndexExtre();
+}
+
+template <class Type> int  ProgrIndexPseudoMediane(const std::vector<Type> & aVObj,const std::vector<int> & aVInd,int aNbMax)
+{
+   int aNb = aVInd.size();
+   // if less than max value, make the basic computation
+   if (aNb <= aNbMax)
+      return aVInd.at(IndexPseudoMediane(aVObj,aVInd));
+
+   // int aNbSubset = (aNb + aNbMax-1) / aNbMax;
+   int aNbSubSet = std::sqrt(aNb); // else split in aNbSubset
+   // will store the "pseusdo-median"  of each cluster
+   // Cl0 ={0,Nb,2*Nb ...} Cl1={1,1+aNb, .....}
+   std::vector<int>  aVCluster; 
+   for (int aK0SubSet=0 ; aK0SubSet<aNbSubSet ; aK0SubSet++)
+   {
+       std::vector<int> aIndexSubSet;  // store the subset {K0,K0+Nb,....}
+       for (int aKSubSet = aK0SubSet ; aKSubSet<aNb ; aKSubSet += aNbSubSet)
+           aIndexSubSet.push_back(aKSubSet);
+       aVCluster.push_back(ProgrIndexPseudoMediane(aVObj,aIndexSubSet,aNbMax)); // recusively compute "pseudo median of subset"
+   }
+   // recursively compute pseudo median of agregation
+   return ProgrIndexPseudoMediane(aVObj,aVCluster,aNbMax);
+   
+}
+
+
+template <class Type> int  IndexPseudoMediane(const std::vector<Type> & aVObj,int aNbMax)
+{
+    std::vector<int> aVInd;
+    for (size_t aK=0 ; aK<aVObj.size() ; aK++)
+       aVInd.push_back(aK);
+
+    return ProgrIndexPseudoMediane(aVObj,aVInd,aNbMax);
+}
+
+
+
+
 
 // template <class Type> cSimilitud3D(cSegment
 
@@ -402,26 +469,81 @@ template <class Type> cRotation3D<Type>  cRotation3D<Type>::RotArroundKthAxe(int
    return RotFromAxe(tPt::P1Coord(aNum,1.0),M_PI/2.0);
 }
 
-template <class Type> cRotation3D<Type> cRotation3D<Type>::PseudoMediane(const std::vector<tTypeMap> & aVI)
+template <class Type> cRotation3D<Type> cRotation3D<Type>::PseudoMediane(const std::vector<tTypeMap> & aVRot,int aSz)
 {
-   int aNb = aVI.size();
-   cIm1D<tREAL8>  aIm(aNb,nullptr,eModeInitImage::eMIA_Null);
-   cDataIm1D<tREAL8> & aDIm = aIm.DIm();
-   for (int aX=0 ; aX<aNb; aX++)
-   {
-       for (int aY=0 ; aY<aX; aY++)
-       {
-           tREAL8 aD = aVI.at(aX).Dist( aVI.at(aY));
-           aDIm.AddV(aX,aD);
-           aDIm.AddV(aY,aD);
-       }
-   }
-   cWhichMin<int,tREAL8> aWMin;
-   for (int anX=0 ; anX<aNb; anX++)
-      aWMin.Add(anX,aDIm.GetV(anX));
-
-   return aVI.at(aWMin.IndexExtre());
+   if (aSz<0)
+      aSz = aVRot.size()+1;
+   return aVRot.at(IndexPseudoMediane(aVRot,aSz));
 }
+
+
+template <class Type> cRotation3D<Type> cRotation3D<Type>::RobustAvg
+                                        (
+                                              const std::vector<tTypeMap> & aVRot,
+                                              const tTypeMap & aV0, 
+                                              const std::vector<tREAL8> & aWeight
+                                        )
+{
+    cDenseMatrix<Type> aMat(3,3,eModeInitImage::eMIA_Null);
+    tREAL8 aSumW = 0;
+
+    for (const auto & aRot : aVRot)
+    {
+        tREAL8 aDist = aV0.Dist(aRot);
+        tREAL8 aW = StdWeightResidual(aWeight,aDist);
+        aMat = aMat + aRot.Mat() * aW;
+        aSumW += aW;
+    }
+    aMat = aMat * (1.0/aSumW);
+
+    return tTypeMap(aMat,true);
+}
+
+template <class Type> cRotation3D<Type> cRotation3D<Type>::RobustAvg
+                                        (
+                                             const std::vector<tTypeMap> & aVRot,
+                                             tTypeMap  aVCur , 
+                                             const std::vector<tREAL8>& aWeight,
+                                             int aNbIterMin,
+                                             tREAL8 aDistStab,
+                                             int aNbIterMax
+                                        )
+{
+   bool GoOn = true;
+   if (aNbIterMax<0)  aNbIterMax=aNbIterMin;
+
+   for (int aKIt=0 ; GoOn ; aKIt++)
+   {
+       cRotation3D<Type> aVNext = RobustAvg(aVRot,aVCur,aWeight);
+
+       if (aKIt+1>= aNbIterMin)
+       {
+           if (aKIt+1>= aNbIterMax)
+              GoOn = false;
+            else
+               GoOn = (aVNext.Dist(aVCur) > aDistStab);
+       }
+
+       aVCur = aVNext;
+   }
+
+   return aVCur;
+}
+
+template <class Type> cRotation3D<Type> cRotation3D<Type>::RobustMedAvg
+                      (
+                            const std::vector<tTypeMap> & aVRot,
+                            const std::vector<tREAL8> aWeight,
+                            int aNbIter,
+                            int aNbProg
+                     )
+{
+    return RobustAvg(aVRot,PseudoMediane(aVRot,aNbProg),aWeight,aNbProg);
+}
+
+
+
+
 
 
 template <class Type> cRotation3D<Type>  cRotation3D<Type>::RotFromCanonicalAxes(const std::string& aName)
@@ -551,6 +673,11 @@ template <class Type> cRotation3D<Type>  cRotation3D<Type>::RandomRot()
    while(Cos(aP0,aP1)>0.99)
        aP1 = tPt::PRandUnit();
    return CompleteRON(aP0,aP1);
+}
+
+template <class Type> cRotation3D<Type>  cRotation3D<Type>::RandomInInterval(const Type & aV0,const Type & aV1)
+{
+    return     RandomGroupInInterval<cRotation3D<Type>>(aV0,aV1);
 }
 
 template <class Type> cRotation3D<Type>  cRotation3D<Type>::RandomElem() {return RandomRot();}

@@ -21,6 +21,21 @@ double FactExpFromSigma2(double aS2)
     return (aS2+1 - sqrt(Square(aS2+1)-Square(aS2))  ) / aS2 ;
 }
 
+tREAL8  StdWeightResidual(const std::vector<tREAL8> &aWeight,tREAL8 aResidual)
+{
+    if (aResidual > GetDef(aWeight,3,1e60)) return 0.0;
+
+    tREAL8 aS0 = aWeight.at(0);
+    tREAL8 aAlpha = GetDef(aWeight,1,2.0);
+    tREAL8 aBeta = GetDef(aWeight,2,1/aAlpha);
+
+    tREAL8 aW = 1/(1+std::pow(aResidual/aS0,aAlpha));
+
+    return std::pow(aW,aBeta);
+}
+
+
+
 
 /* *********************************************************** */
 /*                                                             */

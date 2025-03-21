@@ -1152,6 +1152,9 @@ int CptOccur(const std::string & aStr,char aC0);
 int CptSameOccur(const std::string & aStr,const std::string & aStr0);
 
 
+///  Weight fo "robust" weighted average, starting from S0, W=[s0,A,B,Thr]-> 1/(1+R/s0^A)^B,defA=2, defB=1/A, defT=1e30
+tREAL8  StdWeightResidual(const std::vector<tREAL8> &aWeight,tREAL8 aResidual);
+
 
 
 

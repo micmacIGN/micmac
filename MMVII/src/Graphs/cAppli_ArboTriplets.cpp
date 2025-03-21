@@ -39,9 +39,9 @@ class cOneTripletMerge
     public :
 
        std::vector<tPairI>  mVLinkPose;  /// num inside mLocSols of poses linked by a triplet
-       std::vector<tPairI>  mVLinkInTri; /// num inside the triplet (in [0,1,2])  of the link 
-       std::vector<tPairI>  mVCommon;    /// num inside mLocSols of poses common to 2 children 
-       int                  mNumTri;     /// num of the triplet in the graph of triplet
+       std::vector<tPairI>  mVLinkInTri; ///< num inside the triplet (in [0,1,2])  of the link 
+       std::vector<tPairI>  mVCommon;    ///< num inside mLocSols of poses common to 2 children 
+       int                  mNumTri;     ///< num of the triplet in the graph of triplet
 };
 
 /// store the hierarchical decomposition 
@@ -64,7 +64,7 @@ class  cNodeArborTriplets : public cMemCheck
 	void CmpWithGT();
 
     private :
-         void AddEqLink(cLinearOverCstrSys<tREAL8> *, int aKEq,
+         void AddEqLink(cLinearOverCstrSys<tREAL8> *,tREAL8 aWeight, int aKEq,
                         const cPt3dr &aC0_In_W0, const cPt3dr &aC1_In_W0,
                         const cPt3dr &aCTri0_In_W0, const cPt3dr &aCTri1_In_W0
               );
@@ -87,6 +87,7 @@ class  cNodeArborTriplets : public cMemCheck
         /** idem, but estimate the similitude (after computing the rotation) */
         tRotR EstimateRotTransfert
               (
+                  std::vector<tREAL8> &  aWeightRot,
                   const std::vector<tPairI>& aVPairCommon,
                   const std::vector<tPairI>& aVPairLink2,
                   const std::vector<cOneTripletMerge> &  aVLink3
@@ -357,8 +358,9 @@ tPoseR  cNodeArborTriplets::PoseRelEdge(int aI0Loc,int aI1Loc) const
 
 tRotR  cNodeArborTriplets::EstimateRotTransfert
              (
-                  const std::vector<tPairI>& aVPairCommon,
-                  const std::vector<tPairI>& aVPairLink2,
+                  std::vector<tREAL8>&                   aWeightR,
+                  const std::vector<tPairI>&             aVPairCommon,
+                  const std::vector<tPairI>&             aVPairLink2,
                   const std::vector<cOneTripletMerge> &  aVLink3
              )
 {
@@ -423,8 +425,7 @@ tRotR  cNodeArborTriplets::EstimateRotTransfert
     //  [B]   Compute the global rotation transfer
     // *****************************************************************************
 
-    // extract a global estimation of the rotation, do it basically for now with centroid, 
-    // to replace by robust estimation ,
+    // B.1  : ---------- construct a vector of rotation --------------------
     std::vector<tRotR>  aVRot;
     std::vector<tREAL8> aVWeight;
     for (const auto & aP : aVecTransf_W1_to_W0)
@@ -432,8 +433,36 @@ tRotR  cNodeArborTriplets::EstimateRotTransfert
        aVRot.push_back(aP.Rot());
        aVWeight.push_back(1.0);
     }
-    // tRotR aRotEstim = tRotR::Centroid(aVRot,aVWeight);  // averaging estmator ...
-    tRotR aRotEstim = tRotR::PseudoMediane(aVRot);  // robust estimator
+
+    // B.2  : ---------- make a robust estimation --------------------
+    //  B.2.1 robust estimator, but to limit compuation time is Nb>aSzMax => split in small pack, estimate, and aggregate
+    int aSzMax = 20;
+    tREAL8 aSig0 = 0.1;
+    tRotR aRotEstim = tRotR::PseudoMediane(aVRot,aSzMax);  
+    //  B.2.2 make weighted averaging initializd from pseudo median d
+    //  Make exactly  2 iteration with  a weighting having a L1 behaviour at infinite
+    aRotEstim = tRotR::RobustAvg(aVRot,aRotEstim,{aSig0,2,0.5},2);
+    //  Make exactly  iteration with 1/R2 at infinite
+    aRotEstim = tRotR::RobustAvg(aVRot,aRotEstim,{aSig0,2,1.0},2,1e-4,8);
+  
+    // B.3  : ---------- weight the data taking into account the rotation residual --------------------
+    {
+         aWeightR.clear();
+         for (const auto & aRot : aVRot)
+             aWeightR.push_back(aRot.Dist(aRotEstim));
+         // this value modelize the fact that the estimation are noisy
+         tREAL8 aMinD = 1e-2;
+         // we add some noise to the 
+         auto SoftMax2 =[](tREAL8 A,tREAL8 B) {return std::sqrt(Square(A)+Square(B));};
+
+         tREAL8 aMedian = SoftMax2(ConstMediane(aWeightR),aMinD);
+         for (auto & aW : aWeightR)
+         {
+             aW = SoftMax2(aMinD,aW);
+             aW = 1/(1+ std::pow(aW/aMedian,2.0));
+         }
+    }
+     
 
     // some msg and check with perfect data that all rotation estimation are close to each other
     StdOut()<<" COM="<< aVPairCommon <<" Liink= "<< aVPairLink2<<" NB3=" << aVLink3.size() << " NbTransPose=" << aVecTransf_W1_to_W0.size() << "\n";
@@ -451,7 +480,7 @@ tRotR  cNodeArborTriplets::EstimateRotTransfert
 
 void cNodeArborTriplets::AddEqLink
      (
-          cLinearOverCstrSys<tREAL8> * aSys, int aKEq,
+          cLinearOverCstrSys<tREAL8> * aSys,tREAL8 aWeight, int aKEq,
           const cPt3dr &aC0_in_W0, const cPt3dr &aC1_in_W0,
           const cPt3dr &aCTri0_in_W0, const cPt3dr &aCTri1_in_W0
      )
@@ -462,14 +491,14 @@ void cNodeArborTriplets::AddEqLink
        //  TrTri and LambdaTri that are stored at aKEq,aKEq+1,..,aKEq+3
        //   aC0_in_W0  = TrTri + LambdaTri * aCTri0_In_W0
        tVIV aSV0 {{aKEq+aKC,1.0},{aKEq+3,aCTri0_in_W0[aKC]}} ;
-       aSys->PublicAddObservation(1.0, tSV(aSV0 ),aC0_in_W0[aKC]);
+       aSys->PublicAddObservation(aWeight, tSV(aSV0 ),aC0_in_W0[aKC]);
 
        // idem for second vertex but must take into account the the transfer W1->W0
        //   Tr + Lambda * aC1_in_W0  = TrTri + LambdaTri * aCTri1_In_W0
        tVIV aSV1 {    {aKEq+aKC,1.0},{aKEq+3,aCTri1_in_W0[aKC]},  // TrTri + LambdaTri * aCTri1_In_W0
                                {aKC,-1.0},{3,-aC1_in_W0[aKC]}              // - (  Tr + Lambda * aC1_in_W0)
                  };
-       aSys->PublicAddObservation(1.0, tSV(aSV1 ),0.0);
+       aSys->PublicAddObservation(aWeight,tSV(aSV1 ),0.0);
      }
 }
 
@@ -489,7 +518,8 @@ tSim3dR cNodeArborTriplets::EstimateSimTransfert
     cNodeArborTriplets & aN0 = *(mChildren.at(0));
     cNodeArborTriplets & aN1 = *(mChildren.at(1));
     // estimate rotation first
-    tRotR aRot_W1_to_W0 = EstimateRotTransfert(aVPairCommon,aVPairLink2,aVLink3);
+    std::vector<tREAL8> aWeightR;
+    tRotR aRot_W1_to_W0 = EstimateRotTransfert(aWeightR,aVPairCommon,aVPairLink2,aVLink3);
 
 
     // [1]   Make in N1 a copy of local sol that are turned of aRot_W1_to_W0
@@ -514,9 +544,11 @@ tSim3dR cNodeArborTriplets::EstimateSimTransfert
     //cLinearOverCstrSys<tREAL8> * aSys = AllocL1_Barrodale<tREAL8>(aNbUnk);
     
 
+    int aKWeight=0;
     // [3]   Add the equation corresponding to common pose
     for (const auto & [aI0Loc,aI1Loc] : aVPairCommon)
     {
+         tREAL8 aW= aWeightR.at(aKWeight++);
          cPt3dr aC0 = aN0.mLocSols[aI0Loc].mPose.Tr();  // Centre of I in W0
          cPt3dr aC1 = aN1.mRotateLS[aI1Loc].mPose.Tr(); // centre of I in W1 after rotation W0->W1
 
@@ -527,7 +559,7 @@ tSim3dR cNodeArborTriplets::EstimateSimTransfert
          {
            //  observauion is :   aC0.{x,y,z} = Tr{x,y,z} + Lambda aC1.{x,y,z}   
             tVIV aVIV {{aKC,1.0},{3,aC1[aKC]}};   //  KC->num of Tr.{x,y,z}  ,  3 num of lambda
-            aSys->PublicAddObservation(1.0, tSV(aVIV),aC0[aKC]);
+            aSys->PublicAddObservation(aW, tSV(aVIV),aC0[aKC]);
          }
     }
     // count the current position of equation for edge/triplet
@@ -539,6 +571,7 @@ tSim3dR cNodeArborTriplets::EstimateSimTransfert
     {
         for (const auto & [aI0Loc,aI1Loc] : aVPairLink2)
         {
+             tREAL8 aWeight = aWeightR.at(aKWeight++);
              const tPoseR  & aPI0_to_W0 = aN0.mLocSols[aI0Loc].mPose;  //  Pose/Mappoing  I0 -> W0
              const tPoseR  & aPI1_to_W1 = aN1.mRotateLS[aI1Loc].mPose;  // Pose/Mappoing  I1 -> W1  (after rotation)
 
@@ -568,7 +601,7 @@ tSim3dR cNodeArborTriplets::EstimateSimTransfert
              cPt3dr aCTri0_In_W0 = aR_Tri_to_W0.Value(aPI0_toTri.Tr());
              cPt3dr aCTri1_In_W0 = aR_Tri_to_W0.Value(aPI1_toTri.Tr());
 
-             AddEqLink(aSys,aKEq,aC0_in_W0,aC1_in_W0,aCTri0_In_W0,aCTri1_In_W0);
+             AddEqLink(aSys,aWeight,aKEq,aC0_in_W0,aC1_in_W0,aCTri0_In_W0,aCTri1_In_W0);
              aKEq += 4;
         }
     }
@@ -615,6 +648,7 @@ tSim3dR cNodeArborTriplets::EstimateSimTransfert
            // [5.2]  now add the equation ...
            for (size_t aKL=0 ; aKL< aLnk3.mVLinkPose.size() ; aKL++)  // parse the 2 links
            {
+                 tREAL8 aWeight = aWeightR.at(aKWeight++);
                  const auto & [aK0Tri,aK1Tri] = aLnk3.mVLinkInTri.at(aKL); // num in triplet , [0,1,2]
                  cPt3dr aCTri0_In_W0 = aR_Tri_to_W0.Value(a3.Pose(aK0Tri).Pose().Tr());
                  cPt3dr aCTri1_In_W0 = aR_Tri_to_W0.Value(a3.Pose(aK1Tri).Pose().Tr());
@@ -623,11 +657,13 @@ tSim3dR cNodeArborTriplets::EstimateSimTransfert
                  cPt3dr  aC0_in_W0 = aN0.mLocSols.at (aI0Loc).mPose.Tr();
                  cPt3dr  aC1_in_W0 = aN1.mRotateLS.at(aI1Loc).mPose.Tr();
 
-                 AddEqLink(aSys,aKEq,aC0_in_W0,aC1_in_W0,aCTri0_In_W0,aCTri1_In_W0);
+                 AddEqLink(aSys,aWeight,aKEq,aC0_in_W0,aC1_in_W0,aCTri0_In_W0,aCTri1_In_W0);
            }
            aKEq += 4;
        }
     }
+
+    MMVII_INTERNAL_ASSERT_bench(aKWeight==int(aWeightR.size()),"End of rotation weighting");
 
     cDenseVect<tREAL8> aSol = aSys->PublicSolve();
     tREAL8 aLambda = aSol(3);
@@ -766,7 +802,7 @@ void cNodeArborTriplets::MergeChildrenSol()
      // prepare index for merge in parent
      MakeIndexGlob2Loc();
 
-getchar();
+// getchar();
 }
 
 cSolLocNode * cNodeArborTriplets::SolOfGlobalIndex(int  anIndAbs) 
@@ -1092,57 +1128,72 @@ void cMakeArboTriplet::MakeGraphTriC()
 
 void cMakeArboTriplet::ComputeArbor()
 {
-
+   // ============= [1]   parse all triplet so that at the end, each image : ==============
+   //   - know the lowest cost triplet it belongs to
+   //   - know all the triplets it belongs to
    for (size_t aKTri=0; aKTri<mGTriC.NbVertex() ; aKTri++)
    {
        auto & aTriVertex  = mGTriC.VertexOfNum(aKTri);
        c3G3_AttrV & aAttrTriV  = aTriVertex.Attr();
        tREAL8 aCost = aAttrTriV.mCostIntr;
-       for (int aKV=0 ; aKV<3 ; aKV++)
+       for (int aKV=0 ; aKV<3 ; aKV++) // parse the 3 image of the triplet
        {
            c3GOP_AttrV & aAttrPose = aAttrTriV.m3V.at(aKV)->Attr().Attr();
            aAttrPose.mWMinTri.Add(aKTri,aCost);
            aAttrPose.mTriBelongs.push_back(aKTri);
        }
    }
-   int aNbTripInit = 0;
+
+
+   // ==============   [2]  Does two things: ===============================================
+   //    - for a triplet store in mVPoseMin the pose that consider it as the "best one"
+   //    - store in aVectTriMin the triplet for which mVPoseMin is not empty
    std::vector<t3G3_Vertex*> aVectTriMin;
    for (size_t aKPose=0 ; aKPose<mGGPoses.NbVertex() ; aKPose++)
    {
        int aKTriplet = mGGPoses.VertexOfNum(aKPose).Attr().Attr().mWMinTri.IndexExtre();
-       std::vector<int> & aLMin = mGTriC.VertexOfNum(aKTriplet).Attr().mVPoseMin;
+       std::vector<int> * aVPoseMin = & mGTriC.VertexOfNum(aKTriplet).Attr().mVPoseMin;
 
-       if (aLMin.empty())
+       // store it only the first time to avoid duplicata
+       if (aVPoseMin->empty())
        {
-          // mArbor.NewTerminalNode(aKTriplet);
-          aNbTripInit ++;
           aVectTriMin.push_back(&mGTriC.VertexOfNum(aKTriplet));
        }
-       aLMin.push_back(aKPose);
+       aVPoseMin->push_back(aKPose);
    }
-   StdOut() << "NB TRIPLET=" << aNbTripInit << "\n";
+   StdOut() << "NB TRIPLET=" << aVectTriMin.size() << "\n";
 
-
-   auto aWeighting = Tpl_WeithingSubGr(&mGTriC,[](const auto & anE) {return anE.AttrSym().mCost2Tri;});
+  
+   // ==============    [3]  Compute the minimal spaning forest of graph of triplet   ====================
+   // Create a subgraph of template type cTpl_WeithingSubGr, with a lambda expression
+   //   mCos2Tri has been inialize in constructor
+   auto aWeighting = Tpl_WeithingSubGr(&mGTriC,[](const t3G3_Edge & anE) {return anE.AttrSym().mCost2Tri;});
+   // auto aWeighting = Tpl_WeithingSubGr(&mGTriC,[](const auto & anE) {return anE.AttrSym().mCost2Tri;});
 
    cAlgoSP<t3G3_Graph>::tForest  aForest(mGTriC);
    cAlgoSP<t3G3_Graph>  anAlgo;
    anAlgo.MinimumSpanningForest(aForest,mGTriC,mGTriC.AllVertices(),aWeighting);
    
-   // dont handle 4 now
+   // dont handle 4 now the multiple connected components
    MMVII_INTERNAL_ASSERT_tiny(aForest.VTrees().size()==1,"Not single forest");// litle checj
    const auto & aGlobalTree = *(aForest.VTrees().begin());
    StdOut() << "NB TREE=" << aForest.VTrees().size()  << " SzTree1=" << aGlobalTree.Edges().size() << "\n";
 
-
    
+   // ==============    [4]  Compute the pruning  : =====================================================
+   //       recursing supression of extremities as lon as the are not anchor points   ====================
+
+   // define the sub-graph which  edges are the edges of the GlobalTree
    cSubGraphOfEdges<t3G3_Graph>  aSubGrTree(mGTriC,aGlobalTree.Edges());
+   // define the sub-graph of anchor points, i.e the triplets that are the "best one" of given pose
    cSubGraphOfVertices<t3G3_Graph>  aSubGrAnchor(mGTriC,aVectTriMin); 
 
 
+   // algorithm of extremities pruning : job is done in the constructor (compute the "Extrem()")
    cAlgoPruningExtre<t3G3_Graph> aAlgoSupExtr(mGTriC,aSubGrTree,aSubGrAnchor);
    StdOut() <<  "NB EXTR SUPR=" << aAlgoSupExtr.Extrem().size() << "\n";
 
+   // now supress from initial edges all the "pruned" extremities
    std::vector<t3G3_Edge*>  aSetEdgeKern;
    cVG_OpBool<t3G3_Graph>::EdgesMinusVertices(aSetEdgeKern,aGlobalTree.Edges(),aAlgoSupExtr.Extrem());
 
@@ -1164,6 +1215,7 @@ void cMakeArboTriplet::ComputeArbor()
         MMVII_INTERNAL_ASSERT_always(aCC0.size()==(aSetEdgeKern.size()+1),"Kernel is not tree");
 
    }
+   // ==============    [5]  compute the tree : =====================================================
    t3G3_Tree  aTreeKernel(aSetEdgeKern);
    mCostMergeTree = 0.0;
    mArbor = new cNodeArborTriplets(*this,aTreeKernel,0);

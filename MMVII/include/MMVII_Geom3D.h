@@ -141,6 +141,8 @@ template <class Type> class cRotation3D
 
         /// return a random small elem,  +or- with uniform density on tangent space (whatever it means)
         static cRotation3D<Type> RandomSmallElem(const Type & aAmpl);
+        /// return a random rot with nomr in [V0,V1]
+        static cRotation3D<Type> RandomInInterval(const Type & aV0,const Type & aV1);
 
         /// distance between 2 rotation; uses matrixes
         Type Dist(const  cRotation3D<Type> &) const;
@@ -153,13 +155,22 @@ template <class Type> class cRotation3D
         tTypeMap  Centroid(const tTypeMap & aR2) const;
 
         /// Select the pose minimizing the sum of distance to other
-        static tTypeMap  PseudoMediane(const std::vector<tTypeMap> & aV);
+        static tTypeMap  PseudoMediane(const std::vector<tTypeMap> & aV,int aSzProgr=-1);
+        /// Select the pose minimizing the sum of distance to other in the interval K0,K1
+        // static tTypeMap  PseudoMediane(const std::vector<tTypeMap> & aV,int aK0,int aK1);
+
+
         ///  Make a "robust" weighted average, starting from S0, W=[s0,A,B]-> 1/(1+R/s0^A)^B,defA=2, defB=1/A
-        static tTypeMap  RobustAvg(const std::vector<tTypeMap> & aV,const tTypeMap & , const std::vector<tREAL8> aWeight);
+        static tTypeMap  RobustAvg(const std::vector<tTypeMap> & aV,const tTypeMap & , const std::vector<tREAL8>& aWeight);
         ///  Make an iterate robust estimator
-        static tTypeMap  RobustAvg(const std::vector<tTypeMap> & aV,const tTypeMap & , const std::vector<tREAL8> aWeight,int aNbIter);
+        static tTypeMap  RobustAvg
+                         (    const std::vector<tTypeMap> & aV,tTypeMap  , const std::vector<tREAL8>& aWeight,
+                              int aNbIterMin,
+                              tREAL8 aDistStab = 1e30,
+                              int aNbIterMax   = -1
+                         );
         ///  Call robust avh with PseudoMediane initialization
-        static tTypeMap  RobustMedAvg(const std::vector<tTypeMap> & aV,const std::vector<tREAL8> aWeight,int aNbIter);
+        static tTypeMap  RobustMedAvg(const std::vector<tTypeMap> & aV,const std::vector<tREAL8> aWeight,int aNbIter,int aNbProg=-1);
 
        //  0-> arround I, 1->arround J ...
         static cRotation3D RotArroundKthAxe(int aNum);

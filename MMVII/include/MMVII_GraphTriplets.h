@@ -106,6 +106,8 @@ class c3G3_AttrV
         c3G3_AttrV (cTriplet* aT0,int aKT) :
             mT0         (aT0),
             mKT         (aKT),
+            mCnxE       {0,0,0},
+            m3V         {0,0,0},
             mOk         (false),
             mCostIntr   (1e10)
         {
