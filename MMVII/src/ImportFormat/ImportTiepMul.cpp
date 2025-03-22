@@ -229,6 +229,7 @@ int cAppli_ImportTiePMul::Exe()
     {
           for (const auto & [aName,aSetMesIm] : mMapGCP)
           {
+                  (void)aName;
               mPhProj.SaveMeasureIm(*aSetMesIm);
               delete aSetMesIm;
           }

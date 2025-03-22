@@ -648,6 +648,7 @@ void cAppliMICMAC::MakeDequantSpecial()
    for (int aKPx=0 ; aKPx<DimPx() ; aKPx++)
    {
        std::string aTifQuant  =    mPrecEtape->KPx(aKPx).NameFile();
+       //std::cout<<"????????????? NAME IMAGES ????????????   ================>>>>>  "<<aTifQuant<<std::endl;
        std::string aTifDeqQuant  = mCurEtape->KPx(aKPx).NameFile();
 
        double aR=0;
@@ -677,7 +678,7 @@ void cAppliMICMAC::MakeDequantSpecial()
            aOfs = (aFOMQ.OrigineAlti()-aFOMDeQ.OrigineAlti()) /aFOMDeQ.ResolutionAlti();
            // std::cout << " BB  " << aTifQuant  << " " << aFOMQ.ResolutionAlti() << "\n";
            // std::cout << " CCC " << aTifDeqQuant << " " << aFOMDeQ.ResolutionAlti() << "\n";
-           // std::cout << " DDDD,  R=" << aR << " Of=" << aOfs << "\n";
+            //std::cout << " DDDD,  R=" << aR << " Of=" << aOfs << "\n";
        }
        else
        {
@@ -686,7 +687,7 @@ void cAppliMICMAC::MakeDequantSpecial()
               aR=  aPasQ/aPasDeQ;
               aOfs=0;
 
-             // std::cout << " EEEEE,  R=" << aR << " Of=" << aOfs << "\n";
+              //std::cout << " EEEEE,  RATIO=" << aR << " Of=" << aOfs << "\n";
        }
 
        std::string aCom =   MM3dBinFile("Dequant")
@@ -696,7 +697,7 @@ void cAppliMICMAC::MakeDequantSpecial()
                           + " Offs=" + ToString(aOfs)
                           + " SzRecDalles=1500"
                           + " SzMaxDalles=15000" ;
-       // std::cout << "COM= " << aCom << "\n";
+       std::cout << "COM DEQUANTIFICATION = " << aCom << "\n";
        System(aCom);
    }
 }

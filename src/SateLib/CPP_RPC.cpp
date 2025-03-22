@@ -277,10 +277,10 @@ void RPC::ReadDimap(std::string const &filename)
         std::list<cElXMLTree*>::iterator it_grid, fin_grid = noeuds.end();
 
 
-        std::string coefSampN = "SAMP_NUM_COEFF";
-        std::string coefSampD = "SAMP_DEN_COEFF";
-        std::string coefLineN = "LINE_NUM_COEFF";
-        std::string coefLineD = "LINE_DEN_COEFF";
+        std::string coefSampN = "LON_NUM_COEFF";
+        std::string coefSampD = "LON_DEN_COEFF";
+        std::string coefLineN = "LAT_NUM_COEFF";
+        std::string coefLineD = "LAT_DEN_COEFF";
 
         for (int c = 1; c<21; c++)
         {
@@ -295,6 +295,7 @@ void RPC::ReadDimap(std::string const &filename)
                 double value;
                 std::istringstream buffer((*it_grid)->GetUnique(coefSampN.c_str())->GetUniqueVal());
                 buffer >> value;
+                std::cout<<"value "<<value<<std::endl;
                 direct_samp_num_coef.push_back(value);
                 std::istringstream buffer2((*it_grid)->GetUnique(coefSampD.c_str())->GetUniqueVal());
                 buffer2 >> value;
@@ -306,16 +307,16 @@ void RPC::ReadDimap(std::string const &filename)
                 buffer4 >> value;
                 direct_line_den_coef.push_back(value);
             }
-            coefSampN = coefSampN.substr(0, 14);
-            coefSampD = coefSampD.substr(0, 14);
-            coefLineN = coefLineN.substr(0, 14);
-            coefLineD = coefLineD.substr(0, 14);
+            coefSampN = coefSampN.substr(0, 13);
+            coefSampD = coefSampD.substr(0, 13);
+            coefLineN = coefLineN.substr(0, 13);
+            coefLineD = coefLineD.substr(0, 13);
         }
         for (it_grid = noeuds.begin(); it_grid != fin_grid; ++it_grid)
         {
-            std::istringstream buffer((*it_grid)->GetUnique("ERR_BIAS_X")->GetUniqueVal());
+            std::istringstream buffer((*it_grid)->GetUnique("ERR_BIAS_LON")->GetUniqueVal());
             buffer >> dirErrBiasX;
-            std::istringstream bufferb((*it_grid)->GetUnique("ERR_BIAS_Y")->GetUniqueVal());
+            std::istringstream bufferb((*it_grid)->GetUnique("ERR_BIAS_LAT")->GetUniqueVal());
             bufferb >> dirErrBiasY;
         }
     }

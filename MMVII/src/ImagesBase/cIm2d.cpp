@@ -396,7 +396,9 @@ template<class TypeEl> void  cAppliParseBoxIm<TypeEl>::APBI_ExecAll()
          // For first box, run it classically so that files are created only once
          if (TopCallParallTile() && (aPixI!=cPt2di(0,0)))
          {
-            cParamCallSys aCom = mAppli.CommandOfMain();
+            //std::string aCom = mAppli.CommandOfMain() + " " +NameIndBoxRecal + "=" + ToStr(aPixI);
+            //std::cout<<" THE COMMAND TO TILE "<<aCom<<std::endl;
+             cParamCallSys aCom = mAppli.CommandOfMain();
              aCom.AddArgs(NameIndBoxRecal + "=" + ToStr(aPixI));
              aLComParal.push_back(aCom);
          }

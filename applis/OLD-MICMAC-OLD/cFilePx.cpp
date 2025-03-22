@@ -839,6 +839,8 @@ void cFilePx::LoadNappeEstim
         cEnveloppeMNT_INIT aEnv=mAppli.EnveloppeMNT_INIT().Val();
         Tiff_Im aTifInf  = Tiff_Im::StdConv(aEnv.ZInf());
         Tiff_Im aTifSup  = Tiff_Im::StdConv(aEnv.ZSup());
+        
+        std::cout<<"Image pax sup loaded "<<std::endl;
 
          aFMin  = trans(aTifInf.in(aMaxShrt),aBoxIn._p0);
          aFMax = trans(aTifSup.in( -aMaxShrt),aBoxIn._p0);

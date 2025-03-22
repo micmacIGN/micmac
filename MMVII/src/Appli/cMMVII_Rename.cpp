@@ -351,6 +351,7 @@ int cAppli_Rename::Exe()
         {
             auto [aStrIn0,aStrOut] = aPair;
             StdOut() << "mv " << aStrIn0  << " " << aPrefTmp+aStrIn0  << std::endl;
+            StdOut() << "mv out " << aStrOut  << std::endl;
 	    RenameFiles(aStrIn0,aPrefTmp+aStrIn0);
         }
 	// the put, safely, "tmp" in "output"

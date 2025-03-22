@@ -1318,11 +1318,13 @@ void cAppliMICMAC::MakePartiesCachees()
 
   const cFilePx & aFP = mCurEtape->KPx(0);
   Tiff_Im     aTFP =   aFP.FileIm() ;
+  //std::cout<<" NAME OF PAX FOR PC ====>>>>> "<<aFP.NameFile()<<std::endl;
   double aZMin,aZMax,aZMoy;
 
   if (aGPC.ZMoy().IsInit())
   {
      aZMin = aZMax = aZMoy = aGPC.ZMoy().Val();
+     std::cout<<"ZMoy is init in parties cachees "<<std::endl;
   }
   else
   {

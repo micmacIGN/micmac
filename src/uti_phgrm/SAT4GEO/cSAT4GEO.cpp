@@ -792,7 +792,7 @@ cAppliFusion::cAppliFusion(int argc,char ** argv)
 	if (EAMIsInit(&mOri))
     	StdCorrecNameOrient(mOri,mCAS3D.mDir,true);
 
-	ELISE_ASSERT(EAMIsInit(&mCAS3D.mOutRPC),"In TestLib SAT4GEO_Fuse the \"OutRPC\" must be initializes. We need to know the geolocation of your input depth maps to move them to a common reference frame!")
+        ELISE_ASSERT(EAMIsInit(&mCAS3D.mOutRPC),"In TestLib SAT4GEO_Fuse the \"OutRPC\" must be initializes. We need to know the geolocation of your input depth maps to move them to a common reference frame!");
 }
 
 
@@ -829,7 +829,7 @@ void cAppliFusion::DoAll()
 
 	/* List of MEC-Dirs*/
     cListOfName         aLDirMec = StdGetFromPCP(mCAS3D.mFPairsDirMEC,ListOfName);
-    ELISE_ASSERT(int(aPairs.Cple().size())==(int)aLDirMec.Name().size(),"In TestLib SAT4GEO_MM1P the PairsDirMEC.xml must contain as many elements as there are the matching couples in Pairs.xml!")
+    ELISE_ASSERT(int(aPairs.Cple().size())==(int)aLDirMec.Name().size(),"In TestLib SAT4GEO_MM1P the PairsDirMEC.xml must contain as many elements as there are the matching couples in Pairs.xml!");
     auto aDir_it = aLDirMec.Name().begin();
 
 
@@ -850,8 +850,10 @@ void cAppliFusion::DoAll()
 	
 	 	if (EAMIsInit(&mOri))
 		{	
-			aNI1 = mCAS3D.NameOfEpiIm1(aCpt,mOri);
-        	        aNI2 = mCAS3D.NameOfEpiIm2(aCpt,mOri);
+		aNI1 = mCAS3D.mICNM->NameImEpip(mOri,itP.N1(),itP.N2());
+		aNI2 = mCAS3D.mICNM->NameImEpip(mOri,itP.N2(),itP.N1());
+		//aNI1 = mCAS3D.NameOfEpiIm1(aCpt,mOri);
+		//aNI2 = mCAS3D.NameOfEpiIm2(aCpt,mOri);
 		}
 		else
 		{

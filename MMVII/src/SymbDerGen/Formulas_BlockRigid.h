@@ -117,6 +117,7 @@ class cFormulaBlocRigid
                 //  We have 4 pose  A,B,1 en 2;  each has 6 unknown : 3 for centers,3 for axiator
                 //  We could write  explicitely a 24 size vector like {"CxA","CyA","CzA","WxA" .....,"Wy2","Wz2"}
 		//  We prefer to  use the facility "NamesPose" 
+
                 return  Append(NamesPose("CA","WA"),NamesPose("CB","WB"),NamesPose("C1","W1"),NamesPose("C2","W2"));
 
 		// Append NamesPose("CA","WA")
@@ -151,22 +152,11 @@ class cFormulaBlocRigid
                     cPtxd<tUk,3>  aDeltaC = aRelAB.mCenter-aRel12.mCenter;
                     cMatF<tUk>    aDeltaR = aRelAB.mIJK-aRel12.mIJK;
 
-                   
-		   // ... 
-		   // extract PoseA,PoseB,pose1, pose2
-                    
-		   // compute pose rel B to A,   pose rel 2 to 1
-		   // compute the difference
-
-
-		   return Append(ToVect(aDeltaC),aDeltaR.ToVect());
 
 		   //  cPoseF<tUk>  aPose1(aVUk,2*NbUk,aVObs,2*NbObs);
                    //  cPoseF<tUk>  aRelAB = aPoseA.PoseRel(aPoseB);
-		   // (ToVect(aDeltaC),aDeltaM.ToVect()
+                   return Append(ToVect(aDeltaC),aDeltaR.ToVect());
 	   }
-
-
 
       private :
 };

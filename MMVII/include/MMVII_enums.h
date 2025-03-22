@@ -152,6 +152,7 @@ enum class eApDT
               SysCo,   ///< Coordinate system
               Radiom,   ///< Orientations files
               Ply,    ///< Ply file
+              Laz,    /// < Laz/las file
               Topo,    ///< Topo files
               None,     ///< Nothing
               ToDef,     ///< still unclassed
@@ -380,7 +381,12 @@ enum class eModeEpipMatch
 {
    eMEM_MMV1,  // Mode MicMac V1
    eMEM_PSMNet,// Mode PSMNet
+   eMEM_RAFTStereo, // Mode RAFTStereo
+   eMEM_UNETDECISION, // MODE WITH SGM CUDA EXTERNAL TO MICMAC 
    eMEM_NoMatch,  // Do no match, used for debuging
+   /********************************************************/
+    //eMEM_MVCNN,
+    /********************************************************/
    eNbVals
 };
 
@@ -650,7 +656,8 @@ const std::string & E2Str(const eModePaddingEpip &);
 const std::string & E2Str(const eModeCaracMatch &);         
 const std::string & E2Str(const eModeSSR &);         
 
-template <class Type> Type  Str2E(const std::string &,bool WithDef=false); 
+template <class Type> Type  Str2E(const std::string &, bool WithDef=false);
+//template <class Type> const Type & Str2E(const std::string &);
 template <class Type> std::string   StrAllVall();
 /// return a vector with list all label corresponding to aPat
 template <class Type> std::vector<Type> SubOfPat(const std::string & aPat,bool AcceptEmpty=false);

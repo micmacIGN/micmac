@@ -217,6 +217,8 @@ template <class Type> void cComputeStdDev<Type>::Add(const Type & aW,const Type 
 
 template <class Type> void cComputeStdDev<Type>::SelfNormalize(const Type&  Epsilon)
 {
+    mSomW=mSomW+0.00001;
+
     MMVII_ASSERT_INVERTIBLE_VALUE(mSomW);
      
     mSomWV  /= mSomW;

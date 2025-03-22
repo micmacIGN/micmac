@@ -1891,7 +1891,6 @@ class cLoadTer // dans cFilePx.cpp
 struct cArgOneEtapePx  
 {
        public :
-
           REAL  mRegul;
           REAL  mRegul_Quad;
           REAL  mUserPas;  // Nom Change pour verifier usage
@@ -3570,12 +3569,20 @@ class cAppliMICMAC  : public   cParamMICMAC,
         //  Variables utilisee dans les correls Ad Hoc
 
            void DoInitAdHoc(const Box2di & aBox);
+           void DoEstimWarpersPDVs();
+           void DoEstimHomWarpers();
+           void GenerateBoxesImEpip_EpipIm(std::vector<cGPU_LoadedImGeom *> & aVLI, std::string & aNameOrig,bool Epip);
+           void GenerateGeoPassage_ImEpip_EpipIm_BBox(std::vector<cGPU_LoadedImGeom *> & aVLI, std::string & aNameOrig);
+           void GenerateGeoPassage_ImEpip_EpipIm_BBox_Stenope(std::vector<cGPU_LoadedImGeom *> & aVLI, std::string & aNameOrig);
+           void GenerateGeoPassage_Homography_BBox_Stenope(std::vector<cGPU_LoadedImGeom *> & aVLI, std::string & aNameOrig);
            // Si pas FirstZ de la colone et Im1 maitresse, pas la peine
            // de reinitialiser 
            bool InitZ(int aZ,eModeInitZ aMode);
+           bool InitZRef(int aZ,int aZRef, std::string aPrefX,eModeInitZ aMode);
 
   // Permet entre autre d'optimiser pour geom image maitresse
            bool mFirstZIsInit;
+           bool mZoomChanged=false;
 
            Pt2di mSzGlobTer;
            int  mX0Ter;

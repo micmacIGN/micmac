@@ -190,6 +190,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecCalcHistoNDim);
         TheVecAll.push_back(&TheSpecTestHypStep);
         TheVecAll.push_back(&TheSpecFillCubeCost);
+        TheVecAll.push_back(&TheSpecFillCubeCost2D);
         TheVecAll.push_back(&TheSpecMatchMultipleOrtho);
         TheVecAll.push_back(&TheSpecDMEvalRef);
         TheVecAll.push_back(&TheSpecGenCodedTarget);
@@ -203,6 +204,10 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecCloudClip);
         TheVecAll.push_back(&TheSpecMeshDev);
         TheVecAll.push_back(&TheSpecGenMeshDev);
+        TheVecAll.push_back(&TheSpecComputeStatsCorrel);
+        //TheVecAll.push_back(&TheSpecProgDynEpipolar);
+        TheVecAll.push_back(&TheSpecMMGenDepthMV);
+        TheVecAll.push_back(&TheSpecMGenDeformMaps) ;
         TheVecAll.push_back(&TheSpecTestCovProp);
         TheVecAll.push_back(&TheSpec_OriConvV1V2);
         TheVecAll.push_back(&TheSpec_OriUncalibSpaceResection);
@@ -262,6 +267,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_MergeMesImGCP);
         TheVecAll.push_back(&TheSpec_ExifData);
         TheVecAll.push_back(&TheSpec_PerturbRandomOri);
+
 
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);

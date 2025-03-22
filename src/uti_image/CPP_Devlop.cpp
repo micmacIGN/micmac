@@ -159,11 +159,9 @@ int PreparSift_Main(int argc,char ** argv)
     );
 
     Tiff_Im aTif = Tiff_Im::StdConvGen(aNameIn,1,true);
-    
     // Init Mems
     Pt2di aSz = aTif.sz();
-    Im2D_U_INT2  anIm(aSz.x,aSz.y);
-
+    Im2D_U_INT2  anIm(aSz.x,aSz.y); 
     Im1D_REAL8  aH(aNbH,0.0);
 
 
@@ -174,7 +172,6 @@ int PreparSift_Main(int argc,char ** argv)
     }
     Im1D_REAL8  aHSqrt(aNbH,0.0);
     ELISE_COPY(aH.all_pts(),sqrt(aH.in()),aHSqrt.out());
-
 
 
     int aVMax =0;

@@ -307,7 +307,7 @@ int to8Bits_main(int argc,char ** argv)
             if (ForceMin < Big)
                 GMin = ForceMin;
 
-            cout << "MIN MAX = " << GMin << " " << GMax << "\n";
+            cout << "MIN MAX HISTO EQUAL = " << GMin << " " << GMax << "\n";
             if (AdaptMinMax)
                 fRes = (tiff.in()-GMin) * ((Dyn*255.0)  / ElMax(GMax-GMin,1e-2));
             else if (AdaptMin)

@@ -9,23 +9,23 @@ MODELPATH=models/finetune_PSMnet.tar
 
 
 #dependances
-pip3 install virtualenv 
-pip3 install wget
+#####pip3 install virtualenv 
+#####pip3 install wget
 
 #clone PSMNet
-git clone https://github.com/erupnik/PSMNet.git
-cd PSMNet
+#####git clone https://github.com/erupnik/PSMNet.git
+#####cd PSMNet
 
 #create new branch 'test', resetted to initial commit
-git checkout -b test
-git reset --hard 9ba1e36903f3ba2c99e5be8f03d31d2751a2cb33
+#####git checkout -b test
+#####git reset --hard 9ba1e36903f3ba2c99e5be8f03d31d2751a2cb33
 
 #download a trained model
 #wget https://drive.google.com/uc?id=16acK5nqgglNSBhCmvqEmhOZQwChNOm2n -O ${MODELPATH}
-wget https://drive.google.com/uc?id=1JzVwoUuCdXfKmB26rPyV3vISRqgOUZxj -O ${MODELPATH}
+#####wget https://drive.google.com/uc?id=1JzVwoUuCdXfKmB26rPyV3vISRqgOUZxj -O ${MODELPATH}
 
 #create dir to store virtual env
-cd ..
+#####cd ..
 mkdir ${PYTHON_ENV}
 cd ${PYTHON_ENV}
 

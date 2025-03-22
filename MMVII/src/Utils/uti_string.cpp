@@ -12,7 +12,6 @@
 
 */
 
-
 #include <filesystem>
 
 #include "MMVII_Sys.h"
@@ -20,9 +19,7 @@
 #include "cMMVII_Appli.h"
 
 
-
 namespace fs=std::filesystem;
-
 
 namespace MMVII
 {

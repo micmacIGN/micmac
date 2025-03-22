@@ -12,8 +12,6 @@ MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-Muscale.xml  WorkDir=/home
 
    <Symb>   Im1=_MG_0007            </Symb>
    <Symb>   ImPat=_MG_00(07|08|13)  </Symb>
-
-
    <Symb> Post=JPG     </Symb>
    <Symb>  Ori=All     </Symb>
 </DicoLoc>
@@ -84,8 +82,9 @@ MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-Muscale.xml  WorkDir=/home
             <CorrelAdHoc>
 		 <SzBlocAH> 500 </SzBlocAH>
                  <TypeCAH>
-                      <MutiCorrelOrthoExt>
-                      </MutiCorrelOrthoExt>
+                      <MutiCorrelOrthoExt> </MutiCorrelOrthoExt>
+                      <OrthFileModeleParams>./ModelCNNLEGACY/.*.pt</OrthFileModeleParams>
+                      <OrthFileModeleArch>MVCNNFastReg</OrthFileModeleArch>
                  </TypeCAH>
             </CorrelAdHoc>
 

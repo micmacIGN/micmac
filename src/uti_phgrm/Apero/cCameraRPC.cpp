@@ -1149,7 +1149,11 @@ void cRPC::Initialize(const std::string &aName,
     if( (aType==eTIGB_MMDimap2) || (aType==eTIGB_MMDimap3))
     {
         ReadDimap(aNameRPC);
-	    //Show();       
+            //Show();
+            SetRecGrid();// # added in case direct model is not given
+
+         InvToDirRPC(); // # added in case direct model is not given
+        //Show();
         Initialize_(aChSys);
 
     }

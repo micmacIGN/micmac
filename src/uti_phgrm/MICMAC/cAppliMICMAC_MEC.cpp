@@ -95,10 +95,12 @@ void cAppliMICMAC::DoAllMEC()
         if (mDoTheMEC  && (!DoNothingBut().IsInit()))
         {
            DoOneEtapeMEC(**itE);
+           //std::cout<<" NUM ETAPE ======= >>>> "<<(*itE)->Num()<< "  "<<FirstEtapeMEC().Val()<<std::endl;
         }
+
         if (
                  ( (*itE)->Num()>=FirstEtapeMEC().Val())
-           &&    ( (*itE)->Num()<LastEtapeMEC().Val())
+           &&    ( (*itE)->Num()<=LastEtapeMEC().Val())
            )
         {
             if (! CalledByProcess().Val())
@@ -164,7 +166,9 @@ void cAppliMICMAC::OneEtapeSetCur(cEtapeMecComp & anEtape)
 {
      mPrecEtape = mCurEtape;
      mCurEtape = & anEtape;
-     
+     mZoomChanged=false;
+
+
      if (anEtape.EtapeMEC().GenCubeCorrel().ValWithDef(false))
      {
         ELISE_fp::MkDirSvp(DirCube());
@@ -277,6 +281,13 @@ void cAppliMICMAC::OneEtapeSetCur(cEtapeMecComp & anEtape)
          {
               ELISE_ASSERT(anEtape.AlgoRegul()==eAlgoLeastSQ,"Least Sq require eAlgoLeastSQ");
          }
+         else if (mCorrelAdHoc->TypeCAH().ScoreLearnedMMVII().IsInit())
+         {
+             if (mCorrelAdHoc->TypeCAH().ScoreLearnedMMVII().Val().FileModeleCost()=="MVCNNCorrel2D")
+                 {
+                       ELISE_ASSERT(mDimPx==2,"Pax should be 2D for calling DeepSimNets in Mode Epip");
+                 }
+         }
          else
          {
              ELISE_ASSERT(mDimPx==1,"Multiple Px in GPU");
@@ -377,7 +388,6 @@ void cAppliMICMAC::DoOneEtapeMEC(cEtapeMecComp & anEtape)
           ||(mNbBoitesToDo <=0)
         )
         return;
-
     std::list<std::string> aLStrProcess;
     if (mShowMes)
     {
@@ -482,6 +492,35 @@ std::cout << "CCMMM = " << aBoxClip._p0 << " " << aBoxClip._p1 << "\n"; getchar(
                }
                else
                {
+                   // at first bloc run homography or epipolar warping for MVS deep learning pipeline
+                   if ((mKBox==0) && (ByProcess().Val()!=0))
+                     {
+                       std::cout<<"MKBBBBBOOXXXXX  "<<mKBox<<"  aDecInterv.NbInterv() "<<aDecInterv.NbInterv()<<" PROCCC: "<<
+                               ByProcess().Val()<<std::endl;
+                         if (mCorrelAdHoc)
+                           {
+                             mZoomChanged=true;
+                             // Homography or Epipolar warping for multi view Deep similarity matching
+                             const cTypeCAH & aTC  = mCorrelAdHoc->TypeCAH();
+                             if (aTC.MutiCorrelOrthoExt().IsInit())
+                               {
+
+                                 const cMutiCorrelOrthoExt aMCOE = aTC.MutiCorrelOrthoExt().Val();
+                                 //aMCOE.UseEpip().Val()
+                                 if (aMCOE.UseEpip().IsInit())
+                                   {
+                                       if (aMCOE.UseEpip().Val())
+                                         {
+                                           DoEstimWarpersPDVs();
+                                         }
+                                        else
+                                         {
+                                            DoEstimHomWarpers();
+                                         }
+                                   }
+                               }
+                           }
+                     }
 /*
                    int aNumEt = anEtape.Num();
                    //mNameExe + std::string(" ")
@@ -506,6 +545,7 @@ std::cout << "CCMMM = " << aBoxClip._p0 << " " << aBoxClip._p1 << "\n"; getchar(
                                + std::string(" FirstBoiteMEC=") + ToString(mKBox)
                                + std::string(" NbBoitesMEC=1") ;
 
+                   std::cout<<"PROCESS  =====>>>>  "<<aNameProcess<<std::endl;
                    aLStrProcess.push_back(aNameProcess);
                }
           }
@@ -593,13 +633,14 @@ void cAppliMICMAC::DoOneBloc
 
    mBoxIn = aBoxIn;
    mBoxOut = aBoxOut;
+   //std::cout<<" $$$$$$$$ DIMENSION PARALLAX   "<<mDimPx<<std::endl;
    mLTer = new cLoadTer(mDimPx,aBoxIn.sz(),*mCurEtape);
 
    double aNbCel = mCurEtape->LoadNappesAndSetGeom(*mLTer,aBoxIn);
 
 
    int aSzCel = mCurEtape->MultiplierNbSizeCellule();
-   //std::cout << "SzzEcccell " <<  aSzCel*aNbCel <<"\n"; 
+   //std::cout << "SzzEcccellLLLLLLLLLLLLLLLLLLLL " <<  aSzCel*aNbCel <<"\n";
 
    int aLMin = ElMin(aBoxOut._p1.x-aBoxOut._p0.x,aBoxOut._p1.y-aBoxOut._p0.y);
 
@@ -1261,6 +1302,7 @@ REAL cAppliMICMAC::CalculScore()
 void   cAppliMICMAC::CalcCorrelByRect(Box2di aBox,int * aPx)
 {
 
+  //std::cout<<"correl by rect)))))))))))))))))  "<<std::endl;
    mLTer->MakeImTerOfPx(aBox,aPx);
    mStatGlob->SetSomsMade(false);
    mPDVBoxInterneAct.clear();

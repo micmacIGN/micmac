@@ -504,6 +504,10 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
              <Px2IncCalc Nb="?" Type="double">      </Px2IncCalc>
              <Px1IncZonage Nb="?" Type="double">    </Px1IncZonage>
              <Px2IncZonage Nb="?" Type="double">    </Px2IncZonage>
+             <EnveloppePAX_INIT Nb="?">
+                  <ZInf Nb="1" Type="std::string"> </ZInf>
+                  <ZSup Nb="1" Type="std::string"> </ZSup>
+             </EnveloppePAX_INIT>
        </IntervParalaxe>
 
 
@@ -991,6 +995,12 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
 
                         <MutiCorrelOrthoExt Nb="?" AccessorFils="false">    
                                 <Cmd Nb="?" Type="std::string" Def="MMVII  DM4MatchMultipleOrtho "> </Cmd>
+                                <OrthFileModeleParams Nb="?" Type="std::string">         </OrthFileModeleParams>
+                                <OrthFileModeleArch Nb="?" Type="std::string">           </OrthFileModeleArch>
+                                <OrthoResol Nb="?" Type="std::string">           </OrthoResol>
+                                <Cuda Nb="1" Type="bool" Def="false">           </Cuda>
+                                <UsePredicNet Nb="1" Type="bool" Def="false">           </UsePredicNet>
+                                <UseEpip Nb="1" Type="bool" Def="false">           </UseEpip>
                                 <Options Nb="?" Type="std::string"> </Options>
                                 <DeltaZ Nb="?" Type="int" Def="50"> </DeltaZ>
                         </MutiCorrelOrthoExt>
@@ -1015,6 +1025,10 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
 
 			<ScoreLearnedMMVII Nb="?" AccessorFils="false">
                               <FileModeleCost Nb="1" Type="std::string">           </FileModeleCost>
+                              <FileModeleParams Nb="1" Type="std::string">         </FileModeleParams>
+                              <FileModeleArch Nb="1" Type="std::string">           </FileModeleArch>
+                              <Cuda Nb="1" Type="bool">           </Cuda>
+                              <UsePredicNet Nb="1" Type="bool">           </UsePredicNet>
                               <CostDyn        Nb="?" Type="double" Def="0.3333">   </CostDyn>
                               <CostExp        Nb="?" Type="double" Def="0.5">      </CostExp>
                               <Cmp_FileMC     Nb="?" Type="std::string">           </Cmp_FileMC>

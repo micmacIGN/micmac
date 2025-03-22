@@ -1,6 +1,7 @@
 #include "MMVII_SysCo.h"
-
+#include "MMVII_Geom3D.h"
 #include <proj.h>
+
 
 namespace MMVII
 {

@@ -115,6 +115,8 @@ class cMMOnePair
       bool              mUseCensQ;
       std::string       mModeCensus;
       int               mNbS;
+      std::string       mEnvZInf;
+      std::string       mEnvZSup;
       int               mSzW0;
 };
 
@@ -128,6 +130,7 @@ class cAppliMMOnePair : public cMMOnePair,
          void PurgeFileEpi(const std::string & aName);
          void MatchTwoWay(int aStep0,int aStepF);
          void MatchOneWay(bool MasterIs1,int aStep0,int aStepF,bool ForMTD);
+         void MatchOneWayDeepSimNets(bool MasterIs1,int aStep0,int aStepF,bool ForMTD);
          void DoMasqReentrant(bool First,int aStep,bool Last);
          void SauvMasqReentrant(bool First,int aStep,bool Last);
          void SymetriseMasqReentrant();
@@ -183,7 +186,9 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
     mExpTxt	    (false),
     mUseCensQ       (false),
     mModeCensus     ("eMCC_CensusCorrel"),
-    mNbS            (3)
+    mNbS            (3),
+    mEnvZInf ("xxxxx"),
+    mEnvZSup ("xxxxx")
 {
   ElInitArgMain
   (
@@ -217,6 +222,10 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                     << EAM(mHasVeget,"HasVeg",true,"Has vegetation, Def= false", eSAM_IsBool)
                     << EAM(mSkyBackgGound,"HasSBG",true,"Has Sky Background , Def= true", eSAM_IsBool)
                     << EAM(mMM1PMasq3D,"Masq3D",true,"Masq 3D to filter points", eSAM_IsBool)
+
+                    << EAM(mEnvZInf,"EnvZInf",true,"Envelop inf of Z/Px")
+                    << EAM(mEnvZSup,"EnvZSup",true,"Envelop sup of Z/Px")
+
                     << EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
                     << EAM(mDefCor,"DefCor",false,"Def cor (Def=0.5)")
                     << EAM(mZReg,"ZReg",false,"Regularisation factor (Def=0.05)")
@@ -801,6 +810,7 @@ void cAppliMMOnePair::MatchTwoWay(int aStep0,int aStepF)
        bool First = (aK==0);
        if (mDoubleSens |First )
           MatchOneWay(First,aStep0,aStepF,false);
+          // MatchOneWayDeepSimNets(First,aStep0,aStepF,false);
     }
 }
 
@@ -861,10 +871,62 @@ void cAppliMMOnePair::MatchOneWay(bool MasterIs1,int aStep0,int aStepF,bool ForM
      }
 */
 
+     // CHECK IF ENVELOPPE INITIALE HAS BEEN ACTIVATED
+
+     {
+     //Prise en compte d'un DEM initial si celui-ci a ete mis en entree
+          bool ZInfInit = EAMIsInit(&mEnvZInf);
+          bool ZSupInit = EAMIsInit(&mEnvZSup);
+          ELISE_ASSERT(ZInfInit==ZSupInit,"incohrence in ZInfInit/ZSupInit");
+
+          if (ZInfInit && ZSupInit)
+          {
+              aCom  =    aCom + " +UseEnvPAXInit=true"
+                              +  std::string(" +EnvZInf=") + mEnvZInf
+                              +  std::string(" +EnvZSup=") + mEnvZSup;
+          }
+     }
+
      ExeCom(aCom);
 
 }
 
+
+
+void cAppliMMOnePair::MatchOneWayDeepSimNets(bool MasterIs1,int aStep0,int aStepF,bool ForMTD)
+{
+     std::string aNamA = MasterIs1 ? mNameIm1 : mNameIm2;
+     std::string aNamB = MasterIs1 ? mNameIm2 : mNameIm1;
+
+     std::string aCom =     MMBinFile(MM3DStr)
+                          + std::string(" MICMAC ")
+                          +  "./Epip_Deep_MSAFF.xml "
+                          + " WorkDir="  +  mEASF.mDir
+                          + " +Im1="     + aNamA
+                          + " +Im2="     + aNamB
+                          + " +Zoom0="   + ToString(mZoom0)
+                          + " +ZoomF="   + ToString(mZoomF)
+                          + " FirstEtapeMEC=" + ToString(aStep0)
+                          + " LastEtapeMEC=" + ToString(aStepF)
+                          + " +Purge="   +  ToString(mPurge && (aStep0==1) && (!ForMTD))
+                          + " +Ori="     + (ForMTD ? "Epi" :mNameOri)
+                          + " +DoEpi="   + ToString((mModeEpip) && (!ForMTD))
+                          + " +MMC="     + ToString(!ForMTD)
+                          + " +NbProc=" + ToString(4)
+                          + " +UseGpu=" + ToString(0)
+                          + " +DefCor=" + ToString(0.4)
+                          + " +ZReg="   + ToString(0.005)
+                          + " +IncPix=" + ToString(300)
+                          + " "+  QUOTE( "+ExtImIn=("   + StdPostfix(mNameIm1) + "|" + StdPostfix(mNameIm2) + ")")
+                      ;
+
+     std::string aDyrPyram = mCreateEpip ? LocDirMec2Im(mNameIm1,mNameIm2) : "Pyram/";
+     aCom = aCom+ " +DirPyram=" + aDyrPyram;
+
+     if (mNoOri) aCom = aCom+ " +MasqImOptional=true";
+     ExeCom(aCom);
+
+}
 /*****************************************************************/
 /*                                                               */
 /*                ::                                             */

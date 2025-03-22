@@ -504,6 +504,7 @@ void cMMVII_BundleAdj::CompileSharedIntrinsicParams(bool ForAvg)
             tREAL8  aSum = 0.0;
             for (const auto & [aNum,aNameCam,anAdr] : aVTuple)
             {
+                    (void)aNameCam;
                 aSum += *anAdr;
                 aVIndEqui.push_back(aNum);
             }
@@ -514,6 +515,7 @@ void cMMVII_BundleAdj::CompileSharedIntrinsicParams(bool ForAvg)
             {
                 for (const auto & [aNum,aNameCam,anAdr] : aVTuple)
                 {
+                        (void)aNum;
                     //*anAdr = aSum;  => dont undertand why it apparently slow down the convergence ??
                     StdOut()  <<  "      - "  << aNameCam <<  " : " << *anAdr << std::endl;
                 }

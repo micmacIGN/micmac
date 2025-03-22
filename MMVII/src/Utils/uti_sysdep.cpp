@@ -4,6 +4,7 @@
 #include "MMVII_2Include_Serial_Tpl.h"
 
 #include <filesystem>
+
 #include <string>
 #include <mutex>
 #include <thread>
@@ -21,7 +22,7 @@
 #  include <mach-o/dyld.h>
 #endif
 
-namespace fs = std::filesystem;
+namespace fs=std::filesystem;
 
 namespace MMVII
 {

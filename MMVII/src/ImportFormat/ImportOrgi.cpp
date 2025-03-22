@@ -140,6 +140,7 @@ int cAppli_ImportOrgi::Exe()
         mPhProj.SaveGCP3D(aMesGCP,mNameOut);
         for (const auto & [aNum,aMesIm] : aMapMesIm)
         {
+                (void)aNum;
              mPhProj.SaveMeasureIm(aMesIm);
         }
     }

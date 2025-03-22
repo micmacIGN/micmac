@@ -11,9 +11,9 @@
 
 
 /**
- 
+
   Apprendre a faire une commande/application
-  Lire les arguments de la commande 
+  Lire les arguments de la commande
   Générer des rapports
   Ecrire et relire des données structurées en utilisant les mécanisme de sérialization
 
@@ -36,8 +36,8 @@ namespace MMVII
 
 class cSetSensSameId;     //  .....
 class cBlocMatrixSensor;  // ....
-class cCalibBlocCam;       // class for computing index of Bloc/Sync 
-			  
+class cCalibBlocCam;       // class for computing index of Bloc/Sync
+
 
 /* ************************************************** */
 /*              cSetSensSameId                        */
@@ -51,7 +51,7 @@ cSetSensSameId::cSetSensSameId(size_t aNbCam,const std::string & anIdSync) :
 
 void cSetSensSameId::Resize(size_t aSize)
 {
-	mVCams.resize(aSize);
+        mVCams.resize(aSize);
 }
 
 const std::vector<cSensorCamPC*>&   cSetSensSameId::VCams() const {return mVCams;}
@@ -69,15 +69,15 @@ cBlocMatrixSensor::cBlocMatrixSensor() :
 {
 }
 
-size_t cBlocMatrixSensor::NumStringCreate(const std::string & anId) 
+size_t cBlocMatrixSensor::NumStringCreate(const std::string & anId)
 {
      int anInd = mMapInt2Id.Obj2I(anId,true);  // Get index, true because OK non exist
-				       
+
      if (anInd<0)
      {
          anInd = mMatrix.size();
-	 mMapInt2Id.Add(anId);
-	 mMatrix.push_back(cSetSensSameId(mMaxSzSet,anId));
+         mMapInt2Id.Add(anId);
+         mMatrix.push_back(cSetSensSameId(mMaxSzSet,anId));
      }
      return anInd;
 }
@@ -85,13 +85,13 @@ size_t cBlocMatrixSensor::NumStringCreate(const std::string & anId)
 int cBlocMatrixSensor::NumStringExist(const std::string & anId,bool SVP) const
 {
      return  mMapInt2Id.Obj2I(anId,SVP);  // Get index, true because OK non exist
-} 
+}
 
 cSensorCamPC* &  cBlocMatrixSensor::GetCam(size_t aNumSet,size_t aNumInSet)
 {
      return  mMatrix.at(aNumSet).mVCams.at(aNumInSet);
 }
-cSensorCamPC*  cBlocMatrixSensor::GetCam(size_t aNumSet,size_t aNumInSet) const 
+cSensorCamPC*  cBlocMatrixSensor::GetCam(size_t aNumSet,size_t aNumInSet) const
 {
      return  mMatrix.at(aNumSet).mVCams.at(aNumInSet);
 }
@@ -101,7 +101,7 @@ void cBlocMatrixSensor::AddNew(cSensorCamPC* aPC,size_t aNumSet,size_t aNumInSet
      if (aNumInSet >= mMaxSzSet)
      {
          mMaxSzSet = aNumInSet+1;
-	 for (auto  & aSet : mMatrix)
+         for (auto  & aSet : mMatrix)
              aSet.Resize(mMaxSzSet);
      }
 
@@ -133,16 +133,16 @@ void cBlocMatrixSensor::ShowMatrix() const
     //
     //
     //    parse  the cams in a set
-    //        
+    //
     //        print the name of cam or "xxxxx" if cams is null
     //
     //
-    //    Should get something like 
+    //    Should get something like
     //
     //      ...
     //    ==============   0103 ======
     //    043_0103.JPG
-    //    671_0103.JPG 
+    //    671_0103.JPG
     //    948_0103.JPG
     //    949_0103.JPG
     //    ==============   0104 ======
@@ -158,7 +158,7 @@ void cBlocMatrixSensor::ShowMatrix() const
 
 const cSetSensSameId &  cBlocMatrixSensor::KthSet(size_t aKth) const
 {
-	return mMatrix.at(aKth);
+        return mMatrix.at(aKth);
 }
 
 size_t cBlocMatrixSensor::NbSet()   const      {return mMaxSzSet;}
@@ -235,6 +235,7 @@ std::string  cCalibBlocCam::CalculIds2Image(const std::string &aIdBloc,const std
 
 void cCalibBlocCam::AddData(const  cAuxAr2007 & anAuxInit)
 {
+
      cAuxAr2007 anAux("CalibBlocCam",anAuxInit);
      // ...
      // Put the data in  tag "RigidBlocCam"
@@ -264,7 +265,7 @@ void cCalibBlocCam::AddData(const  cAuxAr2007 & anAuxInit)
      //   MMVII::AddData(cAuxAr2007("Name",anAux)    ,mName);
 }
 
-void AddData(const  cAuxAr2007 & anAux,cCalibBlocCam & aBloc) 
+void AddData(const  cAuxAr2007 & anAux,cCalibBlocCam & aBloc)
 {
      aBloc.AddData(anAux);
 }
@@ -299,6 +300,7 @@ void  cBlocOfCamera::Set4Compute()
         mMapPoseInit[aName] = aPoseUk.Pose();
 	//  we force the creation a new Id in the bloc because later we will not accept new bloc in compute mode
 	mMatBlocSync.NumStringCreate(aName);
+
     }
 }
 
@@ -320,7 +322,7 @@ cBlocOfCamera *  cBlocOfCamera::FromFile(const std::string & aNameFile)
    return aRes;
 }
 
-cPoseWithUK & cBlocOfCamera::MasterPoseInBl()  
+cPoseWithUK & cBlocOfCamera::MasterPoseInBl()
 {
      return PoseUKOfIdBloc(mData.mMaster);
 }
@@ -331,7 +333,6 @@ cPoseWithUK &  cBlocOfCamera::PoseUKOfIdBloc(const std::string& anId)
      MMVII_INTERNAL_ASSERT_tiny(anIter!=mData.mMapPoseUKInBloc.end(),"cBlocOfCamera::PoseUKOfIdBloc none for:" + anId);
 
      return anIter->second;
-
 }
 
 
@@ -372,7 +373,7 @@ int cBlocOfCamera::NumInBloc(const std::string & aName,bool SVP)  const { return
 
 cBlocOfCamera::tMapStrPoseUK& cBlocOfCamera::MapStrPoseUK() {return mData.mMapPoseUKInBloc;}
 
-cPoseWithUK &  cBlocOfCamera::PoseUKOfNumBloc(size_t aKBl) 
+cPoseWithUK &  cBlocOfCamera::PoseUKOfNumBloc(size_t aKBl)
 {
      return PoseUKOfIdBloc(NameKthInBloc(aKBl));
 }
@@ -397,8 +398,8 @@ bool cBlocOfCamera::AddSensor(cSensorCamPC * aCam)
      if (! mData.CanProcess(aCam))
      {
          MMVII_UnclasseUsEr("Cant process bloc/ident for " + aCam->NameImage());
-	 // maybe be more lenient later with multiple bloc
-	 return false;
+         // maybe be more lenient later with multiple bloc
+         return false;
      }
 
      std::string aIdInBoc = mData.CalculIdBloc(aCam);
@@ -407,8 +408,8 @@ bool cBlocOfCamera::AddSensor(cSensorCamPC * aCam)
      size_t  aKSync = mMatSyncBloc.NumStringCreate(aIdSync);
 
      size_t  aKBloc =  mForInit                                ?
-	               mMatBlocSync.NumStringCreate(aIdInBoc)  :
-		       mMatBlocSync.NumStringExist(aIdInBoc,false) ;  // if in compute mode, dont accept new Id In bloc
+                       mMatBlocSync.NumStringCreate(aIdInBoc)  :
+                       mMatBlocSync.NumStringExist(aIdInBoc,false) ;  // if in compute mode, dont accept new Id In bloc
 
      mMatSyncBloc.AddNew(aCam,aKSync,aKBloc);
      mMatBlocSync.AddNew(aCam,aKBloc,aKSync);
@@ -667,16 +668,17 @@ class cAppli_BlockCamInit : public cMMVII_Appli
      private :
         std::string              mSpecImIn;   ///  Pattern or xml file
         cPhotogrammetricProject  mPhProj;
+
 	std::string              mPattern;
 	cPt2di                   mNumSub;
 	std::vector<std::string> mComputeInv;
 
-	bool                     mShowByBloc;  ///< Do we show the structure by bloc of image
-	bool                     mShowBySync;  ///< Do we show structure by synchronization
-	std::string              mMaster;      ///< If we enforce the master cam in the bloc
-	std::string              mNameBloc;    ///< Name of the bloc
-	bool                     mTestRW;      ///< Do we do a test on read/write
-	bool                     mTestNoDel;   ///< Do force an error on memory management to illustrate the 
+        bool                     mShowByBloc;  ///< Do we show the structure by bloc of image
+        bool                     mShowBySync;  ///< Do we show structure by synchronization
+        std::string              mMaster;      ///< If we enforce the master cam in the bloc
+        std::string              mNameBloc;    ///< Name of the bloc
+        bool                     mTestRW;      ///< Do we do a test on read/write
+        bool                     mTestNoDel;   ///< Do force an error on memory management to illustrate the
 };
 
 std::vector<std::string>  cAppli_BlockCamInit::Samples() const
@@ -705,6 +707,7 @@ cAppli_BlockCamInit::cAppli_BlockCamInit
 cCollecSpecArg2007 & cAppli_BlockCamInit::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
       return anArgObl
+
              <<  Arg2007(mSpecImIn,"Pattern/file for images", {{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}}  )
              <<  mPhProj.DPOrient().ArgDirInMand()
              <<  Arg2007(mPattern,"Pattern for images specifing sup expr")
@@ -719,6 +722,7 @@ cCollecSpecArg2007 & cAppli_BlockCamInit::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
 
     return    anArgOpt
+
              << AOpt2007(mNameBloc,"NameBloc","Set the name of the bloc ",{{eTA2007::HDV}})
              << AOpt2007(mMaster,"Master","Set the name of the master bloc, is user wants to enforce it ")
              << AOpt2007(mShowByBloc,"ShowByBloc","Show matricial organization by bloc ",{{eTA2007::HDV}})
@@ -785,13 +789,14 @@ int cAppli_BlockCamInit::Exe()
     }
 
     return EXIT_SUCCESS;
-}                                       
+}
 
 /* ==================================================== */
 /*                                                      */
 /*               MMVII                                  */
 /*                                                      */
 /* ==================================================== */
+
 
 tMMVII_UnikPApli Alloc_BlockCamInit(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
 {

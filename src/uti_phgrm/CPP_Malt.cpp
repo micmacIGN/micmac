@@ -641,6 +641,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       Pt2dr  AltiSolMinMax (0,0);
 
       bool hasNewGenImage =false;
+      std::cout<<"mModePB  "<<mModePB<<std::endl;
       if (! mModePB)
       {
           // MPD : Ajout le 22/05/2015; car peut creer pb  si l'utilisateur a purge la directory
@@ -711,7 +712,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       }
       
 	//{
-	//    std::cout << "GGHhhh " << aNbAltiSol << " " << TypeForZInit << "\n";
+	    std::cout << "GGHhhh NbAltiSol TypeForZInit " << aNbAltiSol << " " << TypeForZInit <<"  "<<mType<<"  "<<ModeFaisZ<< "\n";
 	//    getchar();
 	//}
 
@@ -756,6 +757,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               aRSRT = true;
           }
       }
+      //std::cout << "Iiiiiiiiiiiiinbc = Moy2=" <<  mZMoy << " Inc=" << mZincCalc << "\n";
 
       bool IsOrthoXCSte = false;
       bool IsAnamXCsteOfCart = false;
@@ -855,7 +857,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               + 1   //  Dulication de pas a la premiere
               + (mAffineLast ? 1 : 0)  ;  // Raffinement de pas;
 
-      std::cout << 3+ log2(mZoomInit/ mZoomFinal)  << "\n";
+      //std::cout << 3+ log2(mZoomInit/ mZoomFinal)  << "\n";
       ShowParam();
 
 
@@ -1337,7 +1339,6 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                   +  std::string(" +X1Clip=") + ToString(aBoxClip._p1.x)
                   +  std::string(" +Y1Clip=") + ToString(aBoxClip._p1.y) ;
       }
-
       if (EAMIsInit(&aRatioResolImage))
       {
            mCom  =    mCom + " +UseRatioResolImage=true " + " +RatioResolImage=" + ToString(aRatioResolImage);

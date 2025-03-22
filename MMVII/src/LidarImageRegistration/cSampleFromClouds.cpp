@@ -14,12 +14,14 @@
 
 
 
+
 namespace MMVII {
 
 namespace cNs_Sample3DpointsFromCloudIntoImage
 {
 
 class cAppliSample3DpointsFromCloudIntoImage;
+
 /*
 class cWorldCoordinates
 {
@@ -65,7 +67,9 @@ void cWorldCoordinates::to_pixel_coordinates(cPt2dr & aWPx, cPt2dr & aPx)
 aPx.x()=(aWPx.x()-x_ul)/gsd_x;
 aPx.y()=(aWPx.y()-y_ul)/gsd_y;
 }
+<<<<<<< HEAD
 */
+
 /* =================================================================== */
 /*                                                                     */
 /*              cAppliSample3DpointsFromCloudIntoImage                 */

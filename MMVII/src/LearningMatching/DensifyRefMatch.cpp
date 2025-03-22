@@ -183,16 +183,16 @@ void cAppliDensifyRefMatch::MakeOneTri(const  tTriangle2DCompiled & aTri)
     }
 }
 
+
 int  cAppliDensifyRefMatch::ExeOnParsedBox()
 {
     mIPx    =  APBI_ReadIm<tREAL4> ( Px1FromIm1(APBI_NameIm()));
     mDIPx = &mIPx.DIm();
     mIMasqIn =  APBI_ReadIm<tU_INT1>( Masq1FromIm1(APBI_NameIm()));
     mDIMasqIn = &mIMasqIn.DIm();
-
-    mImInterp = cIm2D<tREAL4>(mDIPx->Sz(),nullptr,eModeInitImage::eMIA_Null);
+    mImInterp = cIm2D<tREAL4>(mDFI2d.Sz(),nullptr,eModeInitImage::eMIA_Null);
     mDImInterp = &(mImInterp.DIm());
-    mIMasqOut  = cIm2D<tU_INT1>(mDIPx->Sz(),nullptr,eModeInitImage::eMIA_Null);
+    mIMasqOut  = cIm2D<tU_INT1>(mDFI2d.Sz(),nullptr,eModeInitImage::eMIA_Null);
     mDIMasqOut = &mIMasqOut.DIm();
     // cDataIm2D<tREAL4>          tDataImPx;
     StdOut() << "SZIM= " << APBI_DIm().Sz()  << mIPx.DIm().Sz() << std::endl;
@@ -203,7 +203,29 @@ int  cAppliDensifyRefMatch::ExeOnParsedBox()
          if (mDIMasqIn->GetV(aPix))
             aVPts.push_back(ToR(aPix));
     }
-    cTriangulation2D<tCoordDensify> aTriangul(aVPts);
+
+    if (aVPts.size()>3)
+      {
+          cTriangulation2D<tCoordDensify> aTriangul(aVPts);
+          aTriangul.MakeDelaunay();
+          StdOut() << "NbFace= " <<  aTriangul.NbFace() << "\n";
+
+
+          // Initiate image of interpolated value
+          for (size_t aKTri=0 ; aKTri<aTriangul.NbFace() ; aKTri++)
+          {
+               MakeOneTri(cTriangle2DCompiled(aTriangul.KthTri(aKTri)));
+          }
+      }
+    else
+      {}
+
+    APBI_WriteIm("DensifyPx_"+LastPrefix(APBI_NameIm()) + ".tif",mImInterp);
+    //mDImInterp->ToFile("DensifyPx_"+LastPrefix(APBI_NameIm()) + ".tif");
+    APBI_WriteIm("DensifyMasq_"+LastPrefix(APBI_NameIm()) + ".tif",mIMasqOut);
+    //mDIMasqOut->ToFile("DensifyMasq_"+LastPrefix(APBI_NameIm()) + ".tif");
+
+   /* cTriangulation2D<tCoordDensify> aTriangul(aVPts);
     aTriangul.MakeDelaunay();
     StdOut() << "NbFace= " <<  aTriangul.NbFace() << std::endl;
 
@@ -216,6 +238,7 @@ int  cAppliDensifyRefMatch::ExeOnParsedBox()
 
     mDImInterp->ToFile("DensifyPx_"+LastPrefix(APBI_NameIm()) + ".tif");
     mDIMasqOut->ToFile("DensifyMasq_"+LastPrefix(APBI_NameIm()) + ".tif");
+    */
 
     return EXIT_SUCCESS;
 }

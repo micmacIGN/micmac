@@ -444,7 +444,7 @@ double cGeomImage::GetResolNonEuclidBySurfPixel() const
 
 double cGeomImage::GetResolMoyenne_Euclid() const
 {
-// std::cout << mCoeffDilNonE << " " << GetResolMoyenne_NonEuclid() << "\n";
+  //std::cout << mCoeffDilNonE << " " << GetResolMoyenne_NonEuclid() << "\n";
    ELISE_ASSERT(mCoeffDilNonE!=0,"GetResolMoyenne_Euclid");
 
 

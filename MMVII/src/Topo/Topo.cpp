@@ -65,8 +65,10 @@ cBA_Topo::~cBA_Topo()
 {
     clear();
     for (auto& [_, aEq] : mTopoObsType2equation)
-                  delete aEq;
-
+          {
+            (void)_;
+            delete aEq;
+           }
 }
 
 void cBA_Topo::clear()
@@ -191,7 +193,10 @@ void cBA_Topo::print()
 {
     StdOut() << "Points:\n";
     for (auto& [aName, aTopoPt] : mAllPts)
-        StdOut() << " - "<<aTopoPt.toString()<<"\n";
+        {
+            (void)aName;
+            StdOut() << " - "<<aTopoPt.toString()<<"\n";
+        }
     StdOut() << "ObsSets:\n";
     for (auto &obsSet: mAllObsSets)
         StdOut() << " - "<<obsSet->toString()<<"\n";
@@ -324,11 +329,13 @@ void cBA_Topo::AddTopoEquations(cResolSysNonLinear<tREAL8> & aSys)
 
 bool cBA_Topo::tryInitAll()
 {
+
     for (auto & aSet: mAllObsSets)
         aSet->initialize(); // to get origin point for stations
 
     // get all stations ordered by origin to optimize research
     mAllStations.clear();
+
     for (auto & aSet: mAllObsSets)
     {
         if (aSet->getType() ==  eTopoObsSetType::eStation)
@@ -366,8 +373,11 @@ bool cBA_Topo::tryInitAll()
         if (!aSet->isInit())
             ++aNbUninit;
     for (auto& [aName, aTopoPt] : mAllPts)
+        {
+            (void)aName;
         if (!aTopoPt.isInit())
             ++aNbUninit;
+        }
     int aPreviousNbUninit = aNbUninit + 1; // kickstart
 
     while (aPreviousNbUninit>aNbUninit)
@@ -377,6 +387,8 @@ bool cBA_Topo::tryInitAll()
 #endif
 
         for (auto& [aName, aTopoPt] : mAllPts)
+            {
+                (void)aName;
             if (!aTopoPt.isInit())
                 tryInit(aTopoPt, mAllStations, mAllSimpleObs);
         for (auto & aSet: mAllObsSets)
@@ -389,12 +401,15 @@ bool cBA_Topo::tryInitAll()
             if (!aSet->isInit())
                 ++aNbUninit;
         for (auto& [aName, aTopoPt] : mAllPts)
+            {
+                (void)aName;
             if (!aTopoPt.isInit())
                 ++aNbUninit;
-    }
+            }
+              }
+      }
     return aNbUninit==0;
 }
-
 bool cBA_Topo::tryInit(cTopoPoint & aPtToInit, tStationsMap &stationsMap, tSimpleObsMap &allSimpleObs)
 {
     if (aPtToInit.isInit())

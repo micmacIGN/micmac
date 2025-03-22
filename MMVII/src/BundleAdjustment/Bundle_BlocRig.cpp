@@ -74,6 +74,13 @@ void cBA_BlocRig::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet)
     //
     //  For each bloc, the unkowns are the "cPoseWithUK" contained in "mMapPoseUKInBloc"
     //
+    for (const auto & aBloc:mBlocs)
+        {
+            for(auto & aPair:aBloc->MapStrPoseUK())
+                {
+                    aSet.AddOneObj(&aPair.second);
+                }
+        }
 
      //  .....
      // map all bloc
@@ -81,11 +88,13 @@ void cBA_BlocRig::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet)
      {
           for (auto & [aName, aPoseUk] : aBloc->MapStrPoseUK())
           {
+              if (0) std::cout<<"aName "<<aName<<std::endl;
               aSet.AddOneObj(&aPoseUk);
           }
      }
      //   map all pair of MapStrPoseUK
      //        add cPoseWithUK
+
 }
 
 /**  In a bundle adjusment its current that some variable are "hard" frozen, i.e they are
@@ -98,7 +107,6 @@ void cBA_BlocRig::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet)
  */
 void cBA_BlocRig::SetFrozenVar(cResolSysNonLinear<tREAL8> & aSys)  
 {
-     // ... parse all bloc
      for (const auto & aBloc : mBlocs)
      {
          //  ... extract the master
@@ -111,8 +119,6 @@ void cBA_BlocRig::SetFrozenVar(cResolSysNonLinear<tREAL8> & aSys)
          aSys.SetFrozenVarCurVal(aMPose,aMPose.Center());
          aSys.SetFrozenVarCurVal(aMPose,aMPose.Omega());
 	 //
-	 //  ...  freeze the center
-	 //  ... freez omega
      }
 }
 
@@ -173,7 +179,6 @@ cPt3dr cBA_BlocRig::OnePairAddRigidityEquation(size_t aKS,size_t aKBl1,size_t aK
 	  cResidualWeighterExplicit<tREAL8>(false,mWeight)
     );
 
-
     cPt3dr  aRes(0,0,1);
 
     //  Now compute the residual  in Tr and Rot,
@@ -185,6 +190,7 @@ cPt3dr cBA_BlocRig::OnePairAddRigidityEquation(size_t aKS,size_t aKBl1,size_t aK
     }
 
     return cPt3dr(aRes.x()/3.0,aRes.y()/9.0,1.0);
+
 }
 
 

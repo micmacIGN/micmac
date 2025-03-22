@@ -538,6 +538,7 @@ int CPP_TestSystematicResiduals(int argc,char ** argv)
         aIm2P2 = aCamRPC2.ImEtZ2Terrain(itPt->P2(),aZVal.y);
         
         aVPds.push_back(1);
+        aVPds.push_back(1);
         aVS.push_back(ElSeg3D(aIm1P1,aIm1P2));
         aVS.push_back(ElSeg3D(aIm2P1,aIm2P2));
 

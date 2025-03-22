@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+﻿#include "StdAfx.h"
 #ifndef Define_NotMicMac
 #define Define_NotMicMac
 // NO MORE
@@ -889,6 +889,7 @@ class cEnveloppeMNT_INIT
         std::string mZInf;
         std::string mZSup;
 };
+
 cElXMLTree * ToXMLTree(const cEnveloppeMNT_INIT &);
 
 void  BinaryDumpInFile(ELISE_fp &,const cEnveloppeMNT_INIT &);
@@ -896,6 +897,33 @@ void  BinaryDumpInFile(ELISE_fp &,const cEnveloppeMNT_INIT &);
 void  BinaryUnDumpFromFile(cEnveloppeMNT_INIT &,ELISE_fp &);
 
 std::string  Mangling( cEnveloppeMNT_INIT *);
+
+class cEnveloppePAX_INIT
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cEnveloppePAX_INIT & anObj,cElXMLTree * aTree);
+
+
+        std::string & ZInf();
+        const std::string & ZInf()const ;
+
+        std::string & ZSup();
+        const std::string & ZSup()const ;
+    private:
+        std::string mZInf;
+        std::string mZSup;
+};
+
+cElXMLTree * ToXMLTree(const cEnveloppePAX_INIT &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cEnveloppePAX_INIT &);
+
+void  BinaryUnDumpFromFile(cEnveloppePAX_INIT &,ELISE_fp &);
+
+std::string  Mangling( cEnveloppePAX_INIT *);
+
 
 class cIntervAltimetrie
 {
@@ -981,6 +1009,11 @@ class cIntervParalaxe
 
         cTplValGesInit< double > & Px2IncZonage();
         const cTplValGesInit< double > & Px2IncZonage()const ;
+
+        // add Init PAX IMAGES
+        cTplValGesInit< cEnveloppePAX_INIT > & EnveloppePAX_INIT();
+        const cTplValGesInit< cEnveloppePAX_INIT > & EnveloppePAX_INIT()const ;
+
     private:
         cTplValGesInit< double > mPx1Moy;
         cTplValGesInit< double > mPx2Moy;
@@ -989,7 +1022,9 @@ class cIntervParalaxe
         cTplValGesInit< double > mPx2IncCalc;
         cTplValGesInit< double > mPx1IncZonage;
         cTplValGesInit< double > mPx2IncZonage;
+        cTplValGesInit< cEnveloppePAX_INIT > mEnveloppePAX_INIT;
 };
+
 cElXMLTree * ToXMLTree(const cIntervParalaxe &);
 
 void  BinaryDumpInFile(ELISE_fp &,const cIntervParalaxe &);
@@ -1239,8 +1274,12 @@ class cSection_Terrain
         cTplValGesInit< cEnveloppeMNT_INIT > & EnveloppeMNT_INIT();
         const cTplValGesInit< cEnveloppeMNT_INIT > & EnveloppeMNT_INIT()const ;
 
+        cTplValGesInit< cEnveloppePAX_INIT > & EnveloppePAX_INIT();
+        const cTplValGesInit< cEnveloppePAX_INIT > & EnveloppePAX_INIT()const ;
+
         cTplValGesInit< cIntervAltimetrie > & IntervAltimetrie();
         const cTplValGesInit< cIntervAltimetrie > & IntervAltimetrie()const ;
+
 
         cTplValGesInit< double > & Px1Moy();
         const cTplValGesInit< double > & Px1Moy()const ;
@@ -2332,16 +2371,44 @@ class cMutiCorrelOrthoExt
 
         cTplValGesInit< std::string > & Cmd();
         const cTplValGesInit< std::string > & Cmd()const ;
-
+        // ADD CNN MODEL PARAMS 
+       // PARAMS 
+        cTplValGesInit< std::string >  & OrthFileModeleParams();
+        const cTplValGesInit< std::string > & OrthFileModeleParams() const;
+        // ARCHITECTURE 
+        cTplValGesInit< std::string > &  OrthFileModeleArch();
+        const cTplValGesInit< std::string >  & OrthFileModeleArch() const;
+ 
+        cTplValGesInit< std::string > &  OrthoResol();
+        const cTplValGesInit< std::string >  & OrthoResol() const;
+        
         cTplValGesInit< std::string > & Options();
         const cTplValGesInit< std::string > & Options()const ;
 
         cTplValGesInit< int > & DeltaZ();
         const cTplValGesInit< int > & DeltaZ()const ;
+        
+        cTplValGesInit< bool > & Cuda();
+        const cTplValGesInit< bool > & Cuda()const ;
+
+        cTplValGesInit< bool > & UsePredicNet();
+        const cTplValGesInit< bool > & UsePredicNet()const ;
+
+        cTplValGesInit< bool > & UseEpip();
+        const cTplValGesInit< bool > & UseEpip()const ;
+
     private:
         cTplValGesInit< std::string > mCmd;
+        cTplValGesInit< std::string > mOrthFileModeleParams;
+        cTplValGesInit< std::string > mOrthFileModeleArch;
+        cTplValGesInit< std::string > mOrthoResol;
         cTplValGesInit< std::string > mOptions;
         cTplValGesInit< int > mDeltaZ;
+        cTplValGesInit< bool > mUseCuda;
+        cTplValGesInit <bool> mUsePredicNet;
+        cTplValGesInit <bool> mUseEpip;
+
+        
 };
 cElXMLTree * ToXMLTree(const cMutiCorrelOrthoExt &);
 
@@ -2432,6 +2499,7 @@ class cMultiCorrelPonctuel
         cTplValGesInit< double > mDefCost;
         cTplValGesInit< cMCP_AttachePixel > mMCP_AttachePixel;
 };
+
 cElXMLTree * ToXMLTree(const cMultiCorrelPonctuel &);
 
 void  BinaryDumpInFile(ELISE_fp &,const cMultiCorrelPonctuel &);
@@ -2450,6 +2518,20 @@ class cScoreLearnedMMVII
 
         std::string & FileModeleCost();
         const std::string & FileModeleCost()const ;
+        
+        // ADD CNN MODEL PARAMS 
+       // PARAMS 
+        cTplValGesInit< std::string >  & FileModeleParams();
+        const cTplValGesInit< std::string > & FileModeleParams() const;
+        // ARCHITECTURE 
+        cTplValGesInit< std::string > &  FileModeleArch();
+        const cTplValGesInit< std::string >  & FileModeleArch() const;
+ 
+        cTplValGesInit< bool > &  Cuda();
+        const cTplValGesInit< bool >  & Cuda() const;
+
+        cTplValGesInit< bool > &  UsePredicNet();
+        const cTplValGesInit< bool >  & UsePredicNet() const;
 
         cTplValGesInit< double > & CostDyn();
         const cTplValGesInit< double > & CostDyn()const ;
@@ -2464,6 +2546,15 @@ class cScoreLearnedMMVII
         const cTplValGesInit< int > & Cmp_NbDisc()const ;
     private:
         std::string mFileModeleCost;
+        
+        // CNN PARAMS AND ARCHITECTURE
+
+        cTplValGesInit< std::string > mFileModeleParams;
+        cTplValGesInit< std::string > mFileModeleArch;
+        cTplValGesInit< bool > mCuda;
+        cTplValGesInit< bool > mUsePredicNet;
+
+        
         cTplValGesInit< double > mCostDyn;
         cTplValGesInit< double > mCostExp;
         cTplValGesInit< std::string > mCmp_FileMC;
@@ -6828,6 +6919,9 @@ class cParamMICMAC
 
         cTplValGesInit< double > & Px2IncZonage();
         const cTplValGesInit< double > & Px2IncZonage()const ;
+
+        cTplValGesInit< cEnveloppePAX_INIT > & EnveloppePAX_INIT();
+        const cTplValGesInit< cEnveloppePAX_INIT > & EnveloppePAX_INIT()const ;
 
         cTplValGesInit< cIntervParalaxe > & IntervParalaxe();
         const cTplValGesInit< cIntervParalaxe > & IntervParalaxe()const ;

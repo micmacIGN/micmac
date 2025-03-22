@@ -37,6 +37,7 @@ tSeg2dr cOptimPosSeg::OptimizeSeg(tREAL8 aStepInit,tREAL8 aStepLim,bool IsMin,tR
 {
     cOptimByStep<2>  aOpt(*this,true,IsMin,aMaxDInfInit);
     auto [aScore,aSol] = aOpt.Optim(cPt2dr(0,0),aStepInit,aStepLim);
+    (void)aScore;
 
     return ModifiedSeg(aSol);
 }
@@ -141,7 +142,7 @@ tREAL8   cScoreTetaLine::ScoreOfTeta(const tREAL8 & aTeta, tREAL8 aAbscMin,tREAL
 	     {
                 cPt2dr aPt = mC + aTgt * aAbsc;
                 auto [aVal,aGrad] = mDIm->GetValueAndGradInterpol(mTabInt,aPt);
-
+               (void)aVal;
                 tREAL8 aN2 = Norm2(aGrad);
                 if (aN2 > 0)
                 {
@@ -203,6 +204,7 @@ tREAL8  cScoreTetaLine::Refine(tREAL8 aTeta0,tREAL8 aStepPix,int aSign)
      cOptimByStep<1> aOpt(*this,true,10.0);  // 10.0 => DistMin
      auto [aVal,aRes] = aOpt.Optim(cPt1dr(aTeta0),mStepTeta,aStepPix/mLengthCur);
 
+     (void)aVal;
      return aRes.x();
 }
 
@@ -310,6 +312,7 @@ tREAL8 cScoreTetaLine::Prolongate(tREAL8 aLInit,tREAL8 aLMax,const std::pair<tRE
                 return aCurAbsc;
             }
                     auto [aVal,aGrad] = mDIm->GetValueAndGradInterpol(mTabInt,aNewPt);
+                    (void)aVal;
 		    aWMax.Add(aDeltaOrd,Norm2(aGrad));
 		}
 		aVCurOrd[aK] += aWMax.IndexExtre();
@@ -330,6 +333,7 @@ tREAL8 cScoreTetaLine::Prolongate(tREAL8 aLInit,tREAL8 aLMax,const std::pair<tRE
 		}
 
                 auto [aVal,aGrad] = mDIm->GetValueAndGradInterpol(mTabInt,aPt);
+                (void)aVal;
 		tREAL8 aN2 = Norm2(aGrad);
 		if (aN2==0)
                    aGoOn = false;

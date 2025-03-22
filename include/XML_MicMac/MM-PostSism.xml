@@ -178,7 +178,7 @@ L'ordre des resolutions : les plus basses aux plus grandes.
             <Px1Pas>        ${Pas}  </Px1Pas>
             <Px2Pas>        ${Pas}  </Px2Pas>
             <SsResolOptim> ${SsResolOpt} </SsResolOptim>
-
+            
         </EtapeMEC>
 
         <#WHEN  VTEST=${WithZ4}>

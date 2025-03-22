@@ -28,7 +28,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
 <DicoLoc>
 
 	<Symb>  ZReg=0.05  </Symb>
-	<Symb>  DefCor=0.50  </Symb>
+        <Symb>  DefCor=0.50  </Symb>
         <Symb>  PenteMax=1.0 </Symb>
 	<Symb>  Interpol=eInterpolBiLin  </Symb>
 
@@ -39,7 +39,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
 
 	<Symb> Zoom0=64  </Symb>
 	<Symb> ZoomF=1   </Symb>
-	<Symb> ZPas=0.5   </Symb>
+        <Symb> ZPas=1.0  </Symb>
         <Symb> PrefMEC=MEC2Im </Symb>
         <Symb> Purge=true </Symb>
         <Symb> DoOnlyXml=false </Symb>
@@ -117,13 +117,23 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
          <Symb> ExtImIn=tif    </Symb>
 
          <Symb> ModeCensus=eMCC_CensusCorrel </Symb>
-
+         
+        <Symb> UseEnvPAXInit=false </Symb>
+        <Symb> EnvZInf="YYYYYYYY" </Symb>
+        <Symb> EnvZSup="YYYYYYYY" </Symb>
+        
 </DicoLoc>
 
 <Section_Terrain> 
      <#WHEN VTEST=${DoEpi}>
           <IntervParalaxe>
               <Px1IncCalc> ${IncPix} </Px1IncCalc>
+            <#WHEN VTEST=${UseEnvPAXInit}>
+                <EnveloppePAX_INIT>
+                        <ZInf >  ${EnvZInf} </ZInf>
+                        <ZSup >  ${EnvZSup} </ZSup>
+                </EnveloppePAX_INIT>
+            </#WHEN>
           </IntervParalaxe>
      </#WHEN>
 
@@ -340,13 +350,13 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
             </#WHEN>
 -->
 
-	<EtapeMEC> 
+        <EtapeMEC>
                   <DeZoom> ${Zoom0} </DeZoom> 
                   <#IF VTEST=${DoEpi}>
                        <Px1Pas>  1 </Px1Pas>
                        <ZPas>  1   </ZPas>
                   </#IF>
-        </EtapeMEC>	
+       </EtapeMEC>
 	<EtapeMEC> 
                  <DeZoom> ${Zoom0} </DeZoom> 
                  <#WHEN VTEST=${DoEpi}>
@@ -357,7 +367,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
                      <ZDilatAlti>  ${HUGEDilateALTI}  </ZDilatAlti>
 	             <ZDilatPlani>  ${HUGEDilatePLANI}  </ZDilatPlani>
                  </#WHEN>
-        </EtapeMEC>	
+        </EtapeMEC>
 
         <#WHEN VTEST=${WZ256}>
         <EtapeMEC>

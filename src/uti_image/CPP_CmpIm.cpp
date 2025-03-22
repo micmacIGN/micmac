@@ -97,7 +97,6 @@ int CmpIm_main(int argc,char ** argv)
         Pt2di aSz = aFile1.sz();
         if (aFile1.sz() != aFile2.sz())
         {
-           
            std::cout << "Tailles Differentes " << aFile1.sz() << aFile2.sz() << "\n";
            aImg.TestImgDiff() = false;
            aImg.NbPxDiff() = 99999;
@@ -110,8 +109,8 @@ int CmpIm_main(int argc,char ** argv)
            else
               return -1;
         }
-		
-		std::cout << "Origin=" << aBrd << ", end=" << aSz-aBrd << "\n"; 
+
+	std::cout << "Origin=" << aBrd << ", end=" << aSz-aBrd << "\n"; 
 
         Fonc_Num aFonc2 = aMulIm2*aFile2.in_proj();
         if (aUseXmlFOM)
@@ -131,7 +130,6 @@ int CmpIm_main(int argc,char ** argv)
                           Pt2dr(0,0)
                        );
         }
-
 
         Symb_FNum aFDifAbs(Rconv(Abs(aFile1.in()-aFonc2)));
 
@@ -155,7 +153,7 @@ int CmpIm_main(int argc,char ** argv)
                sigma(aSom1)
             )
         );
-       
+
 
         if (aNbDif)
         {

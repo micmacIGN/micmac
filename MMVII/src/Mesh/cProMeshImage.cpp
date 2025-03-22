@@ -9,6 +9,10 @@
 #include "MeshDev.h"
 #include "MMVII_Sys.h"
 #include "MMVII_Radiom.h"
+#include <fstream>
+#include <iostream>
+#include <StdAfx.h>
+
 
 namespace MMVII
 {
@@ -83,7 +87,6 @@ void AddData(const cAuxAr2007 & anAux,cMeshDev_BestIm& aRMS)
     AddData(cAuxAr2007("NumsIm",anAux),aRMS.mNumBestIm);
     AddData(cAuxAr2007("Resol",anAux),aRMS.mBestResol);
 }
-
 
 /* =============================================== */
 /*                                                 */
@@ -511,7 +514,49 @@ int cAppliProMeshImage::Exe()
 {
    mPhProj.FinishInit();
 
+   /*
+   //================================test code =========================//
+   std::string aFullNameCld=DirProject()+mNameCloud3DIn;
+   cIm2D<tREAL4> aImGround =  cIm2D<tREAL4>::FromFile(aFullNameCld);
+   cWorldCoordinates aImWorldTransform(aFullNameCld.replace(aFullNameCld.find("tif"),3,"tfw"));
+   cDataIm2D<tREAL4> & aDImGnd = aImGround.DIm();
+   std::vector<cPt2dr> aVPts;
+   std::vector<cPt3dr> aV3Pts;
+   cPt2dr aWPx;
+   for( const auto & aPix: aDImGnd ){
+         if (aDImGnd.GetV(aPix))
+           {
+             // to world coordinates
+             aImWorldTransform.to_world_coordinates(ToR(aPix),aWPx);
+             aVPts.push_back(aWPx);
+             aV3Pts.push_back(cPt3dr(aWPx.x(),aWPx.y(),aDImGnd.GetV(aPix)));
+           }
+     }
+    // Triangul de Delaunay
+     cTriangulation2D<tREAL8> aTriangul(aVPts);
+     aTriangul.MakeDelaunay();
+    mTri3D = new cTriangulation3D<tREAL8>(aV3Pts, aTriangul.VFaces());
+   //================================test code =========================//
+   std::cout<<"NAME LAZA AAAA   "<<aFullNameCld<<std::endl;
+   //std::string aNameLaz=aFullNameCld.replace(aFullNameCld.find("_20CM.tif"),9,"laz");
+
+   std::string aNameLaz="./DSM_LIDAR_EXPRESS/Semis_2022_0574_6277_LA93_IGN69.laz";
+
+   cTriangulation3DLas<tREAL8> * aTri3DLas =new cTriangulation3DLas<tREAL8>(aNameLaz);
+
+
+
+   if (1)
+     {
+       std::cout<<" NBPOINTS LAZ "<<aTri3DLas->NbPts()<<" COUNT VECTOR OF POINTS SIZE  "<<aTri3DLas->VPts().size()<<std::endl;
+
+       std::cout<<"EPSG::::   "<<aTri3DLas->ProjStr()<< "   CLASSIFICATION  ++++  "<<aTri3DLas->Classif().size()<<std::endl;
+
+     }
+   */
+
    mTri3D = new cTriangulation3D<tREAL8>(DirProject()+mNameCloud3DIn);
+
    mNbF   = mTri3D->NbFace();
    mNbP   = mTri3D->NbPts();
 

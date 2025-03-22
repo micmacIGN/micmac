@@ -1,6 +1,6 @@
 # *Dense matching* with pluggable image correlators
 
-MicMac allows you to replace its native SGM algorithm rwith learning-based approaches. For the moment, the following image matching algortihms are available
+MicMac allows you to replace its native SGM algorithm with learning-based approaches. For the moment, the following image matching algortihms are available
 * MMV1 (MicMac SGM)
 * [PSMNet](https://github.com/JiaRenChang/PSMNet)
 

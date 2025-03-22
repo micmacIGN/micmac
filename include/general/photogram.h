@@ -521,6 +521,7 @@ class StatElPackH
             REAL  RMax2 () const;
             INT   NbPts() const;
             REAL  SomD1 () const;
+            
             REAL  SomD2 () const;
       private :
             REAL  mSPds;
@@ -3276,7 +3277,7 @@ class cCpleEpip
          double BSurHOfPx(bool Im1,double aPx);
          Fonc_Num BSurHOfPx(bool Im1,Fonc_Num aPx);
 
-         std::string Dir();
+         std::string Dir(){return mDir;};
 
          bool IsIm1(const std::string & aNameIm);  // Erreur si ni Im1 ni Im2
 
@@ -3293,12 +3294,11 @@ class cCpleEpip
          std::string LocMasqFileMatch(bool Im1,int aNum);
 
 
-
          bool IsLeft(bool Im1);
          bool IsLeft(const std::string &);
 
 
-         void ImEpip(Tiff_Im aFile,const std::string & aNameOriIn,bool Im1,bool InParal=true,bool DoIm=true,const char * NameHom= 0,int aDegPloCor=-1,bool ExpTxt=false);
+         void ImEpip(Tiff_Im aFile,const std::string & aNameOriIn,bool Im1,bool InParal=true,bool DoIm=true,const char * NameHom= 0,int aDegPloCor=-1,bool ExpTxt=false, bool ExportGridsGeoxy=false);
          void AssertOk() const;
 
          void LockMess(const std::string & aMes);

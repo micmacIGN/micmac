@@ -302,7 +302,7 @@ bool cPriseDeVue::LoadImageMM
     mGeom->SetClip
     (
          mAppli.GeomDFPx(),
-	 mAppli.PtSzWMarge(),
+         mAppli.PtSzWMarge(),
          // mCurEtape->EtapeMEC().SzW().Val(),
          aLT.PxMin(),
          aLT.PxMax(),

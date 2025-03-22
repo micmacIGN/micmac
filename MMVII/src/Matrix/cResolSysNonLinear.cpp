@@ -117,6 +117,7 @@ template <class Type>  void  cResolSysNonLinear<Type>::InitConstraint()
          // And fix  the value to average
          for (const auto & [anEqui,aVInd] : aMapEq)
          {
+             (void)anEqui;
              Type aSumV = 0 ;
              for (size_t aKInd=0 ; aKInd<aVInd.size() ; aKInd++)
              {
