@@ -1547,7 +1547,8 @@ int  cAppliFillCubeCost::Exe()
                                     auto aSim=aCorrelCube.index({Slice(aPix.y(),aPix.y()+1,1),
                                                                  Slice(aPix.x(),aPix.x()+1,1),
                                                                  Slice(aPC2Z.x(),aPC2Z.x()+1)});
-                                    ELISE_ASSERT(aSim.item<float>()<=1.0 && aSim.item<float>()>=-1.01, "Similarity values issue not in bound 0 ,1 ");
+                                    //std::cout<<aSim.item<float>()<<std::endl;
+                                    ELISE_ASSERT(aSim.item<float>()<=1.01 && aSim.item<float>()>=-1.01, "Similarity values issue not in bound -1 ,1 ");
                                     aTabCost[aK] =(1-(double)aSim.item<float>())/2.0;;
                                     aTabOk[aK]=true;
                                 }
@@ -1613,6 +1614,7 @@ int  cAppliFillCubeCost::Exe()
                 // Refill tables defining layers of NAPPES WITH GENERATED CORREL
                 start = std::chrono::system_clock::now();
                 using namespace torch::indexing;
+                int aSizeR=aCorrelCube.size(-1);
                 for (aPix.y()=0 ; aPix.y()<aSzL.y() ; aPix.y()++)
                 {
                     for (aPix.x()=0 ; aPix.x()<aSzL.x() ; aPix.x()++)
@@ -1620,23 +1622,29 @@ int  cAppliFillCubeCost::Exe()
                         cPt2di aPAbs = aPix + mP0Z;
                         cPt2di aPC1  = aPAbs-mBoxGlob1.P0();
                         cPt2di aPC20 = aPAbs-mBoxGlob2.P0();
+                        int aBInf=std::max(aVMods[0]->mCNNWin.x(),aPC20.x()+aDZMin.GetV(aPix));
+                        int aBSup=std::min(aPC20.x()+aDZMax.GetV(aPix),aSizeR-aVMods[0]->mCNNWin.x());
+                        //std::cout<<aPC20.x()+aDZMin.GetV(aPix)<<"  "<<aPC20.x()+aDZMax.GetV(aPix)<<std::endl;
                         auto aSim=aCorrelCube.index({Slice(aPix.y(),aPix.y()+1,1),
                                                        Slice(aPix.x(),aPix.x()+1,1),
-                                                       Slice(aPC20.x()+aDZMin.GetV(aPix),
-                                                             aPC20.x()+aDZMax.GetV(aPix)+1)}).squeeze().contiguous();
+                                                       Slice(aBInf,
+                                                             aBSup+1)}).squeeze().contiguous();
 
                         std::vector<float> aVSim(aSim.data_ptr<float>(),
                                                  aSim.data_ptr<float>() + aSim.numel());
                         int id_sim=0;
                         double aCost;
-                        for (int aDz=aDZMin.GetV(aPix) ; aDz<aDZMax.GetV(aPix) ; aDz++,id_sim++)
+                        for (int aDz=aDZMin.GetV(aPix) ; aDz<aDZMax.GetV(aPix) ; aDz++)
                         {
                             aCost=1.0;
                             cPt2di aPC2Z(round_ni(aPC20.x()+aDz*this->StepZ()),aPC20.y());  // INTEG FOR NOW
                             bool IsInside=WindInside4BL(this->DI1(),aPC1,aVMods[0]->mCNNWin)
                                             && WindInside4BL(this->DI2(),aPC2Z,aVMods[0]->mCNNWin);
                             if (IsInside)
-                                aCost=(double)aVSim[id_sim];
+                                {
+                                    aCost=(double)aVSim[id_sim];
+                                    id_sim++;
+                                }
                             PushCost(aCost);
                         }
                     }
