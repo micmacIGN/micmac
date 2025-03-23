@@ -135,7 +135,7 @@ class cMakeArboTriplet
          /// compute the reference pose 
          void DoPoseRef();
          /// Compute the weight each triplet
-         void DoTripletWeighting();
+         void MakeWeightingGraphTriplet();
          /// Compute the connectivity on triangles
          void MakeCnxTriplet();
 
@@ -185,7 +185,6 @@ class cMakeArboTriplet
 /*                                                           */
 /* ********************************************************* */
 
-#if (0)
 
 cNodeArborTriplets::cNodeArborTriplets(cMakeArboTriplet & aMAT ,const t3G3_Tree & aTree,int aLevel) :
    mDepth     (aLevel),
@@ -208,7 +207,7 @@ cNodeArborTriplets::cNodeArborTriplets(cMakeArboTriplet & aMAT ,const t3G3_Tree 
           // weight taking into account the Balance Ratio and importance of balancing
           tREAL8  aWeight = aMAT.WBalance() * aBalanceRatio + (1-aMAT.WBalance()) ; 
           //update with cost taking into account intrinsiq quality & balance
-          aWME.Add(anE,anE->AttrSym().mCost2Tri * aWeight);
+          aWME.Add(anE,anE->AttrSym().mCostTree * aWeight);
       }
 
       // [2]  split arround best
@@ -255,7 +254,7 @@ void cNodeArborTriplets::ComputeResursiveSolution()
        c3G3_AttrV & anATri = aVecTri.at(0)->Attr();
        for (size_t aK3=0 ; aK3<3 ; aK3++)
        {
-	  int aNumPose = anATri.m3V.at(aK3)->Attr().Attr().mKIm;
+	  int aNumPose = anATri.m3V.at(aK3)->Attr().mKIm;
 	  tPoseR aPose = anATri.mT0->Pose(aK3).Pose();
 
           mLocSols.push_back(cSolLocNode(aPose,aNumPose));
@@ -306,7 +305,7 @@ cOneTripletMerge  cNodeArborTriplets::ComputeTripletLinking(const t3G3_Vertex & 
      // parse the 3 images of the triplet
      for (size_t aK=0 ; aK<3 ; aK++)
      {
-         int aKIm = aVTri.Attr().m3V.at(aK)->Attr().Attr().mKIm; // extract the global num  of the image
+         int aKIm = aVTri.Attr().m3V.at(aK)->Attr().mKIm; // extract the global num  of the image
 
          int aI0Loc =  aN0.mTabGlob2LocInd.at(aKIm); // extract it num in N0 (-1 if none)
          int aI1Loc =  aN1.mTabGlob2LocInd.at(aKIm); // extract it num in N1 (-1 if none)
@@ -358,7 +357,7 @@ tPoseR  cNodeArborTriplets::PoseRelEdge(int aI0Loc,int aI1Loc) const
     t3GOP_Edge & aE01 =  *aV0.EdgeOfSucc(aV1);  // the corresponding edge
     
     // [2]  Extract the "Reference" pose *
-    tPoseR  aResult = aE01.AttrSym().Attr().mPoseRef2to1;
+    tPoseR  aResult = aE01.AttrSym().mPoseRef2to1;
     //and eventually correct from sens
     if (!aE01.IsDirInit())
        return aResult.MapInverse();
@@ -638,7 +637,7 @@ tSim3dR cNodeArborTriplets::EstimateSimTransfert
            for (int aKIn3=0 ; aKIn3<3 ; aKIn3++)
            {
                tPoseR aPIK_to_W0;  // Pose Im-> W0
-               int aNumImG = anAttr.m3V.at(aKIn3)->Attr().Attr().mKIm  ;  //  Num Image Glob
+               int aNumImG = anAttr.m3V.at(aKIn3)->Attr().mKIm  ;  //  Num Image Glob
                int aLocNum0 = aN0.mTabGlob2LocInd.at(aNumImG); // Num in W0
                if (aLocNum0>=0)
                    aPIK_to_W0 = aN0.mLocSols.at(aLocNum0).mPose;
@@ -705,7 +704,7 @@ void cNodeArborTriplets::CmpWithGT()
     for (const auto & aSol :   mLocSols)
     {
          aVComp.push_back(aSol.mPose);
-         aVGt.push_back(mPMAT->GOP().VertexOfNum(aSol.mNumPose).Attr().Attr().mGTRand);
+         aVGt.push_back(mPMAT->GOP().VertexOfNum(aSol.mNumPose).Attr().mGTRand);
     }
     auto [aRes,aSim] =  EstimateSimTransfertFromPoses(aVComp,aVGt);
 
@@ -740,7 +739,7 @@ void cNodeArborTriplets::MergeChildrenSol()
      for (const auto & aSol0 : aN0.mLocSols)  // parse 1 child, because linking triplet must belong to 2 children
      {
          const auto & aVertexPose = mPMAT->GOP().VertexOfNum(aSol0.mNumPose);  // extract vertex of pose
-         const c3GOP_AttrV aAttrPose = aVertexPose.Attr().Attr(); // extracts its attributes
+         const c3GOP_AttrV aAttrPose = aVertexPose.Attr(); // extracts its attributes
          for (const auto & aNumTri : aAttrPose.mTriBelongs)  // parse the triplets is belong to (avoid parse all triplet at all level)
          {
              if (!aSetIndexTri.at(aNumTri)) // avoid  exploring several time the same triplet
@@ -846,7 +845,7 @@ void cNodeArborTriplets::GetPoses(std::vector<int> & aResult)
         auto & anAttr = aVertexTri->Attr();
 	for (auto & aVertexPos : anAttr.m3V)
 	{
-	     int aNumPose = aVertexPos->Attr().Attr().mKIm;
+	     int aNumPose = aVertexPos->Attr().mKIm;
              if (!aVGot.at(aNumPose))
              {
                 aVGot.at(aNumPose) = true;
@@ -857,7 +856,6 @@ void cNodeArborTriplets::GetPoses(std::vector<int> & aResult)
    std::sort(aResult.begin(),aResult.end());
 }
 
-#endif
 /* ********************************************************* */
 /*                                                           */
 /*                     c3GOP_AttrSym                         */
@@ -976,7 +974,7 @@ cMakeArboTriplet::cMakeArboTriplet(cTripletSet & aSet3,bool doCheck,tREAL8 aWBal
 cMakeArboTriplet::~cMakeArboTriplet()
 {
    // TO REDO => avoide LINK-PB  4 NOW
-   // delete mArbor;
+   delete mArbor;
 }
 void cMakeArboTriplet::SetRand(const std::vector<tREAL8> & aLevelRand)
 {
@@ -1146,21 +1144,29 @@ void cMakeArboTriplet::MakeCnxTriplet()
 }
 
 
-void cMakeArboTriplet::DoTripletWeighting()
+/*  Basic idea , the weight of a vertices is the average of the weight of edges ( mCostInit2Ori).
+
+      But pb, because if we have outlayer, the cost of edges is bad from2 sides.  So we iterate
+    and make at each step a weighting so that  previous high residula have low weight
+*/
+
+void cMakeArboTriplet::MakeWeightingGraphTriplet()
 {
     int aNbIter = 5;
     tREAL8 aS666 =0;
     for (int aKIter=0 ; aKIter<aNbIter ; aKIter++)
     {
+        // store the new cost 
         std::vector<tREAL8>  aVCost(mGTriC.NbVertex());
-        aS666 += 0.01;
+        aS666 += 0.01;  // if all cost are ~ 0
 
-        for (size_t aKT=0 ; aKT<mGTriC.NbVertex() ; aKT++)
+         
+        for (size_t aKT=0 ; aKT<mGTriC.NbVertex() ; aKT++)  // parse all vertices
         {
             t3G3_Vertex & aVTri = mGTriC.VertexOfNum(aKT);
         
             cWeightAv<tREAL8,tREAL8> aAvg;
-            for (auto & aSucc : aVTri.EdgesSucc())
+            for (auto & aSucc : aVTri.EdgesSucc()) // parse neighboors
             {
                 tREAL8 aWeight = 1.0;
                 if (aKIter!=0)
@@ -1170,10 +1176,11 @@ void cMakeArboTriplet::DoTripletWeighting()
                 }
                 aAvg.Add(aWeight,aSucc->AttrSym().mCostInit2Ori);
             }
-            aVCost.at(aKT)  = aAvg.Average();
+            aVCost.at(aKT)  = aAvg.Average(1000.0);  // 1000=> default, there exist
         }
 
          
+        //   transferate new cost in mCostIntr
         cWeightAv<tREAL8,tREAL8> aAvgDif;
         cWeightAv<tREAL8,tREAL8> aAvgCost;
         for (size_t aKT=0 ; aKT<mGTriC.NbVertex() ; aKT++)
@@ -1193,52 +1200,19 @@ void cMakeArboTriplet::DoTripletWeighting()
             StdOut() << "\n";
         }
     }
+
+    for (auto & aVTri : mGTriC.AllVertices())
+    {
+        for (auto & aSucc : aVTri->EdgesSucc()) // parse neighboors
+        {
+            tREAL8 aW1 = aVTri->Attr().mCostIntr;
+            tREAL8 aW2 = aSucc->Succ().Attr().mCostIntr;
+            OrderMinMax(aW1,aW2);
+            tREAL8 aCost = aW1*0.25 + aW2*0.75 + aSucc->AttrSym().mCostInit2Ori*0.5;
+            aSucc->AttrSym().mCostTree = aCost;
+        }
+    }
 }
-#if (0)
-
-void cMakeArboTriplet::MakeCnxTriplet()
-{
-   tREAL8 aWeighMax = 0.75;
-
-   for (size_t aKT1=0; aKT1<mGTriC.NbVertex() ; aKT1++)
-   {
-       auto & aVert1  = mGTriC.VertexOfNum(aKT1);
-       auto & aTriAttr1 = aVert1.Attr();
-       tREAL8 aC1 = aTriAttr1.mCostIntr;
-       for (size_t aKE1=0 ; aKE1<3 ; aKE1++)
-       {
-           const auto & anAttr = aTriAttr1.mCnxE.at(aKE1)->AttrSym(); // Attr of 1 Edges
-           for (const auto & aHyp : anAttr.ValuesInit())
-           {
-               if (aHyp.IsMarked()) // if has been clustered
-               {
-                  size_t  aKT2 = aHyp.mAttr.mNumSet;
-                  if (aKT1<aKT2)
-                  {
-                     auto & aVert2  = mGTriC.VertexOfNum(aKT2);
-                     auto & aTriAttr2 = aVert2.Attr();
-                     tREAL8 aC2 = aTriAttr2.mCostIntr;
-                     size_t aKE2 = aTriAttr2.GetIndexVertex(aTriAttr1.m3V.at(aKE1));
-                     //auto & aTriAttr1 = mGTriC.VertexOfNum(aKT1).Attr();
-                     tREAL8 aCost12 = std::min(aC1,aC2)*(1-aWeighMax)+std::max(aC1,aC2)*aWeighMax;
-                     mGTriC.AddEdge
-                     (
-                          aVert1,aVert2,
-                          c3G3_AttrOriented(aKE1),c3G3_AttrOriented(aKE2),
-                          c3G3_AttrSym(aCost12)
-                     );
-                  }
-               }
-           }
-       }
-   }
-   auto  aListCC = cAlgoCC<t3G3_Graph>::All_ConnectedComponent(mGTriC,cAlgo_ParamVG<t3G3_Graph>());
-   StdOut() << "Number of connected compon Triplet-Graph= " << aListCC.size() << "\n";
-   // to see later, we can probably analyse CC by CC, but it would be more complicated (already enough complexity ...)
-   MMVII_INTERNAL_ASSERT_tiny(aListCC.size(),"non connected triplet-graph");
-}
-
-
 
 void cMakeArboTriplet::ComputeArbor()
 {
@@ -1252,7 +1226,7 @@ void cMakeArboTriplet::ComputeArbor()
        tREAL8 aCost = aAttrTriV.mCostIntr;
        for (int aKV=0 ; aKV<3 ; aKV++) // parse the 3 image of the triplet
        {
-           c3GOP_AttrV & aAttrPose = aAttrTriV.m3V.at(aKV)->Attr().Attr();
+           c3GOP_AttrV & aAttrPose = aAttrTriV.m3V.at(aKV)->Attr();
            aAttrPose.mWMinTri.Add(aKTri,aCost);
            aAttrPose.mTriBelongs.push_back(aKTri);
        }
@@ -1263,9 +1237,9 @@ void cMakeArboTriplet::ComputeArbor()
    //    - for a triplet store in mVPoseMin the pose that consider it as the "best one"
    //    - store in aVectTriMin the triplet for which mVPoseMin is not empty
    std::vector<t3G3_Vertex*> aVectTriMin;
-   for (size_t aKPose=0 ; aKPose<mGGPoses.NbVertex() ; aKPose++)
+   for (size_t aKPose=0 ; aKPose<mGPoses.NbVertex() ; aKPose++)
    {
-       int aKTriplet = mGGPoses.VertexOfNum(aKPose).Attr().Attr().mWMinTri.IndexExtre();
+       int aKTriplet = mGPoses.VertexOfNum(aKPose).Attr().mWMinTri.IndexExtre();
        std::vector<int> * aVPoseMin = & mGTriC.VertexOfNum(aKTriplet).Attr().mVPoseMin;
 
        // store it only the first time to avoid duplicata
@@ -1281,7 +1255,7 @@ void cMakeArboTriplet::ComputeArbor()
    // ==============    [3]  Compute the minimal spaning forest of graph of triplet   ====================
    // Create a subgraph of template type cTpl_WeithingSubGr, with a lambda expression
    //   mCos2Tri has been inialize in constructor
-   auto aWeighting = Tpl_WeithingSubGr(&mGTriC,[](const t3G3_Edge & anE) {return anE.AttrSym().mCost2Tri;});
+   auto aWeighting = Tpl_WeithingSubGr(&mGTriC,[](const t3G3_Edge & anE) {return anE.AttrSym().mCostTree;});
    // auto aWeighting = Tpl_WeithingSubGr(&mGTriC,[](const auto & anE) {return anE.AttrSym().mCost2Tri;});
 
    cAlgoSP<t3G3_Graph>::tForest  aForest(mGTriC);
@@ -1337,7 +1311,6 @@ void cMakeArboTriplet::ComputeArbor()
    mArbor->ComputeResursiveSolution();
 }
 
-#endif
 
 
 class cAppli_ArboTriplets : public cMMVII_Appli
@@ -1420,13 +1393,10 @@ int cAppli_ArboTriplets::Exe()
      aMk3.MakeCnxTriplet();
 
      TimeSegm().SetIndex("TripletWeighting");
-     aMk3.DoTripletWeighting();
-
-/*
+     aMk3.MakeWeightingGraphTriplet();
 
      TimeSegm().SetIndex("ComputeArbor");
      aMk3.ComputeArbor();
-*/
 
      aMk3.ShowStat();
 

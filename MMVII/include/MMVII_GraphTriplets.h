@@ -96,7 +96,8 @@ class c3G3_AttrSym
    public :
       c3G3_AttrSym(tREAL8 aCost) : mCostInit2Ori (aCost) {}
 
-      tREAL8 mCostInit2Ori;  /// Initial cost make from coherence of 2 orientations
+      tREAL8 mCostInit2Ori;  ///< Initial cost make from coherence of 2 orientations
+      tREAL8 mCostTree;      ///< Cost 
    private :
 };
 
