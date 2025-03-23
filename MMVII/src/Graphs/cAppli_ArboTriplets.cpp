@@ -1325,7 +1325,6 @@ class cAppli_ArboTriplets : public cMMVII_Appli
         cPhotogrammetricProject   mPhProj;
         int                       mNbMaxClust;
         tREAL8                    mDistClust;
-        int                       mNbIterCycle;
 	std::vector<tREAL8>       mLevelRand;
         bool                      mDoCheck;  
         tREAL8                    mWBalance;
@@ -1337,7 +1336,6 @@ cAppli_ArboTriplets::cAppli_ArboTriplets(const std::vector<std::string> & aVArgs
     mPhProj      (*this),
     mNbMaxClust  (5),
     mDistClust   (0.02),
-    mNbIterCycle (3),
     mDoCheck     (true),
     mWBalance    (1.0)
 {
