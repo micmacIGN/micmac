@@ -2,7 +2,9 @@
 #define _MMVII_Tpl_GraphTriplet_H_
 
 #include "MMVII_PoseTriplet.h"
-#include "MMVII_Tpl_GraphAlgo_Group.h"
+#include "MMVII_Tpl_GraphStruct.h"
+#include "MMVII_Tpl_GraphAlgo_SPCC.h"
+// #include "MMVII_Tpl_GraphAlgo_Group.h"
 
 
 
@@ -52,8 +54,11 @@ class c3GOP_AttrV
 class c3GOP_AttrSym
 {
    public :
-        std::vector<tPoseR>   mListP2to1;
         void ComputePoseRef(tREAL8 aWTr);
+
+        std::vector<tPoseR>   mListP2to1;
+        std::vector<size_t>   mListKT;
+        /// +- the robust estimator of mListP2to1, Used when we need to have "the" pose of 1 edge
         tPoseR                mPoseRef2to1;
 };
 
@@ -63,11 +68,10 @@ class c3GOP_AttrOr
    public :
 };
 
-typedef cGroupGraph<tRotR,c3GOP_AttrV,c3GOP_AttrOr,c3GOP_AttrSym,c3GOP_1Hyp>       t3GOP;
+typedef cVG_Graph<c3GOP_AttrV,c3GOP_AttrOr,c3GOP_AttrSym> t3GOP;
 
 typedef typename t3GOP::tVertex                          t3GOP_Vertex;
 typedef typename t3GOP::tEdge                            t3GOP_Edge;
-typedef typename t3GOP::tAttrS                           t3GOP_EdAttS;
 
 /* ********************************************************* */
 /*                                                           */
@@ -82,9 +86,7 @@ typedef std::array<t3GOP_Vertex*,3>                         t3V_GOP;
 class c3G3_AttrOriented
 {
    public :
-        c3G3_AttrOriented(size_t aKE) : mKEdge(aKE) {}
-        ///  If the triplet T1->T2 is connected, this KDege memorize witch of the 3 edge (of graph-pose) of T1 is implied 
-        size_t mKEdge;
+        c3G3_AttrOriented()   {}
    private :
 };
 
@@ -92,9 +94,9 @@ class c3G3_AttrOriented
 class c3G3_AttrSym
 {
    public :
-      c3G3_AttrSym(tREAL8 aCost) : mCost2Tri(aCost) {}
+      c3G3_AttrSym(tREAL8 aCost) : mCostInit2Ori (aCost) {}
 
-      tREAL8 mCost2Tri;  /// Cost used for minimal spaning tree
+      tREAL8 mCostInit2Ori;  /// Initial cost make from coherence of 2 orientations
    private :
 };
 
@@ -103,23 +105,9 @@ class c3G3_AttrSym
 class c3G3_AttrV
 {
    public :
-        c3G3_AttrV (cTriplet* aT0,int aKT) :
-            mT0         (aT0),
-            mKT         (aKT),
-            mCnxE       {0,0,0},
-            m3V         {0,0,0},
-            mOk         (false),
-            mCostIntr   (1e10)
-        {
-        }
-        size_t GetIndexVertex(const t3GOP_Vertex* aV) const
-        {
-             for (size_t aKV=0 ; aKV<3 ; aKV++)
-                 if (m3V.at(aKV) == aV)
-                    return aKV;
-             MMVII_INTERNAL_ERROR("c3G3_AttrV::GetIndexVertex");
-             return 3;
-        }
+        c3G3_AttrV (cTriplet* aT0,int aKT) ;
+        size_t GetIndexVertex(const t3GOP_Vertex* aV) const;
+        tREAL8 CostVertexCommon(const c3G3_AttrV &,tREAL8 aWTr) const;
 
         cTriplet*        mT0;    ///< the initial triplet itself
         int              mKT;
@@ -134,7 +122,7 @@ typedef cVG_Graph<c3G3_AttrV, c3G3_AttrOriented,c3G3_AttrSym> t3G3_Graph;
 typedef cVG_Tree<t3G3_Graph>   t3G3_Tree;
 typedef t3G3_Graph::tEdge      t3G3_Edge;
 //typedef cVG_Vertex<c3G3_AttrV, c3G3_AttrOriented,c3G3_AttrSym> t3G3_Vertex;
-//typedef t3G3_Graph::tVertex    t3G3_Vertex;
+typedef t3G3_Graph::tVertex    t3G3_Vertex;
 
 
 

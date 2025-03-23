@@ -521,7 +521,7 @@ class cPhotogrammetricProject
     //===================================================================
     //==================   ORIENTATION OF TRIPLETS    ==================
     //===================================================================
-    void SaveTriplets(const cTripletSet&) const;
+    void SaveTriplets(const cTripletSet&,bool useXmlraterThanDmp=true) const;
     cTripletSet * ReadTriplets() const;
 
 	 //===================================================================
