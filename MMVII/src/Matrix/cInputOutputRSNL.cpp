@@ -278,6 +278,18 @@ template <class Type> void   cSetIORSNL_SameTmp<Type>::AddOneLinearObs(Type aW,c
    AddOneEq(cInputOutputRSNL<Type>::CreatFromLinearObs(aW,aVInd,aVCoeffs,aCste));
 }
 
+template <class Type> void   cSetIORSNL_SameTmp<Type>::AddOneLinearObs(Type aW,const  cSparseVect<Type> & aSV,Type aCste)
+{
+   std::vector<int>  aVInd;
+   std::vector<Type> aVCoeffs;
+   for (const auto & aPair : aSV)
+   {
+       aVInd.push_back(aPair.mInd);
+       aVCoeffs.push_back(aPair.mVal);
+   }
+   AddOneEq(cInputOutputRSNL<Type>::CreatFromLinearObs(aW,aVInd,aVCoeffs,aCste));
+}
+
 
 template <class Type> void   cSetIORSNL_SameTmp<Type>::AddFixCurVarTmp (int aInd,const Type& aWeight)
 {

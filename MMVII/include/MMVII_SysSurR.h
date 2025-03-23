@@ -495,6 +495,10 @@ template <class Type> class cSetIORSNL_SameTmp
 
 	    ///  Add  one equation "Coeff . dX = aCste"  for indexes of aVInd, where dX is delta/current sol, use CreatFromLinearObs
 	    void  AddOneLinearObs(Type aW,const tVectInd&,const tStdVect & aVCoeffs,Type aCste);
+
+	    ///  Add  one equation "Coeff . dX = aCste"  for indexes of aVInd, where dX is delta/current sol, use CreatFromLinearObs
+	    void  AddOneLinearObs(Type aW,const  cSparseVect<Type>  & aVCoeffs,Type aCste);
+
 	    ///  Number of temporary unkown
 	    size_t  NbTmpUk() const;
 	    const tStdVect & ValTmpUk() const;
