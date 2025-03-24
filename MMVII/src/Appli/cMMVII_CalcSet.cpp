@@ -55,6 +55,8 @@ class cAppli_EditSet : public cMMVII_Appli
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override; ///< return spec of optional args
         cAppliBenchAnswer BenchAnswer() const override ; ///< Has it a bench, default : no
         int  ExecuteBench(cParamExeBench &) override ;
+        std::vector<std::string>  Samples() const override;
+
      protected :
         bool AcceptEmptySet(int aK) const override;
      private :
@@ -68,6 +70,15 @@ class cAppli_EditSet : public cMMVII_Appli
 	 std::string               mPatFilter;
          size_t                    mNbMinTieP;
 };
+
+std::vector<std::string>  cAppli_EditSet::Samples() const
+{
+   return
+   {
+       "MMVII EditSet  CalibBefore.xml += 'CCAM_.*' FFI0=[0010,0011]  PatFFI0=['CCAM_.*_(.*).tif','$1']"
+   };
+}
+
 
 cAppliBenchAnswer cAppli_EditSet::BenchAnswer() const
 {
