@@ -1,7 +1,7 @@
 ﻿#include "MMVII_SfmInit.h"
 #include <random>
 //#include "MMVII_TplHeap.h"
-#include "graph.h"
+//#include "graph.h"
 #include "MMVII_HierarchicalProc.h"
 
 namespace MMVII
@@ -1796,7 +1796,10 @@ int cAppli_SfmInitWithPartition::ExeKahyPar()
     ///
     cHyperGraph aHG;
     aHG.InitFromTriSet(aTriSet); */
-
+bool KAHYPAR_LIB=false;
+FakeUseIt(KAHYPAR_LIB);
+StdOut() << "Not compiled with KAHYPAR library" << std::endl;
+#if KAHYPAR_LIB
     /// - run kahypar partitioner
     ///
     // Initialize thread pool
@@ -1869,7 +1872,7 @@ int cAppli_SfmInitWithPartition::ExeKahyPar()
     mt_kahypar_free_context(aKP_context);
     mt_kahypar_free_hypergraph(aHypergraph);
     mt_kahypar_free_partitioned_hypergraph(aPartAll);
-
+#endif
     return EXIT_SUCCESS;
 }
 
@@ -2403,10 +2406,16 @@ void cAppli_SfmInitGlob::SolveL1(cHyperGraph& aHG)
     std::vector<std::pair<int, double>> fixed_values =
          {{0, 1}, {1, 0.01}, {2, 0.02}, {3, 0.03}};
 
+    StdOut() << "Not compiled with l1homo library" << std::endl;
+
+bool L1HOMO_LIB=false;
+FakeUseIt(L1HOMO_LIB);
+#if L1HOMO_LIB
     std::unique_ptr<SolverHomotopy> l1RotSolve;
     l1RotSolve.reset( new DSHomotopy(1e-4, 200, true));
 
     l1RotSolve->solveHomotopy(b,A,x,fixed_values);
+#endif
 
     for (int aUR=0; aUR<int(aNbUnkRot); aUR++)
     {
@@ -2419,8 +2428,9 @@ void cAppli_SfmInitGlob::SolveL1(cHyperGraph& aHG)
     StdOut() << "end" << std::endl;
     getchar();
 
+#if L1HOMO_LIB
     l1RotSolve.release();
-
+#endif
 }
 
 void cAppli_SfmInitGlob::Solve(cHyperGraph& aHG)

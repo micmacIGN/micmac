@@ -13,16 +13,16 @@
 
 //#undef ASSERT
 //#undef HEAVY_ASSERT0
-#include "libmtkahypar.h"
+//#include "libmtkahypar.h"
 
 //#include "mt-kahypar/datastructures/connectivity_set.h"
 //#include "mt-kahypar/io/partitioning_output.h"
 //#undef ASSERT
 //#undef HEAVY_ASSERT0
 
-#include "Solver_homotopy.hpp"
-#include "DS_homotopy.h"
-#include "BPDN_homotopy.h"
+//#include "Solver_homotopy.hpp"
+//#include "DS_homotopy.h"
+//#include "BPDN_homotopy.h"
 
 namespace MMVII
 {
