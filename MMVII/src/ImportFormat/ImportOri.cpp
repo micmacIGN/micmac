@@ -205,8 +205,8 @@ int cAppli_ImportOri::Exe()
 	        cRotation3D<tREAL8>  aRot =  cRotation3D<tREAL8>::RotFromWPK(aWPK);
 	        aRot = aRot * aRotAfter;
 
-	        cIsometry3D aPose(aCenter,aRot);
-	        cSensorCamPC  aCam(aNameIm,aPose,aCalib);
+            cIsometry3D aPose(aCenter,aRot);
+            cSensorCamPC  aCam(aNameIm,aPose,aCalib);
 	        mPhProj.SaveCamPC(aCam);
                 if (WithName2)
                 {

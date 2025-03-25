@@ -59,9 +59,12 @@ class  cNodeArborTriplets : public cMemCheck
         ~cNodeArborTriplets();
        
         /// compute the pose solution, do it recurively
-	void ComputeResursiveSolution();
+        void ComputeResursiveSolution();
         ///  Test with GT
-	void CmpWithGT();
+        void CmpWithGT();
+        /// Save global solution
+        void SaveGlobSol(const cPhotogrammetricProject&) const;
+
 
     private :
          void AddEqLink(cLinearOverCstrSys<tREAL8> *,cSetIORSNL_SameTmp<tREAL8> * aSubst,tREAL8 aWeight, int aKEq,
@@ -130,7 +133,7 @@ class cMakeArboTriplet
          cMakeArboTriplet(cTripletSet & aSet3,bool doCheck,tREAL8 aWBalance,cMMVII_Appli &);
          ~cMakeArboTriplet();
 
-         /// Print some infoon dimensions of data
+         /// Print some info on dimensions of data
          void ShowStat();
 
          // make the graph on pose, using triplet as 3 edges
@@ -149,6 +152,9 @@ class cMakeArboTriplet
          /// Activate the simulation mode
          void SetRand(const std::vector<tREAL8> &);
 
+         /// Save the global orientation
+         void SaveGlobSol(const cPhotogrammetricProject&) const;
+
 
 	 tREAL8 WBalance() const {return mWBalance;}  ///< Accessor
 	 tREAL8 & CostMergeTree() {return mCostMergeTree;}  ///< Accessor
@@ -160,6 +166,7 @@ class cMakeArboTriplet
          bool  PerfectData() const {return mPerfectData;}  ///< Accessor
          bool  DoRand() const {return mDoRand;}  ///< Accessor
          std::vector<tREAL8> & WeigthEdge3() {return mWeigthEdge3;}
+         std::string & MapI2Str(const int aNum)  {return *mMapStrI.I2Obj(aNum);}  ///< Accessor
 
 
      private :
@@ -729,7 +736,34 @@ tSim3dR cNodeArborTriplets::EstimateSimTransfert
     return tSim3dR(aLambda,aTr,aRot_W1_to_W0);
 }
 
+void cNodeArborTriplets::SaveGlobSol(const cPhotogrammetricProject& aPhP) const
+{
+    tREAL8 AngConv = AngleInRad(eTyUnitAngle::eUA_degree);
 
+    cPerspCamIntrCalib *  aCalib = cPerspCamIntrCalib::FromFile(
+        "/home/ERupnik/Documents/da_data/mpd_graphes/viabon/MMVII-PhgrProj/Ori/FraserBasic/Calib-PerspCentral-Foc-35000_Cam-CamLightLOEMI.xml"
+        );
+
+    StdOut() << "#F=N X Y Z W P K" << std::endl;
+    for (const auto & aSol :   mLocSols)
+    {
+        std::string aCurImName = mPMAT->MapI2Str(aSol.mNumPose);
+
+        cRotation3D<tREAL8> aRotK = cRotation3D<tREAL8>::RotFromCanonicalAxes("i-j-k");
+        cRotation3D<tREAL8> aRotNew(aSol.mPose.Rot().Mat()*aRotK.Mat(),false);
+
+        StdOut() << aCurImName << " " << aSol.mPose.Tr().x()
+                 << " " << aSol.mPose.Tr().y()
+                 << " " << aSol.mPose.Tr().z()
+                 << " " << aRotNew.ToWPK().x()*AngConv
+                 << " " << aRotNew.ToWPK().y()*AngConv
+                 << " " << aRotNew.ToWPK().z()*AngConv << std::endl;
+
+        cIsometry3D aPose(aSol.mPose.Tr(),aRotNew); //aSol.mPose.Rot()
+        cSensorCamPC aCam(aCurImName,aPose,aCalib);
+        aPhP.SaveCamPC(aCam);
+    }
+}
 
 void cNodeArborTriplets::CmpWithGT()
 {
@@ -1033,6 +1067,12 @@ void cMakeArboTriplet::ShowStat()
    StdOut() << " * TREE:  Anchor=" << mNbTriAnchor << " Tree2Split=" << mNbTree2Split << " TreeGlob=" << mNbTreeGlob << "\n";
 
    StdOut() << "\n";
+}
+
+void cMakeArboTriplet::SaveGlobSol(const cPhotogrammetricProject& aPhP) const
+{
+
+    mArbor->SaveGlobSol(aPhP);
 }
 
 void cMakeArboTriplet::MakeGraphPose()
@@ -1399,7 +1439,7 @@ class cAppli_ArboTriplets : public cMMVII_Appli
         tREAL8                    mDistClust;
 	std::vector<tREAL8>       mLevelRand;
 	std::vector<tREAL8>       mWeigthEdge3;
-        bool                      mDoCheck;  
+        bool                      mDoCheck;
         tREAL8                    mWBalance;
 };
 
@@ -1430,6 +1470,7 @@ cCollecSpecArg2007 & cAppli_ArboTriplets::ArgOpt(cCollecSpecArg2007 & anArgOpt)
           << AOpt2007(mWeigthEdge3,"WE3","Edge Weigthing from Vertices/InitialEdge [WMax,WMin,WEdge]", {{eTA2007::ISizeV,"[3,3]"}})
           << AOpt2007(mDoCheck,"DoCheck","do some checking on result",{eTA2007::HDV,eTA2007::Tuning})
           << AOpt2007(mWBalance,"WBalance","Weight for balancing trees, 0 NONE, 1 Max",{eTA2007::HDV})
+          <<  mPhProj.DPOrient().ArgDirOutOpt("","Global orientation output directory")
           <<  mPhProj.DPOriTriplets().ArgDirOutOpt("","Directory for dmp-save of triplet (for faster read later)")
    ;
 }
@@ -1471,6 +1512,12 @@ int cAppli_ArboTriplets::Exe()
 
      TimeSegm().SetIndex("ComputeArbor");
      aMk3.ComputeArbor();
+
+     if (mPhProj.DPOrient().DirOutIsInit())
+     {
+         StdOut() << " ========== Output Global Orientation  ========== " << std::endl;
+         aMk3.SaveGlobSol(mPhProj);
+     }
 
      aMk3.ShowStat();
 
