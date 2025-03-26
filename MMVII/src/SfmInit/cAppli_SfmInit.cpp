@@ -523,6 +523,9 @@ void cHyperGraph::CoherencyOfHyperEdges()
                 aCohScore /= 3.0;
 
                 aTri->QualityVec().push_back(aCohScore);
+                StdOut() << aTri->RelPose(0).Name() << " "
+                         << aTri->RelPose(1).Name() << " "
+                         << aTri->RelPose(2).Name() << " CohScore=" << aCohScore << std::endl;
             }
 
         }
@@ -1540,6 +1543,7 @@ int cAppli_SfmInitFromGraph::Exe()
      cCmpEdge aCm;
      cIndexedHeap<cHyperEdge*,cCmpEdge,cIndexEdgeOnId> aH(aCm);
      DoOneSolution(aHG,aH,aSeed);
+     aHG.CoherencyOfHyperEdges();
 
      StdOut() << "END OF PRGM" << std::endl;
 
