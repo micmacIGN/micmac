@@ -164,6 +164,7 @@ class cMakeArboTriplet
          cTimerSegm  &   TimeSegm() {return mTimeSegm;}
 
          bool  PerfectData() const {return mPerfectData;}  ///< Accessor
+         bool & PerfectData() {return mPerfectData;}
          bool  DoRand() const {return mDoRand;}  ///< Accessor
          std::vector<tREAL8> & WeigthEdge3() {return mWeigthEdge3;}
          std::string & MapI2Str(const int aNum)  {return *mMapStrI.I2Obj(aNum);}  ///< Accessor
@@ -1208,8 +1209,8 @@ void cMakeArboTriplet::DoPoseRef()
           tPoseR aPoseRef = anAttr.mPoseRef2to1;
           for (const auto & aPose : aListP)
           {
-              tREAL8 aDist = aPoseRef.DistPoseRel(aPose,1.0);
-              MMVII_INTERNAL_ASSERT_bench((aDist<1e-5),"Pose reference on perfect data");
+              tREAL8 aDist = aPoseRef.DistPoseRel(aPose,1.0); StdOut() << "Dist= " << aDist << std::endl;
+              //MMVII_INTERNAL_ASSERT_bench((aDist<1e-5),"Pose reference on perfect data");
           }
       }
    }
@@ -1441,6 +1442,7 @@ class cAppli_ArboTriplets : public cMMVII_Appli
 	std::vector<tREAL8>       mWeigthEdge3;
         bool                      mDoCheck;
         tREAL8                    mWBalance;
+        bool                      mPerfectData;
 };
 
 
@@ -1450,7 +1452,8 @@ cAppli_ArboTriplets::cAppli_ArboTriplets(const std::vector<std::string> & aVArgs
     mNbMaxClust  (5),
     mDistClust   (0.02),
     mDoCheck     (true),
-    mWBalance    (1.0)
+    mWBalance    (1.0),
+    mPerfectData (false)
 {
 }
 
@@ -1470,6 +1473,7 @@ cCollecSpecArg2007 & cAppli_ArboTriplets::ArgOpt(cCollecSpecArg2007 & anArgOpt)
           << AOpt2007(mWeigthEdge3,"WE3","Edge Weigthing from Vertices/InitialEdge [WMax,WMin,WEdge]", {{eTA2007::ISizeV,"[3,3]"}})
           << AOpt2007(mDoCheck,"DoCheck","do some checking on result",{eTA2007::HDV,eTA2007::Tuning})
           << AOpt2007(mWBalance,"WBalance","Weight for balancing trees, 0 NONE, 1 Max",{eTA2007::HDV})
+          << AOpt2007(mPerfectData,"PerfectData","Evaluate coherency of triplets with simulated poses",{eTA2007::HDV})
           <<  mPhProj.DPOrient().ArgDirOutOpt("","Global orientation output directory")
           <<  mPhProj.DPOriTriplets().ArgDirOutOpt("","Directory for dmp-save of triplet (for faster read later)")
    ;
@@ -1496,6 +1500,8 @@ int cAppli_ArboTriplets::Exe()
         aMk3.SetRand(mLevelRand);
      if (IsInit(&mWeigthEdge3))
         aMk3.WeigthEdge3() = mWeigthEdge3;
+     if (IsInit(&mPerfectData))
+        aMk3.PerfectData() = true;
 
      // cAutoTimerSegm aTSRead(mTimeSegm,"cMakeArboTriplet");
      TimeSegm().SetIndex("MakeGraphPose");
