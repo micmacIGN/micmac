@@ -28,14 +28,14 @@ jobs:
       run: make -C MMVII/Doc a4
 
     - name: Remove previous MMVII documentation release
-      if false
+      if: false
       env:
          GH_TOKEN: ${{ github.token }}
       continue-on-error: true
       run: gh release delete MMVII_Documentation -y --cleanup-tag
 
     - name: Upload MMVII documentaion
-      if false
+      if: false
       uses: softprops/action-gh-release@v2
       with:
           name: 'MMVII Documentation - Latest'
