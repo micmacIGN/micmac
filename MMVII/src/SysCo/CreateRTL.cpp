@@ -75,7 +75,7 @@ tMMVII_UnikPApli Alloc_CreateSysCoLoc(const std::vector<std::string> & aVArgs,co
 
 cSpecMMVII_Appli  TheSpec_CreateSysCoLoc
 (
-        "SysCoCreateLocal",
+        "SysCoCreateAlias",
         Alloc_CreateSysCoLoc,
         "Create a coordinate system in the standard folder",
         {eApF::SysCo},
