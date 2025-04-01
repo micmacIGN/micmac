@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.5)
 
 # Interfaces de saisie des param�tres
 option(WITH_QT5 "compile Qt interfaces" OFF)
@@ -625,7 +625,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
 	#~ add_compile_options(-O2 -Wall -fPIC) // pas gere par le cmake de la forge
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
 if (${WERROR})
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall -fPIC -Werror")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall -fPIC -Werror -Wno-overloaded-virutal -Wno-unused-result -Wno-stringop-overflow")
 else ()
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall -fPIC")
 endif()
