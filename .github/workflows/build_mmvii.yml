@@ -3,7 +3,7 @@ name: Build MMVII Linux/Windows
 on:
   push:
     branches:
-      - 'master'
+      - 'cm-next'
 
 jobs:
   build_linux:
@@ -28,12 +28,14 @@ jobs:
       run: make -C MMVII/Doc a4
 
     - name: Remove previous MMVII documentation release
+      if false
       env:
          GH_TOKEN: ${{ github.token }}
       continue-on-error: true
       run: gh release delete MMVII_Documentation -y --cleanup-tag
 
     - name: Upload MMVII documentaion
+      if false
       uses: softprops/action-gh-release@v2
       with:
           name: 'MMVII Documentation - Latest'
@@ -74,7 +76,7 @@ jobs:
 
 
   build_win:
-    if: true
+    if: false
     runs-on: windows-latest
 
     steps:
