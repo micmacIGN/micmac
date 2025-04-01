@@ -1315,6 +1315,14 @@ template <>  const std::string cStrIO<size_t>::msNameType = "size_t";
 
    // ================  int ==============================================
 
+bool  StringIsIntOk(const std::string & aStr)
+{
+    int anI;
+    int aNb= sscanf(aStr.c_str(),"%d",&anI);
+
+    return aNb!=0;
+}
+
 template <>  std::string cStrIO<int>::ToStr(const int & anI)
 {
    sprintf(BufStrIO,"%d",anI);

@@ -99,6 +99,7 @@ class cAppliBundlAdj : public cMMVII_Appli
         std::vector<std::string>  mVSharedIP;  ///< Vector for shared intrinsic param
 
         std::vector<std::string>  mParamShow_UK_UC;
+        std::string               mPostFixReport;
 };
 
 cAppliBundlAdj::cAppliBundlAdj(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -159,6 +160,7 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mVSharedIP,"SharedIP","Shared intrinc parmaters [Pat1Cam,Pat1Par,Pat2Cam...] ",{{eTA2007::ISizeV,"[2,20]"}})    
 
       << AOpt2007(mParamShow_UK_UC,"UC_UK","Param for uncertainty & Show names of unknowns (tuning)")
+      << AOpt2007(mPostFixReport,NameParamPostFixReport(),CommentParamPostFixReport())
     ;
 }
 
@@ -232,6 +234,13 @@ int cAppliBundlAdj::Exe()
     mPhProj.DPRigBloc().SetDirInIfNoInit(mDataDir); //  RIGIDBLOC
 
     mPhProj.FinishInit();
+
+    {
+        std::string aReportDir = mPhProj.DPOrient().DirIn() + "_" + mPhProj.DPOrient().DirOut();
+        if (IsInit(& mPostFixReport))
+           aReportDir += "_" + mPostFixReport;
+        SetReportSubDir(aReportDir);
+    }
 
 
     if (IsInit(&mParamRefOri))
@@ -354,7 +363,7 @@ int cAppliBundlAdj::Exe()
 
     if (IsInit(&mParamShow_UK_UC))
     {
-        mBA.ShowUKNames(mParamShow_UK_UC);
+        mBA.ShowUKNames(mParamShow_UK_UC,this);
     }
 
     return EXIT_SUCCESS;

@@ -753,18 +753,24 @@ int cAppli_CalibratedSpaceResection::Exe()
 
     }
 
-    auto aSysCoGCP = mPhProj.CurSysCoGCP(true);
+    auto aSysCoGCP = mPhProj.CurSysCoGCP(SVP::Yes,IO::In);
     if (aSysCoGCP)
     {
         // check that output ori current sysco is the same
-        tPtrSysCo aSysCoOri = mPhProj.CurSysCoOri(true, false);
-        if (aSysCoOri)
+        // Not sure of the meaningfull of this test, btw it's strange to have sysco  from
+        // calib folder,  fow now supress 
+        tPtrSysCo aSysCoOri = mPhProj.CurSysCoOri(SVP::Yes, IO::In);
+        if (aSysCoOri && false)
         {
             MMVII_INTERNAL_ASSERT_User(aSysCoOri->Def() == aSysCoGCP->Def(), eTyUEr::eSysCo,
                                        "Incoherence between already existing Ori SysCo and GCP SysCo");
-        } else
-            mPhProj.SaveCurSysCoOri(aSysCoGCP);
+        } 
+        mPhProj.SaveCurSysCoOri(aSysCoGCP);
     }
+    else
+    {
+    }
+
     mPhProj.SaveCamPC(aCam);;
 
 

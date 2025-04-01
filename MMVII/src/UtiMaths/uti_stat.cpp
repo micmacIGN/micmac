@@ -594,6 +594,17 @@ tREAL8  cStdStatRes::Max() const {return mBounds.VMax();}
 int     cStdStatRes::NbMeasures() const {return mVRes.size();}
 
 
+tREAL8  cStdStatRes::UBDevStd(tREAL8 aDef) const
+{
+    int aNbM = NbMeasures();
+    if (aNbM<2) return aDef;
+
+    return (aNbM*DevStd()) / (aNbM-1);
+}
+
+
+
+
 
 /* *********************************************** */
 /*                                                 */

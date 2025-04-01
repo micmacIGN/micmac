@@ -176,6 +176,9 @@ tPtrSysCo  cPhotogrammetricProject::CurSysCoGCP(bool SVP, bool IsIn) const {retu
 
 void cPhotogrammetricProject::SaveCurSysCo(const cDirsPhProj & aDP,tPtrSysCo aSysCo) const
 {
+    if (aDP.DirOut() == MMVII_NONE) 
+       return;
+
     SaveInFile(aSysCo->toSysCoData(),NameCurSysCo(aDP,false));
 }
 

@@ -530,6 +530,10 @@ void cPhotogrammetricProject::SaveCamPC(const cSensorCamPC & aCamPC) const
 
 void cPhotogrammetricProject::SaveSensor(const cSensorImage & aSens) const
 {
+     if ( mDPOrient.DirOut() == MMVII_NONE)
+        return;
+
+
     /*  Supression by global pattern can be very slow with big data
      *  So we creat the first time a map that contain for an image all the files corresponding to
      *  a sensor in the standard out folder.

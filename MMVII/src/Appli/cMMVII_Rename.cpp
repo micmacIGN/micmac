@@ -344,6 +344,7 @@ int cAppli_Rename::Exe()
            MMVII_UnclasseUsEr("File already exist");
        }
     }
+    StdOut() << " NbFiles= " << aVInOut.size() << "\n";
 
     std::string aPrefTmp = "MMVII_Tmp_Replace_"+ PrefixGMA() + "_";
 

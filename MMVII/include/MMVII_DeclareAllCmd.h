@@ -99,6 +99,7 @@ extern cSpecMMVII_Appli  TheSpec_ImportOri;
 extern cSpecMMVII_Appli  TheSpecDicoRename;
 extern cSpecMMVII_Appli  TheSpec_SimulDispl;
 extern cSpecMMVII_Appli  TheSpec_CreateRTL;
+extern cSpecMMVII_Appli  TheSpec_CreateSysCoLoc;
 extern cSpecMMVII_Appli  TheSpec_TestProj;
 extern cSpecMMVII_Appli  TheSpec_ChSysCo;
 extern cSpecMMVII_Appli  TheSpec_ChSysCoGCP;

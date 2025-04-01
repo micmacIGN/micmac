@@ -626,8 +626,9 @@ std::vector<std::vector<cSensorCamPC *>>
              const std::vector<std::string> & aVNameIm
         )  const
 {
-    std::vector<std::vector<cSensorCamPC *>> aRes;
-    std::set<std::string>  aSetIdSync;
+    std::vector<std::vector<cSensorCamPC *>> aRes;   // resulting vector of external calib
+    std::set<std::string>  aSetIdSync;  // memorize ident of sync already met
+    // Parse all images
     for (const auto & aNameIm0 : aVNameIm)
     {
         std::string anIdSync = IdSync(aNameIm0);

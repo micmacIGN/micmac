@@ -818,6 +818,7 @@ class cStdStatRes
         tREAL8  Avg() const;
         tREAL8  QuadAvg() const;
         tREAL8  DevStd() const;
+        tREAL8  UBDevStd(tREAL8 aDef) const;  // Unbiased estimator of standard dev
         tREAL8  ErrAtProp(tREAL8 aProp) const;
         tREAL8  Min() const;
         tREAL8  Max() const;
