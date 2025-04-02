@@ -27,7 +27,7 @@ namespace MMVII
 class cGetVerticalFromClino
 {
     public :
-       cGetVerticalFromClino( const cCalibSetClino &,const std::vector<tREAL8> &);
+       cGetVerticalFromClino(const cCalibSetClino &,const std::vector<tREAL8> &);
     private :
        tREAL8 Score(const cPt3dr & aDir);
        const cCalibSetClino & mCalibs; 
