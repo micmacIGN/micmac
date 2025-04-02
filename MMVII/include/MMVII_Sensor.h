@@ -731,6 +731,8 @@ class cPhotogrammetricProject
 	 /**  Read the clinometers calib in standard input folder of DPClinoMeters, create a dyn objec because
 	  *  probably "cCalibSetClino" will evolve in a not copiable object*/
 	 cOneCalibClino * GetClino(const cPerspCamIntrCalib &, const std::string aClinoName) const;
+	 void  ReadGetClino(cOneCalibClino&,const cPerspCamIntrCalib &, const std::string aClinoName) const;
+	 cCalibSetClino  ReadSetClino(const cPerspCamIntrCalib &, const std::vector<std::string> &aClinoName) const;
 
 	 /// Standard name for file of measures clino 
 	 std::string NameFileMeasuresClino(bool Input,const std::string & aNameFile="" ) const;
@@ -744,6 +746,7 @@ class cPhotogrammetricProject
 	 
 	         // RIGIDBLOC
 	 std::list<cBlocOfCamera *> ReadBlocCams() const;
+	 cBlocOfCamera *            ReadUnikBlocCam() const;
 	 void   SaveBlocCamera(const cBlocOfCamera &) const;
 
      //===================================================================

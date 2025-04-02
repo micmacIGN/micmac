@@ -520,6 +520,38 @@ class cSampleQuat
          size_t  mNbRot;
 };
 
+/// class for sampling regularly the hypercube, useful for sampling not so irregularly the hyper sphere
+class cSampleHyperCube
+{
+   public :
+        cSampleHyperCube(int aDim,int aNbStep,bool isProj = false);
+        /// number of sampled points
+        int NbSamples() const;
+        ///  Main method return the Kth point
+        void  KthPt(std::vector<tREAL8> & aPts,int aK) const;
+
+   private :
+        tREAL8 Int2Coord(int aK) const;  ///< convert on 1 direction [0,NbStep] => [-1,1]
+
+        int  mDim;        // dimension of the cube
+        int  mNbStep;     // memo nuber of step
+        bool mIsProj;     // is it projective (i P ~ -P , and only of 2 is returned)
+        int  mNbF;        // number of face
+        int  mNbSamples;  // number of sample of the cube
+};
+
+///  Class for sampling point +- regularly on the sphere
+class cSampleSphere3D
+{
+   public :
+      cSampleSphere3D(int aNbStep);
+      cPt3dr KthPt(int aK) const;
+      int NbSamples() const;
+   private :
+      cSampleHyperCube mSHC;
+};
+
+
 
 
 
