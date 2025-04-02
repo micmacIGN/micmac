@@ -461,7 +461,9 @@ class cAppliGenOptTriplets : public cCommonMartiniAppli
 		
 
 	private:
-        
+        void DoPerfectTriplets();	
+        void DoPerfectData();
+
 		ElMatrix<double> RandPeturbR();
         ElMatrix<double> RandPeturbRGovindu();
         ElMatrix<double> w2R(double[]);
@@ -476,6 +478,7 @@ class cAppliGenOptTriplets : public cCommonMartiniAppli
 
 		cElemAppliSetFile    mEASF;
         cNewO_NameManager  * mNM;
+        cXml_TopoTriplet  mXml3;
 
 		RandUnifQuick * TheRandUnif;
 };

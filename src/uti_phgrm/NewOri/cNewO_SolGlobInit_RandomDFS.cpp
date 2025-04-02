@@ -1922,34 +1922,152 @@ cAppliGenOptTriplets::cAppliGenOptTriplets(int argc,char ** argv) :
 	std::cout << RandSet.size() << "\n";
 	getchar();*/
 
-    NRrandom3InitOfTime();
 
-	std::string aDir;
-	bool aModeBin = true;
+
+    std::string aDir;
+    bool aModeBin = true;
+    bool aPerfData=false;
 
     ElInitArgMain
     (
          argc,argv,
          LArgMain() << EAMC(mFullPat,"Pattern of images")
-		            << EAMC(InOri,"InOri that wil serve to build perfect triplets"),
+    	            << EAMC(InOri,"InOri that wil serve to build perfect triplets"),
          LArgMain() << EAM(mSigma,"Sigma",true,"Sigma of the added noise, Def=0 no noise added")
-		            << EAM(mRatioOutlier,"Ratio","Good to bad triplet ratio (outliers), Def=0")
+	                << EAM(mRatioOutlier,"Ratio","Good to bad triplet ratio (outliers), Def=0")
                     << EAM(aModeBin,"Bin",true,"Binaries file, def = true",eSAM_IsBool)
+                    << EAM(aPerfData,"PerfectData",true,", Generate arbitrary perfect global and relative orientations, def=false",eSAM_IsBool)
                     << ArgCMA()
     );
 
-	mEASF.Init(mFullPat);
+    mEASF.Init(mFullPat);
     mNM = new cNewO_NameManager(mExtName,mPrefHom,mQuick,mEASF.mDir,mNameOriCalib,"dat");
-    //const cInterfChantierNameManipulateur::tSet * aVIm = mEASF.SetIm();
 
-	StdCorrecNameOrient(mNameOriCalib,aDir);
-	StdCorrecNameOrient(InOri,aDir);
 
-    cXml_TopoTriplet aXml3 =  StdGetFromSI(mNM->NameTopoTriplet(true),Xml_TopoTriplet);
-	mNbTri = int(aXml3.Triplets().size());
+    StdCorrecNameOrient(mNameOriCalib,aDir);
+    StdCorrecNameOrient(InOri,aDir);
 
+    mXml3 =  StdGetFromSI(mNM->NameTopoTriplet(true),Xml_TopoTriplet);
+    mNbTri = int(mXml3.Triplets().size());
+    std::cout << "NbTri= " << mNbTri << std::endl;
+
+    /// generate random global orientations and perfect triplets or
+    /// generate perfect triplets given an input orientation
+    if (aPerfData)
+        DoPerfectData();
+    else
+        DoPerfectTriplets();
+
+
+}
+
+void cAppliGenOptTriplets::DoPerfectData()
+{
+    cElRanGen aRGen;
+    aRGen.InitOfTime(10); 
+
+    std::string aPDOri = "Ori-PerfectData/";
+    if (! ELISE_fp::exist_file(aPDOri))
+        ELISE_fp::MkDirRec(aPDOri);
+
+ 
+    const cInterfChantierNameManipulateur::tSet * aVIm = mEASF.SetIm();
+
+    ///***************** generate random global orientations & save
+    for (int aK=0; aK<int(aVIm[0].size()); aK++)
+    {
+        std::cout << aK << " " << aVIm[0][aK] << std::endl;
+
+        // random translation
+        Pt3dr aTRand(aRGen.cNRrandC(),aRGen.cNRrandC(),aRGen.cNRrandC());
+        //random rotation
+        double teta1 = aRGen.cNRrandC() * 3.14;
+        double teta2 = aRGen.cNRrandC() * 3.14;
+        double teta3 = aRGen.cNRrandC() * 3.14;
+        ElMatrix<double> aRRand = ElMatrix<double>::Rotation(teta1,teta2,teta3);
+
+    //    std::cout << "Tr=" << aTRand 
+    //              << ", R=[" << teta1 << " " << teta2 << " " << teta3 << std::endl;
+
+
+        cOrientationConique aOC;
+        
+        std::string aFileIterne = mNM->ICNM()->StdNameCalib(InOri,aVIm[0][aK]);
+
+        aOC.FileInterne().SetVal(aFileIterne);
+        aOC.TypeProj() = eProjStenope;                 
+                                    
+        cAffinitePlane  aAffP;                         
+        aAffP.I00()               = Pt2dr(0,0);
+        aAffP.V10()               = Pt2dr(1.0,0); 
+        aAffP.V01()               = Pt2dr(0,1.0);
+        aOC.OrIntImaM2C()         = aAffP;
+         
+        cOrientationExterneRigide aExtern;
+        aExtern.Centre() = aTRand;
+        aExtern.IncCentre() = Pt3dr(1,1,1);
+                        
+        cTypeCodageMatr aTCRot;
+        aTCRot.L1() = Pt3dr(aRRand(0,0),aRRand(0,1),aRRand(0,2));
+        aTCRot.L2() = Pt3dr(aRRand(1,0),aRRand(1,1),aRRand(1,2));
+        aTCRot.L3() = Pt3dr(aRRand(2,0),aRRand(2,1),aRRand(2,2));
+        aTCRot.TrueRot() = true;
+                            
+        cRotationVect aRV;
+        aRV.CodageMatr() = aTCRot;
+        aExtern.ParamRotation() = aRV;
+ 
+        aOC.ConvOri().KnownConv().SetVal(eConvApero_DistM2C);
+        aOC.Externe() = aExtern;
+
+        std::string aOriCurFile = aPDOri + "Orientation-" + aVIm[0][aK] + ".xml"; 
+        MakeFileXML(aOC,aOriCurFile);
+
+    }
+
+    ///***************** Read the ori and compute triplet-relative orientations
+    std::string aDir;
+    StdCorrecNameOrient(aPDOri,aDir);    
+    for (auto a3 : mXml3.Triplets())
+    {
+        std::cout << a3.Name1() << " " 
+                  << a3.Name2() << " "
+                  << a3.Name3() << std::endl;
+
+
+        bool Ok;
+        std::pair<ElRotation3D,ElRotation3D> aPair = mNM->OriRelTripletFromExisting(
+                                                        aPDOri,
+                                                        a3.Name1(),
+                                                        a3.Name2(),
+                                                        a3.Name3(),
+                                                        Ok);
+
+        std::string aNameSauveXml = mNM->NameOriOptimTriplet(false,a3.Name1(),a3.Name2(),a3.Name3(),false);
+        std::string aNameSauveBin = mNM->NameOriOptimTriplet(true ,a3.Name1(),a3.Name2(),a3.Name3(),false);
+
+        cXml_Ori3ImInit aXml;
+
+        aXml.Ori2On1() = El2Xml(ElRotation3D(aPair.first.tr(),aPair.first.Mat(),true));
+        aXml.Ori3On1() = El2Xml(ElRotation3D(aPair.second.tr(),aPair.second.Mat(),true));
+
+        MakeFileXML(aXml,aNameSauveXml);
+        MakeFileXML(aXml,aNameSauveBin);
+
+
+    }
+
+    /// read the ori and 
+    ///   for every triplet config, compute their relative orientation OriRelTripletFromExisting
+    /// save triplets
+
+}
+
+void cAppliGenOptTriplets::DoPerfectTriplets()
+{
+    NRrandom3InitOfTime();
     
-	// Identify a set of random triplets that will become outliers
+    // Identify a set of random triplets that will become outliers
     std::set<int> aOutlierList;
     if (mRatioOutlier>0)
     {
@@ -1971,8 +2089,8 @@ cAppliGenOptTriplets::cAppliGenOptTriplets(int argc,char ** argv) :
 	int aK=0;
     for
     (
-         std::list<cXml_OneTriplet>::const_iterator it3=aXml3.Triplets().begin() ;
-         it3 !=aXml3.Triplets().end() ;
+         std::list<cXml_OneTriplet>::const_iterator it3=mXml3.Triplets().begin() ;
+         it3 !=mXml3.Triplets().end() ;
          it3++
     )
     {
