@@ -1239,7 +1239,7 @@ static std::string PrefixTripletSet = "TripletSet_";
 
 void cPhotogrammetricProject::SaveTriplets(const cTripletSet &aSet,bool  useXmlraterThanDmp) const
 {
-    std::string anExt = useXmlraterThanDmp ? PostF_DumpFiles  : PostF_DumpFiles;
+    std::string anExt = useXmlraterThanDmp ? PostF_XmlFiles  : PostF_DumpFiles;
     std::string aName =  mDPOriTriplets.FullDirOut() + PrefixTripletSet + aSet.Name() + "." + anExt;
     StdOut() << "aName: " << aName << std::endl;
     aSet.ToFile(aName);

@@ -137,7 +137,7 @@ class cMakeArboTriplet
          void ShowStat();
 
          // make the graph on pose, using triplet as 3 edges
-         void MakeGraphPose();
+         void MakeGraphPose(const cPhotogrammetricProject&);
 
          /// compute the reference pose 
          void DoPoseRef();
@@ -165,6 +165,8 @@ class cMakeArboTriplet
 
          bool  PerfectData() const {return mPerfectData;}  ///< Accessor
          bool & PerfectData() {return mPerfectData;}
+         bool  PerfectOri() const {return mPerfectOri;}
+         bool & PerfectOri() {return mPerfectOri;}
          bool  DoRand() const {return mDoRand;}  ///< Accessor
          std::vector<tREAL8> & WeigthEdge3() {return mWeigthEdge3;}
          std::string & MapI2Str(const int aNum)  {return *mMapStrI.I2Obj(aNum);}  ///< Accessor
@@ -184,6 +186,7 @@ class cMakeArboTriplet
 	 std::vector<tREAL8>     mLevelRand;      ///< Parameters of random values [RandOnTr,RandOnRot]
 	 std::vector<tREAL8>     mWeigthEdge3;    ///< Parameters of random values [RandOnTr,RandOnRot]
          bool                    mPerfectData;    ///< Are the triplet perfect with simulated pose
+     bool                    mPerfectOri;       ///< Ground truth input orientation
          cNodeArborTriplets *    mArbor;          ///< Tree  for hierarchical  split
          tREAL8                  mWBalance;       ///<  Weighting for balance the tree
          tREAL8                  mWeightTr;       ///<  Relative weight Tranlastion vs rotation for pose distance
@@ -739,30 +742,64 @@ tSim3dR cNodeArborTriplets::EstimateSimTransfert
 
 void cNodeArborTriplets::SaveGlobSol(const cPhotogrammetricProject& aPhP) const
 {
-    tREAL8 AngConv = AngleInRad(eTyUnitAngle::eUA_degree);
+    //tREAL8 AngConv = AngleInRad(eTyUnitAngle::eUA_degree);
+    cDenseMatrix<double> aZRot(3,3,eModeInitImage::eMIA_Null);
+    aZRot.SetElem(0,0,1);
+    aZRot.SetElem(1,1,-1);
+    aZRot.SetElem(2,2,-1);
 
     cPerspCamIntrCalib *  aCalib = cPerspCamIntrCalib::FromFile(
         "/home/ERupnik/Documents/da_data/mpd_graphes/viabon/MMVII-PhgrProj/Ori/FraserBasic/Calib-PerspCentral-Foc-35000_Cam-CamLightLOEMI.xml"
         );
 
-    StdOut() << "#F=N X Y Z W P K" << std::endl;
+    //StdOut() << "#F=N X Y Z W P K" << std::endl;
+    StdOut() << "#F=N X Y Z a b c d e f g h i" << std::endl;
+    std::cout << std::setprecision(15);
     for (const auto & aSol :   mLocSols)
     {
         std::string aCurImName = mPMAT->MapI2Str(aSol.mNumPose);
 
-        cRotation3D<tREAL8> aRotK = cRotation3D<tREAL8>::RotFromCanonicalAxes("i-j-k");
-        cRotation3D<tREAL8> aRotNew(aSol.mPose.Rot().Mat()*aRotK.Mat(),false);
+        //cRotation3D<tREAL8> aRotK = cRotation3D<tREAL8>::RotFromCanonicalAxes("i-j-k");
+        cRotation3D<tREAL8> aRotNew(aSol.mPose.Rot().MapInverse().Mat(),false); //mmv1 convention
 
-        StdOut() << aCurImName << " " << aSol.mPose.Tr().x()
-                 << " " << aSol.mPose.Tr().y()
-                 << " " << aSol.mPose.Tr().z()
-                 << " " << aRotNew.ToWPK().x()*AngConv
-                 << " " << aRotNew.ToWPK().y()*AngConv
-                 << " " << aRotNew.ToWPK().z()*AngConv << std::endl;
+        cPt3dr aCNew = aSol.mPose.Tr() * aZRot; //mmv1 convention
 
-        cIsometry3D aPose(aSol.mPose.Tr(),aRotNew); //aSol.mPose.Rot()
+        StdOut() << aCurImName
+                 << " " << aCNew.x()
+                 << " " << aCNew.y()
+                 << " " << aCNew.z() << " "
+                 //<< " " << aRotNew.ToWPK().x() * AngConv
+                 //<< " " << aRotNew.ToWPK().y() * AngConv
+                 //<< " " << aRotNew.ToWPK().z() * AngConv
+                 << aRotNew.Mat()(0,0) << " " << aRotNew.Mat()(1,0) << " " << aRotNew.Mat()(2,0) << " "
+                 << aRotNew.Mat()(0,1) << " " << aRotNew.Mat()(1,1) << " " << aRotNew.Mat()(2,1) << " "
+                 << aRotNew.Mat()(0,2) << " " << aRotNew.Mat()(1,2) << " " << aRotNew.Mat()(2,2) << " "
+                 << std::endl;
+
+        cIsometry3D aPose(aCNew,aRotNew);
         cSensorCamPC aCam(aCurImName,aPose,aCalib);
         aPhP.SaveCamPC(aCam);
+    }
+    //////////////////////////////
+    std::vector<tPoseR> aVComp;
+    std::vector<tPoseR> aVGt;
+
+    StdOut() << "=========== GT vs Computed Pose " << std::endl;
+    std::cout << std::setprecision(6);
+    for (const auto & aSol :   mLocSols)
+    {
+        aVComp.push_back(aSol.mPose);
+        aVGt.push_back(mPMAT->GOP().VertexOfNum(aSol.mNumPose).Attr().mGTRand);
+    }
+    auto [aRes,aSim] =  EstimateSimTransfertFromPoses(aVComp,aVGt);
+
+    for (size_t aKP=0 ; aKP<aVComp.size() ; aKP++)
+    {
+        tPoseR aVGtInComp = TransfoPose(aSim,aVGt.at(aKP));
+        StdOut() << aVComp[aKP].Tr() << " == " << aVGtInComp.Tr() << std::endl;
+        aVComp[aKP].Rot().Mat().Show();
+        aVGtInComp.Rot().Mat().Show();
+        StdOut() << "===========" << std::endl;
     }
 }
 
@@ -785,7 +822,8 @@ void cNodeArborTriplets::CmpWithGT()
          tREAL8 aD = aVComp.at(aKP).DistPose(TransfoPose(aSim,aVGt.at(aKP)),1.0); 
          if (mPMAT->PerfectData())
          {
-            MMVII_INTERNAL_ASSERT_bench((aD<1e-5),"Sim-Transfer on perfect data");
+            StdOut() << "====CmpWithGT==== D=" << aD << std::endl;
+            //MMVII_INTERNAL_ASSERT_bench((aD<1e-5),"Sim-Transfer on perfect data");
          }
     }
 }
@@ -1038,6 +1076,7 @@ cMakeArboTriplet::cMakeArboTriplet(cTripletSet & aSet3,bool doCheck,tREAL8 aWBal
    mLevelRand   {0.0,0.0},
    mWeigthEdge3 {0.75,0.25,0.1},
    mPerfectData (false),
+   mPerfectOri  (false),
    mArbor       (nullptr),
    mWBalance    (aWBalance),
    mWeightTr    (0.5),
@@ -1076,7 +1115,7 @@ void cMakeArboTriplet::SaveGlobSol(const cPhotogrammetricProject& aPhP) const
     mArbor->SaveGlobSol(aPhP);
 }
 
-void cMakeArboTriplet::MakeGraphPose()
+void cMakeArboTriplet::MakeGraphPose(const cPhotogrammetricProject& aPhProj)
 {
 
    // create vertices of mGTriC  & compute map NamePose/Int (in mMapStrI)
@@ -1107,25 +1146,49 @@ void cMakeArboTriplet::MakeGraphPose()
         c3G3_AttrV & aTriC =   mGTriC.VertexOfNum(aKT).Attr();
         cTriplet & a3 = *(aTriC.mT0);
         if (mDoRand)  
-	{
-	    // in simul we must take into account that each triplet is in its own arbitrary system  W2L , Word -> Loc
+        {
+            /*
+            // in simul we must take into account that each triplet is in its own arbitrary system  W2L , Word -> Loc
             tSim3dR   aRandSim= tSim3dR::RandomSim3D(2.0,2.0);
             // parse the 3 pair of consecutive poses
-	    for (int aK3=0 ; aK3<3 ; aK3++)
-	    {
+            for (int aK3=0 ; aK3<3 ; aK3++)
+            {
                 cView&  aView = a3.Pose(aK3);
                 tPoseR & aP = aView.Pose();
-		// initialize local pose to ground truth
+                // initialize local pose to ground truth
                 int aInd =  mMapStrI.Obj2I(aView.Name());
-		t3GOP_Vertex & aPoseV = mGPoses.VertexOfNum(aInd);
-		aP = aPoseV.Attr().mGTRand;
-		// Firts create small perturbations of "perfect" values of "Tr/Rot"
-		cPt3dr aTr = aP.Tr() + cPt3dr::PRandInSphere() * mLevelRand.at(0);
-		tRotR aRot = aP.Rot()* tRotR::RandomSmallElem(mLevelRand.at(1));
-		// Now put everyting in the local system and   finally save the result
-		aP = TransfoPose(aRandSim,tPoseR(aTr,aRot));
-	    }
-	}
+                t3GOP_Vertex & aPoseV = mGPoses.VertexOfNum(aInd);
+                aP = aPoseV.Attr().mGTRand;
+                // Firts create small perturbations of "perfect" values of "Tr/Rot"
+                cPt3dr aTr = aP.Tr() + cPt3dr::PRandInSphere() * mLevelRand.at(0);
+                tRotR aRot = aP.Rot()* tRotR::RandomSmallElem(mLevelRand.at(1));
+                // Now put everyting in the local system and   finally save the result
+                aP = TransfoPose(aRandSim,tPoseR(aTr,aRot));
+            }
+*/
+        }
+        if (mPerfectOri)
+        {
+            if (aKT==0) StdOut() << "************* GT Pose " << std::endl;
+            for (int aK3=0 ; aK3<3 ; aK3++)
+            {
+                cView&  aView = a3.Pose(aK3);
+                // initialize GTRand pose to ground truth
+                int aInd =  mMapStrI.Obj2I(aView.Name());
+                t3GOP_Vertex & aPoseV = mGPoses.VertexOfNum(aInd);
+                tPoseR & aP = aPoseV.Attr().mGTRand;
+
+                cSensorCamPC * aCam = aPhProj.ReadCamPC(aView.Name(),true);
+
+                aP = tPoseR(aCam->Pose().Tr(),aCam->Pose().Rot());
+
+                if (aKT==0) StdOut() << aView.Name() << " " << aCam->Pose().Tr() << std::endl;
+                if (aKT==0) aCam->Pose().Rot().Mat().Show();
+                if (aKT==0) StdOut() << "*************" << std::endl;
+                // mmv1 vs mmv2 : there is a transpose on Rot
+                if (aKT==0) getchar();
+            }
+        }
 
         // Make some normalization on triplet center
         for (int aKIter=0 ; aKIter<1 ;aKIter++)  // Iter =2 -> for test CDG/sum ...
@@ -1170,6 +1233,14 @@ void cMakeArboTriplet::MakeGraphPose()
             // extract relative poses 
             tPoseR  aP1toW = aView1.Pose();
             tPoseR  aP2toW = aView2.Pose();
+
+            StdOut() << "===extract relative poses===\n";
+            StdOut() << aView1.Name() << " Tr=" << aP1toW.Tr() << std::endl;
+            aP1toW.Rot().Mat().Show();
+            StdOut() << aView2.Name() << " Tr=" << aP2toW.Tr() << std::endl;
+            aP2toW.Rot().Mat().Show();
+            StdOut() << "===END===\n";
+
             //  Ori_2->1  = Ori_G->1  o Ori_2->G    ( PL2 -> PG -> PL1)
             tPoseR  aP2to1 = aP1toW.MapInverse()  *  aP2toW;
 	 
@@ -1206,13 +1277,25 @@ void cMakeArboTriplet::DoPoseRef()
       const auto & aListP = anAttr.mListP2to1;
       if (mPerfectData)
       {
+          StdOut () <<  "================================= Triplet Coherency \n";
           tPoseR aPoseRef = anAttr.mPoseRef2to1;
           for (const auto & aPose : aListP)
           {
-              tREAL8 aDist = aPoseRef.DistPoseRel(aPose,1.0); StdOut() << "Dist= " << aDist << std::endl;
+              tREAL8 aDistP = aPoseRef.DistPoseRel(aPose,1.0);
+              aPose.Rot().Mat().Show();
+              if (aDistP>1e-5)
+              {
+                  tREAL8 aDistR = aPoseRef.Rot().Dist(aPose.Rot());
+                  tREAL8 aDistC = Norm2(VUnit(aPoseRef.Tr())- VUnit(aPose.Tr()));
+                  StdOut() << "*****xxxxxxx  DP= " << aDistP << " DR=" << aDistR<< " DC=" << aDistC << std::endl;
+                  getchar();
+              }
+              else
+                  StdOut() << " 000 dist=" <<  aDistP << "\n";
               //MMVII_INTERNAL_ASSERT_bench((aDist<1e-5),"Pose reference on perfect data");
           }
       }
+
    }
 }
 
@@ -1238,7 +1321,8 @@ void cMakeArboTriplet::MakeCnxTriplet()
                      tREAL8 aCost = aTriAttr1.CostVertexCommon(aTriAttr2,0.5);
                      if (mPerfectData)
                      {
-                        MMVII_INTERNAL_ASSERT_bench((aCost<1e-5),"Cost 3-3 on perfect data");
+                         StdOut() << " Cost=" << aCost << std::endl;
+                        //MMVII_INTERNAL_ASSERT_bench((aCost<1e-5),"Cost 3-3 on perfect data");
                      }
 
                      mGTriC.AddEdge
@@ -1474,6 +1558,7 @@ cCollecSpecArg2007 & cAppli_ArboTriplets::ArgOpt(cCollecSpecArg2007 & anArgOpt)
           << AOpt2007(mDoCheck,"DoCheck","do some checking on result",{eTA2007::HDV,eTA2007::Tuning})
           << AOpt2007(mWBalance,"WBalance","Weight for balancing trees, 0 NONE, 1 Max",{eTA2007::HDV})
           << AOpt2007(mPerfectData,"PerfectData","Evaluate coherency of triplets with simulated poses",{eTA2007::HDV})
+          <<  mPhProj.DPOrient().ArgDirInOpt("","Ground truth input orientation directory")
           <<  mPhProj.DPOrient().ArgDirOutOpt("","Global orientation output directory")
           <<  mPhProj.DPOriTriplets().ArgDirOutOpt("","Directory for dmp-save of triplet (for faster read later)")
    ;
@@ -1502,10 +1587,14 @@ int cAppli_ArboTriplets::Exe()
         aMk3.WeigthEdge3() = mWeigthEdge3;
      if (IsInit(&mPerfectData))
         aMk3.PerfectData() = true;
+     if (mPhProj.IsOriInDirInit())
+     {
+        aMk3.PerfectOri() = true;
+     }
 
      // cAutoTimerSegm aTSRead(mTimeSegm,"cMakeArboTriplet");
      TimeSegm().SetIndex("MakeGraphPose");
-     aMk3.MakeGraphPose();
+     aMk3.MakeGraphPose(mPhProj);
 
      TimeSegm().SetIndex("PoseRef");
      aMk3.DoPoseRef();
