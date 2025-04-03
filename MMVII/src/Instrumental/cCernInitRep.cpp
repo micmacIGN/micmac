@@ -8,31 +8,97 @@
 #include "MMVII_2Include_Serial_Tpl.h"
 
 #include "MMVII_Clino.h"
+#include "MMVII_HeuristikOpt.h"
 
-
-/**
- 
-
- */
 
 namespace MMVII
 {
 
-/** In case we are working in non verticalized system (for ex no target, no gps ...) , it may
-    be necessary to extract vertical in the camera coordinate  system, using the boresight calibration
-    and the clino measures
-*/
+/* ==================================================== */
+/*                                                      */
+/*               cGetVerticalFromClino                  */
+/*                                                      */
+/* ==================================================== */
 
-
-class cGetVerticalFromClino
+class cOptimGVFromClino : public  cDataMapping<tREAL8,2,1>
 {
     public :
-       cGetVerticalFromClino(const cCalibSetClino &,const std::vector<tREAL8> &);
+        cOptimGVFromClino(const cGetVerticalFromClino & aGVFC,const cPt3dr & aP0) :
+           mGVFC (aGVFC),
+	   mP0   (VUnit(aP0))
+	{
+            tRotR aR = tRotR::CompleteRON(mP0);
+	    mP1 = aR.AxeJ();
+	    mP2 = aR.AxeK();
+	}
+
+	cPt3dr  Delta2Pt(const cPt2dr & aDelta) const {return mP0 + mP1*aDelta.x()+mP2*aDelta.y();}
+
+        cPt1dr Value(const cPt2dr & aDelta) const override
+        {
+	     return cPt1dr(mGVFC.ScoreDir3D(Delta2Pt(aDelta)));
+        }
     private :
-       tREAL8 Score(const cPt3dr & aDir);
-       const cCalibSetClino & mCalibs; 
-       const std::vector<tREAL8> & mAngles;
+         const cGetVerticalFromClino&  mGVFC;
+	 cPt3dr                        mP0;
+	 cPt3dr                        mP1;
+	 cPt3dr                        mP2;
 };
+
+cGetVerticalFromClino::cGetVerticalFromClino(const cCalibSetClino & aCalib,const std::vector<tREAL8> & aVAngle) :
+	mCalibs (aCalib)
+{
+    for (const auto & aTeta : aVAngle)
+        mDirs.push_back(FromPolar(1.0,aTeta));
+}
+
+tREAL8 cGetVerticalFromClino::ScoreDir3D(const cPt3dr & aDirCam) const
+{
+   tREAL8 aSum=0.0;
+   for (size_t aK=0 ; aK<mDirs.size() ; aK++)
+   {
+       cPt3dr aDirClino = mCalibs.ClinosCal().at(aK).CamToClino(aDirCam);
+       cPt2dr aDirNeedle = VUnit(Proj(aDirClino));
+       aSum += SqN2(aDirNeedle-mDirs.at(aK));
+   }
+
+   return std::sqrt(aSum/mDirs.size());
+	    
+}
+
+cPt3dr cGetVerticalFromClino::Refine(cPt3dr aP0,tREAL8 StepInit,tREAL8 StepEnd) const
+{
+    cOptimGVFromClino aMapOpt(*this,aP0);
+    cOptimByStep<2>   aOptHeur(aMapOpt,true,10);
+
+    auto [aSc,aDXY] = aOptHeur.Optim(cPt2dr(0,0),StepInit,StepEnd);
+
+    return VUnit(aMapOpt.Delta2Pt(aDXY));
+}
+
+
+cPt3dr cGetVerticalFromClino::OptimInit(int aNbStepInSphere) const
+{
+    cSampleSphere3D aSS3(aNbStepInSphere);
+
+    cWhichMin<cPt3dr,tREAL8> aWMin;
+    for (int aKPt=0 ; aKPt<aSS3.NbSamples() ; aKPt++)
+    {
+        cPt3dr aPt = aSS3.KthPt(aKPt);
+        aWMin.Add(aPt,ScoreDir3D(aPt));
+    }
+
+    return aWMin.IndexExtre();
+}
+
+cPt3dr cGetVerticalFromClino::OptimGlob(int aNbStep0,tREAL8 aStepEnd) const
+{
+    cPt3dr aP0 = OptimInit(aNbStep0);
+    return Refine(aP0,1.0/aNbStep0,aStepEnd);
+}
+
+
+
 
 /* ==================================================== */
 /*                                                      */
@@ -101,15 +167,15 @@ void cAppli_CernInitRep::ProcessOneBloc(const std::vector<cSensorCamPC *> & aVPC
    cPerspCamIntrCalib *  aCalib = mPhProj.InternalCalibFromImage(aNameIm);
 
 
-   StdOut() << " ID=" << anId << " Ang=" << aMes.Angles()  << " CAM=" << aNameIm << " F=" << aCalib->F() << "\n";
-   StdOut() << " NAMES=" <<  mMesClino.NamesClino() << "\n";
 
    cCalibSetClino aSetC = mPhProj.ReadSetClino(*aCalib,mMesClino.NamesClino());
-   for (const auto & aCalC : aSetC.ClinosCal())
-   {
-       aCalC.Rot().Mat().Show();
-       StdOut() << " ==================================================\n";
-   }
+   cGetVerticalFromClino aGetVert(aSetC,aMes.Angles());
+
+   cPt3dr aVertLoc = aGetVert.OptimGlob(50,1e-8);
+
+
+   StdOut() << " ID=" << anId << " Ang=" << aMes.Angles()  << " CAM=" << aNameIm << " F=" << aCalib->F() << "\n";
+   StdOut() << " NAMES=" <<  mMesClino.NamesClino() << " RESIDUAL VERT=" << aGetVert.ScoreDir3D(aVertLoc) << "\n";
 }
 
 

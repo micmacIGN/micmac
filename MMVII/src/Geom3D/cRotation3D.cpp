@@ -909,7 +909,7 @@ cPt3dr cSampleSphere3D::KthPt(int aKPt) const
     std::vector<tREAL8> aVC;
     mSHC.KthPt(aVC,aKPt);
     
-    return cPt3dr::FromStdVector(aVC);
+    return VUnit(cPt3dr::FromStdVector(aVC));
 }
 
 

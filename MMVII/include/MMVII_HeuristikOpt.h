@@ -28,7 +28,13 @@ template <const int Dim> class cOptimByStep
         typedef cPtxd<int,Dim>               tPtI;
         typedef cDataMapping<tREAL8,Dim,1>   tMap;
 
-        cOptimByStep(const tMap & aMap,bool IsMin,tREAL8 aMaxDInfInit,int aDist1Max=Dim);
+        cOptimByStep
+        (
+	      const tMap & aMap,   // Function/Map to optimize
+	      bool IsMin,          // do we minimize / maximize
+	      tREAL8 aMaxDInfInit, // forbid point to be too far from initial position
+	      int aDist1Max=Dim    // apparently no longer used
+        );
         std::pair<tREAL8,tPtR>  Optim(const tPtR & ,tREAL8 aStepInit,tREAL8 aStepLim,tREAL8 aMul=0.5);
 
      private :

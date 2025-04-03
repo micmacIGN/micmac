@@ -96,6 +96,9 @@ class cClinoCalMes1Cam
               const cPt3dr &   aVerticAbs = {0,0,-1}  // position of vertical in current "absolut" system
         );
 
+	/// check that with calibration, we can recover local vertical from angles
+	void TestCalib(const cCalibSetClino &,const std::vector<int> & aVKClino ) const;
+
 	/// Simulate the measure we would have if "aR" was the given  calibration
         void SetDirSimul(int aK,const  tRotR &aR) ;
 
@@ -120,6 +123,7 @@ class cClinoCalMes1Cam
 
     private :
         cSensorCamPC *          mCam;  ///< camera , memorization seems useless
+	std::vector<tREAL8>     mVAngles; ///< Copy of angles, for TestCalib
 	std::vector<cPt2dr>     mVDir; ///<  measured position of needle, computed from angles
 	cPt3dr                  mVertInLoc;  ///<  Vertical in  camera system, this  is the only information usefull of camera orientation
 };
@@ -127,6 +131,7 @@ class cClinoCalMes1Cam
 
 cClinoCalMes1Cam::cClinoCalMes1Cam(cSensorCamPC * aCam,const std::vector<tREAL8> & aVAngles,const cPt3dr & aVertAbs) :
     mCam       (aCam),
+    mVAngles   (aVAngles),
     mVertInLoc (mCam->Vec_W2L(cPt3dr(0,0,-1)))
 {
 
@@ -138,6 +143,26 @@ cClinoCalMes1Cam::cClinoCalMes1Cam(cSensorCamPC * aCam,const std::vector<tREAL8>
     }
 }
 
+
+void cClinoCalMes1Cam::TestCalib(const cCalibSetClino & aCalib,const std::vector<int> & aVKClino ) const
+{
+    // copy the selected angles
+    std::vector<tREAL8> aVAngleSel;
+    for (auto aKClino : aVKClino)
+        aVAngleSel.push_back(mVAngles.at(aKClino));
+
+    // extract the local vertical from angles
+    cGetVerticalFromClino aGetVert(aCalib,aVAngleSel);
+    cPt3dr aDir1 = aGetVert.OptimGlob(50,1e-7);
+
+    // eventually print 
+    if (0)
+    {
+       StdOut() << "SCORE= " << aGetVert.ScoreDir3D(mVertInLoc) 
+	       << " SOP=" << aGetVert.ScoreDir3D(aDir1) 
+	       << " Delta=" << Norm2(aDir1-mVertInLoc) << "\n";
+    }
+}
 
 std::pair<cPt3dr,cPt3dr>  cClinoCalMes1Cam::GradEVR(int aKClino,const tRotR & aR0,tREAL8 aEps) const
 {
@@ -568,6 +593,9 @@ int cAppli_ClinoInit::Exe()
 
     // Save the result in standard file
     mPhProj.SaveClino(mCalibSetClino);
+
+    for (const auto & aMes : mVMeasures)
+        aMes.TestCalib(mCalibSetClino,mVKClino);
 
     /*if (mPhProj.DPClinoMeters().DirInIsInit())
     {
