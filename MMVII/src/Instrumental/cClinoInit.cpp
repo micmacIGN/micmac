@@ -153,7 +153,7 @@ void cClinoCalMes1Cam::TestCalib(const cCalibSetClino & aCalib,const std::vector
 
     // extract the local vertical from angles
     cGetVerticalFromClino aGetVert(aCalib,aVAngleSel);
-    cPt3dr aDir1 = aGetVert.OptimGlob(50,1e-7);
+    auto [aScore,aDir1] = aGetVert.OptimGlob(50,1e-7);
 
     // eventually print 
     if (0)
@@ -284,6 +284,8 @@ class cAppli_ClinoInit : public cMMVII_Appli
 	bool                           mShowAll;    ///< Do we show all the msg relative to residuals
         cCalibSetClino                 mCalibSetClino; ///< Result of the calibration
         std::string                    mPatFilter;
+        tREAL8                         mUnityAng;  ///< Unitiy in radian
+        bool                           mDmMGon;    ///< Is Unity Deci milli gon
 };
 
 cAppli_ClinoInit::cAppli_ClinoInit
@@ -299,7 +301,9 @@ cAppli_ClinoInit::cAppli_ClinoInit
      mNameRel12    ("i-kj"),
      isOkNoCam     (false),
      mShowAll      (false),
-     mPatFilter    (".*")
+     mPatFilter    (".*"),
+     mUnityAng     (1.0),
+     mDmMGon       (false)
 {
 }
 
@@ -326,6 +330,7 @@ cCollecSpecArg2007 & cAppli_ClinoInit::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 	    << AOpt2007(isOkNoCam,"OkNoCam","is it OK if some cam dont exist",{eTA2007::HDV})
             <<  mPhProj.DPClinoMeters().ArgDirInOpt()  // Just for temporart test we can re-read, to supress later
 	    << AOpt2007(mPatFilter,"PatFilter","Pattern for filtering measure on ident",{eTA2007::HDV})
+	    << AOpt2007(mDmMGon,"DMGon","Do we print residual in decimilligon",{eTA2007::HDV})
     ;
 }
 
@@ -442,6 +447,9 @@ int cAppli_ClinoInit::Exe()
 {
     mPhProj.FinishInit();
 
+
+    if (mDmMGon)
+       mUnityAng = (400.0/(2*M_PI)) * 1e3 * 10;
     mComputedClino = std::vector<bool>(mVKClino.size(),true);  // initially all user clino are active
 
 
@@ -528,9 +536,9 @@ int cAppli_ClinoInit::Exe()
     }
 
     StdOut() <<  "=============== Result of global optimization  =============" << std::endl;
-    StdOut() << "Residual=" << std::sqrt(aWM0.ValExtre()) 
+    StdOut() << "Residual=" << std::sqrt(aWM0.ValExtre())  * mUnityAng
             << " Cond=" << ComputeCond(aWM0.IndexExtre())
-            << " Resid Init=" << aInitRes
+            << " Resid Init=" << aInitRes * mUnityAng
 	    << std::endl;
 
     for (size_t aKClino=0 ; aKClino<mVKClino.size() ; aKClino++)
@@ -570,7 +578,7 @@ int cAppli_ClinoInit::Exe()
                  aWMK =  OneIter(aWMK.IndexExtre(), (2*aStep)/mNbStepIter,mNbStepIter);
                  aStep /= aDiv;
             }
-            StdOut() << "Residual=" << std::sqrt(aWMK.ValExtre()) 
+            StdOut() << "Residual=" << std::sqrt(aWMK.ValExtre())  * mUnityAng
                      << " Cond=" << ComputeCond(aWMK.IndexExtre())
 		     << std::endl;
 
@@ -588,7 +596,7 @@ int cAppli_ClinoInit::Exe()
         tRotR  aR2 = aREnd.at(1);
         tRotR  aR12  = aR2 * aR1.MapInverse() ;
 
-        StdOut() << " Orthogonality diff   N="   <<  aR12.Angle() << "\n";
+        StdOut() << " Orthogonality diff   N="   <<  std::abs(aR12.Angle()) * mUnityAng << "\n";
     }
 
     // Save the result in standard file

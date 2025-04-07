@@ -91,10 +91,12 @@ cPt3dr cGetVerticalFromClino::OptimInit(int aNbStepInSphere) const
     return aWMin.IndexExtre();
 }
 
-cPt3dr cGetVerticalFromClino::OptimGlob(int aNbStep0,tREAL8 aStepEnd) const
+std::pair<tREAL8,cPt3dr> cGetVerticalFromClino::OptimGlob(int aNbStep0,tREAL8 aStepEnd) const
 {
-    cPt3dr aP0 = OptimInit(aNbStep0);
-    return Refine(aP0,1.0/aNbStep0,aStepEnd);
+    cPt3dr aPt = OptimInit(aNbStep0);
+    aPt =  Refine(aPt,1.0/aNbStep0,aStepEnd);
+
+    return std::pair<tREAL8,cPt3dr>(ScoreDir3D(aPt),aPt);
 }
 
 
@@ -115,7 +117,7 @@ class cAppli_CernInitRep : public cMMVII_Appli
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
 
-        void ProcessOneBloc(const std::vector<cSensorCamPC *> &);
+        void ProcessOneBloc(const std::vector<cSensorCamPC *> &,int aKIter);
 	//std::vector<std::string>  Samples() const override;
 
      private :
@@ -123,6 +125,7 @@ class cAppli_CernInitRep : public cMMVII_Appli
         std::string              mSpecIm;
         cBlocOfCamera *          mTheBloc;
         cSetMeasureClino         mMesClino;
+        bool                     mTestAlreadyV;  /// If true, repair is already verticalized, just used as test 
 // ReadMeasureClino(const std::string * aPatSel=nullptr) const;
 
 
@@ -136,13 +139,16 @@ cCollecSpecArg2007 & cAppli_CernInitRep::ArgObl(cCollecSpecArg2007 & anArgObl)
              <<  mPhProj.DPRigBloc().ArgDirInMand()
              <<  mPhProj.DPMeasuresClino().ArgDirInMand()
              <<  mPhProj.DPClinoMeters().ArgDirInMand()
+             <<  mPhProj.DPGndPt3D().ArgDirInMand()
+             <<  mPhProj.DPGndPt2D().ArgDirInMand()
            ;
 }
 
 cCollecSpecArg2007 & cAppli_CernInitRep::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
 
-    return    anArgOpt
+    return      anArgOpt
+             << AOpt2007(mTestAlreadyV,"TestAlreadyV","If repair is already verticalized, for test",{{eTA2007::HDV}})
     ;
 }
 
@@ -153,29 +159,159 @@ cAppli_CernInitRep::cAppli_CernInitRep
 ) :
      cMMVII_Appli  (aVArgs,aSpec),
      mPhProj       (*this),
-     mTheBloc      (nullptr)
+     mTheBloc      (nullptr),
+     mTestAlreadyV (false)
 {
 }
 
-void cAppli_CernInitRep::ProcessOneBloc(const std::vector<cSensorCamPC *> & aVPC)
+void cAppli_CernInitRep::ProcessOneBloc(const std::vector<cSensorCamPC *> & aVPC,int aKIter)
 {
    MMVII_INTERNAL_ASSERT_tiny(aVPC.size()>=2,"Not enough cam in cAppli_CernInitRep::ProcessOneBloc");
 
-   std::string anId = mTheBloc->IdSync(aVPC.at(0)->NameImage());
-   const  cOneMesureClino & aMes = *  mMesClino.MeasureOfId(anId);
-   std::string aNameIm = mMesClino.NameOfIm(aMes);
-   cPerspCamIntrCalib *  aCalib = mPhProj.InternalCalibFromImage(aNameIm);
+   // 0  ================  PREPARATION ==========================================
+   std::string anId = mTheBloc->IdSync(aVPC.at(0)->NameImage());    // Extract the Time Identifier
+   const  cOneMesureClino & aMes = *  mMesClino.MeasureOfId(anId);  // Extract the set of clino mes of time
 
+   // 
+   std::string aNameIm = mMesClino.NameOfIm(aMes); // Extract image  "Master" of clino measure
+   cPerspCamIntrCalib *  aCalib = mPhProj.InternalCalibFromImage(aNameIm);  
 
+   cSensorCamPC * aCamClino = nullptr;
+   for (auto aCamPtr : aVPC)
+   {
+       if (aCamPtr->InternalCalib()==aCalib)
+       {
+            MMVII_INTERNAL_ASSERT_tiny(aCamClino==nullptr,"Multiple cam of calib for clino");
+            aCamClino = aCamPtr;
+       }
+   }
+   MMVII_INTERNAL_ASSERT_tiny(aCamClino!=nullptr,"None cam of calib for clino");
+  
 
    cCalibSetClino aSetC = mPhProj.ReadSetClino(*aCalib,mMesClino.NamesClino());
    cGetVerticalFromClino aGetVert(aSetC,aMes.Angles());
 
-   cPt3dr aVertLoc = aGetVert.OptimGlob(50,1e-8);
+   // 1 =========  VERTICAL =====================================================
+   auto[aScoreVert, aVertLocCamDown]  = aGetVert.OptimGlob(50,1e-8);  // this vertical in camera coordinates (only use clino calib)
+   cPt3dr aVertPannelDow = aCamClino->Vec_L2W(aVertLocCamDown); // verical in "word of pannel" coordinates
+
+   if (mTestAlreadyV)
+   {
+      StdOut() << "TestV: " << aVertPannelDow << "\n";
+      return;
+   }
+
+   // 2 =========  FIL ==========================================================
+
+   cSetMesGndPt  aMesPts;
+   aMesPts.AddMes3D(mPhProj.LoadGCP3D());
+
+   std::vector<cPlane3D>  aVPlane;
+   for (const auto & aCam : aVPC)
+   {
+       const std::string & aNameIm = aCam->NameImage();
+       if (mPhProj.HasFileLines(aNameIm))
+       {
+           cLinesAntiParal1Im   aSetL  = mPhProj.ReadLines(aNameIm);
+           const std::vector<cOneLineAntiParal> & aVL  =     aSetL.mLines;
+
+           // At this step we dont handle multiple lines
+           if (aVL.size()==1)
+           {
+              tSeg2dr aSeg = aVL.at(0).mSeg;
+              aVPlane.push_back(aCam->SegImage2Ground(aSeg));
+           }
+       }
+       if (mPhProj.HasMeasureIm(aNameIm))
+       {
+           aMesPts.AddMes2D(mPhProj.LoadMeasureIm(aNameIm),nullptr,aCam);
+       }
+   }
+   if (aVPlane.size() < 2) return;
+   cSegmentCompiled<tREAL8,3> aLocSegWire = cPlane3D::InterPlane(aVPlane);
 
 
+   // 3 =========  TARGET =======================================================
+
+   std::vector<cPt3dr>  aVecPloc;
+   std::vector<cPt3dr>  aVecPSphere;
+   for (const auto & aMultImPt : aMesPts.MesImOfPt())
+   {
+       if (aMultImPt.VMeasures().size()>=2)
+       {
+           aVecPloc.push_back(aMesPts.BundleInter(aMultImPt));
+           aVecPSphere.push_back(aMesPts.MesGCPOfMulIm(aMultImPt).mPt);
+       }
+   }
+   if (aVecPloc.size()<5) return; // require a bit redundancy
+
+   tPoseR aPosLoc2Sphere = RobustIsometry(aVecPloc,aVecPSphere);
+   cWeightAv<tREAL8>  aWAvRes;
+   for (size_t aK=0 ; aK<aVecPloc.size() ; aK++)
+   {
+       aWAvRes.Add(1.0,Norm2(aPosLoc2Sphere.Value(aVecPloc.at(aK))-aVecPSphere.at(aK)));
+   }
+
+   cPt3dr  aCenterInSphere = aMesPts.MesGCPOfName("CENTRE").mPt;
+   cPt3dr  aPCenterLoc  = aPosLoc2Sphere.Inverse(aCenterInSphere);
+FakeUseIt(aPCenterLoc);
+
+
+//    aVertLoc = - aVertLoc;
+//             tRotR aR = tRotR::CompleteRON(mP0);
+
+   //  4 ================  Creat New Reper ========================================
+       // 4.1 create the repair IJK such that 
+       //    *   K is vertical UP
+       //    *   I is ~ the direction of wire and orthog to k
+       //    *   J is 3rd axe
+   cPt3dr aNewAxeK = - VUnit(aVertPannelDow);                // Axes Vertical , goes Up 
+   cPt3dr aNewAxeJ = VUnit(aNewAxeK ^ aLocSegWire.V12());  // Axe  J = K ^ i
+   cPt3dr aNewAxeI = aNewAxeJ ^aNewAxeK;                   // I = J ^K , projection of wire on horizontal line
+
+   //   P : Cam-> W1       M : W1->W2       M*NewK=K  ...
+   //   NewP =   aM-1  * aP
+   //   aTr + M-1 aPCenterLoc = 0,0,0
+
+    tRotR  aNewR(aNewAxeI,aNewAxeJ,aNewAxeK,false);
+    if (aKIter==0)
+    {
+        tPoseR aNewP(-aNewR.Inverse(aPCenterLoc),aNewR.MapInverse());
+        // tPoseR aNewP(cPt3dr(0,0,0),aNewR);
+        for (auto & aPtrCam :  aVPC)
+        {
+             aPtrCam->SetPose(aNewP * aPtrCam->Pose());
+        }
+    }
+    else 
+    {
+       cPt3dr aDirW =  aLocSegWire.V12() ;
+       MMVII_INTERNAL_ASSERT_tiny(Norm2(aPCenterLoc)  < 1e-8,"Pb with origin on center");
+       MMVII_INTERNAL_ASSERT_tiny(std::abs(aDirW.y()) < 1e-8,"Pb with wire orientation");
+
+       tREAL8 aSteep =  atan2(std::abs(aDirW.z()),std::abs(aDirW.x()));
+
+       cPt3dr aCSphere(0,0,0);
+       cPt3dr aVProjSph = aLocSegWire.Proj(aCSphere) - aCSphere;
+
+       tREAL8 aDHor  =   Norm2(Proj(aVProjSph));
+       tREAL8 aDVert =     std::abs(aVProjSph.z());
+
+
+       StdOut() << " Angles="  << aMes.Angles()  << " ScoreV=" << aScoreVert << "\n";
+       StdOut() << " WIRE , Steep : " << aSteep  << " DHor=" << aDHor << " DVert=" << aDVert<< "\n";
+    }
+
+   //  NewRep 
+
+/*
+   StdOut() << " ===========================================================================\n";
+   StdOut() << " WIRE DIR " << aLocSegWire.V12() << "\n";
+   StdOut() << " DET=" << aNewR.Mat().Det() << "\n";
+   StdOut() << " 3D-NBMES=" << aVecPloc.size() << " Residu=" << aWAvRes.Average() <<  " PCL " << aPCenterLoc << "\n";
    StdOut() << " ID=" << anId << " Ang=" << aMes.Angles()  << " CAM=" << aNameIm << " F=" << aCalib->F() << "\n";
-   StdOut() << " NAMES=" <<  mMesClino.NamesClino() << " RESIDUAL VERT=" << aGetVert.ScoreDir3D(aVertLoc) << "\n";
+   StdOut() << " NAMES=" <<  mMesClino.NamesClino() << " RESIDUAL VERT=" << aGetVert.ScoreDir3D(aVertLocDown) << "\n";
+*/
 }
 
 
@@ -189,10 +325,27 @@ int cAppli_CernInitRep::Exe()
 
 
     std::vector<std::vector<cSensorCamPC *>>  aVVC = mTheBloc->GenerateOrientLoc(mPhProj,VectMainSet(0));
-    for (auto & aVC : aVVC)
+    for (auto & aVPannel : aVVC)
     {
-        ProcessOneBloc(aVC);
-        DeleteAllAndClear(aVC);
+        std::vector<cSensorCamPC *> aVecCam = aVPannel;
+
+        if ( mTestAlreadyV)
+        {
+            aVecCam.clear();
+            for (const auto & aPtr : aVPannel)
+            {
+                aVecCam.push_back(mPhProj.ReadCamPC(aPtr->NameImage(),DelAuto::No));
+            }
+        }
+
+        int aNbIter = mTestAlreadyV ? 1 : 2;
+        for (int aKIter=0 ; aKIter<aNbIter ; aKIter++)
+        {
+            ProcessOneBloc(aVecCam,aKIter);
+        }
+        DeleteAllAndClear(aVPannel);
+        if (mTestAlreadyV)
+           DeleteAllAndClear(aVecCam);
     }
 
     delete mTheBloc;

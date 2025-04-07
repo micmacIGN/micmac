@@ -146,7 +146,7 @@ class cGetVerticalFromClino
        cGetVerticalFromClino(const cCalibSetClino &,const std::vector<tREAL8> & aVAngle);
        tREAL8 ScoreDir3D(const cPt3dr & aDir) const;
 
-       cPt3dr OptimGlob(int aNbStep0,tREAL8 StepEnd) const;
+       std::pair<tREAL8,cPt3dr> OptimGlob(int aNbStep0,tREAL8 StepEnd) const;
 
        cPt3dr OptimInit(int aNbStepInSphere) const;
        cPt3dr Refine(cPt3dr aP0,tREAL8 StepInit,tREAL8 StepEnd) const;
