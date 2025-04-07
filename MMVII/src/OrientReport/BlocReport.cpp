@@ -50,7 +50,6 @@ class cAppli_ReportBlock : public cMMVII_Appli
         cPhotogrammetricProject  mPhProj;
 
 	std::string                 mSpecImIn;
-        std::list<cBlocOfCamera *>  mListBloc;
         cBlocOfCamera *             mTheBloc;
 
         std::string                  mRepW;
@@ -307,11 +306,11 @@ int cAppli_ReportBlock::Exe()
     AddOneReportCSV(mIdRepPtGlob,{"TimeBloc","NbPMeasure","Avg","Sigma","Min","Max"});
 
 
-    mListBloc = mPhProj.ReadBlocCams();
-    MMVII_INTERNAL_ASSERT_tiny(mListBloc.size()==1,"Number of bloc ="+ ToStr(mListBloc.size()));
+    // mListBloc = mPhProj.ReadBlocCams();
+    // MMVII_INTERNAL_ASSERT_tiny(mListBloc.size()==1,"Number of bloc ="+ ToStr(mListBloc.size()));
 
-    mTheBloc = *(mListBloc.begin());
-    std::vector<std::vector<cSensorCamPC *>>  aVVC = (*(mListBloc.begin()))->GenerateOrientLoc(mPhProj,VectMainSet(0));
+    mTheBloc = mPhProj.ReadUnikBlocCam();
+    std::vector<std::vector<cSensorCamPC *>>  aVVC = mTheBloc->GenerateOrientLoc(mPhProj,VectMainSet(0));
 
     // StdOut() << "NBILLL " << VectMainSet(0).size() << " NB BL " << aVVC.size() << "\n";
 
@@ -325,7 +324,7 @@ int cAppli_ReportBlock::Exe()
     // AddOneReportCSV(mIdRepPt,{"AVG Glob",ToStr(mAvgGlobRes.SW()),ToStr(mAvgGlobRes.Average())});
 
     CSV_AddStat(mIdRepPtGlob,"GlobAVG ",mStatGlobPt);
-    DeleteAllAndClear(mListBloc);
+    delete mTheBloc;
     return EXIT_SUCCESS;
 }                                       
 
@@ -340,7 +339,7 @@ tMMVII_UnikPApli Alloc_ReportBlock(const std::vector<std::string> & aVArgs,const
    return tMMVII_UnikPApli(new cAppli_ReportBlock(aVArgs,aSpec));
 }
 
-cSpecMMVII_Appli  TheSpec_Wire3DInit
+cSpecMMVII_Appli  TheSpec_BlocReport
 (
      "ReportBlock",
       Alloc_ReportBlock,

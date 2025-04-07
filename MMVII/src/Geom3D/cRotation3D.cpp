@@ -893,6 +893,116 @@ template <class Type> cPtxd<Type,3>  cRotation3D<Type>::ToWPK() const
 
 /* ************************************************* */
 /*                                                   */
+/*                 cSampleSphere3D                   */
+/*                                                   */
+/* ************************************************* */
+
+cSampleSphere3D::cSampleSphere3D(int aNbStep) :
+   mSHC(3,aNbStep)
+{
+}
+
+int cSampleSphere3D::NbSamples() const {return mSHC.NbSamples();}
+
+cPt3dr cSampleSphere3D::KthPt(int aKPt) const
+{
+    std::vector<tREAL8> aVC;
+    mSHC.KthPt(aVC,aKPt);
+    
+    return VUnit(cPt3dr::FromStdVector(aVC));
+}
+
+
+
+/* ************************************************* */
+/*                                                   */
+/*               cSampleHyperCube                    */
+/*                                                   */
+/* ************************************************* */
+
+cSampleHyperCube::cSampleHyperCube(int aDim,int aNbStep,bool isProj) :
+    mDim       (aDim),
+    mNbStep    (aNbStep),
+    mIsProj    (isProj),
+    mNbF       (isProj ? aDim : (2*aDim)),
+    mNbSamples (mNbF * round_ni(std::pow(mNbStep,mDim-1)))
+{
+}
+
+int cSampleHyperCube::NbSamples() const {return mNbSamples;}
+
+tREAL8 cSampleHyperCube::Int2Coord(int aK) const
+{
+    //  the sampling must be regular of step 1/2NbStep and
+    //  extrem value 0 & NbStep-1 must but a equal distance of -1 and 1
+    return   (aK*2+1-mNbStep) / double(mNbStep);
+}
+
+void  cSampleHyperCube::KthPt(std::vector<tREAL8> & aPts,int aKSample) const
+{
+  aPts.resize(mDim);
+
+   int aIndF = (aKSample%mNbF);  // index of the face tha value 1 (or -1 if not proj)
+   int  aSign =  1 ;  // sign always 1 in projective mode
+   if (! mIsProj)
+   {
+       aSign =  1 - 2 * (aIndF%2);  // sign ,is it + or -
+       aIndF /= 2;  //  between 0 and 3, so ijkt
+   }
+   aPts.at(aIndF) = aSign;  // now fix to -1/+1 in the face
+
+   
+   aKSample /= mNbF;  /// now we code the cube of Dim-1 remaining direction
+   for (int aD=1 ; aD<mDim ; aD++)
+   {
+       aIndF = (aIndF+1) % mDim;
+       aPts.at(aIndF) = Int2Coord(aKSample%mNbStep);
+       aKSample /= mNbStep;
+   }
+}
+
+template <const int Dim> void Tpl_TestcSampleHyperCube(int aNbStep)
+{
+   cSampleHyperCube aSHC(Dim,aNbStep);
+
+   for (int aKTest=0 ; aKTest<100; aKTest++)
+   {
+       cPtxd<tREAL8,Dim> aPRand = cPtxd<tREAL8,Dim>::PRandUnit();
+       aPRand = aPRand * (1.0/NormInf(aPRand));
+       tREAL8 aDMin = 1e30;
+       for (int aKP=0 ; aKP< aSHC.NbSamples() ; aKP++)
+       {
+          std::vector<tREAL8> aVC;
+          aSHC.KthPt(aVC,aKP);
+          cPtxd<tREAL8,Dim> aPt = cPtxd<tREAL8,Dim>::FromStdVector(aVC);
+
+          UpdateMin(aDMin,NormInf(aPt-aPRand));
+    
+          // test they are on the cube
+          MMVII_INTERNAL_ASSERT_bench(std::abs(NormInf(aPt)-1)<1e-9,"Tpl_TestcSampleHyperCube N1");
+       }
+       tREAL8 aTheorMin = 1.0/aNbStep;
+       MMVII_INTERNAL_ASSERT_bench(aDMin<aTheorMin+ 1e-5,"Tpl_TestcSampleHyperCube dist");
+       // StdOut() << " DMIN" << aDMin << " " << 1.0/(2.0 * aNbStep) << "\n";
+   }
+}
+
+void  TestcSampleHyperCube()
+{
+
+    for (int aNbStep : {2,4,8,100})
+        Tpl_TestcSampleHyperCube<2>(aNbStep);
+
+    for (int aNbStep : {2,4,8,16,32})
+        Tpl_TestcSampleHyperCube<3>(aNbStep);
+
+    for (int aNbStep : {2,4,8,16})
+        Tpl_TestcSampleHyperCube<4>(aNbStep);
+
+}
+
+/* ************************************************* */
+/*                                                   */
 /*               cSampleQuat                         */
 /*                                                   */
 /* ************************************************* */
@@ -1118,6 +1228,7 @@ void BenchSampleQuat()
 
         StdOut() << "D12Min=" << aSQ.TestMinDistPairQuat() << std::endl;
     }
+    TestcSampleHyperCube();
 }
 
 

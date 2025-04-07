@@ -91,6 +91,18 @@ void cSetMeasureClino::FilterByPatIdent(const std::string & aPat)
     erase_if(mSetMeasures,[aPat](const cOneMesureClino &aMes){return ! MatchRegex(aMes.Ident(),aPat);});
 }
 
+const  cOneMesureClino *  cSetMeasureClino::MeasureOfId(const std::string & anId,bool SVP)
+{
+
+   for (const auto & aMes : mSetMeasures)
+   {
+        if (aMes.Ident() == anId)
+           return & aMes;
+   }
+
+   MMVII_INTERNAL_ASSERT_strong(SVP,"Could not get measure clino for Id="+anId);
+   return nullptr;
+}
 
 
 /* **************************************************************** */

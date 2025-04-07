@@ -886,6 +886,8 @@ template <class Type,const int Dim> class cSegmentCompiled : public cSegment<Typ
 };
 
 
+
+
 };
 
 #endif  //  _MMVII_Ptxd_H_

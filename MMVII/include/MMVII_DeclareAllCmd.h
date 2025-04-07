@@ -79,6 +79,7 @@ extern cSpecMMVII_Appli  TheSpec_ImportLines;
 extern cSpecMMVII_Appli  TheSpec_ImportGCP;
 extern cSpecMMVII_Appli  TheSpec_ImportOBS;
 extern cSpecMMVII_Appli  TheSpec_ImportORGI;
+extern cSpecMMVII_Appli  TheSpec_ImportTxtCloud;
 extern cSpecMMVII_Appli  TheSpec_ImportTiePMul;
 extern cSpecMMVII_Appli  TheSpec_ImportMesImGCP;
 extern cSpecMMVII_Appli  TheSpec_ImportM32;
@@ -90,7 +91,8 @@ extern cSpecMMVII_Appli  TheSpec_TiePReport;
 extern cSpecMMVII_Appli  TheSpec_SegImReport;
 extern cSpecMMVII_Appli  TheSpec_PoseCmpReport;
 extern cSpecMMVII_Appli  TheSpec_BlockCamInit;   // RIGIDBLOC
-extern cSpecMMVII_Appli  TheSpec_Wire3DInit;   
+extern cSpecMMVII_Appli  TheSpec_BlocReport;   
+extern cSpecMMVII_Appli  TheSpec_CernInitRep;   
 						
 extern cSpecMMVII_Appli  TheSpec_ClinoInit;
 extern cSpecMMVII_Appli  TheSpecRename;

@@ -222,7 +222,7 @@ class cMultipleImPt
     const std::vector<cMes2DDirInfo*> & VMesDirInfo() const { return mVMesDirInfo; }  ///< Accessor
     int NumPt() const;
 private :
-    int                             mNumPt;
+    int                             mNumPt; // Num of Point used as identifier
     std::vector<cPt2dr>             mVMeasures;
     std::vector<cMes2DDirInfo*>     mVMesDirInfo;
     std::vector<int>                mVImages;

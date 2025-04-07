@@ -186,6 +186,11 @@ void AddData(const  cAuxAr2007 & anAux,cCalibBlocCam & aBloc) ;
 
 /**   Class for manipulating  concretely the bloc of camera  , it contains essentially the 
  */
+
+typedef std::pair<tREAL8,tREAL8> tPairRR;
+typedef std::pair<tPairRR,tPoseR> tResEstimPosRel;
+
+
 class cBlocOfCamera : public cMemCheck
 {
       public :
@@ -231,12 +236,12 @@ class cBlocOfCamera : public cMemCheck
 	   ///  return sensor at given KInBloc/KSync, can be nullptr if no cam at this position
            cSensorCamPC *  CamKSyncKInBl(size_t aKInBloc,size_t aKSync) const;
 
-	   /** Given to number in a bloc : compute the average relative orientation, 
+	   /** Given two number in a bloc : compute the average relative orientation, 
 	    * optionnaly out in report :
 	           - the detail of each result if Appli is given
 		   - the std deviation
            */
-           tPoseR  EstimatePoseRel1Cple(size_t aKB1,size_t aKB2,cMMVII_Appli * anAppli,const std::string & aReportGlob);
+           tResEstimPosRel  EstimatePoseRel1Cple(size_t aKB1,size_t aKB2,cMMVII_Appli * anAppli,const std::string & aReportGlob);
 
 	   /// Do the stat for all pair by calling EstimatePoseRel1Cple 
            void    StatAllCples (cMMVII_Appli * anAppli);
