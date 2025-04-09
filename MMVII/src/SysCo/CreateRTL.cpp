@@ -13,9 +13,80 @@
 namespace MMVII
 {
 
+/** A "Tiny" application that create a coodinate sys  local to the "Site" ,
+
+   Create an application for that, may seem "a hammer for a fly", but this is the "price to pay"
+ to warantee the respect of MMVII's naming/formating convention.
+*/
+
+class cAppli_CreateSysCoLoc : public cMMVII_Appli
+{
+
+  public :
+    cAppli_CreateSysCoLoc(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
+        cMMVII_Appli  (aVArgs,aSpec),
+        mPhProj       (*this)
+    {
+    }
+
+    cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override 
+    {
+        return      anArgObl
+                <<  Arg2007(mStringSys ,"String for the coordinate system")
+                <<  Arg2007(mOutFile ,"Name of file to save")
+        ;
+    }
+
+    cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override {return anArgOpt;}
+
+    std::vector<std::string>  Samples() const override
+    {
+        return {
+             "MMVII SysCoCreateLocal \'RTL*6.1*46.24*0*EPSG:4326\'  CERN"
+        };
+    }
+    int Exe() override;
+
+private :
+
+    cPhotogrammetricProject  mPhProj;
+
+    // Mandatory Arg
+    std::string              mStringSys;
+    std::string              mOutFile;
+
+};
+
+
+int cAppli_CreateSysCoLoc::Exe()
+{
+    mPhProj.FinishInit();
+
+    tPtrSysCo aSysCo = mPhProj.ReadSysCo(mStringSys);
+    mPhProj.SaveSysCo(aSysCo,mOutFile);
+
+    return EXIT_SUCCESS;
+}
+
+tMMVII_UnikPApli Alloc_CreateSysCoLoc(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
+{
+    return tMMVII_UnikPApli(new cAppli_CreateSysCoLoc(aVArgs,aSpec));
+}
+
+cSpecMMVII_Appli  TheSpec_CreateSysCoLoc
+(
+        "SysCoCreateAlias",
+        Alloc_CreateSysCoLoc,
+        "Create a coordinate system in the standard folder",
+        {eApF::SysCo},
+        {eApDT::ObjCoordWorld,eApDT::Ori,eApDT::SysCo},
+        {eApDT::ObjCoordWorld,eApDT::Ori,eApDT::SysCo},
+        __FILE__
+);
+
    /* ********************************************************** */
    /*                                                            */
-   /*                 cAppli_ImportGCP                           */
+   /*                 cAppli_CreateRTL                           */
    /*                                                            */
    /* ********************************************************** */
 
@@ -167,8 +238,7 @@ cSpecMMVII_Appli  TheSpec_CreateRTL
         {eApDT::ObjCoordWorld,eApDT::Ori,eApDT::SysCo},
         {eApDT::ObjCoordWorld,eApDT::Ori,eApDT::SysCo},
         __FILE__
-        );
-
+);
 
 }; // MMVII
 

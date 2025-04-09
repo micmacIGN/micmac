@@ -61,6 +61,7 @@ class cSetMeasureClino
 
 	  const std::vector<cOneMesureClino>&  SetMeasures() const;
           const std::vector<std::string> &     NamesClino() const;
+          const  cOneMesureClino *  MeasureOfId(const std::string & anId,bool SVP=false);
 	 
 
           void SetNames(const  std::vector<std::string> &);
@@ -96,6 +97,10 @@ class cOneCalibClino
       public :
          cOneCalibClino();  ///< Defaut constructor for serialization
          cOneCalibClino(const std::string aNameClino);
+
+         /// fix the interpretation  of mRot
+         cPt3dr  CamToClino(const cPt3dr & aPt) const  {return  mRot.Value(aPt);}
+
          std::string    mNameClino;  ///< Name of clinometer
          tRotR           mRot;       ///< Value of rotation
          std::string    mCameraName; /// Name of camera with the relative orientation
@@ -115,7 +120,7 @@ class cCalibSetClino : public cMemCheck
          cCalibSetClino(std::string aNameCam, std::vector<cOneCalibClino> aClinosCal);
          /// Name of the camera where the calibration, but at least for tracability
          std::string NameCam(){return mNameCam;};
-         std::vector<cOneCalibClino> ClinosCal(){return mClinosCal;};
+         const std::vector<cOneCalibClino> & ClinosCal() const {return mClinosCal;};
 
          // Set clinometers calibration
          void setClinosCal(std::vector<cOneCalibClino>  aClinosCal){mClinosCal=aClinosCal;}
@@ -127,6 +132,28 @@ class cCalibSetClino : public cMemCheck
          std::vector<cOneCalibClino>  mClinosCal  ;        
 };
 void AddData(const  cAuxAr2007 & anAux,cCalibSetClino & aSet);
+
+
+/** In case we are working in non verticalized system (for ex no target, no gps ...) , it may
+    be necessary to extract vertical in the camera coordinate  system, using the boresight calibration
+    and the clino measures
+*/
+
+
+class cGetVerticalFromClino
+{
+    public :
+       cGetVerticalFromClino(const cCalibSetClino &,const std::vector<tREAL8> & aVAngle);
+       tREAL8 ScoreDir3D(const cPt3dr & aDir) const;
+
+       std::pair<tREAL8,cPt3dr> OptimGlob(int aNbStep0,tREAL8 StepEnd) const;
+
+       cPt3dr OptimInit(int aNbStepInSphere) const;
+       cPt3dr Refine(cPt3dr aP0,tREAL8 StepInit,tREAL8 StepEnd) const;
+    private :
+       const cCalibSetClino & mCalibs;
+       std::vector<cPt2dr>    mDirs;
+};
 
 
 

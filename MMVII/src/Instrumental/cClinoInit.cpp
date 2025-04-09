@@ -96,6 +96,9 @@ class cClinoCalMes1Cam
               const cPt3dr &   aVerticAbs = {0,0,-1}  // position of vertical in current "absolut" system
         );
 
+	/// check that with calibration, we can recover local vertical from angles
+	void TestCalib(const cCalibSetClino &,const std::vector<int> & aVKClino ) const;
+
 	/// Simulate the measure we would have if "aR" was the given  calibration
         void SetDirSimul(int aK,const  tRotR &aR) ;
 
@@ -120,6 +123,7 @@ class cClinoCalMes1Cam
 
     private :
         cSensorCamPC *          mCam;  ///< camera , memorization seems useless
+	std::vector<tREAL8>     mVAngles; ///< Copy of angles, for TestCalib
 	std::vector<cPt2dr>     mVDir; ///<  measured position of needle, computed from angles
 	cPt3dr                  mVertInLoc;  ///<  Vertical in  camera system, this  is the only information usefull of camera orientation
 };
@@ -127,6 +131,7 @@ class cClinoCalMes1Cam
 
 cClinoCalMes1Cam::cClinoCalMes1Cam(cSensorCamPC * aCam,const std::vector<tREAL8> & aVAngles,const cPt3dr & aVertAbs) :
     mCam       (aCam),
+    mVAngles   (aVAngles),
     mVertInLoc (mCam->Vec_W2L(cPt3dr(0,0,-1)))
 {
 
@@ -138,6 +143,26 @@ cClinoCalMes1Cam::cClinoCalMes1Cam(cSensorCamPC * aCam,const std::vector<tREAL8>
     }
 }
 
+
+void cClinoCalMes1Cam::TestCalib(const cCalibSetClino & aCalib,const std::vector<int> & aVKClino ) const
+{
+    // copy the selected angles
+    std::vector<tREAL8> aVAngleSel;
+    for (auto aKClino : aVKClino)
+        aVAngleSel.push_back(mVAngles.at(aKClino));
+
+    // extract the local vertical from angles
+    cGetVerticalFromClino aGetVert(aCalib,aVAngleSel);
+    auto [aScore,aDir1] = aGetVert.OptimGlob(50,1e-7);
+
+    // eventually print 
+    if (0)
+    {
+       StdOut() << "SCORE= " << aGetVert.ScoreDir3D(mVertInLoc) 
+	       << " SOP=" << aGetVert.ScoreDir3D(aDir1) 
+	       << " Delta=" << Norm2(aDir1-mVertInLoc) << "\n";
+    }
+}
 
 std::pair<cPt3dr,cPt3dr>  cClinoCalMes1Cam::GradEVR(int aKClino,const tRotR & aR0,tREAL8 aEps) const
 {
@@ -259,6 +284,8 @@ class cAppli_ClinoInit : public cMMVII_Appli
 	bool                           mShowAll;    ///< Do we show all the msg relative to residuals
         cCalibSetClino                 mCalibSetClino; ///< Result of the calibration
         std::string                    mPatFilter;
+        tREAL8                         mUnityAng;  ///< Unitiy in radian
+        bool                           mDmMGon;    ///< Is Unity Deci milli gon
 };
 
 cAppli_ClinoInit::cAppli_ClinoInit
@@ -274,7 +301,9 @@ cAppli_ClinoInit::cAppli_ClinoInit
      mNameRel12    ("i-kj"),
      isOkNoCam     (false),
      mShowAll      (false),
-     mPatFilter    (".*")
+     mPatFilter    (".*"),
+     mUnityAng     (1.0),
+     mDmMGon       (false)
 {
 }
 
@@ -301,6 +330,7 @@ cCollecSpecArg2007 & cAppli_ClinoInit::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 	    << AOpt2007(isOkNoCam,"OkNoCam","is it OK if some cam dont exist",{eTA2007::HDV})
             <<  mPhProj.DPClinoMeters().ArgDirInOpt()  // Just for temporart test we can re-read, to supress later
 	    << AOpt2007(mPatFilter,"PatFilter","Pattern for filtering measure on ident",{eTA2007::HDV})
+	    << AOpt2007(mDmMGon,"DMGon","Do we print residual in decimilligon",{eTA2007::HDV})
     ;
 }
 
@@ -417,6 +447,9 @@ int cAppli_ClinoInit::Exe()
 {
     mPhProj.FinishInit();
 
+
+    if (mDmMGon)
+       mUnityAng = (400.0/(2*M_PI)) * 1e3 * 10;
     mComputedClino = std::vector<bool>(mVKClino.size(),true);  // initially all user clino are active
 
 
@@ -503,9 +536,9 @@ int cAppli_ClinoInit::Exe()
     }
 
     StdOut() <<  "=============== Result of global optimization  =============" << std::endl;
-    StdOut() << "Residual=" << std::sqrt(aWM0.ValExtre()) 
+    StdOut() << "Residual=" << std::sqrt(aWM0.ValExtre())  * mUnityAng
             << " Cond=" << ComputeCond(aWM0.IndexExtre())
-            << " Resid Init=" << aInitRes
+            << " Resid Init=" << aInitRes * mUnityAng
 	    << std::endl;
 
     for (size_t aKClino=0 ; aKClino<mVKClino.size() ; aKClino++)
@@ -545,7 +578,7 @@ int cAppli_ClinoInit::Exe()
                  aWMK =  OneIter(aWMK.IndexExtre(), (2*aStep)/mNbStepIter,mNbStepIter);
                  aStep /= aDiv;
             }
-            StdOut() << "Residual=" << std::sqrt(aWMK.ValExtre()) 
+            StdOut() << "Residual=" << std::sqrt(aWMK.ValExtre())  * mUnityAng
                      << " Cond=" << ComputeCond(aWMK.IndexExtre())
 		     << std::endl;
 
@@ -563,11 +596,14 @@ int cAppli_ClinoInit::Exe()
         tRotR  aR2 = aREnd.at(1);
         tRotR  aR12  = aR2 * aR1.MapInverse() ;
 
-        StdOut() << " Orthogonality diff   N="   <<  aR12.Angle() << "\n";
+        StdOut() << " Orthogonality diff   N="   <<  std::abs(aR12.Angle()) * mUnityAng << "\n";
     }
 
     // Save the result in standard file
     mPhProj.SaveClino(mCalibSetClino);
+
+    for (const auto & aMes : mVMeasures)
+        aMes.TestCalib(mCalibSetClino,mVKClino);
 
     /*if (mPhProj.DPClinoMeters().DirInIsInit())
     {

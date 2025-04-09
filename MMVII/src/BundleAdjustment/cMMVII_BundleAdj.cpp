@@ -122,27 +122,50 @@ cMMVII_BundleAdj::~cMMVII_BundleAdj()
     DeleteAllAndClear(mVBA_Lidar);
 }
 
-void cMMVII_BundleAdj::ShowUKNames(const std::vector<std::string> & aParam) 
+void cMMVII_BundleAdj::ShowUKNames(const std::vector<std::string> & aParam,cMMVII_Appli * anAppli) 
 {
      // StdOut() << "=================== ShowUKNamesShowUKNames "<< aParam << " ===============\n";
      cDenseVect<tREAL8>   aVUk = mSetIntervUK.GetVUnKnowns() ;
+     std::string aIdCSV = "BundleUK";
+     if (anAppli)
+        anAppli->InitReportCSV(aIdCSV,"csv",false,{"Type","Group","Var","Value","Uncert"});
+        // void  InitReportCSV(const std::string &anId,const std::string & aPostfix,bool IsMul,const std::vector<std::string> & aHeader={});
+        // void  AddOneReportCSV(const std::string &anId,const std::vector<std::string> & VecMsg);
+
+
 
      for (const auto & aBBNV : mVBBNamedV)
      {
-         StdOut() << "    ************ " <<  aBBNV.mType << " : " << aBBNV.mIdObj  << "\n";
+         // StdOut() << "    ************ " <<  aBBNV.mType << " : " << aBBNV.mIdObj  << "\n";
          for (size_t aKV=0 ; aKV<aBBNV.mNamesVar.size() ; aKV++)
          {
              if (aBBNV.mActivVar.at(aKV))
              {
+                std::vector<std::string> aVCVS{aBBNV.mType, aBBNV.mIdObj};
                 int aIndGlob = aBBNV.mIndVar0 + aKV;
-                StdOut() << "      N=" << aBBNV.mNamesVar.at(aKV)  << " V=" << aVUk(aBBNV.mIndVar0 + aKV) ;
+                // StdOut() << "      N=" << aBBNV.mNamesVar.at(aKV)  << " V=" << aVUk(aBBNV.mIndVar0 + aKV) ;
+                aVCVS.push_back(aBBNV.mNamesVar.at(aKV));
+                aVCVS.push_back(ToStr(aVUk(aBBNV.mIndVar0 + aKV)));
                 if (mRUCSUR)
-                   StdOut()  << " UC=" << std::sqrt(mRUCSUR->UK_VarCovarEstimate(aIndGlob,aIndGlob));
-                StdOut() << "\n";
+                {
+                   // StdOut()  << " UC=" <<aUC;
+                   if (!mR8_Sys->VarIsFrozen(aIndGlob))
+                   {
+                      tREAL8 aUC = std::sqrt(mRUCSUR->UK_VarCovarEstimate(aIndGlob,aIndGlob));
+                      aVCVS.push_back(ToStr(aUC));
+                   }
+                   else
+                   {
+                      aVCVS.push_back("***");
+                   }
+                }
+                // StdOut() << "\n";
+                if (anAppli)
+                   anAppli->AddHeaderReportCSV(aIdCSV,aVCVS);
              }
          }
      }
-     StdOut() << "=================== ShowUKNamesShowUKNames "<< aParam << " ===============\n";
+     // StdOut() << "=================== ShowUKNamesShowUKNames "<< aParam << " ===============\n";
 }
 
 void cMMVII_BundleAdj::Set_UC_UK(const std::vector<std::string> & aParam)
@@ -184,23 +207,26 @@ void cMMVII_BundleAdj::InitIteration()
     if (mShow_UC_UK)
     {
        size_t aIndV0 = 0;
-       std::string aPatType = GetDef(mParam_UC_UK,0,std::string(".*"));
-       std::string aPatName = GetDef(mParam_UC_UK,1,std::string(".*"));
-       std::string aPatVar =  GetDef(mParam_UC_UK,2,std::string(".*"));
-       mCompute_Uncert = cStrIO<bool>::FromStr(GetDef(mParam_UC_UK,3,std::string("1")));
 
+       // Process parameters 
+       std::string aPatType = GetDef(mParam_UC_UK,0,std::string(".*"));  // Type selection, def=all
+       std::string aPatName = GetDef(mParam_UC_UK,1,std::string(".*"));  // NameGroup selection, def=all
+       std::string aPatVar =  GetDef(mParam_UC_UK,2,std::string(".*"));  // NameVar selection, def=all
+       mCompute_Uncert = cStrIO<bool>::FromStr(GetDef(mParam_UC_UK,3,std::string("1")));  // Compute Uncert, def=true
+
+       // Parse all "object" 
        for (size_t aKObj=0 ; aKObj<  mSetIntervUK.NumberObject() ; aKObj++)
        {
            cObjWithUnkowns<tREAL8> & anObj = mSetIntervUK.KthObj(aKObj);
 
-	   cGetAdrInfoParam<tREAL8> aGIP (".*",anObj,false);
+	   cGetAdrInfoParam<tREAL8> aGIP (".*",anObj,false); // extract information
            cBundleBlocNamedVar aBBNV;
            aBBNV.mType = aGIP.NameType();
            aBBNV.mIdObj = aGIP.IdObj();
            aBBNV.mIndVar0 = aIndV0;
            aBBNV.mNamesVar =  aGIP.VNames();
            
-           if (MatchRegex(aBBNV.mType,aPatType) && MatchRegex(aBBNV.mIdObj,aPatName) )
+           if (MatchRegex(aBBNV.mType,aPatType) && MatchRegex(aBBNV.mIdObj,aPatName) ) // If type and ident match
            {
                int aNbOk=0;
                for (size_t aKV=0 ; aKV<aBBNV.mNamesVar.size() ; aKV++)

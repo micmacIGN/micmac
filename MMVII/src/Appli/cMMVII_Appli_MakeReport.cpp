@@ -37,6 +37,9 @@ std::string  cMMVII_Appli::DirSubPReport(const std::string &anId)
       return DirReport() + "Tmp-" + anId + StringDirSeparator();
 }
 
+std::string  cMMVII_Appli::NameParamPostFixReport() { return "ReportPostF"; }
+std::string  cMMVII_Appli::CommentParamPostFixReport() { return "Postfix for folder in report generation"; }
+
 
 void  cMMVII_Appli::InitReportCSV(const std::string &anId,const std::string &aPost,bool IsMul,const std::vector<std::string> & aHeader)
 {

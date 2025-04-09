@@ -454,14 +454,17 @@ int  cAppliGenerateEncoding::Exe()
    if (mPhProj.DPGndPt3D().DirInIsInit())
    {
       cSetMesGnd3D aSetGCP =  mPhProj.LoadGCP3D();
-      std::set<int>   aLInt;
+      std::set<int>   aLIntOk;
       for (const auto & aGCP : aSetGCP.Measures())
-          aLInt.insert(cStrIO<int>::FromStr(aGCP.mNamePt));
-      //  StdOut() << "VOOOCSIZE= " << mVOC.size()  << " "  << aSetGCP.Measures().size() << "\n";
+      {
+          // the name from generated encoding are nums, but external name can be any string 
+          if (StringIsIntOk(aGCP.mNamePt))
+             aLIntOk.insert(cStrIO<int>::FromStr(aGCP.mNamePt));
+      }
       erase_if
       (
              mVOC,
-             [aLInt] (const auto & aPtr) {return  ! MapBoolFind(aLInt,aPtr->mNum);}
+             [aLIntOk] (const auto & aPtr) {return  ! MapBoolFind(aLIntOk,aPtr->mNum);}
       );
       //  StdOut() << "VOOOCSIZE= " << mVOC.size()  << " "  << aSetGCP.Measures().size() << "\n";
       //  getchar();

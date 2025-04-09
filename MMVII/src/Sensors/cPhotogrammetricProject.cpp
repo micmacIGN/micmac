@@ -530,6 +530,10 @@ void cPhotogrammetricProject::SaveCamPC(const cSensorCamPC & aCamPC) const
 
 void cPhotogrammetricProject::SaveSensor(const cSensorImage & aSens) const
 {
+     if ( mDPOrient.DirOut() == MMVII_NONE)
+        return;
+
+
     /*  Supression by global pattern can be very slow with big data
      *  So we creat the first time a map that contain for an image all the files corresponding to
      *  a sensor in the standard out folder.
@@ -680,7 +684,7 @@ cSensorImage* cPhotogrammetricProject::ReadSensorFromFolder(const std::string  &
 
 cPerspCamIntrCalib *  cPhotogrammetricProject::InternalCalibFromImage(const std::string & aNameIm) const
 {
-    //  allox sensor and if exist, extract internal, destroy
+    //  alloc sensor and if exist, extract internal, destroy
     //  else try to extract calib from standard name
     //    * case where nor calib nor pose exist, and must be created from xif still to implemant
     mDPOrient.AssertDirInIsInit();
@@ -1142,16 +1146,41 @@ bool cPhotogrammetricProject::HasClinoCalib(const cPerspCamIntrCalib & aCalib, c
 }
 
 
-cOneCalibClino * cPhotogrammetricProject::GetClino(const cPerspCamIntrCalib & aCalib, const std::string aClinoName) const
+void  cPhotogrammetricProject::ReadGetClino
+      (
+            cOneCalibClino& aCalClino,
+            const cPerspCamIntrCalib & aCalibCam, 
+            const std::string aClinoName
+      ) const
 {
-    std::string aFileName = NameFileClino(aCalib.Name(),true, aClinoName);
+    std::string aFileName = NameFileClino(aCalibCam.Name(),true, aClinoName);
     if (!ExistFile(aFileName))
     {
         MMVII_UserError(eTyUEr::eOpenFile, "Clino filename not found : " + aFileName);
     }
-    
-    return ObjectFromFile<cOneCalibClino,cOneCalibClino>(aFileName);
+    ReadFromFile(aCalClino,aFileName);
 }
+
+cOneCalibClino * cPhotogrammetricProject::GetClino(const cPerspCamIntrCalib & aCalib, const std::string aClinoName) const
+{
+    cOneCalibClino * aResult = new cOneCalibClino;
+    ReadGetClino(*aResult,aCalib,aClinoName);
+    return aResult;
+}
+
+cCalibSetClino  cPhotogrammetricProject::ReadSetClino
+                (  
+                    const cPerspCamIntrCalib &        aCalib,   
+                    const std::vector<std::string> &  aVecClinoName
+                 ) const
+{
+   std::vector<cOneCalibClino> aVCC(aVecClinoName.size());
+   for (size_t aK=0 ; aK<aVecClinoName.size() ; aK++)
+       ReadGetClino(aVCC.at(aK),aCalib,aVecClinoName.at(aK));
+
+   return cCalibSetClino(aCalib.Name(),aVCC);
+}
+
 
 
             //  ================  Measures clino ===================
@@ -1211,6 +1240,13 @@ std::list<cBlocOfCamera *> cPhotogrammetricProject::ReadBlocCams() const
         aRes.push_back(cBlocOfCamera::FromFile(mDPRigBloc.FullDirIn()+aName));
 
     return aRes;
+}
+
+cBlocOfCamera * cPhotogrammetricProject::ReadUnikBlocCam() const
+{
+    std::list<cBlocOfCamera *>   aListBloc = ReadBlocCams();
+    MMVII_INTERNAL_ASSERT_tiny(aListBloc.size()==1,"Number of bloc ="+ ToStr(aListBloc.size()));
+    return *(aListBloc.begin());
 }
 
 

@@ -420,7 +420,7 @@ bool cBlocOfCamera::AddSensor(cSensorCamPC * aCam)
 
 
 
-tPoseR  cBlocOfCamera::EstimatePoseRel1Cple(size_t aKB1,size_t aKB2,cMMVII_Appli * anAppli,const std::string & anIdReportGlob)
+tResEstimPosRel  cBlocOfCamera::EstimatePoseRel1Cple(size_t aKB1,size_t aKB2,cMMVII_Appli * anAppli,const std::string & anIdReportGlob)
 {
     std::string aNB1 = NameKthInBloc(aKB1);
     std::string aNB2 = NameKthInBloc(aKB2);
@@ -517,7 +517,9 @@ tPoseR  cBlocOfCamera::EstimatePoseRel1Cple(size_t aKB1,size_t aKB2,cMMVII_Appli
      {
          anAppli->AddOneReportCSV(anIdReportGlob,{aNB1,aNB2,sSigmTr,sSigmRot});
      }
-     return tPoseR(aAvgTr,aAvgRot);
+     tPairRR aPSigTrSigR(std::sqrt(aSigmTr/tREAL8(aNbOk-1)),std::sqrt(aSigmRot/tREAL8(aNbOk-1)));
+
+     return tResEstimPosRel(aPSigTrSigR,tPoseR(aAvgTr,aAvgRot));
 }
 
 void  cBlocOfCamera::StatAllCples(cMMVII_Appli * anAppli)
@@ -540,16 +542,25 @@ void cBlocOfCamera::EstimateBlocInit(size_t aKMaster)
 {
     mData.mMaster = NameKthInBloc(aKMaster);
     // for all num bloc
+    cWeightAv<tREAL8> aAvgSigTr;
+    cWeightAv<tREAL8> aAvgSigRot;
+
+
     for (size_t aKB=0 ; aKB<NbInBloc() ; aKB++)
     {
           //    * get name
          std::string  aName = NameKthInBloc(aKB);
           //    * estimate  relative pose with KMaster
-         tPoseR  aPoseR =  EstimatePoseRel1Cple(aKMaster,aKB,nullptr,"");
+         auto [aPair, aPoseR] =  EstimatePoseRel1Cple(aKMaster,aKB,nullptr,"");
+// StdOut() << "PPppPp =" << aPair << "\n";
+         auto [aSTr,aSRot] = aPair;
           //    * update mMapPoseUKInBloc
          // mData.mMapPoseUKInBloc[aName]  = cPoseWithUK(aPoseR);
          mData.mMapPoseUKInBloc.try_emplace(aName,aPoseR);
+         aAvgSigTr.Add(1.0,aSTr);
+         aAvgSigRot.Add(1.0,aSRot);
     }
+    StdOut() << "  SIGTR:" << aAvgSigTr.Average() << "  SIGROT:"  << aAvgSigRot.Average() << "\n";
 
     Set4Compute(); //  now can be used in computation
 }
@@ -626,8 +637,9 @@ std::vector<std::vector<cSensorCamPC *>>
              const std::vector<std::string> & aVNameIm
         )  const
 {
-    std::vector<std::vector<cSensorCamPC *>> aRes;
-    std::set<std::string>  aSetIdSync;
+    std::vector<std::vector<cSensorCamPC *>> aRes;   // resulting vector of external calib
+    std::set<std::string>  aSetIdSync;  // memorize ident of sync already met
+    // Parse all images
     for (const auto & aNameIm0 : aVNameIm)
     {
         std::string anIdSync = IdSync(aNameIm0);

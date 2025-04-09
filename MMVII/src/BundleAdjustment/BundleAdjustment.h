@@ -458,7 +458,7 @@ class cMMVII_BundleAdj
           void SaveTopo();
 
           void Set_UC_UK(const std::vector<std::string> & aParam);
-	  void ShowUKNames(const std::vector<std::string> & aParam) ;
+	  void ShowUKNames(const std::vector<std::string> & aParam,cMMVII_Appli* =nullptr) ;
           // Save results of clino bundle adjustment
           void SaveClino();
           void  AddBenchSensor(cSensorCamPC *); // Add sensor, used in Bench Clino
