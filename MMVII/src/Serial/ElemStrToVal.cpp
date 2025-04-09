@@ -442,7 +442,7 @@ template<> cE2Str<eFormatExtern>::tMapE2Str cE2Str<eFormatExtern>::mE2S
            {
                 {eFormatExtern::eMMV1,"MMV1"},
                 {eFormatExtern::eMeshRoom,"MeshRoom"},
-                {eFormatExtern::eColMap,"ColMap"}
+                {eFormatExtern::eColmap,"Colmap"}
            };
 
 

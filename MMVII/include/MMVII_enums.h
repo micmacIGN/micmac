@@ -136,7 +136,7 @@ enum class eFormatExtern
            {
               eMMV1,      ///< MicMac-V1 format, can import Orient/Calib/
               eMeshRoom,  ///< For example, not suppoted for now
-              eColMap,    ///< For example, not suppoted for now
+              eColmap,    ///< For example, not suppoted for now
               eNbVals     ///< Tag for number of value
 	   };
 /// Appli Data Type
