@@ -283,14 +283,35 @@ cHyperEdge* cHyperGraph::CurrentBestHyperedge()
 
 void cHyperGraph::SaveDotFile(std::string& aName)
 {
-
     cMMVII_Ofs* aFile = new cMMVII_Ofs(aName,eFileModeOut::CreateText);
 
     aFile->Ofs() <<  "digraph{" << "\n";
 
+    /*cDenseMatrix<double> aZRot(3,3,eModeInitImage::eMIA_Null);
+    aZRot.SetElem(0,0,1);
+    aZRot.SetElem(1,1,-1);
+    aZRot.SetElem(2,2,-1);
+
+    double aMulCoord=10;
+
+    /// add nodes positions
+    ///
+    const std::unordered_map<std::string,cVertex*> aMapV = GetMapVertices();
+    for (auto aV : aMapV)
+    {
+        if (aV.second->FlagOriented())
+        {
+            cPt3dr aFlippedC = aV.second->Pose().Pose().Tr() * aZRot; //micmac convention
+
+            aFile->Ofs() << aV.second->Id() << "[ pos=\""
+                         <<  aFlippedC.x()*aMulCoord << "," << aFlippedC.y()*aMulCoord
+                         << "! \"]" << std::endl;
+        }
+    }*/
+
     for (const auto& aE : mAdjMap)
     {
-       aFile->Ofs() << aE.first.StartVertex()->Id() << "->" << aE.first.EndVertex()->Id() << std::endl;
+       aFile->Ofs() << aE.first.StartVertex()->Id() << " -> " << aE.first.EndVertex()->Id() << std::endl;
     }
 
    aFile->Ofs() << "}" << std::endl;
@@ -523,9 +544,9 @@ void cHyperGraph::CoherencyOfHyperEdges()
                 aCohScore /= 3.0;
 
                 aTri->QualityVec().push_back(aCohScore);
-                StdOut() << aTri->RelPose(0).Name() << " "
+                /*StdOut() << aTri->RelPose(0).Name() << " "
                          << aTri->RelPose(1).Name() << " "
-                         << aTri->RelPose(2).Name() << " CohScore=" << aCohScore << std::endl;
+                         << aTri->RelPose(2).Name() << " CohScore=" << aCohScore << std::endl;*/
             }
 
         }
@@ -1495,7 +1516,6 @@ int cAppli_SfmInitFromGraph::Exe()
      cHyperGraph aHG;
      aHG.InitFromTriSet(aTriSet);
 
-
      /// 2- run several spanning trees to evaluate triplets' quality
      ///
 
@@ -1545,11 +1565,13 @@ int cAppli_SfmInitFromGraph::Exe()
      DoOneSolution(aHG,aH,aSeed);
      aHG.CoherencyOfHyperEdges();
 
-     StdOut() << "END OF PRGM" << std::endl;
-
      //< save the graph in dot format
-     //std::string aDotName = mPhProj.DirPhp() + "test.dot";
-     //aHG.SaveDotFile(aDotName);
+     StdOut() << "==Save graph to DOT==" << std::endl;
+     std::string aDotName = mPhProj.DirPhp() + "graphv2.dot";
+     aHG.SaveDotFile(aDotName);
+     getchar();
+
+     StdOut() << "END OF PRGM" << std::endl;
 
      /*/// free memory
      for (auto aIt : aMapIm2V)
