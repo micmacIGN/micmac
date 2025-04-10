@@ -91,6 +91,8 @@ cCollecSpecArg2007 & cAppliCompletUncodedTarget::ArgObl(cCollecSpecArg2007 & anA
          << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
 	 << mPhProj.DPOrient().ArgDirInMand()
          << Arg2007(mThresholdDist,"Threshold on distance for in pixel")
+	 <<   mPhProj.DPGndPt3D().ArgDirInMand()
+	 <<   mPhProj.DPGndPt2D().ArgDirInMand()
 
    ;
 }
@@ -99,8 +101,6 @@ cCollecSpecArg2007 & cAppliCompletUncodedTarget::ArgOpt(cCollecSpecArg2007 & anA
 {
    return 
                   anArgOpt
-	     <<   mPhProj.DPGndPt3D().ArgDirInputOptWithDef("Std")
-	     <<   mPhProj.DPGndPt2D().ArgDirInputOptWithDef("Std")
 	     <<   mPhProj.DPGndPt2D().ArgDirOutOptWithDef("Completed")
              <<   AOpt2007(mThreshRay,"ThRay","Threshold for ray [RatioMax,RMin,RMax]",{{eTA2007::ISizeV,"[3,3]"}})
              <<   AOpt2007(mPatternNormal,"PatNorm","If estimate normal, pattern for point involved")
@@ -138,36 +138,36 @@ void cAppliCompletUncodedTarget::CompleteOneGCP(const cMes1Gnd3D & aGCP)
 
     // StdOut() <<  "NNNNNoOOrmal " << mNormal  << " NAME=" << aGCP.mNamePt << std::endl;
  
-    cPlane3D aPlaneT  = cPlane3D::FromPtAndNormal(aGCP.mPt,mNormal);     // 3D plane of the ellispe
-    cEllipse aEl = mSensor->EllipseIm2Plane(aPlaneT,anIt_SEE->mEllipse,50);  // ellipse in ground coordinate
 
-    tREAL8 aL1 = aEl.LSa();   // gread axe
-    tREAL8 aL2 = aEl.LGa();   // small axe
+    if (IsInit(&mThreshRay) )
+    {
+       cPlane3D aPlaneT  = cPlane3D::FromPtAndNormal(aGCP.mPt,mNormal);     // 3D plane of the ellispe
+       cEllipse aEl = mSensor->EllipseIm2Plane(aPlaneT,anIt_SEE->mEllipse,50);  // ellipse in ground coordinate
+
+       tREAL8 aL1 = aEl.LSa();   // gread axe
+       tREAL8 aL2 = aEl.LGa();   // small axe
 			      
-    tREAL8 aRatio = aL2/aL1;  // ratio (should be  equal to 1)
-    tREAL8 aRMoy = std::sqrt(aL1*aL2);  // ray, to compare to theoretical (for ex 5 mm for3D AICON)
+       tREAL8 aRatio = aL2/aL1;  // ratio (should be  equal to 1)
+       tREAL8 aRMoy = std::sqrt(aL1*aL2);  // ray, to compare to theoretical (for ex 5 mm for3D AICON)
 
-   AddOneReportCSV(mNameReportEllipse,{mNameIm,aGCP.mNamePt,ToStr(aRMoy),ToStr(aRatio)});
+       AddOneReportCSV(mNameReportEllipse,{mNameIm,aGCP.mNamePt,ToStr(aRMoy),ToStr(aRatio)});
+       if (false && (LevelCall()==0))  // print info if was done whith only one image
+       {
+            StdOut() << "NNN=" << aGCP.mNamePt  << " DistReproj: " << Norm2(aProjIm-aMes->mPt) 
+	             <<  " Excentricity*1000=" << (1-aL2/aL1) *1000 << " Ray=" << std::sqrt(aL1*aL2) << "\n";
+       }
 
-
-    // StdOut() <<  "CoooOmmpl  " << __LINE__ << "\n";
-    if (  IsInit(&mThreshRay) &&
-	  (
+       if (
                  (aRatio > mThreshRay[0])
              ||  (aRMoy  < mThreshRay[1])
              ||  (aRMoy  > mThreshRay[2])
 	  )
-       )
-    {
-       return;
+       {
+           return;
+       }
     }
     // StdOut() <<  "CoooOmmpl  " << __LINE__ << "\n";
 
-    if (false && (LevelCall()==0))  // print info if was done whith only one image
-    {
-        StdOut() << "NNN=" << aGCP.mNamePt  << " DistReproj: " << Norm2(aProjIm-aMes->mPt) 
-	         <<  " Excentricity*1000=" << (1-aL2/aL1) *1000 << " Ray=" << std::sqrt(aL1*aL2) << "\n";
-    }
     aMes->mNamePt = aGCP.mNamePt; // match suceed, give the right name
     anIt_SEE->mNameCode = aGCP.mNamePt;
 }
