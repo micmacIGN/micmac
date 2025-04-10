@@ -115,17 +115,42 @@ void  cMMVII_Appli::AddOneReportCSV(const std::string &anId,const std::vector<st
     AddOneReport(anId,aLine);
 }
 
-
-void cMMVII_Appli::AddStdHeaderStatCSV(const std::string &anId,const std::string & aNameCol1,const std::vector<int> aVPerc,const std::vector<std::string>  & Additional)
+std::vector<std::string> VInt2VStrPerc(const std::vector<int> &aVPerc)
 {
-    std::vector<std::string> aVStd {aNameCol1,"NbMes","Avg","StdDev","Avg2"};
+    std::vector<std::string> aRes;
     for (const auto & aPerc : aVPerc)
-        aVStd.push_back("P"+ToStr(aPerc));
-
-   AddOneReportCSV(anId,Append(aVStd,Additional));
+        aRes.push_back("P"+ToStr(aPerc));
+    return aRes;
 }
 
-void  cMMVII_Appli:: AddStdStatCSV(const std::string &anId,const std::string & aCol1,const cStdStatRes & aStat,const std::vector<int> aVPerc,const std::vector<std::string>  & Additional)
+std::vector<std::string> VInt2VStrPerc(const std::vector<int> & aVPerc,const cStdStatRes aStat)
+{
+    std::vector<std::string> aRes;
+    for (const auto & aPerc : aVPerc)
+        aRes.push_back(ToStr(aStat.ErrAtProp(aPerc/100.0)));
+    return aRes;
+}
+
+void cMMVII_Appli::AddStdHeaderStatCSV
+     (
+         const std::string &anId,
+         const std::string & aNameCol1,
+         const std::vector<int> aVPerc,
+         const std::vector<std::string>  & Additional
+     )
+{
+    const std::vector<std::string> aVStd {aNameCol1,"NbMes","Avg","UbStdDev","Avg2","Min","Max"};
+    AddOneReportCSV(anId,Append(aVStd,VInt2VStrPerc(aVPerc),Additional));
+}
+
+void  cMMVII_Appli::AddStdStatCSV
+      (
+           const std::string &anId,
+           const std::string & aCol1,
+           const cStdStatRes & aStat,
+           const std::vector<int> aVPerc,
+           const std::vector<std::string>  & Additional
+      )
 {
     if (aStat.NbMeasures()==0)
     {
@@ -140,12 +165,12 @@ void  cMMVII_Appli:: AddStdStatCSV(const std::string &anId,const std::string & a
 				     aCol1,
                                      ToStr(aStat.NbMeasures()),
 				     ToStr(aStat.Avg()),
-				     ((aStat.NbMeasures()>1) ? ToStr(aStat.DevStd()) : "XXX"),
-				     ToStr(aStat.QuadAvg())
+				     ((aStat.NbMeasures()>1) ? ToStr(aStat.UBDevStd(-1)) : "XXX"),
+				     ToStr(aStat.QuadAvg()),
+                                     ToStr(aStat.Min()),
+                                     ToStr(aStat.Max())
 			     };
-    for (const auto & aPerc : aVPerc)
-        aVStd.push_back(ToStr(aStat.ErrAtProp(aPerc/100.0)));
-   AddOneReportCSV(anId,Append(aVStd,Additional));
+   AddOneReportCSV(anId,Append(aVStd,VInt2VStrPerc(aVPerc,aStat),Additional));
 }
 
 

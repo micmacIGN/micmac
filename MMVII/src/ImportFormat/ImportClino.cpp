@@ -91,7 +91,7 @@ void cSetMeasureClino::FilterByPatIdent(const std::string & aPat)
     erase_if(mSetMeasures,[aPat](const cOneMesureClino &aMes){return ! MatchRegex(aMes.Ident(),aPat);});
 }
 
-const  cOneMesureClino *  cSetMeasureClino::MeasureOfId(const std::string & anId,bool SVP)
+const  cOneMesureClino *  cSetMeasureClino::MeasureOfId(const std::string & anId,bool SVP) const
 {
 
    for (const auto & aMes : mSetMeasures)
@@ -101,6 +101,19 @@ const  cOneMesureClino *  cSetMeasureClino::MeasureOfId(const std::string & anId
    }
 
    MMVII_INTERNAL_ASSERT_strong(SVP,"Could not get measure clino for Id="+anId);
+   return nullptr;
+}
+
+const  cOneMesureClino *  cSetMeasureClino::MeasureOfImage(const std::string & aNameImage,bool SVP) const
+{
+
+   for (const auto & aMes : mSetMeasures)
+   {
+        if (NameOfIm(aMes) == aNameImage)
+           return & aMes;
+   }
+
+   MMVII_INTERNAL_ASSERT_strong(SVP,"Could not get measure clino for Id="+aNameImage);
    return nullptr;
 }
 

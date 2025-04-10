@@ -1,11 +1,7 @@
-#include "MMVII_PCSens.h"
-#include "MMVII_DeclareCste.h"
-#include "MMVII_BundleAdj.h"
 #include "MMVII_2Include_Serial_Tpl.h"
-
 #include "MMVII_ReadFileStruct.h"
-
 #include "MMVII_util_tpl.h"
+#include "MMVII_PointCloud.h"
 
 
 /**
@@ -34,7 +30,6 @@ class cAppli_ImportTxtCloud : public cMMVII_Appli
         std::vector<std::string>  Samples() const override;
      private :
 
-	cPhotogrammetricProject  mPhProj;
 
 	// Mandatory Arg
 	std::string              mNameFile;
@@ -51,20 +46,20 @@ class cAppli_ImportTxtCloud : public cMMVII_Appli
 	std::string              mSpecFormatMand;
 	std::string              mSpecFormatTot;
 
-        cPt2dr                   mOffset;
+        cPt3dr                   mOffset;
+        std::string              mNameOut;
 
 };
 
 cAppli_ImportTxtCloud::cAppli_ImportTxtCloud(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli    (aVArgs,aSpec),
-   mPhProj         (*this),
    mNameX          ("X"),
    mNameY          ("Y"),
    mNameZ          ("Z"),
    mNameR          ("R"),
    mSpecFormatMand (mNameX+mNameY+mNameZ),
    mSpecFormatTot  (mSpecFormatMand + "/"+ mNameR),
-   mOffset         (0,0)
+   mOffset         (0,0,0)
 {
 }
 
@@ -83,6 +78,7 @@ cCollecSpecArg2007 & cAppli_ImportTxtCloud::ArgOpt(cCollecSpecArg2007 & anArgOpt
 
     return    anArgOpt
            << AOpt2007(mOffset,"Offset","Offset to add to pixels",{eTA2007::HDV})
+           << AOpt2007(mNameOut,"Out","Name of output, def=In+\".dmp\"")
 
     ;
 }
@@ -90,54 +86,29 @@ cCollecSpecArg2007 & cAppli_ImportTxtCloud::ArgOpt(cCollecSpecArg2007 & anArgOpt
 
 int cAppli_ImportTxtCloud::Exe()
 {
-    mPhProj.FinishInit();
+    bool  mDoR8 = true;
 
     //cTriangulation3D<tREAL8> aTT(mNameFile);
     // StdOut() << "NB " << aTT.NbPts() << "\n";
 
 
     cNewReadFilesStruct aNRFS(mFormat,mSpecFormatMand,mSpecFormatTot);
-StdOut() << "JJJJJJJJJJJJJJJ\n";
     aNRFS.ReadFile(mNameFile,mParamNSF);
-StdOut() << "HHHHHHHH\n";
+    if (!IsInit(&mNameOut))
+        mNameOut = LastPrefix(mNameFile)+".dmp";
 
-/*
-
-
-   // Create a structure of map, because there can exist multiple line/image
-   std::map<std::string,cLinesAntiParal1Im> aMap;
-
-    bool WithSigma = aNRFS.FieldIsKnown(mNameSigma);
-    bool WithWidth = aNRFS.FieldIsKnown(mNameWidth);
+    cPointCloud aPC;
     for (size_t aK=0 ; aK<aNRFS.NbLineRead() ; aK++)
     {
-         // Create potentially a new set of line for image
-         std::string aNameIm =  aNRFS.GetValue<std::string>(mNameIm,aK);
-         cLinesAntiParal1Im  & aLAP = aMap[aNameIm];
-         aLAP.mNameIm  = aNameIm;
-
-	 //  Add a new line
-         cOneLineAntiParal aLine;
-         cPt2dr aP1=aNRFS.GetPt2dr(aK,mNameX1,mNameY1) + mOffset;
-         cPt2dr aP2=aNRFS.GetPt2dr(aK,mNameX2,mNameY2) + mOffset;
-
-	 if (aP1.x() > -100)  // CERN CONVENTION FOR FALSE SEG
-	 {
-	     aLine.mSeg = tSeg2dr(aP1,aP2);
-
-	     if (WithSigma)
-                aLine.mSigmaLine = aNRFS.GetFloat(mNameSigma,aK);
-	     if (WithWidth)
-                aLine.mWidth = aNRFS.GetFloat(mNameWidth,aK);
-
-	     aLAP.mLines.push_back(aLine);
-	 }
+        cPt3dr aPt = aNRFS.GetPt3dr_XYZ (aK) - mOffset;
+        if (mDoR8)
+           aPC.mPtsR.push_back(aPt);
+        else
+        {
+           aPC.mPtsF.push_back(cPt3df::FromPtR(aPt));
+        }
     }
-
-    for (const auto & [aStr,aL]  : aMap)
-        mPhProj.SaveLines(aL);
-
-*/
+    SaveInFile(aPC,mNameOut);
 
     return EXIT_SUCCESS;
 }

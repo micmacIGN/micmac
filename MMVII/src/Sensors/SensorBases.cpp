@@ -399,6 +399,12 @@ const cPt3dr *  cSensorImage::CenterOfFootPrint() const
    return nullptr;
 }
 
+tREAL8 cSensorImage::PixResInterBundle(const cHomogCpleIm & aCple,const cSensorImage & other) const
+{
+   cPt3dr aP3d = PInterBundle(aCple,other);
+
+   return (Norm2(Ground2Image(aP3d)-aCple.mP1)+Norm2(other.Ground2Image(aP3d)-aCple.mP2)) / 2.0;
+}
 
 cPt3dr cSensorImage::PInterBundle(const cHomogCpleIm & aCple,const cSensorImage & other) const
 {

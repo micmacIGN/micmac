@@ -2,6 +2,9 @@
 #include "MMVII_DeclareCste.h"
 #include "MMVII_Geom3D.h"
 #include "MMVII_Sensor.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_PointCloud.h"
+
 
 namespace MMVII
 {
@@ -107,7 +110,7 @@ cSpecMMVII_Appli  TheSpecMeshCheck
 
 /* =============================================== */
 /*                                                 */
-/*                       cAppliCloudClip           */
+/*                 cAppliCloudClip                 */
 /*                                                 */
 /* =============================================== */
 
@@ -197,6 +200,56 @@ cSpecMMVII_Appli  TheSpecCloudClip
       __FILE__
 );
 
+/* =============================================== */
+/*                                                 */
+/*                 cAppli_MMVII_CloudClip          */
+/*                                                 */
+/* =============================================== */
+
+/**  A basic application for clipping 3d data ,  almost all the job is done in
+ * libraries so it essentially interface to command line */
+
+class cAppli_MMVII_CloudClip : public cMMVII_Appli
+{
+     public :
+
+        cAppli_MMVII_CloudClip(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
+
+     private :
+        int Exe() override;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+        cBox2dr              mBoxClip;
+
+        // --- Mandatory ----
+	std::string   mNameCloudIn;
+	cBox2dr       mBox;
+        cPointCloud   mPC;
+        // --- Optionnal ----
+
+};
+
+cCollecSpecArg2007 & cAppli_MMVII_CloudClip::ArgObl(cCollecSpecArg2007 & anArgObl) 
+{
+ return anArgObl
+	  <<   Arg2007(mNameCloudIn,"Name of input cloud/mesh", {eTA2007::FileDirProj,eTA2007::FileCloud})
+	  <<   Arg2007(mBox,"Box relative of clip")
+   ;
+}
+
+
+cCollecSpecArg2007 & cAppli_MMVII_CloudClip::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+   return anArgOpt
+           // << AOpt2007(mNameCloudOut,CurOP_Out,"Name of output file")
+    ;
+}
+
+int  cAppli_MMVII_CloudClip::Exe()
+{
+   ReadFromFile(mPC,mNameCloudIn);
+   return EXIT_SUCCESS;
+}
 
 
 };

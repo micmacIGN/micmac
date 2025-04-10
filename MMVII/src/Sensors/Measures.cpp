@@ -31,6 +31,7 @@ cOneLineAntiParal::cOneLineAntiParal() :
 
 void AddData(const cAuxAr2007 & anAux,cOneLineAntiParal & anEx)
 {
+      AddData(cAuxAr2007("Image",anAux),anEx.mNameIm);
       AddData(cAuxAr2007("P1",anAux),anEx.mSeg.P1());
       AddData(cAuxAr2007("P2",anAux),anEx.mSeg.P2());
       AddData(cAuxAr2007("ParalAng",anAux),anEx.mAngDif);
@@ -291,7 +292,14 @@ void cSetMesGndPt::AddMes2D(const cSetMesPtOf1Im & aSetMesIm, MMVII::cMes2DDirIn
         }
         else
         {
-            ErrorWarnNone(aOnNonExistGCP,"Measure Im w/o Ground, first occur Im=" + aSetMesIm.NameIm() + " Pt="  + aMes.mNamePt);
+            if (! starts_with(aMes.mNamePt,MMVII_NONE))
+            {
+               ErrorWarnNone
+               (
+                  aOnNonExistGCP,
+                  "Measure Im w/o Ground, first occur Im=" + aSetMesIm.NameIm() + " Pt="  + aMes.mNamePt
+               );
+            }
         }
     }
 }

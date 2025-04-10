@@ -287,7 +287,7 @@ template <class Type> void AppendIn(std::vector<Type> & aRes, const std::vector<
        aRes.push_back(aVal);
 }
 
-template <class Type> void Append(std::vector<Type> & aRes, const std::vector<Type> & aV1,const std::vector<Type> & aV2)
+template <class Type> void AppendIn(std::vector<Type> & aRes, const std::vector<Type> & aV1,const std::vector<Type> & aV2)
 {
    aRes = aV1;
    AppendIn(aRes,aV2);
@@ -296,7 +296,7 @@ template <class Type> void Append(std::vector<Type> & aRes, const std::vector<Ty
 template <class Type> std::vector<Type> Append(const std::vector<Type> & aV1,const std::vector<Type> & aV2)
 {
     std::vector<Type> aRes;
-    Append(aRes,aV1,aV2);
+    AppendIn(aRes,aV1,aV2);
     return aRes;
 }
 

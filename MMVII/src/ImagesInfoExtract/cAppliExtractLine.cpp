@@ -137,7 +137,6 @@ class cAppliExtractLine : public cMMVII_Appli
 	int                      mZoomImL;
         std::vector<cHoughPS>    mVPS;
         std::vector<cParalLine>  mParalLines;
-	std::string              mNameReportByLine;
 	std::string              mNameReportByIm;
 	tREAL8                   mRelThrsCumulLow;
 	tREAL8                   mHoughSeuilAng;
@@ -164,7 +163,6 @@ cAppliExtractLine::cAppliExtractLine(const std::vector<std::string> & aVArgs,con
     mTransparencyCont (0.5),
     mExtrL            (nullptr),
     mZoomImL          (1),
-    mNameReportByLine ("LineMulExtract"),
     mNameReportByIm   ("LineByIm"),
     mRelThrsCumulLow    (0.05),
     mHoughSeuilAng      (0.20),
@@ -420,6 +418,7 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
 	for (const auto & aParL :  mParalLines)
 	{
             aExAllLines.mLines.push_back(aParL.GetLAP(*mCalib));
+            aExAllLines.mLines.back().mNameIm = mNameCurIm;
 	    /*
             StdOut()  <<  " =========  SCM=" << aParL.ScoreMatch() << "\n";
 	    for (int aKSeg=0 ; aKSeg<2 ; aKSeg++)
@@ -447,7 +446,6 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
         aEx1L.mWidth  = -( aHS1->DY(*aHS2) + aHS2->DY(*aHS1) ) / 2.0;
         aEx1L.mCumul  = (aHS1->Cumul()+aHS2->Cumul())/2.0;
         aEx1L.mSeg    = aHS1->MidlSeg();
-        AddOneReportCSV(mNameReportByLine,{mNameCurIm,ToStr(aEx1L.mAng),ToStr(aEx1L.mWidth),ToStr(aEx1L.mCumul),ToStr(aHS1->RadHom())});
 
         aExAllLines.mLines.push_back(aEx1L);
     }
@@ -569,7 +567,6 @@ void cAppliExtractLine::MakeVisu(const std::string & aNameIm)
 int cAppliExtractLine::Exe()
 {
     mPhProj.FinishInit();
-    InitReportCSV(mNameReportByLine,"csv",true,{"NameIm","Paral","Larg","Score","RadHom"});
     InitReportCSV(mNameReportByIm,"csv",true,{"NameIm","CodeResult"});
 
     //  Create a report with header computed from type

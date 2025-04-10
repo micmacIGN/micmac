@@ -20,35 +20,44 @@ namespace MMVII
 /*                                                      */
 /* ==================================================== */
 
+/**  Class for computing the vertical in the repair of of the object linked to the clino.
+
+       Use  "cGetVerticalFromClino" for the score function and interface as a "cDataMapping<tREAL8,2,1>"
+    to use  the "cOptimByStep<2>"  . The computation is done in a "tangent space" arround an initial solution.
+*/
+
 class cOptimGVFromClino : public  cDataMapping<tREAL8,2,1>
 {
     public :
+        /** Constructor, take the initial point and the scoring function */
         cOptimGVFromClino(const cGetVerticalFromClino & aGVFC,const cPt3dr & aP0) :
            mGVFC (aGVFC),
 	   mP0   (VUnit(aP0))
 	{
-            tRotR aR = tRotR::CompleteRON(mP0);
+            tRotR aR = tRotR::CompleteRON(mP0);  // complete an orthogonal bas
 	    mP1 = aR.AxeJ();
 	    mP2 = aR.AxeK();
 	}
 
+        /// Convert a "small" point of the plane to a point in tanget space
 	cPt3dr  Delta2Pt(const cPt2dr & aDelta) const {return mP0 + mP1*aDelta.x()+mP2*aDelta.y();}
 
+        /// scoring function to be optimized
         cPt1dr Value(const cPt2dr & aDelta) const override
         {
 	     return cPt1dr(mGVFC.ScoreDir3D(Delta2Pt(aDelta)));
         }
     private :
          const cGetVerticalFromClino&  mGVFC;
-	 cPt3dr                        mP0;
-	 cPt3dr                        mP1;
-	 cPt3dr                        mP2;
+	 cPt3dr                        mP0;   ///< initial solution on the sphere
+	 cPt3dr                        mP1;   ///< first direction of the  tangent space
+	 cPt3dr                        mP2;   ///< second direction of the  tangent space
 };
 
 cGetVerticalFromClino::cGetVerticalFromClino(const cCalibSetClino & aCalib,const std::vector<tREAL8> & aVAngle) :
 	mCalibs (aCalib)
 {
-    for (const auto & aTeta : aVAngle)
+    for (const auto & aTeta : aVAngle)  // convert angle to direction in repair
         mDirs.push_back(FromPolar(1.0,aTeta));
 }
 

@@ -139,6 +139,8 @@ class cSensorImage  :   public cObj2DelAtEnd,
 
 	 /// Compute 3D point by bundle intersection
 	  cPt3dr PInterBundle(const cHomogCpleIm & aCple,const cSensorImage &) const;
+          /// average residual in pixel of bundle intersection
+	  tREAL8 PixResInterBundle(const cHomogCpleIm & aCple,const cSensorImage &) const;
 
 
 	         //  -------------------  Jacobian ---------------------------------

@@ -61,7 +61,8 @@ class cSetMeasureClino
 
 	  const std::vector<cOneMesureClino>&  SetMeasures() const;
           const std::vector<std::string> &     NamesClino() const;
-          const  cOneMesureClino *  MeasureOfId(const std::string & anId,bool SVP=false);
+          const  cOneMesureClino *  MeasureOfId(const std::string & anId,bool SVP=false) const;
+          const  cOneMesureClino *  MeasureOfImage(const std::string & aNameImage,bool SVP=false) const;
 	 
 
           void SetNames(const  std::vector<std::string> &);

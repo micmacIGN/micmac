@@ -539,6 +539,7 @@ class cOneLineAntiParal
      public :
           cOneLineAntiParal();
 
+          std::string mNameIm;
           tSeg2dr mSeg;
           tREAL8  mAngDif;
           tREAL8  mWidth;
