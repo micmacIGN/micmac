@@ -93,6 +93,7 @@ cCollecSpecArg2007 & cAppliCompletUncodedTarget::ArgObl(cCollecSpecArg2007 & anA
          << Arg2007(mThresholdDist,"Threshold on distance for in pixel")
 	 <<   mPhProj.DPGndPt3D().ArgDirInMand()
 	 <<   mPhProj.DPGndPt2D().ArgDirInMand()
+	 <<   mPhProj.DPGndPt2D().ArgDirOutMand()
 
    ;
 }
@@ -101,7 +102,6 @@ cCollecSpecArg2007 & cAppliCompletUncodedTarget::ArgOpt(cCollecSpecArg2007 & anA
 {
    return 
                   anArgOpt
-	     <<   mPhProj.DPGndPt2D().ArgDirOutOptWithDef("Completed")
              <<   AOpt2007(mThreshRay,"ThRay","Threshold for ray [RatioMax,RMin,RMax]",{{eTA2007::ISizeV,"[3,3]"}})
              <<   AOpt2007(mPatternNormal,"PatNorm","If estimate normal, pattern for point involved")
           ;
