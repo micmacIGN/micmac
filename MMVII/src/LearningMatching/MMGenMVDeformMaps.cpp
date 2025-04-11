@@ -90,8 +90,9 @@ namespace  MMVII {
 
     string cMGenDeformMaps::NameImDepth(string NameIM)
     {
-      std::size_t fd=NameIM.find_last_of(".");
-      string Depth=NameIM.substr(0,fd)+"_Pax1.tif";
+      /*std::size_t fd=NameIM.find_last_of(".");
+      string Depth=NameIM.substr(0,fd)+"_Pax1.tif";*/
+    string Depth="DensifyPx_"+NameIM;
       return Depth;
     }
     string cMGenDeformMaps::NameOut(string NameIM, string sfx)
@@ -102,8 +103,9 @@ namespace  MMVII {
 
     string cMGenDeformMaps::NameImMasq(string NameIM)
     {
-      size_t fd=NameIM.find_last_of(".");
-      string Masq=NameIM.substr(0,fd)+"_Masq1.tif";
+     /* size_t fd=NameIM.find_last_of(".");
+      string Masq=NameIM.substr(0,fd)+"_Masq1.tif";*/
+      std::string Masq="DensifyMasq_"+NameIM;
       return Masq;
     }
 
@@ -189,6 +191,8 @@ namespace  MMVII {
                           {
                             Pt2dr PtCam=aCam2->Ter2Capteur(aTer);
                             // Check if we can get back to the first point
+                            aDxIm.SetV(aPix,PtCam.x-aPix.x());
+                            aDyIm.SetV(aPix,PtCam.y-aPix.y());
 
                             cPt2dr aPMM2=cPt2dr(PtCam.x,PtCam.y);
                             if (aDDepth2.InsideBL(aPMM2))
@@ -204,8 +208,6 @@ namespace  MMVII {
                                       {
                                         aMxIm.SetV(aPix,1);
                                         aMyIm.SetV(aPix,1);
-                                        aDxIm.SetV(aPix,PtCam.x);
-                                        aDyIm.SetV(aPix,PtCam.y);
                                       }
                                   }
                               }
@@ -214,9 +216,7 @@ namespace  MMVII {
                     }
 
                 }
-
             }
-
           // dilate before saving
           auto  aMxImV1  = cMMV1_Conv<tU_INT1>::ImToMMV1(aMxIm);
           // dilate
@@ -232,7 +232,6 @@ namespace  MMVII {
         }
 
       return EXIT_SUCCESS;
-
     }
 
   };

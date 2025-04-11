@@ -352,8 +352,15 @@ class cBA_LidarPhotogra
     private :
        /**  Add observation for 1 Patch of point */
        void Add1Patch(tREAL8 aW,const std::vector<cPt3dr> & aPatch);
-       void Add1PatchNotOccluded(tREAL8 aWeight,const std::vector<cPt3dr> & aVPatchGr, const int id_,std::vector<cIm2D<tU_INT4>> & Masqs);
+       void Add1PatchNotOccluded(tREAL8 aWeight,const std::vector<cPt3dr> & aVPatchGr,
+                                 const int id_,std::vector<cIm2D<tU_INT4>> & Masqs);
+       void EvaluatePlanarDisplacements(std::vector<std::string> & aVecOrthoNames,
+                                        std::vector<tREAL8 *> & aVecTransforms,
+                                        bool isStandalone);
+       void EvalGeomConsistency(const std::vector<cPt3dr>& aVPatch, std::vector<cData1ImLidPhgr>& aVData,tREAL8 aZPas);
 
+       void EvalCorrel(const std::vector<cData1ImLidPhgr>& aVData);
+       tREAL8 EvalSaliencyPerPatch(const std::vector<cData1ImLidPhgr> & aVData);
        /// Method for adding observations with radiometric differences as similatity criterion
        void AddPatchDifRad(tREAL8 aW,const std::vector<cPt3dr> & aPatch,const std::vector<cData1ImLidPhgr> &aVData) ;
 
@@ -384,8 +391,11 @@ class cBA_LidarPhotogra
        std::list<std::vector<int> >   mLPatches;       ///< set of 3D patches
        bool                           mPertRad;        ///< do we pertubate the radiometry (simulation & test)
        size_t                         mNbPointByPatch; ///< (approximate) required number of point /patch
+       tREAL8 mCurrentCorrelVal=0.0;
+       std::vector<tREAL8> mAverageDeltaX;
+       std::vector<tREAL8> mAverageDeltaY;
+       int mPatchId;
 };
-
 
 
 class cMMVII_BundleAdj
@@ -404,6 +414,7 @@ class cMMVII_BundleAdj
 	  void AddCamBlocRig(const std::string & aCam); // RIGIDBLOC
           void AddTopo(); // TOPO
           cBA_Topo* getTopo() { return mTopo;}
+          cPhotogrammetricProject * getPhProj() {return mPhProj;};
 
           // Add clino bloc to compute relative orientation between clino and a camera
           void AddClinoBloc();

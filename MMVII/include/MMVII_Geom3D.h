@@ -322,6 +322,8 @@ template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
            cTriangulation3D(const tVPt&,const tVFace &);
            void WriteFile(const std::string &,bool isBinary) const;
            void SamplePts(const bool & targetted,const tREAL8 & aStep);
+           tREAL8 FindGoodPatches(const std::vector<cPt3dr>& aVPts,
+                                const std::vector<cSensorCamPC*> & aCameras);
            size_t NbSelectedPts() const { return mVSelectedIds.size(); }
 
 	   static void Bench();

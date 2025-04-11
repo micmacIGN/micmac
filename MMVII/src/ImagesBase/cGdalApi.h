@@ -69,7 +69,8 @@ public:
                           const cDataFileIm2D &aDF,
                           const cPt2di & aP0File,
                           double aDyn,
-                          const cRect2& aR2Init
+                          const cRect2& aR2Init,
+                         tREAL8 * Geotransform=nullptr
                           );
 
 private:
@@ -115,7 +116,7 @@ public:
         , mGdalNbChan(0)
         , mNbImg(0)
     {}
-    void operator()(IoMode aMode, const cDataFileIm2D &aDF, const tvIm& aVecImV2, const cPt2di & aP0File,double aDyn,const cRect2& aR2)
+    void operator()(IoMode aMode, const cDataFileIm2D &aDF, const tvIm& aVecImV2, const cPt2di & aP0File,double aDyn,const cRect2& aR2, double * transform=nullptr)
     {
         mDataFile = &aDF;
         auto aName = mDataFile->Name();
@@ -161,6 +162,8 @@ public:
         {
             mGdalDataset = cGdalApi::OpenDataset(aDF.Name(), aMode==IoMode::Read ? GA_ReadOnly : GA_Update, cGdalApi::eOnError::RaiseError);
         }
+        if (transform!=nullptr)
+            mGdalDataset->SetGeoTransform(transform);
 
         if (aMode == IoMode::Read) {
             if (mGdalNbChan == mNbImg && mNbImg != 0) {
@@ -393,7 +396,8 @@ void cGdalApi::ReadWrite(
     const cDataFileIm2D &aDF,
     const cPt2di & aP0File,
     double aDyn,
-    const cRect2& aR2Init
+    const cRect2& aR2Init,
+    tREAL8 * Geotransform
     )
 {
     MMVII_INTERNAL_ASSERT_strong(aVecImV2.size() > 0,"aVecImV2 is empty in GdalReadWrite");
@@ -406,14 +410,14 @@ void cGdalApi::ReadWrite(
     switch (aDF.Type())
     {
     case eTyNums::eTN_INT1    : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::ReadWrite : case eTyNums::eTN_INT1") ; break ;
-    case eTyNums::eTN_U_INT1  : GdalIO<TypeIm, tU_INT1>()(aMode, aDF, aVecImV2, aP0File, aDyn, aR2Init)  ; break ;
-    case eTyNums::eTN_INT2    : GdalIO<TypeIm, tINT2>()(aMode, aDF, aVecImV2, aP0File, aDyn, aR2Init) ; break ;
-    case eTyNums::eTN_U_INT2  : GdalIO<TypeIm, tU_INT2>()(aMode, aDF, aVecImV2, aP0File, aDyn, aR2Init)  ; break ;
-    case eTyNums::eTN_INT4    : GdalIO<TypeIm, tINT4>()(aMode, aDF, aVecImV2, aP0File, aDyn, aR2Init)  ;  break ;
-    case eTyNums::eTN_U_INT4  : GdalIO<TypeIm, tU_INT4>()(aMode, aDF, aVecImV2, aP0File, aDyn, aR2Init)  ; break ;
+    case eTyNums::eTN_U_INT1  : GdalIO<TypeIm, tU_INT1>()(aMode, aDF, aVecImV2, aP0File, aDyn, aR2Init,Geotransform)  ; break ;
+    case eTyNums::eTN_INT2    : GdalIO<TypeIm, tINT2>()(aMode, aDF, aVecImV2, aP0File, aDyn, aR2Init,Geotransform) ; break ;
+    case eTyNums::eTN_U_INT2  : GdalIO<TypeIm, tU_INT2>()(aMode, aDF, aVecImV2, aP0File, aDyn, aR2Init,Geotransform)  ; break ;
+    case eTyNums::eTN_INT4    : GdalIO<TypeIm, tINT4>()(aMode, aDF, aVecImV2, aP0File, aDyn, aR2Init,Geotransform)  ;  break ;
+    case eTyNums::eTN_U_INT4  : GdalIO<TypeIm, tU_INT4>()(aMode, aDF, aVecImV2, aP0File, aDyn, aR2Init,Geotransform)  ; break ;
     case eTyNums::eTN_INT8    : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::ReadWrite : case eTyNums::eTN_INT8") ; break ;
-    case eTyNums::eTN_REAL4   : GdalIO<TypeIm, tREAL4>()(aMode, aDF, aVecImV2, aP0File, aDyn, aR2Init)  ; break ;
-    case eTyNums::eTN_REAL8   : GdalIO<TypeIm, tREAL8>()(aMode, aDF, aVecImV2, aP0File, aDyn, aR2Init)  ; break ;
+    case eTyNums::eTN_REAL4   : GdalIO<TypeIm, tREAL4>()(aMode, aDF, aVecImV2, aP0File, aDyn, aR2Init,Geotransform)  ; break ;
+    case eTyNums::eTN_REAL8   : GdalIO<TypeIm, tREAL8>()(aMode, aDF, aVecImV2, aP0File, aDyn, aR2Init,Geotransform)  ; break ;
     case eTyNums::eTN_REAL16  : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::ReadWrite : case eTyNums::eTN_REAL16") ; break ;
     case eTyNums::eTN_UnKnown : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::ReadWrite : case eTyNums::eTN_UnKnown") ; break ;
     case eTyNums::eNbVals     : MMVII_INTERNAL_ERROR("cDataIm2D<Type>::ReadWrite : case eTyNums::eNbVals") ; break ;

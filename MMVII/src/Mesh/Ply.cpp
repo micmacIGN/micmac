@@ -2171,11 +2171,11 @@ template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & a
    std::cout<<"POINT VIEW SIZE "<<point_view->size()<<std::endl;
    //std::cout<<" GET ALL DIMENSIONS "<<table.layout()->dims()<<std::endl;
    auto aDsmMarkerDim = table.layout()->findProprietaryDim(ClassificationTags().DSMMarker);
-   bool HasDsmMarker=table.layout()->hasDim(aDsmMarkerDim);
+   //bool HasDsmMarker=table.layout()->hasDim(aDsmMarkerDim);
 
    std::cout<<"DSM MARKER "<<pdal::Dimension::description(aDsmMarkerDim)<<std::endl;
 
-   if (HasDsmMarker) // read points tagged as useful for DSM generation and not on trees
+   if (0) // read points tagged as useful for DSM generation and not on trees
      {
        std::cout<<"HAS DSM MARKER "<<std::endl;
        for (pdal::PointId idx = 0; idx < point_view->size(); ++idx)
@@ -2485,10 +2485,12 @@ template <class Type>
 template <class Type> void cTriangulation3D<Type>::SamplePts(const bool & targetted,const tREAL8 & aStep)
  {
    /// < Sample points either by targetted or by random sampling
+
     this->mVSelectedIds.clear();
    cBox2dr aBox = Box2D();
+    bool defined =!targetted;
   if (targetted)
-    {
+        {
       // sample points in a grid
 
       /*
@@ -2529,13 +2531,13 @@ template <class Type> void cTriangulation3D<Type>::SamplePts(const bool & target
            it++;
         }
     }
-  else
+  else if (defined)
     {
 
         std::vector<cPt2dr> aVecPatchCenters;
         // READ GeoJson File containing centers of patches to facilitate patch sampling
 
-        std::string NameGeoJson="/home/MAChebbi/Documents/RecalageLidarImage_MicMac_PDAL/centers.geojson";
+        std::string NameGeoJson="/home/MAChebbi/Documents/RecalageLidarImage_MicMac_PDAL/LiDAR/centers_more2.geojson";
         GDALAllRegister();
 
         GDALDataset *poDS = static_cast<GDALDataset*>(
@@ -2546,7 +2548,7 @@ template <class Type> void cTriangulation3D<Type>::SamplePts(const bool & target
             exit( 1 );
         }
 
-        OGRLayer  *poLayer = poDS->GetLayerByName( "centers" );
+        OGRLayer  *poLayer = poDS->GetLayerByName( "centers_more2" );
         poLayer->ResetReading();
         OGRFeature *poFeature;
         while( (poFeature = poLayer->GetNextFeature()) != NULL )
@@ -2590,7 +2592,58 @@ template <class Type> void cTriangulation3D<Type>::SamplePts(const bool & target
             }
         }
     }
+    else
+    {
+        // random sampling and patch selection based on planarity features and visibility criteria
+
+        // target: distributed + sufficient + planar
+        //1. distributed
+
+        // Determine Nearest LidarPoint By Tree Search
+
+        /*cBox2dr aBox = Box2D();
+
+        // indexation of all points
+        cTiling<cTil2DTri3D<Type> >  aTileAll(aBox,true,this->NbPts()/20,this);
+        for (size_t aKP=0 ; aKP<this->NbPts() ; aKP++)
+        {
+            aTileAll.Add(cTil2DTri3D<Type>(aKP));
+        }
+
+        // indexation of all points selecte as center of patches
+        cTiling<cTil2DTri3D<Type> >  aTileSelect(aBox,true,this->NbPts()/20,this);
+
+
+        // find nearest center and save index into mSelectedIds
+        for (size_t aKP=0 ; aKP<this->NbPts() ; aKP+=1)
+        {
+            cPt2dr aPt  = ToR(Proj(this->KthPts(aKP)));
+            // if the points is not close to an existing center of patch : create a new patch
+            if (aTileSelect.GetObjAtDist(aPt,aDistReject).empty())
+            {
+
+            }
+
+        }*/
+
+    }
+
 }
+
+template <class Type>
+tREAL8 cTriangulation3D<Type>::FindGoodPatches(const std::vector<cPt3dr>& aVPts,
+                                             const std::vector<cSensorCamPC*> & aCameras)
+{
+    ///< Finds good patches based on geometry criteria and radiometric resemblance between patches
+    ///
+    /// Use Patch planarity as filter
+    /// check for good saliency between orthos
+
+
+
+    return 0.0;
+}
+
 
 template <class Type>
  void cTriangulation3D<Type>::MakePatchesTargetted
@@ -2603,7 +2656,7 @@ template <class Type>
            tREAL8 aThreshold
        )
 {
-  this->SamplePts(false,15);
+  this->SamplePts(false,5.0);
   cBox2dr aBox = Box2D();
 
   // indexation of all points
@@ -2677,9 +2730,12 @@ template <class Type>
               }
           }
          // some requirement on minimal size and non-occlusion in more than 2 images
+          // compute palanarity index
+          //tREAL8 aPlanarity=L2_PlanarityIndex(aVP);
          if ((int)aPatch.size() > aSzMin && aSetVisibs.size()>1)
          {
             // aCpt += aPatch.size();
+
             aLPatches.push_back(aPatch);
          }
 

@@ -1,6 +1,3 @@
-#include "cCnnModelPredictor.h"
-#include "general/PlyFile.h"
-//#include "../src/saisieQT/include_QT/Cloud.h"
 #include <StdAfx.h>
 #include "MMVII_PCSens.h"
 #include "MMVII_Geom2D.h"
@@ -10,9 +7,11 @@
 #include "MMVII_ZBuffer.h"
 #include "MMVII_Sys.h"
 #include "MMVII_Radiom.h"
+#include "MMVII_2Include_Tiling.h"
+#include "LearnDM.h"
 
 
-static int NODATA=-9999;
+//static int NODATA=-9999;
 
 namespace  MMVII {
 
@@ -65,9 +64,14 @@ namespace  cNS_MMGenDepthMV
  }
 
 
+ bool compdepth(cPt3dr a, cPt3dr b) {
+     return (a.z() < b.z()) && (a.x() != b.x()) && (a.y()!=b.y());
+ }
+
   class cAppliMMGenDepthMV;
 
-  class cAppliMMGenDepthMV : public cMMVII_Appli
+  class cAppliMMGenDepthMV : public cMMVII_Appli,
+                             public cAppliParseBoxIm<tREAL4>
   {
 
    public :
@@ -82,46 +86,46 @@ namespace  cNS_MMGenDepthMV
     typedef cDataIm2D<tElemDepth> tDImDepth;
     typedef std::vector<tImImage>  tVecIms;
     typedef std::vector<tImMasq>   tVecMasq;
+    typedef tREAL8  tCoordDensify;
+    typedef cTriangle2DCompiled<tCoordDensify>  tTriangle2DCompiled;
 
     cAppliMMGenDepthMV(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
     cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
     cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
-    //GlCloud * ReadPlyFile(std::string i_filename);
-    void GenerateDepthCloud(CamStenope * aCam, std::string & aFile2Store,sPlyOrientedColoredAlphaVertex **glist, int num_elements);
-    string NameImOri(string NameIM,std::string OriFolder, string SuffOri);
-    void GenerateProfondeurDeChamps(CamStenope * aCam, std::ofstream & aFile2Store,sPlyOrientedColoredAlphaVertex **glist, int num_elements);
-
     int Exe() override;
-    //int Exe_ground_to_image();
-    int Exe_sparse();
-
-    std::string mPatternImages;
-    std::string mMasterImage;
-    std::string mPointCloud;
-    std::string mNameOutDepth;
-    std::string mOriFolder;
-    std::vector<std::string> mSetOfLidarClouds;
-    std::vector<std::string> mSetOfOris;
-    std::vector<std::string> mSetOfImages;
-
-
-    tImDepth mImDepthImage;
-    tImMasq mImMasqVisib;
-    cPt2di      mSzIms;
-    /*double      mResolZBuf;
-    int         mNbPixImRedr;
-    bool        mDoImages;
-    bool        mSKE;
-    double      mMII;   ///<  Marge Inside Image
+    int ExeOnParsedBox() override;
+    bool MakeDecision(std::vector<cPt3dr> & aVecPoints);
+    void Generate_sparse_depth(std::string aNameImage,
+                                std::vector<std::string> aVecLidar,
+                                size_t aSzMin,
+                                tREAL8 aThresholdVisbility);
+    void MakeOneTri(const  tTriangle2DCompiled & aTri);
 
   // --- constructed ---
    cPhotogrammetricProject   mPhProj;
-   std::string               mNameSingleIm;  ///< if there is a single file in a xml set of file, the subst has not been made ...
    cTriangulation3D<tREAL8>* mTri3D;
+   cTriangulation3D<tREAL8>* mTri3DReproj;
+   std::string mSpecImIn;
+   std::string mPatternLidar;
+   std::string mNameOutDepth="Depth_";
+   std::string mNameOutMasq ="Masq_";
    size_t                    mNbF;
    size_t                    mNbP;
    cSensorCamPC *            mCamPC;
-   std::string               mNameResult;*/
+   tImDepth mDepthImage;
+   tImMasq mMasqImage;
+   tDImDepth * mDDepthImage;
+   tDImMasq * mDMasqImage;
+
+   tImDepth mImInterp;
+   tImMasq mIMasqOut;
+   tDImDepth * mDImInterp;
+   tDImMasq * mDIMasqOut;
+
+   tREAL8 mThreshGrad;
+   tREAL8 mNoisePx;
+   int mMasq2Tri;
+   int mNbPointByPatch;
   };
 
   /* *************************************************** */
@@ -137,717 +141,363 @@ namespace  cNS_MMGenDepthMV
 
   cAppliMMGenDepthMV::cAppliMMGenDepthMV(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
      cMMVII_Appli  (aVArgs,aSpec),
-     mImDepthImage      (cPt2di(1,1)),
-     mImMasqVisib       (cPt2di(1,1)),
-     mSzIms          (0,0)
-     /*mResolZBuf       (3.0),
-     mNbPixImRedr     (2000),
-     mDoImages        (false),
-     mSKE             (false),
-     mMII             (4.0),
-      // internal vars
+     cAppliParseBoxIm<tREAL4>  (*this,eForceGray::Yes,cPt2di(2000,2000),cPt2di(50,50),false),
      mPhProj          (*this),
      mTri3D           (nullptr),
-     mCamPC           (nullptr)*/
+     mTri3DReproj     (nullptr),
+     mCamPC           (nullptr),
+     mDepthImage    (cPt2di(1,1)),
+     mMasqImage     (cPt2di(1,1)),
+     mDDepthImage       (nullptr),
+     mDMasqImage       (nullptr),
+     mImInterp    (cPt2di(1,1)),
+     mIMasqOut     (cPt2di(1,1)),
+     mDImInterp       (nullptr),
+     mDIMasqOut       (nullptr),
+     mThreshGrad                (0.3),
+     mNoisePx                   (1.0),
+     mMasq2Tri                  (0),
+    mNbPointByPatch (32)
   {
-
   }
 
 
   cCollecSpecArg2007 & cAppliMMGenDepthMV::ArgObl(cCollecSpecArg2007 & anArgObl)
   {
-   return
-        anArgObl
-            <<   Arg2007(mPatternImages,"Image names pattern")
-            <<   Arg2007(mOriFolder,"Micmac Orientation Folder with Ori")
-            <<   Arg2007(mMasterImage,"Master image to project point cloud to it !")
-            <<   Arg2007(mPointCloud,"Point cloud in ply or las format !")
-     ;
+      return anArgObl
+             << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
+             << Arg2007(mPatternLidar,"Pattern of input clouds",{{eTA2007::MPatFile,"1"}})
+             << mPhProj.DPOrient().ArgDirInMand()
+          ;
   }
-
-  // Load a point cloud
-
-  /*GlCloud * cAppliMMGenDepthMV::ReadPlyFile(std::string i_filename)
-  {
-          GlCloud * cloud=GlCloud::loadPly(i_filename);
-          return cloud;
-  }*/
 
   cCollecSpecArg2007 & cAppliMMGenDepthMV::ArgOpt(cCollecSpecArg2007 & anArgOpt)
   {
      return anArgOpt
             << AOpt2007(mNameOutDepth,"DepthMap" ,"Depth Map image Name")
+             << AOpt2007(mNbPointByPatch,"NbNeighbors", "number of neighbors")
      ;
   }
 
 
-  void cAppliMMGenDepthMV::GenerateDepthCloud(CamStenope * aCam, std::string & aFile2Store,sPlyOrientedColoredAlphaVertex **glist, int num_elements)
+
+  bool cAppliMMGenDepthMV::MakeDecision(std::vector<cPt3dr> & aVecPoints)
   {
-    // store x y z u v : 3d coordinates in image reference frame Pt-opticalCenter and u,v coordinates in image plan
+      // center point is the first one
+      cPt3dr PatchCenter=aVecPoints[0];
+      auto It=aVecPoints.begin();
+      aVecPoints.erase(It);
+      //1. approximate plane with the lowest depths and check if we are higher or not
+      std::sort(aVecPoints.begin(),aVecPoints.end(),compdepth);
+      std::cout<<"aPlane "<<aVecPoints.size()<<std::endl;
+      std::cout<<"points "<<aVecPoints[0]<<"  "<<aVecPoints[1]<<"  "<<aVecPoints[2]<<"  "<<
+          aVecPoints[3]<<"  "<<aVecPoints[4]<<"  "<<aVecPoints[5]<<"  "<<PatchCenter.z()<<std::endl;
 
-    std::ofstream File(aFile2Store.c_str());
+      cPlane3D aLowerPointsPlane= cPlane3D::From3Point(aVecPoints[0],
+                                                        aVecPoints[1],
+                                                        aVecPoints[2]);
+      std::cout<<"aPlane 2"<<std::endl;
+      //2. check if center depth is above or under plane
+      tREAL8 aScal=Scal(aLowerPointsPlane.AxeK(),PatchCenter-aLowerPointsPlane.P0());
+      std::cout<<"ASCALAR "<<aScal<<std::endl;
 
-    for (int aK=0;aK<num_elements;aK++)
-      {
-        sPlyOrientedColoredAlphaVertex * pt = glist[aK];
-        Pt3dr aTer(pt->x,pt->y,pt->z);
-        bool IsVisibleInSensorCamera=aCam->PIsVisibleInImage(aTer);
-        if (IsVisibleInSensorCamera)
-          {
-            std::string FormattedPt;
-            Pt3dr Vecteur_OptCenter_Point=aTer-aCam->OrigineProf();
-            Pt2dr PtCam1=aCam->Ter2Capteur(aTer);
-            FormattedPt+=std::to_string(Vecteur_OptCenter_Point.x)+" ";
-            FormattedPt+=std::to_string(Vecteur_OptCenter_Point.y)+" ";
-            FormattedPt+=std::to_string(Vecteur_OptCenter_Point.z)+" ";
-            FormattedPt+=std::to_string(PtCam1.x)+" ";
-            FormattedPt+=std::to_string(PtCam1.y);
-
-            // Save line
-            File << FormattedPt+"\n";
-          }
-      }
-    File.close();
-
+      if (aScal<0) // lower point
+          return true;
+      else
+        return false;
   }
 
-  string cAppliMMGenDepthMV::NameImOri(string NameIM,std::string OriFolder, string SuffOri)
+  void cAppliMMGenDepthMV::Generate_sparse_depth(std::string aNameImage,
+                                                 std::vector<std::string> aVecLidar,
+                                                 size_t aSzMin,
+                                                 tREAL8 aThresholdVisbility)
   {
-    return OriFolder+"/"+SuffOri+NameIM+".xml";
-  }
+      mCamPC=mPhProj.ReadCamPC(aNameImage,true);
 
+      // Depth
+      mDepthImage=cIm2D<tElemDepth>(mCamPC->Sz(),nullptr,eModeInitImage::eMIA_Null);
+      mDDepthImage=&(mDepthImage.DIm());
 
-void cAppliMMGenDepthMV::GenerateProfondeurDeChamps(CamStenope * aCam, std::ofstream & File,sPlyOrientedColoredAlphaVertex **glist, int num_elements)
-{
-    // store x y z u v : 3d coordinates in image reference frame Pt-opticalCenter and u,v coordinates in image plan
-    for (int aK=0;aK<num_elements;aK++)
+      //Masq
+
+      mMasqImage=cIm2D<tElemMasq>(mCamPC->Sz(),nullptr,eModeInitImage::eMIA_Null);
+      mDMasqImage=&(mMasqImage.DIm());
+
+      tREAL8 aDistReject;
+      // project cloud into image geometry x,y and depth
+      std::vector <cPt3dr> aVPts;
+      std::vector <cPt3di> aFaces;
       {
-        sPlyOrientedColoredAlphaVertex * pt = glist[aK];
-        Pt3dr aTer(pt->x,pt->y,pt->z);
-        //std::cout<<aNormal<<std::endl;
-        bool IsVisibleInSensorCamera=aCam->PIsVisibleInImage(aTer);
-        if (IsVisibleInSensorCamera)
+          for (const std::string & aLidarName: aVecLidar)
           {
-            std::string FormattedPt;
-            tElemDepth PtCamProfondeur =aCam->ProfondeurDeChamps(aTer);
-            //Pt3dr Vecteur_OptCenter_Point=aTer-aCam->OrigineProf();
-            Pt2dr PtCam1=aCam->Ter2Capteur(aTer);
-                  FormattedPt+=std::to_string(PtCamProfondeur)+" ";
-                  //FormattedPt+=std::to_string(Vecteur_OptCenter_Point.y)+" ";
-                  //FormattedPt+=std::to_string(Vecteur_OptCenter_Point.z)+" ";
-                  FormattedPt+=std::to_string(PtCam1.x)+" ";
-                  FormattedPt+=std::to_string(PtCam1.y);
+              mTri3D= new cTriangulation3D<tREAL8>(aLidarName);
 
-                  // Save line
-                  File << FormattedPt+"\n";
-          }
-      }
-}
-
-
-
-
-/*
-int cAppliMMGenDepthMV::Exe()
-{
-  // Read information patterns images, lidar and geometry
-  std::string aDirLidar,aPatLidar;
-  std:: string aDirOris,aPatOri;
-  std::string aDirImages,aPatImages;
-
-  SplitDirAndFile(aDirLidar,aPatLidar,mPointCloud,false);
-  SplitDirAndFile(aDirOris,aPatOri,mOriFolder,false);
-  SplitDirAndFile(aDirImages,aPatImages,mPatternImages,false);
-
-  std::cout<<"Cloud Pattern ==> "<<aPatLidar<<std::endl;
-  std::cout<<"Orientation pattern "<<aPatOri<<std::endl;
-  cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
-  cInterfChantierNameManipulateur * aICNMLD=cInterfChantierNameManipulateur::BasicAlloc(aDirLidar);
-  cInterfChantierNameManipulateur * aICNMOris=cInterfChantierNameManipulateur::BasicAlloc(aDirOris);
-
-  // Compute depth images with respect to the master image
-  mSetOfLidarClouds = *(aICNMLD->Get(aPatLidar));
-  mSetOfOris = *(aICNMOris->Get(aPatOri));
-  mSetOfImages= * (aICNM->Get(aPatImages));
-
-
-  // loading orientations
-
-  //std::vector<CamStenope*> aSetOfCameras =new std::vector<CamStenope*>;
-  std::vector<std::string>::iterator itIma=mSetOfImages.begin();
-  for (; itIma != mSetOfImages.end();itIma++)
-    {
-      std::cout<<"Image "<<(*itIma)<<std::endl;
-      std::string NameOri=NameImOri((*itIma),aDirOris,"Orientation-");
-      std::cout<<"Name Orientation ==> "<<NameOri<<std::endl;
-      CamStenope * aCamV1 = CamOrientGenFromFile(NameOri,aICNMOris);
-
-      // initialize empty image to compute depth
-      mSzIms=cPt2di(aCamV1->Sz().x,aCamV1->Sz().y);
-      mImDepthImage=tImDepth(mSzIms,nullptr,eModeInitImage::eMIA_V1);
-      mImMasqVisib =tImMasq(mSzIms,nullptr,eModeInitImage::eMIA_Null);
-      tDImDepth & aDImDepth = mImDepthImage.DIm();
-      tDImMasq  & aDImMasqVisib= mImMasqVisib.DIm();
-
-      std::vector<std::string>::iterator itCld;
-      //Initialisze with no data
-      for (const auto & aPix : aDImDepth)
-      {
-        aDImDepth.SetV(aPix,NODATA);
-      }
-
-
-      for (itCld=mSetOfLidarClouds.begin();itCld != mSetOfLidarClouds.end();itCld++)
-        {
-          // get image world coordinates using proj
-          std::string aFullNameCld=aDirLidar + ELISE_CAR_DIR + (*itCld);
-          cIm2D<tREAL4> aImGround =  cIm2D<tREAL4>::FromFile(aFullNameCld);
-          //std::cout<<"TFW "<<aFullNameCld.replace(itCld->find("tif"),3,"tfw")<<"  "<<(itCld->find("tif"))<<std::endl;
-          cWorldCoordinates aImWorldTransform(aFullNameCld.replace(aFullNameCld.find("tif"),3,"tfw"));
-          cDataIm2D<tREAL4> & aDImGnd = aImGround.DIm();
-
-          // Raster World bornes
-          cPt2dr aPixUl(0,0);
-          cPt2dr aPixLr=ToR(aDImGnd.Sz());
-          cPt2dr aWPixUl,aWPixLr;
-          aImWorldTransform.to_world_coordinates(aPixUl,aWPixUl);
-          aImWorldTransform.to_world_coordinates(aPixLr,aWPixLr);
-
-          cBox2dr aEnveloppe(aWPixUl,aPixLr);
-
-          // get definition in image
-          std::vector<cPt2dr> aVPts;
-          std::vector<cPt3dr> aV3Pts;
-          cPt2dr aWPx;
-          for( const auto & aPix: *aDImGnd ){
-                if (aDImGnd->GetV(aPix))
+              for (size_t aKP=0; aKP<mTri3D->NbPts();aKP++)
+              {
+                  cPt3dr aP3D=ToR(mTri3D->KthPts(aKP));
+                  if (mCamPC->IsVisible(aP3D))
                   {
-                    // to world coordinates
-                    aImWorldTransform.to_world_coordinates(ToR(aPix),aWPx);
-                    aVPts.push_back(aWPx);
-                    aV3Pts.push_back(cPt3dr(aWPx.x(),aWPx.y(),aDImGnd->GetV(aPix)));
+                      cPt3dr aPt(mCamPC->Ground2Image(aP3D).x(),
+                                 mCamPC->Ground2Image(aP3D).y(),
+                                 mCamPC->Pose().Inverse(aP3D).z());
+
+                      aVPts.push_back(aPt);
                   }
-            }
-          // Triangul de Delaunay
 
-          if (aVPts.size()>3)
-            {
-                cTriangulation2D<tREAL8> aTriangul(aVPts);
-                aTriangul.MakeDelaunay();
-                // generate a 3D mesh
-                cTriangulation3D<tREAL8>* mTri3D = new cTriangulation3D<tREAL8>(aV3Pts, aTriangul.VFaces());
-
-               size_t mNbF   = mTri3D->NbFace();
-               size_t mNbP   = mTri3D->NbPts();
-                // ZBuffer
-             }
-          else
-
-            {
-
-            }
-          cPt2dr aPixW(0,0);
-          for (const auto & aPix : aDImGnd)
-          {
-              // To world coordinates
-              aImWorldTransform.to_world_coordinates(ToR(aPix),aPixW);
-              Pt3dr aTer(aPixW.x(),aPixW.y(),aDImGnd.GetV(aPix));
-              bool IsVisibleInSensorCamera=aCamV1->PIsVisibleInImage(aTer);
-              if (IsVisibleInSensorCamera)
-                {
-                  Pt2dr PtCam1=aCamV1->Ter2Capteur(aTer);
-                      // condition on visibility with normals information
-                      tElemDepth PtCamProfondeur =aCamV1->ProfondeurDeChamps(aTer);
-                      cPt2di PtCamInt((int)PtCam1.x,(int)PtCam1.y);
-                      tREAL4 aCurDepth=aDImDepth.GetV(PtCamInt);
-                      //std::cout<<PtCamInt<<std::endl;
-
-                      if (aDImDepth.DefGetV(PtCamInt,0))
-                        {
-                            if (aCurDepth==NODATA)
-                              {
-                                aDImDepth.SetV(PtCamInt,PtCamProfondeur);
-                                aDImMasqVisib.SetV(PtCamInt,1);
-                              }
-                            else
-                              {
-                                if (aCurDepth>PtCamProfondeur)
-                                  {
-                                    aDImDepth.SetV(PtCamInt,PtCamProfondeur);
-                                    aDImMasqVisib.SetV(PtCamInt,1);
-                                  }
-                              }
-                        }
-                }
-            }
-        }
-      // Save depth and mask image
-      aDImDepth.ToFile((*itIma)+"_Depth.tif");
-      aDImMasqVisib.ToFile((*itIma)+"_Masq.tif");
-    }
-  return EXIT_SUCCESS;
-}
-*/
-
-int cAppliMMGenDepthMV::Exe()
-{
-  // Read information patterns images, lidar and geometry
-  std::string aDirLidar,aPatLidar;
-  std:: string aDirOris,aPatOri;
-  std::string aDirImages,aPatImages;
-
-  SplitDirAndFile(aDirLidar,aPatLidar,mPointCloud,false);
-  SplitDirAndFile(aDirOris,aPatOri,mOriFolder,false);
-  SplitDirAndFile(aDirImages,aPatImages,mPatternImages,false);
-  std::cout<<"Cloud Pattern ==> "<<aPatLidar<<std::endl;
-  std::cout<<"Orientation pattern "<<aPatOri<<std::endl;
-  cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
-  cInterfChantierNameManipulateur * aICNMLD=cInterfChantierNameManipulateur::BasicAlloc(aDirLidar);
-  cInterfChantierNameManipulateur * aICNMOris=cInterfChantierNameManipulateur::BasicAlloc(aDirOris);
-
-  // Compute depth images with respect to the master image
-  mSetOfLidarClouds = *(aICNMLD->Get(aPatLidar));
-  mSetOfOris = *(aICNMOris->Get(aPatOri));
-  mSetOfImages= * (aICNM->Get(aPatImages));
-
-
-  // loading orientations
-
-  //std::vector<CamStenope*> aSetOfCameras =new std::vector<CamStenope*>;
-  std::vector<std::string>::iterator itIma=mSetOfImages.begin();
-  for (; itIma != mSetOfImages.end();itIma++)
-    {
-      std::cout<<"Image "<<(*itIma)<<std::endl;
-      std::string NameOri=NameImOri((*itIma),aDirOris,"Orientation-");
-      std::cout<<"Name Orientation ==> "<<NameOri<<std::endl;
-      CamStenope * aCamV1 = CamOrientGenFromFile(NameOri,aICNMOris);
-
-      // initialize empty image to compute depth
-      mSzIms=cPt2di(aCamV1->Sz().x,aCamV1->Sz().y);
-      mImDepthImage=tImDepth(mSzIms,nullptr,eModeInitImage::eMIA_V1);
-      mImMasqVisib =tImMasq(mSzIms,nullptr,eModeInitImage::eMIA_Null);
-      tDImDepth & aDImDepth = mImDepthImage.DIm();
-      tDImMasq  & aDImMasqVisib= mImMasqVisib.DIm();
-
-      std::vector<std::string>::iterator itCld;
-      //Initialisze with no data
-      for (const auto & aPix : aDImDepth)
-      {
-        aDImDepth.SetV(aPix,NODATA);
-      }
-
-      for (itCld=mSetOfLidarClouds.begin();itCld != mSetOfLidarClouds.end();itCld++)
-        {
-          // get image world coordinates using proj
-          std::string aFullNameCld=aDirLidar + ELISE_CAR_DIR + (*itCld);
-          cIm2D<tREAL4> aImGround =  cIm2D<tREAL4>::FromFile(aFullNameCld);
-          //std::cout<<"TFW "<<aFullNameCld.replace(itCld->find("tif"),3,"tfw")<<"  "<<(itCld->find("tif"))<<std::endl;
-          cWorldCoordinates aImWorldTransform(aFullNameCld.replace(aFullNameCld.find("tif"),3,"tfw"));
-          cDataIm2D<tREAL4> & aDImGnd = aImGround.DIm();
-
-          // Raster World bornes
-          /*cPt2dr aPixUl(0,0);
-          cPt2dr aPixLr=ToR(aDImGnd.Sz());
-          cPt2dr aWPixUl,aWPixLr;
-          aImWorldTransform.to_world_coordinates(aPixUl,aWPixUl);
-          aImWorldTransform.to_world_coordinates(aPixLr,aWPixLr);
-
-          cBox2dr aEnveloppe(aWPixUl,aPixLr);*/
-          cPt2dr aPixW(0,0);
-          for (const auto & aPix : aDImGnd)
-          {
-              // To world coordinates
-              aImWorldTransform.to_world_coordinates(ToR(aPix),aPixW);
-              Pt3dr aTer(aPixW.x(),aPixW.y(),aDImGnd.GetV(aPix));
-              bool IsVisibleInSensorCamera=aCamV1->PIsVisibleInImage(aTer);
-              if (IsVisibleInSensorCamera)
-                {
-                  Pt2dr PtCam1=aCamV1->Ter2Capteur(aTer);
-                      // condition on visibility with normals information
-                      tElemDepth PtCamProfondeur =aCamV1->ProfondeurDeChamps(aTer);
-                      cPt2di PtCamInt((int)PtCam1.x,(int)PtCam1.y);
-                      tREAL4 aCurDepth=aDImDepth.GetV(PtCamInt);
-                      //std::cout<<PtCamInt<<std::endl;
-
-                      if (aDImDepth.DefGetV(PtCamInt,0))
-                        {
-                            if (aCurDepth==NODATA)
-                              {
-                                aDImDepth.SetV(PtCamInt,PtCamProfondeur);
-                                aDImMasqVisib.SetV(PtCamInt,1);
-                              }
-                            else
-                              {
-                                if (aCurDepth>PtCamProfondeur)
-                                  {
-                                    aDImDepth.SetV(PtCamInt,PtCamProfondeur);
-                                    aDImMasqVisib.SetV(PtCamInt,1);
-                                  }
-                              }
-                        }
-                }
-            }
-        }
-      // Save depth and mask image
-      aDImDepth.ToFile((*itIma)+"_Depth.tif");
-      aDImMasqVisib.ToFile((*itIma)+"_Masq.tif");
-    }
-  return EXIT_SUCCESS;
-}
-
-  int cAppliMMGenDepthMV::Exe_sparse()
-  {
-    // Read information patterns images, lidar and geometry
-    std::string aDirLidar,aPatLidar;
-    std:: string aDirOris,aPatOri;
-    std::string aDirImages,aPatImages;
-
-    SplitDirAndFile(aDirLidar,aPatLidar,mPointCloud,false);
-    SplitDirAndFile(aDirOris,aPatOri,mOriFolder,false);
-    SplitDirAndFile(aDirImages,aPatImages,mPatternImages,false);
-    std::cout<<"Cloud Pattern ==> "<<aPatLidar<<std::endl;
-    std::cout<<"Orientation pattern "<<aPatOri<<std::endl;
-    cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
-    cInterfChantierNameManipulateur * aICNMLD=cInterfChantierNameManipulateur::BasicAlloc(aDirLidar);
-    cInterfChantierNameManipulateur * aICNMOris=cInterfChantierNameManipulateur::BasicAlloc(aDirOris);
-
-    // Compute depth images with respect to the master image
-    mSetOfLidarClouds = *(aICNMLD->Get(aPatLidar));
-    mSetOfOris = *(aICNMOris->Get(aPatOri));
-    mSetOfImages= * (aICNM->Get(aPatImages));
-
-
-    // loading orientations
-
-    //std::vector<CamStenope*> aSetOfCameras =new std::vector<CamStenope*>;
-    std::vector<std::string>::iterator itOri=mSetOfOris.begin();
-    std::vector<std::string>::iterator itIma=mSetOfImages.begin();
-    for (; itOri != mSetOfOris.end();itOri++,itIma++)
-      {
-        std::cout<<"Image "<<(*itIma)<<std::endl;
-        std::cout<<"Name Orientation ==> "<<(*itOri)<<std::endl;
-        //CamStenope * aCamV1 =  Std_Cal_From_File (aDirOris+(*itOri));
-        CamStenope * aCamV1 = CamOrientGenFromFile((*itOri),aICNMOris);
-
-        // initialize empty image to compute depth
-        mSzIms=cPt2di(aCamV1->Sz().x,aCamV1->Sz().y);
-        mImDepthImage=tImDepth(mSzIms,nullptr,eModeInitImage::eMIA_Null);
-        mImMasqVisib =tImMasq(mSzIms,nullptr,eModeInitImage::eMIA_Null);
-        tDImDepth & aDImDepth = mImDepthImage.DIm();
-        tDImMasq  & aDImMasqVisib= mImMasqVisib.DIm();
-
-        // intialize output cloud here
-        std::string pc2store=(*itIma)+"_depth.xyz";
-        std::ofstream aStore(pc2store.c_str());
-
-        std::vector<std::string>::iterator itCld=mSetOfLidarClouds.begin();
-        for (;itCld != mSetOfLidarClouds.end();itCld++)
-          {
-              //GlCloud * aPC =this->ReadPlyFile(aCldFile);
-            /**************************************************************/
-            sPlyOrientedColoredAlphaVertex **glist=NULL;
-            int Cptr = 0;
-            bool wNormales = false;
-            int type = 0;
-            if (type) {} // Warning setbutnotused
-            PlyFile * thePlyFile;
-            int nelems, nprops, num_elems, file_type;
-            float version;
-            char **elist;
-            char *elem_name;
-            PlyProperty **plist=NULL;
-            thePlyFile = ply_open_for_reading( const_cast<char *>((aDirLidar + ELISE_CAR_DIR + (*itCld)).c_str()), &nelems, &elist, &file_type, &version);
-#ifdef _DEBUG
-            cout << "version "	<< version		<< endl;
-            cout << "type "		<< file_type	<< endl;
-            cout << "nb elem "	<< nelems		<< endl;
-#endif
-
-            elem_name = elist[0];
-            plist = ply_get_element_description (thePlyFile, elem_name, &num_elems, &nprops);
-
-            std::cout<<"NPROPS "<<nprops<<"   and number of points :"<<nelems<<"  num_elements  "<<num_elems<<std::endl;
-            // nprops set to 6 to get coordinates and normals
-            //nprops=10;
-            // malloc glist
-
-            glist = (sPlyOrientedColoredAlphaVertex **) malloc (sizeof (sPlyOrientedColoredAlphaVertex *) * num_elems);
-
-            for (int i = 0; i < nelems; i++)
-            {
-                // get the description of the first element
-                elem_name = elist[i];
-                plist = ply_get_element_description (thePlyFile, elem_name, &num_elems, &nprops);
-
-                if (equal_strings ("vertex", elem_name))
-                {
-                    printf ("element %s number= %d\n", elem_name, num_elems);
-
-                    switch(nprops)
-                    {
-                        case 10: // x y z nx ny nz r g b a
-                        {
-                            type = 5;
-                            for (int j = 0; j < nprops ;++j)
-                                ply_get_property (thePlyFile, elem_name, &oriented_colored_alpha_vert_props[j]);
-
-                            sPlyOrientedColoredAlphaVertex *vertex = (sPlyOrientedColoredAlphaVertex *) malloc (sizeof (sPlyOrientedColoredAlphaVertex));
-
-                            // grab all the vertex elements
-                            for (int j = 0; j < num_elems; j++, Cptr++)
-                            {
-
-                                ply_get_element (thePlyFile, (void *) vertex);
-                                std::cout<<vertex->x<<" "<<vertex->y<<" "<<vertex->z<<" "<<vertex->nx<<" "<<vertex->ny<<" "<<vertex->nz<<" "<<vertex->red<<" "<<vertex->green<<" "<<vertex->alpha<<std::endl;
-                                glist[Cptr] = vertex;
-                            }
-                            break;
-                        }
-                        case 9: // x y z nx ny nz r g b
-                        {
-                            type = 4;
-                            for (int j = 0; j < nprops ;++j)
-                                ply_get_property (thePlyFile, elem_name, &oriented_colored_vert_props[j]);
-
-                            sPlyOrientedColoredVertex *vertex = (sPlyOrientedColoredVertex *) malloc (sizeof (sPlyOrientedColoredVertex));
-
-                            // grab all the vertex elements
-                            for (int j = 0; j < num_elems; j++, Cptr++)
-                            {
-
-                                ply_get_element (thePlyFile, (void *) vertex);
-
-        #ifdef _DEBUG
-            printf ("vertex--: %g %g %g %g %g %g %u %u %u\n", vertex->x, vertex->y, vertex->z, vertex->nx, vertex->ny, vertex->nz, vertex->red, vertex->green, vertex->blue);
-        #endif
-
-                                sPlyOrientedColoredAlphaVertex *fvertex = (sPlyOrientedColoredAlphaVertex *) malloc (sizeof (sPlyOrientedColoredAlphaVertex));
-
-                                fvertex->x = vertex->x;
-                                fvertex->y = vertex->y;
-                                fvertex->z = vertex->z;
-
-                                fvertex->nx = vertex->nx;
-                                fvertex->ny = vertex->ny;
-                                fvertex->nz = vertex->nz;
-
-                                fvertex->red   = vertex->red;
-                                fvertex->green = vertex->green;
-                                fvertex->blue  = vertex->blue;
-
-                                glist[Cptr] = fvertex;
-
-                            }
-                            break;
-                        }
-                        case 7:
-                        {
-                            type = 2;
-                            // setup for getting vertex elements
-                            for (int j = 0; j < nprops ;++j)
-                                ply_get_property (thePlyFile, elem_name, &colored_a_vert_props[j]);
-
-                            sPlyColoredVertexWithAlpha * vertex = (sPlyColoredVertexWithAlpha *) malloc (sizeof (sPlyColoredVertexWithAlpha));
-
-                            // grab all the vertex elements
-                            for (int j = 0; j < num_elems; j++, Cptr++)
-                            {
-                                ply_get_element (thePlyFile, (void *) vertex);
-
-                                #ifdef _DEBUG
-                                    printf ("vertex--: %g %g %g %u %u %u %u\n", vertex->x, vertex->y, vertex->z, vertex->red, vertex->green, vertex->blue, vertex->alpha);
-                                #endif
-
-                                sPlyOrientedColoredAlphaVertex *fvertex = (sPlyOrientedColoredAlphaVertex *) malloc (sizeof (sPlyOrientedColoredAlphaVertex));
-
-                                fvertex->x = vertex->x;
-                                fvertex->y = vertex->y;
-                                fvertex->z = vertex->z;
-
-                                fvertex->red   = vertex->red;
-                                fvertex->green = vertex->green;
-                                fvertex->blue  = vertex->blue;
-                                fvertex->alpha = vertex->alpha;
-
-                                glist[Cptr] = fvertex;
-                            }
-                            break;
-                        }
-                        case 6:
-                        {
-                            // can be (x y z r g b) or (x y z nx ny nz)
-                            PlyElement *elem = NULL;
-
-                            for (int i = 0; i < nelems; i++)
-                                if (equal_strings ("vertex", thePlyFile->elems[i]->name))
-                                    elem = thePlyFile->elems[i];
-
-                            for (int i = 0; i < nprops; i++)
-                                if ( "nx"==elem->props[i]->name )   wNormales = true;
-
-                            if (!wNormales)
-                            {
-                                type = 1;
-                                for (int j = 0; j < nprops ;++j)
-                                    ply_get_property (thePlyFile, elem_name, &colored_vert_props[j]);
-
-                                sPlyColoredVertex *vertex = (sPlyColoredVertex *) malloc (sizeof (sPlyColoredVertex));
-
-                                for (int j = 0; j < num_elems; j++, Cptr++)
-                                {
-
-                                    ply_get_element (thePlyFile, (void *) vertex);
-
-                                    #ifdef _DEBUG
-                                        printf ("vertex: %g %g %g %u %u %u\n", vertex->x, vertex->y, vertex->z, vertex->red, vertex->green, vertex->blue);
-                                    #endif
-
-                                        sPlyOrientedColoredAlphaVertex *fvertex = (sPlyOrientedColoredAlphaVertex *) malloc (sizeof (sPlyOrientedColoredAlphaVertex));
-
-                                        fvertex->x = vertex->x;
-                                        fvertex->y = vertex->y;
-                                        fvertex->z = vertex->z;
-
-                                        fvertex->red   = vertex->red;
-                                        fvertex->green = vertex->green;
-                                        fvertex->blue  = vertex->blue;
-
-                                        glist[Cptr] = fvertex;
-                                }
-                            }
-                            else
-                            {
-                                type = 3;
-                                for (int j = 0; j < nprops ;++j)
-                                    ply_get_property (thePlyFile, elem_name, &oriented_vert_props[j]);
-
-                                sPlyOrientedVertex *vertex = (sPlyOrientedVertex *) malloc (sizeof (sPlyOrientedVertex));
-
-                                for (int j = 0; j < num_elems; j++, Cptr++)
-                                {
-                                    ply_get_element (thePlyFile, (void *) vertex);
-
-                                    #ifdef _DEBUG
-                                        printf ("vertex: %g %g %g %g %g %g\n", vertex->x, vertex->y, vertex->z, vertex->nx, vertex->ny, vertex->nz);
-                                    #endif
-
-                                    sPlyOrientedColoredAlphaVertex *fvertex = (sPlyOrientedColoredAlphaVertex *) malloc (sizeof (sPlyOrientedColoredAlphaVertex));
-
-                                    fvertex->x = vertex->x;
-                                    fvertex->y = vertex->y;
-                                    fvertex->z = vertex->z;
-
-                                    fvertex->nx = vertex->nx;
-                                    fvertex->ny = vertex->ny;
-                                    fvertex->nz = vertex->nz;
-
-                                    glist[Cptr] = fvertex;
-                                }
-                            }
-                            break;
-                        }
-                        case 3:
-                        {
-                            for (int j = 0; j < nprops ;++j)
-                                ply_get_property (thePlyFile, elem_name, &vert_props[j]);
-
-                            sVertex *vertex = (sVertex *) malloc (sizeof (sVertex));
-
-                            for (int j = 0; j < num_elems; j++, Cptr++)
-                            {
-
-                                ply_get_element (thePlyFile, (void *) vertex);
-
-        #ifdef _DEBUG
-                            printf ("vertex: %g %g %g\n", vertex->x, vertex->y, vertex->z);
-        #endif
-
-                                sPlyOrientedColoredAlphaVertex *fvertex = (sPlyOrientedColoredAlphaVertex *) malloc (sizeof (sPlyOrientedColoredAlphaVertex));
-
-                                fvertex->x = vertex->x;
-                                fvertex->y = vertex->y;
-                                fvertex->z = vertex->z;
-
-                                glist[Cptr] = fvertex;
-                            }
-                            break;
-                        }
-                        default:
-                        {
-
-
-                          // ONLY LOAD POINT COORINATES
-                          {
-                           std::cout<<"Load coordinates only x y z: "<<std::endl;
-                              for (int j = 0; j < 3 ;++j)
-                                  ply_get_property (thePlyFile, elem_name, &vert_props[j]);
-
-                              sVertex *vertex = (sVertex *) malloc (sizeof (sVertex));
-
-                              for (int j = 0; j < num_elems; j++, Cptr++)
-                              {
-
-                                  ply_get_element (thePlyFile, (void *) vertex);
-
-          #ifdef _DEBUG
-                              printf ("vertex: %g %g %g\n", vertex->x, vertex->y, vertex->z);
-          #endif
-
-                                  sPlyOrientedColoredAlphaVertex *fvertex = (sPlyOrientedColoredAlphaVertex *) malloc (sizeof (sPlyOrientedColoredAlphaVertex));
-
-                                  fvertex->x = vertex->x;
-                                  fvertex->y = vertex->y;
-                                  fvertex->z = vertex->z;
-
-                                  glist[Cptr] = fvertex;
-                              }
-                              std::cout<<"LOAD COORDINATES XYZ " <<std::endl;
-                              break;
-                          }
-
-
-                        }
-                    }
-                }
-            }
-            ply_close (thePlyFile);
-
-              /**************************************************************/
-                for (int aK=0;aK<num_elems;aK++)
-                  {
-                    sPlyOrientedColoredAlphaVertex * pt = glist[aK];
-                    Pt3dr aTer(pt->x,pt->y,pt->z);
-                    bool IsVisibleInSensorCamera=aCamV1->PIsVisibleInImage(aTer);
-                    if (IsVisibleInSensorCamera)
-                      {
-                        Pt2dr PtCam1=aCamV1->Ter2Capteur(aTer);
-                            // condition on visibility with normals information
-                            tElemDepth PtCamProfondeur =aCamV1->ProfondeurDeChamps(aTer);
-                            // store depth
-                            //aDImDepth.SetV();
-                            cPt2di PtCamInt((int)PtCam1.x,(int)PtCam1.y);
-                            aDImDepth.SetV(PtCamInt,PtCamProfondeur);
-                            aDImMasqVisib.SetV(PtCamInt,1);
-                        //mImDepthImage.SetElem(PtCamInt.x,PtCamInt.y,PtCamProfondeur);
-                      }
-                    /*else
-                      {
-                        Pt2dr PtCam1=aCamV1->Ter2Capteur(aTer);
-                        cPt2di PtCamInt((int)PtCam1.x,(int)PtCam1.y);
-                        aDImDepth.SetV(PtCamInt,0.0);
-                        aDImMasqVisib.SetV(PtCamInt,0);
-                      }*/
-                  }
-                //GenerateDepthCloud(aCamV1,pc2store,glist,num_elems);
-                GenerateProfondeurDeChamps(aCamV1,aStore,glist,num_elems);
-                      if ( glist!=NULL ) free(glist); // G++11 delete glist;
-                      if ( plist!=NULL ) delete plist;
               }
-        aStore.close();
-        aDImDepth.ToFile((*itIma)+"_Depth.tif");
-        aDImMasqVisib.ToFile((*itIma)+"_Masq.tif");
+          }
       }
-    return EXIT_SUCCESS;
+
+      mTri3D=nullptr;
+
+      if (aVPts.empty())
+          return;
+
+      mTri3DReproj =new cTriangulation3D<tREAL8>(aVPts,aFaces);
+
+      //1. Nearest Neighbor search in 2D
+      cBox2dr aBox = mTri3DReproj->Box2D();
+      std::cout<<"BOX  "<<aBox<<std::endl;
+      aDistReject=1.0*std::sqrt(mNbPointByPatch *aBox.NbElem()/ (mTri3DReproj->NbPts()*M_PI));
+      // indexation of all points
+      std::cout<<"aDist Reject "<<aDistReject<<std::endl;
+      cTiling<cTil2DTri3D<tREAL8> >  aTileAll(aBox,true,mTri3DReproj->NbPts()/20,mTri3DReproj);
+      for (size_t aKP=0 ; aKP<mTri3DReproj->NbPts() ; aKP++)
+      {
+          aTileAll.Add(cTil2DTri3D<tREAL8>(aKP));
+      }
+      #pragma omp parallel
+      {
+        #pragma omp for
+          for (size_t aKPt=0; aKPt<mTri3DReproj->NbPts(); aKPt++)
+          {
+              cPt2dr aPt= ToR(Proj(mTri3DReproj->KthPts(aKPt)));
+              auto aLIptr = aTileAll.GetObjAtDist(aPt,aDistReject);
+              std::vector<int> aPatch; // the patch itself = index of points
+              aPatch.push_back(aKPt);  // add the center at begining
+              for (const auto aPtrI : aLIptr)
+              {
+                  if (aPtrI->Ind() !=aKPt) // dont add the center twice
+                  {
+                      aPatch.push_back(aPtrI->Ind());
+                  }
+              }
+
+              std::vector<cPt3dr> aVP;
+              for (const auto anInd : aPatch)
+                  aVP.push_back(ToR(mTri3DReproj->KthPts(anInd)));
+
+              if(aVP.size()<aSzMin)
+                  continue;
+
+              std::vector<tREAL8> aVDepths;
+
+              for (const auto & aPt: aVP)
+              {
+                aVDepths.push_back(aPt.z());
+              }
+
+
+              // add another criterion
+
+              tREAL8 aDepthMin = *min_element(aVDepths.begin(),aVDepths.end());
+              tREAL8 aDepthMax = *max_element(aVDepths.begin(),aVDepths.end());
+              // Compute visibility criterion
+              tREAL8 aVisibility=exp(-pow((aVDepths.at(0)-aDepthMin),2)/pow((aDepthMax-aDepthMin+1e-8),2));
+
+              if (aVisibility<aThresholdVisbility)
+                  continue;
+              /*if( ! MakeDecision(aVP))
+                  continue;*/
+              cPt2di aP2DCam=Pt_round_ni(cPt2dr(aVP[0].x(),aVP[0].y()));
+              if (mDDepthImage->Inside(aP2DCam))
+              {
+                  if (mDMasqImage->GetV(aP2DCam))
+                    {
+                      if (mDDepthImage->GetV(aP2DCam)>aVP[0].z())
+                      {
+                          mDDepthImage->SetV(aP2DCam,aVP[0].z());
+                      }
+                    }
+                  else
+                    {
+                      mDDepthImage->SetV(aP2DCam,aVP[0].z());
+                      mDMasqImage->SetV(aP2DCam,1);
+                    }
+              }
+          }
+      }
+      mTri3DReproj= nullptr;
+
+      // save Depth image
+      mDDepthImage->ToFile(mNameOutDepth+mCamPC->NameImage());
+      mDMasqImage->ToFile(mNameOutMasq+mCamPC->NameImage());
+
+      mCamPC=nullptr;
+      mDDepthImage=nullptr;
+      mDMasqImage=nullptr;
+
+      mDepthImage=cPt2di(1,1);
+      mMasqImage=cPt2di(1,1);
+  }
+
+  void cAppliMMGenDepthMV::MakeOneTri(const  tTriangle2DCompiled & aTri)
+  {
+      bool   isHGrowPx=false;
+
+      // Compute 3 value in a point
+      cPt3dr aPPx;
+      for (int aKp=0 ; aKp<3 ; aKp++)
+      {
+          aPPx[aKp] = mDDepthImage->GetV(ToI(aTri.Pt(aKp)));
+      }
+      //  Tricky for WMM, but if used aWMM() => generate warning
+      cWhichMinMax<int,double>  aWMM(0,aPPx[0]);
+      for (int aKp=1 ; aKp<3 ; aKp++)
+      {
+          aWMM.Add(aKp,aPPx[aKp]);
+      }
+
+      // Compute Min,Max,Med
+      int aKMin = aWMM.Min().IndexExtre();
+      int aKMax = aWMM.Max().IndexExtre();
+      int aKMed = 3-aKMin-aKMax;   // KMed is remaining index : 0,1,2 => sum equal 3
+
+      double aPxMax = aPPx[aKMax];
+      double aPxMin = aPPx[aKMin];
+      double aPxMed = aPPx[aKMed];
+
+      // Compute attenuation to take into account noise in gradident estimate ,
+      double aMul = 1;
+      double anEc = aPxMax - aPxMin;
+      if (anEc!=0)
+      {
+          aMul = std::max(0.0,anEc-mNoisePx)/anEc;
+      }
+
+      // Compute occlusion on gradient threshold
+      cPt2dr aG  = aTri.GradientVI(aPPx)*aMul;
+      double aNG = Norm2(aG);
+      bool isOcclusion = (aNG>mThreshGrad);
+      int aValMasq = isOcclusion ? 0 : 255;
+
+      int aKLow = isHGrowPx ? aKMin : aKMax;
+      double  aValOcl = aPPx[aKLow];
+      bool isTri2Low =  isOcclusion && (std::abs(aPxMed-aValOcl)<anEc/2.0);
+
+      double aValTri;
+      cPt2dr aVecTri;
+      if (isTri2Low)  // Case where two vertices of the triangle are low
+      {
+          aValMasq = mMasq2Tri;
+          cSegment aSeg(aTri.Pt(aKLow),aTri.Pt(aKMed));
+          aSeg.CompileFoncLinear(aValTri,aVecTri,aPPx[aKLow],aPPx[aKMed]);
+      }
+
+      //  Now compute all the pixel and set the value
+
+      static std::vector<cPt2di> aVPixTri;
+      aTri.PixelsInside(aVPixTri);
+      for (const auto & aPix : aVPixTri)
+      {
+          if (isOcclusion)
+          {
+              if (isTri2Low)  // 2 point low, interpol along segment
+                  mDImInterp->SetV(aPix,aValTri+Scal(aVecTri,ToR(aPix)));
+              else
+                  mDImInterp->SetV(aPix,aValOcl);  // One point low, used lowest value
+          }
+          else   // Not occluded, use linear interpol
+          {
+              mDImInterp->SetV(aPix,aTri.ValueInterpol(ToR(aPix),aPPx));
+          }
+          mDIMasqOut->SetV(aPix,aValMasq);
+      }
+  }
+
+
+
+  int cAppliMMGenDepthMV::ExeOnParsedBox()
+  {
+      // densify depth map using delaunay triangulation
+      mDepthImage = APBI_ReadIm<tElemDepth>(mNameOutDepth+mCamPC->NameImage());
+      mDDepthImage = &(mDepthImage.DIm());
+
+      mMasqImage = APBI_ReadIm<tElemMasq>(mNameOutMasq+mCamPC->NameImage());
+      mDMasqImage= &(mMasqImage.DIm());
+
+
+      mImInterp = cIm2D<tElemDepth>(mDDepthImage->Sz(),nullptr,eModeInitImage::eMIA_Null);
+      mDImInterp = &(mImInterp.DIm());
+      mIMasqOut  = cIm2D<tElemMasq>(mDMasqImage->Sz(),nullptr,eModeInitImage::eMIA_Null);
+      mDIMasqOut = &mIMasqOut.DIm();
+
+      std::vector<cPt2dr> aVPts;
+      for (const auto & aPix : *mDMasqImage)
+      {
+          if (mDMasqImage->GetV(aPix))
+              aVPts.push_back(ToR(aPix));
+      }
+
+      if (aVPts.size()>3)
+      {
+          cTriangulation2D<tCoordDensify> aTriangul(aVPts);
+          aTriangul.MakeDelaunay();
+          StdOut() << "NbFace= " <<  aTriangul.NbFace() << "\n";
+
+
+          // Initiate image of interpolated value
+          for (size_t aKTri=0 ; aKTri<aTriangul.NbFace() ; aKTri++)
+          {
+              MakeOneTri(cTriangle2DCompiled(aTriangul.KthTri(aKTri)));
+          }
+      }
+      else
+      {}
+
+      APBI_WriteIm("DensifyPx_"+LastPrefix(APBI_NameIm()) + ".tif",mImInterp);
+      //mDImInterp->ToFile("DensifyPx_"+LastPrefix(APBI_NameIm()) + ".tif");
+      APBI_WriteIm("DensifyMasq_"+LastPrefix(APBI_NameIm()) + ".tif",mIMasqOut);
+
+      return EXIT_SUCCESS;
+  }
+
+
+  int cAppliMMGenDepthMV::Exe()
+  {
+      mPhProj.FinishInit();
+
+    // image names pattern
+      std::vector<std::string> aVecIms= VectMainSet(0);
+
+    // Pattern of Lidar data files
+      std::vector<std::string> aVecLidar= VectMainSet(1);
+      size_t aSzMin=5;
+      tREAL8 aThresholdVisbility=0.8;
+
+      for (const auto & anImageName: aVecIms)
+      {
+          // generate depth
+
+          Generate_sparse_depth(anImageName,
+                                aVecLidar,
+                                aSzMin,
+                                aThresholdVisbility);
+
+          std::cout<<"Generated depth map : sparse "<<anImageName<<std::endl;
+
+          this->mNameIm=anImageName;
+          mCamPC=mPhProj.ReadCamPC(anImageName,true);
+          // densify
+          if (RunMultiSet(0,0))
+              return ResultMultiSet();
+          APBI_ExecAll();
+      }
+
+     // Densify Depth Map using Delaunay Triangulation
+
+
+      return EXIT_SUCCESS;
   }
 
 };
