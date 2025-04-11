@@ -63,6 +63,7 @@ class cAppli_ReportBlock : public cMMVII_Appli
         cStdStatRes                  mStatGlobPt;
         std::vector<int>             mPercStat;
         std::map<std::string,cStdStatRes>    mMapStatPair;
+        std::map<std::string,cStdStatRes>    mMap1Image;
       
         void CSV_AddStat(const std::string& anId,const std::string& aMes,const cStdStatRes &) ;
     //  AddOneReportCSV(mIdRepPtIndiv,{"AVG "+anIdSync,"",ToStr(aAvgRes.SW()),ToStr(aAvgRes.Average())});
@@ -90,7 +91,7 @@ cAppli_ReportBlock::cAppli_ReportBlock
      mIdRepPtGlob  ("GlobPt"),
      mPatNameGCP   (".*"),
      mStrM2T       ("TW"),
-     mPercStat     {50,75,90}
+     mPercStat     {15,25,50,75,85}
 {
 }
 
@@ -113,6 +114,7 @@ cCollecSpecArg2007 & cAppli_ReportBlock::ArgOpt(cCollecSpecArg2007 & anArgOpt)
              << AOpt2007(mPatNameGCP,"PatFiltGCP","Pattern to filter name of GCP",{{eTA2007::HDV}})
              << AOpt2007(mStrM2T,"M2T","Measure to test : T-arget W-ire",{{eTA2007::HDV}})
              << AOpt2007(mAddExReport,"AddExRep","Addditional Extension in Report Name",{{eTA2007::HDV}})
+             << AOpt2007(mPercStat,"PercStat","Percentils for stat in global report",{{eTA2007::HDV}})
     ;
 }
 
@@ -279,8 +281,12 @@ void cAppli_ReportBlock::TestPoint3D(const std::string & anIdSync,const std::vec
 	             const auto & [aCam2,aMes2] = aVect.at(aK2);
                      cHomogCpleIm aCple(aMes1.mPt,aMes2.mPt);
                      tREAL8 aRes12 = aCam1->PixResInterBundle(aCple,*aCam2) * 4.0;  // 4.0 = DOF = 4 / (4-3)
-                     std::string aNamePair = mTheBloc->IdBloc(aCam1->NameImage()) + "/" +  mTheBloc->IdBloc(aCam2->NameImage());
+                     std::string anId1 = "Cam:"+mTheBloc->IdBloc(aCam1->NameImage());
+                     std::string anId2 = "Cam:"+mTheBloc->IdBloc(aCam2->NameImage());
+                     std::string aNamePair = anId1 + "/" + anId2;
                      mMapStatPair[aNamePair].Add(aRes12);
+                     mMap1Image[anId1].Add(aRes12);
+                     mMap1Image[anId2].Add(aRes12);
                  }
              }
          }
@@ -346,6 +352,10 @@ int cAppli_ReportBlock::Exe()
         MakeOneBloc(aVC);
         DeleteAllAndClear(aVC);
     }
+
+   // Add the stat for all pairs
+   for (const auto & [aNameImage,aStatImage] : mMap1Image )
+       CSV_AddStat(mIdRepPtGlob,aNameImage,aStatImage);
 
    // Add the stat for all pairs
    for (const auto & [aNamePair,aStatPair] : mMapStatPair )
