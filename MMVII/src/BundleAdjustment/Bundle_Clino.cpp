@@ -68,7 +68,7 @@ namespace MMVII
         mSetInterv->AddOneInterv(mOmega);
     }
 
-    void  cClinoWithUK::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
+    void  cClinoWithUK::FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
     {
         aGAIP.TestParam(this, &( mOmega.x())    ,"Wx");
         aGAIP.TestParam(this, &( mOmega.y())    ,"Wy");

@@ -178,7 +178,84 @@ template<class Type> void TplBenchRotation3D(cParamExeBench & aParam)
         MMVII_INTERNAL_ASSERT_bench(aD<1e-2,"Omega Phi Kapa"); 
 	// StdOut() << "DDDD " << aD << std::endl;
    }
-   // StdOut() << "============================" << std::endl;
+   // check that multiply M by A and its inverse, do not change centroid
+   for (int aKTest=0 ; aKTest<20 ; aKTest++)
+   {
+        cRotation3D<Type> aM=  cRotation3D<Type>::RandomElem();
+        cRotation3D<Type> aRA=  cRotation3D<Type>::RandomSmallElem(0.3);
+        cRotation3D<Type> aRB=  cRotation3D<Type>::RandomSmallElem(0.3);
+        if (aKTest%2)
+           aRA = cRotation3D<Type>::Identity();
+        else
+           aRB = cRotation3D<Type>::Identity();
+
+        cRotation3D<Type> aR1 =   aRB* aM* aRA;
+        cRotation3D<Type> aR2 =   aRB.MapInverse() * aM* aRA.MapInverse();
+
+        cRotation3D<Type> aRAvg = aR1.Centroid(aR2);
+
+        Type aDist = aM.Dist(aRAvg);
+        MMVII_INTERNAL_ASSERT_bench(aDist<1e-4,"Centroid by mult"); 
+   }
+   /*  Test rotation aggregation from a set of rotation. Method for generating sample :
+
+          - generate a center M , pureley random
+          - generate inlayer arround M, we generate a small perturbation P and add M*P and M*P-1,  this
+            symetry assure that the center is exactly on M
+          - idem for outlayer
+
+        We can add, or not, the center M to the samples :
+           - if we add it, the median estimator must return it
+           - in all case the robust estimation must converge to M
+   */  
+   for (int aKTest=0 ; aKTest<20 ; aKTest++)
+   {
+         bool WithC = ((aKTest%2)==1); // do we add the center to the samples
+
+         int aNbInlay = WithC ? 100 : 200;   // with center, less sample because we make a "full median"
+         int aNbOutlay = WithC ? 50 : 100;
+
+         tREAL8 aNoiseIn = 0.1;
+         tREAL8 aNoiseOut0 = 1.0;  //interval of outlayer
+         tREAL8 aNoiseOut1 = 3.0;
+
+         int aNbTot = aNbInlay + aNbOutlay;
+         // if WithC  we will add M at a random position, else never add
+         int aIndC = (WithC ?  RandUnif_N (aNbTot) : -1);
+
+         cRotation3D<Type> aM=  cRotation3D<Type>::RandomElem();
+         std::vector<cRotation3D<Type>> aVRot;
+         
+         for (int aK=0 ; aK <aNbTot ; aK++)
+         {
+             bool isIn = SelectQAmongN(aK,aNbInlay,aNbTot);
+             cRotation3D<Type> aPerturb = isIn ? 
+                                          cRotation3D<Type>::RandomSmallElem(aNoiseIn) :
+                                          cRotation3D<Type>::RandomInInterval(aNoiseOut0,aNoiseOut1) ;
+             aVRot.push_back(aM*aPerturb);
+             aVRot.push_back(aM*aPerturb.MapInverse());
+
+
+             if (aK==aIndC)
+                aVRot.push_back(aM);
+         }
+
+         if (WithC) 
+         {
+             cRotation3D<Type> aEstim0 = cRotation3D<Type>::PseudoMediane(aVRot);
+             tREAL8 aD0M = aEstim0.Dist(aM);
+             MMVII_INTERNAL_ASSERT_bench(aD0M==0,"PseudoMediane "); 
+         }
+
+         cRotation3D<Type> aEstim1 = cRotation3D<Type>::PseudoMediane(aVRot,30);
+         // tREAL8 aD1M = aEstim1.Dist(aM);
+
+         cRotation3D<Type> aEstim2 = cRotation3D<Type>::RobustAvg(aVRot,aEstim1,{0.1,2,0.5},3,1e-6,8);
+         tREAL8 aD2M = aEstim2.Dist(aM);
+
+
+         MMVII_INTERNAL_ASSERT_bench(aD2M<=1e-4,"RobustAvg "); 
+   }
 }
 
 void BenchRotation3DReal8()

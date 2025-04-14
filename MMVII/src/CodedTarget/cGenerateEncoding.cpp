@@ -231,6 +231,7 @@ class cAppliGenerateEncoding : public cMMVII_Appli
 	std::vector<cCelCC*>  mVOC;
 	std::vector<cPrioCC>  mPrioCC;
 	std::string           mNameOut;
+	std::string           mPostfixOut;
 };
 
 cPrioCC * cAppliGenerateEncoding::GetBest()
@@ -276,7 +277,8 @@ cCollecSpecArg2007 & cAppliGenerateEncoding::ArgOpt(cCollecSpecArg2007 & anArgOp
                << AOpt2007(mSpec.mPrefix,"Prefix","Prefix for output files")
                << AOpt2007(mMiror,"Mir","Unify mirro codes")
                << AOpt2007(mNameOut,"Out","Name for output file")
-              <<   mPhProj.DPGndPt3D().ArgDirInOpt("GCPNames","Dir GCP for code selection on names")
+               << AOpt2007(mPostfixOut,"Postfix","Postfix for output file (def->default tagged extension")
+               <<   mPhProj.DPGndPt3D().ArgDirInOpt("GCPNames","Dir GCP for code selection on names")
           ;
 }
 
@@ -391,8 +393,11 @@ int  cAppliGenerateEncoding::Exe()
                        + "_Hamm" + ToStr(mSpec.mMinHammingD)
                        + "_Run" + ToStr(mSpec.mMaxRunL.x()) + "_" + ToStr(mSpec.mMaxRunL.y());
    }
+   if (! IsInit(&mPostfixOut))
+      mPostfixOut = TaggedNameDefSerial();
+
    if (! IsInit(&mNameOut))
-      mNameOut  =   mSpec.mPrefix + "_SpecEncoding." + TaggedNameDefSerial();
+      mNameOut  =   mSpec.mPrefix + "_SpecEncoding." + mPostfixOut;
 
    // calls method in cMMVII_Appli, to show current value of params, as many transformation have been made
    ShowAllParams();
@@ -449,14 +454,17 @@ int  cAppliGenerateEncoding::Exe()
    if (mPhProj.DPGndPt3D().DirInIsInit())
    {
       cSetMesGnd3D aSetGCP =  mPhProj.LoadGCP3D();
-      std::set<int>   aLInt;
+      std::set<int>   aLIntOk;
       for (const auto & aGCP : aSetGCP.Measures())
-          aLInt.insert(cStrIO<int>::FromStr(aGCP.mNamePt));
-      //  StdOut() << "VOOOCSIZE= " << mVOC.size()  << " "  << aSetGCP.Measures().size() << "\n";
+      {
+          // the name from generated encoding are nums, but external name can be any string 
+          if (StringIsIntOk(aGCP.mNamePt))
+             aLIntOk.insert(cStrIO<int>::FromStr(aGCP.mNamePt));
+      }
       erase_if
       (
              mVOC,
-             [aLInt] (const auto & aPtr) {return  ! MapBoolFind(aLInt,aPtr->mNum);}
+             [aLIntOk] (const auto & aPtr) {return  ! MapBoolFind(aLIntOk,aPtr->mNum);}
       );
       //  StdOut() << "VOOOCSIZE= " << mVOC.size()  << " "  << aSetGCP.Measures().size() << "\n";
       //  getchar();
@@ -528,9 +536,15 @@ int  cAppliGenerateEncoding::Exe()
 
    cTimeSequencer aTSeq(0.5); // to make use patientate
 			     
+  
+   bool  mDoFilter = (mSpec.mMinHammingD!=1) || (mSpec.mMaxNb<mVOC.size()  );
+   StdOut() <<  " MaxNb=" << mSpec.mMaxNb << "\n";
+   StdOut() <<  " MinH=" << mSpec.mMinHammingD << "\n";
          //  5.2 Now iteratively select one and update others
-   while (GoOn)
+   if (mDoFilter)
    {
+     while (GoOn)
+     {
        // Extract best solution
        cPrioCC * aNextP = GetBest();
 
@@ -552,7 +566,14 @@ int  cAppliGenerateEncoding::Exe()
        {
 	   StdOut() << "Hamming filter, still to do " << mSpec.mMaxNb-aNewVOC.size() << std::endl;
        }
-   }
+     }
+  }
+  else
+  {
+      aNewVOC = mVOC;
+  }
+     
+   StdOut() << "SSSSS " << mVOC.size() << " => " << aNewVOC.size() << "\n";
    mVOC = aNewVOC;
    StdOut() <<  "Size after hamming  distance selection" << mVOC.size() << std::endl;
 

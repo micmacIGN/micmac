@@ -102,7 +102,7 @@ void cMMVII_BundleAdj::InitItereGCP()
 }
 
 
-void cMMVII_BundleAdj::OneItere_GCP(bool verbose)
+void cMMVII_BundleAdj::OneItere_GCP()
 {
     auto & aSet                           = mGCP.getMesGCP();
     if (!aSet.IsPhaseGCPFinished())
@@ -123,19 +123,21 @@ void cMMVII_BundleAdj::OneItere_GCP(bool verbose)
     int aNbGCPVis = 0;
     int aAvgVis = 0;
     int aAvgNonVis = 0;
-    if (verbose && mVerbose & (aNbGCP!=0) )
+    if (aNbGCP!=0)
     {
-        StdOut() << "  * Gcp0=" << aSet.AvgSqResidual() ;
         aNewGCP = aSet; //copy
         for (size_t aK=0 ; aK< aNbGCP ; aK++)
         {
             if (!aGCP_UK[aK]) continue;
-            // cPt3dr aDif = mNewGCP.MesGCP()[aK].mPt -  aGCP_UK[aK]->Pt();
-            // StdOut() << " DIFF=" << aDif  << " DDD= "  << (aDif.x()==0)  <<" " << (aDif.y()==0)  <<" " << (aDif.z()==0)  <<" " << "\n";
             aNewGCP.MesGCP()[aK].mPt = aGCP_UK[aK]->Pt();
         }
-        StdOut() << " , GcpNew=" << aNewGCP.AvgSqResidual() ; // getchar();
+        if (mVerbose)
+        {
+            StdOut() << "  * Gcp0=" << aSet.AvgSqResidual() ;
+            StdOut() << " , GcpNew=" << aNewGCP.AvgSqResidual() ; // getchar();
+        }
     }
+
 
     // MMVII_INTERNAL_ASSERT_tiny(!aGcpUk,"Dont handle GCP UK 4 Now");
 
@@ -248,7 +250,7 @@ void cMMVII_BundleAdj::OneItere_GCP(bool verbose)
         }
     }
 
-    if (verbose && mVerbose && (aNbGCP!=0))
+    if (mVerbose && (aNbGCP!=0))
     {
         StdOut() << " PropVis1Im=" << aNbGCPVis /double(aNbGCP)
                  << " AvgVis=" << aAvgVis/double(aNbGCP)
@@ -276,7 +278,7 @@ template <const int Dim> cPtxdr_UK<Dim>::cPtxdr_UK(const tPt & aPt,const std::st
 
 std::vector<std::string> VNameCoordsPt = {"x","y","z","t"};
 
-template <const int Dim>  void cPtxdr_UK<Dim>::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
+template <const int Dim>  void cPtxdr_UK<Dim>::FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 {
     for (int aD=0 ; aD<Dim ; aD++)
     {

@@ -31,6 +31,13 @@ template <class Type> cSparseVect<Type>::cSparseVect(int aSzReserve) :
      IV().reserve(aSzReserve);
 }
 
+template <class Type> cSparseVect<Type>::cSparseVect(const tCont &  aCont)  :
+   mIV (new tCont (aCont))
+{
+}
+
+
+
 template <class Type> cSparseVect<Type> cSparseVect<Type>::Dup() const
 {
     tSV aRes(size());
@@ -71,6 +78,7 @@ template <class Type>  void cSparseVect<Type>::AddIV(const tCplIV & aCpl)
 { 
    IV().push_back(aCpl); 
 }
+
 
 
 template <class Type> void cSparseVect<Type>::CumulIV(const tCplIV & aCpl)
@@ -424,6 +432,24 @@ template <class Type> Type cDenseVect<Type>::ApproxDistBetweenSubspace(const std
 	return std::max(ASymApproxDistBetweenSubspace(aVV1,aVV2),ASymApproxDistBetweenSubspace(aVV2,aVV1));
 }
 
+
+template <class Type> int cDenseVect<Type>::AllDimComon(const std::vector<tDV>  & aVVect)
+{
+   MMVII_INTERNAL_ASSERT_tiny(!aVVect.empty(),"cDenseVect<Type>::AllDimComon");
+   int aRes =  aVVect[0].Sz();
+#if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )
+   for (size_t aKV=1 ; aKV<aVVect.size() ; aKV++)
+       MMVII_INTERNAL_ASSERT_tiny(aRes==aVVect[aKV].Sz(),"cDenseVect<Type>::AllDimComon");
+#endif
+
+   return aRes;
+}
+
+
+
+// /template <class Type> Type  DegenDegree(const std::vector<tDV>  & aVVect) ;
+
+
 cDenseVect<tREAL8> NormalizeMoyVar(const cDenseVect<tREAL8> & aV0,tREAL8 aEpsilon)
 {
     size_t aSz = aV0.Sz();
@@ -677,10 +703,18 @@ template <class Type> static void TplReadLineInPlace(const cMatrix<Type> & aMat,
 
 
 
-template <class Type> static void TplWriteLine(cMatrix<Type> & aMat,int aY,const cDenseVect<Type>& aV)
+template <class Type> static void TplWriteLine(cMatrix<Type> & aMat,int aY,const cDenseVect<Type>& aV,bool OkPartial=false)
 {
-    aMat.TplCheckSizeX(aV);
-    for (int aX=0 ; aX<aMat.Sz().x() ; aX++)
+    int aNb = aMat.Sz().x();
+    if (OkPartial)
+    {
+        aNb = aV.Sz();
+        aMat.TplCheckSizeX_SupEq(aV);
+    }
+    else
+        aMat.TplCheckSizeX(aV);
+
+    for (int aX=0 ; aX<aNb ; aX++)
         aMat.V_SetElem(aX,aY,aV(aX)) ;
 }
 
@@ -727,7 +761,7 @@ template <class Type> Type cMatrix<Type>::MulLineElem(int aX,const tDV & aIn) co
 template <class Type> void cMatrix<Type>::ReadColInPlace(int aX,tDV & aV)  const {TplReadColInPlace(*this,aX,aV);}
 template <class Type> void cMatrix<Type>::WriteCol(int aX,const tDV  &aV)        {TplWriteCol(*this,aX,aV);}
 template <class Type> void cMatrix<Type>::ReadLineInPlace(int aY,tDV & aV) const {TplReadLineInPlace(*this,aY,aV);}
-template <class Type> void cMatrix<Type>::WriteLine(int aY,const tDV  &aV)       {TplWriteLine(*this,aY,aV);}
+template <class Type> void cMatrix<Type>::WriteLine(int aY,const tDV  &aV,bool OkPartial)       {TplWriteLine(*this,aY,aV,OkPartial);}
 
 template <class Type> cDenseVect<Type>  cMatrix<Type>::ReadCol(int aX) const
 {
@@ -754,6 +788,11 @@ template <class Type> std::vector<cDenseVect<Type>>  cMatrix<Type>::MakeLines() 
     return aRes;
 }
 
+template <class Type> void cMatrix<Type>::WriteCol(int aX,const tSpV  &aV)  
+{
+    for (const auto & aPair : aV)
+        V_SetElem(aX,aPair.mInd,aPair.mVal);
+}
 
      //    ===   MulMat ====
 
@@ -912,7 +951,6 @@ INSTANTIATE_BASE_MATRICES(tREAL16)
 
 // INSTANTIATE_DENSE_VECT(tU_INT1)
 INSTANTIATE_DENSE_VECT(tINT4)
-
 
 
 };

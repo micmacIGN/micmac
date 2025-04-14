@@ -282,15 +282,23 @@ template <class Type,const int Dim> cPtxd<Type,Dim> cPtxd<Type,Dim>::FromStdVect
    return aRes;
 }
 
-template <class T,const int Dim> cPtxd<tREAL8,Dim> Centroid(const std::vector<cPtxd<T,Dim> > & aVPts)
+template <class T,const int Dim> cPtxd<tREAL8,Dim> Centroid(const std::vector<cPtxd<T,Dim> > & aVPts,const std::vector<T> & aVW)
 {
    MMVII_INTERNAL_ASSERT_tiny((!aVPts.empty()),"Bad size in Vec/Pt");
 
    cPtxd<tREAL8,Dim> aRes = ToR(aVPts[0]);
+   tREAL8 aSumW = aVW.at(0);
    for (int aK=1 ; aK<int(aVPts.size()) ; aK++)
+   {
       aRes += ToR(aVPts[aK]);
+      aSumW += aVW.at(aK);
+   }
 
-   return aRes/ tREAL8(aVPts.size());
+   return aRes/ aSumW;
+}
+template <class T,const int Dim> cPtxd<tREAL8,Dim> Centroid(const std::vector<cPtxd<T,Dim> > & aVPts)
+{
+   return Centroid(aVPts,std::vector<T>(aVPts.size(),1.0)); 
 }
 
 template <class T,const int Dim> cPtxd<T,Dim> Centroid(T aW0,const cPtxd<T,Dim> & aP0,const cPtxd<T,Dim> & aP1)
@@ -1348,6 +1356,7 @@ MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,2);\
 MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,3);\
 MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,4);\
 template  cPtxd<tREAL8,DIM> Centroid(const std::vector<cPtxd<TYPE,DIM> > & aVPts);\
+template  cPtxd<tREAL8,DIM> Centroid(const std::vector<cPtxd<TYPE,DIM> > & ,const std::vector<TYPE>& );\
 template  cPtxd<TYPE,DIM> Centroid(TYPE aW0,const cPtxd<TYPE,DIM> & aP0,TYPE aW1,const cPtxd<TYPE,DIM> & aP1);\
 template  cPtxd<TYPE,DIM> Centroid(TYPE aW0,const cPtxd<TYPE,DIM> & aP0,const cPtxd<TYPE,DIM> & aP1);\
 template  std::ostream & operator << (std::ostream & OS,const cPtxd<TYPE,DIM> &aP);\

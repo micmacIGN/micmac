@@ -98,7 +98,8 @@ class cAppliBundlAdj : public cMMVII_Appli
         bool                      mMeasureAdded ;
         std::vector<std::string>  mVSharedIP;  ///< Vector for shared intrinsic param
 
-	bool                      mBAShowUKNames;  ///< Do We Show the names of unknowns
+        std::vector<std::string>  mParamShow_UK_UC;
+        std::string               mPostFixReport;
 };
 
 cAppliBundlAdj::cAppliBundlAdj(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -110,8 +111,7 @@ cAppliBundlAdj::cAppliBundlAdj(const std::vector<std::string> & aVArgs,const cSp
    mGCPFilterAdd   (""),
    mNbIter         (10),
    mLVM            (0.0),
-   mMeasureAdded   (false),
-   mBAShowUKNames  (false)
+   mMeasureAdded   (false)
 {
 }
 
@@ -159,8 +159,8 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mParamRefOri,"RefOri","Reference orientation [Ori,SimgaTr,SigmaRot?,PatApply?]",{{eTA2007::ISizeV,"[2,4]"}})  
       << AOpt2007(mVSharedIP,"SharedIP","Shared intrinc parmaters [Pat1Cam,Pat1Par,Pat2Cam...] ",{{eTA2007::ISizeV,"[2,20]"}})    
 
-      << AOpt2007(mBAShowUKNames,"ShowUKN","Show names of unknowns (tuning) ",{{eTA2007::HDV},{eTA2007::Tuning}})    
-
+      << AOpt2007(mParamShow_UK_UC,"UC_UK","Param for uncertainty & Show names of unknowns (tuning)")
+      << AOpt2007(mPostFixReport,NameParamPostFixReport(),CommentParamPostFixReport())
     ;
 }
 
@@ -234,6 +234,13 @@ int cAppliBundlAdj::Exe()
     mPhProj.DPRigBloc().SetDirInIfNoInit(mDataDir); //  RIGIDBLOC
 
     mPhProj.FinishInit();
+
+    {
+        std::string aReportDir = mPhProj.DPOrient().DirIn() + "_" + mPhProj.DPOrient().DirOut();
+        if (IsInit(& mPostFixReport))
+           aReportDir += "_" + mPostFixReport;
+        SetReportSubDir(aReportDir);
+    }
 
 
     if (IsInit(&mParamRefOri))
@@ -329,11 +336,14 @@ int cAppliBundlAdj::Exe()
 
     MMVII_INTERNAL_ASSERT_User(mMeasureAdded,eTyUEr::eUnClassedError,"Not any measure added");
 
+   if (IsInit(&mParamShow_UK_UC))
+      mBA.Set_UC_UK(mParamShow_UK_UC);
 
     //   ========== [2]   Make Iteration =============================
     for (int aKIter=0 ; aKIter<mNbIter ; aKIter++)
     {
-        mBA.OneIteration(mLVM);
+        bool isLastIter =  (aKIter==(mNbIter-1)) ;
+        mBA.OneIteration(mLVM,isLastIter);
     }
 
     //   ========== [3]   Save resulst =============================
@@ -351,9 +361,9 @@ int cAppliBundlAdj::Exe()
     mBA.SaveTopo(); // just for debug for now
     mBA.SaveClino();
 
-    if (mBAShowUKNames)
+    if (IsInit(&mParamShow_UK_UC))
     {
-        mBA.ShowUKNames();
+        mBA.ShowUKNames(mParamShow_UK_UC,this);
     }
 
     return EXIT_SUCCESS;

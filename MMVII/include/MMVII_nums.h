@@ -568,32 +568,35 @@ tINT4 HCF(tINT4 a,tINT4 b); ///< = PGCD = Highest Common Factor
 tREAL8   rBinomialCoeff(int aK,int aN);
 tU_INT8  liBinomialCoeff(int aK,int aN);
 tU_INT4  iBinomialCoeff(int aK,int aN);
-/* ****************  cDecomposPAdikVar *************  */
+/** ****************  cDecomposPAdikVar ************* 
 
-//  P-adik decomposition
-//  given a b c ...
-//     x y z   ->   x + a * y +  a * b *z
-//     M  -> M%a (M/a)%b ...
-//
+ P-adik decomposition
+ given a b c ...
+    x y z   ->   x + a * y +  a * b *z
+    M  -> M%a (M/a)%b ...
+  When a=b=c .. it coincides with usual p-adik decomposition (if all equal 2, (0 1 1 0) <=> 6 
+
+*/
+
 class cDecomposPAdikVar
 {
      public :
        typedef std::vector<int> tVI;
-       cDecomposPAdikVar(const tVI &);  // Constructot from set of bases
+       cDecomposPAdikVar(const tVI & aVBases);  // Constructot from set of bases
 
        const tVI &  Decompos(int) const; // P-Adik decomposition return internal buffer
        const tVI &  DecomposSizeBase(int) const; // Make a decomposition using same size (push 0 is need), requires < mMumBase
        int          FromDecompos(const tVI &) const; // P-Adik recomposition
        static void Bench();  // Make the test on correctness of implantation
-       const int&  MulBase() const;
+       const int&  MulBase() const;  ///< Accessor
      private:
        static void Bench(const std::vector<int> & aVB);
        void Bench(int aValue) const;
        const int & BaseOfK(int aK) const {return mVBases.at(aK%mNbBase);}
 
-       tVI          mVBases;
-       int          mNbBase;
-       int          mMulBase;
+       tVI          mVBases;   ///< memorize the bases
+       int          mNbBase;   ///< size of mVBases
+       int          mMulBase;  ///< Product of all element
        mutable tVI  mRes;
 };
 
@@ -1148,6 +1151,9 @@ int CptOccur(const std::string & aStr,char aC0);
 /// Check same number of occurence of Str0 in aStr, and return it, Str0 cannot be empty
 int CptSameOccur(const std::string & aStr,const std::string & aStr0);
 
+
+///  Weight fo "robust" weighted average, starting from S0, W=[s0,A,B,Thr]-> 1/(1+R/s0^A)^B,defA=2, defB=1/A, defT=1e30
+tREAL8  StdWeightResidual(const std::vector<tREAL8> &aWeight,tREAL8 aResidual);
 
 
 

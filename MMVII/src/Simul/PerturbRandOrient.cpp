@@ -36,6 +36,7 @@ class cAppli_PerturbRandomOri : public cMMVII_Appli
 	std::string                mSpecIm;
         tREAL8                     mRandOri;
         tREAL8                     mRandC;
+        cPt3dr                     mTransl;
         std::string                mPlyTest;
         cTriangulation3D<tREAL4> * mTri;
         std::vector<cSensorImage *> mVSI;
@@ -46,6 +47,7 @@ class cAppli_PerturbRandomOri : public cMMVII_Appli
 cAppli_PerturbRandomOri::cAppli_PerturbRandomOri(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli  (aVArgs,aSpec),
    mPhProj       (*this),
+   mTransl       (0.,0.,0.),
    mTri          (nullptr)
 {
 }
@@ -65,6 +67,7 @@ cCollecSpecArg2007 & cAppli_PerturbRandomOri::ArgOpt(cCollecSpecArg2007 & anArgO
     return      anArgObl
             << AOpt2007(mRandOri,"RandOri","Random perturbation on orientations")
             << AOpt2007(mRandC  ,"RandC"  ,"Random perturbation on center")
+            << AOpt2007(mTransl  ,"Transl"  ,"Global translation")
             << AOpt2007(mPlyTest  ,"PlyTest"  ,"Test ply (temporary)")
     ;
 }
@@ -152,6 +155,12 @@ int cAppli_PerturbRandomOri::Exe()
             cSensorCamPC * aCamPC = aSI->UserGetSensorCamPC();
             aCamPC->SetCenter(aCamPC->Center() + cPt3dr::PRandC() * mRandC);
         }
+        if (IsInit(&mTransl))
+        {
+            cSensorCamPC * aCamPC = aSI->UserGetSensorCamPC();
+            aCamPC->SetCenter(aCamPC->Center() + mTransl);
+        }
+
         
         mPhProj.SaveSensor(*aSI);
     }

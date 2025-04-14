@@ -68,6 +68,7 @@ template <class Type> class  cSparseVect  : public cMemCheck
         // cSparseVect(int aSzReserve=-1,int aSzInit=-1) ;  
         cSparseVect(int aSzReserve=-1) ;  
         cSparseVect(const cDenseVect<Type> &);
+        cSparseVect(const tCont &);
 	/// Check the vector can be used in a matrix,vect [0,Nb[, used in the assertions
         bool IsInside(int aNb) const;
 	void Reset();
@@ -158,6 +159,18 @@ template <class Type> class  cDenseVect
 
            /*  =========  Othognalization & projection stuff =========== */
 
+        /// test all vector have same dimension an return it
+        static int  AllDimComon(const std::vector<tDV>  & aVVect) ;
+        /**  if Number of               =>  (A 0)  or  (A B)
+             Vect != dim, pad with 0        (B 0)      (0 0) */
+        static cDenseMatrix<Type>  MatLineOfVect(const std::vector<tDV>  & aVVect) ;
+
+        /**   */
+        static std::vector<tDV>   GenerateVectNonColin(int aDim,int aNbVect,tREAL8 aMaxDeg);
+
+        /** Degeneresence degree */
+        static Type  DegenDegree(const std::vector<tDV>  & aVVect) ;
+
                         //   ----------  Projection, Dist to space ------------------
         /// return orthognal projection on subspace defined by aVVect, use least square (slow ? At least good enough for bench )
         tDV    ProjOnSubspace(const std::vector<tDV>  & aVVect) const;
@@ -236,6 +249,7 @@ template <class Type> class cMatrix  : public cRect2
          virtual void ReadColInPlace(int aX,tDV &) const;
          virtual tDV  ReadCol(int aX) const;
          virtual void WriteCol(int aX,const tDV &) ;
+         virtual void WriteCol(int aX,const tSpV &) ;
 
          // Line operation
          virtual void  MulLineInPlace(tDV &,const tDV &) const;
@@ -243,7 +257,8 @@ template <class Type> class cMatrix  : public cRect2
          tDV  MulLine(const tDV &) const;
          virtual void ReadLineInPlace(int aY,tDV &) const;
          virtual tDV ReadLine(int aY) const;
-         virtual void WriteLine(int aY,const tDV &) ;
+         // If OkPartial=true accept size of vect <= size of mat, it will be "partially" modified
+         virtual void WriteLine(int aY,const tDV &,bool OkPartial=false) ;
          std::vector<tDV>  MakeLines() const;  // generate all the lines
 
 
@@ -272,6 +287,12 @@ template <class Type> class cMatrix  : public cRect2
          {
             MMVII_INTERNAL_ASSERT_medium(Sz().x()== aV.Sz(),"Bad size for vect line multiplication")
          }
+         /// Check that  aVx  can be writen in Mat
+         void TplCheckSizeX_SupEq(const tDV & aV) const
+         {
+            MMVII_INTERNAL_ASSERT_medium(Sz().x()>= aV.Sz(),"Bad size for vect line write");
+         }
+
          /// Check that aVY * this * aVX  is valide, VY line vector of size SzY, VX Col vector
          void TplCheckSizeYandX(const tDV & aVY,const tDV & aVX) const
          {
@@ -293,7 +314,11 @@ template <class Type> class cMatrix  : public cRect2
 
          static void CheckSizeMul(const tMat & aM1,const tMat & aM2)
          {
-            MMVII_INTERNAL_ASSERT_medium(aM1.Sz().x()== aM2.Sz().y() ,"Bad size for mat multiplication")
+            if (aM1.Sz().x()!= aM2.Sz().y() )
+            {
+                StdOut() <<  "    SZZZZZZZ= " << aM1.Sz() << " " <<  aM2.Sz() << "\n";
+                MMVII_INTERNAL_ASSERT_medium(aM1.Sz().x()== aM2.Sz().y() ,"Bad size for mat multiplication")
+            }
          }
          ///  Check that this = aM1 * aM2 is valide
          void CheckSizeMulInPlace(const tMat & aM1,const tMat & aM2) const
@@ -400,6 +425,7 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         typedef cConst_EigenMatWrap<Type> tConst_EW;
         typedef cNC_EigenMatWrap<Type> tNC_EW;
 
+        cDenseMatrix<Type> Crop(const cPt2di & aP0,const cPt2di & aP1) const;
 
 	tDM  ExtendSquareMat     (int aNewSz,eModeInitImage); ///< Create a square matrix include smaller, mode of extension specified
 	tDM  ExtendSquareMatId   (int aNewSz);   ///<  Extension with identity
@@ -413,7 +439,13 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         static cDenseMatrix Identity(int aSz);  ///< return identity matrix
         static cDenseMatrix Diag(const tDV &);
         static cDenseMatrix FromLines(const std::vector<tDV> &);  // Create from set of "line vector"
+        static cDenseMatrix MatLine(const tDV &);  // Create from set of "line vector"
+        static cDenseMatrix FromCols(const std::vector<tDV> &);  // Create from set of "line vector"
+        static cDenseMatrix MatCol(const tDV &);  // Create from set of "line vector"
         cDenseMatrix ClosestOrthog() const;  ///< return closest 
+
+        // static tDM  MatCol(const tDV & );
+        // static tDM  MatCol(const tDV );
 
         tDM SubMatrix(const cPt2di & aSz) const;
         tDM SubMatrix(const cPt2di & aP0,const cPt2di & aP1) const;
@@ -472,6 +504,8 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         tDV  SolveColumn(const tDV &,eTyEigenDec aType=eTyEigenDec::eTED_PHQR) const;
         tDV  SolveLine(const tDV &,eTyEigenDec aType=eTyEigenDec::eTED_PHQR) const;
 
+        /// Add hoc function dot product with colum X
+        Type    DotProduct_Col(int aX,const tSpV & aVec) const;
 
         //  ====  Orthognal matrix
 
@@ -675,6 +709,8 @@ template <class Type> cDenseMatrix<Type> operator * (const cDenseMatrix<Type> &,
 template <class T1,class T2> cDenseVect<T1> operator * (const cDenseVect<T1> &,const cDenseMatrix<T2>&);
 template <class T1,class T2> cDenseVect<T1> operator * (const cDenseMatrix<T2>&,const cDenseVect<T1> &);
 
+/// return aV1 aMat aV2  , so appliction of aMat considered as a bi-linear form
+template <class T1> T1 Bilinear  (const cDenseVect<T1> &aV1,const cDenseMatrix<T1>& aMat,const cDenseVect<T1> & aV2);
 
 // Not usefull  as cUnOptDenseMatrix is not usefull either, but required in bench
 template <class Type> cUnOptDenseMatrix<Type> operator * (const cUnOptDenseMatrix<Type> &,const cUnOptDenseMatrix<Type>&);
@@ -701,8 +737,8 @@ template <class Type> class cStrStat2
        /// Kth Coordinate of previous
        double KthNormalizedCoord(int,const cDenseVect<Type>  & aV2) const;
        // Accessors
-       cDenseMatrix<Type>& Cov() ;
-       double              Pds() const;
+       cDenseMatrix<Type>&       Cov() ;
+       double                    Pds() const;
        const cDenseVect<Type>  & Moy() const;
        const cDenseMatrix<Type>& Cov() const;
     private :
@@ -782,6 +818,7 @@ class cStdStatRes
         tREAL8  Avg() const;
         tREAL8  QuadAvg() const;
         tREAL8  DevStd() const;
+        tREAL8  UBDevStd(tREAL8 aDef) const;  // Unbiased estimator of standard dev
         tREAL8  ErrAtProp(tREAL8 aProp) const;
         tREAL8  Min() const;
         tREAL8  Max() const;
@@ -883,6 +920,11 @@ template <class Type>  class cComputeStdDev
          cComputeStdDev<Type>  Normalize(const Type & Epsilon = 0.0) const;
 	 Type  StdDev(const Type & Epsilon = 0.0) const;
          void  SelfNormalize(const Type & Epsilon = 0.0);
+
+         /// standard unbiased estimator of variance, works iff all weights where 1.0 (else try cUB_ComputeStdDev)
+	 Type  UB_Variance(const Type & Epsilon = 0.0) const;
+	 Type  UB_StdDev(const Type & Epsilon = 0.0) const;
+
      private :
          Type mSomW; 
          Type mSomWV; 
@@ -1052,6 +1094,12 @@ template<class Type> cDenseVect<Type> EigenSolveCholeskyarseFromV3
                                            const std::vector<cEigenTriplet<Type> > & aV3,
                                            const cDenseVect<Type> & aVec
                                       );
+template<class Type> cDenseMatrix<Type> EigenSolveCholeskyarseFromV3
+                                      (
+                                           const std::vector<cEigenTriplet<Type> > & aV3,
+                                           const cDenseMatrix<Type> & aVec
+                                      );
+
 
 // Return least sqaure X sol of  "V3 X = aVec" usign Conjugate Gradient
 

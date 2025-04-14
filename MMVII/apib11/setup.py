@@ -31,7 +31,7 @@ mmv2_bin = os.getenv('MMVII_BIN').split()
 ext_modules = [
     Pybind11Extension("_MMVII",
         all_cpp_api_files,
-        libraries = ['X11', 'Xext', 'm', 'dl', 'pthread', 'stdc++fs', 'gomp', 'proj'],
+        libraries = ['X11', 'Xext', 'm', 'dl', 'pthread', 'stdc++fs', 'gomp', 'proj', 'gdal'],
         library_dirs = [],
         include_dirs = ['/usr/local/include', '.', '..', '../include/', '../ExternalInclude/eigen-3.4.0'],
         language = 'c++',

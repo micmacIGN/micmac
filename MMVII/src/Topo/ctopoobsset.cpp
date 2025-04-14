@@ -109,6 +109,12 @@ bool cTopoObsSetSimple::initialize()
     return true;
 }
 
+void  cTopoObsSetSimple::FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
+{
+    aGAIP.SetNameType("TopoObsSetSimple");
+    aGAIP.SetIdObj("?");
+}
+
 //----------------------------------------------------------------
 
 cTopoObsSetStation::cTopoObsSetStation(cBA_Topo *aBA_Topo) :
@@ -152,9 +158,9 @@ void cTopoObsSetStation::PushRotObs(std::vector<double> & aVObs) const
     getRotSysCo2Instr().Mat().PushByCol(aVObs);
 }
 
-void  cTopoObsSetStation::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
+void  cTopoObsSetStation::FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 {
-    aGAIP.SetNameType("Station");
+    aGAIP.SetNameType("TopoObsSetStation");
     aGAIP.SetIdObj(mOriginName);
     aGAIP.TestParam(this, &(mParams[0])    ,"Wx");
     aGAIP.TestParam(this, &(mParams[1])    ,"Wy");

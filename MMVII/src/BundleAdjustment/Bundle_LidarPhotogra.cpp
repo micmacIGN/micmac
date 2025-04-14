@@ -756,7 +756,6 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
                   // aWAv.Add(1.0,aValIm);     // compute average
                   aStdDev.Add(1.0,aValIm);  // compute std deviation
               }
-
           }
      }
 
@@ -764,7 +763,9 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
      if (aVData.size()<2) return;
 
      // accumlulate for computing average of deviation
-     mLastResidual.Add(1.0,  (aStdDev.StdDev(1e-5) *aVData.size()) / (aVData.size()-1.0));
+     // mLastResidual.Add(1.0,  (aStdDev.StdDev(1e-5) *aVData.size()) / (aVData.size()-1.0));
+     // mLastResidual.Add(1.0,  (aStdDev.StdDev(1e-5) ) );
+     mLastResidual.Add(aVData.size(),  Square(aStdDev.StdDev(1e-5) ) );
 
 
      if (mModeSim==eImatchCrit::eDifRad)

@@ -202,7 +202,7 @@ template <class TypeF1,class TypeF2,class TypeOp>
     return cFoncBinaryOp<TypeF1,TypeF2,TypeOp>(aF1,aF2,aOp);
 }
 
-double BasSom(const double &aV1,const double & aV2) {return aV1+aV2;}
+inline double BasSom(const double &aV1,const double & aV2) {return aV1+aV2;}
 template <class TypeF1,class TypeF2> auto fSum(const TypeF1 & aF1,const TypeF2 & aF2) {return fBinaryOp(aF1,aF2,BasSom);}
 
 

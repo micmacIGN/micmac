@@ -584,7 +584,7 @@ void cPerspCamIntrCalib::PutUknowsInSetInterval()
     mSetInterv->AddOneInterv(VParamDist());
 }
 
-void  cPerspCamIntrCalib::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
+void  cPerspCamIntrCalib::FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 {
    aGAIP.SetNameType("CalibCamPC");
    aGAIP.SetIdObj(mName);

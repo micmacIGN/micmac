@@ -21,6 +21,21 @@ double FactExpFromSigma2(double aS2)
     return (aS2+1 - sqrt(Square(aS2+1)-Square(aS2))  ) / aS2 ;
 }
 
+tREAL8  StdWeightResidual(const std::vector<tREAL8> &aWeight,tREAL8 aResidual)
+{
+    if (aResidual > GetDef(aWeight,3,1e60)) return 0.0;
+
+    tREAL8 aS0 = aWeight.at(0);
+    tREAL8 aAlpha = GetDef(aWeight,1,2.0);
+    tREAL8 aBeta = GetDef(aWeight,2,1/aAlpha);
+
+    tREAL8 aW = 1/(1+std::pow(aResidual/aS0,aAlpha));
+
+    return std::pow(aW,aBeta);
+}
+
+
+
 
 /* *********************************************************** */
 /*                                                             */
@@ -245,6 +260,18 @@ template <class Type> Type  cComputeStdDev<Type>::StdDev(const Type&  Epsilon) c
      cComputeStdDev<Type> aRes = Normalize(Epsilon);
      return aRes.mStdDev;
 }
+
+template <class Type> Type  cComputeStdDev<Type>::UB_Variance(const Type&  Epsilon) const
+{
+   cComputeStdDev<Type> aRes = Normalize(Epsilon);
+   return aRes.mSomWV2 * mSomWV / (mSomWV-1.0);
+}
+
+template <class Type> Type  cComputeStdDev<Type>::UB_StdDev(const Type&  Epsilon) const
+{
+    return std::sqrt(UB_Variance(Epsilon)); 
+}
+
 
 
 /* ============================================= */
@@ -567,6 +594,17 @@ tREAL8  cStdStatRes::ErrAtProp(tREAL8 aProp) const {return NC_KthVal(mVRes,aProp
 tREAL8  cStdStatRes::Min() const {return mBounds.VMin();}
 tREAL8  cStdStatRes::Max() const {return mBounds.VMax();}
 int     cStdStatRes::NbMeasures() const {return mVRes.size();}
+
+
+tREAL8  cStdStatRes::UBDevStd(tREAL8 aDef) const
+{
+    int aNbM = NbMeasures();
+    if (aNbM<2) return aDef;
+
+    return (aNbM*DevStd()) / (aNbM-1);
+}
+
+
 
 
 

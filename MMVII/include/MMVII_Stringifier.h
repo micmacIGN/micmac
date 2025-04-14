@@ -67,6 +67,10 @@ template <>  std::string cStrIO<std::string>::FromStr(const std::string & aStr);
 template <>  std::string cStrIO<char>::ToStr(const char & anI);
 template <>  char cStrIO<char>::FromStr(const std::string & aStr);
 
+// is it a valid string-int, may be templatized , but not sure very curent use ..
+bool  StringIsIntOk(const std::string & aStr);
+
+
 /*
 template <>  std::string cStrIO<cPt2dr>::ToStr(const cPt2dr & anI);
 template <>  cPt2dr cStrIO<cPt2dr>::FromStr(const std::string & aStr);

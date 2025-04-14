@@ -223,6 +223,7 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
 
                 {eTA2007::MPatFile,"MPF"},
                 {eTA2007::Orient,"Ori"},
+                {eTA2007::OriTriplet,"OriTriplet"},
                 {eTA2007::RadiomData,"RadData"},
                 {eTA2007::RadiomModel,"RadModel"},
                 {eTA2007::MeshDev,"MeshDev"},
@@ -1315,6 +1316,14 @@ template <>  const std::string cStrIO<size_t>::msNameType = "size_t";
 
 
    // ================  int ==============================================
+
+bool  StringIsIntOk(const std::string & aStr)
+{
+    int anI;
+    int aNb= sscanf(aStr.c_str(),"%d",&anI);
+
+    return aNb!=0;
+}
 
 template <>  std::string cStrIO<int>::ToStr(const int & anI)
 {

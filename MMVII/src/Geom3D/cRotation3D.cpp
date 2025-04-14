@@ -2,9 +2,76 @@
 #include "MMVII_Geom2D.h"
 #include "MMVII_Geom3D.h"
 #include "MMVII_SysSurR.h"
+#include "MMVII_Tpl_GraphAlgo_Group.h"
 
 namespace MMVII
 {
+
+/**  Return the index of obj O  that miminise  sum of distance to all other */
+
+
+template <class Type> int  IndexPseudoMediane(const std::vector<Type> & aVObj,const std::vector<int> & aVInd)
+{
+   int aNb = aVInd.size();
+   // image of distance, to avoid double computation d(A,B) and d(B,A)
+   cIm1D<tREAL8>  aIm(aNb,nullptr,eModeInitImage::eMIA_Null);  // I(x) will contain Sum(d(x,y))
+   cDataIm1D<tREAL8> & aDIm = aIm.DIm();
+
+    // compute DIm
+   for (int aX=0 ; aX<aNb; aX++)
+   {
+       for (int aY=0 ; aY<aX; aY++)
+       {
+           tREAL8 aD = aVObj.at(aVInd.at(aX)).Dist( aVObj.at(aVInd.at(aY)));
+           aDIm.AddV(aX,aD);
+           aDIm.AddV(aY,aD);
+       }
+   }
+   // compute min
+   cWhichMin<int,tREAL8> aWMin;
+   for (int anX=0 ; anX<aNb; anX++)
+      aWMin.Add(anX,aDIm.GetV(anX));
+
+   return aWMin.IndexExtre();
+}
+
+template <class Type> int  ProgrIndexPseudoMediane(const std::vector<Type> & aVObj,const std::vector<int> & aVInd,int aNbMax)
+{
+   int aNb = aVInd.size();
+   // if less than max value, make the basic computation
+   if (aNb <= aNbMax)
+      return aVInd.at(IndexPseudoMediane(aVObj,aVInd));
+
+   // int aNbSubset = (aNb + aNbMax-1) / aNbMax;
+   int aNbSubSet = std::sqrt(aNb); // else split in aNbSubset
+   // will store the "pseusdo-median"  of each cluster
+   // Cl0 ={0,Nb,2*Nb ...} Cl1={1,1+aNb, .....}
+   std::vector<int>  aVCluster; 
+   for (int aK0SubSet=0 ; aK0SubSet<aNbSubSet ; aK0SubSet++)
+   {
+       std::vector<int> aIndexSubSet;  // store the subset {K0,K0+Nb,....}
+       for (int aKSubSet = aK0SubSet ; aKSubSet<aNb ; aKSubSet += aNbSubSet)
+           aIndexSubSet.push_back(aKSubSet);
+       aVCluster.push_back(ProgrIndexPseudoMediane(aVObj,aIndexSubSet,aNbMax)); // recusively compute "pseudo median of subset"
+   }
+   // recursively compute pseudo median of agregation
+   return ProgrIndexPseudoMediane(aVObj,aVCluster,aNbMax);
+   
+}
+
+
+template <class Type> int  IndexPseudoMediane(const std::vector<Type> & aVObj,int aNbMax)
+{
+    std::vector<int> aVInd;
+    for (size_t aK=0 ; aK<aVObj.size() ; aK++)
+       aVInd.push_back(aK);
+
+    return ProgrIndexPseudoMediane(aVObj,aVInd,aNbMax);
+}
+
+
+
+
 
 // template <class Type> cSimilitud3D(cSegment
 
@@ -95,6 +162,68 @@ template <class Type> cSimilitud3D<Type> cSimilitud3D<Type>::FromTriInAndOut
      return aRefToOut * aInToRef;
 }
 
+template <class Type> cSimilitud3D<Type> cSimilitud3D<Type>::RandomSim3D(Type aLevelScale,Type aLevelTr)
+{
+    return tTypeMap
+           (
+               Type(pow(2.0,RandInInterval(-aLevelScale,aLevelScale))),
+               tPt::PRandInSphere() * aLevelTr,
+               cRotation3D<Type>::RandomRot()
+           );
+}
+
+
+
+template <class Type> cIsometry3D<Type>    TransfoPose(const cSimilitud3D<Type> & aSim,const cIsometry3D<Type> & aR)
+{
+    return  cIsometry3D<Type> (aSim.Value(aR.Tr()),aSim.Rot() *aR.Rot());
+}
+
+
+/*  Future evolution , make a robust estimation
+      - ransac or other for rotation
+      - barodale or ransac or other for scale/trans
+*/
+std::pair<tREAL8,tSim3dR>   EstimateSimTransfertFromPoses(const std::vector<tPoseR> & aV1,const std::vector<tPoseR> & aV2)
+{
+   MMVII_INTERNAL_ASSERT_tiny(aV1.size()==aV2.size(),"Diff size EstimateSimTransfert");
+   MMVII_INTERNAL_ASSERT_tiny(aV1.size()>=2,"Not enough poses in EstimateSimTransfert");
+
+   // [1]  Estimate the rotation
+   std::vector<tRotR> aVR;
+   std::vector<tREAL8> aVW;
+   for (size_t aKP=0 ; aKP<aV1.size() ; aKP++)
+   {
+       //  Sim *V2 ~ aV1  =>  Sim ~ aV1 * V2-1
+       aVR.push_back(aV1.at(aKP).Rot()*aV2.at(aKP).Rot().MapInverse());
+       aVW.push_back(1.0);
+   }
+   tRotR aRot = tRotR::Centroid(aVR,aVW);
+
+   // [2] Estimate the scaling and translation
+   cLeasSqtAA<tREAL8> aSys(4);
+
+   for (size_t aKP=0 ; aKP<aV1.size() ; aKP++)
+   {
+         cPt3dr aC0 = aV1.at(aKP).Tr();
+         cPt3dr aC1 = aRot.Value(aV2.at(aKP).Tr());
+
+         //  C0 and C1 are two estimation of the center of the pose, they must be equal up
+         //  to the global transfert (Tr,Lambda) from W1 to W0
+         // 
+         for (int aKC=0 ; aKC<3 ; aKC++)
+         {
+           //  observtuion is :   aC0.x = Tr.x + Lambda aC1.x  (or .y .z)   
+            std::vector<cCplIV<tREAL8>> aVIV {{aKC,1.0},{3,aC1[aKC]}};   //  KC->num of Tr.{x,y,z}  ,  3 num of lambda
+            aSys.PublicAddObservation(1.0, cSparseVect<tREAL8>(aVIV),aC0[aKC]);
+         }
+   }
+   cDenseVect<tREAL8> aSol = aSys.PublicSolve();
+   tSim3dR aSim(aSol(3),cPt3dr(aSol(0),aSol(1),aSol(2)),aRot);
+
+   return {aSys.VarCurSol(),aSim};
+}
+
 
 
 /* ************************************************* */
@@ -108,6 +237,17 @@ template <class Type> cIsometry3D<Type>::cIsometry3D(const tPt& aTr,const cRotat
     mRot (aRot)
 {
 }
+
+template <class Type> Type cIsometry3D<Type>::DistPoseRel(const tTypeMap & aIsom2,const Type & aWTr) const
+{
+   return (aWTr * Norm2(VUnit(mTr)-VUnit(aIsom2.mTr)) + mRot.Dist(aIsom2.mRot)) / (1+aWTr);
+}
+
+template <class Type> Type cIsometry3D<Type>::DistPose(const tTypeMap & aIsom2,const Type & aWTr) const
+{
+   return (aWTr * Norm2(mTr-aIsom2.mTr) + mRot.Dist(aIsom2.mRot)) / (1+aWTr);
+}
+
 
 /*  As this method is provide on for serialization we initialize the rotation with null matrix so that
  *  any use drive quickly to absurd result if not error
@@ -205,6 +345,23 @@ template <class Type>
 template <class Type> cIsometry3D<tREAL8>  ToReal8(const cIsometry3D<Type>  & anIsom)
 {
     return cIsometry3D<tREAL8>(  ToR(anIsom.Tr()) , ToReal8(anIsom.Rot())  );
+}
+
+template <class Type> cIsometry3D<Type> cIsometry3D<Type>::Centroid(const std::vector<tTypeMap> & aVI,const std::vector<Type> & aVW)
+{
+   std::vector<tRot> aVRot;
+   std::vector<tPt> aVTr;
+
+   for (const auto & anIsom : aVI)
+   {
+       aVRot.push_back(anIsom.mRot);
+       aVTr.push_back(anIsom.mTr);
+   }
+
+   cPt3dr aTr = MMVII::Centroid(aVTr,aVW);
+   tRot aRot = tRot::Centroid(aVRot,aVW);
+
+   return tTypeMap ( tPt(aTr.x(),aTr.y(),aTr.z()) ,aRot);
 }
 
 void AddData(const cAuxAr2007 & anAux,tRotR & aRot)
@@ -312,6 +469,82 @@ template <class Type> cRotation3D<Type>  cRotation3D<Type>::RotArroundKthAxe(int
    return RotFromAxe(tPt::P1Coord(aNum,1.0),M_PI/2.0);
 }
 
+template <class Type> cRotation3D<Type> cRotation3D<Type>::PseudoMediane(const std::vector<tTypeMap> & aVRot,int aSz)
+{
+   if (aSz<0)
+      aSz = aVRot.size()+1;
+   return aVRot.at(IndexPseudoMediane(aVRot,aSz));
+}
+
+
+template <class Type> cRotation3D<Type> cRotation3D<Type>::RobustAvg
+                                        (
+                                              const std::vector<tTypeMap> & aVRot,
+                                              const tTypeMap & aV0, 
+                                              const std::vector<tREAL8> & aWeight
+                                        )
+{
+    cDenseMatrix<Type> aMat(3,3,eModeInitImage::eMIA_Null);
+    tREAL8 aSumW = 0;
+
+    for (const auto & aRot : aVRot)
+    {
+        tREAL8 aDist = aV0.Dist(aRot);
+        tREAL8 aW = StdWeightResidual(aWeight,aDist);
+        aMat = aMat + aRot.Mat() * aW;
+        aSumW += aW;
+    }
+    aMat = aMat * (1.0/aSumW);
+
+    return tTypeMap(aMat,true);
+}
+
+template <class Type> cRotation3D<Type> cRotation3D<Type>::RobustAvg
+                                        (
+                                             const std::vector<tTypeMap> & aVRot,
+                                             tTypeMap  aVCur , 
+                                             const std::vector<tREAL8>& aWeight,
+                                             int aNbIterMin,
+                                             tREAL8 aDistStab,
+                                             int aNbIterMax
+                                        )
+{
+   bool GoOn = true;
+   if (aNbIterMax<0)  aNbIterMax=aNbIterMin;
+
+   for (int aKIt=0 ; GoOn ; aKIt++)
+   {
+       cRotation3D<Type> aVNext = RobustAvg(aVRot,aVCur,aWeight);
+
+       if (aKIt+1>= aNbIterMin)
+       {
+           if (aKIt+1>= aNbIterMax)
+              GoOn = false;
+            else
+               GoOn = (aVNext.Dist(aVCur) > aDistStab);
+       }
+
+       aVCur = aVNext;
+   }
+
+   return aVCur;
+}
+
+template <class Type> cRotation3D<Type> cRotation3D<Type>::RobustMedAvg
+                      (
+                            const std::vector<tTypeMap> & aVRot,
+                            const std::vector<tREAL8> aWeight,
+                            int aNbIter,
+                            int aNbProg
+                     )
+{
+    return RobustAvg(aVRot,PseudoMediane(aVRot,aNbProg),aWeight,aNbProg);
+}
+
+
+
+
+
 
 template <class Type> cRotation3D<Type>  cRotation3D<Type>::RotFromCanonicalAxes(const std::string& aName)
 {
@@ -344,8 +577,33 @@ template <class Type> cRotation3D<Type>  cRotation3D<Type>::MapInverse() const
 template <class Type> cRotation3D<Type> cRotation3D<Type>::operator * (const tTypeMap & aS2) const
 {
 	// mTr + R (mTr2 +R2*aP)
-	return tTypeMap(mMat*aS2.mMat,false);
+
+   tTypeMap   aRes(mMat*aS2.mMat,false);
+   return aRes;
 }
+
+template <class Type> cRotation3D<Type> cRotation3D<Type>::Centroid(const std::vector<tTypeMap> & aVR,const std::vector<Type> & aVW)
+{
+    MMVII_INTERNAL_ASSERT_tiny(aVR.size()==aVW.size(),"cRotation3D<Type>::Centroid");
+
+    cDenseMatrix<Type> aMat(3,3,eModeInitImage::eMIA_Null);
+    tREAL8 aSumW = 0;
+    for  (size_t aKRW=0 ; aKRW<aVR.size() ; aKRW++)
+    {
+        aMat = aMat + aVR.at(aKRW).Mat() * aVW.at(aKRW);
+        aSumW += aVW.at(aKRW);
+    }
+
+    aMat = aMat * (1/aSumW);
+
+    return cRotation3D<Type>(aMat,true);
+}
+
+template <class Type> cRotation3D<Type> cRotation3D<Type>::Centroid(const tTypeMap & aR2) const
+{
+    return Centroid(std::vector<tTypeMap>({*this,aR2}),std::vector<Type>({1.0,1.0}));
+}
+
 
 template <class Type> cPtxd<Type,3> cRotation3D<Type>::AxeI() const  {return tPt::Col(mMat,0);}
 template <class Type> cPtxd<Type,3> cRotation3D<Type>::AxeJ() const  {return tPt::Col(mMat,1);}
@@ -417,11 +675,19 @@ template <class Type> cRotation3D<Type>  cRotation3D<Type>::RandomRot()
    return CompleteRON(aP0,aP1);
 }
 
+template <class Type> cRotation3D<Type>  cRotation3D<Type>::RandomInInterval(const Type & aV0,const Type & aV1)
+{
+    return     RandomGroupInInterval<cRotation3D<Type>>(aV0,aV1);
+}
+
+template <class Type> cRotation3D<Type>  cRotation3D<Type>::RandomElem() {return RandomRot();}
+
 template <class Type> cRotation3D<Type>  cRotation3D<Type>::RandomRot(const Type & aAmpl)
 {
 	return RotFromAxiator(cPtxd<Type,3>::PRandC()*aAmpl);
 }
 
+template <class Type> cRotation3D<Type>  cRotation3D<Type>::RandomSmallElem(const Type & aAmpl) {return RandomRot(aAmpl);}
 
 template <class Type> void cRotation3D<Type>::ExtractAxe(tPt & anAxe,Type & aTeta) const
 {
@@ -453,6 +719,10 @@ template <class Type> std::pair<cPtxd<Type,3>,Type> cRotation3D<Type>::ExtractAx
 template <class Type> cPtxd<Type,3> cRotation3D<Type>::Axe() const { return ExtractAxe().first; }
 template <class Type> Type cRotation3D<Type>::Angle() const { return ExtractAxe().second; }
 
+template <class Type> Type cRotation3D<Type>::Dist(const cRotation3D<Type> & aR2) const 
+{ 
+   return  Mat().L2Dist(aR2.Mat());
+}
 
 
 /*
@@ -620,6 +890,116 @@ template <class Type> cPtxd<Type,3>  cRotation3D<Type>::ToWPK() const
 /*
     U D tV X =0   U0 t.q D(U0) = 0   , Ker => U0 = tV X,    X = V U0
 */
+
+/* ************************************************* */
+/*                                                   */
+/*                 cSampleSphere3D                   */
+/*                                                   */
+/* ************************************************* */
+
+cSampleSphere3D::cSampleSphere3D(int aNbStep) :
+   mSHC(3,aNbStep)
+{
+}
+
+int cSampleSphere3D::NbSamples() const {return mSHC.NbSamples();}
+
+cPt3dr cSampleSphere3D::KthPt(int aKPt) const
+{
+    std::vector<tREAL8> aVC;
+    mSHC.KthPt(aVC,aKPt);
+    
+    return VUnit(cPt3dr::FromStdVector(aVC));
+}
+
+
+
+/* ************************************************* */
+/*                                                   */
+/*               cSampleHyperCube                    */
+/*                                                   */
+/* ************************************************* */
+
+cSampleHyperCube::cSampleHyperCube(int aDim,int aNbStep,bool isProj) :
+    mDim       (aDim),
+    mNbStep    (aNbStep),
+    mIsProj    (isProj),
+    mNbF       (isProj ? aDim : (2*aDim)),
+    mNbSamples (mNbF * round_ni(std::pow(mNbStep,mDim-1)))
+{
+}
+
+int cSampleHyperCube::NbSamples() const {return mNbSamples;}
+
+tREAL8 cSampleHyperCube::Int2Coord(int aK) const
+{
+    //  the sampling must be regular of step 1/2NbStep and
+    //  extrem value 0 & NbStep-1 must but a equal distance of -1 and 1
+    return   (aK*2+1-mNbStep) / double(mNbStep);
+}
+
+void  cSampleHyperCube::KthPt(std::vector<tREAL8> & aPts,int aKSample) const
+{
+  aPts.resize(mDim);
+
+   int aIndF = (aKSample%mNbF);  // index of the face tha value 1 (or -1 if not proj)
+   int  aSign =  1 ;  // sign always 1 in projective mode
+   if (! mIsProj)
+   {
+       aSign =  1 - 2 * (aIndF%2);  // sign ,is it + or -
+       aIndF /= 2;  //  between 0 and 3, so ijkt
+   }
+   aPts.at(aIndF) = aSign;  // now fix to -1/+1 in the face
+
+   
+   aKSample /= mNbF;  /// now we code the cube of Dim-1 remaining direction
+   for (int aD=1 ; aD<mDim ; aD++)
+   {
+       aIndF = (aIndF+1) % mDim;
+       aPts.at(aIndF) = Int2Coord(aKSample%mNbStep);
+       aKSample /= mNbStep;
+   }
+}
+
+template <const int Dim> void Tpl_TestcSampleHyperCube(int aNbStep)
+{
+   cSampleHyperCube aSHC(Dim,aNbStep);
+
+   for (int aKTest=0 ; aKTest<100; aKTest++)
+   {
+       cPtxd<tREAL8,Dim> aPRand = cPtxd<tREAL8,Dim>::PRandUnit();
+       aPRand = aPRand * (1.0/NormInf(aPRand));
+       tREAL8 aDMin = 1e30;
+       for (int aKP=0 ; aKP< aSHC.NbSamples() ; aKP++)
+       {
+          std::vector<tREAL8> aVC;
+          aSHC.KthPt(aVC,aKP);
+          cPtxd<tREAL8,Dim> aPt = cPtxd<tREAL8,Dim>::FromStdVector(aVC);
+
+          UpdateMin(aDMin,NormInf(aPt-aPRand));
+    
+          // test they are on the cube
+          MMVII_INTERNAL_ASSERT_bench(std::abs(NormInf(aPt)-1)<1e-9,"Tpl_TestcSampleHyperCube N1");
+       }
+       tREAL8 aTheorMin = 1.0/aNbStep;
+       MMVII_INTERNAL_ASSERT_bench(aDMin<aTheorMin+ 1e-5,"Tpl_TestcSampleHyperCube dist");
+       // StdOut() << " DMIN" << aDMin << " " << 1.0/(2.0 * aNbStep) << "\n";
+   }
+}
+
+void  TestcSampleHyperCube()
+{
+
+    for (int aNbStep : {2,4,8,100})
+        Tpl_TestcSampleHyperCube<2>(aNbStep);
+
+    for (int aNbStep : {2,4,8,16,32})
+        Tpl_TestcSampleHyperCube<3>(aNbStep);
+
+    for (int aNbStep : {2,4,8,16})
+        Tpl_TestcSampleHyperCube<4>(aNbStep);
+
+}
 
 /* ************************************************* */
 /*                                                   */
@@ -848,6 +1228,7 @@ void BenchSampleQuat()
 
         StdOut() << "D12Min=" << aSQ.TestMinDistPairQuat() << std::endl;
     }
+    TestcSampleHyperCube();
 }
 
 
@@ -862,6 +1243,7 @@ void BenchSampleQuat()
 /*
 */
 #define MACRO_INSTATIATE_PTXD(TYPE)\
+template  cIsometry3D<TYPE>    TransfoPose(const cSimilitud3D<TYPE> & aSim,const cIsometry3D<TYPE> & aR);\
 template  cRotation3D<tREAL8>  ToReal8(const cRotation3D<TYPE>  & aRot);\
 template  cIsometry3D<tREAL8>  ToReal8(const cIsometry3D<TYPE>  & anIsom);\
 template class  cSimilitud3D<TYPE>;\

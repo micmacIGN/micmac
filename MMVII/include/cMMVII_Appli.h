@@ -542,6 +542,11 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 	std::string  DirReport();
 	std::string  DirSubPReport(const std::string &anId);
 	std::string  NameTmpReport(const std::string &anId,const std::string &anImg);
+        //  To standardize the name 
+        static std::string  NameParamPostFixReport() ; 
+        //  To standardize the comment 
+        static std::string  CommentParamPostFixReport() ; 
+
         /// If we want to create a subdir inside the report, to have multiple reports
         void SetReportSubDir(const std::string &);
         /// Redirect the file in NewDir, typically when mecanism is used for exporting in csv, and not for report
@@ -754,6 +759,11 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
 	std::string                        mPatternInitGMA;
 };
+
+/// Generate name of percentages for CSV
+std::vector<std::string> VInt2VStrPerc(const std::vector<int> &aVPerc);
+/// Generate values  of percentages for CSV
+std::vector<std::string> VInt2VStrPerc(const std::vector<int> & aVPerc,const cStdStatRes aStat);
 
 const std::string & GlobVectNameDefSerial() ; ///< of current appli
 const std::string & GlobTaggedNameDefSerial() ; ///< of current appli

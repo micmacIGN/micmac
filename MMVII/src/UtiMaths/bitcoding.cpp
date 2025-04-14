@@ -6,6 +6,23 @@
 namespace MMVII
 {
 
+size_t  AllocBit(tSet32Bits& aSet)
+{
+    // look for a bit not already currently allocated
+    for (size_t aBit=0 ; aBit<32 ; aBit++)
+    {
+          if (!aSet.IsInside(aBit))
+          {
+               aSet.AddElem(aBit);
+               return aBit;
+          }
+    }
+    //  if not : Error
+    MMVII_INTERNAL_ERROR("No more bits in AllocBit (forgot to free ?)");
+    return 0;
+}
+
+
 size_t GetNDigit_OfBase(size_t aNum,size_t aBase)
 {
    size_t aNbD=1;

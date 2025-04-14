@@ -8,7 +8,7 @@
 #include "MMVII_Clino.h"
 #include "cExternalSensor.h"
 #include "MMVII_Topo.h"
-
+#include "MMVII_PoseTriplet.h"
 
 /**
    \file  cPhotogrammetricProject.cpp
@@ -295,6 +295,7 @@ cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
     mCurSysCo         (nullptr),
     mChSysCo          (),
     mDPOrient         (eTA2007::Orient,*this),
+    mDPOriTriplets    (eTA2007::OriTriplet,*this),
     mDPRadiomData     (eTA2007::RadiomData,*this),
     mDPRadiomModel    (eTA2007::RadiomModel,*this),
     mDPMeshDev        (eTA2007::MeshDev,*this),
@@ -334,6 +335,7 @@ void cPhotogrammetricProject::FinishInit()
 
 
     mDPOrient.Finish();
+    mDPOriTriplets.Finish();
     mDPRadiomData.Finish();
     mDPRadiomModel.Finish();
     mDPMeshDev.Finish();
@@ -399,6 +401,7 @@ const std::string & cPhotogrammetricProject::TaggedNameDefSerial() const {return
 const std::string & cPhotogrammetricProject::VectNameDefSerial() const {return mAppli.VectNameDefSerial();}
 
 cDirsPhProj &   cPhotogrammetricProject::DPOrient() {return mDPOrient;}
+cDirsPhProj &   cPhotogrammetricProject::DPOriTriplets() {return mDPOriTriplets;}
 cDirsPhProj &   cPhotogrammetricProject::DPRadiomData() {return mDPRadiomData;}
 cDirsPhProj &   cPhotogrammetricProject::DPRadiomModel() {return mDPRadiomModel;}
 cDirsPhProj &   cPhotogrammetricProject::DPMeshDev() {return mDPMeshDev;}
@@ -414,6 +417,7 @@ cDirsPhProj &   cPhotogrammetricProject::DPMeasuresClino() {return mDPMeasuresCl
 cDirsPhProj &   cPhotogrammetricProject::DPTopoMes() {return mDPTopoMes;} // TOPO
 
 const cDirsPhProj &   cPhotogrammetricProject::DPOrient() const {return mDPOrient;}
+const cDirsPhProj &   cPhotogrammetricProject::DPOriTriplets() const {return mDPOriTriplets;}
 const cDirsPhProj &   cPhotogrammetricProject::DPRadiomData() const {return mDPRadiomData;}
 const cDirsPhProj &   cPhotogrammetricProject::DPRadiomModel() const {return mDPRadiomModel;}
 const cDirsPhProj &   cPhotogrammetricProject::DPMeshDev() const {return mDPMeshDev;}
@@ -526,6 +530,10 @@ void cPhotogrammetricProject::SaveCamPC(const cSensorCamPC & aCamPC) const
 
 void cPhotogrammetricProject::SaveSensor(const cSensorImage & aSens) const
 {
+     if ( mDPOrient.DirOut() == MMVII_NONE)
+        return;
+
+
     /*  Supression by global pattern can be very slow with big data
      *  So we creat the first time a map that contain for an image all the files corresponding to
      *  a sensor in the standard out folder.
@@ -676,7 +684,7 @@ cSensorImage* cPhotogrammetricProject::ReadSensorFromFolder(const std::string  &
 
 cPerspCamIntrCalib *  cPhotogrammetricProject::InternalCalibFromImage(const std::string & aNameIm) const
 {
-    //  allox sensor and if exist, extract internal, destroy
+    //  alloc sensor and if exist, extract internal, destroy
     //  else try to extract calib from standard name
     //    * case where nor calib nor pose exist, and must be created from xif still to implemant
     mDPOrient.AssertDirInIsInit();
@@ -1138,16 +1146,41 @@ bool cPhotogrammetricProject::HasClinoCalib(const cPerspCamIntrCalib & aCalib, c
 }
 
 
-cOneCalibClino * cPhotogrammetricProject::GetClino(const cPerspCamIntrCalib & aCalib, const std::string aClinoName) const
+void  cPhotogrammetricProject::ReadGetClino
+      (
+            cOneCalibClino& aCalClino,
+            const cPerspCamIntrCalib & aCalibCam, 
+            const std::string aClinoName
+      ) const
 {
-    std::string aFileName = NameFileClino(aCalib.Name(),true, aClinoName);
+    std::string aFileName = NameFileClino(aCalibCam.Name(),true, aClinoName);
     if (!ExistFile(aFileName))
     {
         MMVII_UserError(eTyUEr::eOpenFile, "Clino filename not found : " + aFileName);
     }
-    
-    return ObjectFromFile<cOneCalibClino,cOneCalibClino>(aFileName);
+    ReadFromFile(aCalClino,aFileName);
 }
+
+cOneCalibClino * cPhotogrammetricProject::GetClino(const cPerspCamIntrCalib & aCalib, const std::string aClinoName) const
+{
+    cOneCalibClino * aResult = new cOneCalibClino;
+    ReadGetClino(*aResult,aCalib,aClinoName);
+    return aResult;
+}
+
+cCalibSetClino  cPhotogrammetricProject::ReadSetClino
+                (  
+                    const cPerspCamIntrCalib &        aCalib,   
+                    const std::vector<std::string> &  aVecClinoName
+                 ) const
+{
+   std::vector<cOneCalibClino> aVCC(aVecClinoName.size());
+   for (size_t aK=0 ; aK<aVecClinoName.size() ; aK++)
+       ReadGetClino(aVCC.at(aK),aCalib,aVecClinoName.at(aK));
+
+   return cCalibSetClino(aCalib.Name(),aVCC);
+}
+
 
 
             //  ================  Measures clino ===================
@@ -1209,6 +1242,13 @@ std::list<cBlocOfCamera *> cPhotogrammetricProject::ReadBlocCams() const
     return aRes;
 }
 
+cBlocOfCamera * cPhotogrammetricProject::ReadUnikBlocCam() const
+{
+    std::list<cBlocOfCamera *>   aListBloc = ReadBlocCams();
+    MMVII_INTERNAL_ASSERT_tiny(aListBloc.size()==1,"Number of bloc ="+ ToStr(aListBloc.size()));
+    return *(aListBloc.begin());
+}
+
 
 //  =============  Topo Mes  =================
 
@@ -1230,6 +1270,24 @@ std::vector<std::string> cPhotogrammetricProject::ReadTopoMes() const
         //  =============  Meta Data =================
 
 //  see cMetaDataImages.cpp
+
+static std::string PrefixTripletSet = "TripletSet_";
+
+void cPhotogrammetricProject::SaveTriplets(const cTripletSet &aSet,bool  useXmlraterThanDmp) const
+{
+    std::string anExt = useXmlraterThanDmp ? PostF_DumpFiles  : PostF_DumpFiles;
+    std::string aName =  mDPOriTriplets.FullDirOut() + PrefixTripletSet + aSet.Name() + "." + anExt;
+    StdOut() << "aName: " << aName << std::endl;
+    aSet.ToFile(aName);
+}
+
+cTripletSet * cPhotogrammetricProject::ReadTriplets() const
+{
+    std::vector<std::string> aVNames = GetFilesFromDir(mDPOriTriplets.FullDirIn(),AllocRegex(PrefixTripletSet+".*"));
+
+    return cTripletSet::FromFile(mDPOriTriplets.FullDirIn()+aVNames[0]);
+
+}
 
 
 }; // MMVII

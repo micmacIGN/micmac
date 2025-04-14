@@ -282,7 +282,7 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 	    int IndParamDistFromName(const std::string&,bool SVP=false) const; ///< get index of param from its name, -1 if none & SVP
 
 	    ///  List of adresses of parameters that contain
-	    void  GetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
+	    void  FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
 	    double  ParamDist(const std::string &) const; ///< recover param of dist from its name
 	    void    SetParamDist(const std::string &,const double &) ; ///< set  value of dist from its name
 	    bool    IsNameParamDist(const std::string &) const;  ///< Is it a valuable name of distosion param
@@ -450,7 +450,7 @@ class cPoseWithUK :  public cObjWithUnkowns<tREAL8>
 	 /// The interval is specified as the object can be used as helperto to other classes
          void PutUknowsInSetInterval(cSetInterUK_MultipeObj<tREAL8> * aSetInterv) ;  
          void OnUpdate() override;                 // "reaction" after linear update
-	 void  GetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
+	 void  FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
 	 // std::vector<tPtrOUK>  GetAllUK() override;
 
          // Val axiator should have to "equal" fix rot
@@ -560,7 +560,7 @@ class cSensorCamPC : public cSensorImage
 	 std::vector<tPtrOUK>  GetAllUK() override;
 
 	 /// retur
-	 void  GetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
+	 void  FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
 
 
          size_t NumXCenter() const;  /// num of Center().x when used as cObjWithUnkowns (y and z follow)

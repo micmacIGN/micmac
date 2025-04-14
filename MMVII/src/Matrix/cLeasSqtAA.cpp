@@ -289,6 +289,13 @@ template<class Type> void cLeasSqtAA<Type>::AddCov
     }
 }
 
+template<class Type> cDenseMatrix<Type> cLeasSqtAA<Type>::tAA_Solve(const cDenseMatrix<Type> & aMat) const
+{
+    cDenseMatrix<Type> & atAA = const_cast<cLeasSqtAA<Type>* >(this) ->mtAA;
+    atAA.SelfSymetrizeBottom();
+    return mtAA.Solve(aMat);
+}
+
 
 
 /* *********************************** */
@@ -362,7 +369,8 @@ template<class Type> cLinearOverCstrSys<Type>::cLinearOverCstrSys(int aNbVar) :
 template<class Type> void cLinearOverCstrSys<Type>::AddWRHS(Type aW,Type aRHS)
 {
    mSumWRHS2 += aW*Square(aRHS);
-   mSumW     += aW;
+   // mSumW     += aW;
+   mSumW        += 1;
 }
 
 
@@ -380,12 +388,24 @@ template<class Type> void cLinearOverCstrSys<Type>::PublicReset()
 template<class Type> cDenseVect<Type> cLinearOverCstrSys<Type>::PublicSolve()
 {
      cDenseVect<Type> aSol =  SpecificSolve();
+/*
+StdOut() << "PSol, W=" << mSumW 
+         << " RW2=" << mSumWRHS2 
+         << " Scal=" <<  mSumWCoeffRHS.DotProduct(aSol) 
+         << "\n";
+*/
+
+     //mLastResidual = mSumWRHS2 - mSumWCoeffRHS.DotProduct(aSol);
      mLastResidual = mSumWRHS2 - mSumWCoeffRHS.DotProduct(aSol);
      mLastSumWRHS2 = mSumWRHS2;
      mLastSumW     = mSumW;
      return aSol;
 }
 
+template<class Type> Type cLinearOverCstrSys<Type>::VarOfSol(const cDenseVect<Type> & aSol)  const
+{
+    return  (mSumWRHS2 - mSumWCoeffRHS.DotProduct(aSol)) / mSumW;
+}
 
 template<class Type> Type cLinearOverCstrSys<Type>::VarLastSol() const
 {
@@ -395,7 +415,7 @@ template<class Type> Type cLinearOverCstrSys<Type>::VarLastSol() const
 
 template<class Type> Type cLinearOverCstrSys<Type>::VarCurSol()  const
 {
-   return mLastResidual / mLastSumW;
+   return std::max( Type(0.0),mLastResidual / mLastSumW);
 }
 
 
@@ -556,6 +576,13 @@ template<class Type> void cLinearOverCstrSys<Type>::PublicAddObsWithTmpUK(const 
          }
      }
 }
+
+template<class Type> cDenseMatrix<Type> cLinearOverCstrSys<Type>::tAA_Solve(const cDenseMatrix<Type> & aMat) const
+{
+    MMVII_INTERNAL_ERROR("No acces to tAA_Solve for this class");
+    return cDenseMatrix<Type> (0);
+}
+
 
 template<class Type> cDenseMatrix<Type> cLinearOverCstrSys<Type>::V_tAA() const
 {

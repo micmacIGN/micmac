@@ -91,6 +91,31 @@ void cSetMeasureClino::FilterByPatIdent(const std::string & aPat)
     erase_if(mSetMeasures,[aPat](const cOneMesureClino &aMes){return ! MatchRegex(aMes.Ident(),aPat);});
 }
 
+const  cOneMesureClino *  cSetMeasureClino::MeasureOfId(const std::string & anId,bool SVP) const
+{
+
+   for (const auto & aMes : mSetMeasures)
+   {
+        if (aMes.Ident() == anId)
+           return & aMes;
+   }
+
+   MMVII_INTERNAL_ASSERT_strong(SVP,"Could not get measure clino for Id="+anId);
+   return nullptr;
+}
+
+const  cOneMesureClino *  cSetMeasureClino::MeasureOfImage(const std::string & aNameImage,bool SVP) const
+{
+
+   for (const auto & aMes : mSetMeasures)
+   {
+        if (NameOfIm(aMes) == aNameImage)
+           return & aMes;
+   }
+
+   MMVII_INTERNAL_ASSERT_strong(SVP,"Could not get measure clino for Id="+aNameImage);
+   return nullptr;
+}
 
 
 /* **************************************************************** */
@@ -171,6 +196,7 @@ class cAppli_ImportClino : public cMMVII_Appli
 	cNRFS_ParamRead            mParamRead;
 	std::vector<cPt2di>        mIndCosCorrec;
 
+
 	//   Format specif
 	std::string              mNameFieldIm;
 	std::string              mNameFieldAngle;
@@ -179,6 +205,7 @@ class cAppli_ImportClino : public cMMVII_Appli
 	std::string              mSpecFormatMand;
 	std::string              mSpecFormatTot;
 
+        size_t                   mNbDig; ///< Number minimal of digits
 };
 
 cAppli_ImportClino::cAppli_ImportClino(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -189,7 +216,8 @@ cAppli_ImportClino::cAppli_ImportClino(const std::vector<std::string> & aVArgs,c
    mNameFieldSigma ("S"),
    mNameFieldNClino ("N"),
    mSpecFormatMand (mNameFieldIm+mNameFieldAngle+"*" + mNameFieldSigma+"*" + mNameFieldNClino + "*"),
-   mSpecFormatTot  (cNewReadFilesStruct::MakeSpecTot(mSpecFormatMand,""))
+   mSpecFormatTot  (cNewReadFilesStruct::MakeSpecTot(mSpecFormatMand,"")),
+   mNbDig          (0)
 {
 	// std::map<std::string,int>  aMap{{"2",2}};
 }
@@ -211,9 +239,16 @@ cCollecSpecArg2007 & cAppli_ImportClino::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
     return      anArgOpt
 	     << AOpt2007(mIndCosCorrec,"ICC","Indexes for cosinus corrections")
+	     << AOpt2007(mNbDig,"NbDig","Fix the number of digit for identifier")
     ;
 }
 
+std::string ToFixSize(const std::string & aName,size_t aSize,char aPref = '0')
+{
+   MMVII_INTERNAL_ASSERT_User_UndefE(aName.size()<=aSize,"String too big to fix size");
+   if (aName.size() == aSize) return aName;
+   return std::string(aSize-aName.size(),aPref) + aName;
+}
 
 int cAppli_ImportClino::Exe()
 {
@@ -240,12 +275,16 @@ int cAppli_ImportClino::Exe()
     }
 
     // Create set, 
-    cSetMeasureClino aSetM("^(.*)$", mPrePost.at(0)+"$0"+mPrePost.at(1) );
+    cSetMeasureClino aSetM("^(.*)$", mPrePost.at(0)+"$&"+mPrePost.at(1) );
 
     std::vector<std::string> aVNames;
     for (size_t aKL=0 ; aKL<aNRFS.NbLineRead() ; aKL++)  // parse all lines
     {
          std::string aNameIdent =  aNRFS.GetValue<std::string>(mNameFieldIm,aKL);
+
+         // for case where name is an int on fix digit but 0 have been omited (pb with CERN data)
+         if (IsInit(&mNbDig))
+            aNameIdent = ToFixSize(aNameIdent,mNbDig) ;
 
 	 if (aNbNameC!=0)
 	 {

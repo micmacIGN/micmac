@@ -280,6 +280,10 @@ template<class T2,class T3>   cDenseVect<T2> operator * (const  T3 & aV3,const c
 {
     return cDenseVect<T2>(aI2.Im()*aV3);
 }
+template<class T2,class T3>   cDenseVect<T2> operator * (const cDenseVect<T2> & aI2,const  T3 & aV3)
+{
+    return cDenseVect<T2>(aI2.Im()*aV3);
+}
 
        //===========   MulImage ===========
        

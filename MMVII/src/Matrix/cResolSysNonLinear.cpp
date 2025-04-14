@@ -87,6 +87,8 @@ void cREAL8_RSNL::SetAllUnShared()
 }
 
 
+
+
 /* ************************************************************ */
 /*                                                              */
 /*                cResolSysNonLinear                            */
@@ -307,6 +309,10 @@ template <class Type> void   cResolSysNonLinear<Type>::R_AddEqFixVar(const int &
 }
 
 
+template <class Type> int  cResolSysNonLinear<Type>::GetCurNbObs() const
+{
+    return currNbObs;
+}
 
 
 template <class Type> int  cResolSysNonLinear<Type>::GetNbObs() const
@@ -778,7 +784,11 @@ template <> void cResolSysNonLinear<tREAL8>::R_AddObsWithTmpUK (const tR_Up::tSe
 
             //  =========    resolving ==========================
 
-template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUpdateReset(const Type & aLVM) 
+
+
+template <class Type> 
+   const cDenseVect<Type> & 
+          cResolSysNonLinear<Type>::SolveUpdateReset(const Type & aLVM,tVPtr_SUR AfterCstr ,tVPtr_SUR AfterLVM)
 {
     if (mNbVar-GetNbLinearConstraints()>currNbObs)
     {
@@ -799,6 +809,9 @@ template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUp
            AddEqFixVar(aK,mValueFrozenVar[aK],1.0);
     }
 #endif
+   for (auto aPtrSur : AfterCstr)
+       if (aPtrSur)
+          aPtrSur->Compile(this);
 
     for (int aK=0 ; aK<mNbVar ; aK++)
     {
@@ -807,6 +820,10 @@ template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUp
            AddEqFixVar(aK,CurSol(aK),mSysLinear->LVMW(aK)*aLVM);
         }
     }
+
+   for (auto aPtrSur : AfterLVM)
+       if (aPtrSur)
+          aPtrSur->Compile(this);
 
     mCurGlobSol += mSysLinear->PublicSolve();     //  mCurGlobSol += mSysLinear->SparseSolve();
     mSysLinear->PublicReset();

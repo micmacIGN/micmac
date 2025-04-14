@@ -12,6 +12,7 @@
 namespace MMVII
 {
 
+
 /* ************************************************************************ */
 /*                                                                          */
 /*                        cStdWeighterResidual                              */
@@ -101,7 +102,9 @@ cMMVII_BundleAdj::cMMVII_BundleAdj(cPhotogrammetricProject * aPhp) :
     mSigmaViscAngles  (-1.0),
     mSigmaViscCenter  (-1.0),
     mNbIter           (0),
-    mVerbose    (true)
+    mVerbose          (true),
+    mShow_UC_UK       (false),
+    mRUCSUR           (nullptr)
 {
 }
 
@@ -114,34 +117,61 @@ cMMVII_BundleAdj::~cMMVII_BundleAdj()
     delete mBlRig;
     delete mTopo;
     delete mBlClino;
+    delete mRUCSUR;
     // DeleteAllAndClear(mGCP_UK);
     DeleteAllAndClear(mVBA_Lidar);
 }
 
-void cMMVII_BundleAdj::ShowUKNames() 
+void cMMVII_BundleAdj::ShowUKNames(const std::vector<std::string> & aParam,cMMVII_Appli * anAppli) 
 {
-     StdOut() << "=================== ShowUKNamesShowUKNames ===============\n";
-
-
+     // StdOut() << "=================== ShowUKNamesShowUKNames "<< aParam << " ===============\n";
      cDenseVect<tREAL8>   aVUk = mSetIntervUK.GetVUnKnowns() ;
-     StdOut() << "====== NBUK=" << aVUk.Sz() << "\n";
-     size_t aKUk=0;
-     for (size_t aKObj=0 ; aKObj<  mSetIntervUK.NumberObject() ; aKObj++)
+     std::string aIdCSV = "BundleUK";
+     if (anAppli)
+        anAppli->InitReportCSV(aIdCSV,"csv",false,{"Type","Group","Var","Value","Uncert"});
+        // void  InitReportCSV(const std::string &anId,const std::string & aPostfix,bool IsMul,const std::vector<std::string> & aHeader={});
+        // void  AddOneReportCSV(const std::string &anId,const std::vector<std::string> & VecMsg);
+
+
+
+     for (const auto & aBBNV : mVBBNamedV)
      {
-         cObjWithUnkowns<tREAL8> & anObj = mSetIntervUK.KthObj(aKObj);
-
-	 cGetAdrInfoParam<tREAL8> aGIP (".*",anObj,false);
-         StdOut() << "    ************ " <<  aGIP.NameType() << " : " << aGIP.IdObj()  << "\n";
-	 for (const auto & aN : aGIP.VNames())
-	 {
-             StdOut() << "      # " << aN  << " : " << aVUk(aKUk) << "\n";
-	     aKUk++;
-	 }
-	// virtual  void  GetAdrInfoParam(cGetAdrInfoParam<Type> &);
-
+         // StdOut() << "    ************ " <<  aBBNV.mType << " : " << aBBNV.mIdObj  << "\n";
+         for (size_t aKV=0 ; aKV<aBBNV.mNamesVar.size() ; aKV++)
+         {
+             if (aBBNV.mActivVar.at(aKV))
+             {
+                std::vector<std::string> aVCVS{aBBNV.mType, aBBNV.mIdObj};
+                int aIndGlob = aBBNV.mIndVar0 + aKV;
+                // StdOut() << "      N=" << aBBNV.mNamesVar.at(aKV)  << " V=" << aVUk(aBBNV.mIndVar0 + aKV) ;
+                aVCVS.push_back(aBBNV.mNamesVar.at(aKV));
+                aVCVS.push_back(ToStr(aVUk(aBBNV.mIndVar0 + aKV)));
+                if (mRUCSUR)
+                {
+                   // StdOut()  << " UC=" <<aUC;
+                   if (!mR8_Sys->VarIsFrozen(aIndGlob))
+                   {
+                      tREAL8 aUC = std::sqrt(mRUCSUR->UK_VarCovarEstimate(aIndGlob,aIndGlob));
+                      aVCVS.push_back(ToStr(aUC));
+                   }
+                   else
+                   {
+                      aVCVS.push_back("***");
+                   }
+                }
+                // StdOut() << "\n";
+                if (anAppli)
+                   anAppli->AddHeaderReportCSV(aIdCSV,aVCVS);
+             }
+         }
      }
-     getchar();
-	// mSetIntervUK
+     // StdOut() << "=================== ShowUKNamesShowUKNames "<< aParam << " ===============\n";
+}
+
+void cMMVII_BundleAdj::Set_UC_UK(const std::vector<std::string> & aParam)
+{
+     mShow_UC_UK    = true;
+     mParam_UC_UK   = aParam;
 }
 
 
@@ -173,10 +203,52 @@ void cMMVII_BundleAdj::InitIteration()
 
     mSys =  mR8_Sys;
     CompileSharedIntrinsicParams(false);
+
+    if (mShow_UC_UK)
+    {
+       size_t aIndV0 = 0;
+
+       // Process parameters 
+       std::string aPatType = GetDef(mParam_UC_UK,0,std::string(".*"));  // Type selection, def=all
+       std::string aPatName = GetDef(mParam_UC_UK,1,std::string(".*"));  // NameGroup selection, def=all
+       std::string aPatVar =  GetDef(mParam_UC_UK,2,std::string(".*"));  // NameVar selection, def=all
+       mCompute_Uncert = cStrIO<bool>::FromStr(GetDef(mParam_UC_UK,3,std::string("1")));  // Compute Uncert, def=true
+
+       // Parse all "object" 
+       for (size_t aKObj=0 ; aKObj<  mSetIntervUK.NumberObject() ; aKObj++)
+       {
+           cObjWithUnkowns<tREAL8> & anObj = mSetIntervUK.KthObj(aKObj);
+
+	   cGetAdrInfoParam<tREAL8> aGIP (".*",anObj,false); // extract information
+           cBundleBlocNamedVar aBBNV;
+           aBBNV.mType = aGIP.NameType();
+           aBBNV.mIdObj = aGIP.IdObj();
+           aBBNV.mIndVar0 = aIndV0;
+           aBBNV.mNamesVar =  aGIP.VNames();
+           
+           if (MatchRegex(aBBNV.mType,aPatType) && MatchRegex(aBBNV.mIdObj,aPatName) ) // If type and ident match
+           {
+               int aNbOk=0;
+               for (size_t aKV=0 ; aKV<aBBNV.mNamesVar.size() ; aKV++)
+               {
+                   bool isOk = MatchRegex(aBBNV.mNamesVar[aKV],aPatVar);
+                   aBBNV.mActivVar.push_back(isOk);
+                   if (isOk)
+                   {
+                       aNbOk ++;
+                       mIndCompUC.push_back(aKV+aIndV0);
+                   }
+               }
+               if (aNbOk!=0)
+                  mVBBNamedV.push_back(aBBNV);
+           }
+           aIndV0 += aBBNV.mNamesVar.size();
+       }
+    }
 }
 
 
-void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM)
+void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter)
 {
     // if it's first step, alloc ressources
     if (mPhaseAdd)
@@ -283,14 +355,20 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM)
     #ifdef VERBOSE_TOPO
         mTopo->print();
     #endif
-        mTopo->printObs(false);
+        if (mVerbose)
+            mTopo->printObs(false);
     }
 
     for (const auto & aLidarPh : mVBA_Lidar )
        aLidarPh->AddObs(1.0);
 
+    if (mCompute_Uncert && isLastIter)
+    {
+// StdOut() <<  "mCompute_UncertmCompute_UncertmCompute_Uncert--------------------------------\n";
+        mRUCSUR = new cResult_UC_SUR<tREAL8>(false,false,mIndCompUC);
+    }
 
-    const auto & aVectSol = mSys->R_SolveUpdateReset(aLVM);
+    const auto & aVectSol = mR8_Sys->SolveUpdateReset(aLVM,{},{mRUCSUR});
     mSetIntervUK.SetVUnKnowns(aVectSol);
 
     mNbIter++;
@@ -304,43 +382,6 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM)
                  //<< " ?VarCur?=" << mR8_Sys->VarCurSol()
                  << " ---------------" << std::endl;
     }
-}
-
-
-
-void cMMVII_BundleAdj::OneIterationTopoOnly(tREAL8 aLVM, bool verbose)
-{
-    if (verbose)
-        StdOut() << "-------- Iter " << mNbIter << "-----------" << std::endl;
-
-    MMVII_INTERNAL_ASSERT_tiny(mTopo,"OneIterationTopoOnly: no topo??");
-
-    // if it's first step, alloc ressources
-    if (mPhaseAdd)
-    {
-        InitIteration();
-        CheckGCPConstraints();
-    }
-
-    mTopo->SetFrozenAndSharedVars(*mR8_Sys);
-
-    // ================================================
-    //  [3]   Add compensation measures
-    // ================================================
-
-
-    OneItere_GCP(verbose);   // add GCP informations
-
-    mTopo->AddTopoEquations(*mR8_Sys);
-    if (verbose)
-        mTopo->print();
-
-    const auto & aVectSol = mSys->R_SolveUpdateReset(aLVM);
-    mSetIntervUK.SetVUnKnowns(aVectSol);
-
-    if (verbose)
-        StdOut() << "---------------------------" << std::endl;
-    mNbIter++;
 }
 
 

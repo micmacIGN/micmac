@@ -138,7 +138,7 @@ class cAppli_Aspro //  :  public cAppliWithSetImage
     public :
 
        cAppli_Aspro(int argc,char ** argv);
-  
+
        cElemAppliSetFile mEASF;
        std::string mNameIm;
        std::string mNameCalib;
@@ -161,18 +161,30 @@ cAppli_Aspro::cAppli_Aspro(int argc,char ** argv) ://  : cAppliWithSetImage (arg
        LArgMain() <<  EAM(mOriOut,"Out",true,"Out orientation, def=Aspro")
    );
 
-   
-   mEASF.Init(mNameIm);
-   StdCorrecNameOrient(mNameCalib,mEASF.mDir);
+
+   // mEASF.Init(mNameIm);
+   // StdCorrecNameOrient(mNameCalib,mEASF.mDir);
+   std::string aDir, aPat;
+   SplitDirAndFile(aDir,aPat,mNameIm);
+   StdCorrecNameOrient(mNameCalib,aDir);
+
+   // std::string aCom =          MM3dBinFile_quotes("Apero")
+   //                     + " " + XML_MM_File("Apero-GCP-Init.xml")
+   //                     + " DirectoryChantier=" + mEASF.mDir
+   //                     + " +PatternAllIm=" + mEASF.mPat
+   //                     + " +CalibIn="      + mNameCalib
+   //                     + " +AeroOut=" + mOriOut
+   //                     + " +DicoApp="  + mNameFile3D
+   //                     + " +SaisieIm=" + mNameFile2D;
 
    std::string aCom =          MM3dBinFile_quotes("Apero")
-                       + " " + XML_MM_File("Apero-GCP-Init.xml")
-                       + " DirectoryChantier=" + mEASF.mDir
-                       + " +PatternAllIm=" + mEASF.mPat
-                       + " +CalibIn="      + mNameCalib
-                       + " +AeroOut=" + mOriOut
-                       + " +DicoApp="  + mNameFile3D
-                       + " +SaisieIm=" + mNameFile2D;
+                      + " " + XML_MM_File("Apero-GCP-Init.xml")
+                      + " DirectoryChantier=" + aDir
+                      + " +PatternAllIm=" + QUOTE(aPat)
+                      + " +CalibIn="      + mNameCalib
+                      + " +AeroOut=" + mOriOut
+                      + " +DicoApp="  + mNameFile3D
+                      + " +SaisieIm=" + mNameFile2D;
 
    // std::cout <<  aCom << "\n";
    System(aCom);
@@ -253,7 +265,7 @@ int Init11Param_Main(int argc,char ** argv)
 
          aNbMaxP = 6 + aNbTirage/20;
     }
-    
+
     std::vector<cQual12Param>  aVQual;
     std::vector<std::string>   aVName;
     for
@@ -285,26 +297,26 @@ int Init11Param_Main(int argc,char ** argv)
              std::string aBlk = " ";
              std::string aVirg = ",";
              std::string aCom = MM3dBinFile_quotes("Campari")
-                                + aBlk  + aNameIm 
-                                + aBlk  + Dir11Param 
+                                + aBlk  + aNameIm
+                                + aBlk  + Dir11Param
                                 + aBlk  + Dir11Param + "Comp "
                                 + " SH=NONE "
                                 + std::string(" AffineFree=1 FocFree=1 PPFree=1 CPI2=1 GCP=[")
                                 +  aICA.aNameFile3D + aVirg + ToString(1e-3) + aVirg
                                 +  aICA.aNameFile2D + aVirg + ToString(1e3) + "]";
 
-	     // std::cout << aCom << "\n"; getchar();
+         // std::cout << aCom << "\n"; getchar();
               System(aCom);
-	      aVQual.push_back(aQual);
-	      aVName.push_back(aNameIm);
-                              
+          aVQual.push_back(aQual);
+          aVName.push_back(aNameIm);
+
         }
         else
         {
              std::cout << "for " << itMAF->NameIm() << " only " << aICA.mVCPCur.size() << " measurements\n";
         }
     }
-    
+
     if (! aVQual.empty())
     {
        std::cout  <<  " =============================================\n";

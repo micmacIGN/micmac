@@ -267,7 +267,10 @@ void cAppli_Rename::TestSet(const std::string & aNameOut)
 
 std::vector<std::string>  cAppli_Rename::Samples() const
 {
-  return {"MMVII UtiRename \"948_(.*).JPG\" \"\\$&\" AR=[-,1,1] DoReplace=true"};
+  return {
+             "MMVII UtiRename \"948_(.*).JPG\" \"\\$&\" AR=[-,1,1] DoReplace=true",
+             "MMVII UtiRename  'CCAM_(.*)' 'CCAMBefore_$1'  FFI0=[0000,0030]  PatFFI0=['CCAM_.*_(.*).tif','$1'] DoReplace=true"
+         };
 }
 
 int cAppli_Rename::Exe()
@@ -341,6 +344,7 @@ int cAppli_Rename::Exe()
            MMVII_UnclasseUsEr("File already exist");
        }
     }
+    StdOut() << " NbFiles= " << aVInOut.size() << "\n";
 
     std::string aPrefTmp = "MMVII_Tmp_Replace_"+ PrefixGMA() + "_";
 
