@@ -161,6 +161,8 @@ cCdRadiom::cCdRadiom
     ComputePtsOfEllipse(aVPixEllipse);
     for (const auto & aPImI : aVPixEllipse)
     {
+	if (!  aDIm.Inside(aPImI))
+            return;
 	tREAL8 aValIm = aDIm.GetV(aPImI);
 	cPt2dr aPImR = ToR(aPImI);
 

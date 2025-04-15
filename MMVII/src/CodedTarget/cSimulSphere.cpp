@@ -33,7 +33,7 @@ template <class Type>
    for (auto & aPixOut : aDRes)
    {
        cPt2dr aPixIn = aMap.Inverse(MMVII::ToR(aPixOut+aP0));
-       if (this->Inside(ToI(aPixIn)))
+       if (this->Inside(MMVII::ToI(aPixIn)))
        {
           aDRes.SetVTrunc(aPixOut,ClipedGetValueInterpol(anInterpol,aPixIn));
        }

@@ -306,6 +306,10 @@ void cAppliCheckBoardTargetExtract::GenerateVisuFinal() const
 	     if (aCdt.mScale!= 1.0)
 	        aIm.SetRGBBorderRectWithAlpha(ToI(aCdt.mC0),60,10,cRGBImage::Blue, 0.5);
 
+	     if (aCdt.Code())
+	     {
+                aIm.DrawString(aCdt.Code()->Name(),cRGBImage::Red,aCdt.mC0,cPt2dr(0.5,0.05));
+	     }
 	 }
          aIm.ToJpgFileDeZoom(NameVisu("Glob"),1);
       }
