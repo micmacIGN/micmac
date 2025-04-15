@@ -32,7 +32,7 @@ template <class Type>
 
    for (auto & aPixOut : aDRes)
    {
-       cPt2dr aPixIn = aMap.Inverse(ToR(aPixOut+aP0));
+       cPt2dr aPixIn = aMap.Inverse(MMVII::ToR(aPixOut+aP0));
        if (this->Inside(ToI(aPixIn)))
        {
           aDRes.SetVTrunc(aPixOut,ClipedGetValueInterpol(anInterpol,aPixIn));
@@ -341,11 +341,9 @@ int  cAppliSimulSphere::Exe()
    }
 
 
-   int aK=0;
    for (const auto & aSph : mVSph)
    {
        AddOneSphere(aSph);
-       aK++;
    }
 
 
