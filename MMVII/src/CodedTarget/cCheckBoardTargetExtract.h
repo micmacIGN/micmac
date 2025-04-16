@@ -129,7 +129,7 @@ class cCdRadiom : public cCdSym
 class cCdEllipse : public cCdRadiom
 {
 	public : 
-           cCdEllipse(const cCdRadiom &,cDataIm2D<tU_INT1> & aMarq,int aNbMax,bool isCircle);
+           cCdEllipse(const cCdRadiom &,cDataIm2D<tU_INT1> & aMarq,int aNbMax,bool isCircle,std::vector<cPt2dr>& aEllFr);
 	   bool IsOk() const;
 	   const cEllipse & Ell() const;
            const cPt2dr &   CornerlEl_WB() const;
@@ -162,6 +162,8 @@ class cCdEllipse : public cCdRadiom
 
            void GenImageFail(const std::string & aWhyFail);
 
+           /// once compute ellipse, use line to compute  affinity image <-> ref target
+           void EstimateAffinity();
 	private : 
 
 	   /// Most basic method, return minimal of all lenght
