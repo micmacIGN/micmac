@@ -330,9 +330,12 @@ void cAppliCheckBoardTargetExtract::GenerateVisuDetail(std::vector<cCdEllipse> &
          {
              if (contains(mStrShow,'E'))
              {
-                cRGBImage aRGBIm = GenImaRadiom(aCdt,150);
-                ComplImaEllipse(aRGBIm,aCdt);
-                aRGBIm.ToJpgFileDeZoom(NameVisu( (aCdt.IsCircle() ? "Circle" : "Ellipse"), ToStr(aCptIm)),1);
+                if ( (!mPhProj.DPMask().DirInIsInit() ) || (aCdt.mIsPTest))
+                {
+                    cRGBImage aRGBIm = GenImaRadiom(aCdt,150);
+                    ComplImaEllipse(aRGBIm,aCdt);
+                    aRGBIm.ToJpgFileDeZoom(NameVisu( (aCdt.IsCircle() ? "Circle" : "Ellipse"), ToStr(aCptIm)),1);
+                }
              }
 
              if (contains(mStrShow,'N') )

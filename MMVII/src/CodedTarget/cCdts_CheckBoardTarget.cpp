@@ -321,40 +321,45 @@ void cCdRadiom::SelEllAndRefineFront(std::vector<cPt2dr> & aRes,const std::vecto
 
 bool cCdRadiom::FrontBlackCC(std::vector<cPt2di> & aVFront,cDataIm2D<tU_INT1> & aDMarq,int aNbMax) const
 {
-    std::vector<cPt2di> aRes;
+    std::vector<cPt2di> aCC;  // point of connected commponents
     aVFront.clear();
 
+    // --------------- [1]   copmpute the seed  --------------------------------
+    
+    //  1.1  point of small  ellipse with given center
     std::vector<cPt2di> aVPtsEll;
     ComputePtsOfEllipse(aVPtsEll,std::min(mLength,5.0));
 
+    // 1.2 compute point over a threshold
     tREAL8 aThrs = Threshold();
     for (const auto & aPix : aVPtsEll)
     {
         if (mDIm->GetV(aPix)<aThrs)
 	{
             aDMarq.SetV(aPix,1);
-	    aRes.push_back(aPix);
+	    aCC.push_back(aPix);
 	}
     }
 
-    size_t aIndBot = 0;
+    // ------------------ [2] compute the connected components 
+    size_t aIndBottom = 0;
     const std::vector<cPt2di> & aV4 = Alloc4Neighbourhood();
 
-    cRect2  aImOk(aDMarq.Dilate(-10));
+    cRect2  aRectInterior(aDMarq.Dilate(-10));
     bool isOk = true;
 
-    while ((aIndBot != aRes.size())  && isOk)
+    while ((aIndBottom != aCC.size())  && isOk)
     {
           for (const auto & aDelta : aV4)
           {
-              cPt2di aPix = aRes.at(aIndBot) + aDelta;
+              cPt2di aPix = aCC.at(aIndBottom) + aDelta;
 	      if ((aDMarq.GetV(aPix)==0) && (mDIm->GetV(aPix)<aThrs) )
 	      {
-                 if (aImOk.Inside(aPix))
+                 if (aRectInterior.Inside(aPix))
 		 {
                     aDMarq.SetV(aPix,1);
-		    aRes.push_back(aPix);
-		    if ((int) aRes.size() == aNbMax)
+		    aCC.push_back(aPix);
+		    if ((int) aCC.size() == aNbMax)
                        isOk = false;
 	         }
 	         else
@@ -363,18 +368,18 @@ bool cCdRadiom::FrontBlackCC(std::vector<cPt2di> & aVFront,cDataIm2D<tU_INT1> & 
 	         }
 	      }
           }
-	  aIndBot++;
+	  aIndBottom++;
     }
     if (!isOk) 
     {
-        for (const auto & aPix : aRes)
+        for (const auto & aPix : aCC)
             aDMarq.SetV(aPix,0);
         return false;
     }
 
+    // ------------------ [3] compute point of the CC  that are frontier 
     const std::vector<cPt2di> & aV8 = Alloc8Neighbourhood();
-    // compute frontier points
-    for (const auto & aPix : aRes)
+    for (const auto & aPix : aCC)
     {
         bool has8NeighWhite = false;
         for (const auto & aDelta : aV8)
@@ -390,7 +395,7 @@ bool cCdRadiom::FrontBlackCC(std::vector<cPt2di> & aVFront,cDataIm2D<tU_INT1> & 
     }
     if (false && Is4Debug())
     {
-	     StdOut()  << "--xxx--HASH " << HashValue(aVFront,true) << " SZCC=" << aRes.size() 
+	     StdOut()  << "--xxx--HASH " << HashValue(aVFront,true) << " SZCC=" << aCC.size() 
 		       << " HELLL=" << HashValue(aVPtsEll,true)
 		       << " HELLL=" << HashValue(aVPtsEll,true)
 		       << " C=" << mC  << " Thr=" << aThrs  
@@ -398,7 +403,7 @@ bool cCdRadiom::FrontBlackCC(std::vector<cPt2di> & aVFront,cDataIm2D<tU_INT1> & 
     }
     // StdOut() << "FFFF=" << aVFront << "\n";
 
-    for (const auto & aPix : aRes)
+    for (const auto & aPix : aCC)
         aDMarq.SetV(aPix,0);
 
     return isOk;
@@ -469,6 +474,7 @@ cCdEllipse::cCdEllipse(const cCdRadiom & aCdR,cDataIm2D<tU_INT1> & aMarq,int aNb
      mIsCircle (isCircle)
 {
 
+     // [1]  comoute the integer point  of the frontier
      if (! mIsOk)
      {
          if(mIsPTest) StdOut() << "Ref cCdEllipse at L=" << __LINE__ << "\n" ;
@@ -484,11 +490,12 @@ cCdEllipse::cCdEllipse(const cCdRadiom & aCdR,cDataIm2D<tU_INT1> & aMarq,int aNb
 	return;
      }
 
+     // [2]  Check that the frontier are (with some margin) in theoretical black sector of the check board
      {
          cTmpCdRadiomPos aCRP(*this,1.0);
          for (const auto & aPix : aIFront)
          {
-             auto [aPos,aGray] = aCRP.TheorRadiom(ToR(aPix),2.0,1/20.0);
+             auto [aPos,aGray] = aCRP.TheorRadiom(ToR(aPix),2.0,1/20.0);  // 2.0 thick, 1/1.20 steep
 	     if (aPos == eTPosCB::eInsideWhite)
 	     {
 		     mBOutCB = true;
@@ -502,6 +509,7 @@ cCdEllipse::cCdEllipse(const cCdRadiom & aCdR,cDataIm2D<tU_INT1> & aMarq,int aNb
 	 }
      }
 
+     // [3]  Refine the position Integer -> Real
      std::vector<cPt2dr> aEllFr;
      SelEllAndRefineFront(aEllFr,aIFront);
 
@@ -512,9 +520,10 @@ cCdEllipse::cCdEllipse(const cCdRadiom & aCdR,cDataIm2D<tU_INT1> & aMarq,int aNb
         mIsOk = false;
         return;
      }
-
      mIsOk = true;
 
+
+     // [4]  .....
      cEllipse_Estimate anEE(mC,false,mIsCircle);
      for (const auto & aPixFr : aEllFr)
      {
@@ -665,7 +674,17 @@ tREAL8 cCdEllipse::ComputeThresholdsByRLE(const std::vector<std::pair<int,tREAL8
 	aRunLE = MaxRunLength(aFlag,(size_t)1<<mSpec->NbBits()).x();
    }
 
-   return aVBR.at(aKBit-1).second * 1.2;
+   tREAL8 aMul = (mSpec->Render().mRho_1_BeginCode +mSpec->Render().mRho_2_EndCode) / (2.0*mSpec->Render().mRho_1_BeginCode);
+/*
+   StdOut() << "JJJJjjJ  " 
+            << mSpec->Render().mRho_1_BeginCode << " " 
+            << mSpec->Render().mRho_2_EndCode << " " 
+            << mSpec->Render().mRho_EndIm << " " 
+            <<  " MUL=" << aMul
+            << "\n";
+*/
+
+   return aVBR.at(aKBit-1).second * aMul;
 
 }
 
@@ -691,19 +710,20 @@ void cCdEllipse::DecodeByL2CP(tREAL8 aWeighWhite)
      }
 
      SortOnCriteria(aVBR,[](const auto & aPair) {return aPair.second;});
-     tREAL8 aRhoMin = aVBR.at(0).second;
+     // tREAL8 aRhoMin = aVBR.at(0).second;
 
+     tREAL8 aTreshold = ComputeThresholdsByRLE(aVBR);
 
-     if (0)
+     if (mIsPTest)
      {
          std::vector<std::pair<int,tREAL8>  > aDup = aVBR;
          SortOnCriteria(aDup,[](const auto & aPair) {return aPair.first;});
+         StdOut() << "THRS=" << aTreshold << "\n";
 	 for (const auto & [aBit,aRho] : aDup)
-             StdOut() << " RRR=" << aRho/aRhoMin << "\n";
+             StdOut() << " RRR=" << aRho  << " KB=" << aBit  << " B=" << (aRho<aTreshold)  << "\n";
      }
 
      // tREAL8 aTreshold = ComputeThresholdsMin(aVBR);
-     tREAL8 aTreshold = ComputeThresholdsByRLE(aVBR);
 
      cDecodeFromCoulBits aDec(mSpec);
      for (const auto & [aBit,aRho] : aVBR)

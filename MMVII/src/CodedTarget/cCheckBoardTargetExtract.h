@@ -95,7 +95,7 @@ class cCdRadiom : public cCdSym
 	  ///  call previous with length
           void ComputePtsOfEllipse(std::vector<cPt2di> & aRes) const;
 
-	  /// compute an ellipse that contain 
+	  /// compute frontier point of black connected component with center as seed
           bool FrontBlackCC(std::vector<cPt2di> & aRes,cDataIm2D<tU_INT1> & aMarq,int aNbMax) const;
 	  ///  Select point of front that are on ellipse
           void SelEllAndRefineFront(std::vector<cPt2dr> & aRes,const std::vector<cPt2di> &) const;
