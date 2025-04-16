@@ -39,7 +39,7 @@ We want to extract the pose $R,C$ of the camera (Rotation, Center) such that for
 we have the usual projection equation:
 
 \begin{equation}
-       \mathcal I(\pi (R*(G_k-C))) = p_k \label{EQ:PROJ}
+       \mathcal I(\pi (\trans R*(G_k-C))) = p_k \label{EQ:PROJ}
 \end{equation}
 
 
@@ -94,7 +94,7 @@ First, we remark that if we know the local coordinates $L_k$ of the points in th
 camera frame, the problem becomes easy. Let show it, we will have to find a translation-rotation such that:
 
 \begin{equation}
-       R*(G_k-C) = L_k  ; k\in{1,2,3} \label{SpResecEQ:WL}
+       \trans R*(G_k-C) = L_k  ; k\in{1,2,3} \label{SpResecEQ:WL}
 \end{equation}
 
 
@@ -102,13 +102,13 @@ For each pair $k,k'$, we have (noting $\Vec{X}_{kk'} = \overrightarrow{X_{k}X_{k
 
 
 \begin{equation}
-	R* \Vec{G}_{kk'} =  \Vec{L}_{kk'} \label{SpResecEQ:WLVECT}
+	\trans R* \Vec{G}_{kk'} =  \Vec{L}_{kk'} \label{SpResecEQ:WLVECT}
 \end{equation}
 
 As  $R$ is a rotation we have $R(A \wedge  B) = R(A) \wedge   R(B) $ and then:
 
 \begin{equation}
-	R* \begin{bmatrix} \Vec{G}_{12} & \Vec{G}_{23} &  \Vec{G}_{12} \wedge \Vec{G}_{23} \end{bmatrix} 
+	\trans R* \begin{bmatrix} \Vec{G}_{12} & \Vec{G}_{23} &  \Vec{G}_{12} \wedge \Vec{G}_{23} \end{bmatrix} 
         =  \begin{bmatrix} \Vec{L}_{12} & \Vec{L}_{23} &  \Vec{L}_{12} \wedge \Vec{L}_{23} \end{bmatrix} 
         \label{SpResecEQ:WLVECT}
 \end{equation}
@@ -306,7 +306,7 @@ We want to extract \emph{simulatenously} the pose $R,C$ of the camera (Rotation,
 $\mathcal I$ such that for every point we have the usual projection equation:
 
 \begin{equation}
-       \mathcal I(\pi (R*(G_k-C))) = p_k \label{EQ:PROJ}
+       \mathcal I(\pi (\trans R*(G_k-C))) = p_k \label{EQ:PROJ}
 \end{equation}
 
 Obviously this problem require more informations ~\ref{SR_Cal}, because we want to estimate more parameters.
@@ -556,9 +556,73 @@ Recovering all the internal parameters using {\tt MMVII} convention  is now dire
 %-----------------------------------------------------
 %-----------------------------------------------------
 
-\section{Epipolar geometry}
+\section{Epipolar geometry and relative images orientation}
 
-\subsection{relative orientation}
+\subsection{Introduction}
+
+Epipolar geometry can be used with two different objective 
+in computer vision :
+
+\begin{itemize}
+   \item as a geometry in which images are ressampled to facilitate
+         the image matching process;
+
+   \item as a \emph{"proxy"} for computing relative orientation of pinhole camera.
+\end{itemize}
+
+The firts case can be used, with some approximation, with any sensor
+using for example the method described in \cite{MPD-ER-EPIP-2021},
+that was implemented in micmac-V1, and will (soon ?) be reimplemented in V2.
+In this section we deal only with the second case.
+
+%-----------------------------------------------------
+
+\subsection{Epipolar geometry}
+
+\subsubsection{Definition}
+Le $P=(C,R)$ be a pose, $X_g$ and $X_c$ be a point in ground and camera coordinates :
+
+\begin{equation}
+	X_c = \trans R (X_g-C) \Leftrightarrow  X_g = C+   R X_c
+\end{equation}
+
+We note :
+
+\begin{equation}
+	R= (\vec{i_R},\vec{j_R},\vec{k_R})
+\end{equation}
+
+We say that two pose $P_1$ and $P_2$ are in epipolar configuration iff :
+
+
+\begin{equation}
+	R_1 = R_2 \;  ; \;  \overrightarrow{C_1 C_2} = \lambda \vec{i}
+\end{equation}
+
+
+\subsubsection{Homologous bundles in epipolar configuration}
+
+Assume $P_1$ and $P_2$ are in epipolar configuration, and
+let $\vec{p}_1=(u_1,v_1,1) $ and ${p}_2=(u_2,v_2,1) $  be two homologous bundles
+(noted in camera coordinates). 
+
+To have an intersection we must have the condition :
+
+\begin{itemize}
+   \item the $3$ vector $R\vec{p}_1$, $R \vec{p}_2$ and $ \overrightarrow{C_1 C_2}$ must be colinear
+   \item[$\Leftrightarrow$]  $R\vec{p}_1$, $R \vec{p}_2$ and $ \vec{i_R} = R(1,0,0)$ must be colinear
+   \item[$\Leftrightarrow$]   $\vec{p}_1$, $\vec{p}_2$ and $ (1,0,0)$ must be colinear.
+\end{itemize}
+
+So $\vec{p}_1$ and  $\vec{p}_2$ are homologous bundles :
+
+\begin{equation}
+	 \begin{bmatrix} 1 & u_1 & u_2 \\ 0 & v_1 & v_2 \\ 0 & 1 & 1 \end{bmatrix} 
+\end{equation}
+
+
+Let $P_1={C_1,R_1}$ and $P_2={C_2,R_2}$ we say that the two pose are in
+epipolar e
 
 
 
