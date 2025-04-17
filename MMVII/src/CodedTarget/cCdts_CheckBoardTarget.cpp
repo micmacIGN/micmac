@@ -422,7 +422,8 @@ void  cCdRadiom::ShowDetail
 	    cFullSpecifTarget *aSpec
        ) const
 {
-      cCdEllipse aCDE(*this,aMarq,-1,false);
+      std::vector<cPt2dr> aVFront;
+      cCdEllipse aCDE(*this,aMarq,-1,false,aVFront);
       if (! aCDE.IsOk())
       {
          StdOut()    << "   @@@@@@@@@@@@@@@@@@@@@@@@@@@@ "  << aCptMarq << "\n";
@@ -464,7 +465,7 @@ void cCdEllipse::GenImageFail(const std::string & aWhyFail)
 }
 
 
-cCdEllipse::cCdEllipse(const cCdRadiom & aCdR,cDataIm2D<tU_INT1> & aMarq,int aNbMax,bool isCircle) :
+cCdEllipse::cCdEllipse(const cCdRadiom & aCdR,cDataIm2D<tU_INT1> & aMarq,int aNbMax,bool isCircle,std::vector<cPt2dr>& aEllFr):
      cCdRadiom (aCdR),
      mSpec     (mAppli->Specif()),
      mEll      (cPt2dr(0,0),0,1,1),
@@ -510,7 +511,7 @@ cCdEllipse::cCdEllipse(const cCdRadiom & aCdR,cDataIm2D<tU_INT1> & aMarq,int aNb
      }
 
      // [3]  Refine the position Integer -> Real
-     std::vector<cPt2dr> aEllFr;
+     aEllFr.clear();
      SelEllAndRefineFront(aEllFr,aIFront);
 
      if ((int) aEllFr.size() < (mIsCircle ? 2 : mAppli->NbMinPtEllipse())  )
@@ -523,15 +524,17 @@ cCdEllipse::cCdEllipse(const cCdRadiom & aCdR,cDataIm2D<tU_INT1> & aMarq,int aNb
      mIsOk = true;
 
 
-     // [4]  .....
+     // [4] ------------------ compute the ellipse  -----------------------
+
+         // [4.1]   accumulate points in least-sq
      cEllipse_Estimate anEE(mC,false,mIsCircle);
      for (const auto & aPixFr : aEllFr)
      {
          anEE.AddPt(aPixFr);
      }
-
      mEll = anEE.Compute();
 
+         // [4.2]   check ellips was computed
      if  (!mEll.Ok())
      {
         if(mIsPTest) 
@@ -542,7 +545,9 @@ cCdEllipse::cCdEllipse(const cCdRadiom & aCdR,cDataIm2D<tU_INT1> & aMarq,int aNb
         return;
      }
 
-     tREAL8 aThrs = 0.6+ mEll.LGa()/40.0;
+     
+     // [4.3]  check that all point of the frontier are close enough (seems strict ?)
+     tREAL8 aThrs = 0.6+ mEll.LGa()/40.0;  // thresholf for pixelisation+threshold for shape
      for (const auto & aPixFr : aEllFr)
      {
          tREAL8 aD =  mEll.NonEuclidDist(aPixFr);
@@ -556,20 +561,38 @@ cCdEllipse::cCdEllipse(const cCdRadiom & aCdR,cDataIm2D<tU_INT1> & aMarq,int aNb
      }
 
 
+     //  [5] ----------------Compute the  mapping (affinity) from ref target to image ---------------
+
+     EstimateAffinity();
+/*
      // In specif the corner are for a white sector, with name of transition (B->W or W->B)
      // coming with trigonometric convention; here the angle have been comouted for a  black sector
      // The correction for angle have been made experimentally ...
      mCornerlEl_WB = mEll.InterSemiLine(mTetas[0]);
      mCornerlEl_BW = mEll.InterSemiLine(mTetas[1]+M_PI);
 
-
-
      cAff2D_r::tTabMin  aTabIm{mC,mCornerlEl_WB,mCornerlEl_BW};
      cAff2D_r::tTabMin  aTabMod{mSpec->Center(),mSpec->CornerlEl_WB(),mSpec->CornerlEl_BW()};
 
      mAffIm2Mod =  cAff2D_r::FromMinimalSamples(aTabIm,aTabMod);
      // mAffIm2Mod
+*/
 }
+
+void cCdEllipse::EstimateAffinity()
+{
+     // In specif the corner are for a white sector, with name of transition (B->W or W->B)
+     // coming with trigonometric convention; here the angle have been comouted for a  black sector
+     // The correction for angle have been made experimentally ...
+     mCornerlEl_WB = mEll.InterSemiLine(mTetas[0]);
+     mCornerlEl_BW = mEll.InterSemiLine(mTetas[1]+M_PI);
+
+     cAff2D_r::tTabMin  aTabIm{mC,mCornerlEl_WB,mCornerlEl_BW};
+     cAff2D_r::tTabMin  aTabMod{mSpec->Center(),mSpec->CornerlEl_WB(),mSpec->CornerlEl_BW()};
+
+     mAffIm2Mod =  cAff2D_r::FromMinimalSamples(aTabIm,aTabMod);
+}
+
 
 bool cCdEllipse::BOutCB()   const {return mBOutCB;}
 bool cCdEllipse::IsCircle() const {return mIsCircle;}
@@ -624,7 +647,7 @@ std::pair<tREAL8,cPt2dr>  cCdEllipse::Length2CodingPart(tREAL8 aWeighWhite,const
     // Rho end search, 1.5 theoretical end of code , highly over estimated (no risk ?)
     tREAL8 aRho1 =    aMulN2I * aRhoMaxRel;
     // step of research, overly small (no risk ?)
-    tREAL8 aStepRho = 0.2;
+    tREAL8 aStepRho = 0.1;
     int aNbRho = round_up((aRho1-aRho0) / aStepRho);
     aStepRho  = (aRho1-aRho0) / aNbRho;
 
@@ -674,7 +697,6 @@ tREAL8 cCdEllipse::ComputeThresholdsByRLE(const std::vector<std::pair<int,tREAL8
 	aRunLE = MaxRunLength(aFlag,(size_t)1<<mSpec->NbBits()).x();
    }
 
-   tREAL8 aMul = (mSpec->Render().mRho_1_BeginCode +mSpec->Render().mRho_2_EndCode) / (2.0*mSpec->Render().mRho_1_BeginCode);
 /*
    StdOut() << "JJJJjjJ  " 
             << mSpec->Render().mRho_1_BeginCode << " " 
@@ -684,8 +706,7 @@ tREAL8 cCdEllipse::ComputeThresholdsByRLE(const std::vector<std::pair<int,tREAL8
             << "\n";
 */
 
-   return aVBR.at(aKBit-1).second * aMul;
-
+   return aVBR.at(aKBit-1).second ;
 }
 
 tREAL8 cCdEllipse::ComputeThresholdsMin(const std::vector<std::pair<int,tREAL8>> & aVBR) const
@@ -712,15 +733,28 @@ void cCdEllipse::DecodeByL2CP(tREAL8 aWeighWhite)
      SortOnCriteria(aVBR,[](const auto & aPair) {return aPair.second;});
      // tREAL8 aRhoMin = aVBR.at(0).second;
 
-     tREAL8 aTreshold = ComputeThresholdsByRLE(aVBR);
+     tREAL8 aTresh_Run = ComputeThresholdsByRLE(aVBR);  // threshol required to have RLE cond on white
+     tREAL8 aMul = (mSpec->Render().mRho_1_BeginCode +mSpec->Render().mRho_2_EndCode) / (2.0*mSpec->Render().mRho_1_BeginCode);
+     tREAL8 aTreshold = aTresh_Run * aMul;
 
+     if (mIsPTest)
+     {
+        for (const auto & [aBit,aRho] : aVBR)
+        {
+            if (aRho<=aTresh_Run)
+            {
+            }
+        }
+     }
+
+   
      if (mIsPTest)
      {
          std::vector<std::pair<int,tREAL8>  > aDup = aVBR;
          SortOnCriteria(aDup,[](const auto & aPair) {return aPair.first;});
-         StdOut() << "THRS=" << aTreshold << "\n";
+         StdOut() << "THRS=" << aTresh_Run << "\n";
 	 for (const auto & [aBit,aRho] : aDup)
-             StdOut() << " RRR=" << aRho  << " KB=" << aBit  << " B=" << (aRho<aTreshold)  << "\n";
+             StdOut() << " RRR=" << aRho  << " KB=" << aBit  << " B0=" << (aRho<= aTresh_Run)  << "\n";
      }
 
      // tREAL8 aTreshold = ComputeThresholdsMin(aVBR);

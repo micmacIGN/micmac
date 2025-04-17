@@ -676,7 +676,8 @@ void cAppliCheckBoardTargetExtract::DoOneImageAndScale(tREAL8 aScale,const  tIm 
 	   bool GotIt = false;
 	   for (size_t aKC=0 ; (aKC<TryCE.size()) && (!GotIt) ; aKC++)
 	   {
-               cCdEllipse aCDE(aCdtRad,*mDImTmp,mNbMaxBlackCB,TryCE.at(aKC));
+               std::vector<cPt2dr> aVFront;
+               cCdEllipse aCDE(aCdtRad,*mDImTmp,mNbMaxBlackCB,TryCE.at(aKC),aVFront);
 	       if (aCDE.IsOk())
 	       {
 	          SetLabel(aCDE.mC,eFilterEllipse);
