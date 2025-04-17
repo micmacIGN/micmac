@@ -6,8 +6,27 @@
 namespace MMVII
 {
 cPointCloud::cPointCloud(bool isM8) :
+   mOffset(0,0,0),
    mMode8 (isM8)
 {
+}
+
+
+void cPointCloud::Clip(cPointCloud& aPC,const cBox2dr & ) const
+{
+    aPC.mPtsR.clear();
+    aPC.mPtsF.clear();
+
+    aPC.mOffset = mOffset;
+    aPC.mMode8 = mMode8;
+
+}
+
+
+void cPointCloud::SetOffset(const cPt3dr & anOffset)
+{
+    MMVII_INTERNAL_ASSERT_always(NbPts()==0,"cPointCloud::SetOffset not empty");
+    mOffset = anOffset;
 }
 
 void cPointCloud::AddData(const  cAuxAr2007 & anAux)
