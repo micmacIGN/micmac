@@ -1,5 +1,6 @@
 #include "MMVII_PointCloud.h"
 #include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_Geom2D.h"
 
 
 
@@ -12,7 +13,7 @@ cPointCloud::cPointCloud(bool isM8) :
 }
 
 
-void cPointCloud::Clip(cPointCloud& aPC,const cBox2dr & ) const
+void cPointCloud::Clip(cPointCloud& aPC,const cBox2dr & aBox) const
 {
     aPC.mPtsR.clear();
     aPC.mPtsF.clear();
@@ -20,6 +21,12 @@ void cPointCloud::Clip(cPointCloud& aPC,const cBox2dr & ) const
     aPC.mOffset = mOffset;
     aPC.mMode8 = mMode8;
 
+    for (size_t aKPt=0 ; aKPt<NbPts() ; aKPt++)
+    {
+        cPt3dr aPt = KthPt(aKPt);
+        if (aBox.Inside(Proj(aPt)))
+           aPC.AddPt(aPt);
+    }
 }
 
 
@@ -47,7 +54,7 @@ void AddData(const  cAuxAr2007 & anAux,cPointCloud & aPC)
 cBox3dr  cPointCloud::Box() const
 {
    cTplBoxOfPts<tREAL8,3> aTplB;
-   for (int aK=0 ; aK<NbPts() ; aK++)
+   for (size_t aK=0 ; aK<NbPts() ; aK++)
        aTplB.Add(KthPt(aK));
    return aTplB.CurBox();
 }

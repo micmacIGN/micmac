@@ -215,6 +215,7 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::FileDirProj,"FDP"},
                 {eTA2007::FileImage,"Im"},
                 {eTA2007::FileCloud,"Cloud"},
+                {eTA2007::FileDmp,"Dmp"},
                 {eTA2007::File3DRegion,"3DReg"},
                 {eTA2007::FileTagged,"FileTagged"},
                 {eTA2007::FileTxt,"FileText"},

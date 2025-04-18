@@ -15,7 +15,7 @@ class cPointCloud
     public :
         cPointCloud(bool isMode8=true);
 
-        int NbPts() const
+        size_t NbPts() const
         {
             return + (mMode8 ?  mPtsR.size() : mPtsF.size()) ;
         }

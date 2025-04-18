@@ -29,6 +29,7 @@ enum class eTA2007
                 DirProject,    ///< Exact Dir of Proj
                 FileDirProj,   ///< File that define the  Dir Proj
                 FileImage,     ///< File containing an image
+                FileDmp,       ///< File ending by ".dmp"
                 FileCloud,     ///< File containing a cloud file (ply ?)
                 File3DRegion,  ///< File containing a 3D region
                 FileTagged,    ///< File containing a "xml"  or "json" extension
