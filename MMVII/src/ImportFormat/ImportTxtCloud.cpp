@@ -2,6 +2,7 @@
 #include "MMVII_ReadFileStruct.h"
 #include "MMVII_util_tpl.h"
 #include "MMVII_PointCloud.h"
+#include "MMVII_Geom2D.h"
 
 
 /**
@@ -51,6 +52,7 @@ class cAppli_ImportTxtCloud : public cMMVII_Appli
         bool                     mOffsetIsP0;   ///< do we use First point as offset
 	tREAL8                   mRoundingOffset;
         std::string              mNameOut;
+        tREAL8                   mDensity;
 
 };
 
@@ -88,18 +90,13 @@ cCollecSpecArg2007 & cAppli_ImportTxtCloud::ArgOpt(cCollecSpecArg2007 & anArgOpt
            << AOpt2007(mRoundingOffset,"OffsetRounding","Value use for rounding when P0 is offset",{eTA2007::HDV})
            << AOpt2007(mMode8B,"Bytes8","Do we use 8/4 bytes for storing points",{eTA2007::HDV})
            << AOpt2007(mNameOut,"Out","Name of output, def=In+\".dmp\"")
-
+           << AOpt2007(mDensity,"Density","Theoretical number point/Surface, def computed")
     ;
 }
 
 
 int cAppli_ImportTxtCloud::Exe()
 {
-
-    //cTriangulation3D<tREAL8> aTT(mNameFile);
-    // StdOut() << "NB " << aTT.NbPts() << "\n";
-
-
     cNewReadFilesStruct aNRFS(mFormat,mSpecFormatMand,mSpecFormatTot);
     aNRFS.ReadFile(mNameFile,mParamNSF);
     if (!IsInit(&mNameOut))
@@ -120,6 +117,18 @@ int cAppli_ImportTxtCloud::Exe()
 
         aPC.AddPt(aPt);
     }
+    cBox3dr aBox3d = aPC.Box();
+    aPC.mBox2d = cBox2dr(Proj(aBox3d.P0()),Proj(aBox3d.P1()));
+
+    if (! IsInit(&mDensity))
+    {
+         mDensity = aPC.NbPts() / aPC.Box2d().NbElem();
+         StdOut() << "DENSITY=" << mDensity << "\n";
+    }
+    aPC.mDensity = mDensity;
+
+    StdOut() << "BOX " << aPC.Box2d() << " D=" << aPC.Density() << "\n";
+
     SaveInFile(aPC,mNameOut);
 
     return EXIT_SUCCESS;

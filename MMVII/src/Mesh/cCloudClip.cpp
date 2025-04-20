@@ -52,7 +52,7 @@ cAppliCheckMesh::cAppliCheckMesh(const std::vector<std::string> & aVArgs,const c
 cCollecSpecArg2007 & cAppliCheckMesh::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
  return anArgObl
-	  <<   Arg2007(mNameCloudIn,"Name of input cloud/mesh", {eTA2007::FileDirProj,eTA2007::FileDmp})
+	  <<   Arg2007(mNameCloudIn,"Name of input cloud/mesh", {eTA2007::FileDirProj,eTA2007::FileCloud})
    ;
 }
 
@@ -241,7 +241,7 @@ cAppli_MMVII_CloudClip::cAppli_MMVII_CloudClip
 cCollecSpecArg2007 & cAppli_MMVII_CloudClip::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
  return anArgObl
-	  <<   Arg2007(mNameCloudIn,"Name of input cloud/mesh", {eTA2007::FileDirProj,eTA2007::FileCloud})
+	  <<   Arg2007(mNameCloudIn,"Name of input cloud/mesh", {eTA2007::FileDirProj,eTA2007::FileDmp})
 	  <<   Arg2007(mBoxRel,"Box relative of clip")
    ;
 }
@@ -256,23 +256,23 @@ cCollecSpecArg2007 & cAppli_MMVII_CloudClip::ArgOpt(cCollecSpecArg2007 & anArgOp
 
 int  cAppli_MMVII_CloudClip::Exe()
 {
+   cPointCloud   mPC_In;
+   ReadFromFile(mPC_In,mNameCloudIn);
+
    if (! IsInit(&mNameCloudOut))
       mNameCloudOut = "Clip_" + mNameCloudIn;
 
-   cPointCloud   mPC_In;
-   cPointCloud   mPC_Out;
-   ReadFromFile(mPC_In,mNameCloudIn);
 
-   cBox3dr  aBox3Glob = mPC_In.Box();
-   cBox2dr  aBox2Glob(Proj(aBox3Glob.P0()),Proj(aBox3Glob.P1()));
+//    cBox3dr  aBox3Glob = mPC_In.Box();
+   cBox2dr  aBox2Glob = mPC_In.Box2d();
 
    cPt2dr aP0 = aBox2Glob.FromNormaliseCoord(mBoxRel.P0());
    cPt2dr aP1 = aBox2Glob.FromNormaliseCoord(mBoxRel.P1());
 
-   StdOut() << "Ppppp " << aP0 << aP1 << "\n";
 
    cBox2dr aBoxClip(aP0,aP1);
 
+   cPointCloud   mPC_Out;
    mPC_In.Clip(mPC_Out,aBoxClip);
    SaveInFile(mPC_Out,mNameCloudOut);
 
@@ -299,5 +299,93 @@ cSpecMMVII_Appli  TheSpec_MMVII_CloudClip
       {eApDT::Ply},
       __FILE__
 );
+
+/* =============================================== */
+/*                                                 */
+/*                 cAppli_MMVII_CloudClip          */
+/*                                                 */
+/* =============================================== */
+
+/**  A basic application for clipping 3d data ,  almost all the job is done in
+ * libraries so it essentially interface to command line */
+
+class cAppli_MMVII_Cloud2Ply : public cMMVII_Appli
+{
+     public :
+
+        cAppli_MMVII_Cloud2Ply(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
+
+     private :
+        int Exe() override;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+
+        // --- Mandatory ----
+	std::string   mNameCloudIn;
+        // --- Optionnal ----
+        std::string mNameCloudOut;
+
+};
+
+cAppli_MMVII_Cloud2Ply::cAppli_MMVII_Cloud2Ply
+(
+     const std::vector<std::string> & aVArgs,
+     const cSpecMMVII_Appli & aSpec
+) :
+     cMMVII_Appli      (aVArgs,aSpec)
+{
+}
+
+cCollecSpecArg2007 & cAppli_MMVII_Cloud2Ply::ArgObl(cCollecSpecArg2007 & anArgObl) 
+{
+ return anArgObl
+	  <<   Arg2007(mNameCloudIn,"Name of input cloud/mesh", {eTA2007::FileDirProj,eTA2007::FileDmp})
+   ;
+}
+
+
+cCollecSpecArg2007 & cAppli_MMVII_Cloud2Ply::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+   return anArgOpt
+          << AOpt2007(mNameCloudOut,CurOP_Out,"Name of output file, def=Clip_+InPut")
+   ;
+}
+
+int  cAppli_MMVII_Cloud2Ply::Exe()
+{
+   if (! IsInit(&mNameCloudOut))
+      mNameCloudOut = LastPrefix(mNameCloudIn) + ".ply";
+
+   cPointCloud   mPC_In;
+   ReadFromFile(mPC_In,mNameCloudIn);
+
+   mPC_In.ToPly(mNameCloudOut,false);
+
+
+   return EXIT_SUCCESS;
+}
+
+     /* =============================================== */
+     /*                       ::                        */
+     /* =============================================== */
+
+tMMVII_UnikPApli Alloc_MMVII_Cloud2Ply(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
+{
+   return tMMVII_UnikPApli(new cAppli_MMVII_Cloud2Ply(aVArgs,aSpec));
+}
+
+cSpecMMVII_Appli  TheSpec_MMVII_Cloud2Ply
+(
+     "CloudMMVII2Ply",
+      Alloc_MMVII_Cloud2Ply,
+      "Generate a ply version of  MMVII-Cloud",
+      {eApF::Cloud},
+      {eApDT::Ply},
+      {eApDT::Ply},
+      __FILE__
+);
+#if (0)
+#endif
+
 
 };

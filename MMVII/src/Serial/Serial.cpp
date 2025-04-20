@@ -142,6 +142,7 @@ void cAr2007::RawBeginName(const cAuxAr2007& anOT) {}
 void cAr2007::RawEndName(const cAuxAr2007& anOT) {}
 bool cAr2007::Tagged() const {return mTagged;}
 bool cAr2007::Input() const  {return mInput;}
+bool cAr2007::Binary() const  {return mBinary;}
 bool cAr2007::IsSpecif() const  {return mIsSpecif;}
 
 cAr2007::cAr2007(bool Input,bool isTagged,bool isBinary) :
@@ -237,24 +238,14 @@ template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cPtxd<Type
    AddTabData(anAux,aPt.PtRawData(),Dim,eTAAr::ePtxd);
 }
 
-template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cTplBox<Type,Dim>  &  aBox) 
-{
-   AddData(cAuxAr2007("P0",anAux),aBox.P0ByRef());
-   AddData(cAuxAr2007("P1",anAux),aBox.P1ByRef());
-   // Need to recreate a coherent object
-// StdOut() << "AddDataAddDataBox " << aBox.P0ByRef() << " " << aBox.P1ByRef() << std::endl;
-   if (anAux.Input())
-      aBox = cTplBox<Type,Dim>(aBox.P0(),aBox.P1());
-}
-
 
 template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tREAL8,4>  &  aVal) ;
 
 #define MACRO_INSTANTIATE_AddDataPtxD(DIM)\
 template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tREAL4,DIM>  &  aVal) ;\
 template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tREAL8,DIM>  &  aVal) ;\
-template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tINT4,DIM>  &  aVal) ;\
-template  void AddData(const  cAuxAr2007 & anAux, cTplBox<tINT4,DIM>  &  aVal) ;\
+template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tREAL16,DIM>  &  aVal) ;\
+template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tINT4,DIM>  &  aVal) ;
 
 MACRO_INSTANTIATE_AddDataPtxD(1)
 MACRO_INSTANTIATE_AddDataPtxD(2)

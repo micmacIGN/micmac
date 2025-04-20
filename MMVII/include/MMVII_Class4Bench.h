@@ -47,9 +47,13 @@ class cTestSerial1 : public cMemCheck
         cTestSerial0            mTS0;
         std::string             mS;
         cPt2dr                  mP3;
+        std::vector<cPt2dr>     mVPtR;
         std::list<int>          mLI;
-        std::vector<double>      mVD;
+        std::vector<cPt2di>     mVPtI;
+        std::vector<double>     mVD;
+        std::vector<int>        mVI;
         std::optional<cPt2dr>   mO1;
+        std::vector<tU_INT1>    mVUI1;
         std::optional<cPt2dr>   mO2;
         std::optional<std::string> mO3;
         std::string             mD1; // with default val

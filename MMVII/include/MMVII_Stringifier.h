@@ -342,8 +342,10 @@ class cAr2007 : public cMemCheck
          virtual void AddComment(const std::string &);
          ///  Tagged File = xml Like, important for handling optionnal parameter
          bool  Tagged() const;
-         ///  May optimize the action
+         ///  May be requirde by some  action (for ex, resizing before read)
          bool  Input() const;
+         ///  May optimize the action, for example vector of num types
+         bool Binary() const;
          ///  Specification archive need some trick action with containers
          bool  IsSpecif() const;
 	 ///  rare used, required in CSV to avoid duplication, default error
