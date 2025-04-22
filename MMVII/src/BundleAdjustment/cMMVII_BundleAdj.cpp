@@ -250,6 +250,7 @@ void cMMVII_BundleAdj::InitIteration()
 
 void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter)
 {
+    mIsLastIter=isLastIter;
     // if it's first step, alloc ressources
     if (mPhaseAdd)
     {

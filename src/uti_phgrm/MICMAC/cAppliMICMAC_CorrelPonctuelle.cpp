@@ -326,7 +326,7 @@ void cAppliMICMAC::DoCostLearnedMMVII(const Box2di & aBox,const cScoreLearnedMMV
        aBoxIn2=Box2di(Pt2di(aX0In2,aY0In2),Pt2di(aX1In2,aY1In2));
 
 
-       std::string aCom =   "MMVII DM4FillCubeCost2D " + aN1 + " " + aN2
+       std::string aCom = "MMVII DM4FillCubeCost2D " + aN1 + " " + aN2
                           + " " +  aModele
                           + " " +  ToString(mBoxIn.P0())
                           + " " +  ToString(aBoxIn1)

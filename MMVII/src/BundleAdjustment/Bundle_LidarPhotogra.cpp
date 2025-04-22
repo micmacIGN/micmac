@@ -16,7 +16,6 @@ namespace MMVII
 */
 
 
-
 cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std::string>& aParam) :
     mBA         (aBA),                                 // memorize the bundel adj class itself (access to optimizer)
     mModeSim    (Str2E<eImatchCrit>(aParam.at(0))),    // mode of matching (int 4 now) 0 ponct, 1 Census
@@ -24,7 +23,10 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
     mInterp     (nullptr),                             // interpolator see bellow
     mEqLidPhgr  (nullptr),                             // equation of egalisation Lidar/Phgr
     mPertRad    (false),
-    mNbPointByPatch (32)
+    mNbPointByPatch (32),
+    mBoxSelected (cBox2dr::Empty()),
+    mDImQualityMap(nullptr),
+    mDImQualityMapY(nullptr)
 {
    if (mModeSim==eImatchCrit::eDifRad) 
       mEqLidPhgr = EqEqLidarImPonct (true,1);
@@ -36,6 +38,9 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
    {
       MMVII_UnclasseUsEr("Bad enum for cBA_LidarPhotogra");
    }
+
+   // Activate patch selection by correl
+   isForSelection=true;
 
    //  By default  use tabulation of apodized sinus cardinal
    std::vector<std::string> aParamInt {"Tabul","1000","SinCApod","10","10"};
@@ -89,21 +94,62 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
         //cBox2dr aBox = mTri.Box2D();
         // estimate the distance for computing patching assuming a uniform  distributio,
         // Pi d^ 2  /NbByP = Surf / NbTot
-       tREAL8 aDistMoy = 3.0;//std::sqrt(mNbPointByPatch *aBox.NbElem()/ (mTri.NbPts()*M_PI));
+        tREAL8 aDistMoy = 4.0; //std::sqrt(mNbPointByPatch *aBox.NbElem()/ (mTri.NbPts()*M_PI));
         tREAL8 aDistReject =  aDistMoy *1.5;
 
         //mTri.MakePatches(mLPatches,aDistMoy,aDistReject,35);
 
-        mTri.MakePatchesTargetted(mLPatches,aDistMoy,aDistReject,15, mVCam,0.75);
-        /*std::string NamePlyOut="./patches.ply";
-        mTri.PlyWriteSelected(NamePlyOut,mLPatches,false);*/
+        mTri.MakePatchesTargetted(mLPatches,
+                                  aDistMoy,
+                                  aDistReject,
+                                  15,
+                                  mVCam,
+                                  mVIms,
+                                  0.85);
 
+        auto aSetOfPatches= mLPatches;
+        cTplBoxOfPts<tREAL8,2> aBoxObj;
+        for (const auto& aPatchIndex : aSetOfPatches)
+        {
+            std::vector<cPt3dr> aVP;
+            for (const auto anInd : aPatchIndex)
+                aVP.push_back(ToR(mTri.KthPts(anInd)));
+            std::vector<cData1ImLidPhgr> aVDenseData;
+            EvalGeomConsistency(aVP,aVDenseData,0.07);
+            if (EvalCorrel(aVDenseData)<0.65)
+            {
+                mLPatches.remove(aPatchIndex);
+            }
+            else
+            {
+                for (auto & aPt: aVP)
+                {
+                    aBoxObj.Add(Proj(aPt));
+                }
+            }
+        }
+
+        mBoxSelected=aBoxObj.CurBox();
+
+        // global quality map
+        cPt2di aSz(Pt_round_up(mBoxSelected.Sz()/0.07)); // aStep=0.07 ( GSD 7cm)
+        mDImQualityMap= new cDataIm2D<tREAL8> (cPt2di(0,0),aSz);
+        mDImQualityMap->InitCste(-9999.0);
+
+        mDImQualityMapY= new cDataIm2D<tREAL8> (cPt2di(0,0),aSz);
+        mDImQualityMapY->InitCste(-9999.0);
+
+
+
+        std::string NamePlyOut="./patches_selected_autocorrel_visibility.ply";
+        mTri.PlyWriteSelected(NamePlyOut,mLPatches,false);
 
         StdOut() << "Patches: DistReject=" << aDistReject 
                 << " NbPts=" << mTri.NbPts()
                 << " NbPatch=" << mLPatches.size() 
                 << "\n";
    }
+   isForSelection=false;
 }
 
 cBA_LidarPhotogra::~cBA_LidarPhotogra() 
@@ -116,6 +162,9 @@ void cBA_LidarPhotogra::AddObs(tREAL8 aW)
 {
     mLastResidual.Reset();
     mCurrentCorrelVal=0.0;
+    mAverageDeltaX.Reset();
+    mAverageDeltaY.Reset();
+
     if (mModeSim==eImatchCrit::eDifRad)
     {
        for (size_t aKP=0 ; aKP<mTri.NbPts() ; aKP+=1)
@@ -151,6 +200,46 @@ void cBA_LidarPhotogra::AddObs(tREAL8 aW)
             idd++;
         }
 
+        if ( (mBA.getNbIter()==0) || (mBA.CheckIfLastIter()) )
+        {
+            // save global quality map abs( Delta_X)
+            std::string aNameQualityMap="./qualityMap_"+ToStr(mBA.getNbIter())+"_X"+".tif";
+            tREAL8 aTransform[6]={mBoxSelected.P0().x(),0.07,0,mBoxSelected.P1().y(),0,-0.07};
+
+            std::vector<const cDataIm2D<tREAL8>*> aVIms({mDImQualityMap});
+
+            cDataFileIm2D aDF=cDataFileIm2D::Create(aNameQualityMap,
+                                                      eTyNums::eTN_REAL8,
+                                                      mDImQualityMap->Sz());
+            cGdalApi::ReadWrite(cGdalApi::IoMode::Write,
+                                aVIms,
+                                aDF,
+                                cPt2di(0,0),
+                                1.0,
+                                cPixBox<2>(cPt2di(0,0),mDImQualityMap->Sz()),
+                                aTransform);
+
+
+
+
+            // save global quality map abs ( Delta_Y)
+
+            aNameQualityMap="./qualityMap_"+ToStr(mBA.getNbIter())+"_Y"+".tif";
+
+            aVIms={mDImQualityMapY};
+            aDF=cDataFileIm2D::Create(aNameQualityMap,
+                                                      eTyNums::eTN_REAL8,
+                                                      mDImQualityMapY->Sz());
+
+            cGdalApi::ReadWrite(cGdalApi::IoMode::Write,
+                                aVIms,
+                                aDF,
+                                cPt2di(0,0),
+                                1.0,
+                                cPixBox<2>(cPt2di(0,0),mDImQualityMapY->Sz()),
+                                aTransform);
+        }
+
         /*for (size_t aKIm=0; aKIm<mVCam.size();aKIm++)
             {
                 cSensorCamPC * aCam = mVCam[aKIm]; // extract cam
@@ -165,6 +254,12 @@ void cBA_LidarPhotogra::AddObs(tREAL8 aW)
     if (mLastResidual.SW() != 0)
        StdOut() << "  * Lid/Phr Residual Rad " << mLastResidual.Average() << "\n";
     StdOut() <<" * Eval Correl between image patches "<<mCurrentCorrelVal/(tREAL8)mLPatches.size();
+
+    if ( (mBA.getNbIter()==0) || (mBA.CheckIfLastIter()))
+    {
+        StdOut() <<" Planar residual X  "<<mAverageDeltaX.Average()<<"\n";
+        StdOut() <<" Planar residual Y  "<<mAverageDeltaY.Average()<<"\n";
+    }
 }
 
 void cBA_LidarPhotogra::SetVUkVObs
@@ -361,7 +456,7 @@ void cBA_LidarPhotogra::EvaluatePlanarDisplacements(std::vector<std::string> & a
                                                     std::vector<tREAL8*> & aVecTransforms,
                                                     bool isStandalone=false)
 {
-    std::list<cParamCallSys> aMasqsDefinition;
+    //std::list<cParamCallSys> aMasqsDefinition;
     int aMin=0;
     int aMax=256;
     for(size_t aKIM=0; aKIM<aVecOrthoNames.size();aKIM++)
@@ -372,14 +467,15 @@ void cBA_LidarPhotogra::EvaluatePlanarDisplacements(std::vector<std::string> & a
             "MasqMaker",
             aImName,
             ToStr(aMin),
-            ToStr(aMax),
-            "@ExitOnBrkp"
+            ToStr(aMax)
+            //"@ExitOnBrkp"
             );
-        aMasqsDefinition.push_back(aCom);
+        aCom.Execute(true);
+        //aMasqsDefinition.push_back(aCom);
+
         //StdOut()<<aCom.Com()<<std::endl;
     }
-
-    mBA.getPhProj()->Appli().ExeComParal(aMasqsDefinition);
+    //mBA.getPhProj()->Appli().ExeComSerial(aMasqsDefinition,false);
 
     if (isStandalone)
     {
@@ -407,7 +503,7 @@ void cBA_LidarPhotogra::EvaluatePlanarDisplacements(std::vector<std::string> & a
     else
     {
 
-        std::list<cParamCallSys> aComsDisplacements;
+        //std::list<cParamCallSys> aComsDisplacements;
         for(size_t aKMaster=0; aKMaster<aVecOrthoNames.size();aKMaster++)
         {
             for (size_t aKSec=aKMaster+1;aKSec<aVecOrthoNames.size();aKSec++)
@@ -419,14 +515,16 @@ void cBA_LidarPhotogra::EvaluatePlanarDisplacements(std::vector<std::string> & a
                     aVecOrthoNames[aKSec],
                     "Masq="+LastPrefix(aVecOrthoNames[aKMaster])+"_Masq.tif",
                     "DirMEC=MECDISP_"+LastPrefix(aVecOrthoNames[aKMaster])+"_"+LastPrefix(aVecOrthoNames[aKSec])+"/",
-                    "@ExitOnBrkp"
+                    "SzW=3"
+                    //"@ExitOnBrkp"
                     );
-                aComsDisplacements.push_back(aCom);
+                aCom.Execute(true);
+                //aComsDisplacements.push_back(aCom);
             }
         }
 
         // Execute displacements estimation
-        mBA.getPhProj()->Appli().ExeComParal(aComsDisplacements);
+        //mBA.getPhProj()->Appli().ExeComSerial(aComsDisplacements,false);
         // read displacement maps and compute average planar displacements over all patches
 
 
@@ -436,13 +534,24 @@ void cBA_LidarPhotogra::EvaluatePlanarDisplacements(std::vector<std::string> & a
         int aCountX=0;
         int aCountY=0;
 
+        cPt2di aSz=cIm2D<tREAL8>::FromFile(aVecOrthoNames[0]).DIm().Sz();
+        cDataIm2D<tREAL8> aMaxDelatX= cDataIm2D<tREAL8>(cPt2di(0,0),aSz);
+        cDataIm2D<tREAL8> aMaxDelatY= cDataIm2D<tREAL8>(cPt2di(0,0),aSz);
+
+        aMaxDelatX.InitCste(-9999.0);
+        aMaxDelatY.InitCste(-9999.0);
+        tREAL8 aVx,aVy;
 
         for(size_t aKMaster=0; aKMaster<aVecOrthoNames.size();aKMaster++)
         {
             for (size_t aKSec=aKMaster+1;aKSec<aVecOrthoNames.size();aKSec++)
             {
-                std::string aPax1="MECDISP_"+LastPrefix(aVecOrthoNames[aKMaster])+"_"+LastPrefix(aVecOrthoNames[aKSec])+"/"+"Px1_Num6_DeZoom1_LeChantier.tif";
-                std::string aPax2="MECDISP_"+LastPrefix(aVecOrthoNames[aKMaster])+"_"+LastPrefix(aVecOrthoNames[aKSec])+"/"+"Px2_Num6_DeZoom1_LeChantier.tif";
+                std::string aPax1="MECDISP_"+LastPrefix(aVecOrthoNames[aKMaster])+"_"+
+                                    LastPrefix(aVecOrthoNames[aKSec])+
+                                    "/"+"Px1_Num6_DeZoom1_LeChantier.tif";
+                std::string aPax2="MECDISP_"+LastPrefix(aVecOrthoNames[aKMaster])+"_"+
+                                    LastPrefix(aVecOrthoNames[aKSec])+
+                                    "/"+"Px2_Num6_DeZoom1_LeChantier.tif";
                 std::string aMasqDefined=LastPrefix(aVecOrthoNames[aKMaster])+"_Masq.tif";
 
                 // read images
@@ -465,32 +574,60 @@ void cBA_LidarPhotogra::EvaluatePlanarDisplacements(std::vector<std::string> & a
                         // check if masq is defined
                         if (aDMasq.GetV(aPix))
                         {
-                            if (aDPax1.GetV(aPix)!=0.0)
+                            aVx=aDPax1.GetV(aPix);
+                            aVy=aDPax2.GetV(aPix);
+                            if (aVx!=0.0)
                             {
-                                aDeltaX+=abs(aDPax1.GetV(aPix));
-                                aCountX++;
-                            }
 
-                            if (aDPax2.GetV(aPix)!=0.0)
+                                aDeltaX+=abs(aVx);
+                                aCountX++;
+
+                            }
+                            if (abs(aVx)>aMaxDelatX.GetV(aPix))
+                                aMaxDelatX.SetV(aPix,abs(aVx));
+
+                            if (aVy!=0.0)
                             {
-                                aDeltaY+=abs(aDPax2.GetV(aPix));
+                                aDeltaY+=abs(aVy);
                                 aCountY++;
                             }
+                            if (abs(aVy)>aMaxDelatY.GetV(aPix))
+                                aMaxDelatY.SetV(aPix,abs(aVy));
                         }
                     }
                 }
             }
         }
+
+
+        // save patch error map
+
+
+        cPt2dr anOffsetGlobal((aVecTransforms[0][0]-mBoxSelected.P0().x())/aVecTransforms[0][1],
+                                (aVecTransforms[0][3]-mBoxSelected.P1().y())/aVecTransforms[0][5]);
+
+
+        cPt2di aPix;
+        for (aPix.x()=0; aPix.x()<aMaxDelatX.SzX();aPix.x()++)
+        {
+            for (aPix.y()=0; aPix.y()<aMaxDelatX.SzY();aPix.y()++)
+            {
+                //StdOut()<<" kkk  "<<mDImQualityMap->Sz()<<"   "<<ToI(anOffsetGlobal)+aPix<<std::endl;
+                // fill global map
+                mDImQualityMap->SetV(ToI(anOffsetGlobal)+aPix, aMaxDelatX.GetV(aPix));
+                mDImQualityMapY->SetV(ToI(anOffsetGlobal)+aPix, aMaxDelatY.GetV(aPix));
+            }
+        }
         // normalize
         aDeltaX/=(aCountX+1e-8);
         aDeltaY/=(aCountY+1e-8);
-        mAverageDeltaX.push_back(aDeltaX);
-        mAverageDeltaY.push_back(aDeltaY);
+        mAverageDeltaX.Add(1.0,aDeltaX);
+        mAverageDeltaY.Add(1.0,aDeltaY);
         StdOut()<<" aMean Displacement "<<aDeltaX<<"   "<<aDeltaY<<std::endl;
-
     }
-
 }
+
+
 
 
 void cBA_LidarPhotogra::EvalGeomConsistency(const std::vector<cPt3dr>& aVPatchGr,
@@ -604,36 +741,44 @@ void cBA_LidarPhotogra::EvalGeomConsistency(const std::vector<cPt3dr>& aVPatchGr
             aVData.push_back(aData); // memorize the data for this image
             // save ortho
             // save orthos to check registration accuracy
-            std::string aName="gridRadiom"+
-                                std::to_string(value_ms)+
-                                "_"+
-                                ToStr(aKIm)+
-                                "_"+
-                                ToStr(mPatchId)+
-                                ".tif";
-            OrthosName.push_back(aName);
-            cDataFileIm2D aDF=cDataFileIm2D::Create(aName,
-                                                      eTyNums::eTN_REAL8,
-                                                      aDD_Grid->Sz());
+            if ( ( (mBA.getNbIter()==0) || (mBA.CheckIfLastIter()) )
+                && (!isForSelection))
+            {
+                std::string aName="gridRadiom"+
+                                    std::to_string(value_ms)+
+                                    "_"+
+                                    ToStr(aKIm)+
+                                    "_"+
+                                    ToStr(mPatchId)+
+                                    ".tif";
+                OrthosName.push_back(aName);
+                cDataFileIm2D aDF=cDataFileIm2D::Create(aName,
+                                                          eTyNums::eTN_REAL8,
+                                                          aDD_Grid->Sz());
 
-            // add geotiff transform
-            tREAL8 transform[6]={aBox.P0().x(),aPas,0,aBox.P1().y(),0,-aPas};
-            std::vector<const cDataIm2D<tREAL8>*> aVIms({aDD_GridRadiom});
+                // add geotiff transform
+                tREAL8 transform[6]={aBox.P0().x(),aPas,0,aBox.P1().y(),0,-aPas};
+                std::vector<const cDataIm2D<tREAL8>*> aVIms({aDD_GridRadiom});
 
-            cGdalApi::ReadWrite(cGdalApi::IoMode::Write,
-                                aVIms,
-                                aDF,
-                                cPt2di(0,0),
-                                1.0,
-                                cPixBox<2>(cPt2di(0,0),aDD_Grid->Sz()),
-                                transform);
-            aVecTransforms.push_back(transform);
+                cGdalApi::ReadWrite(cGdalApi::IoMode::Write,
+                                    aVIms,
+                                    aDF,
+                                    cPt2di(0,0),
+                                    1.0,
+                                    cPixBox<2>(cPt2di(0,0),aDD_Grid->Sz()),
+                                    transform);
+                aVecTransforms.push_back(transform);
+            }
         }
     }
     // perfom displacement measurment between patches
-    if (OrthosName.size()>1)
-        EvaluatePlanarDisplacements(OrthosName,aVecTransforms,true);
-    StdOut()<<"Eval Patch "<<std::endl;
+    if ( ( (mBA.getNbIter()==0) || (mBA.CheckIfLastIter()) )
+        && (!isForSelection) && (OrthosName.size()>1) )
+    {
+        EvaluatePlanarDisplacements(OrthosName,aVecTransforms,false);
+    }
+    aVecTransforms.clear();
+    //StdOut()<<"Eval Patch "<<std::endl;
 }
 
 
@@ -677,7 +822,7 @@ tREAL8 cBA_LidarPhotogra::EvalSaliencyPerPatch(const std::vector<cData1ImLidPhgr
 }
 
 
-void cBA_LidarPhotogra::EvalCorrel(const std::vector<cData1ImLidPhgr> & aVData)
+tREAL8 cBA_LidarPhotogra::EvalCorrel(const std::vector<cData1ImLidPhgr> & aVData)
 {
     auto aDataMaster = aVData.at(0);
     size_t aNbPt=aVData.at(0).mVGr.size();
@@ -712,8 +857,7 @@ void cBA_LidarPhotogra::EvalCorrel(const std::vector<cData1ImLidPhgr> & aVData)
         aMeanCorrel+=aCorrel;
         MMVII_INTERNAL_ASSERT_strong(aCorrel<=1.0 && aCorrel>=-1.0,"Correl not correctly measured !");
     }
-    aMeanCorrel/=(aVData.size()-1);
-    mCurrentCorrelVal+=aMeanCorrel;
+    return (aMeanCorrel/=(aVData.size()-1));
 }
 
 
@@ -780,7 +924,7 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
      {
          std::vector<cData1ImLidPhgr> aVDenseData;
          EvalGeomConsistency(aVPatchGr,aVDenseData,0.07);
-         EvalCorrel(aVDenseData);
+         mCurrentCorrelVal+=EvalCorrel(aVDenseData);
          AddPatchCorrel(aWeight,aVPatchGr,aVData);
      }
 }

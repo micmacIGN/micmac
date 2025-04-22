@@ -37,6 +37,7 @@ public:
     void SolveDispDirect(std::string & aNameOut, tREAL8 * TRANSFORM);
     void saveFlow(std::string & aNameOut, tREAL8 * transform);
     tDImDispl * DDispY() {return mDDispY;}
+    tDImDispl * DDispX() {return mDDispX;}
 
     ~cOpticalFlow();
     

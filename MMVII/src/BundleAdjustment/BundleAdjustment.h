@@ -359,7 +359,7 @@ class cBA_LidarPhotogra
                                         bool isStandalone);
        void EvalGeomConsistency(const std::vector<cPt3dr>& aVPatch, std::vector<cData1ImLidPhgr>& aVData,tREAL8 aZPas);
 
-       void EvalCorrel(const std::vector<cData1ImLidPhgr>& aVData);
+       tREAL8 EvalCorrel(const std::vector<cData1ImLidPhgr>& aVData);
        tREAL8 EvalSaliencyPerPatch(const std::vector<cData1ImLidPhgr> & aVData);
        /// Method for adding observations with radiometric differences as similatity criterion
        void AddPatchDifRad(tREAL8 aW,const std::vector<cPt3dr> & aPatch,const std::vector<cData1ImLidPhgr> &aVData) ;
@@ -392,9 +392,13 @@ class cBA_LidarPhotogra
        bool                           mPertRad;        ///< do we pertubate the radiometry (simulation & test)
        size_t                         mNbPointByPatch; ///< (approximate) required number of point /patch
        tREAL8 mCurrentCorrelVal=0.0;
-       std::vector<tREAL8> mAverageDeltaX;
-       std::vector<tREAL8> mAverageDeltaY;
+       cWeightAv<tREAL8,tREAL8> mAverageDeltaX;
+       cWeightAv<tREAL8,tREAL8> mAverageDeltaY;
        int mPatchId;
+       bool isForSelection;
+       cBox2dr mBoxSelected;
+       cDataIm2D<tREAL8> * mDImQualityMap;
+       cDataIm2D<tREAL8> * mDImQualityMapY;
 };
 
 
@@ -425,7 +429,9 @@ class cMMVII_BundleAdj
 	  void AddCamBlocRig(const std::string & aCam); // RIGIDBLOC
           void AddTopo(); // TOPO
           cBA_Topo* getTopo() { return mTopo;}
-          cPhotogrammetricProject * getPhProj() {return mPhProj;};
+          cPhotogrammetricProject * getPhProj() {return mPhProj;}
+          int getNbIter(){return mNbIter;}
+          bool CheckIfLastIter(){return mIsLastIter;}
 
           // Add clino bloc to compute relative orientation between clino and a camera
           void AddClinoBloc();
@@ -555,6 +561,7 @@ class cMMVII_BundleAdj
 				      //
 	  int      mNbIter;    /// counter of iteration, at least for debug
           bool     mVerbose; // print residuals
+         bool mIsLastIter;
 
           std::vector<cBundleBlocNamedVar>  mVBBNamedV;
 

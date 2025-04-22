@@ -334,6 +334,7 @@ template <class TypeIm> class cCutAutoCorrelDir : public cAutoCorrelDir<TypeIm>
                this->mP0 = aP0;
                double aCorrMax = -2;
                int    aKMax = -1;
+               //std::cout<<"Debug "<<mVPt.size()<<std::endl;
                for (int aK=0 ; aK<mNbPts ; aK++)
                {
                     double aCor = this->ICorrelOneOffset(this->mP0,mVPt[aK],this->mSzW);
@@ -359,6 +360,7 @@ template <class TypeIm> class cCutAutoCorrelDir : public cAutoCorrelDir<TypeIm>
                }
 
                Pt2dr aRhoTeta = Pt2dr::polar(Pt2dr(mVPt[aKMax]),0.0);
+               //std::cout<<" aRhoTeta  Max "<<aRhoTeta<<std::endl;
 
                double aStep0 = 1/this->mRho;
                //  Pt2dr aRes1 =  this->DoItOneStep(aRhoTeta.y,aStep0*0.5,2);  BUG CORRIGE VERIF AVEC GIANG

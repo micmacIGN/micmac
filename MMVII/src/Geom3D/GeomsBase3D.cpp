@@ -597,6 +597,30 @@ tREAL8 L2_PlanarityIndex(const std::vector<cPt3dr> & aVPt)
 }
 
 
+bool IsPlanarityIdxPdal(const std::vector<cPt3dr>& aVPt, tREAL8 mThresh1, tREAL8 mThresh2)
+{
+    tREAL8 aNbP = aVPt.size() ;
+    if (aNbP <=3) return 0.0;
+
+    cStrStat2<tREAL8>  aStat(3);
+    for (const auto & aP3 : aVPt)
+        aStat.Add(aP3.ToVect());
+    aStat.Normalise();
+    const cDenseVect<tREAL8> anEV = aStat.DoEigen().EigenValues() ; // in ascending order
+
+    //StdOut()<<"  rapport 1 > 30.0  "<< anEV(1)/anEV(0) <<" rapport 2 <  7.0 "<< anEV(2)/anEV(1) <<std::endl;
+    // theoretically eigenvalues can't be negavive => treat <0 as =0
+    if (anEV(0)<=0)  return false;
+    if (anEV(1)<=0)  return false;
+    if (anEV(2)<=0)  return false;
+    if ((anEV(1) > mThresh1 * anEV(0)) &&
+        (mThresh2 * anEV(1) > anEV(2))
+        )
+        return true;
+    else
+        return false;
+}
+
 tREAL8 L2_LinearityIndex(const std::vector<cPt3dr> & aVPt) 
 { 
     tREAL8 aNbP = aVPt.size() ;

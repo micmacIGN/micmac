@@ -378,8 +378,14 @@ template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
            cTriangulation3D(const tVPt&,const tVFace &);
            void WriteFile(const std::string &,bool isBinary) const;
            void SamplePts(const bool & targetted,const tREAL8 & aStep);
-           tREAL8 FindGoodPatches(const std::vector<cPt3dr>& aVPts,
-                                const std::vector<cSensorCamPC*> & aCameras);
+           bool IsGoodPatch(const std::vector<cPt3dr>& aVPts,
+                                const std::vector<cSensorCamPC*> & aCameras,
+                                const std::vector<cIm2D<tU_INT1>> & mVIms,
+                                tREAL8 AC_RHO,
+                                tREAL8 VAR_RHO,
+                                int    aSzMin,
+                                tREAL8 aThreshold,
+                                tREAL8 aSzW);
            size_t NbSelectedPts() const { return mVSelectedIds.size(); }
 
 	   static void Bench();
@@ -395,6 +401,7 @@ template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
            void MakePatches(std::list<std::vector<int> > & ,tREAL8 aDistNeigh,tREAL8 aDistReject,int aSzMin) const;
            void MakePatchesTargetted(std::list<std::vector<int> > & , tREAL8 aDistNeigh, tREAL8 aDistReject, int aSzMin,
                                      const std::vector<cSensorCamPC *> & ,
+                                     const std::vector<cIm2D<tU_INT1>> & ,
                                      tREAL8 aThreshold);
            void PlyWriteSelected (const std::string & aNameFile,std::list<std::vector<int> > & Patches,bool isBinary) const;
 
@@ -500,6 +507,8 @@ class cPlane3D
 
 /// Planarity index using ratio of eigen value 0/2 of moment matrix
 tREAL8 L2_PlanarityIndex(const std::vector<cPt3dr> & aVPt);
+/// Planarity boolean as of PDAL implementation
+bool IsPlanarityIdxPdal(const std::vector<cPt3dr>& aVPt, tREAL8 mThresh1, tREAL8 mThresh2);
 /// Linearity index using ratio of eigen value 1/2 of moment matrix
 tREAL8 L2_LinearityIndex(const std::vector<cPt3dr> & aVPt);
 

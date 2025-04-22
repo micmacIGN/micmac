@@ -41,6 +41,7 @@ extern const Real_ default_onedge_threshold;
 #define m_descriptorTreshold 0.2 // truncateDescriptor() clips higher values to this one
     
 // store all the data and enable processes leading to sift computation
+
 class Siftator
 {
 public:
@@ -58,14 +59,14 @@ private:
 
     // values fixed when the scale-space format is known (number of octaves and levels, index of the first octave)
     int  m_nbOctaves,
-         m_nbLevels,       // number of levels to cover a full octave
-         m_nbStoredLevels, // stored gaussian levels, meaning two more than the number of levels per octave
-         m_smax,
-         m_nbDoG;
+            m_nbLevels,       // number of levels to cover a full octave
+            m_nbStoredLevels, // stored gaussian levels, meaning two more than the number of levels per octave
+            m_smax,
+            m_nbDoG;
     int  m_max_neighbour_distance; // this is the distance to the farest neighbour needed for computation (distance along one dimension)
     Real_ m_sigma0,
-         m_sigmak,
-         m_dsigma0;
+            m_sigmak,
+            m_dsigma0;
     int c0, c1, c2, c6, c8;
 
     // storage data
@@ -131,14 +132,14 @@ public:
     // save in PGM fileformat
     void save_gaussians( const std::string &i_basename, bool i_verbose=false ) const;
 
-	// raw binary read/write of a SiftPoint (not endian-wise)
+    // raw binary read/write of a SiftPoint (not endian-wise)
     static void write_SiftPoint_binary( std::ostream &output, const SiftPoint &p );
     static void read_SiftPoint_binary( std::istream &output, Siftator::SiftPoint &p );
-    
-	// same format as siftpp_tgi
-	// Real_ values are cast to float
-	// descriptor is cast to unsigned char values : d[i]->(unsigned char)(512*d[i])
-	static void write_SiftPoint_binary_legacy( std::ostream &output, const Siftator::SiftPoint &p );
+
+    // same format as siftpp_tgi
+    // Real_ values are cast to float
+    // descriptor is cast to unsigned char values : d[i]->(unsigned char)(512*d[i])
+    static void write_SiftPoint_binary_legacy( std::ostream &output, const Siftator::SiftPoint &p );
     static void read_SiftPoint_binary_legacy( std::istream &output, Siftator::SiftPoint &p );
 };
 
@@ -198,14 +199,14 @@ inline void Siftator::read_SiftPoint_binary( std::istream &output, Siftator::Sif
 // descriptor is cast to unsigned char values d[i]->(unsigned char)(512*d[i])
 inline void Siftator::write_SiftPoint_binary_legacy( std::ostream &output, const Siftator::SiftPoint &p )
 {
-	float float_value = (float)p.x; output.write( (char*)&float_value, sizeof( float ) );
-	float_value = (float)p.y; output.write( (char*)&float_value, sizeof( float ) );
-	float_value = (float)p.scale; output.write( (char*)&float_value, sizeof( float ) );
-	float_value = (float)p.angle; output.write( (char*)&float_value, sizeof( float ) );
-	static unsigned char uchar_desc[SIFT_DESCRIPTOR_SIZE];
-	int i=SIFT_DESCRIPTOR_SIZE; const Real_ *itReal=p.descriptor; unsigned char *it_uchar=uchar_desc;
-	while (i--)
-		(*it_uchar++)=(unsigned char)( 512*(*itReal++) );
+    float float_value = (float)p.x; output.write( (char*)&float_value, sizeof( float ) );
+    float_value = (float)p.y; output.write( (char*)&float_value, sizeof( float ) );
+    float_value = (float)p.scale; output.write( (char*)&float_value, sizeof( float ) );
+    float_value = (float)p.angle; output.write( (char*)&float_value, sizeof( float ) );
+    static unsigned char uchar_desc[SIFT_DESCRIPTOR_SIZE];
+    int i=SIFT_DESCRIPTOR_SIZE; const Real_ *itReal=p.descriptor; unsigned char *it_uchar=uchar_desc;
+    while (i--)
+        (*it_uchar++)=(unsigned char)( 512*(*itReal++) );
     output.write( (char*)uchar_desc, SIFT_DESCRIPTOR_SIZE );
 }
 
@@ -214,16 +215,17 @@ inline void Siftator::write_SiftPoint_binary_legacy( std::ostream &output, const
 // descriptor is cast to unsigned char values d[i]->(unsigned char)(512*d[i])
 inline void Siftator::read_SiftPoint_binary_legacy( std::istream &output, Siftator::SiftPoint &p )
 {
-	float float_values[4];
-	output.read( (char*)float_values, 4*sizeof( float ) );
-	p.x 	= (Real_)float_values[0];
-	p.y 	= (Real_)float_values[1];
-	p.scale = (Real_)float_values[2];
-	p.angle = (Real_)float_values[3];
-	static unsigned char uchar_desc[SIFT_DESCRIPTOR_SIZE];
+    float float_values[4];
+    output.read( (char*)float_values, 4*sizeof( float ) );
+    p.x 	= (Real_)float_values[0];
+    p.y 	= (Real_)float_values[1];
+    p.scale = (Real_)float_values[2];
+    p.angle = (Real_)float_values[3];
+    static unsigned char uchar_desc[SIFT_DESCRIPTOR_SIZE];
     output.read( (char*)uchar_desc, SIFT_DESCRIPTOR_SIZE );
-	int i=SIFT_DESCRIPTOR_SIZE; Real_ *itReal=p.descriptor; unsigned char *it_uchar=uchar_desc;
-	while (i--) (*itReal++)=( (Real_)(*it_uchar++)/512 );
+    int i=SIFT_DESCRIPTOR_SIZE; Real_ *itReal=p.descriptor; unsigned char *it_uchar=uchar_desc;
+    while (i--) (*itReal++)=( (Real_)(*it_uchar++)/512 );
 }
+
 
 #endif // __SIFT__
