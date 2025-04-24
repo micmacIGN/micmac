@@ -276,6 +276,8 @@ int  cAppli_MMVII_CloudClip::Exe()
    mPC_In.Clip(mPC_Out,aBoxClip);
    SaveInFile(mPC_Out,mNameCloudOut);
 
+   StdOut() << "  - Density cliped=" << mPC_Out.CurDensity() << "\n";
+
 
    return EXIT_SUCCESS;
 }

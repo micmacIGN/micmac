@@ -122,7 +122,7 @@ int cAppli_ImportTxtCloud::Exe()
 
     if (! IsInit(&mDensity))
     {
-         mDensity = aPC.NbPts() / aPC.Box2d().NbElem();
+         mDensity = aPC.CurDensity();
          StdOut() << "DENSITY=" << mDensity << "\n";
     }
     aPC.mDensity = mDensity;

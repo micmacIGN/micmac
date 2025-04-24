@@ -47,6 +47,8 @@ void cPointCloud::SetDegVis(int aK,tREAL8 aDeg) { mDegVis.at(aK) = round_ni(aDeg
 tREAL8 cPointCloud::GetDegVis(int aK) const {return mDegVis.at(aK) / mMulDegVis;}
 
 
+tREAL8   cPointCloud::CurDensity() const {return NbPts() / mBox2d.NbElem() ;}
+
 // --------------------- Leaves  ------------------------------------------
 
 void cPointCloud::SetLeavesUnit(tREAL8 aPropAvgD,bool SVP)
@@ -70,7 +72,10 @@ tREAL8 cPointCloud::GetSzLeave(int aK) const {return mSzLeaves.at(aK) * mLeavesU
 tU_INT1 cPointCloud::GetIntSzLeave(int aK) const {return mSzLeaves.at(aK);}
 tREAL8  cPointCloud::ConvertInt2SzLeave(int aInd) const {return mLeavesUnit * aInd;}
 
-bool  cPointCloud::LeavesIsInit() const {return ! mSzLeaves.empty();}
+bool  cPointCloud::SzLeavesIsInit() const 
+{
+    return ! mSzLeaves.empty();
+}
 
 
 

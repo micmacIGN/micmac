@@ -177,9 +177,35 @@ class cAppli_MMVII_CloudImProj : public cMMVII_Appli
         std::string   mNameImageOut;
 };
 
+/*
+cAppli_MMVII_CloudImProj::cAppli_MMVII_CloudImProj
+(
+     const std::vector<std::string> & aVArgs,
+     const cSpecMMVII_Appli & aSpec
+) :
+     cMMVII_Appli      (aVArgs,aSpec)
+{
+}
+
+cCollecSpecArg2007 & cAppli_MMVII_CloudImProj::ArgObl(cCollecSpecArg2007 & anArgObl) 
+{
+ return anArgObl
+	  <<   Arg2007(mNameCloudIn,"Name of input cloud/mesh", {eTA2007::FileDirProj,eTA2007::FileDmp})
+   ;
+}
+
+cCollecSpecArg2007 & cAppli_MMVII_CloudImProj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+   return anArgOpt
+          << AOpt2007(mNameImageOut,CurOP_Out,"Name of image  file, def= Ima+Input")
+   ;
+}
+*/
+
+
 /* =============================================== */
 /*                                                 */
-/*                 cAppli_MMVII_CloudClip          */
+/*                 cAppli_MMVII_CloudColorate      */
 /*                                                 */
 /* =============================================== */
 
@@ -245,9 +271,10 @@ int  cAppli_MMVII_CloudColorate::Exe()
    cPointCloud   aPC_In ;
    ReadFromFile(aPC_In,mNameCloudIn);
 
-   if (! aPC_In.LeavesIsInit())
+   // generate the sz of leaves
+   if (! aPC_In.SzLeavesIsInit())
    {
-       aPC_In.SetLeavesUnit(0.05,false);
+       aPC_In.SetLeavesUnit(0.05,SVP::Yes);  // fix unit step,
        tREAL8  aRayLeaf  = mPropRayLeaf  / std::sqrt(aPC_In.Density());
        for (size_t aKPt=0 ; aKPt<aPC_In.NbPts() ; aKPt++)
        {
