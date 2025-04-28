@@ -263,9 +263,13 @@ template <class TypeCont> void RawVector_AddData(const cAuxAr2007 & anAux,TypeCo
    // StdContAddData(anAux,aV); 
    // template <class Type> void TplAddRawData(const cAuxAr2007 & anAux,Type * anAdr,int aNbElem,const std::string & aTag="RawData")
 }
+inline void AddData(const cAuxAr2007 & anAux,std::vector<cPt3dr> &  aV) { RawVector_AddData(anAux,aV); }
+inline void AddData(const cAuxAr2007 & anAux,std::vector<cPt3df> &  aV) { RawVector_AddData(anAux,aV); }
+inline void AddData(const cAuxAr2007 & anAux,std::vector<tREAL4> &  aV) { RawVector_AddData(anAux,aV); }
 inline void AddData(const cAuxAr2007 & anAux,std::vector<tREAL8> &  aV) { RawVector_AddData(anAux,aV); }
 inline void AddData(const cAuxAr2007 & anAux,std::vector<int> &     aV) { RawVector_AddData(anAux,aV); }
 inline void AddData(const cAuxAr2007 & anAux,std::vector<tU_INT1> & aV) { RawVector_AddData(anAux,aV); }
+inline void AddData(const cAuxAr2007 & anAux,std::vector<tU_INT2> & aV) { RawVector_AddData(anAux,aV); }
 
 
 

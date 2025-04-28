@@ -58,13 +58,14 @@ class cPointCloud
         void SetSzLeaves(int aK,tREAL8 );
         tREAL8 GetSzLeave(int aK) const;
         tU_INT1 GetIntSzLeave(int aK) const;
-        tREAL8  ConvertInt2SzLeave(int aK) const;
-        bool  SzLeavesIsInit() const;
+        tREAL8  ConvertInt2SzLeave(int aK) const;  ///< K * Unit, NOT the value stored in SzLeaves
+        bool  LeavesIsInit() const;
 
 
         void SetMulDegVis(tREAL8 );
         void SetDegVis(int aK,tREAL8 );
         tREAL8 GetDegVis(int aK) const;
+        bool   DegVisIsInit() const;
 
 
     private :

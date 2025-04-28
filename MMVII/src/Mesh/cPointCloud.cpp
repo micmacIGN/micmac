@@ -16,6 +16,8 @@ cPointCloud::cPointCloud(bool isM8) :
 {
 }
 
+tREAL8   cPointCloud::CurDensity() const {return NbPts() / mBox2d.NbElem() ;}
+
 // --------------------- Colours access ------------------------------------------
 void cPointCloud::SetNbColours(int aNbC)
 {
@@ -46,8 +48,9 @@ void cPointCloud::SetMulDegVis(tREAL8 aMulDegVis)
 void cPointCloud::SetDegVis(int aK,tREAL8 aDeg) { mDegVis.at(aK) = round_ni(aDeg*mMulDegVis); }
 tREAL8 cPointCloud::GetDegVis(int aK) const {return mDegVis.at(aK) / mMulDegVis;}
 
+bool   cPointCloud::DegVisIsInit() const {return ! mDegVis.empty();}
 
-tREAL8   cPointCloud::CurDensity() const {return NbPts() / mBox2d.NbElem() ;}
+
 
 // --------------------- Leaves  ------------------------------------------
 
@@ -72,7 +75,7 @@ tREAL8 cPointCloud::GetSzLeave(int aK) const {return mSzLeaves.at(aK) * mLeavesU
 tU_INT1 cPointCloud::GetIntSzLeave(int aK) const {return mSzLeaves.at(aK);}
 tREAL8  cPointCloud::ConvertInt2SzLeave(int aInd) const {return mLeavesUnit * aInd;}
 
-bool  cPointCloud::SzLeavesIsInit() const 
+bool  cPointCloud::LeavesIsInit() const 
 {
     return ! mSzLeaves.empty();
 }
@@ -201,6 +204,7 @@ void cPointCloud::AddData(const  cAuxAr2007 & anAux)
     MMVII::AddData(cAuxAr2007("Colors",anAux),mColors);
 
     MMVII::AddData(cAuxAr2007("MulDegVis",anAux),mMulDegVis);
+
     MMVII::AddData(cAuxAr2007("DegVis",anAux),mDegVis);
 
     MMVII::AddData(cAuxAr2007("Density",anAux),mDensity);
@@ -208,8 +212,6 @@ void cPointCloud::AddData(const  cAuxAr2007 & anAux)
 
     MMVII::AddData(cAuxAr2007("LeavesUnit",anAux),mLeavesUnit);
     MMVII::AddData(cAuxAr2007("LeavesSize",anAux),mSzLeaves);
-
-
 }
 
 void AddData(const  cAuxAr2007 & anAux,cPointCloud & aPC)

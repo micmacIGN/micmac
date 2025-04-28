@@ -138,7 +138,7 @@ std::vector<std::string>  cAppli_ImportTxtCloud::Samples() const
 {
    return 
    {
-          // "MMVII ImportLine Data-Input/BlaAllLine.txt \"Im?X1Y1X2Y2SigmaBla\" CERNFils \"Comment=#\""
+         "MMVII ImportTxtCloud 18355_51565.ply \"XYZBla\" NumL0=30 Bytes8=false OffsetIsP0=true"
    };
 }
 
@@ -153,9 +153,9 @@ cSpecMMVII_Appli  TheSpec_ImportTxtCloud
      "ImportTxtCloud",
       Alloc_ImportTxtCloud,
       "Import/Convert cloud point in txt format (ply ...)",
-      {eApF::Lines},
-      {eApDT::Lines},
-      {eApDT::Lines},
+      {eApF::Cloud},
+      {eApDT::Ply},
+      {eApDT::MMVIICloud},
       __FILE__
 );
 

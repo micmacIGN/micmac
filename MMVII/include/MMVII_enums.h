@@ -153,7 +153,8 @@ enum class eApDT
               Orient,   ///< Orientations files
               SysCo,   ///< Coordinate system
               Radiom,   ///< Orientations files
-              Ply,    ///< Ply file
+              Ply,           ///< Ply file
+              MMVIICloud,    ///< MMVII-dmp internal format
               Topo,    ///< Topo files
               None,     ///< Nothing
               ToDef,     ///< still unclassed
