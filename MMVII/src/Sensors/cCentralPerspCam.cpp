@@ -843,16 +843,44 @@ void cPerspCamIntrCalib::InitRandom(double aAmpl)
 }
  
 
+cPerspCamIntrCalib * cPerspCamIntrCalib::SimpleCalib
+                     (
+                         const std::string & aName,
+                         eProjPC             aTypeProj,
+                         cPt2di              aSz,
+                         cPt3dr              aPPF,
+                         cPt3di              aDeg
+                     )
+{
+    return  cPerspCamIntrCalib::Alloc
+            (
+	         cDataPerspCamIntrCalib
+	         (
+                         aName,
+                         aTypeProj,
+                         aDeg,
+                         std::vector<double>(),
+                         cMapPProj2Im(aPPF.z(),Proj(aPPF)),
+                         cDataPixelDomain(aSz),
+                         aDeg,
+                         100  // sz buf ??
+	         )
+            );
+}
+
+
+
 cPerspCamIntrCalib * cPerspCamIntrCalib::RandomCalib(eProjPC aTypeProj,int aKDeg,tREAL8 anAmpl)
 {
 
     tREAL8 aDiag = 1000 * (1+10*RandUnif_0_1());
-    auto aS1 = aDiag*(1+RandUnif_0_1());
-    auto aS2 = aDiag*(1+RandUnif_0_1());
+    tREAL8 aS1 = aDiag*(1+RandUnif_0_1());
+    tREAL8 aS2 = aDiag*(1+RandUnif_0_1());
     cPt2di aSz (aS1,aS2);
+
     cPt2dr aMidle = ToR(aSz)/2.0;
-    auto v1 = aSz.x()*(0.5+0.1*RandUnif_C());
-    auto v2 = aSz.y()*(0.5+0.1*RandUnif_C());
+    tREAL8 v1 = aSz.x()*(0.5+0.1*RandUnif_C());
+    tREAL8 v2 = aSz.y()*(0.5+0.1*RandUnif_C());
     cPt2dr aPP(v1,v2);
     tREAL8  aFoc =  aDiag * (0.2 + 3.0*RandUnif_0_1());
 

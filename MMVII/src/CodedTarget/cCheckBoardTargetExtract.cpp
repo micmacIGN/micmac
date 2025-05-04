@@ -306,6 +306,10 @@ void cAppliCheckBoardTargetExtract::GenerateVisuFinal() const
 	     if (aCdt.mScale!= 1.0)
 	        aIm.SetRGBBorderRectWithAlpha(ToI(aCdt.mC0),60,10,cRGBImage::Blue, 0.5);
 
+	     if (aCdt.Code())
+	     {
+                aIm.DrawString(aCdt.Code()->Name(),cRGBImage::Red,aCdt.mC0,cPt2dr(0.5,0.05));
+	     }
 	 }
          aIm.ToJpgFileDeZoom(NameVisu("Glob"),1);
       }
@@ -326,9 +330,12 @@ void cAppliCheckBoardTargetExtract::GenerateVisuDetail(std::vector<cCdEllipse> &
          {
              if (contains(mStrShow,'E'))
              {
-                cRGBImage aRGBIm = GenImaRadiom(aCdt,150);
-                ComplImaEllipse(aRGBIm,aCdt);
-                aRGBIm.ToJpgFileDeZoom(NameVisu( (aCdt.IsCircle() ? "Circle" : "Ellipse"), ToStr(aCptIm)),1);
+                if ( (!mPhProj.DPMask().DirInIsInit() ) || (aCdt.mIsPTest))
+                {
+                    cRGBImage aRGBIm = GenImaRadiom(aCdt,150);
+                    ComplImaEllipse(aRGBIm,aCdt);
+                    aRGBIm.ToJpgFileDeZoom(NameVisu( (aCdt.IsCircle() ? "Circle" : "Ellipse"), ToStr(aCptIm)),1);
+                }
              }
 
              if (contains(mStrShow,'N') )
@@ -669,7 +676,8 @@ void cAppliCheckBoardTargetExtract::DoOneImageAndScale(tREAL8 aScale,const  tIm 
 	   bool GotIt = false;
 	   for (size_t aKC=0 ; (aKC<TryCE.size()) && (!GotIt) ; aKC++)
 	   {
-               cCdEllipse aCDE(aCdtRad,*mDImTmp,mNbMaxBlackCB,TryCE.at(aKC));
+               std::vector<cPt2dr> aVFront;
+               cCdEllipse aCDE(aCdtRad,*mDImTmp,mNbMaxBlackCB,TryCE.at(aKC),aVFront);
 	       if (aCDE.IsOk())
 	       {
 	          SetLabel(aCDE.mC,eFilterEllipse);

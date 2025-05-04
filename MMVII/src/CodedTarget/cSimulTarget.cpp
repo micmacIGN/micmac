@@ -434,7 +434,7 @@ cSpecMMVII_Appli  TheSpecSimulCodedTarget
 (
      "CodedTargetSimul",
       Alloc_SimulCodedTarget,
-      "Extract coded target from images",
+      "Simulate images of coded targets, with ground truth",
       {eApF::CodedTarget,eApF::ImProc},
       {eApDT::Image,eApDT::Xml},
       {eApDT::Image,eApDT::Xml},

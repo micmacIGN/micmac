@@ -667,7 +667,7 @@ class cEllipse_Estimate
 
         // indicate a rough center, for better numerical accuracy
         cEllipse_Estimate(const cPt2dr & aC0,bool isCenterFree=true,bool isCircle=false);
-        void AddPt(cPt2dr aP) ;
+        void AddPt(cPt2dr aP,tREAL8 aW=1.0) ;
 
         cEllipse Compute() ;
         ~cEllipse_Estimate();

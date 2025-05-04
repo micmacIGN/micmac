@@ -46,7 +46,10 @@ class cAppli_ImportTxtCloud : public cMMVII_Appli
 	std::string              mSpecFormatMand;
 	std::string              mSpecFormatTot;
 
-        cPt3dr                   mOffset;
+        bool                     mMode8B;   ///< do we use 8-bytes
+        cPt3dr                   mOffset;  ///< offset to subsract
+        bool                     mOffsetIsP0;   ///< do we use First point as offset
+	tREAL8                   mRoundingOffset;
         std::string              mNameOut;
 
 };
@@ -59,7 +62,10 @@ cAppli_ImportTxtCloud::cAppli_ImportTxtCloud(const std::vector<std::string> & aV
    mNameR          ("R"),
    mSpecFormatMand (mNameX+mNameY+mNameZ),
    mSpecFormatTot  (mSpecFormatMand + "/"+ mNameR),
-   mOffset         (0,0,0)
+   mMode8B         (true),
+   mOffset         (0,0,0),
+   mOffsetIsP0     (false),
+   mRoundingOffset (1e4)
 {
 }
 
@@ -77,7 +83,10 @@ cCollecSpecArg2007 & cAppli_ImportTxtCloud::ArgOpt(cCollecSpecArg2007 & anArgOpt
     mParamNSF.AddArgOpt(anArgOpt);
 
     return    anArgOpt
-           << AOpt2007(mOffset,"Offset","Offset to add to pixels",{eTA2007::HDV})
+           << AOpt2007(mOffset,"OffsetValue","Offset to add to pixels",{eTA2007::HDV})
+           << AOpt2007(mOffsetIsP0,"OffsetIsP0","Use first points as offset (with some rounding)",{eTA2007::HDV})
+           << AOpt2007(mRoundingOffset,"OffsetRounding","Value use for rounding when P0 is offset",{eTA2007::HDV})
+           << AOpt2007(mMode8B,"Bytes8","Do we use 8/4 bytes for storing points",{eTA2007::HDV})
            << AOpt2007(mNameOut,"Out","Name of output, def=In+\".dmp\"")
 
     ;
@@ -86,7 +95,6 @@ cCollecSpecArg2007 & cAppli_ImportTxtCloud::ArgOpt(cCollecSpecArg2007 & anArgOpt
 
 int cAppli_ImportTxtCloud::Exe()
 {
-    bool  mDoR8 = true;
 
     //cTriangulation3D<tREAL8> aTT(mNameFile);
     // StdOut() << "NB " << aTT.NbPts() << "\n";
@@ -97,16 +105,20 @@ int cAppli_ImportTxtCloud::Exe()
     if (!IsInit(&mNameOut))
         mNameOut = LastPrefix(mNameFile)+".dmp";
 
-    cPointCloud aPC;
+    cPointCloud aPC(mMode8B);
+    aPC.SetOffset(mOffset);
+
     for (size_t aK=0 ; aK<aNRFS.NbLineRead() ; aK++)
     {
-        cPt3dr aPt = aNRFS.GetPt3dr_XYZ (aK) - mOffset;
-        if (mDoR8)
-           aPC.mPtsR.push_back(aPt);
-        else
-        {
-           aPC.mPtsF.push_back(cPt3df::FromPtR(aPt));
-        }
+        cPt3dr aPt = aNRFS.GetPt3dr_XYZ (aK) ;
+	if (mOffsetIsP0 && (aK==0))
+	{
+           cPt3di aOffsDiv = Pt_round_down(aPt/mRoundingOffset);
+           mOffset = ToR(aOffsDiv) * mRoundingOffset;
+           aPC.SetOffset(mOffset);
+	}
+
+        aPC.AddPt(aPt);
     }
     SaveInFile(aPC,mNameOut);
 

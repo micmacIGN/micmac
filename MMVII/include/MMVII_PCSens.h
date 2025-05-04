@@ -327,6 +327,15 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 
 	    ///  real constructor (accessible directly because RemanentObjectFromFile)
             cPerspCamIntrCalib(const cDataPerspCamIntrCalib &);
+            /// 
+            static cPerspCamIntrCalib * SimpleCalib
+                                        (
+                                           const std::string & aName,
+                                           eProjPC,
+                                           cPt2di aSz,
+                                           cPt3dr  aPPF,
+                                           cPt3di  aDeg
+                                        );
 	    
 	    /// For inversion, or sampling point, we need seed that is +- corresponding of sensor midle, befor dist
 	    cPt2dr PtSeedInv() const;

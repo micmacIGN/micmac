@@ -223,8 +223,7 @@ class cAppli_MMVII_CloudClip : public cMMVII_Appli
 
         // --- Mandatory ----
 	std::string   mNameCloudIn;
-	cBox2dr       mBox;
-        cPointCloud   mPC;
+	cBox2dr       mBoxRel;
         // --- Optionnal ----
 
 };
@@ -233,7 +232,7 @@ cCollecSpecArg2007 & cAppli_MMVII_CloudClip::ArgObl(cCollecSpecArg2007 & anArgOb
 {
  return anArgObl
 	  <<   Arg2007(mNameCloudIn,"Name of input cloud/mesh", {eTA2007::FileDirProj,eTA2007::FileCloud})
-	  <<   Arg2007(mBox,"Box relative of clip")
+	  <<   Arg2007(mBoxRel,"Box relative of clip")
    ;
 }
 
@@ -247,7 +246,21 @@ cCollecSpecArg2007 & cAppli_MMVII_CloudClip::ArgOpt(cCollecSpecArg2007 & anArgOp
 
 int  cAppli_MMVII_CloudClip::Exe()
 {
-   ReadFromFile(mPC,mNameCloudIn);
+   cPointCloud   mPC_In;
+   cPointCloud   mPC_Out;
+   ReadFromFile(mPC_In,mNameCloudIn);
+
+   cBox3dr  aBox3Glob = mPC_In.Box();
+   cBox2dr  aBox2Glob(Proj(aBox3Glob.P0()),Proj(aBox3Glob.P1()));
+
+   cPt2dr aP0 = aBox2Glob.FromNormaliseCoord(mBoxRel.P0());
+   cPt2dr aP1 = aBox2Glob.FromNormaliseCoord(mBoxRel.P1());
+
+   cBox2dr aBoxClip(aP0,aP1);
+   
+FakeUseIt(aBoxClip);
+
+
    return EXIT_SUCCESS;
 }
 

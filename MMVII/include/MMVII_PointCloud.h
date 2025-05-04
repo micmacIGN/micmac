@@ -13,7 +13,6 @@ class cAppli_ImportTxtCloud;
 class cPointCloud
 {
     public :
-        friend cAppli_ImportTxtCloud;
         cPointCloud(bool isMode8=true);
 
         int NbPts() const
@@ -37,7 +36,8 @@ class cPointCloud
         }
         void AddData(const  cAuxAr2007 & anAux) ;
         cBox3dr  Box() const;
-        void Clip(cPointCloud&);
+        void Clip(cPointCloud&,const cBox2dr & aBox) const;
+	void SetOffset(const cPt3dr & anOffset);
 
     private :
         std::vector<std::vector<std::string>>  mParams;   /// for further data

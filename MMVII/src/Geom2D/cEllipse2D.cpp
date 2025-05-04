@@ -518,7 +518,7 @@ cEllipse_Estimate::~cEllipse_Estimate()
     delete mSys;
 }
 
-void cEllipse_Estimate::AddPt(cPt2dr aP)
+void cEllipse_Estimate::AddPt(cPt2dr aP,tREAL8 aWeight)
 {
      aP = aP-mC0;
 
@@ -547,7 +547,7 @@ void cEllipse_Estimate::AddPt(cPt2dr aP)
         aDV(4) = 0.0 ;
      }
 
-     mSys->PublicAddObservation(1.0,aDV,1.0);
+     mSys->PublicAddObservation(aWeight,aDV,1.0);
 
      mVObs.push_back(aP);
 }

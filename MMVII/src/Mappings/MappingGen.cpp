@@ -365,17 +365,43 @@ template <class Type,const int DimIn,const int DimOut>
       cTplBox<Type,DimOut> cDataMapping<Type,DimIn,DimOut>::BoxOfCorners(const cTplBox<Type,DimIn>& aBoxIn) const
 {
    typename cTplBox<Type,DimIn>::tCorner aCornersIn;
+
+   // extract the corners of input  box
    aBoxIn.Corners(aCornersIn);
    std::vector<tPtIn> aVIn(&(aCornersIn[0]),&(aCornersIn[0]) + cTplBox<Type,DimIn>::NbCorners);
+   // compute the image of corners by mapping
    const std::vector<tPtOut> & aVOut = Values(aVIn);
-
+   // compute the cTplBoxOfPts
    cTplBoxOfPts<Type,DimOut> aBoxOfPts;
    for (const auto & aP : aVOut)
        aBoxOfPts.Add(aP);
+   // transformat in cTplBoxOfPts
+   return  cTplBox<Type,DimOut>(aBoxOfPts.P0(),aBoxOfPts.P1());
+}
+
+template <class Type,const int DimIn,const int DimOut>
+      cTplBox<Type,DimOut> cDataMapping<Type,DimIn,DimOut>::BoxOfFrontier(const cTplBox<Type,DimIn>& aBoxIn,Type aStep) const
+{
+   typedef cPtxd<int,DimIn> tI_Pt;
+   tI_Pt  aSzI = Pt_round_up(aBoxIn.Sz() / aStep);                  // number of pixel roun to Up value
+   tPtIn  aNewStep =   DivCByC(aBoxIn.Sz(),tPtIn::FromPtInt(aSzI)); // ~ step but adjusted
+   cPixBox<DimIn>  aRect(tI_Pt::PCste(0),aSzI+tI_Pt::PCste(1));     // rectangle of pixels, add 1 because up will be avoided
+
+   cTplBoxOfPts<Type,DimOut> aBoxOfPts;
+   for (const auto & aPix : aRect.Border(1))
+   {
+       tPtIn aPt = aBoxIn.P0() + MulCByC(aNewStep,tPtIn::FromPtInt(aPix));
+       aBoxOfPts.Add(Value(aPt));
+   }
 
    return  cTplBox<Type,DimOut>(aBoxOfPts.P0(),aBoxOfPts.P1());
-   
 }
+
+
+
+
+
+
 
 template <class Type,const int DimIn,const int DimOut>
       cTriangle<Type,DimOut> cDataMapping<Type,DimIn,DimOut>::TriValue(const cTriangle<Type,DimIn> &aTriIn) const

@@ -159,7 +159,7 @@ template<> cE2Str<eProjPC>::tMapE2Str cE2Str<eProjPC>::mE2S
                {eProjPC::eFE_EquiSolid,"FE_EquiSolid"},
                {eProjPC::eStereroGraphik,"StereroGraphik"},
                {eProjPC::eOrthoGraphik,"OrthoGraphik"},
-               {eProjPC::eEquiRect,"eEquiRect"}
+               {eProjPC::eEquiRect,"EquiRect"}
            };
 
 
