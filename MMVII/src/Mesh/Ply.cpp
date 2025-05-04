@@ -5,7 +5,6 @@
 #include "MMVII_Mappings.h"
 #include "MMVII_2Include_Tiling.h"
 
-
 #include <pdal/PointTable.hpp>
 #include <pdal/PointView.hpp>
 #include <pdal/io/LasReader.hpp>
@@ -19,8 +18,8 @@
 #include <pdal/util/ProgramArgs.hpp>
 #include "ogrsf_frmts.h"
 #include "MMVII_AimeTieP.h"
-#include "V1VII.h"
-
+//#include "V1VII.h"
+#include "MMVII_PtCorrel.h"
 #define WITH_MMV1_FUNCTION  false
 
 namespace MMVII
@@ -2648,9 +2647,9 @@ bool cTriangulation3D<Type>::IsGoodPatch(const std::vector<cPt3dr>& aVPts,
                                              tREAL8 aThreshold,
                                              tREAL8 aSzW)
 {
-    #define TT_SEUIL_AutoCorrel  0.4          // Seuil d'elimination par auto-correlation
-    #define TT_SEUIL_CutAutoCorrel_INT 0.20    // Seuil d'acceptation rapide par auto correl entiere
-    #define TT_SEUIL_CutAutoCorrel_REEL 0.30   // Seuil d'acceptation rapide par auto correl reelle
+    #define TT_SEUIL_AutoCorrel  0.6          // Seuil d'elimination par auto-correlation
+    #define TT_SEUIL_CutAutoCorrel_INT 0.40    // Seuil d'acceptation rapide par auto correl entiere
+    #define TT_SEUIL_CutAutoCorrel_REEL 0.50   // Seuil d'acceptation rapide par auto correl reelle
 
 
     ///< Finds good patches based on geometry criteria and radiometric resemblance between patches
@@ -2709,16 +2708,18 @@ bool cTriangulation3D<Type>::IsGoodPatch(const std::vector<cPt3dr>& aVPts,
             {
 
                 // temporarily to mmv1
-                auto aImMMV1= cMMV1_Conv<tU_INT1>::ImToMMV1(aDIm);
-                TIm2D<tU_INT1,INT> aTImMMV1(aImMMV1);
+                //auto aImMMV1= cMMV1_Conv<tU_INT1>::ImToMMV1(aDIm);
+                //TIm2D<tU_INT1,INT> aTImMMV1(aImMMV1);
 
                 bool aOKAutoCorr=true;
-                tREAL8 aStep=1.0;
+                /*tREAL8 aStep=1.0;
                 for (int aId=1; aId<(int)AC_RHO; aId++)
-                {
-                    static cCutAutoCorrelDir<TIm2D<tU_INT1,INT>>  aCACD(aTImMMV1,Pt2di(0,0),aStep*aId,aSzW);
+                {*/
+                    //static cCutAutoCorrelDir<TIm2D<tU_INT1,INT>>  aCACD(aTImMMV1,Pt2di(0,0),aStep*aId,aSzW);
 
-                    aOKAutoCorr = aOKAutoCorr && !(aCACD.AutoCorrel(ToMMV1(ToI(aPIm)),
+                    cCutAutoCorrelDir<tU_INT1> aCACD(aDIm,cPt2di(0,0),AC_RHO,aSzW);
+
+                    aOKAutoCorr = aOKAutoCorr && !(aCACD.AutoCorrel((ToI(aPIm)),
                                                     TT_SEUIL_CutAutoCorrel_INT,
                                                     TT_SEUIL_CutAutoCorrel_REEL,
                                                     TT_SEUIL_AutoCorrel)
@@ -2726,7 +2727,7 @@ bool cTriangulation3D<Type>::IsGoodPatch(const std::vector<cPt3dr>& aVPts,
                     /*StdOut()<<"aOKAutoCorr -->  "<<aOKAutoCorr<<
                             " aCorOut --> "<<aCACD.mCorOut<<
                         " NumOut --> "<<aCACD.mNumOut<<std::endl;*/
-                }
+                //}
                 // check variance also
                 /*tREAL8 aStdDev= CubGaussWeightStandardDev(aDIm,ToI(aPIm),VAR_RHO);
                 if (aStdDev<=0)
@@ -2761,6 +2762,61 @@ bool cTriangulation3D<Type>::IsGoodPatch(const std::vector<cPt3dr>& aVPts,
         return false;
 }
 
+/*
+
+template <class Type>
+std::vector<int> cTriangulation3D<Type>::OnePatchSelect(size_t aPid,
+                                            cTiling<cTil2DTri3D<Type>> & aTileAll,
+                                            cTiling<cTil2DTri3D<Type>> & aTileSelect,
+                                            tREAL8 aDistNeigh,
+                                            tREAL8 aDistReject,
+                                            int    aSzMin,
+                                            const std::vector<cSensorCamPC * > & aCameras,
+                                            const std::vector<cIm2D<tU_INT1>> & mVIms,
+                                            tREAL8 aThreshold)
+{
+     // Check if a lidar point is likely to be selected for bundle adjustment
+    cPt2dr aPt  = ToR(Proj(this->KthPts(aPid)));
+    // if the points is not close to an existing center of patch : create a new patch
+    if (aTileSelect.GetObjAtDist(aPt,aDistReject).empty())
+    {
+        //  Add it in the tiling of select
+        aTileSelect.Add(cTil2DTri3D<Type>(aPid));
+        // extract all the point close enough to the center
+        auto aLIptr = aTileAll.GetObjAtDist(aPt,aDistNeigh);
+        std::vector<int> aPatch; // the patch itself = index of points
+        aPatch.push_back(aPid);  // add the center at begining
+        for (const auto aPtrI : aLIptr)
+        {
+            if (aPtrI->Ind() !=aPid) // dont add the center twice
+            {
+                aPatch.push_back(aPtrI->Ind());
+            }
+        }
+
+        std::vector<cPt3dr> aVP;
+        for (const auto anInd : aPatch)
+            aVP.push_back(ToR(this->KthPts(anInd)));
+
+        // approximate patch as a plan
+        //cPlane3D aPl= cPlane3D::RansacEstimate(aVP,true).first;
+
+        bool isGoodPatch=IsGoodPatch(aVP,
+                                       aCameras,
+                                       mVIms,
+                                       50.0,
+                                       60.0,
+                                       aSzMin,
+                                       aThreshold,
+                                       3.0);
+        if ((int)aPatch.size() > aSzMin && isGoodPatch)
+        {
+            return aPatch;
+        }
+    }
+    return std::vector<int>({});
+}
+*/
 
 template <class Type>
  void cTriangulation3D<Type>::MakePatchesTargetted
@@ -2781,7 +2837,7 @@ template <class Type>
   cBox2dr aBox = Box2D();
 
   // indexation of all points
-  cTiling<cTil2DTri3D<Type> >  aTileAll(aBox,true,this->NbPts()/20,this);
+  cTiling<cTil2DTri3D<Type>>  aTileAll(aBox,true,this->NbPts()/20,this);
   for (size_t aKP=0 ; aKP<this->NbPts() ; aKP++)
   {
       aTileAll.Add(cTil2DTri3D<Type>(aKP));
@@ -2792,6 +2848,9 @@ template <class Type>
   cTiling<cTil2DTri3D<Type> >  aTileSelect(aBox,true,this->NbPts()/20,this);
 
   // parse all  points
+  //#pragma omp parallel
+  {
+    //#pragma omp for
   for (size_t aKP=0 ; aKP<this->NbPts() ; aKP++)
   {
       cPt2dr aPt  = ToR(Proj(this->KthPts(aKP)));
@@ -2827,7 +2886,6 @@ template <class Type>
                                       aSzMin,
                                       aThreshold,
                                       3.0);
-
          // some requirement on minimal size and non-occlusion in more than 2 images
           // compute palanarity index
           //tREAL8 aPlanarity=L2_PlanarityIndex(aVP);
@@ -2838,6 +2896,7 @@ template <class Type>
          }
 
       }
+  }
   }
 }
 /* ********************************************************** */

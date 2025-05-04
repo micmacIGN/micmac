@@ -107,6 +107,8 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
                                   mVIms,
                                   0.85);
 
+        StdOut()<<"Selected Patches "<<mLPatches.size()<<std::endl;
+
         auto aSetOfPatches= mLPatches;
         cTplBoxOfPts<tREAL8,2> aBoxObj;
         for (const auto& aPatchIndex : aSetOfPatches)
@@ -132,16 +134,20 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
         mBoxSelected=aBoxObj.CurBox();
 
         // global quality map
-        cPt2di aSz(Pt_round_up(mBoxSelected.Sz()/0.07)); // aStep=0.07 ( GSD 7cm)
-        mDImQualityMap= new cDataIm2D<tREAL8> (cPt2di(0,0),aSz);
-        mDImQualityMap->InitCste(-9999.0);
 
-        mDImQualityMapY= new cDataIm2D<tREAL8> (cPt2di(0,0),aSz);
-        mDImQualityMapY->InitCste(-9999.0);
+        if (0)
+        {
+            cPt2di aSz(Pt_round_up(mBoxSelected.Sz()/0.07)); // aStep=0.07 ( GSD 7cm)
+            mDImQualityMap= new cDataIm2D<tREAL8> (cPt2di(0,0),aSz);
+            mDImQualityMap->InitCste(-9999.0);
+
+            mDImQualityMapY= new cDataIm2D<tREAL8> (cPt2di(0,0),aSz);
+            mDImQualityMapY->InitCste(-9999.0);
+        }
 
 
 
-        std::string NamePlyOut="./patches_selected_autocorrel_visibility.ply";
+        std::string NamePlyOut="./patches_selected_autocorrel_visibility_MMVII_AUTOCOR.ply";
         mTri.PlyWriteSelected(NamePlyOut,mLPatches,false);
 
         StdOut() << "Patches: DistReject=" << aDistReject 
@@ -200,45 +206,49 @@ void cBA_LidarPhotogra::AddObs(tREAL8 aW)
             idd++;
         }
 
-        if ( (mBA.getNbIter()==0) || (mBA.CheckIfLastIter()) )
+        if(0)
         {
-            // save global quality map abs( Delta_X)
-            std::string aNameQualityMap="./qualityMap_"+ToStr(mBA.getNbIter())+"_X"+".tif";
-            tREAL8 aTransform[6]={mBoxSelected.P0().x(),0.07,0,mBoxSelected.P1().y(),0,-0.07};
+            if ( (mBA.getNbIter()==0) || (mBA.CheckIfLastIter()) )
+            {
+                // save global quality map abs( Delta_X)
+                std::string aNameQualityMap="./qualityMap_"+ToStr(mBA.getNbIter())+"_X"+".tif";
+                tREAL8 aTransform[6]={mBoxSelected.P0().x(),0.07,0,mBoxSelected.P1().y(),0,-0.07};
 
-            std::vector<const cDataIm2D<tREAL8>*> aVIms({mDImQualityMap});
+                std::vector<const cDataIm2D<tREAL8>*> aVIms({mDImQualityMap});
 
-            cDataFileIm2D aDF=cDataFileIm2D::Create(aNameQualityMap,
-                                                      eTyNums::eTN_REAL8,
-                                                      mDImQualityMap->Sz());
-            cGdalApi::ReadWrite(cGdalApi::IoMode::Write,
-                                aVIms,
-                                aDF,
-                                cPt2di(0,0),
-                                1.0,
-                                cPixBox<2>(cPt2di(0,0),mDImQualityMap->Sz()),
-                                aTransform);
-
-
+                cDataFileIm2D aDF=cDataFileIm2D::Create(aNameQualityMap,
+                                                          eTyNums::eTN_REAL8,
+                                                          mDImQualityMap->Sz());
+                cGdalApi::ReadWrite(cGdalApi::IoMode::Write,
+                                    aVIms,
+                                    aDF,
+                                    cPt2di(0,0),
+                                    1.0,
+                                    cPixBox<2>(cPt2di(0,0),mDImQualityMap->Sz()),
+                                    aTransform);
 
 
-            // save global quality map abs ( Delta_Y)
 
-            aNameQualityMap="./qualityMap_"+ToStr(mBA.getNbIter())+"_Y"+".tif";
 
-            aVIms={mDImQualityMapY};
-            aDF=cDataFileIm2D::Create(aNameQualityMap,
-                                                      eTyNums::eTN_REAL8,
-                                                      mDImQualityMapY->Sz());
+                // save global quality map abs ( Delta_Y)
 
-            cGdalApi::ReadWrite(cGdalApi::IoMode::Write,
-                                aVIms,
-                                aDF,
-                                cPt2di(0,0),
-                                1.0,
-                                cPixBox<2>(cPt2di(0,0),mDImQualityMapY->Sz()),
-                                aTransform);
+                aNameQualityMap="./qualityMap_"+ToStr(mBA.getNbIter())+"_Y"+".tif";
+
+                aVIms={mDImQualityMapY};
+                aDF=cDataFileIm2D::Create(aNameQualityMap,
+                                                          eTyNums::eTN_REAL8,
+                                                          mDImQualityMapY->Sz());
+
+                cGdalApi::ReadWrite(cGdalApi::IoMode::Write,
+                                    aVIms,
+                                    aDF,
+                                    cPt2di(0,0),
+                                    1.0,
+                                    cPixBox<2>(cPt2di(0,0),mDImQualityMapY->Sz()),
+                                    aTransform);
+            }
         }
+
 
         /*for (size_t aKIm=0; aKIm<mVCam.size();aKIm++)
             {
@@ -255,10 +265,13 @@ void cBA_LidarPhotogra::AddObs(tREAL8 aW)
        StdOut() << "  * Lid/Phr Residual Rad " << mLastResidual.Average() << "\n";
     StdOut() <<" * Eval Correl between image patches "<<mCurrentCorrelVal/(tREAL8)mLPatches.size();
 
-    if ( (mBA.getNbIter()==0) || (mBA.CheckIfLastIter()))
+    if (0)
     {
-        StdOut() <<" Planar residual X  "<<mAverageDeltaX.Average()<<"\n";
-        StdOut() <<" Planar residual Y  "<<mAverageDeltaY.Average()<<"\n";
+        if ( (mBA.getNbIter()==0) || (mBA.CheckIfLastIter()))
+        {
+            StdOut() <<" Planar residual X  "<<mAverageDeltaX.Average()<<"\n";
+            StdOut() <<" Planar residual Y  "<<mAverageDeltaY.Average()<<"\n";
+        }
     }
 }
 
@@ -479,7 +492,6 @@ void cBA_LidarPhotogra::EvaluatePlanarDisplacements(std::vector<std::string> & a
 
     if (isStandalone)
     {
-
         // use code for optical flow calculation
 
         for(size_t aKMaster=0; aKMaster<aVecOrthoNames.size();aKMaster++)
@@ -771,13 +783,15 @@ void cBA_LidarPhotogra::EvalGeomConsistency(const std::vector<cPt3dr>& aVPatchGr
             }
         }
     }
+
     // perfom displacement measurment between patches
-    if ( ( (mBA.getNbIter()==0) || (mBA.CheckIfLastIter()) )
+    /*if ( ( (mBA.getNbIter()==0) || (mBA.CheckIfLastIter()) )
         && (!isForSelection) && (OrthosName.size()>1) )
     {
         EvaluatePlanarDisplacements(OrthosName,aVecTransforms,false);
-    }
-    aVecTransforms.clear();
+    }*/
+
+
     //StdOut()<<"Eval Patch "<<std::endl;
 }
 

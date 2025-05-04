@@ -183,6 +183,8 @@ namespace  cNS_MMGenDepthMV
 
   bool cAppliMMGenDepthMV::MakeDecision(std::vector<cPt3dr> & aVecPoints)
   {
+
+      // implement the z_buffer algo to select visible points fot a certain point of view
       // center point is the first one
       cPt3dr PatchCenter=aVecPoints[0];
       auto It=aVecPoints.begin();

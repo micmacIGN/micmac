@@ -287,12 +287,12 @@ torch::Tensor aCnnModelPredictor::PredictUnetFeaturesOnly(torch::jit::script::Mo
         aPL=aPL.div(255.0);
         //aPL=(aPL.sub(at::min(aPL))).div(at::max(aPL)-at::min(aPL));
         //aPL=(aPL.sub(0.4353755468)).div(0.19367880); //0.434583236,0.1948717255
-        //aPL=(aPL.sub(0.434583236)).div(0.1948717255);
+        aPL=(aPL.sub(0.434583236)).div(0.1948717255);
         // Aerial data 22 cm resolution
         // Images Gregoire Maillet :
         //     ----> aPL=(aPL.sub(0.20912810375666974)).div(0.08828173006933751);
         //aPL=(aPL.sub(0.49877)).div(0.0895);
-        aPL=(aPL.sub(0.3489)).div(0.25);
+        //aPL=(aPL.sub(0.3489)).div(0.25);
         // Images Vaihingen
         //aPL=(aPL.sub(0.37205569556786616)).div(0.15318937508043667);
         // Zone 1 Toulouse

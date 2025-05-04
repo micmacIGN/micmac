@@ -3,6 +3,7 @@
 
 #include "MMVII_Triangles.h"
 #include "MMVII_Matrix.h"
+//#include "MMVII_2Include_Tiling.h"
 
 namespace MMVII
 {
@@ -378,6 +379,16 @@ template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
            cTriangulation3D(const tVPt&,const tVFace &);
            void WriteFile(const std::string &,bool isBinary) const;
            void SamplePts(const bool & targetted,const tREAL8 & aStep);
+           /*std::vector<int> OnePatchSelect(size_t aPid,
+                               cTiling<cTil2DTri3D<Type> > & aTileAll,
+                               cTiling<cTil2DTri3D<Type> > & ATileSelect,
+                               tREAL8 aDistNeigh,
+                               tREAL8 aDistReject,
+                               int    aSzMin,
+                               const std::vector<cSensorCamPC * > & aCameras,
+                               const std::vector<cIm2D<tU_INT1>> & mVIms,
+                               tREAL8 aThreshold);*/
+
            bool IsGoodPatch(const std::vector<cPt3dr>& aVPts,
                                 const std::vector<cSensorCamPC*> & aCameras,
                                 const std::vector<cIm2D<tU_INT1>> & mVIms,

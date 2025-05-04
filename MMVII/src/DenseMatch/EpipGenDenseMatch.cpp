@@ -122,7 +122,7 @@ class cOneLevel
        cParamCallSys StrComClipIm(bool ModeIm,const cPt2di & aInd,const cParam1Match &) const;
        cParamCallSys StrComReduce(bool ModeIm=true) const; ///< Generate the string for computing reduced images
        //cParamCallSys StrComReduce(bool ModeIm=true) const;
-      // void CreateNuageLastFile(const std::string& Dir, const std::string& ImName);
+       //void CreateNuageLastFile(const std::string& Dir, const std::string& ImName);
 
                  //  ------  Generate name for cliped images
        std::string  NameClip(const std::string & aPrefix,const cPt2di & aInd) const; ///< Genreik name
@@ -715,7 +715,7 @@ cAppli::cAppli
    mRandPaded    (false),
    mSzTile     (900,900),
    mSzOverL    (100,100),
-   mIncPxProp  (0.05),
+   mIncPxProp  (0.05), // 0.05
    mIncPxCste  (50),  // (PxMax-PxMin)/2
    mIncPxMin   (100),
    mMaxRatio   (4.0),
@@ -806,6 +806,7 @@ cParamCallSys cAppli::ComMatch(cParam1Match & aParam)
                  "NbP=1",   // Allocate only one process as they are themself parallelized
                  "DirMEC=" + aParam.mClipDirTmp,  //
                  "FileExp=" + aParam.mClipNamePx  //
+                 //"Inc="+ToStr(4000)
           );
        }
        /*******************************************************************/
