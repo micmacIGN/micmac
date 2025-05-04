@@ -102,7 +102,8 @@ class cAppliProgDynEpipolar: public cAppliLearningMatch
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 };
 
-cAppliProgDynEpipolar::cAppliProgDynEpipolar(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
+cAppliProgDynEpipolar::cAppliProgDynEpipolar(const std::vector<std::string> & aVArgs,
+                                             const cSpecMMVII_Appli & aSpec) :
    cAppliLearningMatch  (aVArgs,aSpec),
    mIm1                 (cPt2di(1,1)),
    mDI1                 (nullptr),
@@ -168,7 +169,10 @@ torch::Tensor cAppliProgDynEpipolar::gaussian(float sigma)
 /***********************************************************************/
 void cAppliProgDynEpipolar::DoInferenceFillCost()
 {
-    torch::Tensor vol = torch::ones({1, mDispRange, aLeftImageT.size(2), aLeftImageT.size(3)},torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
+    torch::Tensor vol = torch::ones({1, mDispRange,
+                                     aLeftImageT.size(2),
+                                     aLeftImageT.size(3)},
+                                    torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
     torch::Tensor disp = torch::ones({1, 1, aLeftImageT.size(2), aLeftImageT.size(3)},torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
     vol=vol.mul(0.5);
     using namespace torch::indexing;
