@@ -205,7 +205,7 @@ int cSerialFileParser::GetNotEOF()
 
 
 
-bool cSerialFileParser::SkeepOneString(const char * aString)
+bool cSerialFileParser::SkipOneString(const char * aString)
 {
     auto start = Ifs().tellg();
     while (*aString)
@@ -222,30 +222,30 @@ bool cSerialFileParser::SkeepOneString(const char * aString)
 }
 
 
-bool  cSerialFileParser::SkeepOneKindOfCom(const char * aBeg,const char * anEnd)
+bool  cSerialFileParser::SkipOneKindOfCom(const char * aBeg,const char * anEnd)
 {
-   if (! SkeepOneString(aBeg))
+   if (! SkipOneString(aBeg))
       return false;
 
-   while (! SkeepOneString(anEnd))
+   while (! SkipOneString(anEnd))
    {
         GetNotEOF();
    }
    return true;
 }
 
-bool  cSerialFileParser::SkeepCom()
+bool  cSerialFileParser::SkipCom()
 {
-    return    SkeepOneKindOfCom(TheXMLBeginCom,TheXMLEndCom)
-           || SkeepOneKindOfCom(TheXMLBeginCom2,TheXMLEndCom2);
+    return    SkipOneKindOfCom(TheXMLBeginCom,TheXMLEndCom)
+           || SkipOneKindOfCom(TheXMLBeginCom2,TheXMLEndCom2);
 }
 
-int cSerialFileParser::SkeepWhite()
+int cSerialFileParser::SkipWhite()
 {
    int aC=' ';
    while (isspace(aC)|| (aC==0x0A)) // Apparement 0x0A est un retour chariot
    {
-       while (SkeepCom());
+       while (SkipCom());
        //aC = Ifs().get();
        aC = GetNotEOF();
    }
@@ -292,7 +292,7 @@ cResLex cSerialFileParser::AnalysePonctuation(char aC)
 cResLex  cSerialFileParser::GetNextLex_NOEOF()
 {
 
-    SkeepWhite();
+    SkipWhite();
     std::string aRes;
 
     int aC =  GetNotEOF();
@@ -315,7 +315,7 @@ cResLex  cSerialFileParser::GetNextLex_NOEOF()
     Ifs().unget(); // put back < or ' '  etc ..
 
     //if (mTypeS!= eTypeSerial::etxt)  // else get EOF at end
-    //   SkeepWhite();
+    //   SkipWhite();
 
     return cResLex(aRes,eLexP::eStdToken_UK,eTAAr::eUndef);
 }
@@ -363,7 +363,7 @@ cResLex cXmlSerialTokenParser::AnalysePonctuation(char aC)
     bool mRestrictedTag = true;  // do we accept only standard carac for tags,
 
     if (mRestrictedTag)  // if restricted, supress white at begin
-        SkeepWhite();
+        SkipWhite();
 
     aC =  GetNotEOF();
     eLexP aLex= eLexP::eDown;
@@ -956,15 +956,15 @@ void cSerialTree::Unfold(std::list<cResLex> & aRes,eTypeSerial aTypeS) const
 }
 
 
-void cSerialTree::Rec_AnalyseDiffTree(const cSerialTree &aT1,const std::string & aSkeep) const
+void cSerialTree::Rec_AnalyseDiffTree(const cSerialTree &aT1, const std::string & aSkip) const
 {
-   if ((mValue != aT1.mValue) && (mValue!=aSkeep) && (aT1.mValue!=aSkeep))
+   if ((mValue != aT1.mValue) && (mValue!=aSkip) && (aT1.mValue!=aSkip))
       throw cResDifST(this,&aT1);
 
    size_t aSz = std::min(mSons.size(),aT1.mSons.size());
 
    for (size_t aK =0 ; aK<aSz ; aK++)
-       mSons[aK].Rec_AnalyseDiffTree(aT1.mSons[aK],aSkeep);
+       mSons[aK].Rec_AnalyseDiffTree(aT1.mSons[aK],aSkip);
 
    if (mSons.size() > aT1.mSons.size())
         throw cResDifST(&(mSons[aSz]),nullptr);
@@ -978,11 +978,11 @@ cResDifST::cResDifST(const cSerialTree* aST1,const cSerialTree* aST2) :
 {
 }
 
-cResDifST  cSerialTree::AnalyseDiffTree(const cSerialTree &aT1,const std::string & aSkeep) const
+cResDifST  cSerialTree::AnalyseDiffTree(const cSerialTree &aT1, const std::string & aSkip) const
 {
     try
     {
-         Rec_AnalyseDiffTree(aT1,aSkeep);
+         Rec_AnalyseDiffTree(aT1,aSkip);
     }
     catch (cResDifST aRes)
     {
@@ -1277,13 +1277,13 @@ class cOMakeTreeAr : public cAr2007
 
 	void AddComment(const std::string &) override;
 
-	bool                  SkeepStrElCont(const cAuxAr2007& anOT) const;
+	bool                  SkipStrElCont(const cAuxAr2007& anOT) const;
 
 	tContToken            mContToken;
 	tContToken::iterator  mItToken;
         std::string           mNameFile;
 	eTypeSerial           mTypeS;
-	bool                  mSkeepStrElCont;
+	bool                  mSkipStrElCont;
 	int                   mLevel;
 	std::string           mLastTag;
 };
@@ -1302,22 +1302,22 @@ cOMakeTreeAr::cOMakeTreeAr(const std::string & aName,eTypeSerial aTypeS,bool IsS
     cAr2007           (false,true,false),   // Input,  Tagged, Binary
     mNameFile         (aName),
     mTypeS            (aTypeS),
-    mSkeepStrElCont   (false), // ((aTypeS == eTypeSerial::ejson) || (aTypeS == eTypeSerial::etagt))
+    mSkipStrElCont   (false), // ((aTypeS == eTypeSerial::ejson) || (aTypeS == eTypeSerial::etagt))
     mLevel            (0)
 {
     mIsSpecif = IsSpecif;
 }
 
-bool  cOMakeTreeAr::SkeepStrElCont(const cAuxAr2007& anOT) const
+bool  cOMakeTreeAr::SkipStrElCont(const cAuxAr2007& anOT) const
 {
-	return mSkeepStrElCont && (anOT.Name()== StrElCont) ;
+	return mSkipStrElCont && (anOT.Name()== StrElCont) ;
 }
 
 void cOMakeTreeAr::RawBeginName(const cAuxAr2007& anOT)  
 {
    mLevel++;
    mLastTag = anOT.Name();
-   if ( !SkeepStrElCont(anOT))
+   if ( !SkipStrElCont(anOT))
        mContToken.push_back(cResLex(anOT.Name(),eLexP::eUp,anOT.Type()));
 }
 
@@ -1325,7 +1325,7 @@ void cOMakeTreeAr::RawEndName(const cAuxAr2007& anOT)
 {
     mLevel--;
    // if (anOT.Name()!= StrElCont)
-   if ( !SkeepStrElCont(anOT))
+   if ( !SkipStrElCont(anOT))
       mContToken.push_back(cResLex(anOT.Name(),eLexP::eDown,anOT.Type()));
 }
 

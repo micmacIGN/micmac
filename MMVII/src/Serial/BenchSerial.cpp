@@ -549,7 +549,7 @@ void BenchSerialization
     }
     else
     {
-	    StdOut() << "SKEEPING IsFileXmlOfGivenTag" << std::endl;
+	    StdOut() << "SKIPPING IsFileXmlOfGivenTag" << std::endl;
     }
 
     // StdOut() << "DONE SERIAL" << std::endl;

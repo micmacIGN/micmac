@@ -524,7 +524,7 @@ template<class TyProj> void OneBenchProjToDirBundle(cParamExeBench & aParam)
    
           MMVII_INTERNAL_ASSERT_bench(Norm2(aP23.second-aRay3d)<1e-8,"Inversion Proj/ToDirBundle");
 
-	  if ( aDefProf->HasRadialSym()) // 2- test radiality  => to skeep for non physical proj like 360 synthetic image
+	  if ( aDefProf->HasRadialSym()) // 2- test radiality  => to skip for non physical proj like 360 synthetic image
 	  {
           // 2.1  , conservation of angles :  aRay2, aRay3d, AxeK  must be coplanar
               cPt3dr aRay2(aProj2.x(),aProj2.y(),1.0);
@@ -547,7 +547,7 @@ template<class TyProj> void OneBenchProjToDirBundle(cParamExeBench & aParam)
    cPt3dr aPtZ = cPt3dr::FromStdVector(TyProj::ToDirBundle(aV00));
    MMVII_INTERNAL_ASSERT_bench(Norm2(aPtZ-AxeK)<1e-8,"Proj/ToDirBundle");
 
-   if  (1)  // to skeep if code not generated ...
+   if  (1)  // to skip if code not generated ...
    {
 	cDataMapCalcSymbDer<tREAL8,3,2> aProjDir
         (

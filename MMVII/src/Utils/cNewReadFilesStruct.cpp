@@ -232,7 +232,7 @@ void  cNewReadFilesStruct::ParseFormat(bool isSpec,const std::string & aFormat,s
         {
             aC++;
 	}
-	else if (*aC==0) // if we reach end of car whil skeeping white : end of game
+	else if (*aC==0) // if we reach end of car whil skipping white : end of game
 	{
              return;
 	}
@@ -291,7 +291,7 @@ void cNewReadFilesStruct::ReadFile(const std::string & aNameFile,const  cNRFS_Pa
     while (std::getline(infile, line))
     {
          size_t aHashCode = HashValue(line,true);
-         // must we skeep the line for duplicata reason
+         // must we skip the line for duplicata reason
          bool toSkip4Dupl = aParam.NoDupLine() && MapBoolFind(aSetHCode,aHashCode);
 
 
@@ -390,10 +390,10 @@ cPt3dr cNewReadFilesStruct::GetPt3dr_XYZ(size_t aKL,const std::string & aPost) c
 
 std::string  cNewReadFilesStruct::MsgFormat(const std::string & aFormat)
 {
-    return   "Format of file, according to specification :  " 
+    return   "Format of file, according to specification: "
            + Quote(aFormat)  
-           + " ( SkeepField=\"" + TheNameUnused + "\""  
-           + " ; SkeepEndOfLine=\"" + TheNameBla + "\")"  
+           + " (\"" + TheNameUnused + "\" to skip one field"
+           + ", \"" + TheNameBla + "\" to skip the rest of the line)"
     ;
 }
 

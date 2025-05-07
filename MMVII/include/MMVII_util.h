@@ -133,7 +133,7 @@ const std::string & StrWDef(const std::string & aValue,const std::string & aDef)
 
 
 bool CaseSBegin(const char * aBegin,const char * aStr); ///< Is aBegin the case SENS-itive premisse of aStr ?
-void SkeepWhite(const char * & aC);
+void SkipWhite(const char * & aC);
 const std::string & StringDirSeparator();
 bool IsDirectory(const std::string & aName);
 

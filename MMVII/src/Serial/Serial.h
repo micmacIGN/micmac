@@ -101,7 +101,7 @@ class cSerialGenerator
 	  virtual void CheckOnClose(const cSerialTree &,const std::string & aTagClose) const;
 
           cResLex GetNextLexSizeCont() ; /// Get a token that "must" be a size of container
-          cResLex GetNextLexNotSizeCont() ; /// Get a token, "skeeping" all size of container
+          cResLex GetNextLexNotSizeCont() ; /// Get a token, "skipping" all size of container
 };
 
 class cTokenGeneByList : public cSerialGenerator
@@ -145,16 +145,16 @@ class cSerialFileParser : public cSerialGenerator,
           int GetNotEOF();
           /// error specific handler
           void Error(const std::string & aMes);
-           /// Skeep all series of space and comment
-           int  SkeepWhite();
+           /// Skip all series of space and comment
+           int  SkipWhite();
 
-           /// Skeep one <!-- --> or <? ?>
-           bool SkeepOneKindOfCom(const char * aBeg,const char * anEnd);
-           /// Skeep a comment
-           bool SkeepCom();
+           /// Skip one <!-- --> or <? ?>
+           bool SkipOneKindOfCom(const char * aBeg,const char * anEnd);
+           /// Skip a comment
+           bool SkipCom();
 
-          /// If found Skeep one extpected string, and indicate if it was found,
-          bool SkeepOneString(const char * aString);
+          /// If found Skip one extpected string, and indicate if it was found,
+          bool SkipOneString(const char * aString);
           std::string  GetQuotedString();  /// extract "ddgg \\  kk "
 
           cMMVII_Ifs                        mMMIs; ///< secured istream
@@ -219,7 +219,7 @@ class cSerialTree : public cMemCheck
 
 
 	  /// Compute firt occurence of tree difference return as res diff 
-	  cResDifST AnalyseDiffTree(const cSerialTree &,const std::string &aSkeep) const;
+	  cResDifST AnalyseDiffTree(const cSerialTree &,const std::string &aSkip) const;
 	        // "pretty printing" functions
 	  void  Xml_PrettyPrint(cMMVII_Ofs& anOfs) const;  /// xml-pretty print
 	  void  Json_PrettyPrint(cMMVII_Ofs& anOfs) const; /// json-pretty print
@@ -256,7 +256,7 @@ class cSerialTree : public cMemCheck
       void RecursSetFather(cSerialTree *);
 	  // cSerialTree(const cSerialTree &) ;
 	  /// Implement using exception
-	  void Rec_AnalyseDiffTree(const cSerialTree &,const std::string & aSkeep) const;
+	  void Rec_AnalyseDiffTree(const cSerialTree &,const std::string & aSkip) const;
 
 	  bool IsTerminalNode() const;     ///< is it a node w/o son and not tagged
 	  bool IsTabulable() const;        ///< can it be printed as a tab == is it a non tagged node with all son terminal

@@ -346,7 +346,7 @@ class cIBaseTxt_Ar2007 : public cAr2007,
            /// Read next tag, if its what expected return 1, restore state of file
            int NbNextOptionnal(const std::string &) override;
 	   
-	  /// retunr string after skeep whit, comm .... accept "a b c" , 
+	  /// return string after skip whitespaces, comments .... accept "a b c" ,
           std::string  GetNextStdString();
 
         // Utilitaire de manipulation 
@@ -379,7 +379,7 @@ void cIBaseTxt_Ar2007::RawAddDataTerm(std::string &    aS)
 
 void cIBaseTxt_Ar2007::RawAddDataTerm(cRawData4Serial  &    aRDS) 
 {
-   SkeepWhite();
+   SkipWhite();
    tU_INT1 * aPtr = static_cast<tU_INT1*>(aRDS.Adr());
    for (int aK=0 ; aK< aRDS.NbElem() ; aK++)
    {
@@ -436,10 +436,10 @@ class cStreamIXml_Ar2007 : public cIBaseTxt_Ar2007
 
         bool GetTag(bool aClose,const std::string & aName)
         {
-            SkeepWhite();
+            SkipWhite();
             std::string aTag = std::string(aClose ? "</" : "<") + aName + ">";
    
-            return SkeepOneString(aTag.c_str());
+            return SkipOneString(aTag.c_str());
         }
 
 };

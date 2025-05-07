@@ -208,7 +208,7 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	
 	 ///  For stenope camera return center, for other best approx
 	 virtual cPt3dr  PseudoCenterOfProj() const = 0;
-	 ///  For stenope camera return center, for other nullptr, default retunr null ptr, its not a stenoppe
+	 ///  For stenope camera return center, for other nullptr, default return null ptr, its not a stenope
 	 virtual const cPt3dr * CenterOfPC() const ;
 
 	 /// Return if any the center of footprint 

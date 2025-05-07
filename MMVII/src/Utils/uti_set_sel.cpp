@@ -354,7 +354,7 @@ std::vector<tElemStrInterv> LireInterv(const std::string & aStr)
    const char * aC = aStr.c_str();
    while (*aC)
    {
-      SkeepWhite(aC);
+      SkipWhite(aC);
       // Get [ or ]
       bool aLowIncl,anUpIncl;
       if (!GetInclus(aLowIncl,*aC,true))
@@ -379,7 +379,7 @@ std::vector<tElemStrInterv> LireInterv(const std::string & aStr)
       aRes.push_back(tElemStrInterv(aStrUp,anUpIncl));
 
       aC++;
-      SkeepWhite(aC);
+      SkipWhite(aC);
    }
 
 /*
