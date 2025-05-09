@@ -4,6 +4,7 @@
 #ifndef  _MMVII_ARBOTRIPLETS_H_
 #define  _MMVII_ARBOTRIPLETS_H_
 
+#include "cMMVII_Appli.h"
 #include "MMVII_util_tpl.h"
 #include "MMVII_Geom3D.h"
 #include "MMVII_Tpl_GraphAlgo_SPCC.h"
@@ -14,6 +15,10 @@
 #include "MMVII_PoseTriplet.h"
 // #include "MMVII_Tpl_GraphAlgo_Group.h"
 #include "MMVII_Tpl_Images.h"
+
+#include "../BundleAdjustment/BundleAdjustment.h"
+
+#include "MMVII_UtiSort.h"
 
 namespace MMVII
 {
@@ -55,16 +60,18 @@ public :
     //typedef  std::pair<tPoseR,tPoseR>  tPP;
 
     /// constructor, recursively split the tree, dont parallelize !
-    cNodeArborTriplets(cMakeArboTriplet &,const t3G3_Tree &,int aLevel);
+    cNodeArborTriplets(cMakeArboTriplet &,const t3G3_Tree &,int aLevel,
+                       cPhotogrammetricProject &);
     /// destructor, recursively free the children
     ~cNodeArborTriplets();
 
     /// compute the pose solution, do it recurively
     void ComputeResursiveSolution();
+
     ///  Test with GT
     void CmpWithGT();
     /// Save global solution
-    void SaveGlobSol(const cPhotogrammetricProject&) const;
+    void SaveGlobSol(const std::string&) const;
 
 
 private :
@@ -107,6 +114,8 @@ private :
     void ShowPose(const std::string & aPrefix) ;
     /// make the merge for non terminal nodes
     void MergeChildrenSol();
+    /// refine the merged solution with bundle adjustment
+    void RefineSolution();
     /// free temporary data, non longer used after having been mergerd
     void FreeIndexSol();
     /// extract the num of poses of the tree
@@ -115,6 +124,9 @@ private :
     /// solution of global index , null if dont exist
     cSolLocNode *  SolOfGlobalIndex(int aNumPose) ;
 
+    ///
+
+    cPhotogrammetricProject & mPhProj;
     int                       mDepth;     ///< level in the hierarchy, used for pretty printing
     t3G3_Tree                 mTree;      ///< tree of triplet
     std::array<tNodePtr,2>    mChildren;  ///< sub-nodes (if any ...)
@@ -131,14 +143,14 @@ class cMakeArboTriplet
 {
 public :
 
-    cMakeArboTriplet(cTripletSet & aSet3,bool doCheck,tREAL8 aWBalance,cMMVII_Appli &);
+    cMakeArboTriplet(cTripletSet & aSet3,bool doCheck,tREAL8 aWBalance, cPhotogrammetricProject &,cMMVII_Appli &);
     ~cMakeArboTriplet();
 
     /// Print some info on dimensions of data
     void ShowStat();
 
     // make the graph on pose, using triplet as 3 edges
-    void MakeGraphPose(const cPhotogrammetricProject&);
+    void MakeGraphPose();
 
     /// compute the reference pose
     void DoPoseRef();
@@ -154,7 +166,7 @@ public :
     void SetRand(const std::vector<tREAL8> &);
 
     /// Save the global orientation
-    void SaveGlobSol(const cPhotogrammetricProject&) const;
+    void SaveGlobSol() const;
 
 
     tREAL8 WBalance() const {return mWBalance;}  ///< Accessor
@@ -171,11 +183,21 @@ public :
     bool  DoRand() const {return mDoRand;}  ///< Accessor
     std::vector<tREAL8> & WeigthEdge3() {return mWeigthEdge3;}
     std::string & MapI2Str(const int aNum)  {return *mMapStrI.I2Obj(aNum);}  ///< Accessor
+    std::string & TPFolder() {return mTPtsFolder;}
+    std::string   TPFolder() const {return mTPtsFolder;}  ///< Accessor
+    std::vector<tREAL8> & ViscPose() {return mViscPose;}
+    std::vector<tREAL8>   ViscPose() const {return mViscPose;}  ///< Accessor
+    tREAL8              & SigmaTPt() {return mSigmaTPt;}
+    tREAL8                SigmaTPt() const {return mSigmaTPt;}   ///< Accessor
+    tREAL8              & FacElim()  {return mFacElim;}
+    tREAL8                FacElim() const {return mFacElim;} ///< Accessor
+
 
 
 private :
 
     cMMVII_Appli &          mAppli;
+    cPhotogrammetricProject& mPhProj;
     cTimerSegm  &           mTimeSegm;
     cTripletSet  &          mSet3;          ///< Initial triplet structure
     bool                    mDoCheck;       ///< do checking ....
@@ -198,6 +220,10 @@ private :
     int                     mNbTriAnchor;    ///< Number of triplet that are anchor points
     int                     mNbTreeGlob;     ///< Number of triplet  in tri (NbTriplet - 1 for connected graph)
     int                     mNbTree2Split;   ///< Number of triplet after pruning
+    std::string             mTPtsFolder;     ///< Tie-points folder
+    std::vector<tREAL8>     mViscPose;       ///< Regularization on poses in BA
+    tREAL8                  mSigmaTPt;       ///< Sigma on tie-points
+    tREAL8                  mFacElim;        ///< Control outlier threshold, thres=mSigmaTPt*mFacElim
 };
 
 class cAppli_ArboTriplets : public cMMVII_Appli
@@ -217,6 +243,7 @@ private :
     bool                      mDoCheck;
     tREAL8                    mWBalance;
     bool                      mPerfectData;
+    std::vector<tREAL8>       mViscPose;      ///< regularization on poses in BA
 };
 
 }; // namespace MMVII

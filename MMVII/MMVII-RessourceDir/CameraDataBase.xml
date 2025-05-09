@@ -58,6 +58,24 @@
                <NbPixels> 5023   5023</NbPixels>
             </V>
          </Pair>
+         <Pair>
+            <K>"X5R"</K>
+            <V>
+               <Name>"X5R"</Name>
+               <SzPix_micron> 6 6 </SzPix_micron>
+               <SzSensor_mm> 12.3  6.5 </SzSensor_mm>  <!-- 23.5 15.6 in spec => non square pixel -->
+               <NbPixels> 2048  1080</NbPixels>
+            </V>
+         </Pair>
+         <Pair>
+            <K>"CamLightLOEMI"</K>
+            <V>
+               <Name>"CamLightLOEMI"</Name>
+               <SzPix_micron> 6 6 </SzPix_micron>
+               <SzSensor_mm> 36 24 </SzSensor_mm>  <!-- 23.5 15.6 in spec => non square pixel -->
+               <NbPixels> 5120 3840 </NbPixels>
+            </V>
+         </Pair>
 
       </CamDataBase>
    </Data>

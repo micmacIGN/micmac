@@ -111,7 +111,7 @@ cAppliBundlAdj::cAppliBundlAdj(const std::vector<std::string> & aVArgs,const cSp
    mGCPFilterAdd   (""),
    mNbIter         (10),
    mLVM            (0.0),
-   mMeasureAdded   (false)
+   mMeasureAdded   (true)
 {
 }
 

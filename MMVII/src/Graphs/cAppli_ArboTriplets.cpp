@@ -11,7 +11,9 @@ namespace MMVII
 /* ********************************************************* */
 
 
-cNodeArborTriplets::cNodeArborTriplets(cMakeArboTriplet & aMAT ,const t3G3_Tree & aTree,int aLevel) :
+cNodeArborTriplets::cNodeArborTriplets(cMakeArboTriplet & aMAT ,const t3G3_Tree & aTree,int aLevel,
+                                       cPhotogrammetricProject & aPhProj) :
+   mPhProj    (aPhProj),
    mDepth     (aLevel),
    mTree      (aTree),
    mChildren  {0,0},
@@ -42,7 +44,7 @@ cNodeArborTriplets::cNodeArborTriplets(cMakeArboTriplet & aMAT ,const t3G3_Tree 
       // recursively build the split node
       for (size_t aKT=0 ; aKT<a2T.size() ; aKT++)
       {
-          mChildren[aKT] = new cNodeArborTriplets(aMAT,a2T.at(aKT),aLevel+1);
+          mChildren[aKT] = new cNodeArborTriplets(aMAT,a2T.at(aKT),aLevel+1,aPhProj);
       }
    }
 
@@ -59,12 +61,11 @@ cNodeArborTriplets:: ~cNodeArborTriplets()
 void cNodeArborTriplets::ShowPose(const std::string & aPrefix) 
 {
     std::vector<int> aVPose; GetPoses(aVPose);
-    StdOut() << aPrefix ;
+    StdOut() << aPrefix;
     for (int aK=0 ; aK< mDepth ; aK++)
        StdOut() << " |" ;
     StdOut() <<  aVPose << "\n";
 }
-
 
 void cNodeArborTriplets::ComputeResursiveSolution()
 {
@@ -98,7 +99,6 @@ void cNodeArborTriplets::ComputeResursiveSolution()
     // compare with ground truth
     CmpWithGT();
 }
-
 
 void cNodeArborTriplets::MakeIndexGlob2Loc()
 {
@@ -547,7 +547,7 @@ tSim3dR cNodeArborTriplets::EstimateSimTransfert
     return tSim3dR(aLambda,aTr,aRot_W1_to_W0);
 }
 
-void cNodeArborTriplets::SaveGlobSol(const cPhotogrammetricProject& aPhP) const
+void cNodeArborTriplets::SaveGlobSol(const std::string & aPrefix) const
 {
     //tREAL8 AngConv = AngleInRad(eTyUnitAngle::eUA_degree);
     cDenseMatrix<double> aZRot(3,3,eModeInitImage::eMIA_Null);
@@ -555,38 +555,41 @@ void cNodeArborTriplets::SaveGlobSol(const cPhotogrammetricProject& aPhP) const
     aZRot.SetElem(1,1,-1);
     aZRot.SetElem(2,2,-1);
 
-    cPerspCamIntrCalib *  aCalib = cPerspCamIntrCalib::FromFile(
-        "/home/ERupnik/Documents/da_data/mpd_graphes/viabon/MMVII-PhgrProj/Ori/FraserBasic/Calib-PerspCentral-Foc-35000_Cam-CamLightLOEMI.xml"
-        );
 
-    StdOut() << "#F=N X Y Z a b c d e f g h i" << std::endl;
+    cPerspCamIntrCalib *  aCalib = mPhProj.InternalCalibFromStdName(mPMAT->MapI2Str(mLocSols.at(0).mNumPose));
+
+
+    std::string aSaveSolG = aPrefix + "_depth_" + ToStr(mDepth) + "_" + ToStr(RandUnif_N(1000));
+    cMMVII_Ofs aFile(aSaveSolG, eFileModeOut::CreateText);
+
+    aFile.Ofs() << "#F=N X Y Z a b c d e f g h i\n";
+
     std::cout << std::setprecision(10);
     for (const auto & aSol :   mLocSols)
     {
         std::string aCurImName = mPMAT->MapI2Str(aSol.mNumPose);
 
-        //cRotation3D<tREAL8> aRotK = cRotation3D<tREAL8>::RotFromCanonicalAxes("i-j-k");
         cRotation3D<tREAL8> aRotNew(aSol.mPose.Rot().MapInverse().Mat(),false); //mmv1 convention
         cPt3dr aCNew = aSol.mPose.Tr() * aZRot; //mmv1 convention
 
-        //cRotation3D<tREAL8> aRotNew(aSol.mPose.Rot().Mat(),false);
-        //cPt3dr aCNew = aSol.mPose.Tr() ;
 
-        StdOut() << aCurImName
-                 << " " << aCNew.x()
-                 << " " << aCNew.y()
-                 << " " << aCNew.z() << " "
-                 //<< " " << aRotNew.ToWPK().x() * AngConv
-                 //<< " " << aRotNew.ToWPK().y() * AngConv
-                 //<< " " << aRotNew.ToWPK().z() * AngConv
-                 << aRotNew.Mat()(0,0) << " " << aRotNew.Mat()(1,0) << " " << aRotNew.Mat()(2,0) << " "
-                 << aRotNew.Mat()(0,1) << " " << aRotNew.Mat()(1,1) << " " << aRotNew.Mat()(2,1) << " "
-                 << aRotNew.Mat()(0,2) << " " << aRotNew.Mat()(1,2) << " " << aRotNew.Mat()(2,2) << " "
-                 << std::endl;
+        std::string aPrntTxt = aCurImName + " "
+                               + ToStr(aCNew.x()) + " " + ToStr(aCNew.y()) + " " + ToStr(aCNew.z()) + " ";
 
-        cIsometry3D aPose(aCNew,aRotNew);
-        cSensorCamPC aCam(aCurImName,aPose,aCalib);
-        aPhP.SaveCamPC(aCam);
+        for (int aK1=0; aK1<3; aK1++)
+        {
+            for (int aK2=0; aK2<3; aK2++)
+            {
+                aPrntTxt += ToStr(aRotNew.Mat()(aK2,aK1)) + " ";
+            }
+        }
+        aPrntTxt += "\n";
+        aFile.Ofs() << aPrntTxt;
+
+        //cIsometry3D aPose(aCNew,aRotNew);
+        cSensorCamPC aCam(aCurImName,aSol.mPose,aCalib); //mmv2 convention
+        mPhProj.SaveCamPC(aCam);
+
     }
     //////////////////////////////
     std::vector<tPoseR> aVComp;
@@ -644,9 +647,9 @@ void cNodeArborTriplets::MergeChildrenSol()
      cNodeArborTriplets & aN0 = *(mChildren.at(0));
      cNodeArborTriplets & aN1 = *(mChildren.at(1));
 
-         ShowPose("DoMx :");
-     aN0.ShowPose("DoM0 :");
-     aN1.ShowPose("DoM1 :");
+     //    ShowPose("DoMx :");
+     //aN0.ShowPose("DoM0 :");
+     //aN1.ShowPose("DoM1 :");
 
      std::vector<tPairI>              aVPairCommon;  //  Store data for vertex present in 2 children
      std::vector<tPairI>              aVPairLink2;   // store data for edges between 2 children (the 3 vertex being out)
@@ -734,6 +737,16 @@ void cNodeArborTriplets::MergeChildrenSol()
          mLocSols.push_back(cSolLocNode(aPoseInS0,aSol1.mNumPose));
      }
 
+     //aN0.SaveGlobSol("Child0Init");
+     //aN1.SaveGlobSol("Child1Init");
+     //SaveGlobSol("Init");
+
+     // refine the solution with BA
+     if (!mPMAT->TPFolder().empty())
+        RefineSolution();
+
+     //SaveGlobSol("Adj");
+
      //  Free some temporary memory that are  no longer necessary
      for (auto & aChild :mChildren)
      {
@@ -743,6 +756,247 @@ void cNodeArborTriplets::MergeChildrenSol()
      MakeIndexGlob2Loc();
 
 // getchar();
+}
+
+void cNodeArborTriplets::RefineSolution()
+{
+
+    //StdOut() << "RefineSolution" << std::endl;
+
+
+    int aNbIter=2;
+
+    // structure storing declared unknowns of BA
+    cSetInterUK_MultipeObj<tREAL8> aSetIntervUK;
+
+
+    // camera parameters and colinearity equations
+    std::vector<cSensorCamPC *> aVCams ;
+    std::vector<cSensorImage *> aVSens ;
+    std::vector<cCalculator<double> *> aVEqCol ;
+
+    // intrinsic parameters considered the same for all images
+    cPerspCamIntrCalib *   aCal = mPhProj.InternalCalibFromStdName(mPMAT->MapI2Str(mLocSols.at(0).mNumPose));
+    aSetIntervUK.AddOneObj(aCal);
+
+    // vector of all image names belonging to this tree level
+    std::vector<std::string> aVNames;
+
+
+    // fill in the vector of image names
+    for (auto aLocPose : mLocSols)
+    {
+        std::string aImName = mPMAT->MapI2Str(aLocPose.mNumPose);
+        aVNames.push_back(aImName);
+
+    }
+
+    // sort images alphbetically (and mLocSols accordingly) for AllocStdFromMTPFromFolder
+    Sort2VectFirstOne(aVNames,mLocSols);
+
+    int aCamCurCount=0;
+    for (auto aSol : mLocSols)
+    {
+        std::string aImName = mPMAT->MapI2Str(aSol.mNumPose);
+        //StdOut() << aSol.mNumPose << " " << aImName << std::endl;
+
+        cIsometry3D<tREAL8> aPoseChgConv(aSol.mPose.Tr() ,aSol.mPose.Rot() );
+
+        // store camera in a vector
+        aVCams.push_back( new cSensorCamPC(aImName,aPoseChgConv,aCal) );
+        aVSens.push_back( aVCams.at(aCamCurCount) );
+
+        mPhProj.SaveCamPC( *aVCams.at(aCamCurCount) );// for debug, get rid of when not needed
+
+
+        // collinearity equation (calculator)
+        aVEqCol.push_back( aVCams.at(aCamCurCount)->CreateEqColinearity(true,100,false) );
+
+        // add/declare the camera as unknonwn
+        aSetIntervUK.AddOneObj(aVCams.at(aCamCurCount));
+
+        aCamCurCount++;
+    }
+    //getchar();
+
+    // BA solver
+    cResolSysNonLinear<tREAL8> * aSys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqNormSparse,aSetIntervUK.GetVUnKnowns());
+    // freeze internal calibration
+    aSys->SetFrozenFromPat(*aCal,".*",true);
+
+
+    // add viscosity on poses
+    for (auto & aCam : aVCams)
+    {
+        if ( mPMAT->ViscPose().at(0)>0)
+        {
+            aSys->AddEqFixCurVar(*aCam,aCam->Center(),Square(1.0/mPMAT->ViscPose().at(0)));
+        }
+        if (mPMAT->ViscPose().at(1)>0)
+        {
+            aSys->AddEqFixCurVar(*aCam,aCam->Omega(),Square(1.0/mPMAT->ViscPose().at(1)));
+        }
+    }
+
+    // read the tie points corresponding to your image set
+    cComputeMergeMulTieP * aTPts = AllocStdFromMTPFromFolder(mPMAT->TPFolder(),aVNames,mPhProj,true,false,true);
+
+
+    // image points weighting function
+    tREAL8 aSigAtt=mPMAT->SigmaTPt();
+    tREAL8 aFactElim=mPMAT->FacElim();
+    std::vector<tREAL8> aThrRange({aSigAtt*aFactElim,aSigAtt*5});
+    tREAL8 aDeltaThr=aThrRange[0]-aThrRange[1];
+
+    //StdOut() << "Start BA : #Configs=" << aTPts->Pts().size() << std::endl;
+    StdOut() << "---------------------- "
+             << "#Images " << aVCams.size() << std::endl;
+    for (int aIter=0; aIter<aNbIter; aIter++)
+    {
+        //StdOut() << "Iter=" << aIter << std::endl;
+
+        // intersect tie-points in 3D
+        for (auto & aPair : aTPts->Pts())
+            MakePGround(aPair,aVSens);
+
+        /* W(R) =
+               0 if R>Thrs
+               1/Sigma0^2  * (1/(1+ (R/SigmaAtt)^Exp))
+        cStdWeighterResidual(tREAL8 aSGlob,tREAL8 aSigAtt,tREAL8 aThr,tREAL8 aExp); */
+
+        tREAL8 aThr = aDeltaThr*(1 - double(aIter)/(aNbIter-1)) + aThrRange[1];
+        //StdOut() << "aThr=" << aThr << ", Start=" << aThrRange[0] << ", End=" << aThrRange[1] << std::endl;
+        cStdWeighterResidual aTPtsW (1,aSigAtt,aThr,2);
+
+        tREAL8 aMaxRes=0;
+        tREAL8 aTotalW=0;
+
+
+        int aNumAllTiePts=0;
+        int aNumTPts=0;
+        int aNumAll3DPts=0;
+        int aNum3DPts=0;
+        cWeightAv<tREAL8> aWeigthedRes;
+
+        for (auto aAllConfigs : aTPts->Pts())
+        {
+            const auto & aConfig = aAllConfigs.first;
+            auto & aVals = aAllConfigs.second;
+
+            size_t aNbIm = aConfig.size();
+            size_t aNbPts = aVals.mVIdPts.size();
+
+            aNumAll3DPts+=aNbPts;
+
+
+            // add to BA
+            for (size_t aKPts=0; aKPts<aNbPts; aKPts++)
+            {
+                const cPt3dr & aP3D = aVals.mVPGround.at(aKPts);
+                cSetIORSNL_SameTmp<tREAL8>  aStrSubst(aP3D.ToStdVector());
+                //if ( aIter==(aNbIter-1))
+                //    StdOut() << aP3D.x() << " " << aP3D.y() << " " << aP3D.z() << std::endl;
+
+                //tREAL8 aResTotal = 0;
+                size_t aNbEqAdded = 0;
+                for (size_t aKIm=0; aKIm<aNbIm; aKIm++)
+                {
+                    size_t aKImSorted = aConfig.at(aKIm);
+
+                    aNumAllTiePts++;
+
+                    const cPt2dr aPIm = aVals.mVPIm.at(aKPts*aNbIm+aKIm);
+                    cSensorCamPC* aCam = aVCams.at(aKImSorted);
+
+                    if (aCam->IsVisibleOnImFrame(aPIm) && aCam->IsVisible(aP3D))
+                    {
+
+                        cPt2dr aResidual = aPIm - aCam->Ground2Image(aP3D);
+                        tREAL8 aResNorm = Norm2(aResidual);
+                        //aResTotal+=aResNorm;
+
+                        tREAL8 aWeight = aTPtsW.SingleWOfResidual(aResidual);
+
+                        //StdOut() << "RRRR " << aPIm << " " << aResidual << " W=" << aWeight
+                        //         << " " << aCam->NameImage() << " " << aKImSorted << " " << aKIm << "\n";
+
+
+
+                        cCalculator<double> * aEqCol =  aVEqCol.at(aKIm);
+                        std::vector<double> aVObs = aPIm.ToStdVector();
+
+                        aCam->PushOwnObsColinearity(aVObs,aP3D);
+
+                        std::vector<int> aVIndGlob = {-1,-2,-3};  // index of unknown, temporary
+                        for (auto & anObj : aCam->GetAllUK())  // now put sensor unknown
+                        {
+                            anObj->PushIndexes(aVIndGlob);
+                        }
+
+                        if (aWeight>0)
+                        {
+                            aWeigthedRes.Add(aWeight,aResNorm);
+                            aSys->R_AddEq2Subst(aStrSubst,aEqCol,aVIndGlob,aVObs,aWeight);
+                            aNbEqAdded++;
+                            aNumTPts++;
+
+                            aTotalW+=aWeight;
+                            if (aMaxRes<aResNorm)
+                                aMaxRes=aResNorm;
+                        }
+                    }
+                }
+                if (aNbEqAdded>=2)
+                {
+                    aSys->R_AddObsWithTmpUK(aStrSubst);
+                    aNum3DPts++;
+                }
+
+            }
+        }
+
+
+        tREAL8 aLVM=0.1;
+        const auto & aVectSol = aSys->SolveUpdateReset({aLVM},{},{});//
+        aSetIntervUK.SetVUnKnowns(aVectSol);
+
+        double aPercInliers = (aNumTPts*100)/aNumAllTiePts;
+        StdOut() << "#Iter=" << aIter
+                 << ", #3D points=" << aNumAll3DPts << ", #Inliers=" << aNum3DPts
+                 << ", #2D obs=" << aNumTPts << ", #Inliers=" << aPercInliers << " %"
+                 << ", MaxRes=" << aMaxRes << ", TotalW=" << aTotalW
+                 << " Weighted Res=" << aWeigthedRes.Average()
+                 << " StdDevLast=" << std::sqrt(aSys->VarLastSol())
+                 << " StdDevCur=" << std::sqrt(aSys->VarCurSol()) << std::endl;
+
+
+    }
+    //ShowPose("===BA at tree depth: ===");
+    //StdOut() << "END BA" << std::endl;
+
+    // final pose update in the global tree structure
+    aCamCurCount=0;
+    for (auto aCamAdj : aVCams)
+    {
+        mLocSols.at(aCamCurCount).mPose.Tr() = aCamAdj->Center();
+        mLocSols.at(aCamCurCount).mPose.Rot() = aCamAdj->Pose().Rot();
+
+        aCamCurCount++;
+    }
+    //getchar();
+
+
+
+
+    aSetIntervUK.SIUK_Reset();
+
+    delete aSys;
+    delete aTPts;
+    for (auto aECol : aVEqCol)
+        delete aECol;
+    for (auto aCam : aVCams)
+        delete aCam;
+
 }
 
 cSolLocNode * cNodeArborTriplets::SolOfGlobalIndex(int  anIndAbs) 
@@ -878,8 +1132,9 @@ tREAL8 c3G3_AttrV::CostVertexCommon(const c3G3_AttrV & anAttr2,tREAL8 aWTr) cons
 /* ********************************************************* */
 
 
-cMakeArboTriplet::cMakeArboTriplet(cTripletSet & aSet3,bool doCheck,tREAL8 aWBalance,cMMVII_Appli & anAppli) :
+cMakeArboTriplet::cMakeArboTriplet(cTripletSet & aSet3,bool doCheck,tREAL8 aWBalance, cPhotogrammetricProject & aPhProj, cMMVII_Appli & anAppli) :
    mAppli       (anAppli),
+   mPhProj      (aPhProj),
    mTimeSegm    (mAppli.TimeSegm()),
    mSet3        (aSet3),
    mDoCheck     (doCheck),
@@ -894,7 +1149,11 @@ cMakeArboTriplet::cMakeArboTriplet(cTripletSet & aSet3,bool doCheck,tREAL8 aWBal
    mWeightTr    (0.5),
    mNbEdgeP     (0),
    mNbHypP      (0),
-   mNbEdgeTri   (0)
+   mNbEdgeTri   (0),
+   mTPtsFolder  (""),
+   mViscPose    ({-1,-1}),
+   mSigmaTPt    (1.0),
+   mFacElim     (10.0)
 {
 }
 
@@ -921,13 +1180,13 @@ void cMakeArboTriplet::ShowStat()
    StdOut() << "\n";
 }
 
-void cMakeArboTriplet::SaveGlobSol(const cPhotogrammetricProject& aPhP) const
+void cMakeArboTriplet::SaveGlobSol() const
 {
 
-    mArbor->SaveGlobSol(aPhP);
+    mArbor->SaveGlobSol("");
 }
 
-void cMakeArboTriplet::MakeGraphPose(const cPhotogrammetricProject& aPhProj)
+void cMakeArboTriplet::MakeGraphPose()
 {
 
    // create vertices of mGTriC  & compute map NamePose/Int (in mMapStrI)
@@ -990,7 +1249,7 @@ void cMakeArboTriplet::MakeGraphPose(const cPhotogrammetricProject& aPhProj)
                 t3GOP_Vertex & aPoseV = mGPoses.VertexOfNum(aInd);
                 tPoseR & aP = aPoseV.Attr().mGTRand;
 
-                cSensorCamPC * aCam = aPhProj.ReadCamPC(aView.Name(),true);
+                cSensorCamPC * aCam = mPhProj.ReadCamPC(aView.Name(),true);
 
                 aP = tPoseR(aCam->Pose().Tr(),aCam->Pose().Rot());
 
@@ -1318,7 +1577,7 @@ void cMakeArboTriplet::ComputeArbor()
    // ==============    [5]  compute the tree : =====================================================
    t3G3_Tree  aTreeKernel(aSetEdgeKern);
    mCostMergeTree = 0.0;
-   mArbor = new cNodeArborTriplets(*this,aTreeKernel,0);
+   mArbor = new cNodeArborTriplets(*this,aTreeKernel,0,mPhProj);
    StdOut() << "CostMerge " << mCostMergeTree << "\n";
    mArbor->ComputeResursiveSolution();
 }
@@ -1330,7 +1589,8 @@ cAppli_ArboTriplets::cAppli_ArboTriplets(const std::vector<std::string> & aVArgs
     mDistClust   (0.02),
     mDoCheck     (true),
     mWBalance    (1.0),
-    mPerfectData (false)
+    mPerfectData (false),
+    mViscPose    ({-1,-1})
 {
 }
 
@@ -1351,9 +1611,11 @@ cCollecSpecArg2007 & cAppli_ArboTriplets::ArgOpt(cCollecSpecArg2007 & anArgOpt)
           << AOpt2007(mDoCheck,"DoCheck","do some checking on result",{eTA2007::HDV,eTA2007::Tuning})
           << AOpt2007(mWBalance,"WBalance","Weight for balancing trees, 0 NONE, 1 Max",{eTA2007::HDV})
           << AOpt2007(mPerfectData,"PerfectData","Evaluate coherency of triplets with simulated poses",{eTA2007::HDV})
+          << AOpt2007(mViscPose,"ViscPose","Regularization on poses for BA: [SigmaTr,SigmaRot]",{eTA2007::HDV})
           <<  mPhProj.DPOrient().ArgDirInOpt("","Ground truth input orientation directory")
           <<  mPhProj.DPOrient().ArgDirOutOpt("","Global orientation output directory")
           <<  mPhProj.DPOriTriplets().ArgDirOutOpt("","Directory for dmp-save of triplet (for faster read later)")
+          <<  mPhProj.DPMulTieP().ArgDirInOpt("","Input features")
    ;
 }
 
@@ -1373,7 +1635,8 @@ int cAppli_ArboTriplets::Exe()
      }
      TimeSegm().SetIndex("cMakeArboTriplet");
 
-     cMakeArboTriplet  aMk3(*a3Set,mDoCheck,mWBalance,*this);
+
+     cMakeArboTriplet  aMk3(*a3Set,mDoCheck,mWBalance,mPhProj,*this);
      if (IsInit(&mLevelRand))
         aMk3.SetRand(mLevelRand);
      if (IsInit(&mWeigthEdge3))
@@ -1381,13 +1644,23 @@ int cAppli_ArboTriplets::Exe()
      if (IsInit(&mPerfectData))
         aMk3.PerfectData() = true;
      if (mPhProj.IsOriInDirInit())
-     {
         aMk3.PerfectOri() = true;
+     if (IsInit(&mViscPose))
+     {
+         // tie-points must be provided for BA
+         std::string aFolderTpts;
+         if (mPhProj.DPMulTieP().DirInIsInit())
+             aFolderTpts = mPhProj.DPMulTieP().DirIn().at(0);
+         else
+             MMVII_INTERNAL_ASSERT_always(mPhProj.DPMulTieP().DirInIsInit(),"Features not initialised");
+
+         aMk3.TPFolder() = aFolderTpts;
+         aMk3.ViscPose() = mViscPose;
      }
 
      // cAutoTimerSegm aTSRead(mTimeSegm,"cMakeArboTriplet");
      TimeSegm().SetIndex("MakeGraphPose");
-     aMk3.MakeGraphPose(mPhProj);
+     aMk3.MakeGraphPose();
 
      TimeSegm().SetIndex("PoseRef");
      aMk3.DoPoseRef();
@@ -1404,7 +1677,7 @@ int cAppli_ArboTriplets::Exe()
      if (mPhProj.DPOrient().DirOutIsInit())
      {
          StdOut() << " ========== Output Global Orientation  ========== " << std::endl;
-         aMk3.SaveGlobSol(mPhProj);
+         aMk3.SaveGlobSol();
      }
 
      aMk3.ShowStat();

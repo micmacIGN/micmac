@@ -65,6 +65,7 @@ void cMMVII_BundleAdj::OneItere_TieP(const cBA_TieP& aBA_TieP)
        {
            const cPt3dr & aPGr = aVals.mVPGround.at(aKPts);
 	   cSetIORSNL_SameTmp<tREAL8>  aStrSubst(aPGr.ToStdVector());
+           StdOut() << aPGr.x() << " " << aPGr.y() << " " << aPGr.z() << std::endl;
 
 	   size_t aNbEqAdded = 0;
            for (size_t aKIm=0 ; aKIm<aNbIm ; aKIm++)
