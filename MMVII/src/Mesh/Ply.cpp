@@ -3,6 +3,8 @@
 #include "MMVII_Geom3D.h"
 #include "MMVII_Mappings.h"
 #include "MMVII_2Include_Tiling.h"
+#include "MMVII_PCSens.h"
+#include "../PoseEstim/VisPoseAndStructure.h"
 
 
 #define WITH_MMV1_FUNCTION  false
@@ -2391,5 +2393,187 @@ template class cDevBiFaceMesh<TYPE>;
 INSTANTIATE_TRI3D(tREAL4)
 INSTANTIATE_TRI3D(tREAL8)
 INSTANTIATE_TRI3D(tREAL16)
+
+
+/* ********************************************************** */
+/*                                                            */
+/*                   cAppli_VisuPoseStr3D                     */
+/*                                                            */
+/* ********************************************************** */
+
+void cAppli_VisuPoseStr3D::WritePly(cComputeMergeMulTieP * & aTPts, const std::vector<cSensorImage *>& aVSens)
+{
+    PLYData aPlyOut;
+
+    //  convert Pts to array
+    std::vector<std::array<double, 3>> aPlyPts;
+
+    // add 3d points
+    size_t aNum3DPt=0;
+    for (auto aAllConfigs : aTPts->Pts())
+    {
+        const auto & aConfig = aAllConfigs.first;
+        auto & aVals = aAllConfigs.second;
+
+        size_t aNbIm = aConfig.size();
+        size_t aNbPts = aVals.mVIdPts.size();
+
+
+        for (size_t aKPts=0; aKPts<aNbPts; aKPts++)
+        {
+            const cPt3dr & aP3D = aVals.mVPGround.at(aKPts);
+
+
+            for (size_t aKIm=0; aKIm<aNbIm; aKIm++)
+            {
+                size_t aKImSorted = aConfig.at(aKIm);
+
+                const cPt2dr aPIm = aVals.mVPIm.at(aKPts*aNbIm+aKIm);
+                cSensorImage* aCam = aVSens.at(aKImSorted);
+
+                if (aCam->IsVisibleOnImFrame(aPIm) && aCam->IsVisible(aP3D))
+                {
+
+                    double aResidual = Norm2(aPIm - aCam->Ground2Image(aP3D));
+
+                    if (aResidual<mErrProjMax)
+                    {
+                        std::array<double,3> anArray;
+                        for (int aK=0 ; aK<3 ; aK++)
+                            anArray[aK] = aP3D[aK];
+                        aPlyPts.push_back(anArray);
+
+                        aNum3DPt++;
+                    }
+
+                }
+            }
+        }
+    }
+
+    // add camera centers
+    size_t aNumImPlane=0;
+    for (auto aCam : aVSens)
+    {
+        cPt3dr aCenter = aCam->PseudoCenterOfProj();
+
+        std::array<double,3> anArray;
+        for (int aK=0 ; aK<3 ; aK++)
+            anArray[aK] = aCenter[aK];
+        aPlyPts.push_back(anArray);
+
+        aNumImPlane++;
+    }
+
+    // add image plane
+    int aSteps = 20;
+    for (auto aSens : aVSens)
+    {
+        cSensorCamPC *  aCamPC = aSens->GetSensorCamPC();
+
+        cPt2di aSz = aSens->Sz();
+        double aFPix = aCamPC->InternalCalib()->F();
+        double aF = CalculateFDepth(aSz,aFPix);
+
+        cPt2dr aImStepSz(aSz[0]/aSteps,aSz[1]/aSteps);
+
+        // points in the image plane
+        for (int aS=0; aS<=aSteps; aS++)
+        {
+            std::vector<cPt3dr> aImVPts;
+            double aDX = aImStepSz[0]*aS-1;
+            double aDY = aImStepSz[1]*aS-1;
+
+            aImVPts.push_back(aSens->ImageAndDepth2Ground( cPt3dr(0,aDY,aF) ));
+            aImVPts.push_back(aSens->ImageAndDepth2Ground( cPt3dr(aDX,0,aF) ));
+            aImVPts.push_back(aSens->ImageAndDepth2Ground( cPt3dr(aSz[0],aDY,aF) ));
+            aImVPts.push_back(aSens->ImageAndDepth2Ground( cPt3dr(aDX,aSz[1],aF) ));
+
+
+            for (auto aP : aImVPts)
+            {
+                std::array<double,3> anArray;
+                for (int aK=0 ; aK<3 ; aK++)
+                    anArray[aK] = aP[aK];
+                aPlyPts.push_back(anArray);
+
+                aNumImPlane++;
+            }
+        }
+    }
+
+    // points on the frustum
+    for (auto aSens : aVSens)
+    {
+        cSensorCamPC *  aCamPC = aSens->GetSensorCamPC();
+
+        cPt2di aSz = aSens->Sz();
+        double aFPix = aCamPC->InternalCalib()->F();
+        double aF = CalculateFDepth(aSz,aFPix);
+
+        double aFStepSz = aF/aSteps;
+
+
+        for (int aS=0; aS<=aSteps; aS++)
+        {
+            std::vector<cPt3dr> aImVPts;
+            double aDepth = aFStepSz*aS;
+            aImVPts.push_back(aSens->ImageAndDepth2Ground( cPt3dr(0,0,aDepth) ));
+            aImVPts.push_back(aSens->ImageAndDepth2Ground( cPt3dr(0,aSz[1],aDepth) ));
+            aImVPts.push_back(aSens->ImageAndDepth2Ground( cPt3dr(aSz[0],0,aDepth) ));
+            aImVPts.push_back(aSens->ImageAndDepth2Ground( cPt3dr(aSz[0],aSz[1],aDepth) ));
+
+
+            for (auto aP : aImVPts)
+            {
+                std::array<double,3> anArray;
+                for (int aK=0 ; aK<3 ; aK++)
+                    anArray[aK] = aP[aK];
+                aPlyPts.push_back(anArray);
+            }
+        }
+    }
+
+    aPlyOut.addVertexPositions(aPlyPts);
+
+    // assign colors
+    std::vector<std::array<double, 3>> colors;
+    for (size_t aK=0; aK<aPlyPts.size(); aK++)
+    {
+        std::array<double,3> anArray;
+        if (aK<aNum3DPt)
+        {
+            // todo: add colors from images
+            for (int aI=0 ; aI<3 ; aI++)
+                anArray[aI] = 1.0;
+        }
+        else if (aK<(aNum3DPt+aNumImPlane))
+        {
+            anArray[0] = 1.0;
+            anArray[1] = 0;
+            anArray[2] = 0;
+        }
+        else
+        {
+            anArray[0] = 0;
+            anArray[1] = 1.0;
+            anArray[2] = 0;
+        }
+        colors.push_back(anArray);
+
+    }
+    aPlyOut.addVertexColors(colors);
+
+    // write ply
+    aPlyOut.write(mOutfile,(mBinary?happly::DataFormat::Binary:happly::DataFormat::ASCII));
+}
+
+double cAppli_VisuPoseStr3D::CalculateFDepth(const cPt2di& aSz, const double& aF)
+{
+    double aDiag = std::sqrt(std::pow(aSz[0],2)+std::pow(aSz[1],2));
+    double aRatioDiagF = aDiag/aF ;
+
+    return aRatioDiagF*mCamScale;
+}
 
 };

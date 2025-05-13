@@ -569,8 +569,8 @@ void cNodeArborTriplets::SaveGlobSol(const std::string & aPrefix) const
     {
         std::string aCurImName = mPMAT->MapI2Str(aSol.mNumPose);
 
-        cRotation3D<tREAL8> aRotNew(aSol.mPose.Rot().MapInverse().Mat(),false); //mmv1 convention
-        cPt3dr aCNew = aSol.mPose.Tr() * aZRot; //mmv1 convention
+        cRotation3D<tREAL8> aRotNew(aSol.mPose.Rot().Mat().Transpose(),false); //mmv1 convention
+        cPt3dr aCNew = aSol.mPose.Tr()  * aZRot ; //mmv1 convention
 
 
         std::string aPrntTxt = aCurImName + " "
@@ -806,7 +806,7 @@ void cNodeArborTriplets::RefineSolution()
         aVCams.push_back( new cSensorCamPC(aImName,aPoseChgConv,aCal) );
         aVSens.push_back( aVCams.at(aCamCurCount) );
 
-        mPhProj.SaveCamPC( *aVCams.at(aCamCurCount) );// for debug, get rid of when not needed
+        //mPhProj.SaveCamPC( *aVCams.at(aCamCurCount) );// for debug, get rid of when not needed
 
 
         // collinearity equation (calculator)

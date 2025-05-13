@@ -4,6 +4,9 @@
 /**
    \file HierarchSfm.cpp
 
+   \brief Hierarchical Structure-from-Motion Using Triplet Graphs
+          (tree hierarchy from the graph, then BA along the tree)
+
 */
 
 namespace MMVII
