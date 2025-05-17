@@ -9,6 +9,7 @@
 #include "MMVII_Radiom.h"
 #include "MMVII_2Include_Tiling.h"
 #include "LearnDM.h"
+#include "MMVII_AllClassDeclare.h"
 
 
 //static int NODATA=-9999;
@@ -99,6 +100,8 @@ namespace  cNS_MMGenDepthMV
                                 std::vector<std::string> aVecLidar,
                                 size_t aSzMin,
                                 tREAL8 aThresholdVisbility);
+    void ProcessNoPix(cZBuffer &  aZB);
+    void Compute_z_buffer();
     void MakeOneTri(const  tTriangle2DCompiled & aTri);
 
   // --- constructed ---
@@ -126,6 +129,8 @@ namespace  cNS_MMGenDepthMV
    tREAL8 mNoisePx;
    int mMasq2Tri;
    int mNbPointByPatch;
+   std::vector<int> mFirstVisIndices;
+   std::vector<int> mSelectedVisIndices;
   };
 
   /* *************************************************** */
@@ -157,7 +162,9 @@ namespace  cNS_MMGenDepthMV
      mThreshGrad                (0.3),
      mNoisePx                   (1.0),
      mMasq2Tri                  (0),
-    mNbPointByPatch (32)
+     mNbPointByPatch (32),
+     mFirstVisIndices (std::vector<int>()),
+     mSelectedVisIndices (std::vector<int>())
   {
   }
 
@@ -168,6 +175,7 @@ namespace  cNS_MMGenDepthMV
              << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
              << Arg2007(mPatternLidar,"Pattern of input clouds",{{eTA2007::MPatFile,"1"}})
              << mPhProj.DPOrient().ArgDirInMand()
+             << mPhProj.DPMeshDev().ArgDirOutMand()
           ;
   }
 
@@ -229,6 +237,7 @@ namespace  cNS_MMGenDepthMV
       // project cloud into image geometry x,y and depth
       std::vector <cPt3dr> aVPts;
       std::vector <cPt3di> aFaces;
+      mFirstVisIndices.clear();
       {
           for (const std::string & aLidarName: aVecLidar)
           {
@@ -244,13 +253,14 @@ namespace  cNS_MMGenDepthMV
                                  mCamPC->Pose().Inverse(aP3D).z());
 
                       aVPts.push_back(aPt);
+                      mFirstVisIndices.push_back(aKP);
                   }
 
               }
           }
       }
 
-      mTri3D=nullptr;
+      //mTri3D=nullptr;
 
       if (aVPts.empty())
           return;
@@ -268,9 +278,10 @@ namespace  cNS_MMGenDepthMV
       {
           aTileAll.Add(cTil2DTri3D<tREAL8>(aKP));
       }
-      #pragma omp parallel
+      mSelectedVisIndices.clear();
+      //#pragma omp parallel
       {
-        #pragma omp for
+        //#pragma omp for
           for (size_t aKPt=0; aKPt<mTri3DReproj->NbPts(); aKPt++)
           {
               cPt2dr aPt= ToR(Proj(mTri3DReproj->KthPts(aKPt)));
@@ -326,21 +337,111 @@ namespace  cNS_MMGenDepthMV
                       mDDepthImage->SetV(aP2DCam,aVP[0].z());
                       mDMasqImage->SetV(aP2DCam,1);
                     }
+                    mSelectedVisIndices.push_back(aKPt);
               }
           }
       }
+
+
+      StdOut()<<" Slectedt VISIBLE Points "<<mSelectedVisIndices.size()<<std::endl;
       mTri3DReproj= nullptr;
 
       // save Depth image
       mDDepthImage->ToFile(mNameOutDepth+mCamPC->NameImage());
       mDMasqImage->ToFile(mNameOutMasq+mCamPC->NameImage());
 
-      mCamPC=nullptr;
+      //mCamPC=nullptr;
       mDDepthImage=nullptr;
       mDMasqImage=nullptr;
 
       mDepthImage=cPt2di(1,1);
       mMasqImage=cPt2di(1,1);
+
+      aVPts.clear();
+      aFaces.clear();
+
+      std::vector<cPt2dr> aVPts2D;
+
+      for (size_t aKP=0; aKP<mSelectedVisIndices.size();aKP++)
+      {
+          aVPts.push_back(mTri3D->KthPts(aKP));
+          aVPts2D.push_back(Proj(mTri3D->KthPts(aKP)));
+      }
+
+      // Call ZBuffer on Remaining Points
+
+      // Triangul de Delaunay
+      cTriangulation2D<tREAL8> aTriangul(aVPts2D);
+      aTriangul.MakeDelaunay();
+
+      mTri3DReproj= new cTriangulation3D<tREAL8>(aVPts,aTriangul.VFaces());
+
+      aVPts2D.clear();
+  }
+
+
+  void cAppliMMGenDepthMV::ProcessNoPix(cZBuffer &  aZB)
+  {
+      // comppute dual graph to have neigbouring relation between faces
+      mTri3DReproj->MakeTopo();
+      const cGraphDual &  aGrD = mTri3DReproj->DualGr() ;
+
+      bool  GoOn = true;
+      while (GoOn)  // continue as long as we get some modification
+      {
+          GoOn = false;
+          // parse all face
+          for (size_t aKF1 = 0 ; aKF1<mTri3DReproj->NbFace() ; aKF1++)
+          {
+              // check for each face labled  "NoPix" if it  has a neigboor visible (or likely)
+              if (aZB.ResSurfD(aKF1).mResult == eZBufRes::NoPix)
+              {
+                  std::vector<int> aVF2;
+                  aGrD.GetFacesNeighOfFace(aVF2,aKF1);
+                  for (const auto &  aKF2 : aVF2)
+                  {
+                      if ( ZBufLabIsOk(aZB.ResSurfD(aKF2).mResult) )
+                      {
+                          // Got 1 => this face is likely , and we must prolongate the global process
+                          aZB.ResSurfD(aKF1).mResult =  eZBufRes::LikelyVisible;
+                          GoOn = true;
+                      }
+                  }
+              }
+          }
+      }
+  }
+
+
+  void cAppliMMGenDepthMV::Compute_z_buffer()
+  {
+
+      cMeshTri3DIterator  aTriIt(mTri3DReproj);
+
+      cSIMap_Ground2ImageAndProf aMapCamDepth(mCamPC);
+
+      cSetVisibility aSetVis(mCamPC,0.0);
+
+      double Infty =1e20;
+      cPt2di aSzPix = mCamPC->SzPix();
+      cBox3dr  a3DBox(cPt3dr(0.0,0.0,-Infty),cPt3dr(aSzPix.x(),aSzPix.y(),Infty));
+      cDataBoundedSet<tREAL8,3>  aSetCam(a3DBox);
+
+
+      cZBuffer aZBuf(aTriIt,aSetVis,aMapCamDepth,aSetCam,1.0);
+
+      aZBuf.MakeZBuf(eZBufModeIter::ProjInit);
+
+      aZBuf.MakeZBuf(eZBufModeIter::SurfDevlpt);
+
+      ProcessNoPix(aZBuf);
+
+      StdOut()<<"ZBUFF IMAGE "<<aZBuf.ZBufIm().DIm().Sz()<<std::endl;
+
+      aZBuf.ZBufIm().DIm().ToFile(mPhProj.DPMeshDev().FullDirOut()+"ZBuf-"+LastPrefix(mCamPC->NameImage())+".tif");
+
+      mTri3DReproj=nullptr;
+      mCamPC= nullptr;
   }
 
   void cAppliMMGenDepthMV::MakeOneTri(const  tTriangle2DCompiled & aTri)
@@ -486,6 +587,9 @@ namespace  cNS_MMGenDepthMV
                                 aSzMin,
                                 aThresholdVisbility);
 
+          // Z buffer
+
+          //Compute_z_buffer();
           std::cout<<"Generated depth map : sparse "<<anImageName<<std::endl;
 
           this->mNameIm=anImageName;
