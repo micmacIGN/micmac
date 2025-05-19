@@ -4,10 +4,15 @@
 #include "MMVII_Sensor.h"
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_PointCloud.h"
+#include "MMVII_Linear2DFiltering.h"
+#include "MMVII_Interpolators.h"
 
 
 namespace MMVII
 {
+/*
+    To do mark :
+*/
 
 typedef cDataMapping<tREAL8,3,3> tProjPC;
 
@@ -65,6 +70,7 @@ class cProjPointCloud
          std::vector<tREAL4>    mSumRad;
          tREAL8                 mSurResol;
          std::vector<cPt2di>    mVIndexes;
+         cTplBoxOfPts<int,2>    mBoxInd;
 };
 
 cProjPointCloud::cProjPointCloud(cPointCloud& aPC,tREAL8 aSurResol,tREAL8 aWeightInit) :
@@ -74,6 +80,7 @@ cProjPointCloud::cProjPointCloud(cPointCloud& aPC,tREAL8 aSurResol,tREAL8 aWeigh
    mSurResol (aSurResol)
 {
    mVPtsInit.reserve(aPC.NbPts());
+   mVPtsProj.reserve(aPC.NbPts());
 
    for (size_t aKPt=0 ; aKPt<aPC.NbPts() ; aKPt++)
    {
@@ -81,7 +88,6 @@ cProjPointCloud::cProjPointCloud(cPointCloud& aPC,tREAL8 aSurResol,tREAL8 aWeigh
        if (mPC.DegVisIsInit())
           mSumRad.at(aKPt) = aPC.GetDegVis(aKPt) * aWeightInit;
    }
-   mVPtsProj = mVPtsInit;
 }
 
 void cProjPointCloud::ColorizePC()
@@ -92,7 +98,7 @@ void cProjPointCloud::ColorizePC()
    }
 }
 
-void cProjPointCloud::ProcessOneProj(const tProjPC & aProj,tREAL8 aW,bool ModeImage)
+void cProjPointCloud::ProcessOneProj(const tProjPC & aProj,tREAL8 aW,bool isModeImage)
 {
      mSumW += aW;
      tREAL8 aMinInfty = -1e10;
@@ -108,22 +114,34 @@ void cProjPointCloud::ProcessOneProj(const tProjPC & aProj,tREAL8 aW,bool ModeIm
      // tREAL8 aSurf = aBox.NbElem() /mVPtsProj.size();
      tREAL8 aAvgD = std::sqrt(1.0/mPC.Density());
 
-     tREAL8 aStep = aAvgD / mSurResol;
+     tREAL8 aStepProf = aAvgD / mSurResol;
 
-     cTplBoxOfPts<int,2>  aBoxInd;
+     mBoxInd= cTplBoxOfPts<int,2> ();
      mVIndexes.clear();
      for (const auto & aPt : mVPtsProj)
      {
-         cPt2di anInd = ToI((Proj(aPt)-aBox.P0()) / aStep);
-         aBoxInd.Add(anInd);
+         cPt2di anInd = ToI((Proj(aPt)-aBox.P0()) / aStepProf);
+         mBoxInd.Add(anInd);
          mVIndexes.push_back(anInd);
      }
 
 
-     cPt2di aSzIm = aBoxInd.CurBox().Sz() + cPt2di(1,1);
-     cIm2D<tREAL8> aImProf(aSzIm);
-     cDataIm2D<tREAL8> & aDImProf = aImProf.DIm();
-     aDImProf.InitCste(aMinInfty);
+     cPt2di aSzImProf = mBoxInd.CurBox().Sz() + cPt2di(1,1);
+     cIm2D<tREAL8> aImDepth(aSzImProf);
+     cDataIm2D<tREAL8> & aDImDepth = aImDepth.DIm();
+     aDImDepth.InitCste(aMinInfty);
+
+
+     cPt2di aSzImRad = isModeImage ? aSzImProf : cPt2di(1,1);
+
+     cIm2D<tREAL4> aImRad(aSzImRad);
+     cDataIm2D<tREAL4>& aDImRad = aImRad.DIm();
+     aDImRad.InitCste(0.0);
+
+     cIm2D<tREAL4> aImMasq(aSzImRad);
+     cDataIm2D<tREAL4>& aDImMasq = aImMasq.DIm();
+     aDImMasq.InitCste(0.0);
+
 
      std::vector<std::vector<cPt2di>> aVVdisk(256);
      for (int aK=0 ; aK<=255 ; aK++)
@@ -131,9 +149,10 @@ void cProjPointCloud::ProcessOneProj(const tProjPC & aProj,tREAL8 aW,bool ModeIm
          // tREAL8 aSzL = (2.0 * aAvgD) / aStep;
          // std::vector<cPt2di>  aVDisk =  VectOfRadius(-1,aSzL);
          tREAL8 aSzL = mPC.ConvertInt2SzLeave(aK);
-         aVVdisk.at(aK) = VectOfRadius(-1,aSzL/aStep);
+         aVVdisk.at(aK) = VectOfRadius(-1,aSzL/aStepProf);
      }
 
+     //   ----  compute the depth image -----------------------
      for (size_t aKPt=0 ; aKPt<mVPtsProj.size() ; aKPt++)
      {
          const cPt2di  & aCenter = mVIndexes.at(aKPt);
@@ -142,9 +161,9 @@ void cProjPointCloud::ProcessOneProj(const tProjPC & aProj,tREAL8 aW,bool ModeIm
          for (const auto & aNeigh : aVDisk)
          {
              cPt2di aPt = aCenter + aNeigh;
-             if (aDImProf.Inside(aPt))
+             if (aDImDepth.Inside(aPt))
              {
-                 aDImProf.SetMax(aPt,aProf);
+                 aDImDepth.SetMax(aPt,aProf);
              } 
          }
      }
@@ -158,12 +177,64 @@ void cProjPointCloud::ProcessOneProj(const tProjPC & aProj,tREAL8 aW,bool ModeIm
          for (const auto & aNeigh :aVDisk)
          {
              cPt2di aPt = aCenter + aNeigh;
-             if (aDImProf.DefGetV(aPt,aMinInfty) <= aProf)
+             if (aDImDepth.DefGetV(aPt,aMinInfty) <= aProf)
              {
-                aNbVis++;
+                if (isModeImage)
+                {
+                    if (aDImMasq.Inside(aPt))
+                    {
+                       aDImMasq.SetV(aPt,1.0);
+                       aDImRad.SetV(aPt,mPC.GetDegVis(aKPt)*255);
+                    }
+                }
+                else
+                {
+                   aNbVis++;
+                }
              } 
          }
-         mSumRad.at(aKPt) +=  (aW * aNbVis) / aVDisk.size();
+         if (!isModeImage)
+         {
+            mSumRad.at(aKPt) +=  (aW * aNbVis) / aVDisk.size();
+         }
+     }
+     
+
+     if (isModeImage)
+     {
+         tREAL8 aResolImRel = 0.5;
+         tREAL8 aStepImAbs =  aAvgD / aResolImRel;
+         tREAL8 aResolImaRel = aStepImAbs / aStepProf;
+         tREAL8 aSigmaImaFinal = 1.0;
+         tREAL8 aSigmaImaInit = aSigmaImaFinal * aResolImaRel;
+         int    aNbIter = 5;
+
+
+         ExpFilterOfStdDev( aDImRad,aNbIter,aSigmaImaInit);
+         ExpFilterOfStdDev(aDImMasq,aNbIter,aSigmaImaInit);
+
+        for (const auto & aPix : aDImMasq)
+        {
+            tREAL8 aW =   aDImMasq.GetV(aPix);
+            tREAL8 aR =   aDImRad.GetV(aPix);
+            aDImRad.SetV(aPix,aW ?  aR/aW : 0.0);
+        }
+       
+        static int aCpt=0; aCpt++;
+         
+        cPt2di  aSzImFinal = ToI(ToR(aSzImRad)/aResolImaRel);
+        cIm2D<tU_INT1>      aIm8B(aSzImFinal);
+        cDataIm2D<tU_INT1>& aDIm8B = aIm8B.DIm();
+        std::unique_ptr<cDiffInterpolator1D> aInterp (cDiffInterpolator1D::TabulSinC(5));
+
+        for (const auto & aPixI : aDIm8B)
+        {
+            cPt2dr aPixR = ToR(aPixI) * aResolImaRel;
+            aDIm8B.SetVTrunc(aPixI,aDImRad.ClipedGetValueInterpol(*aInterp,aPixR,0));
+        }
+        aDIm8B.ToFile("IIP_RadOut"+ToStr(aCpt) + ".tif");
+
+        StdOut() << "RESOL ;  IMA-REL=" << aResolImaRel << " Ground=" << aStepImAbs << "\n";
      }
 }
 
@@ -238,6 +309,10 @@ int  cAppli_MMVII_CloudImProj::Exe()
        if (IsInit(&mNameSavePCSun))
            SaveInFile(aPC_In,mNameSavePCSun);
    }
+
+   cProjPointCloud  aPPC(aPC_In,mSurResolSun,1.0);
+   for (int aK=-5 ; aK<=5 ; aK++)
+       aPPC.ProcessOneProj(cOrthoProj(cPt3dr(aK*0.2,0,1.0)), 0.0,true);
 
    StdOut() << "NbLeaves "<< aPC_In.LeavesIsInit () << "\n";
 

@@ -98,6 +98,9 @@ class cDiffInterpolator1D : public cInterpolator1D
              static cDiffInterpolator1D *  TabulatedInterp(const cInterpolator1D &,int aNbTabul);
 	         /// create a tabulated interpolator from an existing (analytical) + delete the interp
              static cDiffInterpolator1D *  TabulatedInterp(cInterpolator1D *,int aNbTabul);
+	         /// create a tabulated sinus cardinal  , def SzApod=aSzSinC
+             static cDiffInterpolator1D *  TabulSinC(int aSzSin,int aSzApod=-1,int aNbTabul=1000);
+
 
        protected :
 	    static const std::string & Get(const std::vector<std::string> & aVName,size_t aK0);

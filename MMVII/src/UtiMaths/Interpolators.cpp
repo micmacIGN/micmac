@@ -151,6 +151,14 @@ cDiffInterpolator1D *  cDiffInterpolator1D::TabulatedInterp(cInterpolator1D * an
     return new cTabulatedDiffInterpolator(anInt,aNbTabul);
 }
 
+cDiffInterpolator1D *  cDiffInterpolator1D::TabulSinC(int aSzSinC,int aSzApod,int aNbTabul)
+{
+   if (aSzApod<0)
+      aSzApod = aSzSinC;
+   cSinCApodInterpolator aSinC(aSzSinC,aSzApod);
+   return TabulatedInterp(aSinC,aNbTabul);
+}
+
 
 
 
