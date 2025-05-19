@@ -134,7 +134,8 @@ class cAppli_CernInitRep : public cMMVII_Appli
         std::string              mSpecIm;
         cBlocOfCamera *          mTheBloc;
         cSetMeasureClino         mMesClino;
-        bool                     mTestAlreadyV;  /// If true, repair is already verticalized, just used as test 
+        bool                     mTestAlreadyV;  ///< If true, repair is already verticalized, just used as test 
+        int                      mNbMinTarget;   ///< Required minimal number of Target identified
 // ReadMeasureClino(const std::string * aPatSel=nullptr) const;
 
 
@@ -158,6 +159,7 @@ cCollecSpecArg2007 & cAppli_CernInitRep::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
     return      anArgOpt
              << AOpt2007(mTestAlreadyV,"TestAlreadyV","If repair is already verticalized, for test",{{eTA2007::HDV}})
+             << AOpt2007(mNbMinTarget,"NbMinTarget,","Number minimal of target required",{{eTA2007::HDV}})
     ;
 }
 
@@ -169,7 +171,8 @@ cAppli_CernInitRep::cAppli_CernInitRep
      cMMVII_Appli  (aVArgs,aSpec),
      mPhProj       (*this),
      mTheBloc      (nullptr),
-     mTestAlreadyV (false)
+     mTestAlreadyV (false),
+     mNbMinTarget  (5)
 {
 }
 
@@ -252,7 +255,7 @@ void cAppli_CernInitRep::ProcessOneBloc(const std::vector<cSensorCamPC *> & aVPC
            aVecPSphere.push_back(aMesPts.MesGCPOfMulIm(aMultImPt).mPt);
        }
    }
-   if (aVecPloc.size()<5) return; // require a bit redundancy
+   if ((int)aVecPloc.size()<mNbMinTarget) return; // require a bit redundancy
 
    tPoseR aPosLoc2Sphere = RobustIsometry(aVecPloc,aVecPSphere);
    cWeightAv<tREAL8>  aWAvRes;
@@ -263,7 +266,6 @@ void cAppli_CernInitRep::ProcessOneBloc(const std::vector<cSensorCamPC *> & aVPC
 
    cPt3dr  aCenterInSphere = aMesPts.MesGCPOfName("CENTRE").mPt;
    cPt3dr  aPCenterLoc  = aPosLoc2Sphere.Inverse(aCenterInSphere);
-FakeUseIt(aPCenterLoc);
 
 
 //    aVertLoc = - aVertLoc;
