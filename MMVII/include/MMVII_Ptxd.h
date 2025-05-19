@@ -700,6 +700,7 @@ template <class Type,const int Dim>  class cTplBox
 	cTplBox<tINT4,Dim>  ToI() const;
         
 
+        void AddData(const  cAuxAr2007 & anAux);
 
         // tPt & P0() {return mP0;} !!!!! BUUUG : CANNOT LET MODIFY BECAUSE OTHER FIELD NOT UP TO DATE
         // tPt & P1() {return mP1;} !!!!! BUUUG : CANNOT LET MODIFY BECAUSE OTHER FIELD NOT UP TO DATE
@@ -779,7 +780,6 @@ template <class Type,const int Dim>  class cTplBox
     private :
 
 };
-
 
 /**  Assure that P0,P1 are non empty box, using a minimum changes */
 template <const int Dim> void  MakeBoxNonEmptyWithMargin(cPtxd<tREAL8,Dim>&P0 , cPtxd<tREAL8,Dim> & aP1, 

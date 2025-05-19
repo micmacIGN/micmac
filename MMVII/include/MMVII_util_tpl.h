@@ -28,6 +28,11 @@ public:
     ~cArray() {}
 };
 
+template <class Type> bool EqualCont(const Type &aV1,const Type & aV2)
+{
+    return  std::equal(aV1.begin(),aV1.end(),aV2.begin(),aV2.end());
+}
+
 
 
 /* ============================================= */

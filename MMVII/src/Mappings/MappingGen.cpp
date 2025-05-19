@@ -215,6 +215,7 @@ template <class Type,const int DimIn,const int DimOut>
                    cDataMapping<Type,DimIn,DimOut>::Values(tVecOut & aBufOut,const tVecIn & aVIn) const
 {
 /**/MACRO_CHECK_RECURS_BEGIN;
+    aBufOut.clear(); // MPD 18/05/2025, seems logical, but why not before ???
     for (const auto  & aP : aVIn)
         aBufOut.push_back(Value(aP));
 /**/MACRO_CHECK_RECURS_END;
