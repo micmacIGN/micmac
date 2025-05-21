@@ -53,35 +53,51 @@ const  std::vector<cPt3dr> &  cOrthoProj::Values(tVecP3 & aVOut,const tVecP3 & a
    return aVOut;
 }
 
+///  Class for computing projection of a point cloud
 
 class cProjPointCloud
 {
      public :
-         cProjPointCloud(cPointCloud&,tREAL8 aSurResol,tREAL8 aWeightInit );
+         /// constructor : memoriez PC, inialize accum, allocate mem
+         cProjPointCloud(cPointCloud& aPC,tREAL8 aSurResol,tREAL8 aWeightInit );
 
+	 /// Process on projection for  OR  (1) modify colorization of points (2) 
          void ProcessOneProj(const tProjPC &,tREAL8 aW,bool ModeImage);
          
-         void ColorizePC();
+	 // export the average of radiomeries (in mSumRad) as a field of mPC
+         void ColorizePC(); 
      private :
-         cPointCloud&           mPC;
-         tREAL8                 mSumW;
-         std::vector<cPt3dr>    mVPtsInit;
-         std::vector<cPt3dr>    mVPtsProj;
-         std::vector<tREAL4>    mSumRad;
-         tREAL8                 mSurResol;
-         std::vector<cPt2di>    mVIndexes;
-         cTplBoxOfPts<int,2>    mBoxInd;
+	 // --------- Processed at initialization ----------------
+         cPointCloud&           mPC;       ///< memorize cloud point
+	 const int              mNbPts;    ///< store number of points
+         std::vector<cPt3dr>    mVPtsInit; ///< initial point cloud (stores once  for all in 64-byte, for efficienciency)
+         const tREAL8           mSurResol;
+	 const tREAL8           mAvgD;       ///< Avg 2D-Distance between points in 3D Cloud
+         const tREAL8           mStepProf;  ///< Step for computing depth-images
+	 // --------- Updated  with  "ProcessOneProj"  ----------------
+         tREAL8                 mSumW;      ///< accumulate sum of weight on radiometries
+         std::vector<tREAL4>    mSumRad;    ///< accumulate sum of radiometry
+	 // --------- Computed at each run of "ProcessOneProj"  ------------------
+         std::vector<cPt3dr>    mVPtsProj;  ///< memorize projections 
+         std::vector<cPt2di>    mVPtImages; ///< Projection in image of given 3D Point
+         cTplBoxOfPts<int,2>    mBoxInd;    ///< Compute for of mVPtImages
 };
 
 cProjPointCloud::cProjPointCloud(cPointCloud& aPC,tREAL8 aSurResol,tREAL8 aWeightInit) :
    mPC       (aPC),
-   mSumW     (aWeightInit),
-   mSumRad   (aPC.NbPts(),0.0),
-   mSurResol (aSurResol)
-{
-   mVPtsInit.reserve(aPC.NbPts());
-   mVPtsProj.reserve(aPC.NbPts());
+   mNbPts    (aPC.NbPts()),
+   mSurResol (aSurResol),
+   mAvgD     (std::sqrt(1.0/mPC.Density())),
+   mStepProf (mAvgD / mSurResol),
 
+   mSumW     (aWeightInit),
+   mSumRad   (mNbPts,0.0)
+{
+   // reserve size for Pts
+   mVPtsInit.reserve(mNbPts);
+   mVPtsProj.reserve(mNbPts);
+
+   //  Init mVPtsInit && SumRad
    for (size_t aKPt=0 ; aKPt<aPC.NbPts() ; aKPt++)
    {
        mVPtsInit.push_back(aPC.KthPt(aKPt));
@@ -92,6 +108,7 @@ cProjPointCloud::cProjPointCloud(cPointCloud& aPC,tREAL8 aSurResol,tREAL8 aWeigh
 
 void cProjPointCloud::ColorizePC()
 {
+   // Put mSumRad as an attribute of PC for memorization
    for (size_t aK=0 ; aK<mVPtsProj.size() ; aK++)
    {
        mPC.SetDegVis(aK,mSumRad.at(aK)  / mSumW);
@@ -100,10 +117,13 @@ void cProjPointCloud::ColorizePC()
 
 void cProjPointCloud::ProcessOneProj(const tProjPC & aProj,tREAL8 aW,bool isModeImage)
 {
-     mSumW += aW;
-     tREAL8 aMinInfty = -1e10;
+     mSumW += aW;               // accumlate weight
+     tREAL8 aMinInfty = -1e10;  // minus infinity, any value lower than anr real one
 
-     aProj.Values(mVPtsProj,mVPtsInit);
+     // [0]  ==================  Init proj, indexes, images  =================
+     
+     //    [0.1] ---  Compute 3D proj+ its 2d-box ----
+     aProj.Values(mVPtsProj,mVPtsInit); 
      cTplBoxOfPts<tREAL8,2> aBOP;
 
      for (const auto & aPt : mVPtsProj)
@@ -111,52 +131,51 @@ void cProjPointCloud::ProcessOneProj(const tProjPC & aProj,tREAL8 aW,bool isMode
          aBOP.Add(Proj(aPt));
      }
      cBox2dr aBox = aBOP.CurBox();
-     // tREAL8 aSurf = aBox.NbElem() /mVPtsProj.size();
-     tREAL8 aAvgD = std::sqrt(1.0/mPC.Density());
 
-     tREAL8 aStepProf = aAvgD / mSurResol;
 
-     mBoxInd= cTplBoxOfPts<int,2> ();
-     mVIndexes.clear();
+     //    [0.2]  ---------- compute the images indexes of points + its box  & sz ---
+     mBoxInd= cTplBoxOfPts<int,2> (); //
+     mVPtImages.clear();
      for (const auto & aPt : mVPtsProj)
      {
-         cPt2di anInd = ToI((Proj(aPt)-aBox.P0()) / aStepProf);
-         mBoxInd.Add(anInd);
-         mVIndexes.push_back(anInd);
+         cPt2di anInd = ToI((Proj(aPt)-aBox.P0()) / mStepProf);  // compute image index
+         mBoxInd.Add(anInd); // memo in box
+         mVPtImages.push_back(anInd); 
      }
 
-
+     //    [0.3]  ---------- Alloc images --------------------
+     //    [0.3.1]   image of depth
      cPt2di aSzImProf = mBoxInd.CurBox().Sz() + cPt2di(1,1);
      cIm2D<tREAL8> aImDepth(aSzImProf);
      cDataIm2D<tREAL8> & aDImDepth = aImDepth.DIm();
      aDImDepth.InitCste(aMinInfty);
 
 
+     //    [0.3.2]   image of radiometry
      cPt2di aSzImRad = isModeImage ? aSzImProf : cPt2di(1,1);
-
      cIm2D<tREAL4> aImRad(aSzImRad);
      cDataIm2D<tREAL4>& aDImRad = aImRad.DIm();
      aDImRad.InitCste(0.0);
 
+     //    [0.3.2]   image of masq
      cIm2D<tREAL4> aImMasq(aSzImRad);
      cDataIm2D<tREAL4>& aDImMasq = aImMasq.DIm();
      aDImMasq.InitCste(0.0);
 
 
+     //    [0.4]  ---------- Alloc vector SzLeaf -> neighboor in image coordinate --------------------
      std::vector<std::vector<cPt2di>> aVVdisk(256);
      for (int aK=0 ; aK<=255 ; aK++)
      {
-         // tREAL8 aSzL = (2.0 * aAvgD) / aStep;
-         // std::vector<cPt2di>  aVDisk =  VectOfRadius(-1,aSzL);
          tREAL8 aSzL = mPC.ConvertInt2SzLeave(aK);
-         aVVdisk.at(aK) = VectOfRadius(-1,aSzL/aStepProf);
+         aVVdisk.at(aK) = VectOfRadius(-1,aSzL/mStepProf);
      }
 
-     //   ----  compute the depth image -----------------------
+     //   ----  compute the depth image : accumulate for each pixel the maximal depth -----------------------
      for (size_t aKPt=0 ; aKPt<mVPtsProj.size() ; aKPt++)
      {
-         const cPt2di  & aCenter = mVIndexes.at(aKPt);
-         tREAL8   aProf      = mVPtsProj.at(aKPt).z() - aAvgD/100.0;
+         const cPt2di  & aCenter = mVPtImages.at(aKPt);
+         tREAL8   aProf      = mVPtsProj.at(aKPt).z() - mAvgD/100.0;
          const auto & aVDisk = aVVdisk.at(mPC.GetIntSzLeave(aKPt));
          for (const auto & aNeigh : aVDisk)
          {
@@ -168,9 +187,10 @@ void cProjPointCloud::ProcessOneProj(const tProjPC & aProj,tREAL8 aW,bool isMode
          }
      }
 
+     //   ----  compute for each points its visibility (~ number of time it projection equal max depth) 
      for (size_t aKPt=0 ; aKPt<mVPtsProj.size() ; aKPt++)
      {
-         const cPt2di  & aCenter = mVIndexes.at(aKPt);
+         const cPt2di  & aCenter = mVPtImages.at(aKPt);
          tREAL8   aProf      = mVPtsProj.at(aKPt).z();
          int aNbVis = 0;
          const auto & aVDisk = aVVdisk.at(mPC.GetIntSzLeave(aKPt));
@@ -203,8 +223,8 @@ void cProjPointCloud::ProcessOneProj(const tProjPC & aProj,tREAL8 aW,bool isMode
      if (isModeImage)
      {
          tREAL8 aResolImRel = 0.5;
-         tREAL8 aStepImAbs =  aAvgD / aResolImRel;
-         tREAL8 aResolImaRel = aStepImAbs / aStepProf;
+         tREAL8 aStepImAbs =  mAvgD / aResolImRel;
+         tREAL8 aResolImaRel = aStepImAbs / mStepProf;
          tREAL8 aSigmaImaFinal = 1.0;
          tREAL8 aSigmaImaInit = aSigmaImaFinal * aResolImaRel;
          int    aNbIter = 5;
