@@ -156,8 +156,8 @@ template <const INT b>  class ElPFixed : public ElFixed<b>
 
         void AddScalFixed(const ElPFixed<b> & p2, const INT & aScalFixed)
         {
-             _x+= ((p2.x*this->aSF)<<this->b2);
-             _y+= ((p2.y*this->aSF)<<this->b2);
+             _x+= ((p2.x()*this->aSF())<<this->b2);
+             _y+= ((p2.y()*this->aSF())<<this->b2);
         }
 
 };
