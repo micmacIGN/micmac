@@ -719,10 +719,10 @@ std::string  cPhotogrammetricProject::FullDirCalibOut() const
    return mDPOrient.FullDirOut();
 }
 
-cPerspCamIntrCalib *   cPhotogrammetricProject::InternalCalibFromStdName(const std::string aNameIm) const
+cPerspCamIntrCalib *   cPhotogrammetricProject::InternalCalibFromStdName(const std::string aNameIm,bool isRemanent) const
 {
     std::string aNameCalib = FullDirCalibIn() + StdNameCalibOfImage(aNameIm) + "." + TaggedNameDefSerial();
-    cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::FromFile(aNameCalib);
+    cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::FromFile(aNameCalib,isRemanent);
 
     return aCalib;
 }
