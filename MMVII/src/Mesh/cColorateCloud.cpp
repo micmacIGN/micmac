@@ -3,6 +3,7 @@
 #include "MMVII_Geom3D.h"
 #include "MMVII_Sensor.h"
 #include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_Tpl_Images.h"
 #include "MMVII_PointCloud.h"
 #include "MMVII_Linear2DFiltering.h"
 #include "MMVII_Interpolators.h"
@@ -119,8 +120,11 @@ void cProjPointCloud::ProcessOneProj(const tProjPC & aProj,tREAL8 aW,bool isMode
 {
      mSumW += aW;               // accumlate weight
      tREAL8 aMinInfty = -1e10;  // minus infinity, any value lower than anr real one
+     tREAL8 aPlusInfty = - aMinInfty;
 
-     // [0]  ==================  Init proj, indexes, images  =================
+     // ========================================================================
+     // == [0] ==================  Init proj, indexes, images  =================
+     // ========================================================================
      
      //    [0.1] ---  Compute 3D proj+ its 2d-box ----
      aProj.Values(mVPtsProj,mVPtsInit); 
@@ -146,8 +150,8 @@ void cProjPointCloud::ProcessOneProj(const tProjPC & aProj,tREAL8 aW,bool isMode
      //    [0.3]  ---------- Alloc images --------------------
      //    [0.3.1]   image of depth
      cPt2di aSzImProf = mBoxInd.CurBox().Sz() + cPt2di(1,1);
-     cIm2D<tREAL8> aImDepth(aSzImProf);
-     cDataIm2D<tREAL8> & aDImDepth = aImDepth.DIm();
+     cIm2D<tREAL4> aImDepth(aSzImProf);
+     cDataIm2D<tREAL4> & aDImDepth = aImDepth.DIm();
      aDImDepth.InitCste(aMinInfty);
 
 
@@ -158,67 +162,77 @@ void cProjPointCloud::ProcessOneProj(const tProjPC & aProj,tREAL8 aW,bool isMode
      aDImRad.InitCste(0.0);
 
      //    [0.3.2]   image of masq
-     cIm2D<tREAL4> aImMasq(aSzImRad);
-     cDataIm2D<tREAL4>& aDImMasq = aImMasq.DIm();
-     aDImMasq.InitCste(0.0);
+     cIm2D<tREAL4> aImWeigth(aSzImRad);
+     cDataIm2D<tREAL4>& aDImWeight = aImWeigth.DIm();
+     aDImWeight.InitCste(0.0);
 
 
-     //    [0.4]  ---------- Alloc vector SzLeaf -> neighboor in image coordinate --------------------
-     std::vector<std::vector<cPt2di>> aVVdisk(256);
+     //    [0.4]  ---------- Alloc vector SzLeaf -> neighboor in image coordinate (time efficiency) ----------------
+     std::vector<std::vector<cPt2di>> aVVdisk(256);  // as size if store 8-byte, its sufficient
      for (int aK=0 ; aK<=255 ; aK++)
      {
          tREAL8 aSzL = mPC.ConvertInt2SzLeave(aK);
          aVVdisk.at(aK) = VectOfRadius(-1,aSzL/mStepProf);
      }
 
-     //   ----  compute the depth image : accumulate for each pixel the maximal depth -----------------------
-     for (size_t aKPt=0 ; aKPt<mVPtsProj.size() ; aKPt++)
+     // ==================================================================================================================
+     // == [1] ==================   compute the depth image : accumulate for each pixel the maximal depth ================
+     // ==================================================================================================================
+
+     for (size_t aKPt=0 ; aKPt<mVPtsProj.size() ; aKPt++) // parse all points
      {
-         const cPt2di  & aCenter = mVPtImages.at(aKPt);
-         tREAL8   aProf      = mVPtsProj.at(aKPt).z() - mAvgD/100.0;
+         const cPt2di  & aCenter = mVPtImages.at(aKPt); // extract index
+         // extract depth, supress tiny value, so next time  Depth>stored value even with rounding in store
+         tREAL8   aDepth      = mVPtsProj.at(aKPt).z() - mAvgD/100.0; 
+         // update depth for all point of the "leaf"
          const auto & aVDisk = aVVdisk.at(mPC.GetIntSzLeave(aKPt));
          for (const auto & aNeigh : aVDisk)
          {
              cPt2di aPt = aCenter + aNeigh;
              if (aDImDepth.Inside(aPt))
              {
-                 aDImDepth.SetMax(aPt,aProf);
+                 aDImDepth.SetMax(aPt,aDepth);
              } 
          }
      }
 
-     //   ----  compute for each points its visibility (~ number of time it projection equal max depth) 
-     for (size_t aKPt=0 ; aKPt<mVPtsProj.size() ; aKPt++)
+     // ===========================================================================================================================
+     // == [2] ===   for each point use depth image and if it is visible
+     //         * in mode std  accumulate its visibility 
+     //         * in mode image, project its radiometry
+     // ===========================================================================================================================
+     for (size_t aKPt=0 ; aKPt<mVPtsProj.size() ; aKPt++) // parse all points
      {
          const cPt2di  & aCenter = mVPtImages.at(aKPt);
-         tREAL8   aProf      = mVPtsProj.at(aKPt).z();
+         tREAL8   aDepth      = mVPtsProj.at(aKPt).z();
          int aNbVis = 0;
          const auto & aVDisk = aVVdisk.at(mPC.GetIntSzLeave(aKPt));
-         for (const auto & aNeigh :aVDisk)
+         for (const auto & aNeigh :aVDisk) // parse all point of leaf
          {
              cPt2di aPt = aCenter + aNeigh;
-             if (aDImDepth.DefGetV(aPt,aMinInfty) <= aProf)
+             if (aDImDepth.DefGetV(aPt,aPlusInfty) <= aDepth)  // if the point is visible
              {
-                if (isModeImage)
+                if (isModeImage)  // in mode image udpate radiometry & image
                 {
-                    if (aDImMasq.Inside(aPt))
-                    {
-                       aDImMasq.SetV(aPt,1.0);
-                       aDImRad.SetV(aPt,mPC.GetDegVis(aKPt)*255);
-                    }
+                   aDImWeight.SetV(aPt,1.0);
+                   aDImRad.SetV(aPt,mPC.GetDegVis(aKPt)*255);
                 }
-                else
+                else  // in mode standard uptdate visib count
                 {
                    aNbVis++;
                 }
              } 
          }
-         if (!isModeImage)
+         if (!isModeImage)  // in mode std we know the visibility 
          {
             mSumRad.at(aKPt) +=  (aW * aNbVis) / aVDisk.size();
          }
      }
      
+
+     // =====================================================================================
+     // == [3] ==================   compute the images (radiom, weight, depth) ==============
+     // =====================================================================================
 
      if (isModeImage)
      {
@@ -229,16 +243,21 @@ void cProjPointCloud::ProcessOneProj(const tProjPC & aProj,tREAL8 aW,bool isMode
          tREAL8 aSigmaImaInit = aSigmaImaFinal * aResolImaRel;
          int    aNbIter = 5;
 
+         MulImageInPlace(aDImDepth,aDImWeight);
+         
 
          ExpFilterOfStdDev( aDImRad,aNbIter,aSigmaImaInit);
-         ExpFilterOfStdDev(aDImMasq,aNbIter,aSigmaImaInit);
+         ExpFilterOfStdDev(aDImWeight,aNbIter,aSigmaImaInit);
+         ExpFilterOfStdDev( aDImDepth,aNbIter,aSigmaImaInit);
 
-        for (const auto & aPix : aDImMasq)
-        {
-            tREAL8 aW =   aDImMasq.GetV(aPix);
+         for (const auto & aPix : aDImWeight)
+         {
+            tREAL8 aW =   aDImWeight.GetV(aPix);
+            tREAL8 aD =   aDImDepth.GetV(aPix);
             tREAL8 aR =   aDImRad.GetV(aPix);
             aDImRad.SetV(aPix,aW ?  aR/aW : 0.0);
-        }
+            aDImDepth.SetV(aPix,aW ?  aD/aW : 0.0);
+         }
        
         static int aCpt=0; aCpt++;
          
@@ -253,6 +272,8 @@ void cProjPointCloud::ProcessOneProj(const tProjPC & aProj,tREAL8 aW,bool isMode
             aDIm8B.SetVTrunc(aPixI,aDImRad.ClipedGetValueInterpol(*aInterp,aPixR,0));
         }
         aDIm8B.ToFile("IIP_RadOut"+ToStr(aCpt) + ".tif");
+
+ aDImDepth.ToFile("IIP_RadOut_Depth"+ToStr(aCpt) + ".tif");
 
         StdOut() << "RESOL ;  IMA-REL=" << aResolImaRel << " Ground=" << aStepImAbs << "\n";
      }
