@@ -26,7 +26,7 @@ cAppli_VisuPoseStr3D::cAppli_VisuPoseStr3D(const std::vector<std::string> & aVAr
 cCollecSpecArg2007 & cAppli_VisuPoseStr3D::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
     return anArgObl
-           << Arg2007(mPatImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
+           << Arg2007(mPatImIn,"Pattern/file of images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
            << mPhProj.DPOrient().ArgDirInMand("Input orientation (Sfm)")
            << mPhProj.DPMulTieP().ArgDirInMand("Input features")
         ;
@@ -48,12 +48,12 @@ int cAppli_VisuPoseStr3D::Exe()
     mOutfile = ("VisSFM_"+mPhProj.DPOrient().DirIn()+"_"+mPhProj.DPMulTieP().DirIn()+".ply");
 
 
-    // vector of all image names belonging to this tree level
+    // vector of all image names
     std::vector<std::string> aVNames;
     // cameras
-    //std::vector<cSensorCamPC *> aVCams ;
     std::vector<cSensorImage *> aVSens ;
 
+    // read names and cameras
     for (const auto & aIm : VectMainSet(0))
     {
         aVNames.push_back(aIm);
@@ -63,13 +63,7 @@ int cAppli_VisuPoseStr3D::Exe()
     // sort images alphbetically (and aVSens accordingly) for AllocStdFromMTPFromFolder
     Sort2VectFirstOne(aVNames,aVSens);
 
-   /*  for (size_t aK=0; aK<aVCams.size(); aK++)
-        aVSens.push_back(aVCams.at(aK));
-
-
-*/
-
-    // read the tie points corresponding to your image set
+    // read the tie points
     cComputeMergeMulTieP * aTPts = AllocStdFromMTPFromFolder(
                 mPhProj.DPMulTieP().DirIn(),aVNames,mPhProj,true,false,true);
 

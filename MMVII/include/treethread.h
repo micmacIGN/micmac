@@ -7,6 +7,7 @@
 #include <mutex>
 #include <atomic>
 #include <memory>
+#include <iostream>
 
 namespace MMVII
 {
@@ -96,13 +97,20 @@ private:
         // If the node has no dependancy (leaf) it will be added to the ready to execute queue
         void descend(TreeThreads *tt, PNode me)
         {
+            std::cout << "ii " << &mUserNodePtr->depends() <<std::endl;
+            std::cout << "descend " << mUserNodePtr->depends().size() << std::endl;
             for (const auto& userChild: mUserNodePtr->depends()) {
+                if (userChild!=nullptr){
                 auto child = std::make_shared<Node>(userChild,me);
+                std::cout << "b " << std::endl;
                 child->descend(tt, child);
-                mChildrenToWait ++;
+                std::cout << "a " << std::endl;
+                mChildrenToWait ++;}
             }
+            std::cout << "alsmost " << std::endl;
             if (mChildrenToWait == 0)
                 tt->mReadyQueue.push_back(me);
+            std::cout << "descendeddd " << std::endl;
         }
 
         // Job to be done when all dependancies have been executed
@@ -143,7 +151,7 @@ void TreeThreads<T>::Exec(T root, int nbThread)
 
 template <class T>
 void TreeThreads<T>::ExecLoop()
-{
+{std::cout << "start ExecLoop" << std::endl;
     // Loop while there are nodes to execute in the readyQueue.
     // We pop the first element in the readyQueue, execute it,
     //  and if it was the last child of its parent, push the parent node in the readyQueue
@@ -157,6 +165,7 @@ void TreeThreads<T>::ExecLoop()
             node = mReadyQueue.front();
             mReadyQueue.pop_front();
         }
+        std::cout << "before node->finalize()" << std::endl;
         node->finalize();           // do the job
         // Atomically decrement parent not-terminated-child count and return true if this was the last terminated child
         if (node->isLastChild()) {

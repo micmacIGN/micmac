@@ -703,7 +703,7 @@ cPerspCamIntrCalib *  cPhotogrammetricProject::InternalCalibFromImage(const std:
         //  =============  Calibration =================
 
 std::string  cPhotogrammetricProject::StdNameCalibOfImage(const std::string aNameIm) const
-{
+{StdOut() << " +++++ " << mFolderProject+FileOfPath(aNameIm,false) << std::endl;
      cMetaDataImage aMTD = GetMetaData(mFolderProject+FileOfPath(aNameIm,false));
 // StdOut() << "StdNameCalibOfImageStdNameCalibOfImage " <<  aMTD.InternalCalibGeomIdent()  << "\n";
      return aMTD.InternalCalibGeomIdent();
@@ -720,7 +720,7 @@ std::string  cPhotogrammetricProject::FullDirCalibOut() const
 }
 
 cPerspCamIntrCalib *   cPhotogrammetricProject::InternalCalibFromStdName(const std::string aNameIm) const
-{
+{StdOut() << FullDirCalibIn() + StdNameCalibOfImage(aNameIm) + "." + TaggedNameDefSerial() << std::endl;
     std::string aNameCalib = FullDirCalibIn() + StdNameCalibOfImage(aNameIm) + "." + TaggedNameDefSerial();
     cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::FromFile(aNameCalib);
 
@@ -1285,7 +1285,8 @@ cTripletSet * cPhotogrammetricProject::ReadTriplets() const
 {
     std::vector<std::string> aVNames = GetFilesFromDir(mDPOriTriplets.FullDirIn(),AllocRegex(PrefixTripletSet+".*"));
 
-    return cTripletSet::FromFile(mDPOriTriplets.FullDirIn()+aVNames[0]);
+    int aK = (aVNames.size()>1) ? 1 : 0;
+    return cTripletSet::FromFile(mDPOriTriplets.FullDirIn()+aVNames[aK]);
 
 }
 

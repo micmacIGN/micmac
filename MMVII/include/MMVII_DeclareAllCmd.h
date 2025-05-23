@@ -123,6 +123,7 @@ extern cSpecMMVII_Appli  TheSpec_ImportTriplet;
 extern cSpecMMVII_Appli  TheSpec_ArboTriplet;
 extern cSpecMMVII_Appli  TheSpec_HierarchSfm;
 extern cSpecMMVII_Appli  TheSpec_VisuPoseStr3D;
+extern cSpecMMVII_Appli  TheSpec_TransformPoses;
 
 };
 

@@ -100,6 +100,57 @@ void cNodeArborTriplets::ComputeResursiveSolution()
     CmpWithGT();
 }
 
+void cNodeArborTriplets::finalize()
+{ StdOut() << "Finalize" << std::endl;
+
+    if (mChildren.at(0) == nullptr)
+        StdOut() << "Do nothing" << std::endl;
+    else
+    {StdOut() << " fffffffffffffffffffffff " << std::endl;
+        // recursive call to compute
+        //for (auto & aChild :mChildren)
+        //    aChild->ComputeResursiveSolution();
+        // to the computation for the sol of 2 children
+        MergeChildrenSol();
+    }
+
+
+    // compare with ground truth
+    //CmpWithGT();
+
+
+}
+
+// before finalize I have to run down the tree to initialise Index
+void cNodeArborTriplets::DoTerminalNode()
+{
+    MMVII_INTERNAL_ASSERT_tiny((mChildren.at(0) == nullptr) == (mChildren.at(1) == nullptr),"DoTerminalNode, assert on desc");
+
+    ShowPose("TRM");
+
+    if (mChildren.at(0) == nullptr) // Terminal node just put the riplet
+    {StdOut() << "XXXiiiiiiiiiiiii" << std::endl;// getchar();
+        auto  aVecTri = mTree.Vertices();
+        MMVII_INTERNAL_ASSERT_tiny(aVecTri.size()==1,"ComputeResursiveSolution, assert on desc");
+        c3G3_AttrV & anATri = aVecTri.at(0)->Attr();
+        for (size_t aK3=0 ; aK3<3 ; aK3++)
+        {
+            int aNumPose = anATri.m3V.at(aK3)->Attr().mKIm;
+            tPoseR aPose = anATri.mT0->Pose(aK3).Pose();
+
+            mLocSols.push_back(cSolLocNode(aPose,aNumPose));
+        }
+        MakeIndexGlob2Loc();
+    }
+    else  // non terminal node
+    {StdOut() << "XXXjjjjjjjjjjj" << std::endl; //getchar();
+        // recursive call to compute
+        for (auto & aChild :mChildren)
+            aChild->DoTerminalNode();//ComputeResursiveSolution();
+        MakeIndexGlob2Loc();
+    }
+}
+
 void cNodeArborTriplets::MakeIndexGlob2Loc()
 {
     mTabGlob2LocInd = std::vector<int>(mPMAT->GOP().NbVertex(),-1);  // create a tab with all -1 
@@ -555,9 +606,7 @@ void cNodeArborTriplets::SaveGlobSol(const std::string & aPrefix) const
     aZRot.SetElem(1,1,-1);
     aZRot.SetElem(2,2,-1);
 
-
     cPerspCamIntrCalib *  aCalib = mPhProj.InternalCalibFromStdName(mPMAT->MapI2Str(mLocSols.at(0).mNumPose));
-
 
     std::string aSaveSolG = aPrefix + "_depth_" + ToStr(mDepth) + "_" + ToStr(RandUnif_N(1000));
     cMMVII_Ofs aFile(aSaveSolG, eFileModeOut::CreateText);
@@ -647,9 +696,9 @@ void cNodeArborTriplets::MergeChildrenSol()
      cNodeArborTriplets & aN0 = *(mChildren.at(0));
      cNodeArborTriplets & aN1 = *(mChildren.at(1));
 
-     //    ShowPose("DoMx :");
-     //aN0.ShowPose("DoM0 :");
-     //aN1.ShowPose("DoM1 :");
+         ShowPose("DoMx :");
+     aN0.ShowPose("DoM0 :");
+     aN1.ShowPose("DoM1 :");
 
      std::vector<tPairI>              aVPairCommon;  //  Store data for vertex present in 2 children
      std::vector<tPairI>              aVPairLink2;   // store data for edges between 2 children (the 3 vertex being out)
@@ -764,7 +813,7 @@ void cNodeArborTriplets::RefineSolution()
     //StdOut() << "RefineSolution" << std::endl;
 
 
-    int aNbIter=2;
+    int aNbIter=mPMAT->NbIterBA();
 
     // structure storing declared unknowns of BA
     cSetInterUK_MultipeObj<tREAL8> aSetIntervUK;
@@ -776,7 +825,9 @@ void cNodeArborTriplets::RefineSolution()
     std::vector<cCalculator<double> *> aVEqCol ;
 
     // intrinsic parameters considered the same for all images
+    StdOut() << mLocSols.at(0).mNumPose  << " " << mPMAT->MapI2Str(mLocSols.at(0).mNumPose) << std::endl;
     cPerspCamIntrCalib *   aCal = mPhProj.InternalCalibFromStdName(mPMAT->MapI2Str(mLocSols.at(0).mNumPose));
+    StdOut() << "Calib read" << std::endl;
     aSetIntervUK.AddOneObj(aCal);
 
     // vector of all image names belonging to this tree level
@@ -955,18 +1006,18 @@ void cNodeArborTriplets::RefineSolution()
             }
         }
 
-
-        tREAL8 aLVM=0.1;
-        const auto & aVectSol = aSys->SolveUpdateReset({aLVM},{},{});//
-        aSetIntervUK.SetVUnKnowns(aVectSol);
-
         double aPercInliers = (aNumTPts*100)/aNumAllTiePts;
         StdOut() << "#Iter=" << aIter
                  << ", #3D points=" << aNumAll3DPts << ", #Inliers=" << aNum3DPts
                  << ", #2D obs=" << aNumTPts << ", #Inliers=" << aPercInliers << " %"
                  << ", MaxRes=" << aMaxRes << ", TotalW=" << aTotalW
-                 << " Weighted Res=" << aWeigthedRes.Average()
-                 << " StdDevLast=" << std::sqrt(aSys->VarLastSol())
+                 << " Weighted Res=" << aWeigthedRes.Average() << std::endl;
+
+        tREAL8 aLVM=0.1;
+        const auto & aVectSol = aSys->SolveUpdateReset({aLVM},{},{});//
+        aSetIntervUK.SetVUnKnowns(aVectSol);
+
+        StdOut() << " StdDevLast=" << std::sqrt(aSys->VarLastSol())
                  << " StdDevCur=" << std::sqrt(aSys->VarCurSol()) << std::endl;
 
 
@@ -1153,7 +1204,8 @@ cMakeArboTriplet::cMakeArboTriplet(cTripletSet & aSet3,bool doCheck,tREAL8 aWBal
    mTPtsFolder  (""),
    mViscPose    ({-1,-1}),
    mSigmaTPt    (1.0),
-   mFacElim     (10.0)
+   mFacElim     (10.0),
+   mNbIterBA    (2)
 {
 }
 
@@ -1184,6 +1236,17 @@ void cMakeArboTriplet::SaveGlobSol() const
 {
 
     mArbor->SaveGlobSol("");
+}
+
+void cMakeArboTriplet::InitialiseCalibs()
+{
+    //    cPerspCamIntrCalib *   aCal = mPhProj.InternalCalibFromStdName(mPMAT->MapI2Str(mLocSols.at(0).mNumPose));
+    //*mMapStrI.I2Obj(aNum)
+    for (size_t aKIm=0 ; aKIm<mMapStrI.size() ; aKIm++)
+    {
+        cPerspCamIntrCalib *   aCal = mPhProj.InternalCalibFromStdName(*mMapStrI.I2Obj(aKIm));
+        FakeUseIt(aCal);
+    }
 }
 
 void cMakeArboTriplet::MakeGraphPose()
@@ -1240,7 +1303,7 @@ void cMakeArboTriplet::MakeGraphPose()
         }
         if (mPerfectOri)
         {
-            if (aKT==0) StdOut() << "************* GT Pose " << std::endl;
+            if (0) StdOut() << "************* GT Pose " << std::endl;
             for (int aK3=0 ; aK3<3 ; aK3++)
             {
                 cView&  aView = a3.Pose(aK3);
@@ -1253,11 +1316,11 @@ void cMakeArboTriplet::MakeGraphPose()
 
                 aP = tPoseR(aCam->Pose().Tr(),aCam->Pose().Rot());
 
-                if (aKT==0) StdOut() << aView.Name() << " " << aCam->Pose().Tr() << std::endl;
-                if (aKT==0) aCam->Pose().Rot().Mat().Show();
-                if (aKT==0) StdOut() << "*************" << std::endl;
+                if (0) StdOut() << aView.Name() << " " << aCam->Pose().Tr() << std::endl;
+                if (0) aCam->Pose().Rot().Mat().Show();
+                if (0) StdOut() << "*************" << std::endl;
                 // mmv1 vs mmv2 : there is a transpose on Rot
-                if (aKT==0) getchar();
+                if (0) getchar();
             }
         }
 
@@ -1579,7 +1642,18 @@ void cMakeArboTriplet::ComputeArbor()
    mCostMergeTree = 0.0;
    mArbor = new cNodeArborTriplets(*this,aTreeKernel,0,mPhProj);
    StdOut() << "CostMerge " << mCostMergeTree << "\n";
-   mArbor->ComputeResursiveSolution();
+
+   //mArbor->ComputeResursiveSolution();
+
+   mArbor->DoTerminalNode();
+   StdOut() << "END DoTerminalNode" << std::endl;
+   //
+   TreeThreads<cNodeArborTriplets*> tp;
+   tp.Exec(mArbor,mAppli.NbProcAllowed());
+
+   StdOut() << "END Exec" << std::endl;
+
+
 }
 
 cAppli_ArboTriplets::cAppli_ArboTriplets(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -1597,7 +1671,7 @@ cAppli_ArboTriplets::cAppli_ArboTriplets(const std::vector<std::string> & aVArgs
 cCollecSpecArg2007 & cAppli_ArboTriplets::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
     return anArgObl
-              <<  mPhProj.DPOriTriplets().ArgDirInMand("Input orientation for calibration")
+              <<  mPhProj.DPOriTriplets().ArgDirInMand("Input triplets")
            ;
 }
 
@@ -1612,7 +1686,7 @@ cCollecSpecArg2007 & cAppli_ArboTriplets::ArgOpt(cCollecSpecArg2007 & anArgOpt)
           << AOpt2007(mWBalance,"WBalance","Weight for balancing trees, 0 NONE, 1 Max",{eTA2007::HDV})
           << AOpt2007(mPerfectData,"PerfectData","Evaluate coherency of triplets with simulated poses",{eTA2007::HDV})
           << AOpt2007(mViscPose,"ViscPose","Regularization on poses for BA: [SigmaTr,SigmaRot]",{eTA2007::HDV})
-          <<  mPhProj.DPOrient().ArgDirInOpt("","Ground truth input orientation directory")
+          <<  mPhProj.DPOrient().ArgDirInOpt("","Ground truth input orientation directory | Use internal calibration for saving")
           <<  mPhProj.DPOrient().ArgDirOutOpt("","Global orientation output directory")
           <<  mPhProj.DPOriTriplets().ArgDirOutOpt("","Directory for dmp-save of triplet (for faster read later)")
           <<  mPhProj.DPMulTieP().ArgDirInOpt("","Input features")

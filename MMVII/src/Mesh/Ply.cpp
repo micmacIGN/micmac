@@ -2465,8 +2465,8 @@ void cAppli_VisuPoseStr3D::WritePly(cComputeMergeMulTieP * & aTPts, const std::v
         aNumImPlane++;
     }
 
-    // add image plane
-    int aSteps = 20;
+    // add points in image plane
+    int aSteps = 50;
     for (auto aSens : aVSens)
     {
         cSensorCamPC *  aCamPC = aSens->GetSensorCamPC();
@@ -2477,7 +2477,6 @@ void cAppli_VisuPoseStr3D::WritePly(cComputeMergeMulTieP * & aTPts, const std::v
 
         cPt2dr aImStepSz(aSz[0]/aSteps,aSz[1]/aSteps);
 
-        // points in the image plane
         for (int aS=0; aS<=aSteps; aS++)
         {
             std::vector<cPt3dr> aImVPts;
@@ -2502,7 +2501,7 @@ void cAppli_VisuPoseStr3D::WritePly(cComputeMergeMulTieP * & aTPts, const std::v
         }
     }
 
-    // points on the frustum
+    // add points on the frustum
     for (auto aSens : aVSens)
     {
         cSensorCamPC *  aCamPC = aSens->GetSensorCamPC();

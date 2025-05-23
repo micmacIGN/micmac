@@ -17,8 +17,8 @@
 #include "MMVII_Tpl_Images.h"
 
 #include "../BundleAdjustment/BundleAdjustment.h"
-
 #include "MMVII_UtiSort.h"
+#include "treethread.h"
 
 namespace MMVII
 {
@@ -67,11 +67,17 @@ public :
 
     /// compute the pose solution, do it recurively
     void ComputeResursiveSolution();
+    void finalize();
+    void DoTerminalNode();
 
     ///  Test with GT
     void CmpWithGT();
     /// Save global solution
     void SaveGlobSol(const std::string&) const;
+
+    /// For parallelization
+    //const std::array<tNodePtr,2>& depends() const {return mChildren;}
+    const std::vector<tNodePtr>& depends() const {return mChildren;}
 
 
 private :
@@ -129,7 +135,8 @@ private :
     cPhotogrammetricProject & mPhProj;
     int                       mDepth;     ///< level in the hierarchy, used for pretty printing
     t3G3_Tree                 mTree;      ///< tree of triplet
-    std::array<tNodePtr,2>    mChildren;  ///< sub-nodes (if any ...)
+    //std::array<tNodePtr,2>    mChildren;  ///< sub-nodes (if any ...)
+    std::vector<tNodePtr>    mChildren;  ///< sub-nodes (if any ...)
     cMakeArboTriplet*         mPMAT;      ///< access to the global structure
     std::vector<cSolLocNode>  mLocSols;   ///< store the "local" solution
     std::vector<cSolLocNode>  mRotateLS;   ///< store the sol of N1 turned of rotation N1->N0
@@ -168,6 +175,9 @@ public :
     /// Save the global orientation
     void SaveGlobSol() const;
 
+    /// Ugly trick to avoid problem with accessing the same calib more than once
+    void InitialiseCalibs();
+
 
     tREAL8 WBalance() const {return mWBalance;}  ///< Accessor
     tREAL8 & CostMergeTree() {return mCostMergeTree;}  ///< Accessor
@@ -191,7 +201,8 @@ public :
     tREAL8                SigmaTPt() const {return mSigmaTPt;}   ///< Accessor
     tREAL8              & FacElim()  {return mFacElim;}
     tREAL8                FacElim() const {return mFacElim;} ///< Accessor
-
+    int                 & NbIterBA()  {return mNbIterBA;}
+    int                   NbIterBA() const {return mNbIterBA;} ///< Accessor
 
 
 private :
@@ -224,6 +235,7 @@ private :
     std::vector<tREAL8>     mViscPose;       ///< Regularization on poses in BA
     tREAL8                  mSigmaTPt;       ///< Sigma on tie-points
     tREAL8                  mFacElim;        ///< Control outlier threshold, thres=mSigmaTPt*mFacElim
+    int                     mNbIterBA;       ///< Number of iteration in bundle adjustment (Refine)
 };
 
 class cAppli_ArboTriplets : public cMMVII_Appli

@@ -544,7 +544,7 @@ cMetaDataImage cPhotogrammetricProject::GetMetaData(const std::string & aFullNam
    static std::map<std::string,cMetaDataImage> aMap;
    auto  anIt = aMap.find(aNameIm);
    if (anIt== aMap.end())
-   {
+   {StdOut() << aDir << " " << aNameIm << std::endl;
         InitGlobCalcMTD();
         aMap[aNameIm] = cMetaDataImage(aDir,aNameIm,mGlobCalcMTD);
    }

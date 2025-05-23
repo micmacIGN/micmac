@@ -268,6 +268,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_ArboTriplet);
         TheVecAll.push_back(&TheSpec_HierarchSfm);
         TheVecAll.push_back(&TheSpec_VisuPoseStr3D);
+        TheVecAll.push_back(&TheSpec_TransformPoses);
 
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);

@@ -57,6 +57,7 @@ class cAppli_HierarchSfm : public cMMVII_Appli
         std::vector<tREAL8>       mViscPose;      ///< regularization on poses in BA
         tREAL8                    mSigmaTPt;
         tREAL8                    mFacElim;
+        int                       mNbIterBA;
 
 };
 
@@ -67,7 +68,8 @@ cAppli_HierarchSfm::cAppli_HierarchSfm(const std::vector<std::string> & aVArgs,c
     mWBalance    (1.0),
     mViscPose    ({-1,-1}),
     mSigmaTPt    (1.0),
-    mFacElim     (10.0)
+    mFacElim     (10.0),
+    mNbIterBA    (2)
 {}
 
 cCollecSpecArg2007 & cAppli_HierarchSfm::ArgObl(cCollecSpecArg2007 & anArgObl)
@@ -89,6 +91,7 @@ cCollecSpecArg2007 & cAppli_HierarchSfm::ArgOpt(cCollecSpecArg2007 & anArgOpt)
            <<  AOpt2007(mViscPose,"ViscPose","Regularization on poses for BA: [SigmaTr,SigmaRot]",{eTA2007::HDV})
            <<  AOpt2007(mSigmaTPt,"SigmaTPt","Sigma for tie-points",{eTA2007::HDV})
            <<  AOpt2007(mFacElim,"FacElim","Outlier threshold=(FacElim*SigmaTPt)",{eTA2007::HDV})
+           <<  AOpt2007(mNbIterBA,"NbIterBA","Number of iteration in BA refinement",{eTA2007::HDV})
         ;
 }
 
@@ -105,7 +108,6 @@ int cAppli_HierarchSfm::Exe()
         delete a3Set;
         return EXIT_SUCCESS;
     }
-    //StdOut() << mPhProj.DPMulTieP().DirIn() << std::endl;
 
 
     TimeSegm().SetIndex("cMakeArboTriplet");
@@ -116,38 +118,37 @@ int cAppli_HierarchSfm::Exe()
         aMk3.SigmaTPt() = mSigmaTPt;
     if (IsInit(&mFacElim))
         aMk3.FacElim()= mFacElim;
+    if (IsInit(&mNbIterBA))
+        aMk3.NbIterBA() = mNbIterBA;
     if (mPhProj.DPMulTieP().DirInIsInit())
         aMk3.TPFolder() = mPhProj.DPMulTieP().DirIn() ;
     else
-        //MMVII_INTERNAL_ASSERT_always(mPhProj.DPMulTieP().DirInIsInit(),"Input features not initialised");
+        MMVII_INTERNAL_ASSERT_always(mPhProj.DPMulTieP().DirInIsInit(),"Input features not initialised");
 
-
-
-    /*if (IsInit(&mLevelRand))
-        aMk3.SetRand(mLevelRand);
-    if (IsInit(&mWeigthEdge3))
-        aMk3.WeigthEdge3() = mWeigthEdge3;
-    if (IsInit(&mPerfectData))
-        aMk3.PerfectData() = true;
-    if (mPhProj.IsOriInDirInit())
-    {
-        aMk3.PerfectOri() = true;
-    }*/
 
     TimeSegm().SetIndex("MakeGraphPose");
     aMk3.MakeGraphPose();
+    StdOut() << "MakeGraphPose DONE" << std::endl;
+
+    TimeSegm().SetIndex("InitialiseCalibs");
+    aMk3.InitialiseCalibs();
+    StdOut() << "InitialiseCalibs DONE" << std::endl;
 
     TimeSegm().SetIndex("PoseRef");
     aMk3.DoPoseRef();
+    StdOut() << "DoPoseRef DONE" << std::endl;
 
     TimeSegm().SetIndex("MakeCnxTriplet");
     aMk3.MakeCnxTriplet();
+    StdOut() << "MakeCnxTriplet DONE" << std::endl;
 
     TimeSegm().SetIndex("TripletWeighting");
     aMk3.MakeWeightingGraphTriplet();
+    StdOut() << "MakeWeightingGraphTriplet DONE" << std::endl;
 
     TimeSegm().SetIndex("ComputeArbor");
     aMk3.ComputeArbor();
+    StdOut() << "ComputeArbor DONE" << std::endl;
 
     if (mPhProj.DPOrient().DirOutIsInit())
     {

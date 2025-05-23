@@ -76,6 +76,15 @@
                <NbPixels> 5120 3840 </NbPixels>
             </V>
          </Pair>
+         <Pair>
+            <K>"Cam-Tanks"</K>
+            <V>
+               <Name>"Cam-Tanks"</Name>
+               <SzPix_micron> 6 6 </SzPix_micron>
+               <SzSensor_mm> 11.5 6.5 </SzSensor_mm>  <!-- 23.5 15.6 in spec => non square pixel -->
+               <NbPixels> 1920 1080 </NbPixels>
+            </V>
+         </Pair>
 
       </CamDataBase>
    </Data>
