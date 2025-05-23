@@ -336,6 +336,8 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
                                            cPt3dr  aPPF,
                                            cPt3di  aDeg
                                         );
+            /// even simpler, Stenope, no dist, PP at middle
+            static cPerspCamIntrCalib * SimpleCalib(const std::string & aName,cPt2di aSz,tREAL8 aFocal);
 	    
 	    /// For inversion, or sampling point, we need seed that is +- corresponding of sensor midle, befor dist
 	    cPt2dr PtSeedInv() const;

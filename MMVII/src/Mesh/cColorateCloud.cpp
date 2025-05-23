@@ -7,6 +7,7 @@
 #include "MMVII_PointCloud.h"
 #include "MMVII_Linear2DFiltering.h"
 #include "MMVII_Interpolators.h"
+#include "MMVII_PCSens.h"
 
 
 namespace MMVII
@@ -262,18 +263,28 @@ void cProjPointCloud::ProcessOneProj(const tProjPC & aProj,tREAL8 aW,bool isMode
         static int aCpt=0; aCpt++;
          
         cPt2di  aSzImFinal = ToI(ToR(aSzImRad)/aResolImaRel);
-        cIm2D<tU_INT1>      aIm8B(aSzImFinal);
-        cDataIm2D<tU_INT1>& aDIm8B = aIm8B.DIm();
+        cIm2D<tU_INT1>      aIm8BReduc(aSzImFinal);  // radiometric image
+        cDataIm2D<tU_INT1>& aDIm8BReduc = aIm8BReduc.DIm();
+        cIm2D<tREAL4>       aImDepReduc(aSzImFinal);  // Z/depth  image
+        cDataIm2D<tREAL4>&  aDImDepReduc = aImDepReduc.DIm();
+
+        cIm2D<tU_INT1>      aImWeightReduc(aSzImFinal);  // radiometric image
+        cDataIm2D<tU_INT1>& aDImWeightReduc = aImWeightReduc.DIm();
+
+
         std::unique_ptr<cDiffInterpolator1D> aInterp (cDiffInterpolator1D::TabulSinC(5));
 
-        for (const auto & aPixI : aDIm8B)
+        for (const auto & aPixI : aDIm8BReduc)
         {
             cPt2dr aPixR = ToR(aPixI) * aResolImaRel;
-            aDIm8B.SetVTrunc(aPixI,aDImRad.ClipedGetValueInterpol(*aInterp,aPixR,0));
-        }
-        aDIm8B.ToFile("IIP_RadOut"+ToStr(aCpt) + ".tif");
+            aDIm8BReduc.SetVTrunc(aPixI,aDImRad.ClipedGetValueInterpol(*aInterp,aPixR,0));
+            aDImDepReduc.SetV(aPixI,aDImDepth.ClipedGetValueInterpol(*aInterp,aPixR,0));
 
- aDImDepth.ToFile("IIP_RadOut_Depth"+ToStr(aCpt) + ".tif");
+            aDImWeightReduc.SetVTrunc(aPixI,round_ni(256*aDImWeight.ClipedGetValueInterpol(*aInterp,aPixR,0)));
+        }
+        aDIm8BReduc.ToFile("IIP_Radiom_"+ToStr(aCpt) + ".tif");
+        aDImDepReduc.ToFile("IIP_Depth_"+ToStr(aCpt) + ".tif");
+        aDImWeightReduc.ToFile("IIP_Weight_"+ToStr(aCpt) + ".tif");
 
         StdOut() << "RESOL ;  IMA-REL=" << aResolImaRel << " Ground=" << aStepImAbs << "\n";
      }
@@ -299,11 +310,19 @@ class cAppli_MMVII_CloudImProj : public cMMVII_Appli
         // --- Mandatory ----
 	std::string   mNameCloudIn;
         // --- Optionnal ----
+        tREAL8  mSurResolSun;
         std::string   mNameImageOut;
 
-        tREAL8  mSurResolSun;
-        cPt3dr      mSun;
-        std::string mNameSavePCSun;
+        cPt2di        mSzIm;
+        tREAL8        mFOV;
+        cPt2di        mNbBande;
+        cPt2dr        mBSurH;
+        
+        tREAL8        mFocal;
+        cPerspCamIntrCalib * mCalib;
+
+        cPt3dr        mSun;
+        std::string   mNameSavePCSun;
 };
 
 cAppli_MMVII_CloudImProj::cAppli_MMVII_CloudImProj
@@ -312,7 +331,13 @@ cAppli_MMVII_CloudImProj::cAppli_MMVII_CloudImProj
      const cSpecMMVII_Appli & aSpec
 ) :
      cMMVII_Appli      (aVArgs,aSpec),
-     mSurResolSun      (2.0)
+     mSurResolSun      (2.0),
+     mSzIm             (3000,2000),
+     mFOV              (0.4),
+     mNbBande          (5,1),
+     mBSurH            (0.1,0.2),
+     mFocal            (-1),
+     mCalib            (nullptr)
 {
 }
 
@@ -337,6 +362,9 @@ int  cAppli_MMVII_CloudImProj::Exe()
    if (!IsInit(&mNameImageOut))
       mNameImageOut =  "ImProj_" + LastPrefix(mNameCloudIn) + ".tif";
 
+   mFocal = Norm2(mSzIm) / mFOV ;
+   mCalib = cPerspCamIntrCalib::SimpleCalib("MeshSim",eProjPC::eStenope,mSzIm,cPt3dr(mSzIm.x()/2.0,mSzIm.y()/2.0,mFocal),cPt3di(0,0,0));
+
 
    cPointCloud   aPC_In ;
    ReadFromFile(aPC_In,mNameCloudIn);
@@ -357,6 +385,7 @@ int  cAppli_MMVII_CloudImProj::Exe()
 
    StdOut() << "NbLeaves "<< aPC_In.LeavesIsInit () << "\n";
 
+   delete mCalib;
    return EXIT_SUCCESS;
 }
 
