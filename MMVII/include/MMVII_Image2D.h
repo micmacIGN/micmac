@@ -139,6 +139,12 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
            AddValueBL(aP,aVal);
         }
 
+       /** Compute a resampling of the image, note the origin is not necesarly in [0,0], Map direct is used
+         to compute domain while map inverse is used for computing values  , i.a if Map : X -> S*X , size of
+         result will be multiplied by S.
+            The point returned is the value of pixel(0,0) of image in out coordinates.
+        */
+       std::pair<cPt2di,cIm2D<Type>>  ReSample(const cInterpolator1D &,const cDataInvertibleMapping<tREAL8,2> &,Type aValOut) const;
        /// Interpolated value, using a generic interpolator
        double GetValueInterpol(const cInterpolator1D &,const cPt2dr & aP) const ;
        /// Interpolated value+derivative, using a generic diffentiable interpolator

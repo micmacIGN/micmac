@@ -217,6 +217,7 @@ extern void AddDataSizeCont(int & aNb,const cAuxAr2007 & anAux);
 extern const std::string  StrElCont;
 extern const std::string  StrElMap;
 
+// template <class TypeCont> void RawVector_AddData(const cAuxAr2007 & anAux,TypeCont & aL);
 
 template <class TypeCont> void StdContAddData(const cAuxAr2007 & anAux,TypeCont & aL)
 {
@@ -241,10 +242,48 @@ template <class TypeCont> void StdContAddData(const cAuxAr2007 & anAux,TypeCont 
     }
 }
 
+template <class TypeCont> void RawVector_AddData(const cAuxAr2007 & anAux,TypeCont & aV)
+{
+   // if xml, json, ...  no requirement to optimize, prefer readiibility
+   if (! anAux.Ar().Binary())
+   {
+       StdContAddData(anAux,aV); 
+       return;
+   }
+   // read-write the size
+   size_t aSz = aV.size();
+   AddData(anAux,aSz);
+   // in input mode adapt size of vector
+   if (anAux.Ar().Input())
+      aV.resize(aSz);
+
+   TplAddRawData(anAux,aV.data(),aSz);
+
+   // StdOut() << "RawVector_AddDataxxx " << aV << "\n";
+   // StdContAddData(anAux,aV); 
+   // template <class Type> void TplAddRawData(const cAuxAr2007 & anAux,Type * anAdr,int aNbElem,const std::string & aTag="RawData")
+}
+inline void AddData(const cAuxAr2007 & anAux,std::vector<cPt3dr> &  aV) { RawVector_AddData(anAux,aV); }
+inline void AddData(const cAuxAr2007 & anAux,std::vector<cPt3df> &  aV) { RawVector_AddData(anAux,aV); }
+inline void AddData(const cAuxAr2007 & anAux,std::vector<tREAL4> &  aV) { RawVector_AddData(anAux,aV); }
+inline void AddData(const cAuxAr2007 & anAux,std::vector<tREAL8> &  aV) { RawVector_AddData(anAux,aV); }
+inline void AddData(const cAuxAr2007 & anAux,std::vector<int> &     aV) { RawVector_AddData(anAux,aV); }
+inline void AddData(const cAuxAr2007 & anAux,std::vector<tU_INT1> & aV) { RawVector_AddData(anAux,aV); }
+inline void AddData(const cAuxAr2007 & anAux,std::vector<tU_INT2> & aV) { RawVector_AddData(anAux,aV); }
+
+
+
+
 /// std::list interface  AddData -> StdContAddData
-template <class Type> void AddData(const cAuxAr2007 & anAux,std::list<Type>   & aL) { StdContAddData(anAux,aL); }
+template <class Type> void AddData(const cAuxAr2007 & anAux,std::list<Type>   & aL) 
+{ 
+    StdContAddData(anAux,aL); 
+}
 /// std::vector interface  AddData -> StdContAddData
-template <class Type> void AddData(const cAuxAr2007 & anAux,std::vector<Type> & aL) { StdContAddData(anAux,aL); }
+template <class Type> void AddData(const cAuxAr2007 & anAux,std::vector<Type> & aV) 
+{ 
+    StdContAddData(anAux,aV); 
+}
 /// cArray interface  AddData -> StdContAddData
 template <class Type,size_t aSz> void AddData(const cAuxAr2007 & anAux,  cArray<Type,aSz> & aL) { AddTabData(anAux, aL.data(), aSz); }
 
@@ -292,6 +331,8 @@ template <class TypeKey,class TypeVal> void AddData(const cAuxAr2007 & anAux,std
     }
 }
 
+
+template <class Type,const int Dim>  void  AddData(const  cAuxAr2007 & anAux,cTplBox<Type,Dim> & aBox) { aBox.AddData(anAux); }
 
 
 template <class Type,const int Dim> void AddData(const cAuxAr2007 & anAux,cDataTypedIm<Type,Dim> & aIm)
@@ -470,6 +511,7 @@ template<class Type> void  ReadFromFile_Std(Type & aVal,const std::string & aNam
 
 template<class Type> void  ReadFromFile(std::vector<Type> & aVec,const std::string & aName)
 {
+
     if (LastPostfix(aName) == E2Str(eTypeSerial::ecsv))
     {
         FromCSV(aVec,aName,true);

@@ -60,23 +60,29 @@ void AddData(const cAuxAr2007 & anAux, cTestSerial0 &    aTS0)
 }
 //  ==========  cTestSerial1 =================
 
+/*
 template <class Type> bool EqualCont(const Type &aV1,const Type & aV2)
 {
     return  std::equal(aV1.begin(),aV1.end(),aV2.begin(),aV2.end());
 }
+*/
 
 
 
 cTestSerial1::cTestSerial1() : 
-    mS("Hello"), 
-    mP3(3.1,3.2) ,
-    mLI{1,22,333},
-    mVD {314,27,14},
-    mO1 (cPt2dr(99,999)),
-    mO2 (cPt2dr(100,1000)),
-    mO3 ("HelloO"),
-    mD1("HelloD"),
-    mD2(1.0)
+    mS     ("Hello"), 
+    mP3    (3.1,3.2) ,
+    mVPtR  {{1.1,2.2},{2.2,3.3}},
+    mLI    {1,22,333},
+    mVPtI  {{1,2},{2,3},{3,4}},
+    mVD    {314.1,27,14},
+    mVI    {10,8,6,4},
+    mO1    (cPt2dr(99,999)),
+    mVUI1  {1,8,12},
+    mO2    (cPt2dr(100,1000)),
+    mO3    ("HelloO"),
+    mD1    ("HelloD"),
+    mD2    (1.0)
 {
 }
 
@@ -84,6 +90,7 @@ cTestSerial1::cTestSerial1() :
 
 bool cTestSerial1::operator ==   (const cTestSerial1 & aT1) const 
 {
+
    return   (mTS0==aT1.mTS0) 
          && (mS==aT1.mS) 
          && (mP3==aT1.mP3) 
@@ -93,6 +100,8 @@ bool cTestSerial1::operator ==   (const cTestSerial1 & aT1) const
          && (mD1==aT1.mD1)
          && (mD2==aT1.mD2)
          && EqualCont(mLI,aT1.mLI)
+         && EqualCont(mVPtR,aT1.mVPtR)
+         && EqualCont(mVPtI,aT1.mVPtI)
    ;
 }
 
@@ -106,8 +115,17 @@ void AddData(const cAuxAr2007 & anAux0, cTestSerial1 &    aTS1)
     anAux.Ar().AddComment("This is TS0");
     AddData(cAuxAr2007("S",anAux),aTS1.mS);
     AddData(cAuxAr2007("P3",anAux),aTS1.mP3);
+
+
+    AddData(cAuxAr2007("VPtR",anAux),aTS1.mVPtR);
+
     AddData(cAuxAr2007("LI",anAux),aTS1.mLI);
+
+
+    AddData(cAuxAr2007("VPtI",anAux),aTS1.mVPtI);
+
     AddData(cAuxAr2007("VD",anAux),aTS1.mVD);
+    AddData(cAuxAr2007("VI",anAux),aTS1.mVI);
     AddOptData(anAux,"O1",aTS1.mO1);
     AddOptData(anAux,"O2",aTS1.mO2);
     AddOptData(anAux,"O3",aTS1.mO3);
@@ -135,8 +153,14 @@ void AddData(const cAuxAr2007 & anAux, cTestSerial2 &    aTS2)
     AddData(cAuxAr2007("TS0:P2",anAux),aTS2.mTS0.mP2);
     AddData(cAuxAr2007("S",anAux),aTS2.mS);
     AddData(cAuxAr2007("P3",anAux),aTS2.mP3);
+
+    AddData(cAuxAr2007("xxVPtR",anAux),aTS2.mVPtR);
+
     AddData(cAuxAr2007("LI",anAux),aTS2.mLI);
+    AddData(cAuxAr2007("xxVPtI",anAux),aTS2.mVPtI);
+
     AddData(cAuxAr2007("VD",anAux),aTS2.mVD);
+    AddData(cAuxAr2007("xVI",anAux),aTS2.mVI);
     AddOptData(anAux,"O1",aTS2.mO1);
     AddOptData(anAux,"O2",aTS2.mO2);
 }
@@ -549,7 +573,7 @@ void BenchSerialization
     }
     else
     {
-	    StdOut() << "SKEEPING IsFileXmlOfGivenTag" << std::endl;
+	    StdOut() << "SKIPPING IsFileXmlOfGivenTag" << std::endl;
     }
 
     // StdOut() << "DONE SERIAL" << std::endl;

@@ -760,6 +760,11 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 	std::string                        mPatternInitGMA;
 };
 
+/// Generate name of percentages for CSV
+std::vector<std::string> VInt2VStrPerc(const std::vector<int> &aVPerc);
+/// Generate values  of percentages for CSV
+std::vector<std::string> VInt2VStrPerc(const std::vector<int> & aVPerc,const cStdStatRes aStat);
+
 const std::string & GlobVectNameDefSerial() ; ///< of current appli
 const std::string & GlobTaggedNameDefSerial() ; ///< of current appli
 

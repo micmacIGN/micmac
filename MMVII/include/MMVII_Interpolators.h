@@ -33,6 +33,11 @@ tREAL8 CubAppGaussVal(const tREAL8&);
 
 tREAL8  GaussLaw(const tREAL8& aVal,const tREAL8& aAvg,const tREAL8& aStdDev);
 
+
+/// primitive of linear interpolator, can be used a smooth trasnsition 0->1
+tREAL8 IntegrLinear(tREAL8 aX);
+
+
 /** Class for doing "very fine" ressampling , high cost because compute a kernel for each pixel
  * typically for simulation with scale change, used for target simulation*/
 
@@ -93,6 +98,9 @@ class cDiffInterpolator1D : public cInterpolator1D
              static cDiffInterpolator1D *  TabulatedInterp(const cInterpolator1D &,int aNbTabul);
 	         /// create a tabulated interpolator from an existing (analytical) + delete the interp
              static cDiffInterpolator1D *  TabulatedInterp(cInterpolator1D *,int aNbTabul);
+	         /// create a tabulated sinus cardinal  , def SzApod=aSzSinC
+             static cDiffInterpolator1D *  TabulSinC(int aSzSin,int aSzApod=-1,int aNbTabul=1000);
+
 
        protected :
 	    static const std::string & Get(const std::vector<std::string> & aVName,size_t aK0);
@@ -269,6 +277,8 @@ class cTabulatedInterpolator : public cInterpolator1D
           void DoNormalize(bool ForDeriv);
           /// compute the values as derivative from an existing tab (used by "cTabulatedDiffInterpolator")
           void SetDiff(const cTabulatedInterpolator & anInt);
+          /// compute in this the integral, conventionnaly put 0.5 in 0 an 1 at end
+          void SetIntegral(const cTabulatedInterpolator & anInt);
 
           bool               mInterpolTab;  ///< Are value interpolated
           int                mNbTabul;      ///< number of value / unity
@@ -298,11 +308,14 @@ class cTabulatedDiffInterpolator : public cDiffInterpolator1D
           tREAL8  Weight(tREAL8  anX) const override ;
           ///  Differential of Weight access to mTabDifW
           tREAL8  DiffWeight(tREAL8  anX) const override;
+          ///  Integral of weight
+          tREAL8  IntegralWeight(tREAL8  anX) const ;
           ///  Optmize version for simultaneous compute of weight and diff
           std::pair<tREAL8,tREAL8>   WAndDiff(tREAL8  anX) const override;
       private :
           cTabulatedInterpolator  mTabW;      ///< Tabulation of weighting
           cTabulatedInterpolator  mTabDifW;   ///< Tabulation of derivate of weighting
+          cTabulatedInterpolator  mTabIntegrW;   ///< Tabulation of integral of weighting
           int                     mNbTabul;   ///<  Nb Tabul/unity
           int                     mSzTot;     ///< Total nb tabul
           const tREAL8 *          mRawW;      ///< Raw data of values

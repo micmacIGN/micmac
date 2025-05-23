@@ -198,9 +198,11 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecExtractCodedTarget);
         TheVecAll.push_back(&TheSpecGenerateEncoding);
         TheVecAll.push_back(&TheSpecSimulCodedTarget);
+        TheVecAll.push_back(&TheSpecSimulSphere);
         TheVecAll.push_back(&TheSpecCompletUncodedTarget);
         TheVecAll.push_back(&TheSpecDensifyRefMatch);
         TheVecAll.push_back(&TheSpecCloudClip);
+        TheVecAll.push_back(&TheSpec_MMVII_CloudImProj);
         TheVecAll.push_back(&TheSpecMeshDev);
         TheVecAll.push_back(&TheSpecGenMeshDev);
         TheVecAll.push_back(&TheSpecTestCovProp);
@@ -224,12 +226,16 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_ImportOBS);
         TheVecAll.push_back(&TheSpec_ImportORGI);
         TheVecAll.push_back(&TheSpec_ImportTxtCloud);
+        TheVecAll.push_back(&TheSpec_MMVII_CloudClip);
+        TheVecAll.push_back(&TheSpec_MMVII_Cloud2Ply);
+        TheVecAll.push_back(&TheSpec_MMVII_CloudColorate);
         TheVecAll.push_back(&TheSpec_ImportM32);
         //TheVecAll.push_back(&TheSpecTopoComp);
         TheVecAll.push_back(&TheSpecGenArgsSpec);
         TheVecAll.push_back(&TheSpec_ConvertV1V2_GCPIM);
         TheVecAll.push_back(&TheSpec_SpecSerial);
         TheVecAll.push_back(&TheSpec_PoseCmpReport);
+        TheVecAll.push_back(&TheSpec_ClinoReport);
         TheVecAll.push_back(&TheSpec_CGPReport);
         TheVecAll.push_back(&TheSpec_MesImReport);
         TheVecAll.push_back(&TheSpec_TiePReport);

@@ -1230,7 +1230,11 @@ int  cAppliGenCodedTarget::Exe()
 
    // std::string aName = aFullSpec.Prefix()+"_FullSpecif."+TaggedNameDefSerial();
    if (! IsInit(&mNameOut)) 
-      mNameOut = aFullSpec.Prefix()+"_FullSpecif."+  LastPostfix(mNameBE);
+   {
+      // mNameOut = aFullSpec.Prefix()+"_FullSpecif."+  LastPostfix(mNameBE);
+      // Modif MPD : it seems more coherent to maintain users naming  ...
+      mNameOut =  LastPrefix(mNameBE) +"_FullSpecif."+  LastPostfix(mNameBE);
+   }
    SaveInFile(aFullSpec, mNameOut);
 
    if (0)  // test reload

@@ -550,7 +550,7 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         void ChangSign(); ///< Multiply by -1
         void SetDirectBySign(); ///< Multiply by -1 if indirect
 
-         tDV  Random1LineCombination() const; // retunr a vector that is a random combination of lines
+         tDV  Random1LineCombination() const; // return a vector that is a random combination of lines
         //  =====   Overridng of cMatrix classe  ==== 
         void  MulColInPlace(tDV &,const tDV &) const override;
         Type MulColElem(int  aY,const tDV &)const override;

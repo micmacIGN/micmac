@@ -891,6 +891,18 @@ template <class Type,const int Dim>
 {
 }
 
+
+template <class Type,const int Dim> void cTplBox<Type,Dim>::AddData(const  cAuxAr2007 & anAux)
+{   
+    MMVII::AddData(cAuxAr2007("P0",anAux),mP0);
+    MMVII::AddData(cAuxAr2007("P1",anAux),mP1);
+    if (anAux.Ar().Input())
+    {
+        *this = cTplBox<Type,Dim>(mP0,mP1);
+    }
+}
+
+
 template <class Type,const int Dim>
    cTplBox<Type,Dim>  cTplBox<Type,Dim>::CenteredBoxCste(Type aVal)
 {

@@ -297,6 +297,14 @@ template<class T1,class T2,class T3,int Dim>
         aI1.GetRDL(aK) = aI2.GetRDL(aK) * aI3.GetRDL(aK) ;
 }
 
+template<class T1,class T3,int Dim>  
+   void MulImageInPlace(cDataTypedIm<T1,Dim> & aI1,const cDataTypedIm<T3,Dim> & aI3)
+{
+   aI1.AssertSameArea(aI3);
+    for (int aK=0 ; aK<aI1.NbElem() ; aK++)
+        aI1.GetRDL(aK) *= aI3.GetRDL(aK) ;
+}
+
 template<class T1,class T2,class T3>  
    cIm2D<T1> MulImage(T1* /*Type specifier*/ ,const cIm2D<T2> & aI2,const cIm2D<T3> & aI3)
 {

@@ -196,6 +196,8 @@ class  cNewReadFilesStruct
 
 	 std::vector<std::string>                         mPatIntFloatString;
 
+         static const  std::string                        TheNameUnused;
+         static  const std::string                        TheNameBla;
 };
 
 

@@ -175,6 +175,9 @@ void cNewReadFilesStruct::Check(std::map<std::string,size_t> & aMap1,std::map<st
      }
 }
 
+const std::string cNewReadFilesStruct::TheNameUnused = "?";
+const std::string cNewReadFilesStruct::TheNameBla    = "Bla";
+
 eRFS_TypeField cNewReadFilesStruct::TypeOfName(const std::string & aName)
 {
      // First test the specific user's defined rules if they exist
@@ -183,10 +186,10 @@ eRFS_TypeField cNewReadFilesStruct::TypeOfName(const std::string & aName)
             return eRFS_TypeField (aKPat);
 
      // Two specific cases 
-     if (aName== "?")
+     if (aName==TheNameUnused)
         return eRFS_TypeField::eUnused;
 
-     if (aName== "Bla")
+     if (aName==TheNameBla)
         return eRFS_TypeField::eBla;
 
      // Now rules by prefix for Float, String, Int
@@ -229,7 +232,7 @@ void  cNewReadFilesStruct::ParseFormat(bool isSpec,const std::string & aFormat,s
         {
             aC++;
 	}
-	else if (*aC==0) // if we reach end of car whil skeeping white : end of game
+	else if (*aC==0) // if we reach end of car whil skipping white : end of game
 	{
              return;
 	}
@@ -288,7 +291,7 @@ void cNewReadFilesStruct::ReadFile(const std::string & aNameFile,const  cNRFS_Pa
     while (std::getline(infile, line))
     {
          size_t aHashCode = HashValue(line,true);
-         // must we skeep the line for duplicata reason
+         // must we skip the line for duplicata reason
          bool toSkip4Dupl = aParam.NoDupLine() && MapBoolFind(aSetHCode,aHashCode);
 
 
@@ -387,7 +390,11 @@ cPt3dr cNewReadFilesStruct::GetPt3dr_XYZ(size_t aKL,const std::string & aPost) c
 
 std::string  cNewReadFilesStruct::MsgFormat(const std::string & aFormat)
 {
-    return "Format of file, according to specification :  " + Quote(aFormat ) ;
+    return   "Format of file, according to specification: "
+           + Quote(aFormat)  
+           + " (\"" + TheNameUnused + "\" to skip one field"
+           + ", \"" + TheNameBla + "\" to skip the rest of the line)"
+    ;
 }
 
 int cNewReadFilesStruct::DefCommentChar() {return '#';}

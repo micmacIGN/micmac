@@ -84,7 +84,10 @@ BenchElise/bench/.Makefile.swp
 install Micmac/images/IGN_logo_2012.psd
 install Micmac/Windows/Output
 MakeBascule
-fdsc/*.pyc
+*.pyc
+*.bak
+*.aux.xml
+*.ini
 include/general/HG_defines.h
 include/XML_MicMac/TmpCam.xml
 MM-Error-*.txt

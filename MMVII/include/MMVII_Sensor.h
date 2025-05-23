@@ -139,6 +139,8 @@ class cSensorImage  :   public cObj2DelAtEnd,
 
 	 /// Compute 3D point by bundle intersection
 	  cPt3dr PInterBundle(const cHomogCpleIm & aCple,const cSensorImage &) const;
+          /// average residual in pixel of bundle intersection
+	  tREAL8 PixResInterBundle(const cHomogCpleIm & aCple,const cSensorImage &) const;
 
 
 	         //  -------------------  Jacobian ---------------------------------
@@ -206,7 +208,7 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	
 	 ///  For stenope camera return center, for other best approx
 	 virtual cPt3dr  PseudoCenterOfProj() const = 0;
-	 ///  For stenope camera return center, for other nullptr, default retunr null ptr, its not a stenoppe
+	 ///  For stenope camera return center, for other nullptr, default return null ptr, its not a stenope
 	 virtual const cPt3dr * CenterOfPC() const ;
 
 	 /// Return if any the center of footprint 
@@ -516,7 +518,7 @@ class cPhotogrammetricProject
 	  /// read Pose file  and extract the name of internal  calibration
           cPerspCamIntrCalib *  InternalCalibFromImage(const std::string &aNameIm) const;
 	  ///  compute the standard name of calibration before reading it
-	  cPerspCamIntrCalib *  InternalCalibFromStdName (const std::string aNameIm) const;
+	  cPerspCamIntrCalib *  InternalCalibFromStdName (const std::string aNameIm,bool isRemanent=true) const;
 
     //===================================================================
     //==================   ORIENTATION OF TRIPLETS    ==================

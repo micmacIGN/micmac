@@ -3,6 +3,19 @@
 namespace MMVII
 {
 
+/// analyticall version of  integral of linear interpolator
+tREAL8 IntegrLinear(tREAL8 aX)
+{
+   if (aX>1) return  1.0;
+   if (aX<-1) return 0.0;
+
+   if (aX>=0)
+      return 0.5+  (aX-Square(aX)/2.0);
+
+   // (aX<0)
+   return (0.5 + aX+Square(aX)/2.0);
+}
+
 /* *************************************************** */
 /*                                                     */
 /*           cInterpolator1D                           */
@@ -136,6 +149,14 @@ cDiffInterpolator1D *  cDiffInterpolator1D::TabulatedInterp(const cInterpolator1
 cDiffInterpolator1D *  cDiffInterpolator1D::TabulatedInterp(cInterpolator1D * anInt,int aNbTabul)
 {
     return new cTabulatedDiffInterpolator(anInt,aNbTabul);
+}
+
+cDiffInterpolator1D *  cDiffInterpolator1D::TabulSinC(int aSzSinC,int aSzApod,int aNbTabul)
+{
+   if (aSzApod<0)
+      aSzApod = aSzSinC;
+   cSinCApodInterpolator aSinC(aSzSinC,aSzApod);
+   return TabulatedInterp(aSinC,aNbTabul);
 }
 
 
@@ -464,6 +485,16 @@ cTabulatedInterpolator::cTabulatedInterpolator(const cInterpolator1D &anInt,int 
 {
 }
 
+void cTabulatedInterpolator::SetIntegral(const cTabulatedInterpolator & anInt)
+{
+     mDIm->SetV(0,0.5);       // even function so 
+     mDIm->SetV(mSzTot,1.0);       // even function so 
+
+     tREAL8 aXXX = 0.5/mNbTabul;
+     for (int aK=1 ; aK<mSzTot ; aK++)
+         mDIm->SetV(aK, mDIm->GetV(aK-1) +  (anInt.mDIm->GetV(aK-1)+anInt.mDIm->GetV(aK)) * aXXX);
+}
+
 void cTabulatedInterpolator::SetDiff(const cTabulatedInterpolator & anInt)
 {
     // for low and high bounds, specific fixing the value
@@ -568,6 +599,7 @@ cTabulatedDiffInterpolator::cTabulatedDiffInterpolator(const cInterpolator1D &an
 	cDiffInterpolator1D (anInt.SzKernel(), Append(   {TheNameInterpol,ToStr(aNbTabul)}, anInt.VNames()  )),
 	mTabW     (anInt,aNbTabul,true,true),    // true -> linear interpol, true ->we normalize value
 	mTabDifW  (anInt,aNbTabul,true,false),   // we dont normalize, btw coeff are not up to date and would divide by 0
+        mTabIntegrW(anInt,aNbTabul,true,false),
         mNbTabul  (mTabW.mNbTabul),              // fast direct access
 	mSzTot    (mTabW.mSzTot),                // fast direct access
 	mRawW     (mTabW.mDIm->RawDataLin()),     // raw data for efficiency
@@ -575,6 +607,8 @@ cTabulatedDiffInterpolator::cTabulatedDiffInterpolator(const cInterpolator1D &an
 {
 	mTabDifW.SetDiff(mTabW);   // put in DifW the difference of W
 	mTabDifW.DoNormalize(true); // normalize by sum 0
+
+	mTabIntegrW.SetIntegral(mTabW);   // put in Integ the integral of W
 }
 
 cTabulatedDiffInterpolator::cTabulatedDiffInterpolator(cInterpolator1D * anInt,int aNbTabul) :
@@ -597,6 +631,19 @@ tREAL8  cTabulatedDiffInterpolator::DiffWeight(tREAL8  anX) const
 	return SignSupEq0(anX) * mTabDifW.Weight(anX);
 }
 
+tREAL8  cTabulatedDiffInterpolator::IntegralWeight(tREAL8  anX) const 
+{
+   if (anX<0)
+     return 1.0 - IntegralWeight(-anX);
+
+
+   tREAL8 aRK = std::abs(anX) * mNbTabul;  // compute the real index in tab
+
+   if (aRK>= mSzTot) // out of kernel ->0
+      return 1.0;
+
+  return mTabIntegrW.Weight(anX);  // case linear interpol
+}
 
 /* Optimized version, avoid multiple computation of indexes & linear weighting */
 
@@ -927,6 +974,19 @@ template <class Type> void BenchScaleIm(Type aValC,tREAL8 aEps,const cDiffInterp
 
 void Bench_cMultiScaledInterpolator()
 {
+     // Use integral scale, else doesn't work exactly , probably because partition of unity ...
+     for (tREAL8 aSc = 1 ; aSc<6.0 ; aSc+= 1)
+     {
+          cTabulatedDiffInterpolator * aInt1 = cScaledInterpolator::AllocTab(cLinearInterpolator(),aSc,10000);
+
+           for (tREAL8 aX=-1.1 ; aX<1.1 ; aX+=0.1)
+           {
+              tREAL8 aDif = std::abs(IntegrLinear(aX/aSc) - aInt1->IntegralWeight(aX));
+              MMVII_INTERNAL_ASSERT_bench(aDif<1e-5,"Bench_cMultiScaledInterpolator");
+           }
+
+          delete aInt1;
+     }
      // TestBiasInterpolator();
 
      // just to test that we dont have problem with default interpolator

@@ -95,7 +95,7 @@ class cCdRadiom : public cCdSym
 	  ///  call previous with length
           void ComputePtsOfEllipse(std::vector<cPt2di> & aRes) const;
 
-	  /// compute an ellipse that contain 
+	  /// compute frontier point of black connected component with center as seed
           bool FrontBlackCC(std::vector<cPt2di> & aRes,cDataIm2D<tU_INT1> & aMarq,int aNbMax) const;
 	  ///  Select point of front that are on ellipse
           void SelEllAndRefineFront(std::vector<cPt2dr> & aRes,const std::vector<cPt2di> &) const;
@@ -129,7 +129,7 @@ class cCdRadiom : public cCdSym
 class cCdEllipse : public cCdRadiom
 {
 	public : 
-           cCdEllipse(const cCdRadiom &,cDataIm2D<tU_INT1> & aMarq,int aNbMax,bool isCircle);
+           cCdEllipse(const cCdRadiom &,cDataIm2D<tU_INT1> & aMarq,int aNbMax,bool isCircle,std::vector<cPt2dr>& aEllFr);
 	   bool IsOk() const;
 	   const cEllipse & Ell() const;
            const cPt2dr &   CornerlEl_WB() const;
@@ -162,6 +162,8 @@ class cCdEllipse : public cCdRadiom
 
            void GenImageFail(const std::string & aWhyFail);
 
+           /// once compute ellipse, use line to compute  affinity image <-> ref target
+           void EstimateAffinity();
 	private : 
 
 	   /// Most basic method, return minimal of all lenght

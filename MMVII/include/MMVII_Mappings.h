@@ -311,6 +311,9 @@ template <class Type,const int DimIn,const int DimOut> class cDataMapping : publ
       /** compute the box that contain the image of corners of BoxIn, note that due to non linerity
           it may not contain the full image of the box */
       cTplBox<Type,DimOut> BoxOfCorners(const cTplBox<Type,DimIn>& BoxIn) const;
+      /** compute the box that contain the image of frontier sampled at given step, more accurate than box of corner
+          also, rigourously speaking, it may not contain exactly the full image of the box */
+      cTplBox<Type,DimOut> BoxOfFrontier(const cTplBox<Type,DimIn>& BoxIn,Type aStepFront) const;
 
       /** compute the triangle with submit image of mapping */
       cTriangle<Type,DimOut>  TriValue(const cTriangle<Type,DimIn> &) const;
@@ -946,7 +949,7 @@ template <class Type,const int Dim> class cBijAffMapElem
 /**  Class for "tabulating" a map :
         - store values of the in a grid  (made of images)
         - use bilinear interpolation for computing values
-        - the map used to construct value is "NOT"  memorizd one object is constructed
+        - the map used to construct value is "NOT"  memorizd once object is constructed
 */
 
 

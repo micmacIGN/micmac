@@ -140,7 +140,7 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << mPhProj.DPClinoMeters().ArgDirInOpt("ClinoDirIn","Dir for Clino if != DataDir") //  CLINOBLOC
       << mPhProj.DPClinoMeters().ArgDirOutOpt("ClinoDirOut","Dir for Clino if != DataDir") //  CLINOBLOC
       << AOpt2007 ( mGCP3D, "GCP3D", "GCP ground coords and sigma factor, SG=0 fix, SG<0 schurr elim, SG>0 and optional output dir [[Folder,SigG,FOut?],...]]")
-      << AOpt2007 ( mGCP2D, "GCP2D", "GCP image coords and weight [[Folder,SigI,SigAt?=-1,Thrs?=-1,Exp?=1]...]")
+      << AOpt2007 ( mGCP2D, "GCP2D", "GCP image coords and sigma factor and optional attenuation, threshold and exponent [[Folder,SigI,SigAt?=-1,Thrs?=-1,Exp?=1]...]")
       << AOpt2007(mGCPFilter,"GCPFilter","Pattern to filter GCP by name")
       << AOpt2007(mGCPFilterAdd,"GCPFilterAdd","Pattern to filter GCP by additional info")
       << AOpt2007(mTiePWeight,"TiePWeight","Tie point weighting [Sig0,SigAtt?=-1,Thrs?=-1,Exp?=1]",{{eTA2007::ISizeV,"[1,4]"}})

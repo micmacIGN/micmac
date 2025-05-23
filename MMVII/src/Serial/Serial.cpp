@@ -142,6 +142,7 @@ void cAr2007::RawBeginName(const cAuxAr2007& anOT) {}
 void cAr2007::RawEndName(const cAuxAr2007& anOT) {}
 bool cAr2007::Tagged() const {return mTagged;}
 bool cAr2007::Input() const  {return mInput;}
+bool cAr2007::Binary() const  {return mBinary;}
 bool cAr2007::IsSpecif() const  {return mIsSpecif;}
 
 cAr2007::cAr2007(bool Input,bool isTagged,bool isBinary) :
@@ -182,7 +183,10 @@ void AddData(const  cAuxAr2007 & anAux, size_t  &  aVal) {anAux.Ar().RawAddDataT
 void AddData(const  cAuxAr2007 & anAux, int  &  aVal) {anAux.Ar().RawAddDataTerm(aVal); }
 void AddData(const  cAuxAr2007 & anAux, double  &  aVal) {anAux.Ar().RawAddDataTerm(aVal); }
 void AddData(const  cAuxAr2007 & anAux, std::string  &  aVal) {anAux.Ar().RawAddDataTerm(aVal); }
-void AddData(const  cAuxAr2007 & anAux, cRawData4Serial  &  aVal) {anAux.Ar().RawAddDataTerm(aVal); }
+void AddData(const  cAuxAr2007 & anAux, cRawData4Serial  &  aVal) 
+{
+    anAux.Ar().RawAddDataTerm(aVal); 
+}
 
 void AddData(const  cAuxAr2007 & anAux, tREAL4  &  aVal) { anAux.Ar().TplAddDataTermByCast(anAux,aVal,(double*)nullptr); }
 void AddData(const  cAuxAr2007 & anAux, tREAL16  &  aVal) { anAux.Ar().TplAddDataTermByCast(anAux,aVal,(double*)nullptr); }
@@ -237,24 +241,14 @@ template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cPtxd<Type
    AddTabData(anAux,aPt.PtRawData(),Dim,eTAAr::ePtxd);
 }
 
-template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cTplBox<Type,Dim>  &  aBox) 
-{
-   AddData(cAuxAr2007("P0",anAux),aBox.P0ByRef());
-   AddData(cAuxAr2007("P1",anAux),aBox.P1ByRef());
-   // Need to recreate a coherent object
-// StdOut() << "AddDataAddDataBox " << aBox.P0ByRef() << " " << aBox.P1ByRef() << std::endl;
-   if (anAux.Input())
-      aBox = cTplBox<Type,Dim>(aBox.P0(),aBox.P1());
-}
-
 
 template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tREAL8,4>  &  aVal) ;
 
 #define MACRO_INSTANTIATE_AddDataPtxD(DIM)\
 template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tREAL4,DIM>  &  aVal) ;\
 template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tREAL8,DIM>  &  aVal) ;\
-template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tINT4,DIM>  &  aVal) ;\
-template  void AddData(const  cAuxAr2007 & anAux, cTplBox<tINT4,DIM>  &  aVal) ;\
+template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tREAL16,DIM>  &  aVal) ;\
+template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tINT4,DIM>  &  aVal) ;
 
 MACRO_INSTANTIATE_AddDataPtxD(1)
 MACRO_INSTANTIATE_AddDataPtxD(2)
@@ -346,7 +340,7 @@ class cIBaseTxt_Ar2007 : public cAr2007,
            /// Read next tag, if its what expected return 1, restore state of file
            int NbNextOptionnal(const std::string &) override;
 	   
-	  /// retunr string after skeep whit, comm .... accept "a b c" , 
+	  /// return string after skip whitespaces, comments .... accept "a b c" ,
           std::string  GetNextStdString();
 
         // Utilitaire de manipulation 
@@ -379,7 +373,7 @@ void cIBaseTxt_Ar2007::RawAddDataTerm(std::string &    aS)
 
 void cIBaseTxt_Ar2007::RawAddDataTerm(cRawData4Serial  &    aRDS) 
 {
-   SkeepWhite();
+   SkipWhite();
    tU_INT1 * aPtr = static_cast<tU_INT1*>(aRDS.Adr());
    for (int aK=0 ; aK< aRDS.NbElem() ; aK++)
    {
@@ -436,10 +430,10 @@ class cStreamIXml_Ar2007 : public cIBaseTxt_Ar2007
 
         bool GetTag(bool aClose,const std::string & aName)
         {
-            SkeepWhite();
+            SkipWhite();
             std::string aTag = std::string(aClose ? "</" : "<") + aName + ">";
    
-            return SkeepOneString(aTag.c_str());
+            return SkipOneString(aTag.c_str());
         }
 
 };
