@@ -117,7 +117,7 @@ class cProjPointCloud
 	 // --------- Processed at initialization ----------------
          cPointCloud&           mPC;       ///< memorize cloud point
 	 const int              mNbPtsGlob;    ///< store number of points
-	 int                    mNbPts;    ///<  Dynamic, change with SetOk
+	 // int                    mNbPts;    ///<  Dynamic, change with SetOk
          std::vector<cPt3dr>    mGlobPtsInit; ///< initial point cloud (stores once  for all in 64-byte, for efficienciency)
          std::vector<cPt3dr> *  mVPtsInit;     /// Dynamic, change with SetOk
          const tREAL8           mSurResol;
