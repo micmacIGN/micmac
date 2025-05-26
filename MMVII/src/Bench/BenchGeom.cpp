@@ -14,10 +14,15 @@ template<class Type> void TplBenchRotation3D(cParamExeBench & aParam)
    {
        cPtxd<Type,3> aP0 = cPtxd<Type,3>::PRandUnit();
        {
+          int aNum = aKTest - aNbTest/2;
+          
           // Compute a Normal Repair completing 1 vect
-          cRotation3D<Type> aRP0 = cRotation3D<Type>::CompleteRON(aP0);
+          cRotation3D<Type> aRP0 = cRotation3D<Type>::CompleteRON(aP0,aNum);
           MMVII_INTERNAL_ASSERT_bench(aRP0.Mat().Unitarity()<1e-5,"Complete RON 1 Vect"); // Its a rot
-          MMVII_INTERNAL_ASSERT_bench(Norm1( aP0-aRP0.AxeI())<1e-5,"Complete RON 1 Vect"); //Its axe is P0
+          cPtxd<Type,3> anAxe =  cPtxd<Type,3>::Col(aRP0.Mat(),mod(aNum,3));
+          MMVII_INTERNAL_ASSERT_bench(Norm1( aP0-anAxe)<1e-5,"Complete RON 1 Vect"); //Its axe is P0
+
+          MMVII_INTERNAL_ASSERT_bench(std::abs( aRP0.Mat().Det()-1.0)<1e-5,"Complete RON 1 Vect"); //Its axe is P0
        }
 
        // Compute a Normal Repair completing 2 vect

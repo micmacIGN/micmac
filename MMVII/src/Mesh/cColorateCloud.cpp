@@ -16,32 +16,54 @@ namespace MMVII
     To do mark :
 */
 
-typedef cDataMapping<tREAL8,3,3> tProjPC;
 
+/* *********************************** */
+/*                                     */
+/*              cOrthoProj             */
+/*                                     */
+/* *********************************** */
 
-class cCameraOrtho
-{
-    public :
-};
+/** A very basic classfor othograhic projection, will evolve probably to orthocentric camera
+*/
 
-
-
-class cOrthoProj  : public  tProjPC
+class cOrthoProj  : public  tIMap_R3
 {
     public :
        typedef std::vector<cPt3dr> tVecP3;
 
-       cOrthoProj (const cPt3dr & aDir);
+       cOrthoProj (const tRotR & aRot ,cPt2dr aPP ,tREAL8 aResol) ;
+       cOrthoProj (const cPt3dr & aDir,cPt2dr aPP= cPt2dr(0,0) ,tREAL8 aResol=1.0) ;
         
     private  :
        const  tVecP3 &  Values(tVecP3 &,const tVecP3 & ) const override;
-       cPt3dr mDir;
+
+       tRotR  mRL2W;
+       cPt2dr mPP;
+       tREAL8 mResol;
 };
 
-cOrthoProj::cOrthoProj (const cPt3dr & aDir) :
-   mDir (VUnit(aDir)) // (aDir/aDir.z())
+cOrthoProj::cOrthoProj (const tRotR & aRot ,cPt2dr aPP ,tREAL8 aResol)  :
+    mRL2W  (aRot),
+    mPP    (aPP),
+    mResol (aResol)
 {
 }
+
+cOrthoProj::cOrthoProj (const cPt3dr & aDir ,cPt2dr aPP ,tREAL8 aResol)  :
+   cOrthoProj(tRotR::CompleteRON(aDir,2),aPP,aResol)
+{
+}
+/*
+*/
+
+/*
+cOrthoProj::cOrthoProj (const cPt3dr & aDir,cPt2dr aPP,tREAL8 aResol) :
+   mDir   (VUnit(aDir)), // (aDir/aDir.z())
+   mPP    (aPP),
+   mResol (aResol)
+{
+}
+*/
 
 const  std::vector<cPt3dr> &  cOrthoProj::Values(tVecP3 & aVOut,const tVecP3 & aVIn ) const 
 {
@@ -49,11 +71,34 @@ const  std::vector<cPt3dr> &  cOrthoProj::Values(tVecP3 & aVOut,const tVecP3 & a
    for (size_t aK=0 ; aK<aVIn.size() ; aK++)
    {
        const cPt3dr & aPIn = aVIn.at(aK);
+       cPt3dr  aPLoc = mRL2W.Inverse(aPIn);
+       cPt2dr  aPProj = Proj(aPLoc);
+       aPProj = mPP+ aPProj/mResol;
 
-       aVOut.push_back(cPt3dr(aPIn.x()-aPIn.z()*mDir.x(),aPIn.y()-aPIn.z()*mDir.y(),aPIn.z()));
+       aVOut.push_back(TP3z(aPProj,aPIn.z()));
    }
    return aVOut;
 }
+
+/* ********************************************* */
+/*                                               */
+/*                cParamProjCloud                */
+/*                                               */
+/* ********************************************* */
+
+/** Class for parametrization of cProjPointCloud::ProcessOneProj */
+
+class cParamProjCloud
+{
+   public :
+       cParamProjCloud(const tIMap_R3 * aProj) :
+           mProj   (aProj),
+           mSetOK  (nullptr)
+       {
+       }
+       const tIMap_R3 * mProj;
+       tSet_R3 *        mSetOK;
+};
 
 ///  Class for computing projection of a point cloud
 
@@ -61,18 +106,20 @@ class cProjPointCloud
 {
      public :
          /// constructor : memoriez PC, inialize accum, allocate mem
-         cProjPointCloud(cPointCloud& aPC,tREAL8 aSurResol,tREAL8 aWeightInit );
+         cProjPointCloud(cPointCloud & aParam,tREAL8 aSurResol,tREAL8 aWeightInit );
 
 	 /// Process on projection for  OR  (1) modify colorization of points (2) 
-         void ProcessOneProj(const tProjPC &,tREAL8 aW,bool ModeImage);
+         void ProcessOneProj(const cParamProjCloud &,tREAL8 aW,bool ModeImage);
          
 	 // export the average of radiomeries (in mSumRad) as a field of mPC
          void ColorizePC(); 
      private :
 	 // --------- Processed at initialization ----------------
          cPointCloud&           mPC;       ///< memorize cloud point
-	 const int              mNbPts;    ///< store number of points
-         std::vector<cPt3dr>    mVPtsInit; ///< initial point cloud (stores once  for all in 64-byte, for efficienciency)
+	 const int              mNbPtsGlob;    ///< store number of points
+	 int                    mNbPts;    ///<  Dynamic, change with SetOk
+         std::vector<cPt3dr>    mGlobPtsInit; ///< initial point cloud (stores once  for all in 64-byte, for efficienciency)
+         std::vector<cPt3dr> *  mVPtsInit;     /// Dynamic, change with SetOk
          const tREAL8           mSurResol;
 	 const tREAL8           mAvgD;       ///< Avg 2D-Distance between points in 3D Cloud
          const tREAL8           mStepProf;  ///< Step for computing depth-images
@@ -86,23 +133,23 @@ class cProjPointCloud
 };
 
 cProjPointCloud::cProjPointCloud(cPointCloud& aPC,tREAL8 aSurResol,tREAL8 aWeightInit) :
-   mPC       (aPC),
-   mNbPts    (aPC.NbPts()),
-   mSurResol (aSurResol),
-   mAvgD     (std::sqrt(1.0/mPC.Density())),
-   mStepProf (mAvgD / mSurResol),
+   mPC        (aPC),
+   mNbPtsGlob (aPC.NbPts()),
+   mSurResol  (aSurResol),
+   mAvgD      (std::sqrt(1.0/mPC.Density())),
+   mStepProf  (mAvgD / mSurResol),
 
-   mSumW     (aWeightInit),
-   mSumRad   (mNbPts,0.0)
+   mSumW      (aWeightInit),
+   mSumRad    (mNbPtsGlob,0.0)
 {
    // reserve size for Pts
-   mVPtsInit.reserve(mNbPts);
-   mVPtsProj.reserve(mNbPts);
+   mGlobPtsInit.reserve(mNbPtsGlob);
+   mVPtsProj.reserve(mNbPtsGlob);
 
-   //  Init mVPtsInit && SumRad
+   //  Init mGlobPtsInit && SumRad
    for (size_t aKPt=0 ; aKPt<aPC.NbPts() ; aKPt++)
    {
-       mVPtsInit.push_back(aPC.KthPt(aKPt));
+       mGlobPtsInit.push_back(aPC.KthPt(aKPt));
        if (mPC.DegVisIsInit())
           mSumRad.at(aKPt) = aPC.GetDegVis(aKPt) * aWeightInit;
    }
@@ -117,8 +164,10 @@ void cProjPointCloud::ColorizePC()
    }
 }
 
-void cProjPointCloud::ProcessOneProj(const tProjPC & aProj,tREAL8 aW,bool isModeImage)
+void cProjPointCloud::ProcessOneProj(const cParamProjCloud & aParam,tREAL8 aW,bool isModeImage)
 {
+     const tIMap_R3 & aProj  = *(aParam.mProj);
+
      mSumW += aW;               // accumlate weight
      tREAL8 aMinInfty = -1e10;  // minus infinity, any value lower than anr real one
      tREAL8 aPlusInfty = - aMinInfty;
@@ -126,9 +175,21 @@ void cProjPointCloud::ProcessOneProj(const tProjPC & aProj,tREAL8 aW,bool isMode
      // ========================================================================
      // == [0] ==================  Init proj, indexes, images  =================
      // ========================================================================
+
+
+     //    [0.0] ---  Compute eventually the selection of point ------
+     mVPtsInit = & mGlobPtsInit;  // Default case , take all the point
+     std::vector<cPt3dr>  aVPtsSel;  // will contain the selection if required, must be at the same scope
+     if (aParam.mSetOK)  // if we have a selection
+     {
+         for (const auto & aPt : mGlobPtsInit)
+             if (aParam.mSetOK->Inside(aPt))
+                aVPtsSel.push_back(aPt);
+         mVPtsInit  = & aVPtsSel;
+     }
      
      //    [0.1] ---  Compute 3D proj+ its 2d-box ----
-     aProj.Values(mVPtsProj,mVPtsInit); 
+     aProj.Values(mVPtsProj,*mVPtsInit); 
      cTplBoxOfPts<tREAL8,2> aBOP;
 
      for (const auto & aPt : mVPtsProj)
@@ -235,6 +296,7 @@ void cProjPointCloud::ProcessOneProj(const tProjPC & aProj,tREAL8 aW,bool isMode
      // == [3] ==================   compute the images (radiom, weight, depth) ==============
      // =====================================================================================
 
+/*
      if (isModeImage)
      {
          tREAL8 aResolImRel = 0.5;
@@ -288,6 +350,7 @@ void cProjPointCloud::ProcessOneProj(const tProjPC & aProj,tREAL8 aW,bool isMode
 
         StdOut() << "RESOL ;  IMA-REL=" << aResolImaRel << " Ground=" << aStepImAbs << "\n";
      }
+*/
 }
 
 /* =============================================== */
@@ -372,7 +435,8 @@ int  cAppli_MMVII_CloudImProj::Exe()
    if  (IsInit(&mSun))
    {
        cProjPointCloud  aPPC(aPC_In,mSurResolSun,1.0);
-       aPPC.ProcessOneProj( cOrthoProj  (cPt3dr(mSun.x(),mSun.y(),1.0)), mSun.z(),false);
+       cOrthoProj  aProj(cPt3dr(mSun.x(),mSun.y(),1.0));
+       aPPC.ProcessOneProj(cParamProjCloud(&aProj), mSun.z(),false);
 
        aPPC.ColorizePC();
        if (IsInit(&mNameSavePCSun))
@@ -380,8 +444,17 @@ int  cAppli_MMVII_CloudImProj::Exe()
    }
 
    cProjPointCloud  aPPC(aPC_In,mSurResolSun,1.0);
-   for (int aK=-5 ; aK<=5 ; aK++)
-       aPPC.ProcessOneProj(cOrthoProj(cPt3dr(aK*0.2,0,1.0)), 0.0,true);
+   if (true)
+   {
+   }
+   else
+   {
+       for (int aK=-5 ; aK<=5 ; aK++)
+       {
+           cOrthoProj aProj(cPt3dr(aK*0.2,0,1.0));
+           aPPC.ProcessOneProj(cParamProjCloud(&aProj),0.0,true);
+       }
+   }
 
    StdOut() << "NbLeaves "<< aPC_In.LeavesIsInit () << "\n";
 
@@ -501,7 +574,7 @@ int  cAppli_MMVII_CloudColorate::Exe()
    cAutoTimerSegm aTSProj(TimeSegm(),"1Proj");
 
    int aNbStd=0;
-   if (mNbSampS)
+   if (mNbSampS>0)
    {
        aPC_In.SetMulDegVis(1e4);
        cSampleSphere3D aSampS(mNbSampS);
@@ -510,7 +583,8 @@ int  cAppli_MMVII_CloudColorate::Exe()
            cPt3dr aDir = VUnit(aSampS.KthPt(aK));
            if (aDir.z() >= 0.2)
            {
-               aPPC.ProcessOneProj( cOrthoProj(aDir),1.0,false);
+               cOrthoProj aProj(aDir);
+               aPPC.ProcessOneProj(cParamProjCloud(&aProj),1.0,false);
                aNbStd++;
                StdOut() << "Still " << aSampS.NbSamples() - aK << "\n";
            }
@@ -520,7 +594,8 @@ int  cAppli_MMVII_CloudColorate::Exe()
    if (IsInit(&mSun))
    {
        tREAL8 aW0  = mNbSampS ? aNbStd : 1.0;
-       aPPC.ProcessOneProj( cOrthoProj  (cPt3dr(mSun.x(),mSun.y(),1.0)),aW0 * mSun.z(),false);
+       cOrthoProj  aProj(cPt3dr(mSun.x(),mSun.y(),1.0));
+       aPPC.ProcessOneProj(cParamProjCloud(&aProj),aW0 * mSun.z(),false);
    }
 
    aPPC.ColorizePC();

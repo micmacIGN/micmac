@@ -1095,6 +1095,8 @@ Avec R=N(x,y,z) et r=N(x,y)
 
 */
 
+typedef cDataInvertibleMapping<tREAL8,3> tIMap_R3;
+typedef cDataBoundedSet<tREAL8,3> tSet_R3;
 
 };
 
