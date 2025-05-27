@@ -26,13 +26,14 @@ namespace MMVII
 /** A very basic classfor othograhic projection, will evolve probably to orthocentric camera
 */
 
-class cOrthoProj  : public  tIMap_R3
+class cOrthoProj  :  public  tIMap_R3
 {
     public :
        typedef std::vector<cPt3dr> tVecP3;
 
        cOrthoProj (const tRotR & aRot ,cPt2dr aPP ,tREAL8 aResol) ;
        cOrthoProj (const cPt3dr & aDir,cPt2dr aPP= cPt2dr(0,0) ,tREAL8 aResol=1.0) ;
+       tSeg3dr  BundleInverse(const cPt2dr &) const ;
         
     private  :
        const  tVecP3 &  Values(tVecP3 &,const tVecP3 & ) const override;
@@ -43,9 +44,9 @@ class cOrthoProj  : public  tIMap_R3
 };
 
 cOrthoProj::cOrthoProj (const tRotR & aRot ,cPt2dr aPP ,tREAL8 aResol)  :
-    mRL2W  (aRot),
-    mPP    (aPP),
-    mResol (aResol)
+    mRL2W         (aRot),
+    mPP           (aPP),
+    mResol        (aResol)
 {
 }
 
@@ -53,17 +54,6 @@ cOrthoProj::cOrthoProj (const cPt3dr & aDir ,cPt2dr aPP ,tREAL8 aResol)  :
    cOrthoProj(tRotR::CompleteRON(aDir,2),aPP,aResol)
 {
 }
-/*
-*/
-
-/*
-cOrthoProj::cOrthoProj (const cPt3dr & aDir,cPt2dr aPP,tREAL8 aResol) :
-   mDir   (VUnit(aDir)), // (aDir/aDir.z())
-   mPP    (aPP),
-   mResol (aResol)
-{
-}
-*/
 
 const  std::vector<cPt3dr> &  cOrthoProj::Values(tVecP3 & aVOut,const tVecP3 & aVIn ) const 
 {
@@ -78,6 +68,59 @@ const  std::vector<cPt3dr> &  cOrthoProj::Values(tVecP3 & aVOut,const tVecP3 & a
        aVOut.push_back(TP3z(aPProj,aPIn.z()));
    }
    return aVOut;
+}
+
+tSeg3dr   cOrthoProj::BundleInverse(const cPt2dr & aPIm0) const 
+{
+    cPt2dr aPIm = (aPIm0-mPP) * mResol;
+    cPt3dr aP0 = TP3z(aPIm,-1.0);
+    cPt3dr aP1 = TP3z(aPIm, 1.0);
+
+    return tSeg3dr(mRL2W.Value(aP0),mRL2W.Value(aP1));
+}
+
+
+/* *********************************** */
+/*                                     */
+/*              cCamOrthoC             */
+/*                                     */
+/* *********************************** */
+#if (0)
+
+class cCamOrthoC  :  public  cSensorImage
+{
+    public :
+          const cPixelDomain & PixelDomain() const override;
+    private :
+};
+
+
+
+/*
+       const cPixelDomain & PixelDomain() const override;
+       tSeg3dr  Image2Bundle(const cPt2dr &) const override;
+       cPt2dr Ground2Image(const cPt3dr &) const override;
+       double DegreeVisibility(const cPt3dr &) const override;
+       std::string  V_PrefixName() const   override;
+       cPt3dr  PseudoCenterOfProj() const ;
+*/
+/*
+*/
+
+/*
+cOrthoProj::cOrthoProj (const cPt3dr & aDir,cPt2dr aPP,tREAL8 aResol) :
+   mDir   (VUnit(aDir)), // (aDir/aDir.z())
+   mPP    (aPP),
+   mResol (aResol)
+{
+}
+*/
+
+
+
+std::string  cOrthoProj::V_PrefixName() const 
+{
+    return "CamOrtho";
 }
 
 /* ********************************************* */
@@ -435,7 +478,7 @@ int  cAppli_MMVII_CloudImProj::Exe()
    if  (IsInit(&mSun))
    {
        cProjPointCloud  aPPC(aPC_In,mSurResolSun,1.0);
-       cOrthoProj  aProj(cPt3dr(mSun.x(),mSun.y(),1.0));
+       cOrthoProj  aProj("Sun.tif",cPt3dr(mSun.x(),mSun.y(),1.0));
        aPPC.ProcessOneProj(cParamProjCloud(&aProj), mSun.z(),false);
 
        aPPC.ColorizePC();
@@ -451,7 +494,7 @@ int  cAppli_MMVII_CloudImProj::Exe()
    {
        for (int aK=-5 ; aK<=5 ; aK++)
        {
-           cOrthoProj aProj(cPt3dr(aK*0.2,0,1.0));
+           cOrthoProj aProj("Test_"+ToStr(aK)+".tif",cPt3dr(aK*0.2,0,1.0));
            aPPC.ProcessOneProj(cParamProjCloud(&aProj),0.0,true);
        }
    }
@@ -583,7 +626,7 @@ int  cAppli_MMVII_CloudColorate::Exe()
            cPt3dr aDir = VUnit(aSampS.KthPt(aK));
            if (aDir.z() >= 0.2)
            {
-               cOrthoProj aProj(aDir);
+               cOrthoProj aProj("Sky_"+ToStr(aK)+".tif",aDir);
                aPPC.ProcessOneProj(cParamProjCloud(&aProj),1.0,false);
                aNbStd++;
                StdOut() << "Still " << aSampS.NbSamples() - aK << "\n";
@@ -594,7 +637,7 @@ int  cAppli_MMVII_CloudColorate::Exe()
    if (IsInit(&mSun))
    {
        tREAL8 aW0  = mNbSampS ? aNbStd : 1.0;
-       cOrthoProj  aProj(cPt3dr(mSun.x(),mSun.y(),1.0));
+       cOrthoProj  aProj("Sun.tif",cPt3dr(mSun.x(),mSun.y(),1.0));
        aPPC.ProcessOneProj(cParamProjCloud(&aProj),aW0 * mSun.z(),false);
    }
 
@@ -624,7 +667,6 @@ cSpecMMVII_Appli  TheSpec_MMVII_CloudColorate
       {eApDT::Ply},
       __FILE__
 );
-#if (0)
 #endif
 
 
