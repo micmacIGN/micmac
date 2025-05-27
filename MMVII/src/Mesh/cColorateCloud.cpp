@@ -23,8 +23,7 @@ namespace MMVII
 /*                                     */
 /* *********************************** */
 
-/** A very basic classfor othograhic projection, will evolve probably to orthocentric camera
-*/
+/**  The orthographic projection as a mapping.  Used as element of cCamOrthoC.  */
 
 class cOrthoProj  :  public  tIMap_R3
 {
@@ -34,6 +33,8 @@ class cOrthoProj  :  public  tIMap_R3
        cOrthoProj (const tRotR & aRot ,cPt2dr aPP ,tREAL8 aResol) ;
        cOrthoProj (const cPt3dr & aDir,cPt2dr aPP= cPt2dr(0,0) ,tREAL8 aResol=1.0) ;
        tSeg3dr  BundleInverse(const cPt2dr &) const ;
+
+       cOrthoProj(const cOrthoProj&);
         
     private  :
        const  tVecP3 &  Values(tVecP3 &,const tVecP3 & ) const override;
@@ -50,10 +51,18 @@ cOrthoProj::cOrthoProj (const tRotR & aRot ,cPt2dr aPP ,tREAL8 aResol)  :
 {
 }
 
+/*
+cOrthoProj:: cOrthoProj(const cOrthoProj&) :
+    cOrthoProj(mRL2W,mPP,mResol)
+{
+}
+*/
+
 cOrthoProj::cOrthoProj (const cPt3dr & aDir ,cPt2dr aPP ,tREAL8 aResol)  :
    cOrthoProj(tRotR::CompleteRON(aDir,2),aPP,aResol)
 {
 }
+
 
 const  std::vector<cPt3dr> &  cOrthoProj::Values(tVecP3 & aVOut,const tVecP3 & aVIn ) const 
 {
@@ -85,16 +94,29 @@ tSeg3dr   cOrthoProj::BundleInverse(const cPt2dr & aPIm0) const
 /*              cCamOrthoC             */
 /*                                     */
 /* *********************************** */
-#if (0)
 
 class cCamOrthoC  :  public  cSensorImage
 {
     public :
-          const cPixelDomain & PixelDomain() const override;
+       const cPixelDomain & PixelDomain() const override;
+       cCamOrthoC(const std::string &aName,const cOrthoProj & aProj,const cPt2di & aSz);
+
     private :
+       cOrthoProj         mProj;
+       cDataPixelDomain   mDataPixDom;
+       cPixelDomain       mPixelDomain;
 };
 
+cCamOrthoC::cCamOrthoC(const std::string &aNameImage,const cOrthoProj & aProj,const cPt2di & aSz) :
+     cSensorImage (aNameImage),
+     mProj        (aProj),
+     mDataPixDom  (aSz),
+     mPixelDomain (&mDataPixDom)
+{
+}
+      
 
+#if (0)
 
 /*
        const cPixelDomain & PixelDomain() const override;
