@@ -826,7 +826,7 @@ void cNodeArborTriplets::RefineSolution()
 
     // intrinsic parameters considered the same for all images
     StdOut() << mLocSols.at(0).mNumPose  << " " << mPMAT->MapI2Str(mLocSols.at(0).mNumPose) << std::endl;
-    cPerspCamIntrCalib *   aCal = mPhProj.InternalCalibFromStdName(mPMAT->MapI2Str(mLocSols.at(0).mNumPose));
+    cPerspCamIntrCalib *   aCal = mPhProj.InternalCalibFromStdName(mPMAT->MapI2Str(mLocSols.at(0).mNumPose),false);
     StdOut() << "Calib read" << std::endl;
     aSetIntervUK.AddOneObj(aCal);
 
@@ -890,7 +890,9 @@ void cNodeArborTriplets::RefineSolution()
     }
 
     // read the tie points corresponding to your image set
+    StdOut() << "Before read Tps" << std::endl;
     cComputeMergeMulTieP * aTPts = AllocStdFromMTPFromFolder(mPMAT->TPFolder(),aVNames,mPhProj,true,false,true);
+    StdOut() << "After read Tps" << std::endl;
 
 
     // image points weighting function
@@ -1041,6 +1043,7 @@ void cNodeArborTriplets::RefineSolution()
 
     aSetIntervUK.SIUK_Reset();
 
+    delete aCal;
     delete aSys;
     delete aTPts;
     for (auto aECol : aVEqCol)
