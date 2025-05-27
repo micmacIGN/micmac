@@ -225,7 +225,68 @@ bool operator == (const cVal1ConfTPM & aV1,const cVal1ConfTPM & aV2)
 	       &&  (aV1.mVIdPts== aV2.mVIdPts)
         ;
 }
+cComputeMergeMulTieP::cComputeMergeMulTieP
+    (
+        const cComputeMergeMulTieP& aFullMTP,
+        const std::vector<std::string> & aVNameSelected
+        )
+{
+    std::set<std::string> aSet(aVNameSelected.begin(),aVNameSelected.end());
+    std::vector<int> aVecNewIndices;
+    int aNbIn =0;
 
+    //  compute the new images & sensor, compute the new vector of index for images
+    for (size_t aKIm=0 ; aKIm<aFullMTP.mVNames.size() ; aKIm++)
+    {
+        const std::string & aName = aFullMTP.mVNames.at(aKIm);
+        bool isIn = MapBoolFind(aSet,aName);
+        aVecNewIndices.push_back(isIn ? aNbIn++ : -1);
+        if (isIn)
+        {
+            mVNames.push_back(aName);
+            if (!aFullMTP.mVSensors.empty()) // if not empty it must be filled for all images
+            {
+                mVSensors.push_back(aFullMTP.mVSensors.at(aKIm));
+            }
+        }
+    }
+
+    //  parse all config, select those with NbIm>=2, compact the indices and reduce points
+    for (const auto & [aConfig,aVal] : aFullMTP.mPts)
+    {
+        std::vector<int> aNewConfig; // Reduced Indexes of images in new struct
+        std::vector<int> aVecKInConf; // Position in config where thise red-ind were
+        // Compute aNewConfig & aVecKInConf
+        for (size_t aKInConfig =0 ; aKInConfig<aConfig.size() ; aKInConfig++)
+        {
+            int aIndexIm = aConfig.at(aKInConfig);
+            int aNewIndexIm = aVecNewIndices.at(aIndexIm);
+            if (aNewIndexIm>=0)
+            {
+                aNewConfig.push_back(aNewIndexIm);
+                aVecKInConf.push_back(aKInConfig);
+            }
+        }
+
+        //  if there is enough point for the config to be of interest as tie-point
+        if (aNewConfig.size() >=2)
+        {
+            cVal1ConfTPM & aNewVal = mPts[aNewConfig];
+            size_t aNbIm = aConfig.size();
+            size_t aNbPts = aVal.mVPIm.size() / aNbIm;
+            // check on  total number due to structuring
+            MMVII_INTERNAL_ASSERT_medium(aVal.mVPIm.size()==aNbIm*aNbPts,"Size pb in cVal1ConfTPM");
+            int aIndPt0 = 0;
+            for (size_t aKPt=0 ; aKPt<aNbPts ; aKPt++)
+            {
+                for (const auto aKInC : aVecKInConf)
+                    aNewVal.mVPIm.push_back(aVal.mVPIm.at(aIndPt0+aKInC));
+                aIndPt0 += aNbIm;
+            }
+
+        }
+    }
+}
 cComputeMergeMulTieP::cComputeMergeMulTieP
 (
        const std::vector<std::string> & aVNames,

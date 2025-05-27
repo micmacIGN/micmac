@@ -421,6 +421,9 @@ class cComputeMergeMulTieP : public cMemCheck
 	     bool WithImageIndex = false
         );
 
+        /// Construct a sub-structure corresponing to the name selected
+        cComputeMergeMulTieP(const cComputeMergeMulTieP&,const  std::vector<std::string> & aVNamesSelected);
+
         const std::vector<cSensorImage *> &  VSensors() const;  ///< Accessor, error if empty
         /// Data allow to iterate on multiple points
         const std::map<tConfigIm,cVal1ConfTPM> &  Pts() const;
