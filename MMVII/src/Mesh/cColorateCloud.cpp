@@ -241,9 +241,12 @@ void cProjPointCloud::ColorizePC()
 
 void cProjPointCloud::ProcessOneProj(const cParamProjCloud & aParam,tREAL8 aW,bool isModeImage)
 {
-     static int aCpt=0 ; aCpt++;
-     size_t aKBug = 2;
-     bool aBugCpt = (aCpt==7);
+static int aCpt=0 ; aCpt++;
+size_t aKBug = 2;
+bool aBugCpt = (aCpt==7);
+cPt2di aNBug(2,0);
+cPt2di aPtBug(852,3371);
+// aBugCpt=-1;
 
      const tIMap_R3 & aProj  = *(aParam.mProj);
 
@@ -269,6 +272,7 @@ void cProjPointCloud::ProcessOneProj(const cParamProjCloud & aParam,tREAL8 aW,bo
      
      //    [0.1] ---  Compute 3D proj+ its 2d-box ----
      aProj.Values(mVPtsProj,*mVPtsInit); 
+tREAL8 aDepthBug = mVPtsProj.at(aKBug).z();
      cTplBoxOfPts<tREAL8,2> aBOP;
 
      for (const auto & aPt : mVPtsProj)
@@ -288,7 +292,12 @@ void cProjPointCloud::ProcessOneProj(const cParamProjCloud & aParam,tREAL8 aW,bo
          mVPtImages.push_back(anInd); 
      }
      if (aBugCpt)
-        StdOut() << "INDIma=" <<  mVPtImages.at(aKBug) << "\n";
+     {
+        StdOut() << "INDIma=" <<  mVPtImages.at(aKBug) 
+                 << " PIn="   << mVPtsInit->at(aKBug)
+                 << " PProj="   << mVPtsProj.at(aKBug)
+                 << "\n";
+     }
 
      //    [0.3]  ---------- Alloc images --------------------
      //    [0.3.1]   image of depth
@@ -326,7 +335,12 @@ void cProjPointCloud::ProcessOneProj(const cParamProjCloud & aParam,tREAL8 aW,bo
      {
          const cPt2di  & aCenter = mVPtImages.at(aKPt); // extract index
          // extract depth, supress tiny value, so next time  Depth>stored value even with rounding in store
-         tREAL8   aDepth      = mVPtsProj.at(aKPt).z() - mAvgD/1e8;
+         //  tREAL8   aDepth      = mVPtsProj.at(aKPt).z() - mAvgD/1e8;
+         // tREAL8 aZ = mVPtsProj.at(aKPt).z();
+         // tREAL8   aDepth  = aZ * (1.0 +  1e-6* ((aZ>0) ? -1 : 1));
+
+         tREAL8   aDepth  = mVPtsProj.at(aKPt).z();
+
          // update depth for all point of the "leaf"
          const auto & aVDisk = aVVdisk.at(mPC.GetIntSzLeave(aKPt));
          for (const auto & aNeigh : aVDisk)
@@ -335,6 +349,10 @@ void cProjPointCloud::ProcessOneProj(const cParamProjCloud & aParam,tREAL8 aW,bo
              if (aDImDepth.Inside(aPt))
              {
                  aDImDepth.SetMax(aPt,aDepth);
+                 if (aBugCpt && (aPt==aPtBug))
+                 {
+                    StdOut() << "MAJ KPT=" << aKPt << " Diff=" << aDepthBug - aDepth << "\n";
+                 }
              } 
          }
      }
@@ -344,6 +362,7 @@ void cProjPointCloud::ProcessOneProj(const cParamProjCloud & aParam,tREAL8 aW,bo
      //         * in mode std  accumulate its visibility 
      //         * in mode image, project its radiometry
      // ===========================================================================================================================
+int aNbEqualBug=0;
      for (size_t aKPt=0 ; aKPt<mVPtsProj.size() ; aKPt++) // parse all points
      {
          const cPt2di  & aCenter = mVPtImages.at(aKPt);
@@ -353,7 +372,18 @@ void cProjPointCloud::ProcessOneProj(const cParamProjCloud & aParam,tREAL8 aW,bo
          for (const auto & aNeigh :aVDisk) // parse all point of leaf
          {
              cPt2di aPt = aCenter + aNeigh;
-             if (aDImDepth.DefGetV(aPt,aPlusInfty) <= aDepth)  // if the point is visible
+             bool IsVisible = (aDImDepth.DefGetV(aPt,aPlusInfty) <= aDepth);
+aNbEqualBug += (aDImDepth.DefGetV(aPt,aPlusInfty) == aDepth);
+             if (aBugCpt && (aKPt==aKBug) && (aNeigh==aNBug))
+             {
+                 StdOut() << " Neigh=" << aNeigh << " Vis=" << IsVisible << " Pt=" << aPt << "\n";
+                 StdOut() << " [DEPTH] " 
+                          << " Im=" << aDImDepth.DefGetV(aPt,aPlusInfty) 
+                          << " Pt=" <<  aDepth 
+                          << " Diff=" << aDepth-aDImDepth.DefGetV(aPt,aPlusInfty) 
+                          << "\n";
+             }
+             if (IsVisible)  // if the point is visible
              {
                 if (isModeImage)  // in mode image udpate radiometry & image
                 {
@@ -370,10 +400,19 @@ void cProjPointCloud::ProcessOneProj(const cParamProjCloud & aParam,tREAL8 aW,bo
          {
             tREAL8 aGray = (aW * aNbVis) / aVDisk.size();
             mSumRad.at(aKPt) +=  aGray;
-            if (aKPt==aKBug)
-               StdOut() << "Cpt=" << aCpt << " K=" << aKPt << " SR="  <<  mSumRad.at(aKPt) << " Gr=" << aGray << "\n";
+            if (aBugCpt && (aKPt==aKBug))
+               StdOut() << "Cpt=" << aCpt << " K=" << aKPt << " NBV=" << aNbVis << " SR="  <<  mSumRad.at(aKPt) << " Gr=" << aGray << "\n";
          }
      }
+
+if (aBugCpt) 
+{
+   int aNbEqTh = 0;
+   for (const auto & aP : aDImDepth)
+       if ( aDImDepth.GetV(aP) > (aMinInfty/2))
+          aNbEqTh++;
+   StdOut() << "NBEQ=" << aNbEqualBug << " " << aNbEqualBug - aNbEqTh << "\n";
+}
      
 
      // =====================================================================================
