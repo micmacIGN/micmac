@@ -350,6 +350,13 @@ void cMMVII_Appli::InitMMVIIDirs(const std::string& aMMVIIDir)
 }
 
 const std::vector<eSharedPO>    cMMVII_Appli::EmptyVSPO;  ///< Deafaut Vector  shared optional parameter
+bool cMMVII_Appli::mIsMultiThread = false;
+void cMMVII_Appli::SetMultiThread()
+{
+   mIsMultiThread = true;
+}
+bool cMMVII_Appli::IsMultiThread() {return mIsMultiThread;}
+
 
 
 /// This one is always std:: cout, to be used by StdOut and cMMVII_Appli::StdOut ONLY

@@ -333,6 +333,7 @@ template <class TypeKey,class TypeVal> void AddData(const cAuxAr2007 & anAux,std
 
 
 template <class Type,const int Dim>  void  AddData(const  cAuxAr2007 & anAux,cTplBox<Type,Dim> & aBox) { aBox.AddData(anAux); }
+template <class Type,const int Dim>  void  AddData(const  cAuxAr2007 & anAux,cTplBoxOfPts<Type,Dim> & aBox) { aBox.AddData(anAux); }
 
 
 template <class Type,const int Dim> void AddData(const cAuxAr2007 & anAux,cDataTypedIm<Type,Dim> & aIm)

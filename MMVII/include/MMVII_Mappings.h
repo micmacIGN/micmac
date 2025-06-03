@@ -23,10 +23,10 @@
 #define  MACRO_CHECK_RECURS_BEGIN\
  static int  aCPT_CHECK_RECURS=0;\
  MMVII_INTERNAL_ASSERT_strong((aCPT_CHECK_RECURS==0),"Forbiden Recursive Call");\
- aCPT_CHECK_RECURS++;
+ if (!cMMVII_Appli::IsMultiThread()) {aCPT_CHECK_RECURS++;}
 
 #define  MACRO_CHECK_RECURS_END\
- aCPT_CHECK_RECURS--;
+ if (!cMMVII_Appli::IsMultiThread()) {aCPT_CHECK_RECURS--;}
 
 
 namespace MMVII

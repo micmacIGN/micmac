@@ -193,15 +193,12 @@ class cMMVII_Ap_NameManip
         cMMVII_Ap_NameManip();
         ~cMMVII_Ap_NameManip();
 
+        static void InitLUT();
+
     protected :
-      
-        cCarLookUpTable *                       mCurLut; /// Lut use for Split , recycled each time
-        cGestObjetEmpruntable<cCarLookUpTable>  mGoClut; /// Memry ressource to allocate cCarLookUpTable
     private :
         // Avance jusqu'au premier char !=0 et Lut[cahr] !=0
-        const char * SkipLut(const char *,int aVal);
-        void GetCurLut();
-        void RendreCurLut();
+        const char * SkipLut(const cCarLookUpTable * aLut,const char *,int aVal);
 };
 
 
@@ -411,6 +408,9 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
                      public cMMVII_Ap_CPU
 {
     public :
+
+        void SetMultiThread();
+        static bool IsMultiThread();
 
         typedef std::vector<eSharedPO>  tVSPO;
         /// Temporary; will add later a "real" warning mechanism, for now track existing
@@ -758,6 +758,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         std::string                        mReportSubDir;  ///< In case we want to write in separate subdir (like with GCP)
 
 	std::string                        mPatternInitGMA;
+        static bool                        mIsMultiThread;
 };
 
 /// Generate name of percentages for CSV

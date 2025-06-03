@@ -30,8 +30,8 @@ class cOrthoProj  :  public  tIMap_R3
     public :
        typedef std::vector<cPt3dr> tVecP3;
 
-       cOrthoProj (const tRotR & aRot ,cPt2dr aPP ,tREAL8 aResol) ;
-       cOrthoProj (const cPt3dr & aDir,cPt2dr aPP= cPt2dr(0,0) ,tREAL8 aResol=1.0) ;
+       cOrthoProj (const tRotR & aRot ,const cPt3dr& aC,const cPt2dr& aPP ,tREAL8 aResol) ;
+       cOrthoProj (const cPt3dr & aDir,const cPt3dr& aC =cPt3dr(0,0,0),const cPt2dr& aPP= cPt2dr(0,0) ,tREAL8 aResol=1.0) ;
        tSeg3dr  BundleInverse(const cPt2dr &) const ;
 
        cOrthoProj(const cOrthoProj&);
@@ -42,13 +42,15 @@ class cOrthoProj  :  public  tIMap_R3
        const  tVecP3 &  Values(tVecP3 &,const tVecP3 & ) const override;
 
        tRotR  mRL2W;
+       cPt3dr mC;
        cPt2dr mPP;
        tREAL8 mResol;
-       bool   mProfIsZIN;
+       bool   mProfIsZIN;  ///
 };
 
-cOrthoProj::cOrthoProj (const tRotR & aRot ,cPt2dr aPP ,tREAL8 aResol)  :
+cOrthoProj::cOrthoProj (const tRotR & aRot ,const cPt3dr & aC,const cPt2dr & aPP ,tREAL8 aResol)  :
     mRL2W         (aRot),
+    mC            (aC),
     mPP           (aPP),
     mResol        (aResol),
     mProfIsZIN    (false)
@@ -56,16 +58,16 @@ cOrthoProj::cOrthoProj (const tRotR & aRot ,cPt2dr aPP ,tREAL8 aResol)  :
 }
 
 cOrthoProj:: cOrthoProj(const cOrthoProj& anOP) :
-    cOrthoProj(anOP.mRL2W,anOP.mPP,anOP.mResol)
+    cOrthoProj(anOP.mRL2W,anOP.mC,anOP.mPP,anOP.mResol)
+{
+}
+
+cOrthoProj::cOrthoProj (const cPt3dr & aDir ,const cPt3dr & aC,const cPt2dr& aPP ,tREAL8 aResol)  :
+   cOrthoProj(tRotR::CompleteRON(aDir,2),aC,aPP,aResol)
 {
 }
 /*
 */
-
-cOrthoProj::cOrthoProj (const cPt3dr & aDir ,cPt2dr aPP ,tREAL8 aResol)  :
-   cOrthoProj(tRotR::CompleteRON(aDir,2),aPP,aResol)
-{
-}
 
 
 const  std::vector<cPt3dr> &  cOrthoProj::Values(tVecP3 & aVOut,const tVecP3 & aVIn ) const 
@@ -74,7 +76,7 @@ const  std::vector<cPt3dr> &  cOrthoProj::Values(tVecP3 & aVOut,const tVecP3 & a
    for (size_t aK=0 ; aK<aVIn.size() ; aK++)
    {
        const cPt3dr & aPIn = aVIn.at(aK);
-       cPt3dr  aPLoc = mRL2W.Inverse(aPIn);
+       cPt3dr  aPLoc = mRL2W.Inverse(aPIn-mC);
        cPt2dr  aPProj = Proj(aPLoc);
        aPProj = mPP+ aPProj/mResol;
 

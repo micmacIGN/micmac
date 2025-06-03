@@ -117,8 +117,8 @@ int cAppli_ImportTxtCloud::Exe()
 
         aPC.AddPt(aPt);
     }
-    cBox3dr aBox3d = aPC.Box();
-    aPC.mBox2d = cBox2dr(Proj(aBox3d.P0()),Proj(aBox3d.P1()));
+    //cBox3dr aBox3d = aPC.Box();
+    //aPC.mBox2d = cBox2dr(Proj(aBox3d.P0()),Proj(aBox3d.P1()));
 
     if (! IsInit(&mDensity))
     {

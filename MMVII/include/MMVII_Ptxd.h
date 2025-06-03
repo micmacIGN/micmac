@@ -841,6 +841,7 @@ template <class Type,const int Dim>  class cTplBoxOfPts
         cTplBox<Type,Dim> CurBox(bool AllowEmpty=false) const;
 
         void Add(const tPt &);
+        void AddData(const  cAuxAr2007 & anAux);
     private :
         int  mNbPts;  ///< Number of points, to check access
         tPt  mP0;
