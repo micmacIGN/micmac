@@ -10,7 +10,7 @@
    to have the two option
 */
 
-#define MAP_STATIC_BUF true
+#define MAP_STATIC_BUF false
 
 
  /*  These macro are for now the only way I found for detecting infinite recursion
@@ -369,7 +369,7 @@ template <class Type,const int DimIn,const int DimOut> class cDataMapping : publ
        inline tVecIn&   BufInCleared()  const {mBufIn.clear(); return mBufIn;}
        inline tVecIn&   JBufIn()     const {return mJBufIn;}
        inline tVecIn&   JBufInCleared()  const {mJBufIn.clear(); return mJBufIn;}
-       inline tVecIn &  BufIn1Val() const {if (mBufIn1Val.empy()) mBufIn1Val.push_back(tPtIn()); return mBufIn1Val;}
+       inline tVecIn &  BufIn1Val() const {if (mBufIn1Val.empty()) mBufIn1Val.push_back(tPtIn()); return mBufIn1Val;}
 
        /// return a "Buffer" of jacobian, on own ressources, const -> modify mutable var
        tVecJac & BufJac(tU_INT4 aSz) const ; 
