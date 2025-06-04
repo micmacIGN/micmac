@@ -352,7 +352,6 @@ void cPerspCamIntrCalib::UpdateLSQDistIfRequired() const
 
 cPt2dr cPerspCamIntrCalib::PtSeedInv() const
 {
-// static int aCpt=0 ; aCpt++;
      /**  Regarding the seed :
       *      - if we put at PP we have problem if PP is outside image (like with shift lense camera)
       *      - if we put it in midle with have problem with orthographik camera if midle is outside definition
@@ -374,8 +373,6 @@ cPt2dr cPerspCamIntrCalib::PtSeedInv() const
      // StdOut() << "PSEED "  << aPProj<< " " << aCpt << std::endl;
      return aPProj;
 }
-
-static cPt2dr  PBug(233.2,2576.5);
 
 
 std::vector<cPt2dr>  cPerspCamIntrCalib::PtsSampledOnSensor(int aNbByDim,bool InPixel) const
@@ -414,7 +411,7 @@ std::vector<cPt2dr>  cPerspCamIntrCalib::PtsSampledOnSensor(int aNbByDim,bool In
 const  std::vector<cPt2dr> &  cPerspCamIntrCalib::Values(tVecOut & aV3 ,const tVecIn & aV0 ) const 
 {
   // StdOut() <<  "VALUUUUUU \n";
-     static tVecOut aV1,aV2;
+     thread_local static tVecOut aV1,aV2;
      mDir_Proj->Values(aV1,aV0);
      mDir_Dist->Values(aV2,aV1);
      mMapPProj2Im.Values(aV3,aV2);
@@ -489,7 +486,7 @@ const  std::vector<cPt3dr> &  cPerspCamIntrCalib::DirBundles(tVecIn & aV3 ,const
      UpdateLSQDistIfRequired(); // Updtate inverse by least square
      CheckBeforeInverse(aV0);   // Check that V0 is inversible, nothing done in release
 
-     static tVecOut aV1,aV2;
+     thread_local static tVecOut aV1,aV2;
      mMapIm2PProj.Values(aV1,aV0);
      mDist_DirInvertible->Inverses(aV2,aV1);
      mInv_Proj->Values(aV3,aV2);
@@ -1003,7 +1000,6 @@ tProjImAndGrad  cPerspCamIntrCalib::DiffGround2Im(const cPt3dr & aPGround) const
 
 void cPerspCamIntrCalib::Bench_CalcDiff()
 {
-   [[maybe_unused]] static int aCpt=0; aCpt++;
    if (mTypeProj!=eProjPC::eStenope)
       return;
    cSensorCamPC aCamId("toto.tif",tPoseR::Identity(),this);
