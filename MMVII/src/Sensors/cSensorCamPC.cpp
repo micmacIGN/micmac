@@ -541,6 +541,8 @@ void cSensorCamPC::ToFile(const std::string & aNameFile) const
 
 cSensorCamPC * cSensorCamPC::FromFile(const std::string & aFile,bool Remanent)
 {
+   ASSERT_NO_MUTI_THREAD();
+
    // Cannot use RemanentObjectFromFile because construction is not standard
    static std::map<std::string,cSensorCamPC*> TheMapRes;
    cSensorCamPC * & anExistingCam = TheMapRes[aFile];

@@ -969,7 +969,7 @@ MACRO_INSTANTIATE_ARG2007(cBox3dr)
 /*                                      */
 /* ==================================== */
 
-static char BufStrIO[1000];
+thread_local static char BufStrIO[1000];
 
 //  vector<int>  => [1,2,3]
 

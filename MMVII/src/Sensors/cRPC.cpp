@@ -260,7 +260,7 @@ void cRPC_Polyn::VectInitialise(const cSerialTree & aData,const std::vector<std:
 
 double cRPC_Polyn::Val(const cPt3dr& aP) const
 {
-     static tRPCCoeff aCoeff;
+     thread_local static tRPCCoeff aCoeff;
      FillCubicCoeff(aCoeff,aP);
      return Val(aCoeff);
 
@@ -362,7 +362,7 @@ double cRPC_RatioPolyn::Val(const tRPCCoeff &aCoeff) const
 
 double cRPC_RatioPolyn::Val(const cPt3dr &aP) const
 {
-    static tRPCCoeff aBuf;
+    thread_local static tRPCCoeff aBuf;
     cRPC_Polyn::FillCubicCoeff(aBuf,aP);
 
     return Val(aBuf); 
@@ -400,7 +400,7 @@ void cRPC_RatioPolyn::SetCoeffs(const std::vector<tREAL8>& aVC)
 
 cPt2dr cRatioPolynXY::Val(const cPt3dr &aP) const
 {
-    static tRPCCoeff aBuf;
+    thread_local static tRPCCoeff aBuf;
     cRPC_Polyn::FillCubicCoeff(aBuf,aP);
 
     return cPt2dr(mX.Val(aBuf),mY.Val(aBuf));
@@ -510,7 +510,6 @@ void  cRatioPolynXY::InitFromSamples(const std::vector<cPt3dr> & aVIn,const std:
     cBox3dr aBoxIn = cTplBoxOfPts<tREAL8,3>::FromVect(aVIn).CurBox();
     cBox3dr aBoxOut = cTplBoxOfPts<tREAL8,3>::FromVect(aVOut).CurBox();
 
-   // static void  FillCubicCoeff(tRPCCoeff & aVCoeffs,const cPt3dr &) ;
     for (auto IsX : {true,false})
     {
         cLeasSqtAA<tREAL8>   aSys(2*TheNbRPCoeff);
@@ -739,9 +738,9 @@ tProjImAndGrad  cRPCSens::DiffGround2Im(const cPt3dr & aP) const
     // return     DiffG2IByFiniteDiff(aP);
 
     // extract the object given access to generated code
-    static cCalculator<double> * aCalc = RPC_Proj(true /* With Derivative*/,1,true/*ReUse = its create only once*/);
+    thread_local static cCalculator<double> * aCalc = RPC_Proj(true /* With Derivative*/,1,true/*ReUse = its create only once*/);
     //  Vector of observation, use static for recycling memory
-    static std::vector<double> aVObs;
+    thread_local static std::vector<double> aVObs;
     aVObs.clear();
 
     //  Push all the normalisation data in the vector of observation

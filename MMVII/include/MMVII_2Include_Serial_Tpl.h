@@ -542,6 +542,8 @@ template<class Type> void  ReadFromFileWithDef(Type & aVal,const std::string & a
 ///  Save in file if it's the first times it occurs inside the process
 template<class Type> void  ToFileIfFirstime(const Type * anObj,const std::string & aNameFile,bool ForReset=false)
 {
+   ASSERT_NO_MUTI_THREAD();
+
    static std::set<std::string> aSetFilesAlreadySaved;
    if (ForReset)
    {
@@ -574,6 +576,8 @@ template<class Type,class TypeTmp> Type * ObjectFromFile(const std::string & aNa
  */
 template<class Type,class TypeTmp> Type * RemanentObjectFromFile(const std::string & aName,bool * AlreadyExist=nullptr)
 {
+     ASSERT_NO_MUTI_THREAD();
+
      static std::map<std::string,Type *> TheMap;
      Type * & anExistingRes = TheMap[aName];
 
@@ -596,6 +600,8 @@ template<class Type,class TypeTmp> Type * RemanentObjectFromFile(const std::stri
 
 template<class Type> Type * SimpleRemanentObjectFromFile(const std::string & aName,bool * AlreadyExist=nullptr)
 {
+     ASSERT_NO_MUTI_THREAD();
+
      static std::map<std::string,Type *> TheMap;
      Type * & anExistingRes = TheMap[aName];
 

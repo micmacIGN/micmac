@@ -346,9 +346,9 @@ template <class Type,const int DimIn,const int DimOut> class cDataMapping : publ
        static tVecIn&   BufInCleared()   { BufIn().clear()  ; return  BufIn(); }
        static tVecIn&   JBufInCleared()  {JBufIn().clear()  ; return JBufIn(); }
 
-       thread_local static tVecIn &  BufIn1Val()  {thread_local static tVecIn  aRes{tPtIn()}; return aRes;}
+       static tVecIn &  BufIn1Val()  {thread_local static tVecIn  aRes{tPtIn()}; return aRes;}
        /// return a "Buffer" of jacobian, satic becaus alloc in class
-       thread_local static tVecJac & BufJac(tU_INT4 aSz) ; 
+       static tVecJac & BufJac(tU_INT4 aSz) ; 
 #else  // !MAP_STATIC_BUF
     private :
        cDataMapping(const cDataMapping<Type,DimIn,DimOut> & ) = delete;

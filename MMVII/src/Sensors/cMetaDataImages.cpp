@@ -195,18 +195,6 @@ void AddData(const cAuxAr2007 & anAux,cOneTranslAttrIm & aTransl)
 /*                                             */
 /* ******************************************* */
 
-/*
-class cComputeAssociation
-{
-     public :
-          static cComputeAssociation  Read();
-          void Write(const std::string & aName) const;
-
-          std::string Translate(const std::string & aName) const;
-     private :
-          std::list<cOneTryCAI> mVTries;
-};
-*/
 
 std::string cComputeAssociation::Translate(const std::string & aName) const
 {
@@ -541,7 +529,7 @@ cMetaDataImage cPhotogrammetricProject::GetMetaData(const std::string & aFullNam
 {
    std::string aDir,aNameIm;
    SplitDirAndFile(aDir,aNameIm,aFullNameIm,false);
-   static std::map<std::string,cMetaDataImage> aMap;
+   thread_local static std::map<std::string,cMetaDataImage> aMap;
    auto  anIt = aMap.find(aNameIm);
    if (anIt== aMap.end())
    {StdOut() << aDir << " " << aNameIm << std::endl;
