@@ -579,9 +579,11 @@ template <const int Dim>  class cAllocNeighourhood
       typedef  std::vector<tPt>  tVecPt;
       typedef  std::vector<tVecPt>  tVVPt;
 
+
+      // return a vector of vector of point, each of a given norm inf
       static  const tVVPt & AllocTabGrowNeigh(int aDMax)
       {
-           static  tVVPt aRes;;
+           thread_local static  tVVPt aRes;;
            if (int(aRes.size()) > aDMax) return aRes;
 
            aRes = tVVPt(1+aDMax,tVecPt());
@@ -593,10 +595,11 @@ template <const int Dim>  class cAllocNeighourhood
       }
 
 
+      // return the neighbourood of points  having Norm1 <= to a given value
       static const tVecPt &  Alloc(int aNbPix)
       {
 // StdOut() <<  "----------------======================" << std::endl;
-            static  std::vector<tVecPt> aBufRes(Dim);
+            thread_local static  std::vector<tVecPt> aBufRes(Dim);
             MMVII_INTERNAL_ASSERT_tiny((aNbPix>0)&&(aNbPix<=Dim),"Bad Nb in neighbourhood");
 
             // If alreay computed all fine

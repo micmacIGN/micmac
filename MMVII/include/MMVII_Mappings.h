@@ -336,15 +336,15 @@ template <class Type,const int DimIn,const int DimOut> class cDataMapping : publ
        // std::vector<tJac>   mResGrads;
 
 #if (MAP_STATIC_BUF)
-       thread_local static tVecOut&  BufOut()         {thread_local static tVecOut aRes; return aRes;}
-       thread_local static tVecOut&  JBufOut()        {thread_local static tVecOut aRes; return aRes;}
-       thread_local static tVecIn&   BufIn()          {thread_local static tVecIn  aRes; return aRes;}
-       thread_local static tVecIn&   JBufIn()         {thread_local static tVecIn  aRes; return aRes;}
+       static tVecOut&  BufOut()         {thread_local static tVecOut aRes; return aRes;}
+       static tVecOut&  JBufOut()        {thread_local static tVecOut aRes; return aRes;}
+       static tVecIn&   BufIn()          {thread_local static tVecIn  aRes; return aRes;}
+       static tVecIn&   JBufIn()         {thread_local static tVecIn  aRes; return aRes;}
 
-       thread_local static tVecOut&  BufOutCleared()  { BufOut().clear() ; return  BufOut();}
-       thread_local static tVecOut&  JBufOutCleared() {JBufOut().clear() ; return JBufOut();}
-       thread_local static tVecIn&   BufInCleared()   { BufIn().clear()  ; return  BufIn(); }
-       thread_local static tVecIn&   JBufInCleared()  {JBufIn().clear()  ; return JBufIn(); }
+       static tVecOut&  BufOutCleared()  { BufOut().clear() ; return  BufOut();}
+       static tVecOut&  JBufOutCleared() {JBufOut().clear() ; return JBufOut();}
+       static tVecIn&   BufInCleared()   { BufIn().clear()  ; return  BufIn(); }
+       static tVecIn&   JBufInCleared()  {JBufIn().clear()  ; return JBufIn(); }
 
        thread_local static tVecIn &  BufIn1Val()  {thread_local static tVecIn  aRes{tPtIn()}; return aRes;}
        /// return a "Buffer" of jacobian, satic becaus alloc in class
@@ -430,8 +430,8 @@ template <class Type,const int Dim> class cDataInvertibleMapping :  public cData
     private :
       cDataInvertibleMapping(const cDataInvertibleMapping<Type,Dim> & ) = delete;
 #if (MAP_STATIC_BUF) 
-       thread_local static tVecPt&  BufInvOut()         {thread_local static tVecPt aRes; return aRes;}
-       thread_local static tVecPt&  BufInvOutCleared()  { BufInvOut().clear() ; return  BufInvOut();}
+       static tVecPt&  BufInvOut()         {thread_local static tVecPt aRes; return aRes;}
+       static tVecPt&  BufInvOutCleared()  { BufInvOut().clear() ; return  BufInvOut();}
 #else  // !MAP_STATIC_BUF
        mutable tVecPt  mBufInvOut;
        inline tVecPt&  BufInvOut()    const {return mBufInvOut;}
