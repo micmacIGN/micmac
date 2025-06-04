@@ -10,7 +10,7 @@
    to have the two option
 */
 
-#define MAP_STATIC_BUF true
+#define MAP_STATIC_BUF false
 
 
  /*  These macro are for now the only way I found for detecting infinite recursion

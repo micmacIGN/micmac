@@ -858,8 +858,6 @@ void cNodeArborTriplets::RefineSolution()
         aVCams.push_back( new cSensorCamPC(aImName,aPoseChgConv,aCal) );
         aVSens.push_back( aVCams.at(aCamCurCount) );
 
-        //mPhProj.SaveCamPC( *aVCams.at(aCamCurCount) );// for debug, get rid of when not needed
-
 
         // collinearity equation (calculator)
         aVEqCol.push_back( aVCams.at(aCamCurCount)->CreateEqColinearity(true,100,false) );
@@ -1001,14 +999,15 @@ void cNodeArborTriplets::RefineSolution()
                         }
                     }
                 }
+                StdOut() << "======= done all imgs for this pt" << std::endl;
                 if (aNbEqAdded>=2)
                 {
                     aSys->R_AddObsWithTmpUK(aStrSubst);
                     aNum3DPts++;
                 }
 
-            }
-        }
+            }StdOut() << "==== done all pts for this config" << std::endl;
+        }StdOut() << "=== done all configs" << std::endl;
 
         double aPercInliers = (aNumTPts*100)/aNumAllTiePts;
         StdOut() << "#Iter=" << aIter
