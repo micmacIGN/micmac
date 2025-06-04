@@ -120,7 +120,7 @@ cPerspCamIntrCalib * cPhotogrammetricProject::GetCalibInit
                           bool isFraserModel
                      )
 {
-    static std::map<std::string,cPerspCamIntrCalib *> TheMapRes;
+    thread_local static std::map<std::string,cPerspCamIntrCalib *> TheMapRes;
 
     // extract metadata : focal+name of camera
     cMetaDataImage  aMTD = GetMetaData(aNameIm);

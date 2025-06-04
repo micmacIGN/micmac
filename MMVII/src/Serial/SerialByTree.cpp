@@ -416,7 +416,7 @@ const  std::string  cJsonSerialTokenParser::SepCars = ",:";
 
 bool cJsonSerialTokenParser::BeginPonctuation(char aC) const 
 {
-     static std::string JSonPonct = OpenCars+CloseCars+SepCars;
+     static const std::string JSonPonct = OpenCars+CloseCars+SepCars;
      return  JSonPonct.find(aC) !=  std::string::npos;
 }
 
@@ -868,7 +868,7 @@ std::string cSerialTree::TagJsonComment(int & aCpt)
 bool cSerialTree::IsJsonComment(const std::string& aName) 
 {
     cMemManager::SetActiveMemoryCount(false);
-    static  tNameSelector aPat = AllocRegex("<!--comment[0-9]+-->");
+    thread_local static  tNameSelector aPat = AllocRegex("<!--comment[0-9]+-->");
     cMemManager::SetActiveMemoryCount(true);
 
     return aPat.Match(aName);
@@ -1451,9 +1451,10 @@ void  cSerialTree::CSV_PrettyPrint(std::vector<std::string> & aRes,bool IsSpecif
 	Rec_CSV_PrettyPrint(aRes,IsSpecif);
 }
 
+static const std::vector<std::string>  aVxyzt{"x","y","z","t"};
+
 void  cSerialTree::Rec_CSV_PrettyPrint(std::vector<std::string> & aRes,bool IsSpecif) const
 {
-     static std::vector<std::string>  aVxyzt{"x","y","z","t"};
      if (IsSingleTaggedVal())
      {
          if (IsSpecif) 

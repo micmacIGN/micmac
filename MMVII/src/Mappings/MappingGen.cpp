@@ -253,9 +253,11 @@ template <class Type,const int DimIn,const int DimOut>
 #endif
 {
 #if (MAP_STATIC_BUF)
+   ASSERT_NO_MUTI_THREAD(); //in multi thread pb with SetActiveMemoryCount !!
+
    cMemManager::SetActiveMemoryCount(false);  // static vector of shared matrix will never be unallocated
-   static tVecJac  mJacReserve;
-   static tVecJac  mJacResult;
+   thread_local static tVecJac  mJacReserve;
+   thread_local static tVecJac  mJacResult;
 #endif
    while (mJacReserve.size()<aSz)
          mJacReserve.push_back(tJac(DimIn,DimOut));

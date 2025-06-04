@@ -491,7 +491,7 @@ std::string cPhotogrammetricProject::NameCalibRSOfImage(const std::string & aNam
 
 cRadialCRS * cPhotogrammetricProject::CreateNewRadialCRS(size_t aDegree,const std::string& aNameIm,bool WithCste,int aDegPol)
 {
-      static std::map<std::string,cRadialCRS *> TheDico;
+      thread_local static std::map<std::string,cRadialCRS *> TheDico;
       std::string aNameCal = NameCalibRSOfImage(aNameIm);
 
       cRadialCRS * &  aRes = TheDico[aNameCal];
@@ -541,8 +541,8 @@ void cPhotogrammetricProject::SaveSensor(const cSensorImage & aSens) const
      *  This is done by (1) computing all the file (2) use regular expression to recover the
      *  name of image from the file.  This works because the MMVII prefix dont contain any "-" .
      */
-    static std::map<std::string,std::vector<std::string>> TheMapIm2Sensors;
-    static bool First = true;
+    thread_local static std::map<std::string,std::vector<std::string>> TheMapIm2Sensors;
+    thread_local static bool First = true;
     if (First)
     {
          First = false;
@@ -1185,7 +1185,7 @@ cCalibSetClino  cPhotogrammetricProject::ReadSetClino
 
             //  ================  Measures clino ===================
 
-static  std::string TheNameDefMeasureClino = "ClinoMeasures";
+static const  std::string TheNameDefMeasureClino = "ClinoMeasures";
 std::string cPhotogrammetricProject::NameFileMeasuresClino(bool Input,const std::string & aN0) const
 {
      std::string  aNameFile = (aN0=="") ? (TheNameDefMeasureClino + "." +   GlobTaggedNameDefSerial() ) : aN0;
@@ -1222,7 +1222,7 @@ cSetMeasureClino  cPhotogrammetricProject::ReadMeasureClino(const std::string * 
         //  =============  Rigid bloc  =================
 
 	                   // RIGIDBLOC
-static std::string PrefixRigidBloc = "RigidBloc_";
+static const std::string PrefixRigidBloc = "RigidBloc_";
 
 void   cPhotogrammetricProject::SaveBlocCamera(const cBlocOfCamera & aBloc) const
 {
@@ -1271,7 +1271,7 @@ std::vector<std::string> cPhotogrammetricProject::ReadTopoMes() const
 
 //  see cMetaDataImages.cpp
 
-static std::string PrefixTripletSet = "TripletSet_";
+static const std::string PrefixTripletSet = "TripletSet_";
 
 void cPhotogrammetricProject::SaveTriplets(const cTripletSet &aSet,bool  useXmlraterThanDmp) const
 {

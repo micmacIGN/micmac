@@ -404,15 +404,20 @@ struct  cAttrReport
 };
 
 
+
 class cMMVII_Appli : public cMMVII_Ap_NameManip,
                      public cMMVII_Ap_CPU
 {
     public :
 
         /// indicate that MMVII will be runing in multi-thread to avoid some specific "clash"
-        static void SetMultiThread();
+        static void SetMultiThread(bool isMulti);
+
 	/// Has the multi thread modif been done
         static bool IsMultiThread();
+
+	/// Used for code that can't work in current state  in multi thread mode
+	static void AssertNoMultiThread();
 
         typedef std::vector<eSharedPO>  tVSPO;
         /// Temporary; will add later a "real" warning mechanism, for now track existing
@@ -762,6 +767,12 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 	std::string                        mPatternInitGMA;
         static bool                        mIsMultiThread;  /// memorize the multi thread state
 };
+
+#define ASSERT_NO_MUTI_THREAD() \
+{\
+   if (cMMVII_Appli::IsMultiThread())\
+	MMVII_INTERNAL_ERROR("Code cannot work in mode multi thread");\
+}
 
 /// Generate name of percentages for CSV
 std::vector<std::string> VInt2VStrPerc(const std::vector<int> &aVPerc);

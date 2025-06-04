@@ -131,12 +131,12 @@ void cCamSimul::BenchMatEss
         bool         PerfInter
      )
 {
-    static int aCpt=0;
+    thread_local static int aCpt=0;
     /// cLinearOverCstrSys<tREAL8> *  aSysL1 = AllocL1_Barrodale<tREAL8>(9);
     // cLinearOverCstrSys<tREAL8> *  aSysL1 = new cLeasSqtAA<tREAL8>(9);
     cLeasSqtAA<tREAL8> aSysL2(9);
 
-    static int aCptPbL1 = 0;
+    thread_local static int aCptPbL1 = 0;
 
     for (int aK1=0 ; aK1<(int)eProjPC::eNbVals ; aK1++)
     {
