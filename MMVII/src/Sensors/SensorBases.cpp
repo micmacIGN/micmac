@@ -507,6 +507,32 @@ cPt3dr cSIMap_Ground2ImageAndProf::Inverse(const cPt3dr & aPt) const
 
 /* ******************************************************* */
 /*                                                         */
+/*                   cSIMap_Ground2ImageAndZ               */
+/*                                                         */
+/* ******************************************************* */
+
+cSIMap_Ground2ImageAndZ::cSIMap_Ground2ImageAndZ(cSensorImage * aSens)  :
+    mSI  (aSens)
+{
+}
+
+cPt3dr cSIMap_Ground2ImageAndZ::Value(const cPt3dr & aPt) const
+{
+	return mSI->Ground2ImageAndZ(aPt);
+}
+
+cPt3dr cSIMap_Ground2ImageAndZ::Inverse(const cPt3dr & aPt) const
+{
+	return mSI->ImageAndZ2Ground(aPt);
+}
+
+
+
+
+
+
+/* ******************************************************* */
+/*                                                         */
 /*                   cSetVisibility                        */
 /*                                                         */
 /* ******************************************************* */

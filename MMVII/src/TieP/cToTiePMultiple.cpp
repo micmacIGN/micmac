@@ -227,10 +227,10 @@ bool operator == (const cVal1ConfTPM & aV1,const cVal1ConfTPM & aV2)
         ;
 }
 cComputeMergeMulTieP::cComputeMergeMulTieP
-(
-    const cComputeMergeMulTieP& aFullMTP,
-    const std::vector<std::string> & aVNameSelected
-)
+    (
+        const cComputeMergeMulTieP& aFullMTP,
+        const std::vector<std::string> & aVNameSelected
+        )
 {
     std::set<std::string> aSet(aVNameSelected.begin(),aVNameSelected.end());
     std::vector<int> aVecNewIndices;

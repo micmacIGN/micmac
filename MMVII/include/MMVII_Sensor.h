@@ -267,8 +267,9 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	 // static int                                  mNum;
 };
 
+
 /**  Interfac to make sensor a 3d-mapping, using Ground2ImageAndDepth function */
-class cSIMap_Ground2ImageAndProf : public cDataInvertibleMapping<tREAL8,3>
+class cSIMap_Ground2ImageAndProf : public tIMap_R3
 {
        public :
            cSIMap_Ground2ImageAndProf(cSensorImage *);
@@ -277,6 +278,19 @@ class cSIMap_Ground2ImageAndProf : public cDataInvertibleMapping<tREAL8,3>
        private :
            cSensorImage * mSI;
 };
+
+/**  Interfac to make sensor a 3d-mapping, using Ground2ImageAndZ function */
+class cSIMap_Ground2ImageAndZ : public tIMap_R3
+{
+       public :
+           cSIMap_Ground2ImageAndZ(cSensorImage *);
+	   cPt3dr Value(const cPt3dr &) const;   ///< 3D ->  2D+depth
+	   cPt3dr Inverse(const cPt3dr &) const;  ///< 2D+depth -> 3D
+       private :
+           cSensorImage * mSI;
+};
+
+
 
 /** represent the set of visible point of the camera */
 class cSetVisibility : public cDataBoundedSet<tREAL8,3>

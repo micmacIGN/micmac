@@ -20,17 +20,17 @@ class cPointCloud
 
         cPointCloud(bool isMode8=true);
 
-        size_t NbPts() const
-        {
-            return + (mMode8 ?  mPtsR.size() : mPtsF.size()) ;
-        }
-        void AddPt(const cPt3dr& aPt)
+        size_t NbPts() const { return + (mMode8 ?  mPtsR.size() : mPtsF.size()) ; }
+
+        void AddPt(const cPt3dr& aPt);
+/*
         {
              if (mMode8)
                 mPtsR.push_back(aPt- mOffset);
              else
                 mPtsF.push_back(cPt3df::FromPtR(aPt - mOffset));
         }
+*/
 
         cPt3dr  KthPtWoOffs(int aK) const
         {
@@ -38,6 +38,9 @@ class cPointCloud
         }
 
         cPt3dr  KthPt(int aK) const { return  mOffset + KthPtWoOffs(aK); }
+
+        cPt3dr  Centroid() const ;
+        cPt3dr  SumPt() const ;
 
         void AddData(const  cAuxAr2007 & anAux) ;
         cBox3dr  Box() const;
@@ -49,6 +52,7 @@ class cPointCloud
         tREAL8   Density() const;    ///< Accessor
         tREAL8   CurDensity() const; ///< density from current data, may differ from import
         cBox2dr  Box2d() const;      ///< Accessor
+        cBox3dr  Box3d() const;      ///< Accessor
 
         void SetNbColours(int );
         int  GetNbColours() const;
@@ -80,7 +84,9 @@ class cPointCloud
         std::vector<tU_INT2>                   mDegVis;    ///<  As computed by Colorate
 
         tREAL8                                 mDensity;    ///<     Number of point / m2 (or whatever unit), computed at import
-        cBox2dr                                mBox2d;      ///<
+        cTplBoxOfPts<tREAL8,3>                 mBox3dOfPts; ///<
+        cPt3dr                                 mSumPt;
+
         tREAL8                                 mLeavesUnit; ///<
         std::vector<tU_INT1>                   mSzLeaves;   ///<  Size of each leaves
 };

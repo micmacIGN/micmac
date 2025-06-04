@@ -11,12 +11,12 @@ cPointCloud::cPointCloud(bool isM8) :
    mMode8      (isM8),
    mMulDegVis  (-1),
    mDensity    (-1),
-   mBox2d      (cPt2dr(1,1)),
+   mBox3dOfPts (),
    mLeavesUnit (-1)
 {
 }
 
-tREAL8   cPointCloud::CurDensity() const {return NbPts() / mBox2d.NbElem() ;}
+tREAL8   cPointCloud::CurDensity() const {return NbPts() / Box2d().NbElem() ;}
 
 // --------------------- Colours access ------------------------------------------
 void cPointCloud::SetNbColours(int aNbC)
@@ -85,7 +85,12 @@ bool  cPointCloud::LeavesIsInit() const
 
 
 tREAL8   cPointCloud::Density() const {return mDensity;}
-cBox2dr  cPointCloud::Box2d()   const {return mBox2d;}   
+cBox3dr  cPointCloud::Box3d()   const  {return mBox3dOfPts.CurBox();}
+cBox2dr  cPointCloud::Box2d()   const 
+{    
+    cBox3dr aB3 = Box3d();
+    return cBox2dr(Proj(aB3.P0()),Proj(aB3.P1()));
+}
 
 
 void cPointCloud::ToPly(const std::string & aName,bool WithOffset) const
@@ -153,11 +158,18 @@ void cPointCloud::ToPly(const std::string & aName,bool WithOffset) const
     }
 }
 
+void cPointCloud::AddPt(const cPt3dr& aPt)
+{
+    MMVII_INTERNAL_ERROR("cPointCloud::AddPt 2 Finalize");
+}
 
 void cPointCloud::Clip(cPointCloud& aPC,const cBox2dr & aBox) const
 {
+    MMVII_INTERNAL_ERROR("cPointCloud::Clip  2 Finalize");
+
+
     aPC.mDensity = mDensity;
-    aPC.mBox2d   = aBox;
+    // aPC.mBox2d   = aBox;
     aPC.mPtsR.clear();
     aPC.mPtsF.clear();
     size_t aNbCol = mColors.size();
@@ -208,7 +220,8 @@ void cPointCloud::AddData(const  cAuxAr2007 & anAux)
     MMVII::AddData(cAuxAr2007("DegVis",anAux),mDegVis);
 
     MMVII::AddData(cAuxAr2007("Density",anAux),mDensity);
-    MMVII::AddData(cAuxAr2007("Box2d",anAux),mBox2d);
+
+    MMVII::AddData(cAuxAr2007("Box3d",anAux),mBox3dOfPts);
 
     MMVII::AddData(cAuxAr2007("LeavesUnit",anAux),mLeavesUnit);
     MMVII::AddData(cAuxAr2007("LeavesSize",anAux),mSzLeaves);
@@ -219,7 +232,7 @@ void AddData(const  cAuxAr2007 & anAux,cPointCloud & aPC)
    aPC.AddData(anAux);
 }
 
-
+/*
 cBox3dr  cPointCloud::Box() const
 {
    cTplBoxOfPts<tREAL8,3> aTplB;
@@ -227,8 +240,10 @@ cBox3dr  cPointCloud::Box() const
        aTplB.Add(KthPt(aK));
    return aTplB.CurBox();
 }
+*/
 
+#if (0)
 
-
+#endif
 };
 

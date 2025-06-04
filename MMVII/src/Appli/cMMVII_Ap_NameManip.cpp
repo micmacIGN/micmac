@@ -4,58 +4,81 @@
 namespace MMVII
 {
 
-cMMVII_Ap_NameManip::cMMVII_Ap_NameManip() :
-   mCurLut (nullptr)
+cMMVII_Ap_NameManip::cMMVII_Ap_NameManip() 
 {
+    cMMVII_Ap_NameManip::InitLUT();
 }
 
 cMMVII_Ap_NameManip::~cMMVII_Ap_NameManip()
 {
-     MMVII_INTERNAL_ASSERT_medium(mCurLut==nullptr,"~cMMVII_Ap_NameManip => mCurLut");
-}
-
-void cMMVII_Ap_NameManip::GetCurLut()
-{
-     MMVII_INTERNAL_ASSERT_medium(mCurLut==nullptr,"cMMVII_Ap_NameManip::GetCurLut");
-     mCurLut = mGoClut.EmprunterOne();
-}
-
-void cMMVII_Ap_NameManip::RendreCurLut()
-{
-     MMVII_INTERNAL_ASSERT_medium(mCurLut!=nullptr,"cMMVII_Ap_NameManip::RendreCurLut");
-     mCurLut->UnInit();
-     mGoClut.RendreOne(mCurLut);
-     mCurLut = nullptr;
 }
 
 
-const char *  cMMVII_Ap_NameManip::SkipLut(const char * aC,int aVal)
+const char *  cMMVII_Ap_NameManip::SkipLut(const cCarLookUpTable * aLut,const char * aC,int aVal)
 {
-    while (*aC && (mCurLut->Val(*aC)==aVal))
+    while (*aC && (aLut->Val(*aC)==aVal))
         aC++;
     return aC;
 }
 
+static   std::map<std::string,cCarLookUpTable> mMapLut;
+void cMMVII_Ap_NameManip::InitLUT()
+{
+    if (! mMapLut.empty()) return;
+
+    for (const auto & aStr : {" @",".","t","=","*",","})
+    {
+          mMapLut[aStr].Init(aStr,1);
+    }
+}
+
+const cCarLookUpTable & Get_CarLookUpTable(const std::string& aName)
+{
+   MMVII_INTERNAL_ASSERT_medium(MapBoolFind(mMapLut,aName),"Cannot find CarLookUpTable for "+aName);
+
+   return  mMapLut[aName];
+}
+
+
 
 void cMMVII_Ap_NameManip::SplitString(std::vector<std::string > & aRes,const std::string & aStr,const std::string & aSpace)
 {
+/*
+{
+    static std::set<std::string> aGlobSetSp = {" @",".","t","=","*",","};
+    static std::set<std::string> aSetSpace;
+    if (!MapBoolFind(aSetSpace,aSpace))
+    {
+       aSetSpace.insert(aSpace);
+       for (const auto & aSp : aSetSpace)
+           StdOut() << "[" << aSp << "]";
+        StdOut() <<  "  LLLL=" << aSpace;
+        StdOut() << "\n ###############################################################################\n";
+        MMVII_INTERNAL_ASSERT_tiny(MapBoolFind(aGlobSetSp,aSpace),"cMMVII_Ap_NameManip::SplitString aGlobSetSp");
+ 
+    }
+}
      GetCurLut();
      mCurLut->Init(aSpace,1);
+*/
+
+
+     const cCarLookUpTable * aCurLut = & Get_CarLookUpTable(aSpace);
 
      const char * aC = aStr.c_str();
-     if (mCurLut->Val(*aC)==1)
+     if (aCurLut->Val(*aC)==1)
         aRes.push_back("");
      while (*aC)
      {
-          aC = SkipLut(aC,1);
+          aC = SkipLut(aCurLut,aC,1);
           const char * aC0 = aC;
-          aC = SkipLut(aC,0);
+          aC = SkipLut(aCurLut,aC,0);
           std::string aStr(aC0,aC);
           aRes.push_back(aStr);
           // aC = SkipLut(aC,1);
      }
      // const char * aDT = aLUT->Table() ;
-     RendreCurLut();
+     // RendreCurLut();
 }
 
 std::vector<std::string > cMMVII_Ap_NameManip::SplitString(const std::string & aStr,const std::string & aSpace)

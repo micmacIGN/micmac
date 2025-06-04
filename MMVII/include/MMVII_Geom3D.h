@@ -119,8 +119,8 @@ template <class Type> class cRotation3D
        tPt   AxeJ() const ;
        tPt   AxeK() const ;
 
-       /// Compute a normal repair, first vector being colinear to Pt
-       static cRotation3D<Type> CompleteRON(const tPt & aPt);
+       /// Compute a normal repair, first vector being colinear to Pt (or second or last according to aNumP0)
+       static cRotation3D<Type> CompleteRON(const tPt & aPt,int aNumP0=0);
        /// Compute a normal repair, first vector being colinear to P1, second in the plane P1,P2
        static cRotation3D<Type> CompleteRON(const tPt & aP0, const tPt & aP1, bool SVP=false); // SVP=return Identity if impossible
        /// Compute a rotation arround a given axe and with a given angle

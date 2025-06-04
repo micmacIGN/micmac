@@ -902,7 +902,6 @@ template <class Type,const int Dim> void cTplBox<Type,Dim>::AddData(const  cAuxA
     }
 }
 
-
 template <class Type,const int Dim>
    cTplBox<Type,Dim>  cTplBox<Type,Dim>::CenteredBoxCste(Type aVal)
 {
@@ -1209,6 +1208,13 @@ template <class Type,const int Dim>   cTplBoxOfPts<Type,Dim>::cTplBoxOfPts() :
 {
 }
 
+
+template <class Type,const int Dim> void cTplBoxOfPts<Type,Dim>::AddData(const  cAuxAr2007 & anAux)
+{
+    MMVII::AddData(cAuxAr2007("NbPts",anAux),mNbPts);
+    MMVII::AddData(cAuxAr2007("P0",anAux),mP0);
+    MMVII::AddData(cAuxAr2007("P1",anAux),mP1);
+}
 
 
 template <class Type,const int Dim> 

@@ -842,6 +842,10 @@ void cPerspCamIntrCalib::InitRandom(double aAmpl)
      UpdateLSQDistInv ();
 }
  
+cPerspCamIntrCalib * cPerspCamIntrCalib::SimpleCalib(const std::string & aName,cPt2di aSz,tREAL8 aFocal)
+{
+   return SimpleCalib(aName,eProjPC::eStenope,aSz,cPt3dr(aSz.x()/2.0,aSz.y()/2.0,aFocal),cPt3di(0,0,0));
+}
 
 cPerspCamIntrCalib * cPerspCamIntrCalib::SimpleCalib
                      (

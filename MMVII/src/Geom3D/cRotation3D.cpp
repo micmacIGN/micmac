@@ -610,14 +610,24 @@ template <class Type> cPtxd<Type,3> cRotation3D<Type>::AxeJ() const  {return tPt
 template <class Type> cPtxd<Type,3> cRotation3D<Type>::AxeK() const  {return tPt::Col(mMat,2);}
 
 
-template <class Type> cRotation3D<Type>  cRotation3D<Type>::CompleteRON(const tPt & aP0Init)
+template <class Type> cRotation3D<Type>  cRotation3D<Type>::CompleteRON(const tPt & aP0Init,int aNumP0)
 {
     cPtxd<Type,3> aP0 = VUnit(aP0Init);
     cPtxd<Type,3> aP1 = VUnit(VOrthog(aP0));
     cPtxd<Type,3> aP2 = aP0 ^ aP1;
 
-    return  cRotation3D<Type>(MatFromCols(aP0,aP1,aP2),false);
+    aNumP0 = mod(aNumP0,3);
+
+    if (aNumP0==0)
+       return  cRotation3D<Type>(MatFromCols(aP0,aP1,aP2),false);
+    if (aNumP0==2)
+       return  cRotation3D<Type>(MatFromCols(aP1,aP2,aP0),false);
+
+    return  cRotation3D<Type>(MatFromCols(aP2,aP0,aP1),false);
 }
+
+
+
 
 template <class Type> cRotation3D<Type>  cRotation3D<Type>::CompleteRON(const tPt & aP0Init,const tPt & aP1Init, bool SVP)
 {
