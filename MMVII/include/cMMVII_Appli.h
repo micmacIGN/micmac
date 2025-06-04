@@ -409,7 +409,9 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 {
     public :
 
-        void SetMultiThread();
+        /// indicate that MMVII will be runing in multi-thread to avoid some specific "clash"
+        static void SetMultiThread();
+	/// Has the multi thread modif been done
         static bool IsMultiThread();
 
         typedef std::vector<eSharedPO>  tVSPO;
@@ -758,7 +760,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         std::string                        mReportSubDir;  ///< In case we want to write in separate subdir (like with GCP)
 
 	std::string                        mPatternInitGMA;
-        static bool                        mIsMultiThread;
+        static bool                        mIsMultiThread;  /// memorize the multi thread state
 };
 
 /// Generate name of percentages for CSV
