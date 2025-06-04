@@ -121,7 +121,11 @@ int cAppli_HierarchSfm::Exe()
     if (IsInit(&mNbIterBA))
         aMk3.NbIterBA() = mNbIterBA;
     if (mPhProj.DPMulTieP().DirInIsInit())
+    {
         aMk3.TPFolder() = mPhProj.DPMulTieP().DirIn() ;
+        std::vector<std::string> aSetIm = VectMainSet(0);
+        aMk3.InitTPtsStruct(mPhProj.DPMulTieP().DirIn(),aSetIm);
+    }
     else
         MMVII_INTERNAL_ASSERT_always(mPhProj.DPMulTieP().DirInIsInit(),"Input features not initialised");
 

@@ -45,8 +45,9 @@ cPt3dr BundleInter(const tPairTiePMult & aPair,size_t aKPts,const std::vector<cS
     for (size_t aK= 0 ; aK<aMult ; aK++)
     {
         const cPt2dr & aPIm = aVal.mVPIm.at(aKP0+aK);
+        StdOut() << "bef read cam in BundleInter " << aK << std::endl;
 	cSensorImage * aSI  = aVSI.at(aConfig.at(aK));
-
+StdOut() << "after read cam in BundleInter " << aK << std::endl;
 
 	aVSeg.push_back(aSI->Image2Bundle(aPIm));
     }
@@ -63,7 +64,7 @@ void MakePGround(tPairTiePMult & aPair,const std::vector<cSensorImage *> & aVSI)
     size_t aNbPts = NbPtsMul(aPair);
 
     for (size_t aKP=0 ; aKP<aNbPts; aKP++)
-    {
+    {StdOut() << "in MakePGround " << aKP << std::endl;
         aVPts.push_back(BundleInter(aPair,aKP,aVSI));
     }
 }
@@ -272,11 +273,15 @@ cComputeMergeMulTieP::cComputeMergeMulTieP
         if (aNewConfig.size() >=2)
         {
             cVal1ConfTPM & aNewVal = mPts[aNewConfig];
+            // if there is identifier they must be copied
+            AppendIn(aNewVal.mVIdPts , aVal.mVIdPts);
             size_t aNbIm = aConfig.size();
             size_t aNbPts = aVal.mVPIm.size() / aNbIm;
             // check on  total number due to structuring
-            MMVII_INTERNAL_ASSERT_medium(aVal.mVPIm.size()==aNbIm*aNbPts,"Size pb in cVal1ConfTPM");
+            MMVII_INTERNAL_ASSERT_medium(aVal.mVPIm.size()==aNbIm*aNbPts,"Size pb in cVal1ConfTPM");          
+
             int aIndPt0 = 0;
+
             for (size_t aKPt=0 ; aKPt<aNbPts ; aKPt++)
             {
                 for (const auto aKInC : aVecKInConf)

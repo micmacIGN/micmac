@@ -791,7 +791,8 @@ void cNodeArborTriplets::MergeChildrenSol()
      //SaveGlobSol("Init");
 
      // refine the solution with BA
-     if (!mPMAT->TPFolder().empty())
+     //if (!mPMAT->TPFolder().empty())
+     if (mPMAT->TPtsStruct() !=nullptr)
         RefineSolution();
 
      //SaveGlobSol("Adj");
@@ -890,9 +891,9 @@ void cNodeArborTriplets::RefineSolution()
     }
 
     // read the tie points corresponding to your image set
-    StdOut() << "Before read Tps" << std::endl;
-    cComputeMergeMulTieP * aTPts = AllocStdFromMTPFromFolder(mPMAT->TPFolder(),aVNames,mPhProj,true,false,true);
-    StdOut() << "After read Tps" << std::endl;
+    //cComputeMergeMulTieP * aTPts = AllocStdFromMTPFromFolder(mPMAT->TPFolder(),aVNames,mPhProj,true,false,true);
+    //cComputeMergeMulTieP(const cComputeMergeMulTieP&,const  std::vector<std::string> & aVNamesSelected);
+    cComputeMergeMulTieP aTPts(*mPMAT->TPtsStruct(),aVNames);
 
 
     // image points weighting function
@@ -903,14 +904,16 @@ void cNodeArborTriplets::RefineSolution()
 
     //StdOut() << "Start BA : #Configs=" << aTPts->Pts().size() << std::endl;
     StdOut() << "---------------------- "
-             << "#Images " << aVCams.size() << std::endl;
+             << "#Images " << aVCams.size() << ", pts=" << aTPts.Pts().size() << std::endl;
     for (int aIter=0; aIter<aNbIter; aIter++)
     {
-        //StdOut() << "Iter=" << aIter << std::endl;
+        StdOut() << "before inter 3d" << std::endl;
 
         // intersect tie-points in 3D
-        for (auto & aPair : aTPts->Pts())
+        for (auto & aPair : aTPts.Pts())
             MakePGround(aPair,aVSens);
+
+        StdOut() << "afer inter 3d" << std::endl;
 
         /* W(R) =
                0 if R>Thrs
@@ -920,7 +923,6 @@ void cNodeArborTriplets::RefineSolution()
         tREAL8 aThr = aDeltaThr*(1 - double(aIter)/(aNbIter-1)) + aThrRange[1];
         //StdOut() << "aThr=" << aThr << ", Start=" << aThrRange[0] << ", End=" << aThrRange[1] << std::endl;
         cStdWeighterResidual aTPtsW (1,aSigAtt,aThr,2);
-
         tREAL8 aMaxRes=0;
         tREAL8 aTotalW=0;
 
@@ -931,7 +933,7 @@ void cNodeArborTriplets::RefineSolution()
         int aNum3DPts=0;
         cWeightAv<tREAL8> aWeigthedRes;
 
-        for (auto aAllConfigs : aTPts->Pts())
+        for (auto aAllConfigs : aTPts.Pts())
         {
             const auto & aConfig = aAllConfigs.first;
             auto & aVals = aAllConfigs.second;
@@ -941,14 +943,14 @@ void cNodeArborTriplets::RefineSolution()
 
             aNumAll3DPts+=aNbPts;
 
-
             // add to BA
             for (size_t aKPts=0; aKPts<aNbPts; aKPts++)
             {
+                StdOut() << "aVals.mVPGround " << aVals.mVPGround.size() << std::endl;
                 const cPt3dr & aP3D = aVals.mVPGround.at(aKPts);
                 cSetIORSNL_SameTmp<tREAL8>  aStrSubst(aP3D.ToStdVector());
                 //if ( aIter==(aNbIter-1))
-                //    StdOut() << aP3D.x() << " " << aP3D.y() << " " << aP3D.z() << std::endl;
+                    StdOut() << aP3D.x() << " " << aP3D.y() << " " << aP3D.z() << std::endl;
 
                 //tREAL8 aResTotal = 0;
                 size_t aNbEqAdded = 0;
@@ -970,8 +972,8 @@ void cNodeArborTriplets::RefineSolution()
 
                         tREAL8 aWeight = aTPtsW.SingleWOfResidual(aResidual);
 
-                        //StdOut() << "RRRR " << aPIm << " " << aResidual << " W=" << aWeight
-                        //         << " " << aCam->NameImage() << " " << aKImSorted << " " << aKIm << "\n";
+                        StdOut() << "RRRR " << aPIm << " " << aResidual << " W=" << aWeight
+                                 << " " << aCam->NameImage() << " " << aKImSorted << " " << aKIm << "\n";
 
 
 
@@ -1045,7 +1047,7 @@ void cNodeArborTriplets::RefineSolution()
 
     delete aCal;
     delete aSys;
-    delete aTPts;
+   // delete aTPts;
     for (auto aECol : aVEqCol)
         delete aECol;
     for (auto aCam : aVCams)
@@ -1204,7 +1206,8 @@ cMakeArboTriplet::cMakeArboTriplet(cTripletSet & aSet3,bool doCheck,tREAL8 aWBal
    mNbEdgeP     (0),
    mNbHypP      (0),
    mNbEdgeTri   (0),
-   mTPtsFolder  (""),
+   mTPtsFolder  (""), //to be removed
+   mTPtsStruct  (nullptr),
    mViscPose    ({-1,-1}),
    mSigmaTPt    (1.0),
    mFacElim     (10.0),
@@ -1216,6 +1219,7 @@ cMakeArboTriplet::~cMakeArboTriplet()
 {
    // TO REDO => avoide LINK-PB  4 NOW
    delete mArbor;
+   delete mTPtsStruct;
 }
 void cMakeArboTriplet::SetRand(const std::vector<tREAL8> & aLevelRand)
 {
@@ -1243,13 +1247,16 @@ void cMakeArboTriplet::SaveGlobSol() const
 
 void cMakeArboTriplet::InitialiseCalibs()
 {
-    //    cPerspCamIntrCalib *   aCal = mPhProj.InternalCalibFromStdName(mPMAT->MapI2Str(mLocSols.at(0).mNumPose));
-    //*mMapStrI.I2Obj(aNum)
     for (size_t aKIm=0 ; aKIm<mMapStrI.size() ; aKIm++)
     {
         cPerspCamIntrCalib *   aCal = mPhProj.InternalCalibFromStdName(*mMapStrI.I2Obj(aKIm));
         FakeUseIt(aCal);
     }
+}
+
+void cMakeArboTriplet::InitTPtsStruct(const std::string& aFolder, std::vector<std::string>& aVNames)
+{
+    mTPtsStruct = AllocStdFromMTPFromFolder(aFolder,aVNames,mPhProj,true,false,true);
 }
 
 void cMakeArboTriplet::MakeGraphPose()

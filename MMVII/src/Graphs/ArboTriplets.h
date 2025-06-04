@@ -178,6 +178,10 @@ public :
     /// Ugly trick to avoid problem with accessing the same calib more than once
     void InitialiseCalibs();
 
+    /// Read tie points structure
+    void InitTPtsStruct(const std::string&, std::vector<std::string>&);
+
+
 
     tREAL8 WBalance() const {return mWBalance;}  ///< Accessor
     tREAL8 & CostMergeTree() {return mCostMergeTree;}  ///< Accessor
@@ -193,8 +197,10 @@ public :
     bool  DoRand() const {return mDoRand;}  ///< Accessor
     std::vector<tREAL8> & WeigthEdge3() {return mWeigthEdge3;}
     std::string & MapI2Str(const int aNum)  {return *mMapStrI.I2Obj(aNum);}  ///< Accessor
-    std::string & TPFolder() {return mTPtsFolder;}
-    std::string   TPFolder() const {return mTPtsFolder;}  ///< Accessor
+    std::string & TPFolder() {return mTPtsFolder;} // TO BE REMOVED
+    std::string   TPFolder() const {return mTPtsFolder;}  ///< Accessor   // TO BE REMOVED
+    cComputeMergeMulTieP*& TPtsStruct() {return mTPtsStruct;}
+    cComputeMergeMulTieP* TPtsStruct() const {return mTPtsStruct;} ///< Accessor
     std::vector<tREAL8> & ViscPose() {return mViscPose;}
     std::vector<tREAL8>   ViscPose() const {return mViscPose;}  ///< Accessor
     tREAL8              & SigmaTPt() {return mSigmaTPt;}
@@ -231,7 +237,8 @@ private :
     int                     mNbTriAnchor;    ///< Number of triplet that are anchor points
     int                     mNbTreeGlob;     ///< Number of triplet  in tri (NbTriplet - 1 for connected graph)
     int                     mNbTree2Split;   ///< Number of triplet after pruning
-    std::string             mTPtsFolder;     ///< Tie-points folder
+    std::string             mTPtsFolder;     ///< Tie-points folder  => to be removed !!!!!!!!
+    cComputeMergeMulTieP*   mTPtsStruct;     ///< Tie-points structure (global)
     std::vector<tREAL8>     mViscPose;       ///< Regularization on poses in BA
     tREAL8                  mSigmaTPt;       ///< Sigma on tie-points
     tREAL8                  mFacElim;        ///< Control outlier threshold, thres=mSigmaTPt*mFacElim
