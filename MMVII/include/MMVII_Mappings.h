@@ -336,19 +336,19 @@ template <class Type,const int DimIn,const int DimOut> class cDataMapping : publ
        // std::vector<tJac>   mResGrads;
 
 #if (MAP_STATIC_BUF)
-       static tVecOut&  BufOut()         {static tVecOut aRes; return aRes;}
-       static tVecOut&  JBufOut()        {static tVecOut aRes; return aRes;}
-       static tVecIn&   BufIn()          {static tVecIn  aRes; return aRes;}
-       static tVecIn&   JBufIn()         {static tVecIn  aRes; return aRes;}
+       static tVecOut&  BufOut()         {thread_local static tVecOut aRes; return aRes;}
+       static tVecOut&  JBufOut()        {thread_local static tVecOut aRes; return aRes;}
+       static tVecIn&   BufIn()          {thread_local static tVecIn  aRes; return aRes;}
+       static tVecIn&   JBufIn()         {thread_local static tVecIn  aRes; return aRes;}
 
        static tVecOut&  BufOutCleared()  { BufOut().clear() ; return  BufOut();}
        static tVecOut&  JBufOutCleared() {JBufOut().clear() ; return JBufOut();}
        static tVecIn&   BufInCleared()   { BufIn().clear()  ; return  BufIn(); }
        static tVecIn&   JBufInCleared()  {JBufIn().clear()  ; return JBufIn(); }
 
-       static tVecIn &  BufIn1Val()  {static tVecIn  aRes{tPtIn()}; return aRes;}
+       thread_local static tVecIn &  BufIn1Val()  {thread_local static tVecIn  aRes{tPtIn()}; return aRes;}
        /// return a "Buffer" of jacobian, satic becaus alloc in class
-       static tVecJac & BufJac(tU_INT4 aSz) ; 
+       thread_local static tVecJac & BufJac(tU_INT4 aSz) ; 
 #else  // !MAP_STATIC_BUF
     private :
        cDataMapping(const cDataMapping<Type,DimIn,DimOut> & ) = delete;
@@ -369,7 +369,7 @@ template <class Type,const int DimIn,const int DimOut> class cDataMapping : publ
        inline tVecIn&   BufInCleared()  const {mBufIn.clear(); return mBufIn;}
        inline tVecIn&   JBufIn()     const {return mJBufIn;}
        inline tVecIn&   JBufInCleared()  const {mJBufIn.clear(); return mJBufIn;}
-       inline tVecIn &  BufIn1Val() const {return mBufIn1Val;}
+       inline tVecIn &  BufIn1Val() const {if (mBufIn1Val.empy()) mBufIn1Val.push_back(tPtIn()); return mBufIn1Val;}
 
        /// return a "Buffer" of jacobian, on own ressources, const -> modify mutable var
        tVecJac & BufJac(tU_INT4 aSz) const ; 
@@ -430,7 +430,7 @@ template <class Type,const int Dim> class cDataInvertibleMapping :  public cData
     private :
       cDataInvertibleMapping(const cDataInvertibleMapping<Type,Dim> & ) = delete;
 #if (MAP_STATIC_BUF) 
-       static tVecPt&  BufInvOut()         {static tVecPt aRes; return aRes;}
+       static tVecPt&  BufInvOut()         {thread_local static tVecPt aRes; return aRes;}
        static tVecPt&  BufInvOutCleared()  { BufInvOut().clear() ; return  BufInvOut();}
 #else  // !MAP_STATIC_BUF
        mutable tVecPt  mBufInvOut;
