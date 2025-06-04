@@ -272,6 +272,8 @@ cComputeMergeMulTieP::cComputeMergeMulTieP
         if (aNewConfig.size() >=2)
         {
             cVal1ConfTPM & aNewVal = mPts[aNewConfig];
+            // if there is identifier they must be copied
+            AppendIn(aNewVal.mVIdPts , aVal.mVIdPts);
             size_t aNbIm = aConfig.size();
             size_t aNbPts = aVal.mVPIm.size() / aNbIm;
             // check on  total number due to structuring
