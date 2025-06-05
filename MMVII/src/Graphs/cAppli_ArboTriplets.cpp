@@ -101,12 +101,12 @@ void cNodeArborTriplets::ComputeResursiveSolution()
 }
 
 void cNodeArborTriplets::finalize()
-{ StdOut() << "Finalize" << std::endl;
+{
 
     if (mChildren.at(0) == nullptr)
-        StdOut() << "Do nothing" << std::endl;
+    {}//StdOut() << "Do nothing" << std::endl;
     else
-    {StdOut() << " fffffffffffffffffffffff " << std::endl;
+    {
         // recursive call to compute
         //for (auto & aChild :mChildren)
         //    aChild->ComputeResursiveSolution();
@@ -129,7 +129,7 @@ void cNodeArborTriplets::DoTerminalNode()
     ShowPose("TRM");
 
     if (mChildren.at(0) == nullptr) // Terminal node just put the riplet
-    {StdOut() << "XXXiiiiiiiiiiiii" << std::endl;// getchar();
+    {
         auto  aVecTri = mTree.Vertices();
         MMVII_INTERNAL_ASSERT_tiny(aVecTri.size()==1,"ComputeResursiveSolution, assert on desc");
         c3G3_AttrV & anATri = aVecTri.at(0)->Attr();
@@ -143,7 +143,7 @@ void cNodeArborTriplets::DoTerminalNode()
         MakeIndexGlob2Loc();
     }
     else  // non terminal node
-    {StdOut() << "XXXjjjjjjjjjjj" << std::endl; //getchar();
+    {
         // recursive call to compute
         for (auto & aChild :mChildren)
             aChild->DoTerminalNode();//ComputeResursiveSolution();
@@ -696,9 +696,9 @@ void cNodeArborTriplets::MergeChildrenSol()
      cNodeArborTriplets & aN0 = *(mChildren.at(0));
      cNodeArborTriplets & aN1 = *(mChildren.at(1));
 
-         ShowPose("DoMx :");
-     aN0.ShowPose("DoM0 :");
-     aN1.ShowPose("DoM1 :");
+     //    ShowPose("DoMx :");
+     //aN0.ShowPose("DoM0 :");
+     //aN1.ShowPose("DoM1 :");
 
      std::vector<tPairI>              aVPairCommon;  //  Store data for vertex present in 2 children
      std::vector<tPairI>              aVPairLink2;   // store data for edges between 2 children (the 3 vertex being out)
@@ -826,9 +826,8 @@ void cNodeArborTriplets::RefineSolution()
     std::vector<cCalculator<double> *> aVEqCol ;
 
     // intrinsic parameters considered the same for all images
-    StdOut() << mLocSols.at(0).mNumPose  << " " << mPMAT->MapI2Str(mLocSols.at(0).mNumPose) << std::endl;
+    //StdOut() << mLocSols.at(0).mNumPose  << " " << mPMAT->MapI2Str(mLocSols.at(0).mNumPose) << std::endl;
     cPerspCamIntrCalib *   aCal = mPhProj.InternalCalibFromStdName(mPMAT->MapI2Str(mLocSols.at(0).mNumPose),false);
-    StdOut() << "Calib read" << std::endl;
     aSetIntervUK.AddOneObj(aCal);
 
     // vector of all image names belonging to this tree level
@@ -905,13 +904,10 @@ void cNodeArborTriplets::RefineSolution()
              << "#Images " << aVCams.size() << ", pts=" << aTPts.Pts().size() << std::endl;
     for (int aIter=0; aIter<aNbIter; aIter++)
     {
-        StdOut() << "before inter 3d" << std::endl;
 
         // intersect tie-points in 3D
         for (auto & aPair : aTPts.Pts())
             MakePGround(aPair,aVSens);
-
-        StdOut() << "afer inter 3d" << std::endl;
 
         /* W(R) =
                0 if R>Thrs
@@ -944,11 +940,11 @@ void cNodeArborTriplets::RefineSolution()
             // add to BA
             for (size_t aKPts=0; aKPts<aNbPts; aKPts++)
             {
-                StdOut() << "aVals.mVPGround " << aVals.mVPGround.size() << std::endl;
+
                 const cPt3dr & aP3D = aVals.mVPGround.at(aKPts);
                 cSetIORSNL_SameTmp<tREAL8>  aStrSubst(aP3D.ToStdVector());
                 //if ( aIter==(aNbIter-1))
-                    StdOut() << aP3D.x() << " " << aP3D.y() << " " << aP3D.z() << std::endl;
+                //    StdOut() << aP3D.x() << " " << aP3D.y() << " " << aP3D.z() << std::endl;
 
                 //tREAL8 aResTotal = 0;
                 size_t aNbEqAdded = 0;
@@ -970,8 +966,8 @@ void cNodeArborTriplets::RefineSolution()
 
                         tREAL8 aWeight = aTPtsW.SingleWOfResidual(aResidual);
 
-                        StdOut() << "RRRR " << aPIm << " " << aResidual << " W=" << aWeight
-                                 << " " << aCam->NameImage() << " " << aKImSorted << " " << aKIm << "\n";
+                        //StdOut() << "RRRR " << aPIm << " " << aResidual << " W=" << aWeight
+                        //         << " " << aCam->NameImage() << " " << aKImSorted << " " << aKIm << "\n";
 
 
 
@@ -999,15 +995,15 @@ void cNodeArborTriplets::RefineSolution()
                         }
                     }
                 }
-                StdOut() << "======= done all imgs for this pt" << std::endl;
+
                 if (aNbEqAdded>=2)
                 {
                     aSys->R_AddObsWithTmpUK(aStrSubst);
                     aNum3DPts++;
                 }
 
-            }StdOut() << "==== done all pts for this config" << std::endl;
-        }StdOut() << "=== done all configs" << std::endl;
+            }
+        }
 
         double aPercInliers = (aNumTPts*100)/aNumAllTiePts;
         StdOut() << "#Iter=" << aIter
@@ -1020,8 +1016,8 @@ void cNodeArborTriplets::RefineSolution()
         const auto & aVectSol = aSys->SolveUpdateReset({aLVM},{},{});//
         aSetIntervUK.SetVUnKnowns(aVectSol);
 
-        StdOut() << " StdDevLast=" << std::sqrt(aSys->VarLastSol())
-                 << " StdDevCur=" << std::sqrt(aSys->VarCurSol()) << std::endl;
+        //StdOut() << " StdDevLast=" << std::sqrt(aSys->VarLastSol())
+        //         << " StdDevCur=" << std::sqrt(aSys->VarCurSol()) << std::endl;
 
 
     }

@@ -703,7 +703,7 @@ cPerspCamIntrCalib *  cPhotogrammetricProject::InternalCalibFromImage(const std:
         //  =============  Calibration =================
 
 std::string  cPhotogrammetricProject::StdNameCalibOfImage(const std::string aNameIm) const
-{StdOut() << " +++++ " << mFolderProject+FileOfPath(aNameIm,false) << std::endl;
+{
      cMetaDataImage aMTD = GetMetaData(mFolderProject+FileOfPath(aNameIm,false));
 // StdOut() << "StdNameCalibOfImageStdNameCalibOfImage " <<  aMTD.InternalCalibGeomIdent()  << "\n";
      return aMTD.InternalCalibGeomIdent();

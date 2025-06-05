@@ -45,9 +45,8 @@ cPt3dr BundleInter(const tPairTiePMult & aPair,size_t aKPts,const std::vector<cS
     for (size_t aK= 0 ; aK<aMult ; aK++)
     {
         const cPt2dr & aPIm = aVal.mVPIm.at(aKP0+aK);
-        StdOut() << "bef read cam in BundleInter " << aK << std::endl;
-	cSensorImage * aSI  = aVSI.at(aConfig.at(aK));
-StdOut() << "after read cam in BundleInter " << aK << std::endl;
+
+        cSensorImage * aSI  = aVSI.at(aConfig.at(aK));
 
 	aVSeg.push_back(aSI->Image2Bundle(aPIm));
     }
@@ -64,7 +63,7 @@ void MakePGround(tPairTiePMult & aPair,const std::vector<cSensorImage *> & aVSI)
     size_t aNbPts = NbPtsMul(aPair);
 
     for (size_t aKP=0 ; aKP<aNbPts; aKP++)
-    {StdOut() << "in MakePGround " << aKP << std::endl;
+    {
         aVPts.push_back(BundleInter(aPair,aKP,aVSI));
     }
 }

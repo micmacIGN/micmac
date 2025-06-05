@@ -132,7 +132,7 @@ static const unsigned char maj_octet = 0xE7;
 // Because some object are never destroyed
 bool cMemManager::TheActiveMemoryCount = true;
 void cMemManager::SetActiveMemoryCount(bool aVal)
-{
+{StdOut() << "XXXXXXXXXXXXXXXXXX========================*************************************" << std::endl; getchar();
     TheActiveMemoryCount = aVal;
 }
 bool cMemManager::IsActiveMemoryCount()
