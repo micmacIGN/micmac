@@ -23,7 +23,13 @@ template <class Type>  class  cTiling ;
  *       Reaal Coordinate  in R^n -> index of tile in N^n -> linear index in N
  */
 
-template <const int Dim> class cTilingIndex : cMemCheck
+#if (The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_micro)
+// dont understand why but generate an error :
+// error: deleted function ‘virtual MMVII::cTiling<MMVII::cPointSpInd<2> >::~cTiling()’ overriding non-deleted function
+template <const int Dim> class cTilingIndex  
+#else
+template <const int Dim> class cTilingIndex  : cMemCheck
+#endif
 {
        public :
            typedef cPtxd<int,Dim>        tIPt;
