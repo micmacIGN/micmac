@@ -158,7 +158,9 @@ class cMemCountable
 	     TheCptObj++;
 #if (The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_micro)
              MMVII_INTERNAL_ASSERT_tiny((size_t)mCpt==TheVectFreeed.size(),"Internal check in cMemCountable::TheVectFreeed");
+             MMVII_INTERNAL_ASSERT_tiny((size_t)mCpt==TheVectObjects.size(),"Internal check in cMemCountable::TheVectObjects");
              TheVectFreeed.push_back(false);
+             TheVectObjects.push_back(this);
 	     if (mCpt==TheNumObjTagged)
 	     {
                  MMVII_INTERNAL_ERROR("Creation of object tagged for memory leak tracking");
@@ -171,12 +173,16 @@ class cMemCountable
               }
          }
          cMemCountable(const cMemCountable &)  : cMemCountable () {}
+#if (The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_micro)
+         virtual ~cMemCountable()
+#else
          ~cMemCountable()
+#endif
          {
 #if (The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_micro)
             TheVectFreeed.at(mCpt) = true;
+            TheVectObjects.at(mCpt) = nullptr;
 #endif
-
             if (mActiveNbObj)
             {
                  TheNbObjLive--;
@@ -186,7 +192,8 @@ class cMemCountable
 	 int  mCpt;
 #endif
          static int    NbObjLive();
-	 static const std::vector<bool> * AdrTheVectFreeed();
+	 static const std::vector<bool> *                  AdrTheVectFreeed();
+	 static const std::vector<const cMemCountable*> *  AdrTheVectObjects();
 	 static void  SetTaggedObjectAtCreation(int aNum);
       private :
          static int    TheNbObjLive;
@@ -194,7 +201,10 @@ class cMemCountable
 	 static int    TheNumObjTagged;
 
 #if (The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_micro)
-	 static std::vector<bool>  TheVectFreeed;
+	 static std::vector<bool>                  TheVectFreeed;
+	 static std::vector<const cMemCountable*>  TheVectObjects;
+         /// This method will allow dynamic typing
+         virtual void Method4DynamicTyping() const {}
 #endif
 };
 

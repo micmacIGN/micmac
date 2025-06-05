@@ -8,6 +8,7 @@
 #include "MMVII_Tpl_Images.h"
 #include <cmath>
 #include <functional>
+#include <typeinfo>
 #ifdef _WIN32
     #include <windows.h>
 #else
@@ -1031,9 +1032,25 @@ void TestQuat()
     StdOut() <<  "TestQuatTestQuat\n"; getchar();
 }
 
+class cDynClass_1 {  virtual void  foo(){} ; };
+class cDynClass_2  : public cDynClass_1 { };
+class cDynClass_3  : public cDynClass_1 { };
+
+void  DynClass(const std::string & aMsg,const cDynClass_1 & aO1)
+{
+      std::cout << "reference to non-polymorphic base: " << typeid(aO1).name() << " => " << aMsg << '\n';
+}
+
+
 // #include <limits>
 int cAppli_MPDTest::Exe()
 {
+   if (1)
+   {
+       DynClass("C22",cDynClass_2());
+       DynClass("C33",cDynClass_3());
+	   return EXIT_SUCCESS;
+   }
    if (0)
    {
 	   TestQuat();
