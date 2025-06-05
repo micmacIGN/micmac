@@ -97,7 +97,6 @@ cCollecSpecArg2007 & cAppli_HierarchSfm::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
 int cAppli_HierarchSfm::Exe()
 {
-    SetMultiThread();
 
     mPhProj.FinishInit();
 

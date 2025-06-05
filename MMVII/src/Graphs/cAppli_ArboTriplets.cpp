@@ -1657,9 +1657,10 @@ void cMakeArboTriplet::ComputeArbor()
    mArbor->DoTerminalNode();
    StdOut() << "END DoTerminalNode" << std::endl;
    //
+   mAppli.SetMultiThread(true);
    TreeThreads<cNodeArborTriplets*> tp;
    tp.Exec(mArbor,mAppli.NbProcAllowed());
-
+   mAppli.SetMultiThread(false);
    StdOut() << "END Exec" << std::endl;
 
 
