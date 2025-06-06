@@ -158,25 +158,35 @@ void cPointCloud::ToPly(const std::string & aName,bool WithOffset) const
     }
 }
 
-void cPointCloud::AddPt(const cPt3dr& aPt)
+void cPointCloud::AddPt(const cPt3dr& aPt0)
 {
-    MMVII_INTERNAL_ERROR("cPointCloud::AddPt 2 Finalize");
+
+  mBox3dOfPts.Add(aPt0);
+  mSumPt += aPt0;
+
+  cPt3dr aPt = aPt0 - mOffset;
+  
+  if (mMode8)
+     mPtsR.push_back(aPt);
+  else
+     mPtsF.push_back(cPt3df::FromPtR(aPt));
 }
 
 void cPointCloud::Clip(cPointCloud& aPC,const cBox2dr & aBox) const
 {
-    MMVII_INTERNAL_ERROR("cPointCloud::Clip  2 Finalize");
-
-
+    // MMVII_INTERNAL_ERROR("cPointCloud::Clip  2 Finalize");
+    aPC = cPointCloud(mMode8);
     aPC.mDensity = mDensity;
+    
     // aPC.mBox2d   = aBox;
-    aPC.mPtsR.clear();
-    aPC.mPtsF.clear();
+    // aPC.mPtsR.clear();
+    // aPC.mPtsF.clear();
     size_t aNbCol = mColors.size();
     aPC.mColors = std::vector<std::vector<tU_INT1>>(aNbCol);
 
-    aPC.mOffset = mOffset;
-    aPC.mMode8 = mMode8;
+    aPC.SetOffset(mOffset);
+    // aPC.mOffset = mOffset;
+    // aPC.mMode8 = mMode8;
     aPC.mMulDegVis = mMulDegVis;
     aPC.mLeavesUnit = mLeavesUnit;
 
