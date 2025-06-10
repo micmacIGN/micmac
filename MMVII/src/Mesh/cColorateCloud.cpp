@@ -92,8 +92,8 @@ const  std::vector<cPt3dr> &  cOrthoProj::Values(tVecP3 & aVOut,const tVecP3 & a
 tSeg3dr   cOrthoProj::BundleInverse(const cPt2dr & aPIm0) const 
 {
     cPt2dr aPIm = (aPIm0-mPP) * mResol;
-    cPt3dr aP0 = TP3z(aPIm,-1.0);
-    cPt3dr aP1 = TP3z(aPIm, 1.0);
+    cPt3dr aP0 = TP3z(aPIm,-1.0)+mC;
+    cPt3dr aP1 = TP3z(aPIm, 1.0)+mC;
 
     return tSeg3dr(mRL2W.Value(aP0),mRL2W.Value(aP1));
 }
