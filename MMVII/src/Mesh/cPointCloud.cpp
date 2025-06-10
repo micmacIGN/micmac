@@ -92,6 +92,11 @@ cBox2dr  cPointCloud::Box2d()   const
     return cBox2dr(Proj(aB3.P0()),Proj(aB3.P1()));
 }
 
+cPt3dr   cPointCloud::Centroid() const
+{
+   return mSumPt / tREAL8(NbPts());
+}
+
 
 void cPointCloud::ToPly(const std::string & aName,bool WithOffset) const
 {
@@ -232,6 +237,7 @@ void cPointCloud::AddData(const  cAuxAr2007 & anAux)
     MMVII::AddData(cAuxAr2007("Density",anAux),mDensity);
 
     MMVII::AddData(cAuxAr2007("Box3d",anAux),mBox3dOfPts);
+    MMVII::AddData(cAuxAr2007("SumPt",anAux),mSumPt);
 
     MMVII::AddData(cAuxAr2007("LeavesUnit",anAux),mLeavesUnit);
     MMVII::AddData(cAuxAr2007("LeavesSize",anAux),mSzLeaves);

@@ -25,9 +25,12 @@ namespace MMVII
 
 /**  The orthographic projection as a mapping.  Used as element of cCamOrthoC.  */
 
+class cCamOrthoC;
+
 class cOrthoProj  :  public  tIMap_R3
 {
     public :
+       friend cCamOrthoC;
        typedef std::vector<cPt3dr> tVecP3;
 
        cOrthoProj (const tRotR & aRot ,const cPt3dr& aC,const cPt2dr& aPP ,tREAL8 aResol) ;
@@ -45,7 +48,7 @@ class cOrthoProj  :  public  tIMap_R3
        cPt3dr mC;
        cPt2dr mPP;
        tREAL8 mResol;
-       bool   mProfIsZIN;  ///
+       bool   mProfIsZIN; 
 };
 
 cOrthoProj::cOrthoProj (const tRotR & aRot ,const cPt3dr & aC,const cPt2dr & aPP ,tREAL8 aResol)  :
@@ -66,8 +69,6 @@ cOrthoProj::cOrthoProj (const cPt3dr & aDir ,const cPt3dr & aC,const cPt2dr& aPP
    cOrthoProj(tRotR::CompleteRON(aDir,2),aC,aPP,aResol)
 {
 }
-/*
-*/
 
 
 const  std::vector<cPt3dr> &  cOrthoProj::Values(tVecP3 & aVOut,const tVecP3 & aVIn ) const 
@@ -110,8 +111,12 @@ class cCamOrthoC  :  public  cSensorImage
     public :
        cCamOrthoC(const std::string &aName,const cOrthoProj & aProj,const cPt2di & aSz);
 
- //       cPt2dr Ground2Image(const cPt3dr &) const override;
+       cPt2dr Ground2Image(const cPt3dr &) const override;
        const cPixelDomain & PixelDomain() const override;
+       tSeg3dr  Image2Bundle(const cPt2dr &) const override;
+       std::string  V_PrefixName() const   override;
+       cPt3dr  PseudoCenterOfProj() const override;
+       double DegreeVisibility(const cPt3dr &) const ;
 
     private :
        cOrthoProj         mProj;
@@ -129,33 +134,31 @@ cCamOrthoC::cCamOrthoC(const std::string &aNameImage,const cOrthoProj & aProj,co
       
 const cPixelDomain & cCamOrthoC::PixelDomain() const { return mPixelDomain; }
 
-//cPt2dr cCamOrthoC::Ground2Image(const cPt3dr &) const { }
-
-
-/*
-       tSeg3dr  Image2Bundle(const cPt2dr &) const override;
-       double DegreeVisibility(const cPt3dr &) const override;
-       std::string  V_PrefixName() const   override;
-       cPt3dr  PseudoCenterOfProj() const ;
-*/
-/*
-*/
-
-/*
-cOrthoProj::cOrthoProj (const cPt3dr & aDir,cPt2dr aPP,tREAL8 aResol) :
-   mDir   (VUnit(aDir)), // (aDir/aDir.z())
-   mPP    (aPP),
-   mResol (aResol)
+cPt2dr cCamOrthoC::Ground2Image(const cPt3dr & aPGround) const
 {
+	return Proj(mProj.Value(aPGround));
 }
 
-
-
-std::string  cOrthoProj::V_PrefixName() const 
+tSeg3dr  cCamOrthoC::Image2Bundle(const cPt2dr & aPIm) const
 {
-    return "CamOrtho";
+	return mProj.BundleInverse(aPIm);
 }
-*/
+
+std::string  cCamOrthoC::V_PrefixName() const { return "CamOrthoC"; }
+
+cPt3dr  cCamOrthoC::PseudoCenterOfProj() const 
+{
+    cSegmentCompiled<tREAL8,3>  aSeg = Image2Bundle(ToR(Sz())/2.0);
+    return aSeg.Proj(mProj.mC);
+}
+
+double cCamOrthoC::DegreeVisibility(const cPt3dr & aPGround) const 
+{
+    cPt2dr aPIm = Proj(mProj.Value(aPGround));
+
+    return   mPixelDomain.DegreeVisibility(aPIm);
+}
+
 
 /* ********************************************* */
 /*                                               */
@@ -188,9 +191,12 @@ class cProjPointCloud
 	 /// Process on projection for  OR  (1) modify colorization of points (2) 
          void ProcessOneProj(const cParamProjCloud &,tREAL8 aW,bool ModeImage);
          
+         void ProcessImage(const std::string & aPost);
+
 	 // export the average of radiomeries (in mSumRad) as a field of mPC
          void ColorizePC(); 
      private :
+	 typedef tREAL8 tImageDepth;
 	 // --------- Processed at initialization ----------------
          cPointCloud&           mPC;       ///< memorize cloud point
 	 const int              mNbPtsGlob;    ///< store number of points
@@ -207,7 +213,16 @@ class cProjPointCloud
          std::vector<cPt3dr>    mVPtsProj;  ///< memorize projections 
          std::vector<cPt2di>    mVPtImages; ///< Projection in image of given 3D Point
          cTplBoxOfPts<int,2>    mBoxInd;    ///< Compute for of mVPtImages
+					    
+	 cPt2di                  mSzIm;
+	 cIm2D<tImageDepth>      mImDepth;
+         cDataIm2D<tImageDepth>* mDImDepth;
+         cIm2D<tREAL4>            mImRad;
+         cDataIm2D<tREAL4>*       mDImRad;
+         cIm2D<tREAL4>            mImWeigth;
+         cDataIm2D<tREAL4>*       mDImWeigth;
 };
+
 
 cProjPointCloud::cProjPointCloud(cPointCloud& aPC,tREAL8 aSurResol,tREAL8 aWeightInit) :
    mPC        (aPC),
@@ -215,9 +230,14 @@ cProjPointCloud::cProjPointCloud(cPointCloud& aPC,tREAL8 aSurResol,tREAL8 aWeigh
    mSurResol  (aSurResol),
    mAvgD      (std::sqrt(1.0/mPC.Density())),
    mStepProf  (mAvgD / mSurResol),
-
    mSumW      (aWeightInit),
-   mSumRad    (mNbPtsGlob,0.0)
+   mSumRad    (mNbPtsGlob,0.0),
+   mImDepth   (cPt2di(1,1)),
+   mDImDepth  (nullptr),
+   mImRad     (cPt2di(1,1)),
+   mDImRad    (nullptr),
+   mImWeigth  (cPt2di(1,1)),
+   mDImWeigth (nullptr)
 {
    // reserve size for Pts
    mGlobPtsInit.reserve(mNbPtsGlob);
@@ -243,13 +263,6 @@ void cProjPointCloud::ColorizePC()
 
 void cProjPointCloud::ProcessOneProj(const cParamProjCloud & aParam,tREAL8 aW,bool isModeImage)
 {
-static int aCpt=0 ; aCpt++;
-size_t aKBug = 2;
-bool aBugCpt = (aCpt==7);
-cPt2di aNBug(2,0);
-cPt2di aPtBug(852,3371);
-// aBugCpt=-1;
-
      const tIMap_R3 & aProj  = *(aParam.mProj);
 
      mSumW += aW;               // accumlate weight
@@ -274,7 +287,6 @@ cPt2di aPtBug(852,3371);
      
      //    [0.1] ---  Compute 3D proj+ its 2d-box ----
      aProj.Values(mVPtsProj,*mVPtsInit); 
-tREAL8 aDepthBug = mVPtsProj.at(aKBug).z();
      cTplBoxOfPts<tREAL8,2> aBOP;
 
      for (const auto & aPt : mVPtsProj)
@@ -293,32 +305,35 @@ tREAL8 aDepthBug = mVPtsProj.at(aKBug).z();
          mBoxInd.Add(anInd); // memo in box
          mVPtImages.push_back(anInd); 
      }
-     if (aBugCpt)
-     {
-        StdOut() << "INDIma=" <<  mVPtImages.at(aKBug) 
-                 << " PIn="   << mVPtsInit->at(aKBug)
-                 << " PProj="   << mVPtsProj.at(aKBug)
-                 << "\n";
-     }
 
      //    [0.3]  ---------- Alloc images --------------------
      //    [0.3.1]   image of depth
-     cPt2di aSzImProf = mBoxInd.CurBox().Sz() + cPt2di(1,1);
-     cIm2D<tREAL8> aImDepth(aSzImProf);
-     cDataIm2D<tREAL8> & aDImDepth = aImDepth.DIm();
-     aDImDepth.InitCste(aMinInfty);
+     mSzIm = mBoxInd.CurBox().Sz() + cPt2di(1,1);
+     mDImDepth = & (mImDepth.DIm());
+     mDImDepth->Resize(mSzIm);
+     mDImDepth->InitCste(aMinInfty);
 
+     /*
+	 cPt2di                  mSzIm;
+	 cIm2D<tImageDepth>      mImDepth;
+         cDataIm2D<tImageDepth>* mDImDepth;
+	 */
 
      //    [0.3.2]   image of radiometry
-     cPt2di aSzImRad = isModeImage ? aSzImProf : cPt2di(1,1);
-     cIm2D<tREAL4> aImRad(aSzImRad);
+     /*
+     cIm2D<tREAL4> aImRad(mSzIm);
      cDataIm2D<tREAL4>& aDImRad = aImRad.DIm();
-     aDImRad.InitCste(0.0);
+     */
+     if (isModeImage) 
+     {
+         mDImRad = & (mImRad.DIm());
+         mDImRad->Resize(mSzIm);
+         mDImRad->InitCste(0.0);
 
-     //    [0.3.2]   image of masq
-     cIm2D<tREAL4> aImWeigth(aSzImRad);
-     cDataIm2D<tREAL4>& aDImWeight = aImWeigth.DIm();
-     aDImWeight.InitCste(0.0);
+         mDImWeigth = & (mImWeigth.DIm());
+         mDImWeigth->Resize(mSzIm);
+         mDImWeigth->InitCste(0.0);
+     }
 
 
      //    [0.4]  ---------- Alloc vector SzLeaf -> neighboor in image coordinate (time efficiency) ----------------
@@ -336,25 +351,16 @@ tREAL8 aDepthBug = mVPtsProj.at(aKBug).z();
      for (size_t aKPt=0 ; aKPt<mVPtsProj.size() ; aKPt++) // parse all points
      {
          const cPt2di  & aCenter = mVPtImages.at(aKPt); // extract index
-         // extract depth, supress tiny value, so next time  Depth>stored value even with rounding in store
-         //  tREAL8   aDepth      = mVPtsProj.at(aKPt).z() - mAvgD/1e8;
-         // tREAL8 aZ = mVPtsProj.at(aKPt).z();
-         // tREAL8   aDepth  = aZ * (1.0 +  1e-6* ((aZ>0) ? -1 : 1));
-
-         tREAL8   aDepth  = mVPtsProj.at(aKPt).z();
+         tImageDepth   aDepth  = mVPtsProj.at(aKPt).z();
 
          // update depth for all point of the "leaf"
          const auto & aVDisk = aVVdisk.at(mPC.GetIntSzLeave(aKPt));
          for (const auto & aNeigh : aVDisk)
          {
              cPt2di aPt = aCenter + aNeigh;
-             if (aDImDepth.Inside(aPt))
+             if (mDImDepth->Inside(aPt))
              {
-                 aDImDepth.SetMax(aPt,aDepth);
-                 if (aBugCpt && (aPt==aPtBug))
-                 {
-                    StdOut() << "MAJ KPT=" << aKPt << " Diff=" << aDepthBug - aDepth << "\n";
-                 }
+                 mDImDepth->SetMax(aPt,aDepth);
              } 
          }
      }
@@ -364,33 +370,22 @@ tREAL8 aDepthBug = mVPtsProj.at(aKBug).z();
      //         * in mode std  accumulate its visibility 
      //         * in mode image, project its radiometry
      // ===========================================================================================================================
-int aNbEqualBug=0;
      for (size_t aKPt=0 ; aKPt<mVPtsProj.size() ; aKPt++) // parse all points
      {
          const cPt2di  & aCenter = mVPtImages.at(aKPt);
-         tREAL8   aDepth      = mVPtsProj.at(aKPt).z();
+         tImageDepth   aDepth      = mVPtsProj.at(aKPt).z();
          int aNbVis = 0;
          const auto & aVDisk = aVVdisk.at(mPC.GetIntSzLeave(aKPt));
          for (const auto & aNeigh :aVDisk) // parse all point of leaf
          {
              cPt2di aPt = aCenter + aNeigh;
-             bool IsVisible = (aDImDepth.DefGetV(aPt,aPlusInfty) <= aDepth);
-aNbEqualBug += (aDImDepth.DefGetV(aPt,aPlusInfty) == aDepth);
-             if (aBugCpt && (aKPt==aKBug) && (aNeigh==aNBug))
-             {
-                 StdOut() << " Neigh=" << aNeigh << " Vis=" << IsVisible << " Pt=" << aPt << "\n";
-                 StdOut() << " [DEPTH] " 
-                          << " Im=" << aDImDepth.DefGetV(aPt,aPlusInfty) 
-                          << " Pt=" <<  aDepth 
-                          << " Diff=" << aDepth-aDImDepth.DefGetV(aPt,aPlusInfty) 
-                          << "\n";
-             }
+             bool IsVisible = (mDImDepth->DefGetV(aPt,aPlusInfty) <= aDepth);
              if (IsVisible)  // if the point is visible
              {
                 if (isModeImage)  // in mode image udpate radiometry & image
                 {
-                   aDImWeight.SetV(aPt,1.0);
-                   aDImRad.SetV(aPt,mPC.GetDegVis(aKPt)*255);
+                   mDImWeigth->SetV(aPt,1.0);
+                   mDImRad->SetV(aPt,mPC.GetDegVis(aKPt)*255);
                 }
                 else  // in mode standard uptdate visib count
                 {
@@ -400,82 +395,71 @@ aNbEqualBug += (aDImDepth.DefGetV(aPt,aPlusInfty) == aDepth);
          }
          if (!isModeImage)  // in mode std we know the visibility 
          {
-            tREAL8 aGray = (aW * aNbVis) / aVDisk.size();
-            mSumRad.at(aKPt) +=  aGray;
-            if (aBugCpt && (aKPt==aKBug))
-               StdOut() << "Cpt=" << aCpt << " K=" << aKPt << " NBV=" << aNbVis << " SR="  <<  mSumRad.at(aKPt) << " Gr=" << aGray << "\n";
+            tREAL8 aGray =  aNbVis / tREAL8(aVDisk.size());
+            mSumRad.at(aKPt) +=  aGray * aW;
          }
      }
-
-if (aBugCpt) 
-{
-   int aNbEqTh = 0;
-   for (const auto & aP : aDImDepth)
-       if ( aDImDepth.GetV(aP) > (aMinInfty/2))
-          aNbEqTh++;
-   StdOut() << "NBEQ=" << aNbEqualBug << " " << aNbEqualBug - aNbEqTh << "\n";
 }
-     
 
+void cProjPointCloud::ProcessImage(const std::string & aPrefix)
+{
      // =====================================================================================
      // == [3] ==================   compute the images (radiom, weight, depth) ==============
      // =====================================================================================
 
-     if (isModeImage)
+     tREAL8 aResolImRel = 0.5;
+     tREAL8 aStepImAbs =  mAvgD / aResolImRel;
+     tREAL8 aResolImaRel = aStepImAbs / mStepProf;
+     tREAL8 aSigmaImaFinal = 1.0;
+     tREAL8 aSigmaImaInit = aSigmaImaFinal * aResolImaRel;
+     int    aNbIter = 5;
+
+     //  DImDepth has def value to -Infty, we need to set to 0 the pixel non initialized    
+     //  not needed for mDImRad & mDImDepth
+     MulImageInPlace(*mDImDepth,*mDImWeigth);
+
+     //  make some gaussian averaging for Rad/Depth/Weigth
+     ExpFilterOfStdDev( *mDImRad,aNbIter,aSigmaImaInit);
+     ExpFilterOfStdDev(*mDImWeigth,aNbIter,aSigmaImaInit);
+     ExpFilterOfStdDev( *mDImDepth,aNbIter,aSigmaImaInit);
+
+     //  make Depth /= Weith    Rad /= Weitgh
+     for (const auto & aPix : *mDImWeigth)
      {
-         tREAL8 aResolImRel = 0.5;
-         tREAL8 aStepImAbs =  mAvgD / aResolImRel;
-         tREAL8 aResolImaRel = aStepImAbs / mStepProf;
-         tREAL8 aSigmaImaFinal = 1.0;
-         tREAL8 aSigmaImaInit = aSigmaImaFinal * aResolImaRel;
-         int    aNbIter = 5;
-
-         MulImageInPlace(aDImDepth,aDImWeight);
-         
-
-         ExpFilterOfStdDev( aDImRad,aNbIter,aSigmaImaInit);
-         ExpFilterOfStdDev(aDImWeight,aNbIter,aSigmaImaInit);
-         ExpFilterOfStdDev( aDImDepth,aNbIter,aSigmaImaInit);
-
-         for (const auto & aPix : aDImWeight)
-         {
-            tREAL8 aW =   aDImWeight.GetV(aPix);
-            tREAL8 aD =   aDImDepth.GetV(aPix);
-            tREAL8 aR =   aDImRad.GetV(aPix);
-            aDImRad.SetV(aPix,aW ?  aR/aW : 0.0);
-            aDImDepth.SetV(aPix,aW ?  aD/aW : 0.0);
-         }
-       
-        static int aCpt=0; aCpt++;
-         
-        cPt2di  aSzImFinal = ToI(ToR(aSzImRad)/aResolImaRel);
-        cIm2D<tU_INT1>      aIm8BReduc(aSzImFinal);  // radiometric image
-        cDataIm2D<tU_INT1>& aDIm8BReduc = aIm8BReduc.DIm();
-        cIm2D<tREAL4>       aImDepReduc(aSzImFinal);  // Z/depth  image
-        cDataIm2D<tREAL4>&  aDImDepReduc = aImDepReduc.DIm();
-
-        cIm2D<tU_INT1>      aImWeightReduc(aSzImFinal);  // radiometric image
-        cDataIm2D<tU_INT1>& aDImWeightReduc = aImWeightReduc.DIm();
-
-
-        std::unique_ptr<cDiffInterpolator1D> aInterp (cDiffInterpolator1D::TabulSinC(5));
-
-        for (const auto & aPixI : aDIm8BReduc)
-        {
-            cPt2dr aPixR = ToR(aPixI) * aResolImaRel;
-            aDIm8BReduc.SetVTrunc(aPixI,aDImRad.ClipedGetValueInterpol(*aInterp,aPixR,0));
-            aDImDepReduc.SetV(aPixI,aDImDepth.ClipedGetValueInterpol(*aInterp,aPixR,0));
-
-            aDImWeightReduc.SetVTrunc(aPixI,round_ni(256*aDImWeight.ClipedGetValueInterpol(*aInterp,aPixR,0)));
-        }
-        aDIm8BReduc.ToFile("IIP_Radiom_"+ToStr(aCpt) + ".tif");
-        aDImDepReduc.ToFile("IIP_Depth_"+ToStr(aCpt) + ".tif");
-        aDImWeightReduc.ToFile("IIP_Weight_"+ToStr(aCpt) + ".tif");
-
-        StdOut() << "RESOL ;  IMA-REL=" << aResolImaRel << " Ground=" << aStepImAbs << "\n";
+         tREAL8 aW =   mDImWeigth->GetV(aPix);
+         tREAL8 aD =   mDImDepth->GetV(aPix);
+         tREAL8 aR =   mDImRad->GetV(aPix);
+         mDImRad->SetV(aPix,aW ?  aR/aW : 0.0);
+         mDImDepth->SetV(aPix,aW ?  aD/aW : 0.0);
      }
-/*
-*/
+       
+     static int aCpt=0; aCpt++;
+         
+     cPt2di  aSzImFinal = ToI(ToR(mDImRad->Sz())/aResolImaRel);
+     cIm2D<tU_INT1>      aIm8BReduc(aSzImFinal);  // radiometric image
+     cDataIm2D<tU_INT1>& aDIm8BReduc = aIm8BReduc.DIm();
+     cIm2D<tREAL4>       aImDepReduc(aSzImFinal);  // Z/depth  image
+     cDataIm2D<tREAL4>&  aDImDepReduc = aImDepReduc.DIm();
+
+     cIm2D<tU_INT1>      aImWeightReduc(aSzImFinal);  // radiometric image
+     cDataIm2D<tU_INT1>& aDImWeightReduc = aImWeightReduc.DIm();
+
+
+     std::unique_ptr<cDiffInterpolator1D> aInterp (cDiffInterpolator1D::TabulSinC(5));
+
+     for (const auto & aPixI : aDIm8BReduc)
+     {
+         cPt2dr aPixR = ToR(aPixI) * aResolImaRel;
+         aDIm8BReduc.SetVTrunc(aPixI,mDImRad->ClipedGetValueInterpol(*aInterp,aPixR,0));
+         aDImDepReduc.SetV(aPixI,mDImDepth->ClipedGetValueInterpol(*aInterp,aPixR,0));
+
+         aDImWeightReduc.SetVTrunc(aPixI,round_ni(256*mDImWeigth->ClipedGetValueInterpol(*aInterp,aPixR,0)));
+     }
+     aDIm8BReduc.ToFile    (aPrefix+"_Radiom_"+ToStr(aCpt) + ".tif");
+     aDImDepReduc.ToFile   (aPrefix+"_Depth_"+ToStr(aCpt) + ".tif");
+     aDImWeightReduc.ToFile(aPrefix+"_Weight_"+ToStr(aCpt) + ".tif");
+
+     StdOut() << "RESOL ;  IMA-REL=" << aResolImaRel << " Ground=" << aStepImAbs << "\n";
 }
 
 /* =============================================== */
@@ -554,13 +538,14 @@ int  cAppli_MMVII_CloudImProj::Exe()
    mCalib = cPerspCamIntrCalib::SimpleCalib("MeshSim",eProjPC::eStenope,mSzIm,cPt3dr(mSzIm.x()/2.0,mSzIm.y()/2.0,mFocal),cPt3di(0,0,0));
 
 
+
    cPointCloud   aPC_In ;
    ReadFromFile(aPC_In,mNameCloudIn);
 
    if  (IsInit(&mSun))
    {
        cProjPointCloud  aPPC(aPC_In,mSurResolSun,1.0);
-       cOrthoProj  aProj(cPt3dr(mSun.x(),mSun.y(),1.0));
+       cOrthoProj  aProj(cPt3dr(mSun.x(),mSun.y(),1.0),aPC_In.Centroid());
        aPPC.ProcessOneProj(cParamProjCloud(&aProj), mSun.z(),false);
 
        aPPC.ColorizePC();
@@ -576,8 +561,9 @@ int  cAppli_MMVII_CloudImProj::Exe()
    {
        for (int aK=-5 ; aK<=5 ; aK++)
        {
-           cOrthoProj aProj(cPt3dr(aK*0.2,0,1.0));
+           cOrthoProj aProj(cPt3dr(aK*0.2,0,1.0),aPC_In.Centroid(),ToR(mSzIm)/2.0);
            aPPC.ProcessOneProj(cParamProjCloud(&aProj),0.0,true);
+	   aPPC.ProcessImage("IIP");
        }
    }
 
@@ -711,7 +697,7 @@ int  cAppli_MMVII_CloudColorate::Exe()
            cPt3dr aDir = VUnit(aSampS.KthPt(aK));
            if (aDir.z() >= 0.2)
            {
-               cOrthoProj aProj(aDir);
+               cOrthoProj aProj(aDir,aPC_In.Centroid());
 	       if (mProfIsZIn) 
                   aProj.SetProfIsZIN();
                aPPC.ProcessOneProj(cParamProjCloud(&aProj),1.0,false);
@@ -724,7 +710,7 @@ int  cAppli_MMVII_CloudColorate::Exe()
    if (IsInit(&mSun))
    {
        tREAL8 aW0  = mNbSampS ? aNbStd : 1.0;
-       cOrthoProj  aProj(cPt3dr(mSun.x(),mSun.y(),1.0));
+       cOrthoProj  aProj(cPt3dr(mSun.x(),mSun.y(),1.0),aPC_In.Centroid());
        aPPC.ProcessOneProj(cParamProjCloud(&aProj),aW0 * mSun.z(),false);
    }
 
