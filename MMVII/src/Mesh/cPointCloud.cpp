@@ -73,7 +73,12 @@ void cPointCloud::SetSzLeaves(int aK,tREAL8 aSz)
 tREAL8 cPointCloud::GetSzLeave(int aK) const {return mSzLeaves.at(aK) * mLeavesUnit;}
 
 tU_INT1 cPointCloud::GetIntSzLeave(int aK) const {return mSzLeaves.at(aK);}
-tREAL8  cPointCloud::ConvertInt2SzLeave(int aInd) const {return mLeavesUnit * aInd;}
+tREAL8  cPointCloud::ConvertInt2SzLeave(int aInd) const 
+{
+  
+   MMVII_INTERNAL_ASSERT_User_UndefE(mLeavesUnit>=0,"mLeavesUnit not itialized");
+   return mLeavesUnit * aInd;
+}
 
 bool  cPointCloud::LeavesIsInit() const 
 {

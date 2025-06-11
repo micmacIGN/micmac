@@ -173,11 +173,11 @@ class cParamProjCloud
    public :
        cParamProjCloud(const tIMap_R3 * aProj) :
            mProj   (aProj),
-           mSetOK  (nullptr)
+           mCam    (nullptr)
        {
        }
        const tIMap_R3 * mProj;
-       tSet_R3 *        mSetOK;
+       cSensorImage *   mCam;
 };
 
 ///  Class for computing projection of a point cloud
@@ -239,6 +239,7 @@ cProjPointCloud::cProjPointCloud(cPointCloud& aPC,tREAL8 aSurResol,tREAL8 aWeigh
    mImWeigth  (cPt2di(1,1)),
    mDImWeigth (nullptr)
 {
+//  StdOut() << "SSSSS  " << mStepProf << " AAA=" <<mAvgD << " SRrr=" << mSurResol << "\n";
    // reserve size for Pts
    mGlobPtsInit.reserve(mNbPtsGlob);
    mVPtsProj.reserve(mNbPtsGlob);
@@ -277,11 +278,12 @@ void cProjPointCloud::ProcessOneProj(const cParamProjCloud & aParam,tREAL8 aW,bo
      //    [0.0] ---  Compute eventually the selection of point ------
      mVPtsInit = & mGlobPtsInit;  // Default case , take all the point
      std::vector<cPt3dr>  aVPtsSel;  // will contain the selection if required, must be at the same scope
-     if (aParam.mSetOK)  // if we have a selection
+     if (aParam.mCam)  // if we have a selection
      {
          for (const auto & aPt : mGlobPtsInit)
-             if (aParam.mSetOK->Inside(aPt))
+             if (aParam.mCam->DegreeVisibility(aPt)>0)
                 aVPtsSel.push_back(aPt);
+         StdOut()  << "SELLL=" << mVPtsInit->size() << " " << aVPtsSel.size() << "\n";
          mVPtsInit  = & aVPtsSel;
      }
      
