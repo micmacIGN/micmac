@@ -156,7 +156,10 @@ double cCamOrthoC::DegreeVisibility(const cPt3dr & aPGround) const
 {
     cPt2dr aPIm = Proj(mProj.Value(aPGround));
 
-    return   mPixelDomain.DegreeVisibility(aPIm);
+// StdOut() << "DegreeVisibility " << aPGround << " " << aPIm << " " << mPixelDomain.DegreeVisibility(aPIm) << "\n";
+// getchar();
+
+    return   mPixelDomain.DegreeVisibility(aPIm)>0;
 }
 
 
@@ -281,21 +284,27 @@ void cProjPointCloud::ProcessOneProj(const cParamProjCloud & aParam,tREAL8 aW,bo
      if (aParam.mCam)  // if we have a selection
      {
          for (const auto & aPt : mGlobPtsInit)
+	 {
              if (aParam.mCam->DegreeVisibility(aPt)>0)
+	     {
                 aVPtsSel.push_back(aPt);
+	     }
+         }
          StdOut()  << "SELLL=" << mVPtsInit->size() << " " << aVPtsSel.size() << "\n";
          mVPtsInit  = & aVPtsSel;
      }
      
      //    [0.1] ---  Compute 3D proj+ its 2d-box ----
      aProj.Values(mVPtsProj,*mVPtsInit); 
-     cTplBoxOfPts<tREAL8,2> aBOP;
 
-     for (const auto & aPt : mVPtsProj)
+     cPt2dr aPMin(0.0,0.0);
+     if (! aParam.mCam)
      {
-         aBOP.Add(Proj(aPt));
+        for (const auto & aPt : mVPtsProj)
+        {
+            SetInfEq(aPMin,Proj(aPt));
+        }
      }
-     cBox2dr aBox = aBOP.CurBox();
 
 
      //    [0.2]  ---------- compute the images indexes of points + its box  & sz ---
@@ -303,7 +312,7 @@ void cProjPointCloud::ProcessOneProj(const cParamProjCloud & aParam,tREAL8 aW,bo
      mVPtImages.clear();
      for (const auto & aPt : mVPtsProj)
      {
-         cPt2di anInd = ToI((Proj(aPt)-aBox.P0()) / mStepProf);  // compute image index
+         cPt2di anInd = ToI(  (Proj(aPt)-aPMin)/mStepProf   );  // compute image index
          mBoxInd.Add(anInd); // memo in box
          mVPtImages.push_back(anInd); 
      }
@@ -506,7 +515,7 @@ cAppli_MMVII_CloudImProj::cAppli_MMVII_CloudImProj
 ) :
      cMMVII_Appli      (aVArgs,aSpec),
      mSurResolSun      (2.0),
-     mSzIm             (3000,2000),
+     mSzIm             (500,500),
      mFOV              (0.4),
      mNbBande          (5,1),
      mBSurH            (0.1,0.2),
@@ -564,7 +573,12 @@ int  cAppli_MMVII_CloudImProj::Exe()
        for (int aK=-5 ; aK<=5 ; aK++)
        {
            cOrthoProj aProj(cPt3dr(aK*0.2,0,1.0),aPC_In.Centroid(),ToR(mSzIm)/2.0);
-           aPPC.ProcessOneProj(cParamProjCloud(&aProj),0.0,true);
+	   cCamOrthoC aCam("ORTHO-"+ToStr(aK),aProj,mSzIm);
+
+	   cParamProjCloud aParam(&aProj);
+	   aParam.mCam = & aCam;
+
+           aPPC.ProcessOneProj(aParam,0.0,true);
 	   aPPC.ProcessImage("IIP");
        }
    }
