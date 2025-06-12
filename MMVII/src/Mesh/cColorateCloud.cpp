@@ -189,10 +189,10 @@ class cProjPointCloud
 {
      public :
          /// constructor : memoriez PC, inialize accum, allocate mem
-         cProjPointCloud(cPointCloud & aParam,tREAL8 aSurResol,tREAL8 aWeightInit );
+         cProjPointCloud(cPointCloud & aParam,tREAL8 aWeightInit );
 
 	 /// Process on projection for  OR  (1) modify colorization of points (2) 
-         void ProcessOneProj(const cParamProjCloud &,tREAL8 aW,bool ModeImage);
+         void ProcessOneProj(tREAL8 aSurResol,const cSensorImage &,tREAL8 aW,bool ModeImage);
          
          void ProcessImage(const std::string & aPost);
 
@@ -206,9 +206,9 @@ class cProjPointCloud
 	 // int                    mNbPts;    ///<  Dynamic, change with SetOk
          std::vector<cPt3dr>    mGlobPtsInit; ///< initial point cloud (stores once  for all in 64-byte, for efficienciency)
          std::vector<cPt3dr> *  mVPtsInit;     /// Dynamic, change with SetOk
-         const tREAL8           mSurResol;
+         // const tREAL8           mSurResol;
 	 const tREAL8           mAvgD;       ///< Avg 2D-Distance between points in 3D Cloud
-         const tREAL8           mStepProf;  ///< Step for computing depth-images
+         //const tREAL8           mStepProf;  ///< Step for computing depth-images
 	 // --------- Updated  with  "ProcessOneProj"  ----------------
          tREAL8                 mSumW;      ///< accumulate sum of weight on radiometries
          std::vector<tREAL4>    mSumRad;    ///< accumulate sum of radiometry
@@ -227,12 +227,12 @@ class cProjPointCloud
 };
 
 
-cProjPointCloud::cProjPointCloud(cPointCloud& aPC,tREAL8 aSurResol,tREAL8 aWeightInit) :
+cProjPointCloud::cProjPointCloud(cPointCloud& aPC,tREAL8 aWeightInit) :
    mPC        (aPC),
    mNbPtsGlob (aPC.NbPts()),
-   mSurResol  (aSurResol),
+   // mSurResol  (aSurResol),
    mAvgD      (std::sqrt(1.0/mPC.Density())),
-   mStepProf  (mAvgD / mSurResol),
+   //mStepProf  (mAvgD / mSurResol),
    mSumW      (aWeightInit),
    mSumRad    (mNbPtsGlob,0.0),
    mImDepth   (cPt2di(1,1)),
@@ -265,13 +265,13 @@ void cProjPointCloud::ColorizePC()
    }
 }
 
-void cProjPointCloud::ProcessOneProj(const cParamProjCloud & aParam,tREAL8 aW,bool isModeImage)
+void cProjPointCloud::ProcessOneProj(tREAL8 aSurResol,const cSensorImage & aSensor,tREAL8 aW,bool isModeImage)
 {
-     const tIMap_R3 & aProj  = *(aParam.mProj);
 
      mSumW += aW;               // accumlate weight
      tREAL8 aMinInfty = -1e10;  // minus infinity, any value lower than anr real one
      tREAL8 aPlusInfty = - aMinInfty;
+FakeUseIt(aPlusInfty);
 
      // ========================================================================
      // == [0] ==================  Init proj, indexes, images  =================
@@ -281,24 +281,28 @@ void cProjPointCloud::ProcessOneProj(const cParamProjCloud & aParam,tREAL8 aW,bo
      //    [0.0] ---  Compute eventually the selection of point ------
      mVPtsInit = & mGlobPtsInit;  // Default case , take all the point
      std::vector<cPt3dr>  aVPtsSel;  // will contain the selection if required, must be at the same scope
-     if (aParam.mCam)  // if we have a selection
+     cPt3dr aCenter = mPC.Centroid();
+     if (isModeImage)  // if we have a selection
      {
          for (const auto & aPt : mGlobPtsInit)
 	 {
-             if (aParam.mCam->DegreeVisibility(aPt)>0)
+             if (aSensor.DegreeVisibility(aPt)>0)
 	     {
                 aVPtsSel.push_back(aPt);
 	     }
          }
          StdOut()  << "SELLL=" << mVPtsInit->size() << " " << aVPtsSel.size() << "\n";
          mVPtsInit  = & aVPtsSel;
+	 aCenter = Centroid(aVPtsSel);
      }
      
      //    [0.1] ---  Compute 3D proj+ its 2d-box ----
-     aProj.Values(mVPtsProj,*mVPtsInit); 
+     mVPtsProj.clear();
+     for (const auto & aPt : *mVPtsInit)
+          mVPtsProj.push_back(aSensor.Ground2ImageAndDepth(aPt));
 
      cPt2dr aPMin(0.0,0.0);
-     if (! aParam.mCam)
+     if (! isModeImage)
      {
         for (const auto & aPt : mVPtsProj)
         {
@@ -310,12 +314,30 @@ void cProjPointCloud::ProcessOneProj(const cParamProjCloud & aParam,tREAL8 aW,bo
      //    [0.2]  ---------- compute the images indexes of points + its box  & sz ---
      mBoxInd= cTplBoxOfPts<int,2> (); //
      mVPtImages.clear();
+
      for (const auto & aPt : mVPtsProj)
      {
-         cPt2di anInd = ToI(  (Proj(aPt)-aPMin)/mStepProf   );  // compute image index
+         cPt2di anInd = ToI(  (Proj(aPt)-aPMin)*aSurResol   );  // compute image index
          mBoxInd.Add(anInd); // memo in box
          mVPtImages.push_back(anInd); 
      }
+
+     /*
+     if (0)
+     {
+          cWeightAv<tREAL8,cPt3dr> aWPts0;
+          cWeightAv<tREAL8,cPt3dr> aWProj;
+          for (size_t aKPt=0 ; aKPt<mVPtsInit->size() ; aKPt++)
+	  {
+              cPt3dr aPt =  mVPtsInit->at(aKPt);
+              cPt3dr aPProj =  aProj.Value(aPt);
+
+              aWPts0.Add(1.0,aPt);
+              aWProj.Add(1.0,aPProj);
+	  }
+	  StdOut()  << "AVG ;;  P0=" << aWPts0.Average()  << " PROJ=" << aWProj.Average() << " Step=" << mStepProf << "\n";
+     }
+     */
 
      //    [0.3]  ---------- Alloc images --------------------
      //    [0.3.1]   image of depth
@@ -346,6 +368,7 @@ void cProjPointCloud::ProcessOneProj(const cParamProjCloud & aParam,tREAL8 aW,bo
          mDImWeigth->InitCste(0.0);
      }
 
+#if (0)
 
      //    [0.4]  ---------- Alloc vector SzLeaf -> neighboor in image coordinate (time efficiency) ----------------
      std::vector<std::vector<cPt2di>> aVVdisk(256);  // as size if store 8-byte, its sufficient
@@ -381,6 +404,8 @@ void cProjPointCloud::ProcessOneProj(const cParamProjCloud & aParam,tREAL8 aW,bo
      //         * in mode std  accumulate its visibility 
      //         * in mode image, project its radiometry
      // ===========================================================================================================================
+ 
+//int aNbModif=0;
      for (size_t aKPt=0 ; aKPt<mVPtsProj.size() ; aKPt++) // parse all points
      {
          const cPt2di  & aCenter = mVPtImages.at(aKPt);
@@ -391,8 +416,16 @@ void cProjPointCloud::ProcessOneProj(const cParamProjCloud & aParam,tREAL8 aW,bo
          {
              cPt2di aPt = aCenter + aNeigh;
              bool IsVisible = (mDImDepth->DefGetV(aPt,aPlusInfty) <= aDepth);
+
+if (0&& isModeImage)
+{
+	StdOut() << "DDDD = " <<  mDImDepth->DefGetV(aPt,aPlusInfty)  << " " <<  aDepth << "\n";
+        StdOut() << " C=" << aCenter << " Sz=" << mDImDepth->Sz() << "\n";
+	getchar();
+}
              if (IsVisible)  // if the point is visible
              {
+// aNbModif++;
                 if (isModeImage)  // in mode image udpate radiometry & image
                 {
                    mDImWeigth->SetV(aPt,1.0);
@@ -410,10 +443,13 @@ void cProjPointCloud::ProcessOneProj(const cParamProjCloud & aParam,tREAL8 aW,bo
             mSumRad.at(aKPt) +=  aGray * aW;
          }
      }
+// StdOut() << "NBMMM=" << aNbModif << "\n";
+#endif
 }
 
 void cProjPointCloud::ProcessImage(const std::string & aPrefix)
 {
+#if (0)
      // =====================================================================================
      // == [3] ==================   compute the images (radiom, weight, depth) ==============
      // =====================================================================================
@@ -471,6 +507,7 @@ void cProjPointCloud::ProcessImage(const std::string & aPrefix)
      aDImWeightReduc.ToFile(aPrefix+"_Weight_"+ToStr(aCpt) + ".tif");
 
      StdOut() << "RESOL ;  IMA-REL=" << aResolImaRel << " Ground=" << aStepImAbs << "\n";
+#endif
 }
 
 /* =============================================== */
@@ -496,6 +533,7 @@ class cAppli_MMVII_CloudImProj : public cMMVII_Appli
         tREAL8  mSurResolSun;
         std::string   mNameImageOut;
 
+	tREAL8        mResolOrthoC;
         cPt2di        mSzIm;
         tREAL8        mFOV;
         cPt2di        mNbBande;
@@ -515,7 +553,8 @@ cAppli_MMVII_CloudImProj::cAppli_MMVII_CloudImProj
 ) :
      cMMVII_Appli      (aVArgs,aSpec),
      mSurResolSun      (2.0),
-     mSzIm             (500,500),
+     mResolOrthoC      (0.2),
+     mSzIm             (5000,5000),
      mFOV              (0.4),
      mNbBande          (5,1),
      mBSurH            (0.1,0.2),
@@ -537,11 +576,13 @@ cCollecSpecArg2007 & cAppli_MMVII_CloudImProj::ArgOpt(cCollecSpecArg2007 & anArg
           << AOpt2007(mNameImageOut,CurOP_Out,"Name of image  file, def= Ima+Input")
           << AOpt2007(mSun,"Sun","Sun : Dir3D=(x,y,1)  ,  Z=WEIGHT !! ")
           << AOpt2007(mNameSavePCSun,"CloudSun","Name of cloud with sun, if sun was added")
+          << AOpt2007(mSzIm,"SzIm","Size of resulting image",{eTA2007::HDV})
    ;
 }
 
 int  cAppli_MMVII_CloudImProj::Exe()
 {
+#if (0)
    if (!IsInit(&mNameImageOut))
       mNameImageOut =  "ImProj_" + LastPrefix(mNameCloudIn) + ".tif";
 
@@ -553,9 +594,10 @@ int  cAppli_MMVII_CloudImProj::Exe()
    cPointCloud   aPC_In ;
    ReadFromFile(aPC_In,mNameCloudIn);
 
+   cProjPointCloud  aPPC(aPC_In,mSurResolSun,1.0);
    if  (IsInit(&mSun))
    {
-       cProjPointCloud  aPPC(aPC_In,mSurResolSun,1.0);
+       // cProjPointCloud  aPPC(aPC_In,mSurResolSun,1.0);
        cOrthoProj  aProj(cPt3dr(mSun.x(),mSun.y(),1.0),aPC_In.Centroid());
        aPPC.ProcessOneProj(cParamProjCloud(&aProj), mSun.z(),false);
 
@@ -564,15 +606,15 @@ int  cAppli_MMVII_CloudImProj::Exe()
            SaveInFile(aPC_In,mNameSavePCSun);
    }
 
-   cProjPointCloud  aPPC(aPC_In,mSurResolSun,1.0);
    if (false)
    {
    }
    else
    {
-       for (int aK=-5 ; aK<=5 ; aK++)
+       for (int aK=-0 ; aK<=0 ; aK++)
        {
-           cOrthoProj aProj(cPt3dr(aK*0.2,0,1.0),aPC_In.Centroid(),ToR(mSzIm)/2.0);
+            cOrthoProj aProj(cPt3dr(aK*0.2,0,1.0),aPC_In.Centroid(),ToR(mSzIm)/2.0);
+// cOrthoProj  aProj(cPt3dr(aK*0.2,0,1.0),aPC_In.Centroid());
 	   cCamOrthoC aCam("ORTHO-"+ToStr(aK),aProj,mSzIm);
 
 	   cParamProjCloud aParam(&aProj);
@@ -586,6 +628,7 @@ int  cAppli_MMVII_CloudImProj::Exe()
    StdOut() << "NbLeaves "<< aPC_In.LeavesIsInit () << "\n";
 
    delete mCalib;
+#endif
    return EXIT_SUCCESS;
 }
 
@@ -677,6 +720,7 @@ cCollecSpecArg2007 & cAppli_MMVII_CloudColorate::ArgOpt(cCollecSpecArg2007 & anA
 
 int  cAppli_MMVII_CloudColorate::Exe()
 {
+#if (0)
    if (! IsInit(&mNameCloudOut))
       mNameCloudOut = "Colorate_"+ mNameCloudIn;
 
@@ -732,6 +776,7 @@ int  cAppli_MMVII_CloudColorate::Exe()
 
    aPPC.ColorizePC();
    SaveInFile(aPC_In,mNameCloudOut);
+#endif
 
 
    return EXIT_SUCCESS;

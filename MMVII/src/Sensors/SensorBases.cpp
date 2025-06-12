@@ -149,6 +149,25 @@ cPt3dr cSensorImage::ImageAndDepth2Ground(const cPt3dr &) const
     return cPt3dr::Dummy();
 }
 
+tREAL8 cSensorImage::GroundSamplingDistance(const cPt3dr & aPGroundCenter) const 
+{
+     cPt3dr aPProjCenter = Ground2ImageAndDepth(aPGroundCenter);
+     cPt2dr aPImCenter  = Proj(aPProjCenter);
+     tREAL8 aDepth = aPProjCenter.z();
+     // const auto & aVN = AllocNeighbourhood<2>(4);
+
+     cWeightAv<tREAL8> aWeighD;
+     for (const auto & aNeigh : AllocNeighbourhood<2>(1))
+     {
+         cPt2dr aPIm = aPImCenter + ToR(aNeigh);
+         cPt3dr aPGround = ImageAndDepth2Ground(TP3z(aPIm,aDepth));
+	 aWeighD.Add(1.0,Norm2(aPGround-aPGroundCenter));
+     }
+
+     return aWeighD.Average();
+}
+
+
 cCalculator<double> * cSensorImage::CreateEqColinearity(bool WithDerives,int aSzBuf,bool ReUse)
 {
     MMVII_INTERNAL_ERROR("cSensorImage::CreateEqColinearity not implemanted");

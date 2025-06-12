@@ -1051,6 +1051,7 @@ void BenchCentralePerspective(cParamExeBench & aParam,eProjPC aTypeProj)
 
        delete aCam;
     }
+
 }
 
 void BenchImAndZ()
@@ -1088,6 +1089,23 @@ void BenchCentralePerspective(cParamExeBench & aParam)
        int aNumDist = aKTest%4;
        bool WithDist = (aNumDist==1) || (aNumDist==2);
        cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::RandomCalib(eProjPC::eStenope,aNumDist,WithDist ? 0.01 : 0.1);
+
+       if (! WithDist)
+       {
+	   tPoseR aPose = tPoseR::RandomIsom3D(100.0);
+	   cSensorCamPC aCam("BenchResol",aPose,aCalib);
+
+           for (int aK=0 ; aK<10 ; aK++)
+           {
+	       tREAL8 aDepth = RandInInterval(1,10.);
+	       cPt3dr  aPGr = aCam.RandomVisiblePGround(aDepth,aDepth);
+               // StdOut() << "JJJJJ " << aCam.InternalCalib()->F()  << "  P=" << aPGr << " D=" << aDepth << "\n";
+	       tREAL8 aDiff =  aCam.GroundSamplingDistance(aPGr) -  aDepth / aCam.InternalCalib()->F() ;
+               // StdOut() << "JJJJJ " << aDiff << " " << aCam.GroundSamplingDistance(aPGr) << " " << aDepth / aCam.InternalCalib()->F() << "\n";
+	       MMVII_INTERNAL_ASSERT_bench(std::abs(aDiff)<1e-5,"aCam.GroundSamplingDistance");
+           }
+	   // getchar();
+       }
        
        int aNb = 50 + (11*aKTest) % 50;
        cTabuMapInv<2>*   aTabul = aCalib->AllocTabulDUD(aNb);
