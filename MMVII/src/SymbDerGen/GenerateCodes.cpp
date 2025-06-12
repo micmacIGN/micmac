@@ -220,6 +220,12 @@ cCalculator<double> * EqColinearityCamPPC(eProjPC  aType,const cPt3di & aDeg,boo
      return aRes;
 }
 
+     //    Projection (operates on bundles)
+cCalculator<double> * EqColinearityCamProj(bool WithDerive,int aSzBuf,bool ReUse)
+{
+    return StdAllocCalc(NameFormula(cFormula_EqColinearityCamProj(),WithDerive),aSzBuf,true,ReUse);
+}
+
      //    Radiometry
 
 cCalculator<double> * EqRadiomCalibRadSensor(int aNbDeg,bool WithDerive,int aSzBuf,bool WithCste,int aDegPolSens)
@@ -798,6 +804,11 @@ int cAppliGenCode::Exe()
        GenerateOneDist(aDeg,true);
        GenerateCodeCamPerpCentrale<cProjStenope>(aDeg,true);
    }
+        // ---   Colinearity for normalised camera (operates on bundles) -----------------
+   for (const auto WithDer : {true,false})
+   {
+       GenCodesFormula((tREAL8*)nullptr,cFormula_EqColinearityCamProj(),WithDer);
+   }
 
        //  ---  Here we generate the degree for SIA-cylindric systematisms -----------------
    
@@ -919,6 +930,7 @@ int cAppliGenCode::Exe()
    GenerateCodeProjCentralPersp<cProjOrthoGraphic>();
    GenerateCodeProjCentralPersp<cProjFE_EquiSolid>(); //  ->  asin
    GenerateCodeProjCentralPersp<cProj_EquiRect>(); //  ->  asin
+
 
 
 /*

@@ -137,7 +137,8 @@ NS_SymbolicDerivative::cCalculator<double> * RPC_Proj(bool WithDerive,int aSzBuf
 
            // .............   Equation colinearity , imply external parameter, Projectiion, distorsion, foc+PP .............
 NS_SymbolicDerivative::cCalculator<double> * EqColinearityCamPPC(eProjPC  aType,const cPt3di & aDeg,bool WithDerive,int aSzBuf,bool ReUse,bool isFraserMode);
-
+           // .............   Equation colinearity , imply external parameter, Projectiion .............
+NS_SymbolicDerivative::cCalculator<double> * EqColinearityCamProj(bool WithDerive,int aSzBuf,bool ReUse);
 
           
            // .............   Equation radiometry .............

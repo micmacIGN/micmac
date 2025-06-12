@@ -669,6 +669,57 @@ template <typename TypeDist,typename TypeProj>  class cEqColinearityCamPPC
 	   TypeDist  mDist;
 };
 
+class cFormula_EqColinearityCamProj
+{
+public :
+    cFormula_EqColinearityCamProj() {}
+    std::string FormulaName() const { return "cFormula_EqColinearityCamProj";} // ToStr("cFormula_EqColinearityCamProj"
+    std::vector<std::string>  VNamesUnknowns() const
+    {
+        return Append
+            (
+                NamesP3("PGround"),     //  0-3
+                NamesPose("CCam","W")  // 3-9
+                );
+    }
+
+    std::vector<std::string>    VNamesObs() const
+    {
+        return Append(NamesP2("Bundle"),NamesMatr("M",cPt2di(3,3)));
+    }
+
+    template <typename tUk>
+    std::vector<tUk> formula
+        (
+            const std::vector<tUk> & aVUk,
+            const std::vector<tUk> & aVObs
+            ) const
+    {
+        //  extract unknown parameters from vector
+        cPtxd<tUk,3>  aPGround = VtoP3(aVUk,0);
+        cPtxd<tUk,3>  aCCcam   = VtoP3(aVUk,3);
+        cPtxd<tUk,3>  aW       = VtoP3(aVUk,6);
+
+        // obs pixel
+        cPtxd<tUk,2>  aBundle    = VtoP2(aVObs,0);
+
+        cPtxd<tUk,3>  aVCP = aPGround - aCCcam;     // vector  CenterCam -> PGround
+
+
+        cMatF<tUk> aRotInit (3,3,aVObs,2);
+        cMatF<tUk> aDeltaRot =  cMatF<tUk>::MatAxiator(aW);
+        cPtxd<tUk,3> aPCam =  aDeltaRot * (aRotInit * aVCP);
+
+
+        cPtxd<tUk,2>  aBundleProj = VtoP2(cProjStenope::Proj(ToVect(aPCam)));  // project 3D-> bundle
+
+        cPtxd<tUk,2> aResidual = aBundleProj - aBundle;  // compare to mesured bundle
+
+        return {aResidual.x(),aResidual.y()};
+    }
+
+};
+
 
 template cFormula<double> PScal(const   cPtxd<cFormula<double>,3> &,const   cPtxd<cFormula<double>,3> &);
 template cPtxd<cFormula<double>,3> VtoP3(const   std::vector<cFormula<double>> &, size_t);

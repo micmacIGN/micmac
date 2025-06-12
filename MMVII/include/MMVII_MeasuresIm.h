@@ -375,6 +375,7 @@ class cVal1ConfTPM
 {
      public :
         std::vector<cPt2dr>  mVPIm;
+        std::vector<double>  mVPZ;     // optional, if mVPIm are bundles, the Z correponds to the 3rd coordinate
         std::vector<int>     mVIdPts;    // optionnal, done when construct from point +id
         std::vector<cPt3dr>  mVPGround;  // optionnal, done when used whith camera
 };
@@ -401,6 +402,7 @@ size_t NbPtsMul(const tPairTiePMult &) ;
 size_t Multiplicity(const tPairTiePMult&);
 cPt3dr BundleInter(const tPairTiePMult &,size_t aKPts,const std::vector<cSensorImage *> &);
 void   MakePGround(tPairTiePMult &,const std::vector<cSensorImage *>&);
+void   MakePGroundFromBundles(tPairTiePMult &,const std::vector<cSensorImage *> &);
 
 
 /**   This class store multiple homologous point,
@@ -425,6 +427,7 @@ class cComputeMergeMulTieP : public cMemCheck
         cComputeMergeMulTieP(const cComputeMergeMulTieP&,const  std::vector<std::string> & aVNamesSelected);
 
         const std::vector<cSensorImage *> &  VSensors() const;  ///< Accessor, error if empty
+
         /// Data allow to iterate on multiple points
         const std::map<tConfigIm,cVal1ConfTPM> &  Pts() const;
 

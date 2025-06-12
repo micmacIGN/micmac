@@ -214,6 +214,11 @@ cPt3dr  cSensorCamPC::EpsDiffGround2Im(const cPt3dr & aPt) const
 
 cPt2dr cSensorCamPC::Ground2Image(const cPt3dr & aP) const
 {
+     if (mInternalCalib==nullptr)
+    {
+         cPt3dr aPCam = Pt_W2L(aP);
+         return cPt2dr(aPCam.x()/aPCam.z(),aPCam.y()/aPCam.z());
+    }
      return mInternalCalib->Value(Pt_W2L(aP));
 }
 
@@ -303,8 +308,8 @@ const cPt3dr * cSensorCamPC::CenterOfPC() const { return  & Center(); }
          /// Return the calculator, adapted to the type, for computing colinearity equation
 cCalculator<double> * cSensorCamPC::CreateEqColinearity(bool WithDerives,int aSzBuf,bool ReUse) 
 {
-   if (mInternalCalib==nullptr) 
-      return nullptr;
+   if (mInternalCalib==nullptr)
+      return EqColinearityCamProj(WithDerives,aSzBuf,ReUse);//nullptr;
    return mInternalCalib->EqColinearity(WithDerives,aSzBuf,ReUse);
 }
 
