@@ -592,6 +592,20 @@ void cSensorCamPC::Bench()
    cSet2D3D  aSet32 =  SyntheticsCorresp3D2D(20,3,1.0,10.0,true) ;
    tREAL8 aRes = AvgAngularProjResiudal(aSet32);
 
+   for (const auto & aPair : aSet32.Pairs())
+   {
+       const cPt3dr & aP3G1 = aPair.mP3;
+       cPt3dr  aPIm1 =  Ground2ImageAndDepth(aP3G1);
+       cPt3dr  aP3G2 =  ImageAndDepth2Ground(aPIm1);
+       cPt3dr  aPIm2 =  Ground2ImageAndDepth(aP3G2);
+       tREAL8 aDG = Norm2(aP3G1-aP3G2);
+       tREAL8 aDI = Norm2(aPIm1-aPIm2);
+
+       // StdOut() << "HHHHH  " << aDG << " " << aDI << "\n";//  getchar();
+       MMVII_INTERNAL_ASSERT_bench(aDG<1e-4,"SensorCamPC::Bench  DG");
+       MMVII_INTERNAL_ASSERT_bench(aDI<1e-4,"SensorCamPC::Bench  DI");
+   }
+
    MMVII_INTERNAL_ASSERT_bench(aRes<1e-8,"Avg res ang");
 }
 

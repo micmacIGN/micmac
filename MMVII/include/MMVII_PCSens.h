@@ -595,6 +595,8 @@ class cSensorCamPC : public cSensorImage
 	 cPt3dr  Vec_L2W(const cPt3dr &) const;  ///< Coordinat local of cam to coordinate word for a "vector"
 	 cPt3dr  Vec_W2L(const cPt3dr &) const;  ///< Coordinat word to coordinate local of cam for a "vector"
 
+tREAL8 GroundSamplingDistance(const cPt3dr & aPGroundCenter) const;
+
          //  Cast to possible heriting class
          bool  IsSensorCamPC() const  override ;
          const cSensorCamPC * GetSensorCamPC() const override;

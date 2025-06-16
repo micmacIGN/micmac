@@ -1,6 +1,9 @@
 #include "MMVII_Sensor.h"
 #include "MMVII_2Include_Serial_Tpl.h"
 
+#include "MMVII_PCSens.h"
+
+
 
 /**
    \file SensorBases.cpp
@@ -149,7 +152,7 @@ cPt3dr cSensorImage::ImageAndDepth2Ground(const cPt3dr &) const
     return cPt3dr::Dummy();
 }
 
-tREAL8 cSensorImage::GroundSamplingDistance(const cPt3dr & aPGroundCenter) const 
+tREAL8 cSensorCamPC::GroundSamplingDistance(const cPt3dr & aPGroundCenter) const 
 {
      cPt3dr aPProjCenter = Ground2ImageAndDepth(aPGroundCenter);
      cPt2dr aPImCenter  = Proj(aPProjCenter);
@@ -161,7 +164,10 @@ tREAL8 cSensorImage::GroundSamplingDistance(const cPt3dr & aPGroundCenter) const
      {
          cPt2dr aPIm = aPImCenter + ToR(aNeigh);
          cPt3dr aPGround = ImageAndDepth2Ground(TP3z(aPIm,aDepth));
-	 aWeighD.Add(1.0,Norm2(aPGround-aPGroundCenter));
+         tREAL8 aD = Norm2(aPGround-aPGroundCenter);
+
+StdOut() << "ddGroundSamplingDistance= " << aD <<  " " << Pt_W2L(aPGroundCenter) - Pt_W2L(aPGround) << "\n";
+	 aWeighD.Add(1.0,aD);
      }
 
      return aWeighD.Average();
