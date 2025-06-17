@@ -58,7 +58,15 @@
                <NbPixels> 5023   5023</NbPixels>
             </V>
          </Pair>
-
+         <Pair>
+            <K>"Blender1k"</K>
+            <V>
+               <Name>"Blender1k"</Name>
+               <SzPix_micron> 35 35 </SzPix_micron>
+               <SzSensor_mm> 36  36 </SzSensor_mm>
+               <NbPixels> 1024   1024</NbPixels>
+            </V>
+         </Pair>
       </CamDataBase>
    </Data>
 </Root>
