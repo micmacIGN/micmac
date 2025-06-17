@@ -58,7 +58,15 @@
                <NbPixels> 5023   5023</NbPixels>
             </V>
          </Pair>
-
+         <Pair>
+            <K>"Blend"</K>
+            <V>
+               <Name>"Blend"</Name>
+               <SzPix_micron> 35 35 </SzPix_micron>
+               <SzSensor_mm> 36  36 </SzSensor_mm>  <!-- 23.5 15.6 in spec => non square pixel -->
+               <NbPixels> 1024   1024</NbPixels>
+            </V>
+         </Pair>
       </CamDataBase>
    </Data>
 </Root>
