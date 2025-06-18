@@ -275,26 +275,32 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter)
     if (mPatFrozenCenter !="")
     {
         tNameSelector aSel =   AllocRegex(mPatFrozenCenter);
+        int nbMatches = 0;
         for (const auto & aPtrCam : mVSCPC)
         {
             if ((aPtrCam != nullptr)  && aSel.Match(aPtrCam->NameImage()))
-	    {
-                 mR8_Sys->SetFrozenVarCurVal(*aPtrCam,aPtrCam->Center());
-	    }
+            {
+                mR8_Sys->SetFrozenVarCurVal(*aPtrCam,aPtrCam->Center());
+                nbMatches++;
+            }
         }
+        std::cout<<"FrozenCenter: "<<nbMatches<<" matches.\n";
     }
    
     // if necessary, fix frozen orientation of external calibration
     if (mPatFrozenOrient !="")
     {
         tNameSelector aSel =   AllocRegex(mPatFrozenOrient);
+        int nbMatches = 0;
         for (const auto & aPtrCam : mVSCPC)
         {
             if ((aPtrCam != nullptr)  && aSel.Match(aPtrCam->NameImage()))
-	    {
-                 mR8_Sys->SetFrozenVarCurVal(*aPtrCam,aPtrCam->Omega());
-	    }
+            {
+                mR8_Sys->SetFrozenVarCurVal(*aPtrCam,aPtrCam->Omega());
+                nbMatches++;
+            }
         }
+        std::cout<<"FrozenOrient: "<<nbMatches<<" matches.\n";
     }
 
     if (mPatFrozenClinos != "" && mBlClino)
@@ -678,11 +684,13 @@ void cMMVII_BundleAdj::AddConstrainteRefPose(cSensorCamPC & aCam,cSensorCamPC & 
      // mR8_Sys
      if (mSigmaTrRefCam > 0)
      {
+         std::cout<<"Use Ref Ori Tr: "<<mSigmaTrRefCam<<"\n";
         mR8_Sys->AddEqFixNewVal(aCam,aCam.Center(),aCamRef.Center(),Square(1/mSigmaTrRefCam));
      }
      
      if (mSigmaRotRefCam>0)
      {
+         std::cout<<"Use Ref Ori Rot: "<<mSigmaRotRefCam<<"\n";
          cPt3dr aWTarget = aCam.Pose_WU().ValAxiatorFixRot(aCamRef.Pose().Rot());
          mR8_Sys->AddEqFixNewVal(aCam,aCam.Omega(),aWTarget,Square(1/mSigmaRotRefCam));
      }
