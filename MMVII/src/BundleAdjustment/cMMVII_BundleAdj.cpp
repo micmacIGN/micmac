@@ -275,26 +275,32 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter)
     if (mPatFrozenCenter !="")
     {
         tNameSelector aSel =   AllocRegex(mPatFrozenCenter);
+        int nbMatches = 0;
         for (const auto & aPtrCam : mVSCPC)
         {
             if ((aPtrCam != nullptr)  && aSel.Match(aPtrCam->NameImage()))
-	    {
-                 mR8_Sys->SetFrozenVarCurVal(*aPtrCam,aPtrCam->Center());
-	    }
+            {
+                mR8_Sys->SetFrozenVarCurVal(*aPtrCam,aPtrCam->Center());
+                nbMatches++;
+            }
         }
+        StdOut() << "Frozen centers: " << nbMatches << ".\n";
     }
    
     // if necessary, fix frozen orientation of external calibration
     if (mPatFrozenOrient !="")
     {
         tNameSelector aSel =   AllocRegex(mPatFrozenOrient);
+        int nbMatches = 0;
         for (const auto & aPtrCam : mVSCPC)
         {
             if ((aPtrCam != nullptr)  && aSel.Match(aPtrCam->NameImage()))
-	    {
-                 mR8_Sys->SetFrozenVarCurVal(*aPtrCam,aPtrCam->Omega());
-	    }
+            {
+                mR8_Sys->SetFrozenVarCurVal(*aPtrCam,aPtrCam->Omega());
+                nbMatches++;
+            }
         }
+        StdOut() << "Frozen orients: " << nbMatches << ".\n";
     }
 
     if (mPatFrozenClinos != "" && mBlClino)
@@ -677,9 +683,7 @@ void cMMVII_BundleAdj::AddConstrainteRefPose(cSensorCamPC & aCam,cSensorCamPC & 
         return;
      // mR8_Sys
      if (mSigmaTrRefCam > 0)
-     {
         mR8_Sys->AddEqFixNewVal(aCam,aCam.Center(),aCamRef.Center(),Square(1/mSigmaTrRefCam));
-     }
      
      if (mSigmaRotRefCam>0)
      {
