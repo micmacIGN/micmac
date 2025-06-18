@@ -152,7 +152,7 @@ cPt3dr cSensorImage::ImageAndDepth2Ground(const cPt3dr &) const
     return cPt3dr::Dummy();
 }
 
-tREAL8 cSensorCamPC::GroundSamplingDistance(const cPt3dr & aPGroundCenter) const 
+tREAL8 cSensorImage::Gen_GroundSamplingDistance(const cPt3dr & aPGroundCenter) const 
 {
      cPt3dr aPProjCenter = Ground2ImageAndDepth(aPGroundCenter);
      cPt2dr aPImCenter  = Proj(aPProjCenter);
@@ -166,13 +166,31 @@ tREAL8 cSensorCamPC::GroundSamplingDistance(const cPt3dr & aPGroundCenter) const
          cPt3dr aPGround = ImageAndDepth2Ground(TP3z(aPIm,aDepth));
          tREAL8 aD = Norm2(aPGround-aPGroundCenter);
 
-StdOut() << "ddGroundSamplingDistance= " << aD <<  " " << Pt_W2L(aPGroundCenter) - Pt_W2L(aPGround) << "\n";
 	 aWeighD.Add(1.0,aD);
      }
 
      return aWeighD.Average();
 }
 
+tREAL8 cSensorImage::Horiz_GroundSamplingDistance(const cPt3dr & aPGroundCenter) const 
+{
+     cPt3dr aPProjCenter = Ground2ImageAndZ(aPGroundCenter);
+     cPt2dr aPImCenter  = Proj(aPProjCenter);
+     tREAL8 aZ = aPProjCenter.z();
+     // const auto & aVN = AllocNeighbourhood<2>(4);
+
+     cWeightAv<tREAL8> aWeighD;
+     for (const auto & aNeigh : AllocNeighbourhood<2>(1))
+     {
+         cPt2dr aPIm = aPImCenter + ToR(aNeigh);
+         cPt3dr aPGround = ImageAndZ2Ground(TP3z(aPIm,aZ));
+         tREAL8 aD = Norm2(aPGround-aPGroundCenter);
+
+	 aWeighD.Add(1.0,aD);
+     }
+
+     return aWeighD.Average();
+}
 
 cCalculator<double> * cSensorImage::CreateEqColinearity(bool WithDerives,int aSzBuf,bool ReUse)
 {

@@ -208,7 +208,9 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
             static cPerspCamIntrCalib * Alloc(const cDataPerspCamIntrCalib &);
 
 	    /**  Generate random calib, with assurance that distorsion will be inverible, 
-	       the KDeg (in 0,1,2)  pick one of the pre-defined degree */
+	       the KDeg (in 0,1,2,3)  pick one of the pre-defined degree */
+            //  KDEG =>  {{0,0,0},{2,0,0},{3,1,1},{0,0,1}};
+
             static cPerspCamIntrCalib * RandomCalib(eProjPC aTypeProj,int aKDeg,tREAL8 anAmpl=0.1);
 
 
@@ -595,7 +597,6 @@ class cSensorCamPC : public cSensorImage
 	 cPt3dr  Vec_L2W(const cPt3dr &) const;  ///< Coordinat local of cam to coordinate word for a "vector"
 	 cPt3dr  Vec_W2L(const cPt3dr &) const;  ///< Coordinat word to coordinate local of cam for a "vector"
 
-tREAL8 GroundSamplingDistance(const cPt3dr & aPGroundCenter) const;
 
          //  Cast to possible heriting class
          bool  IsSensorCamPC() const  override ;

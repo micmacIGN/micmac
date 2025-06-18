@@ -136,8 +136,10 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	 /// Default error
 	 virtual cPt2dr GetIntervalZ() const;
 
-	 ///  return GSD for a given point
-         tREAL8 GroundSamplingDistance(const cPt3dr &) const ;
+	 ///  return GSD for a given point, in plane fronto // (use Ground2ImageAndDepth)
+         tREAL8 Gen_GroundSamplingDistance(const cPt3dr &) const ;
+	 ///  return GSD for a given point, in plane X,Y // (use Ground2ImageAndZ) 
+         tREAL8 Horiz_GroundSamplingDistance(const cPt3dr &) const ;
 
 	 /// Compute 3D point by bundle intersection
 	  cPt3dr PInterBundle(const cHomogCpleIm & aCple,const cSensorImage &) const;

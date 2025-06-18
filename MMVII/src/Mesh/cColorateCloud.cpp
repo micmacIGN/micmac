@@ -720,7 +720,6 @@ cCollecSpecArg2007 & cAppli_MMVII_CloudColorate::ArgOpt(cCollecSpecArg2007 & anA
 
 int  cAppli_MMVII_CloudColorate::Exe()
 {
-#if (0)
    if (! IsInit(&mNameCloudOut))
       mNameCloudOut = "Colorate_"+ mNameCloudIn;
 
@@ -742,7 +741,8 @@ int  cAppli_MMVII_CloudColorate::Exe()
 
    cAutoTimerSegm aTSInit(TimeSegm(),"Init");
    tREAL8 aWeightInit = (mNbSampS==0);
-   cProjPointCloud  aPPC(aPC_In,mSurResol,aWeightInit);  // Weight Init 0 if NbS ,  
+   cProjPointCloud  aPPC(aPC_In,aWeightInit);  // Weight Init 0 if NbS ,  
+// cProjPointCloud::cProjPointCloud(cPointCloud& aPC,tREAL8 aWeightInit) :
 
     
    cAutoTimerSegm aTSProj(TimeSegm(),"1Proj");
@@ -760,12 +760,14 @@ int  cAppli_MMVII_CloudColorate::Exe()
                cOrthoProj aProj(aDir,aPC_In.Centroid());
 	       if (mProfIsZIn) 
                   aProj.SetProfIsZIN();
-               aPPC.ProcessOneProj(cParamProjCloud(&aProj),1.0,false);
+               cCamOrthoC  aCam("ColMesh",aProj,cPt2di(1,1));
+               aPPC.ProcessOneProj(mSurResol,aCam,1.0,false);
                aNbStd++;
                // StdOut() << "Still " << aSampS.NbSamples() - aK << "\n";
            }
        }
     }
+#if (0)
 
    if (IsInit(&mSun))
    {

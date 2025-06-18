@@ -3,6 +3,8 @@
 #include "MMVII_Geom2D.h"
 #include "MMVII_util_tpl.h"
 
+#include "MMVII_2Include_Tiling.h"
+
 namespace MMVII
 {
 
@@ -17,6 +19,63 @@ cPointCloud::cPointCloud(bool isM8) :
 }
 
 tREAL8   cPointCloud::CurDensity() const {return NbPts() / Box2d().NbElem() ;}
+tREAL8   cPointCloud::Density() const {return mDensity;}
+
+//====================================================================================
+
+class cTil2D_PC
+{
+    public :
+        typedef cTiling<cTil2D_PC> tTiling;      
+        static constexpr int TheDim = 2;          // Pre-requite for instantite cTilingIndex
+        typedef cPt2dr             tPrimGeom;     // Pre-requite for instantite cTilingIndex
+        typedef const  cPointCloud *  tArgPG; // Pre-requite for instantite cTilingIndex
+
+        /**  Pre-requite for instantite cTilingIndex : indicate how we extract geometric primitive from one object */
+
+        tPrimGeom  GetPrimGeom(tArgPG aPtrPC) const {return Proj(ToR(aPtrPC->KthPt(mInd)));}
+
+        cTil2D_PC(size_t anInd) : mInd(anInd) {}
+        size_t  Ind() const {return mInd;}
+
+        static tTiling *  ComputeTiling(const cPointCloud & aPC,int aNbByCase=20);
+
+    private :
+        size_t  mInd;
+};
+
+
+
+cTiling<cTil2D_PC> *  cTil2D_PC::ComputeTiling(const cPointCloud & aPC,int aNbByCase)
+{
+     cBox2dr aBox = aPC.Box2d();
+     int aNbCase = aPC.NbPts() / aNbByCase;
+
+     tTiling *  aTil = new tTiling (aBox,true,aNbCase,&aPC);
+     for (size_t aKPt=0 ; aKPt<aPC.NbPts() ; aKPt++)
+         aTil->Add(cTil2D_PC(aKPt));
+
+     return aTil;
+}
+
+void ComputeDensity
+     (
+         const cPointCloud & aPC,
+         cTiling<cTil2D_PC> *  aTilInit=nullptr
+     )
+{
+    cTiling<cTil2D_PC> * aTil = (aTilInit == nullptr) ? ComputeTiling(aPC) : aTilInit;
+
+    tREAL8 aDensity = CurDensity() * 3;
+
+    for (size_t aKPt=0 ; aKPt < 
+
+
+    if (aTilInit == nullptr) 
+       delete aTil;
+}
+
+
 
 // --------------------- Colours access ------------------------------------------
 void cPointCloud::SetNbColours(int aNbC)
@@ -89,7 +148,6 @@ bool  cPointCloud::LeavesIsInit() const
 
 
 
-tREAL8   cPointCloud::Density() const {return mDensity;}
 cBox3dr  cPointCloud::Box3d()   const  {return mBox3dOfPts.CurBox();}
 cBox2dr  cPointCloud::Box2d()   const 
 {    
