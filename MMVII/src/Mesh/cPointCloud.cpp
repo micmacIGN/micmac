@@ -18,8 +18,14 @@ cPointCloud::cPointCloud(bool isM8) :
 {
 }
 
-tREAL8   cPointCloud::CurDensity() const {return NbPts() / Box2d().NbElem() ;}
-tREAL8   cPointCloud::Density() const {return mDensity;}
+tREAL8   cPointCloud::CurBasicDensity() const 
+{
+	  return NbPts() / Box2d().NbElem() ;
+}
+tREAL8   cPointCloud::CurStdDensity() const 
+{
+    return (mDensity>0) ? mDensity : CurBasicDensity();
+}
 
 //====================================================================================
 
@@ -58,21 +64,36 @@ cTiling<cTil2D_PC> *  cTil2D_PC::ComputeTiling(const cPointCloud & aPC,int aNbBy
      return aTil;
 }
 
-void ComputeDensity
+tREAL8  ComputeDensity
      (
          const cPointCloud & aPC,
          cTiling<cTil2D_PC> *  aTilInit=nullptr
      )
 {
-    cTiling<cTil2D_PC> * aTil = (aTilInit == nullptr) ? ComputeTiling(aPC) : aTilInit;
+    cTiling<cTil2D_PC> * aTil = (aTilInit == nullptr) ? cTil2D_PC::ComputeTiling(aPC,10) : aTilInit;
 
-    tREAL8 aDensity = CurDensity() * 3;
+    tREAL8 aDist = std::sqrt(5 / (M_PI * aPC.CurStdDensity()));
+    cWeightAv<tREAL8>  aWSz;
 
-    for (size_t aKPt=0 ; aKPt < 
+    for (size_t aKPt=0 ; aKPt< aPC.NbPts() ; aKPt++)
+    {
+        int aNb = aTil->GetObjAtDist(Proj(aPC.KthPt(aKPt)),aDist).size();
+	aWSz.Add(1.0,aNb-1);
+    }
+    tREAL8 aNbAv =  aWSz.Average();
+    // Surf * Density = NB
+    tREAL8 aDensity =  aNbAv / (M_PI * Square(aDist));
 
 
     if (aTilInit == nullptr) 
        delete aTil;
+
+    return aDensity;
+}
+
+tREAL8   cPointCloud::ComputeCurFineDensity() const
+{
+    return ComputeDensity(*this);
 }
 
 

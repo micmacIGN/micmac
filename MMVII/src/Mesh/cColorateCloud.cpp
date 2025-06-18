@@ -231,7 +231,7 @@ cProjPointCloud::cProjPointCloud(cPointCloud& aPC,tREAL8 aWeightInit) :
    mPC        (aPC),
    mNbPtsGlob (aPC.NbPts()),
    // mSurResol  (aSurResol),
-   mAvgD      (std::sqrt(1.0/mPC.Density())),
+   mAvgD      (std::sqrt(1.0/mPC.CurStdDensity())),
    //mStepProf  (mAvgD / mSurResol),
    mSumW      (aWeightInit),
    mSumRad    (mNbPtsGlob,0.0),
@@ -732,7 +732,7 @@ int  cAppli_MMVII_CloudColorate::Exe()
    if (! aPC_In.LeavesIsInit())
    {
        aPC_In.SetLeavesUnit(0.05,SVP::Yes);  // fix unit step,
-       tREAL8  aRayLeaf  = mPropRayLeaf  / std::sqrt(aPC_In.Density());
+       tREAL8  aRayLeaf  = mPropRayLeaf  / std::sqrt(aPC_In.CurStdDensity());
        for (size_t aKPt=0 ; aKPt<aPC_In.NbPts() ; aKPt++)
        {
            aPC_In.SetSzLeaves(aKPt,aRayLeaf);
