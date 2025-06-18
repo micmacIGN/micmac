@@ -136,6 +136,12 @@ template<class Type> cDenseMatrix<Type> EigenSolveCholeskyarseFromV3
    // Eigen::SimplicialCholesky< Eigen::SparseMatrix<Type>  > aChol(aSpMat);  // performs a Cholesky factorization of A
    Eigen::SimplicialLDLT< Eigen::SparseMatrix<Type>  > aChol(aSpMat);  // performs a Cholesky factorization of A
 
+   //compute matrix condition
+   /*auto diag = aChol.vectorD();
+   double lambda_max = diag.cwiseAbs().maxCoeff(); // D values are sqrt(AtPA eigen values) == A eigen values
+   double lambda_min = diag.cwiseAbs().minCoeff();
+   double condition_number = lambda_max / lambda_min;
+   std::cout<<"System approx condition number: "<<condition_number<<std::endl;*/
 
    cConst_EigenMatWrap<Type> aEWM (aMat);
    // cConst_EigenColVectWrap  aWVec(aVec);
