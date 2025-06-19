@@ -116,7 +116,7 @@ template <class Type> Type  cResulSymEigenValue<Type>::Cond(Type aDef) const
        MMVII_INTERNAL_ASSERT_strong(aDef>=0,"Conditioning of null eigen value without default");
        return aDef;
    }
-   return  aIMM.Min().ValExtre() / aIMM.Max().ValExtre() ;
+   return  aIMM.Max().ValExtre() / aIMM.Min().ValExtre() ;
 }
 
 
