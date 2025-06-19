@@ -39,24 +39,22 @@ class cOrthoProj  :  public  tIMap_R3
 
        cOrthoProj(const cOrthoProj&);
 
-       void SetProfIsZIN() {mProfIsZIN=true;}
         
     private  :
-       const  tVecP3 &  Values(tVecP3 &,const tVecP3 & ) const override;
+       const  tVecP3 &  Values   (tVecP3 &,const tVecP3 & ) const override;
+       const  tVecP3 &  Inverses (tVecP3 &,const tVecP3 & ) const override;
 
        tRotR  mRL2W;
        cPt3dr mC;
        cPt2dr mPP;
        tREAL8 mResol;
-       bool   mProfIsZIN; 
 };
 
 cOrthoProj::cOrthoProj (const tRotR & aRot ,const cPt3dr & aC,const cPt2dr & aPP ,tREAL8 aResol)  :
     mRL2W         (aRot),
     mC            (aC),
     mPP           (aPP),
-    mResol        (aResol),
-    mProfIsZIN    (false)
+    mResol        (aResol)
 {
 }
 
@@ -81,12 +79,38 @@ const  std::vector<cPt3dr> &  cOrthoProj::Values(tVecP3 & aVOut,const tVecP3 & a
        cPt2dr  aPProj = Proj(aPLoc);
        aPProj = mPP+ aPProj/mResol;
 
-       // aVOut.push_back(TP3z(aPProj,aPIn.z()*0.01));
-       tREAL8 aZ = mProfIsZIN ? aPIn.z() : aPLoc.z() ;
+       tREAL8 aZ =  aPLoc.z() ;
        aVOut.push_back(TP3z(aPProj,aZ));
+   }
+
+   return aVOut;
+}
+
+const  std::vector<cPt3dr> &  cOrthoProj::Inverses(tVecP3 & aVOut,const tVecP3 & aVIn ) const 
+{
+   aVOut.clear();
+   for (size_t aK=0 ; aK<aVIn.size() ; aK++)
+   {
+       const cPt3dr & aPIn = aVIn.at(aK);
+       tREAL8 aZ = aPIn.z();
+       cPt2dr aPProj = (Proj(aPIn)-mPP) * mResol;
+       cPt3dr aPGlob = mC + mRL2W.Value(TP3z(aPProj,aZ));
+       aVOut.push_back(aPGlob);
+
+       /*
+
+       cPt3dr  aPLoc = mRL2W.Inverse(aPIn-mC);
+       cPt2dr  aPProj = Proj(aPLoc);
+       aPProj = mPP+ aPProj/mResol;
+
+       // aVOut.push_back(TP3z(aPProj,aPIn.z()*0.01));
+       aVOut.push_back(TP3z(aPProj,aZ));
+       */
 
        // aVOut.push_back(TP3z(aPProj,aPLoc.z()));
    }
+
+
    return aVOut;
 }
 
@@ -162,6 +186,29 @@ double cCamOrthoC::DegreeVisibility(const cPt3dr & aPGround) const
     return   mPixelDomain.DegreeVisibility(aPIm)>0;
 }
 
+void BenchCamOrtho(const cOrthoProj &anOP,const cPt3dr & aDir)
+{
+     for (int aKPt=0 ; aKPt<20 ; aKPt++)
+     {
+          cPt3dr aPt1 = cPt3dr::PRandC() * 100.0;
+          cPt3dr aPt2 =  anOP.Value( anOP.Inverse(aPt1));
+
+	  StdOut() << "NNNN " << Norm2(aPt1-aPt2) << "\n";
+
+     }
+}
+
+void BenchCamOrtho()
+{
+   for (int aK=0 ; aK<20 ; aK++)
+   {
+       cPt3dr aDir = cPt3dr::PRandC();
+       cOrthoProj  anOP1(aDir,cPt3dr::PRand()*10.0);
+
+       BenchCamOrtho(anOP1,aDir);
+   }
+}
+
 
 /* ********************************************* */
 /*                                               */
@@ -198,6 +245,9 @@ class cProjPointCloud
 
 	 // export the average of radiomeries (in mSumRad) as a field of mPC
          void ColorizePC(); 
+	 cCamOrthoC * CamOrtho(const cPt3dr & aDir,const cPt2di & aSzIm=cPt2di(0,0));
+
+
      private :
 	 typedef tREAL8 tImageDepth;
 	 // --------- Processed at initialization ----------------
@@ -225,6 +275,14 @@ class cProjPointCloud
          cIm2D<tREAL4>            mImWeigth;
          cDataIm2D<tREAL4>*       mDImWeigth;
 };
+
+cCamOrthoC * cProjPointCloud::CamOrtho(const cPt3dr & aDir,const cPt2di & aSzIm)
+{
+   cOrthoProj aProj(aDir,mPC.Centroid(),ToR(aSzIm)/2.0,mPC.GroundSampling());
+   cCamOrthoC*  aCam = new cCamOrthoC ("ColMesh",aProj,PtSupEq(aSzIm,cPt2di(1,1)));
+
+   return aCam;
+}
 
 
 cProjPointCloud::cProjPointCloud(cPointCloud& aPC,tREAL8 aWeightInit) :
@@ -510,6 +568,150 @@ void cProjPointCloud::ProcessImage(const std::string & aPrefix)
 #endif
 }
 
+
+/* =============================================== */
+/*                                                 */
+/*                 cAppli_MMVII_CloudColorate      */
+/*                                                 */
+/* =============================================== */
+
+
+class cAppli_MMVII_CloudColorate : public cMMVII_Appli
+{
+     public :
+
+        cAppli_MMVII_CloudColorate(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
+
+     private :
+        int Exe() override;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+
+        // --- Mandatory ----
+	std::string   mNameCloudIn;
+        // --- Optionnal ----
+        std::string mNameCloudOut;
+
+        cPt2dr   mPropRayLeaf;
+        tREAL8   mSurResol;
+        int      mNbSampS;
+        cPt3dr   mSun;
+};
+
+cAppli_MMVII_CloudColorate::cAppli_MMVII_CloudColorate
+(
+     const std::vector<std::string> & aVArgs,
+     const cSpecMMVII_Appli & aSpec
+) :
+     cMMVII_Appli    (aVArgs,aSpec),
+     mPropRayLeaf    (1.1,1.5),
+     mSurResol       (2.0),
+     mNbSampS        (5)
+{
+}
+
+cCollecSpecArg2007 & cAppli_MMVII_CloudColorate::ArgObl(cCollecSpecArg2007 & anArgObl) 
+{
+ return anArgObl
+	  <<   Arg2007(mNameCloudIn,"Name of input cloud/mesh", {eTA2007::FileDirProj,eTA2007::FileDmp})
+   ;
+}
+
+
+cCollecSpecArg2007 & cAppli_MMVII_CloudColorate::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+   return anArgOpt
+          << AOpt2007(mNameCloudOut,CurOP_Out,"Name of output file, def=Colorate_+InPut")
+          << AOpt2007(mPropRayLeaf,"RayLeaves","Ray of leaves (/ avg dist)",{eTA2007::HDV})
+          << AOpt2007(mSurResol,"SurResol","Sur resol in computation (/ avg dist)",{eTA2007::HDV})
+          << AOpt2007(mNbSampS,"NbSampS","Number of sample/face for sphere discretization",{eTA2007::HDV})
+          << AOpt2007(mSun,"Sun","Sun : Dir3D=(x,y,1)  ,  Z=WEIGHT !! ")
+   ;
+}
+
+int  cAppli_MMVII_CloudColorate::Exe()
+{
+   if (! IsInit(&mNameCloudOut))
+      mNameCloudOut = "Colorate_"+ mNameCloudIn;
+
+  
+   cAutoTimerSegm aTSRead(TimeSegm(),"Read");
+   cPointCloud   aPC_In ;
+   ReadFromFile(aPC_In,mNameCloudIn);
+
+   // generate the sz of leaves
+   if (! aPC_In.LeavesIsInit())
+   {
+       aPC_In.SetLeavesUnit(0.05,SVP::Yes);  // fix unit step,
+       for (size_t aKPt=0 ; aKPt<aPC_In.NbPts() ; aKPt++)
+       {
+           tREAL8  aRayLeaf  = RandInInterval(mPropRayLeaf)  * aPC_In.GroundSampling();
+           aPC_In.SetSzLeaves(aKPt,aRayLeaf);
+       }
+   }
+
+   cAutoTimerSegm aTSInit(TimeSegm(),"Init");
+   tREAL8 aWeightInit = (mNbSampS==0);
+   cProjPointCloud  aPPC(aPC_In,aWeightInit);  // Weight Init 0 if NbS ,  
+// cProjPointCloud::cProjPointCloud(cPointCloud& aPC,tREAL8 aWeightInit) :
+
+    
+   cAutoTimerSegm aTSProj(TimeSegm(),"1Proj");
+
+   int aNbStd=0;
+   if (mNbSampS>0)
+   {
+       aPC_In.SetMulDegVis(1e4);
+       cSampleSphere3D aSampS(mNbSampS);
+       for (int aK=0 ; aK< aSampS.NbSamples() ; aK++)
+       {
+           cPt3dr aDir = VUnit(aSampS.KthPt(aK));
+           if (aDir.z() >= 0.2)
+           {
+               std::unique_ptr<cCamOrthoC> aCam (aPPC.CamOrtho(aDir));
+               aPPC.ProcessOneProj(mSurResol,*aCam,1.0,false);
+               aNbStd++;
+               // StdOut() << "Still " << aSampS.NbSamples() - aK << "\n";
+           }
+       }
+    }
+#if (0)
+
+   if (IsInit(&mSun))
+   {
+       tREAL8 aW0  = mNbSampS ? aNbStd : 1.0;
+       cOrthoProj  aProj(cPt3dr(mSun.x(),mSun.y(),1.0),aPC_In.Centroid());
+       aPPC.ProcessOneProj(cParamProjCloud(&aProj),aW0 * mSun.z(),false);
+   }
+
+   aPPC.ColorizePC();
+   SaveInFile(aPC_In,mNameCloudOut);
+#endif
+
+
+   return EXIT_SUCCESS;
+}
+
+     /* =============================================== */
+     /*                       ::                        */
+     /* =============================================== */
+
+tMMVII_UnikPApli Alloc_MMVII_CloudColorate(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
+{
+   return tMMVII_UnikPApli(new cAppli_MMVII_CloudColorate(aVArgs,aSpec));
+}
+
+cSpecMMVII_Appli  TheSpec_MMVII_CloudColorate
+(
+     "CloudMMVIIColorate",
+      Alloc_MMVII_CloudColorate,
+      "Generate a colorate version of  MMVII-Cloud",
+      {eApF::Cloud},
+      {eApDT::Ply},
+      {eApDT::Ply},
+      __FILE__
+);
+
 /* =============================================== */
 /*                                                 */
 /*             cAppli_MMVII_CloudImProj            */
@@ -582,6 +784,7 @@ cCollecSpecArg2007 & cAppli_MMVII_CloudImProj::ArgOpt(cCollecSpecArg2007 & anArg
 
 int  cAppli_MMVII_CloudImProj::Exe()
 {
+	BenchCamOrtho();
 #if (0)
    if (!IsInit(&mNameImageOut))
       mNameImageOut =  "ImProj_" + LastPrefix(mNameCloudIn) + ".tif";
@@ -653,158 +856,5 @@ cSpecMMVII_Appli  TheSpec_MMVII_CloudImProj
 );
 /*
 */
-
-
-/* =============================================== */
-/*                                                 */
-/*                 cAppli_MMVII_CloudColorate      */
-/*                                                 */
-/* =============================================== */
-
-
-class cAppli_MMVII_CloudColorate : public cMMVII_Appli
-{
-     public :
-
-        cAppli_MMVII_CloudColorate(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
-
-     private :
-        int Exe() override;
-        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
-        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
-
-        // --- Mandatory ----
-	std::string   mNameCloudIn;
-        // --- Optionnal ----
-        std::string mNameCloudOut;
-
-        tREAL8   mPropRayLeaf;
-        tREAL8   mSurResol;
-        int      mNbSampS;
-        cPt3dr   mSun;
-	bool     mProfIsZIn;
-};
-
-cAppli_MMVII_CloudColorate::cAppli_MMVII_CloudColorate
-(
-     const std::vector<std::string> & aVArgs,
-     const cSpecMMVII_Appli & aSpec
-) :
-     cMMVII_Appli    (aVArgs,aSpec),
-     mPropRayLeaf    (1.1),
-     mSurResol       (2.0),
-     mNbSampS        (5),
-     mProfIsZIn      (false)
-{
-}
-
-cCollecSpecArg2007 & cAppli_MMVII_CloudColorate::ArgObl(cCollecSpecArg2007 & anArgObl) 
-{
- return anArgObl
-	  <<   Arg2007(mNameCloudIn,"Name of input cloud/mesh", {eTA2007::FileDirProj,eTA2007::FileDmp})
-   ;
-}
-
-
-cCollecSpecArg2007 & cAppli_MMVII_CloudColorate::ArgOpt(cCollecSpecArg2007 & anArgOpt)
-{
-   return anArgOpt
-          << AOpt2007(mNameCloudOut,CurOP_Out,"Name of output file, def=Colorate_+InPut")
-          << AOpt2007(mPropRayLeaf,"RayLeaves","Ray of leaves (/ avg dist)",{eTA2007::HDV})
-          << AOpt2007(mSurResol,"SurResol","Sur resol in computation (/ avg dist)",{eTA2007::HDV})
-          << AOpt2007(mNbSampS,"NbSampS","Number of sample/face for sphere discretization",{eTA2007::HDV})
-          << AOpt2007(mSun,"Sun","Sun : Dir3D=(x,y,1)  ,  Z=WEIGHT !! ")
-          << AOpt2007(mProfIsZIn,"ProfIsZIn","Set prof ZIn/Loc",{eTA2007::HDV,eTA2007::Tuning})
-   ;
-}
-
-int  cAppli_MMVII_CloudColorate::Exe()
-{
-   if (! IsInit(&mNameCloudOut))
-      mNameCloudOut = "Colorate_"+ mNameCloudIn;
-
-  
-   cAutoTimerSegm aTSRead(TimeSegm(),"Read");
-   cPointCloud   aPC_In ;
-   ReadFromFile(aPC_In,mNameCloudIn);
-
-   // generate the sz of leaves
-   if (! aPC_In.LeavesIsInit())
-   {
-       aPC_In.SetLeavesUnit(0.05,SVP::Yes);  // fix unit step,
-       tREAL8  aRayLeaf  = mPropRayLeaf  / std::sqrt(aPC_In.CurStdDensity());
-       for (size_t aKPt=0 ; aKPt<aPC_In.NbPts() ; aKPt++)
-       {
-           aPC_In.SetSzLeaves(aKPt,aRayLeaf);
-       }
-   }
-
-   cAutoTimerSegm aTSInit(TimeSegm(),"Init");
-   tREAL8 aWeightInit = (mNbSampS==0);
-   cProjPointCloud  aPPC(aPC_In,aWeightInit);  // Weight Init 0 if NbS ,  
-// cProjPointCloud::cProjPointCloud(cPointCloud& aPC,tREAL8 aWeightInit) :
-
-    
-   cAutoTimerSegm aTSProj(TimeSegm(),"1Proj");
-
-   int aNbStd=0;
-   if (mNbSampS>0)
-   {
-       aPC_In.SetMulDegVis(1e4);
-       cSampleSphere3D aSampS(mNbSampS);
-       for (int aK=0 ; aK< aSampS.NbSamples() ; aK++)
-       {
-           cPt3dr aDir = VUnit(aSampS.KthPt(aK));
-           if (aDir.z() >= 0.2)
-           {
-               cOrthoProj aProj(aDir,aPC_In.Centroid());
-	       if (mProfIsZIn) 
-                  aProj.SetProfIsZIN();
-               cCamOrthoC  aCam("ColMesh",aProj,cPt2di(1,1));
-               aPPC.ProcessOneProj(mSurResol,aCam,1.0,false);
-               aNbStd++;
-               // StdOut() << "Still " << aSampS.NbSamples() - aK << "\n";
-           }
-       }
-    }
-#if (0)
-
-   if (IsInit(&mSun))
-   {
-       tREAL8 aW0  = mNbSampS ? aNbStd : 1.0;
-       cOrthoProj  aProj(cPt3dr(mSun.x(),mSun.y(),1.0),aPC_In.Centroid());
-       aPPC.ProcessOneProj(cParamProjCloud(&aProj),aW0 * mSun.z(),false);
-   }
-
-   aPPC.ColorizePC();
-   SaveInFile(aPC_In,mNameCloudOut);
-#endif
-
-
-   return EXIT_SUCCESS;
-}
-
-     /* =============================================== */
-     /*                       ::                        */
-     /* =============================================== */
-
-tMMVII_UnikPApli Alloc_MMVII_CloudColorate(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
-{
-   return tMMVII_UnikPApli(new cAppli_MMVII_CloudColorate(aVArgs,aSpec));
-}
-
-cSpecMMVII_Appli  TheSpec_MMVII_CloudColorate
-(
-     "CloudMMVIIColorate",
-      Alloc_MMVII_CloudColorate,
-      "Generate a colorate version of  MMVII-Cloud",
-      {eApF::Cloud},
-      {eApDT::Ply},
-      {eApDT::Ply},
-      __FILE__
-);
-#if (0)
-#endif
-
 
 };

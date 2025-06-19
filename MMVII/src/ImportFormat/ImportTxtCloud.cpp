@@ -122,10 +122,10 @@ int cAppli_ImportTxtCloud::Exe()
 
     if (! IsInit(&mDensity))
     {
-         mDensity = aPC.CurBasicDensity();
+         mDensity = aPC.ComputeCurFineDensity();
          StdOut() << "DENSITY=" << mDensity << "\n";
     }
-    aPC.mDensity = aPC.ComputeCurFineDensity();
+    aPC.mDensity = mDensity;
 
     StdOut() << "BOX " << aPC.Box2d() << " D=" << aPC.CurStdDensity() << "\n";
 

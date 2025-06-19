@@ -96,6 +96,12 @@ tREAL8   cPointCloud::ComputeCurFineDensity() const
     return ComputeDensity(*this);
 }
 
+tREAL8   cPointCloud::GroundSampling() const
+{
+    return 1 / std::sqrt(CurStdDensity());
+}
+
+
 
 
 // --------------------- Colours access ------------------------------------------
