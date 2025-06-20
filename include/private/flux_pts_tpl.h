@@ -125,7 +125,7 @@ template <class Type> class Std_Pack_Of_Pts : public Std_Pack_Of_Pts_Gen
       virtual void rgb_bgr(const Std_Pack_Of_Pts_Gen *);
 
     private :
-       Std_Pack_Of_Pts<Type> (INT dim,INT sz_buf);
+       Std_Pack_Of_Pts (INT dim,INT sz_buf);
 
        // _pts[d][i] == coordinate of the ith Pts in the dth dimension
        Tab_Prov<Tab_Prov<Type> *>   * _tprov_tprov;
