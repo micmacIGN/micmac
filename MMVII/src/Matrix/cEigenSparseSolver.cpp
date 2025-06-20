@@ -143,6 +143,9 @@ template<class Type> cDenseMatrix<Type> EigenSolveCholeskyarseFromV3
    double condition_number = lambda_max / lambda_min;
    std::cout<<"System approx condition number: "<<condition_number<<std::endl;*/
 
+   //Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic> aDenseMat(aSpMat);
+   //std::cout<<"System matrix:\n"<<aDenseMat<<std::endl;
+
    cConst_EigenMatWrap<Type> aEWM (aMat);
    // cConst_EigenColVectWrap  aWVec(aVec);
 
