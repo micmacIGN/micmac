@@ -127,7 +127,8 @@ void cBA_LidarPhotogra::AddObs(tREAL8 aW)
 
 
     if (mLastResidual.SW() != 0)
-       StdOut() << "  * Lid/Phr Residual Rad " << std::sqrt(mLastResidual.Average()) << "\n";
+       StdOut() << "  * Lid/Phr Residual Rad " << std::sqrt(mLastResidual.Average())
+                 << " ("<<mLastResidual.Nb()<<" obs)\n";
 }
 
 void cBA_LidarPhotogra::SetVUkVObs

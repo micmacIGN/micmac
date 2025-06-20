@@ -637,7 +637,26 @@ template<class Type> cDenseVect<Type> cSparseLeasSqtAA<Type>::SpecificSolve()
    PutInTriplet(aVCoeff);
    cDenseMatrix<Type> aDenseM = V_tAA();
    cResulSymEigenValue<Type> aEig = aDenseM.SymEigenValue();
-   std::cout<<"System condition number: "<<aEig.Cond()<<std::endl;
+   std::cout<<"System condition number: "<<aEig.Cond(0.)<<"\n";
+   std::cout<<"System eigen values: ";
+   for (auto &v: aEig.EigenValues().ToStdVect())
+      std::cout<<v<<" ";
+   std::cout<<"\n";
+
+   /*{ // just to check if symmetry is correctly taken into account
+       cDenseMatrix<Type> aDenseMsym = aDenseM;
+       for (long j=0;j<aDenseMsym.Sz().y();++j)
+           for (long i=j+1;i<aDenseMsym.Sz().x();++i)
+               aDenseMsym.SetElem(i,j,aDenseMsym.GetElem(j,i));
+
+       cResulSymEigenValue<Type> aEig = aDenseM.SymEigenValue();
+       std::cout<<"sym System condition number: "<<aEig.Cond()<<"\n";
+       std::cout<<"sym System eigen values: ";
+       for (auto &v: aEig.EigenValues().ToStdVect())
+           std::cout<<v<<" ";
+       std::cout<<"\n";
+   }*/
+
    return EigenSolveCholeskyarseFromV3(aVCoeff,mtARhs);
 }
 
