@@ -189,30 +189,30 @@ template <class Type> class Pt2d : public  ElStdTypeScal<Type>
 
   // Constructeur
 
-     Pt2d<Type>()  : x (0), y (0) {}
-     Pt2d<Type>(Type X,Type Y) : x (X), y (Y) {}
+     Pt2d()  : x (0), y (0) {}
+     Pt2d(Type X,Type Y) : x (X), y (Y) {}
 
-     Pt2d<Type>(const Pt2d<Type>& p) : x (p.x), y (p.y) {}
-     explicit Pt2d<Type>(const Pt2d<tCompl>& p) :
+     Pt2d(const Pt2d<Type>& p) : x (p.x), y (p.y) {}
+     explicit Pt2d(const Pt2d<tCompl>& p) :
               x( TCompl<Type>::FromC( p.x)),
               y( TCompl<Type>::FromC( p.y))
      {
      }
 
-     static  Pt2d<Type> IP2ToThisT(const Pt2d<int> & aP){return Pt2d<Type>(Type(aP.x),Type(aP.y));}
-     static  Pt2d<Type> RP2ToThisT(const Pt2d<double> & aP){return Pt2d<Type>(Type(aP.x),Type(aP.y));}
-     static  Pt2d<Type> FP2ToThisT(const Pt2d<float> & aP){return Pt2d<Type>(Type(aP.x),Type(aP.y));}
+     static  Pt2d<Type> IP2ToThisT(const Pt2d<int> & aP){return Pt2d(Type(aP.x),Type(aP.y));}
+     static  Pt2d<Type> RP2ToThisT(const Pt2d<double> & aP){return Pt2d(Type(aP.x),Type(aP.y));}
+     static  Pt2d<Type> FP2ToThisT(const Pt2d<float> & aP){return Pt2d(Type(aP.x),Type(aP.y));}
 
 /*
 
-     Pt2d<Type>(const Pt2d<INT>& p) : x (p.x), y (p.y) {};
-     Pt2d<Type>(const Pt2d<REAL>& p): x (Pt2d<Type>::RtoT(p.x)), y (Pt2d<Type>::RtoT(p.y)) {};
+     Pt2d(const Pt2d<INT>& p) : x (p.x), y (p.y) {};
+     Pt2d(const Pt2d<REAL>& p): x (Pt2d<Type>::RtoT(p.x)), y (Pt2d<Type>::RtoT(p.y)) {};
 */
 
 
      static  Pt2d<Type>  FromPolar(REAL rho,REAL teta)
      {
-        return   Pt2d<Type>(ElStdTypeScal<Type>::RtoT(cos(teta)*rho),ElStdTypeScal<Type>::RtoT(sin(teta)*rho));
+        return   Pt2d(ElStdTypeScal<Type>::RtoT(cos(teta)*rho),ElStdTypeScal<Type>::RtoT(sin(teta)*rho));
      }
 
      static Pt2d<double> polar(const Pt2d<double> & p,REAL AngDef);
@@ -226,7 +226,7 @@ template <class Type> class Pt2d : public  ElStdTypeScal<Type>
            return TypeProvPtScalR (this->T2R(x),this->T2R(y));
      }
 
-     Pt2d<Type> operator - () const { return Pt2d<Type>(-x,-y); }
+     Pt2d<Type> operator - () const { return Pt2d(-x,-y); }
      Pt2d<Type> yx() const { return Pt2d(y,x);}
      Pt2d<Type> conj() const { return Pt2d(x,-y);}
      Pt2d<typename ElStdTypeScal<Type>::TypeScalReel> inv() const
@@ -241,19 +241,19 @@ template <class Type> class Pt2d : public  ElStdTypeScal<Type>
          // binaires,  PtxPt => Pt
 
      Pt2d<Type> operator + (const Pt2d<Type> & p2) const
-                {return Pt2d<Type>(x+p2.x,y+p2.y);}
+                {return Pt2d(x+p2.x,y+p2.y);}
      Pt2d<Type> operator * (const Pt2d<Type> & p2) const
-                {return Pt2d<Type>(x*p2.x-y*p2.y,x*p2.y+y*p2.x);}
+                {return Pt2d(x*p2.x-y*p2.y,x*p2.y+y*p2.x);}
 
      // TCompl
      Pt2d<Type> operator / (const Pt2d<Type> & p2) const
      {
             TypeProvPtScalR aRes = this->ToPtProvR() * p2.inv().ToPtProvR();
-             return Pt2d<Type> ((Type)aRes.x,(Type)aRes.y);
+             return Pt2d((Type)aRes.x,(Type)aRes.y);
      }
 
      Pt2d<Type> operator - (const Pt2d<Type> & p2) const
-                {return Pt2d<Type>(x-p2.x,y-p2.y);}
+                {return Pt2d(x-p2.x,y-p2.y);}
      Pt2d<Type> mcbyc(const Pt2d<Type> & p2) const
                 {return Pt2d(x*p2.x,y*p2.y);}
      Pt2d<Type> dcbyc(const Pt2d<Type> & p2) const
@@ -291,18 +291,18 @@ template <class Type> class Pt2d : public  ElStdTypeScal<Type>
 
          // binaires,  PtxScalaire => Pt
 
-     Pt2d<Type> operator * (INT  lambda) const { return Pt2d<Type>(x*lambda,y*lambda);}
+     Pt2d<Type> operator * (INT  lambda) const { return Pt2d(x*lambda,y*lambda);}
 
 
      Pt2d<typename ElStdTypeScal<Type>::TypeScalReel> operator * (REAL lambda) const { return Pt2d<typename ElStdTypeScal<Type>::TypeScalReel>(x*lambda,y*lambda);}
 
-     Pt2d<Type> operator / (INT  lambda) const { return Pt2d<Type>(x/lambda,y/lambda);}
+     Pt2d<Type> operator / (INT  lambda) const { return Pt2d(x/lambda,y/lambda);}
      Pt2d<typename ElStdTypeScal<Type>::TypeScalReel> operator / (REAL lambda) const { return Pt2d<typename ElStdTypeScal<Type>::TypeScalReel>(x/lambda,y/lambda);}
 
 
       // operator * est deja surcharge
-      Pt2d<Type> mul (const Type & aL) const { return Pt2d<Type>(x*aL,y*aL);}
-      Pt2d<Type> div (const Type & aL) const { return Pt2d<Type>(x/aL,y/aL);}
+      Pt2d<Type> mul (const Type & aL) const { return Pt2d(x*aL,y*aL);}
+      Pt2d<Type> div (const Type & aL) const { return Pt2d(x/aL,y/aL);}
 
 
          // binaires,  PtxPt => scalaire
@@ -340,7 +340,7 @@ template <class Type> class Pt2d : public  ElStdTypeScal<Type>
      Output WhichMax();
      Output WhichMin();
 
-     Pt2d<Type> AbsP() const {return Pt2d<Type>(ElAbs(x),ElAbs(y));}
+     Pt2d<Type> AbsP() const {return Pt2d(ElAbs(x),ElAbs(y));}
 
      private :
           void Verif_adr_xy();
@@ -388,8 +388,8 @@ template <> Pt2d<int>::Pt2d(const Pt2d<double>& p) : x (round_ni(p.x)), y (round
 template <> Pt2d<Fonc_Num>::Pt2d(const Pt2d<double>& p) : x (p.x), y (p.y) {};
 */
 /*
-     Pt2d<Type>(const Pt2d<INT>& p) : x (p.x), y (p.y) {};
-     Pt2d<Type>(const Pt2d<REAL>& p): x (Pt2d<Type>::RtoT(p.x)), y (Pt2d<Type>::RtoT(p.y)) {};
+     Pt2d(const Pt2d<INT>& p) : x (p.x), y (p.y) {};
+     Pt2d(const Pt2d<REAL>& p): x (Pt2d<Type>::RtoT(p.x)), y (Pt2d<Type>::RtoT(p.y)) {};
 */
 
 //Rotate aPt(X,Y) with angle(rad) and center(X,Y)
@@ -846,23 +846,23 @@ template <class Type> class Pt3d : public  ElStdTypeScal<Type>
 
      Pt3d();
 
-     Pt3d<Type>(const Pt3d<Type>& ); // to please visual
-     explicit Pt3d<Type>(const Pt3d<tCompl>& p);
+     Pt3d(const Pt3d<Type>& ); // to please visual
+     explicit Pt3d(const Pt3d<tCompl>& p);
 
-     static  Pt3d<Type> P3ToThisT(const Pt3d<int> & aP){return Pt3d<Type>(Type(aP.x),Type(aP.y),Type(aP.z));}
-     static  Pt3d<Type> P3ToThisT(const Pt3d<double> & aP){return Pt3d<Type>(Type(aP.x),Type(aP.y),Type(aP.z));}
-     static  Pt3d<Type> P3ToThisT(const Pt3d<float> & aP){return Pt3d<Type>(Type(aP.x),Type(aP.y),Type(aP.z));}
+     static  Pt3d<Type> P3ToThisT(const Pt3d<int> & aP){return Pt3d(Type(aP.x),Type(aP.y),Type(aP.z));}
+     static  Pt3d<Type> P3ToThisT(const Pt3d<double> & aP){return Pt3d(Type(aP.x),Type(aP.y),Type(aP.z));}
+     static  Pt3d<Type> P3ToThisT(const Pt3d<float> & aP){return Pt3d(Type(aP.x),Type(aP.y),Type(aP.z));}
 
 
-     Pt3d<Type>(const Pt2d<Type>&,Type z); // to please visual
+     Pt3d(const Pt2d<Type>&,Type z); // to please visual
 
      Pt3d<Type> mcbyc(const Pt3d<Type> & p2) const
                 {return Pt3d(x*p2.x,y*p2.y,z*p2.z);}
      Pt3d<Type> dcbyc(const Pt3d<Type> & p2) const
                 {return Pt3d(x/p2.x,y/p2.y,z/p2.z);}
 
-     static Pt3d<Type> RandC() {return Pt3d<Type>(NRrandC(),NRrandC(),NRrandC());}
-     static Pt3d<Type> Rand3() {return Pt3d<Type>(NRrandom3(),NRrandom3(),NRrandom3());}
+     static Pt3d<Type> RandC() {return Pt3d(NRrandC(),NRrandC(),NRrandC());}
+     static Pt3d<Type> Rand3() {return Pt3d(NRrandom3(),NRrandom3(),NRrandom3());}
 
      Pt3d(Type X,Type Y,Type Z);
      Pt3d<Type> operator + (const Pt3d<Type> & p2) const;
@@ -897,12 +897,12 @@ template <class Type> class Pt3d : public  ElStdTypeScal<Type>
      std::vector<Type> ToTab() const;
      static Pt3d<Type> FromTab(const std::vector<Type> &);
 
-     Pt3d<Type> AbsP() const {return Pt3d<Type>(ElAbs(x),ElAbs(y),ElAbs(z));}
+     Pt3d<Type> AbsP() const {return Pt3d(ElAbs(x),ElAbs(y),ElAbs(z));}
      /*
      friend Pt3d<Type> Sup (const Pt3d<Type> & p1,const Pt3d<Type> & p2)
-           { return Pt3d<Type>(ElMax(p1.x,p2.x),ElMax(p1.y,p2.y),ElMax(p1.z,p2.z));}
+           { return Pt3d(ElMax(p1.x,p2.x),ElMax(p1.y,p2.y),ElMax(p1.z,p2.z));}
      friend Pt3d<Type> Inf (const Pt3d<Type> & p1,const Pt3d<Type> & p2)
-            { return Pt3d<Type>(ElMin(p1.x,p2.x),ElMin(p1.y,p2.y),ElMin(p1.z,p2.z));}
+            { return Pt3d(ElMin(p1.x,p2.x),ElMin(p1.y,p2.y),ElMin(p1.z,p2.z));}
       */
      Output sigma();
      Output VMax();
@@ -1008,7 +1008,7 @@ template <class Type> void  corner_boxes
                             (
                                           Pt3d<Type> p1,
                                           Pt3d<Type> p2,
-                                          Pt3d<Type> (& t)[8]
+                                          Pt3d<Type>(& t)[8]
                             );
 template <class Type>  void pt_set_min_max(Pt3d<Type> & p0,Pt3d<Type> & p1);
 
