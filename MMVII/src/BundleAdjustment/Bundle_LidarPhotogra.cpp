@@ -21,7 +21,9 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
     mEqLidPhgr  (nullptr),                             // equation of egalisation Lidar/Phgr
     mPertRad    (false),
     mNbPointByPatch (32),
-    mWeight      (1/Square(cStrIO<double>::FromStr(aParam.at(2))))
+    mWeight      (1/Square(cStrIO<double>::FromStr(aParam.at(2)))),
+    mNbUsedPoints (0),
+    mNbUsedObs (0)
 {
    if (mModeSim==eImatchCrit::eDifRad) 
       mEqLidPhgr = EqEqLidarImPonct (true,1);
@@ -107,6 +109,8 @@ cBA_LidarPhotogra::~cBA_LidarPhotogra()
 void cBA_LidarPhotogra::AddObs()
 {
     mLastResidual.Reset();
+    mNbUsedPoints = 0;
+    mNbUsedObs = 0;
     if (mModeSim==eImatchCrit::eDifRad)
     {
        for (size_t aKP=0 ; aKP<mTri.NbPts() ; aKP++)
@@ -128,7 +132,8 @@ void cBA_LidarPhotogra::AddObs()
 
 
     if (mLastResidual.SW() != 0)
-       StdOut() << "  * Lid/Phr Residual Rad " << std::sqrt(mLastResidual.Average()) << "\n";
+       StdOut() << "  * Lid/Phr Residual Rad " << std::sqrt(mLastResidual.Average())
+                 << " ("<<mNbUsedObs<<" obs, "<<mNbUsedPoints<<" points)\n";
 }
 
 void cBA_LidarPhotogra::SetVUkVObs
@@ -363,6 +368,9 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
 
      // if less than 2 images : nothing valuable to do
      if (aVData.size()<2) return;
+
+     mNbUsedPoints++;
+     mNbUsedObs+=aVData.size();
 
      // accumlulate for computing average of deviation
      // mLastResidual.Add(1.0,  (aStdDev.StdDev(1e-5) *aVData.size()) / (aVData.size()-1.0));
