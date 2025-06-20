@@ -449,7 +449,8 @@ template<> cPt3dLR NullVal<cPt3dLR>() {return cPt3dLR::PCste(0);}
 template <class TypeWeight,class TypeVal> cWeightAv<TypeWeight,TypeVal>::cWeightAv() :
    mSW(0),
    // mSVW(NullVal<TypeVal>())
-   mSVW(cNV<TypeVal>::V0())
+   mSVW(cNV<TypeVal>::V0()),
+   mNb()
 {
 }
 
@@ -457,6 +458,7 @@ template <class TypeWeight,class TypeVal> void cWeightAv<TypeWeight,TypeVal>::Re
 {
    mSW = 0;
    mSVW =cNV<TypeVal>::V0();
+   mNb = 0;
 }
 
 template <class TypeWeight,class TypeVal> cWeightAv<TypeWeight,TypeVal>::cWeightAv(const std::vector<TypeVal> & aVect) :
@@ -477,6 +479,7 @@ template <class TypeWeight,class TypeVal> void cWeightAv<TypeWeight,TypeVal>::Ad
 {
    mSW += aWeight;
    mSVW += aVal * aWeight;
+   mNb++;
 }
 
 template <class TypeWeight,class TypeVal> TypeVal cWeightAv<TypeWeight,TypeVal>::Average() const
@@ -494,6 +497,7 @@ template <class TypeWeight,class TypeVal> TypeVal cWeightAv<TypeWeight,TypeVal>:
 
 template <class TypeWeight,class TypeVal> const TypeVal & cWeightAv<TypeWeight,TypeVal>::SVW () const {return mSVW;}
 template <class TypeWeight,class TypeVal> const TypeWeight & cWeightAv<TypeWeight,TypeVal>::SW () const {return mSW;}
+template <class TypeWeight,class TypeVal> const long cWeightAv<TypeWeight,TypeVal>::Nb() const {return mNb;}
 
 template <class Type> Type Average(const Type * aTab,size_t aNb)
 {
