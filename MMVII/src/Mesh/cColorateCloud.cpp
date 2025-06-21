@@ -193,7 +193,8 @@ void BenchCamOrtho(const cOrthoProj &anOP,const cPt3dr & aDir)
           cPt3dr aPt1 = cPt3dr::PRandC() * 100.0;
           cPt3dr aPt2 =  anOP.Value( anOP.Inverse(aPt1));
 
-	  StdOut() << "NNNN " << Norm2(aPt1-aPt2) << "\n";
+	  //  StdOut() << "NNNN " << Norm2(aPt1-aPt2) << "\n";
+          MMVII_INTERNAL_ASSERT_bench(Norm2(aPt1-aPt2)<1e-5,"BenchCamOrtho Value/Inverse");
 
      }
 }

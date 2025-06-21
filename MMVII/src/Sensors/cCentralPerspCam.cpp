@@ -1052,6 +1052,7 @@ void BenchCentralePerspective(cParamExeBench & aParam,eProjPC aTypeProj)
 
        delete aCam;
     }
+    BenchCamOrtho();
 
 }
 

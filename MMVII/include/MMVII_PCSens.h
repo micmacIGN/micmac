@@ -515,8 +515,16 @@ class cSensorCamPC : public cSensorImage
          void SetCenter(const cPt3dr & aC);
 
 	 bool  HasImageAndDepth() const override;  // true
+
+         cPt3dr Dist_Ground2ImageAndDepth(const cPt3dr &) const ;
+         cPt3dr PlaneSweep_Ground2ImageAndDepth(const cPt3dr &) const ;
          cPt3dr Ground2ImageAndDepth(const cPt3dr &) const override;
+
+         cPt3dr Dist_ImageAndDepth2Ground(const cPt3dr & ) const ;
+         cPt3dr PlaneSweep_ImageAndDepth2Ground(const cPt3dr & ) const ;
          cPt3dr ImageAndDepth2Ground(const cPt3dr & ) const override;
+
+
          tSeg3dr  Image2Bundle(const cPt2dr &) const override;
 
 
