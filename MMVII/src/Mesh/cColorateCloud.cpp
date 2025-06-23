@@ -140,7 +140,11 @@ class cCamOrthoC  :  public  cSensorImage
        tSeg3dr  Image2Bundle(const cPt2dr &) const override;
        std::string  V_PrefixName() const   override;
        cPt3dr  PseudoCenterOfProj() const override;
-       double DegreeVisibility(const cPt3dr &) const ;
+       double DegreeVisibility(const cPt3dr &) const override;
+
+       bool  HasImageAndDepth() const override;
+       cPt3dr Ground2ImageAndDepth(const cPt3dr &) const override;
+       cPt3dr ImageAndDepth2Ground(const cPt3dr &) const override;
 
     private :
        cOrthoProj         mProj;
@@ -162,6 +166,16 @@ cPt2dr cCamOrthoC::Ground2Image(const cPt3dr & aPGround) const
 {
 	return Proj(mProj.Value(aPGround));
 }
+cPt3dr cCamOrthoC::Ground2ImageAndDepth(const cPt3dr & aPGround) const 
+{
+    return mProj.Value(aPGround);
+}
+
+cPt3dr cCamOrthoC::ImageAndDepth2Ground(const cPt3dr & aPImAndD) const 
+{
+    return mProj.Inverse(aPImAndD);
+}
+
 
 tSeg3dr  cCamOrthoC::Image2Bundle(const cPt2dr & aPIm) const
 {
@@ -180,11 +194,10 @@ double cCamOrthoC::DegreeVisibility(const cPt3dr & aPGround) const
 {
     cPt2dr aPIm = Proj(mProj.Value(aPGround));
 
-// StdOut() << "DegreeVisibility " << aPGround << " " << aPIm << " " << mPixelDomain.DegreeVisibility(aPIm) << "\n";
-// getchar();
-
     return   mPixelDomain.DegreeVisibility(aPIm)>0;
 }
+
+bool  cCamOrthoC::HasImageAndDepth() const { return true; }
 
 void BenchCamOrtho(const cOrthoProj &anOP,const cPt3dr & aDir)
 {
@@ -198,6 +211,7 @@ void BenchCamOrtho(const cOrthoProj &anOP,const cPt3dr & aDir)
 
      }
 }
+
 
 void BenchCamOrtho()
 {
@@ -340,9 +354,9 @@ FakeUseIt(aPlusInfty);
      //    [0.0] ---  Compute eventually the selection of point ------
      mVPtsInit = & mGlobPtsInit;  // Default case , take all the point
      std::vector<cPt3dr>  aVPtsSel;  // will contain the selection if required, must be at the same scope
-     cPt3dr aCenter = mPC.Centroid();
-     if (isModeImage)  // if we have a selection
+     if (isModeImage)  
      {
+         // In mode image we select only the  point visible in the camera
          for (const auto & aPt : mGlobPtsInit)
 	 {
              if (aSensor.DegreeVisibility(aPt)>0)
@@ -352,7 +366,7 @@ FakeUseIt(aPlusInfty);
          }
          StdOut()  << "SELLL=" << mVPtsInit->size() << " " << aVPtsSel.size() << "\n";
          mVPtsInit  = & aVPtsSel;
-	 aCenter = Centroid(aVPtsSel);
+	 // aCenter = Centroid(aVPtsSel);
      }
      
      //    [0.1] ---  Compute 3D proj+ its 2d-box ----
@@ -401,6 +415,9 @@ FakeUseIt(aPlusInfty);
      //    [0.3]  ---------- Alloc images --------------------
      //    [0.3.1]   image of depth
      mSzIm = mBoxInd.CurBox().Sz() + cPt2di(1,1);
+
+
+
      mDImDepth = & (mImDepth.DIm());
      mDImDepth->Resize(mSzIm);
      mDImDepth->InitCste(aMinInfty);
@@ -427,20 +444,26 @@ FakeUseIt(aPlusInfty);
          mDImWeigth->InitCste(0.0);
      }
 
-#if (0)
+
 
      //    [0.4]  ---------- Alloc vector SzLeaf -> neighboor in image coordinate (time efficiency) ----------------
      std::vector<std::vector<cPt2di>> aVVdisk(256);  // as size if store 8-byte, its sufficient
-     for (int aK=0 ; aK<=255 ; aK++)
      {
-         tREAL8 aSzL = mPC.ConvertInt2SzLeave(aK);
-         aVVdisk.at(aK) = VectOfRadius(-1,aSzL/mStepProf);
-     }
+         cPt3dr aCenter = mPC.Centroid();
+         tREAL8 aGS = aSensor.Gen_GroundSamplingDistance(aCenter);
+         for (int aK=0 ; aK<=255 ; aK++)
+         {
+             tREAL8 aSzL = mPC.ConvertInt2SzLeave(aK) / aGS;
+             aVVdisk.at(aK) = VectOfRadius(-1,aSurResol*aSzL);
+         }
+      }
+
 
      // ==================================================================================================================
      // == [1] ==================   compute the depth image : accumulate for each pixel the maximal depth ================
      // ==================================================================================================================
 
+     int aNbPtsCover = 0;
      for (size_t aKPt=0 ; aKPt<mVPtsProj.size() ; aKPt++) // parse all points
      {
          const cPt2di  & aCenter = mVPtImages.at(aKPt); // extract index
@@ -454,9 +477,18 @@ FakeUseIt(aPlusInfty);
              if (mDImDepth->Inside(aPt))
              {
                  mDImDepth->SetMax(aPt,aDepth);
+                 aNbPtsCover++;
              } 
          }
      }
+/*
+     StdOut() << "SZIII = " << mSzIm  
+              << " PropPtIn=" <<  mVPtsProj.size() / (tREAL8) (mSzIm.x() * mSzIm.y()) 
+              << " PropPtCov=" <<  aNbPtsCover / (tREAL8) (mSzIm.x() * mSzIm.y()) 
+              << "\n";
+      getchar();
+*/
+
 
      // ===========================================================================================================================
      // == [2] ===   for each point use depth image and if it is visible
@@ -476,12 +508,6 @@ FakeUseIt(aPlusInfty);
              cPt2di aPt = aCenter + aNeigh;
              bool IsVisible = (mDImDepth->DefGetV(aPt,aPlusInfty) <= aDepth);
 
-if (0&& isModeImage)
-{
-	StdOut() << "DDDD = " <<  mDImDepth->DefGetV(aPt,aPlusInfty)  << " " <<  aDepth << "\n";
-        StdOut() << " C=" << aCenter << " Sz=" << mDImDepth->Sz() << "\n";
-	getchar();
-}
              if (IsVisible)  // if the point is visible
              {
 // aNbModif++;
@@ -503,6 +529,7 @@ if (0&& isModeImage)
          }
      }
 // StdOut() << "NBMMM=" << aNbModif << "\n";
+#if (0)
 #endif
 }
 
@@ -605,7 +632,7 @@ cAppli_MMVII_CloudColorate::cAppli_MMVII_CloudColorate
      const cSpecMMVII_Appli & aSpec
 ) :
      cMMVII_Appli    (aVArgs,aSpec),
-     mPropRayLeaf    (1.1,1.5),
+     mPropRayLeaf    (1.8,2.2),
      mSurResol       (2.0),
      mNbSampS        (5)
 {
@@ -672,23 +699,21 @@ int  cAppli_MMVII_CloudColorate::Exe()
                std::unique_ptr<cCamOrthoC> aCam (aPPC.CamOrtho(aDir));
                aPPC.ProcessOneProj(mSurResol,*aCam,1.0,false);
                aNbStd++;
-               // StdOut() << "Still " << aSampS.NbSamples() - aK << "\n";
+               StdOut() << "Still " << aSampS.NbSamples() - aK << "\n";
            }
        }
     }
-#if (0)
 
    if (IsInit(&mSun))
    {
        tREAL8 aW0  = mNbSampS ? aNbStd : 1.0;
-       cOrthoProj  aProj(cPt3dr(mSun.x(),mSun.y(),1.0),aPC_In.Centroid());
-       aPPC.ProcessOneProj(cParamProjCloud(&aProj),aW0 * mSun.z(),false);
+       
+       std::unique_ptr<cCamOrthoC> aCam (aPPC.CamOrtho(cPt3dr(mSun.x(),mSun.y(),1.0)));
+       aPPC.ProcessOneProj(mSurResol,*aCam,aW0 * mSun.z(),false);
    }
 
    aPPC.ColorizePC();
    SaveInFile(aPC_In,mNameCloudOut);
-#endif
-
 
    return EXIT_SUCCESS;
 }
