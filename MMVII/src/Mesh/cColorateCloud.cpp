@@ -256,7 +256,7 @@ class cProjPointCloud
 	 /// Process on projection for  OR  (1) modify colorization of points (2) 
          void ProcessOneProj(tREAL8 aSurResol,const cSensorImage &,tREAL8 aW,bool ModeImage);
          
-         void ProcessImage(const std::string & aPost);
+         void ProcessImage(tREAL8 aSurResol,const cSensorImage &,const std::string & aPost);
 
 	 // export the average of radiomeries (in mSumRad) as a field of mPC
          void ColorizePC(); 
@@ -529,22 +529,16 @@ FakeUseIt(aPlusInfty);
          }
      }
 // StdOut() << "NBMMM=" << aNbModif << "\n";
-#if (0)
-#endif
 }
 
-void cProjPointCloud::ProcessImage(const std::string & aPrefix)
+void cProjPointCloud::ProcessImage(tREAL8 aSurResol,const cSensorImage & aSensor,const std::string & aPrefix)
 {
-#if (0)
      // =====================================================================================
      // == [3] ==================   compute the images (radiom, weight, depth) ==============
      // =====================================================================================
 
-     tREAL8 aResolImRel = 0.5;
-     tREAL8 aStepImAbs =  mAvgD / aResolImRel;
-     tREAL8 aResolImaRel = aStepImAbs / mStepProf;
      tREAL8 aSigmaImaFinal = 1.0;
-     tREAL8 aSigmaImaInit = aSigmaImaFinal * aResolImaRel;
+     tREAL8 aSigmaImaInit = aSigmaImaFinal * aSurResol;
      int    aNbIter = 5;
 
      //  DImDepth has def value to -Infty, we need to set to 0 the pixel non initialized    
@@ -568,7 +562,7 @@ void cProjPointCloud::ProcessImage(const std::string & aPrefix)
        
      static int aCpt=0; aCpt++;
          
-     cPt2di  aSzImFinal = ToI(ToR(mDImRad->Sz())/aResolImaRel);
+     cPt2di  aSzImFinal = aSensor.Sz();
      cIm2D<tU_INT1>      aIm8BReduc(aSzImFinal);  // radiometric image
      cDataIm2D<tU_INT1>& aDIm8BReduc = aIm8BReduc.DIm();
      cIm2D<tREAL4>       aImDepReduc(aSzImFinal);  // Z/depth  image
@@ -582,7 +576,7 @@ void cProjPointCloud::ProcessImage(const std::string & aPrefix)
 
      for (const auto & aPixI : aDIm8BReduc)
      {
-         cPt2dr aPixR = ToR(aPixI) * aResolImaRel;
+         cPt2dr aPixR = ToR(aPixI) * aSurResol;
          aDIm8BReduc.SetVTrunc(aPixI,mDImRad->ClipedGetValueInterpol(*aInterp,aPixR,0));
          aDImDepReduc.SetV(aPixI,mDImDepth->ClipedGetValueInterpol(*aInterp,aPixR,0));
 
@@ -591,9 +585,6 @@ void cProjPointCloud::ProcessImage(const std::string & aPrefix)
      aDIm8BReduc.ToFile    (aPrefix+"_Radiom_"+ToStr(aCpt) + ".tif");
      aDImDepReduc.ToFile   (aPrefix+"_Depth_"+ToStr(aCpt) + ".tif");
      aDImWeightReduc.ToFile(aPrefix+"_Weight_"+ToStr(aCpt) + ".tif");
-
-     StdOut() << "RESOL ;  IMA-REL=" << aResolImaRel << " Ground=" << aStepImAbs << "\n";
-#endif
 }
 
 
@@ -707,7 +698,6 @@ int  cAppli_MMVII_CloudColorate::Exe()
    if (IsInit(&mSun))
    {
        tREAL8 aW0  = mNbSampS ? aNbStd : 1.0;
-       
        std::unique_ptr<cCamOrthoC> aCam (aPPC.CamOrtho(cPt3dr(mSun.x(),mSun.y(),1.0)));
        aPPC.ProcessOneProj(mSurResol,*aCam,aW0 * mSun.z(),false);
    }
@@ -810,30 +800,28 @@ cCollecSpecArg2007 & cAppli_MMVII_CloudImProj::ArgOpt(cCollecSpecArg2007 & anArg
 
 int  cAppli_MMVII_CloudImProj::Exe()
 {
-	BenchCamOrtho();
-#if (0)
    if (!IsInit(&mNameImageOut))
       mNameImageOut =  "ImProj_" + LastPrefix(mNameCloudIn) + ".tif";
 
    mFocal = Norm2(mSzIm) / mFOV ;
    mCalib = cPerspCamIntrCalib::SimpleCalib("MeshSim",eProjPC::eStenope,mSzIm,cPt3dr(mSzIm.x()/2.0,mSzIm.y()/2.0,mFocal),cPt3di(0,0,0));
 
-
-
    cPointCloud   aPC_In ;
    ReadFromFile(aPC_In,mNameCloudIn);
 
-   cProjPointCloud  aPPC(aPC_In,mSurResolSun,1.0);
+   cProjPointCloud  aPPC(aPC_In,1.0);
+
    if  (IsInit(&mSun))
    {
-       // cProjPointCloud  aPPC(aPC_In,mSurResolSun,1.0);
-       cOrthoProj  aProj(cPt3dr(mSun.x(),mSun.y(),1.0),aPC_In.Centroid());
-       aPPC.ProcessOneProj(cParamProjCloud(&aProj), mSun.z(),false);
+       std::unique_ptr<cCamOrthoC> aCam (aPPC.CamOrtho(cPt3dr(mSun.x(),mSun.y(),1.0)));
+       aPPC.ProcessOneProj(mSurResolSun,*aCam,mSun.z(),false);
 
        aPPC.ColorizePC();
+
        if (IsInit(&mNameSavePCSun))
            SaveInFile(aPC_In,mNameSavePCSun);
    }
+#if (0)
 
    if (false)
    {
@@ -855,9 +843,9 @@ int  cAppli_MMVII_CloudImProj::Exe()
    }
 
    StdOut() << "NbLeaves "<< aPC_In.LeavesIsInit () << "\n";
+#endif
 
    delete mCalib;
-#endif
    return EXIT_SUCCESS;
 }
 
