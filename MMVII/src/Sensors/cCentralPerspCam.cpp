@@ -931,7 +931,7 @@ tSeg2dr  cPerspCamIntrCalib::ExtenSegUndistIncluded
       std::vector<cPt2dr> aVPts;
       for (tREAL8 aSign : {-1.0,1.0})
       {
-          cPt2dr aPt = aSegInit.PMil();
+          cPt2dr aPt = aSegInit.Middle();
           cPt2dr aTgt = VUnit(aSegInit.V12()) * aSign;
 	  tREAL8 aStep= aStepInitRel * Norm2(SzPix());
 	  while (aStep >= aStepEnd)

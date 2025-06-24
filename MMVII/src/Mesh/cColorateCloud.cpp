@@ -293,7 +293,10 @@ class cProjPointCloud
 
 cCamOrthoC * cProjPointCloud::CamOrtho(const cPt3dr & aDir,const cPt2di & aSzIm)
 {
-   cOrthoProj aProj(aDir,mPC.Centroid(),ToR(aSzIm)/2.0,mPC.GroundSampling());
+   cBox3dr   aBox = mPC.Box3d();
+   tREAL8 aResol = mPC.GroundSampling();
+   // cPt2dr aSzIm = mPC.Box2d() 
+   cOrthoProj aProj(aDir,aBox.Middle(),ToR(aSzIm)/2.0,aResol);
    cCamOrthoC*  aCam = new cCamOrthoC ("ColMesh",aProj,PtSupEq(aSzIm,cPt2di(1,1)));
 
    return aCam;
@@ -338,13 +341,12 @@ void cProjPointCloud::ColorizePC()
    }
 }
 
-void cProjPointCloud::ProcessOneProj(tREAL8 aSurResol,const cSensorImage & aSensor,tREAL8 aW,bool isModeImage)
+void cProjPointCloud::ProcessOneProj(tREAL8 aSurResol,const cSensorImage & aSensor,tREAL8 aWeight,bool isModeImage)
 {
 
-     mSumW += aW;               // accumlate weight
+     mSumW += aWeight;               // accumlate weight
      tREAL8 aMinInfty = -1e10;  // minus infinity, any value lower than anr real one
      tREAL8 aPlusInfty = - aMinInfty;
-FakeUseIt(aPlusInfty);
 
      // ========================================================================
      // == [0] ==================  Init proj, indexes, images  =================
@@ -525,7 +527,7 @@ FakeUseIt(aPlusInfty);
          if (!isModeImage)  // in mode std we know the visibility 
          {
             tREAL8 aGray =  aNbVis / tREAL8(aVDisk.size());
-            mSumRad.at(aKPt) +=  aGray * aW;
+            mSumRad.at(aKPt) +=  aGray * aWeight;
          }
      }
 // StdOut() << "NBMMM=" << aNbModif << "\n";
@@ -803,8 +805,6 @@ int  cAppli_MMVII_CloudImProj::Exe()
    if (!IsInit(&mNameImageOut))
       mNameImageOut =  "ImProj_" + LastPrefix(mNameCloudIn) + ".tif";
 
-   mFocal = Norm2(mSzIm) / mFOV ;
-   mCalib = cPerspCamIntrCalib::SimpleCalib("MeshSim",eProjPC::eStenope,mSzIm,cPt3dr(mSzIm.x()/2.0,mSzIm.y()/2.0,mFocal),cPt3di(0,0,0));
 
    cPointCloud   aPC_In ;
    ReadFromFile(aPC_In,mNameCloudIn);
@@ -821,15 +821,21 @@ int  cAppli_MMVII_CloudImProj::Exe()
        if (IsInit(&mNameSavePCSun))
            SaveInFile(aPC_In,mNameSavePCSun);
    }
-#if (0)
 
    if (false)
    {
+      mFocal = Norm2(mSzIm) / mFOV ;
+      mCalib = cPerspCamIntrCalib::SimpleCalib("MeshSim",eProjPC::eStenope,mSzIm,cPt3dr(mSzIm.x()/2.0,mSzIm.y()/2.0,mFocal),cPt3di(0,0,0));
+      delete mCalib;
    }
    else
    {
-       for (int aK=-0 ; aK<=0 ; aK++)
+       int aNbPos = 2;
+       for (int aK=-aNbPos ; aK<=aNbPos ; aK++)
        {
+           std::unique_ptr<cCamOrthoC> aCam (aPPC.CamOrtho(cPt3dr(aK*0.2,0.0,1.0)));
+           aPPC.ProcessOneProj(2.0,*aCam,0.0,true);
+	       /*
             cOrthoProj aProj(cPt3dr(aK*0.2,0,1.0),aPC_In.Centroid(),ToR(mSzIm)/2.0);
 // cOrthoProj  aProj(cPt3dr(aK*0.2,0,1.0),aPC_In.Centroid());
 	   cCamOrthoC aCam("ORTHO-"+ToStr(aK),aProj,mSzIm);
@@ -839,13 +845,14 @@ int  cAppli_MMVII_CloudImProj::Exe()
 
            aPPC.ProcessOneProj(aParam,0.0,true);
 	   aPPC.ProcessImage("IIP");
+	   */
        }
    }
 
    StdOut() << "NbLeaves "<< aPC_In.LeavesIsInit () << "\n";
+#if (0)
 #endif
 
-   delete mCalib;
    return EXIT_SUCCESS;
 }
 
