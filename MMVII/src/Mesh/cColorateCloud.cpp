@@ -260,7 +260,7 @@ class cProjPointCloud
 
 	 // export the average of radiomeries (in mSumRad) as a field of mPC
          void ColorizePC(); 
-	 cCamOrthoC * CamOrtho(const cPt3dr & aDir,const cPt2di & aSzIm=cPt2di(0,0));
+	 cCamOrthoC * CamOrtho(const cPt3dr & aDir,tREAL8 aMulSz = 1.0);
 
 
      private :
@@ -291,14 +291,28 @@ class cProjPointCloud
          cDataIm2D<tREAL4>*       mDImWeigth;
 };
 
-cCamOrthoC * cProjPointCloud::CamOrtho(const cPt3dr & aDir,const cPt2di & aSzIm)
+cCamOrthoC * cProjPointCloud::CamOrtho(const cPt3dr & aDir,tREAL8 aMulSz)
 {
-   cBox3dr   aBox = mPC.Box3d();
+   cBox3dr   aBox3 = mPC.Box3d();
+   cBox2dr   aBox2 = mPC.Box2d();
    tREAL8 aResol = mPC.GroundSampling();
-   // cPt2dr aSzIm = mPC.Box2d() 
-   cOrthoProj aProj(aDir,aBox.Middle(),ToR(aSzIm)/2.0,aResol);
-   cCamOrthoC*  aCam = new cCamOrthoC ("ColMesh",aProj,PtSupEq(aSzIm,cPt2di(1,1)));
+   cPt2di aSzIm = ToI(aBox2.Sz() * (aMulSz / aResol));
+   
+   cOrthoProj aProj(aDir,aBox3.Middle(),ToR(aSzIm)/2.0,aResol);
+   cCamOrthoC*  aCam = new cCamOrthoC ("ColMesh",aProj,aSzIm);
 
+   cPt3dr aCorn[8];
+   aBox3.Corners(aCorn);
+
+/*
+   StdOut() << "SZIM=" << aSzIm << "\n";
+   for (int aK=0 ; aK<8 ; aK++)
+   {
+        cPt2dr aPIm = aCam->Ground2Image(aCorn[aK]);
+        StdOut() << aCorn[aK] << "   ====>> " << aPIm << "\n";
+   }
+getchar();
+*/
    return aCam;
 }
 
@@ -374,7 +388,9 @@ void cProjPointCloud::ProcessOneProj(tREAL8 aSurResol,const cSensorImage & aSens
      //    [0.1] ---  Compute 3D proj+ its 2d-box ----
      mVPtsProj.clear();
      for (const auto & aPt : *mVPtsInit)
+     {
           mVPtsProj.push_back(aSensor.Ground2ImageAndDepth(aPt));
+     }
 
      cPt2dr aPMin(0.0,0.0);
      if (! isModeImage)
@@ -498,25 +514,39 @@ void cProjPointCloud::ProcessOneProj(tREAL8 aSurResol,const cSensorImage & aSens
      //         * in mode image, project its radiometry
      // ===========================================================================================================================
  
-//int aNbModif=0;
+     cWeightAv<tREAL8,tREAL8>  aLumPt;
+     cWeightAv<tREAL8,tREAL8>  aLumVis;
+     int aNbVisTot = 0;
+
+
      for (size_t aKPt=0 ; aKPt<mVPtsProj.size() ; aKPt++) // parse all points
      {
          const cPt2di  & aCenter = mVPtImages.at(aKPt);
          tImageDepth   aDepth      = mVPtsProj.at(aKPt).z();
          int aNbVis = 0;
          const auto & aVDisk = aVVdisk.at(mPC.GetIntSzLeave(aKPt));
+         tREAL8 aDegVis = mPC.GetDegVis(aKPt);
+
+         aLumPt.Add(1.0,aDegVis);
+
          for (const auto & aNeigh :aVDisk) // parse all point of leaf
          {
              cPt2di aPt = aCenter + aNeigh;
              bool IsVisible = (mDImDepth->DefGetV(aPt,aPlusInfty) <= aDepth);
 
+             aNbVisTot += IsVisible;
+             if (! isModeImage)
+                 aLumVis.Add(1.0, IsVisible);
+
              if (IsVisible)  // if the point is visible
              {
+                 if (isModeImage)
+                    aLumVis.Add(1.0, aDegVis);
 // aNbModif++;
                 if (isModeImage)  // in mode image udpate radiometry & image
                 {
                    mDImWeigth->SetV(aPt,1.0);
-                   mDImRad->SetV(aPt,mPC.GetDegVis(aKPt)*255);
+                   mDImRad->SetV(aPt,aDegVis*255);
                 }
                 else  // in mode standard uptdate visib count
                 {
@@ -530,7 +560,13 @@ void cProjPointCloud::ProcessOneProj(tREAL8 aSurResol,const cSensorImage & aSens
             mSumRad.at(aKPt) +=  aGray * aWeight;
          }
      }
-// StdOut() << "NBMMM=" << aNbModif << "\n";
+     StdOut() << "LumStd=" << aLumPt.Average() 
+             << " LumVis=" << aLumVis.Average() 
+             << " NbVis/Im=" << tREAL8(aNbVisTot) / (mSzIm.x() * mSzIm.y())
+             << "\n";
+     if (!isModeImage)
+     {
+     }
 }
 
 void cProjPointCloud::ProcessImage(tREAL8 aSurResol,const cSensorImage & aSensor,const std::string & aPrefix)
@@ -579,10 +615,11 @@ void cProjPointCloud::ProcessImage(tREAL8 aSurResol,const cSensorImage & aSensor
      for (const auto & aPixI : aDIm8BReduc)
      {
          cPt2dr aPixR = ToR(aPixI) * aSurResol;
-         aDIm8BReduc.SetVTrunc(aPixI,mDImRad->ClipedGetValueInterpol(*aInterp,aPixR,0));
-         aDImDepReduc.SetV(aPixI,mDImDepth->ClipedGetValueInterpol(*aInterp,aPixR,0));
+         bool Ok;
 
-         aDImWeightReduc.SetVTrunc(aPixI,round_ni(256*mDImWeigth->ClipedGetValueInterpol(*aInterp,aPixR,0)));
+         aDIm8BReduc.SetVTrunc(aPixI,mDImRad->ClipedGetValueInterpol(*aInterp,aPixR,0,&Ok));
+         aDImDepReduc.SetV(aPixI,mDImDepth->ClipedGetValueInterpol(*aInterp,aPixR,0,&Ok));
+         aDImWeightReduc.SetVTrunc(aPixI,round_ni(256*mDImWeigth->ClipedGetValueInterpol(*aInterp,aPixR,0,&Ok)));
      }
      aDIm8BReduc.ToFile    (aPrefix+"_Radiom_"+ToStr(aCpt) + ".tif");
      aDImDepReduc.ToFile   (aPrefix+"_Depth_"+ToStr(aCpt) + ".tif");
@@ -680,9 +717,9 @@ int  cAppli_MMVII_CloudColorate::Exe()
    cAutoTimerSegm aTSProj(TimeSegm(),"1Proj");
 
    int aNbStd=0;
+   aPC_In.SetMulDegVis(1e4);
    if (mNbSampS>0)
    {
-       aPC_In.SetMulDegVis(1e4);
        cSampleSphere3D aSampS(mNbSampS);
        for (int aK=0 ; aK< aSampS.NbSamples() ; aK++)
        {
@@ -830,28 +867,20 @@ int  cAppli_MMVII_CloudImProj::Exe()
    }
    else
    {
-       int aNbPos = 2;
+       int aNbPos = 0;
+       tREAL8 aSurResCloud = 2.0;
+       tREAL8 aSousResIm = 0.5;
+
+
        for (int aK=-aNbPos ; aK<=aNbPos ; aK++)
        {
            std::unique_ptr<cCamOrthoC> aCam (aPPC.CamOrtho(cPt3dr(aK*0.2,0.0,1.0)));
-           aPPC.ProcessOneProj(2.0,*aCam,0.0,true);
-	       /*
-            cOrthoProj aProj(cPt3dr(aK*0.2,0,1.0),aPC_In.Centroid(),ToR(mSzIm)/2.0);
-// cOrthoProj  aProj(cPt3dr(aK*0.2,0,1.0),aPC_In.Centroid());
-	   cCamOrthoC aCam("ORTHO-"+ToStr(aK),aProj,mSzIm);
-
-	   cParamProjCloud aParam(&aProj);
-	   aParam.mCam = & aCam;
-
-           aPPC.ProcessOneProj(aParam,0.0,true);
-	   aPPC.ProcessImage("IIP");
-	   */
+           aPPC.ProcessOneProj(aSurResCloud,*aCam,0.0,true);
+           aPPC.ProcessImage(aSurResCloud/aSousResIm,*aCam,"IIP");
        }
    }
 
    StdOut() << "NbLeaves "<< aPC_In.LeavesIsInit () << "\n";
-#if (0)
-#endif
 
    return EXIT_SUCCESS;
 }

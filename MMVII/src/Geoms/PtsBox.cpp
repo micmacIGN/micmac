@@ -965,6 +965,10 @@ template <class Type,const int Dim> Type cTplBox<Type,Dim>::Insideness(const tPt
      return aRes;
 }
 
+template <class Type,const int Dim> cPtxd<Type,Dim>  cTplBox<Type,Dim>::Middle() const
+{
+    return (mP0+mP1)/(Type) 2;
+}
 
 
 template <class Type,const int Dim> cTplBox<Type,Dim>  cTplBox<Type,Dim>::Dilate(const tPt & aPt) const
