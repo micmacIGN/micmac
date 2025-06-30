@@ -383,6 +383,8 @@ class cBA_LidarPhotogra
        std::list<std::vector<int> >   mLPatches;       ///< set of 3D patches
        bool                           mPertRad;        ///< do we pertubate the radiometry (simulation & test)
        size_t                         mNbPointByPatch; ///< (approximate) required number of point /patch
+       size_t                         mNbUsedPoints;   ///< number of lidar used points
+       size_t                         mNbUsedObs;      ///< number of lidar obs used
 };
 
 
