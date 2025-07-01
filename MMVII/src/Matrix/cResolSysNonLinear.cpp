@@ -825,6 +825,39 @@ template <class Type>
           aPtrSur->Compile(this);
 
     mCurGlobSol += mSysLinear->PublicSolve();     //  mCurGlobSol += mSysLinear->SparseSolve();
+
+    // show conditionning without frozen params
+    cDenseMatrix<Type> aDenseM = mSysLinear->V_tAA();
+    auto aNbParamsNotFrozen = std::count(mVarIsFrozen.begin(), mVarIsFrozen.end(), false);
+    if (aNbParamsNotFrozen>0)
+    {
+        cDenseMatrix<Type> aDenseMReduced(aNbParamsNotFrozen, aNbParamsNotFrozen);
+
+        int aJReduced=0;
+        for (int aJ=0 ; aJ<mNbVar ; aJ++)
+        {
+            if (mVarIsFrozen[aJ])
+                continue;
+
+            int aIReduced=0;
+            for (int aI=0 ; aI<mNbVar ; aI++)
+            {
+                if (mVarIsFrozen[aI])
+                    continue;
+                aDenseMReduced.SetElem(aIReduced, aJReduced, aDenseM.GetElem(aI, aJ));
+                aIReduced++;
+            }
+            aJReduced++;
+        }
+        std::cout<<"Reduced matrix:\n";
+        aDenseMReduced.Show();
+        std::cout<<std::endl;
+        cResulSymEigenValue<Type> aEig = aDenseMReduced.SymEigenValue();
+        std::cout<<"Reduced system condition number: "<<aEig.Cond(0.)<<"\n";
+    } else {
+        std::cout<<"Reduced matrix: []\n";
+    }
+
     mSysLinear->PublicReset();
     currNbObs = 0;
 
