@@ -1415,7 +1415,11 @@ template <>  std::string cStrIO<double>::ToStr(const double & aD)
 template <>  double cStrIO<double>::FromStr(const std::string & aStr)
 {
     double anI;
-    sscanf(aStr.c_str(),"%lf",&anI);
+    int aNb = sscanf(aStr.c_str(),"%lf",&anI);
+    if (aNb==0)
+    {
+        MMVII_INTERNAL_ASSERT_User((aNb!=0),eTyUEr::eBadInt,"String=["+ aStr +"] is not a valid double")
+    }
     return anI;
 }
 template <>  const std::string cStrIO<double>::msNameType = "double";
