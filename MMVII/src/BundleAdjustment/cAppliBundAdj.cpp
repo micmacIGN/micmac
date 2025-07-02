@@ -145,7 +145,7 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mGCPFilterAdd,"GCPFilterAdd","Pattern to filter GCP by additional info")
       << AOpt2007(mTiePWeight,"TiePWeight","Tie point weighting [Sig0,SigAtt?=-1,Thrs?=-1,Exp?=1]",{{eTA2007::ISizeV,"[1,4]"}})
       << AOpt2007(mAddTieP,"AddTieP","For additional TieP, [[Folder,SigG...],[Folder,...]] ")
-      << AOpt2007(mParamLidarPhgr,"LidarPhotogra","Paramaters for adj Lidar/Phgr [[Mode,Ply,Interp?]*]")
+      << AOpt2007(mParamLidarPhgr,"LidarPhotogra","Paramaters for adj Lidar/Phgr [[Mode,Ply,Sigma,Interp?,Perturbate?,NbPtsPerPatch=32]*]")
       << AOpt2007(mPatParamFrozCalib,"PPFzCal","Pattern for freezing internal calibration parameters")
       << AOpt2007(mPatFrosenCenters,"PatFzCenters","Pattern of images for freezing center of poses")
       << AOpt2007(mPatFrosenOrient,"PatFzOrient","Pattern of images for freezing orientation of poses")
@@ -330,6 +330,7 @@ int cAppliBundlAdj::Exe()
     
     for (const auto & aParam : mParamLidarPhgr)
     {
+        MMVII_INTERNAL_ASSERT_User(aParam.size()>=3,eTyUEr::eUnClassedError,"Not enough parameters for LidarPhotogra");
         mMeasureAdded = true;
         mBA.Add1AdjLidarPhotogra(aParam);
     }

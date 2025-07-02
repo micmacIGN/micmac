@@ -20,7 +20,8 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
     mInterp     (nullptr),                             // interpolator see bellow
     mEqLidPhgr  (nullptr),                             // equation of egalisation Lidar/Phgr
     mPertRad    (false),
-    mNbPointByPatch (32)
+    mNbPointByPatch (32),
+    mWeight      (1/Square(cStrIO<double>::FromStr(aParam.at(2))))
 {
    if (mModeSim==eImatchCrit::eDifRad) 
       mEqLidPhgr = EqEqLidarImPonct (true,1);
@@ -36,20 +37,20 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
    //  By default  use tabulation of apodized sinus cardinal
    std::vector<std::string> aParamInt {"Tabul","1000","SinCApod","10","10"};
    // if interpolator is not empty
-   if ((aParam.size() >=3) && (!aParam.at(2).empty()))
+   if ((aParam.size() >=4) && (!aParam.at(3).empty()))
    {
       // if specified, take user's param
-      aParamInt = Str2VStr(aParam.at(2));
-   }
-   if (aParam.size() >=4)
-   {
-       mPertRad = (aParam.at(3) != "");
+      aParamInt = Str2VStr(aParam.at(3));
    }
    if (aParam.size() >=5)
    {
-        mNbPointByPatch = cStrIO<size_t>::FromStr(aParam.at(4));
+       mPertRad = (aParam.at(4) != "");
    }
-   // create the interpaltor itself
+   if (aParam.size() >=6)
+   {
+        mNbPointByPatch = cStrIO<size_t>::FromStr(aParam.at(5));
+   }
+   // create the interpolator itself
    mInterp  = cDiffInterpolator1D::AllocFromNames(aParamInt);
 // delete mInterp;
 // mInterp = cScaledInterpolator::AllocTab(cCubicInterpolator(-0.5),3,1000);
@@ -103,14 +104,14 @@ cBA_LidarPhotogra::~cBA_LidarPhotogra()
     delete mInterp;
 }
 
-void cBA_LidarPhotogra::AddObs(tREAL8 aW)
+void cBA_LidarPhotogra::AddObs()
 {
     mLastResidual.Reset();
     if (mModeSim==eImatchCrit::eDifRad)
     {
        for (size_t aKP=0 ; aKP<mTri.NbPts() ; aKP++)
        {
-           Add1Patch(aW,{ToR(mTri.KthPts(aKP))});
+           Add1Patch(mWeight,{ToR(mTri.KthPts(aKP))});
        }
     }
     else
@@ -121,7 +122,7 @@ void cBA_LidarPhotogra::AddObs(tREAL8 aW)
             std::vector<cPt3dr> aVP;
             for (const auto anInd : aPatchIndex)
                 aVP.push_back(ToR(mTri.KthPts(anInd)));
-            Add1Patch(aW,aVP);
+            Add1Patch(mWeight,aVP);
         }
     }
 

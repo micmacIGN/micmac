@@ -360,7 +360,7 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter)
     }
 
     for (const auto & aLidarPh : mVBA_Lidar )
-       aLidarPh->AddObs(1.0);
+       aLidarPh->AddObs();
 
     if (mCompute_Uncert && isLastIter)
     {

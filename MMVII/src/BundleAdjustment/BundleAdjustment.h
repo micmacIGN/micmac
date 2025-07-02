@@ -346,8 +346,8 @@ class cBA_LidarPhotogra
        /// destuctor, free interopaltor, calculator ....
        ~cBA_LidarPhotogra();
 
-       /// add observation with weigh W
-       void AddObs(tREAL8 aW);
+       /// add observation
+       void AddObs();
 
     private :
        /**  Add observation for 1 Patch of point */
@@ -383,6 +383,7 @@ class cBA_LidarPhotogra
        std::list<std::vector<int> >   mLPatches;       ///< set of 3D patches
        bool                           mPertRad;        ///< do we pertubate the radiometry (simulation & test)
        size_t                         mNbPointByPatch; ///< (approximate) required number of point /patch
+       double                         mWeight;          ///< weight for observations
 };
 
 
