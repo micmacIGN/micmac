@@ -76,14 +76,14 @@ We have :
 \end{itemize}
 
 For each $I_k$ and each $3d$ point $P$ we note  $\pi_k(P)$ the projection of 
-$P$ in $I_k$. $\pi_k$ depend from a certain number of parameters that will
+$P$ in $I_k$. $\pi_k$ depends on a certain number of parameters that will
 be optimized in the bundle adjustment (rotation, pose, internal for perspective
 camera; polynomial additionnal parameter for RPC).
 
 Regarding the image, we will consider it as a function $\RR^2 \rightarrow  \RR$ :
 
 \begin{equation}
-    I_k : \RR^2 \rightarrow  \RR  ,  p    \rightarrow  I_k(p) 
+    I_k : \RR^2 \rightarrow  \RR  ,  q    \rightarrow  I_k(q) 
 \end{equation}
 
 %-----------------------------------------------------------------------
@@ -134,7 +134,7 @@ The first simplest solution is to consider the radiometric difference as
 similarity measure.
 Of course comparing directly the radiometry of images, may be too simplistic.
 We know in image maching that it does not work with aerial image,  because natural
-surface are not lambertian.   By the way , if the images
+surface are not lambertian.   By the way, if the images
 are radiometrically calibrated, which is more or less the case with professional
 aerial images or satellite images, it may work statistically (i.e. say for $70\%$
 of the points the radiometry are similar and for the other, the number of measure will
@@ -146,21 +146,21 @@ common to all the images, we introduce this unknown radiometry as a
 temporary unknown $I^g$ .
 
 Considering a point $P$, with notations of~\ref{LidImReg:Notation},
-for each image $I_k$, we add  the equation :
+for each image $I_k$, we add  the equation:
 
 \begin{equation}
     I_k(\pi_k(P)) = I^g \label{LIR:Eq1Point}
 \end{equation}
 
-Some detail about the implementation :
+Some detail about the implementation:
 
 \begin{itemize}
     \item $I^g$ is an unknown, we must estimate its approximate value $I^g_0$,
-          we can do it using the average of th $I_k(\pi_k(P))$ with
+          we can do it using the average of $I_k(\pi_k(P))$ with
           current value of $\pi_k$;
 
-    \item as there may exist million (billion ?) of equation, we dont
-          want to have huge system, we will use Schurr complement to eliminate
+    \item as there may exist millions (billions ?) of equations and we don't
+          want to have a huge system, we will use Schurr complement to eliminate
           $I^g$ after processing point $P$;
 \end{itemize}
 
@@ -173,7 +173,7 @@ we can write :
     \frac{I_k(\pi_k(P))}{I^g} = 1
 \end{equation}
 
-Or if we want to avoid quotient in unknowns :
+Or if we want to avoid unknowns quotient:
 
 \begin{equation}
     \frac{I_k(\pi_k(P))}{I^g_0} = \frac{I_g}{I^g_0} 
@@ -188,10 +188,10 @@ is to make a pre-processing of images, that make them localy invariant
 to different transformation, for example :
 
 \begin{itemize}
-    \item to make it invariant to local scaling and translation, apply a Wallis filter : subsract the average and divide by the
+    \item to make it invariant to local scaling and translation, apply a Wallis filter : substract the average and divide by the
           standard deviation (computed on given neighboorhood);
 
-    \item   to make it simply invariant to local scaling ,  divided by local standard deviation, maybe more stable than
+    \item   to make it simply invariant to local scaling,  divided by local standard deviation, maybe more stable than
             Wallis.
 \end{itemize}
 
