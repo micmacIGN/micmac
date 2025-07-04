@@ -531,6 +531,8 @@ class cSensorCamPC : public cSensorImage
 	 const cPt3dr * CenterOfPC() const override;
          /// Return the calculator, adapted to the type, for computing colinearity equation
          cCalculator<double> * CreateEqColinearity(bool WithDerives,int aSzBuf,bool ReUse) override;
+        /// Return the calculator, collinearity equation on bundles
+         cCalculator<double> * CreateEqColinearityOnBundle(bool WithDerives,int aSzBuf,bool ReUse);
 	 /// Push the current rotation, as equation are fixed using delta-rot
 	 void PushOwnObsColinearity(std::vector<double> &,const cPt3dr &) override;
 

@@ -121,7 +121,8 @@ private :
     /// make the merge for non terminal nodes
     void MergeChildrenSol();
     /// refine the merged solution with bundle adjustment
-    void RefineSolution();  //on bundles
+    void RefineSolutionGen(); //on bundles generic camera
+    void RefineSolution();  //on bundles perspective camera
     void RefineSolution_(); //on points
     /// free temporary data, non longer used after having been mergerd
     void FreeIndexSol();

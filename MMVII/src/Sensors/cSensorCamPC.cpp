@@ -306,11 +306,16 @@ tSeg3dr  cSensorCamPC::Image2Bundle(const cPt2dr & aPIm) const
 
 const cPt3dr * cSensorCamPC::CenterOfPC() const { return  & Center(); }
          /// Return the calculator, adapted to the type, for computing colinearity equation
-cCalculator<double> * cSensorCamPC::CreateEqColinearity(bool WithDerives,int aSzBuf,bool ReUse) 
+cCalculator<double> * cSensorCamPC::CreateEqColinearity(bool WithDerives,int aSzBuf,bool ReUse)
 {
    if (mInternalCalib==nullptr)
-      return EqColinearityCamProj(WithDerives,aSzBuf,ReUse);//nullptr;
+      return nullptr; //EqColinearityCamProj(WithDerives,aSzBuf,ReUse);
    return mInternalCalib->EqColinearity(WithDerives,aSzBuf,ReUse);
+}
+
+cCalculator<double> * cSensorCamPC::CreateEqColinearityOnBundle(bool WithDerives,int aSzBuf,bool ReUse)
+{
+    return EqColinearityOnBundle(WithDerives,aSzBuf,ReUse);
 }
 
 void cSensorCamPC::PushOwnObsColinearity(std::vector<double> & aVObs,const cPt3dr &)
