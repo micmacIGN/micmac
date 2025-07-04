@@ -142,7 +142,7 @@ class cMemManager
     private :
 
         static cMemState mState;
-        static bool TheActiveMemoryCount;
+        static int TheCptUnActiveMemoryCount;
 };
 
 

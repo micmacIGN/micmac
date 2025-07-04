@@ -141,14 +141,15 @@ static const int32_t  rubbish  = 0xFEDCBAEF;
 static const unsigned char maj_octet = 0xE7;
 
 // Because some object are never destroyed
-bool cMemManager::TheActiveMemoryCount = true;
-void cMemManager::SetActiveMemoryCount(bool aVal)
+int cMemManager::TheCptUnActiveMemoryCount = 0;
+void cMemManager::SetActiveMemoryCount(bool isActive)
 {
-    TheActiveMemoryCount = aVal;
+    TheCptUnActiveMemoryCount +=  (isActive ? -1 : +1);
+    MMVII_INTERNAL_ASSERT_always(TheCptUnActiveMemoryCount>=0,"Bad SetActiveMemoryCount");
 }
 bool cMemManager::IsActiveMemoryCount()
 {
-    return TheActiveMemoryCount;
+    return TheCptUnActiveMemoryCount == 0;
 }
 
 void * cMemManager::Calloc(size_t nmemb, size_t size)
@@ -172,7 +173,7 @@ void * cMemManager::Calloc(size_t nmemb, size_t size)
          rubbish;
 
      aRes64 [-2]  = aNbOct;     // Taille de la zone en  octet
-     aRes32[-2]   = TheActiveMemoryCount ? maj_32A1 : maj_32A0 ;   // majic nunmber
+     aRes32[-2]   = IsActiveMemoryCount() ? maj_32A1 : maj_32A0 ;   // majic nunmber
      aRes32[-1]   = maj_32B;   // majic nunmber
      aRes32[aNb4]  = maj_32C;   // majic number
      aRes32[aNb4+1] = maj_32D;
@@ -187,7 +188,7 @@ void * cMemManager::Calloc(size_t nmemb, size_t size)
           }
      }
 
-     if (TheActiveMemoryCount)
+     if (IsActiveMemoryCount())
      {
          mState.mCheckNb ++;
          mState.mCheckSize +=  aNbOct;

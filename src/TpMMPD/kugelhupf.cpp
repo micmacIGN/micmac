@@ -1087,12 +1087,12 @@ int Kugelhupf_main(int argc,char ** argv)
         aImg->getAllFP().OneMesureAF1I().push_back(aBestPt);
       }else{
         std::cout<<"Bad match on "<<itP->NamePt()<<": "<<aCoefCorrelMax<<"/"<<aThreshold<<std::endl;
-        break;
+        //break;
       }
     }
     std::cout<<"\n";
-    //write xml file only if all points found:
-    if (aImg->getAllFP().OneMesureAF1I().size()==aMainImg.getAllFP().OneMesureAF1I().size())
+
+    if (aImg->getAllFP().OneMesureAF1I().size()>0)
     {
       std::cout<<"  Save xml file."<<std::endl;
       MakeFileXML(aImg->getAllFP(),aImg->getXmlFileName());
