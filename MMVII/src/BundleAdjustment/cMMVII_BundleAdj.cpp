@@ -122,11 +122,13 @@ cMMVII_BundleAdj::~cMMVII_BundleAdj()
     DeleteAllAndClear(mVBA_Lidar);
 }
 
-void cMMVII_BundleAdj::ShowUKNames(const std::vector<std::string> & aParam,cMMVII_Appli * anAppli) 
+void cMMVII_BundleAdj::ShowUKNames(const std::vector<std::string> & aParam, const std::string &aSuffix, cMMVII_Appli * anAppli)
 {
      // StdOut() << "=================== ShowUKNamesShowUKNames "<< aParam << " ===============\n";
      cDenseVect<tREAL8>   aVUk = mSetIntervUK.GetVUnKnowns() ;
      std::string aIdCSV = "BundleUK";
+     if (!aSuffix.empty())
+         aIdCSV += "_" + aSuffix;
      if (anAppli)
         anAppli->InitReportCSV(aIdCSV,"csv",false,{"Type","Group","Var","Value","Uncert"});
         // void  InitReportCSV(const std::string &anId,const std::string & aPostfix,bool IsMul,const std::vector<std::string> & aHeader={});

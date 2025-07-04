@@ -363,7 +363,7 @@ int cAppliBundlAdj::Exe()
 
     if (IsInit(&mParamShow_UK_UC))
     {
-        mBA.ShowUKNames(mParamShow_UK_UC,this);
+        mBA.ShowUKNames(mParamShow_UK_UC,mPostFixReport,this);
     }
 
     return EXIT_SUCCESS;
