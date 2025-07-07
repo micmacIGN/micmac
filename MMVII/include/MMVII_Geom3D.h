@@ -397,6 +397,14 @@ template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
                                 int    aSzMin,
                                 tREAL8 aThreshold,
                                 tREAL8 aSzW);
+           bool IsGoodPatchNadir(const std::vector<cPt3dr>& aVPts,
+                                 const std::vector<cSensorCamPC*> & aCameras,
+                                 const std::vector<cIm2D<tU_INT1>> & mVIms,
+                                 tREAL8 AC_RHO,
+                                 tREAL8 VAR_RHO,
+                                 int    aSzMin,
+                                 tREAL8 aThreshold,
+                                 tREAL8 aSzW);
            size_t NbSelectedPts() const { return mVSelectedIds.size(); }
 
 	   static void Bench();
@@ -413,7 +421,8 @@ template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
            void MakePatchesTargetted(std::list<std::vector<int> > & , tREAL8 aDistNeigh, tREAL8 aDistReject, int aSzMin,
                                      const std::vector<cSensorCamPC *> & ,
                                      const std::vector<cIm2D<tU_INT1>> & ,
-                                     tREAL8 aThreshold);
+                                     tREAL8 aThreshold,
+                                     const std::vector <std::vector<cIm2D<tU_INT1>>> & mVSIms = std::vector <std::vector<cIm2D<tU_INT1>>>()  );
            void PlyWriteSelected (const std::string & aNameFile,std::list<std::vector<int> > & Patches,bool isBinary) const;
 
         private :
@@ -520,6 +529,10 @@ class cPlane3D
 tREAL8 L2_PlanarityIndex(const std::vector<cPt3dr> & aVPt);
 /// Planarity boolean as of PDAL implementation
 bool IsPlanarityIdxPdal(const std::vector<cPt3dr>& aVPt, tREAL8 mThresh1, tREAL8 mThresh2);
+
+/// Surface Variation criterion based on eigen values
+double Surface_Variation(const std::vector<cPt3dr> & aVPt);
+
 /// Linearity index using ratio of eigen value 1/2 of moment matrix
 tREAL8 L2_LinearityIndex(const std::vector<cPt3dr> & aVPt);
 

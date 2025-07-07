@@ -1,6 +1,7 @@
 #include <StdAfx.h>
 #include "MMVII_PCSens.h"
 #include "MMVII_Geom2D.h"
+#include "MMVII_Geom3D.h"
 #include "MMVII_DeclareCste.h"
 #include <fstream>
 #include <iostream>
@@ -10,6 +11,7 @@
 #include "MMVII_2Include_Tiling.h"
 #include "LearnDM.h"
 #include "MMVII_AllClassDeclare.h"
+#include "MMVII_Interpolators.h"
 
 
 //static int NODATA=-9999;
@@ -73,7 +75,7 @@ namespace  cNS_MMGenDepthMV
 
   class cAppliMMGenDepthMV : public cMMVII_Appli,
                              public cAppliParseBoxIm<tREAL4>
-  {
+    {
 
    public :
     typedef tU_INT1               tElemMasq;
@@ -93,6 +95,7 @@ namespace  cNS_MMGenDepthMV
     cAppliMMGenDepthMV(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
     cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
     cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+    int ExeMMGenDepth();
     int Exe() override;
     int ExeOnParsedBox() override;
     bool MakeDecision(std::vector<cPt3dr> & aVecPoints);
@@ -100,8 +103,12 @@ namespace  cNS_MMGenDepthMV
                                 std::vector<std::string> aVecLidar,
                                 size_t aSzMin,
                                 tREAL8 aThresholdVisbility);
-    void ProcessNoPix(cZBuffer &  aZB);
-    void Compute_z_buffer();
+    void OneVisibility(size_t & aSzMin,
+                       tREAL8 & aThresholdCriteria,
+                       std::vector<tREAL8> & aSurfVec,
+                       int nbIter,
+                       bool isVisibility=true);
+    void filter_on_visibility(std::vector<tREAL8> & aSurfVec, tREAL8 aThresh);
     void MakeOneTri(const  tTriangle2DCompiled & aTri);
 
   // --- constructed ---
@@ -110,8 +117,8 @@ namespace  cNS_MMGenDepthMV
    cTriangulation3D<tREAL8>* mTri3DReproj;
    std::string mSpecImIn;
    std::string mPatternLidar;
-   std::string mNameOutDepth="Depth_";
-   std::string mNameOutMasq ="Masq_";
+   std::string mNameOutDepth="Depth_2_";
+   std::string mNameOutMasq ="Masq_2_";
    size_t                    mNbF;
    size_t                    mNbP;
    cSensorCamPC *            mCamPC;
@@ -162,7 +169,7 @@ namespace  cNS_MMGenDepthMV
      mThreshGrad                (0.3),
      mNoisePx                   (1.0),
      mMasq2Tri                  (0),
-     mNbPointByPatch (32),
+     mNbPointByPatch (15),
      mFirstVisIndices (std::vector<int>()),
      mSelectedVisIndices (std::vector<int>())
   {
@@ -191,7 +198,6 @@ namespace  cNS_MMGenDepthMV
 
   bool cAppliMMGenDepthMV::MakeDecision(std::vector<cPt3dr> & aVecPoints)
   {
-
       // implement the z_buffer algo to select visible points fot a certain point of view
       // center point is the first one
       cPt3dr PatchCenter=aVecPoints[0];
@@ -215,6 +221,99 @@ namespace  cNS_MMGenDepthMV
           return true;
       else
         return false;
+
+      // measure concavity index using eigenvalues
+  }
+
+
+  void cAppliMMGenDepthMV::filter_on_visibility(std::vector<tREAL8> & aSurfVec,
+                                                tREAL8 aThresh)
+  {
+      std::vector<cPt3dr> aVSPts;
+      std::vector <cPt3di> aFaces;
+
+      MMVII_INTERNAL_ASSERT_strong(aSurfVec.size()==mSelectedVisIndices.size(),"Problem with size of tri and visibility stored !");
+
+      for (size_t iKP=0; iKP<mSelectedVisIndices.size();iKP++)
+      {
+          cPt3dr aP3Vis(mTri3DReproj->KthPts(iKP).x(),
+                     mTri3DReproj->KthPts(iKP).y(),
+                     mTri3DReproj->KthPts(iKP).z());
+          aVSPts.push_back(aP3Vis);
+      }
+
+    // nearest neighbor analysis based on visibility values
+      cTriangulation3D<tREAL8>* aTriVisibility= new cTriangulation3D<tREAL8>(aVSPts,aFaces);
+
+      mSelectedVisIndices.clear();
+      aSurfVec.clear();
+
+      tREAL8 aDistReject;
+      //1. Nearest Neighbor search in 2D
+      cBox2dr aBox = aTriVisibility->Box2D();
+      aDistReject=1.0*std::sqrt(mNbPointByPatch *aBox.NbElem()/ (aTriVisibility->NbPts()*M_PI));
+      // indexation of all points
+      std::cout<<"aDist Reject "<<aDistReject<<std::endl;
+      cTiling<cTil2DTri3D<tREAL8> >  aTileAll(aBox,true,aTriVisibility->NbPts()/20,aTriVisibility);
+      for (size_t aKP=0 ; aKP<aTriVisibility->NbPts() ; aKP++)
+      {
+          aTileAll.Add(cTil2DTri3D<tREAL8>(aKP));
+      }
+      //#pragma omp parallel
+      {
+          //#pragma omp for
+          for (size_t aKPt=0; aKPt<aTriVisibility->NbPts(); aKPt++)
+          {
+              cPt2dr aPt= ToR(Proj(aTriVisibility->KthPts(aKPt)));
+              auto aLIptr = aTileAll.GetObjAtDist(aPt,aDistReject);
+              std::vector<int> aPatch; // the patch itself = index of points
+              aPatch.push_back(aKPt);  // add the center at begining
+              for (const auto aPtrI : aLIptr)
+              {
+                  if (aPtrI->Ind() !=aKPt) // dont add the center twice
+                  {
+                      aPatch.push_back(aPtrI->Ind());
+                  }
+              }
+
+              std::vector<cPt3dr> aVP;
+              for (const auto anInd : aPatch)
+                  aVP.push_back(ToR(aTriVisibility->KthPts(anInd)));
+
+              /*
+              std::vector<tREAL8> aVVisibs;
+              for (size_t iKP=0; iKP<aVP.size();iKP++)
+              {
+                  aVVisibs.push_back(aVP[iKP].z());
+              }
+
+              //compare with mean or median visibility
+              tREAL8 aVisibility= aVVisibs[0];
+              tREAL8 aMed= NC_KthVal(aVVisibs,0.5) ;
+              */
+
+
+              std::vector<tREAL8> aVDepths;
+              for (size_t iKP=0; iKP<aVP.size();iKP++)
+              {
+                  aVDepths.push_back(aVP[iKP].z());
+              }
+
+              //compare with mean or median visibility
+              tREAL8 aDepth0= aVDepths[0];
+              tREAL8 aMed= NC_KthVal(aVDepths,0.5) ;
+
+
+              //StdOut()<<" Visibility : "<<aVisibility<<"  "<<" aMed : "<<aMed<<std::endl;
+              if ((aDepth0 < aMed))
+              {
+                  //StdOut()<<" Visibility : "<<aVisibility<<"  "<<" aMed : "<<aMed<<std::endl;
+                  aSurfVec.push_back(aDepth0);
+                  mSelectedVisIndices.push_back(aKPt);
+              }
+          }
+      }
+      delete aTriVisibility ;
   }
 
   void cAppliMMGenDepthMV::Generate_sparse_depth(std::string aNameImage,
@@ -233,7 +332,7 @@ namespace  cNS_MMGenDepthMV
       mMasqImage=cIm2D<tElemMasq>(mCamPC->Sz(),nullptr,eModeInitImage::eMIA_Null);
       mDMasqImage=&(mMasqImage.DIm());
 
-      tREAL8 aDistReject;
+
       // project cloud into image geometry x,y and depth
       std::vector <cPt3dr> aVPts;
       std::vector <cPt3di> aFaces;
@@ -267,6 +366,95 @@ namespace  cNS_MMGenDepthMV
 
       mTri3DReproj =new cTriangulation3D<tREAL8>(aVPts,aFaces);
 
+      mSelectedVisIndices.clear();
+
+      std::vector<tREAL8> aSurfVarVec;
+      OneVisibility(aSzMin,aThresholdVisbility,aSurfVarVec,0);
+
+      // second iteration based on maintained visible points
+
+      // parse all selected points and recompute a second triangulation
+
+      std::vector<cPt3dr> aVSPts;
+
+      for ( const auto & aKPt : mSelectedVisIndices)
+      {
+          aVSPts.push_back(mTri3DReproj->KthPts(aKPt));
+      }
+
+      mTri3DReproj= nullptr;
+
+      mTri3DReproj= new cTriangulation3D<tREAL8>(aVSPts,aFaces);
+
+      mSelectedVisIndices.clear();
+      aSurfVarVec.clear();
+
+      OneVisibility(aSzMin,aThresholdVisbility,aSurfVarVec,1);
+
+
+      //filter_on_visibility(aSurfVarVec,aThresholdVisbility);
+
+      //int anInd=0;
+      for ( const auto & aKPt : mSelectedVisIndices)
+      {
+          cPt3dr aPtS= mTri3DReproj->KthPts(aKPt);
+
+          cPt2di aP2DCam=Pt_round_ni(cPt2dr(aPtS.x(),aPtS.y()));
+          if (mDDepthImage->Inside(aP2DCam))
+          {
+              if (mDMasqImage->GetV(aP2DCam))
+              {
+                  if (mDDepthImage->GetV(aP2DCam)>aPtS.z())
+                  {
+                      mDDepthImage->SetV(aP2DCam,aPtS.z());
+                  }
+              }
+              else
+              {
+                  mDDepthImage->SetV(aP2DCam,aPtS.z());
+                  mDMasqImage->SetV(aP2DCam,1);
+              }
+          }
+
+          /*if (mDDepthImage->Inside(aP2DCam))
+              {
+                  if (mDMasqImage->GetV(aP2DCam))
+                    {
+                      if (mDDepthImage->GetV(aP2DCam)<aSurfVarVec[anInd])
+                      {
+                          mDDepthImage->SetV(aP2DCam,aSurfVarVec[anInd]);
+                      }
+                    }
+                  else
+                    {
+                      mDDepthImage->SetV(aP2DCam,aSurfVarVec[anInd]);
+                      mDMasqImage->SetV(aP2DCam,1);
+                    }
+              }
+          anInd++;*/
+      }
+      StdOut()<<" Selected VISIBLE Points "<<mSelectedVisIndices.size()<<std::endl;
+      mTri3DReproj= nullptr;
+
+      // save Depth image
+      mDDepthImage->ToFile(mNameOutDepth+mCamPC->NameImage());
+      mDMasqImage->ToFile(mNameOutMasq+mCamPC->NameImage());
+
+      //mCamPC=nullptr;
+      mDDepthImage=nullptr;
+      mDMasqImage=nullptr;
+
+      mDepthImage=cPt2di(1,1);
+      mMasqImage=cPt2di(1,1);
+  }
+
+  void cAppliMMGenDepthMV::OneVisibility(size_t & aSzMin,
+                                         tREAL8 & aThresholdCriteria,
+                                         std::vector<tREAL8> & aSurfVec,
+                                         int nbIter,
+                                         bool isVisibility)
+  {
+      tREAL8 aDistReject;
       //1. Nearest Neighbor search in 2D
       cBox2dr aBox = mTri3DReproj->Box2D();
       std::cout<<"BOX  "<<aBox<<std::endl;
@@ -278,10 +466,9 @@ namespace  cNS_MMGenDepthMV
       {
           aTileAll.Add(cTil2DTri3D<tREAL8>(aKP));
       }
-      mSelectedVisIndices.clear();
       //#pragma omp parallel
       {
-        //#pragma omp for
+          //#pragma omp for
           for (size_t aKPt=0; aKPt<mTri3DReproj->NbPts(); aKPt++)
           {
               cPt2dr aPt= ToR(Proj(mTri3DReproj->KthPts(aKPt)));
@@ -303,145 +490,48 @@ namespace  cNS_MMGenDepthMV
               if(aVP.size()<aSzMin)
                   continue;
 
-              std::vector<tREAL8> aVDepths;
-
-              for (const auto & aPt: aVP)
+              cWhichMinMax<int, tREAL8> aWMM(0,aVP[0].z());
+              for (size_t iKP=1; iKP<aVP.size();iKP++)
               {
-                aVDepths.push_back(aPt.z());
+                  aWMM.Add(iKP,aVP[iKP].z());
               }
-
-
               // add another criterion
 
-              tREAL8 aDepthMin = *min_element(aVDepths.begin(),aVDepths.end());
-              tREAL8 aDepthMax = *max_element(aVDepths.begin(),aVDepths.end());
-              // Compute visibility criterion
-              tREAL8 aVisibility=exp(-pow((aVDepths.at(0)-aDepthMin),2)/pow((aDepthMax-aDepthMin+1e-8),2));
-
-              if (aVisibility<aThresholdVisbility)
-                  continue;
-              /*if( ! MakeDecision(aVP))
-                  continue;*/
-              cPt2di aP2DCam=Pt_round_ni(cPt2dr(aVP[0].x(),aVP[0].y()));
-              if (mDDepthImage->Inside(aP2DCam))
+              if (isVisibility)
               {
-                  if (mDMasqImage->GetV(aP2DCam))
-                    {
-                      if (mDDepthImage->GetV(aP2DCam)>aVP[0].z())
-                      {
-                          mDDepthImage->SetV(aP2DCam,aVP[0].z());
-                      }
-                    }
-                  else
-                    {
-                      mDDepthImage->SetV(aP2DCam,aVP[0].z());
-                      mDMasqImage->SetV(aP2DCam,1);
-                    }
-                    mSelectedVisIndices.push_back(aKPt);
-              }
-          }
-      }
+                  tREAL8 aDMax= aVP[aWMM.Max().IndexExtre()].z();
+                  tREAL8 aDMin= aVP[aWMM.Min().IndexExtre()].z();
+                  tREAL8 aVisibility = exp (-pow(aVP[0].z()-aDMin,2)/pow(aDMax-aDMin,2));
 
+                if (aVisibility<aThresholdCriteria)
+                    continue;
 
-      StdOut()<<" Slectedt VISIBLE Points "<<mSelectedVisIndices.size()<<std::endl;
-      mTri3DReproj= nullptr;
-
-      // save Depth image
-      mDDepthImage->ToFile(mNameOutDepth+mCamPC->NameImage());
-      mDMasqImage->ToFile(mNameOutMasq+mCamPC->NameImage());
-
-      //mCamPC=nullptr;
-      mDDepthImage=nullptr;
-      mDMasqImage=nullptr;
-
-      mDepthImage=cPt2di(1,1);
-      mMasqImage=cPt2di(1,1);
-
-      aVPts.clear();
-      aFaces.clear();
-
-      std::vector<cPt2dr> aVPts2D;
-
-      for (size_t aKP=0; aKP<mSelectedVisIndices.size();aKP++)
-      {
-          aVPts.push_back(mTri3D->KthPts(aKP));
-          aVPts2D.push_back(Proj(mTri3D->KthPts(aKP)));
-      }
-
-      // Call ZBuffer on Remaining Points
-
-      // Triangul de Delaunay
-      cTriangulation2D<tREAL8> aTriangul(aVPts2D);
-      aTriangul.MakeDelaunay();
-
-      mTri3DReproj= new cTriangulation3D<tREAL8>(aVPts,aTriangul.VFaces());
-
-      aVPts2D.clear();
-  }
-
-
-  void cAppliMMGenDepthMV::ProcessNoPix(cZBuffer &  aZB)
-  {
-      // comppute dual graph to have neigbouring relation between faces
-      mTri3DReproj->MakeTopo();
-      const cGraphDual &  aGrD = mTri3DReproj->DualGr() ;
-
-      bool  GoOn = true;
-      while (GoOn)  // continue as long as we get some modification
-      {
-          GoOn = false;
-          // parse all face
-          for (size_t aKF1 = 0 ; aKF1<mTri3DReproj->NbFace() ; aKF1++)
-          {
-              // check for each face labled  "NoPix" if it  has a neigboor visible (or likely)
-              if (aZB.ResSurfD(aKF1).mResult == eZBufRes::NoPix)
-              {
-                  std::vector<int> aVF2;
-                  aGrD.GetFacesNeighOfFace(aVF2,aKF1);
-                  for (const auto &  aKF2 : aVF2)
+                  tREAL8 aSurfaceVariation;
+                  if (nbIter>0)
                   {
-                      if ( ZBufLabIsOk(aZB.ResSurfD(aKF2).mResult) )
+
+                      aSurfaceVariation= Surface_Variation(aVP);
+                      if(aSurfaceVariation>0.01)
                       {
-                          // Got 1 => this face is likely , and we must prolongate the global process
-                          aZB.ResSurfD(aKF1).mResult =  eZBufRes::LikelyVisible;
-                          GoOn = true;
+                          aVisibility= exp (-pow(aVP[0].z()-aDMin,0.5)/pow(aDMax-aDMin,0.5));
+                        // check if surface variation is important
+                          if (aVisibility<aThresholdCriteria)
+                            continue;
                       }
                   }
+                aSurfVec.push_back((nbIter==0) ? aVisibility : aSurfaceVariation);
               }
+
+              else
+              {
+                  // use surface variation
+                   tREAL8 aSurfaceVariation= Surface_Variation(aVP);
+                  aSurfVec.push_back(aSurfaceVariation);
+
+              }
+              mSelectedVisIndices.push_back(aKPt);
           }
       }
-  }
-
-
-  void cAppliMMGenDepthMV::Compute_z_buffer()
-  {
-
-      cMeshTri3DIterator  aTriIt(mTri3DReproj);
-
-      cSIMap_Ground2ImageAndProf aMapCamDepth(mCamPC);
-
-      cSetVisibility aSetVis(mCamPC,0.0);
-
-      double Infty =1e20;
-      cPt2di aSzPix = mCamPC->SzPix();
-      cBox3dr  a3DBox(cPt3dr(0.0,0.0,-Infty),cPt3dr(aSzPix.x(),aSzPix.y(),Infty));
-      cDataBoundedSet<tREAL8,3>  aSetCam(a3DBox);
-
-
-      cZBuffer aZBuf(aTriIt,aSetVis,aMapCamDepth,aSetCam,1.0);
-
-      aZBuf.MakeZBuf(eZBufModeIter::ProjInit);
-
-      aZBuf.MakeZBuf(eZBufModeIter::SurfDevlpt);
-
-      ProcessNoPix(aZBuf);
-
-      StdOut()<<"ZBUFF IMAGE "<<aZBuf.ZBufIm().DIm().Sz()<<std::endl;
-
-      aZBuf.ZBufIm().DIm().ToFile(mPhProj.DPMeshDev().FullDirOut()+"ZBuf-"+LastPrefix(mCamPC->NameImage())+".tif");
-
-      mTri3DReproj=nullptr;
-      mCamPC= nullptr;
   }
 
   void cAppliMMGenDepthMV::MakeOneTri(const  tTriangle2DCompiled & aTri)
@@ -566,7 +656,7 @@ namespace  cNS_MMGenDepthMV
   }
 
 
-  int cAppliMMGenDepthMV::Exe()
+  int cAppliMMGenDepthMV::ExeMMGenDepth()
   {
       mPhProj.FinishInit();
 
@@ -576,7 +666,7 @@ namespace  cNS_MMGenDepthMV
     // Pattern of Lidar data files
       std::vector<std::string> aVecLidar= VectMainSet(1);
       size_t aSzMin=5;
-      tREAL8 aThresholdVisbility=0.8;
+      tREAL8 aThresholdVisbility=0.65;
 
       for (const auto & anImageName: aVecIms)
       {
@@ -587,9 +677,6 @@ namespace  cNS_MMGenDepthMV
                                 aSzMin,
                                 aThresholdVisbility);
 
-          // Z buffer
-
-          //Compute_z_buffer();
           std::cout<<"Generated depth map : sparse "<<anImageName<<std::endl;
 
           this->mNameIm=anImageName;
@@ -606,7 +693,54 @@ namespace  cNS_MMGenDepthMV
       return EXIT_SUCCESS;
   }
 
+
+ // Test MulScaledInterpolator
+
+
+  int cAppliMMGenDepthMV::Exe()
+  {
+      mPhProj.FinishInit();
+
+      // image names pattern
+      std::vector<std::string> aVecIms= VectMainSet(0);
+
+      std::string aNameImage= aVecIms[0];
+
+      mCamPC=mPhProj.ReadCamPC(aNameImage,true);
+
+      cIm2D<tREAL4> anIm = cIm2D<tREAL4>::FromFile(mCamPC->NameImage());
+
+      // Test MulScaleInterpolator
+
+      std::vector<std::string> aParamInt {"Tabul","1000","SinCApod","10","10"};
+
+     // cDiffInterpolator1D *  mInterp  = cDiffInterpolator1D::AllocFromNames(aParamInt);
+
+      //std::unique_ptr<cTabulatedDiffInterpolator>  aTabInt ( cScaledInterpolator::AllocTab(*mInterp,2.0,1000));
+      tREAL4 aScale=3.0;
+      tREAL4 aDilatedFactor =2.0 ;
+      cDiffInterpolator1D *  mInterp = cScaledInterpolator::AllocTab(cCubicInterpolator(-0.5),aScale*aDilatedFactor,1000);
+
+      cIm2D<tREAL4>  aImSc  = anIm.Scale(*mInterp,aScale);
+
+
+      // save
+
+      aImSc.DIm().ToFile(mCamPC->NameImage()+"_scaled_3_2_dilated_.tif");
+
+      delete mInterp;
+
+      return EXIT_SUCCESS;
+  }
+
 };
+
+
+
+
+
+
+
 
 
 

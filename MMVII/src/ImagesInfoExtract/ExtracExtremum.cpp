@@ -183,7 +183,7 @@ std::vector<cPt2di> VectOfRadius(const double & aR0,const double & aR1,bool IsSy
 
 	if (IsSym)
 	{
-           Ok =  Ok &&(  (aP.y() >0) || ((aP.y()==0)&&(aP.x()>=0))   );
+           Ok =  Ok &&(  (aP.y() >0) || ((aP.y()==0) && (aP.x()>=0))   );
 	}
         if (Ok)
 	{
@@ -199,6 +199,25 @@ std::vector<cPt2di> SortedVectOfRadius(const double & aR0,const double & aR1,boo
     std::vector<cPt2di> aRes = VectOfRadius(aR0,aR1,IsSym);
     std::sort(aRes.begin(),aRes.end(),CmpN2<int,2>);
     return aRes;
+}
+
+
+
+std::vector<cPt2di> SortedVectOfRadiusBuffer(const double & aR0,
+                                             const double & aR1,
+                                             const int & aBuf,
+                                             bool IsSym) // > R0 et <= R1 avec un offset aBuf
+{
+    double Epsilon=0.5;
+    MMVII_INTERNAL_ASSERT_strong(((aR0<aR1) && ((int)aR1/aBuf)>1 ) ,"Buffer is lower than aR1");
+    std::vector<cPt2di> aARes;
+    for (int id=aBuf; id<aR1; id+=aBuf)
+    {
+       std::vector<cPt2di>  aResId = VectOfRadius(aR0+id-Epsilon,aR0+id+Epsilon,IsSym);
+       aARes.insert(aARes.end(),aResId.begin(),aResId.end());
+    }
+    std::sort(aARes.begin(),aARes.end(),CmpN2<int,2>);
+    return aARes;
 }
 
 

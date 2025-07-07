@@ -231,6 +231,13 @@ template <const int Dim>  const std::vector<std::vector<cPtxd<int,Dim>>> & TabGr
 /// Implemented
 std::vector<cPt2di> SortedVectOfRadius(const double & aR0,const double & aR1,bool IsSym=false); // > R0 et <= R1
 
+
+std::vector<cPt2di> SortedVectOfRadiusBuffer(const double & aR0,
+                                             const double & aR1,
+                                             const int & aBuf,
+                                             bool IsSym=false); // > R0 et <= R1 avec un offset aBuf
+
+
 /// IsSym  means that there is only one out of 2 between -P and P
 std::vector<cPt2di> VectOfRadius(const double & aR0,const double & aR1,bool IsSym=false) ;
 

@@ -32,6 +32,22 @@ public :
     {
     }
 
+    cAutoCorrelDir(cDataIm2D<Type> & anIm, const cPt2di & aP0, double aRho, std::vector<cPt2dr> aIndW):
+        mDIm (&anIm),
+        mP0 (aP0),
+        mRho(aRho),
+        mIndW (aIndW)
+    {
+    }
+
+    cAutoCorrelDir(const cDataIm2D<Type> & anIm, const cPt2di & aP0, double aRho, std::vector<cPt2dr> aIndW):
+        mDIm (&(const_cast<cDataIm2D<Type>&>(anIm))),
+        mP0 (aP0),
+        mRho(aRho),
+        mIndW (aIndW)
+    {
+    }
+
     cPt2dr DoIt()
     {
         double aStep0 = 1/mRho;
@@ -47,14 +63,14 @@ public :
 
 protected :
 
-    cPt2dr  DoItOneStep(double aTeta0,int aNb,double aStep)
+    cPt2dr  DoItOneStep(double aTeta0,int aNb,double aStep, bool RegularPatch=true)
     {
         double aScMax = -1e10;
         double aTetaMax = 0;
         for (int aK=-aNb; aK<aNb ; aK++)
         {
             double aTeta =  aTeta0 + aK * aStep;
-            double aVal =  CorrelTeta(aTeta) ;
+            double aVal =  CorrelTeta(aTeta,RegularPatch) ;
             if (aVal >aScMax)
             {
                 aScMax = aVal;
@@ -80,6 +96,17 @@ protected :
         return aMat.Correl();
     }
 
+    double  RCorrelOneOffset(const cPt2dr & aP0,const cPt2dr & anOffset,std::vector<cPt2dr> aIndW)
+    {
+        cMatIner2Var<double> aMat;
+        for (const auto aP: aIndW)
+        {
+            cPt2dr aP1 = aP0 + aP;
+            aMat.Add(mDIm->GetVBL(aP1),mDIm->GetVBL(aP1+anOffset));
+        }
+        return aMat.Correl();
+    }
+
     double  ICorrelOneOffset(const cPt2di & aP0,const cPt2di & anOffset,int aSzW)
     {
         cMatIner2Var<double> aMat;
@@ -94,11 +121,17 @@ protected :
         return aMat.Correl();
     }
 
-    double  CorrelTeta(double aTeta)
+
+    double  CorrelTeta(double aTeta, bool isRegularPatch)
     {
-        return RCorrelOneOffset(mP0,
+        if (isRegularPatch)
+            return RCorrelOneOffset(mP0,
                                 FromPolar(mRho,aTeta),
                                 mSzW);
+        else
+            return RCorrelOneOffset(ToR(mP0),
+                                    FromPolar(mRho,aTeta),
+                                    mIndW);
     }
 
 
@@ -106,6 +139,7 @@ protected :
     cPt2di   mP0;
     double  mRho;
     int     mSzW;
+    std::vector<cPt2dr> mIndW;
 };
 
 
@@ -115,23 +149,82 @@ public :
     int mNumOut;
     double  mCorOut;
 
-    cCutAutoCorrelDir(cDataIm2D<Type> & anIm,const cPt2di & aP0,double aRho,int aSzW ) :
+    cCutAutoCorrelDir(cDataIm2D<Type> & anIm,const cPt2di & aP0,double aRho,int aBuf,int aSzW ) :
         cAutoCorrelDir<Type> (anIm,aP0,aRho,aSzW),
-        mVPt (SortedVectOfRadius(0.99,aRho)),
+        mVPt (SortedVectOfRadiusBuffer(0.0,aRho,aBuf)),
         mNbPts                 (mVPt.size())
         {
         }
 
-        cCutAutoCorrelDir(const cDataIm2D<Type> & anIm,const cPt2di & aP0,double aRho,int aSzW ) :
+        cCutAutoCorrelDir(const cDataIm2D<Type> & anIm,const cPt2di & aP0,double aRho,int aBuf, int aSzW ) :
             cAutoCorrelDir<Type> (anIm,aP0,aRho,aSzW),
-            mVPt (SortedVectOfRadius(0.99,aRho)),
+            mVPt (SortedVectOfRadiusBuffer(0.0,aRho,aBuf)),
             mNbPts                 (mVPt.size())
         {
         }
 
+        cCutAutoCorrelDir(cDataIm2D<Type> & anIm,const cPt2di & aP0,double aRho,int aBuf,std::vector<cPt2dr> aIndW  ) :
+            cAutoCorrelDir<Type> (anIm,aP0,aRho,aIndW),
+            mVPt (SortedVectOfRadiusBuffer(0.0,aRho,aBuf)),
+            mNbPts                 (mVPt.size())
+        {
+        }
+
+        cCutAutoCorrelDir(const cDataIm2D<Type> & anIm,const cPt2di & aP0,double aRho,int aBuf, std::vector<cPt2dr> aIndW ) :
+            cAutoCorrelDir<Type> (anIm,aP0,aRho,aIndW),
+            mVPt (SortedVectOfRadiusBuffer(0.0,aRho,aBuf)),
+            mNbPts                 (mVPt.size())
+        {
+        }
+
+
     void ResetIm(cDataIm2D<Type> & anIm)
         {
             cAutoCorrelDir<Type>::ResetIm(anIm);
+        }
+
+
+        void GetVPts()
+        {
+            for (const auto aPt: mVPt)
+            {
+                StdOut()<<"aPt X: "<<aPt.x()<<" Y: "<<aPt.y()<<std::endl;
+            }
+        }
+
+        void writeImage(int aRho, std::string filename)
+        {
+            cDataIm2D<tU_INT1> aDIm (cPt2di(0,0),cPt2di(2*aRho,2*aRho));
+            cPt2di aP2;
+            for (const auto aPt: mVPt)
+            {
+                aP2 =cPt2di(aPt.x()+aRho,
+                             aPt.y()+aRho);
+                //StdOut()<<aP2<<std::endl;
+
+                if (aDIm.Inside(aP2))
+                    aDIm.SetV(aP2,1);
+            }
+
+        // save image
+            aDIm.ToFile(filename);
+        }
+
+
+        void writeCorrelImage (int aRho, std::string filename)
+        {
+            cDataIm2D<tU_INT1> aDIm (cPt2di(0,0),cPt2di(2*aRho,2*aRho),nullptr,eModeInitImage::eMIA_Null);
+            cPt2di aP2;
+            for (int aK=0 ; aK<mNbPts ; aK++)
+            {
+                //double aCor = this->ICorrelOneOffset(this->mP0,mVPt[aK],this->mSzW);c
+                cPt2di aPIm= this->mP0 +mVPt[aK];
+                aP2 =   cPt2di(mVPt[aK].x()+aRho,
+                            mVPt[aK].y()+aRho)  ;
+                if (aDIm.Inside(aP2))
+                    aDIm.SetV(aP2,this->mDIm->GetV(aPIm));
+            }
+            aDIm.ToFile(filename);
         }
 
     bool  AutoCorrel(const cPt2di & aP0,double aRejetInt,double aRejetReel,double aSeuilAccept,cPt2dr * aPtrRes=0)
@@ -185,8 +278,69 @@ public :
             return false;
         }
 
-        // Pt2dr aRes2 =  this->DoItOneStep(aRes1.x,aStep0*0.2,2); BUG CORRIGE VERIF AVEC GIANG
         cPt2dr aRes2 =  this->DoItOneStep(aRes1.x(),2,aStep0*0.2);
+
+        if (aPtrRes)
+            *aPtrRes = aRes2;
+
+        mNumOut = 4;
+        mCorOut = aRes2.y();
+        return aRes2.y() > aSeuilAccept;
+    }
+
+
+
+    bool  AutoCorrelNonRegularPatch(const cPt2di & aP0,double aRejetInt,double aRejetReel,double aSeuilAccept,cPt2dr * aPtrRes=0)
+    {
+
+        this->mP0 = aP0;
+        double aCorrMax = -2;
+        int    aKMax = -1;
+        //std::cout<<"Debug "<<mVPt.size()<<std::endl;
+        for (int aK=0 ; aK<mNbPts ; aK++)
+        {
+            double aCor = this->RCorrelOneOffset(ToR(this->mP0),ToR(mVPt[aK]),this->mIndW);
+            //std::cout << "CCcccI " << aCor << " " << this->mTIm.sz() << "\n";
+            if (aCor > aSeuilAccept)
+            {
+                mCorOut = aCor;
+                mNumOut = 0;
+                return true;
+            }
+            if (aCor > aCorrMax)
+            {
+                aCorrMax = aCor;
+                aKMax = aK;
+            }
+        }
+        MMVII_INTERNAL_ASSERT_strong(aKMax!=-1,"AutoCorrel no K" );
+        if (aCorrMax < aRejetInt)
+        {
+            mCorOut = aCorrMax;
+            mNumOut = 1;
+            return false;
+        }
+
+        cPt2dr aRhoTeta = ToPolar<tREAL8>(ToR(mVPt[aKMax]),0.0);
+        //std::cout<<" aRhoTeta  Max "<<aRhoTeta<<std::endl;
+
+        double aStep0 = 1/this->mRho;
+        cPt2dr aRes1 =  this->DoItOneStep(aRhoTeta.y(),2,aStep0*0.5,false);
+
+        if (aRes1.y()>aSeuilAccept)
+        {
+            mNumOut = 2;
+            mCorOut = aRes1.y();
+            return true;
+        }
+        if (aRes1.y()<aRejetReel)
+        {
+            mNumOut = 3;
+            mCorOut = aRes1.y();
+            return false;
+        }
+
+        cPt2dr aRes2 =  this->DoItOneStep(aRes1.x(),2,aStep0*0.2,false);
 
         if (aPtrRes)
             *aPtrRes = aRes2;

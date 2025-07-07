@@ -61,6 +61,7 @@ extern cSpecMMVII_Appli  TheSpecGenMeshDev;
 extern cSpecMMVII_Appli  TheSpecComputeStatsCorrel; 
 extern cSpecMMVII_Appli  TheSpecProgDynEpipolar;
 extern cSpecMMVII_Appli  TheSpecMMGenDepthMV;
+extern cSpecMMVII_Appli  TheSpecOrthoRectifyAndCorrel;
 extern cSpecMMVII_Appli  TheSpecMGenDeformMaps;
 extern cSpecMMVII_Appli  TheSpecTestCovProp; 
 extern cSpecMMVII_Appli  TheSpec_OriConvV1V2; 

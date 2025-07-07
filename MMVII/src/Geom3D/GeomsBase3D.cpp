@@ -621,6 +621,22 @@ bool IsPlanarityIdxPdal(const std::vector<cPt3dr>& aVPt, tREAL8 mThresh1, tREAL8
         return false;
 }
 
+
+double Surface_Variation(const std::vector<cPt3dr> & aVPt)
+{
+    tREAL8 aNbP = aVPt.size() ;
+    if (aNbP <=3) return 0.0;
+    cStrStat2<tREAL8>  aStat(3);
+    for (const auto & aP3 : aVPt)
+        aStat.Add(aP3.ToVect());
+    aStat.Normalise();
+    const cDenseVect<tREAL8> anEV = aStat.DoEigen().EigenValues() ; // in ascending order
+    if (anEV(0)<=0)  return 0.0;
+    if (anEV(1)<=0)  return 0.0;
+    if (anEV(2)<=0)  return 0.0;
+    return anEV(0)/(anEV(0)+anEV(1)+anEV(2));
+}
+
 tREAL8 L2_LinearityIndex(const std::vector<cPt3dr> & aVPt) 
 { 
     tREAL8 aNbP = aVPt.size() ;

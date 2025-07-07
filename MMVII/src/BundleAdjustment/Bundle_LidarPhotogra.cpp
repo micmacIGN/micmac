@@ -25,6 +25,8 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
     mPertRad    (false),
     mNbPointByPatch (32),
     mBoxSelected (cBox2dr::Empty()),
+    mNbScale(1),
+    mInitRes (0.2),
     mDImQualityMap(nullptr),
     mDImQualityMapY(nullptr)
 {
@@ -58,6 +60,15 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
    {
         mNbPointByPatch = cStrIO<size_t>::FromStr(aParam.at(4));
    }
+
+   if (aParam.size()>=6)
+   {
+       mNbScale = cStrIO<size_t>::FromStr(aParam.at(5));
+   }
+   if (aParam.size()>=7)
+   {
+       mInitRes = cStrIO<tREAL8>::FromStr(aParam.at(5));
+   }
    // create the interpaltor itself
    mInterp  = cDiffInterpolator1D::AllocFromNames(aParamInt);
 // delete mInterp;
@@ -71,6 +82,51 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
        {
            mVCam.push_back(aPtrCam->GetSensorCamPC());  // yes get it
            mVIms.push_back(cIm2D<tU_INT1>::FromFile(aPtrCam->NameImage()));  // read the image
+
+           if (mNbScale>1)
+           {
+               //create per image pyramid given the number of scales mNbScale
+               std::vector<cIm2D<tU_INT1>> aVS;
+               for( int aNb=1; aNb<mNbScale;aNb++)
+               {
+                   tREAL8 aCurrentScale= pow(2,aNb);
+                   aVS.push_back(mVIms.back().Scale(*mInterp,aCurrentScale,aCurrentScale));
+               }
+               mVSIms.push_back(aVS);
+           }
+
+           if (mNbScale>1)
+           {
+                // create multi scale cameras for multi scale patch sampling
+               std::vector<cSensorCamPC * > aCamS;
+               auto aCam = mVCam.back();
+               for ( int aNb=1; aNb< mNbScale; aNb++)
+                    {
+                       tREAL8 aCurrentScale= pow(2,aNb);
+                       tREAL8 aCurrentFocal= aCam->InternalCalib()->F()/aCurrentScale;
+                       cPerspCamIntrCalib* aCalib = cPerspCamIntrCalib::Alloc
+                           (
+                               cDataPerspCamIntrCalib
+                               (
+                                   aCam->InternalCalib()->Name(),
+                                   eProjPC::eStenope,
+                                   aCam->InternalCalib()->DegDir(),
+                                   aCam->InternalCalib()->VParamDist(),
+                                   cMapPProj2Im(aCurrentFocal,
+                                                aCam->InternalCalib()->PP()),
+                                   cDataPixelDomain(aCam->InternalCalib()->SzPix()),
+                                   cPt3di(0,0,1),
+                                   10
+                                   )
+                            );
+                        cSensorCamPC * aNewCamScale = new cSensorCamPC(aCam->NameImage(),
+                                                                     aCam->Pose(),
+                                                                     aCalib);
+                       aCamS.push_back(aNewCamScale);
+                    }
+                mVSCams.push_back(aCamS);
+            }
+
            if (mPertRad)
            {
                cDataIm2D<tU_INT1> &  aDIm = mVIms.back().DIm();
@@ -94,12 +150,13 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
         //cBox2dr aBox = mTri.Box2D();
         // estimate the distance for computing patching assuming a uniform  distributio,
         // Pi d^ 2  /NbByP = Surf / NbTot
-        tREAL8 aDistMoy = 4.0; //std::sqrt(mNbPointByPatch *aBox.NbElem()/ (mTri.NbPts()*M_PI));
+        tREAL8 aDistMoy = 5.0 ;//std::sqrt(mNbPointByPatch *aBox.NbElem()/ (mTri.NbPts()*M_PI));
         tREAL8 aDistReject =  aDistMoy *1.5;
 
-        //mTri.MakePatches(mLPatches,aDistMoy,aDistReject,35);
+        //mTri.MakePatches(mLPatches,aDistMoy,aDistReject,15);
 
-        mTri.MakePatchesTargetted(mLPatches,
+        if (mNbScale == 1)
+            mTri.MakePatchesTargetted(mLPatches,
                                   aDistMoy,
                                   aDistReject,
                                   15,
@@ -107,7 +164,22 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
                                   mVIms,
                                   0.85);
 
+        if (mNbScale > 1)
+            mTri.MakePatchesTargetted(mLPatches,
+                                      aDistMoy,
+                                      aDistReject,
+                                      15,
+                                      mVCam,
+                                      mVIms,
+                                      0.85,
+                                      mVSIms);
+
         StdOut()<<"Selected Patches "<<mLPatches.size()<<std::endl;
+
+
+        std::string NamePlyOut="./patches_selected_autocorrel_visibility_MMVII_AUTOCOR_BARE_MULSCALE.ply";
+        mTri.PlyWriteSelected(NamePlyOut,mLPatches,false);
+
 
         auto aSetOfPatches= mLPatches;
         cTplBoxOfPts<tREAL8,2> aBoxObj;
@@ -117,8 +189,8 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
             for (const auto anInd : aPatchIndex)
                 aVP.push_back(ToR(mTri.KthPts(anInd)));
             std::vector<cData1ImLidPhgr> aVDenseData;
-            EvalGeomConsistency(aVP,aVDenseData,0.07);
-            if (EvalCorrel(aVDenseData)<0.65)
+            EvalGeomConsistency(aVP,aVDenseData,mInitRes,mNbScale-1);
+            if (EvalCorrel(aVDenseData)<0.2)
             {
                 mLPatches.remove(aPatchIndex);
             }
@@ -130,6 +202,8 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
                 }
             }
         }
+
+        StdOut()<<"Selected points to correl "<<mLPatches.size()<<std::endl;
 
         mBoxSelected=aBoxObj.CurBox();
 
@@ -147,8 +221,8 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
 
 
 
-        std::string NamePlyOut="./patches_selected_autocorrel_visibility_MMVII_AUTOCOR.ply";
-        mTri.PlyWriteSelected(NamePlyOut,mLPatches,false);
+        /*NamePlyOut="./patches_selected_autocorrel_visibility_MMVII_AUTOCOR.ply";
+        mTri.PlyWriteSelected(NamePlyOut,mLPatches,false);*/
 
         StdOut() << "Patches: DistReject=" << aDistReject 
                 << " NbPts=" << mTri.NbPts()
@@ -202,7 +276,20 @@ void cBA_LidarPhotogra::AddObs(tREAL8 aW)
             for (const auto anInd : aPatchIndex)
                 aVP.push_back(ToR(mTri.KthPts(anInd)));
             //Add1PatchNotOccluded(aW,aVP,idd,aVecMasqs);
-            Add1Patch(aW,aVP);
+            //Add1Patch(aW,aVP);
+
+
+            if (1)
+            {
+                // check multiscale correlation -> start from a lower resolution
+                /*if (mBA.getNbIter()==0)
+                    Add1PatchMulScale(aW,aVP,0);
+                else
+                    Add1PatchMulScale(aW,aVP,1);
+                */
+                int aNbSc= std::max(0,mNbScale-1-mBA.getNbIter());
+                Add1PatchMulScale(aW,aVP,aNbSc);
+            }
             idd++;
         }
 
@@ -269,8 +356,8 @@ void cBA_LidarPhotogra::AddObs(tREAL8 aW)
     {
         if ( (mBA.getNbIter()==0) || (mBA.CheckIfLastIter()))
         {
-            StdOut() <<" Planar residual X  "<<mAverageDeltaX.Average()<<"\n";
-            StdOut() <<" Planar residual Y  "<<mAverageDeltaY.Average()<<"\n";
+            StdOut() <<" ********************   Planar residual X  "<<mAverageDeltaX.Average()<<"\n";
+            StdOut() <<" ********************   Planar residual Y  "<<mAverageDeltaY.Average()<<"\n";
         }
     }
 }
@@ -640,12 +727,12 @@ void cBA_LidarPhotogra::EvaluatePlanarDisplacements(std::vector<std::string> & a
 }
 
 
-
-
 void cBA_LidarPhotogra::EvalGeomConsistency(const std::vector<cPt3dr>& aVPatchGr,
                                             std::vector<cData1ImLidPhgr>& aVData,
-                                            tREAL8 aPas)
+                                            tREAL8 aPas,
+                                            int aNbs)
 {
+    //aPas = aPas * pow (2,aNbs);
     //  Parse all the image, we will select the images where all point of a patch are visible
     std::vector<cPt2dr> aVPatchGr2D;
     std::vector <cPt3di> aFaces;
@@ -718,8 +805,13 @@ void cBA_LidarPhotogra::EvalGeomConsistency(const std::vector<cPt3dr>& aVPatchGr
     std::vector<tREAL8 *> aVecTransforms;
     for (size_t aKIm=0 ; aKIm<mVCam.size() ; aKIm++)
     {
-        cSensorCamPC * aCam = mVCam[aKIm]; // extract cam
-        cDataIm2D<tU_INT1> & aDIm = mVIms[aKIm].DIm(); // extract image
+        cSensorCamPC * aCam =  (aNbs==0) ? mVCam[aKIm] :  mVSCams[aKIm][aNbs-1]; // extract cam
+
+        //cSensorCamPC * aCam = mVCam[aKIm];
+
+        //cDataIm2D<tU_INT1> & aDIm =(aNbs==0) ? mVIms[aKIm].DIm(): mVSIms[aKIm][aNbs-1].DIm(); // extract image
+
+        cDataIm2D<tU_INT1> & aDIm = mVIms[aKIm].DIm();
 
         if (aCam->IsVisible(aVPatchGr.at(0))) // first test : is central point visible
         {
@@ -739,7 +831,17 @@ void cBA_LidarPhotogra::EvalGeomConsistency(const std::vector<cPt3dr>& aVPatchGr
                         aP3D.z()=aDD_Grid->VD_GetV(aPix);
                         if (aCam->IsVisible(aP3D))
                         {
-                            cPt2dr aPIm = mVCam[aKIm]->Ground2Image(aP3D); // extract the image  projection
+                            //cPt2dr aPIM0 = mVCam[aKIm]->Ground2Image(aP3D);
+                            cPt2dr aPIm = aCam->Ground2Image(aP3D); // extract the image  projection
+
+                            // Scale point
+                            //aPIm = DivCByC(aPIm,cPt2dr(pow (2,aNbs),pow (2,aNbs)));
+
+                            //StdOut() <<" aPIM0 / aPIM "<<DivCByC(aPIM0,aPIm)<<std::endl;
+
+                            //StdOut()<<"  Focal0 "<<" scale "<<aNbs<<"  "<<mVCam[aKIm]->InternalCalib()->F()<<"  FocalS "<<aCam->InternalCalib()->F()<<std::endl;
+                            //StdOut()<<"  PP0 "<<mVCam[aKIm]->InternalCalib()->PP()<<"  PPS "<<aCam->InternalCalib()->PP()<<std::endl;
+
                             if (aDIm.InsideInterpolator(*mInterp,aPIm,1.0))  // is it sufficiently inside
                             {
                                 auto aVGr = aDIm.GetValueAndGradInterpol(*mInterp,aPIm); // extract pair Value/Grad of image
@@ -753,43 +855,49 @@ void cBA_LidarPhotogra::EvalGeomConsistency(const std::vector<cPt3dr>& aVPatchGr
             aVData.push_back(aData); // memorize the data for this image
             // save ortho
             // save orthos to check registration accuracy
-            if ( ( (mBA.getNbIter()==0) || (mBA.CheckIfLastIter()) )
-                && (!isForSelection))
+            if(1)
             {
-                std::string aName="gridRadiom"+
-                                    std::to_string(value_ms)+
-                                    "_"+
-                                    ToStr(aKIm)+
-                                    "_"+
-                                    ToStr(mPatchId)+
-                                    ".tif";
-                OrthosName.push_back(aName);
-                cDataFileIm2D aDF=cDataFileIm2D::Create(aName,
-                                                          eTyNums::eTN_REAL8,
-                                                          aDD_Grid->Sz());
+                if ( ( (mBA.getNbIter()==0) || (mBA.CheckIfLastIter()) )
+                    && (isForSelection))
+                {
+                    std::string aName="gridRadiom"+
+                                        std::to_string(value_ms)+
+                                        "_"+
+                                        ToStr(aKIm)+
+                                        "_"+
+                                        ToStr(mPatchId)+
+                                        ".tif";
+                    OrthosName.push_back(aName);
+                    cDataFileIm2D aDF=cDataFileIm2D::Create(aName,
+                                                              eTyNums::eTN_REAL8,
+                                                              aDD_Grid->Sz());
 
-                // add geotiff transform
-                tREAL8 transform[6]={aBox.P0().x(),aPas,0,aBox.P1().y(),0,-aPas};
-                std::vector<const cDataIm2D<tREAL8>*> aVIms({aDD_GridRadiom});
+                    // add geotiff transform
+                    tREAL8 transform[6]={aBox.P0().x(),aPas,0,aBox.P1().y(),0,-aPas};
+                    std::vector<const cDataIm2D<tREAL8>*> aVIms({aDD_GridRadiom});
 
-                cGdalApi::ReadWrite(cGdalApi::IoMode::Write,
-                                    aVIms,
-                                    aDF,
-                                    cPt2di(0,0),
-                                    1.0,
-                                    cPixBox<2>(cPt2di(0,0),aDD_Grid->Sz()),
-                                    transform);
-                aVecTransforms.push_back(transform);
+                    cGdalApi::ReadWrite(cGdalApi::IoMode::Write,
+                                        aVIms,
+                                        aDF,
+                                        cPt2di(0,0),
+                                        1.0,
+                                        cPixBox<2>(cPt2di(0,0),aDD_Grid->Sz()),
+                                        transform);
+                    aVecTransforms.push_back(transform);
+                }
             }
         }
     }
 
     // perfom displacement measurment between patches
-    /*if ( ( (mBA.getNbIter()==0) || (mBA.CheckIfLastIter()) )
-        && (!isForSelection) && (OrthosName.size()>1) )
+    if(0)
     {
-        EvaluatePlanarDisplacements(OrthosName,aVecTransforms,false);
-    }*/
+        if ( ( (mBA.getNbIter()==0) || (mBA.CheckIfLastIter()) )
+            && (!isForSelection) && (OrthosName.size()>1) )
+        {
+            EvaluatePlanarDisplacements(OrthosName,aVecTransforms,false);
+        }
+    }
 
 
     //StdOut()<<"Eval Patch "<<std::endl;
@@ -937,12 +1045,147 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
      else if (mModeSim==eImatchCrit::eCorrel)
      {
          std::vector<cData1ImLidPhgr> aVDenseData;
-         EvalGeomConsistency(aVPatchGr,aVDenseData,0.07);
+         EvalGeomConsistency(aVPatchGr,aVDenseData,mInitRes);
          mCurrentCorrelVal+=EvalCorrel(aVDenseData);
          AddPatchCorrel(aWeight,aVPatchGr,aVData);
      }
 }
 
+
+
+
+void cBA_LidarPhotogra::Add1PatchMulScale(tREAL8 aWeight,const std::vector<cPt3dr> & aVPatchGr, int aNbs)
+{
+    std::vector<cData1ImLidPhgr> aVData; // for each image where patch is visible will store the data
+    cComputeStdDev<tREAL8>   aStdDev;    // compute the standard deviation of projected radiometry (indicator)
+    //  Parse all the image, we will select the images where all point of a patch are visible
+    for (size_t aKIm=0 ; aKIm<mVCam.size() ; aKIm++)
+    {
+        cSensorCamPC * aCam = mVCam[aKIm]; // extract cam
+        cDataIm2D<tU_INT1> & aDIm = (aNbs==0) ? mVIms[aKIm].DIm(): mVSIms[aKIm][aNbs-1].DIm() ; // extract image
+        if (aCam->IsVisible(aVPatchGr.at(0))) // first test : is central point visible
+        {
+            cData1ImLidPhgr  aData; // data that will be filled
+            aData.mKIm = aKIm;
+            for (size_t aKPt=0 ; aKPt<aVPatchGr.size() ; aKPt++) // parse the points of the patch
+            {
+                cPt3dr aPGround = aVPatchGr.at(aKPt);
+                if (aCam->IsVisible(aPGround))  // is the point visible in the camera
+                {
+                    cPt2dr aPIm = mVCam[aKIm]->Ground2Image(aPGround); // extract the image  projection
+
+                    if (aNbs> 0)
+                    {
+                        cPt2dr aPScale(pow(2,aNbs), pow(2,aNbs));
+                        aPIm = DivCByC(aPIm, aPScale);
+                    }
+
+                    if (aDIm.InsideInterpolator(*mInterp,aPIm,1.0))  // is it sufficiently inside
+                    {
+                        auto aVGr = aDIm.GetValueAndGradInterpol(*mInterp,aPIm); // extract pair Value/Grad of image
+                        aData.mVGr.push_back(aVGr); // push it at end of stack
+                    }
+                }
+            }
+            //  Does all the point of the patch were inside the image ?
+            if (aData.mVGr.size() == aVPatchGr.size())
+            {
+                aVData.push_back(aData); // memorize the data for this image
+                tREAL8 aValIm = aData.mVGr.at(0).first;   // value of first/central pixel in this image
+                aStdDev.Add(1.0,aValIm);  // compute std deviation
+            }
+        }
+    }
+    // if less than 2 images : nothing valuable to do
+    if (aVData.size()<2) return;
+
+    mLastResidual.Add(aVData.size(),  Square(aStdDev.StdDev(1e-5) ) );
+
+    if (mModeSim==eImatchCrit::eDifRad)
+    {
+        AddPatchDifRad(aWeight,aVPatchGr,aVData);
+    }
+    else if (mModeSim==eImatchCrit::eCensus)
+    {
+        AddPatchCensus(aWeight,aVPatchGr,aVData);
+    }
+    else if (mModeSim==eImatchCrit::eCorrel)
+    {
+        std::vector<cData1ImLidPhgr> aVDenseData;
+        EvalGeomConsistency(aVPatchGr,aVDenseData,mInitRes, aNbs);
+        mCurrentCorrelVal+=EvalCorrel(aVDenseData);
+        AddPatchCorrel(aWeight,aVPatchGr,aVData);
+    }
+
+
+
+
+}
+
+
+void cBA_LidarPhotogra::Add1PatchHandleScaleInCameraIntrinsics(tREAL8 aWeight,const std::vector<cPt3dr> & aVPatchGr, int aNbs)
+{
+    std::vector<cData1ImLidPhgr> aVData; // for each image where patch is visible will store the data
+    cComputeStdDev<tREAL8>   aStdDev;    // compute the standard deviation of projected radiometry (indicator)
+    //  Parse all the image, we will select the images where all point of a patch are visible
+    for (size_t aKIm=0 ; aKIm<mVCam.size() ; aKIm++)
+    {
+        cSensorCamPC * aCam =  (aNbs==0) ? mVCam[aKIm]: mVSCams[aKIm][aNbs-1]; // extract multi scale camera
+        cDataIm2D<tU_INT1> & aDIm = mVIms[aKIm].DIm(); // extract image
+        if (aCam->IsVisible(aVPatchGr.at(0))) // first test : is central point visible
+        {
+            cData1ImLidPhgr  aData; // data that will be filled
+            aData.mKIm = aKIm;
+            for (size_t aKPt=0 ; aKPt<aVPatchGr.size() ; aKPt++) // parse the points of the patch
+            {
+                cPt3dr aPGround = aVPatchGr.at(aKPt);
+                if (aCam->IsVisible(aPGround))  // is the point visible in the camera
+                {
+                    cPt2dr aPIm = aCam->Ground2Image(aPGround); // extract the image  projection
+
+                    if (aNbs> 0)
+                    {
+                        cPt2dr aPScale(pow(2,aNbs), pow(2,aNbs));
+                        aPIm = DivCByC(aPIm, aPScale);
+                    }
+
+                    if (aDIm.InsideInterpolator(*mInterp,aPIm,1.0))  // is it sufficiently inside
+                    {
+                        auto aVGr = aDIm.GetValueAndGradInterpol(*mInterp,aPIm); // extract pair Value/Grad of image
+                        aData.mVGr.push_back(aVGr); // push it at end of stack
+                    }
+                }
+            }
+            //  Does all the point of the patch were inside the image ?
+            if (aData.mVGr.size() == aVPatchGr.size())
+            {
+                aVData.push_back(aData); // memorize the data for this image
+                tREAL8 aValIm = aData.mVGr.at(0).first;   // value of first/central pixel in this image
+                aStdDev.Add(1.0,aValIm);  // compute std deviation
+            }
+        }
+    }
+    // if less than 2 images : nothing valuable to do
+    if (aVData.size()<2) return;
+
+    mLastResidual.Add(aVData.size(),  Square(aStdDev.StdDev(1e-5) ) );
+
+    if (mModeSim==eImatchCrit::eDifRad)
+    {
+        AddPatchDifRad(aWeight,aVPatchGr,aVData);
+    }
+    else if (mModeSim==eImatchCrit::eCensus)
+    {
+        AddPatchCensus(aWeight,aVPatchGr,aVData);
+    }
+    else if (mModeSim==eImatchCrit::eCorrel)
+    {
+        std::vector<cData1ImLidPhgr> aVDenseData;
+        EvalGeomConsistency(aVPatchGr,aVDenseData,mInitRes, aNbs);
+        mCurrentCorrelVal+=EvalCorrel(aVDenseData);
+        AddPatchCorrel(aWeight,aVPatchGr,aVData);
+    }
+}
 
 void  cBA_LidarPhotogra::Add1PatchNotOccluded(tREAL8 aWeight,
                                               const std::vector<cPt3dr> & aVPatchGr,

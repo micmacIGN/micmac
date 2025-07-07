@@ -208,6 +208,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecComputeStatsCorrel);
         //TheVecAll.push_back(&TheSpecProgDynEpipolar);
         TheVecAll.push_back(&TheSpecMMGenDepthMV);
+        TheVecAll.push_back(&TheSpecOrthoRectifyAndCorrel);
         TheVecAll.push_back(&TheSpecMGenDeformMaps) ;
         TheVecAll.push_back(&TheSpecTestCovProp);
         TheVecAll.push_back(&TheSpec_OriConvV1V2);
