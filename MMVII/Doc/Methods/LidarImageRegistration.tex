@@ -133,7 +133,7 @@ The first simplest solution is to consider the radiometric difference as
 similarity measure.
 Of course comparing directly the radiometry of images, may be too simplistic.
 We know in image maching that it does not work with aerial image,  because natural
-surface are not lambertian.   By the way , if the images
+surface are not lambertian.   By the way, if the images
 are radiometrically calibrated, which is more or less the case with professional
 aerial images or satellite images, it may work statistically (i.e. say for $70\%$
 of the points the radiometry are similar and for the other, the number of measure will
@@ -187,10 +187,10 @@ is to make a pre-processing of images, that make them localy invariant
 to different transformation, for example :
 
 \begin{itemize}
-    \item to make it invariant to local scaling and translation, apply a Wallis filter : subsract the average and divide by the
+    \item to make it invariant to local scaling and translation, apply a Wallis filter : substract the average and divide by the
           standard deviation (computed on given neighboorhood);
 
-    \item   to make it simply invariant to local scaling ,  divided by local standard deviation, maybe more stable than
+    \item   to make it simply invariant to local scaling,  divided by local standard deviation, maybe more stable than
             Wallis.
 \end{itemize}
 
