@@ -837,31 +837,31 @@ template <class Type>
     auto aNbParamsNotFrozen = std::count(mVarIsFrozen.begin(), mVarIsFrozen.end(), false);
     if (aNbParamsNotFrozen>0)
     {
-        cDenseMatrix<Type> aDenseMReduiced(aNbParamsNotFrozen, aNbParamsNotFrozen);
+        cDenseMatrix<Type> aDenseMReduced(aNbParamsNotFrozen, aNbParamsNotFrozen);
 
-        int aJReduiced=0;
+        int aJReduced=0;
         for (int aJ=0 ; aJ<mNbVar ; aJ++)
         {
             if (mVarIsFrozen[aJ])
                 continue;
 
-            int aIReduiced=0;
+            int aIReduced=0;
             for (int aI=0 ; aI<mNbVar ; aI++)
             {
                 if (mVarIsFrozen[aI])
                     continue;
-                aDenseMReduiced.SetElem(aIReduiced, aJReduiced, aDenseM.GetElem(aI, aJ));
-                aIReduiced++;
+                aDenseMReduced.SetElem(aIReduced, aJReduced, aDenseM.GetElem(aI, aJ));
+                aIReduced++;
             }
-            aJReduiced++;
+            aJReduced++;
         }
-        std::cout<<"Reduiced matrix:\n";
-        aDenseMReduiced.Show();
+        std::cout<<"Reduced matrix:\n";
+        aDenseMReduced.Show();
         std::cout<<std::endl;
-        cResulSymEigenValue<Type> aEig = aDenseMReduiced.SymEigenValue();
-        std::cout<<"Reduiced system condition number: "<<aEig.Cond(0.)<<"\n";
+        cResulSymEigenValue<Type> aEig = aDenseMReduced.SymEigenValue();
+        std::cout<<"Reduced system condition number: "<<aEig.Cond(0.)<<"\n";
     } else {
-        std::cout<<"Reduiced matrix: []\n";
+        std::cout<<"Reduced matrix: []\n";
     }
 
     mSysLinear->PublicReset();
