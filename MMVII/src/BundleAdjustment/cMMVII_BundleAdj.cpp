@@ -273,6 +273,11 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter)
 	}
     }
 
+    // fix all cameras z
+    for (const auto & aPtrCam : mVSCPC)
+        if (aPtrCam != nullptr)
+            mR8_Sys->SetFrozenVarCurVal(*aPtrCam,aPtrCam->Center().z());
+
     // if necessary, fix frozen centers of external calibration
     if (mPatFrozenCenter !="")
     {
