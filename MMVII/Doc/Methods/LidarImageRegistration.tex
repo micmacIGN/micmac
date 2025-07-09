@@ -218,17 +218,26 @@ simplicity/efficiency.
 
 Now we consider that we have no longer single pixels, but patches, and as
 in Census, we use the central pixel as a normalisation factor. 
-Noting $A = B$, between two boolean the function that values
-$1$ if they have the same value en $0$ else, we define
-Census, $C(V,W)$,  between two patches of radiometry $V_0, \dots$ and $W_0 \dots$ by :
+
+Noting $A \equiv B$, the function :
+\begin{equation}
+ A \equiv B  =
+\left\{ \begin{array}{rcl}
+1 & \mbox{if}  & A = B\\
+\\
+0 & \mbox{if}  & A \neq B
+\end{array}\right.
+\end{equation}
+We define
+Census, $C(V,W)$,  between two patches of radiometry $V_{0 \dots M}$ and $W_{0 \dots M}$ ($V_0$ and $W_0$ being the radiometry of the center of the patch) by :
 
 \begin{equation}
-      C(V,W)  = \sum_k (V_k > V_0) = (W_k>W_0)
+      C(V,W)  = \sum_k (V_k > V_0) \equiv (W_k>W_0)
 \end{equation}
 
 
 The drawback of census is  that because of boolean test $V_k > V_0$ , it'is
-not continous and  (obvioulsy then) very sensitive to small variation and  difficutlt to derivate.
+not continous and (obvioulsy then) very sensitive to small variation and  difficult to derivate.
 We make a first modification and define $C_{q0}$, a first quantitative version of census 
 by :
 
@@ -236,8 +245,8 @@ by :
       C_{q0} (V,W)  = \sum_k | \frac{V_k}{V_0} - \frac{W_k}{W_0} |
 \end{equation}
 
-Also the draw back of $C_{q0}$ is that  the ratio it is unbounded,
-to overcome this problem we introduce the normalized ratio $\rho^n$ :
+The drawback of $C_{q0}$ is that the ratio is unbounded.
+To overcome this problem we introduce the normalized ratio $\rho^n$ :
 
 \begin{equation}
  \rho^n (x,y)  =
@@ -250,7 +259,7 @@ to overcome this problem we introduce the normalized ratio $\rho^n$ :
 
 $\rho^n$ is a ratio function because $\rho^n(\lambda x, \lambda y) = \rho^n(x,y)$,
 $\rho^n$ is bounded and  $C^1$ (but not $C^2$) . Many other choice would be possible, like \CPP's function {\tt atan2(x,y)} for
-example who would be $C^{\infty}$; probably all the reasonable choice would be more or less equivalent, the advantage of $\rho^n$
+example that would be $C^{\infty}$; probably all the reasonable choice would be more or less equivalent, the advantage of $\rho^n$
 is to be fast to compute.
 
 We then define Census quantitative as :
@@ -309,7 +318,7 @@ We proceed now as usual :
 
 %-----------------------------------------------------------------------
 
-\section{Other stufs}
+\section{Other stuff}
 
 \subsection{Other similarity}
 \label{LIR:OthSim}
@@ -428,7 +437,7 @@ To summerize we try to solve the following system :
 \left\{ \begin{array}{rc|l}
      \mu(\chi) = 0         \\ 
      \sigma(\chi) = 1         \\ 
-      \forall i,j : \;  A^j X^j_i + B_j = \chi _i
+     \forall i,j : \;  A^j X^j_i + B_j = \chi _i
 \end{array}\right.
 \label{XXXXX}
 \end{equation}
@@ -437,8 +446,8 @@ To summerize we try to solve the following system :
 where we have :
 
 \begin{itemize}
-	\item $2 M + N$ unknowns  $A^j,B^j,\chi _i$
-   \item $2 + N*M$ equations;		 
+    \item $2 M + N$ unknowns  $A^j,B^j,\chi _i$
+    \item $2 + N*M$ equations;
 \end{itemize}
 
 
@@ -462,7 +471,7 @@ Some draft idea on the \emph{to do} list , and the  \emph{who do what} list :
 \begin{itemize}
     \item  add a reader of lidar point, probably {\tt pdal}, in \PPP  :  {\bf MAC \& CM}
 
-    \item  make a simulation of perfect data with blunder  (can blunder transformate its model in point cloud) :{\bf MAC \& JMM}
+    \item  make a simulation of perfect data with Blender:{\bf MAC \& JMM}
 
     \item make a firt implementation of~\ref{LIR:SimplF} to have a concrete example of 
          how to use  \PPP's library in this approach, test it with perfect data, check that  with
