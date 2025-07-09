@@ -227,23 +227,9 @@ void BenchCamOrtho()
 
 /* ********************************************* */
 /*                                               */
-/*                cParamProjCloud                */
+/*                cProjPointCloud                */
 /*                                               */
 /* ********************************************* */
-
-/** Class for parametrization of cProjPointCloud::ProcessOneProj */
-
-class cParamProjCloud
-{
-   public :
-       cParamProjCloud(const tIMap_R3 * aProj) :
-           mProj   (aProj),
-           mCam    (nullptr)
-       {
-       }
-       const tIMap_R3 * mProj;
-       cSensorImage *   mCam;
-};
 
 ///  Class for computing projection of a point cloud
 
@@ -260,7 +246,7 @@ class cProjPointCloud
 
 	 // export the average of radiomeries (in mSumRad) as a field of mPC
          void ColorizePC(); 
-	 cCamOrthoC * CamOrtho(const cPt3dr & aDir,tREAL8 aMulSz = 1.0);
+	 cCamOrthoC * PPC_CamOrtho(const cPt3dr & aDir,tREAL8 aMulSz = 1.0);
 
 
      private :
@@ -291,7 +277,7 @@ class cProjPointCloud
          cDataIm2D<tREAL4>*       mDImWeigth;
 };
 
-cCamOrthoC * cProjPointCloud::CamOrtho(const cPt3dr & aDir,tREAL8 aMulSz)
+cCamOrthoC * cProjPointCloud::PPC_CamOrtho(const cPt3dr & aDir,tREAL8 aMulSz)
 {
    cBox3dr   aBox3 = mPC.Box3d();
    cBox2dr   aBox2 = mPC.Box2d();
@@ -726,7 +712,7 @@ int  cAppli_MMVII_CloudColorate::Exe()
            cPt3dr aDir = VUnit(aSampS.KthPt(aK));
            if (aDir.z() >= 0.2)
            {
-               std::unique_ptr<cCamOrthoC> aCam (aPPC.CamOrtho(aDir));
+               std::unique_ptr<cCamOrthoC> aCam (aPPC.PPC_CamOrtho(aDir));
                aPPC.ProcessOneProj(mSurResol,*aCam,1.0,false);
                aNbStd++;
                StdOut() << "Still " << aSampS.NbSamples() - aK << "\n";
@@ -737,7 +723,7 @@ int  cAppli_MMVII_CloudColorate::Exe()
    if (IsInit(&mSun))
    {
        tREAL8 aW0  = mNbSampS ? aNbStd : 1.0;
-       std::unique_ptr<cCamOrthoC> aCam (aPPC.CamOrtho(cPt3dr(mSun.x(),mSun.y(),1.0)));
+       std::unique_ptr<cCamOrthoC> aCam (aPPC.PPC_CamOrtho(cPt3dr(mSun.x(),mSun.y(),1.0)));
        aPPC.ProcessOneProj(mSurResol,*aCam,aW0 * mSun.z(),false);
    }
 
@@ -850,7 +836,7 @@ int  cAppli_MMVII_CloudImProj::Exe()
 
    if  (IsInit(&mSun))
    {
-       std::unique_ptr<cCamOrthoC> aCam (aPPC.CamOrtho(cPt3dr(mSun.x(),mSun.y(),1.0)));
+       std::unique_ptr<cCamOrthoC> aCam (aPPC.PPC_CamOrtho(cPt3dr(mSun.x(),mSun.y(),1.0)));
        aPPC.ProcessOneProj(mSurResolSun,*aCam,mSun.z(),false);
 
        aPPC.ColorizePC();
@@ -874,7 +860,7 @@ int  cAppli_MMVII_CloudImProj::Exe()
 
        for (int aK=-aNbPos ; aK<=aNbPos ; aK++)
        {
-           std::unique_ptr<cCamOrthoC> aCam (aPPC.CamOrtho(cPt3dr(aK*0.2,0.0,1.0)));
+           std::unique_ptr<cCamOrthoC> aCam (aPPC.PPC_CamOrtho(cPt3dr(aK*0.2,0.0,1.0)));
            aPPC.ProcessOneProj(aSurResCloud,*aCam,0.0,true);
            aPPC.ProcessImage(aSurResCloud/aSousResIm,*aCam,"IIP");
        }
