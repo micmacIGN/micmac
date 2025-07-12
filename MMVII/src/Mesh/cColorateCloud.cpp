@@ -388,6 +388,7 @@ void cProjPointCloud::ProcessOneProj(tREAL8 aSurResol,const cSensorImage & aSens
      }
 
 
+
      //    [0.2]  ---------- compute the images indexes of points + its box  & sz ---
      mBoxInd= cTplBoxOfPts<int,2> (); //
      mVPtImages.clear();
@@ -397,6 +398,20 @@ void cProjPointCloud::ProcessOneProj(tREAL8 aSurResol,const cSensorImage & aSens
          cPt2di anInd = ToI(  (Proj(aPt)-aPMin)*aSurResol   );  // compute image index
          mBoxInd.Add(anInd); // memo in box
          mVPtImages.push_back(anInd); 
+     }
+
+     mSzIm = ( isModeImage ?    mBoxInd.CurBox().P1() : mBoxInd.CurBox().Sz())   + cPt2di(1,1);
+
+
+     if (isModeImage)
+     {
+        auto aBox = cBox3dr::FromVect(mVPtsProj);
+        StdOut() <<  " Box3D= " << aBox 
+                 <<  " BoxInd= "  << mBoxInd.CurBox()
+                 << " SzSens=" << aSensor.Sz() 
+                 << " SzIm=" << mSzIm
+                 << " SR="  << aSurResol 
+                 << "\n";
      }
 
      /*
@@ -418,7 +433,6 @@ void cProjPointCloud::ProcessOneProj(tREAL8 aSurResol,const cSensorImage & aSens
 
      //    [0.3]  ---------- Alloc images --------------------
      //    [0.3.1]   image of depth
-     mSzIm = mBoxInd.CurBox().Sz() + cPt2di(1,1);
 
 
 
@@ -546,17 +560,21 @@ void cProjPointCloud::ProcessOneProj(tREAL8 aSurResol,const cSensorImage & aSens
             mSumRad.at(aKPt) +=  aGray * aWeight;
          }
      }
+/*
      StdOut() << "LumStd=" << aLumPt.Average() 
              << " LumVis=" << aLumVis.Average() 
              << " NbVis/Im=" << tREAL8(aNbVisTot) / (mSzIm.x() * mSzIm.y())
              << "\n";
-     if (!isModeImage)
+*/
+     if (isModeImage)
      {
+        mDImRad->ToFile("IIII-RAD0.tif");
      }
 }
 
 void cProjPointCloud::ProcessImage(tREAL8 aSurResol,const cSensorImage & aSensor,const std::string & aPrefix)
 {
+     StdOut()  <<  "PROCIM SR=" << aSurResol << "\n";
      // =====================================================================================
      // == [3] ==================   compute the images (radiom, weight, depth) ==============
      // =====================================================================================
@@ -583,6 +601,8 @@ void cProjPointCloud::ProcessImage(tREAL8 aSurResol,const cSensorImage & aSensor
          mDImRad->SetV(aPix,aW ?  aR/aW : 0.0);
          mDImDepth->SetV(aPix,aW ?  aD/aW : 0.0);
      }
+
+    mDImRad->ToFile("IIII-RAD0-FILTR.tif");
        
      static int aCpt=0; aCpt++;
          
@@ -855,14 +875,14 @@ int  cAppli_MMVII_CloudImProj::Exe()
    {
        int aNbPos = 0;
        tREAL8 aSurResCloud = 2.0;
-       tREAL8 aSousResIm = 0.5;
+       // tREAL8 aSousResIm = 0.5;
 
 
        for (int aK=-aNbPos ; aK<=aNbPos ; aK++)
        {
            std::unique_ptr<cCamOrthoC> aCam (aPPC.PPC_CamOrtho(cPt3dr(aK*0.2,0.0,1.0)));
            aPPC.ProcessOneProj(aSurResCloud,*aCam,0.0,true);
-           aPPC.ProcessImage(aSurResCloud/aSousResIm,*aCam,"IIP");
+           aPPC.ProcessImage(aSurResCloud,*aCam,"IIP");
        }
    }
 
