@@ -240,7 +240,16 @@ class cProjPointCloud
          cProjPointCloud(cPointCloud & aParam,tREAL8 aWeightInit );
 
 	 /// Process on projection for  OR  (1) modify colorization of points (2) 
-         void ProcessOneProj(tREAL8 aSurResol,const cSensorImage &,tREAL8 aW,bool ModeImage);
+         void ProcessOneProj
+              (
+                    tREAL8 aSurResol,
+                    const cSensorImage &,
+                    tREAL8 aW,
+                    bool ModeImage,
+                    const std::string& aMsg,
+                    bool  ShowMsg,
+                    bool  ExportIm
+              );
          
          void ProcessImage(tREAL8 aSurResol,const cSensorImage &,const std::string & aPost);
 
@@ -341,7 +350,16 @@ void cProjPointCloud::ColorizePC()
    }
 }
 
-void cProjPointCloud::ProcessOneProj(tREAL8 aSurResol,const cSensorImage & aSensor,tREAL8 aWeight,bool isModeImage)
+void cProjPointCloud::ProcessOneProj
+     (
+             tREAL8 aSurResol,
+             const cSensorImage & aSensor,
+             tREAL8 aWeight,
+             bool isModeImage,
+             const std::string & aMsg,
+             bool  ShowMsg,
+             bool  ExportIm
+     )
 {
 
      mSumW += aWeight;               // accumlate weight
@@ -560,16 +578,48 @@ void cProjPointCloud::ProcessOneProj(tREAL8 aSurResol,const cSensorImage & aSens
             mSumRad.at(aKPt) +=  aGray * aWeight;
          }
      }
-/*
-     StdOut() << "LumStd=" << aLumPt.Average() 
+
+     if (ShowMsg)
+     {
+         StdOut() << " MSG=["  << aMsg << "]"
+             << "LumStd=" << aLumPt.Average() 
              << " LumVis=" << aLumVis.Average() 
              << " NbVis/Im=" << tREAL8(aNbVisTot) / (mSzIm.x() * mSzIm.y())
              << "\n";
-*/
-     if (isModeImage)
-     {
-        mDImRad->ToFile("IIII-RAD0.tif");
-     }
+    }
+
+    if (ExportIm)
+    {
+       std::string aPrefix = (isModeImage ? "IIIP-" : "Colorate-") + aMsg;
+       if (mDImRad)
+          mDImRad->ToFile(aPrefix+"-RAD.tif");
+       if (mDImWeigth)
+          mDImWeigth->ToFile(aPrefix+"-WEIGHT.tif");
+       if (mDImDepth)
+       {
+          tImageDepth aVMinInit =  aPlusInfty;
+          for (const auto & aPix : *mDImDepth)
+          {
+              const tImageDepth & aVal = mDImDepth->GetV(aPix);
+              if (aVal > aMinInfty)
+              {
+                  UpdateMin(aVMinInit,aVal);
+              }
+          }
+          for (const auto & aPix : *mDImDepth)
+          {
+              tImageDepth & aVal = mDImDepth->GetReference_V(aPix);
+              if (aVal == aMinInfty)
+              {
+                  aVal = aVMinInit - 100.0;
+              }
+          }
+          // StdOut() <<  "VMMMMin" << aVMinInit << "\n";
+                 
+
+          mDImDepth->ToFile(aPrefix+"-DEPTH.tif");
+       }
+    }
 }
 
 void cProjPointCloud::ProcessImage(tREAL8 aSurResol,const cSensorImage & aSensor,const std::string & aPrefix)
@@ -660,6 +710,8 @@ class cAppli_MMVII_CloudColorate : public cMMVII_Appli
         tREAL8   mSurResol;
         int      mNbSampS;
         cPt3dr   mSun;
+        bool     mShowMsg;
+        bool     mExportIm;
 };
 
 cAppli_MMVII_CloudColorate::cAppli_MMVII_CloudColorate
@@ -668,9 +720,11 @@ cAppli_MMVII_CloudColorate::cAppli_MMVII_CloudColorate
      const cSpecMMVII_Appli & aSpec
 ) :
      cMMVII_Appli    (aVArgs,aSpec),
-     mPropRayLeaf    (1.8,2.2),
+     mPropRayLeaf    (2.0,2.0),
      mSurResol       (2.0),
-     mNbSampS        (5)
+     mNbSampS        (5),
+     mShowMsg        (false),
+     mExportIm       (false)
 {
 }
 
@@ -690,6 +744,8 @@ cCollecSpecArg2007 & cAppli_MMVII_CloudColorate::ArgOpt(cCollecSpecArg2007 & anA
           << AOpt2007(mSurResol,"SurResol","Sur resol in computation (/ avg dist)",{eTA2007::HDV})
           << AOpt2007(mNbSampS,"NbSampS","Number of sample/face for sphere discretization",{eTA2007::HDV})
           << AOpt2007(mSun,"Sun","Sun : Dir3D=(x,y,1)  ,  Z=WEIGHT !! ")
+          << AOpt2007(mShowMsg,"ShowMsg","Print detailled message at each computation",{{eTA2007::HDV},{eTA2007::Tuning}})
+          << AOpt2007(mExportIm,"ExportIm","Export all individual images",{{eTA2007::HDV},{eTA2007::Tuning}})
    ;
 }
 
@@ -733,7 +789,9 @@ int  cAppli_MMVII_CloudColorate::Exe()
            if (aDir.z() >= 0.2)
            {
                std::unique_ptr<cCamOrthoC> aCam (aPPC.PPC_CamOrtho(aDir));
-               aPPC.ProcessOneProj(mSurResol,*aCam,1.0,false);
+               cPt3di aDirI = ToI(aDir*100.0);
+               std::string aMsg = ToStr(aDirI.x()) + "_" +  ToStr(aDirI.y()) + "_" +  ToStr(aDirI.z());
+               aPPC.ProcessOneProj(mSurResol,*aCam,1.0,false,aMsg,mShowMsg,mExportIm);
                aNbStd++;
                StdOut() << "Still " << aSampS.NbSamples() - aK << "\n";
            }
@@ -744,7 +802,7 @@ int  cAppli_MMVII_CloudColorate::Exe()
    {
        tREAL8 aW0  = mNbSampS ? aNbStd : 1.0;
        std::unique_ptr<cCamOrthoC> aCam (aPPC.PPC_CamOrtho(cPt3dr(mSun.x(),mSun.y(),1.0)));
-       aPPC.ProcessOneProj(mSurResol,*aCam,aW0 * mSun.z(),false);
+       aPPC.ProcessOneProj(mSurResol,*aCam,aW0 * mSun.z(),false,"",false,false);
    }
 
    aPPC.ColorizePC();
@@ -857,7 +915,7 @@ int  cAppli_MMVII_CloudImProj::Exe()
    if  (IsInit(&mSun))
    {
        std::unique_ptr<cCamOrthoC> aCam (aPPC.PPC_CamOrtho(cPt3dr(mSun.x(),mSun.y(),1.0)));
-       aPPC.ProcessOneProj(mSurResolSun,*aCam,mSun.z(),false);
+       aPPC.ProcessOneProj(mSurResolSun,*aCam,mSun.z(),false,"",false,false);
 
        aPPC.ColorizePC();
 
@@ -881,7 +939,7 @@ int  cAppli_MMVII_CloudImProj::Exe()
        for (int aK=-aNbPos ; aK<=aNbPos ; aK++)
        {
            std::unique_ptr<cCamOrthoC> aCam (aPPC.PPC_CamOrtho(cPt3dr(aK*0.2,0.0,1.0)));
-           aPPC.ProcessOneProj(aSurResCloud,*aCam,0.0,true);
+           aPPC.ProcessOneProj(aSurResCloud,*aCam,0.0,true,"",false,false);
            aPPC.ProcessImage(aSurResCloud,*aCam,"IIP");
        }
    }
