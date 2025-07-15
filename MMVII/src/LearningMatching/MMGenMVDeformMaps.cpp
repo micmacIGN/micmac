@@ -214,21 +214,20 @@ namespace  MMVII {
 
                           }
                     }
-
                 }
             }
-          // dilate before saving
-          auto  aMxImV1  = cMMV1_Conv<tU_INT1>::ImToMMV1(aMxIm);
-          // dilate
-          ELISE_COPY(aMxImV1.all_pts(),
-                     dilat_d8(aMxImV1.in(0),4),
-                     aMxImV1.out());
+            // dilate before saving
+              auto  aMxImV1  = cMMV1_Conv<tU_INT1>::ImToMMV1(aMxIm);
+              // dilate
+              ELISE_COPY(aMxImV1.all_pts(),
+                         dilat_d8(aMxImV1.in(0),4),
+                         aMxImV1.out());
 
-          // save Dx, Dy, Mx, My
-          aDxIm.ToFile(NameOut(itV->N1()+"__"+itV->N2(),"Dx"));
-          aDyIm.ToFile(NameOut(itV->N1()+"__"+itV->N2(),"Dy"));
-          aMxIm.ToFile(NameOut(itV->N1()+"__"+itV->N2(),"Mx"));
-          aMyIm.ToFile(NameOut(itV->N1()+"__"+itV->N2(),"My"));
+              // save Dx, Dy, Mx, My
+              aDxIm.ToFile(NameOut(itV->N1()+"__"+itV->N2(),"Dx"));
+              aDyIm.ToFile(NameOut(itV->N1()+"__"+itV->N2(),"Dy"));
+              aMxIm.ToFile(NameOut(itV->N1()+"__"+itV->N2(),"Mx"));
+              aMyIm.ToFile(NameOut(itV->N1()+"__"+itV->N2(),"My"));
         }
 
       return EXIT_SUCCESS;

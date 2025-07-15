@@ -95,17 +95,24 @@ namespace  cNS_MMGenDepthMV
     cAppliMMGenDepthMV(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
     cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
     cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
-    int ExeMMGenDepth();
+    int ExeScale();
     int Exe() override;
     int ExeOnParsedBox() override;
     bool MakeDecision(std::vector<cPt3dr> & aVecPoints);
+
+    std::string NameImOri(std::string NameIM,std::string OriFolder, string SuffOri);
     void Generate_sparse_depth(std::string aNameImage,
                                 std::vector<std::string> aVecLidar,
                                 size_t aSzMin,
                                 tREAL8 aThresholdVisbility);
+    void OneVisibilitySimple(size_t & aSzMin,
+                             tREAL8 & aThresholdCriteria,
+                             int nbIter,
+                             bool isVisibility=true);
+
     void OneVisibility(size_t & aSzMin,
                        tREAL8 & aThresholdCriteria,
-                       std::vector<tREAL8> & aSurfVec,
+                      /* std::vector<tREAL8> & aSurfVec,*/
                        int nbIter,
                        bool isVisibility=true);
     void filter_on_visibility(std::vector<tREAL8> & aSurfVec, tREAL8 aThresh);
@@ -117,11 +124,13 @@ namespace  cNS_MMGenDepthMV
    cTriangulation3D<tREAL8>* mTri3DReproj;
    std::string mSpecImIn;
    std::string mPatternLidar;
-   std::string mNameOutDepth="Depth_2_";
+   std::string mOriFolder;
+   std::string mNameOutDepth="Depth_";
    std::string mNameOutMasq ="Masq_2_";
    size_t                    mNbF;
    size_t                    mNbP;
    cSensorCamPC *            mCamPC;
+   CamStenope * mCamPCV1;
    tImDepth mDepthImage;
    tImMasq mMasqImage;
    tDImDepth * mDDepthImage;
@@ -158,6 +167,7 @@ namespace  cNS_MMGenDepthMV
      mTri3D           (nullptr),
      mTri3DReproj     (nullptr),
      mCamPC           (nullptr),
+     mCamPCV1         (nullptr),
      mDepthImage    (cPt2di(1,1)),
      mMasqImage     (cPt2di(1,1)),
      mDDepthImage       (nullptr),
@@ -181,7 +191,8 @@ namespace  cNS_MMGenDepthMV
       return anArgObl
              << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
              << Arg2007(mPatternLidar,"Pattern of input clouds",{{eTA2007::MPatFile,"1"}})
-             << mPhProj.DPOrient().ArgDirInMand()
+             << Arg2007(mOriFolder,"Pattern of input clouds",{{eTA2007::FolderAny,"1"}})
+             //<< mPhProj.DPOrient().ArgDirInMand()
              << mPhProj.DPMeshDev().ArgDirOutMand()
           ;
   }
@@ -321,124 +332,119 @@ namespace  cNS_MMGenDepthMV
                                                  size_t aSzMin,
                                                  tREAL8 aThresholdVisbility)
   {
-      mCamPC=mPhProj.ReadCamPC(aNameImage,true);
+      //mCamPC=mPhProj.ReadCamPC(aNameImage,true);
 
       // Depth
-      mDepthImage=cIm2D<tElemDepth>(mCamPC->Sz(),nullptr,eModeInitImage::eMIA_Null);
+      cPt2di aSz =cPt2di(mCamPCV1->Sz().x,mCamPCV1->Sz().y);
+      mDepthImage=cIm2D<tElemDepth>(aSz,nullptr,eModeInitImage::eMIA_Null);
       mDDepthImage=&(mDepthImage.DIm());
 
       //Masq
 
-      mMasqImage=cIm2D<tElemMasq>(mCamPC->Sz(),nullptr,eModeInitImage::eMIA_Null);
+      mMasqImage=cIm2D<tElemMasq>(aSz,nullptr,eModeInitImage::eMIA_Null);
       mDMasqImage=&(mMasqImage.DIm());
 
 
       // project cloud into image geometry x,y and depth
       std::vector <cPt3dr> aVPts;
       std::vector <cPt3di> aFaces;
-      mFirstVisIndices.clear();
+      #pragma omp parallel
       {
-          for (const std::string & aLidarName: aVecLidar)
+          std::vector <cPt3dr> aVPts_private;
+          #pragma omp for
+          for (size_t idLidar= 0; idLidar<aVecLidar.size(); idLidar++ ) //const std::string & aLidarName: aVecLidar)
           {
-              mTri3D= new cTriangulation3D<tREAL8>(aLidarName);
+              std::string aLidarName = aVecLidar[idLidar];
+              StdOut()<<aLidarName<<std::endl;
+              cTriangulation3D<tREAL8>* aTri3D= new cTriangulation3D<tREAL8>(aLidarName);
 
-              for (size_t aKP=0; aKP<mTri3D->NbPts();aKP++)
+              for (size_t aKP=0; aKP<aTri3D->NbPts();aKP++)
               {
-                  cPt3dr aP3D=ToR(mTri3D->KthPts(aKP));
-                  if (mCamPC->IsVisible(aP3D))
+                  cPt3dr aP3D=ToR(aTri3D->KthPts(aKP));
+                  Pt3dr aP3DMMV1= Pt3dr(aP3D.x(),aP3D.y(),aP3D.z());
+                  if (mCamPCV1->PIsVisibleInImage(aP3DMMV1))
                   {
+                      Pt2dr aP2DCapteur = mCamPCV1->Ter2Capteur(aP3DMMV1);
+
+                      /*
                       cPt3dr aPt(mCamPC->Ground2Image(aP3D).x(),
                                  mCamPC->Ground2Image(aP3D).y(),
                                  mCamPC->Pose().Inverse(aP3D).z());
-
-                      aVPts.push_back(aPt);
-                      mFirstVisIndices.push_back(aKP);
+                      */
+                      cPt3dr aPt (aP2DCapteur.x,
+                                  aP2DCapteur.y,
+                                 mCamPCV1->ProfondeurDeChamps(aP3DMMV1));
+                      aVPts_private.push_back(aPt);
                   }
-
               }
+              aTri3D =nullptr;
           }
+          // fill global aVPts
+          #pragma omp critical
+          aVPts.insert(aVPts.end(),aVPts_private.begin(),aVPts_private.end());
       }
 
-      //mTri3D=nullptr;
 
       if (aVPts.empty())
           return;
 
       mTri3DReproj =new cTriangulation3D<tREAL8>(aVPts,aFaces);
 
-      mSelectedVisIndices.clear();
-
-      std::vector<tREAL8> aSurfVarVec;
-      OneVisibility(aSzMin,aThresholdVisbility,aSurfVarVec,0);
-
-      // second iteration based on maintained visible points
-
-      // parse all selected points and recompute a second triangulation
-
-      std::vector<cPt3dr> aVSPts;
-
-      for ( const auto & aKPt : mSelectedVisIndices)
+      if (0)
       {
-          aVSPts.push_back(mTri3DReproj->KthPts(aKPt));
+          OneVisibilitySimple(aSzMin,aThresholdVisbility,0);
       }
-
-      mTri3DReproj= nullptr;
-
-      mTri3DReproj= new cTriangulation3D<tREAL8>(aVSPts,aFaces);
-
-      mSelectedVisIndices.clear();
-      aSurfVarVec.clear();
-
-      OneVisibility(aSzMin,aThresholdVisbility,aSurfVarVec,1);
-
-
-      //filter_on_visibility(aSurfVarVec,aThresholdVisbility);
-
-      //int anInd=0;
-      for ( const auto & aKPt : mSelectedVisIndices)
+      else
       {
-          cPt3dr aPtS= mTri3DReproj->KthPts(aKPt);
+          mSelectedVisIndices.clear();
 
-          cPt2di aP2DCam=Pt_round_ni(cPt2dr(aPtS.x(),aPtS.y()));
-          if (mDDepthImage->Inside(aP2DCam))
+          OneVisibility(aSzMin,aThresholdVisbility,0);
+
+         std::vector<cPt3dr> aVSPts;
+
+          for ( const auto & aKPt : mSelectedVisIndices)
           {
-              if (mDMasqImage->GetV(aP2DCam))
-              {
-                  if (mDDepthImage->GetV(aP2DCam)>aPtS.z())
-                  {
-                      mDDepthImage->SetV(aP2DCam,aPtS.z());
-                  }
-              }
-              else
-              {
-                  mDDepthImage->SetV(aP2DCam,aPtS.z());
-                  mDMasqImage->SetV(aP2DCam,1);
-              }
+              aVSPts.push_back(mTri3DReproj->KthPts(aKPt));
           }
 
-          /*if (mDDepthImage->Inside(aP2DCam))
+          mTri3DReproj= nullptr;
+
+          mTri3DReproj= new cTriangulation3D<tREAL8>(aVSPts,aFaces);
+
+          mSelectedVisIndices.clear();
+
+          OneVisibility(aSzMin,aThresholdVisbility,1);
+
+         for ( const auto & aKPt : mSelectedVisIndices)
               {
-                  if (mDMasqImage->GetV(aP2DCam))
-                    {
-                      if (mDDepthImage->GetV(aP2DCam)<aSurfVarVec[anInd])
+                  cPt3dr aPtS= mTri3DReproj->KthPts(aKPt);
+
+                  cPt2di aP2DCam=Pt_round_ni(cPt2dr(aPtS.x(),aPtS.y()));
+                  if (mDDepthImage->Inside(aP2DCam))
+                  {
+                      if (mDMasqImage->GetV(aP2DCam))
                       {
-                          mDDepthImage->SetV(aP2DCam,aSurfVarVec[anInd]);
+                          if (mDDepthImage->GetV(aP2DCam)>aPtS.z())
+                          {
+                              mDDepthImage->SetV(aP2DCam,aPtS.z());
+                          }
                       }
-                    }
-                  else
-                    {
-                      mDDepthImage->SetV(aP2DCam,aSurfVarVec[anInd]);
-                      mDMasqImage->SetV(aP2DCam,1);
-                    }
+                      else
+                      {
+                          mDDepthImage->SetV(aP2DCam,aPtS.z());
+                          mDMasqImage->SetV(aP2DCam,1);
+                      }
+                  }
               }
-          anInd++;*/
+          StdOut()<<" Selected VISIBLE Points "<<mSelectedVisIndices.size()<<std::endl;
       }
-      StdOut()<<" Selected VISIBLE Points "<<mSelectedVisIndices.size()<<std::endl;
+
+
       mTri3DReproj= nullptr;
 
       // save Depth image
-      mDDepthImage->ToFile(mNameOutDepth+mCamPC->NameImage());
-      mDMasqImage->ToFile(mNameOutMasq+mCamPC->NameImage());
+      mDDepthImage->ToFile(mNameOutDepth+/*mCamPC->NameImage()*/ aNameImage);
+      mDMasqImage->ToFile(mNameOutMasq+/*mCamPC->NameImage()*/ aNameImage);
 
       //mCamPC=nullptr;
       mDDepthImage=nullptr;
@@ -450,7 +456,6 @@ namespace  cNS_MMGenDepthMV
 
   void cAppliMMGenDepthMV::OneVisibility(size_t & aSzMin,
                                          tREAL8 & aThresholdCriteria,
-                                         std::vector<tREAL8> & aSurfVec,
                                          int nbIter,
                                          bool isVisibility)
   {
@@ -466,9 +471,10 @@ namespace  cNS_MMGenDepthMV
       {
           aTileAll.Add(cTil2DTri3D<tREAL8>(aKP));
       }
-      //#pragma omp parallel
+      #pragma omp parallel
       {
-          //#pragma omp for
+          std::vector<int> aVPts_private;
+          #pragma omp for
           for (size_t aKPt=0; aKPt<mTri3DReproj->NbPts(); aKPt++)
           {
               cPt2dr aPt= ToR(Proj(mTri3DReproj->KthPts(aKPt)));
@@ -519,17 +525,95 @@ namespace  cNS_MMGenDepthMV
                             continue;
                       }
                   }
-                aSurfVec.push_back((nbIter==0) ? aVisibility : aSurfaceVariation);
               }
 
-              else
+              aVPts_private.push_back(aKPt);
+          }
+
+
+
+        // fill global aVPts
+        #pragma omp critical
+          mSelectedVisIndices.insert(mSelectedVisIndices.end(),aVPts_private.begin(),aVPts_private.end());
+      }
+  }
+
+
+  void cAppliMMGenDepthMV::OneVisibilitySimple(size_t & aSzMin,
+                                         tREAL8 & aThresholdCriteria,
+                                         int nbIter,
+                                         bool isVisibility)
+  {
+      tREAL8 aDistReject;
+      //1. Nearest Neighbor search in 2D
+      cBox2dr aBox = mTri3DReproj->Box2D();
+      std::cout<<"BOX  "<<aBox<<std::endl;
+      aDistReject=1.0*std::sqrt(mNbPointByPatch *aBox.NbElem()/ (mTri3DReproj->NbPts()*M_PI));
+      // indexation of all points
+      std::cout<<"aDist Reject "<<aDistReject<<std::endl;
+      cTiling<cTil2DTri3D<tREAL8> >  aTileAll(aBox,true,mTri3DReproj->NbPts()/20,mTri3DReproj);
+      {
+          for (size_t aKP=0 ; aKP<mTri3DReproj->NbPts() ; aKP++)
+          {
+              aTileAll.Add(cTil2DTri3D<tREAL8>(aKP));
+          }
+      }
+
+      #pragma omp parallel
+      {
+          #pragma omp for
+          for (size_t aKPt=0; aKPt<mTri3DReproj->NbPts(); aKPt++)
+          {
+              cPt3dr aP3D=mTri3DReproj->KthPts(aKPt);
+              cPt2dr aPt= ToR(Proj(aP3D));
+              auto aLIptr = aTileAll.GetObjAtDist(aPt,aDistReject);
+              std::vector<int> aPatch; // the patch itself = index of points
+              aPatch.push_back(aKPt);  // add the center at begining
+              for (const auto aPtrI : aLIptr)
               {
-                  // use surface variation
-                   tREAL8 aSurfaceVariation= Surface_Variation(aVP);
-                  aSurfVec.push_back(aSurfaceVariation);
-
+                  if (aPtrI->Ind() !=aKPt) // dont add the center twice
+                  {
+                      aPatch.push_back(aPtrI->Ind());
+                  }
               }
-              mSelectedVisIndices.push_back(aKPt);
+
+              std::vector<cPt3dr> aVP;
+              for (const auto anInd : aPatch)
+                  aVP.push_back(ToR(mTri3DReproj->KthPts(anInd)));
+
+              if(aVP.size()<aSzMin)
+                  continue;
+
+              cWhichMinMax<int, tREAL8> aWMM(0,aVP[0].z());
+              for (size_t iKP=1; iKP<aVP.size();iKP++)
+              {
+                  aWMM.Add(iKP,aVP[iKP].z());
+              }
+
+              tREAL8 aDMax= aVP[aWMM.Max().IndexExtre()].z();
+              tREAL8 aDMin= aVP[aWMM.Min().IndexExtre()].z();
+              tREAL8 aVisibility = exp (-pow(aVP[0].z()-aDMin,2)/pow(aDMax-aDMin,2));
+
+              if (aVisibility<aThresholdCriteria)
+                  continue;
+
+              // fill in image
+              cPt2di aP2DCam=Pt_round_ni(aPt);
+              if (mDDepthImage->Inside(aP2DCam))
+              {
+                  if (mDMasqImage->GetV(aP2DCam))
+                  {
+                      if (mDDepthImage->GetV(aP2DCam)>aP3D.z())
+                      {
+                          mDDepthImage->SetV(aP2DCam,aP3D.z());
+                      }
+                  }
+                  else
+                  {
+                      mDDepthImage->SetV(aP2DCam,aP3D.z());
+                      mDMasqImage->SetV(aP2DCam,1);
+                  }
+              }
           }
       }
   }
@@ -608,15 +692,19 @@ namespace  cNS_MMGenDepthMV
       }
   }
 
+  std::string cAppliMMGenDepthMV::NameImOri(std::string NameIM,std::string OriFolder, string SuffOri)
+  {
+      return OriFolder+"/"+SuffOri+NameIM+".xml";
+  }
 
 
   int cAppliMMGenDepthMV::ExeOnParsedBox()
   {
       // densify depth map using delaunay triangulation
-      mDepthImage = APBI_ReadIm<tElemDepth>(mNameOutDepth+mCamPC->NameImage());
+      mDepthImage = APBI_ReadIm<tElemDepth>(mNameOutDepth+mNameIm);
       mDDepthImage = &(mDepthImage.DIm());
 
-      mMasqImage = APBI_ReadIm<tElemMasq>(mNameOutMasq+mCamPC->NameImage());
+      mMasqImage = APBI_ReadIm<tElemMasq>(mNameOutMasq+mNameIm);
       mDMasqImage= &(mMasqImage.DIm());
 
 
@@ -656,7 +744,7 @@ namespace  cNS_MMGenDepthMV
   }
 
 
-  int cAppliMMGenDepthMV::ExeMMGenDepth()
+  int cAppliMMGenDepthMV::Exe()
   {
       mPhProj.FinishInit();
 
@@ -665,12 +753,21 @@ namespace  cNS_MMGenDepthMV
 
     // Pattern of Lidar data files
       std::vector<std::string> aVecLidar= VectMainSet(1);
+
+    // temporary pattern for reading MMV1 Orientation folder
+
+
+      cInterfChantierNameManipulateur * aICNMOris=cInterfChantierNameManipulateur::BasicAlloc(mOriFolder);
+
       size_t aSzMin=5;
-      tREAL8 aThresholdVisbility=0.65;
+      tREAL8 aThresholdVisbility=0.68;
 
       for (const auto & anImageName: aVecIms)
       {
           // generate depth
+          std::string aNameImOri = NameImOri(anImageName,mOriFolder,"Orientation-");
+
+          mCamPCV1 = CamOrientGenFromFile(aNameImOri,aICNMOris);
 
           Generate_sparse_depth(anImageName,
                                 aVecLidar,
@@ -680,8 +777,9 @@ namespace  cNS_MMGenDepthMV
           std::cout<<"Generated depth map : sparse "<<anImageName<<std::endl;
 
           this->mNameIm=anImageName;
-          mCamPC=mPhProj.ReadCamPC(anImageName,true);
-          // densify
+          //mCamPC=mPhProj.ReadCamPC(anImageName,true);
+
+           // densify
           if (RunMultiSet(0,0))
               return ResultMultiSet();
           APBI_ExecAll();
@@ -697,7 +795,7 @@ namespace  cNS_MMGenDepthMV
  // Test MulScaledInterpolator
 
 
-  int cAppliMMGenDepthMV::Exe()
+  int cAppliMMGenDepthMV::ExeScale()
   {
       mPhProj.FinishInit();
 

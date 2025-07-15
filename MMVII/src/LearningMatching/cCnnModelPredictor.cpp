@@ -362,7 +362,9 @@ torch::Tensor aCnnModelPredictor::PredictMSNetTileFeatures(torch::jit::script::M
     torch::NoGradGuard no_grad;
     mNet.eval();
     tREAL4 ** mPatchLData=aPatchLV.DIm().ExtractRawData2D();
-    torch::Tensor aPL=torch::from_blob((*mPatchLData), {1,1,aPSz.y(),aPSz.x()}, torch::TensorOptions().dtype(torch::kFloat32)).to(device);
+    torch::Tensor aPL=torch::from_blob((*mPatchLData),
+                                         {1,1,aPSz.y(),aPSz.x()},
+                                         torch::TensorOptions().dtype(torch::kFloat32)).to(device);
     // Normalize The tile with respect to the dataset configuration
     // print image content
     //std::cout<<"TILE CONTENT  ========= >  "<<aPL<<std::endl;

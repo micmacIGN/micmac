@@ -113,8 +113,12 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
                                    aCam->InternalCalib()->DegDir(),
                                    aCam->InternalCalib()->VParamDist(),
                                    cMapPProj2Im(aCurrentFocal,
-                                                aCam->InternalCalib()->PP()),
-                                   cDataPixelDomain(aCam->InternalCalib()->SzPix()),
+                                                aCam->InternalCalib()->PP()/aCurrentScale),
+                                   cDataPixelDomain(Pt_round_up(
+                                                      DivCByC(ToR(aCam->InternalCalib()->SzPix()),
+                                                                cPt2dr(aCurrentScale,aCurrentScale))
+                                                                )
+                                                    ),
                                    cPt3di(0,0,1),
                                    10
                                    )
