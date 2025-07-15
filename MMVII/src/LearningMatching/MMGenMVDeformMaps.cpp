@@ -42,7 +42,7 @@ namespace  MMVII {
       string NameImOri(string NameIM,std::string OriFolder, string SuffOri);
       string NameOut(string NameIm, string sfx);
 
-      std::string  mXmlCouplesImages;
+      std::string  mNameIm1, mNameIm2;
       std::string mOriFolder;
       std::string mNameSuffixOut;
       bool mConik=true;
@@ -72,7 +72,8 @@ namespace  MMVII {
     {
       return
            anArgObl
-               <<   Arg2007(mXmlCouplesImages,"xml file from mm3d GrapheHom to get pair of viewing images")
+               <<   Arg2007(mNameIm1,"xml file from mm3d GrapheHom to get pair of viewing images")
+               <<   Arg2007(mNameIm2,"xml file from mm3d GrapheHom to get pair of viewing images")
                <<   Arg2007(mOriFolder,"Micmac Orientation Folder with Ori")
               // <<   Arg2007(mMasterImage,"Master image to project point cloud to it !")
                //<<   Arg2007(mPointCloud,"Point cloud in ply or las format !")
@@ -121,114 +122,103 @@ namespace  MMVII {
       std::string aDirOris,aPatOri;
       SplitDirAndFile(aDirOris,aPatOri,mOriFolder,false);
      // load xml image pairs
-      MMVII_INTERNAL_ASSERT_strong(mXmlCouplesImages!="", " Please give cple file as of mm3d GrapheHom !");
-      cSauvegardeNamedRel aCpleSet = StdGetFromPCP(mXmlCouplesImages,SauvegardeNamedRel);
       cInterfChantierNameManipulateur * aICNMOris=cInterfChantierNameManipulateur::BasicAlloc(aDirOris);
-      std::vector<cCpleString>::iterator itV=aCpleSet.Cple().begin();
+      N1=NameImDepth(mNameIm1);
+      N1M=NameImMasq(mNameIm1);
+      N1Ori=NameImOri(mNameIm1,aDirOris,mConik ? "Orientation-":"GB-Orientation-:");
+      N2=NameImDepth(mNameIm2);
+      N2M=NameImMasq(mNameIm2);
+      N2Ori=NameImOri(mNameIm2,aDirOris,mConik ? "Orientation-":"GB-Orientation-:");
 
-      for (
-           ;itV!=aCpleSet.Cple().end()
-           ;itV++
-           )
+      // get orientations
+      CamStenope * aCam1 = CamOrientGenFromFile(N1Ori,aICNMOris);
+      CamStenope * aCam2 = CamOrientGenFromFile(N2Ori,aICNMOris);
+
+      mSzIm=cPt2di(aCam1->Sz().x,aCam1->Sz().y);
+
+      // read images Depth and Masqs
+      tImDepth aDepth1=tImDepth::FromFile(N1);
+      tDImDepth & aDDepth1=aDepth1.DIm();
+      tImDepth aDepth2=tImDepth::FromFile(N2);
+      tDImDepth & aDDepth2=aDepth2.DIm();
+
+      // Masq
+      tImMasq aMasq1=tImMasq::FromFile(N1M);
+      tDImMasq & aDDMasq1=aMasq1.DIm();
+
+      tImMasq aMasq2=tImMasq::FromFile(N2M);
+      tDImMasq & aDDMasq2=aMasq2.DIm();
+
+      // Create Images Out Dx, Dy
+
+      mDx=tImDepth(mSzIm,nullptr,eModeInitImage::eMIA_Null);
+      //mDy=tImDepth(mSzIm,nullptr,eModeInitImage::eMIA_Null);
+      mMx =tImMasq(mSzIm,nullptr,eModeInitImage::eMIA_Null);
+      //mMy =tImMasq(mSzIm,nullptr,eModeInitImage::eMIA_Null);
+
+      tDImDepth & aDxIm = mDx.DIm();
+      aDxIm.InitCste(NODATA);
+      //tDImDepth & aDyIm = mDy.DIm();
+      //aDyIm.InitCste(NODATA);
+      tDImMasq  & aMxIm= mMx.DIm();
+      //tDImMasq  & aMyIm= mMy.DIm();
+
+      // reproject row, col , depth from Im1 to Im2 and store Offset x and Offset y
+
+      cPt2di aPix;
+      for (aPix.y()=0;aPix.y()<mSzIm.y();aPix.y()++)
         {
-
-          N1=NameImDepth(itV->N1());
-          N1M=NameImMasq(itV->N1());
-          N1Ori=NameImOri(itV->N1(),aDirOris,mConik ? "Orientation-":"GB-Orientation-:");
-          N2=NameImDepth(itV->N2());
-          N2M=NameImMasq(itV->N2());
-          N2Ori=NameImOri(itV->N2(),aDirOris,mConik ? "Orientation-":"GB-Orientation-:");
-
-          // get orientations
-          CamStenope * aCam1 = CamOrientGenFromFile(N1Ori,aICNMOris);
-          CamStenope * aCam2 = CamOrientGenFromFile(N2Ori,aICNMOris);
-
-          mSzIm=cPt2di(aCam1->Sz().x,aCam1->Sz().y);
-
-          // read images Depth and Masqs
-          tImDepth aDepth1=tImDepth::FromFile(N1);
-          tDImDepth & aDDepth1=aDepth1.DIm();
-          tImDepth aDepth2=tImDepth::FromFile(N2);
-          tDImDepth & aDDepth2=aDepth2.DIm();
-
-          // Masq
-          tImMasq aMasq1=tImMasq::FromFile(N1M);
-          tDImMasq & aDDMasq1=aMasq1.DIm();
-
-          tImMasq aMasq2=tImMasq::FromFile(N2M);
-          tDImMasq & aDDMasq2=aMasq2.DIm();
-
-          // Create Images Out Dx, Dy
-
-          mDx=tImDepth(mSzIm,nullptr,eModeInitImage::eMIA_Null);
-          mDy=tImDepth(mSzIm,nullptr,eModeInitImage::eMIA_Null);
-          mMx =tImMasq(mSzIm,nullptr,eModeInitImage::eMIA_Null);
-          mMy =tImMasq(mSzIm,nullptr,eModeInitImage::eMIA_Null);
-
-          tDImDepth & aDxIm = mDx.DIm();
-          aDxIm.InitCste(NODATA);
-          tDImDepth & aDyIm = mDy.DIm();
-          aDyIm.InitCste(NODATA);
-          tDImMasq  & aMxIm= mMx.DIm();
-          tDImMasq  & aMyIm= mMy.DIm();
-
-          // reproject row, col , depth from Im1 to Im2 and store Offset x and Offset y
-
-          cPt2di aPix;
-          for (aPix.y()=0;aPix.y()<mSzIm.y();aPix.y()++)
+          for (aPix.x()=0;aPix.x()<mSzIm.x();aPix.x()++)
             {
-              for (aPix.x()=0;aPix.x()<mSzIm.x();aPix.x()++)
+              if (aDDMasq1.GetV(aPix))
                 {
-                  if (aDDMasq1.GetV(aPix))
-                    {
-                      // DDEPTH CONTAINS GROUND TRUTH
-                      // ADD perturbations to let locations in the image traval along epipolar lines
-                        Pt3dr aTer=aCam1->ImEtProf2Terrain(Pt2dr(aPix.x(),aPix.y()),aDDepth1.GetV(aPix));
-                        //
-                        //aTer.z+=
+                  // DDEPTH CONTAINS GROUND TRUTH
+                  // ADD perturbations to let locations in the image traval along epipolar lines
+                    Pt3dr aTer=aCam1->ImEtProf2Terrain(Pt2dr(aPix.x(),aPix.y()),aDDepth1.GetV(aPix));
+                    //
+                    //aTer.z+=
 
-                        if (aCam2->PIsVisibleInImage(aTer))
+                    if (aCam2->PIsVisibleInImage(aTer))
+                      {
+                        Pt2dr PtCam=aCam2->Ter2Capteur(aTer);
+                        // Check if we can get back to the first point
+                        aDxIm.SetV(aPix,PtCam.x-aPix.x());
+                        //aDyIm.SetV(aPix,PtCam.y-aPix.y());
+
+                        cPt2dr aPMM2=cPt2dr(PtCam.x,PtCam.y);
+                        if (aDDepth2.InsideBL(aPMM2))
                           {
-                            Pt2dr PtCam=aCam2->Ter2Capteur(aTer);
-                            // Check if we can get back to the first point
-                            aDxIm.SetV(aPix,PtCam.x-aPix.x());
-                            aDyIm.SetV(aPix,PtCam.y-aPix.y());
-
-                            cPt2dr aPMM2=cPt2dr(PtCam.x,PtCam.y);
-                            if (aDDepth2.InsideBL(aPMM2))
+                            Pt3dr aP3DIm2=aCam2->ImEtProf2Terrain(PtCam,aDDepth2.GetVBL(aPMM2));
+                            Pt2dr aP2InCam1=aCam1->Ter2Capteur(aP3DIm2);
+                            Pt2dr aDiff= aP2InCam1-Pt2dr(aPix.x(),aPix.y());
+                            if ((sqrt(aDiff.x*aDiff.x+aDiff.y*aDiff.y))<0.5) // Reprojection to the same point
                               {
-                                Pt3dr aP3DIm2=aCam2->ImEtProf2Terrain(PtCam,aDDepth2.GetVBL(aPMM2));
-                                Pt2dr aP2InCam1=aCam1->Ter2Capteur(aP3DIm2);
-                                Pt2dr aDiff= aP2InCam1-Pt2dr(aPix.x(),aPix.y());
-                                if ((sqrt(aDiff.x*aDiff.x+aDiff.y*aDiff.y))<0.5) // Reprojection to the same point
+                                // point is visible in both images
+                                cPt2di aIntP((int)PtCam.x,(int)PtCam.y);
+                                if(aDDMasq2.GetV(aIntP))
                                   {
-                                    // point is visible in both images
-                                    cPt2di aIntP((int)PtCam.x,(int)PtCam.y);
-                                    if(aDDMasq2.GetV(aIntP))
-                                      {
-                                        aMxIm.SetV(aPix,1);
-                                        aMyIm.SetV(aPix,1);
-                                      }
+                                    aMxIm.SetV(aPix,1);
+                                    //aMyIm.SetV(aPix,1);
                                   }
                               }
-
                           }
-                    }
+
+                      }
                 }
             }
-            // dilate before saving
-              auto  aMxImV1  = cMMV1_Conv<tU_INT1>::ImToMMV1(aMxIm);
-              // dilate
-              ELISE_COPY(aMxImV1.all_pts(),
-                         dilat_d8(aMxImV1.in(0),4),
-                         aMxImV1.out());
-
-              // save Dx, Dy, Mx, My
-              aDxIm.ToFile(NameOut(itV->N1()+"__"+itV->N2(),"Dx"));
-              aDyIm.ToFile(NameOut(itV->N1()+"__"+itV->N2(),"Dy"));
-              aMxIm.ToFile(NameOut(itV->N1()+"__"+itV->N2(),"Mx"));
-              aMyIm.ToFile(NameOut(itV->N1()+"__"+itV->N2(),"My"));
         }
+        // dilate before saving
+          auto  aMxImV1  = cMMV1_Conv<tU_INT1>::ImToMMV1(aMxIm);
+          // dilate
+          ELISE_COPY(aMxImV1.all_pts(),
+                     dilat_d8(aMxImV1.in(0),4),
+                     aMxImV1.out());
+
+          // save Dx, Dy, Mx, My
+          aDxIm.ToFile(NameOut(mNameIm1+"_"+mNameIm2,"Dx"));
+          //aDyIm.ToFile(NameOut(itV->N1()+"__"+itV->N2(),"Dy"));
+          aMxIm.ToFile(NameOut(mNameIm1+"_"+mNameIm2,"Mx"));
+          //aMyIm.ToFile(NameOut(itV->N1()+"__"+itV->N2(),"My"));
 
       return EXIT_SUCCESS;
     }

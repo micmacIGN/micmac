@@ -348,7 +348,7 @@ namespace  cNS_MMGenDepthMV
       // project cloud into image geometry x,y and depth
       std::vector <cPt3dr> aVPts;
       std::vector <cPt3di> aFaces;
-      #pragma omp parallel
+      #pragma omp parallel num_threads(24)
       {
           std::vector <cPt3dr> aVPts_private;
           #pragma omp for
@@ -471,7 +471,7 @@ namespace  cNS_MMGenDepthMV
       {
           aTileAll.Add(cTil2DTri3D<tREAL8>(aKP));
       }
-      #pragma omp parallel
+      #pragma omp parallel num_threads(24)
       {
           std::vector<int> aVPts_private;
           #pragma omp for
