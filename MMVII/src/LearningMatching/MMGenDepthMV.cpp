@@ -817,8 +817,8 @@ namespace  cNS_MMGenDepthMV
           //mCamPC=mPhProj.ReadCamPC(anImageName,true);
 
            // densify
-          if (RunMultiSet(0,0))
-              return ResultMultiSet();
+          /*if (RunMultiSet(0,0))
+              return ResultMultiSet();*/
           APBI_ExecAll();
       }
 
