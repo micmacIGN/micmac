@@ -356,7 +356,6 @@ namespace  cNS_MMGenDepthMV
               aVPts_private.push_back(aPt);
           }
       }
-      aTri3D =nullptr;
   }
 
   void cAppliMMGenDepthMV::Generate_sparse_depth(std::string aNameImage,
