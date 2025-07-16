@@ -101,6 +101,9 @@ namespace  cNS_MMGenDepthMV
     bool MakeDecision(std::vector<cPt3dr> & aVecPoints);
 
     std::string NameImOri(std::string NameIM,std::string OriFolder, string SuffOri);
+
+    void ReadLidarTile (const std::string aLidarTileName,
+                                           std::vector <cPt3dr> & aVPts_private);
     void Generate_sparse_depth(std::string aNameImage,
                                 std::vector<std::string> aVecLidar,
                                 size_t aSzMin,
@@ -327,6 +330,35 @@ namespace  cNS_MMGenDepthMV
       delete aTriVisibility ;
   }
 
+
+
+  void cAppliMMGenDepthMV::ReadLidarTile (const std::string aLidarTileName,
+                                         std::vector <cPt3dr> & aVPts_private)
+  {
+      cTriangulation3D<tREAL8>* aTri3D= new cTriangulation3D<tREAL8>(aLidarTileName);
+
+      for (size_t aKP=0; aKP<aTri3D->NbPts();aKP++)
+      {
+          cPt3dr aP3D=ToR(aTri3D->KthPts(aKP));
+          Pt3dr aP3DMMV1= Pt3dr(aP3D.x(),aP3D.y(),aP3D.z());
+          if (mCamPCV1->PIsVisibleInImage(aP3DMMV1))
+          {
+              Pt2dr aP2DCapteur = mCamPCV1->Ter2Capteur(aP3DMMV1);
+
+              /*
+                      cPt3dr aPt(mCamPC->Ground2Image(aP3D).x(),
+                                 mCamPC->Ground2Image(aP3D).y(),
+                                 mCamPC->Pose().Inverse(aP3D).z());
+                      */
+              cPt3dr aPt (aP2DCapteur.x,
+                         aP2DCapteur.y,
+                         mCamPCV1->ProfondeurDeChamps(aP3DMMV1));
+              aVPts_private.push_back(aPt);
+          }
+      }
+      aTri3D =nullptr;
+  }
+
   void cAppliMMGenDepthMV::Generate_sparse_depth(std::string aNameImage,
                                                  std::vector<std::string> aVecLidar,
                                                  size_t aSzMin,
@@ -348,41 +380,23 @@ namespace  cNS_MMGenDepthMV
       // project cloud into image geometry x,y and depth
       std::vector <cPt3dr> aVPts;
       std::vector <cPt3di> aFaces;
-      #pragma omp parallel num_threads(24)
+      #pragma omp parallel num_threads(8)
       {
           std::vector <cPt3dr> aVPts_private;
           #pragma omp for
           for (size_t idLidar= 0; idLidar<aVecLidar.size(); idLidar++ ) //const std::string & aLidarName: aVecLidar)
           {
-              std::string aLidarName = aVecLidar[idLidar];
+              const std::string aLidarName = aVecLidar[idLidar];
               StdOut()<<aLidarName<<std::endl;
-              cTriangulation3D<tREAL8>* aTri3D= new cTriangulation3D<tREAL8>(aLidarName);
-
-              for (size_t aKP=0; aKP<aTri3D->NbPts();aKP++)
-              {
-                  cPt3dr aP3D=ToR(aTri3D->KthPts(aKP));
-                  Pt3dr aP3DMMV1= Pt3dr(aP3D.x(),aP3D.y(),aP3D.z());
-                  if (mCamPCV1->PIsVisibleInImage(aP3DMMV1))
-                  {
-                      Pt2dr aP2DCapteur = mCamPCV1->Ter2Capteur(aP3DMMV1);
-
-                      /*
-                      cPt3dr aPt(mCamPC->Ground2Image(aP3D).x(),
-                                 mCamPC->Ground2Image(aP3D).y(),
-                                 mCamPC->Pose().Inverse(aP3D).z());
-                      */
-                      cPt3dr aPt (aP2DCapteur.x,
-                                  aP2DCapteur.y,
-                                 mCamPCV1->ProfondeurDeChamps(aP3DMMV1));
-                      aVPts_private.push_back(aPt);
-                  }
-              }
-              aTri3D =nullptr;
+              ReadLidarTile(aLidarName,aVPts_private);
+              StdOut()<<"read tile"<<std::endl;
           }
           // fill global aVPts
           #pragma omp critical
           aVPts.insert(aVPts.end(),aVPts_private.begin(),aVPts_private.end());
       }
+
+      StdOut()<<"GET CUR LUT "<<std::endl;
 
 
       if (aVPts.empty())
@@ -471,7 +485,7 @@ namespace  cNS_MMGenDepthMV
       {
           aTileAll.Add(cTil2DTri3D<tREAL8>(aKP));
       }
-      #pragma omp parallel num_threads(24)
+      #pragma omp parallel num_threads(8)
       {
           std::vector<int> aVPts_private;
           #pragma omp for
