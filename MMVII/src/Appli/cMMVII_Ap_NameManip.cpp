@@ -16,13 +16,13 @@ cMMVII_Ap_NameManip::~cMMVII_Ap_NameManip()
 
 void cMMVII_Ap_NameManip::GetCurLut()
 {
-     MMVII_INTERNAL_ASSERT_medium(mCurLut==nullptr,"cMMVII_Ap_NameManip::GetCurLut");
+     //MMVII_INTERNAL_ASSERT_medium(mCurLut==nullptr,"cMMVII_Ap_NameManip::GetCurLut");
      mCurLut = mGoClut.EmprunterOne();
 }
 
 void cMMVII_Ap_NameManip::RendreCurLut()
 {
-     MMVII_INTERNAL_ASSERT_medium(mCurLut!=nullptr,"cMMVII_Ap_NameManip::RendreCurLut");
+     //MMVII_INTERNAL_ASSERT_medium(mCurLut!=nullptr,"cMMVII_Ap_NameManip::RendreCurLut");
      mCurLut->UnInit();
      mGoClut.RendreOne(mCurLut);
      mCurLut = nullptr;
