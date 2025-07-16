@@ -514,7 +514,7 @@ void cAppliMMGenDepthMV::ReadLidarTile (const std::string aLidarTileName,
       //#pragma omp parallel num_threads(36)
       {
           std::vector <int> aVPts_private;
-          #pragma omp parallel for num_threads(32)
+          #pragma omp parallel for
           for (size_t aKPt=0; aKPt<mTri3DReproj->NbPts(); aKPt++)
           {
               cPt2dr aPt= ToR(Proj(mTri3DReproj->KthPts(aKPt)));
@@ -569,7 +569,7 @@ void cAppliMMGenDepthMV::ReadLidarTile (const std::string aLidarTileName,
 
               aVPts_private.push_back(aKPt);
           }
-          StdOut()<<" slices "<<aVPts_private.size()<<std::endl;
+          //StdOut()<<" slices "<<aVPts_private.size()<<std::endl;
         // fill global aVPts
         #pragma omp critical
             mSelectedVisIndices.insert(mSelectedVisIndices.end(),
