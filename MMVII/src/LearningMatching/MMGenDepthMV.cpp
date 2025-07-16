@@ -102,8 +102,7 @@ namespace  cNS_MMGenDepthMV
 
     std::string NameImOri(std::string NameIM,std::string OriFolder, string SuffOri);
 
-    void ReadLidarTile (const std::string aLidarTileName,
-                                           std::vector <cPt3dr> & aVPts_private);
+    std::vector<cPt3dr> ReadLidarTile (const std::string aLidarTileName);
     void Generate_sparse_depth(std::string aNameImage,
                                 std::vector<std::string> aVecLidar,
                                 size_t aSzMin,
@@ -332,10 +331,10 @@ namespace  cNS_MMGenDepthMV
 
 
 
-  void cAppliMMGenDepthMV::ReadLidarTile (const std::string aLidarTileName,
-                                         std::vector <cPt3dr> & aVPts_private)
+  std::vector <cPt3dr> cAppliMMGenDepthMV::ReadLidarTile (const std::string aLidarTileName)
   {
 
+      std::vector <cPt3dr>  aVPts_private;
       StdOut()<<"test "<<std::endl;
       cTriangulation3D<tREAL8> aTri3D=  cTriangulation3D<tREAL8>(aLidarTileName);
 
@@ -358,6 +357,7 @@ namespace  cNS_MMGenDepthMV
               aVPts_private.push_back(aPt);
           }
       }
+      return aVPts_private;
   }
 
   void cAppliMMGenDepthMV::Generate_sparse_depth(std::string aNameImage,
@@ -381,23 +381,45 @@ namespace  cNS_MMGenDepthMV
       // project cloud into image geometry x,y and depth
       std::vector <cPt3dr> aVPts;
       std::vector <cPt3di> aFaces;
-      #pragma omp parallel num_threads(8)
-      {
-          std::vector <cPt3dr> aVPts_private;
-          #pragma omp for
-          for (size_t idLidar= 0; idLidar<aVecLidar.size(); idLidar++ ) //const std::string & aLidarName: aVecLidar)
-          {
-              const std::string aLidarName = aVecLidar[idLidar];
-              StdOut()<<aLidarName<<std::endl;
-              ReadLidarTile(aLidarName,aVPts_private);
-              StdOut()<<"read tile"<<std::endl;
-          }
-          // fill global aVPts
-          #pragma omp critical
-          aVPts.insert(aVPts.end(),aVPts_private.begin(),aVPts_private.end());
-      }
 
-      StdOut()<<"GET CUR LUT "<<std::endl;
+      std::vector<std::vector<cPt3dr>> aVAll{aVecLidar.size()};
+
+
+      //#pragma omp parallel num_threads(8)
+        {
+              //std::vector <cPt3dr> aVPts_private;
+              #pragma omp parallel for
+              for (size_t idLidar= 0; idLidar<aVecLidar.size(); idLidar++ ) //const std::string & aLidarName: aVecLidar)
+              {
+                  const std::string aLidarName = aVecLidar[idLidar];
+                  StdOut()<<aLidarName<<std::endl;
+                  aVAll[idLidar]= ReadLidarTile(aLidarName);
+                  StdOut()<<"read tile"<<std::endl;
+              }
+              // fill global aVPts
+              //#pragma omp critical
+              //aVPts.insert(aVPts.end(),aVPts_private.begin(),aVPts_private.end());
+        }
+
+
+        for (auto aV: aVAll)
+            aVPts.insert(aVPts.end(),aV.begin(),aV.end());
+
+
+        /*
+
+           std::for_each(
+              std::execution::par,
+              aVecLidar.begin(),
+              aVecLidar.end(),
+              [this,&aVPts](auto && aNameLidar)
+              {
+                  std::vector <cPt3dr> aVPts_private =ReadLidarTile(aNameLidar,aVPts_private);
+                  aVPts.insert(aVPts.end(),aVPts_private.begin(),aVPts_private.end());
+              }
+              );
+
+        */
 
 
       if (aVPts.empty())
@@ -486,7 +508,7 @@ namespace  cNS_MMGenDepthMV
       {
           aTileAll.Add(cTil2DTri3D<tREAL8>(aKP));
       }
-      #pragma omp parallel num_threads(8)
+      #pragma omp parallel num_threads(36)
       {
           std::vector<int> aVPts_private;
           #pragma omp for
