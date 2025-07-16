@@ -511,10 +511,10 @@ void cAppliMMGenDepthMV::ReadLidarTile (const std::string aLidarTileName,
       }
 
 
-      //#pragma omp parallel num_threads(36)
+      #pragma omp parallel num_threads(36)
       {
           std::vector <int> aVPts_private;
-          #pragma omp parallel for
+          #pragma omp for
           for (size_t aKPt=0; aKPt<mTri3DReproj->NbPts(); aKPt++)
           {
               cPt2dr aPt= ToR(Proj(mTri3DReproj->KthPts(aKPt)));
