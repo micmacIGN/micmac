@@ -48,7 +48,7 @@ std::vector<std::string >  AddPostFix(const std::vector<std::string>  & aV,const
 
 void  cCarLookUpTable::Init(const std::string& aStr,char aC)
 {
-    //MMVII_INTERNAL_ASSERT_medium(!mInit,"Multiple init of  cCarLookUpTable");
+    MMVII_INTERNAL_ASSERT_medium(!mInit,"Multiple init of  cCarLookUpTable");
     mInit= true;
     for (const char * aPtr = aStr.c_str() ; *aPtr ; aPtr++)
         mUTable[int(*aPtr)] = aC;  // Laisse le warning, il faudra le regler !!!

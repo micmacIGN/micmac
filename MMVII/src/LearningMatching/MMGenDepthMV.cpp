@@ -335,11 +335,13 @@ namespace  cNS_MMGenDepthMV
   void cAppliMMGenDepthMV::ReadLidarTile (const std::string aLidarTileName,
                                          std::vector <cPt3dr> & aVPts_private)
   {
-      cTriangulation3D<tREAL8>* aTri3D= new cTriangulation3D<tREAL8>(aLidarTileName);
 
-      for (size_t aKP=0; aKP<aTri3D->NbPts();aKP++)
+      StdOut()<<"test "<<std::endl;
+      cTriangulation3D<tREAL8> aTri3D=  cTriangulation3D<tREAL8>(aLidarTileName);
+
+      for (size_t aKP=0; aKP<aTri3D.NbPts();aKP++)
       {
-          cPt3dr aP3D=ToR(aTri3D->KthPts(aKP));
+          cPt3dr aP3D=ToR(aTri3D.KthPts(aKP));
           Pt3dr aP3DMMV1= Pt3dr(aP3D.x(),aP3D.y(),aP3D.z());
           if (mCamPCV1->PIsVisibleInImage(aP3DMMV1))
           {
