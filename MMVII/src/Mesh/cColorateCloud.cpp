@@ -33,8 +33,8 @@ class cOrthoProj  :  public  tIMap_R3
        friend cCamOrthoC;
        typedef std::vector<cPt3dr> tVecP3;
 
-       cOrthoProj (const tRotR & aRot ,const cPt3dr& aC,const cPt2dr& aPP ,tREAL8 aResol) ;
-       cOrthoProj (const cPt3dr & aDir,const cPt3dr& aC =cPt3dr(0,0,0),const cPt2dr& aPP= cPt2dr(0,0) ,tREAL8 aResol=1.0) ;
+       cOrthoProj (const tRotR & aRot ,const cPt3dr& aC,const cPt2dr& aPP ,tREAL8 aResol,bool profIsZ0) ;
+       cOrthoProj (const cPt3dr & aDir,const cPt3dr& aC =cPt3dr(0,0,0),const cPt2dr& aPP= cPt2dr(0,0) ,tREAL8 aResol=1.0,bool profIsZ0=false) ;
        tSeg3dr  BundleInverse(const cPt2dr &) const ;
 
        cOrthoProj(const cOrthoProj&);
@@ -44,27 +44,30 @@ class cOrthoProj  :  public  tIMap_R3
        const  tVecP3 &  Values   (tVecP3 &,const tVecP3 & ) const override;
        const  tVecP3 &  Inverses (tVecP3 &,const tVecP3 & ) const override;
 
+    
        tRotR  mRL2W;
        cPt3dr mC;
        cPt2dr mPP;
        tREAL8 mResol;
+       bool   mProfIsZ0;
 };
 
-cOrthoProj::cOrthoProj (const tRotR & aRot ,const cPt3dr & aC,const cPt2dr & aPP ,tREAL8 aResol)  :
+cOrthoProj::cOrthoProj (const tRotR & aRot ,const cPt3dr & aC,const cPt2dr & aPP ,tREAL8 aResol,bool profIsZ0)  :
     mRL2W         (aRot),
     mC            (aC),
     mPP           (aPP),
-    mResol        (aResol)
+    mResol        (aResol),
+    mProfIsZ0     (profIsZ0)
 {
 }
 
 cOrthoProj:: cOrthoProj(const cOrthoProj& anOP) :
-    cOrthoProj(anOP.mRL2W,anOP.mC,anOP.mPP,anOP.mResol)
+    cOrthoProj(anOP.mRL2W,anOP.mC,anOP.mPP,anOP.mResol,anOP.mProfIsZ0)
 {
 }
 
-cOrthoProj::cOrthoProj (const cPt3dr & aDir ,const cPt3dr & aC,const cPt2dr& aPP ,tREAL8 aResol)  :
-   cOrthoProj(tRotR::CompleteRON(aDir,2),aC,aPP,aResol)
+cOrthoProj::cOrthoProj (const cPt3dr & aDir ,const cPt3dr & aC,const cPt2dr& aPP ,tREAL8 aResol,bool profIsZ0)  :
+   cOrthoProj(tRotR::CompleteRON(aDir,2),aC,aPP,aResol,profIsZ0)
 {
 }
 
@@ -79,7 +82,8 @@ const  std::vector<cPt3dr> &  cOrthoProj::Values(tVecP3 & aVOut,const tVecP3 & a
        cPt2dr  aPProj = Proj(aPLoc);
        aPProj = mPP+ aPProj/mResol;
 
-       tREAL8 aZ =  aPLoc.z() ;
+       // tREAL8 aZ =  aPLoc.z() ;
+       tREAL8 aZ =  aPIn.z() ;
        aVOut.push_back(TP3z(aPProj,aZ));
    }
 
@@ -255,7 +259,7 @@ class cProjPointCloud
 
 	 // export the average of radiomeries (in mSumRad) as a field of mPC
          void ColorizePC(); 
-	 cCamOrthoC * PPC_CamOrtho(const cPt3dr & aDir,tREAL8 aMulSz = 1.0);
+	 cCamOrthoC * PPC_CamOrtho(const cPt3dr & aDir,tREAL8 aMulResol=1.0, tREAL8 aMulSz = 1.0);
 
 
      private :
@@ -286,11 +290,11 @@ class cProjPointCloud
          cDataIm2D<tREAL4>*       mDImWeigth;
 };
 
-cCamOrthoC * cProjPointCloud::PPC_CamOrtho(const cPt3dr & aDir,tREAL8 aMulSz)
+cCamOrthoC * cProjPointCloud::PPC_CamOrtho(const cPt3dr & aDir,tREAL8 aMulResol,tREAL8 aMulSz)
 {
    cBox3dr   aBox3 = mPC.Box3d();
    cBox2dr   aBox2 = mPC.Box2d();
-   tREAL8 aResol = mPC.GroundSampling();
+   tREAL8 aResol = mPC.GroundSampling() * aMulResol;
    cPt2di aSzIm = ToI(aBox2.Sz() * (aMulSz / aResol));
    
    cOrthoProj aProj(aDir,aBox3.Middle(),ToR(aSzIm)/2.0,aResol);
@@ -852,7 +856,7 @@ class cAppli_MMVII_CloudImProj : public cMMVII_Appli
 	std::string   mNameCloudIn;
         // --- Optionnal ----
         tREAL8  mSurResolSun;
-        std::string   mNameImageOut;
+        std::string   mPrefixOut;
 
 	tREAL8        mResolOrthoC;
         cPt2di        mSzIm;
@@ -894,7 +898,7 @@ cCollecSpecArg2007 & cAppli_MMVII_CloudImProj::ArgObl(cCollecSpecArg2007 & anArg
 cCollecSpecArg2007 & cAppli_MMVII_CloudImProj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return anArgOpt
-          << AOpt2007(mNameImageOut,CurOP_Out,"Name of image  file, def= Ima+Input")
+          << AOpt2007(mPrefixOut,CurOP_Out,"Preifix for out images, def= Ima+Input")
           << AOpt2007(mSun,"Sun","Sun : Dir3D=(x,y,1)  ,  Z=WEIGHT !! ")
           << AOpt2007(mNameSavePCSun,"CloudSun","Name of cloud with sun, if sun was added")
           << AOpt2007(mSzIm,"SzIm","Size of resulting image",{eTA2007::HDV})
@@ -903,8 +907,8 @@ cCollecSpecArg2007 & cAppli_MMVII_CloudImProj::ArgOpt(cCollecSpecArg2007 & anArg
 
 int  cAppli_MMVII_CloudImProj::Exe()
 {
-   if (!IsInit(&mNameImageOut))
-      mNameImageOut =  "ImProj_" + LastPrefix(mNameCloudIn) + ".tif";
+   if (!IsInit(&mPrefixOut))
+      mPrefixOut =  "ImProj_" + LastPrefix(mNameCloudIn) ;
 
 
    cPointCloud   aPC_In ;
@@ -931,16 +935,17 @@ int  cAppli_MMVII_CloudImProj::Exe()
    }
    else
    {
-       int aNbPos = 0;
+       int aNbPos = 5;
+       tREAL8 aSensDownSample = 2.0;
        tREAL8 aSurResCloud = 2.0;
        // tREAL8 aSousResIm = 0.5;
 
 
        for (int aK=-aNbPos ; aK<=aNbPos ; aK++)
        {
-           std::unique_ptr<cCamOrthoC> aCam (aPPC.PPC_CamOrtho(cPt3dr(aK*0.2,0.0,1.0)));
-           aPPC.ProcessOneProj(aSurResCloud,*aCam,0.0,true,"",false,false);
-           aPPC.ProcessImage(aSurResCloud,*aCam,"IIP");
+           std::unique_ptr<cCamOrthoC> aCam (aPPC.PPC_CamOrtho(cPt3dr(aK*0.2,0.0,1.0),aSensDownSample));
+           aPPC.ProcessOneProj(aSurResCloud*aSensDownSample,*aCam,0.0,true,"",false,false);
+           aPPC.ProcessImage(aSurResCloud*aSensDownSample,*aCam,mPrefixOut);
        }
    }
 
