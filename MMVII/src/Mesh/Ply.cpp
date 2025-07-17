@@ -2176,7 +2176,7 @@ template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & a
 
    std::cout<<"DSM MARKER "<<pdal::Dimension::description(aDsmMarkerDim)<<std::endl;
    //StdOut()<<"FINISH READING LAZ "<<std::endl;
-   #pragma omp parallel
+      #pragma omp parallel
        {
            //omp_set_num_threads(16);
            using namespace pdal::Dimension;

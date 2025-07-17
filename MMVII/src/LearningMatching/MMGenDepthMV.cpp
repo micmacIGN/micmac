@@ -103,12 +103,13 @@ namespace  cNS_MMGenDepthMV
     std::string NameImOri(std::string NameIM,std::string OriFolder, string SuffOri);
 
     void ReadLidarTile (std::string aLidarTileName,std::vector<cPt3dr>&  aVPts_private);
-    void ReadLidarTiles (std::vector<string> aLidarTileNames,
+    void ReadLidarTiles (std::vector<cTriangulation3D<tREAL8>*>& allTris3D,
                         std::vector<std::vector<cPt3dr>>&  aVPtsAll);
     void Generate_sparse_depth(std::string aNameImage,
-                                std::vector<std::string>& aVecLidar,
                                 size_t aSzMin,
-                                tREAL8 aThresholdVisbility);
+                                tREAL8 aThresholdVisbility,
+                                std::vector<cPt3dr>& aVPts,
+                                std::vector<cPt3di>& aFaces);
     void OneVisibilitySimple(size_t & aSzMin,
                              tREAL8 & aThresholdCriteria,
                              int nbIter,
@@ -194,17 +195,17 @@ namespace  cNS_MMGenDepthMV
   {
       return anArgObl
              << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"}})
-             << Arg2007(mPatternLidar,"Pattern of input clouds",{{eTA2007::MPatFile,"1"}})
              << Arg2007(mOriFolder,"Pattern of input clouds",{{eTA2007::FolderAny,"2"}})
              //<< mPhProj.DPOrient().ArgDirInMand()
-             << mPhProj.DPMeshDev().ArgDirOutMand()
+             //<< mPhProj.DPMeshDev().ArgDirOutMand()
           ;
   }
 
   cCollecSpecArg2007 & cAppliMMGenDepthMV::ArgOpt(cCollecSpecArg2007 & anArgOpt)
   {
      return anArgOpt
-            << AOpt2007(mNameOutDepth,"DepthMap" ,"Depth Map image Name")
+             << AOpt2007(mPatternLidar,"PatLidar","Pattern (regex), def=Semis_.*laz",{eTA2007::HDV})
+             << AOpt2007(mNameOutDepth,"DepthMap" ,"Depth Map image Name")
              << AOpt2007(mNbPointByPatch,"NbNeighbors", "number of neighbors")
      ;
   }
@@ -332,19 +333,12 @@ namespace  cNS_MMGenDepthMV
   }
 
 
-  void cAppliMMGenDepthMV::ReadLidarTiles (std::vector<string> aLidarTileNames,
-                                         std::vector<std::vector<cPt3dr>>&  aVPtsAll)
+  void cAppliMMGenDepthMV::ReadLidarTiles (std::vector<cTriangulation3D<tREAL8>*>& allTris3D,
+                                         std::vector<std::vector<cPt3dr>> &  aVPtsAll)
   {
-      std::vector<cTriangulation3D<tREAL8>*> allTris3D;
-      #pragma  omp parallel for
-      for (int i=0; i<(int)aLidarTileNames.size();i++)
-      {
-          cTriangulation3D<tREAL8> * aTri3D= new cTriangulation3D<tREAL8>(aLidarTileNames[i]);
-          allTris3D.push_back(aTri3D);
-      }
       //cTriangulation3D<tREAL8> aTri3D=  allTris3D[0];
 
-      for (int i=0; i<(int)aLidarTileNames.size();i++)
+      for (int i=0; i<(int)allTris3D.size();i++)
       {
           #pragma omp parallel
           {
@@ -426,9 +420,10 @@ void cAppliMMGenDepthMV::ReadLidarTile (std::string aLidarTileName,
   }
 
   void cAppliMMGenDepthMV::Generate_sparse_depth(std::string aNameImage,
-                                                 std::vector<std::string> & aVecLidar,
                                                  size_t aSzMin,
-                                                 tREAL8 aThresholdVisbility)
+                                                 tREAL8 aThresholdVisbility,
+                                                 std::vector<cPt3dr>& aVPts,
+                                                 std::vector<cPt3di>& aFaces)
   {
       //mCamPC=mPhProj.ReadCamPC(aNameImage,true);
 
@@ -442,60 +437,6 @@ void cAppliMMGenDepthMV::ReadLidarTile (std::string aLidarTileName,
       mMasqImage=cIm2D<tElemMasq>(aSz,nullptr,eModeInitImage::eMIA_Null);
       mDMasqImage=&(mMasqImage.DIm());
 
-
-      // project cloud into image geometry x,y and depth
-      std::vector <cPt3dr> aVPts;
-      std::vector <cPt3di> aFaces;
-
-      std::vector<std::vector<cPt3dr>> aVAll{aVecLidar.size()};
-
-      //#pragma omp parallel num_threads(4)
-      {
-          //std::vector <cPt3dr> aVPts_private;
-        //#pragma omp parallel for num_threads(aVecLidar.size())
-
-
-          /*for (size_t idLidar= 0; idLidar<aVecLidar.size(); idLidar++ )
-          {
-              std::string aLidarName = aVecLidar[idLidar];
-              ReadLidarTile(aLidarName,aVAll[idLidar]);
-          }*/
-
-          ReadLidarTiles(aVecLidar,aVAll);
-          // fill global aVPts
-          //#pragma omp critical
-          //aVPts.insert(aVPts.end(),aVPts_private.begin(),aVPts_private.end());
-      }
-
-
-
-
-
-
-
-        for (auto aV: aVAll)
-            aVPts.insert(aVPts.end(),aV.begin(),aV.end());
-
-        StdOut()<<"size "<<aVPts.size()<<std::endl;
-
-        /*
-
-           std::for_each(
-              std::execution::par,
-              aVecLidar.begin(),
-              aVecLidar.end(),
-              [this,&aVPts](auto && aNameLidar)
-              {
-                  std::vector <cPt3dr> aVPts_private =ReadLidarTile(aNameLidar,aVPts_private);
-                  aVPts.insert(aVPts.end(),aVPts_private.begin(),aVPts_private.end());
-              }
-              );
-
-        */
-
-
-      if (aVPts.empty())
-          return;
 
       mTri3DReproj =new cTriangulation3D<tREAL8>(aVPts,aFaces);
 
@@ -548,7 +489,6 @@ void cAppliMMGenDepthMV::ReadLidarTile (std::string aLidarTileName,
               }
           StdOut()<<" Selected VISIBLE Points "<<mSelectedVisIndices.size()<<std::endl;
       }
-
 
       mTri3DReproj= nullptr;
 
@@ -862,42 +802,78 @@ void cAppliMMGenDepthMV::ReadLidarTile (std::string aLidarTileName,
     // image names pattern
       std::vector<std::string> aVecIms= VectMainSet(0);
 
-      StdOut()<<aVecIms<<std::endl;
 
-    // Pattern of Lidar data files
-      std::vector<std::string> aVecLidar= VectMainSet(1);
-
-
-    // temporary pattern for reading MMV1 Orientation folder
-
-
-      cInterfChantierNameManipulateur * aICNMOris=cInterfChantierNameManipulateur::BasicAlloc(mOriFolder);
-
-      size_t aSzMin=5;
-      tREAL8 aThresholdVisbility=0.68;
-
-      for (const auto & anImageName: aVecIms)
+      if (IsInit(&mPatternLidar))
       {
-          // generate depth
-          std::string aNameImOri = NameImOri(anImageName,mOriFolder,"Orientation-");
+          std::vector<string> aVecLidar;
 
-          mCamPCV1 = CamOrientGenFromFile(aNameImOri,aICNMOris);
+          for (const auto & aName :  RecGetFilesFromDir(mDirProject,AllocRegex(mPatternLidar),0,1))
+          {
+              aVecLidar.push_back(aName);
+          }
 
-          Generate_sparse_depth(anImageName,
-                                aVecLidar,
-                                aSzMin,
-                                aThresholdVisbility);
+          StdOut()<<"aVEC LIDAR SOZE "<<aVecLidar.size()<<std::endl;
 
-          std::cout<<"Generated depth map : sparse "<<anImageName<<std::endl;
+          // Read all tiles lidar
 
-          this->mNameIm=anImageName;
-          //mCamPC=mPhProj.ReadCamPC(anImageName,true);
+          std::vector<cTriangulation3D<tREAL8>*> allTris3D;
+          #pragma omp parallel for
+          for (int i=0; i<(int)aVecLidar.size();i++)
+          {
+              cTriangulation3D<tREAL8> * aTri3D= new cTriangulation3D<tREAL8>(aVecLidar[i]);
+              allTris3D.push_back(aTri3D);
+          }
 
-           // densify
-          /*if (RunMultiSet(0,0))
-              return ResultMultiSet();*/
-          APBI_ExecAll();
-      }
+
+
+          // compute orifolder
+          cInterfChantierNameManipulateur * aICNMOris=cInterfChantierNameManipulateur::BasicAlloc(mOriFolder);
+
+          size_t aSzMin=5;
+          tREAL8 aThresholdVisbility=0.68;
+
+          for (const auto & anImageName : aVecIms)
+
+          {
+              // generate depth
+              std::string aNameImOri = NameImOri(anImageName,mOriFolder,"Orientation-");
+
+              mCamPCV1 = CamOrientGenFromFile(aNameImOri,aICNMOris);
+
+              // project cloud into image geometry x,y and depth
+              std::vector <cPt3dr> aVPts;
+              std::vector <cPt3di> aFaces;
+
+
+              std::vector<std::vector<cPt3dr>> aVAll{aVecLidar.size()};
+              ReadLidarTiles(allTris3D,aVAll);
+              StdOut()<<"READ TILES "<<std::endl;
+              for (auto aV: aVAll)
+                  aVPts.insert(aVPts.end(),aV.begin(),aV.end());
+
+              StdOut()<<"size "<<aVPts.size()<<std::endl;
+
+
+              if (aVPts.empty())
+                  return EXIT_SUCCESS;
+
+              Generate_sparse_depth(anImageName,
+                                    aSzMin,
+                                    aThresholdVisbility,
+                                    aVPts,
+                                    aFaces);
+              std::cout<<"Generated depth map : sparse "<<anImageName<<std::endl;
+
+              this->mNameIm=anImageName;
+              //mCamPC=mPhProj.ReadCamPC(anImageName,true);
+
+               // densify
+              /*if (RunMultiSet(0,0))
+                  return ResultMultiSet();*/
+              APBI_ExecAll();
+          }
+
+    }
 
 
 
