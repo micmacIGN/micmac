@@ -608,6 +608,7 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
 
   size_t aNbArgTot = aVValues.size();
 
+
   if (aNbArgGot < aNbObl)
   {
       // Tolerance, like in mmv1, no arg generate helps

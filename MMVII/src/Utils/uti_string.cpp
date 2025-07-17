@@ -131,6 +131,7 @@ std::vector<std::string>  SplitString(const std::string & aStr,const std::string
 {
     std::vector<std::string> aRes;
     cMMVII_Appli::CurrentAppli().SplitString(aRes,aStr,aSpace);
+
     return  aRes;
 }
 

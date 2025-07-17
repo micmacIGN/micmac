@@ -5,6 +5,7 @@
 #include "MMVII_Mappings.h"
 #include "MMVII_2Include_Tiling.h"
 
+#include <omp.h>
 #include <pdal/PointTable.hpp>
 #include <pdal/PointView.hpp>
 #include <pdal/io/LasReader.hpp>
@@ -22,6 +23,7 @@
 #include "MMVII_PtCorrel.h"
 #include "MMVII_Stringifier.h"
 #define WITH_MMV1_FUNCTION  false
+
 
 namespace MMVII
 {
@@ -2158,6 +2160,7 @@ template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & a
 
  template <class Type> void cTriangulation3D<Type>::LasInit(const std::string & aNameFile)
  {
+   //StdOut()<<"START READING LAZ "<<std::endl;
    pdal::Option las_opt("filename", aNameFile);
    pdal::Options las_opts;
    las_opts.add(las_opt);
@@ -2167,17 +2170,50 @@ template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & a
    las_reader.prepare(table);
    pdal::PointViewSet point_view_set = las_reader.execute(table);
    pdal::PointViewPtr point_view = *point_view_set.begin();
-   //pdal::Dimension::IdList dims = point_view->dims();
    pdal::LasHeader las_header = las_reader.header();
-
    std::cout<<"POINT VIEW SIZE "<<point_view->size()<<std::endl;
-   //std::cout<<" GET ALL DIMENSIONS "<<table.layout()->dims()<<std::endl;
    auto aDsmMarkerDim = table.layout()->findProprietaryDim(ClassificationTags().DSMMarker);
-   //bool HasDsmMarker=table.layout()->hasDim(aDsmMarkerDim);
 
    std::cout<<"DSM MARKER "<<pdal::Dimension::description(aDsmMarkerDim)<<std::endl;
+   //StdOut()<<"FINISH READING LAZ "<<std::endl;
+   #pragma omp parallel
+       {
+           //omp_set_num_threads(16);
+           using namespace pdal::Dimension;
+           std::vector <tPt> aVPts_pp;
+           #pragma omp for
+           for (pdal::PointId idx = 0; idx < point_view->size(); ++idx)
+           {
 
-   if (0) // read points tagged as useful for DSM generation and not on trees
+               /*
+                       auto Classif=point_view->getFieldAs<int>(Id::Classification, idx);
+                     //bool IsBuilding=(Classif==ClassificationTags().Building);
+                     //bool IsGround=(Classif==ClassificationTags().Ground);
+                     //bool IsUnclassified=(Classif==ClassificationTags().Unclassified);
+                     bool IsWater=(Classif==ClassificationTags().Water);
+                     bool IsVeg=(Classif==ClassificationTags().Low_Vegetation) ||
+                                (Classif==ClassificationTags().Medium_Vegetation) ||
+                                (Classif==ClassificationTags().High_Vegetation) ;
+
+                     */
+
+               if ( 1) // ! (IsWater || IsVeg) )
+               {
+                   tPt aP(point_view->getFieldAs<tREAL8>(Id::X, idx),
+                          point_view->getFieldAs<tREAL8>(Id::Y, idx),
+                          point_view->getFieldAs<tREAL8>(Id::Z, idx));
+                   aVPts_pp.push_back(aP);
+               }
+           }
+           #pragma omp critical
+           this->mVPts.insert(this->mVPts.end(),
+                              aVPts_pp.begin(),
+                              aVPts_pp.end());
+        }
+
+
+
+  /* if (0) // read points tagged as useful for DSM generation and not on trees
      {
        std::cout<<"HAS DSM MARKER "<<std::endl;
        for (pdal::PointId idx = 0; idx < point_view->size(); ++idx)
@@ -2205,42 +2241,8 @@ template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & a
    else  // assume point cloud is classified -> if there is not a tag dsm marker get points in GROUND, BUILDINGS
      {
 
-         using namespace pdal::Dimension;
+     }*/
 
-       for (pdal::PointId idx = 0; idx < point_view->size(); ++idx)
-       {
-
-           /*
-           auto Classif=point_view->getFieldAs<int>(Id::Classification, idx);
-         //bool IsBuilding=(Classif==ClassificationTags().Building);
-         //bool IsGround=(Classif==ClassificationTags().Ground);
-         //bool IsUnclassified=(Classif==ClassificationTags().Unclassified);
-         bool IsWater=(Classif==ClassificationTags().Water);
-         bool IsVeg=(Classif==ClassificationTags().Low_Vegetation) ||
-                    (Classif==ClassificationTags().Medium_Vegetation) ||
-                    (Classif==ClassificationTags().High_Vegetation) ;
-
-         */
-
-         if ( 1) // ! (IsWater || IsVeg) )
-           {
-             tPt aP(point_view->getFieldAs<tREAL8>(Id::X, idx),
-                    point_view->getFieldAs<tREAL8>(Id::Y, idx),
-                    point_view->getFieldAs<tREAL8>(Id::Z, idx));
-             this->mVPts.push_back(aP);
-           }
-        }
-     }
-
-   // Read faces
-   /*{
-       std::vector<std::vector<size_t>> aVFace =   aLazF.getFaceIndices<size_t>();
-       for (const auto & aFace : aVFace)
-       {
-           MMVII_INTERNAL_ASSERT_tiny(aFace.size()==3,"Bad face");
-           this->AddFace(cPt3di(aFace[0],aFace[1],aFace[2]));
-       }
-   }*/
 
  }
 

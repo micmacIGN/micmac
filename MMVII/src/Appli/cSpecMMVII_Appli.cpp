@@ -122,6 +122,7 @@ bool  CheckIntersect
     std::vector<std::string>  aVKey  =  anAppli.SplitString(aKeyList,aSpace);
     std::vector<std::string>  aVTest =  anAppli.SplitString(aList,aSpace);
 
+
     for (auto itT=aVTest.begin(); itT!=aVTest.end() ; itT++)
     {
          auto itGet = std::find(aVKey.begin(), aVKey.end(),*itT);
