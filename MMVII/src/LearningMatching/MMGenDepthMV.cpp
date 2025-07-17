@@ -817,7 +817,7 @@ void cAppliMMGenDepthMV::ReadLidarTile (std::string aLidarTileName,
           // Read all tiles lidar
 
           std::vector<cTriangulation3D<tREAL8>*> allTris3D;
-          #pragma omp parallel for
+          //#pragma omp parallel for
           for (int i=0; i<(int)aVecLidar.size();i++)
           {
               cTriangulation3D<tREAL8> * aTri3D= new cTriangulation3D<tREAL8>(aVecLidar[i]);
