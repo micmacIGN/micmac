@@ -59,6 +59,7 @@ cOrthoProj::cOrthoProj (const tRotR & aRot ,const cPt3dr & aC,const cPt2dr & aPP
     mResol        (aResol),
     mProfIsZ0     (profIsZ0)
 {
+    // StdOut() <<  "PPPPPPPPPPPPPPPPPPPPPPPPPP  " << mProfIsZ0 << "\n";
 }
 
 cOrthoProj:: cOrthoProj(const cOrthoProj& anOP) :
@@ -82,13 +83,22 @@ const  std::vector<cPt3dr> &  cOrthoProj::Values(tVecP3 & aVOut,const tVecP3 & a
        cPt2dr  aPProj = Proj(aPLoc);
        aPProj = mPP+ aPProj/mResol;
 
-       // tREAL8 aZ =  aPLoc.z() ;
-       tREAL8 aZ =  aPIn.z() ;
+       tREAL8 aZ =   mProfIsZ0 ? aPIn.z() : aPLoc.z() ;
        aVOut.push_back(TP3z(aPProj,aZ));
    }
 
    return aVOut;
 }
+
+tSeg3dr   cOrthoProj::BundleInverse(const cPt2dr & aPIm0) const 
+{
+    cPt2dr aPIm = (aPIm0-mPP) * mResol;
+    cPt3dr aP0 = TP3z(aPIm,-1.0);
+    cPt3dr aP1 = TP3z( aPIm, 1.0);
+
+    return tSeg3dr(mRL2W.Value(aP0)+mC,mRL2W.Value(aP1)+mC);
+}
+
 
 const  std::vector<cPt3dr> &  cOrthoProj::Inverses(tVecP3 & aVOut,const tVecP3 & aVIn ) const 
 {
@@ -97,9 +107,21 @@ const  std::vector<cPt3dr> &  cOrthoProj::Inverses(tVecP3 & aVOut,const tVecP3 &
    {
        const cPt3dr & aPIn = aVIn.at(aK);
        tREAL8 aZ = aPIn.z();
-       cPt2dr aPProj = (Proj(aPIn)-mPP) * mResol;
-       cPt3dr aPGlob = mC + mRL2W.Value(TP3z(aPProj,aZ));
-       aVOut.push_back(aPGlob);
+       if (mProfIsZ0)
+       {
+          tSeg3dr   aSeg =  BundleInverse(Proj(aPIn));
+
+          //  aSeg.P0 + L aSeg. V12()  -> Z
+          tREAL8 aLambda = SafeDiv (aZ - aSeg.P1().z(),   aSeg.V12().z());
+          cPt3dr aPt = aSeg.P1() + aSeg.V12() *aLambda;
+          aVOut.push_back(aPt);
+       }
+       else
+       {
+           cPt2dr aPProj = (Proj(aPIn)-mPP) * mResol;
+           cPt3dr aPGlob = mC + mRL2W.Value(TP3z(aPProj,aZ));
+           aVOut.push_back(aPGlob);
+       }
 
        /*
 
@@ -118,14 +140,6 @@ const  std::vector<cPt3dr> &  cOrthoProj::Inverses(tVecP3 & aVOut,const tVecP3 &
    return aVOut;
 }
 
-tSeg3dr   cOrthoProj::BundleInverse(const cPt2dr & aPIm0) const 
-{
-    cPt2dr aPIm = (aPIm0-mPP) * mResol;
-    cPt3dr aP0 = TP3z(aPIm,-1.0)+mC;
-    cPt3dr aP1 = TP3z(aPIm, 1.0)+mC;
-
-    return tSeg3dr(mRL2W.Value(aP0),mRL2W.Value(aP1));
-}
 
 
 /* *********************************** */
@@ -219,10 +233,15 @@ void BenchCamOrtho(const cOrthoProj &anOP,const cPt3dr & aDir)
 
 void BenchCamOrtho()
 {
+   StdOut() << "BenchCamOrthoBenchCamOrthoBenchCamOrthoBenchCamOrthoBenchCamOrthoBenchCamOrthoBenchCamOrtho\n";
    for (int aK=0 ; aK<20 ; aK++)
    {
+       bool ProfIsZ0 = (aK%2)==1;
        cPt3dr aDir = cPt3dr::PRandC();
-       cOrthoProj  anOP1(aDir,cPt3dr::PRand()*10.0);
+       if (ProfIsZ0 && (std::abs(aDir.z())< 0.1))
+          aDir.z() = 0.1;
+
+       cOrthoProj  anOP1(aDir,cPt3dr::PRand()*10.0,cPt2dr::PRand()*10.0,RandInInterval(0.1,10),ProfIsZ0);
 
        BenchCamOrtho(anOP1,aDir);
    }
@@ -240,6 +259,8 @@ void BenchCamOrtho()
 class cProjPointCloud
 {
      public :
+         static constexpr int NoIndex = -1;
+
          /// constructor : memoriez PC, inialize accum, allocate mem
          cProjPointCloud(cPointCloud & aParam,tREAL8 aWeightInit );
 
@@ -259,7 +280,7 @@ class cProjPointCloud
 
 	 // export the average of radiomeries (in mSumRad) as a field of mPC
          void ColorizePC(); 
-	 cCamOrthoC * PPC_CamOrtho(const cPt3dr & aDir,tREAL8 aMulResol=1.0, tREAL8 aMulSz = 1.0);
+	 cCamOrthoC * PPC_CamOrtho(bool  ProfIsZ0,const cPt3dr & aDir,tREAL8 aMulResol=1.0, tREAL8 aMulSz = 1.0);
 
 
      private :
@@ -288,16 +309,18 @@ class cProjPointCloud
          cDataIm2D<tREAL4>*       mDImRad;
          cIm2D<tREAL4>            mImWeigth;
          cDataIm2D<tREAL4>*       mDImWeigth;
+         cIm2D<int>               mImIndex;
+         cDataIm2D<int>*          mDImIndex;
 };
 
-cCamOrthoC * cProjPointCloud::PPC_CamOrtho(const cPt3dr & aDir,tREAL8 aMulResol,tREAL8 aMulSz)
+cCamOrthoC * cProjPointCloud::PPC_CamOrtho(bool  ProfIsZ0,const cPt3dr & aDir,tREAL8 aMulResol,tREAL8 aMulSz)
 {
    cBox3dr   aBox3 = mPC.Box3d();
    cBox2dr   aBox2 = mPC.Box2d();
    tREAL8 aResol = mPC.GroundSampling() * aMulResol;
    cPt2di aSzIm = ToI(aBox2.Sz() * (aMulSz / aResol));
    
-   cOrthoProj aProj(aDir,aBox3.Middle(),ToR(aSzIm)/2.0,aResol);
+   cOrthoProj aProj(aDir,aBox3.Middle(),ToR(aSzIm)/2.0,aResol,ProfIsZ0);
    cCamOrthoC*  aCam = new cCamOrthoC ("ColMesh",aProj,aSzIm);
 
    cPt3dr aCorn[8];
@@ -329,7 +352,10 @@ cProjPointCloud::cProjPointCloud(cPointCloud& aPC,tREAL8 aWeightInit) :
    mImRad     (cPt2di(1,1)),
    mDImRad    (nullptr),
    mImWeigth  (cPt2di(1,1)),
-   mDImWeigth (nullptr)
+   mDImWeigth (nullptr),
+   mImIndex   (cPt2di(1,1)),
+   mDImIndex  (nullptr)
+   
 {
 //  StdOut() << "SSSSS  " << mStepProf << " AAA=" <<mAvgD << " SRrr=" << mSurResol << "\n";
    // reserve size for Pts
@@ -436,6 +462,7 @@ void cProjPointCloud::ProcessOneProj
                  << "\n";
      }
 
+
      /*
      if (0)
      {
@@ -456,17 +483,15 @@ void cProjPointCloud::ProcessOneProj
      //    [0.3]  ---------- Alloc images --------------------
      //    [0.3.1]   image of depth
 
+     mDImIndex  = & (mImIndex.DIm());
+     mDImIndex->Resize(mSzIm);
+     mDImIndex->InitCste(NoIndex);
 
 
      mDImDepth = & (mImDepth.DIm());
      mDImDepth->Resize(mSzIm);
      mDImDepth->InitCste(aMinInfty);
 
-     /*
-	 cPt2di                  mSzIm;
-	 cIm2D<tImageDepth>      mImDepth;
-         cDataIm2D<tImageDepth>* mDImDepth;
-	 */
 
      //    [0.3.2]   image of radiometry
      /*
@@ -514,10 +539,14 @@ void cProjPointCloud::ProcessOneProj
          for (const auto & aNeigh : aVDisk)
          {
              cPt2di aPt = aCenter + aNeigh;
-             if (mDImDepth->Inside(aPt))
+             if ( mDImIndex->Inside(aPt))
              {
-                 mDImDepth->SetMax(aPt,aDepth);
-                 aNbPtsCover++;
+                 int aIndex = mDImIndex->GetV(aPt);
+                 if ((aIndex==NoIndex) || (aDepth>mVPtsProj.at(aIndex).z()))
+                 {
+                    mDImIndex->SetV(aPt,aKPt);
+                    aNbPtsCover++;
+                 }
              } 
          }
      }
@@ -541,10 +570,12 @@ void cProjPointCloud::ProcessOneProj
      int aNbVisTot = 0;
 
 
+     tImageDepth aVMinInit =  aPlusInfty;
      for (size_t aKPt=0 ; aKPt<mVPtsProj.size() ; aKPt++) // parse all points
      {
          const cPt2di  & aCenter = mVPtImages.at(aKPt);
          tImageDepth   aDepth      = mVPtsProj.at(aKPt).z();
+         UpdateMin(aVMinInit,aDepth);
          int aNbVis = 0;
          const auto & aVDisk = aVVdisk.at(mPC.GetIntSzLeave(aKPt));
          tREAL8 aDegVis = mPC.GetDegVis(aKPt);
@@ -554,7 +585,7 @@ void cProjPointCloud::ProcessOneProj
          for (const auto & aNeigh :aVDisk) // parse all point of leaf
          {
              cPt2di aPt = aCenter + aNeigh;
-             bool IsVisible = (mDImDepth->DefGetV(aPt,aPlusInfty) <= aDepth);
+             bool IsVisible = (mDImIndex->DefGetV(aPt,NoIndex) == (int)aKPt);
 
              aNbVisTot += IsVisible;
              if (! isModeImage)
@@ -592,6 +623,14 @@ void cProjPointCloud::ProcessOneProj
              << "\n";
     }
 
+    for (const auto & aPix : *mDImIndex)
+    {
+        int aIndex =  mDImIndex->GetV(aPix);
+        tImageDepth aDepth= (aIndex==NoIndex) ?  (aVMinInit - 100.0) : mVPtsInit->at(aIndex).z();
+
+        mDImDepth->SetV(aPix,aDepth);
+    }
+
     if (ExportIm)
     {
        std::string aPrefix = (isModeImage ? "IIIP-" : "Colorate-") + aMsg;
@@ -601,26 +640,6 @@ void cProjPointCloud::ProcessOneProj
           mDImWeigth->ToFile(aPrefix+"-WEIGHT.tif");
        if (mDImDepth)
        {
-          tImageDepth aVMinInit =  aPlusInfty;
-          for (const auto & aPix : *mDImDepth)
-          {
-              const tImageDepth & aVal = mDImDepth->GetV(aPix);
-              if (aVal > aMinInfty)
-              {
-                  UpdateMin(aVMinInit,aVal);
-              }
-          }
-          for (const auto & aPix : *mDImDepth)
-          {
-              tImageDepth & aVal = mDImDepth->GetReference_V(aPix);
-              if (aVal == aMinInfty)
-              {
-                  aVal = aVMinInit - 100.0;
-              }
-          }
-          // StdOut() <<  "VMMMMin" << aVMinInit << "\n";
-                 
-
           mDImDepth->ToFile(aPrefix+"-DEPTH.tif");
        }
     }
@@ -716,6 +735,7 @@ class cAppli_MMVII_CloudColorate : public cMMVII_Appli
         cPt3dr   mSun;
         bool     mShowMsg;
         bool     mExportIm;
+        bool     mProfIsZ0;
 };
 
 cAppli_MMVII_CloudColorate::cAppli_MMVII_CloudColorate
@@ -728,7 +748,8 @@ cAppli_MMVII_CloudColorate::cAppli_MMVII_CloudColorate
      mSurResol       (2.0),
      mNbSampS        (5),
      mShowMsg        (false),
-     mExportIm       (false)
+     mExportIm       (false),
+     mProfIsZ0       (false)
 {
 }
 
@@ -750,6 +771,7 @@ cCollecSpecArg2007 & cAppli_MMVII_CloudColorate::ArgOpt(cCollecSpecArg2007 & anA
           << AOpt2007(mSun,"Sun","Sun : Dir3D=(x,y,1)  ,  Z=WEIGHT !! ")
           << AOpt2007(mShowMsg,"ShowMsg","Print detailled message at each computation",{{eTA2007::HDV},{eTA2007::Tuning}})
           << AOpt2007(mExportIm,"ExportIm","Export all individual images",{{eTA2007::HDV},{eTA2007::Tuning}})
+          << AOpt2007(mProfIsZ0,"ProfIsZ0","Prof is ZInit/\"Z in Dir proj\"",{{eTA2007::HDV},{eTA2007::Tuning}})
    ;
 }
 
@@ -792,7 +814,7 @@ int  cAppli_MMVII_CloudColorate::Exe()
            cPt3dr aDir = VUnit(aSampS.KthPt(aK));
            if (aDir.z() >= 0.2)
            {
-               std::unique_ptr<cCamOrthoC> aCam (aPPC.PPC_CamOrtho(aDir));
+               std::unique_ptr<cCamOrthoC> aCam (aPPC.PPC_CamOrtho(mProfIsZ0,aDir));
                cPt3di aDirI = ToI(aDir*100.0);
                std::string aMsg = ToStr(aDirI.x()) + "_" +  ToStr(aDirI.y()) + "_" +  ToStr(aDirI.z());
                aPPC.ProcessOneProj(mSurResol,*aCam,1.0,false,aMsg,mShowMsg,mExportIm);
@@ -805,7 +827,7 @@ int  cAppli_MMVII_CloudColorate::Exe()
    if (IsInit(&mSun))
    {
        tREAL8 aW0  = mNbSampS ? aNbStd : 1.0;
-       std::unique_ptr<cCamOrthoC> aCam (aPPC.PPC_CamOrtho(cPt3dr(mSun.x(),mSun.y(),1.0)));
+       std::unique_ptr<cCamOrthoC> aCam (aPPC.PPC_CamOrtho(mProfIsZ0,cPt3dr(mSun.x(),mSun.y(),1.0)));
        aPPC.ProcessOneProj(mSurResol,*aCam,aW0 * mSun.z(),false,"",false,false);
    }
 
@@ -918,7 +940,7 @@ int  cAppli_MMVII_CloudImProj::Exe()
 
    if  (IsInit(&mSun))
    {
-       std::unique_ptr<cCamOrthoC> aCam (aPPC.PPC_CamOrtho(cPt3dr(mSun.x(),mSun.y(),1.0)));
+       std::unique_ptr<cCamOrthoC> aCam (aPPC.PPC_CamOrtho(false,cPt3dr(mSun.x(),mSun.y(),1.0)));
        aPPC.ProcessOneProj(mSurResolSun,*aCam,mSun.z(),false,"",false,false);
 
        aPPC.ColorizePC();
@@ -943,7 +965,7 @@ int  cAppli_MMVII_CloudImProj::Exe()
 
        for (int aK=-aNbPos ; aK<=aNbPos ; aK++)
        {
-           std::unique_ptr<cCamOrthoC> aCam (aPPC.PPC_CamOrtho(cPt3dr(aK*0.2,0.0,1.0),aSensDownSample));
+           std::unique_ptr<cCamOrthoC> aCam (aPPC.PPC_CamOrtho(false,cPt3dr(aK*0.2,0.0,1.0),aSensDownSample));
            aPPC.ProcessOneProj(aSurResCloud*aSensDownSample,*aCam,0.0,true,"",false,false);
            aPPC.ProcessImage(aSurResCloud*aSensDownSample,*aCam,mPrefixOut);
        }
