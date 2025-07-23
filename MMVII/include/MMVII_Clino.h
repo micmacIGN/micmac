@@ -71,6 +71,7 @@ class cSetMeasureClino
 
        private :
           std::vector<std::string>      mNamesClino;
+          //std::vector<eTyClino>         mTypes;
           std::string                   mPatMatch;
           std::string                   mPatReplace;
           std::vector<cOneMesureClino>  mSetMeasures;

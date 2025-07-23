@@ -6,6 +6,8 @@
 #include "MMVII_Tpl_Images.h"
 
 
+static bool ShowDetails =false;
+
 /**
    \file cClinoInit.cpp
 
@@ -15,6 +17,15 @@
 
 namespace MMVII
 {
+
+	/*
+enum class eTyClino
+           {
+              ePendulum,
+              eSpring,
+              eNbVals    ///< Tag for number of value
+           };
+	   */
 
 /* ************************************* */
 /*           cOneCalibRelClino           */
@@ -91,6 +102,7 @@ class cClinoCalMes1Cam
     public :
         cClinoCalMes1Cam
         (
+	      eTyClino,
               cSensorCamPC * aCam,   // camera-> only the pose is usefuul
               const std::vector<tREAL8> & aVAngles, // vector of angles of all clinometer
               const cPt3dr &   aVerticAbs = {0,0,-1}  // position of vertical in current "absolut" system
@@ -121,18 +133,22 @@ class cClinoCalMes1Cam
 	///  Gradient / wpk of Needle's  "Ecart vectorial" (in x an y) in plane IJ, computed using finite difference (now used for 
         std::pair<cPt3dr,cPt3dr>  GradEVR(int aKClino,const tRotR & aRot,tREAL8 aEpsilon=1e-3) const;
 
+        /// return the theoreticall position on the spring 
+        tREAL8 SpringAngle(const  tRotR &aCam2Clino) const;
     private :
         cSensorCamPC *          mCam;  ///< camera , memorization seems useless
 	std::vector<tREAL8>     mVAngles; ///< Copy of angles, for TestCalib
 	std::vector<cPt2dr>     mVDir; ///<  measured position of needle, computed from angles
 	cPt3dr                  mVertInLoc;  ///<  Vertical in  camera system, this  is the only information usefull of camera orientation
+	eTyClino                mTypeClino;
 };
 
 
-cClinoCalMes1Cam::cClinoCalMes1Cam(cSensorCamPC * aCam,const std::vector<tREAL8> & aVAngles,const cPt3dr & aVertAbs) :
+cClinoCalMes1Cam::cClinoCalMes1Cam(eTyClino aTypeC,cSensorCamPC * aCam,const std::vector<tREAL8> & aVAngles,const cPt3dr & aVertAbs) :
     mCam       (aCam),
     mVAngles   (aVAngles),
-    mVertInLoc (mCam->Vec_W2L(cPt3dr(0,0,-1)))
+    mVertInLoc (mCam->Vec_W2L(cPt3dr(0,0,-1))),
+    mTypeClino (aTypeC)
 {
 
 
@@ -198,6 +214,13 @@ cPt2dr  cClinoCalMes1Cam::PosNeedle(const  tRotR &aCam2Clino) const
 }
 
 
+tREAL8 cClinoCalMes1Cam::SpringAngle(const  tRotR &aCam2Clino) const
+{
+     cPt3dr  aVClin =  aCam2Clino.Value(mVertInLoc); 
+
+     return aVClin.y();
+}
+
 cPt2dr  cClinoCalMes1Cam::EcarVectRot(int aKClino,const  tRotR &aCam2Clino) const
 {
      //  Theoretical Pos -  Measured Pos
@@ -206,8 +229,27 @@ cPt2dr  cClinoCalMes1Cam::EcarVectRot(int aKClino,const  tRotR &aCam2Clino) cons
 
 tREAL8  cClinoCalMes1Cam::ScoreRot(int aKClino,const  tRotR & aCam2Clino) const
 {
-     // score of a given rotation
-     return SqN2(EcarVectRot(aKClino,aCam2Clino));
+if (ShowDetails)
+{
+    StdOut() << " KC=" << aKClino 
+	    <<  " SSRR=" << Square(aCam2Clino.Value(mVertInLoc).y() - mVAngles[aKClino] )
+	    <<  " " <<  SqN2(EcarVectRot(aKClino,aCam2Clino))
+	    << "\n";
+}
+     switch (mTypeClino)
+     {
+        case eTyClino::ePendulum:
+             return SqN2(EcarVectRot(aKClino,aCam2Clino));
+
+        case eTyClino::eSpring:
+             return Square(SpringAngle(aCam2Clino) - sin(mVAngles[aKClino]));
+
+        default :
+	     ;
+     };
+
+     MMVII_INTERNAL_ERROR("No valide type clino");
+     return 0.0;
 }
 
 void cClinoCalMes1Cam::SetDirSimul(int aKClino,const  tRotR &aR)
@@ -259,7 +301,7 @@ class cAppli_ClinoInit : public cMMVII_Appli
         cWhichMin<tRotR,tREAL8>   ComputeInitialSolution(int aNbStep) const;
 
 	///  Compute the conditionning of least-square matrix
-        cPt2dr ComputeCond(const tRotR & aWPK,tREAL8 aEpsilon=1e-3);
+        cPt2dr ComputeCond(const tRotR & aWPK,tREAL8 aEpsilon=1e-4);
 
 
         cPhotogrammetricProject        mPhProj;     ///<  Classical structure for photogrammetric project
@@ -447,6 +489,7 @@ int cAppli_ClinoInit::Exe()
 {
     mPhProj.FinishInit();
 
+    eTyClino aTypeC = eTyClino::eSpring;
 
     if (mDmMGon)
        mUnityAng = (400.0/(2*M_PI)) * 1e3 * 10;
@@ -494,7 +537,7 @@ int cAppli_ClinoInit::Exe()
             aCam->SetPose(cIsometry3D<tREAL8>(cPt3dr(0,0,0),aRPose));
 
             // mVMeasures.push_back(cClinoCalMes1Cam(aCam,aVAngles[aKLine]));
-            mVMeasures.push_back(cClinoCalMes1Cam(aCam,std::vector<tREAL8>(10,0.0)));
+            mVMeasures.push_back(cClinoCalMes1Cam(aTypeC,aCam,std::vector<tREAL8>(10,0.0)));
 	    for (size_t aKCl=0 ; aKCl<mVKClino.size() ; aKCl++)
                 mVMeasures.back().SetDirSimul(mVKClino[aKCl],OriOfClino(aKCl,aRSim));
         }
@@ -509,7 +552,7 @@ int cAppli_ClinoInit::Exe()
 
 		 std::vector<double>  aVAngles = aMes.Angles();
 
-                 mVMeasures.push_back(cClinoCalMes1Cam(aCam,aVAngles));
+                 mVMeasures.push_back(cClinoCalMes1Cam(aTypeC,aCam,aVAngles));
 
 	         aCalib = aCam->InternalCalib();
 	         aNameCalibCam = aCalib->Name();
@@ -525,15 +568,25 @@ int cAppli_ClinoInit::Exe()
 
     cWhichMin<tRotR,tREAL8>  aWM0 = ComputeInitialSolution(mNbStep0);
 
+    StdOut() << "RESINIT=" << aWM0.ValExtre() *  mUnityAng << "\n";
+    if (0)
+    {
+ShowDetails = true;
+        CostRot(aWM0.IndexExtre());
+ShowDetails = false;
+    }
+
     tREAL8 aStep = 2.0/mNbStep0;
     tREAL8 aDiv = 1.25;
     
     tREAL8 aInitRes = std::sqrt(aWM0.ValExtre());
     for (int aK=0 ; aK<mNbIter ; aK++)
     {
+
          aWM0 =  OneIter(aWM0.IndexExtre(), (2*aStep)/mNbStepIter,mNbStepIter);
          aStep /= aDiv;
     }
+
 
     StdOut() <<  "=============== Result of global optimization  =============" << std::endl;
     StdOut() << "Residual=" << std::sqrt(aWM0.ValExtre())  * mUnityAng
