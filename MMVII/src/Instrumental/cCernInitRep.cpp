@@ -14,6 +14,22 @@
 namespace MMVII
 {
 
+class cResultWireD
+{
+    public :
+        std::string  mId;
+        tREAL8       mDistV;
+        tREAL8       mDistH;
+        tREAL8       mDistG;
+};
+void AddData(const  cAuxAr2007 & anAux,cResultWireD & aRW)
+{
+    AddData(cAuxAr2007("Id",anAux),aRW.mId);
+    AddData(cAuxAr2007("DV",anAux),aRW.mDistV);
+    AddData(cAuxAr2007("DH",anAux),aRW.mDistH);
+    AddData(cAuxAr2007("DG",anAux),aRW.mDistG);
+}
+
 /* ==================================================== */
 /*                                                      */
 /*               cGetVerticalFromClino                  */
@@ -136,9 +152,10 @@ class cAppli_CernInitRep : public cMMVII_Appli
         cSetMeasureClino         mMesClino;
         bool                     mTestAlreadyV;  ///< If true, repair is already verticalized, just used as test 
         int                      mNbMinTarget;   ///< Required minimal number of Target identified
+        std::string              mNameFileSave;
 // ReadMeasureClino(const std::string * aPatSel=nullptr) const;
 
-
+        std::map<std::string,cResultWireD>  mResults;
 };
 
 cCollecSpecArg2007 & cAppli_CernInitRep::ArgObl(cCollecSpecArg2007 & anArgObl)
@@ -159,7 +176,8 @@ cCollecSpecArg2007 & cAppli_CernInitRep::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
     return      anArgOpt
              << AOpt2007(mTestAlreadyV,"TestAlreadyV","If repair is already verticalized, for test",{{eTA2007::HDV}})
-             << AOpt2007(mNbMinTarget,"NbMinTarget,","Number minimal of target required",{{eTA2007::HDV}})
+             << AOpt2007(mNbMinTarget,"NbMinTarget","Number minimal of target required",{{eTA2007::HDV}})
+             << AOpt2007(mNameFileSave,"NameFileSave","Name file for saving results",{{eTA2007::HDV}})
     ;
 }
 
@@ -305,12 +323,16 @@ void cAppli_CernInitRep::ProcessOneBloc(const std::vector<cSensorCamPC *> & aVPC
        cPt3dr aCSphere(0,0,0);
        cPt3dr aVProjSph = aLocSegWire.Proj(aCSphere) - aCSphere;
 
-       tREAL8 aDHor  =   Norm2(Proj(aVProjSph));
-       tREAL8 aDVert =     std::abs(aVProjSph.z());
+       cResultWireD aRW;
+       aRW.mId   =  anId;
+       aRW.mDistH  =   Norm2(Proj(aVProjSph));
+       aRW.mDistV  =   std::abs(aVProjSph.z());
+       aRW.mDistG =     Norm2(aVProjSph);
 
+       mResults[anId] = aRW;
 
-       StdOut() << " Angles="  << aMes.Angles()  << " ScoreV=" << aScoreVert << "\n";
-       StdOut() << " WIRE , Steep : " << aSteep  << " DHor=" << aDHor << " DVert=" << aDVert<< "\n";
+       StdOut() << "ID=" << anId << " Angles="  << aMes.Angles()  << " ScoreV=" << aScoreVert << "\n";
+       StdOut() << " WIRE , Steep : " << aSteep  << " DHor=" << aRW.mDistH << " DVert=" << aRW.mDistV << " DGlob=" << aRW.mDistG << "\n";
     }
 
    //  NewRep 
@@ -330,12 +352,18 @@ int cAppli_CernInitRep::Exe()
 {
     mPhProj.FinishInit();  // the final construction of  photogrammetric project manager can only be done now
 
+    if (IsInit(&mNameFileSave) && ExistFile(mNameFileSave))
+    {
+          ReadFromFile(mResults,mNameFileSave);
+    }
+
     mTheBloc = mPhProj.ReadUnikBlocCam();
 
     mMesClino = mPhProj.ReadMeasureClino();
 
 
     std::vector<std::vector<cSensorCamPC *>>  aVVC = mTheBloc->GenerateOrientLoc(mPhProj,VectMainSet(0));
+
     for (auto & aVPannel : aVVC)
     {
         std::vector<cSensorCamPC *> aVecCam = aVPannel;
@@ -357,6 +385,17 @@ int cAppli_CernInitRep::Exe()
         DeleteAllAndClear(aVPannel);
         if (mTestAlreadyV)
            DeleteAllAndClear(aVecCam);
+    }
+
+    if (IsInit(&mNameFileSave))
+    {
+         SaveInFile(mResults,mNameFileSave);
+         cStdStatRes aStatH;
+         for (const auto & [anId,aRW] : mResults)
+         {
+             aStatH.Add(aRW.mDistH);
+         }
+         StdOut() << "Avg=" << aStatH.Avg() <<  " ECT=" << aStatH.UBDevStd(-1) << "\n";
     }
 
     delete mTheBloc;
