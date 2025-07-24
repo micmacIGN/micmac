@@ -16,14 +16,14 @@ MMVII  OriCreateCalib ".*tif" CalibInit
 #  Import GCP , we fix a coordinate system "Pannel", purely local, mainly for documentation
 #
 MMVII  ImportGCP  Data-Aux/Positions-3D-14bit_lookup.txt NXYZBla Test NbDigName=3 ChSys=[LocalPannel]
-MMVII  CodedTargetCircExtract ".*_Scaled.tif" CERN_Nbb14_Freq14_Hamm1_Run1000_1000_FullSpecif.xml DiamMin=8  OutObjMesInstr=Test
+MMVII  CodedTargetCircExtract ".*_Scaled.tif" CERN_Nbb14_Freq14_Hamm1_Run1000_1000_SpecEncoding_FullSpecif.xml DiamMin=8  OutObjMesInstr=Test
 
 #  pose estimation init : resection + bundle
 MMVII OriPoseEstimSpaceResection .*tif Test Test CalibInit Resec ThrRej=10  DirFiltered=Filt
 MMVII  OriBundleAdj .*tif Resec BA GCP2D=[[Filt,1]] GCP3D=[[Test,1]]
 
 #  research uncoded target + new bundle
-MMVII CodedTargetCompleteUncoded .*_Scaled.tif BA 1.0 InObjMesInstr=Test InObjCoordWorld=Test ThRay=[1.05,4.7,5.3]
+MMVII CodedTargetCompleteUncoded .*_Scaled.tif BA 1.0 Test Test Completed ThRay=[1.05,4.7,5.3]
 MMVII  OriBundleAdj .*tif  BA BA2 GCP2D=[[Completed,1,1,5]] GCP3D=[[Test,1]]
 
 #   Generate a report on GCP quality
