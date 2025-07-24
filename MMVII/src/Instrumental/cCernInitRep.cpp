@@ -56,7 +56,7 @@ class cOptimGVFromClino : public  cDataMapping<tREAL8,2,1>
 	}
 
         /// Convert a "small" point of the plane to a point in tanget space
-	cPt3dr  Delta2Pt(const cPt2dr & aDelta) const {return mP0 + mP1*aDelta.x()+mP2*aDelta.y();}
+	cPt3dr  Delta2Pt(const cPt2dr & aDelta) const {return VUnit(mP0 + mP1*aDelta.x()+mP2*aDelta.y());}
 
         /// scoring function to be optimized
         cPt1dr Value(const cPt2dr & aDelta) const override
@@ -73,18 +73,39 @@ class cOptimGVFromClino : public  cDataMapping<tREAL8,2,1>
 cGetVerticalFromClino::cGetVerticalFromClino(const cCalibSetClino & aCalib,const std::vector<tREAL8> & aVAngle) :
 	mCalibs (aCalib)
 {
+    mVAngles = aVAngle;
     for (const auto & aTeta : aVAngle)  // convert angle to direction in repair
+    {
         mDirs.push_back(FromPolar(1.0,aTeta));
+        mVSinAlpha.push_back(std::sin(aTeta));
+    }
 }
+
+
 
 tREAL8 cGetVerticalFromClino::ScoreDir3D(const cPt3dr & aDirCam) const
 {
    tREAL8 aSum=0.0;
    for (size_t aK=0 ; aK<mDirs.size() ; aK++)
    {
-       cPt3dr aDirClino = mCalibs.ClinosCal().at(aK).CamToClino(aDirCam);
-       cPt2dr aDirNeedle = VUnit(Proj(aDirClino));
-       aSum += SqN2(aDirNeedle-mDirs.at(aK));
+       const  cOneCalibClino & aCalib =  mCalibs.ClinosCal().at(aK);
+       cPt3dr aDirClino =  aCalib.CamToClino(aDirCam);
+       if ( aCalib.Type() == eTyClino::ePendulum)
+       {
+           cPt2dr aDirNeedle = VUnit(Proj(aDirClino));
+           aSum += SqN2(aDirNeedle-mDirs.at(aK));
+       }
+       else if (aCalib.Type() == eTyClino::eSpring)
+       {
+            aSum += Square(aDirClino.y()-mVSinAlpha.at(aK));
+
+            // The sinus is udefined up to a sign change, so we have to rectify, btw the spring clino cannot ??  be up-down
+            if (aDirClino.x()<0)
+               aSum +=  -aDirClino.x();
+       }
+       else
+       {
+       }
    }
 
    return std::sqrt(aSum/mDirs.size());

@@ -71,7 +71,6 @@ class cSetMeasureClino
 
        private :
           std::vector<std::string>      mNamesClino;
-          //std::vector<eTyClino>         mTypes;
           std::string                   mPatMatch;
           std::string                   mPatReplace;
           std::vector<cOneMesureClino>  mSetMeasures;
@@ -99,17 +98,26 @@ class cOneCalibClino
       public :
          cOneCalibClino();  ///< Defaut constructor for serialization
          cOneCalibClino(const std::string aNameClino);
+         cOneCalibClino(eTyClino,const std::string& aNameClino,const tRotR &, const std::string & aNameCamera);
+         void AddData(const  cAuxAr2007 & anAux);
 
          /// fix the interpretation  of mRot
          cPt3dr  CamToClino(const cPt3dr & aPt) const  {return  mRot.Value(aPt);}
 
+         const tRotR & Rot() const ; //  {return mRot;};
+         const std::string & NameClino() const ; //  const {return mNameClino;};
+         const std::string & NameCamera() const ; //  const {return mCameraName;};
+         eTyClino    Type() const;
+
+
+         void SetRelCalib(const std::string & aNameRef,const tRotR & aRot);
+
+     private :
+         eTyClino       mType;       ///<  Type of clino (like Pendulum ...)
          std::string    mNameClino;  ///< Name of clinometer
-         tRotR           mRot;       ///< Value of rotation
-         std::string    mCameraName; /// Name of camera with the relative orientation
+         tRotR          mRot;       ///< Value of rotation
+         std::string    mCameraName; ///< Name of camera with the relative orientation
          std::optional<cOneCalibRelClino>   mLinkRel;  ///< Possible relative calib
-         tRotR Rot() const {return mRot;};
-         std::string NameClino() const {return mNameClino;};
-         std::string NameCamera() const {return mCameraName;};
 };
 void AddData(const  cAuxAr2007 & anAux,cOneCalibClino & aSet);
 
@@ -120,17 +128,19 @@ class cCalibSetClino : public cMemCheck
 
          cCalibSetClino();  ///< Defaut constructor for serialization
          cCalibSetClino(std::string aNameCam, std::vector<cOneCalibClino> aClinosCal);
+         void AddData(const  cAuxAr2007 & anAux);
+
          /// Name of the camera where the calibration, but at least for tracability
-         std::string NameCam(){return mNameCam;};
-         const std::vector<cOneCalibClino> & ClinosCal() const {return mClinosCal;};
+         const std::string & NameCam() const;//  {return mNameCam;};
+         const std::vector<cOneCalibClino> & ClinosCal() const ;// {return mClinosCal;};
 
          // Set clinometers calibration
-         void setClinosCal(std::vector<cOneCalibClino>  aClinosCal){mClinosCal=aClinosCal;}
+         void SetClinosCal(const std::vector<cOneCalibClino> &); //  aClinosCal){mClinosCal=aClinosCal;}
+         void SetNameCam(const std::string & aNameCam); // {mClinosCal=aClinosCal;}
 
-
+         void AddCalib1Clino(const cOneCalibClino&);
+    private :
          std::string mNameCam;
-
-	      /// Set of all clinometers calibration
          std::vector<cOneCalibClino>  mClinosCal  ;        
 };
 void AddData(const  cAuxAr2007 & anAux,cCalibSetClino & aSet);
@@ -145,6 +155,7 @@ void AddData(const  cAuxAr2007 & anAux,cCalibSetClino & aSet);
 class cGetVerticalFromClino
 {
     public :
+       /// constructor : take the calib of clino (boresight ...) and the angles corresponding
        cGetVerticalFromClino(const cCalibSetClino &,const std::vector<tREAL8> & aVAngle);
        tREAL8 ScoreDir3D(const cPt3dr & aDir) const;
 
@@ -154,7 +165,9 @@ class cGetVerticalFromClino
        cPt3dr Refine(cPt3dr aP0,tREAL8 StepInit,tREAL8 StepEnd) const;
     private :
        const cCalibSetClino & mCalibs;
-       std::vector<cPt2dr>    mDirs;
+       std::vector<cPt2dr>    mDirs;   ///< convenient for Pendulum
+       std::vector<tREAL8>    mVAngles; ///< convenient for Spring
+       std::vector<tREAL8>    mVSinAlpha; ///< convenient for Spring
 };
 
 

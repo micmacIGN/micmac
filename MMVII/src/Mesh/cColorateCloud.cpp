@@ -233,7 +233,7 @@ void BenchCamOrtho(const cOrthoProj &anOP,const cPt3dr & aDir)
 
 void BenchCamOrtho()
 {
-   StdOut() << "BenchCamOrthoBenchCamOrthoBenchCamOrthoBenchCamOrthoBenchCamOrthoBenchCamOrthoBenchCamOrtho\n";
+   // StdOut() << "BenchCamOrthoBenchCamOrthoBenchCamOrthoBenchCamOrthoBenchCamOrthoBenchCamOrthoBenchCamOrtho\n";
    for (int aK=0 ; aK<20 ; aK++)
    {
        bool ProfIsZ0 = (aK%2)==1;
