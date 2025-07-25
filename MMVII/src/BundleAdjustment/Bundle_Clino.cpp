@@ -387,18 +387,21 @@ namespace MMVII
     void cBA_Clino::Save()
     {
         // Save relative orientations between clino and reference camera
+        MMVII_INTERNAL_ERROR("cBA_Clino::Save  being reengeneredd ....");
         
+/*
         std::vector<cOneCalibClino> aVCalibClino;
         for (auto & [aClinoName, aClinoWithUK] : mClinosWithUK)
         {
             cOneCalibClino aOneCalibClino = cOneCalibClino(aClinoName);
-            aOneCalibClino.mRot = aClinoWithUK.Rot();
+            aOneCalibClino.SetRot(aClinoWithUK.Rot());
             aOneCalibClino.mCameraName = mCameraName;
             aVCalibClino.push_back(aOneCalibClino);
         }
         
         cCalibSetClino aCalibSetClino = cCalibSetClino(mCameraName, aVCalibClino);
         mPhProj->SaveClino(aCalibSetClino);
+*/
     }
 
     void cBA_Clino::addClinoMes1Cam(const cClinoMes1Cam & aClinoMes1Cam)

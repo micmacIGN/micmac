@@ -274,6 +274,15 @@ enum class eTyUnitAngle
               eNbVals
 	   };
 
+
+enum class eTyClino
+           {
+              ePendulum,
+              eSpring,
+              eNbVals    ///< Tag for number of value
+           };
+
+
 enum class eTyNums
            {
               eTN_INT1,
@@ -623,6 +632,7 @@ enum class eMTDIm
               eNbVals
            };
 
+const std::string & E2Str(const eTyClino &);
 const std::string & E2Str(const eFormatSensor &);
 const std::string & E2Str(const eTypeSensor &);
 

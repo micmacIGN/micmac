@@ -6,6 +6,8 @@
 #include "MMVII_Tpl_Images.h"
 
 
+static bool ShowDetails =false;
+
 /**
    \file cClinoInit.cpp
 
@@ -15,6 +17,15 @@
 
 namespace MMVII
 {
+
+	/*
+enum class eTyClino
+           {
+              ePendulum,
+              eSpring,
+              eNbVals    ///< Tag for number of value
+           };
+	   */
 
 /* ************************************* */
 /*           cOneCalibRelClino           */
@@ -37,6 +48,16 @@ void AddData(const  cAuxAr2007 & anAux,cOneCalibRelClino & aLnk)
 /*           cOneCalibClino              */
 /* ************************************* */
 
+cOneCalibClino::cOneCalibClino(eTyClino aType,const std::string& aNameClino,const tRotR & aRot, const std::string & aNameCamera) :
+   mType       (aType),
+   mNameClino  (aNameClino),
+   mRot        (aRot),
+   mCameraName (aNameCamera)
+{
+}
+
+
+
 cOneCalibClino::cOneCalibClino() :
      mNameClino (""),
      mRot       (tRotR::Identity())
@@ -49,12 +70,32 @@ cOneCalibClino::cOneCalibClino(std::string aNameClino) :
 {
 }
 
-void AddData(const  cAuxAr2007 & anAux,cOneCalibClino & aClino)
+void cOneCalibClino::AddData(const  cAuxAr2007 & anAux)
 {
-    AddData(cAuxAr2007("NameClino",anAux),aClino.mNameClino);
-    AddData(cAuxAr2007("Rotation",anAux),aClino.mRot);
-    AddData(cAuxAr2007("NameCamera",anAux),aClino.mCameraName);
-    AddOptData(anAux,"RelCalib",aClino.mLinkRel);
+    MMVII::EnumAddData(anAux,mType,"Type");
+    MMVII::AddData(cAuxAr2007("NameClino",anAux),mNameClino);
+    MMVII::AddData(cAuxAr2007("Rotation",anAux),mRot);
+    MMVII::AddData(cAuxAr2007("NameCamera",anAux),mCameraName);
+    MMVII::AddOptData(anAux,"RelCalib",mLinkRel);
+}
+
+void AddData(const  cAuxAr2007 & anAux, cOneCalibClino & aCalib)
+{
+    aCalib.AddData(anAux);
+}
+
+const tRotR & cOneCalibClino::Rot()             const {return mRot;};
+const std::string& cOneCalibClino::NameClino()  const {return mNameClino;};
+const std::string& cOneCalibClino::NameCamera() const {return mCameraName;};
+eTyClino    cOneCalibClino::Type() const {return mType;}
+
+
+void cOneCalibClino::SetRelCalib(const std::string & aNameRef,const tRotR & aRot)
+{
+     cOneCalibRelClino aRel;
+     aRel.mNameRef = aNameRef;
+     aRel.mRot     = aRot;
+     mLinkRel = aRel;
 }
 
 
@@ -68,17 +109,54 @@ cCalibSetClino::cCalibSetClino() :
 }
 
 
+
+
 cCalibSetClino::cCalibSetClino(std::string aNameCam, std::vector<cOneCalibClino> aClinosCal) :
    mNameCam (aNameCam),
    mClinosCal (aClinosCal)
 {
 }
 
+
+void cCalibSetClino::AddData(const  cAuxAr2007 & anAux)
+{
+    MMVII::AddData(cAuxAr2007("NameCams",anAux),mNameCam);
+    MMVII::StdContAddData(cAuxAr2007("ClinoCalibs",anAux),mClinosCal);
+}
 void AddData(const  cAuxAr2007 & anAux,cCalibSetClino & aSet)
 {
-    AddData(cAuxAr2007("NameCams",anAux),aSet.mNameCam);
-    StdContAddData(cAuxAr2007("ClinoCalibs",anAux),aSet.mClinosCal);
+    aSet.AddData(anAux);
 }
+
+const std::string & cCalibSetClino::NameCam() const {return mNameCam;};
+const std::vector<cOneCalibClino> & cCalibSetClino::ClinosCal() const {return mClinosCal;};
+
+void cCalibSetClino::SetClinosCal(const std::vector<cOneCalibClino> &  aClinosCal)
+{
+   mClinosCal=aClinosCal;
+} 
+
+void cCalibSetClino::AddCalib1Clino(const cOneCalibClino& aCalib)
+{
+    mClinosCal.push_back(aCalib);
+}
+
+void cCalibSetClino::SetNameCam(const std::string & aNameCam)
+{
+    if (mNameCam=="")
+    {
+       mNameCam = aNameCam;
+    }
+    else
+    {
+         if (mNameCam!=aNameCam)
+         {
+             MMVII_INTERNAL_ERROR("Try to change name of cam in cCalibSetClino : " +mNameCam + " => " + aNameCam);
+         }
+    }
+}
+
+
 
 
 
@@ -91,6 +169,7 @@ class cClinoCalMes1Cam
     public :
         cClinoCalMes1Cam
         (
+	      eTyClino,
               cSensorCamPC * aCam,   // camera-> only the pose is usefuul
               const std::vector<tREAL8> & aVAngles, // vector of angles of all clinometer
               const cPt3dr &   aVerticAbs = {0,0,-1}  // position of vertical in current "absolut" system
@@ -121,18 +200,22 @@ class cClinoCalMes1Cam
 	///  Gradient / wpk of Needle's  "Ecart vectorial" (in x an y) in plane IJ, computed using finite difference (now used for 
         std::pair<cPt3dr,cPt3dr>  GradEVR(int aKClino,const tRotR & aRot,tREAL8 aEpsilon=1e-3) const;
 
+        /// return the theoreticall position on the spring 
+        tREAL8 SpringAngle(const  tRotR &aCam2Clino) const;
     private :
         cSensorCamPC *          mCam;  ///< camera , memorization seems useless
 	std::vector<tREAL8>     mVAngles; ///< Copy of angles, for TestCalib
 	std::vector<cPt2dr>     mVDir; ///<  measured position of needle, computed from angles
 	cPt3dr                  mVertInLoc;  ///<  Vertical in  camera system, this  is the only information usefull of camera orientation
+	eTyClino                mTypeClino;
 };
 
 
-cClinoCalMes1Cam::cClinoCalMes1Cam(cSensorCamPC * aCam,const std::vector<tREAL8> & aVAngles,const cPt3dr & aVertAbs) :
+cClinoCalMes1Cam::cClinoCalMes1Cam(eTyClino aTypeClino,cSensorCamPC * aCam,const std::vector<tREAL8> & aVAngles,const cPt3dr & aVertAbs) :
     mCam       (aCam),
     mVAngles   (aVAngles),
-    mVertInLoc (mCam->Vec_W2L(cPt3dr(0,0,-1)))
+    mVertInLoc (mCam->Vec_W2L(cPt3dr(0,0,-1))),
+    mTypeClino (aTypeClino)
 {
 
 
@@ -198,6 +281,13 @@ cPt2dr  cClinoCalMes1Cam::PosNeedle(const  tRotR &aCam2Clino) const
 }
 
 
+tREAL8 cClinoCalMes1Cam::SpringAngle(const  tRotR &aCam2Clino) const
+{
+     cPt3dr  aVClin =  aCam2Clino.Value(mVertInLoc); 
+
+     return aVClin.y();
+}
+
 cPt2dr  cClinoCalMes1Cam::EcarVectRot(int aKClino,const  tRotR &aCam2Clino) const
 {
      //  Theoretical Pos -  Measured Pos
@@ -206,8 +296,27 @@ cPt2dr  cClinoCalMes1Cam::EcarVectRot(int aKClino,const  tRotR &aCam2Clino) cons
 
 tREAL8  cClinoCalMes1Cam::ScoreRot(int aKClino,const  tRotR & aCam2Clino) const
 {
-     // score of a given rotation
-     return SqN2(EcarVectRot(aKClino,aCam2Clino));
+if (ShowDetails)
+{
+    StdOut() << " KC=" << aKClino 
+	    <<  " SSRR=" << Square(aCam2Clino.Value(mVertInLoc).y() - mVAngles[aKClino] )
+	    <<  " " <<  SqN2(EcarVectRot(aKClino,aCam2Clino))
+	    << "\n";
+}
+     switch (mTypeClino)
+     {
+        case eTyClino::ePendulum:
+             return SqN2(EcarVectRot(aKClino,aCam2Clino));
+
+        case eTyClino::eSpring:
+             return Square(SpringAngle(aCam2Clino) - std::sin(mVAngles[aKClino]));
+
+        default :
+	     ;
+     };
+
+     MMVII_INTERNAL_ERROR("No valide type clino");
+     return 0.0;
 }
 
 void cClinoCalMes1Cam::SetDirSimul(int aKClino,const  tRotR &aR)
@@ -259,10 +368,12 @@ class cAppli_ClinoInit : public cMMVII_Appli
         cWhichMin<tRotR,tREAL8>   ComputeInitialSolution(int aNbStep) const;
 
 	///  Compute the conditionning of least-square matrix
-        cPt2dr ComputeCond(const tRotR & aWPK,tREAL8 aEpsilon=1e-3);
+        cPt2dr ComputeCond(const tRotR & aWPK,tREAL8 aEpsilon=1e-4);
 
 
         cPhotogrammetricProject        mPhProj;     ///<  Classical structure for photogrammetric project
+        eTyClino                       mTypeClino;
+	std::vector<bool>              mComputedClino;  
         std::string                    mNameClino;  ///<  Pattern of xml file
         int                            mNbStep0;    ///<  Number of step in initial  first round
         int                            mNbStepIter; ///< Number of step in each iteration
@@ -275,7 +386,6 @@ class cAppli_ClinoInit : public cMMVII_Appli
 	/**  If several Clino, they can be computed globally or independantly, this vector of bool allow to have
 	 * the 2 computation, it's mainly for tuning and observing the effect on residual and conditionning
 	 */
-	std::vector<bool>              mComputedClino;  
 
 
 	std::string                    mNameRel12;  ///< relative orientation of Clino1/Clino2 stored as "i-kj"
@@ -286,6 +396,7 @@ class cAppli_ClinoInit : public cMMVII_Appli
         std::string                    mPatFilter;
         tREAL8                         mUnityAng;  ///< Unitiy in radian
         bool                           mDmMGon;    ///< Is Unity Deci milli gon
+        std::vector<tREAL8>            mMulAngle;
 };
 
 cAppli_ClinoInit::cAppli_ClinoInit
@@ -295,6 +406,7 @@ cAppli_ClinoInit::cAppli_ClinoInit
 ) :
      cMMVII_Appli  (aVArgs,aSpec),
      mPhProj       (*this),
+     mTypeClino    (eTyClino::eSpring),
      mNbStep0      (65),
      mNbStepIter   (10),
      mNbIter       (50),
@@ -331,6 +443,8 @@ cCollecSpecArg2007 & cAppli_ClinoInit::ArgOpt(cCollecSpecArg2007 & anArgOpt)
             <<  mPhProj.DPClinoMeters().ArgDirInOpt()  // Just for temporart test we can re-read, to supress later
 	    << AOpt2007(mPatFilter,"PatFilter","Pattern for filtering measure on ident",{eTA2007::HDV})
 	    << AOpt2007(mDmMGon,"DMGon","Do we print residual in decimilligon",{eTA2007::HDV})
+	    << AOpt2007(mTypeClino,"Type","Type of clino",{eTA2007::HDV,AC_ListVal<eTyClino>()})
+	    << AOpt2007(mMulAngle,"MulA","Multiplier of Angle to test ...",{eTA2007::Tuning})
     ;
 }
 
@@ -447,6 +561,8 @@ int cAppli_ClinoInit::Exe()
 {
     mPhProj.FinishInit();
 
+    if (! IsInit(&mMulAngle))
+       mMulAngle= std::vector<tREAL8>(mVKClino.size(),0.0);
 
     if (mDmMGon)
        mUnityAng = (400.0/(2*M_PI)) * 1e3 * 10;
@@ -474,7 +590,7 @@ int cAppli_ClinoInit::Exe()
 
     StdOut() << "ExeExe " << aVNamesClino << "\n";
 
-    std::string aNameCalibCam;
+    // std::string aNameCalibCam;
     cPerspCamIntrCalib * aCalib = nullptr;
     //  put low level in a more structured data
 
@@ -494,7 +610,7 @@ int cAppli_ClinoInit::Exe()
             aCam->SetPose(cIsometry3D<tREAL8>(cPt3dr(0,0,0),aRPose));
 
             // mVMeasures.push_back(cClinoCalMes1Cam(aCam,aVAngles[aKLine]));
-            mVMeasures.push_back(cClinoCalMes1Cam(aCam,std::vector<tREAL8>(10,0.0)));
+            mVMeasures.push_back(cClinoCalMes1Cam(mTypeClino,aCam,std::vector<tREAL8>(10,0.0)));
 	    for (size_t aKCl=0 ; aKCl<mVKClino.size() ; aKCl++)
                 mVMeasures.back().SetDirSimul(mVKClino[aKCl],OriOfClino(aKCl,aRSim));
         }
@@ -509,21 +625,38 @@ int cAppli_ClinoInit::Exe()
 
 		 std::vector<double>  aVAngles = aMes.Angles();
 
-                 mVMeasures.push_back(cClinoCalMes1Cam(aCam,aVAngles));
+                 for (size_t aKC=0 ; aKC<mVKClino.size() ; aKC++)
+                 {
+                     aVAngles.at(mVKClino.at(aKC)) *= 1.0+ mMulAngle.at(aKC);
+                 }
+
+                 mVMeasures.push_back(cClinoCalMes1Cam(mTypeClino,aCam,aVAngles));
 
 	         aCalib = aCam->InternalCalib();
+
+                 mCalibSetClino.SetNameCam(aCalib->Name());
+/*
 	         aNameCalibCam = aCalib->Name();
 
 	         // We cannnot have multiple camera for now
-	         if ((mCalibSetClino.mNameCam !="") &&  (mCalibSetClino.mNameCam != aNameCalibCam))
+	         if ((mCalibSetClino.NameCam() !="") &&  (mCalibSetClino.NameCam() != aNameCalibCam))
                     MMVII_UnclasseUsEr("Multiple camera not handled");
 
                  mCalibSetClino.mNameCam = aNameCalibCam;
+*/
 	    }
         }
     }
 
     cWhichMin<tRotR,tREAL8>  aWM0 = ComputeInitialSolution(mNbStep0);
+
+    StdOut() << "RESINIT=" << aWM0.ValExtre() *  mUnityAng << "\n";
+    if (0)
+    {
+ShowDetails = true;
+        CostRot(aWM0.IndexExtre());
+ShowDetails = false;
+    }
 
     tREAL8 aStep = 2.0/mNbStep0;
     tREAL8 aDiv = 1.25;
@@ -531,9 +664,11 @@ int cAppli_ClinoInit::Exe()
     tREAL8 aInitRes = std::sqrt(aWM0.ValExtre());
     for (int aK=0 ; aK<mNbIter ; aK++)
     {
+
          aWM0 =  OneIter(aWM0.IndexExtre(), (2*aStep)/mNbStepIter,mNbStepIter);
          aStep /= aDiv;
     }
+
 
     StdOut() <<  "=============== Result of global optimization  =============" << std::endl;
     StdOut() << "Residual=" << std::sqrt(aWM0.ValExtre())  * mUnityAng
@@ -543,18 +678,28 @@ int cAppli_ClinoInit::Exe()
 
     for (size_t aKClino=0 ; aKClino<mVKClino.size() ; aKClino++)
     {
-       cOneCalibClino aCal;
-       aCal.mNameClino = aVNamesClino.at(mVKClino.at(aKClino));
-       aCal.mRot = OriOfClino(aKClino,aWM0.IndexExtre());
-       aCal.mCameraName = mCalibSetClino.mNameCam;
+       cOneCalibClino aCal
+                      (
+                          mTypeClino,
+                          aVNamesClino.at(mVKClino.at(aKClino)),
+                          OriOfClino(aKClino,aWM0.IndexExtre()),
+                          mCalibSetClino.NameCam()
+                      );
+       // aCal.mType =  mTypeClino;
+       // aCal.mNameClino = aVNamesClino.at(mVKClino.at(aKClino));
+       // aCal.mRot = OriOfClino(aKClino,aWM0.IndexExtre());
+       // aCal.SetCameraName(mCalibSetClino.NameCam());
        if (aKClino != 0)
        {
+            aCal.SetRelCalib(aVNamesClino.at(mVKClino.at(0)),mOriRelClin.at(aKClino));
+/*
             cOneCalibRelClino aCalRel;
-	        aCalRel.mNameRef = aVNamesClino.at(mVKClino.at(0));
-	        aCalRel.mRot = mOriRelClin.at(aKClino);
+            aCalRel.mNameRef = aVNamesClino.at(mVKClino.at(0));
+            aCalRel.mRot = mOriRelClin.at(aKClino);
             aCal.mLinkRel = aCalRel;
+*/
        }
-       mCalibSetClino.mClinosCal.push_back(aCal);
+       mCalibSetClino.AddCalib1Clino(aCal);
     }
     
 

@@ -250,7 +250,7 @@ template <class Type> void  cExtractLines<Type>::RefineLineInSpace(cHoughPS & aH
 
 // StdOut() << " RefineLineInSpacellll " << __LINE__ << "\n";
          //  [1.1]  initialise the seed
-    cPt2di  aSeed = ToI(mCalib->Redist(aSegC.PMil()));
+    cPt2di  aSeed = ToI(mCalib->Redist(aSegC.Middle()));
 
 
     if ( (!mDImMasq.Inside(aSeed))  || ((mDImMasq.GetV(aSeed)&TheFlagLine) !=0))

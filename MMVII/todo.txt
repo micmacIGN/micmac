@@ -1,10 +1,12 @@
-CERN :
+CERN vs ECT dist fils:
 
-   * detection cibles sur nouvelles acquisitions 
-   * fils :  
-             - recalage image
-             - quali detection image
-             - 3D !!
+* tester calibration "hyper rigide" sur panneau + calib globale
+* tester autre camera
+* calibration facteur echelle mesure clino
+* refaire compensation clino, avec poids sur clino/calib rel + nouveau formalisme
+* nouveau modele global rigide 
+* compensation sur fil
+ 
 
 
 ===========================================================

@@ -394,6 +394,12 @@ template<> cE2Str<eTyUnitAngle>::tMapE2Str cE2Str<eTyUnitAngle>::mE2S
                 {eTyUnitAngle::eUA_gon,"gon"}
            };
 
+template<> cE2Str<eTyClino>::tMapE2Str cE2Str<eTyClino>::mE2S
+           {
+                {eTyClino::ePendulum,"Pendulum"},
+                {eTyClino::eSpring,"Spring"},
+           };
+
 template<> cE2Str<eModeTestPropCov>::tMapE2Str cE2Str<eModeTestPropCov>::mE2S
            {
                 {eModeTestPropCov::eMTPC_MatCovRFix  ,"MatCovRFix"},
@@ -1243,6 +1249,7 @@ MACRO_INSTANTITATE_STRIO_ENUM(eTAAr,"TypeAAr")
 MACRO_INSTANTITATE_STRIO_ENUM(eTA2007,"TA2007")
 MACRO_INSTANTITATE_STRIO_ENUM(eTySC,"TySC")
 MACRO_INSTANTITATE_STRIO_ENUM(eTyUnitAngle,"AngleUnit")
+MACRO_INSTANTITATE_STRIO_ENUM(eTyClino,"TypeClino")
 
 MACRO_INSTANTITATE_STRIO_ENUM(eTypeSensor,"TypeSensor")
 MACRO_INSTANTITATE_STRIO_ENUM(eFormatSensor,"FormatSensor")

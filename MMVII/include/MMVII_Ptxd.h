@@ -707,6 +707,7 @@ template <class Type,const int Dim>  class cTplBox
         const tPt & P0() const {return mP0;} ///< Origin of object
         const tPt & P1() const {return mP1;} ///< End of object
         const tPt & Sz() const {return mSz;} ///< Size of object
+        tPt  Middle () const; ///< Middle of box
 
 	 // SEE BELLOW, IF USE RESYNCRONIZE OBJECT AFTER  , GIVE COMPLICATED NAME ON PURPOSE
         tPt & P0ByRef() {return mP0;} ///< Origin of object
@@ -861,7 +862,7 @@ template <class Type,const int Dim> class cSegment
        tPt&  P2() ; ///< Accessor
 
        tPt  V12() const;   ///<  Vector  P1->P2
-       tPt  PMil() const;  ///<  P middle
+       tPt  Middle() const;  ///<  P middle
 	/// Used for "generik" object that must describes its box
 	cTplBox<Type,Dim>  GetBoxEnglob() const;
     protected :

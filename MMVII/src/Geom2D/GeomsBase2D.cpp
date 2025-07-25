@@ -122,8 +122,8 @@ template <class Type>
 {
       //  (aM1 + L1 T1) . N2 = M2 . N2
       //  L1 (T1.N2)  = N2. (aM2-aM1) 
-      tPt aM1 = this->PMil();
-      tPt aM2 = aSeg2.PMil();
+      tPt aM1 = this->Middle();
+      tPt aM2 = aSeg2.Middle();
 
       Type aScalT1N2 = Scal(this->mTgt,aSeg2.mNorm);
 
