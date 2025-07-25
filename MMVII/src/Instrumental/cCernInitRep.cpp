@@ -243,7 +243,7 @@ void cAppli_CernInitRep::ProcessOneBloc(const std::vector<cSensorCamPC *> & aVPC
    cGetVerticalFromClino aGetVert(aSetC,aMes.Angles());
 
    // 1 =========  VERTICAL =====================================================
-   auto[aScoreVert, aVertLocCamDown]  = aGetVert.OptimGlob(50,1e-8);  // this vertical in camera coordinates (only use clino calib)
+   auto[aScoreVert, aVertLocCamDown]  = aGetVert.OptimGlob(50,1e-9);  // this vertical in camera coordinates (only use clino calib)
    cPt3dr aVertPannelDow = aCamClino->Vec_L2W(aVertLocCamDown); // verical in "word of pannel" coordinates
 
    if (mTestAlreadyV)

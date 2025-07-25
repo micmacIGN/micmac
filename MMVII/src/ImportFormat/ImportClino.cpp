@@ -195,6 +195,7 @@ class cAppli_ImportClino : public cMMVII_Appli
 	// Optionall Arg
 	cNRFS_ParamRead            mParamRead;
 	std::vector<cPt2di>        mIndCosCorrec;
+	std::vector<tREAL8>        mFactMult;
 
 
 	//   Format specif
@@ -240,6 +241,7 @@ cCollecSpecArg2007 & cAppli_ImportClino::ArgOpt(cCollecSpecArg2007 & anArgOpt)
     return      anArgOpt
 	     << AOpt2007(mIndCosCorrec,"ICC","Indexes for cosinus corrections")
 	     << AOpt2007(mNbDig,"NbDig","Fix the number of digit for identifier")
+	     << AOpt2007(mFactMult,"FactMult","Multiplier of measures M -> M * (1.0 + Value)")
     ;
 }
 
