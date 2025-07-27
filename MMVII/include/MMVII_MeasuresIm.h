@@ -193,6 +193,9 @@ class cSetMesGnd3D : public cMemCheck
 
           const std::vector<cMes1Gnd3D> &   Measures() const;  ///< Accessor
 	  static  const std::string ThePrefixFiles;
+          // return null ptr if not found
+          const cMes1Gnd3D * GetAdrMeasureOfNamePt(const std::string& aName,bool SVP=false) const;
+          const cMes1Gnd3D & GetMeasureOfNamePt(const std::string& aName) const;
 
       std::list<std::string>  ListOfNames() const;
       std::map<std::string, cSetMesGnd3D> SplitPerOutDir(const std::string &aDefaultOutName="") const; // default out name for measures without cMes3DDirInfo

@@ -1,7 +1,5 @@
 CERN vs ECT dist fils:
 
-* tester calibration "hyper rigide" sur panneau + calib globale
-* tester autre camera
 * calibration facteur echelle mesure clino
 * refaire compensation clino, avec poids sur clino/calib rel + nouveau formalisme
 * nouveau modele global rigide 

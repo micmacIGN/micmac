@@ -334,6 +334,13 @@ int cAppli_ImportClino::Exe()
 	     }
          }
 
+	 if (IsInit(&mFactMult))
+         {
+             MMVII_INTERNAL_ASSERT_User_UndefE(mFactMult.size()==aVAngles.size(),"Size of multiplier != number of clino");
+             for (size_t aK=0 ; aK<aVAngles.size() ; aK++)
+                 aVAngles.at(aK) *= (1.0+mFactMult.at(aK));
+         }
+
 	 // create the measure
          cOneMesureClino aMesClino(aNameIdent,aVAngles,aVSigma);
 

@@ -397,6 +397,7 @@ class cAppli_ClinoInit : public cMMVII_Appli
         tREAL8                         mUnityAng;  ///< Unitiy in radian
         bool                           mDmMGon;    ///< Is Unity Deci milli gon
         std::vector<tREAL8>            mMulAngle;
+        bool                           mDebug;
 };
 
 cAppli_ClinoInit::cAppli_ClinoInit
@@ -415,7 +416,8 @@ cAppli_ClinoInit::cAppli_ClinoInit
      mShowAll      (false),
      mPatFilter    (".*"),
      mUnityAng     (1.0),
-     mDmMGon       (false)
+     mDmMGon       (false),
+     mDebug        (false)
 {
 }
 
@@ -445,6 +447,7 @@ cCollecSpecArg2007 & cAppli_ClinoInit::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 	    << AOpt2007(mDmMGon,"DMGon","Do we print residual in decimilligon",{eTA2007::HDV})
 	    << AOpt2007(mTypeClino,"Type","Type of clino",{eTA2007::HDV,AC_ListVal<eTyClino>()})
 	    << AOpt2007(mMulAngle,"MulA","Multiplier of Angle to test ...",{eTA2007::Tuning})
+	    << AOpt2007(mDebug,"Debug","Debugging flag",{eTA2007::Tuning})
     ;
 }
 
@@ -650,13 +653,15 @@ int cAppli_ClinoInit::Exe()
 
     cWhichMin<tRotR,tREAL8>  aWM0 = ComputeInitialSolution(mNbStep0);
 
-    StdOut() << "RESINIT=" << aWM0.ValExtre() *  mUnityAng << "\n";
+    StdOut() << "RESINIT=" <<  std::sqrt(aWM0.ValExtre()) *  mUnityAng << "\n";
+/*
     if (0)
     {
 ShowDetails = true;
         CostRot(aWM0.IndexExtre());
 ShowDetails = false;
     }
+*/
 
     tREAL8 aStep = 2.0/mNbStep0;
     tREAL8 aDiv = 1.25;
@@ -664,8 +669,11 @@ ShowDetails = false;
     tREAL8 aInitRes = std::sqrt(aWM0.ValExtre());
     for (int aK=0 ; aK<mNbIter ; aK++)
     {
-
          aWM0 =  OneIter(aWM0.IndexExtre(), (2*aStep)/mNbStepIter,mNbStepIter);
+         if (mDebug)
+         {
+              StdOut() << " RES at iter " << aK << " = " <<  std::sqrt(aWM0.ValExtre()) *mUnityAng << "\n";
+         }
          aStep /= aDiv;
     }
 

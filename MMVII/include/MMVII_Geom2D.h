@@ -164,7 +164,10 @@ template <class Type>  class cHomot2D
           ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
           static tTypeMap  FromParam(const cDenseVect<Type> &);  
           /// compute the vector used in least square equation
+          static void ToEqParam(tPt & aRHS,std::vector<cDenseVect<Type>>&,const tPt &In,const tPt & Out);
+          /// Old interface
           static void ToEqParam(tPt & aRHS,cDenseVect<Type>&,cDenseVect<Type> &,const tPt &In,const tPt & Out);
+
           /// compute by least square the mapping such that Hom(PIn[aK]) = POut[aK]
           static tTypeMap StdGlobEstimate(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals aVWeight=nullptr);
           /// compute by ransac the map minizing Sum |Map(VIn[K])-VOut[K]|
@@ -237,8 +240,10 @@ template <class Type>  class cSim2D
           
           ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
           static tTypeMap  FromParam(const cDenseVect<Type> &);  
-          /// compute the vectors and constants used in least square equation
-          static void ToEqParam(tPt& aRHS,cDenseVect<Type>&,cDenseVect<Type> &,const tPt & aPtIn,const tPt & aPtOut);
+          /// compute the vector used in least square equation
+          static void ToEqParam(tPt & aRHS,std::vector<cDenseVect<Type>>&,const tPt &In,const tPt & Out);
+          /// Old interface
+          static void ToEqParam(tPt & aRHS,cDenseVect<Type>&,cDenseVect<Type> &,const tPt &In,const tPt & Out);
           /// Degree of freedoom
 
 
@@ -319,8 +324,10 @@ template <class Type>  class cRot2D
 
           ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
           static tTypeMap  FromParam(const cDenseVect<Type> &);  
-          /// compute the vectors and constants used in least square equation
-          static void ToEqParam(tPt& aRHS,cDenseVect<Type>&,cDenseVect<Type> &,const tPt & aPtIn,const tPt & aPtOut);
+          /// compute the vector used in least square equation
+          static void ToEqParam(tPt & aRHS,std::vector<cDenseVect<Type>>&,const tPt &In,const tPt & Out);
+          /// Old interface
+          static void ToEqParam(tPt & aRHS,cDenseVect<Type>&,cDenseVect<Type> &,const tPt &In,const tPt & Out);
 
           /// Refine an existing solution using least square
           tTypeMap LeastSquareRefine(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals=nullptr)const;
@@ -398,8 +405,10 @@ template <class Type>  class cAffin2D
                 
           ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
           static tTypeMap  FromParam(const cDenseVect<Type> &);  
-          /// compute the vectors and constants used in least square equation
-          static void ToEqParam(tPt& aRHS,cDenseVect<Type>&,cDenseVect<Type> &,const tPt & aPtIn,const tPt & aPtOut);
+          /// compute the vector used in least square equation
+          static void ToEqParam(tPt & aRHS,std::vector<cDenseVect<Type>>&,const tPt &In,const tPt & Out);
+          /// Old interface
+          static void ToEqParam(tPt & aRHS,cDenseVect<Type>&,cDenseVect<Type> &,const tPt &In,const tPt & Out);
           /// compute with minimal number of samples
           static tTypeMap FromMinimalSamples(const tTabMin&,const tTabMin&);
           /// Affity transforming a triangle in another ~ FromMinimalSamples, just interface
@@ -468,6 +477,8 @@ template <class Type>  class cHomogr2D
           inline tPt  Value(const tPt & aP) const   {return tPt(S(mHX,aP),S(mHY,aP)) / S(mHZ,aP);}
           inline tPt  Inverse(const tPt & aP) const {return tPt(S(mIHX,aP),S(mIHY,aP)) / S(mIHZ,aP);}
           /// compute the vector used in least square equation
+          static void ToEqParam(tPt & aRHS,std::vector<cDenseVect<Type>>&,const tPt &In,const tPt & Out);
+          /// Old interface
           static void ToEqParam(tPt & aRHS,cDenseVect<Type>&,cDenseVect<Type> &,const tPt &In,const tPt & Out);
           /// Creat an homotethy from 4 example
           static tTypeMap FromMinimalSamples(const tTabMin&,const tTabMin&);

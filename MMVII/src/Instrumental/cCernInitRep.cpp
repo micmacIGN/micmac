@@ -412,11 +412,14 @@ int cAppli_CernInitRep::Exe()
     {
          SaveInFile(mResults,mNameFileSave);
          cStdStatRes aStatH;
+         cStdStatRes aStatG;
          for (const auto & [anId,aRW] : mResults)
          {
              aStatH.Add(aRW.mDistH);
+             aStatG.Add(aRW.mDistG);
          }
-         StdOut() << "Avg=" << aStatH.Avg() <<  " ECT=" << aStatH.UBDevStd(-1) << "\n";
+         StdOut() << "HOR  Avg=" << aStatH.Avg() <<  " ECT=" << aStatH.UBDevStd(-1) << "\n";
+         StdOut() << "3D   Avg=" << aStatG.Avg() <<  " ECT=" << aStatG.UBDevStd(-1) << "\n";
     }
 
     delete mTheBloc;
