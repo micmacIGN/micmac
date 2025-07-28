@@ -143,11 +143,11 @@ namespace  MMVII {
       tDImDepth & aDDepth2=aDepth2.DIm();
 
       // Masq
-      tImMasq aMasq1=tImMasq::FromFile(N1M);
-      tDImMasq & aDDMasq1=aMasq1.DIm();
+      //tImMasq aMasq1=tImMasq::FromFile(N1M);
+      //tDImMasq & aDDMasq1=aMasq1.DIm();
 
-      tImMasq aMasq2=tImMasq::FromFile(N2M);
-      tDImMasq & aDDMasq2=aMasq2.DIm();
+      //tImMasq aMasq2=tImMasq::FromFile(N2M);
+      //tDImMasq & aDDMasq2=aMasq2.DIm();
 
       // Create Images Out Dx, Dy
 
@@ -170,13 +170,12 @@ namespace  MMVII {
         {
           for (aPix.x()=0;aPix.x()<mSzIm.x();aPix.x()++)
             {
-              if (aDDMasq1.GetV(aPix))
+              if (1)//aDDMasq1.GetV(aPix)) // gradient mask -> may be we should discard it
                 {
                   // DDEPTH CONTAINS GROUND TRUTH
                   // ADD perturbations to let locations in the image traval along epipolar lines
                     Pt3dr aTer=aCam1->ImEtProf2Terrain(Pt2dr(aPix.x(),aPix.y()),aDDepth1.GetV(aPix));
                     //
-                    //aTer.z+=
 
                     if (aCam2->PIsVisibleInImage(aTer))
                       {
@@ -195,7 +194,7 @@ namespace  MMVII {
                               {
                                 // point is visible in both images
                                 cPt2di aIntP((int)PtCam.x,(int)PtCam.y);
-                                if(aDDMasq2.GetV(aIntP))
+                                if(1)//aDDMasq2.GetV(aIntP))
                                   {
                                     aMxIm.SetV(aPix,1);
                                     //aMyIm.SetV(aPix,1);
