@@ -137,6 +137,8 @@ extern cSpecMMVII_Appli  TheSpec_ImportTriplet;
 extern cSpecMMVII_Appli  TheSpec_ArboTriplet;
 
 extern cSpecMMVII_Appli  TheSpecAppliBenchAPBI;
+extern cSpecMMVII_Appli  TheSpec_EpipGeom;
+
 };
 
 #endif  //  _MMVII_DeclareAllCmd_H_
