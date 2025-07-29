@@ -404,7 +404,8 @@ class cDirsPhProj : public cMemCheck
           const std::string & DirLocOfMode() const;   ///< Accessor
 
 	  void SetDirOut(const std::string & aDirOut); ///< Modifier, for example to have defaut value to input
-	  bool  DirInIsInit() const;
+	  bool  DirInIsInit() const;  ///< Was initialized and not set to NONE
+	  bool  DirInIsNONE() const;  ///< Was initialized && Set to NONE
 	  bool  DirOutIsInit() const;
           void  AssertDirInIsInit() const;
           void  AssertDirOutIsInit() const;

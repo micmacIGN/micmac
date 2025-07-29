@@ -5,6 +5,9 @@ CERN vs ECT dist fils:
 * nouveau modele global rigide 
 * compensation sur fil
  
+*  MMVII OriPoseEstimCheckGCPDist => report depend de Save
+
+=> nom images, prefix ?  Multi directory ?
 
 
 ===========================================================

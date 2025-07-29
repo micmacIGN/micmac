@@ -329,30 +329,38 @@ void cAppli_ReportBlock::TestPoint3D(const std::string & anIdSync,const std::vec
      if (mCernStat  && (mV3dLoc.size()>=3))
      {
          std::vector<cPt3dr> mV3dGround;
+         std::vector<cPt3dr> aFilteredV3DLoc;
          for (size_t aKPt=0 ; aKPt<mV3dLoc.size() ; aKPt++)
          {
-            mV3dGround.push_back(mGCP3d.GetMeasureOfNamePt(mVNames.at(aKPt)).mPt);
+             const cMes1Gnd3D * aMes3D = mGCP3d.GetAdrMeasureOfNamePt(mVNames.at(aKPt),SVP::Yes);
+             if (aMes3D)
+             {
+                 mV3dGround.push_back(aMes3D->mPt);
+                 aFilteredV3DLoc.push_back(mV3dLoc.at(aKPt));
+             }
          }
-         tPoseR aPose = tPoseR::RansacL1Estimate(mV3dGround,mV3dLoc,10000);
-         aPose = aPose.LeastSquareRefine(mV3dGround,mV3dLoc);
-         aPose = aPose.LeastSquareRefine(mV3dGround,mV3dLoc);
+         if (aFilteredV3DLoc.size() >= 3)
+         {
+            tPoseR aPose = tPoseR::RansacL1Estimate(mV3dGround,aFilteredV3DLoc,10000);
+            aPose = aPose.LeastSquareRefine(mV3dGround,aFilteredV3DLoc);
+            aPose = aPose.LeastSquareRefine(mV3dGround,aFilteredV3DLoc);
 
          //  TO REFACTOR !!!!! 
-         cSensorCamPC * aCamMaster = nullptr;
-         for (const auto & aCam : aVCam)
-         {
-              if (mTheBloc->IdBloc(aCam->NameImage()) == mTheBloc->NameMaster()) 
-              {
-                 aCamMaster = aCam;
-              }
-         }
-         MMVII_INTERNAL_ASSERT_tiny(aCamMaster!=nullptr,"Cannot find master");
-         cPerspCamIntrCalib * aCalibM = aCamMaster->InternalCalib();
-         const  cOneMesureClino & aMes = *  mMesClino.MeasureOfId(anIdSync); 
+            cSensorCamPC * aCamMaster = nullptr;
+            for (const auto & aCam : aVCam)
+            {
+                 if (mTheBloc->IdBloc(aCam->NameImage()) == mTheBloc->NameMaster()) 
+                 {
+                    aCamMaster = aCam;
+                 }
+            }
+            MMVII_INTERNAL_ASSERT_tiny(aCamMaster!=nullptr,"Cannot find master");
+            cPerspCamIntrCalib * aCalibM = aCamMaster->InternalCalib();
+            const  cOneMesureClino & aMes = *  mMesClino.MeasureOfId(anIdSync); 
 
-         cCalibSetClino aSetC = mPhProj.ReadSetClino(*aCalibM,mMesClino.NamesClino());
-         cGetVerticalFromClino aGetVert(aSetC,aMes.Angles());
-         auto[aScoreVert, aVertLocCamDown]  = aGetVert.OptimGlob(50,1e-9);  
+            cCalibSetClino aSetC = mPhProj.ReadSetClino(*aCalibM,mMesClino.NamesClino());
+            cGetVerticalFromClino aGetVert(aSetC,aMes.Angles());
+            auto[aScoreVert, aVertLocCamDown]  = aGetVert.OptimGlob(50,1e-9);  
         
          // StdOut() << " IDB=" << anIdSync << " SV=" << aScoreVert << " V=" << aVertLocCamDown << "\n";
          // aVCam
@@ -360,8 +368,9 @@ void cAppli_ReportBlock::TestPoint3D(const std::string & anIdSync,const std::vec
          //  cGetVerticalFromClino aGetVert(aSetC,aMes.Angles());
 
 
-         cPt3dr aPLoc = aPose.Value(mSphereCenter);
-         AddStatDistWirePt(aPLoc,aVertLocCamDown,"Center");
+            cPt3dr aPLoc = aPose.Value(mSphereCenter);
+            AddStatDistWirePt(aPLoc,aVertLocCamDown,"Center");
+         }
      }
 
      // Add the stat for the time synchronization

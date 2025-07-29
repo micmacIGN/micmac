@@ -196,6 +196,7 @@ class cAppli_ImportClino : public cMMVII_Appli
 	cNRFS_ParamRead            mParamRead;
 	std::vector<cPt2di>        mIndCosCorrec;
 	std::vector<tREAL8>        mFactMult;
+	std::vector<std::string>   mChgId;
 
 
 	//   Format specif
@@ -242,6 +243,8 @@ cCollecSpecArg2007 & cAppli_ImportClino::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 	     << AOpt2007(mIndCosCorrec,"ICC","Indexes for cosinus corrections")
 	     << AOpt2007(mNbDig,"NbDig","Fix the number of digit for identifier")
 	     << AOpt2007(mFactMult,"FactMult","Multiplier of measures M -> M * (1.0 + Value)")
+	     << AOpt2007(mChgId,"ChgId","Change Id [Pat,Name], for ex \"[0(.*),1\\$1]\"  0017->1017",{{eTA2007::ISizeV,"[2,2]"}})
+
     ;
 }
 
@@ -287,6 +290,8 @@ int cAppli_ImportClino::Exe()
          // for case where name is an int on fix digit but 0 have been omited (pb with CERN data)
          if (IsInit(&mNbDig))
             aNameIdent = ToFixSize(aNameIdent,mNbDig) ;
+
+         ChgName(mChgId,aNameIdent);
 
 	 if (aNbNameC!=0)
 	 {

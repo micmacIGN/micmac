@@ -54,6 +54,7 @@ class cAppli_ImportOri : public cMMVII_Appli
 	std::string              mSysCo;
 	size_t                   mNbMinTieP;
         tNameSet                 mSetFilter;
+        bool                     mTestBloc;
 };
 
 cAppli_ImportOri::cAppli_ImportOri(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -65,14 +66,15 @@ cAppli_ImportOri::cAppli_ImportOri(const std::vector<std::string> & aVArgs,const
    mAngleUnit    (eTyUnitAngle::eUA_radian),
    mRepIJK       ("ijk"),
    mRepIJDir     (false),
-   mNbMinTieP    (1)
+   mNbMinTieP    (1),
+   mTestBloc     (false)
 {
 }
 
 cCollecSpecArg2007 & cAppli_ImportOri::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
     return anArgObl
-	      <<  Arg2007(mNameFile ,"Name of Input File")
+	      <<  Arg2007(mNameFile ,"Name of Input File",{eTA2007::FileAny})
 	      <<  Arg2007(mFormat   ,"Format of file as for ex \"SNSXYZSS\" ")
               <<  mPhProj.DPOrient().ArgDirInMand("Ori folder to extract calibration")
               <<  mPhProj.DPOrient().ArgDirOutMand()
@@ -97,6 +99,7 @@ cCollecSpecArg2007 & cAppli_ImportOri::ArgOpt(cCollecSpecArg2007 & anArgObl)
        << AOpt2007(mNbMinTieP,"NbMinTieP","Number mininmal of tie point (when TiePF is init)",{eTA2007::HDV} )
        << AOpt2007(mFilterFileImIn,"FilterImIn","File/Pattern for filtering image in")
        << AOpt2007(mSysCo,"SysCo","Coordinate system for saving in result folder")
+       << AOpt2007(mTestBloc,"TestBloc","Test for bloc conversion",{eTA2007::HDV} )
     ;
 }
 
@@ -194,7 +197,7 @@ int cAppli_ImportOri::Exe()
 
 	    // Orient may be non init, by passing NONE, if we want to generate only the name
 
-	    if (mPhProj.DPOrient().DirInIsInit())
+	    // if (mPhProj.DPOrient().DirInIsInit())
 	    {
 	        cPt3dr aCenter = aVXYZ.at(aK);
 	        cPt3dr aWPK = aVWKP.at(aK) / aAngDiv ;
@@ -204,6 +207,11 @@ int cAppli_ImportOri::Exe()
 	 
 	        cRotation3D<tREAL8>  aRot =  cRotation3D<tREAL8>::RotFromWPK(aWPK);
 	        aRot = aRot * aRotAfter;
+                if (mTestBloc)
+                {
+                    aRot = aRotAfter.MapInverse() * aRot;
+                    StdOut() << "C=" << aRotAfter.Value(aCenter) / 1000.0 << "\n";
+                }
 
 	        cIsometry3D aPose(aCenter,aRot);
 	        cSensorCamPC  aCam(aNameIm,aPose,aCalib);

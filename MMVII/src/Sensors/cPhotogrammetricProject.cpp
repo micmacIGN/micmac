@@ -217,6 +217,13 @@ bool cDirsPhProj::DirInIsInit() const
 {
     return (mDirIn!= MMVII_NONE)  && mAppli.IsInit(&mDirIn);
 }
+bool cDirsPhProj::DirInIsNONE() const   
+{
+    return  mAppli.IsInit(&mDirIn) && (mDirIn== MMVII_NONE);
+}
+
+
+
 bool cDirsPhProj::DirOutIsInit() const  
 {
     return (mDirOut!= MMVII_NONE) && mAppli.IsInit(&mDirOut);
@@ -721,6 +728,9 @@ std::string  cPhotogrammetricProject::FullDirCalibOut() const
 
 cPerspCamIntrCalib *   cPhotogrammetricProject::InternalCalibFromStdName(const std::string aNameIm,bool isRemanent) const
 {
+    if (mDPOrient.DirInIsNONE())
+       return nullptr;
+
     std::string aNameCalib = FullDirCalibIn() + StdNameCalibOfImage(aNameIm) + "." + TaggedNameDefSerial();
     cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::FromFile(aNameCalib,isRemanent);
 
