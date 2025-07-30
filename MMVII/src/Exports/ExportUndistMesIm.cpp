@@ -98,7 +98,7 @@ int cAppli_ExportUndistMesIm::Exe()
 		}
 		
 		//write in a file
-		mPhProj.SaveMeasureIm(aSetMesOut);
+        mPhProj.SaveMeasureIm(aSetMesOut);
 	}
 
     return EXIT_SUCCESS;

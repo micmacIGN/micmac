@@ -72,6 +72,7 @@ class cAppli_ReportBlock : public cMMVII_Appli
 
         std::string                  mRepW;
         std::string                  mIdRepPtIndiv;
+        std::string                  mIdRepDWirePt;
         std::string                  mIdRepPtGlob;
         std::string                  mPatNameGCP;
 
@@ -116,6 +117,7 @@ cAppli_ReportBlock::cAppli_ReportBlock
      mPhProj       (*this),
      mRepW         ("Wire"),
      mIdRepPtIndiv ("Pt"),
+     mIdRepDWirePt ("DistWP"),
      mIdRepPtGlob  ("GlobPt"),
      mPatNameGCP   (".*"),
      mStrM2T       ("TW"),
@@ -166,6 +168,8 @@ void cAppli_ReportBlock::AddStatDistWirePt(const cPt3dr& aPt,const cPt3dr& aVert
      mStatByPt[aName].mStat3d.Add(Norm2(anEc));
      mStatByPt[aName].mStatH.Add(Norm2(aCompH));
      mStatByPt[aName].mStatV.Add(Norm2(aCompV));
+
+     AddOneReportCSV(mIdRepDWirePt,{ToStr(Norm2(anEc)),ToStr(Norm2(aCompH)),ToStr(Norm2(aCompV))});
 }
 
 void cAppli_ReportBlock::TestWire3D(const std::string & anIdSync,const std::vector<cSensorCamPC *> & aVCam)
@@ -227,6 +231,23 @@ void cAppli_ReportBlock::TestWire3D(const std::string & anIdSync,const std::vect
             tREAL8 aDistPix =  aWPix.Average() * aRatio;
 
             AddOneReportCSV(mRepW,{anIdSync,ToStr(aNbPl),ToStr(aDist3D),ToStr(aDistPix)});
+
+            StdOut() << " =================== Cam-Wire N2 ======================= \n";
+            for (const auto & aCam : aVCam)
+            {
+               cPt3dr  aProj = mCurWire->Proj(aCam->Center());
+               StdOut() << "  * N2=" << Norm2(aProj-aCam->Center()) << " Cam=" << aCam->NameImage() << "\n";
+            }
+
+            StdOut() << "  ================== Cam-Cam  N2=========================\n";
+            for (size_t aK1=0 ; aK1<aVCam.size() ; aK1++)
+            {
+                for (size_t aK2=aK1+1 ; aK2<aVCam.size() ; aK2++)
+                {
+                      StdOut() << " *  N2=" << Norm2(aVCam[aK1]->Center()-aVCam[aK2]->Center()) 
+                                                 << " Cam=" << aVCam[aK1]->NameImage() << " " << aVCam[aK2]->NameImage()  << "\n";
+                }
+            }
         }
     }
 }
@@ -290,11 +311,37 @@ void cAppli_ReportBlock::TestPoint3D(const std::string & anIdSync,const std::vec
              mV3dLoc.push_back(aPG);
              mVNames.push_back(aNamePt);
 
+             if (aNamePt== "07183")
+             {
+                StdOut() << " ============== Cam-"<< aNamePt << "  ======================\n";
+                StdOut()  <<  " PGround=" << aPG << "\n";
+             }
+
 	     cWeightAv<tREAL8> aWPix;
 	     for (const auto & [aCam,aMes] : aVect)
 	     {
                  cPt2dr aPProj = aCam->Ground2Image(aPG);
                  aWPix.Add(1.0,Norm2(aMes.mPt-aPProj));
+                 if (1) // (aNamePt== "07183")
+                 {
+                      cSegmentCompiled<tREAL8,3>  aSeg ( aCam->Image2Bundle(aMes.mPt));
+
+                      StdOut() << " REPROJ " << aMes.mPt - aCam->Ground2Image(aSeg.P2()) << "\n";
+                      cPt3dr aDirGround = VUnit(aSeg.V12());
+                      cPt3dr aDirCam   = VUnit(aCam->InternalCalib()->DirBundle(aMes.mPt));
+                       aDirCam = MulCByC(aDirCam,cPt3dr(1.0,-1.0,-1.0));
+                      // cPt3dr aProjBundle = aSeg.Proj(aPG);
+                      StdOut() /*<< " * N2=" << Norm2(aCam->Center()-aPG) 
+                               << " Cam=" << aCam->NameImage() 
+                               << " ResPix=" << Norm2(aMes.mPt-aPProj)
+                               << " ResMM=" << aSeg.Dist(aPG) * 1e6
+                               << " P->Proj=" << (aSeg.Proj(aPG) -aPG) * 1e6 */
+                               << " Dir-Ground=" << aDirGround
+                               << " Dir-Cam=" << aDirCam
+                               << " C=" << aCam->Center()
+                               // << " PUD" << aCam->InternalCalib()->Undist(aMes.mPt)
+                               << "\n";
+                 }
 		 // StdOut() << " DDDD = " << Norm2(aMes.mPt-aPProj) << "\n";
 	     }
              tREAL8 aDistPix = aWPix.Average() * (aNbPt*2.0) / (aNbPt*2.0 -3.0);
@@ -343,7 +390,9 @@ void cAppli_ReportBlock::TestPoint3D(const std::string & anIdSync,const std::vec
          {
             tPoseR aPose = tPoseR::RansacL1Estimate(mV3dGround,aFilteredV3DLoc,10000);
             aPose = aPose.LeastSquareRefine(mV3dGround,aFilteredV3DLoc);
-            aPose = aPose.LeastSquareRefine(mV3dGround,aFilteredV3DLoc);
+            tREAL8 aResidual;
+            aPose = aPose.LeastSquareRefine(mV3dGround,aFilteredV3DLoc,&aResidual);
+            StdOut() << "RESIDUAL CHG REP=" << std::sqrt(aResidual/aFilteredV3DLoc.size())  << "\n";
 
          //  TO REFACTOR !!!!! 
             cSensorCamPC * aCamMaster = nullptr;
@@ -370,6 +419,12 @@ void cAppli_ReportBlock::TestPoint3D(const std::string & anIdSync,const std::vec
 
             cPt3dr aPLoc = aPose.Value(mSphereCenter);
             AddStatDistWirePt(aPLoc,aVertLocCamDown,"Center");
+
+            StdOut() << " ============== Cam-Center  ======================\n";
+            for (const auto & aCam : aVCam)
+            {
+               StdOut() << " * N2=" << Norm2(aPLoc-aCam->Center()) << " Cam=" << aCam->NameImage() << "\n";
+            }
          }
      }
 
@@ -407,6 +462,9 @@ int cAppli_ReportBlock::Exe()
     InitReportCSV(mRepW,"csv",false);
     InitReportCSV(mIdRepPtIndiv,"csv",false);
     AddHeaderReportCSV(mIdRepPtIndiv,{"TimeBloc","Point","Mult","Dist Pix"});
+
+    InitReportCSV(mIdRepDWirePt,"csv",false);
+    AddHeaderReportCSV(mIdRepPtIndiv,{"D3","DH","DV"});
     
 
     InitReportCSV(mIdRepPtGlob,"csv",false);
@@ -468,7 +526,7 @@ int cAppli_ReportBlock::Exe()
    for (const auto & [aName,aStat] : mStatByPt)
    {
        StdOut() <<  " * " << aName  << " : "
-               << "[3d Avg=" << aStat.mStat3d.Avg() << " StdDev=" << aStat.mStat3d.UBDevStd(-1)  << "]"
+               << "[3d Avg=" << aStat.mStat3d.Avg() << " StdDev=" << aStat.mStat3d.UBDevStd(-1)  << " Med=" << aStat.mStat3d.ErrAtProp(0.5)<< "]"
                << "[3d H=" << aStat.mStatH.Avg() << " StdDev=" << aStat.mStatH.UBDevStd(-1)  << "]"
                << "[3d V=" << aStat.mStatV.Avg() << " StdDev=" << aStat.mStatV.UBDevStd(-1)  << "]"
                << "\n";

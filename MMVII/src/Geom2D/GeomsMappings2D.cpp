@@ -4,6 +4,7 @@
 
 namespace MMVII
 {
+#if (0)
 
 const  cPt2di FreemanV8[8]   {{1,0},{1,1},{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1}};
 const  cPt2di FreemanV4[4]   {{1,0},{0,1},{-1,0},{0,-1}};
@@ -593,148 +594,6 @@ template <class Type>  cPtxd<Type,2> cSim2D<Type>::DiffInOut(const tPt & aPIn,co
 
 template <class Type>  Type cSim2D<Type>::Divisor(const tPt & aPIn) const {return 1.0;}
 
-/* ========================== */
-/*          cRot2D            */
-/* ========================== */
-
-
-/*
-template <class Type>  cRot2D<Type> cRot2D<Type>::RandomRot(const Type & AmplTr)
-{
-    auto v1 = tPt::PRandC() * AmplTr;
-    auto v2 = RandUnif_C() * 10 * M_PI;
-    return cRot2D<Type>( v1, v2 );
-}
-*/
-
-
-//static constexpr int RotIndTrx =  0;
-//static constexpr int RotIndTry =  1;
-//static constexpr int RotIndTeta = 2;
-
-
-/*
-template <class Type>  cRot2D<Type> cRot2D<Type>::FromParam(const cDenseVect<Type> & aVec) 
-{
-   return cRot2D<Type> 
-          (
-              tPt(aVec(RotIndTrx),aVec(RotIndTry)),
-              aVec(RotIndTeta)
-          );
-}
-
-template <class Type>  
-      void cRot2D<Type>::ToEqParam(tPt& aRHS,std::vector<cDenseVect<Type>>& aVXY,const tPt & aPIn,const tPt & aPOut)
-{
-    ToEqParam(aRHS,aVXY.at(0),aVXY.at(1),aPIn,aPOut);
-}
-
-template <class Type>  void cRot2D<Type>::ToEqParam(tPt& aRHS,cDenseVect<Type>& aVX,cDenseVect<Type> & aVY,const tPt & aPIn,const tPt & aPOut)
-{
-   //  param = trx try scx scy
-   //  XOut  =   1*trx + 0*try +   XIN - teta YIN 
-   //  YOut  =   0*trx + 1*try +   YIN + teta XIN 
-   aVX(RotIndTrx)  = 1;
-   aVX(RotIndTry)  = 0;
-   aVX(RotIndTeta) = -aPIn.y();
-
-   aVY(RotIndTrx)  = 0;
-   aVY(RotIndTry)  = 1;
-   aVY(RotIndTeta) = aPIn.x();
-
-   aRHS = aPOut -aPIn;
-}
-*/
-
-template <class Type>  cRot2D<Type> cRot2D<Type>::RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest)
-{
-    return cMapEstimate<cRot2D<Type>>::RansacL1Estimate(aVIn,aVOut,aNbTest);
-}
-
-template <class Type>  
-         cRot2D<Type> cRot2D<Type>::LeastSquareRefine(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2,tCPVVals aVW)const
-{
-    return cMapEstimate<cRot2D<Type>>::LeastSquareRefine(*this,aVIn,aVOut,aRes2,aVW);
-}
-
-template <class Type>  cRot2D<Type> cRot2D<Type>::QuickEstimate(tCRVPts aVIn,tCRVPts aVOut)
-{
-     cMapEstimate<tTypeMap>::CheckInOut(aVIn,aVOut);
-
-     cPtxd<Type,2>  aCdgI =   cPtxd<Type,2>::FromPtR(Centroid(aVIn));
-     cPtxd<Type,2>  aCdgO =   cPtxd<Type,2>::FromPtR(Centroid(aVOut));
-
-     // etimate rotation as weighted average  of  Rot * VIn = VOut
-     cPtxd<Type,2> aVRot(0,0);
-     for (size_t aK=0; aK<aVIn.size() ; aK++)
-     {
-            cPtxd<Type,2> aVecI =  aVIn[aK] - aCdgI;
-            cPtxd<Type,2> aVecO =  aVOut[aK] - aCdgO;
-
-            Type aW = Norm2(aVecI);
-            if  (aW>0)
-            {
-		 aVRot +=  (aVecO/aVecI) * aW;
-            }
-     }
-
-     Type aTeta = ToPolar(aVRot,Type(0.0)).y(); // vect rot to angle
-     aVRot = FromPolar(Type(1.0),aTeta);
-
-     cPtxd<Type,2>  aTr = aCdgO - aCdgI*aVRot;  // usign  Out = Tr +In* Rot
-
-     return cRot2D<Type>(aTr,aTeta);
-
-}
-
-
-/*
-template <class Type>  cRot2D<Type> cRot2D<Type>::FromMinimalSamples(const tTabMin& aTabIn,const tTabMin& aTabOut)
-{
-  tPt aCdgIn  =  (aTabIn[0] + aTabIn[1] )/Type(2.0);
-  tPt aVecIn  =  aTabIn[1]-aTabIn[0];
-  
-  if (IsNull (aVecIn))
-     return  cRot2D<Type>();
-
-  tPt aCdgOut =  (aTabOut[0]+ aTabOut[1])/Type(2.0);
-  tPt aVecOut =  aTabOut[1]-aTabOut[0];
-
-  tPt aRot = aVecOut/aVecIn;
-  if (IsNotNull(aRot))
-     aRot = VUnit(aRot);
-  //  Tr +  aCdgIn   * S = aCdgOut
-  // return tTypeMap(aCdgOut-aCdgIn*aScale,aScale);
-  return  cRot2D<Type>(aCdgOut-aCdgIn*aRot,ToPolar(aRot,Type(0.0)).y());
-   
-}
-*/
-
-template <class Type>  
-         cRot2D<Type> cRot2D<Type>::StdGlobEstimate
-                      (
-                           tCRVPts aVIn,
-                           tCRVPts aVOut,
-                           tTypeElem* aRes,
-                           tCPVVals   aVW,
-                           cParamCtrlOpt aParam
-                      )
-{
-    return  cMapEstimate<cRot2D<Type> >::LeastSquareNLEstimate(aVIn,aVOut,aRes,aVW,aParam);
-}
-
-/*
-template <class Type>  cPtxd<Type,2> cRot2D<Type>::DiffInOut(const tPt & aPIn,const tPt & aPOut) const
-{
-   return Value(aPIn) - aPOut;
-}
-template <class Type>  Type cRot2D<Type>::Divisor(const tPt & aPIn) const {return 1.0;}
-*/
-
-//  cRot2D<Type> cRot2D<Type>::RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest)
-//  cRot2D<Type> cRot2D<Type>::LeastSquareRefine(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2,tCPVVals aVW)const
-
-// template  TMAP TMAP::LeastSquareEstimate(const std::vector<tPt>&,const std::vector<tPt>&,TYPE*,const std::vector<TYPE> *);
 
 /* ========================== */
 /*          cAffin2D          */
@@ -1390,33 +1249,102 @@ MACRO_INSTATIATE_GEOM2D(tREAL16)
 template class TMAP;\
 template   cTriangle<TYPE,2>  ImageOfTri(const cTriangle<TYPE,2> & aTri,const TMAP & aMap);
 
+#endif
+
+/* ========================== */
+/*          cRot2D            */
+/* ========================== */
+
+
+template <class Type>  cRot2D<Type> cRot2D<Type>::RandomRot(const Type & AmplTr)
+{
+    auto v1 = tPt::PRandC() * AmplTr;
+    auto v2 = RandUnif_C() * 10 * M_PI;
+    return cRot2D<Type>( v1, v2 );
+}
+
+
+static constexpr int RotIndTrx =  0;
+static constexpr int RotIndTry =  1;
+static constexpr int RotIndTeta = 2;
+
+
+template <class Type>  cRot2D<Type> cRot2D<Type>::FromParam(const cDenseVect<Type> & aVec) 
+{
+   return cRot2D<Type> 
+          (
+              tPt(aVec(RotIndTrx),aVec(RotIndTry)),
+              aVec(RotIndTeta)
+          );
+}
+
+template <class Type>  
+      void cRot2D<Type>::ToEqParam(tPt& aRHS,std::vector<cDenseVect<Type>>& aVXY,const tPt & aPIn,const tPt & aPOut)
+{
+    ToEqParam(aRHS,aVXY.at(0),aVXY.at(1),aPIn,aPOut);
+}
+
+template <class Type>  void cRot2D<Type>::ToEqParam(tPt& aRHS,cDenseVect<Type>& aVX,cDenseVect<Type> & aVY,const tPt & aPIn,const tPt & aPOut)
+{
+   //  param = trx try scx scy
+   //  XOut  =   1*trx + 0*try +   XIN - teta YIN 
+   //  YOut  =   0*trx + 1*try +   YIN + teta XIN 
+   aVX(RotIndTrx)  = 1;
+   aVX(RotIndTry)  = 0;
+   aVX(RotIndTeta) = -aPIn.y();
+
+   aVY(RotIndTrx)  = 0;
+   aVY(RotIndTry)  = 1;
+   aVY(RotIndTeta) = aPIn.x();
+
+   aRHS = aPOut -aPIn;
+}
+
+
+template <class Type>  cRot2D<Type> cRot2D<Type>::FromMinimalSamples(const tTabMin& aTabIn,const tTabMin& aTabOut)
+{
+  tPt aCdgIn  =  (aTabIn[0] + aTabIn[1] )/Type(2.0);
+  tPt aVecIn  =  aTabIn[1]-aTabIn[0];
+  
+  if (IsNull (aVecIn))
+     return  cRot2D<Type>();
+
+  tPt aCdgOut =  (aTabOut[0]+ aTabOut[1])/Type(2.0);
+  tPt aVecOut =  aTabOut[1]-aTabOut[0];
+
+  tPt aRot = aVecOut/aVecIn;
+  if (IsNotNull(aRot))
+     aRot = VUnit(aRot);
+  //  Tr +  aCdgIn   * S = aCdgOut
+  // return tTypeMap(aCdgOut-aCdgIn*aScale,aScale);
+  return  cRot2D<Type>(aCdgOut-aCdgIn*aRot,ToPolar(aRot,Type(0.0)).y());
+   
+}
+
+
+
+
+
+template <class Type>  cPtxd<Type,2> cRot2D<Type>::DiffInOut(const tPt & aPIn,const tPt & aPOut) const
+{
+   return Value(aPIn) - aPOut;
+}
+template <class Type>  Type cRot2D<Type>::Divisor(const tPt & aPIn) const {return 1.0;}
+
+
+#if (1)
+
 
 #define MACRO_INSTATIATE_ALL_MAP_GEOM2D_OF_TYPE(TYPE) \
-MACRO_INSTATIATE_GEOM2D_OF_MAP(cRot2D<TYPE>,TYPE);\
-MACRO_INSTATIATE_GEOM2D_OF_MAP(cSim2D<TYPE>,TYPE);\
-MACRO_INSTATIATE_GEOM2D_OF_MAP(cHomot2D<TYPE>,TYPE);\
-MACRO_INSTATIATE_GEOM2D_OF_MAP(cHomogr2D<TYPE>,TYPE);\
-MACRO_INSTATIATE_GEOM2D_OF_MAP(cAffin2D<TYPE>,TYPE);
+template class cRot2D<TYPE>;
+/*MACRO_INSTATIATE_GEOM2D_OF_MAP(cSim2D<TYPE>,TYPE);*/\
+/*MACRO_INSTATIATE_GEOM2D_OF_MAP(cHomot2D<TYPE>,TYPE);*/\
+/*MACRO_INSTATIATE_GEOM2D_OF_MAP(cHomogr2D<TYPE>,TYPE);*/\
+/*MACRO_INSTATIATE_GEOM2D_OF_MAP(cAffin2D<TYPE>,TYPE);*/
 
 MACRO_INSTATIATE_ALL_MAP_GEOM2D_OF_TYPE(tREAL4);
 MACRO_INSTATIATE_ALL_MAP_GEOM2D_OF_TYPE(tREAL8);
 MACRO_INSTATIATE_ALL_MAP_GEOM2D_OF_TYPE(tREAL16);
 
-template int DbleAreaPolygOriented(const std::vector<cPtxd<int,2>> & aPolyg);
-
-//=====================================================================================================================
-
-template <class Type>  cIsometry3D<Type> cIsometry3D<Type>::RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest)
-{
-    return cMapEstimate<cIsometry3D<Type>>::RansacL1Estimate(aVIn,aVOut,aNbTest);
-}
-template tPoseR tPoseR::RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest);
-
-template <class Type>  
-         cIsometry3D<Type> cIsometry3D<Type>::LeastSquareRefine(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2,tCPVVals aVW)const
-{
-    return cMapEstimate<cIsometry3D<Type>>::LeastSquareRefine(*this,aVIn,aVOut,aRes2,aVW);
-}
-template tPoseR tPoseR::LeastSquareRefine(tCRVPts aVIn,tCRVPts aVOut,tTypeElem * aRes2,tCPVVals aVW) const;
-
+#endif
 };
