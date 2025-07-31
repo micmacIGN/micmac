@@ -311,40 +311,53 @@ void cAppli_ReportBlock::TestPoint3D(const std::string & anIdSync,const std::vec
              mV3dLoc.push_back(aPG);
              mVNames.push_back(aNamePt);
 
-             if (aNamePt== "07183")
+             /*if (aNamePt== "07183")
              {
                 StdOut() << " ============== Cam-"<< aNamePt << "  ======================\n";
                 StdOut()  <<  " PGround=" << aPG << "\n";
-             }
+             }*/
 
 	     cWeightAv<tREAL8> aWPix;
+
+
 	     for (const auto & [aCam,aMes] : aVect)
 	     {
-                 cPt2dr aPProj = aCam->Ground2Image(aPG);
+             StdOut() << "*FRAME   "<<aNamePt<< " "<< aCam->Center()<< " " << aCam->Pose().Rot().ToWPK() << " 1 \n";
+             StdOut() << "*CALA\n";
+             StdOut() << aNamePt<< "        0         0        0\n";
+             StdOut() << "*CAM "<< aNamePt<<" TS1\n";
+             StdOut() << "*UVEC\n";
+
+                cPt2dr aPProj = aCam->Ground2Image(aPG);
                  aWPix.Add(1.0,Norm2(aMes.mPt-aPProj));
                  if (1) // (aNamePt== "07183")
                  {
                       cSegmentCompiled<tREAL8,3>  aSeg ( aCam->Image2Bundle(aMes.mPt));
 
-                      StdOut() << " REPROJ " << aMes.mPt - aCam->Ground2Image(aSeg.P2()) << "\n";
-                      cPt3dr aDirGround = VUnit(aSeg.V12());
+                      //StdOut() << " REPROJ " << aMes.mPt - aCam->Ground2Image(aSeg.P2()) << "\n";
+                      //cPt3dr aDirGround = VUnit(aSeg.V12());
                       cPt3dr aDirCam   = VUnit(aCam->InternalCalib()->DirBundle(aMes.mPt));
                        aDirCam = MulCByC(aDirCam,cPt3dr(1.0,-1.0,-1.0));
+
+                      StdOut() << aMes.mNamePt << " " << aDirCam << " \n";
                       // cPt3dr aProjBundle = aSeg.Proj(aPG);
-                      StdOut() /*<< " * N2=" << Norm2(aCam->Center()-aPG) 
-                               << " Cam=" << aCam->NameImage() 
+                      /*StdOut() << " * N2=" << Norm2(aCam->Center()-aPG)
+                               << " Cam=" << aCam->NameImage() g
                                << " ResPix=" << Norm2(aMes.mPt-aPProj)
                                << " ResMM=" << aSeg.Dist(aPG) * 1e6
-                               << " P->Proj=" << (aSeg.Proj(aPG) -aPG) * 1e6 */
+                               << " P->Proj=" << (aSeg.Proj(aPG) -aPG) * 1e6
                                << " Dir-Ground=" << aDirGround
                                << " Dir-Cam=" << aDirCam
                                << " C=" << aCam->Center()
                                // << " PUD" << aCam->InternalCalib()->Undist(aMes.mPt)
-                               << "\n";
+                               << "\n";*/
                  }
 		 // StdOut() << " DDDD = " << Norm2(aMes.mPt-aPProj) << "\n";
 	     }
-             tREAL8 aDistPix = aWPix.Average() * (aNbPt*2.0) / (aNbPt*2.0 -3.0);
+         StdOut() << "*ENDFRAME\n";
+         StdOut() << "%-----------------------\n";
+
+         tREAL8 aDistPix = aWPix.Average() * (aNbPt*2.0) / (aNbPt*2.0 -3.0);
              AddOneReportCSV(mIdRepPtIndiv,{anIdSync,aNamePt,ToStr(aNbPt),ToStr(aDistPix)});
              aStatRes.Add(aDistPix);
              mStatGlobPt.Add(aDistPix);
