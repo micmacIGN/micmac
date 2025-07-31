@@ -7,7 +7,11 @@ Dependencies
 
 As admin:
 
-    apt install python3-pip doxygen pybind11-dev python3-pybind11 python3-wheel python3-numpy
+    apt install python3-pip doxygen
+
+In the Python virtual environment used for compilation:
+
+    pip3 install pybind11 setuptools build
 
 Compilation
 -----------

@@ -44,19 +44,17 @@ export XML_MMVII_LOCALPARAMETERS_DEFAULT=../MMVII-LocalParameters/Default/MMVII-
 export EXTRA_OBJECTS=../bin/libP2007.a ../../lib/libelise.a ../../lib/libANN.a
 export MMVII_BIN=../bin/MMVII
 
-MODULE=$(shell export CC="$$CXX" SRCS="$$SRCS"  CXXFLAGS="$$CXXFLAGS" XML_MICMAC_FILES="$$XML_MICMAC_FILES" XML_GEN_FILES="$$XML_GEN_FILES" XML_MMVII_LOCALPARAMETERS="$$XML_MMVII_LOCALPARAMETERS"  XML_MMVII_LOCALPARAMETERS_DEFAULT="$$XML_MMVII_LOCALPARAMETERS_DEFAULT" EXTRA_OBJECTS="$$EXTRA_OBJECTS" MMVII_BIN="$$MMVII_BIN" ; $(PYTHON) setup.py module_name)
 
 .phony: all clean clean_python install uninstall
 
-all: $(MODULE)
+all: wheel
 
-clean: uninstall clean_python
+clean: clean_python
 	rm -f docstrings.h
 	rm -fr xml
 
 clean_python:
 	rm -Rf build/ dist/ $(MODULE_NAME).egg-info/ __pycache__/
-	$(PYTHON) setup.py clean
 
 docstrings.h: $(DOC_INCLUDES) Makefile
 	rm -f $@
@@ -65,16 +63,16 @@ docstrings.h: $(DOC_INCLUDES) Makefile
 	python3 makedoc.py xml/class*xml xml/struct*xml xml/namespaceMMVII.xml > $@ || rm -f $@
 	rm -fr xml
 
-$(MODULE): export CC=${CXX} 
-
-$(MODULE): docstrings.h ${SRCS} ${SRCS_INC} $(MMVII_BIN) $(EXTRA_OBJECTS) $(XML_MICMAC_FILES) $(XML_GEN_FILES) $(XML_MMVII_LOCALPARAMETERS)
+wheel: docstrings.h ${SRCS} ${SRCS_INC} $(MMVII_BIN) $(EXTRA_OBJECTS) $(XML_MICMAC_FILES) $(XML_GEN_FILES) $(XML_MMVII_LOCALPARAMETERS)
 	$(MAKE) clean_python
-	$(PYTHON) setup.py build
-	$(PYTHON) setup.py bdist_wheel
+	CC="$$CXX" SRCS="$$SRCS" CXXFLAGS="$$CXXFLAGS" XML_MICMAC_FILES="$$XML_MICMAC_FILES" XML_GEN_FILES="$$XML_GEN_FILES" XML_MMVII_LOCALPARAMETERS="$$XML_MMVII_LOCALPARAMETERS" XML_MMVII_LOCALPARAMETERS_DEFAULT="$$XML_MMVII_LOCALPARAMETERS_DEFAULT" EXTRA_OBJECTS="$$EXTRA_OBJECTS" MMVII_BIN="$$MMVII_BIN" $(PIP) wheel . --no-deps -w dist/
 
-install: $(MODULE)
+
+install:
+	if [ ! -f dist/*.whl ]; then \
+		$(MAKE) wheel; \
+	fi
 	$(PIP) install --force-reinstall dist/*.whl
 
 uninstall:
 	$(PIP) uninstall -y $(MODULE_NAME)
-
