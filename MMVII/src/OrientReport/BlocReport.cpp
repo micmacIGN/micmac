@@ -30,6 +30,119 @@
 namespace MMVII
 {
 
+class cAiconCamera
+{
+     public :
+         cAiconCamera(const std::vector<tREAL8> & aParams);
+
+         cPt2dr  PLoc2PIm(const cPt3dr & aPLoc) const;
+     private :
+
+          cPt2dr  Distord(const cPt2dr & aPLoc) const;
+
+          std::vector<tREAL8> mParams;
+          tREAL8 mPixInMM;
+
+          tREAL8  Focal() const {return mParams.at(0);}
+          tREAL8  PPx() const   {return mParams.at(1);}
+          tREAL8  PPy() const   {return -mParams.at(2);}
+          cPt2dr PP() const     {return cPt2dr(PPx(),PPy());}
+
+          tREAL8  A1() const    {return mParams.at(3);}
+          tREAL8  A2() const    {return mParams.at(4);}
+          tREAL8  R0() const    {return mParams.at(5);}
+          tREAL8  A3() const    {return mParams.at(6);}
+           // Decentrik
+          tREAL8  B1() const    {return mParams.at(7);}
+          tREAL8  B2() const    {return mParams.at(8);}
+
+           // Affine
+          tREAL8  C1() const    {return mParams.at(9);}
+          tREAL8  C2() const    {return mParams.at(10);}
+
+          // Sz Capt mm
+          tREAL8  SzX_mm() const   {return mParams.at(11);}
+          tREAL8  SzY_mm() const   {return mParams.at(12);}
+          cPt2dr  Sz_mm() const    {return cPt2dr(SzX_mm(),SzY_mm());}
+
+          // Sz Capt pix
+          tREAL8  SzX_pix() const   {return mParams.at(13);}
+          tREAL8  SzY_pix() const   {return mParams.at(14);}
+
+/*
+FOCAL  -24.90098
+PPX   -0.10482 
+PPY  -0.00659
+A1 -1.57981e-004
+A2  2.60388e-007    
+R0  9.00
+A3  -9.75344e-011
+B1  -1.48754e-005   // Decentrik
+B2 7.47493e-006
+C1 9.77902e-005    // Affine
+C2  -8.03252e-005
+SzCapteur 24.00000    16.00000
+SzCapteur 6000  4000
+*/
+
+};
+
+cAiconCamera::cAiconCamera(const std::vector<tREAL8> & aVParams) :
+   mParams (aVParams)
+{
+   MMVII_INTERNAL_ASSERT_tiny(aVParams.size()==15,"Bad size for cAiconCamera");
+   mPixInMM =  SzX_mm() / SzX_pix();
+   tREAL8 aCheck = RelativeDifference(mPixInMM,SzY_mm() / SzY_pix());
+   MMVII_INTERNAL_ASSERT_tiny(aCheck<1e-8,"Sz of pixel incoherent in cAiconCamera ");
+}
+
+cAiconCamera aAiconCam(
+    {
+         -24.90098, -0.10482,  -0.00659,  // FF PPX PPY
+         -1.57981e-004, 2.60388e-007,9.00, -9.75344e-011, // K1 K2 R0 K3
+         -1.48754e-005  , 7.47493e-006,  // B1 B2
+          9.77902e-005 ,  -8.03252e-005,  // C1 C2
+          24.00000, 16.00000,             // Sz Capt mm
+          6000,  4000                     // Sz Capt pix
+    }
+    );
+
+cPt2dr cAiconCamera::Distord(const cPt2dr & aP) const
+{
+    tREAL8 aR2 = SqN2(aP);
+    tREAL8 aR0_2 = Square(R0());
+
+    cPt2dr aRadCorr =  aP * ( A1()*(aR2-aR0_2)  +  A2()*(Square(aR2)-Square(aR0_2)) + A3()*(Cube(aR2)-Cube(aR0_2)));
+
+    cPt2dr aDecCorr
+           ( 
+                B1()*(aR2+2*Square(aP.x()))  + B2() * 2*aP.x()*aP.y(),
+                B2()*(aR2+2*Square(aP.y()))  + B1() * 2*aP.x()*aP.y()
+           );
+
+    cPt2dr aAffCorr (C1()*aP.x()+C2()*aP.y(),0.0);
+
+    return aP + aRadCorr + aDecCorr + aAffCorr;
+}
+
+cPt2dr  cAiconCamera::PLoc2PIm(const cPt3dr & aPLoc) const
+{
+    cPt2dr aPPhgr = cPt2dr(aPLoc.x(),aPLoc.y()) / (-aPLoc.z());
+
+    cPt2dr  aPCmm = aPPhgr * Focal() ;
+
+    aPCmm = Distord(aPCmm) + PP() ;
+
+    return (aPCmm + Sz_mm()/2.0) / mPixInMM;
+}
+
+
+
+/*
+SzCapteur 24.00000    16.00000
+SzCapteur 6000  4000
+*/
+
 
 /* ==================================================== */
 /*                                                      */
@@ -259,6 +372,11 @@ void cAppli_ReportBlock::CSV_AddStat(const std::string& anId,const std::string& 
    AddStdStatCSV(anId,aMes,aStat,mPercStat);
 }
 
+std::string ToCernStr(const cPt3dr & aPt)
+{
+   return ToStr(aPt.x()) + " " + ToStr(aPt.y()) + " " + ToStr(aPt.z());
+}
+
 void cAppli_ReportBlock::TestPoint3D(const std::string & anIdSync,const std::vector<cSensorCamPC *> & aVCam)
 {
      // for a given name of point, store  Mes+Cam , that will allow to compute bundles
@@ -295,6 +413,8 @@ void cAppli_ReportBlock::TestPoint3D(const std::string & anIdSync,const std::vec
      // memrize the 3D points
      std::vector<cPt3dr> mV3dLoc;
      std::vector<std::string> mVNames;
+     std::map<std::string,cPt3dr>  mName2PBundle;
+
      // [2]  Parse the measure grouped by points
      for (const auto & [aNamePt,aVect] : aMapMatch )
      {
@@ -310,6 +430,8 @@ void cAppli_ReportBlock::TestPoint3D(const std::string & anIdSync,const std::vec
 	     cPt3dr aPG =   BundleInters(aVSeg);
              mV3dLoc.push_back(aPG);
              mVNames.push_back(aNamePt);
+             mName2PBundle[aNamePt] = aPG;
+              
 
              /*if (aNamePt== "07183")
              {
@@ -319,15 +441,8 @@ void cAppli_ReportBlock::TestPoint3D(const std::string & anIdSync,const std::vec
 
 	     cWeightAv<tREAL8> aWPix;
 
-
 	     for (const auto & [aCam,aMes] : aVect)
 	     {
-             StdOut() << "*FRAME   "<<aNamePt<< " "<< aCam->Center()<< " " << aCam->Pose().Rot().ToWPK() << " 1 \n";
-             StdOut() << "*CALA\n";
-             StdOut() << aNamePt<< "        0         0        0\n";
-             StdOut() << "*CAM "<< aNamePt<<" TS1\n";
-             StdOut() << "*UVEC\n";
-
                 cPt2dr aPProj = aCam->Ground2Image(aPG);
                  aWPix.Add(1.0,Norm2(aMes.mPt-aPProj));
                  if (1) // (aNamePt== "07183")
@@ -354,8 +469,6 @@ void cAppli_ReportBlock::TestPoint3D(const std::string & anIdSync,const std::vec
                  }
 		 // StdOut() << " DDDD = " << Norm2(aMes.mPt-aPProj) << "\n";
 	     }
-         StdOut() << "*ENDFRAME\n";
-         StdOut() << "%-----------------------\n";
 
          tREAL8 aDistPix = aWPix.Average() * (aNbPt*2.0) / (aNbPt*2.0 -3.0);
              AddOneReportCSV(mIdRepPtIndiv,{anIdSync,aNamePt,ToStr(aNbPt),ToStr(aDistPix)});
@@ -438,6 +551,96 @@ void cAppli_ReportBlock::TestPoint3D(const std::string & anIdSync,const std::vec
             {
                StdOut() << " * N2=" << Norm2(aPLoc-aCam->Center()) << " Cam=" << aCam->NameImage() << "\n";
             }
+         }
+
+         StdOut() << "*TITR\n";
+         StdOut() << "Export from MMVII\n";
+         StdOut() << "*OLOC\n";
+         StdOut() << "*PUNC EE\n";
+         StdOut() << "*PREC 6\n";
+         StdOut() << "*FAUT\n";
+         StdOut() << "*JSON\n";
+         StdOut() << "*INSTR\n";
+         StdOut() << "*CAMD TS1 TGT1 0.0\n";
+         StdOut() << "TGT1 0.02 0.02 0.1 0.001\n";
+
+
+         StdOut() << "*POIN\n";
+
+         for (const auto& [aName,aPG] : mName2PBundle)
+         {
+             StdOut() << aName << " " << ToCernStr(aPG) << "\n";
+         }
+
+         for (size_t aKCam=0 ; aKCam<aVCam.size() ;  aKCam++)
+         {
+             const auto aCamPtr = aVCam.at(aKCam);
+             cRotation3D<tREAL8>  aRotAfter = cRotation3D<tREAL8>::RotFromCanonicalAxes("ijk");
+             cRotation3D<tREAL8> aRotCern = aRotAfter.MapInverse() * aCamPtr->Pose().Rot() * aRotAfter;
+
+             cPt3dr aC = aRotAfter.Value(aCamPtr->Center());
+             tREAL8 aUnitA =  - (400.0/(2*M_PI)) ;
+             cPt3dr aWPK = aRotCern.ToWPK() * aUnitA;
+
+             std::string aNameCam = "Cam" + ToStr(aKCam+1);
+
+             StdOut() << "*FRAME   " << aNameCam
+                      << " "<< ToCernStr(aC)
+                      << " " <<  ToCernStr(aWPK) << " 1 \n";
+
+             StdOut() << "*CALA\n";
+             StdOut() << aNameCam << "        0         0        0\n";
+             StdOut() << "*CAM "<< aNameCam <<" TS1\n";
+             StdOut() << "*UVEC\n";
+
+             for (const auto & [aNamePt,aVect] : aMapMatch )
+             {
+	         for (const auto & [aCamLocPtr,aMes] : aVect)
+	         {
+                      if (aCamLocPtr==aCamPtr)
+                      {
+                          cPt3dr aDirCam   = VUnit(aCamPtr->InternalCalib()->DirBundle(aMes.mPt));
+                          StdOut() <<  aNamePt << " " << ToCernStr(aDirCam) << "\n";
+                      }
+	         }
+             }
+             StdOut() << "*ENDFRAME\n";
+             StdOut() << "%-----------------------\n";
+         }
+         StdOut() << "*END\n";
+
+         for (size_t aKCam=0 ; aKCam<aVCam.size() ;  aKCam++)
+         {
+             StdOut() << " =============== Cam : " << aKCam << " ===========================================\n";
+             const auto aCalibPtr = aVCam.at(aKCam)->InternalCalib();
+             cPt2dr aSzIm = ToR(aCalibPtr->SzPix());
+             int aNbSamples = 2;
+             for (int aKX=0 ; aKX<=aNbSamples ; aKX++)
+                 for (int aKY=0 ; aKY<=aNbSamples ; aKY++)
+                 {
+                       cPt2dr aPIm = cPt2dr(aKX,aKY) / tREAL8(aNbSamples);
+                       aPIm = MulCByC(aSzIm,aPIm);
+// aPIm =  cPt2dr(473.79500000, 1.64750000);
+// -0.35937477 -0.28762563 0.88776194
+// -0.359375,  -0.287626   ,0.887762
+                       cPt3dr aBundle = VUnit(aCalibPtr->DirBundle(aPIm));
+                       StdOut() << "Im=" << aPIm  << " Dir3d=" << aBundle  
+                                // << " RP=" << aCalibPtr->Value(aBundle) 
+                                << "\n";
+                      if (aKCam==0)
+                      {
+                          StdOut() << "AICON " << aAiconCam.PLoc2PIm(aBundle) << "\n";
+                      }
+                 }
+
+             /*
+             StdOut() <<  "================= KCAM=" << aKCam << " ========================\n";
+             cBox2dr aBoxCam (ToR(aCalibPtr->SzPix()));
+             for (int aFlag=0 ; aFlag<4 ; aFlag++)
+             {
+                 cPt2dr aPIm = aBoxCam.CornerOfFlag(aFlag);
+             }
+             */
          }
      }
 
