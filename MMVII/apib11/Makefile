@@ -73,7 +73,7 @@ $(MODULE): docstrings.h ${SRCS} ${SRCS_INC} $(MMVII_BIN) $(EXTRA_OBJECTS) $(XML_
 	$(PYTHON) setup.py bdist_wheel
 
 install: $(MODULE)
-	$(PIP) install --force-reinstall --user dist/*.whl
+	$(PIP) install --force-reinstall dist/*.whl
 
 uninstall:
 	$(PIP) uninstall -y $(MODULE_NAME)

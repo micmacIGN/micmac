@@ -7,12 +7,7 @@ Dependencies
 
 As admin:
 
-    apt install python3-pip doxygen
-
-As user:
-
-    pip3 install pybind11 wheel numpy
-
+    apt install python3-pip doxygen pybind11-dev python3-pybind11 python3-wheel python3-numpy
 
 Compilation
 -----------
