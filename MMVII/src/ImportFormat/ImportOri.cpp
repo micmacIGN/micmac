@@ -210,7 +210,8 @@ int cAppli_ImportOri::Exe()
                 if (mTestBloc)
                 {
                     aRot = aRotAfter.MapInverse() * aRot;
-                    StdOut() << "C=" << aRotAfter.Value(aCenter) / 1000.0 << "\n";
+                    aCenter =  aRotAfter.Value(aCenter) /1000.0;
+                    StdOut() << "C=" << aCenter << "\n";
                 }
 
 	        cIsometry3D aPose(aCenter,aRot);

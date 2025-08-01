@@ -264,6 +264,11 @@ template <class Type> class cIsometry3D
 
        ///  Estimate using ransac 
        static tTypeMap RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest);
+      /// 
+      tTypeMap LeastSquareRefine(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals=nullptr)const;
+      /// 
+      tTypeMap StdGlobEstimate ( tCRVPts aVIn, tCRVPts aVOut, tTypeElem* aRes, tCPVVals   aVW, cParamCtrlOpt aParam);
+
        /// Estimate from 3 point , interface to "FromTriOut"  for  "RansacL1Estimate"
        static tTypeMap FromMinimalSamples(const tTabMin&,const tTabMin&);
       /// Basic   Value(aPIn) - aPOUt 
@@ -272,8 +277,6 @@ template <class Type> class cIsometry3D
       static void ToEqParam(tPt & aRHS,std::vector<cDenseVect<Type>>&,const tPt &In,const tPt & Out);
       ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
       static tTypeMap  FromParam(const cDenseVect<Type> &);
-      /// 
-      tTypeMap LeastSquareRefine(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals=nullptr)const;
 
 
 

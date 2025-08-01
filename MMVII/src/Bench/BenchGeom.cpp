@@ -665,7 +665,6 @@ void  BenchMap2D()
 /*          BenchGlobImage    */
 /* ========================== */
 void BenchPlane3D();
-void BenchHomogr2D();
 
 void BenchSeg2D()
 {
@@ -694,7 +693,6 @@ void BenchGeom(cParamExeBench & aParam)
 
     BenchSampleQuat();
 
-    BenchHomogr2D();
 
     cEllipse::BenchEllispe();
 

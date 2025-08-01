@@ -79,10 +79,12 @@ template <class tContPts>  tREAL8 cComputeCentroids<tContPts>::MedianSigma(const
 
 
 
-template class cComputeCentroids<std::vector<cPt3dr> >;
 template class cComputeCentroids<std::vector<cPtxd<tREAL4,2> >>;
 template class cComputeCentroids<std::vector<cPtxd<tREAL8,2> >>;
 template class cComputeCentroids<std::vector<cPtxd<tREAL16,2> >>;
+template class cComputeCentroids<std::vector<cPtxd<tREAL4,3> >>;
+template class cComputeCentroids<std::vector<cPtxd<tREAL8,3> >>;
+template class cComputeCentroids<std::vector<cPtxd<tREAL16,3> >>;
 
 
 
