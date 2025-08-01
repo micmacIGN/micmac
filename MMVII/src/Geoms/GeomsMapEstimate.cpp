@@ -218,21 +218,8 @@ template <class TypeMap>
 }
 
 
-/* ========================== */
-/*          cHomot2D          */
-/*          cSim2D            */
-/*          cAffin2D          */
-/* ========================== */
 
 
-/* ========================== */
-/*          cRot2D            */
-/* ========================== */
-template <class Type>  
-         cRot2D<Type> cRot2D<Type>::LeastSquareRefine(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2,tCPVVals aVW)const
-{
-    return cMapEstimate<cRot2D<Type>>::LeastSquareRefine(*this,aVIn,aVOut,aRes2,aVW);
-}
 /* ========================== */
 /*          cHomogr2D         */
 /* ========================== */
@@ -241,10 +228,6 @@ template <class Type>  Type cHomogr2D<Type>::AvgDistL1(tCRVPts aVIn,tCRVPts aVOu
 	return MMVII::AvgDistL1(*this,aVIn,aVOut);
 }
 
-
-/* ========================== */
-/*             ::             */
-/* ========================== */
 
 
 /* ========================== */
@@ -261,7 +244,16 @@ template <class Type>  TMAP<Type> TMAP<Type>::StdGlobEstimate ( tCRVPts aVIn, tC
 {\
     return  cMapEstimate<TMAP<Type> >::LeastSquareNLEstimate(aVIn,aVOut,aRes,aVW,aParam); \
 }\
+template <class Type> \
+         TMAP<Type> TMAP<Type>::LeastSquareRefine(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2,tCPVVals aVW)const \
+{ \
+    return cMapEstimate<TMAP<Type>>::LeastSquareRefine(*this,aVIn,aVOut,aRes2,aVW);\
+}\
+template class TMAP<tREAL4>;\
+template class TMAP<tREAL8>;\
+template class TMAP<tREAL16>;
 
+MACRO_DEFINE_MAP_ESTIMATE(cIsometry3D)
 MACRO_DEFINE_MAP_ESTIMATE(cRot2D)
 MACRO_DEFINE_MAP_ESTIMATE(cSim2D)
 MACRO_DEFINE_MAP_ESTIMATE(cHomot2D)
@@ -269,24 +261,9 @@ MACRO_DEFINE_MAP_ESTIMATE(cHomogr2D)
 MACRO_DEFINE_MAP_ESTIMATE(cAffin2D)
 
 
-#define MACRO_INSTATIATE_GEOM2D_OF_MAP(TMAP,TYPE) \
-template class TMAP;
-
-
-#define MACRO_INSTATIATE_ALL_MAP_GEOM2D_OF_TYPE(TYPE) \
-MACRO_INSTATIATE_GEOM2D_OF_MAP(cRot2D<TYPE>,TYPE);\
-MACRO_INSTATIATE_GEOM2D_OF_MAP(cSim2D<TYPE>,TYPE);\
-MACRO_INSTATIATE_GEOM2D_OF_MAP(cHomot2D<TYPE>,TYPE);\
-MACRO_INSTATIATE_GEOM2D_OF_MAP(cHomogr2D<TYPE>,TYPE);\
-MACRO_INSTATIATE_GEOM2D_OF_MAP(cAffin2D<TYPE>,TYPE);
-
-MACRO_INSTATIATE_ALL_MAP_GEOM2D_OF_TYPE(tREAL4);
-MACRO_INSTATIATE_ALL_MAP_GEOM2D_OF_TYPE(tREAL8);
-MACRO_INSTATIATE_ALL_MAP_GEOM2D_OF_TYPE(tREAL16);
-
-
 //=====================================================================================================================
 
+/*
 template <class Type>  cIsometry3D<Type> cIsometry3D<Type>::RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest)
 {
     return cMapEstimate<cIsometry3D<Type>>::RansacL1Estimate(aVIn,aVOut,aNbTest);
@@ -299,5 +276,6 @@ template <class Type>
     return cMapEstimate<cIsometry3D<Type>>::LeastSquareRefine(*this,aVIn,aVOut,aRes2,aVW);
 }
 template tPoseR tPoseR::LeastSquareRefine(tCRVPts aVIn,tCRVPts aVOut,tTypeElem * aRes2,tCPVVals aVW) const;
+*/
 
 };
