@@ -237,6 +237,7 @@ cAppli_ReportBlock::cAppli_ReportBlock
      mPercStat     {15,25,50,75,85},
      mSphereCenter (0,0,0)
 {
+    FakeUseIt(mSCFreeScale);
 }
 
 

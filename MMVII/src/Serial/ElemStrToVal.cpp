@@ -650,6 +650,7 @@ void BenchEnum(cParamExeBench & aParam)
     TplBenchEnum<eFormatSensor>();
     TplBenchEnum<eModeSSR>();
     TplBenchEnum<eImatchCrit>();
+    TplBenchEnum<eTyClino>();
 
     aParam.EndBench();
 }

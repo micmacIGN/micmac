@@ -529,6 +529,7 @@ void cProjPointCloud::ProcessOneProj
      // ==================================================================================================================
 
      int aNbPtsCover = 0;
+     FakeUseIt(aNbPtsCover);
      for (size_t aKPt=0 ; aKPt<mVPtsProj.size() ; aKPt++) // parse all points
      {
          const cPt2di  & aCenter = mVPtImages.at(aKPt); // extract index
@@ -908,6 +909,7 @@ cAppli_MMVII_CloudImProj::cAppli_MMVII_CloudImProj
      mFocal            (-1),
      mCalib            (nullptr)
 {
+    FakeUseIt(mResolOrthoC);
 }
 
 cCollecSpecArg2007 & cAppli_MMVII_CloudImProj::ArgObl(cCollecSpecArg2007 & anArgObl) 
