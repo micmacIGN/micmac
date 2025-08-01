@@ -1,10 +1,13 @@
-CERN :
+CERN vs ECT dist fils:
 
-   * detection cibles sur nouvelles acquisitions 
-   * fils :  
-             - recalage image
-             - quali detection image
-             - 3D !!
+* calibration facteur echelle mesure clino
+* refaire compensation clino, avec poids sur clino/calib rel + nouveau formalisme
+* nouveau modele global rigide 
+* compensation sur fil
+ 
+*  MMVII OriPoseEstimCheckGCPDist => report depend de Save
+
+=> nom images, prefix ?  Multi directory ?
 
 
 ===========================================================

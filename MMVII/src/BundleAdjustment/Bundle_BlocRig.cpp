@@ -18,6 +18,11 @@ cBA_BlocRig::cBA_BlocRig
     mSigmaRat (aSigmaRat),
     mEqRatt  (aSigmaRat.empty() ? nullptr : EqBlocRig_RatE(true,1,true))
 {
+    if (mBlocs.empty())
+    {
+        // is the user enter a non existing bloc, we arrive here with a directory empty, probably an error
+        MMVII_UnclasseUsEr("No bloc found in rgid bloc");
+    }
     // push the weigth for the 3 equation on centers
     for (int aK=0 ; aK<3 ; aK++)
     {

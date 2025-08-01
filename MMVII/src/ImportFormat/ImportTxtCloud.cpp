@@ -53,6 +53,7 @@ class cAppli_ImportTxtCloud : public cMMVII_Appli
 	tREAL8                   mRoundingOffset;
         std::string              mNameOut;
         tREAL8                   mDensity;
+        tREAL8                   mRandCoord;  //  Coord randomization, to avoid some effect of rounding
 
 };
 
@@ -67,7 +68,8 @@ cAppli_ImportTxtCloud::cAppli_ImportTxtCloud(const std::vector<std::string> & aV
    mMode8B         (true),
    mOffset         (0,0,0),
    mOffsetIsP0     (false),
-   mRoundingOffset (1e4)
+   mRoundingOffset (1e4),
+   mRandCoord      (0.0)
 {
 }
 
@@ -91,6 +93,7 @@ cCollecSpecArg2007 & cAppli_ImportTxtCloud::ArgOpt(cCollecSpecArg2007 & anArgOpt
            << AOpt2007(mMode8B,"Bytes8","Do we use 8/4 bytes for storing points",{eTA2007::HDV})
            << AOpt2007(mNameOut,"Out","Name of output, def=In+\".dmp\"")
            << AOpt2007(mDensity,"Density","Theoretical number point/Surface, def computed")
+           << AOpt2007(mRandCoord,"RandCoord","Coordonates random amplitude (for ex 1e-2 if were cm rounded))")
     ;
 }
 
@@ -104,6 +107,7 @@ int cAppli_ImportTxtCloud::Exe()
 
     cPointCloud aPC(mMode8B);
     aPC.SetOffset(mOffset);
+    bool isRandCoord = IsInit(&mRandCoord);
 
     for (size_t aK=0 ; aK<aNRFS.NbLineRead() ; aK++)
     {
@@ -114,6 +118,10 @@ int cAppli_ImportTxtCloud::Exe()
            mOffset = ToR(aOffsDiv) * mRoundingOffset;
            aPC.SetOffset(mOffset);
 	}
+        if (isRandCoord)
+        {
+           aPt +=  cPt3dr::PRandC() * (mRandCoord/2.0);
+        }
 
         aPC.AddPt(aPt);
     }
@@ -122,12 +130,12 @@ int cAppli_ImportTxtCloud::Exe()
 
     if (! IsInit(&mDensity))
     {
-         mDensity = aPC.CurDensity();
+         mDensity = aPC.ComputeCurFineDensity();
          StdOut() << "DENSITY=" << mDensity << "\n";
     }
     aPC.mDensity = mDensity;
 
-    StdOut() << "BOX " << aPC.Box2d() << " D=" << aPC.Density() << "\n";
+    StdOut() << "BOX " << aPC.Box2d() << " D=" << aPC.CurStdDensity() << "\n";
 
     SaveInFile(aPC,mNameOut);
 

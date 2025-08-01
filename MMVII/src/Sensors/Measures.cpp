@@ -781,6 +781,23 @@ std::map<std::string, MMVII::cSetMesGnd3D> cSetMesGnd3D::SplitPerOutDir(const st
     return output;
 }
 
+const cMes1Gnd3D * cSetMesGnd3D::GetAdrMeasureOfNamePt(const std::string& aName,bool SVP) const
+{
+    for (const auto & aMeas : mMeasures)
+        if (aMeas.mNamePt==aName)
+           return  & aMeas;
+    MMVII_INTERNAL_ASSERT_strong(SVP,"Cannot found GCP of name : " +aName);
+
+   return nullptr;
+}
+
+const cMes1Gnd3D & cSetMesGnd3D::GetMeasureOfNamePt(const std::string& aName) const
+{
+    return * GetAdrMeasureOfNamePt(aName);
+}
+
+
+
 
 /**********************************************/
 /*                                            */

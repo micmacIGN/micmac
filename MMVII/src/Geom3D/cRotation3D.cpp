@@ -238,6 +238,8 @@ template <class Type> cIsometry3D<Type>::cIsometry3D(const tPt& aTr,const cRotat
 {
 }
 
+
+
 template <class Type> Type cIsometry3D<Type>::DistPoseRel(const tTypeMap & aIsom2,const Type & aWTr) const
 {
    return (aWTr * Norm2(VUnit(mTr)-VUnit(aIsom2.mTr)) + mRot.Dist(aIsom2.mRot)) / (1+aWTr);
@@ -323,6 +325,89 @@ template <class Type> cTriangle<Type,2> cIsometry3D<Type>::ToPlaneZ0(int aKOut,c
 }
 
 
+template <class Type>  cPtxd<Type,3> cIsometry3D<Type>::DiffInOut(const tPt & aPIn,const tPt & aPOut) const
+{
+   return Value(aPIn) - aPOut;
+}
+
+template <class Type>  cIsometry3D<Type> cIsometry3D<Type>::FromMinimalSamples(const tTabMin& aTabIn,const tTabMin& aTabOut)
+{
+  tTri  aTriIn  (aTabIn[0], aTabIn[1], aTabIn[2]);
+  tTri  aTriOut(aTabOut[0],aTabOut[1],aTabOut[2]);
+
+
+  return FromTriInAndOut(0,aTriIn,0,aTriOut,true);
+}
+
+static constexpr int IsomInd_Tr_x =  0;
+static constexpr int IsomInd_Tr_y =  1;
+static constexpr int IsomInd_Tr_z =  2;
+static constexpr int IsomInd_W_x  =  3;
+static constexpr int IsomInd_W_y  =  4;
+static constexpr int IsomInd_W_z  =  5;
+
+template <class Type>  cIsometry3D<Type>   cIsometry3D<Type>::FromParam(const cDenseVect<Type> & aV)
+{
+   cDenseMatrix<Type>  aMat =    MatProdVect(tPt(aV(IsomInd_W_x),aV(IsomInd_W_y),aV(IsomInd_W_z)))
+                              +  cDenseMatrix<Type>(3,eModeInitImage::eMIA_MatrixId);
+
+    return cIsometry3D<Type>
+           (
+                tPt(aV(IsomInd_Tr_x),aV(IsomInd_Tr_y),aV(IsomInd_Tr_z)),
+                tRot(aMat, true)
+           );
+}
+
+
+/*
+    (X1)   (X2)      Y1*Z2 - Z1*Y2     ( 0   -Z1    Y1)   (X2) 
+    (Y1) ^ (Y2) =    Z1*X2 - X1*Z2  =  ( Z1    0   -X1) * (Y2)
+    (Z1)   (Z2)      X1*Y2 - Y1*X2     (-Y1    X1    0)   (Z2)
+ 
+*/
+
+
+
+
+template <class Type> void  cIsometry3D<Type>::ToEqParam(tPt & aRHS,std::vector<cDenseVect<Type>>& aVV,const tPt &In,const tPt & Out)
+{
+
+  // ========  O.x = Tr.x + I.x - W.z I.y + W.y I.z  ==============
+  cDenseVect<Type>& aVX = aVV.at(0);
+  aVX(IsomInd_Tr_x) = 1;
+  aVX(IsomInd_Tr_y) = 0;
+  aVX(IsomInd_Tr_z) = 0;
+
+  aVX(IsomInd_W_x) = 0;
+  aVX(IsomInd_W_y) = In.z();
+  aVX(IsomInd_W_z) = -In.y();
+
+  // ========  O.y = Tr.y + I.y + W.z I.x -W.x I.z  ==============
+  cDenseVect<Type>& aVY = aVV.at(1);
+  aVY(IsomInd_Tr_x) = 0;
+  aVY(IsomInd_Tr_y) = 1;
+  aVY(IsomInd_Tr_z) = 0;
+
+  aVY(IsomInd_W_x) = -In.z();
+  aVY(IsomInd_W_y) = 0;
+  aVY(IsomInd_W_z) = In.x();
+
+  // ========  O.z = Tr.z + I.z - W.y I.x + W.x I.y  ==============
+  cDenseVect<Type>& aVZ = aVV.at(2);
+  aVZ(IsomInd_Tr_x) = 0;
+  aVZ(IsomInd_Tr_y) = 0;
+  aVZ(IsomInd_Tr_z) = 1;
+
+  aVZ(IsomInd_W_x) = In.y();
+  aVZ(IsomInd_W_y) = -In.x();
+  aVZ(IsomInd_W_z) = 0;
+  //     O.x =  I.x    (1   x  y
+  //     O.y =  I.y  + (0
+  //     O.z =  I.z    (0
+
+  aRHS = Out-In;
+}
+
 
 
 template <class Type> cIsometry3D<Type> cIsometry3D<Type>::FromTriInAndOut
@@ -386,6 +471,9 @@ void AddData(const cAuxAr2007 & anAux,tPoseR & aPose)
      MMVII::AddData(cAuxAr2007("Center",anAux),aPose.Tr());
      MMVII::AddData(anAux,aPose.Rot());
 } 
+
+
+
 
 /*
 void AddData(const cAuxAr2007 & anAux,tPoseR & aPose)

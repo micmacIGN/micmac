@@ -189,11 +189,11 @@ template <class Type> class Pt2d : public  ElStdTypeScal<Type>
 
   // Constructeur
 
-     Pt2d<Type>()  : x (0), y (0) {}
-     Pt2d<Type>(Type X,Type Y) : x (X), y (Y) {}
+     Pt2d()  : x (0), y (0) {}
+     Pt2d(Type X,Type Y) : x (X), y (Y) {}
 
-     Pt2d<Type>(const Pt2d<Type>& p) : x (p.x), y (p.y) {}
-     explicit Pt2d<Type>(const Pt2d<tCompl>& p) :
+     Pt2d(const Pt2d<Type>& p) : x (p.x), y (p.y) {}
+     explicit Pt2d(const Pt2d<tCompl>& p) :
               x( TCompl<Type>::FromC( p.x)),
               y( TCompl<Type>::FromC( p.y))
      {
@@ -846,15 +846,15 @@ template <class Type> class Pt3d : public  ElStdTypeScal<Type>
 
      Pt3d();
 
-     Pt3d<Type>(const Pt3d<Type>& ); // to please visual
-     explicit Pt3d<Type>(const Pt3d<tCompl>& p);
+     Pt3d(const Pt3d<Type>& ); // to please visual
+     explicit Pt3d(const Pt3d<tCompl>& p);
 
      static  Pt3d<Type> P3ToThisT(const Pt3d<int> & aP){return Pt3d<Type>(Type(aP.x),Type(aP.y),Type(aP.z));}
      static  Pt3d<Type> P3ToThisT(const Pt3d<double> & aP){return Pt3d<Type>(Type(aP.x),Type(aP.y),Type(aP.z));}
      static  Pt3d<Type> P3ToThisT(const Pt3d<float> & aP){return Pt3d<Type>(Type(aP.x),Type(aP.y),Type(aP.z));}
 
 
-     Pt3d<Type>(const Pt2d<Type>&,Type z); // to please visual
+     Pt3d(const Pt2d<Type>&,Type z); // to please visual
 
      Pt3d<Type> mcbyc(const Pt3d<Type> & p2) const
                 {return Pt3d(x*p2.x,y*p2.y,z*p2.z);}

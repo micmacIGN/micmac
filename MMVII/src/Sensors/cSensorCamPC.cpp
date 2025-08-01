@@ -274,24 +274,62 @@ double cSensorCamPC::DegreeVisibilityOnImFrame(const cPt2dr & aP) const
 
 bool   cSensorCamPC::HasImageAndDepth() const {return true;}
 
+const cPt2di & cSensorCamPC::SzPix() const {return  mInternalCalib->SzPix();}
 
-cPt3dr cSensorCamPC::Ground2ImageAndDepth(const cPt3dr & aP) const
+
+     // ---------------   Ground2ImageAndDepth ----------------------------
+
+cPt3dr cSensorCamPC::PlaneSweep_Ground2ImageAndDepth(const cPt3dr & aP) const
 {
     cPt3dr aPCam = Pose().Inverse(aP);  // P in camera coordinate
     cPt2dr aPIm = mInternalCalib->Value(aPCam);
 
     return cPt3dr(aPIm.x(),aPIm.y(),aPCam.z());
 }
+cPt3dr cSensorCamPC::Dist_Ground2ImageAndDepth(const cPt3dr & aP) const
+{
+    cPt3dr aPCam = Pose().Inverse(aP);  // P in camera coordinate
+    cPt2dr aPIm = mInternalCalib->Value(aPCam);
 
-const cPt2di & cSensorCamPC::SzPix() const {return  mInternalCalib->SzPix();}
+    return cPt3dr(aPIm.x(),aPIm.y(),Norm2(aPCam));
+}
+cPt3dr cSensorCamPC::Ground2ImageAndDepth(const cPt3dr & aP) const
+{
+    return mInternalCalib->TypeProj() == eProjPC::eStenope  ?
+                       PlaneSweep_Ground2ImageAndDepth(aP)  :
+                           Dist_Ground2ImageAndDepth(aP)    ;
+}
 
-cPt3dr cSensorCamPC::ImageAndDepth2Ground(const cPt3dr & aPImAndD) const
+
+     // ---------------   ImageAndDepth2Ground ----------------------------
+
+cPt3dr cSensorCamPC::PlaneSweep_ImageAndDepth2Ground(const cPt3dr & aPImAndD) const
 {
     cPt2dr aPIm = Proj(aPImAndD);
     cPt3dr aPCam = mInternalCalib->DirBundle(aPIm);
     cPt3dr aRes =  Pose().Value(aPCam * (aPImAndD.z() / aPCam.z()));
     return aRes;
 }
+
+cPt3dr cSensorCamPC::Dist_ImageAndDepth2Ground(const cPt3dr & aPImAndD) const
+{
+    cPt2dr aPIm = Proj(aPImAndD);
+    cPt3dr aPCam = mInternalCalib->DirBundle(aPIm);
+    cPt3dr aRes =  Pose().Value( VUnit(aPCam)*aPImAndD.z() );
+    return aRes;
+}
+
+
+cPt3dr cSensorCamPC::ImageAndDepth2Ground(const cPt3dr & aPImAndD) const
+{
+    return mInternalCalib->TypeProj() == eProjPC::eStenope  ?
+           PlaneSweep_ImageAndDepth2Ground(aPImAndD)        :
+                 Dist_ImageAndDepth2Ground(aPImAndD)        ;
+}
+
+
+     // -------------------------------------------
+
 
 tSeg3dr  cSensorCamPC::Image2Bundle(const cPt2dr & aPIm) const 
 {
@@ -589,15 +627,65 @@ void  cSensorCamPC::FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 
 void cSensorCamPC::Bench()
 {
+static int aCptCam=0; aCptCam++; 
+  //  (int aNbByDim,int aNbDepts,double aD0,double aD1,bool IsDepthOrZ,tREAL8 aEpsMarginRel)
    cSet2D3D  aSet32 =  SyntheticsCorresp3D2D(20,3,1.0,10.0,true) ;
    tREAL8 aRes = AvgAngularProjResiudal(aSet32);
+
+   for (const auto & aPair : aSet32.Pairs())
+   {
+static int aCptPt=0; aCptPt++; bool aBugPt = (aCptPt==49918); 
+       const cPt3dr & aP3G1 = aPair.mP3;
+
+       {
+           cPt3dr aPt1 = Dist_Ground2ImageAndDepth(aP3G1);
+           cPt3dr aPt2 = Dist_ImageAndDepth2Ground(aPt1);
+           tREAL8 aDist =  Norm2(aPt2-aP3G1);
+           MMVII_INTERNAL_ASSERT_bench(aDist<1e-6,"SensorCamPC::Bench  DG");
+
+           cPt3dr aPt3 = Dist_Ground2ImageAndDepth(aPt2);
+           aDist =  Norm2(aPt1-aPt3);
+           // StdOut() << "NNN=" << aDist << "\n";
+           MMVII_INTERNAL_ASSERT_bench(aDist<1e-4,"SensorCamPC::Bench  DG");
+       }
+
+       cPt3dr  aPIm1 =  PlaneSweep_Ground2ImageAndDepth(aP3G1);
+       cPt3dr  aP3G2 =  PlaneSweep_ImageAndDepth2Ground(aPIm1);
+       cPt3dr  aPIm2 =  PlaneSweep_Ground2ImageAndDepth(aP3G2);
+       tREAL8 aDG = Norm2(aP3G1-aP3G2);
+       tREAL8 aDI = Norm2(aPIm1-aPIm2);
+
+       cPt3dr aPLoc = Pt_W2L(aP3G1);
+       tREAL8 aRatio = std::abs(aPLoc.z()) / Norm2(aPLoc);
+       if (0)
+       {
+           FakeUseIt(aBugPt);
+           StdOut() << "HHHHH  " << aDG << " " << aDI << " C-PT=" << aCptPt << " C-Cam=" << aCptCam << "\n";//  getchar();
+
+           StdOut() << " Proj=" << E2Str(mInternalCalib->TypeProj()) 
+                    << " PLOC=" << aPLoc 
+                    << " SzzzIm=" << Sz()
+                    << " PIm=" << aPair.mP2 
+                    << " PG1=" << aP3G1  
+                    << " C=" <<  Center() 
+                    << " Ratio=" << aRatio
+                    << "\n";
+
+       }
+       if (aRatio>=1e-2)
+       {
+           tREAL8 aThrsG = 1e-4 + 1e-5/aRatio;
+           MMVII_INTERNAL_ASSERT_bench(aDG<aThrsG,"SensorCamPC::Bench  DG");
+       }
+       MMVII_INTERNAL_ASSERT_bench(aDI<1e-4,"SensorCamPC::Bench  DI");
+   }
 
    MMVII_INTERNAL_ASSERT_bench(aRes<1e-8,"Avg res ang");
 }
 
 void cSensorCamPC::BenchOneCalib(cPerspCamIntrCalib * aCalib)
 {
-   cIsometry3D<tREAL8> aPose = cIsometry3D<tREAL8>::RandomIsom3D(10.0);
+    cIsometry3D<tREAL8> aPose = cIsometry3D<tREAL8>::RandomIsom3D(10.0);
 
     cSensorCamPC aCam("BenchCam",aPose,aCalib);
     aCam.Bench();

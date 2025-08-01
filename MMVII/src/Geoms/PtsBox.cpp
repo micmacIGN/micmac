@@ -113,7 +113,7 @@ template <class Type,const int Dim>  cPtxd<Type,Dim>& cSegment<Type,Dim>::P2() {
 
 
 template <class Type,const int Dim> cPtxd<Type,Dim> cSegment<Type,Dim>::V12() const  {return mP2-mP1;}
-template <class Type,const int Dim> cPtxd<Type,Dim> cSegment<Type,Dim>::PMil() const {return (mP1+mP2)/Type(2);}
+template <class Type,const int Dim> cPtxd<Type,Dim> cSegment<Type,Dim>::Middle() const {return (mP1+mP2)/Type(2);}
 
 /* ========================== */
 /*    cSegmentCompiled        */
@@ -965,6 +965,10 @@ template <class Type,const int Dim> Type cTplBox<Type,Dim>::Insideness(const tPt
      return aRes;
 }
 
+template <class Type,const int Dim> cPtxd<Type,Dim>  cTplBox<Type,Dim>::Middle() const
+{
+    return (mP0+mP1)/(Type) 2;
+}
 
 
 template <class Type,const int Dim> cTplBox<Type,Dim>  cTplBox<Type,Dim>::Dilate(const tPt & aPt) const

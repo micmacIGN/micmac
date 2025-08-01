@@ -269,6 +269,7 @@ int  cAppli_MMVII_CloudClip::Exe()
    cPt2dr aP0 = aBox2Glob.FromNormaliseCoord(mBoxRel.P0());
    cPt2dr aP1 = aBox2Glob.FromNormaliseCoord(mBoxRel.P1());
 
+    // StdOut()  << "P000P11 " << aBox2Glob << "\n";
 
    cBox2dr aBoxClip(aP0,aP1);
 
@@ -276,7 +277,10 @@ int  cAppli_MMVII_CloudClip::Exe()
    mPC_In.Clip(mPC_Out,aBoxClip);
    SaveInFile(mPC_Out,mNameCloudOut);
 
-   StdOut() << "  - Density cliped=" << mPC_Out.CurDensity() << "\n";
+   StdOut() << "  - Density cliped=" << mPC_Out.CurStdDensity() << "\n";
+
+    // mPC_In.ComputeCurFineDensity();
+    // mPC_Out.ComputeCurFineDensity();
 
 
    return EXIT_SUCCESS;

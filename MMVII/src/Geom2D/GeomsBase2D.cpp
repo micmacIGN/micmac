@@ -122,8 +122,8 @@ template <class Type>
 {
       //  (aM1 + L1 T1) . N2 = M2 . N2
       //  L1 (T1.N2)  = N2. (aM2-aM1) 
-      tPt aM1 = this->PMil();
-      tPt aM2 = aSeg2.PMil();
+      tPt aM1 = this->Middle();
+      tPt aM2 = aSeg2.Middle();
 
       Type aScalT1N2 = Scal(this->mTgt,aSeg2.mNorm);
 
@@ -229,12 +229,27 @@ template <class TypeMap>
                 const tVVals* aVW
              )
 {
+// StdOut() << "cMapEstimate<TypeMap>::LeasSqEstimatecMapEstimate<TypeMap>::LeasSqEstimatecMapEstimate<TypeMap>::LeasSqEstimate\n";
    CheckInOut(aVIn,aVOut);
 
    cLeasSqtAA<tTypeElem> aSys(TypeMap::NbDOF);
+   std::vector<cDenseVect<tTypeElem>>  aVV;
+   for (int aDim=0; aDim<TypeMap::TheDim ; aDim++)
+       aVV.push_back( cDenseVect<tTypeElem> (TypeMap::NbDOF));
+
+
+   for (int aK=0; aK<int(aVIn.size()) ; aK++)
+   {
+        tPt aRHS;
+        TypeMap::ToEqParam(aRHS,aVV,aVIn[aK],aVOut[aK]);
+        tTypeElem aWeight = aVW ? (aVW->at(aK)) : 1.0;
+        for (int aDim=0 ; aDim<TypeMap::TheDim ; aDim++)
+            aSys.PublicAddObservation(aWeight,aVV.at(aDim),aRHS[aDim]);
+   }
+
+/*
    cDenseVect<tTypeElem> aVX(TypeMap::NbDOF);
    cDenseVect<tTypeElem> aVY(TypeMap::NbDOF);
-
    for (int aK=0; aK<int(aVIn.size()) ; aK++)
    {
         tPt aRHS;
@@ -243,6 +258,7 @@ template <class TypeMap>
         aSys.PublicAddObservation(aWeight,aVX,aRHS.x());
         aSys.PublicAddObservation(aWeight,aVY,aRHS.y());
    }
+*/
    cDenseVect<tTypeElem> aSol =  aSys.PublicSolve();
    TypeMap aMap =  TypeMap::FromParam(aSol);
 
@@ -402,7 +418,15 @@ template <class Type>  cHomot2D<Type> cHomot2D<Type>::FromParam(const cDenseVect
           );
 }
 
-template <class Type>  void cHomot2D<Type>::ToEqParam(tPt& aRHS,cDenseVect<Type>& aVX,cDenseVect<Type> & aVY,const tPt & aPIn,const tPt & aPOut)
+template <class Type>  
+      void cHomot2D<Type>::ToEqParam(tPt& aRHS,std::vector<cDenseVect<Type>>& aVXY,const tPt & aPIn,const tPt & aPOut)
+{
+    ToEqParam(aRHS,aVXY.at(0),aVXY.at(1),aPIn,aPOut);
+}
+
+
+template <class Type>  
+      void cHomot2D<Type>::ToEqParam(tPt& aRHS,cDenseVect<Type>& aVX,cDenseVect<Type> & aVY,const tPt & aPIn,const tPt & aPOut)
 {
    //  param = trx try scale
    //  XOut  =   1*trx + 0*try +  scale * XIN 
@@ -527,6 +551,12 @@ template <class Type>  cSim2D<Type> cSim2D<Type>::FromParam(const cDenseVect<Typ
           );
 }
 
+template <class Type>  
+      void cSim2D<Type>::ToEqParam(tPt& aRHS,std::vector<cDenseVect<Type>>& aVXY,const tPt & aPIn,const tPt & aPOut)
+{
+    ToEqParam(aRHS,aVXY.at(0),aVXY.at(1),aPIn,aPOut);
+}
+
 template <class Type>  void cSim2D<Type>::ToEqParam(tPt& aRHS,cDenseVect<Type>& aVX,cDenseVect<Type> & aVY,const tPt & aPIn,const tPt & aPOut)
 {
    //  param = trx try scx scy
@@ -590,6 +620,12 @@ template <class Type>  cRot2D<Type> cRot2D<Type>::FromParam(const cDenseVect<Typ
               tPt(aVec(RotIndTrx),aVec(RotIndTry)),
               aVec(RotIndTeta)
           );
+}
+
+template <class Type>  
+      void cRot2D<Type>::ToEqParam(tPt& aRHS,std::vector<cDenseVect<Type>>& aVXY,const tPt & aPIn,const tPt & aPOut)
+{
+    ToEqParam(aRHS,aVXY.at(0),aVXY.at(1),aPIn,aPOut);
 }
 
 template <class Type>  void cRot2D<Type>::ToEqParam(tPt& aRHS,cDenseVect<Type>& aVX,cDenseVect<Type> & aVY,const tPt & aPIn,const tPt & aPOut)
@@ -810,6 +846,11 @@ template <class Type>  cAffin2D<Type> cAffin2D<Type>::FromParam(const cDenseVect
           );
 }
 
+template <class Type>  
+      void cAffin2D<Type>::ToEqParam(tPt& aRHS,std::vector<cDenseVect<Type>>& aVXY,const tPt & aPIn,const tPt & aPOut)
+{
+    ToEqParam(aRHS,aVXY.at(0),aVXY.at(1),aPIn,aPOut);
+}
 
 template <class Type>  void cAffin2D<Type>::ToEqParam(tPt& aRHS,cDenseVect<Type>& aVX,cDenseVect<Type> & aVY,const tPt & aPIn,const tPt & aPOut)
 {
@@ -959,6 +1000,11 @@ template <class Type> cHomogr2D<Type>  cHomogr2D<Type>::FromMinimalSamples(const
    return FromParam(aSol);
 }
 
+template <class Type>  
+      void cHomogr2D<Type>::ToEqParam(tPt& aRHS,std::vector<cDenseVect<Type>>& aVXY,const tPt & aPIn,const tPt & aPOut)
+{
+    ToEqParam(aRHS,aVXY.at(0),aVXY.at(1),aPIn,aPOut);
+}
 
 template <class Type> void cHomogr2D<Type>::ToEqParam
                            (
@@ -1358,5 +1404,19 @@ MACRO_INSTATIATE_GEOM2D(tREAL16)
 
 template int DbleAreaPolygOriented(const std::vector<cPtxd<int,2>> & aPolyg);
 
+//=====================================================================================================================
+
+template <class Type>  cIsometry3D<Type> cIsometry3D<Type>::RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest)
+{
+    return cMapEstimate<cIsometry3D<Type>>::RansacL1Estimate(aVIn,aVOut,aNbTest);
+}
+template tPoseR tPoseR::RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest);
+
+template <class Type>  
+         cIsometry3D<Type> cIsometry3D<Type>::LeastSquareRefine(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2,tCPVVals aVW)const
+{
+    return cMapEstimate<cIsometry3D<Type>>::LeastSquareRefine(*this,aVIn,aVOut,aRes2,aVW);
+}
+template tPoseR tPoseR::LeastSquareRefine(tCRVPts aVIn,tCRVPts aVOut,tTypeElem * aRes2,tCPVVals aVW) const;
 
 };

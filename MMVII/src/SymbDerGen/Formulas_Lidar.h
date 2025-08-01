@@ -57,8 +57,6 @@ class cRadiomLidarIma
                size_t                 &  aIndObs
           ) const 
      {
-                 // to complete
-
         // read the unknowns
         cPtxd<tUk,3>  aCCam   = VtoP3AutoIncr(aVUk,&aIndUk);  // camera center
         cPtxd<tUk,3>  aW      = VtoP3AutoIncr(aVUk,&aIndUk);  // camera infinitesimal rotation
@@ -110,8 +108,8 @@ class cRadiomLidarIma
 
      static std::vector<std::string>  VectObsRadiom()  
      {
-             // Radiom + grad /i,j
-	     return Append({"Rad0"},NamesP2("GradRad"));
+         // Radiom + grad /i,j
+         return Append({"Rad0"},NamesP2("GradRad"));
      }
 };
 
@@ -126,19 +124,19 @@ class cEqLidarImPonct : public cRadiomLidarIma
                   )  const
             {
                  // read the unknowns
-		size_t aIndUk = 0;
-		size_t aIndObs = 0;
+                size_t aIndUk = 0;
+                size_t aIndObs = 0;
 
-		tUk aRadiomTarget = aVUk.at(aIndUk++);
-		tUk aRadiom = Radiom_PerpCentrIntrFix(aVUk,aIndUk,aVObs,aIndObs);
+                tUk aRadiomTarget = aVUk.at(aIndUk++);
+                tUk aRadiom = Radiom_PerpCentrIntrFix(aVUk,aIndUk,aVObs,aIndObs);
 
-		 return {aRadiom - aRadiomTarget};
+                 return {aRadiom - aRadiomTarget};
              }
 
             std::vector<std::string> VNamesUnknowns()  const {return Append({"TargetRad"},NamesPoseUK());}
             static std::vector<std::string> VNamesObs() 
             {
-		    return Append(VectObsPPose() , VectObsPCam() , VectObsRadiom());
+                return Append(VectObsPPose() , VectObsPCam() , VectObsRadiom());
             }
             std::string FormulaName() const { return  "EqLidarImPonct";}
 
@@ -163,27 +161,27 @@ class cEqLidarImCensus : public cRadiomLidarIma
                       const std::vector<tObs> & aVObs
                   )  const
             {
-		size_t aIndUk = 0;
-		size_t aIndObs = 0;
+                size_t aIndUk = 0;
+                size_t aIndObs = 0;
 
                 // target unknown ratio between central pixel and neighbouring
-		tUk aTargetRatio = aVUk.at(aIndUk++);
+                tUk aTargetRatio = aVUk.at(aIndUk++);
                 // radiometry of central pixel
-		tUk aRadiom0 = Radiom_PerpCentrIntrFix(aVUk,aIndUk,aVObs,aIndObs);
+                tUk aRadiom0 = Radiom_PerpCentrIntrFix(aVUk,aIndUk,aVObs,aIndObs);
                 // !! Carefull !! : aIndUk has been incremented, reset it 
                 aIndUk=1;
                 // radiometry of neighbour pixel
-		tUk aRadiom1 = Radiom_PerpCentrIntrFix(aVUk,aIndUk,aVObs,aIndObs);
+                tUk aRadiom1 = Radiom_PerpCentrIntrFix(aVUk,aIndUk,aVObs,aIndObs);
 
                 return {NormalisedRatioPos(aRadiom0,aRadiom1) - aTargetRatio};
             }
 
             std::vector<std::string> VNamesUnknowns()  const {return Append({"TargetRatio"},NamesPoseUK());}
-            std::vector<std::string> VNamesObs() const      
+            std::vector<std::string> VNamesObs() const
             {
-		    std::vector<std::string>  aV0 = cEqLidarImPonct::VNamesObs();
-                    // we duplicate the observation for 2 pixels of the pair (central / periph)
-		    return Append(AddPostFix(aV0,"_0"),AddPostFix(aV0,"_1"));
+                std::vector<std::string>  aV0 = cEqLidarImPonct::VNamesObs();
+                // we duplicate the observation for 2 pixels of the pair (central / periph)
+                return Append(AddPostFix(aV0,"_0"),AddPostFix(aV0,"_1"));
             }
             std::string FormulaName() const { return  "EqLidarImCensus";}
 
@@ -201,21 +199,21 @@ class cEqLidarImCorrel : public cRadiomLidarIma
                   )  const
             {
                  // read the unknowns
-		size_t aIndUk = 0;
-		size_t aIndObs = 0;
+                size_t aIndUk = 0;
+                size_t aIndObs = 0;
 
-		tUk aRadiomTarget = aVUk.at(aIndUk++);
-		tUk aCoefMul      = aVUk.at(aIndUk++);
-		tUk aCoefAdd      = aVUk.at(aIndUk++);
-		tUk aRadiom = Radiom_PerpCentrIntrFix(aVUk,aIndUk,aVObs,aIndObs);
+                tUk aRadiomTarget = aVUk.at(aIndUk++);
+                tUk aCoefMul      = aVUk.at(aIndUk++);
+                tUk aCoefAdd      = aVUk.at(aIndUk++);
+                tUk aRadiom = Radiom_PerpCentrIntrFix(aVUk,aIndUk,aVObs,aIndObs);
 
-		 return {aCoefAdd + aCoefMul * aRadiom - aRadiomTarget};
+                 return {aCoefAdd + aCoefMul * aRadiom - aRadiomTarget};
              }
 
             std::vector<std::string> VNamesUnknowns()  const {return Append({"TargetRad","CoefMul","CoefAdd"},NamesPoseUK());}
             static std::vector<std::string> VNamesObs() 
             {
-		    return Append(VectObsPPose() , VectObsPCam() , VectObsRadiom());
+                return Append(VectObsPPose() , VectObsPCam() , VectObsRadiom());
             }
             std::string FormulaName() const { return  "EqLidarImCorrel";}
 

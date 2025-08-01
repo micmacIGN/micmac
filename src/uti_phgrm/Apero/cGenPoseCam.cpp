@@ -1017,7 +1017,7 @@ cBasicGeomCap3D *   cBGC3_Modif2D::CamSsCor()
 }
 
 
-Pt2dr  cBGC3_Modif2D::ImRef2Capteur   (const Pt2dr & aP) {return aP;}
+Pt2dr  cBGC3_Modif2D::ImRef2Capteur (const Pt2dr & aP) const {return aP;}
 double cBGC3_Modif2D::ResolImRefFromCapteur() const {return 1.0;}
 const std::string & cBGC3_Modif2D::NameIma() const {return mNameIma;}
 

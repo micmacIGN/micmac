@@ -49,8 +49,12 @@ class cPointCloud
 
         void ToPly(const std::string & aName,bool WithOffset=false) const;
 
-        tREAL8   Density() const;    ///< Accessor
-        tREAL8   CurDensity() const; ///< density from current data, may differ from import
+        tREAL8   CurBasicDensity() const; ///< density assuming almost uniform repartition in bounding box
+        tREAL8   CurStdDensity() const; ///<  Density if init, CurGlob else
+					
+        tREAL8   ComputeCurFineDensity() const ; ///<  longer but adapted to cloud with non rectangular footprint
+        tREAL8   GroundSampling() const; ///<  Just a facility for 1/sqrt(CurStdDensity()) 
+					
         cBox2dr  Box2d() const;      ///< Accessor
         cBox3dr  Box3d() const;      ///< Accessor
 

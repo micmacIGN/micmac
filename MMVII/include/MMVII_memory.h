@@ -3,6 +3,10 @@
 
 #include "MMVII_Error.h"
 
+
+// https://en.cppreference.com/w/cpp/atomic/atomic.html
+
+
 namespace MMVII
 {
 
