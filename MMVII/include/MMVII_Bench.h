@@ -145,6 +145,7 @@ void BenchDeformIm(cParamExeBench & aParam); // using image in non-linear least 
 void BenchMeshDev(cParamExeBench & aParam);  // bench  devlopment  (on devlopable surface)
 void BenchCentralePerspective(cParamExeBench & aParam); // test on implementation of central perstective model
 void BenchCamOrtho();
+void BenchAiconCamera();
 
 void BenchCentralePerspective_ImportV1(cParamExeBench & aParam); // test on importation cam-V1
 

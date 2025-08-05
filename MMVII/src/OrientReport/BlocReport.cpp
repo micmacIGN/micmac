@@ -8,15 +8,6 @@
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_Clino.h"
 
-/*
- Pt=Center Avg=0.0946877 StdDev=1.62817e-05
- Pt=Center Avg=0.0946488 StdDev=7.36029e-06
- Pt=Center Avg=0.0946661 StdDev=7.67083e-06
- Pt=Center Avg=0.0946694 StdDev=8.27856e-06
- Pt=Center Avg=0.094679  StdDev=1.27643e-05
-
-*/
-
 
 /**
  
@@ -29,119 +20,6 @@
 
 namespace MMVII
 {
-
-class cAiconCamera
-{
-     public :
-         cAiconCamera(const std::vector<tREAL8> & aParams);
-
-         cPt2dr  PLoc2PIm(const cPt3dr & aPLoc) const;
-     private :
-
-          cPt2dr  Distord(const cPt2dr & aPLoc) const;
-
-          std::vector<tREAL8> mParams;
-          tREAL8 mPixInMM;
-
-          tREAL8  Focal() const {return mParams.at(0);}
-          tREAL8  PPx() const   {return mParams.at(1);}
-          tREAL8  PPy() const   {return -mParams.at(2);}
-          cPt2dr PP() const     {return cPt2dr(PPx(),PPy());}
-
-          tREAL8  A1() const    {return mParams.at(3);}
-          tREAL8  A2() const    {return mParams.at(4);}
-          tREAL8  R0() const    {return mParams.at(5);}
-          tREAL8  A3() const    {return mParams.at(6);}
-           // Decentrik
-          tREAL8  B1() const    {return mParams.at(7);}
-          tREAL8  B2() const    {return mParams.at(8);}
-
-           // Affine
-          tREAL8  C1() const    {return mParams.at(9);}
-          tREAL8  C2() const    {return mParams.at(10);}
-
-          // Sz Capt mm
-          tREAL8  SzX_mm() const   {return mParams.at(11);}
-          tREAL8  SzY_mm() const   {return mParams.at(12);}
-          cPt2dr  Sz_mm() const    {return cPt2dr(SzX_mm(),SzY_mm());}
-
-          // Sz Capt pix
-          tREAL8  SzX_pix() const   {return mParams.at(13);}
-          tREAL8  SzY_pix() const   {return mParams.at(14);}
-
-/*
-FOCAL  -24.90098
-PPX   -0.10482 
-PPY  -0.00659
-A1 -1.57981e-004
-A2  2.60388e-007    
-R0  9.00
-A3  -9.75344e-011
-B1  -1.48754e-005   // Decentrik
-B2 7.47493e-006
-C1 9.77902e-005    // Affine
-C2  -8.03252e-005
-SzCapteur 24.00000    16.00000
-SzCapteur 6000  4000
-*/
-
-};
-
-cAiconCamera::cAiconCamera(const std::vector<tREAL8> & aVParams) :
-   mParams (aVParams)
-{
-   MMVII_INTERNAL_ASSERT_tiny(aVParams.size()==15,"Bad size for cAiconCamera");
-   mPixInMM =  SzX_mm() / SzX_pix();
-   tREAL8 aCheck = RelativeDifference(mPixInMM,SzY_mm() / SzY_pix());
-   MMVII_INTERNAL_ASSERT_tiny(aCheck<1e-8,"Sz of pixel incoherent in cAiconCamera ");
-}
-
-cAiconCamera aAiconCam(
-    {
-         -24.90098, -0.10482,  -0.00659,  // FF PPX PPY
-         -1.57981e-004, 2.60388e-007,9.00, -9.75344e-011, // K1 K2 R0 K3
-         -1.48754e-005  , 7.47493e-006,  // B1 B2
-          9.77902e-005 ,  -8.03252e-005,  // C1 C2
-          24.00000, 16.00000,             // Sz Capt mm
-          6000,  4000                     // Sz Capt pix
-    }
-    );
-
-cPt2dr cAiconCamera::Distord(const cPt2dr & aP) const
-{
-    tREAL8 aR2 = SqN2(aP);
-    tREAL8 aR0_2 = Square(R0());
-
-    cPt2dr aRadCorr =  aP * ( A1()*(aR2-aR0_2)  +  A2()*(Square(aR2)-Square(aR0_2)) + A3()*(Cube(aR2)-Cube(aR0_2)));
-
-    cPt2dr aDecCorr
-           ( 
-                B1()*(aR2+2*Square(aP.x()))  + B2() * 2*aP.x()*aP.y(),
-                B2()*(aR2+2*Square(aP.y()))  + B1() * 2*aP.x()*aP.y()
-           );
-
-    cPt2dr aAffCorr (C1()*aP.x()+C2()*aP.y(),0.0);
-
-    return aP + aRadCorr + aDecCorr + aAffCorr;
-}
-
-cPt2dr  cAiconCamera::PLoc2PIm(const cPt3dr & aPLoc) const
-{
-    cPt2dr aPPhgr = cPt2dr(aPLoc.x(),aPLoc.y()) / (-aPLoc.z());
-
-    cPt2dr  aPCmm = aPPhgr * Focal() ;
-
-    aPCmm = Distord(aPCmm) + PP() ;
-
-    return (aPCmm + Sz_mm()/2.0) / mPixInMM;
-}
-
-
-
-/*
-SzCapteur 24.00000    16.00000
-SzCapteur 6000  4000
-*/
 
 
 /* ==================================================== */
@@ -158,6 +36,15 @@ class  cStatDistPtWire
         cStdStatRes  mStatV;  // stat on vert dist
 };
 
+
+///  Class to represent points located in rigid frame
+class cCern_PtRF
+{
+    public :
+        cPt3dr        mCoordRF;  //  coord local to rigid frame
+        std::string   mName;     // name of point
+};
+
 class cAppli_ReportBlock : public cMMVII_Appli
 {
      public :
@@ -171,8 +58,9 @@ class cAppli_ReportBlock : public cMMVII_Appli
 
      private :
 	void ProcessOneBloc(const std::vector<cSensorCamPC *> &);
-
         void AddStatDistWirePt(const cPt3dr& aPt,const cPt3dr& aDirLoc,const std::string &);
+
+        void DoCernExport();
 
         void TestWire3D(const std::string& anIdSync,const std::vector<cSensorCamPC *> & aVCam);
         /// For a given Id of Sync and a bloc of cameras, compute the stat on accuracy of intersection
@@ -206,8 +94,9 @@ class cAppli_ReportBlock : public cMMVII_Appli
         bool                                    mCernStat;
         cPt3dr                                  mSphereCenter; // center of the sphere
         bool                                    mSCFreeScale;  // do we have a free scale 
-        cSetMesGnd3D                            mGCP3d;
+        cSetMesGnd3D                            mGCP3d;        // "Absolute" coordinate of the point
         cSetMeasureClino                        mMesClino;
+        std::vector<cCern_PtRF>                 mVCernPR;  // Coord in frame + names for CERN export
 };
 
 
@@ -411,9 +300,8 @@ void cAppli_ReportBlock::TestPoint3D(const std::string & anIdSync,const std::vec
      }
 
      // memrize the 3D points
-     std::vector<cPt3dr> mV3dLoc;
-     std::vector<std::string> mVNames;
-     std::map<std::string,cPt3dr>  mName2PBundle;
+     mVCernPR.clear();
+//cCern_PtRF
 
      // [2]  Parse the measure grouped by points
      for (const auto & [aNamePt,aVect] : aMapMatch )
@@ -428,49 +316,19 @@ void cAppli_ReportBlock::TestPoint3D(const std::string & anIdSync,const std::vec
                  aVSeg.push_back(aCam->Image2Bundle(aMes.mPt));
 	     }
 	     cPt3dr aPG =   BundleInters(aVSeg);
-             mV3dLoc.push_back(aPG);
-             mVNames.push_back(aNamePt);
-             mName2PBundle[aNamePt] = aPG;
-              
-
-             /*if (aNamePt== "07183")
-             {
-                StdOut() << " ============== Cam-"<< aNamePt << "  ======================\n";
-                StdOut()  <<  " PGround=" << aPG << "\n";
-             }*/
+             mVCernPR.push_back(cCern_PtRF());
+             mVCernPR.back().mCoordRF = aPG;
+             mVCernPR.back().mName = aNamePt;
 
 	     cWeightAv<tREAL8> aWPix;
 
 	     for (const auto & [aCam,aMes] : aVect)
 	     {
-                cPt2dr aPProj = aCam->Ground2Image(aPG);
+                 cPt2dr aPProj = aCam->Ground2Image(aPG);
                  aWPix.Add(1.0,Norm2(aMes.mPt-aPProj));
-                 if (1) // (aNamePt== "07183")
-                 {
-                      cSegmentCompiled<tREAL8,3>  aSeg ( aCam->Image2Bundle(aMes.mPt));
-
-                      //StdOut() << " REPROJ " << aMes.mPt - aCam->Ground2Image(aSeg.P2()) << "\n";
-                      //cPt3dr aDirGround = VUnit(aSeg.V12());
-                      cPt3dr aDirCam   = VUnit(aCam->InternalCalib()->DirBundle(aMes.mPt));
-                       aDirCam = MulCByC(aDirCam,cPt3dr(1.0,-1.0,-1.0));
-
-                      StdOut() << aMes.mNamePt << " " << aDirCam << " \n";
-                      // cPt3dr aProjBundle = aSeg.Proj(aPG);
-                      /*StdOut() << " * N2=" << Norm2(aCam->Center()-aPG)
-                               << " Cam=" << aCam->NameImage() g
-                               << " ResPix=" << Norm2(aMes.mPt-aPProj)
-                               << " ResMM=" << aSeg.Dist(aPG) * 1e6
-                               << " P->Proj=" << (aSeg.Proj(aPG) -aPG) * 1e6
-                               << " Dir-Ground=" << aDirGround
-                               << " Dir-Cam=" << aDirCam
-                               << " C=" << aCam->Center()
-                               // << " PUD" << aCam->InternalCalib()->Undist(aMes.mPt)
-                               << "\n";*/
-                 }
-		 // StdOut() << " DDDD = " << Norm2(aMes.mPt-aPProj) << "\n";
 	     }
 
-         tREAL8 aDistPix = aWPix.Average() * (aNbPt*2.0) / (aNbPt*2.0 -3.0);
+             tREAL8 aDistPix = aWPix.Average() * (aNbPt*2.0) / (aNbPt*2.0 -3.0);
              AddOneReportCSV(mIdRepPtIndiv,{anIdSync,aNamePt,ToStr(aNbPt),ToStr(aDistPix)});
              aStatRes.Add(aDistPix);
              mStatGlobPt.Add(aDistPix);
@@ -493,23 +351,22 @@ void cAppli_ReportBlock::TestPoint3D(const std::string & anIdSync,const std::vec
                  }
              }
 
-             // eventually compute distance Wire/Pt for stats
-             //  AddStatDistWirePt(aPG,aNamePt);
 
          }
      }
 
-     if (mCernStat  && (mV3dLoc.size()>=3))
+     if (mCernStat  && (mVCernPR.size()>=3))
      {
-         std::vector<cPt3dr> mV3dGround;
+         // Compute the pairs "Coord-Spher/Coord Loc" 
+         std::vector<cPt3dr> mV3dGround;  // Pairs of coord in
          std::vector<cPt3dr> aFilteredV3DLoc;
-         for (size_t aKPt=0 ; aKPt<mV3dLoc.size() ; aKPt++)
+         for (size_t aKPt=0 ; aKPt<mVCernPR.size() ; aKPt++)
          {
-             const cMes1Gnd3D * aMes3D = mGCP3d.GetAdrMeasureOfNamePt(mVNames.at(aKPt),SVP::Yes);
+             const cMes1Gnd3D * aMes3D = mGCP3d.GetAdrMeasureOfNamePt(mVCernPR.at(aKPt).mName,SVP::Yes);
              if (aMes3D)
              {
                  mV3dGround.push_back(aMes3D->mPt);
-                 aFilteredV3DLoc.push_back(mV3dLoc.at(aKPt));
+                 aFilteredV3DLoc.push_back(mVCernPR.at(aKPt).mCoordRF);
              }
          }
          if (aFilteredV3DLoc.size() >= 3)
@@ -567,9 +424,9 @@ void cAppli_ReportBlock::TestPoint3D(const std::string & anIdSync,const std::vec
 
          StdOut() << "*POIN\n";
 
-         for (const auto& [aName,aPG] : mName2PBundle)
+         for (size_t aKPt=0 ; aKPt<mVCernPR.size() ; aKPt++)
          {
-             StdOut() << aName << " " << ToCernStr(aPG) << "\n";
+             StdOut() << mVCernPR.at(aKPt).mName << " " << ToCernStr( mVCernPR.at(aKPt).mCoordRF  ) << "\n";
          }
 
          for (size_t aKCam=0 ; aKCam<aVCam.size() ;  aKCam++)
@@ -627,10 +484,12 @@ void cAppli_ReportBlock::TestPoint3D(const std::string & anIdSync,const std::vec
                        StdOut() << "Im=" << aPIm  << " Dir3d=" << aBundle  
                                 // << " RP=" << aCalibPtr->Value(aBundle) 
                                 << "\n";
+/*
                       if (aKCam==0)
                       {
                           StdOut() << "AICON " << aAiconCam.PLoc2PIm(aBundle) << "\n";
                       }
+*/
                  }
 
              /*
@@ -648,6 +507,9 @@ void cAppli_ReportBlock::TestPoint3D(const std::string & anIdSync,const std::vec
      CSV_AddStat(mIdRepPtGlob,"AVG "+anIdSync,aStatRes);
 }
 
+void cAppli_ReportBlock::DoCernExport()
+{
+}
 
 
 void cAppli_ReportBlock::ProcessOneBloc(const std::vector<cSensorCamPC *> & aVCam)
