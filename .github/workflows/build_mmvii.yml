@@ -72,6 +72,12 @@ jobs:
       working-directory: ./MMVII/bin
       run: ./MMVII Bench 1
 
+    - name: Remove previous MMVII ApiPy release
+      env:
+         GH_TOKEN: ${{ github.token }}
+      continue-on-error: true
+      run: gh release delete MMVII_APIPY -y --cleanup-tag
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -199,7 +205,7 @@ jobs:
       fail-fast: false
       matrix:
         platform: [ubuntu-latest] # [windows-latest, ubuntu-latest]
-        python-version: ["3.12"] # ["3.9", "3.13"]
+        python-version: ["3.12"] # ["3.10", "3.12"]
 
     runs-on: ${{ matrix.platform }}
 
@@ -211,51 +217,88 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install deps
+      if: runner.os == 'Linux'
       run: |
         sudo apt update
         sudo apt install clang-18 libomp-18-dev libproj-dev proj-data libgdal-dev python3-pip pybind11-dev doxygen clang-tools llvm-dev
 
-    - name: Download build artifacts
+    - name: Install Miniconda 
+      if: runner.os == 'Windows'
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+         auto-update-conda: true
+
+    - name: Install Doxygen
+      if: runner.os == 'Windows'
+      uses: ssciwr/doxygen-install@v1
+
+          
+    - name: Install GDAL,PROJ with miniconda
+      if: runner.os == 'Windows' #&& steps.cache-conda-gdal.outputs.cache-hit != 'true'
+      run: conda install -c conda-forge -q -y proj gdal pybind11 wheel setuptools pkg-config
+
+    - name: Download linux build artifacts
+      if: runner.os == 'Linux'
       uses: actions/download-artifact@v4
       with:
         name: linux-build-artifacts
         path: MMVII/bin/
+
+    - name: Download win build artifacts
+      if: runner.os == 'Windows'
+      uses: actions/download-artifact@v4
+      with:
+        name: windows-build-artifacts
+        path: MMVII/bin/
+
     - name: Display structure of downloaded files
       run: ls -R MMVII/bin/
-   # - name: Download build artifacts
-   #   uses: actions/download-artifact@v4
-   #   with:
-   #     name: windows-build-artifacts
-   #     path: ./artifacts/windows
+
+    - name: Check PKG_CONFIG_PATH and proj.pc
+      if: runner.os == 'Windows'
+      run: |
+        echo $PKG_CONFIG_PATH
+        dir "C:/Miniconda/envs/test/Library/lib/pkgconfig"
+        pkg-config --list-all
+        conda list proj
 
     - name: Add requirements
+      if: runner.os == 'Linux'
       run: python -m pip install --upgrade wheel setuptools
 
-    - name: Build and install
+    - name: Install cibuildwheel
+      run: python -m pip install cibuildwheel==3.1.3
+
+    - name: Build and install for Linux
+      if: runner.os == 'Linux'
       working-directory: ./MMVII/apib11/
       run: |
+        # cibuildwheel --output-dir dist --platform linux # TODO: make it work
         pip wheel . --no-deps -w dist/
         pip install dist/mmvii*.whl
       env:
         CXX: clang++-18
         CC: clang-18
-
-    - name: Remove previous MMVII ApiPy release
+    - name: Build for Windows
+      if: runner.os == 'Windows'
+      working-directory: ./MMVII/apib11/
+      run: |
+        pip wheel . --no-deps -w dist/
       env:
-         GH_TOKEN: ${{ github.token }}
-      continue-on-error: true
-      run: gh release delete MMVII_ApiPyLinux -y --cleanup-tag
+        CMAKE_PREFIX_PATH: "C:/Miniconda/envs/test/Library"
+        PKG_CONFIG_PATH: "C:/Miniconda/envs/test/Library/lib/pkgconfig"
 
-    - name: Upload MMVII documentaion
-      uses: softprops/action-gh-release@v2
-      with:
-          name: 'MMVII ApiPy Linux - Latest'
-          tag_name: MMVII_ApiPyLinux
-          make_latest: false
-          token: ${{ secrets.GITHUB_TOKEN }}
-          files: MMVII/apib11/dist/mmvii*.whl
+    - name: Install for Windows
+      if: runner.os == 'Windows'
+      working-directory: ./MMVII/apib11/
+      run: |
+        pip install dist/mmvii*.whl
+      env:
+        CMAKE_PREFIX_PATH: "C:/Miniconda/envs/test/Library"
+        PKG_CONFIG_PATH: "C:/Miniconda/envs/test/Library/lib/pkgconfig"
 
     - name: Test
+      continue-on-error: true
       working-directory: ./MMVII/apib11/examples
       run: python ex_test.py
 

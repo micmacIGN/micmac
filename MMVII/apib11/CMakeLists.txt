@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 project(pyMMVII LANGUAGES CXX)
 
+set(PYBIND11_FINDPYTHON ON)
 find_package(pybind11 REQUIRED)
 
 # strict C++17 required
@@ -15,8 +16,22 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 find_package(PROJ QUIET)
 if (NOT PROJ_FOUND)
   # needed on Ubuntu
-  find_package(PkgConfig)
-  pkg_search_module(PROJ REQUIRED proj)
+  find_package(PkgConfig QUIET)
+  if(PKG_CONFIG_FOUND)
+    pkg_search_module(PROJ REQUIRED proj)
+  endif()
+
+  # Fallback
+  if (NOT PROJ_FOUND AND DEFINED ENV{CONDA_PREFIX})
+    set(PROJ_INCLUDE_DIRS "$ENV{CONDA_PREFIX}/Library/include")
+    set(PROJ_LIBRARIES "$ENV{CONDA_PREFIX}/Library/lib/proj.lib")
+    set(PROJ_FOUND TRUE)
+  endif()
+endif()
+
+if (PROJ_FOUND AND CMAKE_HOST_WIN32)
+  find_file(PROJ_PROJ_DB_FILE proj.db PATHS ${PROJ_DIR} ${PROJ_BINARY_DIRS}/../share/proj NO_DEFAULT_PATH)
+  file(COPY ${PROJ_PROJ_DB_FILE} DESTINATION ${MMVII_SOURCE_DIR}/share/proj)
 endif()
 
 # GDAL
@@ -39,7 +54,11 @@ set(gnu_cxx  "$<COMPILE_LANG_AND_ID:CXX,GNU>")
 
 set(mmv2_src_dir "${PROJECT_SOURCE_DIR}/../src")
 set(mmv2_include_dir "${PROJECT_SOURCE_DIR}/../include" "${PROJECT_SOURCE_DIR}/..")
-set(mmv2_lib "${PROJECT_SOURCE_DIR}/../bin/libP2007.a")
+if(MSVC)
+    set(mmv2_lib "${PROJECT_SOURCE_DIR}/../bin/libP2007.lib")
+else()
+    set(mmv2_lib "${PROJECT_SOURCE_DIR}/../bin/libP2007.a")
+endif()
 set(mmv2_external_include_dir "${PROJECT_SOURCE_DIR}/../ExternalInclude")
 set(EIGEN3_INCLUDE_PATH  "${mmv2_external_include_dir}/eigen-3.4.0")
 

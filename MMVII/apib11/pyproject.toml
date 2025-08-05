@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "MMVII"
-dynamic = ["version", "authors", "requires-python"]
+dynamic = ["version", "authors", "requires-python", "description"]
 dependencies = [
   "numpy"
 ]

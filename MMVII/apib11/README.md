@@ -13,6 +13,7 @@ In the Python virtual environment used for compilation:
 
     pip3 install pybind11 setuptools build
 
+
 Compilation
 -----------
 
@@ -24,10 +25,12 @@ Then, in 'apib11' directory and the correct Python virtual environment:
     export CXX=/usr/bin/clang++
     pip wheel . --no-deps -w dist/
 
+
 Installation
 ------------
 
     pip install --force-reinstall dist/mmvii*.whl
+
 
 Distribution
 ------------
@@ -46,7 +49,6 @@ Upgrade pip if needed:
     python3 -m pip install --upgrade pip
 
 
-
 Usage
 -----
 
@@ -57,7 +59,6 @@ Usage
 The built-in Python help system can be used to have information about the API.
 
 See 'examples' directory for use cases.
-
 
 
 Binding Conventions
