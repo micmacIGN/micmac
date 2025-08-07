@@ -375,7 +375,8 @@ class cVal1ConfTPM
 {
      public :
         std::vector<cPt2dr>  mVPIm;
-        std::vector<double>  mVPZ;     // optional, if mVPIm are bundles, the Z correponds to the 3rd coordinate
+        std::vector<cPt3dr>  mVPBun;     // optional, bundles
+        //std::vector<double>  mVPZ;     // optional, if mVPIm are bundles, the Z correponds to the 3rd coordinate
         std::vector<int>     mVIdPts;    // optionnal, done when construct from point +id
         std::vector<cPt3dr>  mVPGround;  // optionnal, done when used whith camera
 };

@@ -122,8 +122,7 @@ private :
     void MergeChildrenSol();
     /// refine the merged solution with bundle adjustment
     void RefineSolutionGen(); //on bundles generic camera
-    void RefineSolution();  //on bundles perspective camera
-    void RefineSolution_(); //on points
+    void RefineSolution();    //on points
     /// free temporary data, non longer used after having been mergerd
     void FreeIndexSol();
     /// extract the num of poses of the tree

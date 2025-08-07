@@ -571,6 +571,8 @@ class cSensorCamPC : public cSensorImage
 
 	 /// contain itself + internal calib
 	 std::vector<tPtrOUK>  GetAllUK() override;
+     /// contain itself
+     std::vector<tPtrOUK>  GetAllUKPose() ;
 
 	 /// retur
 	 void  FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;

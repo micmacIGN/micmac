@@ -56,35 +56,6 @@ cPt3dr BundleInter(const tPairTiePMult & aPair,size_t aKPts,const std::vector<cS
     return aResInter;
 }
 
-cPt3dr BundleDirInter(const tPairTiePMult & aPair,size_t aKPts,const std::vector<cSensorImage *>&  aVSI)
-{
-    double aDepth = 1.0;
-
-    const auto &  aConfig = Config(aPair);
-    const cVal1ConfTPM & aVal =  Val(aPair);
-    size_t aMult = aConfig.size();
-
-    size_t aKP0 = aKPts*aMult;
-    std::vector<tSeg3dr>  aVSeg;
-    for (size_t aK= 0 ; aK<aMult ; aK++)
-    {
-        const cPt2dr & aPBundle = aVal.mVPIm.at(aKP0+aK);
-        const double & aZ = aVal.mVPZ.at(aKP0+aK);
-
-        cSensorImage * aSI  = aVSI.at(aConfig.at(aK));
-        cSensorCamPC * aCamPC = aSI->GetSensorCamPC();
-
-        tSeg3dr aSeg = tSeg3dr(aCamPC->Center(),
-                               aCamPC->Pose().Value(
-                                   cPt3dr(aPBundle.x(),aPBundle.y(),aZ) * (aDepth/aZ)));
-
-        aVSeg.push_back(aSeg);
-    }
-
-    cPt3dr aResInter = BundleInters(aVSeg);
-    return aResInter;
-}
-
 
 void MakePGround(tPairTiePMult & aPair,const std::vector<cSensorImage *> & aVSI)
 {
@@ -95,19 +66,6 @@ void MakePGround(tPairTiePMult & aPair,const std::vector<cSensorImage *> & aVSI)
     for (size_t aKP=0 ; aKP<aNbPts; aKP++)
     {
         aVPts.push_back(BundleInter(aPair,aKP,aVSI));
-    }
-}
-
-void MakePGroundFromBundles(tPairTiePMult & aPair,const std::vector<cSensorImage *> & aVSI)
-{
-    std::vector<cPt3dr> & aVPts = Val(aPair).mVPGround;
-    aVPts.clear();
-    size_t aNbPts = NbPtsMul(aPair);
-
-    for (size_t aKP=0 ; aKP<aNbPts; aKP++)
-    {
-        // change method to take bundles and Z
-        aVPts.push_back(BundleDirInter(aPair,aKP,aVSI));
     }
 }
 
@@ -321,7 +279,7 @@ cComputeMergeMulTieP::cComputeMergeMulTieP
             // check on  total number due to structuring
             MMVII_INTERNAL_ASSERT_medium(aVal.mVPIm.size()==aNbIm*aNbPts,"Size pb in cVal1ConfTPM");
 
-            bool aIsZ = (aVal.mVPZ.size()) ? true : false;
+            bool aIsBun = (aVal.mVPBun.size()) ? true : false;
 
             int aIndPt0 = 0;
 
@@ -331,8 +289,8 @@ cComputeMergeMulTieP::cComputeMergeMulTieP
                 {
                     aNewVal.mVPIm.push_back(aVal.mVPIm.at(aIndPt0+aKInC));
 
-                    if (aIsZ)
-                        aNewVal.mVPZ.push_back(aVal.mVPZ.at(aIndPt0+aKInC));
+                    if (aIsBun)
+                        aNewVal.mVPBun.push_back(aVal.mVPBun.at(aIndPt0+aKInC));
                 }
                 aIndPt0 += aNbIm;
             }

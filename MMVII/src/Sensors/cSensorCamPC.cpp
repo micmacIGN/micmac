@@ -173,6 +173,10 @@ void cSensorCamPC::SetCenter(const cPt3dr & aC)
      SetPose(tPose(aC,Orient()));
 }
 
+std::vector<cObjWithUnkowns<tREAL8> *>  cSensorCamPC::GetAllUKPose()
+{
+    return std::vector<cObjWithUnkowns<tREAL8> *> {this};
+}
 
 #if (1)
 std::vector<cObjWithUnkowns<tREAL8> *>  cSensorCamPC::GetAllUK() 
@@ -214,11 +218,11 @@ cPt3dr  cSensorCamPC::EpsDiffGround2Im(const cPt3dr & aPt) const
 
 cPt2dr cSensorCamPC::Ground2Image(const cPt3dr & aP) const
 {
-     if (mInternalCalib==nullptr)
+    /* if (mInternalCalib==nullptr)   // to be removed
     {
          cPt3dr aPCam = Pt_W2L(aP);
          return cPt2dr(aPCam.x()/aPCam.z(),aPCam.y()/aPCam.z());
-    }
+    } */
      return mInternalCalib->Value(Pt_W2L(aP));
 }
 
