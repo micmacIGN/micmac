@@ -319,6 +319,40 @@ template <class Type> int  cResolSysNonLinear<Type>::GetNbObs() const
     return currNbObs?currNbObs:lastNbObs;
 }
 
+template <class Type> Type cResolSysNonLinear<Type>::GetCond() const
+{
+
+    // conditionning without frozen params
+    cDenseMatrix<Type> aDenseM = mSysLinear->V_tAA();
+    auto aNbParamsNotFrozen = std::count(mVarIsFrozen.begin(), mVarIsFrozen.end(), false);
+    if (aNbParamsNotFrozen>0)
+    {
+        cDenseMatrix<Type> aDenseMReduced(aNbParamsNotFrozen, aNbParamsNotFrozen);
+
+        int aJReduced=0;
+        for (int aJ=0 ; aJ<mNbVar ; aJ++)
+        {
+            if (mVarIsFrozen[aJ])
+                continue;
+
+            int aIReduced=0;
+            for (int aI=0 ; aI<mNbVar ; aI++)
+            {
+                if (mVarIsFrozen[aI])
+                    continue;
+                aDenseMReduced.SetElem(aIReduced, aJReduced, aDenseM.GetElem(aI, aJ));
+                aIReduced++;
+            }
+            aJReduced++;
+        }
+        // std::cout<<"Reduced matrix:\n"; aDenseMReduced.Show(); std::cout<<std::endl;
+        cResulSymEigenValue<Type> aEig = aDenseMReduced.SymEigenValue();
+        Type aCond = aEig.Cond(0.);
+        return aCond;
+    }
+    return NAN;
+}
+
 //   ==================================  Fix var with a given weight =====================================
 
 template <class Type> void   cResolSysNonLinear<Type>::AddEqFixCurVar(const int & aNumV,const Type& aWeight)
@@ -823,39 +857,6 @@ template <class Type>
    for (auto aPtrSur : AfterLVM)
        if (aPtrSur)
           aPtrSur->Compile(this);
-
-
-   // show conditionning without frozen params
-   cDenseMatrix<Type> aDenseM = mSysLinear->V_tAA();
-   auto aNbParamsNotFrozen = std::count(mVarIsFrozen.begin(), mVarIsFrozen.end(), false);
-   if (aNbParamsNotFrozen>0)
-   {
-       cDenseMatrix<Type> aDenseMReduced(aNbParamsNotFrozen, aNbParamsNotFrozen);
-
-       int aJReduced=0;
-       for (int aJ=0 ; aJ<mNbVar ; aJ++)
-       {
-           if (mVarIsFrozen[aJ])
-               continue;
-
-           int aIReduced=0;
-           for (int aI=0 ; aI<mNbVar ; aI++)
-           {
-               if (mVarIsFrozen[aI])
-                   continue;
-               aDenseMReduced.SetElem(aIReduced, aJReduced, aDenseM.GetElem(aI, aJ));
-               aIReduced++;
-           }
-           aJReduced++;
-       }
-       std::cout<<"Reduced matrix:\n";
-       aDenseMReduced.Show();
-       std::cout<<std::endl;
-       cResulSymEigenValue<Type> aEig = aDenseMReduced.SymEigenValue();
-       std::cout<<"Reduced system condition number: "<<aEig.Cond(0.)<<"\n";
-   } else {
-       std::cout<<"Reduced matrix: []\n";
-   }
 
     mCurGlobSol += mSysLinear->PublicSolve();     //  mCurGlobSol += mSysLinear->SparseSolve();
 

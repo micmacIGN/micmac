@@ -122,6 +122,11 @@ cMMVII_BundleAdj::~cMMVII_BundleAdj()
     DeleteAllAndClear(mVBA_Lidar);
 }
 
+void cMMVII_BundleAdj::Show_Cond()
+{
+    StdOut() << "Reduced system condition number: " << mR8_Sys->GetCond() << "\n";
+}
+
 void cMMVII_BundleAdj::ShowUKNames(const std::vector<std::string> & aParam, const std::string &aSuffix, cMMVII_Appli * anAppli)
 {
      // StdOut() << "=================== ShowUKNamesShowUKNames "<< aParam << " ===============\n";
@@ -286,7 +291,8 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter)
                 nbMatches++;
             }
         }
-        StdOut() << "Frozen centers: " << nbMatches << ".\n";
+        if (mVerbose)
+            StdOut() << "Frozen centers: " << nbMatches << ".\n";
     }
    
     // if necessary, fix frozen orientation of external calibration
@@ -302,7 +308,8 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter)
                 nbMatches++;
             }
         }
-        StdOut() << "Frozen orients: " << nbMatches << ".\n";
+        if (mVerbose)
+            StdOut() << "Frozen orients: " << nbMatches << ".\n";
     }
 
     if (mPatFrozenClinos != "" && mBlClino)

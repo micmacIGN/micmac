@@ -638,12 +638,6 @@ template<class Type> cDenseVect<Type> cSparseLeasSqtAA<Type>::SpecificSolve()
    cDenseMatrix<Type> aDenseM = V_tAA();
    cResulSymEigenValue<Type> aEig = aDenseM.SymEigenValue();
 
-   StdOut() << "System condition number: " << aEig.Cond(0.) << "\n";
-   StdOut() << "System eigen values: ";
-   for (auto &v: aEig.EigenValues().ToStdVect())
-      StdOut() << v << " ";
-   StdOut() << "\n";
-
    return EigenSolveCholeskyarseFromV3(aVCoeff,mtARhs);
 }
 

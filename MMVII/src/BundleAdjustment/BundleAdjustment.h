@@ -460,6 +460,7 @@ class cMMVII_BundleAdj
           void Save_newGCP3D();
           void SaveTopo();
 
+          void Show_Cond();
           void Set_UC_UK(const std::vector<std::string> & aParam);
           void ShowUKNames(const std::vector<std::string> & aParam, const std::string &aSuffix, cMMVII_Appli* =nullptr) ;
           // Save results of clino bundle adjustment

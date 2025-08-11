@@ -372,7 +372,9 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
 	   void  SetUnFrozenVar(tObjWUk & anObj,const  Type & aVal); ///< Unfreeze the value, that must belong to anObj
 
 	   int   GetNbObs() const;                    ///< get number of observations (last iteration if after reset, or current number if after AddObs)
-	   int   GetCurNbObs() const;      ///< get number of observations 
+	   int   GetCurNbObs() const;      ///< get number of observations
+
+          Type GetCond() const;      ///< get system condition number
 
           void  AddConstr(const tSVect & aVect,const Type & aCste,bool OnlyIfFirstIter=true);
           void SupressAllConstr();
