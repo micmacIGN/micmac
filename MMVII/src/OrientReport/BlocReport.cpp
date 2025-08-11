@@ -234,6 +234,8 @@ void cAppli_ReportBlock::TestWire3D(const std::string & anIdSync,const std::vect
 
             AddOneReportCSV(mRepW,{anIdSync,ToStr(aNbPl),ToStr(aDist3D),ToStr(aDistPix)});
 
+if (0)
+{
             StdOut() << " =================== Cam-Wire N2 ======================= \n";
             for (const auto & aCam : aVCam)
             {
@@ -250,6 +252,7 @@ void cAppli_ReportBlock::TestWire3D(const std::string & anIdSync,const std::vect
                                                  << " Cam=" << aVCam[aK1]->NameImage() << " " << aVCam[aK2]->NameImage()  << "\n";
                 }
             }
+}
         }
     }
 }
@@ -403,13 +406,17 @@ void cAppli_ReportBlock::TestPoint3D(const std::string & anIdSync,const std::vec
             cPt3dr aPLoc = aPose.Value(mSphereCenter);
             AddStatDistWirePt(aPLoc,aVertLocCamDown,"Center");
 
+/*
             StdOut() << " ============== Cam-Center  ======================\n";
             for (const auto & aCam : aVCam)
             {
                StdOut() << " * N2=" << Norm2(aPLoc-aCam->Center()) << " Cam=" << aCam->NameImage() << "\n";
             }
+*/
          }
 
+if (0)
+{
          StdOut() << "*TITR\n";
          StdOut() << "Export from MMVII\n";
          StdOut() << "*OLOC\n";
@@ -501,6 +508,7 @@ void cAppli_ReportBlock::TestPoint3D(const std::string & anIdSync,const std::vec
              }
              */
          }
+}
      }
 
      // Add the stat for the time synchronization
