@@ -234,6 +234,7 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::ObjCoordWorld,"ObjCoordWorld"},
                 {eTA2007::TieP,"TieP"},
                 {eTA2007::MulTieP,"MulTieP"},
+                {eTA2007::InstrBlock,"InstrBlock"},
                 {eTA2007::RigBlock,"RigBlock"},
                 {eTA2007::Clino,"Clino"},
                 {eTA2007::MeasureClino,"MeasureClino"},

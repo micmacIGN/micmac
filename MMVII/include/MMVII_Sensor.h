@@ -461,7 +461,7 @@ class cPhotogrammetricProject
 	  const std::string & TaggedNameDefSerial() const; /// short to Appli.Nam...
 	  const std::string & VectNameDefSerial() const; /// short to Appli.Nam...
 	  cDirsPhProj &   DPOrient(); ///< Accessor
-      cDirsPhProj &   DPOriTriplets(); ///< Accessor
+          cDirsPhProj &   DPOriTriplets(); ///< Accessor
 	  cDirsPhProj &   DPRadiomData(); ///< Accessor
 	  cDirsPhProj &   DPRadiomModel(); ///< Accessor
 	  cDirsPhProj &   DPMeshDev(); ///< Accessor
@@ -471,6 +471,7 @@ class cPhotogrammetricProject
 	  cDirsPhProj &   DPMetaData();    ///<  Accessor
 	  cDirsPhProj &   DPTieP();    ///<  Accessor
 	  cDirsPhProj &   DPMulTieP();    ///<  Accessor
+	  cDirsPhProj &   DPBlockInstr();    ///<  Accessor  // RIGIDBLOC
 	  cDirsPhProj &   DPRigBloc();    ///<  Accessor  // RIGIDBLOC
 	  cDirsPhProj &   DPClinoMeters();    ///<  Accessor  // RIGIDBLOC
 	  cDirsPhProj &   DPTopoMes();    ///<  Accessor  // TOPO
@@ -487,10 +488,11 @@ class cPhotogrammetricProject
 	  const cDirsPhProj &   DPMetaData() const;    ///<  Accessor
 	  const cDirsPhProj &   DPTieP() const;    ///<  Accessor
 	  const cDirsPhProj &   DPMulTieP() const;    ///<  Accessor
-	  const cDirsPhProj &   DPRigBloc() const;    ///<  Accessor  // RIGIDBLOC
-	  const cDirsPhProj &   DPClinoMeters() const;    ///<  Accessor  // RIGIDBLOC
-	  const cDirsPhProj &   DPTopoMes() const;    ///<  Accessor  // TOPO
-	  const cDirsPhProj &   DPMeasuresClino() const;    ///<  Accessor  // RIGIDBLOC
+	  const cDirsPhProj &   DPBlockInstr()const;    ///<  Accessor  
+	  const cDirsPhProj &   DPRigBloc() const;    ///<  Accessor  
+	  const cDirsPhProj &   DPClinoMeters() const;    ///<  Accessor 
+	  const cDirsPhProj &   DPTopoMes() const;    ///<  Accessor  
+	  const cDirsPhProj &   DPMeasuresClino() const;    ///<  Accessor  
 
 
 	  // Sometime we need several dir of the same type, like "ReportPoseCmp", or RefPose in bundle
@@ -803,7 +805,7 @@ class cPhotogrammetricProject
           cChangeSysCo          mChSysCo;
 
 	  cDirsPhProj     mDPOrient;
-      cDirsPhProj     mDPOriTriplets;         ///> For triplets of images
+          cDirsPhProj     mDPOriTriplets;         ///> For triplets of images
 	  cDirsPhProj     mDPRadiomData;
 	  cDirsPhProj     mDPRadiomModel;
 	  cDirsPhProj     mDPMeshDev;
@@ -813,6 +815,7 @@ class cPhotogrammetricProject
 	  cDirsPhProj     mDPTieP;            ///<  For Homologous point
 	  cDirsPhProj     mDPMulTieP;         ///<  For multiple Homologous point
 	  cDirsPhProj     mDPMetaData;
+	  cDirsPhProj     mDPBlockInstr;       // RIGIDBLOC
 	  cDirsPhProj     mDPRigBloc;         // RIGIDBLOC
           cDirsPhProj     mDPClinoMeters;      // +-  resulta of clino calib (boresight)
           cDirsPhProj     mDPMeasuresClino;     // measure (angles) of clino
