@@ -434,7 +434,7 @@ class cMMVII_BundleAdj
 	  void AddMTieP(const std::string & aName,cComputeMergeMulTieP  * aMTP,const cStdWeighterResidual & aWIm);
 
           /// One iteration : add all measure + constraint + Least Square Solve/Udpate/Init
-          void OneIteration(tREAL8 aLVM=0.0,bool isLastIter=false);
+          void OneIteration(tREAL8 aLVM=0.0, bool isLastIter=false, bool doShowCond=false);
 
           const std::vector<cSensorImage *> &  VSIm() const ;  ///< Accessor
           const std::vector<cSensorCamPC *> &  VSCPC() const;   ///< Accessor
@@ -460,7 +460,6 @@ class cMMVII_BundleAdj
           void Save_newGCP3D();
           void SaveTopo();
 
-          void Show_Cond();
           void Set_UC_UK(const std::vector<std::string> & aParam);
           void ShowUKNames(const std::vector<std::string> & aParam, const std::string &aSuffix, cMMVII_Appli* =nullptr) ;
           // Save results of clino bundle adjustment

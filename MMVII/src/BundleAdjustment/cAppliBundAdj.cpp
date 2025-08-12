@@ -345,7 +345,7 @@ int cAppliBundlAdj::Exe()
     for (int aKIter=0 ; aKIter<mNbIter ; aKIter++)
     {
         bool isLastIter =  (aKIter==(mNbIter-1)) ;
-        mBA.OneIteration(mLVM,isLastIter);
+        mBA.OneIteration(mLVM,isLastIter,mShow_Cond);
     }
 
     //   ========== [3]   Save resulst =============================
@@ -362,9 +362,6 @@ int cAppliBundlAdj::Exe()
     mBA.Save_newGCP3D();
     mBA.SaveTopo(); // just for debug for now
     mBA.SaveClino();
-
-    if (mShow_Cond)
-        mBA.Show_Cond();
 
     if (IsInit(&mParamShow_UK_UC))
     {

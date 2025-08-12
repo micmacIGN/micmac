@@ -122,11 +122,6 @@ cMMVII_BundleAdj::~cMMVII_BundleAdj()
     DeleteAllAndClear(mVBA_Lidar);
 }
 
-void cMMVII_BundleAdj::Show_Cond()
-{
-    StdOut() << "Reduced system condition number: " << mR8_Sys->GetCond() << "\n";
-}
-
 void cMMVII_BundleAdj::ShowUKNames(const std::vector<std::string> & aParam, const std::string &aSuffix, cMMVII_Appli * anAppli)
 {
      // StdOut() << "=================== ShowUKNamesShowUKNames "<< aParam << " ===============\n";
@@ -255,7 +250,7 @@ void cMMVII_BundleAdj::InitIteration()
 }
 
 
-void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter)
+void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter, bool doShowCond)
 {
     // if it's first step, alloc ressources
     if (mPhaseAdd)
@@ -383,7 +378,7 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter)
         mRUCSUR = new cResult_UC_SUR<tREAL8>(false,false,mIndCompUC);
     }
 
-    const auto & aVectSol = mR8_Sys->SolveUpdateReset(aLVM,{},{mRUCSUR});
+    const auto & aVectSol = mR8_Sys->SolveUpdateReset(aLVM,{},{mRUCSUR},doShowCond);
     mSetIntervUK.SetVUnKnowns(aVectSol);
 
     mNbIter++;

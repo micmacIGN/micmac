@@ -819,9 +819,9 @@ template <> void cResolSysNonLinear<tREAL8>::R_AddObsWithTmpUK (const tR_Up::tSe
 
 
 
-template <class Type> 
-   const cDenseVect<Type> & 
-          cResolSysNonLinear<Type>::SolveUpdateReset(const Type & aLVM,tVPtr_SUR AfterCstr ,tVPtr_SUR AfterLVM)
+template <class Type>
+   const cDenseVect<Type> &
+          cResolSysNonLinear<Type>::SolveUpdateReset(const Type & aLVM,tVPtr_SUR AfterCstr ,tVPtr_SUR AfterLVM, bool calcCond)
 {
     if (mNbVar-GetNbLinearConstraints()>currNbObs)
     {
@@ -854,11 +854,14 @@ template <class Type>
         }
     }
 
-   for (auto aPtrSur : AfterLVM)
+    for (auto aPtrSur : AfterLVM)
        if (aPtrSur)
           aPtrSur->Compile(this);
 
     mCurGlobSol += mSysLinear->PublicSolve();     //  mCurGlobSol += mSysLinear->SparseSolve();
+
+    if (calcCond)
+        StdOut() << "Reduced system condition number: " << GetCond() << "\n";
 
     mSysLinear->PublicReset();
     currNbObs = 0;
