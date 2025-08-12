@@ -15,15 +15,15 @@
     % = = = = = = = = = = = = = = = = = = = = = = =
 
 \section{Introduction}
-This chapter groups the functionnality added in \PPP for image interpolation. In this
+This chapter groups the functionnality added in \PPP\ for image interpolation. In this
 first draft different view-points are merged in the same chapter : theory, users, programmers,
 and finally mainteners of the core-\PPP.  This organization may evolve with dispatching of different section
 of this chapter in different part.
 
-The following header  files , in {\tt include/} are involved in interpolators declaration :
+The following header files, in {\tt include/} are involved in interpolators declaration :
 
 \begin{itemize}
-    \item {\tt MMVII\_Interpolators.h } : main file, contains the declaration of interpolators class;
+    \item {\tt MMVII\_Interpolators.h } : main file, contains the declaration of interpolators classes;
     \item {\tt MMVII\_Images.h} ,{\tt MMVII\_Image2D.h} declaration of methods involving interpolators
           in images;
 
@@ -49,16 +49,16 @@ The following source  files , in {\tt src/} are involved in interpolators defini
     % = = = = = = = = = = = = = = = = = = = = = = =
     % = = = = = = = = = = = = = = = = = = = = = = =
 
-\section{Theoreticall background}
+\section{Theoretical background}
 
-\subsection{introducion}
+\subsection{Introducion}
 
 Theory of image/signal interpolation is an essential  part of image processing and there is a huge 
-documentation on the subject. The very brief theoreticall elements given here are more targeted to fix notation
+documentation on the subject. The very brief theoretical elements given here are more targeted to fix notation
 than to be a complete summary of the theory.
 
-In the more general case, in interpolation we have a function $F$  of $\RR^n$ sampled on a finite  set $p_k,v_k$
-\footnote{or countable and isolated} set of point and we want to extend the value to whole
+In the more general case, in interpolation we have a function $F$  of $\RR^n$ sampled on a finite\footnote{or countable and isolated}
+ set of points $p_k,v_k$ and we want to extend the value to whole
 $\RR^n$  using some  property on $F$ :
 
 \begin{itemize}
@@ -69,16 +69,16 @@ $\RR^n$  using some  property on $F$ :
 
 
 
-In the case of image/signal processing, we suppose that we know the value on regular grid $\{p_k\}=\ZZ^n$
+In the case of image/signal processing, we suppose that we know the value on a regular grid $\{p_k\}=\ZZ^n$
 and want to extand $F$ from $\ZZ^n$ to whole $\RR^n$ . 
-Considering for know, a $1d$ interpolation, we have $p_k=k$, we note $\Interpol :  {v_k}  \rightarrow F$ 
+Considering for now a $1d$ interpolation, we have $p_k=k$, we note $\Interpol :  {v_k}  \rightarrow F$ 
 the interpolation process.  
 
     % = = = = = = = = = = = = = = = = = = = = = = =
 
 \subsection{$1d$ interpolation kernel}
 
-We generally assume the following properties ,linearity as in~\ref{IntLin} :
+We generally assume the following properties, linearity as in~\ref{IntLin} :
 
 \begin{equation}
     \Interpol_{\{a*v_k+b*w_k\}} = a*\Interpol_{\{v_k}\}+ b*\Interpol_{\{w_k\}} \label{IntLin}
@@ -101,7 +101,7 @@ can be entirely caracterized by "kernel" function $\KernI : \RR \rightarrow \RR 
 To assure the  integrity of interpolation process we generally assume properties on $\KernI$
 such as $\KernI$ is continous (or differrentiable) and  $\int_{\RR} \KernI ^2 $ is defined. We dont
 discuss in detail these "natural" hypothesis.
-We generally assume a symtetry hypethosis on interpolation that can be traduced in symetry on
+We generally assume a symmetry hypethosis on interpolation that can be translated into symmetry on
 $\KernI$ :
 
 \begin{equation}
@@ -125,7 +125,7 @@ be null for any non null integer value, and must value $1$ for $k=0$ :
     \forall k \in \ZZ :  \KernI(k) =   \delta_0 \label{KernIntDelta0}
 \end{equation}
 
-For practicall reason, we cannot compute infinite sum like in equation~\ref{KernIntDef}, and we 
+For practical reason, we cannot compute infinite sum like in equation~\ref{KernIntDef}, and we 
 generally make the hypothesis that the support of $\KernI$ is bounded by a certain value $Sz_K$ :
 
 
@@ -225,7 +225,7 @@ a differentiable funcion. Noting :
        \KernI' =  \frac{\partial \KernI(x)}{\partial x}  \label{DefDerKern}
 \end{equation}
 
-Going back to equation \label{KernIntDef}, we have :
+Going back to equation \ref{KernIntDef}, we have :
 
 
 \begin{equation}
@@ -314,7 +314,7 @@ In it's  "pure" definition it's an unbounded interpolator defined by :
   \KernI(x)= \sinc(\pi x) = \frac{\sin(\pi x)}{\pi x}
 \end{equation}
 
-It's $C_{\infty}$ and is interesting from the theoreticall point of view as it allows
+It's $C_{\infty}$ and is interesting from the theoretical point of view as it allows
 to recover exactly the  function from its sampling if the function complies with \emph{Nyquist-Shannon}
 hypothesis. Practically no realistic function complies with \emph{Nyquist-Shannon},   but
 it still remain interesting as a model when we require the "best ressampling possible".
@@ -396,7 +396,7 @@ The cubic interpolator has following properties :
 \end{itemize}
 
 
-For theoreticall reason (which ??) , the parameter $p$ should be in $[-3,0]$ . Some remarq on parameter $p$ :
+For theoretical reason (which ??) , the parameter $p$ should be in $[-3,0]$ . Some remarq on parameter $p$ :
 
 \begin{itemize}
     \item  when used in image ressampling, the higher value of  $p$ enhance the high frequency of images, which can be used
@@ -415,7 +415,7 @@ For theoreticall reason (which ??) , the parameter $p$ should be in $[-3,0]$ . S
 \label{MMVIIInterpol}
 
 The origin of these interpolator go back to the analysis of existing bias when using interpolation
-in image correlation : in a context where the phase should theoretically be uniformly 
+in image correlation : in a context where the phase should theoreticaly be uniformly 
 distributed in $[0,0.5]$ we  observe that some phase are "privilegied"  (?? which one, experience to be done ??).
 
 The bias is particularly important with bilinear interpolator, a possible
@@ -674,7 +674,7 @@ interpolator, maybe coud be replaced by $M_2$ ?
 
 \label{InterpUserView}
 
-Once the theoreticall presentation of interpolator is made, from user's view the point is
+Once the theoretical presentation of interpolator is made, from user's view the point is
 how to specify an interpolator for the commands that takes it as a parameter.
 The user will specify an interpolator as a  vector of string, this vector can be :
 
