@@ -771,8 +771,14 @@ class cPhotogrammetricProject
 	 std::list<cBlocOfCamera *> ReadBlocCams() const;
 	 cBlocOfCamera *            ReadUnikBlocCam() const;
 	 void   SaveBlocCamera(const cBlocOfCamera &) const;
+              
+	       //  New formalisation
+	 std::string   NameRigBoI(const std::string &,bool isIn) const;
+	 /// read a new bloc from existing name, if SVP and dont exist return block empty, else error
+	 cRigidBlockOfInstrument*  ReadRigBoI(const std::string &,bool SVP=false) const; 
+	 void   SaveRigBoI(const cRigidBlockOfInstrument &) const;
 
-     //===================================================================
+         //===================================================================
          //==================   Topo Mes           =========================
 	 //===================================================================
 
