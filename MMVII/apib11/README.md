@@ -27,7 +27,7 @@ Then, in 'apib11' directory and the correct Python virtual environment:
 Installation
 ------------
 
-    pip install dist/mmvii*.whl
+    pip install --force-reinstall dist/mmvii*.whl
 
 Distribution
 ------------
