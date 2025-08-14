@@ -17,43 +17,74 @@
 namespace MMVII
 {
 
-class cOneCamInRBoI;
-class cCamsInRBoI;
-class cClinoInRBoI;
-class cRigidBlockOfInstrument;
+class cOneCamInRBoI;            // on cam in a bloc
+class cCamsInRBoI;              // set of cam in a bloc
+class cOneClinoInRBoI;          // one clino in a bloc
+class cSetClinoInRBoI;          // set of  clino in a bloc
+class cRigidBlockOfInstrument;  //  bloc of rigid instrument
+class cAppli_EditBlockInstr;    // appli of "edtiting" the bloc, "friend" of some classes
 
 
 /// class for representing a camera embeded in a "Rigid Block of Instrument"
 class cOneCamInRBoI
 {
     public :
-        cOneCamInRBoI();  /// required for serialisation 
-        cOneCamInRBoI(const std::string & aNameCal);
-	const std::string & NameCal() const;
-	void AddData(const  cAuxAr2007 & anAux);
+        cOneCamInRBoI();  //< required for serialisation 
+        /// "real" constructor
+        cOneCamInRBoI(const std::string & aNameCal,const std::string & aTimeStamp,const std::string & aPatImSel);
+	const std::string & NameCal() const; //< Accessor
+	void AddData(const  cAuxAr2007 & anAux); //< Serializer
     private :
         std::string   mNameCal;        ///< name of calibration associated to
+        std::string   mPatTimeStamp;   //< use to extract time stamp from a name
+        bool          mSelIsPat;       ///< indicate if selector is pattern/file
+	std::string   mImSelect;       ///< selector, indicate if an image belongs  to the block
 	bool          mIsInit;         ///< was the pose in the block computed ?
         tPoseR        mPoseInBlock;    ///< Position in the block
 	tREAL8        mSigmaC;         ///< sigma on center
 	tREAL8        mSigmaR;         ///< sigma on orientation
-        bool          mSelIsPat;       ///< indicate if selector is pattern/file
-	std::string   mImSelect;       ///< selector, indicate if an image belongs  to the block
 };
+/// public interface to serialization
 void AddData(const  cAuxAr2007 & anAux,cOneCamInRBoI & aCam);
 
+
+///  class for representing one clino embeded in a "Rigid Block of Instrument""
+class cOneClinoInRBoI
+{
+    public :
+        cOneClinoInRBoI();  //< required for serialisation
+        cOneClinoInRBoI(const std::string & aName); //< "Real" constructor
+        const std::string & Name() const;  //< accessor 
+        void AddData(const  cAuxAr2007 & anAux); //< serializer
+    private :
+        std::string   mName;           //< name of the clino
+	bool          mIsInit;         //< was values computed ?
+        tPoseR        mPoseInBlock;    //< Position in the block
+        tREAL8        mSigmaR;         //< sigma on orientation
+};
+void AddData(const  cAuxAr2007 & anAux,cOneClinoInRBoI & aClino);
+
+
+///  class for representing the set of cameras embedded in a bloc
 class cCamsInRBoI
 {
      public :
+         friend cAppli_EditBlockInstr;
+
          cCamsInRBoI();
-         cCamsInRBoI(const std::string & aPatTimeStamp);
-         void AddCam(const std::string & aNameCalib,bool SVP=false);
+
 	 void AddData(const  cAuxAr2007 & anAux);
      private :
+         void AddCam
+              (
+                   const std::string & aNameCalib,
+                   const std::string& aTimeStamp,
+                   const std::string & aPatImSel,
+                   bool SVP=false
+              );
          cOneCamInRBoI * CamFromName(const std::string& aName);
 
-         std::string                 mPatTimeStamp;
-	 std::vector<cOneCamInRBoI>  mCams;
+	 std::vector<cOneCamInRBoI>  mVCams;          //< set of cameras
 };
 void AddData(const  cAuxAr2007 & anAux,cCamsInRBoI & aCam);
 
@@ -61,20 +92,17 @@ class cRigidBlockOfInstrument
 {
      public :
 	static const std::string  theDefaultName;  /// in most application there is only one block
-
-
         cRigidBlockOfInstrument(const std::string& aName);
 	void AddData(const  cAuxAr2007 & anAux);
-        void AddCam(const std::string & aNameCalib,bool SVP=false);
 
+	cCamsInRBoI &  SetCams() ;            //< Accessors
 	const std::string & NameBloc() const; //< Accessor 
      private :
-	cOneCamInRBoI * CamFromName(const std::string&);
 	std::string              mNameBloc;
-// 	cCamsInRBoI              mCams;
-        std::vector<cOneCamInRBoI>  mCams;
+ 	cCamsInRBoI              mSetCams;
 
 };
+void AddData(const  cAuxAr2007 & anAux,cRigidBlockOfInstrument & aRBoI);
 
 /* *************************************************************** */
 /*                                                                 */
@@ -82,19 +110,20 @@ class cRigidBlockOfInstrument
 /*                                                                 */
 /* *************************************************************** */
 
-cOneCamInRBoI::cOneCamInRBoI(const std::string & aNameCal) :
+cOneCamInRBoI::cOneCamInRBoI(const std::string & aNameCal,const std::string & aTimeStamp,const std::string & aPatImSel) :
      mNameCal       (aNameCal),
+     mPatTimeStamp  (aTimeStamp),
+     mSelIsPat      (true),
+     mImSelect      (aPatImSel),
      mIsInit        (false),
      mPoseInBlock   (tPoseR::Identity()),
      mSigmaC        (-1),
-     mSigmaR        (-1),
-     mSelIsPat      (true),
-     mImSelect      (".*")
+     mSigmaR        (-1)
 {
 }
 
 cOneCamInRBoI::cOneCamInRBoI()  :
-    cOneCamInRBoI(MMVII_NONE)
+    cOneCamInRBoI(MMVII_NONE,MMVII_NONE,MMVII_NONE)
 {
 }
 
@@ -103,12 +132,13 @@ const std::string & cOneCamInRBoI::NameCal() const { return mNameCal; }
 void cOneCamInRBoI::AddData(const  cAuxAr2007 & anAux)
 {
       MMVII::AddData(cAuxAr2007("NameCalib",anAux),mNameCal);
+      MMVII::AddData(cAuxAr2007("PatTimeStamp",anAux),mPatTimeStamp);
+      MMVII::AddData(cAuxAr2007("SelIsPat",anAux),mSelIsPat);
+      MMVII::AddData(cAuxAr2007("ImSelect",anAux),mImSelect);
       MMVII::AddData(cAuxAr2007("IsInit",anAux),mIsInit);
       MMVII::AddData(cAuxAr2007("Pose",anAux),mPoseInBlock);
       MMVII::AddData(cAuxAr2007("SigmaC",anAux),mSigmaC);
       MMVII::AddData(cAuxAr2007("SigmaR",anAux),mSigmaR);
-      MMVII::AddData(cAuxAr2007("SelIsPat",anAux),mSelIsPat);
-      MMVII::AddData(cAuxAr2007("ImSelect",anAux),mImSelect);
 }
 
 void AddData(const  cAuxAr2007 & anAux,cOneCamInRBoI & aCam)
@@ -122,31 +152,34 @@ void AddData(const  cAuxAr2007 & anAux,cOneCamInRBoI & aCam)
 /*                                                                 */
 /* *************************************************************** */
 
-cCamsInRBoI::cCamsInRBoI(const std::string & aPatTimeStamp) :
-     mPatTimeStamp (aPatTimeStamp)
+cCamsInRBoI::cCamsInRBoI() 
 {
 }
 
-cCamsInRBoI::cCamsInRBoI() :
-	cCamsInRBoI("")
+void cCamsInRBoI::AddCam
+     (
+         const std::string & aNameCalib,
+	 const std::string & aTimeStamp,
+	 const std::string & aPatImSel,
+	 bool SVP
+     )
 {
-}
-
-void cCamsInRBoI::AddCam(const std::string & aNameCalib,bool SVP)
-{
-   if (CamFromName(aNameCalib))
+   cOneCamInRBoI * aCam = CamFromName(aNameCalib);
+   cOneCamInRBoI aNewCam (aNameCalib,aTimeStamp,aPatImSel);
+   if (aCam)
    {
        MMVII_INTERNAL_ASSERT_strong(SVP,"cRigidBlockOfInstrument::AddCam, cal already exist for " + aNameCalib);
+       *aCam = aNewCam;
    }
    else
    {
-      mCams.push_back(cOneCamInRBoI(aNameCalib));
+      mVCams.push_back(aNewCam);
    }
 }
 
 cOneCamInRBoI * cCamsInRBoI::CamFromName(const std::string& aName)
 {
-    for (auto&  aCam : mCams)
+    for (auto&  aCam : mVCams)
         if (aCam.NameCal() == aName)
            return & aCam;
     return nullptr;
@@ -154,8 +187,7 @@ cOneCamInRBoI * cCamsInRBoI::CamFromName(const std::string& aName)
 
 void  cCamsInRBoI::AddData(const  cAuxAr2007 & anAux)
 {
-    MMVII::AddData(cAuxAr2007("PatTimeStamp",anAux),mPatTimeStamp);
-    MMVII::StdContAddData(cAuxAr2007("Cams",anAux),mCams);
+    MMVII::StdContAddData(cAuxAr2007("Cams",anAux),mVCams);
 }
 void AddData(const  cAuxAr2007 & anAux,cCamsInRBoI & aCams)
 {
@@ -176,29 +208,9 @@ cRigidBlockOfInstrument::cRigidBlockOfInstrument(const std::string& aName) :
 }
 
 
-void cRigidBlockOfInstrument::AddCam(const std::string & aNameCalib,bool SVP)
-{
-   if (CamFromName(aNameCalib))
-   {
-       MMVII_INTERNAL_ASSERT_strong(SVP,"cRigidBlockOfInstrument::AddCam, cal already exist for " + aNameCalib);
-   }
-   else
-   {
-      mCams.push_back(cOneCamInRBoI(aNameCalib));
-   }
-}
-
-cOneCamInRBoI * cRigidBlockOfInstrument::CamFromName(const std::string& aName)
-{
-    for (auto&  aCam : mCams)
-        if (aCam.NameCal() == aName)
-           return & aCam;
-    return nullptr;
-}
-
 void  cRigidBlockOfInstrument::AddData(const  cAuxAr2007 & anAux)
 {
-     StdContAddData(cAuxAr2007("Cams",anAux),mCams);
+    MMVII::AddData(cAuxAr2007("Cams",anAux),mSetCams);	
 }
 void AddData(const  cAuxAr2007 & anAux,cRigidBlockOfInstrument & aRBoI)
 {
@@ -207,6 +219,7 @@ void AddData(const  cAuxAr2007 & anAux,cRigidBlockOfInstrument & aRBoI)
 
 
 const std::string & cRigidBlockOfInstrument::NameBloc() const {return mNameBloc;}
+cCamsInRBoI &  cRigidBlockOfInstrument::SetCams() {return mSetCams;}
 
 /* *************************************************************** */
 /*                                                                 */
@@ -226,9 +239,9 @@ class cAppli_EditBlockInstr : public cMMVII_Appli
         // std::vector<std::string>  Samples() const override;
 
      private :
-        cPhotogrammetricProject  mPhProj;
-        std::string              mNameBloc;
-        std::string              mPatIm4Cam;
+        cPhotogrammetricProject   mPhProj;
+        std::string               mNameBloc;
+	std::vector<std::string>  mVPatsIm4Cam;
 };
 
 cAppli_EditBlockInstr::cAppli_EditBlockInstr(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -250,7 +263,7 @@ cCollecSpecArg2007 & cAppli_EditBlockInstr::ArgOpt(cCollecSpecArg2007 & anArgOpt
 {
 	return anArgOpt
             << AOpt2007(mNameBloc,"NameBloc","Set the name of the bloc ",{{eTA2007::HDV}})
-            << AOpt2007(mPatIm4Cam,"PatIm4Cam","Pattern of images for adding their cam in the bloc")
+            << AOpt2007(mVPatsIm4Cam,"PatsIm4Cam","Pattern images []",{{eTA2007::ISizeV,"[1,3]"}})
             << mPhProj.DPBlockInstr().ArgDirOutOpt()
         ;
 }
@@ -265,13 +278,17 @@ int cAppli_EditBlockInstr::Exe()
 
 
 
-    if (IsInit(&mPatIm4Cam))
+    if (IsInit(&mVPatsIm4Cam))
     {
-        auto aVNameIm = ToVect(SetNameFromString(mPatIm4Cam,true));
+        std::string aPatSelOnDisk = mVPatsIm4Cam.at(0);
+        std::string aPatTimeStamp = GetDef(mVPatsIm4Cam,1,aPatSelOnDisk);
+        std::string aPatSelIm = GetDef(mVPatsIm4Cam,2,aPatTimeStamp);
+
+        auto aVNameIm = ToVect(SetNameFromString(aPatSelOnDisk,true));
         for (const auto & aNameIm : aVNameIm)
         {
             std::string aNameCal = mPhProj.StdNameCalibOfImage(aNameIm);
-	    aBlock->AddCam(aNameCal,SVP::Yes);
+	    aBlock->SetCams().AddCam(aNameCal,aPatTimeStamp,aPatSelIm,SVP::Yes);
         }
     }
 
