@@ -20,7 +20,7 @@ namespace MMVII
 class cOneCamInRBoI;            // on cam in a bloc
 class cCamsInRBoI;              // set of cam in a bloc
 class cOneClinoInRBoI;          // one clino in a bloc
-class cSetClinoInRBoI;          // set of  clino in a bloc
+class cClinosInRBoI;          // set of  clino in a bloc
 class cRigidBlockOfInstrument;  //  bloc of rigid instrument
 class cAppli_EditBlockInstr;    // appli of "edtiting" the bloc, "friend" of some classes
 
@@ -40,7 +40,7 @@ class cOneCamInRBoI
         bool          mSelIsPat;       ///< indicate if selector is pattern/file
 	std::string   mImSelect;       ///< selector, indicate if an image belongs  to the block
 	bool          mIsInit;         ///< was the pose in the block computed ?
-        tPoseR        mPoseInBlock;    ///< Position in the block
+        tPoseR        mPoseInBlock;    ///< Position in the block  +- boresight
 	tREAL8        mSigmaC;         ///< sigma on center
 	tREAL8        mSigmaR;         ///< sigma on orientation
 };
@@ -59,7 +59,7 @@ class cOneClinoInRBoI
     private :
         std::string   mName;           //< name of the clino
 	bool          mIsInit;         //< was values computed ?
-        tPoseR        mPoseInBlock;    //< Position in the block
+        tRotR         mOrientInBloc;    //< Position in the block
         tREAL8        mSigmaR;         //< sigma on orientation
 };
 void AddData(const  cAuxAr2007 & anAux,cOneClinoInRBoI & aClino);
@@ -87,6 +87,20 @@ class cCamsInRBoI
 	 std::vector<cOneCamInRBoI>  mVCams;          //< set of cameras
 };
 void AddData(const  cAuxAr2007 & anAux,cCamsInRBoI & aCam);
+
+///  class for representing a set of clino
+class cClinosInRBoI
+{
+     public :
+         friend cAppli_EditBlockInstr;
+         cClinosInRBoI();
+
+	 void AddData(const  cAuxAr2007 & anAux);
+     private :
+         std::vector<cOneClinoInRBoI> mClinos;
+   
+};
+
 
 class cRigidBlockOfInstrument
 {
