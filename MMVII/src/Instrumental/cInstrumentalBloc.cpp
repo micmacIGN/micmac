@@ -2,7 +2,9 @@
 #include "cMMVII_Appli.h"
 #include "MMVII_Geom3D.h"
 #include "MMVII_PCSens.h"
+#include "MMVII_Clino.h"
 #include "MMVII_2Include_Serial_Tpl.h"
+
 
 
 
@@ -97,11 +99,14 @@ class cClinosInRBoI
 
 	 void AddData(const  cAuxAr2007 & anAux);
      private :
-         std::vector<cOneClinoInRBoI> mClinos;
-   
+         cOneClinoInRBoI * ClinoFromName(const std::string& aName);
+         void AddClino(const std::string &,bool SVP=false);
+
+         std::vector<cOneClinoInRBoI> mVClinos;
 };
 
 
+///  class for representing all the instruments possibly used 
 class cRigidBlockOfInstrument
 {
      public :
@@ -109,12 +114,13 @@ class cRigidBlockOfInstrument
         cRigidBlockOfInstrument(const std::string& aName);
 	void AddData(const  cAuxAr2007 & anAux);
 
-	cCamsInRBoI &  SetCams() ;            //< Accessors
+	cCamsInRBoI &   SetCams() ;            //< Accessors
+	cClinosInRBoI & SetClinos() ;            //< Accessors
 	const std::string & NameBloc() const; //< Accessor 
      private :
-	std::string              mNameBloc;
- 	cCamsInRBoI              mSetCams;
-
+	std::string              mNameBloc;   //<  Name of the bloc
+ 	cCamsInRBoI              mSetCams;    //<  Cameras used in the bloc
+        cClinosInRBoI            mSetClinos;  //<  Clinos used in the bloc
 };
 void AddData(const  cAuxAr2007 & anAux,cRigidBlockOfInstrument & aRBoI);
 
@@ -201,11 +207,89 @@ cOneCamInRBoI * cCamsInRBoI::CamFromName(const std::string& aName)
 
 void  cCamsInRBoI::AddData(const  cAuxAr2007 & anAux)
 {
-    MMVII::StdContAddData(cAuxAr2007("Cams",anAux),mVCams);
+    MMVII::StdContAddData(cAuxAr2007("Set_Cams",anAux),mVCams);
 }
 void AddData(const  cAuxAr2007 & anAux,cCamsInRBoI & aCams)
 {
     aCams.AddData(anAux);
+}
+
+/* *************************************************************** */
+/*                                                                 */
+/*                        cOneClinoInRBoI                          */
+/*                                                                 */
+/* *************************************************************** */
+
+cOneClinoInRBoI::cOneClinoInRBoI(const std::string & aName) :
+   mName         (aName),
+   mIsInit       (false),
+   mOrientInBloc (tRotR::Identity()),
+   mSigmaR       (-1)
+{
+}
+
+cOneClinoInRBoI::cOneClinoInRBoI() :
+   cOneClinoInRBoI (MMVII_NONE)
+{
+}
+
+void cOneClinoInRBoI::AddData(const  cAuxAr2007 & anAux)
+{
+      MMVII::AddData(cAuxAr2007("Name",anAux),mName);
+      MMVII::AddData(cAuxAr2007("IsInit",anAux),mIsInit);
+      MMVII::AddData(cAuxAr2007("OrientInBloc",anAux),mOrientInBloc);
+      MMVII::AddData(cAuxAr2007("SigmaR",anAux),mSigmaR);
+}
+void AddData(const  cAuxAr2007 & anAux,cOneClinoInRBoI & aClino)
+{
+    aClino.AddData(anAux);
+}
+
+const std::string & cOneClinoInRBoI::Name() const {return mName;}
+
+
+/* *************************************************************** */
+/*                                                                 */
+/*                        cClinosInRBoI                            */
+/*                                                                 */
+/* *************************************************************** */
+
+cClinosInRBoI::cClinosInRBoI()
+{
+}
+
+void cClinosInRBoI::AddData(const  cAuxAr2007 & anAux)
+{
+     MMVII::StdContAddData(cAuxAr2007("Set_Clinos",anAux),mVClinos);
+}
+
+void AddData(const  cAuxAr2007 & anAux,cClinosInRBoI & aSetClino)
+{
+    aSetClino.AddData(anAux);
+}
+
+
+cOneClinoInRBoI * cClinosInRBoI::ClinoFromName(const std::string& aName)
+{
+    for (auto&  aClino : mVClinos)
+        if (aClino.Name() == aName)
+           return & aClino;
+    return nullptr;
+}
+
+void cClinosInRBoI::AddClino(const std::string & aName,bool SVP)
+{
+   cOneClinoInRBoI * aClino = ClinoFromName(aName);
+   cOneClinoInRBoI aNewClino (aName);
+   if (aClino)
+   {
+       MMVII_INTERNAL_ASSERT_strong(SVP,"cRigidBlockOfInstrument::AddClino, cal already exist for " + aName);
+       *aClino = aNewClino;
+   }
+   else
+   {
+      mVClinos.push_back(aNewClino);
+   }
 }
 
 /* *************************************************************** */
@@ -225,6 +309,7 @@ cRigidBlockOfInstrument::cRigidBlockOfInstrument(const std::string& aName) :
 void  cRigidBlockOfInstrument::AddData(const  cAuxAr2007 & anAux)
 {
     MMVII::AddData(cAuxAr2007("Cams",anAux),mSetCams);	
+    MMVII::AddData(cAuxAr2007("Clinos",anAux),mSetClinos);	
 }
 void AddData(const  cAuxAr2007 & anAux,cRigidBlockOfInstrument & aRBoI)
 {
@@ -234,6 +319,7 @@ void AddData(const  cAuxAr2007 & anAux,cRigidBlockOfInstrument & aRBoI)
 
 const std::string & cRigidBlockOfInstrument::NameBloc() const {return mNameBloc;}
 cCamsInRBoI &  cRigidBlockOfInstrument::SetCams() {return mSetCams;}
+cClinosInRBoI &  cRigidBlockOfInstrument::SetClinos() {return mSetClinos;}
 
 /* *************************************************************** */
 /*                                                                 */
@@ -279,6 +365,7 @@ cCollecSpecArg2007 & cAppli_EditBlockInstr::ArgOpt(cCollecSpecArg2007 & anArgOpt
             << AOpt2007(mNameBloc,"NameBloc","Set the name of the bloc ",{{eTA2007::HDV}})
             << AOpt2007(mVPatsIm4Cam,"PatsIm4Cam","Pattern images []",{{eTA2007::ISizeV,"[1,3]"}})
             << mPhProj.DPBlockInstr().ArgDirOutOpt()
+            << mPhProj.DPMeasuresClino().ArgDirInOpt()
         ;
 }
 
@@ -289,8 +376,6 @@ int cAppli_EditBlockInstr::Exe()
     mPhProj.FinishInit();
 
     cRigidBlockOfInstrument *  aBlock = mPhProj.ReadRigBoI(mNameBloc,SVP::Yes);
-
-
 
     if (IsInit(&mVPatsIm4Cam))
     {
@@ -305,6 +390,15 @@ int cAppli_EditBlockInstr::Exe()
 	    aBlock->SetCams().AddCam(aNameCal,aPatTimeStamp,aPatSelIm,SVP::Yes);
         }
     }
+    if (mPhProj.DPMeasuresClino().DirInIsInit())
+    {
+         cSetMeasureClino aMesClin =  mPhProj.ReadMeasureClino();
+         for (const auto & aName : aMesClin.NamesClino())
+         {
+             aBlock->SetClinos().AddClino(aName,SVP::Yes);
+         }
+    }
+
 
     mPhProj.SaveRigBoI(*aBlock);
 
