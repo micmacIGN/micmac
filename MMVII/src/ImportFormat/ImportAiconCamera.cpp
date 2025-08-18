@@ -2,6 +2,7 @@
 #include "MMVII_DeclareCste.h"
 #include "MMVII_Mappings.h"
 #include "MMVII_BundleAdj.h"
+#include "MMVII_ReadFileStruct.h"
 
 /**
    \file ImportAiconCamera.cpp  
@@ -28,10 +29,16 @@ or to  MMVII's 311/stenope perpective model. There is only a difference of codin
 
 */
 
+static const tREAL8 theWBorder = 1e-6;
+
+typedef std::pair<cPerspCamIntrCalib*,cStdStatRes> tResAiconConv;
+
 class cAiconCamera
 {
      public :
          cAiconCamera(const std::vector<tREAL8> & aParams);
+
+         tResAiconConv GenMMVIICam(int aNbXY,int aNbZ,const std::string & aName="FromAicon");
 
          cPt2dr  PLoc2PIm(const cPt3dr & aPLoc) const;
          cPt3dr  PIm2DirB(const cPt2dr & aPIm) const;
@@ -48,12 +55,16 @@ class cAiconCamera
           tREAL8  SzY_mm() const   {return mParams.at(12);}
           cPt2dr  Sz_mm() const    {return cPt2dr(SzX_mm(),SzY_mm());}
      private :
+          tREAL8 WeigthOk(tREAL8 aW) {return std::max(theWBorder,std::min(aW,1-theWBorder));}
+          // tREAL8 aX = (aKX*SzX_pix()) / aNbXY ;
 
 
           std::vector<tREAL8> mParams;
           tREAL8 mPixInMM;
 
           tREAL8  Focal() const {return mParams.at(0);}
+          tREAL8  FocalPix() const {return -Focal() / mPixInMM;}
+
           tREAL8  PPx() const   {return mParams.at(1);}
           tREAL8  PPy() const   {return -mParams.at(2);}
           cPt2dr PP() const     {return cPt2dr(PPx(),PPy());}
@@ -158,8 +169,54 @@ cPt2dr  cAiconCamera::InvDist(const cPt2dr & aP) const
     return aACI.InvertQuasiTrans(aP,aP,1e-8,10);
 }
 
+tResAiconConv cAiconCamera::GenMMVIICam(int aNbXY,int aNbZ,const std::string & aName)
+{
+    cPt2dr aMil = Sz_pix() /2.0;
+    cPt3dr  aPPF(aMil.x(),aMil.y(),FocalPix());
+
+
+    cPerspCamIntrCalib * aRes = cPerspCamIntrCalib::SimpleCalib
+                                (
+                                     aName,
+                                     eProjPC::eStenope,
+                                     ToI(Sz_pix()),
+                                     aPPF,
+                                     cPt3di(3,1,1)
+                                );
+    cSensorCamPC aCam(aName,tPoseR::Identity(),aRes);
+
+    cSet2D3D aSet23;
+    for (int aKX=0 ; aKX<=aNbXY ; aKX++)
+    {
+        tREAL8 aX = WeigthOk (aKX/tREAL8(aNbXY)) *SzX_pix() ;
+        for (int aKY=0 ; aKY<=aNbXY ; aKY++)
+        {
+            tREAL8 aY = WeigthOk (aKY/tREAL8(aNbXY)) *SzY_pix() ;
+            cPt2dr aPIm(aX,aY);
+            cPt3dr aDirB = PIm2DirB(aPIm);
+
+
+            for (int  aKZ=1 ; aKZ<=aNbZ ; aKZ++)
+                 aSet23.AddPair(aPIm,aDirB*tREAL8(-aKZ));
+        }
+    }
+    cCorresp32_BA aBA(&aCam,aSet23);
+    for (int aKIt=0 ; aKIt<4 ; aKIt++)
+    {
+        aBA.OneIteration();
+    }
+
+    cStdStatRes aStatRes;
+    for (const auto aPair : aSet23.Pairs())
+        aStatRes.Add(Norm2(aPair.mP2 - aCam.Ground2Image(aPair.mP3)));
+
+    return tResAiconConv(aRes,aStatRes);
+}
+
 void BenchAiconCamera()
 {
+StdOut() << "Aicoonnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn\n";
+
     cAiconCamera aAiconCam(
        {
          -24.90098, -0.10482,  -0.00659,  // FF PPX PPY
@@ -171,7 +228,44 @@ void BenchAiconCamera()
        }
     );
 
-    FakeUseIt(aAiconCam);
+    // Check that the MMVII camera gives the same result than the value  computed by Florian Barcet
+    // ---  Make the test on a single point
+    {
+        std::vector<cPt2dr>  aVPImTest{{473.79500000, 1.64750000}};
+        std::vector<cPt3dr>  aVDirBTest{{-0.35937477, -0.28762563, 0.88776194}} ;
+
+        for (size_t aKP=0 ; aKP<aVPImTest.size() ; aKP++)
+        {
+            tREAL8 aDif = Norm2( aVPImTest.at(aKP)-aAiconCam.PLoc2PIm(aVDirBTest.at(aKP)));
+            MMVII_INTERNAL_ASSERT_bench(aDif<1e-3,"Aicon Dist/DistInv");
+        }
+    }
+    // ---  Make the test on point  stored in the file "043-V1.txt";
+    {
+        // stuf to process txt file 
+        std::string aName = cMMVII_Appli::InputDirTestMMVII() + "043-V1.txt";    
+        cNewReadFilesStruct aRFS;
+        std::string aFormat = "XiYiXgYgZg";
+        aRFS.SetFormat( "??"+aFormat,aFormat,aFormat);
+        aRFS.ReadFile(aName,cNRFS_ParamRead(0,-1,'#'));
+
+        // check  3d proj = ref im 
+        for (size_t aKL=0 ; aKL<aRFS.NbLineRead() ; aKL++)  
+        {
+            cPt2dr aPIm = aRFS. GetPt2dr(aKL,"Xi","Yi");
+            cPt3dr aPGLoc = aRFS. GetPt3dr(aKL,"Xg","Yg","Zg");
+
+            tREAL8 aDif = Norm2(aPIm- aAiconCam.PLoc2PIm(aPGLoc));
+            MMVII_INTERNAL_ASSERT_bench(aDif<1e-3,"Aicon Dist/DistInv");
+        }
+   }
+
+
+    // check the correction of inverse function 
+    // --    InvDist * Distord = Id
+    //                                    
+    //                PIm2DirB                 PLoc2PIm
+    // --    Im1   --------------->  Bundle -----------------> Im2  : check Im1 = Im2
 
     int aNB = 20;
     for (int aKX= 0 ; aKX<= aNB; aKX++)
@@ -194,11 +288,13 @@ void BenchAiconCamera()
             cPt2dr aPIm2 = aAiconCam.PLoc2PIm(aDirB);
  
             aDist = Norm2(aPIm-aPIm2);
-            //StdOut() << " PIMmmmmmmm " << aPIm - aPIm2 << " D=" << aDist << " P=" << aPIm << "\n";
             MMVII_INTERNAL_ASSERT_bench(aDist<1e-4,"Aicon Dist/DistInv");
         }
     } 
-//getchar();
+
+    auto [aMMVIICam,aStat]  = aAiconCam.GenMMVIICam(50,3);
+    StdOut() << aStat.Avg() << " " << aStat.Max() << "\n";
+    delete aMMVIICam;
 }
 
 

@@ -1053,7 +1053,6 @@ void BenchCentralePerspective(cParamExeBench & aParam,eProjPC aTypeProj)
        delete aCam;
     }
     BenchCamOrtho();
-    BenchAiconCamera();
 
 }
 
@@ -1085,6 +1084,7 @@ void BenchImAndZ()
 
 void BenchCentralePerspective(cParamExeBench & aParam)
 {
+    BenchAiconCamera();
 
    // Test the accuracy of tabulation on dist/undist
    for (int aKTest =0 ; aKTest <100; aKTest++)

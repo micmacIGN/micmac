@@ -295,7 +295,7 @@ void cNewReadFilesStruct::ReadFile(const std::string & aNameFile,const  cNRFS_Pa
          bool toSkip4Dupl = aParam.NoDupLine() && MapBoolFind(aSetHCode,aHashCode);
 
 
-         if ((aNumL>=aParam.L0()) && (aNumL< aParam.LLast())  && (!toSkip4Dupl) )
+         if ((aNumL>=aParam.L0()) && ((aNumL< aParam.LLast()) || (aParam.LLast()<0))   && (!toSkip4Dupl) )
 	 {
              const char * aC = line.c_str();
              bool  GoOn = true;

@@ -998,7 +998,7 @@ template <class Type>  cSimilitud3D<Type>   cSimilitud3D<Type>::FromParam(const 
 {
     cIsometry3D<Type> aIsom = cIsometry3D<Type>::FromParam(aV);
 
-    return cSimilitud3D<Type>(aV(SimInd_Scale),aIsom.Tr(),aIsom.Rot());
+    return cSimilitud3D<Type>(1.0+aV(SimInd_Scale),aIsom.Tr(),aIsom.Rot());
 }
 
 
