@@ -82,8 +82,10 @@ void cCorresp32_BA::OneIteration()
 
      for (const auto & aCorresp : mSetCorresp.Pairs())
      {
+// StdOut() << "aCorrespaCorrespaCorrespaCorresp  " << aCorresp.mP2 << " " << aCorresp.mP3 << "\n";
          if (mSensor->PairIsVisible(aCorresp))
 	 {
+// StdOut() << "aBA.OneIterationaBA.OneIterationaBA.OneIterationaBA.OneIterationaBA.OneIterationaBA.OneIteration\n";
             // structure for points substistion, in mode test they are free
             cSetIORSNL_SameTmp<tREAL8>   aStrSubst
                                          (
@@ -106,6 +108,10 @@ void cCorresp32_BA::OneIteration()
             mSys->AddEq2Subst(aStrSubst,mEqColinearity,aVIndGlob,aVObs);
             mSys->AddObsWithTmpUK(aStrSubst);
 	 }
+         else
+         { 
+               // StdOut() << "Hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh " <<  aCorresp.mP2 << "\n";
+         }
      }
 
      const auto & aVectSol = mSys->SolveUpdateReset();

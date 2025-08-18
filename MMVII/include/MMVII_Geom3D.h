@@ -262,24 +262,6 @@ template <class Type> class cIsometry3D
        ///  Idem but dont normalize to unity
        Type DistPose(const tTypeMap & aIsom2,const Type & aWTr) const;
 
-       ///  Estimate using ransac 
-       static tTypeMap RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest);
-      /// 
-      tTypeMap LeastSquareRefine(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals=nullptr)const;
-      /// 
-      tTypeMap StdGlobEstimate ( tCRVPts aVIn, tCRVPts aVOut, tTypeElem* aRes, tCPVVals   aVW, cParamCtrlOpt aParam);
-
-       /// Estimate from 3 point , interface to "FromTriOut"  for  "RansacL1Estimate"
-       static tTypeMap FromMinimalSamples(const tTabMin&,const tTabMin&);
-      /// Basic   Value(aPIn) - aPOUt 
-      tPt DiffInOut(const tPt & aPIn,const tPt & aPOUt) const;
-      /// compute the vector used in least square equation
-      static void ToEqParam(tPt & aRHS,std::vector<cDenseVect<Type>>&,const tPt &In,const tPt & Out);
-      ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
-      static tTypeMap  FromParam(const cDenseVect<Type> &);
-
-
-
 
        /// Return Isometrie with given Rot such I(PTin) = I(PTout)
        static cIsometry3D<Type> FromRotAndInOut(const tRot &,const tPt& aPtIn,const tPt& aPtOut );
@@ -309,6 +291,28 @@ template <class Type> class cIsometry3D
 
        cSimilitud3D<Type>  ToSimil() const; ///< make a similitude with scale 1
 
+
+       // ********************************************************************************************
+       // **********************  MAP ESTIMATION *****************************************************
+       // ********************************************************************************************
+
+       //  --------------------- Function to do the map estimate (Ransac/LeastSq ...) usign ge
+       ///  Estimate using ransac 
+       static tTypeMap RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest);
+      ///  Refine least square solution
+      tTypeMap LeastSquareRefine(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals=nullptr)const;
+      /// Global estimate Ransac + Weight Least squares
+      tTypeMap StdGlobEstimate ( tCRVPts aVIn, tCRVPts aVOut, tTypeElem* aRes, tCPVVals   aVW, cParamCtrlOpt aParam);
+
+       /// Estimate from 3 point , interface to "FromTriOut"  for  "RansacL1Estimate"
+       static tTypeMap FromMinimalSamples(const tTabMin&,const tTabMin&);
+      /// Basic   Value(aPIn) - aPOUt 
+      tPt DiffInOut(const tPt & aPIn,const tPt & aPOUt) const;
+      /// compute the vector used in least square equation
+      static void ToEqParam(tPt & aRHS,std::vector<cDenseVect<Type>>&,const tPt &In,const tPt & Out);
+      ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
+      static tTypeMap  FromParam(const cDenseVect<Type> &);
+
     private :
        tPt          mTr;
        tRot         mRot;
@@ -333,12 +337,15 @@ template <class Type> class cSimilitud3D
        typedef Type               tTypeElem;
        typedef std::vector<tPt>   tVPts;
        typedef const tVPts&       tCRVPts;
+       typedef std::vector<Type>  tVVals;
+       typedef const tVVals *     tCPVVals;
        typedef tPt   tTabMin[NbPtsMin];  // Used for estimate with min number of point=> for ransac
        typedef cSimilitud3D<Type> tTypeMap;
        typedef cSimilitud3D<Type> tTypeMapInv;
 
 
        cSimilitud3D(const Type & aScale,const tPt& aTr,const cRotation3D<Type> &);
+       cSimilitud3D();
        tTypeMapInv  MapInverse() const; // {return cIsometry3D(-mRot.Inverse(mTr),mRot.MapInverse());}
        tTypeMap  operator* (const tTypeMap &) const;
 
@@ -360,6 +367,27 @@ template <class Type> class cSimilitud3D
 
        tPt   Value(const tPt & aPt) const  {return mTr + mRot.Value(aPt)*mScale;}
        tPt   Inverse(const tPt & aPt) const {return mRot.Inverse((aPt-mTr)/mScale) ;}  // Work as M tM = Id
+
+       // ********************************************************************************************
+       // **********************  MAP ESTIMATION *****************************************************
+       // ********************************************************************************************
+
+       //  --------------------- Function to do the map estimate (Ransac/LeastSq ...) usign ge
+       ///  Estimate using ransac 
+       static tTypeMap RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest);
+      ///  Refine least square solution
+      tTypeMap LeastSquareRefine(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals=nullptr)const;
+      /// Global estimate Ransac + Weight Least squares
+      tTypeMap StdGlobEstimate ( tCRVPts aVIn, tCRVPts aVOut, tTypeElem* aRes, tCPVVals   aVW, cParamCtrlOpt aParam);
+
+       /// Estimate from 3 point , interface to "FromTriOut"  for  "RansacL1Estimate"
+       static tTypeMap FromMinimalSamples(const tTabMin&,const tTabMin&);
+      /// Basic   Value(aPIn) - aPOUt 
+      tPt DiffInOut(const tPt & aPIn,const tPt & aPOUt) const;
+      /// compute the vector used in least square equation
+      static void ToEqParam(tPt & aRHS,std::vector<cDenseVect<Type>>&,const tPt &In,const tPt & Out);
+      ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
+      static tTypeMap  FromParam(const cDenseVect<Type> &);
 
     private :
        tTypeElem          mScale;

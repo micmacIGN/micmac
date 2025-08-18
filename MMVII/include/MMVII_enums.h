@@ -49,7 +49,8 @@ enum class eTA2007
                 ObjMesInstr,       ///< 2D Measure/coords of ground points
                 TieP,          ///< Tie Points
                 MulTieP,       ///< Multiple Tie Points
-                RigBlock,      ///< Rigid bloc    // RIGIDBLOC
+                InstrBlock,    ///< Block of instrument, will replace RigBlock, Clino ...
+                RigBlock,      ///< Rigid bloc    // RIGIDBLOC  => soon deprecated
                 Clino,         ///< Clinometer
                 MeasureClino,  ///< Clinometer
                 Topo,          ///< Topo

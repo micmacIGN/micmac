@@ -236,9 +236,11 @@ template <class TypeCont> void StdContAddData(const cAuxAr2007 & anAux,TypeCont 
        aL = TypeCont(aNb);
     }
     // now read the elements
+    int aKEl=0;
     for (auto & el : aL)
     {    
          AddData(cAuxAr2007(StrElCont,anAux,eTAAr::eElemCont),el);
+         anAux.Ar().AddComment("Kth="+ToStr(aKEl++));
     }
 }
 

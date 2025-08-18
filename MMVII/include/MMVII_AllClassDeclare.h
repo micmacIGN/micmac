@@ -328,6 +328,10 @@ class cBA_Clino;
 class cOneMesureClino;
 class cSetMeasureClino;
 
+// New Block of Rigid instrument
+class cCamInRBoI;
+class cRigidBlockOfInstrument;
+
 
 //   sys co
 

@@ -281,6 +281,15 @@ void cAppli_CernInitRep::ProcessOneBloc(const std::vector<cSensorCamPC *> & aVPC
    if (aVPlane.size() < 2) return;
    cSegmentCompiled<tREAL8,3> aLocSegWire = cPlane3D::InterPlane(aVPlane);
 
+   if (1)
+   {
+        StdOut() << " =============================================================\n";
+        for (size_t aKC=0 ; aKC <aVPC.size() ; aKC++)
+            StdOut() << aVPC.at(aKC)->NameImage()
+                     << " D-C/W=" << aLocSegWire.Dist(aVPC.at(aKC)->Center())
+                     <<  " C=" << aVPC.at(aKC)->Center()
+                     << "\n";
+   }
 
    // 3 =========  TARGET =======================================================
 
@@ -389,12 +398,15 @@ int cAppli_CernInitRep::Exe()
     {
         std::vector<cSensorCamPC *> aVecCam = aVPannel;
 
-        if ( mTestAlreadyV)
+        bool  mCamInit = true || mTestAlreadyV;
+        if ( mCamInit)
         {
             aVecCam.clear();
             for (const auto & aPtr : aVPannel)
             {
                 aVecCam.push_back(mPhProj.ReadCamPC(aPtr->NameImage(),DelAuto::No));
+// Position varies
+//  StdOut() << "OOO " << aVecCam.back()->Center()  << " "<< "\n";
             }
         }
 
@@ -404,7 +416,7 @@ int cAppli_CernInitRep::Exe()
             ProcessOneBloc(aVecCam,aKIter);
         }
         DeleteAllAndClear(aVPannel);
-        if (mTestAlreadyV)
+        if (mCamInit)
            DeleteAllAndClear(aVecCam);
     }
 

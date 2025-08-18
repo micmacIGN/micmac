@@ -563,6 +563,16 @@ void BenchPolynome(cParamExeBench & aParam)
 }
 
 
+/*
+typedef cPolynom<cPolynom<tREAL8>>  tPolXY;
+void JoPoly()
+{
+    tPolXY aPol(5);
+    aPol+aPol*aPol;
+     
+}
+*/
+
 #define INSTANTIATE_PolSqN(TYPE,DIM)\
 template cPolynom<TYPE> PolSqN(const cPtxd<TYPE,DIM>& aVecCste,const cPtxd<TYPE,DIM>& aVecLin);
 
