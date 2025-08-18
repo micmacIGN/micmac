@@ -87,7 +87,7 @@ cCollecSpecArg2007 & cAppli_ImportTxtCloud::ArgOpt(cCollecSpecArg2007 & anArgOpt
     mParamNSF.AddArgOpt(anArgOpt);
 
     return    anArgOpt
-           << AOpt2007(mOffset,"OffsetValue","Offset to add to pixels",{eTA2007::HDV})
+           << AOpt2007(mOffset,"OffsetValue","Offset to sub to points",{eTA2007::HDV})
            << AOpt2007(mOffsetIsP0,"OffsetIsP0","Use first points as offset (with some rounding)",{eTA2007::HDV})
            << AOpt2007(mRoundingOffset,"OffsetRounding","Value use for rounding when P0 is offset",{eTA2007::HDV})
            << AOpt2007(mMode8B,"Bytes8","Do we use 8/4 bytes for storing points",{eTA2007::HDV})
