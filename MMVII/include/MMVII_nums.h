@@ -1042,7 +1042,10 @@ template <class Type> class  cPolynom
            static cPolynom<Type>  D1FromRoot(const Type &aRoot);    ///< degre 1 polynom with aRoot
            static cPolynom<Type>  D2NoRoot(const Type & aVMin,const Type &aArgmin);  ///< +- (|V| + (x-a) ^2) ,
 
-           static cPolynom<Type>  RandomPolyg(int aDegree,Type & anAmpl);
+           static cPolynom<Type>  Monom(size_t aDegre);      ///< Monom  X ^D
+
+	   /// Ampl is typycal valu of X => Coef[d] ~  anAmpl ^(-d)
+           static cPolynom<Type>  RandomPolyg(size_t aDegree,const Type & anAmpl);
            ///  Generate random polygo from its randomly generated roots => test for
            static cPolynom<Type>  RandomPolyg(std::vector<Type> & aVRoots,int aNbRoot,int aNbNoRoot,Type Interv,Type MinDist);
 
@@ -1058,6 +1061,8 @@ template <class Type> class  cPolynom
            cPolynom<Type> operator - (const cPolynom<Type> & aP2) const;
            cPolynom<Type> operator * (const  Type & aVal) const;
            cPolynom<Type> Deriv() const;
+
+	   cPolynom<Type> & operator += (const cPolynom<Type> & aP2);
 
            std::vector<Type> RealRoots(const Type & aTol,int ItMax) const;
 

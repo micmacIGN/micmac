@@ -824,7 +824,15 @@ template <class Type>
        if (aPtrSur)
           aPtrSur->Compile(this);
 
+if (0)
+{
+    cDenseMatrix<Type> aDenseM = mSysLinear->V_tAA();
+    StdOut()  << "BEFORE " << aDenseM.GetElem(0,0) << " Sym=" << aDenseM.Symetricity() << "\n";
+    cResulSymEigenValue<Type> aEigFull = aDenseM.SymEigenValue();
+    std::cout<<"\nEigenValues Full: "<<aEigFull.EigenValues()<<"\n";
+}
     mCurGlobSol += mSysLinear->PublicSolve();     //  mCurGlobSol += mSysLinear->SparseSolve();
+						 
     mSysLinear->PublicReset();
     currNbObs = 0;
 

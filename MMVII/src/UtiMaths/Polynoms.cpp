@@ -296,6 +296,14 @@ template <class Type>  cPolynom<Type> cPolynom<Type>::D2NoRoot(const Type & aVMi
      return aRes;
 }
 
+template <class Type>  cPolynom<Type> cPolynom<Type>::Monom(size_t aDegre)
+{
+     cPolynom<Type> aRes(aDegre);
+
+     aRes.mVCoeffs.at(aDegre) = 1.0;
+     return aRes;
+}
+
 template <class Type> const typename cPolynom<Type>::tCoeffs& cPolynom<Type>::VCoeffs() const {return mVCoeffs;}
 
 template <class Type> 
@@ -340,6 +348,16 @@ template <class Type>
 	}
 
 	return aRes;
+}
+
+template <class Type>  cPolynom<Type>  cPolynom<Type>::RandomPolyg(size_t aDeg,const Type & aAmpl)
+{
+    cPolynom<Type> aRes(aDeg);
+
+    for (size_t aD=0 ; aD<=aDeg ; aD++)
+        aRes.mVCoeffs.at(aD) =   RandUnif_C() * std::pow(aAmpl,-aD);
+
+    return aRes;
 }
 
 template <class Type> std::vector<Type> cPolynom<Type>::RealRoots(const Type & aTol,int ItMax) const
@@ -428,6 +446,12 @@ template <class Type> cPolynom<Type>  cPolynom<Type>::operator + (const cPolynom
       return aRes;
 }
 
+template <class Type> cPolynom<Type> &  cPolynom<Type>::operator += (const cPolynom<Type> & aP2) 
+{
+     *this = *this + aP2;
+     return *this;
+}
+
 template <class Type> cPolynom<Type>  cPolynom<Type>::operator - (const cPolynom<Type> & aP2) const
 {
       cPolynom<Type> aRes(std::max(Degree(),aP2.Degree()));
@@ -472,14 +496,16 @@ template <class Type,const int Dim> cPolynom<Type> PolSqN(const cPtxd<Type,Dim>&
 
 template<class Type> void TplBenchPolynome()
 {
-     cPolynom<Type> aPol1({3,2,1});
+     cPolynom<Type> aPol1({3,2,1});  // 3 + 2 X + 1 X2 
      
+     //   Elementary test on valus
      MMVII_INTERNAL_ASSERT_bench(std::abs(aPol1.Value(1)-6)<1e-10,"Polyn 000 ");
      MMVII_INTERNAL_ASSERT_bench(std::abs(aPol1.Value(-1)-2)<1e-10,"Polyn 000 ");
      MMVII_INTERNAL_ASSERT_bench(std::abs(aPol1.Value(0)-3)<1e-10,"Polyn 000 ");
 
      cPolynom<Type> aPol2({-5,4,-3,2,-1});
 
+     // Use different operator  @  to chek  (P@Q) (a) = P(a) @ Q(a)
      cPolynom<Type> aP1mul2 = aPol1 * aPol2;
      cPolynom<Type> aP2mul1 = aPol2 * aPol1;
 
@@ -489,6 +515,7 @@ template<class Type> void TplBenchPolynome()
      cPolynom<Type> aP1min2 = aPol1 - aPol2;
      cPolynom<Type> aP2min1 = aPol2 - aPol1;
 
+      // check two derivatives
      cPolynom<Type> aDerP1P2_A = aP1mul2.Deriv();
      cPolynom<Type> aDerP1P2_B = aPol1.Deriv() * aPol2 + aPol1*aPol2.Deriv();
 
@@ -548,6 +575,21 @@ template<class Type> void TplBenchPolynome()
      }
 }
 
+typedef cPolynom<cPolynom<tREAL8>>  tPolXY;
+
+void Bench_Pol2Var()
+{
+    size_t aDx = 3;
+    size_t aDy = 4;
+
+    tPolXY aPol(aDy);
+    for (size_t dy =0 ; dy<= aDy ; dy++)
+        aPol[dy] = cPolynom<tREAL8>::RandomPolyg(aDx,1.0);
+
+}
+
+
+
 void BenchPolynome(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("Polynom")) return;
@@ -558,19 +600,20 @@ void BenchPolynome(cParamExeBench & aParam)
     TplBenchPolynome<tREAL8>();
     TplBenchPolynome<tREAL16>();
 
+    Bench_Pol2Var();
 
     aParam.EndBench();
 }
 
 
-/*
-typedef cPolynom<cPolynom<tREAL8>>  tPolXY;
 void JoPoly()
 {
     tPolXY aPol(5);
     aPol+aPol*aPol;
+    aPol.Deriv();
      
 }
+/*
 */
 
 #define INSTANTIATE_PolSqN(TYPE,DIM)\
