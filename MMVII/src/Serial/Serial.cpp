@@ -320,7 +320,7 @@ eTAAr cAuxAr2007::Type() const {return mType;}
 
 
 class cIBaseTxt_Ar2007 : public cAr2007,
-	                   public cXmlSerialTokenParser
+	                 public cXmlSerialTokenParser
 {
      public :
           cIBaseTxt_Ar2007(const std::string & aName,eTypeSerial aTypeS) : 
@@ -739,7 +739,7 @@ void cIBin_Ar2007::RawAddDataTerm(cRawData4Serial  &    aRDS)
 */
 
 // std::unique_ptr<cAr2007 >  AllocArFromFile(const std::string & aName,bool Input)
-cAr2007 *  AllocArFromFile(const std::string & aName,bool Input,bool IsSpecif)
+cAr2007 *  AllocArFromFile(const std::string & aName,bool Input,bool IsSpecif,eTypeSerial aForceTypeS)
 {
    if (IsSpecif)
    {
@@ -769,7 +769,7 @@ cAr2007 *  AllocArFromFile(const std::string & aName,bool Input,bool IsSpecif)
        else
           aRes =  new cOBin_Ar2007(aName);
    }
-   else if (UCaseEqual(aPost,"txt") )
+   else if (UCaseEqual(aPost,"txt") || (aForceTypeS==eTypeSerial::etxt)  )
    {
        if (Input)
        {

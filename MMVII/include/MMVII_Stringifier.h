@@ -435,8 +435,8 @@ class cAuxAr2007
 	 eTAAr     mType;
 };
 
-/// Create an archive structure, its type (xml, binary, text) is determined by extension
- cAr2007* AllocArFromFile(const std::string & aName,bool Input,bool IsSpecif=false);
+/// Create an archive structure, its type (xml, binary, text) is determined by extension, if aTypeS!=eNbVals it forces the type
+ cAr2007* AllocArFromFile(const std::string & aName,bool Input,bool IsSpecif=false,eTypeSerial aTypeS=eTypeSerial::eNbVals);
 
  ///  Create an archive for storing specif
  cAr2007* AllocArSpecif(const std::string & aName);

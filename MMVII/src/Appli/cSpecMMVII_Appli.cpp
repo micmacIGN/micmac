@@ -225,6 +225,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_ImportLines);
         TheVecAll.push_back(&TheSpec_ImportOBS);
         TheVecAll.push_back(&TheSpec_ImportORGI);
+        TheVecAll.push_back(&TheSpec_ImportAiconCamera);
         TheVecAll.push_back(&TheSpec_ImportTxtCloud);
         TheVecAll.push_back(&TheSpec_MMVII_CloudClip);
         TheVecAll.push_back(&TheSpec_MMVII_Cloud2Ply);

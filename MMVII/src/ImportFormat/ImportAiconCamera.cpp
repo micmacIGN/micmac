@@ -215,8 +215,6 @@ tResAiconConv cAiconCamera::GenMMVIICam(int aNbXY,int aNbZ,const std::string & a
 
 void BenchAiconCamera()
 {
-StdOut() << "Aicoonnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn\n";
-
     cAiconCamera aAiconCam(
        {
          -24.90098, -0.10482,  -0.00659,  // FF PPX PPY
@@ -292,9 +290,24 @@ StdOut() << "Aicoonnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
         }
     } 
 
-    auto [aMMVIICam,aStat]  = aAiconCam.GenMMVIICam(50,3);
-    StdOut() << aStat.Avg() << " " << aStat.Max() << "\n";
-    delete aMMVIICam;
+    auto [aMMVIICalib,aStat]  = aAiconCam.GenMMVIICam(50,3);
+
+    // test that Aicon & MMVII are ~ equal, on learning data
+    MMVII_INTERNAL_ASSERT_bench(aStat.Max()<1e-4,"Aicon/MMVII conv");
+
+    // test that Aicon & MMVII are ~ equal, on new data
+    cSensorCamPC aSensPC("Aicon",tPoseR::Identity(),aMMVIICalib);
+    for (int aK=0 ; aK< 1000 ; aK++)
+    {
+        cPt3dr aPG = aSensPC.RandomVisiblePGround(0.1,2.0);
+        cPt2dr aPIm1 = aSensPC.Ground2Image(aPG);
+        cPt2dr aPIm2 = aAiconCam.PLoc2PIm(aPG);
+
+        tREAL8 aDist = Norm2(aPIm1-aPIm2);
+        MMVII_INTERNAL_ASSERT_bench(aDist<1e-4,"Aicon/MMVII conv");
+    }
+    
+    delete aMMVIICalib;
 }
 
 
@@ -305,7 +318,6 @@ StdOut() << "Aicoonnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
    /*                                                            */
    /* ********************************************************** */
 
-/*
 
 class cAppli_ImportAiconCamera : public cMMVII_Appli
 {
@@ -317,9 +329,10 @@ class cAppli_ImportAiconCamera : public cMMVII_Appli
      private :
 
 	cPhotogrammetricProject  mPhProj;
+        std::vector<std::string> mNameImages;
 
 	// Mandatory Arg
-	std::string              mExtFolder;
+	std::string              mNameAiconFile;
 	std::string              mExtCalib;
 
 	std::vector<std::string>  Samples() const override;
@@ -334,9 +347,10 @@ cAppli_ImportAiconCamera::cAppli_ImportAiconCamera(const std::vector<std::string
 cCollecSpecArg2007 & cAppli_ImportAiconCamera::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
     return anArgObl
-	      <<  Arg2007(mExtFolder ,"Folder of external project where the calib is to be imported")
-	      <<  Arg2007(mExtCalib ,"Calib to import")
-              <<  mPhProj.DPOrient().ArgDirOutMand()
+	      <<  Arg2007(mNameAiconFile ,"Name of Aicon file containing ",{eTA2007::FileAny})
+	      <<  Arg2007(mNameImages ,"Name of images, can be tab of a single (multiple) pattern")
+	      // <<  Arg2007(mExtCalib ,"Calib to import")
+              // <<  mPhProj.DPOrient().ArgDirOutMand()
            ;
 }
 
@@ -357,26 +371,47 @@ int cAppli_ImportAiconCamera::Exe()
 {
     mPhProj.FinishInit();
 
-    std::string aDir  =  mExtFolder + mPhProj.DPOrient().DirLocOfMode() + mExtCalib + StringDirSeparator() ;
+    //cMMVII_Ifs aInFile(mNameAiconFile, eFileModeIn::Text);
+    cAr2007 *  anAr = AllocArFromFile(mNameAiconFile,true,false,eTypeSerial::etxt);
 
-    tNameSelector aSel =   AllocRegex(cPerspCamIntrCalib::SharedCalibPrefixName()+".*");
+    
 
-    std::vector<std::string>   aLCalib = GetFilesFromDir(aDir,aSel);
-
-    for (const auto & aNameCal : aLCalib)
+    for (const auto & aPat : mNameImages)
     {
-        CopyFile(aDir+aNameCal,mPhProj.DPOrient().FullDirOut()+aNameCal);
+        std::vector<std::string>  aSetFile = ToVect(SetNameFromString(aPat,true));
+        for (const auto&  aNameFile : aSetFile)
+        {
+            std::vector<tREAL8> aVParam;
+            for (int aKP=0 ; aKP<17 ; aKP++)
+            {
+                tREAL8 aV;
+                anAr->RawAddDataTerm(aV);
+                if (aKP>=2)
+                   aVParam.push_back(aV);
+             
+            //  StdOut() << aV << "\n";
+            }
+            cAiconCamera anAC(aVParam);
+            StdOut() << "====== " << anAC.Sz_pix() << " " << aNameFile << "\n";
+            auto [aCam,aStat] = anAC.GenMMVIICam(50,3,"Test");
+            delete aCam;
+         }
     }
 
    
 
+    delete anAr;
     return EXIT_SUCCESS;
 }
 
 
 std::vector<std::string>  cAppli_ImportAiconCamera::Samples() const
 {
-	return {"MMVII V2ImportCalib ../../Pannel/ BA_725 CalibInit725"};
+     return 
+     {
+          "MMVII ImportAiconCalib Data-Input/20250627_CCAM01.ior [.*_1065.tif]",
+          "MMVII ImportAiconCalib Data-Input/20250627_CCAM01.ior [043_1065.tif,671_1065.tif,948_1065.tif,949_1065.tif]"
+     };
 }
 
 
@@ -387,7 +422,7 @@ tMMVII_UnikPApli Alloc_ImportAiconCamera(const std::vector<std::string> & aVArgs
 
 cSpecMMVII_Appli  TheSpec_ImportAiconCamera
 (
-     "ImportAiconCamera",
+     "ImportAiconCalib",
       Alloc_ImportAiconCamera,
       "Import a camera calibration from an Aicon file",
       {eApF::Ori},
@@ -395,6 +430,7 @@ cSpecMMVII_Appli  TheSpec_ImportAiconCamera
       {eApDT::Ori},
       __FILE__
 );
+/*
 */
 
 
