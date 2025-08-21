@@ -99,7 +99,7 @@ void cMMVII_BundleAdj::OneItere_TieP(const cBA_TieP& aBA_TieP)
                        mSys->R_AddEq2Subst(aStrSubst,anEqColin,aVIndGlob,aVObs,aWeightImage);
 		       aNbEqAdded++;
                    }
-	       }
+           }
            }
 
 	   // if at least 2 tie-point, we can add equation with schurr-complement

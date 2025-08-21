@@ -204,6 +204,8 @@ public :
     cComputeMergeMulTieP* TPtsStruct() const {return mTPtsStruct;} ///< Accessor
     std::vector<tREAL8> & ViscPose() {return mViscPose;}
     std::vector<tREAL8>   ViscPose() const {return mViscPose;}  ///< Accessor
+    tREAL8              & LVM() {return mLVM;}
+    tREAL8                LVM() const {return mLVM;}  ///< Accessor
     tREAL8              & SigmaTPt() {return mSigmaTPt;}
     tREAL8                SigmaTPt() const {return mSigmaTPt;}   ///< Accessor
     tREAL8              & FacElim()  {return mFacElim;}
@@ -227,7 +229,7 @@ private :
     std::vector<tREAL8>     mLevelRand;      ///< Parameters of random values [RandOnTr,RandOnRot]
     std::vector<tREAL8>     mWeigthEdge3;    ///< Parameters of random values [RandOnTr,RandOnRot]
     bool                    mPerfectData;    ///< Are the triplet perfect with simulated pose
-    bool                    mPerfectOri;       ///< Ground truth input orientation
+    bool                    mPerfectOri;     ///< Ground truth input orientation
     cNodeArborTriplets *    mArbor;          ///< Tree  for hierarchical  split
     tREAL8                  mWBalance;       ///<  Weighting for balance the tree
     tREAL8                  mWeightTr;       ///<  Relative weight Tranlastion vs rotation for pose distance
@@ -241,6 +243,7 @@ private :
     std::string             mTPtsFolder;     ///< Tie-points folder  => to be removed !!!!!!!!
     cComputeMergeMulTieP*   mTPtsStruct;     ///< Tie-points structure (global)
     std::vector<tREAL8>     mViscPose;       ///< Regularization on poses in BA
+    tREAL8                  mLVM;            ///< levenberg-marquadt
     tREAL8                  mSigmaTPt;       ///< Sigma on tie-points
     tREAL8                  mFacElim;        ///< Control outlier threshold, thres=mSigmaTPt*mFacElim
     int                     mNbIterBA;       ///< Number of iteration in bundle adjustment (Refine)

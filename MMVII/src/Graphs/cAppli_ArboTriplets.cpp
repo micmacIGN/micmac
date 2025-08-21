@@ -107,21 +107,13 @@ void cNodeArborTriplets::finalize()
     {}//StdOut() << "Do nothing" << std::endl;
     else
     {
-        // recursive call to compute
-        //for (auto & aChild :mChildren)
-        //    aChild->ComputeResursiveSolution();
-        // to the computation for the sol of 2 children
+        // do the computation for the sol of 2 children
         MergeChildrenSol();
     }
 
-
-    // compare with ground truth
-    //CmpWithGT();
-
-
 }
 
-// before finalize I have to run down the tree to initialise Index
+// before "finalize" I have to run down the tree to initialise Index
 void cNodeArborTriplets::DoTerminalNode()
 {
     MMVII_INTERNAL_ASSERT_tiny((mChildren.at(0) == nullptr) == (mChildren.at(1) == nullptr),"DoTerminalNode, assert on desc");
@@ -131,7 +123,7 @@ void cNodeArborTriplets::DoTerminalNode()
     if (mChildren.at(0) == nullptr) // Terminal node just put the riplet
     {
         auto  aVecTri = mTree.Vertices();
-        MMVII_INTERNAL_ASSERT_tiny(aVecTri.size()==1,"ComputeResursiveSolution, assert on desc");
+        MMVII_INTERNAL_ASSERT_tiny(aVecTri.size()==1,"DoTerminalNode, assert on desc");
         c3G3_AttrV & anATri = aVecTri.at(0)->Attr();
         for (size_t aK3=0 ; aK3<3 ; aK3++)
         {
@@ -791,9 +783,8 @@ void cNodeArborTriplets::MergeChildrenSol()
      //SaveGlobSol("Init");
 
      // refine the solution with BA
-     //if (!mPMAT->TPFolder().empty())
      if (mPMAT->TPtsStruct() !=nullptr)
-        RefineSolutionGen();
+         RefineSolutionGen(); //RefineSolution();
 
      //SaveGlobSol("Adj");
 
@@ -808,11 +799,19 @@ void cNodeArborTriplets::MergeChildrenSol()
 // getchar();
 }
 
+/* Refinement on bundles (more generic, work with fisheye) */
 void cNodeArborTriplets::RefineSolutionGen()
 {
-
+    // no of images
     int aTotalImNum = mPMAT->GOP().AllVertices().size();
+    // no of iterations
     int aNbIter=mPMAT->NbIterBA();
+    // image points weighting function
+    tREAL8 aSigAtt = mPMAT->SigmaTPt();
+    //tREAL8 aThr = mPMAT->SigmaTPt()*mPMAT->FacElim();
+    tREAL8 aFactElim = mPMAT->FacElim();
+    std::vector<tREAL8> aThrRange({aSigAtt*aFactElim,aSigAtt*5});
+    tREAL8 aDeltaThr=aThrRange[0]-aThrRange[1];
 
     // structure storing declared unknowns of BA
     cSetInterUK_MultipeObj<tREAL8> aSetIntervUK;
@@ -855,7 +854,6 @@ void cNodeArborTriplets::RefineSolutionGen()
         aVCams.push_back( new cSensorCamPC(aImName,aPoseChgConv,aCal) );
         aVSens.push_back( aVCams.at(aCamCurCount) );
 
-
         // collinearity equation (calculator)
         aVEqCol.push_back( aVCams.at(aCamCurCount)->CreateEqColinearityOnBundle(true,100,false) );
 
@@ -871,40 +869,33 @@ void cNodeArborTriplets::RefineSolutionGen()
     cResolSysNonLinear<tREAL8> * aSys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqNormSparse,aSetIntervUK.GetVUnKnowns());
 
 
-    // add viscosity on poses
-    for (auto & aCam : aVCams)
-    {
-        if ( mPMAT->ViscPose().at(0)>0)
-        { StdOut() << "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR " << mPMAT->ViscPose().at(0)
-                     << ", " << mPMAT->ViscPose().at(1) << std::endl;
-            aSys->AddEqFixCurVar(*aCam,aCam->Center(),Square(1.0/mPMAT->ViscPose().at(0)));
-        }
-        if (mPMAT->ViscPose().at(1)>0)
-        {
-            aSys->AddEqFixCurVar(*aCam,aCam->Omega(),Square(1.0/mPMAT->ViscPose().at(1)));
-        }
-    }
-
     // read the tie points corresponding to your image set
     cComputeMergeMulTieP aTPts(*mPMAT->TPtsStruct(),aVNames);
 
-
-    // image points weighting function
-    //tREAL8 aSigAtt=mPMAT->SigmaTPt();
-    //tREAL8 aFactElim=mPMAT->FacElim();
-    //std::vector<tREAL8> aThrRange({aSigAtt*aFactElim,aSigAtt*5});
-    //tREAL8 aDeltaThr=aThrRange[0]-aThrRange[1];
 
     // vector storing vectors of pairs of uv coordinates per each config
     //   (to avoid unnecessary redundant operations)
     std::vector<std::vector<std::pair<cPt3dr,cPt3dr>>> aVecConfUV(aTPts.Pts().size());
 
 
-    StdOut() << "\t ============\t"
+    StdOut() << " ============\t"
              << "   #Images " << aVCams.size() << "/" << aTotalImNum
-             << "\t ============" << std::endl;
+             << " ============" << std::endl;
     for (int aIter=0; aIter<aNbIter; aIter++)
     {
+
+        // add viscosity on poses
+        for (auto & aCam : aVCams)
+        {
+            if ( mPMAT->ViscPose().at(0)>0)
+            {
+                aSys->AddEqFixCurVar(*aCam,aCam->Center(),Square(1.0/mPMAT->ViscPose().at(0)));
+            }
+            if (mPMAT->ViscPose().at(1)>0)
+            {
+                aSys->AddEqFixCurVar(*aCam,aCam->Omega(),Square(1.0/mPMAT->ViscPose().at(1)));
+            }
+        }
 
         // intersect tie-points in 3D
         for (auto & aPair : aTPts.Pts())
@@ -915,9 +906,9 @@ void cNodeArborTriplets::RefineSolutionGen()
                1/Sigma0^2  * (1/(1+ (R/SigmaAtt)^Exp))
         cStdWeighterResidual(tREAL8 aSGlob,tREAL8 aSigAtt,tREAL8 aThr,tREAL8 aExp); */
 
-        //tREAL8 aThr = aDeltaThr*(1 - double(aIter)/(aNbIter-1)) + aThrRange[1];
+        tREAL8 aThr = aDeltaThr*(1 - double(aIter)/(aNbIter-1)) + aThrRange[1]; //dynamic, per-iteration thresholding
         //StdOut() << "aThr=" << aThr << ", Start=" << aThrRange[0] << ", End=" << aThrRange[1] << std::endl;
-        cStdWeighterResidual aTPtsW (1.0,50.0,1000.0,1.0);//  (1,aSigAtt,aThr,2); residual fun for image points
+        cStdWeighterResidual aTPtsW (1.0,aSigAtt,aThr,2.0);// (1.0,50.0,1000.0,1.0) (1,aSigAtt,aThr,2); residual fun for image points
 
         tREAL8 aMaxRes=0;
         int aNumAllTiePts=0;
@@ -964,6 +955,8 @@ void cNodeArborTriplets::RefineSolutionGen()
                     }
 
                     // handle visibility
+                    // change to DegreeVisibility which works on pts
+                    //
                     if (aCam->IsVisibleOnImFrame(aPIm) && aCam->IsVisible(aP3D))
                     {
 
@@ -971,6 +964,9 @@ void cNodeArborTriplets::RefineSolutionGen()
                         tREAL8 aResNorm = Norm2(aResidual);
 
                         tREAL8 aWeight = aTPtsW.SingleWOfResidual(aResidual);
+                        //StdOut() << aCam->Center() << " " << aCam->Pose().Rot().ToWPK() << std::endl;
+                        //StdOut() << "RRRR " << aResidual << " W=" << aWeight << ", " << aPIm
+                        //         << ", 3D=" << aP3D << "\n";
 
 
                         cCalculator<double> * aEqCol =  aVEqCol.at(aKIm);
@@ -1008,7 +1004,7 @@ void cNodeArborTriplets::RefineSolutionGen()
                             if (aMaxRes<aResNorm)
                                 aMaxRes=aResNorm;
                         }
-                    }
+                    }//else StdOut() << "some cam\n" << "not vis " << aPIm << std::endl;
                     aNumAllTiePts++;
                 }
 
@@ -1031,14 +1027,12 @@ void cNodeArborTriplets::RefineSolutionGen()
                 // << ", MaxRes=" << aMaxRes
                  << std::endl;
 
-        tREAL8 aLVM=0.1;
-        const auto & aVectSol = aSys->SolveUpdateReset({aLVM},{},{});//
+        //tREAL8 aLVM=0.1;
+        const auto & aVectSol = aSys->SolveUpdateReset({mPMAT->LVM()},{},{});//
         aSetIntervUK.SetVUnKnowns(aVectSol);
 
         //StdOut() << " StdDevLast=" << std::sqrt(aSys->VarLastSol())
         //         << " StdDevCur=" << std::sqrt(aSys->VarCurSol()) << std::endl;
-
-
     }
     //ShowPose("===BA at tree depth: ===");
     //StdOut() << "END BA" << std::endl;
@@ -1064,10 +1058,14 @@ void cNodeArborTriplets::RefineSolutionGen()
         delete aCam;
 }
 
+/* Refinement on image points */
 void cNodeArborTriplets::RefineSolution()
 {
 
     int aNbIter=mPMAT->NbIterBA();
+    // image points weighting function
+    tREAL8 aSigAtt = mPMAT->SigmaTPt();
+    tREAL8 aThr = mPMAT->SigmaTPt()*mPMAT->FacElim();
 
     // structure storing declared unknowns of BA
     cSetInterUK_MultipeObj<tREAL8> aSetIntervUK;
@@ -1131,20 +1129,6 @@ void cNodeArborTriplets::RefineSolution()
     aSys->SetFrozenFromPat(*aCal,".*",true);
 
 
-    // add viscosity on poses
-    for (auto & aCam : aVCams)
-    {
-        if ( mPMAT->ViscPose().at(0)>0)
-        { StdOut() << "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR " << mPMAT->ViscPose().at(0)
-                     << ", " << mPMAT->ViscPose().at(1) << std::endl;
-            aSys->AddEqFixCurVar(*aCam,aCam->Center(),Square(1.0/mPMAT->ViscPose().at(0)));
-        }
-        if (mPMAT->ViscPose().at(1)>0)
-        {
-            aSys->AddEqFixCurVar(*aCam,aCam->Omega(),Square(1.0/mPMAT->ViscPose().at(1)));
-        }
-    }
-
     // read the tie points corresponding to your image set
     cComputeMergeMulTieP aTPts(*mPMAT->TPtsStruct(),aVNames);
 
@@ -1161,6 +1145,19 @@ void cNodeArborTriplets::RefineSolution()
     for (int aIter=0; aIter<aNbIter; aIter++)
     {
 
+        // add viscosity on poses
+        for (auto & aCam : aVCams)
+        {
+            if ( mPMAT->ViscPose().at(0)>0)
+            {
+                aSys->AddEqFixCurVar(*aCam,aCam->Center(),Square(1.0/mPMAT->ViscPose().at(0)));
+            }
+            if (mPMAT->ViscPose().at(1)>0)
+            {
+                aSys->AddEqFixCurVar(*aCam,aCam->Omega(),Square(1.0/mPMAT->ViscPose().at(1)));
+            }
+        }
+
         // intersect tie-points in 3D
         for (auto & aPair : aTPts.Pts())
             MakePGround(aPair,aVSens); //
@@ -1172,7 +1169,7 @@ void cNodeArborTriplets::RefineSolution()
 
         //tREAL8 aThr = aDeltaThr*(1 - double(aIter)/(aNbIter-1)) + aThrRange[1];
         //StdOut() << "aThr=" << aThr << ", Start=" << aThrRange[0] << ", End=" << aThrRange[1] << std::endl;
-        cStdWeighterResidual aTPtsW (1.0,50.0,1000.0,1.0);//(1,aSigAtt,aThr,2);
+        cStdWeighterResidual aTPtsW (1.0,aSigAtt,aThr,2.0);// (1.0,50.0,1000.0,1.0);//(1,aSigAtt,aThr,2);
         tREAL8 aMaxRes=0;
         tREAL8 aTotalW=0;
 
@@ -1222,8 +1219,9 @@ void cNodeArborTriplets::RefineSolution()
 
                         tREAL8 aWeight = aTPtsW.SingleWOfResidual(aResidual);
 
-                        //StdOut() << "RRRR " << aPIm << " " << aResidual << " W=" << aWeight
-                        //         << " " << aCam->NameImage() << " " << aKImSorted << " " << aKIm << "\n";
+                        StdOut() << aCam->Center() << " " << aCam->Pose().Rot().ToWPK() << std::endl;
+                        StdOut() << "RRRR " << aResidual << " W=" << aWeight << ", " << aPIm
+                                 << ", 3D=" << aP3D << "\n";
 
 
 
@@ -1251,7 +1249,7 @@ void cNodeArborTriplets::RefineSolution()
                         }
                     }
                 }
-                StdOut() << "aNbEqAdded=" << aNbEqAdded << std::endl;
+                //StdOut() << "aNbEqAdded=" << aNbEqAdded << std::endl;
                 if (aNbEqAdded>=2)
                 {
                     aSys->R_AddObsWithTmpUK(aStrSubst);
@@ -1460,6 +1458,7 @@ cMakeArboTriplet::cMakeArboTriplet(cTripletSet & aSet3,bool doCheck,tREAL8 aWBal
    mTPtsFolder  (""), //to be removed
    mTPtsStruct  (nullptr),
    mViscPose    ({-1,-1}),
+   mLVM         (0),
    mSigmaTPt    (1.0),
    mFacElim     (10.0),
    mNbIterBA    (2)
@@ -1949,6 +1948,7 @@ void cMakeArboTriplet::ComputeArbor()
    //mArbor->ComputeResursiveSolution();
 
    mArbor->DoTerminalNode();
+
    StdOut() << "END DoTerminalNode" << std::endl;
    //
    cMemManager::SetActiveMemoryCount(false);

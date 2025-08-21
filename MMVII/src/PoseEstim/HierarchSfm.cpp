@@ -1,6 +1,8 @@
 #include "MMVII_BundleAdj.h"
 #include "../Graphs/ArboTriplets.h"
 
+#include <regex>
+
 /**
    \file HierarchSfm.cpp
 
@@ -55,6 +57,7 @@ class cAppli_HierarchSfm : public cMMVII_Appli
         bool                      mDoCheck;
         tREAL8                    mWBalance;
         std::vector<tREAL8>       mViscPose;      ///< regularization on poses in BA
+        tREAL8                    mLVM;           ///< levenberg-marquadt
         tREAL8                    mSigmaTPt;
         tREAL8                    mFacElim;
         int                       mNbIterBA;
@@ -67,6 +70,7 @@ cAppli_HierarchSfm::cAppli_HierarchSfm(const std::vector<std::string> & aVArgs,c
     mDoCheck     (true),
     mWBalance    (1.0),
     mViscPose    ({-1,-1}),
+    mLVM         (0),
     mSigmaTPt    (1.0),
     mFacElim     (10.0),
     mNbIterBA    (2)
@@ -89,6 +93,7 @@ cCollecSpecArg2007 & cAppli_HierarchSfm::ArgOpt(cCollecSpecArg2007 & anArgOpt)
            <<  mPhProj.DPOrient().ArgDirOutOpt("","Global orientation output directory")
            <<  mPhProj.DPOriTriplets().ArgDirOutOpt("","Directory for dmp-save of triplet (for faster read later)")
            <<  AOpt2007(mViscPose,"ViscPose","Regularization on poses for BA: [SigmaTr,SigmaRot]",{eTA2007::HDV})
+           <<  AOpt2007(mLVM,"LVM","Levenberg-marquadt regularization",{eTA2007::HDV})
            <<  AOpt2007(mSigmaTPt,"SigmaTPt","Sigma for tie-points",{eTA2007::HDV})
            <<  AOpt2007(mFacElim,"FacElim","Outlier threshold=(FacElim*SigmaTPt)",{eTA2007::HDV})
            <<  AOpt2007(mNbIterBA,"NbIterBA","Number of iteration in BA refinement",{eTA2007::HDV})
@@ -103,6 +108,27 @@ int cAppli_HierarchSfm::Exe()
     cAutoTimerSegm  aATS(TimeSegm(),"Read motions");
     cTripletSet *  a3Set =  mPhProj.ReadTriplets();
 
+    std::vector<std::string> aSetIm = VectMainSet(0);
+
+    // filter triplets to match the image set
+    std::regex aPat(mPatImIn);
+    std::vector<cTriplet> aNewTriSet;
+    for (auto a3 : a3Set->Set())
+    {
+        int aMatches=0;
+        for (auto& im : a3.PVec())
+        {
+            std::smatch aBoundMatch;
+            if (std::regex_search(im.Name(),aBoundMatch,aPat))
+                aMatches++;
+        }
+
+        if (aMatches==3)
+            aNewTriSet.push_back(a3);
+    }
+    a3Set->Set() = aNewTriSet;
+
+    // save triplets to dmp
     if (mPhProj.DPOriTriplets().DirOutIsInit())
     {
         mPhProj.SaveTriplets(*a3Set,false);
@@ -115,6 +141,8 @@ int cAppli_HierarchSfm::Exe()
     cMakeArboTriplet  aMk3(*a3Set,mDoCheck,mWBalance,mPhProj,*this);
     if (IsInit(&mViscPose))
         aMk3.ViscPose() = mViscPose;
+    if (IsInit(&mLVM))
+        aMk3.LVM() = mLVM;
     if (IsInit(&mSigmaTPt))
         aMk3.SigmaTPt() = mSigmaTPt;
     if (IsInit(&mFacElim))
@@ -124,8 +152,9 @@ int cAppli_HierarchSfm::Exe()
     if (mPhProj.DPMulTieP().DirInIsInit())
     {
         aMk3.TPFolder() = mPhProj.DPMulTieP().DirIn() ;
-        std::vector<std::string> aSetIm = VectMainSet(0);
+
         aMk3.InitTPtsStruct(mPhProj.DPMulTieP().DirIn(),aSetIm);
+
     }
     else
         MMVII_INTERNAL_ASSERT_always(mPhProj.DPMulTieP().DirInIsInit(),"Input features not initialised");
