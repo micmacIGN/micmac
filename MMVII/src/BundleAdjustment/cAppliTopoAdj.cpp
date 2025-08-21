@@ -50,6 +50,7 @@ private :
     tREAL8                    mLVM;  ///< Levenberk Markard
     std::vector<std::string>  mVSharedIP;  ///< Vector for shared intrinsic param
     std::vector<std::string>  mParamShow_UK_UC;
+    std::string               mPostFixReport;
 };
 
 cAppliTopoAdj::cAppliTopoAdj(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -85,6 +86,7 @@ cCollecSpecArg2007 & cAppliTopoAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mLVM,"LVM","Levenberg–Marquardt parameter (to have better conditioning of least squares)",{eTA2007::HDV})
 
       << AOpt2007(mParamShow_UK_UC,"UC_UK","Param for uncertainty & Show names of unknowns (tuning)")
+      << AOpt2007(mPostFixReport,NameParamPostFixReport(),CommentParamPostFixReport())
     ;
 }
 
@@ -101,6 +103,13 @@ void  cAppliTopoAdj::AddOneSetGCP3D(const std::string & aFolderIn, const std::st
 int cAppliTopoAdj::Exe()
 {
     mPhProj.FinishInit();
+
+    {
+        std::string aReportDir = mPhProj.DPOrient().DirIn() + "_" + mPhProj.DPOrient().DirOut();
+        if (IsInit(& mPostFixReport))
+            aReportDir += "_" + mPostFixReport;
+        SetReportSubDir(aReportDir);
+    }
 
     for (const auto& aVStrGCP : mGCP3D)
     {
@@ -133,7 +142,7 @@ int cAppliTopoAdj::Exe()
 
     if (IsInit(&mParamShow_UK_UC))
     {
-        mBA.ShowUKNames(mParamShow_UK_UC);
+        mBA.ShowUKNames(mParamShow_UK_UC,mPostFixReport);
     }
 
     return EXIT_SUCCESS;

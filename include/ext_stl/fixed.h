@@ -153,12 +153,14 @@ template <const INT b>  class ElPFixed : public ElFixed<b>
              _x+= (p2.x<<b);
              _y+= (p2.y<<b);
         }
-
+/* CM: cannot be compiled: p2.x and this->aSF doesn't exist
         void AddScalFixed(const ElPFixed<b> & p2, const INT & aScalFixed)
         {
              _x+= ((p2.x*this->aSF)<<this->b2);
              _y+= ((p2.y*this->aSF)<<this->b2);
         }
+
+*/
 
 };
                          

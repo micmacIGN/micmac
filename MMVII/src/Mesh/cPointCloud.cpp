@@ -3,6 +3,8 @@
 #include "MMVII_Geom2D.h"
 #include "MMVII_util_tpl.h"
 
+#include "MMVII_2Include_Tiling.h"
+
 namespace MMVII
 {
 
@@ -16,7 +18,91 @@ cPointCloud::cPointCloud(bool isM8) :
 {
 }
 
-tREAL8   cPointCloud::CurDensity() const {return NbPts() / Box2d().NbElem() ;}
+tREAL8   cPointCloud::CurBasicDensity() const 
+{
+	  return NbPts() / Box2d().NbElem() ;
+}
+tREAL8   cPointCloud::CurStdDensity() const 
+{
+    return (mDensity>0) ? mDensity : CurBasicDensity();
+}
+
+//====================================================================================
+
+class cTil2D_PC
+{
+    public :
+        typedef cTiling<cTil2D_PC> tTiling;      
+        static constexpr int TheDim = 2;          // Pre-requite for instantite cTilingIndex
+        typedef cPt2dr             tPrimGeom;     // Pre-requite for instantite cTilingIndex
+        typedef const  cPointCloud *  tArgPG; // Pre-requite for instantite cTilingIndex
+
+        /**  Pre-requite for instantite cTilingIndex : indicate how we extract geometric primitive from one object */
+
+        tPrimGeom  GetPrimGeom(tArgPG aPtrPC) const {return Proj(ToR(aPtrPC->KthPt(mInd)));}
+
+        cTil2D_PC(size_t anInd) : mInd(anInd) {}
+        size_t  Ind() const {return mInd;}
+
+        static tTiling *  ComputeTiling(const cPointCloud & aPC,int aNbByCase=20);
+
+    private :
+        size_t  mInd;
+};
+
+
+
+cTiling<cTil2D_PC> *  cTil2D_PC::ComputeTiling(const cPointCloud & aPC,int aNbByCase)
+{
+     cBox2dr aBox = aPC.Box2d();
+     int aNbCase = aPC.NbPts() / aNbByCase;
+
+     tTiling *  aTil = new tTiling (aBox,true,aNbCase,&aPC);
+     for (size_t aKPt=0 ; aKPt<aPC.NbPts() ; aKPt++)
+         aTil->Add(cTil2D_PC(aKPt));
+
+     return aTil;
+}
+
+tREAL8  ComputeDensity
+     (
+         const cPointCloud & aPC,
+         cTiling<cTil2D_PC> *  aTilInit=nullptr
+     )
+{
+    cTiling<cTil2D_PC> * aTil = (aTilInit == nullptr) ? cTil2D_PC::ComputeTiling(aPC,10) : aTilInit;
+
+    tREAL8 aDist = std::sqrt(5 / (M_PI * aPC.CurStdDensity()));
+    cWeightAv<tREAL8>  aWSz;
+
+    for (size_t aKPt=0 ; aKPt< aPC.NbPts() ; aKPt++)
+    {
+        int aNb = aTil->GetObjAtDist(Proj(aPC.KthPt(aKPt)),aDist).size();
+	aWSz.Add(1.0,aNb-1);
+    }
+    tREAL8 aNbAv =  aWSz.Average();
+    // Surf * Density = NB
+    tREAL8 aDensity =  aNbAv / (M_PI * Square(aDist));
+
+
+    if (aTilInit == nullptr) 
+       delete aTil;
+
+    return aDensity;
+}
+
+tREAL8   cPointCloud::ComputeCurFineDensity() const
+{
+    return ComputeDensity(*this);
+}
+
+tREAL8   cPointCloud::GroundSampling() const
+{
+    return 1 / std::sqrt(CurStdDensity());
+}
+
+
+
 
 // --------------------- Colours access ------------------------------------------
 void cPointCloud::SetNbColours(int aNbC)
@@ -73,7 +159,12 @@ void cPointCloud::SetSzLeaves(int aK,tREAL8 aSz)
 tREAL8 cPointCloud::GetSzLeave(int aK) const {return mSzLeaves.at(aK) * mLeavesUnit;}
 
 tU_INT1 cPointCloud::GetIntSzLeave(int aK) const {return mSzLeaves.at(aK);}
-tREAL8  cPointCloud::ConvertInt2SzLeave(int aInd) const {return mLeavesUnit * aInd;}
+tREAL8  cPointCloud::ConvertInt2SzLeave(int aInd) const 
+{
+  
+   MMVII_INTERNAL_ASSERT_User_UndefE(mLeavesUnit>=0,"mLeavesUnit not itialized");
+   return mLeavesUnit * aInd;
+}
 
 bool  cPointCloud::LeavesIsInit() const 
 {
@@ -84,12 +175,16 @@ bool  cPointCloud::LeavesIsInit() const
 
 
 
-tREAL8   cPointCloud::Density() const {return mDensity;}
 cBox3dr  cPointCloud::Box3d()   const  {return mBox3dOfPts.CurBox();}
 cBox2dr  cPointCloud::Box2d()   const 
 {    
     cBox3dr aB3 = Box3d();
     return cBox2dr(Proj(aB3.P0()),Proj(aB3.P1()));
+}
+
+cPt3dr   cPointCloud::Centroid() const
+{
+   return mSumPt / tREAL8(NbPts());
 }
 
 
@@ -158,25 +253,35 @@ void cPointCloud::ToPly(const std::string & aName,bool WithOffset) const
     }
 }
 
-void cPointCloud::AddPt(const cPt3dr& aPt)
+void cPointCloud::AddPt(const cPt3dr& aPt0)
 {
-    MMVII_INTERNAL_ERROR("cPointCloud::AddPt 2 Finalize");
+
+  mBox3dOfPts.Add(aPt0);
+  mSumPt += aPt0;
+
+  cPt3dr aPt = aPt0 - mOffset;
+  
+  if (mMode8)
+     mPtsR.push_back(aPt);
+  else
+     mPtsF.push_back(cPt3df::FromPtR(aPt));
 }
 
 void cPointCloud::Clip(cPointCloud& aPC,const cBox2dr & aBox) const
 {
-    MMVII_INTERNAL_ERROR("cPointCloud::Clip  2 Finalize");
-
-
+    // MMVII_INTERNAL_ERROR("cPointCloud::Clip  2 Finalize");
+    aPC = cPointCloud(mMode8);
     aPC.mDensity = mDensity;
+    
     // aPC.mBox2d   = aBox;
-    aPC.mPtsR.clear();
-    aPC.mPtsF.clear();
+    // aPC.mPtsR.clear();
+    // aPC.mPtsF.clear();
     size_t aNbCol = mColors.size();
     aPC.mColors = std::vector<std::vector<tU_INT1>>(aNbCol);
 
-    aPC.mOffset = mOffset;
-    aPC.mMode8 = mMode8;
+    aPC.SetOffset(mOffset);
+    // aPC.mOffset = mOffset;
+    // aPC.mMode8 = mMode8;
     aPC.mMulDegVis = mMulDegVis;
     aPC.mLeavesUnit = mLeavesUnit;
 
@@ -222,6 +327,7 @@ void cPointCloud::AddData(const  cAuxAr2007 & anAux)
     MMVII::AddData(cAuxAr2007("Density",anAux),mDensity);
 
     MMVII::AddData(cAuxAr2007("Box3d",anAux),mBox3dOfPts);
+    MMVII::AddData(cAuxAr2007("SumPt",anAux),mSumPt);
 
     MMVII::AddData(cAuxAr2007("LeavesUnit",anAux),mLeavesUnit);
     MMVII::AddData(cAuxAr2007("LeavesSize",anAux),mSzLeaves);

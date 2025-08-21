@@ -77,7 +77,7 @@ void pyb_init_cRotation3D_tpl(py::module_ &m, const std::string& name)
             .def_property_readonly("axeJ",&tR3D::AxeJ,DOC(MMVII_cRotation3D,AxeJ))
             .def_property_readonly("axeK",&tR3D::AxeK,DOC(MMVII_cRotation3D,AxeK))
 
-            .def_static("completeRON",py::overload_cast<const tPt&>(&tR3D::CompleteRON),"pt"_a,DOC(MMVII_cRotation3D,CompleteRON))
+            .def_static("completeRON",py::overload_cast<const tPt&, int>(&tR3D::CompleteRON),"pt"_a,"numP0"_a,DOC(MMVII_cRotation3D,CompleteRON))
             .def_static("completeRON",py::overload_cast<const tPt&, const tPt&, bool>(&tR3D::CompleteRON),"p0"_a,"p1"_a,"SVP"_a=false,DOC(MMVII_cRotation3D,CompleteRON))
 
             .def_static("rotFromAxe",&tR3D::RotFromAxe,"axe"_a,"theta"_a,DOC(MMVII_cRotation3D,RotFromAxe))

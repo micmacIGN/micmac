@@ -538,7 +538,7 @@ void cAppliExtractLine::MakeVisu(const std::string & aNameIm)
                  cSegment<tREAL8,2> aSeg =  aHS.Seg();
 
 	         tREAL8 aRay=5;
-	         cPt2dr aC = Redist(aSeg.PMil() +VUnit(aSeg.V12()*cPt2dr(0,-1))* aRay);
+	         cPt2dr aC = Redist(aSeg.Middle() +VUnit(aSeg.V12()*cPt2dr(0,-1))* aRay);
                  aVisIm.DrawCircle(aCoul,aC ,aRay);
 
                  if (mCalib)

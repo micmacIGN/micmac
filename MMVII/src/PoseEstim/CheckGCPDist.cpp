@@ -116,7 +116,7 @@ class cAppli_CheckGCPDist : public cMMVII_Appli
 
 
         ///  Process 1 image
-        void MakeOneIm(const std::string & aName);
+        bool MakeOneIm(const std::string & aName);
 
         std::string              mSpecImIn;   ///  Pattern of xml file
         cPhotogrammetricProject  mPhProj;
@@ -361,17 +361,17 @@ int   cAppli_CheckGCPDist::ComputeSquareAdj()
    return aRes;
 }
 
-void cAppli_CheckGCPDist::MakeOneIm(const std::string & aNameIm)
+bool cAppli_CheckGCPDist::MakeOneIm(const std::string & aNameIm)
 {
     mCurNameIm = aNameIm;
 
     cSetMesGndPt  aSetMes;
     mPhProj.LoadGCP3D(aSetMes);
-    mPhProj.LoadIm(aSetMes,aNameIm);
+    mPhProj.LoadIm(aSetMes,aNameIm,nullptr,nullptr,SVP::Yes);
 
     if (mPhProj.DPOrient().DirInIsInit())
     {
-	mCalib =  mPhProj.InternalCalibFromStdName(aNameIm);
+        mCalib =  mPhProj.InternalCalibFromStdName(aNameIm);
     }
 
     // Create a structure with GCP + image-points, so that we can add information
@@ -476,6 +476,8 @@ void cAppli_CheckGCPDist::MakeOneIm(const std::string & aNameIm)
           aFMIM.Save();
        }
     }
+
+    return OkResec || Ok11P;
 }
 
 
@@ -518,13 +520,22 @@ int cAppli_CheckGCPDist::Exe()
 
 
     // make computation for each image (not in //, very fast)
+    auto aNbIm = VectMainSet(0).size();
+    int aNbUsed = 0;
     for (const auto & aNameIm : VectMainSet(0))
     {
-        MakeOneIm(aNameIm);
+        if (MakeOneIm(aNameIm))
+            ++aNbUsed;
     }
 
-    SaveInFile(mSetOK11,mPrefSave+"_OK_11Param.xml");
-    SaveInFile(mSetOKResec,mPrefSave+"_OK_Resec.xml");
+    StdOut() << "Image files: " << aNbIm << ", used:" << aNbUsed << "\n";
+
+    auto aFileNameOK11 = mPrefSave+"_OK_11Param.xml";
+    SaveInFile(mSetOK11,aFileNameOK11);
+    auto aFileNameOKResec = mPrefSave+"_OK_Resec.xml";
+    SaveInFile(mSetOKResec,aFileNameOKResec);
+
+    StdOut() << "Output: " << aFileNameOK11 << " " << aFileNameOKResec << std::endl;
 
     return EXIT_SUCCESS;
 }                                       

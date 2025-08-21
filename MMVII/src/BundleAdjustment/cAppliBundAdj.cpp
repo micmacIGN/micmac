@@ -97,7 +97,7 @@ class cAppliBundlAdj : public cMMVII_Appli
         tREAL8                    mLVM;  ///< Levenberk Markard
         bool                      mMeasureAdded ;
         std::vector<std::string>  mVSharedIP;  ///< Vector for shared intrinsic param
-
+        bool                      mShow_Cond; ///< compute and show system condition number
         std::vector<std::string>  mParamShow_UK_UC;
         std::string               mPostFixReport;
 };
@@ -145,7 +145,7 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mGCPFilterAdd,"GCPFilterAdd","Pattern to filter GCP by additional info")
       << AOpt2007(mTiePWeight,"TiePWeight","Tie point weighting [Sig0,SigAtt?=-1,Thrs?=-1,Exp?=1]",{{eTA2007::ISizeV,"[1,4]"}})
       << AOpt2007(mAddTieP,"AddTieP","For additional TieP, [[Folder,SigG...],[Folder,...]] ")
-      << AOpt2007(mParamLidarPhgr,"LidarPhotogra","Paramaters for adj Lidar/Phgr [[Mode,Ply,Interp?]*]")
+      << AOpt2007(mParamLidarPhgr,"LidarPhotogra","Paramaters for adj Lidar/Phgr [[Mode,Ply,Sigma,Interp?,Perturbate?,NbPtsPerPatch=32]*]")
       << AOpt2007(mPatParamFrozCalib,"PPFzCal","Pattern for freezing internal calibration parameters")
       << AOpt2007(mPatFrosenCenters,"PatFzCenters","Pattern of images for freezing center of poses")
       << AOpt2007(mPatFrosenOrient,"PatFzOrient","Pattern of images for freezing orientation of poses")
@@ -156,9 +156,10 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mBRSigma_Rat,"BRW_Rat","Rattachment fo Bloc Rigid Weighting [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})  // RIGIDBLOC
       << mPhProj.DPMeasuresClino().ArgDirInOpt()
 
-      << AOpt2007(mParamRefOri,"RefOri","Reference orientation [Ori,SimgaTr,SigmaRot?,PatApply?]",{{eTA2007::ISizeV,"[2,4]"}})  
-      << AOpt2007(mVSharedIP,"SharedIP","Shared intrinc parmaters [Pat1Cam,Pat1Par,Pat2Cam...] ",{{eTA2007::ISizeV,"[2,20]"}})    
+      << AOpt2007(mParamRefOri,"RefOri","Reference orientation [Ori,SimgaTr,SigmaRot?,PatApply?]",{{eTA2007::ISizeV,"[2,4]"}})
+      << AOpt2007(mVSharedIP,"SharedIP","Shared intrinc parmaters [Pat1Cam,Pat1Par,Pat2Cam...] ",{{eTA2007::ISizeV,"[2,20]"}})
 
+      << AOpt2007(mShow_Cond,"Cond","Compute and show system condition number")
       << AOpt2007(mParamShow_UK_UC,"UC_UK","Param for uncertainty & Show names of unknowns (tuning)")
       << AOpt2007(mPostFixReport,NameParamPostFixReport(),CommentParamPostFixReport())
     ;
@@ -330,6 +331,7 @@ int cAppliBundlAdj::Exe()
     
     for (const auto & aParam : mParamLidarPhgr)
     {
+        MMVII_INTERNAL_ASSERT_User(aParam.size()>=3,eTyUEr::eUnClassedError,"Not enough parameters for LidarPhotogra");
         mMeasureAdded = true;
         mBA.Add1AdjLidarPhotogra(aParam);
     }
@@ -343,7 +345,7 @@ int cAppliBundlAdj::Exe()
     for (int aKIter=0 ; aKIter<mNbIter ; aKIter++)
     {
         bool isLastIter =  (aKIter==(mNbIter-1)) ;
-        mBA.OneIteration(mLVM,isLastIter);
+        mBA.OneIteration(mLVM,isLastIter,mShow_Cond);
     }
 
     //   ========== [3]   Save resulst =============================
@@ -363,7 +365,7 @@ int cAppliBundlAdj::Exe()
 
     if (IsInit(&mParamShow_UK_UC))
     {
-        mBA.ShowUKNames(mParamShow_UK_UC,this);
+        mBA.ShowUKNames(mParamShow_UK_UC,mPostFixReport,this);
     }
 
     return EXIT_SUCCESS;

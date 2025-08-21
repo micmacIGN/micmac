@@ -164,11 +164,16 @@ template <class Type>  class cHomot2D
           ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
           static tTypeMap  FromParam(const cDenseVect<Type> &);  
           /// compute the vector used in least square equation
+          static void ToEqParam(tPt & aRHS,std::vector<cDenseVect<Type>>&,const tPt &In,const tPt & Out);
+          /// Old interface
           static void ToEqParam(tPt & aRHS,cDenseVect<Type>&,cDenseVect<Type> &,const tPt &In,const tPt & Out);
+
           /// compute by least square the mapping such that Hom(PIn[aK]) = POut[aK]
-          static tTypeMap StdGlobEstimate(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals aVWeight=nullptr);
+          static tTypeMap StdGlobEstimate(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals aVWeight=nullptr, cParamCtrlOpt=cParamCtrlOpt::Default());
           /// compute by ransac the map minizing Sum |Map(VIn[K])-VOut[K]|
           static tTypeMap RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest);
+          /// Refine an existing solution using least square
+          tTypeMap LeastSquareRefine(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals=nullptr)const;
 
 	  /// Compute a random homotethy, assuring that Amplitude of scale has a minimal value
           static tTypeMap RandomHomotInv(const Type&AmplTr,const Type&AmplSc,const Type&AmplMinSc);
@@ -237,8 +242,10 @@ template <class Type>  class cSim2D
           
           ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
           static tTypeMap  FromParam(const cDenseVect<Type> &);  
-          /// compute the vectors and constants used in least square equation
-          static void ToEqParam(tPt& aRHS,cDenseVect<Type>&,cDenseVect<Type> &,const tPt & aPtIn,const tPt & aPtOut);
+          /// compute the vector used in least square equation
+          static void ToEqParam(tPt & aRHS,std::vector<cDenseVect<Type>>&,const tPt &In,const tPt & Out);
+          /// Old interface
+          static void ToEqParam(tPt & aRHS,cDenseVect<Type>&,cDenseVect<Type> &,const tPt &In,const tPt & Out);
           /// Degree of freedoom
 
 
@@ -252,11 +259,13 @@ template <class Type>  class cSim2D
           static tTypeMap FromMinimalSamples(const tTabMin&,const tTabMin&);
 
           /// compute by least square the mapping such that Sim(PIn[aK]) = POut[aK]
-          static tTypeMap StdGlobEstimate(tCRVPts & aVIn,tCRVPts& aVOut,Type * aRes2=nullptr,tCPVVals aVWeight=nullptr);
+          static tTypeMap StdGlobEstimate(tCRVPts & aVIn,tCRVPts& aVOut,Type * aRes2=nullptr,tCPVVals aVWeight=nullptr, cParamCtrlOpt=cParamCtrlOpt::Default());
           /// compute by ransac the map minizing Sum |Map(VIn[K])-VOut[K]|
           static tTypeMap RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest);
 	  /// Compute a random similitude, assuring that Amplitude of scale has a minimal value
           static cSim2D RandomSimInv(const Type&AmplTr,const Type&AmplSc,const Type&AmplMinSc);
+          /// Refine an existing solution using least square
+          tTypeMap LeastSquareRefine(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals=nullptr)const;
 
           inline const tPt &  Tr() const {return mTr ;}
           inline const tPt &  Sc() const {return mSc ;}
@@ -319,8 +328,10 @@ template <class Type>  class cRot2D
 
           ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
           static tTypeMap  FromParam(const cDenseVect<Type> &);  
-          /// compute the vectors and constants used in least square equation
-          static void ToEqParam(tPt& aRHS,cDenseVect<Type>&,cDenseVect<Type> &,const tPt & aPtIn,const tPt & aPtOut);
+          /// compute the vector used in least square equation
+          static void ToEqParam(tPt & aRHS,std::vector<cDenseVect<Type>>&,const tPt &In,const tPt & Out);
+          /// Old interface
+          static void ToEqParam(tPt & aRHS,cDenseVect<Type>&,cDenseVect<Type> &,const tPt &In,const tPt & Out);
 
           /// Refine an existing solution using least square
           tTypeMap LeastSquareRefine(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals=nullptr)const;
@@ -398,16 +409,19 @@ template <class Type>  class cAffin2D
                 
           ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
           static tTypeMap  FromParam(const cDenseVect<Type> &);  
-          /// compute the vectors and constants used in least square equation
-          static void ToEqParam(tPt& aRHS,cDenseVect<Type>&,cDenseVect<Type> &,const tPt & aPtIn,const tPt & aPtOut);
+          /// compute the vector used in least square equation
+          static void ToEqParam(tPt & aRHS,std::vector<cDenseVect<Type>>&,const tPt &In,const tPt & Out);
+          /// Old interface
+          static void ToEqParam(tPt & aRHS,cDenseVect<Type>&,cDenseVect<Type> &,const tPt &In,const tPt & Out);
           /// compute with minimal number of samples
           static tTypeMap FromMinimalSamples(const tTabMin&,const tTabMin&);
           /// Affity transforming a triangle in another ~ FromMinimalSamples, just interface
           static tTypeMap Tri2Tri(const tTri& aTriIn,const tTri& aTriOut);
 
+          /// Refine an existing solution using least square
+          tTypeMap LeastSquareRefine(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals=nullptr)const;
           /// compute by least square the mapping such that Hom(PIn[aK]) = POut[aK]
-          static tTypeMap StdGlobEstimate(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals aVWeight=nullptr);
-
+          static tTypeMap StdGlobEstimate(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals aVWeight=nullptr, cParamCtrlOpt=cParamCtrlOpt::Default());
           /// compute by ransac the map minizing Sum |Map(VIn[K])-VOut[K]|
           static tTypeMap RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest);
 
@@ -468,6 +482,8 @@ template <class Type>  class cHomogr2D
           inline tPt  Value(const tPt & aP) const   {return tPt(S(mHX,aP),S(mHY,aP)) / S(mHZ,aP);}
           inline tPt  Inverse(const tPt & aP) const {return tPt(S(mIHX,aP),S(mIHY,aP)) / S(mIHZ,aP);}
           /// compute the vector used in least square equation
+          static void ToEqParam(tPt & aRHS,std::vector<cDenseVect<Type>>&,const tPt &In,const tPt & Out);
+          /// Old interface
           static void ToEqParam(tPt & aRHS,cDenseVect<Type>&,cDenseVect<Type> &,const tPt &In,const tPt & Out);
           /// Creat an homotethy from 4 example
           static tTypeMap FromMinimalSamples(const tTabMin&,const tTabMin&);
@@ -475,7 +491,9 @@ template <class Type>  class cHomogr2D
           /// compute by ransac the map minizing Sum |Map(VIn[K])-VOut[K]|
           static tTypeMap RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest);
           /// compute by least square the mapping such that Hom(PIn[aK]) = POut[aK]
-          static tTypeMap StdGlobEstimate(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals aVWeight=nullptr);
+          static tTypeMap StdGlobEstimate(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals aVWeight=nullptr, cParamCtrlOpt=cParamCtrlOpt::Default());
+          /// Refine an existing solution using least square
+          tTypeMap LeastSquareRefine(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals=nullptr)const;
 
 	  /// compute the homography, assuming we know it up to a shift of Z (devlopped in CERN pannel context)
           tTypeMap LeastSqParalPlaneShift(tCRVPts aVIn,tCRVPts aVOut) const;
@@ -763,6 +781,13 @@ struct cSaveExtrEllipe
           tREAL4 mWhite;
 };
 void AddData(const  cAuxAr2007 & anAux, cSaveExtrEllipe & aCTE);
+
+
+template <class TypeMap>  void CheckSzInOut(const  typename TypeMap::tVPts& aVIn,const  typename TypeMap::tVPts & aVOut)
+{
+   MMVII_INTERNAL_ASSERT_medium(aVIn.size()==aVOut.size(),"Bad sizes in cMapEstimate");
+   MMVII_INTERNAL_ASSERT_medium(aVIn.size()>= TypeMap::NbPtsMin,"Not enough obs in cMapEstimate");
+}
 
 
 

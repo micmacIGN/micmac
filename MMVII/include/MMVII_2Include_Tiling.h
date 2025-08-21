@@ -343,15 +343,17 @@ template <const int TheDim> class cGeneratePointDiff
            tREAL8   mDistMin;
 };
 
+/** IF the object aVPt have been ordered in some decreasing order, this
+filter return a set of point that are local maxima in a neighbouhood of size aDist */
 
 template <class TypePrim,class TypeObj,class TypeCalcP2 >
     void IndexeseFilterMaxLoc
          (
-             TypePrim *,  // Type specifier
-             std::vector<int> & aVInd,
-             const std::vector<TypeObj> & aVPt,
-             const TypeCalcP2 & aCalc,
-             tREAL8 aDist
+             TypePrim *,                        // Type specifier parameter to instantiate template
+             std::vector<int> & aVInd,          // vector of index of result
+             const std::vector<TypeObj> & aVPt, // vector of objecr
+             const TypeCalcP2 & aCalc,          // Functor used to compute geometry of object
+             tREAL8 aDist                       // size of neighbourhood
          )
 {
     // compute box of points

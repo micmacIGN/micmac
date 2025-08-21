@@ -234,6 +234,7 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::ObjCoordWorld,"ObjCoordWorld"},
                 {eTA2007::TieP,"TieP"},
                 {eTA2007::MulTieP,"MulTieP"},
+                {eTA2007::InstrBlock,"InstrBlock"},
                 {eTA2007::RigBlock,"RigBlock"},
                 {eTA2007::Clino,"Clino"},
                 {eTA2007::MeasureClino,"MeasureClino"},
@@ -392,6 +393,12 @@ template<> cE2Str<eTyUnitAngle>::tMapE2Str cE2Str<eTyUnitAngle>::mE2S
                 {eTyUnitAngle::eUA_radian,"radian"},
                 {eTyUnitAngle::eUA_degree,"degree"},
                 {eTyUnitAngle::eUA_gon,"gon"}
+           };
+
+template<> cE2Str<eTyClino>::tMapE2Str cE2Str<eTyClino>::mE2S
+           {
+                {eTyClino::ePendulum,"Pendulum"},
+                {eTyClino::eSpring,"Spring"},
            };
 
 template<> cE2Str<eModeTestPropCov>::tMapE2Str cE2Str<eModeTestPropCov>::mE2S
@@ -644,6 +651,7 @@ void BenchEnum(cParamExeBench & aParam)
     TplBenchEnum<eFormatSensor>();
     TplBenchEnum<eModeSSR>();
     TplBenchEnum<eImatchCrit>();
+    TplBenchEnum<eTyClino>();
 
     aParam.EndBench();
 }
@@ -1243,6 +1251,7 @@ MACRO_INSTANTITATE_STRIO_ENUM(eTAAr,"TypeAAr")
 MACRO_INSTANTITATE_STRIO_ENUM(eTA2007,"TA2007")
 MACRO_INSTANTITATE_STRIO_ENUM(eTySC,"TySC")
 MACRO_INSTANTITATE_STRIO_ENUM(eTyUnitAngle,"AngleUnit")
+MACRO_INSTANTITATE_STRIO_ENUM(eTyClino,"TypeClino")
 
 MACRO_INSTANTITATE_STRIO_ENUM(eTypeSensor,"TypeSensor")
 MACRO_INSTANTITATE_STRIO_ENUM(eFormatSensor,"FormatSensor")
@@ -1415,7 +1424,11 @@ template <>  std::string cStrIO<double>::ToStr(const double & aD)
 template <>  double cStrIO<double>::FromStr(const std::string & aStr)
 {
     double anI;
-    sscanf(aStr.c_str(),"%lf",&anI);
+    int aNb = sscanf(aStr.c_str(),"%lf",&anI);
+    if (aNb==0)
+    {
+        MMVII_INTERNAL_ASSERT_User((aNb!=0),eTyUEr::eBadInt,"String=["+ aStr +"] is not a valid double")
+    }
     return anI;
 }
 template <>  const std::string cStrIO<double>::msNameType = "double";

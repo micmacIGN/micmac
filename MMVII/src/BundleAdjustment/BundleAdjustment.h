@@ -346,8 +346,8 @@ class cBA_LidarPhotogra
        /// destuctor, free interopaltor, calculator ....
        ~cBA_LidarPhotogra();
 
-       /// add observation with weigh W
-       void AddObs(tREAL8 aW);
+       /// add observation
+       void AddObs();
 
     private :
        /**  Add observation for 1 Patch of point */
@@ -383,6 +383,9 @@ class cBA_LidarPhotogra
        std::list<std::vector<int> >   mLPatches;       ///< set of 3D patches
        bool                           mPertRad;        ///< do we pertubate the radiometry (simulation & test)
        size_t                         mNbPointByPatch; ///< (approximate) required number of point /patch
+       double                         mWeight;          ///< weight for observations
+       size_t                         mNbUsedPoints;   ///< number of lidar used points
+       size_t                         mNbUsedObs;      ///< number of lidar obs used
 };
 
 
@@ -431,7 +434,7 @@ class cMMVII_BundleAdj
 	  void AddMTieP(const std::string & aName,cComputeMergeMulTieP  * aMTP,const cStdWeighterResidual & aWIm);
 
           /// One iteration : add all measure + constraint + Least Square Solve/Udpate/Init
-          void OneIteration(tREAL8 aLVM=0.0,bool isLastIter=false);
+          void OneIteration(tREAL8 aLVM=0.0, bool isLastIter=false, bool doShowCond=false);
 
           const std::vector<cSensorImage *> &  VSIm() const ;  ///< Accessor
           const std::vector<cSensorCamPC *> &  VSCPC() const;   ///< Accessor
@@ -458,7 +461,7 @@ class cMMVII_BundleAdj
           void SaveTopo();
 
           void Set_UC_UK(const std::vector<std::string> & aParam);
-	  void ShowUKNames(const std::vector<std::string> & aParam,cMMVII_Appli* =nullptr) ;
+          void ShowUKNames(const std::vector<std::string> & aParam, const std::string &aSuffix, cMMVII_Appli* =nullptr) ;
           // Save results of clino bundle adjustment
           void SaveClino();
           void  AddBenchSensor(cSensorCamPC *); // Add sensor, used in Bench Clino

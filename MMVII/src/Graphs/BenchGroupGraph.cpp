@@ -158,13 +158,13 @@ void BenchGroupGraph(cParamExeBench & aParam)
                      );
          aBG3.GG().DoClustering(3,0.15);
 
-         aBG3.GG().OneIterCycles(3,1.0,true);
-         aBG3.GG().OneIterCycles(3,1.0,true);
-         aBG3.GG().OneIterCycles(3,1.0,true);
-         aBG3.GG().OneIterCycles(3,1.0,true);
-         aBG3.GG().OneIterCycles(3,1.0,true);
-         aBG3.GG().OneIterCycles(3,1.0,true);
-         aBG3.GG().OneIterCycles(3,1.0,true);
+         aBG3.GG().OneIterCycles(3,1.0,false);
+         aBG3.GG().OneIterCycles(3,1.0,false);
+         aBG3.GG().OneIterCycles(3,1.0,false);
+         aBG3.GG().OneIterCycles(3,1.0,false);
+         aBG3.GG().OneIterCycles(3,1.0,false);
+         aBG3.GG().OneIterCycles(3,1.0,false);
+         aBG3.GG().OneIterCycles(3,1.0,false);
 
          aBG3.GG().MakeMinSpanTree();
      }
@@ -180,9 +180,9 @@ void BenchGroupGraph(cParamExeBench & aParam)
                          0.00,0.2,0.5
                      );
          aBG3.GG().DoClustering(3,0.15);
-         aBG3.GG().OneIterCycles(3,1.0,true);
-         aBG3.GG().OneIterCycles(3,1.0,true);
-         aBG3.GG().OneIterCycles(3,1.0,true);
+         aBG3.GG().OneIterCycles(3,1.0,false);
+         aBG3.GG().OneIterCycles(3,1.0,false);
+         aBG3.GG().OneIterCycles(3,1.0,false);
 
          tREAL8 aNoiseMax = aBG3.GG().MakeMinSpanTree();
 

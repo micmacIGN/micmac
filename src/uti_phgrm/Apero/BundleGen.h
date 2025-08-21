@@ -87,7 +87,7 @@ class cBGC3_Modif2D  : public cBasicGeomCap3D
 
             virtual Pt2dr DeltaCamInit2CurIm(const Pt2dr & aP) const = 0;
             virtual Pt2dr DeltaCurIm2CamInit(const Pt2dr & aP) const ;
-            Pt2dr ImRef2Capteur   (const Pt2dr & aP) ;
+            Pt2dr ImRef2Capteur   (const Pt2dr & aP) const;
             double ResolImRefFromCapteur() const;
 
 

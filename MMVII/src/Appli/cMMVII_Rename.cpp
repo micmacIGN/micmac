@@ -281,7 +281,7 @@ int cAppli_Rename::Exe()
     std::vector<std::pair<std::string,std::string>  > aVInOut;
 
 
-     std::regex aPat(mPattern);
+    std::regex aPat(mPattern);
 
     for (const auto & aStrIn0 : VectMainSet(0))
     {
@@ -323,10 +323,14 @@ int cAppli_Rename::Exe()
 
 	     aStrIn.replace(aBoundMatch.position(aKExpr),aBoundMatch.length(aKExpr),aStrNumOut);
 	}
+        if (0)
+        {
+            StdOut() << "P=" << mPattern << " S=" << mSubst << " I=" << aStrIn << "\n";
+        }
         std::string aStrOut =  ReplacePattern(mPattern,mSubst,aStrIn);
         StdOut() << "[" << aStrIn0  << "] ";
         if (IsInit(&mArithmReplace))
-           StdOut() << " ==> [" << aStrIn  << "] ";
+           StdOut() << " AR==> [" << aStrIn  << "] ";
 
         StdOut() << " ==> [" << aStrOut  << "]  " << std::endl;
 

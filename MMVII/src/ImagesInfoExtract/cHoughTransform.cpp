@@ -21,7 +21,7 @@ cParalLine::cParalLine(const cHoughPS & aH1,const cHoughPS & aH2) :
     mVHS.push_back(aH1);
     mVHS.push_back(aH2);
 
-    cPt2dr aP0 =   (aH1.Seg().PMil() +aH2.Seg().PMil() ) / 2.0;
+    cPt2dr aP0 =   (aH1.Seg().Middle() +aH2.Seg().Middle() ) / 2.0;
     cPt2dr aTgt =  (aH1.Seg().Tgt() - aH2.Seg().Tgt() ) / 2.0;
 
     mMidleSeg =  tSeg2dr(aP0-aTgt,aP0+aTgt);
@@ -254,7 +254,7 @@ tREAL8 cHoughPS::DistAnglAntiPar(const cHoughPS& aPS2) const
 
 tREAL8 cHoughPS::DY(const cHoughPS & aHPS) const
 {
-   return mSegE.ToCoordLoc(aHPS.mSegE.PMil()) .y() ;
+   return mSegE.ToCoordLoc(aHPS.mSegE.Middle()) .y() ;
 }
 
 const cSegment2DCompiled<tREAL8> & cHoughPS::Seg() const {return mSegE;}
@@ -286,7 +286,7 @@ tREAL8 cHoughPS::Dist(const cHoughPS& aPS2,const tREAL8 &aFactTeta) const
 
 void cHoughPS::Test(const cHoughPS &  aHPS) const
 {
-        StdOut() << "LARG " << mSegE.ToCoordLoc(aHPS.mSegE.PMil()) .y()
+        StdOut() << "LARG " << mSegE.ToCoordLoc(aHPS.mSegE.Middle()) .y()
                  << " RMDistAng " << DistAnglAntiPar(aHPS) * mHT->RhoMax()
                  << " DistAng " << DistAnglAntiPar(aHPS) 
                  // << " T1=" << Teta()<< " T2=" aHPS.Teta()  << " "<< diff_circ(Teta(),aHPS.Teta(),2*M_PI)
@@ -423,7 +423,7 @@ cPt2dr cHoughTransform::Line2PtInit(const  tSeg2dr &aSeg) const
 
    cPt2dr aGrad = VUnit(aSeg.V12() * cPt2dr(0,-1));
    tREAL8 aTeta = Teta(aGrad);
-   tREAL8 aRho = Scal(aGrad,aSeg.PMil() - mMiddle);
+   tREAL8 aRho = Scal(aGrad,aSeg.Middle() - mMiddle);
 
    return cPt2dr(aTeta,aRho);
 }

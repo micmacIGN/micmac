@@ -236,7 +236,7 @@ template  <typename tScal> cPtxd<tScal,3>  VtoP3(const  std::vector<tScal> & aV,
 {
         return cPtxd<tScal,3>(aV.at(aInd),aV.at(aInd+1),aV.at(aInd+2));
 }
-template  <typename tScal> cPtxd<tScal,3>  VtoP3AuoIncr(const  std::vector<tScal> & aV,size_t *aInd)
+template  <typename tScal> cPtxd<tScal,3>  VtoP3AutoIncr(const  std::vector<tScal> & aV,size_t *aInd)
 {
 	 return VtoP3(aV,IndexAutoIncr(aInd,3));
 }
@@ -245,7 +245,7 @@ template  <typename tScal> cPtxd<tScal,2>  VtoP2(const  std::vector<tScal> & aV,
 {
         return cPtxd<tScal,2>(aV.at(aInd),aV.at(aInd+1));
 }
-template  <typename tScal> cPtxd<tScal,2>  VtoP2AuoIncr(const  std::vector<tScal> & aV,size_t *aInd)
+template  <typename tScal> cPtxd<tScal,2>  VtoP2AnutoIncr(const  std::vector<tScal> & aV,size_t *aInd)
 {
 	 return VtoP2(aV,IndexAutoIncr(aInd,2));
 }

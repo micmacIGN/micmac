@@ -130,6 +130,7 @@ int cAppli_ImportLines::Exe()
                 aLine.mSigmaLine = aNRFS.GetFloat(mNameSigma,aK);
 	     if (WithWidth)
                 aLine.mWidth = aNRFS.GetFloat(mNameWidth,aK);
+             aLine.mNameIm = aNameIm;
 
 	     aLAP.mLines.push_back(aLine);
 	 }

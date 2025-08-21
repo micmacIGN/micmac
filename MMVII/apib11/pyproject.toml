@@ -1,3 +1,11 @@
 [build-system]
-requires = ["setuptools", "wheel", "pybind11", "numpy"]
+requires = ["setuptools>=42", "wheel", "pybind11", "numpy"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "MMVII"
+dynamic = ["version", "authors", "requires-python"]
+dependencies = [
+  "numpy"
+]
+

@@ -7,28 +7,27 @@ Dependencies
 
 As admin:
 
-    apt install python3-pip doxygen
+    apt install python3-pip doxygen pybind11-dev clang-tools llvm-dev
 
-As user:
+In the Python virtual environment used for compilation:
 
-    pip3 install pybind11 wheel numpy
-
+    pip3 install pybind11 setuptools build
 
 Compilation
 -----------
 
 First, compile MMv1 and MMv2.
 
-Then, in 'apib11' directory:
+Then, in 'apib11' directory and the correct Python virtual environment:
 
-    make
-
-The module can be used from this directory without installation (this local version has priority to installed modules).
+    export CC=/usr/bin/clang
+    export CXX=/usr/bin/clang++
+    pip wheel . --no-deps -w dist/
 
 Installation
 ------------
 
-    make install
+    pip install --force-reinstall dist/mmvii*.whl
 
 Distribution
 ------------

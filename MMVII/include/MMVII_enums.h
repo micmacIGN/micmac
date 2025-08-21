@@ -49,7 +49,8 @@ enum class eTA2007
                 ObjMesInstr,       ///< 2D Measure/coords of ground points
                 TieP,          ///< Tie Points
                 MulTieP,       ///< Multiple Tie Points
-                RigBlock,      ///< Rigid bloc    // RIGIDBLOC
+                InstrBlock,    ///< Block of instrument, will replace RigBlock, Clino ...
+                RigBlock,      ///< Rigid bloc    // RIGIDBLOC  => soon deprecated
                 Clino,         ///< Clinometer
                 MeasureClino,  ///< Clinometer
                 Topo,          ///< Topo
@@ -273,6 +274,15 @@ enum class eTyUnitAngle
               eUA_gon,
               eNbVals
 	   };
+
+
+enum class eTyClino
+           {
+              ePendulum,
+              eSpring,
+              eNbVals    ///< Tag for number of value
+           };
+
 
 enum class eTyNums
            {
@@ -623,6 +633,7 @@ enum class eMTDIm
               eNbVals
            };
 
+const std::string & E2Str(const eTyClino &);
 const std::string & E2Str(const eFormatSensor &);
 const std::string & E2Str(const eTypeSensor &);
 

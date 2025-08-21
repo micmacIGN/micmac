@@ -72,6 +72,14 @@ jobs:
       working-directory: ./MMVII/bin
       run: ./MMVII Bench 1
 
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: linux-build-artifacts
+        path: |
+          MMVII/bin/libP2007.a
+          MMVII/bin/MMVII
+
 
   build_win:
     if: true
@@ -176,3 +184,87 @@ jobs:
         make_latest: false
         token: ${{ secrets.GITHUB_TOKEN }}
         files: mmvii_windows.zip
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-build-artifacts
+        path: |
+          MMVII/bin/libP2007.lib
+          MMVII/bin/MMVII.exe
+
+  build_apipy:
+    needs: [build_linux] #[build_linux, build_win]
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ubuntu-latest] # [windows-latest, ubuntu-latest]
+        python-version: ["3.12"] # ["3.9", "3.13"]
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install deps
+      run: |
+        sudo apt update
+        sudo apt install clang-18 libomp-18-dev libproj-dev proj-data libgdal-dev python3-pip pybind11-dev doxygen clang-tools llvm-dev
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: linux-build-artifacts
+        path: MMVII/bin/
+    - name: Display structure of downloaded files
+      run: ls -R MMVII/bin/
+   # - name: Download build artifacts
+   #   uses: actions/download-artifact@v4
+   #   with:
+   #     name: windows-build-artifacts
+   #     path: ./artifacts/windows
+
+    - name: Add requirements
+      run: python -m pip install --upgrade wheel setuptools
+
+    - name: Build and install
+      working-directory: ./MMVII/apib11/
+      run: |
+        pip wheel . --no-deps -w dist/
+        pip install dist/mmvii*.whl
+      env:
+        CXX: clang++-18
+        CC: clang-18
+
+    - name: Remove previous MMVII ApiPy release
+      env:
+         GH_TOKEN: ${{ github.token }}
+      continue-on-error: true
+      run: gh release delete MMVII_ApiPyLinux -y --cleanup-tag
+
+    - name: Upload MMVII documentaion
+      uses: softprops/action-gh-release@v2
+      with:
+          name: 'MMVII ApiPy Linux - Latest'
+          tag_name: MMVII_ApiPyLinux
+          make_latest: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: MMVII/apib11/dist/mmvii*.whl
+
+    - name: Test
+      working-directory: ./MMVII/apib11/examples
+      run: python ex_test.py
+
+    - name: Upload MMVII apipy
+      uses: softprops/action-gh-release@v2
+      with:
+          name: 'MMVII Python API - Latest'
+          tag_name: MMVII_APIPY
+          make_latest: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: MMVII/apib11/dist/*.whl
+

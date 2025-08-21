@@ -871,6 +871,7 @@ cPerspCamIntrCalib * cPerspCamIntrCalib::SimpleCalib
 
 
 
+// cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::RandomCalib(eProjPC::eStenope,aNumDist,WithDist ? 0.01 : 0.1);
 cPerspCamIntrCalib * cPerspCamIntrCalib::RandomCalib(eProjPC aTypeProj,int aKDeg,tREAL8 anAmpl)
 {
 
@@ -930,7 +931,7 @@ tSeg2dr  cPerspCamIntrCalib::ExtenSegUndistIncluded
       std::vector<cPt2dr> aVPts;
       for (tREAL8 aSign : {-1.0,1.0})
       {
-          cPt2dr aPt = aSegInit.PMil();
+          cPt2dr aPt = aSegInit.Middle();
           cPt2dr aTgt = VUnit(aSegInit.V12()) * aSign;
 	  tREAL8 aStep= aStepInitRel * Norm2(SzPix());
 	  while (aStep >= aStepEnd)
@@ -1051,6 +1052,8 @@ void BenchCentralePerspective(cParamExeBench & aParam,eProjPC aTypeProj)
 
        delete aCam;
     }
+    BenchCamOrtho();
+
 }
 
 void BenchImAndZ()
@@ -1081,6 +1084,7 @@ void BenchImAndZ()
 
 void BenchCentralePerspective(cParamExeBench & aParam)
 {
+    BenchAiconCamera();
 
    // Test the accuracy of tabulation on dist/undist
    for (int aKTest =0 ; aKTest <100; aKTest++)
@@ -1088,6 +1092,23 @@ void BenchCentralePerspective(cParamExeBench & aParam)
        int aNumDist = aKTest%4;
        bool WithDist = (aNumDist==1) || (aNumDist==2);
        cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::RandomCalib(eProjPC::eStenope,aNumDist,WithDist ? 0.01 : 0.1);
+
+       if  (aNumDist==0)
+       {
+
+	   tPoseR aPose = tPoseR::RandomIsom3D(100.0);
+	   cSensorCamPC aCam("BenchResol",aPose,aCalib);
+
+           for (int aK=0 ; aK<10 ; aK++)
+           {
+	       tREAL8 aDepth = RandInInterval(1,10.);
+	       cPt3dr  aPGr = aCam.RandomVisiblePGround(aDepth,aDepth);
+               // StdOut() << "JJJJJ " << aCam.InternalCalib()->F()  << "  P=" << aPGr << " D=" << aDepth << "\n";
+	       tREAL8 aDiff =  RelativeDifference(aCam.Gen_GroundSamplingDistance(aPGr) , aDepth/aCam.InternalCalib()->F()) ;
+	       MMVII_INTERNAL_ASSERT_bench(std::abs(aDiff)<1e-5,"aCam.GroundSamplingDistance");
+           }
+	   // getchar();
+       }
        
        int aNb = 50 + (11*aKTest) % 50;
        cTabuMapInv<2>*   aTabul = aCalib->AllocTabulDUD(aNb);

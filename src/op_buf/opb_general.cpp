@@ -212,7 +212,7 @@ template <class TyData,class TyBase> class Buf_Fonc_OB_TPL
                                            : public Buf_Fonc_Op_buf
 {
       public :
-         Buf_Fonc_OB_TPL<TyData,TyBase>
+         Buf_Fonc_OB_TPL
          (
             Flux_Pts_Computed  * flx,
             Fonc_Num_Computed *,

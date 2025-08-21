@@ -14,6 +14,22 @@
 namespace MMVII
 {
 
+class cResultWireD
+{
+    public :
+        std::string  mId;
+        tREAL8       mDistV;
+        tREAL8       mDistH;
+        tREAL8       mDistG;
+};
+void AddData(const  cAuxAr2007 & anAux,cResultWireD & aRW)
+{
+    AddData(cAuxAr2007("Id",anAux),aRW.mId);
+    AddData(cAuxAr2007("DV",anAux),aRW.mDistV);
+    AddData(cAuxAr2007("DH",anAux),aRW.mDistH);
+    AddData(cAuxAr2007("DG",anAux),aRW.mDistG);
+}
+
 /* ==================================================== */
 /*                                                      */
 /*               cGetVerticalFromClino                  */
@@ -40,7 +56,7 @@ class cOptimGVFromClino : public  cDataMapping<tREAL8,2,1>
 	}
 
         /// Convert a "small" point of the plane to a point in tanget space
-	cPt3dr  Delta2Pt(const cPt2dr & aDelta) const {return mP0 + mP1*aDelta.x()+mP2*aDelta.y();}
+	cPt3dr  Delta2Pt(const cPt2dr & aDelta) const {return VUnit(mP0 + mP1*aDelta.x()+mP2*aDelta.y());}
 
         /// scoring function to be optimized
         cPt1dr Value(const cPt2dr & aDelta) const override
@@ -57,18 +73,39 @@ class cOptimGVFromClino : public  cDataMapping<tREAL8,2,1>
 cGetVerticalFromClino::cGetVerticalFromClino(const cCalibSetClino & aCalib,const std::vector<tREAL8> & aVAngle) :
 	mCalibs (aCalib)
 {
+    mVAngles = aVAngle;
     for (const auto & aTeta : aVAngle)  // convert angle to direction in repair
+    {
         mDirs.push_back(FromPolar(1.0,aTeta));
+        mVSinAlpha.push_back(std::sin(aTeta));
+    }
 }
+
+
 
 tREAL8 cGetVerticalFromClino::ScoreDir3D(const cPt3dr & aDirCam) const
 {
    tREAL8 aSum=0.0;
    for (size_t aK=0 ; aK<mDirs.size() ; aK++)
    {
-       cPt3dr aDirClino = mCalibs.ClinosCal().at(aK).CamToClino(aDirCam);
-       cPt2dr aDirNeedle = VUnit(Proj(aDirClino));
-       aSum += SqN2(aDirNeedle-mDirs.at(aK));
+       const  cOneCalibClino & aCalib =  mCalibs.ClinosCal().at(aK);
+       cPt3dr aDirClino =  aCalib.CamToClino(aDirCam);
+       if ( aCalib.Type() == eTyClino::ePendulum)
+       {
+           cPt2dr aDirNeedle = VUnit(Proj(aDirClino));
+           aSum += SqN2(aDirNeedle-mDirs.at(aK));
+       }
+       else if (aCalib.Type() == eTyClino::eSpring)
+       {
+            aSum += Square(aDirClino.y()-mVSinAlpha.at(aK));
+
+            // The sinus is udefined up to a sign change, so we have to rectify, btw the spring clino cannot ??  be up-down
+            if (aDirClino.x()<0)
+               aSum +=  -aDirClino.x();
+       }
+       else
+       {
+       }
    }
 
    return std::sqrt(aSum/mDirs.size());
@@ -136,9 +173,10 @@ class cAppli_CernInitRep : public cMMVII_Appli
         cSetMeasureClino         mMesClino;
         bool                     mTestAlreadyV;  ///< If true, repair is already verticalized, just used as test 
         int                      mNbMinTarget;   ///< Required minimal number of Target identified
+        std::string              mNameFileSave;
 // ReadMeasureClino(const std::string * aPatSel=nullptr) const;
 
-
+        std::map<std::string,cResultWireD>  mResults;
 };
 
 cCollecSpecArg2007 & cAppli_CernInitRep::ArgObl(cCollecSpecArg2007 & anArgObl)
@@ -159,7 +197,8 @@ cCollecSpecArg2007 & cAppli_CernInitRep::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
     return      anArgOpt
              << AOpt2007(mTestAlreadyV,"TestAlreadyV","If repair is already verticalized, for test",{{eTA2007::HDV}})
-             << AOpt2007(mNbMinTarget,"NbMinTarget,","Number minimal of target required",{{eTA2007::HDV}})
+             << AOpt2007(mNbMinTarget,"NbMinTarget","Number minimal of target required",{{eTA2007::HDV}})
+             << AOpt2007(mNameFileSave,"NameFileSave","Name file for saving results",{{eTA2007::HDV}})
     ;
 }
 
@@ -204,7 +243,7 @@ void cAppli_CernInitRep::ProcessOneBloc(const std::vector<cSensorCamPC *> & aVPC
    cGetVerticalFromClino aGetVert(aSetC,aMes.Angles());
 
    // 1 =========  VERTICAL =====================================================
-   auto[aScoreVert, aVertLocCamDown]  = aGetVert.OptimGlob(50,1e-8);  // this vertical in camera coordinates (only use clino calib)
+   auto[aScoreVert, aVertLocCamDown]  = aGetVert.OptimGlob(50,1e-9);  // this vertical in camera coordinates (only use clino calib)
    cPt3dr aVertPannelDow = aCamClino->Vec_L2W(aVertLocCamDown); // verical in "word of pannel" coordinates
 
    if (mTestAlreadyV)
@@ -242,6 +281,15 @@ void cAppli_CernInitRep::ProcessOneBloc(const std::vector<cSensorCamPC *> & aVPC
    if (aVPlane.size() < 2) return;
    cSegmentCompiled<tREAL8,3> aLocSegWire = cPlane3D::InterPlane(aVPlane);
 
+   if (1)
+   {
+        StdOut() << " =============================================================\n";
+        for (size_t aKC=0 ; aKC <aVPC.size() ; aKC++)
+            StdOut() << aVPC.at(aKC)->NameImage()
+                     << " D-C/W=" << aLocSegWire.Dist(aVPC.at(aKC)->Center())
+                     <<  " C=" << aVPC.at(aKC)->Center()
+                     << "\n";
+   }
 
    // 3 =========  TARGET =======================================================
 
@@ -305,12 +353,16 @@ void cAppli_CernInitRep::ProcessOneBloc(const std::vector<cSensorCamPC *> & aVPC
        cPt3dr aCSphere(0,0,0);
        cPt3dr aVProjSph = aLocSegWire.Proj(aCSphere) - aCSphere;
 
-       tREAL8 aDHor  =   Norm2(Proj(aVProjSph));
-       tREAL8 aDVert =     std::abs(aVProjSph.z());
+       cResultWireD aRW;
+       aRW.mId   =  anId;
+       aRW.mDistH  =   Norm2(Proj(aVProjSph));
+       aRW.mDistV  =   std::abs(aVProjSph.z());
+       aRW.mDistG =     Norm2(aVProjSph);
 
+       mResults[anId] = aRW;
 
-       StdOut() << " Angles="  << aMes.Angles()  << " ScoreV=" << aScoreVert << "\n";
-       StdOut() << " WIRE , Steep : " << aSteep  << " DHor=" << aDHor << " DVert=" << aDVert<< "\n";
+       StdOut() << "ID=" << anId << " Angles="  << aMes.Angles()  << " ScoreV=" << aScoreVert << "\n";
+       StdOut() << " WIRE , Steep : " << aSteep  << " DHor=" << aRW.mDistH << " DVert=" << aRW.mDistV << " DGlob=" << aRW.mDistG << "\n";
     }
 
    //  NewRep 
@@ -330,22 +382,31 @@ int cAppli_CernInitRep::Exe()
 {
     mPhProj.FinishInit();  // the final construction of  photogrammetric project manager can only be done now
 
+    if (IsInit(&mNameFileSave) && ExistFile(mNameFileSave))
+    {
+          ReadFromFile(mResults,mNameFileSave);
+    }
+
     mTheBloc = mPhProj.ReadUnikBlocCam();
 
     mMesClino = mPhProj.ReadMeasureClino();
 
 
     std::vector<std::vector<cSensorCamPC *>>  aVVC = mTheBloc->GenerateOrientLoc(mPhProj,VectMainSet(0));
+
     for (auto & aVPannel : aVVC)
     {
         std::vector<cSensorCamPC *> aVecCam = aVPannel;
 
-        if ( mTestAlreadyV)
+        bool  mCamInit = true || mTestAlreadyV;
+        if ( mCamInit)
         {
             aVecCam.clear();
             for (const auto & aPtr : aVPannel)
             {
                 aVecCam.push_back(mPhProj.ReadCamPC(aPtr->NameImage(),DelAuto::No));
+// Position varies
+//  StdOut() << "OOO " << aVecCam.back()->Center()  << " "<< "\n";
             }
         }
 
@@ -355,8 +416,22 @@ int cAppli_CernInitRep::Exe()
             ProcessOneBloc(aVecCam,aKIter);
         }
         DeleteAllAndClear(aVPannel);
-        if (mTestAlreadyV)
+        if (mCamInit)
            DeleteAllAndClear(aVecCam);
+    }
+
+    if (IsInit(&mNameFileSave))
+    {
+         SaveInFile(mResults,mNameFileSave);
+         cStdStatRes aStatH;
+         cStdStatRes aStatG;
+         for (const auto & [anId,aRW] : mResults)
+         {
+             aStatH.Add(aRW.mDistH);
+             aStatG.Add(aRW.mDistG);
+         }
+         StdOut() << "HOR  Avg=" << aStatH.Avg() <<  " ECT=" << aStatH.UBDevStd(-1) << "\n";
+         StdOut() << "3D   Avg=" << aStatG.Avg() <<  " ECT=" << aStatG.UBDevStd(-1) << "\n";
     }
 
     delete mTheBloc;

@@ -217,6 +217,13 @@ bool cDirsPhProj::DirInIsInit() const
 {
     return (mDirIn!= MMVII_NONE)  && mAppli.IsInit(&mDirIn);
 }
+bool cDirsPhProj::DirInIsNONE() const   
+{
+    return  mAppli.IsInit(&mDirIn) && (mDirIn== MMVII_NONE);
+}
+
+
+
 bool cDirsPhProj::DirOutIsInit() const  
 {
     return (mDirOut!= MMVII_NONE) && mAppli.IsInit(&mDirOut);
@@ -305,8 +312,9 @@ cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
     mDPTieP           (eTA2007::TieP,*this),
     mDPMulTieP        (eTA2007::MulTieP,*this),
     mDPMetaData       (eTA2007::MetaData,*this),
+    mDPBlockInstr     (eTA2007::InstrBlock,*this),  
     mDPRigBloc        (eTA2007::RigBlock,*this),  // RIGIDBLOC
-    mDPClinoMeters    (eTA2007::Clino,*this),  // RIGIDBLOC
+    mDPClinoMeters    (eTA2007::Clino,*this),  
     mDPMeasuresClino  (eTA2007::MeasureClino,*this),
     mDPTopoMes        (eTA2007::Topo,*this),  // Topo
     mGlobCalcMTD      (nullptr)
@@ -345,9 +353,10 @@ void cPhotogrammetricProject::FinishInit()
     mDPTieP.Finish();
     mDPMulTieP.Finish();
     mDPMetaData.Finish();
+    mDPBlockInstr.Finish() ; 
     mDPRigBloc.Finish() ; // RIGIDBLOC
-    mDPClinoMeters.Finish() ; // RIGIDBLOC
-    mDPMeasuresClino.Finish() ; // RIGIDBLOC
+    mDPClinoMeters.Finish() ; 
+    mDPMeasuresClino.Finish() ; 
     mDPTopoMes.Finish() ; // TOPO
 
     // Force the creation of directory for metadata spec, make 
@@ -411,9 +420,10 @@ cDirsPhProj &   cPhotogrammetricProject::DPGndPt2D() {return mDPGndPt2D;}
 cDirsPhProj &   cPhotogrammetricProject::DPMetaData() {return mDPMetaData;}
 cDirsPhProj &   cPhotogrammetricProject::DPTieP() {return mDPTieP;}
 cDirsPhProj &   cPhotogrammetricProject::DPMulTieP() {return mDPMulTieP;}
+cDirsPhProj &   cPhotogrammetricProject::DPBlockInstr() {return mDPBlockInstr;} 
 cDirsPhProj &   cPhotogrammetricProject::DPRigBloc() {return mDPRigBloc;} // RIGIDBLOC
-cDirsPhProj &   cPhotogrammetricProject::DPClinoMeters() {return mDPClinoMeters;} // RIGIDBLOC
-cDirsPhProj &   cPhotogrammetricProject::DPMeasuresClino() {return mDPMeasuresClino;} // RIGIDBLOC
+cDirsPhProj &   cPhotogrammetricProject::DPClinoMeters() {return mDPClinoMeters;} 
+cDirsPhProj &   cPhotogrammetricProject::DPMeasuresClino() {return mDPMeasuresClino;} 
 cDirsPhProj &   cPhotogrammetricProject::DPTopoMes() {return mDPTopoMes;} // TOPO
 
 const cDirsPhProj &   cPhotogrammetricProject::DPOrient() const {return mDPOrient;}
@@ -427,6 +437,7 @@ const cDirsPhProj &   cPhotogrammetricProject::DPGndPt2D() const {return mDPGndP
 const cDirsPhProj &   cPhotogrammetricProject::DPMetaData() const {return mDPMetaData;}
 const cDirsPhProj &   cPhotogrammetricProject::DPTieP() const {return mDPTieP;}
 const cDirsPhProj &   cPhotogrammetricProject::DPMulTieP() const {return mDPMulTieP;}
+const cDirsPhProj &   cPhotogrammetricProject::DPBlockInstr() const {return mDPBlockInstr;} 
 const cDirsPhProj &   cPhotogrammetricProject::DPRigBloc() const {return mDPRigBloc;} // RIGIDBLOC
 const cDirsPhProj &   cPhotogrammetricProject::DPClinoMeters() const {return mDPClinoMeters;} // RIGIDBLOC
 const cDirsPhProj &   cPhotogrammetricProject::DPMeasuresClino() const {return mDPMeasuresClino;} // RIGIDBLOC
@@ -666,10 +677,15 @@ void cPhotogrammetricProject::ReadSensor(const std::string  &aNameIm,cSensorImag
 
      if (!SVP)
      {
+         std::string aErrorMessage = "Cannot get sensor for image " + aNameIm;
+         if (mDPOrient.DirInIsInit())
+         {
+             aErrorMessage += " in Ori " + mDPOrient.DirIn();
+         }
          MMVII_UserError
          (
              eTyUEr::eUnClassedError,
-             "Cannot get sensor for image " + aNameIm
+             aErrorMessage
          );
      }
 }
@@ -721,6 +737,9 @@ std::string  cPhotogrammetricProject::FullDirCalibOut() const
 
 cPerspCamIntrCalib *   cPhotogrammetricProject::InternalCalibFromStdName(const std::string aNameIm,bool isRemanent) const
 {
+    if (mDPOrient.DirInIsNONE())
+       return nullptr;
+
     std::string aNameCalib = FullDirCalibIn() + StdNameCalibOfImage(aNameIm) + "." + TaggedNameDefSerial();
     cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::FromFile(aNameCalib,isRemanent);
 
@@ -1131,8 +1150,8 @@ std::string cPhotogrammetricProject::NameFileClino(const std::string &aNameCam,b
 
 void cPhotogrammetricProject::SaveClino(const cCalibSetClino & aCalib) const
 {
-    std::vector<cOneCalibClino> aOneCalibClinoVector = aCalib.mClinosCal;
-    std::string aCameraName = aCalib.mNameCam;
+    std::vector<cOneCalibClino> aOneCalibClinoVector = aCalib.ClinosCal();
+    std::string aCameraName = aCalib.NameCam();
     for (auto aOneCalibClino : aOneCalibClinoVector)
     {
         std::string aClinoName = aOneCalibClino.NameClino();

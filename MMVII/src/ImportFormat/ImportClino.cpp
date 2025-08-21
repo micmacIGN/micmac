@@ -195,6 +195,8 @@ class cAppli_ImportClino : public cMMVII_Appli
 	// Optionall Arg
 	cNRFS_ParamRead            mParamRead;
 	std::vector<cPt2di>        mIndCosCorrec;
+	std::vector<tREAL8>        mFactMult;
+	std::vector<std::string>   mChgId;
 
 
 	//   Format specif
@@ -240,6 +242,9 @@ cCollecSpecArg2007 & cAppli_ImportClino::ArgOpt(cCollecSpecArg2007 & anArgOpt)
     return      anArgOpt
 	     << AOpt2007(mIndCosCorrec,"ICC","Indexes for cosinus corrections")
 	     << AOpt2007(mNbDig,"NbDig","Fix the number of digit for identifier")
+	     << AOpt2007(mFactMult,"FactMult","Multiplier of measures M -> M * (1.0 + Value)")
+	     << AOpt2007(mChgId,"ChgId","Change Id [Pat,Name], for ex \"[0(.*),1\\$1]\"  0017->1017",{{eTA2007::ISizeV,"[2,2]"}})
+
     ;
 }
 
@@ -286,6 +291,8 @@ int cAppli_ImportClino::Exe()
          if (IsInit(&mNbDig))
             aNameIdent = ToFixSize(aNameIdent,mNbDig) ;
 
+         ChgName(mChgId,aNameIdent);
+
 	 if (aNbNameC!=0)
 	 {
 	     for (size_t aKN=0 ; aKN<aNbNameC ; aKN++)
@@ -330,6 +337,13 @@ int cAppli_ImportClino::Exe()
 		 aVAngles.at(aP.x()) = aA1 * std::pow(std::cos(aA2),aExp);
 		 aVAngles.at(aP.y()) = aA2 * std::pow(std::cos(aA1),aExp);
 	     }
+         }
+
+	 if (IsInit(&mFactMult))
+         {
+             MMVII_INTERNAL_ASSERT_User_UndefE(mFactMult.size()==aVAngles.size(),"Size of multiplier != number of clino");
+             for (size_t aK=0 ; aK<aVAngles.size() ; aK++)
+                 aVAngles.at(aK) *= (1.0+mFactMult.at(aK));
          }
 
 	 // create the measure

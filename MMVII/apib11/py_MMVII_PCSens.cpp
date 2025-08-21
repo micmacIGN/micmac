@@ -98,7 +98,7 @@ DOC(MMVII_cPerspCamIntrCalib,RansacPoseEstimSpaceResection) )
 
             .def("infoParam",[](tPCIC &c) {
                 cGetAdrInfoParam<tREAL8> aGAIP(".*",c,true);
-                c.GetAdrInfoParam(aGAIP);
+                c.FillGetAdrInfoParam(aGAIP);
                 auto names  = aGAIP.VNames();
                 auto valptr = aGAIP.VAdrs();
                 py::dict d;
