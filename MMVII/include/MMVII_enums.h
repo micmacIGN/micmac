@@ -84,6 +84,7 @@ enum class eApF
                ImProc,     ///< Image processing
                Radiometry, ///< Radiometric modelization
                SysCo,        ///< Coordinate system
+               BlockInstr, ///< Edit, Calib, block of instrument
                Ori,        ///< Orientation
                Match,      ///< Dense Matching
                GCP,        ///< Ground point processing
@@ -147,6 +148,7 @@ enum class eApDT
               Ori,    ///< Orientation
               PCar,   ///< Tie Points
               TieP,   ///< Tie Points
+              BlockInstr,   ///< Tie Points
               ObjMesInstr,  ///< Ground Points image coords
               ObjCoordWorld,  ///< Ground Points ground coords
               Lines,   ///< Tie Points

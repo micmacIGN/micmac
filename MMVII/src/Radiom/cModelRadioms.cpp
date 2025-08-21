@@ -133,7 +133,7 @@ cRadialCRS::~cRadialCRS()
 
 cRadialCRS * cRadialCRS::FromFile(const std::string & aNameFile)
 {
-   return RemanentObjectFromFile<cRadialCRS,cDataRadialCRS>(aNameFile);
+   return RemanentNewObjectFromFile<cRadialCRS,cDataRadialCRS>(aNameFile);
 }
 
 

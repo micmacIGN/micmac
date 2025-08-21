@@ -253,9 +253,9 @@ cPerspCamIntrCalib * cPerspCamIntrCalib::FromFile(const std::string & aName,bool
 {
     cPerspCamIntrCalib * aCalib = nullptr;
     if (Remanent) 
-       aCalib = RemanentObjectFromFile<cPerspCamIntrCalib,cDataPerspCamIntrCalib>(aName);
+       aCalib = RemanentNewObjectFromFile<cPerspCamIntrCalib,cDataPerspCamIntrCalib>(aName);
     else
-       aCalib =  ObjectFromFile<cPerspCamIntrCalib,cDataPerspCamIntrCalib>(aName);
+       aCalib =  NewObjectFromFile<cPerspCamIntrCalib,cDataPerspCamIntrCalib>(aName);
 
     std::string aNameWithFile = LastPrefix( FileOfPath(aName)) ;
     if (aNameWithFile != aCalib->Name())

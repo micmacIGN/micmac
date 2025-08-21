@@ -22,13 +22,15 @@ namespace MMVII
 class cOneCamInRBoI;            // on cam in a bloc
 class cCamsInRBoI;              // set of cam in a bloc
 class cOneClinoInRBoI;          // one clino in a bloc
-class cClinosInRBoI;          // set of  clino in a bloc
+class cClinosInRBoI;            // set of  clino in a bloc
 class cRigidBlockOfInstrument;  //  bloc of rigid instrument
 class cAppli_EditBlockInstr;    // appli of "edtiting" the bloc, "friend" of some classes
+class   cComputedRBOI;          // RBOI for computation 
+class   cOneTS_CRBOI;           // Data for one time stamp of RBOI
 
 
 /// class for representing a camera embeded in a "Rigid Block of Instrument"
-class cOneCamInRBoI
+class cOneCamInRBoI : public cMemCheck
 {
     public :
         cOneCamInRBoI();  //< required for serialisation 
@@ -37,7 +39,7 @@ class cOneCamInRBoI
 	const std::string & NameCal() const; //< Accessor
 	void AddData(const  cAuxAr2007 & anAux); //< Serializer
     private :
-        std::string   mNameCal;        ///< name of calibration associated to
+        std::string   mNameCal;        ///< "full" name of calibration associated to, like  "CalibIntr_CamNIKON_D5600_Add043_Foc24000"
         std::string   mPatTimeStamp;   //< use to extract time stamp from a name
         bool          mSelIsPat;       ///< indicate if selector is pattern/file
 	std::string   mImSelect;       ///< selector, indicate if an image belongs  to the block
@@ -51,7 +53,7 @@ void AddData(const  cAuxAr2007 & anAux,cOneCamInRBoI & aCam);
 
 
 ///  class for representing one clino embeded in a "Rigid Block of Instrument""
-class cOneClinoInRBoI
+class cOneClinoInRBoI : public cMemCheck
 {
     public :
         cOneClinoInRBoI();  //< required for serialisation
@@ -68,7 +70,7 @@ void AddData(const  cAuxAr2007 & anAux,cOneClinoInRBoI & aClino);
 
 
 ///  class for representing the set of cameras embedded in a bloc
-class cCamsInRBoI
+class cCamsInRBoI : public cMemCheck
 {
      public :
          friend cAppli_EditBlockInstr;
@@ -84,14 +86,14 @@ class cCamsInRBoI
                    const std::string & aPatImSel,
                    bool SVP=false
               );
-         cOneCamInRBoI * CamFromName(const std::string& aName);
+         cOneCamInRBoI * CamFromName(const std::string& aName,bool SVP=false);
 
 	 std::vector<cOneCamInRBoI>  mVCams;          //< set of cameras
 };
 void AddData(const  cAuxAr2007 & anAux,cCamsInRBoI & aCam);
 
 ///  class for representing a set of clino
-class cClinosInRBoI
+class cClinosInRBoI : public cMemCheck
 {
      public :
          friend cAppli_EditBlockInstr;
@@ -106,12 +108,12 @@ class cClinosInRBoI
 };
 
 
-///  class for representing all the instruments possibly used 
-class cRigidBlockOfInstrument
+///  class for representing  the structure/calibration of instruments possibly used 
+class cRigidBlockOfInstrument : public cMemCheck
 {
      public :
 	static const std::string  theDefaultName;  /// in most application there is only one block
-        cRigidBlockOfInstrument(const std::string& aName);
+        cRigidBlockOfInstrument(const std::string& aName=MMVII_NONE);
 	void AddData(const  cAuxAr2007 & anAux);
 
 	cCamsInRBoI &   SetCams() ;            //< Accessors
@@ -123,6 +125,52 @@ class cRigidBlockOfInstrument
         cClinosInRBoI            mSetClinos;  //<  Clinos used in the bloc
 };
 void AddData(const  cAuxAr2007 & anAux,cRigidBlockOfInstrument & aRBoI);
+
+///  class for storing one time stamp in cComputedRBOI
+
+class   cOneTS_CRBOI : public cMemCheck
+{
+    public :
+    private :
+};
+
+///  class for using a rigid bloc in computation (calibration/compensation)
+class   cComputedRBOI : public cMemCheck
+{
+    public :
+       cComputedRBOI(const cRigidBlockOfInstrument &) ;
+       cComputedRBOI(const std::string & aNameFile);
+       cComputedRBOI(const cPhotogrammetricProject& ,const std::string & aNameBloc);
+
+       void AddCamera(const std::string & );
+
+    private :
+         cComputedRBOI(const cComputedRBOI & ) = delete;
+
+         cOneTS_CRBOI &  DataOfTimeS();
+
+         cRigidBlockOfInstrument             mRBOI;
+         const cPhotogrammetricProject *     mPhProj;
+         std::map<std::string,cOneTS_CRBOI>  mDataTS;
+};
+
+cComputedRBOI::cComputedRBOI(const cRigidBlockOfInstrument & aRBOI) :
+   mRBOI   (aRBOI),
+   mPhProj (nullptr)
+{
+}
+
+cComputedRBOI::cComputedRBOI(const std::string & aNameFile) :
+    cComputedRBOI(SimpleCopyObjectFromFile<cRigidBlockOfInstrument>(aNameFile))
+{
+}
+
+cComputedRBOI::cComputedRBOI(const cPhotogrammetricProject& aPhProj,const std::string & aNameBloc) :
+    cComputedRBOI  (aPhProj.NameRigBoI(aNameBloc,true))
+{
+    mPhProj   = &aPhProj;
+}
+
 
 /* *************************************************************** */
 /*                                                                 */
@@ -184,8 +232,9 @@ void cCamsInRBoI::AddCam
 	 bool SVP
      )
 {
-   cOneCamInRBoI * aCam = CamFromName(aNameCalib);
+   cOneCamInRBoI * aCam = CamFromName(aNameCalib,SVP::Yes);
    cOneCamInRBoI aNewCam (aNameCalib,aTimeStamp,aPatImSel);
+   // in case already exist, we may ovewrite (multiple edit)
    if (aCam)
    {
        MMVII_INTERNAL_ASSERT_strong(SVP,"cRigidBlockOfInstrument::AddCam, cal already exist for " + aNameCalib);
@@ -197,11 +246,12 @@ void cCamsInRBoI::AddCam
    }
 }
 
-cOneCamInRBoI * cCamsInRBoI::CamFromName(const std::string& aName)
+cOneCamInRBoI * cCamsInRBoI::CamFromName(const std::string& aName,bool SVP)
 {
     for (auto&  aCam : mVCams)
         if (aCam.NameCal() == aName)
            return & aCam;
+    MMVII_INTERNAL_ASSERT_strong(SVP,"Cannot get calib for camera " + aName);
     return nullptr;
 }
 
@@ -323,7 +373,7 @@ cClinosInRBoI &  cRigidBlockOfInstrument::SetClinos() {return mSetClinos;}
 
 /* *************************************************************** */
 /*                                                                 */
-/*                        cRigidBlockOfInstrument                  */
+/*                        cAppli_EditBlockInstr                    */
 /*                                                                 */
 /* *************************************************************** */
 
@@ -333,10 +383,10 @@ class cAppli_EditBlockInstr : public cMMVII_Appli
 
         cAppli_EditBlockInstr(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli &);
         int Exe() override;
-         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
-         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
 
-        // std::vector<std::string>  Samples() const override;
+        std::vector<std::string>  Samples() const ;
 
      private :
         cPhotogrammetricProject   mPhProj;
@@ -351,6 +401,17 @@ cAppli_EditBlockInstr::cAppli_EditBlockInstr(const std::vector<std::string> &  a
 {
 }
 
+
+std::vector<std::string>  cAppli_EditBlockInstr::Samples() const 
+{
+   return 
+   {
+       "MMVII EditBlockInstr Bl0  PatsIm4Cam='[.*_(.*).tif]' InMeasureClino=MesClin_043",
+       "MMVII EditBlockInstr Bl0  PatsIm4Cam='[.*tif,.*_(.*).tif,Fils-100.xml]' InMeasureClino=MesClin_043"
+   };
+}
+
+
 cCollecSpecArg2007 & cAppli_EditBlockInstr::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
      return anArgObl
@@ -363,7 +424,7 @@ cCollecSpecArg2007 & cAppli_EditBlockInstr::ArgOpt(cCollecSpecArg2007 & anArgOpt
 {
 	return anArgOpt
             << AOpt2007(mNameBloc,"NameBloc","Set the name of the bloc ",{{eTA2007::HDV}})
-            << AOpt2007(mVPatsIm4Cam,"PatsIm4Cam","Pattern images []",{{eTA2007::ISizeV,"[1,3]"}})
+            << AOpt2007(mVPatsIm4Cam,"PatsIm4Cam","Pattern images [PatSelOnDisk,PatTimeStamp?,PatSelInBlock?]",{{eTA2007::ISizeV,"[1,3]"}})
             << mPhProj.DPBlockInstr().ArgDirOutOpt()
             << mPhProj.DPMeasuresClino().ArgDirInOpt()
         ;
@@ -421,12 +482,99 @@ tMMVII_UnikPApli Alloc_EditBlockInstr(const std::vector<std::string> & aVArgs,co
 
 cSpecMMVII_Appli  TheSpec_EditBlockInstr
 (
-     "EditBlockInstr",
+     "BlockInstrEdit",
       Alloc_EditBlockInstr,
       "Create/Edit a block of instruments",
-      {eApF::Project},
-      {eApDT::Xml},
-      {eApDT::Xml},
+      {eApF::BlockInstr},
+      {eApDT::BlockInstr},
+      {eApDT::BlockInstr},
+      __FILE__
+);
+
+/* *************************************************************** */
+/*                                                                 */
+/*               cAppli_BlockInstrInitCam                          */
+/*                                                                 */
+/* *************************************************************** */
+
+class cAppli_BlockInstrInitCam : public cMMVII_Appli
+{
+     public :
+
+        cAppli_BlockInstrInitCam(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli &);
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
+        int Exe() override;
+        // std::vector<std::string>  Samples() const ;
+
+     private :
+        cPhotogrammetricProject   mPhProj;
+        std::string               mSpecImIn;
+        cComputedRBOI *           mCRBOI;
+        std::string               mNameBloc;
+};
+
+
+cAppli_BlockInstrInitCam::cAppli_BlockInstrInitCam(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec) :
+    cMMVII_Appli (aVArgs,aSpec),
+    mPhProj      (*this),
+    mCRBOI       (nullptr),
+    mNameBloc    (cRigidBlockOfInstrument::theDefaultName)
+{
+}
+
+cCollecSpecArg2007 & cAppli_BlockInstrInitCam::ArgObl(cCollecSpecArg2007 & anArgObl) 
+{
+     return anArgObl
+             <<  Arg2007(mSpecImIn,"Pattern/file for images", {{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}}  )
+             <<  mPhProj.DPBlockInstr().ArgDirInMand()
+     ;
+}
+
+cCollecSpecArg2007 & cAppli_BlockInstrInitCam::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+	return anArgOpt
+            << AOpt2007(mNameBloc,"NameBloc","Name of bloc to calib ",{{eTA2007::HDV}})
+        ;
+}
+
+int cAppli_BlockInstrInitCam::Exe()
+{
+    mPhProj.FinishInit();
+
+    mCRBOI = new cComputedRBOI(mPhProj,mNameBloc);
+
+    for (const auto & aNameIm :  VectMainSet(0))
+    {
+       StdOut() << " NameIm= " << aNameIm << "\n";
+    }
+
+
+
+    delete mCRBOI;
+    return EXIT_SUCCESS;
+}
+
+    /* ==================================================== */
+    /*                                                      */
+    /*               MMVII                                  */
+    /*                                                      */
+    /* ==================================================== */
+
+
+tMMVII_UnikPApli Alloc_BlockInstrInitCam(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
+{
+   return tMMVII_UnikPApli(new cAppli_BlockInstrInitCam(aVArgs,aSpec));
+}
+
+cSpecMMVII_Appli  TheSpec_BlockInstrInitCam
+(
+     "BlockInstrInitCam",
+      Alloc_BlockInstrInitCam,
+      "Init  camera poses inside a block of instrument",
+      {eApF::BlockInstr,eApF::Ori},
+      {eApDT::BlockInstr,eApDT::Ori},
+      {eApDT::BlockInstr},
       __FILE__
 );
 
@@ -435,6 +583,9 @@ cSpecMMVII_Appli  TheSpec_EditBlockInstr
 /*               cPhotogrammetricProject                           */
 /*                                                                 */
 /* *************************************************************** */
+
+
+
 // cRigidBlockOfInstrument  ReadRigBoI(const std::string &) const;
 
 std::string   cPhotogrammetricProject::NameRigBoI(const std::string & aName,bool isIn) const

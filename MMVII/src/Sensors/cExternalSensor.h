@@ -49,7 +49,7 @@ template <class TypeSens>
       return nullptr;
 
    // -1-   Create the object
-   TypeSens * aResult = SimpleRemanentObjectFromFile<TypeSens>(aNameFile,&AlreadyExist);
+   TypeSens * aResult = SimpleRemanentNewObjectFromFile<TypeSens>(aNameFile,&AlreadyExist);
    // -2-   Reset (for name image)
    aResult->SetNameImage(aNameImage);
 
