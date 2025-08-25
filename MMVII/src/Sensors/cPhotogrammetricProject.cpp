@@ -638,6 +638,25 @@ cSensorCamPC * cPhotogrammetricProject::ReadCamPC(const std::string & aNameIm,bo
     return ReadCamPC(mDPOrient,aNameIm,ToDeleteAutom,SVP);
 }
 
+tPoseR cPhotogrammetricProject::ReadPoseCamPC(const std::string & aNameIm,bool * IsOk) const
+{
+    cSensorCamPC * aCamPC = ReadCamPC(aNameIm,DelAuto::Yes,SVP::Yes);
+
+    if (IsOk)
+    {
+       *IsOk = aCamPC!=nullptr;
+       if (!*IsOk)
+          return tPoseR::RandomIsom3D(10);
+     }
+    else 
+    {
+        MMVII_INTERNAL_ASSERT_strong(aCamPC!=nullptr,"Cannot ReadPoseCamPC");
+    }
+    
+    return aCamPC->Pose();
+}
+
+
 cSensorImage* cPhotogrammetricProject::ReadSensor(const std::string  &aNameIm,bool ToDeleteAutom,bool SVP) const
 {
      cSensorImage*   aSI;

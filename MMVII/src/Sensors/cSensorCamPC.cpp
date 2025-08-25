@@ -378,7 +378,9 @@ cPoseWithUK & cSensorCamPC::Pose_WU() {return mPose_WU;}
 
 cIsometry3D<tREAL8>  cSensorCamPC::RelativePose(const cSensorCamPC& aCam2) const
 {
-	return Pose().MapInverse()*aCam2.Pose();
+    //  (A->W)-1 (B->W)(B) = (A->W)-1 (W) = A
+    //  (A->W) -1 (B->W)  = (B->A) 
+    return Pose().MapInverse()*aCam2.Pose();
 }
 
 

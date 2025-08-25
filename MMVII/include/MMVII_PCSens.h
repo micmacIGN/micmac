@@ -553,7 +553,7 @@ class cSensorCamPC : public cSensorImage
 	 /// compute the pixel distance  between  PIm and aSeg3
 	 tREAL8  PixDistBundleSeg(const cPt2dr & aPIm,const cSegmentCompiled<tREAL8,3>  & aSeg3) const;
 
-	 /// return the pose of aCam2 relatively to Cam1
+	 /// return the pose of aCam2 relatively to Cam1;  Pose().MapInverse()*aCam2.Pose();
 	 tPose RelativePose(const cSensorCamPC& aCame) const;
 
 
@@ -600,7 +600,7 @@ class cSensorCamPC : public cSensorImage
 
          static void BenchOneCalib(cPerspCamIntrCalib * aCalib);
 
-	 cPt3dr  Pt_L2W(const cPt3dr &) const;  ///< Coordinat local of cam to coordinate word for a "point"
+	 cPt3dr  Pt_L2W(const cPt3dr &) const;  ///< Coordinat local of cam to coordinate word for a "point" : Pose().Value(aP)
 	 cPt3dr  Pt_W2L(const cPt3dr &) const;  ///< Coordinat word to coordinate local of cam for a "point"
 	 cPt3dr  Vec_L2W(const cPt3dr &) const;  ///< Coordinat local of cam to coordinate word for a "vector"
 	 cPt3dr  Vec_W2L(const cPt3dr &) const;  ///< Coordinat word to coordinate local of cam for a "vector"
