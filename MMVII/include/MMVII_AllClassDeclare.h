@@ -329,7 +329,20 @@ class cOneMesureClino;
 class cSetMeasureClino;
 
 // New Block of Rigid instrument
-class cIrbCal_Block;
+class cIrbCal_Cam1;      // one cam in a calib-bloc
+class cIrbCal_CamSet;    // set of cam in a calib-bloc
+class cIrbCal_Clino1;    // one clino in a calib-bloc
+class cIrbCal_ClinoSet;  // set of  clino in a calib-bloc
+class cIrbCal_Block;     // calib bloc of rigid instrument
+
+class cIrb_SigmaPoseRel;   // "helper" class for storing  sigmas of rel poses
+class cIrbComp_Cam1;     // one cam in a compute-bloc
+class cIrbComp_CamSet;   // set of cam in a compute-bloc
+class cIrbComp_TimeS;    // time-stamp for a compute bloc
+class cIrbComp_Block;    // compute bloc of rigid instrument
+
+class cAppli_EditBlockInstr;    // appli of "edtiting" the bloc, "friend" of some classes
+class cAppli_BlockInstrInitCam; // appli for computing initial value of poses in block
 
 
 //   sys co
