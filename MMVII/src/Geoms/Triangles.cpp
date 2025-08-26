@@ -487,7 +487,7 @@ template <class Type,const int Dim> cPtxd<Type,Dim> & cTriangulation<Type,Dim>::
 
 template <class Type,const int Dim> bool cTriangulation<Type,Dim>::HasPtAttribute() const { return mVPtsAttribute.size()==mVPts.size(); }
 
-template <class Type,const int Dim> float cTriangulation<Type,Dim>::getPtAttribute(size_t aK) const
+template <class Type,const int Dim> float cTriangulation<Type,Dim>::KthPtsPtAttribute(size_t aK) const
 {
     MMVII_INTERNAL_ASSERT_tiny(mVPtsAttribute.size()==mVPts.size(),"Points attribures not present");
     return mVPtsAttribute.at(aK);

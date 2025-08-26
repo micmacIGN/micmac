@@ -135,7 +135,7 @@ template <class Type,const int Dim> class cTriangulation
 	  const tPt  & KthPts(size_t aK) const;  ///< Points number K
 	  tPt  & KthPts(size_t aK) ;  ///< Points number K
           bool HasPtAttribute() const;
-          float getPtAttribute(size_t aK) const;
+          float KthPtsPtAttribute(size_t aK) const;
 
           tTri  KthTri(int aK) const;  ///< Triangle corresponding to the face
 	  bool  ValidFace(const tFace &) const;  ///< is it a valide face (i.e. : all index in [0,NbPts[)
