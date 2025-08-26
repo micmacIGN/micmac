@@ -2103,6 +2103,17 @@ template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & a
 	  this->AddFace(cPt3di(aFace[0],aFace[1],aFace[2]));
       }
   }
+
+  // try to fill points attribute with any "i", "I" or "*intens*" property
+  auto aVertProps = aPlyF.getElement("vertex").getPropertyNames();
+  auto aPropIntensityName = std::find_if(aVertProps.begin(), aVertProps.end(), [](const std::string &s){
+             return (ToLower(s)=="i") || (ToLower(s).find("intens") != std::string::npos);
+          });
+  if (aPropIntensityName!= aVertProps.end())
+  {
+    this->mVPtsAttribute = aPlyF.getElement("vertex").getProperty<float>(*aPropIntensityName);
+  }
+
  }
  catch (const std::runtime_error &e)
  {
