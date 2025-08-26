@@ -11,18 +11,17 @@
 \subsection{Scope}
 
 This chapter describe some draft idea for registration  between a Lidar
-acquisition and image acquisition.  It describe not only the theory and equations,
-but also some consideration about how concretely integrate it in \PPP.
+acquisition and image acquisition.  It describes not only the theory and equations,
+but also some consideration about how to integrate it in \PPP.
 
-The theoreticall hypothesis are :
+The theoretical hypothesis are:
 
 \begin{itemize}
-   \item  the lidar is the reference (it will not move) and that's the images localisation parameters
-          we will  modify ; doing it in the reverse way would require
+   \item  the lidar is the reference (it will not move) and that's the images localisation parameters that will be modified; doing it in the reverse way would require
           a model of Lidar transformation, which is not obvious;
 
    \item  the images are already roughly registered, and what we want to do is a fine 
-          registration (whatever it means, probably between $1$ and $10$ pixels, to see) ;
+          registration (whatever it means, probably between $1$ and $10$ pixels, to see;
  
    \item  we work with vertical images (aerial or satellite),  the approach
           may be extended to terrestrial images, with few or no modification, but that's not our concern for now.
@@ -56,8 +55,8 @@ integrate.
 
 So the equation for similarity measurement will be considered as measures among others that will have
 to be integrated in MMVII bundle adjustement. Part of this chapter will focus on this aspect,
-mainly from practicle aspect, but also from theoreticall aspects (the classical question
-of mixing equation of different nature).
+mainly from practical aspect, but also from theoretical aspects (the classical question
+of mixing equations of different nature).
 
 %-----------------------------------------------------------------------
 

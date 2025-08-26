@@ -122,11 +122,13 @@ cMMVII_BundleAdj::~cMMVII_BundleAdj()
     DeleteAllAndClear(mVBA_Lidar);
 }
 
-void cMMVII_BundleAdj::ShowUKNames(const std::vector<std::string> & aParam,cMMVII_Appli * anAppli) 
+void cMMVII_BundleAdj::ShowUKNames(const std::vector<std::string> & aParam, const std::string &aSuffix, cMMVII_Appli * anAppli)
 {
      // StdOut() << "=================== ShowUKNamesShowUKNames "<< aParam << " ===============\n";
      cDenseVect<tREAL8>   aVUk = mSetIntervUK.GetVUnKnowns() ;
      std::string aIdCSV = "BundleUK";
+     if (!aSuffix.empty())
+         aIdCSV += "_" + aSuffix;
      if (anAppli)
         anAppli->InitReportCSV(aIdCSV,"csv",false,{"Type","Group","Var","Value","Uncert"});
         // void  InitReportCSV(const std::string &anId,const std::string & aPostfix,bool IsMul,const std::vector<std::string> & aHeader={});
@@ -248,7 +250,7 @@ void cMMVII_BundleAdj::InitIteration()
 }
 
 
-void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter)
+void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter, bool doShowCond)
 {
     // if it's first step, alloc ressources
     if (mPhaseAdd)
@@ -275,26 +277,34 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter)
     if (mPatFrozenCenter !="")
     {
         tNameSelector aSel =   AllocRegex(mPatFrozenCenter);
+        int nbMatches = 0;
         for (const auto & aPtrCam : mVSCPC)
         {
             if ((aPtrCam != nullptr)  && aSel.Match(aPtrCam->NameImage()))
-	    {
-                 mR8_Sys->SetFrozenVarCurVal(*aPtrCam,aPtrCam->Center());
-	    }
+            {
+                mR8_Sys->SetFrozenVarCurVal(*aPtrCam,aPtrCam->Center());
+                nbMatches++;
+            }
         }
+        if (mVerbose)
+            StdOut() << "Frozen centers: " << nbMatches << ".\n";
     }
    
     // if necessary, fix frozen orientation of external calibration
     if (mPatFrozenOrient !="")
     {
         tNameSelector aSel =   AllocRegex(mPatFrozenOrient);
+        int nbMatches = 0;
         for (const auto & aPtrCam : mVSCPC)
         {
             if ((aPtrCam != nullptr)  && aSel.Match(aPtrCam->NameImage()))
-	    {
-                 mR8_Sys->SetFrozenVarCurVal(*aPtrCam,aPtrCam->Omega());
-	    }
+            {
+                mR8_Sys->SetFrozenVarCurVal(*aPtrCam,aPtrCam->Omega());
+                nbMatches++;
+            }
         }
+        if (mVerbose)
+            StdOut() << "Frozen orients: " << nbMatches << ".\n";
     }
 
     if (mPatFrozenClinos != "" && mBlClino)
@@ -368,7 +378,7 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter)
         mRUCSUR = new cResult_UC_SUR<tREAL8>(false,false,mIndCompUC);
     }
 
-    const auto & aVectSol = mR8_Sys->SolveUpdateReset(aLVM,{},{mRUCSUR});
+    const auto & aVectSol = mR8_Sys->SolveUpdateReset(aLVM,{},{mRUCSUR},doShowCond);
     mSetIntervUK.SetVUnKnowns(aVectSol);
 
     mNbIter++;
@@ -677,9 +687,7 @@ void cMMVII_BundleAdj::AddConstrainteRefPose(cSensorCamPC & aCam,cSensorCamPC & 
         return;
      // mR8_Sys
      if (mSigmaTrRefCam > 0)
-     {
         mR8_Sys->AddEqFixNewVal(aCam,aCam.Center(),aCamRef.Center(),Square(1/mSigmaTrRefCam));
-     }
      
      if (mSigmaRotRefCam>0)
      {

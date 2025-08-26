@@ -696,10 +696,15 @@ void cPhotogrammetricProject::ReadSensor(const std::string  &aNameIm,cSensorImag
 
      if (!SVP)
      {
+         std::string aErrorMessage = "Cannot get sensor for image " + aNameIm;
+         if (mDPOrient.DirInIsInit())
+         {
+             aErrorMessage += " in Ori " + mDPOrient.DirIn();
+         }
          MMVII_UserError
          (
              eTyUEr::eUnClassedError,
-             "Cannot get sensor for image " + aNameIm
+             aErrorMessage
          );
      }
 }

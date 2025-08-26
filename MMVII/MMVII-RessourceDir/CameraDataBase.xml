@@ -58,7 +58,24 @@
                <NbPixels> 5023   5023</NbPixels>
             </V>
          </Pair>
-
+         <Pair>
+            <K>"Blender1k"</K>
+            <V>
+               <Name>"Blender1k"</Name>
+               <SzPix_micron> 35 35 </SzPix_micron>
+               <SzSensor_mm> 36  36 </SzSensor_mm>
+               <NbPixels> 1024   1024</NbPixels>
+            </V>
+         </Pair>
+         <Pair>
+            <K>"C89RA"</K>
+            <V>
+               <Name>"C89RA"</Name>
+               <SzPix_micron> 2.4 2.4 </SzPix_micron>
+               <SzSensor_mm> 13.13  8.75 </SzSensor_mm>
+               <NbPixels> 5472   3648</NbPixels>
+            </V>
+         </Pair>
       </CamDataBase>
    </Data>
 </Root>

@@ -97,7 +97,7 @@ class cAppliBundlAdj : public cMMVII_Appli
         tREAL8                    mLVM;  ///< Levenberk Markard
         bool                      mMeasureAdded ;
         std::vector<std::string>  mVSharedIP;  ///< Vector for shared intrinsic param
-
+        bool                      mShow_Cond; ///< compute and show system condition number
         std::vector<std::string>  mParamShow_UK_UC;
         std::string               mPostFixReport;
 };
@@ -156,9 +156,10 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mBRSigma_Rat,"BRW_Rat","Rattachment fo Bloc Rigid Weighting [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})  // RIGIDBLOC
       << mPhProj.DPMeasuresClino().ArgDirInOpt()
 
-      << AOpt2007(mParamRefOri,"RefOri","Reference orientation [Ori,SimgaTr,SigmaRot?,PatApply?]",{{eTA2007::ISizeV,"[2,4]"}})  
-      << AOpt2007(mVSharedIP,"SharedIP","Shared intrinc parmaters [Pat1Cam,Pat1Par,Pat2Cam...] ",{{eTA2007::ISizeV,"[2,20]"}})    
+      << AOpt2007(mParamRefOri,"RefOri","Reference orientation [Ori,SimgaTr,SigmaRot?,PatApply?]",{{eTA2007::ISizeV,"[2,4]"}})
+      << AOpt2007(mVSharedIP,"SharedIP","Shared intrinc parmaters [Pat1Cam,Pat1Par,Pat2Cam...] ",{{eTA2007::ISizeV,"[2,20]"}})
 
+      << AOpt2007(mShow_Cond,"Cond","Compute and show system condition number")
       << AOpt2007(mParamShow_UK_UC,"UC_UK","Param for uncertainty & Show names of unknowns (tuning)")
       << AOpt2007(mPostFixReport,NameParamPostFixReport(),CommentParamPostFixReport())
     ;
@@ -344,7 +345,7 @@ int cAppliBundlAdj::Exe()
     for (int aKIter=0 ; aKIter<mNbIter ; aKIter++)
     {
         bool isLastIter =  (aKIter==(mNbIter-1)) ;
-        mBA.OneIteration(mLVM,isLastIter);
+        mBA.OneIteration(mLVM,isLastIter,mShow_Cond);
     }
 
     //   ========== [3]   Save resulst =============================
@@ -364,7 +365,7 @@ int cAppliBundlAdj::Exe()
 
     if (IsInit(&mParamShow_UK_UC))
     {
-        mBA.ShowUKNames(mParamShow_UK_UC,this);
+        mBA.ShowUKNames(mParamShow_UK_UC,mPostFixReport,this);
     }
 
     return EXIT_SUCCESS;

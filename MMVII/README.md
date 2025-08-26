@@ -249,6 +249,12 @@ The latest version of the documentation can be downloaded directly **[HERE](http
 # License
 This project is licensed under the **CECILL-B** License - see the **[LICENSE.md](LICENSE.md)** file for details.
 
+MMVII sources includes codes from:
+
+ - hapPLY: Copyright (c) 2018 Nick Sharp, MIT licence, https://github.com/nmwsharp/happly
+ - Delaunay/delaunator: Copyright (c) 2018 Volodymyr Bilonenko, MIT Licence
+ - Eigen: Copyright (C) 2008 Gael Guennebaud, Mozilla Public License, https://eigen.tuxfamily.org
+
 # Useful links
 * [MMVII Documentation](https://github.com/micmacIGN/micmac/releases/tag/MMVII_Documentation)
 * [MMVII Programming Session 22-24 Nov 2023](https://www.youtube.com/playlist?list=PLO_lg_3H3aFuMamUsImMzNGPwfkAZge5m)

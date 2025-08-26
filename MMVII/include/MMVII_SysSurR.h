@@ -308,7 +308,7 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
               Generally, IF we use tVPtr_SUR , we will have a single value, but for bench its
               convenient to have several values
            */
-          const tDVect  &    SolveUpdateReset(const Type & aLVM =0.0,tVPtr_SUR AfterCstr = {},tVPtr_SUR AfterLVM = {}) ;
+          const tDVect  &    SolveUpdateReset(const Type & aLVM =0.0,tVPtr_SUR AfterCstr = {},tVPtr_SUR AfterLVM = {}, bool calcCond=false) ;
 
 
 	  cREAL8_RSNL::tDVect      R_SolveUpdateReset(const tREAL8& = 0.0) override ;
@@ -372,7 +372,9 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
 	   void  SetUnFrozenVar(tObjWUk & anObj,const  Type & aVal); ///< Unfreeze the value, that must belong to anObj
 
 	   int   GetNbObs() const;                    ///< get number of observations (last iteration if after reset, or current number if after AddObs)
-	   int   GetCurNbObs() const;      ///< get number of observations 
+	   int   GetCurNbObs() const;      ///< get number of observations
+
+          Type GetCond() const;      ///< get system condition number
 
           void  AddConstr(const tSVect & aVect,const Type & aCste,bool OnlyIfFirstIter=true);
           void SupressAllConstr();

@@ -635,6 +635,9 @@ template<class Type> cDenseVect<Type> cSparseLeasSqtAA<Type>::SpecificSolve()
 {
    std::vector<cEigenTriplet<Type> > aVCoeff;            // list of non-zeros coefficients
    PutInTriplet(aVCoeff);
+   cDenseMatrix<Type> aDenseM = V_tAA();
+   cResulSymEigenValue<Type> aEig = aDenseM.SymEigenValue();
+
    return EigenSolveCholeskyarseFromV3(aVCoeff,mtARhs);
 }
 

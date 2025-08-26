@@ -3,6 +3,10 @@
 #include "MMVII_MeasuresIm.h"
 #include "src/BundleAdjustment/BundleAdjustment.h"
 
+using namespace std::literals;
+using namespace pybind11::literals;
+
+
 using namespace MMVII;
 
 
@@ -28,7 +32,7 @@ void pyb_init_MeasuresIm(py::module_ &m) {
             .def(py::init<>(),DOC(MMVII_cSetMesPtOf1Im,cSetMesPtOf1Im))
             .def(py::init<const std::string &>(),DOC(MMVII_cSetMesPtOf1Im,cSetMesPtOf1Im))
             .def_static("fromFile", &cSetMesPtOf1Im::FromFile,DOC(MMVII_cSetMesPtOf1Im,FromFile))
-            .def("AddMeasure", &cSetMesPtOf1Im::AddMeasure,DOC(MMVII_cSetMesPtOf1Im,AddMeasure))
+            .def("AddMeasure", [](cSetMesPtOf1Im &self, const cMesIm1Pt &aMeasure) { self.AddMeasure(aMeasure, nullptr); }, "aMeasure"_a, DOC(MMVII_cSetMesPtOf1Im,AddMeasure))
             .def("toFile", py::overload_cast<const std::string &>(&cSetMesPtOf1Im::ToFile, py::const_),DOC(MMVII_cSetMesPtOf1Im,ToFile))
             .def("nameIm", &cSetMesPtOf1Im::NameIm,DOC(MMVII_cSetMesPtOf1Im,NameIm))
             .def("stdNameFile", &cSetMesPtOf1Im::StdNameFile,DOC(MMVII_cSetMesPtOf1Im,StdNameFile))
@@ -108,7 +112,7 @@ void pyb_init_MeasuresIm(py::module_ &m) {
             .def(py::init<const cPt2dr &,const cPt3dr &>(),DOC(MMVII_cWeightedPair2D3D,cWeightedPair2D3D))
 
             .def_readwrite("weight", &cPair2D3D::mP3,DOC(MMVII_cPair2D3D,mP3))
- 
+
             .def("__repr__",
                  [](const cPair2D3D &m) {
                    std::ostringstream ss;
@@ -122,12 +126,11 @@ void pyb_init_MeasuresIm(py::module_ &m) {
 
 
     py::class_<cSet2D3D>(m, "Set2D3D", DOC(MMVII_cSet2D3D))
-	    .def(py::init<>(),DOC(MMVII_cSet2D3D)) 
+            .def(py::init<>(),DOC(MMVII_cSet2D3D)) 
             .def("nbPair", &cSet2D3D::NbPair,DOC(MMVII_cSet2D3D,NbPair))
             .def("addPair", py::overload_cast<const cPt2dr&,const cPt3dr&,double>(&cSet2D3D::AddPair), DOC(MMVII_cSet2D3D,AddPair))
             ;
 
-	    
 
     py::class_<cSetMesGndPt>(m, "SetMesImGCP", DOC(MMVII_cSetMesGndPt))
             .def(py::init<>(),DOC(MMVII_cSetMesGndPt,cSetMesGndPt))
@@ -138,7 +141,7 @@ void pyb_init_MeasuresIm(py::module_ &m) {
 //          .def("mesGCP", &cSetMesGndPt::MesGCP, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesGndPt,MesGCP))
             .def("mesImOfPt", &cSetMesGndPt::MesImOfPt, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesGndPt,MesImOfPt))
             .def("mesImInitOfName", &cSetMesGndPt::MesImInitOfName, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesGndPt,MesImInitOfName))
-	    .def("mesGCPOfName", py::overload_cast<const std::string&>(&cSetMesGndPt::MesGCPOfName, py::const_),DOC(MMVII_cSetMesGndPt,MesGCPOfName))
+            .def("mesGCPOfName", py::overload_cast<const std::string&>(&cSetMesGndPt::MesGCPOfName, py::const_),DOC(MMVII_cSetMesGndPt,MesGCPOfName))
 
   /*          //.def("vSens", &cSetMesGndPt::VSens, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesGndPt,VSens)) //cSensorImage not defined in api
 */

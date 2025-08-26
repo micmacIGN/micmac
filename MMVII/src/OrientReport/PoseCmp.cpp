@@ -97,8 +97,10 @@ int cAppli_PoseCmp::Exe()
    for (size_t aK=0 ; aK<mSetNames.size() ; aK++)
    {
         std::string aName = mSetNames[aK];
-        cSensorCamPC * aCam1 = mPhProj.ReadCamPC(aName,true);
-        cSensorCamPC * aCam2 = mPhProj.ReadCamPC(aDirOri2,aName,true);
+        cSensorCamPC * aCam1 = mPhProj.ReadCamPC(aName,true,SVP::Yes);
+        cSensorCamPC * aCam2 = mPhProj.ReadCamPC(aDirOri2,aName,true,SVP::Yes);
+        if (!aCam1 || !aCam2)
+            continue;
 
 	aVCam1.push_back(aCam1);
 	aVCam2.push_back(aCam2);

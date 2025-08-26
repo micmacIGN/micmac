@@ -1848,16 +1848,20 @@ private:
         string line;
         std::getline(inStream, line);
 
+        //begin MMVII fixes --------------------
+
         // Some .ply files seem to include empty lines before the start of property data (though this is not specified
         // in the format description). We attempt to recover and parse such files by skipping any empty lines.
         if (!elem.properties.empty()) { // if the element has no properties, the line _should_ be blank, presumably
-          while (line.empty()) { // skip lines until we hit something nonempty
+          while (inStream.good() && line.empty()) { // skip lines until we hit something nonempty
             std::getline(inStream, line);
           }
         }
-
+        if (line.empty()) {
+            throw std::runtime_error("did not find enough elements type "+elem.name);
+        }
         vector<string> tokens = tokenSplit(line);
-	if (tokens.size()%elem.properties.size()) // Check entries are not splited in lines, case not handled
+        if (tokens.size()%elem.properties.size()) // Check entries are not splited in lines, case not handled
         {
             throw std::runtime_error("line should contain multiple number of token");
         }
@@ -1873,6 +1877,7 @@ private:
                elem.properties[iP]->parseNext(tokens, iTok);
            }
 	}
+        //end MMVII fixes --------------------
       }
     }
   }
@@ -2036,6 +2041,8 @@ using  namespace happly;
 
 template <class Type> void cTriangulation3D<Type>::PlyWrite (const std::string & aNameFile,bool isBinary) const
 {
+  try
+  {
    PLYData aPlyOut;
    //  convert Pts to array
    std::vector<std::array<double, 3>> aPlyPts;
@@ -2063,12 +2070,19 @@ template <class Type> void cTriangulation3D<Type>::PlyWrite (const std::string &
    // Write data
 
    aPlyOut.write(aNameFile,  (isBinary?happly::DataFormat::Binary:happly::DataFormat::ASCII));
+  }
+  catch (const std::runtime_error &e)
+  {
+      MMVII_UserError(eTyUEr::eReadFile, std::string("Error writing PLY file \"") + aNameFile + "\": " + e.what());
+  }
 }
 
 template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & aNameFile)
 {
+ try
+ {
   PLYData  aPlyF(aNameFile,false);
-
+  auto aElementsNames = aPlyF.getElementNames();
   // Read points
   {
       std::vector<std::array<double, 3>> aVecPts = aPlyF.getVertexPositions() ;
@@ -2079,7 +2093,8 @@ template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & a
       }
   }
 
-  // Read faces 
+  // Read faces ("face" part is not mandatory in ply)
+  if ( std::find(aElementsNames.begin(), aElementsNames.end(), "face")!= aElementsNames.end())
   {
       std::vector<std::vector<size_t>> aVFace =   aPlyF.getFaceIndices<size_t>();
       for (const auto & aFace : aVFace)
@@ -2088,6 +2103,12 @@ template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & a
 	  this->AddFace(cPt3di(aFace[0],aFace[1],aFace[2]));
       }
   }
+ }
+ catch (const std::runtime_error &e)
+ {
+    MMVII_UserError(eTyUEr::eReadFile, std::string("Error reading PLY file \"") + aNameFile + "\": " + e.what());
+ }
+
 }
 
 template <class Type> void cTriangulation3D<Type>::Bench()
