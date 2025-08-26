@@ -485,7 +485,6 @@ template <class Type,const int Dim> cPtxd<Type,Dim> & cTriangulation<Type,Dim>::
    return mVPts.at(aK);
 }
 
-
 template <class Type,const int Dim> const std::vector<cPtxd<Type,Dim> > & cTriangulation<Type,Dim>::VPts() const
 {
    return mVPts;
