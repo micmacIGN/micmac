@@ -68,7 +68,6 @@ cCollecSpecArg2007 & cAppli_ImportStaticScan::ArgOpt(cCollecSpecArg2007 & anArgO
 
 cPt3dr cart2spher(const cPt3dr & aPtCart) // returns theta phi dist
 {
-    // atan2($3,sqrt($1*$1+$2*$2))
     tREAL8 theta =  atan2(aPtCart.y(),aPtCart.x());
     tREAL8 dist = Norm2(aPtCart);
     tREAL8 distxy = sqrt(aPtCart.BigX2()+aPtCart.BigY2());
@@ -78,6 +77,7 @@ cPt3dr cart2spher(const cPt3dr & aPtCart) // returns theta phi dist
 
 int cAppli_ImportStaticScan::Exe()
 {
+    tREAL8 aDistMinToExist = 0.01;
     cTriangulation3D<tREAL8> aTriangulation3DXYZ(mNameFile);
 
     StdOut() << "Got " <<aTriangulation3DXYZ.NbPts() <<" points.\n";
@@ -99,10 +99,14 @@ int cAppli_ImportStaticScan::Exe()
     cRotation3D<tREAL8>  aRotFrame = cRotation3D<tREAL8>::RotFromCanonicalAxes(mTransfoIJK);
 
     std::vector<cPt3dr> aVectPtsTPD(aTriangulation3DXYZ.NbPts()); // all points in theta-phi-dist
+    size_t aNbPtsNul = 0;
     for (size_t i=0; i<aVectPtsTPD.size(); ++i)
     {
         aVectPtsTPD[i] = cart2spher(aRotFrame.Value(aTriangulation3DXYZ.KthPts(i)));
+        if (aVectPtsTPD[i].z()<aDistMinToExist)
+            aNbPtsNul++;
     }
+    StdOut() << aNbPtsNul << " null points\n";
 
     // check theta-phi :
     StdOut() << "Spherical sample:\n";
@@ -117,6 +121,7 @@ int cAppli_ImportStaticScan::Exe()
     cWhichMinMax<int, tREAL8> aMinMaxPhi;
     for (const auto & aPtAng: aVectPtsTPD)
     {
+        if (aPtAng.z()<aDistMinToExist) continue;
         aMinMaxTheta.Add(0,aPtAng.x());
         aMinMaxPhi.Add(0,aPtAng.y());
     }
@@ -124,30 +129,42 @@ int cAppli_ImportStaticScan::Exe()
                      {aMinMaxTheta.Max().ValExtre(), aMinMaxPhi.Max().ValExtre()});
     StdOut() << "Box: " << aBoxAng << "\n";
 
-    // find phi min and max diff
-    // in absolute, diff min = step (and sign=direction), diff max = col heigth
-    tREAL8 previousPhi = aVectPtsTPD.at(0).y();
-    cWhichMinMax<size_t,tREAL8> aDiffPhi;
+    // find phi min diff
+    // successive phi diff is useful, but only if we are in the same column
+    tREAL8 previousTheta = NAN;
+    tREAL8 previousPhi = NAN;
+    tREAL8 minDiffPhi = INFINITY; // signed value that is min in abs. For successive points on one column
+    tREAL8 angularPrecisionInSteps = 1; // we suppose that theta changes slower than phi... Is it ok???
     for (const auto & aPtAng: aVectPtsTPD)
     {
-        aDiffPhi.Add(0,aPtAng.y()-previousPhi);
+        if (aPtAng.z()<aDistMinToExist) continue;
+        auto aDiffPhi = aPtAng.y()-previousPhi;
+        auto aDiffTheta = aPtAng.x()-previousTheta;
+        if (fabs(aDiffTheta)<fabs(minDiffPhi)*angularPrecisionInSteps) // we are on the same column
+        {
+            if (fabs(aDiffPhi)<fabs(minDiffPhi))
+            {
+                //std::cout<<"with prev "<<previousTheta<< " "<< previousPhi<< "  curr "<<aPtAng<<":\n";
+                //std::cout<<"up: "<<minDiffPhi <<" " <<aDiffPhi<<"\n";
+                minDiffPhi = aDiffPhi;
+            }
+        }
+        previousTheta = aPtAng.x();
+        previousPhi = aPtAng.y();
     }
-    StdOut() << "DiffPhi " << aDiffPhi.Min().ValExtre() <<  "   " << aDiffPhi.Max().ValExtre() << "\n";
-    auto [phiStep,phiRange] = fabs(aDiffPhi.Min().ValExtre())<(aDiffPhi.Max().ValExtre()) ?
-                                   std::make_pair(aDiffPhi.Min().ValExtre(), aDiffPhi.Max().ValExtre())
-                                 : std::make_pair(aDiffPhi.Max().ValExtre(), aDiffPhi.Min().ValExtre());
 
-    StdOut() << "phiStep " << phiStep <<  ",   " << fabs(phiRange)/fabs(phiStep)
-             << " or " << (aBoxAng.P1().y()-aBoxAng.P0().y())/fabs(phiStep) << " steps\n";
 
+    auto phiStep = minDiffPhi;
+    StdOut() << "phiStep " << phiStep << ",  " << (aBoxAng.P1().y()-aBoxAng.P0().y())/fabs(phiStep) << " steps\n";
     // find theta step
-    tREAL8 aColChangeDetectorInPhistep = 10;
-    tREAL8 previousTheta = aVectPtsTPD.at(0).x();
-    previousPhi = aVectPtsTPD.at(0).y();
+    tREAL8 aColChangeDetectorInPhistep = 100;
+    previousTheta = NAN;
+    previousPhi = NAN;
     std::vector<tREAL8> aVDiffColTheta;
     for (const auto & aPtAng: aVectPtsTPD)
     {
-        StdOut() << "Pt "<<aPtAng<< " difphi " <<-(aPtAng.y()-previousPhi)/phiStep <<"\n";
+        if (aPtAng.z()<aDistMinToExist) continue;
+        //StdOut() << "Pt "<<aPtAng<< " difphi " <<-(aPtAng.y()-previousPhi)/phiStep <<"\n";
         if (-(aPtAng.y()-previousPhi)/phiStep > aColChangeDetectorInPhistep)
         {
             aVDiffColTheta.push_back(aPtAng.x()-previousTheta);
@@ -155,10 +172,50 @@ int cAppli_ImportStaticScan::Exe()
         previousTheta = aPtAng.x();
         previousPhi = aPtAng.y();
     }
-    StdOut() << "DiffColTheta: ";
-    for (auto & v: aVDiffColTheta)
-        StdOut() << v <<" ";
-    StdOut() << "\n";
+    StdOut() << "Found "<<aVDiffColTheta.size()<<" cols\n";
+    //StdOut() << "DiffColTheta: ";
+    //for (auto & v: aVDiffColTheta)
+    //    StdOut() << v <<" ";
+    //StdOut() << "\n";
+
+    // compute line and col for each point
+    std::vector<size_t> aVectPtsLine(aTriangulation3DXYZ.NbPts());
+    std::vector<size_t> aVectPtsCol(aTriangulation3DXYZ.NbPts());
+    size_t aCurrentCol = 0;
+    previousPhi = NAN;
+    size_t aMaxLine = 0;
+    for (size_t i=0; i<aVectPtsTPD.size(); ++i)
+    {
+        auto aPtAng = aVectPtsTPD[i];
+        if (aPtAng.z()<aDistMinToExist)
+        {
+            aVectPtsLine[i] = 0;
+            aVectPtsCol[i] = 0;
+            continue;
+        }
+        size_t aLine = (aPtAng.y()-aBoxAng.P0().y())/fabs(phiStep);
+        if (aLine>aMaxLine) aMaxLine = aLine;
+        if (-(aPtAng.y()-previousPhi)/phiStep > aColChangeDetectorInPhistep)
+            aCurrentCol++;
+        aVectPtsLine[i] = aLine;
+        aVectPtsCol[i] = aCurrentCol;
+        previousPhi = aPtAng.y();
+    }
+    StdOut() << "Max col found: "<<aCurrentCol<<"\n";
+    StdOut() << "Max line found: "<<aMaxLine<<"\n";
+
+    StdOut() << "Image size: "<<(int)aVDiffColTheta.size()
+             << " "<< (int)((aBoxAng.P1().y()-aBoxAng.P0().y())/fabs(phiStep))<<"\n";
+    //fill raster
+    cIm2D<tU_INT1> aRasterIntens(cPt2di(aCurrentCol+1, aMaxLine+1), 0, eModeInitImage::eMIA_Null);
+    auto & aRasterIntensData = aRasterIntens.DIm();
+    for (size_t i=0; i<aVectPtsTPD.size(); ++i)
+    {
+        auto aPtAng = aVectPtsTPD[i];
+        if (aPtAng.z()<aDistMinToExist) continue;
+        aRasterIntensData.SetV(cPt2di(aVectPtsCol[i], aMaxLine-aVectPtsLine[i]), aTriangulation3DXYZ.KthPtsPtAttribute(i)*255);
+    }
+    aRasterIntensData.ToFile("toto.png");
 
     return EXIT_SUCCESS;
 }
