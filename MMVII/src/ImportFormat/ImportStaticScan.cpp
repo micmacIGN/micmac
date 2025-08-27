@@ -78,34 +78,87 @@ cPt3dr cart2spher(const cPt3dr & aPtCart) // returns theta phi dist
 
 int cAppli_ImportStaticScan::Exe()
 {
-    cTriangulation3D<tREAL8> aTriangulation3D(mNameFile);
+    cTriangulation3D<tREAL8> aTriangulation3DXYZ(mNameFile);
 
-    StdOut() << "Got " <<aTriangulation3D.NbPts() <<" points.\n";
-    if (aTriangulation3D.HasPtAttribute())
+    StdOut() << "Got " <<aTriangulation3DXYZ.NbPts() <<" points.\n";
+    if (aTriangulation3DXYZ.HasPtAttribute())
     {
         StdOut() << "Intensity found.\n";
     }
 
     StdOut() << "Sample:\n";
-    for (size_t i=0; (i<10)&&(i<aTriangulation3D.VPts().size()); ++i)
+    for (size_t i=0; (i<10)&&(i<aTriangulation3DXYZ.VPts().size()); ++i)
     {
-        StdOut() << aTriangulation3D.KthPts(i);
-        if (aTriangulation3D.HasPtAttribute())
-            StdOut() << " " << aTriangulation3D.KthPtsPtAttribute(i);
+        StdOut() << aTriangulation3DXYZ.KthPts(i);
+        if (aTriangulation3DXYZ.HasPtAttribute())
+            StdOut() << " " << aTriangulation3DXYZ.KthPtsPtAttribute(i);
         StdOut() << "\n";
     }
     StdOut() << "...\n";
 
     cRotation3D<tREAL8>  aRotFrame = cRotation3D<tREAL8>::RotFromCanonicalAxes(mTransfoIJK);
-    // check theta-phi :
 
-    StdOut() << "Spherical sample:\n";
-    for (size_t i=0; (i<10)&&(i<aTriangulation3D.VPts().size()); ++i)
+    std::vector<cPt3dr> aVectPtsTPD(aTriangulation3DXYZ.NbPts()); // all points in theta-phi-dist
+    for (size_t i=0; i<aVectPtsTPD.size(); ++i)
     {
-        StdOut() << cart2spher(aRotFrame.Value(aTriangulation3D.KthPts(i)));
+        aVectPtsTPD[i] = cart2spher(aRotFrame.Value(aTriangulation3DXYZ.KthPts(i)));
+    }
+
+    // check theta-phi :
+    StdOut() << "Spherical sample:\n";
+    for (size_t i=0; (i<10)&&(i<aVectPtsTPD.size()); ++i)
+    {
+        StdOut() << aVectPtsTPD[i];
         StdOut() << "\n";
     }
     StdOut() << "...\n";
+
+    cWhichMinMax<int, tREAL8> aMinMaxTheta;
+    cWhichMinMax<int, tREAL8> aMinMaxPhi;
+    for (const auto & aPtAng: aVectPtsTPD)
+    {
+        aMinMaxTheta.Add(0,aPtAng.x());
+        aMinMaxPhi.Add(0,aPtAng.y());
+    }
+    cBox2dr aBoxAng( {aMinMaxTheta.Min().ValExtre(), aMinMaxPhi.Min().ValExtre()},
+                     {aMinMaxTheta.Max().ValExtre(), aMinMaxPhi.Max().ValExtre()});
+    StdOut() << "Box: " << aBoxAng << "\n";
+
+    // find phi min and max diff
+    // in absolute, diff min = step (and sign=direction), diff max = col heigth
+    tREAL8 previousPhi = aVectPtsTPD.at(0).y();
+    cWhichMinMax<size_t,tREAL8> aDiffPhi;
+    for (const auto & aPtAng: aVectPtsTPD)
+    {
+        aDiffPhi.Add(0,aPtAng.y()-previousPhi);
+    }
+    StdOut() << "DiffPhi " << aDiffPhi.Min().ValExtre() <<  "   " << aDiffPhi.Max().ValExtre() << "\n";
+    auto [phiStep,phiRange] = fabs(aDiffPhi.Min().ValExtre())<(aDiffPhi.Max().ValExtre()) ?
+                                   std::make_pair(aDiffPhi.Min().ValExtre(), aDiffPhi.Max().ValExtre())
+                                 : std::make_pair(aDiffPhi.Max().ValExtre(), aDiffPhi.Min().ValExtre());
+
+    StdOut() << "phiStep " << phiStep <<  ",   " << fabs(phiRange)/fabs(phiStep)
+             << " or " << (aBoxAng.P1().y()-aBoxAng.P0().y())/fabs(phiStep) << " steps\n";
+
+    // find theta step
+    tREAL8 aColChangeDetectorInPhistep = 10;
+    tREAL8 previousTheta = aVectPtsTPD.at(0).x();
+    previousPhi = aVectPtsTPD.at(0).y();
+    std::vector<tREAL8> aVDiffColTheta;
+    for (const auto & aPtAng: aVectPtsTPD)
+    {
+        StdOut() << "Pt "<<aPtAng<< " difphi " <<-(aPtAng.y()-previousPhi)/phiStep <<"\n";
+        if (-(aPtAng.y()-previousPhi)/phiStep > aColChangeDetectorInPhistep)
+        {
+            aVDiffColTheta.push_back(aPtAng.x()-previousTheta);
+        }
+        previousTheta = aPtAng.x();
+        previousPhi = aPtAng.y();
+    }
+    StdOut() << "DiffColTheta: ";
+    for (auto & v: aVDiffColTheta)
+        StdOut() << v <<" ";
+    StdOut() << "\n";
 
     return EXIT_SUCCESS;
 }
