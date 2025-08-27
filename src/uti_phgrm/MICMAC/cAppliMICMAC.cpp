@@ -803,7 +803,7 @@ void cAppliMICMAC::VerifOneEtapes(const cEtapeMEC & anEt)
 
 void cAppliMICMAC::VerifEtapes() 
 {
-std::cout << "==============================cAppliMICMAC::VerifEtapes \n";
+//std::cout << "==============================cAppliMICMAC::VerifEtapes \n";
 /*
    // DEPLACE PLUS HAUT
    mDeZoomMax =1;
