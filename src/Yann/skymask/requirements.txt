@@ -1,4 +1,4 @@
-tensorflow==1.13.2
+tensorflow==2.9.3
 Keras==2.3.0
 albumentations==0.4.6
 imageio==2.9.0
