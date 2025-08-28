@@ -826,6 +826,7 @@ class cStdStatRes
         tREAL8  Max() const;
 	int     NbMeasures() const;
 
+	std::string Show(const std::string & aPrefix,const std::vector<int> & aPerc) const;
      private :
         mutable std::vector<tREAL8>       mVRes;
         cWeightAv<tREAL8,tREAL8>  mAvgDist;

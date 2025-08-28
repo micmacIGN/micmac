@@ -45,6 +45,27 @@ class cCern_PtRF
         std::string   mName;     // name of point
 };
 
+/// Class for correction  of systematism
+class cBR_SystCorr
+{
+    public :
+        void Normalise();
+        std::vector<cPt2dr> mVPtRes;  //< Vector of pt-residual
+	cPt2dr              mCRes;    //< center of residual
+        tREAL8              mStdDev;  //< Std deviation of pt res
+};
+
+void cBR_SystCorr::Normalise()
+{
+    mCRes = Centroid(mVPtRes);
+    mStdDev = 0.0;
+    for (const auto & aPt :  mVPtRes)
+    {
+         mStdDev += SqN2(aPt-mCRes);
+    }
+    mStdDev  = std::sqrt(mStdDev/ (mVPtRes.size()-1));
+}
+
 class cAppli_ReportBlock : public cMMVII_Appli
 {
      public :
@@ -63,16 +84,18 @@ class cAppli_ReportBlock : public cMMVII_Appli
 
         cPt3dr ExtractVertLoc(const std::string& anIdSync,const std::vector<cSensorCamPC *> & aVCam);
 
-        void TestWire3D(const std::string& anIdSync,const std::vector<cSensorCamPC *> & aVCam);
+        void TestWire3D(const std::string& anIdSync,const std::vector<cSensorCamPC *> & aVCam,int aNumIter);
         /// For a given Id of Sync and a bloc of cameras, compute the stat on accuracy of intersection
-        void TestPoint3D(const std::string& anIdSync,const std::vector<cSensorCamPC *> & aVCam);
+        void TestPoint3D(const std::string& anIdSync,const std::vector<cSensorCamPC *> & aVCam,int aNumIter);
 
         ///  Generate the export specific to Cern's manip (dist 3D & 2D Wire/target)
         void GenerateCernExport (const std::string& anIdSync,const std::vector<cSensorCamPC *> & aVCam);
         ///  Generate an export for LGC Format
         void DoLGCExport(const std::vector<cSensorCamPC *> & aVCam);
 
-        cPhotogrammetricProject  mPhProj;
+        cPhotogrammetricProject     mPhProj;
+        bool                        mShow;  // do we print residual on terminal
+	bool                        mCenterCorr; // do we correct residual 
 
 	std::string                 mSpecImIn;
         cBlocOfCamera *             mTheBloc;
@@ -87,6 +110,7 @@ class cAppli_ReportBlock : public cMMVII_Appli
         std::string                  mAddExReport;
         cWeightAv<tREAL8,tREAL8>     mAvgGlobRes;
         cStdStatRes                  mStatGlobPt;
+        cStdStatRes                  mStatGlobWire;
         std::vector<int>             mPercStat;
         std::map<std::string,cStdStatRes>    mMapStatPair;
         std::map<std::string,cStdStatRes>    mMap1Image;
@@ -128,6 +152,8 @@ cAppli_ReportBlock::cAppli_ReportBlock
 ) :
      cMMVII_Appli  (aVArgs,aSpec),
      mPhProj       (*this),
+     mShow         (true),
+     mCenterCorr   (false),
      mRepW         ("Wire"),
      mIdRepPtIndiv ("Pt"),
      mIdRepDWirePt ("DistWP"),
@@ -167,7 +193,9 @@ cCollecSpecArg2007 & cAppli_ReportBlock::ArgOpt(cCollecSpecArg2007 & anArgOpt)
              << AOpt2007(mCernStat,"DoCernStat","Do statistic specific to Cerns Wire distance",{{eTA2007::HDV}})
              << AOpt2007(mCernAllPoint,"DoCernAllPt","For cern, compute Wire distance for all points",{{eTA2007::HDV}})
              << mPhProj.DPGndPt3D().ArgDirInOpt("","GCP 3D coordinate for computing centre")
-             << AOpt2007(mSphereCenter,"ShereC","Additionnal GPC to export")
+             << AOpt2007(mSphereCenter,"SphereC","Additionnal GPC to export",{{eTA2007::HDV}})
+             << AOpt2007(mShow,"Show","Show details on results",{{eTA2007::HDV}})
+             << AOpt2007(mCenterCorr,"CenterCorr","Correction of center of residuals",{{eTA2007::HDV}})
              << mPhProj.DPMeasuresClino().ArgDirInOpt()
              << mPhProj.DPClinoMeters().ArgDirInOpt()
     ;
@@ -205,7 +233,7 @@ void cAppli_ReportBlock::AddStatDistWirePt
      AddOneReportCSV(mIdRepDWirePt,{aNamePt,ToStr(aD3),ToStr(aDH),ToStr(aDV)});
 }
 
-void cAppli_ReportBlock::TestWire3D(const std::string & anIdSync,const std::vector<cSensorCamPC *> & aVCam)
+void cAppli_ReportBlock::TestWire3D(const std::string & anIdSync,const std::vector<cSensorCamPC *> & aVCam,int aNumIter)
 {
 
      std::vector<cPlane3D>  aVPlane;
@@ -263,8 +291,9 @@ void cAppli_ReportBlock::TestWire3D(const std::string & anIdSync,const std::vect
             tREAL8 aDist3D =  aWGr.Average() * aRatio;
             tREAL8 aDistPix =  aWPix.Average() * aRatio;
 
-            AddOneReportCSV(mRepW,{anIdSync,ToStr(aNbPl),ToStr(aDist3D),ToStr(aDistPix)});
+	    mStatGlobWire.Add(aDistPix);
 
+            AddOneReportCSV(mRepW,{anIdSync,ToStr(aNbPl),ToStr(aDist3D),ToStr(aDistPix)});
         }
     }
 }
@@ -280,7 +309,7 @@ std::string ToCernStr(const cPt3dr & aPt)
    return ToStr(aPt.x()) + " " + ToStr(aPt.y()) + " " + ToStr(aPt.z());
 }
 
-void cAppli_ReportBlock::TestPoint3D(const std::string & anIdSync,const std::vector<cSensorCamPC *> & aVCam)
+void cAppli_ReportBlock::TestPoint3D(const std::string & anIdSync,const std::vector<cSensorCamPC *> & aVCam,int aNumIter)
 {
      // for a given name of point, store  Mes+Cam , that will allow to compute bundles
      mMapMatch.clear();
@@ -317,6 +346,7 @@ void cAppli_ReportBlock::TestPoint3D(const std::string & anIdSync,const std::vec
      mVCernPR.clear();
 //cCern_PtRF
 
+     std::map<cSensorCamPC *,cBR_SystCorr>  mMapResidu;
      // [2]  Parse the measure grouped by points
      for (const auto & [aNamePt,aVect] : mMapMatch )
      {
@@ -339,7 +369,10 @@ void cAppli_ReportBlock::TestPoint3D(const std::string & anIdSync,const std::vec
 	     for (const auto & [aCam,aMes] : aVect)
 	     {
                  cPt2dr aPProj = aCam->Ground2Image(aPG);
-                 aWPix.Add(1.0,Norm2(aMes.mPt-aPProj));
+		 cPt2dr aResidual = aMes.mPt-aPProj;
+                 aWPix.Add(1.0,Norm2(aResidual));
+		 if (aNumIter == 0)
+		    mMapResidu[aCam].mVPtRes.push_back(aResidual);
 	     }
 
              tREAL8 aDistPix = aWPix.Average() * (aNbPt*2.0) / (aNbPt*2.0 -3.0);
@@ -364,13 +397,19 @@ void cAppli_ReportBlock::TestPoint3D(const std::string & anIdSync,const std::vec
                      mMap1Image[anId2].Add(aRes12);
                  }
              }
-
-
          }
      }
-     CSV_AddStat(mIdRepPtGlob,"AVG "+anIdSync,aStatRes);
+     if (aNumIter==0)
+     {
+        for (auto & [aCam,aSyst] :  mMapResidu)
+        {
+            aSyst.Normalise();
 
-     GenerateCernExport(anIdSync,aVCam);
+	    if (mShow)
+               StdOut() << aCam->NameImage() << " " << aSyst.mCRes  << " RES=" << aSyst.mStdDev << "\n";
+        }
+     }
+     CSV_AddStat(mIdRepPtGlob,"AVG "+anIdSync,aStatRes);
 }
 
 cPt3dr cAppli_ReportBlock::ExtractVertLoc(const std::string& anIdSync,const std::vector<cSensorCamPC *> & aVCam)
@@ -554,10 +593,12 @@ void cAppli_ReportBlock::ProcessOneBloc(const std::vector<cSensorCamPC *> & aVCa
      mCurWire = nullptr ;
 
      std::string anIdSync = mTheBloc->IdSync(aVCam.at(0)->NameImage());
-     if (contains(mStrM2T,'W'))
-        TestWire3D(anIdSync,aVCam);
      if (contains(mStrM2T,'T'))
-        TestPoint3D(anIdSync,aVCam);
+        TestPoint3D(anIdSync,aVCam,0);
+     if (contains(mStrM2T,'W'))
+        TestWire3D(anIdSync,aVCam,0);
+
+     GenerateCernExport(anIdSync,aVCam);
 
      delete mCurWire;
 }
@@ -615,6 +656,12 @@ int cAppli_ReportBlock::Exe()
 
    // Add the stat for all the points
     CSV_AddStat(mIdRepPtGlob,"GlobAVG ",mStatGlobPt);
+    if (mShow)
+    {
+
+	    StdOut() << mStatGlobPt.Show("Pt-Pix",{50,85}) << "\n";
+	    StdOut() << mStatGlobWire.Show("Wire-Pix",{50,85}) << "\n";
+    }
 
 
    //  export stat on dist Wire/pt

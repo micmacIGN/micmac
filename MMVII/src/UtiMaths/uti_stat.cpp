@@ -607,6 +607,31 @@ tREAL8  cStdStatRes::UBDevStd(tREAL8 aDef) const
 }
 
 
+std::string cStdStatRes::Show(const std::string & aPrefix,const std::vector<int> & aVecPerc) const
+{
+     PushPrecTxtSerial(7);
+
+     std::string aRes = aPrefix + " ,";
+     if (NbMeasures()== 0)
+        aRes += " EMPTY";
+
+     else if (NbMeasures()== 1)
+        aRes += " 1 Meas=" + ToStr(Avg());
+
+     else
+     {
+         aRes +=   " Nb="  + ToStr(NbMeasures())
+	         + " Avg=" + ToStr(Avg())
+	         + " Interv=[" + ToStr(Min()) + "," + ToStr(Max()) + "]"
+         ;
+
+         for (const auto & aPerc : aVecPerc)
+             aRes += " " + ToStr(aPerc) + "%->" + ToStr(ErrAtProp(aPerc/100.0)) ;
+     }
+     PopPrecTxtSerial();
+
+     return aRes;
+}
 
 
 

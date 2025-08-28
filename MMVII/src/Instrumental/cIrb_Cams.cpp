@@ -1,17 +1,9 @@
 #include "MMVII_InstrumentalBlock.h"
 
-//#include "cMMVII_Appli.h"
-//#include "MMVII_2Include_Serial_Tpl.h"
-
-
-
-
 /**
   \file cIrb_Cams.cpp
 
-
   \brief This file contains the class relative to cameras in rigid blocks
- 
 */
 
 namespace MMVII
