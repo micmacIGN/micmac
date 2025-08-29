@@ -39,13 +39,15 @@ private :
     // Optional Arg
     tREAL8                   mAngTolerancy;
     std::string              mTransfoIJK;
+    bool                     mNoMiss; // are every point present in cloud, even when no response?
 
 };
 
 cAppli_ImportStaticScan::cAppli_ImportStaticScan(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
     cMMVII_Appli    (aVArgs,aSpec),
     mAngTolerancy   (1e-6),
-    mTransfoIJK         ("ijk")
+    mTransfoIJK     ("ijk"),
+    mNoMiss         (false)
 {
 }
 
@@ -68,8 +70,8 @@ cCollecSpecArg2007 & cAppli_ImportStaticScan::ArgOpt(cCollecSpecArg2007 & anArgO
 
 cPt3dr cart2spher(const cPt3dr & aPtCart) // returns theta phi dist
 {
-    tREAL8 theta =  atan2(aPtCart.y(),aPtCart.x());
     tREAL8 dist = Norm2(aPtCart);
+    tREAL8 theta =  atan2(aPtCart.y(),aPtCart.x());
     tREAL8 distxy = sqrt(aPtCart.BigX2()+aPtCart.BigY2());
     tREAL8 phi =  atan2(aPtCart.z(),distxy);
     return {theta, phi, dist};
@@ -117,11 +119,17 @@ int cAppli_ImportStaticScan::Exe()
     }
     StdOut() << "...\n";
 
+    mNoMiss = false;
+    // et min max theta phi, check if there are points (0,0,0) <=> all points are present in cloud, even when no response
     cWhichMinMax<int, tREAL8> aMinMaxTheta;
     cWhichMinMax<int, tREAL8> aMinMaxPhi;
     for (const auto & aPtAng: aVectPtsTPD)
     {
-        if (aPtAng.z()<aDistMinToExist) continue;
+        if (aPtAng.z()<aDistMinToExist)
+        {
+            mNoMiss = true;
+            continue;
+        }
         aMinMaxTheta.Add(0,aPtAng.x());
         aMinMaxPhi.Add(0,aPtAng.y());
     }
@@ -130,34 +138,33 @@ int cAppli_ImportStaticScan::Exe()
     StdOut() << "Box: " << aBoxAng << "\n";
 
     // find phi min diff
-    // successive phi diff is useful, but only if we are in the same column
+    // successive phi diff is useful, but only if we are in the same scanline
     tREAL8 previousTheta = NAN;
     tREAL8 previousPhi = NAN;
-    tREAL8 minDiffPhi = INFINITY; // signed value that is min in abs. For successive points on one column
+    tREAL8 phiStep = INFINITY; // signed value that is min in abs. For successive points on one column
     tREAL8 angularPrecisionInSteps = 1; // we suppose that theta changes slower than phi... Is it ok???
     for (const auto & aPtAng: aVectPtsTPD)
     {
         if (aPtAng.z()<aDistMinToExist) continue;
         auto aDiffPhi = aPtAng.y()-previousPhi;
         auto aDiffTheta = aPtAng.x()-previousTheta;
-        if (fabs(aDiffTheta)<fabs(minDiffPhi)*angularPrecisionInSteps) // we are on the same column
+        if (fabs(aDiffTheta)<fabs(phiStep)*angularPrecisionInSteps) // we are on the same scanline
         {
-            if (fabs(aDiffPhi)<fabs(minDiffPhi))
+            if (fabs(aDiffPhi)<fabs(phiStep))
             {
                 //std::cout<<"with prev "<<previousTheta<< " "<< previousPhi<< "  curr "<<aPtAng<<":\n";
                 //std::cout<<"up: "<<minDiffPhi <<" " <<aDiffPhi<<"\n";
-                minDiffPhi = aDiffPhi;
+                phiStep = aDiffPhi;
             }
         }
         previousTheta = aPtAng.x();
         previousPhi = aPtAng.y();
     }
-
-
-    auto phiStep = minDiffPhi;
     StdOut() << "phiStep " << phiStep << ",  " << (aBoxAng.P1().y()-aBoxAng.P0().y())/fabs(phiStep) << " steps\n";
-    // find theta step
+
     tREAL8 aColChangeDetectorInPhistep = 100;
+    /*
+    // find theta step
     previousTheta = NAN;
     previousPhi = NAN;
     std::vector<tREAL8> aVDiffColTheta;
@@ -177,45 +184,231 @@ int cAppli_ImportStaticScan::Exe()
     //for (auto & v: aVDiffColTheta)
     //    StdOut() << v <<" ";
     //StdOut() << "\n";
+    */
 
     // compute line and col for each point
-    std::vector<size_t> aVectPtsLine(aTriangulation3DXYZ.NbPts());
-    std::vector<size_t> aVectPtsCol(aTriangulation3DXYZ.NbPts());
-    size_t aCurrentCol = 0;
+    std::vector<int> aVectPtsLine(aTriangulation3DXYZ.NbPts());
+    std::vector<int> aVectPtsCol(aTriangulation3DXYZ.NbPts());
+    int aMaxCol = 0;
     previousPhi = NAN;
-    size_t aMaxLine = 0;
+    previousTheta = NAN;
+    int aMaxLine = 0;
+    int aCurrLine = 0;
     for (size_t i=0; i<aVectPtsTPD.size(); ++i)
     {
+        //if (aMaxCol==12191/2)
+        //    std::cout<<"  "<<i<<" "<<aCurrLine<<"\n";
         auto aPtAng = aVectPtsTPD[i];
         if (aPtAng.z()<aDistMinToExist)
         {
             aVectPtsLine[i] = 0;
             aVectPtsCol[i] = 0;
+            aCurrLine++;
             continue;
         }
-        size_t aLine = (aPtAng.y()-aBoxAng.P0().y())/fabs(phiStep);
-        if (aLine>aMaxLine) aMaxLine = aLine;
+        if (mNoMiss)
+            aCurrLine++;
+        else
+            aCurrLine = (aPtAng.y()-aBoxAng.P0().y())/fabs(phiStep);
+
+        if (aCurrLine>aMaxLine) aMaxLine = aCurrLine;
+
         if (-(aPtAng.y()-previousPhi)/phiStep > aColChangeDetectorInPhistep)
-            aCurrentCol++;
-        aVectPtsLine[i] = aLine;
-        aVectPtsCol[i] = aCurrentCol;
+        {
+            aMaxCol++;
+            //StdOut() << "change col: "<<previousTheta<<" "<<previousPhi<<"  -  "<<aPtAng.x()<<" "<<aPtAng.y()<<"\n";
+            aCurrLine=0;
+        }
+        aVectPtsLine[i] = aCurrLine;
+        aVectPtsCol[i] = aMaxCol;
+        previousTheta = aPtAng.x();
         previousPhi = aPtAng.y();
     }
-    StdOut() << "Max col found: "<<aCurrentCol<<"\n";
+    StdOut() << "Max col found: "<<aMaxCol<<"\n";
     StdOut() << "Max line found: "<<aMaxLine<<"\n";
 
-    StdOut() << "Image size: "<<(int)aVDiffColTheta.size()
-             << " "<< (int)((aBoxAng.P1().y()-aBoxAng.P0().y())/fabs(phiStep))<<"\n";
-    //fill raster
-    cIm2D<tU_INT1> aRasterIntens(cPt2di(aCurrentCol+1, aMaxLine+1), 0, eModeInitImage::eMIA_Null);
+    StdOut() << "Image size: "<<cPt2di(aMaxCol+1, aMaxLine+1)<<"\n";
+    //fill rasters
+    cIm2D<tU_INT1> aRasterIntens(cPt2di(aMaxCol+1, aMaxLine+1), 0, eModeInitImage::eMIA_Null);
     auto & aRasterIntensData = aRasterIntens.DIm();
+    cIm2D<tU_INT4> aRasterIndex(cPt2di(aMaxCol+1, aMaxLine+1), 0, eModeInitImage::eMIA_Null);
+    auto & aRasterIndexData = aRasterIndex.DIm();
+    cIm2D<float> aRasterTheta(cPt2di(aMaxCol+1, aMaxLine+1), 0, eModeInitImage::eMIA_Null);
+    auto & aRasterThetaData = aRasterTheta.DIm();
+    cIm2D<float> aRasterPhi(cPt2di(aMaxCol+1, aMaxLine+1), 0, eModeInitImage::eMIA_Null);
+    auto & aRasterPhiData = aRasterPhi.DIm();
+    cIm2D<float> aRasterDist(cPt2di(aMaxCol+1, aMaxLine+1), 0, eModeInitImage::eMIA_Null);
+    auto & aRasterDistData = aRasterDist.DIm();
+    cIm2D<tU_INT1> aRasterMask(cPt2di(aMaxCol+1, aMaxLine+1), 0, eModeInitImage::eMIA_Null);
+    auto & aRasterMasksData = aRasterMask.DIm();
     for (size_t i=0; i<aVectPtsTPD.size(); ++i)
     {
         auto aPtAng = aVectPtsTPD[i];
-        if (aPtAng.z()<aDistMinToExist) continue;
-        aRasterIntensData.SetV(cPt2di(aVectPtsCol[i], aMaxLine-aVectPtsLine[i]), aTriangulation3DXYZ.KthPtsPtAttribute(i)*255);
+        cPt2di aPcl = {aVectPtsCol[i], aVectPtsLine[i]};
+        //if (aVectPtsCol[i]==12191/2)
+        //    std::cout<<"  "<<i<<" "<<aPcl<<"\n";
+        if (aPtAng.z()<aDistMinToExist)
+        {
+            aRasterMasksData.SetV(aPcl, 1);
+            continue;
+        }
+        aRasterIntensData.SetV(aPcl, aTriangulation3DXYZ.KthPtsPtAttribute(i)*255);
+        aRasterIndexData.SetV(aPcl, i);
+        aRasterThetaData.SetV(aPcl, aPtAng.x());
+        aRasterPhiData.SetV(aPcl, aPtAng.y());
+        aRasterDistData.SetV(aPcl, aPtAng.z());
     }
-    aRasterIntensData.ToFile("toto.png");
+    aRasterIntensData.ToFile("totoIntens.png");
+    aRasterIndexData.ToFile("totoIndex.tif");
+    aRasterThetaData.ToFile("totoTheta.tif");
+    aRasterPhiData.ToFile("totoPhi.tif");
+    aRasterDistData.ToFile("totoDist.tif");
+    aRasterMasksData.ToFile("totoMask.png");
+
+
+    // make statistics on theta phi, using raster geometry
+    //std::vector<tREAL8> aVDiffTheta;
+    std::fstream file_theta;
+    file_theta.open("thetas.txt", std::ios_base::out);
+    std::fstream file_theta_abs;
+    file_theta_abs.open("thetas_abs.txt", std::ios_base::out);
+    tREAL8 aThetaStep = 0.;
+    int nbThetaStep = 0;
+    for (int c=1+aMaxCol/3; c<2*aMaxCol/3+1; ++c)
+    {
+        tU_INT4 i = aRasterIndexData.GetV(cPt2di(c,aMaxLine/2));
+        tU_INT4 ic = aRasterIndexData.GetV(cPt2di(c-1,aMaxLine/2));
+        file_theta_abs<<i<<" "<<aVectPtsTPD[i].x()<< " "<<ic<<" "<<aVectPtsTPD[ic].x()<<"\n";
+        if ((i!=0)&&(ic!=0))
+        {
+            if ((aVectPtsTPD[i].z()<aDistMinToExist)
+                ||(aVectPtsTPD[ic].z()<aDistMinToExist))
+            {
+                std::cout<<"EEEERRRROROORORORO\n";
+                std::cout<<i<<" "<<aVectPtsTPD[i]<< " "<<ic<<" "<<aVectPtsTPD[ic]<<"\n";
+            }
+            auto aDiffTheta = aVectPtsTPD[i].x()-aVectPtsTPD[ic].x();
+            if (aDiffTheta>M_PI)
+                aDiffTheta -= 2*M_PI;
+            if (aDiffTheta<-M_PI)
+                aDiffTheta += 2*M_PI;
+            file_theta<<aDiffTheta<<"\n";
+            aThetaStep+=aDiffTheta;
+            nbThetaStep++;
+        }
+    }
+    file_theta.close();
+    file_theta_abs.close();
+    aThetaStep/=nbThetaStep;
+    StdOut() << " New Theta Step: " << aThetaStep<<"\n";
+
+    std::fstream file_phi;
+    file_phi.open("phis.txt", std::ios_base::out);
+    std::fstream file_phi_abs;
+    file_phi_abs.open("phis_abs.txt", std::ios_base::out);
+    tREAL8 aPhiStep = 0.;
+    int nbPhiStep = 0;
+    for (int l=1+aMaxLine/3; l<2*aMaxLine/3+1; ++l)
+    {
+        tU_INT4 i = aRasterIndexData.GetV(cPt2di(aMaxCol/2,l));
+        tU_INT4 il = aRasterIndexData.GetV(cPt2di(aMaxCol/2,l-1));
+        file_phi_abs<<i<<" "<<aVectPtsTPD[i].y()<< " "<<il<<" "<<aVectPtsTPD[il].y()<<"\n";
+        if ((i!=0)&&(il!=0))
+        {
+            if ((aVectPtsTPD[i].z()<aDistMinToExist)
+                ||(aVectPtsTPD[il].z()<aDistMinToExist))
+            {
+                std::cout<<"EEEERRRROROORORORO\n";
+                std::cout<<i<<" "<<aVectPtsTPD[i]<< " "<<il<<" "<<aVectPtsTPD[il]<<"\n";
+            }
+            file_phi<<(aVectPtsTPD[i].y()-aVectPtsTPD[il].y())<<"\n";
+            aPhiStep+=(aVectPtsTPD[i].y()-aVectPtsTPD[il].y());
+            nbPhiStep++;
+        }
+    }
+    file_phi.close();
+    file_phi_abs.close();
+    aPhiStep/=nbPhiStep;
+    StdOut() << " New Phi Step: " << aPhiStep<<"\n";
+
+    /*
+    float minDiffPhi = INFINITY;
+    float minDiffTheta = INFINITY;
+    int signDiffPhi = 0;
+    int signDiffTheta = 0;
+    for (int l=1; l<aMaxLine+1; ++l)
+    {
+        for (int c=1; c<aMaxCol+1; ++c)
+        {
+            tU_INT4 i = aRasterIndexData.GetV(cPt2di(c,l));
+            tU_INT4 ic = aRasterIndexData.GetV(cPt2di(c-1,l));
+            tU_INT4 il = aRasterIndexData.GetV(cPt2di(c,l-1));
+            if ((i!=0)&&(ic!=0)&&(il!=0))
+            {
+                if ((aVectPtsTPD[i].z()<aDistMinToExist)
+                    ||(aVectPtsTPD[ic].z()<aDistMinToExist)
+                    ||(aVectPtsTPD[il].z()<aDistMinToExist))
+                {
+                    std::cout<<"EEEERRRROROORORORO\n";
+                    std::cout<<i<<" "<<aVectPtsTPD[i]<< " "<<ic<<" "<<aVectPtsTPD[ic]<<" "<<il<<" "<<aVectPtsTPD[il]<<"\n";
+                }
+                float aDiffTheta = aVectPtsTPD[i].x()-aVectPtsTPD[ic].x();
+                if (minDiffTheta>fabs(aDiffTheta))
+                {
+                    std::cout<<"up th:"<<aDiffTheta<<"\n";
+                    minDiffTheta = fabs(aDiffTheta);
+                    signDiffTheta = fabs(aDiffTheta)/aDiffTheta;
+                }
+                float aDiffPhi = aVectPtsTPD[i].y()-aVectPtsTPD[il].y();
+                if (minDiffPhi>fabs(aDiffPhi))
+                {
+                    std::cout<<"up ph:"<<aDiffTheta<<"\n";
+                    minDiffPhi = fabs(aDiffPhi);
+                    signDiffPhi = fabs(aDiffPhi)/aDiffPhi;
+                }
+                //aVDiffTheta.push_back(aVectPtsTPD[i2].x()-aVectPtsTPD[i1].x());
+            }
+        }
+    }
+    StdOut() << "Phi step found: "<<signDiffPhi*minDiffPhi<<"\n";
+    StdOut() << "Theta step found: "<<signDiffTheta*minDiffTheta<<"\n";
+    */
+
+
+/*cIm2D<float> aRasterOrder(cPt2di(aMaxCol+1, aMaxLine+1), 0, eModeInitImage::eMIA_Null);
+    auto & aRasterOrderData = aRasterOrder.DIm();
+    for (size_t i=0; (i<10000) && (i<aVectPtsTPD.size()); ++i)
+    {
+        auto aPtAng = aVectPtsTPD[i];
+        if (aPtAng.z()<aDistMinToExist) continue;
+        aRasterOrderData.SetV(cPt2di(aMaxCol-aVectPtsCol[i], aMaxLine-aVectPtsLine[i]), i);
+    }
+    aRasterOrderData.ToFile("order.tif");*/
+
+    // export clouds for debug
+    #include <fstream>
+    std::fstream file1;
+    file1.open("cloud.xyz", std::ios_base::out);
+    std::fstream file2;
+    file2.open("cloud_norm.xyz", std::ios_base::out);
+    for (size_t i=0; i<aTriangulation3DXYZ.VPts().size(); ++i)
+    {
+        if ((i/aMaxLine) % (aMaxCol/12) == 0)
+        {
+            int r = 127 + 127 * sin(i/1000. + 0*M_PI/3);
+            int g = 127 + 127 * sin(i/1000. + 1*M_PI/3);
+            int b = 127 + 127 * sin(i/1000. + 2*M_PI/3);
+
+            //auto aPtAng = aVectPtsTPD[i];
+            //StdOut() << " "<<aPtAng.x()<<" "<<aPtAng.y()<<"\n";
+            auto & aPt = aTriangulation3DXYZ.KthPts(i);
+            auto norm = Norm2(aPt);
+            file1 << aPt.x() << " " << aPt.y() << " " << aPt.z() << " " << r << " " << g << " " << b << "\n"; //i << " " << aTriangulation3DXYZ.KthPtsPtAttribute(i) << "\n";
+            file2 << aPt.x()/norm << " " << aPt.y()/norm << " " << aPt.z()/norm << " " << r << " " << g << " " << b << "\n"; //<< i << " " << aTriangulation3DXYZ.KthPtsPtAttribute(i) << "\n";
+        }
+    }
+    file2.close();
+    file1.close();
 
     return EXIT_SUCCESS;
 }
