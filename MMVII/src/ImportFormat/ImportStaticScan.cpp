@@ -68,7 +68,7 @@ cCollecSpecArg2007 & cAppli_ImportStaticScan::ArgOpt(cCollecSpecArg2007 & anArgO
         ;
 }
 
-cPt3dr cart2spher(const cPt3dr & aPtCart) // returns theta phi dist
+cPt3dr cart2spher(const cPt3dr & aPtCart)
 {
     tREAL8 dist = Norm2(aPtCart);
     tREAL8 theta =  atan2(aPtCart.y(),aPtCart.x());
@@ -244,7 +244,7 @@ int cAppli_ImportStaticScan::Exe()
     for (size_t i=0; i<aVectPtsTPD.size(); ++i)
     {
         auto aPtAng = aVectPtsTPD[i];
-        cPt2di aPcl = {aVectPtsCol[i], aVectPtsLine[i]};
+        cPt2di aPcl = {aVectPtsCol[i], aMaxLine-aVectPtsLine[i]};
         //if (aVectPtsCol[i]==12191/2)
         //    std::cout<<"  "<<i<<" "<<aPcl<<"\n";
         if (aPtAng.z()<aDistMinToExist)
@@ -267,12 +267,13 @@ int cAppli_ImportStaticScan::Exe()
 
 
     // make statistics on theta phi, using raster geometry
+    StdOut() << "Compute steps from inital raster geometry\n";
     //std::vector<tREAL8> aVDiffTheta;
     std::fstream file_theta;
     file_theta.open("thetas.txt", std::ios_base::out);
     std::fstream file_theta_abs;
     file_theta_abs.open("thetas_abs.txt", std::ios_base::out);
-    tREAL8 aThetaStep = 0.;
+    tREAL8 aThetaStep2 = 0.;
     int nbThetaStep = 0;
     for (int c=1+aMaxCol/3; c<2*aMaxCol/3+1; ++c)
     {
@@ -293,20 +294,20 @@ int cAppli_ImportStaticScan::Exe()
             if (aDiffTheta<-M_PI)
                 aDiffTheta += 2*M_PI;
             file_theta<<aDiffTheta<<"\n";
-            aThetaStep+=aDiffTheta;
+            aThetaStep2+=aDiffTheta;
             nbThetaStep++;
         }
     }
     file_theta.close();
     file_theta_abs.close();
-    aThetaStep/=nbThetaStep;
-    StdOut() << " New Theta Step: " << aThetaStep<<"\n";
+    aThetaStep2/=nbThetaStep;
+    StdOut() << " New Theta Step: " << aThetaStep2<<"\n";
 
     std::fstream file_phi;
     file_phi.open("phis.txt", std::ios_base::out);
     std::fstream file_phi_abs;
     file_phi_abs.open("phis_abs.txt", std::ios_base::out);
-    tREAL8 aPhiStep = 0.;
+    tREAL8 aPhiStep2 = 0.;
     int nbPhiStep = 0;
     for (int l=1+aMaxLine/3; l<2*aMaxLine/3+1; ++l)
     {
@@ -322,14 +323,14 @@ int cAppli_ImportStaticScan::Exe()
                 std::cout<<i<<" "<<aVectPtsTPD[i]<< " "<<il<<" "<<aVectPtsTPD[il]<<"\n";
             }
             file_phi<<(aVectPtsTPD[i].y()-aVectPtsTPD[il].y())<<"\n";
-            aPhiStep+=(aVectPtsTPD[i].y()-aVectPtsTPD[il].y());
+            aPhiStep2+=(aVectPtsTPD[i].y()-aVectPtsTPD[il].y());
             nbPhiStep++;
         }
     }
     file_phi.close();
     file_phi_abs.close();
-    aPhiStep/=nbPhiStep;
-    StdOut() << " New Phi Step: " << aPhiStep<<"\n";
+    aPhiStep2/=nbPhiStep;
+    StdOut() << " New Phi Step: " << aPhiStep2<<"\n";
 
     /*
     float minDiffPhi = INFINITY;
@@ -373,6 +374,80 @@ int cAppli_ImportStaticScan::Exe()
     StdOut() << "Phi step found: "<<signDiffPhi*minDiffPhi<<"\n";
     StdOut() << "Theta step found: "<<signDiffTheta*minDiffTheta<<"\n";
     */
+
+    // save pictures using steps
+    aMaxLine = 0;
+    aMaxCol = 0;
+    aCurrLine = 0;
+    int aCurrCol = 0;
+    for (size_t i=0; i<aVectPtsTPD.size(); ++i)
+    {
+        auto aPtAng = aVectPtsTPD[i];
+        if (aPtAng.z()<aDistMinToExist)
+        {
+            aVectPtsLine[i] = 0;
+            aVectPtsCol[i] = 0;
+            continue;
+        }
+        if (aPhiStep2>0)
+            aCurrLine = (aPtAng.y()-aBoxAng.P0().y())/aPhiStep2;
+        else
+            aCurrLine = (aPtAng.y()-aBoxAng.P1().y())/aPhiStep2;
+        if (aCurrLine>aMaxLine) aMaxLine = aCurrLine;
+
+        if (aThetaStep2>0)
+            aCurrCol = (aPtAng.x()-aBoxAng.P0().x())/aThetaStep2;
+        else
+            aCurrCol = (aPtAng.x()-aBoxAng.P1().x())/aThetaStep2;
+        if (aCurrCol>aMaxCol) aMaxCol = aCurrCol;
+
+        aVectPtsLine[i] = aCurrLine;
+        aVectPtsCol[i] = aCurrCol;
+    }
+    StdOut() << "Max col found: "<<aMaxCol<<"\n";
+    StdOut() << "Max line found: "<<aMaxLine<<"\n";
+
+    StdOut() << "Image2 size: "<<cPt2di(aMaxCol+1, aMaxLine+1)<<"\n";
+    //fill rasters
+    cIm2D<tU_INT1> aRasterIntens2(cPt2di(aMaxCol+1, aMaxLine+1), 0, eModeInitImage::eMIA_Null);
+    auto & aRasterIntens2Data = aRasterIntens2.DIm();
+    for (size_t i=0; i<aVectPtsTPD.size(); ++i)
+    {
+        auto aPtAng = aVectPtsTPD[i];
+        cPt2di aPcl = {aVectPtsCol[i], aVectPtsLine[i]};
+        //if (aVectPtsCol[i]==12191/2)
+        //    std::cout<<"  "<<i<<" "<<aPcl<<"\n";
+        if (aPtAng.z()<aDistMinToExist)
+        {
+            continue;
+        }
+        aRasterIntens2Data.SetV(aPcl, aTriangulation3DXYZ.KthPtsPtAttribute(i)*255);
+    }
+    aRasterIntens2Data.ToFile("titiIntens.png");
+
+
+    cIm2D<float> aRasterDenity(cPt2di(aMaxCol+5, aMaxLine+5), 0, eModeInitImage::eMIA_Null); // +3 pixel for safety
+    auto & aRasterDensityData = aRasterIntens2.DIm();
+    float aCurrLineFloat, aCurrColFloat;
+    for (size_t i=0; i<aVectPtsTPD.size(); ++i)
+    {
+        auto aPtAng = aVectPtsTPD[i];
+        if (aPtAng.z()<aDistMinToExist)
+        {
+            continue;
+        }
+        if (aPhiStep2>0)
+            aCurrLineFloat = (aPtAng.y()-aBoxAng.P0().y())/aPhiStep2;
+        else
+            aCurrLineFloat = (aPtAng.y()-aBoxAng.P1().y())/aPhiStep2;
+        if (aThetaStep2>0)
+            aCurrColFloat = (aPtAng.x()-aBoxAng.P0().x())/aThetaStep2;
+        else
+            aCurrColFloat = (aPtAng.x()-aBoxAng.P1().x())/aThetaStep2;
+        StdOut()<<aCurrColFloat+2 << " " << aCurrLineFloat+2 <<"\n";
+        aRasterDensityData.AddVBL(cPt2dr(aCurrColFloat+2, aCurrLineFloat+2), 1.);
+    }
+    aRasterDensityData.ToFile("titiIntens.png");
 
 
 /*cIm2D<float> aRasterOrder(cPt2di(aMaxCol+1, aMaxLine+1), 0, eModeInitImage::eMIA_Null);
