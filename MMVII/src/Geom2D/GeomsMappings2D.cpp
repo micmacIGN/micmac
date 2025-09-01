@@ -5,13 +5,68 @@
 namespace MMVII
 {
 
+
+/* ========================== */
+/*          cTrans2D          */
+/* ========================== */
+
+static constexpr int TrIndTrx   = 0;
+static constexpr int TrIndTry   = 1;
+
+template <class Type>  cTrans2D<Type> cTrans2D<Type>::FromParam(const cDenseVect<Type> & aVec) 
+{
+   return cTrans2D<Type> ( tPt(aVec(TrIndTrx),aVec(TrIndTry)));
+}
+
+template <class Type>  
+      void cTrans2D<Type>::ToEqParamFromLinear(Type & aLHSOut,cDenseVect<Type>& aVecOut,const tPt &aPIn,const Type & aLHSIn,const tPt & aVec)
+{
+   //  aLHSIn = aVec . (aPIn+aTr)
+   //  aLHSIn - aVec.aPIn = aVec.x * aTr.x + aVec.y * aTr.y
+   aVecOut(TrIndTrx) =  aVec.x();
+   aVecOut(TrIndTry) =  aVec.y();
+   aLHSOut = aLHSIn - Scal(aVec,aPIn);
+}
+
+template <class Type>  
+      void cTrans2D<Type>::ToEqParam(tPt& aRHS,cDenseVect<Type>& aVX,cDenseVect<Type> & aVY,const tPt & aPIn,const tPt & aPOut)
+{
+   //  param = trx try 
+   //  XOut  =   1*trx + 0*try +   XIN 
+   //  YOut  =   0*trx + 1*try +   YIN 
+   aVX(TrIndTrx) = 1;
+   aVX(TrIndTry) = 0;
+
+   aVY(TrIndTrx) = 0;
+   aVY(TrIndTry) = 1;
+
+   aRHS = aPOut - aPIn;
+}
+template <class Type>  
+      void cTrans2D<Type>::ToEqParam(tPt& aRHS,std::vector<cDenseVect<Type>>& aVXY,const tPt & aPIn,const tPt & aPOut)
+{
+    ToEqParam(aRHS,aVXY.at(0),aVXY.at(1),aPIn,aPOut);
+}
+
+template <class Type>  cTrans2D<Type> cTrans2D<Type>::FromMinimalSamples(const tTabMin& aTabIn,const tTabMin& aTabOut)
+{
+   return cTrans2D<Type>(aTabOut[0]-aTabIn[0]);
+}
+
+template <class Type>  cPtxd<Type,2> cTrans2D<Type>::DiffInOut(const tPt & aPIn,const tPt & aPOut) const
+{
+   return Value(aPIn) - aPOut;
+}
+
+template <class Type>  Type cTrans2D<Type>::Divisor(const tPt & aPIn) const {return 1.0;}
+
+
+
 /* ========================== */
 /*          cHomot2D          */
 /* ========================== */
 
-static constexpr int HomIndTrx   = 0;
-static constexpr int HomIndTry   = 1;
-static constexpr int HomIndScale = 2;
+static constexpr int HomotIndScale = TrIndTry+1;
 
 template <class Type>  cHomot2D<Type> cHomot2D<Type>::RandomHomotInv(const Type & AmplTr,const Type & AmplSc,const Type & AmplMinSc)
 {
@@ -24,10 +79,24 @@ template <class Type>  cHomot2D<Type> cHomot2D<Type>::FromParam(const cDenseVect
 {
    return cHomot2D<Type> 
           (
-              tPt(aVec(HomIndTrx),aVec(HomIndTry)),
-              aVec(HomIndScale)
+              tPt(aVec(TrIndTrx),aVec(TrIndTry)),
+              aVec(HomotIndScale)
           );
 }
+
+template <class Type>  
+      void cHomot2D<Type>::ToEqParamFromLinear(Type & aLHSOut,cDenseVect<Type>& aVecOut,const tPt &aPIn,const Type & aLHSIn,const tPt & aVec)
+{
+   //  aLHSIn = aVec . (aScale* aPIn+aTr)
+   //  aLHSIn  = aVec.x * aTr.x + aVec.y * aTr.y + aVec.aPIn * aScale
+
+   aVecOut(TrIndTrx) =  aVec.x();
+   aVecOut(TrIndTry) =  aVec.y();
+   aVecOut(HomotIndScale) = Scal(aVec,aPIn);
+   aLHSOut = aLHSIn;
+
+}
+
 
 template <class Type>  
       void cHomot2D<Type>::ToEqParam(tPt& aRHS,std::vector<cDenseVect<Type>>& aVXY,const tPt & aPIn,const tPt & aPOut)
@@ -42,13 +111,13 @@ template <class Type>
    //  param = trx try scale
    //  XOut  =   1*trx + 0*try +  scale * XIN 
    //  YOut  =   0*trx + 1*try +  scale * YIN 
-   aVX(HomIndTrx) = 1;
-   aVX(HomIndTry) = 0;
-   aVX(HomIndScale) = aPIn.x();
+   aVX(TrIndTrx) = 1;
+   aVX(TrIndTry) = 0;
+   aVX(HomotIndScale) = aPIn.x();
 
-   aVY(HomIndTrx) = 0;
-   aVY(HomIndTry) = 1;
-   aVY(HomIndScale) = aPIn.y();
+   aVY(TrIndTrx) = 0;
+   aVY(TrIndTry) = 1;
+   aVY(HomotIndScale) = aPIn.y();
 
    aRHS = aPOut;
 }
@@ -151,6 +220,24 @@ template <class Type>
       void cSim2D<Type>::ToEqParam(tPt& aRHS,std::vector<cDenseVect<Type>>& aVXY,const tPt & aPIn,const tPt & aPOut)
 {
     ToEqParam(aRHS,aVXY.at(0),aVXY.at(1),aPIn,aPOut);
+}
+
+template <class Type>  
+      void cSim2D<Type>::ToEqParamFromLinear(Type & aLHSOut,cDenseVect<Type>& aVecOut,const tPt &aPIn,const Type & aLHSIn,const tPt & aVec)
+{
+   //  aLHSIn = aVec . (aScale* aPIn+aTr) 
+   //          = aVec . ( aScale.x * aPIn.x - aScale.y*aPIn.y + aTr.x)
+   //                   ( aScale.x * aPIn.y + aScale.y * aPIn.x + aTr.y)
+   //
+   //  aLHSIn  = aVec.x * aTr.x + aVec.y * aTr.y 
+   //            + ( aVec.x.aPIn.x+ aVec.y.PIn.y) * aScale.x
+   //            + (-aVec.x*aPIn.y + aVec.y*aPIn.x) * aScale.y
+   aVecOut(SimIndTrx) =  aVec.x();
+   aVecOut(SimIndTry) =  aVec.y();
+   aVecOut(SimIndScx) =  aVec.x()*aPIn.x() + aVec.y() * aPIn.y();
+   aVecOut(SimIndScy) =  -aVec.x()*aPIn.y() + aVec.y() * aPIn.x();
+   //aVecOut(SimIndScx) =  aVec.y();
+   aLHSOut = aLHSIn;
 }
 
 template <class Type>  void cSim2D<Type>::ToEqParam(tPt& aRHS,cDenseVect<Type>& aVX,cDenseVect<Type> & aVY,const tPt & aPIn,const tPt & aPOut)
@@ -718,6 +805,20 @@ template <class Type>  cRot2D<Type> cRot2D<Type>::QuickEstimate(tCRVPts aVIn,tCR
 }
 
 
+// ============================================================================
+//           static void ToEqParamFromLinear(Type & aRHS,cDenseVect<Type>&,const tPt &aPIn,const Type & aLHSIn,const tPt & aScal);
+
+
+template <class tMap>  void ToEqInSeg(tREAL8& aRHS,cDenseVect<tREAL8> & aVec,const cPt2dr &aPIn,const cSegment2DCompiled<tREAL8> & aSeg)
+{
+    // aSeg.Nom . Q = aSeg.Norm  aSeg.Mil
+
+    tMap::ToEqParamFromLinear(aRHS,aVec,aPIn,Scal(aSeg.Normal(),aSeg.Middle()),aSeg.Normal());
+}
+
+template   void ToEqInSeg<cTrans2D<tREAL8>>(tREAL8& aRHS,cDenseVect<tREAL8> & aVec,const cPt2dr &aPIn,const cSegment2DCompiled<tREAL8> & aSeg);
+template   void ToEqInSeg<cHomot2D<tREAL8>>(tREAL8& aRHS,cDenseVect<tREAL8> & aVec,const cPt2dr &aPIn,const cSegment2DCompiled<tREAL8> & aSeg);
+template   void ToEqInSeg<cSim2D<tREAL8>>(tREAL8& aRHS,cDenseVect<tREAL8> & aVec,const cPt2dr &aPIn,const cSegment2DCompiled<tREAL8> & aSeg);
 
 // ==============================================================================
 // ==============================================================================
@@ -728,6 +829,7 @@ template <class Type>  cRot2D<Type> cRot2D<Type>::QuickEstimate(tCRVPts aVIn,tCR
 
 
 #define MACRO_INSTATIATE_ALL_MAP_GEOM2D_OF_TYPE(TYPE) \
+template class cTrans2D<TYPE>;\
 template class cRot2D<TYPE>;\
 template class cHomogr2D<TYPE>;\
 template class cAffin2D<TYPE>;\

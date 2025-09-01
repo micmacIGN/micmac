@@ -610,8 +610,53 @@ template <class tMap,class TypeEl> void TplBenchMap2D_NonLinear(const tMap & aMa
     MMVII_INTERNAL_ASSERT_Unresolved(aRes<1e-3,"Ransac  Estimat 4 Mapping");
 }
 
+template <class tMap> void TplBench_ToEqParamFromLinear(const tMap & aMap)
+{
+    cLeasSqtAA<tREAL8> aSys(tMap::NbDOF);
+    for (int aK=0 ; aK< 6 ; aK++)
+    {
+       // data to fill sys
+       cDenseVect<tREAL8> aVect(tMap::NbDOF);
+       tREAL8 aRHS;
+
+       // generate random seg
+       cPt2dr aPS1 =  cPt2dr::PRandC();
+       cPt2dr aPS2 =  aPS1 + cPt2dr::PRandUnit() * (RandUnif_C_NotNull(0.1)*5.0);
+       cSegment2DCompiled<tREAL8> aSeg(aPS1,aPS2);
+
+       // generate random point on seg
+       cPt2dr aPInSeg = aSeg.FromCoordLoc(cPt2dr(RandInInterval(-5,5),0.0));
+
+       cPt2dr aPInv = aMap.Inverse(aPInSeg);  // Point such that aMap(aPInv) in seg
+       // add equation
+       ToEqInSeg<tMap>(aRHS,aVect,aPInv,aSeg);  
+       aSys.PublicAddObservation(1.0,aVect,aRHS);
+    }
+
+    cDenseVect<tREAL8> aVect = aSys.PublicSolve();
+    tMap aMap2 = tMap::FromParam(aVect);
+
+    for (int aK=0 ; aK< 6 ; aK++)
+    {
+        cPt2dr aPt = cPt2dr::PRandC();
+        cPt2dr aP1 = aMap.Value(aPt);
+        cPt2dr aP2 = aMap2.Value(aPt);
+        tREAL8 aD = Norm2(aP1-aP2);
+        MMVII_INTERNAL_ASSERT_bench(aD<=1e-4,"TplBench_ToEqParamFromLinear"); 
+    }
+}
+
 template <class Type> void TplElBenchMap2D()
 {
+   for (int aK=0 ; aK<10 ; aK++)
+   {
+        TplBench_ToEqParamFromLinear(cTrans2D<tREAL8>(cPt2dr::PRandC()));
+        TplBench_ToEqParamFromLinear(cHomot2D<tREAL8>(cPt2dr::PRandC(),RandUnif_C_NotNull(0.1)*5));
+        TplBench_ToEqParamFromLinear(cSim2D<tREAL8>(cPt2dr::PRandC(),cPt2dr::PRandUnit() * (RandUnif_C_NotNull(0.1)*5.0) ));
+   }
+/*
+*/
+
    auto v1 = cRot2D<Type>::RandomRot(5);
    auto v2 = cPtxd<Type,2>::PRandC()*Type(0.3);
    auto v3 = Type(RandUnif_C()*0.2);

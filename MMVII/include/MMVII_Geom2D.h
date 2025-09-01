@@ -87,6 +87,9 @@ template <class Type> Type DbleAreaPolygOriented(const std::vector<cPtxd<Type,2>
 ///  matrix of  linear function  q -> q * aP
 template <class Type> cDenseMatrix<Type> MatOfMul (const cPtxd<Type,2> & aP);
 
+
+
+
 /**  This specialization is specific to dim 2, as the normal to a vector is 
  * specific to d2
  */
@@ -129,11 +132,77 @@ class cClosedSeg2D
 
 
 /*  Class of 2D mapping having the same interface, usable for ransac & least square */
+template <class Type>  class cTrans2D;
 template <class Type>  class cHomot2D;
 template <class Type>  class cSim2D;
 template <class Type>  class cRot2D;
 template <class Type>  class cAffin2D;
 template <class TypeMap> class  cLeastSquareEstimate;
+
+//< fill RHS/Vec to correspond equation Map(PIn) belong to aSeg (require ToEqParamFromLinear exist)
+template <class tMap>  void ToEqInSeg(tREAL8& aRHS,cDenseVect<tREAL8> & aVec,const cPt2dr &aPIn,const cSegment2DCompiled<tREAL8> & aSeg);
+
+/** This class represent 2D Translation,
+    The added value is low, BUT it has the advantage of having the same requirement than others
+   mapping, so can be used in template methods.
+*/
+
+template <class Type>  class cTrans2D
+{
+      public :
+          static constexpr int TheDim=2;
+          static constexpr int NbDOF = 2;
+          static std::string Name() {return "TransD";}
+          static constexpr int NbPtsMin = DIV_SUP(NbDOF,TheDim);
+
+          typedef Type  tTypeElem;
+          typedef cTrans2D<Type>  tTypeMap;
+          typedef cTrans2D<Type>  tTypeMapInv;
+
+          typedef cPtxd<Type,2>     tPt;
+          typedef std::vector<tPt>  tVPts;
+          typedef const tVPts&      tCRVPts;
+          typedef std::vector<Type> tVVals;
+          typedef const tVVals *    tCPVVals;
+          typedef tPt   tTabMin[NbPtsMin];  // Used for estimate with min number of point=> for ransac
+
+          cTrans2D(const tPt & aTr) : mTr (aTr) { }
+          cTrans2D() : cTrans2D(tPt(0.0,0.0)) {};
+
+          inline tPt  Value(const tPt & aP) const   {return mTr + aP ;}
+          inline tPt  Inverse(const tPt & aP) const {return aP-mTr  ;}
+
+          tTypeMapInv MapInverse() const {return tTypeMap(-mTr);}
+          tTypeMap operator *(const tTypeMap&aS2) const {return tTypeMap(mTr+aS2.mTr);}
+          inline const tPt&     Tr() const   {return mTr;}
+          inline tPt&     Tr() {return mTr;}
+          ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
+          static tTypeMap  FromParam(const cDenseVect<Type> &);
+
+          /** Let M be a "small" map, add the obs corresponding to :  aLHSIn = M(aPIn) . aScal   */
+          static void ToEqParamFromLinear(Type & aRHS,cDenseVect<Type>&,const tPt &aPIn,const Type & aLHSIn,const tPt & aScal);
+          /// compute the vector used in least square equation
+          static void ToEqParam(tPt & aRHS,std::vector<cDenseVect<Type>>&,const tPt &In,const tPt & Out);
+          /// Old interface
+          static void ToEqParam(tPt & aRHS,cDenseVect<Type>&,cDenseVect<Type> &,const tPt &In,const tPt & Out);
+          /// compute by least square the mapping such that Hom(PIn[aK]) = POut[aK]
+          static tTypeMap StdGlobEstimate(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals aVWeight=nullptr, cParamCtrlOpt=cParamCtrlOpt::Default());
+          /// compute by ransac the map minizing Sum |Map(VIn[K])-VOut[K]|
+          static tTypeMap RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest);
+          /// Refine an existing solution using least square
+          tTypeMap LeastSquareRefine(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals=nullptr)const;
+
+
+          static tTypeMap FromMinimalSamples(const tTabMin&,const tTabMin&);
+
+          /// Basic   Value(aPIn) - aPOUt 
+          tPt DiffInOut(const tPt & aPIn,const tPt & aPOUt) const;
+          /// Basic   1.0
+          Type Divisor(const tPt & aPInt) const;
+
+      private :
+          tPt mTr;
+};
 
 
 /** This class represent 2D Homotetie , it can aussi be used for an non
@@ -163,6 +232,8 @@ template <class Type>  class cHomot2D
 
           ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
           static tTypeMap  FromParam(const cDenseVect<Type> &);  
+          /** Let M be a "small" map, add the obs corresponding to :  aLHSIn = M(aPIn) . aScal   */
+          static void ToEqParamFromLinear(Type & aRHS,cDenseVect<Type>&,const tPt &aPIn,const Type & aLHSIn,const tPt & aScal);
           /// compute the vector used in least square equation
           static void ToEqParam(tPt & aRHS,std::vector<cDenseVect<Type>>&,const tPt &In,const tPt & Out);
           /// Old interface
@@ -242,6 +313,8 @@ template <class Type>  class cSim2D
           
           ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
           static tTypeMap  FromParam(const cDenseVect<Type> &);  
+          /** Let M be a "small" map, add the obs corresponding to :  aLHSIn = M(aPIn) . aScal   */
+          static void ToEqParamFromLinear(Type & aRHS,cDenseVect<Type>&,const tPt &aPIn,const Type & aLHSIn,const tPt & aScal);
           /// compute the vector used in least square equation
           static void ToEqParam(tPt & aRHS,std::vector<cDenseVect<Type>>&,const tPt &In,const tPt & Out);
           /// Old interface
