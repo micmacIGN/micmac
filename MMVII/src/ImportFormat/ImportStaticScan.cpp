@@ -30,7 +30,6 @@ public :
     std::vector<std::string>  Samples() const override;
 private :
 
-
     // Mandatory Arg
     std::string              mNameFile;
     std::string              mStationName;
@@ -40,6 +39,8 @@ private :
     tREAL8                   mAngTolerancy;
     std::string              mTransfoIJK;
     bool                     mNoMiss; // are every point present in cloud, even when no response?
+
+    // data
 
 };
 
@@ -266,6 +267,81 @@ int cAppli_ImportStaticScan::Exe()
     aRasterMasksData.ToFile("totoMask.png");
 
 
+
+    // estimate verticalization correction if scanner with compensator
+    int aNbPlanes = 10; // try to get several planes for instrument primariy axis estimation
+    float aCorrectPlanePhiRange = 80*M_PI/180; // try to get points with this phi diff in a scanline
+    int aColPlaneStep = aMaxCol / aNbPlanes;
+    int aLineGoodRange = aCorrectPlanePhiRange/fabs(phiStep);
+    if (aLineGoodRange > aMaxLine - 2)
+        aLineGoodRange = aMaxLine - 2; // for small scans, use full height
+
+    int aTargetCol = 0; // the next we search for
+    int aTargetLine = 0;
+    previousPhi = NAN;
+    previousTheta = NAN;
+    int aCurrCol = 0;
+    aCurrLine = 0;
+    std::vector<std::tuple<cPt3dr, cPt3dr, cPt3dr>> aVPtsPlanes; // list of triplets to find vertical planes
+    cPt3dr * aPtBottom = nullptr;
+    cPt3dr * aPtTop = nullptr;
+    for (size_t i=0; i<aVectPtsTPD.size(); ++i)
+    {
+        // TODO: factorize xyz points list to linecol!
+        auto aPtAng = aVectPtsTPD[i];
+        if (aPtAng.z()<aDistMinToExist)
+        {
+            aCurrLine++;
+            continue;
+        }
+        if (mNoMiss)
+            aCurrLine++;
+        else
+            aCurrLine = (aPtAng.y()-aBoxAng.P0().y())/fabs(phiStep);
+
+        if (-(aPtAng.y()-previousPhi)/phiStep > aColChangeDetectorInPhistep)
+        {
+            aCurrCol++;
+            aCurrLine=0;
+        }
+        previousTheta = aPtAng.x();
+        previousPhi = aPtAng.y();
+        if (aCurrCol == aTargetCol)
+        {
+            if (!aPtBottom)
+            {
+                aPtBottom = &aTriangulation3DXYZ.KthPts(i);
+                aTargetLine = aCurrLine + aLineGoodRange;
+            }
+            else if ((aCurrLine>aTargetLine)&&(!aPtTop))
+            {
+                aPtTop = &aTriangulation3DXYZ.KthPts(i);
+                aVPtsPlanes.push_back( {cPt3dr(0.,0.,0.),(*aPtBottom)/Norm2(*aPtBottom), (*aPtTop)/Norm2(*aPtTop)} );
+                aPtBottom = nullptr;
+                aPtTop = nullptr;
+                aTargetCol = aCurrCol + aColPlaneStep;
+            }
+        }
+    }
+
+    std::vector<cPlane3D> aVPlanes;
+    for (auto & [aP0,aP1,aP2] :aVPtsPlanes)
+    {
+        aVPlanes.push_back(cPlane3D::From3Point(aP0,aP1,aP2));
+    }
+    tSeg3dr aSegVert = cPlane3D::InterPlane(aVPlanes, aNbPlanes/2);
+    StdOut() << "Vert: " << aSegVert.V12() << " " << aSegVert.P2() << "\n";
+
+    cRotation3D<tREAL8> aVertRot = cRotation3D<tREAL8>::CompleteRON(aSegVert.V12(),2);
+
+    // update xyz and tpd coordinates
+    for (size_t i=0; i<aTriangulation3DXYZ.NbPts(); ++i)
+    {
+        aTriangulation3DXYZ.KthPts(i) = aVertRot.Inverse(aTriangulation3DXYZ.KthPts(i));
+        aVectPtsTPD[i] = cart2spher(aRotFrame.Value(aTriangulation3DXYZ.KthPts(i)));
+    }
+
+
     // make statistics on theta phi, using raster geometry
     StdOut() << "Compute steps from inital raster geometry\n";
     //std::vector<tREAL8> aVDiffTheta;
@@ -379,7 +455,7 @@ int cAppli_ImportStaticScan::Exe()
     aMaxLine = 0;
     aMaxCol = 0;
     aCurrLine = 0;
-    int aCurrCol = 0;
+    aCurrCol = 0;
     for (size_t i=0; i<aVectPtsTPD.size(); ++i)
     {
         auto aPtAng = aVectPtsTPD[i];
@@ -426,8 +502,11 @@ int cAppli_ImportStaticScan::Exe()
     aRasterIntens2Data.ToFile("titiIntens.png");
 
 
-    cIm2D<float> aRasterDenity(cPt2di(aMaxCol+5, aMaxLine+5), 0, eModeInitImage::eMIA_Null); // +3 pixel for safety
-    auto & aRasterDensityData = aRasterIntens2.DIm();
+    // search for min/max line and col with step
+    float aMinLinef = INFINITY;
+    float aMinColf = INFINITY;
+    float aMaxLinef = -INFINITY;
+    float aMaxColf = -INFINITY;
     float aCurrLineFloat, aCurrColFloat;
     for (size_t i=0; i<aVectPtsTPD.size(); ++i)
     {
@@ -444,10 +523,43 @@ int cAppli_ImportStaticScan::Exe()
             aCurrColFloat = (aPtAng.x()-aBoxAng.P0().x())/aThetaStep2;
         else
             aCurrColFloat = (aPtAng.x()-aBoxAng.P1().x())/aThetaStep2;
-        StdOut()<<aCurrColFloat+2 << " " << aCurrLineFloat+2 <<"\n";
-        aRasterDensityData.AddVBL(cPt2dr(aCurrColFloat+2, aCurrLineFloat+2), 1.);
+        if (aMinLinef > aCurrLineFloat)
+            aMinLinef = aCurrLineFloat;
+        if (aMinColf > aCurrColFloat)
+            aMinColf = aCurrColFloat;
+        if (aMaxLinef < aCurrLineFloat)
+            aMaxLinef = aCurrLineFloat;
+        if (aMaxColf < aCurrColFloat)
+            aMaxColf = aCurrColFloat;
     }
-    aRasterDensityData.ToFile("titiIntens.png");
+    StdOut() << " " << aMinColf << "  " << aMaxColf << " " << aMinLinef << "  " << aMaxLinef << std::endl;
+    cIm2D<float> aRasterDenity(cPt2di(aMaxColf-aMinColf+3, aMaxLinef-aMinLinef+3), 0, eModeInitImage::eMIA_Null); // +3 pixels for safety
+    auto & aRasterDensityData = aRasterDenity.DIm();
+    StdOut() << "aRasterDensityData.Sz(): " << aRasterDensityData.Sz() <<"\n";
+    for (size_t i=0; i<aVectPtsTPD.size(); ++i)
+    {
+        auto aPtAng = aVectPtsTPD[i];
+        if (aPtAng.z()<aDistMinToExist)
+        {
+            continue;
+        }
+        if (aPhiStep2>0)
+            aCurrLineFloat = (aPtAng.y()-aBoxAng.P0().y())/aPhiStep2;
+        else
+            aCurrLineFloat = (aPtAng.y()-aBoxAng.P1().y())/aPhiStep2;
+        if (aThetaStep2>0)
+            aCurrColFloat = (aPtAng.x()-aBoxAng.P0().x())/aThetaStep2;
+        else
+            aCurrColFloat = (aPtAng.x()-aBoxAng.P1().x())/aThetaStep2;
+        //StdOut()<<aCurrColFloat+2 << " " << aCurrLineFloat+2 <<"\n";
+        auto aP2d = cPt2dr(aCurrColFloat+aMinColf+1., aCurrLineFloat+aMinLinef+1.);
+        if (!aRasterDensityData.InsideBL(aP2d))
+        {
+            StdOut()<<"pb: " << aP2d <<"\n";
+        }
+        aRasterDensityData.AddVBL(aP2d, 1.);
+    }
+    aRasterDensityData.ToFile("titiIntens.tif");
 
 
 /*cIm2D<float> aRasterOrder(cPt2di(aMaxCol+1, aMaxLine+1), 0, eModeInitImage::eMIA_Null);
@@ -476,7 +588,7 @@ int cAppli_ImportStaticScan::Exe()
 
             //auto aPtAng = aVectPtsTPD[i];
             //StdOut() << " "<<aPtAng.x()<<" "<<aPtAng.y()<<"\n";
-            auto & aPt = aTriangulation3DXYZ.KthPts(i);
+            auto aPt = aVertRot.Inverse(aTriangulation3DXYZ.KthPts(i));
             auto norm = Norm2(aPt);
             file1 << aPt.x() << " " << aPt.y() << " " << aPt.z() << " " << r << " " << g << " " << b << "\n"; //i << " " << aTriangulation3DXYZ.KthPtsPtAttribute(i) << "\n";
             file2 << aPt.x()/norm << " " << aPt.y()/norm << " " << aPt.z()/norm << " " << r << " " << g << " " << b << "\n"; //<< i << " " << aTriangulation3DXYZ.KthPtsPtAttribute(i) << "\n";
