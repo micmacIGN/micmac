@@ -8,7 +8,6 @@
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_Clino.h"
 
-bool DEBUG=true;
 
 /**
  
@@ -249,7 +248,6 @@ void cAppli_ReportBlock::AddStatDistWirePt
        return;
 
      cPt3dr  aProj = mCurWire->Proj(aPt);
-
      cPt3dr  anEc = aProj-aPt;
      tREAL8 aD3 = Norm2(anEc);
      tREAL8 aDH = -1;
@@ -532,15 +530,8 @@ void cAppli_ReportBlock::GenerateCernExport(const std::string& anIdSync,const st
             tREAL8 aResidual;
             aPose = aPose.LeastSquareRefine(mV3dGround,aFilteredV3DLoc,&aResidual);
 
+
             cPt3dr aPLoc = aPose.Value(mSphereCenter);
-
-if (DEBUG)
-{
-   StdOut() << "RRRR-LOC= " << mSphereCenter << " " << aPLoc << " CernSize=" << mVCernPR.size() << "\n";
-   StdOut() << "PTARGET-LOC= " << Centroid(aFilteredV3DLoc) << " " << aFilteredV3DLoc.size()<< "\n";
-   StdOut() << "V333-Gd= " << Centroid(mV3dGround) << " " << mV3dGround.size() << "\n";
-}
-
             AddStatDistWirePt(aPLoc,aVertLocCamDown,anIdSync,"Center");
          }
          if (mCernAllPoint)
