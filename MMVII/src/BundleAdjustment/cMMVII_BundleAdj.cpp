@@ -272,6 +272,19 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter, bool doShowCond
             mR8_Sys->SetFrozenFromPat(*aPtrCal,mPatParamFrozenCalib,true);
 	}
     }
+    for (const auto & aVPat : mPatternFreeCalib)
+    {
+        std::string aPatNameCam = aVPat.at(0);
+	tREAL8 aWeight = cStrIO<tREAL8>::FromStr(GetDef(aVPat,2,std::string("-1.0")));
+	//if (aVPat.size()>=3)
+        for (const  auto & aPtrCal : mVPCIC)
+	{
+            if (MatchRegex(aPtrCal->Name(),aPatNameCam))
+            {
+               mR8_Sys->SetFrozenFromPat(*aPtrCal,aVPat.at(1),false,aWeight);
+            }
+	}
+    }
 
     // if necessary, fix frozen centers of external calibration
     if (mPatFrozenCenter !="")
@@ -486,6 +499,11 @@ cResolSysNonLinear<tREAL8> *  cMMVII_BundleAdj::Sys() {return mR8_Sys;}
 void cMMVII_BundleAdj::SetParamFrozenCalib(const std::string & aPattern)
 {    
     mPatParamFrozenCalib = aPattern;
+}
+
+void cMMVII_BundleAdj::SetParamFreeCalib(const std::vector<std::vector<std::string>> & aVVPat)
+{    
+    mPatternFreeCalib = aVVPat;
 }
 
 void cMMVII_BundleAdj::SetFrozenCenters(const std::string & aPattern)

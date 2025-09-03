@@ -363,7 +363,8 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
 	   void  SetFrozenVarCurVal(tObjWUk & anObj,const cPtxd<Type,2> & aPt);  ///< Froze aPt that must belong to anObj
 	   void  SetFrozenAllCurrentValues(tObjWUk & anObj);  ///< Froze all the value beloning to an anObj
 
-	   void  SetFrozenFromPat(tObjWUk & anObj,const std::string& , bool Frozen);  ///< Froze all the value beloning to an anObj
+	   /// Froze/Free all the value beloning to an anObj; if Weight>0 Frozen must  be set to false, else error
+	   void  SetFrozenFromPat(tObjWUk & anObj,const std::string& , bool Frozen,tREAL8 aWeight=-1);  
 
            void AddObservationLinear(const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS)  ;
            void AddObservationLinear(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) ;

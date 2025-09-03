@@ -90,6 +90,7 @@ class cAppliBundlAdj : public cMMVII_Appli
 	int                       mNbIter;
 
 	std::string               mPatParamFrozCalib;
+	std::vector<std::vector<std::string>>  mVVParFreeCalib;
 	std::string               mPatFrosenCenters;
 	std::string               mPatFrosenOrient;
     std::string               mPatFrosenClino;
@@ -147,6 +148,7 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mAddTieP,"AddTieP","For additional TieP, [[Folder,SigG...],[Folder,...]] ")
       << AOpt2007(mParamLidarPhgr,"LidarPhotogra","Paramaters for adj Lidar/Phgr [[Mode,Ply,Sigma,Interp?,Perturbate?,NbPtsPerPatch=32]*]")
       << AOpt2007(mPatParamFrozCalib,"PPFzCal","Pattern for freezing internal calibration parameters")
+      << AOpt2007(mVVParFreeCalib,"PPFreeCal","Pattern for free internal calibration parameters [[PatCal1,PatParam1],[PatCal2,PatParam2] ...] ")
       << AOpt2007(mPatFrosenCenters,"PatFzCenters","Pattern of images for freezing center of poses")
       << AOpt2007(mPatFrosenOrient,"PatFzOrient","Pattern of images for freezing orientation of poses")
       << AOpt2007(mPatFrosenClino,"PatFzClino","Pattern of clinometers for freezing boresight")
@@ -256,6 +258,10 @@ int cAppliBundlAdj::Exe()
     if (IsInit(&mPatParamFrozCalib))
     {
         mBA.SetParamFrozenCalib(mPatParamFrozCalib);
+    }
+    if (IsInit(&mVVParFreeCalib))
+    {
+        mBA.SetParamFreeCalib(mVVParFreeCalib);
     }
 
     if (IsInit(&mPatFrosenCenters))

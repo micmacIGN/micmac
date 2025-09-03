@@ -318,10 +318,14 @@ template <class Type> cRotation3D<Type>  cRotation3D<Type>::RotFromAxiator(const
      return RotFromAxe(anAxe/aNorm,aNorm);
 }
 
-template <class Type> cRotation3D<Type>  cRotation3D<Type>::RotFromAxe(const tPt & aP0,Type aTeta)
+template <class Type> cRotation3D<Type>  cRotation3D<Type>::RotFromAxe(const tPt & aP00,Type aTeta)
 {
    // Compute a repair with P0 as first axes
-   cRotation3D<Type> aRepAxe = CompleteRON(aP0);
+   cRotation3D<Type> aRepAxe = CompleteRON(aP00);
+   cPtxd<Type,3> aP0 = aRepAxe.AxeI();  // bug correction, in case P00 has not a norm 1
+
+// StdOut() << "RotFromAxeRotFromAxe " << aP0 << " " << aP00 << "\n";
+
    // Extract two other axes
    tPt  aP1 = tPt::Col(aRepAxe.mMat,1);
    tPt  aP2 = tPt::Col(aRepAxe.mMat,2);

@@ -444,6 +444,7 @@ class cMMVII_BundleAdj
 	  //  =========  control object free/frozen ===================
 
 	  void SetParamFrozenCalib(const std::string & aPattern);
+	  void SetParamFreeCalib(const std::vector<std::vector<std::string>> & aPattern);
 	  void SetViscosity(const tREAL8& aViscTr,const tREAL8& aViscAngle);
 	  void SetFrozenCenters(const std::string & aPattern);
 	  void SetFrozenOrients(const std::string & aPattern);
@@ -509,6 +510,8 @@ class cMMVII_BundleAdj
 	  // ================= Frozen/UnFrozen
 
 	  std::string  mPatParamFrozenCalib;  /// Pattern for name of paramater of internal calibration
+	  /// Pattern for parameters that are "finally" free,
+          std::vector<std::vector<std::string>> mPatternFreeCalib;
 	  std::string  mPatFrozenCenter;      /// Pattern for name of pose with frozen centers
 	  std::string  mPatFrozenOrient;      /// Pattern for name of pose with frozen centers
           std::string  mPatFrozenClinos;      /// Pattern for name of clino with frozen boresight
