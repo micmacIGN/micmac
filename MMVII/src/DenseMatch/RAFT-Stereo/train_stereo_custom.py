@@ -177,14 +177,18 @@ def train(args):
 
     # read hdf5 dataset 
 
-    dataset= HDF5StereoDataModule(None,
+    stereo_dataset= HDF5StereoDataModule(None,
                                 None,
                                 args.hdf5_file_path,
                                 sign_disp_multiplier=-1.0,
                                 batch_size=args.batch_size,
                                 )
+    
 
-    train_loader = fetch_dataloader_train(dataset)
+
+    train_loader = fetch_dataloader_train(stereo_dataset)
+
+
 
     optimizer, scheduler = fetch_optimizer(args, model)
     total_steps = 0
@@ -209,7 +213,8 @@ def train(args):
     global_batch_num = 0
     while should_keep_training:
 
-        for i_batch, (_, *data_blob) in enumerate(tqdm(train_loader)):
+        for i_batch, data_blob in enumerate(tqdm(train_loader)):
+            print( [x.shape for x in data_blob])
             optimizer.zero_grad()
             image1, image2, flow, valid = [x.cuda() for x in data_blob]
 

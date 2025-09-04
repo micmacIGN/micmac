@@ -188,19 +188,17 @@ class HDF5Dataset(Dataset):
             transform = self.eval_transform
         if transform:
             data = transform(data)
-        img1=data._left.squueze().repeat(3,1,1).float()
-        img2=data._right.squueze().repeat(3,1,1).float()
-        disp = data._disp
+        img1=data._left.squeeze().repeat(3,1,1).float()
+        img2=data._right.squeeze().repeat(3,1,1).float()
+        disp = data._disp.squeeze()
         if isinstance(disp, tuple):
             disp, valid = disp
-        else:
-            valid = disp < 512
 
         flow = torch.stack((-disp, torch.zeros_like(disp)), dim=-1)
+
         flow = flow.permute(2, 0, 1).float()
 
         valid = (flow[0].abs() < 512) & (flow[1].abs() < 512)
-
         flow = flow[:1]
         return  img1, img2, flow, valid.float()
 

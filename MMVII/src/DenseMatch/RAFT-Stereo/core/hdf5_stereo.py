@@ -133,7 +133,7 @@ class HDF5StereoDataModule(LightningDataModule):
         )
         return self._dataset
 
-    def train_dataloader(self):
+    def train_dataloader(self) -> DataLoader:
         return DataLoader(self.dataset.traindata,
                           batch_size=self.batch_size,
                           shuffle=True,
@@ -141,7 +141,7 @@ class HDF5StereoDataModule(LightningDataModule):
                           prefetch_factor=self.prefetch_factor,
                           drop_last=True,
                           )
-    def val_dataloader(self):
+    def val_dataloader(self)-> DataLoader:
         return DataLoader(self.dataset.valdata,
                           batch_size=self.batch_size,
                           shuffle=False,
@@ -150,7 +150,7 @@ class HDF5StereoDataModule(LightningDataModule):
                           drop_last=True,
                           )
 
-    def test_dataloader(self):
+    def test_dataloader(self)-> DataLoader:
         return DataLoader(self.dataset.testdata,
                           batch_size=self.batch_size,
                           shuffle=False,
@@ -161,11 +161,11 @@ class HDF5StereoDataModule(LightningDataModule):
 
 
 
-def fetch_dataloader_train(dataset):
+def fetch_dataloader_train(stereodataset)-> DataLoader:
     """ Create the data loader for the corresponding trainign set """
-    return dataset.train_dataloader
+    return stereodataset.train_dataloader()
 
 
-def fetch_dataloader_val(dataset):
+def fetch_dataloader_val(stereodataset):
     """ Create the data loader for the corresponding trainign set """
-    return dataset.val_dataloader
+    return stereodataset.val_dataloader()
