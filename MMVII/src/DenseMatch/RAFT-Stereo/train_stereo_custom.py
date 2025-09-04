@@ -214,7 +214,6 @@ def train(args):
     while should_keep_training:
 
         for i_batch, data_blob in enumerate(tqdm(train_loader)):
-            print( [x.shape for x in data_blob])
             optimizer.zero_grad()
             image1, image2, flow, valid = [x.cuda() for x in data_blob]
 
