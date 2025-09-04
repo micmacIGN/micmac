@@ -242,7 +242,7 @@ def train(args):
                 torch.save(model.state_dict(), save_path)
 
                 results = validate_custom_dataset(model.module, 
-                                                 dataset,
+                                                 stereo_dataset,
                                                  iters=args.valid_iters)
 
                 logger.write_dict(results)
