@@ -13,9 +13,124 @@ import random
 from pathlib import Path
 from glob import glob
 import os.path as osp
-
+from typing import Dict, List, Literal, Union,Tuple
+import pandas as pd
 from core.utils import frame_utils
 from core.utils.augmentor import FlowAugmentor, SparseFlowAugmentor
+import tifffile as tf
+
+SPLIT_TYPE = Union[Literal["train"], Literal["val"], Literal["test"]]
+IMAGE_PATHS_BY_SPLIT_DICT_TYPE = Dict[SPLIT_TYPE, List[Tuple[str]]]
+
+def get_image_paths_by_split_dict(
+    data_dir: str, split_csv_path: str
+) -> IMAGE_PATHS_BY_SPLIT_DICT_TYPE:
+    image_paths_by_split_dict: IMAGE_PATHS_BY_SPLIT_DICT_TYPE = {}
+    split_df = pd.read_csv(split_csv_path)
+    for phase in ["train", "val", "test"]:
+        basenames_l = split_df[split_df.split == phase].basename_l.tolist()
+        basenames_r = split_df[split_df.split == phase].basename_r.tolist()
+        basenames_d = split_df[split_df.split == phase].disparity.tolist()
+        basenames_m = split_df[split_df.split == phase].masq.tolist()
+        basenames=list(zip(basenames_l,basenames_r,basenames_d,basenames_m))
+        # Reminder: an explicit data structure with ./val, ./train, ./test subfolder is required.
+        image_paths_by_split_dict[phase] = [(str(Path(data_dir) / phase / b[0]),
+                                             str(Path(data_dir) / phase / b[1]),
+                                             str(Path(data_dir) / phase / b[2]),
+                                             str(Path(data_dir) / phase / b[3])) for b in basenames]
+
+    if not image_paths_by_split_dict:
+        raise FileNotFoundError(
+            (
+                f"No basename found while parsing directory {data_dir}"
+                f"using {split_csv_path} as split CSV."
+            )
+        )
+    return image_paths_by_split_dict
+
+
+class CustomStereoDataset(data.Dataset):
+    def __init__(self, split_csv_file, data_dir,mode="train"):
+        self.augmentor = None
+        self.init_seed = False
+        self.split_csv_file=split_csv_file
+        self.data_dir= data_dir
+        self.flow_list = []
+        self.disparity_list = []
+        self.image_list = []
+        self.extra_info = []
+        self.mode=mode
+
+        image_paths_by_split_dict = get_image_paths_by_split_dict(self.data_dir,
+                                                                  self.split_csv_file)
+        
+
+        if self.mode=="train":
+            train_image_path_dicts= image_paths_by_split_dict['train']
+
+            for _sample in train_image_path_dicts:
+                self.image_list+=[ [_sample[0], _sample[1]] ]
+                self.disparity_list+=[_sample[2]]
+
+            
+        if self.mode=="val":
+            val_image_path_dicts= image_paths_by_split_dict['val']
+
+            for _sample in val_image_path_dicts:
+                self.image_list+=[ [_sample[0], _sample[1]] ]
+                self.disparity_list+=[_sample[2]]
+
+        if self.mode=="test":
+            test_image_path_dicts= image_paths_by_split_dict['test']
+
+            for _sample in test_image_path_dicts:
+                self.image_list+=[ [_sample[0], _sample[1]] ]
+                self.disparity_list+=[_sample[2]]
+
+    def __getitem__(self, index):
+        if self.mode=="test":
+            img1 = tf.imread(self.image_list[index][0])
+            img2 = tf.imread(self.image_list[index][1])
+            img1 = torch.from_numpy(img1).squeeze().repeat(3,1,1).float()
+            img2 = torch.from_numpy(img2).squeeze().repeat(3,1,1).float()
+            return img1, img2, self.extra_info[index]
+
+        if not self.init_seed:
+            worker_info = torch.utils.data.get_worker_info()
+            if worker_info is not None:
+                torch.manual_seed(worker_info.id)
+                np.random.seed(worker_info.id)
+                random.seed(worker_info.id)
+                self.init_seed = True
+
+        disp = tf.imread(self.disparity_list[index])
+        if isinstance(disp, tuple):
+            disp, valid = disp
+        else:
+            valid = disp < 512
+
+        
+        img1 = tf.imread(self.image_list[index][0]).astype(np.uint8)
+        img2 = tf.imread(self.image_list[index][1]).astype(np.uint8)
+
+        flow = np.stack([-disp, np.zeros_like(disp)], axis=-1)
+
+        img1 = torch.from_numpy(img1).squeeze().repeat(3,1,1).float()
+        img2 = torch.from_numpy(img2).squeeze().repeat(3,1,1).float()
+
+        flow = torch.from_numpy(flow).permute(2, 0, 1).float()
+
+        if self.sparse:
+            valid = torch.from_numpy(valid)
+        else:
+            valid = (flow[0].abs() < 512) & (flow[1].abs() < 512)
+
+        flow = flow[:1]
+        return self.image_list[index] + [self.disparity_list[index]], img1, img2, flow, valid.float()
+
+    def __len__(self):
+        return len(self.image_list)
+
 
 
 class StereoDataset(data.Dataset):
@@ -312,6 +427,8 @@ def fetch_dataloader(args):
         elif dataset_name.startswith('tartan_air'):
             new_dataset = TartanAir(aug_params, keywords=dataset_name.split('_')[2:])
             logging.info(f"Adding {len(new_dataset)} samples from Tartain Air")
+        elif dataset_name.startswith('custom_aerial'):
+            new_dataset= CustomStereoDataset(args.csv_split,args.dataset_dir,mode="train")
         train_dataset = new_dataset if train_dataset is None else train_dataset + new_dataset
 
     train_loader = data.DataLoader(train_dataset, batch_size=args.batch_size, 
@@ -319,4 +436,7 @@ def fetch_dataloader(args):
 
     logging.info('Training with %d image pairs' % len(train_dataset))
     return train_loader
+
+
+
 

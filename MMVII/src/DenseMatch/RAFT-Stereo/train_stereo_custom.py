@@ -10,10 +10,8 @@ from torch.utils.tensorboard import SummaryWriter
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from core.raft_stereo import RAFTStereo
-
-from evaluate_stereo import *
-import core.stereo_datasets as datasets
+from core.raft_stereo import RAFTStereo,autocast
+from core.hdf5_stereo import HDF5StereoDataModule, fetch_dataloader_train, fetch_dataloader_val
 
 
 try:
@@ -31,6 +29,48 @@ except:
             optimizer.step()
         def update(self):
             pass
+
+
+
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+@torch.no_grad()
+def validate_custom_dataset(model,dataset, iters=32, mixed_prec=False):
+    """ Peform validation using the FlyingThings3D (TEST) split """
+    model.eval()
+
+    # val dataloader 
+    val_dataloader = fetch_dataloader_val(dataset)
+
+    out_list, epe_list = [], []
+
+    for i_batch, (_, *data_blob) in enumerate(tqdm(val_dataloader)):
+        image1, image2, flow_gt, valid_gt = [x.cuda() for x in data_blob]
+
+        image1 = image1[None].cuda()
+        image2 = image2[None].cuda()
+
+        with autocast(enabled=mixed_prec):
+            _, flow_pr = model(image1, image2, iters=iters, test_mode=True)
+        assert flow_pr.shape == flow_gt.shape, (flow_pr.shape, flow_gt.shape)
+        epe = torch.sum((flow_pr - flow_gt)**2, dim=0).sqrt()
+
+        epe = epe.flatten()
+        val = (valid_gt.flatten() >= 0.5) & (flow_gt.abs().flatten() < 192)
+
+        out = (epe > 1.0)
+        epe_list.append(epe[val].mean().item())
+        out_list.append(out[val].cpu().numpy())
+
+    epe_list = np.array(epe_list)
+    out_list = np.concatenate(out_list)
+
+    epe = np.mean(epe_list)
+    d1 = 100 * np.mean(out_list)
+
+    print("Validation FlyingThings: %f, %f" % (epe, d1))
+    return {'things-epe': epe, 'things-d1': d1}
 
 
 def sequence_loss(flow_preds, flow_gt, valid, loss_gamma=0.9, max_flow=700):
@@ -135,7 +175,17 @@ def train(args):
     model = nn.DataParallel(RAFTStereo(args))
     print("Parameter Count: %d" % count_parameters(model))
 
-    train_loader = datasets.fetch_dataloader(args)
+    # read hdf5 dataset 
+
+    dataset= HDF5StereoDataModule(None,
+                                None,
+                                args.hdf5_file_path,
+                                sign_disp_multiplier=-1.0,
+                                batch_size=args.batch_size,
+                                )
+
+    train_loader = fetch_dataloader_train(dataset)
+
     optimizer, scheduler = fetch_optimizer(args, model)
     total_steps = 0
     logger = Logger(model, scheduler)
@@ -186,9 +236,8 @@ def train(args):
                 logging.info(f"Saving file {save_path.absolute()}")
                 torch.save(model.state_dict(), save_path)
 
-                results = validate_custom_aerial(model.module, 
-                                                 args.split_csv_file, 
-                                                 args.data_dir, 
+                results = validate_custom_dataset(model.module, 
+                                                 dataset,
                                                  iters=args.valid_iters)
 
                 logger.write_dict(results)
@@ -219,9 +268,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', default='raft-stereo', help="name your experiment")
     parser.add_argument('--restore_ckpt', help="restore checkpoint")
+    parser.add_argument('--hdf5_file_path', help="hdf 5 compacted dataset")
     parser.add_argument('--mixed_precision', action='store_true', help='use mixed precision')
-    parser.add_argument('--split_csv_file', type=str, help="split csv file")
-    parser.add_argument('--data_dir', type=str, help="aerial dataset directory")
+
 
     # Training parameters
     parser.add_argument('--batch_size', type=int, default=6, help="batch size used during training.")
@@ -252,6 +301,11 @@ if __name__ == '__main__':
     parser.add_argument('--do_flip', default=False, choices=['h', 'v'], help='flip the images horizontally or vertically')
     parser.add_argument('--spatial_scale', type=float, nargs='+', default=[0, 0], help='re-scale the images randomly')
     parser.add_argument('--noyjitter', action='store_true', help='don\'t simulate imperfect rectification')
+
+
+    parser.add_argument('--split_csv_file', type=str, default="", help="split csv file")
+    parser.add_argument('--data_dir', type=str, default="", help="aerial dataset directory")
+
     args = parser.parse_args()
 
     torch.manual_seed(1234)

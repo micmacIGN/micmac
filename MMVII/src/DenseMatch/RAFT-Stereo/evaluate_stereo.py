@@ -8,8 +8,8 @@ import logging
 import numpy as np
 import torch
 from tqdm import tqdm
-from raft_stereo import RAFTStereo, autocast
-import stereo_datasets as datasets
+from core.raft_stereo import RAFTStereo, autocast
+import core.stereo_datasets as datasets
 from utils.utils import InputPadder
 
 def count_parameters(model):
@@ -113,6 +113,44 @@ def validate_things(model, iters=32, mixed_prec=False):
     """ Peform validation using the FlyingThings3D (TEST) split """
     model.eval()
     val_dataset = datasets.SceneFlowDatasets(dstype='frames_finalpass', things_test=True)
+
+    out_list, epe_list = [], []
+    for val_id in tqdm(range(len(val_dataset))):
+        _, image1, image2, flow_gt, valid_gt = val_dataset[val_id]
+        image1 = image1[None].cuda()
+        image2 = image2[None].cuda()
+
+        padder = InputPadder(image1.shape, divis_by=32)
+        image1, image2 = padder.pad(image1, image2)
+
+        with autocast(enabled=mixed_prec):
+            _, flow_pr = model(image1, image2, iters=iters, test_mode=True)
+        flow_pr = padder.unpad(flow_pr).cpu().squeeze(0)
+        assert flow_pr.shape == flow_gt.shape, (flow_pr.shape, flow_gt.shape)
+        epe = torch.sum((flow_pr - flow_gt)**2, dim=0).sqrt()
+
+        epe = epe.flatten()
+        val = (valid_gt.flatten() >= 0.5) & (flow_gt.abs().flatten() < 192)
+
+        out = (epe > 1.0)
+        epe_list.append(epe[val].mean().item())
+        out_list.append(out[val].cpu().numpy())
+
+    epe_list = np.array(epe_list)
+    out_list = np.concatenate(out_list)
+
+    epe = np.mean(epe_list)
+    d1 = 100 * np.mean(out_list)
+
+    print("Validation FlyingThings: %f, %f" % (epe, d1))
+    return {'things-epe': epe, 'things-d1': d1}
+
+
+@torch.no_grad()
+def validate_custom_aerial(model,split_csv_file,data_dir, iters=32, mixed_prec=False):
+    """ Peform validation using the FlyingThings3D (TEST) split """
+    model.eval()
+    val_dataset = datasets.CustomStereoDataset(split_csv_file,data_dir,mode="val")
 
     out_list, epe_list = [], []
     for val_id in tqdm(range(len(val_dataset))):

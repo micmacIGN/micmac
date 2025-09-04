@@ -284,10 +284,11 @@ torch::Tensor aCnnModelPredictor::PredictUnetFeaturesOnly(torch::jit::script::Mo
         tREAL4 ** mPatchLData=aPatchLV.at(cc).DIm().ExtractRawData2D();
         torch::Tensor aPL=torch::from_blob((*mPatchLData), {1,aPSz.y(),aPSz.x()},
                                            torch::TensorOptions().dtype(torch::kFloat32));
-        aPL=aPL.div(255.0);
+        //aPL=aPL.div(255.0);
+        aPL=((aPL.div(255.0)).mul(2.0)).sub(1.0);
         //aPL=(aPL.sub(at::min(aPL))).div(at::max(aPL)-at::min(aPL));
         //aPL=(aPL.sub(0.4353755468)).div(0.19367880); //0.434583236,0.1948717255
-        aPL=(aPL.sub(0.434583236)).div(0.1948717255);
+        //aPL=(aPL.sub(0.434583236)).div(0.1948717255);
         // Aerial data 22 cm resolution
         // Images Gregoire Maillet :
         //     ----> aPL=(aPL.sub(0.20912810375666974)).div(0.08828173006933751);
@@ -368,11 +369,11 @@ torch::Tensor aCnnModelPredictor::PredictMSNetTileFeatures(torch::jit::script::M
     // Normalize The tile with respect to the dataset configuration
     // print image content
     //std::cout<<"TILE CONTENT  ========= >  "<<aPL<<std::endl;
-    aPL=aPL.div(255.0);//.sub(0.5);
+    aPL=((aPL.div(255.0)).mul(2.0)).sub(1.0);//.sub(0.5);
     //StdOut()<< "MIN MAX OF aPL "<<torch::max(aPL)<<" "<<torch::min(aPL)<<"\n";
 
     // legacy 31/10/2024 trained on all data
-    aPL=(aPL.sub(0.4357159999)).div(0.1951853861);
+    //aPL=(aPL.sub(0.4357159999)).div(0.1951853861);
     //aPL=(aPL.sub(at::min(aPL))).div(at::max(aPL)-at::min(aPL));
     //***********************************aPL=(aPL.sub(0.4357159999)).div(0.1951853861); //0.4357159999,0.1951853861 0.434583236,0.1948717255
 
