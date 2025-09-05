@@ -45,7 +45,7 @@ def validate_custom_dataset(model,dataset, iters=32, mixed_prec=False):
 
     out_list, epe_list = [], []
 
-    for i_batch, (_, *data_blob) in enumerate(tqdm(val_dataloader)):
+    for i_batch, data_blob in enumerate(tqdm(val_dataloader)):
         image1, image2, flow_gt, valid_gt = [x.cuda() for x in data_blob]
 
         image1 = image1[None].cuda()
