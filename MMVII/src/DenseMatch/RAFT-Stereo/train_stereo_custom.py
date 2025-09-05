@@ -48,13 +48,13 @@ def validate_custom_dataset(model,dataset, iters=32, mixed_prec=False):
     for i_batch, data_blob in enumerate(tqdm(val_dataloader)):
         image1, image2, flow_gt, valid_gt = [x.cuda() for x in data_blob]
 
-        image1 = image1[None].cuda()
-        image2 = image2[None].cuda()
+        image1 = image1.cuda()
+        image2 = image2.cuda()
 
         with autocast(enabled=mixed_prec):
             _, flow_pr = model(image1, image2, iters=iters, test_mode=True)
         assert flow_pr.shape == flow_gt.shape, (flow_pr.shape, flow_gt.shape)
-        epe = torch.sum((flow_pr - flow_gt)**2, dim=0).sqrt()
+        epe = ((flow_pr - flow_gt)**2).sqrt().squeeze()
 
         epe = epe.flatten()
         val = (valid_gt.flatten() >= 0.5) & (flow_gt.abs().flatten() < 192)
@@ -182,6 +182,8 @@ def train(args):
                                 args.hdf5_file_path,
                                 sign_disp_multiplier=-1.0,
                                 batch_size=args.batch_size,
+                                num_workers=12,
+                                prefetch_factor=4,
                                 )
     
 
@@ -205,7 +207,7 @@ def train(args):
     model.train()
     model.module.freeze_bn() # We keep BatchNorm frozen
 
-    validation_frequency = 10000
+    validation_frequency = 50
 
     scaler = GradScaler(enabled=args.mixed_precision)
 
