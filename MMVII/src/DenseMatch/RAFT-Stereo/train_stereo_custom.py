@@ -12,7 +12,7 @@ import torch.nn as nn
 import torch.optim as optim
 from core.raft_stereo import RAFTStereo,autocast
 from core.hdf5_stereo import HDF5StereoDataModule, fetch_dataloader_train, fetch_dataloader_val
-
+import os
 
 try:
     from torch.cuda.amp import GradScaler
@@ -54,11 +54,11 @@ def validate_custom_dataset(model,dataset, iters=32, mixed_prec=False):
         with autocast(enabled=mixed_prec):
             _, flow_pr = model(image1, image2, iters=iters, test_mode=True)
         assert flow_pr.shape == flow_gt.shape, (flow_pr.shape, flow_gt.shape)
+
         epe = ((flow_pr - flow_gt)**2).sqrt().squeeze()
 
         epe = epe.flatten()
         val = (valid_gt.flatten() >= 0.5) & (flow_gt.abs().flatten() < 192)
-
         out = (epe > 1.0)
         epe_list.append(epe[val].mean().item())
         out_list.append(out[val].cpu().numpy())
@@ -182,8 +182,8 @@ def train(args):
                                 args.hdf5_file_path,
                                 sign_disp_multiplier=-1.0,
                                 batch_size=args.batch_size,
-                                num_workers=12,
-                                prefetch_factor=4,
+                                num_workers=12,##int(os.environ.get('SLURM_CPUS_PER_TASK', 6))-2,
+                                prefetch_factor=6,
                                 )
     
 
@@ -207,7 +207,7 @@ def train(args):
     model.train()
     model.module.freeze_bn() # We keep BatchNorm frozen
 
-    validation_frequency = 50
+    validation_frequency = 10000
 
     scaler = GradScaler(enabled=args.mixed_precision)
 

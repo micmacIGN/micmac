@@ -25,6 +25,7 @@ def load_image(imfile):
     if img.ndim==2:
         img = np.repeat(img[:, :, np.newaxis], 3, axis=2)
     img = torch.from_numpy(img).permute(2, 0, 1).float()
+    # normalize image 
     return img[None].to(DEVICE)
 
 def demo(args):

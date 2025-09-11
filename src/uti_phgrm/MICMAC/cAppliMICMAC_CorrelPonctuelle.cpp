@@ -203,6 +203,7 @@ void cAppliMICMAC::DoCostLearnedMMVII(const Box2di & aBox,const cScoreLearnedMMV
                           + " " +  ToString(aBoxIn1)
                           + " " +  ToString(aBoxIn2)
                                      + " " +  aPost
+                          + " " +  "StepZ="+ToString(aStepZ)
                           + " " +  "CNNParams="+aModeleParams
                           + " " +  "CNNArch="+aModeleArch;
 

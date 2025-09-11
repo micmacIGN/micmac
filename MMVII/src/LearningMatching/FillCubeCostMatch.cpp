@@ -541,7 +541,7 @@ cCollecSpecArg2007 & cAppliFillCubeCost::ArgObl(cCollecSpecArg2007 & anArgObl)
 cCollecSpecArg2007 & cAppliFillCubeCost::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return anArgOpt
-          // << AOpt2007(mStepZ, "StepZ","Step for paralax",{eTA2007::HDV})
+          << AOpt2007(mStepZ, "StepZ","Step for paralax",{eTA2007::HDV})
           << AOpt2007(mNameCmpModele, "ModCmp","Modele for Comparison")
           << AOpt2007(mSzW, "SzW","Size for windows to match",{eTA2007::HDV})
           << AOpt2007(mModelBinaries,"CNNParams" ,"Model Directory : Contient des fichiers binaires *.bin")
@@ -1579,22 +1579,38 @@ int  cAppliFillCubeCost::Exe()
                         cPt2di aPAbs = aPix + mP0Z;
                         cPt2di aPC1  = aPAbs-mBoxGlob1.P0();
                         cPt2di aPC20 = aPAbs-mBoxGlob2.P0();
-                        int aBInf=std::max(aVMods[0]->mCNNWin.x(),aPC20.x()+aDZMin.GetV(aPix));
-                        int aBSup=std::min(aPC20.x()+aDZMax.GetV(aPix),aSizeR-aVMods[0]->mCNNWin.x());
+                        int aBInf=std::max(aVMods[0]->mCNNWin.x(),aPC20.x()+round_down(aDZMin.GetV(aPix)*StepZ()));
+                        int aBSup=std::min(aPC20.x()+round_up(aDZMax.GetV(aPix)*StepZ()),aSizeR-aVMods[0]->mCNNWin.x());
                         //std::cout<<aPC20.x()+aDZMin.GetV(aPix)<<"  "<<aPC20.x()+aDZMax.GetV(aPix)<<std::endl;
                         auto aSim=aCorrelCube.index({Slice(aPix.y(),aPix.y()+1,1),
                                                        Slice(aPix.x(),aPix.x()+1,1),
                                                        Slice(aBInf,
                                                              aBSup+1)}).squeeze().contiguous();
 
+
+
+                        if (StepZ()<1.0)
+                        {
+                            /*StdOut()<<"SIZE OF aSim Slice "<<aSim.sizes()<<"  "<<
+                                aDZMax.GetV(aPix)-aDZMin.GetV(aPix)<<std::endl;*/
+                            std::vector<tREAL8> aScale={1,1,1.0/StepZ()};
+                            aSim= F::interpolate(aSim,
+                                                  F::InterpolateFuncOptions().mode(torch::kBicubic).
+                                                  align_corners(true).
+                                                  scale_factor(aScale)).
+                                                  contiguous();
+                        }
+
                         std::vector<float> aVSim(aSim.data_ptr<float>(),
                                                  aSim.data_ptr<float>() + aSim.numel());
+
                         int id_sim=0;
                         double aCost;
                         for (int aDz=aDZMin.GetV(aPix) ; aDz<aDZMax.GetV(aPix) ; aDz++)
                         {
                             aCost=1.0;
-                            cPt2di aPC2Z(round_ni(aPC20.x()+aDz*this->StepZ()),aPC20.y());  // INTEG FOR NOW
+                            //cPt2di aPC2Z(round_ni(aPC20.x()+aDz*this->StepZ()),aPC20.y());  // INTEG FOR NOW
+                            cPt2dr aPC2Z(aPC20.x()+aDz*this->StepZ(),aPC20.y());  // INTEG FOR NOW
                             bool IsInside=WindInside4BL(this->DI1(),aPC1,aVMods[0]->mCNNWin)
                                             && WindInside4BL(this->DI2(),aPC2Z,aVMods[0]->mCNNWin);
                             if (IsInside)
@@ -1602,6 +1618,7 @@ int  cAppliFillCubeCost::Exe()
                                     aCost=(double)aVSim[id_sim];
                                     id_sim++;
                                 }
+
                             PushCost(aCost);
                         }
                     }
