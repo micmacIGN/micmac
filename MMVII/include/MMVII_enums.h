@@ -53,6 +53,7 @@ enum class eTA2007
                 RigBlock,      ///< Rigid bloc    // RIGIDBLOC  => soon deprecated
                 Clino,         ///< Clinometer
                 MeasureClino,  ///< Clinometer
+                StaticLidar,   ///< Static Lidar
                 Topo,          ///< Topo
                 SysCo,         ///< System coord
                 Input,         ///< Is this parameter used as input/read
@@ -158,6 +159,7 @@ enum class eApDT
               Radiom,   ///< Orientations files
               Ply,           ///< Ply file
               MMVIICloud,    ///< MMVII-dmp internal format
+              StaticScan,    ///< Static scan internal format
               Topo,    ///< Topo files
               None,     ///< Nothing
               ToDef,     ///< still unclassed

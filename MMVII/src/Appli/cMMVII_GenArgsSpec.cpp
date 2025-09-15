@@ -24,6 +24,7 @@ static const std::vector<eTA2007> prjSubDirList =                           // c
     eTA2007::RigBlock, // RIGIDBLOC
     eTA2007::SysCo,
     eTA2007::Topo,  // TOPO
+    eTA2007::StaticLidar,
     eTA2007::Clino,
     eTA2007::MeasureClino,
     eTA2007::OriTriplet

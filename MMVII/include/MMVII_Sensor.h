@@ -476,6 +476,7 @@ class cPhotogrammetricProject
 	  cDirsPhProj &   DPClinoMeters();    ///<  Accessor  // RIGIDBLOC
 	  cDirsPhProj &   DPTopoMes();    ///<  Accessor  // TOPO
 	  cDirsPhProj &   DPMeasuresClino();    ///<  Accessor  // RIGIDBLOC
+      cDirsPhProj &   DPStaticLidar();    ///<  Accessor  // STATIC LIDAR
 				    
 	  const cDirsPhProj &   DPOrient() const; ///< Accessor
       const cDirsPhProj &   DPOriTriplets() const; ///< Accessor
@@ -492,7 +493,8 @@ class cPhotogrammetricProject
 	  const cDirsPhProj &   DPRigBloc() const;    ///<  Accessor  
 	  const cDirsPhProj &   DPClinoMeters() const;    ///<  Accessor 
 	  const cDirsPhProj &   DPTopoMes() const;    ///<  Accessor  
-	  const cDirsPhProj &   DPMeasuresClino() const;    ///<  Accessor  
+	  const cDirsPhProj &   DPMeasuresClino() const;    ///<  Accessor
+          const cDirsPhProj &   DPStaticLidar() const;    ///<  Accessor
 
 
 	  // Sometime we need several dir of the same type, like "ReportPoseCmp", or RefPose in bundle
@@ -788,6 +790,14 @@ class cPhotogrammetricProject
 	         // TOPO
      std::vector<std::string> ReadTopoMes() const;
      void   SaveTopoMes(const cBA_Topo & aBATopo) const;
+
+
+     //===================================================================
+     //==================   Static Lidar         =========================
+     //===================================================================
+
+     std::vector<std::string> ReadStaticLidar() const;
+
          //==================   Camera Data Base     =========================
 
          void MakeCamDataBase();
@@ -829,7 +839,8 @@ class cPhotogrammetricProject
           cDirsPhProj     mDPClinoMeters;      // +-  resulta of clino calib (boresight)
           cDirsPhProj     mDPMeasuresClino;     // measure (angles) of clino
           cDirsPhProj     mDPTopoMes;         // Topo
-					      //
+          cDirsPhProj     mDPStaticLidar;         // Static Lidar
+ 					      //
 
 	  std::vector<cDirsPhProj*> mDirAdded;
 	  mutable cGlobCalculMetaDataProject *  mGlobCalcMTD;

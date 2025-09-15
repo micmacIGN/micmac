@@ -1,6 +1,5 @@
-#include "MMVII_2Include_Serial_Tpl.h"
-#include "MMVII_ReadFileStruct.h"
-#include "MMVII_util_tpl.h"
+#include "MMVII_StaticLidar.h"
+#include "MMVII_Sensor.h"
 #include "MMVII_Geom3D.h"
 #include "../Mesh/happly.h"
 #include <functional>
@@ -39,11 +38,10 @@ public :
     tREAL8 doVerticalize(); // returns correction angle applied
     template <typename TYPE> void fillRaster(const std::string& aFileName, std::function<TYPE (int)> func );
 private :
+    cPhotogrammetricProject  mPhProj;
 
     // Mandatory Arg
     std::string              mNameFile;
-    std::string              mStationName;
-    std::string              mScanName;
 
     // Optional Arg
     std::string              mTransfoIJK;
@@ -55,25 +53,23 @@ private :
     std::vector<cPt3dr> mVectPtsXYZ;
     std::vector<tREAL8> mVectPtsIntens;
     std::vector<cPt3dr> mVectPtsTPD;
-    tREAL8 mThetaMin, mThetaMax, mPhiMin, mPhiMax;
     tREAL8 mPhiStep;
-    int mMaxCol, mMaxLine;
 
     // line and col for each point
     std::vector<int> mVectPtsLine;
     std::vector<int> mVectPtsCol;
+
+    cStaticLidar mSL_data;
 };
 
 cAppli_ImportStaticScan::cAppli_ImportStaticScan(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
     cMMVII_Appli    (aVArgs,aSpec),
+    mPhProj         (*this),
     mTransfoIJK     ("ijk"),
     mNoMiss         (false),
     mDistMinToExist (1e-6),
-    mThetaMin       (NAN),
-    mThetaMax       (NAN),
-    mPhiMin         (NAN),
-    mPhiMax         (NAN),
-    mPhiStep        (NAN)
+    mPhiStep        (NAN),
+    mSL_data        ()
 {
 }
 
@@ -81,8 +77,9 @@ cCollecSpecArg2007 & cAppli_ImportStaticScan::ArgObl(cCollecSpecArg2007 & anArgO
 {
     return anArgObl
            <<  Arg2007(mNameFile ,"Name of Input File",{eTA2007::FileAny})
-           <<  Arg2007(mStationName ,"Station name",{eTA2007::Topo}) // TODO: change type to future station
-           <<  Arg2007(mScanName ,"Scan name",{eTA2007::Topo}) // TODO: change type to future scan
+           <<  mPhProj.DPStaticLidar().ArgDirOutMand()
+           <<  Arg2007(mSL_data.mStationName ,"Station name",{eTA2007::Topo}) // TODO: change type to future station
+           <<  Arg2007(mSL_data.mScanName ,"Scan name",{eTA2007::Topo}) // TODO: change type to future scan
         ;
 }
 
@@ -161,12 +158,12 @@ void cAppli_ImportStaticScan::convertToThetaPhiDist()
         aMinMaxTheta.Add(0,aPtAng.x());
         aMinMaxPhi.Add(0,aPtAng.y());
     }
-    mThetaMin = aMinMaxTheta.Min().ValExtre();
-    mThetaMax = aMinMaxTheta.Max().ValExtre();
-    mPhiMin = aMinMaxPhi.Min().ValExtre();
-    mPhiMax = aMinMaxPhi.Max().ValExtre();
-    StdOut() << "Box:  theta " << mThetaMin << ", " << mThetaMax << "   phi "
-             << mPhiMin << ", " << mPhiMax << "\n";
+    mSL_data.mThetaMin = aMinMaxTheta.Min().ValExtre();
+    mSL_data.mThetaMax = aMinMaxTheta.Max().ValExtre();
+    mSL_data.mPhiMin = aMinMaxPhi.Min().ValExtre();
+    mSL_data.mPhiMax = aMinMaxPhi.Max().ValExtre();
+    StdOut() << "Box:  theta " << mSL_data.mThetaMin << ", " << mSL_data.mThetaMax << "   phi "
+             << mSL_data.mPhiMin << ", " << mSL_data.mPhiMax << "\n";
 }
 
 void cAppli_ImportStaticScan::estimatePhiStep()
@@ -194,7 +191,7 @@ void cAppli_ImportStaticScan::estimatePhiStep()
         previousTheta = aPtAng.x();
         previousPhi = aPtAng.y();
     }
-    StdOut() << "phiStep " << mPhiStep << ",  " << (mPhiMax-mPhiMin)/fabs(mPhiStep) << " steps\n";
+    StdOut() << "phiStep " << mPhiStep << ",  " << (mSL_data.mPhiMax-mSL_data.mPhiMin)/fabs(mPhiStep) << " steps\n";
 
 }
 
@@ -205,10 +202,10 @@ void cAppli_ImportStaticScan::computeLineCol()
     // compute line and col for each point
     mVectPtsLine.resize(mVectPtsXYZ.size());
     mVectPtsCol.resize(mVectPtsXYZ.size());
-    mMaxCol = 0;
+    mSL_data.mMaxCol = 0;
     tREAL8 previousPhi = NAN;
     //tREAL8 previousTheta = NAN;
-    mMaxLine = 0;
+    mSL_data.mMaxLine = 0;
     int aCurrLine = 0;
     for (size_t i=0; i<mVectPtsTPD.size(); ++i)
     {
@@ -223,34 +220,34 @@ void cAppli_ImportStaticScan::computeLineCol()
         if (mNoMiss)
             aCurrLine++;
         else
-            aCurrLine = (aPtAng.y()-mThetaMin)/fabs(mPhiStep);
+            aCurrLine = (aPtAng.y()-mSL_data.mThetaMin)/fabs(mPhiStep);
 
-        if (aCurrLine>mMaxLine) mMaxLine = aCurrLine;
+        if (aCurrLine>mSL_data.mMaxLine) mSL_data.mMaxLine = aCurrLine;
 
         if (-(aPtAng.y()-previousPhi)/mPhiStep > aColChangeDetectorInPhistep)
         {
-            mMaxCol++;
+            mSL_data.mMaxCol++;
             aCurrLine=0;
         }
         mVectPtsLine[i] = aCurrLine;
-        mVectPtsCol[i] = mMaxCol;
+        mVectPtsCol[i] = mSL_data.mMaxCol;
         //previousTheta = aPtAng.x();
         previousPhi = aPtAng.y();
     }
-    StdOut() << "Max col found: "<<mMaxCol<<"\n";
-    StdOut() << "Max line found: "<<mMaxLine<<"\n";
+    StdOut() << "Max col found: "<<mSL_data.mMaxCol<<"\n";
+    StdOut() << "Max line found: "<<mSL_data.mMaxLine<<"\n";
 
-    StdOut() << "Image size: "<<cPt2di(mMaxCol+1, mMaxLine+1)<<"\n";
+    StdOut() << "Image size: "<<cPt2di(mSL_data.mMaxCol+1, mSL_data.mMaxLine+1)<<"\n";
 }
 
 template <typename TYPE> void cAppli_ImportStaticScan::fillRaster(const std::string& aFileName, std::function<TYPE (int)> func )
 {
     MMVII_INTERNAL_ASSERT_tiny(mVectPtsCol.size()==mVectPtsXYZ.size(), "Error: Compute line/col numbers before fill raster")
-    cIm2D<TYPE> aRaster(cPt2di(mMaxCol+1, mMaxLine+1), 0, eModeInitImage::eMIA_Null);
+    cIm2D<TYPE> aRaster(cPt2di(mSL_data.mMaxCol+1, mSL_data.mMaxLine+1), 0, eModeInitImage::eMIA_Null);
     auto & aRasterData = aRaster.DIm();
     for (size_t i=0; i<mVectPtsTPD.size(); ++i)
     {
-        cPt2di aPcl = {mVectPtsCol[i], mMaxLine-mVectPtsLine[i]};
+        cPt2di aPcl = {mVectPtsCol[i], mSL_data.mMaxLine-mVectPtsLine[i]};
         aRasterData.SetV(aPcl, func(i));
     }
     aRasterData.ToFile(aFileName);
@@ -262,10 +259,10 @@ tREAL8 cAppli_ImportStaticScan::doVerticalize()
     int aColChangeDetectorInPhistep = 100;
     int aNbPlanes = 10; // try to get several planes for instrument primariy axis estimation
     float aCorrectPlanePhiRange = 80*M_PI/180; // try to get points with this phi diff in a scanline
-    int aColPlaneStep = mMaxCol / aNbPlanes;
+    int aColPlaneStep = mSL_data.mMaxCol / aNbPlanes;
     int aLineGoodRange = aCorrectPlanePhiRange/fabs(mPhiStep);
-    if (aLineGoodRange > mMaxLine - 2)
-        aLineGoodRange = mMaxLine - 2; // for small scans, use full height
+    if (aLineGoodRange > mSL_data.mMaxLine - 2)
+        aLineGoodRange = mSL_data.mMaxLine - 2; // for small scans, use full height
 
     int aTargetCol = 0; // the next we search for
     int aTargetLine = 0;
@@ -288,7 +285,7 @@ tREAL8 cAppli_ImportStaticScan::doVerticalize()
         if (mNoMiss)
             aCurrLine++;
         else
-            aCurrLine = (aPtAng.y()-mThetaMin)/fabs(mPhiStep);
+            aCurrLine = (aPtAng.y()-mSL_data.mThetaMin)/fabs(mPhiStep);
 
         if (-(aPtAng.y()-previousPhi)/mPhiStep > aColChangeDetectorInPhistep)
         {
@@ -323,22 +320,23 @@ tREAL8 cAppli_ImportStaticScan::doVerticalize()
     tSeg3dr aSegVert = cPlane3D::InterPlane(aVPlanes, aNbPlanes/2);
     StdOut() << "Vert: " << aSegVert.V12() << "\n";
 
-    cRotation3D<tREAL8> aVertRot = cRotation3D<tREAL8>::CompleteRON(aSegVert.V12(),2);
+    mSL_data.mVertRot = cRotation3D<tREAL8>::CompleteRON(aSegVert.V12(),2);
 
     // update xyz and tpd coordinates
     for (size_t i=0; i<mVectPtsXYZ.size(); ++i)
     {
-        mVectPtsXYZ[i] = aVertRot.Inverse(mVectPtsXYZ[i]);
+        mVectPtsXYZ[i] = mSL_data.mVertRot.Inverse(mVectPtsXYZ[i]);
     }
     convertToThetaPhiDist();
     // update line col
     computeLineCol();
 
-    return aVertRot.Angle();
+    return mSL_data.mVertRot.Angle();
 }
 
 int cAppli_ImportStaticScan::Exe()
 {
+    mPhProj.FinishInit();
     readPlyPoints(mNameFile);
 
     StdOut() << "Got " << mVectPtsXYZ.size() << " points.\n";
@@ -382,7 +380,7 @@ int cAppli_ImportStaticScan::Exe()
     computeLineCol();
 
     //fill rasters
-    fillRaster<tU_INT1>("totoMask.png", [this](int i){auto aPtAng = mVectPtsTPD[i];return aPtAng.z()<mDistMinToExist;} );
+    fillRaster<tU_INT1>("totoMask.png", [this](int i){auto aPtAng = mVectPtsTPD[i];return (aPtAng.z()<mDistMinToExist)?0:255;} );
     fillRaster<tU_INT1>("totoIntens.png", [this](int i){return mVectPtsIntens[i]*255;} );
     fillRaster<tU_INT4>("totoIndex.png", [](int i){return i;} );
     fillRaster<float>("totoDist.tif", [this](int i){auto aPtAng = mVectPtsTPD[i];return aPtAng.z();} );
@@ -414,18 +412,24 @@ int cAppli_ImportStaticScan::Exe()
             file2 << aPt.x()/norm << " " << aPt.y()/norm << " " << aPt.z()/norm << " " << r << " " << g << " " << b << "\n"; //<< i << " " << aTriangulation3DXYZ.KthPtsPtAttribute(i) << "\n";
         }
         if (mVectPtsCol[i] > aTargetCol)
-            aTargetCol = mVectPtsCol[i] + mMaxCol / aNbThetas;
+            aTargetCol = mVectPtsCol[i] + mSL_data.mMaxCol / aNbThetas;
     }
     file2.close();
     file1.close();
 
-    fillRaster<tU_INT1>("titiMask.png", [this](int i){auto aPtAng = mVectPtsTPD[i];return aPtAng.z()<mDistMinToExist;} );
-    fillRaster<tU_INT1>("titiIntens.png", [this](int i){return mVectPtsIntens[i]*255;} );
+    mSL_data.mRasterDistance = mPhProj.DPStaticLidar().FullDirOut() +  mSL_data.mStationName + "_" + mSL_data.mScanName + "_distance.tif";
+    mSL_data.mRasterIntensity = mPhProj.DPStaticLidar().FullDirOut() +  mSL_data.mStationName + "_" + mSL_data.mScanName + "_intensity.tif";
+    mSL_data.mRasterMask = mPhProj.DPStaticLidar().FullDirOut() +  mSL_data.mStationName + "_" + mSL_data.mScanName + "_mask.tif";
+
+    fillRaster<tU_INT1>(mSL_data.mRasterMask, [this](int i){auto aPtAng = mVectPtsTPD[i];return (aPtAng.z()<mDistMinToExist)?0:255;} );
+    fillRaster<tU_INT1>( mSL_data.mRasterIntensity, [this](int i){return mVectPtsIntens[i]*255;} );
+    fillRaster<float>(mSL_data.mRasterDistance, [this](int i){auto aPtAng = mVectPtsTPD[i];return aPtAng.z();} );
+
     fillRaster<tU_INT4>("titiIndex.png", [](int i){return i;} );
-    fillRaster<float>("titiDist.tif", [this](int i){auto aPtAng = mVectPtsTPD[i];return aPtAng.z();} );
     fillRaster<float>("titiTheta.tif", [this](int i){auto aPtAng = mVectPtsTPD[i];return aPtAng.x();} );
     fillRaster<float>("titiPhi.tif", [this](int i){auto aPtAng = mVectPtsTPD[i];return aPtAng.y();} );
 
+    SaveInFile(mSL_data, mPhProj.DPStaticLidar().FullDirOut() +  mSL_data.mStationName + "_" + mSL_data.mScanName + ".xml");
 
     return EXIT_SUCCESS;
 

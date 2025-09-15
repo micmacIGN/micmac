@@ -317,6 +317,7 @@ cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
     mDPClinoMeters    (eTA2007::Clino,*this),  
     mDPMeasuresClino  (eTA2007::MeasureClino,*this),
     mDPTopoMes        (eTA2007::Topo,*this),  // Topo
+    mDPStaticLidar    (eTA2007::StaticLidar,*this),  // StaticLidar
     mGlobCalcMTD      (nullptr)
 {
 }
@@ -358,6 +359,7 @@ void cPhotogrammetricProject::FinishInit()
     mDPClinoMeters.Finish() ; 
     mDPMeasuresClino.Finish() ; 
     mDPTopoMes.Finish() ; // TOPO
+    mDPStaticLidar.Finish() ;
 
     // Force the creation of directory for metadata spec, make 
     if (! mDPMetaData.DirOutIsInit())
@@ -423,8 +425,9 @@ cDirsPhProj &   cPhotogrammetricProject::DPMulTieP() {return mDPMulTieP;}
 cDirsPhProj &   cPhotogrammetricProject::DPBlockInstr() {return mDPBlockInstr;} 
 cDirsPhProj &   cPhotogrammetricProject::DPRigBloc() {return mDPRigBloc;} // RIGIDBLOC
 cDirsPhProj &   cPhotogrammetricProject::DPClinoMeters() {return mDPClinoMeters;} 
-cDirsPhProj &   cPhotogrammetricProject::DPMeasuresClino() {return mDPMeasuresClino;} 
+cDirsPhProj &   cPhotogrammetricProject::DPMeasuresClino() {return mDPMeasuresClino;}
 cDirsPhProj &   cPhotogrammetricProject::DPTopoMes() {return mDPTopoMes;} // TOPO
+cDirsPhProj &   cPhotogrammetricProject::DPStaticLidar() {return mDPStaticLidar;}
 
 const cDirsPhProj &   cPhotogrammetricProject::DPOrient() const {return mDPOrient;}
 const cDirsPhProj &   cPhotogrammetricProject::DPOriTriplets() const {return mDPOriTriplets;}
@@ -442,6 +445,7 @@ const cDirsPhProj &   cPhotogrammetricProject::DPRigBloc() const {return mDPRigB
 const cDirsPhProj &   cPhotogrammetricProject::DPClinoMeters() const {return mDPClinoMeters;} // RIGIDBLOC
 const cDirsPhProj &   cPhotogrammetricProject::DPMeasuresClino() const {return mDPMeasuresClino;} // RIGIDBLOC
 const cDirsPhProj &   cPhotogrammetricProject::DPTopoMes() const {return mDPTopoMes;} // Topo
+const cDirsPhProj &   cPhotogrammetricProject::DPStaticLidar() const {return mDPStaticLidar;}
 
 
 const std::string &   cPhotogrammetricProject::DirPhp() const   {return mDirPhp;}
