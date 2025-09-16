@@ -3,6 +3,7 @@
 #include "MMVII_Geom3D.h"
 #include "../Mesh/happly.h"
 #include <functional>
+#include <E57Format/E57SimpleReader.h>
 
 /**
    \file importStaticScan.cpp
@@ -31,7 +32,11 @@ public :
 
 
     void readPlyPoints(std::string aPlyFileName);
+    #if (USE_LIBE57FORMAT)
+      void readE57Points(std::string aE57FileName);
+    #endif
     void convertToThetaPhiDist();
+    void convertToXYZ();
     void getAnglesMinMax();
     void estimatePhiStep();
     void computeLineCol();
@@ -48,6 +53,11 @@ private :
     bool                     mNoMiss; // are every point present in cloud, even when no response?
 
     // data
+    bool mHasCartesian; // in original read data
+    bool mHasIntensity; // in original read data
+    bool mHasSpherical; // in original read data
+    bool mHasRowCol;    // in original read data
+
     tREAL8 mDistMinToExist; // boundary to check if no response points are present
     std::vector<cPt3dr> mVectPtsXYZ;
     std::vector<tREAL8> mVectPtsIntens;
@@ -99,12 +109,26 @@ cPt3dr cart2spher(const cPt3dr & aPtCart)
     return {theta, phi, dist};
 }
 
+cPt3dr spher2cart(const cPt3dr & aPtspher)
+{
+    tREAL8 dhz = aPtspher.z()*cos(aPtspher.y());
+    tREAL8 x = dhz* cos(aPtspher.x());
+    tREAL8 y = dhz* sin(aPtspher.x());
+    tREAL8 z = aPtspher.z()*sin(aPtspher.y());
+    return {x, y, z};
+}
+
+
 using  namespace happly;
 
 void cAppli_ImportStaticScan::readPlyPoints(std::string aPlyFileName)
 {
+    StdOut() << "Read ply file " << aPlyFileName << "..." << std::endl;
     mVectPtsXYZ.clear();
+    mVectPtsTPD.clear();
     mVectPtsIntens.clear();
+    mVectPtsCol.clear();
+    mVectPtsLine.clear();
     try
     {
         PLYData  aPlyF(aPlyFileName,false);
@@ -119,6 +143,11 @@ void cAppli_ImportStaticScan::readPlyPoints(std::string aPlyFileName)
             }
         }
 
+        mHasCartesian = true;
+        mHasIntensity = false;
+        mHasSpherical = false;
+        mHasRowCol = false;
+
         // try to fill points attribute with any "i", "I" or "*intens*" property
         auto aVertProps = aPlyF.getElement("vertex").getPropertyNames();
         auto aPropIntensityName = std::find_if(aVertProps.begin(), aVertProps.end(), [](const std::string &s){
@@ -126,6 +155,7 @@ void cAppli_ImportStaticScan::readPlyPoints(std::string aPlyFileName)
         });
         if (aPropIntensityName!= aVertProps.end())
         {
+            mHasIntensity = true;
             mVectPtsIntens = aPlyF.getElement("vertex").getProperty<tREAL8>(*aPropIntensityName);
         }
 
@@ -136,6 +166,86 @@ void cAppli_ImportStaticScan::readPlyPoints(std::string aPlyFileName)
     }
 }
 
+#if (USE_LIBE57FORMAT)
+void cAppli_ImportStaticScan::readE57Points(std::string aE57FileName)
+{
+    StdOut() << "Read e57 file " << aE57FileName << "..." << std::endl;
+    mVectPtsXYZ.clear();
+    mVectPtsTPD.clear();
+    mVectPtsIntens.clear();
+    mVectPtsCol.clear();
+    mVectPtsLine.clear();
+    try
+    {
+        e57::Reader reader( aE57FileName, {});
+        MMVII_INTERNAL_ASSERT_tiny(reader.IsOpen(), "Error: unable to open file " + aE57FileName)
+        StdOut() << "Image2DCount: " << reader.GetImage2DCount() << "\n";
+        StdOut() << "Data3DCount: " << reader.GetData3DCount() << "\n";
+        MMVII_INTERNAL_ASSERT_tiny(reader.GetData3DCount()==1, "Error: File should have exactly 1 scan for now")
+        e57::E57Root fileHeader;
+        reader.GetE57Root( fileHeader );
+        /*StdOut() << fileHeader.formatName << " =? " << "ASTM E57 3D Imaging Data File" << std::endl;
+        StdOut() << fileHeader.versionMajor << " =? " << 1 << std::endl;
+        StdOut() << fileHeader.versionMinor << " =? " << 0 << std::endl;
+        StdOut() << fileHeader.guid << " =? " << "Zero Points GUID" << std::endl;*/
+        e57::Data3D data3DHeader;
+        reader.ReadData3D( 0, data3DHeader );
+        // data3DHeader.indexBounds is not correct
+        const uint64_t cNumPoints = data3DHeader.pointCount;
+        e57::Data3DPointsFloat pointsData( data3DHeader );
+        auto vectorReader = reader.SetUpData3DPointsData( 0, cNumPoints, pointsData );
+        const uint64_t cNumRead = vectorReader.read();
+        MMVII_INTERNAL_ASSERT_tiny(cNumPoints==cNumRead, "Error: cNumPoints!=cNumRead")
+
+        mHasCartesian = pointsData.cartesianX && pointsData.cartesianY && pointsData.cartesianZ;
+        mHasIntensity = pointsData.intensity;
+        mHasSpherical = pointsData.sphericalAzimuth && pointsData.sphericalElevation && pointsData.sphericalRange;
+        mHasRowCol = pointsData.columnIndex && pointsData.rowIndex;
+
+        if (mHasCartesian){
+            mVectPtsXYZ.resize(cNumRead);
+            for (uint64_t i=0;i<cNumRead;++i)
+                mVectPtsXYZ[i] = {pointsData.cartesianX[i], pointsData.cartesianY[i], pointsData.cartesianZ[i]};
+        }
+        if (mHasSpherical){
+            mVectPtsTPD.resize(cNumRead);
+            for (uint64_t i=0;i<cNumRead;++i)
+                mVectPtsTPD[i] = {pointsData.sphericalAzimuth[i], pointsData.sphericalElevation[i], pointsData.sphericalRange[i]};
+        }
+        if (mHasIntensity){
+            mVectPtsIntens.resize(cNumRead);
+            for (uint64_t i=0;i<cNumRead;++i)
+                mVectPtsIntens[i] = pointsData.intensity[i];
+        }
+        if (mHasRowCol){
+            mVectPtsLine.resize(cNumRead);
+            mVectPtsCol.resize(cNumRead);
+            mSL_data.mMaxLine = 0;
+            for (uint64_t i=0;i<cNumRead;++i)
+            {
+                mVectPtsLine[i] = pointsData.rowIndex[i];
+                if (pointsData.rowIndex[i]>mSL_data.mMaxLine)
+                    mSL_data.mMaxLine = pointsData.rowIndex[i];
+            }
+            mSL_data.mMaxCol = 0;
+            for (uint64_t i=0;i<cNumRead;++i)
+            {
+                mVectPtsCol[i] = pointsData.columnIndex[i];
+                if (pointsData.columnIndex[i]>mSL_data.mMaxCol)
+                    mSL_data.mMaxCol = pointsData.columnIndex[i];
+            }
+        }
+
+        vectorReader.close();
+
+    }
+    catch (const std::runtime_error &e)
+    {
+        MMVII_UserError(eTyUEr::eReadFile, std::string("Error reading E57 file \"") + aE57FileName + "\": " + e.what());
+    }
+}
+#endif
+
 void cAppli_ImportStaticScan::convertToThetaPhiDist()
 {
     mNoMiss = false;
@@ -144,6 +254,37 @@ void cAppli_ImportStaticScan::convertToThetaPhiDist()
     for (size_t i=0; i<mVectPtsTPD.size(); ++i)
     {
         mVectPtsTPD[i] = cart2spher(mVectPtsXYZ[i]);
+        if (mVectPtsTPD[i].z()<mDistMinToExist)
+            aNbPtsNul++;
+    }
+    StdOut() << aNbPtsNul << " null points\n";
+    mNoMiss = aNbPtsNul>0;
+
+    // get min max theta phi
+    cWhichMinMax<int, tREAL8> aMinMaxTheta;
+    cWhichMinMax<int, tREAL8> aMinMaxPhi;
+    for (const auto & aPtAng: mVectPtsTPD)
+    {
+        aMinMaxTheta.Add(0,aPtAng.x());
+        aMinMaxPhi.Add(0,aPtAng.y());
+    }
+    mSL_data.mThetaMin = aMinMaxTheta.Min().ValExtre();
+    mSL_data.mThetaMax = aMinMaxTheta.Max().ValExtre();
+    mSL_data.mPhiMin = aMinMaxPhi.Min().ValExtre();
+    mSL_data.mPhiMax = aMinMaxPhi.Max().ValExtre();
+    StdOut() << "Box:  theta " << mSL_data.mThetaMin << ", " << mSL_data.mThetaMax << "   phi "
+             << mSL_data.mPhiMin << ", " << mSL_data.mPhiMax << "\n";
+}
+
+
+void cAppli_ImportStaticScan::convertToXYZ()
+{
+    mNoMiss = false;
+    mVectPtsXYZ.resize(mVectPtsTPD.size());
+    size_t aNbPtsNul = 0;
+    for (size_t i=0; i<mVectPtsTPD.size(); ++i)
+    {
+        mVectPtsXYZ[i] = spher2cart(mVectPtsTPD[i]);
         if (mVectPtsTPD[i].z()<mDistMinToExist)
             aNbPtsNul++;
     }
@@ -197,6 +338,8 @@ void cAppli_ImportStaticScan::estimatePhiStep()
 
 void cAppli_ImportStaticScan::computeLineCol()
 {
+    if (mHasRowCol)
+        return; // nothing to do
     tREAL8 aColChangeDetectorInPhistep = 100;
 
     // compute line and col for each point
@@ -387,34 +530,59 @@ tREAL8 cAppli_ImportStaticScan::doVerticalize()
 int cAppli_ImportStaticScan::Exe()
 {
     mPhProj.FinishInit();
-    readPlyPoints(mNameFile);
-
-    StdOut() << "Got " << mVectPtsXYZ.size() << " points.\n";
-    MMVII_INTERNAL_ASSERT_tiny(!mVectPtsXYZ.empty(),"Error reading "+mNameFile);
-    if (!mVectPtsIntens.empty())
+    std::string aPostFix = ToLower(LastPostfix(mNameFile));
+    if (aPostFix=="ply")
     {
-        StdOut() << "Intensity found.\n";
+        readPlyPoints(mNameFile);
+    } else if (aPostFix=="e57") {
+        #if (USE_LIBE57FORMAT)
+            readE57Points(mNameFile);
+        #else
+        MMVII_INTERNAL_ASSERT_tiny(false, "Error: missing libe57format");
+        #endif
+    } else
+        MMVII_INTERNAL_ASSERT_tiny(false, "Error: unknown file format for "+mNameFile);
+
+    StdOut() << "Read data: ";
+    if (mHasCartesian)
+        StdOut() << mVectPtsXYZ.size() << " cartesian points";
+    if (mHasSpherical)
+        StdOut() << mVectPtsTPD.size() << " spherical points";
+    if (mHasIntensity)
+        StdOut() << " with intensity";
+    if (mHasRowCol)
+        StdOut() << " with row-col";
+    StdOut() << "\n";
+
+    if (mHasCartesian && !mHasSpherical)
+    {
+        cRotation3D<tREAL8>  aRotFrame = cRotation3D<tREAL8>::RotFromCanonicalAxes(mTransfoIJK);
+        // apply rotframe to original points
+        for (auto & aPtXYZ : mVectPtsXYZ)
+        {
+            aPtXYZ = aRotFrame.Value(aPtXYZ);
+        }
+        convertToThetaPhiDist();
+    } else if (!mHasCartesian && mHasSpherical) // mTransfoIJK not used if spherical
+    {
+        convertToXYZ();
+    }
+
+    MMVII_INTERNAL_ASSERT_tiny(!mVectPtsXYZ.empty(),"Error reading "+mNameFile);
+    if (mHasIntensity)
+    {
         MMVII_INTERNAL_ASSERT_tiny(mVectPtsXYZ.size()==mVectPtsIntens.size(),"Error reading "+mNameFile);
     }
 
-    StdOut() << "Sample:\n";
+    StdOut() << "Cartesian sample:\n";
     for (size_t i=0; (i<10)&&(i<mVectPtsXYZ.size()); ++i)
     {
         StdOut() << mVectPtsXYZ.at(i);
-        if (!mVectPtsIntens.empty())
+        if (mHasIntensity)
             StdOut() << " " << mVectPtsIntens.at(i);
         StdOut() << "\n";
     }
     StdOut() << "...\n";
-
-    cRotation3D<tREAL8>  aRotFrame = cRotation3D<tREAL8>::RotFromCanonicalAxes(mTransfoIJK);
-    // apply rotframe to original points
-    for (auto & aPtXYZ : mVectPtsXYZ)
-    {
-        aPtXYZ = aRotFrame.Value(aPtXYZ);
-    }
-
-    convertToThetaPhiDist();
 
     // check theta-phi :
     StdOut() << "Spherical sample:\n";
@@ -423,15 +591,15 @@ int cAppli_ImportStaticScan::Exe()
         StdOut() << mVectPtsTPD[i];
         StdOut() << "\n";
     }
-    StdOut() << "...\n";
+    StdOut() << "..." << std::endl;
 
     estimatePhiStep();
-
     computeLineCol();
 
     //fill rasters
     /*fillRaster<tU_INT1>("totoMask.png", [this](int i){auto aPtAng = mVectPtsTPD[i];return (aPtAng.z()<mDistMinToExist)?0:255;} );
-    fillRaster<tU_INT1>("totoIntens.png", [this](int i){return mVectPtsIntens[i]*255;} );
+    if (mHasIntensity)
+        fillRaster<tU_INT1>("totoIntens.png", [this](int i){return mVectPtsIntens[i]*255;} );
     fillRaster<tU_INT4>("totoIndex.png", [](int i){return i;} );
     fillRaster<float>("totoDist.tif", [this](int i){auto aPtAng = mVectPtsTPD[i];return aPtAng.z();} );
     fillRaster<float>("totoTheta.tif", [this](int i){auto aPtAng = mVectPtsTPD[i];return aPtAng.x();} );
@@ -444,7 +612,7 @@ int cAppli_ImportStaticScan::Exe()
     for (size_t i=0; (i<10)&&(i<mVectPtsXYZ.size()); ++i)
     {
         StdOut() << mVectPtsXYZ.at(i);
-        if (!mVectPtsIntens.empty())
+        if (mHasIntensity)
             StdOut() << " " << mVectPtsIntens.at(i);
         StdOut() << "\n";
     }
@@ -490,7 +658,8 @@ int cAppli_ImportStaticScan::Exe()
     mSL_data.mRasterMask = mPhProj.DPStaticLidar().FullDirOut() +  mSL_data.mStationName + "_" + mSL_data.mScanName + "_mask.tif";
 
     fillRaster<tU_INT1>(mSL_data.mRasterMask, [this](int i){auto aPtAng = mVectPtsTPD[i];return (aPtAng.z()<mDistMinToExist)?0:255;} );
-    fillRaster<tU_INT1>( mSL_data.mRasterIntensity, [this](int i){return mVectPtsIntens[i]*255;} );
+    if (mHasIntensity)
+        fillRaster<tU_INT1>( mSL_data.mRasterIntensity, [this](int i){return mVectPtsIntens[i]*255;} );
     fillRaster<float>(mSL_data.mRasterDistance, [this](int i){auto aPtAng = mVectPtsTPD[i];return aPtAng.z();} );
 
     fillRaster<tU_INT4>("titiIndex.png", [](int i){return i;} );

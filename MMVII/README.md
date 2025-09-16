@@ -31,6 +31,7 @@ Some external tools need to be present on your system for **MMVII** to run prope
 - **[PROJ](http://trac.osgeo.org/proj/)** for coordinate system conversion and coordinate reference system transformation
 - **[PROJ additional data](https://download.osgeo.org/proj/)** grids for coordinates tranformations (optional, see doc)
 - **[GDAL](https://gdal.org/)** for image files handling
+- **[libE57Format](https://github.com/asmaloney/libE57Format)** for e57 point cloud file format (optional)
 - **[ccache](https://ccache.dev/)** for recompilation optimization (optional)
 - **[OpenMP](https://www.openmp.org/)** multi-platform parallel programming (optionnal)
 - **[Doxygen](https://www.doxygen.nl/)** documentation generator (optional)
@@ -90,6 +91,11 @@ Under Linux (Ubuntu) distribution the installation procedure is as follows:
 	```bash
 	echo 'export PATH=/home/src/micmac/MMVII/bin:$PATH' >> ~/.bashrc
 	```
+
+- Optional: to use libe57format
+   - clone, compile and install as explained in https://github.com/asmaloney/libE57Format
+   - in MMVII cmake, set USE_LIBE57FORMAT then fill LIBE57_INCLUDE_DIR and LIBE57_LIBRARY with the E57-install/ data.
+
 
 ## Windows
 Under Windows the installation procedure is as follows:
