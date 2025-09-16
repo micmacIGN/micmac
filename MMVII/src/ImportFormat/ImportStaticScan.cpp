@@ -47,13 +47,13 @@ private :
     std::string              mTransfoIJK;
     bool                     mNoMiss; // are every point present in cloud, even when no response?
 
-
     // data
     tREAL8 mDistMinToExist; // boundary to check if no response points are present
     std::vector<cPt3dr> mVectPtsXYZ;
     std::vector<tREAL8> mVectPtsIntens;
     std::vector<cPt3dr> mVectPtsTPD;
     tREAL8 mPhiStep;
+    tREAL8 mThetaStep;
 
     // line and col for each point
     std::vector<int> mVectPtsLine;
@@ -209,7 +209,7 @@ void cAppli_ImportStaticScan::computeLineCol()
     int aCurrLine = 0;
     for (size_t i=0; i<mVectPtsTPD.size(); ++i)
     {
-        auto aPtAng = mVectPtsTPD[i];
+        auto & aPtAng = mVectPtsTPD[i];
         if (aPtAng.z()<mDistMinToExist)
         {
             mVectPtsLine[i] = 0;
@@ -220,7 +220,7 @@ void cAppli_ImportStaticScan::computeLineCol()
         if (mNoMiss)
             aCurrLine++;
         else
-            aCurrLine = (aPtAng.y()-mSL_data.mThetaMin)/fabs(mPhiStep);
+            aCurrLine = (aPtAng.y()-mSL_data.mPhiMin)/fabs(mPhiStep);
 
         if (aCurrLine>mSL_data.mMaxLine) mSL_data.mMaxLine = aCurrLine;
 
@@ -238,6 +238,56 @@ void cAppli_ImportStaticScan::computeLineCol()
     StdOut() << "Max line found: "<<mSL_data.mMaxLine<<"\n";
 
     StdOut() << "Image size: "<<cPt2di(mSL_data.mMaxCol+1, mSL_data.mMaxLine+1)<<"\n";
+
+    int mThetaDir = -1; // TODO: compute!
+    // precise estimation of mThetaStep and mPhiStep;
+    int aCurrCol = 0;
+    tREAL8 aAvgTheta = 0.;
+    long aNbTheta = 0;
+    tREAL8 aLoopCorrection = 0.;
+    std::vector<tREAL8> allThetaAvg(mSL_data.mMaxCol+1);
+    int aLineLimitDown = mSL_data.mMaxLine * 0.2;
+    int aLineLimitUp = mSL_data.mMaxLine * 0.8;
+    for (size_t i=0; i<mVectPtsTPD.size(); ++i)
+    {
+        auto & aPtAng = mVectPtsTPD[i];
+        if (aPtAng.z()<mDistMinToExist)
+            continue;
+        if ((mVectPtsLine[i]>aLineLimitUp) || (mVectPtsLine[i]<aLineLimitDown))
+            continue; // avoid points where theta is not well defined
+        if (aCurrCol!=mVectPtsCol[i])
+        {
+            aAvgTheta = aAvgTheta/aNbTheta + aLoopCorrection;
+            if ((aCurrCol>0) && (fabs(aAvgTheta-allThetaAvg[aCurrCol-1])>M_PI))
+            {
+                aAvgTheta -= aLoopCorrection;
+                aLoopCorrection += 2*M_PI * mThetaDir;
+                aAvgTheta += aLoopCorrection;
+            }
+            allThetaAvg[aCurrCol] = aAvgTheta;
+            aCurrCol = mVectPtsCol[i];
+            aAvgTheta = 0;
+            aNbTheta = 0;
+        }
+        aAvgTheta += aPtAng.x();
+        ++aNbTheta;
+    }
+    aAvgTheta = aAvgTheta/aNbTheta + aLoopCorrection;
+    if ((aCurrCol>0) && (fabs(aAvgTheta-allThetaAvg[aCurrCol-1])>M_PI))
+    {
+        aAvgTheta -= aLoopCorrection;
+        aLoopCorrection += 2*M_PI * mThetaDir;
+        aAvgTheta += aLoopCorrection;
+    }
+    allThetaAvg[aCurrCol] = aAvgTheta;
+
+    std::vector<tREAL8> allThetaDiff(mSL_data.mMaxCol);
+    for (unsigned int i=0;i<allThetaDiff.size();++i)
+        allThetaDiff[i] = allThetaAvg[i+1]-allThetaAvg[i];
+    mThetaStep = NonConstMediane(allThetaDiff);
+    StdOut() << "ThetaStep: " << mThetaStep << "\n";
+
+    // search for theta 1st col...
 }
 
 template <typename TYPE> void cAppli_ImportStaticScan::fillRaster(const std::string& aFileName, std::function<TYPE (int)> func )
@@ -285,7 +335,7 @@ tREAL8 cAppli_ImportStaticScan::doVerticalize()
         if (mNoMiss)
             aCurrLine++;
         else
-            aCurrLine = (aPtAng.y()-mSL_data.mThetaMin)/fabs(mPhiStep);
+            aCurrLine = (aPtAng.y()-mSL_data.mPhiMin)/fabs(mPhiStep);
 
         if (-(aPtAng.y()-previousPhi)/mPhiStep > aColChangeDetectorInPhistep)
         {
@@ -380,15 +430,33 @@ int cAppli_ImportStaticScan::Exe()
     computeLineCol();
 
     //fill rasters
-    fillRaster<tU_INT1>("totoMask.png", [this](int i){auto aPtAng = mVectPtsTPD[i];return (aPtAng.z()<mDistMinToExist)?0:255;} );
+    /*fillRaster<tU_INT1>("totoMask.png", [this](int i){auto aPtAng = mVectPtsTPD[i];return (aPtAng.z()<mDistMinToExist)?0:255;} );
     fillRaster<tU_INT1>("totoIntens.png", [this](int i){return mVectPtsIntens[i]*255;} );
     fillRaster<tU_INT4>("totoIndex.png", [](int i){return i;} );
     fillRaster<float>("totoDist.tif", [this](int i){auto aPtAng = mVectPtsTPD[i];return aPtAng.z();} );
     fillRaster<float>("totoTheta.tif", [this](int i){auto aPtAng = mVectPtsTPD[i];return aPtAng.x();} );
-    fillRaster<float>("totoPhi.tif", [this](int i){auto aPtAng = mVectPtsTPD[i];return aPtAng.y();} );
+    fillRaster<float>("totoPhi.tif", [this](int i){auto aPtAng = mVectPtsTPD[i];return aPtAng.y();} );*/
 
     tREAL8 aVertCorrection = doVerticalize();
     StdOut() << "VerticalCorrection: " << aVertCorrection << "\n";
+
+    StdOut() << "Sample after verticalization:\n";
+    for (size_t i=0; (i<10)&&(i<mVectPtsXYZ.size()); ++i)
+    {
+        StdOut() << mVectPtsXYZ.at(i);
+        if (!mVectPtsIntens.empty())
+            StdOut() << " " << mVectPtsIntens.at(i);
+        StdOut() << "\n";
+    }
+    StdOut() << "...\n";
+
+    StdOut() << "Spherical sample after verticalization:\n";
+    for (size_t i=0; (i<10)&&(i<mVectPtsTPD.size()); ++i)
+    {
+        StdOut() << mVectPtsTPD[i];
+        StdOut() << "\n";
+    }
+    StdOut() << "...\n";
 
     // export clouds for debug
     #include <fstream>
@@ -406,7 +474,7 @@ int cAppli_ImportStaticScan::Exe()
             int g = 127 + 127 * sin(i/1000. + 1*M_PI/3);
             int b = 127 + 127 * sin(i/1000. + 2*M_PI/3);
 
-            auto aPt = mVectPtsXYZ[i];
+            auto &aPt = mVectPtsXYZ[i];
             auto norm = Norm2(aPt);
             file1 << aPt.x() << " " << aPt.y() << " " << aPt.z() << " " << r << " " << g << " " << b << "\n"; //i << " " << aTriangulation3DXYZ.KthPtsPtAttribute(i) << "\n";
             file2 << aPt.x()/norm << " " << aPt.y()/norm << " " << aPt.z()/norm << " " << r << " " << g << " " << b << "\n"; //<< i << " " << aTriangulation3DXYZ.KthPtsPtAttribute(i) << "\n";
@@ -430,6 +498,35 @@ int cAppli_ImportStaticScan::Exe()
     fillRaster<float>("titiPhi.tif", [this](int i){auto aPtAng = mVectPtsTPD[i];return aPtAng.y();} );
 
     SaveInFile(mSL_data, mPhProj.DPStaticLidar().FullDirOut() +  mSL_data.mStationName + "_" + mSL_data.mScanName + ".xml");
+
+
+    return EXIT_SUCCESS;
+
+    // test if raster representation is coherent with tpd
+    tREAL8 aAvgErr = 0.;
+    long aNbPtAvg = 0;
+    tREAL8 aMaxErr = 0.;
+    tREAL8 aThetaStep = (mSL_data.mThetaMax-mSL_data.mThetaMin)/(mSL_data.mMaxCol+1.);
+    tREAL8 aPhiStep = (mSL_data.mPhiMax-mSL_data.mPhiMin)/(mSL_data.mMaxLine+1.);
+    for (size_t i=0; i<mVectPtsXYZ.size(); ++i)
+    {
+        auto &aPtTPD = mVectPtsTPD[i];
+        if (aPtTPD.z()<mDistMinToExist)
+            continue;
+        cPt3dr aPtRaster = {
+            mSL_data.mThetaMin + mVectPtsCol[i]*aThetaStep,
+            mSL_data.mPhiMin + mVectPtsLine[i]*aPhiStep,
+            aPtTPD.z()
+        };
+        tREAL8 aErr = Norm2( aPtTPD - aPtRaster );
+        aAvgErr += aErr;
+        aNbPtAvg++;
+        if (aErr > aMaxErr)
+            aMaxErr = aErr;
+        StdOut() << "Pt " << i << ": (" << mVectPtsCol[i] << ", " << mVectPtsLine[i] << ") : " << aPtTPD << " / " << aPtRaster << "\n";
+    }
+    StdOut() << "Avg raster angle error: " << aAvgErr/aNbPtAvg << " max error: " << aMaxErr << "\n";
+
 
     return EXIT_SUCCESS;
 
