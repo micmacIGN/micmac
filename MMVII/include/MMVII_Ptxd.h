@@ -879,6 +879,7 @@ template <class Type,const int Dim> class cSegmentCompiled : public cSegment<Typ
        tPt  Proj(const tPt &) const;
        Type Dist(const tPt &) const; // dist to full line
        Type Abscissa(const tPt& aPt) const;
+       tPt  PtOfAbscissa(const Type & anAbsc) const;
 
        const Type & N2 () const;
        const tPt  & Tgt() const;

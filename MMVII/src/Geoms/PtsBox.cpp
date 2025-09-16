@@ -138,9 +138,17 @@ template <class Type,const int Dim> Type cSegmentCompiled<Type,Dim>::Abscissa(co
     return Scal(mTgt,aPt - this->mP1);
 }
 
+       // Type PtOfAbscissa(const Type & anAbsc) const;
+template <class Type,const int Dim> cPtxd<Type,Dim>  cSegmentCompiled<Type,Dim>::PtOfAbscissa(const Type & anAbsc) const
+{
+     return this->mP1 + mTgt * anAbsc; //  Type(Scal(mTgt,aPt-this->mP1)) ;
+}
+
+
 template <class Type,const int Dim> cPtxd<Type,Dim>  cSegmentCompiled<Type,Dim>::Proj(const tPt & aPt) const
 {
-     return this->mP1 + mTgt * Abscissa(aPt); //  Type(Scal(mTgt,aPt-this->mP1)) ;
+     //return this->mP1 + mTgt * Abscissa(aPt); //  Type(Scal(mTgt,aPt-this->mP1)) ;
+     return PtOfAbscissa(Abscissa(aPt));
 }
 
 template <class Type,const int Dim> Type  cSegmentCompiled<Type,Dim>::Dist(const tPt & aPt) const
