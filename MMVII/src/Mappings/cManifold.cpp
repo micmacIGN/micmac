@@ -31,8 +31,8 @@ template <const int DimM,const int DimE> class cManifold
         /// return TgSpace
         virtual tTgSp  TgSpace(const tPtE &) const ;
         /// Given a point, gives an approximate value of the projection
-        virtual tPtE  ApproxProj(const tPtE &) const  ;
-	///
+        virtual tPtE  ApproxProj(const tPtE &) const  = 0 ;
+	///  Return the projection on the manifold, default iterative method
         virtual tPtE  Proj(const tPtE &) const  ;
      private :
 	int     mNbMap;

@@ -254,7 +254,8 @@ class   cIrbComp_TimeS : public cMemCheck
          friend cIrbComp_Block;
 
          cIrbComp_TimeS (const cIrbComp_Block &);
-         const cIrbComp_CamSet & SetCams() const; //< Accessor
+         const cIrbComp_CamSet & SetCams() const;  //< Accessor
+	 const cIrbComp_Block & CompBlock() const; //< Accessor
     private :
          cIrbComp_TimeS(const cIrbComp_TimeS&) = delete;
          const cIrbComp_Block &            mCompBlock;

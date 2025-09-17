@@ -31,6 +31,7 @@ cIrbComp_TimeS::cIrbComp_TimeS (const cIrbComp_Block & aCompBlock) :
 }
 
 const cIrbComp_CamSet & cIrbComp_TimeS::SetCams() const {return mSetCams;}
+const cIrbComp_Block & cIrbComp_TimeS::CompBlock() const {return mCompBlock;}
 
 /* *************************************************************** */
 /*                                                                 */
@@ -324,7 +325,7 @@ class cAppli_EditBlockInstr : public cMMVII_Appli
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
 
-        std::vector<std::string>  Samples() const ;
+        std::vector<std::string>  Samples() const override;
 
      private :
         cPhotogrammetricProject   mPhProj;

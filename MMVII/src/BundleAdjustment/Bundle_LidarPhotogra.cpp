@@ -283,7 +283,7 @@ void cBA_LidarPhotogra::AddPatchCorrel
      */
 
      std::vector<tREAL8> aVTmp = aVMoy.ToStdVect(); // push first values of normalized patch
-     size_t aK0Im = aVTmp.size();
+     int aK0Im = aVTmp.size();
 
      // push the initial values of Aj Bj
      for (const auto &  aVRad : aListVRad)

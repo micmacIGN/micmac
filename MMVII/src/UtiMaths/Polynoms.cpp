@@ -355,7 +355,7 @@ template <class Type>  cPolynom<Type>  cPolynom<Type>::RandomPolyg(size_t aDeg,c
     cPolynom<Type> aRes(aDeg);
 
     for (size_t aD=0 ; aD<=aDeg ; aD++)
-        aRes.mVCoeffs.at(aD) =   RandUnif_C() * std::pow(aAmpl,-aD);
+        aRes.mVCoeffs.at(aD) =   RandUnif_C() * std::pow(aAmpl,-(int(aD)));
 
     return aRes;
 }
