@@ -83,12 +83,17 @@ template <const int DimM,const int DimE>
        {
            aTgt = aTgt - aPrec* Scal(aPrec,aTgt);
        }
-
        aRes.push_back(VUnit(aTgt));
    }
 
    return aRes;
 }
+
+ template <const int DimM,const int DimE>
+  cPtxd<tREAL8,DimE>  cManifold<DimM,DimE>::Proj(const tPtE & aPtE) const
+  {
+      return ApproxProj(aPtE);
+  }
 
 template class cManifold<1,2>; // curve 2d
 template class cManifold<1,3>; // curve 3d
@@ -105,9 +110,10 @@ template<int DimE> class cCurveFromMapping : public cManifold<1,DimE>
         typedef cPtxd<tREAL8,DimE>                  tPtE;
         typedef cSegmentCompiled<tREAL8,DimE>       tSeg;
         typedef cDataInvertibleMapping<tREAL8,DimE> tMap;
+        typedef  std::pair<int,tPtM>                tResPOP; // Type result Param of Pt
 
         tPtE   PtOfParam(const tPtM &,int aNumMap) const override;
-        std::pair<int,tPtM>   ParamOfPt(const tPtE &) const override;
+        tResPOP   ParamOfPt(const tPtE &) const override;
         tPtE  ApproxProj(const tPtE &) const  override ;
      private :
 	tSeg   mSeg;
@@ -124,7 +130,9 @@ template<int DimE>  cPtxd<tREAL8,DimE> cCurveFromMapping<DimE>::PtOfParam(const 
     return mMap->Value(aPtOnSeg);
 }
 
-template<int DimE>  std::pair<int,cPtxd<tREAL8,1>> cCurveFromMapping<DimE>::ParamOfPt(const tPtE & aPE) const 
+template<int DimE>
+  typename cCurveFromMapping<DimE>::tResPOP
+      cCurveFromMapping<DimE>::ParamOfPt(const tPtE & aPE) const
 {
     tPtE aPOnSeg = mMap->Inverse(aPE);
     return std::pair<int,tPtM>(0,tPtM(mSeg.Abscissa(aPOnSeg)));
