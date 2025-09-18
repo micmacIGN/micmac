@@ -86,93 +86,6 @@ template <const int DimM,const int DimE> class cManifoldFromMapping : public  cM
 
 };
 
-   /* *********************************************************** */
-   /*                                                             */
-   /*                        cSphereManifold                      */
-   /*                                                             */
-   /* *********************************************************** */
-
-template<int DimE> class cSphereManifold : public cManifold<DimE-1,DimE>
-{
-     public :
-        // virtual  tPtE   PtOfParam(const tPtM &,int aNumMap) const ;
-        static const int DimM = 1;
-        static const int DimC = DimE - DimM;
-
-        typedef cPtxd<tREAL8,DimM>                  tPtM;
-        typedef cPtxd<tREAL8,DimE>                  tPtE;
-        typedef cSegmentCompiled<tREAL8,DimE>       tSeg;
-        typedef  std::pair<int,tPtM>                tResPOP; // Type result Param of Pt
-
-        cSphereManifold();
-        tPtE   PtOfParam(const tResPOP&) const override;
-        tResPOP   ParamOfPt(const tPtE &) const override;
-        tPtE  ApproxProj(const tPtE &) const  override ;
-
-   private :
-};
-
-template<int DimE>  cSphereManifold<DimE>::cSphereManifold() :
-    cManifold<DimE-1,DimE>(2*DimE)
-{
-}
-
-
-template<int DimE>  typename cSphereManifold<DimE>::tPtE cSphereManifold<DimE>::PtOfParam(const tResPOP & aPair) const
-{
-    int aNumMap = aPair.first;
-    const tPtM aProj = aPair.second;
-    tREAL8 aCoord = std::sqrt(1.0-SqN2(aProj));
-
-    if (aNumMap>=DimE)
-    {
-        aCoord = - aCoord;
-        aNumMap -= DimE;
-    }
-
-    tPtE aRes;
-    int aCpt=0;
-    for (int aDim=0 ; aDim<DimE ; aDim++)
-    {
-        aRes[aCpt++] =  (aDim!= aNumMap) ? aProj[aDim] : aCoord;
-    }
-    return aRes;
-}
-
-
-template<int DimE>
-     typename cSphereManifold<DimE>::tResPOP
-         cSphereManifold<DimE>::ParamOfPt(const tPtE & aPE) const
-{
-    cWhichMax<int,tREAL8> aMaxC;
-    for (int aDim=0 ; aDim<DimE ; aDim++)
-        aMaxC.Add(aDim,std::abs(aPE[aDim]));
-
-    int aDimMax = aMaxC.IndexExtre();
-    int aCpt=0;
-    tPtM aProj;
-
-    for (int aDim=0 ; aDim<DimE ; aDim++)
-    {
-        if (aDim!= aDimMax)
-            aProj[aCpt++] = aPE[aDim];
-    }
-    if (aMaxC.ValExtre()<0)
-        aDimMax += DimE;
-
-    return tResPOP(aDimMax,aProj);
-}
-
-
-
-
-template<int DimE>  typename cSphereManifold<DimE>::tPtE  cSphereManifold<DimE>::ApproxProj(const tPtE & aPt) const
-{
-    if (IsNull(aPt))
-        return tPtE::P1Coord(0,1.0);
-    return VUnit(aPt);
-}
-
 
 
    /* *********************************************************** */
@@ -264,7 +177,7 @@ template<const int DimM, const int DimE>
    {
        aNbIter++;
        tPtE aPt1 = OneIterProjByTgt(aPt0,aPtE);
-       GoOn = (aNbIter>=aNbIterMax) || (Norm2(aPt0-aPt1)<aEpsilon);
+       GoOn = (aNbIter< aNbIterMax) && (Norm2(aPt0-aPt1)>aEpsilon);
        aPt0 = aPt1;
    }
    return aPt0;
@@ -324,6 +237,181 @@ template <const int DimM,const int DimE>
     return mMap->Value(mMan->ApproxProj(mMap->Inverse(aPt)));
 }
 
+
+
+   /* *********************************************************** */
+   /*                                                             */
+   /*                        cSphereManifold                      */
+   /*                                                             */
+   /* *********************************************************** */
+
+template<int DimE> class cSphereManifold : public cManifold<DimE-1,DimE>
+{
+     public :
+        // virtual  tPtE   PtOfParam(const tPtM &,int aNumMap) const ;
+        static const int DimM = DimE-1;
+        static const int DimC = DimE - DimM;
+
+        typedef cPtxd<tREAL8,DimM>                  tPtM;
+        typedef cPtxd<tREAL8,DimE>                  tPtE;
+        typedef cSegmentCompiled<tREAL8,DimE>       tSeg;
+        typedef  std::pair<int,tPtM>                tResPOP; // Type result Param of Pt
+
+        cSphereManifold(const tPtE & aPPerturb = tPtE::PCste(0.0) );
+        tPtE   PtOfParam(const tResPOP&) const override;
+        tResPOP   ParamOfPt(const tPtE &) const override;
+        tPtE  ApproxProj(const tPtE &) const  override ;
+
+   private :
+        bool mIsPerturb; //< do use artificial perturbation, just 4 bench
+        tPtE mPPerturb;  //< Value to use 4 articial perturbation
+};
+
+template<int DimE>  cSphereManifold<DimE>::cSphereManifold(const tPtE & aPPerturb) :
+    cManifold<DimE-1,DimE>(2*DimE),
+     mIsPerturb (!IsNull(aPPerturb)),
+     mPPerturb  (aPPerturb)
+{
+}
+
+
+template<int DimE>  typename cSphereManifold<DimE>::tPtE cSphereManifold<DimE>::PtOfParam(const tResPOP & aPair) const
+{
+    int aNumMap = aPair.first;
+    const tPtM aProj = aPair.second;
+    tREAL8 aCoord = std::sqrt(1.0-SqN2(aProj));
+
+    if (aNumMap>=DimE)
+    {
+        aCoord = - aCoord;
+        aNumMap -= DimE;
+    }
+
+    tPtE aRes;
+    int aCpt=0;
+    for (int aDim=0 ; aDim<DimE ; aDim++)
+    {
+        aRes[aDim] =  (aDim!= aNumMap) ? aProj[aCpt++] : aCoord;
+    }
+    return aRes;
+}
+
+
+template<int DimE>
+     typename cSphereManifold<DimE>::tResPOP
+         cSphereManifold<DimE>::ParamOfPt(const tPtE & aPE) const
+{
+    cWhichMax<int,tREAL8> aMaxC;
+    for (int aDim=0 ; aDim<DimE ; aDim++)
+        aMaxC.Add(aDim,std::abs(aPE[aDim]));
+
+    int aDimMax = aMaxC.IndexExtre();
+    int aCpt=0;
+    tPtM aProj;
+
+    for (int aDim=0 ; aDim<DimE ; aDim++)
+    {
+        if (aDim!= aDimMax)
+            aProj[aCpt++] = aPE[aDim];
+    }
+    if (aPE[aDimMax]<0)
+        aDimMax += DimE;
+
+    return tResPOP(aDimMax,aProj);
+}
+
+
+
+
+template<int DimE>  typename cSphereManifold<DimE>::tPtE  cSphereManifold<DimE>::ApproxProj(const tPtE & aP2P) const
+{
+    if (IsNull(aP2P))  // in this case any point is closest ..
+        return tPtE::P1Coord(0,1.0);
+    tPtE aPProj =  VUnit(aP2P);
+
+    if (!mIsPerturb)
+        return aPProj;
+
+    aPProj = aPProj + mPPerturb*Norm2(aP2P-aPProj);
+    return VUnit(aPProj);
+}
+
+   /* ********************************************************** */
+   /*                                                            */
+   /*                         MMVII::                            */
+   /*                                                            */
+   /* ********************************************************** */
+
+template<int DimE> void BenchManifold_Sphere()
+{
+     typedef cPtxd<tREAL8,DimE> tPtE;
+     cSphereManifold<DimE> aSph(tPtE::PRandUnit()*1e-1);
+
+int aCpt=0;
+     for (int aKTest=0 ; aKTest<10; aKTest++)
+     {
+aCpt++;
+        // Generate a random point on the sphere/manifold
+        tPtE aPtS = tPtE::PRandUnit();
+        // Extract its parametrization
+        auto aProj = aSph.ParamOfPt(aPtS);
+        // Extract the point from the parameters
+        tPtE aPtS2 = aSph.PtOfParam(aProj);
+
+        // check we go back to initial point
+        MMVII_INTERNAL_ASSERT_bench(Norm2(aPtS-aPtS2)<1e-8,"BenchManifold_Sphere ParamOfPt/PtOfParam");
+
+        // check tgt space
+        auto aVTgt =aSph.TgSpace(aPtS);
+        MMVII_INTERNAL_ASSERT_bench(aVTgt.size()==DimE-1,"Dim Tgt Space");  // good dim !
+
+        for (size_t aKT1=0 ; aKT1<aVTgt.size(); aKT1++)
+        {
+            MMVII_INTERNAL_ASSERT_bench(std::abs(Scal(aVTgt.at(aKT1),aPtS))<1e-6,"Scal Tgt in BenchManifold_Sphere");
+            MMVII_INTERNAL_ASSERT_bench(std::abs(Norm2(aVTgt.at(aKT1))-1)<1e-6,"Norm Tgt in BenchManifold_Sphere");
+            for (size_t aKT2=aKT1+1 ; aKT2<aVTgt.size(); aKT2++)
+            {
+                MMVII_INTERNAL_ASSERT_bench(std::abs(Scal(aVTgt.at(aKT1),aVTgt.at(aKT2)))<1e-6,"Scal Tgt in BenchManifold_Sphere");
+            }
+        }
+
+        // Check proj
+        aPtS2 = aPtS * RandInInterval(0.8,1.2);
+
+        tPtE aPtProj = aSph.Proj(aPtS2) ;
+        StdOut() << " Prrrojj= " << Norm2(aPtS - aPtProj)  << " " << aPtS - aSph.ApproxProj(aPtS2)<< "\n";
+        if (0) // (Norm2(aPtS-aPtS2)>1e-8)
+        {
+        StdOut() << " BenchManifold_Sphere "
+                 << " Cpt=" << aCpt
+                  <<  " Dif=" << aPtS-aPtS2
+                   << " Num=" << aProj.first
+                   << " Norm=" << Norm2(aPtS2)
+                   << "\n";
+        getchar();
+        }
+     }
+
+//StdOut() << " ENNNd-BenchManifold_Sphere \n";
+//getchar();
+}
+
+
+void BenchManifold(cParamExeBench & aParam)
+{
+    if (! aParam.NewBench("Manifold")) return;
+
+    for (int aKT=0 ; aKT<100 ; aKT++)
+    {
+        BenchManifold_Sphere<2>();
+        BenchManifold_Sphere<3>();
+        BenchManifold_Sphere<4>();
+    }
+
+     aParam.EndBench();
+
+}
+
    /* ********************************************************** */
    /*                                                            */
    /*                         INSTANCIATION                      */
@@ -338,6 +426,11 @@ template class cManifold<2,3>; // like surf 3d
 
 template class cLineManifold<2>; // Seg  2d
 template class cLineManifold<3>; // Seg 3d
+
+template class cSphereManifold<2>; // Seg  2d
+template class cSphereManifold<3>; // Seg  2d
+template class cSphereManifold<4>; // Seg  2d
+
 
 template class cManifoldFromMapping<1,2>; // like curve 2d
 template class cManifoldFromMapping<1,3>; // like curve 3d

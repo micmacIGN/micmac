@@ -561,6 +561,8 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
 
         // Test mapping Buf/NotBuf  Jacob  Inverse ...
         BenchMapping(aParam);
+        BenchManifold(aParam);
+
 
         // Apparently this bench do not succeed; to see later ?
         if (mDoBUSD)

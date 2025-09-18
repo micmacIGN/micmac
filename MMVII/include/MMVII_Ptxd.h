@@ -246,6 +246,8 @@ template <class Type,const int DimOut,const int DimIn> cPtxd<Type,DimOut> CastDi
 
 template <class Type> inline bool IsNull (const cPtxd<Type,2> & aP) { return (aP.x() ==0) && (aP.y()==0);}
 template <class Type> inline bool IsNull (const cPtxd<Type,3> & aP) { return (aP.x() ==0) && (aP.y()==0) && (aP.z()==0);}
+template <class Type> inline bool IsNull (const cPtxd<Type,4> & aP) { return (aP.x() ==0) && (aP.y()==0) && (aP.z()==0) &&(aP.t()==0);}
+
 template <class Type> inline bool IsNotNull (const cPtxd<Type,2> & aP) { return ! IsNull(aP);}
 //template <class Type> inline bool IsNotNull (const cPtxd<Type,2> & aP) { return  (aP.x() !=0) || (aP.y()!=0);}
 
@@ -316,6 +318,8 @@ template <class Type> inline cPtxd<Type,2>  MulCByC (const cPtxd<Type,2> & aP1,c
 { return cPtxd<Type,2>(aP1.x() * aP2.x(),aP1.y() * aP2.y()); }
 template <class Type> inline cPtxd<Type,3> MulCByC (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
 { return cPtxd<Type,3>(aP1.x() * aP2.x(),aP1.y() * aP2.y(),aP1.z()*aP2.z()); }
+template <class Type> inline cPtxd<Type,4> MulCByC (const cPtxd<Type,4> & aP1,const cPtxd<Type,4> & aP2) 
+{ return cPtxd<Type,4>(aP1.x() * aP2.x(),aP1.y() * aP2.y(),aP1.z()*aP2.z(),aP1.t()*aP2.t()); }
 
 ///  DivCByC division coordinates by coordinates !! => INT Division; see also RDivCByC
 template <class Type> inline cPtxd<Type,1>  DivCByC (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
@@ -324,6 +328,8 @@ template <class Type> inline cPtxd<Type,2>  DivCByC (const cPtxd<Type,2> & aP1,c
 { return cPtxd<Type,2>(aP1.x() / aP2.x(),aP1.y() / aP2.y()); }
 template <class Type> inline cPtxd<Type,3> DivCByC (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
 { return cPtxd<Type,3>(aP1.x() / aP2.x(),aP1.y() / aP2.y(),aP1.z()/aP2.z()); }
+template <class Type> inline cPtxd<Type,4> DivCByC (const cPtxd<Type,4> & aP1,const cPtxd<Type,4> & aP2) 
+{ return cPtxd<Type,4>(aP1.x() / aP2.x(),aP1.y() / aP2.y(),aP1.z()/aP2.z(),aP1.t()/aP2.t()); }
 
 
 /// Some time int division is not what is wanted !!
@@ -336,6 +342,7 @@ template <class T,const int Dim> inline cPtxd<double,Dim> RDivCByC(const cPtxd<T
 template <class Type> inline cPtxd<Type,1> operator - (const cPtxd<Type,1> & aP) {return  cPtxd<Type,1>(-aP.x());}
 template <class Type> inline cPtxd<Type,2> operator - (const cPtxd<Type,2> & aP) {return  cPtxd<Type,2>(-aP.x(),-aP.y());}
 template <class Type> inline cPtxd<Type,3> operator - (const cPtxd<Type,3> & aP) {return  cPtxd<Type,3>(-aP.x(),-aP.y(),-aP.z());}
+template <class Type> inline cPtxd<Type,4> operator - (const cPtxd<Type,4> & aP) {return  cPtxd<Type,4>(-aP.x(),-aP.y(),-aP.z(),-aP.t());}
 
 
 ///  operator * scalar - points
@@ -470,6 +477,8 @@ template <class Type> inline bool SupEq  (const cPtxd<Type,2> & aP1,const cPtxd<
 {return  (aP1.x()>=aP2.x()) && (aP1.y()>=aP2.y());}
 template <class Type> inline bool SupEq  (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
 {return  (aP1.x()>=aP2.x()) && (aP1.y()>=aP2.y()) && (aP1.z()>=aP2.z());}
+template <class Type> inline bool SupEq  (const cPtxd<Type,4> & aP1,const cPtxd<Type,4> & aP2) 
+{return  (aP1.x()>=aP2.x()) && (aP1.y()>=aP2.y()) && (aP1.z()>=aP2.z()) && (aP1.t()>=aP2.t());}
 
 
 /// PtSupEq   : smallest point being SupEq to
@@ -479,6 +488,8 @@ template <class Type> inline cPtxd<Type,2> PtSupEq  (const cPtxd<Type,2> & aP1,c
 { return cPtxd<Type,2> (std::max(aP1.x(),aP2.x()),std::max(aP1.y(),aP2.y())); }
 template <class Type> inline cPtxd<Type,3> PtSupEq  (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
 { return cPtxd<Type,3> (std::max(aP1.x(),aP2.x()),std::max(aP1.y(),aP2.y()),std::max(aP1.z(),aP2.z())); }
+template <class Type> inline cPtxd<Type,4> PtSupEq  (const cPtxd<Type,4> & aP1,const cPtxd<Type,4> & aP2) 
+{ return cPtxd<Type,4> (std::max(aP1.x(),aP2.x()),std::max(aP1.y(),aP2.y()),std::max(aP1.z(),aP2.z()),std::max(aP1.t(),aP2.t())  ); }
 
 template <class TypePt> void SetSupEq(TypePt & aP1,const TypePt & aP2) {aP1 = PtSupEq(aP1,aP2);}
 
@@ -489,6 +500,8 @@ template <class Type> inline cPtxd<Type,2> PtInfEq  (const cPtxd<Type,2> & aP1,c
 { return cPtxd<Type,2> (std::min(aP1.x(),aP2.x()),std::min(aP1.y(),aP2.y())); }
 template <class Type> inline cPtxd<Type,3> PtInfEq  (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
 { return cPtxd<Type,3> (std::min(aP1.x(),aP2.x()),std::min(aP1.y(),aP2.y()),std::min(aP1.z(),aP2.z())); }
+template <class Type> inline cPtxd<Type,4> PtInfEq  (const cPtxd<Type,4> & aP1,const cPtxd<Type,4> & aP2) 
+{ return cPtxd<Type,4> (std::min(aP1.x(),aP2.x()),std::min(aP1.y(),aP2.y()),std::min(aP1.z(),aP2.z()),std::min(aP1.t(),aP2.t())); }
 
 template <class TypePt> void SetInfEq(TypePt & aP1,const TypePt & aP2) {aP1 = PtInfEq(aP1,aP2);}
 
@@ -501,6 +514,8 @@ template <class Type> inline bool InfStr  (const cPtxd<Type,2> & aP1,const cPtxd
 {return  (aP1.x()<aP2.x()) && (aP1.y()<aP2.y());}
 template <class Type> inline bool InfStr  (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
 {return  (aP1.x()<aP2.x()) && (aP1.y()<aP2.y()) && (aP1.z()<aP2.z());}
+template <class Type> inline bool InfStr  (const cPtxd<Type,4> & aP1,const cPtxd<Type,4> & aP2) 
+{return  (aP1.x()<aP2.x()) && (aP1.y()<aP2.y()) && (aP1.z()<aP2.z()) && (aP1.t()<aP2.t());}
 
 /**  PtInfSTr : bigets point beg=ing InfStr (definition valide for integer types) 
   Warn non symetric function;  strictness is relative to P2, not P1 ;
@@ -519,6 +534,8 @@ template <class Type> inline cPtxd<Type,2> PtInfStr  (const cPtxd<Type,2> & aP1,
 // { return cPtxd<Type,2> (std::min(aP1.x(),aP2.x()-1),std::min(aP1.y(),aP2.y()-1)); }
 template <class Type> inline cPtxd<Type,3> PtInfStr  (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
 { return cPtxd<Type,3> (std::min(aP1.x(),aP2.x()-1),std::min(aP1.y(),aP2.y()-1),std::min(aP1.z(),aP2.z()-1)); }
+template <class Type> inline cPtxd<Type,4> PtInfStr  (const cPtxd<Type,4> & aP1,const cPtxd<Type,4> & aP2) 
+{ return cPtxd<Type,4> (std::min(aP1.x(),aP2.x()-1),std::min(aP1.y(),aP2.y()-1),std::min(aP1.z(),aP2.z()-1),std::min(aP1.t(),aP2.t()-1)); }
 
 
 /// InfEq  :  P1.k() <= P2.k() for all coordinates
@@ -528,6 +545,8 @@ template <class Type> inline bool InfEq  (const cPtxd<Type,2> & aP1,const cPtxd<
 {return  (aP1.x()<=aP2.x()) && (aP1.y()<=aP2.y());}
 template <class Type> inline bool InfEq  (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
 {return  (aP1.x()<=aP2.x()) && (aP1.y()<=aP2.y()) && (aP1.z()<=aP2.z());}
+template <class Type> inline bool InfEq  (const cPtxd<Type,4> & aP1,const cPtxd<Type,4> & aP2) 
+{return  (aP1.x()<=aP2.x()) && (aP1.y()<=aP2.y()) && (aP1.z()<=aP2.z()) && (aP1.t()<=aP2.t());}
 
 
 template<class T,const int Dim> cPtxd<T,Dim>  VUnit(const cPtxd<T,Dim> & aP);
