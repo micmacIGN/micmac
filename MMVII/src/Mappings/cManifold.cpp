@@ -24,7 +24,7 @@ template <const int DimM,const int DimE> class cManifold
         /// return the num map of a point, defaults assume mNbMap==1
         virtual int  GetNumMap(const tPtE &) const ;
         ///  Retun a point of manifold in embedding space kowning a parameter, default error
-        virtual  tPtE   PtOfParam(const tPtM &,int aNumMap) const ;
+        virtual  tPtE   PtOfParam(const tResPOP &) const ;
         ///  "Inverse" of PtOfParam, Assuming tPtE is on manifold
         virtual  tResPOP   ParamOfPt(const tPtE &) const ;
 
@@ -54,7 +54,7 @@ template<int DimE> class cLineManifold : public cManifold<1,DimE>
         typedef cSegmentCompiled<tREAL8,DimE>       tSeg;
         typedef  std::pair<int,tPtM>                tResPOP; // Type result Param of Pt
 
-        tPtE   PtOfParam(const tPtM &,int aNumMap) const override;
+        tPtE   PtOfParam(const tResPOP &) const override;
         tResPOP   ParamOfPt(const tPtE &) const override;
         tPtE  ApproxProj(const tPtE &) const  override ;
 
@@ -76,7 +76,7 @@ template <const int DimM,const int DimE> class cManifoldFromMapping : public  cM
         typedef cSegmentCompiled<tREAL8,DimE>       tSeg;
         typedef  std::pair<int,tPtM>                tResPOP; // Type result Param of Pt
 
-        tPtE   PtOfParam(const tPtM &,int aNumMap) const override;
+        tPtE   PtOfParam(const tResPOP&) const override;
         tResPOP   ParamOfPt(const tPtE &) const override;
         tPtE  ApproxProj(const tPtE &) const  override ;
 
@@ -85,6 +85,95 @@ template <const int DimM,const int DimE> class cManifoldFromMapping : public  cM
         tMap   *mMap;
 
 };
+
+   /* *********************************************************** */
+   /*                                                             */
+   /*                        cSphereManifold                      */
+   /*                                                             */
+   /* *********************************************************** */
+
+template<int DimE> class cSphereManifold : public cManifold<DimE-1,DimE>
+{
+     public :
+        // virtual  tPtE   PtOfParam(const tPtM &,int aNumMap) const ;
+        static const int DimM = 1;
+        static const int DimC = DimE - DimM;
+
+        typedef cPtxd<tREAL8,DimM>                  tPtM;
+        typedef cPtxd<tREAL8,DimE>                  tPtE;
+        typedef cSegmentCompiled<tREAL8,DimE>       tSeg;
+        typedef  std::pair<int,tPtM>                tResPOP; // Type result Param of Pt
+
+        cSphereManifold();
+        tPtE   PtOfParam(const tResPOP&) const override;
+        tResPOP   ParamOfPt(const tPtE &) const override;
+        tPtE  ApproxProj(const tPtE &) const  override ;
+
+   private :
+};
+
+template<int DimE>  cSphereManifold<DimE>::cSphereManifold() :
+    cManifold<DimE-1,DimE>(2*DimE)
+{
+}
+
+
+template<int DimE>  typename cSphereManifold<DimE>::tPtE cSphereManifold<DimE>::PtOfParam(const tResPOP & aPair) const
+{
+    int aNumMap = aPair.first;
+    const tPtM aProj = aPair.second;
+    tREAL8 aCoord = std::sqrt(1.0-SqN2(aProj));
+
+    if (aNumMap>=DimE)
+    {
+        aCoord = - aCoord;
+        aNumMap -= DimE;
+    }
+
+    tPtE aRes;
+    int aCpt=0;
+    for (int aDim=0 ; aDim<DimE ; aDim++)
+    {
+        aRes[aCpt++] =  (aDim!= aNumMap) ? aProj[aDim] : aCoord;
+    }
+    return aRes;
+}
+
+
+template<int DimE>
+     typename cSphereManifold<DimE>::tResPOP
+         cSphereManifold<DimE>::ParamOfPt(const tPtE & aPE) const
+{
+    cWhichMax<int,tREAL8> aMaxC;
+    for (int aDim=0 ; aDim<DimE ; aDim++)
+        aMaxC.Add(aDim,std::abs(aPE[aDim]));
+
+    int aDimMax = aMaxC.IndexExtre();
+    int aCpt=0;
+    tPtM aProj;
+
+    for (int aDim=0 ; aDim<DimE ; aDim++)
+    {
+        if (aDim!= aDimMax)
+            aProj[aCpt++] = aPE[aDim];
+    }
+    if (aMaxC.ValExtre()<0)
+        aDimMax += DimE;
+
+    return tResPOP(aDimMax,aProj);
+}
+
+
+
+
+template<int DimE>  typename cSphereManifold<DimE>::tPtE  cSphereManifold<DimE>::ApproxProj(const tPtE & aPt) const
+{
+    if (IsNull(aPt))
+        return tPtE::P1Coord(0,1.0);
+    return VUnit(aPt);
+}
+
+
 
    /* *********************************************************** */
    /*                                                             */
@@ -107,7 +196,7 @@ template <const int DimM,const int DimE>  int  cManifold<DimM,DimE>::GetNumMap(c
 }
 
 template <const int DimM,const int DimE>
-   typename cManifold<DimM,DimE>::tPtE  cManifold<DimM,DimE>::PtOfParam(const tPtM&,int)  const
+   typename cManifold<DimM,DimE>::tPtE  cManifold<DimM,DimE>::PtOfParam(const tResPOP&)  const
 {
    MMVII_INTERNAL_ERROR("No def cManifold<DimM,DimE>::PtOfParam");
    return tPtE();
@@ -130,8 +219,8 @@ template <const int DimM,const int DimE>
    for (int aKM=0 ; aKM<DimM ; aKM++)
    {
        tPtM aDelta = tPtM::P1Coord(aKM,mEpsDeriv);
-       tPtE aPPlus = PtOfParam(aPParam+aDelta,aNum);
-       tPtE aPMinus = PtOfParam(aPParam-aDelta,aNum);
+       tPtE aPPlus = PtOfParam(tResPOP(aNum,aPParam+aDelta));
+       tPtE aPMinus = PtOfParam(tResPOP(aNum,aPParam-aDelta));
        tPtE aTgt = (aPPlus-aPMinus) / (2*mEpsDeriv) ;
 
        // make some "on the fly" orthogonalization
@@ -188,10 +277,10 @@ template<const int DimM, const int DimE>
    /* *********************************************************** */
 
 
-template<int DimE>  typename cLineManifold<DimE>::tPtE cLineManifold<DimE>::PtOfParam(const tPtM & aP1,int aNumMap) const
+template<int DimE>  typename cLineManifold<DimE>::tPtE cLineManifold<DimE>::PtOfParam(const tResPOP & aPair) const
 {
-     MMVII_INTERNAL_ASSERT_tiny(aNumMap==0,"cLineManifold->aNumMap");
-     return mSeg.PtOfAbscissa(aP1.x());
+     MMVII_INTERNAL_ASSERT_tiny(aPair.first==0,"cLineManifold->aNumMap");
+     return mSeg.PtOfAbscissa(aPair.second.x());
 }
 
 template<int DimE>
@@ -201,7 +290,7 @@ template<int DimE>
     return std::pair<int,tPtM>(0,tPtM(mSeg.Abscissa(aPE)));
 }
 
-template<int DimE>  cPtxd<tREAL8,DimE> cLineManifold<DimE>::ApproxProj(const tPtE & aPt) const
+template<int DimE>  typename cLineManifold<DimE>::tPtE  cLineManifold<DimE>::ApproxProj(const tPtE & aPt) const
 {
     return mSeg.Proj(aPt);
 }
@@ -215,9 +304,9 @@ template<int DimE>  cPtxd<tREAL8,DimE> cLineManifold<DimE>::ApproxProj(const tPt
 
 template <const int DimM,const int DimE>
    typename cManifoldFromMapping<DimM,DimE>::tPtE
-        cManifoldFromMapping<DimM,DimE>::PtOfParam(const tPtM & aP1,int aNumMap) const
+        cManifoldFromMapping<DimM,DimE>::PtOfParam(const tResPOP & aPair) const
 {
-   return mMap->Value(mMan->PtOfParam(aP1,aNumMap));
+   return mMap->Value(mMan->PtOfParam(aPair));
 }
 
 
