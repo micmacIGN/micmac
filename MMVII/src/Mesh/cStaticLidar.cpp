@@ -3,7 +3,8 @@
 namespace MMVII
 {
 
-cStaticLidar::cStaticLidar() :
+cStaticLidar::cStaticLidar(const std::string & aNameImage,const tPose & aPose,cPerspCamIntrCalib * aCalib) :
+    cSensorCamPC(aNameImage, aPose, aCalib),
     mThetaMin       (NAN),
     mThetaMax       (NAN),
     mPhiMin         (NAN),
@@ -84,6 +85,7 @@ void cStaticLidar::ToPly(const std::string & aName,bool WithOffset) const
 
 void cStaticLidar::AddData(const  cAuxAr2007 & anAux)
 {
+    cSensorCamPC::AddData(anAux);
     MMVII::AddData(cAuxAr2007("StationName",anAux),mStationName);
     MMVII::AddData(cAuxAr2007("ScanName",anAux),mScanName);
     MMVII::AddData(cAuxAr2007("ThetaMin",anAux),mThetaMin);

@@ -1,9 +1,12 @@
 #include "MMVII_StaticLidar.h"
 #include "MMVII_Sensor.h"
 #include "MMVII_Geom3D.h"
-#include "../Mesh/happly.h"
 #include <functional>
-#include <E57Format/E57SimpleReader.h>
+
+#include "../Mesh/happly.h"
+#if (USE_LIBE57FORMAT)
+  #include <E57Format/E57SimpleReader.h>
+#endif
 
 /**
    \file importStaticScan.cpp
@@ -79,7 +82,7 @@ cAppli_ImportStaticScan::cAppli_ImportStaticScan(const std::vector<std::string> 
     mNoMiss         (false),
     mDistMinToExist (1e-6),
     mPhiStep        (NAN),
-    mSL_data        ()
+    mSL_data        (mNameFile, cIsometry3D<tREAL8>({}, cRotation3D<tREAL8>::Identity()), nullptr)
 {
 }
 
@@ -443,7 +446,7 @@ template <typename TYPE> void cAppli_ImportStaticScan::fillRaster(const std::str
         cPt2di aPcl = {mVectPtsCol[i], mSL_data.mMaxLine-mVectPtsLine[i]};
         aRasterData.SetV(aPcl, func(i));
     }
-    aRasterData.ToFile(aFileName);
+    aRasterData.ToFile(mPhProj.DPStaticLidar().FullDirOut() + aFileName);
 }
 
 tREAL8 cAppli_ImportStaticScan::doVerticalize()
@@ -530,6 +533,7 @@ tREAL8 cAppli_ImportStaticScan::doVerticalize()
 int cAppli_ImportStaticScan::Exe()
 {
     mPhProj.FinishInit();
+
     std::string aPostFix = ToLower(LastPostfix(mNameFile));
     if (aPostFix=="ply")
     {
@@ -653,9 +657,9 @@ int cAppli_ImportStaticScan::Exe()
     file2.close();
     file1.close();
 
-    mSL_data.mRasterDistance = mPhProj.DPStaticLidar().FullDirOut() +  mSL_data.mStationName + "_" + mSL_data.mScanName + "_distance.tif";
-    mSL_data.mRasterIntensity = mPhProj.DPStaticLidar().FullDirOut() +  mSL_data.mStationName + "_" + mSL_data.mScanName + "_intensity.tif";
-    mSL_data.mRasterMask = mPhProj.DPStaticLidar().FullDirOut() +  mSL_data.mStationName + "_" + mSL_data.mScanName + "_mask.tif";
+    mSL_data.mRasterDistance = mSL_data.mStationName + "_" + mSL_data.mScanName + "_distance.tif";
+    mSL_data.mRasterIntensity = mSL_data.mStationName + "_" + mSL_data.mScanName + "_intensity.tif";
+    mSL_data.mRasterMask = mSL_data.mStationName + "_" + mSL_data.mScanName + "_mask.tif";
 
     fillRaster<tU_INT1>(mSL_data.mRasterMask, [this](int i){auto aPtAng = mVectPtsTPD[i];return (aPtAng.z()<mDistMinToExist)?0:255;} );
     if (mHasIntensity)

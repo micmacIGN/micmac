@@ -3,6 +3,7 @@
 
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_Geom3D.h"
+#include "MMVII_PCSens.h"
 
 namespace MMVII
 {
@@ -14,12 +15,12 @@ namespace MMVII
 
 */
 
-class cStaticLidar
+class cStaticLidar: public cSensorCamPC
 {
     friend class cAppli_ImportStaticScan;
 public :
 
-    cStaticLidar();
+    cStaticLidar(const std::string &aNameImage, const tPose &aPose, cPerspCamIntrCalib *aCalib);
     long NbPts() const;
 
     void ToPly(const std::string & aName,bool WithOffset=false) const;
