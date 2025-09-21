@@ -245,7 +245,7 @@ template  <typename tScal> cPtxd<tScal,2>  VtoP2(const  std::vector<tScal> & aV,
 {
         return cPtxd<tScal,2>(aV.at(aInd),aV.at(aInd+1));
 }
-template  <typename tScal> cPtxd<tScal,2>  VtoP2AnutoIncr(const  std::vector<tScal> & aV,size_t *aInd)
+template  <typename tScal> cPtxd<tScal,2>  VtoP2AutoIncr(const  std::vector<tScal> & aV,size_t *aInd)
 {
 	 return VtoP2(aV,IndexAutoIncr(aInd,2));
 }

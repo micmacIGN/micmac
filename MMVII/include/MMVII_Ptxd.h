@@ -403,7 +403,26 @@ template <class T,const int Dim> typename tNumTrait<T>::tFloatAssoc Norm2(const 
 }
 // template <class T,const int Dim> double Norm2(const cPtxd<T,Dim> & aP);
 
-template <class T,const int Dim> typename tNumTrait<T>::tBig Scal(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);
+//template <class T,const int Dim> typename tNumTrait<T>::tBig Scal(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);
+template <class T> typename tNumTrait<T>::tBig Scal(const cPtxd<T,1> &aP1,const cPtxd<T,1> & aP2) 
+{ return aP1.x() * aP2.x();}
+template <class T> typename tNumTrait<T>::tBig Scal(const cPtxd<T,2> &aP1,const cPtxd<T,2> & aP2) 
+{ return aP1.x() * aP2.x() + aP1.y() * aP2.y();}
+template <class T> typename tNumTrait<T>::tBig Scal(const cPtxd<T,3> &aP1,const cPtxd<T,3> & aP2) 
+{ return aP1.x() * aP2.x() + aP1.y() * aP2.y() + aP1.z() * aP2.z();}
+template <class T> typename tNumTrait<T>::tBig Scal(const cPtxd<T,4> &aP1,const cPtxd<T,4> & aP2) 
+{ return aP1.x() * aP2.x() + aP1.y() * aP2.y() + aP1.z() * aP2.z() +aP1.t() * aP2.t();}
+/*
+template <class T,const int Dim>
+   typename  tNumTrait<T>::tBig Scal(const cPtxd<T,Dim> &aP1,const cPtxd<T,Dim> & aP2)
+{
+   typename tNumTrait<T>::tBig  aRes = aP1[0]*aP2[0];
+   for (int aD=1 ; aD<Dim; aD++)
+      aRes +=  aP1[aD]*aP2[aD];
+   return aRes;
+}
+*/
+
 template <class T,const int Dim> typename tNumTrait<T>::tBig MulCoord(const cPtxd<T,Dim> & aP);
 
 template <class T,const int Dim> T Cos(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);

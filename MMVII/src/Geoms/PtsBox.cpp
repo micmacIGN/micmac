@@ -504,6 +504,7 @@ template <class Type,const int Dim> Type MinAbsCoord(const cPtxd<Type,Dim> & aPt
 }
 
 
+/*
 template <class T,const int Dim>  
    typename  tNumTrait<T>::tBig Scal(const cPtxd<T,Dim> &aP1,const cPtxd<T,Dim> & aP2)
 {
@@ -512,6 +513,7 @@ template <class T,const int Dim>
       aRes +=  aP1[aD]*aP2[aD];
    return aRes;
 }
+*/
 
 template <class T,const int Dim>  
    typename  tNumTrait<T>::tBig MulCoord(const cPtxd<T,Dim> &aPt)
@@ -1412,7 +1414,7 @@ template  double NormK(const cPtxd<TYPE,DIM> & aPt,double anExp);\
 template  TYPE Norm1(const cPtxd<TYPE,DIM> & aPt);\
 template  TYPE NormInf(const cPtxd<TYPE,DIM> & aPt);\
 template  TYPE MinAbsCoord(const cPtxd<TYPE,DIM> & aPt);\
-template  typename  tNumTrait<TYPE>::tBig Scal(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
+/*template  typename  tNumTrait<TYPE>::tBig Scal(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);*/\
 template  typename  tNumTrait<TYPE>::tBig MulCoord(const cPtxd<TYPE,DIM> &);\
 template  TYPE Cos(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
 template  TYPE CosWDef(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &,const TYPE&);\
