@@ -24,8 +24,7 @@ def load_image(imfile):
     img = tf.imread(imfile).astype(np.uint8)
     if img.ndim==2:
         img = np.repeat(img[:, :, np.newaxis], 3, axis=2)
-    img = torch.from_numpy(img).permute(2, 0, 1).float()
-    # normalize image 
+    img = torch.from_numpy(img).permute(2, 0, 1)
     return img[None].to(DEVICE)
 
 def demo(args):
@@ -48,8 +47,12 @@ def demo(args):
             image1 = load_image(imfile1)
             image2 = load_image(imfile2)
 
-            padder = InputPadder(image1.shape, divis_by=32)
+            padder = InputPadder(image1.shape,mode="", divis_by=32)
             image1, image2 = padder.pad(image1, image2)
+            """print( image1.shape, image2.shape)
+
+            tf.imwrite('/home/MAChebbi/Documents/study_change_alti/d38_isere/ll1.tif',image1[0,1,:,:].squeeze().detach().numpy())
+            tf.imwrite('/home/MAChebbi/Documents/study_change_alti/d38_isere/rr1.tif',image2[0,1,:,:].squeeze().detach().numpy())"""
 
             _, flow_up = model(image1, image2, iters=args.valid_iters, test_mode=True)
             flow_up = padder.unpad(flow_up).squeeze()
@@ -60,6 +63,7 @@ def demo(args):
             #plt.imsave(output_directory / f"{file_stem}.png", -flow_up.cpu().numpy().squeeze(), cmap='jet')
             #tf.imwrite(output_directory / f"{file_stem}.tif", -flow_up.cpu().numpy().squeeze())
             tf.imwrite(output_file, flow_up.cpu().numpy().squeeze())
+
 
 
 if __name__ == '__main__':

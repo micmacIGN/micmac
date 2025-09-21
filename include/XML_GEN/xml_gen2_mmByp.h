@@ -41,6 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_XML_GEN_MMBY_P_
 #define _ELISE_XML_GEN_MMBY_P_
 
+#include <string>
 std::string StdMetaDataFilename(const std::string &aBasename, bool aBinary);
 
 cXmlXifInfo MDT2Xml(const cMetaDataPhoto & aMTD);

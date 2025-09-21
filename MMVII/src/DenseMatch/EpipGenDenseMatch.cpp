@@ -971,12 +971,17 @@ void  cAppli::MatchOneLevel(int aLevel)
 
            case eModeEpipMatch::eMEM_RAFTStereo  :
                 aModePad = eModePaddingEpip::eMPE_PxNeg;
-                aAmplMax = 180;
+                //aModePad = eModePaddingEpip::eMPE_PxNeg;
+                aAmplMax = 0;
            break;
-    
+
+           /* case eModeEpipMatch::eMEM_RAFTStereo :
+            aModePad = eModePaddingEpip::eMPE_NoPad;
+            break;*/
+
             case eModeEpipMatch::eMEM_UNETDECISION  :    
                  aModePad = eModePaddingEpip::eMPE_NoPad;
-	         aAmplMax = 180;
+                 aAmplMax = 180;
             break;
 
             case eModeEpipMatch::eMEM_NoMatch :    
@@ -1010,6 +1015,8 @@ void  cAppli::MatchOneLevel(int aLevel)
                         aBoxParser.BoxOut(anIndex),
                         anIndex,aILev1,aILev2
                      );
+
+        StdOut()<<"aParam Box In 1 "<<aParam.mBoxIn1<<std::endl;
 
         // The master level must compute the paralax interval  to complete param
         aILev1.EstimateIntervPx(aParam,aCurBoxFile1,aCurBoxFile2,mMaxAmplPxCur);
@@ -1080,7 +1087,7 @@ int cAppli::Exe()
        {
             case eModeEpipMatch::eMEM_MMV1      :  mModePad = eModePaddingEpip::eMPE_NoPad; break;
             case eModeEpipMatch::eMEM_PSMNet    :  mModePad = eModePaddingEpip::eMPE_PxNeg; break;
-            case eModeEpipMatch::eMEM_RAFTStereo:  mModePad = eModePaddingEpip::eMPE_PxNeg; break;
+            case eModeEpipMatch::eMEM_RAFTStereo:  mModePad = eModePaddingEpip::eMPE_SzEq; break;
             case eModeEpipMatch::eMEM_UNETDECISION :    mModePad = eModePaddingEpip::eMPE_PxNeg; break;
             case eModeEpipMatch::eMEM_NoMatch   :  mModePad = eModePaddingEpip::eMPE_NoPad; break;
             case eModeEpipMatch::eNbVals        :                                             break;
