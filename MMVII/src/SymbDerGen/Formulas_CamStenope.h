@@ -600,14 +600,32 @@ template <typename TypeDist>  class cEqDist
 
 /**   C */
 
+/*   For line equation : 
+
+     Unknowns are   Dx1, Dy1, Dx2,Dy2
+     Obs are :
+         p1 , p2 two point of the line
+         nx,ny two  vector orthog 
+         l the coord of centroid on the line (l=0 -> p1)
+
+     Q1 = (p1 + Dx1 nx+ Dy1 ny)
+     Q2 = (p2 + Dx2 nx+ Dy2 ny)
+
+     Q = (1-l) Q1 +l Q2
+*/
+
 template <typename TypeDist,typename TypeProj>  class cEqColinearityCamPPC
 {
 	public :
            cEqColinearityCamPPC(const TypeDist & aDist) :
-		   mDist (aDist)
+                mDist (aDist),
+                mLine (false)
 	   {
 	   }
-           std::string FormulaName() const { return "EqColinearityCamPPC_" + E2Str(TypeProj::TypeProj())    + "_" + mDist.NameModel();}
+           std::string FormulaName() const 
+           { 
+               return (mLine ?  "EqLineProjCamPPC_"  : "EqColinearityCamPPC_") + E2Str(TypeProj::TypeProj())    + "_" + mDist.NameModel();
+           }
            std::vector<std::string>  VNamesUnknowns() const
 	   {
 		   return Append
@@ -667,6 +685,7 @@ template <typename TypeDist,typename TypeProj>  class cEqColinearityCamPPC
            }
 	   
 	   TypeDist  mDist;
+           bool      mLine;
 };
 
 
