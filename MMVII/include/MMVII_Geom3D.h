@@ -7,7 +7,8 @@
 namespace MMVII
 {
 
-typedef cSegment<tREAL8,3> tSeg3dr;
+typedef cSegment<tREAL8,3>         tSeg3dr;
+typedef cSegmentCompiled<tREAL8,3> tSegComp3dr;
 
 template<class T> cPtxd<T,3>  PFromNumAxe(int aNum); ///< return I,J or K according to 0,1 or 2
 /// use the 3 "colum vector" to compute the matrix

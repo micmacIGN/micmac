@@ -617,9 +617,10 @@ template <typename TypeDist>  class cEqDist
 template <typename TypeDist,typename TypeProj>  class cEqColinearityCamPPC
 {
 	public :
-           cEqColinearityCamPPC(const TypeDist & aDist) :
-                mDist (aDist),
-                mLine (false)
+           cEqColinearityCamPPC(const TypeDist & aDist,eTypeEqCol aTypeEq) :
+                mDist     (aDist),
+                mTypeEq   (aTypeEq),
+                mLine     (mTypeEq==eTypeEqCol::eLine)
 	   {
 	   }
            std::string FormulaName() const 
@@ -722,7 +723,7 @@ template <typename TypeDist,typename TypeProj>  class cEqColinearityCamPPC
 #endif
 
 		   cPtxd<tUk,2>  aPProj = cHelperProj<TypeProj>::Proj(aPCam);  // project 3D-> photogram point
-		   cPtxd<tUk,2> aPDist = VtoP2(mDist.PProjToImNorm (aPProj.x(),aPProj.y(),aVUk,12));  // add distorsion
+		   cPtxd<tUk,2> aPDist = VtoP2(mDist.PProjToImNorm (aPProj.x(),aPProj.y(),aVUk,aIndUk));  // add distorsion
 
 		   cPtxd<tUk,2> aPPix =  aPP + aPDist * aFoc; // Use Focal and PP to make pixel
 
@@ -741,8 +742,9 @@ template <typename TypeDist,typename TypeProj>  class cEqColinearityCamPPC
                    }
            }
 	   
-	   TypeDist  mDist;
-           bool      mLine;
+	   TypeDist    mDist;
+           eTypeEqCol  mTypeEq;
+           bool        mLine;
 };
 
 
