@@ -33,8 +33,12 @@ private :
     std::string mRasterDistance;
     std::string mRasterIntensity;
     std::string mRasterMask;
-    tREAL8 mThetaMin, mThetaMax;
-    tREAL8 mPhiMin, mPhiMax;
+    std::string mRasterX;
+    std::string mRasterY;
+    std::string mRasterZ;
+
+    tREAL8 mThetaStart, mThetaStep;
+    tREAL8 mPhiStart, mPhiStep;
     int mMaxCol, mMaxLine;
     cRotation3D<tREAL8> mVertRot;
 };

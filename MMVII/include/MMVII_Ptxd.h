@@ -860,6 +860,7 @@ template <class Type,const int Dim> class cSegment
        const tPt&  P2() const; ///< Accessor
        tPt&  P1() ; ///< Accessor
        tPt&  P2() ; ///< Accessor
+       void  Swap(); ///< swap P1 P2 in place
 
        tPt  V12() const;   ///<  Vector  P1->P2
        tPt  Middle() const;  ///<  P middle

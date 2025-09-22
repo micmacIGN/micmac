@@ -114,6 +114,11 @@ template <class Type,const int Dim>  cPtxd<Type,Dim>& cSegment<Type,Dim>::P1() {
 template <class Type,const int Dim>  cPtxd<Type,Dim>& cSegment<Type,Dim>::P2() {return mP2;}
 
 
+template <class Type,const int Dim> void cSegment<Type,Dim>::Swap()
+{
+    std::swap(mP1, mP2);
+}
+
 template <class Type,const int Dim> cPtxd<Type,Dim> cSegment<Type,Dim>::V12() const  {return mP2-mP1;}
 template <class Type,const int Dim> cPtxd<Type,Dim> cSegment<Type,Dim>::Middle() const {return (mP1+mP2)/Type(2);}
 

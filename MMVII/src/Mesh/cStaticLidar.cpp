@@ -5,10 +5,10 @@ namespace MMVII
 
 cStaticLidar::cStaticLidar(const std::string & aNameImage,const tPose & aPose,cPerspCamIntrCalib * aCalib) :
     cSensorCamPC(aNameImage, aPose, aCalib),
-    mThetaMin       (NAN),
-    mThetaMax       (NAN),
-    mPhiMin         (NAN),
-    mPhiMax         (NAN)
+    mThetaStart       (NAN),
+    mThetaStep         (NAN),
+    mPhiStart         (NAN),
+    mPhiStep           (NAN)
 {
 }
 
@@ -88,10 +88,10 @@ void cStaticLidar::AddData(const  cAuxAr2007 & anAux)
     cSensorCamPC::AddData(anAux);
     MMVII::AddData(cAuxAr2007("StationName",anAux),mStationName);
     MMVII::AddData(cAuxAr2007("ScanName",anAux),mScanName);
-    MMVII::AddData(cAuxAr2007("ThetaMin",anAux),mThetaMin);
-    MMVII::AddData(cAuxAr2007("ThetaMax",anAux),mThetaMax);
-    MMVII::AddData(cAuxAr2007("PhiMin",anAux),mPhiMin);
-    MMVII::AddData(cAuxAr2007("PhiMax",anAux),mPhiMax);
+    MMVII::AddData(cAuxAr2007("ThetaStart",anAux),mThetaStart);
+    MMVII::AddData(cAuxAr2007("ThetaStep",anAux),mThetaStep);
+    MMVII::AddData(cAuxAr2007("PhiStart",anAux),mPhiStart);
+    MMVII::AddData(cAuxAr2007("Phistep",anAux),mPhiStep);
     MMVII::AddData(cAuxAr2007("MaxCol",anAux),mMaxCol);
     MMVII::AddData(cAuxAr2007("MaxLine",anAux),mMaxLine);
     MMVII::AddData(cAuxAr2007("VertRot",anAux),mVertRot);
@@ -99,6 +99,9 @@ void cStaticLidar::AddData(const  cAuxAr2007 & anAux)
     MMVII::AddData(cAuxAr2007("RasterDistance",anAux),mRasterDistance);
     MMVII::AddData(cAuxAr2007("RasterIntensity",anAux),mRasterIntensity);
     MMVII::AddData(cAuxAr2007("RasterMask",anAux),mRasterMask);
+    MMVII::AddData(cAuxAr2007("RasterX",anAux),mRasterX);
+    MMVII::AddData(cAuxAr2007("RasterY",anAux),mRasterY);
+    MMVII::AddData(cAuxAr2007("RasterZ",anAux),mRasterZ);
 }
 
 void AddData(const  cAuxAr2007 & anAux,cStaticLidar & aSL)

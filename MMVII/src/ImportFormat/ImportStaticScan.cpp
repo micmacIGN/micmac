@@ -44,6 +44,9 @@ public :
     void estimatePhiStep();
     void computeLineCol();
     tREAL8 doVerticalize(); // returns correction angle applied
+    void testLineColError();
+    void computeAngStartStep();
+    void exportThetas(const std::string & aFileName, int aNbThetas, bool aCompareToCol);
     template <typename TYPE> void fillRaster(const std::string& aFileName, std::function<TYPE (int)> func );
 private :
     cPhotogrammetricProject  mPhProj;
@@ -65,8 +68,8 @@ private :
     std::vector<cPt3dr> mVectPtsXYZ;
     std::vector<tREAL8> mVectPtsIntens;
     std::vector<cPt3dr> mVectPtsTPD;
-    tREAL8 mPhiStep;
-    tREAL8 mThetaStep;
+    tREAL8 mPhiStepApprox;
+    tREAL8 mThetaStepApprox;
 
     // line and col for each point
     std::vector<int> mVectPtsLine;
@@ -81,7 +84,7 @@ cAppli_ImportStaticScan::cAppli_ImportStaticScan(const std::vector<std::string> 
     mTransfoIJK     ("ijk"),
     mNoMiss         (false),
     mDistMinToExist (1e-6),
-    mPhiStep        (NAN),
+    mPhiStepApprox        (NAN),
     mSL_data        (mNameFile, cIsometry3D<tREAL8>({}, cRotation3D<tREAL8>::Identity()), nullptr)
 {
 }
@@ -119,6 +122,15 @@ cPt3dr spher2cart(const cPt3dr & aPtspher)
     tREAL8 y = dhz* sin(aPtspher.x());
     tREAL8 z = aPtspher.z()*sin(aPtspher.y());
     return {x, y, z};
+}
+
+tREAL8 toMinusPiPlusPi(tREAL8 aAng, tREAL8 aOffset = 0.)
+{
+    if (!std::isfinite(aAng))
+        return aAng;
+    while (aAng-aOffset<-M_PI)  aAng += 2*M_PI;
+    while (aAng-aOffset>M_PI)  aAng -= 2*M_PI;
+    return aAng;
 }
 
 
@@ -251,6 +263,7 @@ void cAppli_ImportStaticScan::readE57Points(std::string aE57FileName)
 
 void cAppli_ImportStaticScan::convertToThetaPhiDist()
 {
+    StdOut() << "convertToThetaPhiDist\n";
     mNoMiss = false;
     mVectPtsTPD.resize(mVectPtsXYZ.size()); // all points in theta-phi-dist
     size_t aNbPtsNul = 0;
@@ -262,26 +275,12 @@ void cAppli_ImportStaticScan::convertToThetaPhiDist()
     }
     StdOut() << aNbPtsNul << " null points\n";
     mNoMiss = aNbPtsNul>0;
-
-    // get min max theta phi
-    cWhichMinMax<int, tREAL8> aMinMaxTheta;
-    cWhichMinMax<int, tREAL8> aMinMaxPhi;
-    for (const auto & aPtAng: mVectPtsTPD)
-    {
-        aMinMaxTheta.Add(0,aPtAng.x());
-        aMinMaxPhi.Add(0,aPtAng.y());
-    }
-    mSL_data.mThetaMin = aMinMaxTheta.Min().ValExtre();
-    mSL_data.mThetaMax = aMinMaxTheta.Max().ValExtre();
-    mSL_data.mPhiMin = aMinMaxPhi.Min().ValExtre();
-    mSL_data.mPhiMax = aMinMaxPhi.Max().ValExtre();
-    StdOut() << "Box:  theta " << mSL_data.mThetaMin << ", " << mSL_data.mThetaMax << "   phi "
-             << mSL_data.mPhiMin << ", " << mSL_data.mPhiMax << "\n";
 }
 
 
 void cAppli_ImportStaticScan::convertToXYZ()
 {
+    StdOut() << "convertToXYZ\n";
     mNoMiss = false;
     mVectPtsXYZ.resize(mVectPtsTPD.size());
     size_t aNbPtsNul = 0;
@@ -293,54 +292,40 @@ void cAppli_ImportStaticScan::convertToXYZ()
     }
     StdOut() << aNbPtsNul << " null points\n";
     mNoMiss = aNbPtsNul>0;
-
-    // get min max theta phi
-    cWhichMinMax<int, tREAL8> aMinMaxTheta;
-    cWhichMinMax<int, tREAL8> aMinMaxPhi;
-    for (const auto & aPtAng: mVectPtsTPD)
-    {
-        aMinMaxTheta.Add(0,aPtAng.x());
-        aMinMaxPhi.Add(0,aPtAng.y());
-    }
-    mSL_data.mThetaMin = aMinMaxTheta.Min().ValExtre();
-    mSL_data.mThetaMax = aMinMaxTheta.Max().ValExtre();
-    mSL_data.mPhiMin = aMinMaxPhi.Min().ValExtre();
-    mSL_data.mPhiMax = aMinMaxPhi.Max().ValExtre();
-    StdOut() << "Box:  theta " << mSL_data.mThetaMin << ", " << mSL_data.mThetaMax << "   phi "
-             << mSL_data.mPhiMin << ", " << mSL_data.mPhiMax << "\n";
 }
 
 void cAppli_ImportStaticScan::estimatePhiStep()
 {
+    StdOut() << "estimatePhiStep\n";
     // find phi min diff
     // successive phi diff is useful, but only if we are in the same scanline, and we are not too close to the pole with vertical error
     tREAL8 previousTheta = NAN;
     tREAL8 previousPhi = NAN;
-    mPhiStep = INFINITY; // signed value that is min in abs. For successive points on one column
+    mPhiStepApprox = INFINITY; // signed value that is min in abs. For successive points on one column
     tREAL8 angularPrecisionInSteps = 0.01; // we suppose that theta changes slower than phi... prevents scanline change and pole error
     for (const auto & aPtAng: mVectPtsTPD)
     {
         if (aPtAng.z()<mDistMinToExist) continue;
         auto aDiffPhi = aPtAng.y()-previousPhi;
         auto aDiffTheta = aPtAng.x()-previousTheta;
-        if (fabs(aDiffTheta)<fabs(mPhiStep)*angularPrecisionInSteps) // we are on the same scanline
+        if (fabs(aDiffTheta)<fabs(mPhiStepApprox)*angularPrecisionInSteps) // we are on the same scanline
         {
-            if (fabs(aDiffPhi)<fabs(mPhiStep))
+            if (fabs(aDiffPhi)<fabs(mPhiStepApprox))
             {
                 //std::cout<<"with prev "<<previousTheta<< " "<< previousPhi<< "  curr "<<aPtAng<<":\n";
                 //std::cout<<"up: "<<minDiffPhi <<" " <<aDiffPhi<<"\n";
-                mPhiStep = aDiffPhi;
+                mPhiStepApprox = aDiffPhi;
             }
         }
         previousTheta = aPtAng.x();
         previousPhi = aPtAng.y();
     }
-    StdOut() << "phiStep " << mPhiStep << ",  " << (mSL_data.mPhiMax-mSL_data.mPhiMin)/fabs(mPhiStep) << " steps\n";
-
+    StdOut() << "phiStep " << mPhiStepApprox << "\n";
 }
 
 void cAppli_ImportStaticScan::computeLineCol()
 {
+    computeAngStartStep();
     if (mHasRowCol)
         return; // nothing to do
     tREAL8 aColChangeDetectorInPhistep = 100;
@@ -366,11 +351,11 @@ void cAppli_ImportStaticScan::computeLineCol()
         if (mNoMiss)
             aCurrLine++;
         else
-            aCurrLine = (aPtAng.y()-mSL_data.mPhiMin)/fabs(mPhiStep);
+            aCurrLine = (aPtAng.y()-mSL_data.mPhiStart)/fabs(mPhiStepApprox);
 
         if (aCurrLine>mSL_data.mMaxLine) mSL_data.mMaxLine = aCurrLine;
 
-        if (-(aPtAng.y()-previousPhi)/mPhiStep > aColChangeDetectorInPhistep)
+        if (-(aPtAng.y()-previousPhi)/mPhiStepApprox > aColChangeDetectorInPhistep)
         {
             mSL_data.mMaxCol++;
             aCurrLine=0;
@@ -430,10 +415,102 @@ void cAppli_ImportStaticScan::computeLineCol()
     std::vector<tREAL8> allThetaDiff(mSL_data.mMaxCol);
     for (unsigned int i=0;i<allThetaDiff.size();++i)
         allThetaDiff[i] = allThetaAvg[i+1]-allThetaAvg[i];
-    mThetaStep = NonConstMediane(allThetaDiff);
-    StdOut() << "ThetaStep: " << mThetaStep << "\n";
+    tREAL8 aThetaStep = NonConstMediane(allThetaDiff);
+    StdOut() << "ThetaStep: " << aThetaStep << "\n";
+}
 
-    // search for theta 1st col...
+void cAppli_ImportStaticScan::computeAngStartStep()
+{
+    tREAL8 aMinAngToZenith = 0.1;
+    if (mHasRowCol)
+    {
+        // search for 2 points with diff line/col to estimate steps
+        long a1stPti = -1;
+        for (size_t i=0; i<mVectPtsTPD.size(); ++i)
+        {
+            auto & aPtAng = mVectPtsTPD[i];
+            if ((aPtAng.z()>mDistMinToExist) && (fabs(fabs(aPtAng.y())-M_PI/2)>aMinAngToZenith))
+            {
+                if (a1stPti<0)
+                    a1stPti = i;
+                else {
+                    if ((mVectPtsCol[i] != mVectPtsCol[a1stPti]) && (mVectPtsLine[i] != mVectPtsLine[a1stPti]))
+                    {
+                        auto & a1stPtAng = mVectPtsTPD[a1stPti];
+                        mSL_data.mPhiStep = (aPtAng.y()-a1stPtAng.y())/(mVectPtsLine[i]-mVectPtsLine[a1stPti]);
+                        mSL_data.mThetaStep = (aPtAng.x()-a1stPtAng.x())/(mVectPtsCol[i]-mVectPtsCol[a1stPti]);
+                        mSL_data.mPhiStart = a1stPtAng.y() - mSL_data.mPhiStep * mVectPtsLine[a1stPti];
+                        mSL_data.mThetaStart = a1stPtAng.x() - mSL_data.mThetaStep * mVectPtsCol[a1stPti];
+                        break;
+                    }
+                }
+            }
+        }
+        // make a better approx using a second point near the end
+        for (long i=(long)mVectPtsTPD.size()-1; i>a1stPti; --i)
+        {
+            if ((mVectPtsTPD[i].z()>mDistMinToExist) && (fabs(fabs(mVectPtsTPD[i].y())-M_PI/2)>aMinAngToZenith))
+            {
+                if ((mVectPtsCol[i] != mVectPtsCol[a1stPti]) && (mVectPtsLine[i] != mVectPtsLine[a1stPti]))
+                {
+                    auto & a1stPtAng = mVectPtsTPD[a1stPti];
+                    auto a2ndPtAng = mVectPtsTPD[i]; // copy to unroll
+                    tREAL8 aTheta = mVectPtsCol[i]*mSL_data.mThetaStep + mSL_data.mThetaStart;
+                    a2ndPtAng.x() = toMinusPiPlusPi(a2ndPtAng.x(), aTheta);
+                    mSL_data.mPhiStep = (a2ndPtAng.y()-a1stPtAng.y())/(mVectPtsLine[i]-mVectPtsLine[a1stPti]);
+                    mSL_data.mThetaStep = (a2ndPtAng.x()-a1stPtAng.x())/(mVectPtsCol[i]-mVectPtsCol[a1stPti]);
+                    mSL_data.mPhiStart = a1stPtAng.y() - mSL_data.mPhiStep * mVectPtsLine[a1stPti];
+                    mSL_data.mThetaStart = a1stPtAng.x() - mSL_data.mThetaStep * mVectPtsCol[a1stPti];
+                    StdOut() << "i1 i2: " << a1stPti << " " << i << ", "
+                             << mVectPtsCol[a1stPti] << " " << mVectPtsLine[a1stPti] << " "
+                             << mVectPtsCol[i] << " " << mVectPtsLine[i] << "\n";
+                    StdOut() << a1stPtAng.x() << " " << a1stPtAng.y() << " "
+                             << a2ndPtAng.x() << " " << a2ndPtAng.y() << "\n";
+                    StdOut() << "PhiStart: " << mSL_data.mPhiStart << ", "
+                             << "PhiStep: " << mSL_data.mPhiStep << ", "
+                             << "ThetaStart: " << mSL_data.mThetaStart << ", "
+                             << "ThetaStep: " << mSL_data.mThetaStep << "\n";
+                    return;
+                }
+            }
+        }
+    } else {
+        if (mNoMiss)
+        {
+            MMVII_INTERNAL_ASSERT_tiny(false, "No computeAngStartEnd() without linecol for now")
+        } else {
+            MMVII_INTERNAL_ASSERT_tiny(false, "No computeAngStartEnd() for sparse cloud for now")
+        }
+    }
+}
+
+void cAppli_ImportStaticScan::testLineColError()
+{
+    tREAL8 aMaxThetaError = -1.;
+    tREAL8 aMaxPhiError = -1.;
+    tREAL8 aMinAngToZenith = 0.1;
+    for (size_t i=0; i<mVectPtsTPD.size(); ++i)
+    {
+        auto & aPtAng = mVectPtsTPD[i];
+        if (aPtAng.z()<mDistMinToExist)
+            continue;
+        if (fabs(fabs(aPtAng.y())-M_PI/2)<aMinAngToZenith)
+            continue; // no stats on points too close to undefined theta
+        tREAL8 aTheta = mVectPtsCol[i]*mSL_data.mThetaStep + mSL_data.mThetaStart;
+        tREAL8 aPhi = mVectPtsLine[i]*mSL_data.mPhiStep + mSL_data.mPhiStart;
+        aTheta = toMinusPiPlusPi(aTheta, aPtAng.x());
+        if (fabs(aTheta-aPtAng.x())>aMaxThetaError)
+        {
+            aMaxThetaError = fabs(aTheta-aPtAng.x());
+            //StdOut() << i << " " << aPtAng <<" => " << mVectPtsCol[i] << " " << mVectPtsLine[i] << " " << aTheta << " " << aPhi << " => " << aMaxThetaError << " " << aMaxPhiError << "\n";
+        }
+        if (fabs(aPhi-aPtAng.y())>aMaxPhiError)
+        {
+            aMaxPhiError = fabs(aPhi-aPtAng.y());
+            //StdOut() << i << " " << aPtAng <<" => " << mVectPtsCol[i] << " " << mVectPtsLine[i] << " " << aTheta << " " << aPhi << " => " << aMaxThetaError << " " << aMaxPhiError << "\n";
+        }
+    }
+    StdOut() << "Max ang errors: " << aMaxThetaError << " " << aMaxPhiError <<"\n";
 }
 
 template <typename TYPE> void cAppli_ImportStaticScan::fillRaster(const std::string& aFileName, std::function<TYPE (int)> func )
@@ -453,12 +530,12 @@ tREAL8 cAppli_ImportStaticScan::doVerticalize()
 {
     // estimate verticalization correction if scanner with compensator
     int aColChangeDetectorInPhistep = 100;
-    int aNbPlanes = 10; // try to get several planes for instrument primariy axis estimation
-    float aCorrectPlanePhiRange = 80*M_PI/180; // try to get points with this phi diff in a scanline
+    int aNbPlanes = 20; // try to get several planes for instrument primariy axis estimation
+    float aCorrectPlanePhiRange = 40*M_PI/180; // try to get points with this phi diff in a scanline
     int aColPlaneStep = mSL_data.mMaxCol / aNbPlanes;
-    int aLineGoodRange = aCorrectPlanePhiRange/fabs(mPhiStep);
-    if (aLineGoodRange > mSL_data.mMaxLine - 2)
-        aLineGoodRange = mSL_data.mMaxLine - 2; // for small scans, use full height
+    int aLineGoodRange = aCorrectPlanePhiRange/fabs(mPhiStepApprox);
+    if (aLineGoodRange > mSL_data.mMaxLine*0.5)
+        aLineGoodRange = mSL_data.mMaxLine*0.5; // for small scans, use full height
 
     int aTargetCol = 0; // the next we search for
     int aTargetLine = 0;
@@ -481,9 +558,9 @@ tREAL8 cAppli_ImportStaticScan::doVerticalize()
         if (mNoMiss)
             aCurrLine++;
         else
-            aCurrLine = (aPtAng.y()-mSL_data.mPhiMin)/fabs(mPhiStep);
+            aCurrLine = (aPtAng.y()-mSL_data.mPhiStart)/fabs(mPhiStepApprox);
 
-        if (-(aPtAng.y()-previousPhi)/mPhiStep > aColChangeDetectorInPhistep)
+        if (-(aPtAng.y()-previousPhi)/mPhiStepApprox > aColChangeDetectorInPhistep)
         {
             aCurrCol++;
             aCurrLine=0;
@@ -513,7 +590,9 @@ tREAL8 cAppli_ImportStaticScan::doVerticalize()
     {
         aVPlanes.push_back(cPlane3D::From3Point(aP0,aP1,aP2));
     }
-    tSeg3dr aSegVert = cPlane3D::InterPlane(aVPlanes, aNbPlanes/2);
+    tSeg3dr aSegVert = cPlane3D::InterPlane(aVPlanes, 3);
+    if (aSegVert.V12().z()<0)
+        aSegVert.Swap(); // make sure to have a vector going up
     StdOut() << "Vert: " << aSegVert.V12() << "\n";
 
     mSL_data.mVertRot = cRotation3D<tREAL8>::CompleteRON(aSegVert.V12(),2);
@@ -528,6 +607,52 @@ tREAL8 cAppli_ImportStaticScan::doVerticalize()
     computeLineCol();
 
     return mSL_data.mVertRot.Angle();
+}
+
+void cAppli_ImportStaticScan::exportThetas(const std::string & aFileName, int aNbThetas, bool aCompareToCol)
+{
+    StdOut() << "Export thetas\n";
+    // export thetas on several cols
+    std::fstream file_thetas;
+    file_thetas.open(aFileName, std::ios_base::out);
+    long aTargetCol = 0; // the next we search for
+    bool isFirstofCol = true;
+    tREAL8 aThetaCol = 0.; // theta of first point
+    for (size_t i=0; i<mVectPtsXYZ.size(); ++i)
+    {
+        if ( mVectPtsTPD[i].z()<mDistMinToExist)
+            continue;
+        if (mVectPtsCol[i]==aTargetCol)
+        {
+            auto &aPtTPD = mVectPtsTPD[i];
+            if (isFirstofCol)
+            {
+                if (aCompareToCol)
+                {
+                    aThetaCol = mSL_data.mThetaStart + mSL_data.mThetaStep * aTargetCol;
+                    aThetaCol = toMinusPiPlusPi(aThetaCol);
+                    StdOut() <<  aPtTPD.x() << " " << aThetaCol << " " << aPtTPD.x() - aThetaCol << "\n";
+                }
+                else
+                    aThetaCol = aPtTPD.x();
+                isFirstofCol = false;
+            }
+            tREAL8 aError = aPtTPD.x() - aThetaCol;
+            aError= toMinusPiPlusPi(aError);
+            //file_thetas << mVectPtsLine[i] << " " <<  <<"\n";
+            file_thetas << aError <<" ";
+        }
+        if (mVectPtsCol[i] > aTargetCol)
+        {
+            file_thetas << "\n";
+            aTargetCol = mVectPtsCol[i] + mSL_data.mMaxCol / aNbThetas;
+            isFirstofCol = true;
+            if (aTargetCol>=mSL_data.mMaxCol)
+                aTargetCol=mSL_data.mMaxCol;
+        }
+    }
+    file_thetas << "\n";
+    file_thetas.close();
 }
 
 int cAppli_ImportStaticScan::Exe()
@@ -609,6 +734,8 @@ int cAppli_ImportStaticScan::Exe()
     fillRaster<float>("totoTheta.tif", [this](int i){auto aPtAng = mVectPtsTPD[i];return aPtAng.x();} );
     fillRaster<float>("totoPhi.tif", [this](int i){auto aPtAng = mVectPtsTPD[i];return aPtAng.y();} );*/
 
+    exportThetas("thetas_before.txt", 20, false);
+
     tREAL8 aVertCorrection = doVerticalize();
     StdOut() << "VerticalCorrection: " << aVertCorrection << "\n";
 
@@ -657,49 +784,50 @@ int cAppli_ImportStaticScan::Exe()
     file2.close();
     file1.close();
 
+    exportThetas("thetas_after.txt", 20, true);
+
+
+    // export line/col stats
+    file1.open("stats.txt", std::ios_base::out);
+    long prev_col = -1;
+    long nb_pts_in_col = 0;
+    for (size_t i=0; i<mVectPtsXYZ.size(); ++i)
+    {
+        if (mVectPtsCol[i]!=prev_col)
+        {
+            if (prev_col>=0)
+                file1 << prev_col << " " << nb_pts_in_col <<"\n";
+            prev_col = mVectPtsCol[i];
+            nb_pts_in_col = 0;
+        }
+        ++nb_pts_in_col;
+    }
+    file1.close();
+
+
+    testLineColError();
+
     mSL_data.mRasterDistance = mSL_data.mStationName + "_" + mSL_data.mScanName + "_distance.tif";
     mSL_data.mRasterIntensity = mSL_data.mStationName + "_" + mSL_data.mScanName + "_intensity.tif";
     mSL_data.mRasterMask = mSL_data.mStationName + "_" + mSL_data.mScanName + "_mask.tif";
+    mSL_data.mRasterX = mSL_data.mStationName + "_" + mSL_data.mScanName + "_X.tif";
+    mSL_data.mRasterY = mSL_data.mStationName + "_" + mSL_data.mScanName + "_Y.tif";
+    mSL_data.mRasterZ = mSL_data.mStationName + "_" + mSL_data.mScanName + "_Z.tif";
 
     fillRaster<tU_INT1>(mSL_data.mRasterMask, [this](int i){auto aPtAng = mVectPtsTPD[i];return (aPtAng.z()<mDistMinToExist)?0:255;} );
     if (mHasIntensity)
         fillRaster<tU_INT1>( mSL_data.mRasterIntensity, [this](int i){return mVectPtsIntens[i]*255;} );
     fillRaster<float>(mSL_data.mRasterDistance, [this](int i){auto aPtAng = mVectPtsTPD[i];return aPtAng.z();} );
 
+    fillRaster<float>(mSL_data.mRasterX, [this](int i){auto aPtXYZ = mVectPtsXYZ[i];return aPtXYZ.x();} );
+    fillRaster<float>(mSL_data.mRasterY, [this](int i){auto aPtXYZ = mVectPtsXYZ[i];return aPtXYZ.y();} );
+    fillRaster<float>(mSL_data.mRasterZ, [this](int i){auto aPtXYZ = mVectPtsXYZ[i];return aPtXYZ.z();} );
+
     fillRaster<tU_INT4>("titiIndex.png", [](int i){return i;} );
     fillRaster<float>("titiTheta.tif", [this](int i){auto aPtAng = mVectPtsTPD[i];return aPtAng.x();} );
     fillRaster<float>("titiPhi.tif", [this](int i){auto aPtAng = mVectPtsTPD[i];return aPtAng.y();} );
 
     SaveInFile(mSL_data, mPhProj.DPStaticLidar().FullDirOut() +  mSL_data.mStationName + "_" + mSL_data.mScanName + ".xml");
-
-
-    return EXIT_SUCCESS;
-
-    // test if raster representation is coherent with tpd
-    tREAL8 aAvgErr = 0.;
-    long aNbPtAvg = 0;
-    tREAL8 aMaxErr = 0.;
-    tREAL8 aThetaStep = (mSL_data.mThetaMax-mSL_data.mThetaMin)/(mSL_data.mMaxCol+1.);
-    tREAL8 aPhiStep = (mSL_data.mPhiMax-mSL_data.mPhiMin)/(mSL_data.mMaxLine+1.);
-    for (size_t i=0; i<mVectPtsXYZ.size(); ++i)
-    {
-        auto &aPtTPD = mVectPtsTPD[i];
-        if (aPtTPD.z()<mDistMinToExist)
-            continue;
-        cPt3dr aPtRaster = {
-            mSL_data.mThetaMin + mVectPtsCol[i]*aThetaStep,
-            mSL_data.mPhiMin + mVectPtsLine[i]*aPhiStep,
-            aPtTPD.z()
-        };
-        tREAL8 aErr = Norm2( aPtTPD - aPtRaster );
-        aAvgErr += aErr;
-        aNbPtAvg++;
-        if (aErr > aMaxErr)
-            aMaxErr = aErr;
-        StdOut() << "Pt " << i << ": (" << mVectPtsCol[i] << ", " << mVectPtsLine[i] << ") : " << aPtTPD << " / " << aPtRaster << "\n";
-    }
-    StdOut() << "Avg raster angle error: " << aAvgErr/aNbPtAvg << " max error: " << aMaxErr << "\n";
-
 
     return EXIT_SUCCESS;
 
