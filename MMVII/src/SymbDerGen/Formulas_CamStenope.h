@@ -671,8 +671,8 @@ template <typename TypeDist,typename TypeProj>  class cEqColinearityCamPPC
                    size_t aIndUk = 0;
                    size_t aIndObs = 0;
 
-		   cPtxd<tUk,2>  aPtIm    = VtoP2AutoIncr(aVObs,&aIndObs);
-		   cPtxd<tUk,2>  aPtNormIm;
+                   cPtxd<tUk,2>  aPtIm    = VtoP2AutoIncr(aVObs,&aIndObs);
+                   cPtxd<tUk,2>  aPtNormIm;
                    if (mLine)
                    {
                         aPtNormIm = VtoP2AutoIncr(aVObs,&aIndObs);
@@ -722,23 +722,23 @@ template <typename TypeDist,typename TypeProj>  class cEqColinearityCamPPC
                    cPtxd<tUk,3> aPCam =  aDeltaRot * (aRotInit * aVCP);
 #endif
 
-		   cPtxd<tUk,2>  aPProj = cHelperProj<TypeProj>::Proj(aPCam);  // project 3D-> photogram point
-		   cPtxd<tUk,2> aPDist = VtoP2(mDist.PProjToImNorm (aPProj.x(),aPProj.y(),aVUk,aIndUk));  // add distorsion
+                  cPtxd<tUk,2>  aPProj = cHelperProj<TypeProj>::Proj(aPCam);  // project 3D-> photogram point
+                  cPtxd<tUk,2> aPDist = VtoP2(mDist.PProjToImNorm (aPProj.x(),aPProj.y(),aVUk,aIndUk));  // add distorsion
 
-		   cPtxd<tUk,2> aPPix =  aPP + aPDist * aFoc; // Use Focal and PP to make pixel
+                   cPtxd<tUk,2> aPPix =  aPP + aPDist * aFoc; // Use Focal and PP to make pixel
 
 
                    MMVII_INTERNAL_ASSERT_always(aIndUk+mDist.VNamesParams().size()==aVUk.size(),"cEqColinearityCamPPC : Uk-size");
                    MMVII_INTERNAL_ASSERT_always(aIndObs== aVObs.size(),"cEqColinearityCamPPC : Obs-size");
 
-		   cPtxd<tUk,2> aResidual = aPPix - aPtIm;  // compare to mesured point
+                   cPtxd<tUk,2> aResidual = aPPix - aPtIm;  // compare to mesured point
                    if (mLine)
                    {
                        return {Scal(aPtNormIm,aResidual)};
                    }
                    else
                    {
-		      return {aResidual.x(),aResidual.y()};
+                       return {aResidual.x(),aResidual.y()};
                    }
            }
 	   
