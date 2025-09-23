@@ -76,12 +76,11 @@ if((NOT OpenMP_CXX_FOUND) AND (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
 endif()
 
 # libE57Format
-option(USE_LIBE57FORMAT "If ON, e57 point cloud file format will be available" OFF)
-if(USE_LIBE57FORMAT)
-    set(LIBE57_INCLUDE_DIR "" CACHE PATH "Path to libe57format includes")
-    set(LIBE57_LIBRARY "" CACHE FILEPATH "Path to libe57format .a library")
-    find_package( XercesC 3.2 REQUIRED )
-endif()
+find_package( XercesC 3.2 REQUIRED )
+set(E57_RELEASE_LTO OFF CACHE BOOL "Compile release library with link-time optimization") # OFF for static
+add_subdirectory(ExternalInclude/libE57Format)
+include_directories(${CMAKE_BINARY_DIR}/E57-install/include)
+link_directories(${CMAKE_BINARY_DIR}/E57-install/lib)
 
 #######################################################
 ##        Compilation toolchain
@@ -151,18 +150,8 @@ add_library(P2007 "${mmv2_libsrcs}" "${mmv2_headers}")
 target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH};${PROJ_INCLUDE_DIRS};${GDAL_INCLUDE_DIRS}")
 target_link_libraries(P2007 PRIVATE MMVII_compiler_flags Threads::Threads ${PROJ_LIBRARIES} ${GDAL_LIBRARIES})
 
-
-if(USE_LIBE57FORMAT)
-    target_compile_definitions(P2007 PUBLIC USE_LIBE57FORMAT=true)
-    if(NOT EXISTS "${LIBE57_INCLUDE_DIR}")
-        message(FATAL_ERROR "Path to libe57format includes is not correct: ${LIBE57_INCLUDE_DIR}")
-    endif()
-    if(NOT EXISTS "${LIBE57_LIBRARY}")
-        message(FATAL_ERROR "Path to libe57format .a library is not correct: ${LIBE57_LIBRARY}")
-    endif()
-    target_include_directories(P2007 PRIVATE "${LIBE57_INCLUDE_DIR}")
-    target_link_libraries(P2007 PRIVATE "${LIBE57_LIBRARY}" XercesC::XercesC)
-endif()
+target_link_libraries(P2007 PRIVATE E57Format)
+add_dependencies(P2007 E57Format)
 
 # Force parallel compilation with MSVC
 if(MSVC)

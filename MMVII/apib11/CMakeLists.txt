@@ -61,7 +61,7 @@ else()
 endif()
 set(mmv2_external_include_dir "${PROJECT_SOURCE_DIR}/../ExternalInclude")
 set(EIGEN3_INCLUDE_PATH  "${mmv2_external_include_dir}/eigen-3.4.0")
-
+set(libE57Format_lib "${PROJECT_SOURCE_DIR}/../bin/libE57Format.a")
 
 file(GLOB mmv2_apipy_srcs CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/*.cpp")
 file(GLOB mmv2_headers "${mmv2_include_dir}/*.h" "${mmv2_include_dir}/*/*.h" "${mmv2_src_dir}/*/*.h")
@@ -82,7 +82,7 @@ pybind11_add_module(_MMVII "${mmv2_apipy_srcs}")
 
 # Specify include directories and link libraries for the target
 target_include_directories(_MMVII PRIVATE "${mmv2_include_dir}" "${EIGEN3_INCLUDE_PATH}" "${PROJ_INCLUDE_DIRS}" "${GDAL_INCLUDE_DIRS}" "${PROJECT_SOURCE_DIR}")
-target_link_libraries(_MMVII PRIVATE Threads::Threads ${PROJ_LIBRARIES} ${GDAL_LIBRARIES} ${mmv2_lib})
+target_link_libraries(_MMVII PRIVATE Threads::Threads ${PROJ_LIBRARIES} ${GDAL_LIBRARIES} ${mmv2_lib} ${libE57Format_lib})
 
 # Force parallel compilation with MSVC
 if(MSVC)

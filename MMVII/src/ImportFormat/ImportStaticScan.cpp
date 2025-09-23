@@ -4,9 +4,7 @@
 #include <functional>
 
 #include "../Mesh/happly.h"
-#if (USE_LIBE57FORMAT)
-  #include <E57Format/E57SimpleReader.h>
-#endif
+#include "E57SimpleReader.h"
 
 /**
    \file importStaticScan.cpp
@@ -35,9 +33,7 @@ public :
 
 
     void readPlyPoints(std::string aPlyFileName);
-    #if (USE_LIBE57FORMAT)
-      void readE57Points(std::string aE57FileName);
-    #endif
+    void readE57Points(std::string aE57FileName);
     void convertToThetaPhiDist();
     void convertToXYZ();
     void getAnglesMinMax();
@@ -181,7 +177,6 @@ void cAppli_ImportStaticScan::readPlyPoints(std::string aPlyFileName)
     }
 }
 
-#if (USE_LIBE57FORMAT)
 void cAppli_ImportStaticScan::readE57Points(std::string aE57FileName)
 {
     StdOut() << "Read e57 file " << aE57FileName << "..." << std::endl;
@@ -259,7 +254,6 @@ void cAppli_ImportStaticScan::readE57Points(std::string aE57FileName)
         MMVII_UserError(eTyUEr::eReadFile, std::string("Error reading E57 file \"") + aE57FileName + "\": " + e.what());
     }
 }
-#endif
 
 void cAppli_ImportStaticScan::convertToThetaPhiDist()
 {
@@ -664,11 +658,7 @@ int cAppli_ImportStaticScan::Exe()
     {
         readPlyPoints(mNameFile);
     } else if (aPostFix=="e57") {
-        #if (USE_LIBE57FORMAT)
-            readE57Points(mNameFile);
-        #else
-        MMVII_INTERNAL_ASSERT_tiny(false, "Error: missing libe57format");
-        #endif
+        readE57Points(mNameFile);
     } else
         MMVII_INTERNAL_ASSERT_tiny(false, "Error: unknown file format for "+mNameFile);
 

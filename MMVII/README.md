@@ -31,7 +31,6 @@ Some external tools need to be present on your system for **MMVII** to run prope
 - **[PROJ](http://trac.osgeo.org/proj/)** for coordinate system conversion and coordinate reference system transformation
 - **[PROJ additional data](https://download.osgeo.org/proj/)** grids for coordinates tranformations (optional, see doc)
 - **[GDAL](https://gdal.org/)** for image files handling
-- **[libE57Format](https://github.com/asmaloney/libE57Format)** for e57 point cloud file format (optional)
 - **[ccache](https://ccache.dev/)** for recompilation optimization (optional)
 - **[OpenMP](https://www.openmp.org/)** multi-platform parallel programming (optionnal)
 - **[Doxygen](https://www.doxygen.nl/)** documentation generator (optional)
@@ -260,6 +259,8 @@ MMVII sources includes codes from:
  - hapPLY: Copyright (c) 2018 Nick Sharp, MIT licence, https://github.com/nmwsharp/happly
  - Delaunay/delaunator: Copyright (c) 2018 Volodymyr Bilonenko, MIT Licence
  - Eigen: Copyright (C) 2008 Gael Guennebaud, Mozilla Public License, https://eigen.tuxfamily.org
+ - libE57Format, Copyright (C) 2020 Andy Maloney/Kevin Ackley, Boost Software License, https://github.com/asmaloney/libE57Format
+
 
 # Useful links
 * [MMVII Documentation](https://github.com/micmacIGN/micmac/releases/tag/MMVII_Documentation)
