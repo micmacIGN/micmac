@@ -310,7 +310,7 @@ template<int DimE> void BenchManifold_Sphere()
         tPtE aPtProj = aSph.Proj(aPtS2) ;
         MMVII_INTERNAL_ASSERT_bench(Norm2(aPtS - aPtProj)<1e-6,"Proj in BenchManifold_Sphere");
 
-        if (0) // (Norm2(aPtS-aPtS2)>1e-8)
+        if (NeverHappens()) // (Norm2(aPtS-aPtS2)>1e-8)
         {
             static int aCpt=0; aCpt++;
             StdOut() << " Prrrojj= " << Norm2(aPtS - aPtProj)  << " " << aPtS - aSph.ApproxProj(aPtS2)<< "\n";
