@@ -69,7 +69,7 @@ class cRadiomLidarIma
         cPtxd<tObs,3>  aGradProjJ  = VtoP3AutoIncr(aVObs,&aIndObs);  // J(ordinate) of gradient / PCamera of projection
 
         tUk aRadiomInit  = aVObs.at(aIndObs++); // extract the radiometry of image
-        cPtxd<tObs,2>  aGradIm  = VtoP2AnutoIncr(aVObs,&aIndObs);  // extract the gradient of image
+        cPtxd<tObs,2>  aGradIm  = VtoP2AutoIncr(aVObs,&aIndObs);  // extract the gradient of image
 
         // compute the position of the point in camera coordinates
         cPtxd<tUk,3> aVCP = aPGround - aCCam;  // "vector"  Center -> PGround

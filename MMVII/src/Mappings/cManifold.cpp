@@ -1,43 +1,17 @@
 #include "MMVII_Mappings.h"
 #include "MMVII_Geom2D.h"
+#include "MMVII_Manifolds.h"
 
 
 namespace MMVII
 {
 
-/**   
-    DimM = Dim of Manifold, for ex 1 for curve
-    DimE = Dim of embedding space, for ex 2 for a curve in plane
-*/
-template <const int DimM,const int DimE> class cManifold
-{
-     public :
-        static const int DimC = DimE - DimM;
+   /* *********************************************************** */
+   /*                                                             */
+   /*                        cManifold                            */
+   /*                                                             */
+   /* *********************************************************** */
 
-        typedef cPtxd<tREAL8,DimM>    tPtM;
-        typedef cPtxd<tREAL8,DimE>    tPtE;
-        typedef std::vector<tPtE>     tTgSp;
-
-
-	cManifold(int aNbMap=1,const tREAL8 aEpsDeriv = 1e-4);
-
-	/// return the num map of a point, defaults assume mNbMap==1
-	virtual int  GetNumMap(const tPtE &) const ;
-        ///  Retun a point of manifold in embedding space kowning a parameter, default error
-        virtual  tPtE   PtOfParam(const tPtM &,int aNumMap) const ;
-        ///  "Inverse" of PtOfParam, Assuming tPtE is on manifold
-        virtual  std::pair<int,tPtM>   ParamOfPt(const tPtE &) const ;
-
-        /// return TgSpace
-        virtual tTgSp  TgSpace(const tPtE &) const ;
-        /// Given a point, gives an approximate value of the projection
-        virtual tPtE  ApproxProj(const tPtE &) const  = 0 ;
-	///  Return the projection on the manifold, default iterative method
-        virtual tPtE  Proj(const tPtE &) const  ;
-     private :
-	int     mNbMap;
-	tREAL8  mEpsDeriv;
-};
 
 template <const int DimM,const int DimE>  
    cManifold<DimM,DimE>::cManifold(int aNbMap,const tREAL8 aEpsDeriv) :
@@ -46,19 +20,23 @@ template <const int DimM,const int DimE>
 {
 }
 
+template <const int DimM,const int DimE>  int cManifold<DimM,DimE>::NbMap() const {return mNbMap;}
+
 template <const int DimM,const int DimE>  int  cManifold<DimM,DimE>::GetNumMap(const tPtE &) const 
 {
     MMVII_INTERNAL_ASSERT_tiny(mNbMap==1,"cCurveFromMapping->aNumMap");
     return 0;
 }
 
-template <const int DimM,const int DimE> cPtxd<tREAL8,DimE>  cManifold<DimM,DimE>::PtOfParam(const tPtM&,int)  const
+template <const int DimM,const int DimE>
+   typename cManifold<DimM,DimE>::tPtE  cManifold<DimM,DimE>::PtOfParam(const tResPOP&)  const
 {
    MMVII_INTERNAL_ERROR("No def cManifold<DimM,DimE>::PtOfParam");
    return tPtE();
 }
 
-template <const int DimM,const int DimE> std::pair<int,cPtxd<tREAL8,DimM>>  cManifold<DimM,DimE>::ParamOfPt(const tPtE&)  const
+template <const int DimM,const int DimE>
+   typename cManifold<DimM,DimE>::tResPOP  cManifold<DimM,DimE>::ParamOfPt(const tPtE&)  const
 {
    MMVII_INTERNAL_ERROR("No def cManifold<DimM,DimE>::ParamOfPt");
    return std::pair<int,tPtM>(0,tPtM());
@@ -74,14 +52,14 @@ template <const int DimM,const int DimE>
    for (int aKM=0 ; aKM<DimM ; aKM++)
    {
        tPtM aDelta = tPtM::P1Coord(aKM,mEpsDeriv);
-       tPtE aPPlus = PtOfParam(aPParam+aDelta,aNum);
-       tPtE aPMinus = PtOfParam(aPParam-aDelta,aNum);
+       tPtE aPPlus = PtOfParam(tResPOP(aNum,aPParam+aDelta));
+       tPtE aPMinus = PtOfParam(tResPOP(aNum,aPParam-aDelta));
        tPtE aTgt = (aPPlus-aPMinus) / (2*mEpsDeriv) ;
 
        // make some "on the fly" orthogonalization
        for (const auto & aPrec : aRes)
        {
-           aTgt = aTgt - aPrec* Scal(aPrec,aTgt);
+           aTgt += aPrec* (-Scal(aPrec,aTgt));
        }
        aRes.push_back(VUnit(aTgt));
    }
@@ -89,66 +67,371 @@ template <const int DimM,const int DimE>
    return aRes;
 }
 
+
+template<const int DimM, const int DimE>
+      typename cManifold<DimM,DimE>::tPtE
+           cManifold<DimM, DimE>::OneIterProjByTgt(const tPtE& aPtApprox,const tPtE & aPt2Proj) const
+{
+   tTgSp aTgtS = TgSpace(aPtApprox);
+
+   tPtE aCorrec = tPtE::PCste(0.0);
+   tPtE aDelta = aPt2Proj-aPtApprox;
+   for (const auto & aVec : aTgtS)
+   {
+       aCorrec += aVec * Scal(aVec,aDelta);
+   }
+
+   return ApproxProj(aPtApprox+aCorrec);
+}
+
+
+template<const int DimM, const int DimE>
+      typename cManifold<DimM,DimE>::tPtE cManifold<DimM, DimE>::Proj(const tPtE & aPtE) const
+{
+   tREAL8 aEpsilon = 1e-6;
+   int aNbIterMax = 10;
+   tPtE aPt0 = ApproxProj(aPtE);
+   bool GoOn = true;
+   int aNbIter = 0;
+   while (GoOn)
+   {
+       aNbIter++;
+       tPtE aPt1 = OneIterProjByTgt(aPt0,aPtE);
+       GoOn = (aNbIter< aNbIterMax) && (Norm2(aPt0-aPt1)>aEpsilon);
+       aPt0 = aPt1;
+   }
+   return aPt0;
+}
+
+   /* *********************************************************** */
+   /*                                                             */
+   /*                        cLineManifol                         */
+   /*                                                             */
+   /* *********************************************************** */
+
+
+template<int DimE>  typename cLineManifold<DimE>::tPtE cLineManifold<DimE>::PtOfParam(const tResPOP & aPair) const
+{
+     MMVII_INTERNAL_ASSERT_tiny(aPair.first==0,"cLineManifold->aNumMap");
+     return mSeg.PtOfAbscissa(aPair.second.x());
+}
+
+template<int DimE>
+     typename cLineManifold<DimE>::tResPOP
+         cLineManifold<DimE>::ParamOfPt(const tPtE & aPE) const
+{
+    return std::pair<int,tPtM>(0,tPtM(mSeg.Abscissa(aPE)));
+}
+
+template<int DimE>  typename cLineManifold<DimE>::tPtE  cLineManifold<DimE>::ApproxProj(const tPtE & aPt) const
+{
+    return mSeg.Proj(aPt);
+}
+
+   /* *********************************************************** */
+   /*                                                             */
+   /*                    cManifoldFromMapping                     */
+   /*                                                             */
+   /* *********************************************************** */
+
+template <const int DimM,const int DimE>
+    cManifoldFromMapping<DimM,DimE>::cManifoldFromMapping(tMan* aMan,tMap* aMap) :
+        cManifold<DimM,DimE>(aMan->NbMap()),
+        mMan (aMan),
+        mMap (aMap)
+{
+
+}
+
+template <const int DimM,const int DimE>
+   typename cManifoldFromMapping<DimM,DimE>::tPtE
+        cManifoldFromMapping<DimM,DimE>::PtOfParam(const tResPOP & aPair) const
+{
+   return mMap->Value(mMan->PtOfParam(aPair));
+}
+
+
  template <const int DimM,const int DimE>
-  cPtxd<tREAL8,DimE>  cManifold<DimM,DimE>::Proj(const tPtE & aPtE) const
-  {
-      return ApproxProj(aPtE);
-  }
+    typename cManifoldFromMapping<DimM,DimE>::tResPOP
+       cManifoldFromMapping<DimM,DimE>::ParamOfPt(const tPtE & aPE) const
+{
+    return mMan->ParamOfPt(mMap->Inverse(aPE));
+}
 
-template class cManifold<1,2>; // curve 2d
-template class cManifold<1,3>; // curve 3d
+template <const int DimM,const int DimE>
+   typename cManifoldFromMapping<DimM,DimE>::tPtE
+      cManifoldFromMapping<DimM,DimE>::ApproxProj(const tPtE & aPt) const
+{
+    return mMap->Value(mMan->ApproxProj(mMap->Inverse(aPt)));
+}
 
 
-template<int DimE> class cCurveFromMapping : public cManifold<1,DimE>
+
+   /* *********************************************************** */
+   /*                                                             */
+   /*                        cSphereManifold                      */
+   /*                                                             */
+   /* *********************************************************** */
+
+template<int DimE> class cSphereManifold : public cManifold<DimE-1,DimE>
 {
      public :
         // virtual  tPtE   PtOfParam(const tPtM &,int aNumMap) const ;
-        static const int DimM = 1;
+        static const int DimM = DimE-1;
         static const int DimC = DimE - DimM;
 
         typedef cPtxd<tREAL8,DimM>                  tPtM;
         typedef cPtxd<tREAL8,DimE>                  tPtE;
         typedef cSegmentCompiled<tREAL8,DimE>       tSeg;
-        typedef cDataInvertibleMapping<tREAL8,DimE> tMap;
         typedef  std::pair<int,tPtM>                tResPOP; // Type result Param of Pt
 
-        tPtE   PtOfParam(const tPtM &,int aNumMap) const override;
+        cSphereManifold(const tPtE & aPPerturb = tPtE::PCste(0.0) );
+        tPtE   PtOfParam(const tResPOP&) const override;
         tResPOP   ParamOfPt(const tPtE &) const override;
         tPtE  ApproxProj(const tPtE &) const  override ;
-     private :
-	tSeg   mSeg;
-	tMap   *mMap;
 
+   private :
+        bool mIsPerturb; //< do use artificial perturbation, just 4 bench
+        tPtE mPPerturb;  //< Value to use 4 articial perturbation
 };
 
-template<int DimE>  cPtxd<tREAL8,DimE> cCurveFromMapping<DimE>::PtOfParam(const tPtM & aP1,int aNumMap) const 
+template<int DimE>  cSphereManifold<DimE>::cSphereManifold(const tPtE & aPPerturb) :
+    cManifold<DimE-1,DimE>(2*DimE),
+     mIsPerturb (!IsNull(aPPerturb)),
+     mPPerturb  (aPPerturb)
 {
-    MMVII_INTERNAL_ASSERT_tiny(aNumMap==0,"cCurveFromMapping->aNumMap");
-
-    tPtE aPtOnSeg = mSeg.PtOfAbscissa(aP1.x());
-
-    return mMap->Value(aPtOnSeg);
 }
+
+
+template<int DimE>  typename cSphereManifold<DimE>::tPtE cSphereManifold<DimE>::PtOfParam(const tResPOP & aPair) const
+{
+    int aNumMap = aPair.first;
+    const tPtM aProj = aPair.second;
+    tREAL8 aCoord = std::sqrt(1.0-SqN2(aProj));
+
+    if (aNumMap>=DimE)
+    {
+        aCoord = - aCoord;
+        aNumMap -= DimE;
+    }
+
+    tPtE aRes;
+    int aCpt=0;
+    for (int aDim=0 ; aDim<DimE ; aDim++)
+    {
+        aRes[aDim] =  (aDim!= aNumMap) ? aProj[aCpt++] : aCoord;
+    }
+    return aRes;
+}
+
 
 template<int DimE>
-  typename cCurveFromMapping<DimE>::tResPOP
-      cCurveFromMapping<DimE>::ParamOfPt(const tPtE & aPE) const
+     typename cSphereManifold<DimE>::tResPOP
+         cSphereManifold<DimE>::ParamOfPt(const tPtE & aPE) const
 {
-    tPtE aPOnSeg = mMap->Inverse(aPE);
-    return std::pair<int,tPtM>(0,tPtM(mSeg.Abscissa(aPOnSeg)));
+    cWhichMax<int,tREAL8> aMaxC;
+    for (int aDim=0 ; aDim<DimE ; aDim++)
+        aMaxC.Add(aDim,std::abs(aPE[aDim]));
+
+    int aDimMax = aMaxC.IndexExtre();
+    int aCpt=0;
+    tPtM aProj;
+
+    for (int aDim=0 ; aDim<DimE ; aDim++)
+    {
+        if (aDim!= aDimMax)
+            aProj[aCpt++] = aPE[aDim];
+    }
+    if (aPE[aDimMax]<0)
+        aDimMax += DimE;
+
+    return tResPOP(aDimMax,aProj);
 }
 
 
-template<int DimE>  cPtxd<tREAL8,DimE> cCurveFromMapping<DimE>::ApproxProj(const tPtE & aP1) const 
+
+
+template<int DimE>  typename cSphereManifold<DimE>::tPtE  cSphereManifold<DimE>::ApproxProj(const tPtE & aP2P) const
 {
-    tPtE aP2 = mMap->Value(aP1);
-    tPtE aP3 = mSeg.Proj(aP2);
-    return mMap->Inverse(aP3);
+    if (IsNull(aP2P))  // in this case any point is closest ..
+        return tPtE::P1Coord(0,1.0);
+    tPtE aPProj =  VUnit(aP2P);
+
+    if (!mIsPerturb)
+        return aPProj;
+
+    aPProj = aPProj + mPPerturb*Norm2(aP2P-aPProj);
+    return VUnit(aPProj);
 }
 
+   /* ********************************************************** */
+   /*                                                            */
+   /*                         MMVII::                            */
+   /*                                                            */
+   /* ********************************************************** */
 
-template class cCurveFromMapping<2>; // curve 2d
-template class cCurveFromMapping<3>; // curve 2d
+template<int DimE> void BenchManifold_Sphere()
+{
+     typedef cPtxd<tREAL8,DimE> tPtE;
+     cSphereManifold<DimE> aSph(tPtE::PRandUnit()*1e-1);
+
+     for (int aKTest=0 ; aKTest<10; aKTest++)
+     {
+        // Generate a random point on the sphere/manifold
+        tPtE aPtS = tPtE::PRandUnit();
+        // Extract its parametrization
+        auto aProj = aSph.ParamOfPt(aPtS);
+        // Extract the point from the parameters
+        tPtE aPtS2 = aSph.PtOfParam(aProj);
+
+        // check we go back to initial point
+        MMVII_INTERNAL_ASSERT_bench(Norm2(aPtS-aPtS2)<1e-8,"BenchManifold_Sphere ParamOfPt/PtOfParam");
+
+        // check tgt space
+        auto aVTgt =aSph.TgSpace(aPtS);
+        MMVII_INTERNAL_ASSERT_bench(aVTgt.size()==DimE-1,"Dim Tgt Space");  // good dim !
+
+        for (size_t aKT1=0 ; aKT1<aVTgt.size(); aKT1++)
+        {
+            // vector are unitary and orthogonal to vector 0->PS (=normal here)
+            MMVII_INTERNAL_ASSERT_bench(std::abs(Scal(aVTgt.at(aKT1),aPtS))<1e-6,"Scal Tgt in BenchManifold_Sphere");
+            MMVII_INTERNAL_ASSERT_bench(std::abs(Norm2(aVTgt.at(aKT1))-1)<1e-6,"Norm Tgt in BenchManifold_Sphere");
+
+            //  vector are orthogonal between them
+            for (size_t aKT2=aKT1+1 ; aKT2<aVTgt.size(); aKT2++)
+            {
+                MMVII_INTERNAL_ASSERT_bench(std::abs(Scal(aVTgt.at(aKT1),aVTgt.at(aKT2)))<1e-6,"Scal Tgt in BenchManifold_Sphere");
+            }
+        }
+
+        // Check proj
+        aPtS2 = aPtS * RandInInterval(0.8,1.2);
+
+        tPtE aPtProj = aSph.Proj(aPtS2) ;
+        MMVII_INTERNAL_ASSERT_bench(Norm2(aPtS - aPtProj)<1e-6,"Proj in BenchManifold_Sphere");
+
+        if (0) // (Norm2(aPtS-aPtS2)>1e-8)
+        {
+            static int aCpt=0; aCpt++;
+            StdOut() << " Prrrojj= " << Norm2(aPtS - aPtProj)  << " " << aPtS - aSph.ApproxProj(aPtS2)<< "\n";
+            StdOut() << " BenchManifold_Sphere "
+                 << " Cpt=" << aCpt
+                  <<  " Dif=" << aPtS-aPtS2
+                   << " Num=" << aProj.first
+                   << " Norm=" << Norm2(aPtS2)
+                   << "\n";
+             getchar();
+        }
+     }
+}
+
+template<int DimE> void BenchManifold_MapSphere(int aNbTest)
+{
+   static int aCpt=0; aCpt++;
+
+   typedef cPtxd<tREAL8,DimE> tPtE;
+   typedef cPtxd<tREAL8,DimE-1> tPtM;
+
+
+     // generate random symetrix matrix, close to identity
+    cDenseMatrix<tREAL8> aMat(DimE);
+    for (int aKX=0 ; aKX<DimE ; aKX++)
+    {
+         aMat.SetElem(aKX,aKX,1.0);
+         for (int aKY=aKX+1 ; aKY<DimE ; aKY++)
+         {
+             aMat.SetElem(aKX,aKY,0.1* RandUnif_C());
+             aMat.SetElem(aKY,aKX,aMat(aKX,aKY));
+         }
+    }
+    tPtE aC = tPtE::PRandC();
+
+    cBijAffMapElem<tREAL8,DimE> aMapElem(aMat,aC);
+    cInvertMappingFromElem< cBijAffMapElem<tREAL8,DimE>> aMap(aMapElem);
+
+    cSphereManifold<DimE> aSph;
+    cManifoldFromMapping<DimE-1,DimE>  aMM(&aSph,&aMap);
+
+     for (int aKPt=0 ; aKPt<aNbTest ; aKPt++)
+     {
+         tPtE aPt =  tPtE::PRandUnit()* RandInInterval(0.8,1.2);
+         aPt = aMapElem.Value(aPt);
+
+       //  StdOut() << "NNNN=" << Norm2()
+
+         tPtE aPProj = aMM.Proj(aPt);
+        // If Proj is on the ellipsoide Map-1(Proj) must be on unitary sphere
+         MMVII_INTERNAL_ASSERT_bench( std::abs(Norm2(aMapElem.Inverse(aPProj))-1)<1e-6,"cManifoldFromMapping not on sphere");
+        // compute Tgt Space and check ortoogonality
+         auto aTgS = aMM.TgSpace(aPProj);
+         for (const auto & aV : aTgS)
+         {
+             // StdOut() << " SccC=" << Scal(aV,aPt-aPProj) << "\n";
+             MMVII_INTERNAL_ASSERT_bench(std::abs(Scal(aV,aPt-aPProj))<1e-5,"Tgt space in ManMap");
+         }
+         // Check minimality of dist
+         auto aParam = aMM.ParamOfPt(aPProj);
+         for (int aKNeigh=0 ; aKNeigh<20 ; aKNeigh++)
+         {
+             auto aParamN = aParam;
+             aParamN.second += tPtM::PRandInSphere() * 1e-2;
+             tPtE aNeighP = aMM.PtOfParam(aParamN);
+             tREAL8 aDelta = Norm2(aNeighP-aPt) - Norm2(aPProj-aPt);
+
+             // Theretically Delta>=, but due to epsilon-machine and approx, we tolerate a small negativity
+             MMVII_INTERNAL_ASSERT_bench(aDelta>=-1e10,"Minimality in Manifold proj; D="+ToStr(aDelta));
+         }
+     }
+     // BREAK_POINT("MANIF-MAP");
+}
+
+void BenchManifold(cParamExeBench & aParam)
+{
+    if (! aParam.NewBench("Manifold")) return;
+
+    for (int aK=0 ; aK<1000; aK++)
+    {
+         BenchManifold_MapSphere<2>(1);
+    }
+    for (int aKT=0 ; aKT<100 ; aKT++)
+    {
+        BenchManifold_Sphere<2>();
+        BenchManifold_Sphere<3>();
+        BenchManifold_Sphere<4>();
+
+        BenchManifold_MapSphere<2>(10);
+        BenchManifold_MapSphere<3>(10);
+    }
+
+     aParam.EndBench();
+
+}
+
+   /* ********************************************************** */
+   /*                                                            */
+   /*                         INSTANCIATION                      */
+   /*                                                            */
+   /* ********************************************************** */
+
+
+template class cManifold<1,2>; // like curve 2d
+template class cManifold<1,3>; // like curve 3d
+template class cManifold<2,3>; // like surf 3d
+
+
+template class cLineManifold<2>; // Seg  2d
+template class cLineManifold<3>; // Seg 3d
+
+template class cSphereManifold<2>; // Seg  2d
+template class cSphereManifold<3>; // Seg  2d
+template class cSphereManifold<4>; // Seg  2d
+
+
+template class cManifoldFromMapping<1,2>; // like curve 2d
+template class cManifoldFromMapping<1,3>; // like curve 3d
+template class cManifoldFromMapping<2,3>; // like surf 3d
+
+
 };
 
 

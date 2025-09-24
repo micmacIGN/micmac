@@ -122,6 +122,16 @@ template <> inline  bool cPixBox<3>::InsideBL(const cPtxd<double,3> & aP) const
           && (aP.z() >= tBox::mP0.z()) &&  ((aP.z()+1) <  tBox::mP1.z())
     ;
 }
+template <> inline  bool cPixBox<4>::InsideBL(const cPtxd<double,4> & aP) const
+{
+    return   (aP.x() >= tBox::mP0.x()) &&  ((aP.x()+1) <  tBox::mP1.x())
+          && (aP.y() >= tBox::mP0.y()) &&  ((aP.y()+1) <  tBox::mP1.y())
+          && (aP.z() >= tBox::mP0.z()) &&  ((aP.z()+1) <  tBox::mP1.z())
+          && (aP.t() >= tBox::mP0.t()) &&  ((aP.t()+1) <  tBox::mP1.t())
+    ;
+}
+
+
 
 #if ! defined(_MSC_VER)
 template<> const cPixBox<2>     cPixBox<2>::TheEmptyBox;  // Pb Clang, requires explicit declaration of specialization

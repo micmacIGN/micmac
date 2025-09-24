@@ -600,19 +600,41 @@ template <typename TypeDist>  class cEqDist
 
 /**   C */
 
+/*   For line equation : 
+
+     Unknowns are   Dx1, Dy1, Dx2,Dy2
+     Obs are :
+         p1 , p2 two point of the line
+         nx,ny two  vector orthog 
+         l the coord of centroid on the line (l=0 -> p1)
+
+     Q1 = (p1 + Dx1 nx+ Dy1 ny)
+     Q2 = (p2 + Dx2 nx+ Dy2 ny)
+
+     Q = (1-l) Q1 +l Q2
+*/
+
 template <typename TypeDist,typename TypeProj>  class cEqColinearityCamPPC
 {
 	public :
-           cEqColinearityCamPPC(const TypeDist & aDist) :
-		   mDist (aDist)
+           cEqColinearityCamPPC(const TypeDist & aDist,eTypeEqCol aTypeEq) :
+                mDist     (aDist),
+                mTypeEq   (aTypeEq),
+                mLine     (mTypeEq==eTypeEqCol::eLine)
 	   {
 	   }
-           std::string FormulaName() const { return "EqColinearityCamPPC_" + E2Str(TypeProj::TypeProj())    + "_" + mDist.NameModel();}
+           std::string FormulaName() const 
+           { 
+               return (mLine ?  "EqLineProjCamPPC_"  : "EqColinearityCamPPC_") + E2Str(TypeProj::TypeProj())    + "_" + mDist.NameModel();
+           }
            std::vector<std::string>  VNamesUnknowns() const
 	   {
+                   std::vector<std::string>  aVUkGround =     mLine                                           ?
+                                                              Append(NamesP2("N1Coords"),NamesP2("N2Coords")) :
+                                                              NamesP3("PGround")                              ;
 		   return Append
 			  (
-			      NamesP3("PGround"),     //  0-3
+			      aVUkGround,
 			      NamesPose("CCam","W"),  // 3-9
 		              NamesIntr(""),          // 9-12
 			      mDist.VNamesParams()
@@ -621,6 +643,19 @@ template <typename TypeDist,typename TypeProj>  class cEqColinearityCamPPC
 
            std::vector<std::string>    VNamesObs() const 
 	   {
+                if (mLine)
+                {
+                    std::vector<std::string>  aVecLIne2D = Append(NamesP2("Line2D_Pt"),NamesP2("Line2D_Norm"));
+
+                    std::vector<std::string> aVPtsLine     =  Append(NamesP3("Line3d_Pt1"),NamesP3("Line3d_Pt2"));
+                    std::vector<std::string> aVPtsNormLine =  Append(NamesP3("Line3d_Norm_x"),NamesP3("Line3d_Norm_y"));
+                    std::vector<std::string> aVLambdaLine  {"Line3d_Lambda"};
+
+                    std::vector<std::string>  aVecLIne3D =  Append(aVPtsLine,aVPtsNormLine,aVLambdaLine);
+
+
+                    return Append(aVecLIne2D,aVecLIne3D,NamesMatr("M",cPt2di(3,3)));
+                }
                 return Append(NamesP2("Im"),NamesMatr("M",cPt2di(3,3)));
 	   }
 
@@ -631,15 +666,43 @@ template <typename TypeDist,typename TypeProj>  class cEqColinearityCamPPC
                           const std::vector<tUk> & aVObs
                        ) const
            {
-		   //  extract unknown parameters from vector
-		   cPtxd<tUk,3>  aPGround = VtoP3(aVUk,0);
-		   cPtxd<tUk,3>  aCCcam   = VtoP3(aVUk,3);
-		   cPtxd<tUk,3>  aW       = VtoP3(aVUk,6);
-		   tUk           aFoc     = aVUk.at(9);
-		   cPtxd<tUk,2>  aPP      = VtoP2(aVUk,10);
+                   tUk aC1 = CreateCste(1.0,aVUk.at(0));
+                   cPtxd<tUk,3>  aPGround;
+                   size_t aIndUk = 0;
+                   size_t aIndObs = 0;
 
-		   // obs pixel
-		   cPtxd<tUk,2>  aPtIm    = VtoP2(aVObs,0);
+                   cPtxd<tUk,2>  aPtIm    = VtoP2AutoIncr(aVObs,&aIndObs);
+                   cPtxd<tUk,2>  aPtNormIm;
+                   if (mLine)
+                   {
+                        aPtNormIm = VtoP2AutoIncr(aVObs,&aIndObs);
+
+                        cPtxd<tUk,3> aP3d_1 = VtoP3AutoIncr(aVObs,&aIndObs);
+                        cPtxd<tUk,3> aP3d_2 = VtoP3AutoIncr(aVObs,&aIndObs);
+
+                        cPtxd<tUk,3> aNorm3d_x = VtoP3AutoIncr(aVObs,&aIndObs);
+                        cPtxd<tUk,3> aNorm3d_y = VtoP3AutoIncr(aVObs,&aIndObs);
+                        tUk  aLambda = aVObs.at(aIndObs++);
+
+                        cPtxd<tUk,2> aWeightN_1 =   VtoP2AutoIncr(aVUk,&aIndUk);
+                        cPtxd<tUk,2> aWeightN_2 =   VtoP2AutoIncr(aVUk,&aIndUk);
+
+                        cPtxd<tUk,3>  aQ1 = aP3d_1 + aNorm3d_x * aWeightN_1.x() + aNorm3d_y * aWeightN_1.y() ;
+                        cPtxd<tUk,3>  aQ2 = aP3d_2 + aNorm3d_x * aWeightN_2.x() + aNorm3d_y * aWeightN_2.y() ;
+
+                        aPGround = aQ1 * (aC1-aLambda)  +  aQ2 * aLambda ;
+                   }
+		   //  extract unknown parameters from vector
+                   else
+                   {
+		       // aPGround = VtoP3(aVUk,0);
+		       aPGround = VtoP3AutoIncr(aVUk,&aIndUk);
+                   }
+                   cPtxd<tUk,3>  aCCcam = VtoP3AutoIncr(aVUk,&aIndUk);
+                   cPtxd<tUk,3>  aW     = VtoP3AutoIncr(aVUk,&aIndUk);
+                   tUk           aFoc   =  aVUk.at(aIndUk++);
+                   cPtxd<tUk,2>  aPP   =  VtoP2AutoIncr(aVUk,&aIndUk);
+
 
                    cPtxd<tUk,3>  aVCP = aPGround - aCCcam;     // vector  CenterCam -> PGround
 		   
@@ -651,22 +714,37 @@ template <typename TypeDist,typename TypeProj>  class cEqColinearityCamPPC
 		   */
 
 #else
-                   cMatF<tUk> aRotInit (3,3,aVObs,2);
+                   // cMatF<tUk> aRotInit (3,3,aVObs,2);
+                   cMatF<tUk> aRotInit (3,3,&aIndObs,aVObs);
+                   // cMatF(size_t aSzX,size_t aSzY, size_t * anIndAutoIncr, const std::vector<Type> & aVal) :
+
                    cMatF<tUk> aDeltaRot =  cMatF<tUk>::MatAxiator(aW);
                    cPtxd<tUk,3> aPCam =  aDeltaRot * (aRotInit * aVCP);
 #endif
 
-		   cPtxd<tUk,2>  aPProj = cHelperProj<TypeProj>::Proj(aPCam);  // project 3D-> photogram point
-		   cPtxd<tUk,2> aPDist = VtoP2(mDist.PProjToImNorm (aPProj.x(),aPProj.y(),aVUk,12));  // add distorsion
+                  cPtxd<tUk,2>  aPProj = cHelperProj<TypeProj>::Proj(aPCam);  // project 3D-> photogram point
+                  cPtxd<tUk,2> aPDist = VtoP2(mDist.PProjToImNorm (aPProj.x(),aPProj.y(),aVUk,aIndUk));  // add distorsion
 
-		   cPtxd<tUk,2> aPPix =  aPP + aPDist * aFoc; // Use Focal and PP to make pixel
+                   cPtxd<tUk,2> aPPix =  aPP + aPDist * aFoc; // Use Focal and PP to make pixel
 
-		   cPtxd<tUk,2> aResidual = aPPix - aPtIm;  // compare to mesured point
 
-		   return {aResidual.x(),aResidual.y()};
+                   MMVII_INTERNAL_ASSERT_always(aIndUk+mDist.VNamesParams().size()==aVUk.size(),"cEqColinearityCamPPC : Uk-size");
+                   MMVII_INTERNAL_ASSERT_always(aIndObs== aVObs.size(),"cEqColinearityCamPPC : Obs-size");
+
+                   cPtxd<tUk,2> aResidual = aPPix - aPtIm;  // compare to mesured point
+                   if (mLine)
+                   {
+                       return {Scal(aPtNormIm,aResidual)};
+                   }
+                   else
+                   {
+                       return {aResidual.x(),aResidual.y()};
+                   }
            }
 	   
-	   TypeDist  mDist;
+	   TypeDist    mDist;
+           eTypeEqCol  mTypeEq;
+           bool        mLine;
 };
 
 

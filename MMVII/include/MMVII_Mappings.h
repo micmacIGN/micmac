@@ -829,6 +829,8 @@ template <class cMapElem> class cInvertMappingFromElem :  public
 
 /** Specialization when cMapElem is linear => constant jacobian */
 
+/*
+ * No longer see utilty
 template <class cMapElem> class cIMElemLinear :  public 
            cInvertMappingFromElem<cMapElem>
 {
@@ -851,6 +853,7 @@ template <class cMapElem> class cIMElemLinear :  public
     private :
          tMat  mMat;
 };
+*/
 
 /**
      We have a set of function F1,  .. Fp     R^k => R ^n, we want to estimate F  as a linear combination:
@@ -923,7 +926,7 @@ template <class Type,const int DimIn,const int DimOut>
 
 /**  Bijective Affine Mapping Elementary */
 
-template <class Type,const int Dim> class cBijAffMapElem
+template <class Type,const int Dim> class cBijAffMapElem  // : public cDataInvertibleMapping<Type,Dim>
 {
      public :
         typedef Type  tTypeElem;
@@ -935,8 +938,8 @@ template <class Type,const int Dim> class cBijAffMapElem
         typedef cPtxd<Type,Dim>    tPt;
         cBijAffMapElem(const tMat & aMat ,const tPt& aTr) ;
 
-        tPt  Value(const tPt & aP)   const;
-        tPt  Inverse(const tPt & aP) const;
+        tPt  Value(const tPt & aP)   const ;
+        tPt  Inverse(const tPt & aP) const ;
 
         cBijAffMapElem<Type,Dim>  MapInverse() const;
 

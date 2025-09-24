@@ -478,6 +478,9 @@ class cProjFE_EquiSolid  : public cDefProjPerspC
 };
 
 
+/**  Generate the code for computing proj (w/o distorsion) used in cPerspCamIntrCalib. 
+     More atomic that the bundle adjustment equation.
+*/
 template <typename tProj> class   cGenCode_ProjDir
 {
 	public :
@@ -499,6 +502,9 @@ template <typename tProj> class   cGenCode_ProjDir
 
 };
 
+/**  Generate the code for computing "inv-proj" (w/o distorsion) used in cPerspCamIntrCalib 
+     for computing bundles from image points.
+*/
 template <typename tProj> class   cGenCode_ProjInv
 {
 	public :
