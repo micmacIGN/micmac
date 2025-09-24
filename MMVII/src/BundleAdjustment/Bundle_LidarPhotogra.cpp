@@ -15,7 +15,7 @@ namespace MMVII
 
 cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std::string>& aParam) :
     mBA         (aBA),                                 // memorize the bundel adj class itself (access to optimizer)
-    mModeSim    (Str2E<eImatchCrit>(aParam.at(0))),    // mode of matching (int 4 now) 0 ponct, 1 Census
+    mModeSim    (Str2E<eImatchCrit>(aParam.at(0))),    // mode of matching
     mTri        (aParam.at(1)),                        // Lidar point themself, stored as a triangulation
     mInterp     (nullptr),                             // interpolator see bellow
     mEqLidPhgr  (nullptr),                             // equation of egalisation Lidar/Phgr

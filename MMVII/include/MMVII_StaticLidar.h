@@ -36,6 +36,12 @@ private :
     std::string mRasterX;
     std::string mRasterY;
     std::string mRasterZ;
+    std::string mRasterTheta;
+    std::string mRasterPhi;
+    std::string mRasterThetaErr;
+    std::string mRasterPhiErr;
+
+
 
     tREAL8 mThetaStart, mThetaStep;
     tREAL8 mPhiStart, mPhiStep;

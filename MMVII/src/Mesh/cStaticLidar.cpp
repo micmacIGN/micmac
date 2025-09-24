@@ -102,6 +102,11 @@ void cStaticLidar::AddData(const  cAuxAr2007 & anAux)
     MMVII::AddData(cAuxAr2007("RasterX",anAux),mRasterX);
     MMVII::AddData(cAuxAr2007("RasterY",anAux),mRasterY);
     MMVII::AddData(cAuxAr2007("RasterZ",anAux),mRasterZ);
+
+    MMVII::AddData(cAuxAr2007("RasterTheta",anAux),mRasterTheta);
+    MMVII::AddData(cAuxAr2007("RasterPhi",anAux),mRasterPhi);
+    MMVII::AddData(cAuxAr2007("RasterThetaErr",anAux),mRasterThetaErr);
+    MMVII::AddData(cAuxAr2007("RasterPhiErr",anAux),mRasterPhiErr);
 }
 
 void AddData(const  cAuxAr2007 & anAux,cStaticLidar & aSL)

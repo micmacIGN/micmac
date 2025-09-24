@@ -804,6 +804,11 @@ int cAppli_ImportStaticScan::Exe()
     mSL_data.mRasterY = mSL_data.mStationName + "_" + mSL_data.mScanName + "_Y.tif";
     mSL_data.mRasterZ = mSL_data.mStationName + "_" + mSL_data.mScanName + "_Z.tif";
 
+    mSL_data.mRasterTheta = mSL_data.mStationName + "_" + mSL_data.mScanName + "_Theta.tif";
+    mSL_data.mRasterPhi = mSL_data.mStationName + "_" + mSL_data.mScanName + "_Phi.tif";
+    mSL_data.mRasterThetaErr = mSL_data.mStationName + "_" + mSL_data.mScanName + "_ThetaErr.tif";
+    mSL_data.mRasterPhiErr = mSL_data.mStationName + "_" + mSL_data.mScanName + "_PhiErr.tif";
+
     fillRaster<tU_INT1>(mSL_data.mRasterMask, [this](int i){auto aPtAng = mVectPtsTPD[i];return (aPtAng.z()<mDistMinToExist)?0:255;} );
     if (mHasIntensity)
         fillRaster<tU_INT1>( mSL_data.mRasterIntensity, [this](int i){return mVectPtsIntens[i]*255;} );
@@ -813,9 +818,24 @@ int cAppli_ImportStaticScan::Exe()
     fillRaster<float>(mSL_data.mRasterY, [this](int i){auto aPtXYZ = mVectPtsXYZ[i];return aPtXYZ.y();} );
     fillRaster<float>(mSL_data.mRasterZ, [this](int i){auto aPtXYZ = mVectPtsXYZ[i];return aPtXYZ.z();} );
 
+    fillRaster<float>(mSL_data.mRasterTheta, [this](int i){auto aPtAng = mVectPtsTPD[i];return aPtAng.x();} );
+    fillRaster<float>(mSL_data.mRasterPhi, [this](int i){auto aPtAng = mVectPtsTPD[i];return aPtAng.y();} );
+    fillRaster<float>(mSL_data.mRasterThetaErr, [this](int i)
+        {
+            auto aPtAng = mVectPtsTPD[i];
+            tREAL8 aThetaCol = mSL_data.mThetaStart + mSL_data.mThetaStep * mVectPtsCol[i];
+            aThetaCol = toMinusPiPlusPi(aThetaCol);
+            return aPtAng.x()-aThetaCol;
+        } );
+    fillRaster<float>(mSL_data.mRasterPhiErr, [this](int i)
+        {
+            auto aPtAng = mVectPtsTPD[i];
+            tREAL8 aPhiLine = mSL_data.mPhiStart + mSL_data.mPhiStep * mVectPtsLine[i];
+            aPhiLine = toMinusPiPlusPi(aPhiLine);
+            return aPtAng.y()-aPhiLine;
+        } );
+
     fillRaster<tU_INT4>("titiIndex.png", [](int i){return i;} );
-    fillRaster<float>("titiTheta.tif", [this](int i){auto aPtAng = mVectPtsTPD[i];return aPtAng.x();} );
-    fillRaster<float>("titiPhi.tif", [this](int i){auto aPtAng = mVectPtsTPD[i];return aPtAng.y();} );
 
     SaveInFile(mSL_data, mPhProj.DPStaticLidar().FullDirOut() +  mSL_data.mStationName + "_" + mSL_data.mScanName + ".xml");
 
