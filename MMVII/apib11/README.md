@@ -7,11 +7,11 @@ Dependencies
 
 As admin:
 
-    apt install python3-pip doxygen pybind11-dev clang-tools llvm-dev
+    apt install python3-pip doxygen clang-tools llvm-dev
 
 In the Python virtual environment used for compilation:
 
-    pip3 install pybind11 setuptools build
+    pip3 install pybind11[global] setuptools build
 
 
 Compilation
