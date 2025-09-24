@@ -15,6 +15,49 @@ namespace MMVII
 
 */
 
+
+cPt3dr cart2spher(const cPt3dr & aPtCart);
+cPt3dr spher2cart(const cPt3dr & aPtspher);
+tREAL8 toMinusPiPlusPi(tREAL8 aAng, tREAL8 aOffset = 0.);
+
+
+class cStaticLidarImporter
+{
+public:
+    cStaticLidarImporter();
+    void readPlyPoints(std::string aPlyFileName);
+    void readE57Points(std::string aE57FileName);
+    void convertToThetaPhiDist();
+    void convertToXYZ();
+
+    bool HasCartesian(){ return mHasCartesian;}
+    bool HasIntensity(){ return mHasIntensity;}
+    bool HasSpherical(){ return mHasSpherical;}
+    bool HasRowCol(){ return mHasRowCol;}
+    bool NoMiss(){ return mNoMiss;}
+    int MaxCol(){ return mMaxCol;}
+    int MaxLine(){ return mMaxLine;}
+    tREAL8 DistMinToExist(){ return mDistMinToExist;}
+
+    // line and col for each point
+    std::vector<int> mVectPtsLine;
+    std::vector<int> mVectPtsCol;
+    // points
+    std::vector<cPt3dr> mVectPtsXYZ;
+    std::vector<tREAL8> mVectPtsIntens;
+    std::vector<cPt3dr> mVectPtsTPD;
+protected:
+    // data
+    bool mHasCartesian; // in original read data
+    bool mHasIntensity; // in original read data
+    bool mHasSpherical; // in original read data
+    bool mHasRowCol;    // in original read data
+    int mMaxCol, mMaxLine;
+
+    bool mNoMiss; // seems to be full
+    tREAL8 mDistMinToExist;
+};
+
 class cStaticLidar: public cSensorCamPC
 {
     friend class cAppli_ImportStaticScan;
