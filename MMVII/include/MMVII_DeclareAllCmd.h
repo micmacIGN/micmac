@@ -89,6 +89,7 @@ extern cSpecMMVII_Appli  TheSpec_ImportTxtCloud;
 extern cSpecMMVII_Appli  TheSpec_MMVII_CloudClip;
 extern cSpecMMVII_Appli  TheSpec_MMVII_Cloud2Ply;
 extern cSpecMMVII_Appli  TheSpec_MMVII_CloudColorate;
+extern cSpecMMVII_Appli  TheSpecTestLidarRevEng;
 extern cSpecMMVII_Appli  TheSpec_ImportTiePMul;
 extern cSpecMMVII_Appli  TheSpec_ImportMesImGCP;
 extern cSpecMMVII_Appli  TheSpec_ImportM32;

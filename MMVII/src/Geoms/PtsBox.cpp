@@ -552,7 +552,7 @@ template <class T,const int Dim>  T CosWDef(const cPtxd<T,Dim> &aP1,const cPtxd<
 template <class T,const int Dim>  T AbsAngle(const cPtxd<T,Dim> &aP1,const cPtxd<T,Dim> & aP2)
 {
    T aCos = Cos(aP1,aP2);
-   MMVII_INTERNAL_ASSERT_tiny((aCos>=1)&&(aCos<=-1),"AbsAngle cosinus out range");
+   MMVII_INTERNAL_ASSERT_tiny((aCos<=1)&&(aCos>=-1),"AbsAngle cosinus out range");
    return acos(aCos);
 }
 

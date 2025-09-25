@@ -327,7 +327,7 @@ template<int DimE> void BenchManifold_Sphere()
 
 template<int DimE> void BenchManifold_MapSphere(int aNbTest)
 {
-   static int aCpt=0; aCpt++;
+   // static int aCpt=0; aCpt++;
 
    typedef cPtxd<tREAL8,DimE> tPtE;
    typedef cPtxd<tREAL8,DimE-1> tPtM;

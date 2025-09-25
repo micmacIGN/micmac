@@ -231,6 +231,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_ImportTxtCloud);
         TheVecAll.push_back(&TheSpec_MMVII_CloudClip);
         TheVecAll.push_back(&TheSpec_MMVII_Cloud2Ply);
+        TheVecAll.push_back(&TheSpecTestLidarRevEng);
 	{
             TheVecAll.push_back(&TheSpec_MMVII_CloudColorate);
             TheVecAll.push_back(&TheSpec_MMVII_CloudImProj);

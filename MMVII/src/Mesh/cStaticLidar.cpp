@@ -165,6 +165,24 @@ void cStaticLidarImporter::readE57Points(std::string aE57FileName)
     }
 }
 
+bool cStaticLidarImporter::read(const std::string & aName,bool OkNone)
+{
+    std::string aPost = LastPostfix(aName);
+    if (UCaseEqual(aPost,"ply"))
+       readPlyPoints(aName);
+    else if (UCaseEqual(aPost,"e57"))
+       readE57Points(aName);
+    else
+    {
+        if (! OkNone)
+        {
+           MMVII_UnclasseUsEr("Cannot read cloud for " + aName);
+        }
+        return false;
+    }
+    return true;
+}
+
 
 
 void cStaticLidarImporter::convertToThetaPhiDist()
