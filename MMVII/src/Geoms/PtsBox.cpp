@@ -26,18 +26,30 @@ template <class tContPts>  typename cComputeCentroids<tContPts>::tPts  cComputeC
 
 template <class tContPts>  
    typename cComputeCentroids<tContPts>::tPts  
-                cComputeCentroids<tContPts>::LinearWeigtedCentroids(const tContPts & aContPts,const tPts & aP0,tREAL8 aSigma)
+                cComputeCentroids<tContPts>::LinearWeigtedCentroids
+                (
+                     const tContPts & aContPts,
+                     const tPts & aP0,
+                     tREAL8 aSigma,
+                     tREAL8 aExpN2,
+                     double aErRej
+                )
 {
      tPts aRes = tPts::PCste(tEl(0));
      tEl  aSomW = 0.0;
-     tEl  aS2 = Square(aSigma);
+     tEl  aS2P = std::pow(Square(aSigma),aExpN2);
+     tEl  aErRej2 = Square(aErRej);
 
      for (const auto & aPt : aContPts)
      {
-         tEl aW =  aS2 / (aS2+SqN2(aPt-aP0));
+         tEl  aErr2 = SqN2(aPt-aP0);
+         if (aErr2 > aErRej2)
+         {
+            tEl aW =  aS2P / (aS2P+std::pow(aErr2,aExpN2));
 
-	 aSomW += aW;
-	 aRes += aPt * aW;
+	    aSomW += aW;
+	    aRes += aPt * aW;
+         }
      }
 
      return aRes/aSomW;

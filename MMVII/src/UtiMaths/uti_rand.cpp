@@ -323,6 +323,12 @@ bool SelectQAmongN(int aK,int aQ,int aN)
 {
     return SelectWithProp(aK,double(aQ)/double(aN));
 }
+int  KthSelectQAmonN(int aKTh,int aQ,int aN,tREAL8 aPhase)
+{
+    int aRes = round_ni( ((aKTh+ aPhase) /aQ) * aN);
+
+    return std::max(0,std::min(aRes,aN-1));
+}
 
 
 
