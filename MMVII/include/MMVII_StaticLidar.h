@@ -27,6 +27,8 @@ public:
     cStaticLidarImporter();
     void readPlyPoints(std::string aPlyFileName);
     void readE57Points(std::string aE57FileName);
+    bool read(const std::string & aName,bool OkNone=false); //< Addapt to adequate function from postfix, return is some read suceeded
+
     void convertToThetaPhiDist();
     void convertToXYZ();
 

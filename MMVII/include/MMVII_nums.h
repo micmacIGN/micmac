@@ -123,6 +123,7 @@ class cRandKAmongN
 /// K is the numbre to select, it will be selected regularly with a proportion aProp
 bool SelectWithProp(int aK,double aProp);
 bool SelectQAmongN(int aK,int aQ,int aN);
+int  KthSelectQAmonN(int aKTh,int aQ,int aN,tREAL8 aPhase=0.5);
 
 
 /* ============ Definition of numerical type ================*/

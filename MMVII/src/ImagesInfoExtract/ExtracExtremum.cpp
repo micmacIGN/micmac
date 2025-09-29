@@ -488,6 +488,7 @@ template void ExtractExtremum3(const cDataIm2D<Type>  &anImUp,const cDataIm2D<Ty
 
 
 
+MACRO_INSTANTIATE_ExtractExtremum(tREAL8);
 MACRO_INSTANTIATE_ExtractExtremum(tREAL4);
 MACRO_INSTANTIATE_ExtractExtremum(tINT2);
 

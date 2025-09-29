@@ -801,7 +801,7 @@ template <class TypeWeight,class TypeVal=TypeWeight> class cWeightAv
         TypeVal Average(const TypeVal  & aDef) const;
         const TypeVal & SVW() const;  /// Accessor to sum weighted vals
         const TypeWeight & SW() const;  /// Accessor to sum weighted vals
-        const long Nb() const;  /// Accessor to number of elements
+        long Nb() const;  /// Accessor to number of elements
         void  Reset();
     private :
         TypeWeight  mSW;   ///< Som of    W
@@ -824,9 +824,10 @@ class cStdStatRes
         tREAL8  ErrAtProp(tREAL8 aProp) const;
         tREAL8  Min() const;
         tREAL8  Max() const;
-	int     NbMeasures() const;
+        int     NbMeasures() const;
 
-	std::string Show(const std::string & aPrefix,const std::vector<int> & aPerc) const;
+        std::string Show(const std::string & aPrefix,const std::vector<int> & aPerc) const;
+        const std::vector<tREAL8>  & VRes() const;
      private :
         mutable std::vector<tREAL8>       mVRes;
         cWeightAv<tREAL8,tREAL8>  mAvgDist;

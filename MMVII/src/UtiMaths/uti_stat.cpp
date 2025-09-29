@@ -497,7 +497,7 @@ template <class TypeWeight,class TypeVal> TypeVal cWeightAv<TypeWeight,TypeVal>:
 
 template <class TypeWeight,class TypeVal> const TypeVal & cWeightAv<TypeWeight,TypeVal>::SVW () const {return mSVW;}
 template <class TypeWeight,class TypeVal> const TypeWeight & cWeightAv<TypeWeight,TypeVal>::SW () const {return mSW;}
-template <class TypeWeight,class TypeVal> const long cWeightAv<TypeWeight,TypeVal>::Nb() const {return mNb;}
+template <class TypeWeight,class TypeVal> long cWeightAv<TypeWeight,TypeVal>::Nb() const {return mNb;}
 
 template <class Type> Type Average(const Type * aTab,size_t aNb)
 {
@@ -596,6 +596,7 @@ tREAL8  cStdStatRes::ErrAtProp(tREAL8 aProp) const {return NC_KthVal(mVRes,aProp
 tREAL8  cStdStatRes::Min() const {return mBounds.VMin();}
 tREAL8  cStdStatRes::Max() const {return mBounds.VMax();}
 int     cStdStatRes::NbMeasures() const {return mVRes.size();}
+const std::vector<tREAL8>  & cStdStatRes::VRes() const {return mVRes;}
 
 
 tREAL8  cStdStatRes::UBDevStd(tREAL8 aDef) const
