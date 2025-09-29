@@ -252,6 +252,8 @@ void cAppli_ImportStaticScan::computeAngStartStep()
                              << "PhiStep: " << mSL_data.mPhiStep << ", "
                              << "ThetaStart: " << mSL_data.mThetaStart << ", "
                              << "ThetaStep: " << mSL_data.mThetaStep << "\n";
+                    StdOut() << "PhiEnd: " << mSL_data.mPhiStart+mSL_data.mMaxLine*mSL_data.mPhiStep << ", "
+                             << "ThetaEnd: " << mSL_data.mThetaStep+mSL_data.mMaxCol*mSL_data.mThetaStep << "\n";
                     return;
                 }
             }
@@ -569,6 +571,9 @@ int cAppli_ImportStaticScan::Exe()
 
     mSL_data.fillRasters(mPhProj.DPStaticLidar().FullDirOut(), true);
     SaveInFile(mSL_data, mPhProj.DPStaticLidar().FullDirOut() +  mSL_data.mStationName + "_" + mSL_data.mScanName + ".xml");
+
+
+    mSL_data.MaskBuffer(mSL_data.mPhiStep*20);
 
     return EXIT_SUCCESS;
 
