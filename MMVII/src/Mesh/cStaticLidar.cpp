@@ -316,7 +316,7 @@ template <typename TYPE> void cStaticLidar::fillRaster(const std::string& aPhPro
     auto & aRasterData = aIm->DIm();
     for (size_t i=0; i<mSL_importer.mVectPtsTPD.size(); ++i)
     {
-        cPt2di aPcl = {mSL_importer.mVectPtsCol[i], mMaxLine-mSL_importer.mVectPtsLine[i]};
+        cPt2di aPcl = {mSL_importer.mVectPtsCol[i], mSL_importer.mVectPtsLine[i]};
         aRasterData.SetV(aPcl, func(i));
     }
     aRasterData.ToFile(aPhProjDirOut + aFileName);
@@ -376,9 +376,62 @@ void cStaticLidar::fillRasters(const std::string& aPhProjDirOut, bool saveRaster
 
 }
 
-void cStaticLidar::noResponseBuffer(tREAL8 aAngBuffer)
+void cStaticLidar::MaskBuffer(tREAL8 aAngBuffer)
 {
+    MMVII_INTERNAL_ASSERT_tiny(mRasterMask, "Error: mRasterMask must be computed first");
+    auto & aMaskImData = mRasterMask->DIm();
+    mRasterMaskBuffer.reset( new cIm2D<tU_INT1>(cPt2di(mMaxCol+1, mMaxLine+1), 0, eModeInitImage::eMIA_NoInit));
+    auto & aMaskBufImData = mRasterMaskBuffer->DIm();
 
+    bool aHzLoop = false;
+    if (fabs(fabs(mThetaStep) * (mMaxCol+1) - 2 * M_PI) < 2 * fabs(mThetaStep))
+        aHzLoop = true;
+
+
+    tREAL8 aRadPx = aAngBuffer/mPhiStep;
+
+    // fill 255. TODO: improve!
+    for (int l = 0 ; l <= mMaxLine; ++l)
+    {
+        for (int c = 0 ; c <= mMaxCol; ++c)
+        {
+            aMaskBufImData.SetV(cPt2di(c, l), 255);
+        }
+    }
+
+    // int c = 100;
+    // for (int l = 100; l < 2700; l += 500)
+    for (int l = 0 ; l <= mMaxLine; ++l)
+    {
+        for (int c = 0 ; c <= mMaxCol; ++c)
+        {
+            auto aMaskVal = aMaskImData.GetV(cPt2di(c, l));
+            if (aMaskVal==0)
+            {
+                for (int il = l - aRadPx; il <= l + aRadPx; ++il)
+                {
+                    if ((il<0) || (il>mMaxLine)) continue;
+                    tREAL8 phi = lToPhiApprox(il);
+                    tREAL8 w = sqrt(aRadPx*aRadPx - (il-l)*(il-l))/cos(phi);
+                    for (int ic = c - w; ic <= c + w; ++ic)
+                    {
+                        int icc = ic; // working copy
+                        if (aHzLoop)
+                        {
+                            icc = icc % (mMaxCol+1);
+                            if (icc<0)
+                                icc += (mMaxCol+1);
+                        }
+                        else
+                            if ((icc<0)||(icc>mMaxCol))
+                                continue;
+                        aMaskBufImData.SetV(cPt2di(icc, il), 0);
+                    }
+                }
+            }
+        }
+    }
+    aMaskBufImData.ToFile("MaskBuff.png");
 }
 
 void cStaticLidar::AddData(const  cAuxAr2007 & anAux)

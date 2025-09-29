@@ -68,12 +68,17 @@ public :
     cStaticLidar(const std::string &aNameImage, const tPose &aPose, cPerspCamIntrCalib *aCalib);
     long NbPts() const;
 
-    void ToPly(const std::string & aName,bool WithOffset=false) const;
+    void ToPly(const std::string & aName, bool WithOffset=false) const;
     void AddData(const  cAuxAr2007 & anAux) ;
 
     void fillRasters(const std::string &aPhProjDirOut, bool saveRasters);
 
-    void noResponseBuffer(tREAL8 aAngBuffer);
+    inline tREAL8 lToPhiApprox(int l) const { return mPhiStart + l * mPhiStep; }
+    inline tREAL8 cToThetaApprox(int c) const { return mThetaStart + c * mThetaStep; }
+
+
+    void MaskBuffer(tREAL8 aAngBuffer);
+
 
     cStaticLidarImporter mSL_importer;
 private :
@@ -102,6 +107,11 @@ private :
     tREAL8 mPhiStart, mPhiStep;
     int mMaxCol, mMaxLine;
     cRotation3D<tREAL8> mVertRot;
+
+    // rasters for filtering
+    std::unique_ptr<cIm2D<tU_INT1>> mRasterMaskBuffer;
+    std::unique_ptr<cIm2D<tREAL4>> mRasterIntensTexture;
+    std::unique_ptr<cIm2D<tREAL4>> mRasterDepthStability;
 };
 
 void AddData(const  cAuxAr2007 & anAux,cStaticLidar & aSL);
