@@ -1,5 +1,8 @@
 #include "cMMVII_Appli.h"
 #include "MMVII_StaticLidar.h"
+#include "MMVII_Tpl_Images.h"
+#include "MMVII_ImageInfoExtract.h"
+
 /*
 #include "MMVII_Geom3D.h"
 #include "MMVII_Sensor.h"
@@ -60,9 +63,13 @@ class cAppliTestStaticLidarRevEng : public cMMVII_Appli
 	void ComputeLines();
 
         void EstimateNormal_of_1Line(cLine_SLRE &,bool Show=false);
-        void EstimateNormal_Glob();
+        void SetNewAxeZ(const cPt3dr & aPt);
+        void EstimateNormal_Glob_ByProdVect();
 
-        void MakeImages();
+        void EstimateNormal_ByImageRad(bool ComputeNewNormal,bool Export);
+
+        void MakeIm_TetaPhi(const std::string & aPrefix);
+        void MakeIm_Star();
 
 
      // --- Mandatory ----
@@ -75,6 +82,7 @@ class cAppliTestStaticLidarRevEng : public cMMVII_Appli
 
 	cStaticLidarImporter  mSLI;
 	tREAL8                mStepPhi;       //< estimation of delta phi
+        tRotR                 mRotInit2New;
         int                   mStepNormal;
         int                   mK0ComputeN;
 
@@ -96,7 +104,8 @@ cAppliTestStaticLidarRevEng::cAppliTestStaticLidarRevEng(const std::vector<std::
    mShow            (true),
    mThsRelStepPhi   (4.0),
    mIndParamN       {4,0},
-   mTestLines       {5,4}     
+   mTestLines       {5,4},
+   mRotInit2New     (tRotR::Identity())
 {
 }
 
@@ -122,6 +131,7 @@ cCollecSpecArg2007 & cAppliTestStaticLidarRevEng::ArgOpt(cCollecSpecArg2007 & an
 
 void cAppliTestStaticLidarRevEng::AddLine(int aI0,int aI1)
 {
+StdOut() << "-----LINE " << aI0 << " " << aI1 << "\n";
     cLine_SLRE aLine;
     aLine.mInd0 = aI0;
     aLine.mInd1 = aI1;
@@ -187,7 +197,7 @@ void cAppliTestStaticLidarRevEng::EstimateNormal_of_1Line(cLine_SLRE & aLine,boo
     aLine.mNormal = aNorm;
 }
 
-void cAppliTestStaticLidarRevEng::EstimateNormal_Glob()
+void cAppliTestStaticLidarRevEng::EstimateNormal_Glob_ByProdVect()
 {
    for (size_t aKL=0 ; aKL<mVLines.size(); aKL++)
    {
@@ -219,15 +229,18 @@ void cAppliTestStaticLidarRevEng::EstimateNormal_Glob()
           StdOut() << "  * Scal= " << aProp << " Dt=" << aStatScal.ErrAtProp(aProp) << "\n";
    }
 
+   SetNewAxeZ(mVert);
+}
 
-   mVPtSInit = mVPtS;
-   cPt3dr aI =  VUnit(cPt3dr(0,1,0)^mVert);
-   cPt3dr aJ =  VUnit(mVert^aI);
-   tRotR  mRot = tRotR(aI,aJ,mVert,false);
+void cAppliTestStaticLidarRevEng::SetNewAxeZ(const cPt3dr & aNewZ)
+{
+   cPt3dr aNewX =  VUnit(cPt3dr(0,1,0)^aNewZ);
+   cPt3dr aNewY =  VUnit(aNewZ^aNewX);
 
-   for (auto & aPts : mVPtS)
+   mRotInit2New =   tRotR(aNewX,aNewY,aNewZ,false).MapInverse() *    mRotInit2New;
+   for (size_t aKPt =0 ; aKPt<mVPtS.size() ; aKPt++)
    {
-        aPts.mPtS = mRot.Inverse(aPts.mPtS);
+         mVPtS.at(aKPt).mPtS = mRotInit2New.Value(mVPtSInit.at(aKPt).mPtS);
    }
 }
 
@@ -269,6 +282,7 @@ void cAppliTestStaticLidarRevEng::CreatePointSphere()
    {
       MMVII_UnclasseUsEr("No data found in " + mNameInputScan);
    }
+   mVPtSInit = mVPtS;
    StdOut() << " done sphere \n";
 }
 
@@ -293,13 +307,136 @@ void cAppliTestStaticLidarRevEng::ComputeStepPhi()
 
    if (mShow)
    {
+      StdOut()  << " Nb-Pts=" << mVPtS.size()  << " Nb-OK=" << aStatDPhi.NbMeasures() << "\n";
       StdOut()  << "=========== Stat  Delta Phi ============ \n";
       for (const auto & aProp : {0.5,0.1,0.9,0.01,0.99})
           StdOut() << "  * P= " << aProp << " Dt=" << aStatDPhi.ErrAtProp(aProp) << "\n";
    }
 }
 
-void cAppliTestStaticLidarRevEng::MakeImages()
+
+
+void cAppliTestStaticLidarRevEng::EstimateNormal_ByImageRad(bool ComputeNewNormal,bool MakeImage)
+{
+    int aSzRad = 2000;
+    tREAL8 aNbGauss = 5.0;
+    tREAL8 aFactExag = 10.0;
+
+
+    tREAL8  aAmplRad = aFactExag / mStepPhi;
+    cPt2dr aPMil = cPt2dr(aSzRad,aSzRad) / 2.0;
+    cIm2D<tREAL8>  aImRad(cPt2di(aSzRad,aSzRad),nullptr,eModeInitImage::eMIA_Null);
+    cIm2D<tREAL8>  aImFiltered = aImRad.Dup();
+
+    for (const auto & aPS : mVPtS)
+    {
+        if (aPS.mDepth)
+        {
+             cPt2dr  aPt = Proj(aPS.mPtS);
+             aPt =  aPMil + aAmplRad * aPt;
+             if (aImRad.DIm().InsideBL(aPt))
+                aImRad.DIm().AddVBL(aPt,1.0);
+        }
+    }
+    ExpFilterOfStdDev(aImFiltered.DIm(),aImRad.DIm(),10,aNbGauss*aFactExag);
+    if (MakeImage)
+    {
+        aImRad.DIm().ToFile("RevIng/" + mNameInputScan + "_RadInit.tif");
+        aImFiltered.DIm().ToFile("RevIng/" + mNameInputScan + "_RadFiltr.tif");
+    }
+    if (ComputeNewNormal)
+    {
+        cPt2dr aPtMax =  ToR(WhichMax(aImFiltered.DIm()));
+        StdOut()  <<  "MMMMMMMMMMMMMMMMMMaaxx= " <<  aPtMax << "\n";
+        cAffineExtremum<tREAL8>  aAffineEx(aImFiltered.DIm(),aFactExag*2);
+        for (int aK=0 ;aK<2 ; aK++)
+            aPtMax  = aAffineEx.OneIter(aPtMax);
+        StdOut()  <<  "MM Refine MMMMMMMMMaaxx= " <<  aPtMax << "\n";
+
+        aPtMax =  (aPtMax-aPMil) / aAmplRad;
+
+
+
+        SetNewAxeZ(VUnit(cPt3dr(aPtMax.x(),aPtMax.y(),1.0)));
+    }
+}
+
+void cAppliTestStaticLidarRevEng::MakeIm_Star()
+{
+    // int aNbLine = mVLines.size();
+
+    cPt2di aSz(2*mNbPhi,2*mNbPhi);
+    cPt2dr aPMil =  ToR(aSz) / 2.0;
+    cIm2D<tREAL4>  aImStar(aSz,nullptr,eModeInitImage::eMIA_Null);
+
+    for (int aKthLine = 0 ; aKthLine<(int)mVLines.size() ; aKthLine++)
+    {
+        if (aKthLine%100<4)
+        {
+             const auto & aLine = mVLines.at(aKthLine);
+             for (int aKPt = aLine.mInd0 ; aKPt<aLine.mInd1 ; aKPt++)
+             {
+                 const auto & aPS =  mVPtS.at(aKPt);
+                 if (aPS.mDepth)
+                 {
+                     cPt2dr aPt2 = aPMil + Proj(aPS.mPtS) /mStepPhi;
+                     if (aImStar.DIm().InsideBL(aPt2))
+                        aImStar.DIm().AddVBL(aPt2,10.0);
+                 }
+             }
+        }
+    }
+#if (0)
+    for (int aKthLine = 0 ; aKthLine<aNbLine ; aKthLine++)
+    {
+        int aNumL = KthSelectQAmonN(aKthLine,aNbLine,mVLines.size());
+        const auto & aLine = mVLines.at(aNumL);
+        std::vector<cPt2dr> aV2d;
+        for (int aKPt = aLine.mInd0 ; aKPt<aLine.mInd1 ; aKPt++)
+        {
+            const auto & aPS =  mVPtS.at(aKPt);
+            if (aPS.mDepth)
+            {
+/*
+                cPt3dr aPt = cart2spher (aPS.mPtS);
+                tREAL8 aTeta = aPt.x();
+                tREAL8 aRho = (M_PI/2.0-aPt.y()) ;
+                aV2d.push_back(FromPolar(aRho/mStepPhi,aTeta)+aPMil);
+                if ((aKPt==aLine.mInd0) || (aKPt==aLine.mInd1-1))
+                   StdOut() << " KL=" << aKthLine  << " R=" <<  aRho  << " T=" << aTeta << " PtS" << aPS.mPtS << "\n";
+
+*/
+{
+                cPt2dr aPt2 = aPMil + Proj(aPS.mPtS) /mStepPhi;
+                aV2d.push_back(aPt2);
+}
+            }
+        }
+        for (const auto &aPt1 : aV2d)
+        {
+            if (aImStar.DIm().InsideBL(aPt1))
+               aImStar.DIm().AddVBL(aPt1,1.0);
+        }
+        StdOut() << "K=" << aKthLine  << " NL= " <<  aNumL << " N=" << Norm2(aV2d.front() - aV2d.back()) << "\n";
+    }
+#endif
+
+    for (const auto & aPS : mVPtS)
+    {
+        if (aPS.mDepth)
+        {
+             cPt2dr  aPt = Proj(aPS.mPtS);
+             aPt =  aPMil +  aPt * 10.0/ mStepPhi;
+             if (aImStar.DIm().InsideBL(aPt))
+                aImStar.DIm().AddVBL(aPt,10.0);
+        }
+    }
+    aImStar.DIm().ToFile("RevIng/" + mNameInputScan + "_star.tif" );
+}
+
+
+
+void cAppliTestStaticLidarRevEng::MakeIm_TetaPhi(const std::string & aPrefix)
 {
     cPt2di aSz(mNbTeta,mNbPhi);
     cIm2D<tREAL4>  aImTeta(aSz,nullptr,eModeInitImage::eMIA_Null);
@@ -315,12 +452,6 @@ void cAppliTestStaticLidarRevEng::MakeImages()
          {
              const auto & aPS = mVPtS.at(aLine.mInd0+aKP);
              cPt2di aP_tp(aKT,aKP);
-/*
-if (aP_tp==cPt2di(5000,2000))
-{
-   StdOut() << " C2S : " << aPS.mPtS << " => " << aPS.mDepth << "\n";
-}
-*/
              if (aPS.mDepth)
              {
                  cPt3dr  aCoordSpher = cart2spher(aPS.mPtS);
@@ -330,8 +461,8 @@ if (aP_tp==cPt2di(5000,2000))
          }
     }
 
-    aImTeta.DIm().ToFile("RevIng/" + mNameInputScan + "_teta.tif");
-    aImPhi.DIm().ToFile("RevIng/" + mNameInputScan + "_phi.tif");
+    aImTeta.DIm().ToFile("RevIng/" + mNameInputScan + aPrefix+ "_teta.tif");
+    aImPhi.DIm().ToFile("RevIng/"  + mNameInputScan + aPrefix+ "_phi.tif");
     // aImTeta.ToFile("RevIng/" + mNameInputScan + "_teta.tif");
 
     // cIm2D<tREAL4>  aImPhi;
@@ -377,6 +508,19 @@ void cAppliTestStaticLidarRevEng::ComputeLines()
    for (const auto & aLine  : mVLines)
        aStatLongLine.Add(aLine.mInd1-aLine.mInd0);
    mNbPhi = aStatLongLine.ErrAtProp(0.5);
+
+
+   {
+        const auto & aLL =mVLines.back();
+        for (size_t aInd = mNbPhi - 1000 ;  aInd<mNbPhi+1000 ; aInd += 100)
+        {
+              if (aInd==mNbPhi)
+                 StdOut() << " **************************************** \n";
+              const auto & aPtS = mVPtS.at(aLL.mInd0+aInd);
+              StdOut() << " DPhi=" << aPtS.mDPhiPrec / mStepPhi << " " << aPtS.mPtS << "\n";
+        }
+        getchar();
+   }
 
    if (mShow)
    {
@@ -431,6 +575,12 @@ int cAppliTestStaticLidarRevEng::Exe()
 {
    StdOut() << "BEGIN cAppliTestStaticLidarRevEng \n";
 
+
+for (const cPt3dr aPt : {cPt3dr(1.0,0.0,1.0),cPt3dr(-1.0,0.0,1.0),cPt3dr(0.0,1.0,1.0),cPt3dr(0.0,-1.0,1.0)})
+{
+   StdOut() << " Pt " << aPt << " Sph=" << cart2spher(aPt) << " Pt2=" << spher2cart(cart2spher(aPt)) << "\n";
+}
+
    mStepNormal = mIndParamN.at(0);
    mK0ComputeN = mIndParamN.at(1);;
 
@@ -450,15 +600,18 @@ int cAppliTestStaticLidarRevEng::Exe()
    ComputeLines();
 
    //  --------------------   ----------------
-   EstimateNormal_Glob();
+   EstimateNormal_Glob_ByProdVect();
    // ComputeStepPhi();
    //EstimateNormal_Glob();
 
+    MakeIm_TetaPhi("Before");
+ 
+    EstimateNormal_ByImageRad(true,true);
 
-    MakeImages();
+    MakeIm_TetaPhi("After");
+    MakeIm_Star();
 
-
-   return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
 
      /* =============================================== */
