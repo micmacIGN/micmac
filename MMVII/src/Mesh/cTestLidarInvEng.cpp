@@ -78,7 +78,7 @@ class cAppliTestStaticLidarRevEng : public cMMVII_Appli
 	std::string mNameInputScan;
      // --- Optional ----
         bool                  mShow;          //< do we show msg
-	tREAL8                mThsRelStepPhi; //< relative toreshold for phi
+     //tREAL8                mThsRelStepPhi; //< relative toreshold for phi
         std::vector<int>      mIndParamN;     //< Param for computing normal
         std::vector<int>      mTestLines;     //< Line for which we do test
 
@@ -104,7 +104,7 @@ class cAppliTestStaticLidarRevEng : public cMMVII_Appli
 cAppliTestStaticLidarRevEng::cAppliTestStaticLidarRevEng(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli     (aVArgs,aSpec),
    mShow            (true),
-   mThsRelStepPhi   (4.0),
+  // mThsRelStepPhi   (4.0),
    mIndParamN       {4,0},
    mTestLines       {5,4},
    mRotInit2New     (tRotR::Identity())
