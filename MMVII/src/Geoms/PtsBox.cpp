@@ -43,7 +43,7 @@ template <class tContPts>
      for (const auto & aPt : aContPts)
      {
          tEl  aErr2 = SqN2(aPt-aP0);
-         if (aErr2 > aErRej2)
+         if (aErr2 < aErRej2)
          {
             tEl aW =  aS2P / (aS2P+std::pow(aErr2,aExpN2));
 

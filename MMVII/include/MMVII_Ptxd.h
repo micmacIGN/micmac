@@ -613,7 +613,7 @@ template <class tContPts>  class cComputeCentroids
        typedef  typename tPts::tEl            tEl;
 
        static tPts   MedianCentroids(const tContPts &);
-       static tPts   LinearWeigtedCentroids(const tContPts &,const tPts & aP0,double aSigma,double aExpN2=1.0,double aErRej=1e0);
+       static tPts   LinearWeigtedCentroids(const tContPts &,const tPts & aP0,double aSigma,double aExpN2=1.0,double aErRej=1e10);
        static tREAL8 SigmaDist(const tContPts &,const tPts & aP0,double aProp);
 
        static tPts  StdRobustCentroid(const tContPts &,double aProp,int aNbIter);
