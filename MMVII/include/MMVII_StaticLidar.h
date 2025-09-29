@@ -71,21 +71,31 @@ public :
     void ToPly(const std::string & aName,bool WithOffset=false) const;
     void AddData(const  cAuxAr2007 & anAux) ;
 
+    void fillRasters(const std::string &aPhProjDirOut, bool saveRasters);
 
+    void noResponseBuffer(tREAL8 aAngBuffer);
+
+    cStaticLidarImporter mSL_importer;
 private :
+    template <typename TYPE> void fillRaster(const std::string& aPhProjDirOut, const std::string& aFileName,
+                    std::function<TYPE (int)> func); // do not keep image in memory
+
+    template <typename TYPE> void fillRaster(const std::string& aPhProjDirOut, const std::string& aFileName,
+                    std::function<TYPE (int)> func, std::unique_ptr<cIm2D<TYPE>> & aIm); // keep image in memory
+
     std::string mStationName;
     std::string mScanName;
-    std::string mRasterDistance;
-    std::string mRasterIntensity;
-    std::string mRasterMask;
-    std::string mRasterX;
-    std::string mRasterY;
-    std::string mRasterZ;
-    std::string mRasterTheta;
-    std::string mRasterPhi;
-    std::string mRasterThetaErr;
-    std::string mRasterPhiErr;
-
+    std::string mRasterDistancePath;
+    std::string mRasterIntensityPath;
+    std::string mRasterMaskPath;
+    std::unique_ptr<cIm2D<tU_INT1>> mRasterMask;
+    std::string mRasterXPath;
+    std::string mRasterYPath;
+    std::string mRasterZPath;
+    std::string mRasterThetaPath;
+    std::string mRasterPhiPath;
+    std::string mRasterThetaErrPath;
+    std::string mRasterPhiErrPath;
 
 
     tREAL8 mThetaStart, mThetaStep;
