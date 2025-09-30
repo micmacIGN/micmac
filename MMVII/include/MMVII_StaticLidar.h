@@ -77,6 +77,7 @@ public :
     inline tREAL8 cToThetaApprox(int c) const { return mThetaStart + c * mThetaStep; }
 
     void FilterIntensity(tREAL8 aLowest, tREAL8 aHighest); // add to mRasterMask
+    void FilterIncidence(tREAL8 aAngMax);
     void MaskBuffer(tREAL8 aAngBuffer);
 
 
@@ -91,6 +92,7 @@ private :
     std::string mStationName;
     std::string mScanName;
     std::string mRasterDistancePath;
+    std::unique_ptr<cIm2D<tREAL4>> mRasterDistance;
     std::string mRasterIntensityPath;
     std::string mRasterMaskPath;
     std::unique_ptr<cIm2D<tU_INT1>> mRasterMask;

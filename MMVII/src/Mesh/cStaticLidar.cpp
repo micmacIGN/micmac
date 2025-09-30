@@ -4,6 +4,8 @@
 
 #include "../Mesh/happly.h"
 #include "E57SimpleReader.h"
+#include "MMVII_TplGradImFilter.h"
+#include "MMVII_Tpl_Images.h"
 
 namespace MMVII
 {
@@ -351,22 +353,24 @@ void cStaticLidar::fillRasters(const std::string& aPhProjDirOut, bool saveRaster
                         }, mRasterMask);
     if (mSL_importer.HasIntensity())
         fillRaster<tU_INT1>(aPhProjDirOut, mRasterIntensityPath, [this](int i){return mSL_importer.mVectPtsIntens[i]*255;} );
-    fillRaster<float>(aPhProjDirOut, mRasterDistancePath, [this](int i){auto aPtAng = mSL_importer.mVectPtsTPD[i];return aPtAng.z();} );
+    fillRaster<tREAL4>(aPhProjDirOut, mRasterDistancePath,
+                      [this](int i){auto aPtAng = mSL_importer.mVectPtsTPD[i];return aPtAng.z();},
+                       mRasterDistance );
 
-    fillRaster<float>(aPhProjDirOut, mRasterXPath, [this](int i){auto aPtXYZ = mSL_importer.mVectPtsXYZ[i];return aPtXYZ.x();} );
-    fillRaster<float>(aPhProjDirOut, mRasterYPath, [this](int i){auto aPtXYZ = mSL_importer.mVectPtsXYZ[i];return aPtXYZ.y();} );
-    fillRaster<float>(aPhProjDirOut, mRasterZPath, [this](int i){auto aPtXYZ = mSL_importer.mVectPtsXYZ[i];return aPtXYZ.z();} );
+    fillRaster<tREAL4>(aPhProjDirOut, mRasterXPath, [this](int i){auto aPtXYZ = mSL_importer.mVectPtsXYZ[i];return aPtXYZ.x();} );
+    fillRaster<tREAL4>(aPhProjDirOut, mRasterYPath, [this](int i){auto aPtXYZ = mSL_importer.mVectPtsXYZ[i];return aPtXYZ.y();} );
+    fillRaster<tREAL4>(aPhProjDirOut, mRasterZPath, [this](int i){auto aPtXYZ = mSL_importer.mVectPtsXYZ[i];return aPtXYZ.z();} );
 
-    fillRaster<float>(aPhProjDirOut, mRasterThetaPath, [this](int i){auto aPtAng = mSL_importer.mVectPtsTPD[i];return aPtAng.x();} );
-    fillRaster<float>(aPhProjDirOut, mRasterPhiPath, [this](int i){auto aPtAng = mSL_importer.mVectPtsTPD[i];return aPtAng.y();} );
-    fillRaster<float>(aPhProjDirOut, mRasterThetaErrPath, [this](int i)
+    fillRaster<tREAL4>(aPhProjDirOut, mRasterThetaPath, [this](int i){auto aPtAng = mSL_importer.mVectPtsTPD[i];return aPtAng.x();} );
+    fillRaster<tREAL4>(aPhProjDirOut, mRasterPhiPath, [this](int i){auto aPtAng = mSL_importer.mVectPtsTPD[i];return aPtAng.y();} );
+    fillRaster<tREAL4>(aPhProjDirOut, mRasterThetaErrPath, [this](int i)
                       {
                           auto aPtAng = mSL_importer.mVectPtsTPD[i];
                           tREAL8 aThetaCol = mThetaStart + mThetaStep * mSL_importer.mVectPtsCol[i];
                           aThetaCol = toMinusPiPlusPi(aThetaCol);
                           return aPtAng.x()-aThetaCol;
                       } );
-    fillRaster<float>(aPhProjDirOut, mRasterPhiErrPath, [this](int i)
+    fillRaster<tREAL4>(aPhProjDirOut, mRasterPhiErrPath, [this](int i)
                       {
                           auto aPtAng = mSL_importer.mVectPtsTPD[i];
                           tREAL8 aPhiLine = mPhiStart + mPhiStep * mSL_importer.mVectPtsLine[i];
@@ -391,8 +395,64 @@ void cStaticLidar::FilterIntensity(tREAL8 aLowest, tREAL8 aHighest)
     aMaskImData.ToFile("MaskIntens.png");
 }
 
+void cStaticLidar::FilterIncidence(tREAL8 aAngMax)
+{
+    MMVII_INTERNAL_ASSERT_tiny(mRasterMask, "Error: mRasterMask must be computed first");
+    auto & aMaskImData = mRasterMask->DIm();
+
+    // TODO: use im.InitCste()
+    cIm2D<tREAL4> aImDistGrX(cPt2di(mMaxCol+1, mMaxLine+1), 0, eModeInitImage::eMIA_Null);
+    auto & aImDistGrXData = aImDistGrX.DIm();
+    cIm2D<tREAL4> aImDistGrY(cPt2di(mMaxCol+1, mMaxLine+1), 0, eModeInitImage::eMIA_Null);
+    auto & aImDistGrYData = aImDistGrY.DIm();
+
+    tREAL4 aTanAngMax = tan(aAngMax);
+
+    // gaussian blur of masked image: blur image and mask, for valid pixels, result = blured_im/blured_mask
+    auto aRasterDistGauss = mRasterDistance->Dup();
+    auto & aRasterDistGaussData = aRasterDistGauss.DIm();
+    ExpFilterOfStdDev(aRasterDistGaussData, 2, 3.);
+
+    mRasterMask->DIm().ToFile("Mask.tif");
+    auto aRasterMaskGauss = Convert((float*)nullptr, mRasterMask->DIm()) * (1./255.);
+    auto & aRasterMaskGaussData = aRasterMaskGauss.DIm();
+    ExpFilterOfStdDev(aRasterMaskGaussData, 2, 3.);
+
+    aRasterDistGaussData.ToFile("DistGaussData.tif");
+    aRasterMaskGaussData.ToFile("MaskGaussData.tif");
+
+    cImGrad<tREAL4> aDistGradIm(aRasterDistGauss);
+    ComputeSobel<tREAL4,tREAL4>(*aDistGradIm.mDGx, *aDistGradIm.mDGy, aRasterDistGaussData);
+    for (int l = 0 ; l <= mMaxLine; ++l)
+    {
+        tREAL4 phi = lToPhiApprox(l);
+        tREAL4 aStepThetaFix = mThetaStep*cos(phi);
+        for (int c = 0 ; c <= mMaxCol; ++c)
+        {
+            cPt2di aPt(c, l);
+            tREAL4 aDist = mRasterDistance->DIm().GetV(aPt);
+            tREAL4 aValDistGradX = aDistGradIm.Gx(aPt);
+            tREAL4 aValDistGradY = aDistGradIm.Gy(aPt);
+            tREAL4 aValGaussMask = aRasterMaskGaussData.GetV(aPt);
+            tREAL4 aValMask = mRasterMask->DIm().GetV(aPt);
+            if (! aValMask)
+                continue;
+            tREAL4 aTanIncidX = aValDistGradX / (aStepThetaFix * aDist) / aValGaussMask;
+            aImDistGrXData.SetV(cPt2di(c, l), aTanIncidX);
+            tREAL4 aTanIncidY = aValDistGradY / (mPhiStep * aDist) / aValGaussMask;
+            aImDistGrYData.SetV(cPt2di(c, l), aTanIncidY);
+            if (fabs(aTanIncidX*aTanIncidX+aTanIncidY*aTanIncidY)>aTanAngMax*aTanAngMax)
+                aMaskImData.SetV(cPt2di(c, l), 0);
+        }
+    }
+    aImDistGrXData.ToFile("DistGrXData.tif");
+    aImDistGrYData.ToFile("DistGrYData.tif");
+    aMaskImData.ToFile("MaskIncidence.png");
+}
+
 void cStaticLidar::MaskBuffer(tREAL8 aAngBuffer)
 {
+    StdOut() << "Computing Mask buffer..."<<std::endl;
     MMVII_INTERNAL_ASSERT_tiny(mRasterMask, "Error: mRasterMask must be computed first");
     auto & aMaskImData = mRasterMask->DIm();
     mRasterMaskBuffer.reset( new cIm2D<tU_INT1>(cPt2di(mMaxCol+1, mMaxLine+1), 0, eModeInitImage::eMIA_NoInit));
@@ -402,17 +462,8 @@ void cStaticLidar::MaskBuffer(tREAL8 aAngBuffer)
     if (fabs(fabs(mThetaStep) * (mMaxCol+1) - 2 * M_PI) < 2 * fabs(mThetaStep))
         aHzLoop = true;
 
-
     tREAL8 aRadPx = aAngBuffer/mPhiStep;
-
-    // fill 255. TODO: improve!
-    for (int l = 0 ; l <= mMaxLine; ++l)
-    {
-        for (int c = 0 ; c <= mMaxCol; ++c)
-        {
-            aMaskBufImData.SetV(cPt2di(c, l), 255);
-        }
-    }
+    aMaskBufImData.InitCste(255);
 
     std::vector<bool> aLinesFull(mMaxLine+1, false); // record lignes completely masked to pass them next time
     // int c = 100;
