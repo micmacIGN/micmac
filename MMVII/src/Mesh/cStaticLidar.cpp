@@ -414,6 +414,7 @@ void cStaticLidar::MaskBuffer(tREAL8 aAngBuffer)
         }
     }
 
+    std::vector<bool> aLinesFull(mMaxLine+1, false); // record lignes completely masked to pass them next time
     // int c = 100;
     // for (int l = 100; l < 2700; l += 500)
     for (int l = 0 ; l <= mMaxLine; ++l)
@@ -426,9 +427,15 @@ void cStaticLidar::MaskBuffer(tREAL8 aAngBuffer)
                 for (int il = l - aRadPx; il <= l + aRadPx; ++il)
                 {
                     if ((il<0) || (il>mMaxLine)) continue;
+                    if (aLinesFull[il]) continue;
                     tREAL8 phi = lToPhiApprox(il);
                     tREAL8 w = fabs(sqrt(aRadPx*aRadPx - (il-l)*(il-l))/cos(phi));
-                    if (w>mMaxCol) w=mMaxCol;
+                    if (w>mMaxCol)
+                    {
+                        w=mMaxCol;
+                        aLinesFull[il] = true;
+                        // TODO: fill line and continue
+                    }
                     for (int ic = c - w; ic <= c + w; ++ic)
                     {
                         int icc = ic; // working copy
