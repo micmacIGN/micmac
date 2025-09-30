@@ -75,22 +75,23 @@ class cAppliTestStaticLidarRevEng : public cMMVII_Appli
 
 
      // --- Mandatory ----
-	std::string mNameInputScan;
+       std::string           mFullNameInputScan;
      // --- Optional ----
         bool                  mShow;          //< do we show msg
      //tREAL8                mThsRelStepPhi; //< relative toreshold for phi
         std::vector<int>      mIndParamN;     //< Param for computing normal
         std::vector<int>      mTestLines;     //< Line for which we do test
 
-	cStaticLidarImporter  mSLI;
-	tREAL8                mStepPhi;       //< estimation of delta phi
+        std::string           mNameFileInputScan;
+        cStaticLidarImporter  mSLI;
+        tREAL8                mStepPhi;       //< estimation of delta phi
         tRotR                 mRotInit2New;
         int                   mStepNormal;
         int                   mK0ComputeN;
 
-	std::vector<cPt_SLRE>    mVPtS;
-	std::vector<cPt_SLRE>    mVPtSInit;
-	std::vector<cLine_SLRE>  mVLines;
+        std::vector<cPt_SLRE>    mVPtS;
+        std::vector<cPt_SLRE>    mVPtSInit;
+        std::vector<cLine_SLRE>  mVLines;
         cPt3dr                   mVert;
 
         size_t                   mNbPhi;
@@ -115,7 +116,7 @@ cAppliTestStaticLidarRevEng::cAppliTestStaticLidarRevEng(const std::vector<std::
 cCollecSpecArg2007 & cAppliTestStaticLidarRevEng::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
  return anArgObl
-	  <<   Arg2007(mNameInputScan,"Name of input cloud/mesh", {eTA2007::FileDirProj,eTA2007::FileCloud})
+	  <<   Arg2007(mFullNameInputScan,"Name of input cloud/mesh", {eTA2007::FileDirProj,eTA2007::FileCloud})
    ;
 }
 
@@ -176,7 +177,7 @@ void cAppliTestStaticLidarRevEng::CreatePointSphere()
    }
    else
    {
-      MMVII_UnclasseUsEr("No data found in " + mNameInputScan);
+      MMVII_UnclasseUsEr("No data found in " + mFullNameInputScan);
    }
 
    // the segmentation in line using data, does not work,so 4 now, let be very conservative
@@ -472,8 +473,8 @@ void cAppliTestStaticLidarRevEng::EstimateNormal_ByImageRad(bool ComputeNewNorma
     ExpFilterOfStdDev(aImFiltered.DIm(),aImRad.DIm(),10,aNbGauss*aFactExag);
     if (MakeImage)
     {
-        aImRad.DIm().ToFile("RevIng/" + mNameInputScan + "_RadInit.tif");
-        aImFiltered.DIm().ToFile("RevIng/" + mNameInputScan + "_RadFiltr.tif");
+        aImRad.DIm().ToFile("RevIng/" + mNameFileInputScan + "_RadInit.tif");
+        aImFiltered.DIm().ToFile("RevIng/" + mNameFileInputScan + "_RadFiltr.tif");
     }
     if (ComputeNewNormal)
     {
@@ -500,7 +501,8 @@ void cAppliTestStaticLidarRevEng::MakeIm_Star()
     cPt2dr aPMil =  ToR(aSz) / 2.0;
     cIm2D<tREAL4>  aImStar(aSz,nullptr,eModeInitImage::eMIA_Null);
     int aNbLine = 20;
-    tREAL8  aFactExag = 1.0;
+    tREAL8  aZoom = 10.0;
+    tREAL8  aFactExag = 5.0;
 
     for (int aKthLine = 0 ; aKthLine<aNbLine ; aKthLine++)
     {
@@ -514,20 +516,27 @@ void cAppliTestStaticLidarRevEng::MakeIm_Star()
             {
                 cPt3dr aPt = cart2spher (aPS.mPtS);
                 tREAL8 aTeta = aPt.x();
-                tREAL8 aRho = (M_PI/2.0-aPt.y()) ;
-                aV2d.push_back(FromPolar(aRho/mStepPhi,aTeta)+aPMil);
+                tREAL8 aRho = (M_PI/2.0-aPt.y());
+                aV2d.push_back(FromPolar(aRho* (aZoom/mStepPhi),aTeta)+aPMil);
             }
         }
-        cSegment2DCompiled<tREAL8> aSeg(aPMil,aV2d.back());
-        for (const auto &aPt1 : aV2d)
+        cSegment2DCompiled<tREAL8> aSeg(aPMil,aV2d.at(round_ni(0.8*aV2d.size())));
+        for (size_t aKPt=1 ; aKPt<aV2d.size() ; aKPt++)
         {
-            cPt2dr aPLoc = aSeg.ToCoordLoc(aPt1);
-            cPt2dr  aPMod = aSeg.FromCoordLoc(cPt2dr(aPLoc.x(),aPLoc.y() * aFactExag));
-            if (aImStar.DIm().InsideBL(aPMod))
-               aImStar.DIm().AddVBL(aPMod,1.0);
+           cPt2dr aP1 = aV2d.at(aKPt-1);
+           cPt2dr aP2 = aV2d.at(aKPt);
+           int aNbPts = round_ni(2*aZoom);
+           for (int aKInterp=0 ; aKInterp<aNbPts ; aKInterp++)
+           {
+               cPt2dr aPt1 = Centroid(aKInterp/tREAL8(aNbPts),aP1,aP2);
+               cPt2dr aPLoc = aSeg.ToCoordLoc(aPt1);
+               cPt2dr  aPMod = aSeg.FromCoordLoc(cPt2dr(aPLoc.x(),aPLoc.y() * aFactExag));
+               if (aImStar.DIm().InsideBL(aPMod))
+                  aImStar.DIm().AddVBL(aPMod,1.0);
+           }
         }
     }
-    aImStar.DIm().ToFile("RevIng/" + mNameInputScan + "_star.tif" );
+    aImStar.DIm().ToFile("RevIng/" + mNameFileInputScan + "_star.tif" );
 }
 
 
@@ -540,6 +549,8 @@ void cAppliTestStaticLidarRevEng::MakeIm_TetaPhi(const std::string & aPrefix)
     cIm2D<tU_INT1> aImMask(aSz,nullptr,eModeInitImage::eMIA_Null);
 
     cIm2D<tREAL4>  aDifMoyTeta(aSz,nullptr,eModeInitImage::eMIA_Null);
+    cIm2D<tREAL4>  aDifMoyPhi(aSz,nullptr,eModeInitImage::eMIA_Null);
+
 
     for (size_t aKT=0 ; aKT<mNbTeta ; aKT++)
     {
@@ -570,10 +581,29 @@ void cAppliTestStaticLidarRevEng::MakeIm_TetaPhi(const std::string & aPrefix)
          }
     }
 
-    aImTeta.DIm().ToFile("RevIng/" + mNameInputScan + aPrefix+ "_teta.tif");
-    aImPhi.DIm().ToFile("RevIng/"  + mNameInputScan + aPrefix+ "_phi.tif");
-    aDifMoyTeta.DIm().ToFile("RevIng/"  + mNameInputScan + aPrefix+ "_DifTeta.tif");
-    // aImTeta.ToFile("RevIng/" + mNameInputScan + "_teta.tif");
+
+    for (size_t aKP=0 ; aKP<mNbPhi ; aKP++)
+    {
+        cWeightAv<tREAL8,tREAL8> aAvgPhi;
+        for (size_t aKT=0 ; aKT<mNbTeta ; aKT++)
+        {
+            cPt2di aP_tp(aKT,aKP);
+            if (aImMask.DIm().GetV(aP_tp))
+               aAvgPhi.Add(1.0,aImPhi.DIm().GetV(aP_tp));
+        }
+        for (size_t aKT=0 ; aKT<mNbTeta ; aKT++)
+        {
+            cPt2di aP_tp(aKT,aKP);
+           aDifMoyPhi.DIm().SetV(aP_tp,100.0 * (aImPhi.DIm().GetV(aP_tp)-aAvgPhi.Average()));
+        }
+    }
+
+    aImTeta.DIm().ToFile("RevIng/" + mNameFileInputScan + aPrefix+ "_teta.tif");
+    aImPhi.DIm().ToFile("RevIng/"  + mNameFileInputScan + aPrefix+ "_phi.tif");
+    aDifMoyTeta.DIm().ToFile("RevIng/"  + mNameFileInputScan + aPrefix+ "_DifTeta.tif");
+    aDifMoyPhi.DIm().ToFile("RevIng/"  + mNameFileInputScan + aPrefix+ "_DifPhi.tif");
+
+    // aImTeta.ToFile("RevIng/" + mNameFileInputScan + "_teta.tif");
 
     // cIm2D<tREAL4>  aImPhi;
 }
@@ -594,11 +624,11 @@ int cAppliTestStaticLidarRevEng::Exe()
 {
    StdOut() << "BEGIN cAppliTestStaticLidarRevEng \n";
 
-
+   mNameFileInputScan =  FileOfPath(mFullNameInputScan);
    mStepNormal = mIndParamN.at(0);
    mK0ComputeN = mIndParamN.at(1);;
 
-   mSLI.read(mNameInputScan);
+   mSLI.read(mFullNameInputScan);
 
    StdOut() << " done read  " << mSLI.mVectPtsLine.size() << " " << mSLI.mVectPtsCol.size() << "\n";
 
