@@ -566,6 +566,7 @@ int cAppli_ImportStaticScan::Exe()
 
 
     mSL_data.FilterIntensity(0.01,0.99);
+    mSL_data.FilterIncidence(1.5);
     mSL_data.MaskBuffer(mSL_data.mPhiStep*20);
 
     return EXIT_SUCCESS;
