@@ -300,6 +300,7 @@ void cAppli_ImportStaticScan::testLineColError()
 
 tREAL8 cAppli_ImportStaticScan::doVerticalize()
 {
+    StdOut() << "Verticalizing..." << std::endl;
     // estimate verticalization correction if scanner with compensator
     int aColChangeDetectorInPhistep = 100;
     int aNbPlanes = 20; // try to get several planes for instrument primariy axis estimation
@@ -566,7 +567,8 @@ int cAppli_ImportStaticScan::Exe()
 
 
     mSL_data.FilterIntensity(0.01,0.99);
-    mSL_data.MaskBuffer(mSL_data.mPhiStep*20);
+    mSL_data.FilterIncidence(M_PI/2-0.05);
+    mSL_data.MaskBuffer(mSL_data.mPhiStep*10);
 
     return EXIT_SUCCESS;
 
