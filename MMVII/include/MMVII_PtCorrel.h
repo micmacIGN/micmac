@@ -213,21 +213,25 @@ public :
 
         void writeCorrelImage (int aRho, std::string filename)
         {
-            cDataIm2D<tU_INT1> aDIm (cPt2di(0,0),cPt2di(2*aRho,2*aRho),nullptr,eModeInitImage::eMIA_Null);
+            cDataIm2D<tREAL4> aDIm (cPt2di(0,0),cPt2di(2*aRho,2*aRho),nullptr,eModeInitImage::eMIA_Null);
             cPt2di aP2;
             for (int aK=0 ; aK<mNbPts ; aK++)
             {
-                //double aCor = this->ICorrelOneOffset(this->mP0,mVPt[aK],this->mSzW);c
-                cPt2di aPIm= this->mP0 +mVPt[aK];
+                double aCor = this->ICorrelOneOffset(this->mP0,mVPt[aK],this->mSzW);
+                //cPt2di aPIm= this->mP0 +mVPt[aK];
                 aP2 =   cPt2di(mVPt[aK].x()+aRho,
                             mVPt[aK].y()+aRho)  ;
                 if (aDIm.Inside(aP2))
-                    aDIm.SetV(aP2,this->mDIm->GetV(aPIm));
+                    aDIm.SetV(aP2,aCor);
             }
             aDIm.ToFile(filename);
         }
 
-    bool  AutoCorrel(const cPt2di & aP0,double aRejetInt,double aRejetReel,double aSeuilAccept,cPt2dr * aPtrRes=0)
+    bool  AutoCorrel(const cPt2di & aP0,
+                        double aRejetInt,
+                        double aRejetReel,
+                        double aSeuilAccept,
+                        cPt2dr * aPtrRes=0)
     {
 
         this->mP0 = aP0;
@@ -290,7 +294,11 @@ public :
 
 
 
-    bool  AutoCorrelNonRegularPatch(const cPt2di & aP0,double aRejetInt,double aRejetReel,double aSeuilAccept,cPt2dr * aPtrRes=0)
+    bool  AutoCorrelNonRegularPatch(const cPt2di & aP0,
+                                   double aRejetInt, // 0.4
+                                   double aRejetReel, //0.5
+                                   double aSeuilAccept // 0.6
+                                   )
     {
 
         this->mP0 = aP0;
@@ -325,7 +333,7 @@ public :
         //std::cout<<" aRhoTeta  Max "<<aRhoTeta<<std::endl;
 
         double aStep0 = 1/this->mRho;
-        cPt2dr aRes1 =  this->DoItOneStep(aRhoTeta.y(),2,aStep0*0.5,false);
+        cPt2dr aRes1 =  this->DoItOneStep(aRhoTeta.y(),2,aStep0,false);
 
         if (aRes1.y()>aSeuilAccept)
         {
@@ -340,14 +348,14 @@ public :
             return false;
         }
 
-        cPt2dr aRes2 =  this->DoItOneStep(aRes1.x(),2,aStep0*0.2,false);
-
-        if (aPtrRes)
-            *aPtrRes = aRes2;
+        /*cPt2dr aRes2 =  this->DoItOneStep(aRes1.x(),2,aStep0*0.2,false);
 
         mNumOut = 4;
         mCorOut = aRes2.y();
-        return aRes2.y() > aSeuilAccept;
+        return aRes2.y() > aRejetReel;*/
+
+
+        return true;
     }
 
 private :

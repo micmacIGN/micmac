@@ -1188,7 +1188,8 @@ int cAppli::Exe()
               "Masq1="+Im1().LevAt(0).NameImOrMasq(false),
               "Masq2="+Im2().LevAt(0).NameImOrMasq(false),
               "ImCorrel="+mOutDir+NameCorrel,
-              "HiddenMask="+mOutDir+NameMasq
+              "HiddenMask="+mOutDir+NameMasq,
+              "NbProc=1"
               //"@ExitOnBrkp"
            );
        std::cout<<"COMMAND COrrell "<<aCom.Com()<<std::endl;

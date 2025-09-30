@@ -404,7 +404,8 @@ template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
                                  tREAL8 VAR_RHO,
                                  int    aSzMin,
                                  tREAL8 aThreshold,
-                                 tREAL8 aSzW);
+                                 tREAL8 aSzW,
+                                 tINT1 aScale=0);
            size_t NbSelectedPts() const { return mVSelectedIds.size(); }
 
 	   static void Bench();
@@ -422,7 +423,9 @@ template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
                                      const std::vector<cSensorCamPC *> & ,
                                      const std::vector<cIm2D<tU_INT1>> & ,
                                      tREAL8 aThreshold,
-                                     const std::vector <std::vector<cIm2D<tU_INT1>>> & mVSIms = std::vector <std::vector<cIm2D<tU_INT1>>>()  );
+                                     const std::vector<std::vector<cSensorCamPC *>> & mVSCams = {},
+                                     int aScale =0
+                                    );
            void PlyWriteSelected (const std::string & aNameFile,std::list<std::vector<int> > & Patches,bool isBinary) const;
 
         private :

@@ -349,11 +349,12 @@ class cBA_LidarPhotogra
        /// add observation with weigh W
        void AddObs(tREAL8 aW);
 
+       const std::vector<std::vector<cSensorCamPC *>> & VSCams() const  {return mVSCams;}
+
     private :
        /**  Add observation for 1 Patch of point */
        void Add1Patch(tREAL8 aW,const std::vector<cPt3dr> & aPatch);
        void Add1PatchMulScale(tREAL8 aWeight, const std::vector<cPt3dr> & aVPatchGr, int aNbS);
-       void Add1PatchHandleScaleInCameraIntrinsics(tREAL8 aWeight,const std::vector<cPt3dr> & aVPatchGr, int aNbs);
        void Add1PatchNotOccluded(tREAL8 aWeight,const std::vector<cPt3dr> & aVPatchGr,
                                  const int id_,std::vector<cIm2D<tU_INT4>> & Masqs);
        void EvaluatePlanarDisplacements(std::vector<std::string> & aVecOrthoNames,
@@ -362,7 +363,6 @@ class cBA_LidarPhotogra
        void EvalGeomConsistency(const std::vector<cPt3dr>& aVPatch, std::vector<cData1ImLidPhgr>& aVData,tREAL8 aZPas, int aNbs=0);
 
        tREAL8 EvalCorrel(const std::vector<cData1ImLidPhgr>& aVData);
-       tREAL8 EvalSaliencyPerPatch(const std::vector<cData1ImLidPhgr> & aVData);
        /// Method for adding observations with radiometric differences as similatity criterion
        void AddPatchDifRad(tREAL8 aW,const std::vector<cPt3dr> & aPatch,const std::vector<cData1ImLidPhgr> &aVData) ;
 
@@ -382,6 +382,9 @@ class cBA_LidarPhotogra
        );
 
 
+
+
+
        cMMVII_BundleAdj&              mBA;             ///< The global bundle adj structure
        eImatchCrit                    mModeSim;        ///< type of similarity used
        cTriangulation3D<tREAL4>       mTri;            ///< Triangulation, in fact used only for points 
@@ -389,8 +392,7 @@ class cBA_LidarPhotogra
        cCalculator<double>  *         mEqLidPhgr;      ///< Calculator used for constrain the pose from image obs
        std::vector<cSensorCamPC *>    mVCam;           ///< Vector of central perspective camera
        std::vector<cIm2D<tU_INT1>>    mVIms;           ///< Vector of images associated to each cam
-       std::vector<std::vector<cIm2D<tU_INT1>>> mVSIms;  ///< Vector of multi scaled images
-       std::vector<std::vector<cSensorCamPC *>>   mVSCams;          /// < Cameras to handle multi scale cameras
+       std::vector<std::vector<cSensorCamPC * >>   mVSCams;   /// < Cameras to handle multi scale cameras
        cWeightAv<tREAL8,tREAL8>       mLastResidual;   ///< Accumulate the radiometric residual
        std::list<std::vector<int> >   mLPatches;       ///< set of 3D patches
        bool                           mPertRad;        ///< do we pertubate the radiometry (simulation & test)
