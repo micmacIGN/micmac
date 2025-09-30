@@ -76,7 +76,7 @@ public :
     inline tREAL8 lToPhiApprox(int l) const { return mPhiStart + l * mPhiStep; }
     inline tREAL8 cToThetaApprox(int c) const { return mThetaStart + c * mThetaStep; }
 
-
+    void FilterIntensity(tREAL8 aLowest, tREAL8 aHighest); // add to mRasterMask
     void MaskBuffer(tREAL8 aAngBuffer);
 
 

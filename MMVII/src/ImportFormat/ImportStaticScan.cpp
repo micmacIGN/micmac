@@ -430,15 +430,7 @@ void cAppli_ImportStaticScan::exportThetas(const std::string & aFileName, int aN
 int cAppli_ImportStaticScan::Exe()
 {
     mPhProj.FinishInit();
-
-    std::string aPostFix = ToLower(LastPostfix(mNameFile));
-    if (aPostFix=="ply")
-    {
-        mSL_data.mSL_importer.readPlyPoints(mNameFile);
-    } else if (aPostFix=="e57") {
-        mSL_data.mSL_importer.readE57Points(mNameFile);
-    } else
-        MMVII_INTERNAL_ASSERT_tiny(false, "Error: unknown file format for "+mNameFile);
+    mSL_data.mSL_importer.read(mNameFile);
 
     mSL_data.mMaxCol = mSL_data.mSL_importer.MaxCol();
     mSL_data.mMaxLine = mSL_data.mSL_importer.MaxLine();
@@ -573,6 +565,7 @@ int cAppli_ImportStaticScan::Exe()
     SaveInFile(mSL_data, mPhProj.DPStaticLidar().FullDirOut() +  mSL_data.mStationName + "_" + mSL_data.mScanName + ".xml");
 
 
+    mSL_data.FilterIntensity(0.01,0.99);
     mSL_data.MaskBuffer(mSL_data.mPhiStep*20);
 
     return EXIT_SUCCESS;
