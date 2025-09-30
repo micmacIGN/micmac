@@ -376,6 +376,21 @@ void cStaticLidar::fillRasters(const std::string& aPhProjDirOut, bool saveRaster
 
 }
 
+void cStaticLidar::FilterIntensity(tREAL8 aLowest, tREAL8 aHighest)
+{
+    MMVII_INTERNAL_ASSERT_tiny(mRasterMask, "Error: mRasterMask must be computed first");
+    auto & aMaskImData = mRasterMask->DIm();
+    for (size_t i=0; i<mSL_importer.mVectPtsTPD.size(); ++i)
+    {
+        if ((mSL_importer.mVectPtsIntens[i]<aLowest) || (mSL_importer.mVectPtsIntens[i]>aHighest))
+        {
+            cPt2di aPcl = {mSL_importer.mVectPtsCol[i], mSL_importer.mVectPtsLine[i]};
+            aMaskImData.SetV(aPcl, 0);
+        }
+    }
+    aMaskImData.ToFile("MaskIntens.png");
+}
+
 void cStaticLidar::MaskBuffer(tREAL8 aAngBuffer)
 {
     MMVII_INTERNAL_ASSERT_tiny(mRasterMask, "Error: mRasterMask must be computed first");
@@ -412,19 +427,20 @@ void cStaticLidar::MaskBuffer(tREAL8 aAngBuffer)
                 {
                     if ((il<0) || (il>mMaxLine)) continue;
                     tREAL8 phi = lToPhiApprox(il);
-                    tREAL8 w = sqrt(aRadPx*aRadPx - (il-l)*(il-l))/cos(phi);
+                    tREAL8 w = fabs(sqrt(aRadPx*aRadPx - (il-l)*(il-l))/cos(phi));
+                    if (w>mMaxCol) w=mMaxCol;
                     for (int ic = c - w; ic <= c + w; ++ic)
                     {
                         int icc = ic; // working copy
                         if (aHzLoop)
                         {
-                            icc = icc % (mMaxCol+1);
                             if (icc<0)
                                 icc += (mMaxCol+1);
+                            if (icc>mMaxCol)
+                                icc -= (mMaxCol+1);
                         }
-                        else
-                            if ((icc<0)||(icc>mMaxCol))
-                                continue;
+                        if ((icc<0)||(icc>mMaxCol))
+                            continue;
                         aMaskBufImData.SetV(cPt2di(icc, il), 0);
                     }
                 }
