@@ -281,12 +281,17 @@ tSeg2dr  cAppli_ReportBlock::CorrMesSeg(cSensorCamPC * aCam,const tSeg2dr & aSeg
           aSeg                              ;
 }
 
+
+
 void cAppli_ReportBlock::TestWire3D(const std::string & anIdSync,const std::vector<cSensorCamPC *> & aVCam)
 {
 
      std::vector<cPlane3D>  aVPlane;       // vector of plane
      std::vector<cSensorCamPC *>  aVCamOk; // camera for which we have plane
      std::vector<tSeg2dr>         aVSegOk; // segmment of camera corresponding to planes
+
+     // ideally, we shoud use the class,  cCam2Wire_2Dto3D, but there is too much intrication
+     // with CorrMesSeg, so for now I accept this "code duplication" ;-((
 
      // [1]  compute the planes
      for (const auto & aCam : aVCam)

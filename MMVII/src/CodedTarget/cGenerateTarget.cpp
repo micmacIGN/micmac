@@ -1134,8 +1134,11 @@ class cAppliGenCodedTarget : public cMMVII_Appli
 	std::string        mPatternDoImage;
 	std::string        mPrefixVisu;
 	int                mNbPixBin;
-        std::string        mNameOut;
-        bool               mIm4Test;   ///< Do we generate image for inspection (and not for printing)
+    std::string        mNameOut;
+    bool               mIm4Test;   ///< Do we generate image for inspection (and not for printing)
+    std::string        mNameImaAdd;
+    int                mSzMarginImaAdd;
+    cPt3di             mColMarginImaAdd;
 };
 
 eTyCodeTarget cAppliGenCodedTarget::Type() {return mBE.Specs().mType ;}
@@ -1148,7 +1151,9 @@ cAppliGenCodedTarget::cAppliGenCodedTarget(const std::vector<std::string> & aVAr
    mDoMarkC      (false),
    mPrefixVisu   (""),
    mNbPixBin     (1800),
-   mIm4Test      (false)
+   mIm4Test      (false),
+   mSzMarginImaAdd (20),
+   mColMarginImaAdd    (cRGBImage::Orange)
 {
 }
 
@@ -1167,6 +1172,9 @@ cCollecSpecArg2007 & cAppliGenCodedTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return anArgOpt
           << AOpt2007(mPatternDoImage,"PatIm","Pattern for generating image (def no generation)")
+          << AOpt2007(mNameImaAdd,"ImageAdd","Name for additional image (\"Logo\")",{eTA2007::FileImage})
+          << AOpt2007(mSzMarginImaAdd,"SzMarginImageAdd","Sz of margin for additionnal image\")",{eTA2007::HDV})
+          << AOpt2007(mColMarginImaAdd,"ColMarginImageAdd","Sz of margin for additionnal image\")",{eTA2007::HDV})
           << AOpt2007(mPrefixVisu,"PrefixVisu","To add in image name when PatIm is used",{eTA2007::HDV})
           << AOpt2007(mIm4Test,"I4T","Generate image for test/inspection, not for use",{eTA2007::HDV})
           << AOpt2007(mPCT.mRadiusCenterMiniTarget,"RayMCT","Rayon \"mini\" center target (for topo)",{eTA2007::HDV})
@@ -1222,7 +1230,47 @@ int  cAppliGenCodedTarget::Exe()
              cCodedTargetPatternIm::tIm anIm = aFullSpec.OneImTarget(anEncode,mIm4Test);
 
              std::string aName = aFullSpec.NameOfEncode(anEncode);
-             anIm.DIm().ToFile(aDirVisu+mPrefixVisu +aName);
+	     std::string aNameOut = aDirVisu+mPrefixVisu +aName;
+	     if (IsInit(&mNameImaAdd))
+	     {
+
+            // int                mSzMarginImaAdd;
+             //cPt3di             mColMarginImaAdd;
+               //  int aMargin=20;  // size of separation Target/Logo
+
+                 const auto & aDimT =  anIm.DIm();
+                 cRGBImage aImAdd = cRGBImage::FromFile(mNameImaAdd);  // Initial "logo"
+
+		 // Comput sizes
+		 cPt2di aSzInitAdd = aImAdd.ImR().DIm().Sz(); //size of initial images
+		 tREAL8 aRatio = tREAL8(aDimT.Sz().x() ) / aSzInitAdd.x(); // ratio to equalize width
+		 cPt2di aSzFinalAdd = ToI(ToR(aSzInitAdd)*aRatio);  // final size of additional imaghes (preserve ratio)
+		 cPt2di aP0Add (0,aDimT.Sz().y()+mSzMarginImaAdd);   // begin of additional image in result
+		 cPt2di aP1Add = aP0Add + cPt2di(aDimT.Sz().x(),aSzFinalAdd.y()); // end of additional image
+		 cPt2di aSzGlob = aP1Add;   // size of result
+
+
+		 cRGBImage aRes(aSzGlob,mColMarginImaAdd);  // create the  RGB image
+
+		 // copy the target maintaining its resolution
+		 for (const auto & aPixTarget : aDimT)
+                     aRes.SetGrayPix(aPixTarget,aDimT.GetV(aPixTarget));
+
+                 // copy the additionnal image, with adequate offset/resizing
+		 for (const auto & aPixG : cRect2(aP0Add,aP1Add))
+		 {
+                     cPt2dr aPixLogo = ToR(aPixG-aP0Add) / aRatio;
+		     if (aImAdd.InsideBL(aPixLogo))
+                        aRes.SetRGBPix(aPixG,aImAdd.GetRGBPixBL(aPixLogo));
+		 }
+
+		 // Save result
+		 aRes.ToJpgFileDeZoom(DirOfPath(aNameOut,false)+LastPrefix(FileOfPath(aNameOut,false))+".jpg",1,{"QUALITY=90"});
+	     }
+	     else
+	     {
+                anIm.DIm().ToFile(aNameOut);
+	     }
              StdOut() << aName << std::endl;
 	  }
       }

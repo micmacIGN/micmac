@@ -532,7 +532,7 @@ void cAppliTestStaticLidarRevEng::MakeIm_Star()
                cPt2dr aPLoc = aSeg.ToCoordLoc(aPt1);
                cPt2dr  aPMod = aSeg.FromCoordLoc(cPt2dr(aPLoc.x(),aPLoc.y() * aFactExag));
                if (aImStar.DIm().InsideBL(aPMod))
-                  aImStar.DIm().AddVBL(aPMod,1.0);
+                  aImStar.DIm().AddVBL(aPMod,(aKInterp==0) ? 3.0 : 1.0);
            }
         }
     }

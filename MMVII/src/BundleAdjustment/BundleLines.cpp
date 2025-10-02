@@ -1,8 +1,105 @@
 #include "BundleAdjustment.h"
+#include "MMVII_Geom3D.h"
 
 namespace MMVII
 {
 
+class cOneData_L23
+{
+    public :
+        cOneData_L23();
+
+        cSensorCamPC *     mCam;
+        size_t             mKIm;
+        tSeg2dr            mSeg;
+        cBoundVals<tREAL8> mIntAbsc;
+};
+
+
+/// class to handle computation
+class cCam2_Line_2Dto3D
+{
+    public :
+       cCam2_Line_2Dto3D(const std::vector<cSensorCamPC *> & aVCam,cPhotogrammetricProject *);
+
+       const tSegComp3dr & Seg3d () const;
+
+    private :
+       void AssertSeg3dIsInit() const;
+
+       tSegComp3dr                  mSeg3d;
+       bool                         mSeg3dIsInit;
+       cBoundVals<tREAL8>           mIntervAbsc;
+
+       std::vector<cOneData_L23>    mDatas;
+
+       std::vector<cPlane3D>        mVPlane;
+       std::vector<cSensorCamPC *>  mVCamOk;
+       std::vector<tSeg2dr>         mVSegOk;
+
+};
+
+cCam2_Line_2Dto3D::cCam2_Line_2Dto3D(const std::vector<cSensorCamPC *> & aVCam,cPhotogrammetricProject * aPhProj) :
+     mSeg3d        (cPt3dr(0,0,0),cPt3dr(1,1,1)),
+     mSeg3dIsInit (false)
+{
+    for (const auto & aCam : aVCam)
+    {
+         const std::string & aNameIm = aCam->NameImage();
+         if (aPhProj->HasFileLines(aNameIm))
+         {
+             cLinesAntiParal1Im   aSetL  = aPhProj->ReadLines(aNameIm);
+             const std::vector<cOneLineAntiParal> & aVL  = 	aSetL.mLines;
+
+             // At this step we dont handle multiple lines
+             if (aVL.size()==1)
+             {
+                 //cOneData_L23 aData;
+
+                // comput seg, and correct it if we are at this step
+                tSeg2dr aSeg = aVL.at(0).mSeg;
+              //  aSeg =  CorrMesSeg(aCam,aSeg);
+
+                //  memorize plane, seg and cam
+                mVPlane.push_back(aCam->SegImage2Ground(aSeg));
+                mVCamOk.push_back(aCam);
+                mVSegOk.push_back(aSeg);
+             }
+         }
+    }
+
+#if (0)
+    if (mVPlane.size()>=2)
+    {
+        mSeg3dIsInit = true;
+        mSeg3d =  tSegComp3dr (cPlane3D::InterPlane(mVPlane));
+
+        for (size_t aKS=0 ; aKS<mVSegOk.size() ; aKS++)
+        {
+            //std::vector<cPt2dr> aVP2{mVSegOk.at(aKS).P1(),mVSegOk.at(aKS).P2()};
+            for (const auto & aP2 : {mVSegOk.at(aKS).P1(),mVSegOk.at(aKS).P2()})
+            {
+                tSeg3dr aBundle =  mVCamOk.at(aKS)->Image2Bundle(aP2);
+                cPt3dr aABC;
+                BundleInters(aABC,mSeg3d,aBundle,1.0);
+                tREAL8 aAbsc = aABC.x();
+                mIntervAbsc.Add(aAbsc);
+ // eUseIt(aPInter);
+            }
+        }
+    }
+#endif
+
+}
+
+void cCam2_Line_2Dto3D::AssertSeg3dIsInit() const
+{
+    MMVII_INTERNAL_ASSERT_always(mSeg3dIsInit,"cCam2_Line_2Dto3D::AssertSeg3dIsInit");
+}
+const tSegComp3dr & cCam2_Line_2Dto3D::Seg3d () const
+{
+   return mSeg3d;
+}
 /** in cUK_Line3D_4BA with put data in a specific class to allow copy (in "OnUpdate"),
  *  which would be forbiden due to inheritance */
 
