@@ -2185,18 +2185,18 @@ template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & a
            for (pdal::PointId idx = 0; idx < point_view->size(); ++idx)
            {
 
-                   /* auto Classif=point_view->getFieldAs<int>(Id::Classification, idx);
+                    auto Classif=point_view->getFieldAs<int>(Id::Classification, idx);
                      //bool IsBuilding=(Classif==ClassificationTags().Building);
                      //bool IsGround=(Classif==ClassificationTags().Ground);
                     bool IsUnclassified=(Classif==ClassificationTags().Unclassified);
                     bool IsWater=(Classif==ClassificationTags().Water);
                     bool IsVeg=(Classif==ClassificationTags().Low_Vegetation) ||
                                (Classif==ClassificationTags().Medium_Vegetation) ||
-                               (Classif==ClassificationTags().High_Vegetation) ;*/
+                               (Classif==ClassificationTags().High_Vegetation) ;
 
 
 
-               if (1)// ! (IsWater || IsVeg || IsUnclassified) )
+               if ( ! (IsWater || IsVeg || IsUnclassified) )
                {
                    tPt aP(point_view->getFieldAs<tREAL8>(Id::X, idx),
                           point_view->getFieldAs<tREAL8>(Id::Y, idx),

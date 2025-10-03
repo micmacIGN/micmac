@@ -55,14 +55,20 @@ class RAFTStereo(nn.Module):
     def upsample_flow(self, flow, mask):
         """ Upsample flow field [H/8, W/8, 2] -> [H, W, 2] using convex combination """
         N, D, H, W = flow.shape
+
         factor = 2 ** self.args.n_downsample
         mask = mask.view(N, 1, 9, factor, factor, H, W)
+
         mask = torch.softmax(mask, dim=2)
 
+
         up_flow = F.unfold(factor * flow, [3,3], padding=1)
+
         up_flow = up_flow.view(N, D, 9, 1, 1, H, W)
 
+
         up_flow = torch.sum(mask * up_flow, dim=2)
+
         up_flow = up_flow.permute(0, 1, 4, 2, 5, 3)
         return up_flow.reshape(N, D, factor*H, factor*W)
 
@@ -70,8 +76,10 @@ class RAFTStereo(nn.Module):
     def forward(self, image1, image2, iters=12, flow_init=None, test_mode=False):
         """ Estimate optical flow between pair of frames """
 
+
         image1 = (2 * (image1 / 255.0) - 1.0).contiguous()
         image2 = (2 * (image2 / 255.0) - 1.0).contiguous()
+
 
         # run the context network
         with autocast(enabled=self.args.mixed_precision):
