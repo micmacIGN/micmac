@@ -20,6 +20,11 @@ template <const int DimM,const int DimE>
 {
 }
 
+template <const int DimM,const int DimE>
+    cManifold<DimM,DimE>::~cManifold()
+{
+}
+
 template <const int DimM,const int DimE>  int cManifold<DimM,DimE>::NbMap() const {return mNbMap;}
 
 template <const int DimM,const int DimE>  int  cManifold<DimM,DimE>::GetNumMap(const tPtE &) const 
@@ -109,6 +114,11 @@ template<const int DimM, const int DimE>
    /*                                                             */
    /* *********************************************************** */
 
+template<int DimE>   cLineManifold<DimE>::cLineManifold(const tSeg & aSeg) :
+   mSeg  (aSeg)
+{
+}
+
 
 template<int DimE>  typename cLineManifold<DimE>::tPtE cLineManifold<DimE>::PtOfParam(const tResPOP & aPair) const
 {
@@ -173,27 +183,6 @@ template <const int DimM,const int DimE>
    /*                                                             */
    /* *********************************************************** */
 
-template<int DimE> class cSphereManifold : public cManifold<DimE-1,DimE>
-{
-     public :
-        // virtual  tPtE   PtOfParam(const tPtM &,int aNumMap) const ;
-        static const int DimM = DimE-1;
-        static const int DimC = DimE - DimM;
-
-        typedef cPtxd<tREAL8,DimM>                  tPtM;
-        typedef cPtxd<tREAL8,DimE>                  tPtE;
-        typedef cSegmentCompiled<tREAL8,DimE>       tSeg;
-        typedef  std::pair<int,tPtM>                tResPOP; // Type result Param of Pt
-
-        cSphereManifold(const tPtE & aPPerturb = tPtE::PCste(0.0) );
-        tPtE   PtOfParam(const tResPOP&) const override;
-        tResPOP   ParamOfPt(const tPtE &) const override;
-        tPtE  ApproxProj(const tPtE &) const  override ;
-
-   private :
-        bool mIsPerturb; //< do use artificial perturbation, just 4 bench
-        tPtE mPPerturb;  //< Value to use 4 articial perturbation
-};
 
 template<int DimE>  cSphereManifold<DimE>::cSphereManifold(const tPtE & aPPerturb) :
     cManifold<DimE-1,DimE>(2*DimE),
@@ -263,6 +252,32 @@ template<int DimE>  typename cSphereManifold<DimE>::tPtE  cSphereManifold<DimE>:
     aPProj = aPProj + mPPerturb*Norm2(aP2P-aPProj);
     return VUnit(aPProj);
 }
+
+
+    /* *********************************************************** */
+    /*                                                             */
+    /*                        cLineDist_Manifold                   */
+    /*                                                             */
+    /* *********************************************************** */
+
+               /*  ------------------------  cAux_LineDist_Manifold  ------------------------ */
+
+cAux_LineDist_Manifold::cAux_LineDist_Manifold(const tSeg2dr & aSeg,cPerspCamIntrCalib * aCalib ) :
+    mMap_Ud_Red (aCalib),
+    mMap_Red_Ud (&mMap_Ud_Red,false), // false -> does not adopt
+    mLineMan    (aSeg)
+{
+
+}
+
+              /*  ------------------------  cLineDist_Manifold  ------------------------ */
+
+cLineDist_Manifold::cLineDist_Manifold(const tSeg2dr & aSeg,cPerspCamIntrCalib * aCalib ) :
+    cAux_LineDist_Manifold(aSeg,aCalib),
+    cManifoldFromMapping<1,2>(&mLineMan,&mMap_Red_Ud)
+{
+}
+
 
    /* ********************************************************** */
    /*                                                            */

@@ -3,6 +3,7 @@
 
 #include "MMVII_Mappings.h"
 #include "MMVII_Geom2D.h"
+#include "MMVII_PCSens.h"
 
 
 namespace MMVII
@@ -23,6 +24,7 @@ template <const int DimM,const int DimE> class cManifold
         typedef  std::pair<int,tPtM>                tResPOP; // Type result Param of Pt
 
         cManifold(int aNbMap=1,const tREAL8 aEpsDeriv = 1e-4);
+        virtual ~cManifold();
         int NbMap() const; //< Accessor
 
         /// return the num map of a point, defaults assume mNbMap==1
@@ -62,10 +64,33 @@ template<int DimE> class cLineManifold : public cManifold<1,DimE>
         tResPOP   ParamOfPt(const tPtE &) const override;
         tPtE  ApproxProj(const tPtE &) const  override ;
 
+        cLineManifold(const tSeg & aSeg);
+
    private :
         tSeg   mSeg;
 };
 
+template<int DimE> class cSphereManifold : public cManifold<DimE-1,DimE>
+{
+     public :
+        // virtual  tPtE   PtOfParam(const tPtM &,int aNumMap) const ;
+        static const int DimM = DimE-1;
+        static const int DimC = DimE - DimM;
+
+        typedef cPtxd<tREAL8,DimM>                  tPtM;
+        typedef cPtxd<tREAL8,DimE>                  tPtE;
+        typedef cSegmentCompiled<tREAL8,DimE>       tSeg;
+        typedef  std::pair<int,tPtM>                tResPOP; // Type result Param of Pt
+
+        cSphereManifold(const tPtE & aPPerturb = tPtE::PCste(0.0) );
+        tPtE   PtOfParam(const tResPOP&) const override;
+        tResPOP   ParamOfPt(const tPtE &) const override;
+        tPtE  ApproxProj(const tPtE &) const  override ;
+
+   private :
+        bool mIsPerturb; //< do use artificial perturbation, just 4 bench
+        tPtE mPPerturb;  //< Value to use 4 articial perturbation
+};
 
 template <const int DimM,const int DimE> class cManifoldFromMapping : public  cManifold<DimM,DimE>
 {
@@ -86,6 +111,8 @@ template <const int DimM,const int DimE> class cManifoldFromMapping : public  cM
         tResPOP   ParamOfPt(const tPtE &) const override;
         tPtE  ApproxProj(const tPtE &) const  override ;
 
+        tMan * Man();  //<  Accessor
+        tMap * Map();  //<  Accessor
 
 
    private :
@@ -93,6 +120,31 @@ template <const int DimM,const int DimE> class cManifoldFromMapping : public  cM
         tMap   *mMap;
 
 };
+
+
+class cLineDist_Manifold;
+///  Helper class to cLineDist_Manifold  so that data can be created before cManifoldFromMapping
+class cAux_LineDist_Manifold
+{
+   public :
+       friend cLineDist_Manifold;
+       cAux_LineDist_Manifold(const tSeg2dr & aSeg,cPerspCamIntrCalib * aCalib );
+   private :
+       cCamUDReD_Map                   mMap_Ud_Red;
+       cDataInvertOfMapping<tREAL8,2>  mMap_Red_Ud;
+       cLineManifold   <2>             mLineMan;
+};
+
+/// class to present the distortion of line by a camera as a Manifold
+class cLineDist_Manifold : public cAux_LineDist_Manifold,
+                           public cManifoldFromMapping<1,2>
+{
+   public :
+     cLineDist_Manifold(const tSeg2dr & aSeg,cPerspCamIntrCalib * aCalib );
+     //virtual ~cLineDist_Manifold() ;
+   private:
+};
+
 
 };
 

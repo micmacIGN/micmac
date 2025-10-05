@@ -346,6 +346,12 @@ cCalculator<double> * cSensorCamPC::CreateEqColinearity(bool WithDerives,int aSz
    return mInternalCalib->EqColinearity(WithDerives,aSzBuf,ReUse);
 }
 
+cCalculator<double> * cSensorCamPC::EqProjSeg()
+{
+   MMVII_INTERNAL_ASSERT_always(mInternalCalib,"cSensorCamPC::EqProjSeg");
+   return  mInternalCalib->SetAndGet_EqProjSeg();
+}
+
 void cSensorCamPC::PushOwnObsColinearity(std::vector<double> & aVObs,const cPt3dr &)
 {
      mPose_WU.PushObs(aVObs,true);

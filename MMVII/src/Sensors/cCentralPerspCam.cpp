@@ -216,7 +216,8 @@ cPerspCamIntrCalib::cPerspCamIntrCalib(const cDataPerspCamIntrCalib & aData) :
                                )
 		         ),
     mInvIsUpToDate       (false),
-    mTabulDUD            (nullptr)
+    mTabulDUD            (nullptr),
+    mEqProjSeg           (nullptr)
 {
     mVTmpCopyParams.clear();
 }
@@ -607,6 +608,22 @@ cCalculator<double> * cPerspCamIntrCalib::EqColinearity(bool WithDerives,int aSz
 {
     return EqColinearityCamPPC(mTypeProj,mDir_Degr,WithDerives,aSzBuf,ReUse,mIsFraserMode,eTypeEqCol::ePt);
 }
+
+cCalculator<double> * cPerspCamIntrCalib::EqProjSeg(bool WithDerives,int aSzBuf,bool ReUse)
+{
+    return EqColinearityCamPPC(mTypeProj,mDir_Degr,WithDerives,aSzBuf,ReUse,mIsFraserMode,eTypeEqCol::eLine);
+}
+
+cCalculator<double> *  cPerspCamIntrCalib::SetAndGet_EqProjSeg()
+{
+   if (mEqProjSeg==nullptr)
+      mEqProjSeg = EqProjSeg(true,10,true);
+
+  return mEqProjSeg;
+}
+
+
+
       //   ----  Accessor  to distorsion ----------------
 
 const std::vector<double> & cPerspCamIntrCalib::VParamDist() const 

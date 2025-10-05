@@ -105,34 +105,37 @@ template class cComputeCentroids<std::vector<cPtxd<tREAL16,3> >>;
 /* ========================== */
 
 template <class Type,const int Dim> cSegment<Type,Dim>::cSegment(const tPt& aP1,const tPt& aP2) :
-   mP1  (aP1),
-   mP2  (aP2)
+   mVPts {aP1,aP2}
 {
-    MMVII_INTERNAL_ASSERT_tiny(mP1!=mP2,"Identic point in segment");
+    MMVII_INTERNAL_ASSERT_tiny(aP1!=aP2,"Identic point in segment");
 }
 
 template <class Type,const int Dim> void cSegment<Type,Dim>::CompileFoncLinear
                               (Type & aVal,tPt & aVec,const Type &aV1,const Type & aV2) const
 {
-	// return aV1 + (aV2-aV1) * Scal(mTgt,aP-this->mP1) / mN2;
-    tPt aV12 =  (mP2-mP1) ;
+	// return aV1 + (aV2-aV1) * Scal(mTgt,aP-this->P1()) / mN2;
+    tPt aV12 =  (P2()-P1()) ;
     aVec  =   aV12 * Type((aV2-aV1) /SqN2(aV12)) ;
-    aVal = aV1  - Scal(aVec,mP1);
+    aVal = aV1  - Scal(aVec,P1());
 }
 
-template <class Type,const int Dim>  const cPtxd<Type,Dim>& cSegment<Type,Dim>::P1() const {return mP1;}
-template <class Type,const int Dim>  const cPtxd<Type,Dim>& cSegment<Type,Dim>::P2() const {return mP2;}
-template <class Type,const int Dim>  cPtxd<Type,Dim>& cSegment<Type,Dim>::P1() {return mP1;}
-template <class Type,const int Dim>  cPtxd<Type,Dim>& cSegment<Type,Dim>::P2() {return mP2;}
+template <class Type,const int Dim> const std::vector<cPtxd<Type,Dim>> & cSegment<Type,Dim>::VPts() const {return mVPts;}
+
+/*
+template <class Type,const int Dim>  const cPtxd<Type,Dim>& cSegment<Type,Dim>::P1() const {return m P1;}
+template <class Type,const int Dim>  const cPtxd<Type,Dim>& cSegment<Type,Dim>::P2() const {return m P2;}
+template <class Type,const int Dim>  cPtxd<Type,Dim>& cSegment<Type,Dim>::P1() {return m P1;}
+template <class Type,const int Dim>  cPtxd<Type,Dim>& cSegment<Type,Dim>::P2() {return m P2;}
+*/
 
 
 template <class Type,const int Dim> void cSegment<Type,Dim>::Swap()
 {
-    std::swap(mP1, mP2);
+    std::swap(P1(), P2());
 }
 
-template <class Type,const int Dim> cPtxd<Type,Dim> cSegment<Type,Dim>::V12() const  {return mP2-mP1;}
-template <class Type,const int Dim> cPtxd<Type,Dim> cSegment<Type,Dim>::Middle() const {return (mP1+mP2)/Type(2);}
+template <class Type,const int Dim> cPtxd<Type,Dim> cSegment<Type,Dim>::V12() const  {return P2()-P1();}
+template <class Type,const int Dim> cPtxd<Type,Dim> cSegment<Type,Dim>::Middle() const {return (P1()+P2())/Type(2);}
 
 /* ========================== */
 /*    cSegmentCompiled        */
@@ -152,19 +155,19 @@ template <class Type,const int Dim> cSegmentCompiled<Type,Dim>::cSegmentCompiled
 
 template <class Type,const int Dim> Type cSegmentCompiled<Type,Dim>::Abscissa(const tPt& aPt) const
 {
-    return Scal(mTgt,aPt - this->mP1);
+    return Scal(mTgt,aPt - this->P1());
 }
 
        // Type PtOfAbscissa(const Type & anAbsc) const;
 template <class Type,const int Dim> cPtxd<Type,Dim>  cSegmentCompiled<Type,Dim>::PtOfAbscissa(const Type & anAbsc) const
 {
-     return this->mP1 + mTgt * anAbsc; //  Type(Scal(mTgt,aPt-this->mP1)) ;
+     return this->P1() + mTgt * anAbsc; //  Type(Scal(mTgt,aPt-this->P1())) ;
 }
 
 
 template <class Type,const int Dim> cPtxd<Type,Dim>  cSegmentCompiled<Type,Dim>::Proj(const tPt & aPt) const
 {
-     //return this->mP1 + mTgt * Abscissa(aPt); //  Type(Scal(mTgt,aPt-this->mP1)) ;
+     //return this->P1() + mTgt * Abscissa(aPt); //  Type(Scal(mTgt,aPt-this->P1())) ;
      return PtOfAbscissa(Abscissa(aPt));
 }
 

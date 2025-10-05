@@ -40,6 +40,8 @@ template <class Type,const int Dim> class cSphereBoundedSet;//   cDataBoundedSet
 template <class Type,const int DimIn,const int DimOut> class cMapping;
 template <class Type,const int DimIn,const int DimOut> class cDataMapping;
 template <class Type,const int Dim> class cDataInvertibleMapping ;// :  public cDataMapping<Type,Dim,Dim>
+template <class Type,const int Dim> class cDataInvertOfMapping;  //  : public cDataInvertibleMapping <Type,Dim>
+
 template <class Type,const int Dim> class cDataIterInvertMapping ;// :  public cDataInvertibleMapping<Type,Dim>
 template <class Type,const int Dim> class cDataIIMFromMap ; // : public cDataIterInvertMapping<Type,Dim>
 
@@ -439,6 +441,7 @@ template <class Type,const int Dim> class cDataInvertibleMapping :  public cData
 #endif
 };
 
+///  If we have a Map M, create M-1, just by "swapping"  Inverses & Values
 template <class Type,const int Dim> class cDataInvertOfMapping : public cDataInvertibleMapping <Type,Dim>
 {
    public :

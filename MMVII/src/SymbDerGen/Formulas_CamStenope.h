@@ -623,15 +623,15 @@ template <typename TypeDist,typename TypeProj>  class cEqColinearityCamPPC
                 mLine     (mTypeEq==eTypeEqCol::eLine)
 	   {
 	   }
-           std::string FormulaName() const 
-           { 
+       std::string FormulaName() const
+       {
                return (mLine ?  "EqLineProjCamPPC_"  : "EqColinearityCamPPC_") + E2Str(TypeProj::TypeProj())    + "_" + mDist.NameModel();
-           }
-           std::vector<std::string>  VNamesUnknowns() const
+       }
+       std::vector<std::string>  VNamesUnknowns() const
 	   {
-                   std::vector<std::string>  aVUkGround =     mLine                                           ?
-                                                              Append(NamesP2("N1Coords"),NamesP2("N2Coords")) :
-                                                              NamesP3("PGround")                              ;
+            std::vector<std::string>  aVUkGround =     mLine                                               ?
+                                                           Append(NamesP2("N1Coords"),NamesP2("N2Coords")) :
+                                                           NamesP3("PGround")                              ;
 		   return Append
 			  (
 			      aVUkGround,

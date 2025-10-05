@@ -894,19 +894,21 @@ template <class Type,const int Dim> class cSegment
        cSegment(const tPt& aP1,const tPt& aP2);
        /// Estimate fonc linear, with gradient paral to tangent,  given value in P1 and P2, will be F(Q) =  R.first + R.second Q
        void CompileFoncLinear(Type & aVal,tPt & aVec,const Type  &aV1,const Type  & aV2) const;
-       const tPt&  P1() const; ///< Accessor
-       const tPt&  P2() const; ///< Accessor
-       tPt&  P1() ; ///< Accessor
-       tPt&  P2() ; ///< Accessor
+       const tPt&  P1() const {return mVPts.at(0);}   ; ///< Accessor
+       const tPt&  P2() const {return mVPts.at(1);}   ; ///< Accessor
+       tPt&  P1()  {return mVPts.at(0);}   ; ///< Accessor
+       tPt&  P2()  {return mVPts.at(1);}   ; ///< Accessor
        void  Swap(); ///< swap P1 P2 in place
+       const std::vector<tPt> &  VPts() const;
 
        tPt  V12() const;   ///<  Vector  P1->P2
        tPt  Middle() const;  ///<  P middle
 	/// Used for "generik" object that must describes its box
 	cTplBox<Type,Dim>  GetBoxEnglob() const;
     protected :
-       tPt  mP1;
-       tPt  mP2;
+       std::vector<tPt> mVPts;
+       // tPt  mP1;
+       // tPt  mP2;
 };
 
 template <class Type,const int Dim> class cSegmentCompiled : public cSegment<Type,Dim>

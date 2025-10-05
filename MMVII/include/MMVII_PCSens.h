@@ -316,6 +316,8 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 
 	     /// return calculator adapted to model of camera (degree, projection)
              cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf,bool ReUse);
+             ///  return the calculator if first time, else recycle it
+             cCalculator<double> *  SetAndGet_EqProjSeg();
 
 	     void UpdateMapProj2Im();  ///< when PP/F modified
 
@@ -366,6 +368,8 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 	    void CheckBeforeInverse(const tVecOut &) const;
 	    void CheckBeforeInverse(const tPtOut & ) const;
 
+	     /// return calculator adapted to model the projection of 3d seg on a curve
+             cCalculator<double> * EqProjSeg(bool WithDerives,int aSzBuf,bool ReUse);
 
          // ==================   DATA PART   ===================
 	 //
@@ -405,6 +409,7 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
             bool                                 mInvIsUpToDate;        
             cTabuMapInv<2>*                      mTabulDUD;  ///< Possibly store a tabulation of D/UD to replace call Undist/Redist
             // cDataMapCalcSymbDer<tREAL8,3,2>   * mProjInv;
+            cCalculator<double> *               mEqProjSeg;
 };
 
 
@@ -605,6 +610,7 @@ class cSensorCamPC : public cSensorImage
 	 cPt3dr  Vec_L2W(const cPt3dr &) const;  ///< Coordinat local of cam to coordinate word for a "vector"
 	 cPt3dr  Vec_W2L(const cPt3dr &) const;  ///< Coordinat word to coordinate local of cam for a "vector"
 
+         cCalculator<double> *  EqProjSeg();
 
          //  Cast to possible heriting class
          bool  IsSensorCamPC() const  override ;
