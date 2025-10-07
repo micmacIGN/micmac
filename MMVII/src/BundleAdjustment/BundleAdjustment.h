@@ -20,6 +20,7 @@ class cBA_GCP;
 class cBA_Clino;
 class cBA_BlocRig;
 
+class  cUK_Line3D_4BA;
 
 /**  "Standard" weighting classes, used the following formula
  *
@@ -427,7 +428,8 @@ class cMMVII_BundleAdj
           void AddGCP2D(cMes2DDirInfo * aMesDirInfo, cSetMesPtOf1Im & aSetMesIm, cSensorImage* aSens, eLevelCheck aOnNonExistGCP=eLevelCheck::Warning, bool verbose=true);
           cBA_GCP& getGCP() { return mGCP;}
 
-          ///  ============  Add Lidar/Photogra ===============
+          ///  ============  Add Lidar/Photogra ===============          void AddLineAdjust(const std::vector<std::string> &);
+
           void Add1AdjLidarPhotogra(const std::vector<std::string> &);
 
 	  ///  ============  Add multiple tie point ============
@@ -457,6 +459,8 @@ class cMMVII_BundleAdj
           void AddConstrainteRefPose(cSensorCamPC & aCam,cSensorCamPC & aCamRef);
 
 
+	  void AddLineAdjust(const std::vector<std::string> &);
+
 	  void SaveBlocRigid();
           void Save_newGCP3D();
           void SaveTopo();
@@ -471,7 +475,9 @@ class cMMVII_BundleAdj
           
           cResolSysNonLinear<tREAL8> *  Sys();  /// Real object, will disapear when fully interfaced for mSys
 
+          cSetInterUK_MultipeObj<tREAL8> &   SetIntervUK();
      private :
+	  void DeleteLineAdjust();
 
           //============== Methods =============================
           cMMVII_BundleAdj(const cMMVII_BundleAdj &) = delete;
@@ -556,6 +562,7 @@ class cMMVII_BundleAdj
           std::vector<std::string>  mParam_UC_UK;
           std::vector<int>          mIndCompUC;
           cResult_UC_SUR<tREAL8>*   mRUCSUR;
+	  cUK_Line3D_4BA*           mLineAdjust;
 };
 
 

@@ -5,15 +5,13 @@
 namespace MMVII
 {
 
-class cOneData_L23;       //< Store data one line 2d->3d
-class cCam2_Line_2Dto3D;  //< Compute initial "known" 3d line from 2d obs in camera
-class cUK_Line3D_4BA ;    //< Adjust unknown 3d line
+
 
 
 
 /** Store data one line 2d->3d, essentially data */
 
-class cOneData_L23
+class cOneData_L23 : public cMemCheck
 {
     public :
         ///  constructor 
@@ -38,17 +36,18 @@ class cOneData_L23
 
 
 /// class to handle computation
-class cCam2_Line_2Dto3D
+class cCam2_Line_2Dto3D : public cMemCheck
 {
     public :
        cCam2_Line_2Dto3D(const std::vector<cSensorCamPC *> & aVCam,cPhotogrammetricProject *);
 
-       const tSegComp3dr & Seg3d () const;
-       const std::string & NameLine() const;
-       std::vector<cOneData_L23>    Datas_L23();
+       const tSegComp3dr & Seg3d () const;               //< Accessor
+       const std::string & NameLine() const;             //< Accessor
+       const std::vector<cOneData_L23> &    Datas_L23() const; //< Accessor
        cPt3dr PtOfWeight(const tREAL8 aWeight);
 
     private :
+       cCam2_Line_2Dto3D(const cCam2_Line_2Dto3D&) = delete;
        void AssertSeg3dIsInit() const;
 
        tSegComp3dr                  mSeg3d;
@@ -59,35 +58,38 @@ class cCam2_Line_2Dto3D
 };
 
 
-
-/** in cUK_Line3D_4BA with put data in a specific class to allow copy (in "OnUpdate"),
- *  which would be forbiden due to inheritance */
-
-
 /// class handling a 3D unknown line for bundle adjusment
 class cUK_Line3D_4BA :   public cObjWithUnkowns<tREAL8>
 {
     public :
+	 friend cMMVII_BundleAdj;
          //<  constructor,
-         cUK_Line3D_4BA(const std::vector<cSensorCamPC *> & aVCam,cPhotogrammetricProject *,cMMVII_BundleAdj *);
+         cUK_Line3D_4BA(const std::vector<cSensorCamPC *> & aVCam,cPhotogrammetricProject *,cMMVII_BundleAdj *,tREAL8 aSigmaIm,int aNbPts);
+         ~cUK_Line3D_4BA();
 
-         void AddEquation(tREAL8 aSigmaLine,int aNbSampling);
+         void AddEquation();
     private :
+
+
+	 cUK_Line3D_4BA(const cUK_Line3D_4BA &) = delete;
          void AddOneEquation(tREAL8 aLambda, tREAL8 aWeight,const cOneData_L23&);
          void InitNormals();
 
          /// "reaction" after linear update
-         void OnUpdate() override;                 
+         void OnUpdate() override;
          /// method called when the object must indicate its unknowns
          void PutUknowsInSetInterval() override;
+         void  FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
 
          cMMVII_BundleAdj*      mBA;
-         cCam2_Line_2Dto3D      mLineInit;
+         cCam2_Line_2Dto3D    *  mLineInit;
          tSegComp3dr mSeg;
          cPt3dr      mNorm_x;     //< the first vector normal
          cPt3dr      mNorm_y;     //< the second vector normal
-         cPt2dr_UK   mUkN1;       //< unknown displacement at Seg.P1, coded as "Uk1.x Nx+ Uk1.y Ny"
-         cPt2dr_UK   mUkN2;       //<  unknown displacement at Seg.P2
+         cPt2dr      mUkN1;       //< unknown displacement at Seg.P1, coded as "Uk1.x Nx+ Uk1.y Ny"
+         cPt2dr      mUkN2;       //<  unknown displacement at Seg.P2
+         tREAL8      mSigmaIm;
+         int         mNbPtSampling;
          //cUK_Line3D_4BA_Data    mData;
 };
 
@@ -107,6 +109,10 @@ cOneData_L23::cOneData_L23(cSensorCamPC * aCam,const tSeg2dr & aSeg,int aKIm) :
     mLineM (nullptr)
 {
 }
+
+
+
+
 cOneData_L23::~cOneData_L23()
 {
     delete mLineM;
@@ -143,18 +149,21 @@ cCam2_Line_2Dto3D::cCam2_Line_2Dto3D(const std::vector<cSensorCamPC *> & aVCam,c
     for (size_t aKCam=0 ; aKCam<aVCam.size() ; aKCam++)
     {
          const auto & aCam = aVCam.at(aKCam);
-         const std::string & aNameIm = aCam->NameImage();
-         if (aPhProj->HasFileLines(aNameIm))
-         {
-             cLinesAntiParal1Im   aSetL  = aPhProj->ReadLines(aNameIm);
-             const std::vector<cOneLineAntiParal> & aVL  = 	aSetL.mLines;
+	 if (aCam != nullptr)
+	 {
+            const std::string & aNameIm = aCam->NameImage();
+            if (aPhProj->HasFileLines(aNameIm))
+            {
+                cLinesAntiParal1Im   aSetL  = aPhProj->ReadLines(aNameIm);
+                const std::vector<cOneLineAntiParal> & aVL  = 	aSetL.mLines;
 
-             // At this step we dont handle multiple lines
-             if (aVL.size()==1)
-             {
-                 mDatas_L23.push_back(cOneData_L23(aCam,aVL.at(0).mSeg,aKCam));
-                 aVPlaneOk.push_back(mDatas_L23.back().mPlane);
-             }
+                // At this step we dont handle multiple lines
+                if (aVL.size()==1)
+                {
+                    mDatas_L23.push_back(cOneData_L23(aCam,aVL.at(0).mSeg,aKCam));
+                    aVPlaneOk.push_back(mDatas_L23.back().mPlane);
+                }
+            }
          }
     }
 
@@ -205,6 +214,10 @@ const std::string & cCam2_Line_2Dto3D::NameLine() const
 }
 
 
+const std::vector<cOneData_L23> &  cCam2_Line_2Dto3D::Datas_L23() const
+{
+   return mDatas_L23;
+}
 
 /* *********************************************************** */
 /*                                                             */
@@ -212,16 +225,36 @@ const std::string & cCam2_Line_2Dto3D::NameLine() const
 /*                                                             */
 /* *********************************************************** */
 
-cUK_Line3D_4BA::cUK_Line3D_4BA(const std::vector<cSensorCamPC *> & aVCam,cPhotogrammetricProject * aPhProj,cMMVII_BundleAdj *  aBA) :
-    mBA        (aBA),
-    mLineInit  (aVCam,aPhProj),
-    mSeg       (mLineInit.Seg3d()),
-    mUkN1      (cPt2dr(0,0),std::string("Line3d_Uk1") + mLineInit.NameLine()),
-    mUkN2      (cPt2dr(0,0),std::string("Line3d_Uk2") + mLineInit.NameLine())
+    //  mUkN1      (cPt2dr(0,0),std::string("Line3d_Uk1") + mLineInit->NameLine()),
+cUK_Line3D_4BA::cUK_Line3D_4BA
+(
+      const std::vector<cSensorCamPC *> & aVCam,
+      cPhotogrammetricProject * aPhProj,
+      cMMVII_BundleAdj *  aBA,
+      tREAL8 aSigmaIm,
+      int aNbPts
+) :
+    mBA           (aBA),
+    mLineInit     (new cCam2_Line_2Dto3D (aVCam,aPhProj)),
+    mSeg          (mLineInit->Seg3d()),
+    mUkN1         (0.0,0.0),
+    mUkN2         (0.0,0.0) ,
+    mSigmaIm      (aSigmaIm),
+    mNbPtSampling (aNbPts)
 {
+	//  ddOneObj()
+
+    // aBA->SetIntervUK().AddOneObj(&mUkN1);
+    // aBA->SetIntervUK().AddOneObj(&mUkN2);
+
     InitNormals();
     for (auto aCam : aVCam)
         aCam->InternalCalib()->SetAndGet_EqProjSeg();
+}
+
+cUK_Line3D_4BA::~cUK_Line3D_4BA()
+{
+    delete mLineInit;
 }
 
 void cUK_Line3D_4BA::InitNormals()
@@ -233,20 +266,32 @@ void cUK_Line3D_4BA::InitNormals()
 
 void cUK_Line3D_4BA::PutUknowsInSetInterval()
 {
-   mSetInterv->AddOneInterv(mUkN1.Pt());
-   mSetInterv->AddOneInterv(mUkN2.Pt());
+   mSetInterv->AddOneInterv(mUkN1);
+   mSetInterv->AddOneInterv(mUkN2);
+}
+
+void cUK_Line3D_4BA::FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP) 
+{
+   aGAIP.TestParam(this, &(mUkN1.x()),"x1");
+   aGAIP.TestParam(this, &(mUkN1.y()),"y1");
+   aGAIP.TestParam(this, &(mUkN2.x()),"x2");
+   aGAIP.TestParam(this, &(mUkN2.y()),"y2");
+
+   aGAIP.SetNameType("Line3D");
+   aGAIP.SetIdObj(mLineInit->NameLine());
+
 }
 
 
 void cUK_Line3D_4BA::OnUpdate() 
 {
-    cPt3dr aNewP1 = mSeg.P1() + mNorm_x * mUkN1.Pt().x()  +  mNorm_y * mUkN1.Pt().y();
-    cPt3dr aNewP2 = mSeg.P2() + mNorm_x * mUkN2.Pt().x()  +  mNorm_y * mUkN2.Pt().y();
+    cPt3dr aNewP1 = mSeg.P1() + mNorm_x * mUkN1.x()  +  mNorm_y * mUkN1.y();
+    cPt3dr aNewP2 = mSeg.P2() + mNorm_x * mUkN2.x()  +  mNorm_y * mUkN2.y();
 
     mSeg = tSegComp3dr(aNewP1,aNewP2);
 
-    mUkN1.Pt() = cPt2dr(0,0);
-    mUkN2.Pt() = cPt2dr(0,0);
+    mUkN1 = cPt2dr(0,0);
+    mUkN2 = cPt2dr(0,0);
 
     InitNormals();
 }
@@ -296,8 +341,10 @@ void cUK_Line3D_4BA::AddOneEquation(tREAL8 aLambda,tREAL8 aWeight,const cOneData
 
 
     {
-       mUkN1.PushIndexes(aVIndexes);
-       mUkN2.PushIndexes(aVIndexes);
+
+       this->PushIndexes(aVIndexes);
+       // mUkN1.PushIndexes(aVIndexes);
+       // mUkN2.PushIndexes(aVIndexes);
 
        for (auto & anObj : aData.mCam->GetAllUK())
        {
@@ -308,16 +355,34 @@ void cUK_Line3D_4BA::AddOneEquation(tREAL8 aLambda,tREAL8 aWeight,const cOneData
     mBA->Sys()->R_CalcAndAddObs(aData.SetAndGet_CalcEqSeg(),aVIndexes,aVObs,aWeight);
 }
 
-void cUK_Line3D_4BA::AddEquation(tREAL8 aSigmaLine,int aNbPts)
+void cUK_Line3D_4BA::AddEquation()
 {
-    for (int aKPt=0 ; aKPt<aNbPts ; aKPt++)
+    for (int aKPt=0 ; aKPt<mNbPtSampling ; aKPt++)
     {
-        tREAL8 aLambda = (aKPt+0.5) / aNbPts;
-        tREAL8 aWeight = 1.0 /  (Square(aSigmaLine) * aNbPts);
+        tREAL8 aLambda = (aKPt+0.5) / mNbPtSampling;
+        tREAL8 aWeight = 1.0 /  (Square(mSigmaIm) * mNbPtSampling);
 
-        for (const auto & aData_L23 : mLineInit.Datas_L23())
+        for (const auto & aData_L23 : mLineInit->Datas_L23())
              AddOneEquation(aLambda,aWeight,aData_L23);
     }
+}
+
+void cMMVII_BundleAdj::AddLineAdjust(const std::vector<std::string> & aVParam)
+{
+   tREAL8 aSigmaIm =  cStrIO<double>::FromStr(aVParam.at(0));
+   int    aNbPts   =  cStrIO<int>::FromStr(aVParam.at(1));
+
+   mLineAdjust = new cUK_Line3D_4BA(mVSCPC,mPhProj,this,aSigmaIm,aNbPts);
+   mSetIntervUK.AddOneObj(mLineAdjust);
+}
+
+
+
+// cUK_Line3D_4BA::cUK_Line3D_4BA(const std::vector<cSensorCamPC *> & aVCam,cPhotogrammetricProject * aPhProj,cMMVII_BundleAdj *  aBA) :
+
+void cMMVII_BundleAdj::DeleteLineAdjust()
+{
+	delete mLineAdjust;
 }
 
 

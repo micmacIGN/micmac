@@ -104,7 +104,8 @@ cMMVII_BundleAdj::cMMVII_BundleAdj(cPhotogrammetricProject * aPhp) :
     mNbIter           (0),
     mVerbose          (true),
     mShow_UC_UK       (false),
-    mRUCSUR           (nullptr)
+    mRUCSUR           (nullptr),
+    mLineAdjust       (nullptr)
 {
 }
 
@@ -120,6 +121,8 @@ cMMVII_BundleAdj::~cMMVII_BundleAdj()
     delete mRUCSUR;
     // DeleteAllAndClear(mGCP_UK);
     DeleteAllAndClear(mVBA_Lidar);
+
+    DeleteLineAdjust();
 }
 
 void cMMVII_BundleAdj::ShowUKNames(const std::vector<std::string> & aParam, const std::string &aSuffix, cMMVII_Appli * anAppli)
