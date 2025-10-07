@@ -2055,6 +2055,7 @@ using  namespace pdal;
    const int8_t High_Vegetation=5;
    const int8_t Building=6;
    const int8_t Water=9;
+   const int8_t FictiveWaterBridge =66;
    const std::string DSMMarker="dsm_marker";
    const std::string DTMMarker="dtm_marker";
  };
@@ -2189,6 +2190,7 @@ template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & a
                      //bool IsBuilding=(Classif==ClassificationTags().Building);
                      //bool IsGround=(Classif==ClassificationTags().Ground);
                     bool IsUnclassified=(Classif==ClassificationTags().Unclassified);
+                    bool IsFictive     = (Classif==ClassificationTags().FictiveWaterBridge);
                     bool IsWater=(Classif==ClassificationTags().Water);
                     bool IsVeg=(Classif==ClassificationTags().Low_Vegetation) ||
                                (Classif==ClassificationTags().Medium_Vegetation) ||
@@ -2196,7 +2198,7 @@ template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & a
 
 
 
-               if ( ! (IsWater || IsVeg || IsUnclassified) )
+                    if ( ! (IsWater || IsVeg || IsUnclassified || IsFictive)  )
                {
                    tPt aP(point_view->getFieldAs<tREAL8>(Id::X, idx),
                           point_view->getFieldAs<tREAL8>(Id::Y, idx),
