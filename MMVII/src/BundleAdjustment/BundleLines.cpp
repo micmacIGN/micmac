@@ -367,6 +367,12 @@ void cUK_Line3D_4BA::AddEquation()
     }
 }
 
+/* *********************************************************** */
+/*                                                             */
+/*                 cMMVII_BundleAdj                            */
+/*                                                             */
+/* *********************************************************** */
+
 void cMMVII_BundleAdj::AddLineAdjust(const std::vector<std::string> & aVParam)
 {
    tREAL8 aSigmaIm =  cStrIO<double>::FromStr(aVParam.at(0));
@@ -376,6 +382,11 @@ void cMMVII_BundleAdj::AddLineAdjust(const std::vector<std::string> & aVParam)
    mSetIntervUK.AddOneObj(mLineAdjust);
 }
 
+void cMMVII_BundleAdj::IterAdjustOnLine()
+{
+    if (mLineAdjust)
+        mLineAdjust->AddEquation();
+}
 
 
 // cUK_Line3D_4BA::cUK_Line3D_4BA(const std::vector<cSensorCamPC *> & aVCam,cPhotogrammetricProject * aPhProj,cMMVII_BundleAdj *  aBA) :

@@ -454,14 +454,16 @@ class cMMVII_BundleAdj
           void SetSharedIntrinsicParams(const std::vector<std::string> &);
            
 
-	  void AddPoseViscosity();
-	  void AddConstrainteRefPose();
+          void AddPoseViscosity();
+          void AddConstrainteRefPose();
           void AddConstrainteRefPose(cSensorCamPC & aCam,cSensorCamPC & aCamRef);
 
 
-	  void AddLineAdjust(const std::vector<std::string> &);
+          void AddLineAdjust(const std::vector<std::string> &);
+          void DeleteLineAdjust();
+          void IterAdjustOnLine();
 
-	  void SaveBlocRigid();
+          void SaveBlocRigid();
           void Save_newGCP3D();
           void SaveTopo();
 
@@ -477,7 +479,6 @@ class cMMVII_BundleAdj
 
           cSetInterUK_MultipeObj<tREAL8> &   SetIntervUK();
      private :
-	  void DeleteLineAdjust();
 
           //============== Methods =============================
           cMMVII_BundleAdj(const cMMVII_BundleAdj &) = delete;
