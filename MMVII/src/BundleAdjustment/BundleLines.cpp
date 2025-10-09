@@ -106,7 +106,8 @@ cOneData_L23::cOneData_L23(cSensorCamPC * aCam,const tSeg2dr & aSeg,int aKIm) :
     mSeg   (aSeg),
     mPlane (mCam->SegImage2Ground(mSeg)),
     mKIm   (aKIm),
-    mLineM (nullptr)
+    mLineM (nullptr),
+    mCalcEqSeg (nullptr)
 {
 }
 
@@ -317,6 +318,7 @@ void cUK_Line3D_4BA::AddOneEquation(tREAL8 aLambda,tREAL8 aWeight,const cOneData
       cPt2dr aTgtL2 = aLDM->TgSpace(aPImOnL2).at(0);
       cPt2dr aNormL2 = Rot90(aTgtL2);
 
+//StdOut() << " PIMG=" << aPImPG << " PL=" <<  aPImOnL2 << "\n";
 
     //     std::vector<std::string>  aVecLIne2D = Append(NamesP2("Line2D_Pt"),NamesP2("Line2D_Norm"));
        aPImOnL2.PushInStdVector(aVObs);
@@ -351,6 +353,7 @@ void cUK_Line3D_4BA::AddOneEquation(tREAL8 aLambda,tREAL8 aWeight,const cOneData
            anObj->PushIndexes(aVIndexes);
        }
    }
+
 
     mBA->Sys()->R_CalcAndAddObs(aData.SetAndGet_CalcEqSeg(),aVIndexes,aVObs,aWeight);
 }
