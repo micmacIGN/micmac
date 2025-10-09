@@ -264,7 +264,8 @@ void cAppli_ReportBlock::AddStatDistWirePt
 
      mStatWirePt[aNamePt].mStat3d.Add(Norm2(anEc));
 
-     AddOneReportCSV(mIdRepDWirePt,{aNamePt,ToStr(aD3),ToStr(aDH),ToStr(aDV)});
+    // InitReportCSV(mIdRepDWirePt,"csv",false,{"TimeStamp","NamePt","D3","DH","DV"});
+     AddOneReportCSV(mIdRepDWirePt,{anIdSync,aNamePt,ToStr(aD3),ToStr(aDH),ToStr(aDV)});
 }
 
 cPt2dr  cAppli_ReportBlock::CorrMesPt(cSensorCamPC * aCam,const cPt2dr & aPt)

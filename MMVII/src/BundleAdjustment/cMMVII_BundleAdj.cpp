@@ -388,6 +388,9 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter, bool doShowCond
     for (const auto & aLidarPh : mVBA_Lidar )
        aLidarPh->AddObs();
 
+    // Add observation for line adjustment
+    IterAdjustOnLine();
+
     if (mCompute_Uncert && isLastIter)
     {
 // StdOut() <<  "mCompute_UncertmCompute_UncertmCompute_Uncert--------------------------------\n";
