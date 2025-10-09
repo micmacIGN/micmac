@@ -265,9 +265,8 @@ template<int DimE>  typename cSphereManifold<DimE>::tPtE  cSphereManifold<DimE>:
 cAux_LineDist_Manifold::cAux_LineDist_Manifold(const tSeg2dr & aSeg,cPerspCamIntrCalib * aCalib ) :
     mMap_Ud_Red (aCalib),
     mMap_Red_Ud (&mMap_Ud_Red,false), // false -> does not adopt
-    mLineMan    (aSeg)
+    mLineMan    (tSeg2dr(aCalib->Undist(aSeg.P1()),aCalib->Undist(aSeg.P2())))
 {
-
 }
 
               /*  ------------------------  cLineDist_Manifold  ------------------------ */
@@ -275,6 +274,7 @@ cAux_LineDist_Manifold::cAux_LineDist_Manifold(const tSeg2dr & aSeg,cPerspCamInt
 cLineDist_Manifold::cLineDist_Manifold(const tSeg2dr & aSeg,cPerspCamIntrCalib * aCalib ) :
     cAux_LineDist_Manifold(aSeg,aCalib),
     cManifoldFromMapping<1,2>(&mLineMan,&mMap_Red_Ud)
+     // cManifoldFromMapping<1,2>(&mLineMan,&mMap_Ud_Red)
 {
 }
 

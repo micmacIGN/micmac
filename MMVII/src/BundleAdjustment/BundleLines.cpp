@@ -22,6 +22,8 @@ class cOneData_L23 : public cMemCheck
         cLineDist_Manifold* SetAndGet_LineM() const;
         ///  create, if dont exist,  calculator for line-adjustment
         cCalculator<tREAL8> * SetAndGet_CalcEqSeg() const;
+        cWeightAv<tREAL8,tREAL8> &  AvgResidual() ;  /// Accessor
+
 
 
         cSensorCamPC *           mCam;   //< camera seeing the line
@@ -31,8 +33,8 @@ class cOneData_L23 : public cMemCheck
     private :
         mutable cLineDist_Manifold*   mLineM;
         mutable cCalculator<tREAL8> * mCalcEqSeg;
+        cWeightAv<tREAL8,tREAL8>      mAvgResidual;
 };
-
 
 
 /// class to handle computation
@@ -44,6 +46,8 @@ class cCam2_Line_2Dto3D : public cMemCheck
        const tSegComp3dr & Seg3d () const;               //< Accessor
        const std::string & NameLine() const;             //< Accessor
        const std::vector<cOneData_L23> &    Datas_L23() const; //< Accessor
+       std::vector<cOneData_L23> &    Datas_L23() ; //< Accessor
+
        cPt3dr PtOfWeight(const tREAL8 aWeight);
 
     private :
@@ -71,8 +75,8 @@ class cUK_Line3D_4BA :   public cObjWithUnkowns<tREAL8>
     private :
 
 
-	 cUK_Line3D_4BA(const cUK_Line3D_4BA &) = delete;
-         void AddOneEquation(tREAL8 aLambda, tREAL8 aWeight,const cOneData_L23&);
+         cUK_Line3D_4BA(const cUK_Line3D_4BA &) = delete;
+         void AddOneEquation(tREAL8 aLambda, tREAL8 aWeight,cOneData_L23&);
          void InitNormals();
 
          /// "reaction" after linear update
@@ -134,6 +138,12 @@ cCalculator<tREAL8> * cOneData_L23::SetAndGet_CalcEqSeg() const
 
    return mCalcEqSeg;
 }
+
+cWeightAv<tREAL8,tREAL8> &  cOneData_L23::AvgResidual()
+{
+    return mAvgResidual;
+}
+
 
 /* *********************************************************** */
 /*                                                             */
@@ -219,7 +229,10 @@ const std::vector<cOneData_L23> &  cCam2_Line_2Dto3D::Datas_L23() const
 {
    return mDatas_L23;
 }
-
+std::vector<cOneData_L23> &  cCam2_Line_2Dto3D::Datas_L23()
+{
+   return mDatas_L23;
+}
 /* *********************************************************** */
 /*                                                             */
 /*                 cUK_Line3D_4BA                              */
@@ -298,7 +311,7 @@ void cUK_Line3D_4BA::OnUpdate()
 }
 
 
-void cUK_Line3D_4BA::AddOneEquation(tREAL8 aLambda,tREAL8 aWeight,const cOneData_L23& aData)
+void cUK_Line3D_4BA::AddOneEquation(tREAL8 aLambda,tREAL8 aWeight,cOneData_L23& aData)
 {
     std::vector<double> aVObs ;
     std::vector<int> aVIndexes;
@@ -318,6 +331,19 @@ void cUK_Line3D_4BA::AddOneEquation(tREAL8 aLambda,tREAL8 aWeight,const cOneData
       cPt2dr aTgtL2 = aLDM->TgSpace(aPImOnL2).at(0);
       cPt2dr aNormL2 = Rot90(aTgtL2);
 
+      tREAL8 aResidual= Norm2(aPImPG-aPImOnL2);
+      {
+          auto aCalib = aData.mCam->InternalCalib();
+          const tSeg2dr  aSegD = aData.mSeg;
+
+           tSegComp2dr aSeg_UD (aCalib->Undist(aSegD.P1()),aCalib->Undist(aSegD.P2()));
+           cPt2dr aP_UD = aCalib->Undist(aPImPG);
+
+           StdOut() << "** RRRR " << aResidual << " DD=" << aSeg_UD.Dist(aP_UD) << "\n";
+
+          //const tSeg2dr            mSeg
+      }
+      aData.AvgResidual().Add(1.0,aResidual);
 //StdOut() << " PIMG=" << aPImPG << " PL=" <<  aPImOnL2 << "\n";
 
     //     std::vector<std::string>  aVecLIne2D = Append(NamesP2("Line2D_Pt"),NamesP2("Line2D_Norm"));
@@ -360,12 +386,15 @@ void cUK_Line3D_4BA::AddOneEquation(tREAL8 aLambda,tREAL8 aWeight,const cOneData
 
 void cUK_Line3D_4BA::AddEquation()
 {
+    for ( auto & aData_L23 : mLineInit->Datas_L23())
+         aData_L23.AvgResidual().Reset();
+
     for (int aKPt=0 ; aKPt<mNbPtSampling ; aKPt++)
     {
         tREAL8 aLambda = (aKPt+0.5) / mNbPtSampling;
         tREAL8 aWeight = 1.0 /  (Square(mSigmaIm) * mNbPtSampling);
 
-        for (const auto & aData_L23 : mLineInit->Datas_L23())
+        for ( auto & aData_L23 : mLineInit->Datas_L23())
              AddOneEquation(aLambda,aWeight,aData_L23);
     }
 }
