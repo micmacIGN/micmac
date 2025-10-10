@@ -2805,9 +2805,9 @@ bool cTriangulation3D<Type>::IsGoodPatchNadir(const std::vector<cPt3dr>& aVPts,
 
     // multiply by 2^aScale to find scale image coordinates
 
-    tREAL8 TT_SEUIL_AutoCorrel_ACCEPT = 0.6 ;           // Seuil d'elimination par auto-correlation
-    tREAL8 TT_SEUIL_CutAutoCorrel_REJECTION = 0.4;      // Seuil d'acceptation rapide par auto correl entiere
-    tREAL8 TT_SEUIL_CutAutoCorrel_REEL_REJECTION = 0.5; // Seuil d'acceptation rapide par auto correl reelle
+    tREAL8 TT_SEUIL_AutoCorrel_ACCEPT = 0.85 ;           // Seuil d'elimination par auto-correlation
+    tREAL8 TT_SEUIL_CutAutoCorrel_REJECTION = 0.65;      // Seuil d'acceptation rapide par auto correl entiere
+    tREAL8 TT_SEUIL_CutAutoCorrel_REEL_REJECTION = 0.75; // Seuil d'acceptation rapide par auto correl reelle
 
 
     ///< Finds good patches based on geometry criteria and radiometric resemblance between patches
@@ -2890,7 +2890,7 @@ bool cTriangulation3D<Type>::IsGoodPatchNadir(const std::vector<cPt3dr>& aVPts,
 
         if (WindInside4BL(aDIm,aPIm,Pt_round_up(cPt2dr(AC_RHO+aSzW+1,AC_RHO+aSzW+1))))
         {
-            cCutAutoCorrelDir<tU_INT1> aCACD(aDIm,cPt2di(0,0),AC_RHO,2,aSzW);
+            cCutAutoCorrelDir<tU_INT1> aCACD(aDIm,cPt2di(0,0),AC_RHO,1,aSzW);
 
             isNotAutoCorr =  !(aCACD.AutoCorrel((ToI(aPIm)),
                                              TT_SEUIL_CutAutoCorrel_REJECTION,

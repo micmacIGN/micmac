@@ -825,7 +825,7 @@ void cBA_LidarPhotogra::EvalGeomConsistency(const std::vector<cPt3dr>& aVPatchGr
             aVData.push_back(aData); // memorize the data for this image
             // save ortho
             // save orthos to check registration accuracy
-            if(1)
+            if(0)
             {
                 if ( ( (mBA.getNbIter()==0) || (mBA.CheckIfLastIter()) )
                     && (isForSelection))
