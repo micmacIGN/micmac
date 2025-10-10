@@ -405,6 +405,7 @@ class cBA_LidarPhotogra
        cBox2dr mBoxSelected;
        int mNbScale;
        tREAL8 mInitRes;
+       tREAL8 mDensity;
        cDataIm2D<tREAL8> * mDImQualityMap;
        cDataIm2D<tREAL8> * mDImQualityMapY;
 };

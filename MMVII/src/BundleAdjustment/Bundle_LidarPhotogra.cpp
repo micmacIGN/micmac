@@ -28,6 +28,7 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
     mBoxSelected (cBox2dr::Empty()),
     mNbScale(1),
     mInitRes (0.2),
+    mDensity(5.0),
     mDImQualityMap(nullptr),
     mDImQualityMapY(nullptr)
 {
@@ -62,13 +63,18 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
         mNbPointByPatch = cStrIO<size_t>::FromStr(aParam.at(4));
    }
 
-   if (aParam.size()>=6)
+   if (aParam.size() >=6)
    {
-       mNbScale = cStrIO<size_t>::FromStr(aParam.at(5));
+       mDensity = cStrIO<size_t>::FromStr(aParam.at(5));
    }
    if (aParam.size()>=7)
    {
-       mInitRes = cStrIO<tREAL8>::FromStr(aParam.at(5));
+       mNbScale = cStrIO<size_t>::FromStr(aParam.at(6));
+   }
+
+   if (aParam.size()>=8)
+   {
+       mInitRes = cStrIO<tREAL8>::FromStr(aParam.at(7));
    }
    // create the interpaltor itself
    mInterp  = cDiffInterpolator1D::AllocFromNames(aParamInt);
@@ -143,8 +149,7 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
         // estimate the distance for computing patching assuming a uniform  distribution
         // Pi d^ 2  /NbByP = Surf / NbTot
         //tREAL8 aDistMoy = std::sqrt(mNbPointByPatch *aBox.NbElem()/ (mTri.NbPts()*M_PI));
-        tREAL8 aDensity = 10 ; // 10 pts/m2
-        tREAL8 aDistMoy = std::sqrt(mNbPointByPatch / (aDensity*M_PI));
+        tREAL8 aDistMoy = std::sqrt(mNbPointByPatch / (mDensity*M_PI));
         tREAL8 aDistReject =  aDistMoy *1.2;
 
         //mTri.MakePatches(mLPatches,aDistMoy,aDistReject,15);
