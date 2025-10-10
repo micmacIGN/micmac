@@ -29,6 +29,7 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
     mNbScale(1),
     mInitRes (0.2),
     mDensity(5.0),
+    mThresholdAcceptCorrel(0.2),
     mDImQualityMap(nullptr),
     mDImQualityMapY(nullptr)
 {
@@ -67,14 +68,20 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
    {
        mDensity = cStrIO<size_t>::FromStr(aParam.at(5));
    }
-   if (aParam.size()>=7)
+
+   if (aParam.size() >=7)
    {
-       mNbScale = cStrIO<size_t>::FromStr(aParam.at(6));
+       mThresholdAcceptCorrel = cStrIO<size_t>::FromStr(aParam.at(6));
    }
 
    if (aParam.size()>=8)
    {
-       mInitRes = cStrIO<tREAL8>::FromStr(aParam.at(7));
+       mNbScale = cStrIO<size_t>::FromStr(aParam.at(7));
+   }
+
+   if (aParam.size()>=9)
+   {
+       mInitRes = cStrIO<tREAL8>::FromStr(aParam.at(8));
    }
    // create the interpaltor itself
    mInterp  = cDiffInterpolator1D::AllocFromNames(aParamInt);
@@ -190,7 +197,7 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
                 aVP.push_back(ToR(mTri.KthPts(anInd)));
             std::vector<cData1ImLidPhgr> aVDenseData;
             EvalGeomConsistency(aVP,aVDenseData,mInitRes,mNbScale-1);
-            if (EvalCorrel(aVDenseData)<0.2)
+            if (EvalCorrel(aVDenseData)<mThresholdAcceptCorrel)
             {
                 mLPatches.remove(aPatchIndex);
             }

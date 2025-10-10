@@ -406,6 +406,7 @@ class cBA_LidarPhotogra
        int mNbScale;
        tREAL8 mInitRes;
        tREAL8 mDensity;
+       tREAL8 mThresholdAcceptCorrel;
        cDataIm2D<tREAL8> * mDImQualityMap;
        cDataIm2D<tREAL8> * mDImQualityMapY;
 };
