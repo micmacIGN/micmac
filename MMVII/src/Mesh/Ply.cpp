@@ -2905,7 +2905,7 @@ bool cTriangulation3D<Type>::IsGoodPatchNadir(const std::vector<cPt3dr>& aVPts,
 
 
             // add a center variability criterion
-            if (isNotAutoCorr && isPlanar)
+            if (0) //isNotAutoCorr && isPlanar)
             {
                 std:: string filename= "CORR_"+
                                        aCam->NameImage()+

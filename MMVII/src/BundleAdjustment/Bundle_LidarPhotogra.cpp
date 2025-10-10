@@ -188,21 +188,19 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
         mTri.PlyWriteSelected(NamePlyOut,mLPatches,false);
 
 
-        auto aSetOfPatches= mLPatches;
+        std::list<std::vector<int> >  aSetOfPatches ;
         cTplBoxOfPts<tREAL8,2> aBoxObj;
-        for (const auto& aPatchIndex : aSetOfPatches)
+        for (const auto & aPatchIndex : mLPatches)
         {
             std::vector<cPt3dr> aVP;
             for (const auto anInd : aPatchIndex)
                 aVP.push_back(ToR(mTri.KthPts(anInd)));
             std::vector<cData1ImLidPhgr> aVDenseData;
             EvalGeomConsistency(aVP,aVDenseData,mInitRes,mNbScale-1);
-            if (EvalCorrel(aVDenseData)<mThresholdAcceptCorrel)
+            if (EvalCorrel(aVDenseData)>mThresholdAcceptCorrel)
             {
-                mLPatches.remove(aPatchIndex);
-            }
-            else
-            {
+                aSetOfPatches.push_back(aPatchIndex);
+
                 for (auto & aPt: aVP)
                 {
                     aBoxObj.Add(Proj(aPt));
@@ -210,12 +208,15 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
             }
         }
 
+
+        mLPatches = aSetOfPatches;
+
         StdOut()<<"Selected points to correl "<<mLPatches.size()<<std::endl;
 
         mBoxSelected=aBoxObj.CurBox();
 
-        /*NamePlyOut="./patches_selected_autocorrel_visibility_MMVII_AUTOCOR.ply";
-        mTri.PlyWriteSelected(NamePlyOut,mLPatches,false);*/
+        NamePlyOut="./patches_selected_autocorrel_visibility_MMVII_AUTOCOR_filtered.ply";
+        mTri.PlyWriteSelected(NamePlyOut,mLPatches,false);
 
         StdOut() << "Patches: DistReject=" << aDistReject 
                 << " NbPts=" << mTri.NbPts()
