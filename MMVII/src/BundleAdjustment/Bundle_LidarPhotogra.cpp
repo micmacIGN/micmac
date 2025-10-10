@@ -138,12 +138,14 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
    // Creation of the patches, to comment ...
    if (mModeSim!=eImatchCrit::eDifRad)
     {
-        // cBox2dr aBox = BoxOfTri(mTri);
+        //cBox2dr aBox = BoxOfTri(mTri);
         //cBox2dr aBox = mTri.Box2D();
-        // estimate the distance for computing patching assuming a uniform  distributio,
+        // estimate the distance for computing patching assuming a uniform  distribution
         // Pi d^ 2  /NbByP = Surf / NbTot
-        tREAL8 aDistMoy = 5.0 ;//std::sqrt(mNbPointByPatch *aBox.NbElem()/ (mTri.NbPts()*M_PI));
-        tREAL8 aDistReject =  aDistMoy *1.5;
+        //tREAL8 aDistMoy = std::sqrt(mNbPointByPatch *aBox.NbElem()/ (mTri.NbPts()*M_PI));
+        tREAL8 aDensity = 10 ; // 10 pts/m2
+        tREAL8 aDistMoy = std::sqrt(mNbPointByPatch / (aDensity*M_PI));
+        tREAL8 aDistReject =  aDistMoy *1.2;
 
         //mTri.MakePatches(mLPatches,aDistMoy,aDistReject,15);
 
