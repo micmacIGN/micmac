@@ -217,6 +217,7 @@ std::vector<cPt2di> SortedVectOfRadiusBuffer(const double & aR0,
        aARes.insert(aARes.end(),aResId.begin(),aResId.end());
     }
     std::sort(aARes.begin(),aARes.end(),CmpN2<int,2>);
+
     return aARes;
 }
 

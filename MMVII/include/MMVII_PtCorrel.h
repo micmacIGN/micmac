@@ -2,6 +2,7 @@
 #include "MMVII_Geom2D.h"
 
 
+
 namespace MMVII
 {
 /*************************************************************/
@@ -151,28 +152,33 @@ public :
 
     cCutAutoCorrelDir(cDataIm2D<Type> & anIm,const cPt2di & aP0,double aRho,int aBuf,int aSzW ) :
         cAutoCorrelDir<Type> (anIm,aP0,aRho,aSzW),
-        mVPt (SortedVectOfRadiusBuffer(0.0,aRho,aBuf)),
+        //mVPt(SortedAngleFlux2StdCont(mVPt,circle(Pt2dr(0,0),aRho))),
+        mVPt (SortedVectOfRadius(0.0,aRho,false)),
         mNbPts                 (mVPt.size())
         {
+            //SortedAngleFlux2StdCont(mVPt,circle(Pt2dr(0,0),aRho));
+            //mNbPts = mVPt.size();
         }
 
         cCutAutoCorrelDir(const cDataIm2D<Type> & anIm,const cPt2di & aP0,double aRho,int aBuf, int aSzW ) :
             cAutoCorrelDir<Type> (anIm,aP0,aRho,aSzW),
-            mVPt (SortedVectOfRadiusBuffer(0.0,aRho,aBuf)),
+            mVPt (SortedVectOfRadius(0.0,aRho,false)),
             mNbPts                 (mVPt.size())
         {
+            //SortedAngleFlux2StdCont(mVPt,circle(Pt2dr(0,0),aRho));
+            //mNbPts = mVPt.size();
         }
 
         cCutAutoCorrelDir(cDataIm2D<Type> & anIm,const cPt2di & aP0,double aRho,int aBuf,std::vector<cPt2dr> aIndW  ) :
             cAutoCorrelDir<Type> (anIm,aP0,aRho,aIndW),
-            mVPt (SortedVectOfRadiusBuffer(0.0,aRho,aBuf)),
+            mVPt (SortedVectOfRadius(0.0,aRho,false)),
             mNbPts                 (mVPt.size())
         {
         }
 
         cCutAutoCorrelDir(const cDataIm2D<Type> & anIm,const cPt2di & aP0,double aRho,int aBuf, std::vector<cPt2dr> aIndW ) :
             cAutoCorrelDir<Type> (anIm,aP0,aRho,aIndW),
-            mVPt (SortedVectOfRadiusBuffer(0.0,aRho,aBuf)),
+            mVPt (SortedVectOfRadius(0.0,aRho,false)),
             mNbPts                 (mVPt.size())
         {
         }

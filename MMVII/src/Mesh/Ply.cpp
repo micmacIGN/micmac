@@ -2186,22 +2186,22 @@ template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & a
            for (pdal::PointId idx = 0; idx < point_view->size(); ++idx)
            {
 
-                    auto Classif=point_view->getFieldAs<int>(Id::Classification, idx);
+                    //auto Classif=point_view->getFieldAs<int>(Id::Classification, idx);
                      //bool IsBuilding=(Classif==ClassificationTags().Building);
-                     //bool IsGround=(Classif==ClassificationTags().Ground);
-                    bool IsUnclassified=(Classif==ClassificationTags().Unclassified);
-                    bool IsFictive  = (Classif==66/*ClassificationTags().FictiveWaterBridge*/);
-                    bool IsWater=(Classif==ClassificationTags().Water);
-                    bool IsVeg=(Classif==ClassificationTags().Low_Vegetation) ||
-                               (Classif==ClassificationTags().Medium_Vegetation) ||
-                               (Classif==ClassificationTags().High_Vegetation) ;
+                    //bool IsGround=(Classif==ClassificationTags().Ground);
+                    //bool IsUnclassified=(Classif==ClassificationTags().Unclassified);
+                    //bool IsFictive  = (Classif==66/*ClassificationTags().FictiveWaterBridge*/);
+                    //bool IsWater=(Classif==ClassificationTags().Water);
+                    //bool IsVeg=(Classif==ClassificationTags().Low_Vegetation) ||
+                    //           (Classif==ClassificationTags().Medium_Vegetation) ||
+                    //           (Classif==ClassificationTags().High_Vegetation) ;*/
 
 
 
-                if ( ! (IsWater || IsVeg || IsUnclassified || IsFictive)  )
+                if (1) // ! (IsGround || IsWater || IsVeg || IsUnclassified || IsFictive)  )
                    {
-                        if (Classif==66)
-                            StdOut()<<"----"<<"classif problem "<<ClassificationTags().FictiveWaterBridge<<"----"<<std::endl;
+                        //if (Classif==66)
+                        //    StdOut()<<"----"<<"classif problem "<<ClassificationTags().FictiveWaterBridge<<"----"<<std::endl;
                        tPt aP(point_view->getFieldAs<tREAL8>(Id::X, idx),
                               point_view->getFieldAs<tREAL8>(Id::Y, idx),
                               point_view->getFieldAs<tREAL8>(Id::Z, idx));
@@ -2890,7 +2890,9 @@ bool cTriangulation3D<Type>::IsGoodPatchNadir(const std::vector<cPt3dr>& aVPts,
 
         if (WindInside4BL(aDIm,aPIm,Pt_round_up(cPt2dr(AC_RHO+aSzW+1,AC_RHO+aSzW+1))))
         {
-            cCutAutoCorrelDir<tU_INT1> aCACD(aDIm,cPt2di(0,0),AC_RHO,1,aSzW);
+            cCutAutoCorrelDir<tU_INT1> aCACD(aDIm,cPt2di(0,0),AC_RHO,2,aSzW);
+
+            //StdOut()<<getchar()<<std::endl;
 
             isNotAutoCorr =  !(aCACD.AutoCorrel((ToI(aPIm)),
                                              TT_SEUIL_CutAutoCorrel_REJECTION,
@@ -2905,7 +2907,7 @@ bool cTriangulation3D<Type>::IsGoodPatchNadir(const std::vector<cPt3dr>& aVPts,
 
 
             // add a center variability criterion
-            if (0) //isNotAutoCorr && isPlanar)
+            if (0)//isNotAutoCorr && isPlanar)
             {
                 std:: string filename= "CORR_"+
                                        aCam->NameImage()+

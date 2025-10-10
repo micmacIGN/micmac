@@ -268,19 +268,17 @@ void cBA_LidarPhotogra::AddObs(tREAL8 aW)
 
         // MMVII_UnclasseUsEr("Dont handle Census");
         int idd=0;
+        int aNbSc= std::max(0,mNbScale-1-mBA.getNbIter());
         for (const auto& aPatchIndex : mLPatches)
         {
             mPatchId=idd;
             std::vector<cPt3dr> aVP;
             for (const auto anInd : aPatchIndex)
-                aVP.push_back(ToR(mTri.KthPts(anInd)));
-
-            if (1)
             {
-                // check multiscale correlation -> start from a lower resolution
-                int aNbSc= std::max(0,mNbScale-1-mBA.getNbIter());
-                Add1PatchMulScale(aW,aVP,aNbSc);
+                aVP.push_back(ToR(mTri.KthPts(anInd)));
             }
+            // check multiscale correlation -> start from a lower resolution
+            Add1PatchMulScale(aW,aVP,aNbSc);
             idd++;
         }
 
