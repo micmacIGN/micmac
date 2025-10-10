@@ -2805,9 +2805,9 @@ bool cTriangulation3D<Type>::IsGoodPatchNadir(const std::vector<cPt3dr>& aVPts,
 
     // multiply by 2^aScale to find scale image coordinates
 
-    tREAL8 TT_SEUIL_AutoCorrel_ACCEPT = 0.85 ;           // Seuil d'elimination par auto-correlation
-    tREAL8 TT_SEUIL_CutAutoCorrel_REJECTION = 0.65;      // Seuil d'acceptation rapide par auto correl entiere
-    tREAL8 TT_SEUIL_CutAutoCorrel_REEL_REJECTION = 0.75; // Seuil d'acceptation rapide par auto correl reelle
+    tREAL8 TT_SEUIL_AutoCorrel_ACCEPT = 0.6 ;           // Seuil d'elimination par auto-correlation
+    tREAL8 TT_SEUIL_CutAutoCorrel_REJECTION = 0.4;      // Seuil d'acceptation rapide par auto correl entiere
+    tREAL8 TT_SEUIL_CutAutoCorrel_REEL_REJECTION = 0.5; // Seuil d'acceptation rapide par auto correl reelle
 
 
     ///< Finds good patches based on geometry criteria and radiometric resemblance between patches
