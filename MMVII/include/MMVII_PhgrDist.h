@@ -20,11 +20,11 @@ enum class eTypeFuncDist
 
 /**  This class store a complete description of each parameters of the distorsion,
      it is used for computing the formula, the vector of name and (later) automatize
-     conversion, print understandable values ....
+     conversion, print understandable values...
 
      It's rather bad design with the same classe coding different things, and some fields
-     used of not according to the others, but as it internal/final classes, quick and dirty
-     exceptionnaly allowed ...
+     used or not according to the other, but as it is an internal/final classes, quick and dirty
+     is exceptionnaly allowed...
 */
 enum class eModeDistMonom
 {
