@@ -1,4 +1,4 @@
-\chapter{Modelization of central perpspective cameras}
+\chapter{Modelization of central perspective cameras}
 
 
 %-----------------------------------------------------
@@ -9,12 +9,12 @@
 
 In this chapter we introduce the mathematical model used in {\tt MMVII}
 for modelization of central perspective camera.  The majority (if not all)
-of images we manipulate in current life are acquired by central perspective camera, it includes
-smarthphone cameras,  reflex cameras,  most aerial cameras \dots  In fact they are so common that
+of images we manipulate in current life are acquired by central perspective camera, including
+smarthphone cameras,  reflex cameras,  most aerial cameras\dots  In fact they are so common that
 it is easier to define camera that are not central  perspective :
 it include majority of satellite images and few aerial camera (like leica-ADS40).
 
-We start from the most basic model and introduce progressively different refinement,
+We start from the most basic model and introduce progressively different refinements,
 being cautious to justify by physic considerations all the parametric terms we introduce.
 We also introduce the convention selected in {\tt MMVII} as in photogrammetry/computer vision
 there are several arbitrary choices that may be confusing.
@@ -43,7 +43,7 @@ the camera.
 
 Figure~\ref{fig:CameraObscura} presents a real camera and a basic schema showing
 the construction of the image:  to compute the image of a point $P^c=x^c,y^c,z^c$ of the real scene.
-We just have to trace the line starting from $P^c$, going throw the hole and take its intersection $q=i,j$
+We just have to trace the line starting from $P^c$, going through the hole and take its intersection $q=i,j$
 with the image plane.
 
 
@@ -202,14 +202,14 @@ camera.  The figure~\ref{fig:FormIm} illustrates this convention;
 \subsection{Need of lenses}
 
 With the camera obscura, to have a sharp image we must keep a small entrance hole;
-so to have enouh light we need very long exposure time (several hours). 
+so to have enough light we need very long exposure time (several hours). 
 This is not convenient and the development of photography
-would not have been possible without the development of optics. By puting a system
-of lenses at the entrance of the system, and being caution that the  scene focalises
+would not have been possible without the development of optics. By adding
+lenses at the entrance of the system, and being caution that the  scene focalises
 on the image plane, it was possible to have a sharp image whith a sufficiently big
 hole and make photography practicable.
 
-Nowadays every camera has more or less complicated system of lenses. In fact due to the
+Nowadays every camera has a more or less complicated system of lenses. In fact due to the
 automatization of the computer-aided conception they tend to be more and more complex, the designer
 using the possibility offered by multiple lenses with various materiel to correct more and more optical defaults.
 
@@ -264,7 +264,7 @@ of the parametric model, illustrated by figure~\ref{fig:CurvesParam}  on a probl
 	   here if we fit with a straight line, or even with a parabol, we are not close to the learning data ;
 
    \item if we  have too many parameter (curve 4), we can have a very good match on the learning data, but have 
-	 poor result as soon as we test with new data; this illustrated with  figure ??? were
+	 poor result as soon as we test with new data; this is illustrated with curve 4 were
          we use the "naive" lagrange interpolation to fit $N+1$ point with a $N$ degree polynomial,
          we have a perfect fit and the learning data, but due to high frequences a very poor fit outside;
 \end{itemize}
@@ -283,7 +283,7 @@ exists controvorsery arguments:
           even when we only really need $10$.
 \end{itemize}
 
-Consequently, it was thought, that the best we can do in {\tt MMVII} is to offer a sufficiently large set of models
+Consequently, it was thought that the best we can do in {\tt MMVII} is to offer a sufficiently large set of models
 of cameras, from the simple ones to the most universal ones, and let the user select them according to
 the precise knowledge of his domain. 
 
@@ -296,9 +296,9 @@ the precise knowledge of his domain.
 
 However, even if this choice of parameter is not easy, there is
 one universal rule : if we can be stable in interpolation, we are always bad in extrapolation
-as illustrated on figure~\ref{fig:CurvesExtrpol}. A 
+as illustrated on figure ~\ref{fig:CurvesExtrpol}. A 
 consequence when we ill estimate the model of a camera : if we have no measurement in the corners,
-we are almost sure that we estimation will be poor in these corners.
+we are almost sure that our estimation will be poor in these corners.
 
 %-----------------------------------------------------
 \subsection{Still a central perspective, with a distorsion}
@@ -324,7 +324,7 @@ This hypothesis is universally adopted, and justified because we still have a di
 the light to go trough its center; of course the light will cross lenses before converning to this diaphragm but,
 under gaussian approximation the image and reciproc image of converging bundle are still converging bundles.
 To our knowledge, the only practical cases where this hypothesis may be questionned are macro-photogrammetry and
-sub-marine photogrammetry. We will discuss that ???. And maybe in the future of {\tt MMVII} project we will 
+sub-marine photogrammetry. We will discuss that \TOMODIF{???}. And maybe in the future of {\tt MMVII} project we will 
 test options to relax this hypothesis for these contexts.
 
 With this hypothesis, the image formation equation~\ref{FormImage0} still holds if
@@ -379,24 +379,24 @@ The following three equations summarize where we are in our modelization :
 \label{RadMod}
 
 In this section we  show that the radial modelisation of distorsion is a consequence
-of the hypothesis of cylindric symetry of the optical system.
+of the hypothesis of cylindric symmetry of the optical system.
 
 %--------------------------------------------------------------------------------------------------------
 
-\subsection{Radial symetry hypothesis}
+\subsection{Radial symmetry hypothesis}
 
 \begin{figure}
 \centering
 	\includegraphics[width=12cm]{Methods/Images/Lenses.jpg} \\
 	\includegraphics[width=8cm]{Methods/Images/LensesCyl.jpg}
-	\caption{A single lense , and modern }
+	\caption{A single lens and modern camera lens}
 	\label{fig:Lenses}
 \end{figure}
 
 We start the modelization with three observations on the theoretical design of central perspective cameras:
 
 \begin{itemize}
-    \item  each individual lense has a radial symetry arround it optical axis;
+    \item  each individual lens has a radial symmetry arround it optical axis;
     \item  the mechanical building is made so that all the lenses are aligned on
 	    their common optical axis $\mathcal{A}$.
     \item  the plane of the sensor is orthognal to $\mathcal{A}$.
@@ -411,8 +411,8 @@ generally of an order of magnitude lower than the radial distorsion.
 
 These elementary remarks have for consequence that, how sophisticated may be the combination
 of many lenses, each having a complicated non spherical shape, we still have a global cylindrical
-symetry on our system. This is illustrated by schemes of figure~\ref{fig:Lenses}.
-The perspective center $C$ defined in \ref{Still:Persp}, must belong to the axes of symetry,
+symmetry on our system. This is illustrated by schemes of figure~\ref{fig:Lenses}.
+The perspective center $C$ defined in \ref{Still:Persp}, must belong to the axes of symmetry,
 so we have $\mathcal{A}=(C,\vec{k})$. 
 
 %--------------------------------------------------------------------------------------------------------
@@ -447,7 +447,7 @@ we want to establish the property of the transformation  $ \Psi : B \rightarrow 
 If we admit the \emph{intuitive} following proposals :
 
 
-\begin{proposal}[3D radial symetry-physicall modelization]  \;
+\begin{proposal}[3D radial symmetry-physical modelization]  \;
 \label{PhysRadMod}
 \begin{enumerate}
     \item  $\Psi$ is globally stable inside any plane  $\mathcal{P}_{\theta}$; \label{PhysRadModPlane}
@@ -457,15 +457,15 @@ If we admit the \emph{intuitive} following proposals :
 \end{enumerate}
 \end{proposal}
 
-This has for consequence that , noting  $B'=(z',\theta',\phi')$ \footnote{which is possible because $B'$ intersect  $\mathcal{A}$ due to first proposal},
-we have : (1) $\theta'=\theta$  (2)  $z'$ and $\phi'$ depends only of $\phi$. 
+This has for consequence that, noting  $B'=(z',\theta',\phi')$ \footnote{which is possible because $B'$ intersect  $\mathcal{A}$ due to first proposal},
+we have: (1) $\theta'=\theta$  (2)  $z'$ and $\phi'$ depends only of $\phi$. 
 Then $\Psi $ has the following parametric form, where $\zeta$ and $\Phi$ are mapping $\RR \rightarrow \RR$ :
 
 \begin{equation}
 	\Psi(B) = \Psi(R(0,\theta,\phi)) = R(\zeta(\phi) ,\theta,\Phi(\phi))
 \end{equation}
 
-Next section is a formal proof,  it can be omited by the reader in a hurry who is already conviced of the above proposal.
+Next section is a formal proof, it can be omited by the reader in a hurry who is already conviced of the above proposal.
 
 
 %--------------------------------------------------------------------------------------------------------
@@ -475,15 +475,15 @@ Next section is a formal proof,  it can be omited by the reader in a hurry who i
 \begin{figure}
 \centering
 	\includegraphics[width=12cm]{Methods/Images/Radial-PhiOmegaZ.jpg} \\
-	\caption{Notation for dioptr crossing}
+	\caption{Notation for diopter crossing}
 	\label{fig:RadPhiOmegZ}
 \end{figure}
 
 The optical system is made of succession of diopters $D_1,\dots D_n$,
-that are have all a symetry arround $\mathcal{A}$.  Noting $\Psi_k$
-the elementary transformation by a single dioptr  we will  proof ;
+that are have all a symmetry arround $\mathcal{A}$.  Noting $\Psi_k$
+the elementary transformation by a single diopter  we will  proof ;
 
-\begin{proposal}[3d radial symetry of dioptr]  \;
+\begin{proposal}[3d radial symmetry of diopter]  \;
 If  we have a set of ray $R(z,\theta,\phi)$ intersecting  $\mathcal{A}$ such that  z is function of $\phi$ :
 $z=\zeta(\phi)$, then  all the output ray satisfy the same property ; they intersect $\mathcal{A}$ and there exist 
 two mappings  $\RR \rightarrow \RR$ , $\zeta'$ and $\Phi'$  such:
@@ -508,7 +508,7 @@ coordinate used in equation~\ref{PC:Spher:Coord}
 \end{equation}
 
 Consider a ray $B$ that is deflected in $B'$ when it meets the dioptr  $D$ in point $P$.
-The surface of the dioptr $D$, can be caraterized by the equation $z=Z(\rho,\theta)$, and due to cylindric symetry we have in fact :
+The surface of the dioptr $D$, can be caraterized by the equation $z=Z(\rho,\theta)$, and due to cylindric symmetry we have in fact :
 $z=Z(\rho)$.  We can then establish a parametric representation of the surface :
 
 \begin{equation}
@@ -535,7 +535,7 @@ So as $\vec{N}(\rho,\theta)$ and $\vec{B}$  belongs to $\mathcal{P}_{\theta}$ , 
 implies that  $\vec{B'}$ belongs also to  $\mathcal{P}_{\theta}$.  This proves the first
 that $B' \subset  \mathcal{A}$ and $\theta'=\theta$.
 
-Let write $\vec{N} = S_{ph}(\theta,\omega)$ as illustrated on  figure ???;  due to radial symetry  ,
+Let write $\vec{N} = S_{ph}(\theta,\omega)$ as illustrated on  figure ???;  due to radial symmetry  ,
 $\omega$ does not  depends of $\theta$ (see also equation~\ref{PC:EqNorm} : $\tan(\omega)= \frac{\partial Z}{\partial \rho}$) :  $\omega$  depends only of $\phi$.
 So using Snell-Descartes law on refraction gives, noting $n$ the reflexion indice after $D_k$, we have :
 
@@ -573,7 +573,7 @@ then a function of $\phi'$  ($\phi = \Phi^{-1}(\phi')$).
 	\label{fig:RadInPlane}
 \end{figure}
 
-Untill now, we have computed the distorsion in $3d$ as a function $\Psi$ modifying the path of light. To use 
+Until now, we have computed the distorsion in $3d$ as a function $\Psi$ modifying the path of light. To use 
 equations~\ref{FormImage1} and~\ref{FormImage2} we need to convert the effect $\Psi$  in image plane.
 We use notation of figure~\ref{fig:RadInPlane}.
 
@@ -591,7 +591,7 @@ With distorsion, the ray will arrive at point $q' = D(q)$ given by :
 		=     \begin{pmatrix} P^p_x \\ P^p_y \end{pmatrix} +  (F+\zeta(\Phi(\phi))) \tan(\Phi(\phi))   \begin{pmatrix} \cos(\theta) \\ \sin(\theta) \end{pmatrix} 
 \end{equation}
 
-Using polar coordinates arround $P^p$ we have :
+Using polar coordinates around $P^p$ we have :
 
 \begin{equation}
 	q = P^p + P_{ol}(\rho,\theta) =  P^p+  P_{ol} ( F \tan(\phi), \theta) \label{PolInit} 
@@ -667,7 +667,7 @@ This formula require several comment :
 
 \subsection{Polynomial radial distorsion in euclidean coordinates}
 
-Also polar coordinate are convenient for modelization of phenomena with radial symetry, 
+Also polar coordinate are convenient for modelization of phenomena with radial symmetry, 
 they are not ideal for computation : they are relativelly slow and  the center point is
 a critical point that can complexify some equation.  Sometime we cannot avoid them
 easily, but here it happens that we can express w/o problem the distorsion
@@ -703,14 +703,14 @@ In several software the order of combination is invert of this one and authors u
 	\mathcal{J} = D \circ  \mathcal{I}_0  
 \end{equation}
 
-First we can remark that from the mathematicall point of view, the two convention are equivalent in the sense
+First we can remark that from the mathematical point of view, the two convention are equivalent in the sense
 that they define the same space of function.  With first convention we have :
 
 \begin{equation}
 	\mathcal{I}(q) = P^P + F (1 + k_1 (x^2+y^2) +  k_2 (x^2+y^2) ^2 \dots)  \begin{pmatrix} x \\ y \end{pmatrix}
 \end{equation}
 
-With second convention , as we operate on pixel the center of radial symetry will  be $P^p$ 
+With second convention , as we operate on pixel the center of radial symmetry will  be $P^p$ 
 (althouh with "our" convention it is implicitely $0,0$). For the radial distorsion 
 we compute first  $  \mathcal{I}_0 : q \rightarrow  P^p + F*q$, then we substract 
 $P^p$  who is the center of distorsion, and obtain the formula :
@@ -768,13 +768,13 @@ process there is argument for having higer degree  :
 
 \subsubsection{PPA and PPS}
 
-In aerial photogrammetry, the "tradition" is to consider that the center of symetry of radial distortion
+In aerial photogrammetry, the "tradition" is to consider that the center of symmetry of radial distortion
 is different of principal point; they are named PPA (principal point of autocolimation) and
-PPS (principal point of symetry).
+PPS (principal point of symmetry).
 
 We dont do it in {\tt MMVII} because it woul be redundant we other parameters 
 selected as discussed in detail in \label{PPA:PPS:DEC}.
-This is why in previous section we have used $P^p$ the center of symetry of the distorsion 
+This is why in previous section we have used $P^p$ the center of symmetry of the distorsion 
 (in fact $0,0$ with our conventions).
 
 %-----------------------------------------------------
@@ -794,9 +794,9 @@ The first hypothesis  that will be questionned is the fact that the axes of the 
 lenses are perfectly aligned.
 
 %-----------------------------------------------------
-\subsection{Mathematicall modelisation}
+\subsection{Mathematical modelisation}
 
-First we must translate in mathematicall terms the physicall words
+First we must translate in mathematical terms the physical words
 "the lenses are slightly miss aligned".
 We will do it by  the following assumption :
 
@@ -811,7 +811,7 @@ We will do it by  the following assumption :
     \item  all the elementary distorsion are close to identidy, what we write :
            $D^k = Id + \delta^k$  with $\delta^k \approx 0$;
 
-    \item  all the center of symetry are close to each others , and for simplicity
+    \item  all the center of symmetry are close to each others , and for simplicity
            we will write $C_k \approx (0,0)$;
 \end{itemize}
 
@@ -1004,8 +1004,8 @@ can be approximated by a \emph{unique} radial distorsion plus a decentric distor
 
 Before going deeper in the progressive refinement in modelisation of
 distorsion, we  make a preliminary remark that is important
-to avoid over parametrization (we do it now because, this over parametrisation
-does not occurs this model previously described in~\ref{RadMod} or~\ref{DecMod} 
+to avoid over parametrization (we do it now because this over parametrisation
+does not occur in the previously described model in~\ref{RadMod} or~\ref{DecMod} 
 as we will see at the end of section).
 
 
@@ -1082,13 +1082,13 @@ Intuitively, we see that this may create difficulties and over parametrization w
  $\mathcal{I} H_{R}$ belongs to the model we try to compute.
 
 The importance of this remarks depends of the model of distorsion we have selected.
-We some model if $\mathcal{I}$ is a valid distorsion,  $\mathcal{I} H_{R}$ will
+In some models if $\mathcal{I}$ is a valid distorsion,  $\mathcal{I} H_{R}$ will
 never be a valid distorsion (except with trivial case $R=Id$) and we dont need
 to take precaution.
 
 %-----------------------------------------------------
 
-\subsection{Intuitive analyse of dangerous case}
+\subsection{Intuitive analysis of dangerous case}
 
 \begin{figure}
 \centering
@@ -1097,7 +1097,7 @@ to take precaution.
 \end{figure}
 
 
-Let notes  $\mathcal{S}^i$ the functionnal space of parametric function  that are selected
+Let note  $\mathcal{S}^i$ the functionnal space of parametric function  that are selected
 for coding functions $\mathcal{I}$, and $\mathcal{S}^h$ the space of all $H_R$ for
 $R$ parsing the space of rotation.
 The figure~\ref{fig:TanSpace} represent symbolicly the possible relations between
@@ -1110,7 +1110,7 @@ $\mathcal{S}^h$ and $ \mathcal{S}^i$  both contain identity  : $Id \in \mathcal{
 
 An obvious dangerous case, symbolized by left image of
 figure~\ref{fig:TanSpace},  is when $\mathcal{S}^h \subset \mathcal{S}^i$ .
-An almost identicall dangerous case is a non trivial subset of $\mathcal{S}^h$
+An almost identical dangerous case is a non trivial subset of $\mathcal{S}^h$
 is included in  $\mathcal{S}^i$. In both case we will have an infinite set of combination
 leading to the same projection function.
 
@@ -1118,10 +1118,10 @@ leading to the same projection function.
 A less obvious, but still dangerous, case is symbolized by right image of figure~\ref{fig:TanSpace},
 this is the cases where the intersection of $\mathcal{S}^i$ and $\mathcal{S}^h$   is reduced to 
 identity, but the spaces are tangent at this intersection. In this case, even if there is theoretically
-a single solutions to  the projection equation, the system will be badly conditioned.
+a single solution to  the projection equation, the system will be badly conditionned.
 
 Finally the ideal safe case is symbolized by middle image if figure~\ref{fig:TanSpace}, here
-the space intersec orthogonally and there is no mixing possible between $\mathcal{S}^h$ and $\mathcal{S}^i$
+the space intersects orthogonally and there is no mixing possible between $\mathcal{S}^h$ and $\mathcal{S}^i$
 For describing this "ideal" case, we have used the term of orthognality, this means that
 we  now need an euclidean structure on functions \footnote{with in left image set structure was sufficient
 and with right image diffentiable geometry was sufficient}.
@@ -1142,7 +1142,7 @@ $D = [-\Delta_x,\Delta_x] \times [-\Delta_y,\Delta_y] $.
 
 Now we compute a basis of the tangent space to $\mathcal{S}^h$ at point $Id$.
 The dimension of manifold $\mathcal{S}^h$ is $3$, and we can compute this basis
-by taking the $3$ rotation arround the $3$ axes $\vec{i},\vec{j},\vec{k}$.
+by taking the $3$ rotations around the $3$ axes $\vec{i},\vec{j},\vec{k}$.
 Let note $\Theta= \theta_x,\theta_y,\theta_z$  and $H_\Theta$ the
 combation of $3$ rotation : $\theta_x$ around $\vec{i}$ \dots
 \footnote{note that order does not really matters as we are dealing with small rotation}
@@ -1199,7 +1199,7 @@ for tangent space to  $\mathcal{S}^h$  at "point"  $Id$ :
 		\label{Basis:Rot2D}
 \end{equation}
 
-Note that this $3$ function are orthogonal $2$ by $2$ (it suffice to remark
+Note that this $3$ functions are orthogonal $2$ by $2$ (it suffice to remark
 that in each monom like $xy * y= xy^2$ there is at least an exposant odd for $x$ or $y$ and that
 the domain $D$ in equation \ref{ProdScalFunc} is centered).
 
@@ -1210,7 +1210,7 @@ the domain $D$ in equation \ref{ProdScalFunc} is centered).
 \subsubsection{Radial distorsion}
 
 Now the question when we analyse a model of calibration, generaly parametrized by a
-a basis of function, is \emph{is the familly independant of the basis ~\ref{Basis:Rot2D}}.:w
+a basis of function, is \emph{is the familly independant of the basis ~\ref{Basis:Rot2D}}.
 
 For radial model, the answer is easy. Starting from formulation of ~\ref{PolDistEucl}
 and~\ref{Basis:Rot2D}, consider for example the term in $x$. For the radial part
@@ -1244,7 +1244,7 @@ Still using the odd exponent argument we see that :
 \end{itemize}
 
 For $Dec_x$ and $T_y$, the situation is no longer ideal, and there is a relatively
-high coorelation. At least we can check that they are not colinear and make qualitative analyse
+high correlation. At least we can check that they are not colinear and make qualitative analyse
 of their correlation by doing the following computation :
 
 
@@ -1285,7 +1285,7 @@ the rotation ambiguity problem, it's still acceptable for conditioning of the sy
 
 %-----------------------------------------------------
 
-\subsection{physicall modelisation}
+\subsection{physical modelisation}
 
 \begin{figure}
 \centering
@@ -1301,14 +1301,14 @@ figure \ref{fig:PlaneIncl}, we will proceed this way :
      \item  we will illustrate with the case where the inclination of sensor relatively
 	     to optical axes is done by a rotation of angle $\alpha$ arround axe $\vec{j}$;
 
-     \item  the axe of symetry of lenses is now different from normal to sensor;
+     \item  the axe of symmetry of lenses is now different from normal to sensor;
 	     as the orientation of axe is arbitrary, as seen in~\ref{UpToARot},
              we select a repair $\vec{i},\vec{j},\vec{k}$  which is still orthogonal to sensor (red repair),
 	     for computing image formula; this will maintain the usual formula
              in case where there is no distorsion;
 
      \item we name  $\vec{i'},\vec{j'},\vec{k'}$ the repair defined $\vec{i'}=\vec{i}$,
-	     $\vec{k'}$ the axes of symetry of the lenses, and  by completion $\vec{j'} = \vec{k'} \wedge  \vec{i'} $
+	     $\vec{k'}$ the axes of symmetry of the lenses, and  by completion $\vec{j'} = \vec{k'} \wedge  \vec{i'} $
 \end{itemize}
 
 Let note $R$ the rotation that transform $\vec{i},\vec{j},\vec{k}$ in $\vec{i'},\vec{j'},\vec{k'}$, we can decompose 
@@ -1322,7 +1322,7 @@ the image formula this way :
 \end{itemize}
 
 %-----------------------------------------------------
-\subsection{mathematicall modelisation}
+\subsection{mathematical modelisation}
 
 So finaly we have the following image formula :
 
@@ -1378,7 +1378,7 @@ In section~\ref{DecMod} we have introduced the decentric distorsion that
 modelized the lenses mis-alignment.  In  section~\ref{SenIncl}
 we have introduced the separation bewteen $PP_a$ and $PP_s$ that modelize
 the sensor inclination.  It may seem natural to combine this two
-parametrization that modelize to physicall phenomenas \emph{a priori}
+parametrization that modelize to physical phenomenas \emph{a priori}
 different. We are going to see why this is not a good idea, and why in
 {\tt MMVII} we privilegiate the decentric distorsion parametrization.
 
@@ -1386,7 +1386,7 @@ different. We are going to see why this is not a good idea, and why in
 correlated with decentric distorsion", but it's not always explain. In fact
 it quite obvious if go back to the origin of these formula.  On one hand, we have 
 the decentric distorsion that modelize, with a Taylor expansion, two radial distorsions
-with close center of symetry, with for example $0,0$ as reference;
+with close center of symmetry, with for example $0,0$ as reference;
 on the other hand we have the $PP_a/PP_s$ separation that modelize 
 a radial distorsion with with a center different of $0,0$; so the decentric model
 can be seen as a Taylor expansion of $PP_a/PP_s$  separation, and the two model
@@ -1394,7 +1394,7 @@ are identic at first order.
 
 
 We have seen that the two parametrization are similar, consequently they are
-very correlated and we cannot use them simultaneously. From practicall point of view,
+very correlated and we cannot use them simultaneously. From practical point of view,
 the question "is there any reason to prefer one or the other ?".
 In fact the separation between $PP_a$ and $PP_s$ has the following drawback :
 
@@ -1471,7 +1471,7 @@ of the distorsion of untilted camera and $\mathcal{T}$ :
 
 %-----------------------------------------------------
 
-\subsection{mathematicall modelisation}
+\subsection{mathematical modelisation}
 
 For now we make the hypothesis that the tilt is made by a rotation of angle $\alpha$ arround axe $(O\vec{i})$.
 Let $\mathcal{P}_\alpha$ the plane we obtain.  We can compute a basis  of $\mathcal{P}_\alpha$ defines
