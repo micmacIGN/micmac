@@ -29,9 +29,16 @@ cOneLineAntiParal::cOneLineAntiParal() :
 {
 }
 
+std::string cOneLineAntiParal::NameLine() const
+{
+    return  mNameLine.value_or(MMVII_NONE);
+}
+
+
 void AddData(const cAuxAr2007 & anAux,cOneLineAntiParal & anEx)
 {
       AddData(cAuxAr2007("Image",anAux),anEx.mNameIm);
+      AddOptData(anAux,"NameLine",anEx.mNameLine);
       AddData(cAuxAr2007("P1",anAux),anEx.mSeg.P1());
       AddData(cAuxAr2007("P2",anAux),anEx.mSeg.P2());
       AddData(cAuxAr2007("ParalAng",anAux),anEx.mAngDif);

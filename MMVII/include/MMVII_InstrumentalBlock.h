@@ -81,25 +81,26 @@ class cIrbCal_Cam1 : public cMemCheck
         cIrbCal_Cam1();  //< required for serialisation 
         /// "real" constructor
         cIrbCal_Cam1(int aNum,const std::string & aNameCal,const std::string & aTimeStamp,const std::string & aPatImSel);
-	const std::string & NameCal() const; //< Accessor
+        const std::string & NameCal() const; //< Accessor
         int Num() const; //< Accesor
-	void AddData(const  cAuxAr2007 & anAux); //< Serializer
+        void AddData(const  cAuxAr2007 & anAux); //< Serializer
 
         /// Compute the time stamp identifier associated to a name of image
         std::string  TimeStamp(const std::string & aNameImage ) const;
 
         /// Indicate if the  image belongs to the block
         bool ImageIsInBlock (const std::string & ) const;
-	///  modify the pose
-	void SetPose(const tPoseR & aPose);
+
+        /**  modify the pose, separate from constructor because must be done in calib init, after block creation */
+        void SetPose(const tPoseR & aPose);
 
     private :
         int           mNum;
         std::string   mNameCal;        ///< "full" name of calibration associated to, like  "CalibIntr_CamNIKON_D5600_Add043_Foc24000"
         std::string   mPatTimeStamp;   //< use to extract time stamp from a name
         bool          mSelIsPat;       ///< indicate if selector is pattern/file
-	std::string   mImSelect;       ///< selector, indicate if an image belongs  to the block
-	bool          mIsInit;         ///< was the pose in the block computed ?
+        std::string   mImSelect;       ///< selector, indicate if an image belongs  to the block
+        bool          mIsInit;         ///< was the pose in the block computed ?
         tPoseR        mPoseInBlock;    ///< Position in the block  +- boresight
 };
 /// public interface to serialization
@@ -145,7 +146,7 @@ class cIrbCal_CamSet : public cMemCheck
 
          cIrbCal_CamSet(); //< constructor, ok for serial
 
-	 void AddData(const  cAuxAr2007 & anAux); //< serialization
+         void AddData(const  cAuxAr2007 & anAux); //< serialization
          cIrbCal_Cam1 * CamFromNameCalib(const std::string& aName,bool SVP=false);
 
          size_t  NbCams() const;    //< Number of cameras
@@ -153,7 +154,7 @@ class cIrbCal_CamSet : public cMemCheck
          cIrbCal_Cam1 & KthCam(size_t aK);
          const cIrbCal_Cam1 & KthCam(size_t aK) const;
      private :
-	 void SetSigma(const cIrb_SigmaPoseRel&) ;       //< reset the camea
+         void SetSigma(const cIrb_SigmaPoseRel&) ;       //< reset the camea
          void AddCam
               (
                    const std::string &  aNameCalib,
@@ -163,8 +164,8 @@ class cIrbCal_CamSet : public cMemCheck
               );
 
          int                             mNumMaster;      //< num of "master" image
-	 std::vector<cIrbCal_Cam1>       mVCams;          //< set of cameras
-	 std::vector<cIrb_SigmaPoseRel>  mVSigmas;        //< sigmas of pairs
+         std::vector<cIrbCal_Cam1>       mVCams;          //< set of cameras
+         std::vector<cIrb_SigmaPoseRel>  mVSigmas;        //< sigmas of pairs
 };
 void AddData(const  cAuxAr2007 & anAux,cIrbCal_CamSet & aCam);
 
@@ -175,7 +176,7 @@ class cIrbCal_ClinoSet : public cMemCheck
          friend cAppli_EditBlockInstr;
 
          cIrbCal_ClinoSet();
-	 void AddData(const  cAuxAr2007 & anAux);
+         void AddData(const  cAuxAr2007 & anAux);
      private :
          cIrbCal_Clino1 * ClinoFromName(const std::string& aName);
          void AddClino(const std::string &,bool SVP=false);
@@ -190,17 +191,17 @@ class cIrbCal_Block : public cMemCheck
      public :
         friend cIrbComp_Block;
 
-	static const std::string  theDefaultName;  /// in most application there is only one block
+        static const std::string  theDefaultName;  /// in most application there is only one block
         cIrbCal_Block(const std::string& aName=theDefaultName);
-	void AddData(const  cAuxAr2007 & anAux);
+        void AddData(const  cAuxAr2007 & anAux);
 
-	cIrbCal_CamSet &         SetCams() ;            //< Accessors
-	const cIrbCal_CamSet &   SetCams() const ;      //< Accessors
-	cIrbCal_ClinoSet &       SetClinos() ;          //< Accessors
-	const std::string &       NameBloc() const;     //< Accessor 
+        cIrbCal_CamSet &         SetCams() ;            //< Accessors
+        const cIrbCal_CamSet &   SetCams() const ;      //< Accessors
+        cIrbCal_ClinoSet &       SetClinos() ;          //< Accessors
+        const std::string &       NameBloc() const;     //< Accessor
      private :
-	std::string              mNameBloc;   //<  Name of the bloc
- 	cIrbCal_CamSet              mSetCams;    //<  Cameras used in the bloc
+        std::string                 mNameBloc;   //<  Name of the bloc
+        cIrbCal_CamSet              mSetCams;    //<  Cameras used in the bloc
         cIrbCal_ClinoSet            mSetClinos;  //<  Clinos used in the bloc
 };
 void AddData(const  cAuxAr2007 & anAux,cIrbCal_Block & aRBoI);

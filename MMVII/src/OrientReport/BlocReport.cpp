@@ -223,7 +223,7 @@ cCollecSpecArg2007 & cAppli_ReportBlock::ArgOpt(cCollecSpecArg2007 & anArgOpt)
              << AOpt2007(mDirExReport,"DirExRep","Fix globally Directory of Report Name")
              << AOpt2007(mPercStat,"PercStat","Percentils for stat in global report",{{eTA2007::HDV}})
 
-             << AOpt2007(mExtCernStat,"ExtCernStat","Do statistic specific to Cerns Wire distance")
+             << AOpt2007(mExtCernStat,"ExtCernStat","If set : do statistic specific to Cerns Wire distance and fix CSV file")
              << AOpt2007(mCernAllPoint,"DoCernAllPt","For cern, compute Wire distance for all points",{{eTA2007::HDV}})
              << mPhProj.DPGndPt3D().ArgDirInOpt("","GCP 3D coordinate for computing centre")
              << AOpt2007(mSphereCenter,"SphereC","Additionnal GPC to export",{{eTA2007::HDV}})

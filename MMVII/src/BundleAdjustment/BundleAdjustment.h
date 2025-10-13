@@ -563,7 +563,7 @@ class cMMVII_BundleAdj
           std::vector<std::string>  mParam_UC_UK;
           std::vector<int>          mIndCompUC;
           cResult_UC_SUR<tREAL8>*   mRUCSUR;
-	  cUK_Line3D_4BA*           mLineAdjust;
+          std::vector<cUK_Line3D_4BA*>           mVecLineAdjust;
 };
 
 

@@ -545,7 +545,10 @@ class cOneLineAntiParal
      public :
           cOneLineAntiParal();
 
+          std::string NameLine() const; // return "" if optional not init
+
           std::string mNameIm;
+          std::optional<std::string> mNameLine;
           tSeg2dr mSeg;
           tREAL8  mAngDif;
           tREAL8  mWidth;

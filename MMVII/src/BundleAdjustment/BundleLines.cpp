@@ -6,7 +6,46 @@ namespace MMVII
 {
 
 
+class cMerged_MultipleLines
+{
+   public :
+      typedef std::vector<cOneLineAntiParal> tContLAP;
+      typedef std::map<std::string,tContLAP> tMapOf1L;
 
+      void AddLAP(const  cLinesAntiParal1Im &);
+      const std::map<std::string,tMapOf1L>&   LinesAP() const ;
+
+   private :
+
+      // mMapL[NameLine][NameIm]
+      std::map<std::string,tMapOf1L>      mLinesAP;
+      std::map<std::string,std::string>   mNamesCalib;
+};
+
+void cMerged_MultipleLines::AddLAP(const  cLinesAntiParal1Im & aSetLAP)
+{
+    //  Check coherence in calibration folders
+    {
+       std::string & aNameCal = mNamesCalib[aSetLAP.mNameIm];
+       if (aNameCal=="")
+       {
+           aNameCal = aSetLAP.mDirCalib;
+       }
+       else
+       {
+          MMVII_INTERNAL_ASSERT_always(aNameCal == aSetLAP.mDirCalib,"Multiple Caliv in cMerged_MultipleLines");
+       }
+    }
+
+    //
+    for (const auto & aLAP : aSetLAP.mLines )
+    {
+        mLinesAP[aLAP.NameLine()][aLAP.mNameIm].push_back(aLAP);        //std::string aNameLine;
+    }
+}
+
+const std::map<std::string,typename cMerged_MultipleLines::tMapOf1L>&
+cMerged_MultipleLines::LinesAP() const {return mLinesAP;}
 
 
 /** Store data one line 2d->3d, essentially data */
@@ -41,7 +80,8 @@ class cOneData_L23 : public cMemCheck
 class cCam2_Line_2Dto3D : public cMemCheck
 {
     public :
-       cCam2_Line_2Dto3D(const std::vector<cSensorCamPC *> & aVCam,cPhotogrammetricProject *);
+
+       static std::vector<cCam2_Line_2Dto3D*> AllocV(const std::vector<cSensorCamPC *> &,const cPhotogrammetricProject &);
 
        const tSegComp3dr & Seg3d () const;               //< Accessor
        const std::string & NameLine() const;             //< Accessor
@@ -51,6 +91,9 @@ class cCam2_Line_2Dto3D : public cMemCheck
        cPt3dr PtOfWeight(const tREAL8 aWeight);
 
     private :
+       cCam2_Line_2Dto3D(const std::vector<cSensorCamPC *> & aVCam,const std::string & aNameLine,const cMerged_MultipleLines::tMapOf1L & );
+
+
        cCam2_Line_2Dto3D(const cCam2_Line_2Dto3D&) = delete;
        void AssertSeg3dIsInit() const;
 
@@ -68,7 +111,7 @@ class cUK_Line3D_4BA :   public cObjWithUnkowns<tREAL8>
     public :
 	 friend cMMVII_BundleAdj;
          //<  constructor,
-         cUK_Line3D_4BA(const std::vector<cSensorCamPC *> & aVCam,cPhotogrammetricProject *,cMMVII_BundleAdj *,tREAL8 aSigmaIm,int aNbPts);
+         cUK_Line3D_4BA(cCam2_Line_2Dto3D *,cMMVII_BundleAdj *,tREAL8 aSigmaIm,int aNbPts);
          ~cUK_Line3D_4BA();
 
          void AddEquation();
@@ -151,22 +194,30 @@ cWeightAv<tREAL8,tREAL8> &  cOneData_L23::AvgResidual()
 /*                                                             */
 /* *********************************************************** */
 
-cCam2_Line_2Dto3D::cCam2_Line_2Dto3D(const std::vector<cSensorCamPC *> & aVCam,cPhotogrammetricProject * aPhProj) :
+
+cCam2_Line_2Dto3D::cCam2_Line_2Dto3D
+(
+        const std::vector<cSensorCamPC *> & aVCam,
+        const std::string & aNameLine,
+        const cMerged_MultipleLines::tMapOf1L & aMapOf1L
+) :
      mSeg3d        (cPt3dr(0,0,0),cPt3dr(1,1,1)),
-     mSeg3dIsInit (false)
+     mSeg3dIsInit  (false),
+     mNameLine     (aNameLine)
 {
     std::vector<cPlane3D> aVPlaneOk;
 
     for (size_t aKCam=0 ; aKCam<aVCam.size() ; aKCam++)
     {
          const auto & aCam = aVCam.at(aKCam);
-	 if (aCam != nullptr)
-	 {
+         if (aCam != nullptr)
+         {
             const std::string & aNameIm = aCam->NameImage();
-            if (aPhProj->HasFileLines(aNameIm))
+            const auto & anIter  = aMapOf1L.find(aNameIm);
+
+            if (anIter != aMapOf1L.end())
             {
-                cLinesAntiParal1Im   aSetL  = aPhProj->ReadLines(aNameIm);
-                const std::vector<cOneLineAntiParal> & aVL  = 	aSetL.mLines;
+                const cMerged_MultipleLines::tContLAP & aVL  =  anIter->second;
 
                 // At this step we dont handle multiple lines
                 if (aVL.size()==1)
@@ -183,7 +234,6 @@ cCam2_Line_2Dto3D::cCam2_Line_2Dto3D(const std::vector<cSensorCamPC *> & aVCam,c
         mSeg3dIsInit = true;
         mSeg3d =  tSegComp3dr (cPlane3D::InterPlane(aVPlaneOk));
         cBoundVals<tREAL8>           aIntervAbsc;
-        mNameLine = aPhProj-> DPGndPt2D().DirIn();
 
         for (auto & aData : mDatas_L23)
         {
@@ -205,6 +255,27 @@ cCam2_Line_2Dto3D::cCam2_Line_2Dto3D(const std::vector<cSensorCamPC *> & aVCam,c
     }
 
 }
+
+std::vector<cCam2_Line_2Dto3D*> cCam2_Line_2Dto3D::AllocV(const std::vector<cSensorCamPC *> & aVCam,const cPhotogrammetricProject & aPhProj)
+{
+   std::vector<cCam2_Line_2Dto3D*> aResult;
+
+   cMerged_MultipleLines aMML;
+
+   for (const auto & aCam : aVCam)
+   {
+       cLinesAntiParal1Im aLAP = aPhProj.ReadLines(aCam->NameImage());
+       aMML.AddLAP(aLAP);
+   }
+
+   for (const auto & [aNameLine,aMapOf1L]: aMML.LinesAP())
+   {
+       aResult.push_back(new cCam2_Line_2Dto3D(aVCam,aNameLine,aMapOf1L));
+   }
+
+   return aResult;
+}
+
 
 void cCam2_Line_2Dto3D::AssertSeg3dIsInit() const
 {
@@ -242,28 +313,21 @@ std::vector<cOneData_L23> &  cCam2_Line_2Dto3D::Datas_L23()
     //  mUkN1      (cPt2dr(0,0),std::string("Line3d_Uk1") + mLineInit->NameLine()),
 cUK_Line3D_4BA::cUK_Line3D_4BA
 (
-      const std::vector<cSensorCamPC *> & aVCam,
-      cPhotogrammetricProject * aPhProj,
+     cCam2_Line_2Dto3D * aLine,
       cMMVII_BundleAdj *  aBA,
       tREAL8 aSigmaIm,
       int aNbPts
 ) :
     mBA           (aBA),
-    mLineInit     (new cCam2_Line_2Dto3D (aVCam,aPhProj)),
+    mLineInit     (aLine),
     mSeg          (mLineInit->Seg3d()),
     mUkN1         (0.0,0.0),
     mUkN2         (0.0,0.0) ,
     mSigmaIm      (aSigmaIm),
     mNbPtSampling (aNbPts)
 {
-	//  ddOneObj()
-
-    // aBA->SetIntervUK().AddOneObj(&mUkN1);
-    // aBA->SetIntervUK().AddOneObj(&mUkN2);
-
     InitNormals();
-    for (auto aCam : aVCam)
-        aCam->InternalCalib()->SetAndGet_EqProjSeg();
+
 }
 
 cUK_Line3D_4BA::~cUK_Line3D_4BA()
@@ -332,6 +396,7 @@ void cUK_Line3D_4BA::AddOneEquation(tREAL8 aLambda,tREAL8 aWeight,cOneData_L23& 
       cPt2dr aNormL2 = Rot90(aTgtL2);
 
       tREAL8 aResidual= Norm2(aPImPG-aPImOnL2);
+      /*
       {
           auto aCalib = aData.mCam->InternalCalib();
           const tSeg2dr  aSegD = aData.mSeg;
@@ -339,10 +404,14 @@ void cUK_Line3D_4BA::AddOneEquation(tREAL8 aLambda,tREAL8 aWeight,cOneData_L23& 
            tSegComp2dr aSeg_UD (aCalib->Undist(aSegD.P1()),aCalib->Undist(aSegD.P2()));
            cPt2dr aP_UD = aCalib->Undist(aPImPG);
 
-           StdOut() << "** RRRR " << aResidual << " DD=" << aSeg_UD.Dist(aP_UD) << "\n";
+           cPt2dr aP_UD2 = aCalib->Undist(aPImOnL2);
+
+
+           StdOut() << "** RRRR " << aResidual << " DD=" << aSeg_UD.Dist(aP_UD) << " D2=" <<  aSeg_UD.Dist(aP_UD2)  << "\n";
 
           //const tSeg2dr            mSeg
       }
+      */
       aData.AvgResidual().Add(1.0,aResidual);
 //StdOut() << " PIMG=" << aPImPG << " PL=" <<  aPImOnL2 << "\n";
 
@@ -397,6 +466,14 @@ void cUK_Line3D_4BA::AddEquation()
         for ( auto & aData_L23 : mLineInit->Datas_L23())
              AddOneEquation(aLambda,aWeight,aData_L23);
     }
+
+    StdOut() << " LineResidual ";
+    for ( auto & aData_L23 : mLineInit->Datas_L23())
+    {
+        StdOut() << "   " <<  aData_L23.AvgResidual().Average();
+    }
+    StdOut() << "\n";
+
 }
 
 /* *********************************************************** */
@@ -407,17 +484,25 @@ void cUK_Line3D_4BA::AddEquation()
 
 void cMMVII_BundleAdj::AddLineAdjust(const std::vector<std::string> & aVParam)
 {
-   tREAL8 aSigmaIm =  cStrIO<double>::FromStr(aVParam.at(0));
-   int    aNbPts   =  cStrIO<int>::FromStr(aVParam.at(1));
+    for (auto aCam : mVSCPC)
+        aCam->InternalCalib()->SetAndGet_EqProjSeg();
 
-   mLineAdjust = new cUK_Line3D_4BA(mVSCPC,mPhProj,this,aSigmaIm,aNbPts);
-   mSetIntervUK.AddOneObj(mLineAdjust);
+    tREAL8 aSigmaIm =  cStrIO<double>::FromStr(aVParam.at(0));
+    int    aNbPts   =  cStrIO<int>::FromStr(aVParam.at(1));
+
+    std::vector<cCam2_Line_2Dto3D*> aVecL =  cCam2_Line_2Dto3D::AllocV(mVSCPC,*mPhProj);
+
+    for (const auto & aPtrL : aVecL)
+    {
+       mVecLineAdjust.push_back( new cUK_Line3D_4BA(aPtrL,this,aSigmaIm,aNbPts));
+        mSetIntervUK.AddOneObj(mVecLineAdjust.back());
+    }
 }
 
 void cMMVII_BundleAdj::IterAdjustOnLine()
 {
-    if (mLineAdjust)
-        mLineAdjust->AddEquation();
+    for (auto aPtrL : mVecLineAdjust)
+        aPtrL->AddEquation();
 }
 
 
@@ -425,7 +510,8 @@ void cMMVII_BundleAdj::IterAdjustOnLine()
 
 void cMMVII_BundleAdj::DeleteLineAdjust()
 {
-	delete mLineAdjust;
+    DeleteAllAndClear(mVecLineAdjust);
+    //delete mLineAdjust;
 }
 
 

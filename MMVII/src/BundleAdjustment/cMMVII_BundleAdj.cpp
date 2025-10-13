@@ -105,7 +105,7 @@ cMMVII_BundleAdj::cMMVII_BundleAdj(cPhotogrammetricProject * aPhp) :
     mVerbose          (true),
     mShow_UC_UK       (false),
     mRUCSUR           (nullptr),
-    mLineAdjust       (nullptr)
+    mVecLineAdjust    ()
 {
 }
 
