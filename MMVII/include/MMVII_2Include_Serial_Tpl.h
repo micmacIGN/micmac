@@ -359,6 +359,23 @@ template <class Type> void AddData(const cAuxAr2007 & anAux, cDenseVect<Type>& a
     AddData(anAux,aVect.DIm());
 }
 
+/// if we want a human readable vector for small vect ..
+template <class Type> void AddDataAsStdVect(const cAuxAr2007 & anAux,cDenseVect<Type>& aDenseV)
+{
+     std::vector<Type> aStdV;
+     if (anAux.Input())
+     {
+        MMVII::AddData(anAux,aStdV);
+        aDenseV = cDenseVect<Type>(aStdV);
+     }
+     else
+     {
+        aStdV = aDenseV.ToStdVect();
+        MMVII::AddData(anAux,aStdV);
+     }
+}
+
+
 // template <class Type,const int Dim> void AddData(const cAuxAr2007 & anAux,cDataTypedIm<Type,Dim> & aIm)
 
 

@@ -231,7 +231,7 @@ void cIrbCal_CamSet::SetSigma(const cIrb_SigmaPoseRel& aNewS)
        if ((aSigm.mK1==aNewS.mK1) && (aSigm.mK2==aNewS.mK2))
        {
            isFound=true;
-	   aSigm = aNewS;
+           aSigm = aNewS;
        }
    }
 

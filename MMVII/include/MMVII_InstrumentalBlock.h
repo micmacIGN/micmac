@@ -126,8 +126,8 @@ void AddData(const  cAuxAr2007 & anAux,cIrbCal_Clino1 & aClino);
 class cIrb_SigmaPoseRel
 {
     public :
-           cIrb_SigmaPoseRel();
-           cIrb_SigmaPoseRel(int aK1,int aK2,tREAL8 aSigmaTr,tREAL8 aSigmaRot);
+       cIrb_SigmaPoseRel();
+       cIrb_SigmaPoseRel(int aK1,int aK2,tREAL8 aSigmaTr,tREAL8 aSigmaRot);
 
 	   int    mK1;
 	   int    mK2;
