@@ -950,8 +950,9 @@ class cCelCC : public cMemCheck
         size_t               mLowCode;    ///< lower representant
         bool                 mTmp;        ///< some marker to use when convenient
         int                  mNum;        ///< Num used so that names is alway the same whatever maybe the selection
+        bool                 mSelfSym;    ///< is the code self sym with permutation of system
 
-	size_t HammingDist(const cCelCC &) const;
+        size_t HammingDist(const cCelCC &) const;
 
         cCelCC(size_t aLowestCode);
      public :

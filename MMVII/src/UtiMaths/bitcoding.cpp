@@ -245,7 +245,8 @@ size_t MaxRun2Length(tU_INT4 aVal,size_t aPow2)
 
 cCelCC::cCelCC(size_t aLowestCode) :
     mLowCode       (aLowestCode),
-    mNum           (-1)
+    mNum           (-1),
+    mSelfSym       (false)
 {
 }
 
@@ -281,22 +282,22 @@ cCompEquiCodes::cCompEquiCodes(size_t aNbBits,size_t aPer,bool WithMirror) :
      MMVII_INTERNAL_ASSERT_strong((aNbBits%aPer)==0,"NbBit not multiple of period in cCompEquiCodes");
      for (size_t aCode=0 ; aCode < mNbCodeUC ; aCode++)
      {
-          if (mVCodes2Cell[aCode] == nullptr)
-	  {
+         if (mVCodes2Cell[aCode] == nullptr)
+         {
               cCelCC * aNewCel = new cCelCC(aCode);
               aNewCel->mNum = mVecOfCells.size();
-	      mVecOfCells.push_back(aNewCel);
+              mVecOfCells.push_back(aNewCel);
 
-	      AddCodeWithPermCirc(aCode,aNewCel);
-	      if (WithMirror)
-	          AddCodeWithPermCirc(BitMirror(aCode,mNbCodeUC),aNewCel);
+              AddCodeWithPermCirc(aCode,aNewCel);
+              if (WithMirror)
+                AddCodeWithPermCirc(BitMirror(aCode,mNbCodeUC),aNewCel);
 
-	      AddAndResizeUp(mHistoNbBit,NbBits(aCode),1);
-	  }
-	  else
-	  {
+             AddAndResizeUp(mHistoNbBit,NbBits(aCode),1);
+         }
+         else
+         {
               // Nothing to do, code has been processed by equivalent lower codes
-	  }
+         }
      }
 
      //for (const auto & AC : mVecOfCells)
@@ -345,6 +346,8 @@ cCelCC *  cCompEquiCodes::CellOfCode(size_t aCode)
 
 void cCompEquiCodes::AddCodeWithPermCirc(size_t aCode,cCelCC * aNewCel)
 {
+    size_t aCodeInit = aCode;    // used to compute selfSimFound
+
    for (size_t aBit=0 ; aBit<mNbBits ; aBit+=mPeriod)
    {
        // Test because code may have already been processed i
@@ -354,6 +357,8 @@ void cCompEquiCodes::AddCodeWithPermCirc(size_t aCode,cCelCC * aNewCel)
             mVCodes2Cell[aCode] = aNewCel;
             aNewCel->mEquivCode.push_back(aCode);
        }
+       if ((aBit!=0) && (aCode==aCodeInit))
+           aNewCel->mSelfSym = true;
        aCode = N_LeftBitsCircPerm(aCode,mNbCodeUC,mPeriod);
    }
 }

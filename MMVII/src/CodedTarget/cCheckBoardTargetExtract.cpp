@@ -556,6 +556,7 @@ void  cAppliCheckBoardTargetExtract::AddCdtE(const cCdEllipse & aCDE)
 
 void  cAppliCheckBoardTargetExtract::DoExport()
 {
+     std::vector<cSaveExtrEllipe>  aVSavE;
      cSetMesPtOf1Im  aSetM(FileOfPath(mNameIm));
      for (const auto & aCdtM : mVCdtMerged)
      {
@@ -565,11 +566,18 @@ void  cAppliCheckBoardTargetExtract::DoExport()
              cMesIm1Pt aMesIm(aCdtM.mC0,aCode,1.0);
              aSetM.AddMeasure(aMesIm);
              Tpl_AddOneObjReportCSV(*this,mIdExportCSV,aMesIm);
+
+
+             cSaveExtrEllipe aSEE(aCdtM.Ell(),aCdtM.mBlack,aCdtM.mWhite,aCode);
+             aVSavE.push_back(aSEE);
+             //  cSaveExtrEllipe anESave(*anEE,aCode);
          }
      }
 
      aSetM.SortMes();
      mPhProj.SaveMeasureIm(aSetM);
+
+     SaveInFile(aVSavE,cSaveExtrEllipe::NameFile(mPhProj,aSetM,false));
 }
 
 void cAppliCheckBoardTargetExtract::DoOneImage() 

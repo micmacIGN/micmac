@@ -845,6 +845,8 @@ struct cSaveExtrEllipe
 {
      public :
           cSaveExtrEllipe (const cCircTargExtr &,const std::string & aNameCode);
+          cSaveExtrEllipe (const cEllipse &,int aBlack,int aWhite,const std::string & aNameCode);
+
           cSaveExtrEllipe ();
           static std::string NameFile(const cPhotogrammetricProject & ,const cSetMesPtOf1Im &,bool Input);
 

@@ -168,12 +168,20 @@ void cCircTargExtr::RefinePosBySym(tREAL8 aStepLim,const tDIm & aDIm ,const cDif
 /*                                               */
 /* ********************************************* */
 
-cSaveExtrEllipe::cSaveExtrEllipe(const cCircTargExtr & aCTE,const std::string & aCode) :
-    mEllipse  (aCTE.mEllipse),
-    mNameCode (aCode),
-    mBlack    (aCTE.mVBlack),
-    mWhite    (aCTE.mVWhite)
+
+cSaveExtrEllipe::cSaveExtrEllipe(const cEllipse & anEllipse,int aBlack,int aWhite,const std::string & aNameCode) :
+    mEllipse  (anEllipse),
+    mNameCode (aNameCode),
+    mBlack    (aBlack),
+    mWhite    (aWhite)
 {
+}
+
+
+cSaveExtrEllipe::cSaveExtrEllipe(const cCircTargExtr & aCTE,const std::string & aCode) :
+    cSaveExtrEllipe(aCTE.mEllipse,aCTE.mVBlack,aCTE.mVWhite,aCode)
+{
+
 }
 
 

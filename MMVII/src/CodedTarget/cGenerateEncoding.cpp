@@ -407,6 +407,13 @@ int  cAppliGenerateEncoding::Exe()
 
    //  [1] =============   read initial value of cells
    mCEC = cCompEquiCodes::Alloc(mSpec.mNbBits,mPerCircPerm,mMiror);
+   /*
+   if (1)
+   {
+       for (const auto & aCEC : *mCEC)
+           if (aCEC-)
+   }
+   */
    mVOC = mCEC->VecOfCells();
    StdOut() <<  "Size Cells init " << mVOC.size() << std::endl;
 

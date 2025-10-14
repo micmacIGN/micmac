@@ -129,9 +129,9 @@ void cEllipse::AddData(const  cAuxAr2007 & anAux)
      //  MMVII::AddData(cAuxAr2007("C0",anAux),mC0);
      {
          cAuxAr2007 anAuxGeom("GeomForComment",anAux);
-	 MMVII::AddData(cAuxAr2007("LengthGreadAxe",anAuxGeom),mLGa);
+	 MMVII::AddData(cAuxAr2007("LengthGreatAxe",anAuxGeom),mLGa);
 	 MMVII::AddData(cAuxAr2007("LengthSmallAxe",anAuxGeom),mLSa);
-	 MMVII::AddData(cAuxAr2007("DirGreadAxe",anAuxGeom),mVGa);
+	 MMVII::AddData(cAuxAr2007("DirGreatAxe",anAuxGeom),mVGa);
          anAuxGeom.Ar().AddComment("GA=" + ToStr(mLGa) + " SA=" + ToStr(mLSa));
      }
      if (anAux.Input())
