@@ -682,6 +682,7 @@ class cEllipse
        cEllipse(const cPt2dr & aCenter,tREAL8 aTeta,tREAL8 aLGa,tREAL8 aLSa);
        /// Create a circle
        cEllipse (const cPt2dr & aCenter,tREAL8 aRay);
+       cEllipse Scale(tREAL8 aScale) const;
 
        void AddData(const  cAuxAr2007 & anAux);
 

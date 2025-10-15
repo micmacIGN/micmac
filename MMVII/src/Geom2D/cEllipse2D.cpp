@@ -101,6 +101,11 @@ cEllipse::cEllipse(const cPt2dr & aCenter,tREAL8 aRay) :
 {
 }
 
+cEllipse cEllipse::Scale(tREAL8 aScale) const
+{
+    return cEllipse(Center()*aScale,TetaGa(),LGa()*aScale,LSa()*aScale);
+}
+
 
 /*
 template <class Type> void AddDataAsStdVect(const cAuxAr2007 & anAux,cDenseVect<Type>& aDenseV)

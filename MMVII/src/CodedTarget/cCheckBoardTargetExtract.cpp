@@ -567,8 +567,8 @@ void  cAppliCheckBoardTargetExtract::DoExport()
              aSetM.AddMeasure(aMesIm);
              Tpl_AddOneObjReportCSV(*this,mIdExportCSV,aMesIm);
 
-
-             cSaveExtrEllipe aSEE(aCdtM.Ell(),aCdtM.mBlack,aCdtM.mWhite,aCode);
+             cEllipse anEl = aCdtM.Ell().Scale(aCdtM.mScale);
+             cSaveExtrEllipe aSEE(anEl,aCdtM.mBlack,aCdtM.mWhite,aCode);
              aVSavE.push_back(aSEE);
              //  cSaveExtrEllipe anESave(*anEE,aCode);
          }
