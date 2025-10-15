@@ -299,15 +299,18 @@ cCompEquiCodes::cCompEquiCodes(size_t aNbBits,size_t aPer,bool WithMirror,bool O
      {
          if (mVCodes2Cell[aCode] == nullptr)
          {
-              cCelCC * aNewCel = new cCelCC(aCode);
-              aNewCel->mNum = mVecOfCells.size();
-              mVecOfCells.push_back(aNewCel);
+             if (OkSelfSym  || (! CodeIsSelfmSym(aCode,mNbBits,mPeriod)))
+             {
+                 cCelCC * aNewCel = new cCelCC(aCode);
+                 aNewCel->mNum = mVecOfCells.size();
+                 mVecOfCells.push_back(aNewCel);
 
-              AddCodeWithPermCirc(aCode,aNewCel);
-              if (WithMirror)
-                AddCodeWithPermCirc(BitMirror(aCode,mNbCodeUC),aNewCel);
+                 AddCodeWithPermCirc(aCode,aNewCel);
+                if (WithMirror)
+                   AddCodeWithPermCirc(BitMirror(aCode,mNbCodeUC),aNewCel);
 
-             AddAndResizeUp(mHistoNbBit,NbBits(aCode),1);
+                 AddAndResizeUp(mHistoNbBit,NbBits(aCode),1);
+             }
          }
          else
          {
@@ -374,8 +377,6 @@ void cCompEquiCodes::AddCodeWithPermCirc(size_t aCode,cCelCC * aNewCel)
    }
    aNewCel->mSelfSym = CodeIsSelfmSym(aCode,mNbBits,mPeriod);
 
-   if (  aNewCel->mSelfSym )
-       StdOut() << " SelfSym " << StrOfBitFlag(aCode,1<<mNbBits) << "\n";
 }
 
 const std::vector<cCelCC*>  & cCompEquiCodes::VecOfCells() const {return mVecOfCells;}
@@ -383,11 +384,18 @@ const std::vector<cCelCC*>  & cCompEquiCodes::VecOfCells() const {return mVecOfC
 
 std::vector<cCelCC*>  cCompEquiCodes::VecOfUsedCode(const std::vector<cPt2di> & aVXY,bool Used)
 {
+    //  StdOut() << " LllLL=" << __LINE__ << "\n";
+
     for (auto aPCel : mVecOfCells)
+    {
        aPCel->mTmp = false;
+    }
 
     for (auto aXY : aVXY)
-       mVCodes2Cell[aXY.y()]->mTmp = true;
+    {
+        if (mVCodes2Cell[aXY.y()])
+            mVCodes2Cell[aXY.y()]->mTmp = true;
+    }
 
     std::vector<cCelCC*> aRes;
     for (auto aPCel : mVecOfCells)
@@ -448,15 +456,16 @@ void  TestComputeCoding(size_t aNBBCoding,int aParity,size_t)
    std::unique_ptr<cCompEquiCodes> aCEC (cCompEquiCodes::Alloc(aNBBCoding));
    for (const auto & aPCel : aCEC->VecOfCells())
    {
-	size_t aCode =  aPCel->mLowCode;
-        int aNbB = NbBits(aCode);
-	bool takeIt = (aNbB%2==0)  ? ((aParity & 2)!=0)  : ((aParity & 1) !=0);
+      // StdOut() << "LLL=" << __LINE__  << "Ptr=" << aPCel << "\n";
+       size_t aCode =  aPCel->mLowCode;
+       int aNbB = NbBits(aCode);
+       bool takeIt = (aNbB%2==0)  ? ((aParity & 2)!=0)  : ((aParity & 1) !=0);
 
-	if (takeIt)
-	{
+       if (takeIt)
+       {
          size_t aLenRun = MaxRun2Length(aCode,size_t(1)<<aNBBCoding);
-	     aVCodeByRun.at(aLenRun).push_back(aPCel);
-	}
+         aVCodeByRun.at(aLenRun).push_back(aPCel);
+       }
    }
 
    int aCumul=0;

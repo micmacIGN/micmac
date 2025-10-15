@@ -227,6 +227,7 @@ class cAppliGenerateEncoding : public cMMVII_Appli
 	size_t                mPerCircPerm;
 	bool                  mMiror;
 	bool                  mOkSelfSym;
+    bool                  mShowSelfSym;
 	bool                  mUseAiconCode;
 	cCompEquiCodes  *     mCEC;
 	std::vector<cCelCC*>  mVOC;
@@ -250,6 +251,7 @@ cAppliGenerateEncoding::cAppliGenerateEncoding
    mPhProj        (*this),
    mMiror         (false),
    mOkSelfSym     (true),
+   mShowSelfSym   (false),
    mCEC           (nullptr)
 {
 }
@@ -278,7 +280,7 @@ cCollecSpecArg2007 & cAppliGenerateEncoding::ArgOpt(cCollecSpecArg2007 & anArgOp
                << AOpt2007(mSpec.mUseHammingCode,"UHC","Use Hamming code")
                << AOpt2007(mSpec.mPrefix,"Prefix","Prefix for output files")
                << AOpt2007(mMiror,"Mir","Unify mirro codes")
-               << AOpt2007(mOkSelfSym,"OkSelfSym","Accept code with self symetry on period")
+               << AOpt2007(mOkSelfSym,"OkSelfSym","Accept code with self symetry on period",{eTA2007::HDV})
                << AOpt2007(mNameOut,"Out","Name for output file")
                << AOpt2007(mPostfixOut,"Postfix","Postfix for output file (def->default tagged extension")
                <<   mPhProj.DPGndPt3D().ArgDirInOpt("GCPNames","Dir GCP for code selection on names")
@@ -411,16 +413,16 @@ int  cAppliGenerateEncoding::Exe()
    //  [1] =============   read initial value of cells
    mCEC = cCompEquiCodes::Alloc(mSpec.mNbBits,mPerCircPerm,mMiror,mOkSelfSym);
 
-   /*
-   if (1)
-   {
-       for (const auto & aCEC : *mCEC)
-           if (aCEC)
-           {
 
+   if (mShowSelfSym)
+   {
+       for (const auto & aCEC : mCEC->VecOfCells() )
+           if (aCEC && aCEC->mSelfSym)
+           {
+               StdOut() << " SSC " << StrOfBitFlag(aCEC->mLowCode,1<<mSpec.mNbBits) << "\n";
            }
    }
-   */
+
 
    mVOC = mCEC->VecOfCells();
    StdOut() <<  "Size Cells init " << mVOC.size() << std::endl;
@@ -454,13 +456,16 @@ int  cAppliGenerateEncoding::Exe()
               MMVII_INTERNAL_ASSERT_bench(aVCode[aK-1].y() < aVCode[aK].y(),"Not growing order for bitflag in 3D-AICON");
 	  }
 
-          for (size_t aK=0 ; aK<aVCode.size(); aK++)
-	  {
-		 cCelCC * aCel = mCEC->CellOfCode(aVCode[aK].y());
-                 aCel->mNum = aVCode[aK].x();
-                 MMVII_INTERNAL_ASSERT_bench(aCel!=0,"CellOfCode in3D AICON");
-                 MMVII_INTERNAL_ASSERT_bench(aVCode[aK].y()==(int)aCel->mLowCode,"CellOfCode in3D AICON");
-	  }
+      for (size_t aK=0 ; aK<aVCode.size(); aK++)
+      {
+           cCelCC * aCel = mCEC->CellOfCode(aVCode[aK].y());
+           if (aCel)
+           {
+                aCel->mNum = aVCode[aK].x();
+                MMVII_INTERNAL_ASSERT_bench(aCel!=0,"CellOfCode in3D AICON");
+                MMVII_INTERNAL_ASSERT_bench(aVCode[aK].y()==(int)aCel->mLowCode,"CellOfCode in3D AICON");
+            }
+      }
 
 
        }
