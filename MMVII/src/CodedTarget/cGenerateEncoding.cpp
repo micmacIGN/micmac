@@ -226,6 +226,7 @@ class cAppliGenerateEncoding : public cMMVII_Appli
 	int                   mP2;
 	size_t                mPerCircPerm;
 	bool                  mMiror;
+	bool                  mOkSelfSym;
 	bool                  mUseAiconCode;
 	cCompEquiCodes  *     mCEC;
 	std::vector<cCelCC*>  mVOC;
@@ -248,6 +249,7 @@ cAppliGenerateEncoding::cAppliGenerateEncoding
    cMMVII_Appli   (aVArgs,aSpec),
    mPhProj        (*this),
    mMiror         (false),
+   mOkSelfSym     (true),
    mCEC           (nullptr)
 {
 }
@@ -276,6 +278,7 @@ cCollecSpecArg2007 & cAppliGenerateEncoding::ArgOpt(cCollecSpecArg2007 & anArgOp
                << AOpt2007(mSpec.mUseHammingCode,"UHC","Use Hamming code")
                << AOpt2007(mSpec.mPrefix,"Prefix","Prefix for output files")
                << AOpt2007(mMiror,"Mir","Unify mirro codes")
+               << AOpt2007(mOkSelfSym,"OkSelfSym","Accept code with self symetry on period")
                << AOpt2007(mNameOut,"Out","Name for output file")
                << AOpt2007(mPostfixOut,"Postfix","Postfix for output file (def->default tagged extension")
                <<   mPhProj.DPGndPt3D().ArgDirInOpt("GCPNames","Dir GCP for code selection on names")
@@ -406,14 +409,19 @@ int  cAppliGenerateEncoding::Exe()
    mP2 = (1<<mSpec.mNbBits);
 
    //  [1] =============   read initial value of cells
-   mCEC = cCompEquiCodes::Alloc(mSpec.mNbBits,mPerCircPerm,mMiror);
+   mCEC = cCompEquiCodes::Alloc(mSpec.mNbBits,mPerCircPerm,mMiror,mOkSelfSym);
+
    /*
    if (1)
    {
        for (const auto & aCEC : *mCEC)
-           if (aCEC-)
+           if (aCEC)
+           {
+
+           }
    }
    */
+
    mVOC = mCEC->VecOfCells();
    StdOut() <<  "Size Cells init " << mVOC.size() << std::endl;
 

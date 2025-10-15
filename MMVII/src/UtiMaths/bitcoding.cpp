@@ -127,6 +127,21 @@ size_t  N_LeftBitsCircPerm(size_t aSetFlag,size_t aPow2,size_t N)
 }
 
 
+bool CodeIsSelfmSym(size_t aCode,size_t aNbBits,size_t aPeriod)
+{
+   size_t aCodeInit = aCode;    // used to compute selfSimFound
+
+   for (size_t aBit=0 ; aBit<aNbBits ; aBit+=aPeriod)
+   {
+       if  ((aBit!=0) && (aCode==aCodeInit))
+          return true;
+
+       aCode = N_LeftBitsCircPerm(aCode,1<<aNbBits,aPeriod);
+
+   }
+    return false;
+}
+
 /// make a symetry bits, assuming a size NbIt, with  aPow2= NbBit^2
 
 size_t  BitMirror(size_t aSetFlag,size_t aPow2) 
@@ -273,7 +288,7 @@ size_t cCelCC::HammingDist(const cCelCC & aC2) const
 
 //std::map<std::string,cCompEquiCodes*> cCompEquiCodes::TheMapCodes;
 
-cCompEquiCodes::cCompEquiCodes(size_t aNbBits,size_t aPer,bool WithMirror) :
+cCompEquiCodes::cCompEquiCodes(size_t aNbBits,size_t aPer,bool WithMirror,bool OkSelfSym) :
      mNbBits       (aNbBits),
      mPeriod       (aPer),
      mNbCodeUC     (size_t(1)<<mNbBits),
@@ -309,9 +324,9 @@ cCompEquiCodes::~cCompEquiCodes()
      DeleteAllAndClear(mVecOfCells);
 }
 
-cCompEquiCodes * cCompEquiCodes::Alloc(size_t aNbBits,size_t aPer,bool WithMirror)
+cCompEquiCodes * cCompEquiCodes::Alloc(size_t aNbBits,size_t aPer,bool WithMirror,bool OkSelfSym)
 {
-     return  new cCompEquiCodes(aNbBits,aPer,WithMirror);
+     return  new cCompEquiCodes(aNbBits,aPer,WithMirror,OkSelfSym);
      /*
      std::string aInd = ToStr(aNbBits)+"_"+ ToStr(aPer) + "_" +ToStr(WithMirror);
      cCompEquiCodes* & aRef = TheMapCodes[aInd];
@@ -346,8 +361,6 @@ cCelCC *  cCompEquiCodes::CellOfCode(size_t aCode)
 
 void cCompEquiCodes::AddCodeWithPermCirc(size_t aCode,cCelCC * aNewCel)
 {
-    size_t aCodeInit = aCode;    // used to compute selfSimFound
-
    for (size_t aBit=0 ; aBit<mNbBits ; aBit+=mPeriod)
    {
        // Test because code may have already been processed i
@@ -357,10 +370,12 @@ void cCompEquiCodes::AddCodeWithPermCirc(size_t aCode,cCelCC * aNewCel)
             mVCodes2Cell[aCode] = aNewCel;
             aNewCel->mEquivCode.push_back(aCode);
        }
-       if ((aBit!=0) && (aCode==aCodeInit))
-           aNewCel->mSelfSym = true;
        aCode = N_LeftBitsCircPerm(aCode,mNbCodeUC,mPeriod);
    }
+   aNewCel->mSelfSym = CodeIsSelfmSym(aCode,mNbBits,mPeriod);
+
+   if (  aNewCel->mSelfSym )
+       StdOut() << " SelfSym " << StrOfBitFlag(aCode,1<<mNbBits) << "\n";
 }
 
 const std::vector<cCelCC*>  & cCompEquiCodes::VecOfCells() const {return mVecOfCells;}

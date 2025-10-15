@@ -969,7 +969,7 @@ class cCompEquiCodes : public cMemCheck
        static std::string NameCERNLookUpTable(size_t aNbBits); ///< name of file where are stored CERN'S   LUT
        static std::string NameCERNPannel(size_t aNbBits); ///< name of file where are stored CERN'S   3D target
        ///  allocate & compute code , return the same adress if param eq
-       static cCompEquiCodes * Alloc(size_t aNbBits,size_t aPerAmbig=1,bool WithMirror=false);
+       static cCompEquiCodes * Alloc(size_t aNbBits,size_t aPerAmbig=1,bool WithMirror=false,bool OkSelfSym=true);
 
        /// For a set code (p.y()) return the cell containing them (or not contatining them)
        std::vector<cCelCC*>  VecOfUsedCode(const std::vector<cPt2di> &,bool Used);
@@ -986,7 +986,7 @@ class cCompEquiCodes : public cMemCheck
    private :
        static std::string NameCERStuff(const std::string & aPrefix,size_t aNbBits); ///< name of file where are stored CERN'S   3D target
 
-       cCompEquiCodes(size_t aNbBits,size_t aPerdAmbig,bool WithMirror);
+       cCompEquiCodes(size_t aNbBits,size_t aPerdAmbig,bool WithMirror,bool OkSelfSym);
        /// put all the code identic, up to a circular permutation, in the same cellu
        void AddCodeWithPermCirc(size_t aCode,cCelCC *);
 
