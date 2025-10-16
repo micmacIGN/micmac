@@ -111,11 +111,11 @@ void cIrbComp_Block::AddImagePose(const std::string & aNameIm,bool  okImNotInBlo
 std::pair<tPoseR,cIrb_SigmaPoseRel> cIrbComp_Block::ComputeCalibCamsInit(int aKC1,int aKC2) const
 {
    // [0]  Compute relative poses for each time stamps where it exist
-   std::vector<tPoseR> aVPoseRel;  // vector of relative pose
-   std::vector<std::string> aVTS;
-   for (const auto & [aName,aDataTS] :  mDataTS)
+   std::vector<tPoseR> aVPoseRel;  // vector of existing relative pose
+   std::vector<std::string> aVTS;  // vector of existing time_stamp
+   for (const auto & [aName,aDataTS] :  mDataTS) // parse Time-Stamps and data associated
    {
-       const cIrbComp_CamSet & aSetC = aDataTS.SetCams();
+       const cIrbComp_CamSet & aSetC = aDataTS.SetCams(); // extract data for cameras
         if (aSetC.HasPoseRel(aKC1,aKC2))
         {
             tPoseR aPose = aSetC.PoseRel(aKC1,aKC2);
@@ -123,8 +123,16 @@ std::pair<tPoseR,cIrb_SigmaPoseRel> cIrbComp_Block::ComputeCalibCamsInit(int aKC
             aVTS.push_back(aName);
         }
    }
+   int aNbP = aVPoseRel.size();
+   if (aNbP<2)
+       return std::pair<tPoseR,cIrb_SigmaPoseRel>
+               (
+                   tPoseR::RandomIsom3D(1e20),
+                   cIrb_SigmaPoseRel()
+                );
 
-   // [1]  Compute medians, used to have an order of magnitude
+   // [1]  Compute medians of residuals, used to have an order of magnitude of the sigmas
+   // required for mixing sigma on tr with sigma on rot
    tREAL8 aMedTr=0,aMedRot=0;
    {
        std::vector<tREAL8>  aVDistTr;
@@ -142,7 +150,8 @@ std::pair<tPoseR,cIrb_SigmaPoseRel> cIrbComp_Block::ComputeCalibCamsInit(int aKC
    }
    
 
-   // [2]  Exract the robust center
+   // [2]  Exract the robust center, ie the one minimizing the sum of distance
+   // to the other
    int    aK1Min    = -1;
    tREAL8 aMinDGlob = 1e10;
    tREAL8 aMinDTr   = 1e10;
@@ -171,9 +180,9 @@ std::pair<tPoseR,cIrb_SigmaPoseRel> cIrbComp_Block::ComputeCalibCamsInit(int aKC
            aMinDRot  = aSumDRot  ;
        }
    }
-   aMinDGlob /= aVPoseRel.size() ;
-   aMinDTr   /= aVPoseRel.size() ;
-   aMinDRot  /= aVPoseRel.size() ;
+   aMinDGlob /= (aNbP-1) ;
+   aMinDTr   /= (aNbP-1) ;
+   aMinDRot  /= (aNbP-1) ;
 
    /*
    StdOut() << "K1/K2=" << aKC1<< aKC2 
@@ -185,7 +194,7 @@ std::pair<tPoseR,cIrb_SigmaPoseRel> cIrbComp_Block::ComputeCalibCamsInit(int aKC
    return std::pair<tPoseR,cIrb_SigmaPoseRel>
 	  (
               aVPoseRel.at(aK1Min),
-              cIrb_SigmaPoseRel(aKC1,aKC2,aMinDTr,aMinDRot)
+              cIrb_SigmaPoseRel(aKC1,aKC2,aNbP,aMinDGlob,aMinDTr,aMinDRot)
 	  );
 }
 
@@ -328,10 +337,10 @@ class cAppli_EditBlockInstr : public cMMVII_Appli
         std::vector<std::string>  Samples() const override;
 
      private :
-        cPhotogrammetricProject   mPhProj;
-        std::string               mNameBloc;
-	std::vector<std::string>  mVPatsIm4Cam;
-	bool                      mFromScratch;
+        cPhotogrammetricProject   mPhProj;       //< As usual ....
+        std::string               mNameBloc;     //< Name of the block edited (generally default MMVII)
+        std::vector<std::string>  mVPatsIm4Cam;  //< Patterns for cam structure : [PatSelOnDisk,PatTimeStamp?,PatSelInBlock?]
+        bool                      mFromScratch;  //< If exist file : Reset of Modify ?
 };
 
 cAppli_EditBlockInstr::cAppli_EditBlockInstr(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -378,10 +387,11 @@ int cAppli_EditBlockInstr::Exe()
     mPhProj.DPBlockInstr().SetDirOutInIfNotInit();
     mPhProj.FinishInit();
 
-    cIrbCal_Block *  aBlock =      mFromScratch                       ?
-	                       new cIrbCal_Block                      :
-	                       mPhProj.ReadRigBoI(mNameBloc,SVP::Yes) ;
+    cIrbCal_Block *  aBlock =    mFromScratch                           ?
+                                 new cIrbCal_Block                      :
+                                 mPhProj.ReadRigBoI(mNameBloc,SVP::Yes) ;
 
+    // if we add structure for camera
     if (IsInit(&mVPatsIm4Cam))
     {
         std::string aPatSelOnDisk = mVPatsIm4Cam.at(0);
@@ -389,12 +399,19 @@ int cAppli_EditBlockInstr::Exe()
         std::string aPatSelIm = GetDef(mVPatsIm4Cam,2,aPatTimeStamp);
 
         auto aVNameIm = ToVect(SetNameFromString(aPatSelOnDisk,true));
+        std::set<std::string> aSetNameCal;
         for (const auto & aNameIm : aVNameIm)
         {
             std::string aNameCal = mPhProj.StdNameCalibOfImage(aNameIm);
-	    aBlock->SetCams().AddCam(aNameCal,aPatTimeStamp,aPatSelIm,SVP::Yes);
+            if (! BoolFind(aSetNameCal,aNameCal))
+            {
+                aSetNameCal.insert(aNameCal);
+                aBlock->SetCams().AddCam(aNameCal,aPatTimeStamp,aPatSelIm,SVP::Yes);
+            }
         }
     }
+
+    // if we add the structure for clinometers
     if (mPhProj.DPMeasuresClino().DirInIsInit())
     {
          cSetMeasureClino aMesClin =  mPhProj.ReadMeasureClino();
@@ -404,7 +421,7 @@ int cAppli_EditBlockInstr::Exe()
          }
     }
 
-
+    // save the result on disk
     mPhProj.SaveRigBoI(*aBlock);
 
     delete aBlock;

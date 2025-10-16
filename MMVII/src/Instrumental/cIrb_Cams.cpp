@@ -134,15 +134,17 @@ void AddData(const  cAuxAr2007 & anAux,cIrbCal_Cam1 & aCam)
 /*                                                                 */
 /* *************************************************************** */
 
-cIrb_SigmaPoseRel::cIrb_SigmaPoseRel(int aK1,int aK2,tREAL8 aSigmaTr,tREAL8 aSigmaRot) :
+cIrb_SigmaPoseRel::cIrb_SigmaPoseRel(int aK1,int aK2,int aNb,tREAL8 aSigmGlob,tREAL8 aSigmaTr,tREAL8 aSigmaRot) :
    mK1       (aK1),
    mK2       (aK2),
+   mNb       (aNb),
+   mSigmaGlob (aSigmGlob),
    mSigmaTr  (aSigmaTr),
    mSigmaRot (aSigmaRot)
 {
 }
 cIrb_SigmaPoseRel::cIrb_SigmaPoseRel() :
-   cIrb_SigmaPoseRel(-1,-1,-1.0,-1.0)
+   cIrb_SigmaPoseRel(-1,-1,-1,-1.0,-1.0,-1.0)
 {
 }
 

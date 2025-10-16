@@ -127,12 +127,14 @@ class cIrb_SigmaPoseRel
 {
     public :
        cIrb_SigmaPoseRel();
-       cIrb_SigmaPoseRel(int aK1,int aK2,tREAL8 aSigmaTr,tREAL8 aSigmaRot);
+       cIrb_SigmaPoseRel(int aK1,int aK2,int aNb,tREAL8 aSigmaGlob,tREAL8 aSigmaTr,tREAL8 aSigmaRot);
 
-	   int    mK1;
-	   int    mK2;
-	   tREAL8 mSigmaTr;
-	   tREAL8 mSigmaRot;
+       int    mK1;         // index of image 1
+       int    mK2;         // index of image 2
+       int    mNb;         // number of pose relative
+       tREAL8 mSigmaGlob;  // sigma global mixing both
+       tREAL8 mSigmaTr;    // sigma on translation
+       tREAL8 mSigmaRot;   // sigla on rotation
 };
 void AddData(const  cAuxAr2007 & anAux,cIrb_SigmaPoseRel & aSigmaPR);
 
@@ -238,6 +240,8 @@ class cIrbComp_CamSet : public cMemCheck
 
           /// pose of K2th  relatively to K1th
           tPoseR PoseRel(size_t aK1,size_t aK2) const;
+
+          // A relative pose can be estimated iff both poses are init
           bool   HasPoseRel(size_t aK1,size_t aK2) const;
 
     private :
@@ -268,12 +272,16 @@ class   cIrbComp_TimeS : public cMemCheck
 class   cIrbComp_Block : public cMemCheck
 {
     public :
-       
+       // "fundamuntal" constructor, creat from a calibration bloc
        cIrbComp_Block(const cIrbCal_Block &) ;
+       // read calib from file with "absolute name" and call fundamuntal constructor
        cIrbComp_Block(const std::string & aNameFile);
+       // read calib from name of block in standdar MMVI file and call fundamental constructot
        cIrbComp_Block(const cPhotogrammetricProject& ,const std::string & aNameBloc);
 
+       // Add an image if orientation exist (via PhProj)
        void AddImagePose(const std::string &,bool okImNotInBloc=false);
+       // Add an image with given pose
        void AddImagePose(const tPoseR&,const std::string &,bool okImNotInBloc=false);
 
        
@@ -282,6 +290,7 @@ class   cIrbComp_Block : public cMemCheck
        const cIrbCal_Block & CalBlock() const ; //< Accessor
        cIrbCal_Block & CalBlock()  ; //< Accessor
 
+       // for a given pair K1/K2 the 'best' relative pose and its sigma
        std::pair<tPoseR,cIrb_SigmaPoseRel> ComputeCalibCamsInit(int aK1,int aK2) const;
     private :
        /// non copiable, too "dangerous"
