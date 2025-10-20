@@ -184,11 +184,11 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
         StdOut()<<"Selected Patches "<<mLPatches.size()<<std::endl;
 
 
-        std::string NamePlyOut="./patches_selected_autocorrel_visibility_MMVII_AUTOCOR_BARE_MULSCALE.ply";
+        std::string NamePlyOut="./autocorrel_criterion_smaller_patches.ply";
         mTri.PlyWriteSelected(NamePlyOut,mLPatches,false);
 
 
-        std::list<std::vector<int> >  aSetOfPatches ;
+        std::vector<std::vector<int> >  aSetOfPatches ;
         cTplBoxOfPts<tREAL8,2> aBoxObj;
         for (const auto & aPatchIndex : mLPatches)
         {
@@ -207,15 +207,13 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
                 }
             }
         }
-
-
         mLPatches = aSetOfPatches;
 
         StdOut()<<"Selected points to correl "<<mLPatches.size()<<std::endl;
 
         mBoxSelected=aBoxObj.CurBox();
 
-        NamePlyOut="./patches_selected_autocorrel_visibility_MMVII_AUTOCOR_filtered.ply";
+        NamePlyOut="./autocorrel_criterion_intercorrel_smaller_patches.ply";
         mTri.PlyWriteSelected(NamePlyOut,mLPatches,false);
 
         StdOut() << "Patches: DistReject=" << aDistReject 

@@ -22,6 +22,9 @@
 //#include "V1VII.h"
 #include "MMVII_PtCorrel.h"
 #include "MMVII_Stringifier.h"
+#include <thread>
+
+
 #define WITH_MMV1_FUNCTION  false
 
 
@@ -2110,7 +2113,7 @@ template <class Type> void cTriangulation3D<Type>::PlyWrite (const std::string &
 }
 
 template <class Type> void cTriangulation3D<Type>::PlyWriteSelected (const std::string & aNameFile,
-                                                                     std::list<std::vector<int> > & Patches,
+                                                                     std::vector<std::vector<int> > & Patches,
                                                                      bool isBinary) const
 {
   PLYData aPlyOut;
@@ -2190,7 +2193,7 @@ template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & a
                      //bool IsBuilding=(Classif==ClassificationTags().Building);
                     //bool IsGround=(Classif==ClassificationTags().Ground);
                     bool IsUnclassified=(Classif==ClassificationTags().Unclassified);
-                    bool IsFictive  = (Classif==66/*ClassificationTags().FictiveWaterBridge*/);
+                    bool IsFictive  = (Classif==66);
                     bool IsWater=(Classif==ClassificationTags().Water);
                     bool IsVeg=(Classif==ClassificationTags().Low_Vegetation) ||
                                (Classif==ClassificationTags().Medium_Vegetation) ||
@@ -2198,7 +2201,7 @@ template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & a
 
 
 
-                if ( ! (IsWater || IsVeg || IsUnclassified || IsFictive)  )
+                if (! (IsWater || IsVeg || IsUnclassified || IsFictive)  )
                    {
                         //if (Classif==66)
                         //    StdOut()<<"----"<<"classif problem "<<ClassificationTags().FictiveWaterBridge<<"----"<<std::endl;
@@ -2213,6 +2216,8 @@ template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & a
                               aVPts_pp.begin(),
                               aVPts_pp.end());
         }
+
+       StdOut()<<"selecting points while reading las "<<std::endl;
 
 
 
@@ -2647,147 +2652,6 @@ template <class Type> void cTriangulation3D<Type>::SamplePts(
 
 }
 
-template <class Type>
-bool cTriangulation3D<Type>::IsGoodPatch(const std::vector<cPt3dr>& aVPts,
-                                             const std::vector<cSensorCamPC*> & aCameras,
-                                             const std::vector<cIm2D<tU_INT1>> & mVIms,
-                                             tREAL8 AC_RHO,
-                                             tREAL8 VAR_RHO,
-                                             int    aSzMin,
-                                             tREAL8 aThreshold,
-                                             tREAL8 aSzW)
-{
-    #define TT_SEUIL_AutoCorrel  0.6          // Seuil d'elimination par auto-correlation
-    #define TT_SEUIL_CutAutoCorrel_INT 0.40    // Seuil d'acceptation rapide par auto correl entiere
-    #define TT_SEUIL_CutAutoCorrel_REEL 0.50   // Seuil d'acceptation rapide par auto correl reelle
-
-
-    ///< Finds good patches based on geometry criteria and radiometric resemblance between patches
-    ///
-    /// Use Patch planarity as filter
-    /// check for good saliency between orthos --> Autocorrelation in a neighborhood
-    ///
-    // Compute Patch Planarity
-    //tREAL8 aPlanarity=L2_PlanarityIndex(aVPts);
-    bool isPlanar=IsPlanarityIdxPdal(aVPts,2000.0,5.0); // 2.0
-    //StdOut()<<" Planarity Index  "<<aPlanarity<<std::endl;
-
-    // compute per image orthos and evaluate auto-correlation of central pixel compared to neighbors
-
-    std::vector<bool> aAutoCorrel;
-    std::vector<bool> aSetVisibs;
-
-    for (size_t aKIm=0 ; aKIm<aCameras.size() ; aKIm++)
-    {
-        const cSensorCamPC * aCam = aCameras[aKIm]; // extract cam
-        const cDataIm2D<tU_INT1> & aDIm = mVIms[aKIm].DIm(); // extract image
-
-        std::vector<tREAL8> aPatchDepths;
-
-        if (aCam->IsVisible(aVPts.at(0)))
-        {
-
-            // Visbility of patch center in images
-            for  ( const auto & aPt: aVPts)
-            {
-                if (aCam->IsVisible(aPt))
-                {
-                    aPatchDepths.push_back(aCam->Pose().Inverse(aPt).z());
-                }
-            }
-            tREAL8 aDepthMin = *min_element(aPatchDepths.begin(),aPatchDepths.end());
-            tREAL8 aDepthMax = *max_element(aPatchDepths.begin(),aPatchDepths.end());
-            // Compute visibility criterion
-            tREAL8 aVisibility=exp(-pow((aPatchDepths.at(0)-aDepthMin),2)/pow((aDepthMax-aDepthMin+1e-8),2));
-            if (
-                (aVisibility > aThreshold)
-                &&
-                ((int)aPatchDepths.size()>aSzMin)
-                )
-            {
-                aSetVisibs.push_back(true);
-            }
-            else
-                aSetVisibs.push_back(false);
-
-
-            // AutoCorrel
-            cPt2dr aPIm= aCam->Ground2Image(aVPts.at(0));
-            if (WindInside4BL(aDIm,aPIm,Pt_round_up(cPt2dr(AC_RHO+aSzW+1,AC_RHO+aSzW+1))))
-            {
-
-                // temporarily to mmv1
-                //auto aImMMV1= cMMV1_Conv<tU_INT1>::ImToMMV1(aDIm);
-                //TIm2D<tU_INT1,INT> aTImMMV1(aImMMV1);
-
-                bool aOKAutoCorr;
-                /*tREAL8 aStep=1.0;
-                for (int aId=1; aId<(int)AC_RHO; aId++)
-                {*/
-                    //static cCutAutoCorrelDir<TIm2D<tU_INT1,INT>>  aCACD(aTImMMV1,Pt2di(0,0),aStep*aId,aSzW);
-
-                    cCutAutoCorrelDir<tU_INT1> aCACD(aDIm,cPt2di(0,0),AC_RHO,3,aSzW);
-
-                    if (0)
-                    {
-                       // some  checks on autocorrelation
-                       //aCACD.GetVPts();
-                        // save index image
-                        std:: string filename= "index_"+ToStr(aKIm)+".tif";
-                       aCACD.writeImage(AC_RHO,filename);
-                    }
-
-                    aOKAutoCorr =  !(aCACD.AutoCorrel((ToI(aPIm)),
-                                                    TT_SEUIL_CutAutoCorrel_INT,
-                                                    TT_SEUIL_CutAutoCorrel_REEL,
-                                                    TT_SEUIL_AutoCorrel)
-                                                    );
-
-                    if (0)
-                    {
-
-                        std:: string filename= aCam->NameImage()+ToStr(aKIm)+"_"+ToStr(ToI(aPIm).x())+"_"+ToStr(ToI(aPIm).y())+".tif";
-                        aCACD.writeCorrelImage(AC_RHO,filename);
-                    }
-
-                    /*StdOut()<<"aOKAutoCorr -->  "<<aOKAutoCorr<<
-                            " aCorOut --> "<<aCACD.mCorOut<<
-                        " NumOut --> "<<aCACD.mNumOut<<std::endl;*/
-                //}
-                // check variance also
-                /*tREAL8 aStdDev= CubGaussWeightStandardDev(aDIm,ToI(aPIm),VAR_RHO);
-                if (aStdDev<=0)
-                    aOKAutoCorr=false;*/
-                aAutoCorrel.push_back(aOKAutoCorr);
-            }
-            else
-                aAutoCorrel.push_back(false);
-        }
-    }
-
-    if (aAutoCorrel.empty() || aSetVisibs.empty())
-        return false;
-
-
-    int MinVisAndautoC2Times=0;
-    for (size_t itc=0; itc<aAutoCorrel.size(); itc++)
-    {
-        if ((aAutoCorrel[itc]==aSetVisibs[itc])
-            && (aAutoCorrel[itc]))
-            MinVisAndautoC2Times++;
-    }
-
-    /*bool allAutoCorrel=false;
-    for (auto aC: aAutoCorrel)
-        allAutoCorrel=allAutoCorrel || aC;*/
-
-    if ((MinVisAndautoC2Times>=2) &&
-        (isPlanar)) //&&(aSetVisibs.size()>1)) // check if visible and autocorrel
-        return true;
-    else
-        return false;
-}
-
 
 
 
@@ -2804,13 +2668,13 @@ bool cTriangulation3D<Type>::IsGoodPatchNadir(const std::vector<cPt3dr>& aVPts,
 {
 
     // multiply by 2^aScale to find scale image coordinates
+    //tREAL8 TT_SEUIL_CutAutoCorrel_REJECTION = 0.65;       // Seuil d'acceptation rapide par auto correl entiere
+    //tREAL8 TT_SEUIL_CutAutoCorrel_REEL_REJECTION = 0.75;  // Seuil d'acceptation rapide par auto correl reelle
+    //tREAL8 TT_SEUIL_AutoCorrel_ACCEPT = 0.85 ;            // Seuil d'elimination par auto-correlation
 
-    tREAL8 TT_SEUIL_AutoCorrel_ACCEPT = 0.6 ;           // Seuil d'elimination par auto-correlation
-    tREAL8 TT_SEUIL_CutAutoCorrel_REJECTION = 0.4;      // Seuil d'acceptation rapide par auto correl entiere
-    tREAL8 TT_SEUIL_CutAutoCorrel_REEL_REJECTION = 0.5; // Seuil d'acceptation rapide par auto correl reelle
 
 
-    ///< Finds good patches based on geometry criteria and radiometric resemblance between patches
+    ///< Finds "good" patches based on geometry criteria and radiometric resemblance between patches
     ///
     /// Use Patch planarity as filter
     /// check for good saliency between orthos --> Autocorrelation in a neighborhood
@@ -2848,6 +2712,7 @@ bool cTriangulation3D<Type>::IsGoodPatchNadir(const std::vector<cPt3dr>& aVPts,
             tREAL8 aDepthMax = *max_element(aPatchDepths.begin(),aPatchDepths.end());
             // Compute visibility criterion
             tREAL8 aVisibility=exp(-pow((aPatchDepths.at(0)-aDepthMin),2)/pow((aDepthMax-aDepthMin+1e-8),2));
+
             if (
                 (aVisibility > aThreshold)
                 &&
@@ -2888,33 +2753,34 @@ bool cTriangulation3D<Type>::IsGoodPatchNadir(const std::vector<cPt3dr>& aVPts,
         cPt2dr aPIm= MulCByC(aCam->Ground2Image(aVPts[0]),
                               cPt2dr(pow (2,aScale),pow (2,aScale)));
 
-        if (WindInside4BL(aDIm,aPIm,Pt_round_up(cPt2dr(AC_RHO+aSzW+1,AC_RHO+aSzW+1))))
+        if (WindInside4BL(aDIm,ToI(aPIm),Pt_round_up(cPt2dr(AC_RHO+aSzW+1,AC_RHO+aSzW+1))))
         {
             cCutAutoCorrelDir<tU_INT1> aCACD(aDIm,cPt2di(0,0),AC_RHO,2,aSzW);
 
             //StdOut()<<getchar()<<std::endl;
-
-            isNotAutoCorr =  !(aCACD.AutoCorrel((ToI(aPIm)),
+            /*isNotAutoCorr =  !(aCACD.AutoCorrel((ToI(aPIm)),
                                              TT_SEUIL_CutAutoCorrel_REJECTION,
                                              TT_SEUIL_CutAutoCorrel_REEL_REJECTION,
                                              TT_SEUIL_AutoCorrel_ACCEPT)
-                            );
+                            );*/
 
+            isNotAutoCorr = !(aCACD.AutoCensusQ(ToI(aPIm),0.6,0.55));
 
-            tREAL8 aStdDev= CubGaussWeightStandardDev(aDIm,ToI(aPIm),VAR_RHO);
+            /*tREAL8 aStdDev= CubGaussWeightStandardDev(aDIm,ToI(aPIm),VAR_RHO);
             if (aStdDev<=0)
-                isNotAutoCorr=false;
+                isNotAutoCorr=false;*/
 
 
             // add a center variability criterion
-            if (0)//isNotAutoCorr && isPlanar)
+            if (0) //isNotAutoCorr && isPlanar)
             {
                 std:: string filename= "CORR_"+
                                        aCam->NameImage()+
                                        ToStr(aMinAngleInd)+"_"+
                                        ToStr(ToI(aPIm).x())+"_"+
                                        ToStr(ToI(aPIm).y())+"_"+
-                                       ToStr(aCACD.mCorOut)+".tif";
+                                       ToStr(aCACD.mCorOut)+"_"+
+                                       ToStr(aCACD.mNumOut)+".tif";
                 aCACD.writeCorrelImage(AC_RHO,filename);
             }
         }
@@ -3013,66 +2879,11 @@ bool cTriangulation3D<Type>::IsGoodPatchNadir(const std::vector<cPt3dr>& aVPts,
         return false;
 }
 
-/*
-
-template <class Type>
-std::vector<int> cTriangulation3D<Type>::OnePatchSelect(size_t aPid,
-                                            cTiling<cTil2DTri3D<Type>> & aTileAll,
-                                            cTiling<cTil2DTri3D<Type>> & aTileSelect,
-                                            tREAL8 aDistNeigh,
-                                            tREAL8 aDistReject,
-                                            int    aSzMin,
-                                            const std::vector<cSensorCamPC * > & aCameras,
-                                            const std::vector<cIm2D<tU_INT1>> & mVIms,
-                                            tREAL8 aThreshold)
-{
-     // Check if a lidar point is likely to be selected for bundle adjustment
-    cPt2dr aPt  = ToR(Proj(this->KthPts(aPid)));
-    // if the points is not close to an existing center of patch : create a new patch
-    if (aTileSelect.GetObjAtDist(aPt,aDistReject).empty())
-    {
-        //  Add it in the tiling of select
-        aTileSelect.Add(cTil2DTri3D<Type>(aPid));
-        // extract all the point close enough to the center
-        auto aLIptr = aTileAll.GetObjAtDist(aPt,aDistNeigh);
-        std::vector<int> aPatch; // the patch itself = index of points
-        aPatch.push_back(aPid);  // add the center at begining
-        for (const auto aPtrI : aLIptr)
-        {
-            if (aPtrI->Ind() !=aPid) // dont add the center twice
-            {
-                aPatch.push_back(aPtrI->Ind());
-            }
-        }
-
-        std::vector<cPt3dr> aVP;
-        for (const auto anInd : aPatch)
-            aVP.push_back(ToR(this->KthPts(anInd)));
-
-        // approximate patch as a plan
-        //cPlane3D aPl= cPlane3D::RansacEstimate(aVP,true).first;
-
-        bool isGoodPatch=IsGoodPatch(aVP,
-                                       aCameras,
-                                       mVIms,
-                                       50.0,
-                                       60.0,
-                                       aSzMin,
-                                       aThreshold,
-                                       3.0);
-        if ((int)aPatch.size() > aSzMin && isGoodPatch)
-        {
-            return aPatch;
-        }
-    }
-    return std::vector<int>({});
-}
-*/
 
 template <class Type>
  void cTriangulation3D<Type>::MakePatchesTargetted
       (
-           std::list<std::vector<int> > & aLPatches,
+           std::vector<std::vector<int> > & aLPatches,
            tREAL8 aDistNeigh,
            tREAL8 aDistReject,
            int    aSzMin,
@@ -3083,36 +2894,32 @@ template <class Type>
            int  aScale
        )
 {
-  //this->SamplePts(true,0.3);
-    /*for (size_t it=0; it<this->NbPts();it++)
-      this->mVSelectedIds.push_back(it);*/
+    cBox2dr aBox = Box2D();
 
-  cBox2dr aBox = Box2D();
-
-  // indexation of all points
-  cTiling<cTil2DTri3D<Type>>  aTileAll(aBox,true,this->NbPts()/20,this);
-  for (size_t aKP=0 ; aKP<this->NbPts() ; aKP++)
-  {
-      aTileAll.Add(cTil2DTri3D<Type>(aKP));
-  }
-
-  // int aCpt=0;
-  // indexation of all points selected as center of patches
-  cTiling<cTil2DTri3D<Type> >  aTileSelect(aBox,true,this->NbPts()/20,this);
-
-  // parse all  points
-  //#pragma omp parallel
-  {
-        //#pragma omp for
-      for (size_t aKP=0 ; aKP<this->NbPts() ; aKP++)
+    // indexation of all points
+    cTiling<cTil2DTri3D<Type>>  aTileAll(aBox,true,this->NbPts()/20,this);
+    #pragma omp parallel for
+    for (size_t aKP=0 ; aKP<this->NbPts() ; aKP++)
+    {
+        aTileAll.Add(cTil2DTri3D<Type>(aKP));
+    }
+    StdOut()<<"Tile2D3D filled "<<std::endl;
+    // indexation of all points selected as center of patches
+    cTiling<cTil2DTri3D<Type> >  aTileSelect(aBox,true,this->NbPts()/20,this);
+    // parse all  points
+    /*#pragma omp declare reduction (merge :std::vector<std::vector<int> > : \
+        omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
+    #pragma omp parallel for reduction(merge: aLPatches)*/
+    for (size_t aKP=0 ; aKP<this->NbPts() ; aKP+=1)
       {
           cPt2dr aPt  = ToR(Proj(this->KthPts(aKP)));
           // if the points is not close to an existing center of patch : create a new patch
           if (aTileSelect.GetObjAtDist(aPt,aDistReject).empty())
           {
-             //  Add it in the tiling of select
+             //  Add it in the tilisng of select
              aTileSelect.Add(cTil2DTri3D<Type>(aKP));
              // extract all the point close enough to the center
+             StdOut()<<"get elemm "<<std::endl;
              auto aLIptr = aTileAll.GetObjAtDist(aPt,aDistNeigh);
              std::vector<int> aPatch; // the patch itself = index of points
              aPatch.push_back(aKP);  // add the center at begining
@@ -3147,11 +2954,11 @@ template <class Type>
                                                   7.0,
                                                   aSzMin,
                                                   aThreshold,
-                                                  9.0,
+                                                  3,
                                                   aScale);
-                     }
+                  }
                  else
-                     {
+                    {
                          isGoodPatch =IsGoodPatchNadir(aVP,
                                                         aCameras,
                                                         mVIms,
@@ -3159,7 +2966,7 @@ template <class Type>
                                                         7.0,
                                                         aSzMin,
                                                         aThreshold,
-                                                        9.0);
+                                                        3);
                     }
                 if (isGoodPatch)
                      aLPatches.push_back(aPatch);
@@ -3167,8 +2974,9 @@ template <class Type>
 
           }
       }
-  }
 }
+
+
 /* ********************************************************** */
 /*                                                            */
 /*                                                            */

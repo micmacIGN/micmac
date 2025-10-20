@@ -394,7 +394,7 @@ class cBA_LidarPhotogra
        std::vector<cIm2D<tU_INT1>>    mVIms;           ///< Vector of images associated to each cam
        std::vector<std::vector<cSensorCamPC * >>   mVSCams;   /// < Cameras to handle multi scale cameras
        cWeightAv<tREAL8,tREAL8>       mLastResidual;   ///< Accumulate the radiometric residual
-       std::list<std::vector<int> >   mLPatches;       ///< set of 3D patches
+       std::vector<std::vector<int> >   mLPatches;       ///< set of 3D patches
        bool                           mPertRad;        ///< do we pertubate the radiometry (simulation & test)
        size_t                         mNbPointByPatch; ///< (approximate) required number of point /patch
        tREAL8 mCurrentCorrelVal=0.0;

@@ -49,7 +49,7 @@ public :
     {
     }
 
-    cPt2dr DoIt()
+    /*cPt2dr DoIt()
     {
         double aStep0 = 1/mRho;
         int aNb = MMVII::round_up(M_PI/aStep0);
@@ -57,21 +57,21 @@ public :
         cPt2dr aRes1 = DoItOneStep(aRes0.x(),3,aStep0/4.0);
         cPt2dr aRes2 = DoItOneStep(aRes1.x(),2,aStep0/10.0);
         return aRes2;
-    }
+    }*/
 
     void ResetIm(cDataIm2D<Type> & aTIm) {mDIm->DupIn(aTIm);}
 
 
 protected :
 
-    cPt2dr  DoItOneStep(double aTeta0,int aNb,double aStep, bool RegularPatch=true)
+    cPt2dr  DoItOneStep(double aRho0, double aTeta0,int aNb,double aStep, bool RegularPatch=true)
     {
         double aScMax = -1e10;
         double aTetaMax = 0;
         for (int aK=-aNb; aK<aNb ; aK++)
         {
             double aTeta =  aTeta0 + aK * aStep;
-            double aVal =  CorrelTeta(aTeta,RegularPatch) ;
+            double aVal =  CorrelTeta(aRho0,aTeta,RegularPatch) ;
             if (aVal >aScMax)
             {
                 aScMax = aVal;
@@ -122,16 +122,40 @@ protected :
         return aMat.Correl();
     }
 
+    double   ICensusOneOffset(const cPt2di & aP0,const cPt2di & anOffset,int aSzW)
+    {
+        double aVC1 = mDIm->GetV(aP0);
+        double aVC2 = mDIm->GetV(aP0+anOffset);
 
-    double  CorrelTeta(double aTeta, bool isRegularPatch)
+        double aSomDif = 0.0;
+        double aNb     = 0.0;
+        for (const auto & aDP : cRect2::BoxWindow(aSzW))
+        {
+            double aV1 = mDIm->GetV(aP0+aDP);
+            double aV2 = mDIm->GetV(aP0+aDP+anOffset);
+            double aR1 = NormalisedRatioPos(aV1,aVC1);
+            double aR2 = NormalisedRatioPos(aV2,aVC2);
+
+            aSomDif += std::abs(aR1-aR2);
+            aNb++;
+        }
+        double aRes = std::min(1.0,aSomDif / aNb);
+        aRes = pow(aRes,0.25);
+
+        return aRes;
+    }
+
+
+
+    double  CorrelTeta(double aRho, double aTeta, bool isRegularPatch)
     {
         if (isRegularPatch)
             return RCorrelOneOffset(mP0,
-                                FromPolar(mRho,aTeta),
+                                FromPolar(aRho,aTeta),
                                 mSzW);
         else
             return RCorrelOneOffset(ToR(mP0),
-                                    FromPolar(mRho,aTeta),
+                                    FromPolar(aRho,aTeta),
                                     mIndW);
     }
 
@@ -233,6 +257,135 @@ public :
             aDIm.ToFile(filename);
         }
 
+
+        /*   compute mi between two arrays
+      static double mutual_information(cv::Mat ref, cv::Mat flt)
+      {
+         cv::Mat joint_histogram(256, 256, CV_64FC1, cv::Scalar(0));
+
+         for (int i=0; i<ref.cols; ++i) {
+            for (int j=0; j<ref.rows; ++j) {
+               int ref_intensity = ref.at<uchar>(j,i);
+               int flt_intensity = flt.at<uchar>(j,i);
+               joint_histogram.at<double>(ref_intensity, flt_intensity) = joint_histogram.at<double>(ref_intensity, flt_intensity)+1;
+               double v = joint_histogram.at<double>(ref_intensity, flt_intensity);
+            }
+         }
+
+
+
+         for (int i=0; i<256; ++i) {
+            for (int j=0; j<256; ++j) {
+               joint_histogram.at<double>(j, i) = joint_histogram.at<double>(j, i)/(1.0*ref.rows*ref.cols);
+               double v = joint_histogram.at<double>(j, i);
+            }
+         }
+
+         cv::Size ksize(7, 7);
+         cv::GaussianBlur(joint_histogram, joint_histogram, ksize, 7, 7);
+
+
+         double entropy = 0.0;
+         for (int i=0; i<256; ++i) {
+            for (int j=0; j<256; ++j) {
+               double v = joint_histogram.at<double>(j, i);
+               if (v > 0.000000000000001) {
+                  entropy += v*log(v)/log(2);
+               }
+            }
+         }
+         entropy *= -1;
+
+         //    std::cout << entropy << "###";
+
+
+
+         std::vector<double> hist_ref(256, 0.0);
+         for (int i=0; i<joint_histogram.rows; ++i) {
+            for (int j=0; j<joint_histogram.cols; ++j) {
+               hist_ref[i] += joint_histogram.at<double>(i, j);
+            }
+         }
+
+         cv::Size ksize2(5,0);
+         //  cv::GaussianBlur(hist_ref, hist_ref, ksize2, 5);
+
+
+         std::vector<double> hist_flt(256, 0.0);
+         for (int i=0; i<joint_histogram.cols; ++i) {
+            for (int j=0; j<joint_histogram.rows; ++j) {
+               hist_flt[i] += joint_histogram.at<double>(j, i);
+            }
+         }
+
+         //   cv::GaussianBlur(hist_flt, hist_flt, ksize2, 5);
+
+
+
+         double entropy_ref = 0.0;
+         for (int i=0; i<256; ++i) {
+            if (hist_ref[i] > 0.000000000001) {
+               entropy_ref += hist_ref[i] * log(hist_ref[i])/log(2);
+            }
+         }
+         entropy_ref *= -1;
+         //std::cout << entropy_ref << "~~ ";
+
+         double entropy_flt = 0.0;
+         for (int i=0; i<256; ++i) {
+            if (hist_flt[i] > 0.000000000001) {
+               entropy_flt += hist_flt[i] * log(hist_flt[i])/log(2);
+            }
+         }
+         entropy_flt *= -1;
+         // std::cout << entropy_flt << "++ ";
+
+         double mutual_information = entropy_ref + entropy_flt - entropy;
+         return mutual_information;
+      }*/
+
+
+
+
+    bool AutoCensusQ (const cPt2di & aP0,
+                         double aRejetThreshold,
+                         double aRejetCens)
+    {
+
+        this-> mP0 = aP0;
+
+        double aCensusMax = 0 ;
+        //int aKMax =-1 ;
+
+        for (int aK=0; aK<mNbPts; aK++)
+        {
+            double aCensVal = 1.0 - this->ICensusOneOffset(this->mP0,mVPt[aK],this->mSzW);
+
+            if (aCensVal>aRejetThreshold)
+            {
+                mCorOut = aCensVal;
+                mNumOut = 0;
+                return true;
+            }
+
+            if (aCensVal>aCensusMax)
+            {
+                aCensusMax = aCensVal;
+                //aKMax= aK;
+            }
+        }
+
+        //
+        if (aCensusMax<aRejetCens)
+        {
+            mCorOut= aCensusMax;
+            mNumOut= 1;
+            return false;
+        }
+        return true;
+    }
+
+
     bool  AutoCorrel(const cPt2di & aP0,
                         double aRejetInt,
                         double aRejetReel,
@@ -268,12 +421,12 @@ public :
             return false;
         }
 
-        cPt2dr aRhoTeta = ToPolar<tREAL8>(ToR(mVPt[aKMax]),0.0);
+        /*cPt2dr aRhoTeta = ToPolar<tREAL8>(ToR(mVPt[aKMax]),0.0);
         //std::cout<<" aRhoTeta  Max "<<aRhoTeta<<std::endl;
 
-        double aStep0 = 1/this->mRho;
+        double aStep0 = 1/(aRhoTeta.x()+1e-8);
         //  Pt2dr aRes1 =  this->DoItOneStep(aRhoTeta.y,aStep0*0.5,2);  BUG CORRIGE VERIF AVEC GIANG
-        cPt2dr aRes1 =  this->DoItOneStep(aRhoTeta.y(),2,aStep0*0.5);
+        cPt2dr aRes1 =  this->DoItOneStep(aRhoTeta.x(),aRhoTeta.y(),2,aStep0*0.5);
 
         if (aRes1.y()>aSeuilAccept)
         {
@@ -288,14 +441,16 @@ public :
             return false;
         }
 
-        cPt2dr aRes2 =  this->DoItOneStep(aRes1.x(),2,aStep0*0.2);
+        cPt2dr aRes2 =  this->DoItOneStep(aRhoTeta.x(), aRes1.x(),2,aStep0*0.2);
 
         if (aPtrRes)
             *aPtrRes = aRes2;
 
         mNumOut = 4;
         mCorOut = aRes2.y();
-        return aRes2.y() > aSeuilAccept;
+        return aRes2.y() > aSeuilAccept;*/
+
+        return true;
     }
 
 
