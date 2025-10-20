@@ -208,25 +208,25 @@ tNameRel  RelNameFromXmlFileIfExist
 
 /* ================================================ */
 /*                                                  */
-/*                 cOrderedPair                     */
+/*                 cUnOrderedPair                     */
 /*                                                  */
 /* ================================================ */
 
 /// Pair where we want (a,b) == (b,a)
 
-/** cOrderedPair are pretty match like pair<T,T> ,
+/** cUnOrderedPair are pretty match like pair<T,T> ,
     the main difference being that they modelise symetric graph.
     To assure that they are always in a single way, we
     force V1 <= V2
 */
-template <class Type> class cOrderedPair
+template <class Type> class cUnOrderedPair
 {
       public :
-           typedef cOrderedPair<Type> value;
-           cOrderedPair(const Type & aV1,const Type & aV2); ///< Pair will be reordered
-           cOrderedPair(); ///< Default constructor, notably for serializer
-           bool operator < (const cOrderedPair<Type> & aP2) const;
-           bool operator == (const cOrderedPair<Type> & aP2) const;
+           typedef cUnOrderedPair<Type> value;
+           cUnOrderedPair(const Type & aV1,const Type & aV2); ///< Pair will be reordered
+           cUnOrderedPair(); ///< Default constructor, notably for serializer
+           bool operator < (const cUnOrderedPair<Type> & aP2) const;
+           bool operator == (const cUnOrderedPair<Type> & aP2) const;
            const Type & V1() const;
            const Type & V2() const;
            Type & V1() ;

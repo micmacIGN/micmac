@@ -134,26 +134,58 @@ void AddData(const  cAuxAr2007 & anAux,cIrbCal_Cam1 & aCam)
 /*                                                                 */
 /* *************************************************************** */
 
-cIrb_SigmaPoseRel::cIrb_SigmaPoseRel(int aK1,int aK2,int aNb,tREAL8 aSigmGlob,tREAL8 aSigmaTr,tREAL8 aSigmaRot) :
-   mK1       (aK1),
-   mK2       (aK2),
-   mNb       (aNb),
-   mSigmaGlob (aSigmGlob),
-   mSigmaTr  (aSigmaTr),
-   mSigmaRot (aSigmaRot)
-{
-}
-cIrb_SigmaPoseRel::cIrb_SigmaPoseRel() :
-   cIrb_SigmaPoseRel(-1,-1,-1,-1.0,-1.0,-1.0)
+cIrb_SigmaInstr::cIrb_SigmaInstr() :
+    cIrb_SigmaInstr(0.0,0.0,0.0,0.0)
 {
 }
 
-void AddData(const  cAuxAr2007 & anAux,cIrb_SigmaPoseRel & aSigmaPR)
+cIrb_SigmaInstr::cIrb_SigmaInstr(tREAL8 aW,tREAL8 aSigTr,tREAL8 aSigRot,tREAL8 aSigGlob) :
+    mSumW     (aW),
+    mSumWTr   (aSigTr),
+    mSumWRot  (aSigRot),
+    mSumWGlob (aSigGlob)
 {
-    MMVII::AddData(cAuxAr2007("K1",anAux)    ,aSigmaPR.mK1);
-    MMVII::AddData(cAuxAr2007("K2",anAux)    ,aSigmaPR.mK2);
-    MMVII::AddData(cAuxAr2007("SigTr",anAux) ,aSigmaPR.mSigmaTr);
-    MMVII::AddData(cAuxAr2007("SigRot",anAux),aSigmaPR.mSigmaRot);
+}
+
+void cIrb_SigmaInstr::AddData(const  cAuxAr2007 & anAux)
+{
+    MMVII::AddData(cAuxAr2007("SumW",anAux)     ,mSumW);
+    MMVII::AddData(cAuxAr2007("SumWTr",anAux)   ,mSumWTr);     anAux.Ar().AddComment("SigTr="+ToStr(SigmaTr()));
+    MMVII::AddData(cAuxAr2007("SumWRot",anAux)  ,mSumWRot);    anAux.Ar().AddComment("SigRot="+ToStr(SigmaRot()));
+    MMVII::AddData(cAuxAr2007("SumWGlob",anAux) ,mSumWGlob);
+}
+
+
+void AddData(const  cAuxAr2007 & anAux,cIrb_SigmaInstr & aSig)
+{
+    aSig.AddData(anAux);
+}
+
+
+void  cIrb_SigmaInstr::AddNewSigma(const cIrb_SigmaInstr & aS2, const tREAL8 &aW)
+{
+  mSumW     += aW * aS2.mSumW;
+  mSumWTr   += aW * aS2.mSumWTr;
+  mSumWRot  += aW * aS2.mSumWRot;
+  mSumWGlob += aW * aS2.mSumWGlob;
+}
+
+tREAL8 cIrb_SigmaInstr::SigmaTr() const
+{
+   MMVII_INTERNAL_ASSERT_tiny(mSumWTr>0,"cIrb_SigmaInstr::SigmaGlob");
+   return mSumWTr / mSumW;
+}
+
+tREAL8 cIrb_SigmaInstr::SigmaRot() const
+{
+   MMVII_INTERNAL_ASSERT_tiny(mSumWRot>0,"cIrb_SigmaInstr::SigmaGlob");
+   return mSumWRot / mSumW;
+}
+
+tREAL8 cIrb_SigmaInstr::SigmaGlob() const
+{
+   MMVII_INTERNAL_ASSERT_tiny(mSumWGlob>0,"cIrb_SigmaInstr::SigmaGlob");
+   return mSumWGlob / mSumW;
 }
 
 /* *************************************************************** */
@@ -163,7 +195,7 @@ void AddData(const  cAuxAr2007 & anAux,cIrb_SigmaPoseRel & aSigmaPR)
 /* *************************************************************** */
 
 cIrbCal_CamSet::cIrbCal_CamSet()  :
-    mNumMaster (0)
+    mNumMaster (-1)
 {
 }
 
@@ -171,12 +203,11 @@ void  cIrbCal_CamSet::AddData(const  cAuxAr2007 & anAux)
 {
     MMVII::AddData(cAuxAr2007("NumMaster",anAux),mNumMaster);
     MMVII::StdContAddData(cAuxAr2007("Set_Cams",anAux),mVCams);
-    MMVII::StdContAddData(cAuxAr2007("Sigmas",anAux),mVSigmas);
     
     // check the coherence of num master
     MMVII_INTERNAL_ASSERT_strong
     (
-         (mNumMaster>=0) && (mNumMaster<(int)mVCams.size()),
+         (mNumMaster>=-1) && (mNumMaster<(int)mVCams.size()),
          "Bad num master for cIrbCal_CamSet"
     );
 }
@@ -210,7 +241,15 @@ void cIrbCal_CamSet::AddCam
 }
 
 size_t  cIrbCal_CamSet::NbCams() const { return  mVCams.size();}
-int     cIrbCal_CamSet::NumMaster() const {return mNumMaster;}
+int     cIrbCal_CamSet::NumMaster() const
+{
+    return mNumMaster;
+}
+
+void  cIrbCal_CamSet::SetNumMaster(int aNum)
+{
+    mNumMaster = aNum;
+}
 
 cIrbCal_Cam1 &       cIrbCal_CamSet::KthCam(size_t aK)       {return  mVCams.at(aK);}
 const cIrbCal_Cam1 & cIrbCal_CamSet::KthCam(size_t aK) const {return  mVCams.at(aK);}
@@ -225,6 +264,7 @@ cIrbCal_Cam1 * cIrbCal_CamSet::CamFromNameCalib(const std::string& aNameCalib,bo
 }
 
 
+/*
 void cIrbCal_CamSet::SetSigma(const cIrb_SigmaPoseRel& aNewS)
 {
    bool isFound=false;
@@ -240,6 +280,7 @@ void cIrbCal_CamSet::SetSigma(const cIrb_SigmaPoseRel& aNewS)
    if (!isFound)
       mVSigmas.push_back(aNewS);
 }
+*/
 
 };
 

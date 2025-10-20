@@ -19,7 +19,7 @@
 
 /* ======================================== */
 /*                                          */
-/*     cOrderedPair<Type>                   */
+/*     cUnOrderedPair<Type>                   */
 /*                                          */
 /* ======================================== */
 
@@ -43,40 +43,40 @@ namespace MMVII
 
 static bool TheCmp4Op=false;
 
-template <class Type> const Type & cOrderedPair<Type>::Min4OP(const Type & aV1,const Type & aV2)
+template <class Type> const Type & cUnOrderedPair<Type>::Min4OP(const Type & aV1,const Type & aV2)
 {
     TheCmp4Op = (aV1<aV2);
     return TheCmp4Op ? aV1 : aV2; 
 }
 
-template <class Type>  cOrderedPair<Type>::cOrderedPair(const Type & aV1,const Type & aV2) :
+template <class Type>  cUnOrderedPair<Type>::cUnOrderedPair(const Type & aV1,const Type & aV2) :
    mV1 (Min4OP(aV1,aV2)),
    mV2 (TheCmp4Op?aV2:aV1)
 {
 }
 
-template <class Type>  cOrderedPair<Type>::cOrderedPair() 
+template <class Type>  cUnOrderedPair<Type>::cUnOrderedPair() 
 {
 }
 
-template <class Type>  bool cOrderedPair<Type>::operator < (const cOrderedPair<Type> & aP2) const
+template <class Type>  bool cUnOrderedPair<Type>::operator < (const cUnOrderedPair<Type> & aP2) const
 {
    if (mV1 < aP2.mV1) return true;
    if (mV1 > aP2.mV1) return false;
    if (mV2 < aP2.mV2) return true;
    return false;
 }
-template <class Type> bool cOrderedPair<Type>::operator == (const cOrderedPair<Type> & aP2) const
+template <class Type> bool cUnOrderedPair<Type>::operator == (const cUnOrderedPair<Type> & aP2) const
 {
   return (mV1 == aP2.mV1) && (mV2 == aP2.mV2);
 }
 
-template <class Type> const Type & cOrderedPair<Type>::V1() const {return  mV1;}
-template <class Type> const Type & cOrderedPair<Type>::V2() const {return  mV2;}
-template <class Type> Type & cOrderedPair<Type>::V1() {return  mV1;}
-template <class Type> Type & cOrderedPair<Type>::V2() {return  mV2;}
+template <class Type> const Type & cUnOrderedPair<Type>::V1() const {return  mV1;}
+template <class Type> const Type & cUnOrderedPair<Type>::V2() const {return  mV2;}
+template <class Type> Type & cUnOrderedPair<Type>::V1() {return  mV1;}
+template <class Type> Type & cUnOrderedPair<Type>::V2() {return  mV2;}
 
-template  class cOrderedPair<std::string>;
+template  class cUnOrderedPair<std::string>;
 
 /* =============   cDataSelector<Type>   ========= */
 

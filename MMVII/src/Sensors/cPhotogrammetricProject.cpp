@@ -9,6 +9,8 @@
 #include "cExternalSensor.h"
 #include "MMVII_Topo.h"
 #include "MMVII_PoseTriplet.h"
+#include "MMVII_InstrumentalBlock.h"
+
 
 /**
    \file  cPhotogrammetricProject.cpp
@@ -1330,6 +1332,37 @@ cTripletSet * cPhotogrammetricProject::ReadTriplets() const
     return cTripletSet::FromFile(mDPOriTriplets.FullDirIn()+aVNames[0]);
 
 }
+
+        //  =============  Instrument bloc =================
+
+std::string   cPhotogrammetricProject::NameRigBoI(const std::string & aName,bool isIn) const
+{
+    return DPBlockInstr().FullDirInOut(isIn) + aName + "." + GlobTaggedNameDefSerial();
+}
+
+cIrbCal_Block *  cPhotogrammetricProject::ReadRigBoI(const std::string & aName,bool SVP) const
+{
+    std::string aFullName  = NameRigBoI(aName,IO::In);
+    cIrbCal_Block * aRes = new cIrbCal_Block(aName);
+
+    if (! ExistFile(aFullName))  // if it doesnt exist and we are OK, it return a new empty bloc
+    {
+        MMVII_INTERNAL_ASSERT_User_UndefE(SVP,"cIrbCal_Block file dont exist");
+    }
+    else
+    {
+        ReadFromFile(*aRes,aFullName);
+    }
+
+    return aRes;
+}
+
+void   cPhotogrammetricProject::SaveRigBoI(const cIrbCal_Block & aBloc) const
+{
+      SaveInFile(aBloc,NameRigBoI(aBloc.NameBloc(),IO::Out));
+}
+
+
 
 
 }; // MMVII

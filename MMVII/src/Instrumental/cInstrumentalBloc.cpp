@@ -108,7 +108,7 @@ void cIrbComp_Block::AddImagePose(const std::string & aNameIm,bool  okImNotInBlo
 
     //  -------------------------- "computation"  --------------------------------------------
 
-std::pair<tPoseR,cIrb_SigmaPoseRel> cIrbComp_Block::ComputeCalibCamsInit(int aKC1,int aKC2) const
+typename cIrbComp_Block::tResCompCal cIrbComp_Block::ComputeCalibCamsInit(int aKC1,int aKC2) const
 {
    // [0]  Compute relative poses for each time stamps where it exist
    std::vector<tPoseR> aVPoseRel;  // vector of existing relative pose
@@ -125,11 +125,7 @@ std::pair<tPoseR,cIrb_SigmaPoseRel> cIrbComp_Block::ComputeCalibCamsInit(int aKC
    }
    int aNbP = aVPoseRel.size();
    if (aNbP<2)
-       return std::pair<tPoseR,cIrb_SigmaPoseRel>
-               (
-                   tPoseR::RandomIsom3D(1e20),
-                   cIrb_SigmaPoseRel()
-                );
+       return  tResCompCal(tPoseR::Identity(),cIrb_SigmaInstr());
 
    // [1]  Compute medians of residuals, used to have an order of magnitude of the sigmas
    // required for mixing sigma on tr with sigma on rot
@@ -156,6 +152,7 @@ std::pair<tPoseR,cIrb_SigmaPoseRel> cIrbComp_Block::ComputeCalibCamsInit(int aKC
    tREAL8 aMinDGlob = 1e10;
    tREAL8 aMinDTr   = 1e10;
    tREAL8 aMinDRot  = 1e10;
+   tREAL8 aRatioTrRot = (aMedTr/aMedRot);
 
    for (size_t aKP1 =0 ; aKP1<aVPoseRel.size() ; aKP1++)
    {
@@ -169,7 +166,7 @@ std::pair<tPoseR,cIrb_SigmaPoseRel> cIrbComp_Block::ComputeCalibCamsInit(int aKC
             tREAL8 aDRot = aVPoseRel.at(aKP1).Rot().Dist(aVPoseRel.at(aKP2).Rot());
             aSumDTr   += aDTr;
             aSumDRot  += aDRot;
-            aSumDGlob += aDTr + aDRot * (aMedTr/aMedRot);
+            aSumDGlob += ( aDTr + aDRot * aRatioTrRot) / (1+aRatioTrRot);
        }
        // StdOut() << "SOM=" << aSumDGlob/aVPoseRel.size() << "\n";
        if (aSumDGlob<aMinDGlob )
@@ -180,9 +177,7 @@ std::pair<tPoseR,cIrb_SigmaPoseRel> cIrbComp_Block::ComputeCalibCamsInit(int aKC
            aMinDRot  = aSumDRot  ;
        }
    }
-   aMinDGlob /= (aNbP-1) ;
-   aMinDTr   /= (aNbP-1) ;
-   aMinDRot  /= (aNbP-1) ;
+
 
    /*
    StdOut() << "K1/K2=" << aKC1<< aKC2 
@@ -191,11 +186,7 @@ std::pair<tPoseR,cIrb_SigmaPoseRel> cIrbComp_Block::ComputeCalibCamsInit(int aKC
 	    << "\n";
 	    */
 
-   return std::pair<tPoseR,cIrb_SigmaPoseRel>
-	  (
-              aVPoseRel.at(aK1Min),
-              cIrb_SigmaPoseRel(aKC1,aKC2,aNbP,aMinDGlob,aMinDTr,aMinDRot)
-	  );
+   return tResCompCal(aVPoseRel.at(aK1Min), cIrb_SigmaInstr (aNbP-1,aMinDTr,aMinDRot,aMinDGlob));
 }
 
     //  -------------------------- "Accessors"  --------------------------------------------------------
@@ -307,10 +298,22 @@ void  cIrbCal_Block::AddData(const  cAuxAr2007 & anAux)
 {
     MMVII::AddData(cAuxAr2007("Cams",anAux),mSetCams);	
     MMVII::AddData(cAuxAr2007("Clinos",anAux),mSetClinos);	
+
+    MMVII::StdMapAddData(cAuxAr2007("SigmasPairs",anAux),mSigmaPair);
+    MMVII::StdMapAddData(cAuxAr2007("SigmasIndiv",anAux),mSigmaInd);
+
 }
 void AddData(const  cAuxAr2007 & anAux,cIrbCal_Block & aRBoI)
 {
     aRBoI.AddData(anAux);
+}
+
+void cIrbCal_Block::AddSigma(std::string aN1,std::string aN2, const cIrb_SigmaInstr & aSig,const std::pair<tREAL8,tREAL8> & aW12)
+{
+    mSigmaInd[aN1].AddNewSigma(aSig,aW12.first);
+    mSigmaInd[aN2].AddNewSigma(aSig,aW12.second);
+
+    mSigmaPair[tNamePair(aN1,aN2)].AddNewSigma(aSig);
 }
 
 
@@ -325,6 +328,7 @@ cIrbCal_ClinoSet &      cIrbCal_Block::SetClinos() {return mSetClinos;}
 /*                                                                 */
 /* *************************************************************** */
 
+/*
 class cAppli_EditBlockInstr : public cMMVII_Appli
 {
      public :
@@ -427,7 +431,7 @@ int cAppli_EditBlockInstr::Exe()
     delete aBlock;
     return EXIT_SUCCESS;
 }
-
+*/
 
     /* ==================================================== */
     /*                                                      */
@@ -435,6 +439,7 @@ int cAppli_EditBlockInstr::Exe()
     /*                                                      */
     /* ==================================================== */
 
+/*
 
 tMMVII_UnikPApli Alloc_EditBlockInstr(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
 {
@@ -451,146 +456,7 @@ cSpecMMVII_Appli  TheSpec_EditBlockInstr
       {eApDT::BlockInstr},
       __FILE__
 );
-
-/* *************************************************************** */
-/*                                                                 */
-/*               cAppli_BlockInstrInitCam                          */
-/*                                                                 */
-/* *************************************************************** */
-
-class cAppli_BlockInstrInitCam : public cMMVII_Appli
-{
-     public :
-
-        cAppli_BlockInstrInitCam(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli &);
-        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
-        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
-        int Exe() override;
-        // std::vector<std::string>  Samples() const ;
-
-     private :
-        cPhotogrammetricProject   mPhProj;
-        std::string               mSpecImIn;
-        cIrbComp_Block *           mBlock;
-        std::string               mNameBloc;
-};
-
-
-cAppli_BlockInstrInitCam::cAppli_BlockInstrInitCam(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec) :
-    cMMVII_Appli (aVArgs,aSpec),
-    mPhProj      (*this),
-    mBlock       (nullptr),
-    mNameBloc    (cIrbCal_Block::theDefaultName)
-{
-}
-
-cCollecSpecArg2007 & cAppli_BlockInstrInitCam::ArgObl(cCollecSpecArg2007 & anArgObl) 
-{
-     return anArgObl
-             <<  Arg2007(mSpecImIn,"Pattern/file for images", {{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}}  )
-             <<  mPhProj.DPBlockInstr().ArgDirInMand()
-             <<  mPhProj.DPOrient().ArgDirInMand()
-             <<  mPhProj.DPBlockInstr().ArgDirOutMand()
-     ;
-}
-
-cCollecSpecArg2007 & cAppli_BlockInstrInitCam::ArgOpt(cCollecSpecArg2007 & anArgOpt)
-{
-	return anArgOpt
-            << AOpt2007(mNameBloc,"NameBloc","Name of bloc to calib ",{{eTA2007::HDV}})
-        ;
-}
-
-int cAppli_BlockInstrInitCam::Exe()
-{
-    mPhProj.FinishInit();
-
-    mBlock = new cIrbComp_Block(mPhProj,mNameBloc);
-
-    for (const auto & aNameIm :  VectMainSet(0))
-    {
-       mBlock->AddImagePose(aNameIm);
-       // mBlock->AddImagePose(aNameIm);
-    }
-
-    for (size_t aKC1=0 ; aKC1<mBlock->NbCams(); aKC1++)
-    {
-        for (size_t aKC2=0 ; aKC2<mBlock->NbCams(); aKC2++)
-        {
-            const auto & [aPose,aSigma] = mBlock->ComputeCalibCamsInit(aKC1,aKC2);
-            if (aKC1 < aKC2)
-            {
-                mBlock->CalBlock().SetCams().SetSigma(aSigma);
-            }
-            if ((int)aKC1==mBlock->CalBlock().SetCams().NumMaster())
-            {
-               StdOut() << "aKC2aKC2aKC2aKC2 " << aKC2 << "\n";
-               mBlock->CalBlock().SetCams().KthCam(aKC2).SetPose(aPose);
-            }
-        }
-    }
-
-    mPhProj.SaveRigBoI(mBlock->CalBlock());
-
-    delete mBlock;
-    return EXIT_SUCCESS;
-}
-
-    /* ==================================================== */
-    /*                                                      */
-    /*               MMVII                                  */
-    /*                                                      */
-    /* ==================================================== */
-
-
-tMMVII_UnikPApli Alloc_BlockInstrInitCam(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
-{
-   return tMMVII_UnikPApli(new cAppli_BlockInstrInitCam(aVArgs,aSpec));
-}
-
-cSpecMMVII_Appli  TheSpec_BlockInstrInitCam
-(
-     "BlockInstrInitCam",
-      Alloc_BlockInstrInitCam,
-      "Init  camera poses inside a block of instrument",
-      {eApF::BlockInstr,eApF::Ori},
-      {eApDT::BlockInstr,eApDT::Ori},
-      {eApDT::BlockInstr},
-      __FILE__
-);
-
-/* *************************************************************** */
-/*                                                                 */
-/*               cPhotogrammetricProject                           */
-/*                                                                 */
-/* *************************************************************** */
-
-std::string   cPhotogrammetricProject::NameRigBoI(const std::string & aName,bool isIn) const
-{
-    return DPBlockInstr().FullDirInOut(isIn) + aName + "." + GlobTaggedNameDefSerial();
-}
-
-cIrbCal_Block *  cPhotogrammetricProject::ReadRigBoI(const std::string & aName,bool SVP) const
-{
-    std::string aFullName  = NameRigBoI(aName,IO::In);
-    cIrbCal_Block * aRes = new cIrbCal_Block(aName);
-
-    if (! ExistFile(aFullName))  // if it doesnt exist and we are OK, it return a new empty bloc
-    {
-        MMVII_INTERNAL_ASSERT_User_UndefE(SVP,"cIrbCal_Block file dont exist");
-    }
-    else
-    {
-        ReadFromFile(*aRes,aFullName);
-    }
-
-    return aRes;
-}
-
-void   cPhotogrammetricProject::SaveRigBoI(const cIrbCal_Block & aBloc) const
-{
-      SaveInFile(aBloc,NameRigBoI(aBloc.NameBloc(),IO::Out));
-}
+*/
 
 
 };

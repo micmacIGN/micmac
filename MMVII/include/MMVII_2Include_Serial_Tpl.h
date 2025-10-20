@@ -292,7 +292,7 @@ template <class Type,size_t aSz> void AddData(const cAuxAr2007 & anAux,  cArray<
 
 /** Serialization for map (will be) used for cSetMultipleTiePoints, and more ? */
 
-template <class TypeKey,class TypeVal> void AddData(const cAuxAr2007 & anAux,std::map<TypeKey,TypeVal> & aMap)
+template <class TypeKey,class TypeVal> void StdMapAddData(const cAuxAr2007 & anAux,std::map<TypeKey,TypeVal> & aMap)
 {
     anAux.SetType(eTAAr::eMap);
     int aNb=aMap.size();
@@ -331,6 +331,11 @@ template <class TypeKey,class TypeVal> void AddData(const cAuxAr2007 & anAux,std
             //AddData(anAuxPair,aPair->second);
         }
     }
+}
+
+template <class TypeKey,class TypeVal> void AddData(const cAuxAr2007 & anAux,std::map<TypeKey,TypeVal> & aMap)
+{
+    StdMapAddData(anAux,aMap);
 }
 
 

@@ -41,7 +41,7 @@ class cIrbCal_Clino1;    // one clino in a calib-bloc
 class cIrbCal_ClinoSet;  // set of  clino in a calib-bloc
 class cIrbCal_Block;     // calib bloc of rigid instrument
 
-class cIrb_SigmaPoseRel;   // "helper" class for storing  sigmas of rel poses
+class cIrb_SigmaInstr;   // "helper" class for storing  sigmas of rel poses
 
 
 class   cIrbComp_Cam1;     // one cam in a compute-bloc
@@ -123,20 +123,29 @@ class cIrbCal_Clino1 : public cMemCheck
 };
 void AddData(const  cAuxAr2007 & anAux,cIrbCal_Clino1 & aClino);
 
-class cIrb_SigmaPoseRel
-{
-    public :
-       cIrb_SigmaPoseRel();
-       cIrb_SigmaPoseRel(int aK1,int aK2,int aNb,tREAL8 aSigmaGlob,tREAL8 aSigmaTr,tREAL8 aSigmaRot);
 
-       int    mK1;         // index of image 1
-       int    mK2;         // index of image 2
-       int    mNb;         // number of pose relative
-       tREAL8 mSigmaGlob;  // sigma global mixing both
-       tREAL8 mSigmaTr;    // sigma on translation
-       tREAL8 mSigmaRot;   // sigla on rotation
+class cIrb_SigmaInstr
+{
+   public :
+      cIrb_SigmaInstr();
+      cIrb_SigmaInstr(tREAL8 aW,tREAL8 aSigTr,tREAL8 aSigRot,tREAL8 aSigGlob);
+      void  AddNewSigma (const cIrb_SigmaInstr&,const tREAL8 & aWeigh=1.0);
+
+      void AddData(const  cAuxAr2007 & anAux);
+
+
+      tREAL8 SigmaTr() const;
+      tREAL8 SigmaRot() const;
+      tREAL8 SigmaGlob() const;
+
+   private :
+      tREAL8 mSumW;
+      tREAL8 mSumWTr;
+      tREAL8 mSumWRot;
+      tREAL8 mSumWGlob;
 };
-void AddData(const  cAuxAr2007 & anAux,cIrb_SigmaPoseRel & aSigmaPR);
+void AddData(const  cAuxAr2007 & anAux,cIrb_SigmaInstr & aClino);
+
 
 
 ///  class for representing the set of cameras embedded in a bloc
@@ -153,10 +162,10 @@ class cIrbCal_CamSet : public cMemCheck
 
          size_t  NbCams() const;    //< Number of cameras
          int     NumMaster() const; //< Accessor
+         void    SetNumMaster(int);
          cIrbCal_Cam1 & KthCam(size_t aK);
          const cIrbCal_Cam1 & KthCam(size_t aK) const;
      private :
-         void SetSigma(const cIrb_SigmaPoseRel&) ;       //< reset the camea
          void AddCam
               (
                    const std::string &  aNameCalib,
@@ -167,7 +176,6 @@ class cIrbCal_CamSet : public cMemCheck
 
          int                             mNumMaster;      //< num of "master" image
          std::vector<cIrbCal_Cam1>       mVCams;          //< set of cameras
-         std::vector<cIrb_SigmaPoseRel>  mVSigmas;        //< sigmas of pairs
 };
 void AddData(const  cAuxAr2007 & anAux,cIrbCal_CamSet & aCam);
 
@@ -201,10 +209,16 @@ class cIrbCal_Block : public cMemCheck
         const cIrbCal_CamSet &   SetCams() const ;      //< Accessors
         cIrbCal_ClinoSet &       SetClinos() ;          //< Accessors
         const std::string &       NameBloc() const;     //< Accessor
+
+        void AddSigma(std::string aN1,std::string aN2, const cIrb_SigmaInstr &,const std::pair<tREAL8,tREAL8> & aWeight= {1.0,1.0} );
      private :
-        std::string                 mNameBloc;   //<  Name of the bloc
-        cIrbCal_CamSet              mSetCams;    //<  Cameras used in the bloc
-        cIrbCal_ClinoSet            mSetClinos;  //<  Clinos used in the bloc
+        std::string                   mNameBloc;   //<  Name of the bloc
+        cIrbCal_CamSet                mSetCams;    //<  Cameras used in the bloc
+        cIrbCal_ClinoSet              mSetClinos;  //<  Clinos used in the bloc
+
+        std::map<tNamePair,cIrb_SigmaInstr>   mSigmaPair;     //<  Sigmas between pair of instr
+        std::map<std::string,cIrb_SigmaInstr> mSigmaInd;      //<  Sigmas of each instrument
+
 };
 void AddData(const  cAuxAr2007 & anAux,cIrbCal_Block & aRBoI);
 
@@ -272,6 +286,8 @@ class   cIrbComp_TimeS : public cMemCheck
 class   cIrbComp_Block : public cMemCheck
 {
     public :
+       typedef  std::pair<tPoseR,cIrb_SigmaInstr>  tResCompCal;
+
        // "fundamuntal" constructor, creat from a calibration bloc
        cIrbComp_Block(const cIrbCal_Block &) ;
        // read calib from file with "absolute name" and call fundamuntal constructor
@@ -291,7 +307,7 @@ class   cIrbComp_Block : public cMemCheck
        cIrbCal_Block & CalBlock()  ; //< Accessor
 
        // for a given pair K1/K2 the 'best' relative pose and its sigma
-       std::pair<tPoseR,cIrb_SigmaPoseRel> ComputeCalibCamsInit(int aK1,int aK2) const;
+       tResCompCal ComputeCalibCamsInit(int aK1,int aK2) const;
     private :
        /// non copiable, too "dangerous"
        cIrbComp_Block(const cIrbComp_Block & ) = delete;

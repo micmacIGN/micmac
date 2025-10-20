@@ -66,7 +66,7 @@ int cAppli_MMV2_MesIm_2_MMV1::Exe()
 		cSetMesGndPt aSetMes;
 
 		//load GCPs
-		mPhProj.LoadGCP3D(aSetMes);
+		// mPhProj.LoadGCP3D(aSetMes);
 
 		//load image measurements
 		mPhProj.LoadIm(aSetMes,aCImage);
