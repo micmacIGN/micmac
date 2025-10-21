@@ -203,6 +203,7 @@ template <class TypeMap>
     TypeMap  aMap = RansacL1Estimate(aVIn,aVOut,aParam.ParamRS().NbTestOfErrAdm(TypeMap::NbPtsMin));
     cParamCtrWeightedLSq  aPLSq= aParam.ParamLSQ();
  
+    //  In case aPtrRes is null, we still need it for "StabilityAfterNextError / LeastSquareRefine"
     tTypeElem  aResidual;
     if (aPtrRes==nullptr)
        aPtrRes = &aResidual;

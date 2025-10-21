@@ -181,7 +181,7 @@ bool cParamCtrWeightedLSq::StabilityAfterNextError(double anErr)
     if (aNb<mNbIterMin)
        return false;
     
-    if (GainRel(0,1)<1e-4) // if error  almost stable (Ok)   or  increase (dangerous ...)
+    if (GainRel(0,1)<mErrRelStop) // if error  almost stable (Ok)   or  increase (dangerous ...)
        return true;
 
     return false;
