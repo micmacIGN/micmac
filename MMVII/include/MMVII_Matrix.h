@@ -1114,28 +1114,47 @@ template<class Type> cDenseVect<Type> EigenSolveLsqGC
                                            int   aNbVar
                                       );
 
-class cParamCtrNLsq
+/** @brief class cParamCtrWeightedLSq : Parameter of control for Non Linear Square
+ *
+ *     Make a decision of stop based on evolution of residual.
+ */
+
+class cParamCtrWeightedLSq
 {
      public :
         /// Memorize a new error , and eventualy indicate statbility
         bool StabilityAfterNextError(double) ;
-        cParamCtrNLsq();
+
+        /// constructor , default parameters for compatibility
+        cParamCtrWeightedLSq(tREAL8 aErrRelStop=1e-4,int aNbIterMax=10,int aNbIterMin=2);
      private : 
-        double GainRel(int aK1,int aK2) const;  // ex GainRel(1,2) 
-        inline double ValBack(int aK) const;  // ex GainRel(1,2) 
-        std::vector<double> mVER;
+        inline double ValBack(int aK) const;  //< K the last value,  ex : back for K=0
+        double GainRel(int aK1,int aK2) const;  // relative gain for ValBack K1/K2
+
+        std::vector<double> mVER;  //< Vector of accumumated errors
+
+        tREAL8   mErrRelStop;  //< theshold for residual
+        int      mNbIterMax;   //< number max of iter after
+        int      mNbIterMin;   //< number in of iter after
+
 };
 
+/**  Parameter for "global" control of optimizers, used for
+ *   2 step optimization :
+ *      - first : initiall robust solution with Ransac
+ *      - second : refinement with weighted least sqaures
+ */
 class  cParamCtrlOpt
 {
     public :
-        cParamCtrlOpt(const cParamRansac &,const cParamCtrNLsq &);
+        cParamCtrlOpt(const cParamRansac &,const cParamCtrWeightedLSq &);
+
         const cParamRansac  & ParamRS() const;
-        const cParamCtrNLsq & ParamLSQ() const;
+        const cParamCtrWeightedLSq & ParamLSQ() const;
         static cParamCtrlOpt  Default();
     private :
-        cParamRansac  mParamRS;
-        cParamCtrNLsq mParamLSQ;
+        cParamRansac  mParamRS;  //< Parameter for the ransac part
+        cParamCtrWeightedLSq mParamLSQ;
 };
 
 

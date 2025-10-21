@@ -201,7 +201,7 @@ template <class TypeMap>
              )
 {
     TypeMap  aMap = RansacL1Estimate(aVIn,aVOut,aParam.ParamRS().NbTestOfErrAdm(TypeMap::NbPtsMin));
-    cParamCtrNLsq  aPLSq= aParam.ParamLSQ();
+    cParamCtrWeightedLSq  aPLSq= aParam.ParamLSQ();
  
     tTypeElem  aResidual;
     if (aPtrRes==nullptr)

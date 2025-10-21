@@ -145,23 +145,26 @@ int  cParamRansac::NbTestOfErrAdm(int aNbSample) const
 /*                                         */
 /* *************************************** */
 
-cParamCtrNLsq::cParamCtrNLsq()
+cParamCtrWeightedLSq::cParamCtrWeightedLSq(tREAL8 aErrRelStop,int aNbIterMax,int aNbIterMin) :
+    mErrRelStop (aErrRelStop),
+    mNbIterMax  (aNbIterMax),
+    mNbIterMin  (std::max(2,aNbIterMin))  // whatever user require, need 2 to estimate variation
 {
 }
 
-double cParamCtrNLsq::ValBack(int aK) const
+double cParamCtrWeightedLSq::ValBack(int aK) const
 {
    return mVER.at(mVER.size()-1-aK);
 }
 
 
-double cParamCtrNLsq::GainRel(int aK1,int aK2) const
+double cParamCtrWeightedLSq::GainRel(int aK1,int aK2) const
 {
     return (ValBack(aK2)-ValBack(aK1))  / ValBack(aK2);
 }
 
 
-bool cParamCtrNLsq::StabilityAfterNextError(double anErr) 
+bool cParamCtrWeightedLSq::StabilityAfterNextError(double anErr)
 {
     // Err can decrease, stop now to avoid / by 0
     if (anErr<=0) 
@@ -169,14 +172,16 @@ bool cParamCtrNLsq::StabilityAfterNextError(double anErr)
 
     mVER.push_back(anErr);
 
-    int aNb = mVER.size() ; // If less 2 value, cannot estimate variation
-    if (aNb>10)
+    int aNb = mVER.size() ;
+    // too many test
+    if (aNb>mNbIterMax)
        return true;
 
-    if (aNb<2) 
+    // not enough error
+    if (aNb<mNbIterMin)
        return false;
     
-    if (GainRel(0,1)<1e-4) // if err increase or almosr stable
+    if (GainRel(0,1)<1e-4) // if error  almost stable (Ok)   or  increase (dangerous ...)
        return true;
 
     return false;
@@ -189,20 +194,20 @@ bool cParamCtrNLsq::StabilityAfterNextError(double anErr)
 /* *************************************** */
 
 
-cParamCtrlOpt::cParamCtrlOpt(const cParamRansac & aPRS,const cParamCtrNLsq & aPLS) :
+cParamCtrlOpt::cParamCtrlOpt(const cParamRansac & aPRS,const cParamCtrWeightedLSq & aPLS) :
     mParamRS  (aPRS),
     mParamLSQ (aPLS)
 {
 }
 const cParamRansac  & cParamCtrlOpt::ParamRS()  const {return mParamRS;}
-const cParamCtrNLsq & cParamCtrlOpt::ParamLSQ() const {return mParamLSQ;}
+const cParamCtrWeightedLSq & cParamCtrlOpt::ParamLSQ() const {return mParamLSQ;}
 
 cParamCtrlOpt  cParamCtrlOpt::Default()
 {
    return cParamCtrlOpt
           (
               cParamRansac(0.5,1e-6),
-              cParamCtrNLsq()
+              cParamCtrWeightedLSq()
           );
 }
 

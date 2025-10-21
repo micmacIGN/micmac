@@ -410,15 +410,23 @@ class cSetIExtension
 /** Generate Q subset of cardinal K [0,N], all different,  if Q too big, truncated */
 void GenRanQsubCardKAmongN(std::vector<cSetIExtension> & aRes,int aQ,int aK,int aN);
 
+/**  Class to compute the number of test of Ransac, assumming :
+*     o independance of errors
+*     o a known probability of error of each sample
+*     o a known target of acceptable global error
+*  Also, all this hypothesis are questionnable, it's better than nothing ...
+*/
+
 class cParamRansac
 {   
     public :
-
+        /// given the number of sample required to compute a solution, return the number of tests to do
         int  NbTestOfErrAdm(int aNbSample) const;
+        /// constructor pretty basic
         cParamRansac(double  aProba1Err,double anErrAdm);
     private :
-        double mProba1Err;
-        double mErrAdm;
+        double mProba1Err;  //< probability of error of each samples, assumed to be globally independant
+        double mErrAdm;      //< admissible global error
 };
 
 

@@ -8,8 +8,14 @@
 
 //  RIGIDBLOC  : all file is concerned
 
+namespace MMVII
+{
+using namespace NS_SymbolicDerivative;
 
-/**  Class for generating the bloc rigid equation :
+/**
+ * @brief The cFormulaBlocRigid class, generate the equation for "rigid-pose".
+ *
+ * Class for generating the bloc rigid equation :
  *
  *   Let  PA and PB be two pose acquired with the rigid camera bloc,
  *   Let P1 and P2 be the, "unknown", value of rigid bloc, we note {CA;RA} 
@@ -50,10 +56,6 @@
  *       {tRA(CB-CA); tRA*RB} = {tR1(C2-C1) ; tR1 * R2}
  *
  */
-using namespace NS_SymbolicDerivative;
-
-namespace MMVII
-{
 
 
 class cFormulaBlocRigid
@@ -63,14 +65,20 @@ class cFormulaBlocRigid
            std::string FormulaName() const { return "BlocRigid";}
 
            std::vector<std::string>  VNamesUnknowns()  const
-	   {
-                //  We have 4 pose  A,B,1 en 2;  each has 6 unknown : 3 for centers,3 for axiator
-                //  We could write  explicitely a 24 size vector like {"CxA","CyA","CzA","WxA" .....,"Wy2","Wz2"}
-		//  We prefer to  use the facility "NamesPose" 
-                return  Append(NamesPose("CA","WA"),NamesPose("CB","WB"),NamesPose("C1","W1"),NamesPose("C2","W2"));
+           {
+               //  We have 4 pose  A,B,1 en 2;  each has 6 unknown : 3 for centers,3 for axiator
+               //  We could write  explicitely a 24 size vector like {"CxA","CyA","CzA","WxA" .....,"Wy2","Wz2"}
+               //  We prefer to  use the facility "NamesPose"
 
-		// Append NamesPose("CA","WA")
-	   }
+                return  Append
+                        (
+                            NamesPose("CA","WA"),
+                            NamesPose("CB","WB"),
+                            NamesPose("C1","W1"),
+                            NamesPose("C2","W2")
+                        );
+              // Append NamesPose("CA","WA")
+          }
 
            std::vector<std::string>    VNamesObs() const
            {
@@ -78,64 +86,63 @@ class cFormulaBlocRigid
                 // we coul wite explicitely the  36 size vector {"mA_00","mA_10" ... "m1_12","m_22"}
                 // we prefer to use the facility ",NamesMatr"
                 return  Append(NamesMatr("mA",cPt2di(3,3)),NamesMatr("mB",cPt2di(3,3)),NamesMatr("m1",cPt2di(3,3)),NamesMatr("m2",cPt2di(3,3)));
-		//  Append   NamesMatr("mA",cPt2di(3,3)),
+                //  Append   NamesMatr("mA",cPt2di(3,3)),
            }
-	   static constexpr size_t  NbUk =6;
-	   static constexpr size_t  NbObs=9;
+          static constexpr size_t  NbUk =6;
+          static constexpr size_t  NbObs=9;
 
-	   template <typename tUk>
+          template <typename tUk>
                        std::vector<tUk> formula
                        (
                           const std::vector<tUk> & aVUk,
                           const std::vector<tUk> & aVObs
                        ) const
            {
+                   // create the 4 formal poses, using unkonw (C/W) and obs
                    cPoseF<tUk>  aPoseA(aVUk,0*NbUk,aVObs,0*NbObs,true);
                    cPoseF<tUk>  aPoseB(aVUk,1*NbUk,aVObs,1*NbObs,true);
                    cPoseF<tUk>  aPose1(aVUk,2*NbUk,aVObs,2*NbObs,true);
                    cPoseF<tUk>  aPose2(aVUk,3*NbUk,aVObs,3*NbObs,true);
 
+                   // compute relative poses B/A and 2/1
                    cPoseF<tUk>  aRelAB = aPoseA.PoseRel(aPoseB);
                    cPoseF<tUk>  aRel12 = aPose1.PoseRel(aPose2);
 
+                   // compute difference of centers and matrices
                     cPtxd<tUk,3>  aDeltaC = aRelAB.mCenter-aRel12.mCenter;
                     cMatF<tUk>    aDeltaR = aRelAB.mIJK-aRel12.mIJK;
 
-                   
-		   // ... 
-		   // extract PoseA,PoseB,pose1, pose2
-                    
-		   // compute pose rel B to A,   pose rel 2 to 1
-		   // compute the difference
-
-
-		   return Append(ToVect(aDeltaC),aDeltaR.ToVect());
-
-		   //  cPoseF<tUk>  aPose1(aVUk,2*NbUk,aVObs,2*NbObs);
-                   //  cPoseF<tUk>  aRelAB = aPoseA.PoseRel(aPoseB);
-		   // (ToVect(aDeltaC),aDeltaM.ToVect()
-	   }
-
-
-
+                   //  return the differences as a size-12 vector
+                   return Append
+                          (
+                               ToVect(aDeltaC),
+                               aDeltaR.ToVect()
+                          );
+            }
       private :
 };
+
+/**
+ * @brief The cFormulaRattBRExist class for generating the conservation of a pose to a known value
+ *
+ * It is used in Block Rigid because the relative pose PA being an unknown we just have to write :
+ *      PA = P1
+ *  where P1 is the known value
+ */
 
 class cFormulaRattBRExist
 {
       public :
 
-           std::string FormulaName() const { return "BlocRigid_RE";}
+        std::string FormulaName() const { return "BlocRigid_RE";}
 
            std::vector<std::string>  VNamesUnknowns()  const
-       {
+           {
                 //  We have 4 pose  A,B,1 en 2;  each has 6 unknown : 3 for centers,3 for axiator
                 //  We could write  explicitely a 24 size vector like {"CxA","CyA","CzA","WxA" .....,"Wy2","Wz2"}
-        //  We prefer to  use the facility "NamesPose"
+                //  We prefer to  use the facility "NamesPose"
                 return  NamesPose("CA","WA");
-
-        // Append NamesPose("CA","WA")
-       }
+           }
 
            std::vector<std::string>    VNamesObs() const
            {
