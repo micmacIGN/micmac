@@ -578,7 +578,7 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
 template <class Type> class cResulEigenDecomp
 {
       public :
-         cResulEigenDecomp<Type>(int aN);
+         cResulEigenDecomp(int aN);
          cDenseMatrix<Type>  mEigenVec_R;  ///< real part
          cDenseMatrix<Type>  mEigenVec_I;  ///< imaginary part
 

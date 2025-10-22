@@ -48,7 +48,7 @@ void PutLineCSV(cMMVII_Ofs &,const std::vector<std::string>  &) ;
 template <class Type>  class cOCSVFile :  public cCSVFile<Type>
 {
      public  :
-          cOCSVFile<Type>(const std::string & aName,bool WithHeader,bool  isModeAppend=false) :
+          cOCSVFile(const std::string & aName,bool WithHeader,bool  isModeAppend=false) :
               cCSVFile<Type> (),
               mOfs           (aName,(isModeAppend ?  eFileModeOut::AppendText : eFileModeOut::CreateText))
           {
@@ -70,7 +70,7 @@ template <class Type>  class cICSVFile :  public  cCSVFile<Type>,
                                           public  cAr2007
 {
      public  :
-          cICSVFile<Type>(const std::string & aName,bool WithHeader) :
+          cICSVFile(const std::string & aName,bool WithHeader) :
               cCSVFile<Type> (),
               cAr2007(true,false,false) ,   // bool InPut,bool Tagged,bool Binary
               mIfs           (aName,eFileModeIn::Text),

@@ -147,7 +147,7 @@ template <class Type,const int Dim> class cDataBoundedSet : public cMemCheck
       typedef  cTplBox<Type,Dim> tBox;
 
       cDataBoundedSet(const tBox &);
-      virtual ~cDataBoundedSet<Type,Dim>();
+      virtual ~cDataBoundedSet();
 
       /// quantitative  + inside, - outside , 0 at the frontier
       tREAL8 InsidenessWithBox(const tPt &) const;
@@ -284,7 +284,7 @@ template <class Type,const int Dim> class  cDataMappedBoundedSet : public cDataB
 template <class Type,const int DimIn,const int DimOut> class cDataMapping : public cMemCheck
 {
     public :
-      virtual ~cDataMapping<Type,DimIn,DimOut>();
+      virtual ~cDataMapping();
       // typedef  cMapping<Type,DimIn,DimOut> tMap;
       typedef  cPtxd<Type,DimOut>          tPtOut;
       typedef  cPtxd<Type,DimIn>           tPtIn;
@@ -588,7 +588,7 @@ template <class Type,const int DimIn,const int DimOut>
       using typename tDataMap::tPtIn;
       using typename tDataMap::tPtOut;
 
-      virtual ~cDataMapCalcSymbDer<Type,DimIn,DimOut>();
+      virtual ~cDataMapCalcSymbDer();
 
        const  tVecOut &  Values(tVecOut &,const tVecIn & ) const override;  ///< V2 : use mCalc to fill values
        tCsteResVecJac  Jacobian(tResVecJac,const tVecIn &) const override;  ///< J2 : use mCalcDer to compute derivative
