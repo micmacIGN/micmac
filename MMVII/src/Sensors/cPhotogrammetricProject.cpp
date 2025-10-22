@@ -1335,9 +1335,11 @@ cTripletSet * cPhotogrammetricProject::ReadTriplets() const
 
         //  =============  Instrument bloc =================
 
+static const std::string  PREFIX_RIG_BL = "FileRB_";
+
 std::string   cPhotogrammetricProject::NameRigBoI(const std::string & aName,bool isIn) const
 {
-    return DPBlockInstr().FullDirInOut(isIn) + aName + "." + GlobTaggedNameDefSerial();
+    return DPBlockInstr().FullDirInOut(isIn) + PREFIX_RIG_BL + aName + "." + GlobTaggedNameDefSerial();
 }
 
 cIrbCal_Block *  cPhotogrammetricProject::ReadRigBoI(const std::string & aName,bool SVP) const
@@ -1362,6 +1364,22 @@ void   cPhotogrammetricProject::SaveRigBoI(const cIrbCal_Block & aBloc) const
       SaveInFile(aBloc,NameRigBoI(aBloc.NameBloc(),IO::Out));
 }
 
+std::vector<std::string>  cPhotogrammetricProject::ListBlockExisting() const
+{
+    std::vector<std::string> aRes;
+
+    std::vector<std::string>  aVec =  GetFilesFromDir
+                                    (
+                                        DPBlockInstr().FullDirIn(),
+                                        AllocRegex(PREFIX_RIG_BL + ".*" + "." + GlobTaggedNameDefSerial())
+                                     );
+
+    for (const auto & aName : aVec)
+    {
+        aRes.push_back(LastPrefix(aName).substr(PREFIX_RIG_BL.length()));
+    }
+    return aRes;
+}
 
 
 

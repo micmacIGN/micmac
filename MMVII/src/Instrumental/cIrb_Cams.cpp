@@ -150,7 +150,7 @@ cIrb_SigmaInstr::cIrb_SigmaInstr(tREAL8 aW,tREAL8 aSigTr,tREAL8 aSigRot,tREAL8 a
 void cIrb_SigmaInstr::AddData(const  cAuxAr2007 & anAux)
 {
     MMVII::AddData(cAuxAr2007("SumW",anAux)     ,mSumW);
-    MMVII::AddData(cAuxAr2007("SumWTr",anAux)   ,mSumWTr);     anAux.Ar().AddComment("SigTr="+ToStr(SigmaTr()));
+    MMVII::AddData(cAuxAr2007("SumWTr",anAux)   ,mSumWTr);    anAux.Ar().AddComment("SigTr="+ToStr(SigmaTr()));
     MMVII::AddData(cAuxAr2007("SumWRot",anAux)  ,mSumWRot);    anAux.Ar().AddComment("SigRot="+ToStr(SigmaRot()));
     MMVII::AddData(cAuxAr2007("SumWGlob",anAux) ,mSumWGlob);
 }

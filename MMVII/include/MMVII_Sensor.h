@@ -782,6 +782,7 @@ class cPhotogrammetricProject
 	 /// read a new bloc from existing name, if SVP and dont exist return block empty, else error
 	 cIrbCal_Block*  ReadRigBoI(const std::string &,bool SVP=false) const; 
 	 void   SaveRigBoI(const cIrbCal_Block &) const;
+     std::vector<std::string>  ListBlockExisting() const;
 
          //===================================================================
          //==================   Topo Mes           =========================

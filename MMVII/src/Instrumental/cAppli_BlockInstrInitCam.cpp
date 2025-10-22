@@ -69,6 +69,7 @@ cCollecSpecArg2007 & cAppli_BlockInstrInitCam::ArgOpt(cCollecSpecArg2007 & anArg
 int cAppli_BlockInstrInitCam::Exe()
 {
     mPhProj.FinishInit();
+
     // read an existing bloc from std folder
     mBlock = new cIrbComp_Block(mPhProj,mNameBloc);
     size_t aNbCam = mBlock->NbCams();
