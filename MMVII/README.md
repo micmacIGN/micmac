@@ -65,7 +65,7 @@ Under Linux (Ubuntu) distribution the installation procedure is as follows:
 
 - Install dependancies specific to MMVII:
 	```bash
-	sudo apt install pkg-config libproj-dev libgdal-dev
+	sudo apt install pkg-config libproj-dev libgdal-dev libxerces-c-dev
 	```
 
 - Access the folder:

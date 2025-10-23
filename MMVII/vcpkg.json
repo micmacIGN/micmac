@@ -7,6 +7,9 @@
     {
       "name": "gdal",
       "version>=" : "3.4.1"
+    },
+    {
+      "name": "xerces-c"
     }
   ],
   "features": {
