@@ -134,25 +134,30 @@ void AddData(const  cAuxAr2007 & anAux,cIrbCal_Cam1 & aCam)
 /*                                                                 */
 /* *************************************************************** */
 
+
 cIrb_SigmaInstr::cIrb_SigmaInstr() :
-    cIrb_SigmaInstr(0.0,0.0,0.0,0.0)
+    cIrb_SigmaInstr(0.0,0.0,0.0)
 {
 }
 
-cIrb_SigmaInstr::cIrb_SigmaInstr(tREAL8 aW,tREAL8 aSigTr,tREAL8 aSigRot,tREAL8 aSigGlob) :
-    mSumW     (aW),
-    mSumWTr   (aSigTr),
-    mSumWRot  (aSigRot),
-    mSumWGlob (aSigGlob)
+
+cIrb_SigmaInstr::cIrb_SigmaInstr(tREAL8 aW,tREAL8 aSigTr,tREAL8 aSigRot) :
+    mAvgSigTr   (),
+    mAvgSigRot  ()
 {
+    mAvgSigTr.Add(aW,aSigTr);
+    mAvgSigRot.Add(aW,aSigRot);
 }
 
 void cIrb_SigmaInstr::AddData(const  cAuxAr2007 & anAux)
 {
-    MMVII::AddData(cAuxAr2007("SumW",anAux)     ,mSumW);
-    MMVII::AddData(cAuxAr2007("SumWTr",anAux)   ,mSumWTr);    anAux.Ar().AddComment("SigTr="+ToStr(SigmaTr()));
-    MMVII::AddData(cAuxAr2007("SumWRot",anAux)  ,mSumWRot);    anAux.Ar().AddComment("SigRot="+ToStr(SigmaRot()));
-    MMVII::AddData(cAuxAr2007("SumWGlob",anAux) ,mSumWGlob);
+    MMVII::AddData(cAuxAr2007("Tr",anAux) ,mAvgSigTr);
+    if (mAvgSigTr.Nb())
+       anAux.Ar().AddComment("SigTr="+ToStr(mAvgSigTr.Average()));
+
+    MMVII::AddData(cAuxAr2007("Rot",anAux) ,mAvgSigRot);
+    if (mAvgSigRot.Nb())
+       anAux.Ar().AddComment("SigRot="+ToStr(mAvgSigRot.Average()));
 }
 
 
@@ -162,31 +167,31 @@ void AddData(const  cAuxAr2007 & anAux,cIrb_SigmaInstr & aSig)
 }
 
 
-void  cIrb_SigmaInstr::AddNewSigma(const cIrb_SigmaInstr & aS2, const tREAL8 &aW)
+void  cIrb_SigmaInstr::AddNewSigma(const cIrb_SigmaInstr & aS2)
 {
-  mSumW     += aW * aS2.mSumW;
-  mSumWTr   += aW * aS2.mSumWTr;
-  mSumWRot  += aW * aS2.mSumWRot;
-  mSumWGlob += aW * aS2.mSumWGlob;
+  mAvgSigTr.Add(aS2.mAvgSigTr);
+  mAvgSigRot.Add(aS2.mAvgSigRot);
 }
 
 tREAL8 cIrb_SigmaInstr::SigmaTr() const
 {
-   MMVII_INTERNAL_ASSERT_tiny(mSumWTr>0,"cIrb_SigmaInstr::SigmaGlob");
-   return mSumWTr / mSumW;
+   return mAvgSigTr.Average();
 }
 
 tREAL8 cIrb_SigmaInstr::SigmaRot() const
 {
-   MMVII_INTERNAL_ASSERT_tiny(mSumWRot>0,"cIrb_SigmaInstr::SigmaGlob");
-   return mSumWRot / mSumW;
+    return mAvgSigRot.Average();
+
 }
 
+/*
 tREAL8 cIrb_SigmaInstr::SigmaGlob() const
 {
-   MMVII_INTERNAL_ASSERT_tiny(mSumWGlob>0,"cIrb_SigmaInstr::SigmaGlob");
-   return mSumWGlob / mSumW;
+   MMVII_INTERNAL_ASSERT_tiny(false,"cIrb_SigmaInstr::SigmaGlob");
+   return 0;
 }
+*/
+
 
 /* *************************************************************** */
 /*                                                                 */

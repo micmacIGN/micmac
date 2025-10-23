@@ -189,7 +189,6 @@ void AddData(const  cAuxAr2007 & anAux, cRawData4Serial  &  aVal)
 }
 
 void AddData(const  cAuxAr2007 & anAux, tREAL4  &  aVal) { anAux.Ar().TplAddDataTermByCast(anAux,aVal,(double*)nullptr); }
-void AddData(const  cAuxAr2007 & anAux, tREAL16  &  aVal) { anAux.Ar().TplAddDataTermByCast(anAux,aVal,(double*)nullptr); }
 
 void AddData(const  cAuxAr2007 & anAux, tINT1  &  aVal) 
 { 
@@ -200,7 +199,9 @@ void AddData(const  cAuxAr2007 & anAux, tU_INT1  &  aVal) { anAux.Ar().TplAddDat
 void AddData(const  cAuxAr2007 & anAux, tU_INT2  &  aVal) { anAux.Ar().TplAddDataTermByCast(anAux,aVal,(int*)nullptr); }
 void AddData(const  cAuxAr2007 & anAux, bool     &  aVal) { anAux.Ar().TplAddDataTermByCast(anAux,aVal,(int*)nullptr); }
 
-
+// Those 2 are dangerous ....
+void AddData(const  cAuxAr2007 & anAux, tREAL16  &  aVal) { anAux.Ar().TplAddDataTermByCast(anAux,aVal,(double*)nullptr); }
+void AddData(const  cAuxAr2007 & anAux, long     &  aVal) { anAux.Ar().TplAddDataTermByCast(anAux,aVal,(int*)nullptr); }
 
 
 // void AddData(const  cAuxAr2007 & anAux, bool  &  aVal) {anAux.Ar().RawAddDataTerm(aVal); }

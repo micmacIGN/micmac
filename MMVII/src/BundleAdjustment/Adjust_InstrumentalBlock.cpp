@@ -9,8 +9,7 @@ class cBA_BlockInstr
    public :
        cBA_BlockInstr(cMMVII_BundleAdj& , const std::string &);
 
-
-
+        void OneItere();
    private :
        cMMVII_BundleAdj&  mBA;
        cIrbComp_Block &   mCompbBl;

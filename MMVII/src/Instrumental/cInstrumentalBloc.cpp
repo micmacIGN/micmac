@@ -1,9 +1,6 @@
 #include "MMVII_InstrumentalBlock.h"
-
 #include "cMMVII_Appli.h"
 #include "MMVII_2Include_Serial_Tpl.h"
-
-
 
 
 /**
@@ -125,7 +122,7 @@ typename cIrbComp_Block::tResCompCal cIrbComp_Block::ComputeCalibCamsInit(int aK
    }
    int aNbP = aVPoseRel.size();
    if (aNbP<2)
-       return  tResCompCal(tPoseR::Identity(),cIrb_SigmaInstr());
+       return  tResCompCal(-1.0,tPoseR::Identity(),cIrb_SigmaInstr());
 
    // [1]  Compute medians of residuals, used to have an order of magnitude of the sigmas
    // required for mixing sigma on tr with sigma on rot
@@ -153,6 +150,7 @@ typename cIrbComp_Block::tResCompCal cIrbComp_Block::ComputeCalibCamsInit(int aK
    tREAL8 aMinDTr   = 1e10;
    tREAL8 aMinDRot  = 1e10;
    tREAL8 aRatioTrRot = (aMedTr/aMedRot);
+   tREAL8 aRatioNb = 1.0 / tREAL8(aNbP-1);
 
    for (size_t aKP1 =0 ; aKP1<aVPoseRel.size() ; aKP1++)
    {
@@ -172,9 +170,9 @@ typename cIrbComp_Block::tResCompCal cIrbComp_Block::ComputeCalibCamsInit(int aK
        if (aSumDGlob<aMinDGlob )
        {
            aK1Min    = aKP1;
-           aMinDGlob = aSumDGlob ;
-           aMinDTr   = aSumDTr   ;
-           aMinDRot  = aSumDRot  ;
+           aMinDGlob = aSumDGlob * aRatioNb;
+           aMinDTr   = aSumDTr   * aRatioNb;
+           aMinDRot  = aSumDRot  * aRatioNb;
        }
    }
 
@@ -186,7 +184,7 @@ typename cIrbComp_Block::tResCompCal cIrbComp_Block::ComputeCalibCamsInit(int aK
 	    << "\n";
 	    */
 
-   return tResCompCal(aVPoseRel.at(aK1Min), cIrb_SigmaInstr (aNbP-1,aMinDTr,aMinDRot,aMinDGlob));
+   return tResCompCal(aMinDGlob,aVPoseRel.at(aK1Min), cIrb_SigmaInstr (aNbP,aMinDTr,aMinDRot));
 }
 
     //  -------------------------- "Accessors"  --------------------------------------------------------
@@ -308,10 +306,10 @@ void AddData(const  cAuxAr2007 & anAux,cIrbCal_Block & aRBoI)
     aRBoI.AddData(anAux);
 }
 
-void cIrbCal_Block::AddSigma(std::string aN1,std::string aN2, const cIrb_SigmaInstr & aSig,const std::pair<tREAL8,tREAL8> & aW12)
+void cIrbCal_Block::AddSigma(std::string aN1,std::string aN2, const cIrb_SigmaInstr & aSig)
 {
-    mSigmaInd[aN1].AddNewSigma(aSig,aW12.first);
-    mSigmaInd[aN2].AddNewSigma(aSig,aW12.second);
+    mSigmaInd[aN1].AddNewSigma(aSig);
+    mSigmaInd[aN2].AddNewSigma(aSig);
 
     mSigmaPair[tNamePair(aN1,aN2)].AddNewSigma(aSig);
 }

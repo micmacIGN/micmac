@@ -88,14 +88,15 @@ int cAppli_BlockInstrInitCam::Exe()
         {
             if (aKC1!=aKC2)
             {
-               const auto & aPair = mBlock->ComputeCalibCamsInit(aKC1,aKC2); // Pose + sigma
-               aVScoreCam.at(aKC1) += aPair.second.SigmaGlob();
-               aVScoreCam.at(aKC2) += aPair.second.SigmaGlob();
+               const auto & aSg_Pose_Sigm = mBlock->ComputeCalibCamsInit(aKC1,aKC2); // Pose + sigma
+               tREAL8 aSigG = std::get<tREAL8>(aSg_Pose_Sigm);
+               aVScoreCam.at(aKC1) += aSigG;
+               aVScoreCam.at(aKC2) += aSigG;
                mBlock->CalBlock().AddSigma
                (
                    mBlock->CalBlock().SetCams().KthCam(aKC1).NameCal(),
                    mBlock->CalBlock().SetCams().KthCam(aKC2).NameCal(),
-                   aPair.second
+                   std::get<cIrb_SigmaInstr>(aSg_Pose_Sigm)
                );
             }
         }
@@ -113,8 +114,8 @@ int cAppli_BlockInstrInitCam::Exe()
     //  initialise the relative pose in the ARBITRARY coord syst of master cam
     for (size_t aKC1=0 ; aKC1<aNbCam ; aKC1++)
     {
-        const auto & [aPose,aSigma] = mBlock->ComputeCalibCamsInit(aNumMaster,aKC1);
-        mBlock->CalBlock().SetCams().KthCam(aKC1).SetPose(aPose);
+        const auto & aSg_Pose_Sigm = mBlock->ComputeCalibCamsInit(aNumMaster,aKC1);
+        mBlock->CalBlock().SetCams().KthCam(aKC1).SetPose(std::get<tPoseR>(aSg_Pose_Sigm));
     }
 
     mPhProj.SaveRigBoI(mBlock->CalBlock());

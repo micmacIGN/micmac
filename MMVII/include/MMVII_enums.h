@@ -53,6 +53,7 @@ enum class eTA2007
                 RigBlock,      ///< Rigid bloc    // RIGIDBLOC  => soon deprecated
                 Clino,         ///< Clinometer
                 MeasureClino,  ///< Clinometer
+                TypeInstr,     ///< Type of instrument, like cam, clino ...
                 StaticLidar,   ///< Static Lidar
                 Topo,          ///< Topo
                 SysCo,         ///< System coord
@@ -287,6 +288,15 @@ enum class eTyClino
               eNbVals    ///< Tag for number of value
            };
 
+enum class eTyInstr
+           {
+              eCamera,
+              eClino,
+              eGNSS,
+              eIMU,
+              eTarget,
+              eNbVals    ///< Tag for number of value
+           };
 
 enum class eTyNums
            {
@@ -638,6 +648,8 @@ enum class eMTDIm
            };
 
 const std::string & E2Str(const eTyClino &);
+const std::string & E2Str(const eTyInstr &);
+
 const std::string & E2Str(const eFormatSensor &);
 const std::string & E2Str(const eTypeSensor &);
 
