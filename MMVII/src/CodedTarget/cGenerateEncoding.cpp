@@ -419,7 +419,7 @@ int  cAppliGenerateEncoding::Exe()
        for (const auto & aCEC : mCEC->VecOfCells() )
            if (aCEC && aCEC->mSelfSym)
            {
-               StdOut() << " SSC " << StrOfBitFlag(aCEC->mLowCode,1<<mSpec.mNbBits) << "\n";
+               StdOut() << " SSC " << StrOfBitFlag(aCEC->mLowCode,size_t(1)<<mSpec.mNbBits) << "\n";
            }
    }
 

@@ -136,7 +136,7 @@ bool CodeIsSelfmSym(size_t aCode,size_t aNbBits,size_t aPeriod)
        if  ((aBit!=0) && (aCode==aCodeInit))
           return true;
 
-       aCode = N_LeftBitsCircPerm(aCode,1<<aNbBits,aPeriod);
+       aCode = N_LeftBitsCircPerm(aCode,size_t(1)<<aNbBits,aPeriod);
 
    }
     return false;
