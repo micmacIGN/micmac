@@ -141,7 +141,6 @@ class cIrb_SigmaInstr
    private :
       tWArr mAvgSigTr;
       tWArr mAvgSigRot;
-      tWArr mAvgSigGlob;
 };
 void AddData(const  cAuxAr2007 & anAux,cIrb_SigmaInstr & aClino);
 
