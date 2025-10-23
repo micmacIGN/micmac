@@ -160,7 +160,7 @@ jobs:
         cd /C/Miniconda/envs/test/Library/bin/
         
         # dll for PROJ, GDAL
-        cp -a archive.dll blosc.dll charset.dll deflate.dll freexl.dll gdal.dll geos.dll geos_c.dll iconv.dll icudt75.dll icuuc75.dll jpeg8.dll ${MMVII_BINDIR}/
+        cp -a archive.dll blosc.dll charset.dll deflate.dll freexl.dll gdal.dll geos.dll geos_c.dll iconv.dll jpeg8.dll ${MMVII_BINDIR}/
         cp -a brotlicommon.dll brotlidec.dll brotlienc.dll hwy.dll jxl.dll jxl_cms.dll jxl_threads.dll muparser.dll ${MMVII_BINDIR}/
         cp -a Lerc.dll libbz2.dll libcrypto-3-x64.dll libcurl.dll libexpat.dll liblzma.dll libminizip.dll libpng16.dll libsharpyuv.dll ${MMVII_BINDIR}/
         cp -a libssh2.dll libssl-3-x64.dll libwebp.dll libxml2.dll lz4.dll pcre2-8.dll proj_9.dll snappy.dll spatialite.dll ${MMVII_BINDIR}/
