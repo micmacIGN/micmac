@@ -60,7 +60,6 @@ class cAppli_BlockInstrInitCam; // appli for computing initial value of poses in
 /*        Classes for represnting calibration of IRB            */
 /*                                                              */
 /* ************************************************************ */
-
 /*
    cIrbCal_Block  :
       - Name  of the blocno
@@ -74,6 +73,8 @@ class cAppli_BlockInstrInitCam; // appli for computing initial value of poses in
               - Boresight rotation + sigma
 */
 
+
+  /*  ============   Classes for camera calibration ====================== */
 
 /// class for representing one camera embeded in a "Rigid Block of Instrument"
 class cIrbCal_Cam1 : public cMemCheck
@@ -95,6 +96,10 @@ class cIrbCal_Cam1 : public cMemCheck
         /**  modify the pose, separate from constructor because must be done in calib init, after block creation */
         void SetPose(const tPoseR & aPose);
 
+        const tPoseR & PoseInBlock() const; //< Accessor
+        tPoseR PosBInSysA(const cIrbCal_Cam1 & aCamB) const;
+
+
     private :
         int           mNum;
         std::string   mNameCal;        ///< "full" name of calibration associated to, like  "CalibIntr_CamNIKON_D5600_Add043_Foc24000"
@@ -108,6 +113,44 @@ class cIrbCal_Cam1 : public cMemCheck
 void AddData(const  cAuxAr2007 & anAux,cIrbCal_Cam1 & aCam);
 
 
+
+
+///  class for representing the set of cameras embedded in a bloc
+class cIrbCal_CamSet : public cMemCheck
+{
+     public :
+         friend cAppli_EditBlockInstr;
+         friend cAppli_BlockInstrInitCam;
+
+         cIrbCal_CamSet(); //< constructor, ok for serial
+
+         void AddData(const  cAuxAr2007 & anAux); //< serialization
+         cIrbCal_Cam1 * CamFromNameCalib(const std::string& aName,bool SVP=false);
+
+         size_t  NbCams() const;    //< Number of cameras
+         int     NumMaster() const; //< Accessor
+         void    SetNumMaster(int);
+         cIrbCal_Cam1 & KthCam(size_t aK);
+         const cIrbCal_Cam1 & KthCam(size_t aK) const;
+         tPoseR PoseRel(size_t aK1,size_t aK2) const;
+
+     private :
+         void AddCam
+              (
+                   const std::string &  aNameCalib,
+                   const std::string&   aPatTimeStamp,
+                   const std::string &  aPatImSel,
+                   bool OkAlreadyExist =false
+              );
+
+         int                             mNumMaster;      //< num of "master" image
+         std::vector<cIrbCal_Cam1>       mVCams;          //< set of cameras
+};
+void AddData(const  cAuxAr2007 & anAux,cIrbCal_CamSet & aCam);
+
+
+   /*  ============   Classes for clinometers calibration ====================== */
+
 ///  class for representing one clino embeded in a "Rigid Block of Instrument""
 class cIrbCal_Clino1 : public cMemCheck
 {
@@ -118,11 +161,29 @@ class cIrbCal_Clino1 : public cMemCheck
         void AddData(const  cAuxAr2007 & anAux); //< serializer
     private :
         std::string   mName;           //< name of the clino
-	bool          mIsInit;         //< was values computed ?
+    bool          mIsInit;         //< was values computed ?
         tRotR         mOrientInBloc;    //< Position in the block
         tREAL8        mSigmaR;         //< sigma on orientation
 };
 void AddData(const  cAuxAr2007 & anAux,cIrbCal_Clino1 & aClino);
+
+
+///  class for representing a set of clino
+class cIrbCal_ClinoSet : public cMemCheck
+{
+     public :
+         friend cAppli_EditBlockInstr;
+
+         cIrbCal_ClinoSet();
+         void AddData(const  cAuxAr2007 & anAux);
+     private :
+         cIrbCal_Clino1 * ClinoFromName(const std::string& aName);
+         void AddClino(const std::string &,bool SVP=false);
+
+         std::vector<cIrbCal_Clino1> mVClinos; //< set of clinos
+};
+
+
 
 
 class cIrb_SigmaInstr
@@ -142,63 +203,30 @@ class cIrb_SigmaInstr
       tWArr mAvgSigTr;
       tWArr mAvgSigRot;
 };
-void AddData(const  cAuxAr2007 & anAux,cIrb_SigmaInstr & aClino);
+void AddData(const  cAuxAr2007 & anAux,cIrb_SigmaInstr & aSigma);
+
 
 class cIrb_Desc1Intsr
 {
     public :
-       cIrb_Desc1Intsr (eTyInstr,const std::string &);
+       cIrb_Desc1Intsr();
+
+       cIrb_Desc1Intsr (eTyInstr,const std::string & );
+
+       void AddData(const  cAuxAr2007 & anAux);
+       void  AddNewSigma (const cIrb_SigmaInstr&);
+       const cIrb_SigmaInstr & Sigma() const;
+
+       eTyInstr             Type() const;
+       const std::string &  NameInstr() const;
+
     private :
        eTyInstr         mType;
-       std::string      mName;
+       std::string      mNameInstr;
        cIrb_SigmaInstr  mSigma;
 };
+void AddData(const  cAuxAr2007 & anAux,cIrb_Desc1Intsr & aDesc);
 
-///  class for representing the set of cameras embedded in a bloc
-class cIrbCal_CamSet : public cMemCheck
-{
-     public :
-         friend cAppli_EditBlockInstr;
-         friend cAppli_BlockInstrInitCam;
-
-         cIrbCal_CamSet(); //< constructor, ok for serial
-
-         void AddData(const  cAuxAr2007 & anAux); //< serialization
-         cIrbCal_Cam1 * CamFromNameCalib(const std::string& aName,bool SVP=false);
-
-         size_t  NbCams() const;    //< Number of cameras
-         int     NumMaster() const; //< Accessor
-         void    SetNumMaster(int);
-         cIrbCal_Cam1 & KthCam(size_t aK);
-         const cIrbCal_Cam1 & KthCam(size_t aK) const;
-     private :
-         void AddCam
-              (
-                   const std::string &  aNameCalib,
-                   const std::string&   aPatTimeStamp,
-                   const std::string &  aPatImSel,
-                   bool OkAlreadyExist =false
-              );
-
-         int                             mNumMaster;      //< num of "master" image
-         std::vector<cIrbCal_Cam1>       mVCams;          //< set of cameras
-};
-void AddData(const  cAuxAr2007 & anAux,cIrbCal_CamSet & aCam);
-
-///  class for representing a set of clino
-class cIrbCal_ClinoSet : public cMemCheck
-{
-     public :
-         friend cAppli_EditBlockInstr;
-
-         cIrbCal_ClinoSet();
-         void AddData(const  cAuxAr2007 & anAux);
-     private :
-         cIrbCal_Clino1 * ClinoFromName(const std::string& aName);
-         void AddClino(const std::string &,bool SVP=false);
-
-         std::vector<cIrbCal_Clino1> mVClinos; //< set of clinos
-};
 
 
 ///  class for representing  the structure/calibration of instruments possibly used
@@ -216,14 +244,19 @@ class cIrbCal_Block : public cMemCheck
         cIrbCal_ClinoSet &       SetClinos() ;          //< Accessors
         const std::string &       NameBloc() const;     //< Accessor
 
-        void AddSigma(std::string aN1,std::string aN2, const cIrb_SigmaInstr &);
+        void AddSigma(std::string aN1,eTyInstr aType1,std::string aN2, eTyInstr aType2, const cIrb_SigmaInstr &);
+
+         const  std::map<tNamePair,cIrb_SigmaInstr> &  SigmaPair() const;
+         const cIrb_Desc1Intsr &  SigmaInd(const std::string &) const;
+
      private :
+        void  AddSigma_Indiv(std::string aN1,eTyInstr aType1, const cIrb_SigmaInstr &);
         std::string                   mNameBloc;   //<  Name of the bloc
         cIrbCal_CamSet                mSetCams;    //<  Cameras used in the bloc
         cIrbCal_ClinoSet              mSetClinos;  //<  Clinos used in the bloc
 
         std::map<tNamePair,cIrb_SigmaInstr>   mSigmaPair;     //<  Sigmas between pair of instr
-        std::map<std::string,cIrb_SigmaInstr> mSigmaInd;      //<  Sigmas of each instrument
+        std::map<std::string,cIrb_Desc1Intsr> mSigmaInd;      //<  Sigmas of each instrument
 
 };
 void AddData(const  cAuxAr2007 & anAux,cIrbCal_Block & aRBoI);
@@ -239,17 +272,22 @@ class cIrbComp_Cam1 : public cMemCheck
 {
      public :
          cIrbComp_Cam1();
-         void Init(const tPoseR&,const std::string & aName);
+         void Init(cSensorCamPC *);
 
          /// Compute Pose of CamB relatively to CamA=this
          tPoseR PosBInSysA(const cIrbComp_Cam1 & aCamB) const;
 
-         bool IsInit() const ; //< Accessors
+         bool IsInit() const ;  //< Is  mCamPC set ?
+         const  cSensorCamPC * CamPC() const; //< Accessor
+         cSensorCamPC * CamPC() ; //< Accessor
+         tPoseR  Pose() const;  //< Accessor 2 mCamPC
+         std::string NameIm() const; //<  Accessor 2 mCamPC
 
      private :
-         bool        mIsInit;
+       /*  bool        mIsInit;
          tPoseR      mPoseInW;  /// C2W
-         std::string mNameIm;
+         std::string mNameIm; */
+         cSensorCamPC * mCamPC;
 };
 
 class cIrbComp_CamSet : public cMemCheck
@@ -264,10 +302,12 @@ class cIrbComp_CamSet : public cMemCheck
           // A relative pose can be estimated iff both poses are init
           bool   HasPoseRel(size_t aK1,size_t aK2) const;
 
+          const std::vector<cIrbComp_Cam1> &  VCompPoses() const;  ///<  Accessor
+
     private :
          cIrbComp_CamSet(const cIrbComp_CamSet &) = delete;
 
-         void AddImagePose(int anIndex,const tPoseR& aPose,const std::string & aNameIm);
+         void AddImagePose(int anIndex,cSensorCamPC * aCamPC);
          const cIrbComp_Block &      mBlock;
          std::vector<cIrbComp_Cam1>  mVCompPoses;
 };
@@ -293,27 +333,33 @@ class   cIrbComp_Block : public cMemCheck
 {
     public :
        typedef  std::tuple<tREAL8,tPoseR,cIrb_SigmaInstr>  tResCompCal;
+       typedef  std::map<std::string,cIrbComp_TimeS>       tContTimeS;
 
-       // "fundamuntal" constructor, creat from a calibration bloc
+       //   =================  Constructors =========================================
+
+       /// "fundamuntal" constructor, creat from a calibration bloc
        cIrbComp_Block(const cIrbCal_Block &) ;
-       // read calib from file with "absolute name" and call fundamuntal constructor
+       /// read calib from file with "absolute name" and call fundamuntal constructor
        cIrbComp_Block(const std::string & aNameFile);
-       // read calib from name of block in standdar MMVI file and call fundamental constructot
+       /// read calib from name of block in standdar MMVI file and call fundamental constructot
        cIrbComp_Block(const cPhotogrammetricProject& ,const std::string & aNameBloc);
 
-       // Add an image if orientation exist (via PhProj)
-       void AddImagePose(const std::string &,bool okImNotInBloc=false);
-       // Add an image with given pose
-       void AddImagePose(const tPoseR&,const std::string &,bool okImNotInBloc=false);
-
-
+       //   =================  Accessors =========================================
        const cIrbCal_CamSet &  SetOfCalibCams() const ; //< Accessor of Accessor
        size_t  NbCams() const ;                         //< Accessor of Accessor of ...
        const cIrbCal_Block & CalBlock() const ; //< Accessor
        cIrbCal_Block & CalBlock()  ; //< Accessor
+       const tContTimeS & DataTS() const ; //< Accessor
+
+
+       // Add an image if orientation exist (via PhProj)
+       void AddImagePose(const std::string &,bool okImNotInBloc=false);
+       // Add an image with given pose
+       void AddImagePose(cSensorCamPC * aCamPC,bool okImNotInBloc=false);
 
        // for a given pair K1/K2 the 'best' relative pose and its sigma
        tResCompCal ComputeCalibCamsInit(int aK1,int aK2) const;
+
     private :
        /// non copiable, too "dangerous"
        cIrbComp_Block(const cIrbComp_Block & ) = delete;
@@ -324,7 +370,7 @@ class   cIrbComp_Block : public cMemCheck
 
        cIrbCal_Block                         mCalBlock;
        const cPhotogrammetricProject *       mPhProj;
-       std::map<std::string,cIrbComp_TimeS>  mDataTS;
+       tContTimeS                            mDataTS;
 };
 
 

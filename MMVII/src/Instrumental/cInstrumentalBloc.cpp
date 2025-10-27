@@ -14,6 +14,103 @@
 namespace MMVII
 {
 
+/* *************************************************************** */
+/*                                                                 */
+/*                        cIrb_SigmaInstr                          */
+/*                                                                 */
+/* *************************************************************** */
+
+
+cIrb_SigmaInstr::cIrb_SigmaInstr() :
+    cIrb_SigmaInstr(0.0,0.0,0.0)
+{
+}
+
+
+cIrb_SigmaInstr::cIrb_SigmaInstr(tREAL8 aW,tREAL8 aSigTr,tREAL8 aSigRot) :
+    mAvgSigTr   (),
+    mAvgSigRot  ()
+{
+    mAvgSigTr.Add(aW,aSigTr);
+    mAvgSigRot.Add(aW,aSigRot);
+}
+
+void cIrb_SigmaInstr::AddData(const  cAuxAr2007 & anAux)
+{
+    MMVII::AddData(cAuxAr2007("Tr",anAux) ,mAvgSigTr);
+    if (mAvgSigTr.Nb())
+       anAux.Ar().AddComment("SigTr="+ToStr(mAvgSigTr.Average()));
+
+    MMVII::AddData(cAuxAr2007("Rot",anAux) ,mAvgSigRot);
+    if (mAvgSigRot.Nb())
+       anAux.Ar().AddComment("SigRot="+ToStr(mAvgSigRot.Average()));
+}
+
+
+void AddData(const  cAuxAr2007 & anAux,cIrb_SigmaInstr & aSig)
+{
+    aSig.AddData(anAux);
+}
+
+
+
+void  cIrb_SigmaInstr::AddNewSigma(const cIrb_SigmaInstr & aS2)
+{
+  mAvgSigTr.Add(aS2.mAvgSigTr);
+  mAvgSigRot.Add(aS2.mAvgSigRot);
+}
+
+tREAL8 cIrb_SigmaInstr::SigmaTr() const
+{
+   return mAvgSigTr.Average();
+}
+
+tREAL8 cIrb_SigmaInstr::SigmaRot() const
+{
+    return mAvgSigRot.Average();
+
+}
+
+/* *************************************************************** */
+/*                                                                 */
+/*                        cIrb_Desc1Intsr                          */
+/*                                                                 */
+/* *************************************************************** */
+
+
+cIrb_Desc1Intsr::cIrb_Desc1Intsr (eTyInstr aType,const std::string & aNameInstr ) :
+    mType      (aType),
+    mNameInstr (aNameInstr)
+{
+}
+
+cIrb_Desc1Intsr::cIrb_Desc1Intsr():
+    cIrb_Desc1Intsr(eTyInstr::eNbVals,MMVII_NONE)
+{
+}
+
+void cIrb_Desc1Intsr::AddData(const  cAuxAr2007 & anAux)
+{
+    EnumAddData(anAux,mType,"Type");
+    MMVII::AddData(cAuxAr2007("NameInstr",anAux) ,mNameInstr);
+    MMVII::AddData(cAuxAr2007("Sigma",anAux) ,mSigma);
+}
+
+void AddData(const  cAuxAr2007 & anAux,cIrb_Desc1Intsr & aDesc)
+{
+   aDesc.AddData(anAux);
+}
+
+const cIrb_SigmaInstr & cIrb_Desc1Intsr::Sigma() const {return mSigma;}
+
+void  cIrb_Desc1Intsr::AddNewSigma(const cIrb_SigmaInstr& aSigAdd)
+{
+    mSigma.AddNewSigma(aSigAdd);
+}
+
+eTyInstr             cIrb_Desc1Intsr::Type() const {return mType;}
+const std::string &  cIrb_Desc1Intsr::NameInstr() const {return mNameInstr;}
+
 
 /* *************************************************************** */
 /*                                                                 */
@@ -68,9 +165,11 @@ cIrbComp_TimeS &  cIrbComp_Block::DataOfTimeS(const std::string & aTS)
     return anIter->second;
 }
 
-void cIrbComp_Block::AddImagePose(const tPoseR& aPose,const std::string & aNameIm,bool okImNotInBloc)
+void cIrbComp_Block::AddImagePose(cSensorCamPC * aCamPC,bool okImNotInBloc)
 {
     // extract the name of the calibration 
+    std::string aNameIm = aCamPC->NameImage();
+    tPoseR aPose = aCamPC->Pose();
     std::string aNameCal = PhProj().StdNameCalibOfImage(aNameIm);
 
     // extract the specification of the camera in the block
@@ -81,6 +180,7 @@ void cIrbComp_Block::AddImagePose(const tPoseR& aPose,const std::string & aNameI
     // if the image does not belong to this block
     if (!aCInRBoI->ImageIsInBlock(aNameIm))
     {
+        MMVII_INTERNAL_ASSERT_tiny(okImNotInBloc,"Image is not in bloc : "+aNameIm);
         return;
     }
 
@@ -90,16 +190,18 @@ void cIrbComp_Block::AddImagePose(const tPoseR& aPose,const std::string & aNameI
     cIrbComp_TimeS &  aDataTS =  DataOfTimeS(aTimeS);
 
     // StdOut() << " III=" << aNameIm << " CCC=" << aNameCal << " Ptr=" << aTimeS << "\n";
-    aDataTS.mSetCams.AddImagePose(aCInRBoI->Num(),aPose,aNameIm);
+    aDataTS.mSetCams.AddImagePose(aCInRBoI->Num(),aCamPC);
 }
 
 void cIrbComp_Block::AddImagePose(const std::string & aNameIm,bool  okImNotInBloc)
 {
-    bool hasPose;
-    tPoseR aPose = PhProj().ReadPoseCamPC(aNameIm,&hasPose);
-    if (hasPose)
+ //   bool hasPose;
+    cSensorCamPC * aCamPC = PhProj().ReadCamPC(aNameIm,DelAuto::Yes,SVP::Yes);
+
+  //  tPoseR aPose = PhProj().ReadPoseCamPC(aNameIm,&hasPose);
+    if (aCamPC!=0)
     {
-         AddImagePose(aPose,aNameIm,okImNotInBloc);
+         AddImagePose(aCamPC,okImNotInBloc);
     }
 }
 
@@ -199,6 +301,7 @@ const cIrbCal_Block & cIrbComp_Block::CalBlock() const {return mCalBlock;}
 cIrbCal_Block & cIrbComp_Block::CalBlock() {return mCalBlock;}
 size_t  cIrbComp_Block::NbCams() const  {return SetOfCalibCams().NbCams();}
 
+const typename cIrbComp_Block::tContTimeS & cIrbComp_Block::DataTS() const {return mDataTS;}
 
 /* *************************************************************** */
 /*                                                                 */
@@ -306,11 +409,28 @@ void AddData(const  cAuxAr2007 & anAux,cIrbCal_Block & aRBoI)
     aRBoI.AddData(anAux);
 }
 
-void cIrbCal_Block::AddSigma(std::string aN1,std::string aN2, const cIrb_SigmaInstr & aSig)
+void  cIrbCal_Block::AddSigma_Indiv(std::string aNameInstr,eTyInstr aTypeInstr, const cIrb_SigmaInstr & aSigma)
 {
-    mSigmaInd[aN1].AddNewSigma(aSig);
-    mSigmaInd[aN2].AddNewSigma(aSig);
+    auto  anIter = mSigmaInd.find(aNameInstr);
+    if (anIter== mSigmaInd.end())
+    {
+        mSigmaInd[aNameInstr] = cIrb_Desc1Intsr(aTypeInstr,aNameInstr);
+        anIter = mSigmaInd.find(aNameInstr);
+    }
+    MMVII_INTERNAL_ASSERT_tiny(anIter->second.Type()== aTypeInstr,"Chang type in cIrbCal_Block::AddSigma_Indiv");
+    MMVII_INTERNAL_ASSERT_tiny(anIter->second.NameInstr()== aNameInstr,"Chang type in cIrbCal_Block::AddSigma_Indiv");
 
+
+    anIter->second.AddNewSigma(aSigma);
+}
+
+
+void cIrbCal_Block::AddSigma(std::string aN1,eTyInstr aType1,std::string aN2,eTyInstr aType2,const cIrb_SigmaInstr & aSig)
+{
+    AddSigma_Indiv(aN1,aType1,aSig);
+    AddSigma_Indiv(aN2,aType2,aSig);
+    // mSigmaInd[aN1].AddNewSigma(aSig);
+    // mSigmaInd[aN2].AddNewSigma(aSig);
     mSigmaPair[tNamePair(aN1,aN2)].AddNewSigma(aSig);
 }
 

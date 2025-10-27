@@ -496,7 +496,7 @@ void  cMMVII_BundleAdj::AddCam(const std::string & aNameIm)
 const std::vector<cSensorImage *> &  cMMVII_BundleAdj::VSIm() const  {return mVSIm;}
 const std::vector<cSensorCamPC *> &  cMMVII_BundleAdj::VSCPC() const {return mVSCPC;}
 cResolSysNonLinear<tREAL8> *  cMMVII_BundleAdj::Sys() {return mR8_Sys;}
-
+cPhotogrammetricProject  & cMMVII_BundleAdj::PhProj() {return *mPhProj;}
 
     /* ---------------------------------------- */
     /*            Frozen/Shared                 */

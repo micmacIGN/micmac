@@ -95,7 +95,9 @@ int cAppli_BlockInstrInitCam::Exe()
                mBlock->CalBlock().AddSigma
                (
                    mBlock->CalBlock().SetCams().KthCam(aKC1).NameCal(),
+                   eTyInstr::eCamera,
                    mBlock->CalBlock().SetCams().KthCam(aKC2).NameCal(),
+                   eTyInstr::eCamera,
                    std::get<cIrb_SigmaInstr>(aSg_Pose_Sigm)
                );
             }

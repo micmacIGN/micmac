@@ -17,30 +17,30 @@ namespace MMVII
 /* *************************************************************** */
 
 cIrbComp_Cam1::cIrbComp_Cam1() :
-  mIsInit  (false),
-  mPoseInW (tPoseR::RandomIsom3D(10)),
-  mNameIm  ()
+  mCamPC (nullptr)
 {
 }
 
-void cIrbComp_Cam1::Init(const tPoseR& aPoseInW,const std::string & aNameIm)
+void cIrbComp_Cam1::Init(cSensorCamPC * aCamPC)
 {
-    if (mIsInit)
+    if (mCamPC)
     {
-        MMVII_INTERNAL_ERROR("Multiple init in cIrbComp_Cam1 for : " + aNameIm);
+        MMVII_INTERNAL_ERROR("Multiple init in cIrbComp_Cam1 for : " + mCamPC->NameImage());
     }
-    mIsInit    = true;
-    mPoseInW   = aPoseInW;
-    mNameIm    = aNameIm;
+    mCamPC = aCamPC;
 }
 
-bool cIrbComp_Cam1::IsInit() const {return mIsInit;}
+bool cIrbComp_Cam1::IsInit() const {return mCamPC!=nullptr;}
+const  cSensorCamPC * cIrbComp_Cam1::CamPC() const {return mCamPC;}
+cSensorCamPC * cIrbComp_Cam1::CamPC() {return mCamPC;}
+tPoseR  cIrbComp_Cam1::Pose() const {return mCamPC->Pose();}
+std::string cIrbComp_Cam1::NameIm() const{return mCamPC->NameImage();}
 
 tPoseR cIrbComp_Cam1::PosBInSysA(const cIrbComp_Cam1 & aCamB) const
 {
-    MMVII_INTERNAL_ASSERT_tiny(mIsInit&&(aCamB.mIsInit),"cIrbComp_Cam1::PosBInSysA no init");
+    MMVII_INTERNAL_ASSERT_tiny(mCamPC&&(aCamB.mCamPC),"cIrbComp_Cam1::PosBInSysA no init");
     //      (A->W) -1  * (B->W) 
-    return mPoseInW.MapInverse() * aCamB.mPoseInW;
+    return mCamPC->Pose().MapInverse() * aCamB.mCamPC->Pose();
 }
 
 /* *************************************************************** */
@@ -54,9 +54,9 @@ cIrbComp_CamSet::cIrbComp_CamSet(const cIrbComp_Block & aCompBlock) :
     mVCompPoses     (aCompBlock.SetOfCalibCams().NbCams())
 {
 }
-void cIrbComp_CamSet::AddImagePose(int anIndex,const tPoseR& aPose,const std::string & aNameIm)
+void cIrbComp_CamSet::AddImagePose(int anIndex,cSensorCamPC * aCamPC)
 {
-   mVCompPoses.at(anIndex).Init(aPose,aNameIm);
+   mVCompPoses.at(anIndex).Init(aCamPC);
 }
 
 bool   cIrbComp_CamSet::HasPoseRel(size_t aK1,size_t aK2) const
@@ -68,6 +68,8 @@ tPoseR cIrbComp_CamSet::PoseRel(size_t aK1,size_t aK2) const
 {
    return mVCompPoses.at(aK1).PosBInSysA(mVCompPoses.at(aK2));
 }
+
+const std::vector<cIrbComp_Cam1> &  cIrbComp_CamSet::VCompPoses() const {return mVCompPoses;}
 
 /* *************************************************************** */
 /*                                                                 */
@@ -95,6 +97,14 @@ void cIrbCal_Cam1::SetPose(const tPoseR & aPose)
 {
    mPoseInBlock = aPose;
    mIsInit      = true;
+}
+const tPoseR & cIrbCal_Cam1::PoseInBlock() const {return mPoseInBlock;}
+
+tPoseR cIrbCal_Cam1::PosBInSysA(const cIrbCal_Cam1 & aCamB) const
+{
+    MMVII_INTERNAL_ASSERT_tiny(mIsInit&&(aCamB.mIsInit),"cIrbCal_Cam1::PosBInSysA no init");
+    //      (A->W) -1  * (B->W)
+    return mPoseInBlock.MapInverse() * aCamB.mPoseInBlock;
 }
 
 
@@ -128,69 +138,7 @@ void AddData(const  cAuxAr2007 & anAux,cIrbCal_Cam1 & aCam)
     aCam.AddData(anAux);
 }
 
-/* *************************************************************** */
-/*                                                                 */
-/*                        cIrb_SigmaPoseRel                        */
-/*                                                                 */
-/* *************************************************************** */
 
-
-cIrb_SigmaInstr::cIrb_SigmaInstr() :
-    cIrb_SigmaInstr(0.0,0.0,0.0)
-{
-}
-
-
-cIrb_SigmaInstr::cIrb_SigmaInstr(tREAL8 aW,tREAL8 aSigTr,tREAL8 aSigRot) :
-    mAvgSigTr   (),
-    mAvgSigRot  ()
-{
-    mAvgSigTr.Add(aW,aSigTr);
-    mAvgSigRot.Add(aW,aSigRot);
-}
-
-void cIrb_SigmaInstr::AddData(const  cAuxAr2007 & anAux)
-{
-    MMVII::AddData(cAuxAr2007("Tr",anAux) ,mAvgSigTr);
-    if (mAvgSigTr.Nb())
-       anAux.Ar().AddComment("SigTr="+ToStr(mAvgSigTr.Average()));
-
-    MMVII::AddData(cAuxAr2007("Rot",anAux) ,mAvgSigRot);
-    if (mAvgSigRot.Nb())
-       anAux.Ar().AddComment("SigRot="+ToStr(mAvgSigRot.Average()));
-}
-
-
-void AddData(const  cAuxAr2007 & anAux,cIrb_SigmaInstr & aSig)
-{
-    aSig.AddData(anAux);
-}
-
-
-void  cIrb_SigmaInstr::AddNewSigma(const cIrb_SigmaInstr & aS2)
-{
-  mAvgSigTr.Add(aS2.mAvgSigTr);
-  mAvgSigRot.Add(aS2.mAvgSigRot);
-}
-
-tREAL8 cIrb_SigmaInstr::SigmaTr() const
-{
-   return mAvgSigTr.Average();
-}
-
-tREAL8 cIrb_SigmaInstr::SigmaRot() const
-{
-    return mAvgSigRot.Average();
-
-}
-
-/*
-tREAL8 cIrb_SigmaInstr::SigmaGlob() const
-{
-   MMVII_INTERNAL_ASSERT_tiny(false,"cIrb_SigmaInstr::SigmaGlob");
-   return 0;
-}
-*/
 
 
 /* *************************************************************** */
@@ -268,6 +216,10 @@ cIrbCal_Cam1 * cIrbCal_CamSet::CamFromNameCalib(const std::string& aNameCalib,bo
     return nullptr;
 }
 
+tPoseR cIrbCal_CamSet::PoseRel(size_t aK1,size_t aK2) const
+{
+   return mVCams.at(aK1).PosBInSysA(mVCams.at(aK2));
+}
 
 /*
 void cIrbCal_CamSet::SetSigma(const cIrb_SigmaPoseRel& aNewS)

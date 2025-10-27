@@ -4,18 +4,72 @@
 namespace MMVII
 {
 
+
 class cBA_BlockInstr
 {
    public :
-       cBA_BlockInstr(cMMVII_BundleAdj& , const std::string &);
+       cBA_BlockInstr(cMMVII_BundleAdj& , cIrbComp_Block*,const std::vector<std::string> & aVParam);
 
-        void OneItere();
+       void OneItere();
    private :
-       cMMVII_BundleAdj&  mBA;
-       cIrbComp_Block &   mCompbBl;
-       cIrbCal_Block &    mCalBl;
+       void OneItere_1TS(const cIrbComp_TimeS&);
+
+       void OneItere_1PairCam(const cIrbComp_TimeS&,const std::string & aNameCam1,const std::string & aNameCam2);
+
+
+       cMMVII_BundleAdj&         mBA;
+       cIrbComp_Block *          mCompbBl;
+       cIrbCal_Block *           mCalBl;
+       std::vector<std::string>  mVParams;
+    //   cCalculator<tREAL8> *     mEqRigCam;
 };
 
+
+
+cBA_BlockInstr::cBA_BlockInstr(cMMVII_BundleAdj& aBA,  cIrbComp_Block * aCompBl, const std::vector<std::string> & aVParams) :
+    mBA  (aBA),
+    mCompbBl (aCompBl),
+    mCalBl   (&mCompbBl->CalBlock()),
+    mVParams (aVParams)
+{
+    for (auto aPtrCam : mBA.VSCPC())
+        mCompbBl->AddImagePose(aPtrCam,true);
+}
+
+void cBA_BlockInstr::OneItere_1TS(const cIrbComp_TimeS&)
+{
+    for (const auto & [aPair,aSigma2] : mCalBl->SigmaPair() )
+    {
+        const cIrb_Desc1Intsr &  aSI1 = mCalBl->SigmaInd(aPair.V1());
+        const cIrb_Desc1Intsr &  aSI2 = mCalBl->SigmaInd(aPair.V2());
+        if ((aSI1.Type()==eTyInstr::eCamera) && (aSI2.Type()==eTyInstr::eCamera))
+        {
+
+        }
+        else
+            MMVII_INTERNAL_ERROR("Unhandled combination of instrument in  cBA_BlockInstr::OneItere_1TS");
+    }
+}
+
+
+void cBA_BlockInstr::OneItere()
+{
+   for (const auto & [aTimeS,aDataTS] : mCompbBl->DataTS())
+   {
+       OneItere_1TS(aDataTS);
+   }
+}
+void cMMVII_BundleAdj::AddBlockInstr(const std::vector<std::string> & aParam)
+{
+//    mBlockInstrAdj = new cBA_BlockInstr(*this,aParam);
+
+}
+
+/*
+cIrbCal_Block*  ReadRigBoI(const std::string &,bool SVP=false) const;
+void   SaveRigBoI(const cIrbCal_Block &) const;
+std::vector<std::string>  ListBlockExisting() const;
+*/
 
 
 

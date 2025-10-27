@@ -20,7 +20,8 @@ class cBA_GCP;
 class cBA_Clino;
 class cBA_BlocRig;
 
-class  cUK_Line3D_4BA;
+class cUK_Line3D_4BA;
+class cBA_BlockInstr;
 
 /**  "Standard" weighting classes, used the following formula
  *
@@ -463,6 +464,10 @@ class cMMVII_BundleAdj
           void DeleteLineAdjust();
           void IterAdjustOnLine();
 
+          void AddBlockInstr(const std::vector<std::string> &);
+          void DeleteBlockInstr();
+          void IterOneBlockInstr();
+
           void SaveBlocRigid();
           void Save_newGCP3D();
           void SaveTopo();
@@ -478,6 +483,9 @@ class cMMVII_BundleAdj
           cResolSysNonLinear<tREAL8> *  Sys();  /// Real object, will disapear when fully interfaced for mSys
 
           cSetInterUK_MultipeObj<tREAL8> &   SetIntervUK();
+
+          cPhotogrammetricProject  &PhProj();
+
      private :
 
           //============== Methods =============================
@@ -564,6 +572,7 @@ class cMMVII_BundleAdj
           std::vector<int>          mIndCompUC;
           cResult_UC_SUR<tREAL8>*   mRUCSUR;
           std::vector<cUK_Line3D_4BA*>           mVecLineAdjust;
+          std::vector<cBA_BlockInstr *>          mBlockInstrAdj;
 };
 
 
