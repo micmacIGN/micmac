@@ -126,6 +126,7 @@ class cIrbCal_CamSet : public cMemCheck
 
          void AddData(const  cAuxAr2007 & anAux); //< serialization
          cIrbCal_Cam1 * CamFromNameCalib(const std::string& aName,bool SVP=false);
+         int IndexCamFromNameCalib(const std::string& aName,bool SVP=false);
 
          size_t  NbCams() const;    //< Number of cameras
          int     NumMaster() const; //< Accessor
@@ -303,6 +304,7 @@ class cIrbComp_CamSet : public cMemCheck
           bool   HasPoseRel(size_t aK1,size_t aK2) const;
 
           const std::vector<cIrbComp_Cam1> &  VCompPoses() const;  ///<  Accessor
+          cIrbComp_Cam1 & KthCam(int aK) ;
 
     private :
          cIrbComp_CamSet(const cIrbComp_CamSet &) = delete;
@@ -320,7 +322,10 @@ class   cIrbComp_TimeS : public cMemCheck
 
          cIrbComp_TimeS (const cIrbComp_Block &);
          const cIrbComp_CamSet & SetCams() const;  //< Accessor
-	 const cIrbComp_Block & CompBlock() const; //< Accessor
+          cIrbComp_CamSet & SetCams();  //< Accessor
+
+         const cIrbComp_Block & CompBlock() const; //< Accessor
+         // cIrbComp_Block & CompBlock() ; //< Accessor
     private :
          cIrbComp_TimeS(const cIrbComp_TimeS&) = delete;
          const cIrbComp_Block &            mCompBlock;
@@ -350,6 +355,8 @@ class   cIrbComp_Block : public cMemCheck
        const cIrbCal_Block & CalBlock() const ; //< Accessor
        cIrbCal_Block & CalBlock()  ; //< Accessor
        const tContTimeS & DataTS() const ; //< Accessor
+       tContTimeS & DataTS(); //< Accessor
+
 
 
        // Add an image if orientation exist (via PhProj)

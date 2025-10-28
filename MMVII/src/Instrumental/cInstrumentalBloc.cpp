@@ -125,7 +125,11 @@ cIrbComp_TimeS::cIrbComp_TimeS (const cIrbComp_Block & aCompBlock) :
 }
 
 const cIrbComp_CamSet & cIrbComp_TimeS::SetCams() const {return mSetCams;}
+cIrbComp_CamSet & cIrbComp_TimeS::SetCams() {return mSetCams;}
+
 const cIrbComp_Block & cIrbComp_TimeS::CompBlock() const {return mCompBlock;}
+// cIrbComp_Block & cIrbComp_TimeS::CompBlock()  {return mCompBlock;}
+
 
 /* *************************************************************** */
 /*                                                                 */
@@ -302,6 +306,7 @@ cIrbCal_Block & cIrbComp_Block::CalBlock() {return mCalBlock;}
 size_t  cIrbComp_Block::NbCams() const  {return SetOfCalibCams().NbCams();}
 
 const typename cIrbComp_Block::tContTimeS & cIrbComp_Block::DataTS() const {return mDataTS;}
+ typename cIrbComp_Block::tContTimeS & cIrbComp_Block::DataTS()  {return mDataTS;}
 
 /* *************************************************************** */
 /*                                                                 */

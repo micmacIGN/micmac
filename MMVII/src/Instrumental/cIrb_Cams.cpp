@@ -209,13 +209,25 @@ const cIrbCal_Cam1 & cIrbCal_CamSet::KthCam(size_t aK) const {return  mVCams.at(
 
 cIrbCal_Cam1 * cIrbCal_CamSet::CamFromNameCalib(const std::string& aNameCalib,bool SVP)
 {
+    /*
     for (auto&  aCam : mVCams)
         if (aCam.NameCal() == aNameCalib)
            return & aCam;
     MMVII_INTERNAL_ASSERT_strong(SVP,"Cannot get calib for camera " + aNameCalib);
     return nullptr;
-}
+    */
 
+    int aK = IndexCamFromNameCalib(aNameCalib,SVP);
+    return (aK>=0) ? &mVCams.at(aK)  : nullptr;
+}
+int cIrbCal_CamSet::IndexCamFromNameCalib(const std::string& aNameCalib,bool SVP)
+{
+    for (size_t aK=0 ; aK< mVCams.size() ; aK++)
+        if ( mVCams.at(aK).NameCal() == aNameCalib)
+           return aK;
+    MMVII_INTERNAL_ASSERT_strong(SVP,"Cannot get calib for camera " + aNameCalib);
+    return -1;
+}
 tPoseR cIrbCal_CamSet::PoseRel(size_t aK1,size_t aK2) const
 {
    return mVCams.at(aK1).PosBInSysA(mVCams.at(aK2));

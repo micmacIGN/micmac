@@ -926,6 +926,7 @@ cCollecSpecArg2007 & cAppli_MMVII_CloudImProj::ArgOpt(cCollecSpecArg2007 & anArg
           << AOpt2007(mSun,"Sun","Sun : Dir3D=(x,y,1)  ,  Z=WEIGHT !! ")
           << AOpt2007(mNameSavePCSun,"CloudSun","Name of cloud with sun, if sun was added")
           << AOpt2007(mSzIm,"SzIm","Size of resulting image",{eTA2007::HDV})
+
    ;
 }
 

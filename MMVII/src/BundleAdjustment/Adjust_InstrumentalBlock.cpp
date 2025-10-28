@@ -12,39 +12,89 @@ class cBA_BlockInstr
 
        void OneItere();
    private :
-       void OneItere_1TS(const cIrbComp_TimeS&);
+       void OneItere_1TS(cIrbComp_TimeS&);
 
-       void OneItere_1PairCam(const cIrbComp_TimeS&,const std::string & aNameCam1,const std::string & aNameCam2);
+       void OneItere_1PairCam(const cIrb_SigmaInstr&,cIrbComp_TimeS&,const std::string & aNameCam1,const std::string & aNameCam2);
 
 
        cMMVII_BundleAdj&         mBA;
        cIrbComp_Block *          mCompbBl;
        cIrbCal_Block *           mCalBl;
+       cIrbCal_CamSet*           mCalCams;
        std::vector<std::string>  mVParams;
-    //   cCalculator<tREAL8> *     mEqRigCam;
+       cCalculator<tREAL8> *     mEqRigCam;
+
+       tREAL8                    mMulSigmaTr;
+       tREAL8                    mMulSigmaRot;
+
 };
 
 
 
 cBA_BlockInstr::cBA_BlockInstr(cMMVII_BundleAdj& aBA,  cIrbComp_Block * aCompBl, const std::vector<std::string> & aVParams) :
-    mBA  (aBA),
-    mCompbBl (aCompBl),
-    mCalBl   (&mCompbBl->CalBlock()),
-    mVParams (aVParams)
+    mBA          (aBA),
+    mCompbBl     (aCompBl),
+    mCalBl       (&mCompbBl->CalBlock()),
+    mCalCams     (&mCalBl->SetCams()),
+    mVParams     (aVParams),
+    mEqRigCam    (EqBlocRig(true,1,true)),
+    mMulSigmaTr  (cStrIO<double>::FromStr(aVParams.at(0))),
+    mMulSigmaRot (cStrIO<double>::FromStr(aVParams.at(1)))
+
 {
     for (auto aPtrCam : mBA.VSCPC())
         mCompbBl->AddImagePose(aPtrCam,true);
+
+    //     SetIntervUK();
 }
 
-void cBA_BlockInstr::OneItere_1TS(const cIrbComp_TimeS&)
+void cBA_BlockInstr::OneItere_1PairCam
+     (
+        const cIrb_SigmaInstr& aSigma,
+        cIrbComp_TimeS& aDataTS,
+        const std::string & aNameCam1,
+        const std::string & aNameCam2
+     )
 {
-    for (const auto & [aPair,aSigma2] : mCalBl->SigmaPair() )
+    int aK1 = mCalCams->IndexCamFromNameCalib(aNameCam1);
+    int aK2 = mCalCams->IndexCamFromNameCalib(aNameCam2);
+
+    if ( (aK1<0) || (aK2<0) )
+        return;
+
+   cIrbComp_CamSet &  aCamSet = aDataTS.SetCams();
+   cSensorCamPC * aCam1 = aCamSet.KthCam(aK1).CamPC();
+   cSensorCamPC * aCam2 = aCamSet.KthCam(aK2).CamPC();
+
+   if ((aCam1==nullptr) || (aCam2==nullptr))
+      return;
+
+   std::vector<double>  aWeight;
+   for(int aK=0 ; aK<3 ; aK++)
+      aWeight.push_back(1.0/Square(mMulSigmaTr  * aSigma.SigmaTr()));
+
+   for(int aK=0 ; aK<9 ; aK++)
+      aWeight.push_back(1.0/Square(mMulSigmaRot * aSigma.SigmaRot()));
+
+
+   //mEqRigCam
+
+   FakeUseIt(aCam1);
+   FakeUseIt(aCam2);
+
+  // IndexCamFromNameCalib
+}
+
+
+void cBA_BlockInstr::OneItere_1TS(cIrbComp_TimeS& aDataS)
+{
+    for (auto & [aPair,aSigma2] : mCalBl->SigmaPair() )
     {
         const cIrb_Desc1Intsr &  aSI1 = mCalBl->SigmaInd(aPair.V1());
         const cIrb_Desc1Intsr &  aSI2 = mCalBl->SigmaInd(aPair.V2());
         if ((aSI1.Type()==eTyInstr::eCamera) && (aSI2.Type()==eTyInstr::eCamera))
         {
-
+               OneItere_1PairCam(aSigma2,aDataS,aPair.V1(),aPair.V2());
         }
         else
             MMVII_INTERNAL_ERROR("Unhandled combination of instrument in  cBA_BlockInstr::OneItere_1TS");
@@ -54,7 +104,7 @@ void cBA_BlockInstr::OneItere_1TS(const cIrbComp_TimeS&)
 
 void cBA_BlockInstr::OneItere()
 {
-   for (const auto & [aTimeS,aDataTS] : mCompbBl->DataTS())
+   for ( auto & [aTimeS,aDataTS] : mCompbBl->DataTS())
    {
        OneItere_1TS(aDataTS);
    }
