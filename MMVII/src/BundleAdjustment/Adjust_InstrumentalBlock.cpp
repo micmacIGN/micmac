@@ -80,13 +80,54 @@ void cBA_BlockInstr::OneItere_1PairCam
    for(int aK=0 ; aK<9 ; aK++)
       aWeight.push_back(1.0/Square(mMulSigmaRot * aSigma.SigmaRot()));
 
+   cPoseWithUK &  aPBl1 =  mCalCams->KthCam(aK1).PoseUKInBlock();
+   cPoseWithUK &  aPBl2 =  mCalCams->KthCam(aK2).PoseUKInBlock();
 
-   //mEqRigCam
+   // We must create the observation/context of the equation; here we will push the coeef of matrix
+   // for linearization ;:
+   std::vector<double> aVObs;
 
-   FakeUseIt(aCam1);
-   FakeUseIt(aCam2);
+   aCam1->Pose_WU().PushObs(aVObs,false); // false because we dont transpose matrix
+   aCam2->Pose_WU().PushObs(aVObs,false);
+   aPBl1.PushObs(aVObs,false);
+   aPBl2.PushObs(aVObs,false);
 
-  // IndexCamFromNameCalib
+    // We must create a vector that contains all the global num of unknowns
+    std::vector<int>  aVInd;
+    aCam1->PushIndexes(aVInd);
+    aCam2->PushIndexes(aVInd);
+    aPBl1.PushIndexes(aVInd);
+    // Set ForJeanMimi  to check the equiv between global push indexe & in 2 piece
+    bool  ForJeanMimi = false;
+    if (ForJeanMimi)
+    {
+        aPBl2.PushIndexes(aVInd,aPBl2.Center());
+        aPBl2.PushIndexes(aVInd,aPBl2.Omega());
+    }
+    else
+    {
+        aPBl2.PushIndexes(aVInd);
+    }
+
+    // now we are ready to add the equation
+    mBA.Sys()->R_CalcAndAddObs
+    (
+          mEqRigCam,  // the equation itself
+	  aVInd,
+	  aVObs,
+	  cResidualWeighterExplicit<tREAL8>(false,aWeight)
+    );
+
+
+    cPt3dr  aRes(0,0,1);
+
+    //  Now compute the residual  in Tr and Rot,
+    //  ie agregate   (Rx,Ry,Rz, m00 , m01 ...)
+    //
+    for (size_t aKU=0 ; aKU<12 ;  aKU++)
+    {
+         aRes[aKU>=3] += Square(mEqRigCam->ValComp(0,aKU));
+    }
 }
 
 
@@ -122,11 +163,6 @@ void cMMVII_BundleAdj::AddBlockInstr(const std::vector<std::string> & aParam)
      cIrbComp_Block * aBlock = new cIrbComp_Block(*mPhProj ,aNameBlock);
 
      mVecBlockInstrAdj.push_back(new cBA_BlockInstr(*this,aBlock,aParam));
-
-//    cBA_BlockInstr(cMMVII_BundleAdj& , cIrbComp_Block*,const std::vector<std::string> & aVParam);
-
-//    mVecBlockInstrAdj.push_back();
-//    mBlockInstrAdj = new cBA_BlockInstr(*this,aParam);
 
 }
 
