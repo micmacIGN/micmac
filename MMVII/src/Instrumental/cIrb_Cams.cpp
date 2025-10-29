@@ -84,8 +84,13 @@ cIrbCal_Cam1::cIrbCal_Cam1(int aNum,const std::string & aNameCal,const std::stri
      mSelIsPat      (true),
      mImSelect      (aPatImSel),
      mIsInit        (false),
-     mPoseInBlock   (tPoseR::Identity())
+     mPoseInBlock   (nullptr)
 {
+}
+
+cIrbCal_Cam1::~cIrbCal_Cam1()
+{
+    delete mPoseInBlock;
 }
 
 cIrbCal_Cam1::cIrbCal_Cam1()  :
@@ -95,16 +100,26 @@ cIrbCal_Cam1::cIrbCal_Cam1()  :
 
 void cIrbCal_Cam1::SetPose(const tPoseR & aPose)
 {
-   mPoseInBlock = aPose;
+
+    if (mPoseInBlock==nullptr)
+        mPoseInBlock = new cPoseWithUK;
+
+   mPoseInBlock->SetPose(aPose);
+
    mIsInit      = true;
+
 }
-const tPoseR & cIrbCal_Cam1::PoseInBlock() const {return mPoseInBlock;}
+const tPoseR & cIrbCal_Cam1::PoseInBlock() const
+{
+    MMVII_INTERNAL_ASSERT_tiny(mIsInit,"IrbCal_Cam1::PoseInBlock");
+    return mPoseInBlock->Pose();
+}
 
 tPoseR cIrbCal_Cam1::PosBInSysA(const cIrbCal_Cam1 & aCamB) const
 {
     MMVII_INTERNAL_ASSERT_tiny(mIsInit&&(aCamB.mIsInit),"cIrbCal_Cam1::PosBInSysA no init");
     //      (A->W) -1  * (B->W)
-    return mPoseInBlock.MapInverse() * aCamB.mPoseInBlock;
+    return PoseInBlock().MapInverse() * aCamB.PoseInBlock();
 }
 
 
@@ -122,6 +137,14 @@ bool  cIrbCal_Cam1::ImageIsInBlock(const std::string & aNameImage) const
 const std::string & cIrbCal_Cam1::NameCal() const { return mNameCal; }
 int cIrbCal_Cam1::Num() const {return mNum;}
 
+
+cPoseWithUK&  cIrbCal_Cam1::PoseUKInBlock()
+{
+    MMVII_INTERNAL_ASSERT_tiny(mIsInit,"IrbCal_Cam1::PoseUKInBlock");
+    return *mPoseInBlock;
+}
+
+
 void cIrbCal_Cam1::AddData(const  cAuxAr2007 & anAux)
 {
       MMVII::AddData(cAuxAr2007("Num",anAux),mNum);
@@ -130,7 +153,15 @@ void cIrbCal_Cam1::AddData(const  cAuxAr2007 & anAux)
       MMVII::AddData(cAuxAr2007("SelIsPat",anAux),mSelIsPat);
       MMVII::AddData(cAuxAr2007("ImSelect",anAux),mImSelect);
       MMVII::AddData(cAuxAr2007("IsInit",anAux),mIsInit);
-      MMVII::AddData(cAuxAr2007("Pose",anAux),mPoseInBlock);
+
+      tPoseR aPose = mPoseInBlock ? mPoseInBlock->Pose() : tPoseR::Identity();
+
+      MMVII::AddData(cAuxAr2007("Pose",anAux),aPose);
+      if (anAux.Input())
+      {
+          SetPose(aPose);
+      }
+
 }
 
 void AddData(const  cAuxAr2007 & anAux,cIrbCal_Cam1 & aCam)
@@ -151,6 +182,7 @@ cIrbCal_CamSet::cIrbCal_CamSet()  :
     mNumMaster (-1)
 {
 }
+
 
 void  cIrbCal_CamSet::AddData(const  cAuxAr2007 & anAux)
 {
@@ -193,6 +225,7 @@ void cIrbCal_CamSet::AddCam
    }
 }
 
+
 size_t  cIrbCal_CamSet::NbCams() const { return  mVCams.size();}
 int     cIrbCal_CamSet::NumMaster() const
 {
@@ -204,21 +237,18 @@ void  cIrbCal_CamSet::SetNumMaster(int aNum)
     mNumMaster = aNum;
 }
 
+
 cIrbCal_Cam1 &       cIrbCal_CamSet::KthCam(size_t aK)       {return  mVCams.at(aK);}
 const cIrbCal_Cam1 & cIrbCal_CamSet::KthCam(size_t aK) const {return  mVCams.at(aK);}
 
+std::vector<cIrbCal_Cam1> &      cIrbCal_CamSet::VCams()
+{
+    return mVCams;
+}
 cIrbCal_Cam1 * cIrbCal_CamSet::CamFromNameCalib(const std::string& aNameCalib,bool SVP)
 {
-    /*
-    for (auto&  aCam : mVCams)
-        if (aCam.NameCal() == aNameCalib)
-           return & aCam;
-    MMVII_INTERNAL_ASSERT_strong(SVP,"Cannot get calib for camera " + aNameCalib);
-    return nullptr;
-    */
-
     int aK = IndexCamFromNameCalib(aNameCalib,SVP);
-    return (aK>=0) ? &mVCams.at(aK)  : nullptr;
+    return (aK>=0) ? & mVCams.at(aK)  : nullptr;
 }
 int cIrbCal_CamSet::IndexCamFromNameCalib(const std::string& aNameCalib,bool SVP)
 {
@@ -228,10 +258,12 @@ int cIrbCal_CamSet::IndexCamFromNameCalib(const std::string& aNameCalib,bool SVP
     MMVII_INTERNAL_ASSERT_strong(SVP,"Cannot get calib for camera " + aNameCalib);
     return -1;
 }
+
 tPoseR cIrbCal_CamSet::PoseRel(size_t aK1,size_t aK2) const
 {
    return mVCams.at(aK1).PosBInSysA(mVCams.at(aK2));
 }
+
 
 /*
 void cIrbCal_CamSet::SetSigma(const cIrb_SigmaPoseRel& aNewS)

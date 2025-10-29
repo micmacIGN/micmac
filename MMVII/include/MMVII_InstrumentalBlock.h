@@ -81,6 +81,7 @@ class cIrbCal_Cam1 : public cMemCheck
 {
     public :
         cIrbCal_Cam1();  //< required for serialisation
+        ~cIrbCal_Cam1();
         /// "real" constructor
         cIrbCal_Cam1(int aNum,const std::string & aNameCal,const std::string & aTimeStamp,const std::string & aPatImSel);
         const std::string & NameCal() const; //< Accessor
@@ -99,7 +100,7 @@ class cIrbCal_Cam1 : public cMemCheck
         const tPoseR & PoseInBlock() const; //< Accessor
         tPoseR PosBInSysA(const cIrbCal_Cam1 & aCamB) const;
 
-
+        cPoseWithUK&  PoseUKInBlock();
     private :
         int           mNum;
         std::string   mNameCal;        ///< "full" name of calibration associated to, like  "CalibIntr_CamNIKON_D5600_Add043_Foc24000"
@@ -107,7 +108,7 @@ class cIrbCal_Cam1 : public cMemCheck
         bool          mSelIsPat;       ///< indicate if selector is pattern/file
         std::string   mImSelect;       ///< selector, indicate if an image belongs  to the block
         bool          mIsInit;         ///< was the pose in the block computed ?
-        tPoseR        mPoseInBlock;    ///< Position in the block  +- boresight
+        cPoseWithUK*  mPoseInBlock;    ///< Position in the block  +- boresight
 };
 /// public interface to serialization
 void AddData(const  cAuxAr2007 & anAux,cIrbCal_Cam1 & aCam);
@@ -134,6 +135,7 @@ class cIrbCal_CamSet : public cMemCheck
          cIrbCal_Cam1 & KthCam(size_t aK);
          const cIrbCal_Cam1 & KthCam(size_t aK) const;
          tPoseR PoseRel(size_t aK1,size_t aK2) const;
+         std::vector<cIrbCal_Cam1> &      VCams();
 
      private :
          void AddCam
@@ -251,6 +253,8 @@ class cIrbCal_Block : public cMemCheck
          const cIrb_Desc1Intsr &  SigmaInd(const std::string &) const;
 
      private :
+         cIrbCal_Block(const cIrbCal_Block&) = delete;
+
         void  AddSigma_Indiv(std::string aN1,eTyInstr aType1, const cIrb_SigmaInstr &);
         std::string                   mNameBloc;   //<  Name of the bloc
         cIrbCal_CamSet                mSetCams;    //<  Cameras used in the bloc
@@ -343,11 +347,13 @@ class   cIrbComp_Block : public cMemCheck
        //   =================  Constructors =========================================
 
        /// "fundamuntal" constructor, creat from a calibration bloc
-       cIrbComp_Block(const cIrbCal_Block &) ;
+       cIrbComp_Block( cIrbCal_Block *,bool CalIsAdopted = true) ;
        /// read calib from file with "absolute name" and call fundamuntal constructor
        cIrbComp_Block(const std::string & aNameFile);
        /// read calib from name of block in standdar MMVI file and call fundamental constructot
        cIrbComp_Block(const cPhotogrammetricProject& ,const std::string & aNameBloc);
+
+       ~cIrbComp_Block();
 
        //   =================  Accessors =========================================
        const cIrbCal_CamSet &  SetOfCalibCams() const ; //< Accessor of Accessor
@@ -375,7 +381,8 @@ class   cIrbComp_Block : public cMemCheck
        /**  return the data for time stamps (cams, clino ...)  corresponding to TS, possibly init it*/
        cIrbComp_TimeS &  DataOfTimeS(const std::string & aTS);
 
-       cIrbCal_Block                         mCalBlock;
+       cIrbCal_Block *                       mCalBlock;
+       bool                                  mCalIsAdopted;
        const cPhotogrammetricProject *       mPhProj;
        tContTimeS                            mDataTS;
 };

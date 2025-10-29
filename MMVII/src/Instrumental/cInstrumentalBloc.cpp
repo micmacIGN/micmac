@@ -139,16 +139,28 @@ const cIrbComp_Block & cIrbComp_TimeS::CompBlock() const {return mCompBlock;}
 
     //  -------------------------- "Constructors"  --------------------------------------------------------
 
-cIrbComp_Block::cIrbComp_Block(const cIrbCal_Block & aCalBlock) :
+
+cIrbComp_Block::cIrbComp_Block( cIrbCal_Block * aCalBlock,bool IsAdopted) :
    mCalBlock   (aCalBlock),
+   mCalIsAdopted (IsAdopted),
    mPhProj (nullptr)
 {
 }
 
-cIrbComp_Block::cIrbComp_Block(const std::string & aNameFile) :
-    cIrbComp_Block(SimpleCopyObjectFromFile<cIrbCal_Block>(aNameFile))
+
+cIrbComp_Block::~cIrbComp_Block()
 {
+   if (mCalIsAdopted)
+      delete mCalBlock;
 }
+
+
+cIrbComp_Block::cIrbComp_Block(const std::string & aNameFile) :
+    cIrbComp_Block (new  cIrbCal_Block,true)
+{
+    ReadFromFile(*mCalBlock,aNameFile);
+}
+
 
 cIrbComp_Block::cIrbComp_Block(const cPhotogrammetricProject& aPhProj,const std::string & aNameBloc) :
     cIrbComp_Block  (aPhProj.NameRigBoI(aNameBloc,true))
@@ -177,7 +189,7 @@ void cIrbComp_Block::AddImagePose(cSensorCamPC * aCamPC,bool okImNotInBloc)
     std::string aNameCal = PhProj().StdNameCalibOfImage(aNameIm);
 
     // extract the specification of the camera in the block
-    cIrbCal_Cam1 *  aCInRBoI = mCalBlock.mSetCams.CamFromNameCalib(aNameCal,okImNotInBloc);
+    cIrbCal_Cam1 *  aCInRBoI = mCalBlock->mSetCams.CamFromNameCalib(aNameCal,okImNotInBloc);
     if (aCInRBoI==nullptr)
        return;
 
@@ -295,14 +307,14 @@ typename cIrbComp_Block::tResCompCal cIrbComp_Block::ComputeCalibCamsInit(int aK
 
     //  -------------------------- "Accessors"  --------------------------------------------------------
    
-const cIrbCal_CamSet &  cIrbComp_Block::SetOfCalibCams() const { return mCalBlock.SetCams(); }
+const cIrbCal_CamSet &  cIrbComp_Block::SetOfCalibCams() const { return mCalBlock->SetCams(); }
 const cPhotogrammetricProject & cIrbComp_Block::PhProj()
 {
     MMVII_INTERNAL_ASSERT_strong(mPhProj,"No PhProj for cIrbComp_Block");
     return *mPhProj;
 }
-const cIrbCal_Block & cIrbComp_Block::CalBlock() const {return mCalBlock;}
-cIrbCal_Block & cIrbComp_Block::CalBlock() {return mCalBlock;}
+const cIrbCal_Block & cIrbComp_Block::CalBlock() const {return *mCalBlock;}
+cIrbCal_Block & cIrbComp_Block::CalBlock() {return *mCalBlock;}
 size_t  cIrbComp_Block::NbCams() const  {return SetOfCalibCams().NbCams();}
 
 const typename cIrbComp_Block::tContTimeS & cIrbComp_Block::DataTS() const {return mDataTS;}

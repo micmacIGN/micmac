@@ -113,14 +113,15 @@ int cAppli_BlockInstrInitCam::Exe()
     mBlock->CalBlock().SetCams().SetNumMaster(aNumMaster);
     StdOut() << " NUM-MASTER " << aNumMaster << "\n";
 
+
     //  initialise the relative pose in the ARBITRARY coord syst of master cam
     for (size_t aKC1=0 ; aKC1<aNbCam ; aKC1++)
     {
         const auto & aSg_Pose_Sigm = mBlock->ComputeCalibCamsInit(aNumMaster,aKC1);
         mBlock->CalBlock().SetCams().KthCam(aKC1).SetPose(std::get<tPoseR>(aSg_Pose_Sigm));
     }
-
     mPhProj.SaveRigBoI(mBlock->CalBlock());
+
     delete mBlock;
 
     return EXIT_SUCCESS;

@@ -572,7 +572,7 @@ class cMMVII_BundleAdj
           std::vector<int>          mIndCompUC;
           cResult_UC_SUR<tREAL8>*   mRUCSUR;
           std::vector<cUK_Line3D_4BA*>           mVecLineAdjust;
-          std::vector<cBA_BlockInstr *>          mBlockInstrAdj;
+          std::vector<cBA_BlockInstr *>          mVecBlockInstrAdj;
 };
 
 

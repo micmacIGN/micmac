@@ -9,6 +9,7 @@ class cBA_BlockInstr
 {
    public :
        cBA_BlockInstr(cMMVII_BundleAdj& , cIrbComp_Block*,const std::vector<std::string> & aVParam);
+       ~cBA_BlockInstr();
 
        void OneItere();
    private :
@@ -38,14 +39,17 @@ cBA_BlockInstr::cBA_BlockInstr(cMMVII_BundleAdj& aBA,  cIrbComp_Block * aCompBl,
     mCalCams     (&mCalBl->SetCams()),
     mVParams     (aVParams),
     mEqRigCam    (EqBlocRig(true,1,true)),
-    mMulSigmaTr  (cStrIO<double>::FromStr(aVParams.at(0))),
-    mMulSigmaRot (cStrIO<double>::FromStr(aVParams.at(1)))
+    mMulSigmaTr  (cStrIO<double>::FromStr(aVParams.at(1))),
+    mMulSigmaRot (cStrIO<double>::FromStr(aVParams.at(2)))
 
 {
     for (auto aPtrCam : mBA.VSCPC())
         mCompbBl->AddImagePose(aPtrCam,true);
 
-    //     SetIntervUK();
+    for (auto & aCalC : mCalCams->VCams() )
+    {
+        mBA.SetIntervUK().AddOneObj(&aCalC.PoseUKInBlock());
+    }
 }
 
 void cBA_BlockInstr::OneItere_1PairCam
@@ -111,6 +115,17 @@ void cBA_BlockInstr::OneItere()
 }
 void cMMVII_BundleAdj::AddBlockInstr(const std::vector<std::string> & aParam)
 {
+     std::string aNameBlock = aParam.at(0);
+     if (aNameBlock=="")
+         aNameBlock = cIrbCal_Block::theDefaultName;
+
+     cIrbComp_Block * aBlock = new cIrbComp_Block(*mPhProj ,aNameBlock);
+
+     mVecBlockInstrAdj.push_back(new cBA_BlockInstr(*this,aBlock,aParam));
+
+//    cBA_BlockInstr(cMMVII_BundleAdj& , cIrbComp_Block*,const std::vector<std::string> & aVParam);
+
+//    mVecBlockInstrAdj.push_back();
 //    mBlockInstrAdj = new cBA_BlockInstr(*this,aParam);
 
 }
