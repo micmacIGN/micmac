@@ -103,14 +103,37 @@ void cAppli_ImportStaticScan::estimatePhiStep()
         previousPhi = aPtAng.y();
     }
     StdOut() << "phiStep " << mPhiStepApprox << "\n";
+
+    // estimate mThetaStepApprox
+    // search for nb points in one col
+    tREAL8 aMinAngToZenith = 0.1;
+    for (size_t i=0; i<mSL_data.mSL_importer.mVectPtsTPD.size()-1; ++i)
+    {
+        auto aPtAng1 = mSL_data.mSL_importer.mVectPtsTPD[i];
+        if (aPtAng1.z()<mSL_data.mSL_importer.DistMinToExist()) continue;
+        if (fabs(fabs(aPtAng1.y())-M_PI/2)<aMinAngToZenith) continue;
+        for (size_t j=i+1; j<mSL_data.mSL_importer.mVectPtsTPD.size(); ++j)
+        {
+            auto aPtAng2 = mSL_data.mSL_importer.mVectPtsTPD[j];
+            if (aPtAng2.z()<mSL_data.mSL_importer.DistMinToExist()) continue;
+            if (fabs(fabs(aPtAng2.y())-M_PI/2)<aMinAngToZenith) continue;
+            if ((aPtAng2.y()-aPtAng1.y())/mPhiStepApprox < angularPrecisionInSteps)
+            {
+                mThetaStepApprox = aPtAng2.x()-aPtAng1.x();
+                StdOut() << "ThetaStep " << mThetaStepApprox << "\n";
+                return;
+            }
+        }
+    }
 }
+
 
 void cAppli_ImportStaticScan::computeLineCol()
 {
     computeAngStartStep();
     if (mSL_data.mSL_importer.HasRowCol())
         return; // nothing to do
-    tREAL8 aColChangeDetectorInPhistep = 100;
+    tREAL8 aColChangeDetectorInPhistep = 20;
 
     // compute line and col for each point
     mSL_data.mSL_importer.mVectPtsLine.resize(mSL_data.mSL_importer.mVectPtsXYZ.size());
@@ -135,8 +158,10 @@ void cAppli_ImportStaticScan::computeLineCol()
         else
             aCurrLine = (aPtAng.y()-mSL_data.mPhiStart)/fabs(mPhiStepApprox);
 
-        if (aCurrLine>mSL_data.mMaxLine) mSL_data.mMaxLine = aCurrLine;
-
+        if (aCurrLine>mSL_data.mMaxLine)
+            mSL_data.mMaxLine = aCurrLine;
+        //StdOut() << aPtAng.y() << " " << previousPhi << " " << -(aPtAng.y()-previousPhi)/mPhiStepApprox
+        //         << " " << aCurrLine << " " << mSL_data.mMaxLine << "\n";
         if (-(aPtAng.y()-previousPhi)/mPhiStepApprox > aColChangeDetectorInPhistep)
         {
             mSL_data.mMaxCol++;
@@ -151,6 +176,9 @@ void cAppli_ImportStaticScan::computeLineCol()
     StdOut() << "Max line found: "<<mSL_data.mMaxLine<<"\n";
 
     StdOut() << "Image size: "<<cPt2di(mSL_data.mMaxCol+1, mSL_data.mMaxLine+1)<<"\n";
+
+    MMVII_INTERNAL_ASSERT_tiny((mSL_data.mMaxCol>0) && (mSL_data.mMaxLine>0),
+                               "Image size found incorrect")
 
     int mThetaDir = -1; // TODO: compute!
     // precise estimation of mThetaStep and mPhiStep;
