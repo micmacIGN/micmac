@@ -71,6 +71,12 @@ tPoseR cIrbComp_CamSet::PoseRel(size_t aK1,size_t aK2) const
 
 const std::vector<cIrbComp_Cam1> &  cIrbComp_CamSet::VCompPoses() const {return mVCompPoses;}
 
+cIrbComp_Cam1 & cIrbComp_CamSet::KthCam(int aK)
+{
+    return  mVCompPoses.at(aK);
+}
+
+
 /* *************************************************************** */
 /*                                                                 */
 /*                        cIrbCal_Cam1                            */
@@ -89,7 +95,10 @@ cIrbCal_Cam1::cIrbCal_Cam1(int aNum,const std::string & aNameCal,const std::stri
 }
 
 cIrbCal_Cam1::~cIrbCal_Cam1()
-{
+{/*
+    if (mPoseInBlock)
+        mPoseInBlock->OUK_Reset();
+        */
     delete mPoseInBlock;
 }
 
@@ -227,10 +236,9 @@ void cIrbCal_CamSet::AddCam
 
 
 size_t  cIrbCal_CamSet::NbCams() const { return  mVCams.size();}
-int     cIrbCal_CamSet::NumMaster() const
-{
-    return mNumMaster;
-}
+int     cIrbCal_CamSet::NumMaster() const{    return mNumMaster;}
+cIrbCal_Cam1 &  cIrbCal_CamSet::MasterCam() {return mVCams.at(mNumMaster);}
+
 
 void  cIrbCal_CamSet::SetNumMaster(int aNum)
 {

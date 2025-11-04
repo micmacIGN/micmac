@@ -24,6 +24,10 @@ cPoseWithUK::cPoseWithUK() :
 {
 }
 
+cPoseWithUK::~cPoseWithUK()
+{
+    OUK_Reset();
+}
 
 void cPoseWithUK::SetPose(const tPoseR & aPose)
 {

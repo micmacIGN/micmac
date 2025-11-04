@@ -459,14 +459,20 @@ class cMMVII_BundleAdj
           void AddConstrainteRefPose();
           void AddConstrainteRefPose(cSensorCamPC & aCam,cSensorCamPC & aCamRef);
 
-
+          //  ----------------  Line adjustment -------------------------------------
           void AddLineAdjust(const std::vector<std::string> &);
           void DeleteLineAdjust();
           void IterAdjustOnLine();
 
-          void AddBlockInstr(const std::vector<std::string> &);
-          void DeleteBlockInstr();
+          //  ----------------  Block of instrument (new version) -------------------------------------
+          void AddBlockInstr(const std::vector<std::vector<std::string>> &);
+          void SetHardGaugeBlockInstr(); //< if "hard" gauge must be done outside equation
           void IterOneBlockInstr();
+          // 0 None , 1 Empirical , 2 by covariance
+          void SaveBlockInstr();
+          void DeleteBlockInstr();
+
+
 
           void SaveBlocRigid();
           void Save_newGCP3D();

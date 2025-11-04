@@ -1,77 +1,160 @@
 #include "BundleAdjustment.h"
 #include "MMVII_InstrumentalBlock.h"
+#include "MMVII_util_tpl.h"
+
 
 namespace MMVII
 {
 
+//   Block[  [NameBloc,SigmaPairTr,SigmPairRot]  [?GaugeTr,?GaugeRot] ]
 
-class cBA_BlockInstr
+
+/* ************************************************************************** */
+/*                                                                            */
+/*                         cBA_BlockInstr                                     */
+/*                                                                            */
+/* ************************************************************************** */
+
+
+class cBA_BlockInstr : public cMemCheck
 {
    public :
-       cBA_BlockInstr(cMMVII_BundleAdj& , cIrbComp_Block*,const std::vector<std::string> & aVParam);
-       ~cBA_BlockInstr();
+       cBA_BlockInstr
+       (
+               cMMVII_BundleAdj& ,
+               cIrbComp_Block*,
+               const std::vector<std::string> & aVParamPair,
+               const std::vector<std::string> & aVParamGauje
+       );
+       virtual ~cBA_BlockInstr();
 
        void OneItere();
+       /** Add the gauge constraints  as all pose/rot/tr in the block are defined up to a global pose, we
+        *  depending on hard/soft constraint it must be done before mode equation or inside */
+       void AddGauge(bool InEq);
+
+       void SaveSigma();
+       cIrbCal_Block &  CalBl();          //< Accessor
+
+
    private :
+       cResolSysNonLinear<tREAL8> & Sys();
+
        void OneItere_1TS(cIrbComp_TimeS&);
 
-       void OneItere_1PairCam(const cIrb_SigmaInstr&,cIrbComp_TimeS&,const std::string & aNameCam1,const std::string & aNameCam2);
+       // For a given pair of Poses, add the constraint of rigidity
+       void OneItere_1PairCam(const cIrb_SigmaInstr&,cIrbComp_TimeS&, const tNamePair & aPair);
 
 
-       cMMVII_BundleAdj&         mBA;
-       cIrbComp_Block *          mCompbBl;
-       cIrbCal_Block *           mCalBl;
-       cIrbCal_CamSet*           mCalCams;
-       std::vector<std::string>  mVParams;
-       cCalculator<tREAL8> *     mEqRigCam;
+       cMMVII_BundleAdj&         mBA;             //<  Bundle Adj Struct
+       cResolSysNonLinear<tREAL8> *mSys;
+       cIrbComp_Block *          mCompbBl;        //< "Computation block", contains curent poses +
+       cIrbCal_Block *           mCalBl;          //< "Calibrationblock", contains relative poses +
+       cIrbCal_CamSet*           mCalCams;        //< Cal-Block 4 cameras
+       cIrbCal_Cam1 &            mMasterCam;      //<  Master cam to fix Gauje
 
-       tREAL8                    mMulSigmaTr;
-       tREAL8                    mMulSigmaRot;
+       std::vector<std::string>  mVParams;        //< copy of parameters
+       cCalculator<tREAL8> *     mEqRigCam;       //< Calculator for
+       tREAL8                               mMulSigmaTr;     //< Multiplier for sigma-trans
+       tREAL8                               mMulSigmaRot;    //< Multiplier for sigma-rot
+       tINT4                                mModeSaveSigma;
+       tREAL8                               mGaujeTr;
+       tREAL8                               mGaujeRot;
 
+       std::map<tNamePair,cIrb_SigmaInstr>  mSigmaPair;      //< Sigma a posteriori for pair of images
+       cWeightAv<tREAL8,tREAL8>             mAvgTr;
+       cWeightAv<tREAL8,tREAL8>             mAvgRot;
 };
 
+cResolSysNonLinear<tREAL8> & cBA_BlockInstr::Sys()
+{
+    if (mSys==nullptr)
+        mSys = mBA.Sys();
+
+    return *mSys;
+}
 
 
-cBA_BlockInstr::cBA_BlockInstr(cMMVII_BundleAdj& aBA,  cIrbComp_Block * aCompBl, const std::vector<std::string> & aVParams) :
+cBA_BlockInstr::cBA_BlockInstr
+(
+        cMMVII_BundleAdj& aBA,
+        cIrbComp_Block * aCompBl,
+        const std::vector<std::string> & aVParamsPair,
+        const std::vector<std::string> & aVParamGauje
+) :
     mBA          (aBA),
+    mSys         (nullptr),
     mCompbBl     (aCompBl),
     mCalBl       (&mCompbBl->CalBlock()),
     mCalCams     (&mCalBl->SetCams()),
-    mVParams     (aVParams),
+    mMasterCam    (mCalCams->MasterCam()),
+    mVParams     (aVParamsPair),
     mEqRigCam    (EqBlocRig(true,1,true)),
-    mMulSigmaTr  (cStrIO<double>::FromStr(aVParams.at(1))),
-    mMulSigmaRot (cStrIO<double>::FromStr(aVParams.at(2)))
+    mMulSigmaTr  (cStrIO<double>::FromStr(aVParamsPair.at(1))),
+    mMulSigmaRot (cStrIO<double>::FromStr(aVParamsPair.at(2))),
+    mModeSaveSigma(cStrIO<int>::FromStr(GetDef(aVParamsPair,3,std::string("1")))),
+    mGaujeTr      (cStrIO<double>::FromStr(GetDef(aVParamGauje,0,std::string("0.0")))),
+    mGaujeRot     (cStrIO<double>::FromStr(GetDef(aVParamGauje,1,std::string("0.0"))))
+
 
 {
+
+    //  Add all the pose to construct the Time-Stamp structure
     for (auto aPtrCam : mBA.VSCPC())
         mCompbBl->AddImagePose(aPtrCam,true);
 
+    // communicate to the system of equation the unknowns of the bloc
     for (auto & aCalC : mCalCams->VCams() )
     {
         mBA.SetIntervUK().AddOneObj(&aCalC.PoseUKInBlock());
     }
 }
 
+cBA_BlockInstr::~cBA_BlockInstr()
+{
+    StdOut() << "cBA_BlockInstrcBA_BlockInstrcBA_BlockInstrcBA_BlockInstr\n";
+
+    delete mCompbBl;
+}
+
+cIrbCal_Block &  cBA_BlockInstr::CalBl()
+{
+    return *mCalBl;
+}
+
+
 void cBA_BlockInstr::OneItere_1PairCam
      (
         const cIrb_SigmaInstr& aSigma,
         cIrbComp_TimeS& aDataTS,
-        const std::string & aNameCam1,
-        const std::string & aNameCam2
+        const tNamePair & aPair
+
      )
 {
-    int aK1 = mCalCams->IndexCamFromNameCalib(aNameCam1);
-    int aK2 = mCalCams->IndexCamFromNameCalib(aNameCam2);
+   //  [0] ============== Extract unkonwns (for bloc & poses) ========
 
-    if ( (aK1<0) || (aK2<0) )
-        return;
+   // [0.1]  Extract indexes of camera-calib in bloc
+   int aK1 = mCalCams->IndexCamFromNameCalib(aPair.V1());
+   int aK2 = mCalCams->IndexCamFromNameCalib(aPair.V2());
 
+   //  possible that all camera do not belong to bloc
+   if ( (aK1<0) || (aK2<0) )
+       return;
+
+   cPoseWithUK &  aPBl1 =  mCalCams->KthCam(aK1).PoseUKInBlock();
+   cPoseWithUK &  aPBl2 =  mCalCams->KthCam(aK2).PoseUKInBlock();
+
+   // [0.2]  extract  camera-poses from time stamp
    cIrbComp_CamSet &  aCamSet = aDataTS.SetCams();
    cSensorCamPC * aCam1 = aCamSet.KthCam(aK1).CamPC();
    cSensorCamPC * aCam2 = aCamSet.KthCam(aK2).CamPC();
 
+   //  possible all images were not taken/usable
    if ((aCam1==nullptr) || (aCam2==nullptr))
       return;
+
+
+   //  [1] ============== compute the weightings, taking account "a-priori" sigma and multiplier ========
 
    std::vector<double>  aWeight;
    for(int aK=0 ; aK<3 ; aK++)
@@ -80,11 +163,10 @@ void cBA_BlockInstr::OneItere_1PairCam
    for(int aK=0 ; aK<9 ; aK++)
       aWeight.push_back(1.0/Square(mMulSigmaRot * aSigma.SigmaRot()));
 
-   cPoseWithUK &  aPBl1 =  mCalCams->KthCam(aK1).PoseUKInBlock();
-   cPoseWithUK &  aPBl2 =  mCalCams->KthCam(aK2).PoseUKInBlock();
 
-   // We must create the observation/context of the equation; here we will push the coeef of matrix
-   // for linearization ;:
+   //  [2] ============== create vectors of "obs" and indexes ========
+
+   // [2.1]  the observation/context are  the coeef of rotation-matrix for linearization ;:
    std::vector<double> aVObs;
 
    aCam1->Pose_WU().PushObs(aVObs,false); // false because we dont transpose matrix
@@ -92,42 +174,38 @@ void cBA_BlockInstr::OneItere_1PairCam
    aPBl1.PushObs(aVObs,false);
    aPBl2.PushObs(aVObs,false);
 
-    // We must create a vector that contains all the global num of unknowns
+    // [2.2] Create a vector of indexes of unknowns :  the pose of block and images
     std::vector<int>  aVInd;
     aCam1->PushIndexes(aVInd);
     aCam2->PushIndexes(aVInd);
     aPBl1.PushIndexes(aVInd);
-    // Set ForJeanMimi  to check the equiv between global push indexe & in 2 piece
-    bool  ForJeanMimi = false;
-    if (ForJeanMimi)
-    {
-        aPBl2.PushIndexes(aVInd,aPBl2.Center());
-        aPBl2.PushIndexes(aVInd,aPBl2.Omega());
-    }
-    else
-    {
-        aPBl2.PushIndexes(aVInd);
-    }
+    aPBl2.PushIndexes(aVInd);
 
-    // now we are ready to add the equation
-    mBA.Sys()->R_CalcAndAddObs
+
+    //  [3] =============   now we are ready to add the equation
+    Sys().R_CalcAndAddObs
     (
-          mEqRigCam,  // the equation itself
-	  aVInd,
-	  aVObs,
-	  cResidualWeighterExplicit<tREAL8>(false,aWeight)
+       mEqRigCam,  // the equation itself
+       aVInd,
+       aVObs,
+       cResidualWeighterExplicit<tREAL8>(false,aWeight)
     );
 
+    // [4] compute residual & accumulates
+    tREAL8 aSumTr = 0.0;
+    tREAL8 aSumRot = 0.0;
 
-    cPt3dr  aRes(0,0,1);
-
-    //  Now compute the residual  in Tr and Rot,
-    //  ie agregate   (Rx,Ry,Rz, m00 , m01 ...)
-    //
     for (size_t aKU=0 ; aKU<12 ;  aKU++)
     {
-         aRes[aKU>=3] += Square(mEqRigCam->ValComp(0,aKU));
+        ((aKU<3) ? aSumTr : aSumRot) += (Square(mEqRigCam->ValComp(0,aKU)));
     }
+
+    //StdOut( ) << "SiGmA=" << mSigmaPair.size() << " " << std::sqrt(aSumTr) << " " << std::sqrt(aSumRot) << "\n";
+
+    mAvgTr.Add(1.0,aSumTr);
+    mAvgRot.Add(1.0,aSumRot);
+
+    mSigmaPair[aPair].AddNewSigma(cIrb_SigmaInstr(1.0,std::sqrt(aSumTr),std::sqrt(aSumRot)));
 }
 
 
@@ -139,7 +217,7 @@ void cBA_BlockInstr::OneItere_1TS(cIrbComp_TimeS& aDataS)
         const cIrb_Desc1Intsr &  aSI2 = mCalBl->SigmaInd(aPair.V2());
         if ((aSI1.Type()==eTyInstr::eCamera) && (aSI2.Type()==eTyInstr::eCamera))
         {
-               OneItere_1PairCam(aSigma2,aDataS,aPair.V1(),aPair.V2());
+               OneItere_1PairCam(aSigma2,aDataS,aPair);
         }
         else
             MMVII_INTERNAL_ERROR("Unhandled combination of instrument in  cBA_BlockInstr::OneItere_1TS");
@@ -149,289 +227,133 @@ void cBA_BlockInstr::OneItere_1TS(cIrbComp_TimeS& aDataS)
 
 void cBA_BlockInstr::OneItere()
 {
+   mAvgTr.Reset();
+   mAvgRot.Reset();
+
+   mSigmaPair.clear();
+   StdOut() << "mSigmaPairmSigmaPairSz=" << mSigmaPair.size() << "\n";
+
+   // Parse all "time stamp" to add equation
    for ( auto & [aTimeS,aDataTS] : mCompbBl->DataTS())
    {
        OneItere_1TS(aDataTS);
    }
+
+   AddGauge(true);
+
+   StdOut() << " Avg  Tr:" << std::sqrt(mAvgTr.Average()) << " Rot:" << std::sqrt(mAvgRot.Average()) << "\n";
 }
-void cMMVII_BundleAdj::AddBlockInstr(const std::vector<std::string> & aParam)
+
+void cBA_BlockInstr::AddGauge(bool InEq)
 {
-     std::string aNameBlock = aParam.at(0);
+     cPoseWithUK &  aPBl =  mMasterCam.PoseUKInBlock();
+     cPt3dr &  aC = aPBl.Center();
+     cPt3dr &  aW = aPBl.Omega();
+
+     if (InEq)
+     {
+          const cIrb_SigmaInstr & aSigma = mCalBl->SigmaInd(mMasterCam.NameCal()).Sigma();
+          if (mGaujeTr>0)
+              Sys().AddEqFixCurVar(aPBl,aC,1.0/Square(mGaujeTr*aSigma.SigmaTr()));
+          if (mGaujeRot>0)
+              Sys().AddEqFixCurVar(aPBl,aW,1.0/Square(mGaujeRot*aSigma.SigmaRot()));
+     }
+     else
+     {
+        if (mGaujeTr<=0)
+            Sys().SetFrozenVarCurVal(aPBl,aC);
+        if (mGaujeRot<=0)
+            Sys().SetFrozenVarCurVal(aPBl,aW);
+     }
+}
+
+void cBA_BlockInstr::SaveSigma()
+{
+    StdOut() << "MODESSSS " << mModeSaveSigma << "\n";
+    if (mModeSaveSigma==0)
+    {
+        // Case nothing to do
+    }
+    else if (mModeSaveSigma==1)
+    {
+        // case we save empirical sigma between pairs
+        mCalBl->SetSigmaPair(mSigmaPair);
+    }
+    else
+    {
+        // To do later, an evaluation based on var/covar
+        MMVII_UnclasseUsEr("Unhandled value for SaveSigma ");
+    }
+}
+
+
+
+/* ************************************************************************** */
+/*                                                                            */
+/*                         cBA_BlockInstr                                     */
+/*                                                                            */
+/* ************************************************************************** */
+
+
+void cMMVII_BundleAdj::AddBlockInstr(const std::vector<std::vector<std::string>> & aVVParam)
+{
+    if (! mPhProj->DPBlockInstr().DirInIsInit())
+    {
+        MMVII_UnclasseUsEr("Dir for bloc of instrument not init with parameter for BOI/Compensation");
+    }
+
+     const std::vector<std::string> & aVParamPairCam = aVVParam.at(0);
+     std::string aNameBlock = aVParamPairCam.at(0);
      if (aNameBlock=="")
          aNameBlock = cIrbCal_Block::theDefaultName;
 
      cIrbComp_Block * aBlock = new cIrbComp_Block(*mPhProj ,aNameBlock);
 
-     mVecBlockInstrAdj.push_back(new cBA_BlockInstr(*this,aBlock,aParam));
+     mVecBlockInstrAdj.push_back
+     (
+          new cBA_BlockInstr(*this,aBlock,aVParamPairCam,aVVParam.at(1))
+     );
 
 }
 
-/*
-cIrbCal_Block*  ReadRigBoI(const std::string &,bool SVP=false) const;
-void   SaveRigBoI(const cIrbCal_Block &) const;
-std::vector<std::string>  ListBlockExisting() const;
-*/
-
-
-
-#if (0)
-
-cBA_BlocRig::cBA_BlocRig
-(
-     const cPhotogrammetricProject &aPhProj,
-     const std::vector<double> & aSigma,
-     const std::vector<double> & aSigmaRat
-)  :
-    mPhProj  (aPhProj),
-    mBlocs   (aPhProj.ReadBlocCams()),  // use the standar interface to create the bloc
-    mSigma   (aSigma),
-    mAllPair (false),
-    mEqBlUK  (EqBlocRig(true,1,true)),  // get the class computing rigidity equation,  true=with derivative , true=reuse
-    mSigmaRat (aSigmaRat),
-    mEqRatt  (aSigmaRat.empty() ? nullptr : EqBlocRig_RatE(true,1,true))
+void cMMVII_BundleAdj::SetHardGaugeBlockInstr()
 {
-    if (mBlocs.empty())
+    for (auto & aBlock : mVecBlockInstrAdj)
+        aBlock->AddGauge(false);
+}
+
+
+void cMMVII_BundleAdj::IterOneBlockInstr()
+{
+    for (auto & aBlock : mVecBlockInstrAdj)
+        aBlock->OneItere();
+}
+
+void cMMVII_BundleAdj::SaveBlockInstr()
+{
+    if (! mPhProj->DPBlockInstr().DirOutIsInit())
     {
-        // is the user enter a non existing bloc, we arrive here with a directory empty, probably an error
-        MMVII_UnclasseUsEr("No bloc found in rgid bloc");
+        MMVII_USER_WARNING("Block of instrument not saved");
+        return;
     }
-    // push the weigth for the 3 equation on centers
-    for (int aK=0 ; aK<3 ; aK++)
+
+    for (auto & aBlock : mVecBlockInstrAdj)
     {
-        mWeight.push_back(Square(1/mSigma.at(0)));
-        if (mEqRatt)
-            mWeightRat.push_back(Square(1/mSigmaRat.at(0)));
-    }
-    
-    // push the weigth for the 9 equation on rotation
-    for (int aK=0 ; aK<9 ; aK++)
-    {
-        mWeight.push_back(Square(1/mSigma.at(1)));
-        if (mEqRatt)
-            mWeightRat.push_back(Square(1/mSigmaRat.at(1)));
+        aBlock->SaveSigma();
+        mPhProj->SaveRigBoI( aBlock->CalBl());
     }
 }
 
-cBA_BlocRig::~cBA_BlocRig()
-{
-    DeleteAllAndClear(mBlocs);
-}
 
-void cBA_BlocRig::Save()
-{
-     for (const auto & aBloc : mBlocs)
-	 mPhProj.SaveBlocCamera(*aBloc);
-}
 
-void cBA_BlocRig::AddCam (cSensorCamPC * aCam)
+void cMMVII_BundleAdj::DeleteBlockInstr()
 {
-     size_t aNbAdd = 0;
-     //  Parse all the bloc to try to add it
-     for (const auto & aBloc : mBlocs)
-     {
-         // AddSensor return a boolean value indicating if it was added
-         aNbAdd += aBloc->AddSensor(aCam);
-     }
-     // it may happen that a sensor does not belong to any bloc,
-     // but a sensor may "never" belongs to several bloc
-     if (aNbAdd>1)
-     {
-         MMVII_UnclasseUsEr("Multiple bloc for "+ aCam->NameImage());
-     }
-
+    StdOut() << "cMMVII_BundleAdj::DeleteBlockInstrcMMVII_BundleAdj::DeleteBlockInstr \n";
+    DeleteAllAndClear(mVecBlockInstrAdj);
 }
 
 
-void cBA_BlocRig::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet)
-{
-    //  "cSetInterUK_MultipeObj" is a structure that contains a set of
-    //  unknowns, here we "declare" all the unknowns, the object
-    //  declared must derive from "cObjWithUnkowns". The "declaration" is
-    //  made by calling "AddOneObj" in aSet
-    //
-    //  For each bloc, the unkowns are the "cPoseWithUK" contained in "mMapPoseUKInBloc"
-    //
 
-     //  .....
-     // map all bloc
-     for (const auto & aBloc : mBlocs)
-     {
-          for (auto & [aName, aPoseUk] : aBloc->MapStrPoseUK())
-          {
-              aSet.AddOneObj(&aPoseUk);
-          }
-     }
-     //   map all pair of MapStrPoseUK
-     //        add cPoseWithUK
-}
-
-/**  In a bundle adjusment its current that some variable are "hard" frozen, i.e they are
- *   considered as constant.  We could write specific equation, but generally it's more
- *   economic (from software devlopment) to just indicate this frozen part to the system.
- *
- *   Here the frozen unknown are the poses of the master camera of each bloc because the
- *   calibration is purely relative
- *
- */
-void cBA_BlocRig::SetFrozenVar(cResolSysNonLinear<tREAL8> & aSys)  
-{
-     // ... parse all bloc
-     for (const auto & aBloc : mBlocs)
-     {
-         //  ... extract the master
-	 cPoseWithUK &  aMPose = aBloc->MasterPoseInBl()  ;
-
-	 // The system handle the unknwon as integers,  the "object" (here aPose)
-	 // "knows" the association between its member and local integers, that's why
-	 // we pass object and members to do the job
-         
-         aSys.SetFrozenVarCurVal(aMPose,aMPose.Center());
-         aSys.SetFrozenVarCurVal(aMPose,aMPose.Omega());
-	 //
-	 //  ...  freeze the center
-	 //  ... freez omega
-     }
-}
-
-    // =========================================================
-    //       The RigidityEquation itself
-    // =========================================================
-
-cPt3dr cBA_BlocRig::OnePairAddRigidityEquation(size_t aKS,size_t aKBl1,size_t aKBl2,cBlocOfCamera& aBloc,cResolSysNonLinear<tREAL8> & aSys)
-{
-    OrderMinMax(aKBl1,aKBl2); // not sure necessary, but prefer to fix arbitrary order
-			    
-    //  extract the sensor corresponding to the time and num of bloc
-    cSensorCamPC* aCam1 = aBloc.CamKSyncKInBl(aKS,aKBl1);
-    cSensorCamPC* aCam2 = aBloc.CamKSyncKInBl(aKS,aKBl2);
-
-
-    // it may happen that some image are absent, non oriented ...
-    if ((aCam1==nullptr) || (aCam2==nullptr)) return cPt3dr(0,0,0);
-
-    // extract the unknown pose for each cam
-    cPoseWithUK &  aPBl1 =  aBloc.PoseUKOfNumBloc(aKBl1);
-    cPoseWithUK &  aPBl2 =  aBloc.PoseUKOfNumBloc(aKBl2);
-     
-    //  FakeUseIt(aPBl1); FakeUseIt(aPBl2);
-
-    // We must create the observation/context of the equation; here we will push the coeef of matrix
-    // for linearization 
-    std::vector<double> aVObs;
-
-    aCam1->Pose_WU().PushObs(aVObs,false);
-    aCam2->Pose_WU().PushObs(aVObs,false);
-    aPBl1.PushObs(aVObs,false);
-    aPBl2.PushObs(aVObs,false);
-
-    // We must create a vector that contains all the global num of unknowns
-    std::vector<int>  aVInd;
-    aCam1->PushIndexes(aVInd);
-    aCam2->PushIndexes(aVInd);
-    aPBl1.PushIndexes(aVInd);
-    // Set ForJeanMimi  to check the equiv between global push indexe & in 2 piece
-    bool  ForJeanMimi = false;
-    if (ForJeanMimi)
-    {
-        aPBl2.PushIndexes(aVInd,aPBl2.Center());
-        aPBl2.PushIndexes(aVInd,aPBl2.Omega());
-    }
-    else
-    {
-        aPBl2.PushIndexes(aVInd);
-    }
-
-    // now we are ready to add the equation
-    aSys.R_CalcAndAddObs
-    (
-          mEqBlUK,  // the equation itself
-	  aVInd,
-	  aVObs,
-	  cResidualWeighterExplicit<tREAL8>(false,mWeight)
-    );
-
-
-    cPt3dr  aRes(0,0,1);
-
-    //  Now compute the residual  in Tr and Rot,
-    //  ie agregate   (Rx,Ry,Rz, m00 , m01 ...)
-    //
-    for (size_t aKU=0 ; aKU<12 ;  aKU++)
-    {
-         aRes[aKU>=3] += Square(mEqBlUK->ValComp(0,aKU));
-    }
-
-    return cPt3dr(aRes.x()/3.0,aRes.y()/9.0,1.0);
-}
-
-
-void cBA_BlocRig::OneBlAddRigidityEquation(cBlocOfCamera& aBloc,cResolSysNonLinear<tREAL8> & aSys)
-{
-     cPt3dr aRes(0,0,0);
-
-     //  Parse all the bloc of image acquired at same sync time
-     for (size_t  aKSync=0 ; aKSync<aBloc.NbSync() ; aKSync++)
-     {
-         // case "AllPair", to symetrise the problem we process all pair w/o distinguish master
-         if (mAllPair)
-	 {
-            for (size_t aKBl1=0 ; aKBl1<aBloc.NbInBloc() ; aKBl1++)
-            {
-                for (size_t aKBl2=aKBl1+1 ; aKBl2<aBloc.NbInBloc() ; aKBl2++)
-                {
-                     aRes += OnePairAddRigidityEquation(aKSync,aKBl1,aKBl2,aBloc,aSys);
-                }
-            }
-	 }
-	 // other case, we only add the equation implyng the "master" camera
-         else
-         {
-            size_t aKM = aBloc.IndexMaster();
-            for (size_t aKBl=0 ; aKBl<aBloc.NbInBloc() ; aKBl++)
-                if (aKBl!=aKM)
-                   aRes += OnePairAddRigidityEquation(aKSync,aKM,aKBl,aBloc,aSys);
-         }
-     }
-
-     aRes = aRes/aRes.z();
-
-     StdOut() << "  Residual for Bloc : "  <<  aBloc.Name() 
-              << ", Tr=" << std::sqrt(aRes.x()) << ", Rot=" 
-              << std::sqrt(aRes.y()) << std::endl;
-
-    if (mEqRatt)
-    {
-          for (size_t aKBl1=0 ; aKBl1<aBloc.NbInBloc() ; aKBl1++)
-          {
-               cPoseWithUK &  aPBl1 =  aBloc.PoseUKOfNumBloc(aKBl1);
-               tPoseR aPoseInit = aBloc.PoseInitOfNumBloc(aKBl1);
-
-               std::vector<double> aVObs;
-               aPBl1.PushObs(aVObs,false);
-               AppendIn(aVObs,aPoseInit.Tr().ToStdVector());
-               aPoseInit.Rot().Mat().PushByLine(aVObs);
-
-               std::vector<int>  aVInd;
-               aPBl1.PushIndexes(aVInd);
-
-               aSys.R_CalcAndAddObs
-               (
-                   mEqRatt,  // the equation itself
-	           aVInd,
-	           aVObs,
-	           cResidualWeighterExplicit<tREAL8>(false,mWeightRat)
-              );
-          }
-    }
-}
-
-void cBA_BlocRig::AddRigidityEquation(cResolSysNonLinear<tREAL8> & aSys)
-{
-
-     for (const auto & aBloc : mBlocs)
-         OneBlAddRigidityEquation(*aBloc,aSys);
-}
-#endif
 
 };
 

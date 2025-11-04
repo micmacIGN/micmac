@@ -879,6 +879,8 @@ class cAppli_MPDTest : public cMMVII_Appli
         std::string mMsg;
         bool   mMMV1_GenCodeTestCam;
         cPt3di mDegDistTest;
+
+        std::vector<std::vector<std::string> > mVVS;
 };
 
 cCollecSpecArg2007 & cAppli_MPDTest::ArgObl(cCollecSpecArg2007 & anArgObl) 
@@ -894,6 +896,7 @@ cCollecSpecArg2007 & cAppli_MPDTest::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       anArgOpt
          << AOpt2007(mMMV1_GenCodeTestCam,"V1_GCTC","Generate code for Test Cam")
          << AOpt2007(mDegDistTest,"DDT","Degree Distorion Test")
+         << AOpt2007(mVVS,"VVS","Test Vec of Vec of string")
   ;
 }
 
@@ -1047,6 +1050,11 @@ void  DynClass(const std::string & aMsg,const cDynClass_1 & aO1)
 // #include <limits>
 int cAppli_MPDTest::Exe()
 {
+
+    if (1)
+    {
+        StdOut() << "VVS=" << mVVS << "\n";
+     }
    if (1)
    {
        DynClass("C22",cDynClass_2());

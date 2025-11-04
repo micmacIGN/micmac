@@ -263,6 +263,18 @@ template<class TCont,class TVal> bool  MapBoolFind(const TCont & aCont,const TVa
     return aCont.find(aVal) != aCont.end();
 }
 
+template<class TCont,class TKey> const typename  TCont::mapped_type *  MapGet(const TCont & aCont,const TKey & aKey,bool SVP=false)
+{
+    auto anIter = aCont.find(aKey);
+    if (anIter==aCont.end())
+    {
+        MMVII_INTERNAL_ASSERT_tiny(SVP,"MapGet");
+        return nullptr;
+    }
+    return & anIter->second;
+}
+
+
 template <class TV,class TF> void erase_if(TV & aVec,const TF& aFonc)
 {
    aVec.erase(std::remove_if(aVec.begin(),aVec.end(),aFonc),aVec.end());

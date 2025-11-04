@@ -102,8 +102,8 @@ class cAppliBundlAdj : public cMMVII_Appli
         std::vector<std::string>  mParamShow_UK_UC;
         std::string               mPostFixReport;
         std::vector<std::string>  mParamLine;
+        std::vector<std::vector<std::string>> mParamBOI;  //< Param for bloc of instrum
 };
-
 cAppliBundlAdj::cAppliBundlAdj(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli    (aVArgs,aSpec),
    mDataDir        ("Std"),
@@ -166,6 +166,12 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mParamShow_UK_UC,"UC_UK","Param for uncertainty & Show names of unknowns (tuning)")
       << AOpt2007(mPostFixReport,NameParamPostFixReport(),CommentParamPostFixReport())
       << AOpt2007(mParamLine,"AdjLine3D","Parameter for line Adjustment [SigmaIm,NbPtsSampl]",{{eTA2007::ISizeV,"[2,2]"}})
+
+      << AOpt2007(mParamBOI,"BOI","Bloc of Instr [[Bloc?,SigTr2,SigRot2,SvSig?],[GjTr?,GjRot?]]   ",{{eTA2007::ISizeV,"[2,2]"}})
+      << mPhProj.DPBlockInstr().ArgDirInOpt()
+      << mPhProj.DPBlockInstr().ArgDirOutOpt()
+
+
     ;
 }
 
@@ -257,6 +263,8 @@ int cAppliBundlAdj::Exe()
          mBA.AddCam(aNameIm);
     }
 
+
+
     if (IsInit(&mPatParamFrozCalib))
     {
         mBA.SetParamFrozenCalib(mPatParamFrozCalib);
@@ -330,6 +338,11 @@ int cAppliBundlAdj::Exe()
     {
         mBA.AddLineAdjust(mParamLine);
     }
+
+    if (IsInit(&mParamBOI))
+    {
+       mBA.AddBlockInstr(mParamBOI);
+    }
     
     if (mPhProj.DPClinoMeters().DirInIsInit())
     {
@@ -374,6 +387,8 @@ int cAppliBundlAdj::Exe()
     mBA.Save_newGCP3D();
     mBA.SaveTopo(); // just for debug for now
     mBA.SaveClino();
+
+    mBA.SaveBlockInstr();
 
     if (IsInit(&mParamShow_UK_UC))
     {

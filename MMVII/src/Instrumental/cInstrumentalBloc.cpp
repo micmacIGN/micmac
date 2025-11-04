@@ -457,6 +457,24 @@ cIrbCal_CamSet &        cIrbCal_Block::SetCams() {return mSetCams;}
 const cIrbCal_CamSet &  cIrbCal_Block::SetCams() const {return mSetCams;}
 cIrbCal_ClinoSet &      cIrbCal_Block::SetClinos() {return mSetClinos;}
 
+
+const  std::map<tNamePair,cIrb_SigmaInstr> &  cIrbCal_Block::SigmaPair() const {return mSigmaPair; }
+void cIrbCal_Block::SetSigmaPair(const  std::map<tNamePair,cIrb_SigmaInstr> & aSigmaPair)
+{
+
+    for (const auto&  [aCple,aSig] : aSigmaPair )
+    {
+        StdOut() << " SP=" << aCple.V1() << " " << aCple.V2() << " " << aSig.SigmaTr() << " " << aSig.SigmaRot() << "\n";
+    }
+    mSigmaPair = aSigmaPair;
+}
+
+const cIrb_Desc1Intsr &  cIrbCal_Block::SigmaInd(const std::string & aNameInstr) const
+{
+   return *(MapGet(mSigmaInd,aNameInstr));
+}
+
+
 /* *************************************************************** */
 /*                                                                 */
 /*                        cAppli_EditBlockInstr                    */

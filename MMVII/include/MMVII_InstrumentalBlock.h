@@ -136,6 +136,7 @@ class cIrbCal_CamSet : public cMemCheck
          const cIrbCal_Cam1 & KthCam(size_t aK) const;
          tPoseR PoseRel(size_t aK1,size_t aK2) const;
          std::vector<cIrbCal_Cam1> &      VCams();
+         cIrbCal_Cam1 &                   MasterCam();
 
      private :
          void AddCam
@@ -250,6 +251,7 @@ class cIrbCal_Block : public cMemCheck
         void AddSigma(std::string aN1,eTyInstr aType1,std::string aN2, eTyInstr aType2, const cIrb_SigmaInstr &);
 
          const  std::map<tNamePair,cIrb_SigmaInstr> &  SigmaPair() const;
+         void SetSigmaPair( const  std::map<tNamePair,cIrb_SigmaInstr> & );
          const cIrb_Desc1Intsr &  SigmaInd(const std::string &) const;
 
      private :

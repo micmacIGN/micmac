@@ -442,6 +442,7 @@ class cPoseWithUK :  public cObjWithUnkowns<tREAL8>
      public :
          /// Fill with dummy value for case where default constructor is required
 	 cPoseWithUK();
+     ~cPoseWithUK();
 
         /** TransposeMatr  if true,  this is the matrix Word -> Cam that is used, else the matrix of axes IJK. For ex :
                - set to true when computing projection 
