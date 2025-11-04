@@ -39,6 +39,7 @@ class  cGlobCalculMetaDataProject;
 class  cBA_Topo;
 class  cBA_GCP;
 class  cTripletSet;
+class  cStaticLidar;
 
 /**  helper for cPixelDomain, as the cPixelDomain must be serialisable we must separate the
  * minimal data for description, with def contructor from the more "sophisticated" object  */
@@ -797,7 +798,7 @@ class cPhotogrammetricProject
      //==================   Static Lidar         =========================
      //===================================================================
 
-     std::vector<std::string> ReadStaticLidar() const;
+     cStaticLidar * ReadStaticLidar(const cDirsPhProj& aDP,const std::string &aScanName, bool ToDeleteAutom) const; ///< Create Static Lidar
 
          //==================   Camera Data Base     =========================
 

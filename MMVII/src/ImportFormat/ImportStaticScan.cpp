@@ -597,7 +597,7 @@ int cAppli_ImportStaticScan::Exe()
     mSL_data.MaskBuffer(mSL_data.mPhiStep*10);
     mSL_data.SelectPatchCenters2(200);
 
-    SaveInFile(mSL_data, mPhProj.DPStaticLidar().FullDirOut() +  mSL_data.mStationName + "_" + mSL_data.mScanName + ".xml");
+    SaveInFile(mSL_data, mPhProj.DPStaticLidar().FullDirOut() + "Scan-" + mSL_data.mStationName + "-" + mSL_data.mScanName + ".xml");
     return EXIT_SUCCESS;
 
 }

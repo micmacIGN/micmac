@@ -792,7 +792,12 @@ void cMMVII_BundleAdj::SaveClino()
 
 void cMMVII_BundleAdj::Add1AdjLidarPhotogra(const std::vector<std::string> &aParam)
 {
-   mVBA_Lidar.push_back(new cBA_LidarPhotogra(*this,aParam));
+    mVBA_Lidar.push_back(new cBA_LidarPhotogra(mPhProj, *this,aParam, cBA_LidarPhotogra_Type::Triangulation));
+}
+
+void cMMVII_BundleAdj::Add1AdjLidarPhoto(const std::vector<std::string> &aParam)
+{
+    mVBA_Lidar.push_back(new cBA_LidarPhotogra(mPhProj, *this,aParam, cBA_LidarPhotogra_Type::Rastersization));
 }
 
 /* ---------------------------------------- */

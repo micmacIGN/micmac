@@ -11,7 +11,6 @@
 #include "MMVII_PoseTriplet.h"
 #include "MMVII_InstrumentalBlock.h"
 
-
 /**
    \file  cPhotogrammetricProject.cpp
 
@@ -1291,6 +1290,19 @@ cBlocOfCamera * cPhotogrammetricProject::ReadUnikBlocCam() const
     std::list<cBlocOfCamera *>   aListBloc = ReadBlocCams();
     MMVII_INTERNAL_ASSERT_tiny(aListBloc.size()==1,"Number of bloc ="+ ToStr(aListBloc.size()));
     return *(aListBloc.begin());
+}
+
+//  =============  Static Lidar  =================
+
+cStaticLidar * cPhotogrammetricProject::ReadStaticLidar(const cDirsPhProj& aDP, const std::string &aScanName, bool ToDeleteAutom) const
+{
+    aDP.AssertDirInIsInit();
+    std::string aScanFileName  =  aDP.FullDirIn() + aScanName;
+    cStaticLidar * aScan =  cStaticLidar::FromFile(aScanFileName, aDP.FullDirIn());
+
+    if (ToDeleteAutom)
+       cMMVII_Appli::AddObj2DelAtEnd(aScan);
+    return aScan;
 }
 
 
