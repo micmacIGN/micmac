@@ -65,7 +65,10 @@ class cStaticLidar: public cSensorCamPC
     friend class cAppli_ImportStaticScan;
 public :
 
-    cStaticLidar(const std::string &aNameImage, const tPose &aPose, cPerspCamIntrCalib *aCalib);
+    cStaticLidar(const std::string &aNameFile, const tPose &aPose, cPerspCamIntrCalib *aCalib);
+
+    static cStaticLidar *FromFile(const std::string & aNameFile, const std::string & aNameRastersDir);
+
     long NbPts() const;
 
     void ToPly(const std::string & aName, bool WithOffset=false) const;
@@ -81,8 +84,15 @@ public :
     void MaskBuffer(tREAL8 aAngBuffer);
     void SelectPatchCenters1(int aNbPatches);
     void SelectPatchCenters2(int aNbPatches);
+    void MakePatches(std::list<std::vector<cPt2di> > & aLPatches,
+                     tREAL8 aGndPixelSize, int aNbPointByPatch, int aSzMin) const;
+
     float ColToLocalThetaApprox(float aCol) const;
     float LineToLocalPhiApprox(float aLine) const;
+
+    cPt3dr to3D(cPt2di aRasterPx) const;
+
+
 
 
     cStaticLidarImporter mSL_importer;
@@ -101,13 +111,15 @@ private :
     std::string mRasterMaskPath;
     std::unique_ptr<cIm2D<tU_INT1>> mRasterMask;
     std::string mRasterXPath;
+    std::unique_ptr<cIm2D<tREAL4>> mRasterX;
     std::string mRasterYPath;
+    std::unique_ptr<cIm2D<tREAL4>> mRasterY;
     std::string mRasterZPath;
+    std::unique_ptr<cIm2D<tREAL4>> mRasterZ;
     std::string mRasterThetaPath;
     std::string mRasterPhiPath;
     std::string mRasterThetaErrPath;
     std::string mRasterPhiErrPath;
-    std::unique_ptr<cIm2D<tREAL4>> mRasterScore; // updated on each filter, used to find patch centers
 
 
     tREAL8 mThetaStart, mThetaStep;
@@ -120,6 +132,7 @@ private :
     std::unique_ptr<cIm2D<tU_INT1>> mRasterMaskBuffer;
     std::unique_ptr<cIm2D<tREAL4>> mRasterIntensTexture;
     std::unique_ptr<cIm2D<tREAL4>> mRasterDepthStability;
+    std::unique_ptr<cIm2D<tREAL4>> mRasterScore; // updated on each filter, used to find patch centers
 };
 
 void AddData(const  cAuxAr2007 & anAux,cStaticLidar & aSL);

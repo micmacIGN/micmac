@@ -85,7 +85,8 @@ class cAppliBundlAdj : public cMMVII_Appli
 	std::vector<double>       mBRSigma_Rat; // RIGIDBLOC
         std::vector<std::string>  mParamRefOri;  // Force Poses to be +- equals to this reference
 
-        std::vector<std::vector<std::string>>  mParamLidarPhgr; // parameters for lidar photogra/lidar
+        std::vector<std::vector<std::string>>  mParamLidarPhgr; // parameters for lidar photogra/lidar via triangulation
+        std::vector<std::vector<std::string>>  mParamLidarPhoto; // parameters for lidar photogra/lidar via rasterization
 
 	int                       mNbIter;
 
@@ -149,7 +150,8 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mGCPFilterAdd,"GCPFilterAdd","Pattern to filter GCP by additional info")
       << AOpt2007(mTiePWeight,"TiePWeight","Tie point weighting [Sig0,SigAtt?=-1,Thrs?=-1,Exp?=1]",{{eTA2007::ISizeV,"[1,4]"}})
       << AOpt2007(mAddTieP,"AddTieP","For additional TieP, [[Folder,SigG...],[Folder,...]] ")
-      << AOpt2007(mParamLidarPhgr,"LidarPhotogra","Paramaters for adj Lidar/Phgr [[Mode,Ply,Sigma,Interp?,Perturbate?,NbPtsPerPatch=32]*]")
+      << AOpt2007(mParamLidarPhgr,"LidarPhotogra","Paramaters for adj Lidar/Phgr via triangulation [[Mode,Ply,Sigma,Interp?,Perturbate?,NbPtsPerPatch=32]*]")
+      << AOpt2007(mParamLidarPhoto,"LidarPhoto","Paramaters for adj Lidar/Phgr via rasterisation [[Mode,Ply,Sigma,Interp?,Perturbate?,NbPtsPerPatch=32]*]")
       << AOpt2007(mPatParamFrozCalib,"PPFzCal","Pattern for freezing internal calibration parameters")
       << AOpt2007(mVVParFreeCalib,"PPFreeCal","Pattern for free internal calibration parameters [[PatCal1,PatParam1],[PatCal2,PatParam2] ...] ")
       << AOpt2007(mPatFrosenCenters,"PatFzCenters","Pattern of images for freezing center of poses")
@@ -381,6 +383,14 @@ int cAppliBundlAdj::Exe()
         mMeasureAdded = true;
         mBA.Add1AdjLidarPhotogra(aParam);
     }
+
+    for (const auto & aParam : mParamLidarPhoto)
+    {
+        MMVII_INTERNAL_ASSERT_User(aParam.size()>=3,eTyUEr::eUnClassedError,"Not enough parameters for LidarPhoto");
+        mMeasureAdded = true;
+        mBA.Add1AdjLidarPhoto(aParam);
+    }
+
 
     MMVII_INTERNAL_ASSERT_User(mMeasureAdded,eTyUEr::eUnClassedError,"Not any measure added");
 

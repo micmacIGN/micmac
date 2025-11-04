@@ -7,6 +7,7 @@
 #include "MMVII_BundleAdj.h"
 #include "MMVII_Clino.h"
 #include "MMVII_SysSurR.h"
+#include "MMVII_StaticLidar.h"
 
 using namespace NS_SymbolicDerivative;
 namespace MMVII
@@ -336,6 +337,13 @@ class cData1ImLidPhgr
 };
 
 
+enum class cBA_LidarPhotogra_Type
+{
+    Triangulation,
+    Rastersization
+};
+
+
 /**  Class for doing the adjsment between Lidar & Photogra, prototype for now, what will most certainly will need
      to evolve is the weighting policy.
  */
@@ -344,7 +352,7 @@ class cBA_LidarPhotogra
 {
     public :
        /// constructor, take the global bundle struct + one vector of param
-       cBA_LidarPhotogra(cMMVII_BundleAdj&,const std::vector<std::string> & aParam);
+       cBA_LidarPhotogra(cPhotogrammetricProject *aPhProj, cMMVII_BundleAdj&, const std::vector<std::string> & aParam, cBA_LidarPhotogra_Type aType);
        /// destuctor, free interopaltor, calculator ....
        ~cBA_LidarPhotogra();
 
@@ -373,16 +381,18 @@ class cBA_LidarPhotogra
             int                     aKPt
        );
 
-
+       cPhotogrammetricProject *      mPhProj;         // Photogrammetric project
        cMMVII_BundleAdj&              mBA;             ///< The global bundle adj structure
        eImatchCrit                    mModeSim;        ///< type of similarity used
-       cTriangulation3D<tREAL4>       mTri;            ///< Triangulation, in fact used only for points 
+       cTriangulation3D<tREAL4> *     mTri;            ///< Triangulation, in fact used only for points
+       cStaticLidar *                 mLidarData;      ///< Raster representations of lidar
        cDiffInterpolator1D *          mInterp;         ///< Interpolator, used to extract  Value & Grad of images
        cCalculator<double>  *         mEqLidPhgr;      ///< Calculator used for constrain the pose from image obs
        std::vector<cSensorCamPC *>    mVCam;           ///< Vector of central perspective camera
        std::vector<cIm2D<tU_INT1>>    mVIms;           ///< Vector of images associated to each cam
        cWeightAv<tREAL8,tREAL8>       mLastResidual;   ///< Accumulate the radiometric residual
-       std::list<std::vector<int> >   mLPatches;       ///< set of 3D patches
+       std::list<std::vector<int>>    mLPatchesI;      ///< set of patches as index in Tri, consituted by 3D points in a lidar scan
+       std::list<std::vector<cPt2di>> mLPatchesP;      ///< set of patches as px in raster, consituted by 3D points in a lidar scan
        bool                           mPertRad;        ///< do we pertubate the radiometry (simulation & test)
        size_t                         mNbPointByPatch; ///< (approximate) required number of point /patch
        double                         mWeight;          ///< weight for observations
@@ -432,6 +442,7 @@ class cMMVII_BundleAdj
           ///  ============  Add Lidar/Photogra ===============          void AddLineAdjust(const std::vector<std::string> &);
 
           void Add1AdjLidarPhotogra(const std::vector<std::string> &);
+          void Add1AdjLidarPhoto(const std::vector<std::string> &);
 
 	  ///  ============  Add multiple tie point ============
 	  void AddMTieP(const std::string & aName,cComputeMergeMulTieP  * aMTP,const cStdWeighterResidual & aWIm);

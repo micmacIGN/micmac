@@ -12,11 +12,13 @@ namespace MMVII
 */
 
 
-
-cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std::string>& aParam) :
+cBA_LidarPhotogra::cBA_LidarPhotogra(cPhotogrammetricProject * aPhProj,
+                                     cMMVII_BundleAdj& aBA,const std::vector<std::string>& aParam, cBA_LidarPhotogra_Type aType) :
+    mPhProj     (aPhProj),
     mBA         (aBA),                                 // memorize the bundel adj class itself (access to optimizer)
     mModeSim    (Str2E<eImatchCrit>(aParam.at(0))),    // mode of matching
-    mTri        (aParam.at(1)),                        // Lidar point themself, stored as a triangulation
+    mTri        ((aType==cBA_LidarPhotogra_Type::Triangulation)?new cTriangulation3D<tREAL4>(aParam.at(1)):nullptr), // Lidar point themself, stored as a triangulation
+    mLidarData  (nullptr),                             // raster lidar data
     mInterp     (nullptr),                             // interpolator see bellow
     mEqLidPhgr  (nullptr),                             // equation of egalisation Lidar/Phgr
     mPertRad    (false),
@@ -25,6 +27,24 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
     mNbUsedPoints (0),
     mNbUsedObs (0)
 {
+    if (aType==cBA_LidarPhotogra_Type::Rastersization)
+    {
+        //read all xml files from directory ?
+        mPhProj->DPStaticLidar().SetDirIn(aParam.at(1));
+        std::string aPat2Sup =  "Scan-(.*)-(.*)\\." + GlobTaggedNameDefSerial()  ;
+        std::string aFullPat2Sup = mPhProj->DPStaticLidar().FullDirIn() + aPat2Sup;
+        tNameSet aSet = SetNameFromPat(aFullPat2Sup);
+        std::vector<std::string> aVect = ToVect(aSet);
+        for (const auto & aNameSens : aVect)
+        {
+            // TODO: make a vector of lidar data?
+            mLidarData = mPhProj->ReadStaticLidar(mPhProj->DPStaticLidar(), aNameSens, true);
+        }
+
+        MMVII_INTERNAL_ASSERT_User(mLidarData,
+                                   eTyUEr::eUnClassedError,"Error opening static scans " + aFullPat2Sup);
+    }
+
    if (mModeSim==eImatchCrit::eDifRad) 
       mEqLidPhgr = EqEqLidarImPonct (true,1);
    else if (mModeSim==eImatchCrit::eCensus) 
@@ -50,7 +70,9 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
    }
    if (aParam.size() >=6)
    {
-        mNbPointByPatch = cStrIO<size_t>::FromStr(aParam.at(5));
+       mNbPointByPatch = cStrIO<size_t>::FromStr(aParam.at(5));
+       MMVII_INTERNAL_ASSERT_User((mModeSim!=eImatchCrit::eDifRad) || (mNbPointByPatch==1),
+                                  eTyUEr::eUnClassedError,"Only 1 point per patch in "+ToStr(eImatchCrit::eDifRad)+" mode");
    }
    // create the interpolator itself
    mInterp  = cDiffInterpolator1D::AllocFromNames(aParamInt);
@@ -84,19 +106,28 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
    // Creation of the patches, to comment ...
    if (mModeSim!=eImatchCrit::eDifRad)
    {
-        // cBox2dr aBox = BoxOfTri(mTri);
-        cBox2dr aBox = mTri.Box2D();
-        // estimate the distance for computing patching assuming a uniform  distributio,
-        // Pi d^ 2  /NbByP = Surf / NbTot
-        tREAL8 aDistMoy = std::sqrt(mNbPointByPatch *aBox.NbElem()/ (mTri.NbPts()*M_PI));
-        tREAL8 aDistReject =  aDistMoy *1.5;
+        if (mTri)
+        {
+           // cBox2dr aBox = BoxOfTri(mTri);
+           cBox2dr aBox = mTri->Box2D();
+           // estimate the distance for computing patching assuming a uniform  distributio,
+           // Pi d^ 2  /NbByP = Surf / NbTot
+           tREAL8 aDistMoy = std::sqrt(mNbPointByPatch *aBox.NbElem()/ (mTri->NbPts()*M_PI));
+           tREAL8 aDistReject =  aDistMoy *1.5;
+            mTri->MakePatches(mLPatchesI,aDistMoy,aDistReject,5);
 
-        mTri.MakePatches(mLPatches,aDistMoy,aDistReject,5);
-
-        StdOut() << "Patches: DistReject=" << aDistReject 
-                << " NbPts=" << mTri.NbPts() 
-                << " NbPatch=" << mLPatches.size() 
-                << "\n";
+            StdOut() << "Patches: DistReject=" << aDistReject
+                     << " NbPts=" << mTri->NbPts()
+                     << " NbPatch=" << mLPatchesI.size()
+                     << "\n";
+        } else {
+            // Creation of the patches, choose a neigborhood around patch centers. TODO: adapt to images ground pixels size?
+            tREAL4 aGndPixelSize = 0.01; // TODO !! Make it different for each patch center...
+            if (mModeSim==eImatchCrit::eDifRad)
+                mNbPointByPatch = 1;
+            mLidarData->MakePatches(mLPatchesP,aGndPixelSize,mNbPointByPatch,5);
+            StdOut() << "Nb patches: " << mLPatchesP.size() << "\n";
+        }
    }
 }
 
@@ -104,6 +135,8 @@ cBA_LidarPhotogra::~cBA_LidarPhotogra()
 {
     delete mEqLidPhgr;
     delete mInterp;
+    //if (mLidarData) delete mLidarData; // automatically deleted at the end
+    if (mTri) delete mTri;
 }
 
 void cBA_LidarPhotogra::AddObs()
@@ -113,23 +146,41 @@ void cBA_LidarPhotogra::AddObs()
     mNbUsedObs = 0;
     if (mModeSim==eImatchCrit::eDifRad)
     {
-       for (size_t aKP=0 ; aKP<mTri.NbPts() ; aKP++)
-       {
-           Add1Patch(mWeight,{ToR(mTri.KthPts(aKP))});
-       }
+        if (mTri)
+        {
+            for (size_t aKP=0 ; aKP<mTri->NbPts() ; aKP++)
+            {
+                Add1Patch(mWeight,{ToR(mTri->KthPts(aKP))});
+            }
+        } else {
+            for (const auto& aPatch : mLPatchesP)
+            {
+                Add1Patch(mWeight,{mLidarData->to3D(aPatch.front())});
+            }
+        }
     }
     else
     {
         // MMVII_UnclasseUsEr("Dont handle Census");
-        for (const auto& aPatchIndex : mLPatches)
+        if (mTri)
         {
-            std::vector<cPt3dr> aVP;
-            for (const auto anInd : aPatchIndex)
-                aVP.push_back(ToR(mTri.KthPts(anInd)));
-            Add1Patch(mWeight,aVP);
+            for (const auto& aPatchIndex : mLPatchesI)
+            {
+                std::vector<cPt3dr> aVP;
+                for (const auto anInd : aPatchIndex)
+                    aVP.push_back(ToR(mTri->KthPts(anInd)));
+                Add1Patch(mWeight,aVP);
+            }
+        } else {
+            for (const auto& aPatch : mLPatchesP)
+            {
+                std::vector<cPt3dr> aVP;
+                for (const auto aPt : aPatch)
+                    aVP.push_back(mLidarData->to3D(aPt));
+                Add1Patch(mWeight,aVP);
+            }
         }
     }
-
 
     if (mLastResidual.SW() != 0)
        StdOut() << "  * Lid/Phr Residual Rad " << std::sqrt(mLastResidual.Average())

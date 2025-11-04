@@ -7,6 +7,7 @@
 #include "MMVII_TplGradImFilter.h"
 #include "MMVII_Tpl_Images.h"
 #include "MMVII_ImageInfoExtract.h"
+#include "MMVII_2Include_CSV_Serial_Tpl.h"
 
 namespace MMVII
 {
@@ -231,13 +232,25 @@ void cStaticLidarImporter::convertToXYZ()
 
 
 
-cStaticLidar::cStaticLidar(const std::string & aNameImage,const tPose & aPose,cPerspCamIntrCalib * aCalib) :
-    cSensorCamPC(aNameImage, aPose, aCalib),
+cStaticLidar::cStaticLidar(const std::string & aNameFile, const tPose & aPose, cPerspCamIntrCalib * aCalib) :
+    cSensorCamPC(aNameFile, aPose, aCalib),
     mThetaStart       (NAN),
     mThetaStep         (NAN),
     mPhiStart         (NAN),
     mPhiStep           (NAN)
 {
+}
+
+cStaticLidar * cStaticLidar::FromFile(const std::string & aNameFile, const std::string &aNameRastersDir)
+{
+    cStaticLidar * aRes = new cStaticLidar("NONE",tPoseR::Identity(),nullptr);
+    ReadFromFile(*aRes, aNameFile);
+    aRes->mRasterDistance = std::make_unique<cIm2D<tREAL4>>(cIm2D<tREAL4>::FromFile(aNameRastersDir+"/"+aRes->mRasterDistancePath));
+    aRes->mRasterMask = std::make_unique<cIm2D<tU_INT1>>(cIm2D<tU_INT1>::FromFile(aNameRastersDir+"/"+aRes->mRasterMaskPath));
+    aRes->mRasterX = std::make_unique<cIm2D<tREAL4>>(cIm2D<tREAL4>::FromFile(aNameRastersDir+"/"+aRes->mRasterXPath));
+    aRes->mRasterY = std::make_unique<cIm2D<tREAL4>>(cIm2D<tREAL4>::FromFile(aNameRastersDir+"/"+aRes->mRasterYPath));
+    aRes->mRasterZ = std::make_unique<cIm2D<tREAL4>>(cIm2D<tREAL4>::FromFile(aNameRastersDir+"/"+aRes->mRasterZPath));
+    return aRes;
 }
 
 long cStaticLidar::NbPts() const
@@ -253,6 +266,18 @@ float cStaticLidar::ColToLocalThetaApprox(float aCol) const
 float cStaticLidar::LineToLocalPhiApprox(float aLine) const
 {
     return mPhiStart + aLine * mPhiStep;
+}
+
+cPt3dr cStaticLidar::to3D(cPt2di aRasterPx) const
+{
+    auto & aRasterXData = mRasterX->DIm();
+    auto & aRasterYData = mRasterY->DIm();
+    auto & aRasterZData = mRasterZ->DIm();
+    return cPt3dr{
+        aRasterXData.GetV(aRasterPx),
+        aRasterYData.GetV(aRasterPx),
+        aRasterZData.GetV(aRasterPx),
+    };
 }
 
 void cStaticLidar::ToPly(const std::string & aName,bool WithOffset) const
@@ -602,6 +627,55 @@ void cStaticLidar::SelectPatchCenters2(int aNbPatches)
         file1 << aCenter.x() << " " << -aCenter.y() <<"\n";
     }
 }
+
+
+void cStaticLidar::MakePatches
+    (
+        std::list<std::vector<cPt2di> > & aLPatches,
+        tREAL8 aGndPixelSize,
+        int    aNbPointByPatch,
+        int    aSzMin
+        ) const
+{
+    auto & aRasterDistData = mRasterDistance->DIm();
+    auto & aRasterMaskData = mRasterMask->DIm();
+
+    // shortcut if only 1 point needed: just get the centers
+    if (aNbPointByPatch==1)
+        for (auto & aCenter: mPatchCenters)
+        {
+            aLPatches.push_back( {aCenter} );
+        }
+
+    // parse center points
+    for (auto & aCenter: mPatchCenters)
+    {
+        // compute raster step to get aNbPointByPatch separated by aGndPixelSize
+        tREAL4 aMeanDepth = aRasterDistData.GetV(aCenter);
+        tREAL4 aProjColFactor = 1/cos(LineToLocalPhiApprox(aCenter.y()));
+        tREAL4 aNbStepRadius = sqrt(aNbPointByPatch/M_PI) + 1;
+        tREAL4 aRasterPxGndW = mThetaStep * aMeanDepth * aProjColFactor;
+        tREAL4 aRasterPxGndH = mThetaStep * aMeanDepth;
+        tREAL4 aRasterStepPixelsY = aGndPixelSize / aRasterPxGndH;
+        tREAL4 aRasterStepPixelsX = aGndPixelSize / aRasterPxGndW;
+
+        std::vector<cPt2di> aPatch;
+        for (int aJ = -aNbStepRadius; aJ<=aNbStepRadius; ++aJ)
+            for (int aI = -aNbStepRadius; aI<=aNbStepRadius; ++aI)
+            {
+                cPt2di aPt = aCenter + cPt2di(aI*aRasterStepPixelsX,aJ*aRasterStepPixelsY);
+                if (aRasterMaskData.Inside(aPt) && aRasterMaskData.GetV(aPt))
+                    aPatch.push_back(aPt);
+            }
+
+        // some requirement on minimal size
+        if ((int)aPatch.size() > aSzMin)
+        {
+            aLPatches.push_back(aPatch);
+        }
+    }
+}
+
 
 void cStaticLidar::AddData(const  cAuxAr2007 & anAux)
 {
