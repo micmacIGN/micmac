@@ -6,6 +6,7 @@
 #include "E57SimpleReader.h"
 #include "MMVII_TplGradImFilter.h"
 #include "MMVII_Tpl_Images.h"
+#include "MMVII_ImageInfoExtract.h"
 
 namespace MMVII
 {
@@ -244,6 +245,16 @@ long cStaticLidar::NbPts() const
     return mMaxCol * mMaxLine;
 }
 
+float cStaticLidar::ColToLocalThetaApprox(float aCol) const
+{
+    return mThetaStart + aCol * mThetaStep;
+}
+
+float cStaticLidar::LineToLocalPhiApprox(float aLine) const
+{
+    return mPhiStart + aLine * mPhiStep;
+}
+
 void cStaticLidar::ToPly(const std::string & aName,bool WithOffset) const
 {
 /*    cMMVII_Ofs anOfs(aName,eFileModeOut::CreateText);
@@ -378,19 +389,21 @@ void cStaticLidar::fillRasters(const std::string& aPhProjDirOut, bool saveRaster
                           return aPtAng.y()-aPhiLine;
                       } );
 
+    mRasterScore.reset(new cIm2D<tREAL4>(cPt2di(mMaxCol+1, mMaxLine+1), 0, eModeInitImage::eMIA_Null));
 }
 
 void cStaticLidar::FilterIntensity(tREAL8 aLowest, tREAL8 aHighest)
 {
     MMVII_INTERNAL_ASSERT_tiny(mRasterMask, "Error: mRasterMask must be computed first");
     auto & aMaskImData = mRasterMask->DIm();
+    auto & aRasterScoreData = mRasterScore->DIm();
+    tREAL8 aMiddle = (aLowest + aHighest) / 2.;
     for (size_t i=0; i<mSL_importer.mVectPtsTPD.size(); ++i)
     {
+        cPt2di aPcl = {mSL_importer.mVectPtsCol[i], mSL_importer.mVectPtsLine[i]};
         if ((mSL_importer.mVectPtsIntens[i]<aLowest) || (mSL_importer.mVectPtsIntens[i]>aHighest))
-        {
-            cPt2di aPcl = {mSL_importer.mVectPtsCol[i], mSL_importer.mVectPtsLine[i]};
             aMaskImData.SetV(aPcl, 0);
-        }
+        aRasterScoreData.SetV(aPcl, aRasterScoreData.GetV(aPcl) + fabs(mSL_importer.mVectPtsIntens[i]-aMiddle));
     }
     aMaskImData.ToFile("MaskIntens.png");
 }
@@ -399,6 +412,7 @@ void cStaticLidar::FilterIncidence(tREAL8 aAngMax)
 {
     MMVII_INTERNAL_ASSERT_tiny(mRasterMask, "Error: mRasterMask must be computed first");
     auto & aMaskImData = mRasterMask->DIm();
+    auto & aRasterScoreData = mRasterScore->DIm();
 
     // TODO: use im.InitCste()
     cIm2D<tREAL4> aImDistGrX(cPt2di(mMaxCol+1, mMaxLine+1), 0, eModeInitImage::eMIA_Null);
@@ -443,6 +457,7 @@ void cStaticLidar::FilterIncidence(tREAL8 aAngMax)
             aImDistGrYData.SetV(cPt2di(c, l), aTanIncidY);
             if (fabs(aTanIncidX*aTanIncidX+aTanIncidY*aTanIncidY)>aTanAngMax*aTanAngMax)
                 aMaskImData.SetV(cPt2di(c, l), 0);
+            aRasterScoreData.SetV(cPt2di(c, l), aRasterScoreData.GetV(cPt2di(c, l)) + 10.*fabs(aTanIncidX*aTanIncidX+aTanIncidY*aTanIncidY));
         }
     }
     aImDistGrXData.ToFile("DistGrXData.tif");
@@ -457,6 +472,8 @@ void cStaticLidar::MaskBuffer(tREAL8 aAngBuffer)
     auto & aMaskImData = mRasterMask->DIm();
     mRasterMaskBuffer.reset( new cIm2D<tU_INT1>(cPt2di(mMaxCol+1, mMaxLine+1), 0, eModeInitImage::eMIA_NoInit));
     auto & aMaskBufImData = mRasterMaskBuffer->DIm();
+
+    auto & aRasterScoreData = mRasterScore->DIm();
 
     bool aHzLoop = false;
     if (fabs(fabs(mThetaStep) * (mMaxCol+1) - 2 * M_PI) < 2 * fabs(mThetaStep))
@@ -505,7 +522,85 @@ void cStaticLidar::MaskBuffer(tREAL8 aAngBuffer)
             }
         }
     }
+    for (int l = 0 ; l <= mMaxLine; ++l)
+        for (int c = 0 ; c <= mMaxCol; ++c)
+        {
+            if (aMaskBufImData.GetV(cPt2di(c, l))==0)
+                aRasterScoreData.SetV(cPt2di(c, l), 1000.);
+        }
     aMaskBufImData.ToFile("MaskBuff.png");
+}
+
+void cStaticLidar::SelectPatchCenters1(int aNbPatches)
+{
+    mPatchCenters.clear();
+    float aNbPatchesFactor = 2.; // a priori search for aNbPatches * aNbPatchesFactor
+    auto & aRasterScoreData = mRasterScore->DIm();
+    cResultExtremum aRes;
+    double aRadius = sqrt(aRasterScoreData.SzX()*aRasterScoreData.SzY()/(M_PI*aNbPatches))/aNbPatchesFactor;
+    ExtractExtremum1(aRasterScoreData, aRes, aRadius);
+    mPatchCenters = aRes.mPtsMin;
+    StdOut() << "Nb pathes: " << mPatchCenters.size() <<"\n";
+    std::fstream file1;
+    file1.open("centers.txt", std::ios_base::out);
+    for (auto & aCenter : mPatchCenters)
+    {
+        file1 << aCenter.x() << " " << -aCenter.y() <<"\n";
+    }
+    aRasterScoreData.ToFile("Score.tif");
+}
+
+void cStaticLidar::SelectPatchCenters2(int aNbPatches)
+{
+    mPatchCenters.clear();
+    auto & aRasterMaskBufferData = mRasterMaskBuffer->DIm();
+    /*cResultExtremum aRes;
+    double aRadius = sqrt(aRasterMaskBufferData.SzX()*aRasterMaskBufferData.SzY()/(M_PI*nbPatches));
+    ExtractExtremum1(aRasterMaskBufferData, aRes, aRadius);
+    mPatchCenters = aRes.mPtsMax;*/
+
+    // regular grid
+    float aAvgDist = 3.;
+    auto & aRasterDistData = mRasterDistance->DIm();
+    float aXYratio=((float)aRasterMaskBufferData.SzX())/aRasterMaskBufferData.SzY();
+    int aNbPatchesX = sqrt((double)aNbPatches)*sqrt(aXYratio)+1;
+    int aNbPatchesY = sqrt((double)aNbPatches)/sqrt(aXYratio)+1;
+
+    float aNbPatchesFactor = 1.5; // a priori search for aNbPatches * aNbPatchesFactor
+    float aX;
+    float aY = float(aRasterMaskBufferData.SzY()) / aNbPatchesY / 2.;
+    float aXStep;
+    float aYStep = aRasterMaskBufferData.SzY() / aNbPatchesY / aNbPatchesFactor;
+
+    int aLineCounter = 0;
+    while (aY<aRasterMaskBufferData.SzY())
+    {
+        aX = float(aRasterMaskBufferData.SzX()) / aNbPatchesX * ((aLineCounter%2)?1./3.:2./3.);
+        while (aX<aRasterMaskBufferData.SzX())
+        {
+            // take lat/long proj into account
+            aXStep = ((float)aRasterMaskBufferData.SzX()) / aNbPatchesX / aNbPatchesFactor / cos(LineToLocalPhiApprox(aY));
+            auto aPt = cPt2di(aX, aY);
+            if (aRasterMaskBufferData.GetV(aPt))
+            {
+                mPatchCenters.push_back(aPt);
+                aXStep *= aAvgDist/aRasterDistData.GetV(aPt); // take depth into account
+            } else
+                aXStep /= 3.;
+            aX += aXStep;
+
+        }
+        aY += aYStep;
+        aLineCounter++;
+    }
+
+    StdOut() << "Nb pathes: " << mPatchCenters.size() <<"\n";
+    std::fstream file1;
+    file1.open("centers.txt", std::ios_base::out);
+    for (auto & aCenter : mPatchCenters)
+    {
+        file1 << aCenter.x() << " " << -aCenter.y() <<"\n";
+    }
 }
 
 void cStaticLidar::AddData(const  cAuxAr2007 & anAux)
@@ -527,6 +622,8 @@ void cStaticLidar::AddData(const  cAuxAr2007 & anAux)
     MMVII::AddData(cAuxAr2007("RasterX",anAux),mRasterXPath);
     MMVII::AddData(cAuxAr2007("RasterY",anAux),mRasterYPath);
     MMVII::AddData(cAuxAr2007("RasterZ",anAux),mRasterZPath);
+
+    MMVII::AddData(cAuxAr2007("PatchCenters",anAux),mPatchCenters);
 
     MMVII::AddData(cAuxAr2007("RasterTheta",anAux),mRasterThetaPath);
     MMVII::AddData(cAuxAr2007("RasterPhi",anAux),mRasterPhiPath);

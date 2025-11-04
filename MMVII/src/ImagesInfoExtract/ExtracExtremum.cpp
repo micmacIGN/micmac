@@ -492,7 +492,6 @@ MACRO_INSTANTIATE_ExtractExtremum(tREAL8);
 MACRO_INSTANTIATE_ExtractExtremum(tREAL4);
 MACRO_INSTANTIATE_ExtractExtremum(tINT2);
 
-
 /* ============================================================== */
 /*                                                                */
 /*               BENCH                                            */
