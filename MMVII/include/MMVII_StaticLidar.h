@@ -79,6 +79,10 @@ public :
     void FilterIntensity(tREAL8 aLowest, tREAL8 aHighest); // add to mRasterMask
     void FilterIncidence(tREAL8 aAngMax);
     void MaskBuffer(tREAL8 aAngBuffer);
+    void SelectPatchCenters1(int aNbPatches);
+    void SelectPatchCenters2(int aNbPatches);
+    float ColToLocalThetaApprox(float aCol) const;
+    float LineToLocalPhiApprox(float aLine) const;
 
 
     cStaticLidarImporter mSL_importer;
@@ -103,12 +107,14 @@ private :
     std::string mRasterPhiPath;
     std::string mRasterThetaErrPath;
     std::string mRasterPhiErrPath;
+    std::unique_ptr<cIm2D<tREAL4>> mRasterScore; // updated on each filter, used to find patch centers
 
 
     tREAL8 mThetaStart, mThetaStep;
     tREAL8 mPhiStart, mPhiStep;
     int mMaxCol, mMaxLine;
     cRotation3D<tREAL8> mVertRot;
+    std::vector<cPt2di> mPatchCenters;
 
     // rasters for filtering
     std::unique_ptr<cIm2D<tU_INT1>> mRasterMaskBuffer;
