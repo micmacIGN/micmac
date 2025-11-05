@@ -593,8 +593,9 @@ int cAppli_ImportStaticScan::Exe()
     mSL_data.fillRasters(mPhProj.DPStaticLidar().FullDirOut(), true);
 
     mSL_data.FilterIntensity(0.01,0.99);
+    mSL_data.FilterDistance(1., 10);
     mSL_data.FilterIncidence(M_PI/2-0.05);
-    mSL_data.MaskBuffer(mSL_data.mPhiStep*10);
+    mSL_data.MaskBuffer(mSL_data.mPhiStep*10, mPhProj.DPStaticLidar().FullDirOut());
     mSL_data.SelectPatchCenters2(200);
 
     SaveInFile(mSL_data, mPhProj.DPStaticLidar().FullDirOut() + "Scan-" + mSL_data.mStationName + "-" + mSL_data.mScanName + ".xml");
