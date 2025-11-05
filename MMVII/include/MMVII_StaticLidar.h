@@ -81,7 +81,8 @@ public :
 
     void FilterIntensity(tREAL8 aLowest, tREAL8 aHighest); // add to mRasterMask
     void FilterIncidence(tREAL8 aAngMax);
-    void MaskBuffer(tREAL8 aAngBuffer);
+    void FilterDistance(tREAL8 aDistMin, tREAL8 aDistMax);
+    void MaskBuffer(tREAL8 aAngBuffer, const std::string &aPhProjDirOut);
     void SelectPatchCenters1(int aNbPatches);
     void SelectPatchCenters2(int aNbPatches);
     void MakePatches(std::list<std::vector<cPt2di> > & aLPatches,
@@ -93,15 +94,13 @@ public :
     cPt3dr to3D(cPt2di aRasterPx) const;
 
 
-
-
     cStaticLidarImporter mSL_importer;
 private :
     template <typename TYPE> void fillRaster(const std::string& aPhProjDirOut, const std::string& aFileName,
-                    std::function<TYPE (int)> func); // do not keep image in memory
+                    std::function<TYPE (int)> func, bool saveRaster); // do not keep image in memory
 
     template <typename TYPE> void fillRaster(const std::string& aPhProjDirOut, const std::string& aFileName,
-                    std::function<TYPE (int)> func, std::unique_ptr<cIm2D<TYPE>> & aIm); // keep image in memory
+                    std::function<TYPE (int)> func, std::unique_ptr<cIm2D<TYPE>> & aIm, bool saveRaster); // keep image in memory
 
     std::string mStationName;
     std::string mScanName;
@@ -130,9 +129,7 @@ private :
 
     // rasters for filtering
     std::unique_ptr<cIm2D<tU_INT1>> mRasterMaskBuffer;
-    std::unique_ptr<cIm2D<tREAL4>> mRasterIntensTexture;
-    std::unique_ptr<cIm2D<tREAL4>> mRasterDepthStability;
-    std::unique_ptr<cIm2D<tREAL4>> mRasterScore; // updated on each filter, used to find patch centers
+    std::unique_ptr<cIm2D<tREAL4>> mRasterScore; // updated on each filter, used to find patch centers. High=bad
 };
 
 void AddData(const  cAuxAr2007 & anAux,cStaticLidar & aSL);
