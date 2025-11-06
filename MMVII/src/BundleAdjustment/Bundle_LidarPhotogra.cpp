@@ -17,8 +17,8 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cPhotogrammetricProject * aPhProj,
     mPhProj     (aPhProj),
     mBA         (aBA),                                 // memorize the bundel adj class itself (access to optimizer)
     mModeSim    (Str2E<eImatchCrit>(aParam.at(0))),    // mode of matching
-    mTri        ((aType==cBA_LidarPhotogra_Type::Triangulation)?new cTriangulation3D<tREAL4>(aParam.at(1)):nullptr), // Lidar point themself, stored as a triangulation
-    mLidarData  (nullptr),                             // raster lidar data
+    mTri        (nullptr),                             // if triangulation type: Lidar point themself, stored as a triangulation
+    mLidarData  (nullptr),                             // if raster type: raster lidar data
     mInterp     (nullptr),                             // interpolator see bellow
     mEqLidPhgr  (nullptr),                             // equation of egalisation Lidar/Phgr
     mPertRad    (false),
@@ -27,8 +27,13 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cPhotogrammetricProject * aPhProj,
     mNbUsedPoints (0),
     mNbUsedObs (0)
 {
-    if (aType==cBA_LidarPhotogra_Type::Rastersization)
+    if (aType==cBA_LidarPhotogra_Type::Triangulation)
     {
+        std::string aLidarFileName = aParam.at(1);
+        MMVII_INTERNAL_ASSERT_User(UCaseEqual(LastPostfix(aLidarFileName),"ply"),
+                                   eTyUEr::eUnClassedError,"Lidar PLY file mandatory in triangulation mode, got \"" + aParam.at(1) + "\"");
+        mTri = new cTriangulation3D<tREAL4>(aLidarFileName);
+    } else {
         //read all xml files from directory ?
         mPhProj->DPStaticLidar().SetDirIn(aParam.at(1));
         std::string aPat2Sup =  "Scan-(.*)-(.*)\\." + GlobTaggedNameDefSerial()  ;
@@ -120,14 +125,16 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cPhotogrammetricProject * aPhProj,
                      << " NbPts=" << mTri->NbPts()
                      << " NbPatch=" << mLPatchesI.size()
                      << "\n";
-        } else {
-            // Creation of the patches, choose a neigborhood around patch centers. TODO: adapt to images ground pixels size?
-            tREAL4 aGndPixelSize = 0.01; // TODO !! Make it different for each patch center...
-            if (mModeSim==eImatchCrit::eDifRad)
-                mNbPointByPatch = 1;
-            mLidarData->MakePatches(mLPatchesP,aGndPixelSize,mNbPointByPatch,5);
-            StdOut() << "Nb patches: " << mLPatchesP.size() << "\n";
         }
+   }
+   if (mLidarData)
+   {
+       // Creation of the patches, choose a neigborhood around patch centers. TODO: adapt to images ground pixels size?
+       tREAL4 aGndPixelSize = 0.01; // TODO !! Make it different for each patch center...
+       if (mModeSim==eImatchCrit::eDifRad)
+           mNbPointByPatch = 1;
+       mLidarData->MakePatches(mLPatchesP,aGndPixelSize,mNbPointByPatch,5);
+       StdOut() << "Nb patches: " << mLPatchesP.size() << "\n";
    }
 }
 
