@@ -599,6 +599,8 @@ int cAppli_ImportStaticScan::Exe()
     mSL_data.SelectPatchCenters2(200);
 
     SaveInFile(mSL_data, mPhProj.DPStaticLidar().FullDirOut() + "Scan-" + mSL_data.mStationName + "-" + mSL_data.mScanName + ".xml");
+
+    mSL_data.ToPly("Out_filtered.ply", true);
     return EXIT_SUCCESS;
 
 }

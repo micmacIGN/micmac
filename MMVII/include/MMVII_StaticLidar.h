@@ -71,7 +71,7 @@ public :
 
     long NbPts() const;
 
-    void ToPly(const std::string & aName, bool WithOffset=false) const;
+    void ToPly(const std::string & aName, bool useMask=false) const;
     void AddData(const  cAuxAr2007 & anAux) ;
 
     void fillRasters(const std::string &aPhProjDirOut, bool saveRasters);
@@ -107,6 +107,7 @@ private :
     std::string mRasterDistancePath;
     std::unique_ptr<cIm2D<tREAL4>> mRasterDistance;
     std::string mRasterIntensityPath;
+    std::unique_ptr<cIm2D<tU_INT1>> mRasterIntensity;
     std::string mRasterMaskPath;
     std::unique_ptr<cIm2D<tU_INT1>> mRasterMask;
     std::string mRasterXPath;
