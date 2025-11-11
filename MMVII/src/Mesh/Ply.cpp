@@ -2162,7 +2162,7 @@ template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & a
 }
 
 
- template <class Type> void cTriangulation3D<Type>::LasInit(const std::string & aNameFile)
+ template <class Type> void cTriangulation3D<Type>::LasInit(const std::string & aNameFile, bool SelectForRegistration)
  {
    //StdOut()<<"START READING LAZ "<<std::endl;
    pdal::Option las_opt("filename", aNameFile);
@@ -2177,9 +2177,7 @@ template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & a
    pdal::LasHeader las_header = las_reader.header();
    std::cout<<"POINT VIEW SIZE "<<point_view->size()<<std::endl;
    auto aDsmMarkerDim = table.layout()->findProprietaryDim(ClassificationTags().DSMMarker);
-
    std::cout<<"DSM MARKER "<<pdal::Dimension::description(aDsmMarkerDim)<<std::endl;
-   //StdOut()<<"FINISH READING LAZ "<<std::endl;
       #pragma omp parallel
        {
            //omp_set_num_threads(16);
@@ -2188,28 +2186,33 @@ template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & a
            #pragma omp for
            for (pdal::PointId idx = 0; idx < point_view->size(); ++idx)
            {
-
+               if (SelectForRegistration)
+               {
                     auto Classif=point_view->getFieldAs<int>(Id::Classification, idx);
-                     //bool IsBuilding=(Classif==ClassificationTags().Building);
-                    //bool IsGround=(Classif==ClassificationTags().Ground);
                     bool IsUnclassified=(Classif==ClassificationTags().Unclassified);
-                    bool IsFictive  = (Classif==66);
+                    bool IsFictive  = (Classif == 66);
                     bool IsWater=(Classif==ClassificationTags().Water);
                     bool IsVeg=(Classif==ClassificationTags().Low_Vegetation) ||
                                (Classif==ClassificationTags().Medium_Vegetation) ||
                                (Classif==ClassificationTags().High_Vegetation) ;
 
 
-
                 if (! (IsWater || IsVeg || IsUnclassified || IsFictive)  )
                    {
-                        //if (Classif==66)
-                        //    StdOut()<<"----"<<"classif problem "<<ClassificationTags().FictiveWaterBridge<<"----"<<std::endl;
                        tPt aP(point_view->getFieldAs<tREAL8>(Id::X, idx),
                               point_view->getFieldAs<tREAL8>(Id::Y, idx),
                               point_view->getFieldAs<tREAL8>(Id::Z, idx));
                        aVPts_pp.push_back(aP);
                    }
+               }
+
+               else
+               {
+                   tPt aP(point_view->getFieldAs<tREAL8>(Id::X, idx),
+                          point_view->getFieldAs<tREAL8>(Id::Y, idx),
+                          point_view->getFieldAs<tREAL8>(Id::Z, idx));
+                   aVPts_pp.push_back(aP);
+               }
            }
            #pragma omp critical
            this->mVPts.insert(this->mVPts.end(),
@@ -2218,39 +2221,6 @@ template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & a
         }
 
        StdOut()<<"selecting points while reading las "<<std::endl;
-
-
-
-  /* if (0) // read points tagged as useful for DSM generation and not on trees
-     {
-       std::cout<<"HAS DSM MARKER "<<std::endl;
-       for (pdal::PointId idx = 0; idx < point_view->size(); ++idx)
-       {
-          using namespace pdal::Dimension;
-          auto IsForDsm=point_view->getFieldAs<int>(aDsmMarkerDim,idx);
-          auto Classif=point_view->getFieldAs<int>(Id::Classification,idx);
-          bool IsVeg=((Classif==ClassificationTags().Low_Vegetation) ||
-                      (Classif==ClassificationTags().Medium_Vegetation) ||
-                      (Classif==ClassificationTags().High_Vegetation)
-                      );
-          bool IsBuilding = (Classif==ClassificationTags().Building);
-
-          if (IsForDsm && !IsVeg && IsBuilding)
-            {
-              std::cout<<"Classification tag "<<Classif<<std::endl;
-              tPt aP(point_view->getFieldAs<tREAL8>(Id::X, idx),
-                     point_view->getFieldAs<tREAL8>(Id::Y, idx),
-                     point_view->getFieldAs<tREAL8>(Id::Z, idx));
-              this->mVPts.push_back(aP);
-            }
-       }
-       std::cout<<"integrated points "<<this->mVPts.size()<<std::endl;
-     }
-   else  // assume point cloud is classified -> if there is not a tag dsm marker get points in GROUND, BUILDINGS
-     {
-
-     }*/
-
 
  }
 
@@ -2310,7 +2280,7 @@ template <class Type>  cTriangulation3D<Type>::cTriangulation3D(const tVPt& aVP,
 {
 }
 
-template <class Type>  cTriangulation3D<Type>::cTriangulation3D(const std::string & aName):
+template <class Type>  cTriangulation3D<Type>::cTriangulation3D(const std::string & aName, bool SelectPointsByClass):
         cTriangulation<Type,3>(std::vector<tPt>())
 {
     if (UCaseEqual(LastPostfix(aName),"ply"))
@@ -2320,7 +2290,7 @@ template <class Type>  cTriangulation3D<Type>::cTriangulation3D(const std::strin
 
     else if (UCaseEqual(LastPostfix(aName),"laz"))
     {
-       LasInit(aName);
+       LasInit(aName,SelectPointsByClass);
     }
     else
     {
@@ -2919,7 +2889,7 @@ template <class Type>
              //  Add it in the tilisng of select
              aTileSelect.Add(cTil2DTri3D<Type>(aKP));
              // extract all the point close enough to the center
-             StdOut()<<"get elemm "<<std::endl;
+             //StdOut()<<"get elemm "<<std::endl;
              auto aLIptr = aTileAll.GetObjAtDist(aPt,aDistNeigh);
              std::vector<int> aPatch; // the patch itself = index of points
              aPatch.push_back(aKP);  // add the center at begining

@@ -555,6 +555,7 @@ int cAppliProMeshImage::Exe()
      }
    */
 
+
    mTri3D = new cTriangulation3D<tREAL8>(DirProject()+mNameCloud3DIn);
 
    mNbF   = mTri3D->NbFace();

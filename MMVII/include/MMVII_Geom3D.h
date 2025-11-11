@@ -375,7 +375,7 @@ template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
 
            typedef cTriangulation3D<Type>  tTriangulation3D;
            /// Constructor from file, include ply format, maybe later others (internals?)  if required
-           cTriangulation3D(const std::string &);
+           cTriangulation3D(const std::string &, bool SelectPointsByClass=false);
            cTriangulation3D(const tVPt&,const tVFace &);
            void WriteFile(const std::string &,bool isBinary) const;
            void SamplePts(const bool & targetted,const tREAL8 & aStep);
@@ -413,7 +413,7 @@ template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
         private :
            /// Read/Write in ply format using
            void PlyInit(const std::string &);
-           void LasInit(const std::string &);
+           void LasInit(const std::string &, bool SelectForRegistration=false);
            void PlyWrite(const std::string &,bool isBinary) const;
 
 

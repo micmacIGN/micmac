@@ -812,7 +812,7 @@ void cAppliMMGenDepthMV::ReadLidarTile (std::string aLidarTileName,
               aVecLidar.push_back(aName);
           }
 
-          StdOut()<<"aVEC LIDAR SOZE "<<aVecLidar.size()<<std::endl;
+          StdOut()<<"aVEC LIDAR SIZE "<<aVecLidar.size()<<std::endl;
 
           // Read all tiles lidar
 

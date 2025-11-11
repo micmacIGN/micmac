@@ -3,6 +3,10 @@
 #include "MMVII_Tpl_Images.h"
 #include "MMVII_DeclareCste.h"
 
+#if (MMVII_KEEP_LIBRARY_MMV1)
+#include "../../../include/StdAfx.h"
+#endif
+
 static bool  DEBUG_EDM = false;
 
 // using namespace MMVII;
@@ -122,7 +126,7 @@ class cOneLevel
        cParamCallSys StrComClipIm(bool ModeIm,const cPt2di & aInd,const cParam1Match &) const;
        cParamCallSys StrComReduce(bool ModeIm=true) const; ///< Generate the string for computing reduced images
        //cParamCallSys StrComReduce(bool ModeIm=true) const;
-       //void CreateNuageLastFile(const std::string& Dir, const std::string& ImName);
+       void CreateNuageLastFile(const std::string& Dir, const std::string& ImName);
 
                  //  ------  Generate name for cliped images
        std::string  NameClip(const std::string & aPrefix,const cPt2di & aInd) const; ///< Genreik name
@@ -364,8 +368,10 @@ cParamCallSys cOneLevel::StrComReduce(bool ModeIm) const
   ;*/
 }
 
-/*void cOneLevel::CreateNuageLastFile(const std::string& Dir, const std::string& ImName)
+#if (MMVII_KEEP_LIBRARY_MMV1)
+void cOneLevel::CreateNuageLastFile(const std::string& Dir, const std::string& ImName)
 {
+
     //read the depth map to read the image size
     Tiff_Im     aImProfMMVII( (Dir + ImName).c_str());
 
@@ -430,7 +436,15 @@ cParamCallSys cOneLevel::StrComReduce(bool ModeIm) const
     aNMVII.PM3D_ParamSpecifs() = aParSpec;
 
     MakeFileXML(aNMVII,Dir+"MMLastNuage.xml");
-}*/
+}
+#else
+{
+    void cOneLevel::CreateNuageLastFile(const std::string& Dir, const std::string& ImName)
+    {
+        MMVII_INTERNAL_ERROR("This functionality requires compiling MMV2 with MMV1");
+    }
+}
+#endif
 
 
 std::string Index2Str(const cPt2di & aInd)
@@ -1192,12 +1206,12 @@ int cAppli::Exe()
               "NbProc=1"
               //"@ExitOnBrkp"
            );
-       std::cout<<"COMMAND COrrell "<<aCom.Com()<<std::endl;
+       StdOut()<<"Correlation command: -> "<<aCom.Com()<<std::endl;
         ExtSysCall(aCom,false);
      }
    // Save Output MMLastNuage.xml
-    //cOneLevel & aLastLevel = Im1().LevAt(0);
-    //aLastLevel.CreateNuageLastFile(mOutDir,mOutPx);
+    cOneLevel & aLastLevel = Im1().LevAt(0);
+    aLastLevel.CreateNuageLastFile(mOutDir,mOutPx);
 
 
    return EXIT_SUCCESS;
