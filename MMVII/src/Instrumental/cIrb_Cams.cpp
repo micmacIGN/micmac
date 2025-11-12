@@ -235,7 +235,6 @@ void cIrbCal_CamSet::AddCam
    // in case already exist, we may ovewrite (multiple edit)
    if (aCam)
    {
-       StdOut () << " AddCamAddCam " << aCam->IsInit() << " " << aNewCam.IsInit() << "\n";
        MMVII_INTERNAL_ASSERT_strong(OkAlreadyExist,"cIrbCal_Block::AddCam, cal already exist for " + aNameCalib);
        aCam->UnInit();
        *aCam = aNewCam;
