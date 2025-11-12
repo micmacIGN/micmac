@@ -764,6 +764,7 @@ const std::vector<cPt3di>
 			   {0,0,1},  // pure linear as used in 11 Param
 			   {2,0,0},
 			   {3,0,0},
+			   {3,1,0},
 			   {3,1,1},
 			   {5,1,1},
 			   {5,1,2},
