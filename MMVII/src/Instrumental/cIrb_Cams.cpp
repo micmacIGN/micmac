@@ -107,6 +107,14 @@ cIrbCal_Cam1::cIrbCal_Cam1()  :
 {
 }
 
+void cIrbCal_Cam1::UnInit()
+{
+   delete mPoseInBlock;
+    mPoseInBlock = nullptr;
+    mIsInit = false;
+}
+
+
 void cIrbCal_Cam1::SetPose(const tPoseR & aPose)
 {
 
@@ -118,6 +126,8 @@ void cIrbCal_Cam1::SetPose(const tPoseR & aPose)
    mIsInit      = true;
 
 }
+
+bool          cIrbCal_Cam1::IsInit() const{  return mIsInit;}
 const tPoseR & cIrbCal_Cam1::PoseInBlock() const
 {
     MMVII_INTERNAL_ASSERT_tiny(mIsInit,"IrbCal_Cam1::PoseInBlock");
@@ -225,7 +235,9 @@ void cIrbCal_CamSet::AddCam
    // in case already exist, we may ovewrite (multiple edit)
    if (aCam)
    {
+       StdOut () << " AddCamAddCam " << aCam->IsInit() << " " << aNewCam.IsInit() << "\n";
        MMVII_INTERNAL_ASSERT_strong(OkAlreadyExist,"cIrbCal_Block::AddCam, cal already exist for " + aNameCalib);
+       aCam->UnInit();
        *aCam = aNewCam;
    }
    else

@@ -36,8 +36,9 @@ class cAppli_BlockInstrInitCam : public cMMVII_Appli
      private :
         cPhotogrammetricProject   mPhProj;
         std::string               mSpecImIn;
-        cIrbComp_Block *           mBlock;
-        std::string               mNameBloc;
+        cIrbComp_Block *          mBlock;
+        std::string               mNameBloc;  //< name of the bloc inside the
+        bool                      mAvgSigma;  //< Do we average sigma of pairs
 };
 
 
@@ -45,7 +46,8 @@ cAppli_BlockInstrInitCam::cAppli_BlockInstrInitCam(const std::vector<std::string
     cMMVII_Appli (aVArgs,aSpec),
     mPhProj      (*this),
     mBlock       (nullptr),
-    mNameBloc    (cIrbCal_Block::theDefaultName)
+    mNameBloc    (cIrbCal_Block::theDefaultName),
+    mAvgSigma    (true)
 {
 }
 
@@ -63,6 +65,7 @@ cCollecSpecArg2007 & cAppli_BlockInstrInitCam::ArgOpt(cCollecSpecArg2007 & anArg
 {
 	return anArgOpt
             << AOpt2007(mNameBloc,"NameBloc","Name of bloc to calib ",{{eTA2007::HDV}})
+            << AOpt2007(mAvgSigma,"AvgSigma","Do we average the sigma init",{{eTA2007::HDV}})
         ;
 }
 
@@ -120,6 +123,10 @@ int cAppli_BlockInstrInitCam::Exe()
         const auto & aSg_Pose_Sigm = mBlock->ComputeCalibCamsInit(aNumMaster,aKC1);
         mBlock->CalBlock().SetCams().KthCam(aKC1).SetPose(std::get<tPoseR>(aSg_Pose_Sigm));
     }
+
+    if (mAvgSigma)
+       mBlock->CalBlock().AvgSigma();
+
     mPhProj.SaveRigBoI(mBlock->CalBlock());
 
     delete mBlock;

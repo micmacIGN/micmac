@@ -22,17 +22,17 @@ namespace MMVII
 
 
 cIrb_SigmaInstr::cIrb_SigmaInstr() :
-    cIrb_SigmaInstr(0.0,0.0,0.0)
+    cIrb_SigmaInstr(0.0,0.0,0.0,0.0)
 {
 }
 
 
-cIrb_SigmaInstr::cIrb_SigmaInstr(tREAL8 aW,tREAL8 aSigTr,tREAL8 aSigRot) :
+cIrb_SigmaInstr::cIrb_SigmaInstr(tREAL8 aWTr,tREAL8 aWRot,tREAL8 aSigTr,tREAL8 aSigRot) :
     mAvgSigTr   (),
     mAvgSigRot  ()
 {
-    mAvgSigTr.Add(aW,aSigTr);
-    mAvgSigRot.Add(aW,aSigRot);
+    mAvgSigTr.Add(aWTr,aSigTr);
+    mAvgSigRot.Add(aWRot,aSigRot);
 }
 
 void cIrb_SigmaInstr::AddData(const  cAuxAr2007 & anAux)
@@ -102,6 +102,11 @@ void AddData(const  cAuxAr2007 & anAux,cIrb_Desc1Intsr & aDesc)
 }
 
 const cIrb_SigmaInstr & cIrb_Desc1Intsr::Sigma() const {return mSigma;}
+
+void cIrb_Desc1Intsr::SetSigma(const cIrb_SigmaInstr& aSigma)
+{
+   mSigma = aSigma;
+}
 
 void  cIrb_Desc1Intsr::AddNewSigma(const cIrb_SigmaInstr& aSigAdd)
 {
@@ -302,7 +307,7 @@ typename cIrbComp_Block::tResCompCal cIrbComp_Block::ComputeCalibCamsInit(int aK
 	    << "\n";
 	    */
 
-   return tResCompCal(aMinDGlob,aVPoseRel.at(aK1Min), cIrb_SigmaInstr (aNbP,aMinDTr,aMinDRot));
+   return tResCompCal(aMinDGlob,aVPoseRel.at(aK1Min), cIrb_SigmaInstr (aNbP,aNbP,aMinDTr,aMinDRot));
 }
 
     //  -------------------------- "Accessors"  --------------------------------------------------------
@@ -472,6 +477,64 @@ void cIrbCal_Block::SetSigmaPair(const  std::map<tNamePair,cIrb_SigmaInstr> & aS
 const cIrb_Desc1Intsr &  cIrbCal_Block::SigmaInd(const std::string & aNameInstr) const
 {
    return *(MapGet(mSigmaInd,aNameInstr));
+}
+
+
+void cIrbCal_Block::AvgPairSigma(eTyInstr aTyTarg1,eTyInstr aTyTarg2)
+{
+    tIntPair aPairTarg((int)aTyTarg1,(int)aTyTarg2); // Index use for T1,T2 <=> T2,T1
+    std::vector<cIrb_SigmaInstr*> aVSig; // memorize
+    cIrb_SigmaInstr  aSigGlob;
+
+    for ( auto & [aPair,aSigma] : mSigmaPair)
+    {
+        eTyInstr aTy1 = SigmaInd(aPair.V1()).Type();
+        eTyInstr aTy2 = SigmaInd(aPair.V2()).Type();
+
+        if (aPairTarg== tIntPair(int(aTy1),int(aTy2)))
+        {
+            aSigGlob.AddNewSigma(aSigma);
+            aVSig.push_back(&aSigma);
+        }
+    }
+
+    for (auto aPtrS : aVSig)
+        *aPtrS = aSigGlob;
+}
+
+void cIrbCal_Block::AvgIndivSigma(eTyInstr aTyTarg)
+{
+    cIrb_SigmaInstr  aSigGlob;
+    std::vector<cIrb_Desc1Intsr*> aVInstr;
+
+    for ( auto & [aPair,aInstr] : mSigmaInd)
+    {
+        if (aInstr.Type() == aTyTarg)
+        {
+            aSigGlob.AddNewSigma(aInstr.Sigma());
+            aVInstr.push_back(&aInstr);
+        }
+    }
+
+    for (auto aPtrI : aVInstr)
+        aPtrI->SetSigma(aSigGlob);
+
+}
+
+void cIrbCal_Block::AvgIndivSigma()
+{
+    AvgIndivSigma(eTyInstr::eCamera);
+}
+
+void cIrbCal_Block::AvgPairSigma()
+{
+   AvgPairSigma(eTyInstr::eCamera,eTyInstr::eCamera);
+}
+
+void cIrbCal_Block::AvgSigma()
+{
+    AvgPairSigma();
+    AvgIndivSigma();
 }
 
 

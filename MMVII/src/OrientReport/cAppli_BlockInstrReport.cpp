@@ -92,7 +92,7 @@ void cAppli_BlockInstrReport::DoReportOrient()
                 std::string aN2 = mCamCal->KthCam(aK2).NameCal();
 
                 tNamePair aPair(aN1,aN2);
-                aMoyPair[aPair].AddNewSigma(cIrb_SigmaInstr(1.0,aDTr,aDRot));
+                aMoyPair[aPair].AddNewSigma(cIrb_SigmaInstr(1.0,1.0,aDTr,aDRot));
             }
        }
    }

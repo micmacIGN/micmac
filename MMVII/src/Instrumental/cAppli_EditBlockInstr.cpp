@@ -90,6 +90,7 @@ int cAppli_EditBlockInstr::Exe()
                                  new cIrbCal_Block                      :
                                  mPhProj.ReadRigBoI(mNameBloc,SVP::Yes) ;
 
+
     // if we add structure for camera
     if (IsInit(&mVPatsIm4Cam))
     {
@@ -104,8 +105,9 @@ int cAppli_EditBlockInstr::Exe()
             std::string aNameCal = mPhProj.StdNameCalibOfImage(aNameIm);
             if (! BoolFind(aSetNameCal,aNameCal))
             {
-                aSetNameCal.insert(aNameCal);
-                aBlock->SetCams().AddCam(aNameCal,aPatTimeStamp,aPatSelIm,SVP::Yes);
+                aSetNameCal.insert(aNameCal); // OK
+
+                aBlock->SetCams().AddCam(aNameCal,aPatTimeStamp,aPatSelIm,SVP::Yes); // Not OK:w
             }
         }
     }

@@ -82,16 +82,16 @@ cBA_BlockInstr::cBA_BlockInstr
         const std::vector<std::string> & aVParamsPair,
         const std::vector<std::string> & aVParamGauje
 ) :
-    mBA          (aBA),
-    mSys         (nullptr),
-    mCompbBl     (aCompBl),
-    mCalBl       (&mCompbBl->CalBlock()),
-    mCalCams     (&mCalBl->SetCams()),
+    mBA           (aBA),
+    mSys          (nullptr),
+    mCompbBl      (aCompBl),
+    mCalBl        (&mCompbBl->CalBlock()),
+    mCalCams      (&mCalBl->SetCams()),
     mMasterCam    (mCalCams->MasterCam()),
-    mVParams     (aVParamsPair),
-    mEqRigCam    (EqBlocRig(true,1,true)),
-    mMulSigmaTr  (cStrIO<double>::FromStr(aVParamsPair.at(1))),
-    mMulSigmaRot (cStrIO<double>::FromStr(aVParamsPair.at(2))),
+    mVParams      (aVParamsPair),
+    mEqRigCam     (EqBlocRig(true,1,true)),
+    mMulSigmaTr   (cStrIO<double>::FromStr(GetDef(aVParamsPair,1,std::string("1.0")))),
+    mMulSigmaRot  (cStrIO<double>::FromStr(GetDef(aVParamsPair,2,std::string("1.0")))),
     mModeSaveSigma(cStrIO<int>::FromStr(GetDef(aVParamsPair,3,std::string("1")))),
     mGaujeTr      (cStrIO<double>::FromStr(GetDef(aVParamGauje,0,std::string("0.0")))),
     mGaujeRot     (cStrIO<double>::FromStr(GetDef(aVParamGauje,1,std::string("0.0"))))
@@ -112,8 +112,6 @@ cBA_BlockInstr::cBA_BlockInstr
 
 cBA_BlockInstr::~cBA_BlockInstr()
 {
-    StdOut() << "cBA_BlockInstrcBA_BlockInstrcBA_BlockInstrcBA_BlockInstr\n";
-
     delete mCompbBl;
 }
 
@@ -200,12 +198,11 @@ void cBA_BlockInstr::OneItere_1PairCam
         ((aKU<3) ? aSumTr : aSumRot) += (Square(mEqRigCam->ValComp(0,aKU)));
     }
 
-    //StdOut( ) << "SiGmA=" << mSigmaPair.size() << " " << std::sqrt(aSumTr) << " " << std::sqrt(aSumRot) << "\n";
 
     mAvgTr.Add(1.0,aSumTr);
     mAvgRot.Add(1.0,aSumRot);
 
-    mSigmaPair[aPair].AddNewSigma(cIrb_SigmaInstr(1.0,std::sqrt(aSumTr),std::sqrt(aSumRot)));
+    mSigmaPair[aPair].AddNewSigma(cIrb_SigmaInstr(1.0,1.0,std::sqrt(aSumTr),std::sqrt(aSumRot)));
 }
 
 
@@ -231,7 +228,6 @@ void cBA_BlockInstr::OneItere()
    mAvgRot.Reset();
 
    mSigmaPair.clear();
-   StdOut() << "mSigmaPairmSigmaPairSz=" << mSigmaPair.size() << "\n";
 
    // Parse all "time stamp" to add equation
    for ( auto & [aTimeS,aDataTS] : mCompbBl->DataTS())
@@ -269,7 +265,6 @@ void cBA_BlockInstr::AddGauge(bool InEq)
 
 void cBA_BlockInstr::SaveSigma()
 {
-    StdOut() << "MODESSSS " << mModeSaveSigma << "\n";
     if (mModeSaveSigma==0)
     {
         // Case nothing to do
@@ -302,8 +297,10 @@ void cMMVII_BundleAdj::AddBlockInstr(const std::vector<std::vector<std::string>>
         MMVII_UnclasseUsEr("Dir for bloc of instrument not init with parameter for BOI/Compensation");
     }
 
+
+
      const std::vector<std::string> & aVParamPairCam = aVVParam.at(0);
-     std::string aNameBlock = aVParamPairCam.at(0);
+     std::string aNameBlock = GetDef(aVParamPairCam,0,std::string(""));
      if (aNameBlock=="")
          aNameBlock = cIrbCal_Block::theDefaultName;
 
@@ -348,7 +345,6 @@ void cMMVII_BundleAdj::SaveBlockInstr()
 
 void cMMVII_BundleAdj::DeleteBlockInstr()
 {
-    StdOut() << "cMMVII_BundleAdj::DeleteBlockInstrcMMVII_BundleAdj::DeleteBlockInstr \n";
     DeleteAllAndClear(mVecBlockInstrAdj);
 }
 
