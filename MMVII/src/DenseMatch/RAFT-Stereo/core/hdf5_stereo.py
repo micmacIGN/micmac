@@ -35,6 +35,8 @@ class HDF5StereoDataModule(LightningDataModule):
         prefetch_factor: int = 2,
         transforms: Optional[Dict[str, TRANSFORMS_LIST]] = None,
         sampler: bool = False,
+        rank : int = 0,
+        world_size: int = 0,
         **kwargs,
     ):
         super().__init__()
@@ -67,6 +69,8 @@ class HDF5StereoDataModule(LightningDataModule):
         self.augmentation_transform: TRANSFORMS_LIST = [] #t.get("augmentations_list", [])
         self.normalization_transform: TRANSFORMS_LIST= [] #t.get("normalizations_list", [])
         self.sampler = sampler
+        self.rank= rank, 
+        self.world_size=world_size
         self.train_sampler=None
         self.val_sampler= None
 
@@ -139,10 +143,14 @@ class HDF5StereoDataModule(LightningDataModule):
 
     def train_dataloader(self) -> DataLoader:
         if self.sampler :
-            batch_size_per_gpu = self.batch_size // idr_torch.size
+            w_size = self.world_size if self.world_size!=0 else idr_torch.size
+            the_rank = self.rank if self.rank!=0 else idr_torch.rank
+
+            batch_size_per_gpu = self.batch_size // w_size
+
             self.train_sampler = torch.utils.data.distributed.DistributedSampler(self.dataset.traindata,
-                                                                    num_replicas=idr_torch.size,
-                                                                    rank=idr_torch.rank,
+                                                                    num_replicas=w_size,
+                                                                    rank=the_rank,
                                                                     shuffle=True)
             return DataLoader(self.dataset.traindata,
                             batch_size=batch_size_per_gpu,
@@ -163,12 +171,17 @@ class HDF5StereoDataModule(LightningDataModule):
                         )
     def val_dataloader(self)-> DataLoader:
         if self.sampler :
+            w_size = self.world_size if self.world_size!=0 else idr_torch.size
+            the_rank = self.rank if self.rank!=0 else idr_torch.rank
+
+            batch_size_per_gpu = self.batch_size // w_size
+
             self.val_sampler = torch.utils.data.distributed.DistributedSampler(self.dataset.valdata,
-                                                                    num_replicas=idr_torch.size,
-                                                                    rank=idr_torch.rank,
+                                                                    num_replicas=w_size,
+                                                                    rank=the_rank,
                                                                     shuffle=False)
             return DataLoader(self.dataset.valdata,
-                            batch_size=self.batch_size,
+                            batch_size=batch_size_per_gpu,
                             shuffle=False,
                             num_workers=self.num_workers,
                             prefetch_factor=self.prefetch_factor,
