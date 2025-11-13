@@ -26,7 +26,7 @@ class HDF5StereoDataModule(LightningDataModule):
         tile_width: Number = 1024,
         tile_height: Number= 1024,
         patch_size: Number = 768,
-        sign_disp_multiplier: Number = 1,
+        sign_disp_multiplier: Number = 1,   
         masq_divider: Number = 1,
         subtile_overlap_train: Number = 0,
         subtile_overlap_predict: Number = 0,
@@ -35,7 +35,7 @@ class HDF5StereoDataModule(LightningDataModule):
         prefetch_factor: int = 2,
         transforms: Optional[Dict[str, TRANSFORMS_LIST]] = None,
         sampler: bool = False,
-        rank : int = 0,
+        #rank : int = 0,
         world_size: int = 0,
         **kwargs,
     ):
@@ -69,7 +69,7 @@ class HDF5StereoDataModule(LightningDataModule):
         self.augmentation_transform: TRANSFORMS_LIST = [] #t.get("augmentations_list", [])
         self.normalization_transform: TRANSFORMS_LIST= [] #t.get("normalizations_list", [])
         self.sampler = sampler
-        self.rank= rank, 
+        #self.rank= rank, 
         self.world_size=world_size
         self.train_sampler=None
         self.val_sampler= None
@@ -141,21 +141,19 @@ class HDF5StereoDataModule(LightningDataModule):
         )
         return self._dataset
 
-    def train_dataloader(self) -> DataLoader:
+    def train_dataloader(self,rank) -> DataLoader:
         if self.sampler :
             w_size = self.world_size if self.world_size!=0 else idr_torch.size
-            the_rank = self.rank if self.rank!=0 else idr_torch.rank
-
             batch_size_per_gpu = self.batch_size // w_size
 
             self.train_sampler = torch.utils.data.distributed.DistributedSampler(self.dataset.traindata,
                                                                     num_replicas=w_size,
-                                                                    rank=the_rank,
+                                                                    rank=rank,
                                                                     shuffle=True)
             return DataLoader(self.dataset.traindata,
                             batch_size=batch_size_per_gpu,
                             shuffle=False,
-                            num_workers=0,
+                            num_workers=self.num_workers,
                             drop_last=True,
                             pin_memory=True,
                             prefetch_factor=self.prefetch_factor,
@@ -169,16 +167,15 @@ class HDF5StereoDataModule(LightningDataModule):
                         drop_last=True,
                         pin_memory=True,
                         )
-    def val_dataloader(self)-> DataLoader:
+    def val_dataloader(self,rank)-> DataLoader:
         if self.sampler :
             w_size = self.world_size if self.world_size!=0 else idr_torch.size
-            the_rank = self.rank if self.rank!=0 else idr_torch.rank
 
             batch_size_per_gpu = self.batch_size // w_size
 
             self.val_sampler = torch.utils.data.distributed.DistributedSampler(self.dataset.valdata,
                                                                     num_replicas=w_size,
-                                                                    rank=the_rank,
+                                                                    rank=rank,
                                                                     shuffle=False)
             return DataLoader(self.dataset.valdata,
                             batch_size=batch_size_per_gpu,

@@ -132,10 +132,10 @@ class CorrBlock1D:
         out_pyramid = []
         for i in range(self.num_levels):
             corr = self.corr_pyramid[i]
-            dx = torch.linspace(-r, r, 2*r+1)
-            dx = dx.view(2*r+1, 1).to(coords.device)
+            dx = torch.linspace(-r, r, 2*r+1, device=coords.device)
+            dx = dx.view(2*r+1, 1)
             x0 = dx + coords.reshape(batch*h1*w1, 1, 1, 1) / 2**i
-            y0 = torch.zeros_like(x0)
+            y0 = torch.zeros_like(x0,device=coords.device)
 
             coords_lvl = torch.cat([x0,y0], dim=-1)
             corr = bilinear_sampler(corr, coords_lvl)

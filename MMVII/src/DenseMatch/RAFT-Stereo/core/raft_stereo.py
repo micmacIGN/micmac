@@ -47,8 +47,8 @@ class RAFTStereo(nn.Module):
         """ Flow is represented as difference between two coordinate grids flow = coords1 - coords0"""
         N, _, H, W = img.shape
 
-        coords0 = coords_grid(N, H, W).to(img.device)
-        coords1 = coords_grid(N, H, W).to(img.device)
+        coords0 = coords_grid(N, H, W, img.device)
+        coords1 = coords_grid(N, H, W, img.device)
 
         return coords0, coords1
 

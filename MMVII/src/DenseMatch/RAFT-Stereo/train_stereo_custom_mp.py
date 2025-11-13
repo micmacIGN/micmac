@@ -14,7 +14,7 @@ from core.hdf5_stereo import HDF5StereoDataModule, fetch_dataloader_train, fetch
 
 import torch.distributed as dist
 import idr_torch 
-
+import time
 
 from torch.nn.parallel import DistributedDataParallel as DDP
 
@@ -43,20 +43,19 @@ def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 @torch.no_grad()
-def validate_custom_dataset(model,dataset, iters=32, mixed_prec=False):
+def validate_custom_dataset(model,dataset, rank, iters=32, mixed_prec=False):
     """ Peform validation using the FlyingThings3D (TEST) split """
     model.eval()
 
     # val dataloader 
-    val_dataloader = fetch_dataloader_val(dataset)
+    #val_dataloader = fetch_dataloader_val(dataset)
+    val_dataloader = dataset.val_dataloader(rank)
 
     out_list, epe_list = [], []
 
     for _, data_blob in enumerate(tqdm(val_dataloader)):
-        image1, image2, flow_gt, valid_gt = [x.cuda() for x in data_blob]
+        image1, image2, flow_gt, valid_gt = [x.to(rank,non_blocking=True) for x in data_blob]
 
-        image1 = image1.cuda()
-        image2 = image2.cuda()
 
         with autocast(enabled=mixed_prec):
             _, flow_pr = model(image1, image2, iters=iters, test_mode=True)
@@ -186,8 +185,11 @@ def setup(rank, world_size):
 
 def train(args, rank, world_size):
 
+    raft_model = RAFTStereo(args).to(rank)
 
-    model = DDP (RAFTStereo(args), device_ids=[rank])
+    model = DDP ( raft_model,
+                device_ids=[rank], 
+                output_device = rank)
 
     print("Parameter Count: %d" % count_parameters(model))
 
@@ -195,13 +197,13 @@ def train(args, rank, world_size):
     if args.restore_ckpt is not None:
         assert args.restore_ckpt.endswith(".pth")
         logging.info("Loading checkpoint...")
-        map_location = {'cuda:%d' % 0: 'cuda:%d' % rank} # remap storage from GPU 0 to local GPU
-        model.load_state_dict(torch.load(args.restore_ckpt), map_location=map_location) # load checkpoint
-        #checkpoint = torch.load(args.restore_ckpt)
-        #model.load_state_dict(checkpoint, strict=True)
+        #map_location = {'cuda:%d' % 0: 'cuda:%d' % rank} # remap storage from GPU 0 to local GPU
+        #model.load_state_dict(torch.load(args.restore_ckpt), map_location=map_location) # load checkpoint
+        checkpoint = torch.load(args.restore_ckpt)
+        model.load_state_dict(checkpoint, strict=True)
         logging.info(f"Done loading checkpoint")
 
-    model.cuda()
+    #model.cuda()
     model.train()
     model.module.freeze_bn() # We keep BatchNorm frozen
 
@@ -212,13 +214,13 @@ def train(args, rank, world_size):
                                 args.hdf5_file_path,
                                 sign_disp_multiplier=-1.0,
                                 batch_size=args.batch_size,
-                                num_workers=12,##int(os.environ.get('SLURM_CPUS_PER_TASK', 6))-2,
-                                prefetch_factor=6,
+                                num_workers=8,##int(os.environ.get('SLURM_CPUS_PER_TASK', 6))-2,
+                                prefetch_factor=2,
                                 sampler=True,
-                                rank=rank,
                                 world_size=world_size,
                                 )
-    train_loader = fetch_dataloader_train(stereo_dataset)
+    train_loader = stereo_dataset.train_dataloader(rank)
+    #train_loader = fetch_dataloader_train(stereo_dataset)
 
 
     # optimizer , scheduler
@@ -242,11 +244,11 @@ def train(args, rank, world_size):
 
         for _, data_blob in enumerate(tqdm(train_loader)):
             optimizer.zero_grad()
-            image1, image2, flow, valid = [x.cuda() for x in data_blob]
+            image1, image2, flow, valid =  [x.to(rank,non_blocking=True) for x in data_blob]
 
-            assert model.training
+            #assert model.training
             flow_predictions = model(image1, image2, iters=args.train_iters)
-            assert model.training
+            #assert model.training
 
             loss, metrics = sequence_loss(flow_predictions, flow, valid)
             logger.writer.add_scalar("live_loss", loss.item(), global_batch_num)
@@ -270,6 +272,7 @@ def train(args, rank, world_size):
 
                 results = validate_custom_dataset(model.module, 
                                                  stereo_dataset,
+                                                 rank,
                                                  iters=args.valid_iters)
 
                 logger.write_dict(results)
@@ -371,6 +374,7 @@ if __name__ == '__main__':
     
     mp.spawn(
         main,
-        args=(world_size),
-        nprocs=world_size
+        args=(world_size,),
+        nprocs=world_size,
+        join=True,
     )

@@ -8,7 +8,6 @@ from tqdm import tqdm
 
 from torch.utils.tensorboard import SummaryWriter
 import torch
-import torch.nn as nn
 import torch.optim as optim
 from core.raft_stereo import RAFTStereo,autocast
 from core.hdf5_stereo import HDF5StereoDataModule, fetch_dataloader_train, fetch_dataloader_val
@@ -16,9 +15,7 @@ from core.hdf5_stereo import HDF5StereoDataModule, fetch_dataloader_train, fetch
 import torch.distributed as dist
 import idr_torch 
 
-
 from torch.nn.parallel import DistributedDataParallel as DDP
- 
 
 
 try:
@@ -43,20 +40,19 @@ def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 @torch.no_grad()
-def validate_custom_dataset(model,dataset, iters=32, mixed_prec=False):
+def validate_custom_dataset(model,dataset, rank, iters=32, mixed_prec=False):
     """ Peform validation using the FlyingThings3D (TEST) split """
     model.eval()
 
     # val dataloader 
-    val_dataloader = fetch_dataloader_val(dataset)
+    #val_dataloader = fetch_dataloader_val(dataset)
+    val_dataloader = dataset.val_dataloader(rank)
 
     out_list, epe_list = [], []
 
     for _, data_blob in enumerate(tqdm(val_dataloader)):
-        image1, image2, flow_gt, valid_gt = [x.cuda() for x in data_blob]
+        image1, image2, flow_gt, valid_gt = [x.to(rank, non_blocking=True) for x in data_blob]
 
-        image1 = image1.cuda()
-        image2 = image2.cuda()
 
         with autocast(enabled=mixed_prec):
             _, flow_pr = model(image1, image2, iters=iters, test_mode=True)
@@ -177,19 +173,24 @@ class Logger:
         self.writer.close()
 
 
+
+
+def setup():
+    dist.init_process_group(backend='nccl',
+                        init_method='env://',
+                        world_size=idr_torch.size,
+                        rank=idr_torch.rank)
+
 def train(args):
 
-
-    # init config for ddp 
-    dist.init_process_group(backend='nccl',
-                            init_method='env://',
-                            world_size=idr_torch.size,
-                            rank=idr_torch.rank)
-
     torch.cuda.set_device(idr_torch.local_rank)
+    gpu = torch.device("cuda")
+    raft_model = RAFTStereo(args)
+    model = model.to(gpu)
 
 
-    model = DDP (RAFTStereo(args), device_ids=[idr_torch.local_rank])
+    model = DDP ( raft_model,
+                device_ids=[idr_torch.local_rank])
 
     print("Parameter Count: %d" % count_parameters(model))
 
@@ -197,13 +198,13 @@ def train(args):
     if args.restore_ckpt is not None:
         assert args.restore_ckpt.endswith(".pth")
         logging.info("Loading checkpoint...")
-        map_location = {'cuda:%d' % 0: 'cuda:%d' % idr_torch.local_rank} # remap storage from GPU 0 to local GPU
-        model.load_state_dict(torch.load(args.restore_ckpt), map_location=map_location) # load checkpoint
-        #checkpoint = torch.load(args.restore_ckpt)
-        #model.load_state_dict(checkpoint, strict=True)
+        #map_location = {'cuda:%d' % 0: 'cuda:%d' % rank} # remap storage from GPU 0 to local GPU
+        #model.load_state_dict(torch.load(args.restore_ckpt), map_location=map_location) # load checkpoint
+        checkpoint = torch.load(args.restore_ckpt)
+        model.load_state_dict(checkpoint, strict=True)
         logging.info(f"Done loading checkpoint")
 
-    model.cuda()
+
     model.train()
     model.module.freeze_bn() # We keep BatchNorm frozen
 
@@ -214,12 +215,11 @@ def train(args):
                                 args.hdf5_file_path,
                                 sign_disp_multiplier=-1.0,
                                 batch_size=args.batch_size,
-                                num_workers=12,##int(os.environ.get('SLURM_CPUS_PER_TASK', 6))-2,
-                                prefetch_factor=6,
+                                num_workers=8,
+                                prefetch_factor=2,
                                 sampler=True,
                                 )
-    train_loader = fetch_dataloader_train(stereo_dataset)
-
+    train_loader = stereo_dataset.train_dataloader(idr_torch.rank)
 
     # optimizer , scheduler
 
@@ -242,11 +242,11 @@ def train(args):
 
         for _, data_blob in enumerate(tqdm(train_loader)):
             optimizer.zero_grad()
-            image1, image2, flow, valid = [x.cuda() for x in data_blob]
+            image1, image2, flow, valid =  [x.to(gpu,non_blocking=True) for x in data_blob]
 
-            assert model.training
+            #assert model.training
             flow_predictions = model(image1, image2, iters=args.train_iters)
-            assert model.training
+            #assert model.training
 
             loss, metrics = sequence_loss(flow_predictions, flow, valid)
             logger.writer.add_scalar("live_loss", loss.item(), global_batch_num)
@@ -270,6 +270,7 @@ def train(args):
 
                 results = validate_custom_dataset(model.module, 
                                                  stereo_dataset,
+                                                 idr_torch.rank,
                                                  iters=args.valid_iters)
 
                 logger.write_dict(results)
@@ -302,7 +303,8 @@ def train(args):
     return PATH
 
 
-if __name__ == '__main__':
+
+def args_parse():
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', default='raft-stereo', help="name your experiment")
     parser.add_argument('--restore_ckpt', help="restore checkpoint")
@@ -346,6 +348,12 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+    return args
+
+def main ():
+    setup()
+    args = args_parse()
+
     torch.manual_seed(1234)
     np.random.seed(1234)
     
@@ -356,3 +364,7 @@ if __name__ == '__main__':
 
 
     train(args)
+
+
+if __name__ == '__main__':
+    main()
