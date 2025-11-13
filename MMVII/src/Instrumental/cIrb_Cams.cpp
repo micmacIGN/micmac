@@ -224,15 +224,17 @@ void AddData(const  cAuxAr2007 & anAux,cIrbCal_CamSet & aCams)
 void cIrbCal_CamSet::AddCam
      (
          const std::string & aNameCalib,
-	 const std::string & aTimeStamp,
-	 const std::string & aPatImSel,
-	 bool OkAlreadyExist 
+         const std::string & aTimeStamp,
+         const std::string & aPatImSel,
+         bool OkAlreadyExist
      )
 {
    cIrbCal_Cam1 * aCam = CamFromNameCalib(aNameCalib,SVP::Yes);
    int aNum = aCam ?  aCam->Num() : int(mVCams.size()) ;
    cIrbCal_Cam1 aNewCam (aNum,aNameCalib,aTimeStamp,aPatImSel);
    // in case already exist, we may ovewrite (multiple edit)
+
+   //StdOut() << "ADDDDDD=" << aCam << "\n";
    if (aCam)
    {
        MMVII_INTERNAL_ASSERT_strong(OkAlreadyExist,"cIrbCal_Block::AddCam, cal already exist for " + aNameCalib);
@@ -241,7 +243,8 @@ void cIrbCal_CamSet::AddCam
    }
    else
    {
-      mVCams.push_back(aNewCam);
+       mCalBlock->AddSigma_Indiv(aNameCalib,eTyInstr::eCamera);
+       mVCams.push_back(aNewCam);
    }
 }
 

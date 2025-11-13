@@ -123,8 +123,9 @@ void AddData(const  cAuxAr2007 & anAux,cIrbCal_Cam1 & aCam);
 class cIrbCal_CamSet  //: public cMemCheck
 {
      public :
-         friend cAppli_EditBlockInstr;
-         friend cAppli_BlockInstrInitCam;
+        friend cAppli_EditBlockInstr;
+        friend cAppli_BlockInstrInitCam;
+        friend cIrbCal_Block;
 
          cIrbCal_CamSet(); //< constructor, ok for serial
 
@@ -151,7 +152,8 @@ class cIrbCal_CamSet  //: public cMemCheck
               );
 
          int                             mNumMaster;      //< num of "master" image
-         std::vector<cIrbCal_Cam1>       mVCams;          //< set of cameras
+         std::vector<cIrbCal_Cam1>       mVCams;          //< set of camerascIrbCal_Block
+         cIrbCal_Block *                 mCalBlock;
 };
 void AddData(const  cAuxAr2007 & anAux,cIrbCal_CamSet & aCam);
 
@@ -283,6 +285,8 @@ class cIrbCal_Block  // : public cMemCheck
          void AvgPairSigma(); //< Set all sigma of pairs to global average (in the same type)
          void AvgIndivSigma();  //< Set all sigma of object ir global average
          void AvgSigma();
+         cIrb_Desc1Intsr &  AddSigma_Indiv(std::string aN1,eTyInstr aType1);
+
      private :
 
          void AvgPairSigma (eTyInstr,eTyInstr); //< Avg sigma for pairs having the corresponding type
@@ -291,13 +295,14 @@ class cIrbCal_Block  // : public cMemCheck
 
          cIrbCal_Block(const cIrbCal_Block&) = delete;
 
-        void  AddSigma_Indiv(std::string aN1,eTyInstr aType1, const cIrb_SigmaInstr &);
-        std::string                   mNameBloc;   //<  Name of the bloc
-        cIrbCal_CamSet                mSetCams;    //<  Cameras used in the bloc
-        cIrbCal_ClinoSet              mSetClinos;  //<  Clinos used in the bloc
 
-        std::map<tNamePair,cIrb_SigmaInstr>   mSigmaPair;     //<  Sigmas between pair of instr
-        std::map<std::string,cIrb_Desc1Intsr> mSigmaInd;      //<  Sigmas of each instrument
+         void  AddSigma_Indiv(std::string aN1,eTyInstr aType1, const cIrb_SigmaInstr &);
+         std::string                   mNameBloc;   //<  Name of the bloc
+         cIrbCal_CamSet                mSetCams;    //<  Cameras used in the bloc
+         cIrbCal_ClinoSet              mSetClinos;  //<  Clinos used in the bloc
+
+         std::map<tNamePair,cIrb_SigmaInstr>   mSigmaPair;     //<  Sigmas between pair of instr
+         std::map<std::string,cIrb_Desc1Intsr> mSigmaInd;      //<  Sigmas of each instrument
 };
 void AddData(const  cAuxAr2007 & anAux,cIrbCal_Block & aRBoI);
 

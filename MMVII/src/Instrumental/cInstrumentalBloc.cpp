@@ -37,13 +37,17 @@ cIrb_SigmaInstr::cIrb_SigmaInstr(tREAL8 aWTr,tREAL8 aWRot,tREAL8 aSigTr,tREAL8 a
 
 void cIrb_SigmaInstr::AddData(const  cAuxAr2007 & anAux)
 {
+ //   StdOut() << "cIrb_SigmaInstr::AddData " << mAvgSigTr.Nb() << " " << mAvgSigRot.Nb() << "\n";
+
     MMVII::AddData(cAuxAr2007("Tr",anAux) ,mAvgSigTr);
-    if (mAvgSigTr.Nb())
+    if (mAvgSigTr.SW() > 0)
        anAux.Ar().AddComment("SigTr="+ToStr(mAvgSigTr.Average()));
 
     MMVII::AddData(cAuxAr2007("Rot",anAux) ,mAvgSigRot);
-    if (mAvgSigRot.Nb())
+    if (mAvgSigRot.SW() >0 )
        anAux.Ar().AddComment("SigRot="+ToStr(mAvgSigRot.Average()));
+
+  //  StdOut() << "cIrb_SigmaInstr::AddData::Done \n";
 }
 
 
@@ -414,6 +418,7 @@ const std::string  cIrbCal_Block::theDefaultName = "TheBlock";  /// in most appl
 cIrbCal_Block::cIrbCal_Block(const std::string& aName) :
      mNameBloc (aName)
 {
+    mSetCams.mCalBlock = this;
 }
 
 
@@ -431,8 +436,25 @@ void AddData(const  cAuxAr2007 & anAux,cIrbCal_Block & aRBoI)
     aRBoI.AddData(anAux);
 }
 
+cIrb_Desc1Intsr &  cIrbCal_Block::AddSigma_Indiv(std::string aNameInstr,eTyInstr aTypeInstr)
+{
+    auto  anIter = mSigmaInd.find(aNameInstr);
+    if (anIter== mSigmaInd.end())
+    {
+        mSigmaInd[aNameInstr] = cIrb_Desc1Intsr(aTypeInstr,aNameInstr);
+        anIter = mSigmaInd.find(aNameInstr);
+    }
+    cIrb_Desc1Intsr &  anInstr = anIter->second;
+
+    MMVII_INTERNAL_ASSERT_tiny(anInstr.Type()== aTypeInstr,"Chang type in cIrbCal_Block::AddSigma_Indiv");
+    MMVII_INTERNAL_ASSERT_tiny(anInstr.NameInstr()== aNameInstr,"Chang type in cIrbCal_Block::AddSigma_Indiv");
+
+    return anInstr;
+}
+
 void  cIrbCal_Block::AddSigma_Indiv(std::string aNameInstr,eTyInstr aTypeInstr, const cIrb_SigmaInstr & aSigma)
 {
+    /*
     auto  anIter = mSigmaInd.find(aNameInstr);
     if (anIter== mSigmaInd.end())
     {
@@ -441,9 +463,9 @@ void  cIrbCal_Block::AddSigma_Indiv(std::string aNameInstr,eTyInstr aTypeInstr, 
     }
     MMVII_INTERNAL_ASSERT_tiny(anIter->second.Type()== aTypeInstr,"Chang type in cIrbCal_Block::AddSigma_Indiv");
     MMVII_INTERNAL_ASSERT_tiny(anIter->second.NameInstr()== aNameInstr,"Chang type in cIrbCal_Block::AddSigma_Indiv");
+*/
 
-
-    anIter->second.AddNewSigma(aSigma);
+    AddSigma_Indiv(aNameInstr,aTypeInstr).AddNewSigma(aSigma);
 }
 
 
