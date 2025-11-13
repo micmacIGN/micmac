@@ -362,6 +362,47 @@ void AddData(const  cAuxAr2007 & anAux,cIrbCal_Clino1 & aClino)
 
 const std::string & cIrbCal_Clino1::Name() const {return mName;}
 
+/* *************************************************************** */
+/*                                                                 */
+/*                        cIrb_CstrRelRot                          */
+/*                                                                 */
+/* *************************************************************** */
+
+cIrb_CstrRelRot::cIrb_CstrRelRot(const tRotR & anOri,const tREAL8 & aSigma) :
+    mOri    (anOri),
+    mSigma (aSigma)
+{
+}
+
+cIrb_CstrRelRot::cIrb_CstrRelRot() :
+    cIrb_CstrRelRot(tRotR::Identity(),-1.0)
+{
+
+}
+
+void cIrb_CstrRelRot::AddData(const  cAuxAr2007 & anAux)
+{
+    MMVII::AddData(cAuxAr2007("Ori",anAux),mOri);
+    MMVII::AddData(cAuxAr2007("Sigma",anAux),mSigma);
+
+}
+
+void AddData(const  cAuxAr2007 & anAux,cIrb_CstrRelRot & aICRR)
+{
+    aICRR.AddData(anAux);
+}
+
+/*
+class cIrb_CstrRelRot
+{
+   public :
+      cIrb_CstrRelRot(const tRotR & aRot,const tREAL8 & aSigma);
+      void AddData(const  cAuxAr2007 & anAux);
+   private :
+      tRotR  mOri;
+      tREAL8 mSigma;
+};
+*/
 
 /* *************************************************************** */
 /*                                                                 */
@@ -369,7 +410,8 @@ const std::string & cIrbCal_Clino1::Name() const {return mName;}
 /*                                                                 */
 /* *************************************************************** */
 
-cIrbCal_ClinoSet::cIrbCal_ClinoSet()
+cIrbCal_ClinoSet::cIrbCal_ClinoSet() :
+    mCalBlock (nullptr)
 {
 }
 
@@ -404,6 +446,7 @@ void cIrbCal_ClinoSet::AddClino(const std::string & aName,bool SVP)
    else
    {
       mVClinos.push_back(aNewClino);
+      mCalBlock->AddSigma_Indiv(aName,eTyInstr::eClino);
    }
 }
 
@@ -419,6 +462,8 @@ cIrbCal_Block::cIrbCal_Block(const std::string& aName) :
      mNameBloc (aName)
 {
     mSetCams.mCalBlock = this;
+    mSetClinos.mCalBlock = this;
+
 }
 
 
@@ -429,8 +474,9 @@ void  cIrbCal_Block::AddData(const  cAuxAr2007 & anAux)
 
     MMVII::StdMapAddData(cAuxAr2007("SigmasPairs",anAux),mSigmaPair);
     MMVII::StdMapAddData(cAuxAr2007("SigmasIndiv",anAux),mSigmaInd);
-
+    MMVII::StdMapAddData(cAuxAr2007("CstrRelRot",anAux),mCstrRelRot);
 }
+
 void AddData(const  cAuxAr2007 & anAux,cIrbCal_Block & aRBoI)
 {
     aRBoI.AddData(anAux);
@@ -454,18 +500,22 @@ cIrb_Desc1Intsr &  cIrbCal_Block::AddSigma_Indiv(std::string aNameInstr,eTyInstr
 
 void  cIrbCal_Block::AddSigma_Indiv(std::string aNameInstr,eTyInstr aTypeInstr, const cIrb_SigmaInstr & aSigma)
 {
-    /*
-    auto  anIter = mSigmaInd.find(aNameInstr);
-    if (anIter== mSigmaInd.end())
-    {
-        mSigmaInd[aNameInstr] = cIrb_Desc1Intsr(aTypeInstr,aNameInstr);
-        anIter = mSigmaInd.find(aNameInstr);
-    }
-    MMVII_INTERNAL_ASSERT_tiny(anIter->second.Type()== aTypeInstr,"Chang type in cIrbCal_Block::AddSigma_Indiv");
-    MMVII_INTERNAL_ASSERT_tiny(anIter->second.NameInstr()== aNameInstr,"Chang type in cIrbCal_Block::AddSigma_Indiv");
-*/
-
     AddSigma_Indiv(aNameInstr,aTypeInstr).AddNewSigma(aSigma);
+}
+
+void  cIrbCal_Block::AddCstrRelRot(std::string aN1,std::string aN2,tREAL8 aSigma,tRotR anOri)
+{
+   if (aN1>aN2)
+   {
+       std::swap(aN1,aN2);
+       anOri = anOri.MapInverse();
+   }
+
+   SigmaInd(aN1);
+   SigmaInd(aN2);
+
+
+   mCstrRelRot[tNamePair(aN1,aN2)] = cIrb_CstrRelRot(anOri,aSigma);
 }
 
 
@@ -560,141 +610,7 @@ void cIrbCal_Block::AvgSigma()
 }
 
 
-/* *************************************************************** */
-/*                                                                 */
-/*                        cAppli_EditBlockInstr                    */
-/*                                                                 */
-/* *************************************************************** */
 
-/*
-class cAppli_EditBlockInstr : public cMMVII_Appli
-{
-     public :
-
-        cAppli_EditBlockInstr(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli &);
-        int Exe() override;
-        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
-        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
-
-        std::vector<std::string>  Samples() const override;
-
-     private :
-        cPhotogrammetricProject   mPhProj;       //< As usual ....
-        std::string               mNameBloc;     //< Name of the block edited (generally default MMVII)
-        std::vector<std::string>  mVPatsIm4Cam;  //< Patterns for cam structure : [PatSelOnDisk,PatTimeStamp?,PatSelInBlock?]
-        bool                      mFromScratch;  //< If exist file : Reset of Modify ?
-};
-
-cAppli_EditBlockInstr::cAppli_EditBlockInstr(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec) :
-    cMMVII_Appli  (aVArgs,aSpec),
-    mPhProj       (*this),
-    mNameBloc     (cIrbCal_Block::theDefaultName),
-    mFromScratch  (false)
-{
-}
-
-
-std::vector<std::string>  cAppli_EditBlockInstr::Samples() const 
-{
-   return 
-   {
-       "MMVII EditBlockInstr Bl0  PatsIm4Cam='[.*_(.*).tif]' InMeasureClino=MesClin_043",
-       "MMVII EditBlockInstr Bl0  PatsIm4Cam='[.*tif,.*_(.*).tif,Fils-100.xml]' InMeasureClino=MesClin_043"
-   };
-}
-
-
-cCollecSpecArg2007 & cAppli_EditBlockInstr::ArgObl(cCollecSpecArg2007 & anArgObl) 
-{
-     return anArgObl
-             <<  mPhProj.DPBlockInstr().ArgDirInMand()
-     ;
-
-}
-
-cCollecSpecArg2007 & cAppli_EditBlockInstr::ArgOpt(cCollecSpecArg2007 & anArgOpt)
-{
-	return anArgOpt
-            << AOpt2007(mNameBloc,"NameBloc","Set the name of the bloc ",{{eTA2007::HDV}})
-            << AOpt2007(mVPatsIm4Cam,"PatsIm4Cam","Pattern images [PatSelOnDisk,PatTimeStamp?,PatSelInBlock?]",{{eTA2007::ISizeV,"[1,3]"}})
-            << AOpt2007(mFromScratch,"FromScratch","Do we start from a new file, even if already exist",{{eTA2007::HDV}})
-            << mPhProj.DPBlockInstr().ArgDirOutOpt()
-            << mPhProj.DPMeasuresClino().ArgDirInOpt()
-        ;
-}
-
-
-int cAppli_EditBlockInstr::Exe() 
-{
-    mPhProj.DPBlockInstr().SetDirOutInIfNotInit();
-    mPhProj.FinishInit();
-
-    cIrbCal_Block *  aBlock =    mFromScratch                           ?
-                                 new cIrbCal_Block                      :
-                                 mPhProj.ReadRigBoI(mNameBloc,SVP::Yes) ;
-
-    // if we add structure for camera
-    if (IsInit(&mVPatsIm4Cam))
-    {
-        std::string aPatSelOnDisk = mVPatsIm4Cam.at(0);
-        std::string aPatTimeStamp = GetDef(mVPatsIm4Cam,1,aPatSelOnDisk);
-        std::string aPatSelIm = GetDef(mVPatsIm4Cam,2,aPatTimeStamp);
-
-        auto aVNameIm = ToVect(SetNameFromString(aPatSelOnDisk,true));
-        std::set<std::string> aSetNameCal;
-        for (const auto & aNameIm : aVNameIm)
-        {
-            std::string aNameCal = mPhProj.StdNameCalibOfImage(aNameIm);
-            if (! BoolFind(aSetNameCal,aNameCal))
-            {
-                aSetNameCal.insert(aNameCal);
-                aBlock->SetCams().AddCam(aNameCal,aPatTimeStamp,aPatSelIm,SVP::Yes);
-            }
-        }
-    }
-
-    // if we add the structure for clinometers
-    if (mPhProj.DPMeasuresClino().DirInIsInit())
-    {
-         cSetMeasureClino aMesClin =  mPhProj.ReadMeasureClino();
-         for (const auto & aName : aMesClin.NamesClino())
-         {
-             aBlock->SetClinos().AddClino(aName,SVP::Yes);
-         }
-    }
-
-    // save the result on disk
-    mPhProj.SaveRigBoI(*aBlock);
-
-    delete aBlock;
-    return EXIT_SUCCESS;
-}
-*/
-
-    /* ==================================================== */
-    /*                                                      */
-    /*               MMVII                                  */
-    /*                                                      */
-    /* ==================================================== */
-
-/*
-
-tMMVII_UnikPApli Alloc_EditBlockInstr(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
-{
-   return tMMVII_UnikPApli(new cAppli_EditBlockInstr(aVArgs,aSpec));
-}
-
-cSpecMMVII_Appli  TheSpec_EditBlockInstr
-(
-     "BlockInstrEdit",
-      Alloc_EditBlockInstr,
-      "Create/Edit a block of instruments",
-      {eApF::BlockInstr},
-      {eApDT::BlockInstr},
-      {eApDT::BlockInstr},
-      __FILE__
-);
-*/
 
 
 };

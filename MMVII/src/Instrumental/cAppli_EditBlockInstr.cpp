@@ -40,6 +40,7 @@ class cAppli_EditBlockInstr : public cMMVII_Appli
         std::string               mNameBloc;     //< Name of the block edited (generally default MMVII)
         std::vector<std::string>  mVPatsIm4Cam;  //< Patterns for cam structure : [PatSelOnDisk,PatTimeStamp?,PatSelInBlock?]
         bool                      mFromScratch;  //< If exist file : Reset of Modify ?
+        std::vector<std::vector<std::string>>  mCstrOriRel;  //<  Vector for relative orientations
 };
 
 cAppli_EditBlockInstr::cAppli_EditBlockInstr(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -77,6 +78,7 @@ cCollecSpecArg2007 & cAppli_EditBlockInstr::ArgOpt(cCollecSpecArg2007 & anArgOpt
             << AOpt2007(mFromScratch,"FromScratch","Do we start from a new file, even if already exist",{{eTA2007::HDV}})
             << mPhProj.DPBlockInstr().ArgDirOutOpt()
             << mPhProj.DPMeasuresClino().ArgDirInOpt()
+            << AOpt2007(mCstrOriRel,"CRO","Constraint for relative orientation [[Instr1,Instr2,Sigma,Orient]*...] ")
         ;
 }
 
@@ -120,6 +122,21 @@ int cAppli_EditBlockInstr::Exe()
          {
              aBlock->SetClinos().AddClino(aName,SVP::Yes);
          }
+    }
+
+    if (IsInit(&mCstrOriRel))
+    {
+        for (const auto & aCstr : mCstrOriRel)
+        {
+            MMVII_INTERNAL_ASSERT_User_UndefE(aCstr.size()==4,"Bad size for cstr ori rel");
+            aBlock->AddCstrRelRot
+            (
+                aCstr.at(0),
+                aCstr.at(1),
+                cStrIO<double>::FromStr(aCstr.at(2)),
+                tRotR::RotFromCanonicalAxes(aCstr.at(3))
+            );
+        }
     }
 
     // save the result on disk

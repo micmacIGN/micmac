@@ -198,7 +198,8 @@ void AddData(const  cAuxAr2007 & anAux,cIrbCal_Cam1 & aCam)
 /* *************************************************************** */
 
 cIrbCal_CamSet::cIrbCal_CamSet()  :
-    mNumMaster (-1)
+    mNumMaster (-1),
+    mCalBlock  (nullptr)
 {
 }
 

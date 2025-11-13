@@ -176,34 +176,11 @@ class cIrbCal_Clino1  // : public cMemCheck
 };
 void AddData(const  cAuxAr2007 & anAux,cIrbCal_Clino1 & aClino);
 
-/// class for storing a reletive constraint (orthoganility) between 2 instrument
-
-class cIrb_RelRot
-{
-  public :
-     tRotR  mOri;
-     tREAL8 mSigma;
-};
-class cIrb_RelTr
-{
-  public :
-     cPt3dr  mTr;
-     tREAL8 mSigma;
-};
-
-class cIrb_ConstrInstr
-{
-   public :
-
-   private :
-       std::string mN1;
-       std::string mN2;
-};
-
 ///  class for representing a set of clino
 class cIrbCal_ClinoSet // : public cMemCheck
 {
      public :
+         friend cIrbCal_Block;
          friend cAppli_EditBlockInstr;
 
          cIrbCal_ClinoSet();
@@ -213,7 +190,38 @@ class cIrbCal_ClinoSet // : public cMemCheck
          void AddClino(const std::string &,bool SVP=false);
 
          std::vector<cIrbCal_Clino1> mVClinos; //< set of clinos
+         cIrbCal_Block *              mCalBlock;
+
 };
+
+/// class for storing a relative orientation extern constraint ( for ex orthoganility of clino) between 2 instrument
+
+class cIrb_CstrRelRot
+{
+   public :
+      cIrb_CstrRelRot(const tRotR & aRot,const tREAL8 & aSigma);
+      cIrb_CstrRelRot();
+      void AddData(const  cAuxAr2007 & anAux);
+   private :
+      tRotR  mOri;
+      tREAL8 mSigma;
+};
+
+void AddData(const  cAuxAr2007 & anAux,cIrb_CstrRelRot & aSigma);
+
+
+/*
+class cIrb_ConstrInstr
+{
+   public :
+
+   private :
+       std::optional<cIrb_RelRot> mCstr;
+       std::string mN1;
+       std::string mN2;
+};
+*/
+
 
 
 class cIrb_SigmaInstr
@@ -286,6 +294,7 @@ class cIrbCal_Block  // : public cMemCheck
          void AvgIndivSigma();  //< Set all sigma of object ir global average
          void AvgSigma();
          cIrb_Desc1Intsr &  AddSigma_Indiv(std::string aN1,eTyInstr aType1);
+         void AddCstrRelRot(std::string aN1,std::string aN2,tREAL8 aSigma,tRotR aRot);
 
      private :
 
@@ -303,6 +312,8 @@ class cIrbCal_Block  // : public cMemCheck
 
          std::map<tNamePair,cIrb_SigmaInstr>   mSigmaPair;     //<  Sigmas between pair of instr
          std::map<std::string,cIrb_Desc1Intsr> mSigmaInd;      //<  Sigmas of each instrument
+         std::map<tNamePair,cIrb_CstrRelRot>   mCstrRelRot;
+
 };
 void AddData(const  cAuxAr2007 & anAux,cIrbCal_Block & aRBoI);
 
