@@ -5,8 +5,8 @@ from matplotlib import pyplot as plt
 from numpy.typing import ArrayLike
 from pytorch_lightning import LightningDataModule
 from torch.utils.data import DataLoader
-
-
+import torch
+import idr_torch
 from core.hdf5 import CustomCompose, HDF5Dataset,Data
 from core.hdf5 import get_image_paths_by_split_dict
 
@@ -34,6 +34,7 @@ class HDF5StereoDataModule(LightningDataModule):
         num_workers: int = 1,
         prefetch_factor: int = 2,
         transforms: Optional[Dict[str, TRANSFORMS_LIST]] = None,
+        sampler: bool = False,
         **kwargs,
     ):
         super().__init__()
@@ -65,6 +66,9 @@ class HDF5StereoDataModule(LightningDataModule):
         #)
         self.augmentation_transform: TRANSFORMS_LIST = [] #t.get("augmentations_list", [])
         self.normalization_transform: TRANSFORMS_LIST= [] #t.get("normalizations_list", [])
+        self.sampler = sampler
+        self.train_sampler=None
+        self.val_sampler= None
 
     @property
     def train_transform(self) -> CustomCompose:
@@ -134,22 +138,53 @@ class HDF5StereoDataModule(LightningDataModule):
         return self._dataset
 
     def train_dataloader(self) -> DataLoader:
+        if self.sampler :
+            batch_size_per_gpu = self.batch_size // idr_torch.size
+            self.train_sampler = torch.utils.data.distributed.DistributedSampler(self.dataset.traindata,
+                                                                    num_replicas=idr_torch.size,
+                                                                    rank=idr_torch.rank,
+                                                                    shuffle=True)
+            return DataLoader(self.dataset.traindata,
+                            batch_size=batch_size_per_gpu,
+                            shuffle=False,
+                            num_workers=0,
+                            drop_last=True,
+                            pin_memory=True,
+                            prefetch_factor=self.prefetch_factor,
+                            sampler=self.train_sampler,
+                            )
         return DataLoader(self.dataset.traindata,
-                          batch_size=self.batch_size,
-                          shuffle=True,
-                          num_workers=self.num_workers,
-                          prefetch_factor=self.prefetch_factor,
-                          drop_last=True,
-                          )
+                        batch_size=self.batch_size,
+                        shuffle=True,
+                        num_workers=self.num_workers,
+                        prefetch_factor=self.prefetch_factor,
+                        drop_last=True,
+                        pin_memory=True,
+                        )
     def val_dataloader(self)-> DataLoader:
+        if self.sampler :
+            self.val_sampler = torch.utils.data.distributed.DistributedSampler(self.dataset.valdata,
+                                                                    num_replicas=idr_torch.size,
+                                                                    rank=idr_torch.rank,
+                                                                    shuffle=False)
+            return DataLoader(self.dataset.valdata,
+                            batch_size=self.batch_size,
+                            shuffle=False,
+                            num_workers=self.num_workers,
+                            prefetch_factor=self.prefetch_factor,
+                            drop_last=True,
+                            pin_memory=True,
+                            sampler=self.val_sampler,
+                            )
+        
         return DataLoader(self.dataset.valdata,
-                          batch_size=self.batch_size,
-                          shuffle=False,
-                          num_workers=self.num_workers,
-                          prefetch_factor=self.prefetch_factor,
-                          drop_last=True,
-                          )
-
+                        batch_size=self.batch_size,
+                        shuffle=False,
+                        num_workers=self.num_workers,
+                        prefetch_factor=self.prefetch_factor,
+                        drop_last=True,
+                        pin_memory=True,
+                        )
     def test_dataloader(self)-> DataLoader:
         return DataLoader(self.dataset.testdata,
                           batch_size=self.batch_size,
