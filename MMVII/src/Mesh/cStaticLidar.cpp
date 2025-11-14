@@ -237,7 +237,10 @@ cStaticLidar::cStaticLidar(const std::string & aNameFile, const tPose & aPose, c
     mThetaStart       (NAN),
     mThetaStep         (NAN),
     mPhiStart         (NAN),
-    mPhiStep           (NAN)
+    mPhiStep           (NAN),
+    mMaxCol            (0),
+    mMaxLine           (0),
+    mVertRot           (cRotation3D<tREAL8>::Identity())
 {
 }
 
