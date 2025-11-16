@@ -872,13 +872,14 @@ tREAL8 cBA_LidarPhotogra::EvalCorrel(const std::vector<cData1ImLidPhgr> & aVData
 {
     auto aDataMaster = aVData.at(0);
     size_t aNbPt=aVData.at(0).mVGr.size();
+    if (aNbPt < 5)
+        return -1.0;
     cDenseVect<tREAL8> aVMaster(aNbPt);
     for (size_t aK=0 ; aK< aNbPt ; aK++)
     {
         aVMaster(aK)  = aDataMaster.mVGr.at(aK).first;
     }
-
-    aVMaster=NormalizeMoyVar(aVMaster);
+    //aVMaster=NormalizeMoyVar(aVMaster);
     tREAL8 aMeanCorrel=0.0;
     for (size_t aInd=1; aInd<aVData.size();aInd++)
     {
@@ -891,17 +892,17 @@ tREAL8 cBA_LidarPhotogra::EvalCorrel(const std::vector<cData1ImLidPhgr> & aVData
             aSecVec(aK)  = aVData[aInd].mVGr.at(aK).first;
         }
 
-        aSecVec=NormalizeMoyVar(aSecVec);
+        //aSecVec=NormalizeMoyVar(aSecVec);
 
         // compute correl
-        tREAL8 aCorrel=0.0;
+        cMatIner2Var<tREAL8>  aMat;
         for (size_t aK=0; aK<aNbPt; aK++)
         {
-            aCorrel+=aVMaster(aK)*aSecVec(aK);
+            aMat.Add(aVMaster(aK),aSecVec(aK));
         }
         //StdOut()<<"Current correl "<<aCorrel<<std::endl;
-        aMeanCorrel+=aCorrel;
-        MMVII_INTERNAL_ASSERT_strong(aCorrel<=1.0 && aCorrel>=-1.0,"Correl not correctly measured !");
+        aMeanCorrel+=aMat.Correl();
+        //MMVII_INTERNAL_ASSERT_strong(aCorrel<=1.0 && aCorrel>=-1.0,"Correl not correctly measured !");
     }
     return (aMeanCorrel/=(aVData.size()-1));
 }
