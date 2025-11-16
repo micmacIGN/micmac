@@ -2151,14 +2151,14 @@ template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & a
       }
   }
   // Read faces
-  {
+  /*{
       std::vector<std::vector<size_t>> aVFace =   aPlyF.getFaceIndices<size_t>();
       for (const auto & aFace : aVFace)
       {
 	  MMVII_INTERNAL_ASSERT_tiny(aFace.size()==3,"Bad face");
 	  this->AddFace(cPt3di(aFace[0],aFace[1],aFace[2]));
       }
-  }
+  }*/
 }
 
 
