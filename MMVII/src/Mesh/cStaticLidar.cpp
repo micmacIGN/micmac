@@ -650,10 +650,13 @@ void cStaticLidar::MakePatches
 
     // shortcut if only 1 point needed: just get the centers
     if (aNbPointByPatch==1)
+    {
         for (auto & aCenter: mPatchCenters)
         {
             aLPatches.push_back( {aCenter} );
         }
+        return;
+    }
 
     // parse center points
     for (auto & aCenter: mPatchCenters)
