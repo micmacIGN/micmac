@@ -19,6 +19,7 @@ extern cSpecMMVII_Appli  TheSpecEditRel;
 extern cSpecMMVII_Appli  TheSpec_EditCalcMetaDataImage;
 extern cSpecMMVII_Appli  TheSpec_EditBlockInstr;
 extern cSpecMMVII_Appli  TheSpec_BlockInstrInitCam;
+extern cSpecMMVII_Appli  TheSpec_BlockInstrInitClino;
 extern cSpecMMVII_Appli  TheSpec_BlockInstrReport;
 extern cSpecMMVII_Appli  TheSpecWalkman;
 extern cSpecMMVII_Appli  TheSpecDaisy;

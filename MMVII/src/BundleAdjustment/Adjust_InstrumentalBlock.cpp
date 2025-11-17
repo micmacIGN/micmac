@@ -210,8 +210,8 @@ void cBA_BlockInstr::OneItere_1TS(cIrbComp_TimeS& aDataS)
 {
     for (auto & [aPair,aSigma2] : mCalBl->SigmaPair() )
     {
-        const cIrb_Desc1Intsr &  aSI1 = mCalBl->SigmaInd(aPair.V1());
-        const cIrb_Desc1Intsr &  aSI2 = mCalBl->SigmaInd(aPair.V2());
+        const cIrb_Desc1Intsr &  aSI1 = mCalBl->DescrIndiv(aPair.V1());
+        const cIrb_Desc1Intsr &  aSI2 = mCalBl->DescrIndiv(aPair.V2());
         if ((aSI1.Type()==eTyInstr::eCamera) && (aSI2.Type()==eTyInstr::eCamera))
         {
                OneItere_1PairCam(aSigma2,aDataS,aPair);
@@ -248,7 +248,7 @@ void cBA_BlockInstr::AddGauge(bool InEq)
 
      if (InEq)
      {
-          const cIrb_SigmaInstr & aSigma = mCalBl->SigmaInd(mMasterCam.NameCal()).Sigma();
+          const cIrb_SigmaInstr & aSigma = mCalBl->DescrIndiv(mMasterCam.NameCal()).Sigma();
           if (mGaujeTr>0)
               Sys().AddEqFixCurVar(aPBl,aC,1.0/Square(mGaujeTr*aSigma.SigmaTr()));
           if (mGaujeRot>0)
@@ -273,6 +273,7 @@ void cBA_BlockInstr::SaveSigma()
     {
         // case we save empirical sigma between pairs
         mCalBl->SetSigmaPair(mSigmaPair);
+        mCalBl->SetSigmaIndiv(mSigmaPair);
     }
     else
     {

@@ -77,7 +77,7 @@ class cAppli_BlockInstrInitCam; // appli for computing initial value of poses in
   /*  ============   Classes for camera calibration ====================== */
 
 /// class for representing one camera embeded in a "Rigid Block of Instrument"
-class cIrbCal_Cam1 // : public cMemCheck
+class cIrbCal_Cam1  : public cMemCheck
 {
     public :
         cIrbCal_Cam1();  //< required for serialisation
@@ -120,7 +120,7 @@ void AddData(const  cAuxAr2007 & anAux,cIrbCal_Cam1 & aCam);
 
 
 ///  class for representing the set of cameras embedded in a bloc
-class cIrbCal_CamSet  //: public cMemCheck
+class cIrbCal_CamSet  : public cMemCheck
 {
      public :
         friend cAppli_EditBlockInstr;
@@ -161,7 +161,7 @@ void AddData(const  cAuxAr2007 & anAux,cIrbCal_CamSet & aCam);
    /*  ============   Classes for clinometers calibration ====================== */
 
 ///  class for representing one clino embeded in a "Rigid Block of Instrument""
-class cIrbCal_Clino1  // : public cMemCheck
+class cIrbCal_Clino1   : public cMemCheck
 {
     public :
         cIrbCal_Clino1();  //< required for serialisation
@@ -177,7 +177,7 @@ class cIrbCal_Clino1  // : public cMemCheck
 void AddData(const  cAuxAr2007 & anAux,cIrbCal_Clino1 & aClino);
 
 ///  class for representing a set of clino
-class cIrbCal_ClinoSet // : public cMemCheck
+class cIrbCal_ClinoSet  : public cMemCheck
 {
      public :
          friend cIrbCal_Block;
@@ -185,6 +185,7 @@ class cIrbCal_ClinoSet // : public cMemCheck
 
          cIrbCal_ClinoSet();
          void AddData(const  cAuxAr2007 & anAux);
+         std::vector<std::string> VNames() const;
      private :
          cIrbCal_Clino1 * ClinoFromName(const std::string& aName);
          void AddClino(const std::string &,bool SVP=false);
@@ -193,6 +194,8 @@ class cIrbCal_ClinoSet // : public cMemCheck
          cIrbCal_Block *              mCalBlock;
 
 };
+void AddData(const  cAuxAr2007 & anAux,cIrbCal_ClinoSet & aClino);
+
 
 /// class for storing a relative orientation extern constraint ( for ex orthoganility of clino) between 2 instrument
 
@@ -253,12 +256,12 @@ class cIrb_Desc1Intsr
 
        void AddData(const  cAuxAr2007 & anAux);
        void  AddNewSigma (const cIrb_SigmaInstr&);
-       const cIrb_SigmaInstr & Sigma() const;
        void SetSigma(const cIrb_SigmaInstr&);
+       void ResetSigma();
 
-
-       eTyInstr             Type() const;
-       const std::string &  NameInstr() const;
+       const cIrb_SigmaInstr & Sigma() const;  //< Accessor
+       eTyInstr             Type() const;      //< Accessor
+       const std::string &  NameInstr() const; //< Accessor
 
     private :
        eTyInstr         mType;
@@ -270,7 +273,7 @@ void AddData(const  cAuxAr2007 & anAux,cIrb_Desc1Intsr & aDesc);
 
 
 ///  class for representing  the structure/calibration of instruments possibly used
-class cIrbCal_Block  // : public cMemCheck
+class cIrbCal_Block  : public cMemCheck
 {
      public :
         friend cIrbComp_Block;
@@ -288,7 +291,11 @@ class cIrbCal_Block  // : public cMemCheck
 
          const  std::map<tNamePair,cIrb_SigmaInstr> &  SigmaPair() const;
          void SetSigmaPair( const  std::map<tNamePair,cIrb_SigmaInstr> & );
-         const cIrb_Desc1Intsr &  SigmaInd(const std::string &) const;
+         void SetSigmaIndiv( const  std::map<tNamePair,cIrb_SigmaInstr> & );
+
+         const cIrb_Desc1Intsr &  DescrIndiv(const std::string &) const;
+          cIrb_Desc1Intsr &  NC_DescrIndiv(const std::string &) ;
+
 
          void AvgPairSigma(); //< Set all sigma of pairs to global average (in the same type)
          void AvgIndivSigma();  //< Set all sigma of object ir global average
@@ -311,7 +318,7 @@ class cIrbCal_Block  // : public cMemCheck
          cIrbCal_ClinoSet              mSetClinos;  //<  Clinos used in the bloc
 
          std::map<tNamePair,cIrb_SigmaInstr>   mSigmaPair;     //<  Sigmas between pair of instr
-         std::map<std::string,cIrb_Desc1Intsr> mSigmaInd;      //<  Sigmas of each instrument
+         std::map<std::string,cIrb_Desc1Intsr> mDescrIndiv;      //<  Sigmas of each instrument
          std::map<tNamePair,cIrb_CstrRelRot>   mCstrRelRot;
 
 };
@@ -324,7 +331,7 @@ void AddData(const  cAuxAr2007 & anAux,cIrbCal_Block & aRBoI);
 /* ************************************************************ */
 
 ///  class for storing poses in a cIrbComp_Cam1
-class cIrbComp_Cam1 //: public cMemCheck
+class cIrbComp_Cam1 : public cMemCheck
 {
      public :
          cIrbComp_Cam1();
@@ -346,7 +353,7 @@ class cIrbComp_Cam1 //: public cMemCheck
          cSensorCamPC * mCamPC;
 };
 
-class cIrbComp_CamSet // : public cMemCheck
+class cIrbComp_CamSet  : public cMemCheck
 {
     public :
          friend cIrbComp_Block;
@@ -369,8 +376,27 @@ class cIrbComp_CamSet // : public cMemCheck
          std::vector<cIrbComp_Cam1>  mVCompPoses;
 };
 
+
+class cIrbComp_Clino1 : public cMemCheck
+{
+   public :
+        cIrbComp_Clino1(tREAL8 anAngle);
+   private :
+        tREAL8 mAngle;
+};
+
+class cIrbComp_ClinoSet : public cMemCheck
+{
+   public :
+      cIrbComp_ClinoSet();
+      void SetClinoValues(const cOneMesureClino&);
+
+   private :
+       std::vector<cIrbComp_Clino1>  mVCompClinos;
+};
+
 ///  class for storing one time stamp in cIrbComp_Block
-class   cIrbComp_TimeS //: public cMemCheck
+class   cIrbComp_TimeS : public cMemCheck
 {
     public :
          friend cIrbComp_Block;
@@ -380,16 +406,27 @@ class   cIrbComp_TimeS //: public cMemCheck
           cIrbComp_CamSet & SetCams();  //< Accessor
 
          const cIrbComp_Block & CompBlock() const; //< Accessor
+         const cIrbCal_Block & CalBlock() const; //< Accessor or Accessor
          // cIrbComp_Block & CompBlock() ; //< Accessor
+
+         // if not SVP and cannot compute : error
+         void ComputePoseInstrument(bool SVP = false);
+         void SetClinoValues(const cOneMesureClino&);
+
     private :
          cIrbComp_TimeS(const cIrbComp_TimeS&) = delete;
          const cIrbComp_Block &            mCompBlock;
          cIrbComp_CamSet                   mSetCams;
+         cIrbComp_ClinoSet                 mSetClino;
+
+         /** Not sure which role will play the notion of "pose of the instrument"*/
+         bool                              mPoseInstrIsInit;
+         tPoseR                            mPoseInstr;
 };
 
 ///  class for using a rigid bloc in computation (calibration/compensation)
 //   cIrbComp_Block
-class   cIrbComp_Block //: public cMemCheck
+class   cIrbComp_Block : public cMemCheck
 {
     public :
        typedef  std::tuple<tREAL8,tPoseR,cIrb_SigmaInstr>  tResCompCal;
@@ -414,6 +451,8 @@ class   cIrbComp_Block //: public cMemCheck
        const tContTimeS & DataTS() const ; //< Accessor
        tContTimeS & DataTS(); //< Accessor
 
+       //  compute pose of instrument for all time stamp
+       void ComputePoseInstrument(bool SVP = false);
 
 
        // Add an image if orientation exist (via PhProj)
@@ -424,6 +463,10 @@ class   cIrbComp_Block //: public cMemCheck
        // for a given pair K1/K2 the 'best' relative pose and its sigma
        tResCompCal ComputeCalibCamsInit(int aK1,int aK2) const;
 
+       //
+       void SetClinoValues(const cSetMeasureClino&,bool OkNewTimeS=false );
+       /// call previous by using std measure on phproj
+       void SetClinoValues(bool OkNewTimeS=false);
     private :
        /// non copiable, too "dangerous"
        cIrbComp_Block(const cIrbComp_Block & ) = delete;

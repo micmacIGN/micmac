@@ -88,6 +88,7 @@ enum class eApF
                SysCo,        ///< Coordinate system
                BlockInstr, ///< Edit, Calib, block of instrument
                Ori,        ///< Orientation
+               Clino,
                Match,      ///< Dense Matching
                GCP,        ///< Ground point processing
                TieP,       ///< Tie-Point processing
@@ -148,6 +149,7 @@ enum class eFormatExtern
 enum class eApDT
            {
               Ori,    ///< Orientation
+              Clino,
               PCar,   ///< Tie Points
               TieP,   ///< Tie Points
               BlockInstr,   ///< Tie Points

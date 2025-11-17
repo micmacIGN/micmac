@@ -165,8 +165,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_EditBlockInstr);
         TheVecAll.push_back(&TheSpec_BlockInstrReport);
         TheVecAll.push_back(&TheSpec_BlockInstrInitCam);
-
-
+        TheVecAll.push_back(&TheSpec_BlockInstrInitClino);
         TheVecAll.push_back(&TheSpecWalkman);
         TheVecAll.push_back(&TheSpecDaisy);
         TheVecAll.push_back(&TheSpecCatVideo);

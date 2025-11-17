@@ -267,6 +267,7 @@ template<> cE2Str<eApF>::tMapE2Str cE2Str<eApF>::mE2S
                 {eApF::ImProc,"ImProc"},
                 {eApF::Radiometry,"Radiometry"},
                 {eApF::Ori,"Ori"},
+                {eApF::Clino,"Clino"},
                 {eApF::SysCo,"SysCo"},
                 {eApF::BlockInstr,"BlockInstr"},
                 {eApF::Match,"Match"},
@@ -286,6 +287,7 @@ template<> cE2Str<eApF>::tMapE2Str cE2Str<eApF>::mE2S
 template<> cE2Str<eApDT>::tMapE2Str cE2Str<eApDT>::mE2S
            {
                 {eApDT::Ori,"Ori"},
+                {eApDT::Clino,"Clino"},
                 {eApDT::PCar,"PCar"},
                 {eApDT::TieP,"TieP"},
                 {eApDT::BlockInstr,"BlockInstr"},
