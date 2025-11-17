@@ -42,10 +42,16 @@ private :
 
     // Optional Arg
     std::string              mTransfoIJK;
+    bool                     mDoVerticalize;
+    cPt2dr                   mIntensityMinMax;
+    cPt2dr                   mDistanceMinMax;
+    tREAL8                   mIncidenceMin;
+    tREAL8                   mMaskBufferSteps;
+    int                      mNbPatches;
+
+    // data
     tREAL8 mPhiStepApprox;
-
     tREAL8 mThetaStepApprox;
-
     cStaticLidar mSL_data;
 };
 
@@ -53,6 +59,12 @@ cAppli_ImportStaticScan::cAppli_ImportStaticScan(const std::vector<std::string> 
     cMMVII_Appli    (aVArgs,aSpec),
     mPhProj         (*this),
     mTransfoIJK     ("ijk"),
+    mDoVerticalize  (false),
+    mIntensityMinMax({0.01,0.99}),
+    mDistanceMinMax ({0.,100.}),
+    mIncidenceMin   (0.05),
+    mMaskBufferSteps(2.),
+    mNbPatches      (1000),
     mPhiStepApprox  (NAN),
     mSL_data        (mNameFile, cIsometry3D<tREAL8>({}, cRotation3D<tREAL8>::Identity()), nullptr)
 {
@@ -72,6 +84,12 @@ cCollecSpecArg2007 & cAppli_ImportStaticScan::ArgOpt(cCollecSpecArg2007 & anArgO
 {
     return    anArgOpt
            << AOpt2007(mTransfoIJK,"Transfo","Transfo to have primariy rotation axis as Z and X as theta origin",{{eTA2007::HDV}})
+           << AOpt2007(mDoVerticalize,"Vert","Try to verticalize scan columns",{{eTA2007::HDV}})
+           << AOpt2007(mIntensityMinMax,"FilterIntensity","Filter on min and max intensity",{{eTA2007::HDV}})
+           << AOpt2007(mDistanceMinMax,"FilterDistance","Filter on min and max distance",{{eTA2007::HDV}})
+           << AOpt2007(mIncidenceMin,"FilterIncidence","Filter on min incidence (rad)",{{eTA2007::HDV}})
+           << AOpt2007(mMaskBufferSteps,"MaskBuffer","Final mask buffer in hz scan steps",{{eTA2007::HDV}})
+           << AOpt2007(mNbPatches,"NbPatches","Approx nb patches to make",{{eTA2007::HDV}})
         ;
 }
 
@@ -519,26 +537,29 @@ int cAppli_ImportStaticScan::Exe()
 
     exportThetas("thetas_before.txt", 20, false);
 
-    tREAL8 aVertCorrection = doVerticalize();
-    StdOut() << "VerticalCorrection: " << aVertCorrection << "\n";
-
-    StdOut() << "Sample after verticalization:\n";
-    for (size_t i=0; (i<10)&&(i<mSL_data.mSL_importer.mVectPtsXYZ.size()); ++i)
+    if (mDoVerticalize)
     {
-        StdOut() << mSL_data.mSL_importer.mVectPtsXYZ.at(i);
-        if (mSL_data.mSL_importer.HasIntensity())
-            StdOut() << " " << mSL_data.mSL_importer.mVectPtsIntens.at(i);
-        StdOut() << "\n";
-    }
-    StdOut() << "...\n";
+        tREAL8 aVertCorrection = doVerticalize();
+        StdOut() << "VerticalCorrection: " << aVertCorrection << "\n";
 
-    StdOut() << "Spherical sample after verticalization:\n";
-    for (size_t i=0; (i<10)&&(i<mSL_data.mSL_importer.mVectPtsTPD.size()); ++i)
-    {
-        StdOut() << mSL_data.mSL_importer.mVectPtsTPD[i];
-        StdOut() << "\n";
+        StdOut() << "Sample after verticalization:\n";
+        for (size_t i=0; (i<10)&&(i<mSL_data.mSL_importer.mVectPtsXYZ.size()); ++i)
+        {
+            StdOut() << mSL_data.mSL_importer.mVectPtsXYZ.at(i);
+            if (mSL_data.mSL_importer.HasIntensity())
+                StdOut() << " " << mSL_data.mSL_importer.mVectPtsIntens.at(i);
+            StdOut() << "\n";
+        }
+        StdOut() << "...\n";
+
+        StdOut() << "Spherical sample after verticalization:\n";
+        for (size_t i=0; (i<10)&&(i<mSL_data.mSL_importer.mVectPtsTPD.size()); ++i)
+        {
+            StdOut() << mSL_data.mSL_importer.mVectPtsTPD[i];
+            StdOut() << "\n";
+        }
+        StdOut() << "...\n";
     }
-    StdOut() << "...\n";
 
     // export clouds for debug
     #include <fstream>
@@ -592,11 +613,11 @@ int cAppli_ImportStaticScan::Exe()
 
     mSL_data.fillRasters(mPhProj.DPStaticLidar().FullDirOut(), true);
 
-    mSL_data.FilterIntensity(0.01,0.99);
-    mSL_data.FilterDistance(1., 10);
-    mSL_data.FilterIncidence(M_PI/2-0.05);
-    mSL_data.MaskBuffer(mSL_data.mPhiStep*10, mPhProj.DPStaticLidar().FullDirOut());
-    mSL_data.SelectPatchCenters2(200);
+    mSL_data.FilterIntensity(mIntensityMinMax[0], mIntensityMinMax[1]);
+    mSL_data.FilterDistance(mDistanceMinMax[0], mDistanceMinMax[1]);
+    mSL_data.FilterIncidence(M_PI/2-mIncidenceMin);
+    mSL_data.MaskBuffer(mSL_data.mPhiStep*mMaskBufferSteps, mPhProj.DPStaticLidar().FullDirOut());
+    mSL_data.SelectPatchCenters2(mNbPatches);
 
     SaveInFile(mSL_data, mPhProj.DPStaticLidar().FullDirOut() + "Scan-" + mSL_data.mStationName + "-" + mSL_data.mScanName + ".xml");
 

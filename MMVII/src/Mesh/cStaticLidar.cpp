@@ -612,7 +612,7 @@ void cStaticLidar::SelectPatchCenters2(int aNbPatches)
         while (aX<aRasterMaskData.SzX())
         {
             // take lat/long proj into account
-            aXStep = ((float)aRasterMaskData.SzX()) / aNbPatchesX / aNbPatchesFactor / cos(LineToLocalPhiApprox(aY));
+            aXStep = fabs(((float)aRasterMaskData.SzX()) / aNbPatchesX / aNbPatchesFactor / cos(LineToLocalPhiApprox(aY)));
             auto aPt = cPt2di(aX, aY);
             if (aRasterMaskData.GetV(aPt))
             {
