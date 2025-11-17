@@ -42,10 +42,17 @@ private :
 
     // Optional Arg
     std::string              mTransfoIJK;
+    bool                     mForceStructured;
+    bool                     mDoVerticalize;
+    cPt2dr                   mIntensityMinMax;
+    cPt2dr                   mDistanceMinMax;
+    tREAL8                   mIncidenceMin;
+    tREAL8                   mMaskBufferSteps;
+    int                      mNbPatches;
+
+    // data
     tREAL8 mPhiStepApprox;
-
     tREAL8 mThetaStepApprox;
-
     cStaticLidar mSL_data;
 };
 
@@ -53,6 +60,13 @@ cAppli_ImportStaticScan::cAppli_ImportStaticScan(const std::vector<std::string> 
     cMMVII_Appli    (aVArgs,aSpec),
     mPhProj         (*this),
     mTransfoIJK     ("ijk"),
+    mForceStructured(false), // skip all checks, suppose all the points are present and ordered by col
+    mDoVerticalize  (false),
+    mIntensityMinMax({0.01,0.99}),
+    mDistanceMinMax ({0.,100.}),
+    mIncidenceMin   (0.05),
+    mMaskBufferSteps(2.),
+    mNbPatches      (1000),
     mPhiStepApprox  (NAN),
     mSL_data        (mNameFile, cIsometry3D<tREAL8>({}, cRotation3D<tREAL8>::Identity()), nullptr)
 {
@@ -72,6 +86,13 @@ cCollecSpecArg2007 & cAppli_ImportStaticScan::ArgOpt(cCollecSpecArg2007 & anArgO
 {
     return    anArgOpt
            << AOpt2007(mTransfoIJK,"Transfo","Transfo to have primariy rotation axis as Z and X as theta origin",{{eTA2007::HDV}})
+           << AOpt2007(mForceStructured,"Structured","Suppose the scan is structured, skip all checks",{{eTA2007::HDV}})
+           << AOpt2007(mDoVerticalize,"Vert","Try to verticalize scan columns",{{eTA2007::HDV}})
+           << AOpt2007(mIntensityMinMax,"FilterIntensity","Filter on min and max intensity",{{eTA2007::HDV}})
+           << AOpt2007(mDistanceMinMax,"FilterDistance","Filter on min and max distance",{{eTA2007::HDV}})
+           << AOpt2007(mIncidenceMin,"FilterIncidence","Filter on min incidence (rad)",{{eTA2007::HDV}})
+           << AOpt2007(mMaskBufferSteps,"MaskBuffer","Final mask buffer in hz scan steps",{{eTA2007::HDV}})
+           << AOpt2007(mNbPatches,"NbPatches","Approx nb patches to make",{{eTA2007::HDV}})
         ;
 }
 
@@ -133,7 +154,7 @@ void cAppli_ImportStaticScan::computeLineCol()
     computeAngStartStep();
     if (mSL_data.mSL_importer.HasRowCol())
         return; // nothing to do
-    tREAL8 aColChangeDetectorInPhistep = 20;
+    tREAL8 aColChangeDetectorInPhistep = 8;
 
     // compute line and col for each point
     mSL_data.mSL_importer.mVectPtsLine.resize(mSL_data.mSL_importer.mVectPtsXYZ.size());
@@ -142,7 +163,7 @@ void cAppli_ImportStaticScan::computeLineCol()
     tREAL8 previousPhi = NAN;
     //tREAL8 previousTheta = NAN;
     mSL_data.mMaxLine = 0;
-    int aCurrLine = 0;
+    int aCurrLine = -1;
     for (size_t i=0; i<mSL_data.mSL_importer.mVectPtsTPD.size(); ++i)
     {
         auto & aPtAng = mSL_data.mSL_importer.mVectPtsTPD[i];
@@ -158,8 +179,6 @@ void cAppli_ImportStaticScan::computeLineCol()
         else
             aCurrLine = (aPtAng.y()-mSL_data.mPhiStart)/fabs(mPhiStepApprox);
 
-        if (aCurrLine>mSL_data.mMaxLine)
-            mSL_data.mMaxLine = aCurrLine;
         //StdOut() << aPtAng.y() << " " << previousPhi << " " << -(aPtAng.y()-previousPhi)/mPhiStepApprox
         //         << " " << aCurrLine << " " << mSL_data.mMaxLine << "\n";
         if (-(aPtAng.y()-previousPhi)/mPhiStepApprox > aColChangeDetectorInPhistep)
@@ -167,6 +186,10 @@ void cAppli_ImportStaticScan::computeLineCol()
             mSL_data.mMaxCol++;
             aCurrLine=0;
         }
+
+        if (aCurrLine>mSL_data.mMaxLine)
+            mSL_data.mMaxLine = aCurrLine;
+
         mSL_data.mSL_importer.mVectPtsLine[i] = aCurrLine;
         mSL_data.mSL_importer.mVectPtsCol[i] = mSL_data.mMaxCol;
         //previousTheta = aPtAng.x();
@@ -179,6 +202,14 @@ void cAppli_ImportStaticScan::computeLineCol()
 
     MMVII_INTERNAL_ASSERT_tiny((mSL_data.mMaxCol>0) && (mSL_data.mMaxLine>0),
                                "Image size found incorrect")
+
+    if (mSL_data.mSL_importer.IsStructured())
+    {
+        int aIndexMidFirstCol = mSL_data.mMaxLine/2;
+        int aIndexMidSecondCol = mSL_data.mMaxLine*3./2;
+        mSL_data.mThetaStart = mSL_data.mSL_importer.mVectPtsTPD.at(aIndexMidFirstCol).x();
+        mSL_data.mThetaStep = mSL_data.mSL_importer.mVectPtsTPD.at(aIndexMidSecondCol).x() - mSL_data.mSL_importer.mVectPtsTPD.at(aIndexMidFirstCol).x();
+    }
 
     int mThetaDir = -1; // TODO: compute!
     // precise estimation of mThetaStep and mPhiStep;
@@ -276,24 +307,27 @@ void cAppli_ImportStaticScan::computeAngStartStep()
                              << mSL_data.mSL_importer.mVectPtsCol[i] << " " << mSL_data.mSL_importer.mVectPtsLine[i] << "\n";
                     StdOut() << a1stPtAng.x() << " " << a1stPtAng.y() << " "
                              << a2ndPtAng.x() << " " << a2ndPtAng.y() << "\n";
-                    StdOut() << "PhiStart: " << mSL_data.mPhiStart << ", "
-                             << "PhiStep: " << mSL_data.mPhiStep << ", "
-                             << "ThetaStart: " << mSL_data.mThetaStart << ", "
-                             << "ThetaStep: " << mSL_data.mThetaStep << "\n";
-                    StdOut() << "PhiEnd: " << mSL_data.mPhiStart+mSL_data.mMaxLine*mSL_data.mPhiStep << ", "
-                             << "ThetaEnd: " << mSL_data.mThetaStep+mSL_data.mMaxCol*mSL_data.mThetaStep << "\n";
-                    return;
                 }
             }
         }
     } else {
-        if (mSL_data.mSL_importer.NoMiss())
+        if (mSL_data.mSL_importer.IsStructured())
         {
-            MMVII_INTERNAL_ASSERT_tiny(false, "No computeAngStartEnd() without linecol for now")
+            mSL_data.mPhiStart = mSL_data.mSL_importer.mVectPtsTPD.at(0).y();
+            mSL_data.mThetaStart = NAN; // do it when line/col computed
+            mSL_data.mPhiStep = mSL_data.mSL_importer.mVectPtsTPD.at(1).y() - mSL_data.mSL_importer.mVectPtsTPD.at(0).y();
+            mSL_data.mThetaStep = NAN;
         } else {
             MMVII_INTERNAL_ASSERT_tiny(false, "No computeAngStartEnd() for sparse cloud for now")
         }
     }
+
+    StdOut() << "PhiStart: " << mSL_data.mPhiStart << ", "
+             << "PhiStep: " << mSL_data.mPhiStep << ", "
+             << "ThetaStart: " << mSL_data.mThetaStart << ", "
+             << "ThetaStep: " << mSL_data.mThetaStep << "\n";
+    StdOut() << "PhiEnd: " << mSL_data.mPhiStart+mSL_data.mMaxLine*mSL_data.mPhiStep << ", "
+             << "ThetaEnd: " << mSL_data.mThetaStep+mSL_data.mMaxCol*mSL_data.mThetaStep << "\n";
 }
 
 void cAppli_ImportStaticScan::testLineColError()
@@ -459,7 +493,7 @@ void cAppli_ImportStaticScan::exportThetas(const std::string & aFileName, int aN
 int cAppli_ImportStaticScan::Exe()
 {
     mPhProj.FinishInit();
-    mSL_data.mSL_importer.read(mNameFile);
+    mSL_data.mSL_importer.read(mNameFile, false, mForceStructured);
 
     mSL_data.mMaxCol = mSL_data.mSL_importer.MaxCol();
     mSL_data.mMaxLine = mSL_data.mSL_importer.MaxLine();
@@ -484,6 +518,11 @@ int cAppli_ImportStaticScan::Exe()
             aPtXYZ = aRotFrame.Value(aPtXYZ);
         }
         mSL_data.mSL_importer.convertToThetaPhiDist();
+        // go back to original xyz
+        for (auto & aPtXYZ : mSL_data.mSL_importer.mVectPtsXYZ)
+        {
+            aPtXYZ = aRotFrame.Inverse(aPtXYZ);
+        }
     } else if (!mSL_data.mSL_importer.HasCartesian() && mSL_data.mSL_importer.HasSpherical()) // mTransfoIJK not used if spherical
     {
         mSL_data.mSL_importer.convertToXYZ();
@@ -519,26 +558,29 @@ int cAppli_ImportStaticScan::Exe()
 
     exportThetas("thetas_before.txt", 20, false);
 
-    tREAL8 aVertCorrection = doVerticalize();
-    StdOut() << "VerticalCorrection: " << aVertCorrection << "\n";
-
-    StdOut() << "Sample after verticalization:\n";
-    for (size_t i=0; (i<10)&&(i<mSL_data.mSL_importer.mVectPtsXYZ.size()); ++i)
+    if (mDoVerticalize)
     {
-        StdOut() << mSL_data.mSL_importer.mVectPtsXYZ.at(i);
-        if (mSL_data.mSL_importer.HasIntensity())
-            StdOut() << " " << mSL_data.mSL_importer.mVectPtsIntens.at(i);
-        StdOut() << "\n";
-    }
-    StdOut() << "...\n";
+        tREAL8 aVertCorrection = doVerticalize();
+        StdOut() << "VerticalCorrection: " << aVertCorrection << "\n";
 
-    StdOut() << "Spherical sample after verticalization:\n";
-    for (size_t i=0; (i<10)&&(i<mSL_data.mSL_importer.mVectPtsTPD.size()); ++i)
-    {
-        StdOut() << mSL_data.mSL_importer.mVectPtsTPD[i];
-        StdOut() << "\n";
+        StdOut() << "Sample after verticalization:\n";
+        for (size_t i=0; (i<10)&&(i<mSL_data.mSL_importer.mVectPtsXYZ.size()); ++i)
+        {
+            StdOut() << mSL_data.mSL_importer.mVectPtsXYZ.at(i);
+            if (mSL_data.mSL_importer.HasIntensity())
+                StdOut() << " " << mSL_data.mSL_importer.mVectPtsIntens.at(i);
+            StdOut() << "\n";
+        }
+        StdOut() << "...\n";
+
+        StdOut() << "Spherical sample after verticalization:\n";
+        for (size_t i=0; (i<10)&&(i<mSL_data.mSL_importer.mVectPtsTPD.size()); ++i)
+        {
+            StdOut() << mSL_data.mSL_importer.mVectPtsTPD[i];
+            StdOut() << "\n";
+        }
+        StdOut() << "...\n";
     }
-    StdOut() << "...\n";
 
     // export clouds for debug
     #include <fstream>
@@ -592,11 +634,11 @@ int cAppli_ImportStaticScan::Exe()
 
     mSL_data.fillRasters(mPhProj.DPStaticLidar().FullDirOut(), true);
 
-    mSL_data.FilterIntensity(0.01,0.99);
-    mSL_data.FilterDistance(1., 10);
-    mSL_data.FilterIncidence(M_PI/2-0.05);
-    mSL_data.MaskBuffer(mSL_data.mPhiStep*10, mPhProj.DPStaticLidar().FullDirOut());
-    mSL_data.SelectPatchCenters2(200);
+    mSL_data.FilterIntensity(mIntensityMinMax[0], mIntensityMinMax[1]);
+    mSL_data.FilterDistance(mDistanceMinMax[0], mDistanceMinMax[1]);
+    mSL_data.FilterIncidence(M_PI/2-mIncidenceMin);
+    mSL_data.MaskBuffer(mSL_data.mPhiStep*mMaskBufferSteps, mPhProj.DPStaticLidar().FullDirOut());
+    mSL_data.SelectPatchCenters2(mNbPatches);
 
     SaveInFile(mSL_data, mPhProj.DPStaticLidar().FullDirOut() + "Scan-" + mSL_data.mStationName + "-" + mSL_data.mScanName + ".xml");
 
