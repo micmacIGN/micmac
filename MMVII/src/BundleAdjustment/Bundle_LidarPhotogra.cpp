@@ -40,9 +40,12 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cPhotogrammetricProject * aPhProj,
         std::string aFullPat2Sup = mPhProj->DPStaticLidar().FullDirIn() + aPat2Sup;
         tNameSet aSet = SetNameFromPat(aFullPat2Sup);
         std::vector<std::string> aVect = ToVect(aSet);
+        MMVII_INTERNAL_ASSERT_User(aVect.size()==1,
+                                   eTyUEr::eUnClassedError,"Only one scan per directory is supported for now.");
         for (const auto & aNameSens : aVect)
         {
             // TODO: make a vector of lidar data?
+            if (mLidarData) delete mLidarData;
             mLidarData = mPhProj->ReadStaticLidar(mPhProj->DPStaticLidar(), aNameSens, true);
         }
 
@@ -192,6 +195,8 @@ void cBA_LidarPhotogra::AddObs()
     if (mLastResidual.SW() != 0)
        StdOut() << "  * Lid/Phr Residual Rad " << std::sqrt(mLastResidual.Average())
                  << " ("<<mNbUsedObs<<" obs, "<<mNbUsedPoints<<" points)\n";
+    else
+        StdOut() << "  * Lid/Phr: no obs\n";
 }
 
 void cBA_LidarPhotogra::SetVUkVObs

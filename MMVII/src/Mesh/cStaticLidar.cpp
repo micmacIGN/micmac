@@ -41,7 +41,7 @@ tREAL8 toMinusPiPlusPi(tREAL8 aAng, tREAL8 aOffset)
 }
 
 cStaticLidarImporter::cStaticLidarImporter() :
-    mNoMiss(false), mDistMinToExist(1e-5)
+    mNoMiss(false), mIsStrucured(false), mDistMinToExist(1e-5)
 {
 
 }
@@ -105,10 +105,10 @@ void cStaticLidarImporter::readE57Points(std::string aE57FileName)
     {
         e57::Reader reader( aE57FileName, {});
         MMVII_INTERNAL_ASSERT_tiny(reader.IsOpen(), "Error: unable to open file " + aE57FileName)
-            StdOut() << "Image2DCount: " << reader.GetImage2DCount() << "\n";
+        StdOut() << "Image2DCount: " << reader.GetImage2DCount() << "\n";
         StdOut() << "Data3DCount: " << reader.GetData3DCount() << "\n";
         MMVII_INTERNAL_ASSERT_tiny(reader.GetData3DCount()==1, "Error: File should have exactly 1 scan for now")
-            e57::E57Root fileHeader;
+        e57::E57Root fileHeader;
         reader.GetE57Root( fileHeader );
         /*StdOut() << fileHeader.formatName << " =? " << "ASTM E57 3D Imaging Data File" << std::endl;
         StdOut() << fileHeader.versionMajor << " =? " << 1 << std::endl;
@@ -123,7 +123,7 @@ void cStaticLidarImporter::readE57Points(std::string aE57FileName)
         const uint64_t cNumRead = vectorReader.read();
         MMVII_INTERNAL_ASSERT_tiny(cNumPoints==cNumRead, "Error: cNumPoints!=cNumRead")
 
-            mHasCartesian = pointsData.cartesianX && pointsData.cartesianY && pointsData.cartesianZ;
+        mHasCartesian = pointsData.cartesianX && pointsData.cartesianY && pointsData.cartesianZ;
         mHasIntensity = pointsData.intensity;
         mHasSpherical = pointsData.sphericalAzimuth && pointsData.sphericalElevation && pointsData.sphericalRange;
         mHasRowCol = pointsData.columnIndex && pointsData.rowIndex;
@@ -171,7 +171,7 @@ void cStaticLidarImporter::readE57Points(std::string aE57FileName)
     }
 }
 
-bool cStaticLidarImporter::read(const std::string & aName,bool OkNone)
+bool cStaticLidarImporter::read(const std::string & aName, bool OkNone, bool aForceStructured)
 {
     std::string aPost = LastPostfix(aName);
     if (UCaseEqual(aPost,"ply"))
@@ -186,6 +186,16 @@ bool cStaticLidarImporter::read(const std::string & aName,bool OkNone)
         }
         return false;
     }
+    if (aForceStructured)
+        mIsStrucured = true;
+
+    if (!mHasIntensity)
+    {
+        // fake intensity
+        mVectPtsIntens.resize(std::max(mVectPtsXYZ.size(),mVectPtsTPD.size()), 0.5);
+        mHasIntensity = true;
+    }
+
     return true;
 }
 
@@ -204,7 +214,7 @@ void cStaticLidarImporter::convertToThetaPhiDist()
             aNbPtsNul++;
     }
     StdOut() << aNbPtsNul << " null points\n";
-    mNoMiss = aNbPtsNul>0;
+    mNoMiss = mIsStrucured || (aNbPtsNul>0);
 }
 
 
@@ -221,15 +231,8 @@ void cStaticLidarImporter::convertToXYZ()
             aNbPtsNul++;
     }
     StdOut() << aNbPtsNul << " null points\n";
-    mNoMiss = aNbPtsNul>0;
+    mNoMiss = mIsStrucured || (aNbPtsNul>0);
 }
-
-
-
-
-
-
-
 
 
 cStaticLidar::cStaticLidar(const std::string & aNameFile, const tPose & aPose, cPerspCamIntrCalib * aCalib) :
@@ -372,8 +375,7 @@ void cStaticLidar::fillRasters(const std::string& aPhProjDirOut, bool saveRaster
                             auto aPtAng = mSL_importer.mVectPtsTPD[i];
                             return (aPtAng.z()<mSL_importer.DistMinToExist())?0:255;
                         }, mRasterMask, saveRasters);
-    if (mSL_importer.HasIntensity())
-        fillRaster<tU_INT1>(aPhProjDirOut, mRasterIntensityPath, [this](int i){return mSL_importer.mVectPtsIntens[i]*255;}, mRasterIntensity, saveRasters );
+    fillRaster<tU_INT1>(aPhProjDirOut, mRasterIntensityPath, [this](int i){return mSL_importer.mVectPtsIntens[i]*255;}, mRasterIntensity, saveRasters );
     fillRaster<tREAL4>(aPhProjDirOut, mRasterDistancePath,
                       [this](int i){auto aPtAng = mSL_importer.mVectPtsTPD[i];return aPtAng.z();},
                        mRasterDistance, saveRasters);
@@ -404,6 +406,8 @@ void cStaticLidar::fillRasters(const std::string& aPhProjDirOut, bool saveRaster
 
 void cStaticLidar::FilterIntensity(tREAL8 aLowest, tREAL8 aHighest)
 {
+    if (!mSL_importer.HasIntensity())
+        return;
     MMVII_INTERNAL_ASSERT_tiny(mRasterMask, "Error: mRasterMask must be computed first");
     auto & aMaskImData = mRasterMask->DIm();
     auto & aRasterScoreData = mRasterScore->DIm();
@@ -598,13 +602,13 @@ void cStaticLidar::SelectPatchCenters2(int aNbPatches)
     float aXYratio=((float)aRasterMaskData.SzX())/aRasterMaskData.SzY();
     int aNbPatchesX = sqrt((double)aNbPatches)*sqrt(aXYratio)+1;
     int aNbPatchesY = sqrt((double)aNbPatches)/sqrt(aXYratio)+1;
-
     float aNbPatchesFactor = 1.5; // a priori search for aNbPatches * aNbPatchesFactor
     float aX;
     float aY = float(aRasterMaskData.SzY()) / aNbPatchesY / 2.;
     float aXStep;
-    float aYStep = aRasterMaskData.SzY() / aNbPatchesY / aNbPatchesFactor;
-
+    float aYStep = float(aRasterMaskData.SzY()) / aNbPatchesY / aNbPatchesFactor;
+    if (aYStep<1.)
+        aYStep = 1.;
     int aLineCounter = 0;
     while (aY<aRasterMaskData.SzY())
     {
@@ -612,7 +616,7 @@ void cStaticLidar::SelectPatchCenters2(int aNbPatches)
         while (aX<aRasterMaskData.SzX())
         {
             // take lat/long proj into account
-            aXStep = ((float)aRasterMaskData.SzX()) / aNbPatchesX / aNbPatchesFactor / cos(LineToLocalPhiApprox(aY));
+            aXStep = fabs(((float)aRasterMaskData.SzX()) / aNbPatchesX / aNbPatchesFactor / cos(LineToLocalPhiApprox(aY)));
             auto aPt = cPt2di(aX, aY);
             if (aRasterMaskData.GetV(aPt))
             {
@@ -620,6 +624,8 @@ void cStaticLidar::SelectPatchCenters2(int aNbPatches)
                 aXStep *= aAvgDist/aRasterDistData.GetV(aPt); // take depth into account
             } else
                 aXStep /= 3.;
+            if (aXStep<1.)
+                aXStep = 1.;
             aX += aXStep;
 
         }
@@ -650,10 +656,13 @@ void cStaticLidar::MakePatches
 
     // shortcut if only 1 point needed: just get the centers
     if (aNbPointByPatch==1)
+    {
         for (auto & aCenter: mPatchCenters)
         {
             aLPatches.push_back( {aCenter} );
         }
+        return;
+    }
 
     // parse center points
     for (auto & aCenter: mPatchCenters)

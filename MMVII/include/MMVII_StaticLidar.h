@@ -27,19 +27,20 @@ public:
     cStaticLidarImporter();
     void readPlyPoints(std::string aPlyFileName);
     void readE57Points(std::string aE57FileName);
-    bool read(const std::string & aName,bool OkNone=false); //< Addapt to adequate function from postfix, return is some read suceeded
+    bool read(const std::string & aName, bool OkNone=false, bool aForceStructured=false); //< Addapt to adequate function from postfix, return is some read suceeded
 
     void convertToThetaPhiDist();
     void convertToXYZ();
 
-    bool HasCartesian(){ return mHasCartesian;}
-    bool HasIntensity(){ return mHasIntensity;}
-    bool HasSpherical(){ return mHasSpherical;}
-    bool HasRowCol(){ return mHasRowCol;}
-    bool NoMiss(){ return mNoMiss;}
-    int MaxCol(){ return mMaxCol;}
-    int MaxLine(){ return mMaxLine;}
-    tREAL8 DistMinToExist(){ return mDistMinToExist;}
+    bool HasCartesian() {return mHasCartesian;}
+    bool HasIntensity() {return mHasIntensity;}
+    bool HasSpherical() {return mHasSpherical;}
+    bool HasRowCol() {return mHasRowCol;}
+    bool NoMiss() {return mNoMiss;}
+    bool IsStructured() {return mIsStrucured;}
+    int MaxCol() {return mMaxCol;}
+    int MaxLine() {return mMaxLine;}
+    tREAL8 DistMinToExist() {return mDistMinToExist;}
 
     // line and col for each point
     std::vector<int> mVectPtsLine;
@@ -54,9 +55,10 @@ protected:
     bool mHasIntensity; // in original read data
     bool mHasSpherical; // in original read data
     bool mHasRowCol;    // in original read data
-    int mMaxCol, mMaxLine;
+    int mMaxCol, mMaxLine;// in original read data
 
     bool mNoMiss; // seems to be full
+    bool mIsStrucured;
     tREAL8 mDistMinToExist;
 };
 
