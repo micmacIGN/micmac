@@ -42,6 +42,7 @@ private :
 
     // Optional Arg
     std::string              mTransfoIJK;
+    bool                     mForceStructured;
     bool                     mDoVerticalize;
     cPt2dr                   mIntensityMinMax;
     cPt2dr                   mDistanceMinMax;
@@ -59,6 +60,7 @@ cAppli_ImportStaticScan::cAppli_ImportStaticScan(const std::vector<std::string> 
     cMMVII_Appli    (aVArgs,aSpec),
     mPhProj         (*this),
     mTransfoIJK     ("ijk"),
+    mForceStructured(false), // skip all checks, suppose all the points are present and ordered by col
     mDoVerticalize  (false),
     mIntensityMinMax({0.01,0.99}),
     mDistanceMinMax ({0.,100.}),
@@ -84,6 +86,7 @@ cCollecSpecArg2007 & cAppli_ImportStaticScan::ArgOpt(cCollecSpecArg2007 & anArgO
 {
     return    anArgOpt
            << AOpt2007(mTransfoIJK,"Transfo","Transfo to have primariy rotation axis as Z and X as theta origin",{{eTA2007::HDV}})
+           << AOpt2007(mForceStructured,"Structured","Suppose the scan is structured, skip all checks",{{eTA2007::HDV}})
            << AOpt2007(mDoVerticalize,"Vert","Try to verticalize scan columns",{{eTA2007::HDV}})
            << AOpt2007(mIntensityMinMax,"FilterIntensity","Filter on min and max intensity",{{eTA2007::HDV}})
            << AOpt2007(mDistanceMinMax,"FilterDistance","Filter on min and max distance",{{eTA2007::HDV}})
@@ -151,7 +154,7 @@ void cAppli_ImportStaticScan::computeLineCol()
     computeAngStartStep();
     if (mSL_data.mSL_importer.HasRowCol())
         return; // nothing to do
-    tREAL8 aColChangeDetectorInPhistep = 20;
+    tREAL8 aColChangeDetectorInPhistep = 8;
 
     // compute line and col for each point
     mSL_data.mSL_importer.mVectPtsLine.resize(mSL_data.mSL_importer.mVectPtsXYZ.size());
@@ -160,7 +163,7 @@ void cAppli_ImportStaticScan::computeLineCol()
     tREAL8 previousPhi = NAN;
     //tREAL8 previousTheta = NAN;
     mSL_data.mMaxLine = 0;
-    int aCurrLine = 0;
+    int aCurrLine = -1;
     for (size_t i=0; i<mSL_data.mSL_importer.mVectPtsTPD.size(); ++i)
     {
         auto & aPtAng = mSL_data.mSL_importer.mVectPtsTPD[i];
@@ -176,8 +179,6 @@ void cAppli_ImportStaticScan::computeLineCol()
         else
             aCurrLine = (aPtAng.y()-mSL_data.mPhiStart)/fabs(mPhiStepApprox);
 
-        if (aCurrLine>mSL_data.mMaxLine)
-            mSL_data.mMaxLine = aCurrLine;
         //StdOut() << aPtAng.y() << " " << previousPhi << " " << -(aPtAng.y()-previousPhi)/mPhiStepApprox
         //         << " " << aCurrLine << " " << mSL_data.mMaxLine << "\n";
         if (-(aPtAng.y()-previousPhi)/mPhiStepApprox > aColChangeDetectorInPhistep)
@@ -185,6 +186,10 @@ void cAppli_ImportStaticScan::computeLineCol()
             mSL_data.mMaxCol++;
             aCurrLine=0;
         }
+
+        if (aCurrLine>mSL_data.mMaxLine)
+            mSL_data.mMaxLine = aCurrLine;
+
         mSL_data.mSL_importer.mVectPtsLine[i] = aCurrLine;
         mSL_data.mSL_importer.mVectPtsCol[i] = mSL_data.mMaxCol;
         //previousTheta = aPtAng.x();
@@ -197,6 +202,14 @@ void cAppli_ImportStaticScan::computeLineCol()
 
     MMVII_INTERNAL_ASSERT_tiny((mSL_data.mMaxCol>0) && (mSL_data.mMaxLine>0),
                                "Image size found incorrect")
+
+    if (mSL_data.mSL_importer.IsStructured())
+    {
+        int aIndexMidFirstCol = mSL_data.mMaxLine/2;
+        int aIndexMidSecondCol = mSL_data.mMaxLine*3./2;
+        mSL_data.mThetaStart = mSL_data.mSL_importer.mVectPtsTPD.at(aIndexMidFirstCol).x();
+        mSL_data.mThetaStep = mSL_data.mSL_importer.mVectPtsTPD.at(aIndexMidSecondCol).x() - mSL_data.mSL_importer.mVectPtsTPD.at(aIndexMidFirstCol).x();
+    }
 
     int mThetaDir = -1; // TODO: compute!
     // precise estimation of mThetaStep and mPhiStep;
@@ -294,24 +307,27 @@ void cAppli_ImportStaticScan::computeAngStartStep()
                              << mSL_data.mSL_importer.mVectPtsCol[i] << " " << mSL_data.mSL_importer.mVectPtsLine[i] << "\n";
                     StdOut() << a1stPtAng.x() << " " << a1stPtAng.y() << " "
                              << a2ndPtAng.x() << " " << a2ndPtAng.y() << "\n";
-                    StdOut() << "PhiStart: " << mSL_data.mPhiStart << ", "
-                             << "PhiStep: " << mSL_data.mPhiStep << ", "
-                             << "ThetaStart: " << mSL_data.mThetaStart << ", "
-                             << "ThetaStep: " << mSL_data.mThetaStep << "\n";
-                    StdOut() << "PhiEnd: " << mSL_data.mPhiStart+mSL_data.mMaxLine*mSL_data.mPhiStep << ", "
-                             << "ThetaEnd: " << mSL_data.mThetaStep+mSL_data.mMaxCol*mSL_data.mThetaStep << "\n";
-                    return;
                 }
             }
         }
     } else {
-        if (mSL_data.mSL_importer.NoMiss())
+        if (mSL_data.mSL_importer.IsStructured())
         {
-            MMVII_INTERNAL_ASSERT_tiny(false, "No computeAngStartEnd() without linecol for now")
+            mSL_data.mPhiStart = mSL_data.mSL_importer.mVectPtsTPD.at(0).y();
+            mSL_data.mThetaStart = NAN; // do it when line/col computed
+            mSL_data.mPhiStep = mSL_data.mSL_importer.mVectPtsTPD.at(1).y() - mSL_data.mSL_importer.mVectPtsTPD.at(0).y();
+            mSL_data.mThetaStep = NAN;
         } else {
             MMVII_INTERNAL_ASSERT_tiny(false, "No computeAngStartEnd() for sparse cloud for now")
         }
     }
+
+    StdOut() << "PhiStart: " << mSL_data.mPhiStart << ", "
+             << "PhiStep: " << mSL_data.mPhiStep << ", "
+             << "ThetaStart: " << mSL_data.mThetaStart << ", "
+             << "ThetaStep: " << mSL_data.mThetaStep << "\n";
+    StdOut() << "PhiEnd: " << mSL_data.mPhiStart+mSL_data.mMaxLine*mSL_data.mPhiStep << ", "
+             << "ThetaEnd: " << mSL_data.mThetaStep+mSL_data.mMaxCol*mSL_data.mThetaStep << "\n";
 }
 
 void cAppli_ImportStaticScan::testLineColError()
@@ -477,7 +493,7 @@ void cAppli_ImportStaticScan::exportThetas(const std::string & aFileName, int aN
 int cAppli_ImportStaticScan::Exe()
 {
     mPhProj.FinishInit();
-    mSL_data.mSL_importer.read(mNameFile);
+    mSL_data.mSL_importer.read(mNameFile, false, mForceStructured);
 
     mSL_data.mMaxCol = mSL_data.mSL_importer.MaxCol();
     mSL_data.mMaxLine = mSL_data.mSL_importer.MaxLine();
