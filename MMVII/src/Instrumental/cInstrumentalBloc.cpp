@@ -289,6 +289,14 @@ void cIrbComp_Block::AddImagePose(const std::string & aNameIm,bool  okImNotInBlo
 
 void cIrbComp_Block::SetClinoValues(const cSetMeasureClino& aSetM,bool OkNewTimeS)
 {
+/*
+    StdOut() << "XXX-cIrbComp_Block::SetClinoValue\n";
+    for (const auto& [anId,aData] : mDataTS)
+    {
+       StdOut() << "IIIIiiidddd " << anId << "\n";
+    }
+*/
+
     MMVII_INTERNAL_ASSERT_tiny(aSetM.NamesClino() == mCalBlock->SetClinos().VNames(),"Names differs in SetClinoValues");
    for (const auto & aMeasure : aSetM.SetMeasures())
    {

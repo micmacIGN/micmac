@@ -24,7 +24,8 @@ class cBA_BlockInstr : public cMemCheck
                cMMVII_BundleAdj& ,
                cIrbComp_Block*,
                const std::vector<std::string> & aVParamPair,
-               const std::vector<std::string> & aVParamGauje
+               const std::vector<std::string> & aVParamGauje,
+               const std::vector<std::string> & aVParamCur
        );
        virtual ~cBA_BlockInstr();
 
@@ -80,7 +81,8 @@ cBA_BlockInstr::cBA_BlockInstr
         cMMVII_BundleAdj& aBA,
         cIrbComp_Block * aCompBl,
         const std::vector<std::string> & aVParamsPair,
-        const std::vector<std::string> & aVParamGauje
+        const std::vector<std::string> & aVParamGauje,
+        const std::vector<std::string> & aVParamCur
 ) :
     mBA           (aBA),
     mSys          (nullptr),
@@ -95,10 +97,15 @@ cBA_BlockInstr::cBA_BlockInstr
     mModeSaveSigma(cStrIO<int>::FromStr(GetDef(aVParamsPair,3,std::string("1")))),
     mGaujeTr      (cStrIO<double>::FromStr(GetDef(aVParamGauje,0,std::string("0.0")))),
     mGaujeRot     (cStrIO<double>::FromStr(GetDef(aVParamGauje,1,std::string("0.0"))))
-
-
 {
 
+    if (! aVParamCur.empty())
+    {
+        for (auto & aCalC : mCalCams->VCams() )
+        {
+            mBA.SetIntervUK().AddOneObj(&aCalC.PoseUKInBlock());
+        }
+    }
     //  Add all the pose to construct the Time-Stamp structure
     for (auto aPtrCam : mBA.VSCPC())
         mCompbBl->AddImagePose(aPtrCam,true);
@@ -298,8 +305,6 @@ void cMMVII_BundleAdj::AddBlockInstr(const std::vector<std::vector<std::string>>
         MMVII_UnclasseUsEr("Dir for bloc of instrument not init with parameter for BOI/Compensation");
     }
 
-
-
      const std::vector<std::string> & aVParamPairCam = aVVParam.at(0);
      std::string aNameBlock = GetDef(aVParamPairCam,0,std::string(""));
      if (aNameBlock=="")
@@ -307,9 +312,15 @@ void cMMVII_BundleAdj::AddBlockInstr(const std::vector<std::vector<std::string>>
 
      cIrbComp_Block * aBlock = new cIrbComp_Block(*mPhProj ,aNameBlock);
 
+     std::vector<std::string> aParamCur;
+     if (aVVParam.size() >=3)
+     {
+         aParamCur = aVVParam.at(2);
+     }
+
      mVecBlockInstrAdj.push_back
      (
-          new cBA_BlockInstr(*this,aBlock,aVParamPairCam,aVVParam.at(1))
+          new cBA_BlockInstr(*this,aBlock,aVParamPairCam,aVVParam.at(1),aParamCur)
      );
 
 }

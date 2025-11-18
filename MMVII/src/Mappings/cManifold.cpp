@@ -218,10 +218,12 @@ template<int DimE>
      typename cSphereManifold<DimE>::tResPOP
          cSphereManifold<DimE>::ParamOfPt(const tPtE & aPE) const
 {
+    // 1 - Research the coordinates maximizing the absolute value
     cWhichMax<int,tREAL8> aMaxC;
     for (int aDim=0 ; aDim<DimE ; aDim++)
         aMaxC.Add(aDim,std::abs(aPE[aDim]));
 
+    // 2- compute a point of dimension DimE-1, whithout the maximal coordinate
     int aDimMax = aMaxC.IndexExtre();
     int aCpt=0;
     tPtM aProj;
@@ -231,6 +233,8 @@ template<int DimE>
         if (aDim!= aDimMax)
             aProj[aCpt++] = aPE[aDim];
     }
+
+    // 3- if the coordinate is negative incremente the num of the map
     if (aPE[aDimMax]<0)
         aDimMax += DimE;
 

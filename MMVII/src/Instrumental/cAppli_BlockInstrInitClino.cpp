@@ -79,6 +79,7 @@ int cAppli_BlockInstrInitClino::Exe()
     //  add all the camera
     for (const auto & aNameIm :  VectMainSet(0))
     {
+// StdOut() << "IiIImmm=" << aNameIm << "\n";
        mBlock->AddImagePose(aNameIm);
     }
 

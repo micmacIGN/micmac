@@ -167,7 +167,13 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mPostFixReport,NameParamPostFixReport(),CommentParamPostFixReport())
       << AOpt2007(mParamLine,"AdjLine3D","Parameter for line Adjustment [SigmaIm,NbPtsSampl]",{{eTA2007::ISizeV,"[2,2]"}})
 
-      << AOpt2007(mParamBOI,"BOI","Bloc of Instr [[Bloc?,SigTr2?=1.0,SigRot2?=1.0,SaveSig?=1],[GjTr?,GjRot?]]   ",{{eTA2007::ISizeV,"[2,2]"}})
+      << AOpt2007
+         (
+             mParamBOI,
+             "BOI",
+             "Bloc of Instr [[Bloc?,RelSigTrPair?=1.0,RelSigRotPair?=1.0,SaveSig?=1],[GjTr?,GjRot?],[RelSigTrCur,RelSigRotCur]?]",
+             {{eTA2007::ISizeV,"[2,3]"}}
+          )
       << mPhProj.DPBlockInstr().ArgDirInOpt()
       << mPhProj.DPBlockInstr().ArgDirOutOpt()
 
