@@ -56,7 +56,8 @@ class cBA_BlockInstr : public cMemCheck
        cIrbCal_Cam1 &            mMasterCam;      //<  Master cam to fix Gauje
 
        std::vector<std::string>  mVParams;        //< copy of parameters
-       cCalculator<tREAL8> *     mEqRigCam;       //< Calculator for
+       cCalculator<tREAL8> *     mEqRigCam;       //< Calculator for pair of camera
+       cCalculator<tREAL8> *     mEqRatRC;        //< calculator for rattachment to calib of rig-cam
        tREAL8                               mMulSigmaTr;     //< Multiplier for sigma-trans
        tREAL8                               mMulSigmaRot;    //< Multiplier for sigma-rot
        tINT4                                mModeSaveSigma;
@@ -68,8 +69,9 @@ class cBA_BlockInstr : public cMemCheck
        cWeightAv<tREAL8,tREAL8>             mAvgRot;
        std::map<std::string,tPoseR>         mPoseInit;       //< Used in case of rattachment
        bool                                 mUseRat2CurrBR;  //< Is there rattachment to current
-       tREAL8                               mSigTrCurBR;     //<
-       tREAL8                               mSigRotCurBR;    //<
+       tREAL8                               mMulSigTrCurBR;     //<
+       tREAL8                               mMulSigRotCurBR;    //<
+       int                                  mNbEqPair;
 
 };
 
@@ -98,6 +100,7 @@ cBA_BlockInstr::cBA_BlockInstr
     mMasterCam     (mCalCams->MasterCam()),
     mVParams       (aVParamsPair),
     mEqRigCam      (EqBlocRig(true,1,true)),
+    mEqRatRC       (EqBlocRig_RatE(true,1,true)),
     mMulSigmaTr    (cStrIO<double>::FromStr(GetDef(aVParamsPair,1,std::string("1.0")))),
     mMulSigmaRot   (cStrIO<double>::FromStr(GetDef(aVParamsPair,2,std::string("1.0")))),
     mModeSaveSigma (cStrIO<int>::FromStr(GetDef(aVParamsPair,3,std::string("1")))),
@@ -121,8 +124,8 @@ cBA_BlockInstr::cBA_BlockInstr
     if (mUseRat2CurrBR)
     {
         MMVII_INTERNAL_ASSERT_always(aVParamCur.size()==2,"Bad size for Block-Rat to Cur Block Rigid");
-        mSigTrCurBR = cStrIO<double>::FromStr(aVParamCur.at(0));
-        mSigRotCurBR = cStrIO<double>::FromStr(aVParamCur.at(1));
+        mMulSigTrCurBR = cStrIO<double>::FromStr(aVParamCur.at(0));
+        mMulSigRotCurBR = cStrIO<double>::FromStr(aVParamCur.at(1));
     }
 }
 
@@ -138,7 +141,6 @@ cIrbCal_Block &  cBA_BlockInstr::CalBl()
 
 void cBA_BlockInstr::OneIter_Rattach1Cam(const cIrb_Desc1Intsr& aDesc)
 {
-
     int aKCam = mCalCams->IndexCamFromNameCalib(aDesc.NameInstr());
 
     if (aKCam<0) return;
@@ -146,12 +148,42 @@ void cBA_BlockInstr::OneIter_Rattach1Cam(const cIrb_Desc1Intsr& aDesc)
     cPoseWithUK &  aPUK =  mCalCams->KthCam(aKCam).PoseUKInBlock();
     tPoseR aP0 = *MapGet(mPoseInit,aDesc.NameInstr());
 
+
     StdOut() << "OneIter_Rattach1CamOneIter_Rattach1Cam "
              << aDesc.NameInstr()
              << " Tr=" << aPUK.Pose().Tr() -aP0.Tr()
              << " Rot="  << (aPUK.Pose().Rot()*aP0.Rot().MapInverse()).ToWPK()
              << "\n";
 
+    if (!mUseRat2CurrBR)
+       return;
+
+    // weight multiplier to compense number of equation Pair-Times / Cam
+    tREAL8 aMulNb = mNbEqPair / tREAL8(mPoseInit.size());
+    std::vector<double>  aWeight;
+    for(int aK=0 ; aK<3 ; aK++)
+       aWeight.push_back(aMulNb/Square(mMulSigTrCurBR  * aDesc.Sigma().SigmaTr()));
+
+    for(int aK=0 ; aK<9 ; aK++)
+       aWeight.push_back(aMulNb/Square(mMulSigRotCurBR * aDesc.Sigma().SigmaRot()));
+
+    // [2.1]  the observation/context are  the coeef of rotation-matrix for linearization ;:
+    std::vector<double> aVObs;
+
+    aPUK.PushObs(aVObs,false);
+    AppendIn(aVObs,aP0.Tr().ToStdVector());
+    aP0.Rot().Mat().PushByLine(aVObs);
+
+    std::vector<int>  aVInd;
+    aPUK.PushIndexes(aVInd);
+
+    Sys().R_CalcAndAddObs
+    (
+       mEqRatRC,  // the equation itself
+       aVInd,
+       aVObs,
+       cResidualWeighterExplicit<tREAL8>(false,aWeight)
+    );
 }
 
 
@@ -163,6 +195,7 @@ void cBA_BlockInstr::OneItere_1PairCam
 
      )
 {
+
    //  [0] ============== Extract unkonwns (for bloc & poses) ========
 
    // [0.1]  Extract indexes of camera-calib in bloc
@@ -237,6 +270,8 @@ void cBA_BlockInstr::OneItere_1PairCam
     mAvgRot.Add(1.0,aSumRot);
 
     mSigmaPair[aPair].AddNewSigma(cIrb_SigmaInstr(1.0,1.0,std::sqrt(aSumTr),std::sqrt(aSumRot)));
+    mNbEqPair++;
+
 }
 
 
@@ -261,6 +296,7 @@ void cBA_BlockInstr::OneItere_1TS(cIrbComp_TimeS& aDataS)
 
 void cBA_BlockInstr::OneItere()
 {
+    mNbEqPair =0;
    mAvgTr.Reset();
    mAvgRot.Reset();
 
