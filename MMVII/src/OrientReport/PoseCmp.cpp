@@ -81,7 +81,11 @@ int cAppli_PoseCmp::Exe()
 
    cDirsPhProj &  aDirOri2 = *mPhProj.NewDPIn(eTA2007::Orient,mOri2);
 
+   MMVII_INTERNAL_ASSERT_tiny(IsDirectory(mPhProj.DPOrient().FullDirIn()),
+                              "Ori " + mPhProj.DPOrient().FullDirIn() + " does not exist");
 
+   MMVII_INTERNAL_ASSERT_tiny(IsDirectory(aDirOri2.FullDirIn()),
+                              "Ori " + mOri2 + " does not exist");
 
    std::vector<cSensorCamPC*> aVCam1;
    std::vector<cSensorCamPC*> aVCam2;
