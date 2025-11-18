@@ -289,7 +289,8 @@ class cIrbCal_Block  : public cMemCheck
 
         void AddSigma(std::string aN1,eTyInstr aType1,std::string aN2, eTyInstr aType2, const cIrb_SigmaInstr &);
 
-         const  std::map<tNamePair,cIrb_SigmaInstr> &  SigmaPair() const;
+         const std::map<tNamePair,cIrb_SigmaInstr> & SigmaPair()  const;
+         const std::map<std::string,cIrb_Desc1Intsr> & DescrIndiv() const;
          void SetSigmaPair( const  std::map<tNamePair,cIrb_SigmaInstr> & );
          void SetSigmaIndiv( const  std::map<tNamePair,cIrb_SigmaInstr> & );
 

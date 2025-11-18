@@ -45,6 +45,7 @@ class cBA_BlockInstr : public cMemCheck
 
        // For a given pair of Poses, add the constraint of rigidity
        void OneItere_1PairCam(const cIrb_SigmaInstr&,cIrbComp_TimeS&, const tNamePair & aPair);
+       void OneIter_Rattach1Cam(const cIrb_Desc1Intsr&);
 
 
        cMMVII_BundleAdj&         mBA;             //<  Bundle Adj Struct
@@ -65,6 +66,11 @@ class cBA_BlockInstr : public cMemCheck
        std::map<tNamePair,cIrb_SigmaInstr>  mSigmaPair;      //< Sigma a posteriori for pair of images
        cWeightAv<tREAL8,tREAL8>             mAvgTr;
        cWeightAv<tREAL8,tREAL8>             mAvgRot;
+       std::map<std::string,tPoseR>         mPoseInit;       //< Used in case of rattachment
+       bool                                 mUseRat2CurrBR;  //< Is there rattachment to current
+       tREAL8                               mSigTrCurBR;     //<
+       tREAL8                               mSigRotCurBR;    //<
+
 };
 
 cResolSysNonLinear<tREAL8> & cBA_BlockInstr::Sys()
@@ -84,29 +90,24 @@ cBA_BlockInstr::cBA_BlockInstr
         const std::vector<std::string> & aVParamGauje,
         const std::vector<std::string> & aVParamCur
 ) :
-    mBA           (aBA),
-    mSys          (nullptr),
-    mCompbBl      (aCompBl),
-    mCalBl        (&mCompbBl->CalBlock()),
-    mCalCams      (&mCalBl->SetCams()),
-    mMasterCam    (mCalCams->MasterCam()),
-    mVParams      (aVParamsPair),
-    mEqRigCam     (EqBlocRig(true,1,true)),
-    mMulSigmaTr   (cStrIO<double>::FromStr(GetDef(aVParamsPair,1,std::string("1.0")))),
-    mMulSigmaRot  (cStrIO<double>::FromStr(GetDef(aVParamsPair,2,std::string("1.0")))),
-    mModeSaveSigma(cStrIO<int>::FromStr(GetDef(aVParamsPair,3,std::string("1")))),
-    mGaujeTr      (cStrIO<double>::FromStr(GetDef(aVParamGauje,0,std::string("0.0")))),
-    mGaujeRot     (cStrIO<double>::FromStr(GetDef(aVParamGauje,1,std::string("0.0"))))
+    mBA            (aBA),
+    mSys           (nullptr),
+    mCompbBl       (aCompBl),
+    mCalBl         (&mCompbBl->CalBlock()),
+    mCalCams       (&mCalBl->SetCams()),
+    mMasterCam     (mCalCams->MasterCam()),
+    mVParams       (aVParamsPair),
+    mEqRigCam      (EqBlocRig(true,1,true)),
+    mMulSigmaTr    (cStrIO<double>::FromStr(GetDef(aVParamsPair,1,std::string("1.0")))),
+    mMulSigmaRot   (cStrIO<double>::FromStr(GetDef(aVParamsPair,2,std::string("1.0")))),
+    mModeSaveSigma (cStrIO<int>::FromStr(GetDef(aVParamsPair,3,std::string("1")))),
+    mGaujeTr       (cStrIO<double>::FromStr(GetDef(aVParamGauje,0,std::string("0.0")))),
+    mGaujeRot      (cStrIO<double>::FromStr(GetDef(aVParamGauje,1,std::string("0.0")))),
+    mUseRat2CurrBR (! aVParamCur.empty())
 {
 
-    if (! aVParamCur.empty())
-    {
-        for (auto & aCalC : mCalCams->VCams() )
-        {
-            mBA.SetIntervUK().AddOneObj(&aCalC.PoseUKInBlock());
-        }
-    }
-    //  Add all the pose to construct the Time-Stamp structure
+
+    //  Add amWithCurrll the pose to construct the Time-Stamp structure
     for (auto aPtrCam : mBA.VSCPC())
         mCompbBl->AddImagePose(aPtrCam,true);
 
@@ -114,6 +115,14 @@ cBA_BlockInstr::cBA_BlockInstr
     for (auto & aCalC : mCalCams->VCams() )
     {
         mBA.SetIntervUK().AddOneObj(&aCalC.PoseUKInBlock());
+        mPoseInit[aCalC.NameCal()]= aCalC.PoseUKInBlock().Pose();
+    }
+
+    if (mUseRat2CurrBR)
+    {
+        MMVII_INTERNAL_ASSERT_always(aVParamCur.size()==2,"Bad size for Block-Rat to Cur Block Rigid");
+        mSigTrCurBR = cStrIO<double>::FromStr(aVParamCur.at(0));
+        mSigRotCurBR = cStrIO<double>::FromStr(aVParamCur.at(1));
     }
 }
 
@@ -125,6 +134,24 @@ cBA_BlockInstr::~cBA_BlockInstr()
 cIrbCal_Block &  cBA_BlockInstr::CalBl()
 {
     return *mCalBl;
+}
+
+void cBA_BlockInstr::OneIter_Rattach1Cam(const cIrb_Desc1Intsr& aDesc)
+{
+
+    int aKCam = mCalCams->IndexCamFromNameCalib(aDesc.NameInstr());
+
+    if (aKCam<0) return;
+
+    cPoseWithUK &  aPUK =  mCalCams->KthCam(aKCam).PoseUKInBlock();
+    tPoseR aP0 = *MapGet(mPoseInit,aDesc.NameInstr());
+
+    StdOut() << "OneIter_Rattach1CamOneIter_Rattach1Cam "
+             << aDesc.NameInstr()
+             << " Tr=" << aPUK.Pose().Tr() -aP0.Tr()
+             << " Rot="  << (aPUK.Pose().Rot()*aP0.Rot().MapInverse()).ToWPK()
+             << "\n";
+
 }
 
 
@@ -215,7 +242,7 @@ void cBA_BlockInstr::OneItere_1PairCam
 
 void cBA_BlockInstr::OneItere_1TS(cIrbComp_TimeS& aDataS)
 {
-    for (auto & [aPair,aSigma2] : mCalBl->SigmaPair() )
+    for ( auto & [aPair,aSigma2] : mCalBl->SigmaPair() )
     {
         const cIrb_Desc1Intsr &  aSI1 = mCalBl->DescrIndiv(aPair.V1());
         const cIrb_Desc1Intsr &  aSI2 = mCalBl->DescrIndiv(aPair.V2());
@@ -226,6 +253,9 @@ void cBA_BlockInstr::OneItere_1TS(cIrbComp_TimeS& aDataS)
         else
             MMVII_INTERNAL_ERROR("Unhandled combination of instrument in  cBA_BlockInstr::OneItere_1TS");
     }
+
+
+    //for ()
 }
 
 
@@ -240,6 +270,14 @@ void cBA_BlockInstr::OneItere()
    for ( auto & [aTimeS,aDataTS] : mCompbBl->DataTS())
    {
        OneItere_1TS(aDataTS);
+   }
+
+   for ( auto & [aNameCal,aDescr] : mCalBl->DescrIndiv() )
+   {
+      if (aDescr.Type() == eTyInstr::eCamera)
+      {
+         OneIter_Rattach1Cam(aDescr);
+      }
    }
 
    AddGauge(true);

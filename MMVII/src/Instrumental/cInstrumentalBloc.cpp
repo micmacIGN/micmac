@@ -540,6 +540,9 @@ cIrbCal_ClinoSet &      cIrbCal_Block::SetClinos() {return mSetClinos;}
 
 
 const  std::map<tNamePair,cIrb_SigmaInstr> &  cIrbCal_Block::SigmaPair() const {return mSigmaPair; }
+const std::map<std::string,cIrb_Desc1Intsr> & cIrbCal_Block::DescrIndiv() const {return mDescrIndiv;}
+
+
 void cIrbCal_Block::SetSigmaPair(const  std::map<tNamePair,cIrb_SigmaInstr> & aSigmaPair)
 {
 
