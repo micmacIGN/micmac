@@ -62,78 +62,6 @@ cAppli_EpipGeom::cAppli_EpipGeom (
 {
 }
 
-cCollecSpecArg2007 & cAppli_EpipGeom::ArgObl(cCollecSpecArg2007 & anArgObl)
-{
-    return anArgObl
-           << Arg2007(mImName1,"name first image",{eTA2007::FileImage})
-           << Arg2007(mImName2,"name second image",{eTA2007::FileImage})
-           << mPhProj.DPOrient().ArgDirInMand()
-        ;
-}
-
-
-cCollecSpecArg2007 & cAppli_EpipGeom::ArgOpt(cCollecSpecArg2007 & anArgOpt)
-{
-    
-    return anArgOpt
-           << AOpt2007(mDegre,"Degre","Poly degre",{eTA2007::HDV})
-           << AOpt2007(mNbXY,"XYSteps","Nb XY steps",{eTA2007::HDV})
-           << AOpt2007(mNbZ,"ZSteps","Nb Z steps",{eTA2007::HDV})
-           << AOpt2007(mMinZ,"minZ","Z start",{eTA2007::HDV})
-           << AOpt2007(mMaxZ,"maxZ","Z stopt",{eTA2007::HDV})
-        ;
-}
-
-
-std::tuple<cPt2dr, cPt2dr, cHCompatList> cAppli_EpipGeom::GenerateData(
-    const cRect2& aRect1,
-    cSensorImage *aSensor1,
-    const cRect2& aRect2,
-    cSensorImage *aSensor2
-    )
-{
-    // TODOCM: Determiner min & max Z (stenopee, RPC)
-    // TODOCM: X & Y pas trop pres des bords ?
-    
-    
-    cHCompatList HCompatList;
-    auto c1 = cPt2dr(0,0);
-    auto d2  = cPt2dr(0,0);
-    int t = 0;
-    unsigned n = 0;
-    int deltaZ = (mMaxZ - mMinZ) / mNbZ;
-    int deltaX = aRect1.Sz().x() / mNbXY;
-    int deltaY = aRect1.Sz().y() / mNbXY;
-    for (int x = aRect1.P0().x(); x < aRect1.P1().x(); x += deltaX) {
-        for (int y = aRect1.P0().y(); y < aRect1.P1().y(); y += deltaY) {
-            for (int z = mMinZ; z < mMaxZ; z += deltaZ) {
-                t++;
-                auto p1 = cPt2dr(x,y);
-                auto p1_z = cPt3dr(x,y,z);
-                auto p1p_z = cPt3dr(x,y,z+deltaZ);
-                auto p2 = aSensor2->Ground2Image(aSensor1->ImageAndZ2Ground(p1_z));
-                if (! aRect2.InsideBL(p2))
-                    continue;
-                auto p2p = aSensor2->Ground2Image(aSensor1->ImageAndZ2Ground(p1p_z));
-                if (! aRect2.InsideBL(p2p))
-                    continue;
-                n ++;
-                HCompatList.push_back({p1,p2});
-                c1 += p1;
-                auto v2 = p2p - p2;
-                d2 += v2 / Norm2(v2);
-            }
-        }
-    }
-    c1 = c1 / double(n);
-    d2 = d2 / double(n);
-    
-    std::cout << n << "/" << t << std::endl;
-
-    return {c1,d2,std::move(HCompatList)};
-}
-
-
 int cAppli_EpipGeom::Exe()
 {
     mPhProj.FinishInit();
@@ -238,6 +166,78 @@ int cAppli_EpipGeom::Exe()
     
     // TODOCM: jeu test !!
     return EXIT_SUCCESS;
+}
+
+
+cCollecSpecArg2007 & cAppli_EpipGeom::ArgObl(cCollecSpecArg2007 & anArgObl)
+{
+    return anArgObl
+           << Arg2007(mImName1,"name first image",{eTA2007::FileImage})
+           << Arg2007(mImName2,"name second image",{eTA2007::FileImage})
+           << mPhProj.DPOrient().ArgDirInMand()
+        ;
+}
+
+
+cCollecSpecArg2007 & cAppli_EpipGeom::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+    
+    return anArgOpt
+           << AOpt2007(mDegre,"Degre","Poly degre",{eTA2007::HDV})
+           << AOpt2007(mNbXY,"XYSteps","Nb XY steps",{eTA2007::HDV})
+           << AOpt2007(mNbZ,"ZSteps","Nb Z steps",{eTA2007::HDV})
+           << AOpt2007(mMinZ,"minZ","Z start",{eTA2007::HDV})
+           << AOpt2007(mMaxZ,"maxZ","Z stopt",{eTA2007::HDV})
+        ;
+}
+
+
+std::tuple<cPt2dr, cPt2dr, cHCompatList> cAppli_EpipGeom::GenerateData(
+    const cRect2& aRect1,
+    cSensorImage *aSensor1,
+    const cRect2& aRect2,
+    cSensorImage *aSensor2
+    )
+{
+    // TODOCM: Determiner min & max Z (stenopee, RPC)
+    // TODOCM: X & Y pas trop pres des bords ?
+    
+    
+    cHCompatList HCompatList;
+    auto c1 = cPt2dr(0,0);
+    auto d2  = cPt2dr(0,0);
+    int t = 0;
+    unsigned n = 0;
+    int deltaZ = (mMaxZ - mMinZ) / mNbZ;
+    int deltaX = aRect1.Sz().x() / mNbXY;
+    int deltaY = aRect1.Sz().y() / mNbXY;
+    for (int x = aRect1.P0().x(); x < aRect1.P1().x(); x += deltaX) {
+        for (int y = aRect1.P0().y(); y < aRect1.P1().y(); y += deltaY) {
+            for (int z = mMinZ; z < mMaxZ; z += deltaZ) {
+                t++;
+                auto p1 = cPt2dr(x,y);
+                auto p1_z = cPt3dr(x,y,z);
+                auto p1p_z = cPt3dr(x,y,z+deltaZ);
+                auto p2 = aSensor2->Ground2Image(aSensor1->ImageAndZ2Ground(p1_z));
+                if (! aRect2.InsideBL(p2))
+                    continue;
+                auto p2p = aSensor2->Ground2Image(aSensor1->ImageAndZ2Ground(p1p_z));
+                if (! aRect2.InsideBL(p2p))
+                    continue;
+                n ++;
+                HCompatList.push_back({p1,p2});
+                c1 += p1;
+                auto v2 = p2p - p2;
+                d2 += v2 / Norm2(v2);
+            }
+        }
+    }
+    c1 = c1 / double(n);
+    d2 = d2 / double(n);
+    
+    std::cout << n << "/" << t << std::endl;
+
+    return {c1,d2,std::move(HCompatList)};
 }
 
 
