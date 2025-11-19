@@ -77,6 +77,8 @@ template <class Type> Type & cUnOrderedPair<Type>::V1() {return  mV1;}
 template <class Type> Type & cUnOrderedPair<Type>::V2() {return  mV2;}
 
 template  class cUnOrderedPair<std::string>;
+template  class cUnOrderedPair<int>;
+
 
 /* =============   cDataSelector<Type>   ========= */
 

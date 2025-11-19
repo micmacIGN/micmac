@@ -797,17 +797,22 @@ template <class TypeWeight,class TypeVal=TypeWeight> class cWeightAv
 
 
         void Add(const TypeWeight & aWeight,const TypeVal & aVal);
+        void Add(const cWeightAv<TypeWeight,TypeVal> & aWAwg);
+
         TypeVal Average() const;
         TypeVal Average(const TypeVal  & aDef) const;
         const TypeVal & SVW() const;  /// Accessor to sum weighted vals
         const TypeWeight & SW() const;  /// Accessor to sum weighted vals
         long Nb() const;  /// Accessor to number of elements
         void  Reset();
+        void AddData(const cAuxAr2007 &);
     private :
         TypeWeight  mSW;   ///< Som of    W
         TypeVal     mSVW;   ///< Som of    VW
         long        mNb;    ///< Number of elements
 };
+typedef  cWeightAv<tREAL8,tREAL8> tWArr;
+template <class TypeWeight,class TypeVal>  void AddData(const cAuxAr2007 &,cWeightAv<TypeWeight,TypeVal>&);
 
 /** Class for making standard star on residuals */
 class cStdStatRes

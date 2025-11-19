@@ -20,7 +20,8 @@ class cBA_GCP;
 class cBA_Clino;
 class cBA_BlocRig;
 
-class  cUK_Line3D_4BA;
+class cUK_Line3D_4BA;
+class cBA_BlockInstr;
 
 /**  "Standard" weighting classes, used the following formula
  *
@@ -458,10 +459,20 @@ class cMMVII_BundleAdj
           void AddConstrainteRefPose();
           void AddConstrainteRefPose(cSensorCamPC & aCam,cSensorCamPC & aCamRef);
 
-
+          //  ----------------  Line adjustment -------------------------------------
           void AddLineAdjust(const std::vector<std::string> &);
           void DeleteLineAdjust();
           void IterAdjustOnLine();
+
+          //  ----------------  Block of instrument (new version) -------------------------------------
+          void AddBlockInstr(const std::vector<std::vector<std::string>> &);
+          void SetHardGaugeBlockInstr(); //< if "hard" gauge must be done outside equation
+          void IterOneBlockInstr();
+          // 0 None , 1 Empirical , 2 by covariance
+          void SaveBlockInstr();
+          void DeleteBlockInstr();
+
+
 
           void SaveBlocRigid();
           void Save_newGCP3D();
@@ -478,6 +489,9 @@ class cMMVII_BundleAdj
           cResolSysNonLinear<tREAL8> *  Sys();  /// Real object, will disapear when fully interfaced for mSys
 
           cSetInterUK_MultipeObj<tREAL8> &   SetIntervUK();
+
+          cPhotogrammetricProject  &PhProj();
+
      private :
 
           //============== Methods =============================
@@ -564,6 +578,7 @@ class cMMVII_BundleAdj
           std::vector<int>          mIndCompUC;
           cResult_UC_SUR<tREAL8>*   mRUCSUR;
           std::vector<cUK_Line3D_4BA*>           mVecLineAdjust;
+          std::vector<cBA_BlockInstr *>          mVecBlockInstrAdj;
 };
 
 
