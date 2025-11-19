@@ -2423,7 +2423,7 @@ template <class Type> cBox2dr  cTriangulation3D<Type>::Box2D() const
 template <class Type> 
    void cTriangulation3D<Type>::MakePatches
         (
-             std::list<std::vector<int> > & aLPatches,
+             std::vector<std::vector<int> > & aLPatches,
              tREAL8 aDistNeigh,
              tREAL8 aDistReject,
              int    aSzMin

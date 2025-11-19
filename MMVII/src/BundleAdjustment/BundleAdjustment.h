@@ -396,6 +396,7 @@ class cBA_LidarPhotogra
        cWeightAv<tREAL8,tREAL8>       mLastResidual;   ///< Accumulate the radiometric residual
        std::vector<std::vector<int> >   mLPatches;       ///< set of 3D patches
        bool                           mPertRad;        ///< do we pertubate the radiometry (simulation & test)
+       bool                           mPreselectPatches ; ///< are patches selected before or not ? no need to auto/inter corr
        size_t                         mNbPointByPatch; ///< (approximate) required number of point /patch
        tREAL8 mCurrentCorrelVal=0.0;
        cWeightAv<tREAL8,tREAL8> mAverageDeltaX;

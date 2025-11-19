@@ -400,7 +400,7 @@ template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
 
            cBox2dr  Box2D() const;
 
-           void MakePatches(std::list<std::vector<int> > & ,tREAL8 aDistNeigh,tREAL8 aDistReject,int aSzMin) const;
+           void MakePatches(std::vector<std::vector<int> > & ,tREAL8 aDistNeigh,tREAL8 aDistReject,int aSzMin) const;
            void MakePatchesTargetted(std::vector<std::vector<int> > & , tREAL8 aDistNeigh, tREAL8 aDistReject, int aSzMin,
                                      const std::vector<cSensorCamPC *> & ,
                                      const std::vector<cIm2D<tU_INT1>> & ,

@@ -24,6 +24,7 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
     mEqLidPhgr  (nullptr),                             // equation of egalisation Lidar/Phgr
     mVSCams     ({}),
     mPertRad    (false),
+    mPreselectPatches  (false),
     mNbPointByPatch (32),
     mBoxSelected (cBox2dr::Empty()),
     mNbScale(1),
@@ -82,6 +83,10 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
    if (aParam.size()>=9)
    {
        mInitRes = cStrIO<tREAL8>::FromStr(aParam.at(8));
+   }
+   if (aParam.size()>=10)
+   {
+       mPreselectPatches = (aParam.at(9) != "");
    }
    // create the interpaltor itself
    mInterp  = cDiffInterpolator1D::AllocFromNames(aParamInt);
@@ -159,27 +164,30 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
         tREAL8 aDistMoy = std::sqrt(mNbPointByPatch / (mDensity*M_PI));
         tREAL8 aDistReject =  aDistMoy *1.2;
 
-        //mTri.MakePatches(mLPatches,aDistMoy,aDistReject,15);
-
-        if (mNbScale == 1)
-            mTri.MakePatchesTargetted(mLPatches,
-                                  aDistMoy,
-                                  aDistReject,
-                                  15,
-                                  mVCam,
-                                  mVIms,
-                                  0.85);
-
-        if (mNbScale > 1)
-            mTri.MakePatchesTargetted(mLPatches,
+        if (mPreselectPatches)
+            mTri.MakePatches(mLPatches,aDistMoy,aDistReject,15);
+        else
+        {
+            if (mNbScale == 1)
+                mTri.MakePatchesTargetted(mLPatches,
                                       aDistMoy,
                                       aDistReject,
                                       15,
                                       mVCam,
                                       mVIms,
-                                      0.85,
-                                      mVSCams,
-                                      mNbScale-1);
+                                      0.85);
+
+            if (mNbScale > 1)
+                mTri.MakePatchesTargetted(mLPatches,
+                                          aDistMoy,
+                                          aDistReject,
+                                          15,
+                                          mVCam,
+                                          mVIms,
+                                          0.85,
+                                          mVSCams,
+                                          mNbScale-1);
+        }
 
         StdOut()<<"Selected Patches "<<mLPatches.size()<<std::endl;
 
