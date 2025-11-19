@@ -546,9 +546,13 @@ const std::map<std::string,cIrb_Desc1Intsr> & cIrbCal_Block::DescrIndiv() const 
 void cIrbCal_Block::SetSigmaPair(const  std::map<tNamePair,cIrb_SigmaInstr> & aSigmaPair)
 {
 
+    StdOut () << "    ============  SIGMA by PAIR, for cams in bloc ===========\n";
     for (const auto&  [aCple,aSig] : aSigmaPair )
     {
-        StdOut() << " SP=" << aCple.V1() << " " << aCple.V2() << " " << aSig.SigmaTr() << " " << aSig.SigmaRot() << "\n";
+        StdOut()
+                << " Tr=" << aSig.SigmaTr() << " Rot=" << aSig.SigmaRot()
+                << " : " << aCple.V1() << " " << aCple.V2()
+                << "\n";
     }
     mSigmaPair = aSigmaPair;
 }
@@ -573,7 +577,7 @@ void cIrbCal_Block::SetSigmaIndiv(const  std::map<tNamePair,cIrb_SigmaInstr> & a
     {
         NC_DescrIndiv(aCple.V1()).AddNewSigma(aSig);
         NC_DescrIndiv(aCple.V2()).AddNewSigma(aSig);
-        StdOut() << " TTRRR=" << NC_DescrIndiv(aCple.V1()).Sigma().SigmaTr() << "\n";
+        //StdOut() << " TTRRR=" << NC_DescrIndiv(aCple.V1()).Sigma().SigmaTr() << "\n";
     }
 }
 

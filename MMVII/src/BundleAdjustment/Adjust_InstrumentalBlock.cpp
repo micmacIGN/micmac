@@ -148,12 +148,13 @@ void cBA_BlockInstr::OneIter_Rattach1Cam(const cIrb_Desc1Intsr& aDesc)
     cPoseWithUK &  aPUK =  mCalCams->KthCam(aKCam).PoseUKInBlock();
     tPoseR aP0 = *MapGet(mPoseInit,aDesc.NameInstr());
 
-
+/*
     StdOut() << "OneIter_Rattach1CamOneIter_Rattach1Cam "
              << aDesc.NameInstr()
              << " Tr=" << aPUK.Pose().Tr() -aP0.Tr()
              << " Rot="  << (aPUK.Pose().Rot()*aP0.Rot().MapInverse()).ToWPK()
              << "\n";
+             */
 
     if (!mUseRat2CurrBR)
        return;
@@ -318,7 +319,9 @@ void cBA_BlockInstr::OneItere()
 
    AddGauge(true);
 
-   StdOut() << " Avg  Tr:" << std::sqrt(mAvgTr.Average()) << " Rot:" << std::sqrt(mAvgRot.Average()) << "\n";
+   StdOut() << "  * Residual IntrBlocCam/Pair "
+            << " Tr=" << std::sqrt(mAvgTr.Average())
+            << " Rot=" << std::sqrt(mAvgRot.Average()) << "\n";
 }
 
 void cBA_BlockInstr::AddGauge(bool InEq)
