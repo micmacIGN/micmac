@@ -195,6 +195,13 @@ void cIrbComp_TimeS::ComputePoseInstrument(bool SVP)
     }
 }
 
+tREAL8 cIrbComp_TimeS::ScoreDirClino(const cPt3dr& aDirClino,size_t aKClino) const
+{
+    cPt3dr aDirLoc = mPoseInstr.Rot().Inverse(aDirClino);
+
+    return std::abs(aDirLoc.z() );//- std::sin());
+}
+
 
 /* *************************************************************** */
 /*                                                                 */
@@ -289,14 +296,6 @@ void cIrbComp_Block::AddImagePose(const std::string & aNameIm,bool  okImNotInBlo
 
 void cIrbComp_Block::SetClinoValues(const cSetMeasureClino& aSetM,bool OkNewTimeS)
 {
-/*
-    StdOut() << "XXX-cIrbComp_Block::SetClinoValue\n";
-    for (const auto& [anId,aData] : mDataTS)
-    {
-       StdOut() << "IIIIiiidddd " << anId << "\n";
-    }
-*/
-
     MMVII_INTERNAL_ASSERT_tiny(aSetM.NamesClino() == mCalBlock->SetClinos().VNames(),"Names differs in SetClinoValues");
    for (const auto & aMeasure : aSetM.SetMeasures())
    {

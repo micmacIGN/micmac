@@ -31,14 +31,16 @@ class cAppli_BlockInstrInitClino : public cMMVII_Appli
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
         int Exe() override;
         // std::vector<std::string>  Samples() const ;
-
      private :
+        tREAL8 ScoreDirClino(const cPt3dr& aDir,size_t aKClino) const;
+
         cPhotogrammetricProject   mPhProj;
         std::string               mSpecImIn;
         cIrbComp_Block *          mBlock;
         std::string               mNameBloc;  //< name of the bloc inside the
         bool                      mAvgSigma;  //< Do we average sigma of pairs
 };
+
 
 
 cAppli_BlockInstrInitClino::cAppli_BlockInstrInitClino(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec) :

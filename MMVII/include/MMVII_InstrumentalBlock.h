@@ -414,6 +414,9 @@ class   cIrbComp_TimeS : public cMemCheck
          void ComputePoseInstrument(bool SVP = false);
          void SetClinoValues(const cOneMesureClino&);
 
+         tREAL8 ScoreDirClino(const cPt3dr& aDir,size_t aKClino) const;
+
+
     private :
          cIrbComp_TimeS(const cIrbComp_TimeS&) = delete;
          const cIrbComp_Block &            mCompBlock;
@@ -468,6 +471,9 @@ class   cIrbComp_Block : public cMemCheck
        void SetClinoValues(const cSetMeasureClino&,bool OkNewTimeS=false );
        /// call previous by using std measure on phproj
        void SetClinoValues(bool OkNewTimeS=false);
+
+       tREAL8 ScoreDirClino(const cPt3dr& aDir,size_t aKClino) const;
+
     private :
        /// non copiable, too "dangerous"
        cIrbComp_Block(const cIrbComp_Block & ) = delete;
