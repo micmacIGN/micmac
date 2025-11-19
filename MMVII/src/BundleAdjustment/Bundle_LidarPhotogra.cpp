@@ -165,7 +165,9 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
         tREAL8 aDistReject =  aDistMoy *1.2;
 
         if (mPreselectPatches)
+        {
             mTri.MakePatches(mLPatches,aDistMoy,aDistReject,15);
+        }
         else
         {
             if (mNbScale == 1)
@@ -878,6 +880,8 @@ void cBA_LidarPhotogra::EvalGeomConsistency(const std::vector<cPt3dr>& aVPatchGr
 
 tREAL8 cBA_LidarPhotogra::EvalCorrel(const std::vector<cData1ImLidPhgr> & aVData)
 {
+    if  ( !(aVData.size()>1) ) // case when only one image is seen by patch
+        return -1;
     auto aDataMaster = aVData.at(0);
     size_t aNbPt=aVData.at(0).mVGr.size();
     if (aNbPt < 5)

@@ -2873,7 +2873,7 @@ template <class Type>
     {
         aTileAll.Add(cTil2DTri3D<Type>(aKP));
     }
-    StdOut()<<"Tile2D3D filled "<<std::endl;
+    //StdOut()<<"Tile2D3D filled "<<std::endl;
     // indexation of all points selected as center of patches
     cTiling<cTil2DTri3D<Type> >  aTileSelect(aBox,true,this->NbPts()/20,this);
     // parse all  points
