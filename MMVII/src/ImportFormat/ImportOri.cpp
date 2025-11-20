@@ -144,7 +144,7 @@ int cAppli_ImportOri::Exe()
 	false
     );
 
-    tREAL8  aAngDiv = AngleInRad(mAngleUnit);
+    tREAL8  aAngDiv = AngleFromRad(mAngleUnit);
 
     std::string mSeparator = "@";
     std::map<std::string,std::string>  aDicoChName;

@@ -142,6 +142,7 @@ cIrbComp_TimeS::cIrbComp_TimeS (const cIrbComp_Block & aCompBlock) :
 
 const cIrbComp_CamSet & cIrbComp_TimeS::SetCams() const {return mSetCams;}
 cIrbComp_CamSet & cIrbComp_TimeS::SetCams() {return mSetCams;}
+const cIrbComp_ClinoSet & cIrbComp_TimeS::SetClino() const {return mSetClino;}
 
 const cIrbComp_Block & cIrbComp_TimeS::CompBlock() const {return mCompBlock;}
 
@@ -198,8 +199,17 @@ void cIrbComp_TimeS::ComputePoseInstrument(bool SVP)
 tREAL8 cIrbComp_TimeS::ScoreDirClino(const cPt3dr& aDirClino,size_t aKClino) const
 {
     cPt3dr aDirLoc = mPoseInstr.Rot().Inverse(aDirClino);
+    // cPt3dr aDirLoc = mPoseInstr.Rot().Value(aDirClino);
+/*
+    StdOut () << " aKClino " << aKClino << " " << mSetClino.NbMeasure() << "\n";
+    std::abs(aDirLoc.z() - std::sin(mSetClino.KthMeasure(aKClino).Angle()) );
+    StdOut() << " ScoreDirClino " << __LINE__ << "\n";
+*/
 
     return std::abs(aDirLoc.z() - std::sin(mSetClino.KthMeasure(aKClino).Angle()) );
+
+    // return std::abs(aDirLoc.z() - mSetClino.KthMeasure(aKClino).Angle() );
+
 }
 
 
@@ -423,12 +433,16 @@ const typename cIrbComp_Block::tContTimeS & cIrbComp_Block::DataTS() const {retu
 
 tREAL8 cIrbComp_Block::ScoreDirClino(const cPt3dr& aDir,size_t aKClino) const
 {
-    tREAL8 aSum=0;
+    cWeightAv<tREAL8,tREAL8>  aWAvg;
 
      for (const auto & [aTimeS,aDataTS]: mDataTS)
-         aSum += aDataTS.ScoreDirClino(aDir,aKClino);
+     {
+         // StdOut() << " DDDTssSS " << aTimeS << "\n";
+         if (aKClino < aDataTS.SetClino().NbMeasure())
+            aWAvg.Add(1.0,aDataTS.ScoreDirClino(aDir,aKClino));
+     }
 
-     return aSum / mDataTS.size();
+     return aWAvg.Average();
 }
 
 

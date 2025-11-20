@@ -142,6 +142,9 @@ class cIrbCal_CamSet  : public cMemCheck
          std::vector<cIrbCal_Cam1> &      VCams();
          cIrbCal_Cam1 &                   MasterCam();
 
+         void SetNumPoseInstr (const std::vector<int> & aVNums);
+         // Correct -1 => master
+         std::vector<int>  NumPoseInstr() const;
      private :
          void AddCam
               (
@@ -152,6 +155,8 @@ class cIrbCal_CamSet  : public cMemCheck
               );
 
          int                             mNumMaster;      //< num of "master" image
+         // special case [] -> all  [-1]  master
+         std::vector<int>                mNumsPoseInstr;
          std::vector<cIrbCal_Cam1>       mVCams;          //< set of camerascIrbCal_Block
          cIrbCal_Block *                 mCalBlock;
 };
@@ -323,6 +328,7 @@ class cIrbCal_Block  : public cMemCheck
          std::map<std::string,cIrb_Desc1Intsr> mDescrIndiv;      //<  Sigmas of each instrument
          std::map<tNamePair,cIrb_CstrRelRot>   mCstrRelRot;
 
+
 };
 void AddData(const  cAuxAr2007 & anAux,cIrbCal_Block & aRBoI);
 
@@ -394,6 +400,7 @@ class cIrbComp_ClinoSet : public cMemCheck
       cIrbComp_ClinoSet();
       void SetClinoValues(const cOneMesureClino&);
       const cIrbComp_Clino1 & KthMeasure(int aK) const;
+      size_t NbMeasure() const;
 
    private :
        std::vector<cIrbComp_Clino1>  mVCompClinos;
@@ -408,6 +415,7 @@ class   cIrbComp_TimeS : public cMemCheck
          cIrbComp_TimeS (const cIrbComp_Block &);
          const cIrbComp_CamSet & SetCams() const;  //< Accessor
           cIrbComp_CamSet & SetCams();  //< Accessor
+          const cIrbComp_ClinoSet & SetClino() const;
 
          const cIrbComp_Block & CompBlock() const; //< Accessor
          const cIrbCal_Block & CalBlock() const; //< Accessor or Accessor

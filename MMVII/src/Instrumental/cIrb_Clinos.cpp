@@ -136,6 +136,11 @@ void cIrbComp_ClinoSet::SetClinoValues(const cOneMesureClino& aMeas)
         mVCompClinos.push_back(cIrbComp_Clino1(anA));
 }
 
+size_t cIrbComp_ClinoSet::NbMeasure() const
+{
+    return mVCompClinos.size();
+}
+
 
 const cIrbComp_Clino1 & cIrbComp_ClinoSet::KthMeasure(int aK) const
 {

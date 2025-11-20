@@ -399,7 +399,8 @@ template<> cE2Str<eTyUnitAngle>::tMapE2Str cE2Str<eTyUnitAngle>::mE2S
            {
                 {eTyUnitAngle::eUA_radian,"radian"},
                 {eTyUnitAngle::eUA_degree,"degree"},
-                {eTyUnitAngle::eUA_gon,"gon"}
+                {eTyUnitAngle::eUA_gon,"gon"},
+                {eTyUnitAngle::eUA_DMgon,"DMgon"}
            };
 
 template<> cE2Str<eTyClino>::tMapE2Str cE2Str<eTyClino>::mE2S

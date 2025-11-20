@@ -41,6 +41,7 @@ class cAppli_EditBlockInstr : public cMMVII_Appli
         std::vector<std::string>  mVPatsIm4Cam;  //< Patterns for cam structure : [PatSelOnDisk,PatTimeStamp?,PatSelInBlock?]
         bool                      mFromScratch;  //< If exist file : Reset of Modify ?
         std::vector<std::vector<std::string>>  mCstrOriRel;  //<  Vector for relative orientations
+        std::vector<int>                       mNumPoseInstr;
 };
 
 cAppli_EditBlockInstr::cAppli_EditBlockInstr(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -79,6 +80,7 @@ cCollecSpecArg2007 & cAppli_EditBlockInstr::ArgOpt(cCollecSpecArg2007 & anArgOpt
             << mPhProj.DPBlockInstr().ArgDirOutOpt()
             << mPhProj.DPMeasuresClino().ArgDirInOpt()
             << AOpt2007(mCstrOriRel,"CRO","Constraint for relative orientation [[Instr1,Instr2,Sigma,Orient]*...] ")
+            << AOpt2007(mNumPoseInstr,"NPI","Num of cams used  for estimate pose of intsrument")
         ;
 }
 
@@ -101,18 +103,26 @@ int cAppli_EditBlockInstr::Exe()
         std::string aPatSelIm = GetDef(mVPatsIm4Cam,2,aPatTimeStamp);
 
         auto aVNameIm = ToVect(SetNameFromString(aPatSelOnDisk,true));
-        std::set<std::string> aSetNameCal;
+        std::vector<std::string> aSetNameCal;
         for (const auto & aNameIm : aVNameIm)
         {
             std::string aNameCal = mPhProj.StdNameCalibOfImage(aNameIm);
             if (! BoolFind(aSetNameCal,aNameCal))
             {
-                aSetNameCal.insert(aNameCal); // OK
-
-                aBlock->SetCams().AddCam(aNameCal,aPatTimeStamp,aPatSelIm,SVP::Yes); // Not OK:w
+                aSetNameCal.push_back(aNameCal); // OK
             }
         }
+        std::sort(aSetNameCal.begin(),aSetNameCal.end());
+
+        for (const auto & aNameCal : aSetNameCal)
+            aBlock->SetCams().AddCam(aNameCal,aPatTimeStamp,aPatSelIm,SVP::Yes); // Not OK:
     }
+
+    if (IsInit(&mNumPoseInstr))
+       aBlock->SetCams().SetNumPoseInstr(mNumPoseInstr);
+
+
+
 
     // if we add the structure for clinometers
     if (mPhProj.DPMeasuresClino().DirInIsInit())
