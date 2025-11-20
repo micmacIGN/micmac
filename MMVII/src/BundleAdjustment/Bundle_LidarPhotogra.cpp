@@ -195,6 +195,8 @@ void cBA_LidarPhotogra::AddObs()
     if (mLastResidual.SW() != 0)
        StdOut() << "  * Lid/Phr Residual Rad " << std::sqrt(mLastResidual.Average())
                  << " ("<<mNbUsedObs<<" obs, "<<mNbUsedPoints<<" points)\n";
+    else
+        StdOut() << "  * Lid/Phr: no obs\n";
 }
 
 void cBA_LidarPhotogra::SetVUkVObs

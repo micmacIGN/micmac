@@ -518,6 +518,11 @@ int cAppli_ImportStaticScan::Exe()
             aPtXYZ = aRotFrame.Value(aPtXYZ);
         }
         mSL_data.mSL_importer.convertToThetaPhiDist();
+        // go back to original xyz
+        for (auto & aPtXYZ : mSL_data.mSL_importer.mVectPtsXYZ)
+        {
+            aPtXYZ = aRotFrame.Inverse(aPtXYZ);
+        }
     } else if (!mSL_data.mSL_importer.HasCartesian() && mSL_data.mSL_importer.HasSpherical()) // mTransfoIJK not used if spherical
     {
         mSL_data.mSL_importer.convertToXYZ();
