@@ -99,6 +99,9 @@ void cIrbCal_ClinoSet::AddClino(const std::string & aName,bool SVP)
       mCalBlock->AddSigma_Indiv(aName,eTyInstr::eClino);
    }
 }
+size_t cIrbCal_ClinoSet::NbClino() const {return mVClinos.size();}
+
+
 
 
 /* *************************************************************** */
@@ -112,6 +115,9 @@ cIrbComp_Clino1::cIrbComp_Clino1(tREAL8 anAngle) :
 {
 
 }
+
+tREAL8 cIrbComp_Clino1::Angle() const {return mAngle;}
+
 
 /* *************************************************************** */
 /*                                                                 */
@@ -130,6 +136,11 @@ void cIrbComp_ClinoSet::SetClinoValues(const cOneMesureClino& aMeas)
         mVCompClinos.push_back(cIrbComp_Clino1(anA));
 }
 
+
+const cIrbComp_Clino1 & cIrbComp_ClinoSet::KthMeasure(int aK) const
+{
+    return mVCompClinos.at(aK);
+}
 
 };
 

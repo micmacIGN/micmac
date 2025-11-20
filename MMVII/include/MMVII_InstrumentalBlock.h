@@ -186,6 +186,7 @@ class cIrbCal_ClinoSet  : public cMemCheck
          cIrbCal_ClinoSet();
          void AddData(const  cAuxAr2007 & anAux);
          std::vector<std::string> VNames() const;
+         size_t NbClino() const;
      private :
          cIrbCal_Clino1 * ClinoFromName(const std::string& aName);
          void AddClino(const std::string &,bool SVP=false);
@@ -382,6 +383,7 @@ class cIrbComp_Clino1 : public cMemCheck
 {
    public :
         cIrbComp_Clino1(tREAL8 anAngle);
+        tREAL8 Angle() const;
    private :
         tREAL8 mAngle;
 };
@@ -391,6 +393,7 @@ class cIrbComp_ClinoSet : public cMemCheck
    public :
       cIrbComp_ClinoSet();
       void SetClinoValues(const cOneMesureClino&);
+      const cIrbComp_Clino1 & KthMeasure(int aK) const;
 
    private :
        std::vector<cIrbComp_Clino1>  mVCompClinos;

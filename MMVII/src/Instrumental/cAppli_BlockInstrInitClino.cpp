@@ -34,11 +34,16 @@ class cAppli_BlockInstrInitClino : public cMMVII_Appli
      private :
         tREAL8 ScoreDirClino(const cPt3dr& aDir,size_t aKClino) const;
 
+        void DoOneClino();
+
         cPhotogrammetricProject   mPhProj;
         std::string               mSpecImIn;
         cIrbComp_Block *          mBlock;
+        cIrbCal_Block *           mCalBlock;
+        cIrbCal_ClinoSet *        mSetClinos ;          //< Accessors
         std::string               mNameBloc;  //< name of the bloc inside the
         bool                      mAvgSigma;  //< Do we average sigma of pairs
+        int                       mKCurClino;
 };
 
 
@@ -47,8 +52,11 @@ cAppli_BlockInstrInitClino::cAppli_BlockInstrInitClino(const std::vector<std::st
     cMMVII_Appli (aVArgs,aSpec),
     mPhProj      (*this),
     mBlock       (nullptr),
+    mCalBlock    (nullptr),
+    mSetClinos   (nullptr),
     mNameBloc    (cIrbCal_Block::theDefaultName),
-    mAvgSigma    (true)
+    mAvgSigma    (true),
+    mKCurClino   (-1)
 {
 }
 
@@ -71,12 +79,34 @@ cCollecSpecArg2007 & cAppli_BlockInstrInitClino::ArgOpt(cCollecSpecArg2007 & anA
         ;
 }
 
+
+tREAL8 cAppli_BlockInstrInitClino::ScoreDirClino(const cPt3dr& aDir,size_t aKClino) const
+{
+    return mBlock->ScoreDirClino(aDir,aKClino);
+}
+
+
+void cAppli_BlockInstrInitClino::DoOneClino()
+{
+    int aNbS = 1000;
+
+    cSampleSphere3D aSSph(aNbS);
+    for (int aKPt=0 ; aKPt<aSSph.NbSamples(); aKPt++)
+    {
+        cPt3dr aPt =  aSSph.KthPt(aKPt);
+        ScoreDirClino(aPt,mKCurClino);
+    }
+}
+
 int cAppli_BlockInstrInitClino::Exe()
 {
     mPhProj.FinishInit();
 
     // read an existing bloc from std folder
     mBlock = new cIrbComp_Block(mPhProj,mNameBloc);
+    mCalBlock  = & mBlock->CalBlock();
+    mSetClinos = & mCalBlock->SetClinos();
+
 
     //  add all the camera
     for (const auto & aNameIm :  VectMainSet(0))
@@ -87,6 +117,9 @@ int cAppli_BlockInstrInitClino::Exe()
 
     mBlock->ComputePoseInstrument();
     mBlock->SetClinoValues();
+
+    for (mKCurClino=0 ; mKCurClino<(int)mSetClinos->NbClino() ; mKCurClino++)
+        DoOneClino();
 
     mPhProj.SaveRigBoI(mBlock->CalBlock());
 

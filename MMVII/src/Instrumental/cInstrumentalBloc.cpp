@@ -199,7 +199,7 @@ tREAL8 cIrbComp_TimeS::ScoreDirClino(const cPt3dr& aDirClino,size_t aKClino) con
 {
     cPt3dr aDirLoc = mPoseInstr.Rot().Inverse(aDirClino);
 
-    return std::abs(aDirLoc.z() );//- std::sin());
+    return std::abs(aDirLoc.z() - std::sin(mSetClino.KthMeasure(aKClino).Angle()) );
 }
 
 
@@ -419,6 +419,17 @@ size_t  cIrbComp_Block::NbCams() const  {return SetOfCalibCams().NbCams();}
 
 const typename cIrbComp_Block::tContTimeS & cIrbComp_Block::DataTS() const {return mDataTS;}
  typename cIrbComp_Block::tContTimeS & cIrbComp_Block::DataTS()  {return mDataTS;}
+
+
+tREAL8 cIrbComp_Block::ScoreDirClino(const cPt3dr& aDir,size_t aKClino) const
+{
+    tREAL8 aSum=0;
+
+     for (const auto & [aTimeS,aDataTS]: mDataTS)
+         aSum += aDataTS.ScoreDirClino(aDir,aKClino);
+
+     return aSum / mDataTS.size();
+}
 
 
 /* *************************************************************** */
