@@ -387,7 +387,8 @@ template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
                                  int    aSzMin,
                                  tREAL8 aThreshold,
                                  tREAL8 aSzW,
-                                 tINT1 aScale=0);
+                                 tINT1 aScale=0,
+                                 bool addAutoCorrel=true);
            size_t NbSelectedPts() const { return mVSelectedIds.size(); }
 
 	   static void Bench();

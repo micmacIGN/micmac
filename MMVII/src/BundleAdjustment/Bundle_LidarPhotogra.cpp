@@ -164,32 +164,25 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
         tREAL8 aDistMoy = std::sqrt(mNbPointByPatch / (mDensity*M_PI));
         tREAL8 aDistReject =  aDistMoy *1.2;
 
-        if (mPreselectPatches)
-        {
-            mTri.MakePatches(mLPatches,aDistMoy,aDistReject,15);
-        }
-        else
-        {
-            if (mNbScale == 1)
-                mTri.MakePatchesTargetted(mLPatches,
+        if (mNbScale == 1)
+            mTri.MakePatchesTargetted(mLPatches,
+                                  aDistMoy,
+                                  aDistReject,
+                                  15,
+                                  mVCam,
+                                  mVIms,
+                                  0.85);
+
+        if (mNbScale > 1)
+            mTri.MakePatchesTargetted(mLPatches,
                                       aDistMoy,
                                       aDistReject,
                                       15,
                                       mVCam,
                                       mVIms,
-                                      0.85);
-
-            if (mNbScale > 1)
-                mTri.MakePatchesTargetted(mLPatches,
-                                          aDistMoy,
-                                          aDistReject,
-                                          15,
-                                          mVCam,
-                                          mVIms,
-                                          0.85,
-                                          mVSCams,
-                                          mNbScale-1);
-        }
+                                      0.85,
+                                      mVSCams,
+                                      mNbScale-1);
 
         StdOut()<<"Selected Patches "<<mLPatches.size()<<std::endl;
 
@@ -206,7 +199,9 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cMMVII_BundleAdj& aBA,const std::vector<std
             for (const auto anInd : aPatchIndex)
                 aVP.push_back(ToR(mTri.KthPts(anInd)));
             std::vector<cData1ImLidPhgr> aVDenseData;
+            //StdOut()<<"eval geom consistencey "<<std::endl;
             EvalGeomConsistency(aVP,aVDenseData,mInitRes,mNbScale-1);
+            //StdOut()<<"eval geom consistencey done "<<std::endl;
             if (EvalCorrel(aVDenseData)>mThresholdAcceptCorrel)
             {
                 aSetOfPatches.push_back(aPatchIndex);
@@ -761,7 +756,9 @@ void cBA_LidarPhotogra::EvalGeomConsistency(const std::vector<cPt3dr>& aVPatchGr
     }
 
     cTriangulation2D<tREAL8> aTriangul(aVPatchGr2D);
+    //StdOut()<<"make tri"<<std::endl;
     aTriangul.MakeDelaunay();
+    //StdOut()<<"make tri done"<<std::endl;
 
     // Interpolate Lidar Patch intensity
     for (size_t aKTri=0 ; aKTri<aTriangul.NbFace() ; aKTri++)
@@ -785,14 +782,14 @@ void cBA_LidarPhotogra::EvalGeomConsistency(const std::vector<cPt3dr>& aVPatchGr
             }
         }
     }
-    long value_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+    /*long value_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
                         std::chrono::time_point_cast<std::chrono::milliseconds>(
                             std::chrono::high_resolution_clock::now()).time_since_epoch()
                         ).count();
 
     // Reproject image radiometry (ortho) and compute correl in image or ground geometry
     std::vector<std::string> OrthosName;
-    std::vector<tREAL8 *> aVecTransforms;
+    std::vector<tREAL8 *> aVecTransforms;*/
     for (size_t aKIm=0 ; aKIm<mVCam.size() ; aKIm++)
     {
         cSensorCamPC * aCam =  (aNbs==0) ? mVCam[aKIm] :  mVSCams[aKIm][aNbs-1]; // extract cam
@@ -832,7 +829,7 @@ void cBA_LidarPhotogra::EvalGeomConsistency(const std::vector<cPt3dr>& aVPatchGr
             aVData.push_back(aData); // memorize the data for this image
             // save ortho
             // save orthos to check registration accuracy
-            if(0)
+           /* if(0)
             {
                 if ( ( (mBA.getNbIter()==0) || (mBA.CheckIfLastIter()) )
                     && (isForSelection))
@@ -862,19 +859,19 @@ void cBA_LidarPhotogra::EvalGeomConsistency(const std::vector<cPt3dr>& aVPatchGr
                                         transform);
                     aVecTransforms.push_back(transform);
                 }
-            }
+            }*/
         }
     }
 
     // perfom displacement measurment between patches
-    if(0)
+    /*if(0)
     {
         if ( ( (mBA.getNbIter()==0) || (mBA.CheckIfLastIter()) )
             && (!isForSelection) && (OrthosName.size()>1) )
         {
             EvaluatePlanarDisplacements(OrthosName,aVecTransforms,false);
         }
-    }
+    }*/
 }
 
 
@@ -916,7 +913,9 @@ tREAL8 cBA_LidarPhotogra::EvalCorrel(const std::vector<cData1ImLidPhgr> & aVData
         aMeanCorrel+=aMat.Correl();
         //MMVII_INTERNAL_ASSERT_strong(aCorrel<=1.0 && aCorrel>=-1.0,"Correl not correctly measured !");
     }
-    return (aMeanCorrel/=(aVData.size()-1));
+
+    aMeanCorrel /=(aVData.size()-1);
+    return aMeanCorrel;
 }
 
 

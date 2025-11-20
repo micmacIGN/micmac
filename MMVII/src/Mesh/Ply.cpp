@@ -2634,7 +2634,8 @@ bool cTriangulation3D<Type>::IsGoodPatchNadir(const std::vector<cPt3dr>& aVPts,
                                          int    aSzMin,
                                          tREAL8 aThreshold,
                                          tREAL8 aSzW,
-                                         tINT1 aScale)
+                                         tINT1 aScale,
+                                         bool addAutoCorrel)
 {
 
     // multiply by 2^aScale to find scale image coordinates
@@ -2712,120 +2713,124 @@ bool cTriangulation3D<Type>::IsGoodPatchNadir(const std::vector<cPt3dr>& aVPts,
     // now compute  auto correl, need to scale point to take into account scaled cameras
 
     // most nadir image
-    const cSensorCamPC * aCam = aCameras[aMinAngleInd]; // extract cam
-    const cDataIm2D<tU_INT1> & aDIm = mVIms[aMinAngleInd].DIm(); // extract image
-
     bool isNotAutoCorr=false;
-
-    if (aCam->IsVisible(aVPts.at(0)))
+    if (addAutoCorrel)
     {
-        /// Autocorrel for most nadir image
-        cPt2dr aPIm= MulCByC(aCam->Ground2Image(aVPts[0]),
-                              cPt2dr(pow (2,aScale),pow (2,aScale)));
+        const cSensorCamPC * aCam = aCameras[aMinAngleInd]; // extract cam
+        const cDataIm2D<tU_INT1> & aDIm = mVIms[aMinAngleInd].DIm(); // extract image
 
-        if (WindInside4BL(aDIm,ToI(aPIm),Pt_round_up(cPt2dr(AC_RHO+aSzW+1,AC_RHO+aSzW+1))))
+
+        if (aCam->IsVisible(aVPts.at(0)))
         {
-            cCutAutoCorrelDir<tU_INT1> aCACD(aDIm,cPt2di(0,0),AC_RHO,2,aSzW);
+            /// Autocorrel for most nadir image
+            cPt2dr aPIm= MulCByC(aCam->Ground2Image(aVPts[0]),
+                                  cPt2dr(pow (2,aScale),pow (2,aScale)));
 
-            //StdOut()<<getchar()<<std::endl;
-            /*isNotAutoCorr =  !(aCACD.AutoCorrel((ToI(aPIm)),
-                                             TT_SEUIL_CutAutoCorrel_REJECTION,
-                                             TT_SEUIL_CutAutoCorrel_REEL_REJECTION,
-                                             TT_SEUIL_AutoCorrel_ACCEPT)
-                            );*/
-
-            isNotAutoCorr = !(aCACD.AutoCensusQ(ToI(aPIm),0.6,0.55));
-
-            /*tREAL8 aStdDev= CubGaussWeightStandardDev(aDIm,ToI(aPIm),VAR_RHO);
-            if (aStdDev<=0)
-                isNotAutoCorr=false;*/
-
-
-            // add a center variability criterion
-            if (0) //isNotAutoCorr && isPlanar)
+            if (WindInside4BL(aDIm,ToI(aPIm),Pt_round_up(cPt2dr(AC_RHO+aSzW+1,AC_RHO+aSzW+1))))
             {
-                std:: string filename= "CORR_"+
-                                       aCam->NameImage()+
-                                       ToStr(aMinAngleInd)+"_"+
-                                       ToStr(ToI(aPIm).x())+"_"+
-                                       ToStr(ToI(aPIm).y())+"_"+
-                                       ToStr(aCACD.mCorOut)+"_"+
-                                       ToStr(aCACD.mNumOut)+".tif";
-                aCACD.writeCorrelImage(AC_RHO,filename);
-            }
-        }
+                cCutAutoCorrelDir<tU_INT1> aCACD(aDIm,cPt2di(0,0),AC_RHO,2,aSzW);
 
-
-        /*
-        ///< Correl the reprojected lidar patch given its size and not a small defined window size
-        ///
-        ///
-        cTplBoxOfPts<tREAL8,2> aBoxObj;
-        std::vector<cPt2dr> aProjPatchInIm;
-        // add index of central patch
-        aProjPatchInIm.push_back(cPt2dr(0,0));
-        aBoxObj.Add(aPIm);
-        bool AllPatchInImage = true;
-        for (size_t aK=1; aK< aVPts.size(); aK++)
-        {
-            if (!aCam->IsVisible(aVPts[aK]))
-                {
-                    AllPatchInImage=false;
-                    break;
-                }
-            cPt2dr aP2 = MulCByC(aCam->Ground2Image(aVPts[aK]),
-                                     cPt2dr(pow (2,aScale),pow (2,aScale)));
-
-            // store points locations with respect to center
-            aProjPatchInIm.push_back(aP2-aPIm);
-
-            aBoxObj.Add(aP2);
-        }
-
-        //StdOut()<<"ABox obJ "<<aBoxObj.P0()<<"  "<<aBoxObj.P1()<<std::endl;
-
-        //StdOut()<<"Is all patch in Image "<<AllPatchInImage<<std::endl;
-
-        if (AllPatchInImage)
-        {
-            cBox2dr aBoxOfPatch = aBoxObj.CurBox();
-
-            if (WindInside4BL(aDIm,
-                              aPIm,
-                              Pt_round_up(cPt2dr(AC_RHO+aBoxOfPatch.Sz().x()+1,
-                                                 AC_RHO+aBoxOfPatch.Sz().y()+1))
-                              )
-                )
-            {
-                // compute correl given the whole patch
-                cCutAutoCorrelDir<tU_INT1> aCACD(aDIm,cPt2di(0,0),AC_RHO,1,aProjPatchInIm);
-
-                isNotAutoCorr =  !(aCACD.AutoCorrelNonRegularPatch((ToI(aPIm)),
+                //StdOut()<<getchar()<<std::endl;
+                /*isNotAutoCorr =  !(aCACD.AutoCorrel((ToI(aPIm)),
                                                  TT_SEUIL_CutAutoCorrel_REJECTION,
                                                  TT_SEUIL_CutAutoCorrel_REEL_REJECTION,
                                                  TT_SEUIL_AutoCorrel_ACCEPT)
-                                );
+                                );*/
 
+                isNotAutoCorr = !(aCACD.AutoCensusQ(ToI(aPIm),0.6,0.55));
 
-
-                tREAL8 aStdDev= CubGaussWeightStandardDev(aDIm,ToI(aPIm),VAR_RHO);
+                /*tREAL8 aStdDev= CubGaussWeightStandardDev(aDIm,ToI(aPIm),VAR_RHO);
                 if (aStdDev<=0)
-                    isNotAutoCorr=false;
+                    isNotAutoCorr=false;*/
+
 
                 // add a center variability criterion
-                if (isNotAutoCorr && isPlanar)
+                if (0) //isNotAutoCorr && isPlanar)
                 {
                     std:: string filename= "CORR_"+
                                            aCam->NameImage()+
                                            ToStr(aMinAngleInd)+"_"+
                                            ToStr(ToI(aPIm).x())+"_"+
                                            ToStr(ToI(aPIm).y())+"_"+
-                                           ToStr(aCACD.mCorOut)+".tif";
+                                           ToStr(aCACD.mCorOut)+"_"+
+                                           ToStr(aCACD.mNumOut)+".tif";
                     aCACD.writeCorrelImage(AC_RHO,filename);
                 }
             }
-        }*/
 
+
+            /*
+            ///< Correl the reprojected lidar patch given its size and not a small defined window size
+            ///
+            ///
+            cTplBoxOfPts<tREAL8,2> aBoxObj;
+            std::vector<cPt2dr> aProjPatchInIm;
+            // add index of central patch
+            aProjPatchInIm.push_back(cPt2dr(0,0));
+            aBoxObj.Add(aPIm);
+            bool AllPatchInImage = true;
+            for (size_t aK=1; aK< aVPts.size(); aK++)
+            {
+                if (!aCam->IsVisible(aVPts[aK]))
+                    {
+                        AllPatchInImage=false;
+                        break;
+                    }
+                cPt2dr aP2 = MulCByC(aCam->Ground2Image(aVPts[aK]),
+                                         cPt2dr(pow (2,aScale),pow (2,aScale)));
+
+                // store points locations with respect to center
+                aProjPatchInIm.push_back(aP2-aPIm);
+
+                aBoxObj.Add(aP2);
+            }
+
+            //StdOut()<<"ABox obJ "<<aBoxObj.P0()<<"  "<<aBoxObj.P1()<<std::endl;
+
+            //StdOut()<<"Is all patch in Image "<<AllPatchInImage<<std::endl;
+
+            if (AllPatchInImage)
+            {
+                cBox2dr aBoxOfPatch = aBoxObj.CurBox();
+
+                if (WindInside4BL(aDIm,
+                                  aPIm,
+                                  Pt_round_up(cPt2dr(AC_RHO+aBoxOfPatch.Sz().x()+1,
+                                                     AC_RHO+aBoxOfPatch.Sz().y()+1))
+                                  )
+                    )
+                {
+                    // compute correl given the whole patch
+                    cCutAutoCorrelDir<tU_INT1> aCACD(aDIm,cPt2di(0,0),AC_RHO,1,aProjPatchInIm);
+
+                    isNotAutoCorr =  !(aCACD.AutoCorrelNonRegularPatch((ToI(aPIm)),
+                                                     TT_SEUIL_CutAutoCorrel_REJECTION,
+                                                     TT_SEUIL_CutAutoCorrel_REEL_REJECTION,
+                                                     TT_SEUIL_AutoCorrel_ACCEPT)
+                                    );
+
+
+
+                    tREAL8 aStdDev= CubGaussWeightStandardDev(aDIm,ToI(aPIm),VAR_RHO);
+                    if (aStdDev<=0)
+                        isNotAutoCorr=false;
+
+                    // add a center variability criterion
+                    if (isNotAutoCorr && isPlanar)
+                    {
+                        std:: string filename= "CORR_"+
+                                               aCam->NameImage()+
+                                               ToStr(aMinAngleInd)+"_"+
+                                               ToStr(ToI(aPIm).x())+"_"+
+                                               ToStr(ToI(aPIm).y())+"_"+
+                                               ToStr(aCACD.mCorOut)+".tif";
+                        aCACD.writeCorrelImage(AC_RHO,filename);
+                    }
+                }
+            }*/
+
+
+        }
 
     }
 
@@ -2842,7 +2847,7 @@ bool cTriangulation3D<Type>::IsGoodPatchNadir(const std::vector<cPt3dr>& aVPts,
 
     if ((MinVisibTimes>=2) &&
         isPlanar         &&
-        isNotAutoCorr        &&
+        (addAutoCorrel ?  isNotAutoCorr : true )  &&
         aSetVisibs[aMinAngleInd])
         return true;
     else
@@ -2936,7 +2941,8 @@ template <class Type>
                                                         7.0,
                                                         aSzMin,
                                                         aThreshold,
-                                                        3);
+                                                        3,
+                                                        false);
                     }
                 if (isGoodPatch)
                      aLPatches.push_back(aPatch);
