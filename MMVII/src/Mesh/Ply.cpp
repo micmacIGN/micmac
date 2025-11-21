@@ -2651,7 +2651,7 @@ bool cTriangulation3D<Type>::IsGoodPatchNadir(const std::vector<cPt3dr>& aVPts,
     /// check for good saliency between orthos --> Autocorrelation in a neighborhood
     ///
     /// Patch is planar
-    bool isPlanar=IsPlanarityIdxPdal(aVPts,2000.0,2.0);
+    bool isPlanar=IsPlanarityIdxPdal(aVPts,25.0,6.0);
 
     // compute per image orthos and evaluate auto-correlation of central pixel compared to neighbors
 
@@ -2714,8 +2714,10 @@ bool cTriangulation3D<Type>::IsGoodPatchNadir(const std::vector<cPt3dr>& aVPts,
 
     // most nadir image
     bool isNotAutoCorr=false;
+     addAutoCorrel= false ;
     if (addAutoCorrel)
     {
+         StdOut()<<"compute autocorelle "<<std::endl;
         const cSensorCamPC * aCam = aCameras[aMinAngleInd]; // extract cam
         const cDataIm2D<tU_INT1> & aDIm = mVIms[aMinAngleInd].DIm(); // extract image
 
@@ -2847,7 +2849,7 @@ bool cTriangulation3D<Type>::IsGoodPatchNadir(const std::vector<cPt3dr>& aVPts,
 
     if ((MinVisibTimes>=2) &&
         isPlanar         &&
-        (addAutoCorrel ?  isNotAutoCorr : true )  &&
+        (addAutoCorrel ?  isNotAutoCorr : true ) &&
         aSetVisibs[aMinAngleInd])
         return true;
     else

@@ -360,7 +360,7 @@ class cBA_LidarPhotogra
        void EvaluatePlanarDisplacements(std::vector<std::string> & aVecOrthoNames,
                                         std::vector<tREAL8 *> & aVecTransforms,
                                         bool isStandalone);
-       void EvalGeomConsistency(const std::vector<cPt3dr>& aVPatch, std::vector<cData1ImLidPhgr>& aVData,tREAL8 aZPas, int aNbs=0);
+       void EvalGeomConsistency(const std::vector<cPt3dr>& aVPatch, std::vector<cData1ImLidPhgr>& aVData,tREAL8 aZPas,bool sparse, int aNbs=0);
 
        tREAL8 EvalCorrel(const std::vector<cData1ImLidPhgr>& aVData);
        /// Method for adding observations with radiometric differences as similatity criterion
