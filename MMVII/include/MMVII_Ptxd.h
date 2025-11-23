@@ -569,6 +569,8 @@ template <class Type> inline bool InfEq  (const cPtxd<Type,4> & aP1,const cPtxd<
 
 
 template<class T,const int Dim> cPtxd<T,Dim>  VUnit(const cPtxd<T,Dim> & aP);
+template <class TypePt> std::pair<TypePt,TypePt> OrthogonalizePair(const TypePt & aP1,const TypePt & aP2);
+
 // template<const int Dim> cPtxd<tREAL8 ,Dim>  VUnit(const cPtxd<tREAL8 ,Dim> & aP);
 // template<const int Dim> cPtxd<tREAL16,Dim>  VUnit(const cPtxd<tREAL16,Dim> & aP);
 

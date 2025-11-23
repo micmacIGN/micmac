@@ -18,7 +18,7 @@ namespace MMVII
 cIrbCal_Clino1::cIrbCal_Clino1(const std::string & aName) :
    mName         (aName),
    mIsInit       (false),
-   mOrientInBloc (tRotR::Identity()),
+   mTrInBlock    (nullptr),
    mSigmaR       (-1)
 {
 }
@@ -28,19 +28,40 @@ cIrbCal_Clino1::cIrbCal_Clino1() :
 {
 }
 
+const std::string & cIrbCal_Clino1::Name() const {return mName;}
+
+
 void cIrbCal_Clino1::AddData(const  cAuxAr2007 & anAux)
 {
       MMVII::AddData(cAuxAr2007("Name",anAux),mName);
       MMVII::AddData(cAuxAr2007("IsInit",anAux),mIsInit);
-      MMVII::AddData(cAuxAr2007("OrientInBloc",anAux),mOrientInBloc);
       MMVII::AddData(cAuxAr2007("SigmaR",anAux),mSigmaR);
+
+      cPt3dr aPN  = mTrInBlock ? mTrInBlock->GetPNorm() : cPt3dr(0,0,0);
+
+      MMVII::AddData(cAuxAr2007("PtNorm",anAux),aPN);
+      if (anAux.Input() && mIsInit)
+      {
+          mTrInBlock->SetPNorm(aPN);
+      }
 }
+
 void AddData(const  cAuxAr2007 & anAux,cIrbCal_Clino1 & aClino)
 {
     aClino.AddData(anAux);
 }
 
-const std::string & cIrbCal_Clino1::Name() const {return mName;}
+void cIrbCal_Clino1::SetPNorm(const cPt3dr &aPNorm)
+{
+  if (mTrInBlock==nullptr)
+  {
+      mTrInBlock = new cP3dNormWithUK(aPNorm,"BlockClino","Name");
+  }
+  else
+      mTrInBlock->SetPNorm(aPNorm);
+   mIsInit      = true;
+}
+
 
 
 
@@ -75,13 +96,19 @@ void AddData(const  cAuxAr2007 & anAux,cIrbCal_ClinoSet & aSetClino)
     aSetClino.AddData(anAux);
 }
 
+int  cIrbCal_ClinoSet::IndexClinoFromName(const std::string& aName) const
+{
+    for (size_t aK=0 ; aK<mVClinos.size() ; aK++)
+        if (mVClinos.at(aK).Name() == aName)
+           return aK;
+    return -1;
+}
 
 cIrbCal_Clino1 * cIrbCal_ClinoSet::ClinoFromName(const std::string& aName)
 {
-    for (auto&  aClino : mVClinos)
-        if (aClino.Name() == aName)
-           return & aClino;
-    return nullptr;
+    int aK = IndexClinoFromName(aName);
+
+    return (aK>=0) ? &mVClinos.at(aK) : nullptr;
 }
 
 void cIrbCal_ClinoSet::AddClino(const std::string & aName,bool SVP)

@@ -450,7 +450,7 @@ class cPoseWithUK :  public cObjWithUnkowns<tREAL8>
         */
 	 void PushObs(std::vector<double> &,bool TransposeMatr);
 
-	 cPoseWithUK(const tPoseR & aPose);
+         cPoseWithUK(const tPoseR & aPose);
          void SetPose(const tPoseR & aPose);
 
 	 // different accessor to the pose
@@ -467,9 +467,9 @@ class cPoseWithUK :  public cObjWithUnkowns<tREAL8>
          tPoseR &   Pose()   ;
 
 	 /// The interval is specified as the object can be used as helperto to other classes
-         void PutUknowsInSetInterval(cSetInterUK_MultipeObj<tREAL8> * aSetInterv) ;  
+         void PutUknowsInSpecifiedSetInterval(cSetInterUK_MultipeObj<tREAL8> * aSetInterv) ;
          void OnUpdate() override;                 // "reaction" after linear update
-	 void  FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
+         void  FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
 	 // std::vector<tPtrOUK>  GetAllUK() override;
 
          // Val axiator should have to "equal" fix rot
@@ -477,13 +477,36 @@ class cPoseWithUK :  public cObjWithUnkowns<tREAL8>
 
 
      private :
-	 cPoseWithUK(const cPoseWithUK&) = delete;
+         cPoseWithUK(const cPoseWithUK&) = delete;
          void PutUknowsInSetInterval() override ;  // add the interval on udpate
 
          tPoseR     mPose;   ///< transformation Cam to Word
          cPt3dr     mOmega;  ///< vector for tiny rotation when used in unknown, mW  in code gene ...
 };
 void AddData(const  cAuxAr2007 & anAux,cPoseWithUK & aPUK);
+
+///  class for modelizing a normaliezd 3D-Vect when used as unknown in non linear system
+class cP3dNormWithUK :  public cObjWithUnkowns<tREAL8>
+{
+   public :
+        cP3dNormWithUK(const cPt3dr &aPt,const std::string& aNameType,const std::string & aNameGrp);
+        ~cP3dNormWithUK();
+        void OnUpdate() override;                 // "reaction" after linear update
+        void  FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
+
+        void SetPNorm(const cPt3dr & aTr);
+        cPt3dr GetPNorm () const;
+   private :
+        // normalize , compute U & V, set mDuDv to 0
+      void Init();
+      void PutUknowsInSetInterval() override ;
+
+      cPt3dr  mPNorm;  // curent value of PNorm
+      cPt3dr  mU;      // first vector Orthog to mPNorm
+      cPt3dr  mV;      // seconf vector Orthog to PNorm
+      cPt2dr  mDuDv;   //
+
+};
 
 
 /**  Class for modelizing the geometry of perspective-central image, contain essentially a pose (Centre+rotation)

@@ -173,11 +173,17 @@ class cIrbCal_Clino1   : public cMemCheck
         cIrbCal_Clino1(const std::string & aName); //< "Real" constructor
         const std::string & Name() const;  //< accessor
         void AddData(const  cAuxAr2007 & anAux); //< serializer
+
+        void SetPNorm(const cPt3dr & aTr);
+
+        cP3dNormWithUK&  CurPNorm();
+        bool          IsInit() const;
+        void UnInit();
     private :
-        std::string   mName;           //< name of the clino
-    bool          mIsInit;         //< was values computed ?
-        tRotR         mOrientInBloc;    //< Position in the block
-        tREAL8        mSigmaR;         //< sigma on orientation
+        std::string        mName;           //< name of the clino
+        bool               mIsInit;         //< was values computed ?
+        cP3dNormWithUK *   mTrInBlock;    //< Position in the block
+        tREAL8             mSigmaR;         //< sigma a priori  on orientation
 };
 void AddData(const  cAuxAr2007 & anAux,cIrbCal_Clino1 & aClino);
 
@@ -192,6 +198,9 @@ class cIrbCal_ClinoSet  : public cMemCheck
          void AddData(const  cAuxAr2007 & anAux);
          std::vector<std::string> VNames() const;
          size_t NbClino() const;
+
+         int  IndexClinoFromName(const std::string& aName) const;
+
      private :
          cIrbCal_Clino1 * ClinoFromName(const std::string& aName);
          void AddClino(const std::string &,bool SVP=false);
@@ -217,6 +226,17 @@ class cIrb_CstrRelRot
 };
 
 void AddData(const  cAuxAr2007 & anAux,cIrb_CstrRelRot & aSigma);
+
+class cIrb_CstrOrthog
+{
+   public :
+      cIrb_CstrOrthog(const tREAL8 & aSigma);
+      cIrb_CstrOrthog();
+      void AddData(const  cAuxAr2007 & anAux);
+   private :
+      tREAL8 mSigma;
+};
+void AddData(const  cAuxAr2007 & anAux,cIrb_CstrOrthog & aSigma);
 
 
 /*
@@ -308,7 +328,11 @@ class cIrbCal_Block  : public cMemCheck
          void AvgIndivSigma();  //< Set all sigma of object ir global average
          void AvgSigma();
          cIrb_Desc1Intsr &  AddSigma_Indiv(std::string aN1,eTyInstr aType1);
+
          void AddCstrRelRot(std::string aN1,std::string aN2,tREAL8 aSigma,tRotR aRot);
+         void AddCstrRelOrthog(std::string aN1,std::string aN2,tREAL8 aSigma);
+
+         const std::map<tNamePair,cIrb_CstrOrthog> &  CstrOrthog() const;
 
      private :
 
@@ -324,9 +348,14 @@ class cIrbCal_Block  : public cMemCheck
          cIrbCal_CamSet                mSetCams;    //<  Cameras used in the bloc
          cIrbCal_ClinoSet              mSetClinos;  //<  Clinos used in the bloc
 
+         //  A priori external constraint
          std::map<tNamePair,cIrb_SigmaInstr>   mSigmaPair;     //<  Sigmas between pair of instr
          std::map<std::string,cIrb_Desc1Intsr> mDescrIndiv;      //<  Sigmas of each instrument
+
+         //  A priori external constraint
          std::map<tNamePair,cIrb_CstrRelRot>   mCstrRelRot;
+         std::map<tNamePair,cIrb_CstrOrthog>   mCstrOrthog;
+
 
 
 };
@@ -422,7 +451,7 @@ class   cIrbComp_TimeS : public cMemCheck
          // cIrbComp_Block & CompBlock() ; //< Accessor
 
          // if not SVP and cannot compute : error
-         void ComputePoseInstrument(bool SVP = false);
+         void ComputePoseInstrument(const std::vector<int> & aVNumCam,bool SVP = false);
          void SetClinoValues(const cOneMesureClino&);
 
          tREAL8 ScoreDirClino(const cPt3dr& aDir,size_t aKClino) const;

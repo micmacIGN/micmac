@@ -118,13 +118,14 @@ void cIrbCal_Cam1::UnInit()
 void cIrbCal_Cam1::SetPose(const tPoseR & aPose)
 {
 
-    if (mPoseInBlock==nullptr)
-        mPoseInBlock = new cPoseWithUK;
-
+  if (mPoseInBlock==nullptr)
+  {
+      mPoseInBlock = new cPoseWithUK;
+      mPoseInBlock->SetNameType("BlockPose");
+      mPoseInBlock->SetNameIdObj(mNameCal);
+  }
    mPoseInBlock->SetPose(aPose);
-
    mIsInit      = true;
-
 }
 
 bool          cIrbCal_Cam1::IsInit() const{  return mIsInit;}

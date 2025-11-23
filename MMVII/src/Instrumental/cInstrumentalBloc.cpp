@@ -155,8 +155,9 @@ void cIrbComp_TimeS::SetClinoValues(const cOneMesureClino& aMeasure)
 
 // cIrbComp_Block & cIrbComp_TimeS::CompBlock()  {return mCompBlock;}
 
-void cIrbComp_TimeS::ComputePoseInstrument(bool SVP)
+void cIrbComp_TimeS::ComputePoseInstrument(const std::vector<int>& aSetNumCam,bool SVP)
 {
+    mPoseInstrIsInit = false;
    // static tTypeMap  Centroid(const std::vector<tTypeMap> & aV,const std::vector<Type> &);
     std::vector<tPoseR> aVPose;
     std::vector<tREAL8> aVWeight;
@@ -164,7 +165,9 @@ void cIrbComp_TimeS::ComputePoseInstrument(bool SVP)
     // tREAL8 aSumW = 0;
     const cIrbCal_CamSet & aSetCalCams = mCompBlock.SetOfCalibCams() ;
 
-    for (size_t aKP=0 ; aKP< aSetCalCams.NbCams() ; aKP++)
+
+   // for (size_t aKP=0 ; aKP< aSetCalCams.NbCams() ; aKP++)
+    for (auto aKP : aSetNumCam)
     {
          const cIrbCal_Cam1 & aCalCams = aSetCalCams.KthCam(aKP);
          const cIrbComp_Cam1 & aCompCam = mSetCams.KthCam(aKP) ;
@@ -328,8 +331,12 @@ void cIrbComp_Block::SetClinoValues(bool OkNewTimeS)
     //  -------------------------- "computation"  --------------------------------------------
 void cIrbComp_Block::ComputePoseInstrument(bool SVP)
 {
+    std::vector<int> aSetNumCam = SetOfCalibCams().NumPoseInstr();
+
+StdOut() << "ComputePoseInstrumentComputePoseInstrument= " << aSetNumCam << "\n";
+
     for (auto & [aTimes,aDataTS] : mDataTS)
-        aDataTS.ComputePoseInstrument(SVP);
+        aDataTS.ComputePoseInstrument(aSetNumCam,SVP);
 }
 
 typename cIrbComp_Block::tResCompCal cIrbComp_Block::ComputeCalibCamsInit(int aKC1,int aKC2) const
@@ -476,8 +483,34 @@ void AddData(const  cAuxAr2007 & anAux,cIrb_CstrRelRot & aICRR)
     aICRR.AddData(anAux);
 }
 
+/* *************************************************************** */
+/*                                                                 */
+/*                        cIrb_CstrOrthog                          */
+/*                                                                 */
+/* *************************************************************** */
 
 
+cIrb_CstrOrthog::cIrb_CstrOrthog(const tREAL8 & aSigma) :
+    mSigma (aSigma)
+{
+}
+
+cIrb_CstrOrthog::cIrb_CstrOrthog() :
+    cIrb_CstrOrthog(-1.0)
+{
+
+}
+
+void cIrb_CstrOrthog::AddData(const  cAuxAr2007 & anAux)
+{
+    MMVII::AddData(cAuxAr2007("Sigma",anAux),mSigma);
+
+}
+
+void AddData(const  cAuxAr2007 & anAux,cIrb_CstrOrthog & aICO)
+{
+    aICO.AddData(anAux);
+}
 
 /* *************************************************************** */
 /*                                                                 */
@@ -504,6 +537,7 @@ void  cIrbCal_Block::AddData(const  cAuxAr2007 & anAux)
     MMVII::StdMapAddData(cAuxAr2007("SigmasPairs",anAux),mSigmaPair);
     MMVII::StdMapAddData(cAuxAr2007("DescrIndiv",anAux),mDescrIndiv);
     MMVII::StdMapAddData(cAuxAr2007("CstrRelRot",anAux),mCstrRelRot);
+    MMVII::StdMapAddData(cAuxAr2007("CstrOrthog",anAux),mCstrOrthog);
 }
 
 void AddData(const  cAuxAr2007 & anAux,cIrbCal_Block & aRBoI)
@@ -546,6 +580,18 @@ void  cIrbCal_Block::AddCstrRelRot(std::string aN1,std::string aN2,tREAL8 aSigma
    mCstrRelRot[tNamePair(aN1,aN2)] = cIrb_CstrRelRot(anOri,aSigma);
 }
 
+void  cIrbCal_Block::AddCstrRelOrthog(std::string aN1,std::string aN2,tREAL8 aSigma)
+{
+   if (aN1>aN2)
+   {
+       std::swap(aN1,aN2);
+   }
+
+   DescrIndiv(aN1);
+   DescrIndiv(aN2);
+
+   mCstrOrthog[tNamePair(aN1,aN2)] = cIrb_CstrOrthog(aSigma);
+}
 
 void cIrbCal_Block::AddSigma(std::string aN1,eTyInstr aType1,std::string aN2,eTyInstr aType2,const cIrb_SigmaInstr & aSig)
 {
@@ -565,7 +611,7 @@ cIrbCal_ClinoSet &      cIrbCal_Block::SetClinos() {return mSetClinos;}
 
 const  std::map<tNamePair,cIrb_SigmaInstr> &  cIrbCal_Block::SigmaPair() const {return mSigmaPair; }
 const std::map<std::string,cIrb_Desc1Intsr> & cIrbCal_Block::DescrIndiv() const {return mDescrIndiv;}
-
+const std::map<tNamePair,cIrb_CstrOrthog> &  cIrbCal_Block::CstrOrthog() const {return mCstrOrthog;}
 
 void cIrbCal_Block::SetSigmaPair(const  std::map<tNamePair,cIrb_SigmaInstr> & aSigmaPair)
 {

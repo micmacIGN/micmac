@@ -6,6 +6,8 @@
 #include "MMVII_enums.h"
 #include "MMVII_Error.h"
 #include "MMVII_nums.h"
+#include "MMVII_Stringifier.h"
+
 
 namespace MMVII
 {
@@ -268,7 +270,7 @@ template<class TCont,class TKey> const typename  TCont::mapped_type *  MapGet(co
     auto anIter = aCont.find(aKey);
     if (anIter==aCont.end())
     {
-        MMVII_INTERNAL_ASSERT_tiny(SVP,"MapGet");
+        MMVII_INTERNAL_ASSERT_tiny(SVP,"MapGet for Key="+ cStrIO<TKey>::ToStr(aKey));
         return nullptr;
     }
     return & anIter->second;
