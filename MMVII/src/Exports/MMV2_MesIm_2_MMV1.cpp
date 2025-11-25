@@ -36,6 +36,7 @@ cCollecSpecArg2007 & cAppli_MMV2_MesIm_2_MMV1::ArgObl(cCollecSpecArg2007 & anArg
 {
       return anArgObl
              << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
+             << mPhProj.DPGndPt3D().ArgDirInMand()
              << mPhProj.DPGndPt2D().ArgDirInMand()
              << Arg2007(mNameFile  ,"Name of V1-image-measure file (\""+MMVII_NONE +"\" if none !)",{eTA2007::FileTagged})
       ;
@@ -66,7 +67,7 @@ int cAppli_MMV2_MesIm_2_MMV1::Exe()
 		cSetMesGndPt aSetMes;
 
 		//load GCPs
-		// mPhProj.LoadGCP3D(aSetMes);
+		mPhProj.LoadGCP3D(aSetMes);
 
 		//load image measurements
 		mPhProj.LoadIm(aSetMes,aCImage);
