@@ -353,6 +353,14 @@ class cAppliCheckBoardTargetExtract : public cMMVII_Appli
 	tREAL8                mStepHeuristikRefinePos;
 	tREAL8                mStepGradRefinePos;
 	// bool                  mDoGradRefine;
+
+    // Saves results metrics in CSV file
+
+    std::vector<std::string> mCSVMetrics;
+
+    // Exports only measures that have corresponding 3D world coordinates
+
+    std::string mCSVOnlyGCPs;
 	
         // =========== Internal param ============
 

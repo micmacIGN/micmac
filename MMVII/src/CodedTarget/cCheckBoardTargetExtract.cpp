@@ -11,7 +11,7 @@
 #include "MMVII_ExtractLines.h"
 #include "MMVII_TplImage_PtsFromValue.h"
 */
-
+#include <algorithm>
 #include "cCheckBoardTargetExtract.h"
 
 
@@ -62,6 +62,8 @@ cAppliCheckBoardTargetExtract::cAppliCheckBoardTargetExtract(const std::vector<s
    mTryC             (true),
    mStepHeuristikRefinePos    (-1),
    mStepGradRefinePos (1e-4),
+   mCSVMetrics       ({"0","none"}),
+   mCSVOnlyGCPs         ("none"),
    mZoomVisuDetec    (9),
    mDefSzVisDetec    (150),
    mSpecif           (nullptr),
@@ -78,8 +80,8 @@ cAppliCheckBoardTargetExtract::cAppliCheckBoardTargetExtract(const std::vector<s
    mImTmp            (cPt2di(1,1)),
    mDImTmp           (nullptr),
    mCurScale         (false),
-   mMainScale        (true),
-   mInterpol         (nullptr)
+    mMainScale       (true),
+    mInterpol        (nullptr)
 {
 }
 
@@ -119,7 +121,8 @@ cCollecSpecArg2007 & cAppliCheckBoardTargetExtract::ArgOpt(cCollecSpecArg2007 & 
              <<  AOpt2007(mPropGrayDCD,"PropGrayDCD","Proportion of gray for find coding part",{eTA2007::HDV})
              <<  AOpt2007(mNumDebugMT,"NumDebugMT","Num marq target for debug",{eTA2007::Tuning})
              <<  AOpt2007(mNumDebugSaddle,"NumDebugSaddle","Num Saddle point to debug",{eTA2007::Tuning})
-
+            <<   AOpt2007(mCSVMetrics,"CSVMetrics","Saves results metrics in CSV file",{eTA2007::HDV})
+           << AOpt2007(mCSVOnlyGCPs,"CSVOnlyGCPs","Export measures in CSV file only if detected code is in GCP set",{eTA2007::HDV})
    ;
 }
 
@@ -558,19 +561,48 @@ void  cAppliCheckBoardTargetExtract::DoExport()
 {
      std::vector<cSaveExtrEllipe>  aVSavE;
      cSetMesPtOf1Im  aSetM(FileOfPath(mNameIm));
+     cSetMesGnd3D aGCPSet;
+
+
+     if (mCSVOnlyGCPs != "none")
+     {
+         aGCPSet = mPhProj.LoadGCP3DFromFolder(mCSVOnlyGCPs);
+     }
+
      for (const auto & aCdtM : mVCdtMerged)
      {
          if (aCdtM.Code())
          {
              std::string aCode = aCdtM.Code()->Name() ;
-             cMesIm1Pt aMesIm(aCdtM.mC0,aCode,1.0);
-             aSetM.AddMeasure(aMesIm);
-             Tpl_AddOneObjReportCSV(*this,mIdExportCSV,aMesIm);
+             //add if mOnlyGCPs
+             if (mCSVOnlyGCPs != "none")
+             {
+                 //set of names of GCPs
+                 const auto & vecNames = aGCPSet.ListOfNames();
 
-             cEllipse anEl = aCdtM.Ell().Scale(aCdtM.mScale);
-             cSaveExtrEllipe aSEE(anEl,aCdtM.mBlack,aCdtM.mWhite,aCode);
-             aVSavE.push_back(aSEE);
-             //  cSaveExtrEllipe anESave(*anEE,aCode);
+                //if we find detected code in GCPs names
+                 if (std::find(vecNames.begin(),vecNames.end(), aCode) != vecNames.end())
+                 {
+                     cMesIm1Pt aMesIm(aCdtM.mC0,aCode,1.0);
+                     aSetM.AddMeasure(aMesIm);
+                     Tpl_AddOneObjReportCSV(*this,mIdExportCSV,aMesIm);
+                 }
+                 else
+                 {
+                     StdOut() << "·> Detected code " << aCode << " is not in " << mCSVOnlyGCPs << " set" << std::endl;
+                 }
+
+             }
+             else
+             {
+                 cMesIm1Pt aMesIm(aCdtM.mC0,aCode,1.0);
+                 aSetM.AddMeasure(aMesIm);
+                 Tpl_AddOneObjReportCSV(*this,mIdExportCSV,aMesIm);
+                 cEllipse anEl = aCdtM.Ell().Scale(aCdtM.mScale);
+                 cSaveExtrEllipe aSEE(anEl,aCdtM.mBlack,aCdtM.mWhite,aCode);
+                 aVSavE.push_back(aSEE);
+                 //  cSaveExtrEllipe anESave(*anEE,aCode);
+             }
          }
      }
 
@@ -587,8 +619,6 @@ void cAppliCheckBoardTargetExtract::DoOneImage()
    Tpl_AddHeaderReportCSV<cMesIm1Pt>(*this,mIdExportCSV,false);
    // Redirect the reports on folder of result
    SetReportRedir(mIdExportCSV,mPhProj.DPGndPt2D().FullDirOut());
-
-
 
     mInterpol = new   cTabulatedDiffInterpolator(cSinCApodInterpolator(5.0,5.0));
 
@@ -631,6 +661,7 @@ void cAppliCheckBoardTargetExtract::DoOneImage()
     DoExport();
     delete mSpecif;
     delete mInterpol;
+
 }
 
 void cAppliCheckBoardTargetExtract::DoOneImageAndScale(tREAL8 aScale,const  tIm & anIm ) 
@@ -729,10 +760,61 @@ int  cAppliCheckBoardTargetExtract::Exe()
 {
    mPhProj.FinishInit();
 
-
-
    if (RunMultiSet(0,0))
    {
+
+       int doMetrics = std::stoi(mCSVMetrics[0]);
+       if (doMetrics != 0)
+       {
+           std::vector<std::string> aVImg = VectMainSet(0);
+
+           std::ofstream csvOut;
+           std::string header = "im,nCT\n";
+           csvOut.open(mPhProj.DPGndPt2D().FullDirOut() + "CBTE-CSVMetrics.csv");
+           csvOut << header;
+           cSetMesGnd3D aGCPSet;
+
+           for (const auto & aNameIm : aVImg)
+           {
+               //load detected target(s) for each im
+               cSetMesPtOf1Im aSet = mPhProj.LoadMeasureImFromFolder(mPhProj.DPGndPt2D().DirOut(),
+                                                                     aNameIm);
+               unsigned int nCT = 0;
+
+               if (mCSVMetrics[1] != "none")
+               {
+                   aGCPSet = mPhProj.LoadGCP3DFromFolder(mCSVMetrics[1]);
+
+                   auto & vecMes = aSet.Measures();
+                   const auto & vecNames = aGCPSet.ListOfNames();
+
+                   for (const auto & MesIm : vecMes)
+                   {
+                        if (std::find(vecNames.begin(),vecNames.end(), MesIm.mNamePt) != vecNames.end())
+                       {
+                           ++nCT;
+                       }
+                   }
+                   StdOut() << "--->" << aNameIm << " : " << nCT << " GCPs detected !" << "<---" << std::endl;
+               }
+               else
+               {
+                   nCT = aSet.Measures().size();
+                   StdOut() << "--->" << aNameIm << " : " << nCT << " coded target(s) detected !" << "<---" << std::endl;
+
+               }
+               if (nCT<3)
+               {
+                   StdOut() << "!! Ce n'est pas beaucoup !!\n";
+               }
+               csvOut << aNameIm << ',' <<  nCT << "\n";
+
+           }
+
+           csvOut.close();
+       }
+
+
        return ResultMultiSet();
    }
 
