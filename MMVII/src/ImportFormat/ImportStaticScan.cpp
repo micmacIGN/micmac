@@ -307,6 +307,7 @@ void cAppli_ImportStaticScan::computeAngStartStep()
                              << mSL_data.mSL_importer.mVectPtsCol[i] << " " << mSL_data.mSL_importer.mVectPtsLine[i] << "\n";
                     StdOut() << a1stPtAng.x() << " " << a1stPtAng.y() << " "
                              << a2ndPtAng.x() << " " << a2ndPtAng.y() << "\n";
+                    break;
                 }
             }
         }
