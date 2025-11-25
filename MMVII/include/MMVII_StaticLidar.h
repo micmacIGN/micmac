@@ -27,6 +27,7 @@ public:
     cStaticLidarImporter();
     void readPlyPoints(std::string aPlyFileName);
     void readE57Points(std::string aE57FileName);
+    void readPtxPoints(std::string aPtxFileName);
     bool read(const std::string & aName, bool OkNone=false, bool aForceStructured=false); //< Addapt to adequate function from postfix, return is some read suceeded
 
     void convertToThetaPhiDist();
@@ -59,6 +60,7 @@ protected:
 
     bool mNoMiss; // seems to be full
     bool mIsStrucured;
+    tPoseR mReadPose;
     tREAL8 mDistMinToExist;
 };
 

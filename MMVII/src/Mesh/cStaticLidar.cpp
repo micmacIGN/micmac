@@ -1,6 +1,7 @@
 #include "MMVII_StaticLidar.h"
 
 #include <functional>
+#include <fstream>
 
 #include "../Mesh/happly.h"
 #include "E57SimpleReader.h"
@@ -8,6 +9,7 @@
 #include "MMVII_Tpl_Images.h"
 #include "MMVII_ImageInfoExtract.h"
 #include "MMVII_2Include_CSV_Serial_Tpl.h"
+
 
 namespace MMVII
 {
@@ -41,7 +43,8 @@ tREAL8 toMinusPiPlusPi(tREAL8 aAng, tREAL8 aOffset)
 }
 
 cStaticLidarImporter::cStaticLidarImporter() :
-    mNoMiss(false), mIsStrucured(false), mDistMinToExist(1e-5)
+    mNoMiss(false), mIsStrucured(false),
+    mReadPose(tPoseR::Identity()), mDistMinToExist(1e-5)
 {
 
 }
@@ -171,6 +174,89 @@ void cStaticLidarImporter::readE57Points(std::string aE57FileName)
     }
 }
 
+
+void cStaticLidarImporter::readPtxPoints(std::string aPtxFileName)
+{
+    StdOut() << "Read PTX file " << aPtxFileName << "..." << std::endl;
+    mVectPtsXYZ.clear();
+    mVectPtsTPD.clear();
+    mVectPtsIntens.clear();
+    mVectPtsCol.clear();
+    mVectPtsLine.clear();
+    try
+    {
+        std::ifstream  aPtxFile(aPtxFileName);
+        mHasCartesian = true;
+        mHasIntensity = true; // to check
+        mHasSpherical = false;
+        mHasRowCol = true; // directly computed
+        mIsStrucured = true;
+        mNoMiss = false;
+
+        aPtxFile >> mMaxCol;
+        aPtxFile >> mMaxLine;
+        tREAL8 aTx, aTy, aTz;
+        aPtxFile >> aTx >> aTy >> aTz;
+        tREAL8 aR11, aR12, aR13;
+        aPtxFile >> aR11 >> aR12 >> aR13;
+        tREAL8 aR21, aR22, aR23;
+        aPtxFile >> aR21 >> aR22 >> aR23;
+        tREAL8 aR31, aR32, aR33;
+        aPtxFile >> aR31 >> aR32 >> aR33;
+        mReadPose.Tr() = {aTx, aTy, aTz};
+        mReadPose.Rot() = cRotation3D<tREAL8>({aR11, aR12, aR13}, {aR21, aR22, aR23}, {aR31, aR32, aR33}, false);
+        char tmp[200];
+        aPtxFile.getline(tmp, 200); // for now just skip transformation matrix
+        aPtxFile.getline(tmp, 200);
+        aPtxFile.getline(tmp, 200);
+        aPtxFile.getline(tmp, 200);
+
+        mVectPtsXYZ.resize(mMaxCol*mMaxLine);
+        mVectPtsCol.resize(mMaxCol*mMaxLine);
+        mVectPtsLine.resize(mMaxCol*mMaxLine);
+
+        long i =0 ;
+        tREAL8 aX, aY, aZ, aI;
+        // for 1st line we test if there is intensity
+        aPtxFile.getline(tmp, 200);
+        std::istringstream iss(tmp);
+        iss >> aX >> aY >> aZ >> aI;
+        mVectPtsXYZ[i] = {aX, aY, aZ};
+        if (iss.bad())
+        {
+            mHasIntensity = false;
+        } else {
+            mVectPtsIntens.resize(mMaxCol*mMaxLine);
+            mVectPtsIntens[i] = aI;
+        }
+
+        for (long aCol = 0; aCol < mMaxCol; aCol++)
+        {
+            for (long aRow = 0; aRow < mMaxLine; aRow++)
+            {
+                ++i;
+                aPtxFile.getline(tmp, 200);
+                std::istringstream iss(tmp);
+                iss >> aX >> aY >> aZ;
+                mVectPtsXYZ[i] = {aX, aY, aZ};
+                mVectPtsCol[i] = aCol;
+                mVectPtsLine[i] = aRow;
+                if (mHasIntensity)
+                {
+                    iss >> aI;
+                    mVectPtsIntens[i] = aI;
+                }
+            }
+        }
+
+
+    }
+    catch (const std::runtime_error &e)
+    {
+        MMVII_UserError(eTyUEr::eReadFile, std::string("Error reading PTX file \"") + aPtxFileName + "\": " + e.what());
+    }
+}
+
 bool cStaticLidarImporter::read(const std::string & aName, bool OkNone, bool aForceStructured)
 {
     std::string aPost = LastPostfix(aName);
@@ -178,6 +264,8 @@ bool cStaticLidarImporter::read(const std::string & aName, bool OkNone, bool aFo
        readPlyPoints(aName);
     else if (UCaseEqual(aPost,"e57"))
        readE57Points(aName);
+    else if (UCaseEqual(aPost,"ptx"))
+        readPtxPoints(aName);
     else
     {
         if (! OkNone)
