@@ -134,6 +134,8 @@ extern cSpecMMVII_Appli  TheSpec_ExifData;
 extern cSpecMMVII_Appli  TheSpec_PerturbRandomOri;
 extern cSpecMMVII_Appli  TheSpec_ImportTriplet;
 extern cSpecMMVII_Appli  TheSpec_ArboTriplet;
+extern cSpecMMVII_Appli  TheSpec_GCPBascule;
+
 
 };
 
