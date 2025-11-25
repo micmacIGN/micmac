@@ -5,6 +5,15 @@
    <Data>
       <CamDataBase>
          <Pair>
+            <K>"BFS-PGE-161S7M-C"</K>
+            <V>
+               <Name>"BFS-PGE-161S7M-C"</Name>
+               <SzPix_micron>2.74 2.74</SzPix_micron>
+               <SzSensor_mm>14.58 8.31</SzSensor_mm>
+               <NbPixels>5320 3032</NbPixels>
+            </V>
+         </Pair>
+         <Pair>
             <K>"UltraCam Eagle Mark 3"</K>
             <V>
                <Name>"UltraCam Eagle Mark 3"</Name>
