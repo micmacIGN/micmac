@@ -732,12 +732,11 @@ void cStaticLidar::SelectPatchCenters2(int aNbPatches)
 
 
 void cStaticLidar::MakePatches
-    (
-        std::list<std::vector<cPt2di> > & aLPatches,
-        tREAL8 aGndPixelSize,
-        int    aNbPointByPatch,
-        int    aSzMin
-        ) const
+    (std::list<std::set<cPt2di> > &aLPatches,
+     std::vector<cSensorCamPC *> & aVCam,
+     int    aNbPointByPatch,
+     int    aSzMin
+     ) const
 {
     auto & aRasterDistData = mRasterDistance->DIm();
     auto & aRasterMaskData = mRasterMask->DIm();
@@ -752,25 +751,55 @@ void cStaticLidar::MakePatches
         return;
     }
 
+    std::vector<tREAL8> aVectGndPixelSize;
+    aVectGndPixelSize.resize(aVCam.size());
     // parse center points
     for (auto & aCenter: mPatchCenters)
     {
+        //search for average GndPixelSize
+        aVectGndPixelSize.clear();
+        cPt3dr aGndCenter = to3D(aCenter);
+        int aNumCamVisib = 0;
+        for (const auto & aCam: aVCam)
+        {
+            if (aCam->IsVisible(aGndCenter))
+            {
+                ++aNumCamVisib;
+                tREAL8 aDist = Norm2(aCam->Center()-aGndCenter);
+                cPt2dr aImCenter = aCam->Ground2Image(aGndCenter);
+
+                aVectGndPixelSize.push_back(Norm2(aCam->ImageAndDepth2Ground(cPt3dr{aImCenter.x(), aImCenter.y(), aDist})
+                                                  - aCam->ImageAndDepth2Ground(cPt3dr{aImCenter.x()+1., aImCenter.y(), aDist})));
+
+            }
+        }
+        if (aNumCamVisib<2) continue;
+        tREAL8 aGndPixelSize = NonConstMediane(aVectGndPixelSize);
+        //StdOut() << "GndPixelSize: " << aGndPixelSize << "\n";
+
         // compute raster step to get aNbPointByPatch separated by aGndPixelSize
         tREAL4 aMeanDepth = aRasterDistData.GetV(aCenter);
         tREAL4 aProjColFactor = 1/cos(LineToLocalPhiApprox(aCenter.y()));
         tREAL4 aNbStepRadius = sqrt(aNbPointByPatch/M_PI) + 1;
-        tREAL4 aRasterPxGndW = mThetaStep * aMeanDepth * aProjColFactor;
-        tREAL4 aRasterPxGndH = mThetaStep * aMeanDepth;
+        tREAL4 aRasterPxGndW = fabs(mThetaStep) * aMeanDepth * aProjColFactor;
+        tREAL4 aRasterPxGndH = fabs(mThetaStep) * aMeanDepth;
         tREAL4 aRasterStepPixelsY = aGndPixelSize / aRasterPxGndH;
         tREAL4 aRasterStepPixelsX = aGndPixelSize / aRasterPxGndW;
+        //StdOut() << "RasterStepPixels: " << aRasterStepPixelsX << " " << aRasterStepPixelsY << "\n";
 
-        std::vector<cPt2di> aPatch;
+        // have a least one scan step of difference between patch points
+        if (aRasterStepPixelsX < 1.)
+            aRasterStepPixelsX = 1.;
+        if (aRasterStepPixelsY < 1.)
+            aRasterStepPixelsY = 1.;
+
+        std::set<cPt2di> aPatch;
         for (int aJ = -aNbStepRadius; aJ<=aNbStepRadius; ++aJ)
             for (int aI = -aNbStepRadius; aI<=aNbStepRadius; ++aI)
             {
                 cPt2di aPt = aCenter + cPt2di(aI*aRasterStepPixelsX,aJ*aRasterStepPixelsY);
                 if (aRasterMaskData.Inside(aPt) && aRasterMaskData.GetV(aPt))
-                    aPatch.push_back(aPt);
+                    aPatch.insert(aPt);
             }
 
         // some requirement on minimal size

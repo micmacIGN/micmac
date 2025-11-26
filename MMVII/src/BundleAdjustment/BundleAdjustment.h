@@ -392,7 +392,7 @@ class cBA_LidarPhotogra
        std::vector<cIm2D<tU_INT1>>    mVIms;           ///< Vector of images associated to each cam
        cWeightAv<tREAL8,tREAL8>       mLastResidual;   ///< Accumulate the radiometric residual
        std::list<std::vector<int>>    mLPatchesI;      ///< set of patches as index in Tri, consituted by 3D points in a lidar scan
-       std::list<std::vector<cPt2di>> mLPatchesP;      ///< set of patches as px in raster, consituted by 3D points in a lidar scan
+       std::list<std::set<cPt2di>>    mLPatchesP; ///< set of patches as px in raster, consituted by 3D points in a lidar scan
        bool                           mPertRad;        ///< do we pertubate the radiometry (simulation & test)
        size_t                         mNbPointByPatch; ///< (approximate) required number of point /patch
        double                         mWeight;          ///< weight for observations
