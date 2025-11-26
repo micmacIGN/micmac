@@ -4,6 +4,7 @@
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_Geom3D.h"
 #include "MMVII_PCSens.h"
+#include <unordered_set>
 
 namespace MMVII
 {
@@ -89,8 +90,8 @@ public :
     void MaskBuffer(tREAL8 aAngBuffer, const std::string &aPhProjDirOut);
     void SelectPatchCenters1(int aNbPatches);
     void SelectPatchCenters2(int aNbPatches);
-    void MakePatches(std::list<std::vector<cPt2di> > & aLPatches,
-                     tREAL8 aGndPixelSize, int aNbPointByPatch, int aSzMin) const;
+    void MakePatches(std::list<std::set<cPt2di> > &aLPatches,
+                     std::vector<cSensorCamPC *> &aVCam, int aNbPointByPatch, int aSzMin) const;
 
     float ColToLocalThetaApprox(float aCol) const;
     float LineToLocalPhiApprox(float aLine) const;

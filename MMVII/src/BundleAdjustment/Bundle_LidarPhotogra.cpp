@@ -133,10 +133,9 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cPhotogrammetricProject * aPhProj,
    if (mLidarData)
    {
        // Creation of the patches, choose a neigborhood around patch centers. TODO: adapt to images ground pixels size?
-       tREAL4 aGndPixelSize = 0.01; // TODO !! Make it different for each patch center...
        if (mModeSim==eImatchCrit::eDifRad)
            mNbPointByPatch = 1;
-       mLidarData->MakePatches(mLPatchesP,aGndPixelSize,mNbPointByPatch,5);
+       mLidarData->MakePatches(mLPatchesP,mVCam,mNbPointByPatch,5);
        StdOut() << "Nb patches: " << mLPatchesP.size() << "\n";
    }
 }
@@ -165,7 +164,7 @@ void cBA_LidarPhotogra::AddObs()
         } else {
             for (const auto& aPatch : mLPatchesP)
             {
-                Add1Patch(mWeight,{mLidarData->to3D(aPatch.front())});
+                Add1Patch(mWeight,{mLidarData->to3D(*aPatch.begin())});
             }
         }
     }
