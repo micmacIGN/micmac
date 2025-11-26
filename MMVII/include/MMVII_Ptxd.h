@@ -190,7 +190,6 @@ template <class T,const int Dim>  class  cNV<cPtxd<T,Dim> >
         static  cPtxd<T,Dim>V0(){return  cPtxd<T,Dim>::PCste(0);}
 };
 
-
     ///  1 dimension specializatio,
 /*
 typedef cPtxd<double,1>  cPt1dr ;
@@ -940,5 +939,43 @@ template <class Type,const int Dim> class cSegmentCompiled : public cSegment<Typ
 
 
 };
+
+
+template <class Type>
+struct std::less<MMVII::cPtxd<Type,1>>
+{
+    std::size_t operator()(const MMVII::cPtxd<Type,1>& lhs, const MMVII::cPtxd<Type,1>& rhs) const
+    {
+        return lhs.x() < rhs.x();
+    }
+};
+
+template <class Type>
+struct std::less<MMVII::cPtxd<Type,2>>
+{
+    std::size_t operator()(const MMVII::cPtxd<Type,2>& lhs, const MMVII::cPtxd<Type,2>& rhs) const
+    {
+        return lhs.x() < rhs.x() ? true : lhs.y() < rhs.y();
+    }
+};
+
+template <class Type>
+struct std::less<MMVII::cPtxd<Type,3>>
+{
+    std::size_t operator()(const MMVII::cPtxd<Type,3>& lhs, const MMVII::cPtxd<Type,3>& rhs) const
+    {
+        return lhs.x() < rhs.x() ? true : (lhs.y() < rhs.y() ? true : lhs.z() < rhs.z());
+    }
+};
+
+template <class Type>
+struct std::less<MMVII::cPtxd<Type,4>>
+{
+    std::size_t operator()(const MMVII::cPtxd<Type,4>& lhs, const MMVII::cPtxd<Type,4>& rhs) const
+    {
+        return lhs.x() < rhs.x() ? true : (lhs.y() < rhs.y() ? true : (lhs.z() < rhs.z() ? true : lhs.t() < rhs.t()));
+    }
+};
+
 
 #endif  //  _MMVII_Ptxd_H_
