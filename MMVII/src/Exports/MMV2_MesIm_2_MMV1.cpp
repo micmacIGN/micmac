@@ -17,17 +17,19 @@ class cAppli_MMV2_MesIm_2_MMV1 : public cMMVII_Appli
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
 
-        cPhotogrammetricProject  mPhProj;
-        std::string              mSpecImIn;
-        std::string               mNameFile;
-        bool                     mShow;
+        cPhotogrammetricProject mPhProj;
+        std::string             mSpecImIn;
+        std::string             mNameFile;
+        bool                    mShow;
+        bool                    mFiltNONE; 
 
 };
 
 cAppli_MMV2_MesIm_2_MMV1::cAppli_MMV2_MesIm_2_MMV1(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-    cMMVII_Appli    (aVArgs,aSpec),
-    mPhProj         (*this),
-    mShow     (false)
+    cMMVII_Appli (aVArgs,aSpec),
+    mPhProj      (*this),
+    mShow        (false),
+    mFiltNONE    (true)
 
 {
 }
@@ -46,6 +48,7 @@ cCollecSpecArg2007 & cAppli_MMV2_MesIm_2_MMV1::ArgOpt(cCollecSpecArg2007 & anArg
 {
     return anArgOpt
                << AOpt2007(mShow,"ShowD","Show details",{eTA2007::HDV})
+               << AOpt2007(mFiltNONE,"FiltNONE","Do not export points with name starting with NONE",{eTA2007::HDV})
             ;
 }
 
@@ -57,66 +60,64 @@ int cAppli_MMV2_MesIm_2_MMV1::Exe()
     std::vector<std::string> aVecIm = VectMainSet(0);//interface to MainSet
     
 #if (MMVII_KEEP_LIBRARY_MMV1)
+    
     //MicMac v1
     cSetOfMesureAppuisFlottants aDico;
     
+
     for (const std::string& aCImage : aVecIm)
     {
+        //std::string aNameImage = aCImage;
 
-		cSetMesGndPt aSetMes;
+        if(mPhProj.HasMeasureIm(aCImage))
+        {
+            //MicMac v1
+            cMesureAppuiFlottant1Im aMAF;
+            aMAF.NameIm() = aCImage;
 
-		//load GCPs
-		// mPhProj.LoadGCP3D(aSetMes);
+            //retreive set of measure in an image
+            cSetMesPtOf1Im  aSet = mPhProj.LoadMeasureIm(aCImage);
 
-		//load image measurements
-		mPhProj.LoadIm(aSetMes,aCImage);
+            if(mShow)
+            {
+                std::cout << "Image: " << aCImage
+                          << "\t#Nb Img Measure: " << aSet.Measures().size()
+                          << std::endl;
+            }
+            
+            //retreive vector of measure of a point in an image
+            for(const auto & aMes : aSet.Measures())
+            {
+                std::string aGcpName = aMes.mNamePt;
+                if (!(mFiltNONE && (aGcpName.substr(0, 4) == "NONE")))
+                {
+                    cPt2dr aPtIm = aMes.mPt;
+                
+                    //MicMac v1
+                    cOneMesureAF1I aOAF1I;
+                    Pt2dr aPt;
+                    aPt.x = aPtIm.x();
+                    aPt.y = aPtIm.y();
+                    aOAF1I.NamePt() = aGcpName;
+                    aOAF1I.PtIm() = aPt;
 
-		//image measurements to export
-		cSetMesPtOf1Im  aSetMesOut(FileOfPath(aCImage));
-		
-		//MicMac v1
-		cMesureAppuiFlottant1Im aMAF;
+                    if(mShow)
+                    {
+                        std::cout << aMAF.NameIm() << "," << aGcpName << "," << aPtIm.x() << "," << aPtIm.y() << std::endl;
+                    }
+                
+                    //add to the dico
+                    aMAF.OneMesureAF1I().push_back(aOAF1I);
+                }
+                    }
 
-		for(const auto & aVMes : aSetMes.MesImInit())
-		{
-			std::string aNameImage = aVMes.NameIm();
-			std::vector<cMesIm1Pt> aVMesIm =  aVMes.Measures();
-			
-			//MicMac v1
-			aMAF.NameIm() = aNameImage;
-			
-			for(const auto & aMes : aVMes.Measures())
-			{
-				std::string aGcpName = aMes.mNamePt;
-				cPt2dr aPtIm = aMes.mPt;
-				
-				//MicMac v1
-				cOneMesureAF1I aOAF1I;
-				Pt2dr aPt;
-				aPt.x = aPtIm.x();
-				aPt.y = aPtIm.y();
-				aOAF1I.NamePt() = aGcpName;
-				aOAF1I.PtIm() = aPt;
+            //append to the dico
+            aDico.MesureAppuiFlottant1Im().push_back(aMAF);
+        }
+    }
 
-				if(mShow)
-				{
-					std::cout << aNameImage << "," << aGcpName << "," << aPtIm.x() << "," << aPtIm.y() << std::endl;
-				}
-				
-				//add to the dico
-				aMAF.OneMesureAF1I().push_back(aOAF1I);
-
-			}
-			
-			
-		}
-		
-		//append to the dico
-		aDico.MesureAppuiFlottant1Im().push_back(aMAF);
-	}
-	
-	//write image measure in MicMac v1 .xml format
-	MakeFileXML(aDico,mNameFile);
+    //write image measure in MicMac v1 .xml format
+    MakeFileXML(aDico,mNameFile);
 #else //  (MMVII_KEEP_LIBRARY_MMV1)
      StdOut()  << " \n\n";
      StdOut()  << " ********************************************************************************************************\n";
