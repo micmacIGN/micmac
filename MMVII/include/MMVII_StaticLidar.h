@@ -43,6 +43,7 @@ public:
     int MaxCol() {return mMaxCol;}
     int MaxLine() {return mMaxLine;}
     tREAL8 DistMinToExist() {return mDistMinToExist;}
+    tPoseR ReadPose() const { return mReadPose;}
 
     // line and col for each point
     std::vector<int> mVectPtsLine;
