@@ -34,6 +34,7 @@ public :
     void testLineColError();
     void computeAngStartStep();
     void exportThetas(const std::string & aFileName, int aNbThetas, bool aCompareToCol);
+    void poseFromXYZ();
 private :
     cPhotogrammetricProject  mPhProj;
 
@@ -49,8 +50,10 @@ private :
     tREAL8                   mIncidenceMin;
     tREAL8                   mMaskBufferSteps;
     int                      mNbPatches;
+    std::string              mPoseXYZFilename;
 
     // data
+    tPoseR                   mForcedPose;
     tREAL8 mPhiStepApprox;
     tREAL8 mThetaStepApprox;
     cStaticLidar mSL_data;
@@ -67,6 +70,7 @@ cAppli_ImportStaticScan::cAppli_ImportStaticScan(const std::vector<std::string> 
     mIncidenceMin   (0.05),
     mMaskBufferSteps(2.),
     mNbPatches      (1000),
+    mForcedPose     (tPoseR::Identity()),
     mPhiStepApprox  (NAN),
     mSL_data        (mNameFile, cIsometry3D<tREAL8>({}, cRotation3D<tREAL8>::Identity()), nullptr)
 {
@@ -75,7 +79,7 @@ cAppli_ImportStaticScan::cAppli_ImportStaticScan(const std::vector<std::string> 
 cCollecSpecArg2007 & cAppli_ImportStaticScan::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
     return anArgObl
-           <<  Arg2007(mNameFile ,"Name of Input File",{eTA2007::FileAny})
+           <<  Arg2007(mNameFile ,"Name of Input File",{eTA2007::FileCloud})
            <<  mPhProj.DPStaticLidar().ArgDirOutMand()
            <<  Arg2007(mSL_data.mStationName ,"Station name",{eTA2007::Topo}) // TODO: change type to future station
            <<  Arg2007(mSL_data.mScanName ,"Scan name",{eTA2007::Topo}) // TODO: change type to future scan
@@ -93,6 +97,7 @@ cCollecSpecArg2007 & cAppli_ImportStaticScan::ArgOpt(cCollecSpecArg2007 & anArgO
            << AOpt2007(mIncidenceMin,"FilterIncidence","Filter on min incidence (rad)",{{eTA2007::HDV}})
            << AOpt2007(mMaskBufferSteps,"MaskBuffer","Final mask buffer in hz scan steps",{{eTA2007::HDV}})
            << AOpt2007(mNbPatches,"NbPatches","Approx nb patches to make",{{eTA2007::HDV}})
+           << AOpt2007(mPoseXYZFilename,"PoseXYZ","Set initial pose from a Comp3D .xyz file",{{eTA2007::HDV, eTA2007::FileAny}})
         ;
 }
 
@@ -491,9 +496,74 @@ void cAppli_ImportStaticScan::exportThetas(const std::string & aFileName, int aN
     file_thetas.close();
 }
 
+
+void cAppli_ImportStaticScan::poseFromXYZ()
+{
+    /* Comp3D .XYZ file format :
+
+CT195	-8.901	-24.577	2.187	0.005
+[...]
+CT197	3.580	-3.306	5.238	0.001
+**!  Station    : L01
+*  S =             104.7634 102.3907 97.8046
+*            -0.8624946      -0.5060662       0.0000281
+*  R =        0.5060662      -0.8624946       0.0000021
+*             0.0000232       0.0000161       1.0000000
+****  instr = R.(global-S) <=> global = R'.instr +S  ****
+****  here global frame is in cartesian  ****
+[...]
+
+     */
+
+    std::ifstream aXYZfile(mPoseXYZFilename);
+    MMVII_INTERNAL_ASSERT_tiny(aXYZfile.is_open(),"Error opening "+mPoseXYZFilename);
+    std::string aLine;
+    while (std::getline(aXYZfile, aLine)) {
+        if (aLine.find("**!") != std::string::npos) {
+            break;
+        }
+    }
+    tREAL8 x,y,z;
+    std::string tmp;
+    cPt3dr aT;
+    cPt3dr aR1, aR2, aR3;
+    {
+        std::getline(aXYZfile, aLine);
+        MMVII_INTERNAL_ASSERT_tiny(aLine.find("*  S =") != std::string::npos,"Error reading "+mPoseXYZFilename);
+        std::istringstream iss(aLine);
+        iss >> tmp >> tmp >> tmp >> x >> y >> z;
+        aT = {x, y, z};
+    }
+    {
+        std::getline(aXYZfile, aLine);
+        std::istringstream iss(aLine);
+        iss >> tmp >> x >> y >> z;
+        aR1 = {x, y, z};
+    }
+    {
+        std::getline(aXYZfile, aLine);
+        std::istringstream iss(aLine);
+        iss >> tmp >> tmp >> tmp >> x >> y >> z;
+        aR2 = {x, y, z};
+    }
+    {
+        std::getline(aXYZfile, aLine);
+        std::istringstream iss(aLine);
+        iss >> tmp >> x >> y >> z;
+        aR3 = {x, y, z};
+    }
+    MMVII_INTERNAL_ASSERT_tiny(aXYZfile.good(),"Error reading "+mPoseXYZFilename);
+
+    mForcedPose.Tr() = aT;
+    mForcedPose.Rot() = cRotation3D<tREAL8>({aR1.x(), aR2.x(), aR3.x()}, // transpose
+                                            {aR1.y(), aR2.y(), aR3.y()},
+                                            {aR1.z(), aR2.z(), aR3.z()}, true);
+}
+
 int cAppli_ImportStaticScan::Exe()
 {
     mPhProj.FinishInit();
+
     mSL_data.mSL_importer.read(mNameFile, false, mForceStructured);
 
     mSL_data.mMaxCol = mSL_data.mSL_importer.MaxCol();
@@ -509,6 +579,16 @@ int cAppli_ImportStaticScan::Exe()
     if (mSL_data.mSL_importer.HasRowCol())
         StdOut() << " with row-col";
     StdOut() << "\n";
+
+    if (IsInit(&mPoseXYZFilename))
+    {
+        StdOut() << "Read XYZ pose file: " << mPoseXYZFilename << std::endl;
+        poseFromXYZ();
+        mSL_data.SetPose(mForcedPose);
+    } else {
+        mSL_data.SetPose(mSL_data.mSL_importer.ReadPose());
+    }
+
 
     if (mSL_data.mSL_importer.HasCartesian() && !mSL_data.mSL_importer.HasSpherical())
     {
