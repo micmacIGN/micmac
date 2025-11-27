@@ -180,10 +180,11 @@ class cIrbCal_Clino1   : public cMemCheck
         bool          IsInit() const;
         void UnInit();
     private :
-        std::string        mName;           //< name of the clino
-        bool               mIsInit;         //< was values computed ?
-        cP3dNormWithUK *   mTrInBlock;    //< Position in the block
-        tREAL8             mSigmaR;         //< sigma a priori  on orientation
+        std::string        mName;             //< name of the clino
+        bool               mIsInit;           //< was values computed ?
+        cP3dNormWithUK *   mTrInBlock;        //< Position in the block
+        std::vector<tREAL8> mPolCorr;         //<  Polynomial correction 2 angles, def [0,1,0]
+       // tREAL8             mSigmaR;         //< sigma a priori  on orientation
 };
 void AddData(const  cAuxAr2007 & anAux,cIrbCal_Clino1 & aClino);
 
@@ -200,10 +201,11 @@ class cIrbCal_ClinoSet  : public cMemCheck
          size_t NbClino() const;
 
          int  IndexClinoFromName(const std::string& aName) const;
+         cIrbCal_Clino1 &  KthClino(int aK);
 
      private :
          cIrbCal_Clino1 * ClinoFromName(const std::string& aName);
-         void AddClino(const std::string &,bool SVP=false);
+         void AddClino(const std::string &,tREAL8 aSigma,bool SVP=false);
 
          std::vector<cIrbCal_Clino1> mVClinos; //< set of clinos
          cIrbCal_Block *              mCalBlock;

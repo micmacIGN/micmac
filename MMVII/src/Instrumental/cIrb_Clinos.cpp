@@ -19,7 +19,7 @@ cIrbCal_Clino1::cIrbCal_Clino1(const std::string & aName) :
    mName         (aName),
    mIsInit       (false),
    mTrInBlock    (nullptr),
-   mSigmaR       (-1)
+   mPolCorr      {0.0,1.0,0.0,0.0}
 {
 }
 
@@ -35,7 +35,7 @@ void cIrbCal_Clino1::AddData(const  cAuxAr2007 & anAux)
 {
       MMVII::AddData(cAuxAr2007("Name",anAux),mName);
       MMVII::AddData(cAuxAr2007("IsInit",anAux),mIsInit);
-      MMVII::AddData(cAuxAr2007("SigmaR",anAux),mSigmaR);
+      MMVII::StdContAddData(cAuxAr2007("PolCorr",anAux),mPolCorr);
 
       cPt3dr aPN  = mTrInBlock ? mTrInBlock->GetPNorm() : cPt3dr(0,0,0);
 
@@ -111,8 +111,9 @@ cIrbCal_Clino1 * cIrbCal_ClinoSet::ClinoFromName(const std::string& aName)
     return (aK>=0) ? &mVClinos.at(aK) : nullptr;
 }
 
-void cIrbCal_ClinoSet::AddClino(const std::string & aName,bool SVP)
+void cIrbCal_ClinoSet::AddClino(const std::string & aName,tREAL8 aSigma,bool SVP)
 {
+   StdOut() << "  AddClino, Sigma=" << Rad2DMgon(aSigma) << "DMgon\n";
    cIrbCal_Clino1 * aClino = ClinoFromName(aName);
    cIrbCal_Clino1 aNewClino (aName);
    if (aClino)
@@ -123,11 +124,18 @@ void cIrbCal_ClinoSet::AddClino(const std::string & aName,bool SVP)
    else
    {
       mVClinos.push_back(aNewClino);
-      mCalBlock->AddSigma_Indiv(aName,eTyInstr::eClino);
    }
+   auto & aDescInstr = mCalBlock->AddSigma_Indiv(aName,eTyInstr::eClino);
+   if (aSigma>0)
+       aDescInstr.SetSigma(cIrb_SigmaInstr(0.0,1.0,0.0,aSigma));
 }
+
 size_t cIrbCal_ClinoSet::NbClino() const {return mVClinos.size();}
 
+cIrbCal_Clino1 &  cIrbCal_ClinoSet::KthClino(int aK)
+{
+    return mVClinos.at(aK);
+}
 
 
 

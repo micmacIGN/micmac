@@ -15,6 +15,7 @@
 namespace MMVII
 {
 
+
 /* *************************************************************** */
 /*                                                                 */
 /*               cAppli_BlockInstrInitClino                          */
@@ -38,7 +39,7 @@ class cAppli_BlockInstrInitClino : public cMMVII_Appli,
 
         // force a pair of clino to be orthog
         void OrthogPair(const cPt2di &);
-        void DoOneClino();
+        void DoOneClino(int aK);
 
         cPt1dr  Value(const cPt2dr&) const override ;
         cPt1dr  Value(const cPt3dr&) const override ;
@@ -48,21 +49,40 @@ class cAppli_BlockInstrInitClino : public cMMVII_Appli,
 
         cPhotogrammetricProject   mPhProj;
         std::string               mSpecImIn;
+
+        // ------------- Optionnal parameters ----------------
+        std::string               mNameBloc;  //< name of the bloc inside the
+        int                       mNbSS;
+        std::vector<cPt2di>       mPairOrthog;  //< vector of orthog if we change (more for test)
+        eTyUnitAngle              mUnitShow;    //< Unity for print result
+        bool                      mReSetSigma;    //< do we use sigma
+
+        //  ----------
         cIrbComp_Block *          mBlock;
         cIrbCal_Block *           mCalBlock;
         cIrbCal_ClinoSet *        mSetClinos ;          //< Accessors
-        std::string               mNameBloc;  //< name of the bloc inside the
+        int                       mNbClino;
+
+
+
         //bool                      mAvgSigma;  //< Do we average sigma of pairs
         int                       mKCurClino;
+        int                       mK1CurC;
+        int                       mK2CurC;
         cPt2di                    mK1K2CurC;
-        int                       mNbSS;
         tRotR                     mAxesCur;
-        std::vector<int>          mNumPoseInstr;
+        std::vector<int>          mNumPoseInstr;  //< Num cams used for pose estimation
+        std::vector<bool>         mInPairOrthog;  //< Is the clino used in a pair
+
         cWeightAv<tREAL8,tREAL8>  mAvgClinIndep;
-        std::vector<tREAL8>       mScoreClino;
+        std::vector<tREAL8>       mScoreClinoIndep;
         std::vector<cPt3dr>       mDirClinoIndep;
-        std::vector<cPt2di>       mPairOrthog;
-        eTyUnitAngle              mUnity;
+
+        cWeightAv<tREAL8,tREAL8>  mAvgClinGlob;
+        std::vector<tREAL8>       mScoreClinoGlob;
+        std::vector<cPt3dr>       mDirClinoGlob;
+
+
 };
 
 
@@ -70,14 +90,15 @@ class cAppli_BlockInstrInitClino : public cMMVII_Appli,
 cAppli_BlockInstrInitClino::cAppli_BlockInstrInitClino(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec) :
     cMMVII_Appli (aVArgs,aSpec),
     mPhProj      (*this),
+
+    mNameBloc    (cIrbCal_Block::theDefaultName),
+    mNbSS        (100),
+    mUnitShow    (eTyUnitAngle::eUA_DMgon),
+    mReSetSigma  (true),
     mBlock       (nullptr),
     mCalBlock    (nullptr),
     mSetClinos   (nullptr),
-    mNameBloc    (cIrbCal_Block::theDefaultName),
-  //  mAvgSigma    (true),
-    mKCurClino   (-1),
-    mNbSS        (100),
-    mUnity       (eTyUnitAngle::eUA_DMgon)
+    mKCurClino   (-1)
 {
 }
 
@@ -98,10 +119,11 @@ cCollecSpecArg2007 & cAppli_BlockInstrInitClino::ArgOpt(cCollecSpecArg2007 & anA
             << AOpt2007(mNameBloc,"NameBloc","Name of bloc to calib ",{{eTA2007::HDV}})
             << AOpt2007(mNbSS,"NbSS","Number of sample on the sphere ",{{eTA2007::HDV}})
             << AOpt2007(mNumPoseInstr,"NPI","Num of cams used  for estimate pose of intsrument")
-            << AOpt2007(mPairOrthog,"PairOrthog","Num of cams used  for estimate pose of intsrument")
-            << AOpt2007(mUnity,"USA","Unity Show Angles",{AC_ListVal<eTyUnitAngle>(),{eTA2007::HDV}})
+            << AOpt2007(mPairOrthog,"PairOrthog","Pair of orthogonal camera (if reset)")
+            << AOpt2007(mUnitShow,"USA","Unity Show Angles",{AC_ListVal<eTyUnitAngle>(),{eTA2007::HDV}})
+            << AOpt2007(mReSetSigma,"ResetSigma","Do we use sigma",{{eTA2007::HDV}})
 
-        ;
+    ;
 }
 
 tREAL8 cAppli_BlockInstrInitClino::ScoreDirClino(const cPt3dr& aDir,size_t aKClino) const
@@ -111,7 +133,7 @@ tREAL8 cAppli_BlockInstrInitClino::ScoreDirClino(const cPt3dr& aDir,size_t aKCli
 
 tREAL8 cAppli_BlockInstrInitClino::Ang4Show(tREAL8 anAng) const
 {
-   return AngleFromRad(anAng,mUnity);
+   return AngleFromRad(anAng,mUnitShow);
 }
   // ========================  3D optimisation ==========================
 
@@ -132,29 +154,34 @@ tRotR  cAppli_BlockInstrInitClino::P3toRot(const cPt3dr& aWPK) const
 void cAppli_BlockInstrInitClino::OrthogPair(const cPt2di & aK1K2)
 {
     mK1K2CurC = aK1K2;
-    cPt3dr aP1 = mDirClinoIndep.at(mK1K2CurC.x());
-    cPt3dr aP2 = mDirClinoIndep.at(mK1K2CurC.y());
-    tREAL8 aSc1 = mScoreClino.at(mK1K2CurC.x());
-    tREAL8 aSc2 = mScoreClino.at(mK1K2CurC.y());
+    mK1CurC = mK1K2CurC.x();
+    mK2CurC = mK1K2CurC.y();
+    mInPairOrthog.at(mK1CurC) = true;
+    mInPairOrthog.at(mK2CurC) = true;
+
+    cPt3dr aP1 = mDirClinoIndep.at(mK1CurC);
+    cPt3dr aP2 = mDirClinoIndep.at(mK2CurC);
+    //tREAL8 aSc1 = mScoreClinoIndep.at(mK1CurC);
+    //tREAL8 aSc2 = mScoreClinoIndep.at(mK2CurC);
 
 
     auto [aQ1,aQ2] = OrthogonalizePair(aP1,aP2);
     cPt3dr aQ3 = aQ1 ^ aQ2;
     mAxesCur = tRotR(aQ1,aQ2,aQ3,false);
 
-    tREAL8 anAng = std::abs(AbsAngleTrnk(aP1,aP2)-M_PI/2.0) ;
-    StdOut() << " * ANGL-Orthog =" <<   Ang4Show(anAng)   << "\n";
+    //tREAL8 anAng = std::abs(AbsAngleTrnk(aP1,aP2)-M_PI/2.0) ;
 
     cOptimByStep<3> anOptim(*this,true,1.0);
     auto [aScMin,aPt3Min] = anOptim.Optim(cPt3dr(0,0,0),2.0/mNbSS,1e-8,1/sqrt(2.0));
 
-    StdOut() << " SC-ORTHO=" << Ang4Show(aScMin)
-             << " SC-INDIV=" << Ang4Show((aSc1+aSc2)/2.0)
-            << "\n";
+    mAxesCur = P3toRot(aPt3Min);
+
+     mScoreClinoGlob.at(mK1CurC) =    mScoreClinoGlob.at(mK2CurC) = aScMin;
+     mDirClinoGlob.at(mK1CurC) = mAxesCur.AxeI();
+     mDirClinoGlob.at(mK2CurC) = mAxesCur.AxeJ();
 }
 
             // ========================  2D optimisation ==========================
-
 
 cPt3dr  cAppli_BlockInstrInitClino::P2toP3(const cPt2dr& aP2) const
 {
@@ -168,8 +195,9 @@ cPt1dr  cAppli_BlockInstrInitClino::Value(const cPt2dr&aP2) const
 }
 
 
-void cAppli_BlockInstrInitClino::DoOneClino()
+void cAppli_BlockInstrInitClino::DoOneClino(int aK)
 {
+    mKCurClino = aK;
     cSampleSphere3D aSSph(mNbSS);
 
     cWhichMin<cPt3dr,tREAL8> aWMin(cPt3dr(0,0,1),1e10);
@@ -190,7 +218,7 @@ void cAppli_BlockInstrInitClino::DoOneClino()
 
     tREAL8 aSc2 = aScMin;
 
-    if (0)
+    if (NeverHappens())
     {
         StdOut() << " K=" << mKCurClino
                  << " V=" << Ang4Show(aWMin.ValExtre())
@@ -222,15 +250,18 @@ void cAppli_BlockInstrInitClino::DoOneClino()
     }
 
     tREAL8 aSc3 = aScMin;
-
-     StdOut() << " SCORE CLINO "
-              << " A0=" <<   Ang4Show(aSc1)
-              << " Opt1=" << Ang4Show(aSc2)
-              << " Opt2=" << Ang4Show(aSc3)
+    if (NeverHappens())
+    {
+        StdOut() << " SCORE CLINO "
+                 << " A0=" <<   Ang4Show(aSc1)
+                 << " Opt1=" << Ang4Show(aSc2)
+                 << " Opt2=" << Ang4Show(aSc3)
               << "\n";
-      mAvgClinIndep.Add(1.0,aSc3);
-      mScoreClino.push_back(aSc3);
-      mDirClinoIndep.push_back(mAxesCur.AxeI());
+    }
+
+    mAvgClinIndep.Add(1.0,aSc3);
+    mScoreClinoIndep.at(mKCurClino) = aSc3;
+    mDirClinoIndep.at(mKCurClino) = mAxesCur.AxeI();
 }
 
 
@@ -244,6 +275,11 @@ int cAppli_BlockInstrInitClino::Exe()
     mBlock = new cIrbComp_Block(mPhProj,mNameBloc);
     mCalBlock  = & mBlock->CalBlock();
     mSetClinos = & mCalBlock->SetClinos();
+    mNbClino = mSetClinos->NbClino() ;
+
+    mScoreClinoIndep.resize(mNbClino);
+    mDirClinoIndep.resize(mNbClino);
+    mInPairOrthog.resize(mNbClino,false);
 
     if (IsInit(&mNumPoseInstr))
        mCalBlock->SetCams().SetNumPoseInstr(mNumPoseInstr);
@@ -258,8 +294,11 @@ int cAppli_BlockInstrInitClino::Exe()
     mBlock->ComputePoseInstrument();
     mBlock->SetClinoValues();
 
-    for (mKCurClino=0 ; mKCurClino<(int)mSetClinos->NbClino() ; mKCurClino++)
-        DoOneClino();
+    for (int aKC=0 ; aKC<(int)mSetClinos->NbClino() ; aKC++)
+        DoOneClino(aKC);
+
+    mScoreClinoGlob = mScoreClinoIndep;
+    mDirClinoGlob   = mDirClinoIndep;
 
     mPhProj.SaveRigBoI(mBlock->CalBlock());
 
@@ -272,8 +311,6 @@ int cAppli_BlockInstrInitClino::Exe()
 
             if ((aK1>=0) && (aK2>=0))
                 mPairOrthog.push_back(cPt2di(aK1,aK2));
-
-            StdOut()  <<  "KKKK "  << aK1 << " " << aK2 << "\n";
         }
     }
 
@@ -282,7 +319,49 @@ int cAppli_BlockInstrInitClino::Exe()
         OrthogPair(aPt);
     }
 
-    StdOut() <<  " AVG CLINO INDEP=" <<  Ang4Show(mAvgClinIndep.Average()) << "\n";
+    StdOut() <<  " AVG ;  INDEP=" <<  Ang4Show(mAvgClinIndep.Average()) ;
+    if (! mPairOrthog.empty())
+       StdOut() <<  " ; ORTHOG=" << Ang4Show(AvgElem(mScoreClinoGlob)) ;
+    StdOut() << "\n\n";
+
+
+    // ========================= print the result  (Reports 2 add) ===========================================
+    for (int aKC=0 ; aKC<mNbClino ; aKC++)
+    {
+        tREAL8 aScore = mScoreClinoGlob.at(aKC);
+        std::string aName = mSetClinos->VNames().at(aKC);
+        if (mReSetSigma)
+        {
+            auto & aDescInstr = mCalBlock->AddSigma_Indiv(aName,eTyInstr::eClino);
+            aDescInstr.SetSigma(cIrb_SigmaInstr(0.0,1.0,0.0,aScore));
+        }
+        mSetClinos->KthClino(aKC).SetPNorm(mDirClinoGlob.at(aKC));
+
+        StdOut() << " K=" << aKC << " N=" << aName
+                 << " Score=" << Ang4Show(aScore)
+                 << " Dir=" <<  mDirClinoGlob.at(aKC)
+                 << "\n";
+    }
+
+    if (! mPairOrthog.empty())
+    {
+         StdOut() <<  "   =============== Orthogonality ===================\n";
+         for (const auto & aPair : mPairOrthog)
+         {
+             int aK1 = aPair.x();
+             int aK2 = aPair.y();
+             tREAL8 aDelta1 =  mScoreClinoGlob.at(aK1) -  mScoreClinoIndep.at(aK1);
+             tREAL8 aDelta2 =  mScoreClinoGlob.at(aK2) -  mScoreClinoIndep.at(aK2);
+
+             tREAL8 anAng = std::abs(AbsAngleTrnk( mDirClinoIndep.at(aK1),mDirClinoIndep.at(aK2))-M_PI/2.0) ;
+             StdOut() << " * Pair=" << aPair
+                      << " OrthoAPrior=" <<  Ang4Show(anAng)
+                      << " Dif:Indep/Orthog=" << Ang4Show(aDelta1) << " " << Ang4Show(aDelta2) << "\n";
+         }
+    }
+
+    mPhProj.SaveRigBoI(*mCalBlock);
+
 
     delete mBlock;
     return EXIT_SUCCESS;

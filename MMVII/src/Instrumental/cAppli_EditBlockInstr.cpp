@@ -128,9 +128,25 @@ int cAppli_EditBlockInstr::Exe()
     if (mPhProj.DPMeasuresClino().DirInIsInit())
     {
          cSetMeasureClino aMesClin =  mPhProj.ReadMeasureClino();
-         for (const auto & aName : aMesClin.NamesClino())
+         const std::vector<std::string> &  aVNames = aMesClin.NamesClino();
+         size_t aNbC = aVNames.size();
+         std::vector<cWeightAv<tREAL8,tREAL8>> aVW (aNbC);
+
+         for (const auto & aMes: aMesClin.SetMeasures())
          {
-             aBlock->SetClinos().AddClino(aName,SVP::Yes);
+            const auto & aSigm = aMes.VSigma();
+            if (aSigm.has_value())
+            {
+                for (size_t aK=0 ; aK<aNbC ; aK++ )
+                    aVW.at(aK).Add(1.0,aSigm.value().at(aK));
+            }
+  //          StdOut() << "SIGINIT= " << aSigm.has_value() << " " << aMes.Ident()<< "\n";
+         }
+         for(size_t aK=0 ; aK<aNbC ; aK++ )
+         {
+             tREAL8 aSigma =  aVW.at(aK).Average(-1.0);
+         //    StdOut() << "  SIGMA " << aSigma << "\n";
+             aBlock->SetClinos().AddClino(aVNames.at(aK),aSigma,SVP::Yes);
          }
     }
 

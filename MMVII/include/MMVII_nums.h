@@ -18,6 +18,8 @@ template <class Type> Type Average(const std::vector<Type> &);
 
 tREAL8 AngleFromRad(eTyUnitAngle);
 tREAL8 AngleFromRad(tREAL8 aAngInRad,eTyUnitAngle);
+tREAL8 Rad2DMgon(tREAL8 aAngInRad);
+
 
 bool AssertRadAngleInOneRound(tREAL8 aAngleRad, bool makeError=true);
 

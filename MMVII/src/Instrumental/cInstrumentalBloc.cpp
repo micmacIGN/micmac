@@ -45,9 +45,14 @@ void cIrb_SigmaInstr::AddData(const  cAuxAr2007 & anAux)
 
     MMVII::AddData(cAuxAr2007("Rot",anAux) ,mAvgSigRot);
     if (mAvgSigRot.SW() >0 )
-       anAux.Ar().AddComment("SigRot="+ToStr(mAvgSigRot.Average()));
-
-  //  StdOut() << "cIrb_SigmaInstr::AddData::Done \n";
+    {
+       anAux.Ar().AddComment
+       (
+             "SigRot="
+           + ToStr(mAvgSigRot.Average()) + " rad, "
+           + ToStr(Rad2DMgon(mAvgSigRot.Average())) + " dmgon "
+       );
+    }
 }
 
 

@@ -27,6 +27,12 @@ tREAL8 AngleFromRad(tREAL8 aAngleRad,eTyUnitAngle aUnit)
   return aAngleRad * AngleFromRad(aUnit);
 }
 
+tREAL8 Rad2DMgon(tREAL8 aAngInRad)
+{
+    return AngleFromRad(aAngInRad,eTyUnitAngle::eUA_DMgon);
+}
+
+
 bool AssertRadAngleInOneRound(tREAL8 aAngleRad, bool makeError)
 {
     if ((aAngleRad>=-2*M_PI)&&(aAngleRad<=2*M_PI))

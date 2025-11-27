@@ -593,6 +593,22 @@ class cComputeAssociation
 };
 void AddData(const cAuxAr2007 & anAux,cComputeAssociation & aTransl);
 
+
+
+template <class TypeCont> typename TypeCont::value_type SumElem(const TypeCont &aCont)
+{
+    typename TypeCont::value_type  aResult = cNV<typename TypeCont::value_type>::V0();
+    for (const auto aVal : aCont)
+        aResult += aVal;
+    return aResult;
+}
+
+template <class TypeCont> typename TypeCont::value_type AvgElem(const TypeCont &aCont)
+{
+    MMVII_INTERNAL_ASSERT_tiny(!aCont.empty(),"AvgElem on empty vect");
+    return SumElem(aCont) / double (aCont.size());
+}
+
 };
 
 #endif  //  _MMVII_Util_TPL_H_
