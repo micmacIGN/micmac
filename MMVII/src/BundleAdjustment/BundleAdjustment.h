@@ -337,13 +337,6 @@ class cData1ImLidPhgr
 };
 
 
-enum class cBA_LidarPhotogra_Type
-{
-    Triangulation,
-    Rastersization
-};
-
-
 /**  Class for doing the adjsment between Lidar & Photogra, prototype for now, what will most certainly will need
      to evolve is the weighting policy.
  */
@@ -352,14 +345,14 @@ class cBA_LidarPhotogra
 {
     public :
        /// constructor, take the global bundle struct + one vector of param
-       cBA_LidarPhotogra(cPhotogrammetricProject *aPhProj, cMMVII_BundleAdj&, const std::vector<std::string> & aParam, cBA_LidarPhotogra_Type aType);
+       cBA_LidarPhotogra(cPhotogrammetricProject *aPhProj, cMMVII_BundleAdj&, const std::vector<std::string> & aParam);
        /// destuctor, free interopaltor, calculator ....
-       ~cBA_LidarPhotogra();
+       virtual ~cBA_LidarPhotogra();
 
        /// add observation
-       void AddObs();
+       virtual void AddObs() = 0;
 
-    private :
+    protected :
        /**  Add observation for 1 Patch of point */
        void Add1Patch(tREAL8 aW,const std::vector<cPt3dr> & aPatch);
 
@@ -384,8 +377,6 @@ class cBA_LidarPhotogra
        cPhotogrammetricProject *      mPhProj;         // Photogrammetric project
        cMMVII_BundleAdj&              mBA;             ///< The global bundle adj structure
        eImatchCrit                    mModeSim;        ///< type of similarity used
-       cTriangulation3D<tREAL4> *     mTri;            ///< Triangulation, in fact used only for points
-       cStaticLidar *                 mLidarData;      ///< Raster representations of lidar
        cDiffInterpolator1D *          mInterp;         ///< Interpolator, used to extract  Value & Grad of images
        cCalculator<double>  *         mEqLidPhgr;      ///< Calculator used for constrain the pose from image obs
        std::vector<cSensorCamPC *>    mVCam;           ///< Vector of central perspective camera
@@ -398,6 +389,37 @@ class cBA_LidarPhotogra
        double                         mWeight;          ///< weight for observations
        size_t                         mNbUsedPoints;   ///< number of lidar used points
        size_t                         mNbUsedObs;      ///< number of lidar obs used
+};
+
+
+
+class cBA_LidarPhotograTri : public cBA_LidarPhotogra
+{
+public :
+    /// constructor, take the global bundle struct + one vector of param
+    cBA_LidarPhotograTri(cPhotogrammetricProject *aPhProj, cMMVII_BundleAdj&, const std::vector<std::string> & aParam);
+    /// destuctor, free interopaltor, calculator ....
+    virtual ~cBA_LidarPhotograTri();
+
+    /// add observation
+    virtual void AddObs() override;
+private :
+    cTriangulation3D<tREAL4> *     mTri;            ///< Triangulation, in fact used only for points
+};
+
+
+class cBA_LidarPhotograRaster : public cBA_LidarPhotogra
+{
+public :
+    /// constructor, take the global bundle struct + one vector of param
+    cBA_LidarPhotograRaster(cPhotogrammetricProject *aPhProj, cMMVII_BundleAdj&, const std::vector<std::string> & aParam);
+    /// destuctor, free interopaltor, calculator ....
+    virtual ~cBA_LidarPhotograRaster();
+
+    /// add observation
+    virtual void AddObs() override;
+private :
+    cStaticLidar *                 mLidarData;      ///< Raster representations of lidar
 };
 
 
