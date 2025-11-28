@@ -337,7 +337,11 @@ cStaticLidar::cStaticLidar(const std::string & aNameFile, const tPose & aPose, c
 
 cStaticLidar * cStaticLidar::FromFile(const std::string & aNameFile, const std::string &aNameRastersDir)
 {
-    cStaticLidar * aRes = new cStaticLidar("NONE",tPoseR::Identity(),nullptr);
+    initialized later or make a calibration file?
+    cPerspCamIntrCalib* aCalib =
+        cPerspCamIntrCalib::SimpleCalib("EquiRect", eProjPC::eEquiRect, cPt2di(0,0), cPt3dr(0.,0.,0.), cPt3di(0,0,0));
+
+    cStaticLidar * aRes = new cStaticLidar("NONE",tPoseR::Identity(),aCalib);
     ReadFromFile(*aRes, aNameFile);
     aRes->mRasterDistance = std::make_unique<cIm2D<tREAL4>>(cIm2D<tREAL4>::FromFile(aNameRastersDir+"/"+aRes->mRasterDistancePath));
     aRes->mRasterIntensity = std::make_unique<cIm2D<tU_INT1>>(cIm2D<tU_INT1>::FromFile(aNameRastersDir+"/"+aRes->mRasterIntensityPath));
@@ -363,7 +367,7 @@ float cStaticLidar::LineToLocalPhiApprox(float aLine) const
     return mPhiStart + aLine * mPhiStep;
 }
 
-cPt3dr cStaticLidar::to3D(cPt2di aRasterPx) const
+cPt3dr cStaticLidar::Image2Instr3D(const cPt2di & aRasterPx) const
 {
     auto & aRasterXData = mRasterX->DIm();
     auto & aRasterYData = mRasterY->DIm();
@@ -374,6 +378,31 @@ cPt3dr cStaticLidar::to3D(cPt2di aRasterPx) const
         aRasterZData.GetV(aRasterPx),
     };
 }
+
+cPt3dr cStaticLidar::Image2Instr3D(const cPt2dr & aRasterPx) const
+{
+    auto & aRasterXData = mRasterX->DIm();
+    auto & aRasterYData = mRasterY->DIm();
+    auto & aRasterZData = mRasterZ->DIm();
+    return cPt3dr{
+        aRasterXData.GetVBL(aRasterPx),
+        aRasterYData.GetVBL(aRasterPx),
+        aRasterZData.GetVBL(aRasterPx),
+    };
+}
+
+cPt3dr cStaticLidar::Image2Ground(const cPt2di & aRasterPx) const
+{
+    cPt3dr aInstrPt = Image2Instr3D(aRasterPx);
+    return Pose().Value(aInstrPt);
+}
+
+cPt3dr cStaticLidar::Image2Ground(const cPt2dr & aRasterPx) const
+{
+    cPt3dr aInstrPt = Image2Instr3D(aRasterPx);
+    return Pose().Value(aInstrPt);
+}
+
 
 void cStaticLidar::ToPly(const std::string & aName,bool useMask) const
 {
@@ -758,7 +787,7 @@ void cStaticLidar::MakePatches
     {
         //search for average GndPixelSize
         aVectGndPixelSize.clear();
-        cPt3dr aGndCenter = to3D(aCenter);
+        cPt3dr aGndCenter = Image2Ground(aCenter);
         int aNumCamVisib = 0;
         for (const auto & aCam: aVCam)
         {

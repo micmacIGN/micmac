@@ -202,7 +202,7 @@ void cBA_LidarPhotograRaster::AddObs()
     {
         for (const auto& aPatch : mLPatchesP)
         {
-            Add1Patch(mWeight,{mLidarData->to3D(*aPatch.begin())});
+            Add1Patch(mWeight,{mLidarData->Image2Ground(*aPatch.begin())});
         }
     }
     else
@@ -211,7 +211,7 @@ void cBA_LidarPhotograRaster::AddObs()
         {
             std::vector<cPt3dr> aVP;
             for (const auto aPt : aPatch)
-                aVP.push_back(mLidarData->to3D(aPt));
+                aVP.push_back(mLidarData->Image2Ground(aPt));
             Add1Patch(mWeight,aVP);
         }
     }
