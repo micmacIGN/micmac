@@ -279,6 +279,7 @@ enum class eTyUnitAngle
               eUA_radian,
               eUA_degree,
               eUA_gon,
+              eUA_DMgon,
               eNbVals
 	   };
 

@@ -118,13 +118,14 @@ void cIrbCal_Cam1::UnInit()
 void cIrbCal_Cam1::SetPose(const tPoseR & aPose)
 {
 
-    if (mPoseInBlock==nullptr)
-        mPoseInBlock = new cPoseWithUK;
-
+  if (mPoseInBlock==nullptr)
+  {
+      mPoseInBlock = new cPoseWithUK;
+      mPoseInBlock->SetNameType("BlockPose");
+      mPoseInBlock->SetNameIdObj(mNameCal);
+  }
    mPoseInBlock->SetPose(aPose);
-
    mIsInit      = true;
-
 }
 
 bool          cIrbCal_Cam1::IsInit() const{  return mIsInit;}
@@ -207,6 +208,7 @@ cIrbCal_CamSet::cIrbCal_CamSet()  :
 void  cIrbCal_CamSet::AddData(const  cAuxAr2007 & anAux)
 {
     MMVII::AddData(cAuxAr2007("NumMaster",anAux),mNumMaster);
+    MMVII::AddData(cAuxAr2007("NumPoseInstr",anAux),mNumsPoseInstr);
     MMVII::StdContAddData(cAuxAr2007("Set_Cams",anAux),mVCams);
     
     // check the coherence of num master
@@ -219,6 +221,36 @@ void  cIrbCal_CamSet::AddData(const  cAuxAr2007 & anAux)
 void AddData(const  cAuxAr2007 & anAux,cIrbCal_CamSet & aCams)
 {
     aCams.AddData(anAux);
+}
+
+void cIrbCal_CamSet::SetNumPoseInstr (const std::vector<int> & aVNums)
+{
+     mNumsPoseInstr = aVNums;
+}
+
+std::vector<int>  cIrbCal_CamSet::NumPoseInstr() const
+{
+   std::vector<int> aRes;
+   if (mNumsPoseInstr.empty())
+   {
+      for (size_t aK=0 ; aK<mVCams.size() ; aK++)
+          aRes.push_back(aK);
+   }
+   else
+   {
+       for (const auto aNum : mNumsPoseInstr)
+       {
+           if (aNum<0)
+           {
+               MMVII_INTERNAL_ASSERT_tiny(mNumMaster>=0,"No num master when get -1 in NumPoseInstr ");
+               aRes.push_back(mNumMaster);
+           }
+           else
+               aRes.push_back(aNum);
+       }
+   }
+
+   return aRes;
 }
 
 

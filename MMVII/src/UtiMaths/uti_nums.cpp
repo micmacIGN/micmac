@@ -5,20 +5,33 @@
 namespace MMVII
 {
 
-tREAL8 AngleInRad(eTyUnitAngle aUnit)
+tREAL8 AngleFromRad(eTyUnitAngle aUnit)
 {
     switch (aUnit)
     {
         case eTyUnitAngle::eUA_radian :  return 1.0;
         case eTyUnitAngle::eUA_degree :  return (180.0/M_PI);
         case eTyUnitAngle::eUA_gon    :  return (200.0/M_PI);
+       case eTyUnitAngle::eUA_DMgon    :  return (200.0/M_PI) * 10 * 1e3;
+
 
         default : ;
     }
 
-    MMVII_INTERNAL_ERROR("should not be here in AngleInRad");
+    MMVII_INTERNAL_ERROR("should not be here in AngleFromRad");
     return 0.0;
 }
+
+tREAL8 AngleFromRad(tREAL8 aAngleRad,eTyUnitAngle aUnit)
+{
+  return aAngleRad * AngleFromRad(aUnit);
+}
+
+tREAL8 Rad2DMgon(tREAL8 aAngInRad)
+{
+    return AngleFromRad(aAngInRad,eTyUnitAngle::eUA_DMgon);
+}
+
 
 bool AssertRadAngleInOneRound(tREAL8 aAngleRad, bool makeError)
 {

@@ -40,7 +40,8 @@ class cAppli_EditBlockInstr : public cMMVII_Appli
         std::string               mNameBloc;     //< Name of the block edited (generally default MMVII)
         std::vector<std::string>  mVPatsIm4Cam;  //< Patterns for cam structure : [PatSelOnDisk,PatTimeStamp?,PatSelInBlock?]
         bool                      mFromScratch;  //< If exist file : Reset of Modify ?
-        std::vector<std::vector<std::string>>  mCstrOriRel;  //<  Vector for relative orientations
+        std::vector<std::vector<std::string>>  mCstrOrthog;  //<  Vector for relative orientations
+        std::vector<int>                       mNumPoseInstr;
 };
 
 cAppli_EditBlockInstr::cAppli_EditBlockInstr(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -78,7 +79,8 @@ cCollecSpecArg2007 & cAppli_EditBlockInstr::ArgOpt(cCollecSpecArg2007 & anArgOpt
             << AOpt2007(mFromScratch,"FromScratch","Do we start from a new file, even if already exist",{{eTA2007::HDV}})
             << mPhProj.DPBlockInstr().ArgDirOutOpt()
             << mPhProj.DPMeasuresClino().ArgDirInOpt()
-            << AOpt2007(mCstrOriRel,"CRO","Constraint for relative orientation [[Instr1,Instr2,Sigma,Orient]*...] ")
+            << AOpt2007(mCstrOrthog,"CstrOrthog","Constraint for vectors orthogonality [[Instr1,Instr2,Sigma]*...] ")
+            << AOpt2007(mNumPoseInstr,"NPI","Num of cams used  for estimate pose of intsrument")
         ;
 }
 
@@ -101,40 +103,63 @@ int cAppli_EditBlockInstr::Exe()
         std::string aPatSelIm = GetDef(mVPatsIm4Cam,2,aPatTimeStamp);
 
         auto aVNameIm = ToVect(SetNameFromString(aPatSelOnDisk,true));
-        std::set<std::string> aSetNameCal;
+        std::vector<std::string> aSetNameCal;
         for (const auto & aNameIm : aVNameIm)
         {
             std::string aNameCal = mPhProj.StdNameCalibOfImage(aNameIm);
             if (! BoolFind(aSetNameCal,aNameCal))
             {
-                aSetNameCal.insert(aNameCal); // OK
-
-                aBlock->SetCams().AddCam(aNameCal,aPatTimeStamp,aPatSelIm,SVP::Yes); // Not OK:w
+                aSetNameCal.push_back(aNameCal); // OK
             }
         }
+        std::sort(aSetNameCal.begin(),aSetNameCal.end());
+
+        for (const auto & aNameCal : aSetNameCal)
+            aBlock->SetCams().AddCam(aNameCal,aPatTimeStamp,aPatSelIm,SVP::Yes); // Not OK:
     }
+
+    if (IsInit(&mNumPoseInstr))
+       aBlock->SetCams().SetNumPoseInstr(mNumPoseInstr);
+
+
+
 
     // if we add the structure for clinometers
     if (mPhProj.DPMeasuresClino().DirInIsInit())
     {
          cSetMeasureClino aMesClin =  mPhProj.ReadMeasureClino();
-         for (const auto & aName : aMesClin.NamesClino())
+         const std::vector<std::string> &  aVNames = aMesClin.NamesClino();
+         size_t aNbC = aVNames.size();
+         std::vector<cWeightAv<tREAL8,tREAL8>> aVW (aNbC);
+
+         for (const auto & aMes: aMesClin.SetMeasures())
          {
-             aBlock->SetClinos().AddClino(aName,SVP::Yes);
+            const auto & aSigm = aMes.VSigma();
+            if (aSigm.has_value())
+            {
+                for (size_t aK=0 ; aK<aNbC ; aK++ )
+                    aVW.at(aK).Add(1.0,aSigm.value().at(aK));
+            }
+  //          StdOut() << "SIGINIT= " << aSigm.has_value() << " " << aMes.Ident()<< "\n";
+         }
+         for(size_t aK=0 ; aK<aNbC ; aK++ )
+         {
+             tREAL8 aSigma =  aVW.at(aK).Average(-1.0);
+         //    StdOut() << "  SIGMA " << aSigma << "\n";
+             aBlock->SetClinos().AddClino(aVNames.at(aK),aSigma,SVP::Yes);
          }
     }
 
-    if (IsInit(&mCstrOriRel))
+    if (IsInit(&mCstrOrthog))
     {
-        for (const auto & aCstr : mCstrOriRel)
+        for (const auto & aCstr : mCstrOrthog)
         {
-            MMVII_INTERNAL_ASSERT_User_UndefE(aCstr.size()==4,"Bad size for cstr ori rel");
-            aBlock->AddCstrRelRot
+            MMVII_INTERNAL_ASSERT_User_UndefE(aCstr.size()==3,"Bad size for cstr ori rel");
+            aBlock->AddCstrRelOrthog
             (
                 aCstr.at(0),
                 aCstr.at(1),
-                cStrIO<double>::FromStr(aCstr.at(2)),
-                tRotR::RotFromCanonicalAxes(aCstr.at(3))
+                cStrIO<double>::FromStr(aCstr.at(2))
             );
         }
     }

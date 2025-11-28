@@ -6,6 +6,41 @@
 namespace MMVII
 {
 
+void Bench_OrthogonalizePair(const cPt3dr& aP1, const cPt3dr & aP2)
+{
+    auto [aQ1,aQ2] = OrthogonalizePair(aP1,aP2);
+
+    tREAL8 aDifN =  Norm2(VUnit(aP1^aP2) - VUnit(aQ1^aQ2));
+    tREAL8 aScal = Scal(aQ1,aQ2);
+    tREAL8 aD1 = Norm2(VUnit(aP1)-aQ1);
+    tREAL8 aD2 = Norm2(VUnit(aP2)-aQ2);
+
+    tREAL8 aD12 = Norm2(VUnit(aP1)-aQ2);
+    tREAL8 aD21 = Norm2(VUnit(aP2)-aQ1);
+
+    MMVII_INTERNAL_ASSERT_bench(aDifN<1e-10,"Bench_OrthogonalizePair Normal");
+    MMVII_INTERNAL_ASSERT_bench(aScal<1e-10,"Bench_OrthogonalizePair Scal");
+    MMVII_INTERNAL_ASSERT_bench(std::abs(aD1-aD2)<1e-10,"Diff distl");
+    MMVII_INTERNAL_ASSERT_bench(std::max(aD1,aD2)<std::min(aD12,aD21)+1e-10,"Order distl");
+
+    //StdOut() << " DifN=" << aDifN << " S=" << aScal << " " << aD1 << " " << aD2 << " " << aD12 << " " << aD21 << "\n";
+}
+
+void Bench_OrthogonalizePair()
+{
+   for (int aK=0 ; aK<100 ; aK++)
+   {
+       cPt3dr aP1 = cPt3dr::PRand();
+       while (Norm2(aP1)<1e-1)
+           aP1 = cPt3dr::PRand();
+        cPt3dr aP2 = cPt3dr::PRand();
+        while  ((Norm2(aP2)<1e-1) || (AbsAngleTrnk(aP1,aP2)<1e-2))
+             aP2 = cPt3dr::PRand();
+        Bench_OrthogonalizePair(aP1,aP2);
+   }
+
+}
+
 template<class Type> void TplBenchRotation3D(cParamExeBench & aParam)
 {
 
@@ -734,6 +769,7 @@ void BenchGeom(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("Geom")) return;
 
+    Bench_OrthogonalizePair();
     BenchSeg2D();
 
     BenchSampleQuat();

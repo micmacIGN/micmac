@@ -15,6 +15,7 @@ using namespace NS_SymbolicDerivative;
 namespace MMVII
 {
 
+///  A genrealizaion of the post incremenation aIndex++
 inline size_t IndexAutoIncr(size_t * aIndex,size_t aIncr)
 {
       *aIndex += aIncr;
@@ -22,7 +23,6 @@ inline size_t IndexAutoIncr(size_t * aIndex,size_t aIncr)
 }
 
 /// required so that we can define points on formula ...
-
 template <> class tNumTrait<cFormula <tREAL8> >
 {
     public :
@@ -34,9 +34,17 @@ template <> class tNumTrait<cFormula <tREAL8> >
         static void AssertValueOk(const cFormula<double> & ) {}
 };
 
+/**  Class for defining matrix on formula/real ... and the operation required in matrix of formula
+ *   Why not use the dense matrix that is already templated ?  Because, if not unfeasible, it was a bit tricky
+ *   to have a class that is both :
+ *       - intantiable with formula
+ *       - easily interfacable with eigen
+ */
 template <class Type> class cMatF
 {
     private :
+
+      /// for ex create some of matrix if used with + (used also with -)
          template <class TypeFunc>  cMatF<Type>  OpBin(const cMatF<Type> &  aM2,const TypeFunc & Oper) const
          {
               MMVII_INTERNAL_ASSERT_always(mSz==aM2.mSz,"Sz diff in op bin");
@@ -48,19 +56,21 @@ template <class Type> class cMatF
 			   aRes(aKx,aKy) =  Oper((*this)(aKx,aKy),aM2(aKx,aKy));
 
 	      return aRes;
-	 }
+        }
 
 
     public :
 
       typedef std::vector<Type> tLine;
 
+      // constructor that that create a constant matrix
       cMatF(size_t aSzX,size_t aSzY,const Type & aVal) :
          mSz   (aSzX,aSzY),
-	 mMatr (mSz.y(),tLine(mSz.x(),aVal)),
+         mMatr (mSz.y(),tLine(mSz.x(),aVal)),
          mC0   (CreateCste(0.0,aVal)) 
       {
       }
+
       const Type & operator () (size_t anX,size_t anY) const {return mMatr.at(anY).at(anX);}
       Type & operator () (size_t anX,size_t anY) {return mMatr.at(anY).at(anX);}
 
@@ -178,9 +188,10 @@ template <class Type> class cMatF
 	       return this->OpBin(aM2,[](const Type & A,const Type &B) {return A+B;});
       }
 
-      cPt2di             mSz;
-      std::vector<tLine> mMatr;     
-      Type               mC0;
+      //  ============  Data part ===========================================
+      cPt2di             mSz;     //< size of the matrix
+      std::vector<tLine> mMatr;   //<  storage as a vector of vector
+      Type               mC0;     //<  some facilty to have the 0 on formula
 };
 
 
@@ -337,6 +348,7 @@ template <class Type> class cPoseF
         }
 
 
+        ///  With Axiator means we add some unknowns
         cPoseF(const std::vector<Type> &  aVecUk,size_t aK0Uk,const std::vector<Type> &  aVecObs,size_t aK0Obs,bool WithAxiator) :
             cPoseF<Type>
             (
