@@ -66,6 +66,7 @@ protected:
     tREAL8 mDistMinToExist;
 };
 
+// TODO: use cProj_EquiRect, initialize everything correctly eEquiRect
 class cStaticLidar: public cSensorCamPC
 {
     friend class cAppli_ImportStaticScan;
@@ -97,8 +98,10 @@ public :
     float ColToLocalThetaApprox(float aCol) const;
     float LineToLocalPhiApprox(float aLine) const;
 
-    cPt3dr to3D(cPt2di aRasterPx) const;
-
+    cPt3dr Image2Instr3D(const cPt2di & aRasterPx) const;
+    cPt3dr Image2Instr3D(const cPt2dr & aRasterPx) const;
+    cPt3dr Image2Ground(const cPt2di & aRasterPx) const;
+    cPt3dr Image2Ground(const cPt2dr & aRasterPx) const;
 
     cStaticLidarImporter mSL_importer;
 private :
