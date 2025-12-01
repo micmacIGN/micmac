@@ -22,6 +22,13 @@ std::vector<std::string>  NamesMatr(const std::string& aPref,const cPt2di & aSz)
      return aRes;
 }
 
+std::vector<std::string>  VectNames(const std::string& aPref,int aK0,int aK1)
+{
+    std::vector<std::string> aRes;
+    for (int aK=aK0; aK<aK1 ; aK++)
+        aRes.push_back(aPref+ToStr(aK));
+    return aRes;
+}
 std::vector<std::string>  NamesPose(const std::string& aNameC ,const std::string&  aNameOmega)
 {
 	return Append(NamesP3(aNameC),NamesP3(aNameOmega));

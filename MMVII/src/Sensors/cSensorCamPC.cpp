@@ -73,20 +73,114 @@ void cP3dNormWithUK::SetPNorm(const cPt3dr & aTr)
 
 /* ******************************************************* */
 /*                                                         */
+/*                   cRotWithUK                            */
+/*                                                         */
+/* ******************************************************* */
+//      cRotWithUK(const tRotR & aPose);
+
+
+cRotWithUK::cRotWithUK(const tRotR & aRot) :
+    mRot (aRot),
+    mOmega (0.0,0.0,0.0)
+{
+
+}
+
+//       cRotWithUK();
+
+cRotWithUK::cRotWithUK() :
+    cRotWithUK (tRotR())
+{
+}
+
+
+cRotWithUK::~cRotWithUK()
+{
+    OUK_Reset();
+}
+
+const tRotR &   cRotWithUK::Rot()   const {return mRot;}
+void cRotWithUK::SetRot( const tRotR & aRot)
+{
+    mOmega = cPt3dr(0.0,0.0,0.0);
+    mRot= aRot;
+}
+
+cPt3dr cRotWithUK::AxeI()   const {return mRot.AxeI();}
+cPt3dr cRotWithUK::AxeJ()   const {return mRot.AxeJ();}
+cPt3dr cRotWithUK::AxeK()   const {return mRot.AxeK();}
+
+
+const cPt3dr &  cRotWithUK::Omega() const {return mOmega;}
+cPt3dr &  cRotWithUK::GetRefOmega()  {return mOmega;}
+void  cRotWithUK::SetOmega(const cPt3dr & anOmega) {mOmega = anOmega;}
+
+void cRotWithUK::PushObs(std::vector<double> & aVObs,bool TransposeMatr)
+{
+    if (TransposeMatr)
+       mRot.Mat().PushByCol(aVObs);
+    else
+       mRot.Mat().PushByLine(aVObs);
+}
+
+
+void cRotWithUK::OnUpdate()
+{
+    //  used above formula to modify  rotation
+   mRot =  mRot * cRotation3D<tREAL8>::RotFromAxiator(-mOmega);
+   // now this have modify rotation, the "delta" is void :
+   mOmega = cPt3dr(0,0,0);
+}
+
+void  cRotWithUK::FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
+{
+    aGAIP.TestParam(this, &( mOmega.x())    ,"Wx");
+    aGAIP.TestParam(this, &( mOmega.y())    ,"Wy");
+    aGAIP.TestParam(this, &( mOmega.z())    ,"Wz");
+
+    SetNameTypeId(aGAIP);
+}
+
+void cRotWithUK::PutUknowsInSpecifiedSetInterval(cSetInterUK_MultipeObj<tREAL8> * aSetInterv)
+{
+    aSetInterv->AddOneInterv(mOmega);
+
+}
+void cRotWithUK::PutUknowsInSetInterval()
+{
+    PutUknowsInSpecifiedSetInterval(mSetInterv);
+}
+
+
+cPt3dr cRotWithUK::ValAxiatorFixRot(const tRotR & aRotFix) const
+{
+     cDenseMatrix<tREAL8>  aM = mRot.Mat().Transpose() * aRotFix.Mat();
+     tREAL8 aZ = ( aM(1,0) - aM(0,1)) / 2.0;
+     tREAL8 aY = (-aM(2,0) + aM(0,2)) / 2.0;
+     tREAL8 aX = ( aM(2,1) - aM(1,2)) / 2.0;
+
+     return cPt3dr(aX,aY,aZ);
+}
+
+/* ******************************************************* */
+/*                                                         */
 /*                   cPoseWithUK                           */
 /*                                                         */
 /* ******************************************************* */
 
 cPoseWithUK::cPoseWithUK(const tPoseR & aPose)  :
-      mPose (aPose),
-      mOmega (0.0,0.0,0.0)
+      mTr   (aPose.Tr()),
+      mRUK (aPose.Rot())
 {
 }
+
 
 cPoseWithUK::cPoseWithUK() :
 	cPoseWithUK(tPoseR())
 {
 }
+
+
 
 cPoseWithUK::~cPoseWithUK()
 {
@@ -95,23 +189,33 @@ cPoseWithUK::~cPoseWithUK()
 
 void cPoseWithUK::SetPose(const tPoseR & aPose)
 {
-	mPose = aPose;
+    mRUK.SetRot(aPose.Rot());
+    mTr = aPose.Tr();
 }
 
-const tPoseR &   cPoseWithUK::Pose()   const  {return mPose;}
-tPoseR &   cPoseWithUK::Pose()   {return mPose;}
-const cPt3dr &   cPoseWithUK::Center() const {return mPose.Tr();}
-cPt3dr &  cPoseWithUK::Center()  {return mPose.Tr();}
-cPt3dr  cPoseWithUK::AxeI()   const {return mPose.Rot().AxeI();}
-cPt3dr  cPoseWithUK::AxeJ()   const {return mPose.Rot().AxeJ();}
-cPt3dr  cPoseWithUK::AxeK()   const {return mPose.Rot().AxeK();}
-const cPt3dr &   cPoseWithUK::Tr() const {return mPose.Tr();}
-cPt3dr &  cPoseWithUK::Tr()  {return mPose.Tr();}
+
+tPoseR   cPoseWithUK::Pose()   const
+{
+    return tPoseR(mTr,mRUK.Rot());
+}
+
+const tRotR & cPoseWithUK::Rot() const  {return mRUK.Rot();}
 
 
 
-cPt3dr &  cPoseWithUK::Omega()  {return mOmega;}
-const cPt3dr &  cPoseWithUK::Omega() const {return mOmega;}
+const cPt3dr &   cPoseWithUK::Tr() const {return mTr;}
+cPt3dr &   cPoseWithUK::GetRefTr() {return mTr;}
+
+cPt3dr  cPoseWithUK::AxeI()   const {return mRUK.AxeI();}
+cPt3dr  cPoseWithUK::AxeJ()   const {return mRUK.AxeJ();}
+cPt3dr  cPoseWithUK::AxeK()   const {return mRUK.AxeK();}
+
+
+
+const cPt3dr &  cPoseWithUK::Omega() const {return mRUK.Omega();}
+cPt3dr &  cPoseWithUK::GetRefOmega() {return  mRUK.GetRefOmega();}
+
+void cPoseWithUK::SetOmega(const cPt3dr & anOmega) {mRUK.SetOmega(anOmega);}
 
 
 /*   Let R be the rotation of pose  P=(C,R) = : Cam-> Word, what is optimized in colinearity for a ground point G
@@ -143,43 +247,42 @@ const cPt3dr &  cPoseWithUK::Omega() const {return mOmega;}
 *  aMat(1,0) = -aW.z(); aMat(2,0) =  aW.y(); aMat(2,1) = -aW.x(); 
 */  
 
-cPt3dr cPoseWithUK::ValAxiatorFixRot(const cRotation3D<tREAL8> & aRotFix) const
+
+cPt3dr cPoseWithUK::ValAxiatorFixRot(const tRotR & aRotFix) const
 {
+    return mRUK.ValAxiatorFixRot(aRotFix);
+    /*
      cDenseMatrix<tREAL8>  aM = mPose.Rot().Mat().Transpose() * aRotFix.Mat();
      tREAL8 aZ = ( aM(1,0) - aM(0,1)) / 2.0;
      tREAL8 aY = (-aM(2,0) + aM(0,2)) / 2.0;
      tREAL8 aX = ( aM(2,1) - aM(1,2)) / 2.0;
 
      return cPt3dr(aX,aY,aZ);
+     */
 }
+#if (0)
+
+#endif
 
 void cPoseWithUK::OnUpdate()
 {
-	//  used above formula to modify  rotation
-     mPose.SetRotation(mPose.Rot() * cRotation3D<tREAL8>::RotFromAxiator(-mOmega));
-        // now this have modify rotation, the "delta" is void :
-     mOmega = cPt3dr(0,0,0);
+    mRUK.OnUpdate();
 }
 
 void  cPoseWithUK::FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 {
-   aGAIP.TestParam(this, &( mPose.Tr().x()),"Cx");
-   aGAIP.TestParam(this, &( mPose.Tr().y()),"Cy");
-   aGAIP.TestParam(this, &( mPose.Tr().z()),"Cz");
+   aGAIP.TestParam(this, &( mTr.x()),"Cx");
+   aGAIP.TestParam(this, &( mTr.y()),"Cy");
+   aGAIP.TestParam(this, &( mTr.z()),"Cz");
 
-   aGAIP.TestParam(this, &( mOmega.x())    ,"Wx");
-   aGAIP.TestParam(this, &( mOmega.y())    ,"Wy");
-   aGAIP.TestParam(this, &( mOmega.z())    ,"Wz");
-
+   mRUK.FillGetAdrInfoParam(aGAIP);
    SetNameTypeId(aGAIP);
 }
 
 void cPoseWithUK::PutUknowsInSpecifiedSetInterval(cSetInterUK_MultipeObj<tREAL8> * aSetInterv)
 {
-//StdOut() << " *PUK0 :PutUknowsInSetIntervalPutUknowsInSetInterval " << mIndUk0 << " " << mIndUk1 << "\n";
-    aSetInterv->AddOneInterv(mPose.Tr());
-    aSetInterv->AddOneInterv(mOmega);
-//StdOut() << " *PUK1   PutUknowsInSetIntervalPutUknowsInSetInterval " << mIndUk0 << " " << mIndUk1 << "\n";
+    aSetInterv->AddOneInterv(mTr);
+    mRUK.PutUknowsInSpecifiedSetInterval(aSetInterv);
 }
 
 void cPoseWithUK::PutUknowsInSetInterval()
@@ -189,11 +292,18 @@ void cPoseWithUK::PutUknowsInSetInterval()
 
 void AddData(const  cAuxAr2007 & anAux,cPoseWithUK & aPUK)
 {
-    MMVII::AddData(anAux,aPUK.Pose());
+   // StdOut() << "vv765vvVVvv void AddData(const  cAuxAr2007 & anAux,cPoseWithUK & aPUK)\n";
+
+    tPoseR aPose = aPUK.Pose();
+    MMVII::AddData(anAux,aPose);
+    if (anAux.Input())
+        aPUK.SetPose(aPose);
+
+   // MMVII::AddData(anAux,aPUK.Pose());
 
     if (anAux.Input())
     {
-	 aPUK.Omega() = cPt3dr(0,0,0);
+       aPUK.SetOmega(cPt3dr(0,0,0));
     }
     else
     {
@@ -203,10 +313,13 @@ void AddData(const  cAuxAr2007 & anAux,cPoseWithUK & aPUK)
 
 void cPoseWithUK::PushObs(std::vector<double> & aVObs,bool TransposeMatr)
 {
+      mRUK.PushObs(aVObs,TransposeMatr);
+      /*
      if (TransposeMatr) 
         mPose.Rot().Mat().PushByCol(aVObs);
      else
         mPose.Rot().Mat().PushByLine(aVObs);
+        */
 }
 
 /* ******************************************************* */
@@ -433,17 +546,17 @@ const cPixelDomain & cSensorCamPC::PixelDomain() const
 cPerspCamIntrCalib * cSensorCamPC::InternalCalib() const {return mInternalCalib;}
 
 const cPt3dr & cSensorCamPC::Center()  const {return mPose_WU.Tr();}
-const tRotR &   cSensorCamPC::Orient() const {return mPose_WU.Pose().Rot();}
+const tRotR &   cSensorCamPC::Orient() const {return mPose_WU.Rot();}
 
 const cPt3dr & cSensorCamPC::Omega()  const {return mPose_WU.Omega();}
-cPt3dr & cSensorCamPC::Center() {return mPose_WU.Tr();}
-cPt3dr & cSensorCamPC::Omega()  {return mPose_WU.Omega();}
+cPt3dr & cSensorCamPC::Center() {return mPose_WU.GetRefTr();}
+cPt3dr & cSensorCamPC::Omega()  {return mPose_WU.GetRefOmega();}
 cPt3dr  cSensorCamPC::PseudoCenterOfProj() const {return Center();}
 
 cPt3dr cSensorCamPC::AxeI()   const {return mPose_WU.AxeI();}
 cPt3dr cSensorCamPC::AxeJ()   const {return mPose_WU.AxeJ();}
 cPt3dr cSensorCamPC::AxeK()   const {return mPose_WU.AxeK();}
-const cIsometry3D<tREAL8> & cSensorCamPC::Pose() const {return mPose_WU.Pose();}
+tPoseR cSensorCamPC::Pose() const {return mPose_WU.Pose();}
 
 cPoseWithUK & cSensorCamPC::Pose_WU() {return mPose_WU;}
 

@@ -97,6 +97,9 @@ std::vector<std::string>  NamesP3(const std::string& aPref) ;  /// x y z
 std::vector<std::string>  NamesP2(const std::string& aPref) ;  /// x y z
 std::vector<std::string>  NamesMatr(const std::string& aPref,const cPt2di & aSz);  /// m00  m10  m20  m01 ...
 
+//  aPref+aK0  .... aPref+aK0-1
+std::vector<std::string>  VectNames(const std::string& aPref,int aK0,int aK1) ;  /// x y z
+
 ///  Vector of name for a pose NameC->  center of proj,   NameOmega-> vector rotation
 std::vector<std::string>  NamesPose(const std::string& NameC ,const std::string&  NameOmega);
 

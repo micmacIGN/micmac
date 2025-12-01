@@ -110,7 +110,7 @@ class cFormulaBlocRigid
 
                    // compute difference of centers and matrices
                     cPtxd<tUk,3>  aDeltaC = aRelAB.mCenter-aRel12.mCenter;
-                    cMatF<tUk>    aDeltaR = aRelAB.mIJK-aRel12.mIJK;
+                    cMatF<tUk>    aDeltaR = aRelAB.IJK()-aRel12.IJK();
 
                    //  return the differences as a size-12 vector
                    return Append
@@ -163,7 +163,7 @@ class cFormulaRattBRExist
                    cPoseF<tUk>  aPose1(aVObs,9,aVObs,12,false);
 
                     cPtxd<tUk,3>  aDeltaC = aPoseA.mCenter - aPose1.mCenter;
-                    cMatF<tUk>    aDeltaR = aPoseA.mIJK- aPose1.mIJK;
+                    cMatF<tUk>    aDeltaR = aPoseA.IJK()- aPose1.IJK();
 
            // ...
            // extract PoseA,PoseB,pose1, pose2
@@ -180,6 +180,71 @@ class cFormulaRattBRExist
        }
 };
 
+
+
+class cFormulaClino
+{
+      public :
+
+           std::string FormulaName() const { return "Clino_" + ToStr(mD0Corr) + "_"+ToStr(mD1Corr);}
+
+
+           std::vector<std::string>  VNamesUnknowns()  const
+           {
+                std::vector<std::string> aVCor;
+                for (int aD=mD0Corr; aD<=mD1Corr ; aD++)
+                    if (aD!=1)
+                        aVCor.push_back("DCorrAng_"+ToStr(aD));
+
+                return  Append
+                        (
+                            NamesPose("Du","Dv") ,
+                            aVCor
+                        );
+                ;
+           }
+
+           std::vector<std::string>    VNamesObs() const
+           {
+                return  Append
+                        (
+                               NamesMatr("mA",cPt2di(3,3)),
+                               Append(  NamesP3("C1"),  NamesMatr("m1",cPt2di(3,3)))
+                        );
+           };
+           /*
+       template <typename tUk>
+                       std::vector<tUk> formula
+                       (
+                          const std::vector<tUk> & aVUk,
+                          const std::vector<tUk> & aVObs
+                       ) const
+           {
+                   cPoseF<tUk>  aPoseA(aVUk,0,aVObs,0,true);
+                   cPoseF<tUk>  aPose1(aVObs,9,aVObs,12,false);
+
+                    cPtxd<tUk,3>  aDeltaC = aPoseA.mCenter - aPose1.mCenter;
+                    cMatF<tUk>    aDeltaR = aPoseA.IJK()- aPose1.IJK();
+
+           // ...
+           // extract PoseA,PoseB,pose1, pose2
+
+           // compute pose rel B to A,   pose rel 2 to 1
+           // compute the difference
+
+
+           return Append(ToVect(aDeltaC),aDeltaR.ToVect());
+
+           //  cPoseF<tUk>  aPose1(aVUk,2*NbUk,aVObs,2*NbObs);
+                   //  cPoseF<tUk>  aRelAB = aPoseA.PoseRel(aPoseB);
+           // (ToVect(aDeltaC),aDeltaM.ToVect()
+       }
+       */
+
+        int  mD0Corr;
+        int  mD1Corr;
+
+};
 
 };
 
