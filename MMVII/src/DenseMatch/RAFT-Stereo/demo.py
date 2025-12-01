@@ -13,7 +13,7 @@ from PIL import Image
 from matplotlib import pyplot as plt
 import tifffile as tf
 
-DEVICE = 'cpu'
+DEVICE = 'cuda'
 
 def load_image_png(imfile):
     img = np.array(Image.open(imfile)).astype(np.uint8)
@@ -28,7 +28,7 @@ def load_image(imfile):
     return img[None].to(DEVICE)
 
 def demo(args):
-    model = torch.nn.DataParallel(RAFTStereo(args), device_ids=[0])
+    model = torch.nn.DataParallel(RAFTStereo(args), device_ids=[args.ongpu])
     model.load_state_dict(torch.load(args.restore_ckpt,map_location=torch.device('cpu')))
 
     model = model.module
@@ -86,6 +86,7 @@ if __name__ == '__main__':
     parser.add_argument('--context_norm', type=str, default="batch", choices=['group', 'batch', 'instance', 'none'], help="normalization of context encoder")
     parser.add_argument('--slow_fast_gru', action='store_true', help="iterate the low-res GRUs more frequently")
     parser.add_argument('--n_gru_layers', type=int, default=3, help="number of hidden GRU levels")
+    parser.add_argument('-gpu','--ongpu',type=int, default=0, help="what gpu to use for inference")
     
     args = parser.parse_args()
 

@@ -237,6 +237,7 @@ class cAppli : public cMMVII_Appli
         bool           mDoMatch;  ///< Do we do the match
         bool           mDoPurge;  ///< Do we purge the result
         bool           mDoCorrel; ///< Do correl in standard Micmac convention
+        int            mSpecGpu;  ///< Which id of gpu to use 0,1,2,3....
 
             // Computed values & auxilary methods on scales, level ...
         eModeEpipMatch  mModeMatchCur;   ///< Current Method for Matching (mModeMatchFinal or mModeMatchInit)
@@ -739,7 +740,8 @@ cAppli::cAppli
    mDoClip     (true),
    mDoMatch    (true),
    mDoPurge    (true),
-   mDoCorrel   (true)
+   mDoCorrel   (true),
+    mSpecGpu    (0)
 {
 }
 
@@ -778,6 +780,7 @@ cCollecSpecArg2007 & cAppli::ArgOpt(cCollecSpecArg2007 & anArgOpt)
          << AOpt2007(mDoMatch,"DoMatch","Do the matching",{eTA2007::HDV,eTA2007::Tuning})
          << AOpt2007(mDoPurge,"DoPurge","Do we purge the result ?",{eTA2007::HDV,eTA2007::Tuning})
          << AOpt2007(mDoCorrel,"DoCorrel","Do the computation of correlation map",{eTA2007::HDV,eTA2007::Tuning})
+         << AOpt2007(mSpecGpu, "OnGPU", "give integer gpu id ", {eTA2007::HDV,eTA2007::Tuning})
          
    ;
 }
@@ -878,7 +881,8 @@ cParamCallSys cAppli::ComMatch(cParam1Match & aParam)
                    aDenseMDir + "run_raftstereo.sh",
                    "-l", DirTmpOfCmd()+aParam.mClipNameIm1,
                    "-r", DirTmpOfCmd()+aParam.mClipNameIm2,
-                   "-o", DirTmpOfCmd() +aParam.mClipNamePx
+                   "-o", DirTmpOfCmd() +aParam.mClipNamePx,
+                   "-gpu", ToString(mSpecGpu)
             );
         break;
      }
