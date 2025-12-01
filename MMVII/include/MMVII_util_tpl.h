@@ -6,6 +6,8 @@
 #include "MMVII_enums.h"
 #include "MMVII_Error.h"
 #include "MMVII_nums.h"
+#include "MMVII_Stringifier.h"
+
 
 namespace MMVII
 {
@@ -268,7 +270,7 @@ template<class TCont,class TKey> const typename  TCont::mapped_type *  MapGet(co
     auto anIter = aCont.find(aKey);
     if (anIter==aCont.end())
     {
-        MMVII_INTERNAL_ASSERT_tiny(SVP,"MapGet");
+        MMVII_INTERNAL_ASSERT_tiny(SVP,"MapGet for Key="+ cStrIO<TKey>::ToStr(aKey));
         return nullptr;
     }
     return & anIter->second;
@@ -590,6 +592,22 @@ class cComputeAssociation
           std::list<cOneTryCAI> mVTries;
 };
 void AddData(const cAuxAr2007 & anAux,cComputeAssociation & aTransl);
+
+
+
+template <class TypeCont> typename TypeCont::value_type SumElem(const TypeCont &aCont)
+{
+    typename TypeCont::value_type  aResult = cNV<typename TypeCont::value_type>::V0();
+    for (const auto aVal : aCont)
+        aResult += aVal;
+    return aResult;
+}
+
+template <class TypeCont> typename TypeCont::value_type AvgElem(const TypeCont &aCont)
+{
+    MMVII_INTERNAL_ASSERT_tiny(!aCont.empty(),"AvgElem on empty vect");
+    return SumElem(aCont) / double (aCont.size());
+}
 
 };
 

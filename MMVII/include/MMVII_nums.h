@@ -16,7 +16,11 @@ template <class Type> Type Average(const Type * aTab,size_t aNb);
 template <class Type> Type Average(const std::vector<Type> &);
 
 
-tREAL8 AngleInRad(eTyUnitAngle);
+tREAL8 AngleFromRad(eTyUnitAngle);
+tREAL8 AngleFromRad(tREAL8 aAngInRad,eTyUnitAngle);
+tREAL8 Rad2DMgon(tREAL8 aAngInRad);
+
+
 bool AssertRadAngleInOneRound(tREAL8 aAngleRad, bool makeError=true);
 
 // some time needs a null val for any type with + (neutral for +)

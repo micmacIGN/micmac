@@ -13,6 +13,70 @@
 namespace MMVII
 {
 
+/* ******************************************************* */
+/*                                                         */
+/*                   cP3dNormWithUK                        */
+/*                                                         */
+/* ******************************************************* */
+
+cP3dNormWithUK::cP3dNormWithUK(const cPt3dr & aPt, const std::string& aNameType,const std::string & aNameGrp) :
+    mPNorm (aPt)
+{
+    Init();
+    SetNameType(aNameType);
+    SetNameIdObj(aNameGrp);
+}
+
+cP3dNormWithUK::~cP3dNormWithUK()
+{
+    OUK_Reset();  // copy what we have on  cPoseWithUK
+}
+
+
+void cP3dNormWithUK::Init()
+{
+    mPNorm = VUnit(mPNorm);
+    tRotR aRot = tRotR::CompleteRON(mPNorm);
+    mU = aRot.AxeJ();
+    mV = aRot.AxeK();
+
+    mDuDv = cPt2dr(0,0);
+}
+
+void cP3dNormWithUK::OnUpdate()
+{
+    mPNorm = GetPNorm();
+    Init();
+}
+
+void cP3dNormWithUK::PutUknowsInSetInterval()
+{
+   mSetInterv->AddOneInterv(mDuDv);
+}
+
+void  cP3dNormWithUK::FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
+{
+   aGAIP.TestParam(this, &( mDuDv.x()),"Dx");
+   aGAIP.TestParam(this, &( mDuDv.y()),"Dy");
+}
+
+cPt3dr cP3dNormWithUK::GetPNorm() const
+{
+    return  VUnit(mPNorm + mU*mDuDv.x() + mV*mDuDv.y());
+}
+
+void cP3dNormWithUK::SetPNorm(const cPt3dr & aTr)
+{
+    mPNorm = aTr;
+    Init();
+}
+
+/* ******************************************************* */
+/*                                                         */
+/*                   cPoseWithUK                           */
+/*                                                         */
+/* ******************************************************* */
+
 cPoseWithUK::cPoseWithUK(const tPoseR & aPose)  :
       mPose (aPose),
       mOmega (0.0,0.0,0.0)
@@ -110,7 +174,7 @@ void  cPoseWithUK::FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
    SetNameTypeId(aGAIP);
 }
 
-void cPoseWithUK::PutUknowsInSetInterval(cSetInterUK_MultipeObj<tREAL8> * aSetInterv) 
+void cPoseWithUK::PutUknowsInSpecifiedSetInterval(cSetInterUK_MultipeObj<tREAL8> * aSetInterv)
 {
 //StdOut() << " *PUK0 :PutUknowsInSetIntervalPutUknowsInSetInterval " << mIndUk0 << " " << mIndUk1 << "\n";
     aSetInterv->AddOneInterv(mPose.Tr());
@@ -120,7 +184,7 @@ void cPoseWithUK::PutUknowsInSetInterval(cSetInterUK_MultipeObj<tREAL8> * aSetIn
 
 void cPoseWithUK::PutUknowsInSetInterval()
 {
-    PutUknowsInSetInterval(mSetInterv);
+    PutUknowsInSpecifiedSetInterval(mSetInterv);
 }
 
 void AddData(const  cAuxAr2007 & anAux,cPoseWithUK & aPUK)
@@ -144,8 +208,6 @@ void cPoseWithUK::PushObs(std::vector<double> & aVObs,bool TransposeMatr)
      else
         mPose.Rot().Mat().PushByLine(aVObs);
 }
-
-
 
 /* ******************************************************* */
 /*                                                         */
@@ -190,7 +252,7 @@ std::vector<cObjWithUnkowns<tREAL8> *>  cSensorCamPC::GetAllUK()
 }
 void cSensorCamPC::PutUknowsInSetInterval()
 {
-    mPose_WU.PutUknowsInSetInterval(mSetInterv);
+    mPose_WU.PutUknowsInSpecifiedSetInterval(mSetInterv);
 }
 #else
 std::vector<cObjWithUnkowns<tREAL8> *>  cSensorCamPC::GetAllUK() 

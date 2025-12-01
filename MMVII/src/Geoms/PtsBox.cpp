@@ -99,6 +99,24 @@ template class cComputeCentroids<std::vector<cPtxd<tREAL8,3> >>;
 template class cComputeCentroids<std::vector<cPtxd<tREAL16,3> >>;
 
 
+ template <class TypePt> std::pair<TypePt,TypePt> OrthogonalizePair(const TypePt & aP1,const TypePt & aP2)
+{
+       TypePt aN1 = VUnit(aP1);
+       TypePt aN2 = VUnit(aP2);
+
+       TypePt  a1P2 = VUnit(aN1+aN2);
+       TypePt  a1M2 = VUnit(aN1-aN2);
+
+       return  std::pair<TypePt,TypePt>
+               (
+                   VUnit(a1P2+a1M2),
+                   VUnit(a1P2-a1M2)
+               );
+}
+#define MACRO_ORTHOG_PAIR(TYPE_PT)\
+template std::pair<TYPE_PT,TYPE_PT>  OrthogonalizePair(const TYPE_PT & aP1,const TYPE_PT & aP2);
+
+ MACRO_ORTHOG_PAIR(cPt3dr)
 
 /* ========================== */
 /*        cSegment            */

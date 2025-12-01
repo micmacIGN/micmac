@@ -133,6 +133,8 @@ template <>  const std::string cStrIO<eTopoObsType>::msNameType;
 template <>  const std::string cStrIO<eTopoObsSetType>::msNameType;
 template <>  const std::string cStrIO<eTopoStOriStat>::msNameType;
 template <>  const std::string cStrIO<eTyClino>::msNameType;
+template <>  const std::string cStrIO<eTyInstr>::msNameType;
+
 #endif
 
 /** These functions offer an"easy" interface to cStrIO, however I think

@@ -365,18 +365,19 @@ template <class Type> void AddData(const cAuxAr2007 & anAux, cDenseVect<Type>& a
 }
 
 /// if we want a human readable vector for small vect ..
-template <class Type> void AddDataAsStdVect(const cAuxAr2007 & anAux,cDenseVect<Type>& aDenseV)
+template <class Type> void AddDataAsStdVect(const cAuxAr2007 & anAux0,cDenseVect<Type>& aDenseV)
 {
+     cAuxAr2007 anAuxVect("StdVect",anAux0);
      std::vector<Type> aStdV;
-     if (anAux.Input())
+     if (anAux0.Input())
      {
-        MMVII::AddData(anAux,aStdV);
+        MMVII::AddData(anAuxVect,aStdV);
         aDenseV = cDenseVect<Type>(aStdV);
      }
      else
      {
         aStdV = aDenseV.ToStdVect();
-        MMVII::AddData(anAux,aStdV);
+        MMVII::AddData(anAuxVect,aStdV);
      }
 }
 

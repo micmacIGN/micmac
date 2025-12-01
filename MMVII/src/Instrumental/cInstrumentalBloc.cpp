@@ -45,9 +45,14 @@ void cIrb_SigmaInstr::AddData(const  cAuxAr2007 & anAux)
 
     MMVII::AddData(cAuxAr2007("Rot",anAux) ,mAvgSigRot);
     if (mAvgSigRot.SW() >0 )
-       anAux.Ar().AddComment("SigRot="+ToStr(mAvgSigRot.Average()));
-
-  //  StdOut() << "cIrb_SigmaInstr::AddData::Done \n";
+    {
+       anAux.Ar().AddComment
+       (
+             "SigRot="
+           + ToStr(mAvgSigRot.Average()) + " rad, "
+           + ToStr(Rad2DMgon(mAvgSigRot.Average())) + " dmgon "
+       );
+    }
 }
 
 
@@ -142,6 +147,7 @@ cIrbComp_TimeS::cIrbComp_TimeS (const cIrbComp_Block & aCompBlock) :
 
 const cIrbComp_CamSet & cIrbComp_TimeS::SetCams() const {return mSetCams;}
 cIrbComp_CamSet & cIrbComp_TimeS::SetCams() {return mSetCams;}
+const cIrbComp_ClinoSet & cIrbComp_TimeS::SetClino() const {return mSetClino;}
 
 const cIrbComp_Block & cIrbComp_TimeS::CompBlock() const {return mCompBlock;}
 
@@ -154,8 +160,9 @@ void cIrbComp_TimeS::SetClinoValues(const cOneMesureClino& aMeasure)
 
 // cIrbComp_Block & cIrbComp_TimeS::CompBlock()  {return mCompBlock;}
 
-void cIrbComp_TimeS::ComputePoseInstrument(bool SVP)
+void cIrbComp_TimeS::ComputePoseInstrument(const std::vector<int>& aSetNumCam,bool SVP)
 {
+    mPoseInstrIsInit = false;
    // static tTypeMap  Centroid(const std::vector<tTypeMap> & aV,const std::vector<Type> &);
     std::vector<tPoseR> aVPose;
     std::vector<tREAL8> aVWeight;
@@ -163,7 +170,9 @@ void cIrbComp_TimeS::ComputePoseInstrument(bool SVP)
     // tREAL8 aSumW = 0;
     const cIrbCal_CamSet & aSetCalCams = mCompBlock.SetOfCalibCams() ;
 
-    for (size_t aKP=0 ; aKP< aSetCalCams.NbCams() ; aKP++)
+
+   // for (size_t aKP=0 ; aKP< aSetCalCams.NbCams() ; aKP++)
+    for (auto aKP : aSetNumCam)
     {
          const cIrbCal_Cam1 & aCalCams = aSetCalCams.KthCam(aKP);
          const cIrbComp_Cam1 & aCompCam = mSetCams.KthCam(aKP) ;
@@ -193,6 +202,22 @@ void cIrbComp_TimeS::ComputePoseInstrument(bool SVP)
     {
         MMVII_INTERNAL_ASSERT_tiny(SVP,"Cannot do ComputePoseInstrument");
     }
+}
+
+tREAL8 cIrbComp_TimeS::ScoreDirClino(const cPt3dr& aDirClino,size_t aKClino) const
+{
+    cPt3dr aDirLoc = mPoseInstr.Rot().Inverse(aDirClino);
+    // cPt3dr aDirLoc = mPoseInstr.Rot().Value(aDirClino);
+/*
+    StdOut () << " aKClino " << aKClino << " " << mSetClino.NbMeasure() << "\n";
+    std::abs(aDirLoc.z() - std::sin(mSetClino.KthMeasure(aKClino).Angle()) );
+    StdOut() << " ScoreDirClino " << __LINE__ << "\n";
+*/
+
+    return std::abs(aDirLoc.z() - std::sin(mSetClino.KthMeasure(aKClino).Angle()) );
+
+    // return std::abs(aDirLoc.z() - mSetClino.KthMeasure(aKClino).Angle() );
+
 }
 
 
@@ -289,14 +314,6 @@ void cIrbComp_Block::AddImagePose(const std::string & aNameIm,bool  okImNotInBlo
 
 void cIrbComp_Block::SetClinoValues(const cSetMeasureClino& aSetM,bool OkNewTimeS)
 {
-/*
-    StdOut() << "XXX-cIrbComp_Block::SetClinoValue\n";
-    for (const auto& [anId,aData] : mDataTS)
-    {
-       StdOut() << "IIIIiiidddd " << anId << "\n";
-    }
-*/
-
     MMVII_INTERNAL_ASSERT_tiny(aSetM.NamesClino() == mCalBlock->SetClinos().VNames(),"Names differs in SetClinoValues");
    for (const auto & aMeasure : aSetM.SetMeasures())
    {
@@ -319,8 +336,12 @@ void cIrbComp_Block::SetClinoValues(bool OkNewTimeS)
     //  -------------------------- "computation"  --------------------------------------------
 void cIrbComp_Block::ComputePoseInstrument(bool SVP)
 {
+    std::vector<int> aSetNumCam = SetOfCalibCams().NumPoseInstr();
+
+StdOut() << "ComputePoseInstrumentComputePoseInstrument= " << aSetNumCam << "\n";
+
     for (auto & [aTimes,aDataTS] : mDataTS)
-        aDataTS.ComputePoseInstrument(SVP);
+        aDataTS.ComputePoseInstrument(aSetNumCam,SVP);
 }
 
 typename cIrbComp_Block::tResCompCal cIrbComp_Block::ComputeCalibCamsInit(int aKC1,int aKC2) const
@@ -422,6 +443,21 @@ const typename cIrbComp_Block::tContTimeS & cIrbComp_Block::DataTS() const {retu
  typename cIrbComp_Block::tContTimeS & cIrbComp_Block::DataTS()  {return mDataTS;}
 
 
+tREAL8 cIrbComp_Block::ScoreDirClino(const cPt3dr& aDir,size_t aKClino) const
+{
+    cWeightAv<tREAL8,tREAL8>  aWAvg;
+
+     for (const auto & [aTimeS,aDataTS]: mDataTS)
+     {
+         // StdOut() << " DDDTssSS " << aTimeS << "\n";
+         if (aKClino < aDataTS.SetClino().NbMeasure())
+            aWAvg.Add(1.0,aDataTS.ScoreDirClino(aDir,aKClino));
+     }
+
+     return aWAvg.Average();
+}
+
+
 /* *************************************************************** */
 /*                                                                 */
 /*                        cIrb_CstrRelRot                          */
@@ -452,8 +488,34 @@ void AddData(const  cAuxAr2007 & anAux,cIrb_CstrRelRot & aICRR)
     aICRR.AddData(anAux);
 }
 
+/* *************************************************************** */
+/*                                                                 */
+/*                        cIrb_CstrOrthog                          */
+/*                                                                 */
+/* *************************************************************** */
 
 
+cIrb_CstrOrthog::cIrb_CstrOrthog(const tREAL8 & aSigma) :
+    mSigma (aSigma)
+{
+}
+
+cIrb_CstrOrthog::cIrb_CstrOrthog() :
+    cIrb_CstrOrthog(-1.0)
+{
+
+}
+
+void cIrb_CstrOrthog::AddData(const  cAuxAr2007 & anAux)
+{
+    MMVII::AddData(cAuxAr2007("Sigma",anAux),mSigma);
+
+}
+
+void AddData(const  cAuxAr2007 & anAux,cIrb_CstrOrthog & aICO)
+{
+    aICO.AddData(anAux);
+}
 
 /* *************************************************************** */
 /*                                                                 */
@@ -480,6 +542,7 @@ void  cIrbCal_Block::AddData(const  cAuxAr2007 & anAux)
     MMVII::StdMapAddData(cAuxAr2007("SigmasPairs",anAux),mSigmaPair);
     MMVII::StdMapAddData(cAuxAr2007("DescrIndiv",anAux),mDescrIndiv);
     MMVII::StdMapAddData(cAuxAr2007("CstrRelRot",anAux),mCstrRelRot);
+    MMVII::StdMapAddData(cAuxAr2007("CstrOrthog",anAux),mCstrOrthog);
 }
 
 void AddData(const  cAuxAr2007 & anAux,cIrbCal_Block & aRBoI)
@@ -522,6 +585,18 @@ void  cIrbCal_Block::AddCstrRelRot(std::string aN1,std::string aN2,tREAL8 aSigma
    mCstrRelRot[tNamePair(aN1,aN2)] = cIrb_CstrRelRot(anOri,aSigma);
 }
 
+void  cIrbCal_Block::AddCstrRelOrthog(std::string aN1,std::string aN2,tREAL8 aSigma)
+{
+   if (aN1>aN2)
+   {
+       std::swap(aN1,aN2);
+   }
+
+   DescrIndiv(aN1);
+   DescrIndiv(aN2);
+
+   mCstrOrthog[tNamePair(aN1,aN2)] = cIrb_CstrOrthog(aSigma);
+}
 
 void cIrbCal_Block::AddSigma(std::string aN1,eTyInstr aType1,std::string aN2,eTyInstr aType2,const cIrb_SigmaInstr & aSig)
 {
@@ -541,7 +616,7 @@ cIrbCal_ClinoSet &      cIrbCal_Block::SetClinos() {return mSetClinos;}
 
 const  std::map<tNamePair,cIrb_SigmaInstr> &  cIrbCal_Block::SigmaPair() const {return mSigmaPair; }
 const std::map<std::string,cIrb_Desc1Intsr> & cIrbCal_Block::DescrIndiv() const {return mDescrIndiv;}
-
+const std::map<tNamePair,cIrb_CstrOrthog> &  cIrbCal_Block::CstrOrthog() const {return mCstrOrthog;}
 
 void cIrbCal_Block::SetSigmaPair(const  std::map<tNamePair,cIrb_SigmaInstr> & aSigmaPair)
 {

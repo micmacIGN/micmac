@@ -876,8 +876,11 @@ class cOptimPosCdM : public cOptimSymetryOnImage<tREAL4>
            // cPt1dr Value(const cPt2dr & ) const override;
 	   typedef cSegment2DCompiled<tREAL8> tSeg;
 
+           bool IsOk() const {return mIsOk;}
+
 	private :
-	    void AddPts1Seg(const cPt2dr & aMaster,  const cPt2dr & aSecond,bool toAvoid2);
+	    bool  mIsOk;
+	    bool AddPts1Seg(const cPt2dr & aMaster,  const cPt2dr & aSecond,bool toAvoid2);
             const cCdMerged&        mCdM;
 };
 
@@ -888,11 +891,12 @@ cOptimPosCdM::cOptimPosCdM(const cCdMerged & aCdM,const cDiffInterpolator1D & aI
 	mCdM      (aCdM)
 	// mCurInt   (aInt)
 {
-	AddPts1Seg(aCdM.CornerlEl_WB(), aCdM.CornerlEl_BW(),true);
-	AddPts1Seg(aCdM.CornerlEl_BW(), aCdM.CornerlEl_WB(),false);
+	mIsOk =       AddPts1Seg(aCdM.CornerlEl_WB(), aCdM.CornerlEl_BW(),true)
+	          &&  AddPts1Seg(aCdM.CornerlEl_BW(), aCdM.CornerlEl_WB(),false)
+	       ;
 }
 
-void cOptimPosCdM::AddPts1Seg(const cPt2dr & aSCorn1, const cPt2dr & aSCorn2,bool toAvoid2)
+bool cOptimPosCdM::AddPts1Seg(const cPt2dr & aSCorn1, const cPt2dr & aSCorn2,bool toAvoid2)
 {
      cPt2dr  aCorn1 = aSCorn1  * mCdM.mScale;
      cPt2dr  aCorn2 = aSCorn2  * mCdM.mScale;
@@ -903,13 +907,17 @@ void cOptimPosCdM::AddPts1Seg(const cPt2dr & aSCorn1, const cPt2dr & aSCorn2,boo
      // cPt2dr  aCorn2 = aSCorn2  * mScale;
 
      int aNbX = round_up(aL1/aStep);
-     tREAL8 aStepX = aL1 / aNbX;
-
      int aNbY = round_up(aWidth/aStep);
+     if ((aNbX==0) || (aNbY==0)) 
+        return false;
+
+     tREAL8 aStepX = aL1 / aNbX;
      tREAL8 aStepY = aWidth / aNbY;
 
      tSeg aSeg1(mCdM.mC0,aCorn1);
      tSeg aSeg2(mCdM.mC0,aCorn2);
+
+// StdOut() << " A11S " <<  aNbX << " " << aNbX << "\n";
 
      for (int aKX=-aNbX ; aKX<=aNbX ; aKX++)
      {
@@ -927,6 +935,8 @@ void cOptimPosCdM::AddPts1Seg(const cPt2dr & aSCorn1, const cPt2dr & aSCorn2,boo
              }
 	 }
      }
+
+     return true;
 }
 
 /* ********************************************* */
@@ -946,6 +956,8 @@ cCdMerged::cCdMerged(const cDataIm2D<tREAL4> * aDIm0,const cCdEllipse & aCDE,tRE
 void cCdMerged::GradOptimizePosition(const cDiffInterpolator1D & anInt,tREAL8 aStepEnd)
 {
     cOptimPosCdM aCdGrad(*this,anInt);
+    if (! aCdGrad.IsOk())
+       return;
          // StdOut() << "-----------  TEST GRAD ----------------  V0=" << aCdGrad.Value(cPt2dr(0,0)) << " \n";
 
     aCdGrad.IterLeastSqGrad(aStepEnd,5);
@@ -955,6 +967,9 @@ void cCdMerged::GradOptimizePosition(const cDiffInterpolator1D & anInt,tREAL8 aS
 void  cCdMerged::HeuristikOptimizePosition(const cDiffInterpolator1D & anInt,tREAL8 aStepEnd)
 {
       cOptimPosCdM aCdtOpt(*this,anInt);
+      if (! aCdtOpt.IsOk())
+         return;
+
       cOptimByStep anOpt(aCdtOpt,true,1.0);
 
 
