@@ -208,9 +208,15 @@ class cFormulaClino
            {
                 return  Append
                         (
-                               NamesMatr("mA",cPt2di(3,3)),
-                               Append(  NamesP3("C1"),  NamesMatr("m1",cPt2di(3,3)))
-                        );
+                            Append
+                            (
+                               NamesP3("PNom"),
+                               NamesP3("DirU"),
+                               NamesP3("DirV")
+                            ),
+                            NamesMatr("m1",cPt2di(3,3)),
+                            {"VTeta"}
+                      );
            };
            /*
        template <typename tUk>
