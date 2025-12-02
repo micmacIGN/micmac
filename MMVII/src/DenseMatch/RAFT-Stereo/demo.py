@@ -28,7 +28,7 @@ def load_image(imfile, which_device):
     return img[None].to(which_device)
 
 def demo(args):
-    DEVICE = torch.cuda.device(args.ongpu)
+    DEVICE = torch.device('cuda:{}'.format(args.ongpu))
     model = torch.nn.DataParallel(RAFTStereo(args), device_ids=[args.ongpu])
     model.load_state_dict(torch.load(args.restore_ckpt,map_location=torch.device('cpu')))
 
