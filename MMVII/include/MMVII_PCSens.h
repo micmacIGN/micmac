@@ -189,7 +189,7 @@ void AddData(const cAuxAr2007 & anAux,cDataPerspCamIntrCalib & aPCIC);
  */
 
 class cPerspCamIntrCalib : public cObj2DelAtEnd,
-                       public cDataMapping<tREAL8,3,2>,
+                           public cDataMapping<tREAL8,3,2>,
                            public cObjWithUnkowns<tREAL8>,
                public cDataPerspCamIntrCalib
 {
