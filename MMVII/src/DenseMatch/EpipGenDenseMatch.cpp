@@ -741,7 +741,7 @@ cAppli::cAppli
    mDoMatch    (true),
    mDoPurge    (true),
    mDoCorrel   (true),
-    mSpecGpu    (0)
+    mSpecGpu    (-1)
 {
 }
 
@@ -876,15 +876,30 @@ cParamCallSys cAppli::ComMatch(cParam1Match & aParam)
      case eModeEpipMatch::eMEM_RAFTStereo :
      {
         std::string aDenseMDir = TopDirMMVII() + "src/DenseMatch/";
-        return cParamCallSys(
-                   "bash",
-                   aDenseMDir + "run_raftstereo.sh",
-                   "-l", DirTmpOfCmd()+aParam.mClipNameIm1,
-                   "-r", DirTmpOfCmd()+aParam.mClipNameIm2,
-                   "-o", DirTmpOfCmd() +aParam.mClipNamePx,
-                   "-gpu", ToString(mSpecGpu)
-            );
-        break;
+
+         if (mSpecGpu>=0)
+        {
+             return cParamCallSys(
+                       "bash",
+                       aDenseMDir + "run_raftstereo.sh",
+                       "-l", DirTmpOfCmd()+aParam.mClipNameIm1,
+                       "-r", DirTmpOfCmd()+aParam.mClipNameIm2,
+                       "-o", DirTmpOfCmd() +aParam.mClipNamePx,
+                       "-gpu", ToString(mSpecGpu)
+                );
+            break;
+        }
+         else // run on cpu
+        {
+             return cParamCallSys(
+                 "bash",
+                 aDenseMDir + "run_raftstereo_cpu.sh",
+                 "-l", DirTmpOfCmd()+aParam.mClipNameIm1,
+                 "-r", DirTmpOfCmd()+aParam.mClipNameIm2,
+                 "-o", DirTmpOfCmd() +aParam.mClipNamePx
+                 );
+             break;
+        }
      }
      case eModeEpipMatch::eMEM_NoMatch :
      {
