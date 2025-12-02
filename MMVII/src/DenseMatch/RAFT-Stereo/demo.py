@@ -13,21 +13,22 @@ from PIL import Image
 from matplotlib import pyplot as plt
 import tifffile as tf
 
-DEVICE = 'cuda'
 
-def load_image_png(imfile):
+
+def load_image_png(imfile,which_device):
     img = np.array(Image.open(imfile)).astype(np.uint8)
     img = torch.from_numpy(img).permute(2, 0, 1).float()
-    return img[None].to(DEVICE)
+    return img[None].to(which_device)
 
-def load_image(imfile):
+def load_image(imfile, which_device):
     img = tf.imread(imfile).astype(np.uint8)
     if img.ndim==2:
         img = np.repeat(img[:, :, np.newaxis], 3, axis=2)
     img = torch.from_numpy(img).permute(2, 0, 1)
-    return img[None].to(DEVICE)
+    return img[None].to(which_device)
 
 def demo(args):
+    DEVICE = torch.cuda.device(args.ongpu)
     model = torch.nn.DataParallel(RAFTStereo(args), device_ids=[args.ongpu])
     model.load_state_dict(torch.load(args.restore_ckpt,map_location=torch.device('cpu')))
 
@@ -44,8 +45,8 @@ def demo(args):
         #print(f"Found {len(left_images)} images. Saving files to {output_directory}/")
 
         for (imfile1, imfile2) in tqdm(list(zip(left_images, right_images))):
-            image1 = load_image(imfile1)
-            image2 = load_image(imfile2)
+            image1 = load_image(imfile1,DEVICE)
+            image2 = load_image(imfile2,DEVICE)
 
             padder = InputPadder(image1.shape,mode="", divis_by=32)
             image1, image2 = padder.pad(image1, image2)
