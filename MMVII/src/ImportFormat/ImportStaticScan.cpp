@@ -165,10 +165,10 @@ void cAppli_ImportStaticScan::computeLineCol()
     // compute line and col for each point
     mSL_importer.mVectPtsLine.resize(mSL_importer.mVectPtsXYZ.size());
     mSL_importer.mVectPtsCol.resize(mSL_importer.mVectPtsXYZ.size());
-    mSL_data.mMaxCol = 0;
+    mSL_importer.mMaxCol = 0;
     tREAL8 previousPhi = NAN;
     //tREAL8 previousTheta = NAN;
-    mSL_data.mMaxLine = 0;
+    mSL_importer.mMaxLine = 0;
     int aCurrLine = -1;
     for (size_t i=0; i<mSL_importer.mVectPtsTPD.size(); ++i)
     {
@@ -183,38 +183,38 @@ void cAppli_ImportStaticScan::computeLineCol()
         if (mSL_importer.NoMiss())
             aCurrLine++;
         else
-            aCurrLine = (aPtAng.y()-mSL_data.mPhiStart)/fabs(mPhiStepApprox);
+            aCurrLine = (aPtAng.y()-mSL_importer.mPhiStart)/fabs(mPhiStepApprox);
 
         //StdOut() << aPtAng.y() << " " << previousPhi << " " << -(aPtAng.y()-previousPhi)/mPhiStepApprox
         //         << " " << aCurrLine << " " << mSL_data.mMaxLine << "\n";
         if (-(aPtAng.y()-previousPhi)/mPhiStepApprox > aColChangeDetectorInPhistep)
         {
-            mSL_data.mMaxCol++;
+            mSL_importer.mMaxCol++;
             aCurrLine=0;
         }
 
-        if (aCurrLine>mSL_data.mMaxLine)
-            mSL_data.mMaxLine = aCurrLine;
+        if (aCurrLine>mSL_importer.mMaxLine)
+            mSL_importer.mMaxLine = aCurrLine;
 
         mSL_importer.mVectPtsLine[i] = aCurrLine;
-        mSL_importer.mVectPtsCol[i] = mSL_data.mMaxCol;
+        mSL_importer.mVectPtsCol[i] = mSL_importer.mMaxCol;
         //previousTheta = aPtAng.x();
         previousPhi = aPtAng.y();
     }
-    StdOut() << "Max col found: "<<mSL_data.mMaxCol<<"\n";
-    StdOut() << "Max line found: "<<mSL_data.mMaxLine<<"\n";
+    StdOut() << "Max col found: "<<mSL_importer.mMaxCol<<"\n";
+    StdOut() << "Max line found: "<<mSL_importer.mMaxLine<<"\n";
 
-    StdOut() << "Image size: "<<cPt2di(mSL_data.mMaxCol+1, mSL_data.mMaxLine+1)<<"\n";
+    StdOut() << "Image size: "<<cPt2di(mSL_importer.mMaxCol+1, mSL_importer.mMaxLine+1)<<"\n";
 
-    MMVII_INTERNAL_ASSERT_tiny((mSL_data.mMaxCol>0) && (mSL_data.mMaxLine>0),
+    MMVII_INTERNAL_ASSERT_tiny((mSL_importer.mMaxCol>0) && (mSL_importer.mMaxLine>0),
                                "Image size found incorrect")
 
     if (mSL_importer.IsStructured())
     {
-        int aIndexMidFirstCol = mSL_data.mMaxLine/2;
-        int aIndexMidSecondCol = mSL_data.mMaxLine*3./2;
-        mSL_data.mThetaStart = mSL_importer.mVectPtsTPD.at(aIndexMidFirstCol).x();
-        mSL_data.mThetaStep = mSL_importer.mVectPtsTPD.at(aIndexMidSecondCol).x() - mSL_importer.mVectPtsTPD.at(aIndexMidFirstCol).x();
+        int aIndexMidFirstCol = mSL_importer.mMaxLine/2;
+        int aIndexMidSecondCol = mSL_importer.mMaxLine*3./2;
+        mSL_importer.mThetaStart = mSL_importer.mVectPtsTPD.at(aIndexMidFirstCol).x();
+        mSL_importer.mThetaStep = mSL_importer.mVectPtsTPD.at(aIndexMidSecondCol).x() - mSL_importer.mVectPtsTPD.at(aIndexMidFirstCol).x();
     }
 
     int mThetaDir = -1; // TODO: compute!
@@ -223,9 +223,9 @@ void cAppli_ImportStaticScan::computeLineCol()
     tREAL8 aAvgTheta = 0.;
     long aNbTheta = 0;
     tREAL8 aLoopCorrection = 0.;
-    std::vector<tREAL8> allThetaAvg(mSL_data.mMaxCol+1);
-    int aLineLimitDown = mSL_data.mMaxLine * 0.2;
-    int aLineLimitUp = mSL_data.mMaxLine * 0.8;
+    std::vector<tREAL8> allThetaAvg(mSL_importer.mMaxCol+1);
+    int aLineLimitDown = mSL_importer.mMaxLine * 0.2;
+    int aLineLimitUp = mSL_importer.mMaxLine * 0.8;
     for (size_t i=0; i<mSL_importer.mVectPtsTPD.size(); ++i)
     {
         auto & aPtAng = mSL_importer.mVectPtsTPD[i];
@@ -259,7 +259,7 @@ void cAppli_ImportStaticScan::computeLineCol()
     }
     allThetaAvg[aCurrCol] = aAvgTheta;
 
-    std::vector<tREAL8> allThetaDiff(mSL_data.mMaxCol);
+    std::vector<tREAL8> allThetaDiff(mSL_importer.mMaxCol);
     for (unsigned int i=0;i<allThetaDiff.size();++i)
         allThetaDiff[i] = allThetaAvg[i+1]-allThetaAvg[i];
     tREAL8 aThetaStep = NonConstMediane(allThetaDiff);
@@ -284,10 +284,10 @@ void cAppli_ImportStaticScan::computeAngStartStep()
                     if ((mSL_importer.mVectPtsCol[i] != mSL_importer.mVectPtsCol[a1stPti]) && (mSL_importer.mVectPtsLine[i] != mSL_importer.mVectPtsLine[a1stPti]))
                     {
                         auto & a1stPtAng = mSL_importer.mVectPtsTPD[a1stPti];
-                        mSL_data.mPhiStep = (aPtAng.y()-a1stPtAng.y())/(mSL_importer.mVectPtsLine[i]-mSL_importer.mVectPtsLine[a1stPti]);
-                        mSL_data.mThetaStep = (aPtAng.x()-a1stPtAng.x())/(mSL_importer.mVectPtsCol[i]-mSL_importer.mVectPtsCol[a1stPti]);
-                        mSL_data.mPhiStart = a1stPtAng.y() - mSL_data.mPhiStep * mSL_importer.mVectPtsLine[a1stPti];
-                        mSL_data.mThetaStart = a1stPtAng.x() - mSL_data.mThetaStep * mSL_importer.mVectPtsCol[a1stPti];
+                        mSL_importer.mPhiStep = (aPtAng.y()-a1stPtAng.y())/(mSL_importer.mVectPtsLine[i]-mSL_importer.mVectPtsLine[a1stPti]);
+                        mSL_importer.mThetaStep = (aPtAng.x()-a1stPtAng.x())/(mSL_importer.mVectPtsCol[i]-mSL_importer.mVectPtsCol[a1stPti]);
+                        mSL_importer.mPhiStart = a1stPtAng.y() - mSL_importer.mPhiStep * mSL_importer.mVectPtsLine[a1stPti];
+                        mSL_importer.mThetaStart = a1stPtAng.x() - mSL_importer.mThetaStep * mSL_importer.mVectPtsCol[a1stPti];
                         break;
                     }
                 }
@@ -302,12 +302,12 @@ void cAppli_ImportStaticScan::computeAngStartStep()
                 {
                     auto & a1stPtAng = mSL_importer.mVectPtsTPD[a1stPti];
                     auto a2ndPtAng = mSL_importer.mVectPtsTPD[i]; // copy to unroll
-                    tREAL8 aTheta = mSL_importer.mVectPtsCol[i]*mSL_data.mThetaStep + mSL_data.mThetaStart;
+                    tREAL8 aTheta = mSL_importer.mVectPtsCol[i]*mSL_importer.mThetaStep + mSL_importer.mThetaStart;
                     a2ndPtAng.x() = toMinusPiPlusPi(a2ndPtAng.x(), aTheta);
-                    mSL_data.mPhiStep = (a2ndPtAng.y()-a1stPtAng.y())/(mSL_importer.mVectPtsLine[i]-mSL_importer.mVectPtsLine[a1stPti]);
-                    mSL_data.mThetaStep = (a2ndPtAng.x()-a1stPtAng.x())/(mSL_importer.mVectPtsCol[i]-mSL_importer.mVectPtsCol[a1stPti]);
-                    mSL_data.mPhiStart = a1stPtAng.y() - mSL_data.mPhiStep * mSL_importer.mVectPtsLine[a1stPti];
-                    mSL_data.mThetaStart = a1stPtAng.x() - mSL_data.mThetaStep * mSL_importer.mVectPtsCol[a1stPti];
+                    mSL_importer.mPhiStep = (a2ndPtAng.y()-a1stPtAng.y())/(mSL_importer.mVectPtsLine[i]-mSL_importer.mVectPtsLine[a1stPti]);
+                    mSL_importer.mThetaStep = (a2ndPtAng.x()-a1stPtAng.x())/(mSL_importer.mVectPtsCol[i]-mSL_importer.mVectPtsCol[a1stPti]);
+                    mSL_importer.mPhiStart = a1stPtAng.y() - mSL_importer.mPhiStep * mSL_importer.mVectPtsLine[a1stPti];
+                    mSL_importer.mThetaStart = a1stPtAng.x() - mSL_importer.mThetaStep * mSL_importer.mVectPtsCol[a1stPti];
                     StdOut() << "i1 i2: " << a1stPti << " " << i << ", "
                              << mSL_importer.mVectPtsCol[a1stPti] << " " << mSL_importer.mVectPtsLine[a1stPti] << " "
                              << mSL_importer.mVectPtsCol[i] << " " << mSL_importer.mVectPtsLine[i] << "\n";
@@ -320,21 +320,21 @@ void cAppli_ImportStaticScan::computeAngStartStep()
     } else {
         if (mSL_importer.IsStructured())
         {
-            mSL_data.mPhiStart = mSL_importer.mVectPtsTPD.at(0).y();
-            mSL_data.mThetaStart = NAN; // do it when line/col computed
-            mSL_data.mPhiStep = mSL_importer.mVectPtsTPD.at(1).y() - mSL_importer.mVectPtsTPD.at(0).y();
-            mSL_data.mThetaStep = NAN;
+            mSL_importer.mPhiStart = mSL_importer.mVectPtsTPD.at(0).y();
+            mSL_importer.mThetaStart = NAN; // do it when line/col computed
+            mSL_importer.mPhiStep = mSL_importer.mVectPtsTPD.at(1).y() - mSL_importer.mVectPtsTPD.at(0).y();
+            mSL_importer.mThetaStep = NAN;
         } else {
             MMVII_INTERNAL_ASSERT_tiny(false, "No computeAngStartEnd() for sparse cloud for now")
         }
     }
 
-    StdOut() << "PhiStart: " << mSL_data.mPhiStart << ", "
-             << "PhiStep: " << mSL_data.mPhiStep << ", "
-             << "ThetaStart: " << mSL_data.mThetaStart << ", "
-             << "ThetaStep: " << mSL_data.mThetaStep << "\n";
-    StdOut() << "PhiEnd: " << mSL_data.mPhiStart+mSL_data.mMaxLine*mSL_data.mPhiStep << ", "
-             << "ThetaEnd: " << mSL_data.mThetaStep+mSL_data.mMaxCol*mSL_data.mThetaStep << "\n";
+    StdOut() << "PhiStart: " << mSL_importer.mPhiStart << ", "
+             << "PhiStep: " << mSL_importer.mPhiStep << ", "
+             << "ThetaStart: " << mSL_importer.mThetaStart << ", "
+             << "ThetaStep: " << mSL_importer.mThetaStep << "\n";
+    StdOut() << "PhiEnd: " << mSL_importer.mPhiStart+mSL_importer.mMaxLine*mSL_importer.mPhiStep << ", "
+             << "ThetaEnd: " << mSL_importer.mThetaStep+mSL_importer.mMaxCol*mSL_importer.mThetaStep << "\n";
 }
 
 void cAppli_ImportStaticScan::testLineColError()
@@ -349,8 +349,8 @@ void cAppli_ImportStaticScan::testLineColError()
             continue;
         if (fabs(fabs(aPtAng.y())-M_PI/2)<aMinAngToZenith)
             continue; // no stats on points too close to undefined theta
-        tREAL8 aTheta = mSL_importer.mVectPtsCol[i]*mSL_data.mThetaStep + mSL_data.mThetaStart;
-        tREAL8 aPhi = mSL_importer.mVectPtsLine[i]*mSL_data.mPhiStep + mSL_data.mPhiStart;
+        tREAL8 aTheta = mSL_importer.mVectPtsCol[i]*mSL_importer.mThetaStep + mSL_importer.mThetaStart;
+        tREAL8 aPhi = mSL_importer.mVectPtsLine[i]*mSL_importer.mPhiStep + mSL_importer.mPhiStart;
         aTheta = toMinusPiPlusPi(aTheta, aPtAng.x());
         if (fabs(aTheta-aPtAng.x())>aMaxThetaError)
         {
@@ -374,10 +374,10 @@ tREAL8 cAppli_ImportStaticScan::doVerticalize()
     int aColChangeDetectorInPhistep = 100;
     int aNbPlanes = 20; // try to get several planes for instrument primariy axis estimation
     float aCorrectPlanePhiRange = 40*M_PI/180; // try to get points with this phi diff in a scanline
-    int aColPlaneStep = mSL_data.mMaxCol / aNbPlanes;
+    int aColPlaneStep = mSL_importer.mMaxCol / aNbPlanes;
     int aLineGoodRange = aCorrectPlanePhiRange/fabs(mPhiStepApprox);
-    if (aLineGoodRange > mSL_data.mMaxLine*0.5)
-        aLineGoodRange = mSL_data.mMaxLine*0.5; // for small scans, use full height
+    if (aLineGoodRange > mSL_importer.mMaxLine*0.5)
+        aLineGoodRange = mSL_importer.mMaxLine*0.5; // for small scans, use full height
 
     int aTargetCol = 0; // the next we search for
     int aTargetLine = 0;
@@ -400,7 +400,7 @@ tREAL8 cAppli_ImportStaticScan::doVerticalize()
         if (mSL_importer.NoMiss())
             aCurrLine++;
         else
-            aCurrLine = (aPtAng.y()-mSL_data.mPhiStart)/fabs(mPhiStepApprox);
+            aCurrLine = (aPtAng.y()-mSL_importer.mPhiStart)/fabs(mPhiStepApprox);
 
         if (-(aPtAng.y()-previousPhi)/mPhiStepApprox > aColChangeDetectorInPhistep)
         {
@@ -471,7 +471,7 @@ void cAppli_ImportStaticScan::exportThetas(const std::string & aFileName, int aN
             {
                 if (aCompareToCol)
                 {
-                    aThetaCol = mSL_data.mThetaStart + mSL_data.mThetaStep * aTargetCol;
+                    aThetaCol = mSL_importer.mThetaStart + mSL_importer.mThetaStep * aTargetCol;
                     aThetaCol = toMinusPiPlusPi(aThetaCol);
                     StdOut() <<  aPtTPD.x() << " " << aThetaCol << " " << aPtTPD.x() - aThetaCol << "\n";
                 }
@@ -487,10 +487,10 @@ void cAppli_ImportStaticScan::exportThetas(const std::string & aFileName, int aN
         if (mSL_importer.mVectPtsCol[i] > aTargetCol)
         {
             file_thetas << "\n";
-            aTargetCol = mSL_importer.mVectPtsCol[i] + mSL_data.mMaxCol / aNbThetas;
+            aTargetCol = mSL_importer.mVectPtsCol[i] + mSL_importer.mMaxCol / aNbThetas;
             isFirstofCol = true;
-            if (aTargetCol>=mSL_data.mMaxCol)
-                aTargetCol=mSL_data.mMaxCol;
+            if (aTargetCol>=mSL_importer.mMaxCol)
+                aTargetCol=mSL_importer.mMaxCol;
         }
     }
     file_thetas << "\n";
@@ -566,9 +566,6 @@ int cAppli_ImportStaticScan::Exe()
     mPhProj.FinishInit();
 
     mSL_importer.read(mNameFile, false, mForceStructured);
-
-    mSL_data.mMaxCol = mSL_importer.MaxCol();
-    mSL_data.mMaxLine = mSL_importer.MaxLine();
 
     StdOut() << "Read data: ";
     if (mSL_importer.HasCartesian())
@@ -686,7 +683,7 @@ int cAppli_ImportStaticScan::Exe()
             file2 << aPt.x()/norm << " " << aPt.y()/norm << " " << aPt.z()/norm << " " << r << " " << g << " " << b << "\n"; //<< i << " " << aTriangulation3DXYZ.KthPtsPtAttribute(i) << "\n";
         }
         if (mSL_importer.mVectPtsCol[i] > aTargetCol)
-            aTargetCol = mSL_importer.mVectPtsCol[i] + mSL_data.mMaxCol / aNbThetas;
+            aTargetCol = mSL_importer.mVectPtsCol[i] + mSL_importer.mMaxCol / aNbThetas;
     }
     file2.close();
     file1.close();
@@ -718,13 +715,13 @@ int cAppli_ImportStaticScan::Exe()
 
     mSL_data.FilterIntensity(mSL_importer, mIntensityMinMax[0], mIntensityMinMax[1]);
     mSL_data.FilterDistance(mDistanceMinMax[0], mDistanceMinMax[1]);
-    mSL_data.FilterIncidence(M_PI/2-mIncidenceMin);
-    mSL_data.MaskBuffer(mSL_data.mPhiStep*mMaskBufferSteps, mPhProj.DPStaticLidar().FullDirOut());
-    mSL_data.SelectPatchCenters2(mNbPatches);
+    mSL_data.FilterIncidence(mSL_importer, M_PI/2-mIncidenceMin);
+    mSL_data.MaskBuffer(mSL_importer, mSL_importer.mPhiStep*mMaskBufferSteps, mPhProj.DPStaticLidar().FullDirOut());
+    mSL_data.SelectPatchCenters2(mSL_importer, mNbPatches);
 
     cPerspCamIntrCalib::SimpleCalib(
         "Calib-" + mSL_data.mStationName + "-" + mSL_data.mScanName,
-        eProjPC::eEquiRect, cPt2di(mSL_data.mMaxCol,mSL_data.mMaxLine), cPt3dr(1.,2.,3.), cPt3di(0,0,0));
+        eProjPC::eEquiRect, cPt2di(mSL_importer.mMaxCol,mSL_importer.mMaxLine), cPt3dr(1.,2.,3.), cPt3di(0,0,0));
     SaveInFile(mSL_data, mPhProj.DPStaticLidar().FullDirOut() + "Scan-" + mSL_data.mStationName + "-" + mSL_data.mScanName + ".xml");
 
     mSL_data.ToPly("Out_filtered.ply", true);

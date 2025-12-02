@@ -24,6 +24,7 @@ tREAL8 toMinusPiPlusPi(tREAL8 aAng, tREAL8 aOffset = 0.);
 
 class cStaticLidarImporter
 {
+    friend class cAppli_ImportStaticScan;
 public:
     cStaticLidarImporter();
     void readPlyPoints(std::string aPlyFileName);
@@ -42,8 +43,15 @@ public:
     bool IsStructured() const {return mIsStrucured;}
     int MaxCol() const {return mMaxCol;}
     int MaxLine() const {return mMaxLine;}
+    tREAL8 ThetaStart() const {return mThetaStart;}
+    tREAL8 ThetaStep() const {return mThetaStep;}
+    tREAL8 PhiStart() const {return mPhiStart;}
+    tREAL8 PhiStep() const {return mPhiStep;}
     tREAL8 DistMinToExist() const {return mDistMinToExist;}
     tPoseR ReadPose() const { return mReadPose;}
+
+    float ColToLocalThetaApprox(float aCol) const;
+    float LineToLocalPhiApprox(float aLine) const;
 
     // line and col for each point
     std::vector<int> mVectPtsLine;
@@ -58,12 +66,15 @@ protected:
     bool mHasIntensity; // in original read data
     bool mHasSpherical; // in original read data
     bool mHasRowCol;    // in original read data
-    int mMaxCol, mMaxLine;// in original read data
 
     bool mNoMiss; // seems to be full
     bool mIsStrucured;
     tPoseR mReadPose;
     tREAL8 mDistMinToExist;
+
+    int mMaxCol, mMaxLine;
+    tREAL8 mThetaStart, mThetaStep;
+    tREAL8 mPhiStart, mPhiStep;
 };
 
 class cStaticLidar: public cSensorCamPC
@@ -75,27 +86,23 @@ public :
 
     static cStaticLidar *FromFile(const std::string & aNameFile, const std::string & aNameRastersDir);
 
-    long NbPts() const;
-
     void ToPly(const std::string & aName, bool useMask=false) const;
     void AddData(const  cAuxAr2007 & anAux) ;
 
     void fillRasters(const cStaticLidarImporter & aSL_importer, const std::string &aPhProjDirOut, bool saveRasters);
 
-    inline tREAL8 lToPhiApprox(int l) const { return mPhiStart + l * mPhiStep; }
-    inline tREAL8 cToThetaApprox(int c) const { return mThetaStart + c * mThetaStep; }
+    inline tREAL8 lToPhiApprox(int l) const { return NAN;/*mPhiStart + l * mPhiStep;*/ }
+    inline tREAL8 cToThetaApprox(int c) const { return NAN;/*mThetaStart + c * mThetaStep;*/ }
 
     void FilterIntensity(const cStaticLidarImporter & aSL_importer, tREAL8 aLowest, tREAL8 aHighest); // add to mRasterMask
-    void FilterIncidence(tREAL8 aAngMax);
+    void FilterIncidence(const cStaticLidarImporter &aSL_importer, tREAL8 aAngMax);
     void FilterDistance(tREAL8 aDistMin, tREAL8 aDistMax);
-    void MaskBuffer(tREAL8 aAngBuffer, const std::string &aPhProjDirOut);
+    void MaskBuffer(const cStaticLidarImporter &aSL_importer, tREAL8 aAngBuffer, const std::string &aPhProjDirOut);
     void SelectPatchCenters1(int aNbPatches);
-    void SelectPatchCenters2(int aNbPatches);
-    void MakePatches(std::list<std::set<cPt2di> > &aLPatches,
+    void SelectPatchCenters2(const cStaticLidarImporter &aSL_importer, int aNbPatches);
+    void MakePatches(const cStaticLidarImporter &aSL_importer,   //TODO: remove aSL_importer, use calib!
+                     std::list<std::set<cPt2di> > &aLPatches,
                      std::vector<cSensorCamPC *> &aVCam, int aNbPointByPatch, int aSzMin) const;
-
-    float ColToLocalThetaApprox(float aCol) const;
-    float LineToLocalPhiApprox(float aLine) const;
 
     cPt3dr Image2Instr3D(const cPt2di & aRasterPx) const;
     cPt3dr Image2Instr3D(const cPt2dr & aRasterPx) const;
@@ -128,10 +135,6 @@ private :
     std::string mRasterThetaErrPath;
     std::string mRasterPhiErrPath;
 
-
-    tREAL8 mThetaStart, mThetaStep;
-    tREAL8 mPhiStart, mPhiStep;
-    int mMaxCol, mMaxLine;
     cRotation3D<tREAL8> mVertRot;
     std::vector<cPt2di> mPatchCenters;
 
