@@ -34,15 +34,15 @@ public:
     void convertToThetaPhiDist();
     void convertToXYZ();
 
-    bool HasCartesian() {return mHasCartesian;}
-    bool HasIntensity() {return mHasIntensity;}
-    bool HasSpherical() {return mHasSpherical;}
-    bool HasRowCol() {return mHasRowCol;}
-    bool NoMiss() {return mNoMiss;}
-    bool IsStructured() {return mIsStrucured;}
-    int MaxCol() {return mMaxCol;}
-    int MaxLine() {return mMaxLine;}
-    tREAL8 DistMinToExist() {return mDistMinToExist;}
+    bool HasCartesian() const {return mHasCartesian;}
+    bool HasIntensity() const {return mHasIntensity;}
+    bool HasSpherical() const {return mHasSpherical;}
+    bool HasRowCol() const {return mHasRowCol;}
+    bool NoMiss() const {return mNoMiss;}
+    bool IsStructured() const {return mIsStrucured;}
+    int MaxCol() const {return mMaxCol;}
+    int MaxLine() const {return mMaxLine;}
+    tREAL8 DistMinToExist() const {return mDistMinToExist;}
     tPoseR ReadPose() const { return mReadPose;}
 
     // line and col for each point
@@ -66,7 +66,6 @@ protected:
     tREAL8 mDistMinToExist;
 };
 
-// TODO: use cProj_EquiRect, initialize everything correctly eEquiRect
 class cStaticLidar: public cSensorCamPC
 {
     friend class cAppli_ImportStaticScan;
@@ -81,12 +80,12 @@ public :
     void ToPly(const std::string & aName, bool useMask=false) const;
     void AddData(const  cAuxAr2007 & anAux) ;
 
-    void fillRasters(const std::string &aPhProjDirOut, bool saveRasters);
+    void fillRasters(const cStaticLidarImporter & aSL_importer, const std::string &aPhProjDirOut, bool saveRasters);
 
     inline tREAL8 lToPhiApprox(int l) const { return mPhiStart + l * mPhiStep; }
     inline tREAL8 cToThetaApprox(int c) const { return mThetaStart + c * mThetaStep; }
 
-    void FilterIntensity(tREAL8 aLowest, tREAL8 aHighest); // add to mRasterMask
+    void FilterIntensity(const cStaticLidarImporter & aSL_importer, tREAL8 aLowest, tREAL8 aHighest); // add to mRasterMask
     void FilterIncidence(tREAL8 aAngMax);
     void FilterDistance(tREAL8 aDistMin, tREAL8 aDistMax);
     void MaskBuffer(tREAL8 aAngBuffer, const std::string &aPhProjDirOut);
@@ -103,12 +102,11 @@ public :
     cPt3dr Image2Ground(const cPt2di & aRasterPx) const;
     cPt3dr Image2Ground(const cPt2dr & aRasterPx) const;
 
-    cStaticLidarImporter mSL_importer;
 private :
-    template <typename TYPE> void fillRaster(const std::string& aPhProjDirOut, const std::string& aFileName,
+    template <typename TYPE> void fillRaster(const cStaticLidarImporter & aSL_importer, const std::string& aPhProjDirOut, const std::string& aFileName,
                     std::function<TYPE (int)> func, bool saveRaster); // do not keep image in memory
 
-    template <typename TYPE> void fillRaster(const std::string& aPhProjDirOut, const std::string& aFileName,
+    template <typename TYPE> void fillRaster(const cStaticLidarImporter & aSL_importer, const std::string& aPhProjDirOut, const std::string& aFileName,
                     std::function<TYPE (int)> func, std::unique_ptr<cIm2D<TYPE>> & aIm, bool saveRaster); // keep image in memory
 
     std::string mStationName;

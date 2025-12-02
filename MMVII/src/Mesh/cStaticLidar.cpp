@@ -337,7 +337,6 @@ cStaticLidar::cStaticLidar(const std::string & aNameFile, const tPose & aPose, c
 
 cStaticLidar * cStaticLidar::FromFile(const std::string & aNameFile, const std::string &aNameRastersDir)
 {
-    initialized later or make a calibration file?
     cPerspCamIntrCalib* aCalib =
         cPerspCamIntrCalib::SimpleCalib("EquiRect", eProjPC::eEquiRect, cPt2di(0,0), cPt3dr(0.,0.,0.), cPt3di(0,0,0));
 
@@ -450,30 +449,32 @@ void cStaticLidar::ToPly(const std::string & aName,bool useMask) const
     }
 }
 
-template <typename TYPE> void cStaticLidar::fillRaster(const std::string& aPhProjDirOut, const std::string& aFileName,
+template <typename TYPE> void cStaticLidar::fillRaster(const cStaticLidarImporter & aSL_importer,
+                              const std::string& aPhProjDirOut, const std::string& aFileName,
                               std::function<TYPE (int)> func, std::unique_ptr<cIm2D<TYPE> > & aIm, bool saveRaster)
 {
-    MMVII_INTERNAL_ASSERT_tiny(mSL_importer.mVectPtsCol.size()==mSL_importer.mVectPtsXYZ.size(), "Error: Compute line/col numbers before fill raster");
+    MMVII_INTERNAL_ASSERT_tiny(aSL_importer.mVectPtsCol.size()==aSL_importer.mVectPtsXYZ.size(), "Error: Compute line/col numbers before fill raster");
 
     aIm.reset(new cIm2D<TYPE>(cPt2di(mMaxCol+1, mMaxLine+1), 0, eModeInitImage::eMIA_Null));
     auto & aRasterData = aIm->DIm();
-    for (size_t i=0; i<mSL_importer.mVectPtsTPD.size(); ++i)
+    for (size_t i=0; i<aSL_importer.mVectPtsTPD.size(); ++i)
     {
-        cPt2di aPcl = {mSL_importer.mVectPtsCol[i], mSL_importer.mVectPtsLine[i]};
+        cPt2di aPcl = {aSL_importer.mVectPtsCol[i], aSL_importer.mVectPtsLine[i]};
         aRasterData.SetV(aPcl, func(i));
     }
     if (saveRaster)
         aRasterData.ToFile(aPhProjDirOut + aFileName);
 }
 
-template <typename TYPE> void cStaticLidar::fillRaster(const std::string& aPhProjDirOut, const std::string& aFileName,
+template <typename TYPE> void cStaticLidar::fillRaster(const cStaticLidarImporter & aSL_importer,
+                              const std::string& aPhProjDirOut, const std::string& aFileName,
                               std::function<TYPE (int)> func, bool saveRaster)
 {
     std::unique_ptr<cIm2D<TYPE>> aIm; // temporary image
-    fillRaster(aPhProjDirOut, aFileName, func, aIm, saveRaster);
+    fillRaster(aSL_importer, aPhProjDirOut, aFileName, func, aIm, saveRaster);
 }
 
-void cStaticLidar::fillRasters(const std::string& aPhProjDirOut, bool saveRasters)
+void cStaticLidar::fillRasters(const cStaticLidarImporter & aSL_importer, const std::string& aPhProjDirOut, bool saveRasters)
 {
     mRasterDistancePath = mStationName + "_" + mScanName + "_distance.tif";
     mRasterIntensityPath = mStationName + "_" + mScanName + "_intensity.tif";
@@ -487,33 +488,33 @@ void cStaticLidar::fillRasters(const std::string& aPhProjDirOut, bool saveRaster
     mRasterThetaErrPath = mStationName + "_" + mScanName + "_ThetaErr.tif";
     mRasterPhiErrPath = mStationName + "_" + mScanName + "_PhiErr.tif";
 
-    fillRaster<tU_INT1>(aPhProjDirOut, mRasterMaskPath, [this](int i)
+    fillRaster<tU_INT1>(aSL_importer,aPhProjDirOut, mRasterMaskPath, [&aSL_importer](int i)
                         {
-                            auto aPtAng = mSL_importer.mVectPtsTPD[i];
-                            return (aPtAng.z()<mSL_importer.DistMinToExist())?0:255;
+                            auto aPtAng = aSL_importer.mVectPtsTPD[i];
+                            return (aPtAng.z()<aSL_importer.DistMinToExist())?0:255;
                         }, mRasterMask, saveRasters);
-    fillRaster<tU_INT1>(aPhProjDirOut, mRasterIntensityPath, [this](int i){return mSL_importer.mVectPtsIntens[i]*255;}, mRasterIntensity, saveRasters );
-    fillRaster<tREAL4>(aPhProjDirOut, mRasterDistancePath,
-                      [this](int i){auto aPtAng = mSL_importer.mVectPtsTPD[i];return aPtAng.z();},
+    fillRaster<tU_INT1>(aSL_importer, aPhProjDirOut, mRasterIntensityPath, [&aSL_importer](int i){return aSL_importer.mVectPtsIntens[i]*255;}, mRasterIntensity, saveRasters );
+    fillRaster<tREAL4>(aSL_importer, aPhProjDirOut, mRasterDistancePath,
+                      [&aSL_importer](int i){auto aPtAng = aSL_importer.mVectPtsTPD[i];return aPtAng.z();},
                        mRasterDistance, saveRasters);
 
-    fillRaster<tREAL4>(aPhProjDirOut, mRasterXPath, [this](int i){auto aPtXYZ = mSL_importer.mVectPtsXYZ[i];return aPtXYZ.x();}, mRasterX, saveRasters );
-    fillRaster<tREAL4>(aPhProjDirOut, mRasterYPath, [this](int i){auto aPtXYZ = mSL_importer.mVectPtsXYZ[i];return aPtXYZ.y();}, mRasterY, saveRasters );
-    fillRaster<tREAL4>(aPhProjDirOut, mRasterZPath, [this](int i){auto aPtXYZ = mSL_importer.mVectPtsXYZ[i];return aPtXYZ.z();}, mRasterZ, saveRasters );
+    fillRaster<tREAL4>(aSL_importer, aPhProjDirOut, mRasterXPath, [&aSL_importer](int i){auto aPtXYZ = aSL_importer.mVectPtsXYZ[i];return aPtXYZ.x();}, mRasterX, saveRasters );
+    fillRaster<tREAL4>(aSL_importer, aPhProjDirOut, mRasterYPath, [&aSL_importer](int i){auto aPtXYZ = aSL_importer.mVectPtsXYZ[i];return aPtXYZ.y();}, mRasterY, saveRasters );
+    fillRaster<tREAL4>(aSL_importer, aPhProjDirOut, mRasterZPath, [&aSL_importer](int i){auto aPtXYZ = aSL_importer.mVectPtsXYZ[i];return aPtXYZ.z();}, mRasterZ, saveRasters );
 
-    fillRaster<tREAL4>(aPhProjDirOut, mRasterThetaPath, [this](int i){auto aPtAng = mSL_importer.mVectPtsTPD[i];return aPtAng.x();}, saveRasters );
-    fillRaster<tREAL4>(aPhProjDirOut, mRasterPhiPath, [this](int i){auto aPtAng = mSL_importer.mVectPtsTPD[i];return aPtAng.y();}, saveRasters );
-    fillRaster<tREAL4>(aPhProjDirOut, mRasterThetaErrPath, [this](int i)
+    fillRaster<tREAL4>(aSL_importer, aPhProjDirOut, mRasterThetaPath, [&aSL_importer](int i){auto aPtAng = aSL_importer.mVectPtsTPD[i];return aPtAng.x();}, saveRasters );
+    fillRaster<tREAL4>(aSL_importer, aPhProjDirOut, mRasterPhiPath, [&aSL_importer](int i){auto aPtAng = aSL_importer.mVectPtsTPD[i];return aPtAng.y();}, saveRasters );
+    fillRaster<tREAL4>(aSL_importer, aPhProjDirOut, mRasterThetaErrPath, [&aSL_importer, this](int i)
                       {
-                          auto aPtAng = mSL_importer.mVectPtsTPD[i];
-                          tREAL8 aThetaCol = mThetaStart + mThetaStep * mSL_importer.mVectPtsCol[i];
+                          auto aPtAng = aSL_importer.mVectPtsTPD[i];
+                          tREAL8 aThetaCol = mThetaStart + mThetaStep * aSL_importer.mVectPtsCol[i];
                           aThetaCol = toMinusPiPlusPi(aThetaCol);
                           return aPtAng.x()-aThetaCol;
                       }, saveRasters );
-    fillRaster<tREAL4>(aPhProjDirOut, mRasterPhiErrPath, [this](int i)
+    fillRaster<tREAL4>(aSL_importer, aPhProjDirOut, mRasterPhiErrPath, [&aSL_importer, this](int i)
                       {
-                          auto aPtAng = mSL_importer.mVectPtsTPD[i];
-                          tREAL8 aPhiLine = mPhiStart + mPhiStep * mSL_importer.mVectPtsLine[i];
+                          auto aPtAng = aSL_importer.mVectPtsTPD[i];
+                          tREAL8 aPhiLine = mPhiStart + mPhiStep * aSL_importer.mVectPtsLine[i];
                           aPhiLine = toMinusPiPlusPi(aPhiLine);
                           return aPtAng.y()-aPhiLine;
                       }, saveRasters );
@@ -521,20 +522,20 @@ void cStaticLidar::fillRasters(const std::string& aPhProjDirOut, bool saveRaster
     mRasterScore.reset(new cIm2D<tREAL4>(cPt2di(mMaxCol+1, mMaxLine+1), 0, eModeInitImage::eMIA_Null));
 }
 
-void cStaticLidar::FilterIntensity(tREAL8 aLowest, tREAL8 aHighest)
+void cStaticLidar::FilterIntensity(const cStaticLidarImporter &aSL_importer, tREAL8 aLowest, tREAL8 aHighest)
 {
-    if (!mSL_importer.HasIntensity())
+    if (!aSL_importer.HasIntensity())
         return;
     MMVII_INTERNAL_ASSERT_tiny(mRasterMask, "Error: mRasterMask must be computed first");
     auto & aMaskImData = mRasterMask->DIm();
     auto & aRasterScoreData = mRasterScore->DIm();
     tREAL8 aMiddle = (aLowest + aHighest) / 2.;
-    for (size_t i=0; i<mSL_importer.mVectPtsTPD.size(); ++i)
+    for (size_t i=0; i<aSL_importer.mVectPtsTPD.size(); ++i)
     {
-        cPt2di aPcl = {mSL_importer.mVectPtsCol[i], mSL_importer.mVectPtsLine[i]};
-        if ((mSL_importer.mVectPtsIntens[i]<aLowest) || (mSL_importer.mVectPtsIntens[i]>aHighest))
+        cPt2di aPcl = {aSL_importer.mVectPtsCol[i], aSL_importer.mVectPtsLine[i]};
+        if ((aSL_importer.mVectPtsIntens[i]<aLowest) || (aSL_importer.mVectPtsIntens[i]>aHighest))
             aMaskImData.SetV(aPcl, 0);
-        aRasterScoreData.SetV(aPcl, aRasterScoreData.GetV(aPcl) + fabs(mSL_importer.mVectPtsIntens[i]-aMiddle));
+        aRasterScoreData.SetV(aPcl, aRasterScoreData.GetV(aPcl) + fabs(aSL_importer.mVectPtsIntens[i]-aMiddle));
     }
     aMaskImData.ToFile("MaskIntens.png");
 }
@@ -838,7 +839,6 @@ void cStaticLidar::MakePatches
         }
     }
 }
-
 
 void cStaticLidar::AddData(const  cAuxAr2007 & anAux)
 {
