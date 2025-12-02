@@ -191,6 +191,7 @@ class cFormulaClino
 
            std::vector<std::string>  VNamesUnknowns()  const
            {
+               // vector for correction of angular
                 std::vector<std::string> aVCor;
                 for (int aD=mD0Corr; aD<=mD1Corr ; aD++)
                     if (aD!=1)
@@ -198,7 +199,8 @@ class cFormulaClino
 
                 return  Append
                         (
-                            NamesPose("Du","Dv") ,
+                            NamesP3("Omega"),
+                            NamesP2("DuDv") ,
                             aVCor
                         );
                 ;
@@ -206,32 +208,42 @@ class cFormulaClino
 
            std::vector<std::string>    VNamesObs() const
            {
+               // observation is made :  3 point for coding normalized verctor +
+               // matrix for rotation linearization + value of the angle
                 return  Append
                         (
-                            Append
-                            (
-                               NamesP3("PNom"),
-                               NamesP3("DirU"),
-                               NamesP3("DirV")
-                            ),
                             NamesMatr("m1",cPt2di(3,3)),
-                            {"VTeta"}
+                            Append(NamesP3("PNom"),NamesP3("DirU"),NamesP3("DirV")),
+                            {"ValueTeta"}
                       );
            };
-           /*
-       template <typename tUk>
+
+           template <typename tUk>
                        std::vector<tUk> formula
                        (
                           const std::vector<tUk> & aVUk,
                           const std::vector<tUk> & aVObs
                        ) const
            {
-                   cPoseF<tUk>  aPoseA(aVUk,0,aVObs,0,true);
-                   cPoseF<tUk>  aPose1(aVObs,9,aVObs,12,false);
+                   cRot3dF<tUk>  aRotC2M(aVUk,0,aVObs,0);
+                   cP3dNorm<tUk> aClinoC(aVUk,3,aVObs,9);  //
+                   cP3dNorm<tUk> aClinoM =  aRotC2M.Value(aClinoC);
 
+
+                   //return std::abs(aDirLoc.z() - std::sin(mSetClino.KthMeasure(aKClino).Angle()) );
+
+
+
+       //          cRot3dF(const std::vector<Type> &  aVecUk,size_t aK0Uk,const std::vector<Type> &  aVecObs,size_t aK0Obs) :
+       //          cP3dNorm(const std::vector<Type> &  aVecUk,size_t aK0Uk,const std::vector<Type> &  aVecObs,size_t aK0Obs) :
+
+                   //cPoseF<tUk>  aPoseA(aVUk,0,aVObs,0,true);
+                           return aVUk[0];
+            }
+/*
                     cPtxd<tUk,3>  aDeltaC = aPoseA.mCenter - aPose1.mCenter;
                     cMatF<tUk>    aDeltaR = aPoseA.IJK()- aPose1.IJK();
-
+*/
            // ...
            // extract PoseA,PoseB,pose1, pose2
 
@@ -239,13 +251,11 @@ class cFormulaClino
            // compute the difference
 
 
-           return Append(ToVect(aDeltaC),aDeltaR.ToVect());
 
            //  cPoseF<tUk>  aPose1(aVUk,2*NbUk,aVObs,2*NbObs);
                    //  cPoseF<tUk>  aRelAB = aPoseA.PoseRel(aPoseB);
            // (ToVect(aDeltaC),aDeltaM.ToVect()
-       }
-       */
+
 
         int  mD0Corr;
         int  mD1Corr;
