@@ -168,7 +168,8 @@ endif()
 #######################################################
 ##        MMVII build (executable)
 #######################################################
-add_executable(MMVII src/main.cpp)
+add_executable(MMVII src/main.cpp
+)
 
 set(mmv2_extlibs)
 set(mmv1_libs "")

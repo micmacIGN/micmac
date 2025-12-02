@@ -283,7 +283,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_ArboTriplet);
 
         TheVecAll.push_back(&TheSpec_GCPBascule);
-
+        //TheVecAll.push_back(&TheSpec_CheckBoardTargetRefine);
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }
