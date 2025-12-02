@@ -47,10 +47,11 @@ cStaticLidarImporter::cStaticLidarImporter() :
     mReadPose(tPoseR::Identity()), mDistMinToExist(1e-5),
     mMaxCol            (0),
     mMaxLine           (0),
-    mThetaStart       (NAN),
+    mThetaStart        (NAN),
     mThetaStep         (NAN),
-    mPhiStart         (NAN),
-    mPhiStep           (NAN)
+    mPhiStart          (NAN),
+    mPhiStep           (NAN),
+    mVertRot           (cRotation3D<tREAL8>::Identity())
 {
 
 }
@@ -341,9 +342,11 @@ float cStaticLidarImporter::LineToLocalPhiApprox(float aLine) const
 
 
 
-cStaticLidar::cStaticLidar(const std::string & aNameFile, const tPose & aPose, cPerspCamIntrCalib * aCalib) :
+cStaticLidar::cStaticLidar(const std::string & aNameFile, const std::string & aStationName,
+                           const std::string & aScanName, const tPose & aPose, cPerspCamIntrCalib * aCalib) :
     cSensorCamPC(aNameFile, aPose, aCalib),
-    mVertRot           (cRotation3D<tREAL8>::Identity())
+    mStationName(aStationName),
+    mScanName(aScanName)
 {
 }
 
@@ -352,7 +355,7 @@ cStaticLidar * cStaticLidar::FromFile(const std::string & aNameFile, const std::
     cPerspCamIntrCalib* aCalib =
         cPerspCamIntrCalib::SimpleCalib("EquiRect", eProjPC::eEquiRect, cPt2di(0,0), cPt3dr(0.,0.,0.), cPt3di(0,0,0));
 
-    cStaticLidar * aRes = new cStaticLidar("NONE",tPoseR::Identity(),aCalib);
+    cStaticLidar * aRes = new cStaticLidar("NONE","?","?",tPoseR::Identity(),aCalib);
     ReadFromFile(*aRes, aNameFile);
     aRes->mRasterDistance = std::make_unique<cIm2D<tREAL4>>(cIm2D<tREAL4>::FromFile(aNameRastersDir+"/"+aRes->mRasterDistancePath));
     aRes->mRasterIntensity = std::make_unique<cIm2D<tU_INT1>>(cIm2D<tU_INT1>::FromFile(aNameRastersDir+"/"+aRes->mRasterIntensityPath));
@@ -842,7 +845,6 @@ void cStaticLidar::AddData(const  cAuxAr2007 & anAux)
     cSensorCamPC::AddData(anAux);
     MMVII::AddData(cAuxAr2007("StationName",anAux),mStationName);
     MMVII::AddData(cAuxAr2007("ScanName",anAux),mScanName);
-    MMVII::AddData(cAuxAr2007("VertRot",anAux),mVertRot);
 
     MMVII::AddData(cAuxAr2007("RasterDistance",anAux),mRasterDistancePath);
     MMVII::AddData(cAuxAr2007("RasterIntensity",anAux),mRasterIntensityPath);
