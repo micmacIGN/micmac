@@ -141,7 +141,7 @@ cBA_LidarPhotograRaster::cBA_LidarPhotograRaster(cPhotogrammetricProject * aPhPr
     // Creation of the patches, choose a neigborhood around patch centers. TODO: adapt to images ground pixels size?
     if (mModeSim==eImatchCrit::eDifRad)
         mNbPointByPatch = 1;
-    mLidarData->MakePatches(mLPatchesP,mVCam,mNbPointByPatch,5);
+    //mLidarData->MakePatches(mLPatchesP,mVCam,mNbPointByPatch,5); //TODO!!
     StdOut() << "Nb patches: " << mLPatchesP.size() << "\n";
 }
 
