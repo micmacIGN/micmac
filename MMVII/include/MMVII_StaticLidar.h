@@ -75,6 +75,7 @@ protected:
     int mMaxCol, mMaxLine;
     tREAL8 mThetaStart, mThetaStep;
     tREAL8 mPhiStart, mPhiStep;
+    cRotation3D<tREAL8> mVertRot;
 };
 
 class cStaticLidar: public cSensorCamPC
@@ -82,7 +83,8 @@ class cStaticLidar: public cSensorCamPC
     friend class cAppli_ImportStaticScan;
 public :
 
-    cStaticLidar(const std::string &aNameFile, const tPose &aPose, cPerspCamIntrCalib *aCalib);
+    cStaticLidar(const std::string &aNameFile, const std::string & aStationName,
+                 const std::string & aScanName, const tPose &aPose, cPerspCamIntrCalib *aCalib);
 
     static cStaticLidar *FromFile(const std::string & aNameFile, const std::string & aNameRastersDir);
 
@@ -135,7 +137,6 @@ private :
     std::string mRasterThetaErrPath;
     std::string mRasterPhiErrPath;
 
-    cRotation3D<tREAL8> mVertRot;
     std::vector<cPt2di> mPatchCenters;
 
     // rasters for filtering

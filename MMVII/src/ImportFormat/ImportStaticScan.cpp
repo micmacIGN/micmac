@@ -40,6 +40,8 @@ private :
 
     // Mandatory Arg
     std::string              mNameFile;
+    std::string              mStationName;
+    std::string              mScanName;
 
     // Optional Arg
     std::string              mTransfoIJK;
@@ -57,7 +59,6 @@ private :
     tREAL8 mPhiStepApprox;
     tREAL8 mThetaStepApprox;
     cStaticLidarImporter mSL_importer;
-    cStaticLidar mSL_data;
 };
 
 cAppli_ImportStaticScan::cAppli_ImportStaticScan(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -72,8 +73,7 @@ cAppli_ImportStaticScan::cAppli_ImportStaticScan(const std::vector<std::string> 
     mMaskBufferSteps(2.),
     mNbPatches      (1000),
     mForcedPose     (tPoseR::Identity()),
-    mPhiStepApprox  (NAN),
-    mSL_data        (mNameFile, cIsometry3D<tREAL8>({}, cRotation3D<tREAL8>::Identity()), nullptr)
+    mPhiStepApprox  (NAN)
 {
 }
 
@@ -82,8 +82,8 @@ cCollecSpecArg2007 & cAppli_ImportStaticScan::ArgObl(cCollecSpecArg2007 & anArgO
     return anArgObl
            <<  Arg2007(mNameFile ,"Name of Input File",{eTA2007::FileCloud})
            <<  mPhProj.DPStaticLidar().ArgDirOutMand()
-           <<  Arg2007(mSL_data.mStationName ,"Station name",{eTA2007::Topo}) // TODO: change type to future station
-           <<  Arg2007(mSL_data.mScanName ,"Scan name",{eTA2007::Topo}) // TODO: change type to future scan
+           <<  Arg2007(mStationName ,"Station name",{eTA2007::Topo}) // TODO: change type to future station
+           <<  Arg2007(mScanName ,"Scan name",{eTA2007::Topo}) // TODO: change type to future scan
         ;
 }
 
@@ -185,8 +185,6 @@ void cAppli_ImportStaticScan::computeLineCol()
         else
             aCurrLine = (aPtAng.y()-mSL_importer.mPhiStart)/fabs(mPhiStepApprox);
 
-        //StdOut() << aPtAng.y() << " " << previousPhi << " " << -(aPtAng.y()-previousPhi)/mPhiStepApprox
-        //         << " " << aCurrLine << " " << mSL_data.mMaxLine << "\n";
         if (-(aPtAng.y()-previousPhi)/mPhiStepApprox > aColChangeDetectorInPhistep)
         {
             mSL_importer.mMaxCol++;
@@ -437,18 +435,18 @@ tREAL8 cAppli_ImportStaticScan::doVerticalize()
         aSegVert.Swap(); // make sure to have a vector going up
     StdOut() << "Vert: " << aSegVert.V12() << "\n";
 
-    mSL_data.mVertRot = cRotation3D<tREAL8>::CompleteRON(aSegVert.V12(),2);
+    mSL_importer.mVertRot = cRotation3D<tREAL8>::CompleteRON(aSegVert.V12(),2);
 
     // update xyz and tpd coordinates
     for (size_t i=0; i<mSL_importer.mVectPtsXYZ.size(); ++i)
     {
-        mSL_importer.mVectPtsXYZ[i] = mSL_data.mVertRot.Inverse(mSL_importer.mVectPtsXYZ[i]);
+        mSL_importer.mVectPtsXYZ[i] = mSL_importer.mVertRot.Inverse(mSL_importer.mVectPtsXYZ[i]);
     }
     mSL_importer.convertToThetaPhiDist();
     // update line col
     computeLineCol();
 
-    return mSL_data.mVertRot.Angle();
+    return mSL_importer.mVertRot.Angle();
 }
 
 void cAppli_ImportStaticScan::exportThetas(const std::string & aFileName, int aNbThetas, bool aCompareToCol)
@@ -578,16 +576,6 @@ int cAppli_ImportStaticScan::Exe()
         StdOut() << " with row-col";
     StdOut() << "\n";
 
-    if (IsInit(&mPoseXYZFilename))
-    {
-        StdOut() << "Read XYZ pose file: " << mPoseXYZFilename << std::endl;
-        poseFromXYZ();
-        mSL_data.SetPose(mForcedPose);
-    } else {
-        mSL_data.SetPose(mSL_importer.ReadPose());
-    }
-
-
     if (mSL_importer.HasCartesian() && !mSL_importer.HasSpherical())
     {
         cRotation3D<tREAL8>  aRotFrame = cRotation3D<tREAL8>::RotFromCanonicalAxes(mTransfoIJK);
@@ -711,20 +699,32 @@ int cAppli_ImportStaticScan::Exe()
 
     testLineColError();
 
-    mSL_data.fillRasters(mSL_importer, mPhProj.DPStaticLidar().FullDirOut(), true);
+    // create sensor from imported data
+    cStaticLidar aSL_data(mNameFile, mStationName, mScanName, cIsometry3D<tREAL8>({}, cRotation3D<tREAL8>::Identity()), nullptr);
 
-    mSL_data.FilterIntensity(mSL_importer, mIntensityMinMax[0], mIntensityMinMax[1]);
-    mSL_data.FilterDistance(mDistanceMinMax[0], mDistanceMinMax[1]);
-    mSL_data.FilterIncidence(mSL_importer, M_PI/2-mIncidenceMin);
-    mSL_data.MaskBuffer(mSL_importer, mSL_importer.mPhiStep*mMaskBufferSteps, mPhProj.DPStaticLidar().FullDirOut());
-    mSL_data.SelectPatchCenters2(mSL_importer, mNbPatches);
+    if (IsInit(&mPoseXYZFilename))
+    {
+        StdOut() << "Read XYZ pose file: " << mPoseXYZFilename << std::endl;
+        poseFromXYZ();
+        aSL_data.SetPose(mForcedPose);
+    } else {
+        aSL_data.SetPose(mSL_importer.ReadPose());
+    }
+
+    aSL_data.fillRasters(mSL_importer, mPhProj.DPStaticLidar().FullDirOut(), true);
+
+    aSL_data.FilterIntensity(mSL_importer, mIntensityMinMax[0], mIntensityMinMax[1]);
+    aSL_data.FilterDistance(mDistanceMinMax[0], mDistanceMinMax[1]);
+    aSL_data.FilterIncidence(mSL_importer, M_PI/2-mIncidenceMin);
+    aSL_data.MaskBuffer(mSL_importer, mSL_importer.mPhiStep*mMaskBufferSteps, mPhProj.DPStaticLidar().FullDirOut());
+    aSL_data.SelectPatchCenters2(mSL_importer, mNbPatches);
 
     cPerspCamIntrCalib::SimpleCalib(
-        "Calib-" + mSL_data.mStationName + "-" + mSL_data.mScanName,
+        "Calib-" + aSL_data.mStationName + "-" + aSL_data.mScanName,
         eProjPC::eEquiRect, cPt2di(mSL_importer.mMaxCol,mSL_importer.mMaxLine), cPt3dr(1.,2.,3.), cPt3di(0,0,0));
-    SaveInFile(mSL_data, mPhProj.DPStaticLidar().FullDirOut() + "Scan-" + mSL_data.mStationName + "-" + mSL_data.mScanName + ".xml");
+    SaveInFile(aSL_data, mPhProj.DPStaticLidar().FullDirOut() + "Scan-" + aSL_data.mStationName + "-" + aSL_data.mScanName + ".xml");
 
-    mSL_data.ToPly("Out_filtered.ply", true);
+    aSL_data.ToPly("Out_filtered.ply", true);
     return EXIT_SUCCESS;
 
 }
