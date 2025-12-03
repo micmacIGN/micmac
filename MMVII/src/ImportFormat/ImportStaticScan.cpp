@@ -704,10 +704,13 @@ int cAppli_ImportStaticScan::Exe()
 
     testLineColError();
 
+    // compute transfo from scan instrument frame to sensor frame
+    mSL_importer.ComputeRotInstr2Raster(mTransfoIJK);
+
     // create sensor from imported data
     std::string aScanName = "Scan-" + mStationName + "-" + mScanName;
     // find PP: image of the (0z) axis
-    cPt2dr aPP = mSL_importer.Instr3DtoRaster({0.,0.,1.});
+    cPt2dr aPP = mSL_importer.Instr3DtoRaster({1.,0.,0.}); // axis 1,0,0 in scanner frame will be 0,0,1 in raster frame
     //find F: scale from angle to pixels
     tREAL8 aF = 1./fabs(mSL_importer.mPhiStep);
     cPerspCamIntrCalib* aCalib =

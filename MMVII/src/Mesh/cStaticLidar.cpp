@@ -330,6 +330,36 @@ void cStaticLidarImporter::convertToXYZ()
     mNoMiss = mIsStrucured || (aNbPtsNul>0);
 }
 
+void cStaticLidarImporter::ComputeRotInstr2Raster(std::string aTransfoIJK)
+{
+    MMVII_INTERNAL_ASSERT_tiny(HasRowCol(),"Error: ComputeRotInstr2Raster needs row/col");
+
+    cRotation3D<tREAL8> aRotFrame = cRotation3D<tREAL8>::RotFromCanonicalAxes(aTransfoIJK);
+    size_t aIndexMidColStart = mMaxLine*mMaxCol/2;
+    tREAL8 aThetaMid = NAN;
+    for (size_t i=aIndexMidColStart; i<aIndexMidColStart+mMaxLine; ++i)
+    {
+        auto & aPtAng = mVectPtsTPD[i];
+        if (aPtAng.z()<DistMinToExist())
+            continue;
+        else
+        {
+            aThetaMid = aPtAng.x();
+            break;
+        }
+    }
+    cRotation3D<tREAL8> aRotHz(cRotation3D<tREAL8>::RotKappa(aThetaMid), false);
+    //  scanner     to      raster
+    //  z|   y
+    //   | /
+    //   + --- x            + --- z
+    //                      | `x
+    //                     y|
+    cRotation3D<tREAL8> aRotZvert2view = cRotation3D<tREAL8>::RotFromCanonicalAxes("k-i-j");
+
+    mRotInstr2Raster = aRotZvert2view * aRotHz; // TODO: use aRotFrame
+}
+
 
 float cStaticLidarImporter::ColToLocalThetaApprox(float aCol) const
 {
@@ -343,7 +373,14 @@ float cStaticLidarImporter::LineToLocalPhiApprox(float aLine) const
 
 float cStaticLidarImporter::LocalThetaToColApprox(float aTheta) const
 {
-    return  (aTheta - mThetaStart) / mThetaStep;
+    tREAL8 aNbCol2pi = 2 * M_PI / fabs(mThetaStep);
+    tREAL8 aCol = (aTheta - mThetaStart) / mThetaStep;
+    // try to return to [-aNbCol2pi/2 : aNbCol2pi/2]
+    if (aCol<-aNbCol2pi/2)
+        return aCol+aNbCol2pi;
+    if (aCol>aNbCol2pi*3/2)
+        return aCol-aNbCol2pi;
+    return aCol;
 }
 
 float cStaticLidarImporter::LocalPhiToLineApprox(float aPhi) const
@@ -353,16 +390,20 @@ float cStaticLidarImporter::LocalPhiToLineApprox(float aPhi) const
 
 cPt2dr cStaticLidarImporter::Instr3DtoRaster(const cPt3dr &aPt3DInstr) const
 {
+    std::cout<<"RotInstr2Raster:\n"<<RotInstr2Raster().AxeI()<<"\n"
+              <<RotInstr2Raster().AxeJ()<<"\n"<<RotInstr2Raster().AxeK()<<std::endl;
+    cPt3dr aPt3DInstrNorm = aPt3DInstr/Norm2(aPt3DInstr);
+    cPt3dr aPt3DRaster = RotInstr2Raster().Value(aPt3DInstrNorm);
     cPt2dr aP2d_approx;
-    cPt3dr aBundle = aPt3DInstr/Norm2(aPt3DInstr);
     cProj_EquiRect aProjEquiRect(M_PI);
-    auto aThetaPhi = cPt2dr::FromStdVector(aProjEquiRect.Proj(aBundle.ToStdVector()));
+    auto aThetaPhi = cPt2dr::FromStdVector(aProjEquiRect.Proj(aPt3DRaster.ToStdVector()));
     aP2d_approx.x() = LocalThetaToColApprox(aThetaPhi.x());
     aP2d_approx.y() = LocalPhiToLineApprox(aThetaPhi.y());
     //TODO: iterative search around aP2d_approx in X/Z and Y/Z rasters
     cPt2dr aP2d = aP2d_approx;
     return aP2d;
 }
+
 
 cStaticLidar::cStaticLidar(const std::string & aNameFile, const std::string & aStationName,
                            const std::string & aScanName, const tPose & aPose, cPerspCamIntrCalib * aCalib) :

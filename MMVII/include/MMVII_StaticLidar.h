@@ -30,10 +30,11 @@ public:
     void readPlyPoints(std::string aPlyFileName);
     void readE57Points(std::string aE57FileName);
     void readPtxPoints(std::string aPtxFileName);
-    bool read(const std::string & aName, bool OkNone=false, bool aForceStructured=false); //< Addapt to adequate function from postfix, return is some read suceeded
+    bool read(const std::string & aName, bool OkNone=false, bool aForceStructured=false); //< Adapt to adequate function from postfix, return if some read suceeded
 
     void convertToThetaPhiDist();
     void convertToXYZ();
+    void ComputeRotInstr2Raster(std::string aTransfoIJK); //< give frame used to return to primary rotation axis = z
 
     bool HasCartesian() const {return mHasCartesian;}
     bool HasIntensity() const {return mHasIntensity;}
@@ -49,6 +50,7 @@ public:
     tREAL8 PhiStep() const {return mPhiStep;}
     tREAL8 DistMinToExist() const {return mDistMinToExist;}
     tPoseR ReadPose() const { return mReadPose;}
+    const cRotation3D<tREAL8> & RotInstr2Raster() const { return mRotInstr2Raster; }
 
     float ColToLocalThetaApprox(float aCol) const;
     float LineToLocalPhiApprox(float aLine) const;
@@ -65,10 +67,10 @@ public:
     std::vector<cPt3dr> mVectPtsTPD;
 protected:
     // data
-    bool mHasCartesian; // in original read data
-    bool mHasIntensity; // in original read data
-    bool mHasSpherical; // in original read data
-    bool mHasRowCol;    // in original read data
+    bool mHasCartesian; //< in original read data
+    bool mHasIntensity; //< in original read data
+    bool mHasSpherical; //< in original read data
+    bool mHasRowCol;    //< in original read data
 
     bool mNoMiss; // seems to be full
     bool mIsStrucured;
@@ -78,7 +80,8 @@ protected:
     int mMaxCol, mMaxLine;
     tREAL8 mThetaStart, mThetaStep;
     tREAL8 mPhiStart, mPhiStep;
-    cRotation3D<tREAL8> mVertRot;
+    cRotation3D<tREAL8> mVertRot; //< verticalizarion rotation in cloud frame
+    cRotation3D<tREAL8> mRotInstr2Raster; //< to go from z vertical to z view direction of PP, and make PPx in center
 };
 
 class cStaticLidar: public cSensorCamPC
