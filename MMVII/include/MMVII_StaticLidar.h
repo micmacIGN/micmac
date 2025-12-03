@@ -30,10 +30,11 @@ public:
     void readPlyPoints(std::string aPlyFileName);
     void readE57Points(std::string aE57FileName);
     void readPtxPoints(std::string aPtxFileName);
-    bool read(const std::string & aName, bool OkNone=false, bool aForceStructured=false); //< Addapt to adequate function from postfix, return is some read suceeded
+    bool read(const std::string & aName, bool OkNone=false, bool aForceStructured=false); //< Adapt to adequate function from postfix, return if some read suceeded
 
     void convertToThetaPhiDist();
     void convertToXYZ();
+    void ComputeRotInstr2Raster(std::string aTransfoIJK); //< give frame used to return to primary rotation axis = z
 
     bool HasCartesian() const {return mHasCartesian;}
     bool HasIntensity() const {return mHasIntensity;}
@@ -49,9 +50,13 @@ public:
     tREAL8 PhiStep() const {return mPhiStep;}
     tREAL8 DistMinToExist() const {return mDistMinToExist;}
     tPoseR ReadPose() const { return mReadPose;}
+    const cRotation3D<tREAL8> & RotInstr2Raster() const { return mRotInstr2Raster; }
 
     float ColToLocalThetaApprox(float aCol) const;
     float LineToLocalPhiApprox(float aLine) const;
+    float LocalThetaToColApprox(float aTheta) const;
+    float LocalPhiToLineApprox(float aPhi) const;
+    cPt2dr Instr3DtoRaster(const cPt3dr & aPt3DInstr) const;
 
     // line and col for each point
     std::vector<int> mVectPtsLine;
@@ -62,10 +67,10 @@ public:
     std::vector<cPt3dr> mVectPtsTPD;
 protected:
     // data
-    bool mHasCartesian; // in original read data
-    bool mHasIntensity; // in original read data
-    bool mHasSpherical; // in original read data
-    bool mHasRowCol;    // in original read data
+    bool mHasCartesian; //< in original read data
+    bool mHasIntensity; //< in original read data
+    bool mHasSpherical; //< in original read data
+    bool mHasRowCol;    //< in original read data
 
     bool mNoMiss; // seems to be full
     bool mIsStrucured;
@@ -75,7 +80,8 @@ protected:
     int mMaxCol, mMaxLine;
     tREAL8 mThetaStart, mThetaStep;
     tREAL8 mPhiStart, mPhiStep;
-    cRotation3D<tREAL8> mVertRot;
+    cRotation3D<tREAL8> mVertRot; //< verticalizarion rotation in cloud frame
+    cRotation3D<tREAL8> mRotInstr2Raster; //< to go from z vertical to z view direction of PP, and make PPx in center
 };
 
 class cStaticLidar: public cSensorCamPC
@@ -86,15 +92,15 @@ public :
     cStaticLidar(const std::string &aNameFile, const std::string & aStationName,
                  const std::string & aScanName, const tPose &aPose, cPerspCamIntrCalib *aCalib);
 
-    static cStaticLidar *FromFile(const std::string & aNameFile, const std::string & aNameRastersDir);
+    static cStaticLidar *FromFile(const std::string & aNameCalibFile, const std::string &aNameScanFile, const std::string & aNameRastersDir);
 
     void ToPly(const std::string & aName, bool useMask=false) const;
     void AddData(const  cAuxAr2007 & anAux) ;
 
     void fillRasters(const cStaticLidarImporter & aSL_importer, const std::string &aPhProjDirOut, bool saveRasters);
 
-    inline tREAL8 lToPhiApprox(int l) const { return NAN;/*mPhiStart + l * mPhiStep;*/ }
-    inline tREAL8 cToThetaApprox(int c) const { return NAN;/*mThetaStart + c * mThetaStep;*/ }
+    //inline tREAL8 lToPhiApprox(int l, double aPhiStart, double aPhiStep) const { return aPhiStart + l * aPhiStep; }
+    //inline tREAL8 cToThetaApprox(int c, double aThetaStart, double aThetaStep) const { return aThetaStart + c * aThetaStep; }
 
     void FilterIntensity(const cStaticLidarImporter & aSL_importer, tREAL8 aLowest, tREAL8 aHighest); // add to mRasterMask
     void FilterIncidence(const cStaticLidarImporter &aSL_importer, tREAL8 aAngMax);
