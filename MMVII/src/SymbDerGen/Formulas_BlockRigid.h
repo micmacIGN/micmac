@@ -98,12 +98,19 @@ class cFormulaBlocRigid
                           const std::vector<tUk> & aVObs
                        ) const
            {
-                   // create the 4 formal poses, using unkonw (C/W) and obs
+                   // create the 4 formal poses, using unkonw (C/W) and obs, Use auto incremenation by passing adresses
+#if (1)
+                   size_t aK0Uk=0,aK0Obs=0;
+                   cPoseF<tUk>  aPoseA(aVUk,&aK0Uk,aVObs,&aK0Obs);
+                   cPoseF<tUk>  aPoseB(aVUk,&aK0Uk,aVObs,&aK0Obs);
+                   cPoseF<tUk>  aPose1(aVUk,&aK0Uk,aVObs,&aK0Obs);
+                   cPoseF<tUk>  aPose2(aVUk,&aK0Uk,aVObs,&aK0Obs);
+ #else
                    cPoseF<tUk>  aPoseA(aVUk,0*NbUk,aVObs,0*NbObs,true);
-                   cPoseF<tUk>  aPoseB(aVUk,1*NbUk,aVObs,1*NbObs,true);
-                   cPoseF<tUk>  aPose1(aVUk,2*NbUk,aVObs,2*NbObs,true);
-                   cPoseF<tUk>  aPose2(aVUk,3*NbUk,aVObs,3*NbObs,true);
-
+                  cPoseF<tUk>  aPoseB(aVUk,1*NbUk,aVObs,1*NbObs,true);
+                  cPoseF<tUk>  aPose1(aVUk,2*NbUk,aVObs,2*NbObs,true);
+                  cPoseF<tUk>  aPose2(aVUk,3*NbUk,aVObs,3*NbObs,true);
+#endif
                    // compute relative poses B/A and 2/1
                    cPoseF<tUk>  aRelAB = aPoseA.PoseRel(aPoseB);
                    cPoseF<tUk>  aRel12 = aPose1.PoseRel(aPose2);
@@ -159,8 +166,15 @@ class cFormulaRattBRExist
                           const std::vector<tUk> & aVObs
                        ) const
            {
+#if (1)
+                   // Use new auto incr func
+                   size_t aK0Uk=0,aK0Obs=0;
+                   cPoseF<tUk>  aPoseA(aVUk,&aK0Uk,aVObs,&aK0Obs);
+                   cPoseF<tUk>  aPose1(aVObs,&aK0Obs);
+#else
                    cPoseF<tUk>  aPoseA(aVUk,0,aVObs,0,true);
                    cPoseF<tUk>  aPose1(aVObs,9,aVObs,12,false);
+#endif
 
                     cPtxd<tUk,3>  aDeltaC = aPoseA.mCenter - aPose1.mCenter;
                     cMatF<tUk>    aDeltaR = aPoseA.IJK()- aPose1.IJK();
@@ -194,8 +208,7 @@ class cFormulaClino
                // vector for correction of angular
                 std::vector<std::string> aVCor;
                 for (int aD=mD0Corr; aD<=mD1Corr ; aD++)
-                    if (aD!=1)
-                        aVCor.push_back("DCorrAng_"+ToStr(aD));
+                    aVCor.push_back("DCorrAng_"+ToStr(aD));
 
                 return  Append
                         (
@@ -225,40 +238,34 @@ class cFormulaClino
                           const std::vector<tUk> & aVObs
                        ) const
            {
-                   cRot3dF<tUk>  aRotC2M(aVUk,0,aVObs,0);
-                   cP3dNorm<tUk> aClinoC(aVUk,3,aVObs,9);  //
-                   cP3dNorm<tUk> aClinoM =  aRotC2M.Value(aClinoC);
+                   //        IndexAutoIncr(&anInd,3)
+                   size_t aK0Uk=0,aK0Obs=0;
+                   // rotation that is linked to clino, can be a camera rotation Cam->Word
+                   cRot3dF<tUk>  aRotC2M(aVUk,&aK0Uk,aVObs,&aK0Obs);
 
+                   cP3dNorm<tUk> aClinoC(aVUk,&aK0Uk,aVObs,&aK0Obs);  //
 
-                   //return std::abs(aDirLoc.z() - std::sin(mSetClino.KthMeasure(aKClino).Angle()) );
+                   cPtxd<tUk,3> aClinoM =  aRotC2M.Value(aClinoC.CurPt());
+                   tUk aSinT = sin(aVObs.at(aK0Obs++));
 
+                    tUk aSumTeta = CreateCste(0.0,aVUk.at(0));
+                   for (int aD=mD0Corr ; aD<=mD1Corr ; aD++)
+                   {
+                       aSumTeta = aSumTeta + aVUk.at(aK0Uk++) * powI(aSinT,aD);
+                   }
 
-
-       //          cRot3dF(const std::vector<Type> &  aVecUk,size_t aK0Uk,const std::vector<Type> &  aVecObs,size_t aK0Obs) :
-       //          cP3dNorm(const std::vector<Type> &  aVecUk,size_t aK0Uk,const std::vector<Type> &  aVecObs,size_t aK0Obs) :
-
-                   //cPoseF<tUk>  aPoseA(aVUk,0,aVObs,0,true);
-                           return aVUk[0];
+                   return  { aClinoM.z() - aSumTeta} ;
             }
-/*
-                    cPtxd<tUk,3>  aDeltaC = aPoseA.mCenter - aPose1.mCenter;
-                    cMatF<tUk>    aDeltaR = aPoseA.IJK()- aPose1.IJK();
-*/
-           // ...
-           // extract PoseA,PoseB,pose1, pose2
 
-           // compute pose rel B to A,   pose rel 2 to 1
-           // compute the difference
+            cFormulaClino(int aD0Corr,int aD1Corr) :
+                mD0Corr (aD0Corr),
+                mD1Corr (aD1Corr)
+            {
+            }
 
-
-
-           //  cPoseF<tUk>  aPose1(aVUk,2*NbUk,aVObs,2*NbObs);
-                   //  cPoseF<tUk>  aRelAB = aPoseA.PoseRel(aPoseB);
-           // (ToVect(aDeltaC),aDeltaM.ToVect()
-
-
-        int  mD0Corr;
-        int  mD1Corr;
+         private :
+            int  mD0Corr;
+            int  mD1Corr;
 
 };
 

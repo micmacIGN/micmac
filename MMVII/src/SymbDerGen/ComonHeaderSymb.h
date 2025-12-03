@@ -353,6 +353,11 @@ template <class Type> class cRot3dF
          {
          }
 
+         cRot3dF(const std::vector<Type> &  aVecUk,size_t * aK0Uk,const std::vector<Type> &  aVecObs,size_t * aK0Obs) :
+              cRot3dF(aVecUk,IndexAutoIncr(aK0Uk,3),aVecObs,IndexAutoIncr(aK0Obs,9))
+         {
+         }
+
          tPt   Value(const tPt & aPt) const  {return mIJK*aPt;}
 
          cRot3dF<Type> Inverse() const {return cRot3dF<Type>( mIJK.Transpose());}
@@ -404,6 +409,25 @@ template <class Type> class cPoseF
             mRot( WithAxiator   ?    tRot(aVecUk,aK0Uk+3,aVecObs,aK0Obs) :  tRot(aVecObs,aK0Obs) )
         {
         }
+
+
+        cPoseF(const std::vector<Type> &  aVecUk,size_t * aK0Uk,const std::vector<Type> &  aVecObs,size_t * aK0Obs) :
+            cPoseF(aVecUk,*aK0Uk,aVecObs, *aK0Obs,true)
+        {
+            *aK0Uk += 6;
+            *aK0Obs += 9;
+        }
+
+
+
+        cPoseF(const std::vector<Type> &  aVecObs,size_t * aK0Obs) :
+            cPoseF( aVecObs, *aK0Obs,aVecObs,*aK0Obs+3,false)
+        {
+            //  !!!  We cannot use AutoIncr in constructor at it would be used twice with undefined order
+            *aK0Obs += 12;
+        }
+
+
         tPt   Value(const tPt & aPt) const  {return mCenter + mRot.Value(aPt);}
 
         const cMatF<Type> &    IJK() const {return mRot.mIJK;}
@@ -463,6 +487,12 @@ template <class Type> class cP3dNorm
              mDuDv  (VtoP2(aVecUk,aK0Uk))
          {
          }
+
+         cP3dNorm(const std::vector<Type> &  aVecUk,size_t* aK0Uk,const std::vector<Type> &  aVecObs,size_t* aK0Obs) :
+             cP3dNorm(aVecUk,IndexAutoIncr(aK0Uk,2),aVecObs,IndexAutoIncr(aK0Obs,9))
+         {
+         }
+
 
          tPt3  CurPt() const
          {
