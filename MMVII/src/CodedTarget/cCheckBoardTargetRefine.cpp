@@ -1,4 +1,5 @@
-#include "MMVII_Sensor.h"
+//#include "MMVII_Sensor.h"
+#include "MMVII_PCSens.h"
 #include "cMMVII_Appli.h"
 
 namespace MMVII
@@ -49,12 +50,55 @@ namespace MMVII
 
     int cAppli_CheckBoardTargetRefine::Exe()
     {
-        //·0·> building MMVII-PhProj
-        mPhProj.FinishInit();
-        StdOut() << "Initialisation terminée !" << std::endl;
+        //FINAL OUTPUT = un set temporaire de mes2d virtuel
 
+        mPhProj.FinishInit();
+
+        // a partir d'ici on peut coder tranquille
+
+        //·0·> iterates on images
+            //gets the firts set
+        std::vector<std::string> aVImg = VectMainSet(0);
+
+        //·1·>loads global input
+            //creates & fills 3d mes. set
+        cSetMesGnd3D aInSet3D = mPhProj.LoadGCP3DFromFolder(mPhProj.DPGndPt3D().DirIn());
+
+        for (const auto & aNameIm:aVImg)
+        {
+        //·1-im·>loads curr. img. input
+            //creates & fills 2d mes. of curr. img.
+            StdOut() << "Loading " << aNameIm << " 2D mes. from "
+                     << mPhProj.DPGndPt2D().DirIn() << std::endl;
+            auto aInSet2D = mPhProj.LoadMeasureImFromFolder(mPhProj.DPGndPt2D().DirIn(), aNameIm);
+
+        //·2-im·> diff. btw. detected points and GCPs set
+
+            //creates wanted set
+            std::vector<std::string> aWantedNames;
+            //iterates on mes3d and checks if pt. p exists in mes2d if not add to
+            //the wanted set
+            auto aKnownNames = aInSet3D.ListOfNames();
+            //StdOut() << a3DNames.size() << " elements names loaded." << std::endl;
+            for (const auto & aNameOfGCP:aKnownNames)
+            {
+                if (!aInSet2D.NameHasMeasure(aNameOfGCP))
+                {
+                    //StdOut() << aNameOfGCP << " not found in " << aNameIm << std::endl;
+                    aWantedNames.push_back(aNameOfGCP);
+                }
+            }
+
+        //·3-im·> 3d->2d projection from input ori
+            //loads im ori
+            cSensorCamPC * aCam = mPhProj.ReadCamPC(aNameIm,true);
+            aCam->Pose();
+        }
+
+        // fin de la tranquillite
         return EXIT_SUCCESS;
     }
+
 
     //pour faire des trucs avec la memoire - obligatoire
     tMMVII_UnikPApli Alloc_CheckBoardTargetRefine(const std::vector<std::string> & aVArgs,
