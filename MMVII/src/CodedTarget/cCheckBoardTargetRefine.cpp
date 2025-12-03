@@ -66,7 +66,7 @@ namespace MMVII
 
         for (const auto & aNameIm:aVImg)
         {
-        //·1-im·>loads curr. img. input
+        //·1-im·>loads curr. img. input/output
             //creates & fills 2d mes. of curr. img.
             StdOut() << "Loading " << aNameIm << " 2D mes. from "
                      << mPhProj.DPGndPt2D().DirIn() << std::endl;
@@ -90,9 +90,27 @@ namespace MMVII
             }
 
         //·3-im·> 3d->2d projection from input ori
+            //creates 2d set to fill
+            cSetMesPtOf1Im aSetWantedMes2D(aNameIm);
             //loads im ori
             cSensorCamPC * aCam = mPhProj.ReadCamPC(aNameIm,true);
-            aCam->Pose();
+            auto & camSz = aCam->InternalCalib()->PixelDomain().Sz();
+            //iterates on aWantedNames
+            for (const auto & aWantedName:aWantedNames)
+            {
+                auto aWanted2DPt = aCam->Ground2Image(aInSet3D.GetMeasureOfNamePt(aWantedName).mPt);
+                //·4-im·> add 2d mes. only if it is in image
+                auto & xMax = camSz[0];
+                auto & yMax = camSz[1];
+                if (0 < aWanted2DPt[0] && aWanted2DPt[0] < xMax
+                    && 0 < aWanted2DPt[1] && aWanted2DPt[1] < yMax)
+                {
+                    StdOut() << " --> Adding point " << aWantedName << " : "
+                             << aWanted2DPt[0] << ";" << aWanted2DPt[1] << std::endl;
+                    aSetWantedMes2D.AddMeasure(cMesIm1Pt(aWanted2DPt, aWantedName, 1));
+                }
+            }
+            mPhProj.SaveMeasureIm(aSetWantedMes2D);
         }
 
         // fin de la tranquillite
