@@ -1857,13 +1857,13 @@ if (!MMVisualMode)
      std::string aNameOr2 = mICNM->Assoc1To1(aKey,mName2,true);
 
      // std::cout << "RREEEEEEEEEEEEEEead cam \n";
-     CamStenope * aCam1 = CamStenope::StdCamFromFile(true,aNameOr1,mICNM);
+    //  ----> CamStenope * aCam1 = CamStenope::StdCamFromFile(true,aNameOr1,mICNM);
      // std::cout << "EPISZPPPpp " << aCam1->SzPixel() << "\n";
 
-     CamStenope * aCam2 = CamStenope::StdCamFromFile(true,aNameOr2,mICNM);
+    //  ----> CamStenope * aCam2 = CamStenope::StdCamFromFile(true,aNameOr2,mICNM);
 
      Tiff_Im aTif1 = Tiff_Im::StdConvGen(aDir+mName1,aNbChan,Cons16B);
-     Tiff_Im aTif2 = Tiff_Im::StdConvGen(aDir+mName2,aNbChan,Cons16B);
+     //Tiff_Im aTif2 = Tiff_Im::StdConvGen(aDir+mName2,aNbChan,Cons16B);
 
 
 
@@ -1873,7 +1873,7 @@ if (!MMVisualMode)
 
   //  Test commit
 
-
+    /*
      cCpleEpip aCplE
                (
                     aDir,
@@ -1896,7 +1896,7 @@ if (!MMVisualMode)
      aCplE.SetNameLock("End");
      aCplE.LockMess("End cCpleEpip::ImEpip");
 
-
+    */
 
      return ;
 
