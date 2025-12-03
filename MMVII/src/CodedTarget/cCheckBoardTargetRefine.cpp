@@ -16,6 +16,7 @@ namespace MMVII
             cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
             cPhotogrammetricProject mPhProj;
             std::string mSpecImIn;
+            bool mShow;
 
     };
 
@@ -27,6 +28,13 @@ namespace MMVII
             << mPhProj.DPGndPt2D().ArgDirInMand()
             << mPhProj.DPGndPt3D().ArgDirInMand()
             << mPhProj.DPGndPt2D().ArgDirOutMand()
+            ;
+    }
+
+    cCollecSpecArg2007 & cAppli_CheckBoardTargetRefine::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+    {
+        return anArgOpt
+               << AOpt2007(mShow,"show","show some useful details", {eTA2007::HDV})//hdv = has default value
             ;
     }
 
@@ -43,8 +51,27 @@ namespace MMVII
     {
         //·0·> building MMVII-PhProj
         mPhProj.FinishInit();
-        StdOut() << "Initialisation terminée !";
+        StdOut() << "Initialisation terminée !" << std::endl;
 
         return EXIT_SUCCESS;
     }
+
+    //pour faire des trucs avec la memoire - obligatoire
+    tMMVII_UnikPApli Alloc_CheckBoardTargetRefine(const std::vector<std::string> & aVArgs,
+                                                  const cSpecMMVII_Appli & aSpec)
+    {
+        return tMMVII_UnikPApli(new cAppli_CheckBoardTargetRefine(aVArgs, aSpec));
+    }
+
+    cSpecMMVII_Appli TheSpec_CheckBoardTargetRefine
+        (
+            "CheckBoardTargetRefine",
+            Alloc_CheckBoardTargetRefine,
+            "Refines target detection after CheckBoardTargetExtract",
+            //metadonnees
+            {eApF::Ori,eApF::GCP},//features
+            {eApDT::ObjCoordWorld, eApDT::ObjMesInstr},//inputs
+            {eApDT::Console},//output
+            __FILE__
+        );
 }
