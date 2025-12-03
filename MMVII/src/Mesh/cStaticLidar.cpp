@@ -9,6 +9,7 @@
 #include "MMVII_Tpl_Images.h"
 #include "MMVII_ImageInfoExtract.h"
 #include "MMVII_2Include_CSV_Serial_Tpl.h"
+#include "../SymbDerGen/Formulas_CentralProj.h"
 
 
 namespace MMVII
@@ -340,7 +341,28 @@ float cStaticLidarImporter::LineToLocalPhiApprox(float aLine) const
     return mPhiStart + aLine * mPhiStep;
 }
 
+float cStaticLidarImporter::LocalThetaToColApprox(float aTheta) const
+{
+    return  (aTheta - mThetaStart) / mThetaStep;
+}
 
+float cStaticLidarImporter::LocalPhiToLineApprox(float aPhi) const
+{
+    return (aPhi - mPhiStart) / mPhiStep;
+}
+
+cPt2dr cStaticLidarImporter::Instr3DtoRaster(const cPt3dr &aPt3DInstr) const
+{
+    cPt2dr aP2d_approx;
+    cPt3dr aBundle = aPt3DInstr/Norm2(aPt3DInstr);
+    cProj_EquiRect aProjEquiRect(M_PI);
+    auto aThetaPhi = cPt2dr::FromStdVector(aProjEquiRect.Proj(aBundle.ToStdVector()));
+    aP2d_approx.x() = LocalThetaToColApprox(aThetaPhi.x());
+    aP2d_approx.y() = LocalPhiToLineApprox(aThetaPhi.y());
+    //TODO: iterative search around aP2d_approx in X/Z and Y/Z rasters
+    cPt2dr aP2d = aP2d_approx;
+    return aP2d;
+}
 
 cStaticLidar::cStaticLidar(const std::string & aNameFile, const std::string & aStationName,
                            const std::string & aScanName, const tPose & aPose, cPerspCamIntrCalib * aCalib) :
@@ -350,13 +372,11 @@ cStaticLidar::cStaticLidar(const std::string & aNameFile, const std::string & aS
 {
 }
 
-cStaticLidar * cStaticLidar::FromFile(const std::string & aNameFile, const std::string &aNameRastersDir)
+cStaticLidar * cStaticLidar::FromFile(const std::string & aNameCalibFile, const std::string & aNameScanFile, const std::string &aNameRastersDir)
 {
-    cPerspCamIntrCalib* aCalib =
-        cPerspCamIntrCalib::SimpleCalib("EquiRect", eProjPC::eEquiRect, cPt2di(0,0), cPt3dr(0.,0.,0.), cPt3di(0,0,0));
-
+    cPerspCamIntrCalib* aCalib = cPerspCamIntrCalib::FromFile(aNameCalibFile);
     cStaticLidar * aRes = new cStaticLidar("NONE","?","?",tPoseR::Identity(),aCalib);
-    ReadFromFile(*aRes, aNameFile);
+    ReadFromFile(*aRes, aNameScanFile);
     aRes->mRasterDistance = std::make_unique<cIm2D<tREAL4>>(cIm2D<tREAL4>::FromFile(aNameRastersDir+"/"+aRes->mRasterDistancePath));
     aRes->mRasterIntensity = std::make_unique<cIm2D<tU_INT1>>(cIm2D<tU_INT1>::FromFile(aNameRastersDir+"/"+aRes->mRasterIntensityPath));
     aRes->mRasterMask = std::make_unique<cIm2D<tU_INT1>>(cIm2D<tU_INT1>::FromFile(aNameRastersDir+"/"+aRes->mRasterMaskPath));
@@ -571,7 +591,8 @@ void cStaticLidar::FilterIncidence(const cStaticLidarImporter &aSL_importer, tRE
     ComputeSobel<tREAL4,tREAL4>(*aDistGradIm.mDGx, *aDistGradIm.mDGy, aRasterDistGaussData);
     for (int l = 0 ; l <= aSL_importer.MaxLine(); ++l)
     {
-        tREAL4 phi = lToPhiApprox(l);
+        //tREAL4 phi = lToPhiApprox(l, aSL_importer.PhiStart(), aSL_importer.PhiStep());
+        tREAL4 phi = InternalCalib()->DirBundle({0.,(double)l}).y();
         tREAL4 aStepThetaFix = aSL_importer.ThetaStep()*cos(phi);
         for (int c = 0 ; c <= aSL_importer.MaxCol(); ++c)
         {
@@ -648,7 +669,8 @@ void cStaticLidar::MaskBuffer(const cStaticLidarImporter &aSL_importer, tREAL8 a
                 {
                     if ((il<0) || (il>aSL_importer.MaxLine())) continue;
                     if (aLinesFull[il]) continue;
-                    tREAL8 phi = lToPhiApprox(il);
+                    //tREAL8 phi = lToPhiApprox(il, aSL_importer.PhiStart(), aSL_importer.PhiStep());
+                    tREAL8 phi = InternalCalib()->DirBundle({0.,(double)l}).y();
                     tREAL8 w = fabs(sqrt(aRadPx*aRadPx - (il-l)*(il-l))/cos(phi));
                     if (w>aSL_importer.MaxCol())
                     {

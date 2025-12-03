@@ -52,6 +52,9 @@ public:
 
     float ColToLocalThetaApprox(float aCol) const;
     float LineToLocalPhiApprox(float aLine) const;
+    float LocalThetaToColApprox(float aTheta) const;
+    float LocalPhiToLineApprox(float aPhi) const;
+    cPt2dr Instr3DtoRaster(const cPt3dr & aPt3DInstr) const;
 
     // line and col for each point
     std::vector<int> mVectPtsLine;
@@ -86,15 +89,15 @@ public :
     cStaticLidar(const std::string &aNameFile, const std::string & aStationName,
                  const std::string & aScanName, const tPose &aPose, cPerspCamIntrCalib *aCalib);
 
-    static cStaticLidar *FromFile(const std::string & aNameFile, const std::string & aNameRastersDir);
+    static cStaticLidar *FromFile(const std::string & aNameCalibFile, const std::string &aNameScanFile, const std::string & aNameRastersDir);
 
     void ToPly(const std::string & aName, bool useMask=false) const;
     void AddData(const  cAuxAr2007 & anAux) ;
 
     void fillRasters(const cStaticLidarImporter & aSL_importer, const std::string &aPhProjDirOut, bool saveRasters);
 
-    inline tREAL8 lToPhiApprox(int l) const { return NAN;/*mPhiStart + l * mPhiStep;*/ }
-    inline tREAL8 cToThetaApprox(int c) const { return NAN;/*mThetaStart + c * mThetaStep;*/ }
+    //inline tREAL8 lToPhiApprox(int l, double aPhiStart, double aPhiStep) const { return aPhiStart + l * aPhiStep; }
+    //inline tREAL8 cToThetaApprox(int c, double aThetaStart, double aThetaStep) const { return aThetaStart + c * aThetaStep; }
 
     void FilterIntensity(const cStaticLidarImporter & aSL_importer, tREAL8 aLowest, tREAL8 aHighest); // add to mRasterMask
     void FilterIncidence(const cStaticLidarImporter &aSL_importer, tREAL8 aAngMax);

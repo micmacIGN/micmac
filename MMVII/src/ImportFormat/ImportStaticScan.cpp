@@ -209,6 +209,8 @@ void cAppli_ImportStaticScan::computeLineCol()
     MMVII_INTERNAL_ASSERT_tiny((mSL_importer.mMaxCol>0) && (mSL_importer.mMaxLine>0),
                                "Image size found incorrect")
 
+    mSL_importer.mHasRowCol = true;
+
     if (mSL_importer.IsStructured())
     {
         int aIndexMidFirstCol = mSL_importer.mMaxLine/2;
@@ -624,6 +626,7 @@ int cAppli_ImportStaticScan::Exe()
 
     estimatePhiStep();
     computeLineCol();
+    computeAngStartStep(); // best results when having line col
 
     exportThetas("thetas_before.txt", 20, false);
 
@@ -702,7 +705,18 @@ int cAppli_ImportStaticScan::Exe()
     testLineColError();
 
     // create sensor from imported data
-    cStaticLidar aSL_data(mNameFile, mStationName, mScanName, cIsometry3D<tREAL8>({}, cRotation3D<tREAL8>::Identity()), nullptr);
+    std::string aScanName = "Scan-" + mStationName + "-" + mScanName;
+    // find PP: image of the (0z) axis
+    cPt2dr aPP = mSL_importer.Instr3DtoRaster({0.,0.,1.});
+    //find F: scale from angle to pixels
+    tREAL8 aF = 1./fabs(mSL_importer.mPhiStep);
+    cPerspCamIntrCalib* aCalib =
+        cPerspCamIntrCalib::SimpleCalib(aScanName + "_Calib", eProjPC::eEquiRect,
+                                        cPt2di(mSL_importer.MaxCol(), mSL_importer.MaxLine()),
+                                        cPt3dr(aPP.x(),aPP.y(),aF), cPt3di(0,0,0));
+    aCalib->ToFile(mPhProj.DPStaticLidar().FullDirOut() + aCalib->Name() + ".xml");
+
+    cStaticLidar aSL_data(mNameFile, mStationName, mScanName, cIsometry3D<tREAL8>({}, cRotation3D<tREAL8>::Identity()), aCalib);
 
     if (IsInit(&mPoseXYZFilename))
     {
@@ -721,12 +735,10 @@ int cAppli_ImportStaticScan::Exe()
     aSL_data.MaskBuffer(mSL_importer, mSL_importer.mPhiStep*mMaskBufferSteps, mPhProj.DPStaticLidar().FullDirOut());
     aSL_data.SelectPatchCenters2(mSL_importer, mNbPatches);
 
-    cPerspCamIntrCalib::SimpleCalib(
-        "Calib-" + aSL_data.mStationName + "-" + aSL_data.mScanName,
-        eProjPC::eEquiRect, cPt2di(mSL_importer.mMaxCol,mSL_importer.mMaxLine), cPt3dr(1.,2.,3.), cPt3di(0,0,0));
-    SaveInFile(aSL_data, mPhProj.DPStaticLidar().FullDirOut() + "Scan-" + aSL_data.mStationName + "-" + aSL_data.mScanName + ".xml");
+    SaveInFile(aSL_data, mPhProj.DPStaticLidar().FullDirOut() + aScanName + ".xml");
 
     aSL_data.ToPly("Out_filtered.ply", true);
+    delete aCalib;
     return EXIT_SUCCESS;
 
 }

@@ -1298,7 +1298,8 @@ cStaticLidar * cPhotogrammetricProject::ReadStaticLidar(const cDirsPhProj& aDP, 
 {
     aDP.AssertDirInIsInit();
     std::string aScanFileName  =  aDP.FullDirIn() + aScanName;
-    cStaticLidar * aScan =  cStaticLidar::FromFile(aScanFileName, aDP.FullDirIn());
+    std::string aCalibFileName  =  aDP.FullDirIn() + aScanName + "_Calib";
+    cStaticLidar * aScan =  cStaticLidar::FromFile(aCalibFileName, aScanFileName, aDP.FullDirIn());
 
     if (ToDeleteAutom)
        cMMVII_Appli::AddObj2DelAtEnd(aScan);
