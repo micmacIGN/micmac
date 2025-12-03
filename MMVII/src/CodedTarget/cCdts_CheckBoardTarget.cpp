@@ -10,15 +10,15 @@ namespace MMVII
 /*                                               */
 /* ********************************************* */
 
-template <class Type> 
+template <class Type>
     cOptimSymetryOnImage<Type>::cOptimSymetryOnImage(const cPt2dr & aC0,const tDIm & aDIm,const cDiffInterpolator1D & anInt) :
          mC0     (aC0),
          mDIm    (aDIm),
-	 mInterp (anInt)
+     mInterp (anInt)
 {
 }
 
-template <class Type> cPt1dr cOptimSymetryOnImage<Type>::Value(const cPt2dr & aDelta ) const 
+template <class Type> cPt1dr cOptimSymetryOnImage<Type>::Value(const cPt2dr & aDelta ) const
 {
      cSymMeasure<tREAL8> aSymM; // Structure to compute symetry coeff
      cPt2dr a2NewC = (mC0 + aDelta) * 2.0;  // twice the center actualized
@@ -26,7 +26,7 @@ template <class Type> cPt1dr cOptimSymetryOnImage<Type>::Value(const cPt2dr & aD
      for (const auto & aP1 : mPtsOpt)
      {
           cPt2dr aP2 = a2NewC - aP1;
-	  if (mDIm.InsideInterpolator(mInterp,aP1) && mDIm.InsideInterpolator(mInterp,aP2))
+      if (mDIm.InsideInterpolator(mInterp,aP1) && mDIm.InsideInterpolator(mInterp,aP2))
              aSymM.Add(mDIm.GetValueInterpol(mInterp,aP1),mDIm.GetValueInterpol(mInterp,aP2));
      }
 
@@ -46,22 +46,22 @@ template <class Type> tREAL8 cOptimSymetryOnImage<Type>::OneIterLeastSqGrad()
      for (const auto & aP1 : mPtsOpt)
      {
           cPt2dr aP2 = mC0 * 2.0 - aP1;
-	  if (mDIm.InsideInterpolator(mInterp,aP1) && mDIm.InsideInterpolator(mInterp,aP2))
-	  {
+         if (mDIm.InsideInterpolator(mInterp,aP1) && mDIm.InsideInterpolator(mInterp,aP2))
+         {
               auto [aV1,aG1] = mDIm.GetValueAndGradInterpol(mInterp,aP1);
               auto [aV2,aG2] = mDIm.GetValueAndGradInterpol(mInterp,aP2);
 
-	      aSymM.Add(aV1,aV2);
+             aSymM.Add(aV1,aV2);
 
-	      cPt2dr a2G2= (aG2*2.0);
-	      cDenseVect<tREAL8> aDV (a2G2.ToVect());
+             cPt2dr a2G2= (aG2*2.0);
+             cDenseVect<tREAL8> aDV (a2G2.ToVect());
 
-	      //  NewV2 = aV2 + 2 * aG2 . delta  = aV1
-	      aSys.PublicAddObservation(1.0,aDV,aV1-aV2);
+          //  NewV2 = aV2 + 2 * aG2 . delta  = aV1
+             aSys.PublicAddObservation(1.0,aDV,aV1-aV2);
 
 
-	      //  StdOut() << aG1 - aG2 << "\n";
-	  }
+          //  StdOut() << aG1 - aG2 << "\n";
+         }
      }
 
      cDenseVect<tREAL8> aSol = aSys.PublicSolve();
@@ -71,14 +71,16 @@ template <class Type> tREAL8 cOptimSymetryOnImage<Type>::OneIterLeastSqGrad()
      for (auto & aP1 : mPtsOpt)
          aP1 += aDelta;
 
-     return  aSymM.Sym(1e-5);
 
+     tREAL8 aRes = aSymM.Sym(1e-5);
+     return aRes;
      //  StdOut() << " Ggggg " << aDelta << " " << aSymM.Sym(1e-5) << "\n";
 
 }
 
 template <class Type> int cOptimSymetryOnImage<Type>::IterLeastSqGrad(tREAL8 aGainMin,int aNbMax)
 {
+
    tREAL8 aLastScore =  OneIterLeastSqGrad();
 
    for (int aK= 1 ; aK<aNbMax ; aK++)
@@ -94,7 +96,7 @@ template <class Type> int cOptimSymetryOnImage<Type>::IterLeastSqGrad(tREAL8 aGa
 template class cOptimSymetryOnImage<tREAL4>;
 
 
-namespace NS_CHKBRD_TARGET_EXTR { 
+namespace NS_CHKBRD_TARGET_EXTR {
 
 
 /* ================================================================= */
@@ -107,8 +109,8 @@ namespace NS_CHKBRD_TARGET_EXTR {
 int cCdSadle::TheCptNum=0;
 int cCdSadle::TheNum2Debug=-2;
 
-cCdSadle::cCdSadle (const cPt2dr & aC,tREAL8 aCrit,bool isPTest) : 
-    mC        (aC) , 
+cCdSadle::cCdSadle (const cPt2dr & aC,tREAL8 aCrit,bool isPTest) :
+    mC        (aC) ,
     mSadCrit  (aCrit) ,
     mIsPTest  (isPTest),
     mNum      (TheCptNum++)
@@ -161,23 +163,23 @@ cCdRadiom::cCdRadiom
     ComputePtsOfEllipse(aVPixEllipse);
     for (const auto & aPImI : aVPixEllipse)
     {
-	if (!  aDIm.Inside(aPImI))
+    if (!  aDIm.Inside(aPImI))
             return;
-	tREAL8 aValIm = aDIm.GetV(aPImI);
-	cPt2dr aPImR = ToR(aPImI);
+    tREAL8 aValIm = aDIm.GetV(aPImI);
+    cPt2dr aPImR = ToR(aPImI);
 
-	auto [aState,aGrayTh] = aCRC.TheorRadiom(aPImR);
+    auto [aState,aGrayTh] = aCRC.TheorRadiom(aPImR);
 
-	if  (IsInside(aState))
-	{
+    if  (IsInside(aState))
+    {
             aCorGrayInside.Add(aGrayTh,aValIm);
             aNbIn0 += (aState == eTPosCB::eInsideBlack);
             aNbIn1 += (aState == eTPosCB::eInsideWhite);
-	}
-	if  (IsOk(aState))
-	{
+    }
+    if  (IsOk(aState))
+    {
             aCorGrayAll.Add(aGrayTh,aValIm);
-	}
+    }
     }
 
     if ((aNbIn0==0) && (aNbIn1==0))
@@ -197,9 +199,9 @@ cCdRadiom::cCdRadiom
     mWhite = a+b;
 }
 
-tREAL8 cCdRadiom::Threshold(tREAL8 aWW) const 
+tREAL8 cCdRadiom::Threshold(tREAL8 aWW) const
 {
-	 return mBlack*(1-aWW) + mWhite *aWW;
+     return mBlack*(1-aWW) + mWhite *aWW;
 }
 
 void cCdRadiom::OptimSegIm(const cDataIm2D<tREAL4> & aDIm,tREAL8 aLength)
@@ -212,11 +214,11 @@ void cCdRadiom::OptimSegIm(const cDataIm2D<tREAL4> & aDIm,tREAL8 aLength)
          cPt2dr aTgt = FromPolar(aLength,mTetas[aKTeta]);
          tSeg2dr aSegInit(mC-aTgt,mC+aTgt);
          cOptimSeg_ValueIm<tREAL4>  aOSVI(aSegInit,0.5,aDIm,Threshold());
-	 tSeg2dr  aSegOpt = aOSVI.OptimizeSeg(0.5,0.01,true,2.0);
+     tSeg2dr  aSegOpt = aOSVI.OptimizeSeg(0.5,0.01,true,2.0);
 
-	 aVSegOpt.push_back(aSegOpt);
-	 mTetas[aKTeta] = Teta(aSegOpt.V12());
-	 // mTetas[aKTeta] = aSegOpt.I//
+     aVSegOpt.push_back(aSegOpt);
+     mTetas[aKTeta] = Teta(aSegOpt.V12());
+     // mTetas[aKTeta] = aSegOpt.I//
      }
 
      cPt2dr aC = aVSegOpt.at(0).InterSeg(aVSegOpt.at(1));
@@ -227,7 +229,7 @@ void cCdRadiom::OptimSegIm(const cDataIm2D<tREAL4> & aDIm,tREAL8 aLength)
 
 void cCdRadiom::ComputePtsOfEllipse(std::vector<cPt2di> & aRes) const
 {
-	ComputePtsOfEllipse(aRes,mLength);
+    ComputePtsOfEllipse(aRes,mLength);
 }
 
 
@@ -245,7 +247,7 @@ void cCdRadiom::ComputePtsOfEllipse(std::vector<cPt2di> & aRes,tREAL8 aLength) c
     // [2] Compute the bounding box containing the ellipse
     cTplBoxOfPts<tREAL8,2> aBox;
     int aNbTeta = 100;
-    for (int aKTeta=0 ; aKTeta<aNbTeta ; aKTeta++) // sample the frontiers 
+    for (int aKTeta=0 ; aKTeta<aNbTeta ; aKTeta++) // sample the frontiers
     {
          aBox.Add(aMapEll2Ori.Value(FromPolar(1.0, (2.0*M_PI * aKTeta) / aNbTeta)));
     }
@@ -290,19 +292,19 @@ bool cCdRadiom::PtIsOnEllAndRefine(cPt2dr & aPtAbs) const
     {
         // if interpoleted point is to far from initial : suscpicious
         aNewP = aGIFV.PRes();
-	if (Norm2(aPtAbs-aNewP)>2.0)
+    if (Norm2(aPtAbs-aNewP)>2.0)
            return false;
 
         cPt2dr aPGr =  Proj(mDIm->GetGradAndVBL(aNewP));
-	// StdOut() << "PGR=== " << aPGr << "\n";
-	tREAL8 aSc =  std::abs(CosWDef(aPGr,aNewP-mC,1.0));
-	if (aSc<0.5)
+    // StdOut() << "PGR=== " << aPGr << "\n";
+    tREAL8 aSc =  std::abs(CosWDef(aPGr,aNewP-mC,1.0));
+    if (aSc<0.5)
            return false;
 
-	aPtAbs = aNewP;
+    aPtAbs = aNewP;
     }
     else
-	  return false;
+      return false;
 
 
     return true;
@@ -314,7 +316,7 @@ void cCdRadiom::SelEllAndRefineFront(std::vector<cPt2dr> & aRes,const std::vecto
     for (const auto & aPix : aFrontI)
     {
          cPt2dr aRPix = ToR(aPix);
-	 if (PtIsOnEllAndRefine(aRPix))
+     if (PtIsOnEllAndRefine(aRPix))
             aRes.push_back(aRPix);
     }
 }
@@ -325,7 +327,7 @@ bool cCdRadiom::FrontBlackCC(std::vector<cPt2di> & aVFront,cDataIm2D<tU_INT1> & 
     aVFront.clear();
 
     // --------------- [1]   copmpute the seed  --------------------------------
-    
+
     //  1.1  point of small  ellipse with given center
     std::vector<cPt2di> aVPtsEll;
     ComputePtsOfEllipse(aVPtsEll,std::min(mLength,5.0));
@@ -335,13 +337,13 @@ bool cCdRadiom::FrontBlackCC(std::vector<cPt2di> & aVFront,cDataIm2D<tU_INT1> & 
     for (const auto & aPix : aVPtsEll)
     {
         if (mDIm->GetV(aPix)<aThrs)
-	{
+    {
             aDMarq.SetV(aPix,1);
-	    aCC.push_back(aPix);
-	}
+        aCC.push_back(aPix);
+    }
     }
 
-    // ------------------ [2] compute the connected components 
+    // ------------------ [2] compute the connected components
     size_t aIndBottom = 0;
     const std::vector<cPt2di> & aV4 = Alloc4Neighbourhood();
 
@@ -353,53 +355,53 @@ bool cCdRadiom::FrontBlackCC(std::vector<cPt2di> & aVFront,cDataIm2D<tU_INT1> & 
           for (const auto & aDelta : aV4)
           {
               cPt2di aPix = aCC.at(aIndBottom) + aDelta;
-	      if ((aDMarq.GetV(aPix)==0) && (mDIm->GetV(aPix)<aThrs) )
-	      {
+          if ((aDMarq.GetV(aPix)==0) && (mDIm->GetV(aPix)<aThrs) )
+          {
                  if (aRectInterior.Inside(aPix))
-		 {
+         {
                     aDMarq.SetV(aPix,1);
-		    aCC.push_back(aPix);
-		    if ((int) aCC.size() == aNbMax)
+            aCC.push_back(aPix);
+            if ((int) aCC.size() == aNbMax)
                        isOk = false;
-	         }
-	         else
-	         {
+             }
+             else
+             {
                     isOk = false;
-	         }
-	      }
+             }
           }
-	  aIndBottom++;
+          }
+      aIndBottom++;
     }
-    if (!isOk) 
+    if (!isOk)
     {
         for (const auto & aPix : aCC)
             aDMarq.SetV(aPix,0);
         return false;
     }
 
-    // ------------------ [3] compute point of the CC  that are frontier 
+    // ------------------ [3] compute point of the CC  that are frontier
     const std::vector<cPt2di> & aV8 = Alloc8Neighbourhood();
     for (const auto & aPix : aCC)
     {
         bool has8NeighWhite = false;
         for (const auto & aDelta : aV8)
-	{
-	     if (aDMarq.GetV(aPix+aDelta)==0) 
+    {
+         if (aDMarq.GetV(aPix+aDelta)==0)
                 has8NeighWhite = true;
-	}
+    }
 
-	if (has8NeighWhite)
-	{
+    if (has8NeighWhite)
+    {
             aVFront.push_back(aPix);
-	}
+    }
     }
     if (false && Is4Debug())
     {
-	     StdOut()  << "--xxx--HASH " << HashValue(aVFront,true) << " SZCC=" << aCC.size() 
-		       << " HELLL=" << HashValue(aVPtsEll,true)
-		       << " HELLL=" << HashValue(aVPtsEll,true)
-		       << " C=" << mC  << " Thr=" << aThrs  
-		       <<  " L=" << mLength << "\n";
+         StdOut()  << "--xxx--HASH " << HashValue(aVFront,true) << " SZCC=" << aCC.size()
+               << " HELLL=" << HashValue(aVPtsEll,true)
+               << " HELLL=" << HashValue(aVPtsEll,true)
+               << " C=" << mC  << " Thr=" << aThrs
+               <<  " L=" << mLength << "\n";
     }
     // StdOut() << "FFFF=" << aVFront << "\n";
 
@@ -411,15 +413,15 @@ bool cCdRadiom::FrontBlackCC(std::vector<cPt2di> & aVFront,cDataIm2D<tU_INT1> & 
 
 
 
-	// if (has8NeighWhite && PtIsOnEll(aRPix))
+    // if (has8NeighWhite && PtIsOnEll(aRPix))
 
 void  cCdRadiom::ShowDetail
       (
             int aCptMarq,
-	    const cScoreTetaLine & aSTL,
-	    const std::string & aNameIm,
-	    cDataIm2D<tU_INT1> & aMarq,
-	    cFullSpecifTarget *aSpec
+        const cScoreTetaLine & aSTL,
+        const std::string & aNameIm,
+        cDataIm2D<tU_INT1> & aMarq,
+        cFullSpecifTarget *aSpec
        ) const
 {
       std::vector<cPt2dr> aVFront;
@@ -433,21 +435,21 @@ void  cCdRadiom::ShowDetail
       std::pair<tREAL8,tREAL8> aPairTeta(mTetas[0],mTetas[1]);
 
       aCDE.DecodeByL2CP(2.0/3.0);
-      StdOut()    << " CptMarq=" << aCptMarq 
-	          << " NUM="     << mNum
-		  << "  Corrrr=" <<  mCostCorrel 
+      StdOut()    << " CptMarq=" << aCptMarq
+              << " NUM="     << mNum
+          << "  Corrrr=" <<  mCostCorrel
                    << " Ratio=" <<  mRatioBW
-		  << " V0="<< mBlack << " V1=" << mWhite 
-		  << " ScTeta=" << aSTL.Score2Teta(aPairTeta,2.0)
-		  << " ScSym=" << mSymCrit
-		  << " LLL=" << mLength
-		  << " ThickN=" << mThickness
-		  << " CODE=[" <<   aCDE.Code() << "]"
-		  << " C="   <<  mC
-		  <<  " DELL=" << aCDE.MaxEllD()
-		  <<  " OK=" << aCDE.mIsOk
-		  <<  " OUTCB=" << aCDE.BOutCB()
-		  << "\n";
+          << " V0="<< mBlack << " V1=" << mWhite
+          << " ScTeta=" << aSTL.Score2Teta(aPairTeta,2.0)
+          << " ScSym=" << mSymCrit
+          << " LLL=" << mLength
+          << " ThickN=" << mThickness
+          << " CODE=[" <<   aCDE.Code() << "]"
+          << " C="   <<  mC
+          <<  " DELL=" << aCDE.MaxEllD()
+          <<  " OK=" << aCDE.mIsOk
+          <<  " OUTCB=" << aCDE.BOutCB()
+          << "\n";
 }
 
 /* ***************************************************** */
@@ -488,7 +490,7 @@ cCdEllipse::cCdEllipse(const cCdRadiom & aCdR,cDataIm2D<tU_INT1> & aMarq,int aNb
      if (! mIsOk)
      {
         if(mIsPTest) StdOut() << "Ref cCdEllipse at L=" << __LINE__ << "\n" ;
-	return;
+    return;
      }
 
      // [2]  Check that the frontier are (with some margin) in theoretical black sector of the check board
@@ -497,17 +499,17 @@ cCdEllipse::cCdEllipse(const cCdRadiom & aCdR,cDataIm2D<tU_INT1> & aMarq,int aNb
          for (const auto & aPix : aIFront)
          {
              auto [aPos,aGray] = aCRP.TheorRadiom(ToR(aPix),2.0,1/20.0);  // 2.0 thick, 1/1.20 steep
-	     if (aPos == eTPosCB::eInsideWhite)
-	     {
-		     mBOutCB = true;
-	     }
+         if (aPos == eTPosCB::eInsideWhite)
+         {
+             mBOutCB = true;
          }
-	 if (mBOutCB)
-	 {
+         }
+     if (mBOutCB)
+     {
              if(mIsPTest) StdOut() << "Ref cCdEllipse at L=" << __LINE__ << "\n" ;
              mIsOk = false;
              return;
-	 }
+     }
      }
 
      // [3]  Refine the position Integer -> Real
@@ -516,8 +518,8 @@ cCdEllipse::cCdEllipse(const cCdRadiom & aCdR,cDataIm2D<tU_INT1> & aMarq,int aNb
 
      if ((int) aEllFr.size() < (mIsCircle ? 2 : mAppli->NbMinPtEllipse())  )
      {
-        if  (mIsPTest) 
-	    GenImageFail("NbEllipse");
+        if  (mIsPTest)
+        GenImageFail("NbEllipse");
         mIsOk = false;
         return;
      }
@@ -537,27 +539,27 @@ cCdEllipse::cCdEllipse(const cCdRadiom & aCdR,cDataIm2D<tU_INT1> & aMarq,int aNb
          // [4.2]   check ellips was computed
      if  (!mEll.Ok())
      {
-        if(mIsPTest) 
-	{
-	    GenImageFail("BadEll");
-	}
+        if(mIsPTest)
+    {
+        GenImageFail("BadEll");
+    }
         mIsOk = false;
         return;
      }
 
-     
+
      // [4.3]  check that all point of the frontier are close enough (seems strict ?)
      tREAL8 aThrs = 0.6+ mEll.LGa()/40.0;  // thresholf for pixelisation+threshold for shape
      for (const auto & aPixFr : aEllFr)
      {
          tREAL8 aD =  mEll.NonEuclidDist(aPixFr);
-	 UpdateMax(mMaxEllD,aD);
-	 if (aD>aThrs)
-	 {
+     UpdateMax(mMaxEllD,aD);
+     if (aD>aThrs)
+     {
            if(mIsPTest) StdOut() << "Ref cCdEllipse at L=" << __LINE__ << "\n" ;
             mIsOk = false;
-	    return;
-	 }
+        return;
+     }
      }
 
 
@@ -638,7 +640,7 @@ std::pair<tREAL8,cPt2dr>  cCdEllipse::Length2CodingPart(tREAL8 aWeighWhite,const
     cPt2dr aDirModel = VUnit(mSpec->Pix2Norm(aModCenterBit));  // -> normalize coord -> unitary vect
     // distance , ratio on the line mC-Pt, between a normalized model pixel, and it corresponding image pixel
     tREAL8  aMulN2I =  Norm2(M2I(mSpec->Norm2Pix(aDirModel))-mC);
-							       //
+                                   //
     cPt2dr aDirIm = VUnit(M2I(aModCenterBit)-mC); // direction of line in image
 
     // Rho begin search in  image, at mid position between check board and begining of code
@@ -657,22 +659,22 @@ std::pair<tREAL8,cPt2dr>  cCdEllipse::Length2CodingPart(tREAL8 aWeighWhite,const
     for (int aKRho = 0 ; aKRho<=aNbRho ; aKRho++)
     {
         tREAL8 aRho = aRho0 + aKRho * aStepRho;
-	cPt2dr aPt =  mC + aDirIm * aRho;
+    cPt2dr aPt =  mC + aDirIm * aRho;
 
         if (!mDIm->InsideBL(aPt))  // we are too far, end of game
-	{
+    {
            return aNoValue;
-	}
-	else
-	{
+    }
+    else
+    {
             auto [aVal,aGrad] = mDIm->GetPairGradAndVBL(aPt);
-	    // we test also orientation of gradient, because with very small target, there is no clear separation , 
-	    // and we dont want to accept the checkboard as a 
-	    if ((aVal < aThresh) &&  (Scal(aGrad,aDirIm)<0))
-	    {
+        // we test also orientation of gradient, because with very small target, there is no clear separation ,
+        // and we dont want to accept the checkboard as a
+        if ((aVal < aThresh) &&  (Scal(aGrad,aDirIm)<0))
+        {
                return std::pair<tREAL8,cPt2dr> (aRho/aMulN2I,aPt);
-	    }
-	}
+        }
+    }
     }
     std::pair<tREAL8,cPt2dr>  aDef(aRhoMaxRel,mC + aDirIm*aRhoMaxRel*aMulN2I);
 
@@ -683,7 +685,7 @@ tREAL8 cCdEllipse::ComputeThresholdsByRLE(const std::vector<std::pair<int,tREAL8
 {
     // cPt2di MaxRunLength(tU_INT4 aVal,size_t aPow2);
 
-   
+
    int aMaxWL = mSpec->Specs().mMaxRunL.x(); // Max run lenght for 0 (= white in general, 2 adapt ...)
    aMaxWL = std::min(aMaxWL,(int)mSpec->NbBits());
 
@@ -692,16 +694,16 @@ tREAL8 cCdEllipse::ComputeThresholdsByRLE(const std::vector<std::pair<int,tREAL8
    size_t aKBit = 0;
    while ((aMaxWL<aRunLE)  && (aKBit<aVBR.size()))
    {
-	aFlag |= ((size_t)1<<aVBR.at(aKBit).first);
+    aFlag |= ((size_t)1<<aVBR.at(aKBit).first);
         aKBit++;
-	aRunLE = MaxRunLength(aFlag,(size_t)1<<mSpec->NbBits()).x();
+    aRunLE = MaxRunLength(aFlag,(size_t)1<<mSpec->NbBits()).x();
    }
 
 /*
-   StdOut() << "JJJJjjJ  " 
-            << mSpec->Render().mRho_1_BeginCode << " " 
-            << mSpec->Render().mRho_2_EndCode << " " 
-            << mSpec->Render().mRho_EndIm << " " 
+   StdOut() << "JJJJjjJ  "
+            << mSpec->Render().mRho_1_BeginCode << " "
+            << mSpec->Render().mRho_2_EndCode << " "
+            << mSpec->Render().mRho_EndIm << " "
             <<  " MUL=" << aMul
             << "\n";
 */
@@ -717,17 +719,17 @@ tREAL8 cCdEllipse::ComputeThresholdsMin(const std::vector<std::pair<int,tREAL8>>
 }
 
 
-void cCdEllipse::DecodeByL2CP(tREAL8 aWeighWhite) 
+void cCdEllipse::DecodeByL2CP(tREAL8 aWeighWhite)
 {
      std::vector<std::pair<int,tREAL8>  >  aVBR;  // Vector Bits/Rho
      const auto & aVC = mSpec->BitsCenters();     // Vector centers
      for (size_t aKBit=0 ; aKBit<aVC.size() ; aKBit++)
      {
          auto [aRho,aCenter] = Length2CodingPart(aWeighWhite,aVC[aKBit]);
-	 // something bad, like out of image, occured
-	 if (aRho<0)
+     // something bad, like out of image, occured
+     if (aRho<0)
             return ;
-	 aVBR.push_back(std::pair<int,tREAL8>(aKBit,aRho));
+     aVBR.push_back(std::pair<int,tREAL8>(aKBit,aRho));
      }
 
      SortOnCriteria(aVBR,[](const auto & aPair) {return aPair.second;});
@@ -747,13 +749,13 @@ void cCdEllipse::DecodeByL2CP(tREAL8 aWeighWhite)
         }
      }
 
-   
+
      if (mIsPTest)
      {
          std::vector<std::pair<int,tREAL8>  > aDup = aVBR;
          SortOnCriteria(aDup,[](const auto & aPair) {return aPair.first;});
          StdOut() << "THRS=" << aTresh_Run << "\n";
-	 for (const auto & [aBit,aRho] : aDup)
+     for (const auto & [aBit,aRho] : aDup)
              StdOut() << " RRR=" << aRho  << " KB=" << aBit  << " B0=" << (aRho<= aTresh_Run)  << "\n";
      }
 
@@ -779,10 +781,10 @@ const cOneEncoding *  cCdEllipse::BasicDecode(tREAL8 aWW)
        cPt2dr aPIm = M2I(aVC.at(aKBit));
        if (mDIm->InsideBL(aPIm))
        {
-	  aDec.SetColBit(mDIm->GetVBL(aPIm) < aThrs , aKBit);
+      aDec.SetColBit(mDIm->GetVBL(aPIm) < aThrs , aKBit);
        }
        else
-	    return nullptr;
+        return nullptr;
     }
     return aDec.Encoding();
 }
@@ -820,7 +822,7 @@ std::pair<eTPosCB,tREAL8>  cTmpCdRadiomPos::TheorRadiom(const cPt2dr &aPt,tREAL8
 
     // compute if we are far enough of S0/S1 because the computation of gray will change
     //  black/white if far  enough, else interpolation
-    bool FarS0 = std::abs(aY0)> aThick0; 
+    bool FarS0 = std::abs(aY0)> aThick0;
     bool FarS1 = std::abs(aY1)> aThick1;
 
     if ( FarS0 && FarS1)
@@ -828,27 +830,27 @@ std::pair<eTPosCB,tREAL8>  cTmpCdRadiomPos::TheorRadiom(const cPt2dr &aPt,tREAL8
        if ((aY0>0)!=(aY1>0))
        {
            aPos = eTPosCB::eInsideBlack;
-	   aGrayTh = 0.0;
+       aGrayTh = 0.0;
        }
        else
        {
            aPos = eTPosCB::eInsideWhite;
-	   aGrayTh = 1.0;
+       aGrayTh = 1.0;
        }
     }
     else if  ((!FarS0) && FarS1)
     {
         // (! FarS0) => teta1
         // Red = teta1 , black on left on image, right on left in coord oriented
-	 aPos = eTPosCB::eBorderRight;
+     aPos = eTPosCB::eBorderRight;
          int aSignX = (aLoc0.x() >0) ? -1 : 1;
          aGrayTh = (aThick0+aSignX*aY0) / (2.0*aThick0);
     }
     else if  (FarS0 && (!FarS1))
     {
-	 aPos = eTPosCB::eBorderLeft;
-	 int aSignX = (aLoc1.x() <0) ? -1 : 1;
-	 aGrayTh = (aThick1+aSignX*aY1) / (2.0 * aThick1);
+     aPos = eTPosCB::eBorderLeft;
+     int aSignX = (aLoc1.x() <0) ? -1 : 1;
+     aGrayTh = (aThick1+aSignX*aY1) / (2.0 * aThick1);
     }
 
     return std::pair<eTPosCB,tREAL8>(aPos,aGrayTh);
@@ -856,7 +858,7 @@ std::pair<eTPosCB,tREAL8>  cTmpCdRadiomPos::TheorRadiom(const cPt2dr &aPt,tREAL8
 
 std::pair<eTPosCB,tREAL8>  cTmpCdRadiomPos::TheorRadiom(const cPt2dr &aPt) const
 {
-	return TheorRadiom(aPt,mThickness,0.0);
+    return TheorRadiom(aPt,mThickness,0.0);
 }
 
 
@@ -870,17 +872,17 @@ std::pair<eTPosCB,tREAL8>  cTmpCdRadiomPos::TheorRadiom(const cPt2dr &aPt) const
 
 class cOptimPosCdM : public cOptimSymetryOnImage<tREAL4>
 {
-	public :
+    public :
            cOptimPosCdM(const cCdMerged & aCdM,const cDiffInterpolator1D & );
 
            // cPt1dr Value(const cPt2dr & ) const override;
-	   typedef cSegment2DCompiled<tREAL8> tSeg;
+       typedef cSegment2DCompiled<tREAL8> tSeg;
 
            bool IsOk() const {return mIsOk;}
 
-	private :
-	    bool  mIsOk;
-	    bool AddPts1Seg(const cPt2dr & aMaster,  const cPt2dr & aSecond,bool toAvoid2);
+    private :
+        bool  mIsOk;
+        bool AddPts1Seg(const cPt2dr & aMaster,  const cPt2dr & aSecond,bool toAvoid2);
             const cCdMerged&        mCdM;
 };
 
@@ -888,12 +890,14 @@ class cOptimPosCdM : public cOptimSymetryOnImage<tREAL4>
 
 cOptimPosCdM::cOptimPosCdM(const cCdMerged & aCdM,const cDiffInterpolator1D & aInt)  :
         cOptimSymetryOnImage<tREAL4>(aCdM.mC0,(*aCdM.mDIm0),aInt),
-	mCdM      (aCdM)
-	// mCurInt   (aInt)
+    mCdM      (aCdM)
+    // mCurInt   (aInt)
 {
-	mIsOk =       AddPts1Seg(aCdM.CornerlEl_WB(), aCdM.CornerlEl_BW(),true)
-	          &&  AddPts1Seg(aCdM.CornerlEl_BW(), aCdM.CornerlEl_WB(),false)
-	       ;
+    mIsOk =       AddPts1Seg(aCdM.CornerlEl_WB(), aCdM.CornerlEl_BW(),true)
+              &&  AddPts1Seg(aCdM.CornerlEl_BW(), aCdM.CornerlEl_WB(),false)
+           ;
+
+    mIsOk = mIsOk && (mPtsOpt.size() > 10);
 }
 
 bool cOptimPosCdM::AddPts1Seg(const cPt2dr & aSCorn1, const cPt2dr & aSCorn2,bool toAvoid2)
@@ -908,7 +912,7 @@ bool cOptimPosCdM::AddPts1Seg(const cPt2dr & aSCorn1, const cPt2dr & aSCorn2,boo
 
      int aNbX = round_up(aL1/aStep);
      int aNbY = round_up(aWidth/aStep);
-     if ((aNbX==0) || (aNbY==0)) 
+     if ((aNbX==0) || (aNbY==0))
         return false;
 
      tREAL8 aStepX = aL1 / aNbX;
@@ -921,19 +925,19 @@ bool cOptimPosCdM::AddPts1Seg(const cPt2dr & aSCorn1, const cPt2dr & aSCorn2,boo
 
      for (int aKX=-aNbX ; aKX<=aNbX ; aKX++)
      {
-         for (int aKY=0 ; aKY<=aNbY ; aKY++)  // KY=0 : we take only one point /2 
-	 {
+         for (int aKY=0 ; aKY<=aNbY ; aKY++)  // KY=0 : we take only one point /2
+     {
              if ((aKY>0)  || (aKX>0))
              {
                   cPt2dr aPLoc(aKX*aStepX,aKY*aStepY);
-	          cPt2dr aPAbs = aSeg1.FromCoordLoc(aPLoc);
-	          if ((!toAvoid2)  ||  (aSeg2.DistLine(aPAbs) >aWidth))
-		  {
+              cPt2dr aPAbs = aSeg1.FromCoordLoc(aPLoc);
+              if ((!toAvoid2)  ||  (aSeg2.DistLine(aPAbs) >aWidth))
+          {
                      mPtsOpt.push_back(aPAbs);
-		     // StdOut() << "PAAAA " << aPAbs - mCdM.mC0  << "\n";
-		  }
+             // StdOut() << "PAAAA " << aPAbs - mCdM.mC0  << "\n";
+          }
              }
-	 }
+     }
      }
 
      return true;
@@ -958,9 +962,14 @@ void cCdMerged::GradOptimizePosition(const cDiffInterpolator1D & anInt,tREAL8 aS
     cOptimPosCdM aCdGrad(*this,anInt);
     if (! aCdGrad.IsOk())
        return;
+
+    //StdOut() << "IN IterLeastSqGradIterLeastSqGrad " << aCdGrad.PtsOpt().size() << "\n";
+
          // StdOut() << "-----------  TEST GRAD ----------------  V0=" << aCdGrad.Value(cPt2dr(0,0)) << " \n";
 
     aCdGrad.IterLeastSqGrad(aStepEnd,5);
+
+  //  StdOut() << "aCdGradcCdMergedcCdMergedcCdMergedcCdMerged \n";
     mC0 = aCdGrad.C0();
 }
 

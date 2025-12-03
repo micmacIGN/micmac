@@ -21,6 +21,7 @@ cIrbComp_Cam1::cIrbComp_Cam1() :
 {
 }
 
+
 void cIrbComp_Cam1::Init(cSensorCamPC * aCamPC)
 {
     if (mCamPC)
@@ -129,7 +130,7 @@ void cIrbCal_Cam1::SetPose(const tPoseR & aPose)
 }
 
 bool          cIrbCal_Cam1::IsInit() const{  return mIsInit;}
-const tPoseR & cIrbCal_Cam1::PoseInBlock() const
+tPoseR cIrbCal_Cam1::PoseInBlock() const
 {
     MMVII_INTERNAL_ASSERT_tiny(mIsInit,"IrbCal_Cam1::PoseInBlock");
     return mPoseInBlock->Pose();

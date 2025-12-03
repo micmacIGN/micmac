@@ -97,7 +97,7 @@ class cIrbCal_Cam1  : public cMemCheck
         /**  modify the pose, separate from constructor because must be done in calib init, after block creation */
         void SetPose(const tPoseR & aPose);
 
-        const tPoseR & PoseInBlock() const; //< Accessor
+        tPoseR PoseInBlock() const; //< Accessor
         tPoseR PosBInSysA(const cIrbCal_Cam1 & aCamB) const;
 
         cPoseWithUK&  PoseUKInBlock();

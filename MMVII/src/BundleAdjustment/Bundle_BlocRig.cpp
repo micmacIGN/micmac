@@ -113,7 +113,7 @@ void cBA_BlocRig::SetFrozenVar(cResolSysNonLinear<tREAL8> & aSys)
 	 // "knows" the association between its member and local integers, that's why
 	 // we pass object and members to do the job
          
-         aSys.SetFrozenVarCurVal(aMPose,aMPose.Center());
+         aSys.SetFrozenVarCurVal(aMPose,aMPose.Tr());
          aSys.SetFrozenVarCurVal(aMPose,aMPose.Omega());
 	 //
 	 //  ...  freeze the center
@@ -161,7 +161,7 @@ cPt3dr cBA_BlocRig::OnePairAddRigidityEquation(size_t aKS,size_t aKBl1,size_t aK
     bool  ForJeanMimi = false;
     if (ForJeanMimi)
     {
-        aPBl2.PushIndexes(aVInd,aPBl2.Center());
+        aPBl2.PushIndexes(aVInd,aPBl2.Tr());
         aPBl2.PushIndexes(aVInd,aPBl2.Omega());
     }
     else

@@ -327,8 +327,8 @@ void cBA_BlockInstr::OneItere()
 void cBA_BlockInstr::AddGauge(bool InEq)
 {
      cPoseWithUK &  aPBl =  mMasterCam.PoseUKInBlock();
-     cPt3dr &  aC = aPBl.Center();
-     cPt3dr &  aW = aPBl.Omega();
+     cPt3dr &  aC = aPBl.GetRefTr();
+     cPt3dr &  aW = aPBl.GetRefOmega();
 
      if (InEq)
      {

@@ -311,7 +311,8 @@ void BenchRotation3DReal8()
          for (int aKIter=0 ; aKIter<5; aKIter++)
          {
              cPt3dr  W = aPUK.ValAxiatorFixRot(aRTarget);
-             aPUK.Omega() = W;
+             //aPUK.Omega() = W;
+             aPUK.SetOmega(W);
              aPUK.OnUpdate();
          }
          tREAL8 aD =  aRTarget.Mat().L2Dist(aPUK.Pose().Rot().Mat()) ;

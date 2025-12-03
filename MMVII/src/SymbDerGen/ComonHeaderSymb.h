@@ -333,45 +333,88 @@ template  <typename tScal>
 }
 
 
+template <class Type> class cRot3dF
+{
+      public :
+         typedef cPtxd<Type,3>      tPt;
+
+         cRot3dF(const cMatF<Type> & aMat) :
+              mIJK     (aMat)
+         {
+         }
+
+         cRot3dF(const std::vector<Type> &  aVecObs,size_t aK0Obs) :
+             cRot3dF<Type>(cMatF<Type>(3,3,aVecObs,aK0Obs))
+         {
+         }
+
+         cRot3dF(const std::vector<Type> &  aVecUk,size_t aK0Uk,const std::vector<Type> &  aVecObs,size_t aK0Obs) :
+             cRot3dF<Type> (cMatF<Type>(3,3,aVecObs,aK0Obs)  *  cMatF<Type>::MatAxiator(-VtoP3(aVecUk,aK0Uk)))
+         {
+         }
+
+         tPt   Value(const tPt & aPt) const  {return mIJK*aPt;}
+
+         cRot3dF<Type> Inverse() const {return cRot3dF<Type>( mIJK.Transpose());}
+
+         cRot3dF<Type> operator * (const cRot3dF<Type> & aP2) const
+         {
+             const cRot3dF<Type> & aP1 = *this;
+             return cRot3dF<Type> (aP1.mIJK * aP2.mIJK);
+         }
+
+
+         cRot3dF<Type>  PoseRel(const cRot3dF<Type> & aP2) const
+         {
+             return Inverse() * aP2;
+         }
+
+         cMatF<Type>    mIJK;
+
+};
+
+
+
 /** this class represent a Pose on  forumla (or real if necessary)
  *    It contains a Center and the rotation Matrix IJK
  */
+
+
 template <class Type> class cPoseF
 {
      public :
          typedef cPtxd<Type,3>      tPt;
+         typedef cRot3dF<Type>      tRot;
+
+        cPoseF(const cPtxd<Type,3> & aCenter,const tRot & aRot) :
+             mCenter  (aCenter),
+             mRot     (aRot)
+        {
+        }
 
         cPoseF(const cPtxd<Type,3> & aCenter,const cMatF<Type> & aMat) :
-             mCenter  (aCenter),
-             mIJK     (aMat)
+            cPoseF(aCenter,tRot(aMat))
         {
         }
 
 
         ///  With Axiator means we add some unknowns
         cPoseF(const std::vector<Type> &  aVecUk,size_t aK0Uk,const std::vector<Type> &  aVecObs,size_t aK0Obs,bool WithAxiator) :
-            cPoseF<Type>
-            (
-                 VtoP3(aVecUk,aK0Uk),
-             //  The matrix is Current matrix *  Axiator(-W) , the "-" in omega comming from initial convention
-             //  See  cPoseWithUK::OnUpdate()  &&  cEqColinearityCamPPC::formula
-                 (WithAxiator                                                                              ?  
-                      cMatF<Type>(3,3,aVecObs,aK0Obs)  *  cMatF<Type>::MatAxiator(-VtoP3(aVecUk,aK0Uk+3))  :
-                      cMatF<Type>(3,3,aVecObs,aK0Obs)
-                 )
-            )
+            mCenter (VtoP3(aVecUk,aK0Uk)),
+            mRot( WithAxiator   ?    tRot(aVecUk,aK0Uk+3,aVecObs,aK0Obs) :  tRot(aVecObs,aK0Obs) )
         {
         }
+        tPt   Value(const tPt & aPt) const  {return mCenter + mRot.Value(aPt);}
 
-        tPt   Value(const tPt & aPt) const  {return mCenter + mIJK*aPt;}
-        // Work as M tM = Id
+        const cMatF<Type> &    IJK() const {return mRot.mIJK;}
 
         /// A pose being considered a the, isometric, mapinc X->Tr+R*X, return pose corresponding to inverse mapping
+        ///       Work as M tM = Id
         cPoseF<Type> Inverse() const
         {
              //  PA-1 =  {-tRA CA ; tRA}
-             cMatF<Type> aMatInv = mIJK.Transpose();
-             return cPoseF<Type>(- (aMatInv* mCenter),aMatInv);
+             tRot   aRInv = mRot.Inverse();
+             return cPoseF<Type>(- aRInv.Value(mCenter),aRInv);
         }
 
         //   MatA = M0A * WA                   MatB = M0B * WB
@@ -390,8 +433,8 @@ template <class Type> class cPoseF
              //   {CA;RA}* {CB;RB} = {CA+RA*CB ; RA*RB}
             return cPoseF<Type>
                    (
-                        aP1.mCenter + aP1.mIJK*aP2.mCenter,
-                        aP1.mIJK * aP2.mIJK
+                        aP1.mCenter + aP1.mRot.Value(aP2.mCenter),
+                        aP1.mRot * aP2.mRot
                    );
         }
 
@@ -401,10 +444,37 @@ template <class Type> class cPoseF
             return Inverse() * aP2;
         }
 
-        cPtxd<Type,3>  mCenter;
-        cMatF<Type>    mIJK;
+
+        tPt   mCenter;
+        tRot  mRot;
 };
 
+
+template <class Type> class cP3dNorm
+{
+     public :
+         typedef cPtxd<Type,3>      tPt3;
+         typedef cPtxd<Type,2>      tPt2;
+
+         cP3dNorm(const std::vector<Type> &  aVecUk,size_t aK0Uk,const std::vector<Type> &  aVecObs,size_t aK0Obs) :
+             mPNorm (VtoP3(aVecObs,aK0Obs)),
+             mU     (VtoP3(aVecObs,aK0Obs+3)),
+             mV     (VtoP3(aVecObs,aK0Obs+6)),
+             mDuDv  (VtoP2(aVecUk,aK0Uk))
+         {
+         }
+
+         tPt3  CurPt() const
+         {
+              return mPNorm + mDuDv.x()*mU +  mDuDv.y() * mV;
+          }
+
+         tPt3  mPNorm;  //< Current PNorm, obs
+         tPt3  mU;      //< First vector orthog 2 PN, obs
+         tPt3  mV;      //< Second vector orthog 2 PN, obs
+         tPt2  mDuDv;   //< Unown coeff on U & V
+
+};
 
 
 

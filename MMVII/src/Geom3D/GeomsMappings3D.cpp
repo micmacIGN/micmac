@@ -309,6 +309,7 @@ template <class Type> cRotation3D<Type>  cRotation3D<Type>::CompleteRON(const tP
 template <class Type> cRotation3D<Type>  cRotation3D<Type>::RotFromAxiator(const tPt & anAxe)
 {
      Type aNorm = Norm2(anAxe);
+     // if too small, normalisation would be unstable and approximation by MatProdVect will be enough accurate
      if (aNorm<1e-5)
      {
          cDenseMatrix<Type>  aMW =  cDenseMatrix<Type>::Identity(3) + MatProdVect(anAxe);

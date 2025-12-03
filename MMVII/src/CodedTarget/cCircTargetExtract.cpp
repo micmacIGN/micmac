@@ -122,16 +122,17 @@ void cCircTargExtr::RefinePosBySym(tREAL8 aStepLim,const tDIm & aDIm ,const cDif
      for (const auto & aTeta : aVTeta)
      {
           cPt2dr aPOnEl = mEllipse.PtOfTeta(aTeta);
-	  cPt2dr aNorm = VUnit(mEllipse.NormalInt(aPOnEl));
+          cPt2dr aNorm = VUnit(mEllipse.NormalInt(aPOnEl));
 
-	  for (int aKRad=0 ; aKRad<=aNbRad ; aKRad++)
-	  {
+          for (int aKRad=0 ; aKRad<=aNbRad ; aKRad++)
+          {
                tREAL8 aRad = -aIntervRad + aKRad * aStepRad;
 
-	       cPt2dr aPt = aPOnEl + aNorm * aRad;
+               cPt2dr aPt = aPOnEl + aNorm * aRad;
                aOptim.AddPts(aPt);
-	  }
+         }
      }
+     // StdOut() << "OOOOOo " << aOptim.PtsOpt().size() << "\n";
 
      aOptim.IterLeastSqGrad(aStepLim,5);
      mEllipse = cEllipse(aOptim.C0(),mEllipse.TetaGa(),mEllipse.LGa(),mEllipse.LSa());
