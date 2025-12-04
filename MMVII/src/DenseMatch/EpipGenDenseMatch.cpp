@@ -740,7 +740,7 @@ cAppli::cAppli
    mDoClip     (true),
    mDoMatch    (true),
    mDoPurge    (true),
-   mDoCorrel   (true),
+   mDoCorrel   (false),
     mSpecGpu    (-1)
 {
 }
@@ -1160,7 +1160,7 @@ int cAppli::Exe()
      }*/
 
    // Create Masq Enveloppe Convexe
-   std::list<cParamCallSys> aComMasqs;
+   /*std::list<cParamCallSys> aComMasqs;
    for (auto & aIm: mIms)
      {
        int aMin=0;
@@ -1173,12 +1173,6 @@ int cAppli::Exe()
          }
 
         std::string aImName=aIm->LevAt(0).NameImOrMasq(true);
-
-        /*std::string aCom = "mm3d MasqMaker" + BLANK +
-                aImName         + BLANK +
-                ToStr(aMin)     + BLANK +
-                ToStr(aMax);*/
-
         cParamCallSys aCom(
               cMMVII_Appli::MMV1Bin(),
               "MasqMaker",
@@ -1191,7 +1185,7 @@ int cAppli::Exe()
 
      }
 
-   ExeComParal(aComMasqs);
+   ExeComParal(aComMasqs);*/
    // Compute pyramid of images
    MakePyramid();
 
