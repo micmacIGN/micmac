@@ -1,0 +1,88 @@
+FROM mambaorg/micromamba:2.4.0-cuda11.8.0-ubuntu22.04
+
+USER root
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+ENV http_proxy 'http://proxy.ign.fr:3128/'
+ENV https_proxy 'https://proxy.ign.fr:3128/'
+# Set the working directory
+ENV foo /etc/opt/
+WORKDIR ${foo}   
+
+
+#MicMac dependencies
+RUN apt-get update && apt-get install -y \
+		    build-essential \
+		    make \
+                    cmake \ 
+                    git \
+		    python3-pip \
+                    proj-bin \
+		    exiv2 \
+                    exiftool \
+                    imagemagick \
+		    libboost-all-dev \
+		    xorg \
+                libx11-dev \
+		    wget
+
+
+RUN git config --global http.proxy 'http://proxy.ign.fr:3128/'
+RUN git config --global https.proxy 'https://proxy.ign.fr:3128/'
+# clone micmac_SimLearning 
+RUN git clone -b mac_pdal https://github.com/DaliCHEBBI/micmac_SimLearning.git
+
+
+#ADD ./ ${foo}/micmac_SimLearning
+
+#MicMac build & compile
+WORKDIR micmac_SimLearning
+
+RUN mkdir build
+
+WORKDIR build
+
+RUN cmake ../ && make install -j8
+
+
+# MMVII build & compile 
+WORKDIR ${foo}
+
+# copy libtorch library to /etc/opt/micmac_SimLearning/MMVII/libtorch 
+ADD ./libtorch ${foo}/micmac_SimLearning/MMVII/libtorch
+
+RUN ls /etc/opt/micmac_SimLearning/MMVII/
+
+WORKDIR ${foo}
+
+RUN apt install -y pkg-config libproj-dev libpdal-dev libgdal-dev libxerces-c-dev
+
+RUN  cd micmac_SimLearning/MMVII && \
+      mkdir build && cd build && \
+      cmake ../ -DMMVII_KEEP_LIBRARY_MMV1=on && \
+      make  full -j 8
+
+# simlearner3d repository build
+WORKDIR ${foo}
+
+RUN git clone https://github.com/DaliCHEBBI/simlearner3d.git
+
+#ADD ./ ${foo}/simlearner3d
+
+WORKDIR simlearner3d
+
+# install torch inference requirements
+RUN set http_proxy=http://proxy.ign.fr:3128
+RUN  https_proxy=http://proxy.ign.fr:3128
+
+
+RUN micromamba config --set proxy_servers.http http://proxy.ign.fr:3128
+RUN micromamba config --set proxy_servers.https http://proxy.ign.fr:3128
+
+
+RUN micromamba env create -n simlearner3d -f environment.yml
+
+#MicMac add environmental variable to executables
+ENV PATH=${foo}micmac/bin:${foo}micmac/MMVII/bin:${PATH}
+RUN echo ${foo}micmac/bin:${foo}micmac/MMVII/bin:${PATH}
