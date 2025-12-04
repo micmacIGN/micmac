@@ -295,8 +295,10 @@ int cAppliEpipDMEval::ExeOnParsedBox()
 
    StdOut() << "======== ONEBOX =================" << std::endl;
    mImPx1 = APBI_ReadIm<tREAL4>(mNamePx1);
-
+   StdOut() << "======== ONEBOX ===== "<<CurBoxInLoc()<<"CUR BOX In "<<CurBoxIn()<< std::endl;
    mBoxWOk = CurBoxInLoc().Dilate(-mSzW); // Box of pix with window include => erosion of cur box
+
+   StdOut() << "======== BOX OK ===== "<<mBoxWOk<< std::endl;
    mImMasq1 = ReadMasqWithDef(CurBoxIn(),mNameMasq1);
 
    MakeImRectified();
