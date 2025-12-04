@@ -269,9 +269,7 @@ void cAppliEpipDMEval::MakeImRectified()
    int aPxMin,aPxMax;
    BornesFonc (aPxMin,aPxMax,mImPx1,&mImMasq1,mNbDecimPx,mPropIntervPx,1.0);
    cBox2di aBoxPx = DilateFromIntervPx(CurBoxIn(),aPxMin,aPxMax);
-   StdOut()<<"abox pax  "<<aBoxPx<<std::endl;
    aBoxPx = aBoxPx.Inter(DFI2d()); // Must be include in file im2
-   StdOut()<<"abox pax intersection with image 2 "<<aBoxPx<<std::endl;
 
    tImAPBI  aIm2Init   = tImAPBI::FromFile(mNameIm2,aBoxPx);
    tImMasq  aMasq2Init = ReadMasqWithDef(aBoxPx,mNameMasq2);
@@ -281,6 +279,7 @@ void cAppliEpipDMEval::MakeImRectified()
    {
        double aX2 = aPix1.x() + mImPx1.DIm().GetV(aPix1) - aDecPx;
        cPt2dr aPix2(aX2 , aPix1.y());
+       StdOut()<<"aPIX2 "<<aPix2<<std::endl;
        bool  Ok = aMasq2Init.DIm().DefGetVBL(aPix2,0) > 0.99;
        if (Ok)
        {
