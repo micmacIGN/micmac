@@ -269,7 +269,9 @@ void cAppliEpipDMEval::MakeImRectified()
    int aPxMin,aPxMax;
    BornesFonc (aPxMin,aPxMax,mImPx1,&mImMasq1,mNbDecimPx,mPropIntervPx,1.0);
    cBox2di aBoxPx = DilateFromIntervPx(CurBoxIn(),aPxMin,aPxMax);
+   StdOut()<<"abox pax  "<<aBoxPx<<std::endl;
    aBoxPx = aBoxPx.Inter(DFI2d()); // Must be include in file im2
+   StdOut()<<"abox pax intersection with image 2 "<<aBoxPx<<std::endl;
 
    tImAPBI  aIm2Init   = tImAPBI::FromFile(mNameIm2,aBoxPx);
    tImMasq  aMasq2Init = ReadMasqWithDef(aBoxPx,mNameMasq2);
@@ -300,8 +302,10 @@ int cAppliEpipDMEval::ExeOnParsedBox()
 
    StdOut() << "======== BOX OK ===== "<<mBoxWOk<< std::endl;
    mImMasq1 = ReadMasqWithDef(CurBoxIn(),mNameMasq1);
-
+   StdOut() << "======== MASQ CREATED ===== "<<mBoxWOk<< std::endl;
+   StdOut() << "======== RECTFI===== "<<mBoxWOk<< std::endl;
    MakeImRectified();
+   StdOut() << "======== RECTFIED===== "<<mBoxWOk<< std::endl;
 
    if (IsInit(&mMasqHidden_Name))
       MakeHidden();
