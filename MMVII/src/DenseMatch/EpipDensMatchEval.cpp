@@ -262,8 +262,8 @@ double   cAppliEpipDMEval::ReliabilityByRank(const cPt2di & aP1) const
 
 void cAppliEpipDMEval::MakeImRectified() 
 {
-   mIm2Rect.DIm().Resize(CurSzIn());
-   mMasq2Redr.DIm().Resize(CurSzIn());
+   mIm2Rect.DIm().Resize(CurSzIn(),eModeInitImage::eMIA_Null);
+   mMasq2Redr.DIm().Resize(CurSzIn(),eModeInitImage::eMIA_Null);
 
    // Compute interval of Px and then box of Im2
    int aPxMin,aPxMax;
@@ -271,21 +271,24 @@ void cAppliEpipDMEval::MakeImRectified()
    cBox2di aBoxPx = DilateFromIntervPx(CurBoxIn(),aPxMin,aPxMax);
    aBoxPx = aBoxPx.Inter(DFI2d()); // Must be include in file im2
 
-   tImAPBI  aIm2Init   = tImAPBI::FromFile(mNameIm2,aBoxPx);
-   tImMasq  aMasq2Init = ReadMasqWithDef(aBoxPx,mNameMasq2);
-   int  aDecPx = aBoxPx.P0().x() - CurBoxIn().P0().x();  // X2-X1  => X2 = X1 + aDecPx
-
-   for (const auto & aPix1 : mIm2Rect.DIm())
+   if ( (aBoxPx.Sz().x()>0) && (aBoxPx.Sz().y()>0))
    {
-       double aX2 = aPix1.x() + mImPx1.DIm().GetV(aPix1) - aDecPx;
-       cPt2dr aPix2(aX2 , aPix1.y());
-       StdOut()<<"aPIX2 "<<aPix2<<std::endl;
-       bool  Ok = aMasq2Init.DIm().DefGetVBL(aPix2,0) > 0.99;
-       if (Ok)
+       tImAPBI  aIm2Init   = tImAPBI::FromFile(mNameIm2,aBoxPx);
+       tImMasq  aMasq2Init = ReadMasqWithDef(aBoxPx,mNameMasq2);
+
+       int  aDecPx = aBoxPx.P0().x() - CurBoxIn().P0().x();  // X2-X1  => X2 = X1 + aDecPx
+
+       for (const auto & aPix1 : mIm2Rect.DIm())
        {
-           mIm2Rect.DIm().SetV(aPix1,aIm2Init.DIm().GetVBL(aPix2));
+           double aX2 = aPix1.x() + mImPx1.DIm().GetV(aPix1) - aDecPx;
+           cPt2dr aPix2(aX2 , aPix1.y());
+           bool  Ok = aMasq2Init.DIm().DefGetVBL(aPix2,0) > 0.99;
+           if (Ok)
+           {
+               mIm2Rect.DIm().SetV(aPix1,aIm2Init.DIm().GetVBL(aPix2));
+           }
+           mMasq2Redr.DIm().SetV(aPix1,Ok);
        }
-       mMasq2Redr.DIm().SetV(aPix1,Ok);
    }
 }
 
@@ -296,15 +299,10 @@ int cAppliEpipDMEval::ExeOnParsedBox()
 
    StdOut() << "======== ONEBOX =================" << std::endl;
    mImPx1 = APBI_ReadIm<tREAL4>(mNamePx1);
-   StdOut() << "======== ONEBOX ===== "<<CurBoxInLoc()<<"CUR BOX In "<<CurBoxIn()<< std::endl;
    mBoxWOk = CurBoxInLoc().Dilate(-mSzW); // Box of pix with window include => erosion of cur box
-
-   StdOut() << "======== BOX OK ===== "<<mBoxWOk<< std::endl;
    mImMasq1 = ReadMasqWithDef(CurBoxIn(),mNameMasq1);
-   StdOut() << "======== MASQ CREATED ===== "<<mBoxWOk<< std::endl;
-   StdOut() << "======== RECTFI===== "<<mBoxWOk<< std::endl;
+
    MakeImRectified();
-   StdOut() << "======== RECTFIED===== "<<mBoxWOk<< std::endl;
 
    if (IsInit(&mMasqHidden_Name))
       MakeHidden();

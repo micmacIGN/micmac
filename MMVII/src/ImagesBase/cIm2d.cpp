@@ -392,7 +392,6 @@ template<class TypeEl> void  cAppliParseBoxIm<TypeEl>::APBI_ExecAll()
      std::list<cParamCallSys>  aLComParal;
      for (const auto & aPixI : aPBIO.BoxIndex())
      {
-         StdOut()<<"abox index "<<aPixI<<std::endl;
          // if a the top level of paralelization, construct the string 
          // For first box, run it classically so that files are created only once
          if (TopCallParallTile() && (aPixI!=cPt2di(0,0)))
