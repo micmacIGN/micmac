@@ -1225,8 +1225,8 @@ int cAppli::Exe()
               "NbProc=6"
               //"@ExitOnBrkp"
            );
-       StdOut()<<"Correlation command: -> "<<aCom.Com()<<std::endl;
-        ExtSysCall(aCom,false);
+        StdOut()<<"Correlation command: -> "<<aCom.Com()<<std::endl;
+        ExeComSerial({aCom},true);
      }
    // Save Output MMLastNuage.xml
     cOneLevel & aLastLevel = Im1().LevAt(0);
