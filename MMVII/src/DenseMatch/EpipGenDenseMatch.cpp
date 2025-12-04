@@ -1222,7 +1222,7 @@ int cAppli::Exe()
               "Masq2="+Im2().LevAt(0).NameImOrMasq(false),
               "ImCorrel="+mOutDir+NameCorrel,
               "HiddenMask="+mOutDir+NameMasq,
-              "NbProc=1"
+              "NbProc=6"
               //"@ExitOnBrkp"
            );
        StdOut()<<"Correlation command: -> "<<aCom.Com()<<std::endl;
