@@ -56,7 +56,10 @@ public:
     float LineToLocalPhiApprox(float aLine) const;
     float LocalThetaToColApprox(float aTheta) const;
     float LocalPhiToLineApprox(float aPhi) const;
-    cPt2dr Instr3DtoRaster(const cPt3dr & aPt3DInstr) const;
+    void ComputeAgregatedAngles();
+    float LocalPhiToLinePrecise(float aPhi) const;
+    float LocalThetaToColPrecise(float aTheta) const;
+    cPt2dr Instr3DtoRasterAngle(const cPt3dr & aPt3DInstr) const;
 
     // line and col for each point
     std::vector<int> mVectPtsLine;
@@ -65,6 +68,11 @@ public:
     std::vector<cPt3dr> mVectPtsXYZ;
     std::vector<tREAL8> mVectPtsIntens;
     std::vector<cPt3dr> mVectPtsTPD;
+
+    // agregated angles per col/line
+    std::vector<tREAL8> mVectPhisCol;
+    std::vector<tREAL8> mVectThetasLine;
+
 protected:
     // data
     bool mHasCartesian; //< in original read data

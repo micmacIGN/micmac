@@ -388,8 +388,81 @@ float cStaticLidarImporter::LocalPhiToLineApprox(float aPhi) const
     return (aPhi - mPhiStart) / mPhiStep;
 }
 
-cPt2dr cStaticLidarImporter::Instr3DtoRaster(const cPt3dr &aPt3DInstr) const
+void cStaticLidarImporter::ComputeAgregatedAngles()
 {
+    mVectPhisCol.resize(mMaxLine, 0.);
+    mVectThetasLine.resize(mMaxCol, 0.);
+    std::vector<int> aNbMesPhisCol(mMaxLine,0);
+    std::vector<int> aNbMesThetasLine(mMaxCol,0);
+    for (size_t i=0; i<mVectPtsTPD.size(); ++i)
+    {
+        if (mVectPtsTPD[i].z()<mDistMinToExist)
+            continue;
+        mVectPhisCol[mVectPtsLine[i]] += mVectPtsTPD[i].y();
+        aNbMesPhisCol[mVectPtsLine[i]]++;
+        mVectThetasLine[mVectPtsCol[i]] += mVectPtsTPD[i].x();
+        aNbMesThetasLine[mVectPtsCol[i]]++;
+    }
+    // compute average (NAN for no data)
+    for (int i=0; i<mMaxLine; ++i)
+    {
+        mVectPhisCol[i] /= aNbMesPhisCol[i];
+    }
+    for (int i=0; i<mMaxCol; ++i)
+    {
+        mVectThetasLine[i] /= aNbMesThetasLine[i];
+    }
+}
+
+float cStaticLidarImporter::LocalPhiToLinePrecise(float aPhi) const
+{
+    MMVII_INTERNAL_ASSERT_tiny(!mVectPhisCol.empty(),"Error: run ComputeAgregatedAngles() before LocalPhiToLinePrecise()");
+
+    float aLineApprox = LocalPhiToLineApprox(aPhi);
+    if ((aLineApprox<0) || (aLineApprox>=mMaxLine))
+        return aLineApprox;
+    for (int i=0; i<5;++i)
+    {
+        int aLineBefore = (int)aLineApprox;
+        int aLineAfter = (int)aLineApprox + 1;
+        if ((aLineBefore<0) || (aLineBefore>=mMaxLine))
+            return aLineApprox;
+        if ((aLineAfter<0) || (aLineAfter>=mMaxLine))
+            return aLineApprox;
+        float aPhiBefore = mVectPhisCol[aLineBefore];
+        float aPhiAfter = mVectPhisCol[aLineAfter];
+        std::cout<<"iter "<<aLineApprox<<"\n";
+        aLineApprox = aLineBefore + (aPhi-aPhiBefore)/(aPhiAfter-aPhiBefore)*(aLineAfter-aLineBefore);
+    }
+    return aLineApprox;
+}
+
+float cStaticLidarImporter::LocalThetaToColPrecise(float aTheta) const
+{
+    MMVII_INTERNAL_ASSERT_tiny(!mVectThetasLine.empty(),"Error: run ComputeAgregatedAngles() before LocalThetaToColPrecise()");
+
+    float aColApprox = LocalThetaToColApprox(aTheta);
+    if ((aColApprox<0) || (aColApprox>=mMaxCol))
+        return aColApprox;
+    for (int i=0; i<5;++i)
+    {
+        int aColBefore = (int)aColApprox;
+        int aColAfter = (int)aColApprox + 1;
+        if ((aColBefore<0) || (aColBefore>=mMaxCol))
+            return aColApprox;
+        if ((aColAfter<0) || (aColAfter>=mMaxCol))
+            return aColApprox;
+        float aThetaBefore = mVectThetasLine[aColBefore];
+        float aThetaAfter = mVectThetasLine[aColAfter];
+        aColApprox = aColBefore + (aTheta-aThetaBefore)/(aThetaAfter-aThetaBefore)*(aColAfter-aColBefore);
+    }
+    return aColApprox;
+}
+
+
+cPt2dr cStaticLidarImporter::Instr3DtoRasterAngle(const cPt3dr &aPt3DInstr) const
+{
+    std::cout<<"Instr3DtoRaster: "<<aPt3DInstr<<"\n";
     std::cout<<"RotInstr2Raster:\n"<<RotInstr2Raster().AxeI()<<"\n"
               <<RotInstr2Raster().AxeJ()<<"\n"<<RotInstr2Raster().AxeK()<<std::endl;
     cPt3dr aPt3DInstrNorm = aPt3DInstr/Norm2(aPt3DInstr);
@@ -397,12 +470,15 @@ cPt2dr cStaticLidarImporter::Instr3DtoRaster(const cPt3dr &aPt3DInstr) const
     cPt2dr aP2d_approx;
     cProj_EquiRect aProjEquiRect(M_PI);
     auto aThetaPhi = cPt2dr::FromStdVector(aProjEquiRect.Proj(aPt3DRaster.ToStdVector()));
-    aP2d_approx.x() = LocalThetaToColApprox(aThetaPhi.x());
+    return aThetaPhi;
+}
+/*    aP2d_approx.x() = LocalThetaToColApprox(aThetaPhi.x());
     aP2d_approx.y() = LocalPhiToLineApprox(aThetaPhi.y());
     //TODO: iterative search around aP2d_approx in X/Z and Y/Z rasters
     cPt2dr aP2d = aP2d_approx;
+    std::cout<<"  => "<<aThetaPhi<<"  => "<<aP2d<<"\n";
     return aP2d;
-}
+}*/
 
 
 cStaticLidar::cStaticLidar(const std::string & aNameFile, const std::string & aStationName,

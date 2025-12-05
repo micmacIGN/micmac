@@ -706,13 +706,20 @@ int cAppli_ImportStaticScan::Exe()
 
     // compute transfo from scan instrument frame to sensor frame
     mSL_importer.ComputeRotInstr2Raster(mTransfoIJK);
+    mSL_importer.ComputeAgregatedAngles();
 
     // create sensor from imported data
     std::string aScanName = "Scan-" + mStationName + "-" + mScanName;
     // find PP: image of the (0z) axis
-    cPt2dr aPP = mSL_importer.Instr3DtoRaster({1.,0.,0.}); // axis 1,0,0 in scanner frame will be 0,0,1 in raster frame
+    cPt2dr aEquatorAngles = mSL_importer.Instr3DtoRasterAngle({1.,0.,0.}); // axis 1,0,0 in intrument frame, just to get equator vertical angle
+    std::cout<< aEquatorAngles.y()<<" approx "
+             << mSL_importer.LocalPhiToLineApprox(aEquatorAngles.y())
+              <<" precise "
+              << mSL_importer.LocalPhiToLinePrecise(aEquatorAngles.y()) <<"\n";
+
+    cPt2dr aPP(mSL_importer.MaxCol()/2., mSL_importer.LocalPhiToLineApprox(aEquatorAngles.y()));
     //find F: scale from angle to pixels
-    tREAL8 aF = 1./fabs(mSL_importer.mPhiStep);
+    tREAL8 aF = 1./fabs(mSL_importer.mPhiStep); //TODO: add polynomial disto for different angular steps
     cPerspCamIntrCalib* aCalib =
         cPerspCamIntrCalib::SimpleCalib(aScanName + "_Calib", eProjPC::eEquiRect,
                                         cPt2di(mSL_importer.MaxCol(), mSL_importer.MaxLine()),
