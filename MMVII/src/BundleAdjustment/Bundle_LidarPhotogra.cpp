@@ -1,6 +1,5 @@
 #include "BundleAdjustment.h"
 #include "MMVII_Interpolators.h"
-#include "MMVII_2Include_Tiling.h"
 #include "MMVII_Tpl_Images.h"
 
 namespace MMVII
@@ -122,7 +121,7 @@ cBA_LidarPhotograRaster::cBA_LidarPhotograRaster(cPhotogrammetricProject * aPhPr
 {
     //read all xml files from directory?
     mPhProj->DPStaticLidar().SetDirIn(aParam.at(1));
-    std::string aPat2Sup =  "Scan-(.*)-(.*)\\." + GlobTaggedNameDefSerial()  ;
+    std::string aPat2Sup =  cStaticLidar::ScanPrefixName() + "(.*)-(.*)\\." + GlobTaggedNameDefSerial()  ;
     std::string aFullPat2Sup = mPhProj->DPStaticLidar().FullDirIn() + aPat2Sup;
     tNameSet aSet = SetNameFromPat(aFullPat2Sup);
     std::vector<std::string> aVect = ToVect(aSet);
@@ -141,7 +140,7 @@ cBA_LidarPhotograRaster::cBA_LidarPhotograRaster(cPhotogrammetricProject * aPhPr
     // Creation of the patches, choose a neigborhood around patch centers. TODO: adapt to images ground pixels size?
     if (mModeSim==eImatchCrit::eDifRad)
         mNbPointByPatch = 1;
-    //mLidarData->MakePatches(mLPatchesP,mVCam,mNbPointByPatch,5); //TODO!!
+    mLidarData->MakePatches(mLPatchesP,mVCam,mNbPointByPatch,5);
     StdOut() << "Nb patches: " << mLPatchesP.size() << "\n";
 }
 

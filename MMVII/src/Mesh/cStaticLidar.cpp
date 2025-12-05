@@ -46,8 +46,8 @@ tREAL8 toMinusPiPlusPi(tREAL8 aAng, tREAL8 aOffset)
 cStaticLidarImporter::cStaticLidarImporter() :
     mNoMiss(false), mIsStrucured(false),
     mReadPose(tPoseR::Identity()), mDistMinToExist(1e-5),
-    mMaxCol            (0),
-    mMaxLine           (0),
+    mNbCol            (0),
+    mNbLine           (0),
     mThetaStart        (NAN),
     mThetaStep         (NAN),
     mPhiStart          (NAN),
@@ -157,19 +157,19 @@ void cStaticLidarImporter::readE57Points(std::string aE57FileName)
         if (mHasRowCol){
             mVectPtsLine.resize(cNumRead);
             mVectPtsCol.resize(cNumRead);
-            mMaxLine = 0;
+            mNbLine = 0;
             for (uint64_t i=0;i<cNumRead;++i)
             {
                 mVectPtsLine[i] = pointsData.rowIndex[i];
-                if (pointsData.rowIndex[i]>mMaxLine)
-                    mMaxLine = pointsData.rowIndex[i];
+                if (pointsData.rowIndex[i] >= mNbLine)
+                    mNbLine = pointsData.rowIndex[i] + 1;
             }
-            mMaxCol = 0;
+            mNbCol = 0;
             for (uint64_t i=0;i<cNumRead;++i)
             {
                 mVectPtsCol[i] = pointsData.columnIndex[i];
-                if (pointsData.columnIndex[i]>mMaxCol)
-                    mMaxCol = pointsData.columnIndex[i];
+                if (pointsData.columnIndex[i] >= mNbCol)
+                    mNbCol = pointsData.columnIndex[i] + 1;
             }
         }
 
@@ -201,8 +201,8 @@ void cStaticLidarImporter::readPtxPoints(std::string aPtxFileName)
         mIsStrucured = true;
         mNoMiss = false;
 
-        aPtxFile >> mMaxCol;
-        aPtxFile >> mMaxLine;
+        aPtxFile >> mNbCol;
+        aPtxFile >> mNbLine;
         tREAL8 aTx, aTy, aTz;
         aPtxFile >> aTx >> aTy >> aTz;
         tREAL8 aR11, aR12, aR13;
@@ -219,9 +219,9 @@ void cStaticLidarImporter::readPtxPoints(std::string aPtxFileName)
         aPtxFile.getline(tmp, 200);
         aPtxFile.getline(tmp, 200);
 
-        mVectPtsXYZ.resize(mMaxCol*mMaxLine);
-        mVectPtsCol.resize(mMaxCol*mMaxLine);
-        mVectPtsLine.resize(mMaxCol*mMaxLine);
+        mVectPtsXYZ.resize(mNbCol*mNbLine);
+        mVectPtsCol.resize(mNbCol*mNbLine);
+        mVectPtsLine.resize(mNbCol*mNbLine);
 
         long i =0 ;
         tREAL8 aX, aY, aZ, aI;
@@ -234,13 +234,13 @@ void cStaticLidarImporter::readPtxPoints(std::string aPtxFileName)
         {
             mHasIntensity = false;
         } else {
-            mVectPtsIntens.resize(mMaxCol*mMaxLine);
+            mVectPtsIntens.resize(mNbCol*mNbLine);
             mVectPtsIntens[i] = aI;
         }
 
-        for (long aCol = 0; aCol < mMaxCol; aCol++)
+        for (long aCol = 0; aCol < mNbCol; aCol++)
         {
-            for (long aRow = 0; aRow < mMaxLine; aRow++)
+            for (long aRow = 0; aRow < mNbLine; aRow++)
             {
                 ++i;
                 aPtxFile.getline(tmp, 200);
@@ -335,9 +335,9 @@ void cStaticLidarImporter::ComputeRotInstr2Raster(std::string aTransfoIJK)
     MMVII_INTERNAL_ASSERT_tiny(HasRowCol(),"Error: ComputeRotInstr2Raster needs row/col");
 
     cRotation3D<tREAL8> aRotFrame = cRotation3D<tREAL8>::RotFromCanonicalAxes(aTransfoIJK);
-    size_t aIndexMidColStart = mMaxLine*mMaxCol/2;
+    size_t aIndexMidColStart = mNbLine*mNbCol/2;
     tREAL8 aThetaMid = NAN;
-    for (size_t i=aIndexMidColStart; i<aIndexMidColStart+mMaxLine; ++i)
+    for (size_t i=aIndexMidColStart; i<aIndexMidColStart+mNbLine; ++i)
     {
         auto & aPtAng = mVectPtsTPD[i];
         if (aPtAng.z()<DistMinToExist())
@@ -358,6 +358,22 @@ void cStaticLidarImporter::ComputeRotInstr2Raster(std::string aTransfoIJK)
     cRotation3D<tREAL8> aRotZvert2view = cRotation3D<tREAL8>::RotFromCanonicalAxes("k-i-j");
 
     mRotInstr2Raster = aRotZvert2view * aRotHz; // TODO: use aRotFrame
+}
+
+
+bool cStaticLidarImporter::checkLineCol()
+{
+    auto [aColMinIt, aColMaxIt] = std::minmax_element(mVectPtsCol.begin(), mVectPtsCol.end());
+    auto [aLineMinIt, aLineMaxIt] = std::minmax_element(mVectPtsLine.begin(), mVectPtsLine.end());
+    bool isOk = true;
+    if ((*aColMinIt<0) || (*aColMaxIt>mNbCol-1))
+        isOk = false;
+    if ((*aLineMinIt<0) || (*aLineMaxIt>mNbLine-1))
+        isOk = false;
+    MMVII_INTERNAL_ASSERT_tiny(isOk,"Error: checkLineCol");
+    mNbCol = *aColMaxIt + 1;
+    mNbLine = *aLineMaxIt + 1;
+    return isOk;
 }
 
 
@@ -388,8 +404,81 @@ float cStaticLidarImporter::LocalPhiToLineApprox(float aPhi) const
     return (aPhi - mPhiStart) / mPhiStep;
 }
 
-cPt2dr cStaticLidarImporter::Instr3DtoRaster(const cPt3dr &aPt3DInstr) const
+void cStaticLidarImporter::ComputeAgregatedAngles()
 {
+    mVectPhisCol.resize(mNbLine, 0.);
+    mVectThetasLine.resize(mNbCol, 0.);
+    std::vector<int> aNbMesPhisCol(mNbLine,0);
+    std::vector<int> aNbMesThetasLine(mNbCol,0);
+    for (size_t i=0; i<mVectPtsTPD.size(); ++i)
+    {
+        if (mVectPtsTPD[i].z()<mDistMinToExist)
+            continue;
+        mVectPhisCol.at(mVectPtsLine[i]) += mVectPtsTPD[i].y();
+        aNbMesPhisCol.at(mVectPtsLine[i])++;
+        mVectThetasLine.at(mVectPtsCol[i]) += mVectPtsTPD[i].x();
+        aNbMesThetasLine.at(mVectPtsCol[i])++;
+    }
+    // compute average (NAN for no data)
+    for (int i=0; i<mNbLine; ++i)
+    {
+        mVectPhisCol[i] /= aNbMesPhisCol[i];
+    }
+    for (int i=0; i<mNbCol; ++i)
+    {
+        mVectThetasLine[i] /= aNbMesThetasLine[i];
+    }
+}
+
+float cStaticLidarImporter::LocalPhiToLinePrecise(float aPhi) const
+{
+    MMVII_INTERNAL_ASSERT_tiny(!mVectPhisCol.empty(),"Error: run ComputeAgregatedAngles() before LocalPhiToLinePrecise()");
+
+    float aLineApprox = LocalPhiToLineApprox(aPhi);
+    if ((aLineApprox<0) || (aLineApprox>=mNbLine))
+        return aLineApprox;
+    for (int i=0; i<5;++i)
+    {
+        int aLineBefore = (int)aLineApprox;
+        int aLineAfter = (int)aLineApprox + 1;
+        if ((aLineBefore<0) || (aLineBefore>=mNbLine))
+            return aLineApprox;
+        if ((aLineAfter<0) || (aLineAfter>=mNbLine))
+            return aLineApprox;
+        float aPhiBefore = mVectPhisCol[aLineBefore];
+        float aPhiAfter = mVectPhisCol[aLineAfter];
+        std::cout<<"iter "<<aLineApprox<<"\n";
+        aLineApprox = aLineBefore + (aPhi-aPhiBefore)/(aPhiAfter-aPhiBefore)*(aLineAfter-aLineBefore);
+    }
+    return aLineApprox;
+}
+
+float cStaticLidarImporter::LocalThetaToColPrecise(float aTheta) const
+{
+    MMVII_INTERNAL_ASSERT_tiny(!mVectThetasLine.empty(),"Error: run ComputeAgregatedAngles() before LocalThetaToColPrecise()");
+
+    float aColApprox = LocalThetaToColApprox(aTheta);
+    if ((aColApprox<0) || (aColApprox>=mNbCol))
+        return aColApprox;
+    for (int i=0; i<5;++i)
+    {
+        int aColBefore = (int)aColApprox;
+        int aColAfter = (int)aColApprox + 1;
+        if ((aColBefore<0) || (aColBefore>=mNbCol))
+            return aColApprox;
+        if ((aColAfter<0) || (aColAfter>=mNbCol))
+            return aColApprox;
+        float aThetaBefore = mVectThetasLine[aColBefore];
+        float aThetaAfter = mVectThetasLine[aColAfter];
+        aColApprox = aColBefore + (aTheta-aThetaBefore)/(aThetaAfter-aThetaBefore)*(aColAfter-aColBefore);
+    }
+    return aColApprox;
+}
+
+
+cPt2dr cStaticLidarImporter::Instr3DtoRasterAngle(const cPt3dr &aPt3DInstr) const
+{
+    std::cout<<"Instr3DtoRaster: "<<aPt3DInstr<<"\n";
     std::cout<<"RotInstr2Raster:\n"<<RotInstr2Raster().AxeI()<<"\n"
               <<RotInstr2Raster().AxeJ()<<"\n"<<RotInstr2Raster().AxeK()<<std::endl;
     cPt3dr aPt3DInstrNorm = aPt3DInstr/Norm2(aPt3DInstr);
@@ -397,12 +486,15 @@ cPt2dr cStaticLidarImporter::Instr3DtoRaster(const cPt3dr &aPt3DInstr) const
     cPt2dr aP2d_approx;
     cProj_EquiRect aProjEquiRect(M_PI);
     auto aThetaPhi = cPt2dr::FromStdVector(aProjEquiRect.Proj(aPt3DRaster.ToStdVector()));
-    aP2d_approx.x() = LocalThetaToColApprox(aThetaPhi.x());
+    return aThetaPhi;
+}
+/*    aP2d_approx.x() = LocalThetaToColApprox(aThetaPhi.x());
     aP2d_approx.y() = LocalPhiToLineApprox(aThetaPhi.y());
     //TODO: iterative search around aP2d_approx in X/Z and Y/Z rasters
     cPt2dr aP2d = aP2d_approx;
+    std::cout<<"  => "<<aThetaPhi<<"  => "<<aP2d<<"\n";
     return aP2d;
-}
+}*/
 
 
 cStaticLidar::cStaticLidar(const std::string & aNameFile, const std::string & aStationName,
@@ -516,7 +608,7 @@ template <typename TYPE> void cStaticLidar::fillRaster(const cStaticLidarImporte
 {
     MMVII_INTERNAL_ASSERT_tiny(aSL_importer.mVectPtsCol.size()==aSL_importer.mVectPtsXYZ.size(), "Error: Compute line/col numbers before fill raster");
 
-    aIm.reset(new cIm2D<TYPE>(cPt2di(aSL_importer.MaxCol()+1, aSL_importer.MaxLine()+1), 0, eModeInitImage::eMIA_Null));
+    aIm.reset(new cIm2D<TYPE>(cPt2di(aSL_importer.NbCol()+1, aSL_importer.NbLine()+1), 0, eModeInitImage::eMIA_Null));
     auto & aRasterData = aIm->DIm();
     for (size_t i=0; i<aSL_importer.mVectPtsTPD.size(); ++i)
     {
@@ -580,7 +672,7 @@ void cStaticLidar::fillRasters(const cStaticLidarImporter & aSL_importer, const 
                           return aPtAng.y()-aPhiLine;
                       }, saveRasters );
 
-    mRasterScore.reset(new cIm2D<tREAL4>(cPt2di(aSL_importer.MaxCol()+1, aSL_importer.MaxLine()+1), 0, eModeInitImage::eMIA_Null));
+    mRasterScore.reset(new cIm2D<tREAL4>(cPt2di(aSL_importer.NbCol()+1, aSL_importer.NbLine()+1), 0, eModeInitImage::eMIA_Null));
 }
 
 void cStaticLidar::FilterIntensity(const cStaticLidarImporter &aSL_importer, tREAL8 aLowest, tREAL8 aHighest)
@@ -608,9 +700,9 @@ void cStaticLidar::FilterIncidence(const cStaticLidarImporter &aSL_importer, tRE
     auto & aRasterScoreData = mRasterScore->DIm();
 
     // TODO: use im.InitCste()
-    cIm2D<tREAL4> aImDistGrX(cPt2di(aSL_importer.MaxCol()+1, aSL_importer.MaxLine()+1), 0, eModeInitImage::eMIA_Null);
+    cIm2D<tREAL4> aImDistGrX(cPt2di(aSL_importer.NbCol()+1, aSL_importer.NbLine()+1), 0, eModeInitImage::eMIA_Null);
     auto & aImDistGrXData = aImDistGrX.DIm();
-    cIm2D<tREAL4> aImDistGrY(cPt2di(aSL_importer.MaxCol()+1, aSL_importer.MaxLine()+1), 0, eModeInitImage::eMIA_Null);
+    cIm2D<tREAL4> aImDistGrY(cPt2di(aSL_importer.NbCol()+1, aSL_importer.NbLine()+1), 0, eModeInitImage::eMIA_Null);
     auto & aImDistGrYData = aImDistGrY.DIm();
 
     tREAL4 aTanAngMax = tan(aAngMax);
@@ -630,12 +722,12 @@ void cStaticLidar::FilterIncidence(const cStaticLidarImporter &aSL_importer, tRE
 
     cImGrad<tREAL4> aDistGradIm(aRasterDistGauss);
     ComputeSobel<tREAL4,tREAL4>(*aDistGradIm.mDGx, *aDistGradIm.mDGy, aRasterDistGaussData);
-    for (int l = 0 ; l <= aSL_importer.MaxLine(); ++l)
+    for (int l = 0 ; l <= aSL_importer.NbLine(); ++l)
     {
         //tREAL4 phi = lToPhiApprox(l, aSL_importer.PhiStart(), aSL_importer.PhiStep());
         tREAL4 phi = InternalCalib()->DirBundle({0.,(double)l}).y();
         tREAL4 aStepThetaFix = aSL_importer.ThetaStep()*cos(phi);
-        for (int c = 0 ; c <= aSL_importer.MaxCol(); ++c)
+        for (int c = 0 ; c <= aSL_importer.NbCol(); ++c)
         {
             cPt2di aPt(c, l);
             tREAL4 aDist = mRasterDistance->DIm().GetV(aPt);
@@ -684,38 +776,38 @@ void cStaticLidar::MaskBuffer(const cStaticLidarImporter &aSL_importer, tREAL8 a
     StdOut() << "Computing Mask buffer..."<<std::endl;
     MMVII_INTERNAL_ASSERT_tiny(mRasterMask, "Error: mRasterMask must be computed first");
     auto & aMaskImData = mRasterMask->DIm();
-    mRasterMaskBuffer.reset( new cIm2D<tU_INT1>(cPt2di(aSL_importer.MaxCol()+1, aSL_importer.MaxLine()+1), 0, eModeInitImage::eMIA_NoInit));
+    mRasterMaskBuffer.reset( new cIm2D<tU_INT1>(cPt2di(aSL_importer.NbCol()+1, aSL_importer.NbLine()+1), 0, eModeInitImage::eMIA_NoInit));
     auto & aMaskBufImData = mRasterMaskBuffer->DIm();
 
     auto & aRasterScoreData = mRasterScore->DIm();
 
     bool aHzLoop = false;
-    if (fabs(fabs(aSL_importer.ThetaStep()) * (aSL_importer.MaxCol()+1) - 2 * M_PI) < 2 * fabs(aSL_importer.ThetaStep()))
+    if (fabs(fabs(aSL_importer.ThetaStep()) * (aSL_importer.NbCol()+1) - 2 * M_PI) < 2 * fabs(aSL_importer.ThetaStep()))
         aHzLoop = true;
 
     tREAL8 aRadPx = aAngBuffer/aSL_importer.PhiStep();
     aMaskBufImData.InitCste(255);
 
-    std::vector<bool> aLinesFull(aSL_importer.MaxLine()+1, false); // record lignes completely masked to pass them next time
+    std::vector<bool> aLinesFull(aSL_importer.NbLine()+1, false); // record lignes completely masked to pass them next time
     // int c = 100;
     // for (int l = 100; l < 2700; l += 500)
-    for (int l = 0 ; l <= aSL_importer.MaxLine(); ++l)
+    for (int l = 0 ; l <= aSL_importer.NbLine(); ++l)
     {
-        for (int c = 0 ; c <= aSL_importer.MaxCol(); ++c)
+        for (int c = 0 ; c <= aSL_importer.NbCol(); ++c)
         {
             auto aMaskVal = aMaskImData.GetV(cPt2di(c, l));
             if (aMaskVal==0)
             {
                 for (int il = l - aRadPx; il <= l + aRadPx; ++il)
                 {
-                    if ((il<0) || (il>aSL_importer.MaxLine())) continue;
+                    if ((il<0) || (il>aSL_importer.NbLine())) continue;
                     if (aLinesFull[il]) continue;
                     //tREAL8 phi = lToPhiApprox(il, aSL_importer.PhiStart(), aSL_importer.PhiStep());
                     tREAL8 phi = InternalCalib()->DirBundle({0.,(double)l}).y();
                     tREAL8 w = fabs(sqrt(aRadPx*aRadPx - (il-l)*(il-l))/cos(phi));
-                    if (w>aSL_importer.MaxCol())
+                    if (w>aSL_importer.NbCol())
                     {
-                        w=aSL_importer.MaxCol();
+                        w=aSL_importer.NbCol();
                         aLinesFull[il] = true;
                         // TODO: fill line and continue
                     }
@@ -725,11 +817,11 @@ void cStaticLidar::MaskBuffer(const cStaticLidarImporter &aSL_importer, tREAL8 a
                         if (aHzLoop)
                         {
                             if (icc<0)
-                                icc += (aSL_importer.MaxCol()+1);
-                            if (icc>aSL_importer.MaxCol())
-                                icc -= (aSL_importer.MaxCol()+1);
+                                icc += (aSL_importer.NbCol()+1);
+                            if (icc>aSL_importer.NbCol())
+                                icc -= (aSL_importer.NbCol()+1);
                         }
-                        if ((icc<0)||(icc>aSL_importer.MaxCol()))
+                        if ((icc<0)||(icc>aSL_importer.NbCol()))
                             continue;
                         aMaskBufImData.SetV(cPt2di(icc, il), 0);
                     }
@@ -737,8 +829,8 @@ void cStaticLidar::MaskBuffer(const cStaticLidarImporter &aSL_importer, tREAL8 a
             }
         }
     }
-    for (int l = 0 ; l <= aSL_importer.MaxLine(); ++l)
-        for (int c = 0 ; c <= aSL_importer.MaxCol(); ++c)
+    for (int l = 0 ; l <= aSL_importer.NbLine(); ++l)
+        for (int c = 0 ; c <= aSL_importer.NbCol(); ++c)
         {
             if (aMaskBufImData.GetV(cPt2di(c, l))==0)
                 aRasterScoreData.SetV(cPt2di(c, l), 1000.);
@@ -825,7 +917,7 @@ void cStaticLidar::SelectPatchCenters2(const cStaticLidarImporter &aSL_importer,
 
 
 void cStaticLidar::MakePatches
-    (const cStaticLidarImporter &aSL_importer, std::list<std::set<cPt2di> > &aLPatches,
+    (std::list<std::set<cPt2di> > &aLPatches,
      std::vector<cSensorCamPC *> & aVCam,
      int    aNbPointByPatch,
      int    aSzMin
@@ -872,10 +964,14 @@ void cStaticLidar::MakePatches
 
         // compute raster step to get aNbPointByPatch separated by aGndPixelSize
         tREAL4 aMeanDepth = aRasterDistData.GetV(aCenter);
-        tREAL4 aProjColFactor = 1/cos(aSL_importer.LineToLocalPhiApprox(aCenter.y()));
+
+        cPt3dr aCenterThetaPhiDist = Image2InstrThetaPhiDist(aCenter);
+        tREAL4 aThetaStep = aCenterThetaPhiDist.x() - Image2InstrThetaPhiDist(aCenter+cPt2di(1, 0)).x();
+
+        tREAL4 aProjColFactor = 1/cos(aCenterThetaPhiDist.y());
         tREAL4 aNbStepRadius = sqrt(aNbPointByPatch/M_PI) + 1;
-        tREAL4 aRasterPxGndW = fabs(aSL_importer.ThetaStep()) * aMeanDepth * aProjColFactor;
-        tREAL4 aRasterPxGndH = fabs(aSL_importer.ThetaStep()) * aMeanDepth;
+        tREAL4 aRasterPxGndW = fabs(aThetaStep) * aMeanDepth * aProjColFactor;
+        tREAL4 aRasterPxGndH = fabs(aThetaStep) * aMeanDepth;
         tREAL4 aRasterStepPixelsY = aGndPixelSize / aRasterPxGndH;
         tREAL4 aRasterStepPixelsX = aGndPixelSize / aRasterPxGndW;
         //StdOut() << "RasterStepPixels: " << aRasterStepPixelsX << " " << aRasterStepPixelsY << "\n";

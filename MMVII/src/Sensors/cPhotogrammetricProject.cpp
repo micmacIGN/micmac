@@ -1298,7 +1298,7 @@ cStaticLidar * cPhotogrammetricProject::ReadStaticLidar(const cDirsPhProj& aDP, 
 {
     aDP.AssertDirInIsInit();
     std::string aScanFileName  =  aDP.FullDirIn() + aScanName;
-    std::string aCalibFileName  =  aDP.FullDirIn() + aScanName + "_Calib";
+    std::string aCalibFileName  =  aDP.FullDirIn() + cStaticLidar::CalibPrefixName() + aScanName;
     cStaticLidar * aScan =  cStaticLidar::FromFile(aCalibFileName, aScanFileName, aDP.FullDirIn());
 
     if (ToDeleteAutom)
@@ -1308,9 +1308,6 @@ cStaticLidar * cPhotogrammetricProject::ReadStaticLidar(const cDirsPhProj& aDP, 
 
 
 //  =============  Topo Mes  =================
-
-               // TOPO
-
 
 void   cPhotogrammetricProject::SaveTopoMes(const cBA_Topo & aBATopo) const
 {

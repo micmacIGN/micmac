@@ -42,21 +42,25 @@ public:
     bool HasRowCol() const {return mHasRowCol;}
     bool NoMiss() const {return mNoMiss;}
     bool IsStructured() const {return mIsStrucured;}
-    int MaxCol() const {return mMaxCol;}
-    int MaxLine() const {return mMaxLine;}
+    int NbCol() const {return mNbCol;}
+    int NbLine() const {return mNbLine;}
     tREAL8 ThetaStart() const {return mThetaStart;}
     tREAL8 ThetaStep() const {return mThetaStep;}
     tREAL8 PhiStart() const {return mPhiStart;}
     tREAL8 PhiStep() const {return mPhiStep;}
     tREAL8 DistMinToExist() const {return mDistMinToExist;}
     tPoseR ReadPose() const { return mReadPose;}
+    bool checkLineCol(); // verify that mMaxCol/mMaxLine ar compatible with mVectPtsLine/mVectPtsCol
     const cRotation3D<tREAL8> & RotInstr2Raster() const { return mRotInstr2Raster; }
 
     float ColToLocalThetaApprox(float aCol) const;
     float LineToLocalPhiApprox(float aLine) const;
     float LocalThetaToColApprox(float aTheta) const;
     float LocalPhiToLineApprox(float aPhi) const;
-    cPt2dr Instr3DtoRaster(const cPt3dr & aPt3DInstr) const;
+    void ComputeAgregatedAngles();
+    float LocalPhiToLinePrecise(float aPhi) const;
+    float LocalThetaToColPrecise(float aTheta) const;
+    cPt2dr Instr3DtoRasterAngle(const cPt3dr & aPt3DInstr) const;
 
     // line and col for each point
     std::vector<int> mVectPtsLine;
@@ -65,6 +69,11 @@ public:
     std::vector<cPt3dr> mVectPtsXYZ;
     std::vector<tREAL8> mVectPtsIntens;
     std::vector<cPt3dr> mVectPtsTPD;
+
+    // agregated angles per col/line
+    std::vector<tREAL8> mVectPhisCol;
+    std::vector<tREAL8> mVectThetasLine;
+
 protected:
     // data
     bool mHasCartesian; //< in original read data
@@ -77,7 +86,7 @@ protected:
     tPoseR mReadPose;
     tREAL8 mDistMinToExist;
 
-    int mMaxCol, mMaxLine;
+    int mNbCol, mNbLine;
     tREAL8 mThetaStart, mThetaStep;
     tREAL8 mPhiStart, mPhiStep;
     cRotation3D<tREAL8> mVertRot; //< verticalizarion rotation in cloud frame
@@ -108,15 +117,19 @@ public :
     void MaskBuffer(const cStaticLidarImporter &aSL_importer, tREAL8 aAngBuffer, const std::string &aPhProjDirOut);
     void SelectPatchCenters1(int aNbPatches);
     void SelectPatchCenters2(const cStaticLidarImporter &aSL_importer, int aNbPatches);
-    void MakePatches(const cStaticLidarImporter &aSL_importer,   //TODO: remove aSL_importer, use calib!
-                     std::list<std::set<cPt2di> > &aLPatches,
+    void MakePatches(std::list<std::set<cPt2di> > &aLPatches,
                      std::vector<cSensorCamPC *> &aVCam, int aNbPointByPatch, int aSzMin) const;
 
     cPt3dr Image2Instr3D(const cPt2di & aRasterPx) const;
     cPt3dr Image2Instr3D(const cPt2dr & aRasterPx) const;
+    template <typename TYPE>
+        cPt3dr Image2InstrThetaPhiDist(const TYPE & aRasterPx) const;
+
     cPt3dr Image2Ground(const cPt2di & aRasterPx) const;
     cPt3dr Image2Ground(const cPt2dr & aRasterPx) const;
 
+    static std::string ScanPrefixName() { return "Scan-"; }
+    static std::string CalibPrefixName() { return "Calib-"; }
 private :
     template <typename TYPE> void fillRaster(const cStaticLidarImporter & aSL_importer, const std::string& aPhProjDirOut, const std::string& aFileName,
                     std::function<TYPE (int)> func, bool saveRaster); // do not keep image in memory
@@ -149,6 +162,16 @@ private :
     std::unique_ptr<cIm2D<tU_INT1>> mRasterMaskBuffer;
     std::unique_ptr<cIm2D<tREAL4>> mRasterScore; // updated on each filter, used to find patch centers. High=bad
 };
+
+template <typename TYPE>
+cPt3dr cStaticLidar::Image2InstrThetaPhiDist(const TYPE & aRasterPx) const
+{
+    cPt3dr aPt3D = Image2Instr3D(aRasterPx);
+    tREAL8 aDist = Norm2(aPt3D);
+    cPt2dr aDir = InternalCalib()->Value(aPt3D);
+    return {aDir.x(), aDir.y(), aDist};
+}
+
 
 void AddData(const  cAuxAr2007 & anAux,cStaticLidar & aSL);
 
