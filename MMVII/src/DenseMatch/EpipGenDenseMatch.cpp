@@ -1053,7 +1053,7 @@ void  cAppli::MatchOneLevel(int aLevel)
 
         // The master level must compute the paralax interval  to complete param
         aILev1.EstimateIntervPx(aParam,aCurBoxFile1,aCurBoxFile2,mMaxAmplPxCur);
-        // Now Param ix compIntervPlete
+        // Now Param is complete
         aLParam.push_back(aParam);
         if (aParam.mCanDoMatch)
         {

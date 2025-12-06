@@ -9,16 +9,10 @@ from tqdm import tqdm
 from pathlib import Path
 from core.raft_stereo import RAFTStereo
 from core.utils.utils import InputPadder
-from PIL import Image
-from matplotlib import pyplot as plt
 import tifffile as tf
 
 
 
-def load_image_png(imfile,which_device):
-    img = np.array(Image.open(imfile)).astype(np.uint8)
-    img = torch.from_numpy(img).permute(2, 0, 1).float()
-    return img[None].to(which_device)
 
 def load_image(imfile, which_device):
     img = tf.imread(imfile).astype(np.uint8)
