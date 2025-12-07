@@ -7,6 +7,7 @@
 #include "MMVII_Clino.h"
 #include "MMVII_Matrix.h"
 #include <tuple>
+//#include <memory>
 
 
 namespace MMVII
@@ -111,7 +112,7 @@ class cIrbCal_Cam1  : public cMemCheck
         bool          mSelIsPat;       ///< indicate if selector is pattern/file
         std::string   mImSelect;       ///< selector, indicate if an image belongs  to the block
         bool          mIsInit;         ///< was the pose in the block computed ?
-        cPoseWithUK*  mPoseInBlock;    ///< Position in the block  +- boresight
+        std::shared_ptr<cPoseWithUK>  mPoseInBlock;    ///< Position in the block  +- boresight
 };
 /// public interface to serialization
 void AddData(const  cAuxAr2007 & anAux,cIrbCal_Cam1 & aCam);
@@ -145,6 +146,8 @@ class cIrbCal_CamSet  : public cMemCheck
          void SetNumPoseInstr (const std::vector<int> & aVNums);
          // Correct -1 => master
          std::vector<int>  NumPoseInstr() const;
+         /// fails if several NumPoseInstr
+         cIrbCal_Cam1 * SingleCamPoseInstr(bool OkNot1=false) ;
      private :
          void AddCam
               (
@@ -171,19 +174,24 @@ class cIrbCal_Clino1   : public cMemCheck
     public :
         cIrbCal_Clino1();  //< required for serialisation
         cIrbCal_Clino1(const std::string & aName); //< "Real" constructor
+        ~cIrbCal_Clino1();
+
         const std::string & Name() const;  //< accessor
         void AddData(const  cAuxAr2007 & anAux); //< serializer
 
         void SetPNorm(const cPt3dr & aTr);
 
         cP3dNormWithUK&  CurPNorm();
+        cVectorUK &      PolCorr();
         bool          IsInit() const;
         void UnInit();
     private :
-        std::string        mName;             //< name of the clino
-        bool               mIsInit;           //< was values computed ?
-        cP3dNormWithUK *   mTrInBlock;        //< Position in the block
-        std::vector<tREAL8> mPolCorr;         //<  Polynomial correction 2 angles, def [0,1,0]
+        std::string                       mName;             //< name of the clino
+        bool                              mIsInit;           //< was values computed ?
+        std::shared_ptr<cP3dNormWithUK>   mTrInBlock;        //< Position in the block
+         std::shared_ptr<cVectorUK>       mPolCorr;
+        //cVectorUK *        mPolCorr;          //< Polynomial correction 2 angles, def [0,1,0,0]
+//        std::vector<tREAL8>               mPolCorr;         //<  Polynomial correction 2 angles, def [0,1,0]
        // tREAL8             mSigmaR;         //< sigma a priori  on orientation
 };
 void AddData(const  cAuxAr2007 & anAux,cIrbCal_Clino1 & aClino);
@@ -200,11 +208,13 @@ class cIrbCal_ClinoSet  : public cMemCheck
          std::vector<std::string> VNames() const;
          size_t NbClino() const;
 
-         int  IndexClinoFromName(const std::string& aName) const;
+         int  IndexClinoFromName(const std::string& aName,bool OkNone=false) const;
          cIrbCal_Clino1 &  KthClino(int aK);
 
+
+         cIrbCal_Clino1 * ClinoFromName(const std::string& aName,bool OkNone=false);
      private :
-         cIrbCal_Clino1 * ClinoFromName(const std::string& aName);
+
          void AddClino(const std::string &,tREAL8 aSigma,bool SVP=false);
 
          std::vector<cIrbCal_Clino1> mVClinos; //< set of clinos
@@ -235,6 +245,7 @@ class cIrb_CstrOrthog
       cIrb_CstrOrthog(const tREAL8 & aSigma);
       cIrb_CstrOrthog();
       void AddData(const  cAuxAr2007 & anAux);
+      tREAL8 Sigma() const;
    private :
       tREAL8 mSigma;
 };
@@ -350,7 +361,7 @@ class cIrbCal_Block  : public cMemCheck
          cIrbCal_CamSet                mSetCams;    //<  Cameras used in the bloc
          cIrbCal_ClinoSet              mSetClinos;  //<  Clinos used in the bloc
 
-         //  A priori external constraint
+         //  Sigma
          std::map<tNamePair,cIrb_SigmaInstr>   mSigmaPair;     //<  Sigmas between pair of instr
          std::map<std::string,cIrb_Desc1Intsr> mDescrIndiv;      //<  Sigmas of each instrument
 
@@ -380,10 +391,10 @@ class cIrbComp_Cam1 : public cMemCheck
          tPoseR PosBInSysA(const cIrbComp_Cam1 & aCamB) const;
 
          bool IsInit() const ;  //< Is  mCamPC set ?
-         const  cSensorCamPC * CamPC() const; //< Accessor
-         cSensorCamPC * CamPC() ; //< Accessor
+         cSensorCamPC * CamPC() const; //< Accessor
          tPoseR  Pose() const;  //< Accessor 2 mCamPC
          std::string NameIm() const; //<  Accessor 2 mCamPC
+
 
      private :
        /*  bool        mIsInit;
@@ -406,6 +417,8 @@ class cIrbComp_CamSet  : public cMemCheck
 
           const std::vector<cIrbComp_Cam1> &  VCompPoses() const;  ///<  Accessor
           cIrbComp_Cam1 & KthCam(int aK) ;
+
+          cSensorCamPC * SingleCamPoseInstr(bool OkNot1=false) const ;
 
     private :
          cIrbComp_CamSet(const cIrbComp_CamSet &) = delete;
@@ -458,7 +471,6 @@ class   cIrbComp_TimeS : public cMemCheck
 
          tREAL8 ScoreDirClino(const cPt3dr& aDir,size_t aKClino) const;
 
-
     private :
          cIrbComp_TimeS(const cIrbComp_TimeS&) = delete;
          const cIrbComp_Block &            mCompBlock;
@@ -494,6 +506,7 @@ class   cIrbComp_Block : public cMemCheck
        size_t  NbCams() const ;                         //< Accessor of Accessor of ...
        const cIrbCal_Block & CalBlock() const ; //< Accessor
        cIrbCal_Block & CalBlock()  ; //< Accessor
+
        const tContTimeS & DataTS() const ; //< Accessor
        tContTimeS & DataTS(); //< Accessor
 
@@ -523,6 +536,9 @@ class   cIrbComp_Block : public cMemCheck
 
        /**  return the data for time stamps (cams, clino ...)  corresponding to TS, possibly init it*/
        cIrbComp_TimeS &  DataOfTimeS(const std::string & aTS);
+       // return
+       ///cIrbComp_TimeS *  PtrDataOfTimeS(const std::string & aTS);
+
 
        cIrbCal_Block *                       mCalBlock;
        bool                                  mCalIsAdopted;

@@ -466,6 +466,8 @@ class cMMVII_BundleAdj
 
           //  ----------------  Block of instrument (new version) -------------------------------------
           void AddBlockInstr(const std::vector<std::vector<std::string>> &);
+          void AddClinoBlokcInstr(const std::vector<std::vector<std::string>> &);
+
           void SetHardGaugeBlockInstr(); //< if "hard" gauge must be done outside equation
           void IterOneBlockInstr();
           // 0 None , 1 Empirical , 2 by covariance

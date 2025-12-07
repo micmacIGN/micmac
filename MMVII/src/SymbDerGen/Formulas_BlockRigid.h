@@ -105,6 +105,9 @@ class cFormulaBlocRigid
                    cPoseF<tUk>  aPoseB(aVUk,&aK0Uk,aVObs,&aK0Obs);
                    cPoseF<tUk>  aPose1(aVUk,&aK0Uk,aVObs,&aK0Obs);
                    cPoseF<tUk>  aPose2(aVUk,&aK0Uk,aVObs,&aK0Obs);
+
+                   MMVII_INTERNAL_ASSERT_always(aK0Uk==aVUk.size(),"SizeUk in cFormulaBlocRigid");
+                   MMVII_INTERNAL_ASSERT_always(aK0Obs==aVObs.size(),"SizeUk in cFormulaBlocRigid");
  #else
                    cPoseF<tUk>  aPoseA(aVUk,0*NbUk,aVObs,0*NbObs,true);
                   cPoseF<tUk>  aPoseB(aVUk,1*NbUk,aVObs,1*NbObs,true);
@@ -171,6 +174,9 @@ class cFormulaRattBRExist
                    size_t aK0Uk=0,aK0Obs=0;
                    cPoseF<tUk>  aPoseA(aVUk,&aK0Uk,aVObs,&aK0Obs);
                    cPoseF<tUk>  aPose1(aVObs,&aK0Obs);
+
+                   MMVII_INTERNAL_ASSERT_always(aK0Uk==aVUk.size(),"SizeUk in cFormulaRattBRExist");
+                   MMVII_INTERNAL_ASSERT_always(aK0Obs==aVObs.size(),"SizeUk in cFormulaRattBRExist");
 #else
                    cPoseF<tUk>  aPoseA(aVUk,0,aVObs,0,true);
                    cPoseF<tUk>  aPose1(aVObs,9,aVObs,12,false);
@@ -195,6 +201,13 @@ class cFormulaRattBRExist
 };
 
 
+/**
+ * @brief The cFormulaClino class
+ *
+ * It's not natural to add a pose when only the rotation is used, it's due to a bug in pose class
+ * when we extract the rotation unknown (it does not handle correcly it indexe). Waiting for a correction
+ * we have made this quick and dirty contournemnt that require a pose.
+ */
 
 class cFormulaClino
 {
@@ -212,8 +225,9 @@ class cFormulaClino
 
                 return  Append
                         (
-                            NamesP3("Omega"),
-                            NamesP2("DuDv") ,
+                            NamesPose("Center","Omega"),
+                            NamesP2("DuDvClino") ,
+                            NamesP2("DuDvVert") ,
                             aVCor
                         );
                 ;
@@ -226,7 +240,8 @@ class cFormulaClino
                 return  Append
                         (
                             NamesMatr("m1",cPt2di(3,3)),
-                            Append(NamesP3("PNom"),NamesP3("DirU"),NamesP3("DirV")),
+                            NamesObsP3Norm("Clino"),
+                            NamesObsP3Norm("Vert"),
                             {"ValueTeta"}
                       );
            };
@@ -241,20 +256,27 @@ class cFormulaClino
                    //        IndexAutoIncr(&anInd,3)
                    size_t aK0Uk=0,aK0Obs=0;
                    // rotation that is linked to clino, can be a camera rotation Cam->Word
-                   cRot3dF<tUk>  aRotC2M(aVUk,&aK0Uk,aVObs,&aK0Obs);
+                   cPoseF<tUk>  aRotC2M(aVUk,&aK0Uk,aVObs,&aK0Obs);
 
                    cP3dNorm<tUk> aClinoC(aVUk,&aK0Uk,aVObs,&aK0Obs);  //
+                   cP3dNorm<tUk> aVert(aVUk,&aK0Uk,aVObs,&aK0Obs);  //
 
-                   cPtxd<tUk,3> aClinoM =  aRotC2M.Value(aClinoC.CurPt());
+
                    tUk aSinT = sin(aVObs.at(aK0Obs++));
 
-                    tUk aSumTeta = CreateCste(0.0,aVUk.at(0));
+                   MMVII_INTERNAL_ASSERT_always(aK0Obs==aVObs.size(),"SizeUk in cFormulaClino");
+
+                   tUk aSumTeta = CreateCste(0.0,aVUk.at(0));
                    for (int aD=mD0Corr ; aD<=mD1Corr ; aD++)
                    {
                        aSumTeta = aSumTeta + aVUk.at(aK0Uk++) * powI(aSinT,aD);
                    }
+                   MMVII_INTERNAL_ASSERT_always(aK0Uk==aVUk.size(),"SizeUk in cFormulaClino");
 
-                   return  { aClinoM.z() - aSumTeta} ;
+                   cPtxd<tUk,3> aClinoM =  aRotC2M.ValueVect(aClinoC.CurPt());
+                   tUk   aSinus = Scal(aClinoM,aVert.CurPt());
+
+                   return  {aSinus - aSumTeta} ;
             }
 
             cFormulaClino(int aD0Corr,int aD1Corr) :
@@ -267,6 +289,57 @@ class cFormulaClino
             int  mD0Corr;
             int  mD1Corr;
 
+};
+
+class cFormulaVNormOrthog
+{
+      public :
+
+           std::string FormulaName() const { return "VNormOrthog";}
+
+
+           std::vector<std::string>  VNamesUnknowns()  const
+           {
+                return  Append
+                        (
+                            NamesP2("DuDv1") ,
+                            NamesP2("DuDv2")
+                        );
+                ;
+           }
+
+           std::vector<std::string>    VNamesObs() const
+           {
+
+                return  Append
+                        (
+                            NamesObsP3Norm("_P1"),
+                            NamesObsP3Norm("_P2")
+                        );
+           };
+
+           template <typename tUk>
+                       std::vector<tUk> formula
+                       (
+                          const std::vector<tUk> & aVUk,
+                          const std::vector<tUk> & aVObs
+                       ) const
+           {
+                   //        IndexAutoIncr(&anInd,3)
+                   size_t aK0Uk=0,aK0Obs=0;
+                   cP3dNorm<tUk> aVec1(aVUk,&aK0Uk,aVObs,&aK0Obs);  //
+                   cP3dNorm<tUk> aVec2(aVUk,&aK0Uk,aVObs,&aK0Obs);  //
+
+                   MMVII_INTERNAL_ASSERT_always(aK0Uk==aVUk.size(),"SizeUk in cFormulaVNormOrthog");
+                   MMVII_INTERNAL_ASSERT_always(aK0Obs==aVObs.size(),"SizeUk in cFormulaVNormOrthog");
+
+                   tUk aScal = Scal(aVec1.CurPt(),aVec2.CurPt());
+
+                   return  {aScal} ;
+            }
+
+
+         private :
 };
 
 };

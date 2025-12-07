@@ -437,7 +437,8 @@ void AddData(const cAuxAr2007 & anAux,cPerspCamIntrCalib &);
 /** Class for modelising a pose when it is used as unknwon in non linear system
  */
 
-class cRotWithUK  :  public cObjWithUnkowns<tREAL8>
+class cRotWithUK  :  public cObjWithUnkowns<tREAL8>,
+                     public cMemCheck
 {
    public :
       cRotWithUK();
@@ -464,14 +465,17 @@ class cRotWithUK  :  public cObjWithUnkowns<tREAL8>
        // Val axiator should have to "equal" fix rot
        cPt3dr ValAxiatorFixRot(const tRotR & aRotFix) const;
 
-   private :
+       void AddIdexesAndObs(std::vector<int> &, std::vector<double>&,bool TransMatr=false);
+
        void PutUknowsInSetInterval() override ;  // add the interval on udpate
+private :
 
        tRotR      mRot;   ///< transformation Cam to Word
        cPt3dr     mOmega;  ///< vector for tiny rotation when used in unknown, mW  in code gene ...
 };
 
-class cPoseWithUK :  public cObjWithUnkowns<tREAL8>
+class cPoseWithUK :  public cObjWithUnkowns<tREAL8>,
+                     public cMemCheck
 {
      public :
          /// Fill with dummy value for case where default constructor is required
@@ -485,6 +489,8 @@ class cPoseWithUK :  public cObjWithUnkowns<tREAL8>
          void PushObs(std::vector<double> &,bool TransposeMatr);
 
          cPoseWithUK(const tPoseR & aPose);
+         void AddIdexesAndObs(std::vector<int> &, std::vector<double>&,bool TransMatr=false);
+
 
      // different accessor to the pose
          tPoseR   Pose()   const;
@@ -516,6 +522,8 @@ class cPoseWithUK :  public cObjWithUnkowns<tREAL8>
          cPt3dr ValAxiatorFixRot(const tRotR & aRotFix) const;
 
 
+         cRotWithUK & RUK();
+
      private :
          cPoseWithUK(const cPoseWithUK&) = delete;
          void PutUknowsInSetInterval() override ;  // add the interval on udpate
@@ -530,7 +538,8 @@ class cPoseWithUK :  public cObjWithUnkowns<tREAL8>
 void AddData(const  cAuxAr2007 & anAux,cPoseWithUK & aPUK);
 
 ///  class for modelizing a normaliezd 3D-Vect when used as unknown in non linear system
-class cP3dNormWithUK :  public cObjWithUnkowns<tREAL8>
+class cP3dNormWithUK :  public cObjWithUnkowns<tREAL8>,
+                        public cMemCheck
 {
    public :
         cP3dNormWithUK(const cPt3dr &aPt,const std::string& aNameType,const std::string & aNameGrp);
@@ -540,6 +549,9 @@ class cP3dNormWithUK :  public cObjWithUnkowns<tREAL8>
 
         void SetPNorm(const cPt3dr & aTr);
         cPt3dr GetPNorm () const;
+        cPt2dr & DuDv();
+
+        void AddIdexesAndObs(std::vector<int> &, std::vector<double>&);
    private :
         // normalize , compute U & V, set mDuDv to 0
       void Init();
@@ -551,6 +563,7 @@ class cP3dNormWithUK :  public cObjWithUnkowns<tREAL8>
       cPt2dr  mDuDv;   //
 
 };
+void AddData(const  cAuxAr2007 & anAux,cP3dNormWithUK & aPUK);
 
 
 /**  Class for modelizing the geometry of perspective-central image, contain essentially a pose (Centre+rotation)

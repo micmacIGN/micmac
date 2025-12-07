@@ -1082,6 +1082,7 @@ class cVectorUK :  public cObjWithUnkowns<tREAL8>,
       ~cVectorUK();
       void PutUknowsInSetInterval() override;
       const tVect & Vect() const ; ///< Accessor
+      tVect & Vect()  ; ///< Accessor
       void  FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
 
    private :

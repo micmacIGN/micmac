@@ -347,12 +347,22 @@ cCalculator<double> * EqBlocRig_RatE(bool WithDerive,int aSzBuf,bool ReUse)  // 
     return StdAllocCalc(NameFormula(cFormulaRattBRExist(),WithDerive),aSzBuf,false,ReUse);
 }
 
-cCalculator<double> * EqClinoBloc(bool WithDerive,int aSzBuf,bool ReUse)  // CLINOBLOC
+cCalculator<double> * EqBlocRig_Clino(bool WithDerive,int aSzBuf,bool ReUse)  // RIGIDBLOC
+{
+    return StdAllocCalc(NameFormula(cFormulaClino(0,3),WithDerive),aSzBuf,false,ReUse);
+}
+
+cCalculator<double> * EqBlocRig_Orthog(bool WithDerive,int aSzBuf,bool ReUse)  // RIGIDBLOC
+{
+    return StdAllocCalc(NameFormula(cFormulaVNormOrthog(),WithDerive),aSzBuf,false,ReUse);
+}
+
+cCalculator<double> * Old_EqClinoBloc(bool WithDerive,int aSzBuf,bool ReUse)  // CLINOBLOC
 {
     return StdAllocCalc(NameFormula(cFormulaClinoBloc(),WithDerive),aSzBuf,false,ReUse);
 }
 
-cCalculator<double> * EqClinoRot(bool WithDerive,int aSzBuf,bool ReUse)  // CLINOBLOC
+cCalculator<double> * Old_EqClinoRot(bool WithDerive,int aSzBuf,bool ReUse)  // CLINOBLOC
 {
     return StdAllocCalc(NameFormula(cFormulaClinoRot(),WithDerive),aSzBuf,false,ReUse);
 }
@@ -843,6 +853,7 @@ int cAppliGenCode::Exe()
        GenCodesFormula((tREAL8*)nullptr,cFormulaBlocRigid(),WithDer); // RIGIDBLOC
        GenCodesFormula((tREAL8*)nullptr,cFormulaRattBRExist(),WithDer); // RIGIDBLOC
        GenCodesFormula((tREAL8*)nullptr,cFormulaClino(0,3),WithDer);
+       GenCodesFormula((tREAL8*)nullptr,cFormulaVNormOrthog(),WithDer);
 
        GenCodesFormula((tREAL8*)nullptr,cFormulaClinoBloc(),WithDer); // CLINOBLOC
        GenCodesFormula((tREAL8*)nullptr,cFormulaClinoRot(),WithDer); // CLINOBLOC

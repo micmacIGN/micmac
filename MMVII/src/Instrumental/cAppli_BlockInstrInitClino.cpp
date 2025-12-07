@@ -306,8 +306,8 @@ int cAppli_BlockInstrInitClino::Exe()
     {
         for (const auto & [aPair,aCstr] : mCalBlock->CstrOrthog())
         {
-            int aK1 = mSetClinos->IndexClinoFromName(aPair.V1());
-            int aK2 = mSetClinos->IndexClinoFromName(aPair.V2());
+            int aK1 = mSetClinos->IndexClinoFromName(aPair.V1(),true);
+            int aK2 = mSetClinos->IndexClinoFromName(aPair.V2(),true);
 
             if ((aK1>=0) && (aK2>=0))
                 mPairOrthog.push_back(cPt2di(aK1,aK2));

@@ -401,6 +401,7 @@ cVectorUK::~cVectorUK()
    OUK_Reset();
 }
 const std::vector<tREAL8> & cVectorUK::Vect() const {return mVect;}
+ std::vector<tREAL8> & cVectorUK::Vect()  {return mVect;}
 
 void cVectorUK::PutUknowsInSetInterval()
 {

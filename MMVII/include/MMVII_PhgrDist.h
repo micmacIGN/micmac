@@ -96,6 +96,8 @@ class cRandInvertibleDist
 std::vector<std::string>  NamesP3(const std::string& aPref) ;  /// x y z
 std::vector<std::string>  NamesP2(const std::string& aPref) ;  /// x y z
 std::vector<std::string>  NamesMatr(const std::string& aPref,const cPt2di & aSz);  /// m00  m10  m20  m01 ...
+std::vector<std::string>  NamesObsP3Norm(const std::string& aPref) ;  /// x y z
+
 
 //  aPref+aK0  .... aPref+aK0-1
 std::vector<std::string>  VectNames(const std::string& aPref,int aK0,int aK1) ;  /// x y z
@@ -159,8 +161,12 @@ NS_SymbolicDerivative::cCalculator<double> * EqRadiomStabilization(int aDegSens,
            // .............   Equation on rigid bloc .............
 NS_SymbolicDerivative::cCalculator<double> * EqBlocRig(bool WithDerive,int aSzBuf,bool Reuse);  // RIGIDBLOC
 NS_SymbolicDerivative::cCalculator<double> * EqBlocRig_RatE(bool WithDerive,int aSzBuf,bool Reuse);  // RIGIDBLOC
-NS_SymbolicDerivative::cCalculator<double> * EqClinoBloc(bool WithDerive,int aSzBuf,bool Reuse);  // CLINOBLOC
-NS_SymbolicDerivative::cCalculator<double> * EqClinoRot(bool WithDerive,int aSzBuf,bool Reuse);  // CLINOBLOC
+NS_SymbolicDerivative::cCalculator<double> * EqBlocRig_Clino(bool WithDerive,int aSzBuf,bool ReUse);  // RIGIDBLOC
+NS_SymbolicDerivative::cCalculator<double> * EqBlocRig_Orthog(bool WithDerive,int aSzBuf,bool ReUse);  // RIGIDBLOC
+
+
+NS_SymbolicDerivative::cCalculator<double> * Old_EqClinoBloc(bool WithDerive,int aSzBuf,bool Reuse);  // CLINOBLOC
+NS_SymbolicDerivative::cCalculator<double> * Old_EqClinoRot(bool WithDerive,int aSzBuf,bool Reuse);  // CLINOBLOC
 
 
 

@@ -429,6 +429,8 @@ template <class Type> class cPoseF
 
 
         tPt   Value(const tPt & aPt) const  {return mCenter + mRot.Value(aPt);}
+        tPt   ValueVect(const tPt & aPt) const  {return   mRot.Value(aPt);}
+
 
         const cMatF<Type> &    IJK() const {return mRot.mIJK;}
 

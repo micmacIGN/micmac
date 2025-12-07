@@ -221,6 +221,7 @@ tREAL8 cIrbComp_TimeS::ScoreDirClino(const cPt3dr& aDirClino,size_t aKClino) con
 }
 
 
+
 /* *************************************************************** */
 /*                                                                 */
 /*                        cIrbComp_Block                            */
@@ -317,6 +318,7 @@ void cIrbComp_Block::SetClinoValues(const cSetMeasureClino& aSetM,bool OkNewTime
     MMVII_INTERNAL_ASSERT_tiny(aSetM.NamesClino() == mCalBlock->SetClinos().VNames(),"Names differs in SetClinoValues");
    for (const auto & aMeasure : aSetM.SetMeasures())
    {
+       // we test before, because in case does not exist, it will
        if (!OkNewTimeS)
        {
            MMVII_INTERNAL_ASSERT_tiny(MapBoolFind(mDataTS,aMeasure.Ident()),"SetClinoValues new clino ident refuted for "+aMeasure.Ident());
@@ -505,6 +507,10 @@ cIrb_CstrOrthog::cIrb_CstrOrthog() :
 {
 
 }
+
+
+tREAL8 cIrb_CstrOrthog::Sigma() const {return mSigma;}
+
 
 void cIrb_CstrOrthog::AddData(const  cAuxAr2007 & anAux)
 {

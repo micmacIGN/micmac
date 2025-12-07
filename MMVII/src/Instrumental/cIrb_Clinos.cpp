@@ -19,7 +19,7 @@ cIrbCal_Clino1::cIrbCal_Clino1(const std::string & aName) :
    mName         (aName),
    mIsInit       (false),
    mTrInBlock    (nullptr),
-   mPolCorr      {0.0,1.0,0.0,0.0}
+   mPolCorr      (new cVectorUK({0.0,1.0,0.0,0.0},mName))
 {
 }
 
@@ -28,22 +28,46 @@ cIrbCal_Clino1::cIrbCal_Clino1() :
 {
 }
 
+
+cIrbCal_Clino1::~cIrbCal_Clino1()
+{
+    //for (int aK=0 ; aK<10 ; aK++)
+    //   StdOut() <<   "cIrbCal_Clino1::~cIrbCal_Clino1cIrbCal_Clino1::~cIrbCal_Clino1()\n ";
+    // delete mTrInBlock;
+}
+
 const std::string & cIrbCal_Clino1::Name() const {return mName;}
+cVectorUK &      cIrbCal_Clino1::PolCorr() {return *mPolCorr;}
+cP3dNormWithUK&  cIrbCal_Clino1::CurPNorm()
+{
+    MMVII_INTERNAL_ASSERT_tiny(mTrInBlock!=0,"cIrbCal_Clino1::CurPNorn");
+    return *mTrInBlock;
+}
 
 
 void cIrbCal_Clino1::AddData(const  cAuxAr2007 & anAux)
 {
       MMVII::AddData(cAuxAr2007("Name",anAux),mName);
       MMVII::AddData(cAuxAr2007("IsInit",anAux),mIsInit);
-      MMVII::StdContAddData(cAuxAr2007("PolCorr",anAux),mPolCorr);
+      MMVII::StdContAddData(cAuxAr2007("PolCorr",anAux),mPolCorr->Vect());
 
       cPt3dr aPN  = mTrInBlock ? mTrInBlock->GetPNorm() : cPt3dr(0,0,0);
 
       MMVII::AddData(cAuxAr2007("PtNorm",anAux),aPN);
-      if (anAux.Input() && mIsInit)
+      // In case input, we dont want to create a point if was not saved
+      if (anAux.Input())
       {
-          mTrInBlock->SetPNorm(aPN);
+           if (!IsNull(aPN))
+               SetPNorm(aPN);
       }
+      else
+      {
+          if (mTrInBlock)
+          {
+              MMVII_INTERNAL_ASSERT_tiny(IsNull(mTrInBlock->DuDv()),"DuDv not null");
+          }
+      }
+
 }
 
 void AddData(const  cAuxAr2007 & anAux,cIrbCal_Clino1 & aClino)
@@ -55,12 +79,14 @@ void cIrbCal_Clino1::SetPNorm(const cPt3dr &aPNorm)
 {
   if (mTrInBlock==nullptr)
   {
-      mTrInBlock = new cP3dNormWithUK(aPNorm,"BlockClino","Name");
+      mTrInBlock.reset(new cP3dNormWithUK(aPNorm,"BlockClino",mName));
   }
   else
       mTrInBlock->SetPNorm(aPNorm);
    mIsInit      = true;
 }
+
+
 
 
 
@@ -96,17 +122,21 @@ void AddData(const  cAuxAr2007 & anAux,cIrbCal_ClinoSet & aSetClino)
     aSetClino.AddData(anAux);
 }
 
-int  cIrbCal_ClinoSet::IndexClinoFromName(const std::string& aName) const
+int  cIrbCal_ClinoSet::IndexClinoFromName(const std::string& aName,bool OkNone) const
 {
     for (size_t aK=0 ; aK<mVClinos.size() ; aK++)
         if (mVClinos.at(aK).Name() == aName)
            return aK;
+    MMVII_INTERNAL_ASSERT_strong(OkNone,"cIrbCal_ClinoSet::IndexClinoFromName Not found");
     return -1;
 }
 
-cIrbCal_Clino1 * cIrbCal_ClinoSet::ClinoFromName(const std::string& aName)
+//cIrbCal_Clino1 &  ClinoOfName(const std::string& aName);
+
+
+cIrbCal_Clino1 * cIrbCal_ClinoSet::ClinoFromName(const std::string& aName,bool OkNone)
 {
-    int aK = IndexClinoFromName(aName);
+    int aK = IndexClinoFromName(aName,OkNone);
 
     return (aK>=0) ? &mVClinos.at(aK) : nullptr;
 }
@@ -114,7 +144,7 @@ cIrbCal_Clino1 * cIrbCal_ClinoSet::ClinoFromName(const std::string& aName)
 void cIrbCal_ClinoSet::AddClino(const std::string & aName,tREAL8 aSigma,bool SVP)
 {
    StdOut() << "  AddClino, Sigma=" << Rad2DMgon(aSigma) << "DMgon\n";
-   cIrbCal_Clino1 * aClino = ClinoFromName(aName);
+   cIrbCal_Clino1 * aClino = ClinoFromName(aName,true);
    cIrbCal_Clino1 aNewClino (aName);
    if (aClino)
    {

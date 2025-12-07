@@ -32,8 +32,7 @@ void cIrbComp_Cam1::Init(cSensorCamPC * aCamPC)
 }
 
 bool cIrbComp_Cam1::IsInit() const {return mCamPC!=nullptr;}
-const  cSensorCamPC * cIrbComp_Cam1::CamPC() const {return mCamPC;}
-cSensorCamPC * cIrbComp_Cam1::CamPC() {return mCamPC;}
+  cSensorCamPC * cIrbComp_Cam1::CamPC() const {return mCamPC;}
 tPoseR  cIrbComp_Cam1::Pose() const {return mCamPC->Pose();}
 std::string cIrbComp_Cam1::NameIm() const{return mCamPC->NameImage();}
 
@@ -78,6 +77,18 @@ cIrbComp_Cam1 & cIrbComp_CamSet::KthCam(int aK)
 }
 
 
+cSensorCamPC *  cIrbComp_CamSet::SingleCamPoseInstr(bool OkNot1) const
+{
+    std::vector<int> aVIndex =  mBlock.CalBlock().SetCams().NumPoseInstr() ;
+    if (aVIndex.size()!=1)
+    {
+        MMVII_INTERNAL_ASSERT_strong( OkNot1,"SingleCamPoseInstr not size 1");
+        return nullptr;
+    }
+
+    return  mVCompPoses.at(aVIndex.at(0)).CamPC();
+}
+
 /* *************************************************************** */
 /*                                                                 */
 /*                        cIrbCal_Cam1                            */
@@ -96,11 +107,7 @@ cIrbCal_Cam1::cIrbCal_Cam1(int aNum,const std::string & aNameCal,const std::stri
 }
 
 cIrbCal_Cam1::~cIrbCal_Cam1()
-{/*
-    if (mPoseInBlock)
-        mPoseInBlock->OUK_Reset();
-        */
-    delete mPoseInBlock;
+{
 }
 
 cIrbCal_Cam1::cIrbCal_Cam1()  :
@@ -110,7 +117,9 @@ cIrbCal_Cam1::cIrbCal_Cam1()  :
 
 void cIrbCal_Cam1::UnInit()
 {
-   delete mPoseInBlock;
+ //  delete mPoseInBlock;
+
+    StdOut() << "cIrbCal_Cam1::UnInitcIrbCal_Cam1::UnInitcIrbCal_Cam1::UnInit\n"; getchar();
     mPoseInBlock = nullptr;
     mIsInit = false;
 }
@@ -121,11 +130,12 @@ void cIrbCal_Cam1::SetPose(const tPoseR & aPose)
 
   if (mPoseInBlock==nullptr)
   {
-      mPoseInBlock = new cPoseWithUK;
+      mPoseInBlock.reset( new cPoseWithUK(aPose));
       mPoseInBlock->SetNameType("BlockPose");
       mPoseInBlock->SetNameIdObj(mNameCal);
   }
-   mPoseInBlock->SetPose(aPose);
+  else
+      mPoseInBlock->SetPose(aPose);
    mIsInit      = true;
 }
 
@@ -252,6 +262,18 @@ std::vector<int>  cIrbCal_CamSet::NumPoseInstr() const
    }
 
    return aRes;
+}
+
+cIrbCal_Cam1 * cIrbCal_CamSet::SingleCamPoseInstr(bool OkNot1)
+{
+    std::vector<int> aVIndex =  NumPoseInstr() ;
+    if (aVIndex.size()!=1)
+    {
+        MMVII_INTERNAL_ASSERT_strong( OkNot1,"SingleCamPoseInstr not size 1");
+        return nullptr;
+    }
+
+    return & mVCams.at(aVIndex.at(0));
 }
 
 
