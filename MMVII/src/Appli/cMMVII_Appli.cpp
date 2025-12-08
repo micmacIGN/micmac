@@ -1920,7 +1920,7 @@ int  cMMVII_Appli::ExeOnePackComParal(const std::list<cParamCallSys> & aLCom,boo
 
 int  cMMVII_Appli::ExeComParal(const std::list<cParamCallSys> & aGlobLCom,bool Silence)
 {
-    unsigned aNbMaxInFile =  round_up(mNbProcSystem * mMulNbInMk); // Size of allow task
+    unsigned aNbMaxInFile =  round_up(mNbProcAllowed * mMulNbInMk); // Size of allow task
 
     std::list<cParamCallSys> aSubList; // List that will contain a limited size of task
 
