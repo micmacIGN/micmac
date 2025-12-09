@@ -31,9 +31,6 @@ cIrbCal_Clino1::cIrbCal_Clino1() :
 
 cIrbCal_Clino1::~cIrbCal_Clino1()
 {
-    //for (int aK=0 ; aK<10 ; aK++)
-    //   StdOut() <<   "cIrbCal_Clino1::~cIrbCal_Clino1cIrbCal_Clino1::~cIrbCal_Clino1()\n ";
-    // delete mTrInBlock;
 }
 
 const std::string & cIrbCal_Clino1::Name() const {return mName;}
@@ -93,12 +90,12 @@ void cIrbCal_Clino1::SetPNorm(const cPt3dr &aPNorm)
 
 /* *************************************************************** */
 /*                                                                 */
-/*                        cIrbCal_ClinoSet                            */
+/*                        cIrbCal_ClinoSet                         */
 /*                                                                 */
 /* *************************************************************** */
 
-cIrbCal_ClinoSet::cIrbCal_ClinoSet() :
-    mCalBlock (nullptr)
+cIrbCal_ClinoSet::cIrbCal_ClinoSet(cIrbCal_Block* aCalBl) :
+    mCalBlock (aCalBl)
 {
 }
 

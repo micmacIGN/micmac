@@ -209,9 +209,9 @@ void AddData(const  cAuxAr2007 & anAux,cIrbCal_Cam1 & aCam)
 /*                                                                 */
 /* *************************************************************** */
 
-cIrbCal_CamSet::cIrbCal_CamSet()  :
+cIrbCal_CamSet::cIrbCal_CamSet(cIrbCal_Block* aCalBlock)  :
     mNumMaster (-1),
-    mCalBlock  (nullptr)
+    mCalBlock  (aCalBlock)
 {
 }
 
@@ -244,7 +244,8 @@ std::vector<int>  cIrbCal_CamSet::NumPoseInstr() const
    std::vector<int> aRes;
    if (mNumsPoseInstr.empty())
    {
-      for (size_t aK=0 ; aK<mVCams.size() ; aK++)
+      for (size_t aK=0 ; aK<mVCams.size() ; aK++)         // Correct -1 => master
+
           aRes.push_back(aK);
    }
    else

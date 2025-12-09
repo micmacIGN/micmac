@@ -532,11 +532,14 @@ void AddData(const  cAuxAr2007 & anAux,cIrb_CstrOrthog & aICO)
 const std::string  cIrbCal_Block::theDefaultName = "TheBlock";  /// in most application there is only one block
 
 cIrbCal_Block::cIrbCal_Block(const std::string& aName) :
-     mNameBloc (aName)
+     mNameBloc (aName),
+     mSetCams  (this),
+     mSetClinos (this)
 {
+    /*
     mSetCams.mCalBlock = this;
     mSetClinos.mCalBlock = this;
-
+*/
 }
 
 

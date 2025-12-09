@@ -23,27 +23,30 @@ class cBA_BlockInstr : public cMemCheck
       typedef std::map<std::string,cWeightAv<tREAL8,tREAL8>>  tMapStrAv;
        cBA_BlockInstr
        (
-               cMMVII_BundleAdj& ,
-               cIrbComp_Block*,
-               cIrbComp_Block*,
+               cMMVII_BundleAdj& ,      //< Global bundle adj
+               cIrbComp_Block* aBEstim, //< Block that will be used & adjusted
+               cIrbComp_Block* aBInit,  //< Initial value of block
                const std::vector<std::string> & aVParamPair,
                const std::vector<std::string> & aVParamGauje,
                const std::vector<std::string> & aVParamCur
        );
+
        virtual ~cBA_BlockInstr();
 
+       /// Add eventually clinometers adjustment
        void AddClino
             (
                  const std::vector<std::vector<std::string>> & aParamClino
             );
 
 
-
+       /// Make one iteration of adjusment of all equation of block
        void OneItere();
        /** Add the gauge constraints  as all pose/rot/tr in the block are defined up to a global pose, we
         *  depending on hard/soft constraint it must be done before mode equation or inside */
        void AddGauge(bool InEq);
 
+       /// save the sigmas of the block
        void SaveSigma();
        cIrbCal_Block &  CalBl();          //< Accessor
 
@@ -51,9 +54,10 @@ class cBA_BlockInstr : public cMemCheck
    private :
        cResolSysNonLinear<tREAL8> & Sys();
 
+       ///  Make one iteration for a time stamp
        void OneItere_1TS(cIrbComp_TimeS&,tMapStrAv &);
 
-       // For a given pair of Poses, add the constraint of rigidity
+       /// For a given pair of Poses, add the constraint of rigidity
        void OneItere_1PairCam(const cIrb_SigmaInstr&,cIrbComp_TimeS&, const tNamePair & aPair);
 
        // For a given cam, attach calibration of current block to initial value
