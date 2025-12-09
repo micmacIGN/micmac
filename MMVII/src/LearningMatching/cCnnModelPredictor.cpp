@@ -45,6 +45,8 @@ namespace F = torch::nn::functional;
 
 namespace MMVII
 {
+
+
 /**************************************************************************/
 aCnnModelPredictor::aCnnModelPredictor(std::string anArchitecture, std::string aModelBinDir, bool Cuda):
     mArchitecture(anArchitecture),IsCuda(Cuda)

@@ -25,7 +25,7 @@ cMMVII_Ap_CPU::cMMVII_Ap_CPU() :
    mPid            (mmvii_GetPId())   ,
    mNbProcSystem   (mmvii_NbProcSys()),
    mNbProcAllowed  (mNbProcSystem),
-   mMulNbInMk      (10.0),
+   mMulNbInMk      (8.0),
    mTimeSegm       (this)
 {
   // Very tricky and dirty, but I dont have courage for now to understand time/clok in C++
