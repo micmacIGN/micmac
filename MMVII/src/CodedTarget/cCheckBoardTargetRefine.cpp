@@ -50,11 +50,10 @@ namespace MMVII
 
     int cAppli_CheckBoardTargetRefine::Exe()
     {
-        //FINAL OUTPUT = un set temporaire de mes2d virtuel
+        //FINAL OUTPUT = temporary set of "fake" 2d mes
+        // TO DO : add HasGCPMesIm facility to mPhProj or defined here
 
         mPhProj.FinishInit();
-
-        // a partir d'ici on peut coder tranquille
 
         //·0·> iterates on images
             //gets the firts set

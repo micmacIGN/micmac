@@ -1999,6 +1999,7 @@ std::list<cParamCallSys>  cMMVII_Appli::ListStrAutoRecallMMVII
 bool cMMVII_Appli::RunMultiSet(int aKParam,int aKSet,bool MkFSilence)
 {
     std::vector<std::string> aVSetPluDir;
+    //puts all image dir + name in aVSetPluDir
     {
        const std::vector<std::string> &  aVSetIm = VectMainSet(aKSet);
        for (const auto & aName : aVSetIm)
