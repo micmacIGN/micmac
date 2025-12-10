@@ -15,7 +15,7 @@
 using namespace MMVII;
 
 #ifdef MMVII_KEEP_MMV1_IMAGE
-bool mmvii_use_mmv1_image=false;
+bool mmvii_use_mmv1_image=true;
 extern std::string MM3DFixeByMMVII; // Declared in MMV1 for its own stuff
 #endif
 
