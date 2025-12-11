@@ -131,7 +131,7 @@ void  MatEssAddEquations(const cSetHomogCpleDir & aSetD,cLinearOverCstrSys<tREAL
      for (size_t aKP=0 ; aKP<aVD1.size() ; aKP++)
      {
          SetVectMatEss(aVect,aVD1[aKP],aVD2[aKP]);
-	 aSys.PublicAddObservation(1.0,aVect,0.0);
+         aSys.PublicAddObservation(1.0,aVect,0.0);
      }
 }
 

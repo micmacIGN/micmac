@@ -382,7 +382,7 @@ template<class TypeEl> void  cAppliParseBoxIm<TypeEl>::APBI_ExecAll()
      if (APBI_TestMode())
      {
         LoadI(CurBoxIn());
-	mAppli.ExeOnParsedBox();
+        mAppli.ExeOnParsedBox();
         return;
      }
      AssertNotInParsing();
@@ -407,7 +407,7 @@ template<class TypeEl> void  cAppliParseBoxIm<TypeEl>::APBI_ExecAll()
             {
                 mCurPixIndex = aPixI;
                 LoadI(CurBoxIn());
-	        mAppli.ExeOnParsedBox();
+                mAppli.ExeOnParsedBox();
             }
          }
      }

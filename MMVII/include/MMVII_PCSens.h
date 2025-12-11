@@ -718,34 +718,41 @@ class cCamSimul : public cMemCheck
       static cCamSimul * Alloc2VIewTerrestrial(eProjPC aProj1,eProjPC aProj2,bool SubVert);
 
       ~cCamSimul();
-
-      cPt3dr mCenterGround;
-
-      //   Geometry of acquisition
-      tREAL8 mProfMin;
-      tREAL8 mProfMax;
-      tREAL8 mBsHMin;
-      tREAL8 mBsHMax;
-      tREAL8 mRandInterK;
-
       static void BenchMatEss(cTimerSegm * aTS,bool PerfInter);
-
       void TestCam(cSensorCamPC * aCam) const;
-   private :
-      void AddCam(cPerspCamIntrCalib *,bool SubVert);
-      void AddCam(eProjPC aProj1,bool SubVert);
 
+   private :
+      /// Add a cam of given type by generating a random calib
+      void AddCam(eProjPC aProj1,bool SubVert);
+      /// Once computed the calib generate the pose to creat a cam
+      void AddCam(cPerspCamIntrCalib *,bool SubVert);
+
+      ///  Constructor , gives default values to numerical quantities (Prof ...)
       cCamSimul();
       ///  is the new center sufficiently far, but not too much
       bool ValidateCenter(const cPt3dr & aP) const;
 
-      ///  Generatea new valide point
+      ///  Generatea new valide point, checking ValidateCenter
       cPt3dr  GenValideCenter(bool SubVert) const;
       /// Generate a point w/o constraint
       cPt3dr  GenAnyCenter(bool SubVert) const;
 
-      std::vector<cSensorCamPC *>         mListCam;
-      std::vector<cPerspCamIntrCalib *>   mListCalib;
+
+      /// center of the scene
+      cPt3dr mCenterGround;
+
+      // -- Interval of distance between center of cam & mCenterGround
+      tREAL8 mProfMin; ///<  min distance CCam-CScene
+      tREAL8 mProfMax; ///<  max distance CCam-CScene
+
+      // -- Interval of ration B/H we accept
+      tREAL8 mBsHMin;     ///< Min value of B/H
+      tREAL8 mBsHMax;     ///< Max value of B/H
+      /// "Small" value, make that all the axes K dont pass exactly to CenterGround
+      tREAL8 mRandInterK;
+
+      std::vector<cPerspCamIntrCalib *>   mListCalib; ///<  list of calibration
+      std::vector<cSensorCamPC *>         mListCam;   ///< list of sensor
 
 
       // cSetHomogCpleIm

@@ -224,7 +224,7 @@ void cCamSimul::BenchMatEss
             delete aCamSim;
         }
     }
-    StdOut() << "CPT " << aCptPbL1  << " " << aCpt << std::endl;
+    StdOut() << "CPT " << aCptPbL1  << "  " << aCpt << std::endl;
 
 }
 
