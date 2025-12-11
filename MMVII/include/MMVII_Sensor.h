@@ -100,11 +100,13 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	  ///  Position in [0 1]^ 2
           cPt2dr RelativePosition(const cPt2dr &) const ;
 
-	  /// Generate a random point visible on 2 image , algo : generate 2 random point and comppute bundle inter
-	  cPt3dr RandomVisiblePGround(const cSensorImage &,int aNbTestMax=10000,bool * OK =nullptr ) const;
+	  /** Generate a random point visible on 2 image , algo : generate 2 random point and comppute bundle inter
+	  */
+	  cPt3dr RandomVisiblePGround(const cSensorImage &,int aNbTestMax=10000,bool * OK =nullptr,tREAL8 * aZ=nullptr ) const;
 	  /// reproject RandomVisiblePGround
 	  cHomogCpleIm RandomVisibleCple(const cSensorImage &,int aNbTestMax=10000,bool * OK =nullptr ) const;
-
+      /// Idem but force the value of Z
+      cHomogCpleIm RandomVisibleCple(tREAL8 aZ,const cSensorImage &,int aNbTestMax=10000,bool * OK =nullptr ) const;
 
 	 // =================   Image <-->  Ground  mappings  ===========================
 	 

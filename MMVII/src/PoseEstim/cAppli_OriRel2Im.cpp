@@ -107,7 +107,7 @@ int cAppli_OriRel2Im::Exe()
          cSensorCamPC *  aPC1 = mPhProj.ReadCamPC(mIm1,true);
          cSensorCamPC *  aPC2 = mPhProj.ReadCamPC(mIm2,true);
 
-	 mGTPose = aPC1->RelativePose(*aPC2);
+         mGTPose = aPC1->RelativePose(*aPC2);
      }
 
      mFocM = (mCalib1->F()+mCalib2->F()) /2.0;

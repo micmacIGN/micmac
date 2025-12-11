@@ -711,14 +711,18 @@ class cSensorCamPC : public cSensorImage
     std::string          mTmpNameCalib; ///< use as tmp var in addata
 };
 
-
+/**
+ * @brief The cCamSimul class
+ *
+ * Class for genrating randomized simulated camera
+ */
 class cCamSimul : public cMemCheck
 {
    public :
       static cCamSimul * Alloc2VIewTerrestrial(eProjPC aProj1,eProjPC aProj2,bool SubVert);
 
       ~cCamSimul();
-      static void BenchMatEss(cTimerSegm * aTS,bool PerfInter);
+      static void BenchPoseRel2Cam(cTimerSegm * aTS,bool PerfInter,bool SubVert,bool Planar);
       void TestCam(cSensorCamPC * aCam) const;
 
    private :
@@ -735,7 +739,7 @@ class cCamSimul : public cMemCheck
       ///  Generatea new valide point, checking ValidateCenter
       cPt3dr  GenValideCenter(bool SubVert) const;
       /// Generate a point w/o constraint
-      cPt3dr  GenAnyCenter(bool SubVert) const;
+      cPt3dr  GenCenterWOCstr(bool SubVert) const;
 
 
       /// center of the scene

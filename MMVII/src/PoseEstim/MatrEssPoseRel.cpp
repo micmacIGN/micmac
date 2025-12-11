@@ -36,6 +36,10 @@ const std::vector<cPt3dr>& cSetHomogCpleDir::VDir2() const {return mVDir2;}
 void  cSetHomogCpleDir::NormalizeRot(cRotation3D<tREAL8>&  aRot ,std::vector<cPt3dr> & aVPts)
 {
       cPt3dr aP = Centroid(aVPts);
+      if (IsNull(aP))
+      {
+          aP = cPt3dr(0.0,0.0,1.0);
+      }
       tRot  aRKAB  = tRot::CompleteRON(aP);
 
       tRot  aRepairABK(aRKAB.AxeJ(),aRKAB.AxeK(),aRKAB.AxeI(),false);
@@ -233,7 +237,7 @@ cMatEssential::cMatEssential(const cSetHomogCpleDir & aSetD,cLinearOverCstrSys<t
      for (size_t aKP=0 ; aKP<aVD1.size() ; aKP++)
      {
          MMVII::SetVectMatEss(aVect,aVD1[aKP],aVD2[aKP]);
-	 aSys.PublicAddObservation(1.0,aVect,0.0);
+         aSys.PublicAddObservation(1.0,aVect,0.0);
      }
      aSys.AddObsFixVar(aVD1.size(),aKFix,1.0);
      cDenseVect<tREAL8> aSol = aSys.PublicSolve();
@@ -306,7 +310,7 @@ tREAL8  cMatEssential::KthCost(const  cSetHomogCpleDir & aSetD,tREAL8  aProp) co
 
 
 
-cMatEssential::tPose  cMatEssential::ComputePose(const cSetHomogCpleDir & aHom,tPose * aRef) const
+cMatEssential::tPose  cMatEssential::ComputePose(const cSetHomogCpleDir & aHom,const tPose * aRef) const
 {
     /*  We have EssM = U D tV , and due to eigen convention
              1 0 0
@@ -480,8 +484,12 @@ void Bench_MatEss(cParamExeBench & aParam)
     }  
     for (int aNb=0 ; aNb<1 ; aNb++)
     {
-        cCamSimul::BenchMatEss(aTS,false);
-        cCamSimul::BenchMatEss(aTS,true);
+        cCamSimul::BenchPoseRel2Cam(aTS,true,true,true);
+
+        cCamSimul::BenchPoseRel2Cam(aTS,false,false,false);
+        cCamSimul::BenchPoseRel2Cam(aTS,true,false,false);
+        cCamSimul::BenchPoseRel2Cam(aTS,false,true,false);
+        cCamSimul::BenchPoseRel2Cam(aTS,true,true,false);
     }
 
     delete aTS;

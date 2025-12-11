@@ -88,7 +88,7 @@ class cMatEssential
 
         cMatEssential(const  tMat & aMat);
 
-         tPose ComputePose(const cSetHomogCpleDir & aHoms,tPose * aRes= nullptr) const;
+         tPose ComputePose(const cSetHomogCpleDir & aHoms,const tPose * aRes= nullptr) const;
 
     private :
         tMat mMat; /// The Ess  matrix itself

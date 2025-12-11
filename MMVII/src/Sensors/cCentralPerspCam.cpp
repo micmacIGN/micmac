@@ -913,12 +913,12 @@ cPerspCamIntrCalib * cPerspCamIntrCalib::RandomCalib(eProjPC aTypeProj,int aKDeg
 	                                 cDataPerspCamIntrCalib
 	                                 (
 	                                       "BenchCam",
-                                                aTypeProj,
-						aDegDir.at(aKDeg),
+                                            aTypeProj,
+                                            aDegDir.at(aKDeg),
 	                                        std::vector<double>(),
 	                                        cMapPProj2Im(aFoc,aPP),
 	                                        cDataPixelDomain(aSz),
-						aDegInv.at(aKDeg),
+                                            aDegInv.at(aKDeg),
 	                                        100
 	                                 )
                                 );
