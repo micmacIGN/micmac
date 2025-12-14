@@ -546,6 +546,8 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
          
         double Diagonalicity() const; ///< how much close to a diagonal matrix, square only , 
         Type   Det() const;  ///< compute the determinant, not sur optimise
+        Type   Trace() const;  ///< compute the trace, quite basic
+
 
         void ChangSign(); ///< Multiply by -1
         void SetDirectBySign(); ///< Multiply by -1 if indirect

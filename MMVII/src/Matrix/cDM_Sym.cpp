@@ -97,6 +97,17 @@ template <class Type> double cDenseMatrix<Type>::Diagonalicity() const
    return sqrt(aRes/std::max(1,aNb*aNb-aNb));
 }
 
+template <class Type> Type cDenseMatrix<Type>::Trace() const
+{
+    cMatrix<Type>::CheckSquare(*this);
+     int aNb = Sz().x();
+
+    Type aRes = 0.0;
+    for (int aX=0 ; aX<aNb ; aX++)
+        aRes +=  GetElem(aX,aX);
+    return aRes;
+}
+
 
 template <class Type> double cDenseMatrix<Type>::Symetricity() const
 {

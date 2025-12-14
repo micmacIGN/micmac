@@ -66,8 +66,9 @@ template <class Type> Type cDenseMatrix<Type>::Det() const
     {
        return GetElem(0,0) *GetElem(1,1) -GetElem(0,1) *GetElem(1,0);
     }
-    if (Sz().x() ==2)
+    if (Sz().x() ==3)
     {
+        //StdOut() << "DDDDD33333333333333333333333333333333333333333333333333333333Dddddd \n";
        return 
            GetElem(0,0) *(GetElem(1,1)*GetElem(2,2) -GetElem(1,2) *GetElem(2,1))
         +  GetElem(0,1) *(GetElem(1,2)*GetElem(2,0) -GetElem(1,0) *GetElem(2,2))

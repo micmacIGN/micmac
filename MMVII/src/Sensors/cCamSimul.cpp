@@ -17,22 +17,125 @@ bool BUGME = false;
  */
 
 
+/*
+ *   If the scene is plane, the correspondance between homologous point is an homography.
+ *  We can write :
+ *
+ *            a x1/z1 + b y1/z1 +c                      d x1/z1 + e y1/z1 +f
+ *    x2/z2= --------------------------       y2/z2= --------------------------
+ *            g x1/z1 + h y1/z1 +i                     g x1/z1 + h y1/z1 +i
+ *
+ *  Or :
+ *     x2    (a  b  c) (x1 )           L1.p1
+ *     y2 ~  (d  e  f) (y1 )    p2=    L2.p1   of  p2 = H p1 where p1 is the homography matric
+ *     z2    (g  h  i) (z1 )           L3.p1
+ *
+ *
+ *  When estimating the homography H, for adding the equation in a sytem we use  cPS_CompPose::SetPt with :
+ *
+ *      (ax1 + by1 + cz1) z2 - (gx1 + h y1 i z1) x2 = 0     L1.P1 z2 - L3.P1 x2 = 0
+ *      (dx1 + ey1 + fz1) z2 - (gx1 + h y1 i z1) y2 = 0     L2.P1 z2 - L3.P1 y2 = 0
+ *
+ *   For computing epipolar repair, there is an ambiguity by a common rotation arround X-axe.  In the
+ *   planar case, we define the special epipolar repair such that the Y-axe belong to the plane . In this
+ *   repair, the plane has equation :
+ *           P :  Z = c + k X
+ *    Let :
+ *      #  p1= (x1 y1 1) a point of image 1
+ *      #  the bundle B= L P1 intersect plane P in point Q1 at value of parameter L = c/(1-k x1)
+ *      #  let B be the base and Q2 be coordinate of Q1 in repair of image 2, we have
+ *         Q2= (B + Lx1,  Ly1 , L) that is projected on image 2 at p2 = (x1+B/L,y1,1) = (ax1+b,y,1)
+ *         with a =1- k/c  b=B/c
+ *      # so in epipolar repair we have :  (x2)        (a 0 b) (x1)
+ *                                         (y2)   =    (0 1 0) (y1)  or  p2 = Q(a,b) p1   [1]
+ *                                         (1 )        (0 0 1) (z1)
+ *    So let R1,R2 be the rotation of special epipolar repair, we have :
+ *           R2 p2 = Q(a,b) R1 p1  , comparing with p2 = H p1
+ *    The estimation of R2 and R1 is equivalent to solve equation :
+ *
+ *               tRE2 Q(a,b) RE1 = Lambda  H [2]
+ *
+ *    Where H is known and Lambda is used because all matrix, point are define up to scale (projective).
+ *    Note that the problem is well posed we have 8 unknown a,b,Lambda and 3 for each rotation.
+ *
+ *    To solve this equation, we will use the following step :
+ *        # make a SVD of H = tRh2 D Rh1 with D=[l1,l2,l3]
+ *        # estimate lambda, a and b using some invariant on singular values such
+ *            Q(a,b) = tRq1 D/Lamda Rq2
+ *        # make a svd of  Q(a,b)
+ *        # then     Q(a,b) = tRq1 D/Lamda Rq2
+ *
+ *    And finally :
+ *         tRE2 tRq1 D/Lamda Rq2 RE1 = tRh2 D Rh1
+ *    So
+ *        ...
+ *
+ *    For estimating a,b,Lambda=L, we use :
+ *      # equality of determinant in [2]  gives :
+ *
+ *               a = L^3 det H = L^3 l1l2l3  [P1]
+ *
+ *      # compute M tM for both side we have :
+ *
+ *                                   (a 0 b)   (a 0 0)     (a^2 + b^2      0      b)
+ *          tRE2 Q(a,b) Q(a,b) RE2 = (0 1 0) * (0 1 0) =   (    0          1      0)
+ *                                   (0 0 1)   (b 0 1)     (    b          0      1)
+ *        as trace is invariant by changing base (tr(A-1BA) = tr(B)) we have :
+ *
+ *          a^2 + b^2 + 2 =  L^2 Tr(H t H) = L^2 (l1^2 + l2^2 + l3^2) [P2]
+ *
+ *      # and as tr( (M tM) t(MtM) ) it the frobenius norm of M tM an we have, and still base invariant :
+ *
+ *         (a^2+b^2) ^2 + 2 b^2 +2 = L4^(l1^4+l2^4+l3 ^4)  [P3]
+ *
+ *     So syntheicaly we have the set of equation :
+ *
+ *        [P1] a                       = L^3 D
+ *        [P2] a^2 + b^2 + 2           = L^2 Tr2
+ *        [P3] (a^2+b^2) ^2 + 2 b^2 +2 = L^4 Tr4
+ *
+ *     By substitution in [P3] we get a polynomial equation in L
+ *     (a^2 + b^2) comes from [P2] and b^2 from [P1] & [P2]) :
+ *         (L^2Tr^2 -2) ^2 + 2(L^2 Tr2-2 -L^6 D^2)   +2 = L^4 Tr4
+ *     This 6-degree in L can be solved as 3 degree i n L2
+ *     Once we have values of L, we use [P1] to have value of a, and [P2] to have values of b.
+ *
+ */
+
+
+/**
+ * @brief cPS_CompPose::cPS_CompPose
+ * @param aSetCple
+ */
 
 class cPS_CompPose
 {
    public :
-        cPS_CompPose( cSetHomogCpleDir &);
+        cPS_CompPose( cSetHomogCpleDir &,bool ModeBench=false);
 
    private :
-        static void SetPt( cDenseVect<tREAL8>&,size_t aIndex,const cPt3dr&,tREAL8 aMul){}
+        static void SetPt( cDenseVect<tREAL8>&,size_t aIndex,const cPt3dr&,tREAL8 aMul);
 
 };
 
-cPS_CompPose::cPS_CompPose( cSetHomogCpleDir & aSetCple)
+void cPS_CompPose::SetPt( cDenseVect<tREAL8>& aVect,size_t aIndex,const cPt3dr& aPt,tREAL8 aMul)
+{
+    for (size_t aK=0 ; aK<3 ; aK++)
+        aVect(aIndex+aK) = aPt[aK] * aMul;
+}
+
+/*
+ * @brief cPS_CompPose::cPS_CompPose
+ * @param aSetCple
+ */
+
+
+cPS_CompPose::cPS_CompPose(cSetHomogCpleDir & aSetCple,bool ModeBench)
 {
     const std::vector<cPt3dr>& aV1 = aSetCple.VDir1();
     const std::vector<cPt3dr>& aV2 = aSetCple.VDir2();
 
+    //  [1]   Estimate the homography
     cDenseVect<tREAL8> aVect(9);
     cLeasSqtAA<tREAL8> aSys(9);
 
@@ -41,17 +144,128 @@ cPS_CompPose::cPS_CompPose( cSetHomogCpleDir & aSetCple)
         const cPt3dr & aP1 = aV1.at(aKP);
         const cPt3dr & aP2 = aV2.at(aKP);
 
+        //  Add the equation L1.P1 z2 - L3.P1 x2 = 0
         SetPt(aVect,0,aP1,aP2.z());
         SetPt(aVect,3,aP1,0);
         SetPt(aVect,6,aP1,-aP2.x());
         aSys.PublicAddObservation(1.0,aVect,0.0);
 
+        // Add the equation  L2.P1 z2 - L3.P1 y2 = 0
         SetPt(aVect,0,aP1,0);
         SetPt(aVect,3,aP1,aP2.z());
         SetPt(aVect,6,aP1,-aP2.y());
         aSys.PublicAddObservation(1.0,aVect,0.0);
     }
     aSys.AddObsFixVar(tREAL8(aV1.size()),8,1.0);
+    cDenseVect<tREAL8> aSol = aSys.PublicSolve();
+    cDenseMatrix<tREAL8> aMatH = Vect2MatEss(aSol);
+
+    if (ModeBench)
+    {
+       for (size_t aKP=0 ; aKP<aV1.size() ; aKP++)
+       {
+           const cPt3dr & aP1 = aV1.at(aKP);
+           const cPt3dr & aP2 = aV2.at(aKP);
+
+           tREAL8 aDif = Norm2(VUnit(aMatH * aP1) - aP2);
+
+           MMVII_INTERNAL_ASSERT_bench(aDif<1e-7,"cPS_CompPose :: Matrix");
+          // StdOut()  << " * DiiIiff=  " <<aDif << "\n";
+       }
+    }
+
+
+    // [2]  Estimate the paramater a,b,L
+
+     //  [2.1] make a SVD, maybe not optimal for invariant, btw will be used later
+     cResulSVDDecomp<tREAL8> aSvdH = aMatH.SVD();
+     cDenseVect<tREAL8>      aSingV = aSvdH.SingularValues();
+
+     // [2.2]  extract invariant
+              // ------- singular values
+     tREAL8 aL1 = aSingV(0);
+     tREAL8 aL2 = aSingV(1);
+     tREAL8 aL3 = aSingV(2);
+              // -------- square of singular values
+     tREAL8 aSqL1 = Square(aL1);
+     tREAL8 aSqL2 = Square(aL2);
+     tREAL8 aSqL3 = Square(aL3);
+             // --- Determinant,  Trace of MtM, trace of MtM^2
+     tREAL8 aDet = aL1*aL2*aL3 ;
+     tREAL8 aTr2 = aSqL1+aSqL2+aSqL3;
+     tREAL8 aTr4 = Square(aSqL1)+Square(aSqL2)+Square(aSqL3);
+
+     // some basic check, compare values from singular with direct computation
+     if (ModeBench)
+     {
+         cDenseMatrix<tREAL8> aH_tH = aMatH * aMatH.Transpose();
+
+         if (0)
+         {
+             StdOut()  << "DDDD= " << aDet - aMatH.Det() << "\n";
+             StdOut()  << "tTr2= " << aTr2 - aH_tH.Trace() << "\n";
+             StdOut()  << "tTr4= " << aTr4 - aH_tH.DIm().SqL2Norm(false) << "\n";
+             StdOut() << "\n";
+         }
+
+         MMVII_INTERNAL_ASSERT_bench(std::abs(aDet - aMatH.Det())<1e-7,  "cPS_CompPose :: Det");
+         MMVII_INTERNAL_ASSERT_bench(std::abs(aTr2 - aH_tH.Trace())<1e-7,"cPS_CompPose :: Tr2");
+         MMVII_INTERNAL_ASSERT_bench(std::abs(aTr4 - aH_tH.DIm().SqL2Norm(false))<1e-7,"cPS_CompPose :: Tr4")
+     }
+
+     //     (L^2Tr^2 -2) ^2 + 2(L^2 Tr2-2 -L^6 D^2)   +2 = L^4 Tr4
+     //  2 D^2 LL^3 + Tr4 LL^2   - 2 Tr2 LL +4 -    2   - 4 +4 Tr2 LL -Tr2^2 LL^2
+     //  2 D^2 LL^3  + (Tr4-Tr2^2) LL^2  +  2 Tr2 LL - 2
+
+     // Extract polyno
+     std::vector<tREAL8> aVCoef {-2.0,2.0*aTr2,aTr4-Square(aTr2),2.0*Square(aDet)};
+     cPolynom<tREAL8> aPolL(aVCoef);
+     std::vector<tREAL8> aLSol = aPolL.RealRoots(1e-7,10);
+
+     StdOut()  << "LAMBDAS= " << aLSol  << " SV=" << aSingV << "\n";
+
+     for (const auto & aL2 : aLSol)
+     {
+         if (aL2>-1e-6)
+         {
+             tREAL8 aAbsLambda = std::sqrt(std::max(0.0,aL2));
+             int aS0Lambda = (aAbsLambda >0) ? -1 : 1;
+             for (int aSignL=aS0Lambda ; aSignL<=1 ; aSignL+=2)
+             {
+                 tREAL8 aLambda = aAbsLambda * aSignL;
+                //  [P1] a  = L^3 D
+                 tREAL8 aA = Cube(aLambda) * aDet;
+                 //  a^2 + b^2 + 2           = L^2 Tr2
+                 tREAL8 aB2 = Square(aLambda)* aTr2 -Square(aA)-2.0;
+                 if (aB2>-1e-6)
+                 {
+                     tREAL8 aAbsB = std::sqrt(std::max(0.0,aB2));
+                     int aS0B = (aAbsB >0) ? -1 : 1;
+                     for (int aSignB=aS0B ; aSignB<=1 ; aSignB+=2)
+                     {
+                         tREAL8 aB = aAbsB * aSignB;
+
+                         cDenseMatrix<tREAL8>  aQab =  M3x3FromLines
+                                                       (
+                                                          cPt3dr(aA,0,aB) / aLambda,
+                                                          cPt3dr(0,1,0) / aLambda,
+                                                          cPt3dr(0,0,1) / aLambda
+                                                       );
+
+                         cResulSVDDecomp<tREAL8> aSvdQab = aQab.SVD();
+                         cDenseVect<tREAL8>      aSingVQab = aSvdQab.SingularValues();
+                         StdOut()<< " SINGV " << aSingVQab
+                                 << " DetUab=" << aSvdQab.MatU().Det() << " "<< aSvdH.MatU().Det()
+                                 << " DetVab=" << aSvdQab.MatV().Det() << " "<< aSvdH.MatV().Det()
+                                 << "\n";
+                     }
+                 }
+             }
+         }
+     }
+     StdOut() << " ----------------------------------------- \n";
+   // getchar();
+
 }
 
 
@@ -213,7 +427,7 @@ void cCamSimul::BenchPoseRel2Cam
 
            for (size_t aKP=0 ; aKP<aNbPts ; aKP++)
            {
-               StdOut() << " Planaaarr " << isPlanar << " K=" << aKP << "\n";
+               // StdOut() << " Planaaarr " << isPlanar << " K=" << aKP << "\n";
                cHomogCpleIm aCple =  isPlanar                                                     ?
                                      aCam1->RandomVisibleCple(aCamSim->mCenterGround.z(),*aCam2)  :
                                      aCam1->RandomVisibleCple(*aCam2)                             ;
@@ -230,7 +444,7 @@ void cCamSimul::BenchPoseRel2Cam
 
             if (isPlanar )
             {
-                 cPS_CompPose aPsC(aSetD);
+                 cPS_CompPose aPsC(aSetD,true);
             }
             else
             {
