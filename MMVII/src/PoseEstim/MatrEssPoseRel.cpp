@@ -30,6 +30,14 @@ cSetHomogCpleDir::cSetHomogCpleDir(const cSetHomogCpleIm & aSetH,const cPerspCam
      }
 }
 
+cSetHomogCpleDir::cSetHomogCpleDir(const std::vector<cPt3dr>& aVDir1,const std::vector<cPt3dr>& aVDir2) :
+    mVDir1 (aVDir1),
+    mVDir2 (aVDir2),
+    mR1ToInit (tRot::Identity()),
+    mR2ToInit (tRot::Identity())
+{
+}
+
 const std::vector<cPt3dr>& cSetHomogCpleDir::VDir1() const {return mVDir1;}
 const std::vector<cPt3dr>& cSetHomogCpleDir::VDir2() const {return mVDir2;}
 

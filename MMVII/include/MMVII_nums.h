@@ -79,6 +79,8 @@ double RandInInterval(double a,double b); ///<  Uniform distribution in [a,b]
 double RandInInterval(const cPt2dr &interval); ///<  Uniform distribution in [interval.x,interval.y]
 double RandInInterval_C(const cPt2dr &interval); ///<  Uniform distribution in [-interval.y,-interval.x]U[interval.x,interval.y]
 
+double RandUnif_Angle(); ///<  Uniform distribution in [0 2Pi]
+
 int RandUnif_M_N(int aM,int aN); ///< Uniform disrtibution in [M,N] 
 
 /** Class for mapping object R->R */

@@ -1,5 +1,6 @@
 #include "MMVII_SysSurR.h"
 #include "MMVII_Geom3D.h"
+#include "MMVII_Geom2D.h"
 
 namespace MMVII
 {
@@ -65,6 +66,17 @@ cPt3dr  BundleInters(const tSeg3dr & aSeg1,const tSeg3dr & aSeg2,tREAL8 aW12)
  *
  *
  */
+
+
+cPt3dr Cart2Cyl(const cPt3dr & aPtCart)
+{
+    return   TP3z(ToPolar(Proj(aPtCart),0.0),aPtCart.z());
+}
+
+cPt3dr Cyl2Cart(const cPt3dr & aPtspher)
+{
+    return   TP3z(FromPolar(Proj(aPtspher)),aPtspher.z());
+}
 
 
 
@@ -566,6 +578,14 @@ void BenchPlane3D()
 
        //  StdOut() << "NnnNnn " <<  Norm2(aPI - aPIVec) << std::endl;
        MMVII_INTERNAL_ASSERT_bench(Norm2(aPI - aPIVec) <1e-5,"BundleInters");
+    }
+
+    for (int aK=0 ; aK< 10 ; aK++)
+    {
+        cPt3dr aPCart =  cPt3dr::PRandC();
+        cPt3dr aPCyl  = Cart2Cyl(aPCart);
+        MMVII_INTERNAL_ASSERT_bench(Norm2(Cyl2Cart(aPCyl) - aPCart )<1e-7,"Cylindriq coordinates");
+        MMVII_INTERNAL_ASSERT_bench(std::abs(aPCyl.z()-aPCart.z() )<1e-7,"Cylindriq coordinates");
     }
     
 }

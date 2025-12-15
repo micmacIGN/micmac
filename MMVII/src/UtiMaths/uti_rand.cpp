@@ -183,7 +183,10 @@ double RandUnif_0_1()
 {
    return cRandGenerator::TheOne()->Unif_0_1();
 }
-
+double RandUnif_Angle()
+{
+    return RandUnif_0_1() * 2.0 * M_PI;
+}
 std::vector<double> VRandUnif_0_1(int aNb)
 {
     std::vector<double> aRes;

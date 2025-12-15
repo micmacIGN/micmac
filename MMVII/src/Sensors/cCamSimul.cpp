@@ -100,6 +100,12 @@ bool BUGME = false;
  *     This 6-degree in L can be solved as 3 degree i n L2
  *     Once we have values of L, we use [P1] to have value of a, and [P2] to have values of b.
  *
+ *     Once we have QabL = Q(a,b)/L :
+ *
+ *              Qabl = tRq2  D  Rq1
+ *              H =  tRh2 D Rh1
+ *
+ *
  */
 
 
@@ -113,10 +119,58 @@ class cPS_CompPose
    public :
         cPS_CompPose( cSetHomogCpleDir &,bool ModeBench=false);
 
+        cDenseMatrix<tREAL8>   ComputeMatHom3D
+                               (
+                                  const std::vector<cPt3dr>& aV1,
+                                  const std::vector<cPt3dr>& aV2,
+                                  bool ModeBench=false
+                               );
+
+        /** generate pair 3D of direction that can correpond to coherent camera, can be more
+         "extremate" than with camera, can simulate for example two side of plane
+         */
+         static cSetHomogCpleDir SimulateDir(const cPt2dr & aRhoZ1,const cPt2dr & aRhoZ2,tREAL8 aIntZ);
+
+
    private :
+        static    cPt3dr RandPointOfView(const cPt2dr & aRhoZ);
+
+
         static void SetPt( cDenseVect<tREAL8>&,size_t aIndex,const cPt3dr&,tREAL8 aMul);
 
 };
+
+cPt3dr cPS_CompPose::RandPointOfView(const cPt2dr & aRhoZ)
+{
+    return Cyl2Cart(cPt3dr(aRhoZ.x(),RandUnif_Angle(),aRhoZ.y()));
+}
+
+cSetHomogCpleDir cPS_CompPose::SimulateDir(const cPt2dr & aRhoZ1,const cPt2dr & aRhoZ2,tREAL8 aIntZ)
+{
+    std::vector<cPt3dr>  aVDir1; // store directions 1
+    std::vector<cPt3dr>  aVDir2; // store directions 2
+
+    cPt3dr aC1 = RandPointOfView(aRhoZ1); // "Center" of cam1
+    cPt3dr aC2 = RandPointOfView(aRhoZ2); // "Center" of cam2
+    tRotR aR1 = tRotR::RandomRot();       // Global rotation applied to dir 1
+    tRotR aR2 = tRotR::RandomRot();       // Global rotation applied to dir 2
+
+
+    // be sure that that Center Cams are above Interv of Z
+    aIntZ = std::min(aIntZ,std::min(std::abs(aC1.z()),std::abs(aC2.z()))*0.75);
+
+    for (int aK=0 ; aK<100 ; aK++)
+    {
+        // the planer comp of point are generate in the circle unit
+        cPt3dr aPGround = TP3z(cPt2dr::PRandInSphere(),aIntZ*RandUnif_C());
+
+        aVDir1.push_back(aR1.Value(VUnit(aPGround-aC1)));
+        aVDir2.push_back(aR2.Value(VUnit(aPGround-aC2)));
+    }
+
+
+    return cSetHomogCpleDir(aVDir1,aVDir2);
+}
 
 void cPS_CompPose::SetPt( cDenseVect<tREAL8>& aVect,size_t aIndex,const cPt3dr& aPt,tREAL8 aMul)
 {
@@ -129,59 +183,83 @@ void cPS_CompPose::SetPt( cDenseVect<tREAL8>& aVect,size_t aIndex,const cPt3dr& 
  * @param aSetCple
  */
 
+cDenseMatrix<tREAL8>
+    cPS_CompPose::ComputeMatHom3D
+   (
+         const std::vector<cPt3dr>& aV1,
+         const std::vector<cPt3dr>& aV2,
+         bool ModeBench
+   )
+{
+
+     //  [1]   Estimate the homography
+     cDenseVect<tREAL8> aVect(9);
+     cLeasSqtAA<tREAL8> aSys(9); // least square to estimate parameters
+
+     for (size_t aKP=0 ; aKP<aV1.size() ; aKP++)
+     {
+         const cPt3dr & aP1 = aV1.at(aKP);
+         const cPt3dr & aP2 = aV2.at(aKP);
+
+         //  Add the equation L1.P1 z2 - L3.P1 x2 = 0
+         SetPt(aVect,0,aP1,aP2.z());
+         SetPt(aVect,3,aP1,0);
+         SetPt(aVect,6,aP1,-aP2.x());
+         aSys.PublicAddObservation(1.0,aVect,0.0);
+
+         // Add the equation  L2.P1 z2 - L3.P1 y2 = 0
+         SetPt(aVect,0,aP1,0);
+         SetPt(aVect,3,aP1,aP2.z());
+         SetPt(aVect,6,aP1,-aP2.y());
+         aSys.PublicAddObservation(1.0,aVect,0.0);
+     }
+     // Fix last value as matrix is up to a scale
+     aSys.AddObsFixVar(tREAL8(aV1.size()),8,1.0);
+     cDenseVect<tREAL8> aSol = aSys.PublicSolve();
+     cDenseMatrix<tREAL8> aMatH = Vect2MatEss(aSol);
+
+     if (ModeBench)
+     {
+        for (size_t aKP=0 ; aKP<aV1.size() ; aKP++)
+        {
+            const cPt3dr & aP1 = aV1.at(aKP);
+            const cPt3dr & aP2 = aV2.at(aKP);
+
+            // As point are projective P and -P are equivalent : use line-angle
+            tREAL8 anAng = AbsLineAngleTrnk(aMatH*aP1,aP2);
+            MMVII_INTERNAL_ASSERT_bench(anAng<1e-7,"cPS_CompPose :: Matrix");
+
+            // This test can no longer sucess with data simulated by direction (more chalenging)
+            if (0)
+            {
+                tREAL8 aDif = Norm2(VUnit(aMatH * aP1) - aP2);
+                MMVII_INTERNAL_ASSERT_bench(aDif<1e-7,"cPS_CompPose :: Matrix");
+            }
+          //  StdOut()  << " * DiiIiff=  " << AbsLineAngleTrnk(aMatH*aP1,aP2) << "\n";
+        }
+     }
+     // Not real reason to do that, just to supress an arbitray degree of freedom
+     if (aMatH.Det() < 0)
+         aMatH = - aMatH;
+     return aMatH;
+}
+
 
 cPS_CompPose::cPS_CompPose(cSetHomogCpleDir & aSetCple,bool ModeBench)
 {
+
     const std::vector<cPt3dr>& aV1 = aSetCple.VDir1();
     const std::vector<cPt3dr>& aV2 = aSetCple.VDir2();
-
-    //  [1]   Estimate the homography
-    cDenseVect<tREAL8> aVect(9);
-    cLeasSqtAA<tREAL8> aSys(9);
-
-    for (size_t aKP=0 ; aKP<aV1.size() ; aKP++)
-    {
-        const cPt3dr & aP1 = aV1.at(aKP);
-        const cPt3dr & aP2 = aV2.at(aKP);
-
-        //  Add the equation L1.P1 z2 - L3.P1 x2 = 0
-        SetPt(aVect,0,aP1,aP2.z());
-        SetPt(aVect,3,aP1,0);
-        SetPt(aVect,6,aP1,-aP2.x());
-        aSys.PublicAddObservation(1.0,aVect,0.0);
-
-        // Add the equation  L2.P1 z2 - L3.P1 y2 = 0
-        SetPt(aVect,0,aP1,0);
-        SetPt(aVect,3,aP1,aP2.z());
-        SetPt(aVect,6,aP1,-aP2.y());
-        aSys.PublicAddObservation(1.0,aVect,0.0);
-    }
-    aSys.AddObsFixVar(tREAL8(aV1.size()),8,1.0);
-    cDenseVect<tREAL8> aSol = aSys.PublicSolve();
-    cDenseMatrix<tREAL8> aMatH = Vect2MatEss(aSol);
-
-    if (ModeBench)
-    {
-       for (size_t aKP=0 ; aKP<aV1.size() ; aKP++)
-       {
-           const cPt3dr & aP1 = aV1.at(aKP);
-           const cPt3dr & aP2 = aV2.at(aKP);
-
-           tREAL8 aDif = Norm2(VUnit(aMatH * aP1) - aP2);
-
-           MMVII_INTERNAL_ASSERT_bench(aDif<1e-7,"cPS_CompPose :: Matrix");
-          // StdOut()  << " * DiiIiff=  " <<aDif << "\n";
-       }
-    }
+    cDenseMatrix<tREAL8> aMatH = ComputeMatHom3D(aV1,aV2,ModeBench);
 
 
     // [2]  Estimate the paramater a,b,L
 
      //  [2.1] make a SVD, maybe not optimal for invariant, btw will be used later
-     cResulSVDDecomp<tREAL8> aSvdH = aMatH.SVD();
+     cResulSVDDecomp<tREAL8> aSvdH = aMatH.SVD(true);
      cDenseVect<tREAL8>      aSingV = aSvdH.SingularValues();
 
-     // [2.2]  extract invariant
+     // [2.2]  compute invariant
               // ------- singular values
      tREAL8 aL1 = aSingV(0);
      tREAL8 aL2 = aSingV(1);
@@ -207,61 +285,106 @@ cPS_CompPose::cPS_CompPose(cSetHomogCpleDir & aSetCple,bool ModeBench)
              StdOut()  << "tTr4= " << aTr4 - aH_tH.DIm().SqL2Norm(false) << "\n";
              StdOut() << "\n";
          }
+         StdOut() << " SINGV " << aSingV << "\n";
 
-         MMVII_INTERNAL_ASSERT_bench(std::abs(aDet - aMatH.Det())<1e-7,  "cPS_CompPose :: Det");
-         MMVII_INTERNAL_ASSERT_bench(std::abs(aTr2 - aH_tH.Trace())<1e-7,"cPS_CompPose :: Tr2");
-         MMVII_INTERNAL_ASSERT_bench(std::abs(aTr4 - aH_tH.DIm().SqL2Norm(false))<1e-7,"cPS_CompPose :: Tr4")
+         // For determinant of projective, sign is undefined
+         MMVII_INTERNAL_ASSERT_bench(RelativeDifference(aDet, std::abs(aMatH.Det()))<1e-7,  "cPS_CompPose :: Det");
+         MMVII_INTERNAL_ASSERT_bench(RelativeDifference(aTr2, aH_tH.Trace())<1e-7,"cPS_CompPose :: Tr2");
+         MMVII_INTERNAL_ASSERT_bench(RelativeDifference(aTr4,aH_tH.DIm().SqL2Norm(false))<1e-7,"cPS_CompPose:Tr4");
+         //RelativeDifference()
      }
 
      //     (L^2Tr^2 -2) ^2 + 2(L^2 Tr2-2 -L^6 D^2)   +2 = L^4 Tr4
      //  2 D^2 LL^3 + Tr4 LL^2   - 2 Tr2 LL +4 -    2   - 4 +4 Tr2 LL -Tr2^2 LL^2
      //  2 D^2 LL^3  + (Tr4-Tr2^2) LL^2  +  2 Tr2 LL - 2
 
-     // Extract polyno
+     // [2.3]  compute polynom and roots to have values of lambda^2
      std::vector<tREAL8> aVCoef {-2.0,2.0*aTr2,aTr4-Square(aTr2),2.0*Square(aDet)};
      cPolynom<tREAL8> aPolL(aVCoef);
      std::vector<tREAL8> aLSol = aPolL.RealRoots(1e-7,10);
 
-     StdOut()  << "LAMBDAS= " << aLSol  << " SV=" << aSingV << "\n";
-
+     // [2.4]  extract    a,b and Lambda
+     std::vector<cPt3dr> aVABL;   // vector store values of a,b,Lambda
      for (const auto & aL2 : aLSol)
      {
-         if (aL2>-1e-6)
+         if (aL2>-1e-6) // if root positive (up to epslion)
          {
-             tREAL8 aAbsLambda = std::sqrt(std::max(0.0,aL2));
-             int aS0Lambda = (aAbsLambda >0) ? -1 : 1;
+             tREAL8 aAbsLambda = std::sqrt(std::max(0.0,aL2)); // aboslute value
+             int aS0Lambda = (aAbsLambda >0) ? -1 : 1; // if 0 no need to explore 2
              for (int aSignL=aS0Lambda ; aSignL<=1 ; aSignL+=2)
              {
-                 tREAL8 aLambda = aAbsLambda * aSignL;
-                //  [P1] a  = L^3 D
-                 tREAL8 aA = Cube(aLambda) * aDet;
-                 //  a^2 + b^2 + 2           = L^2 Tr2
+                 tREAL8 aLambda = aAbsLambda * aSignL;  // signed lambda
+                 tREAL8 aA = Cube(aLambda) * aDet; //  compute a : [P1] a  = L^3 D
+                 // compute b^2 :  a^2 + b^2 + 2           = L^2 Tr2
                  tREAL8 aB2 = Square(aLambda)* aTr2 -Square(aA)-2.0;
-                 if (aB2>-1e-6)
+                 if (aB2>-1e-6) // if B2 is positive up to epsilon
                  {
                      tREAL8 aAbsB = std::sqrt(std::max(0.0,aB2));
                      int aS0B = (aAbsB >0) ? -1 : 1;
                      for (int aSignB=aS0B ; aSignB<=1 ; aSignB+=2)
                      {
                          tREAL8 aB = aAbsB * aSignB;
-
-                         cDenseMatrix<tREAL8>  aQab =  M3x3FromLines
-                                                       (
-                                                          cPt3dr(aA,0,aB) / aLambda,
-                                                          cPt3dr(0,1,0) / aLambda,
-                                                          cPt3dr(0,0,1) / aLambda
-                                                       );
-
-                         cResulSVDDecomp<tREAL8> aSvdQab = aQab.SVD();
-                         cDenseVect<tREAL8>      aSingVQab = aSvdQab.SingularValues();
-                         StdOut()<< " SINGV " << aSingVQab
-                                 << " DetUab=" << aSvdQab.MatU().Det() << " "<< aSvdH.MatU().Det()
-                                 << " DetVab=" << aSvdQab.MatV().Det() << " "<< aSvdH.MatV().Det()
-                                 << "\n";
+                         aVABL.push_back(cPt3dr(aA,aB,aLambda));
                      }
                  }
              }
          }
+     }
+
+
+     for (const auto & anABL : aVABL)
+     {
+         cDenseMatrix<tREAL8>  aQab =  M3x3FromLines
+                                       (
+                                          cPt3dr(anABL.x(),0,anABL.y()) / anABL.z(),
+                                          cPt3dr(0,1,0)                 / anABL.z(),
+                                          cPt3dr(0,0,1)                 / anABL.z()
+                                       );
+
+         cResulSVDDecomp<tREAL8> aSvdQab = aQab.SVD(true);
+         cDenseVect<tREAL8>      aSingVQab = aSvdQab.SingularValues();
+
+
+         if (ModeBench)
+         {
+             tREAL8 aDist = aSingV.L2Dist(aSingVQab) / (1+std::sqrt(aTr2));
+             MMVII_INTERNAL_ASSERT_bench(aDist<1e-7,"cPS_CompPose dist sing val");
+
+             // to be honest, I cannot prove formally this assertion, btw
+             // it happens to be true even with very randomized condition
+             MMVII_INTERNAL_ASSERT_bench( aSvdQab.MatU().Det()>0," SvdQab.MatU");
+             MMVII_INTERNAL_ASSERT_bench( aSvdQab.MatV().Det()>0," SvdQab.MatV");
+             MMVII_INTERNAL_ASSERT_bench( aSvdH.MatU().Det()>0," aSvdH.MatU");
+             MMVII_INTERNAL_ASSERT_bench( aSvdH.MatV().Det()>0," aSvdH.MatV");
+         }
+
+         tRotR  aRE1(aSvdQab.MatV() *  aSvdH.MatV().Transpose(),false);
+         tRotR  aRE2(aSvdQab.MatU() *  aSvdH.MatU().Transpose(),false);
+
+         for (size_t aK=0 ; aK<aV1.size() ; aK++)
+         {
+             cPt3dr aPE1 = aRE1.Value(aV1.at(aK));
+             tSegComp3dr aSeg1(cPt3dr(0,0,0),aPE1);
+
+             cPt3dr aBase(1,0,0);
+             cPt3dr aPE2 = aRE2.Value(aV2.at(aK));
+             tSegComp3dr aSeg2(aBase,aBase+aPE2);
+
+             cPt3dr anInter = BundleInters(aSeg1,aSeg2);
+             if (ModeBench)
+             {
+                  tREAL8 aD1 = aSeg1.Dist(anInter);
+                  tREAL8 aD2 = aSeg2.Dist(anInter);
+                  if (aD1+aD2>1e-5)
+                  {
+                     StdOut() << " D1D2 " << aD1 << " " << aD2 << "\n";
+                     MMVII_INTERNAL_ASSERT_bench(false,"PlanEpip : dist bund");
+                  }
+             }
+
+         //    StdOut() <<  " DDD " << aSeg1.Dist(anInter) << " " <<  aSeg2.Dist(anInter) << "\n";
+         }
+
      }
      StdOut() << " ----------------------------------------- \n";
    // getchar();
@@ -403,6 +526,23 @@ void cCamSimul::BenchPoseRel2Cam
     cLeasSqtAA<tREAL8> aSysL2(9);
 
     thread_local static int aCptPbL1 = 0;
+
+
+    for (int aNbTest=0 ; aNbTest < 100 ; aNbTest++)
+    {
+        for (int aSign = -1 ; aSign<= 1 ; aSign+=2)
+        {
+            tREAL8 aRho1 = RandUnif_0_1() * 2.0;
+            tREAL8 aRho2 = RandUnif_0_1() * 2.0;
+            tREAL8 aZ1 = 0.1 + RandUnif_0_1() * 2.0;
+            tREAL8 aZ2 = aSign*(0.1 + RandUnif_0_1() * 2.0);
+
+            cSetHomogCpleDir aSetCple = cPS_CompPose::SimulateDir( cPt2dr(aRho1,aZ1),cPt2dr(aRho2,aZ2),0.0);
+            cPS_CompPose aPsC(aSetCple,true);
+
+         }
+    }
+
 
     for (int aK1=0 ; aK1<(int)eProjPC::eNbVals ; aK1++)
     {

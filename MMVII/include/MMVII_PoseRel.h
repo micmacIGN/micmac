@@ -32,6 +32,8 @@ class cSetHomogCpleDir : public cMemCheck
         ///  Create from image homologue + internal calibration
         cSetHomogCpleDir(const cSetHomogCpleIm &,const cPerspCamIntrCalib &,const cPerspCamIntrCalib &);
 
+        cSetHomogCpleDir(const std::vector<cPt3dr>&,const std::vector<cPt3dr>&);
+
         /// make both normalization so that bundles are +- centered onK
         void NormalizeRot();
 

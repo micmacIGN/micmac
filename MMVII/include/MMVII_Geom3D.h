@@ -31,6 +31,11 @@ template <class Type> inline cPtxd<Type,3> PSymXY (const cPtxd<Type,3> & aP)
     return cPtxd<Type,3>(aP.y(),aP.x(),aP.z());
 }
 
+//  Cylindric coordinates, 
+cPt3dr Cart2Cyl(const cPt3dr & aPtCart);
+cPt3dr Cyl2Cart(const cPt3dr & aPtspher);
+
+
 
 ///< compute determinant  as A.(B ^ C)
 template <class T>  T  Determinant (const cPtxd<T,3> &,const cPtxd<T,3> & aP2,const cPtxd<T,3> & aP3);

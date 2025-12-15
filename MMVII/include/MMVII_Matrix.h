@@ -511,7 +511,10 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
 
         double Unitarity() const; ///< test the fact that M is unatiry, basic : distance of Id to tM M
         cResulSymEigenValue<Type> SymEigenValue() const;
-        tRSVD  SVD() const;
+        /**  cannot waranty that, when matrix is direct, both orthog matrix are direct because order
+         *   of eigen value is fixed, but at least if PremMatDirect is true, the first one will be */
+
+        tRSVD  SVD(bool PremMatDirect=false) const;
 
         cResulQR_Decomp<Type>    QR_Decomposition() const;
         cResulRQ_Decomp<Type>    RQ_Decomposition() const;

@@ -23,7 +23,7 @@ template <class Type> void  NormalizeProdDiagPos(cDenseMatrix<Type> &aM1,cDenseM
 
 
 
-template <class Type> cResulSVDDecomp<Type> cDenseMatrix<Type>::SVD() const
+template <class Type> cResulSVDDecomp<Type> cDenseMatrix<Type>::SVD(bool PremMatDirect) const
 {
    this->CheckSquare(*this);  // this for scope, method is static
    int aNb = Sz().x();
@@ -34,12 +34,23 @@ template <class Type> cResulSVDDecomp<Type> cDenseMatrix<Type>::SVD() const
 
    cNC_EigenMatWrap<Type> aWrap_U(aRes.mMatU);
    aWrap_U.EW() = aJacSVD.matrixU();
+   Type aMulMatOrhog = 1.0;
+   if (PremMatDirect && ( aRes.mMatU.Det()<0.0))
+   {
+       aMulMatOrhog = -1.0;
+       aRes.mMatU.DIm() *= aMulMatOrhog;
+   }
 
    cNC_EigenMatWrap<Type> aWrap_V(aRes.mMatV);
    aWrap_V.EW() = aJacSVD.matrixV();
 
    cNC_EigenColVectWrap<Type>  aWrapSVal(aRes.mSingularValues);
    aWrapSVal.EW() =  aJacSVD.singularValues();
+
+   if (aMulMatOrhog<0)
+   {
+       aRes.mMatV.DIm() *= aMulMatOrhog;
+   }
 
    return aRes;
 }
