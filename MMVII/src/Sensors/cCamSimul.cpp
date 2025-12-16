@@ -117,7 +117,7 @@ bool BUGME = false;
 class cPS_CompPose
 {
    public :
-        cPS_CompPose( cSetHomogCpleDir &,bool ModeBench=false);
+        cPS_CompPose( cSetHomogCpleDir &,bool ModeBench=false,const std::string & aMsg = "");
 
         cDenseMatrix<tREAL8>   ComputeMatHom3D
                                (
@@ -189,7 +189,7 @@ cDenseMatrix<tREAL8>
          const std::vector<cPt3dr>& aV1,
          const std::vector<cPt3dr>& aV2,
          bool ModeBench
-   )
+    )
 {
 
      //  [1]   Estimate the homography
@@ -245,7 +245,7 @@ cDenseMatrix<tREAL8>
 }
 
 
-cPS_CompPose::cPS_CompPose(cSetHomogCpleDir & aSetCple,bool ModeBench)
+cPS_CompPose::cPS_CompPose(cSetHomogCpleDir & aSetCple,bool ModeBench,const std::string & aMsg)
 {
 
     const std::vector<cPt3dr>& aV1 = aSetCple.VDir1();
@@ -341,53 +341,88 @@ cPS_CompPose::cPS_CompPose(cSetHomogCpleDir & aSetCple,bool ModeBench)
                                           cPt3dr(0,0,1)                 / anABL.z()
                                        );
 
-         cResulSVDDecomp<tREAL8> aSvdQab = aQab.SVD(true);
-         cDenseVect<tREAL8>      aSingVQab = aSvdQab.SingularValues();
+         cResulSVDDecomp<tREAL8> aSvd_Qab = aQab.SVD(true);
+         cDenseVect<tREAL8>      aSingVQab = aSvd_Qab.SingularValues();
+
+         //  U * D * tV;
+         std::vector< cDenseMatrix<tREAL8>> aVMatTransfo;
+
+         aVMatTransfo.push_back(cDenseMatrix<tREAL8>::Diag(cDenseVect<tREAL8>({ 1, 1, 1})));
+         aVMatTransfo.push_back(cDenseMatrix<tREAL8>::Diag(cDenseVect<tREAL8>({ 1,-1,-1})));
+         aVMatTransfo.push_back(cDenseMatrix<tREAL8>::Diag(cDenseVect<tREAL8>({-1, 1,-1})));
+         aVMatTransfo.push_back(cDenseMatrix<tREAL8>::Diag(cDenseVect<tREAL8>({-1,-1, 1})));
 
 
-         if (ModeBench)
+         for (const auto & aMatTransfo : aVMatTransfo)
          {
-             tREAL8 aDist = aSingV.L2Dist(aSingVQab) / (1+std::sqrt(aTr2));
-             MMVII_INTERNAL_ASSERT_bench(aDist<1e-7,"cPS_CompPose dist sing val");
+             /*
+             //   U S (tS  D S) tS tV
+            std::vector<int> aPerm = ShitPerm(3,1);
+            cDenseMatrix<tREAL8> aMatTransfo =  cDenseMatrix<tREAL8>::MatPerm(aPerm);
 
-             // to be honest, I cannot prove formally this assertion, btw
-             // it happens to be true even with very randomized condition
-             MMVII_INTERNAL_ASSERT_bench( aSvdQab.MatU().Det()>0," SvdQab.MatU");
-             MMVII_INTERNAL_ASSERT_bench( aSvdQab.MatV().Det()>0," SvdQab.MatV");
-             MMVII_INTERNAL_ASSERT_bench( aSvdH.MatU().Det()>0," aSvdH.MatU");
-             MMVII_INTERNAL_ASSERT_bench( aSvdH.MatV().Det()>0," aSvdH.MatV");
-         }
+            aMatTransfo =  cDenseMatrix<tREAL8>::Diag(cDenseVect<tREAL8>({1,-1,-1}));
+            */
+          //  static cDenseMatrix Diag(const tDV &);
 
-         tRotR  aRE1(aSvdQab.MatV() *  aSvdH.MatV().Transpose(),false);
-         tRotR  aRE2(aSvdQab.MatU() *  aSvdH.MatU().Transpose(),false);
 
-         for (size_t aK=0 ; aK<aV1.size() ; aK++)
-         {
-             cPt3dr aPE1 = aRE1.Value(aV1.at(aK));
-             tSegComp3dr aSeg1(cPt3dr(0,0,0),aPE1);
 
-             cPt3dr aBase(1,0,0);
-             cPt3dr aPE2 = aRE2.Value(aV2.at(aK));
-             tSegComp3dr aSeg2(aBase,aBase+aPE2);
+            cDenseMatrix<tREAL8>  aQU =  aSvd_Qab.MatU() * aMatTransfo;
+            cDenseMatrix<tREAL8>  aQV =  aSvd_Qab.MatV() * aMatTransfo;
+            if (ModeBench)
+            {
+                tREAL8 aDist = aSingV.L2Dist(aSingVQab) / (1+std::sqrt(aTr2));
+                 MMVII_INTERNAL_ASSERT_bench(aDist<1e-7,"cPS_CompPose dist sing val");
 
-             cPt3dr anInter = BundleInters(aSeg1,aSeg2);
-             if (ModeBench)
-             {
-                  tREAL8 aD1 = aSeg1.Dist(anInter);
-                  tREAL8 aD2 = aSeg2.Dist(anInter);
-                  if (aD1+aD2>1e-5)
-                  {
-                     StdOut() << " D1D2 " << aD1 << " " << aD2 << "\n";
-                     MMVII_INTERNAL_ASSERT_bench(false,"PlanEpip : dist bund");
-                  }
-             }
+                 // to be honest, I cannot prove formally this assertion, btw
+                // it happens to be true even with very randomized condition
+                MMVII_INTERNAL_ASSERT_bench( aQU.Det()>0," SvdQab.MatU");
+                MMVII_INTERNAL_ASSERT_bench( aQV.Det()>0," SvdQab.MatV");
+                MMVII_INTERNAL_ASSERT_bench( aSvdH.MatU().Det()>0," aSvdH.MatU");
+                MMVII_INTERNAL_ASSERT_bench( aSvdH.MatV().Det()>0," aSvdH.MatV");
+            }
 
-         //    StdOut() <<  " DDD " << aSeg1.Dist(anInter) << " " <<  aSeg2.Dist(anInter) << "\n";
-         }
+            tRotR  aRE1(aQV *  aSvdH.MatV().Transpose(),false);
+            tRotR  aRE2(aQU *  aSvdH.MatU().Transpose(),false);
+
+            int aNbP1 = 0;
+            int aNbP2 = 0;
+            for (size_t aK=0 ; aK<aV1.size() ; aK++)
+            {
+                cPt3dr aPE1 = aRE1.Value(aV1.at(aK));
+                tSegComp3dr aSeg1(cPt3dr(0,0,0),aPE1);
+
+                cPt3dr aBase(1,0,0);
+                cPt3dr aPE2 = aRE2.Value(aV2.at(aK));
+                tSegComp3dr aSeg2(aBase,aBase+aPE2);
+
+                cPt3dr aCoeffI;
+                cPt3dr anInter = BundleInters(aCoeffI,aSeg1,aSeg2);
+                aNbP1 += aCoeffI.x() > 0;
+                aNbP2 += aCoeffI.y() > 0;
+
+
+                if (ModeBench)
+                {
+                    tREAL8 aDist = std::abs(aCoeffI.z()) / (1.0+Square(aCoeffI.x())+Square(aCoeffI.y()));
+                    tREAL8 aD1 = aSeg1.Dist(anInter);
+                    tREAL8 aD2 = aSeg2.Dist(anInter);
+                    if (aDist>1e-6)
+                    {
+                        StdOut() << " D1D2 " << aD1 << " " << aD2  << aCoeffI << " " << aDist << "\n";
+                        MMVII_INTERNAL_ASSERT_bench(false,"PlanEpip : dist bund");
+                    }
+                }
+            }
+
+            tREAL8 aScorePos = (aNbP1+aNbP2) / (2.0* aV1.size());
+            StdOut() <<  "PooOs:= "
+                     <<  ((aScorePos>0.9)  ? "***" : "   ")
+                      << aNbP1 << " " << aNbP2 << " On: " << aScorePos << "\n";
+        }
 
      }
-     StdOut() << " ----------------------------------------- \n";
-   // getchar();
+     StdOut() << aMsg << aMsg <<aMsg <<aMsg <<" \n";
+     getchar();
 
 }
 
@@ -538,7 +573,8 @@ void cCamSimul::BenchPoseRel2Cam
             tREAL8 aZ2 = aSign*(0.1 + RandUnif_0_1() * 2.0);
 
             cSetHomogCpleDir aSetCple = cPS_CompPose::SimulateDir( cPt2dr(aRho1,aZ1),cPt2dr(aRho2,aZ2),0.0);
-            cPS_CompPose aPsC(aSetCple,true);
+            std::string aMsg = (aSign>0) ? "++++++++++" : "-----------" ;
+            cPS_CompPose aPsC(aSetCple,true,aMsg);
 
          }
     }

@@ -72,6 +72,16 @@ template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::Diag(const cDenseVe
     return aRes;
 }
 
+template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::MatPerm(const std::vector<int> & aPerm)
+{
+    cDenseMatrix<Type> aRes(aPerm.size(),eModeInitImage::eMIA_Null);
+    for (int aK=0 ; aK<(int)aPerm.size(); aK++)
+        aRes.SetElem(aK,aPerm.at(aK),1.0);
+
+    return aRes;
+}
+
+
 template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::FromLines(const std::vector<tDV> & aVV)
 {
     cDenseMatrix<Type>  aRes(aVV.at(0).Sz(),aVV.size());

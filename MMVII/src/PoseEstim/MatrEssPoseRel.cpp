@@ -283,9 +283,9 @@ void cMatEssential::Show(const cSetHomogCpleDir& aSetD) const
     {
         for (int aX=0 ; aX<3 ; aX++)
         {
-		StdOut() << " " <<  FixDigToStr(1000*mMat.GetElem(aX,aY),8) ;
+             StdOut() << " " <<  FixDigToStr(1000*mMat.GetElem(aX,aY),8) ;
         }
-	StdOut() << std::endl;
+        StdOut() << std::endl;
     }
     StdOut() << "     Cost=" << AvgCost(aSetD,1.0) << std::endl;
     cResulSVDDecomp<tREAL8>  aRSVD =  mMat.SVD();
@@ -418,15 +418,15 @@ cMatEssential::tPose  cMatEssential::ComputePose(const cSetHomogCpleDir & aHom,c
               tREAL8 aDif1 = mMat.L2Dist( aRconst *  aEV(0));
               tREAL8 aDif2 = mMat.L2Dist( aRconst * (-aEV(0)));
               MMVII_INTERNAL_ASSERT_bench(std::min(aDif1,aDif2)<1e-5,"Matric Reconstution in EssMat");
-	  }
+          }
 
 
           size_t aNbP = aHom.VDir1().size();
           size_t aNbPU = 0;
           size_t aNbPV = 0;
 
-	  cPt3dr aPU(0,0,0); //Image center for first cam
-	  cPt3dr aPV(aSignPt,0,0); // Image center for second cam
+          cPt3dr aPU(0,0,0); //Image center for first cam
+          cPt3dr aPV(aSignPt,0,0); // Image center for second cam
 
           for (size_t aKP=0 ; aKP<aNbP ; aKP++)
           {

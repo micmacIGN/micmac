@@ -22,6 +22,14 @@ tREAL8 AngleFromRad(eTyUnitAngle aUnit)
     return 0.0;
 }
 
+tREAL8 SoftExtre(tREAL8 aWMax,tREAL8 aV1,tREAL8 aV2)
+{
+   OrderMinMax(aV1,aV2);
+   return   (1-aWMax) * aV1  + aWMax * aV2;
+         
+}
+
+
 tREAL8 AngleFromRad(tREAL8 aAngleRad,eTyUnitAngle aUnit)
 {
   return aAngleRad * AngleFromRad(aUnit);

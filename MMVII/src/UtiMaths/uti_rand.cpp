@@ -274,6 +274,17 @@ std::vector<int> RandPerm(int aN,cFctrRR & aBias)
     return RandSet(aN,aN,aBias);
 }
 
+std::vector<int> ShitPerm(int aN,int aDelta)
+{
+    std::vector<int>  aRes(aN);
+
+    for (int aK=0 ; aK<aN ; aK++)
+        aRes.at(aK) = mod(aK+aDelta,aN);
+    return aRes;
+}
+
+
+
 int MaxElem(const std::vector<int> & aSet)
 {
    int aRes=-1;
