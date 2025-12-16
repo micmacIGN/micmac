@@ -10,14 +10,28 @@ namespace MMVII
         public:
             cAppli_CheckBoardTargetRefine(const std::vector<std::string> & aVArgs,
                                           const cSpecMMVII_Appli & aSpec);
+            typedef tREAL4            tElem;
+            typedef cIm2D<tElem>      tIm;
+            typedef cDataIm2D<tElem>  tDIm;
 
         private:
             int Exe() override;
+            int doVisu(const std::string & aNameIm);
+            //----stolen to cCheckBoardTargetExtract
+            std::string NameVisu(const std::string & aDestIm, const std::string & aPref,const std::string aPost="");
+            //----
+            void drawTarget(cSetMesPtOf1Im & aSetOfMes2D, bool isInit);
             cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
             cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
             cPhotogrammetricProject mPhProj;
             std::string mSpecImIn;
             bool mShow;
+            //--refine
+            int mWinSz;
+            //--visu
+            bool mVisu;
+            cRGBImage * mCurrVisuIm;
+
 
     };
 
@@ -35,14 +49,18 @@ namespace MMVII
     cCollecSpecArg2007 & cAppli_CheckBoardTargetRefine::ArgOpt(cCollecSpecArg2007 & anArgOpt)
     {
         return anArgOpt
-               << AOpt2007(mShow,"show","show some useful details", {eTA2007::HDV})//hdv = has default value
+               << AOpt2007(mWinSz,"WinSz","sets size of the window centered on target prediction in which we will look for true target measurement")
+               << AOpt2007(mVisu,"Visu","offers visualisation of refined measurements", {eTA2007::HDV})
+               << AOpt2007(mShow,"Show","show some useful details", {eTA2007::HDV})//hdv = has default value
             ;
     }
 
     cAppli_CheckBoardTargetRefine::cAppli_CheckBoardTargetRefine(const std::vector<std::string> & aVArgs,
                                                                 const cSpecMMVII_Appli & aSpec):
         cMMVII_Appli(aVArgs, aSpec),
-        mPhProj (*this)
+        mPhProj (*this),
+        mWinSz (100),
+        mCurrVisuIm (nullptr)
     {
         //···> constructor does nothing
     }
@@ -109,13 +127,97 @@ namespace MMVII
                     aSetWantedMes2D.AddMeasure(cMesIm1Pt(aWanted2DPt, aWantedName, 1));
                 }
             }
+
             mPhProj.SaveMeasureIm(aSetWantedMes2D);
+
+            if (mVisu)
+            {
+                doVisu(aNameIm);
+            }
+
+            cIm2D<tREAL4> aIm = cIm2D<tREAL4>::FromFile(aNameIm);
+            //extract windows around points
+            auto & aVecMes2D = aSetWantedMes2D.Measures();
+            for (const auto & aMes2D:aVecMes2D){
+                //auto & aDataIm = aIm.DIm();
+                int x = ToI(aMes2D.mPt).x();
+                StdOut() << x;
+                cPt2di lCorn = {ToI(aMes2D.mPt) - cPt2di(100,100)};
+                cPt2di rCorn = {ToI(aMes2D.mPt) + cPt2di(100,100)};
+                //cIm2D<tREAL4> aCroppedIm(cPt2di(200,200));
+                if (aIm.DIm().Inside(lCorn) && aIm.DIm().Inside(rCorn))
+                {
+                    aIm.DIm().ClipToFile(NameVisu(aNameIm, "Tmp1"), cBox2di(cPt2di(0,0),cPt2di(1000,1000)));
+                    aIm.DIm().ClipToFile(NameVisu(aNameIm, "Tmp"), cBox2di(lCorn,rCorn));
+                    /*auto imPtr = aDataIm.ExtractRawData2D();
+                    for (int & i=lCorn.x();i<rCorn.x();++i)
+                    {
+                        for (int & j=lCorn.y();j<rCorn.y();++j)
+                        {
+
+                            auto pixVal = ;
+                            StdOut() << pixVal << std::endl;
+                            break;
+                        }
+                    }*/
+                    //
+                    //aDataIm.CropIn(uLCorn, aCroppedIm.DIm());
+                    //aCroppedIm.DIm().ToFile(NameVisu(aNameIm, "Tmp"));
+                    //StdOut() << "Saved to " << NameVisu(aNameIm, "Tmp");
+                }
+            }
         }
 
         // fin de la tranquillite
         return EXIT_SUCCESS;
     }
 
+    /*tDIm cAppli_CheckBoardTargetRefine::getWindow(cBox2di & aBox)
+    {//will have to extract image from original one from 2d box
+        ...
+    }*/
+
+    int cAppli_CheckBoardTargetRefine::doVisu(const std::string & aNameIm)
+    {
+        cRGBImage aIm = cRGBImage::FromFile(aNameIm);
+        mCurrVisuIm = & aIm;
+
+        cSetMesPtOf1Im aSetOfRefMes2D = mPhProj.LoadMeasureImFromFolder(mPhProj.DPGndPt2D().DirOut(), aNameIm);
+        cSetMesPtOf1Im aSetOfInitMes2D = mPhProj.LoadMeasureImFromFolder(mPhProj.DPGndPt2D().DirIn(), aNameIm);
+
+        drawTarget(aSetOfInitMes2D, true);//draw Init targets
+        drawTarget(aSetOfRefMes2D, false);//draw Refined targets
+
+        mCurrVisuIm->ToJpgFileDeZoom(NameVisu(aNameIm, "Ref"), 1, {"QUALITY=90"});
+
+        return 0;
+    }
+
+    void cAppli_CheckBoardTargetRefine::drawTarget(cSetMesPtOf1Im & aSetOfMes2D, bool isInit)
+    {//draws targets from a set of mes2d & adapts drawing color whether targets are from
+     //initial measurements (only Cyan circle) or not (Orange border represents window size)
+        for (auto aPt2D : aSetOfMes2D.Measures())
+        {
+            if (!isInit)
+            {
+                mCurrVisuIm->SetRGBBorderRectWithAlpha(ToI(aPt2D.mPt),mWinSz,10,cRGBImage::Orange,0.1);//0.1 means final opacity = 1-0.1
+            }
+            mCurrVisuIm->DrawCircle(cRGBImage::Black, aPt2D.mPt, 20);
+            mCurrVisuIm->DrawCircle(cRGBImage::White, aPt2D.mPt, 22);
+            mCurrVisuIm->DrawCircle(cRGBImage::White, aPt2D.mPt, 1);
+            mCurrVisuIm->SetRGBPix(ToI(aPt2D.mPt), cRGBImage::Black);
+            mCurrVisuIm->DrawString(aPt2D.mNamePt,cRGBImage::White,aPt2D.mPt,cPt2dr(0.5,0.05));
+        }
+    }
+
+    //----stolen to cCheckBoardTargetExtract
+    std::string cAppli_CheckBoardTargetRefine::NameVisu(const std::string & aDestIm, const std::string & aPref, const std::string aPost)
+    {
+        std::string aRes = mPhProj.DirVisuAppli() +  aPref +"-" + LastPrefix(FileOfPath(aDestIm));
+        if (aPost!="") aRes = aRes + "-"+aPost;
+        return    aRes + ".tif";
+    }
+    //----
 
     //pour faire des trucs avec la memoire - obligatoire
     tMMVII_UnikPApli Alloc_CheckBoardTargetRefine(const std::vector<std::string> & aVArgs,
