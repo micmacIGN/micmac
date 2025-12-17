@@ -183,6 +183,7 @@ double   cAppliEpipDMEval::SimilElemByRad(const cPt2di & aP1,const cPt2di & aP2)
 void   cAppliEpipDMEval::MakeCorrel()
 {
    cIm2D<tU_INT1>  aImCorr(CurSzIn());
+    StdOut()<<"size in "<<CurSzIn()<<std::endl;
    for (const auto & aPix : aImCorr.DIm())
        aImCorr.DIm().SetVTrunc(aPix,255.0*(1-SimilElemByCor(aPix,aPix,mSzW)));
    APBI_WriteIm(mImCorrel_Name,aImCorr);
@@ -316,10 +317,9 @@ int cAppliEpipDMEval::ExeOnParsedBox()
 
 int cAppliEpipDMEval::Exe()
 {
-/*
+
    if (RunMultiSet(0,0))
       return ResultMultiSet();
-*/
 
    APBI_ExecAll();
 

@@ -8,14 +8,14 @@
 
 #ifdef MMVII_KEEP_MMV1_IMAGE
 #define MMVII_KEEP_LIBRARY_MMV1 true
-# include "V1VII.h"
+#include "V1VII.h"
 #endif
 
 
 using namespace MMVII;
 
 #ifdef MMVII_KEEP_MMV1_IMAGE
-bool mmvii_use_mmv1_image=true;
+bool mmvii_use_mmv1_image=false;
 extern std::string MM3DFixeByMMVII; // Declared in MMV1 for its own stuff
 #endif
 

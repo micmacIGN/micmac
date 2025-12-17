@@ -471,8 +471,8 @@ template<class TypeEl> class  cAppliParseBoxIm
 
 	template <class Type2>   void  APBI_WriteIm(const std::string & aName,cIm2D<Type2> anIm,eTyNums aTyN)
 	{
-             cDataFileIm2D  aDF = cDataFileIm2D::Create(aName,aTyN,mDFI2d.Sz(),1);
-	     anIm.Write(aDF,CurP0(),1.0,CurBoxOutLoc());
+        cDataFileIm2D  aDF = cDataFileIm2D::Create(aName,aTyN,mDFI2d.Sz(),1);
+        anIm.Write(aDF,CurP0(),1.0,CurBoxOutLoc());
 	}
 	template <class Type2>   void  APBI_WriteIm(const std::string & aName,cIm2D<Type2> anIm)
         {
