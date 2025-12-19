@@ -9,9 +9,35 @@ import torch
 import idr_torch
 from core.hdf5 import CustomCompose, HDF5Dataset,Data
 from core.hdf5 import get_image_paths_by_split_dict
+import numpy as np
 
 
+class ClipAndComputeUsingPatchSizeRegression:
+    def __init__(self,
+                 tile_height,
+                 patch_size
+                 ):
+        self.tile_height=tile_height
+        self.patch_size=patch_size
+    
+    def __call__(self, data: Data):
+        data = self.clip_sample(data)
+        return data
+    
+    def clip_sample(self, data: Data):
+        """ use random clipping taken disparity constraints into account"""
+        margin_y = 0
+        margin_x = 0
 
+        y0 = np.random.randint(margin_y, self.tile_height - self.patch_size)
+        x0 = np.random.randint(margin_x, self.tile_height - self.patch_size)
+
+        return Data(
+            _left=data._left[...,y0:y0+self.patch_size,x0:x0+self.patch_size],
+            _right=data._right[...,y0:y0+self.patch_size,x0:x0+self.patch_size],
+            _disp=data._disp[...,y0:y0+self.patch_size,x0:x0+self.patch_size],
+            _masq=data._masq[...,y0:y0+self.patch_size,x0:x0+self.patch_size]
+        )
 
 TRANSFORMS_LIST = List[Callable]
 
@@ -25,7 +51,7 @@ class HDF5StereoDataModule(LightningDataModule):
         hdf5_file_path: str,
         tile_width: Number = 1024,
         tile_height: Number= 1024,
-        patch_size: Number = 768,
+        patch_size: Number = 640,
         sign_disp_multiplier: Number = 1,   
         masq_divider: Number = 1,
         subtile_overlap_train: Number = 0,
@@ -66,7 +92,7 @@ class HDF5StereoDataModule(LightningDataModule):
         #self.preparation_predict_transform: TRANSFORMS_LIST = t.get(
         #    "preparations_predict_list", []
         #)
-        self.augmentation_transform: TRANSFORMS_LIST = [] #t.get("augmentations_list", [])
+        self.augmentation_transform: TRANSFORMS_LIST = [ClipAndComputeUsingPatchSizeRegression(tile_height,patch_size)] #t.get("augmentations_list", [])
         self.normalization_transform: TRANSFORMS_LIST= [] #t.get("normalizations_list", [])
         self.sampler = sampler
         #self.rank= rank, 
@@ -136,7 +162,7 @@ class HDF5StereoDataModule(LightningDataModule):
             sign_disp_multiplier=self.sign_disp_multiplier,
             masq_divider=self.masq_divider,
             subtile_overlap_train=self.subtile_overlap_train,
-            train_transform=None,
+            train_transform=self.train_transform,
             eval_transform=None,
         )
         return self._dataset
