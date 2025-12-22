@@ -7,6 +7,8 @@
 #include <MMVII_Image2D.h>
 
 #include <string>
+#include <fcntl.h>
+#include <unistd.h>
 #include <gdal_priv.h>
 
 /*
@@ -97,6 +99,48 @@ private:
 /****************************************************
  * PRIVATE
 *****************************************************/
+
+class LockFile
+{
+public:
+    LockFile() : mFd(-1) {}
+
+    LockFile(const std::string& name)
+    {
+        lock(name);
+    }
+
+    ~LockFile()
+    {
+        unlock();
+    }
+
+    void unlock()
+    {
+        if (mFd>=0)
+            lockf(mFd, F_ULOCK, 0);
+    }
+
+    void lock(const std::string& name)
+    {
+        std::string lockName = name + ".lock";
+        mFd = open(lockName.c_str(), O_WRONLY | O_CREAT,0666);
+        if (mFd < 0 && errno != EEXIST) {
+            perror("Cant'create");
+            exit(1);
+        }
+        auto ret = lockf(mFd, F_LOCK, 0);
+        if (ret < 0) {
+            perror("Cant' lock");
+            exit(1);
+        }
+    }
+
+private:
+    int mFd;
+
+};
+
 /*******************************************
  * GDalIO
  * Helper class that does the real IO
@@ -131,6 +175,7 @@ public:
         MMVII_INTERNAL_ASSERT_strong(aRectIm.IncludedIn(aRectFullIm), "Read/write out of Image buffer (" + aName + ")");
 
         auto notUpdatable = false;
+        LockFile lock(aName);
         if (mDataFile->IsCreateAtFirstWrite())
         {
             if (aMode != IoMode::Write)
