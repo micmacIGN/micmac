@@ -30,8 +30,9 @@ public :
     void getAnglesMinMax();
     void estimatePhiStep();
     void computeLineCol();
-    tREAL8 doVerticalize(); // returns correction angle applied
+    tREAL8 doVerticalize(); //< returns correction angle applied
     void testLineColError();
+    void fixLineColRasterDirections(); //< flip ligne or col to be coherent with raster geometry
     void computeAngStartStep();
     void exportThetas(const std::string & aFileName, int aNbThetas, bool aCompareToCol);
     void poseFromXYZ();
@@ -386,6 +387,28 @@ void cAppli_ImportStaticScan::testLineColError()
 }
 
 
+void cAppli_ImportStaticScan::fixLineColRasterDirections()
+{
+    // raster geometry is col to the right and lines to the bottom
+    // raster lines correspond to scan lines if phi step is < 0
+    // raster cols correspond to scan cols if theta step is < 0
+
+    if (mSL_importer.mPhiStep > 0)
+    {
+        for (auto & aLine: mSL_importer.mVectPtsLine)
+            aLine = mSL_importer.NbLine() -1 - aLine;
+        mSL_importer.mPhiStep = -mSL_importer.mPhiStep;
+    }
+
+    if (mSL_importer.mThetaStep > 0)
+    {
+        for (auto & aCol: mSL_importer.mVectPtsCol)
+            aCol = mSL_importer.NbCol() -1 - aCol;
+        mSL_importer.mThetaStep = -mSL_importer.mThetaStep;
+    }
+
+}
+
 tREAL8 cAppli_ImportStaticScan::doVerticalize()
 {
     StdOut() << "Verticalizing..." << std::endl;
@@ -720,6 +743,8 @@ int cAppli_ImportStaticScan::Exe()
 
 
     testLineColError();
+
+    fixLineColRasterDirections();
 
     // compute transfo from scan instrument frame to sensor frame
     mSL_importer.ComputeRotInstr2Raster(mTransfoIJK);

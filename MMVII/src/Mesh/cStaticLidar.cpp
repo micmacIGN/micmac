@@ -608,7 +608,7 @@ template <typename TYPE> void cStaticLidar::fillRaster(const cStaticLidarImporte
 {
     MMVII_INTERNAL_ASSERT_tiny(aSL_importer.mVectPtsCol.size()==aSL_importer.mVectPtsXYZ.size(), "Error: Compute line/col numbers before fill raster");
 
-    aIm.reset(new cIm2D<TYPE>(cPt2di(aSL_importer.NbCol()+1, aSL_importer.NbLine()+1), 0, eModeInitImage::eMIA_Null));
+    aIm.reset(new cIm2D<TYPE>(cPt2di(aSL_importer.NbCol(), aSL_importer.NbLine()), 0, eModeInitImage::eMIA_Null));
     auto & aRasterData = aIm->DIm();
     for (size_t i=0; i<aSL_importer.mVectPtsTPD.size(); ++i)
     {
@@ -722,12 +722,12 @@ void cStaticLidar::FilterIncidence(const cStaticLidarImporter &aSL_importer, tRE
 
     cImGrad<tREAL4> aDistGradIm(aRasterDistGauss);
     ComputeSobel<tREAL4,tREAL4>(*aDistGradIm.mDGx, *aDistGradIm.mDGy, aRasterDistGaussData);
-    for (int l = 0 ; l <= aSL_importer.NbLine(); ++l)
+    for (int l = 0 ; l < aSL_importer.NbLine(); ++l)
     {
         //tREAL4 phi = lToPhiApprox(l, aSL_importer.PhiStart(), aSL_importer.PhiStep());
         tREAL4 phi = InternalCalib()->DirBundle({0.,(double)l}).y();
         tREAL4 aStepThetaFix = aSL_importer.ThetaStep()*cos(phi);
-        for (int c = 0 ; c <= aSL_importer.NbCol(); ++c)
+        for (int c = 0 ; c < aSL_importer.NbCol(); ++c)
         {
             cPt2di aPt(c, l);
             tREAL4 aDist = mRasterDistance->DIm().GetV(aPt);
@@ -776,7 +776,7 @@ void cStaticLidar::MaskBuffer(const cStaticLidarImporter &aSL_importer, tREAL8 a
     StdOut() << "Computing Mask buffer..."<<std::endl;
     MMVII_INTERNAL_ASSERT_tiny(mRasterMask, "Error: mRasterMask must be computed first");
     auto & aMaskImData = mRasterMask->DIm();
-    mRasterMaskBuffer.reset( new cIm2D<tU_INT1>(cPt2di(aSL_importer.NbCol()+1, aSL_importer.NbLine()+1), 0, eModeInitImage::eMIA_NoInit));
+    mRasterMaskBuffer.reset( new cIm2D<tU_INT1>(cPt2di(aSL_importer.NbCol(), aSL_importer.NbLine()), 0, eModeInitImage::eMIA_NoInit));
     auto & aMaskBufImData = mRasterMaskBuffer->DIm();
 
     auto & aRasterScoreData = mRasterScore->DIm();
@@ -791,9 +791,9 @@ void cStaticLidar::MaskBuffer(const cStaticLidarImporter &aSL_importer, tREAL8 a
     std::vector<bool> aLinesFull(aSL_importer.NbLine()+1, false); // record lignes completely masked to pass them next time
     // int c = 100;
     // for (int l = 100; l < 2700; l += 500)
-    for (int l = 0 ; l <= aSL_importer.NbLine(); ++l)
+    for (int l = 0 ; l < aSL_importer.NbLine(); ++l)
     {
-        for (int c = 0 ; c <= aSL_importer.NbCol(); ++c)
+        for (int c = 0 ; c < aSL_importer.NbCol(); ++c)
         {
             auto aMaskVal = aMaskImData.GetV(cPt2di(c, l));
             if (aMaskVal==0)
@@ -829,8 +829,8 @@ void cStaticLidar::MaskBuffer(const cStaticLidarImporter &aSL_importer, tREAL8 a
             }
         }
     }
-    for (int l = 0 ; l <= aSL_importer.NbLine(); ++l)
-        for (int c = 0 ; c <= aSL_importer.NbCol(); ++c)
+    for (int l = 0 ; l < aSL_importer.NbLine(); ++l)
+        for (int c = 0 ; c < aSL_importer.NbCol(); ++c)
         {
             if (aMaskBufImData.GetV(cPt2di(c, l))==0)
                 aRasterScoreData.SetV(cPt2di(c, l), 1000.);
@@ -850,7 +850,7 @@ void cStaticLidar::SelectPatchCenters1(int aNbPatches)
     double aRadius = sqrt(aRasterScoreData.SzX()*aRasterScoreData.SzY()/(M_PI*aNbPatches))/aNbPatchesFactor;
     ExtractExtremum1(aRasterScoreData, aRes, aRadius);
     mPatchCenters = aRes.mPtsMin;
-    StdOut() << "Nb pathes: " << mPatchCenters.size() <<"\n";
+    StdOut() << "Nb patches: " << mPatchCenters.size() <<"\n";
     std::fstream file1;
     file1.open("centers.txt", std::ios_base::out);
     for (auto & aCenter : mPatchCenters)
@@ -906,7 +906,7 @@ void cStaticLidar::SelectPatchCenters2(const cStaticLidarImporter &aSL_importer,
         aLineCounter++;
     }
 
-    StdOut() << "Nb pathes: " << mPatchCenters.size() <<"\n";
+    StdOut() << "Nb patches: " << mPatchCenters.size() <<"\n";
     std::fstream file1;
     file1.open("centers.txt", std::ios_base::out);
     for (auto & aCenter : mPatchCenters)
