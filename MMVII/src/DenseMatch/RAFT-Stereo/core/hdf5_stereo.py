@@ -167,7 +167,7 @@ class HDF5StereoDataModule(LightningDataModule):
         )
         return self._dataset
 
-    def train_dataloader(self,rank) -> DataLoader:
+    def train_dataloader(self,rank=0) -> DataLoader:
         if self.sampler :
             w_size = self.world_size if self.world_size!=0 else idr_torch.size
             batch_size_per_gpu = self.batch_size // w_size
@@ -193,7 +193,7 @@ class HDF5StereoDataModule(LightningDataModule):
                         drop_last=True,
                         pin_memory=True,
                         )
-    def val_dataloader(self,rank)-> DataLoader:
+    def val_dataloader(self,rank=0)-> DataLoader:
         if self.sampler :
             w_size = self.world_size if self.world_size!=0 else idr_torch.size
 

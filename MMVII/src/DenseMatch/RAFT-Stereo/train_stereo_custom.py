@@ -117,7 +117,7 @@ def fetch_optimizer(args, model):
     #scheduler = optim.lr_scheduler.OneCycleLR(optimizer, args.lr, args.num_steps+100,
     #        pct_start=0.01, cycle_momentum=False, anneal_strategy='linear')
     
-    scheduler = optim.lr_scheduler.StepLR( optimizer, args.lr, step_size=5000, gamma=0.7)
+    scheduler = optim.lr_scheduler.StepLR( optimizer, step_size=5000, gamma=0.7)
 
     return optimizer, scheduler
 
