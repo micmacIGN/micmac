@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<Root>
+   <Type>"MMVII_Serialization"</Type>
+   <Version>"0.0.0"</Version>
+   <Data>
+      <CameraPose>
+         <NameImage>"scan1_frame_2.ply"</NameImage>
+         <NameInternalCalib>"Calib-Scan-St1-Sc1"</NameInternalCalib>
+         <Center>0 0 0</Center>
+         <RotMatrix>
+            <AxeI>1 0 0</AxeI>
+            <AxeJ>0 1 0</AxeJ>
+            <AxeK>0 0 1</AxeK>
+         </RotMatrix>
+         <EQ>1 0 0 0</EQ> <!--EigenQuaternion, for information-->
+         <WPK>0 0 0</WPK> <!--Omega Phi Kapa in degree, for information-->
+         <YPR>0 0 0</YPR> <!--Yaw Pitch Roll in degree, for information-->
+      </CameraPose>
+      <StationName>"St1"</StationName>
+      <ScanName>"Sc1"</ScanName>
+      <RasterDistance>"St1_Sc1_distance.tif"</RasterDistance>
+      <RasterIntensity>"St1_Sc1_intensity.tif"</RasterIntensity>
+      <RasterMask>"St1_Sc1_mask.tif"</RasterMask>
+      <RasterX>"St1_Sc1_X.tif"</RasterX>
+      <RasterY>"St1_Sc1_Y.tif"</RasterY>
+      <RasterZ>"St1_Sc1_Z.tif"</RasterZ>
+      <RasterTheta>"St1_Sc1_Theta.tif"</RasterTheta>
+      <RasterPhi>"St1_Sc1_Phi.tif"</RasterPhi>
+      <RasterThetaErr>"St1_Sc1_ThetaErr.tif"</RasterThetaErr>
+      <RasterPhiErr>"St1_Sc1_PhiErr.tif"</RasterPhiErr>
+      <RotInstr2Raster>
+         <RotMatrix>
+            <AxeI>1 0 0</AxeI>
+            <AxeJ>0 -1 0</AxeJ>
+            <AxeK>0 0 -1</AxeK>
+         </RotMatrix>
+      </RotInstr2Raster>
+      <PatchCenters>
+         <el>22 16</el> <!--Kth=0-->
+         <el>36 16</el> <!--Kth=1-->
+         <el>49 16</el> <!--Kth=2-->
+         <el>60 16</el> <!--Kth=3-->
+         <el>72 16</el> <!--Kth=4-->
+         <el>86 16</el> <!--Kth=5-->
+         <el>100 16</el> <!--Kth=6-->
+         <el>11 39</el> <!--Kth=7-->
+         <el>23 39</el> <!--Kth=8-->
+         <el>35 39</el> <!--Kth=9-->
+         <el>46 39</el> <!--Kth=10-->
+         <el>55 39</el> <!--Kth=11-->
+         <el>65 39</el> <!--Kth=12-->
+         <el>75 39</el> <!--Kth=13-->
+         <el>87 39</el> <!--Kth=14-->
+         <el>99 39</el> <!--Kth=15-->
+         <el>22 61</el> <!--Kth=16-->
+         <el>32 61</el> <!--Kth=17-->
+         <el>41 61</el> <!--Kth=18-->
+         <el>51 61</el> <!--Kth=19-->
+         <el>61 61</el> <!--Kth=20-->
+         <el>70 61</el> <!--Kth=21-->
+         <el>80 61</el> <!--Kth=22-->
+         <el>90 61</el> <!--Kth=23-->
+         <el>11 84</el> <!--Kth=24-->
+         <el>24 84</el> <!--Kth=25-->
+         <el>37 84</el> <!--Kth=26-->
+         <el>51 84</el> <!--Kth=27-->
+         <el>66 84</el> <!--Kth=28-->
+         <el>80 84</el> <!--Kth=29-->
+         <el>93 84</el> <!--Kth=30-->
+      </PatchCenters>
+   </Data>
+</Root>

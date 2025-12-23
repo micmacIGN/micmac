@@ -527,6 +527,9 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         // Test topo compensation
         BenchTopoComp(aParam);
 
+        // Test static lidar
+        BenchTSL(aParam);
+
         // Call several test on images : File, RectObj, Im1D, Im2D, BaseImage
         BenchGlobImage(aParam);
         

@@ -45,7 +45,7 @@ private :
     std::string              mScanName;
 
     // Optional Arg
-    std::string              mTransfoIJK;
+    std::string              mStrInput2TSL;
     bool                     mForceStructured;
     bool                     mDoVerticalize;
     cPt2dr                   mIntensityMinMax;
@@ -65,7 +65,7 @@ private :
 cAppli_ImportStaticScan::cAppli_ImportStaticScan(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
     cMMVII_Appli    (aVArgs,aSpec),
     mPhProj         (*this),
-    mTransfoIJK     ("ijk"),
+    mStrInput2TSL     ("ijk"),
     mForceStructured(false), // skip all checks, suppose all the points are present and ordered by col
     mDoVerticalize  (false),
     mIntensityMinMax({0.01,0.99}),
@@ -91,7 +91,7 @@ cCollecSpecArg2007 & cAppli_ImportStaticScan::ArgObl(cCollecSpecArg2007 & anArgO
 cCollecSpecArg2007 & cAppli_ImportStaticScan::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
     return    anArgOpt
-           << AOpt2007(mTransfoIJK,"Transfo","Transfo to have primariy rotation axis as Z and X as theta origin",{{eTA2007::HDV}})
+           << AOpt2007(mStrInput2TSL,"Transfo","Transfo to have primariy rotation axis as Z and X as theta origin",{{eTA2007::HDV}})
            << AOpt2007(mForceStructured,"Structured","Suppose the scan is structured, skip all checks",{{eTA2007::HDV}})
            << AOpt2007(mDoVerticalize,"Vert","Try to verticalize scan columns",{{eTA2007::HDV}})
            << AOpt2007(mIntensityMinMax,"FilterIntensity","Filter on min and max intensity",{{eTA2007::HDV}})
@@ -397,6 +397,8 @@ void cAppli_ImportStaticScan::fixLineColRasterDirections()
     {
         for (auto & aLine: mSL_importer.mVectPtsLine)
             aLine = mSL_importer.NbLine() -1 - aLine;
+        // invert start and end
+        mSL_importer.mPhiStart = mSL_importer.mPhiStart+(mSL_importer.mNbLine-1)*mSL_importer.mPhiStep;
         mSL_importer.mPhiStep = -mSL_importer.mPhiStep;
     }
 
@@ -404,6 +406,8 @@ void cAppli_ImportStaticScan::fixLineColRasterDirections()
     {
         for (auto & aCol: mSL_importer.mVectPtsCol)
             aCol = mSL_importer.NbCol() -1 - aCol;
+        // invert start and end
+        mSL_importer.mThetaStart = mSL_importer.mThetaStep+(mSL_importer.mNbCol-1)*mSL_importer.mThetaStep;
         mSL_importer.mThetaStep = -mSL_importer.mThetaStep;
     }
 
@@ -539,7 +543,6 @@ void cAppli_ImportStaticScan::exportThetas(const std::string & aFileName, int aN
     file_thetas.close();
 }
 
-
 void cAppli_ImportStaticScan::poseFromXYZ()
 {
     /* Comp3D .XYZ file format :
@@ -607,37 +610,7 @@ int cAppli_ImportStaticScan::Exe()
 {
     mPhProj.FinishInit();
 
-    mSL_importer.read(mNameFile, false, mForceStructured);
-
-    StdOut() << "Read data: ";
-    if (mSL_importer.HasCartesian())
-        StdOut() << mSL_importer.mVectPtsXYZ.size() << " cartesian points";
-    if (mSL_importer.HasSpherical())
-        StdOut() << mSL_importer.mVectPtsTPD.size() << " spherical points";
-    if (mSL_importer.HasIntensity())
-        StdOut() << " with intensity";
-    if (mSL_importer.HasRowCol())
-        StdOut() << " with row-col";
-    StdOut() << "\n";
-
-    if (mSL_importer.HasCartesian() && !mSL_importer.HasSpherical())
-    {
-        cRotation3D<tREAL8>  aRotFrame = cRotation3D<tREAL8>::RotFromCanonicalAxes(mTransfoIJK);
-        // apply rotframe to original points
-        for (auto & aPtXYZ : mSL_importer.mVectPtsXYZ)
-        {
-            aPtXYZ = aRotFrame.Value(aPtXYZ);
-        }
-        mSL_importer.convertToThetaPhiDist();
-        // go back to original xyz
-        for (auto & aPtXYZ : mSL_importer.mVectPtsXYZ)
-        {
-            aPtXYZ = aRotFrame.Inverse(aPtXYZ);
-        }
-    } else if (!mSL_importer.HasCartesian() && mSL_importer.HasSpherical()) // mTransfoIJK not used if spherical
-    {
-        mSL_importer.convertToXYZ();
-    }
+    mSL_importer.read(mNameFile, false, mForceStructured, mStrInput2TSL);
 
     MMVII_INTERNAL_ASSERT_tiny(!mSL_importer.mVectPtsXYZ.empty(),"Error reading "+mNameFile);
     if (mSL_importer.HasIntensity())
@@ -646,7 +619,7 @@ int cAppli_ImportStaticScan::Exe()
     }
 
     StdOut() << "Cartesian sample:\n";
-    for (size_t i=0; (i<10)&&(i<mSL_importer.mVectPtsXYZ.size()); ++i)
+    for (size_t i=0; (i<1000)&&(i<mSL_importer.mVectPtsXYZ.size()); ++i)
     {
         StdOut() << mSL_importer.mVectPtsXYZ.at(i);
         if (mSL_importer.HasIntensity())
@@ -657,7 +630,7 @@ int cAppli_ImportStaticScan::Exe()
 
     // check theta-phi :
     StdOut() << "Spherical sample:\n";
-    for (size_t i=0; (i<10)&&(i<mSL_importer.mVectPtsTPD.size()); ++i)
+    for (size_t i=0; (i<1000)&&(i<mSL_importer.mVectPtsTPD.size()); ++i)
     {
         StdOut() << mSL_importer.mVectPtsTPD[i];
         StdOut() << "\n";
@@ -676,7 +649,7 @@ int cAppli_ImportStaticScan::Exe()
         StdOut() << "VerticalCorrection: " << aVertCorrection << "\n";
 
         StdOut() << "Sample after verticalization:\n";
-        for (size_t i=0; (i<10)&&(i<mSL_importer.mVectPtsXYZ.size()); ++i)
+        for (size_t i=0; (i<1000)&&(i<mSL_importer.mVectPtsXYZ.size()); ++i)
         {
             StdOut() << mSL_importer.mVectPtsXYZ.at(i);
             if (mSL_importer.HasIntensity())
@@ -686,7 +659,7 @@ int cAppli_ImportStaticScan::Exe()
         StdOut() << "...\n";
 
         StdOut() << "Spherical sample after verticalization:\n";
-        for (size_t i=0; (i<10)&&(i<mSL_importer.mVectPtsTPD.size()); ++i)
+        for (size_t i=0; (i<1000)&&(i<mSL_importer.mVectPtsTPD.size()); ++i)
         {
             StdOut() << mSL_importer.mVectPtsTPD[i];
             StdOut() << "\n";
@@ -747,19 +720,20 @@ int cAppli_ImportStaticScan::Exe()
     fixLineColRasterDirections();
 
     // compute transfo from scan instrument frame to sensor frame
-    mSL_importer.ComputeRotInstr2Raster(mTransfoIJK);
+    mSL_importer.ComputeRotInput2Raster(mStrInput2TSL);
     mSL_importer.ComputeAgregatedAngles();
 
     // create sensor from imported data
     std::string aScanName = cStaticLidar::ScanPrefixName() + mStationName + "-" + mScanName;
-    // find PP: image of the (0z) axis
-    cPt2dr aEquatorAngles = mSL_importer.Instr3DtoRasterAngle({1.,0.,0.}); // axis 1,0,0 in intrument frame, just to get equator vertical angle
+    // find PP: image of the (Oz) axis
+    cPt3dr aOzAxisInput = mSL_importer.RotInput2TSL().Inverse({1.,0.,0.});  // axis 1,0,0 in TSL frame, just to get equator vertical angle
+    cPt2dr aEquatorAngles = mSL_importer.Input3DtoRasterAngle(aOzAxisInput);
     std::cout<< aEquatorAngles.y()<<" approx "
              << mSL_importer.LocalPhiToLineApprox(aEquatorAngles.y())
               <<" precise "
               << mSL_importer.LocalPhiToLinePrecise(aEquatorAngles.y()) <<"\n";
 
-    cPt2dr aPP(mSL_importer.NbCol()/2., mSL_importer.LocalPhiToLineApprox(aEquatorAngles.y()));
+    cPt2dr aPP((mSL_importer.NbCol()-1)/2., mSL_importer.LocalPhiToLineApprox(aEquatorAngles.y()));
     //find F: scale from angle to pixels
     tREAL8 aF = 1./fabs(mSL_importer.mPhiStep); //TODO: add polynomial disto for different angular steps
     cPerspCamIntrCalib* aCalib =
@@ -768,7 +742,9 @@ int cAppli_ImportStaticScan::Exe()
                                         cPt3dr(aPP.x(),aPP.y(),aF), cPt3di(0,0,0));
     aCalib->ToFile(mPhProj.DPStaticLidar().FullDirOut() + aCalib->Name() + ".xml");
 
-    cStaticLidar aSL_data(mNameFile, mStationName, mScanName, cIsometry3D<tREAL8>({}, cRotation3D<tREAL8>::Identity()), aCalib);
+    cStaticLidar aSL_data(mNameFile, mStationName, mScanName,
+                          cIsometry3D<tREAL8>({}, cRotation3D<tREAL8>::Identity()),
+                          aCalib, mSL_importer.RotInput2Raster());
 
     if (IsInit(&mPoseXYZFilename))
     {
