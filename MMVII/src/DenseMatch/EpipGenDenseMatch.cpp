@@ -1014,7 +1014,7 @@ void  cAppli::MatchOneLevel(int aLevel)
 
             case eModeEpipMatch::eMEM_UNETDECISION  :    
                  aModePad = eModePaddingEpip::eMPE_NoPad;
-                 aAmplMax = 180;
+                 aAmplMax = 0;
             break;
 
             case eModeEpipMatch::eMEM_NoMatch :    
