@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<Root>
+   <Type>"MMVII_Serialization"</Type>
+   <Version>"0.0.0"</Version>
+   <Data>
+      <InternalCalibration>
+         <Name>"Calib-Scan-St3-Sc1"</Name>
+         <PixelFrame>
+            <NbPix>101 101</NbPix>
+         </PixelFrame>
+         <Projection>"EquiRect"</Projection>
+         <Auxiliary>
+            <SzBuffer>100</SzBuffer>
+            <Degree>0 0 0</Degree>
+            <DegreeApproxInv>0 0 0</DegreeApproxInv>
+            <IsFraserMode>1</IsFraserMode>
+         </Auxiliary>
+         <PerfectProj>
+            <F>63.661985259257264</F>
+            <PP>50 50.000007629394531</PP>
+         </PerfectProj>
+         <Distorsion>            <Radial></Radial>
+             <Decentric></Decentric>
+             <Polynomial></Polynomial>
+</Distorsion>
+         <Informations></Informations>
+      </InternalCalibration>
+   </Data>
+</Root>

@@ -1124,16 +1124,24 @@ void TestRaster2Gnd2Raster(const std::vector<TYPE> &aVectPtsTest, cStaticLidar *
     float aPrecision = 1e-2;
     if constexpr (std::is_same_v<TYPE, cPt2di>)
         aPrecision = 1e-3;
-    //long i=0;
+    long i=0;
     for (auto & aPIm: aVectPtsTest)
     {
-        //std::cout<<"Test " << i << ": "<<aPIm<<"\n";
+        std::cout<<"Test " << i << ": "<<aPIm<<"\n";
         auto aPgnd = aScan->Image2Ground(aPIm);
         auto aPImtest = aScan->Ground2ImagePrecise(aPgnd);
-        //std::cout<<"Result: "<<aPIm<<" -> "<<aPgnd<<" -> "<<aPImtest<<"\n";
-        //++i;
-        MMVII_INTERNAL_ASSERT_bench(Norm2(cPt2dr(aPIm.x(), aPIm.y())-aPImtest)<aPrecision ,"TestRaster2Gnd2Raster: ");
+        std::cout<<"Result: "<<aPIm<<" -> "<<aPgnd<<" -> "<<aPImtest<<"\n";
+        ++i;
+        MMVII_INTERNAL_ASSERT_bench(Norm2(cPt2dr(aPIm.x(), aPIm.y())-aPImtest)<aPrecision ,"TestRaster2Gnd2Raster: " + std::to_string(i));
     }
+}
+
+/// tests the scans of a cube, where summit is {0,0,8.66} in ground coords
+void TestPose(const std::string & aInPath, const std::string & aCalibName, const std::string & aScanName, const cPt2dr& aSummitPx)
+{
+    cStaticLidar * aScan =  cStaticLidar::FromFile(aInPath + aCalibName, aInPath + aScanName, aInPath);
+    MMVII_INTERNAL_ASSERT_bench(Norm2(aScan->Ground2ImagePrecise({0,0,8.66})-aSummitPx)<1e-3 ,"TestPose " + aScanName);
+    delete aScan;
 }
 
 void BenchTSL(cParamExeBench & aParam)
@@ -1142,6 +1150,7 @@ void BenchTSL(cParamExeBench & aParam)
 
     const std::string & aInPath = cMMVII_Appli::CurrentAppli().InputDirTestMMVII() + "/TSL/Scan1/";
 
+    // test with scan pose = Id
     cStaticLidar * aScan =  cStaticLidar::FromFile(aInPath + "Calib-Scan-St1-Sc1.xml",
                                                    aInPath + "Scan-St1-Sc1.xml", aInPath);
 
@@ -1158,8 +1167,20 @@ void BenchTSL(cParamExeBench & aParam)
         aVectPtsTest2.push_back( pp + cPt2dr(pp.x()/10. * i * cos(2*M_PI*i/10),
                                             pp.y()/10. * i * sin(2*M_PI*i/10)));
     TestRaster2Gnd2Raster(aVectPtsTest2, aScan);
-
     delete aScan;
+
+    // tests with scan translation
+    TestPose(aInPath, "Calib-Scan-St2-Sc1.xml", "Scan-St2-Sc1.xml", {35.5508,50});
+
+    // tests with scan translation + rotation
+    TestPose(aInPath, "Calib-Scan-St3-Sc1.xml", "Scan-St3-Sc1.xml", {40.7816,64.542});
+
+    // just rot x
+    TestPose(aInPath, "Calib-Scan-St4-Sc1.xml", "Scan-St4-Sc1.xml", {61.279,60.9406});
+
+    // just rot xyz
+    TestPose(aInPath, "Calib-Scan-St5-Sc1.xml", "Scan-St5-Sc1.xml", {67.6836,71.4344});
+
     //std::cout<<"Bench TSL finished."<<std::endl;
     aParam.EndBench();
     return;
