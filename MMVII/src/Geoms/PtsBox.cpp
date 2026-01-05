@@ -601,6 +601,21 @@ template <class T,const int Dim> T AbsLineAngleTrnk(const cPtxd<T,Dim> & aP1,con
     return std::min(aRes,T(M_PI-aRes));
 }
 
+template <class T,const int Dim> T DistDirLine(const cPtxd<T,Dim> &aP1,const cPtxd<T,Dim> &aP2,const T & aDef)
+{
+    T aN1 = Norm2(aP1);
+    T aN2 = Norm2(aP2);
+
+    if ((aN1==0) || (aN2==0))
+        return aDef;
+
+    cPtxd<T,Dim> aU1 = aP1 / aN1;
+    cPtxd<T,Dim> aU2 = aP2 / aN2;
+
+    if (Scal(aU1,aU2)<0) aU2 = - aU2;
+
+    return Norm2(aU1-aU2);
+}
 
 
 template <class Type,const int Dim> std::ostream & operator << (std::ostream & OS,const cPtxd<Type,Dim> &aP)
@@ -1465,6 +1480,7 @@ template  TYPE CosWDef(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &,const TYP
 template  TYPE AbsAngle(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
 template  TYPE AbsAngleTrnk(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
 template  TYPE AbsLineAngleTrnk(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
+template  TYPE DistDirLine(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &,const TYPE &);\
 template  cPtxd<TYPE,DIM>  VUnit(const cPtxd<TYPE,DIM> & aP);\
 template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::FromPtInt(const cPtxd<int,DIM> & aPInt);\
 template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::FromPtR(const cPtxd<tREAL8,DIM> & aPInt);

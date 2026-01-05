@@ -228,6 +228,16 @@ int   MatEss_GetKMax(const cSetHomogCpleDir & aSetD,tREAL8 aWeightStab,bool Show
     return aWMax.IndexExtre();
 }
 
+/*
+tPoseR  PoseRelFrom2RotAndBase(const cPt3dr &,const tRotR& aR2E1,const tRotR & aR2E2)
+{
+    //  aR2E1 :  C1-> E1  ;  aR2E2  C2 -> E2 ;   E2->
+    //  E2 -> E1
+    tPoseR aSol(aMatU * aPV,cRotation3D<tREAL8>(aMatU * aMatV.Transpose(),false));
+
+}
+*/
+
 /* ************************************** */
 /*                                        */
 /*         cMatEssential                  */
@@ -331,7 +341,7 @@ cMatEssential::tPose  cMatEssential::ComputePose(const cSetHomogCpleDir & aHom,c
            =   (U SwXZ)  (SwXZ D SwXZ aRot)  t( V aSwXZ R)
 
         And  Sw D Sw aRot is what we want :
-                              0 0  0
+                          0 0  0
 	   (Sw D Sw aRot) =   0 0 -1
 	                      0 1  0
         
@@ -462,6 +472,7 @@ cMatEssential::tPose  cMatEssential::ComputePose(const cSetHomogCpleDir & aHom,c
           }
 
 	  aNb11 += (aNbPU==aNbP) && (aNbPV==aNbP);
+ // StdOut() << "MATEEEESSsss \n"; getchar();
 	  tPose aSol(aMatU * aPV,cRotation3D<tREAL8>(aMatU * aMatV.Transpose(),false));
 	  aBestPose.Add(aSol,aNbPU+aNbPV);
        }

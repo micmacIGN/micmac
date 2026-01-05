@@ -433,6 +433,9 @@ template <class T,const int Dim> T AbsAngleTrnk(const cPtxd<T,Dim> &,const cPtxd
 /// angle of line, in [0,PI/2]  , opposite direction ar considered equal
 template <class T,const int Dim> T AbsLineAngleTrnk(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);
 
+//  +- equiv to AbsLineAngleTrnk for small values, more accurate and faster (?)
+template <class T,const int Dim> T DistDirLine(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &,const T & aDef=2.0);
+
 
 template <class T,const int Dim> T MinAbsCoord(const cPtxd<T,Dim> & aP);
 

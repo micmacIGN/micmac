@@ -104,7 +104,11 @@ class cMatEssential
 
 int   MatEss_GetKMax(const cSetHomogCpleDir & aSetD,tREAL8 aWeightStab,bool Show=false);
 
+/** used in case for epipolar geometry, knoing base in the repair E1 (generally (1,0,0) and
+ *  2 rotation going from initial repairs to the other , compute the relative rotation; quite
+ *  basic, but opportunity to fix convention */
 
+tPoseR  PoseRelFrom2RotAndBase(const cPt3dr &,const tRotR& aR2E1,const tRotR & aR2E2);
 
 };
 #endif // _MMVII_POSE_REL_H_
