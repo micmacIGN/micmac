@@ -540,11 +540,11 @@ cPt2dr cStaticLidarImporter::Input3DtoRasterAngle(const cPt3dr &aPt3DInput) cons
 
 cStaticLidar::cStaticLidar(const std::string & aNameFile, const std::string & aStationName,
                            const std::string & aScanName, const tPose & aPose, cPerspCamIntrCalib * aCalib,
-                           cRotation3D<tREAL8> aRotInstr2Raster) :
+                           cRotation3D<tREAL8> aRotInput2Raster) :
     cSensorCamPC(aNameFile, aPose, aCalib),
     mStationName(aStationName),
     mScanName(aScanName),
-    mRotInstr2Raster(aRotInstr2Raster)
+    mRotInput2Raster(aRotInput2Raster)
 {
 }
 
@@ -562,7 +562,7 @@ cStaticLidar * cStaticLidar::FromFile(const std::string & aNameCalibFile, const 
     return aRes;
 }
 
-cPt3dr cStaticLidar::Image2TSL3D(const cPt2di & aRasterPx) const
+cPt3dr cStaticLidar::Image2InputXYZ(const cPt2di & aRasterPx) const
 {
     auto & aRasterXData = mRasterX->DIm();
     auto & aRasterYData = mRasterY->DIm();
@@ -574,7 +574,7 @@ cPt3dr cStaticLidar::Image2TSL3D(const cPt2di & aRasterPx) const
     };
 }
 
-cPt3dr cStaticLidar::Image2TSL3D(const cPt2dr & aRasterPx) const
+cPt3dr cStaticLidar::Image2InputXYZ(const cPt2dr & aRasterPx) const
 {
     auto & aRasterXData = mRasterX->DIm();
     auto & aRasterYData = mRasterY->DIm();
@@ -588,21 +588,21 @@ cPt3dr cStaticLidar::Image2TSL3D(const cPt2dr & aRasterPx) const
 
 cPt3dr cStaticLidar::Image2Ground(const cPt2di & aRasterPx) const
 {
-    cPt3dr aInstrPt = Image2Camera3D(aRasterPx);
-    return Pose().Value(aInstrPt);
+    cPt3dr aCam3DPt = Image2Camera3D(aRasterPx);
+    return Pose().Value(aCam3DPt);
 }
 
 cPt3dr cStaticLidar::Image2Ground(const cPt2dr & aRasterPx) const
 {
-    cPt3dr aInstrPt = Image2Camera3D(aRasterPx);
-    return Pose().Value(aInstrPt);
+    cPt3dr aCam3DPt = Image2Camera3D(aRasterPx);
+    return Pose().Value(aCam3DPt);
 }
 
 cPt2dr cStaticLidar::Ground2ImagePrecise(const cPt3dr & aGroundPt) const
 {
     //std::cout<<"  Ground2ImagePrecise for point "<<aGroundPt<<"\n";
-    cPt2dr aDirInstrTheoretical = InternalCalib()->Dir_Proj()->Value(Pose().Inverse(aGroundPt));
-    //std::cout<<"  UV th: "<<aDirInstrTheoretical<<"\n";
+    cPt2dr aDirCam3DTheoretical = InternalCalib()->Dir_Proj()->Value(Pose().Inverse(aGroundPt));
+    //std::cout<<"  UV th: "<<aDirCam3DTheoretical<<"\n";
     cPt3dr aPtRasterApprox = this->Ground2ImageAndDepth(aGroundPt);
     cPt2dr aPtRaster = {aPtRasterApprox.x(), aPtRasterApprox.y()};
 
@@ -612,7 +612,7 @@ cPt2dr cStaticLidar::Ground2ImagePrecise(const cPt3dr & aGroundPt) const
     {
         // in this case Image2Camera3D will not use GetVBL => works on first and last columns
         cPt2dr aDirTest = InternalCalib()->Dir_Proj()->Value(Image2Camera3D(aPtRasterRounded));
-        if (Norm2(aDirTest - aDirInstrTheoretical)< 1e-5)
+        if (Norm2(aDirTest - aDirCam3DTheoretical)< 1e-5)
         {
             //std::cout<<"  skip iter\n";
             return aPtRaster;
@@ -621,7 +621,7 @@ cPt2dr cStaticLidar::Ground2ImagePrecise(const cPt3dr & aGroundPt) const
 
     // if approx is sufficient, no need for iter
     cPt2dr aDirTest = InternalCalib()->Dir_Proj()->Value(Image2Camera3D(aPtRaster));
-    if (Norm2(aDirTest - aDirInstrTheoretical)< 1e-5)
+    if (Norm2(aDirTest - aDirCam3DTheoretical)< 1e-5)
     {
         //std::cout<<"  skip iter\n";
         return aPtRaster;
@@ -635,20 +635,15 @@ cPt2dr cStaticLidar::Ground2ImagePrecise(const cPt3dr & aGroundPt) const
         cPt2dr aDirUL = InternalCalib()->Dir_Proj()->Value(Image2Camera3D(aPtRasterUL));
         cPt2dr aDirLR = InternalCalib()->Dir_Proj()->Value(Image2Camera3D(aPtRasterLR));
         //std::cout<<"   Dirs: "<<aDirUL<<" "<<aDirLR<<"\n";
-        float aBetterX = aPtRasterUL.x() + (aDirInstrTheoretical.x()-aDirUL.x())/(aDirLR.x()-aDirUL.x())
+        float aBetterX = aPtRasterUL.x() + (aDirCam3DTheoretical.x()-aDirUL.x())/(aDirLR.x()-aDirUL.x())
                                                *(aPtRasterLR.x()-aPtRasterUL.x());
-        float aBetterY = aPtRasterUL.y() + (aDirInstrTheoretical.y()-aDirUL.y())/(aDirLR.y()-aDirUL.y())
+        float aBetterY = aPtRasterUL.y() + (aDirCam3DTheoretical.y()-aDirUL.y())/(aDirLR.y()-aDirUL.y())
                                                *(aPtRasterLR.y()-aPtRasterUL.y());
         aPtRaster = {aBetterX, aBetterY};
     }
 
     return aPtRaster;
 }
-
-//cPt2dr cStaticLidar::Instr3D2ImagePrecise(const cPt3dr & aInstr3DPt) const
-//{
-//    return Ground2ImagePrecise(Pose().Value(aInstr3DPt));
-//}
 
 
 void cStaticLidar::ToPly(const std::string & aName,bool useMask) const
@@ -1060,8 +1055,8 @@ void cStaticLidar::MakePatches
         // compute raster step to get aNbPointByPatch separated by aGndPixelSize
         tREAL4 aMeanDepth = aRasterDistData.GetV(aCenter);
 
-        cPt3dr aCenterThetaPhiDist = Image2InstrThetaPhiDist(aCenter);
-        tREAL4 aThetaStep = aCenterThetaPhiDist.x() - Image2InstrThetaPhiDist(aCenter+cPt2di(1, 0)).x();
+        cPt3dr aCenterThetaPhiDist = Image2ThetaPhiDist(aCenter);
+        tREAL4 aThetaStep = aCenterThetaPhiDist.x() - Image2ThetaPhiDist(aCenter+cPt2di(1, 0)).x();
 
         tREAL4 aProjColFactor = 1/cos(aCenterThetaPhiDist.y());
         tREAL4 aNbStepRadius = sqrt(aNbPointByPatch/M_PI) + 1;
@@ -1112,7 +1107,7 @@ void cStaticLidar::AddData(const  cAuxAr2007 & anAux)
     MMVII::AddData(cAuxAr2007("RasterThetaErr",anAux),mRasterThetaErrPath);
     MMVII::AddData(cAuxAr2007("RasterPhiErr",anAux),mRasterPhiErrPath);
 
-    MMVII::AddData(cAuxAr2007("RotInstr2Raster",anAux),mRotInstr2Raster);
+    MMVII::AddData(cAuxAr2007("RotInput2Raster",anAux),mRotInput2Raster);
 
     MMVII::AddData(cAuxAr2007("PatchCenters",anAux),mPatchCenters);
 }

@@ -61,7 +61,7 @@ public:
     void ComputeAgregatedAngles();
     float LocalPhiToLinePrecise(float aPhi) const;
     float LocalThetaToColPrecise(float aTheta) const;
-    cPt2dr Input3DtoRasterAngle(const cPt3dr & aPt3DInstr) const;
+    cPt2dr Input3DtoRasterAngle(const cPt3dr & aPt3DInput) const;
 
     // line and col for each point
     std::vector<int> mVectPtsLine;
@@ -103,7 +103,7 @@ public :
 
     cStaticLidar(const std::string &aNameFile, const std::string & aStationName,
                  const std::string & aScanName, const tPose &aPose, cPerspCamIntrCalib *aCalib,
-                 cRotation3D<tREAL8> aRotInstr2Raster);
+                 cRotation3D<tREAL8> aRotInput2Raster);
 
     static cStaticLidar *FromFile(const std::string & aNameCalibFile, const std::string &aNameScanFile, const std::string & aNameRastersDir);
 
@@ -124,20 +124,19 @@ public :
     void MakePatches(std::list<std::set<cPt2di> > &aLPatches,
                      std::vector<cSensorCamPC *> &aVCam, int aNbPointByPatch, int aSzMin) const;
 
-    cPt3dr Image2TSL3D(const cPt2di & aRasterPx) const; // in TSL frame (Z up)
-    cPt3dr Image2TSL3D(const cPt2dr & aRasterPx) const;
+    cPt3dr Image2InputXYZ(const cPt2di & aRasterPx) const; // in input frame
+    cPt3dr Image2InputXYZ(const cPt2dr & aRasterPx) const;
 
     template <typename TYPE>
     cPt3dr Image2Camera3D(const TYPE & aRasterPx) const; // in sensor frame (Z forward)
 
     template <typename TYPE>
-        cPt3dr Image2InstrThetaPhiDist(const TYPE & aRasterPx) const;
+        cPt3dr Image2ThetaPhiDist(const TYPE & aRasterPx) const;
 
     cPt3dr Image2Ground(const cPt2di & aRasterPx) const;
     cPt3dr Image2Ground(const cPt2dr & aRasterPx) const;
 
     cPt2dr Ground2ImagePrecise(const cPt3dr & aGroundPt) const;
-    //cPt2dr Instr3D2ImagePrecise(const cPt3dr & aInstr3DPt) const;
 
     static std::string ScanPrefixName() { return "Scan-"; }
     static std::string CalibPrefixName() { return "Calib-"; }
@@ -173,20 +172,20 @@ private :
     std::unique_ptr<cIm2D<tU_INT1>> mRasterMaskBuffer;
     std::unique_ptr<cIm2D<tREAL4>> mRasterScore; // updated on each filter, used to find patch centers. High=bad
 
-    cRotation3D<tREAL8> mRotInstr2Raster; //< to go from z vertical to z view direction of PP, and make PPx in center
+    cRotation3D<tREAL8> mRotInput2Raster; //< to go from z vertical to z view direction of PP, and make PPx in center
 };
 
 template <typename TYPE>
 cPt3dr cStaticLidar::Image2Camera3D(const TYPE & aRasterPx) const
 {
-    cPt3dr aPtTLS3D = Image2TSL3D(aRasterPx);
-    cPt3dr aPtCam3D = mRotInstr2Raster.Value(aPtTLS3D);
+    cPt3dr aPtInput3D = Image2InputXYZ(aRasterPx);
+    cPt3dr aPtCam3D = mRotInput2Raster.Value(aPtInput3D);
     //std::cout<<"   Image > TLS > Camera3D: " << aRasterPx << " => "<< aPtTLS3D <<" => "<< aPtCam3D <<"\n";
     return aPtCam3D;
 }
 
 template <typename TYPE>
-    cPt3dr cStaticLidar::Image2InstrThetaPhiDist(const TYPE & aRasterPx) const
+    cPt3dr cStaticLidar::Image2ThetaPhiDist(const TYPE & aRasterPx) const
 {
     cPt3dr aPtCam3D = Image2Camera3D(aRasterPx);
     tREAL8 aDist = Norm2(aPtCam3D);
