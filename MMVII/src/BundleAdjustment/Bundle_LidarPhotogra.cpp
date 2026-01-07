@@ -117,7 +117,7 @@ cBA_LidarPhotograTri::cBA_LidarPhotograTri(cPhotogrammetricProject * aPhProj,
 cBA_LidarPhotograRaster::cBA_LidarPhotograRaster(cPhotogrammetricProject * aPhProj,
                                                  cMMVII_BundleAdj& aBA,
                                                  const std::vector<std::string>& aParam) :
-    cBA_LidarPhotogra(aPhProj, aBA, aParam), mLidarData(nullptr)
+    cBA_LidarPhotogra(aPhProj, aBA, aParam)
 {
     //read all xml files from directory?
     mPhProj->DPStaticLidar().SetDirIn(aParam.at(1));
@@ -125,23 +125,22 @@ cBA_LidarPhotograRaster::cBA_LidarPhotograRaster(cPhotogrammetricProject * aPhPr
     std::string aFullPat2Sup = mPhProj->DPStaticLidar().FullDirIn() + aPat2Sup;
     tNameSet aSet = SetNameFromPat(aFullPat2Sup);
     std::vector<std::string> aVect = ToVect(aSet);
-    MMVII_INTERNAL_ASSERT_User(aVect.size()==1,
-                               eTyUEr::eUnClassedError,"Only one scan per directory is supported for now.");
     for (const auto & aNameSens : aVect)
     {
-        // TODO: make a vector of lidar data?
-        if (mLidarData) delete mLidarData;
-        mLidarData = mPhProj->ReadStaticLidar(mPhProj->DPStaticLidar(), aNameSens, true);
+        cStaticLidar * aLidarData = mPhProj->ReadStaticLidar(mPhProj->DPStaticLidar(), aNameSens, true);
+        MMVII_INTERNAL_ASSERT_User(aLidarData,
+                                   eTyUEr::eUnClassedError,"Error opening static scans " + aNameSens);
+        mVLidarData.push_back({aNameSens, aLidarData, {}});
     }
-
-    MMVII_INTERNAL_ASSERT_User(mLidarData,
-                               eTyUEr::eUnClassedError,"Error opening static scans " + aFullPat2Sup);
 
     // Creation of the patches, choose a neigborhood around patch centers. TODO: adapt to images ground pixels size?
     if (mModeSim==eImatchCrit::eDifRad)
         mNbPointByPatch = 1;
-    mLidarData->MakePatches(mLPatchesP,mVCam,mNbPointByPatch,5);
-    StdOut() << "Nb patches: " << mLPatchesP.size() << "\n";
+    for (auto & aLidarData: mVLidarData)
+    {
+        aLidarData.mLidarRaster->MakePatches(aLidarData.mLPatchesP,mVCam,mNbPointByPatch,5);
+        StdOut() << "Nb patches for " << aLidarData.mName << ": " << aLidarData.mLPatchesP.size() << "\n";
+    }
 }
 
 
@@ -199,20 +198,22 @@ void cBA_LidarPhotograRaster::AddObs()
     mNbUsedObs = 0;
     if (mModeSim==eImatchCrit::eDifRad)
     {
-        for (const auto& aPatch : mLPatchesP)
-        {
-            Add1Patch(mWeight,{mLidarData->Image2Ground(*aPatch.begin())});
-        }
+        for (auto & aLidarData: mVLidarData)
+            for (const auto& aPatch : aLidarData.mLPatchesP)
+            {
+                Add1Patch(mWeight,{aLidarData.mLidarRaster->Image2Ground(*aPatch.begin())});
+            }
     }
     else
     {
-        for (const auto& aPatch : mLPatchesP)
-        {
-            std::vector<cPt3dr> aVP;
-            for (const auto aPt : aPatch)
-                aVP.push_back(mLidarData->Image2Ground(aPt));
-            Add1Patch(mWeight,aVP);
-        }
+        for (auto & aLidarData: mVLidarData)
+            for (const auto& aPatch : aLidarData.mLPatchesP)
+            {
+                std::vector<cPt3dr> aVP;
+                for (const auto aPt : aPatch)
+                    aVP.push_back(aLidarData.mLidarRaster->Image2Ground(aPt));
+                Add1Patch(mWeight,aVP);
+            }
     }
 
     if (mLastResidual.SW() != 0)

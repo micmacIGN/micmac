@@ -407,6 +407,14 @@ private :
 };
 
 
+// record all data for each scan raster
+struct cStaticLidarBAData
+{
+    std::string                    mName;
+    cStaticLidar *                 mLidarRaster;   //< raster representations of lidar
+    std::list<std::set<cPt2di>>    mLPatchesP;      //< set of patches as px in raster, consituted by 3D points in a lidar scan
+};
+
 class cBA_LidarPhotograRaster : public cBA_LidarPhotogra
 {
 public :
@@ -418,8 +426,7 @@ public :
     /// add observation
     virtual void AddObs() override;
 private :
-    cStaticLidar *                 mLidarData;      ///< Raster representations of lidar
-    std::list<std::set<cPt2di>>    mLPatchesP;      ///< set of patches as px in raster, consituted by 3D points in a lidar scan
+    std::vector<cStaticLidarBAData> mVLidarData;      ///< vector of raster representations of lidar
 };
 
 

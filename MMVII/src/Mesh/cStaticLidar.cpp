@@ -1127,10 +1127,10 @@ void TestRaster2Gnd2Raster(const std::vector<TYPE> &aVectPtsTest, cStaticLidar *
     long i=0;
     for (auto & aPIm: aVectPtsTest)
     {
-        std::cout<<"Test " << i << ": "<<aPIm<<"\n";
+        //std::cout<<"Test " << i << ": "<<aPIm<<"\n";
         auto aPgnd = aScan->Image2Ground(aPIm);
         auto aPImtest = aScan->Ground2ImagePrecise(aPgnd);
-        std::cout<<"Result: "<<aPIm<<" -> "<<aPgnd<<" -> "<<aPImtest<<"\n";
+        //std::cout<<"Result: "<<aPIm<<" -> "<<aPgnd<<" -> "<<aPImtest<<"\n";
         ++i;
         MMVII_INTERNAL_ASSERT_bench(Norm2(cPt2dr(aPIm.x(), aPIm.y())-aPImtest)<aPrecision ,"TestRaster2Gnd2Raster: " + std::to_string(i));
     }
@@ -1141,7 +1141,7 @@ void TestPose(const std::string & aInPath, const std::string & aCalibName, const
 {
     cStaticLidar * aScan =  cStaticLidar::FromFile(aInPath + aCalibName, aInPath + aScanName, aInPath);
     auto aRasterPx = aScan->Ground2ImagePrecise({0,0,-8.66});
-    std::cout<<"Result: "<<aRasterPx<<" - theoritical "<<aSummitPx<<" -> error "<<Norm2(aRasterPx-aSummitPx)<<"\n";
+    //std::cout<<"Result: "<<aRasterPx<<" - theoritical "<<aSummitPx<<" -> error "<<Norm2(aRasterPx-aSummitPx)<<"\n";
     MMVII_INTERNAL_ASSERT_bench(Norm2(aRasterPx-aSummitPx)<1e-3 ,"TestPose " + aScanName);
     delete aScan;
 }
