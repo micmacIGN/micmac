@@ -217,13 +217,24 @@ cCollecSpecArg2007 & cAppliOrthoRectifyAndCorrel::ArgOpt(cCollecSpecArg2007 & an
 
 
 
+
+/*cBox2di cAppliOrthoRectifyAndCorrel::BoxInGeomImage( cSensorCamPC & aCam, cBox2di & aBoxTerrain)
+{
+    cPt2di aP0 = aBoxTerrain.P0();
+    cPt2di aP1 = aBoxTerrain.P1();
+
+
+}*/
+
 int cAppliOrthoRectifyAndCorrel::ExeOnParsedBox()
 {
-    StdOut()<<CurBoxIn().P0()<<CurBoxIn().P1()<<std::endl;
-
+    /*StdOut()<<CurBoxIn().P0()<<CurBoxIn().P1()<<std::endl;
     mBoxWOk = CurBoxInLoc().Dilate(-mSZw); // Box of pix with window include => erosion of cur box
     StdOut()<<mBoxWOk.P0()<<mBoxWOk.P1()<<std::endl;
     MakeCorrel();
+    return EXIT_SUCCESS;*/
+    mImDtm = APBI_ReadIm<tREAL4>(mDtmName);
+    mBoxWOk = CurBoxInLoc().Dilate(-mSZw);
     return EXIT_SUCCESS;
 }
 
