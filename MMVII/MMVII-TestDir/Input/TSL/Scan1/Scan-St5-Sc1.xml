@@ -8,13 +8,13 @@
          <NameInternalCalib>"Calib-Scan-St5-Sc1"</NameInternalCalib>
          <Center>0 0 0</Center>
          <RotMatrix>
-            <AxeI>0.836516297565715 -0.482962923924709 0.258819044934961</AxeI>
-            <AxeJ>0.39318460720241 0.858058341361193 0.330366081006458</AxeJ>
-            <AxeK>-0.381636408858006 -0.174592946405562 0.907673374347507</AxeK>
+            <AxeI>0.836516297565714 0.482962923924709 -0.25881904493496</AxeI>
+            <AxeJ>0.39318460720241 -0.858058341361192 -0.330366081006458</AxeJ>
+            <AxeK>-0.381636408858006 0.174592946405562 -0.907673374347507</AxeK>
          </RotMatrix>
-         <EQ>0.948979453580847 0.13302685993533 -0.168722160257605 -0.230813092902352</EQ> <!--EigenQuaternion, for information-->
-         <WPK>10.887984729257852 -22.435082481051111 -25.174755773176265</WPK> <!--Omega Phi Kapa in degree, for information-->
-         <YPR>-30.000000736832455 -14.999999990063809 19.999999459770642</YPR> <!--Yaw Pitch Roll in degree, for information-->
+         <EQ>-0.13302685993533 0.948979453580847 0.230813092902352 -0.168722160257605</EQ> <!--EigenQuaternion, for information-->
+         <WPK>-169.112015270739505 -22.435082481051552 -25.174755773174617</WPK> <!--Omega Phi Kapa in degree, for information-->
+         <YPR>30.000000736832035 14.999999990060566 -160.000000540230957</YPR> <!--Yaw Pitch Roll in degree, for information-->
       </CameraPose>
       <StationName>"St5"</StationName>
       <ScanName>"Sc1"</ScanName>
@@ -30,9 +30,9 @@
       <RasterPhiErr>"St5_Sc1_PhiErr.tif"</RasterPhiErr>
       <RotInput2Raster>
          <RotMatrix>
-            <AxeI>1 0 -0.000000005143532</AxeI>
-            <AxeJ>0 -1 0</AxeJ>
-            <AxeK>-0.000000005143532 0 -1</AxeK>
+            <AxeI>0.000000005143532 0 1</AxeI>
+            <AxeJ>-1 0 0.000000005143532</AxeJ>
+            <AxeK>0 -1 0</AxeK>
          </RotMatrix>
       </RotInput2Raster>
       <PatchCenters>

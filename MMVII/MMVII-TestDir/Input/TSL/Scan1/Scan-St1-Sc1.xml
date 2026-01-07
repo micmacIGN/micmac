@@ -9,12 +9,12 @@
          <Center>0 0 0</Center>
          <RotMatrix>
             <AxeI>1 0 0</AxeI>
-            <AxeJ>0 1 0</AxeJ>
-            <AxeK>0 0 1</AxeK>
+            <AxeJ>0 -1 0</AxeJ>
+            <AxeK>0 0 -1</AxeK>
          </RotMatrix>
-         <EQ>1 0 0 0</EQ> <!--EigenQuaternion, for information-->
-         <WPK>0 0 0</WPK> <!--Omega Phi Kapa in degree, for information-->
-         <YPR>0 0 0</YPR> <!--Yaw Pitch Roll in degree, for information-->
+         <EQ>0 1 0 0</EQ> <!--EigenQuaternion, for information-->
+         <WPK>-180 0 0</WPK> <!--Omega Phi Kapa in degree, for information-->
+         <YPR>0 0 -180</YPR> <!--Yaw Pitch Roll in degree, for information-->
       </CameraPose>
       <StationName>"St1"</StationName>
       <ScanName>"Sc1"</ScanName>
@@ -30,9 +30,9 @@
       <RasterPhiErr>"St1_Sc1_PhiErr.tif"</RasterPhiErr>
       <RotInput2Raster>
          <RotMatrix>
-            <AxeI>1 0 0</AxeI>
-            <AxeJ>0 -1 0</AxeJ>
-            <AxeK>0 0 -1</AxeK>
+            <AxeI>0 0 1</AxeI>
+            <AxeJ>-1 0 0</AxeJ>
+            <AxeK>0 -1 0</AxeK>
          </RotMatrix>
       </RotInput2Raster>
       <PatchCenters>

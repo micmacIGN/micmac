@@ -1136,11 +1136,11 @@ void TestRaster2Gnd2Raster(const std::vector<TYPE> &aVectPtsTest, cStaticLidar *
     }
 }
 
-/// tests the scans of a cube, where summit is {0,0,8.66} in ground coords
+/// tests the scans of a cube, where summit is {0,0,-8.66} in ground coords
 void TestPose(const std::string & aInPath, const std::string & aCalibName, const std::string & aScanName, const cPt2dr& aSummitPx)
 {
     cStaticLidar * aScan =  cStaticLidar::FromFile(aInPath + aCalibName, aInPath + aScanName, aInPath);
-    auto aRasterPx = aScan->Ground2ImagePrecise({0,0,8.66});
+    auto aRasterPx = aScan->Ground2ImagePrecise({0,0,-8.66});
     std::cout<<"Result: "<<aRasterPx<<" - theoritical "<<aSummitPx<<" -> error "<<Norm2(aRasterPx-aSummitPx)<<"\n";
     MMVII_INTERNAL_ASSERT_bench(Norm2(aRasterPx-aSummitPx)<1e-3 ,"TestPose " + aScanName);
     delete aScan;
@@ -1156,7 +1156,7 @@ void BenchTSL(cParamExeBench & aParam)
     cStaticLidar * aScan =  cStaticLidar::FromFile(aInPath + "Calib-Scan-St1-Sc1.xml",
                                                    aInPath + "Scan-St1-Sc1.xml", aInPath);
 
-    aScan->ToPly(cMMVII_Appli::CurrentAppli().TmpDirTestMMVII() + "/TSL.ply");
+    //aScan->ToPly(cMMVII_Appli::CurrentAppli().TmpDirTestMMVII() + "/TSL.ply");
 
     auto & pp = aScan->InternalCalib()->PP();
     cPt2di ppInt = cPt2di(round(pp.x()), round(pp.y()));
@@ -1178,7 +1178,7 @@ void BenchTSL(cParamExeBench & aParam)
     TestPose(aInPath, "Calib-Scan-St3-Sc1.xml", "Scan-St3-Sc1.xml", {40.7816,64.542});
 
     // just rot x
-    TestPose(aInPath, "Calib-Scan-St4-Sc1.xml", "Scan-St4-Sc1.xml", {61.279,60.9406});
+    TestPose(aInPath, "Calib-Scan-St4-Sc1.xml", "Scan-St4-Sc1.xml", {66.9119,60.7288});
 
     // just rot xyz
     TestPose(aInPath, "Calib-Scan-St5-Sc1.xml", "Scan-St5-Sc1.xml", {67.6836,71.4344});

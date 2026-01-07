@@ -545,7 +545,9 @@ void cAppli_ImportStaticScan::exportThetas(const std::string & aFileName, int aN
 
 void cAppli_ImportStaticScan::poseFromXYZ()
 {
-    /* Comp3D .XYZ file format :
+    /*The rotation is given from ground to TSL frame. Has to be converted to MM camera frame
+     *
+     * Comp3D .XYZ file format :
 
 CT195	-8.901	-24.577	2.187	0.005
 [...]
@@ -600,11 +602,16 @@ CT197	3.580	-3.306	5.238	0.001
     }
     MMVII_INTERNAL_ASSERT_tiny(aXYZfile.good(),"Error reading "+mPoseXYZFilename);
 
+    cRotation3D<tREAL8> aRotTSL2MM = cRotation3D<tREAL8>::RotFromCanonicalAxes("k-i-j");
+
     mForcedPose.Tr() = aT;
-    mForcedPose.Rot() = cRotation3D<tREAL8>({aR1.x(), aR2.x(), aR3.x()}, // transpose
-                                            {aR1.y(), aR2.y(), aR3.y()},
-                                            {aR1.z(), aR2.z(), aR3.z()}, true);
-}
+    mForcedPose.Rot() =
+                        (aRotTSL2MM *
+                         cRotation3D<tREAL8>({aR1.x(), aR1.y(), aR1.z()},
+                                             {aR2.x(), aR2.y(), aR2.z()},
+                                             {aR3.x(), aR3.y(), aR3.z()}, true)
+                        ).MapInverse();
+    }
 
 int cAppli_ImportStaticScan::Exe()
 {

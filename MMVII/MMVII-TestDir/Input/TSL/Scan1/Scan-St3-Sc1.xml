@@ -6,15 +6,15 @@
       <CameraPose>
          <NameImage>"data/ex_cube_1/scan3_frame_2.ply"</NameImage>
          <NameInternalCalib>"Calib-Scan-St3-Sc1"</NameInternalCalib>
-         <Center>1.044489979743958 1.081230044364929 0.972774028778076</Center>
+         <Center>1.044489979743958 -1.081230044364929 -0.972774028778076</Center>
          <RotMatrix>
-            <AxeI>0.579371028611589 -0.795743512000531 -0.176412795212284</AxeI>
-            <AxeJ>0.779822102035804 0.478223886168788 0.403954705225823</AxeJ>
-            <AxeK>-0.237079523329219 -0.371610249867631 0.897607443045849</AxeK>
+            <AxeI>0.579371028611588 0.795743512000531 0.176412795212284</AxeI>
+            <AxeJ>0.779822102035804 -0.478223886168788 -0.403954705225823</AxeJ>
+            <AxeK>-0.237079523329219 0.371610249867631 -0.897607443045848</AxeK>
          </RotMatrix>
-         <EQ>0.859535100770501 0.225576871263962 -0.017645215437552 -0.458260986847417</EQ> <!--EigenQuaternion, for information-->
-         <WPK>22.489596816285694 -13.714235324963219 -53.389392884313736</WPK> <!--Omega Phi Kapa in degree, for information-->
-         <YPR>-53.942099366224554 10.160884546761247 24.22940974235782</YPR> <!--Yaw Pitch Roll in degree, for information-->
+         <EQ>-0.225576871263962 0.859535100770501 0.458260986847417 -0.017645215437552</EQ> <!--EigenQuaternion, for information-->
+         <WPK>-157.510403183718779 -13.714235324968422 -53.389392884313423</WPK> <!--Omega Phi Kapa in degree, for information-->
+         <YPR>53.942099366220056 -10.160884546763011 -155.770590257640862</YPR> <!--Yaw Pitch Roll in degree, for information-->
       </CameraPose>
       <StationName>"St3"</StationName>
       <ScanName>"Sc1"</ScanName>
@@ -30,9 +30,9 @@
       <RasterPhiErr>"St3_Sc1_PhiErr.tif"</RasterPhiErr>
       <RotInput2Raster>
          <RotMatrix>
-            <AxeI>0.999999999999996 0 -0.000000084254199</AxeI>
-            <AxeJ>0 -1 0</AxeJ>
-            <AxeK>-0.000000084254199 0 -0.999999999999996</AxeK>
+            <AxeI>0.000000084254199 0 0.999999999999996</AxeI>
+            <AxeJ>-0.999999999999996 0 0.000000084254199</AxeJ>
+            <AxeK>0 -1 0</AxeK>
          </RotMatrix>
       </RotInput2Raster>
       <PatchCenters>
