@@ -619,7 +619,7 @@ int cAppli_ImportStaticScan::Exe()
     }
 
     StdOut() << "Cartesian sample:\n";
-    for (size_t i=0; (i<1000)&&(i<mSL_importer.mVectPtsXYZ.size()); ++i)
+    for (size_t i=0; (i<10)&&(i<mSL_importer.mVectPtsXYZ.size()); ++i)
     {
         StdOut() << mSL_importer.mVectPtsXYZ.at(i);
         if (mSL_importer.HasIntensity())
@@ -630,7 +630,7 @@ int cAppli_ImportStaticScan::Exe()
 
     // check theta-phi :
     StdOut() << "Spherical sample:\n";
-    for (size_t i=0; (i<1000)&&(i<mSL_importer.mVectPtsTPD.size()); ++i)
+    for (size_t i=0; (i<10)&&(i<mSL_importer.mVectPtsTPD.size()); ++i)
     {
         StdOut() << mSL_importer.mVectPtsTPD[i];
         StdOut() << "\n";
@@ -733,13 +733,17 @@ int cAppli_ImportStaticScan::Exe()
               <<" precise "
               << mSL_importer.LocalPhiToLinePrecise(aEquatorAngles.y()) <<"\n";
 
-    cPt2dr aPP((mSL_importer.NbCol()-1)/2., mSL_importer.LocalPhiToLineApprox(aEquatorAngles.y()));
+    cPt2dr aPP((mSL_importer.NbCol()-1)/2., mSL_importer.LocalPhiToLinePrecise(aEquatorAngles.y()));
     //find F: scale from angle to pixels
-    tREAL8 aF = 1./fabs(mSL_importer.mPhiStep); //TODO: add polynomial disto for different angular steps
+    tREAL8 aFy = 1./fabs(mSL_importer.mPhiStep); //TODO: add polynomial disto for different angular steps
+
+    MMVII_INTERNAL_ASSERT_tiny(fabs((fabs(mSL_importer.mPhiStep)-fabs(mSL_importer.mThetaStep))/mSL_importer.mPhiStep)<1e-2,
+                               "Error: different steps in theta and phi are not supported yet!");
+
     cPerspCamIntrCalib* aCalib =
         cPerspCamIntrCalib::SimpleCalib(cStaticLidar::CalibPrefixName() + aScanName, eProjPC::eEquiRect,
                                         cPt2di(mSL_importer.NbCol(), mSL_importer.NbLine()),
-                                        cPt3dr(aPP.x(),aPP.y(),aF), cPt3di(0,0,0));
+                                        cPt3dr(aPP.x(),aPP.y(),aFy), cPt3di(0,0,0));
     aCalib->ToFile(mPhProj.DPStaticLidar().FullDirOut() + aCalib->Name() + ".xml");
 
     cStaticLidar aSL_data(mNameFile, mStationName, mScanName,

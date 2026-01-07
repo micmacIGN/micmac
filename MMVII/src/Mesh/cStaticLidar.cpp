@@ -1140,7 +1140,9 @@ void TestRaster2Gnd2Raster(const std::vector<TYPE> &aVectPtsTest, cStaticLidar *
 void TestPose(const std::string & aInPath, const std::string & aCalibName, const std::string & aScanName, const cPt2dr& aSummitPx)
 {
     cStaticLidar * aScan =  cStaticLidar::FromFile(aInPath + aCalibName, aInPath + aScanName, aInPath);
-    MMVII_INTERNAL_ASSERT_bench(Norm2(aScan->Ground2ImagePrecise({0,0,8.66})-aSummitPx)<1e-3 ,"TestPose " + aScanName);
+    auto aRasterPx = aScan->Ground2ImagePrecise({0,0,8.66});
+    std::cout<<"Result: "<<aRasterPx<<" - theoritical "<<aSummitPx<<" -> error "<<Norm2(aRasterPx-aSummitPx)<<"\n";
+    MMVII_INTERNAL_ASSERT_bench(Norm2(aRasterPx-aSummitPx)<1e-3 ,"TestPose " + aScanName);
     delete aScan;
 }
 
