@@ -1101,6 +1101,8 @@ void BenchImAndZ()
 
 void BenchCentralePerspective(cParamExeBench & aParam)
 {
+    if (! aParam.NewBench("CentralPersp")) return;
+
     BenchAiconCamera();
 
    // Test the accuracy of tabulation on dist/undist
@@ -1150,8 +1152,6 @@ void BenchCentralePerspective(cParamExeBench & aParam)
 
 
     BenchCentralePerspective(aParam,eProjPC::eOrthoGraphik);
-
-    if (! aParam.NewBench("CentralPersp")) return;
 
     BenchStenopeSat();
     BenchImAndZ();
