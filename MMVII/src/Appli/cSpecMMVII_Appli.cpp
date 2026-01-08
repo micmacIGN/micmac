@@ -178,8 +178,8 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecCalcDiscIm);
         TheVecAll.push_back(&TheSpecCalcDescPCar);
         TheVecAll.push_back(&TheSpecMatchTieP);
-	TheVecAll.push_back(&TheSpec_TiePConv);
-	TheVecAll.push_back(&TheSpec_ToTiePMul);
+        TheVecAll.push_back(&TheSpec_TiePConv);
+        TheVecAll.push_back(&TheSpec_ToTiePMul);
         TheVecAll.push_back(&TheSpec_PseudoIntersect);
         TheVecAll.push_back(&TheSpecEpipGenDenseMatch);
         TheVecAll.push_back(&TheSpecEpipDenseMatchEval);
@@ -224,6 +224,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecMeshCheck);
         TheVecAll.push_back(&TheSpecProMeshImage);
         TheVecAll.push_back(&TheSpecMeshImageDevlp);
+        TheVecAll.push_back(&TheSpecNuageBascule);
         TheVecAll.push_back(&TheSpecRadiom2ImageSameMod);
         TheVecAll.push_back(&TheSpecRadiomCreateModel);
 

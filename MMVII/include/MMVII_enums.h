@@ -391,6 +391,13 @@ enum class eModeEpipMatch
    eNbVals
 };
 
+enum class eModeGeom
+{
+    eGEOM_EPIP,
+    eGEOM_DEPTH,
+    eNbVals
+};
+
 /**  Mode os system "sur resolus"  */
 enum class eModeSSR
 {
