@@ -71,16 +71,24 @@ cAppliBenchAnswer::cAppliBenchAnswer(bool HasBench,double aTime) :
 /*                                                  */
 /* ================================================ */
 
-cParamExeBench::cParamExeBench(const std::string & aPattern,const std::string &aBugKey,int aLevInit,bool Show) :
-   mInsideFunc  (false),
-   mLevInit     (aLevInit),
-   mCurLev      (mLevInit),
-   mShow        (Show),
-   mDemoTest    (false),
-   mNbExe       (0),
-   mName        (aPattern),
-   mPattern     (AllocRegex(aPattern)),
-   mBugKey      (aBugKey)
+cParamExeBench::cParamExeBench
+(
+      const std::string & aPattern,
+      const std::string & aPatRefut,
+      const std::string &aBugKey,
+      int aLevInit,
+      bool Show
+) :
+   mInsideFunc   (false),
+   mLevInit      (aLevInit),
+   mCurLev       (mLevInit),
+   mShow         (Show),
+   mDemoTest     (false),
+   mNbExe        (0),
+   mName         (aPattern),
+   mPattern      (AllocRegex(aPattern)),
+   mPatternRefut (AllocRegex(aPatRefut)),
+   mBugKey       (aBugKey)
 {
 }
 
@@ -93,7 +101,9 @@ bool  cParamExeBench::NewBench(const std::string & aName,bool ExactMatch)
       mVAllBugKeys.push_back(std::vector<std::string> ());
    }
    MMVII_INTERNAL_ASSERT_always(!mInsideFunc,"Bad NewBench/EndBench handling");
-   if (ExactMatch ? (mName==aName)  : mPattern.Match(aName))
+   if (   (ExactMatch ? (mName==aName)  : mPattern.Match(aName))
+        && (!mPatternRefut.Match(aName))
+      )
    {
        mNbExe++;
        mInsideFunc = true;
@@ -337,6 +347,7 @@ class cAppli_MMVII_Bench : public cMMVII_Appli
         int         mLevMin;   // Min level of bench
         int         mShow;    // Do the bench show details 
         std::string mPat;    // Pattern for selected bench
+        std::string mPatRefut;    // Pattern for refutation of bench
         std::string mKeyBug;    // Pattern for selected bench
         int         mNumBugRecall; ///< Used if we want to force bug generation in recall process
         bool        mDoBUSD;       ///< Do we do  BenchUnbiasedStdDev
@@ -356,6 +367,7 @@ cCollecSpecArg2007 & cAppli_MMVII_Bench::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       anArgOpt
          << AOpt2007(mLevMin,"LevMin","Min level of bench",{{eTA2007::HDV}})
          << AOpt2007(mPat,"PatBench","Pattern filtering exec bench, use XXX to get existing ones",{{eTA2007::HDV}})
+         << AOpt2007(mPatRefut,"PatRefutBench","Pattern for refutation",{{eTA2007::HDV}})
          << AOpt2007(mKeyBug,"KeyBug","Key for forcing bug")
          << AOpt2007(mShow,"Show","Show mesg, Def=true if PatBench init")
          << AOpt2007(mNumBugRecall,"NBR","Num to Generate a Bug in Recall,(4 manuel inspection of log file)")
@@ -369,6 +381,7 @@ cAppli_MMVII_Bench::cAppli_MMVII_Bench (const std::vector<std::string> & aVArgs,
   mLevMin         (0),
   mShow           (false),
   mPat            (".*"),
+  mPatRefut       ("@@@"),
   mNumBugRecall   (-1),
   mDoBUSD         (false),
   mDemoTest       (false)
@@ -405,7 +418,7 @@ int  cAppli_MMVII_Bench::Exe()
     if (!IsInit(&mShow))
         mShow =  IsInit(&mPat); // Becoz, if mPat init, few bench => we can display msg
 
-   cParamExeBench aParam(mPat,mKeyBug,mLevMin,mShow);
+   cParamExeBench aParam(mPat,mPatRefut,mKeyBug,mLevMin,mShow);
    aParam.SetDemoTest(mDemoTest);
 
    for (int aLev=mLevMin ; aLev<mLevelMax ; aLev++)

@@ -271,6 +271,8 @@ static const cPt3di NoTriplet(-1,-1,-1);
 
 std::pair<cPt3di,tREAL8> cPlane3D::IndexRansacEstimate(const std::vector<cPt3dr> & aVPts,bool AvgOrMax,int aNbTest,tREAL8 aRegulMinTri)
 {
+    //StdOut() << "cPlane3D::IndexRansacEstimatcPlane3D::IndexRansacEstimat\n";getchar();
+
      cWhichMin<cPt3di,tREAL8> aWM(NoTriplet,1e30);
 
      std::vector<cSetIExtension>  aSet3I; // Set of triple of indexes

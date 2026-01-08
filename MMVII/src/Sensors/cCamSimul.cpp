@@ -151,7 +151,7 @@ void ShowMatL3(const cMatrix<tREAL8> & aMat)
 }
 
 /**
- * @brief cPS_CompPose::cPS_CompPose
+ * @brief cPS_CompPose::cPS_CompPose -> Planar Scene Compute Pose
  * @param aSetCple
  */
 
@@ -184,7 +184,7 @@ class cPS_CompPose
    private :
 
         ///  Compute the 3D homog matrix
-        cDenseMatrix<tREAL8>   ComputeMatHom3D();
+        static cDenseMatrix<tREAL8>   ComputeMatHom3D(cSetHomogCpleDir &,const  cPSC_PB *);
 
         void TestOneHypoth(cResulSVDDecomp<tREAL8>& aSvdH,const cPt3dr&ABL,int SignB,const cPt3dr & aSignD);
 
@@ -307,17 +307,20 @@ void cPS_CompPose::SetPt( cDenseVect<tREAL8>& aVect,size_t aIndex,const cPt3dr& 
 
 
 cDenseMatrix<tREAL8>
-    cPS_CompPose::ComputeMatHom3D ()
+    cPS_CompPose::ComputeMatHom3D(cSetHomogCpleDir &aSetCple,const  cPSC_PB * aCurParam)
 {
+    const std::vector<cPt3dr>* aCurV1   = & aSetCple.VDir1() ;
+    const std::vector<cPt3dr>* aCurV2   = & aSetCple.VDir2() ;
+    size_t aCurNbPts = aCurV1->size();
 
      //  [1]   Estimate the homography
      cDenseVect<tREAL8> aVect(9);
      cLeasSqtAA<tREAL8> aSys(9); // least square to estimate parameters
 
-     for (size_t aKP=0 ; aKP<mCurNbPts ; aKP++)
+     for (size_t aKP=0 ; aKP<aCurNbPts ; aKP++)
      {
-         const cPt3dr & aP1 = mCurV1->at(aKP);
-         const cPt3dr & aP2 = mCurV2->at(aKP);
+         const cPt3dr & aP1 = aCurV1->at(aKP);
+         const cPt3dr & aP2 = aCurV2->at(aKP);
 
          //  Add the equation L1.P1 z2 - L3.P1 x2 = 0
          SetPt(aVect,0,aP1,aP2.z());
@@ -332,16 +335,16 @@ cDenseMatrix<tREAL8>
          aSys.PublicAddObservation(1.0,aVect,0.0);
      }
      // Fix last value as matrix is up to a scale
-     aSys.AddObsFixVar(tREAL8(mCurV1->size()),8,1.0);
+     aSys.AddObsFixVar(tREAL8(aCurNbPts),8,1.0);
      cDenseVect<tREAL8> aSol = aSys.PublicSolve();
      cDenseMatrix<tREAL8> aMatH = Vect2MatEss(aSol);
 
-     if (mCurParam)
+     if (aCurParam)
      {
-        for (size_t aKP=0 ; aKP<mCurNbPts ; aKP++)
+        for (size_t aKP=0 ; aKP<aCurNbPts ; aKP++)
         {
-            const cPt3dr & aP1 = mCurV1->at(aKP);
-            const cPt3dr & aP2 = mCurV2->at(aKP);
+            const cPt3dr & aP1 = aCurV1->at(aKP);
+            const cPt3dr & aP2 = aCurV2->at(aKP);
 
             // As point are projective P and -P are equivalent : use line-angle
             tREAL8 anAng = AbsLineAngleTrnk(aMatH*aP1,aP2);
@@ -542,19 +545,18 @@ void cPS_CompPose::TestOneHypoth
 
 cPS_CompPose::cPS_CompPose(cSetHomogCpleDir & aSetCple,const  cPSC_PB * aBenchParam)
 {
-    mCurV1 = & aSetCple.VDir1() ;
-    mCurV2 = & aSetCple.VDir2() ;
+    // const std::vector<cPt3dr>& aV1 = aSetCple.VDir1();
+   // const std::vector<cPt3dr>& aV2 = aSetCple.VDir2();
+    cDenseMatrix<tREAL8> aMatH = ComputeMatHom3D(aSetCple,aBenchParam); // aV1,aV2,aParamBench);
+
+    mCurV1    = & aSetCple.VDir1() ;
+    mCurV2    = & aSetCple.VDir2() ;
     mCurNbPts = mCurV1->size();
     mCurParam = aBenchParam;
 
-    // const std::vector<cPt3dr>& aV1 = aSetCple.VDir1();
-   // const std::vector<cPt3dr>& aV2 = aSetCple.VDir2();
-    cDenseMatrix<tREAL8> aMatH = ComputeMatHom3D(); // aV1,aV2,aParamBench);
-
-
     // [2]  Estimate the paramater a,b,L
 
-     //  [2.1] make a SVD, maybe not optimal for invariant, btw will be used later
+     //  [2.1] make a SVD, Eigen value used for invariant,  maybe not optimal , btw will be used later
      cResulSVDDecomp<tREAL8> aSvdH = aMatH.SVD(true);
      cDenseVect<tREAL8>      aSingV = aSvdH.SingularValues();
 
@@ -651,158 +653,9 @@ cPS_CompPose::cPS_CompPose(cSetHomogCpleDir & aSetCple,const  cPSC_PB * aBenchPa
     if (mCurParam)
     {
          StdOut() << "----------------------------------------" << mCurParam->mMsg << mCurParam->mMsg  << mCurParam->mMsg  <<" \n";
-         if (UserIsMPD())
+         if (0&&UserIsMPD())
             getchar();
     }
-#if (0)
-     static int aCptSol=0;
-         cDenseMatrix<tREAL8>  aQab =  M3x3FromLines
-                                       (
-                                          cPt3dr(anABL.x(),0,anABL.y()) / anABL.z(),
-                                          cPt3dr(0,1,0)                 / anABL.z(),
-                                          cPt3dr(0,0,1)                 / anABL.z()
-                                       );
-
-         cResulSVDDecomp<tREAL8> aSvd_Qab = aQab.SVD(true);
-         cDenseVect<tREAL8>      aSingVQab = aSvd_Qab.SingularValues();
-
-         //  U * D * tV;
-         std::vector< cDenseMatrix<tREAL8>> aVMatTransfo;
-
-         aVMatTransfo.push_back(cDenseMatrix<tREAL8>::Diag(cDenseVect<tREAL8>({ 1, 1, 1})));
-         aVMatTransfo.push_back(cDenseMatrix<tREAL8>::Diag(cDenseVect<tREAL8>({ 1,-1,-1})));
-         aVMatTransfo.push_back(cDenseMatrix<tREAL8>::Diag(cDenseVect<tREAL8>({-1, 1,-1})));
-         aVMatTransfo.push_back(cDenseMatrix<tREAL8>::Diag(cDenseVect<tREAL8>({-1,-1, 1})));
-
-
-         for (const auto & aMatTransfo : aVMatTransfo)
-         {
-             aCptSol++;
-             StdOut() << " CPTSOL=" << aCptSol << "\n";
-             bool Debug = (aCptSol==395);
-
-             /*
-             //   U S (tS  D S) tS tV
-            std::vector<int> aPerm = ShitPerm(3,1);
-            cDenseMatrix<tREAL8> aMatTransfo =  cDenseMatrix<tREAL8>::MatPerm(aPerm);
-
-            aMatTransfo =  cDenseMatrix<tREAL8>::Diag(cDenseVect<tREAL8>({1,-1,-1}));
-            */
-          //  static cDenseMatrix Diag(const tDV &);
-
-
-
-            cDenseMatrix<tREAL8>  aQU =  aSvd_Qab.MatU() * aMatTransfo;
-            cDenseMatrix<tREAL8>  aQV =  aSvd_Qab.MatV() * aMatTransfo;
-            if (mCurParam)
-            {
-                tREAL8 aDist = aSingV.L2Dist(aSingVQab) / (1+std::sqrt(mHM_Tr2));
-                 MMVII_INTERNAL_ASSERT_bench(aDist<1e-7,"cPS_CompPose dist sing val");
-
-                 // to be honest, I cannot prove formally this assertion, btw
-                // it happens to be true even with very randomized condition
-                MMVII_INTERNAL_ASSERT_bench( aQU.Det()>0," SvdQab.MatU");
-                MMVII_INTERNAL_ASSERT_bench( aQV.Det()>0," SvdQab.MatV");
-                MMVII_INTERNAL_ASSERT_bench( aSvdH.MatU().Det()>0," aSvdH.MatU");
-                MMVII_INTERNAL_ASSERT_bench( aSvdH.MatV().Det()>0," aSvdH.MatV");
-            }
-
-            tRotR  aRE1(aQV *  aSvdH.MatV().Transpose(),false);
-            tRotR  aRE2(aQU *  aSvdH.MatU().Transpose(),false);
-
-            int aNbP1 = 0;
-            int aNbP2 = 0;
-            std::vector<cPt3dr> aVecPt;
-
-            for (size_t aK=0 ; aK<mCurNbPts ; aK++)
-            {
-                cPt3dr aPE1 = aRE1.Value(mCurV1->at(aK));
-                tSegComp3dr aSeg1(cPt3dr(0,0,0),aPE1);
-
-                cPt3dr aPE2 = aRE2.Value(mCurV2->at(aK));
-                tSegComp3dr aSeg2(aBase,aBase+aPE2);
-
-                cPt3dr aCoeffI;
-                cPt3dr anInter = BundleInters(aCoeffI,aSeg1,aSeg2);
-                aVecPt.push_back(anInter);
-
-                aNbP1 += aCoeffI.x() > 0;
-                aNbP2 += aCoeffI.y() > 0;
-
-
-                if (mCurParam)
-                {
-                    tREAL8 aDist = std::abs(aCoeffI.z()) / (1.0+Square(aCoeffI.x())+Square(aCoeffI.y()));
-                    tREAL8 aD1 = aSeg1.Dist(anInter);
-                    tREAL8 aD2 = aSeg2.Dist(anInter);
-                    if ((aDist>1e-6) || Debug || (Norm2(aCoeffI)>1e10))
-                    {
-                        StdOut() << " D1D2 " << aD1 << " " << aD2  << aCoeffI << " " << aDist
-                                 <<  " CPT=" << aCptSol << " Kpt=" << aK << "\n";
-                        StdOut() << " Msg=" <<  mCurParam->mMsg  << "\n";
-                        if (Norm2(aCoeffI)>1e10)
-                        {
-
-                            StdOut() << " COEFFI=" << aCoeffI << " I=" << anInter
-                                     <<  " CPT=" << aCptSol << " K=" << aK <<"\n";
-
-                            StdOut() << " V1=" << mCurV1->at(aK)<< " V2="<< mCurV2->at(aK)
-                                     << " E1=" << aPE1 << " E2=" << aPE2 << "\n";
-
-                            getchar();
-                        }
-                        if (aDist>1e-6)
-                        {
-                           MMVII_INTERNAL_ASSERT_bench(false,"PlanEpip : dist bund");
-                        }
-                    }
-                }
-            }
-           auto [aPlane,aRes] =  cPlane3D::RansacEstimate(aVecPt,true,100);
-
-           cPt3dr aC0 = aPlane.ToLocCoord(cPt3dr(0,0,0));
-           cPt3dr aC1   = aPlane.ToLocCoord(aBase);
-           bool isZP0 = aC0.z() > 0;
-           bool isZP1 = aC1.z() > 0;
-
-           bool   isSameSide = (isZP0==isZP1) ;
-
-
-            tREAL8 aScorePos = (aNbP1+aNbP2) / (2.0* mCurV1->size());
-
-            if (mCurParam  && (aScorePos>0.9999) && Debug)
-            {
-               StdOut()  <<  "PooOs:= "
-                         <<  ((aScorePos>0.9999)  ? " *** " : "     ")
-                         <<  " " << (isSameSide ? "==" : "!!")
-                         <<  ( isZP0 ? "+" : "-")
-                         <<  ( isZP1 ? "+" : "-") << " "
-                         << aNbP1 << " " << aNbP2
-                         <<  " N=" << aPlane.AxeK().y()
-                         << " On: " << aScorePos << " CPT=" << aCptSol ;
-
-               StdOut() << "\n";
-               if (mCurParam->mModeEpip && (aScorePos>0.9999))
-               {
-                   for (int aY=0 ; aY<3 ; aY++)
-                   {
-                       StdOut() <<  "                      ";
-                       ShowMatL3(aRE1.Mat(),aY);
-                       StdOut() << "   |||   ";
-                       ShowMatL3(aRE2.Mat(),aY);
-                       StdOut()  << "\n";
-                   }
-                   StdOut() << " VVV=" << aVecPt[0] << "\n";
-                   // StdOut()  << aRE1.AxeI() <<  aRE1.AxeJ() << aRE1.AxeK() << "\n";
-                   // StdOut()  << aRE2.AxeI() <<  aRE2.AxeJ() << aRE2.AxeK() << "\n";
-                }
-            }
-
-        }
-
-     }
-     }
-#endif
 
 }
 

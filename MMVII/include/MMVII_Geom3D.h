@@ -487,6 +487,9 @@ class cPlane3D
 	 /// Return the indexes of the "best" plane
          static std::pair<cPt3di,tREAL8>  IndexRansacEstimate(const std::vector<cPt3dr> & aP0,bool AvgOrMax,int aNbTest=-1,tREAL8 aRegulMinTri =1e-3);
 
+     /// Return a plane estimate by least-square
+         static std::pair<cPlane3D,tREAL8> LSQEstimate(const std::vector<cPt3dr> & aP0,const std::vector<tREAL8>* =nullptr);
+
 	 ///   Avegrage distance 
 	 tREAL8 AvgDist(const std::vector<cPt3dr> &) const;
 	 tREAL8 MaxDist(const std::vector<cPt3dr> &) const;
