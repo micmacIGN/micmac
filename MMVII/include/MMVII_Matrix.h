@@ -564,6 +564,8 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         Type MulLineElem(int  aX,const tDV &)const override;
         void  Add_tAB(const tDV & aCol,const tDV & aLine) override;
         void  Add_tAA(const tDV & aColLine,bool OnlySup=true) override;
+        void  WeightedAdd_tAA(const tDV & aColLine,const tVal& aW,bool OnlySup=true);
+
         void  Sub_tAA(const tDV & aColLine,bool OnlySup=true) override;
 
         void  Weighted_Add_tAA(Type aWeight,const tDV & aColLine,bool OnlySup=true) override;
@@ -734,6 +736,8 @@ template <class Type> class cStrStat2
        cStrStat2(int aSz);
        /// Add a vectors to stats
        void Add(const cDenseVect<Type> & );
+       /// Add a vectors to stats
+       void WeightedAdd(const cDenseVect<Type> &,const Type & aW );
        /// Make average (instead of sums) and centered (for cov)
        void Normalise(bool CenteredAlso=true);
        ///  Compute eigen values

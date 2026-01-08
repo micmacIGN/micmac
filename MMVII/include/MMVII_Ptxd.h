@@ -627,6 +627,9 @@ template <class tContPts>  class cComputeCentroids
 
        /// Median of dist to  MedianCentroids
        static tREAL8   MedianSigma(const tContPts &);
+
+       static tPts   LinearWeigtedCentroids(const tContPts &,const std::vector<tEl>* =nullptr);
+
 };
 
 /*

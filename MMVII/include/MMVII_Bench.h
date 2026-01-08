@@ -35,7 +35,7 @@ class cAppliBenchAnswer
 class cParamExeBench
 {
     public :
-         cParamExeBench(const std::string & aPattern,const std::string & aBugKey,int aLevInit,bool Show);
+         cParamExeBench(const std::string & aPattern,const std::string & aPatRefut,const std::string & aBugKey,int aLevInit,bool Show);
 
          bool  NewBench(const std::string & aName,bool ExactMatch=false); ///< Memo the name, Indicate if the bench is executed, 
          bool  GenerateBug(const std::string & aKey);
@@ -62,6 +62,7 @@ class cParamExeBench
          int                       mNbExe;
          std::string               mName;    ///< Exact Name for exact select
          tNameSelector             mPattern;    ///< Pattern for select bench
+         tNameSelector             mPatternRefut;    ///< Pattern for refutation of a  bench
          std::string               mBugKey;
 };
 

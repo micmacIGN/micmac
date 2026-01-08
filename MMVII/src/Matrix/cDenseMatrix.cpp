@@ -497,8 +497,16 @@ template <class Type> void cDenseMatrix<Type>::Add_tAB(const tDV & aCol,const tD
 }
 template <class Type> void cDenseMatrix<Type>::Add_tAA(const tDV & aCol,bool OnlySup)
 {
-   TplAdd_tAA(*this,aCol,OnlySup);
+   //    StdOut() << "WeightedAdd_tAAWeightedAdd_tAAWeightedAdd_tAAWeightedAdd_tAAWeightedAdd_tAA\n";
+//   TplAdd_tAA(*this,aCol,OnlySup);
+   WeightedAdd_tAA(aCol,1.0,OnlySup);
 }
+
+template <class Type> void   cDenseMatrix<Type>::WeightedAdd_tAA(const tDV & aColLine,const tVal& aW,bool OnlySup)
+{
+   TplWeightedAdd_tAA(*this,aW,aColLine,OnlySup);
+}
+
 template <class Type> void cDenseMatrix<Type>::Sub_tAA(const tDV & aCol,bool OnlySup)
 {
    TplSub_tAA(*this,aCol,OnlySup);
