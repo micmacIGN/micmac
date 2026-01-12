@@ -135,6 +135,7 @@ int cAppli_PoseCmp::Exe()
 
    // mPrefixCSV =  "_Ori-"+  mPhProj.DPOrient().DirIn() +  "_Mes-"+  mPhProj.DPMulTieP().DirIn() ;
    //
+   StdOut() << mPhProj.DPOrient().DirIn() << " " << mOri2 << ": ";
    StdOut() << "AVG DIFF, Ori=" << aAvgDif_Ori.Average() << " Center=" << aAvgDif_Center.Average() << std::endl;
    if (mDoRel)
       StdOut() << "AVG REL DIFF=" << aAvgRelDif_Ori.Average() << std::endl;
