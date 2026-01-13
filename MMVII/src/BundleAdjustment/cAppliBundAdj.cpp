@@ -94,7 +94,8 @@ class cAppliBundlAdj : public cMMVII_Appli
 	std::vector<std::vector<std::string>>  mVVParFreeCalib;
 	std::string               mPatFrosenCenters;
 	std::string               mPatFrosenOrient;
-    std::string               mPatFrosenClino;
+       std::string               mPatFrosenClino;
+       std::string               mPatFrozenTSL;
 	std::vector<tREAL8>       mViscPose;
         tREAL8                    mLVM;  ///< Levenberk Markard
         bool                      mMeasureAdded ;
@@ -157,6 +158,7 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mPatFrosenCenters,"PatFzCenters","Pattern of images for freezing center of poses")
       << AOpt2007(mPatFrosenOrient,"PatFzOrient","Pattern of images for freezing orientation of poses")
       << AOpt2007(mPatFrosenClino,"PatFzClino","Pattern of clinometers for freezing boresight")
+      << AOpt2007(mPatFrozenTSL,"PatFzTSL","Pattern of static lidar for freezing pose")
       << AOpt2007(mViscPose,"PoseVisc","Sigma viscosity on pose [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})
       << AOpt2007(mLVM,"LVM","Levenberg–Marquardt parameter (to have better conditioning of least squares)",{eTA2007::HDV})
       << AOpt2007(mBRSigma,"BRW","Bloc Rigid Weighting [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})  // RIGIDBLOC
@@ -391,6 +393,10 @@ int cAppliBundlAdj::Exe()
         mBA.Add1AdjLidarPhoto(aParam);
     }
 
+    if (IsInit(&mPatFrozenTSL))
+    {
+        mBA.SetFrozenTSL(mPatFrozenTSL);
+    }
 
     MMVII_INTERNAL_ASSERT_User(mMeasureAdded,eTyUEr::eUnClassedError,"Not any measure added");
 
