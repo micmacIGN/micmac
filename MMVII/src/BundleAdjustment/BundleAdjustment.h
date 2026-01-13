@@ -355,6 +355,9 @@ class cBA_LidarPhotogra
        /// freeze unknowns
        virtual void SetFrozenVar(cResolSysNonLinear<tREAL8> & aSys, std::string aPatFrozenTSL) {}
 
+       /// save results
+       virtual void Save() {}
+
     protected :
        /**  Add observation for 1 Patch of point */
        void Add1Patch(tREAL8 aW,const std::vector<cPt3dr> & aPatch);
@@ -426,9 +429,11 @@ public :
     /// destuctor, free interopaltor, calculator ....
     virtual ~cBA_LidarPhotograRaster();
     void SetFrozenVar(cResolSysNonLinear<tREAL8> & aSys, std::string aPatFrozenTSL) override;
+    virtual void Save() override;
 
     /// add observation
     virtual void AddObs() override;
+
 private :
     std::vector<cStaticLidarBAData> mVLidarData;      ///< vector of raster representations of lidar
 };
@@ -525,6 +530,7 @@ class cMMVII_BundleAdj
           void SaveBlocRigid();
           void Save_newGCP3D();
           void SaveTopo();
+          void SaveTSL();
 
           void Set_UC_UK(const std::vector<std::string> & aParam);
           void ShowUKNames(const std::vector<std::string> & aParam, const std::string &aSuffix, cMMVII_Appli* =nullptr) ;

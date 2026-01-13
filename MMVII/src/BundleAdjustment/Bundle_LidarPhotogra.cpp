@@ -119,15 +119,15 @@ cBA_LidarPhotograRaster::cBA_LidarPhotograRaster(cPhotogrammetricProject * aPhPr
                                                  const std::vector<std::string>& aParam) :
     cBA_LidarPhotogra(aPhProj, aBA, aParam)
 {
-    //read all xml files from directory?
-    mPhProj->DPStaticLidar().SetDirIn(aParam.at(1));
-    std::string aPat2Sup =  cStaticLidar::ScanPrefixName() + "(.*)-(.*)\\." + GlobTaggedNameDefSerial()  ;
-    std::string aFullPat2Sup = mPhProj->DPStaticLidar().FullDirIn() + aPat2Sup;
+    //read scans files from directory corresponding to pattern in aParam.at(1)
+    std::string aPat2Sup =  "Ori-" + cStaticLidar::PrefixName() + aParam.at(1) + "\\." + GlobTaggedNameDefSerial()  ;
+    std::string aFullPat2Sup = mPhProj->DPOrient().FullDirIn() + aPat2Sup;
+    //StdOut() << "Scan pat " << aFullPat2Sup << "\n";
     tNameSet aSet = SetNameFromPat(aFullPat2Sup);
     std::vector<std::string> aVect = ToVect(aSet);
     for (const auto & aNameSens : aVect)
     {
-        cStaticLidar * aLidarData = mPhProj->ReadStaticLidar(mPhProj->DPStaticLidar(), aNameSens, true);
+        cStaticLidar * aLidarData = mPhProj->ReadStaticLidar(aNameSens, true);
         MMVII_INTERNAL_ASSERT_User(aLidarData,
                                    eTyUEr::eUnClassedError,"Error opening static scans " + aNameSens);
         mVLidarData.push_back({aNameSens, aLidarData, {}});
@@ -163,6 +163,14 @@ void cBA_LidarPhotograRaster::SetFrozenVar(cResolSysNonLinear<tREAL8> & aSys, st
     }
     if (mVerbose)
         StdOut() << "Frozen TSL poses: " << nbMatches << ".\n";
+}
+
+void cBA_LidarPhotograRaster::Save()
+{
+    for (auto & aLidarBAData : mVLidarData)
+    {
+        aLidarBAData.mLidarRaster->ToFile(mPhProj->DPOrient().FullDirOut() + aLidarBAData.mName);
+    }
 }
 
 
@@ -244,7 +252,6 @@ void cBA_LidarPhotograRaster::AddObs()
     else
         StdOut() << "  * Lid/Phr: no obs\n";
 }
-
 
 
 void cBA_LidarPhotogra::SetVUkVObs

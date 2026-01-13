@@ -521,7 +521,9 @@ cSetInterUK_MultipeObj<tREAL8> &   cMMVII_BundleAdj::SetIntervUK() {return mSetI
 void  cMMVII_BundleAdj::AddStaticLidar(cStaticLidar * aLidarData)
 {
     AssertPhpAndPhaseAdd();
-    AddSensor(aLidarData);
+    MMVII_INTERNAL_ASSERT_tiny (!aLidarData->UkIsInit(),"Multiple add of TSL : " + aLidarData->NameImage());
+    mSetIntervUK.AddOneObj(aLidarData);
+    aLidarData->SetAndGetEqColinearity(true,10,true);  // WithDer, SzBuf, ReUse
 }
 
     /* ---------------------------------------- */
@@ -818,6 +820,14 @@ void cMMVII_BundleAdj::Add1AdjLidarPhotogra(const std::vector<std::string> &aPar
 void cMMVII_BundleAdj::Add1AdjLidarPhoto(const std::vector<std::string> &aParam)
 {
     mVBA_Lidar.push_back(new cBA_LidarPhotograRaster(mPhProj, *this,aParam));
+}
+
+void cMMVII_BundleAdj::SaveTSL()
+{
+    for (const auto & aBALidar : mVBA_Lidar)
+    {
+        aBALidar->Save();
+    }
 }
 
 /* ---------------------------------------- */

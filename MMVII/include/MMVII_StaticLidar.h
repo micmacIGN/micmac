@@ -14,9 +14,6 @@ namespace MMVII
 
 */
 
-
-//cPt3dr cart2spher(const cPt3dr & aPtCart); => MPD , plus logique dans MMVII_Geom3D
-//cPt3dr spher2cart(const cPt3dr & aPtspher);
 tREAL8 toMinusPiPlusPi(tREAL8 aAng, tREAL8 aOffset = 0.);
 
 
@@ -103,11 +100,11 @@ public :
                  const std::string & aScanName, const tPose &aPose, cPerspCamIntrCalib *aCalib,
                  cRotation3D<tREAL8> aRotInput2Raster);
 
-    static cStaticLidar *FromFile(const std::string & aNameCalibFile, const std::string &aNameScanFile, const std::string & aNameRastersDir);
+    static cStaticLidar *FromFile(const std::string & aNameScanFile, const std::string & aNameRastersDir);
 
     void ToPly(const std::string & aName, bool useMask=false) const;
     void AddData(const  cAuxAr2007 & anAux) ;
-
+    virtual void ToFile(const std::string &) const override;
     void fillRasters(const cStaticLidarImporter & aSL_importer, const std::string &aPhProjDirOut, bool saveRasters);
 
     //inline tREAL8 lToPhiApprox(int l, double aPhiStart, double aPhiStep) const { return aPhiStart + l * aPhiStep; }
@@ -136,8 +133,10 @@ public :
 
     cPt2dr Ground2ImagePrecise(const cPt3dr & aGroundPt) const;
 
-    static std::string ScanPrefixName() { return "Scan-"; }
-    static std::string CalibPrefixName() { return "Calib-"; }
+    static std::string  PrefixName() ;
+    std::string  V_PrefixName() const override;
+
+
 private :
     template <typename TYPE> void fillRaster(const cStaticLidarImporter & aSL_importer, const std::string& aPhProjDirOut, const std::string& aFileName,
                     std::function<TYPE (int)> func, bool saveRaster); // do not keep image in memory
