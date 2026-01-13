@@ -206,17 +206,6 @@ cCalculator<double> * EqColinearityCamPPC(eProjPC  aType,const cPt3di & aDeg,boo
     cCalculator<double> * aRes = StdAllocCalc(NameEqColinearityCamPPC(aType,aDeg,WithDerive,isFraserMode,aTypeEqCol),aSzBuf,true,ReUse);
 
     TestResDegree(aRes,aDeg,"EqColinearityCamPPC");
-    /*
-     if (aRes==nullptr)
-     {
-         StdOut() << " *  Generated Degree Are " <<   TheVectDegree << std::endl;
-	 MMVII_UsersErrror
-         (
-	      eTyUEr::eBadDegreeDist,
-	      "Required degree for distorsion  EqColinearityCamPPC has not been generated"
-         );
-     }
-     */
 
      return aRes;
 }
@@ -791,6 +780,11 @@ const std::vector<cPt3di>
 			   {2,0,0}
       };
 
+const std::vector<cPt3di>
+    TheVectDegreeEquiRect
+    {
+        {0,0,0},
+    };
 
 int cAppliGenCode::Exe()
 {
@@ -819,6 +813,13 @@ int cAppliGenCode::Exe()
        GenerateOneDist(aDegSIA,false);
        GenerateCodeCamPerpCentrale<cProjStenope>(aDegSIA,false,eTypeEqCol::ePt);
    }
+
+    // ---   Colinearity for equi-rect sensors (static lidar) -----------------
+   for (const auto & aDeg :  TheVectDegreeEquiRect)
+   {
+       GenerateCodeCamPerpCentrale<cProj_EquiRect>(aDeg,true,eTypeEqCol::ePt);
+   }
+
 
    GenerateCodeCamPerpCentrale<cProjFE_EquiDist>(cPt3di(3,1,1),true,eTypeEqCol::ePt);
 
