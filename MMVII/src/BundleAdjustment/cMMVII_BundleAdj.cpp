@@ -89,6 +89,7 @@ cMMVII_BundleAdj::cMMVII_BundleAdj(cPhotogrammetricProject * aPhp) :
     mPatFrozenCenter (""),
     mPatFrozenOrient (""),
     mPatFrozenClinos (""),
+    mPatFrozenTSL    (""),
     //mMesGCP           (nullptr),
     //mSigmaGCP         (-1),
     mBlRig            (nullptr),
@@ -331,6 +332,14 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter, bool doShowCond
         mBlClino->SetFrozenVar(*mR8_Sys, mPatFrozenClinos);
     }
     
+    // if necessary, fix frozen poses of static lidar
+    if (mPatFrozenTSL !="")
+    {
+        for (const auto & aBALidar : mVBA_Lidar)
+        {
+            aBALidar->SetFrozenVar(*mR8_Sys, mPatFrozenTSL);
+        }
+    }
 
     if (mBlRig) // RIGIDBLOC
     {
@@ -509,6 +518,12 @@ cPhotogrammetricProject  & cMMVII_BundleAdj::PhProj() {return *mPhProj;}
 cSetInterUK_MultipeObj<tREAL8> &   cMMVII_BundleAdj::SetIntervUK() {return mSetIntervUK;}
 
 
+void  cMMVII_BundleAdj::AddStaticLidar(cStaticLidar * aLidarData)
+{
+    AssertPhpAndPhaseAdd();
+    AddSensor(aLidarData);
+}
+
     /* ---------------------------------------- */
     /*            Frozen/Shared                 */
     /* ---------------------------------------- */
@@ -526,6 +541,11 @@ void cMMVII_BundleAdj::SetParamFreeCalib(const std::vector<std::vector<std::stri
 void cMMVII_BundleAdj::SetFrozenCenters(const std::string & aPattern)
 {    
     mPatFrozenCenter = aPattern;
+}
+
+void cMMVII_BundleAdj::SetFrozenTSL(const std::string & aPattern)
+{
+    mPatFrozenTSL = aPattern;
 }
 
 void cMMVII_BundleAdj::SetFrozenOrients(const std::string & aPattern)

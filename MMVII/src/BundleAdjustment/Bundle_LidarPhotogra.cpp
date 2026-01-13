@@ -131,6 +131,8 @@ cBA_LidarPhotograRaster::cBA_LidarPhotograRaster(cPhotogrammetricProject * aPhPr
         MMVII_INTERNAL_ASSERT_User(aLidarData,
                                    eTyUEr::eUnClassedError,"Error opening static scans " + aNameSens);
         mVLidarData.push_back({aNameSens, aLidarData, {}});
+        StdOut() << "Add Scan " << aNameSens << "\n";
+        aBA.AddStaticLidar(aLidarData);
     }
 
     // Creation of the patches, choose a neigborhood around patch centers. TODO: adapt to images ground pixels size?
@@ -141,6 +143,26 @@ cBA_LidarPhotograRaster::cBA_LidarPhotograRaster(cPhotogrammetricProject * aPhPr
         aLidarData.mLidarRaster->MakePatches(aLidarData.mLPatchesP,mVCam,mNbPointByPatch,5);
         StdOut() << "Nb patches for " << aLidarData.mName << ": " << aLidarData.mLPatchesP.size() << "\n";
     }
+}
+
+
+void cBA_LidarPhotograRaster::SetFrozenVar(cResolSysNonLinear<tREAL8> & aSys, std::string aPatFrozenTSL)
+{
+    bool mVerbose = true;
+    // Froze boresight matrix of clinos described by aPatFrozenClino
+    tNameSelector aSel = AllocRegex(aPatFrozenTSL);
+    int nbMatches = 0;
+    for (auto & aLidarBAData : mVLidarData)
+    {
+        if (aSel.Match(aLidarBAData.mName))
+        {
+            aSys.SetFrozenVarCurVal(*aLidarBAData.mLidarRaster,aLidarBAData.mLidarRaster->Center());
+            aSys.SetFrozenVarCurVal(*aLidarBAData.mLidarRaster,aLidarBAData.mLidarRaster->Omega());
+            nbMatches++;
+        }
+    }
+    if (mVerbose)
+        StdOut() << "Frozen TSL poses: " << nbMatches << ".\n";
 }
 
 
