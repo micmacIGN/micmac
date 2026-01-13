@@ -490,7 +490,6 @@ class cPhotogrammetricProject
 	  cDirsPhProj &   DPClinoMeters();    ///<  Accessor  // RIGIDBLOC
 	  cDirsPhProj &   DPTopoMes();    ///<  Accessor  // TOPO
 	  cDirsPhProj &   DPMeasuresClino();    ///<  Accessor  // RIGIDBLOC
-      cDirsPhProj &   DPStaticLidar();    ///<  Accessor  // STATIC LIDAR
 				    
 	  const cDirsPhProj &   DPOrient() const; ///< Accessor
       const cDirsPhProj &   DPOriTriplets() const; ///< Accessor
@@ -508,7 +507,6 @@ class cPhotogrammetricProject
 	  const cDirsPhProj &   DPClinoMeters() const;    ///<  Accessor 
 	  const cDirsPhProj &   DPTopoMes() const;    ///<  Accessor  
 	  const cDirsPhProj &   DPMeasuresClino() const;    ///<  Accessor
-          const cDirsPhProj &   DPStaticLidar() const;    ///<  Accessor
 
 
 	  // Sometime we need several dir of the same type, like "ReportPoseCmp", or RefPose in bundle
@@ -518,6 +516,7 @@ class cPhotogrammetricProject
 	  const std::string &   DirVisu() const;   ///< Accessor
 	  const std::string &   DirVisuAppli() const;   ///< Accessor
 	  const std::string &   DirSysCo() const;   ///< Accessor
+      const std::string &   DirStaticLidarRasters() const;   ///< Accessor
           tPtrArg2007           ArgChSys(bool DefaultUndefined=false);
 	  /// To fix the "cur" sys co, its In,Out, or InOut, if both and diff use ArgChSys
           tPtrArg2007           ArgSysCo();
@@ -811,7 +810,7 @@ class cPhotogrammetricProject
      //==================   Static Lidar         =========================
      //===================================================================
 
-     cStaticLidar * ReadStaticLidar(const cDirsPhProj& aDP,const std::string &aScanName, bool ToDeleteAutom) const; ///< Create Static Lidar
+     cStaticLidar * ReadStaticLidar(const std::string &aScanName, bool ToDeleteAutom) const; ///< Create Static Lidar
 
          //==================   Camera Data Base     =========================
 
@@ -830,6 +829,7 @@ class cPhotogrammetricProject
 	  std::string     mDirPhp;
 	  std::string     mDirVisu;
 	  std::string     mDirVisuAppli;
+      std::string     mDirStaticLidarRasters;
 
 	  std::string     mDirSysCo;        /// Folder where are stored System of coordinates
           std::string     mNameCurSysCo;      /// Data where we store the system In Or Out if given in std args
@@ -854,7 +854,6 @@ class cPhotogrammetricProject
           cDirsPhProj     mDPClinoMeters;      // +-  resulta of clino calib (boresight)
           cDirsPhProj     mDPMeasuresClino;     // measure (angles) of clino
           cDirsPhProj     mDPTopoMes;         // Topo
-          cDirsPhProj     mDPStaticLidar;         // Static Lidar
  					      //
 
 	  std::vector<cDirsPhProj*> mDirAdded;

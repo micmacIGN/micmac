@@ -82,7 +82,7 @@ cCollecSpecArg2007 & cAppli_ImportStaticScan::ArgObl(cCollecSpecArg2007 & anArgO
 {
     return anArgObl
            <<  Arg2007(mNameFile ,"Name of Input File",{eTA2007::FileCloud})
-           <<  mPhProj.DPStaticLidar().ArgDirOutMand()
+           <<  mPhProj.DPOrient().ArgDirOutMand()
            <<  Arg2007(mStationName ,"Station name",{eTA2007::Topo}) // TODO: change type to future station
            <<  Arg2007(mScanName ,"Scan name",{eTA2007::Topo}) // TODO: change type to future scan
         ;
@@ -731,7 +731,7 @@ int cAppli_ImportStaticScan::Exe()
     mSL_importer.ComputeAgregatedAngles();
 
     // create sensor from imported data
-    std::string aScanName = cStaticLidar::ScanPrefixName() + mStationName + "-" + mScanName;
+    std::string aScanName = cStaticLidar::PrefixName() + mStationName + "-" + mScanName;
     // find PP: image of the (Oz) axis
     cPt3dr aOzAxisInput = mSL_importer.RotInput2TSL().Inverse({1.,0.,0.});  // axis 1,0,0 in TSL frame, just to get equator vertical angle
     cPt2dr aEquatorAngles = mSL_importer.Input3DtoRasterAngle(aOzAxisInput);
@@ -748,12 +748,11 @@ int cAppli_ImportStaticScan::Exe()
                                "Error: different steps in theta and phi are not supported yet!");
 
     cPerspCamIntrCalib* aCalib =
-        cPerspCamIntrCalib::SimpleCalib(cStaticLidar::CalibPrefixName() + aScanName, eProjPC::eEquiRect,
+        cPerspCamIntrCalib::SimpleCalib(cPerspCamIntrCalib::SharedCalibPrefixName() + "_" + aScanName, eProjPC::eEquiRect,
                                         cPt2di(mSL_importer.NbCol(), mSL_importer.NbLine()),
                                         cPt3dr(aPP.x(),aPP.y(),aFy), cPt3di(0,0,0));
-    aCalib->ToFile(mPhProj.DPStaticLidar().FullDirOut() + aCalib->Name() + ".xml");
 
-    cStaticLidar aSL_data(mNameFile, mStationName, mScanName,
+    cStaticLidar aSL_data(aScanName, mStationName, mScanName,
                           cIsometry3D<tREAL8>({}, cRotation3D<tREAL8>::Identity()),
                           aCalib, mSL_importer.RotInput2Raster());
 
@@ -766,15 +765,15 @@ int cAppli_ImportStaticScan::Exe()
         aSL_data.SetPose(mSL_importer.ReadPose());
     }
 
-    aSL_data.fillRasters(mSL_importer, mPhProj.DPStaticLidar().FullDirOut(), true);
+    aSL_data.fillRasters(mSL_importer, mPhProj.DirStaticLidarRasters(), true);
 
     aSL_data.FilterIntensity(mSL_importer, mIntensityMinMax[0], mIntensityMinMax[1]);
     aSL_data.FilterDistance(mDistanceMinMax[0], mDistanceMinMax[1]);
     aSL_data.FilterIncidence(mSL_importer, M_PI/2-mIncidenceMin);
-    aSL_data.MaskBuffer(mSL_importer, mSL_importer.mPhiStep*mMaskBufferSteps, mPhProj.DPStaticLidar().FullDirOut());
+    aSL_data.MaskBuffer(mSL_importer, mSL_importer.mPhiStep*mMaskBufferSteps, mPhProj.DirStaticLidarRasters());
     aSL_data.SelectPatchCenters2(mSL_importer, mNbPatches);
 
-    SaveInFile(aSL_data, mPhProj.DPStaticLidar().FullDirOut() + aScanName + ".xml");
+    aSL_data.ToFile(mPhProj.DPOrient().FullDirOut() + aSL_data.NameOriStd());
 
     aSL_data.ToPly("Out_filtered.ply", true);
     delete aCalib;

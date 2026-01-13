@@ -813,7 +813,7 @@ void AddData(const cAuxAr2007 & anAux,cSensorCamPC & aPC)
 
 void cSensorCamPC::ToFile(const std::string & aNameFile) const
 {
-    SaveInFile(const_cast<cSensorCamPC &>(*this),aNameFile);
+    SaveInFile(*this,aNameFile);
     if (mInternalCalib)
     {
         std::string aNameCalib = DirOfPath(aNameFile) + mInternalCalib->Name() + "." + GlobTaggedNameDefSerial();

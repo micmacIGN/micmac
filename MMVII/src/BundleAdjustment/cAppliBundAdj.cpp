@@ -152,7 +152,7 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mTiePWeight,"TiePWeight","Tie point weighting [Sig0,SigAtt?=-1,Thrs?=-1,Exp?=1]",{{eTA2007::ISizeV,"[1,4]"}})
       << AOpt2007(mAddTieP,"AddTieP","For additional TieP, [[Folder,SigG...],[Folder,...]] ")
       << AOpt2007(mParamLidarPhgr,"LidarPhotogra","Paramaters for adj Lidar/Phgr via triangulation [[Mode,Ply,Sigma,Interp?,Perturbate?,NbPtsPerPatch=32]*]")
-      << AOpt2007(mParamLidarPhoto,"LidarPhoto","Paramaters for adj Lidar/Phgr via rasterisation [[Mode,Ply,Sigma,Interp?,Perturbate?,NbPtsPerPatch=32]*]")
+      << AOpt2007(mParamLidarPhoto,"LidarPhoto","Paramaters for adj Lidar/Phgr via rasterisation [[Mode,PatScan,Sigma,Interp?,Perturbate?,NbPtsPerPatch=32]*]")
       << AOpt2007(mPatParamFrozCalib,"PPFzCal","Pattern for freezing internal calibration parameters")
       << AOpt2007(mVVParFreeCalib,"PPFreeCal","Pattern for free internal calibration parameters [[PatCal1,PatParam1],[PatCal2,PatParam2] ...] ")
       << AOpt2007(mPatFrosenCenters,"PatFzCenters","Pattern of images for freezing center of poses")
@@ -424,6 +424,7 @@ int cAppliBundlAdj::Exe()
     mBA.Save_newGCP3D();
     mBA.SaveTopo(); // just for debug for now
     mBA.SaveClino();
+    mBA.SaveTSL();
 
     mBA.SaveBlockInstr();
 

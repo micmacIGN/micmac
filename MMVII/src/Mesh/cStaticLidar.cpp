@@ -15,7 +15,6 @@
 namespace MMVII
 {
 
-
 cPt3dr cart2spher(const cPt3dr & aPtCart)
 {
     tREAL8 dist = Norm2(aPtCart);
@@ -521,7 +520,7 @@ float cStaticLidarImporter::LocalThetaToColPrecise(float aTheta) const
 
 cPt2dr cStaticLidarImporter::Input3DtoRasterAngle(const cPt3dr &aPt3DInput) const
 {
-    std::cout<<"Input3DtoRasterAngle: "<<aPt3DInput<<"\n";
+    //std::cout<<"Input3DtoRasterAngle: "<<aPt3DInput<<"\n";
     cPt3dr aPt3DInputNorm = aPt3DInput/Norm2(aPt3DInput);
     cPt3dr aPt3DRaster = RotInput2Raster().Value(aPt3DInputNorm);
     cProj_EquiRect aProjEquiRect(M_PI);
@@ -548,11 +547,15 @@ cStaticLidar::cStaticLidar(const std::string & aNameFile, const std::string & aS
 {
 }
 
-cStaticLidar * cStaticLidar::FromFile(const std::string & aNameCalibFile, const std::string & aNameScanFile, const std::string &aNameRastersDir)
+cStaticLidar * cStaticLidar::FromFile(const std::string & aNameScanFile, const std::string & aNameRastersDir)
 {
-    cPerspCamIntrCalib* aCalib = cPerspCamIntrCalib::FromFile(aNameCalibFile);
-    cStaticLidar * aRes = new cStaticLidar("NONE","?","?",tPoseR::Identity(),aCalib,tRotR::Identity());
+    cStaticLidar * aRes = new cStaticLidar("NONE","?","?",tPoseR::Identity(),nullptr,tRotR::Identity());
     ReadFromFile(*aRes, aNameScanFile);
+
+    cPerspCamIntrCalib* aCalib = cPerspCamIntrCalib::FromFile(DirOfPath(aNameScanFile)
+                                                              + aRes->mTmpNameCalib + "." + GlobTaggedNameDefSerial());
+    aRes->mInternalCalib = aCalib;
+
     aRes->mRasterDistance = std::make_unique<cIm2D<tREAL4>>(cIm2D<tREAL4>::FromFile(aNameRastersDir+"/"+aRes->mRasterDistancePath));
     aRes->mRasterIntensity = std::make_unique<cIm2D<tU_INT1>>(cIm2D<tU_INT1>::FromFile(aNameRastersDir+"/"+aRes->mRasterIntensityPath));
     aRes->mRasterMask = std::make_unique<cIm2D<tU_INT1>>(cIm2D<tU_INT1>::FromFile(aNameRastersDir+"/"+aRes->mRasterMaskPath));
@@ -597,6 +600,10 @@ cPt3dr cStaticLidar::Image2Ground(const cPt2dr & aRasterPx) const
     cPt3dr aCam3DPt = Image2Camera3D(aRasterPx);
     return Pose().Value(aCam3DPt);
 }
+
+std::string  cStaticLidar::V_PrefixName() const { return PrefixName() ; }
+std::string  cStaticLidar::PrefixName()  { return "Scan";}
+
 
 cPt2dr cStaticLidar::Ground2ImagePrecise(const cPt3dr & aGroundPt) const
 {
@@ -645,6 +652,12 @@ cPt2dr cStaticLidar::Ground2ImagePrecise(const cPt3dr & aGroundPt) const
     return aPtRaster;
 }
 
+void cStaticLidar::ToFile(const std::string & aNameFile) const
+{
+    SaveInFile((*this),aNameFile);
+    std::string aNameCalib = DirOfPath(aNameFile) + mInternalCalib->Name() + "." + GlobTaggedNameDefSerial();
+    mInternalCalib->ToFile(aNameCalib);
+}
 
 void cStaticLidar::ToPly(const std::string & aName,bool useMask) const
 {
@@ -1137,9 +1150,9 @@ void TestRaster2Gnd2Raster(const std::vector<TYPE> &aVectPtsTest, cStaticLidar *
 }
 
 /// tests the scans of a cube, where summit is {0,0,-8.66} in ground coords
-void TestPose(const std::string & aInPath, const std::string & aCalibName, const std::string & aScanName, const cPt2dr& aSummitPx)
+void TestPose(const std::string & aInPath, const std::string & aScanName, const cPt2dr& aSummitPx)
 {
-    cStaticLidar * aScan =  cStaticLidar::FromFile(aInPath + aCalibName, aInPath + aScanName, aInPath);
+    cStaticLidar * aScan =  cStaticLidar::FromFile(aInPath + aScanName, aInPath);
     auto aRasterPx = aScan->Ground2ImagePrecise({0,0,-8.66});
     //std::cout<<"Result: "<<aRasterPx<<" - theoritical "<<aSummitPx<<" -> error "<<Norm2(aRasterPx-aSummitPx)<<"\n";
     MMVII_INTERNAL_ASSERT_bench(Norm2(aRasterPx-aSummitPx)<1e-3 ,"TestPose " + aScanName);
@@ -1153,8 +1166,7 @@ void BenchTSL(cParamExeBench & aParam)
     const std::string & aInPath = cMMVII_Appli::CurrentAppli().InputDirTestMMVII() + "/TSL/Scan1/";
 
     // test with scan pose = Id
-    cStaticLidar * aScan =  cStaticLidar::FromFile(aInPath + "Calib-Scan-St1-Sc1.xml",
-                                                   aInPath + "Scan-St1-Sc1.xml", aInPath);
+    cStaticLidar * aScan =  cStaticLidar::FromFile(aInPath + "Scan-St1-Sc1.xml", aInPath);
 
     //aScan->ToPly(cMMVII_Appli::CurrentAppli().TmpDirTestMMVII() + "/TSL.ply");
 
@@ -1172,16 +1184,16 @@ void BenchTSL(cParamExeBench & aParam)
     delete aScan;
 
     // tests with scan translation
-    TestPose(aInPath, "Calib-Scan-St2-Sc1.xml", "Scan-St2-Sc1.xml", {35.5508,50});
+    TestPose(aInPath, "Scan-St2-Sc1.xml", {35.5508,50});
 
     // tests with scan translation + rotation
-    TestPose(aInPath, "Calib-Scan-St3-Sc1.xml", "Scan-St3-Sc1.xml", {40.7816,64.542});
+    TestPose(aInPath, "Scan-St3-Sc1.xml", {40.7816,64.542});
 
     // just rot x
-    TestPose(aInPath, "Calib-Scan-St4-Sc1.xml", "Scan-St4-Sc1.xml", {66.9119,60.7288});
+    TestPose(aInPath, "Scan-St4-Sc1.xml", {66.9119,60.7288});
 
     // just rot xyz
-    TestPose(aInPath, "Calib-Scan-St5-Sc1.xml", "Scan-St5-Sc1.xml", {67.6836,71.4344});
+    TestPose(aInPath, "Scan-St5-Sc1.xml", {67.6836,71.4344});
 
     //std::cout<<"Bench TSL finished."<<std::endl;
     aParam.EndBench();

@@ -318,7 +318,6 @@ cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
     mDPClinoMeters    (eTA2007::Clino,*this),  
     mDPMeasuresClino  (eTA2007::MeasureClino,*this),
     mDPTopoMes        (eTA2007::Topo,*this),  // Topo
-    mDPStaticLidar    (eTA2007::StaticLidar,*this),  // StaticLidar
     mGlobCalcMTD      (nullptr)
 {
 }
@@ -331,6 +330,7 @@ void cPhotogrammetricProject::FinishInit()
     mDirPhp   = mFolderProject + MMVII_DirPhp + StringDirSeparator();
     mDirVisu  = mDirPhp + "VISU" + StringDirSeparator();
     mDirVisuAppli  = mDirVisu + mAppli.Specs().Name()  + StringDirSeparator();
+    mDirStaticLidarRasters = mDirPhp + "StaticLidarRasters" + StringDirSeparator();
     mDirSysCo = mDirPhp + E2Str(eTA2007::SysCo) + StringDirSeparator();
     mDirImportInitOri =  mDirPhp + "InitialOrientations" + StringDirSeparator();
 
@@ -340,7 +340,7 @@ void cPhotogrammetricProject::FinishInit()
         CreateDirectories(mDirVisuAppli,false);
         CreateDirectories(mDirSysCo,false);
         CreateDirectories(mDirImportInitOri,false);
-
+        CreateDirectories(mDirStaticLidarRasters,false);
     }
 
 
@@ -360,7 +360,6 @@ void cPhotogrammetricProject::FinishInit()
     mDPClinoMeters.Finish() ; 
     mDPMeasuresClino.Finish() ; 
     mDPTopoMes.Finish() ; // TOPO
-    mDPStaticLidar.Finish() ;
 
     // Force the creation of directory for metadata spec, make 
     if (! mDPMetaData.DirOutIsInit())
@@ -428,7 +427,6 @@ cDirsPhProj &   cPhotogrammetricProject::DPRigBloc() {return mDPRigBloc;} // RIG
 cDirsPhProj &   cPhotogrammetricProject::DPClinoMeters() {return mDPClinoMeters;} 
 cDirsPhProj &   cPhotogrammetricProject::DPMeasuresClino() {return mDPMeasuresClino;}
 cDirsPhProj &   cPhotogrammetricProject::DPTopoMes() {return mDPTopoMes;} // TOPO
-cDirsPhProj &   cPhotogrammetricProject::DPStaticLidar() {return mDPStaticLidar;}
 
 const cDirsPhProj &   cPhotogrammetricProject::DPOrient() const {return mDPOrient;}
 const cDirsPhProj &   cPhotogrammetricProject::DPOriTriplets() const {return mDPOriTriplets;}
@@ -446,12 +444,12 @@ const cDirsPhProj &   cPhotogrammetricProject::DPRigBloc() const {return mDPRigB
 const cDirsPhProj &   cPhotogrammetricProject::DPClinoMeters() const {return mDPClinoMeters;} // RIGIDBLOC
 const cDirsPhProj &   cPhotogrammetricProject::DPMeasuresClino() const {return mDPMeasuresClino;} // RIGIDBLOC
 const cDirsPhProj &   cPhotogrammetricProject::DPTopoMes() const {return mDPTopoMes;} // Topo
-const cDirsPhProj &   cPhotogrammetricProject::DPStaticLidar() const {return mDPStaticLidar;}
 
 
 const std::string &   cPhotogrammetricProject::DirPhp() const   {return mDirPhp;}
 const std::string &   cPhotogrammetricProject::DirVisu() const  {return mDirVisu;}
 const std::string &   cPhotogrammetricProject::DirVisuAppli() const  {return mDirVisuAppli;}
+const std::string &   cPhotogrammetricProject::DirStaticLidarRasters() const  {return mDirStaticLidarRasters;}
 
 
 
@@ -1294,12 +1292,11 @@ cBlocOfCamera * cPhotogrammetricProject::ReadUnikBlocCam() const
 
 //  =============  Static Lidar  =================
 
-cStaticLidar * cPhotogrammetricProject::ReadStaticLidar(const cDirsPhProj& aDP, const std::string &aScanName, bool ToDeleteAutom) const
+cStaticLidar * cPhotogrammetricProject::ReadStaticLidar(const std::string &aScanName, bool ToDeleteAutom) const
 {
-    aDP.AssertDirInIsInit();
-    std::string aScanFileName  =  aDP.FullDirIn() + aScanName;
-    std::string aCalibFileName  =  aDP.FullDirIn() + cStaticLidar::CalibPrefixName() + aScanName;
-    cStaticLidar * aScan =  cStaticLidar::FromFile(aCalibFileName, aScanFileName, aDP.FullDirIn());
+    DPOrient().AssertDirInIsInit();
+    std::string aScanFileName  =  DPOrient().FullDirIn() + aScanName;
+    cStaticLidar * aScan =  cStaticLidar::FromFile(aScanFileName, DirStaticLidarRasters());
 
     if (ToDeleteAutom)
        cMMVII_Appli::AddObj2DelAtEnd(aScan);

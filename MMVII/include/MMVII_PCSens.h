@@ -674,7 +674,7 @@ class cSensorCamPC : public cSensorImage
          size_t NumXOmega() const;   /// num of mOmega().x when used as cObjWithUnkowns (y and z follow)
 
          void AddData(const cAuxAr2007 & anAux);
-     void  ToFile(const std::string & ) const override ; ///< export in xml/dmp ...
+     virtual void  ToFile(const std::string & ) const override ; ///< export in xml/dmp ...
      static cSensorCamPC * FromFile(const std::string &,bool Remanent=true); ///< create form xml/dmp ...
      static  std::string  NameOri_From_Image(const std::string & aNameImage);
 
@@ -702,6 +702,7 @@ class cSensorCamPC : public cSensorImage
         void Bench();
         cSensorCamPC(const cSensorCamPC&) = delete;
 
+    protected:
     cPoseWithUK          mPose_WU;
     /*
         cIsometry3D<tREAL8>  mPose;   ///< transformation Cam to Word
