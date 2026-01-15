@@ -332,6 +332,7 @@ class cBA_TieP
 class cData1ImLidPhgr
 {
      public :
+        size_t mKScan; // scan number (not used in cBA_LidarPhotograTri)
         size_t mKIm;  ///< num of images where the patch is seen
         std::vector<std::pair<tREAL8,cPt2dr>> mVGr; ///< pair of radiometry/gradient, in image,  for each point of the patch
 };
@@ -360,7 +361,7 @@ class cBA_LidarPhotogra
 
     protected :
        /**  Add observation for 1 Patch of point */
-       void Add1Patch(tREAL8 aW,const std::vector<cPt3dr> & aPatch);
+       void Add1Patch(tREAL8 aW, const std::vector<cPt3dr> & aPatch, size_t aKScan);
 
        /// Method for adding observations with radiometric differences as similatity criterion
        void AddPatchDifRad(tREAL8 aW,const std::vector<cPt3dr> & aPatch,const std::vector<cData1ImLidPhgr> &aVData) ;
@@ -371,14 +372,14 @@ class cBA_LidarPhotogra
        /// Method for adding observations with Normalized Centred Coefficent Correlation as similatity criterion
        void AddPatchCorrel(tREAL8 aW,const std::vector<cPt3dr> & aPatch,const std::vector<cData1ImLidPhgr> &aVData) ;
 
-       void SetVUkVObs
+       virtual void SetVUkVObs
        (
             const cPt3dr&           aPGround,
             std::vector<int> *      aVIndUk,
             std::vector<tREAL8> &   aVObs,
             const cData1ImLidPhgr & aData,
             int                     aKPt
-       );
+       ) = 0;
 
        cPhotogrammetricProject *      mPhProj;         // Photogrammetric project
        cMMVII_BundleAdj&              mBA;             ///< The global bundle adj structure
@@ -407,7 +408,16 @@ public :
 
     /// add observation
     virtual void AddObs() override;
-private :
+protected:
+    virtual void SetVUkVObs
+        (
+            const cPt3dr&           aPGround,
+            std::vector<int> *      aVIndUk,
+            std::vector<tREAL8> &   aVObs,
+            const cData1ImLidPhgr & aData,
+            int                     aKPt
+        ) override;
+
     cTriangulation3D<tREAL4> *     mTri;            ///< Triangulation, in fact used only for points
     std::list<std::vector<int>>    mLPatchesI;      ///< set of patches as index in Tri, consituted by 3D points in a lidar scan
 };
@@ -434,7 +444,15 @@ public :
     /// add observation
     virtual void AddObs() override;
 
-private :
+protected:
+    virtual void SetVUkVObs
+        (const cPt3dr&           aPGround,
+         std::vector<int> *      aVIndUk,
+         std::vector<tREAL8> &   aVObs,
+         const cData1ImLidPhgr & aData,
+         int                     aKPt
+         ) override;
+
     std::vector<cStaticLidarBAData> mVLidarData;      ///< vector of raster representations of lidar
 };
 

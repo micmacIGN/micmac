@@ -47,6 +47,8 @@ namespace MMVII
 
 class cRadiomLidarIma
 {
+   public:
+    cRadiomLidarIma(bool aIsPoseScanUk) : mIsPoseScanUk(aIsPoseScanUk) {}
    protected :
      template <typename tUk,typename tObs> 
           tUk Radiom_PerpCentrIntrFix
@@ -58,12 +60,27 @@ class cRadiomLidarIma
           ) const 
      {
         // read the unknowns
+        // uk only if aUkScanPose
+        cPtxd<tUk,3>  aCScan;  // scan center
+        cPtxd<tUk,3>  aWScan;  // scan infinitesimal rotation
+        if (mIsPoseScanUk)
+        {
+            aCScan   = VtoP3AutoIncr(aVUk,&aIndUk);
+            aWScan   = VtoP3AutoIncr(aVUk,&aIndUk);
+        }
+
         cPtxd<tUk,3>  aCCam   = VtoP3AutoIncr(aVUk,&aIndUk);  // camera center
-        cPtxd<tUk,3>  aW      = VtoP3AutoIncr(aVUk,&aIndUk);  // camera infinitesimal rotation
+        cPtxd<tUk,3>  aWCam      = VtoP3AutoIncr(aVUk,&aIndUk);  // camera infinitesimal rotation
 
         // read the observation
-        cMatF<tObs>    aRotInit (3,3,&aIndObs,aVObs);       // Curent value of rotation
-        cPtxd<tObs,3>  aPGround   = VtoP3AutoIncr(aVObs,&aIndObs);  // Value of 3D ground point
+        cMatF<tObs>    aRotScanInit; // dummy value, matrix not used if no scan pose
+        if (mIsPoseScanUk)
+        {
+            aRotScanInit = cMatF<tObs>(3,3,&aIndObs,aVObs);         // Curent value of scan rotation
+        }
+
+        cMatF<tObs>    aRotCamInitTr (3,3,&aIndObs,aVObs);           // Curent value of camera rotation, transposed
+        cPtxd<tObs,3>  aPScan      = VtoP3AutoIncr(aVObs,&aIndObs);  // Value of 3D point
         cPtxd<tObs,3>  aPCamInit   = VtoP3AutoIncr(aVObs,&aIndObs);  // Current value of 3D point in camera system
         cPtxd<tObs,3>  aGradProjI  = VtoP3AutoIncr(aVObs,&aIndObs);  // I(abscissa) of gradient / PCamera of projection
         cPtxd<tObs,3>  aGradProjJ  = VtoP3AutoIncr(aVObs,&aIndObs);  // J(ordinate) of gradient / PCamera of projection
@@ -72,9 +89,15 @@ class cRadiomLidarIma
         cPtxd<tObs,2>  aGradIm  = VtoP2AutoIncr(aVObs,&aIndObs);  // extract the gradient of image
 
         // compute the position of the point in camera coordinates
+        cPtxd<tUk,3> aPGround = aPScan; // when no scan pose uk
+        if (mIsPoseScanUk)
+        {
+            cMatF<tUk>   aDeltaScanRot =  cMatF<tUk>::MatAxiator(-aWScan); // transpose small rotation associated to W
+            aPGround = aRotScanInit * aDeltaScanRot * aPScan + aCScan;
+        }
         cPtxd<tUk,3> aVCP = aPGround - aCCam;  // "vector"  Center -> PGround
-        cMatF<tUk>   aDeltaRot =  cMatF<tUk>::MatAxiator(aW); // small rotation associated to W
-        cPtxd<tUk,3> aPCoordCam = aDeltaRot * aRotInit * aVCP;
+        cMatF<tUk>   aDeltaCamRot =  cMatF<tUk>::MatAxiator(aWCam); // small rotation associated to W
+        cPtxd<tUk,3> aPCoordCam = aDeltaCamRot * aRotCamInitTr * aVCP;
 
         //                                       d Intr 
         // Intr(Pose(Pground)) =  Intr(PCam0)  + ------- * (Pose(Pground) - PCam0)
@@ -88,18 +111,26 @@ class cRadiomLidarIma
         return  aRadiomInit + PScal(aGradIm,cPtxd<tObs,2>(aDelta_I,aDelta_J));
      }
 
-     static std::vector<std::string>  NamesPoseUK()  {return Append(NamesP3("mCCam"),NamesP3("mOmega"));}
+     std::vector<std::string>  NamesPoseUK() const {
+        if (mIsPoseScanUk)
+            return Append(NamesP3("mCScan"),NamesP3("mOmegaScan"), NamesP3("mCCam"),NamesP3("mOmegaCam"));
+        else
+            return Append(NamesP3("mCCam"),NamesP3("mOmegaCam"));
+     }
 
-     static std::vector<std::string>  VectObsPPose()  
+     std::vector<std::string>  VectObsPPose() const
      {
-          return NamesMatr("mRot0",cPt2di(3,3));
+        if (mIsPoseScanUk)
+            return Append(NamesMatr("mRot0Scan",cPt2di(3,3)), NamesMatr("mRot0CamTr",cPt2di(3,3)));
+        else
+            return NamesMatr("mRot0CamTr",cPt2di(3,3));
      }
 
      static std::vector<std::string>  VectObsPCam() 
      {
           return Append
                  (
-                      NamesP3("mPGround"),  // Ground point 
+                      NamesP3("mPScan"),  // scan 3D point
                       NamesP3("mPCam0"),    // initial current value of PGround in camera system
                       NamesP3("mGradPCam_i"),   //  (d PIm / d PCam ).i
                       NamesP3("mGradPCam_j")    //  (d PIm / d PCam) .j
@@ -111,11 +142,14 @@ class cRadiomLidarIma
          // Radiom + grad /i,j
          return Append({"Rad0"},NamesP2("GradRad"));
      }
+
+     bool mIsPoseScanUk;
 };
 
 class cEqLidarImPonct : public cRadiomLidarIma
 {
      public :
+        cEqLidarImPonct(bool aIsPoseScanUk) : cRadiomLidarIma(aIsPoseScanUk) {}
             template <typename tUk,typename tObs> 
                   std::vector<tUk> formula
                   (
@@ -134,11 +168,13 @@ class cEqLidarImPonct : public cRadiomLidarIma
              }
 
             std::vector<std::string> VNamesUnknowns()  const {return Append({"TargetRad"},NamesPoseUK());}
-            static std::vector<std::string> VNamesObs() 
+            std::vector<std::string> VNamesObs() const
             {
                 return Append(VectObsPPose() , VectObsPCam() , VectObsRadiom());
             }
-            std::string FormulaName() const { return  "EqLidarImPonct";}
+            std::string FormulaName() const {
+                return  mIsPoseScanUk?"EqLidarImPonctPose":"EqLidarImPonct";
+            }
 
      private :
 };
@@ -154,6 +190,7 @@ class cEqLidarImPonct : public cRadiomLidarIma
 class cEqLidarImCensus : public cRadiomLidarIma
 {
      public :
+        cEqLidarImCensus(bool aIsPoseScanUk) : cRadiomLidarIma(aIsPoseScanUk) {}
             template <typename tUk,typename tObs> 
                   std::vector<tUk> formula
                   (
@@ -179,11 +216,13 @@ class cEqLidarImCensus : public cRadiomLidarIma
             std::vector<std::string> VNamesUnknowns()  const {return Append({"TargetRatio"},NamesPoseUK());}
             std::vector<std::string> VNamesObs() const
             {
-                std::vector<std::string>  aV0 = cEqLidarImPonct::VNamesObs();
+                std::vector<std::string>  aV0 = Append(VectObsPPose() , VectObsPCam() , VectObsRadiom());
                 // we duplicate the observation for 2 pixels of the pair (central / periph)
                 return Append(AddPostFix(aV0,"_0"),AddPostFix(aV0,"_1"));
             }
-            std::string FormulaName() const { return  "EqLidarImCensus";}
+            std::string FormulaName() const {
+                return  mIsPoseScanUk?"EqLidarImCensusPose":"EqLidarImCensus";
+            }
 
      private :
 };
@@ -191,6 +230,7 @@ class cEqLidarImCensus : public cRadiomLidarIma
 class cEqLidarImCorrel : public cRadiomLidarIma
 {
      public :
+        cEqLidarImCorrel(bool aIsPoseScanUk) : cRadiomLidarIma(aIsPoseScanUk) {}
             template <typename tUk,typename tObs> 
                   std::vector<tUk> formula
                   (
@@ -211,11 +251,13 @@ class cEqLidarImCorrel : public cRadiomLidarIma
              }
 
             std::vector<std::string> VNamesUnknowns()  const {return Append({"TargetRad","CoefMul","CoefAdd"},NamesPoseUK());}
-            static std::vector<std::string> VNamesObs() 
+            std::vector<std::string> VNamesObs() const
             {
                 return Append(VectObsPPose() , VectObsPCam() , VectObsRadiom());
             }
-            std::string FormulaName() const { return  "EqLidarImCorrel";}
+            std::string FormulaName() const {
+                return  mIsPoseScanUk?"EqLidarImCorrelPose":"EqLidarImCorrel";
+            }
 
      private :
 };

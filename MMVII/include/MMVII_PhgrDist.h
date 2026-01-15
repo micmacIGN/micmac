@@ -225,9 +225,9 @@ NS_SymbolicDerivative::cCalculator<double> * EqNetworkConsDistFixPoints(bool Wit
 NS_SymbolicDerivative::cCalculator<double> * EqNetworkConsDistFixPoints(bool WithDerive,int aSzBuf,int aNbPts);
 
            // .............   Registration Lidar/Image   .............
-NS_SymbolicDerivative::cCalculator<double> * EqEqLidarImPonct(bool WithDerive,int aSzBuf);
-NS_SymbolicDerivative::cCalculator<double> * EqEqLidarImCensus(bool WithDerive,int aSzBuf);
-NS_SymbolicDerivative::cCalculator<double> * EqEqLidarImCorrel(bool WithDerive,int aSzBuf);
+NS_SymbolicDerivative::cCalculator<double> * EqEqLidarImPonct(bool WithDerive,int aSzBuf,bool aScanPoseUk);
+NS_SymbolicDerivative::cCalculator<double> * EqEqLidarImCensus(bool WithDerive,int aSzBuf,bool aScanPoseUk);
+NS_SymbolicDerivative::cCalculator<double> * EqEqLidarImCorrel(bool WithDerive,int aSzBuf,bool aScanPoseUk);
 
 
 };

@@ -71,6 +71,12 @@ template <class Type> class cMatF
       {
       }
 
+      // dummy constructor
+      cMatF() :
+          mSz   (0,0)
+      {
+      }
+
       const Type & operator () (size_t anX,size_t anY) const {return mMatr.at(anY).at(anX);}
       Type & operator () (size_t anX,size_t anY) {return mMatr.at(anY).at(anX);}
 

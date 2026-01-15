@@ -452,21 +452,21 @@ cCalculator<double> * EqSumSquare(int aNb,bool WithDerive,int aSzBuf,bool ReUse)
 }
 
 
-  // Projection image lidar 
+  // Projection image lidar
 
-cCalculator<double> * EqEqLidarImPonct(bool WithDerive,int aSzBuf)
+cCalculator<double> * EqEqLidarImPonct(bool WithDerive,int aSzBuf, bool aScanPoseUk)
 {
-    return StdAllocCalc(NameFormula(cEqLidarImPonct(),WithDerive),aSzBuf);
+    return StdAllocCalc(NameFormula(cEqLidarImPonct(aScanPoseUk),WithDerive),aSzBuf);
 }
 
-cCalculator<double> * EqEqLidarImCensus(bool WithDerive,int aSzBuf)
+cCalculator<double> * EqEqLidarImCensus(bool WithDerive,int aSzBuf, bool aScanPoseUk)
 {
-    return StdAllocCalc(NameFormula(cEqLidarImCensus(),WithDerive),aSzBuf);
+    return StdAllocCalc(NameFormula(cEqLidarImCensus(aScanPoseUk),WithDerive),aSzBuf);
 }
 
-cCalculator<double> * EqEqLidarImCorrel(bool WithDerive,int aSzBuf)
+cCalculator<double> * EqEqLidarImCorrel(bool WithDerive,int aSzBuf, bool aScanPoseUk)
 {
-    return StdAllocCalc(NameFormula(cEqLidarImCorrel(),WithDerive),aSzBuf);
+    return StdAllocCalc(NameFormula(cEqLidarImCorrel(aScanPoseUk),WithDerive),aSzBuf);
 }
 
 /* **************************** */
@@ -845,10 +845,14 @@ int cAppliGenCode::Exe()
 
    for (const auto WithDer : {true,false})
    {
-       GenCodesFormula((tREAL8*)nullptr,cEqLidarImPonct(),WithDer); // RIGIDBLOC
-       GenCodesFormula((tREAL8*)nullptr,cEqLidarImCensus(),WithDer); // RIGIDBLOC
-       GenCodesFormula((tREAL8*)nullptr,cEqLidarImCorrel(),WithDer); // RIGIDBLOC
-								      //
+       GenCodesFormula((tREAL8*)nullptr,cEqLidarImPonct(false),WithDer); // Lidar tri
+       GenCodesFormula((tREAL8*)nullptr,cEqLidarImCensus(false),WithDer);
+       GenCodesFormula((tREAL8*)nullptr,cEqLidarImCorrel(false),WithDer);
+
+       GenCodesFormula((tREAL8*)nullptr,cEqLidarImPonct(true),WithDer); // Lidar static with pose
+       GenCodesFormula((tREAL8*)nullptr,cEqLidarImCensus(true),WithDer);
+       GenCodesFormula((tREAL8*)nullptr,cEqLidarImCorrel(true),WithDer);
+
        GenCodesFormula((tREAL8*)nullptr,cFormulaSumSquares(8),WithDer); // example for contraint
 
        GenCodesFormula((tREAL8*)nullptr,cFormulaBlocRigid(),WithDer); // RIGIDBLOC

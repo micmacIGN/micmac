@@ -24,18 +24,6 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cPhotogrammetricProject * aPhProj,
     mNbUsedPoints (0),
     mNbUsedObs (0)
 {
-    if (mModeSim==eImatchCrit::eDifRad)
-        mEqLidPhgr = EqEqLidarImPonct (true,1);
-    else if (mModeSim==eImatchCrit::eCensus)
-        mEqLidPhgr = EqEqLidarImCensus(true,1);
-    else if (mModeSim==eImatchCrit::eCorrel)
-        mEqLidPhgr = EqEqLidarImCorrel(true,1);
-    else
-    {
-        MMVII_UnclasseUsEr("Bad enum for cBA_LidarPhotogra");
-    }
-
-
     //  By default  use tabulation of apodized sinus cardinal
     std::vector<std::string> aParamInt {"Tabul","1000","SinCApod","10","10"};
     // if interpolator is not empty
@@ -90,6 +78,17 @@ cBA_LidarPhotograTri::cBA_LidarPhotograTri(cPhotogrammetricProject * aPhProj,
                                            const std::vector<std::string>& aParam) :
     cBA_LidarPhotogra(aPhProj, aBA, aParam), mTri(nullptr)
 {
+    if (mModeSim==eImatchCrit::eDifRad)
+        mEqLidPhgr = EqEqLidarImPonct (true,1,false);
+    else if (mModeSim==eImatchCrit::eCensus)
+        mEqLidPhgr = EqEqLidarImCensus(true,1, false);
+    else if (mModeSim==eImatchCrit::eCorrel)
+        mEqLidPhgr = EqEqLidarImCorrel(true,1, false);
+    else
+    {
+        MMVII_UnclasseUsEr("Bad enum for cBA_LidarPhotogra");
+    }
+
     std::string aLidarFileName = aParam.at(1);
     MMVII_INTERNAL_ASSERT_User(UCaseEqual(LastPostfix(aLidarFileName),"ply"),
                                eTyUEr::eUnClassedError,"Lidar PLY file mandatory in triangulation mode, got \"" + aParam.at(1) + "\"");
@@ -119,6 +118,17 @@ cBA_LidarPhotograRaster::cBA_LidarPhotograRaster(cPhotogrammetricProject * aPhPr
                                                  const std::vector<std::string>& aParam) :
     cBA_LidarPhotogra(aPhProj, aBA, aParam)
 {
+    if (mModeSim==eImatchCrit::eDifRad)
+        mEqLidPhgr = EqEqLidarImPonct (true,1,true);
+    else if (mModeSim==eImatchCrit::eCensus)
+        mEqLidPhgr = EqEqLidarImCensus(true,1,true);
+    else if (mModeSim==eImatchCrit::eCorrel)
+        mEqLidPhgr = EqEqLidarImCorrel(true,1,true);
+    else
+    {
+        MMVII_UnclasseUsEr("Bad enum for cBA_LidarPhotogra");
+    }
+
     //read scans files from directory corresponding to pattern in aParam.at(1)
     auto aVScanNames = mPhProj->GetStaticLidarNames(aParam.at(1));
     for (const auto & aNameSens : aVScanNames)
@@ -195,7 +205,7 @@ void cBA_LidarPhotograTri::AddObs()
     {
         for (size_t aKP=0 ; aKP<mTri->NbPts() ; aKP++)
         {
-            Add1Patch(mWeight,{ToR(mTri->KthPts(aKP))});
+            Add1Patch(mWeight,{ToR(mTri->KthPts(aKP))},0);
         }
     }
     else
@@ -205,7 +215,7 @@ void cBA_LidarPhotograTri::AddObs()
             std::vector<cPt3dr> aVP;
             for (const auto anInd : aPatchIndex)
                 aVP.push_back(ToR(mTri->KthPts(anInd)));
-            Add1Patch(mWeight,aVP);
+            Add1Patch(mWeight,aVP,0);
         }
     }
 
@@ -224,21 +234,23 @@ void cBA_LidarPhotograRaster::AddObs()
     mNbUsedObs = 0;
     if (mModeSim==eImatchCrit::eDifRad)
     {
-        for (auto & aLidarData: mVLidarData)
-            for (const auto& aPatch : aLidarData.mLPatchesP)
+        for (size_t aKScan = 0; aKScan<mVLidarData.size(); ++aKScan)
+            for (const auto& aPatch : mVLidarData[aKScan].mLPatchesP)
             {
-                Add1Patch(mWeight,{aLidarData.mLidarRaster->Image2Ground(*aPatch.begin())});
+                Add1Patch(mWeight,
+                          {mVLidarData[aKScan].mLidarRaster->Image2Ground(*aPatch.begin())},
+                          aKScan);
             }
     }
     else
     {
-        for (auto & aLidarData: mVLidarData)
-            for (const auto& aPatch : aLidarData.mLPatchesP)
+        for (size_t aKScan = 0; aKScan<mVLidarData.size(); ++aKScan)
+            for (const auto& aPatch : mVLidarData[aKScan].mLPatchesP)
             {
                 std::vector<cPt3dr> aVP;
                 for (const auto aPt : aPatch)
-                    aVP.push_back(aLidarData.mLidarRaster->Image2Ground(aPt));
-                Add1Patch(mWeight,aVP);
+                    aVP.push_back(mVLidarData[aKScan].mLidarRaster->Image2Ground(aPt));
+                Add1Patch(mWeight,aVP,aKScan);
             }
     }
 
@@ -250,14 +262,14 @@ void cBA_LidarPhotograRaster::AddObs()
 }
 
 
-void cBA_LidarPhotogra::SetVUkVObs
-     (
-         const cPt3dr&           aPGround,
-         std::vector<int> *      aVIndUk,
-         std::vector<tREAL8> &   aVObs,
-         const cData1ImLidPhgr & aData,
-         int                     aKPt
-     )
+void cBA_LidarPhotograTri::SetVUkVObs
+    (
+     const cPt3dr&           aPGround,
+     std::vector<int> *      aVIndUk,
+     std::vector<tREAL8> &   aVObs,
+     const cData1ImLidPhgr & aData,
+     int                     aKPt
+    )
 {
     cSensorCamPC * aCam = mVCam.at(aData.mKIm);  // extract the camera
     cPt3dr aPCam = aCam->Pt_W2L(aPGround);  // coordinate of point in image system
@@ -283,6 +295,45 @@ void cBA_LidarPhotogra::SetVUkVObs
     aVObs.push_back(aRad0);
     aGradIm.PushInStdVector(aVObs);
 }
+
+
+void cBA_LidarPhotograRaster::SetVUkVObs
+    (
+        const cPt3dr&           aPGround,
+        std::vector<int> *      aVIndUk,
+        std::vector<tREAL8> &   aVObs,
+        const cData1ImLidPhgr & aData,
+        int                     aKPt
+        )
+{
+    cStaticLidar * aScan = mVLidarData.at(aData.mKScan).mLidarRaster;
+    cPt3dr aPScan = aScan->Pt_W2L(aPGround);  // coordinate of point in ground system
+    cSensorCamPC * aCam = mVCam.at(aData.mKIm);  // extract the camera
+    cPt3dr aPCam = aCam->Pt_W2L(aPGround);  // coordinate of point in image system
+    tProjImAndGrad aPImGr = aCam->InternalCalib()->DiffGround2Im(aPCam); // compute proj & gradient
+
+    // Vector of indexes of unknwons
+    if (aVIndUk)
+    {
+        aScan->PushIndexes(*aVIndUk);      // add the unknowns [C,R] of the scan
+        aCam->PushIndexes(*aVIndUk);       // add the unknowns [C,R] of the camera
+    }
+
+    // vector that will contains values of observation at this step
+    aScan->Pose_WU().PushObs(aVObs,false); // no transpose for scan
+    aCam->Pose_WU().PushObs(aVObs,true);  // true because we transpose: we use W->C, which is the transposition of IJK : C->W
+
+    aPScan.PushInStdVector(aVObs);   //
+    aPCam.PushInStdVector(aVObs);
+
+    aPImGr.mGradI.PushInStdVector(aVObs);  // Grad Proj/PCam
+    aPImGr.mGradJ.PushInStdVector(aVObs);
+
+    auto [aRad0,aGradIm] = aData.mVGr.at(aKPt);  // Radiom & grad
+    aVObs.push_back(aRad0);
+    aGradIm.PushInStdVector(aVObs);
+}
+
 
 void cBA_LidarPhotogra::AddPatchDifRad
      (
@@ -440,7 +491,7 @@ void cBA_LidarPhotogra::AddPatchCorrel
      aSys->R_AddObsWithTmpUK(aStrSubst);
 }
 
-void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aVPatchGr)
+void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aVPatchGr, size_t aKScan)
 {
      std::vector<cData1ImLidPhgr> aVData; // for each image where patch is visible will store the data
      cComputeStdDev<tREAL8>   aStdDev;    // compute the standard deviation of projected radiometry (indicator) 
@@ -450,10 +501,10 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
      {
           cSensorCamPC * aCam = mVCam[aKIm]; // extract cam
           cDataIm2D<tU_INT1> & aDIm = mVIms[aKIm].DIm(); // extract image
-
           if (aCam->IsVisible(aVPatchGr.at(0))) // first test : is central point visible
           {
               cData1ImLidPhgr  aData; // data that will be filled
+              aData.mKScan = aKScan;
               aData.mKIm = aKIm;
               for (size_t aKPt=0 ; aKPt<aVPatchGr.size() ; aKPt++) // parse the points of the patch
               {
