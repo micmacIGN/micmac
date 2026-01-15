@@ -299,6 +299,21 @@ template <class Type>  cAffin2D<Type> cAffin2D<Type>::MapInverse() const
 }
 
 
+ template <class Type>  void cAffin2D<Type>::AddData(const  cAuxAr2007 & anAux)
+ {
+     MMVII::AddData(cAuxAr2007("Tr",anAux),mTr);
+     MMVII::AddData(cAuxAr2007("Vx",anAux),mVX);
+     MMVII::AddData(cAuxAr2007("Vx",anAux),mVY);
+
+     if (anAux.Ar().Input())
+         *this = cAffin2D<Type>(mTr,mVX,mVY);
+ }
+
+void AddData(const  cAuxAr2007 & anAux,cAff2D_r& anAff)
+{
+    anAff.AddData(anAux);
+}
+
 
 
 template <class Type> cPtxd<Type,2>  cAffin2D<Type>::VecValue(const tPt & aP) const 

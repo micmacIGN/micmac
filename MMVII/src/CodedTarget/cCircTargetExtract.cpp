@@ -187,6 +187,7 @@ cSaveExtrEllipe::cSaveExtrEllipe(const cCircTargExtr & aCTE,const std::string & 
 
 
 cSaveExtrEllipe::cSaveExtrEllipe()  :
+    mAffIm2Ref (cAff2D_r::Translation(cPt2dr(0,0))),
     mEllipse (cEllipse(cDenseVect<tREAL8>(std::vector<tREAL8>{1,0,1,0,0}) ,cPt2dr(0,0)))
 {
 }
@@ -194,6 +195,7 @@ cSaveExtrEllipe::cSaveExtrEllipe()  :
 
 void AddData(const  cAuxAr2007 & anAux, cSaveExtrEllipe & aCTE)
 {
+    AddData(cAuxAr2007("AffinIm2Ref",anAux)  , aCTE.mAffIm2Ref);
      AddData(cAuxAr2007("Ellipse",anAux)  , aCTE.mEllipse);
      AddData(cAuxAr2007("NameCode",anAux) , aCTE.mNameCode);
      AddData(cAuxAr2007("Black",anAux)    , aCTE.mBlack);

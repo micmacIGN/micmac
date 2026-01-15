@@ -138,6 +138,9 @@ class cCdEllipse : public cCdRadiom
            cPt2dr  I2M(const cPt2dr & aPIM) const; 
 	   bool  IsCircle() const;
 
+       const cAff2D_r   &  AffIm2Mod() const;
+
+
 
            /** compute the "normalized" length to encoding part*/ 
 	   std::pair<tREAL8,cPt2dr>  Length2CodingPart(tREAL8 aPropGray,const cPt2dr & aModCenterBit) const;

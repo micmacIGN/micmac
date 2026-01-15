@@ -3,6 +3,10 @@
 
 namespace MMVII
 {
+/*
+  return mAffIm2Mod.Inverse(aPMod);
+*/
+
 
 /* ********************************************* */
 /*                                               */
@@ -598,6 +602,7 @@ void cCdEllipse::EstimateAffinity()
 
 bool cCdEllipse::BOutCB()   const {return mBOutCB;}
 bool cCdEllipse::IsCircle() const {return mIsCircle;}
+const cAff2D_r   &  cCdEllipse::AffIm2Mod() const {return mAffIm2Mod;}
 
 bool cCdEllipse::IsOk() const {return mIsOk;}
 void cCdEllipse::AssertOk() const
