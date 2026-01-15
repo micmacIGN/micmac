@@ -604,6 +604,10 @@ cPt3dr cStaticLidar::Image2Ground(const cPt2dr & aRasterPx) const
 std::string  cStaticLidar::V_PrefixName() const { return PrefixName() ; }
 std::string  cStaticLidar::PrefixName()  { return "Scan";}
 
+std::string  cStaticLidar::Pat2Sup(const std::string & aPatSelect)
+{
+    return "Ori-" + cStaticLidar::PrefixName() + "-" + aPatSelect + "\\." + GlobTaggedNameDefSerial();
+}
 
 cPt2dr cStaticLidar::Ground2ImagePrecise(const cPt3dr & aGroundPt) const
 {
