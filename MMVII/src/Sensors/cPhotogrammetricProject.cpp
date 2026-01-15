@@ -1303,6 +1303,15 @@ cStaticLidar * cPhotogrammetricProject::ReadStaticLidar(const std::string &aScan
     return aScan;
 }
 
+std::vector<std::string> cPhotogrammetricProject::GetStaticLidarNames(const std::string &aPatSelect) const
+{
+    DPOrient().AssertDirInIsInit();
+    std::string aPat2Sup = cStaticLidar::Pat2Sup(aPatSelect);
+    std::string aFullPat2Sup = DPOrient().FullDirIn() + aPat2Sup;
+    tNameSet aSet = SetNameFromPat(aFullPat2Sup);
+    std::vector<std::string> aVect = ToVect(aSet);
+    return aVect;
+}
 
 //  =============  Topo Mes  =================
 

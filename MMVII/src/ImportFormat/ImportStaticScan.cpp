@@ -731,7 +731,7 @@ int cAppli_ImportStaticScan::Exe()
     mSL_importer.ComputeAgregatedAngles();
 
     // create sensor from imported data
-    std::string aScanName = cStaticLidar::PrefixName() + mStationName + "-" + mScanName;
+    std::string aScanName = mStationName + "-" + mScanName;
     // find PP: image of the (Oz) axis
     cPt3dr aOzAxisInput = mSL_importer.RotInput2TSL().Inverse({1.,0.,0.});  // axis 1,0,0 in TSL frame, just to get equator vertical angle
     cPt2dr aEquatorAngles = mSL_importer.Input3DtoRasterAngle(aOzAxisInput);
@@ -747,8 +747,10 @@ int cAppli_ImportStaticScan::Exe()
     MMVII_INTERNAL_ASSERT_tiny(fabs((fabs(mSL_importer.mPhiStep)-fabs(mSL_importer.mThetaStep))/mSL_importer.mPhiStep)<1e-2,
                                "Error: different steps in theta and phi are not supported yet!");
 
-    cPerspCamIntrCalib* aCalib =
-        cPerspCamIntrCalib::SimpleCalib(cPerspCamIntrCalib::SharedCalibPrefixName() + "_" + aScanName, eProjPC::eEquiRect,
+    cPerspCamIntrCalib* aCalib = cPerspCamIntrCalib::SimpleCalib(
+                                        cPerspCamIntrCalib::SharedCalibPrefixName()
+                                            + "_" + cStaticLidar::PrefixName()
+                                            + "-" + aScanName, eProjPC::eEquiRect,
                                         cPt2di(mSL_importer.NbCol(), mSL_importer.NbLine()),
                                         cPt3dr(aPP.x(),aPP.y(),aFy), cPt3di(0,0,0));
 

@@ -139,6 +139,7 @@ public :
 
     static std::string  PrefixName() ;
     std::string  V_PrefixName() const override;
+    static std::string Pat2Sup(const std::string & aPatSelect);
 
 
 private :

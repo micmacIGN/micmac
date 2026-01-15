@@ -120,12 +120,8 @@ cBA_LidarPhotograRaster::cBA_LidarPhotograRaster(cPhotogrammetricProject * aPhPr
     cBA_LidarPhotogra(aPhProj, aBA, aParam)
 {
     //read scans files from directory corresponding to pattern in aParam.at(1)
-    std::string aPat2Sup =  "Ori-" + cStaticLidar::PrefixName() + aParam.at(1) + "\\." + GlobTaggedNameDefSerial()  ;
-    std::string aFullPat2Sup = mPhProj->DPOrient().FullDirIn() + aPat2Sup;
-    //StdOut() << "Scan pat " << aFullPat2Sup << "\n";
-    tNameSet aSet = SetNameFromPat(aFullPat2Sup);
-    std::vector<std::string> aVect = ToVect(aSet);
-    for (const auto & aNameSens : aVect)
+    auto aVScanNames = mPhProj->GetStaticLidarNames(aParam.at(1));
+    for (const auto & aNameSens : aVScanNames)
     {
         cStaticLidar * aLidarData = mPhProj->ReadStaticLidar(aNameSens, true);
         MMVII_INTERNAL_ASSERT_User(aLidarData,
@@ -149,8 +145,8 @@ cBA_LidarPhotograRaster::cBA_LidarPhotograRaster(cPhotogrammetricProject * aPhPr
 void cBA_LidarPhotograRaster::SetFrozenVar(cResolSysNonLinear<tREAL8> & aSys, std::string aPatFrozenTSL)
 {
     bool mVerbose = true;
-    // Froze boresight matrix of clinos described by aPatFrozenClino
-    tNameSelector aSel = AllocRegex(aPatFrozenTSL);
+    // Freeze full pose (TODO: be able to to fix only verticalization)
+    tNameSelector aSel = AllocRegex(cStaticLidar::Pat2Sup(aPatFrozenTSL));
     int nbMatches = 0;
     for (auto & aLidarBAData : mVLidarData)
     {
@@ -248,7 +244,7 @@ void cBA_LidarPhotograRaster::AddObs()
 
     if (mLastResidual.SW() != 0)
         StdOut() << "  * Lid/Phr Residual Rad " << std::sqrt(mLastResidual.Average())
-                 << " ("<<mNbUsedObs<<" obs, "<<mNbUsedPoints<<" points)\n";
+                 << " ("<<mVLidarData.size()<<" scans, "<<mNbUsedObs<<" obs, "<<mNbUsedPoints<<" points)\n";
     else
         StdOut() << "  * Lid/Phr: no obs\n";
 }

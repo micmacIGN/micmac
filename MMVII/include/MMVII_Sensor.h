@@ -810,8 +810,9 @@ class cPhotogrammetricProject
      //==================   Static Lidar         =========================
      //===================================================================
 
-     cStaticLidar * ReadStaticLidar(const std::string &aScanName, bool ToDeleteAutom) const; ///< Create Static Lidar
 
+     cStaticLidar * ReadStaticLidar(const std::string &aScanName, bool ToDeleteAutom) const; ///< Create Static Lidar
+     std::vector<std::string> GetStaticLidarNames(const std::string &aPatSelect) const; ///< pattern without "Ori-Scan-"
          //==================   Camera Data Base     =========================
 
          void MakeCamDataBase();
