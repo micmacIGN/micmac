@@ -371,8 +371,12 @@ template <class Type> class cSimilitud3D
        const tPt & Tr() const {return mTr;}  ///< Accessor
        const Type & Scale() const {return mScale;}  ///< Accessor
 
-       tPt   Value(const tPt & aPt) const  {return mTr + mRot.Value(aPt)*mScale;}
-       tPt   Inverse(const tPt & aPt) const {return mRot.Inverse((aPt-mTr)/mScale) ;}  // Work as M tM = Id
+
+       tPt   VecValue(const tPt & aPt) const  {return  mRot.Value(aPt)*mScale;}
+       tPt   VecInverse(const tPt & aPt) const {return mRot.Inverse((aPt)/mScale) ;}
+
+       tPt   Value(const tPt & aPt) const  {return mTr + VecValue(aPt);}
+       tPt   Inverse(const tPt & aPt) const {return VecInverse(aPt-mTr) ;}  // Work as M tM = Id
 
        // ********************************************************************************************
        // **********************  MAP ESTIMATION *****************************************************

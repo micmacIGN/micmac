@@ -23,6 +23,26 @@ template <class tContPts>  typename cComputeCentroids<tContPts>::tPts  cComputeC
      return aRes;
 }
 
+template <class tContPts>
+   typename cComputeCentroids<tContPts>::tPts
+                cComputeCentroids<tContPts>::LinearWeigtedCentroids
+                (
+                     const tContPts & aContPts,
+                     const std::vector<tEl>   * aVW
+                )
+{
+     tPts aRes = tPts::PCste(tEl(0));
+     tEl  aSomW = 0.0;
+
+     for (size_t aKPt=0 ; aKPt<aContPts.size() ; aKPt++)
+     {
+         tEl aW = aVW ? aVW->at(aKPt) : 1.0;
+         aSomW += aW;
+         aRes += aContPts.at(aKPt) * aW;
+     }
+
+     return aRes/aSomW;
+}
 
 template <class tContPts>
    typename cComputeCentroids<tContPts>::tPts
@@ -35,6 +55,20 @@ template <class tContPts>
                      double aErRej
                 )
 {
+    std::vector<tEl> aVW;
+    tEl  aS2P = std::pow(Square(aSigma),aExpN2);
+    tEl  aErRej2 = Square(aErRej);
+
+    for (const auto & aPt : aContPts)
+    {
+        tEl  aErr2 = SqN2(aPt-aP0);
+        tEl aW =  (aErr2<aErRej2) ? (aS2P / (aS2P+std::pow(aErr2,aExpN2))) : 0.0;
+        aVW.push_back(aW);
+    }
+
+    return  LinearWeigtedCentroids(aContPts,&aVW);
+    /*
+ //StdOut() << "-----------------------------cComputeCentroids<tContPts>::LinearWeigtedCentroids---\n";
      tPts aRes = tPts::PCste(tEl(0));
      tEl  aSomW = 0.0;
      tEl  aS2P = std::pow(Square(aSigma),aExpN2);
@@ -53,6 +87,7 @@ template <class tContPts>
      }
 
      return aRes/aSomW;
+     */
 }
 
 template <class tContPts>
