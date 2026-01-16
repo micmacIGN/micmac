@@ -354,7 +354,7 @@ class cBA_LidarPhotogra
        virtual void AddObs() = 0;
 
        /// freeze unknowns
-       virtual void SetFrozenVar(cResolSysNonLinear<tREAL8> & aSys, std::string aPatFrozenTSL) {}
+       virtual void SetFrozenVar(bool aVerbose, cResolSysNonLinear<tREAL8> & aSys, std::string aPatFrozenTSL) {}
 
        /// save results
        virtual void Save() {}
@@ -438,7 +438,7 @@ public :
     cBA_LidarPhotograRaster(cPhotogrammetricProject *aPhProj, cMMVII_BundleAdj&, const std::vector<std::string> & aParam);
     /// destuctor, free interopaltor, calculator ....
     virtual ~cBA_LidarPhotograRaster();
-    void SetFrozenVar(cResolSysNonLinear<tREAL8> & aSys, std::string aPatFrozenTSL) override;
+    void SetFrozenVar(bool aVerbose, cResolSysNonLinear<tREAL8> & aSys, std::string aPatFrozenTSL) override;
     virtual void Save() override;
 
     /// add observation
@@ -505,7 +505,7 @@ class cMMVII_BundleAdj
 	  void AddMTieP(const std::string & aName,cComputeMergeMulTieP  * aMTP,const cStdWeighterResidual & aWIm);
 
           /// One iteration : add all measure + constraint + Least Square Solve/Udpate/Init
-          void OneIteration(tREAL8 aLVM=0.0, bool isLastIter=false, bool doShowCond=false);
+          void OneIteration(bool isFirstIter=false, tREAL8 aLVM=0.0, bool isLastIter=false, bool doShowCond=false);
 
           const std::vector<cSensorImage *> &  VSIm() const ;  ///< Accessor
           const std::vector<cSensorCamPC *> &  VSCPC() const;   ///< Accessor
