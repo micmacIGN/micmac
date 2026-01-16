@@ -1292,16 +1292,22 @@ cBlocOfCamera * cPhotogrammetricProject::ReadUnikBlocCam() const
 
 //  =============  Static Lidar  =================
 
-cStaticLidar * cPhotogrammetricProject::ReadStaticLidar(const std::string &aScanName, bool ToDeleteAutom) const
+cStaticLidar * cPhotogrammetricProject::ReadStaticLidar(const cDirsPhProj & aDP,const std::string &aScanName, bool ToDeleteAutom) const
 {
-    DPOrient().AssertDirInIsInit();
-    std::string aScanFileName  =  DPOrient().FullDirIn() + aScanName;
+    aDP.AssertDirInIsInit();
+    std::string aScanFileName  =  aDP.FullDirIn() + aScanName;
     cStaticLidar * aScan =  cStaticLidar::FromFile(aScanFileName, DirStaticLidarRasters());
 
     if (ToDeleteAutom)
        cMMVII_Appli::AddObj2DelAtEnd(aScan);
     return aScan;
 }
+
+cStaticLidar * cPhotogrammetricProject::ReadStaticLidar(const std::string &aScanName, bool ToDeleteAutom) const
+{
+    return ReadStaticLidar(mDPOrient,aScanName,ToDeleteAutom);
+}
+
 
 std::vector<std::string> cPhotogrammetricProject::GetStaticLidarNames(const std::string &aPatSelect) const
 {
