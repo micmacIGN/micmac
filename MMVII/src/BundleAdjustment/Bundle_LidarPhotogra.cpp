@@ -152,9 +152,8 @@ cBA_LidarPhotograRaster::cBA_LidarPhotograRaster(cPhotogrammetricProject * aPhPr
 }
 
 
-void cBA_LidarPhotograRaster::SetFrozenVar(cResolSysNonLinear<tREAL8> & aSys, std::string aPatFrozenTSL)
+void cBA_LidarPhotograRaster::SetFrozenVar(bool aVerbose, cResolSysNonLinear<tREAL8> & aSys, std::string aPatFrozenTSL)
 {
-    bool mVerbose = true;
     // Freeze full pose (TODO: be able to to fix only verticalization)
     tNameSelector aSel = AllocRegex(cStaticLidar::Pat2Sup(aPatFrozenTSL));
     int nbMatches = 0;
@@ -167,7 +166,7 @@ void cBA_LidarPhotograRaster::SetFrozenVar(cResolSysNonLinear<tREAL8> & aSys, st
             nbMatches++;
         }
     }
-    if (mVerbose)
+    if (aVerbose)
         StdOut() << "Frozen TSL poses: " << nbMatches << ".\n";
 }
 

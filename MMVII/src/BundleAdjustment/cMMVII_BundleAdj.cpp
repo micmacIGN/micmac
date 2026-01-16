@@ -255,7 +255,7 @@ void cMMVII_BundleAdj::InitIteration()
 }
 
 
-void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter, bool doShowCond)
+void cMMVII_BundleAdj::OneIteration(bool isFirstIter, tREAL8 aLVM, bool isLastIter, bool doShowCond)
 {
     // if it's first step, alloc ressources
     if (mPhaseAdd)
@@ -304,7 +304,7 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter, bool doShowCond
                 nbMatches++;
             }
         }
-        if (mVerbose)
+        if (mVerbose && isFirstIter)
             StdOut() << "Frozen centers: " << nbMatches << ".\n";
     }
    
@@ -321,7 +321,7 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter, bool doShowCond
                 nbMatches++;
             }
         }
-        if (mVerbose)
+        if (mVerbose && isFirstIter)
             StdOut() << "Frozen orients: " << nbMatches << ".\n";
     }
     // if necessary fix hard cosntraint onf Gauge of Rigid-Block of instrument
@@ -337,7 +337,7 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter, bool doShowCond
     {
         for (const auto & aBALidar : mVBA_Lidar)
         {
-            aBALidar->SetFrozenVar(*mR8_Sys, mPatFrozenTSL);
+            aBALidar->SetFrozenVar(isFirstIter, *mR8_Sys, mPatFrozenTSL);
         }
     }
 

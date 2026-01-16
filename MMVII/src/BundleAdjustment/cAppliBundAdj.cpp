@@ -407,7 +407,7 @@ int cAppliBundlAdj::Exe()
     for (int aKIter=0 ; aKIter<mNbIter ; aKIter++)
     {
         bool isLastIter =  (aKIter==(mNbIter-1)) ;
-        mBA.OneIteration(mLVM,isLastIter,mShow_Cond);
+        mBA.OneIteration(aKIter==0,mLVM,isLastIter,mShow_Cond);
     }
 
     //   ========== [3]   Save resulst =============================
