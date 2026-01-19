@@ -298,6 +298,8 @@ class cAppliCheckBoardTargetExtract : public cMMVII_Appli
            void SaddleCritFiler() ;
 	   /// start from saddle point, optimize position on symetry criterion then filter on sym thresholds
            void SymetryFiler() ;
+    // to look for missing targets
+          // void MissingTargets();
 
 	void MakeImageLabels(const std::string & aName,const tDIm &,const cDataIm2D<tU_INT1> & aDMasq) const;
 
@@ -361,6 +363,12 @@ class cAppliCheckBoardTargetExtract : public cMMVII_Appli
     // Exports only measures that have corresponding 3D world coordinates
 
     std::string mCSVOnlyGCPs;
+
+    // If you know 2D coordinates of undetected targets & you want to know when
+    // corresponding pixel is rejected
+
+    std::string mPredictedTargets;
+    cSetMesPtOf1Im mSetPredictMes;
 	
         // =========== Internal param ============
 
@@ -389,6 +397,8 @@ class cAppliCheckBoardTargetExtract : public cMMVII_Appli
         std::vector<cCdSadle> mVCdtSad;     ///< Candidate  that are selected as local max of saddle criteria
         std::vector<int>      mNbSads;      ///< For info, number of sadle points at different step
         std::vector<cCdSym>   mVCdtSym;     ///< Candidate that are selected on the symetry criteria
+        std::vector<cCdRadiom> mVCdtRad;    ///< Candidate selected after radiom filter
+
 					    //
 	std::vector<cCdMerged> mVCdtMerged; // Candidate merged form various scales
 	tREAL8                mCurScale;    /// Memorize the current value of the scale

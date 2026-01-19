@@ -64,6 +64,7 @@ cAppliCheckBoardTargetExtract::cAppliCheckBoardTargetExtract(const std::vector<s
    mStepGradRefinePos (1e-4),
    mCSVMetrics       ({"0","none"}),
    mCSVOnlyGCPs         ("none"),
+   mPredictedTargets (""),
    mZoomVisuDetec    (9),
    mDefSzVisDetec    (150),
    mSpecif           (nullptr),
@@ -78,8 +79,8 @@ cAppliCheckBoardTargetExtract::cAppliCheckBoardTargetExtract(const std::vector<s
    mImLabel          (cPt2di(1,1)),
    mDImLabel         (nullptr),
    mImTmp            (cPt2di(1,1)),
-   mDImTmp           (nullptr),
-   mCurScale         (false),
+    mDImTmp           (nullptr),
+    mCurScale         (false),
     mMainScale       (true),
     mInterpol        (nullptr)
 {
@@ -123,6 +124,7 @@ cCollecSpecArg2007 & cAppliCheckBoardTargetExtract::ArgOpt(cCollecSpecArg2007 & 
              <<  AOpt2007(mNumDebugSaddle,"NumDebugSaddle","Num Saddle point to debug",{eTA2007::Tuning})
             <<   AOpt2007(mCSVMetrics,"CSVMetrics","Saves results metrics in CSV file",{eTA2007::HDV})
            << AOpt2007(mCSVOnlyGCPs,"CSVOnlyGCPs","Export measures in CSV file only if detected code is in GCP set",{eTA2007::HDV})
+           << AOpt2007(mPredictedTargets,"PredictedTargets","Warns you when predicted undetected targets are rejected",{eTA2007::HDV})
    ;
 }
 
@@ -275,19 +277,22 @@ void cAppliCheckBoardTargetExtract::MakeImageLabels(const std::string & aName,co
 
     for (const auto & aPix : cRect2(aDIm.Dilate(-1)))
     {
-       if (aDMasq.GetV(aPix) >= (int) eTopoMaxLoc)
+    //if (aDMasq.GetV(aPix) >= (int) eTopoMaxLoc)
+       if (aDMasq.GetV(aPix) >= (int) eTopo0)
        {
-          cPt3di  aCoul = cRGBImage::Yellow;
-	  if (aDMasq.GetV(aPix)== eFilterSym) aCoul = cRGBImage::Green;
-	  if (aDMasq.GetV(aPix)== eFilterRadiom) aCoul = cRGBImage::Blue;
-	  if (aDMasq.GetV(aPix)>= eFilterEllipse)
-	  {
-             aCoul = cRGBImage::Red;
-	  }
+        cPt3di aCoul = cRGBImage::Magenta;
+        if (aDMasq.GetV(aPix) == eTopoMaxOfCC) aCoul = cRGBImage::Red;
+        if (aDMasq.GetV(aPix) == eTopoMaxLoc) aCoul = cRGBImage::Cyan;
+        if (aDMasq.GetV(aPix) == eFilterSym) aCoul = cRGBImage::Green;
+        if (aDMasq.GetV(aPix) == eFilterRadiom) aCoul = cRGBImage::Blue;
+        if (aDMasq.GetV(aPix) == eFilterEllipse) aCoul = cRGBImage::Orange;
+        if (aDMasq.GetV(aPix) == eFilterCodedTarget) aCoul = cRGBImage::Yellow;
           aRGB.SetRGBPix(aPix,aCoul);
        }
     }
-    aRGB.ToJpgFileDeZoom(aName,1);
+
+    aRGB.ToFile(aName);
+    //aRGB.ToJpgFileDeZoom(aName,1,{"QUALITY=100"});
 }
 
 bool cAppliCheckBoardTargetExtract::IsPtTest(const cPt2dr & aPt) const
@@ -426,6 +431,7 @@ void cAppliCheckBoardTargetExtract::ComputeTopoSadles()
 {
     cAutoTimerSegm aTSTopoSad(mTimeSegm,"2.0-TopoSad");
     cRect2 aRectInt = mDImInCur->Dilate(-mDistRectInt); // Rectangle excluding point too close to border
+    //1st potential exclusion if x,y > img. size - mDistRectInt px
 
          // 2.1  point with criteria on conexity of point > in neighoor
 
@@ -436,6 +442,9 @@ void cAppliCheckBoardTargetExtract::ComputeTopoSadles()
 	    SetLabel(ToR(aPix),eTopo0);
 	}
     }
+
+    //MakeImageLabels(NameVisu("1eTopo0"),*mDImBlur,*mDImLabel);
+
 
          // 2.2  as often there 2 "touching" point with this criteria
 	 // select 1 point in conected component
@@ -454,11 +463,25 @@ void cAppliCheckBoardTargetExtract::ComputeTopoSadles()
 	     {
                  aBestPInCC.Add(aPixCC,CriterionTopoSadle(*mDImBlur,aPixCC));
 	     }
-
 	     cPt2di aPCC = aBestPInCC.IndexExtre();
+
+         //-todo:OK is there any aPCC among predicted targets ?-OK//
+         cMesIm1Pt * aNearestMeas = mSetPredictMes.NearestMeasure(ToR(aPCC));
+         if (Norm2(aNearestMeas->mPt - ToR(aPCC)) <= 1.0)
+         {
+             StdOut() << "Pt n°" << aNearestMeas->mNamePt
+                      << " CritTopoSaddle (BestPInCC) "
+                      << aPCC << " = "
+                      << aBestPInCC.ValExtre() << std::endl;
+         }
+
 	     SetLabel(ToR(aPCC),eTopoMaxOfCC);
 	 }
     }
+
+    //MakeImageLabels(NameVisu("2eTopoMaxofCC"),*mDImBlur,*mDImLabel);
+
+
 }
 
 /**  The saddle criteria is defined by fitting a quadratic function on the image. Having computed the eigen value of quadratic function :
@@ -486,6 +509,16 @@ void cAppliCheckBoardTargetExtract::SaddleCritFiler()
          if (mDImLabel->GetV(aPix)==eTopoMaxOfCC)
 	 {
              tREAL8 aCritS = aCalcSBlur.CalcSaddleCrit(*mDImBlur,aPix);
+
+             //-todo:OK what is the value of saddle crit. for predicted targets ?
+             cMesIm1Pt * aNearestMeas = mSetPredictMes.NearestMeasure(ToR(aPix));
+             if (Norm2(aNearestMeas->mPt - ToR(aPix)) <= 1.0)
+             {
+                 StdOut() << "Pt n°" << aNearestMeas->mNamePt
+                          << " SaddleCrit = "
+                          << aCritS << std::endl;
+             }
+
              mVCdtSad.push_back(cCdSadle(ToR(aPix),aCritS,IsPtTest(ToR(aPix))) );
 	 }
     }
@@ -496,8 +529,10 @@ void cAppliCheckBoardTargetExtract::SaddleCritFiler()
 
     SortOnCriteria(mVCdtSad,[](const auto & aCdt){return - aCdt.mSadCrit;});
     ResizeDown(mVCdtSad,mMaxNbSP_ML0);   
-    mNbSads.push_back(mVCdtSad.size()); // memo size for info 
+    mNbSads.push_back(mVCdtSad.size()); // memo size for info
 
+    //-todo:OK we want to know what is the mMaxNbSP_ML0 value
+    StdOut() << "mMaxNbSP_ML0 saddle crit. value = " << mVCdtSad[mVCdtSad.size()-1].mSadCrit << std::endl;
 
     //   [3.3]  select  MaxLocal
     mVCdtSad = FilterMaxLoc((cPt2dr*)nullptr,mVCdtSad,[](const auto & aCdt) {return aCdt.mC;}, mDistMaxLocSad);
@@ -507,10 +542,14 @@ void cAppliCheckBoardTargetExtract::SaddleCritFiler()
     //  limit the number of point , a bit rough but first experiment show that sadle criterion is almost perfect on good images
     // mVCdtSad.resize(std::min(mVCdtSad.size(),size_t(mMaxNbMLS)));
     ResizeDown(mVCdtSad,mMaxNbSP_ML1);
-    mNbSads.push_back(mVCdtSad.size()); // memo size for info 
+    mNbSads.push_back(mVCdtSad.size()); // memo size for info
+
+    //-todo:OK we want to know what is the mMaxNbSP_ML1 value
+    StdOut() << "mMaxNbSP_ML1 saddle crit. value = " << mVCdtSad[mVCdtSad.size()-1].mSadCrit << std::endl;
 
     for (const auto & aCdt : mVCdtSad)
         SetLabel(aCdt.mC,eTopoMaxLoc);
+    //MakeImageLabels(NameVisu("3eTopoMaxLoc"),*mDImBlur,*mDImLabel);
 }
 
 void cAppliCheckBoardTargetExtract::SymetryFiler()
@@ -524,6 +563,16 @@ void cAppliCheckBoardTargetExtract::SymetryFiler()
         auto [aValSym,aNewP] = aOptimSym.Optim(aCdtSad.mC,1.0,0.01);  // Pos Init, Step Init, Step Lim
         aCdtSad.mC = aNewP;
 
+        //-todo:OK expose the value of aValSym for the nearest PredictMes of aNewP
+        cMesIm1Pt * aNearestMeas = mSetPredictMes.NearestMeasure(aCdtSad.mC);
+        if (Norm2(aNearestMeas->mPt - aCdtSad.mC) <= 1.0)
+        {
+            StdOut() << "Pt n°" << aNearestMeas->mNamePt << " " << aCdtSad.mC
+                     << " ValSym = "
+                     << aValSym << std::endl;
+        }
+
+
         if (aValSym < mThresholdSym)
         {
            mVCdtSym.push_back(cCdSym(aCdtSad,aValSym));
@@ -536,6 +585,8 @@ void cAppliCheckBoardTargetExtract::SymetryFiler()
     }
 
     delete aFSym;
+
+    //MakeImageLabels(NameVisu("4eFilterSym"),*mDImInCur,*mDImLabel);
 }
 
 void  cAppliCheckBoardTargetExtract::AddCdtE(const cCdEllipse & aCDE)
@@ -677,6 +728,11 @@ void cAppliCheckBoardTargetExtract::DoOneImageAndScale(tREAL8 aScale,const  tIm 
     if (IsInit(&mNumDebugSaddle))
        cCdSadle::TheNum2Debug= mNumDebugSaddle ;
 
+    if (mPredictedTargets != "")
+    {
+        mSetPredictMes = mPhProj.LoadMeasureImFromFolder(mPredictedTargets, mNameIm);
+    }
+
     /* [0]    Initialise : read image ,  mask + Blurr */
     ReadImagesAndBlurr();
     /* [2]  Compute "topological" saddle point */
@@ -697,18 +753,27 @@ void cAppliCheckBoardTargetExtract::DoOneImageAndScale(tREAL8 aScale,const  tIm 
             cCdRadiom aCdRad = MakeCdtRadiom(aSTL,aCdtSym,mThickness);
 	    if (aCdRad.mCostCorrel <= mMaxCostCorrIm)
 	    {
-               aVCdtRad.push_back(aCdRad);
+               mVCdtRad.push_back(aCdRad);
 	       SetLabel(aCdRad.mC,eFilterRadiom);
 	    }
         }
     }
+
+    /* [5bis] If executed in "refine" mode check if there is missing target in aVCdtRad */
+
+/*    if (mPredictedTargets!="")
+    {
+        MissingTargets();
+    }*/
+
+    //MakeImageLabels(NameVisu("5eFilterRadiom"),*mDImBlur,*mDImLabel);
 
     /* [6]  Compute model of geometry, ellipse & code */
     std::vector<cCdEllipse> aVCdtEll;
     int aNbEllWCode = 0;
     cAutoTimerSegm aTSEllipse(mTimeSegm,"Ellipse");
     {
-        for (const auto & aCdtRad : aVCdtRad)
+        for (const auto & aCdtRad : mVCdtRad)
         {
            std::vector<bool>  TryCE = {false}; // Do we do the try in circle or ellipse mode
 	   if (mTryC)  TryCE.push_back(true);
@@ -733,7 +798,35 @@ void cAppliCheckBoardTargetExtract::DoOneImageAndScale(tREAL8 aScale,const  tIm 
 	       }
 	   }
         }
+        //MakeImageLabels(NameVisu("6eFilterEllipse"),*mDImBlur,*mDImLabel);
     }
+
+    // --
+    if (mPredictedTargets != "")
+    {
+        cSetMesPtOf1Im aSetPredictMes = mPhProj.LoadMeasureImFromFolder(mPredictedTargets, mNameIm);
+        for (const auto & aPredictMes:aSetPredictMes.Measures())
+        {
+            int label = mDImLabel->GetV(ToI(aPredictMes.mPt));
+            StdOut() << "Pt n° " << aPredictMes.mNamePt
+                     << " in " << mNameIm << " : "
+                     << ToI(aPredictMes.mPt)
+                     << " -> last label : " << label << std::endl;
+
+            int comp = FlagSup8Neigh(*mDImBlur,ToI(aPredictMes.mPt)).NbConComp();
+            StdOut() << "Nb. of 4-connexity components (>=4 ?) : " << comp << std::endl;
+
+            for (int aK=0 ; aK<4 ; aK++)
+            {
+                int aNeighLabel = mDImLabel->GetV(ToI(aPredictMes.mPt) + FreemanV4[aK]);
+                if (aNeighLabel > label)
+                {
+                    StdOut() << " & " <<  aK << "th neighbourg last label " << aNeighLabel << std::endl;
+                }
+            }
+        }
+    }
+
 
     cAutoTimerSegm aTSMakeIm(mTimeSegm,"OTHERS");
     if (mMainScale)
@@ -741,7 +834,7 @@ void cAppliCheckBoardTargetExtract::DoOneImageAndScale(tREAL8 aScale,const  tIm 
       GenerateVisuDetail(aVCdtEll);
       StdOut()  << "NB Cd,  SAD: " << mNbSads
 	      << " SYM:" << mVCdtSym.size() 
-	      << " Radiom:" << aVCdtRad.size() 
+	      << " Radiom:" << mVCdtRad.size()
 	      << " Ellipse:" << aVCdtEll.size() 
 	      << " Code:" << aNbEllWCode << "\n";
     }
@@ -754,8 +847,19 @@ void cAppliCheckBoardTargetExtract::DoOneImageAndScale(tREAL8 aScale,const  tIm 
  *  T=6.3751
  *  2 sqrt->6.42483
  */
-
-
+/*
+void cAppliCheckBoardTargetExtract::MissingTargets()
+{
+    for (const auto & aCdtRad:mVCdtRad)
+    {
+        cMesIm1Pt * aNearestMeas = mSetPredictMes.NearestMeasure(aCdtRad.mC);
+        if (Norm2(aNearestMeas->mPt - aCdtRad.mC) <= 1.0)
+        {
+            aVRecovTargets.pushback()
+        }
+    }
+}
+*/
 int  cAppliCheckBoardTargetExtract::Exe()
 {
    mPhProj.FinishInit();

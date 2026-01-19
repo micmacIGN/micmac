@@ -5,6 +5,16 @@
 namespace MMVII
 {
 
+//static constexpr tU_INT1 eNone = 0 ;
+//static constexpr tU_INT1 eTopo0  = 1 ;
+//static constexpr tU_INT1 eTopoTmpCC  = 2 ;
+//static constexpr tU_INT1 eTopoMaxOfCC  = 3 ;
+//static constexpr tU_INT1 eTopoMaxLoc  = 4 ;
+//static constexpr tU_INT1 eFilterSym  = 5 ;
+//static constexpr tU_INT1 eFilterRadiom  = 6 ;
+//static constexpr tU_INT1 eFilterEllipse  = 7 ;
+//static constexpr tU_INT1 eFilterCodedTarget  = 8 ;
+
     class cAppli_CheckBoardTargetRefine : public cMMVII_Appli//heritage de cMMVII_Appli
     {
         public:
@@ -16,21 +26,44 @@ namespace MMVII
 
         private:
             int Exe() override;
+
+            //--spec. methods
             int doVisu(const std::string & aNameIm);
+            int doOneImage(const std::string & aNameIm);
+            std::vector<std::string> MissingTargetsNames(const cSetMesPtOf1Im & aFoundTargets);
+            cSetMesPtOf1Im TargetPredict(const std::string & aNameIm, const std::vector<std::string> & aVMissingTargetsNames);
+            void drawTarget(cSetMesPtOf1Im & aSetOfMes2D, bool isInit);
+
+            std::string mSpecImIn;
+            bool mShow; //show details
+            bool mVisu; //visualisation
+            cRGBImage * mCurrVisuIm;
+            cSetMesGnd3D mInSet3D;
+
             //----stolen to cCheckBoardTargetExtract
             std::string NameVisu(const std::string & aDestIm, const std::string & aPref,const std::string aPost="");
+            void ReadImageAndBlurr();
+            cDataIm2D<tU_INT1> *  mDImLabel;    ///< Data Image of label
+            cIm2D<tU_INT1>        mImLabel;     ///< Image storing labels of centers
+            tIm                   mImInCur;     ///< Input current image
+            cPt2di                mSzImCur;     ///< Size of current image
+            cIm2D<tU_INT1>        mImTmp;       ///< Temporary image for connected components
+            cDataIm2D<tU_INT1> *  mDImTmp;      ///< Data Image of "mImTmp"
+            tIm                   mImBlur;      ///< Blurred image, used in pre-detetction
+            tDIm *                mDImBlur;     ///< Data input image
+            int                   mNbBlur1;     ///< = 4,  Number of initial blurring
+            //std::vector<cCdSadle> mVCdtSad;     ///< Candidate  that are selected as local max of saddle criteria
+            //std::vector<cCdSym>   mVCdtSym;     ///< Candidate that are selected on the symetry criteria
+
+
+
             //----
-            void drawTarget(cSetMesPtOf1Im & aSetOfMes2D, bool isInit);
+
+            //--mandatory
             cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
             cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
             cPhotogrammetricProject mPhProj;
-            std::string mSpecImIn;
-            bool mShow;
-            //--refine
-            int mWinSz;
-            //--visu
-            bool mVisu;
-            cRGBImage * mCurrVisuIm;
+
 
 
     };
@@ -49,7 +82,6 @@ namespace MMVII
     cCollecSpecArg2007 & cAppli_CheckBoardTargetRefine::ArgOpt(cCollecSpecArg2007 & anArgOpt)
     {
         return anArgOpt
-               << AOpt2007(mWinSz,"WinSz","sets size of the window centered on target prediction in which we will look for true target measurement")
                << AOpt2007(mVisu,"Visu","offers visualisation of refined measurements", {eTA2007::HDV})
                << AOpt2007(mShow,"Show","show some useful details", {eTA2007::HDV})//hdv = has default value
             ;
@@ -58,9 +90,19 @@ namespace MMVII
     cAppli_CheckBoardTargetRefine::cAppli_CheckBoardTargetRefine(const std::vector<std::string> & aVArgs,
                                                                 const cSpecMMVII_Appli & aSpec):
         cMMVII_Appli(aVArgs, aSpec),
-        mPhProj (*this),
-        mWinSz (100),
-        mCurrVisuIm (nullptr)
+        mCurrVisuIm (nullptr),
+        //----stolen to cCheckBoardTargetExtract
+        mDImLabel         (nullptr),
+        mImLabel          (cPt2di(1,1)),
+        mImInCur          (cPt2di(1,1)),
+        mImTmp            (cPt2di(1,1)),
+        mDImTmp           (nullptr),
+        mImBlur           (cPt2di(1,1)),
+        mDImBlur          (nullptr),
+        mNbBlur1          (1),
+        //----
+        mPhProj (*this)
+
     {
         //···> constructor does nothing
     }
@@ -74,97 +116,21 @@ namespace MMVII
         mPhProj.FinishInit();
 
         //·0·> iterates on images
-            //gets the firts set
+            //gets the first set
         std::vector<std::string> aVImg = VectMainSet(0);
 
         //·1·>loads global input
             //creates & fills 3d mes. set
-        cSetMesGnd3D aInSet3D = mPhProj.LoadGCP3DFromFolder(mPhProj.DPGndPt3D().DirIn());
+        mInSet3D= mPhProj.LoadGCP3DFromFolder(mPhProj.DPGndPt3D().DirIn());
 
+        //·2->exe. algo for each im.
         for (const auto & aNameIm:aVImg)
         {
-        //·1-im·>loads curr. img. input/output
-            //creates & fills 2d mes. of curr. img.
-            StdOut() << "Loading " << aNameIm << " 2D mes. from "
-                     << mPhProj.DPGndPt2D().DirIn() << std::endl;
-            auto aInSet2D = mPhProj.LoadMeasureImFromFolder(mPhProj.DPGndPt2D().DirIn(), aNameIm);
-
-        //·2-im·> diff. btw. detected points and GCPs set
-
-            //creates wanted set
-            std::vector<std::string> aWantedNames;
-            //iterates on mes3d and checks if pt. p exists in mes2d if not add to
-            //the wanted set
-            auto aKnownNames = aInSet3D.ListOfNames();
-            //StdOut() << a3DNames.size() << " elements names loaded." << std::endl;
-            for (const auto & aNameOfGCP:aKnownNames)
-            {
-                if (!aInSet2D.NameHasMeasure(aNameOfGCP))
-                {
-                    //StdOut() << aNameOfGCP << " not found in " << aNameIm << std::endl;
-                    aWantedNames.push_back(aNameOfGCP);
-                }
-            }
-
-        //·3-im·> 3d->2d projection from input ori
-            //creates 2d set to fill
-            cSetMesPtOf1Im aSetWantedMes2D(aNameIm);
-            //loads im ori
-            cSensorCamPC * aCam = mPhProj.ReadCamPC(aNameIm,true);
-            auto & camSz = aCam->InternalCalib()->PixelDomain().Sz();
-            //iterates on aWantedNames
-            for (const auto & aWantedName:aWantedNames)
-            {
-                auto aWanted2DPt = aCam->Ground2Image(aInSet3D.GetMeasureOfNamePt(aWantedName).mPt);
-                //·4-im·> add 2d mes. only if it is in image
-                auto & xMax = camSz[0];
-                auto & yMax = camSz[1];
-                if (0 < aWanted2DPt[0] && aWanted2DPt[0] < xMax
-                    && 0 < aWanted2DPt[1] && aWanted2DPt[1] < yMax)
-                {
-                    StdOut() << " --> Adding point " << aWantedName << " : "
-                             << aWanted2DPt[0] << ";" << aWanted2DPt[1] << std::endl;
-                    aSetWantedMes2D.AddMeasure(cMesIm1Pt(aWanted2DPt, aWantedName, 1));
-                }
-            }
-
-            mPhProj.SaveMeasureIm(aSetWantedMes2D);
+            doOneImage(aNameIm);
 
             if (mVisu)
             {
                 doVisu(aNameIm);
-            }
-
-            cIm2D<tREAL4> aIm = cIm2D<tREAL4>::FromFile(aNameIm);
-            //extract windows around points
-            auto & aVecMes2D = aSetWantedMes2D.Measures();
-            for (const auto & aMes2D:aVecMes2D){
-                //auto & aDataIm = aIm.DIm();
-                int x = ToI(aMes2D.mPt).x();
-                StdOut() << x;
-                cPt2di lCorn = {ToI(aMes2D.mPt) - cPt2di(100,100)};
-                cPt2di rCorn = {ToI(aMes2D.mPt) + cPt2di(100,100)};
-                //cIm2D<tREAL4> aCroppedIm(cPt2di(200,200));
-                if (aIm.DIm().Inside(lCorn) && aIm.DIm().Inside(rCorn))
-                {
-                    aIm.DIm().ClipToFile(NameVisu(aNameIm, "Tmp1"), cBox2di(cPt2di(0,0),cPt2di(1000,1000)));
-                    aIm.DIm().ClipToFile(NameVisu(aNameIm, "Tmp"), cBox2di(lCorn,rCorn));
-                    /*auto imPtr = aDataIm.ExtractRawData2D();
-                    for (int & i=lCorn.x();i<rCorn.x();++i)
-                    {
-                        for (int & j=lCorn.y();j<rCorn.y();++j)
-                        {
-
-                            auto pixVal = ;
-                            StdOut() << pixVal << std::endl;
-                            break;
-                        }
-                    }*/
-                    //
-                    //aDataIm.CropIn(uLCorn, aCroppedIm.DIm());
-                    //aCroppedIm.DIm().ToFile(NameVisu(aNameIm, "Tmp"));
-                    //StdOut() << "Saved to " << NameVisu(aNameIm, "Tmp");
-                }
             }
         }
 
@@ -176,6 +142,69 @@ namespace MMVII
     {//will have to extract image from original one from 2d box
         ...
     }*/
+
+    int cAppli_CheckBoardTargetRefine::doOneImage(const std::string & aNameIm)
+    {
+    //·1->loads curr. img. input/output
+        auto aFoundTargets = mPhProj.LoadMeasureImFromFolder(mPhProj.DPGndPt2D().DirIn(), aNameIm);
+    //·2->filter mes2D that have not been detected
+        auto aVMissingTargetsNames = MissingTargetsNames(aFoundTargets);
+    //·3->loads filtered 3D points & compute 2D projection (=prediction)
+        if (aVMissingTargetsNames.empty())
+        {
+            return 1;
+        }//else:
+        cSetMesPtOf1Im aPredictions = TargetPredict(aNameIm, aVMissingTargetsNames);
+        mPhProj.SaveMeasureIm(aPredictions);
+    //·4->classical target detection calls -> to be continued ??
+
+    /*    mVCdtSad.clear();
+        mVCdtSym.clear();
+        mCurScale = aScale;
+        ReadImageAndBlurr();
+    */
+        return 0;
+    }
+
+    std::vector<std::string> cAppli_CheckBoardTargetRefine::MissingTargetsNames(const cSetMesPtOf1Im & aFoundTargets)
+    {//diff. btw. detected points and GCPs set
+        std::vector<std::string> aVMissingTargetsNames;//creates wanted set
+        auto aExpectedTargetsNames = mInSet3D.ListOfNames();
+
+        for (const auto & aTargetName:aExpectedTargetsNames)//iterates on mes3d checks if pt. p exists in known mes2d
+        {
+            if (!aFoundTargets.NameHasMeasure(aTargetName))
+            {
+                aVMissingTargetsNames.push_back(aTargetName);
+            }
+        }
+        return aVMissingTargetsNames;
+    }
+
+    cSetMesPtOf1Im cAppli_CheckBoardTargetRefine::TargetPredict(const std::string & aNameIm, const std::vector<std::string> & aVMissingTargetsNames)
+    {//3d->2d prediction of a set of 3d gcps
+        cSetMesPtOf1Im aPredictions(aNameIm);//creates 2d set to fill
+        cSensorCamPC * aCam = mPhProj.ReadCamPC(aNameIm,true);//loads im ori
+        auto & camSz = aCam->InternalCalib()->PixelDomain().Sz();//avoid to load data im.
+
+        for (const auto & aTargetName:aVMissingTargetsNames)//iterates on aWantedNames
+        {
+            auto aPrediction = aCam->Ground2Image(mInSet3D.GetMeasureOfNamePt(aTargetName).mPt);
+            auto & xMax = camSz[0];
+            auto & yMax = camSz[1];
+            if (0 < aPrediction[0] && aPrediction[0] < xMax//add 2d mes. only if it is in image
+                && 0 < aPrediction[1] && aPrediction[1] < yMax)
+            {
+                if (mShow)
+                {
+                    StdOut() << " --> Adding point " << aTargetName << " : "
+                             << aPrediction[0] << ";" << aPrediction[1] << std::endl;
+                }
+                aPredictions.AddMeasure(cMesIm1Pt(aPrediction, aTargetName, 1));
+            }
+        }
+        return aPredictions;
+    }
 
     int cAppli_CheckBoardTargetRefine::doVisu(const std::string & aNameIm)
     {
@@ -200,7 +229,7 @@ namespace MMVII
         {
             if (!isInit)
             {
-                mCurrVisuIm->SetRGBBorderRectWithAlpha(ToI(aPt2D.mPt),mWinSz,10,cRGBImage::Orange,0.1);//0.1 means final opacity = 1-0.1
+                mCurrVisuIm->SetRGBBorderRectWithAlpha(ToI(aPt2D.mPt),100,10,cRGBImage::Orange,0.1);//0.1 means final opacity = 1-0.1
             }
             mCurrVisuIm->DrawCircle(cRGBImage::Black, aPt2D.mPt, 20);
             mCurrVisuIm->DrawCircle(cRGBImage::White, aPt2D.mPt, 22);
@@ -217,6 +246,7 @@ namespace MMVII
         if (aPost!="") aRes = aRes + "-"+aPost;
         return    aRes + ".tif";
     }
+
     //----
 
     //pour faire des trucs avec la memoire - obligatoire
