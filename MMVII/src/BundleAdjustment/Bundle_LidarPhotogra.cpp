@@ -133,7 +133,7 @@ cBA_LidarPhotograRaster::cBA_LidarPhotograRaster(cPhotogrammetricProject * aPhPr
     auto aVScanNames = mPhProj->GetStaticLidarNames(aParam.at(1));
     for (const auto & aNameSens : aVScanNames)
     {
-        cStaticLidar * aLidarData = mPhProj->ReadStaticLidar(aNameSens, true);
+        cStaticLidar * aLidarData = mPhProj->ReadStaticLidar(aNameSens, true, true);
         MMVII_INTERNAL_ASSERT_User(aLidarData,
                                    eTyUEr::eUnClassedError,"Error opening static scans " + aNameSens);
         mVLidarData.push_back({aNameSens, aLidarData, {}});

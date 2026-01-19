@@ -122,8 +122,8 @@ int cAppli_PoseCmp::Exe()
                 continue;
         } else {
             //TSL
-            aCam1 = mPhProj.ReadStaticLidar(aName,true);
-            aCam2 = mPhProj.ReadStaticLidar(aDirOri2,aName,true);
+            aCam1 = mPhProj.ReadStaticLidar(aName,true,false);
+            aCam2 = mPhProj.ReadStaticLidar(aDirOri2,aName,true,false);
         }
         aVCam1.push_back(aCam1);
         aVCam2.push_back(aCam2);

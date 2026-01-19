@@ -149,7 +149,7 @@ int cAppli_PerturbRandomOri::Exe()
         auto aVScanNames = mPhProj.GetStaticLidarNames(mPatTSL);
         for (const auto & aNameScan : aVScanNames)
         {
-            cSensorImage* aSI = mPhProj.ReadStaticLidar(aNameScan,true);
+            cSensorImage* aSI = mPhProj.ReadStaticLidar(aNameScan,true,false);
             mVSI.push_back(aSI);
         }
     }

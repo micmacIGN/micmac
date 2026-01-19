@@ -543,6 +543,7 @@ cStaticLidar::cStaticLidar(const std::string & aNameFile, const std::string & aS
     cSensorCamPC(aNameFile, aPose, aCalib),
     mStationName(aStationName),
     mScanName(aScanName),
+    mAreRastersReady(false),
     mRotInput2Raster(aRotInput2Raster)
 {
 }
@@ -556,17 +557,22 @@ cStaticLidar * cStaticLidar::FromFile(const std::string & aNameScanFile, const s
                                                               + aRes->mTmpNameCalib + "." + GlobTaggedNameDefSerial());
     aRes->mInternalCalib = aCalib;
 
-    aRes->mRasterDistance = std::make_unique<cIm2D<tREAL4>>(cIm2D<tREAL4>::FromFile(aNameRastersDir+"/"+aRes->mRasterDistancePath));
-    aRes->mRasterIntensity = std::make_unique<cIm2D<tU_INT1>>(cIm2D<tU_INT1>::FromFile(aNameRastersDir+"/"+aRes->mRasterIntensityPath));
-    aRes->mRasterMask = std::make_unique<cIm2D<tU_INT1>>(cIm2D<tU_INT1>::FromFile(aNameRastersDir+"/"+aRes->mRasterMaskPath));
-    aRes->mRasterX = std::make_unique<cIm2D<tREAL4>>(cIm2D<tREAL4>::FromFile(aNameRastersDir+"/"+aRes->mRasterXPath));
-    aRes->mRasterY = std::make_unique<cIm2D<tREAL4>>(cIm2D<tREAL4>::FromFile(aNameRastersDir+"/"+aRes->mRasterYPath));
-    aRes->mRasterZ = std::make_unique<cIm2D<tREAL4>>(cIm2D<tREAL4>::FromFile(aNameRastersDir+"/"+aRes->mRasterZPath));
+    if (aNameRastersDir!="")
+    {
+        aRes->mRasterDistance = std::make_unique<cIm2D<tREAL4>>(cIm2D<tREAL4>::FromFile(aNameRastersDir+"/"+aRes->mRasterDistancePath));
+        aRes->mRasterIntensity = std::make_unique<cIm2D<tU_INT1>>(cIm2D<tU_INT1>::FromFile(aNameRastersDir+"/"+aRes->mRasterIntensityPath));
+        aRes->mRasterMask = std::make_unique<cIm2D<tU_INT1>>(cIm2D<tU_INT1>::FromFile(aNameRastersDir+"/"+aRes->mRasterMaskPath));
+        aRes->mRasterX = std::make_unique<cIm2D<tREAL4>>(cIm2D<tREAL4>::FromFile(aNameRastersDir+"/"+aRes->mRasterXPath));
+        aRes->mRasterY = std::make_unique<cIm2D<tREAL4>>(cIm2D<tREAL4>::FromFile(aNameRastersDir+"/"+aRes->mRasterYPath));
+        aRes->mRasterZ = std::make_unique<cIm2D<tREAL4>>(cIm2D<tREAL4>::FromFile(aNameRastersDir+"/"+aRes->mRasterZPath));
+        aRes->mAreRastersReady = true;
+    }
     return aRes;
 }
 
 cPt3dr cStaticLidar::Image2InputXYZ(const cPt2di & aRasterPx) const
 {
+    MMVII_INTERNAL_ASSERT_tiny(mAreRastersReady, "Error: rasters not ready");
     auto & aRasterXData = mRasterX->DIm();
     auto & aRasterYData = mRasterY->DIm();
     auto & aRasterZData = mRasterZ->DIm();
@@ -579,6 +585,7 @@ cPt3dr cStaticLidar::Image2InputXYZ(const cPt2di & aRasterPx) const
 
 cPt3dr cStaticLidar::Image2InputXYZ(const cPt2dr & aRasterPx) const
 {
+    MMVII_INTERNAL_ASSERT_tiny(mAreRastersReady, "Error: rasters not ready");
     auto & aRasterXData = mRasterX->DIm();
     auto & aRasterYData = mRasterY->DIm();
     auto & aRasterZData = mRasterZ->DIm();
@@ -611,6 +618,7 @@ std::string  cStaticLidar::Pat2Sup(const std::string & aPatSelect)
 
 cPt2dr cStaticLidar::Ground2ImagePrecise(const cPt3dr & aGroundPt) const
 {
+    MMVII_INTERNAL_ASSERT_tiny(mAreRastersReady, "Error: rasters not ready");
     //std::cout<<"  Ground2ImagePrecise for point "<<aGroundPt<<"\n";
     cPt2dr aDirCam3DTheoretical = InternalCalib()->Dir_Proj()->Value(Pose().Inverse(aGroundPt));
     //std::cout<<"  UV th: "<<aDirCam3DTheoretical<<"\n";
@@ -780,6 +788,8 @@ void cStaticLidar::fillRasters(const cStaticLidarImporter & aSL_importer, const 
                       }, saveRasters );
 
     mRasterScore.reset(new cIm2D<tREAL4>(cPt2di(aSL_importer.NbCol()+1, aSL_importer.NbLine()+1), 0, eModeInitImage::eMIA_Null));
+
+    mAreRastersReady = true;
 }
 
 void cStaticLidar::FilterIntensity(const cStaticLidarImporter &aSL_importer, tREAL8 aLowest, tREAL8 aHighest)
@@ -1030,6 +1040,7 @@ void cStaticLidar::MakePatches
      int    aSzMin
      ) const
 {
+    MMVII_INTERNAL_ASSERT_tiny(mAreRastersReady, "Error: rasters not ready");
     auto & aRasterDistData = mRasterDistance->DIm();
     auto & aRasterMaskData = mRasterMask->DIm();
 
