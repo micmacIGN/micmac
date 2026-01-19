@@ -104,8 +104,9 @@ public :
                  const std::string & aScanName, const tPose &aPose, cPerspCamIntrCalib *aCalib,
                  cRotation3D<tREAL8> aRotInput2Raster);
 
-    static cStaticLidar *FromFile(const std::string & aNameScanFile, const std::string & aNameRastersDir);
+    static cStaticLidar *FromFile(const std::string & aNameScanFile, const std::string & aNameRastersDir="");
 
+    bool AreRastersReady() const { return mAreRastersReady;}
     void ToPly(const std::string & aName, bool useMask=false) const;
     void AddData(const  cAuxAr2007 & anAux) ;
     virtual void ToFile(const std::string &) const override;
@@ -167,6 +168,8 @@ private :
     std::string mRasterPhiPath;
     std::string mRasterThetaErrPath;
     std::string mRasterPhiErrPath;
+
+    bool mAreRastersReady;
 
     std::vector<cPt2di> mPatchCenters;
 
