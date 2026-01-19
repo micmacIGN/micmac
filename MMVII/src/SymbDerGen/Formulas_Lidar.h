@@ -263,6 +263,88 @@ class cEqLidarImCorrel : public cRadiomLidarIma
 };
 
 
+/*
+ * scan to scan adjustment:
+ * frome scan A patch, in Camera3D coords => PoseA to get world coords
+ * => InvPoseB to get scan B Camera3D coords => Proj to get scan B raster pixel => get distanceB
+ * error = distanceB - distance scanB to ground point
+ *
+ * */
+class cEqLidarLidar
+{
+public :
+    template <typename tUk,typename tObs>
+    std::vector<tUk> formula
+        (
+            const std::vector<tUk> & aVUk,
+            const std::vector<tObs> & aVObs
+            )  const
+    {
+        size_t aIndUk = 0;
+        size_t aIndObs = 0;
+        // read the unknowns
+        cPtxd<tUk,3>  aCScanA   = VtoP3AutoIncr(aVUk,&aIndUk);
+        cPtxd<tUk,3>  aWScanA   = VtoP3AutoIncr(aVUk,&aIndUk);
+        cPtxd<tUk,3>  aCScanB   = VtoP3AutoIncr(aVUk,&aIndUk);
+        cPtxd<tUk,3>  aWScanB   = VtoP3AutoIncr(aVUk,&aIndUk);
+
+        // read the observations
+        cMatF<tObs> aRotScanAInit   = cMatF<tObs>(3,3,&aIndObs,aVObs);         // Curent value of scan A rotation
+        cMatF<tObs> aRotScanBTrInit = cMatF<tObs>(3,3,&aIndObs,aVObs);         // Curent value of scan B rotation, transposed
+
+        cPtxd<tObs,3>  aPScanA     = VtoP3AutoIncr(aVObs,&aIndObs);  // Value of point in scan A frame
+        cPtxd<tObs,3>  aPScanB0    = VtoP3AutoIncr(aVObs,&aIndObs);  // Initial value of point in scan B frame
+        tObs           aDistB0     = aVObs.at(aIndObs++);            // Current distance read in raster B
+        cPtxd<tObs,3>  aGradProjBI = VtoP3AutoIncr(aVObs,&aIndObs);  // I(abscissa) of gradient / PCamera of projection
+        cPtxd<tObs,3>  aGradProjBJ = VtoP3AutoIncr(aVObs,&aIndObs);  // J(ordinate) of gradient / PCamera of projection
+        cPtxd<tObs,2>  aGradDistB  = VtoP2AutoIncr(aVObs,&aIndObs);  // extract the gradient of distance raster
+
+        cMatF<tUk>   aDeltaScanARot =  cMatF<tUk>::MatAxiator(-aWScanA); // transpose small rotation associated to W
+        cPtxd<tUk,3> aPGround = aRotScanAInit * aDeltaScanARot * aPScanA + aCScanA;
+
+        tUk aDistGround = Norm2(aPGround - aCScanB);
+
+        cMatF<tUk>   aDeltaScanBRot =  cMatF<tUk>::MatAxiator(aWScanB); // small rotation associated to W
+        cPtxd<tUk,3> aPCoordB = aDeltaScanBRot * aRotScanBTrInit * (aPGround - aCScanB);
+
+        //                                       d Intr
+        // Intr(Pose(Pground)) =  Intr(PCam0)  + ------- * (Pose(Pground) - PCam0)
+        //                                       dcam
+        //
+        cPtxd<tUk,3> aDeltaPScanB = aPCoordB-aPScanB0;  // difference Unknown point in scan B coord, vs its current value
+        tUk aDelta_I = PScal(aDeltaPScanB,aGradProjBI); // scalar product gradient with diff
+        tUk aDelta_J = PScal(aDeltaPScanB,aGradProjBJ); // scalar product gradient with diff
+
+        // compute the distance
+        tUk aDistB = aDistB0 + PScal(aGradDistB,cPtxd<tObs,2>(aDelta_I,aDelta_J));
+        return  { aDistGround - aDistB };
+    }
+
+    std::vector<std::string> VNamesUnknowns()  const
+    {
+        return Append(NamesP3("OmegaScanA"), NamesP3("OmegaScanB"));
+    }
+    std::vector<std::string> VNamesObs() const
+    {
+        return Append(Append(NamesMatr("RotScanA",cPt2di(3,3)),
+                             NamesMatr("RotScanBTr",cPt2di(3,3)),
+                             NamesP3("PScanA"),
+                             NamesP3("PScanB0")),
+                      Append({"DistB0"},
+                             NamesP3("GradProjBI"),   //  (d PIm / d PCam ).i
+                             NamesP3("GradProjBJ"),   //  (d PIm / d PCam) .j
+                             NamesP2("GradDistB")));
+    }
+    std::string FormulaName() const {
+        return  "EqLidarLidar";
+    }
+
+private :
+};
+
+
+
+
 
 };//  namespace MMVII
 
