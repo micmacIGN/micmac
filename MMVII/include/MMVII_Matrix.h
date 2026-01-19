@@ -438,10 +438,11 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         cDenseMatrix Dup() const;
         static cDenseMatrix Identity(int aSz);  ///< return identity matrix
         static cDenseMatrix Diag(const tDV &);
-        static cDenseMatrix FromLines(const std::vector<tDV> &);  // Create from set of "line vector"
-        static cDenseMatrix MatLine(const tDV &);  // Create from set of "line vector"
-        static cDenseMatrix FromCols(const std::vector<tDV> &);  // Create from set of "line vector"
-        static cDenseMatrix MatCol(const tDV &);  // Create from set of "line vector"
+        static cDenseMatrix FromLines(const std::vector<tDV> &);  ///< Create from set of "line vector"
+        static cDenseMatrix MatLine(const tDV &);  ///< Create from set of "line vector"
+        static cDenseMatrix FromCols(const std::vector<tDV> &);  ///< Create from set of "line vector"
+        static cDenseMatrix MatCol(const tDV &);  ///< Create from set of "line vector"
+        static cDenseMatrix MatPerm(const std::vector<int> &); ///< Create matrix of permutation
         cDenseMatrix ClosestOrthog() const;  ///< return closest 
 
         // static tDM  MatCol(const tDV & );
@@ -482,8 +483,8 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         void  SetElem(int  aX,int  aY,const Type & aV) {  tUO_DM::SetElem(aX,aY,aV);}
         void  AddElem(int  aX,int  aY,const Type & aV) {  tUO_DM::AddElem(aX,aY,aV);}
 
-	void PushByLine(std::vector<Type> &) const; /// write all the matrix, do it line-first
-	void PushByCol(std::vector<Type> &) const; /// write all the matrix, do it Colum-first
+        void PushByLine(std::vector<Type> &) const; /// write all the matrix, do it line-first
+        void PushByCol(std::vector<Type> &) const; /// write all the matrix, do it Colum-first
 
         void Show() const;
 
@@ -495,7 +496,7 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
 
        
         // tDM  SymInverse() const;  ///< Inverse of symetric matrix
-	void InverseInPlace(const tDM & aM);  ///< Put M-1 in this
+        void InverseInPlace(const tDM & aM);  ///< Put M-1 in this
         tDM  Inverse() const;  ///< Basic inverse
         tDM  Inverse(double Eps,int aNbIter) const;  ///< N'amene rien, eigen fonctionne deja tres bien en general 
 
@@ -511,7 +512,10 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
 
         double Unitarity() const; ///< test the fact that M is unatiry, basic : distance of Id to tM M
         cResulSymEigenValue<Type> SymEigenValue() const;
-        tRSVD  SVD() const;
+        /**  cannot waranty that, when matrix is direct, both orthog matrix are direct because order
+         *   of eigen value is fixed, but at least if PremMatDirect is true, the first one will be */
+
+        tRSVD  SVD(bool PremMatDirect=false) const;
 
         cResulQR_Decomp<Type>    QR_Decomposition() const;
         cResulRQ_Decomp<Type>    RQ_Decomposition() const;
@@ -541,11 +545,13 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         tDM  LineInverse() const;  ///< cont version of SelfLineInverse
         void SelfColInverse() ;  ///< colum inversion   ,  used for RQ decomposition (QR => RQ)
 
-	void SelfLineChSign(int aNumL); ///<  chang signe of line aNumL, used in QR/RQ to normalize with diag>0 of R
-	void SelfColChSign(int aNumC);  ///<  chang signe of column aNumC, used in QR/RQ to normalize with diag>0 of R
+        void SelfLineChSign(int aNumL); ///<  chang signe of line aNumL, used in QR/RQ to normalize with diag>0 of R
+        void SelfColChSign(int aNumC);  ///<  chang signe of column aNumC, used in QR/RQ to normalize with diag>0 of R
          
         double Diagonalicity() const; ///< how much close to a diagonal matrix, square only , 
         Type   Det() const;  ///< compute the determinant, not sur optimise
+        Type   Trace() const;  ///< compute the trace, quite basic
+
 
         void ChangSign(); ///< Multiply by -1
         void SetDirectBySign(); ///< Multiply by -1 if indirect
@@ -558,6 +564,8 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         Type MulLineElem(int  aX,const tDV &)const override;
         void  Add_tAB(const tDV & aCol,const tDV & aLine) override;
         void  Add_tAA(const tDV & aColLine,bool OnlySup=true) override;
+        void  WeightedAdd_tAA(const tDV & aColLine,const tVal& aW,bool OnlySup=true);
+
         void  Sub_tAA(const tDV & aColLine,bool OnlySup=true) override;
 
         void  Weighted_Add_tAA(Type aWeight,const tDV & aColLine,bool OnlySup=true) override;
@@ -728,6 +736,8 @@ template <class Type> class cStrStat2
        cStrStat2(int aSz);
        /// Add a vectors to stats
        void Add(const cDenseVect<Type> & );
+       /// Add a vectors to stats
+       void WeightedAdd(const cDenseVect<Type> &,const Type & aW );
        /// Make average (instead of sums) and centered (for cov)
        void Normalise(bool CenteredAlso=true);
        ///  Compute eigen values

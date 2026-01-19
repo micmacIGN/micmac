@@ -22,6 +22,12 @@ std::vector<std::string>  NamesMatr(const std::string& aPref,const cPt2di & aSz)
      return aRes;
 }
 
+std::vector<std::string>  NamesObsP3Norm(const std::string& aPref)
+{
+  return    Append(NamesP3("PNorm"+ aPref),NamesP3("DirU"+aPref),NamesP3("DirV"+aPref));
+}
+
+
 std::vector<std::string>  VectNames(const std::string& aPref,int aK0,int aK1)
 {
     std::vector<std::string> aRes;

@@ -54,6 +54,16 @@ void cP3dNormWithUK::PutUknowsInSetInterval()
    mSetInterv->AddOneInterv(mDuDv);
 }
 
+cPt2dr & cP3dNormWithUK::DuDv(){return mDuDv;}
+
+void cP3dNormWithUK::AddIdexesAndObs(std::vector<int> & aVecIndexe, std::vector<double>& aVecObs)
+{
+    PushIndexes(aVecIndexe);
+    AppendIn(aVecObs,mPNorm.ToStdVector());
+    AppendIn(aVecObs,mU.ToStdVector());
+    AppendIn(aVecObs,mV.ToStdVector());
+}
+
 void  cP3dNormWithUK::FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 {
    aGAIP.TestParam(this, &( mDuDv.x()),"Dx");
@@ -70,6 +80,20 @@ void cP3dNormWithUK::SetPNorm(const cPt3dr & aTr)
     mPNorm = aTr;
     Init();
 }
+
+
+void AddData(const  cAuxAr2007 & anAux,cP3dNormWithUK & aPUK)
+{
+    cPt3dr aPt = aPUK.GetPNorm();
+    MMVII::AddData(anAux,aPt);
+    if (anAux.Input())
+        aPUK.SetPNorm(aPt);
+    else
+    {
+         MMVII_INTERNAL_ASSERT_tiny(IsNull(aPUK.DuDv()),"Write unknown pt with DuDv!=0");
+    }
+}
+
 
 /* ******************************************************* */
 /*                                                         */
@@ -141,10 +165,27 @@ void  cRotWithUK::FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
     SetNameTypeId(aGAIP);
 }
 
+
+void cRotWithUK::AddIdexesAndObs(std::vector<int> & aVIndexes, std::vector<double>& aVObs,bool TranspMatr)
+{
+  //   StdOut() << "IIIIIIInnd " << IndUk0() << " " << IndUk1() << "\n";
+   PushIndexes(aVIndexes);
+   PushObs(aVObs,TranspMatr);
+}
+/*
+PushIndexes(aVecIndexe);
+AppendIn(aVecObs,mPNorm.ToStdVector());
+AppendIn(aVecObs,mU.ToStdVector());
+AppendIn(aVecObs,mV.ToStdVector());
+*/
+
+
 void cRotWithUK::PutUknowsInSpecifiedSetInterval(cSetInterUK_MultipeObj<tREAL8> * aSetInterv)
 {
+ //StdOut() << "cRotWithUK::PutUknowsInSpecifiedSetIntervacRotWithUK::PutUknowsInSpecifiedSetIntervacRotWithUK::PutUknowsInSpecifiedSetInte\n";
     aSetInterv->AddOneInterv(mOmega);
 
+ // StdOut() << "RRrrrr_IIIIIIInnd " << IndUk0() << " " << IndUk1() << "\n";
 }
 void cRotWithUK::PutUknowsInSetInterval()
 {
@@ -201,6 +242,7 @@ tPoseR   cPoseWithUK::Pose()   const
 
 const tRotR & cPoseWithUK::Rot() const  {return mRUK.Rot();}
 
+cRotWithUK & cPoseWithUK::RUK() {return mRUK;}
 
 
 const cPt3dr &   cPoseWithUK::Tr() const {return mTr;}
@@ -283,11 +325,18 @@ void cPoseWithUK::PutUknowsInSpecifiedSetInterval(cSetInterUK_MultipeObj<tREAL8>
 {
     aSetInterv->AddOneInterv(mTr);
     mRUK.PutUknowsInSpecifiedSetInterval(aSetInterv);
+
+   // StdOut() << "PPPPrrrr_IIIIIIInnd " << IndUk0() << " " << IndUk1() << "\n";
+
 }
 
 void cPoseWithUK::PutUknowsInSetInterval()
 {
+//StdOut() << "PoseWithUK::PutUknowsInSetInterval " << __LINE__ << "\n";
     PutUknowsInSpecifiedSetInterval(mSetInterv);
+//StdOut() << "PoseWithUK::PutUknowsInSetInterval " << __LINE__ << "\n";
+ //   mRUK.PutUknowsInSetInterval();
+//StdOut() << "PoseWithUK::PutUknowsInSetInterval " << __LINE__ << "\n";
 }
 
 void AddData(const  cAuxAr2007 & anAux,cPoseWithUK & aPUK)
@@ -321,6 +370,14 @@ void cPoseWithUK::PushObs(std::vector<double> & aVObs,bool TransposeMatr)
         mPose.Rot().Mat().PushByLine(aVObs);
         */
 }
+
+void cPoseWithUK::AddIdexesAndObs(std::vector<int> & aVIndexes, std::vector<double>& aVObs,bool TranspMatr)
+{
+    PushIndexes(aVIndexes);
+    PushObs(aVObs,TranspMatr);
+}
+
+//   StdOut() << "IIIIIIInnd " << IndUk0() << " " << IndUk1() << "\n";
 
 /* ******************************************************* */
 /*                                                         */

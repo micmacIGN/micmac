@@ -190,7 +190,6 @@ template <class T,const int Dim>  class  cNV<cPtxd<T,Dim> >
         static  cPtxd<T,Dim>V0(){return  cPtxd<T,Dim>::PCste(0);}
 };
 
-
     ///  1 dimension specializatio,
 /*
 typedef cPtxd<double,1>  cPt1dr ;
@@ -428,8 +427,13 @@ template <class T,const int Dim> typename tNumTrait<T>::tBig MulCoord(const cPtx
 template <class T,const int Dim> T Cos(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);
 template <class T,const int Dim> T CosWDef(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &,const T&);
 template <class T,const int Dim> T AbsAngle(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);
-//  Trunk cos in [-1,1] if necessary
+///  Trunk cos in [-1,1] if necessary
 template <class T,const int Dim> T AbsAngleTrnk(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);
+/// angle of line, in [0,PI/2]  , opposite direction ar considered equal
+template <class T,const int Dim> T AbsLineAngleTrnk(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);
+
+//  +- equiv to AbsLineAngleTrnk for small values, more accurate and faster (?)
+template <class T,const int Dim> T DistDirLine(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &,const T & aDef=2.0);
 
 
 template <class T,const int Dim> T MinAbsCoord(const cPtxd<T,Dim> & aP);
@@ -622,6 +626,9 @@ template <class tContPts>  class cComputeCentroids
 
        /// Median of dist to  MedianCentroids
        static tREAL8   MedianSigma(const tContPts &);
+
+       static tPts   LinearWeigtedCentroids(const tContPts &,const std::vector<tEl>* =nullptr);
+
 };
 
 /*
@@ -935,5 +942,43 @@ template <class Type,const int Dim> class cSegmentCompiled : public cSegment<Typ
 
 
 };
+
+
+template <class Type>
+struct std::less<MMVII::cPtxd<Type,1>>
+{
+    std::size_t operator()(const MMVII::cPtxd<Type,1>& lhs, const MMVII::cPtxd<Type,1>& rhs) const
+    {
+        return lhs.x() < rhs.x();
+    }
+};
+
+template <class Type>
+struct std::less<MMVII::cPtxd<Type,2>>
+{
+    std::size_t operator()(const MMVII::cPtxd<Type,2>& lhs, const MMVII::cPtxd<Type,2>& rhs) const
+    {
+        return lhs.x() < rhs.x() ? true : lhs.y() < rhs.y();
+    }
+};
+
+template <class Type>
+struct std::less<MMVII::cPtxd<Type,3>>
+{
+    std::size_t operator()(const MMVII::cPtxd<Type,3>& lhs, const MMVII::cPtxd<Type,3>& rhs) const
+    {
+        return lhs.x() < rhs.x() ? true : (lhs.y() < rhs.y() ? true : lhs.z() < rhs.z());
+    }
+};
+
+template <class Type>
+struct std::less<MMVII::cPtxd<Type,4>>
+{
+    std::size_t operator()(const MMVII::cPtxd<Type,4>& lhs, const MMVII::cPtxd<Type,4>& rhs) const
+    {
+        return lhs.x() < rhs.x() ? true : (lhs.y() < rhs.y() ? true : (lhs.z() < rhs.z() ? true : lhs.t() < rhs.t()));
+    }
+};
+
 
 #endif  //  _MMVII_Ptxd_H_

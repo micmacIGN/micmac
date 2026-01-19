@@ -183,7 +183,10 @@ double RandUnif_0_1()
 {
    return cRandGenerator::TheOne()->Unif_0_1();
 }
-
+double RandUnif_Angle()
+{
+    return RandUnif_0_1() * 2.0 * M_PI;
+}
 std::vector<double> VRandUnif_0_1(int aNb)
 {
     std::vector<double> aRes;
@@ -270,6 +273,17 @@ std::vector<int> RandPerm(int aN,cFctrRR & aBias)
 {
     return RandSet(aN,aN,aBias);
 }
+
+std::vector<int> ShitPerm(int aN,int aDelta)
+{
+    std::vector<int>  aRes(aN);
+
+    for (int aK=0 ; aK<aN ; aK++)
+        aRes.at(aK) = mod(aK+aDelta,aN);
+    return aRes;
+}
+
+
 
 int MaxElem(const std::vector<int> & aSet)
 {

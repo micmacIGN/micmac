@@ -11,7 +11,6 @@
 #include "MMVII_PoseTriplet.h"
 #include "MMVII_InstrumentalBlock.h"
 
-
 /**
    \file  cPhotogrammetricProject.cpp
 
@@ -1293,11 +1292,22 @@ cBlocOfCamera * cPhotogrammetricProject::ReadUnikBlocCam() const
     return *(aListBloc.begin());
 }
 
+//  =============  Static Lidar  =================
+
+cStaticLidar * cPhotogrammetricProject::ReadStaticLidar(const cDirsPhProj& aDP, const std::string &aScanName, bool ToDeleteAutom) const
+{
+    aDP.AssertDirInIsInit();
+    std::string aScanFileName  =  aDP.FullDirIn() + aScanName;
+    std::string aCalibFileName  =  aDP.FullDirIn() + cStaticLidar::CalibPrefixName() + aScanName;
+    cStaticLidar * aScan =  cStaticLidar::FromFile(aCalibFileName, aScanFileName, aDP.FullDirIn());
+
+    if (ToDeleteAutom)
+       cMMVII_Appli::AddObj2DelAtEnd(aScan);
+    return aScan;
+}
+
 
 //  =============  Topo Mes  =================
-
-               // TOPO
-
 
 void   cPhotogrammetricProject::SaveTopoMes(const cBA_Topo & aBATopo) const
 {

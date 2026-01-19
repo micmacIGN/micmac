@@ -6,24 +6,137 @@
 namespace MMVII
 {
 
+/// class for modelization of an affine space : a point + vectorials
+template<const int Dim> class cAffineSpace
+{
+   public :
+      typedef cPtxd<tREAL8,Dim> tPtR;
+      typedef std::vector<tPtR> tVecSp;
+      typedef cAffineSpace<Dim> tAffSp;
+
+      const tPtR &   P0()    const {return mP0;}
+      const tVecSp & VecSp() const {return mVecSp;}
+
+      static tAffSp LstSqEstimate(const  std::vector<tPtR> &,int aSzSubs);
+
+   private :
+      tPtR    mP0;
+      tVecSp  mVecSp;
+};
+
+template<const int Dim>
+     cAffineSpace<Dim>  cAffineSpace<Dim>::LstSqEstimate(const  std::vector<tPtR> & aVPt,int aSzSubs)
+{
+    tAffSp aRes;
+
+    cStrStat2<tREAL8> aStat(Dim);
+    for (const auto & aPR :  aVPt)
+    {
+        aStat.Add(aPR.ToVect());
+    }
+
+    aStat.Normalise();
+    const cResulSymEigenValue<tREAL8> &  aRSEV = aStat.DoEigen();
+
+    aRes.mP0 = tPtR::FromVect(aStat.Moy());
+    for (int aK=0 ; aK<aSzSubs ; aK++)
+    {
+       cDenseVect<tREAL8> aVec(aRSEV.EigenVectors().ReadCol(Dim-1-aK));
+
+       aRes.mVecSp.push_back(tPtR::FromVect(aVec));
+    }
+
+    return aRes;
+}
+
+
+
+template<const int Dim> void DimBenchLsqVariety(int aDimSE)
+{
+    tSim3dR aSim =  tSim3dR::RandomSim3D(10,10);
+    const tRotR & aRot = aSim.Rot() ;
+    typedef cPtxd<int,Dim> tPtI;
+    typedef cPtxd<tREAL8,Dim> tPtR;
+    int aDistMax= 2;
+
+    std::vector<tPtR> aVPt;
+    for (const auto & aPI :  cPixBox(tPtI::PCste(-aDistMax),tPtI::PCste(aDistMax+1)))
+    {
+        tPtR aPR;
+        for (int aD=0 ; aD<Dim ; aD++)
+            aPR[aD] = aPI[aD] * (1+aD);
+        aVPt.push_back(aSim.Value(ToR(aPR)));
+    }
+
+   cAffineSpace<Dim> aAfSp =  cAffineSpace<Dim>::LstSqEstimate(aVPt,aDimSE);
+
+    StdOut() // << " RSEV Val=" << aRSEV.EigenValues()
+            << " [V1=" << aAfSp.VecSp().at(0)
+            <<  " V2=  " << aRot.Value(cPt3dr(0,0,1))  << "] "
+             << " Tr=" << aSim.Tr()
+            << "  C=" << aAfSp.P0()
+            << "\n";
+    /*
+    for (const auto & aPR :  aVPt)
+    {
+        aStat.Add(aPR.ToVect());
+    }
+
+    aStat.Normalise();
+
+    const cResulSymEigenValue<tREAL8> &  aRSEV = aStat.DoEigen();
+
+    StdOut()<< " RSEV Val=" << aRSEV.EigenValues()
+            << " [V1=" << aRSEV.EigenVectors().ReadCol(Dim-1)
+            <<  " V2=  " << aRot.Value(cPt3dr(0,0,1))  << "] "
+             << " Tr=" << aSim.Tr()
+            << "  C=" <<  tPtR::FromVect(aStat.Moy())
+            << "\n";
+*/
+
+}
+
+void BenchLsqVariety()
+{
+   for (int aK=0 ; aK<1 ; aK++)
+   {
+     //  DimBenchLsqVariety<1>();
+     //  DimBenchLsqVariety<2>();
+      // DimBenchLsqVariety<3>(0);
+       DimBenchLsqVariety<3>(1);
+      // DimBenchLsqVariety<3>(2);
+      // DimBenchLsqVariety<3>(3);
+
+
+   }
+}
+
+// template <const int Dim> class cFit
+
+//  Test the "OrthogonalizePair" function that make ortognal 2 vecteur with minimal def, do it with
+// 3d as with cross product we have an easy check
+
 void Bench_OrthogonalizePair(const cPt3dr& aP1, const cPt3dr & aP2)
 {
     auto [aQ1,aQ2] = OrthogonalizePair(aP1,aP2);
 
+    // the normal to plane must be equal between old & new (i.e planes are equal)
     tREAL8 aDifN =  Norm2(VUnit(aP1^aP2) - VUnit(aQ1^aQ2));
+    MMVII_INTERNAL_ASSERT_bench(aDifN<1e-10,"Bench_OrthogonalizePair Normal");
+
+    // the new vector must be orthogonal ....
     tREAL8 aScal = Scal(aQ1,aQ2);
+    MMVII_INTERNAL_ASSERT_bench(aScal<1e-10,"Bench_OrthogonalizePair Scal");
+
+    // the new vectors must be to equal distance
     tREAL8 aD1 = Norm2(VUnit(aP1)-aQ1);
     tREAL8 aD2 = Norm2(VUnit(aP2)-aQ2);
+    MMVII_INTERNAL_ASSERT_bench(std::abs(aD1-aD2)<1e-10,"Diff distl");
 
+    // check d(P1,Q2)=d(P2,Q1) may be redundant
     tREAL8 aD12 = Norm2(VUnit(aP1)-aQ2);
     tREAL8 aD21 = Norm2(VUnit(aP2)-aQ1);
-
-    MMVII_INTERNAL_ASSERT_bench(aDifN<1e-10,"Bench_OrthogonalizePair Normal");
-    MMVII_INTERNAL_ASSERT_bench(aScal<1e-10,"Bench_OrthogonalizePair Scal");
-    MMVII_INTERNAL_ASSERT_bench(std::abs(aD1-aD2)<1e-10,"Diff distl");
-    MMVII_INTERNAL_ASSERT_bench(std::max(aD1,aD2)<std::min(aD12,aD21)+1e-10,"Order distl");
-
-    //StdOut() << " DifN=" << aDifN << " S=" << aScal << " " << aD1 << " " << aD2 << " " << aD12 << " " << aD21 << "\n";
+    MMVII_INTERNAL_ASSERT_bench( RelativeDifference(aD12,aD21)<1e-10,"Order distl");
 }
 
 void Bench_OrthogonalizePair()
@@ -770,6 +883,7 @@ void BenchGeom(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("Geom")) return;
 
+    BenchLsqVariety();
     Bench_OrthogonalizePair();
     BenchSeg2D();
 

@@ -437,7 +437,8 @@ void AddData(const cAuxAr2007 & anAux,cPerspCamIntrCalib &);
 /** Class for modelising a pose when it is used as unknwon in non linear system
  */
 
-class cRotWithUK  :  public cObjWithUnkowns<tREAL8>
+class cRotWithUK  :  public cObjWithUnkowns<tREAL8>,
+                     public cMemCheck
 {
    public :
       cRotWithUK();
@@ -464,14 +465,17 @@ class cRotWithUK  :  public cObjWithUnkowns<tREAL8>
        // Val axiator should have to "equal" fix rot
        cPt3dr ValAxiatorFixRot(const tRotR & aRotFix) const;
 
-   private :
+       void AddIdexesAndObs(std::vector<int> &, std::vector<double>&,bool TransMatr=false);
+
        void PutUknowsInSetInterval() override ;  // add the interval on udpate
+private :
 
        tRotR      mRot;   ///< transformation Cam to Word
        cPt3dr     mOmega;  ///< vector for tiny rotation when used in unknown, mW  in code gene ...
 };
 
-class cPoseWithUK :  public cObjWithUnkowns<tREAL8>
+class cPoseWithUK :  public cObjWithUnkowns<tREAL8>,
+                     public cMemCheck
 {
      public :
          /// Fill with dummy value for case where default constructor is required
@@ -485,6 +489,8 @@ class cPoseWithUK :  public cObjWithUnkowns<tREAL8>
          void PushObs(std::vector<double> &,bool TransposeMatr);
 
          cPoseWithUK(const tPoseR & aPose);
+         void AddIdexesAndObs(std::vector<int> &, std::vector<double>&,bool TransMatr=false);
+
 
      // different accessor to the pose
          tPoseR   Pose()   const;
@@ -516,6 +522,8 @@ class cPoseWithUK :  public cObjWithUnkowns<tREAL8>
          cPt3dr ValAxiatorFixRot(const tRotR & aRotFix) const;
 
 
+         cRotWithUK & RUK();
+
      private :
          cPoseWithUK(const cPoseWithUK&) = delete;
          void PutUknowsInSetInterval() override ;  // add the interval on udpate
@@ -530,7 +538,8 @@ class cPoseWithUK :  public cObjWithUnkowns<tREAL8>
 void AddData(const  cAuxAr2007 & anAux,cPoseWithUK & aPUK);
 
 ///  class for modelizing a normaliezd 3D-Vect when used as unknown in non linear system
-class cP3dNormWithUK :  public cObjWithUnkowns<tREAL8>
+class cP3dNormWithUK :  public cObjWithUnkowns<tREAL8>,
+                        public cMemCheck
 {
    public :
         cP3dNormWithUK(const cPt3dr &aPt,const std::string& aNameType,const std::string & aNameGrp);
@@ -540,6 +549,9 @@ class cP3dNormWithUK :  public cObjWithUnkowns<tREAL8>
 
         void SetPNorm(const cPt3dr & aTr);
         cPt3dr GetPNorm () const;
+        cPt2dr & DuDv();
+
+        void AddIdexesAndObs(std::vector<int> &, std::vector<double>&);
    private :
         // normalize , compute U & V, set mDuDv to 0
       void Init();
@@ -551,6 +563,7 @@ class cP3dNormWithUK :  public cObjWithUnkowns<tREAL8>
       cPt2dr  mDuDv;   //
 
 };
+void AddData(const  cAuxAr2007 & anAux,cP3dNormWithUK & aPUK);
 
 
 /**  Class for modelizing the geometry of perspective-central image, contain essentially a pose (Centre+rotation)
@@ -698,41 +711,52 @@ class cSensorCamPC : public cSensorImage
     std::string          mTmpNameCalib; ///< use as tmp var in addata
 };
 
-
+/**
+ * @brief The cCamSimul class
+ *
+ * Class for genrating randomized simulated camera
+ */
 class cCamSimul : public cMemCheck
 {
    public :
       static cCamSimul * Alloc2VIewTerrestrial(eProjPC aProj1,eProjPC aProj2,bool SubVert);
 
       ~cCamSimul();
-
-      cPt3dr mCenterGround;
-
-      //   Geometry of acquisition
-      tREAL8 mProfMin;
-      tREAL8 mProfMax;
-      tREAL8 mBsHMin;
-      tREAL8 mBsHMax;
-      tREAL8 mRandInterK;
-
-      static void BenchMatEss(cTimerSegm * aTS,bool PerfInter);
-
+      static void BenchPoseRel2Cam(cTimerSegm * aTS,bool PerfInter,bool SubVert,bool Planar);
       void TestCam(cSensorCamPC * aCam) const;
-   private :
-      void AddCam(cPerspCamIntrCalib *,bool SubVert);
-      void AddCam(eProjPC aProj1,bool SubVert);
 
+   private :
+      /// Add a cam of given type by generating a random calib
+      void AddCam(eProjPC aProj1,bool SubVert);
+      /// Once computed the calib generate the pose to creat a cam
+      void AddCam(cPerspCamIntrCalib *,bool SubVert);
+
+      ///  Constructor , gives default values to numerical quantities (Prof ...)
       cCamSimul();
       ///  is the new center sufficiently far, but not too much
       bool ValidateCenter(const cPt3dr & aP) const;
 
-      ///  Generatea new valide point
+      ///  Generatea new valide point, checking ValidateCenter
       cPt3dr  GenValideCenter(bool SubVert) const;
       /// Generate a point w/o constraint
-      cPt3dr  GenAnyCenter(bool SubVert) const;
+      cPt3dr  GenCenterWOCstr(bool SubVert) const;
 
-      std::vector<cSensorCamPC *>         mListCam;
-      std::vector<cPerspCamIntrCalib *>   mListCalib;
+
+      /// center of the scene
+      cPt3dr mCenterGround;
+
+      // -- Interval of distance between center of cam & mCenterGround
+      tREAL8 mProfMin; ///<  min distance CCam-CScene
+      tREAL8 mProfMax; ///<  max distance CCam-CScene
+
+      // -- Interval of ration B/H we accept
+      tREAL8 mBsHMin;     ///< Min value of B/H
+      tREAL8 mBsHMax;     ///< Max value of B/H
+      /// "Small" value, make that all the axes K dont pass exactly to CenterGround
+      tREAL8 mRandInterK;
+
+      std::vector<cPerspCamIntrCalib *>   mListCalib; ///<  list of calibration
+      std::vector<cSensorCamPC *>         mListCam;   ///< list of sensor
 
 
       // cSetHomogCpleIm

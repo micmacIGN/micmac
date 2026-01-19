@@ -505,6 +505,8 @@ template <class Type>  class cAffin2D
           /// Basic   1.0
           Type Divisor(const tPt & aPInt) const;
 
+          void AddData(const  cAuxAr2007 & anAux);
+
       private :
           tPt   mTr;
           tPt   mVX;
@@ -516,6 +518,7 @@ template <class Type>  class cAffin2D
 typedef  cAffin2D<tREAL8>  cAff2D_r;
 cBox2dr  ImageOfBox(const cAff2D_r & aAff,const cBox2dr & aBox);
 
+void AddData(const  cAuxAr2007 & anAux,cAff2D_r&);
 
 template <class Type>  class cHomogr2D
 {
@@ -724,7 +727,7 @@ class cEllipse
        cPt2dr  Tgt(const cPt2dr &) const;
        cPt2dr  NormalInt(const cPt2dr &) const;
 
-       cPt2dr InterSemiLine(tREAL8 aTeta) const;    /// compute the intesection of 1/2 line of direction teta with the ellipse
+       cPt2dr InterSemiLine(tREAL8 aTetacAff2D_r) const;    /// compute the intesection of 1/2 line of direction teta with the ellipse
 
        /// get points on ellipse that are +- less regularly sampled at a given step
        void GetTetasRegularSample(std::vector<tREAL8> & aVTetas,const tREAL8 & aDist);
@@ -851,7 +854,8 @@ struct cSaveExtrEllipe
           cSaveExtrEllipe ();
           static std::string NameFile(const cPhotogrammetricProject & ,const cSetMesPtOf1Im &,bool Input);
 
-          cEllipse  mEllipse;
+          cAff2D_r    mAffIm2Ref;
+          cEllipse    mEllipse;
           std::string mNameCode;
           tREAL4 mBlack;
           tREAL4 mWhite;

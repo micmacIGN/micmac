@@ -32,6 +32,8 @@ class cSetHomogCpleDir : public cMemCheck
         ///  Create from image homologue + internal calibration
         cSetHomogCpleDir(const cSetHomogCpleIm &,const cPerspCamIntrCalib &,const cPerspCamIntrCalib &);
 
+        cSetHomogCpleDir(const std::vector<cPt3dr>&,const std::vector<cPt3dr>&);
+
         /// make both normalization so that bundles are +- centered onK
         void NormalizeRot();
 
@@ -88,7 +90,7 @@ class cMatEssential
 
         cMatEssential(const  tMat & aMat);
 
-         tPose ComputePose(const cSetHomogCpleDir & aHoms,tPose * aRes= nullptr) const;
+         tPose ComputePose(const cSetHomogCpleDir & aHoms,const tPose * aRes= nullptr) const;
 
     private :
         tMat mMat; /// The Ess  matrix itself
@@ -102,7 +104,11 @@ class cMatEssential
 
 int   MatEss_GetKMax(const cSetHomogCpleDir & aSetD,tREAL8 aWeightStab,bool Show=false);
 
+/** used in case for epipolar geometry, knoing base in the repair E1 (generally (1,0,0) and
+ *  2 rotation going from initial repairs to the other , compute the relative rotation; quite
+ *  basic, but opportunity to fix convention */
 
+tPoseR  PoseRelFrom2RotAndBase(const cPt3dr &,const tRotR& aR2E1,const tRotR & aR2E2);
 
 };
 #endif // _MMVII_POSE_REL_H_

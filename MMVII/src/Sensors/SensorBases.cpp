@@ -318,7 +318,7 @@ tPt2dr  cSensorImage::RelativePosition(const tPt2dr & aPt) const
 }
 
 
-tPt3dr cSensorImage::RandomVisiblePGround(const cSensorImage & other,int aNbTestMax,bool * isOk ) const
+tPt3dr cSensorImage::RandomVisiblePGround(const cSensorImage & other,int aNbTestMax,bool * isOk,tREAL8 * aZ ) const
 {
 
     if (isOk!=nullptr ) *isOk= false;
@@ -329,12 +329,17 @@ tPt3dr cSensorImage::RandomVisiblePGround(const cSensorImage & other,int aNbTest
        tPt2dr aPIm2 = other.RandomVisiblePIm();
 
        tPt3dr aResult = PInterBundle(cHomogCpleIm(aPIm1,aPIm2),other);
+       if (aZ!=nullptr)
+       {
+           aResult.z() = *aZ;
+       }
+
 
 // StdOut() << aPIm1 << aPIm2 << aResult << aResult << std::endl;
        if ( this->IsVisible(aResult)  && other.IsVisible(aResult))
        {
            if (isOk!=nullptr) *isOk= true;
-	   return aResult;
+           return aResult;
        }
     }
 
@@ -348,6 +353,12 @@ tPt3dr cSensorImage::RandomVisiblePGround(const cSensorImage & other,int aNbTest
 cHomogCpleIm cSensorImage::RandomVisibleCple(const cSensorImage & other,int aNbTestMax,bool * isOk) const
 {
     tPt3dr aPGr = RandomVisiblePGround(other,aNbTestMax,isOk);
+    return cHomogCpleIm(this->Ground2Image(aPGr),other.Ground2Image(aPGr));
+}
+
+cHomogCpleIm cSensorImage::RandomVisibleCple(tREAL8 aZ,const cSensorImage & other,int aNbTestMax,bool * isOk) const
+{
+    tPt3dr aPGr = RandomVisiblePGround(other,aNbTestMax,isOk,&aZ);
     return cHomogCpleIm(this->Ground2Image(aPGr),other.Ground2Image(aPGr));
 }
 

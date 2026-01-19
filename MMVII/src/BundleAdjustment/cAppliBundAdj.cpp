@@ -85,7 +85,8 @@ class cAppliBundlAdj : public cMMVII_Appli
 	std::vector<double>       mBRSigma_Rat; // RIGIDBLOC
         std::vector<std::string>  mParamRefOri;  // Force Poses to be +- equals to this reference
 
-        std::vector<std::vector<std::string>>  mParamLidarPhgr; // parameters for lidar photogra/lidar
+        std::vector<std::vector<std::string>>  mParamLidarPhgr; // parameters for lidar photogra/lidar via triangulation
+        std::vector<std::vector<std::string>>  mParamLidarPhoto; // parameters for lidar photogra/lidar via rasterization
 
 	int                       mNbIter;
 
@@ -103,6 +104,7 @@ class cAppliBundlAdj : public cMMVII_Appli
         std::string               mPostFixReport;
         std::vector<std::string>  mParamLine;
         std::vector<std::vector<std::string>> mParamBOI;  //< Param for bloc of instrum
+         std::vector<std::vector<std::string>> mParamBOIClino;
 };
 cAppliBundlAdj::cAppliBundlAdj(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli    (aVArgs,aSpec),
@@ -141,13 +143,15 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << mPhProj.DPTopoMes().ArgDirOutOpt("TopoDirOut","Dir for Topo measures output") //  TOPO
       << mPhProj.DPClinoMeters().ArgDirInOpt("ClinoDirIn","Dir for Clino if != DataDir") //  CLINOBLOC
       << mPhProj.DPClinoMeters().ArgDirOutOpt("ClinoDirOut","Dir for Clino if != DataDir") //  CLINOBLOC
+      << mPhProj.DPMeasuresClino().ArgDirInOpt()
       << AOpt2007 ( mGCP3D, "GCP3D", "GCP ground coords and sigma factor, SG=0 fix, SG<0 schurr elim, SG>0 and optional output dir [[Folder,SigG,FOut?],...]]")
       << AOpt2007 ( mGCP2D, "GCP2D", "GCP image coords and sigma factor and optional attenuation, threshold and exponent [[Folder,SigI,SigAt?=-1,Thrs?=-1,Exp?=1]...]")
       << AOpt2007(mGCPFilter,"GCPFilter","Pattern to filter GCP by name")
       << AOpt2007(mGCPFilterAdd,"GCPFilterAdd","Pattern to filter GCP by additional info")
       << AOpt2007(mTiePWeight,"TiePWeight","Tie point weighting [Sig0,SigAtt?=-1,Thrs?=-1,Exp?=1]",{{eTA2007::ISizeV,"[1,4]"}})
       << AOpt2007(mAddTieP,"AddTieP","For additional TieP, [[Folder,SigG...],[Folder,...]] ")
-      << AOpt2007(mParamLidarPhgr,"LidarPhotogra","Paramaters for adj Lidar/Phgr [[Mode,Ply,Sigma,Interp?,Perturbate?,NbPtsPerPatch=32]*]")
+      << AOpt2007(mParamLidarPhgr,"LidarPhotogra","Paramaters for adj Lidar/Phgr via triangulation [[Mode,Ply,Sigma,Interp?,Perturbate?,NbPtsPerPatch=32]*]")
+      << AOpt2007(mParamLidarPhoto,"LidarPhoto","Paramaters for adj Lidar/Phgr via rasterisation [[Mode,Ply,Sigma,Interp?,Perturbate?,NbPtsPerPatch=32]*]")
       << AOpt2007(mPatParamFrozCalib,"PPFzCal","Pattern for freezing internal calibration parameters")
       << AOpt2007(mVVParFreeCalib,"PPFreeCal","Pattern for free internal calibration parameters [[PatCal1,PatParam1],[PatCal2,PatParam2] ...] ")
       << AOpt2007(mPatFrosenCenters,"PatFzCenters","Pattern of images for freezing center of poses")
@@ -157,7 +161,6 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mLVM,"LVM","Levenberg–Marquardt parameter (to have better conditioning of least squares)",{eTA2007::HDV})
       << AOpt2007(mBRSigma,"BRW","Bloc Rigid Weighting [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})  // RIGIDBLOC
       << AOpt2007(mBRSigma_Rat,"BRW_Rat","Rattachment fo Bloc Rigid Weighting [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})  // RIGIDBLOC
-      << mPhProj.DPMeasuresClino().ArgDirInOpt()
 
       << AOpt2007(mParamRefOri,"RefOri","Reference orientation [Ori,SimgaTr,SigmaRot?,PatApply?]",{{eTA2007::ISizeV,"[2,4]"}})
       << AOpt2007(mVSharedIP,"SharedIP","Shared intrinc parmaters [Pat1Cam,Pat1Par,Pat2Cam...] ",{{eTA2007::ISizeV,"[2,20]"}})
@@ -174,6 +177,15 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
              "Bloc of Instr [[Bloc?,RelSigTrPair?=1.0,RelSigRotPair?=1.0,SaveSig?=1],[GjTr?,GjRot?],[RelSigTrCur,RelSigRotCur]?]",
              {{eTA2007::ISizeV,"[2,3]"}}
           )
+
+      << AOpt2007
+         (
+             mParamBOIClino,
+             "ClinpBOI",
+             "Clino parameter [[Bloc?,RelSigmaAngle?,RelCstrOrthog?][VertFree?,OkNewTs?][DegFree0?,DegFree1?...]]",
+             {{eTA2007::ISizeV,"[1,3]"}}
+          )
+
       << mPhProj.DPBlockInstr().ArgDirInOpt()
       << mPhProj.DPBlockInstr().ArgDirOutOpt()
 
@@ -349,6 +361,11 @@ int cAppliBundlAdj::Exe()
     {
        mBA.AddBlockInstr(mParamBOI);
     }
+
+    if (IsInit(&mParamBOIClino))
+    {
+       mBA.AddClinoBlokcInstr(mParamBOIClino);
+    }
     
     if (mPhProj.DPClinoMeters().DirInIsInit())
     {
@@ -366,6 +383,14 @@ int cAppliBundlAdj::Exe()
         mMeasureAdded = true;
         mBA.Add1AdjLidarPhotogra(aParam);
     }
+
+    for (const auto & aParam : mParamLidarPhoto)
+    {
+        MMVII_INTERNAL_ASSERT_User(aParam.size()>=3,eTyUEr::eUnClassedError,"Not enough parameters for LidarPhoto");
+        mMeasureAdded = true;
+        mBA.Add1AdjLidarPhoto(aParam);
+    }
+
 
     MMVII_INTERNAL_ASSERT_User(mMeasureAdded,eTyUEr::eUnClassedError,"Not any measure added");
 

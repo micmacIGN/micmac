@@ -656,7 +656,9 @@ template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm,c
 extern const  cPt2di FreemanV8[8];
 extern const  cPt2di FreemanV4[4];
 /// = FreemanV8 with  FreemanV9[8] = FreemanV9[0]
+extern const  cPt2di FreemanV9[9]; // FreemanV9[0] = 0,0
 extern const  cPt2di FreemanV10[10];
+
 
 };
 

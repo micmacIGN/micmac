@@ -79,6 +79,8 @@ double RandInInterval(double a,double b); ///<  Uniform distribution in [a,b]
 double RandInInterval(const cPt2dr &interval); ///<  Uniform distribution in [interval.x,interval.y]
 double RandInInterval_C(const cPt2dr &interval); ///<  Uniform distribution in [-interval.y,-interval.x]U[interval.x,interval.y]
 
+double RandUnif_Angle(); ///<  Uniform distribution in [0 2Pi]
+
 int RandUnif_M_N(int aM,int aN); ///< Uniform disrtibution in [M,N] 
 
 /** Class for mapping object R->R */
@@ -100,6 +102,8 @@ template<class Type>  std::vector<Type>  RandomOrder(const std::vector<Type> & a
         aRes.push_back(aV.at(aI));
     return aRes;
 }
+///  Permutation as a shift 
+std::vector<int> ShitPerm(int aN,int aDelta);
 
 /// Random subset K among  N  !! Higher bias => lower proba of selection
 std::vector<int> RandSet(int aK,int aN,cFctrRR & aBias =cFctrRR::TheOne);
@@ -787,7 +791,8 @@ template <class TVal> TVal MinTab(TVal * Data,int aNb)
     return aMin;
 }
 
-
+// Min or Max with a weight on other,  for W=0.8 -> close to min
+tREAL8 SoftExtre(tREAL8 aWMax,tREAL8 aV1,tREAL8 aV2);
 
 
 /// Class to store min and max values
