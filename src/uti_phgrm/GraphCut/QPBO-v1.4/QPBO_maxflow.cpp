@@ -22,6 +22,8 @@
 #include <stdio.h>
 #include "QPBO.h"
 
+using namespace qpbo;
+
 #ifdef REAL
 #undef REAL
 #endif
