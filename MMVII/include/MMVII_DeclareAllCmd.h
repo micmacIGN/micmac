@@ -128,10 +128,11 @@ extern cSpecMMVII_Appli  TheSpec_CERN_ImportClino;
 extern cSpecMMVII_Appli  TheSpec_MMV2_MesIm_2_MMV1;
 extern cSpecMMVII_Appli TheSpec_MergeMesImGCP;
 extern cSpecMMVII_Appli  TheSpec_ExifData;
-
 extern cSpecMMVII_Appli  TheSpec_PerturbRandomOri;
 extern cSpecMMVII_Appli  TheSpec_ImportTriplet;
 extern cSpecMMVII_Appli  TheSpec_ArboTriplet;
+extern cSpecMMVII_Appli  TheSpec_GCPBascule;
+
 
 };
 
