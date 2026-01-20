@@ -54,7 +54,7 @@ tensorboard-plugin-wit==1.7.0
 tensorflow-estimator==1.13.0
 termcolor==1.1.0
 tifffile==2020.8.25
-urllib3==1.25.10
+urllib3==1.26.5
 Werkzeug==1.0.1
 wrapt==1.12.1
 zipp==3.1.0
