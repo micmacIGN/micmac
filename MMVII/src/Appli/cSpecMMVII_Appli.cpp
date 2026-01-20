@@ -274,6 +274,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_TutoFormalDeriv);
         TheVecAll.push_back(&TheSpec_ExportUndistMesIm);
         TheVecAll.push_back(&TheSpecAppliExtractLine);
+        TheVecAll.push_back(&TheSpecAppliBubbles);
         TheVecAll.push_back(&TheSpec_CERN_ImportClino);
         TheVecAll.push_back(&TheSpec_MMV2_MesIm_2_MMV1);
         TheVecAll.push_back(&TheSpec_MergeMesImGCP);
