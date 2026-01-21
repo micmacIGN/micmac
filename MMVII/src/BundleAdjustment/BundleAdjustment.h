@@ -386,8 +386,6 @@ class cBA_LidarPhotogra
        eImatchCrit                    mModeSim;        ///< type of similarity used
        cDiffInterpolator1D *          mInterp;         ///< Interpolator, used to extract  Value & Grad of images
        cCalculator<double>  *         mEqLidPhgr;      ///< Calculator used for constrain the pose from image obs
-       std::vector<cSensorCamPC *>    mVCam;           ///< Vector of central perspective camera
-       std::vector<cIm2D<tU_INT1>>    mVIms;           ///< Vector of images associated to each cam
        cWeightAv<tREAL8,tREAL8>       mLastResidual;   ///< Accumulate the radiometric residual
        bool                           mPertRad;        ///< do we pertubate the radiometry (simulation & test)
        size_t                         mNbPointByPatch; ///< (approximate) required number of point /patch

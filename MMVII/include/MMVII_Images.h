@@ -326,6 +326,9 @@ template <const int Dim> class cDataGenUnTypedIm : public cPixBox<Dim>,
         virtual void VD_SetV(const  tPixI & aP,const double & aV)=0 ;
 
         virtual double GetVBL(const  tPixR & aP) const  = 0;
+
+        /// Interpolated value+derivative, using a generic diffentiable interpolator
+        virtual std::pair<tREAL8,cPt2dr> GetValueAndGradInterpol(const cDiffInterpolator1D &,const cPt2dr & aP) const;
 };
 
 /// Specfy the box, if EmptyBox full file

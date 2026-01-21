@@ -122,7 +122,7 @@ public :
     void SelectPatchCenters1(int aNbPatches);
     void SelectPatchCenters2(const cStaticLidarImporter &aSL_importer, int aNbPatches);
     void MakePatches(std::list<std::set<cPt2di> > &aLPatches,
-                     std::vector<cSensorCamPC *> &aVCam, int aNbPointByPatch, int aSzMin) const;
+                     const std::vector<cSensorCamPC *> &aVCam, int aNbPointByPatch, int aSzMin) const;
 
     cPt3dr Image2InputXYZ(const cPt2di & aRasterPx) const; // in input frame
     cPt3dr Image2InputXYZ(const cPt2dr & aRasterPx) const;

@@ -56,7 +56,12 @@ cDataGenUnTypedIm<2> * ReadIm2DGen(const std::string &aName)
     return ReadIm2DGen(aName,cBox2di::Empty());
 }
 
-
+template <const int Dim>
+std::pair<tREAL8,cPt2dr> cDataGenUnTypedIm<Dim>::GetValueAndGradInterpol(const cDiffInterpolator1D &,const cPt2dr & aP) const
+{
+    MMVII_INTERNAL_ERROR("Unhandled type in cDataGenUnTypedIm::GetValueAndGradInterpol");
+    return {0.,{0.,0.}};
+}
 
 
 /* ========================== */

@@ -148,7 +148,7 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
        /// Interpolated value, using a generic interpolator
        double GetValueInterpol(const cInterpolator1D &,const cPt2dr & aP) const ;
        /// Interpolated value+derivative, using a generic diffentiable interpolator
-       std::pair<tREAL8,cPt2dr> GetValueAndGradInterpol(const cDiffInterpolator1D &,const cPt2dr & aP) const ;
+       std::pair<tREAL8,cPt2dr> GetValueAndGradInterpol(const cDiffInterpolator1D &,const cPt2dr & aP) const override;
        /// Interpolated value, using a generic interpolator, accept point partially inside, if accept no point
        /// must give a def value & Ok
        double ClipedGetValueInterpol(const cInterpolator1D &,const cPt2dr & aP,double  aDefVal=0,bool * Ok=nullptr) const ;

@@ -47,27 +47,17 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cPhotogrammetricProject * aPhProj,
     // delete mInterp;
     // mInterp = cScaledInterpolator::AllocTab(cCubicInterpolator(-0.5),3,1000);
 
-    // parse the camera and create images
-    for (const auto aPtrCam : aBA.VSIm())
+    // read images before 1st iteration
+    for (const auto aPtrCam : aBA.VSCPC())
     {
-        // is it a central perspective camera ?
-        if (aPtrCam->IsSensorCamPC())
+        auto & aImage = aPtrCam->LoadImage();
+        if (mPertRad)
         {
-            mVCam.push_back(aPtrCam->GetSensorCamPC());  // yes get it
-            mVIms.push_back(cIm2D<tU_INT1>::FromFile(aPtrCam->NameImage()));  // read the image
-            if (mPertRad)
+            for (auto  aPix : aImage)
             {
-                cDataIm2D<tU_INT1> &  aDIm = mVIms.back().DIm();
-                for (auto  aPix : aDIm)
-                {
-                    tREAL8 aMul =   (3+ sin(aPix.x()/70.0)) / 4.0;
-                    aDIm.SetV(aPix,aDIm.GetV(aPix)*aMul);
-                }
+                tREAL8 aMul =   (3+ sin(aPix.x()/70.0)) / 4.0;
+                aImage.VI_SetV(aPix,aImage.VI_GetV(aPix)*aMul); // keep using ints?
             }
-        }
-        else
-        {
-            MMVII_UnclasseUsEr("cBA_LidarPhotogra : sensor is not central perspective");
         }
     }
 
@@ -146,7 +136,7 @@ cBA_LidarPhotograRaster::cBA_LidarPhotograRaster(cPhotogrammetricProject * aPhPr
         mNbPointByPatch = 1;
     for (auto & aLidarData: mVLidarData)
     {
-        aLidarData.mLidarRaster->MakePatches(aLidarData.mLPatchesP,mVCam,mNbPointByPatch,5);
+        aLidarData.mLidarRaster->MakePatches(aLidarData.mLPatchesP,aBA.VSCPC(),mNbPointByPatch,5);
         StdOut() << "Nb patches for " << aLidarData.mName << ": " << aLidarData.mLPatchesP.size() << "\n";
     }
 }
@@ -270,7 +260,7 @@ void cBA_LidarPhotograTri::SetVUkVObs
      int                     aKPt
     )
 {
-    cSensorCamPC * aCam = mVCam.at(aData.mKIm);  // extract the camera
+    cSensorCamPC * aCam = mBA.VSCPC().at(aData.mKIm);  // extract the camera
     cPt3dr aPCam = aCam->Pt_W2L(aPGround);  // coordinate of point in image system
     tProjImAndGrad aPImGr = aCam->InternalCalib()->DiffGround2Im(aPCam); // compute proj & gradient
 
@@ -307,7 +297,7 @@ void cBA_LidarPhotograRaster::SetVUkVObs
 {
     cStaticLidar * aScan = mVLidarData.at(aData.mKScan).mLidarRaster;
     cPt3dr aPScan = aScan->Pt_W2L(aPGround);  // coordinate of point in ground system
-    cSensorCamPC * aCam = mVCam.at(aData.mKIm);  // extract the camera
+    cSensorCamPC * aCam = mBA.VSCPC().at(aData.mKIm);  // extract the camera
     cPt3dr aPCam = aCam->Pt_W2L(aPGround);  // coordinate of point in image system
     tProjImAndGrad aPImGr = aCam->InternalCalib()->DiffGround2Im(aPCam); // compute proj & gradient
 
@@ -496,10 +486,10 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
      cComputeStdDev<tREAL8>   aStdDev;    // compute the standard deviation of projected radiometry (indicator) 
 
      //  Parse all the image, we will select the images where all point of a patch are visible
-     for (size_t aKIm=0 ; aKIm<mVCam.size() ; aKIm++)
+     for (size_t aKIm=0 ; aKIm<mBA.VSCPC().size() ; aKIm++)
      {
-          cSensorCamPC * aCam = mVCam[aKIm]; // extract cam
-          cDataIm2D<tU_INT1> & aDIm = mVIms[aKIm].DIm(); // extract image
+          cSensorCamPC * aCam = mBA.VSCPC()[aKIm]; // extract cam
+          auto & aGenDIm = aCam->LoadImage();
           if (aCam->IsVisible(aVPatchGr.at(0))) // first test : is central point visible
           {
               cData1ImLidPhgr  aData; // data that will be filled
@@ -510,10 +500,10 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
                    cPt3dr aPGround = aVPatchGr.at(aKPt);
                    if (aCam->IsVisible(aPGround))  // is the point visible in the camera
                    {
-                        cPt2dr aPIm = mVCam[aKIm]->Ground2Image(aPGround); // extract the image  projection
-                        if (aDIm.InsideInterpolator(*mInterp,aPIm,1.0))  // is it sufficiently inside
+                        cPt2dr aPIm = mBA.VSCPC()[aKIm]->Ground2Image(aPGround); // extract the image  projection
+                        if (aGenDIm.InsideInterpolator(*mInterp,aPIm,1.0))  // is it sufficiently inside
                         {
-                            auto aVGr = aDIm.GetValueAndGradInterpol(*mInterp,aPIm); // extract pair Value/Grad of image
+                            auto aVGr = aGenDIm.GetValueAndGradInterpol(*mInterp,aPIm); // extract pair Value/Grad of image
                             aData.mVGr.push_back(aVGr); // push it at end of stack
                         }
                    }
