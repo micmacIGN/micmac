@@ -1375,6 +1375,11 @@ template <>  int cStrIO<int>::FromStr(const std::string & aStr)
     return anI;
 }
 template <>  const std::string cStrIO<int>::msNameType = "int";
+template <>  const std::string cStrIO<tINT2>::msNameType = "int2";
+template <>  const std::string cStrIO<tU_INT1>::msNameType = "u_int1";
+template <>  const std::string cStrIO<tREAL4>::msNameType = "float";
+
+
 
 std::string ToStr(int aVal,int aSzMin)
 {
@@ -1495,5 +1500,7 @@ template <>  std::string cStrIO<std::string>::FromStr(const std::string & aStr)
 }
 
 template <>  const std::string cStrIO<std::string>::msNameType = "string";
+
+
 
 };

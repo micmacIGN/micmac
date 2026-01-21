@@ -190,6 +190,7 @@ template <class Type>  cIm2D<Type>::cIm2D(const cBox2di & aBox,const cDataFileIm
 
 template <class Type>  cIm2D<Type> cIm2D<Type>::FromFile(const std::string & aName)
 {
+  //  StdOut() << "cIm2D<Type>::FromFile> cIm2D<Type>::FromFile " << aName << "\n";
    cDataFileIm2D  aFileIm = cDataFileIm2D::Create(aName,eForceGray::Yes);
    cIm2D<Type> aRes(aFileIm.Sz());
    aRes.Read(aFileIm,cPt2di(0,0));

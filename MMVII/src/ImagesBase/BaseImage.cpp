@@ -1,5 +1,6 @@
 #include "MMVII_Images.h"
 #include "MMVII_Image2D.h"
+#include "cGdalApi.h"
 // #include <Eigen/Dense>
 
 namespace MMVII
@@ -19,6 +20,57 @@ template <const int Dim> cDataGenUnTypedIm<Dim>::cDataGenUnTypedIm
 {
 }
 
+
+template <class Type> cDataGenUnTypedIm<2> * Tpl_ReadIm2DGen(const std::string &aName,const cBox2di & aBox)
+{
+
+   cDataFileIm2D  aDFI = cDataFileIm2D::Create(aName,eForceGray::Yes);
+   cDataIm2D<Type> * aDIm  = new  cDataIm2D<Type>(cPt2di(0,0),aBox.Sz());
+   aDIm->Read(aDFI,aBox.P0());
+
+   return aDIm;
+}
+
+cDataGenUnTypedIm<2> * ReadIm2DGen(const std::string &aName,cBox2di  aBox)
+{
+    cGdalApi::InitGDAL();
+    eTyNums aType;
+    cPt2di aSz;
+    int aNbChannel;
+    cGdalApi::GetFileInfo(aName, aType, aSz, aNbChannel);
+
+    if (aBox.IsEmpty())
+        aBox = cBox2di(cPt2di(0,0),aSz);
+
+    switch (aType) {
+        case eTyNums::eTN_U_INT1 :   return Tpl_ReadIm2DGen<tU_INT1>(aName,aBox);
+        case eTyNums::eTN_U_INT2 :   return Tpl_ReadIm2DGen<tU_INT2>(aName,aBox);
+        case eTyNums::eTN_INT1 :     return Tpl_ReadIm2DGen<tINT1>(aName,aBox);
+        case eTyNums::eTN_INT2 :     return Tpl_ReadIm2DGen<tINT2>(aName,aBox);
+        case eTyNums::eTN_INT4 :     return Tpl_ReadIm2DGen<tINT4>(aName,aBox);
+
+
+        case eTyNums::eTN_REAL4 :    return Tpl_ReadIm2DGen<tREAL4>(aName,aBox);
+
+
+
+        default :
+            MMVII_INTERNAL_ERROR("Unhandled type in ReadIm2DGen");
+            return nullptr;
+    }
+
+    MMVII_INTERNAL_ERROR("Unhandled type in ReadIm2DGen");
+    return nullptr;
+    /*
+    cDataIm2D<Type>::Read(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2);
+    cGdalApi::ReadWrite(cGdalApi::IoMode::Read, *this, aFile, aP0, aDyn, aR2);
+*/
+}
+
+cDataGenUnTypedIm<2> * ReadIm2DGen(const std::string &aName)
+{
+    return ReadIm2DGen(aName,cBox2di::Empty());
+}
 
 
 

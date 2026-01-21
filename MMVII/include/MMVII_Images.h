@@ -310,6 +310,9 @@ template <const int Dim> class cDataGenUnTypedIm : public cPixBox<Dim>,
 ;
         cDataGenUnTypedIm(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1);
 
+        virtual ~cDataGenUnTypedIm() {};
+
+
          
            // Get Value, integer coordinates
                 /// Pixel -> Integrer Value
@@ -324,6 +327,11 @@ template <const int Dim> class cDataGenUnTypedIm : public cPixBox<Dim>,
 
         virtual double GetVBL(const  tPixR & aP) const  = 0;
 };
+
+/// Specfy the box, if EmptyBox full file
+cDataGenUnTypedIm<2> * ReadIm2DGen(const std::string &aName, cBox2di );
+/// Read full file
+cDataGenUnTypedIm<2> * ReadIm2DGen(const std::string &aName);
 
 
 ///  Classes for   ram-image containg a given type of pixel

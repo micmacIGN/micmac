@@ -261,6 +261,13 @@ class cSensorImage  :   public cObj2DelAtEnd,
          const cSensorCamPC * UserGetSensorCamPC() const;
          cSensorCamPC * UserGetSensorCamPC() ;
 
+         /// Read the generic image (if not already done)
+         cDataGenUnTypedIm<2> & LoadImage();
+         /// Was the image already loaded
+         bool ImageIsLoaded() const;
+         /// Accesors  to
+         //  cDataGenUnTypedIm<2> & GetImage();
+
      private :
           cSensorImage(const cSensorImage &) = delete;
 
@@ -272,7 +279,11 @@ class cSensorImage  :   public cObj2DelAtEnd,
 								
 	 // static std::map<std::string,cSensorImage*>  mDicoSensor;
 	 // static int                                  mNum;
+
+     cDataGenUnTypedIm<2> *                         mImage; ///< By default nullptr,
+     bool                                           mOwnsImage; ///< Do we have to delete the image
 };
+
 
 
 /**  Interfac to make sensor a 3d-mapping, using Ground2ImageAndDepth function */
