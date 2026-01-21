@@ -47,27 +47,17 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cPhotogrammetricProject * aPhProj,
     // delete mInterp;
     // mInterp = cScaledInterpolator::AllocTab(cCubicInterpolator(-0.5),3,1000);
 
-    // parse the camera and create images
-    for (const auto aPtrCam : aBA.VSIm())
+    // read images before 1st iteration
+    for (const auto aPtrCam : aBA.VSCPC())
     {
-        // is it a central perspective camera ?
-        if (aPtrCam->IsSensorCamPC())
+        auto & aImage = aPtrCam->LoadImage();
+        if (mPertRad)
         {
-            mVCam.push_back(aPtrCam->GetSensorCamPC());  // yes get it
-            mVIms.push_back(cIm2D<tU_INT1>::FromFile(aPtrCam->NameImage()));  // read the image
-            if (mPertRad)
+            for (auto  aPix : aImage)
             {
-                cDataIm2D<tU_INT1> &  aDIm = mVIms.back().DIm();
-                for (auto  aPix : aDIm)
-                {
-                    tREAL8 aMul =   (3+ sin(aPix.x()/70.0)) / 4.0;
-                    aDIm.SetV(aPix,aDIm.GetV(aPix)*aMul);
-                }
+                tREAL8 aMul =   (3+ sin(aPix.x()/70.0)) / 4.0;
+                aImage.VI_SetV(aPix,aImage.VI_GetV(aPix)*aMul); // keep using ints?
             }
-        }
-        else
-        {
-            MMVII_UnclasseUsEr("cBA_LidarPhotogra : sensor is not central perspective");
         }
     }
 
@@ -130,24 +120,21 @@ cBA_LidarPhotograRaster::cBA_LidarPhotograRaster(cPhotogrammetricProject * aPhPr
     }
 
     //read scans files from directory corresponding to pattern in aParam.at(1)
-    auto aVScanNames = mPhProj->GetStaticLidarNames(aParam.at(1));
-    for (const auto & aNameSens : aVScanNames)
+    mVScanNames = mPhProj->GetStaticLidarNames(aParam.at(1));
+    for (const auto & aNameSens : mVScanNames)
     {
-        cStaticLidar * aLidarData = mPhProj->ReadStaticLidar(aNameSens, true, true);
-        MMVII_INTERNAL_ASSERT_User(aLidarData,
-                                   eTyUEr::eUnClassedError,"Error opening static scans " + aNameSens);
-        mVLidarData.push_back({aNameSens, aLidarData, {}});
+        mBA.AddStaticLidar(aNameSens);
         StdOut() << "Add Scan " << aNameSens << "\n";
-        aBA.AddStaticLidar(aLidarData);
     }
 
     // Creation of the patches, choose a neigborhood around patch centers. TODO: adapt to images ground pixels size?
     if (mModeSim==eImatchCrit::eDifRad)
         mNbPointByPatch = 1;
-    for (auto & aLidarData: mVLidarData)
+    for (auto & aScanName: mVScanNames)
     {
-        aLidarData.mLidarRaster->MakePatches(aLidarData.mLPatchesP,mVCam,mNbPointByPatch,5);
-        StdOut() << "Nb patches for " << aLidarData.mName << ": " << aLidarData.mLPatchesP.size() << "\n";
+        auto & aLidarBAData = mBA.MapTSL().at(aScanName);
+        aLidarBAData.mLidarRaster->MakePatches(aLidarBAData.mLPatchesP,aBA.VSCPC(),mNbPointByPatch,5);
+        StdOut() << "Nb patches for " << aScanName << ": " << aLidarBAData.mLPatchesP.size() << "\n";
     }
 }
 
@@ -157,10 +144,11 @@ void cBA_LidarPhotograRaster::SetFrozenVar(bool aVerbose, cResolSysNonLinear<tRE
     // Freeze full pose (TODO: be able to to fix only verticalization)
     tNameSelector aSel = AllocRegex(cStaticLidar::Pat2Sup(aPatFrozenTSL));
     int nbMatches = 0;
-    for (auto & aLidarBAData : mVLidarData)
+    for (auto & aScanName : mVScanNames)
     {
-        if (aSel.Match(aLidarBAData.mName))
+        if (aSel.Match(aScanName))
         {
+            auto & aLidarBAData = mBA.MapTSL().at(aScanName);
             aSys.SetFrozenVarCurVal(*aLidarBAData.mLidarRaster,aLidarBAData.mLidarRaster->Center());
             aSys.SetFrozenVarCurVal(*aLidarBAData.mLidarRaster,aLidarBAData.mLidarRaster->Omega());
             nbMatches++;
@@ -172,9 +160,10 @@ void cBA_LidarPhotograRaster::SetFrozenVar(bool aVerbose, cResolSysNonLinear<tRE
 
 void cBA_LidarPhotograRaster::Save()
 {
-    for (auto & aLidarBAData : mVLidarData)
+    for (auto & aScanName : mVScanNames)
     {
-        aLidarBAData.mLidarRaster->ToFile(mPhProj->DPOrient().FullDirOut() + aLidarBAData.mName);
+        auto & aLidarBAData = mBA.MapTSL().at(aScanName);
+        aLidarBAData.mLidarRaster->ToFile(mPhProj->DPOrient().FullDirOut() + aScanName);
     }
 }
 
@@ -233,29 +222,35 @@ void cBA_LidarPhotograRaster::AddObs()
     mNbUsedObs = 0;
     if (mModeSim==eImatchCrit::eDifRad)
     {
-        for (size_t aKScan = 0; aKScan<mVLidarData.size(); ++aKScan)
-            for (const auto& aPatch : mVLidarData[aKScan].mLPatchesP)
+        for (auto & aScanName : mVScanNames)
+        {
+            auto & aLidarBAData = mBA.MapTSL().at(aScanName);
+            for (const auto& aPatch : aLidarBAData.mLPatchesP)
             {
                 Add1Patch(mWeight,
-                          {mVLidarData[aKScan].mLidarRaster->Image2Ground(*aPatch.begin())},
-                          aKScan);
+                          {aLidarBAData.mLidarRaster->Image2Ground(*aPatch.begin())},
+                          aScanName);
             }
+        }
     }
     else
     {
-        for (size_t aKScan = 0; aKScan<mVLidarData.size(); ++aKScan)
-            for (const auto& aPatch : mVLidarData[aKScan].mLPatchesP)
+        for (auto & aScanName : mVScanNames)
+        {
+            auto & aLidarBAData = mBA.MapTSL().at(aScanName);
+            for (const auto& aPatch : aLidarBAData.mLPatchesP)
             {
                 std::vector<cPt3dr> aVP;
                 for (const auto aPt : aPatch)
-                    aVP.push_back(mVLidarData[aKScan].mLidarRaster->Image2Ground(aPt));
-                Add1Patch(mWeight,aVP,aKScan);
+                    aVP.push_back(aLidarBAData.mLidarRaster->Image2Ground(aPt));
+                Add1Patch(mWeight,aVP,aScanName);
             }
+        }
     }
 
     if (mLastResidual.SW() != 0)
         StdOut() << "  * Lid/Phr Residual Rad " << std::sqrt(mLastResidual.Average())
-                 << " ("<<mVLidarData.size()<<" scans, "<<mNbUsedObs<<" obs, "<<mNbUsedPoints<<" points)\n";
+                 << " ("<<mVScanNames.size()<<" scans, "<<mNbUsedObs<<" obs, "<<mNbUsedPoints<<" points)\n";
     else
         StdOut() << "  * Lid/Phr: no obs\n";
 }
@@ -270,7 +265,7 @@ void cBA_LidarPhotograTri::SetVUkVObs
      int                     aKPt
     )
 {
-    cSensorCamPC * aCam = mVCam.at(aData.mKIm);  // extract the camera
+    cSensorCamPC * aCam = mBA.VSCPC().at(aData.mKIm);  // extract the camera
     cPt3dr aPCam = aCam->Pt_W2L(aPGround);  // coordinate of point in image system
     tProjImAndGrad aPImGr = aCam->InternalCalib()->DiffGround2Im(aPCam); // compute proj & gradient
 
@@ -305,9 +300,9 @@ void cBA_LidarPhotograRaster::SetVUkVObs
         int                     aKPt
         )
 {
-    cStaticLidar * aScan = mVLidarData.at(aData.mKScan).mLidarRaster;
+    cStaticLidar * aScan = mBA.MapTSL().at(aData.mScanName).mLidarRaster;
     cPt3dr aPScan = aScan->Pt_W2L(aPGround);  // coordinate of point in ground system
-    cSensorCamPC * aCam = mVCam.at(aData.mKIm);  // extract the camera
+    cSensorCamPC * aCam = mBA.VSCPC().at(aData.mKIm);  // extract the camera
     cPt3dr aPCam = aCam->Pt_W2L(aPGround);  // coordinate of point in image system
     tProjImAndGrad aPImGr = aCam->InternalCalib()->DiffGround2Im(aPCam); // compute proj & gradient
 
@@ -490,30 +485,30 @@ void cBA_LidarPhotogra::AddPatchCorrel
      aSys->R_AddObsWithTmpUK(aStrSubst);
 }
 
-void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aVPatchGr, size_t aKScan)
+void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aVPatchGr, const std::string & aScanName)
 {
      std::vector<cData1ImLidPhgr> aVData; // for each image where patch is visible will store the data
      cComputeStdDev<tREAL8>   aStdDev;    // compute the standard deviation of projected radiometry (indicator) 
 
      //  Parse all the image, we will select the images where all point of a patch are visible
-     for (size_t aKIm=0 ; aKIm<mVCam.size() ; aKIm++)
+     for (size_t aKIm=0 ; aKIm<mBA.VSCPC().size() ; aKIm++)
      {
-          cSensorCamPC * aCam = mVCam[aKIm]; // extract cam
-          cDataIm2D<tU_INT1> & aDIm = mVIms[aKIm].DIm(); // extract image
+          cSensorCamPC * aCam = mBA.VSCPC()[aKIm]; // extract cam
+          auto & aGenDIm = aCam->LoadImage();
           if (aCam->IsVisible(aVPatchGr.at(0))) // first test : is central point visible
           {
               cData1ImLidPhgr  aData; // data that will be filled
-              aData.mKScan = aKScan;
+              aData.mScanName = aScanName;
               aData.mKIm = aKIm;
               for (size_t aKPt=0 ; aKPt<aVPatchGr.size() ; aKPt++) // parse the points of the patch
               {
                    cPt3dr aPGround = aVPatchGr.at(aKPt);
                    if (aCam->IsVisible(aPGround))  // is the point visible in the camera
                    {
-                        cPt2dr aPIm = mVCam[aKIm]->Ground2Image(aPGround); // extract the image  projection
-                        if (aDIm.InsideInterpolator(*mInterp,aPIm,1.0))  // is it sufficiently inside
+                        cPt2dr aPIm = mBA.VSCPC()[aKIm]->Ground2Image(aPGround); // extract the image  projection
+                        if (aGenDIm.InsideInterpolator(*mInterp,aPIm,1.0))  // is it sufficiently inside
                         {
-                            auto aVGr = aDIm.GetValueAndGradInterpol(*mInterp,aPIm); // extract pair Value/Grad of image
+                            auto aVGr = aGenDIm.GetValueAndGradInterpol(*mInterp,aPIm); // extract pair Value/Grad of image
                             aData.mVGr.push_back(aVGr); // push it at end of stack
                         }
                    }

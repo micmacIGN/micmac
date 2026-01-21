@@ -518,14 +518,6 @@ cPhotogrammetricProject  & cMMVII_BundleAdj::PhProj() {return *mPhProj;}
 cSetInterUK_MultipeObj<tREAL8> &   cMMVII_BundleAdj::SetIntervUK() {return mSetIntervUK;}
 
 
-void  cMMVII_BundleAdj::AddStaticLidar(cStaticLidar * aLidarData)
-{
-    AssertPhpAndPhaseAdd();
-    MMVII_INTERNAL_ASSERT_tiny (!aLidarData->UkIsInit(),"Multiple add of TSL : " + aLidarData->NameImage());
-    mSetIntervUK.AddOneObj(aLidarData);
-    aLidarData->SetAndGetEqColinearity(true,10,true);  // WithDer, SzBuf, ReUse
-}
-
     /* ---------------------------------------- */
     /*            Frozen/Shared                 */
     /* ---------------------------------------- */
@@ -821,6 +813,26 @@ void cMMVII_BundleAdj::Add1AdjLidarPhoto(const std::vector<std::string> &aParam)
 {
     mVBA_Lidar.push_back(new cBA_LidarPhotograRaster(mPhProj, *this,aParam));
 }
+
+void cMMVII_BundleAdj::AddStaticLidar(const std::string &aScanName)
+{
+    AssertPhpAndPhaseAdd();
+    if (mMapTSL.count(aScanName)==0)
+    {
+        cStaticLidar * aLidarData = mPhProj->ReadStaticLidar(aScanName, true, true);
+        MMVII_INTERNAL_ASSERT_User(aLidarData,
+                                   eTyUEr::eUnClassedError,"Error opening static scans " + aScanName);
+
+        mMapTSL[aScanName]=cStaticLidarBAData({aLidarData, {}});
+
+        MMVII_INTERNAL_ASSERT_tiny (!aLidarData->UkIsInit(),"Multiple add of TSL : " + aLidarData->NameImage());
+        mSetIntervUK.AddOneObj(aLidarData);
+        aLidarData->SetAndGetEqColinearity(true,10,true);  // WithDer, SzBuf, ReUse
+    }
+}
+
+std::unordered_map<std::string, cStaticLidarBAData> &  cMMVII_BundleAdj::MapTSL() {return mMapTSL;}
+
 
 void cMMVII_BundleAdj::SaveTSL()
 {

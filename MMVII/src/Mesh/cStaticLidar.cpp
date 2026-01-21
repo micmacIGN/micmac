@@ -1035,7 +1035,7 @@ void cStaticLidar::SelectPatchCenters2(const cStaticLidarImporter &aSL_importer,
 
 void cStaticLidar::MakePatches
     (std::list<std::set<cPt2di> > &aLPatches,
-     std::vector<cSensorCamPC *> & aVCam,
+     const std::vector<cSensorCamPC *> & aVCam,
      int    aNbPointByPatch,
      int    aSzMin
      ) const
