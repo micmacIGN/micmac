@@ -119,7 +119,7 @@ void cIrbCal_Cam1::UnInit()
 {
  //  delete mPoseInBlock;
 
-    StdOut() << "cIrbCal_Cam1::UnInitcIrbCal_Cam1::UnInitcIrbCal_Cam1::UnInit\n"; getchar();
+   //  StdOut() << "cIrbCal_Cam1::UnInitcIrbCal_Cam1::UnInitcIrbCal_Cam1::UnInit\n"; getchar();
     mPoseInBlock = nullptr;
     mIsInit = false;
 }

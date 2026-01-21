@@ -107,6 +107,9 @@ std::vector<std::string>  cAppliBubbles::Samples() const
 
 void  cAppliBubbles::DoOneImage(const std::string & aNameIm)
 {
+
+
+
     mNameCurIm = aNameIm;
     cAutoTimerSegm  anATSInit (mTimeSeg,"Initialisation");
 
@@ -130,6 +133,16 @@ void  cAppliBubbles::DoOneImage(const std::string & aNameIm)
         tREAL4 aGy = mDGy->GetV(aPix);
         mDGNorm->SetV(aPix,Norm2(cPt2dr(aGx,aGy)));
     }
+
+
+    /*
+    int mNbOct = 5;
+    int mNbLevByOct = 6;
+    int mNbOverlap = 0;
+
+    cGP_Params aParam();
+    */
+    //const cPt2di & aSzIm0,int aNbOct,int aNbLevByOct,int aOverlap,const cMMVII_Appli *,bool is4TieP)
 
     StdOut() << " mNameCurIm " << mCurSz << "\n";
     MakeVisu();
