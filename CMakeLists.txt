@@ -154,6 +154,8 @@ option(UPDATE_TRANSLATIONS "Update source translation translations/*.ts files (W
 
 option(WITH_CCACHE  "Use ccache to speed up recompilation" ON)
 
+option(BIN_AUX_FULL_PATH "Binary aux installation path" ${PROJECT_SOURCE_DIR}/binaire-aux/${BIN_AUX_SUBDIR})
+
 # Configure CCache if available
 if(WITH_CCACHE)
 find_program(CCACHE_FOUND ccache)
@@ -189,8 +191,6 @@ endif()
 ######################################
 ## 	Trouver les EXES et Libs	##
 ######################################
-set(BIN_AUX_FULL_PATH ${PROJECT_SOURCE_DIR}/binaire-aux/${BIN_AUX_SUBDIR})
-
 # DEFINITIION : des chemins binaires sous UNIX
 set(UnixBinPath
 		/bin
