@@ -1,8 +1,10 @@
 //#include "MMVII_PCSens.h"
 
+#include "MMVII_ExtractLines.h"
+
 #include "MMVII_Sensor.h"
-#include "MMVII_ImageInfoExtract.h"
-#include "MMVII_TplGradImFilter.h"
+//#include "MMVII_ImageInfoExtract.h"
+//#include "MMVII_TplGradImFilter.h"
 
 //#include "MMVII_ExtractLines.h"
 //#include "MMVII_2Include_CSV_Serial_Tpl.h"
@@ -13,6 +15,13 @@
 namespace MMVII
 {
 
+template <class Type>  class cExtractCircle
+{
+   public :
+
+
+   private :
+};
 /* =============================================== */
 /*                                                 */
 /*                 cAppliBubbles                   */
@@ -38,29 +47,33 @@ class cAppliBubbles : public cMMVII_Appli
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
-	std::vector<std::string>  Samples() const override;
+         std::vector<std::string>  Samples() const override;
         virtual ~cAppliBubbles();
 
         void  DoOneImage(const std::string & aNameIm) ;
 
-	void MakeVisu();
+        void MakeVisu();
 
      
         cPhotogrammetricProject  mPhProj;
 
-	std::vector<tREAL8>      mParamMatch;
+        cExtractCurves<tElIm> * mCurvExtract;
+
+        std::vector<tREAL8>      mParamMatch;
         std::string              mPatImage;
         std::string              mNameCurIm;
 
         cPt2di                   mCurSz;
         tIm                      mCurIm;
-        tIm                      mGx;
-        tIm                      mGy;
-        tIm                      mGNorm;
+   //     tIm                      mGx;
+   //     tIm                      mGy;
+   //     tIm                      mGNorm;
         tDIm*                    mDCurIm;
+        /*
         tDIm*                    mDGx;
         tDIm*                    mDGy;
         tDIm*                    mDGNorm;
+        */
 
 	cTimerSegm               mTimeSeg;
 
@@ -70,17 +83,19 @@ class cAppliBubbles : public cMMVII_Appli
 cAppliBubbles::cAppliBubbles(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
     cMMVII_Appli      (aVArgs,aSpec),
     mPhProj           (*this),
+    mCurvExtract      (nullptr),
     mParamMatch       {},
     mCurIm            (cPt2di(1,1)),
-    mGx               (cPt2di(1,1)),
-    mGy               (cPt2di(1,1)),
-    mGNorm            (cPt2di(1,1)),
+  //  mGx               (cPt2di(1,1)),
+  //  mGy               (cPt2di(1,1)),
+  //  mGNorm            (cPt2di(1,1)),
     mTimeSeg          (this)
 {
 }
 
 cAppliBubbles::~cAppliBubbles()
 {
+    delete mCurvExtract;
 }
 
 cCollecSpecArg2007 & cAppliBubbles::ArgObl(cCollecSpecArg2007 & anArgObl) 
@@ -118,6 +133,13 @@ void  cAppliBubbles::DoOneImage(const std::string & aNameIm)
     mDCurIm = & mCurIm.DIm();
     mCurSz =  mDCurIm->Sz();
 
+    mCurvExtract = new  cExtractCurves<tElIm> (mCurIm);
+   // mCurvExtract->SetSobelAndMasq()
+
+
+  //  void SetSobelAndMasq(eIsWhite,tREAL8 aRayMaxLoc,int aBorder,bool Show=false);
+
+    /*
     mGx = tIm(mCurSz);
     mDGx = &mGx.DIm();
     mGy = tIm(mCurSz);
@@ -133,7 +155,7 @@ void  cAppliBubbles::DoOneImage(const std::string & aNameIm)
         tREAL4 aGy = mDGy->GetV(aPix);
         mDGNorm->SetV(aPix,Norm2(cPt2dr(aGx,aGy)));
     }
-
+*/
 
     /*
     int mNbOct = 5;
@@ -153,10 +175,12 @@ void  cAppliBubbles::DoOneImage(const std::string & aNameIm)
 
 void cAppliBubbles::MakeVisu()
 {
+    /*
     std::string aPref = mPhProj.DirVisuAppli() + LastPrefix(mNameCurIm) ;
     mDGx->ToFile(aPref+"_Gx.tif");
     mDGy->ToFile(aPref+"_Gy.tif");
     mDGNorm->ToFile(aPref+"_GN.tif");
+    */
 //mPhProj.DirVisuAppli() + 
 }
 
