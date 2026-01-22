@@ -1,6 +1,6 @@
 #include "MMVII_Images.h"
 #include "MMVII_Image2D.h"
-#include "cGdalApi.h"
+#include <algorithm>
 // #include <Eigen/Dense>
 
 namespace MMVII
