@@ -13,6 +13,7 @@
 
 #if   (THE_MACRO_MMVII_SYS==MMVII_SYS_L)  // Linux
 #  include <unistd.h>
+#  include <fcntl.h>
 #elif (THE_MACRO_MMVII_SYS==MMVII_SYS_W)  // Windows
 #  include <windows.h>
 #  include <process.h>
@@ -165,6 +166,104 @@ int GlobParalSysCallByMkF(const std::string & aNameMkF,const std::list<cParamCal
       return e.Exec(aListCom, aNbProcess, SVP, Silence);
    }
 }
+
+FileLock::FileLock()
+{
+}
+
+FileLock::FileLock(const std::string& name)
+{
+    lock(name);
+}
+
+FileLock::~FileLock()
+{
+    unlock();
+}
+
+bool FileLock::lock(const std::string& name)
+{
+    if (hasLock())
+        return false;
+    doLock(name);
+    return true;
+}
+
+void FileLock::unlock()
+{
+    if (hasLock())
+        doUnlock();
+}
+
+bool FileLock::hasLock()
+{
+    return doHasLock();
+}
+
+
+#ifdef WIN32
+    void FileLock::doLock(const std::string& fileName)
+    {
+        auto mutexName = std::filesystem::canonical(fileName).wstring();
+        if (mutexName.length() < MAX_PATH) {
+            std::replace( mutexName.begin(), mutexName.end(), '\\', '/');
+        } else {
+            auto key1 = std::hash<std::wstring>{}(mutexName);
+            auto key2 = std::hash<std::wstring>{}(std::wstring(mutexName.rbegin(),mutexName.rend()));
+            std::wstringstream ss;
+            ss << std::hex << std::setw(16) << std::setfill(L'0') << key1 << "/" << key2;
+            mutexName = ss.str();
+        }
+        mHandle = CreateMutexW(NULL, FALSE, mutexName.c_str());
+
+        if (!mHandle) {
+            MMVII_INTERNAL_ERROR("Can't create Mutex on file '" + fileName + "'");
+        }
+        DWORD wait = WaitForSingleObject(mHandle, INFINITE);
+        if (wait != WAIT_OBJECT_0 && wait != WAIT_ABANDONED) {
+            MMVII_INTERNAL_ERROR("Can't wait for Mutex on file '" + fileName + "'");
+        }
+    }
+
+    void FileLock::doUnlock()
+    {
+        ReleaseMutex(mHandle);
+        CloseHandle(mHandle);
+        mHandle = nullptr;
+    }
+
+    bool FileLock::doHasLock()
+    {
+        return mHandle != nullptr;
+    }
+#else
+    void FileLock::doLock(const std::string& fileName)
+    {
+        mFd = open(fileName.c_str(), O_WRONLY | O_CREAT,0666);
+        if (mFd < 0) {
+            MMVII_INTERNAL_ERROR("Can't open for locking: '" + fileName + "'");
+        }
+        auto ret = lockf(mFd, F_LOCK, 0);
+        if (ret < 0) {
+            MMVII_INTERNAL_ERROR("Can't lock file '" + fileName + "'");
+        }
+    }
+
+    void FileLock::doUnlock()
+    {
+        if (lockf(mFd, F_ULOCK, 0))
+            mFd = -1;
+    }
+
+    bool FileLock::doHasLock()
+    {
+        return mFd >= 0;
+    }
+#endif
+
+
+
+
 
 static fs::path MMVII_RawSelfExecName();
 

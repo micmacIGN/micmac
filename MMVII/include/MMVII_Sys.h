@@ -5,7 +5,6 @@
 #include <unistd.h>
 #endif
 
-#include "MMVII_AllClassDeclare.h"
 #include "cMMVII_Appli.h"
 
 namespace MMVII
@@ -57,6 +56,29 @@ int GlobParalSysCallByMkF(const std::string & aNameMkF,const std::list<cParamCal
 
 // Return full canonical path (absolute, no DOT, symbolic links followed) of the MMVII root dir (deduced from current executable path)
 std::string MMVII_CanonicalRootDirFromExec();
+
+
+class FileLock
+{
+public:
+    FileLock();
+    explicit FileLock(const std::string& name);
+    ~FileLock();
+    bool lock(const std::string& name);
+    void unlock();
+    bool hasLock();
+
+private:
+#ifdef WIN32
+    void *mHandle = nullptr;
+#else
+    int mFd = -1;
+#endif
+    void doLock(const std::string& name);
+    void doUnlock();
+    bool doHasLock();
+};
+
 
 
 };
