@@ -6,57 +6,19 @@
 namespace MMVII
 {
 
-/// class for modelization of an affine space : a point + vectorials
-template<const int Dim> class cAffineSpace
-{
-   public :
-      typedef cPtxd<tREAL8,Dim> tPtR;
-      typedef std::vector<tPtR> tVecSp;
-      typedef cAffineSpace<Dim> tAffSp;
-
-      const tPtR &   P0()    const {return mP0;}
-      const tVecSp & VecSp() const {return mVecSp;}
-
-      static tAffSp LstSqEstimate(const  std::vector<tPtR> &,int aSzSubs);
-
-   private :
-      tPtR    mP0;
-      tVecSp  mVecSp;
-};
-
-template<const int Dim>
-     cAffineSpace<Dim>  cAffineSpace<Dim>::LstSqEstimate(const  std::vector<tPtR> & aVPt,int aSzSubs)
-{
-    tAffSp aRes;
-
-    cStrStat2<tREAL8> aStat(Dim);
-    for (const auto & aPR :  aVPt)
-    {
-        aStat.Add(aPR.ToVect());
-    }
-
-    aStat.Normalise();
-    const cResulSymEigenValue<tREAL8> &  aRSEV = aStat.DoEigen();
-
-    aRes.mP0 = tPtR::FromVect(aStat.Moy());
-    for (int aK=0 ; aK<aSzSubs ; aK++)
-    {
-       cDenseVect<tREAL8> aVec(aRSEV.EigenVectors().ReadCol(Dim-1-aK));
-
-       aRes.mVecSp.push_back(tPtR::FromVect(aVec));
-    }
-
-    return aRes;
-}
-
-
 
 template<const int Dim> void DimBenchLsqVariety(int aDimSE)
 {
-    tSim3dR aSim =  tSim3dR::RandomSim3D(10,10);
-    const tRotR & aRot = aSim.Rot() ;
+    bool Show = false;
     typedef cPtxd<int,Dim> tPtI;
     typedef cPtxd<tREAL8,Dim> tPtR;
+
+   // tSim3dR aSim =  tSim3dR::RandomSim3D(10,10);
+   // const tRotR & aRot = aSim.Rot() ;
+
+    tDMatR aMat = tDMatR::RandomOrthogMatrix(Dim);
+    tPtR aCenter = tPtR::PRandC() * 10.0;
+    tREAL8 aScale = RandInInterval(0.1,3.0);
     int aDistMax= 2;
 
     std::vector<tPtR> aVPt;
@@ -65,49 +27,45 @@ template<const int Dim> void DimBenchLsqVariety(int aDimSE)
         tPtR aPR;
         for (int aD=0 ; aD<Dim ; aD++)
             aPR[aD] = aPI[aD] * (1+aD);
-        aVPt.push_back(aSim.Value(ToR(aPR)));
+        aPR = aCenter + aMat*aPR * aScale;
+        aVPt.push_back(aPR);
     }
 
    cAffineSpace<Dim> aAfSp =  cAffineSpace<Dim>::LstSqEstimate(aVPt,aDimSE);
 
-    StdOut() // << " RSEV Val=" << aRSEV.EigenValues()
-            << " [V1=" << aAfSp.VecSp().at(0)
-            <<  " V2=  " << aRot.Value(cPt3dr(0,0,1))  << "] "
-             << " Tr=" << aSim.Tr()
-            << "  C=" << aAfSp.P0()
-            << "\n";
-    /*
-    for (const auto & aPR :  aVPt)
-    {
-        aStat.Add(aPR.ToVect());
-    }
+   for (int aDimS=0 ; aDimS<aDimSE ; aDimS++)
+   {
+        tPtR aVSp =  aAfSp.VecSp().at(aDimS);
+        tPtR aVComp = aMat*(tPtR::P1Coord(Dim-1-aDimS,1.0));
+        aVComp =     aVSp.OrientInSameDir(aVComp)  ;
 
-    aStat.Normalise();
+        if (Show)
+        {
+            StdOut() << " [V1=" <<  aVSp  <<  " V2=  " <<aVComp  << "]\n";
+        }
+        MMVII_INTERNAL_ASSERT_bench(Norm2(aVSp-aVComp)<1e-7,"Diff distl");
 
-    const cResulSymEigenValue<tREAL8> &  aRSEV = aStat.DoEigen();
+   }
 
-    StdOut()<< " RSEV Val=" << aRSEV.EigenValues()
-            << " [V1=" << aRSEV.EigenVectors().ReadCol(Dim-1)
-            <<  " V2=  " << aRot.Value(cPt3dr(0,0,1))  << "] "
-             << " Tr=" << aSim.Tr()
-            << "  C=" <<  tPtR::FromVect(aStat.Moy())
-            << "\n";
-*/
+   if (Show)
+   {
+      StdOut()   << " Tr=" << aCenter  << "  C=" << aAfSp.P0()-aCenter << "-----\n\n";
+   }
 
+   MMVII_INTERNAL_ASSERT_bench(Norm2(aAfSp.P0()-aCenter)<1e-7,"Diff distl");
 }
 
 void BenchLsqVariety()
 {
-   for (int aK=0 ; aK<1 ; aK++)
+   for (int aK=0 ; aK<10 ; aK++)
    {
-     //  DimBenchLsqVariety<1>();
-     //  DimBenchLsqVariety<2>();
-      // DimBenchLsqVariety<3>(0);
+
+       DimBenchLsqVariety<2>(1);
+       DimBenchLsqVariety<2>(2);
+
        DimBenchLsqVariety<3>(1);
-      // DimBenchLsqVariety<3>(2);
-      // DimBenchLsqVariety<3>(3);
-
-
+       DimBenchLsqVariety<3>(2);
+       DimBenchLsqVariety<3>(3);
    }
 }
 

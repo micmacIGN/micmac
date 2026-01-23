@@ -149,6 +149,9 @@ template <class Type,const int Dim> class cPtxd
            MemCopy(&mCoords[0],aV,Dim);
         }
 
+       // return Pt ot -Pt, the one "best" oriented with this
+        tPt OrientInSameDir(const tPt& aPt) const;
+
         inline Type & x()             {static_assert(Dim>=1,"bad dim in cPtxd initializer");return mCoords[0];}
         inline const Type & x() const {static_assert(Dim>=1,"bad dim in cPtxd initializer");return mCoords[0];}
         inline tBigNum  BigX2() const {return Square(tBigNum(x()));}
@@ -938,6 +941,23 @@ template <class Type,const int Dim> class cSegmentCompiled : public cSegment<Typ
        tPt     mTgt;
 };
 
+/// class for modelization of an affine space : a point + vectorials
+template<const int Dim> class cAffineSpace
+{
+   public :
+      typedef cPtxd<tREAL8,Dim> tPtR;
+      typedef std::vector<tPtR> tVecSp;
+      typedef cAffineSpace<Dim> tAffSp;
+
+      const tPtR &   P0()    const {return mP0;}
+      const tVecSp & VecSp() const {return mVecSp;}
+
+      static tAffSp LstSqEstimate(const  std::vector<tPtR> &,int aSzSubs);
+
+   private :
+      tPtR    mP0;
+      tVecSp  mVecSp;
+};
 
 
 
