@@ -952,7 +952,7 @@ template<const int Dim> class cAffineSpace
       const tPtR &   P0()    const {return mP0;}
       const tVecSp & VecSp() const {return mVecSp;}
 
-      static tAffSp LstSqEstimate(const  std::vector<tPtR> &,int aSzSubs);
+      static tAffSp LstSqEstimate(const  std::vector<tPtR> &,int aSzSubs,const std::vector<tREAL8> * aVW=nullptr);
 
    private :
       tPtR    mP0;

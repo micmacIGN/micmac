@@ -313,6 +313,22 @@ std::pair<cPlane3D,tREAL8> cPlane3D::RansacEstimate(const std::vector<cPt3dr> & 
 }
 
 
+std::pair<cPlane3D,tREAL8> cPlane3D::LSQEstimate(const std::vector<cPt3dr> & aVPt,const std::vector<tREAL8>* aVW)
+{
+    cAffineSpace<3> aSp =  cAffineSpace<3>::LstSqEstimate(aVPt,2,aVW);
+
+    cPlane3D aPl = cPlane3D::FromP0And2V(aSp.P0(),aSp.VecSp().at(0),aSp.VecSp().at(1));
+    cWeightAv<tREAL8,tREAL8> aWS;
+    for (size_t aKPt=0 ; aKPt<aVPt.size() ; aKPt++)
+    {
+        tREAL8 aW = aVW ? aVW->at(aKPt) : 1.0;
+        aWS.Add(aW,aPl.Dist(aVPt.at(aKPt)));
+    }
+
+    return std::pair<cPlane3D,tREAL8>(aPl,aWS.Average());
+}
+
+
 
 // void GenRanQsubCardKAmongN(std::vector<cSetIExtension> & aRes,int aQ,int aK,int aN)
 

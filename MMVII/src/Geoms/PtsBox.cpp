@@ -10,14 +10,20 @@ namespace MMVII
 /* ========================== */
 
 template<const int Dim>
-     cAffineSpace<Dim>  cAffineSpace<Dim>::LstSqEstimate(const  std::vector<tPtR> & aVPt,int aSzSubs)
+     cAffineSpace<Dim>  cAffineSpace<Dim>::LstSqEstimate
+     (
+             const  std::vector<tPtR> & aVPt,
+             int aSzSubs,
+             const std::vector<tREAL8> * aVW
+     )
 {
     tAffSp aRes;
 
     cStrStat2<tREAL8> aStat(Dim);
-    for (const auto & aPR :  aVPt)
+    for (size_t aKPt=0 ; aKPt<aVPt.size(); aKPt++)
     {
-        aStat.Add(aPR.ToVect());
+        tREAL8 aW = aVW ? aVW->at(aKPt) : 1.0;
+        aStat.WeightedAdd(aVPt[aKPt].ToVect(),aW);
     }
 
     aStat.Normalise();
