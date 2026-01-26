@@ -119,7 +119,7 @@ class  cZBuffer
           static constexpr tElem mInfty =  -1e10;
 
 	  ///  constructor
-          cZBuffer(cTri3DIterator & aMesh,const tSet & aSetIn,const tMap & aMap,const tSet & aSetOut,double aResolOut);
+          cZBuffer(cTri3DIterator & aMesh,const tSet & aSetIn,const tMap & aMap,const tSet & aSetOut,double aResolOut, bool aSameOri=false);
 
 
 	  /// 

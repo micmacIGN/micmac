@@ -103,9 +103,9 @@ void  AddData(const cAuxAr2007  &anAux,cResModeSurfD& aRMS )
 /* =============================================== */
 
 
-cZBuffer::cZBuffer(cTri3DIterator & aMesh,const tSet &  aSetIn,const tMap & aMapI2O,const tSet &  aSetOut,double aResolOut) :
+cZBuffer::cZBuffer(cTri3DIterator & aMesh,const tSet &  aSetIn,const tMap & aMapI2O,const tSet &  aSetOut,double aResolOut,bool aSameOri) :
     mIsOk       (true),
-    mZF_SameOri (false),
+    mZF_SameOri (aSameOri),
     mMultZ      (mZF_SameOri ? 1 : -1),
     mMesh       (aMesh),
     mCountMesh  (mMesh.CastCount()),
@@ -216,7 +216,6 @@ void cZBuffer::MakeZBuf(eZBufModeIter aMode)
                aRes = MakeOneTri(aTriIn,aTriOut,aMode);
             }
         }
-
         if (aMode==eZBufModeIter::SurfDevlpt)
         {
            cResModeSurfD aRMS;

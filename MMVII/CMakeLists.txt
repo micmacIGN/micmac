@@ -80,11 +80,11 @@ set(TORCH_INCLUDE_DIRS
     ${TORCH_INSTALL_PREFIX}/include/torch/csrc/api/include)
 
 if(UNIX)
-file (GLOB TORCH_LIBRARIES "${TORCH_INSTALL_PREFIX}/lib/libtorch*.so" "${TORCH_INSTALL_PREFIX}/lib/libc10*.so" "/usr/lib/x86_64-linux-gnu/libcudart.so")
+file (GLOB TORCH_LIBRARIES "${TORCH_INSTALL_PREFIX}/lib/libtorch.so" "${TORCH_INSTALL_PREFIX}/lib/libtorch_c*.so" "${TORCH_INSTALL_PREFIX}/lib/libc10*.so" "/usr/lib/x86_64-linux-gnu/libcudart.so")
 endif()
 
 if(MSVC)
-file (GLOB TORCH_LIBRARIES "${TORCH_INSTALL_PREFIX}/lib/*.lib")
+file (GLOB  "${TORCH_INSTALL_PREFIX}/lib/*.lib")
 endif()
 ############################# libtorch  ###############
 
@@ -177,7 +177,7 @@ file(GLOB mmv2_headers "${mmv2_include_dir}/*.h" "${mmv2_include_dir}/*/*.h" "${
 add_library(P2007 "${mmv2_libsrcs}" "${mmv2_headers}")
 
 target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH};${PDAL_INCLUDE_DIRS};${PROJ_INCLUDE_DIRS};${GDAL_INCLUDE_DIRS};${TORCH_INCLUDE_DIRS}")
-target_link_libraries(P2007 PRIVATE MMVII_compiler_flags Threads::Threads ${PROJ_LIBRARIES} ${GDAL_LIBRARIES} ${TORCH_LIBRARIES} ${PDAL_LIBRARIES})
+target_link_libraries(P2007 PRIVATE MMVII_compiler_flags Threads::Threads ${PROJ_LIBRARIES} ${GDAL_LIBRARIES} ${PDAL_LIBRARIES} -Wl,--no-as-needed ${TORCH_LIBRARIES})
 
 
 # Force parallel compilation with MSVC
@@ -207,7 +207,7 @@ if(MMVII_KEEP_LIBRARY_MMV1)
 endif()
 
 target_include_directories(MMVII PRIVATE "${mmv2_include_dir};${TORCH_INCLUDE_DIRS}")
-target_link_libraries(MMVII PRIVATE MMVII_compiler_flags Threads::Threads P2007 ${mmv1_libs} ${mmv2_extlibs} ${TORCH_LIBRARIES} ${PDAL_LIBRARIES})
+target_link_libraries(MMVII PRIVATE MMVII_compiler_flags Threads::Threads P2007 ${mmv1_libs} ${mmv2_extlibs} ${PDAL_LIBRARIES} -Wl,--no-as-needed ${TORCH_LIBRARIES})
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION  VERSION_LESS "9.1")
   target_link_libraries(MMVII PRIVATE -lstdc++fs)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION  VERSION_LESS "9.0")
