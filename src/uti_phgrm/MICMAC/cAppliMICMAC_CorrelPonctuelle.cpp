@@ -100,6 +100,7 @@ void cAppliMICMAC::DoCostLearnedMMVII(const Box2di & aBox,const cScoreLearnedMMV
        aZMax = round_up  (aZMax*aStepZ);
    }
 
+
    int aSzW = 0;
    if (aModele=="MMV1") aSzW=3;
    Tiff_Im aF2(aN2.c_str());
@@ -107,7 +108,13 @@ void cAppliMICMAC::DoCostLearnedMMVII(const Box2di & aBox,const cScoreLearnedMMV
    int aY0In2 = ElMax(mBoxIn.P0().y-aSzW      ,  0);
    int aX1In2 = ElMin(mBoxIn.P1().x+aSzW+aZMax,  aF2.sz().x);
    int aY1In2 = ElMin(mBoxIn.P1().y+aSzW      ,  aF2.sz().y);
+
+   if ( (aX1In2<0) || (aY1In2<0) || (aX0In2>aF2.sz().x) || (aY0In2>aF2.sz().y))
+        return;
+
    Box2di aBoxIn2(Pt2di(aX0In2,aY0In2),Pt2di(aX1In2,aY1In2));
+
+
 
    Tiff_Im aF1(aN1.c_str());
    int aX0In1 = ElMax(mBoxIn.P0().x-aSzW,  0);
@@ -182,6 +189,8 @@ void cAppliMICMAC::DoCostLearnedMMVII(const Box2di & aBox,const cScoreLearnedMMV
                 (aCPC.FileModeleArch().IsInit()),
                 "MVCNN INFERENCE REQUIRES MODEL ARCHITECTURE"
         );
+
+        /// BUG NEGATIVE BOX SIZE
        
        std::string aModeleParams = aCPC.FileModeleParams().Val();
        std::string aModeleArch = aCPC.FileModeleArch().Val();
@@ -197,6 +206,7 @@ void cAppliMICMAC::DoCostLearnedMMVII(const Box2di & aBox,const cScoreLearnedMMV
        Tiff_Im::CreateFromIm(aImZMin,aNameZMin);
        Tiff_Im::CreateFromIm(aImZMax,aNameZMax);
 
+       std::cout<<"aBOX2 "<<aBoxIn2<<std::endl;
        std::string aCom =   "MMVII DM4FillCubeCost " + aN1 + " " + aN2 
                           + " " +  aModele
                           + " " +  ToString(mBoxIn.P0())
@@ -244,7 +254,6 @@ void cAppliMICMAC::DoCostLearnedMMVII(const Box2di & aBox,const cScoreLearnedMMV
                 }
             }
         }
-      /***************************************************************/
        aFileCube.close();
        ELISE_fp::RmFile(aNameZMin);
        ELISE_fp::RmFile(aNameZMax);

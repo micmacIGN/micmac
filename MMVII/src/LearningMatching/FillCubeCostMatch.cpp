@@ -687,32 +687,8 @@ int  cAppliFillCubeCost::Exe()
    mIm1 = tImRad::FromFile(mNameI1,mBoxGlob1);
    mDI1 = &(mIm1.DIm());
 
-   /// PATCH TO HANDLE OUTSIDE IMAGE
-   {
-       cDataFileIm2D  aFileIm2 = cDataFileIm2D::Create(mNameI2,eForceGray::Yes);
-
-       if (! mBoxGlob2.IncludedIn(aFileIm2))
-       {
-           cBox2di aBoxIn2 = mBoxGlob2.Inter(cBox2di(cPt2di::PCste(0),aFileIm2.Sz()));
-
-           if( aBoxIn2.IsEmpty())
-                return EXIT_SUCCESS;
-
-           mIm2 = tImRad(mBoxGlob2.Sz());
-           mIm2.DIm().InitCste(0);
-           mIm2.Read(aFileIm2,aBoxIn2.P0(),1,aBoxIn2);
-       }
-       else
-       {
-           mIm2 = tImRad::FromFile(mNameI2,mBoxGlob2);
-       }
-
-        mDI2 = &(mIm2.DIm());
-   }
-
-
-
-
+   mIm2 = tImRad::FromFile(mNameI2,mBoxGlob2);
+   mDI2 = &(mIm2.DIm());
 
    mFileCube = new cMMVII_Ofs(mNameCube, eFileModeOut::CreateBinary);
 
