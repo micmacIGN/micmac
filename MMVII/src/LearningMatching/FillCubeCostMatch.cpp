@@ -690,9 +690,14 @@ int  cAppliFillCubeCost::Exe()
    /// PATCH TO HANDLE OUTSIDE IMAGE
    {
        cDataFileIm2D  aFileIm2 = cDataFileIm2D::Create(mNameI2,eForceGray::Yes);
+
        if (! mBoxGlob2.IncludedIn(aFileIm2))
        {
            cBox2di aBoxIn2 = mBoxGlob2.Inter(cBox2di(cPt2di::PCste(0),aFileIm2.Sz()));
+
+           if( aBoxIn2.IsEmpty())
+                return EXIT_SUCCESS;
+
            mIm2 = tImRad(mBoxGlob2.Sz());
            mIm2.DIm().InitCste(0);
            mIm2.Read(aFileIm2,aBoxIn2.P0(),1,aBoxIn2);
