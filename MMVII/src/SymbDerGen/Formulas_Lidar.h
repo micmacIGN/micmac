@@ -294,9 +294,9 @@ public :
 
         cPtxd<tObs,3>  aPScanA     = VtoP3AutoIncr(aVObs,&aIndObs);  // Value of point in scan A frame
         cPtxd<tObs,3>  aPScanB0    = VtoP3AutoIncr(aVObs,&aIndObs);  // Initial value of point in scan B frame
-        tObs           aDistB0     = aVObs.at(aIndObs++);            // Current distance read in raster B
         cPtxd<tObs,3>  aGradProjBI = VtoP3AutoIncr(aVObs,&aIndObs);  // I(abscissa) of gradient / PCamera of projection
         cPtxd<tObs,3>  aGradProjBJ = VtoP3AutoIncr(aVObs,&aIndObs);  // J(ordinate) of gradient / PCamera of projection
+        tObs           aDistB0     = aVObs.at(aIndObs++);            // Current distance read in raster B
         cPtxd<tObs,2>  aGradDistB  = VtoP2AutoIncr(aVObs,&aIndObs);  // extract the gradient of distance raster
 
         cMatF<tUk>   aDeltaScanARot =  cMatF<tUk>::MatAxiator(-aWScanA); // transpose small rotation associated to W
@@ -322,7 +322,7 @@ public :
 
     std::vector<std::string> VNamesUnknowns()  const
     {
-        return Append(NamesP3("OmegaScanA"), NamesP3("OmegaScanB"));
+        return Append(NamesP3("mCScanA"), NamesP3("OmegaScanA"), NamesP3("mCScanB"), NamesP3("OmegaScanB"));
     }
     std::vector<std::string> VNamesObs() const
     {
@@ -330,9 +330,9 @@ public :
                              NamesMatr("RotScanBTr",cPt2di(3,3)),
                              NamesP3("PScanA"),
                              NamesP3("PScanB0")),
-                      Append({"DistB0"},
-                             NamesP3("GradProjBI"),   //  (d PIm / d PCam ).i
+                      Append(NamesP3("GradProjBI"),   //  (d PIm / d PCam ).i
                              NamesP3("GradProjBJ"),   //  (d PIm / d PCam) .j
+                             {"DistB0"},
                              NamesP2("GradDistB")));
     }
     std::string FormulaName() const {

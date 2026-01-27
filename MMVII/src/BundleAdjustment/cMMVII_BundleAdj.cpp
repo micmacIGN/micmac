@@ -122,6 +122,7 @@ cMMVII_BundleAdj::~cMMVII_BundleAdj()
     delete mRUCSUR;
     // DeleteAllAndClear(mGCP_UK);
     DeleteAllAndClear(mVBA_Lidar);
+    DeleteAllAndClear(mVBA_LidarLidar);
 
     DeleteLineAdjust();
     DeleteBlockInstr();
@@ -408,7 +409,10 @@ void cMMVII_BundleAdj::OneIteration(bool isFirstIter, tREAL8 aLVM, bool isLastIt
     }
 
     for (const auto & aLidarPh : mVBA_Lidar )
-       aLidarPh->AddObs();
+        aLidarPh->AddObs();
+
+    for (const auto & aLidarLidar : mVBA_LidarLidar )
+        aLidarLidar->AddObs();
 
     // Add observation for line adjustment
     IterAdjustOnLine();
@@ -843,6 +847,11 @@ cStaticLidar * cMMVII_BundleAdj::AddStaticLidar(const std::string &aScanName)
 }
 
 const std::unordered_map<std::string, cStaticLidar *> &cMMVII_BundleAdj::MapTSL() const {return mMapTSL;}
+
+void cMMVII_BundleAdj::Add1AdjLidarLidar(const std::vector<std::string> &aParam)
+{
+    mVBA_LidarLidar.push_back(new cBA_LidarLidarRaster(mPhProj, *this,aParam));
+}
 
 
 void cMMVII_BundleAdj::SaveTSL()
