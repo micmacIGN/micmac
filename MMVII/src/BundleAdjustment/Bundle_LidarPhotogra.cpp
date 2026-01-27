@@ -120,21 +120,21 @@ cBA_LidarPhotograRaster::cBA_LidarPhotograRaster(cPhotogrammetricProject * aPhPr
     }
 
     //read scans files from directory corresponding to pattern in aParam.at(1)
-    mVScanNames = mPhProj->GetStaticLidarNames(aParam.at(1));
-    for (const auto & aNameSens : mVScanNames)
+    auto aVScanNames = mPhProj->GetStaticLidarNames(aParam.at(1));
+    for (const auto & aNameSens : aVScanNames)
     {
-        mBA.AddStaticLidar(aNameSens);
+        cStaticLidar * aScan = mBA.AddStaticLidar(aNameSens);
         StdOut() << "Add Scan " << aNameSens << "\n";
+        mVScans.push_back({aNameSens, aScan, {}});
     }
 
     // Creation of the patches, choose a neigborhood around patch centers. TODO: adapt to images ground pixels size?
     if (mModeSim==eImatchCrit::eDifRad)
         mNbPointByPatch = 1;
-    for (auto & aScanName: mVScanNames)
+    for (auto & aScanData: mVScans)
     {
-        auto & aLidarBAData = mBA.MapTSL().at(aScanName);
-        aLidarBAData.mLidarRaster->MakePatches(aLidarBAData.mLPatchesP,aBA.VSCPC(),mNbPointByPatch,5);
-        StdOut() << "Nb patches for " << aScanName << ": " << aLidarBAData.mLPatchesP.size() << "\n";
+        aScanData.mLidarRaster->MakePatches(aScanData.mLPatchesP,aBA.VSCPC(),mNbPointByPatch,5);
+        StdOut() << "Nb patches for " << aScanData.mScanName << ": " << aScanData.mLPatchesP.size() << "\n";
     }
 }
 
@@ -192,35 +192,29 @@ void cBA_LidarPhotograRaster::AddObs()
     mNbUsedObs = 0;
     if (mModeSim==eImatchCrit::eDifRad)
     {
-        for (auto & aScanName : mVScanNames)
-        {
-            auto & aLidarBAData = mBA.MapTSL().at(aScanName);
-            for (const auto& aPatch : aLidarBAData.mLPatchesP)
+        for (auto & aScan : mVScans)
+            for (const auto& aPatch : aScan.mLPatchesP)
             {
                 Add1Patch(mWeight,
-                          {aLidarBAData.mLidarRaster->Image2Ground(*aPatch.begin())},
-                          aScanName);
+                          {aScan.mLidarRaster->Image2Ground(*aPatch.begin())},
+                          aScan.mScanName);
             }
-        }
     }
     else
     {
-        for (auto & aScanName : mVScanNames)
-        {
-            auto & aLidarBAData = mBA.MapTSL().at(aScanName);
-            for (const auto& aPatch : aLidarBAData.mLPatchesP)
+        for (auto & aScan : mVScans)
+            for (const auto& aPatch : aScan.mLPatchesP)
             {
                 std::vector<cPt3dr> aVP;
                 for (const auto aPt : aPatch)
-                    aVP.push_back(aLidarBAData.mLidarRaster->Image2Ground(aPt));
-                Add1Patch(mWeight,aVP,aScanName);
+                    aVP.push_back(aScan.mLidarRaster->Image2Ground(aPt));
+                Add1Patch(mWeight,aVP,aScan.mScanName);
             }
-        }
     }
 
     if (mLastResidual.SW() != 0)
         StdOut() << "  * Lid/Phr Residual Rad " << std::sqrt(mLastResidual.Average())
-                 << " ("<<mVScanNames.size()<<" scans, "<<mNbUsedObs<<" obs, "<<mNbUsedPoints<<" points)\n";
+                 << " ("<<mVScans.size()<<" scans, "<<mNbUsedObs<<" obs, "<<mNbUsedPoints<<" points)\n";
     else
         StdOut() << "  * Lid/Phr: no obs\n";
 }
@@ -270,7 +264,7 @@ void cBA_LidarPhotograRaster::SetVUkVObs
         int                     aKPt
         )
 {
-    cStaticLidar * aScan = mBA.MapTSL().at(aData.mScanName).mLidarRaster;
+    cStaticLidar * aScan = mBA.MapTSL().at(aData.mScanName);
     cPt3dr aPScan = aScan->Pt_W2L(aPGround);  // coordinate of point in ground system
     cSensorCamPC * aCam = mBA.VSCPC().at(aData.mKIm);  // extract the camera
     cPt3dr aPCam = aCam->Pt_W2L(aPGround);  // coordinate of point in image system

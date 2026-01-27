@@ -418,8 +418,9 @@ protected:
 // record all data for each scan raster
 struct cStaticLidarBAData
 {
+    std::string                    mScanName;      //scan id
     cStaticLidar *                 mLidarRaster;   //< raster representations of lidar
-    std::list<std::set<cPt2di>>    mLPatchesP;      //< set of patches as px in raster, consituted by 3D points in a lidar scan
+    std::list<std::set<cPt2di>>    mLPatchesP;     //< set of patches as px in raster, consituted by 3D points in a lidar scan
 };
 
 class cBA_LidarPhotograRaster : public cBA_LidarPhotogra
@@ -442,7 +443,7 @@ protected:
          int                     aKPt
          ) override;
 
-    std::vector<std::string> mVScanNames;      ///< vector of raster representations of lidar
+    std::vector<cStaticLidarBAData> mVScans;      ///< vector of raster representations of lidar
 };
 
 
@@ -485,7 +486,7 @@ class cMMVII_BundleAdj
           cBA_GCP& getGCP() { return mGCP;}
 
           ///  ============  Add Lidar/Photogra ===============          void AddLineAdjust(const std::vector<std::string> &);
-          void AddStaticLidar(const std::string &aScanName);
+          cStaticLidar *AddStaticLidar(const std::string &aScanName);
           void Add1AdjLidarPhotogra(const std::vector<std::string> &);
           void Add1AdjLidarPhoto(const std::vector<std::string> &);
 
@@ -497,7 +498,7 @@ class cMMVII_BundleAdj
 
           const std::vector<cSensorImage *> &  VSIm() const ;  ///< Accessor
           const std::vector<cSensorCamPC *> &  VSCPC() const;   ///< Accessor
-          std::unordered_map<std::string, cStaticLidarBAData> & MapTSL(); ///< Accessor
+          const std::unordered_map<std::string, cStaticLidar*> & MapTSL() const; ///< Accessor
 								//
 
           bool CheckGCPConstraints() const; //< test if free points have enough observations
@@ -585,7 +586,7 @@ class cMMVII_BundleAdj
           std::vector<cPerspCamIntrCalib *>  mVPCIC;     ///< vector of all internal calibration 4 easy parse
           std::vector<cSensorCamPC *>        mVSCPC;      ///< vector of perspectiv  cameras
           std::vector<cSensorImage *>        mVSIm;       ///< vector of sensor image (PC+RPC ...)
-          std::unordered_map<std::string, cStaticLidarBAData>  mMapTSL;      ///< map of static lidar scans data for BA, indexed by scan name
+          std::unordered_map<std::string, cStaticLidar*>  mMapTSL;      ///< map of static lidar scans data for BA, indexed by scan name
           //  std::vector<cCalculator<double> *> mVEqCol;     ///< vector of co-linearity equation -> replace by direct access
 
           cSetInterUK_MultipeObj<tREAL8>    mSetIntervUK;
