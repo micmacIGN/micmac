@@ -335,10 +335,20 @@ void cMMVII_BundleAdj::OneIteration(bool isFirstIter, tREAL8 aLVM, bool isLastIt
     // if necessary, fix frozen poses of static lidar
     if (mPatFrozenTSL !="")
     {
-        for (const auto & aBALidar : mVBA_Lidar)
+        // Freeze full pose (TODO: be able to to fix only verticalization)
+        tNameSelector aSel = AllocRegex(cStaticLidar::Pat2Sup(mPatFrozenTSL));
+        int nbMatches = 0;
+        for (auto & [aScanName, aLidarBAData] : mMapTSL)
         {
-            aBALidar->SetFrozenVar(isFirstIter, *mR8_Sys, mPatFrozenTSL);
+            if (aSel.Match(aScanName))
+            {
+                mR8_Sys->SetFrozenVarCurVal(*aLidarBAData.mLidarRaster,aLidarBAData.mLidarRaster->Center());
+                mR8_Sys->SetFrozenVarCurVal(*aLidarBAData.mLidarRaster,aLidarBAData.mLidarRaster->Omega());
+                nbMatches++;
+            }
         }
+        if (mVerbose && isFirstIter)
+            StdOut() << "Frozen TSL poses: " << nbMatches << ".\n";
     }
 
     if (mBlRig) // RIGIDBLOC
@@ -836,8 +846,8 @@ std::unordered_map<std::string, cStaticLidarBAData> &  cMMVII_BundleAdj::MapTSL(
 
 void cMMVII_BundleAdj::SaveTSL()
 {
-    for (auto & aScanPair : mMapTSL)
-        aScanPair.second.mLidarRaster->ToFile(mPhProj->DPOrient().FullDirOut() + aScanPair.first);
+    for (auto & [aScanName, aLidarBAData] : mMapTSL)
+        aLidarBAData.mLidarRaster->ToFile(mPhProj->DPOrient().FullDirOut() + aScanName);
 }
 
 /* ---------------------------------------- */
